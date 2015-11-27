@@ -13,14 +13,14 @@ namespace TSignalProc {
 
 
 /////////////////////////////////////////////////
-// Online Moving Average (M1))
+// Online Moving Average
 class TMaSimple {
 private:
 	TFlt Ma; // current computed MA value  
 	TUInt64 N;
 public:
-	TMaSimple() { Ma = 0; N = 0; };
-	TMaSimple(const PJsonVal& ParamVal) { TMaSimple(); };
+	TMaSimple() { };
+	TMaSimple(const PJsonVal& ParamVal) { };
 	TMaSimple(TSIn& SIn) : Ma(SIn), N(SIn) {}
 	// serialization
 	void Load(TSIn& SIn) { *this = TMaSimple(SIn); }
@@ -40,8 +40,8 @@ private:
 	TFlt NewS;
 	TUInt64 N;
 public:
-	TVarSimple() { OldM = NewM = OldS = NewS = 0.0; N = 0; }
-	TVarSimple(TSIn& SIn) : OldM(SIn), NewM(SIn), OldS(SIn), NewS(SIn), N(SIn) {}
+	TVarSimple() { }
+	TVarSimple(TSIn& SIn): OldM(SIn), NewM(SIn), OldS(SIn), NewS(SIn), N(SIn) {}
 
 	// serialization
 	void Load(TSIn& SIn);
@@ -56,21 +56,25 @@ public:
 };
 
 /////////////////////////////////////////////////
-// Online Moving Average (M1))
+// Online Moving Average
 class TMa {
 private:	
     TFlt Ma; // current computed MA value 
 	TUInt64 TmMSecs; // timestamp of current MA	    
 public:
-	TMa() { Ma = 0; };	
-    TMa(const PJsonVal& ParamVal) { TMa(); };
+	TMa() { };
+    TMa(const PJsonVal& ParamVal) { };
 	TMa(TSIn& SIn);
 	// serialization
 	void Load(TSIn& SIn);
 	void Save(TSOut& SOut) const;
 
-	void Update(const double& InVal, const uint64& InTmMSecs, 
+    bool IsInit() const { return (TmMSecs > 0); }
+	/// Resets the model state
+	void Reset() { Ma = 0.0; TmMSecs = 0; }
+	void Update(const double& InVal, const uint64& InTmMSecs,
         const TFltV& OutValV, const TUInt64V& OutTmMSecs, const int& N);	
+	void Update(const TFltV& InValV, const TUInt64V& InTmMSecsV, const TFltV& OutValV, const TUInt64V& OutTmMSecs, const int& N) { throw  TExcept::New("TSignalProc::TMa, delayed Update not implemented"); }
 	double GetValue() const { return Ma; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
 	void Clr() { Ma = 0; TmMSecs = 0; }
@@ -83,16 +87,21 @@ private:
 	TFlt Sum; // current computed SUM value 
 	TUInt64 TmMSecs; // timestamp of current MA	    
 public:
-	TSum() { Sum = 0; };
-	TSum(const PJsonVal& ParamVal) { TSum(); };
-	TSum(TSIn& SIn) : Sum(SIn), TmMSecs(SIn) { }
+	TSum() { };
+	TSum(const PJsonVal& ParamVal) { };
+	TSum(TSIn& SIn): Sum(SIn), TmMSecs(SIn) { }
 
 	// serialization
 	void Load(TSIn& SIn);
 	void Save(TSOut& SOut) const;
 
+    bool IsInit() const { return (TmMSecs > 0); }
+	/// Resets the model state
+	void Reset() { Sum = 0; TmMSecs = 0; }
 	void Update(const double& InVal, const uint64& InTmMSecs,
 		const TFltV& OutValV, const TUInt64V& OutTmMSecs);
+	void Update(const TFltV& InValV, const TUInt64V& InTmMSecsV, const TFltV& OutValV, const TUInt64V& OutTmMSecs) { throw  TExcept::New("TSignalProc::TSum, delayed Update not implemented"); }
+
 	double GetValue() const { return Sum; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
 };
@@ -105,15 +114,19 @@ private:
 	TUInt64 TmMSecs; // timestamp of current MA	   
 	TFltUInt64PrV AllValV; // sorted vector of values	
 public:
-	TMin() { Min = TFlt::Mx; TmMSecs = 0; };
-	TMin(TSIn& SIn) : Min(SIn), TmMSecs(SIn), AllValV(SIn) { }
+	TMin(): Min(TFlt::Mx) { };
+	TMin(TSIn& SIn): Min(SIn), TmMSecs(SIn), AllValV(SIn) { }
 
 	// serialization
 	void Load(TSIn& SIn);
 	void Save(TSOut& SOut) const;
 
+    bool IsInit() const { return (TmMSecs > 0); }
+	/// Resets the model state
+	void Reset() { Min = TFlt::Mx; TmMSecs = 0; }
 	void Update(const double& InVal, const uint64& InTmMSecs,
 		const TFltV& OutValV, const TUInt64V& OutTmMSecs);
+	void Update(const TFltV& InValV, const TUInt64V& InTmMSecsV, const TFltV& OutValV, const TUInt64V& OutTmMSecs) { throw  TExcept::New("TSignalProc::TMin, delayed Update not implemented"); }
 	double GetValue() const { return Min; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
 };
@@ -126,15 +139,19 @@ private:
 	TUInt64 TmMSecs; // timestamp of current MA	   
 	TFltUInt64PrV AllValV; // sorted vector of values	
 public:
-	TMax() { Max = TFlt::Mn; TmMSecs = 0; };
-	TMax(TSIn& SIn) : Max(SIn), TmMSecs(SIn), AllValV(SIn) { }
+	TMax(): Max(TFlt::Mn) { };
+	TMax(TSIn& SIn): Max(SIn), TmMSecs(SIn), AllValV(SIn) { }
 
 	// serialization
 	void Load(TSIn& SIn);
 	void Save(TSOut& SOut) const;
 
+    bool IsInit() const { return (TmMSecs > 0); }
+	/// Resets the model state
+	void Reset() { Max = TFlt::Mn; TmMSecs = 0; }
 	void Update(const double& InVal, const uint64& InTmMSecs,
 		const TFltV& OutValV, const TUInt64V& OutTmMSecs);
+	void Update(const TFltV& InValV, const TUInt64V& InTmMSecsV, const TFltV& OutValV, const TUInt64V& OutTmMSecs) { throw  TExcept::New("TSignalProc::TMax, delayed Update not implemented"); }
 	double GetValue() const { return Max; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
 };
@@ -173,6 +190,8 @@ public:
 	void Update(const double& Val, const uint64& NewTmMSecs);
 	// current status
 	bool IsInit() const { return InitP; }
+	/// Resets the aggregate
+	void Reset();
 	double GetValue() const { return Ema; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
 };
@@ -186,20 +205,22 @@ private:
 	TUInt64 TmMSecs; // timestamp of current WMA	
     TFlt pNo;
 public:
-	TVar() { Ma = 0; M2 = 0; pNo = 1; TmMSecs = 0;}	
-	TVar(TSIn& SIn) : Ma(SIn), M2(SIn), TmMSecs(SIn), pNo(SIn) { }
+	TVar(): pNo(1) { }
+	TVar(TSIn& SIn): Ma(SIn), M2(SIn), TmMSecs(SIn), pNo(SIn) { }
 
 	// serialization
 	void Load(TSIn& SIn);
 	void Save(TSOut& SOut) const;
 
-	void Update(const double& InVal, const uint64& InTmMSecs, 
+    bool IsInit() const { return (TmMSecs > 0); }
+	/// Resets the model state
+	void Reset() { Ma = 0.0; M2 = 0.0; TmMSecs = 0; pNo = 1; }
+	void Update(const double& InVal, const uint64& InTmMSecs,
         const TFltV& OutValV, const TUInt64V& OutTmMSecsV, const int& N);
+	void Update(const TFltV& InValV, const TUInt64V& InTmMSecsV, const TFltV& OutValV, const TUInt64V& OutTmMSecs, const int& N) { throw  TExcept::New("TSignalProc::TVar, delayed Update not implemented"); }
+
 	// current status	
-	double GetValue() const {
-		if (pNo > 1) { return M2 / (pNo - 1); }
-		else { return 0; }
-	}
+	double GetValue() const { return (pNo > 1) ? (M2 / (pNo - 1)) : 0; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
 	void Clr() { Ma = 0; M2 = 0; pNo = 1; TmMSecs = 0; }
 };
@@ -208,20 +229,18 @@ public:
 // Online M2(X,Y) (covariance)
 class TCov {
 private:	
-    TFlt MaX, MaY; // current computed MA value        
-    TFlt Cov;
+	TFlt MaX, MaY; // current computed MA value        
+	TFlt Cov;
 	TUInt64 TmMSecs; // timestamp of current WMA	
-    TFlt pNo;
+	TFlt pNo;
 public:
-	TCov() {  };	
-    TCov(const PJsonVal& ParamVal) { TCov(); };
-
+	TCov() { };
+    TCov(const PJsonVal& ParamVal) { };
+	/// Resets the aggregates
+	void Reset() { TmMSecs = 0; Cov = 0.0; pNo = 0.0; MaX = 0.0; MaY = 0.0; }
 	void Update(const double& InValX, const double& InValY, const uint64& InTmMSecs, 
         const TFltV& OutValVX, const TFltV& OutValVY, const TUInt64V& OutTmMSecsV, const int& N);	
-	double GetCov() const { 
-		if (pNo > 1) { return Cov / (pNo - 1); } 
-		else { return 0; }
-	}
+	double GetCov() const { return (pNo > 1) ? (Cov / (pNo - 1)) : 0; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
 };
 
@@ -240,6 +259,18 @@ private:
 public:
 	TBuffer(const int& BufferLen_): BufferLen(BufferLen_), 
         NextValN(0), ValV(BufferLen_, 0) { }
+
+	// serialization
+	void Load(TSIn& SIn) {
+		BufferLen.Load(SIn);
+		NextValN.Load(SIn);
+		ValV.Load(SIn);
+	}
+	void Save(TSOut& SOut) const {
+		BufferLen.Save(SOut);
+		NextValN.Save(SOut);
+		ValV.Save(SOut);
+	}
     
     /// add new value to the buffer
     void Update(const TVal& Val){
@@ -255,12 +286,15 @@ public:
     
     /// Is buffered initialized 
     bool IsInit() const { return ValV.Len() == BufferLen; }
+	/// Resets the buffer
+	void Reset() { NextValN = 0; ValV.Gen(0); }
     /// Is buffer empty
     bool Empty() const { return ValV.Empty(); }
     /// Number of elements at the moment
     int Len() const { return ValV.Len(); }
         
-	/// Get values from buffer (older values = larger index): example buffer = [x_(t-3) x_(t-2) x_(t-1) x_t] => GetVal(i) returns x_(t-1)
+	/// Get values from buffer (older values = larger index):
+    ///  example buffer = [x_(t-3) x_(t-2) x_(t-1) x_t] => GetVal(i) returns x_(t-1)
 	const TVal& GetVal(const int& ValN) const {
 		return ValV[(NextValN + BufferLen - 1 - ValN) % BufferLen]; }
     /// Get the oldest value
@@ -400,8 +434,6 @@ const TVal& TLinkedBuffer<TVal, TSizeTy>::GetNewest() const {
 	return Last->Val;
 }
 
-
-
 /////////////////////////////////////////
 // Time series interpolator interface
 class TInterpolator;
@@ -441,12 +473,11 @@ protected:
 	TLinkedBuffer<TPair<TUInt64, TFlt>> Buff;
 
 	TBufferedInterpolator(const TStr& InterpolatorType);
-	TBufferedInterpolator(TSIn& SIn);
+	TBufferedInterpolator(const TStr& InterpolatorType, TSIn& SIn);
 
 public:
 	virtual void Save(TSOut& SOut) const;
 
-//	virtual void SetNextInterpTm(const uint64& Time);
 	void AddPoint(const double& Val, const uint64& Tm);
 };
 
@@ -696,6 +727,92 @@ public:
 		P = TFullMatrix::Identity(_Dim) / RegFact;
 		Coeffs = TVector(_Dim, true);
 	}
+};
+
+
+/////////////////////////////////////////////////
+/// Online histogram
+///    Given a sequence of points b_1, ...,b_n
+///    the class represents a frequency histogram for each interval [b_i, b_i+1)
+///    The intervals are open on the right, except for the last interval [b_n-1 b_n]
+///    The count data can be incremented or decremented, so we can work in an online
+///    setting.
+class TOnlineHistogram {
+private:
+	TFltV Counts; ///< Number of occurrences
+	TFltV Bounds; ///< Interval bounds (Bounds.Len() == Counts.Len() + 1)
+public:	
+	/// Constructs uninitialized object
+	TOnlineHistogram() {};
+	/// Constructs given bin parameters
+	TOnlineHistogram(const double& LBound, const double& UBound, const int& Bins, const bool& AddNegInf, const bool& AddPosInf) { Init(LBound, UBound, Bins, AddNegInf, AddPosInf); }
+	/// Constructs given JSON arguments
+	TOnlineHistogram(const PJsonVal& ParamVal);
+	/// Constructs from stream
+	TOnlineHistogram(TSIn& SIn) : Counts(SIn), Bounds(SIn) {}
+
+	/// Initializes the object, resets current content is present
+	void Init(const double& LBound, const double& UBound, const int& Bins, const bool& AddNegInf, const bool& AddPosInf);
+
+	/// Resets the counts
+	void Reset();
+
+	/// Loads the model from stream
+	void Load(TSIn& SIn) { *this = TOnlineHistogram(SIn); }
+	/// Saves the model to stream
+	void Save(TSOut& SOut) const { Counts.Save(SOut); Bounds.Save(SOut); }
+	/// Finds the bin index given val, returns -1 if not found
+	int FindBin(const double& Val) const;
+	/// Increments the number of occurrences of values that fall within the same bin as Val
+	void Increment(const double& Val);
+	/// Decrements the number of occurrences of values that fall within the same bin as Val
+	void Decrement(const double& Val);
+	/// Returns the number of occurrences of values that fall within the same bin as Val
+	double GetCount(const double& Val) const;
+	/// Returns the number of bins
+	int GetBins() const { return Counts.Len(); }
+	/// Copies the count vector
+	void GetCountV(TFltV& Vec) const { Vec = Counts; }
+	/// Returns an element of count vector given index
+	double GetCountN(const int& CountN) const { return Counts[CountN]; }
+	/// Has the model beeen initialized?
+	bool IsInit() const {	return Counts.Len() > 0 && Bounds.Len() > 0; }
+	/// Clears the model
+	void Clr() { Counts.Clr(); Bounds.Clr(); }
+	/// Prints the model
+	void Print() const;
+	/// Returns a JSON representation of the model
+	PJsonVal SaveJson() const;
+};
+
+/////////////////////////////////////////////////
+/// Chi square
+class TChiSquare {
+private:	     
+	// state
+	TFlt Chi2;
+	TFlt P;
+	// parameters
+	TInt DegreesOfFreedom;
+public:
+	TChiSquare() : P(TFlt::PInf) { }
+	TChiSquare(const PJsonVal& ParamVal);
+	/// Reset
+	void Reset() { Chi2 = 0; P = TFlt::PInf; }
+	/// Compute two sample chi2 test
+	void Update(const TFltV& OutValVX, const TFltV& OutValVY);
+	/// Return Chi2 value
+	double GetChi2() const { return Chi2; }
+	/// Return P value
+	double GetP() const { return P; }
+	int GetDof() const {return DegreesOfFreedom;}
+	/// Prints the model
+	void Print() const;
+
+	/// Load from stream
+	void LoadState(TSIn& SIn);
+	/// Store state into stream
+	void SaveState(TSOut& SOut) const;
 };
 
 }

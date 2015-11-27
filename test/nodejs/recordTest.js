@@ -1,12 +1,12 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
 
-console.log(__filename)
+// console.log(__filename)
 var assert = require('assert');
 var qm = require('qminer');
 
@@ -53,7 +53,8 @@ describe('Record Tests', function () {
             Str: "test",
             StrV: ["test1", "test2"],
             Bool: false,
-            Flt: 1.23
+            Flt: 1.23,
+            Tm: 1433116800000
         };
         // check addition
         assert.equal(RecordTest.push(rec), 0, "RecordTest.add");
@@ -65,6 +66,7 @@ describe('Record Tests', function () {
         assert.equal(recByRef.Str, "test", "recByRef.Str");
         assert.equal(recByRef.Bool, false, "recByRef.Bool");
         assert.equal(recByRef.Flt, 1.23, "recByRef.Flt");
+        assert.equal(recByRef.Tm.getTime(), 1433116800000, "recByRef.Tm");
 
         //recByRef
 
@@ -79,8 +81,12 @@ describe('Record Tests', function () {
         assert.equal(recByRef.Bool, true, "recByRef.Bool");
         recByRef.Flt = 1.24;
         assert.equal(recByRef.Flt, 1.24, "recByRef.Flt");
+        recByRef.Tm = "2015-06-01T00:00:00Z";
+        assert.equal(recByRef.Tm.getTime(), 1433116800000, "recByRef.Tm");
+        recByRef.Tm = 1433116800000 + 5 * 60 * 1000; // +5 min
+        assert.equal(recByRef.Tm.getTime(), 1433116800000 + 5 * 60 * 1000, "recByRef.Tm");
 
-        // check by value 
+        // check by value
         var recByVal = RecordTest.newRecord(rec);
         assert(recByVal != null, "RecordTest.newRec(rec)");
         assert.equal(recByVal.Int, 123, "recByVal.Int");

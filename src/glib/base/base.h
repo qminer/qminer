@@ -214,6 +214,7 @@ typedef long long index_t;
 #include "json.h"
 #include "zipfl.h"
 #include "pgblob.h"
+#include "funrouter.h"
 
 void BaseTralala();
 

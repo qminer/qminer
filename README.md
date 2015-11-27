@@ -1,81 +1,76 @@
-QMiner [![Build Status](https://travis-ci.org/qminer/qminer.svg?branch=master)](https://travis-ci.org/qminer/qminer)[![Build status](https://ci.appveyor.com/api/projects/status/3klwdwgr2aqavtr2?svg=true)](https://ci.appveyor.com/project/rupnikj/qminer-19v7t)
+QMiner
 ======
 
+[![NPM Version][npm-image]][npm-url]
+[![NPM Downloads][downloads-image]][downloads-url]
+[![Linux Build][travis-linux-image]][travis-linux-url]
+[![Linux Build][travis-mac-image]][travis-mac-url]
+[![Windows Build][appveyor-image]][appveyor-url]
+
 QMiner is an analytics platform for large-scale real-time streams containing structured and
-unstructured data. It is designed to for scaling to millions of instances on high-end commodity 
-hardware, providing efficient storage, retrieval and analytics mechanisms with real-time response. 
+unstructured data. It is designed for scaling to millions of instances on high-end commodity 
+hardware, providing efficient storage, retrieval and analytics mechanisms with real-time response.
 
-**[Main project homepage](http://qminer.ijs.si/)**
+**[Project homepage](http://qminer.ijs.si/)**
 
-**[Mailing list](https://groups.google.com/forum/#!forum/qminer)**
+### Prerequisites
 
+**node.js v0.12 and npm 2.11 or higher**
+
+To test that your node.js version is correct, run ```node --version``` and ```npm --version```. Older or newer major node.js releases are not compatible (0.10, 2.0, 3.0, ...)
+
+**Windows**
+- node.js **v0.12** [x64](https://nodejs.org/download/release/v0.12.7/x64/node-v0.12.7-x64.msi) or [x86](https://nodejs.org/download/release/v0.12.7/node-v0.12.7-x86.msi)
+- [Visual C++ Redistributable Packages for Visual Studio 2013](https://www.microsoft.com/en-us/download/details.aspx?id=40784)   download **vcredist_x64.exe** if your node.js x64 or **vcredist_x86.exe** for node.js x86.
 
 ### Install 
 
-**Prerequisites:**
-
- - Python v2.7.3 (recommended)
-   - It was also tested on python 2.6
-   - Does not work on python 3
- - [Node v0-12-0](http://blog.nodejs.org/2015/02/06/node-v0-12-0-stable/)
-   - Windows: install it using the msi file
- - [npm](https://www.npmjs.com/package/npm)
-   - Windows: npm is installed with Node when using the msi file.
- - Windows: Visual Studio 2013
-
----
-
-**Install:**
-
 	npm install qminer
 
-Test:
+**Test**
 
-	npm install mocha -g
-	cd node_modules/qminer/test/nodejs
-	mocha *.js
+	node -e "require('qminer'); console.log('OK')"
 
 ---
 
-**Install for developers:**
+### Compile from source
 
-	git clone https://github.com/qminer/qminer.git
-	cd qminer
-	npm install
++ [Linux](https://github.com/qminer/qminer/wiki/Compiling-from-source-on-Linux)
++ [Mac OS X](https://github.com/qminer/qminer/wiki/Compiling-from-source-on-Mac-OSX)
++ [Windows](https://github.com/qminer/qminer/wiki/Compiling-from-source-on-Windows)
 
-For debug build use: `npm install --debug`
-
-Run tests for developers: 
-
-	npm install mocha -g
-	cd test/nodejs
-	mocha *.js
-
----
-
-For more detailed installation check the following instructions:
-- [Linux installation](https://github.com/qminer/qminer/wiki/Installation-on-Linux)
-- [Windows quick install](https://github.com/qminer/qminer/wiki/Quick-Installation-on-Windows)
-- [Windows using node-gyp](https://github.com/qminer/qminer/wiki/Installation-on-Windows)
-- [Mac OS X installation](https://github.com/qminer/qminer/wiki/Installation-on-Mac-OSX)
-
-## Documentation
+### Documentation
 
 + [Examples](https://github.com/qminer/qminer/wiki/Example)
-+ [Architecture](https://github.com/qminer/qminer/wiki/Architecture)
-+ [JavaScript API](https://rawgit.com/rupnikj/qminer/master/nodedoc/index.html)
-  + [`qm` module](https://rawgit.com/rupnikj/qminer/master/nodedoc/module-qm.html)
-  + [`la` module](https://rawgit.com/rupnikj/qminer/master/nodedoc/module-la.html)
-  + [`analytics` module](https://rawgit.com/rupnikj/qminer/master/nodedoc/module-analytics.html)
++ [JavaScript API](https://rawgit.com/qminer/qminer/master/nodedoc/index.html)
+  + [`qm` module](https://rawgit.com/qminer/qminer/master/nodedoc/module-qm.html)
+  + [`la` module](https://rawgit.com/qminer/qminer/master/nodedoc/module-la.html)
+  + [`analytics` module](https://rawgit.com/qminer/qminer/master/nodedoc/module-analytics.html)
 + [C++ Documentation](http://agava.ijs.si/~blazf/qminer/)
++ [Architecture](https://github.com/qminer/qminer/wiki/Architecture)
 + [Roadmap](https://github.com/qminer/qminer/wiki/Roadmap)
-+ [History](https://github.com/qminer/qminer/wiki/History)
++ [Mailing list](https://groups.google.com/forum/#!forum/qminer)
 
 ## Acknowledgments
 
 [QMiner](http://qminer.ijs.si/) is developed by [AILab](http://ailab.ijs.si/) at 
 [Jozef Stefan Institute](http://www.ijs.si/), [Quintelligence](http://quintelligence.com) and other contributors.
 
-Parts of the library were developed under [XLike FP7 project](http://www.xlike.org/).
+The authors would like to acknowledge funding from the European Union Seventh Framework Programme, under Grant Agreements 288342 ([XLike](http://www.xlike.org/)), 611346 ([XLime](http://xlime.eu)), 611875 ([Symphony](http://projectsymphony.eu)), 317534 ([Sophocles](http://sophocles.eu/)), 318452 ([Mobis](https://sites.google.com/site/mobiseuprojecteu/)), 600074 ([NRG4Cast](http://nrg4cast.org)), 619437 ([Sunseed](http://sunseed-fp7.eu)), 632840 ([FI-Impact](http://fi-impact.net/home/)) and 612329 ([ProaSense](http://www.proasense.eu)).
+
+This project has received funding from the European Union's Horizon 2020 research and innovation programme under grant agreement No 636160-2 ([Optimum](http://www.optimumproject.eu/)).
+
+![](http://ailab.ijs.si/~blazf/eu.png)
 
 Thanks to [Deleaker](http://deleaker.com) for supporting open-source projects.
+
+[npm-image]: https://img.shields.io/npm/v/qminer.svg
+[npm-url]: https://npmjs.org/package/qminer
+[downloads-image]: https://img.shields.io/npm/dm/qminer.svg
+[downloads-url]: https://npmjs.org/package/qminer
+[travis-linux-image]: https://img.shields.io/travis/qminer/qminer/master.svg?label=linux
+[travis-linux-url]: https://travis-ci.org/qminer/qminer
+[travis-mac-image]: https://img.shields.io/travis/qminer/qminer/osx-binaries.svg?label=mac
+[travis-mac-url]: https://travis-ci.org/qminer/qminer
+[appveyor-image]: https://img.shields.io/appveyor/ci/rupnikj/qminer/master.svg?label=windows
+[appveyor-url]: https://ci.appveyor.com/project/rupnikj/qminer

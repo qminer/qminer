@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-console.log(__filename)
+// console.log(__filename)
 //
 // Sample unit test using standard assert JS library
 //
@@ -590,16 +590,6 @@ describe('IntVector Test', function () {
                 vec.intV.push(-1);
                 vec.intV.push(6);
                 assert.equal(vec.intV.length, 4);
-            })
-        });
-
-        // should throw an exception. Currently TODO in la_nodejs.h - the test will be skipped until the TODO is addressed.
-        describe.skip('Push "Float" Test', function () {
-            var vec = new IVector();
-            it('should return an exception when trying to push a floating number, 3.2', function () {
-                assert.throws(function () {
-                    vec.intV.push(3.2);
-                });
             })
         });
 

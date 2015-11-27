@@ -76,6 +76,7 @@ void InitAnalytics(Handle<Object> Exports, const TStr& NsNm) {
 	TNodeJsStreamStory::Init(NsObj);
 	TNodeJsNNet::Init(NsObj);
 	TNodeJsTokenizer::Init(NsObj);
+	TNodeJsMDS::Init(NsObj);
 
 	Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
 }
@@ -115,9 +116,10 @@ void InitQm(Handle<Object> Exports) {
 	// QMiner package
 	TNodeJsQm::Init(Exports);
 	TNodeJsBase::Init(Exports);
-	TNodeJsSA::Init(Exports);
+	TNodeJsStreamAggr::Init(Exports);
 	TNodeJsStore::Init(Exports);
 	// the record templates are initiated elsewhere: qm.open, qm.create, base.createStore
+	TNodeJsRecByValV::Init(Exports);
 	TNodeJsRecSet::Init(Exports);
 	TNodeJsStoreIter::Init(Exports);
 	TNodeJsIndexKey::Init(Exports);

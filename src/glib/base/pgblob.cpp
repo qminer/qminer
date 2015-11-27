@@ -6,8 +6,6 @@
 * LICENSE file in the root directory of this source tree.
 */
 
-#include "pgblob.h"
-
 ///////////////////////////////////////////////////////////////////////////
 
 /// Assignment operator
@@ -136,17 +134,17 @@ TPgBlobFile::~TPgBlobFile() {
 
 /// Load page with given index from the file into buffer
 int TPgBlobFile::LoadPage(const uint32& Page, void* Bf) {
-	SetFPos(Page * PAGE_SIZE);
+	SetFPos(Page * PG_PAGE_SIZE);
 	EAssertR(
-		fread(Bf, 1, PAGE_SIZE, FileId) == PAGE_SIZE,
+		fread(Bf, 1, PG_PAGE_SIZE, FileId) == PG_PAGE_SIZE,
 		"Error reading file '" + TStr(FNm) + "'.");
 	return 0;
 }
 
 /// Save buffer to page within the file 
 int TPgBlobFile::SavePage(const uint32& Page, const void* Bf, int Len) {
-	SetFPos(Page * PAGE_SIZE);
-	Len = (Len <= 0 ? PAGE_SIZE : Len);
+	SetFPos(Page * PG_PAGE_SIZE);
+	Len = (Len <= 0 ? PG_PAGE_SIZE : Len);
 	EAssertR(
 		(Access != TFAccess::faRdOnly) && (int)fwrite(Bf, 1, Len, FileId) == Len,
 		"Error writing file '" + TStr(FNm) + "'.");
@@ -179,9 +177,9 @@ long TPgBlobFile::CreateNewPage() {
 	// write to the end of file - take what-ever chunk of memory
 	char tc = 0;
 	EAssertR(
-		fwrite(&tc, 1, PAGE_SIZE, FileId) == PAGE_SIZE,
+		fwrite(&tc, 1, PG_PAGE_SIZE, FileId) == PG_PAGE_SIZE,
 		"Error writing file '" + TStr(FNm) + "'.");
-	return len / PAGE_SIZE;
+	return len / PG_PAGE_SIZE;
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -289,7 +287,7 @@ TPgBlob::TPgBlobPageItem* TPgBlob::GetItemRec(
 TPgBlob::TPgBlob(const TStr& _FNm, const TFAccess& _Access,
 	const uint64& CacheSize) {
 
-	EAssertR(CacheSize >= PAGE_SIZE, "Invalid cache size for TPgBlob.");
+	EAssertR(CacheSize >= PG_PAGE_SIZE, "Invalid cache size for TPgBlob.");
 
 	FNm = _FNm;
 	Access = _Access;
@@ -308,8 +306,8 @@ TPgBlob::TPgBlob(const TStr& _FNm, const TFAccess& _Access,
 	}
 
 	// init cache
-	LastExtentCnt = EXTENT_PCOUNT; // this means the "last" extent is full, so use new one
-	MxLoadedPages = CacheSize / PAGE_SIZE;
+	LastExtentCnt = PG_EXTENT_PCOUNT; // this means the "last" extent is full, so use new one
+	MxLoadedPages = CacheSize / PG_PAGE_SIZE;
 	LruFirst = LruLast = -1;
 }
 
@@ -462,9 +460,9 @@ char* TPgBlob::LoadPage(const TPgBlobPgPt& Pt, const bool& LoadData) {
 	} else {
 		// simply load the page
 		LastExtentCnt++;
-		if (LastExtentCnt >= EXTENT_PCOUNT) {
+		if (LastExtentCnt >= PG_EXTENT_PCOUNT) {
 			Extents.Add();
-			Extents.Last() = std::move(TMemBase(EXTENT_SIZE));
+			Extents.Last() = std::move(TMemBase(PG_EXTENT_SIZE));
 			LastExtentCnt = 0;
 		}
 		Pg = LoadedPages.Add();
@@ -517,10 +515,10 @@ PPgBlob TPgBlob::Open(const TStr& FNm, const uint64& CacheSize) {
 void TPgBlob::InitPageP(char* Pt) {
 	TPgHeader* Pt2 = (TPgHeader*)Pt;
 	Pt2->Flags = PgHeaderDirtyFlag; // not saved yet
-	Pt2->PageSize = PAGE_SIZE;
+	Pt2->PageSize = PG_PAGE_SIZE;
 	Pt2->PageVersion = 1;
 	Pt2->OffsetFreeStart = sizeof(TPgHeader);
-	Pt2->OffsetFreeEnd = PAGE_SIZE;
+	Pt2->OffsetFreeEnd = PG_PAGE_SIZE;
 	Pt2->ItemCount = 0;
 }
 
@@ -663,7 +661,7 @@ void TPgBlob::Clr() {
 	Fsm.Clr();
 	Files.Clr();
 	TFile::DelWc(FNm + ".bin*"); // delete all child files
-	LastExtentCnt = EXTENT_PCOUNT;
+	LastExtentCnt = PG_EXTENT_PCOUNT;
 	LruFirst = LruLast = -1;
 	SaveMain();
 }
@@ -700,11 +698,11 @@ PJsonVal TPgBlob::GetStats() {
 	}
 
 	PJsonVal res = TJsonVal::NewObj();
-	res->AddToObj("page_size", PAGE_SIZE);
+	res->AddToObj("page_size", PG_PAGE_SIZE);
 	res->AddToObj("loaded_pages", LoadedPages.Len());
 	res->AddToObj("dirty_pages", dirty);
 	res->AddToObj("loaded_extents", Extents.Len());
-	res->AddToObj("cache_size", EXTENT_SIZE * Extents.Len());
+	res->AddToObj("cache_size", PG_EXTENT_SIZE * Extents.Len());
 	return res;
 }
 

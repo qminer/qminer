@@ -1,7 +1,6 @@
-describe('example tests for the fsdoc.js file', function () {
-describe("File-system module.", function () {
-it('should make test number 1', function () {
- this.timeout(10000); 
+require('qminer').la.Vector.prototype.print = function () { };require('qminer').la.SparseVector.prototype.print = function () { };require('qminer').la.SparseMatrix.prototype.print = function () { };require('qminer').la.Matrix.prototype.print = function () { };describe('example tests for the fsdoc.js file', function () {
+describe("File-system module, number 1", function () {
+it("should make test number 1", function () {
 
  // import module
  var fs = require('qminer').fs;
@@ -14,11 +13,11 @@ it('should make test number 1', function () {
  var fin = fs.openRead('file.txt');
  // read a line
  var str = fin.readLine();
+
 });
 });
-describe("Input file stream.", function () {
-it('should make test number 2', function () {
- this.timeout(10000); 
+describe("Input file stream, number 2", function () {
+it("should make test number 2", function () {
 
 	 // import module
 	 var fs = require('qminer').fs;
@@ -26,12 +25,11 @@ it('should make test number 2', function () {
 	 var fin = new fs.FIn('file.txt');
 	 // read a line
 	 var str = fin.readLine();
-
+	
 });
 });
-describe("Output file stream.", function () {
-it('should make test number 3', function () {
- this.timeout(10000); 
+describe("Output file stream, number 3", function () {
+it("should make test number 3", function () {
 
 	 // import module
 	 var fs = require('qminer').fs;
@@ -41,7 +39,7 @@ it('should make test number 3', function () {
 	 fout.writeLine('example text');
 	 // close
 	 fout.close();
-
+	
 });
 });
 

@@ -10,7 +10,10 @@
 #define mine_h
 
 #include <base.h>
-#include <funrouter.h>
+
+// index structures
+#include "sphere.h"
+#include "btree.h"
 
 // utilities
 #include "cfyres.h"
@@ -48,10 +51,12 @@
 
 // regression methods
 #include "regression.h"
+#include "classification.h"
 
 // clustering
 #include "kmpp.h"
 #include "hac.h"
+#include "clustering.h"
 
 // Markov Chains
 #include "mc.h"
@@ -76,5 +81,6 @@
 
 // hoeffding trees 
 #include "hoeffding.h"
+
 
 #endif

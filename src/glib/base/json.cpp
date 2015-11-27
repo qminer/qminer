@@ -114,6 +114,26 @@ PJsonVal TJsonVal::NewArr(const TFltPr& FltPr) {
   return Val;
 }
 
+bool TJsonVal::IsTm() const {
+  try {
+    GetTm();
+    return true;
+  } catch (...) {
+    return false;
+  }
+}
+
+TTm TJsonVal::GetTm() const {
+  EAssert(IsStr() || IsNum());
+
+  if (IsStr()) {
+    const TStr& TmStr = GetStr();
+    return TTm::GetTmFromWebLogDateTimeStr(TmStr, '-', ':', '.', 'T');
+  } else {
+    return TTm::GetTmFromMSecs(TTm::GetWinMSecsFromUnixMSecs(GetInt64()));
+  }
+}
+
 void TJsonVal::GetArrNumV(TFltV& FltV) const {
     EAssert(IsArr());
     for (int FltN = 0; FltN < GetArrVals(); FltN++) {
@@ -194,6 +214,16 @@ int TJsonVal::GetObjInt(const TStr& Key, const int& DefInt) const {
 int TJsonVal::GetObjInt(const char *Key, const int& DefInt) const { 
   EAssert(IsObj());
   return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetInt() : DefInt;
+}
+
+uint64 TJsonVal::GetObjUInt64(const TStr& Key, const uint64& DefInt) const {
+  EAssert(IsObj());
+  return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetUInt64() : DefInt;
+} 
+
+uint64 TJsonVal::GetObjUInt64(const char *Key, const uint64& DefInt) const {
+  EAssert(IsObj());
+  return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetUInt64() : DefInt;
 }
 
 void TJsonVal::GetObjIntV(const TStr& Key, TIntV& IntV) const {

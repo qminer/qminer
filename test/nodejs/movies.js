@@ -1,12 +1,12 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
 
-console.log(__filename)
+// console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js'); //adds assert.run function
 var qm = require('qminer');
 
@@ -14,6 +14,7 @@ var qm = require('qminer');
 //describe('Movies test, old', function () {
 //	it('should survive', function () {
 describe('Movies Tests', function () {
+
     it('should pass', function () {
         qm.delLock();
         // add store.addTrigger method
@@ -45,7 +46,7 @@ describe('Movies Tests', function () {
               { "field": "Name", "type": "text" },
               { "field": "Gender", "type": "value" }
             ]
-        },
+          },
           {
               "name": "Movies",
               "fields": [
@@ -209,7 +210,7 @@ describe('Movies Tests', function () {
 
         // loading in larger dataset
         var filename = "./sandbox/movies/movies_data.txt"
-        assert.equal(qm.load.jsonFile(Movies, filename), 167, "qm.load.jsonFile(Movies, filename)");
+        assert.equal(Movies.loadJson(filename), 167, "Movies.loadJson(Movies, filename)");
 
         // check update and add counts
         assert.equal(PeopleAdd, 3138, "PeopleAdd");

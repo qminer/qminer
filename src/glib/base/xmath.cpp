@@ -23,7 +23,7 @@ void TSpecFunc::GammaPSeries/*gser*/(
 
   gln=LnGamma(a);
   if (x <= 0.0){
-    IAssert(x>=0); /*if (x < 0.0) nrerror("x less than 0 in routine gser");*/
+    EAssert(x>=0); /*if (x < 0.0) nrerror("x less than 0 in routine gser");*/
     gamser=0.0;
     return;
   } else {
@@ -68,13 +68,13 @@ void TSpecFunc::GammaQContFrac/*gcf*/(
     h *= del;
     if (fabs(del-1.0) < EPS) break;
   }
-  IAssert(i<=ITMAX);
+  EAssert(i<=ITMAX);
   /*if (i > ITMAX) nrerror("a too large, ITMAX too small in gcf");*/
   gammcf=exp(-x+a*log(x)-(gln))*h;
 }
 
 double TSpecFunc::GammaQ/*gammq*/(const double& a, const double& x){
-  IAssert((x>=0)&&(a>0));
+  EAssert((x>=0)&&(a>0));
   double gamser, gammcf, gln;
   if (x<(a+1.0)){
     GammaPSeries(gamser,a,x,gln);
@@ -105,7 +105,7 @@ double TSpecFunc::LnComb(const int& n, const int& k){
 }
 
 double TSpecFunc::BetaCf(const double& a, const double& b, const double& x){
-  static const double MAXIT=100;
+  static const double MAXIT=200;
   static const double EPS=3.0e-7;
   static const double FPMIN=1.0e-30;
   int m,m2;
@@ -257,10 +257,15 @@ double TSpecFunc::Entropy(const TFltV& ValV) {
   return Ent;
 }
 
+double TSpecFunc::Entropy(const double& Prob) {
+	if (Prob == 0 || Prob == 1) { return 0; }
+	return -(Prob*TMath::Log2(Prob) + (1 - Prob)*TMath::Log2(1 - Prob));
+}
+
 void TSpecFunc::EntropyFracDim(const TIntV& ValV, TFltV& EntropyV) {
   TFltV NewValV(ValV.Len());
   for (int i = 0; i < ValV.Len(); i++) { 
-    IAssert(ValV[i]==1 || ValV[i] == 0);
+    EAssert(ValV[i]==1 || ValV[i] == 0);
     NewValV[i] = ValV[i]; 
   }
   EntropyFracDim(NewValV, EntropyV);
@@ -275,7 +280,7 @@ void TSpecFunc::EntropyFracDim(const TFltV& ValV, TFltV& EntropyV) {
   while (2*Pow2 <= ValV.Len()) { Pow2 *= 2; }
   ValV1.Gen(Pow2);
   for (int i = 0; i < Pow2; i++) { ValV1[i] = ValV[i]; 
-    IAssert(ValV[i]==1.0 || ValV[i] == 0.0); }
+    EAssert(ValV[i]==1.0 || ValV[i] == 0.0); }
   EntropyV.Clr();
   EntropyV.Add(Entropy(ValV1)); // 2^Pow2 windows
   while (ValV1.Len() > 2) {
@@ -307,7 +312,7 @@ double TSpecFunc::EntropyBias(const double& B){
 double TSpecFunc::GetPowerCoef(const TFltV& XValV, double MinX) {
   for (int i = 0; MinX <= 0.0 && i < XValV.Len(); i++) { 
     MinX = XValV[i]; }
-  IAssert(MinX > 0.0);
+  EAssert(MinX > 0.0);
   double LnSum=0.0;
   for (int i = 0; i < XValV.Len(); i++) {
     if (XValV[i].Val < MinX) continue;
@@ -319,7 +324,7 @@ double TSpecFunc::GetPowerCoef(const TFltV& XValV, double MinX) {
 double TSpecFunc::GetPowerCoef(const TFltPrV& XValCntV, double MinX) {
   for (int i = 0; MinX <= 0.0 && i < XValCntV.Len(); i++) { 
     MinX = XValCntV[i].Val1; }
-  IAssert(MinX > 0.0);
+  EAssert(MinX > 0.0);
   double NSamples=0.0, LnSum=0.0;
   for (int i = 0; i < XValCntV.Len(); i++) {
     if (XValCntV[i].Val1() < MinX) continue;
@@ -327,6 +332,36 @@ double TSpecFunc::GetPowerCoef(const TFltPrV& XValCntV, double MinX) {
     NSamples += XValCntV[i].Val2;
   }
   return 1.0 + NSamples / LnSum;
+}
+
+double TSpecFunc::StudentCdf(const double& Val, const int& Df) {
+	const double x = TFlt::Abs(Val) / TMath::Sqrt(Df);
+	const double OnePlusSqX = 1 + x*x;
+
+	const int Iters = Df / 2;
+	double u = 1, s = 0;
+
+	if ((Df & 1) == 0) { // if df is even
+		for (int i = 1; i <= Iters; ++i) {
+			s += u;
+			u *= (1.0 - 1.0 / (2 * i)) / OnePlusSqX;
+		}
+
+		return 0.5 - 0.5 * (x / TMath::Sqrt(OnePlusSqX)) * s;
+	}
+	else { // if Df is odd
+		for (int j = 2; j < Iters + 2; ++j) {
+			s += u;
+			u *= (1.0 - 1.0 / (2 * j - 1)) / OnePlusSqX;
+		}
+
+		return 0.5 - (x / OnePlusSqX * s + atan(x)) / TMath::Pi;
+	}
+}
+
+double TSpecFunc::StudentCdf(const double& Val, const double& Mean,
+		const double& Std, const int& Df) {
+	return StudentCdf((Val - Mean) / sqrt(Std / (Df + 1)), Df);
 }
 
 /////////////////////////////////////////////////
@@ -345,7 +380,7 @@ TMom::TMom(const TFltV& _ValV):
 }
 
 void TMom::Def(){
-  IAssert(!DefP); DefP=true;
+  EAssert(!DefP); DefP=true;
   UsableP=(SumW>0)&&(ValWgtV.Len()>0);
   if (UsableP){
     // Mn, Mx
@@ -562,7 +597,7 @@ TStr TMom::GetValVStr(
 TCorr::TCorr(const TFltV& ValV1, const TFltV& ValV2):
   ValVLen(ValV1.Len()), CorrCf(), CorrCfPrb(), FisherZ(){
   static const double TINY=1.0e-20;
-  IAssert(ValV1.Len()==ValV2.Len());
+  EAssert(ValV1.Len()==ValV2.Len());
 
   // calculate the means
   double MeanVal1=0; double MeanVal2=0;
@@ -587,10 +622,17 @@ TCorr::TCorr(const TFltV& ValV1, const TFltV& ValV2):
   }
   // calculate correlation coefficient significance level
   double df=ValVLen-2;
-  double t=CorrCf*sqrt(df/((1.0-CorrCf+TINY)*(1.0+CorrCf+TINY)));
+
+  double tmp = df/((1.0-CorrCf+TINY)*(1.0+CorrCf+TINY));
+  if (tmp < 0.0) { tmp = 0.0; }	// must check, tmp can be something really small but negative and you get nan later
+  double t=CorrCf*sqrt(tmp);
+
   CorrCfPrb=TSpecFunc::BetaI(0.5*df,0.5,df/(df+t*t));
   // calculate Fisher's Z transformation
-  FisherZ=0.5*log((1.0+(CorrCf)+TINY)/(1.0-(CorrCf)+TINY));
+  tmp = (1.0+(CorrCf)+TINY)/(1.0-(CorrCf)+TINY);	// this can be negative, will get nan later
+  if (tmp < 0.0) { tmp = 0.0; }
+
+  FisherZ=0.5*log(tmp);
 }
 
 /////////////////////////////////////////////////
@@ -628,13 +670,13 @@ double TStatTest::KsProb(const double& Alam) {
 void TStatTest::ChiSquareOne(
  const TFltV& ObservedBinV, const TFltV& ExpectedBinV,
  double& ChiSquareVal, double& SignificancePrb){
-  IAssert(ObservedBinV.Len()==ExpectedBinV.Len());
+  EAssert(ObservedBinV.Len()==ExpectedBinV.Len());
   int Bins=ObservedBinV.Len();
   int Constraints=0;
   int DegreesOfFreedom=Bins-Constraints;
   ChiSquareVal=0.0;
   for (int BinN=0; BinN<Bins; BinN++){
-    IAssert(ExpectedBinV[BinN]>0);
+    EAssert(ExpectedBinV[BinN]>0);
     double BinDiff=ObservedBinV[BinN]-ExpectedBinV[BinN];
     ChiSquareVal+=BinDiff*BinDiff/ExpectedBinV[BinN];
   }
@@ -645,7 +687,7 @@ void TStatTest::ChiSquareOne(
 void TStatTest::ChiSquareTwo(
  const TFltV& ObservedBin1V, const TFltV& ObservedBin2V,
  double& ChiSquareVal, double& SignificancePrb){
-  IAssert(ObservedBin1V.Len()==ObservedBin1V.Len());
+  EAssert(ObservedBin1V.Len()==ObservedBin1V.Len());
   int Bins=ObservedBin1V.Len();
   int Constraints=0;
   int DegreesOfFreedom=Bins-Constraints;
@@ -684,7 +726,7 @@ void TStatTest::TTest(
 }
 
 void TStatTest::KsTest(const TFltV& ValV1, const TFltV& ValV2, double& DStat, double& PVal) {
-  IAssert(ValV1.IsSorted() && ValV2.IsSorted());
+  EAssert(ValV1.IsSorted() && ValV2.IsSorted());
   int i1=0, i2=0;
   double CumSum1=0.0, CumSum2=0.0, Cdf1=0.0, Cdf2=0.0;
   const double N1 = ValV1.Len();
@@ -711,7 +753,7 @@ void TStatTest::KsTest(const TFltV& ValV1, const TFltV& ValV2, double& DStat, do
 }
 
 void TStatTest::KsTest(const TFltPrV& ValCntV1, const TFltPrV& ValCntV2, double& DStat, double& PVal) {
-  IAssert(ValCntV1.IsSorted() && ValCntV2.IsSorted());
+  EAssert(ValCntV1.IsSorted() && ValCntV2.IsSorted());
   int i1=0, i2=0;
   double N1=0.0, N2=0.0, CumSum1=0.0, CumSum2=0.0, Cdf1=0.0, Cdf2=0.0;
   DStat=0.0;  PVal=0.0;
@@ -795,10 +837,10 @@ PLinReg TLinReg::New(const TFltVV& _XVV, const TFltV& _YV, const TFltV& _SigV){
   }
   LinReg->Recs=LinReg->XVV.GetXDim();
   LinReg->Vars=LinReg->XVV.GetYDim();
-  IAssert(LinReg->Recs>0);
-  IAssert(LinReg->Vars>0);
-  IAssert(LinReg->YV.Len()==LinReg->Recs);
-  IAssert(LinReg->SigV.Len()==LinReg->Recs);
+  EAssert(LinReg->Recs>0);
+  EAssert(LinReg->Vars>0);
+  EAssert(LinReg->YV.Len()==LinReg->Recs);
+  EAssert(LinReg->SigV.Len()==LinReg->Recs);
   LinReg->CovarVV.Gen(LinReg->Vars+1, LinReg->Vars+1);
   LinReg->CfV.Gen(LinReg->Vars+1);
   LinReg->NR_lfit();
@@ -954,10 +996,10 @@ PSvd TSvd::New(const TFltVV& _XVV, const TFltV& _YV, const TFltV& _SigV){
   }
   Svd->Recs=Svd->XVV.GetXDim();
   Svd->Vars=Svd->XVV.GetYDim();
-  IAssert(Svd->Recs>0);
-  IAssert(Svd->Vars>0);
-  IAssert(Svd->YV.Len()==Svd->Recs);
-  IAssert(Svd->SigV.Len()==Svd->Recs);
+  EAssert(Svd->Recs>0);
+  EAssert(Svd->Vars>0);
+  EAssert(Svd->YV.Len()==Svd->Recs);
+  EAssert(Svd->SigV.Len()==Svd->Recs);
   Svd->CovarVV.Gen(Svd->Vars+1, Svd->Vars+1);
   Svd->CfV.Gen(Svd->Vars+1);
   Svd->NR_svdfit();

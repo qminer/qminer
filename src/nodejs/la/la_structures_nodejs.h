@@ -35,12 +35,12 @@ public:
 	* @param {Object} [json] - The JSON object containing the properties iter and tol:
 	* @param {number} [json.iter = 100] - The number of iterations used for the algorithm.
 	* @param {number} [json.tol = 1e-6] - The tolerance number.
-	* @returns {Object} The JSON object svdRes which contains the decomposition matrices:
+	* @returns {Object} The JSON object svdRes which contains the SVD decomposition U*S*V^T matrices:
 	* <br>svdRes.U - The dense matrix of the decomposition. Type {@link module:la.Matrix}.
 	* <br>svdRes.V - The dense matrix of the decomposition. Type {@link module:la.Matrix}.
 	* <br>svdRes.s - The vector containing the singular values of the decomposition. Type {@link module:la.Vector}.
 	*/
-	// exports.prototype.svd = function (mat, k, json) { return { U: Object.create(require('qminer').la.Matrix.prototype), V: Object.create(require('qminer').la.Matrix.prototype), s: Object.create(require('qminer').la.Vector.prototype) } }
+	//# exports.prototype.svd = function (mat, k, json) { return { U: Object.create(require('qminer').la.Matrix.prototype), V: Object.create(require('qminer').la.Matrix.prototype), s: Object.create(require('qminer').la.Vector.prototype) } }
 	JsDeclareFunction(svd);
 	/**
 	* Computes the QR decomposition.
@@ -50,6 +50,7 @@ public:
 	* <br>qrRes.Q - The orthogonal dense matrix Q of the QR decomposition. Type {@link module:la.Matrix}.
 	* <br>qrRes.R - The upper triangular dense matrix R of the QR decomposition. Type {@link module:la.Matrix}.
 	*/
+	//# exports.prototype.qr = function (mat, tol) { return { Q: Object.create(require('qminer').la.Matrix.prototype), R: Object.create(require('qminer').la.Matrix.prototype) } }
 	JsDeclareFunction(qr);
 };
 
@@ -98,9 +99,6 @@ public:
 public:
 	TNodeJsFltVV() { }
 	TNodeJsFltVV(const TFltVV& _Mat) : Mat(_Mat) { }
-public:
-	JsDeclareFunction(New);
-
 private:
 	/**
 	* Returns an element of matrix.
@@ -352,6 +350,25 @@ private:
 	JsDeclareFunction(setCol);
 
 	/**
+	* Gets the submatrix from the column ids.
+	* @param {module:la.IntVector} intVec - The vector containing the column ids.
+	* @returns {module:la.Matrix} The submatrix containing the the columns of the original matrix.
+	*/
+	//# exports.Matrix.prototype.getColSubmatrix = function (intVec) { return Object.create(require('qminer').la.Matrix.prototype); }
+	JsDeclareFunction(getColSubmatrix);
+
+	/**
+	* Gets the submatrix from the column ids.
+	* @param {number} minRow - The minimum row index.
+	* @param {number} maxRow - The maximum row index.
+	* @param {number} minCol - The minimum column index.
+	* @param {number} maxCol - The maximum column index.
+	* @returns {module:la.Matrix} The submatrix of the original matrix.
+	*/
+	//# exports.Matrix.prototype.getSubmatrix = function (minRow, maxRow, minCol, maxCol) { return Object.create(require('qminer').la.Matrix.prototype); }
+	JsDeclareFunction(getSubmatrix);
+
+	/**
 	* Returns the corresponding row of matrix as vector.
 	* @param {number} rowIdx - Row index (zero based).
 	* @returns {module:la.Vector} The rowIdx-th row of matrix.
@@ -484,16 +501,12 @@ public:
 	// wrapped C++ objects
 	TIntFltKdV Vec;
 	TInt Dim;
+
 	// C++ constructor
 	TNodeJsSpVec() : Dim(-1) { }
-	TNodeJsSpVec(const TIntFltKdV& IntFltKdV, const int& Dim = -1) : Vec(IntFltKdV), Dim(Dim) {		
-		EAssertR((Dim == -1) || TLAMisc::GetMaxDimIdx(IntFltKdV) < Dim,		    
-		    "TNodeJsSpVec::New inconsistent dim parameter (maximal index >= dim!)");}
+	TNodeJsSpVec(const TIntFltKdV& IntFltKdV, const int& Dim = -1);
+
 public:
-	//! **Functions and properties:**
-	//! 
-	//!- `spVec = la.newSpVec(dim)` -- creates an empty sparse vector `spVec`, where `dim` is an optional (-1 by default) integer parameter that sets the dimension
-	//!- `spVec = la.newSpVec(nestedArr, dim)` -- creats a sparse vector `spVec` from a javascript array `nestedArr`, whose elements are javascript arrays with two elements (integer row index and double value). `dim` is optional and sets the dimension
 	static TNodeJsSpVec* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
 	/**
@@ -923,6 +936,7 @@ public:
 	/**
 	* Saves the sparse matrix as output stream.
 	* @param {module:fs.FOut} fout - Output stream.
+	* @param {boolean} [saveMatlab=false] - If true, saves using matlab three column text format. Otherwise, saves using binary format.
 	* @returns {module:fs.FOut} The output stream fout.
 	* @example
 	* // import the modules
@@ -935,7 +949,7 @@ public:
 	* // save matrix and close write stream
 	* mat.save(fout).close();
 	*/
-	//# exports.SparseMatrix.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
+	//# exports.SparseMatrix.prototype.save = function (fout, saveMatlab) { return Object.create(require('qminer').fs.FOut.prototype); }
 	JsDeclareFunction(save);
 
 	/**
@@ -955,6 +969,20 @@ public:
 	*/
 	//# exports.SparseMatrix.prototype.load = function (FIn) { return Object.create(require('qminer').fs.FIn.prototype); }
 	JsDeclareFunction(load);
+
+	/**
+	* Sets the row dimension
+	* @param {number} rowDim - Row dimension
+	* @example
+	* // import the modules
+	* var la = require('qminer').la;
+	* // create an empty matrix
+	* var mat = new la.SparseMatrix();
+	* mat.setRowDim(2);
+	* mat.rows // prints 2
+	*/
+	//# exports.SparseMatrix.prototype.setRowDim = function (dim) { }
+	JsDeclareFunction(setRowDim);
 	
 	//!- `spMat2 = spMat.sign()` -- create a new sparse matrix `spMat2` whose elements are sign function applied to elements of `spMat`.
 	// (TODO) JsDeclareFunction(sign);

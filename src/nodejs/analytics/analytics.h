@@ -14,6 +14,7 @@
 #include "fs_nodejs.h"
 #include "la_nodejs.h"
 #include "qminer_ftr.h"
+#include "../../glib/mine/mine.h"
 
 /**
  * Analytics module.
@@ -30,8 +31,7 @@ class TNodeJsSvmModel : public node::ObjectWrap {
 	friend class TNodeJsSVC;
 	friend class TNodeJsSVR;
 public:
-    static const TStr GetClassId() { return "SvmModel"; }
-    
+	static const TStr GetClassId() { return "SvmModel"; }
 private:
     // parameters
 	TStr Algorithm;	
@@ -45,13 +45,13 @@ private:
 	bool Verbose;
 	PNotify Notify;
 
-    // model
+	// model
 	TSvm::TLinModel Model;
 
 	TNodeJsSvmModel(const PJsonVal& ParamVal);
 	TNodeJsSvmModel(TSIn& SIn);
-    
-    static TNodeJsSvmModel* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+	static TNodeJsSvmModel* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
 public:
 	//- `params = svmModel.getParams()` -- returns the parameters of this model as a Javascript object
@@ -118,7 +118,6 @@ private:
 //# exports.SVC = function(arg) { return Object.create(require('qminer').analytics.SVC.prototype); };
 
 class TNodeJsSVC : public TNodeJsSvmModel {
-	static v8::Persistent <v8::Function> constructor;
 public:
 	static void Init(v8::Handle<v8::Object> exports);
 
@@ -310,7 +309,6 @@ public:
 //# exports.SVR = function(arg) { return Object.create(require('qminer').analytics.SVR.prototype); };
 
 class TNodeJsSVR : public TNodeJsSvmModel {
-	static v8::Persistent <v8::Function> constructor;
 public:
 	static void Init(v8::Handle<v8::Object> exports);
     
@@ -462,7 +460,7 @@ public:
  * la = require('qminer').la;
  * analytics = require('qminer').analytics;
  * // create a new model with gamma = 1.0
- * var regmod = new analytics.RidgeReg(1.0);
+ * var regmod = new analytics.RidgeReg({ gamma: 1.0 });
  * // generate a random feature matrix
  * var A = la.randn(10,100);
  * // generate a random model
@@ -474,12 +472,12 @@ public:
  * // fit model
  * regmod.fit(A, b);
  * // compare
- * console.log('true model:');
+ * // true model
  * w.print();
- * console.log('trained model:');
+ * // trained model');
  * regmod.weights.print();
  * // cosine between the true and the estimated model should be close to 1 if the fit succeeded
- * console.log('cosine(w, regmod.weights): ' + regmod.weights.cosine(w));
+ * var cos = regmod.weights.cosine(w);
  */
 //# exports.RidgeReg = function(arg) {};
 class TNodeJsRidgeReg : public node::ObjectWrap {
@@ -946,8 +944,9 @@ public:
     JsDeclareFunction(getModel);
 
 	/**
-	* Adds a new point (or points) to the known points and recomputes the threshold.
-	* @param {(module:la.SparseVector | module:la.SparseMatrix)} X - Test example (vector input) or column examples (matrix input).
+	* Adds a new point to the known points and recomputes the threshold.
+	* @param {module:la.SparseVector} X - Test example (vector input)
+	* @param {number} recId - Integer record ID, used in NearestNeighborAD.explain
 	* @returns {module:analytics.NearestNeighborAD} Self. The model is updated.
 	* @example
 	* // import modules
@@ -970,6 +969,7 @@ public:
 	/**
 	* Analyzes the nearest neighbor distances and computes the detector threshold based on the rate parameter.
 	* @param {module:la.SparseMatrix} A - Matrix whose columns correspond to known examples. Gets saved as it is part of
+	* @param {module:la.IntVector} [idVec] - An integer vector of IDs
 	* the model.
 	* @returns {module:analytics.NearestNeighborAD} Self. The model is set by the matrix A.
 	* @example
@@ -983,7 +983,7 @@ public:
 	* // fit the model with the matrix
 	* neighbor.fit(matrix);
 	*/
-    //# exports.NearestNeighborAD.prototype.fit = function(A) { return Object.create(require('qminer').NearestNeighborAD.prototype); }
+    //# exports.NearestNeighborAD.prototype.fit = function(A, idVec) { return Object.create(require('qminer').NearestNeighborAD.prototype); }
     JsDeclareFunction(fit);
 
     /**
@@ -1029,6 +1029,36 @@ public:
 	*/
     //# exports.NearestNeighborAD.prototype.predict = function(x) { return 0.0; }
     JsDeclareFunction(predict);
+
+	/**
+	* @typedef {Object} NearestNeighborADExplain
+	* A Json object used for interpreting the predictions of {@link module:analytics.NearestNeighborAD}.
+	* @param {number} nearestID - The ID of the nearest neighbor
+	* @param {Array<number>} featureIDs - the IDs of the features that contributed to the distance score
+	* @param {Array<number>} featureContributions - fractions of the contributions of each feature to the total distance (the scores sum to 1.0). The elements correspond to features in the array `featureIDs`
+	*/
+
+	/**
+	* Returns a JSON object that encodes the ID of the nearest neighbor and the features that contributed to the distance
+	* @param {module:la.SparseVector} x - Test vector.
+	* @returns {module:analytics~NearestNeighborADExplain} The explanation object
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // create a new NearestNeighborAD object
+	* var neighbor = new analytics.NearestNeighborAD({rate:0.05, windowSize:3});
+	* // create a new sparse matrix
+	* var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
+	* // fit the model with the matrix and provide a vector record IDs
+	* neighbor.fit(matrix, new la.IntVector([3541,1112,4244]));
+	* // create a new sparse vector
+	* var vector = new la.SparseVector([[0, 4], [1, 0]]);
+	* // check if the vector is an anomaly
+	* var explanation = neighbor.explain(vector); // returns an explanation
+	*/
+	//# exports.NearestNeighborAD.prototype.explain = function(x) { return {}; }
+	JsDeclareFunction(explain);
 };
 
 ///////////////////////////////
@@ -1233,9 +1263,9 @@ public:
 	static const TStr GetClassId() { return "LogReg"; }
 
 private:
-	TRegression::TLogReg LogReg;
+	TClassification::TLogReg LogReg;
 
-	TNodeJsLogReg(const TRegression::TLogReg& _LogReg): LogReg(_LogReg) {}
+	TNodeJsLogReg(const TClassification::TLogReg& _LogReg): LogReg(_LogReg) {}
 
 	static TNodeJsLogReg* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
@@ -1524,37 +1554,45 @@ class TNodeJsStreamStory : public node::ObjectWrap, public TMc::TStreamStory::TC
 	friend class TNodeJsUtil;
 public:
 	static void Init(v8::Handle<v8::Object> exports);
-	static const TStr GetClassId() { return "HMC"; }
+	static const TStr GetClassId() { return "_StreamStory"; }
 
 private:
 	const static double DEFAULT_DELTA_TM;
 
-	TMc::PStreamStory StreamStory;
+	TMc::TStreamStory* StreamStory;
 
 	v8::Persistent<v8::Function> StateChangedCallback;
 	v8::Persistent<v8::Function> AnomalyCallback;
 	v8::Persistent<v8::Function> OutlierCallback;
 	v8::Persistent<v8::Function> PredictionCallback;
 
-	TNodeJsStreamStory(const TMc::PStreamStory& McModel);
+	TNodeJsStreamStory(TMc::TStreamStory* McModel);
 	TNodeJsStreamStory(PSIn& SIn);
 
 	~TNodeJsStreamStory();
 
 	static TNodeJsStreamStory* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
+private:
+	class TFitTask: public TNodeTask {
+	private:
+		TNodeJsStreamStory* JsStreamStory;
+		TNodeJsFltVV* JsObservFtrs;
+		TNodeJsFltVV* JsControlFtrs;
+		TNodeJsFltV* JsRecTmV;
+		TNodeJsBoolV* JsBatchEndJsV;
+
+	public:
+		TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+		v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+		void Run();
+	};
+
 public:
-	/**
-	 * Fits the model onto the data. The data instances must be stored as column vectors in X, while their times
-	 * have to be stored in timeV. An optional parameter indicates wether the data provided is in
-	 * batches and indicates wether the instance at index i ends a batch.
-	 *
-	 * @param {Matrix} X - the column matrix containing the data instances
-	 * @param {Vector} timeV - a vector containing the sampling times of the instances
-	 * @param {BoolVector} [endsBatchV] - a vector of boolean indicating wether the current instance ends a batch
-	 * @returns {HMC} - returns itself
-	 */
-	JsDeclareFunction(fit);
+
+	JsDeclareSyncAsync(fit,fitAsync,TFitTask);
+
 	//!- `hmc.update(ftrVec, recTm)` TODO write documentation
 	JsDeclareFunction(update);
 
@@ -1583,12 +1621,12 @@ public:
 	/**
 	 * Returns the probability distribution of past and future states over time.
 	 *
-	 * @param {Number} level - the level on which we want the distributions
-	 * @param {Number} state - the state we are starting from
-	 * @param {Number} dt - the time step (lower dt => more distributions will be returned)
-	 * @returns {Array} - array of probability distributions over time
+	 * @param {Number} stateId - ID if the starting state
+	 * @param {Number} height - the hieght
+	 * @param {Number} time - the time at which we want the probabilities
+	 * @returns {Array} - array of state ids and their probabilities
 	 */
-	JsDeclareFunction(probsOverTime);
+	JsDeclareFunction(probsAtTime);
 
 	/**
 	 * Returns information about previous states.
@@ -1639,6 +1677,15 @@ public:
 	 */
 	JsDeclareFunction(histogram);
 
+	JsDeclareFunction(transitionHistogram);
+
+	/**
+	 * Returns the lower and upper bound of the feature.
+	 *
+	 * @param {Integer} ftrId - id of the feature
+	 */
+	JsDeclareFunction(getFtrBounds);
+
 	/**
 	 * Returns an array of IDs of all the states on the specified height.
 	 *
@@ -1654,6 +1701,17 @@ public:
 	 * @returns {Array} - An array of weights.
 	 */
 	JsDeclareFunction(getStateWgtV);
+
+	/**
+	 * Returns a JSON representation of a decision tree, which classifies
+	 * this state against other states
+	 *
+	 * @param {Number} stateId
+	 * @returns {Object}
+	 */
+	JsDeclareFunction(getClassifyTree);
+
+	JsDeclareFunction(explainState);
 
 	/**
 	 * Sets a callback function which is fired when the model changes states. An array of current states
@@ -1721,6 +1779,13 @@ public:
 	JsDeclareFunction(setStateName);
 
 	/**
+	 * Sets the name of the state.
+	 *
+	 * @param {Number} stateId - ID of the state
+	 */
+	JsDeclareFunction(clearStateName);
+
+	/**
 	 * Returns true if the state is a target on the specified height.
 	 *
 	 * @param {Number} stateId - Id of the state
@@ -1739,12 +1804,37 @@ public:
 	JsDeclareFunction(setTarget);
 
 	/**
+	 * Returns true if the state defined by the ID is at the bottom of the hierarchy.
+	 *
+	 * @param {Number} stateId - ID of the state
+	 */
+	JsDeclareFunction(isLeaf);
+
+	/**
+	 * Returns the time unit used by this model.
+	 *
+	 * @returns {String} timeUnit
+	 */
+	JsDeclareFunction(getTimeUnit);
+
+	/**
 	 * Sets the factor of the specified control:
 	 *
-	 * @param {Number} ftrIdx - the index of the control feature
-	 * @param {Number} factor
+	 * @param {Object} params - the parameters
+	 * @property {Number} [params.stateId] - id of the state, if not present, all the states will be set
+	 * @property {Number} params.ftrId - the index of the control feature
+	 * @property {Number} params.val - the value of the featuere
 	 */
-	JsDeclareFunction(setControlFactor);
+	JsDeclareFunction(setControlVal);
+
+	JsDeclareFunction(resetControlVal);
+
+	/**
+	 * Returns true is any of the control parameters have been set in any of the states.
+	 *
+	 * @returns {Boolean}
+	 */
+	JsDeclareFunction(isAnyControlFtrSet);
 
 	// parameters
 	//!- `hmc = hmc.getParams(params)` -- sets one or more parameters given
@@ -1764,12 +1854,17 @@ public:
 	void OnStateChanged(const TIntFltPrV& StateIdHeightV);
 	void OnAnomaly(const TStr& AnomalyDesc);
 	void OnOutlier(const TFltV& FtrV);
-	void OnPrediction(const int& CurrStateId, const int& TargetStateId,
+	void OnPrediction(const uint64& RecTm, const int& CurrStateId, const int& TargetStateId,
 			const double& Prob, const TFltV& ProbV, const TFltV& TmV);
 
 private:
 	void SetParams(const PJsonVal& ParamVal);
 	void InitCallbacks();
+
+	static void WrapHistogram(const v8::FunctionCallbackInfo<v8::Value>& Args,
+			const TFltV& BinStartV, const TFltV& ProbV);
+	static uint64 GetTmUnit(const TStr& TmUnitStr);
+	static TClustering::PDnsKMeans GetClust(const PJsonVal& ParamJson, const TRnd& Rnd);
 };
 
 ///////////////////////////////
@@ -2014,6 +2109,25 @@ public:
 	JsDeclareFunction(getParagraphs);
 	
 };
+
+class TNodeJsMDS : public node::ObjectWrap {
+	friend class TNodeJsUtil;
+public:
+	static void Init(v8::Handle<v8::Object> exports);
+	static const TStr GetClassId() { return "MDS"; }
+
+private:
+	TFltVV MDS;
+
+	TNodeJsMDS() {}
+	TNodeJsMDS(TSIn& SIn) : MDS(SIn) {}
+
+	static TNodeJsMDS* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+public:
+	JsDeclareFunction(fitTransform);
+};
+
 
 #endif /* ANALYTICS_H_ */
 

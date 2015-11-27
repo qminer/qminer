@@ -14,7 +14,7 @@ var base = new qm.Base({
         ]
     }]
 });
-// create two feature spaces, one for each field
+// create a text feature extractor
 var ftrText = new qm.FeatureSpace(base, {
     type: 'text', source: 'Messages', field: 'Text', normalize: true,
     weight: 'tfidf', tokenizer: { type: 'simple', stopwords: 'en' }

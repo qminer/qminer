@@ -299,6 +299,15 @@ void TEma::Update(const double& Val, const uint64& NewTmMSecs) {
 	TmMSecs = NewTmMSecs;
 }
 
+void TEma::Reset() {
+	InitP = false;
+	LastVal = TFlt::Mn;
+	Ema = 0.0;
+	TmMSecs = 0;
+	InitValV.Gen(0);
+	InitMSecsV.Gen(0);
+}
+
 /////////////////////////////////////////////////
 // Online Moving Standard M2 
 void TVar::Update(const double& InVal, const uint64& InTmMSecs, 
@@ -422,8 +431,8 @@ TBufferedInterpolator::TBufferedInterpolator(const TStr& _InterpolatorType):
 		TInterpolator(_InterpolatorType),
 		Buff() {}
 
-TBufferedInterpolator::TBufferedInterpolator(TSIn& SIn):
-		TInterpolator(SIn),
+TBufferedInterpolator::TBufferedInterpolator(const TStr& _InterpolatorType, TSIn& SIn) :
+        TInterpolator(_InterpolatorType),
 		Buff(SIn) {}
 
 void TBufferedInterpolator::Save(TSOut& SOut) const {
@@ -438,7 +447,7 @@ void TBufferedInterpolator::AddPoint(const double& Val, const uint64& Tm) {
 	if (!Buff.Empty()) {
 		const TUInt64FltPr& LastRec = Buff.GetNewest();
 		EAssertR(LastRec.Val1 < Tm || (LastRec.Val1 == Tm && LastRec.Val2 == Val),
-            "New point has a timestamp lower then the last point in the buffer, or same with different values!");
+            "New point has a timestamp lower then the last point in the buffer, or same with different values " + TTm::GetTmFromDateTimeInt((uint)LastRec.Val1).GetStr() + " >= " + TTm::GetTmFromDateTimeInt((uint)Tm).GetStr() + "!");
 	}
 
 	// add the new point
@@ -452,7 +461,7 @@ TPreviousPoint::TPreviousPoint():
 		TBufferedInterpolator(TPreviousPoint::GetType()) {}
 
 TPreviousPoint::TPreviousPoint(TSIn& SIn):
-		TBufferedInterpolator(SIn) {}
+    TBufferedInterpolator(GetType(), SIn) {}
 
 void TPreviousPoint::SetNextInterpTm(const uint64& Time) {
 	// TODO optimize
@@ -477,7 +486,7 @@ TCurrentPoint::TCurrentPoint():
 		TBufferedInterpolator(TCurrentPoint::GetType()) {}
 
 TCurrentPoint::TCurrentPoint(TSIn& SIn):
-		TBufferedInterpolator(SIn) {}
+    TBufferedInterpolator(GetType(), SIn) {}
 
 void TCurrentPoint::SetNextInterpTm(const uint64& Tm) {
 	// at least one past (or current time) record needs to be in the buffer
@@ -509,7 +518,7 @@ TLinear::TLinear():
 		TBufferedInterpolator(TLinear::GetType()) {}
 
 TLinear::TLinear(TSIn& SIn):
-		TBufferedInterpolator(SIn) {}
+    TBufferedInterpolator(GetType(), SIn) {}
 
 void TLinear::SetNextInterpTm(const uint64& Time) {
 	while (Buff.Len() > 1 && Buff.GetOldest(1).Val1 <= Time) {
@@ -922,6 +931,152 @@ bool TRecLinReg::HasNaN() const {
 		}
 	}
 	return false;
+}
+
+void TOnlineHistogram::Init(const double& LBound, const double& UBound, const int& Bins, const bool& AddNegInf, const bool& AddPosInf) {
+	int TotalBins = Bins + (AddNegInf ? 1 : 0) + (AddPosInf ? 1 : 0);
+	Counts.Gen(TotalBins); // sets to zero
+	Bounds.Gen(TotalBins + 1, 0);
+	if (AddNegInf) { Bounds.Add(TFlt::NInf); }
+	for (int ElN = 0; ElN <= Bins; ElN++) {
+		Bounds.Add(LBound + ElN * (UBound - LBound) / Bins);
+	}
+	if (AddPosInf) { Bounds.Add(TFlt::PInf); }
+}
+
+void TOnlineHistogram::Reset() {
+	for (int ElN = 0; ElN < Counts.Len(); ElN++) {
+		Counts[ElN] = 0;
+	}
+}
+
+TOnlineHistogram::TOnlineHistogram(const PJsonVal& ParamVal) {
+	EAssertR(ParamVal->IsObjKey("lowerBound"), "TOnlineHistogram: lowerBound key missing!");
+	EAssertR(ParamVal->IsObjKey("upperBound"), "TOnlineHistogram: upperBound key missing!");
+	// bounded lowest point
+	TFlt LBound = ParamVal->GetObjNum("lowerBound");
+	// bounded highest point
+	TFlt UBound = ParamVal->GetObjNum("upperBound");
+	EAssertR(LBound < UBound, "TOnlineHistogram: Lower bound should be smaller than upper bound");
+	// number of equal bins ? (not counting possibly infinite ones)
+	TInt Bins = ParamVal->GetObjInt("bins", 5);
+	EAssertR(Bins > 0, "TOnlineHistogram: Number of bins should be greater than 0");
+	// include infinities in the bounds?
+	TBool AddNegInf = ParamVal->GetObjBool("addNegInf", false);
+	TBool AddPosInf = ParamVal->GetObjBool("addPosInf", false);
+	
+	Init(LBound, UBound, Bins, AddNegInf, AddPosInf);
+};
+
+
+int TOnlineHistogram::FindBin(const double& Val) const {
+	int Bins = Bounds.Len() - 1;
+	int LBound = 0;
+	int UBound = Bins - 1;
+	
+	// out of bounds
+	if ((Val < Bounds[0]) || (Val > Bounds.Last())) { return -1; }
+	// the last bound is an exception: the interval is closed from the right
+	if (Val == Bounds.Last()) { return UBound; }
+
+	while (LBound <= UBound) {
+		int Idx = (LBound + UBound) / 2;
+		if ((Val >= Bounds[Idx]) && (Val < Bounds[Idx + 1])) { // value between
+			return Idx; 
+		} else if (Val < Bounds[Idx]) { // value on the left, move upper bound
+			UBound = Idx - 1;
+		} else { // Val > Bounds[Idx + 1]
+			LBound = Idx + 1;
+		}
+	}
+	return -1;
+}
+
+void TOnlineHistogram::Increment(const double& Val) {
+	int Idx = FindBin(Val);
+	if (Idx >= 0) { Counts[Idx]++; }
+}
+
+void TOnlineHistogram::Decrement(const double& Val) {
+	int Idx = FindBin(Val);
+	if (Idx >= 0) { Counts[Idx]--; }
+}
+
+double TOnlineHistogram::GetCount(const double& Val) const {
+	int Idx = FindBin(Val);
+	return Idx >= 0 ? (double)Counts[Idx] : 0.0;
+}
+
+void TOnlineHistogram::Print() const {
+	printf("Histogram:\n");
+	for (int BinN = 0; BinN < Counts.Len(); BinN++) {
+		printf("%g [%g, %g]\n", Counts[BinN].Val, Bounds[BinN].Val, Bounds[BinN + 1].Val);
+	}
+}
+
+PJsonVal TOnlineHistogram::SaveJson() const {
+	PJsonVal Result = TJsonVal::NewObj();
+	PJsonVal BoundsArr = TJsonVal::NewArr();
+	PJsonVal CountsArr = TJsonVal::NewArr();
+	for (int ElN = 0; ElN < Counts.Len(); ElN++) {
+		BoundsArr->AddToArr(Bounds[ElN]);
+		CountsArr->AddToArr(Counts[ElN]);
+	}
+	BoundsArr->AddToArr(Bounds.Last());
+	Result->AddToObj("bounds", BoundsArr);
+	Result->AddToObj("counts", CountsArr);
+	return Result;
+}
+
+TChiSquare::TChiSquare(const PJsonVal& ParamVal): P(TFlt::PInf) {
+	// P value is set to infinity by default (null hypothesis is not rejected)
+	EAssertR(ParamVal->IsObjKey("degreesOfFreedom"), "TChiSquare: degreesOfFreedom key missing!");
+	// degrees of freedom
+	DegreesOfFreedom = ParamVal->GetObjInt("degreesOfFreedom");
+}
+
+void TChiSquare::Print() const {
+	printf("Chi2 = %g", Chi2.Val);
+	printf("P = %g", P.Val);	
+}
+
+void TChiSquare::Update(const TFltV& OutValVX, const TFltV& OutValVY) {
+	Chi2 = 0.0;	
+	EAssertR(OutValVX.Len() == OutValVY.Len(), "TChiSquare: histogram dimensions do not match!");
+	// http://www.itl.nist.gov/div898/software/dataplot/refman1/auxillar/chi2samp.htm
+	double SumR = TLinAlg::SumVec(OutValVX);
+	double SumS = TLinAlg::SumVec(OutValVY);
+	// Do nothing if zero histogram is detected
+	if (SumR <= 0.0 || SumS <= 0.0) { return; }
+	double K1 = TMath::Sqrt(SumS / SumR);
+	double K2 = 1.0 / K1;
+	for (int ValN = 0; ValN < OutValVX.Len(); ValN++) {
+		double Ri = OutValVX[ValN];
+		double Si = OutValVY[ValN];
+		double RpS = Ri + Si;
+		if (RpS > 0) {
+			Chi2 += TMath::Sqr(K1 * Ri - K2 * Si) / RpS;
+		}
+	}
+	if (Chi2 == 0.0) {
+		P = TFlt::PInf;
+	}
+	else {
+		P = TSpecFunc::GammaQ(0.5*(DegreesOfFreedom), 0.5*(Chi2));
+	}
+}
+
+
+/// Load from stream
+void TChiSquare::LoadState(TSIn& SIn) {
+	Chi2.Load(SIn);
+	P.Load(SIn);	
+}
+
+/// Store state into stream
+void TChiSquare::SaveState(TSOut& SOut) const {
+	Chi2.Save(SOut);
+	P.Save(SOut);	
 }
 
 }

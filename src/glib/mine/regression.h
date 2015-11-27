@@ -9,44 +9,6 @@
 namespace TRegression {
 
 ///////////////////////////////////////////
-// Logistic Regression using the Newton-Raphson method
-class TLogReg {
-private:
-	double Lambda;
-	TFltV WgtV;
-
-	bool IncludeIntercept;
-
-	bool Verbose;
-	PNotify Notify;
-
-public:
-	// default constructor, sets the regularization parameter
-	TLogReg(const double& Lambda=1, const bool IncludeIntercept=false, const bool Verbose=true);
-	TLogReg(TSIn& SIn);
-
-	void Save(TSOut& SOut) const;
-
-	// Fits the regression model. The method assumes that the instances are stored in the
-	// columns of the matrix X and the responses are stored in vector y.
-	void Fit(const TFltVV& X, const TFltV& y, const double& Eps=1e-3);
-	// returns the expected response for the given feature vector
-	double Predict(const TFltV& x) const;
-
-	void GetWgtV(TFltV& WgtV) const;
-
-	// get functions
-	const double& getLambda() { return Lambda; }
-	const bool& getIntercept() { return IncludeIntercept; }
-	// set functions
-	void setLambda(const double& _Lambda) { Lambda = _Lambda; }
-	void setIntercept(const bool& _IncludeIntercept) { IncludeIntercept = _IncludeIntercept; }
-
-private:
-	double PredictWithoutIntercept(const TFltV& x) const;
-};
-
-///////////////////////////////////////////
 // Proportional Hazards model
 class TPropHazards {
 private:
@@ -69,8 +31,8 @@ public:
 
 	void GetWgtV(TFltV& WgtV) const;
 
-	const double getLambda() { return Lambda; }
-	void setLambda(const double& _Lambda) { Lambda = _Lambda; }
+	double GetLambda() const { return Lambda; }
+	void SetLambda(const double& _Lambda) { Lambda = _Lambda; }
 
 private:
 	void PredictInternal(const TFltVV& X, TFltV& IntensV) const;

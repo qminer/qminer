@@ -1,12 +1,12 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
 
-console.log(__filename)
+// console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js'); // additional JS implementations
 var qm = require('qminer');
 
@@ -17,7 +17,6 @@ var verbose = false;
 
 describe('PrimaryField Tests', function () {
     it('should pass', function () {
-        this.timeout(10000);
         if (verbose) {
             console.log("PrimaryField", "Starting test of primary fields");
         }
@@ -97,19 +96,14 @@ describe('PrimaryField Tests', function () {
             }
         ]);
 
-        // generate random records
-        function random(max) {
-            return Math.floor(max * Math.random());
-        }
-
-        for (var i = 0; i < 10000; i++) {
+        for (var i = 0; i < 20; i++) {
             //console.log("..." + i);
             var rec = {
-                Str: strVals[random(strVals.length)],
-                Int: intVals[random(intVals.length)],
-                UInt64: uint64Vals[random(uint64Vals.length)],
-                Flt: fltVals[random(fltVals.length)],
-                Tm: tmVals[random(tmVals.length)]
+                Str: strVals[i % strVals.length],
+                Int: intVals[i % intVals.length],
+                UInt64: uint64Vals[i % uint64Vals.length],
+                Flt: fltVals[i % fltVals.length],
+                Tm: tmVals[i % tmVals.length]
             };
             base.store("primary_string").push(rec);
             base.store("primary_int").push(rec);

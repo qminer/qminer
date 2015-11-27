@@ -88,7 +88,7 @@ private:
 * @readonly
 * @enum {string}
 */
-//# var baseModes = {
+//# var BaseModes = {
 //#    /** sets up the db folder */
 //#    create: 'create',
 //#    /** cleans the db folder and calls create */
@@ -102,7 +102,7 @@ private:
 /**
 * Base constructor parameter object
 * @typedef {Object} BaseConstructorParam
-* @property  {module:qm~baseModes} [BaseConstructorParam.mode='openReadOnly'] - Base access mode: 
+* @property  {module:qm~BaseModes} [BaseConstructorParam.mode='openReadOnly'] - Base access mode: 
 * <br> create (sets up the db folder), 
 * <br> createClean (cleans db folder and then sets it up), 
 * <br> open (opens the db with read/write permissions), 
@@ -117,11 +117,11 @@ private:
 /**
 * Store schema definition object
 * @typedef {Object} SchemaDefinition
-* @property {string} name - The name of the store. Store name can be composed by from English letters, numbers, _ or $ characters. It can only begin with a character.
-* @property {Array<module:qm~SchemaFieldDefinition>} fields - The array of field descriptors. 
-* @property {Array<module:qm~SchemaJoinDefinition>} [joins=[]] - The array of join descriptors, used for linking records from different stores.
-* @property {Array<module:qm~SchemaKeyDefinition>} [keys=[]] - The array of key descriptors. Keys define how records are indexed, which is needed for search using the query language.
-* @property {module:qm~SchemaTimeWindowDefinition} [timeWindow] - Time window description. Stores can have a window, which is used by garbage collector to delete records once they fall out of the time window. Window can be defined by number of records or by time.
+* @property {string} SchemaDefinition.name - The name of the store. Store name can be composed by from English letters, numbers, _ or $ characters. It can only begin with a character.
+* @property {Array<module:qm~SchemaFieldDefinition>} SchemaDefinition.fields - The array of field descriptors. 
+* @property {Array<module:qm~SchemaJoinDefinition>} [SchemaDefinition.joins=[]] - The array of join descriptors, used for linking records from different stores.
+* @property {Array<module:qm~SchemaKeyDefinition>} [SchemaDefinition.keys=[]] - The array of key descriptors. Keys define how records are indexed, which is needed for search using the query language.
+* @property {module:qm~SchemaTimeWindowDefinition} [SchemaDefinition.timeWindow] - Time window description. Stores can have a window, which is used by garbage collector to delete records once they fall out of the time window. Window can be defined by number of records or by time.
 * @example
 * var qm = require('qminer');
 * // create a simple movies store, where each record contains only the movie title.
@@ -140,7 +140,7 @@ private:
 * @readonly
 * @enum {string}
 */
-//# var fieldTypes = {
+//# var FieldTypes = {
 //#		/** signed 32-bit integer */
 //#		int: 'int', 
 //#		/** vector of signed 32-bit integers */
@@ -166,14 +166,14 @@ private:
 /**
 * Store schema field definition object
 * @typedef {Object} SchemaFieldDefinition
-* @property {string} name - The name of the field.
-* @property {module:qm~fieldTypes} type - The type of the field.
-* @property {boolean} [primary=false] - Field which can be used to identify record. There can be only one primary field in a store. There can be at most one record for each value of the primary field. Currently following fields can be marked as primary: int, uin64, string, float, datetime. Primary fields of type string are also used for record names.
-* @property {boolean} [null=false] - When set to true, null is a possible value for a field (allow missing values).
-* @property {string} [store='memory'] - Defines where to store the field, options are: <b>'cache'</b> or <b>'memory'</b>. The default option is <b>'memory'</b>, which stores the values in RAM. Option <b>'cache'</b> stores the values on disk, with a layer of FIFO cache in RAM, storing the most recently used values.
-* @property {Object} [default] - Default value for field when not given for a new record.
-* @property {boolean} [codebook=false] - Useful when many records have only few different values of this field. If set to true, then a separate table of all values is kept, and records only point to this table (replacing variable string field in record serialisation with fixed-length integer). Useful to decrease memory footprint, and faster to update. (STRING FIELD TYPE SPECIFIC).
-* @property {boolean} [shortstring=false] - Useful for string shorter then 127 characters (STRING FIELD TYPE SPECIFIC).
+* @property {string} SchemaFieldDefinition.name - The name of the field.
+* @property {module:qm~FieldTypes} SchemaFieldDefinition.type - The type of the field.
+* @property {boolean} [SchemaFieldDefinition.primary=false] - Field which can be used to identify record. There can be only one primary field in a store. There can be at most one record for each value of the primary field. Currently following fields can be marked as primary: int, uin64, string, float, datetime. Primary fields of type string are also used for record names.
+* @property {boolean} [SchemaFieldDefinition.null=false] - When set to true, null is a possible value for a field (allow missing values).
+* @property {string} [SchemaFieldDefinition.store='memory'] - Defines where to store the field, options are: <b>'cache'</b> or <b>'memory'</b>. The default option is <b>'memory'</b>, which stores the values in RAM. Option <b>'cache'</b> stores the values on disk, with a layer of FIFO cache in RAM, storing the most recently used values.
+* @property {Object} [SchemaFieldDefinition.default] - Default value for field when not given for a new record.
+* @property {boolean} [SchemaFieldDefinition.codebook=false] - Useful when many records have only few different values of this field. If set to true, then a separate table of all values is kept, and records only point to this table (replacing variable string field in record serialisation with fixed-length integer). Useful to decrease memory footprint, and faster to update. (STRING FIELD TYPE SPECIFIC).
+* @property {boolean} [SchemaFieldDefinition.shortstring=false] - Useful for string shorter then 127 characters (STRING FIELD TYPE SPECIFIC).
 * @example
 *  var qm = require('qminer');
 *  var base = new qm.Base({
@@ -208,11 +208,11 @@ private:
 /**
 * Store schema join definition object
 * @typedef {Object} SchemaJoinDefinition
-* @property {string} name - The name of the join.
-* @property {string} type - The supported types are: <b>'field'</b> and <b>'index'</b>. 
+* @property {string} SchemaJoinDefinition.name - The name of the join.
+* @property {string} SchemaJoinDefinition.type - The supported types are: <b>'field'</b> and <b>'index'</b>. 
 * <br> A join with type=<b>'field'</b> can point to zero or one record and is implemented as an additional hidden field of type uint64, which can hold the ID of the record it links to. Accessing the record's join returns a record.
 * <br> A join with type=<b>'index'</b> can point to any number of records and is implemented using the inverted index, where for each record a list (vector) of linked records is kept. Accessing the record's join returns a record set.
-* @property {string} store - The store name from which the linked records are.
+* @property {string} SchemaJoinDefinition.store - The store name from which the linked records are.
 * @example
 * var qm = require('qminer');
 * // Create two stores: People which stores only names of persons and Movies, which stores only titles.
@@ -246,12 +246,12 @@ private:
 * // Each movie has a property corresponding to the join name: 'director'. 
 * // Accessing the property returns a {@link module:qm.Record} from the store People.
 * var person = movie.director; // get the director
-* console.log(person.name); // prints 'Jim Jarmusch'
+* var personName = person.name; // get person's name ('Jim Jarmusch')
 * // Each person has a property corresponding to the join name: 'directed'. 
 * // Accessing the property returns a {@link module:qm.RecSet} from the store People.
 * var movies = person.directed; // get all the movies the person directed.
-* movies.each(function (movie) { console.log(movie.title); }); 
-* // prints: 
+* movies.each(function (movie) { var title = movie.title; });
+* // Gets the following titles:
 * //   'Broken Flowers'
 * //   'Coffee and Cigarettes'
 * base.close();
@@ -260,15 +260,15 @@ private:
 /**
 * Store schema key definition object
 * @typedef {Object} SchemaKeyDefinition
-* @property {string} field - The name of the field that will be indexed.
-* @property {string} type - The supported types are: <b>'value'</b>, <b>'text'</b> and <b>'location'</b>.
+* @property {string} SchemaKeyDefinition.field - The name of the field that will be indexed.
+* @property {string} SchemaKeyDefinition.type - The supported types are: <b>'value'</b>, <b>'text'</b> and <b>'location'</b>.
 * <br> A key with type=<b>'value'</b> indexes records using an inverted index using full value of the field (no processing).
 *  The key type supports 'string', 'string_v' and 'datetime' fields types.
 * <br> A key with type=<b>'text'</b> indexes string fields by using a tokenizer and text processing. Supported by string fields.
 * <br> A key with type=<b>'location'</b> indexes records as points on a sphere and enables nearest-neighbour queries. Supported by float_pair type fields.
-* @property {string} [name] - Allows using a different name for the key in search queries. This allows for multiple keys to be put against the same field. Default value is the name of the field.
-* @property {string} [vocabulary] - defines the name of the vocabulary used to store the tokens or values. This can be used indicate to several keys to use the same vocabulary, to save on memory. Supported by 'value' and 'text' keys.
-* @property {string} [tokenize] - defines the tokenizer that is used for tokenizing the values stored in indexed fields. Tokenizer uses same parameters as in bag-of-words feature extractor. Default is english stopword list and no stemmer. Supported by 'text' keys.
+* @property {string} [SchemaKeyDefinition.name] - Allows using a different name for the key in search queries. This allows for multiple keys to be put against the same field. Default value is the name of the field.
+* @property {string} [SchemaKeyDefinition.vocabulary] - defines the name of the vocabulary used to store the tokens or values. This can be used indicate to several keys to use the same vocabulary, to save on memory. Supported by 'value' and 'text' keys.
+* @property {string} [SchemaKeyDefinition.tokenize] - defines the tokenizer that is used for tokenizing the values stored in indexed fields. Tokenizer uses same parameters as in bag-of-words feature extractor. Default is english stopword list and no stemmer. Supported by 'text' keys.
 * @example
 * var qm = require('qminer');
 * // Create a store People which stores only names of persons.
@@ -301,9 +301,9 @@ private:
 * fall out of the time window. Window can be defined by number of records or by time.
 * Window defined by parameter window, its value being the number of records to be kept.
 * @typedef {Object} SchemaTimeWindowDefinition
-* @property {number} duration - the size of the time window (in number of units).
-* @property {string} unit - defines in which units the window size is specified. Possible values are <b>second</b>, <b>minute</b>, <b>hour</b>, <b>day</b>, <b>week</b> or <b>month</b>.
-* @property {string} [field] - name of the datetime filed, which defines the time of the record. In case it is not given, the insert time is used in its place.
+* @property {number} SchemaTimeWindowDefinition.duration - the size of the time window (in number of units).
+* @property {string} SchemaTimeWindowDefinition.unit - defines in which units the window size is specified. Possible values are <b>second</b>, <b>minute</b>, <b>hour</b>, <b>day</b>, <b>week</b> or <b>month</b>.
+* @property {string} [SchemaTimeWindowDefinition.field] - name of the datetime filed, which defines the time of the record. In case it is not given, the insert time is used in its place.
 * @example
 * var qm = require('qminer');
 * // Create a store
@@ -330,6 +330,7 @@ public:
 	static TPt<TNodeJsBaseWatcher> New() { return new TNodeJsBaseWatcher; }
 	void AssertOpen() { EAssertR(OpenP, "Base is closed!"); }
 	void Close() { OpenP = false; }
+	bool IsClosed() const { return !OpenP; }
 };
 typedef TPt<TNodeJsBaseWatcher> PNodeJsBaseWatcher;
 
@@ -376,6 +377,12 @@ private:
 	*/
 	//# exports.Base.prototype.close = function () { return null; }
 	JsDeclareFunction(close);
+
+	/**
+	* Checks if the base is closed.
+	* @returns {Boolean}
+	*/
+	JsDeclareFunction(isClosed);
 
 	/**
 	 * Returns the store with the specified name.
@@ -521,13 +528,16 @@ private:
 // NodeJs-Qminer-Store
 
 /**
-* Store (factory pattern result) 
-* @namespace
-* @example
+* Stores are containers of records. 
+* <b>Factory pattern:</b> this class cannot be construced using the new keyword. This class is constructed when 
+* calling a specific method or attribute, e.g. constructing the {@link module:qm.Base} using schema or with the 
+* {@link module:qm.Base#createStore}.
+* @class
+* @example <caption>Creating a store with createStore function</caption>
 * // import qm module
 * var qm = require('qminer');
 * // factory based construction using base.createStore
-* var base = qm.create('qm.conf', "", true);
+* var base = new qm.Base({ mode: 'createClean' });
 * base.createStore([{
 *    name: "People",
 *    fields: [
@@ -564,6 +574,9 @@ private:
 *    ]
 * }]);
 * base.close();
+* @example <caption>Creating store with schema in base constructor</caption>
+* // import qm module
+* var qm = require('qminer');
 * // using the base constructor
 * var base = new qm.Base({
 *    mode: "createClean",
@@ -696,6 +709,7 @@ private:
 	/**
 	* Adds a record to the store.
 	* @param {Object} rec - The added record. The record must be a JSON object corresponding to the store schema.
+	* @param {boolean} [triggerEvents=true] - If true, all stream aggregate callbacks onAdd will be called after the record is inserted. If false, no stream aggregate will be updated.
 	* @returns {number} The ID of the added record.
 	* @example
 	* // import qm module
@@ -725,7 +739,7 @@ private:
 	* base.store("Supervillians").push({ Name: "Lex Luthor", Superpowers: ["expert engineer", "genius-level intellect", "money"] }); // returns 0
 	* base.close();	
 	*/
-	//# exports.Store.prototype.push = function (rec) { return 0; }
+	//# exports.Store.prototype.push = function (rec, triggerEvents) { return 0; }
 	JsDeclareFunction(push);
 
 	/**
@@ -973,6 +987,12 @@ private:
 	JsDeclareFunction(getStreamAggr);
 
 	/**
+	* Resets all stream aggregates.
+	*/
+	//# exports.Store.prototype.resetStreamAggregates = function () { }
+	JsDeclareFunction(resetStreamAggregates);
+
+	/**
 	* Returns an array of the stream aggregates names connected to the store.
 	* @returns {Array.<string>} An array of stream aggregates names.
 	*/
@@ -1134,6 +1154,13 @@ private:
 	JsDeclareFunction(cell);
 
 	/**
+	* Calls onAdd callback on all stream aggregates
+	* @param {(module:qm.Record | number)} [arg=this.last] - The record or recordId which will be passed to onAdd callbacks. If the record or recordId is not provided, the last record will be used. Throws exception if cannot be provided.
+	*/
+	//# exports.Store.prototype.triggerOnAddCallbacks = function (arg) {};
+	JsDeclareFunction(triggerOnAddCallbacks);
+
+	/**
 	* Gives the name of the store.
 	*/
 	//# exports.Store.prototype.name = "";
@@ -1222,8 +1249,12 @@ private:
 // NodeJs QMiner Record
 
 /**
-* Record (factory pattern). The records are used for storing data in {@link module:qm.Store}.
-* @namespace
+* Records are used for storing data 
+* in {@link module:qm.Store}.
+* <b>Factory pattern</b>: this class cannot be construced using the new keyword. This class is constructed
+* when calling a specific method or attribute, e.g. using {@link module:qm.Store#push} to create a new record in 
+* the store or {@link module:qm.Store#newRecord} to create a new record, that is not saved in the store.
+* @class
 */
 //# exports.Record = function () {}; 
 class TNodeJsRec: public node::ObjectWrap {
@@ -1243,7 +1274,7 @@ public:
 	TQm::TRec Rec;
 	TInt Fq;
 	// C++ constructors	
-	TNodeJsRec(PNodeJsBaseWatcher _Watcher, const TQm::TRec& _Rec, const TInt& _Fq = 0) : Watcher(_Watcher), Rec(_Rec), Fq(_Fq) {}
+	TNodeJsRec(PNodeJsBaseWatcher _Watcher, const TQm::TRec& _Rec, const TInt& _Fq = 1) : Watcher(_Watcher), Rec(_Rec), Fq(_Fq) {}
 	// Not typical (records have multiple templates), simpler objects get this method from TNodeJsUtil
 	static v8::Local<v8::Object> NewInstance(TNodeJsRec* Obj);
 	
@@ -1277,14 +1308,6 @@ private:
 	*/
 	//# exports.Record.prototype.$clone = function () { return Object.create(require('qminer').Record.prototype); };
     JsDeclareFunction(clone);
-
-    /**
-     * Provide json version of record, useful when calling JSON.stringify
-     *
-     * @param {Boolean} - ???
-     * @param {Boolean} - ???
-     * @param {Boolean} [sysFields=true] - if set to true system fields, like $id, will be included
-     */
 	
 	/**
 	* Adds a join record `joinRecord` to join `jonName` (string) with join frequency `joinFrequency`
@@ -1309,8 +1332,8 @@ private:
 	/**
 	* Creates a JSON version of the record.
 	*
-    * @param {Boolean} - ???
-    * @param {Boolean} - ???
+    * @param {Boolean} [joinRecords=false] - include joined records (only IDs)
+    * @param {Boolean} [joinRecordFields=false] - expand joined record fields
     * @param {Boolean} [sysFields=true] - if set to true system fields, like $id, will be included
 	* @returns {Object} The JSON version of the record.
 	*
@@ -1370,12 +1393,39 @@ private:
 	JsDeclareProperty(sjoin);
 };
 
+class TNodeJsRecByValV: public node::ObjectWrap {
+	friend class TNodeJsUtil;
+private:
+	// Node framework
+	static v8::Persistent<v8::Function> Constructor;
+public:
+	// Node framework
+	static void Init(v8::Handle<v8::Object> Exports);
+	static const TStr GetClassId() { return "RecordVector"; }
+
+	TVec<TQm::TRec> RecV;
+
+	TNodeJsRecByValV(): RecV() {}
+
+	static TNodeJsRecByValV* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+private:
+	/**
+	 * Adds a new record to the vector.
+	 */
+	//# exports.RecVector.prototype.push = function (rec) {};
+	JsDeclareFunction(push);
+};
+
 ///////////////////////////////
 // NodeJs QMiner Record Set
 
 /**
-* Record Set (factory pattern). The Record Set is a set of records.
-* @namespace
+* Record Set is a set of records.
+* <b>Factory pattern</b>: this class cannot be construced using the new keyword. This class is constructed
+* when calling a specific method or attribute, e.g. using {@link module:qm.Store#allRecords} to get all the records
+* in the store as a record set.
+* @class
 */
 //# exports.RecordSet = function () {}
 class TNodeJsRecSet: public node::ObjectWrap {
@@ -2241,8 +2291,10 @@ private:
 ///////////////////////////////
 // NodeJs QMiner Store Iterator
 /**
-* Store Iterator (factory pattern)
-* @namespace
+* Store Iterators allows you to iterate through the records in the store.
+* <b>Factory pattern</b>: this class cannot be construced using the new keyword. It is constructed by calling
+* a specific method or attribute, e.g. calling {@link module:qm.Store#forwardIter} to construct the Iterator.
+* @class
 * @example
 * // import qm module
 * qm = require('qminer');
@@ -2460,6 +2512,7 @@ public:
 	void AddFullV(const TQm::TRec& Rec, TFltV& FullV, int& Offset) const;
 	void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
 		throw TExcept::New("Not implemented yet!", "TJsFuncFtrExt::InvFullV"); }
+	double GetVal(const double& InVal) const { throw TExcept::New("Not implemented!"); }
 
 	// flat feature extraction
 	void ExtractFltV(const TQm::TRec& FtrRec, TFltV& FltV) const;
@@ -2490,9 +2543,9 @@ public:
 /**
 * @typedef {Object} FeatureExtractorConstant
 * The feature extractor of type 'contant'.
-* @property {string} type - The type of the extractor. It must be equal <b>'constant'</b>.
-* @property {number} [const = 1.0] - A constant number.
-* @property {module:qm~FeatureSource} source - The source of the extractor.
+* @property {string} FeatureExtractorConstant.type - The type of the extractor. It must be equal <b>'constant'</b>.
+* @property {number} [FeatureExtractorConstant.const = 1.0] - A constant number.
+* @property {module:qm~FeatureSource} FeatureExtractorConstant.source - The source of the extractor.
 * @example
 * var qm = require('qminer');
 * // create a simple base, where each record contains only a persons name
@@ -2511,9 +2564,9 @@ public:
 /**
 * @typedef {Object} FeatureExtractorRandom
 * The feature extractor of type 'random'.
-* @property {string} type - The type of the extractor. It must be equal <b>'random'</b>.
-* @property {number} [seed = 0] - The seed number used to construct the random number.
-* @property {module:qm~FeatureSource} source - The source of the extractor.
+* @property {string} FeatureExtractorRandom.type - The type of the extractor. It must be equal <b>'random'</b>.
+* @property {number} [FeatureExtractorRandom.seed = 0] - The seed number used to construct the random number.
+* @property {module:qm~FeatureSource} FeatureExtractorRandom.source - The source of the extractor.
 * @example
 * var qm = require('qminer');
 * // create a simple base, where each record contains only a persons name
@@ -2532,12 +2585,12 @@ public:
 /**
 * @typedef {Object} FeatureExtractorNumeric
 * The feature extractor of type 'numeric'.
-* @property {string} type - The type of the extractor. It must be equal <b>'numeric'</b>.
-* @property {boolean} [normalize = 'false'] - Normalize values between 0.0 and 1.0.
-* @property {number} [min] - The minimal value used to form the normalization.
-* @property {number} [max] - The maximal value used to form the normalization.
-* @property {string} field - The name of the field from which to take the value.
-* @property {module:qm~FeatureSource} source - The source of the extractor.
+* @property {string} FeatureExtractorNumeric.type - The type of the extractor. It must be equal <b>'numeric'</b>.
+* @property {boolean} [FeatureExtractorNumeric.normalize = 'false'] - Normalize values between 0.0 and 1.0.
+* @property {number} [FeatureExtractorNumeric.min] - The minimal value used to form the normalization.
+* @property {number} [FeatureExtractorNumeric.max] - The maximal value used to form the normalization.
+* @property {string} FeatureExtractorNumeric.field - The name of the field from which to take the value.
+* @property {module:qm~FeatureSource} FeatureExtractorNumeric.source - The source of the extractor.
 * @example
 * var qm = require('qminer');
 * // create a simple base, where each record contains the student name and it's grade
@@ -2560,11 +2613,11 @@ public:
 /**
 * @typedef {Object} FeatureExtractorSparseVector
 * The feature extractor of type 'num_sp_v'.
-* @property {string} type - The type of the extractor. It must be equal <b>'num_sp_v'</b>.
-* @property {number} [dimension = 0] - Dimensionality of sparse vectors.
-* @property {boolean} [normalize = false] - Normalize vectors to L2 norm of 1.0.
-* @property {string} field - The name of the field from which to take the value.
-* @property {module:qm~FeatureSource} source - The source of the extractor.
+* @property {string} FeatureExtractorSparseVector.type - The type of the extractor. It must be equal <b>'num_sp_v'</b>.
+* @property {number} [FeatureExtractorSparseVector.dimension = 0] - Dimensionality of sparse vectors.
+* @property {boolean} [FeatureExtractorSparseVector.normalize = false] - Normalize vectors to L2 norm of 1.0.
+* @property {string} FeatureExtractorSparseVector.field - The name of the field from which to take the value.
+* @property {module:qm~FeatureSource} FeatureExtractorSparseVector.source - The source of the extractor.
 * @example
 * var qm = require('qminer');
 * // create a simple base, where each record contains the student name and it's grade
@@ -2587,11 +2640,11 @@ public:
 /**
 * @typedef {Object} FeatureExtractorCategorical
 * The feature extractor of type 'categorical'.
-* @property {string} type - The type of the extractor. It must be equal <b>'categorical'</b>.
-* @property {Array.<Object>} [values] - A fixed set of values, which form a fixed feature set. No dimensionality changes if new values are seen in the upgrades.
-* @property {number} [hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hasDimension to get the corresponding dimension.
-* @property {string} field - The name of the field form which to take the values.
-* @property {module:qm~FeatureSource} source - The source of the extractor.
+* @property {string} FeatureExtractorCategorical.type - The type of the extractor. It must be equal <b>'categorical'</b>.
+* @property {Array.<Object>} [FeatureExtractorCategorical.values] - A fixed set of values, which form a fixed feature set. No dimensionality changes if new values are seen in the upgrades.
+* @property {number} [FeatureExtractorCategorical.hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hasDimension to get the corresponding dimension.
+* @property {string} FeatureExtractorCategorical.field - The name of the field form which to take the values.
+* @property {module:qm~FeatureSource} FeatureExtractorCategorical.source - The source of the extractor.
 * @example
 * var qm = require('qminer');
 * // create a simple base, where each record contains the student name and it's study group
@@ -2615,14 +2668,15 @@ public:
 /**
 * @typedef {Object} FeatureExtractorMultinomial
 * The feature extractor of type 'multinomial'.
-* @property {string} type - The type of the extractor. It must be equal <b>'multinomial'</b>.
-* @property {boolean} [normalize = 'false'] - Normalize the resulting vector of the extractor to have L2 norm 1.0.
-* @property {Array.<Object>} [values] - A fixed set of values, which form a fixed feature set, no dimensionality changes if new values are seen in the updates. Cannot be used the same time as datetime.
-* @property {number} [hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hashDimension to get the corresponding dimension.
-* @property {Object} [datetime = false] - Same as 'values', only with predefined values which are extracted from date and time (month, day of month, day of week, time of day, hour).
+* @property {string} FeatureExtractorMultinomial.type - The type of the extractor. It must be equal <b>'multinomial'</b>.
+* @property {boolean} [FeatureExtractorMultinomial.normalize = 'false'] - Normalize the resulting vector of the extractor to have L2 norm 1.0.
+* @property {Array.<Object>} [FeatureExtractorMultinomial.values] - A fixed set of values, which form a fixed feature set, no dimensionality changes if new values are seen in the updates. Cannot be used the same time as datetime.
+* @property {number} [FeatureExtractorMultinomial.hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hashDimension to get the corresponding dimension.
+* @property {Object} [FeatureExtractorMultinomial.datetime = false] - Same as 'values', only with predefined values which are extracted from date and time (month, day of month, day of week, time of day, hour).
 * <br> This fixes the dimensionality of feature extractor at the start, making it not dimension as new dates are seen. Cannot be used the same time as values.
-* @property {string} field - The name of the field from which to take the value.
-* @property {module:qm~FeatureSource} source - The source of the extractor.
+* @property {(string|Array.<String>)} FeatureExtractorMultinomial.field - The name of the field from which to take the key value.
+* @property {(string|Array.<String>)} [FeatureExtractorMultinomial.valueField] - The name of the field from which to take the numeric value. When not provided, 1.0 is used as default numeric values for non-zero elements in the vector.
+* @property {module:qm~FeatureSource} FeatureExtractorMultinomial.source - The source of the extractor.
 * @example
 * var qm = require('qminer');
 * // create a simple base, where each record contains the student name and an array of study groups
@@ -2648,15 +2702,15 @@ public:
 /**
 * @typedef {Object} FeatureExtractorText
 * The feature extractor of type 'text'.
-* @property {string} type - The type of the extractor. It must be equal <b>'text'</b>.
-* @property {boolean} [normalize = 'true'] - Normalize the resulting vector of the extractor to have L2 norm 1.0.
-* @property {module:qm~FeatureWeight} [weight = 'tfidf'] - Type of weighting used for scoring terms.
-* @property {number} [hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hashDimension to get the corresponding dimension.
-* @property {string} field - The name of the field from which to take the value.
-* @property {module:qm~FeatureTokenizer} tokenizer - The settings for extraction of text.
-* @property {module:qm~FeatureMode} mode - How are multi-record cases combined into single vector.
-* @property {module:qm~FeatureStream} stream - Details on forgetting old IDFs when running on stream.
-* @property {module:qm~FeatureSource} source - The source of the extractor.
+* @property {string} FeatureExtractorText.type - The type of the extractor. It must be equal <b>'text'</b>.
+* @property {boolean} [FeatureExtractorText.normalize = 'true'] - Normalize the resulting vector of the extractor to have L2 norm 1.0.
+* @property {module:qm~FeatureWeight} [FeatureExtractorText.weight = 'tfidf'] - Type of weighting used for scoring terms.
+* @property {number} [FeatureExtractorText.hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hashDimension to get the corresponding dimension.
+* @property {string} FeatureExtractorText.field - The name of the field from which to take the value.
+* @property {module:qm~FeatureTokenizer} FeatureExtractorText.tokenizer - The settings for extraction of text.
+* @property {module:qm~FeatureMode} FeatureExtractorText.mode - How are multi-record cases combined into single vector.
+* @property {module:qm~FeatureStream} FeatureExtractorText.stream - Details on forgetting old IDFs when running on stream.
+* @property {module:qm~FeatureSource} FeatureExtractorText.source - The source of the extractor.
 * @example
 * var qm = require('qminer');
 * // create a simple base, where each record contains the title of the article and it's content
@@ -2682,9 +2736,9 @@ public:
 /**
 * @typedef {Object} FeatureExtractorJoin
 * The feature extractor of type 'join'.
-* @property {string} type - The type of the extractor. It must be equal <b>'join'</b>.
-* @property {number} [bucketSize = 1] - The size of the bucket in which we group consecutive records.
-* @property {module:qm~FeatureSource} source - The source of the extractor.
+* @property {string} FeatureExtractorJoin.type - The type of the extractor. It must be equal <b>'join'</b>.
+* @property {number} [FeatureExtractorJoin.bucketSize = 1] - The size of the bucket in which we group consecutive records.
+* @property {module:qm~FeatureSource} FeatureExtractorJoin.source - The source of the extractor.
 * @example
 * // import qm module
 * var qm = require('qminer');
@@ -2693,10 +2747,10 @@ public:
 /**
 * @typedef {Object} FeatureExtractorPair
 * The feature extractor of type 'pair'.
-* @property {string} type - The type of the extractor. It must be equal <b>'pair'</b>.
-* @property {module:qm~FeatureExtractors} first - The first feature extractor.
-* @property {module:qm~FeatureExtractors} second - The second feature extractor.
-* @property {module:qm~FeatureSource} source - The source of the extractor.
+* @property {string} FeatureExtractorPair.type - The type of the extractor. It must be equal <b>'pair'</b>.
+* @property {module:qm~FeatureExtractors} FeatureExtractorPair.first - The first feature extractor.
+* @property {module:qm~FeatureExtractors} FeatureExtractorPair.second - The second feature extractor.
+* @property {module:qm~FeatureSource} FeatureExtractorPair.source - The source of the extractor.
 * @example
 * var qm = require('qminer');
 */
@@ -2704,14 +2758,14 @@ public:
 /**
 * @typedef {Object} FeatureExtractorDateWindow
 * The feature extractor of type 'dateWindow'.
-* @property {string} type - The type of the extractor. It must be equal <b>'dateWindow'</b>.
-* @property {string} [unit = 'day'] - How granular is the time window. The options are: 'day', 'week', 'month', 'year', '12hours', '6hours', '4hours', '2hours',
+* @property {string} FeatureExtractorDateWindow.type - The type of the extractor. It must be equal <b>'dateWindow'</b>.
+* @property {string} [FeatureExtractorDateWindow.unit = 'day'] - How granular is the time window. The options are: 'day', 'week', 'month', 'year', '12hours', '6hours', '4hours', '2hours',
 * 'hour', '30minutes', '15minutes', '10minutes', 'minute', 'second'.
-* @property {number} [window = 1] - The size of the window.
-* @property {boolean} [normalize = 'false'] - Normalize the resulting vector of the extractor to have L2 norm 1.0. //TODO
-* @property {number} start - //TODO
-* @property {number} end - //TODO
-* @property {module:qm~FeatureSource} source - The source of the extractor.
+* @property {number} [FeatureExtractorDateWindow.window = 1] - The size of the window.
+* @property {boolean} [FeatureExtractorDateWindow.normalize = 'false'] - Normalize the resulting vector of the extractor to have L2 norm 1.0. //TODO
+* @property {number} FeatureExtractorDateWindow.start - //TODO
+* @property {number} FeatureExtractorDateWindow.end - //TODO
+* @property {module:qm~FeatureSource} FeatureExtractorDateWindow.source - The source of the extractor.
 * @example
 * // import qm module
 * var qm = require('qminer');
@@ -2720,11 +2774,11 @@ public:
 /**
 * @typedef {Object} FeatureExtractorJsfunc
 * The feature extractor of type 'jsfunc'.
-* @property {string} type - The type of the extractor. It must be equal <b>'jsfunc'</b>.
-* @property {string} name - The feature's name.
-* @property {function} fun - The javascript function callback. It should take a record as input and return a number or a dense vector.
-* @property {number} [dim = 1] - The dimension of the feature extractor.
-* @property {module:qm~FeatureSource} source - The source of the extractor.
+* @property {string} FeatureExtractorJsfunc.type - The type of the extractor. It must be equal <b>'jsfunc'</b>.
+* @property {string} FeatureExtractorJsfunc.name - The feature's name.
+* @property {function} FeatureExtractorJsfunc.fun - The javascript function callback. It should take a record as input and return a number or a dense vector.
+* @property {number} [FeatureExtractorJsfunc.dim = 1] - The dimension of the feature extractor.
+* @property {module:qm~FeatureSource} FeatureExtractorJsfunc.source - The source of the extractor.
 * @example
 * var qm = require('qminer');
 * // create a simple base, where each record contains the name of the student and his study groups
@@ -2752,7 +2806,7 @@ public:
 /**
 * From where are the input records taken.
 * @typedef {Object} FeatureSource
-* @property {string} store - The store name.
+* @property {string} FeatureSource.store - The store name.
 */
 
 /**
@@ -2774,10 +2828,10 @@ public:
 /**
 * The settings for extraction of text.
 * @typedef {Object} FeatureTokenizer
-* @property {module:qm~FeatureTokenizerType} [type = 'simple'] - The type of the encoding text.
-* @property {module:qm~FeatureTokenizerStopwords} [stopwords = 'en'] - The stopwords used for extraction.
-* @property {module:qm~FeatureTokenizerStemmer} [stemmer = 'none'] - The stemmer used for extraction.
-* @property {boolean} [uppercase = 'true'] - Changing all words to uppercase.
+* @property {module:qm~FeatureTokenizerType} [FeatureTokenizer.type = 'simple'] - The type of the encoding text.
+* @property {module:qm~FeatureTokenizerStopwords} [FeatureTokenizer.stopwords = 'en'] - The stopwords used for extraction.
+* @property {module:qm~FeatureTokenizerStemmer} [FeatureTokenizer.stemmer = 'none'] - The stemmer used for extraction.
+* @property {boolean} [FeatureTokenizer.uppercase = 'true'] - Changing all words to uppercase.
 */
 
 /**
@@ -2907,8 +2961,36 @@ public:
 	TNodeJsFtrSpace(const TWPt<TQm::TBase> Base, TSIn& SIn);
 	
 	TQm::PFtrSpace GetFtrSpace() { return FtrSpace; }
-public:
 	static TNodeJsFtrSpace* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+private:
+	class TUpdateRecsTask: public TNodeTask {
+	private:
+		TNodeJsFtrSpace* JsFtrSpace;
+		TNodeJsRecByValV* JsRecV;
+
+	public:
+		TUpdateRecsTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+		v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+		void Run();
+	};
+
+    class TExtractMatrixTask: public TNodeTask {
+    private:
+    	TNodeJsFtrSpace* JsFtrSpace;
+    	TNodeJsRecByValV* JsRecV;
+    	TNodeJsFltVV* JsFtrVV;
+
+    public:
+    	TExtractMatrixTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+    	v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+    	void Run();
+    	v8::Local<v8::Value> WrapResult();
+    };
+
+public:
 
     /**
 	* Returns the dimension of the feature space.
@@ -2929,6 +3011,39 @@ public:
 	*/
 	//# exports.FeatureSpace.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); };
     JsDeclareFunction(save);
+
+	/**
+	* Clears the feature space.
+	* @returns {module:qm.FeatureSpace} Self. 
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a new base containing one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        name: "Runners",
+	*        fields: [
+	*            { name: "ID", type: "int", primary: true },
+	*            { name: "Name", type: "string" },
+	*            { name: "BestTime", type: "float" }
+	*        ]
+	*    }]
+	* });
+	* // put some records in the "Runners" store
+	* base.store("Runners").push({ ID: 110020, Name: "Eric Ericsson", BestTime: 134.33 });
+	* base.store("Runners").push({ ID: 123307, Name: "Fred Friedrich", BestTime: 101.11 });
+	* base.store("Runners").push({ ID: 767201, Name: "Appel Banana", BestTime: 1034.56 });
+	* // create a feature space
+	* var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "Runners", field: "BestTime" });
+	* // update the feature space
+	* ftr.updateRecords(base.store("Runners").allRecords);
+	* // clear the feature space (return the feature space to it's default values)
+	* ftr.clear();
+	* base.close();
+	*/
+	//# exports.FeatureSpace.prototype.clear = function () { return Object.create(require('qminer').FeatureSpace.prototype); };
+	JsDeclareFunction(clear);
 
 	/**
 	* Adds a new feature extractor to the feature space.
@@ -3061,9 +3176,12 @@ public:
 	//# exports.FeatureSpace.prototype.updateRecords = function (rs) { return Object.create(require('qminer').FeatureSpace.prototype); };
 	JsDeclareFunction(updateRecords);
 
+	JsDeclareAsyncFunction(updateRecordsAsync, TUpdateRecsTask);
+
 	/**
 	* Creates a sparse feature vector from the given record.
 	* @param {module:qm.Record} rec - The given record.
+    * @param {number} [featureExtractorId] - when given, only use specified feature extractor.
 	* @returns {module:la.SparseVector} The sparse feature vector gained from rec.
 	* @example
 	* // import qm module
@@ -3104,6 +3222,7 @@ public:
 	/**
 	* Creates a feature vector from the given record.
 	* @param {module:qm.Record} rec - The given record.
+    * @param {number} [featureExtractorId] - when given, only use specified feature extractor.
 	* @returns {module:la.Vector} The feature vector gained from rec.
 	* @example
 	* // import qm module
@@ -3140,8 +3259,162 @@ public:
 	*/
 	//# exports.FeatureSpace.prototype.extractVector = function (rec) { return Object.create(require('qminer').la.Vector.prototype); };
 	JsDeclareFunction(extractVector);
+
+	/**
+	 * Extracts a single feature using the feature extractor at index ftrIdx.
+	 *
+	 * @param {Integer} ftrIdx - index of the feature extractor
+	 * @param {Number} val - value to extract
+	 */
+	JsDeclareFunction(extractFeature);
     
 	/**
+	* Extracts the sparse feature vectors from the record set and returns them as columns of the sparse matrix.
+	* @param {module:qm.RecordSet} rs - The given record set.
+    * @param {number} [featureExtractorId] - when given, only use specified feature extractor
+    * @returns {module:la.SparseMatrix} The sparse matrix, where the i-th column is the sparse feature vector of the i-th record in rs.
+	* @example
+	* // import qm module
+	* var qm = require("qminer");
+	* // create a base containing the store Class. Let the Name field be the primary field. 
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        name: "Class",
+	*        fields: [
+	*            { name: "Name", type: "string", primary: true },
+	*            { name: "StudyGroups", type: "string_v" }
+	*        ]
+	*    }]
+	* });
+	* // add some records to the store
+	* base.store("Class").push({ Name: "Dean", StudyGroups: ["A", "D"] });
+	* base.store("Class").push({ Name: "Chang", StudyGroups: ["B", "D"] });
+	* base.store("Class").push({ Name: "Magnitude", StudyGroups: ["B", "C"] });
+	* base.store("Class").push({ Name: "Leonard", StudyGroups: ["A", "B"] });
+	* // create a feature space containing the multinomial feature extractor
+	* var ftr = new qm.FeatureSpace(base, { type: "multinomial", source: "Class", field: "StudyGroups", values: ["A", "B", "C", "D"] });
+	* // create a sparse feature matrix out of the records of the store by using the feature space
+	* // returns a sparse matrix equal to 
+	* // [[(0, 1), (3, 1)], [(1, 1), (3, 1)], [(1, 1), (2, 1)], [(0, 1), (1, 1)]]
+	* var sparseMatrix = ftr.extractSparseMatrix(base.store("Class").allRecords);
+	* base.close();
+	*/
+	//# exports.FeatureSpace.prototype.extractSparseMatrix = function (rs) { return Object.create(require('qminer').la.SparseMatrix.prototype); };
+	JsDeclareFunction(extractSparseMatrix);
+
+	/**
+	* Extracts the feature vectors from the recordset and returns them as columns of a dense matrix.
+	* @param {module:qm.RecordSet} rs - The given record set.
+    * @param {number} [featureExtractorId] - when given, only use specified feature extractor.
+
+	* @returns {module:la.Matrix} The dense matrix, where the i-th column is the feature vector of the i-th record in rs.
+	* @example
+	* // import qm module
+	* var qm = require("qminer");
+	* // create a base containing the store Class. Let the Name field be the primary field.
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        name: "Class",
+	*        fields: [
+	*            { name: "Name", type: "string", primary: true },
+	*            { name: "StudyGroups", type: "string_v" }
+	*        ]
+	*    }]
+	* });
+	* // add some records to the store
+	* base.store("Class").push({ Name: "Dean", StudyGroups: ["A", "D"] });
+	* base.store("Class").push({ Name: "Chang", StudyGroups: ["B", "D"] });
+	* base.store("Class").push({ Name: "Magnitude", StudyGroups: ["B", "C"] });
+	* base.store("Class").push({ Name: "Leonard", StudyGroups: ["A", "B"] });
+	* // create a feature space containing the multinomial feature extractor
+	* var ftr = new qm.FeatureSpace(base, { type: "multinomial", source: "Class", field: "StudyGroups", values: ["A", "B", "C", "D"] });
+	* // create a feature matrix out of the records of the store by using the feature space
+	* // returns a sparse matrix equal to
+	* // 1  0  0  1
+	* // 0  1  0  1
+	* // 0  0  1  0
+	* // 1  1  0  0
+	* var matrix = ftr.extractMatrix(base.store("Class").allRecords);
+	* base.close();
+	*/
+	//# exports.FeatureSpace.prototype.extractMatrix = function (rs) { return Object.create(require('qminer').la.Matrix.prototype); };
+    JsDeclareFunction(extractMatrix);
+
+    JsDeclareAsyncFunction(extractMatrixAsync, TExtractMatrixTask);
+
+	/**
+	* Gives the name of feature extractor at given position.
+	* @param {number} idx - The index of the feature extractor in feature space (zero based).
+	* @returns {String} The name of the feature extractor at position idx.
+	* @example
+	* // import qm module
+	* var qm = require("qminer");
+	* // create a new base containing one store
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        name: "People",
+	*        fields: [
+	*            { name: "Name", type: "string" },
+	*            { name: "Gendre", type: "string" },
+	*            { name: "Age", type: "int" }
+	*        ]
+	*    }]
+	* });
+	* // create a feature space containing a categorical and numeric feature extractor
+	* var ftr = new qm.FeatureSpace(base, [
+	*    { type: "numeric", source: "People", field: "Age" },
+	*    { type: "categorical", source: "People", field: "Gendre", values: ["Male", "Female"] }
+	* ]);
+	* // get the name of the feature extractor with index 1
+	* var extractorName = ftr.getFeatureExtractor(1); // returns "Categorical[Gendre]"
+	* base.close();
+	*/
+	//# exports.FeatureSpace.prototype.getFeatureExtractor = function (idx) { return ''; };
+	JsDeclareFunction(getFeatureExtractor);
+
+	/**
+	* Gives the name of the feature at the given position.
+	* @param {number} idx - The index of the feature in feature space (zero based).
+	* @returns {String} The name of the feature at the position idx.
+	* @example
+	* // import qm module
+	* var qm = require("qminer");
+	* // create a base containing the store Class. Let the Name field be the primary field.
+	* var base = new qm.Base({
+	*    mode: "createClean",
+	*    schema: [{
+	*        name: "Class",
+	*        fields: [
+	*            { name: "Name", type: "string", primary: true },
+	*            { name: "StudyGroups", type: "string_v" }
+	*        ]
+	*    }]
+	* });
+	* // add some records to the store
+	* base.store("Class").push({ Name: "Dean", StudyGroups: ["A", "D"] });
+	* base.store("Class").push({ Name: "Chang", StudyGroups: ["B", "D"] });
+	* base.store("Class").push({ Name: "Magnitude", StudyGroups: ["B", "C"] });
+	* base.store("Class").push({ Name: "Leonard", StudyGroups: ["A", "B"] });
+	* // create a feature space containing the multinomial feature extractor
+	* var ftr = new qm.FeatureSpace(base, [
+	* { type: "text", source: "Class", field: "Name" },
+	* { type: "multinomial", source: "Class", field: "StudyGroups", values: ["A", "B", "C", "D"] }
+	* ]);
+	* // get the feature at position 2
+	* var feature = ftr.getFeature(2); // returns "C", because the text extractor has no features at the moment
+	* // update the feature space with the records of the store; see the method updateRecords
+	* ftr.updateRecords(base.store("Class").allRecords);
+	* // get the feature at position 2
+	* var feature2 = ftr.getFeature(2); // returns "magnitude"
+	* base.close();
+	*/
+	//# exports.FeatureSpace.prototype.getFeature = function (idx) { return ''; };
+	JsDeclareFunction(getFeature);
+
+    	/**
 	* Performs the inverse operation of ftrVec. Works only for numeric feature extractors.
 	* @param {(module:la.Vector | Array.<Object>)} ftr - The feature vector or an array with feature values.
 	* @returns {module:la.Vector} The inverse of ftr as vector.
@@ -3223,147 +3496,6 @@ public:
 	//# exports.FeatureSpace.prototype.invertFeature = function (idx, val) {};
 	JsDeclareFunction(invertFeature);
 
-	/**
-	* Extracts the sparse feature vectors from the record set and returns them as columns of the sparse matrix.
-	* @param {module:qm.RecordSet} rs - The given record set.
-	* @returns {module:la.SparseMatrix} The sparse matrix, where the i-th column is the sparse feature vector of the i-th record in rs.
-	* @example
-	* // import qm module
-	* var qm = require("qminer");
-	* // create a base containing the store Class. Let the Name field be the primary field. 
-	* var base = new qm.Base({
-	*    mode: "createClean",
-	*    schema: [{
-	*        name: "Class",
-	*        fields: [
-	*            { name: "Name", type: "string", primary: true },
-	*            { name: "StudyGroups", type: "string_v" }
-	*        ]
-	*    }]
-	* });
-	* // add some records to the store
-	* base.store("Class").push({ Name: "Dean", StudyGroups: ["A", "D"] });
-	* base.store("Class").push({ Name: "Chang", StudyGroups: ["B", "D"] });
-	* base.store("Class").push({ Name: "Magnitude", StudyGroups: ["B", "C"] });
-	* base.store("Class").push({ Name: "Leonard", StudyGroups: ["A", "B"] });
-	* // create a feature space containing the multinomial feature extractor
-	* var ftr = new qm.FeatureSpace(base, { type: "multinomial", source: "Class", field: "StudyGroups", values: ["A", "B", "C", "D"] });
-	* // create a sparse feature matrix out of the records of the store by using the feature space
-	* // returns a sparse matrix equal to 
-	* // [[(0, 1), (3, 1)], [(1, 1), (3, 1)], [(1, 1), (2, 1)], [(0, 1), (1, 1)]]
-	* var sparseMatrix = ftr.extractSparseMatrix(base.store("Class").allRecords);
-	* base.close();
-	*/
-	//# exports.FeatureSpace.prototype.extractSparseMatrix = function (rs) { return Object.create(require('qminer').la.SparseMatrix.prototype); };
-	JsDeclareFunction(extractSparseMatrix);
-
-	/**
-	* Extracts the feature vectors from the recordset and returns them as columns of a dense matrix.
-	* @param {module:qm.RecordSet} rs - The given record set.
-	* @returns {module:la.Matrix} The dense matrix, where the i-th column is the feature vector of the i-th record in rs.
-	* @example
-	* // import qm module
-	* var qm = require("qminer");
-	* // create a base containing the store Class. Let the Name field be the primary field.
-	* var base = new qm.Base({
-	*    mode: "createClean",
-	*    schema: [{
-	*        name: "Class",
-	*        fields: [
-	*            { name: "Name", type: "string", primary: true },
-	*            { name: "StudyGroups", type: "string_v" }
-	*        ]
-	*    }]
-	* });
-	* // add some records to the store
-	* base.store("Class").push({ Name: "Dean", StudyGroups: ["A", "D"] });
-	* base.store("Class").push({ Name: "Chang", StudyGroups: ["B", "D"] });
-	* base.store("Class").push({ Name: "Magnitude", StudyGroups: ["B", "C"] });
-	* base.store("Class").push({ Name: "Leonard", StudyGroups: ["A", "B"] });
-	* // create a feature space containing the multinomial feature extractor
-	* var ftr = new qm.FeatureSpace(base, { type: "multinomial", source: "Class", field: "StudyGroups", values: ["A", "B", "C", "D"] });
-	* // create a feature matrix out of the records of the store by using the feature space
-	* // returns a sparse matrix equal to
-	* // 1  0  0  1
-	* // 0  1  0  1
-	* // 0  0  1  0
-	* // 1  1  0  0
-	* var matrix = ftr.extractMatrix(base.store("Class").allRecords);
-	* base.close();
-	*/
-	//# exports.FeatureSpace.prototype.extractMatrix = function (rs) { return Object.create(require('qminer').la.Matrix.prototype); };
-    JsDeclareFunction(extractMatrix);
-
-	/**
-	* Gives the name of feature extractor at given position.
-	* @param {number} idx - The index of the feature extractor in feature space (zero based).
-	* @returns {String} The name of the feature extractor at position idx.
-	* @example
-	* // import qm module
-	* var qm = require("qminer");
-	* // create a new base containing one store
-	* var base = new qm.Base({
-	*    mode: "createClean",
-	*    schema: [{
-	*        name: "People",
-	*        fields: [
-	*            { name: "Name", type: "string" },
-	*            { name: "Gendre", type: "string" },
-	*            { name: "Age", type: "int" }
-	*        ]
-	*    }]
-	* });
-	* // create a feature space containing a categorical and numeric feature extractor
-	* var ftr = new qm.FeatureSpace(base, [
-	*    { type: "numeric", source: "People", field: "Age" },
-	*    { type: "categorical", source: "People", field: "Gendre", values: ["Male", "Female"] }
-	* ]);
-	* // get the name of the feature extractor with index 1
-	* var extractorName = ftr.getFeatureExtractor(1); // returns "Categorical[Gendre]"
-	* base.close();
-	*/
-	//# exports.FeatureSpace.prototype.getFeatureExtractor = function (idx) { return ''; };
-	JsDeclareFunction(getFeatureExtractor);
-
-	/**
-	* Gives the name of the feature at the given position.
-	* @param {number} idx - The index of the feature in feature space (zero based).
-	* @returns {String} The name of the feature at the position idx.
-	* @example
-	* // import qm module
-	* var qm = require("qminer");
-	* // create a base containing the store Class. Let the Name field be the primary field.
-	* var base = new qm.Base({
-	*    mode: "createClean",
-	*    schema: [{
-	*        name: "Class",
-	*        fields: [
-	*            { name: "Name", type: "string", primary: true },
-	*            { name: "StudyGroups", type: "string_v" }
-	*        ]
-	*    }]
-	* });
-	* // add some records to the store
-	* base.store("Class").push({ Name: "Dean", StudyGroups: ["A", "D"] });
-	* base.store("Class").push({ Name: "Chang", StudyGroups: ["B", "D"] });
-	* base.store("Class").push({ Name: "Magnitude", StudyGroups: ["B", "C"] });
-	* base.store("Class").push({ Name: "Leonard", StudyGroups: ["A", "B"] });
-	* // create a feature space containing the multinomial feature extractor
-	* var ftr = new qm.FeatureSpace(base, [
-	* { type: "text", source: "Class", field: "Name" },
-	* { type: "multinomial", source: "Class", field: "StudyGroups", values: ["A", "B", "C", "D"] }
-	* ]);
-	* // get the feature at position 2
-	* var feature = ftr.getFeature(2); // returns "C", because the text extractor has no features at the moment
-	* // update the feature space with the records of the store; see the method updateRecords
-	* ftr.updateRecords(base.store("Class").allRecords);
-	* // get the feature at position 2
-	* var feature2 = ftr.getFeature(2); // returns "magnitude"
-	* base.close();
-	*/
-	//# exports.FeatureSpace.prototype.getFeature = function (idx) { return ''; };
-	JsDeclareFunction(getFeature);
-    
 	/**
 	* Filters the vector to keep only the elements from the feature extractor.
 	* @param {(module:la.Vector | module:la.SparseVector)} vec - The vector from where the function filters the elements.
