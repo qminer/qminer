@@ -7,19 +7,18 @@
 **non-breaking with new features**
 
 Features:
-	- Stream aggregates that get time series on input now support delayed inputs (can get more then one value per iteration): online histogram, window aggregates (sum, max, min, mean, variance)
-	- Time series tick and window buffer can read from numeric fields of type other then double
-	
+- Stream aggregates that get time series on input now support delayed inputs (can get more then one value per iteration): online histogram, window aggregates (sum, max, min, mean, variance)
+- Time series tick and window buffer can read from numeric fields of type other then double
 
 Bug fixes:
-	- LIBSVM sparse matrix bug-fix when working with sparse vectors
-	- Multinomial fix for sparse vectors (does not store zero elements)
-	- Nearest neighbor  anomaly detector explains more in explain
-	- ClassTPE defined reference counter is now protected and not private
-	- Chi2 stream aggregate cleanup (save/load, etc.)
-	- Stream aggregates implemented in JavaScript can (de)serialize their state
-	- Renamed TNodeJsSA->TNodeJsStreamAggr
-	- Renamed TNodeJsStreamAggr -> TNodeJsFuncStreamAggr
+- LIBSVM sparse matrix bug-fix when working with sparse vectors
+- Multinomial fix for sparse vectors (does not store zero elements)
+- Nearest neighbor  anomaly detector explains more in explain
+- ClassTPE defined reference counter is now protected and not private
+- Chi2 stream aggregate cleanup (save/load, etc.)
+- Stream aggregates implemented in JavaScript can (de)serialize their state
+- Renamed TNodeJsSA->TNodeJsStreamAggr
+- Renamed TNodeJsStreamAggr -> TNodeJsFuncStreamAggr
 
 
 ### 20 Nov 2015
