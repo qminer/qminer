@@ -1164,8 +1164,73 @@ it('should make test number 64', function () {
 
 });
 });
-describe("Get the model.", function () {
+describe("Tokenizer", function () {
 it('should make test number 65', function () {
+ this.timeout(10000); 
+
+  // import analytics module
+  var analytics = require('qminer').analytics;
+  // construct model
+  var tokenizer = new analytics.Tokenizer({ type: "simple" })
+
+});
+});
+describe("This function tokenizes given strings and returns it as an array of strings.", function () {
+it('should make test number 66', function () {
+ this.timeout(10000); 
+
+	 // import modules
+	 var analytics = require('qminer').analytics;
+	 var la = require('qminer').la;
+	 // construct model
+	 var tokenizer = new analytics.Tokenizer({ type: "simple" });
+	 // string you wish to tokenize
+	 var string = "What a beautiful day!";
+	 // tokenize string using getTokens
+	 var tokens = tokenizer.getTokens(string);
+	 // output:
+	 tokens = ["What", "a", "beautiful", "day"];
+
+});
+});
+describe("This function breaks text into sentences and returns them as an array of strings.", function () {
+it('should make test number 67', function () {
+ this.timeout(10000); 
+
+	 // import modules
+	 var analytics = require('qminer').analytics;
+	 var la = require('qminer').la;
+	 // construct model
+	 var tokenizer = new analytics.Tokenizer({ type: "simple" });
+	 // string you wish to tokenize
+	 var string = "C++? Alright. Let's do this!";
+	 // tokenize text using getSentences
+	 var tokens = tokenizer.getSentences(string);
+	 // output:
+	 tokens = ["C++", " Alright", " Let's do this"];
+
+});
+});
+describe("This function breaks text into paragraphs and returns them as an array of strings.", function () {
+it('should make test number 68', function () {
+ this.timeout(10000); 
+
+	 // import modules
+	 var analytics = require('qminer').analytics;
+	 var la = require('qminer').la;
+	 // construct model
+	 var tokenizer = new analytics.Tokenizer({ type: "simple" });
+	 // string you wish to tokenize
+	 var string = "Yes!\t No?\n Maybe...";
+	 // tokenize text using getParagraphs
+	 var tokens = tokenizer.getParagraphs(string);
+	 // output:
+	 tokens = ["Yes", " No", " Maybe"];
+
+});
+});
+describe("Get the model.", function () {
+it('should make test number 69', function () {
  this.timeout(10000); 
 
      // import analytics module
@@ -1178,7 +1243,7 @@ it('should make test number 65', function () {
 });
 });
 describe("Get the model.", function () {
-it('should make test number 66', function () {
+it('should make test number 70', function () {
  this.timeout(10000); 
 
      // import analytics module
@@ -1191,7 +1256,7 @@ it('should make test number 66', function () {
 });
 });
 describe("Gets the model.", function () {
-it('should make test number 67', function () {
+it('should make test number 71', function () {
  this.timeout(10000); 
 
      // import analytics module
@@ -1204,7 +1269,7 @@ it('should make test number 67', function () {
 });
 });
 describe("Gets Recursive Linear Regression model", function () {
-it('should make test number 68', function () {
+it('should make test number 72', function () {
  this.timeout(10000); 
 
      // import analytics module
@@ -1217,7 +1282,7 @@ it('should make test number 68', function () {
 });
 });
 describe("@classdesc One vs. all model for multiclass prediction. Builds binary model", function () {
-it('should make test number 69', function () {
+it('should make test number 73', function () {
  this.timeout(10000); 
 
      // import analytics module
@@ -1228,7 +1293,7 @@ it('should make test number 69', function () {
 });
 });
 describe("Gets the parameters.", function () {
-it('should make test number 70', function () {
+it('should make test number 74', function () {
  this.timeout(10000); 
 
          // import analytics module
@@ -1243,7 +1308,7 @@ it('should make test number 70', function () {
 });
 });
 describe("Sets the parameters.", function () {
-it('should make test number 71', function () {
+it('should make test number 75', function () {
  this.timeout(10000); 
 
          // import analytics module
@@ -1256,7 +1321,7 @@ it('should make test number 71', function () {
 });
 });
 describe("Apply all models to the given vector and returns a vector of scores, one for each category.", function () {
-it('should make test number 72', function () {
+it('should make test number 76', function () {
  this.timeout(10000); 
 
           // import modules
@@ -1277,7 +1342,7 @@ it('should make test number 72', function () {
 });
 });
 describe("Apply all models to the given vector and returns category with the highest score.", function () {
-it('should make test number 73', function () {
+it('should make test number 77', function () {
  this.timeout(10000); 
 
           // import modules
@@ -1298,7 +1363,7 @@ it('should make test number 73', function () {
 });
 });
 describe("Apply all models to the given vector and returns category with the highest score.", function () {
-it('should make test number 74', function () {
+it('should make test number 78', function () {
  this.timeout(10000); 
 
           // import modules
@@ -1314,8 +1379,155 @@ it('should make test number 74', function () {
         
 });
 });
+describe("@classdesc Principal components analysis", function () {
+it('should make test number 79', function () {
+ this.timeout(10000); 
+
+     // import analytics module
+     var analytics = require('qminer').analytics;
+     // construct model
+     var pca = new analytics.PCA();
+   
+});
+});
+describe("Returns the model", function () {
+it('should make test number 80', function () {
+ this.timeout(10000); 
+
+         // import analytics module
+         var analytics = require('qminer').analytics;
+         // construct model
+         var pca = new analytics.PCA();
+         // get your model using function getModel
+         var model = pca.getModel();
+       
+});
+});
+describe("Saves the model.", function () {
+it('should make test number 81', function () {
+ this.timeout(10000); 
+
+         // import analytics module
+         var analytics = require('qminer').analytics;
+         // construct model
+         var pca = new analytics.PCA();
+         // create matrix
+         var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+         // fit matrix
+         pca.fit(matrix);
+         var model = pca.getModel();
+         // save model
+         pca.save(require('qminer').fs.openWrite('pca_test.bin')).close();
+       
+});
+});
+describe("Sets parameters", function () {
+it('should make test number 82', function () {
+ this.timeout(10000); 
+
+         // import analytics module
+         var analytics = require('qminer').analytics;
+         // construct model
+         var pca = new analytics.PCA();
+         // set 5 eigenvectors and 10 iterations using setParams
+         pca.setParams({iter: 10, k: 5});
+       
+});
+});
+describe("Gets parameters", function () {
+it('should make test number 83', function () {
+ this.timeout(10000); 
+ 1
+         // import analytics module
+         var analytics = require('qminer').analytics;
+         // construct model
+         var pca = new analytics.PCA();
+         // check the constructor parameters
+         var paramvalue = pca.getParams();
+         @example 2
+         // import analytics module
+         var analytics = require('qminer').analytics;
+         // construct model
+         var pca = new analytics.PCA();
+         // set parameters
+         pca.setParams({iter: 10, k: 5});
+         // check the changed parameters
+         var paramvalue = pca.getParams();
+       
+});
+});
+describe("Finds the eigenvectors of the variance matrix.", function () {
+it('should make test number 84', function () {
+ this.timeout(10000); 
+
+         // import analytics module
+         var analytics = require('qminer').analytics;
+         // construct model
+         var pca = new analytics.PCA();
+         // create matrix
+         var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+         // fit the matrix
+         pca.fit(matrix);
+       
+});
+});
+describe("Projects the example(s) and expresses them as coefficients in the eigenvector basis this.P.", function () {
+it('should make test number 85', function () {
+ this.timeout(10000); 
+ 1
+         // import analytics module
+         var analytics = require('qminer').analytics;
+         // construct model
+         var pca = new analytics.PCA();
+         // create matrix
+         var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+         // fit the matrix
+         pca.fit(matrix);
+         var model = pca.getModel();
+         // transform matrix and/or vector
+         var transform = pca.transform(matrix);
+         @example 2
+         // import analytics module
+         var analytics = require('qminer').analytics;
+         // construct model
+         var pca = new analytics.PCA();
+         // create vector you wish to transform
+         var vector = new la.Vector([0, -1]);
+         var model = pca.getModel();
+         // transform matrix and/or vector
+         var transform = pca.transform(vector);
+       
+});
+});
+describe("Reconstructs the vector in the original space, reverses centering", function () {
+it('should make test number 86', function () {
+ this.timeout(10000); 
+ 1
+         // import analytics module
+         var analytics = require('qminer').analytics;
+         // construct model
+         var pca = new analytics.PCA();
+         // create matrix
+         var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+         // fit the matrix
+         pca.fit(matrix);
+         var model = pca.getModel();
+         // use invefrseTransform on matrix
+         var invTransform = pca.inverseTransform(matrix);
+         @example 2
+         // import analytics module
+         var analytics = require('qminer').analytics;
+         // construct model
+         var pca = new analytics.PCA();
+         // create vector
+         var vector = new la.Vector([0, -1]);
+         // use invefrseTransform on vector
+         var invTransform = pca.inverseTransform(vector);
+       
+});
+});
 describe("@classdesc KMeans clustering", function () {
-it('should make test number 75', function () {
+it('should make test number 87', function () {
  this.timeout(10000); 
 
      // import analytics and la modules
@@ -1331,7 +1543,7 @@ it('should make test number 75', function () {
 });
 });
 describe("Returns the model", function () {
-it('should make test number 76', function () {
+it('should make test number 88', function () {
  this.timeout(10000); 
 
          // import modules
@@ -1349,7 +1561,7 @@ it('should make test number 76', function () {
 });
 });
 describe("Sets the parameters.", function () {
-it('should make test number 77', function () {
+it('should make test number 89', function () {
  this.timeout(10000); 
 
          // import analytics module
@@ -1362,7 +1574,7 @@ it('should make test number 77', function () {
 });
 });
 describe("Returns the parameters.", function () {
-it('should make test number 78', function () {
+it('should make test number 90', function () {
  this.timeout(10000); 
 
          // import analytics module
@@ -1375,7 +1587,7 @@ it('should make test number 78', function () {
 });
 });
 describe("Computes the centroids.", function () {
-it('should make test number 79', function () {
+it('should make test number 91', function () {
  this.timeout(10000); 
 
          // import analytics module
@@ -1390,7 +1602,7 @@ it('should make test number 79', function () {
 });
 });
 describe("Returns an vector of cluster id assignments.", function () {
-it('should make test number 80', function () {
+it('should make test number 92', function () {
  this.timeout(10000); 
 
          // import analytics module
@@ -1409,7 +1621,7 @@ it('should make test number 80', function () {
 });
 });
 describe("Transforms the points to vectors of squared distances to centroids.", function () {
-it('should make test number 81', function () {
+it('should make test number 93', function () {
  this.timeout(10000); 
 
          // import modules

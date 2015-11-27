@@ -1461,6 +1461,86 @@ exports = {}; require.modules.qminer_analytics = exports;
 	* var nnet2 = new analytics.NNet(fin);
 	*/
  exports.NNet.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); } 
+/**
+* @typedef {Object} tokenizerParam
+* @property {string} type - The type of the tokenizer. The different types are: 
+*<br>"simple" -
+*<br>"html" -
+*<br>"unicode" -
+*/
+/**
+ * Tokenizer
+ * @class 
+ * @classdesc Breaks text into tokens (i.e. words).
+ * @param {module:analytics.tokenizerParam} param - The constructor parameters.
+ * @example
+ * // import analytics module
+ * var analytics = require('qminer').analytics;
+ * // construct model
+ * var tokenizer = new analytics.Tokenizer({ type: "simple" })
+ */
+ exports.Tokenizer = function (param) { returns Object.create(require("qminer").analytics.Tokenizer.prototype); }
+/**
+	* This function tokenizes given strings and returns it as an array of strings.
+	* @param {String} str - String of text you want to tokenize.
+	* @returns {Array.<String>} Returns array of strings. The number of strings in this array is equal to number of words in input string parameter.
+	* Only keeps words, skips all punctuation.
+	* Tokenizing contractions (i.e. don't) depends on which type you use. Type 'html' breaks contractions into 2 tokens.
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // construct model
+	* var tokenizer = new analytics.Tokenizer({ type: "simple" });
+	* // string you wish to tokenize
+	* var string = "What a beautiful day!";
+	* // tokenize string using getTokens
+	* var tokens = tokenizer.getTokens(string);
+	* // output:
+	* tokens = ["What", "a", "beautiful", "day"];
+	*/
+ exports.Tokenizer.prototype.getTokens = function (str) { returns [""]; }
+/**
+	* This function breaks text into sentences and returns them as an array of strings.
+	* @param {String} str - String of text you want to break into sentences.
+	* @returns {Array.<String>} Returns array of strings. The number of strings in this array is equal to number of sentences in input string parameter.
+	* How function breaks sentences depends on where you use a full-stop, exclamation mark, question mark or the new line command.
+	* Careful: the space between the lines is not ignored. 
+	* With all 3 types this function returns sentences as they are.
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // construct model
+	* var tokenizer = new analytics.Tokenizer({ type: "simple" });
+	* // string you wish to tokenize
+	* var string = "C++? Alright. Let's do this!";
+	* // tokenize text using getSentences
+	* var tokens = tokenizer.getSentences(string);
+	* // output:
+	* tokens = ["C++", " Alright", " Let's do this"];
+	*/
+ exports.Tokenizer.prototype.getSentences = function (str) { returns [""]; }
+/**
+	* This function breaks text into paragraphs and returns them as an array of strings.
+	* @param {String} str - String of text you want to break into paragraphs.
+	* @returns {Array.<String>} Returns array of strings. The number of strings in this array is equal to number of paragraphs in input string parameter.
+	* When function detects commands '\n', '\r' or '\t' it breaks text as new paragraph.
+	* With all 3 types this function returns paragraphs as they are.
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // construct model
+	* var tokenizer = new analytics.Tokenizer({ type: "simple" });
+	* // string you wish to tokenize
+	* var string = "Yes!\t No?\n Maybe...";
+	* // tokenize text using getParagraphs
+	* var tokens = tokenizer.getParagraphs(string);
+	* // output:
+	* tokens = ["Yes", " No", " Maybe"];
+	*/
+ exports.Tokenizer.prototype.getParagraphs = function (str) { returns [""]; }
 
     exports.preprocessing = new function() {
         this.binarize = function (y, labelId) {
@@ -1546,18 +1626,6 @@ exports = {}; require.modules.qminer_analytics = exports;
     * var model = linreg.getModel(); // returns { weights: new require('qminer').la.Vector(); }
     */
     exports.RecLinReg.prototype.getModel = function () { return { weights: this.weights } }
-
-    // var model = new OneVsAll({
-    //     model : analytics.SVC,
-    //     modelParam: { c: 10, j: 10, maxTime: 123 },
-    //     cats : 123
-    // });
-    //
-    // var X = featureSpace.extractSparseMatrix(recordSet);
-    // var y = store.getCol("label");
-    // model.fit(X, y);
-    //
-    // model.predict(featureSpace.extractSparseVector(record));
 
     /**
     * @typedef {Object} oneVsAllParam
@@ -2110,25 +2178,103 @@ exports = {}; require.modules.qminer_analytics = exports;
     /**
     * @classdesc Principal components analysis
     * @class
+    * @example
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // construct model
+    * var pca = new analytics.PCA();
     */
     exports.PCA = function (param) {
-        param = param == undefined ? {} : param;
+        var iter, k;
+        this.P = undefined;
+        this.mu = undefined;
+        this.lambda = undefined;
+        var count = 1;
+        if (param != undefined && param.constructor.name == 'FIn') {
+            this.P = new la.Matrix();
+            this.P.load(param);
+            this.mu = new la.Vector();
+            this.mu.load(param);
+            this.lambda = new la.Vector();
+            this.lambda.load(param);
+            var params_vec = new la.Vector();
+            params_vec.load(param);
+            iter = params_vec[0];
+            k = params_vec[1];
+            param = { iter: iter, k: k };
+        } else if (param == undefined || typeof param == 'object') {
+            param = param == undefined ? {} : param;
 
-        // Fit params
-        var iter = param.iter == undefined ? 100 : param.iter;
-        var k = param.k; // can be undefined
-
+            // Fit params
+            var iter = param.iter == undefined ? 100 : param.iter;
+            var k = param.k; // can be undefined
+            param = { iter: iter, k: k };
+        } else {
+            throw "PCA.constructor: parameter must be a JSON object or a fs.FIn!";
+        }
         /**
         * Returns the model
         * @returns {Object} The model object whose keys are: P (eigenvectors), lambda (eigenvalues) and mu (mean)
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // get your model using function getModel
+        * var model = pca.getModel();
         */
         this.getModel = function () {
             return { P: this.P, mu: this.mu, lambda: this.lambda };
         }
 
         /**
+        * Saves the model.
+        * @param {module:fs.FOut} fout - The output stream.
+        * @returns {module:fs.FOut} The given output stream fout.
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit matrix
+        * pca.fit(matrix);
+        * var model = pca.getModel();
+        * // save model
+        * pca.save(require('qminer').fs.openWrite('pca_test.bin')).close();
+        */
+        this.save = function (fout) {
+            if (!this.P) {
+                throw new Error("PCA.save() - model not created yet");
+            }
+
+            var params_vec = new la.Vector();
+            params_vec.push(iter);
+            params_vec.push(k);
+            
+            if (fout.constructor.name == 'FOut') {
+                this.P.save(fout);
+                this.mu.save(fout);
+                this.lambda.save(fout);
+                params_vec.save(fout);
+                return fout;
+            } else {
+                throw "PCA.save: input must be fs.FOut";
+            }
+        }
+        
+
+        /**
         * Sets parameters
         * @param {p} Object whose keys are: k (number of eigenvectors) and iter (maximum iterations)
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // set 5 eigenvectors and 10 iterations using setParams
+        * pca.setParams({iter: 10, k: 5});
         */
         this.setParams = function (p) {
             param = p;
@@ -2140,6 +2286,22 @@ exports = {}; require.modules.qminer_analytics = exports;
         /**
         * Gets parameters
         * @returns Object whose keys are: k (number of eigenvectors) and iter (maximum iterations)
+        * @example 1
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // check the constructor parameters
+        * var paramvalue = pca.getParams();
+        * @example 2
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // set parameters
+        * pca.setParams({iter: 10, k: 5});
+        * // check the changed parameters
+        * var paramvalue = pca.getParams();
         */
         this.getParams = function () {
             return param;
@@ -2148,6 +2310,15 @@ exports = {}; require.modules.qminer_analytics = exports;
         /**
         * Finds the eigenvectors of the variance matrix.
         * @param {module:la.Matrix} A - Matrix whose columns correspond to examples.
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit the matrix
+        * pca.fit(matrix);
         */
         this.fit = function (A) {
             var rows = A.rows;
@@ -2177,6 +2348,28 @@ exports = {}; require.modules.qminer_analytics = exports;
         * in the eigenvector basis.
         * @param {(module:la.Vector | module:la.Matrix)} x - Test vector or matrix with column examples
         * @returns {(module:la.Vector | module:la.Matrix)} Returns projected vector or matrix
+        * @example 1
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit the matrix
+        * pca.fit(matrix);
+        * var model = pca.getModel();
+        * // transform matrix and/or vector
+        * var transform = pca.transform(matrix);
+        * @example 2
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create vector you wish to transform
+        * var vector = new la.Vector([0, -1]);
+        * var model = pca.getModel();
+        * // transform matrix and/or vector
+        * var transform = pca.transform(vector);
         */
         this.transform = function (x) {
             if (x.constructor.name == 'Matrix') {
@@ -2193,6 +2386,27 @@ exports = {}; require.modules.qminer_analytics = exports;
         * Reconstructs the vector in the original space, reverses centering
         * @param {(module:la.Vector | module:la.Matrix)} x - Test vector or matrix with column examples, in the PCA space
         * @returns {(module:la.Vector | module:la.Matrix)} Returns the reconstruction
+        * @example 1
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit the matrix
+        * pca.fit(matrix);
+        * var model = pca.getModel();
+        * // use invefrseTransform on matrix
+        * var invTransform = pca.inverseTransform(matrix);
+        * @example 2
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create vector
+        * var vector = new la.Vector([0, -1]);
+        * // use invefrseTransform on vector
+        * var invTransform = pca.inverseTransform(vector);
         */
         this.inverseTransform = function (x) {
             if (x.constructor.name == 'Matrix') {
@@ -2211,6 +2425,8 @@ exports = {}; require.modules.qminer_analytics = exports;
     * @property {number} iter - The maximum number of iterations.
     * @property {number} k - The number of centroids.
     * @property {boolean} verbose - If false, the console output is supressed.
+    * @property {Array} fitIdx - Array of indexes that should be used as starting centroids. Optional.
+    * @property {model} fitStart - Model from another KMeans algorithm (obtained via getModel() method). Its centroids are used as starting centroids for this model. Optional.
     * @example
     * // import analytics and la modules
     * var analytics = require('qminer').analytics;
@@ -2224,6 +2440,12 @@ exports = {}; require.modules.qminer_analytics = exports;
     */
     exports.KMeans = function (param) {
 
+        // Fit params
+        // var iter = param.iter == undefined ? 100 : param.iter;
+        // var k = param.k == undefined ? 2 : param.k;
+        // var verbose = param.verbose == undefined ? false : param.verbose;
+        // var fitIdx = param.fitIdx == undefined ? undefined : param.fitIdx;
+
         // Model
         var C = undefined;
         var idxv = undefined;
@@ -2232,6 +2454,7 @@ exports = {}; require.modules.qminer_analytics = exports;
         var k = undefined;
         var verbose = undefined;
         var fitIdx = undefined;
+        var fitStart;
 
         if (param != undefined && param.constructor.name == 'FIn') {
             C = new la.Matrix();
@@ -2257,6 +2480,7 @@ exports = {}; require.modules.qminer_analytics = exports;
             var k = param.k == undefined ? 2 : param.k;
             var verbose = param.verbose == undefined ? false : param.verbose;
             var fitIdx = param.fitIdx == undefined ? undefined : param.fitIdx;
+            var fitStart = param.fitStart == undefined ? undefined : param.fitStart;
             param = { iter: iter, k: k, verbose: verbose };
         } else {
             throw "KMeans.constructor: parameter must be a JSON object or a fs.FIn!";
@@ -2320,6 +2544,7 @@ exports = {}; require.modules.qminer_analytics = exports;
             k = param.k == undefined ? k : param.k;
             verbose = param.verbose == undefined ? verbose : param.verbose;
             fitIdx = param.fitIdx == undefined ? fitIdx : param.fitIdx;
+            fitStart = param.fitStart == undefined ? undefined : param.fitStart;
         }
 
         /**
@@ -2354,19 +2579,26 @@ exports = {}; require.modules.qminer_analytics = exports;
         this.fit = function (X) {
             // select random k columns of X, returns a dense C++ matrix
             var selectCols = function (X, k) {
-                var idx;
-                if (fitIdx == undefined) {
-                    idx = la.randi(X.cols, k);
-                } else {
-                    assert(fitIdx.length == k, "Error: fitIdx is not of length k!");
-                    assert(Math.max.apply(Math, fitIdx) < X.cols, "Error: fitIdx contains index greater than number of columns in matrix. Index out of range!");
-                    idx = fitIdx;
-                }
-                var idxMat = new la.SparseMatrix({ cols: 0, rows: X.cols });
-                for (var i = 0; i < idx.length; i++) {
-                    var spVec = new la.SparseVector([[idx[i], 1.0]], X.cols);
-                    idxMat.push(spVec);
-                }
+                if (fitStart) {
+                    assert(fitStart.C.cols == k, "Error: fitStart.C.cols is not of length k!");
+					var result = {};
+					result.C = fitStart.C;
+					result.idx = la.randi(X.cols, k); // this assignment is irrelevant, really
+					return result;
+				}
+				var idx;
+				if (fitIdx == undefined) {
+					idx = la.randi(X.cols, k);
+				} else {
+					assert(fitIdx.length == k, "Error: fitIdx is not of length k!");
+					assert(Math.max.apply(Math, fitIdx) < X.cols, "Error: fitIdx contains index greater than number of columns in matrix. Index out of range!");
+					idx = fitIdx;
+				}
+				var idxMat = new la.SparseMatrix({ cols: 0, rows: X.cols });
+				for (var i = 0; i < idx.length; i++) {
+					var spVec = new la.SparseVector([[idx[i], 1.0]], X.cols);
+					idxMat.push(spVec);
+				}
                 var C = X.multiply(idxMat);
                 var result = {};
                 result.C = C;
@@ -2563,249 +2795,13 @@ exports = {}; require.modules.qminer_analytics = exports;
 		}
     }
 
-    ///////////////////////////////
-    ////// code below not yet ported or verified for scikit
-    ///////////////////////////////
-
     function defarg(arg, defaultval) {
         return arg == undefined ? defaultval : arg;
     }
 
-    function createBatchModel(featureSpace, models) {
-        this.featureSpace = featureSpace;
-        this.models = models;
-        // get targets
-        this.target = [];
-        for (var cat in this.models) { this.target.push(cat); }
-        // serialize to stream
-        this.save = function (sout) {
-            // save list
-            sout.writeLine(this.models);
-            // save feature space
-            this.featureSpace.save(sout);
-            // save models
-            for (var cat in this.models) {
-                this.models[cat].model.save(sout);
-            }
-            return sout;
-        }
-
-        this.predict = function (record) {
-            var vec = this.featureSpace.extractSparseVector(record);
-            var result = {};
-            for (var cat in this.models) {
-                result[cat] = this.models[cat].model.predict(vec);
-            }
-            return result;
-        }
-
-        this.predictLabels = function (record) {
-            var result = this.predict(record);
-            var labels = [];
-            for (var cat in result) {
-                if (result[cat] > 0.0) {
-                    labels.push(cat);
-                }
-            }
-            return labels;
-        }
-
-        this.predictTop = function (record) {
-            var result = this.predict(record);
-            var top = null;
-            for (var cat in result) {
-                if (top) {
-                    if (top.weight > result[cat]) {
-                        top.category = cat;
-                        top.weight = result[cat];
-                    }
-                } else {
-                    top = { category: cat, weight: result[cat] }
-                }
-            }
-            return top.category;
-        }
-        return this;
-    }
-
-    //!- `batchModel = analytics.newBatchModel(rs, features, target)` -- learns a new batch model
-    //!     using record set `rs` as training data and `features`; `target` is
-    //!     a field descriptor JSON object for the records which we are trying to predict
-	//!     (obtained by calling store.field("Rating");
-    //!     if target field string or string vector, the result is a SVM classification model,
-    //!     and if target field is a float, the result is a SVM regression model; resulting
-    //!     model has the following functions:
-    //!   - `strArr = batchModel.target` -- array of categories for which we have models
-    //!   - `scoreArr = batchModel.predict(rec)` -- creates feature vector from record `rec`, sends it
-    //!     through the model and returns the result as a dictionary where labels are keys and scores (numbers) are values.
-    //!   - `labelArr = batchModel.predictLabels(rec)` -- creates feature vector from record `rec`,
-    //!     sends it through the model and returns the labels with positive weights as `labelArr`.
-    //!   - `labelStr = batchModel.predictTop(rec)` -- creates feature vector from record `rec`,
-    //!     sends it through the model and returns the top ranked label `labelStr`.
-    //!   - `batchModel.save(fout)` -- saves the model to `fout` output stream
-    exports.newBatchModel = function (records, features, target, limitCategories) {
-        console.log("newBatchModel", "Start");
-        // prepare feature space
-        console.log("newBatchModel", "  creating feature space");
-        var featureSpace = new qm.FeatureSpace(records.store.base, features);
-        // initialize features
-        featureSpace.updateRecords(records);
-        console.log("newBatchModel", "  number of dimensions = " + featureSpace.dim);
-        // prepare spare vectors
-        console.log("newBatchModel", "  preparing feature vectors");
-        var sparseVecs = featureSpace.extractSparseMatrix(records);
-        // prepare target vectors
-        var targets = {};
-        // figure out if new category name, or update count
-        function initCats(categories, catName) {
-            if (categories[catName]) {
-                categories[catName].count++;
-            } else {
-                // check if we should ignore this category
-                if (limitCategories && !qm_util.isInArray(limitCategories, catName)) { return; }
-                // check if we should ignore this category
-                categories[catName] = {
-                    name: catName,
-                    type: "classification",
-                    count: 1,
-                    target: new la.Vector({ mxVals: records.length })
-                };
-            }
-        }
-        // initialize targets
-        console.log("newBatchModel", "  preparing target vectors");
-        if (target.type === "string_v") {
-            // get all possible values for the field
-            for (var i = 0; i < records.length; i++) {
-                var cats = records[i][target.name];
-                for (var j = 0; j < cats.length; j++) {
-                    initCats(targets, cats[j]);
-                }
-            }
-            // initialized with +1 or -1 for each category
-            for (var i = 0; i < records.length; i++) {
-                var cats = la.copyVecToArray(records[i][target.name]);
-                for (var cat in targets) {
-                    targets[cat].target.push(qm_util.isInArray(cats, cat) ? 1.0 : -1.0);
-                }
-            }
-        } else if (target.type === "string") {
-            // get all possible values for the field
-            for (var i = 0; i < records.length; i++) {
-                var recCat = records[i][target.name];
-                initCats(targets, recCat);
-            }
-            // initialized with +1 or -1 for each category
-            for (var i = 0; i < records.length; i++) {
-                var recCat = records[i][target.name];
-                for (var cat in targets) {
-                    targets[cat].target.push((recCat === cat) ? 1.0 : -1.0);
-                }
-            }
-        } else if (target.type === "float") {
-            // initialized with +1 or -1 for each category
-            targets[target.name] = {
-                name: target.name,
-                type: "regression",
-                count: records.length,
-                target: new la.Vector({ mxVals: records.length })
-
-            };
-            for (var i = 0; i < records.length; i++) {
-                targets[target.name].target.push(records[i][target.name]);
-            }
-        }
-        // training model for each category
-        console.log("newBatchModel", "  training SVM");
-        var models = {};
-        for (var cat in targets) {
-            if (targets[cat].count >= 50) {
-                models[cat] = {
-                    name: targets[cat].name,
-                    type: targets[cat].type,
-                };
-                if (targets[cat].type === "classification") {
-                    console.log("newBatchModel", "    ... " + cat + " (classification)");
-                    models[cat].model = new exports.SVC({ c: 1, j: 10, batchSize: 10000, maxIterations: 100000, maxTime: 1800, minDiff: 0.001 });
-                    models[cat].model.fit(sparseVecs, targets[cat].target);
-                } else if (targets[cat].type === "regression") {
-                    console.log("newBatchModel", "    ... " + cat + " (regression)");
-                    models[cat].model = new exports.SVR({ c: 1, eps: 1e-2, batchSize: 10000, maxIterations: 100000, maxTime: 1800, minDiff: 0.001 });
-                    models[cat].model.fit(sparseVecs, targets[cat].target);
-                }
-            }
-        }
-        // done
-        console.log("newBatchModel", "Done");
-        // we finished the constructor
-        return new createBatchModel(featureSpace, models);
-    };
-
-    //!- `batchModel = analytics.loadBatchModel(base, fin)` -- loads batch model frm input stream `fin`
-    exports.loadBatchModel = function (base, sin) {
-        var models = JSON.parse(sin.readLine());
-        var featureSpace = new qm.FeatureSpace(base, sin);
-        for (var cat in models) {
-            models[cat].model = new exports.SVC(sin);
-        }
-        // we finished the constructor
-        return new createBatchModel(featureSpace, models);
-    };
-
-	//!- `result = analytics.crossValidation(rs, features, target, folds)` -- creates a batch
-    //!     model for records from record set `rs` using `features; `target` is the
-    //!     target field and is assumed discrete; the result is a results object
-    //!     with the following API:
-    //!     - `result.target` -- an object with categories as keys and the following
-    //!       counts as members of these keys: `count`, `TP`, `TN`, `FP`, `FN`,
-    //!       `all()`, `precision()`, `recall()`, `accuracy()`.
-    //!     - `result.confusion` -- confusion matrix between categories
-    //!     - `result.report()` -- prints basic report on to the console
-    //!     - `result.reportCSV(fout)` -- prints CSV output to the `fout` output stream
-    exports.crossValidation = function (records, features, target, folds, limitCategories) {
-        // create empty folds
-        var fold = [];
-        for (var i = 0; i < folds; i++) {
-            fold.push(new la.IntVector());
-        }
-        // split records into folds
-        records.shuffle(1);
-        var fold_i = 0;
-        for (var i = 0; i < records.length; i++) {
-            fold[fold_i].push(records[i].$id);
-            fold_i++; if (fold_i >= folds) { fold_i = 0; }
-        }
-        // do cross validation
-        var cfyRes = null;
-        for (var fold_i = 0; fold_i < folds; fold_i++) {
-            // prepare train and test record sets
-            var train = new la.IntVector();
-            var test = new la.IntVector();
-            for (var i = 0; i < folds; i++) {
-                if (i == fold_i) {
-                    test.pushV(fold[i]);
-                } else {
-                    train.pushV(fold[i]);
-                }
-            }
-            var trainRecs = records.store.newRecSet(train);
-            var testRecs = records.store.newRecSet(test);
-            console.log("Fold " + fold_i + ": " + trainRecs.length + " training and " + testRecs.length + " testing");
-            // create model for the fold
-            var model = exports.newBatchModel(trainRecs, features, target, limitCategories);
-            // prepare test counts for each target
-            if (!cfyRes) { cfyRes = new exports.ClassificationScore (model.target); }
-            // evaluate predictions
-            for (var i = 0; i < testRecs.length; i++) {
-                var correct = testRecs[i][target.name];
-                var predicted = model.predictLabels(testRecs[i]);
-                cfyRes.count(correct, predicted);
-            }
-            // report
-            cfyRes.report();
-        }
-        return cfyRes;
-    };
+    ///////////////////////////////
+    ////// code below not yet ported or verified for scikit
+    ///////////////////////////////
 
     //!- `alModel = analytics.newActiveLearner(query, qRecSet, fRecSet, ftrSpace, settings)` -- initializes the
     //!    active learning. The algorihm is run by calling `model.startLoop()`. The algorithm has two stages: query mode, where the algorithm suggests potential
@@ -3051,75 +3047,6 @@ exports = {}; require.modules.qminer_analytics = exports;
         //this.saveLabeled
         //this.loadLabeled
     };
-
-
-	//////////// RIDGE REGRESSION
-	// solve a regularized least squares problem
-	//!- `ridgeRegressionModel = new analytics.RidgeRegression(kappa, dim, buffer)` -- solves a regularized ridge
-	//!  regression problem: min|X w - y|^2 + kappa |w|^2. The inputs to the algorithm are: `kappa`, the regularization parameter,
-	//!  `dim` the dimension of the model and (optional) parameter `buffer` (integer) which specifies
-	//!  the length of the window of tracked examples (useful in online mode). The model exposes the following functions:
-	exports.RidgeRegression = function (kappa, dim, buffer) {
-	    var X = [];
-	    var y = [];
-	    buffer = typeof buffer !== 'undefined' ? buffer : -1;
-	    var w = new la.Vector({ "vals": dim });
-	    //!   - `ridgeRegressionModel.add(vec, num)` -- adds a vector `vec` and target `num` (number) to the training set
-	    this.add = function (x, target) {
-	        X.push(x);
-	        y.push(target);
-	        if (buffer > 0) {
-	            if (X.length > buffer) {
-	                this.forget(X.length - buffer);
-	            }
-	        }
-	    };
-	    //!   - `ridgeRegressionModel.addupdate(vec, num)` -- adds a vector `vec` and target `num` (number) to the training set and retrains the model
-	    this.addupdate = function (x, target) {
-	        this.add(x, target);
-	        this.update();
-	    }
-	    //!   - `ridgeRegressionModel.forget(n)` -- deletes first `n` (integer) examples from the training set
-	    this.forget = function (ndeleted) {
-	        ndeleted = typeof ndeleted !== 'undefined' ? ndeleted : 1;
-	        ndeleted = Math.min(X.length, ndeleted);
-	        X.splice(0, ndeleted);
-	        y.splice(0, ndeleted);
-	    };
-	    //!   - `ridgeRegressionModel.update()` -- recomputes the model
-	    this.update = function () {
-	        var A = this.getMatrix();
-	        var b = new la.Vector(y);
-	        w = this.compute(A, b);
-	    };
-	    //!   - `vec = ridgeRegressionModel.getModel()` -- returns the parameter vector `vec` (dense vector)
-	    this.getModel = function () {
-	        return w;
-	    };
-	    this.getMatrix = function () {
-	        if (X.length > 0) {
-	            var A = new la.Matrix({ "cols": X[0].length, "rows": X.length });
-	            for (var i = 0; i < X.length; i++) {
-	                A.setRow(i, X[i]);
-	            }
-	            return A;
-	        }
-	    };
-	    //!   - `vec2 = ridgeRegressionModel.compute(mat, vec)` -- computes the model parameters `vec2`, given
-	    //!    a row training example matrix `mat` and target vector `vec` (dense vector). The vector `vec2` solves min_vec2 |mat' vec2 - vec|^2 + kappa |vec2|^2.
-	    //!   - `vec2 = ridgeRegressionModel.compute(spMat, vec)` -- computes the model parameters `vec2`, given
-	    //!    a row training example sparse matrix `spMat` and target vector `vec` (dense vector). The vector `vec2` solves min_vec2 |spMat' vec2 - vec|^2 + kappa |vec2|^2.
-	    this.compute = function (A, b) {
-	        var I = la.eye(A.cols);
-	        var coefs = (A.transpose().multiply(A).plus(I.multiply(kappa))).solve(A.transpose().multiply(b));
-	        return coefs;
-	    };
-	    //!   - `num = model.predict(vec)` -- predicts the target `num` (number), given feature vector `vec` based on the internal model parameters.
-	    this.predict = function (x) {
-	        return w.inner(x);
-	    };
-	};
-
 
     /**
      * StreamStory.
