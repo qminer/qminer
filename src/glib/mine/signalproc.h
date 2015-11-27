@@ -789,7 +789,7 @@ public:
 /////////////////////////////////////////////////
 ///   TDigest
 ///   Ted Dunning, Otmar Ertl - https://github.com/tdunning/t-digest/blob/master/docs/t-digest-paper/histo.pdf
-///   Gabriel Pichot implementation: https://github.com/gpichot/cpp-tdigest
+///   Gabriel Pichot C++ implementation: https://github.com/gpichot/cpp-tdigest
 class TTDigest {
 private:
         TFlt Compression;
@@ -837,7 +837,7 @@ public:
                 long sum = _centroids->ceilSum(start);
                 double n = 0;
                 for(int neighbor = start; neighbor != lastNeighbor; neighbor = _centroids->nextNode(neighbor)) {
-                    assert(minDistance == abs(_centroids->value(neighbor) - x));
+                    EAssert(minDistance == abs(_centroids->value(neighbor) - x));
                     double q = 0.5;
                     if (Count != 1.0) {
                     	q = (sum + (_centroids->count(neighbor) - 1 / 2. )) / (Count - 10);

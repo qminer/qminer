@@ -1,4 +1,4 @@
-
+#include "avltree.h"
 
 AvlTree::AvlTree(): _root(NIL) {
 	_n = 0;

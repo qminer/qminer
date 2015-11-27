@@ -61,11 +61,11 @@
 // cross-lingual
 #include "crosslingual.cpp"
 
-// Signal-Processing
-#include "signalproc.cpp"
-
 // Georgy Adelson-Velsky and Evgenii Landis' self-balancing binary search tree
 #include "avltree.cpp"
+
+// Signal-Processing
+#include "signalproc.cpp"
 
 // Active-Learning
 #include "bowactlearn.cpp"

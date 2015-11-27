@@ -1,9 +1,7 @@
 #ifndef AVLTREE_H
 #define AVLTREE_H
 
-#include <cassert>
 #include <cmath>
-#include <iostream>
 
 using namespace std;
 class AvlTree {
@@ -119,24 +117,12 @@ class AvlTree {
         // O(1)
         inline void updateAggregates(TInt node) {
             // Updating depth
-        	/*int gn = depth(leftNode(node));
-        	if (depth(leftNode(node))<depth(rightNode(node))) {
-        		gn = depth(rightNode(node));
-        	}
-            _depth[node] = 1 + gn;
-            */
         	_depth[node] = 1 + max(depth(leftNode(node)), depth(rightNode(node)));
-        	//printf("\nAGG%: node(%i), count(%i), leftNode(%i), rightNode(%i), aggregatedCount(lf(%i)), aggregatedCount(rg(%i))",
-        	//		(count(node) + aggregatedCount(leftNode(node)) + aggregatedCount(rightNode(node))),
-			//		(int)node, count(node), leftNode(node), rightNode(node), aggregatedCount(leftNode(node)),
-			//		aggregatedCount(rightNode(node)));
             _aggregatedCount[node] = count(node) + aggregatedCount(leftNode(node)) + aggregatedCount(rightNode(node));
         }
 
         // O(log(n))
         void update(int node, double x, TInt w) {
-        	//printf("node(%i), x(%f), w(%i) = ", node, x, w);
-        	//printf("%f", w * (x - value(node)) / count(node));
             _values[node] += w * (x - value(node)) / count(node);
             _count[node] += w;
             
@@ -147,7 +133,7 @@ class AvlTree {
 
         // O(log(n))
         void merge(int node, double x, TInt w) {
-            //assert(value(node) == x);
+            EAssert(value(node) == x);
             _count[node] += w;
             
             for(int n = node; n != NIL; n = parentNode(n)) {
@@ -196,11 +182,6 @@ class AvlTree {
             if(node == NIL) {
                 return depth(node) == 0;
             } else {
-            	/*int gn = depth(leftNode(node));
-                if (depth(leftNode(node))<depth(rightNode(node))) {
-            	    gn = depth(rightNode(node));
-            	}
-                return depth(node) == 1 + gn*/
             	return depth(node) == 1 + max(depth(leftNode(node)), depth(rightNode(node)))
                     && abs(depth(leftNode(node)) - depth(rightNode(node))) <= 1
                     && checkBalance(leftNode(node))
@@ -218,10 +199,6 @@ class AvlTree {
             if(node == NIL) {
                 return count(node) == 0;
             } else {
-            	//printf("\nAGG (else)%f: node(%f),count(%f), leftNode(%f), rightNode(%f), aggregatedCount(lf(%f)), aggregatedCount(rg(%f))",
-            	//        			(_count[node] + _aggregatedCount[leftNode(node)] + _aggregatedCount[rightNode(node)]),
-            	//					node, _count[node], leftNode(node), rightNode(node), _aggregatedCount[leftNode(node)],
-            	//					_aggregatedCount[rightNode(node)]);
                 return _aggregatedCount[node] == _count[node] + _aggregatedCount[leftNode(node)] + _aggregatedCount[rightNode(node)]
                     && checkAggregates(leftNode(node))
                     && checkAggregates(rightNode(node))
@@ -258,11 +235,8 @@ class AvlTree {
             if(node == NIL)
                 return;
 
-            cout << "Node " << node << "=> ";
+            /*cout << "Node " << node << "=> ";
             cout << "Value:" << _values[node] << " ";
-            cout << "n:" << node << " ";
-            cout << "ln:" << leftNode(node) << " ";
-            cout << "rn:" << rightNode(node) << " ";
             cout << "(" << value(leftNode(node)) << ";";
             cout << "" << value(rightNode(node)) << ") ";
             cout << "Depth: " << depth(node) << " ";
@@ -270,7 +244,7 @@ class AvlTree {
             cout << "Aggregate: " << _aggregatedCount[node] << " Integrity: "<<checkIntegrity(node)<< endl;
 
             print(leftNode(node));
-            print(rightNode(node));
+            print(rightNode(node));*/
         }
         void print() const {
             print(_root);
