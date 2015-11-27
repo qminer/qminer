@@ -2809,7 +2809,66 @@ void TNodeJsTokenizer::getParagraphs(const v8::FunctionCallbackInfo<v8::Value>& 
 }
 
 /////////////////////////////////////////////
-// JsVisual
+// Multidimensional Scaling
+
+TNodeJsMDS::TNodeJsMDS(const PJsonVal& ParamVal) :
+MxStep(5000),
+MxSecs(500),
+MnDiff(1e-4),
+DistType(TVizDistType::vdtEucl) {
+	UpdateParams(ParamVal);
+}
+
+TNodeJsMDS::TNodeJsMDS(TSIn& SIn) :
+MxStep(TInt(SIn)),
+MxSecs(TInt(SIn)),
+MnDiff(TFlt(SIn)),
+DistType(LoadEnum<TVizDistType>(SIn)),
+MDS(SIn) {}
+
+void TNodeJsMDS::UpdateParams(const PJsonVal& ParamVal) {
+	if (ParamVal->IsObjKey("maxStep")) MxStep = ParamVal->GetObjNum("maxStep");
+	if (ParamVal->IsObjKey("maxSecs")) MxSecs = ParamVal->GetObjNum("maxSecs");
+	if (ParamVal->IsObjKey("minDiff")) MnDiff = ParamVal->GetObjNum("minDiff");
+	if (ParamVal->IsObjKey("distType")) { 
+		TStr Type = ParamVal->GetObjStr("distType"); 
+		if (Type == "Euclid") {
+			DistType = TVizDistType::vdtEucl;
+		} else if (Type == "Cos") {
+			DistType = TVizDistType::vdtCos;
+		} else if (Type == "SqrtCos") {
+			DistType = TVizDistType::vdtSqrtCos;
+		} else {
+			throw TExcept::New("MDS: unsupported distance type!");
+		}
+	}
+}
+
+PJsonVal TNodeJsMDS::GetParams() const {
+	PJsonVal ParamVal = TJsonVal::NewObj();
+
+	ParamVal->AddToObj("maxStep", MxStep);
+	ParamVal->AddToObj("maxSecs", MxSecs);
+	ParamVal->AddToObj("minDiff", MnDiff);
+	switch (DistType) {
+	case (vdtEucl) :
+		ParamVal->AddToObj("distType", "Euclid"); break;
+	case(vdtCos) :
+		ParamVal->AddToObj("distType", "Cos"); break;
+	case(vdtSqrtCos) :
+		ParamVal->AddToObj("distType", "SqrtCos"); break;
+	}
+	return ParamVal;
+}
+
+void TNodeJsMDS::Save(TSOut& SOut) const {
+	TInt(MxStep).Save(SOut);
+	TInt(MxSecs).Save(SOut);
+	TFlt(MnDiff).Save(SOut);
+	SaveEnum<TVizDistType>(SOut, DistType);
+	MDS.Save(SOut);
+}
+
 void TNodeJsMDS::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
@@ -2820,7 +2879,10 @@ void TNodeJsMDS::Init(v8::Handle<v8::Object> exports) {
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
 	// Add all methods, getters and setters here.
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _setParams);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "fitTransform", _fitTransform);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
 	// properties
 	exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
@@ -2830,13 +2892,57 @@ TNodeJsMDS* TNodeJsMDS::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& A
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	if (Args.Length() > 0 && TNodeJsUtil::IsArgWrapObj<TNodeJsFIn>(Args, 0)) {
+	if (Args.Length() == 0) {
+		// create new model with default parameters
+		return new TNodeJsMDS(TJsonVal::NewObj());
+	}
+	else if (Args.Length() == 1 && TNodeJsUtil::IsArgWrapObj<TNodeJsFIn>(Args, 0)) {
 		// load the model from the input stream
-		TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
+		TNodeJsFIn* JsFIn = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFIn>(Args, 0);
 		return new TNodeJsMDS(*JsFIn->SIn);
 	}
+	else if (Args.Length() == 1 && TNodeJsUtil::IsArgObj(Args, 0)) {
+		// create new model from given parameters
+		PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+		return new TNodeJsMDS(ParamVal);
+	}
 	else {
-		return new TNodeJsMDS();
+		throw TExcept::New("new MDS: wrong arguments in constructor!");
+	}
+}
+
+void TNodeJsMDS::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 0, "MDS.getParams: takes 0 argument!");
+
+	try {
+		TNodeJsMDS* JsMDS = TNodeJsMDS::Unwrap<TNodeJsMDS>(Args.Holder());
+		Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, JsMDS->GetParams()));
+	}
+	catch (const PExcept& Except) {
+		throw TExcept::New(Except->GetMsgStr(), "MDS::getParams");
+	}
+}
+
+void TNodeJsMDS::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1, "MDS.setParams: takes 1 argument!");
+	EAssertR(TNodeJsUtil::IsArgJson(Args, 0), "MDS.setParams: first argument should be a Javascript object!");
+
+	try {
+		TNodeJsMDS* JsMDS = ObjectWrap::Unwrap<TNodeJsMDS>(Args.Holder());
+		PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+
+		JsMDS->UpdateParams(ParamVal);
+
+		Args.GetReturnValue().Set(Args.Holder());
+	}
+	catch (const PExcept& Except) {
+		throw TExcept::New(Except->GetMsgStr(), "MDS::setParams");
 	}
 }
 
@@ -2845,12 +2951,17 @@ void TNodeJsMDS::fitTransform(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::HandleScope HandleScope(Isolate);
 
 	EAssertR(Args.Length() == 1, "MDS.fitTransform: expecting 1 argument!");
+	TNodeJsMDS* JsMDS = ObjectWrap::Unwrap<TNodeJsMDS>(Args.Holder());
+
 	TVec<TFltV> Temp;
 	TFltV DummyClsV;
 	PSVMTrainSet TrainSet;
 	// algorithm parameters
-	int MxStep = 5000, MxSecs = 500, MnDiff = 1e-4;
+	int MxStep = JsMDS->MxStep;
+	int MxSecs = JsMDS->MxSecs;
+	int MnDiff = JsMDS->MnDiff;
 	bool RndStartPos = true;
+
 	PNotify Noty = TQm::TEnv::Logger;
 	if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltVV>(Args, 0)) {
 		const TFltVV& Mat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltVV>(Args, 0)->Mat;
@@ -2875,4 +2986,24 @@ void TNodeJsMDS::fitTransform(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		}
 	}
 	Args.GetReturnValue().Set(TNodeJsFltVV::New(Result));
+}
+
+void TNodeJsMDS::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1, "MDS.save: Should have 1 argument!");
+
+	try {
+		TNodeJsMDS* JsMDS = ObjectWrap::Unwrap<TNodeJsMDS>(Args.Holder());
+		// get output stream from argumetns
+		TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
+		// save model
+		JsMDS->Save(*JsFOut->SOut);
+		// return output stream for convenience
+		Args.GetReturnValue().Set(Args[0]);
+	}
+	catch (const PExcept& Except) {
+		throw TExcept::New(Except->GetMsgStr(), "MDS::save");
+	}
 }

@@ -2050,15 +2050,28 @@ public:
 	static const TStr GetClassId() { return "MDS"; }
 
 private:
+	// parameters
+	int MxStep, MxSecs;
+	double MnDiff;
+	TVizDistType DistType;
+
 	TFltVV MDS;
 
-	TNodeJsMDS() {}
-	TNodeJsMDS(TSIn& SIn) : MDS(SIn) {}
+	TNodeJsMDS(const PJsonVal& ParamVal);
+	TNodeJsMDS(TSIn& SIn);
 
 	static TNodeJsMDS* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
 public:
+	JsDeclareFunction(getParams);
+	JsDeclareFunction(setParams);
 	JsDeclareFunction(fitTransform);
+	JsDeclareFunction(save);
+
+private:
+	void UpdateParams(const PJsonVal& ParamVal);
+	PJsonVal GetParams() const;
+	void Save(TSOut& SOut) const;
 };
 
 
