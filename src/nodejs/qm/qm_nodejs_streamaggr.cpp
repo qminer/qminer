@@ -14,16 +14,16 @@
 ///////////////////////////////
 // NodeJs Stream Aggregator
 
-v8::Persistent<v8::Function> TNodeJsSA::Constructor;
+v8::Persistent<v8::Function> TNodeJsStreamAggr::Constructor;
 
-void TNodeJsSA::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsStreamAggr::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
 	// template for creating function from javascript using "new", uses _NewJs callback
-	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsSA>);
+	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsStreamAggr>);
 	// child will have the same properties and methods, but a different callback: _NewCpp
-	v8::Local<v8::FunctionTemplate> child = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewCpp<TNodeJsSA>);
+	v8::Local<v8::FunctionTemplate> child = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewCpp<TNodeJsStreamAggr>);
 	child->Inherit(tpl);
 
 	child->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
@@ -72,7 +72,7 @@ void TNodeJsSA::Init(v8::Handle<v8::Object> exports) {
 		tpl->GetFunction());
 }
 
-TNodeJsSA* TNodeJsSA::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+TNodeJsStreamAggr* TNodeJsStreamAggr::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
@@ -92,7 +92,7 @@ TNodeJsSA* TNodeJsSA::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Arg
 		// we need a name, if not give just generate one
 		if (AggrName.Empty()) { AggrName = TGuid::GenSafeGuid(); }
 		// create aggregate
-		StreamAggr = TNodeJsStreamAggr::New(JsBase->Base, AggrName, Args[1]->ToObject());
+		StreamAggr = TNodeJsFuncStreamAggr::New(JsBase->Base, AggrName, Args[1]->ToObject());
 	} else if (TypeNm == "ftrext") {
 		TStr AggrName = TNodeJsUtil::GetArgStr(Args, 1, "name", "");
 		QmAssertR(Args[1]->ToObject()->Has(v8::String::NewFromUtf8(Isolate, "featureSpace")), "addStreamAggr: featureSpace property missing!");
@@ -151,26 +151,26 @@ TNodeJsSA* TNodeJsSA::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Arg
         JsBase->Base->AddStreamAggr(StreamAggr);
     }
 
-    return new TNodeJsSA(StreamAggr);
+    return new TNodeJsStreamAggr(StreamAggr);
 }
 
-void TNodeJsSA::reset(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsStreamAggr::reset(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
 	// unwrap
-	TNodeJsSA* JsSA = ObjectWrap::Unwrap<TNodeJsSA>(Args.Holder());
+	TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
 	JsSA->SA->Reset();
 
 	Args.GetReturnValue().Set(Args.Holder());
 }
 
-void TNodeJsSA::onAdd(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsStreamAggr::onAdd(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
 	// unwrap
-	TNodeJsSA* JsSA = ObjectWrap::Unwrap<TNodeJsSA>(Args.Holder());
+	TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
 
 	QmAssertR(Args.Length() == 1 && Args[0]->IsObject(), "sa.onAdd should take one argument of type TNodeJsRec");
 	TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[0]->ToObject());
@@ -179,12 +179,12 @@ void TNodeJsSA::onAdd(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	Args.GetReturnValue().Set(Args.Holder());
 }
 
-void TNodeJsSA::onUpdate(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsStreamAggr::onUpdate(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
 	// unwrap
-	TNodeJsSA* JsSA = ObjectWrap::Unwrap<TNodeJsSA>(Args.Holder());
+	TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
 	QmAssertR(Args.Length() == 1 && Args[0]->IsObject(), "sa.onUpdate should take one argument of type TNodeJsRec");
 	TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[0]->ToObject());
 	JsSA->SA->OnUpdateRec(JsRec->Rec);
@@ -192,12 +192,12 @@ void TNodeJsSA::onUpdate(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	Args.GetReturnValue().Set(Args.Holder());
 }
 
-void TNodeJsSA::onDelete(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsStreamAggr::onDelete(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
 	// unwrap
-	TNodeJsSA* JsSA = ObjectWrap::Unwrap<TNodeJsSA>(Args.Holder());
+	TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
 	QmAssertR(Args.Length() == 1 && Args[0]->IsObject(), "sa.onDelete should take one argument of type TNodeJsRec");
 	TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[0]->ToObject());
 	JsSA->SA->OnDeleteRec(JsRec->Rec);
@@ -205,12 +205,12 @@ void TNodeJsSA::onDelete(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	Args.GetReturnValue().Set(Args.Holder());
 }
 
-void TNodeJsSA::saveJson(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsStreamAggr::saveJson(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
 	// unwrap
-	TNodeJsSA* JsSA = ObjectWrap::Unwrap<TNodeJsSA>(Args.Holder());
+	TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
 
 	const TInt Limit = TNodeJsUtil::GetArgInt32(Args, 0, -1);
 	PJsonVal Json = JsSA->SA->SaveJson(Limit);
@@ -219,26 +219,25 @@ void TNodeJsSA::saveJson(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	Args.GetReturnValue().Set(V8Json);
 }
 
-void TNodeJsSA::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsStreamAggr::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
 	// unwrap
-	TNodeJsSA* JsSA = ObjectWrap::Unwrap<TNodeJsSA>(Args.Holder());
+	TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
     TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
-
     // save
 	JsSA->SA->SaveState(*JsFOut->SOut);
-
-	Args.GetReturnValue().Set(Args.Holder());
+	JsFOut->SOut->Flush();
+	Args.GetReturnValue().Set(Args[0]);
 }
 
-void TNodeJsSA::load(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsStreamAggr::load(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
 	// unwrap
-	TNodeJsSA* JsSA = ObjectWrap::Unwrap<TNodeJsSA>(Args.Holder());
+	TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
     TNodeJsFIn* JsFIn = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFIn>(Args, 0);
 
     // save
@@ -247,134 +246,134 @@ void TNodeJsSA::load(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	Args.GetReturnValue().Set(Args.Holder());
 }
 
-void TNodeJsSA::getInteger(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsStreamAggr::getInteger(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
 	// unwrap
-	TNodeJsSA* JsSA = ObjectWrap::Unwrap<TNodeJsSA>(Args.Holder());
+	TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
 	// try to cast as IInt
 	TWPt<TQm::TStreamAggrOut::IInt> Aggr = dynamic_cast<TQm::TStreamAggrOut::IInt*>(JsSA->SA());
 	if (Aggr.Empty()) {
-		throw TQm::TQmExcept::New("TNodeJsSA::getInt : stream aggregate does not implement IInt: " + JsSA->SA->GetAggrNm());
+		throw TQm::TQmExcept::New("TNodeJsStreamAggr::getInt : stream aggregate does not implement IInt: " + JsSA->SA->GetAggrNm());
 	}
 	Args.GetReturnValue().Set(v8::Number::New(Isolate, Aggr->GetInt()));
 }
 
-void TNodeJsSA::getFloat(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsStreamAggr::getFloat(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
 	// unwrap
-	TNodeJsSA* JsSA = ObjectWrap::Unwrap<TNodeJsSA>(Args.Holder());
+	TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
 	// try to cast as IFlt
 	TWPt<TQm::TStreamAggrOut::IFlt> Aggr = dynamic_cast<TQm::TStreamAggrOut::IFlt*>(JsSA->SA());
 	if (Aggr.Empty()) {
-		throw TQm::TQmExcept::New("TNodeJsSA::getFlt : stream aggregate does not implement IFlt: " + JsSA->SA->GetAggrNm());
+		throw TQm::TQmExcept::New("TNodeJsStreamAggr::getFlt : stream aggregate does not implement IFlt: " + JsSA->SA->GetAggrNm());
 	}
 	Args.GetReturnValue().Set(v8::Number::New(Isolate, Aggr->GetFlt()));
 }
 
-void TNodeJsSA::getTimestamp(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsStreamAggr::getTimestamp(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
 	// unwrap
-	TNodeJsSA* JsSA = ObjectWrap::Unwrap<TNodeJsSA>(Args.Holder());
+	TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
 	// try to cast as ITm
 	TWPt<TQm::TStreamAggrOut::ITm> Aggr = dynamic_cast<TQm::TStreamAggrOut::ITm*>(JsSA->SA());
 	if (Aggr.Empty()) {
-		throw TQm::TQmExcept::New("TNodeJsSA::getTm : stream aggregate does not implement ITm: " + JsSA->SA->GetAggrNm());
+		throw TQm::TQmExcept::New("TNodeJsStreamAggr::getTm : stream aggregate does not implement ITm: " + JsSA->SA->GetAggrNm());
 	}
 
 	Args.GetReturnValue().Set(v8::Number::New(Isolate, (double)Aggr->GetTmMSecs()));
 }
 
-void TNodeJsSA::getFloatLength(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsStreamAggr::getFloatLength(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
 	// unwrap
-	TNodeJsSA* JsSA = ObjectWrap::Unwrap<TNodeJsSA>(Args.Holder());
+	TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
 	// try to cast as IFltVec
 	TWPt<TQm::TStreamAggrOut::IFltVec> Aggr = dynamic_cast<TQm::TStreamAggrOut::IFltVec*>(JsSA->SA());
 	if (Aggr.Empty()) {
-		throw TQm::TQmExcept::New("TNodeJsSA::getFltLen : stream aggregate does not implement IFltVec: " + JsSA->SA->GetAggrNm());
+		throw TQm::TQmExcept::New("TNodeJsStreamAggr::getFltLen : stream aggregate does not implement IFltVec: " + JsSA->SA->GetAggrNm());
 	}
 
 	Args.GetReturnValue().Set(v8::Number::New(Isolate, Aggr->GetFltLen()));
 }
-void TNodeJsSA::getFloatAt(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsStreamAggr::getFloatAt(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
 	// unwrap
-	TNodeJsSA* JsSA = ObjectWrap::Unwrap<TNodeJsSA>(Args.Holder());
+	TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
 	// try to cast as IFltVec
 	int ElN = TNodeJsUtil::GetArgInt32(Args, 0);
 	TWPt<TQm::TStreamAggrOut::IFltVec> Aggr = dynamic_cast<TQm::TStreamAggrOut::IFltVec*>(JsSA->SA());
 	if (Aggr.Empty()) {
-		throw TQm::TQmExcept::New("TNodeJsSA::getFltAt : stream aggregate does not implement IFltVec: " + JsSA->SA->GetAggrNm());
+		throw TQm::TQmExcept::New("TNodeJsStreamAggr::getFltAt : stream aggregate does not implement IFltVec: " + JsSA->SA->GetAggrNm());
 	}
 
 	Args.GetReturnValue().Set(v8::Number::New(Isolate, Aggr->GetFlt(ElN)));
 }
-void TNodeJsSA::getFloatVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsStreamAggr::getFloatVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
 	// unwrap
-	TNodeJsSA* JsSA = ObjectWrap::Unwrap<TNodeJsSA>(Args.Holder());
+	TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
 	// try to cast as IFltVec
 	TWPt<TQm::TStreamAggrOut::IFltVec> Aggr = dynamic_cast<TQm::TStreamAggrOut::IFltVec*>(JsSA->SA());
 	if (Aggr.Empty()) {
-		throw TQm::TQmExcept::New("TNodeJsSA::getFltV : stream aggregate does not implement IFltVec: " + JsSA->SA->GetAggrNm());
+		throw TQm::TQmExcept::New("TNodeJsStreamAggr::getFltV : stream aggregate does not implement IFltVec: " + JsSA->SA->GetAggrNm());
 	}
 	TFltV Res;
 	Aggr->GetFltV(Res);
 	Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Res));
 }
-void TNodeJsSA::getTimestampLength(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsStreamAggr::getTimestampLength(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
 	// unwrap
-	TNodeJsSA* JsSA = ObjectWrap::Unwrap<TNodeJsSA>(Args.Holder());
+	TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
 
 	// try to cast as ITmVec
 	TWPt<TQm::TStreamAggrOut::ITmVec> Aggr = dynamic_cast<TQm::TStreamAggrOut::ITmVec*>(JsSA->SA());
 	if (Aggr.Empty()) {
-		throw TQm::TQmExcept::New("TNodeJsSA::getTmLen : stream aggregate does not implement ITmVec: " + JsSA->SA->GetAggrNm());
+		throw TQm::TQmExcept::New("TNodeJsStreamAggr::getTmLen : stream aggregate does not implement ITmVec: " + JsSA->SA->GetAggrNm());
 	}
 
 	Args.GetReturnValue().Set(v8::Number::New(Isolate, Aggr->GetTmLen()));
 }
-void TNodeJsSA::getTimestampAt(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsStreamAggr::getTimestampAt(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
 	// unwrap
-	TNodeJsSA* JsSA = ObjectWrap::Unwrap<TNodeJsSA>(Args.Holder());
+	TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
 
 	// try to cast as ITmVec
 	int ElN = TNodeJsUtil::GetArgInt32(Args, 0);
 	TWPt<TQm::TStreamAggrOut::ITmVec> Aggr = dynamic_cast<TQm::TStreamAggrOut::ITmVec*>(JsSA->SA());
 	if (Aggr.Empty()) {
-		throw TQm::TQmExcept::New("TNodeJsSA::getTmAt : stream aggregate does not implement ITmVec: " + JsSA->SA->GetAggrNm());
+		throw TQm::TQmExcept::New("TNodeJsStreamAggr::getTmAt : stream aggregate does not implement ITmVec: " + JsSA->SA->GetAggrNm());
 	}
-	QmAssertR(JsSA->SA->IsInit(), "TNodeJsSA::getTmAt : stream aggregate '" + JsSA->SA->GetAggrNm() + "' is not initialized!");
+	QmAssertR(JsSA->SA->IsInit(), "TNodeJsStreamAggr::getTmAt : stream aggregate '" + JsSA->SA->GetAggrNm() + "' is not initialized!");
 	Args.GetReturnValue().Set(v8::Number::New(Isolate, (double)Aggr->GetTm(ElN)));
 }
-void TNodeJsSA::getTimestampVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsStreamAggr::getTimestampVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
 	// unwrap
-	TNodeJsSA* JsSA = ObjectWrap::Unwrap<TNodeJsSA>(Args.Holder());
+	TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
 	// try to cast as ITmVec
 	TWPt<TQm::TStreamAggrOut::ITmVec> Aggr = dynamic_cast<TQm::TStreamAggrOut::ITmVec*>(JsSA->SA());
 	if (Aggr.Empty()) {
-		throw TQm::TQmExcept::New("TNodeJsSA::getTmV : stream aggregate does not implement ITmVec: " + JsSA->SA->GetAggrNm());
+		throw TQm::TQmExcept::New("TNodeJsStreamAggr::getTmV : stream aggregate does not implement ITmVec: " + JsSA->SA->GetAggrNm());
 	}
 	TUInt64V Res;
 	Aggr->GetTmV(Res);
@@ -386,44 +385,44 @@ void TNodeJsSA::getTimestampVector(const v8::FunctionCallbackInfo<v8::Value>& Ar
 
 	Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(FltRes));
 }
-void TNodeJsSA::getInFloat(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsStreamAggr::getInFloat(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
 	// unwrap
-	TNodeJsSA* JsSA = ObjectWrap::Unwrap<TNodeJsSA>(Args.Holder());
+	TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
 	// try to cast as IFltTmIO
 	TWPt<TQm::TStreamAggrOut::IFltTmIO> Aggr = dynamic_cast<TQm::TStreamAggrOut::IFltTmIO*>(JsSA->SA());
 	if (Aggr.Empty()) {
-		throw TQm::TQmExcept::New("TNodeJsSA::getInFlt : stream aggregate does not implement IFltTmIO: " + JsSA->SA->GetAggrNm());
+		throw TQm::TQmExcept::New("TNodeJsStreamAggr::getInFlt : stream aggregate does not implement IFltTmIO: " + JsSA->SA->GetAggrNm());
 	}
 
 	Args.GetReturnValue().Set(v8::Number::New(Isolate, Aggr->GetInFlt()));
 }
-void TNodeJsSA::getInTimestamp(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsStreamAggr::getInTimestamp(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
 	// unwrap
-	TNodeJsSA* JsSA = ObjectWrap::Unwrap<TNodeJsSA>(Args.Holder());
+	TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
 	// try to cast as IFltTmIO
 	TWPt<TQm::TStreamAggrOut::IFltTmIO> Aggr = dynamic_cast<TQm::TStreamAggrOut::IFltTmIO*>(JsSA->SA());
 	if (Aggr.Empty()) {
-		throw TQm::TQmExcept::New("TNodeJsSA::getInTm : stream aggregate does not implement IFltTmIO: " + JsSA->SA->GetAggrNm());
+		throw TQm::TQmExcept::New("TNodeJsStreamAggr::getInTm : stream aggregate does not implement IFltTmIO: " + JsSA->SA->GetAggrNm());
 	}
 	Args.GetReturnValue().Set(v8::Number::New(Isolate, (double)Aggr->GetInTmMSecs()));
 }
 
-void TNodeJsSA::getInFloatVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsStreamAggr::getInFloatVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
 	// unwrap
-	TNodeJsSA* JsSA = ObjectWrap::Unwrap<TNodeJsSA>(Args.Holder());
+	TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
 	// try to cast as IFltTmIO
 	TWPt<TQm::TStreamAggrOut::IFltTmIO> Aggr = dynamic_cast<TQm::TStreamAggrOut::IFltTmIO*>(JsSA->SA());
 	if (Aggr.Empty()) {
-		throw TQm::TQmExcept::New("TNodeJsSA::getOutFltV : stream aggregate does not implement IFltTmIO: " + JsSA->SA->GetAggrNm());
+		throw TQm::TQmExcept::New("TNodeJsStreamAggr::getOutFltV : stream aggregate does not implement IFltTmIO: " + JsSA->SA->GetAggrNm());
 	}
 	TFltV Res;
 	Aggr->GetInFltV(Res);
@@ -431,16 +430,16 @@ void TNodeJsSA::getInFloatVector(const v8::FunctionCallbackInfo<v8::Value>& Args
 	Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Res));
 }
 
-void TNodeJsSA::getInTimestampVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsStreamAggr::getInTimestampVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
 	// unwrap
-	TNodeJsSA* JsSA = ObjectWrap::Unwrap<TNodeJsSA>(Args.Holder());
+	TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
 	// try to cast as IFltTmIO
 	TWPt<TQm::TStreamAggrOut::IFltTmIO> Aggr = dynamic_cast<TQm::TStreamAggrOut::IFltTmIO*>(JsSA->SA());
 	if (Aggr.Empty()) {
-		throw TQm::TQmExcept::New("TNodeJsSA::getOutTmV : stream aggregate does not implement IFltTmIO: " + JsSA->SA->GetAggrNm());
+		throw TQm::TQmExcept::New("TNodeJsStreamAggr::getOutTmV : stream aggregate does not implement IFltTmIO: " + JsSA->SA->GetAggrNm());
 	}
 	TUInt64V Res;
 	Aggr->GetInTmMSecsV(Res);
@@ -453,16 +452,16 @@ void TNodeJsSA::getInTimestampVector(const v8::FunctionCallbackInfo<v8::Value>& 
 	Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(FltRes));
 }
 
-void TNodeJsSA::getOutFloatVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsStreamAggr::getOutFloatVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
 	// unwrap
-	TNodeJsSA* JsSA = ObjectWrap::Unwrap<TNodeJsSA>(Args.Holder());
+	TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
 	// try to cast as IFltTmIO
 	TWPt<TQm::TStreamAggrOut::IFltTmIO> Aggr = dynamic_cast<TQm::TStreamAggrOut::IFltTmIO*>(JsSA->SA());
 	if (Aggr.Empty()) {
-		throw TQm::TQmExcept::New("TNodeJsSA::getOutFltV : stream aggregate does not implement IFltTmIO: " + JsSA->SA->GetAggrNm());
+		throw TQm::TQmExcept::New("TNodeJsStreamAggr::getOutFltV : stream aggregate does not implement IFltTmIO: " + JsSA->SA->GetAggrNm());
 	}
 	TFltV Res;
 	Aggr->GetOutFltV(Res);
@@ -470,16 +469,16 @@ void TNodeJsSA::getOutFloatVector(const v8::FunctionCallbackInfo<v8::Value>& Arg
 	Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Res));
 }
 
-void TNodeJsSA::getOutTimestampVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsStreamAggr::getOutTimestampVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
 	// unwrap
-	TNodeJsSA* JsSA = ObjectWrap::Unwrap<TNodeJsSA>(Args.Holder());
+	TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
 	// try to cast as IFltTmIO
 	TWPt<TQm::TStreamAggrOut::IFltTmIO> Aggr = dynamic_cast<TQm::TStreamAggrOut::IFltTmIO*>(JsSA->SA());
 	if (Aggr.Empty()) {
-		throw TQm::TQmExcept::New("TNodeJsSA::getOutTmV : stream aggregate does not implement IFltTmIO: " + JsSA->SA->GetAggrNm());
+		throw TQm::TQmExcept::New("TNodeJsStreamAggr::getOutTmV : stream aggregate does not implement IFltTmIO: " + JsSA->SA->GetAggrNm());
 	}
 	TUInt64V Res;
 	Aggr->GetOutTmMSecsV(Res);
@@ -492,57 +491,57 @@ void TNodeJsSA::getOutTimestampVector(const v8::FunctionCallbackInfo<v8::Value>&
 	Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(FltRes));
 }
 
-void TNodeJsSA::getNumberOfRecords(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsStreamAggr::getNumberOfRecords(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
 	// unwrap
-	TNodeJsSA* JsSA = ObjectWrap::Unwrap<TNodeJsSA>(Args.Holder());
+	TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
 	// try to cast as IFltTmIO
 	TWPt<TQm::TStreamAggrOut::IFltTmIO> Aggr = dynamic_cast<TQm::TStreamAggrOut::IFltTmIO*>(JsSA->SA());
 	if (Aggr.Empty()) {
-		throw TQm::TQmExcept::New("TNodeJsSA::getN : stream aggregate does not implement IFltTmIO: " + JsSA->SA->GetAggrNm());
+		throw TQm::TQmExcept::New("TNodeJsStreamAggr::getN : stream aggregate does not implement IFltTmIO: " + JsSA->SA->GetAggrNm());
 	}
 
 	Args.GetReturnValue().Set(v8::Number::New(Isolate, Aggr->GetN()));
 }
 
-void TNodeJsSA::name(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsStreamAggr::name(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
 	v8::Local<v8::Object> Self = Info.Holder();
-	TNodeJsSA* JsSA = ObjectWrap::Unwrap<TNodeJsSA>(Self);
+	TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Self);
 	Info.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, JsSA->SA->GetAggrNm().CStr()));
 }
 
 
-void TNodeJsSA::val(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsStreamAggr::val(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
 	v8::Local<v8::Object> Self = Info.Holder();
-	TNodeJsSA* JsSA = ObjectWrap::Unwrap<TNodeJsSA>(Self);
+	TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Self);
 	Info.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, JsSA->SA->SaveJson(-1)));
 }
 
-void TNodeJsSA::init(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsStreamAggr::init(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
 	v8::Local<v8::Object> Self = Info.Holder();
-	TNodeJsSA* JsSA = ObjectWrap::Unwrap<TNodeJsSA>(Self);
+	TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Self);
 	Info.GetReturnValue().Set(JsSA->SA->IsInit());
 }
 
 ///////////////////////////////
 // QMiner-JavaScript-Stream-Aggr
-TNodeJsStreamAggr::TNodeJsStreamAggr(TWPt<TQm::TBase> _Base, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal) : TStreamAggr(_Base, _AggrNm) {
+TNodeJsFuncStreamAggr::TNodeJsFuncStreamAggr(TWPt<TQm::TBase> _Base, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal) : TStreamAggr(_Base, _AggrNm) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 	// Every stream aggregate should implement these two
-	QmAssertR(TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "onAdd")), "TNodeJsStreamAggr constructor, name: " + _AggrNm + ", type: javaScript. Missing onAdd callback. Possible reason: type of the aggregate was not specified and it defaulted to javaScript.");
-	QmAssertR(TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "saveJson")), "TNodeJsStreamAggr constructor, name: " + _AggrNm + ", type: javaScript. Missing saveJson callback. Possible reason: type of the aggregate was not specified and it defaulted to javaScript.");
+	QmAssertR(TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "onAdd")), "TNodeJsFuncStreamAggr constructor, name: " + _AggrNm + ", type: javaScript. Missing onAdd callback. Possible reason: type of the aggregate was not specified and it defaulted to javaScript.");
+	QmAssertR(TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "saveJson")), "TNodeJsFuncStreamAggr constructor, name: " + _AggrNm + ", type: javaScript. Missing saveJson callback. Possible reason: type of the aggregate was not specified and it defaulted to javaScript.");
 
 	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "reset"))) {
 		v8::Handle<v8::Value> _ResetFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "reset"));
@@ -569,14 +568,14 @@ TNodeJsStreamAggr::TNodeJsStreamAggr(TWPt<TQm::TBase> _Base, const TStr& _AggrNm
 	QmAssert(_SaveJsonFun->IsFunction());
 	SaveJsonFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_SaveJsonFun));
 
-	// StreamAggr::_Save
+	// StreamAggr::SaveState
 	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "save"))) {
 		v8::Handle<v8::Value> _Save = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "save"));
 		QmAssert(_Save->IsFunction());
 		SaveFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_Save));
 	}
 
-	// StreamAggr::_Load
+	// StreamAggr::LoadState
 	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "load"))) {
 		v8::Handle<v8::Value> _Load = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "load"));
 		QmAssert(_Load->IsFunction());
@@ -584,76 +583,79 @@ TNodeJsStreamAggr::TNodeJsStreamAggr(TWPt<TQm::TBase> _Base, const TStr& _AggrNm
 	}
 
 	// IInt
-	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getInt"))) {
-		v8::Handle<v8::Value> _GetInt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getInt"));
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getInteger"))) {
+		v8::Handle<v8::Value> _GetInt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getInteger"));
 		QmAssert(_GetInt->IsFunction());
 		GetIntFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetInt));
 	}
 	// IFlt
-	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getFlt"))) {
-		v8::Handle<v8::Value> _GetFlt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getFlt"));
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getFloat"))) {
+		v8::Handle<v8::Value> _GetFlt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getFloat"));
 		QmAssert(_GetFlt->IsFunction());
 		GetFltFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetFlt));
 	}
 	// ITm
-	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getTm"))) {
-		v8::Handle<v8::Value> _GetTm = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getTm"));
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getTimestamp"))) {
+		v8::Handle<v8::Value> _GetTm = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getTimestamp"));
 		QmAssert(_GetTm->IsFunction());
 		GetTmMSecsFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetTm));
 	}
 	// IFltTmIO
-	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getInFlt"))) {
-		v8::Handle<v8::Value> _GetInFlt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getInFlt"));
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getInFloat"))) {
+		v8::Handle<v8::Value> _GetInFlt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getInFloat"));
 		QmAssert(_GetInFlt->IsFunction());
 		GetInFltFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetInFlt));
 	}
-	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getInTm"))) {
-		v8::Handle<v8::Value> _GetInTm = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getInTm"));
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getInTimestamp"))) {
+		v8::Handle<v8::Value> _GetInTm = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getInTimestamp"));
 		QmAssert(_GetInTm->IsFunction());
 		GetInTmMSecsFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetInTm));
 	}
-	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getInFltV"))) {
-		v8::Handle<v8::Value> _GetInFltV = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getInFltV"));
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getInFloatVector"))) {
+		v8::Handle<v8::Value> _GetInFltV = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getInFloatVector"));
 		QmAssert(_GetInFltV->IsFunction());
 		GetInFltVFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetInFltV));
 	}
-	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getInTmV"))) {
-		v8::Handle<v8::Value> _GetInTmV = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getInTmV"));
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getInTimestampVector"))) {
+		v8::Handle<v8::Value> _GetInTmV = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getInTimestampVector"));
 		QmAssert(_GetInTmV->IsFunction());
 		GetInTmMSecsVFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetInTmV));
 	}
-	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getOutFltV"))) {
-		v8::Handle<v8::Value> _GetOutFltV = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getOutFltV"));
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getOutFloatVector"))) {
+		v8::Handle<v8::Value> _GetOutFltV = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getOutFloatVector"));
 		QmAssert(_GetOutFltV->IsFunction());
 		GetOutFltVFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetOutFltV));
 	}
-	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getOutTmV"))) {
-		v8::Handle<v8::Value> _GetOutTmV = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getOutTmV"));
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getOutTimestampVector"))) {
+		v8::Handle<v8::Value> _GetOutTmV = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getOutTimestampVector"));
 		QmAssert(_GetOutTmV->IsFunction());
 		GetOutTmMSecsVFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetOutTmV));
 	}
-	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getN"))) {
-		v8::Handle<v8::Value> _GetN = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getN"));
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getNumberOfRecords"))) {
+		v8::Handle<v8::Value> _GetN = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getNumberOfRecords"));
 		QmAssert(_GetN->IsFunction());
 		GetNFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetN));
 	}
 
 	// IFltVec
-	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getFltLen"))) {
-		v8::Handle<v8::Value> _GetFltLen = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getFltLen"));
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getFloatLength"))) {
+		v8::Handle<v8::Value> _GetFltLen = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getFloatLength"));
 		QmAssert(_GetFltLen->IsFunction());
 		GetFltLenFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetFltLen));
 	}
-	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getFltAt"))) {
-		v8::Handle<v8::Value> _GetFltAt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getFltAt"));
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getFloatAt"))) {
+		v8::Handle<v8::Value> _GetFltAt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getFloatAt"));
 		QmAssert(_GetFltAt->IsFunction());
 		GetFltAtFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetFltAt));
 	}
-	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getFltV"))) {
-		v8::Handle<v8::Value> _GetFltV = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getFltV"));
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getFloatVector"))) {
+		v8::Handle<v8::Value> _GetFltV = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getFloatVector"));
 		QmAssert(_GetFltV->IsFunction());
 		GetFltVFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetFltV));
 	}
+
+	// TODO - fix glib names and expose the interfaces TNodeJsStreamAggr
+
 	// INmFlt
 	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "isNmFlt"))) {
 		v8::Handle<v8::Value> _IsNmFlt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "isNmFlt"));
@@ -688,7 +690,7 @@ TNodeJsStreamAggr::TNodeJsStreamAggr(TWPt<TQm::TBase> _Base, const TStr& _AggrNm
 	}
 }
 
-TNodeJsStreamAggr::~TNodeJsStreamAggr() {
+TNodeJsFuncStreamAggr::~TNodeJsFuncStreamAggr() {
 	// callbacks
 	ResetFun.Reset();
 	OnAddFun.Reset();
@@ -731,7 +733,7 @@ TNodeJsStreamAggr::~TNodeJsStreamAggr() {
 	LoadFun.Reset();
 }
 
-void TNodeJsStreamAggr::Reset() {
+void TNodeJsFuncStreamAggr::Reset() {
 	if (!ResetFun.IsEmpty()) {
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::HandleScope HandleScope(Isolate);
@@ -748,7 +750,7 @@ void TNodeJsStreamAggr::Reset() {
 	}
 }
 
-void TNodeJsStreamAggr::OnAddRec(const TQm::TRec& Rec) {
+void TNodeJsFuncStreamAggr::OnAddRec(const TQm::TRec& Rec) {
 	if (!OnAddFun.IsEmpty()) {
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::HandleScope HandleScope(Isolate);
@@ -766,7 +768,7 @@ void TNodeJsStreamAggr::OnAddRec(const TQm::TRec& Rec) {
 	}
 }
 
-void TNodeJsStreamAggr::OnUpdateRec(const TQm::TRec& Rec) {
+void TNodeJsFuncStreamAggr::OnUpdateRec(const TQm::TRec& Rec) {
 	if (!OnUpdateFun.IsEmpty()) {
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::HandleScope HandleScope(Isolate);
@@ -784,7 +786,7 @@ void TNodeJsStreamAggr::OnUpdateRec(const TQm::TRec& Rec) {
 	}
 }
 
-void TNodeJsStreamAggr::OnDeleteRec(const TQm::TRec& Rec) {
+void TNodeJsFuncStreamAggr::OnDeleteRec(const TQm::TRec& Rec) {
 	if (!OnDeleteFun.IsEmpty()) {
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::HandleScope HandleScope(Isolate);
@@ -802,7 +804,7 @@ void TNodeJsStreamAggr::OnDeleteRec(const TQm::TRec& Rec) {
 	}
 }
 
-PJsonVal TNodeJsStreamAggr::SaveJson(const int& Limit) const {
+PJsonVal TNodeJsFuncStreamAggr::SaveJson(const int& Limit) const {
 	if (!SaveJsonFun.IsEmpty()) {
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::HandleScope HandleScope(Isolate);
@@ -814,8 +816,8 @@ PJsonVal TNodeJsStreamAggr::SaveJson(const int& Limit) const {
 		v8::TryCatch TryCatch;
 		v8::Local<v8::Value> ReturnVal = Callback->Call(GlobalContext, Argc, ArgV);
 		if (TryCatch.HasCaught()) {
-			TryCatch.ReThrow();
-			return TJsonVal::NewObj();
+			v8::String::Utf8Value Msg(TryCatch.Message()->Get());
+			throw TQm::TQmExcept::New("Javascript exception from callback triggered: " +  TStr(*Msg));
 		}
 		QmAssertR(ReturnVal->IsObject(), "Stream aggr JS callback: saveJson didn't return an object.");
 		PJsonVal Res = TNodeJsUtil::GetObjJson(ReturnVal->ToObject());
@@ -828,20 +830,57 @@ PJsonVal TNodeJsStreamAggr::SaveJson(const int& Limit) const {
 	}
 }
 
-void TNodeJsStreamAggr::_Save(TSOut& SOut) const {
+void TNodeJsFuncStreamAggr::SaveState(TSOut& SOut) const {
 	if (SaveFun.IsEmpty()) {
-		throw TQm::TQmExcept::New("TNodeJsStreamAggr::_Save (called using sa.save) : stream aggregate does not implement a save callback: " + GetAggrNm());
+		throw TQm::TQmExcept::New("TNodeJsFuncStreamAggr::SaveState (called using sa.save) : stream aggregate does not implement a save callback: " + GetAggrNm());
+	} else {
+		// create TNodeJsFOut and pass it to callback
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope HandleScope(Isolate);
+
+		PSOut POut(&SOut);
+		v8::Local<v8::Object> JsFOut = TNodeJsUtil::NewInstance<TNodeJsFOut>(new TNodeJsFOut(POut));
+		
+		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, SaveFun);
+		v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+		const unsigned Argc = 1;
+		v8::Local<v8::Value> ArgV[Argc] = { JsFOut };
+		
+		v8::TryCatch TryCatch;
+		Callback->Call(GlobalContext, Argc, ArgV);
+		if (TryCatch.HasCaught()) {
+			v8::String::Utf8Value Msg(TryCatch.Message()->Get());
+			throw TQm::TQmExcept::New("Javascript exception from callback triggered: " + TStr(*Msg));
+		}
 	}
 }
 
-void TNodeJsStreamAggr::_Load(TSIn& SIn) {
+void TNodeJsFuncStreamAggr::LoadState(TSIn& SIn) {
 	if (LoadFun.IsEmpty()) {
-		throw TQm::TQmExcept::New("TNodeJsStreamAggr::_Load (called using sa.load) : stream aggregate does not implement a load callback: " + GetAggrNm());
+		throw TQm::TQmExcept::New("TNodeJsFuncStreamAggr::LoadState (called using sa.load) : stream aggregate does not implement a load callback: " + GetAggrNm());
+	} else {
+		// create TNodeJsFOut and pass it to callback
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope HandleScope(Isolate);
+
+		PSIn PIn(&SIn);
+		v8::Local<v8::Object> JsFIn = TNodeJsUtil::NewInstance<TNodeJsFIn>(new TNodeJsFIn(PIn));
+
+		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, LoadFun);
+		v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+		const unsigned Argc = 1;
+		v8::Local<v8::Value> ArgV[Argc] = { JsFIn };
+		v8::TryCatch TryCatch;
+		Callback->Call(GlobalContext, Argc, ArgV);
+		if (TryCatch.HasCaught()) {
+			v8::String::Utf8Value Msg(TryCatch.Message()->Get());
+			throw TQm::TQmExcept::New("Javascript exception from callback triggered: " + TStr(*Msg));
+		}		
 	}
 }
 
 // IInt
-int TNodeJsStreamAggr::GetInt() const {
+int TNodeJsFuncStreamAggr::GetInt() const {
 	if (!GetIntFun.IsEmpty()) {
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::HandleScope HandleScope(Isolate);
@@ -855,15 +894,15 @@ int TNodeJsStreamAggr::GetInt() const {
 			TryCatch.ReThrow();
 			return 0;
 		}
-		QmAssertR(RetVal->IsInt32(), "TNodeJsStreamAggr, name: " + GetAggrNm() + ", getInt(): Return type expected to be int32");
+		QmAssertR(RetVal->IsInt32(), "TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", getInt(): Return type expected to be int32");
 		return RetVal->Int32Value();
 	}
 	else {
-		throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", getInt() callback is empty!");
+		throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", getInt() callback is empty!");
 	}
 }
 // IFlt
-double TNodeJsStreamAggr::GetFlt() const {
+double TNodeJsFuncStreamAggr::GetFlt() const {
 	if (!GetFltFun.IsEmpty()) {
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::HandleScope HandleScope(Isolate);
@@ -877,15 +916,15 @@ double TNodeJsStreamAggr::GetFlt() const {
 			TryCatch.ReThrow();
 			return 0.0;
 		}
-		QmAssertR(RetVal->IsNumber(), "TNodeJsStreamAggr, name: " + GetAggrNm() + ", getFlt(): Return type expected to be int32");
+		QmAssertR(RetVal->IsNumber(), "TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", getFlt(): Return type expected to be int32");
 		return RetVal->NumberValue();
 	}
 	else {
-		throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", getFlt() callback is empty!");
+		throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", getFlt() callback is empty!");
 	}
 }
 // ITm
-uint64 TNodeJsStreamAggr::GetTmMSecs() const {
+uint64 TNodeJsFuncStreamAggr::GetTmMSecs() const {
 	if (!GetTmMSecsFun.IsEmpty()) {
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::HandleScope HandleScope(Isolate);
@@ -899,50 +938,50 @@ uint64 TNodeJsStreamAggr::GetTmMSecs() const {
 			TryCatch.ReThrow();
 			return 0;
 		}
-		QmAssertR(RetVal->IsNumber(), "TNodeJsStreamAggr, name: " + GetAggrNm() + ", getTm(): Return type expected to be number");
+		QmAssertR(RetVal->IsNumber(), "TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", getTm(): Return type expected to be number");
 		return (uint64)RetVal->NumberValue();
 	}
 	else {
-		throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", getTm() callback is empty!");
+		throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", getTm() callback is empty!");
 	}
 }
 // IFltTmIO
-double TNodeJsStreamAggr::GetInFlt() const {
-	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetInFlt not implemented");
+double TNodeJsFuncStreamAggr::GetInFlt() const {
+	throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetInFlt not implemented");
 }
-uint64 TNodeJsStreamAggr::GetInTmMSecs() const {
-	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetInTmMSecs not implemented");
-}
-
-bool TNodeJsStreamAggr::DelayedP() const {
-	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", DelayedP not implemented");
+uint64 TNodeJsFuncStreamAggr::GetInTmMSecs() const {
+	throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetInTmMSecs not implemented");
 }
 
-void TNodeJsStreamAggr::GetInFltV(TFltV& ValV) const {
-	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetInFltV not implemented");
+bool TNodeJsFuncStreamAggr::DelayedP() const {
+	throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", DelayedP not implemented");
 }
-void TNodeJsStreamAggr::GetInTmMSecsV(TUInt64V& MSecsV) const {
-	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetInTmMSecsV not implemented");
+
+void TNodeJsFuncStreamAggr::GetInFltV(TFltV& ValV) const {
+	throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetInFltV not implemented");
 }
-void TNodeJsStreamAggr::GetOutFltV(TFltV& ValV) const {
-	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetOutFltV not implemented");
+void TNodeJsFuncStreamAggr::GetInTmMSecsV(TUInt64V& MSecsV) const {
+	throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetInTmMSecsV not implemented");
 }
-void TNodeJsStreamAggr::GetOutTmMSecsV(TUInt64V& MSecsV) const {
-	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetOutTmMSecsV not implemented");
+void TNodeJsFuncStreamAggr::GetOutFltV(TFltV& ValV) const {
+	throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetOutFltV not implemented");
 }
-int TNodeJsStreamAggr::GetN() const {
-	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetN not implemented");
+void TNodeJsFuncStreamAggr::GetOutTmMSecsV(TUInt64V& MSecsV) const {
+	throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetOutTmMSecsV not implemented");
+}
+int TNodeJsFuncStreamAggr::GetN() const {
+	throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetN not implemented");
 }
 
 // IFltVec
-int TNodeJsStreamAggr::GetFltLen() const {
-	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetFltLen not implemented");
+int TNodeJsFuncStreamAggr::GetFltLen() const {
+	throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetFltLen not implemented");
 }
-double TNodeJsStreamAggr::GetFlt(const TInt& ElN) const {
-	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetFlt not implemented");
+double TNodeJsFuncStreamAggr::GetFlt(const TInt& ElN) const {
+	throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetFlt not implemented");
 } // GetFltAtFun
 
-void TNodeJsStreamAggr::GetFltV(TFltV& ValV) const {
+void TNodeJsFuncStreamAggr::GetFltV(TFltV& ValV) const {
 	if (!GetFltVFun.IsEmpty()) {
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::HandleScope HandleScope(Isolate);
@@ -954,44 +993,44 @@ void TNodeJsStreamAggr::GetFltV(TFltV& ValV) const {
 		v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
 		if (TryCatch.HasCaught()) {
 			v8::String::Utf8Value Msg(TryCatch.Message()->Get());
-			throw TQm::TQmExcept::New("Javascript exception from callback triggered in TNodeJsStreamAggr, name: " + GetAggrNm() + "," + TStr(*Msg));
+			throw TQm::TQmExcept::New("Javascript exception from callback triggered in TNodeJsFuncStreamAggr, name: " + GetAggrNm() + "," + TStr(*Msg));
 		}
-		QmAssertR(RetVal->IsObject() && TNodeJsUtil::IsClass(v8::Handle<v8::Object>::Cast(RetVal), TNodeJsFltV::GetClassId()), "TNodeJsStreamAggr, name: " + GetAggrNm() + ",GetFltV did not return a vector!");
+		QmAssertR(RetVal->IsObject() && TNodeJsUtil::IsClass(v8::Handle<v8::Object>::Cast(RetVal), TNodeJsFltV::GetClassId()), "TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ",GetFltV did not return a vector!");
 		TNodeJsFltV* JsVec = TNodeJsUtil::Unwrap<TNodeJsFltV>(v8::Handle<v8::Object>::Cast(RetVal));
 
 		ValV = JsVec->Vec;
 
 	} else {
-		throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", getFloatVector() callback is empty!");
+		throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", getFloatVector() callback is empty!");
 	}
 }
 // ITmVec
-int TNodeJsStreamAggr::GetTmLen() const {
-	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetTmLen not implemented");
+int TNodeJsFuncStreamAggr::GetTmLen() const {
+	throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetTmLen not implemented");
 }
-uint64 TNodeJsStreamAggr::GetTm(const TInt& ElN) const {
-	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetTm not implemented");
+uint64 TNodeJsFuncStreamAggr::GetTm(const TInt& ElN) const {
+	throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetTm not implemented");
 } // GetTmAtFun
-void TNodeJsStreamAggr::GetTmV(TUInt64V& TmMSecsV) const {
-	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetTmV not implemented");
+void TNodeJsFuncStreamAggr::GetTmV(TUInt64V& TmMSecsV) const {
+	throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetTmV not implemented");
 }
 // INmFlt
-bool TNodeJsStreamAggr::IsNmFlt(const TStr& Nm) const {
-	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", IsNmFlt not implemented");
+bool TNodeJsFuncStreamAggr::IsNmFlt(const TStr& Nm) const {
+	throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", IsNmFlt not implemented");
 }
-double TNodeJsStreamAggr::GetNmFlt(const TStr& Nm) const {
-	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetNmFlt not implemented");
+double TNodeJsFuncStreamAggr::GetNmFlt(const TStr& Nm) const {
+	throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetNmFlt not implemented");
 }
-void TNodeJsStreamAggr::GetNmFltV(TStrFltPrV& NmFltV) const {
-	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetNmFltV not implemented");
+void TNodeJsFuncStreamAggr::GetNmFltV(TStrFltPrV& NmFltV) const {
+	throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetNmFltV not implemented");
 }
 // INmInt
-bool TNodeJsStreamAggr::IsNm(const TStr& Nm) const {
-	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", IsNm not implemented");
+bool TNodeJsFuncStreamAggr::IsNm(const TStr& Nm) const {
+	throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", IsNm not implemented");
 }
-double TNodeJsStreamAggr::GetNmInt(const TStr& Nm) const {
-	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetNmInt not implemented");
+double TNodeJsFuncStreamAggr::GetNmInt(const TStr& Nm) const {
+	throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetNmInt not implemented");
 }
-void TNodeJsStreamAggr::GetNmIntV(TStrIntPrV& NmIntV) const {
-	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetNmIntV not implemented");
+void TNodeJsFuncStreamAggr::GetNmIntV(TStrIntPrV& NmIntV) const {
+	throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetNmIntV not implemented");
 }

@@ -788,16 +788,19 @@ public:
 /////////////////////////////////////////////////
 /// Chi square
 class TChiSquare {
-private:	       
-	TFlt Chi2, P;
+private:	     
+	// state
+	TFlt Chi2;
+	TFlt P;
+	// parameters
 	TInt DegreesOfFreedom;
 public:
 	TChiSquare() : P(TFlt::PInf) { }
 	TChiSquare(const PJsonVal& ParamVal);
 	/// Reset
-	void Reset() { P = TFlt::PInf; }
+	void Reset() { Chi2 = 0; P = TFlt::PInf; }
 	/// Compute two sample chi2 test
-	void Update(const TFltV& OutValVX, const TFltV& OutValVY, const int Dof);
+	void Update(const TFltV& OutValVX, const TFltV& OutValVY);
 	/// Return Chi2 value
 	double GetChi2() const { return Chi2; }
 	/// Return P value

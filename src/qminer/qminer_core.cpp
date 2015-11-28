@@ -4106,9 +4106,13 @@ TWPt<TStore> TQueryItem::GetStore(const TWPt<TBase>& Base) const {
 }
 
 bool TQueryItem::IsWgt() const {
+
 	if (IsLeafGix() || IsLeafGixSmall() || IsGeo()) {
 		// always weighted when only one key
 		return true;
+    } else if (IsAnd() && ItemV.Len() == 1) {
+        // we have only one sub-query, check its status
+        return ItemV[0].IsWgt();
 	} else if (IsOr()) {
 		// or is weighted when all it's elements are 
 		bool WgtP = true;

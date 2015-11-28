@@ -1494,13 +1494,11 @@ TOnlineHistogram::TOnlineHistogram(const TWPt<TBase>& Base, const PJsonVal& Para
 
 /// Load from stream
 void TOnlineHistogram::LoadState(TSIn& SIn) {
-	BufferedP.Load(SIn);
 	Model.Load(SIn);
 }
 
 /// Store state into stream
 void TOnlineHistogram::SaveState(TSOut& SOut) const {
-	BufferedP.Save(SOut);
 	Model.Save(SOut);
 }
 
@@ -1510,7 +1508,7 @@ void TChiSquare::OnAddRec(const TRec& Rec) {
     TFltV ValVX; InAggrValX->GetFltV(ValVX);        
     TFltV ValVY; InAggrValY->GetFltV(ValVY);
 	if (InAggrX->IsInit() && InAggrY->IsInit()) {
-		ChiSquare.Update(ValVX, ValVY, ChiSquare.GetDof());
+		ChiSquare.Update(ValVX, ValVY);
 	}
 }
 
