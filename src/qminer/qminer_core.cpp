@@ -2246,17 +2246,45 @@ void TRecSet::GetSampleRecIdV(const int& SampleSize,
 	const bool& WgtSampleP, TUInt64IntKdV& SampleRecIdFqV) const {
 
 	if (SampleSize == -1) {
+        // we ask for all
 		SampleRecIdFqV = RecIdFqV;
+    } else if (SampleSize == 0) {
+        // we ask for nothing
+        SampleRecIdFqV.Clr();
     } else if (SampleSize > GetRecs()) {
         // we ask for more than we have, have to give it all
         SampleRecIdFqV = RecIdFqV;
 	} else if (WgtSampleP) {
         // Weighted random sampling with a reservoir
-		const int SampleRecs = TInt::GetMn(SampleSize, GetRecs());
-		SampleRecIdFqV.Gen(SampleRecs, 0);
-		for (int RecN = 0; RecN < SampleRecs; RecN++) {
-			SampleRecIdFqV.Add(RecIdFqV[RecN]);
+        // we keep current top candidates in a heap
+        THeap<TFltIntKd> TopWgtRecN(SampleSize);
+        // function for scoring each element according to its weight
+        TRnd Rnd(1);
+        auto ScoreFun = [&Rnd](const int& Wgt) {
+            return pow(Rnd.GetUniDev(), 1.0 / (double)Wgt);
+        };
+        // Fill the reservoir with first SampleSize elements
+		for (int RecN = 0; RecN < SampleSize; RecN++) {
+            const double Wgt = ScoreFun(RecIdFqV[RecN].Dat);
+            TopWgtRecN.Add(TFltIntKd(Wgt, RecN));
 		}
+        TopWgtRecN.MakeHeap();
+        // randomly replace existing elements with new ones
+        for (int RecN = SampleSize; RecN < GetRecs(); RecN++) {
+            const double Wgt = ScoreFun(RecIdFqV[RecN].Dat);
+            if (Wgt > TopWgtRecN.TopHeap().Key) {
+                // remove current smallest element from the top
+                TopWgtRecN.PopHeap();
+                // add current one
+                TopWgtRecN.PushHeap(TFltIntKd(Wgt, RecN));
+            }
+        }
+        // use remaining top elements as result
+        SampleRecIdFqV.Gen(SampleSize, 0);
+        for (int RecNN = 0; RecNN < TopWgtRecN.Len(); RecNN++) {
+            const int RecN = TopWgtRecN()[RecNN].Dat;
+            SampleRecIdFqV.Add(RecIdFqV[RecN]);
+        }
 	} else {
         // Reservoir sampling
         SampleRecIdFqV.Gen(SampleSize, 0);
