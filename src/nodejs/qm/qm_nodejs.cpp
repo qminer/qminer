@@ -711,7 +711,7 @@ v8::Local<v8::Value> TNodeJsStore::Field(const TQm::TRec& Rec, const int FieldId
 	} 
 	else if (Desc.IsInt64()) {
 		const int64 Val = Rec.GetFieldInt64(FieldId);
-		return HandleScope.Escape(v8::Integer::New(Isolate, Val));
+		return HandleScope.Escape(v8::Number::New(Isolate, Val));
 	} 
 	else if (Desc.IsByte()) {
 		const uchar Val = Rec.GetFieldByte(FieldId);

@@ -3216,7 +3216,7 @@ TFltPr TStoreImpl::GetFieldFltPr(const uint64& RecId, const int& FieldId) const 
 
 uint TStoreImpl::GetFieldUInt(const uint64& RecId, const int& FieldId) const {
 	TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
-	return GetFieldSerializator(FieldId)->GetFieldUInt16(RecMem, FieldId);
+	return GetFieldSerializator(FieldId)->GetFieldUInt(RecMem, FieldId);
 }
 uint16 TStoreImpl::GetFieldUInt16(const uint64& RecId, const int& FieldId) const {
 	TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
