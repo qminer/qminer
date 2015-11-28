@@ -1169,6 +1169,116 @@ public:
 };
 
 ///////////////////////////////
+/// Record Filter by Integer Field. 
+class TRecFilterByFieldInt16 {
+private:
+	/// Store from which we are sorting the records 
+	TWPt<TStore> Store;
+	/// Field according to which we are sorting
+	TInt FieldId;
+	/// Minimal value
+	TInt16 MinVal;
+	/// Maximal value
+	TInt16 MaxVal;
+public:
+	TRecFilterByFieldInt16(const TWPt<TStore>& _Store, const int& _FieldId, const int16& _MinVal,
+		const int16& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
+
+	bool operator()(const TUInt64IntKd& RecIdWgt) const {
+		const int16 RecVal = Store->GetFieldInt16(RecIdWgt.Key, FieldId);
+		return (MinVal <= RecVal) && (RecVal <= MaxVal);
+	}
+};
+
+///////////////////////////////
+/// Record Filter by Integer Field. 
+class TRecFilterByFieldInt64 {
+private:
+	/// Store from which we are sorting the records 
+	TWPt<TStore> Store;
+	/// Field according to which we are sorting
+	TInt FieldId;
+	/// Minimal value
+	TInt64 MinVal;
+	/// Maximal value
+	TInt64 MaxVal;
+public:
+	TRecFilterByFieldInt64(const TWPt<TStore>& _Store, const int& _FieldId, const int64& _MinVal,
+		const int64& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
+
+	bool operator()(const TUInt64IntKd& RecIdWgt) const {
+		const int64 RecVal = Store->GetFieldInt64(RecIdWgt.Key, FieldId);
+		return (MinVal <= RecVal) && (RecVal <= MaxVal);
+	}
+};
+
+///////////////////////////////
+/// Record Filter by Integer Field. 
+class TRecFilterByFieldUCh {
+private:
+	/// Store from which we are sorting the records 
+	TWPt<TStore> Store;
+	/// Field according to which we are sorting
+	TInt FieldId;
+	/// Minimal value
+	TUCh MinVal;
+	/// Maximal value
+	TUCh MaxVal;
+public:
+	TRecFilterByFieldUCh(const TWPt<TStore>& _Store, const int& _FieldId, const uchar& _MinVal,
+		const uchar& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
+
+	bool operator()(const TUInt64IntKd& RecIdWgt) const {
+		const uchar RecVal = Store->GetFieldByte(RecIdWgt.Key, FieldId);
+		return (MinVal <= RecVal) && (RecVal <= MaxVal);
+	}
+};
+
+///////////////////////////////
+/// Record Filter by Integer Field. 
+class TRecFilterByFieldUInt {
+private:
+	/// Store from which we are sorting the records 
+	TWPt<TStore> Store;
+	/// Field according to which we are sorting
+	TInt FieldId;
+	/// Minimal value
+	TUInt MinVal;
+	/// Maximal value
+	TUInt MaxVal;
+public:
+	TRecFilterByFieldUInt(const TWPt<TStore>& _Store, const int& _FieldId, const uint& _MinVal,
+		const uint& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
+
+	bool operator()(const TUInt64IntKd& RecIdWgt) const {
+		const uint RecVal = Store->GetFieldUInt(RecIdWgt.Key, FieldId);
+		return (MinVal <= RecVal) && (RecVal <= MaxVal);
+	}
+};
+
+///////////////////////////////
+/// Record Filter by Integer Field. 
+class TRecFilterByFieldUInt16 {
+private:
+	/// Store from which we are sorting the records 
+	TWPt<TStore> Store;
+	/// Field according to which we are sorting
+	TInt FieldId;
+	/// Minimal value
+	TUInt16 MinVal;
+	/// Maximal value
+	TUInt16 MaxVal;
+public:
+	TRecFilterByFieldUInt16(const TWPt<TStore>& _Store, const int& _FieldId, const uint16& _MinVal,
+		const uint16& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
+
+	bool operator()(const TUInt64IntKd& RecIdWgt) const {
+		const uint16 RecVal = Store->GetFieldUInt16(RecIdWgt.Key, FieldId);
+		return (MinVal <= RecVal) && (RecVal <= MaxVal);
+	}
+};
+
+///////////////////////////////
 /// Record Filter by Numeric Field. 
 class TRecFilterByFieldFlt {
 private:
@@ -1504,6 +1614,16 @@ public:
 	void FilterByFq(const int& MinFq, const int& MaxFq);
 	/// Filter records to keep only the ones with values of a given field within given range
 	void FilterByFieldInt(const int& FieldId, const int& MinVal, const int& MaxVal);
+	/// Filter records to keep only the ones with values of a given field within given range
+	void FilterByFieldInt16(const int& FieldId, const int16& MinVal, const int16& MaxVal);
+	/// Filter records to keep only the ones with values of a given field within given range
+	void FilterByFieldInt64(const int& FieldId, const int64& MinVal, const int64& MaxVal);
+	/// Filter records to keep only the ones with values of a given field within given range
+	void FilterByFieldByte(const int& FieldId, const uchar& MinVal, const uchar& MaxVal);
+	/// Filter records to keep only the ones with values of a given field within given range
+	void FilterByFieldUInt(const int& FieldId, const uint& MinVal, const uint& MaxVal);
+	/// Filter records to keep only the ones with values of a given field within given range
+	void FilterByFieldUInt16(const int& FieldId, const uint16& MinVal, const uint16& MaxVal);
 	/// Filter records to keep only the ones with values of a given field within given range
 	void FilterByFieldFlt(const int& FieldId, const double& MinVal, const double& MaxVal);
 	/// Filter records to keep only the ones with values of a given field equal to `FldVal'

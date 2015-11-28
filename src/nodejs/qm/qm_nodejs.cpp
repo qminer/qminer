@@ -1046,7 +1046,7 @@ void TNodeJsStore::isNumeric(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		const int FldId = JsStore->Store->GetFieldId(FldNm);
 		const TQm::TFieldDesc& FldDesc = Store->GetFieldDesc(FldId);
 
-		Args.GetReturnValue().Set(v8::Boolean::New(Isolate, FldDesc.IsFlt() || FldDesc.IsInt() || FldDesc.IsUInt64()));
+		Args.GetReturnValue().Set(v8::Boolean::New(Isolate, FldDesc.IsFlt() || FldDesc.IsInt() || FldDesc.IsInt16() || FldDesc.IsInt64() || FldDesc.IsByte() || FldDesc.IsUInt() || FldDesc.IsUInt16() || FldDesc.IsUInt64()));
 	}
 	catch (const PExcept& Except) {
 		throw TQm::TQmExcept::New("[except] " + Except->GetMsgStr());
@@ -2058,6 +2058,21 @@ void TNodeJsRec::setField(v8::Local<v8::String> Name, v8::Local<v8::Value> Value
 		QmAssertR(Value->IsInt32(), "Field " + FieldNm + " not integer");
 		const int Int = Value->Int32Value();
 		Rec.SetFieldInt(FieldId, Int);
+	} 
+	else if (Desc.IsInt16()) {
+		QmAssertR(Value->IsInt32(), "Field " + FieldNm + " not integer");
+		const int Int = Value->Int32Value();
+		Rec.SetFieldInt16(FieldId, (int16)Int);
+	} 
+	else if (Desc.IsInt64()) {
+		QmAssertR(Value->IsInt32(), "Field " + FieldNm + " not integer");
+		const int64 Int = Value->IntegerValue();
+		Rec.SetFieldInt64(FieldId, Int);
+	} 
+	else if (Desc.IsByte()) {
+		QmAssertR(Value->IsInt32(), "Field " + FieldNm + " not integer");
+		const int Int = Value->Int32Value();
+		Rec.SetFieldByte(FieldId, (uchar)Int);
 	}
 	else if (Desc.IsIntV()) {
 		// check if we have JavaScript array
@@ -2071,6 +2086,16 @@ void TNodeJsRec::setField(v8::Local<v8::String> Name, v8::Local<v8::Value> Value
 			IntV.Add(Val);
 		}
 		Rec.SetFieldIntV(FieldId, IntV);
+	} 
+	else if (Desc.IsUInt()) {
+		QmAssertR(Value->IsNumber(), "Field " + FieldNm + " not uint64");
+		const uint UInt = (uint)Value->IntegerValue();
+		Rec.SetFieldUInt64(FieldId, UInt);
+	} 
+	else if (Desc.IsUInt16()) {
+		QmAssertR(Value->IsNumber(), "Field " + FieldNm + " not uint64");
+		const uint16 UInt16 = (uint16)Value->IntegerValue();
+		Rec.SetFieldUInt64(FieldId, UInt16);
 	}
 	else if (Desc.IsUInt64()) {
 		QmAssertR(Value->IsNumber(), "Field " + FieldNm + " not uint64");
@@ -2527,9 +2552,53 @@ void TNodeJsRecSet::filterByField(const v8::FunctionCallbackInfo<v8::Value>& Arg
 	const TQm::TFieldDesc& Desc = JsRecSet->RecSet->GetStore()->GetFieldDesc(FieldId);
 	// parse filter according to field type
 	if (Desc.IsInt()) {
-		const int MnVal = TNodeJsUtil::GetArgInt32(Args, 1);
-		const int MxVal = TNodeJsUtil::GetArgInt32(Args, 2);
+		int MnVal = TInt::Mn;
+		int MxVal = TInt::Mx;
+		if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
+			MnVal = TNodeJsUtil::GetArgInt32(Args, 1);
+		}
+		if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
+			MxVal = TNodeJsUtil::GetArgInt32(Args, 2);
+		}
+		//const int MnVal = TNodeJsUtil::GetArgInt32(Args, 1);
+		//const int MxVal = TNodeJsUtil::GetArgInt32(Args, 2);
 		JsRecSet->RecSet->FilterByFieldInt(FieldId, MnVal, MxVal);
+	} else if (Desc.IsInt16()) {
+		int16 MnVal = TInt16::Mn;
+		int16 MxVal = TInt16::Mx;
+		if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
+			MnVal = TNodeJsUtil::GetArgInt32(Args, 1);
+		}
+		if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
+			MxVal = TNodeJsUtil::GetArgInt32(Args, 2);
+		}
+		//const int16 MnVal = TNodeJsUtil::GetArgInt32(Args, 1);
+		//const int16 MxVal = TNodeJsUtil::GetArgInt32(Args, 2);
+		JsRecSet->RecSet->FilterByFieldInt16(FieldId, MnVal, MxVal);
+	} else if (Desc.IsInt64()) {
+		int64 MnVal = TInt64::Mn;
+		int64 MxVal = TInt64::Mx;
+		if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
+			MnVal = (int64)TNodeJsUtil::GetArgFlt(Args, 1);
+		}
+		if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
+			MxVal = (int64)TNodeJsUtil::GetArgFlt(Args, 2);
+		}
+		//const int64 MnVal = (int64)TNodeJsUtil::GetArgFlt(Args, 1);
+		//const int64 MxVal = (int64)TNodeJsUtil::GetArgFlt(Args, 2);
+		JsRecSet->RecSet->FilterByFieldInt64(FieldId, MnVal, MxVal);
+	} else if (Desc.IsByte()) {
+		uchar MnVal = TUCh::Mn;
+		uchar MxVal = TUCh::Mx;
+		if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
+			MnVal = (uchar)TNodeJsUtil::GetArgInt32(Args, 1);
+		}
+		if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
+			MxVal = (uchar)TNodeJsUtil::GetArgInt32(Args, 2);
+		}
+		//const uchar MnVal = (uchar)TNodeJsUtil::GetArgInt32(Args, 1);
+		//const uchar MxVal = (uchar)TNodeJsUtil::GetArgInt32(Args, 2);
+		JsRecSet->RecSet->FilterByFieldByte(FieldId, MnVal, MxVal);
 	}
 	else if (Desc.IsStr()) {
         if (Args.Length() < 3 || !TNodeJsUtil::IsArgStr(Args, 2)) {
@@ -2551,15 +2620,35 @@ void TNodeJsRecSet::filterByField(const v8::FunctionCallbackInfo<v8::Value>& Arg
             MxVal = TNodeJsUtil::GetArgFlt(Args, 2);
         }
 		JsRecSet->RecSet->FilterByFieldFlt(FieldId, MnVal, MxVal);
-    } else if (Desc.IsUInt64()) {
-        uint64 MnVal = TUInt64::Mn;
-        uint64 MxVal = TUInt64::Mx;
+    } else if (Desc.IsUInt()) {
+        uint MnVal = TUInt::Mn;
+        uint MxVal = TUInt::Mx;
         if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
-            MnVal = static_cast<uint64_t> (TNodeJsUtil::GetArgFlt(Args, 1));
+            MnVal = static_cast<uint> (TNodeJsUtil::GetArgFlt(Args, 1));
         }
         if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
-            MxVal = static_cast<uint64_t> (TNodeJsUtil::GetArgFlt(Args, 2));
+            MxVal = static_cast<uint> (TNodeJsUtil::GetArgFlt(Args, 2));
         }
+		JsRecSet->RecSet->FilterByFieldUInt(FieldId, MnVal, MxVal);
+	} else if (Desc.IsUInt16()) {
+		uint16 MnVal = TUInt16::Mn;
+		uint16 MxVal = TUInt16::Mx;
+		if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
+			MnVal = static_cast<uint16> (TNodeJsUtil::GetArgFlt(Args, 1));
+		}
+		if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
+			MxVal = static_cast<uint16> (TNodeJsUtil::GetArgFlt(Args, 2));
+		}
+		JsRecSet->RecSet->FilterByFieldUInt16(FieldId, MnVal, MxVal);
+	} else if (Desc.IsUInt64()) {
+		uint64 MnVal = TUInt64::Mn;
+		uint64 MxVal = TUInt64::Mx;
+		if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
+			MnVal = static_cast<uint64_t> (TNodeJsUtil::GetArgFlt(Args, 1));
+		}
+		if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
+			MxVal = static_cast<uint64_t> (TNodeJsUtil::GetArgFlt(Args, 2));
+		}
 		//const uint64 MnVal = static_cast<uint64_t> (TNodeJsUtil::GetArgFlt(Args, 1));
 		//const uint64 MxVal = static_cast<uint64_t> (TNodeJsUtil::GetArgFlt(Args, 2));
 		JsRecSet->RecSet->FilterByFieldTm(FieldId, MnVal, MxVal);

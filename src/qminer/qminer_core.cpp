@@ -2785,6 +2785,46 @@ void TRecSet::FilterByFieldInt(const int& FieldId, const int& MinVal, const int&
 	FilterBy(TRecFilterByFieldInt(Store, FieldId, MinVal, MaxVal));
 }
 
+void TRecSet::FilterByFieldInt16(const int& FieldId, const int16& MinVal, const int16& MaxVal) {
+	// get store and field type
+	const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
+	QmAssertR(Desc.IsInt16(), "Wrong field type, integer expected");
+	// apply the filter
+	FilterBy(TRecFilterByFieldInt16(Store, FieldId, MinVal, MaxVal));
+}
+
+void TRecSet::FilterByFieldInt64(const int& FieldId, const int64& MinVal, const int64& MaxVal) {
+	// get store and field type
+	const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
+	QmAssertR(Desc.IsInt64(), "Wrong field type, integer expected");
+	// apply the filter
+	FilterBy(TRecFilterByFieldInt64(Store, FieldId, MinVal, MaxVal));
+}
+
+void TRecSet::FilterByFieldByte(const int& FieldId, const uchar& MinVal, const uchar& MaxVal) {
+	// get store and field type
+	const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
+	QmAssertR(Desc.IsByte(), "Wrong field type, integer expected");
+	// apply the filter
+	FilterBy(TRecFilterByFieldUCh(Store, FieldId, MinVal, MaxVal));
+}
+
+void TRecSet::FilterByFieldUInt(const int& FieldId, const uint& MinVal, const uint& MaxVal) {
+	// get store and field type
+	const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
+	QmAssertR(Desc.IsUInt(), "Wrong field type, integer expected");
+	// apply the filter
+	FilterBy(TRecFilterByFieldUInt(Store, FieldId, MinVal, MaxVal));
+}
+
+void TRecSet::FilterByFieldUInt16(const int& FieldId, const uint16& MinVal, const uint16& MaxVal) {
+	// get store and field type
+	const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
+	QmAssertR(Desc.IsUInt16(), "Wrong field type, integer expected");
+	// apply the filter
+	FilterBy(TRecFilterByFieldUInt16(Store, FieldId, MinVal, MaxVal));
+}
+
 void TRecSet::FilterByFieldFlt(const int& FieldId, const double& MinVal, const double& MaxVal) {
 	// get store and field type
 	const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
