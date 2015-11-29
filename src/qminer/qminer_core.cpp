@@ -3863,7 +3863,7 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const
 				RangeInt16MnMx = TInt16Pr(KeyVal->GetObjInt("$gt", TInt16::Mn), KeyVal->GetObjInt("$lt", TInt16::Mx));
 			} else if (Key.IsSortAsInt64()) {
 				Type = oqitRangeInt64;
-				RangeInt64MnMx = TInt64Pr(KeyVal->GetObjInt("$gt", TInt64::Mn), KeyVal->GetObjInt("$lt", TInt64::Mx));
+				RangeInt64MnMx = TInt64Pr(KeyVal->GetObjInt64("$gt", TInt64::Mn), KeyVal->GetObjInt64("$lt", TInt64::Mx));
 			} else if (Key.IsSortAsByte()) {
                 Type = oqitRangeByte;
                 RangeUChMnMx = TUChPr(KeyVal->GetObjInt64("$gt", TUCh::Mn), KeyVal->GetObjInt64("$lt", TUCh::Mx));
