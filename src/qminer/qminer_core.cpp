@@ -1523,7 +1523,7 @@ uint TRec::GetFieldUInt(const int& FieldId) const {
 	} else if (FieldIdPosH.IsKey(FieldId)) {
 		const int Pos = FieldIdPosH.GetDat(FieldId);
 		TMIn MIn(RecVal.GetBf() + Pos, RecVal.Len() - Pos, false);
-		return TUInt64(MIn).Val;
+		return TUInt(MIn).Val;
 	}
 	throw FieldError(FieldId, "UInt");
 }
@@ -3869,7 +3869,10 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const
                 RangeUChMnMx = TUChPr(KeyVal->GetObjInt64("$gt", TUCh::Mn), KeyVal->GetObjInt64("$lt", TUCh::Mx));
             } else if (Key.IsSortAsUInt()) {
                 Type = oqitRangeUInt;
-                RangeUIntMnMx = TUIntUIntPr((uint)KeyVal->GetObjUInt64("$gt", TUInt::Mn), (uint)KeyVal->GetObjUInt64("$lt", TUInt::Mx));
+				uint64 low = (uint64)KeyVal->GetObjNum("$gt", TUInt::Mn);
+				uint64 high = (uint64)KeyVal->GetObjNum("$lt", TUInt::Mx);
+				RangeUIntMnMx = TUIntUIntPr((uint)low, (uint)high);
+                //RangeUIntMnMx = TUIntUIntPr((uint)KeyVal->GetObjUInt64("$gt", TUInt::Mn), (uint)KeyVal->GetObjUInt64("$lt", TUInt::Mx));
 			} else if (Key.IsSortAsUInt16()) {
 				Type = oqitRangeUInt16;
 				RangeUInt16MnMx = TUInt16Pr((uint16)KeyVal->GetObjUInt64("$gt", TUInt16::Mn), (uint16)KeyVal->GetObjUInt64("$lt", TUInt16::Mx));

@@ -723,7 +723,7 @@ v8::Local<v8::Value> TNodeJsStore::Field(const TQm::TRec& Rec, const int FieldId
 	}
 	else if (Desc.IsUInt()) {
 		const uint Val = Rec.GetFieldUInt(FieldId);
-		return HandleScope.Escape(v8::Uint32::New(Isolate, Val));
+		return HandleScope.Escape(v8::Number::New(Isolate, Val));
 	}
 	else if (Desc.IsUInt16()) {
 		const uint16 Val = Rec.GetFieldUInt16(FieldId);

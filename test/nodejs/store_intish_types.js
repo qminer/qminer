@@ -100,7 +100,7 @@ describe('Int-ish field-type tests ', function () {
 	PerformTest("int16", -100  * 256, 100  * 256);
 	PerformTest("int64", -100 * 256 * 256 * 256 * 256 * 256 * 256, 100 * 256 * 256 * 256 * 256 * 256 * 256);
 	PerformTest("byte", 0, 255);
-	PerformTest("uint", 0, 256 * 256 * 256 * 256);
-	PerformTest("uint16", 0, 256 * 256);
-	PerformTest("uint64", 0, 256 * 256 * 256 * 256 * 256 * 256 * 256 * 256);
+	PerformTest("uint", 0, 256 * 256 * 256 * 256 - 1);
+	PerformTest("uint16", 0, 256 * 256 - 1);
+	PerformTest("uint64", 0, 256 * 256 * 256 * 256 * 256 * 256 * 256 * 256 - 1);
 })
