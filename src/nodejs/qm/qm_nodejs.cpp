@@ -748,6 +748,10 @@ v8::Local<v8::Value> TNodeJsStore::Field(const TQm::TRec& Rec, const int FieldId
 	else if (Desc.IsFlt()) {
 		const double Val = Rec.GetFieldFlt(FieldId);
 		return HandleScope.Escape(v8::Number::New(Isolate, Val));
+	} 
+	else if (Desc.IsSFlt()) {
+		const float Val = Rec.GetFieldSFlt(FieldId);
+		return HandleScope.Escape(v8::Number::New(Isolate, Val));
 	}
 	else if (Desc.IsFltPr()) {
 		const TFltPr FltPr = Rec.GetFieldFltPr(FieldId);
@@ -1046,7 +1050,7 @@ void TNodeJsStore::isNumeric(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		const int FldId = JsStore->Store->GetFieldId(FldNm);
 		const TQm::TFieldDesc& FldDesc = Store->GetFieldDesc(FldId);
 
-		Args.GetReturnValue().Set(v8::Boolean::New(Isolate, FldDesc.IsFlt() || FldDesc.IsInt() || FldDesc.IsInt16() || FldDesc.IsInt64() || FldDesc.IsByte() || FldDesc.IsUInt() || FldDesc.IsUInt16() || FldDesc.IsUInt64()));
+		Args.GetReturnValue().Set(v8::Boolean::New(Isolate, FldDesc.IsFlt() || FldDesc.IsSFlt() || FldDesc.IsInt() || FldDesc.IsInt16() || FldDesc.IsInt64() || FldDesc.IsByte() || FldDesc.IsUInt() || FldDesc.IsUInt16() || FldDesc.IsUInt64()));
 	}
 	catch (const PExcept& Except) {
 		throw TQm::TQmExcept::New("[except] " + Except->GetMsgStr());
@@ -1349,6 +1353,16 @@ void TNodeJsStore::getVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(ColV));
 			return;
 		}
+		else if (Desc.IsSFlt()) {
+			TFltV ColV(Recs);
+			TQm::PStoreIter Iter = Store->ForwardIter(); Iter->Next();
+			for (int RecN = 0; RecN < Recs; RecN++) {
+				ColV[RecN] = JsStore->Store->GetFieldSFlt(Iter->GetRecId(), FieldId);
+				Iter->Next();
+			}
+			Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(ColV));
+			return;
+		}
 		else if (Desc.IsTm()) {
 			TFltV ColV(Recs);
 			TQm::PStoreIter Iter = Store->ForwardIter(); Iter->Next();
@@ -1471,6 +1485,16 @@ void TNodeJsStore::getMatrix(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			TQm::PStoreIter Iter = Store->ForwardIter(); Iter->Next();
 			for (int RecN = 0; RecN < Recs; RecN++) {
 				ColV.At(0, RecN) = JsStore->Store->GetFieldFlt(Iter->GetRecId(), FieldId);
+				Iter->Next();
+			}
+			Args.GetReturnValue().Set(TNodeJsFltVV::New(ColV));
+			return;
+		} 
+		else if (Desc.IsSFlt()) {
+			TFltVV ColV(1, Recs);
+			TQm::PStoreIter Iter = Store->ForwardIter(); Iter->Next();
+			for (int RecN = 0; RecN < Recs; RecN++) {
+				ColV.At(0, RecN) = JsStore->Store->GetFieldSFlt(Iter->GetRecId(), FieldId);
 				Iter->Next();
 			}
 			Args.GetReturnValue().Set(TNodeJsFltVV::New(ColV));
@@ -2122,7 +2146,7 @@ void TNodeJsRec::setField(v8::Local<v8::String> Name, v8::Local<v8::Value> Value
 	else if (Desc.IsBool()) {
 		QmAssertR(Value->IsBoolean(), "Field " + FieldNm + " not boolean");
 		Rec.SetFieldBool(FieldId, Value->BooleanValue());
-	}
+	} 
 	else if (Desc.IsFlt()) {
 		QmAssertR(Value->IsNumber(), "Field " + FieldNm + " not numeric");
 		TFlt Val(Value->NumberValue());
@@ -2131,6 +2155,15 @@ void TNodeJsRec::setField(v8::Local<v8::String> Name, v8::Local<v8::Value> Value
 			throw TQm::TQmExcept::New("Cannot set record field (type float) to NaN, for field name: " + FieldNm);
 		}
 		Rec.SetFieldFlt(FieldId, Val);
+	}
+	else if (Desc.IsSFlt()) {
+		QmAssertR(Value->IsNumber(), "Field " + FieldNm + " not numeric");
+		TSFlt Val(Value->NumberValue());
+		bool NaNFound = Val.IsNan();
+		if (NaNFound) {
+			throw TQm::TQmExcept::New("Cannot set record field (type float) to NaN, for field name: " + FieldNm);
+		}
+		Rec.SetFieldSFlt(FieldId, Val);
 	}
 	else if (Desc.IsFltPr()) {
 		QmAssertR(Value->IsArray(), "Field " + FieldNm + " not array");
@@ -2620,7 +2653,19 @@ void TNodeJsRecSet::filterByField(const v8::FunctionCallbackInfo<v8::Value>& Arg
             MxVal = TNodeJsUtil::GetArgFlt(Args, 2);
         }
 		JsRecSet->RecSet->FilterByFieldFlt(FieldId, MnVal, MxVal);
-    } else if (Desc.IsUInt()) {
+    }
+	else if (Desc.IsSFlt()) {
+		float MnVal = TSFlt::Mn;
+		float MxVal = TSFlt::Mx;
+		if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
+			MnVal = (float)TNodeJsUtil::GetArgFlt(Args, 1);
+		}
+		if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
+			MxVal = (float)TNodeJsUtil::GetArgFlt(Args, 2);
+		}
+		JsRecSet->RecSet->FilterByFieldSFlt(FieldId, MnVal, MxVal);
+	}
+	else if (Desc.IsUInt()) {
         uint MnVal = TUInt::Mn;
         uint MxVal = TUInt::Mx;
         if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
@@ -2995,6 +3040,14 @@ void TNodeJsRecSet::getVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(ColV));
 		return;
 	}
+	else if (Desc.IsSFlt()) {
+		TFltV ColV(Recs);
+		for (int RecN = 0; RecN < Recs; RecN++) {
+			ColV[RecN] = Store->GetFieldSFlt(RecSet()->GetRecId(RecN), FieldId);
+		}
+		Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(ColV));
+		return;
+	}
 	else if (Desc.IsTm()) {
 		TFltV ColV(Recs);
 		TTm Tm;
@@ -3092,6 +3145,14 @@ void TNodeJsRecSet::getMatrix(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		TFltVV ColV(1, Recs);
 		for (int RecN = 0; RecN < Recs; RecN++) {
 			ColV(0, RecN) = Store->GetFieldFlt(RecSet()->GetRecId(RecN), FieldId);
+		}
+		Args.GetReturnValue().Set(TNodeJsFltVV::New(ColV));
+		return;
+	} 
+	else if (Desc.IsSFlt()) {
+		TFltVV ColV(1, Recs);
+		for (int RecN = 0; RecN < Recs; RecN++) {
+			ColV(0, RecN) = Store->GetFieldSFlt(RecSet()->GetRecId(RecN), FieldId);
 		}
 		Args.GetReturnValue().Set(TNodeJsFltVV::New(ColV));
 		return;

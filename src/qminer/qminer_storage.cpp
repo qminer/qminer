@@ -48,6 +48,7 @@ TStoreSchema::TMaps::TMaps() {
 	FieldTypeMap.AddDat("string_v") = oftStrV;
 	FieldTypeMap.AddDat("bool") = oftBool;
 	FieldTypeMap.AddDat("float") = oftFlt;
+	FieldTypeMap.AddDat("sfloat") = oftSFlt;
 	FieldTypeMap.AddDat("float_pair") = oftFltPr;
 	FieldTypeMap.AddDat("float_v") = oftFltV;
 	FieldTypeMap.AddDat("datetime") = oftTm;
@@ -183,6 +184,7 @@ TIndexKeyEx TStoreSchema::ParseIndexKeyEx(const PJsonVal& IndexKeyVal) {
     } else if (FieldType == oftUInt64 && IndexKeyEx.IsLinear()) {
     } else if (FieldType == oftTm && IndexKeyEx.IsLinear()) {
     } else if (FieldType == oftFlt && IndexKeyEx.IsLinear()) {
+	} else if (FieldType == oftSFlt && IndexKeyEx.IsLinear()) {
 	} else {
 		// not supported, lets complain about it...
 		throw TQmExcept::New("Indexing '" + KeyTypeStr + "' not supported for field " + IndexKeyEx.FieldName);
@@ -224,6 +226,8 @@ TIndexKeyEx TStoreSchema::ParseIndexKeyEx(const PJsonVal& IndexKeyVal) {
             IndexKeyEx.SortType = oikstAsTm;
         } else if (FieldType == oftFlt) {
             IndexKeyEx.SortType = oikstAsFlt;
+		} else if (FieldType == oftSFlt) {
+			IndexKeyEx.SortType = oikstAsSFlt;
         }
     } else {
 		IndexKeyEx.SortType = oikstUndef;
@@ -858,6 +862,10 @@ void TRecSerializator::SetFieldFlt(TMemBase& RecMem,
 		const TFieldSerialDesc& FieldSerialDesc, const double& Flt) {
 	SetFieldFlt(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, Flt);
 }
+void TRecSerializator::SetFieldSFlt(TMemBase& RecMem,
+	const TFieldSerialDesc& FieldSerialDesc, const float& Flt) {
+	SetFieldSFlt(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, Flt);
+}
 
 void TRecSerializator::SetFieldFltPr(TMemBase& RecMem,
 		const TFieldSerialDesc& FieldSerialDesc, const TFltPr& FltPr) {
@@ -949,6 +957,12 @@ void TRecSerializator::SetFieldFlt(char* Bf, const int& BfL,
 	char* bf = GetLocationFixed(Bf, BfL, FieldSerialDesc);
 	*((double*)bf) = Flt;
 }
+void TRecSerializator::SetFieldSFlt(char* Bf, const int& BfL,
+	const TFieldSerialDesc& FieldSerialDesc, const float& SFlt) {
+
+	char* bf = GetLocationFixed(Bf, BfL, FieldSerialDesc);
+	*((float*)bf) = SFlt;
+}
 
 void TRecSerializator::SetFieldFltPr(char* Bf, const int& BfL,
 	const TFieldSerialDesc& FieldSerialDesc, const TFltPr& FltPr) {
@@ -1019,6 +1033,10 @@ void TRecSerializator::SetFixedJsonVal(char* Bf, const int& BfL,
 	case oftFlt:
 		QmAssertR(JsonVal->IsNum(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not numeric.");
 		SetFieldFlt(Bf, BfL, FieldSerialDesc, JsonVal->GetNum());
+		break;
+	case oftSFlt:
+		QmAssertR(JsonVal->IsNum(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not numeric.");
+		SetFieldSFlt(Bf, BfL, FieldSerialDesc, (float)JsonVal->GetNum());
 		break;
 	case oftFltPr: {
 		// make sure it's array of length two
@@ -1092,6 +1110,10 @@ void TRecSerializator::SetFieldBool(char* Bf, const int& BfL, const int& FieldId
 /// Fixed-length field setter
 void TRecSerializator::SetFieldFlt(char* Bf, const int& BfL, const int& FieldId, const double& Flt) {
 	SetFieldFlt(Bf, BfL, GetFieldSerialDesc(FieldId), Flt);
+}
+/// Fixed-length field setter
+void TRecSerializator::SetFieldSFlt(char* Bf, const int& BfL, const int& FieldId, const float& Flt) {
+	SetFieldSFlt(Bf, BfL, GetFieldSerialDesc(FieldId), Flt);
 }
 /// Fixed-length field setter
 void TRecSerializator::SetFieldFltPr(char* Bf, const int& BfL, const int& FieldId, const TFltPr& FltPr) {
@@ -1356,6 +1378,7 @@ TRecSerializator::TRecSerializator(const TWPt<TStore>& Store, const TWPt<TToaste
 			case oftStrV: FixedP = false; break;
 			case oftBool: FixedSize = sizeof(bool); break;
 			case oftFlt: FixedSize = sizeof(double); break;
+			case oftSFlt: FixedSize = sizeof(float); break;
 			case oftFltPr: FixedSize = sizeof(double) * 2; break;
 			case oftFltV: FixedP = false; break;
 			case oftTm: FixedSize = sizeof(uint64); break;
@@ -1669,6 +1692,11 @@ double TRecSerializator::GetFieldFlt(TThinMIn& min, const int& FieldId) const {
         return TFlt::GetFromBufSafe(Bf); // do not cast (not portable to ARM)
 }
 /// Field getter
+float TRecSerializator::GetFieldSFlt(TThinMIn& min, const int& FieldId) const {
+	const char* Bf = GetLocationFixed(min, GetFieldSerialDesc(FieldId));
+	return TSFlt::GetFromBufSafe(Bf); // do not cast (not portable to ARM)
+}
+/// Field getter
 TFltPr TRecSerializator::GetFieldFltPr(TThinMIn& min, const int& FieldId) const {
 	const char* Bf = GetLocationFixed(min, GetFieldSerialDesc(FieldId));
 	return TFltPr(TFlt::GetFromBufSafe(Bf), TFlt::GetFromBufSafe(Bf + sizeof(double))); // do not cast (not portable to ARM)
@@ -1787,6 +1815,11 @@ bool TRecSerializator::GetFieldBool(const TMemBase& RecMem, const int& FieldId) 
 double TRecSerializator::GetFieldFlt(const TMemBase& RecMem, const int& FieldId) const {
 	TThinMIn ThinMIn(RecMem);
 	return GetFieldFlt(ThinMIn, FieldId);
+}
+
+float TRecSerializator::GetFieldSFlt(const TMemBase& RecMem, const int& FieldId) const {
+	TThinMIn ThinMIn(RecMem);
+	return GetFieldSFlt(ThinMIn, FieldId);
 }
 
 TFltPr TRecSerializator::GetFieldFltPr(const TMemBase& RecMem, const int& FieldId) const {
@@ -2037,6 +2070,17 @@ void TRecSerializator::SetFieldFlt(const TMemBase& InRecMem,
 	// update the value
 	SetFieldFlt(OutRecMem, FieldSerialDesc, Flt);
 }
+void TRecSerializator::SetFieldSFlt(const TMemBase& InRecMem,
+	TMem& OutRecMem, const int& FieldId, const float& Flt) {
+
+	const TFieldSerialDesc& FieldSerialDesc = GetFieldSerialDesc(FieldId);
+	// copy existing serialization
+	OutRecMem.Copy(InRecMem);
+	// remove null flag, just in case
+	SetFieldNull(OutRecMem, FieldSerialDesc, false);
+	// update the value
+	SetFieldSFlt(OutRecMem, FieldSerialDesc, Flt);
+}
 
 void TRecSerializator::SetFieldFltPr(const TMemBase& InRecMem,
 		TMem& OutRecMem, const int& FieldId, const TFltPr& FltPr) {
@@ -2211,7 +2255,11 @@ void TRecIndexer::IndexKey(const TFieldIndexKey& Key, const TMemBase& RecMem,
 		// index float value using btree
 		const double Flt = Serializator.GetFieldFlt(RecMem, Key.FieldId);
 		Index->IndexLinear(Key.KeyId, Flt, RecId);
-    } else {
+	} else if (Key.FieldType == oftSFlt && Key.IsLinear()) {
+		// index float value using btree
+		const float SFlt = Serializator.GetFieldSFlt(RecMem, Key.FieldId);
+		Index->IndexLinear(Key.KeyId, SFlt, RecId);
+	} else {
 		ErrorLog(TStr::Fmt("[TFieldIndexer::IndexKey] Unsupported field and index type combination: %s[%s]: %s",
 			Key.FieldNm.CStr(), Key.FieldTypeStr.CStr(), Key.GetKeyType().CStr()));
 	}
@@ -2277,6 +2325,10 @@ void TRecIndexer::DeindexKey(const TFieldIndexKey& Key, const TMemBase& RecMem,
 		// index float value using btree
 		const double Flt = Serializator.GetFieldFlt(RecMem, Key.FieldId);
 		Index->DeleteLinear(Key.KeyId, Flt, RecId);
+	} else if (Key.FieldType == oftSFlt && Key.IsLinear()) {
+		// index float value using btree
+		const float SFlt = Serializator.GetFieldSFlt(RecMem, Key.FieldId);
+		Index->DeleteLinear(Key.KeyId, SFlt, RecId);
 	} else {
 		ErrorLog(TStr::Fmt("[TFieldIndexer::DeindexKey] Unsupported field and index type combination: %s[%s]: %s",
 			Key.FieldNm.CStr(), Key.FieldTypeStr.CStr(), Key.GetKeyType().CStr()));
@@ -2383,6 +2435,13 @@ void TRecIndexer::UpdateKey(const TFieldIndexKey& Key, const TMemBase& OldRecMem
 		const double OldFlt = Serializator.GetFieldFlt(OldRecMem, Key.FieldId);
 		const double NewFlt = Serializator.GetFieldFlt(NewRecMem, Key.FieldId);
         if (OldFlt == NewFlt) { return; }
+		Index->DeleteLinear(Key.KeyId, OldFlt, RecId);
+		Index->IndexLinear(Key.KeyId, NewFlt, RecId);
+	} else if (Key.FieldType == oftSFlt && Key.IsLinear()) {
+		// index float value using btree
+		const float OldFlt = Serializator.GetFieldSFlt(OldRecMem, Key.FieldId);
+		const float NewFlt = Serializator.GetFieldSFlt(NewRecMem, Key.FieldId);
+		if (OldFlt == NewFlt) { return; }
 		Index->DeleteLinear(Key.KeyId, OldFlt, RecId);
 		Index->IndexLinear(Key.KeyId, NewFlt, RecId);
     } else {
@@ -3209,6 +3268,11 @@ double TStoreImpl::GetFieldFlt(const uint64& RecId, const int& FieldId) const {
 	return GetFieldSerializator(FieldId)->GetFieldFlt(RecMem, FieldId);
 }
 
+float TStoreImpl::GetFieldSFlt(const uint64& RecId, const int& FieldId) const {
+	TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
+	return GetFieldSerializator(FieldId)->GetFieldSFlt(RecMem, FieldId);
+}
+
 TFltPr TStoreImpl::GetFieldFltPr(const uint64& RecId, const int& FieldId) const {
 	TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
 	return GetFieldSerializator(FieldId)->GetFieldFltPr(RecMem, FieldId);
@@ -3407,6 +3471,18 @@ void TStoreImpl::SetFieldFlt(const uint64& RecId, const int& FieldId, const doub
 	RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, *FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
     if (FieldId == PrimaryFieldId) { SetPrimaryFieldFlt(RecId, Flt); }
+}
+void TStoreImpl::SetFieldSFlt(const uint64& RecId, const int& FieldId, const float& SFlt) {
+	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
+	TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
+	//if (FieldId == PrimaryFieldId) {
+	//	DelPrimaryFieldFlt(RecId, FieldSerializator->GetFieldFlt(InRecMem, FieldId));
+	//}
+	TMem OutRecMem;
+	FieldSerializator->SetFieldSFlt(InRecMem, OutRecMem, FieldId, SFlt);
+	RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, *FieldSerializator);
+	PutRecMem(RecId, FieldId, OutRecMem);
+	//if (FieldId == PrimaryFieldId) { SetPrimaryFieldFlt(RecId, Flt); }
 }
 
 void TStoreImpl::SetFieldFltPr(const uint64& RecId, const int& FieldId, const TFltPr& FltPr) {
@@ -3804,6 +3880,11 @@ double TStorePbBlob::GetFieldFlt(const uint64& RecId, const int& FieldId) const 
     return GetSerializator(FieldLocV[FieldId])->GetFieldFlt(MIn, FieldId);
 }
 /// Get field value using field id (default implementation throws exception)
+float TStorePbBlob::GetFieldSFlt(const uint64& RecId, const int& FieldId) const {
+	TThinMIn MIn = GetPgBf(RecId, FieldLocV[FieldId] != TStoreLoc::slDisk);
+	return GetSerializator(FieldLocV[FieldId])->GetFieldSFlt(MIn, FieldId);
+}
+/// Get field value using field id (default implementation throws exception)
 TFltPr TStorePbBlob::GetFieldFltPr(const uint64& RecId, const int& FieldId) const {
     TThinMIn MIn = GetPgBf(RecId, FieldLocV[FieldId] != TStoreLoc::slDisk);
     return GetSerializator(FieldLocV[FieldId])->GetFieldFltPr(MIn, FieldId);
@@ -4024,6 +4105,20 @@ void TStorePbBlob::SetFieldFlt(const uint64& RecId, const int& FieldId, const do
         SerializatorMem->SetFieldFlt(min.GetBfAddrChar(), min.Len(), FieldId, Flt);
         DataMem->SetDirty(PgPt);
     }
+}
+/// Set field value using field id (default implementation throws exception)
+void TStorePbBlob::SetFieldSFlt(const uint64& RecId, const int& FieldId, const float& SFlt) {
+	if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
+		TPgBlobPt& PgPt = RecIdBlobPtH.GetDat(RecId);
+		TThinMIn min = DataBlob->Get(PgPt);
+		SerializatorCache->SetFieldSFlt(min.GetBfAddrChar(), min.Len(), FieldId, SFlt);
+		DataBlob->SetDirty(PgPt);
+	} else {
+		TPgBlobPt& PgPt = RecIdBlobPtHMem.GetDat(RecId);
+		TThinMIn min = DataMem->Get(PgPt);
+		SerializatorMem->SetFieldSFlt(min.GetBfAddrChar(), min.Len(), FieldId, SFlt);
+		DataMem->SetDirty(PgPt);
+	}
 }
 /// Set field value using field id (default implementation throws exception)
 void TStorePbBlob::SetFieldFltPr(const uint64& RecId, const int& FieldId, const TFltPr& FltPr) {

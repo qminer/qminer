@@ -288,6 +288,7 @@ TStr TFieldDesc::GetFieldTypeStr() const {
 	case oftStrV: return "string_v";
 	case oftBool: return "bool";
 	case oftFlt: return "float";
+	case oftSFlt: return "sfloat";
 	case oftFltPr: return "float_pair";
 	case oftFltV: return "float_v";
 	case oftTm: return "datetime";
@@ -705,6 +706,10 @@ double TStore::GetFieldFlt(const uint64& RecId, const int& FieldId) const {
 	throw FieldError(FieldId, "Flt");
 }
 
+float TStore::GetFieldSFlt(const uint64& RecId, const int& FieldId) const {
+	throw FieldError(FieldId, "Flt");
+}
+
 TFltPr TStore::GetFieldFltPr(const uint64& RecId, const int& FieldId) const {
 	throw FieldError(FieldId, "FltPr");
 }
@@ -838,6 +843,10 @@ void TStore::SetFieldFlt(const uint64& RecId, const int& FieldId, const double& 
 	throw FieldError(FieldId, "Flt");
 }
 
+void TStore::SetFieldSFlt(const uint64& RecId, const int& FieldId, const float& Flt) {
+	throw FieldError(FieldId, "SFlt");
+}
+
 void TStore::SetFieldFltPr(const uint64& RecId, const int& FieldId, const TFltPr& FltPr) {
 	throw FieldError(FieldId, "FltPr");
 }
@@ -946,6 +955,8 @@ PJsonVal TStore::GetFieldJson(const uint64& RecId, const int& FieldId) const {
 		return TJsonVal::NewBool(GetFieldBool(RecId, FieldId));
 	} else if (Desc.IsFlt()) {
 		return TJsonVal::NewNum(GetFieldFlt(RecId, FieldId));
+	} else if (Desc.IsSFlt()) {
+		return TJsonVal::NewNum(GetFieldSFlt(RecId, FieldId));
 	} else if (Desc.IsFltPr()) {
 		return TJsonVal::NewArr(GetFieldFltPr(RecId, FieldId));
 	} else if (Desc.IsFltV()) {
@@ -991,6 +1002,8 @@ TStr TStore::GetFieldText(const uint64& RecId, const int& FieldId) const {
 		return GetFieldBool(RecId, FieldId) ? "Yes" : "No";
 	} else if (Desc.IsFlt()) {
 		return TFlt::GetStr(GetFieldFlt(RecId, FieldId));
+	} else if (Desc.IsSFlt()) {
+		return TFlt::GetStr(GetFieldSFlt(RecId, FieldId));
 	} else if (Desc.IsFltPr()) {
 		const TFltPr FieldFltPr = GetFieldFltPr(RecId, FieldId);
 		return TStr::Fmt("(%g, %g)", FieldFltPr.Val1.Val, FieldFltPr.Val2.Val);
@@ -1167,6 +1180,9 @@ void TStore::PrintRecSet(const TWPt<TBase>& Base, const PRecSet& RecSet, TSOut& 
 			} else if (Desc.IsFlt()) {
 				const double FieldFlt = GetFieldFlt(RecId, FieldId);
 				SOut.PutStrFmtLn("  %s: %g", Desc.GetFieldNm().CStr(), FieldFlt);
+			} else if (Desc.IsSFlt()) {
+				const float FieldFlt = GetFieldSFlt(RecId, FieldId);
+				SOut.PutStrFmtLn("  %s: %f", Desc.GetFieldNm().CStr(), FieldFlt);
 			} else if (Desc.IsFltPr()) {
 				const TFltPr FieldFltPr = GetFieldFltPr(RecId, FieldId);
 				SOut.PutStrFmtLn("  %s: (%g, %g)", Desc.GetFieldNm().CStr(), FieldFltPr.Val1.Val, FieldFltPr.Val2.Val);
@@ -1231,6 +1247,9 @@ void TStore::PrintAll(const TWPt<TBase>& Base, TSOut& SOut, const bool& Includin
 			} else if (Desc.IsFlt()) {
 				const double FieldFlt = GetFieldFlt(RecId, FieldId);
 				SOut.PutStrFmtLn("  %s: %g", Desc.GetFieldNm().CStr(), FieldFlt);
+			} else if (Desc.IsSFlt()) {
+				const float FieldFlt = GetFieldSFlt(RecId, FieldId);
+				SOut.PutStrFmtLn("  %s: %f", Desc.GetFieldNm().CStr(), FieldFlt);
 			} else if (Desc.IsFltPr()) {
 				const TFltPr FieldFltPr = GetFieldFltPr(RecId, FieldId);
 				SOut.PutStrFmtLn("  %s: (%g, %g)", Desc.GetFieldNm().CStr(), FieldFltPr.Val1.Val, FieldFltPr.Val2.Val);
@@ -1413,6 +1432,10 @@ TRec::TRec(const TWPt<TStore>& _Store, const PJsonVal& JsonVal) :
 			QmAssertR(FieldVal->IsNum(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not numeric.");
 			SetFieldFlt(FieldId, FieldVal->GetNum());
 			break;
+		case oftSFlt:
+			QmAssertR(FieldVal->IsNum(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not numeric.");
+			SetFieldSFlt(FieldId, (float)FieldVal->GetNum());
+			break;
 		case oftFltPr: {
 			// make sure it's array of length two
 			QmAssertR(FieldVal->IsArr(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not array.");
@@ -1592,6 +1615,16 @@ double TRec::GetFieldFlt(const int& FieldId) const {
 	}
 	throw FieldError(FieldId, "Flt");
 }
+float TRec::GetFieldSFlt(const int& FieldId) const {
+	if (IsByRef()) {
+		return Store->GetFieldSFlt(RecId, FieldId);
+	} else if (FieldIdPosH.IsKey(FieldId)) {
+		const int Pos = FieldIdPosH.GetDat(FieldId);
+		TMIn MIn(RecVal.GetBf() + Pos, RecVal.Len() - Pos, false);
+		return TSFlt(MIn).Val;
+	}
+	throw FieldError(FieldId, "SFlt");
+}
 
 TFltPr TRec::GetFieldFltPr(const int& FieldId) const {
 	if (IsByRef()) {
@@ -1692,6 +1725,8 @@ PJsonVal TRec::GetFieldJson(const int& FieldId) const {
 		return TJsonVal::NewBool(GetFieldBool(FieldId));
 	} else if (Desc.IsFlt()) {
 		return TJsonVal::NewNum(GetFieldFlt(FieldId));
+	} else if (Desc.IsSFlt()) {
+		return TJsonVal::NewNum(GetFieldSFlt(FieldId));
 	} else if (Desc.IsFltPr()) {
 		return TJsonVal::NewArr(GetFieldFltPr(FieldId));
 	} else if (Desc.IsFltV()) {
@@ -1737,6 +1772,8 @@ TStr TRec::GetFieldText(const int& FieldId) const {
 		return TStr::GetStr(FieldStrV, ", ");
 	} else if (Desc.IsFlt()) {
 		return TFlt::GetStr(GetFieldFlt(FieldId));
+	} else if (Desc.IsSFlt()) {
+		return TFlt::GetStr(GetFieldSFlt(FieldId));
 	} else if (Desc.IsFltPr()) {
 		const TFltPr FieldFltPr = GetFieldFltPr(FieldId);
 		return TStr::Fmt("(%g, %g)", FieldFltPr.Val1.Val, FieldFltPr.Val2.Val);
@@ -1868,6 +1905,15 @@ void TRec::SetFieldFlt(const int& FieldId, const double& Flt) {
 	} else {
 		FieldIdPosH.AddDat(FieldId, RecVal.Len());
 		TFlt(Flt).Save(RecValOut);
+	}
+}
+
+void TRec::SetFieldSFlt(const int& FieldId, const float& Flt) {
+	if (IsByRef()) {
+		Store->SetFieldSFlt(RecId, FieldId, Flt);
+	} else {
+		FieldIdPosH.AddDat(FieldId, RecVal.Len());
+		TSFlt(Flt).Save(RecValOut);
 	}
 }
 
@@ -2112,7 +2158,9 @@ bool TFieldReader::IsFlt(const TFieldDesc& FieldDesc) {
         return true;
     } else if (FieldDesc.IsFlt()) {
         return true;
-    } else if (FieldDesc.IsUInt()) {
+	} else if (FieldDesc.IsSFlt()) {
+		return true;
+	} else if (FieldDesc.IsUInt()) {
         return true;
 	} else if (FieldDesc.IsUInt16()) {
 		return true;
@@ -2135,7 +2183,9 @@ bool TFieldReader::IsFltV(const TFieldDesc& FieldDesc) {
         return true;
     } else if (FieldDesc.IsFlt()) {
         return true;
-    } else if (FieldDesc.IsFltPr()) {
+	} else if (FieldDesc.IsSFlt()) {
+		return true;
+	} else if (FieldDesc.IsFltPr()) {
         return true;
     } else if (FieldDesc.IsFltV()) {
         return true;
@@ -2242,7 +2292,9 @@ double TFieldReader::GetFlt(const TRec& FtrRec) const {
 		return (double)FtrRec.GetFieldByte(FieldIdV[0]);
 	} else if (FieldDescV[0].IsFlt()) {
         return FtrRec.GetFieldFlt(FieldIdV[0]);
-    } else if (FieldDescV[0].IsUInt()) {
+	} else if (FieldDescV[0].IsSFlt()) {
+		return FtrRec.GetFieldSFlt(FieldIdV[0]);
+	} else if (FieldDescV[0].IsUInt()) {
         return (double)FtrRec.GetFieldUInt(FieldIdV[0]);
 	} else if (FieldDescV[0].IsUInt16()) {
 		return (double)FtrRec.GetFieldUInt16(FieldIdV[0]);
@@ -2274,7 +2326,9 @@ void TFieldReader::GetFltV(const TRec& FtrRec, TFltV& FltV) const {
 			FltV.Add((double)FtrRec.GetFieldByte(FieldId));
 		} else if (FieldDesc.IsFlt()) {
             FltV.Add(FtrRec.GetFieldFlt(FieldId));
-        } else if (FieldDesc.IsFltPr()) {
+		} else if (FieldDesc.IsSFlt()) {
+			FltV.Add(FtrRec.GetFieldSFlt(FieldId));
+		} else if (FieldDesc.IsFltPr()) {
             TFltPr FltPr = FtrRec.GetFieldFltPr(FieldId);
             FltV.Add(FltPr.Val1); FltV.Add(FltPr.Val2);
         } else if (FieldDesc.IsFltV()) {
@@ -2831,6 +2885,14 @@ void TRecSet::FilterByFieldFlt(const int& FieldId, const double& MinVal, const d
 	QmAssertR(Desc.IsFlt(), "Wrong field type, numeric expected");
 	// apply the filter
 	FilterBy(TRecFilterByFieldFlt(Store, FieldId, MinVal, MaxVal));
+}
+
+void TRecSet::FilterByFieldSFlt(const int& FieldId, const float& MinVal, const float& MaxVal) {
+	// get store and field type
+	const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
+	QmAssertR(Desc.IsFlt(), "Wrong field type, numeric expected");
+	// apply the filter
+	FilterBy(TRecFilterByFieldSFlt(Store, FieldId, MinVal, MaxVal));
 }
 
 void TRecSet::FilterByFieldStr(const int& FieldId, const TStr& FldVal) {
@@ -3885,7 +3947,10 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const
                 // check if we have lower bound
                 if (KeyVal->IsObjKey("$gt")) { RangeUInt64MnMx.Val1 = ParseTm(KeyVal->GetObjKey("$gt")); }
                 if (KeyVal->IsObjKey("$lt")) { RangeUInt64MnMx.Val2 = ParseTm(KeyVal->GetObjKey("$lt")); }
-            } else if (Key.IsSortAsFlt()) {
+			} else if (Key.IsSortAsSFlt()) {
+				Type = oqitRangeSFlt;
+				RangeSFltMnMx = TSFltPr((float)KeyVal->GetObjNum("$gt", TSFlt::Mn), (float)KeyVal->GetObjNum("$lt", TSFlt::Mx));
+			} else if (Key.IsSortAsFlt()) {
                 Type = oqitRangeFlt;
                 RangeFltMnMx = TFltPr(KeyVal->GetObjNum("$gt", TFlt::Mn), KeyVal->GetObjNum("$lt", TFlt::Mx));
             }
@@ -3918,10 +3983,13 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const
 			} else if (Key.IsSortAsUInt64()) {
 				Type = oqitRangeUInt64;
 				RangeUInt64MnMx.Val1 = RangeUInt64MnMx.Val2 = KeyVal->GetUInt64();
+			} else if (Key.IsSortAsSFlt()) {
+                Type = oqitRangeSFlt;
+                RangeSFltMnMx.Val1 = RangeSFltMnMx.Val2 = (float)KeyVal->GetNum();
 			} else if (Key.IsSortAsFlt()) {
-                Type = oqitRangeFlt;
-                RangeFltMnMx.Val1 = RangeFltMnMx.Val2 = KeyVal->GetNum();
-            }
+				Type = oqitRangeFlt;
+				RangeFltMnMx.Val1 = RangeFltMnMx.Val2 = KeyVal->GetNum();
+			}
         }
     } else {
 		throw TQmExcept::New("Query: Invalid key definition: '" + TJsonVal::GetStrFromVal(KeyVal) + "'");
@@ -4796,6 +4864,7 @@ TIndex::TIndex(const TStr& _IndexFPath, const TFAccess& _Access,
 		BTreeIndexUInt16H.Load(BTreeFIn);
 		BTreeIndexUInt64H.Load(BTreeFIn);
 		BTreeIndexFltH.Load(BTreeFIn);
+		BTreeIndexSFltH.Load(BTreeFIn);
     }
 	// initialize vocabularies
 	IndexVoc = _IndexVoc;
@@ -4823,6 +4892,7 @@ TIndex::~TIndex() {
 			BTreeIndexUInt16H.Save(BTreeFOut);
 			BTreeIndexUInt64H.Save(BTreeFOut);
 			BTreeIndexFltH.Save(BTreeFOut);
+			BTreeIndexSFltH.Save(BTreeFOut);
         }
 		TEnv::Logger->OnStatus("Index closed");
 	} else {
@@ -5192,6 +5262,14 @@ void TIndex::IndexLinear(const int& KeyId, const double& Val, const uint64& RecI
 	// index new location
 	BTreeIndexFltH.GetDat(KeyId)->AddKey(Val, RecId);
 }
+void TIndex::IndexLinear(const int& KeyId, const float& Val, const uint64& RecId) {
+	// we shouldn't modify read-only index
+	QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
+	// if new key, create sphere first
+	if (!BTreeIndexSFltH.IsKey(KeyId)) { BTreeIndexSFltH.AddDat(KeyId, PBTreeIndexSFlt::New()); }
+	// index new location
+	BTreeIndexSFltH.GetDat(KeyId)->AddKey(Val, RecId);
+}
 
 void TIndex::DeleteLinear(const uint& StoreId, const TStr& KeyNm, const uchar& Val, const uint64& RecId) {
 	DeleteLinear(IndexVoc->GetKeyId(StoreId, KeyNm), Val, RecId);
@@ -5217,6 +5295,9 @@ void TIndex::DeleteLinear(const uint& StoreId, const TStr& KeyNm, const uint64& 
 }
 
 void TIndex::DeleteLinear(const uint& StoreId, const TStr& KeyNm, const double& Val, const uint64& RecId) {
+	DeleteLinear(IndexVoc->GetKeyId(StoreId, KeyNm), Val, RecId);
+}
+void TIndex::DeleteLinear(const uint& StoreId, const TStr& KeyNm, const float& Val, const uint64& RecId) {
 	DeleteLinear(IndexVoc->GetKeyId(StoreId, KeyNm), Val, RecId);
 }
 
@@ -5269,6 +5350,12 @@ void TIndex::DeleteLinear(const int& KeyId, const double& Val, const uint64& Rec
 	QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
 	// delete only if index exist 
 	if (BTreeIndexFltH.IsKey(KeyId)) { BTreeIndexFltH.GetDat(KeyId)->DelKey(Val, RecId); }
+}
+void TIndex::DeleteLinear(const int& KeyId, const float& Val, const uint64& RecId) {
+	// we shouldn't modify read-only index
+	QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
+	// delete only if index exist 
+	if (BTreeIndexSFltH.IsKey(KeyId)) { BTreeIndexSFltH.GetDat(KeyId)->DelKey(Val, RecId); }
 }
 
 void TIndex::SearchAnd(const TIntUInt64PrV& KeyWordV, TQmGixItemV& StoreRecIdFqV) const {
@@ -5456,6 +5543,16 @@ PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TF
         BTreeIndexFltH.GetDat(KeyId)->SearchRange(RangeMinMax, RecIdV);
         RecIdV.Sort();
     }
+	return TRecSet::New(Base->GetStoreByStoreId(StoreId), RecIdV);
+}
+PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TSFltPr& RangeMinMax) {
+
+	TUInt64V RecIdV;
+	const uint StoreId = IndexVoc->GetKey(KeyId).GetStoreId();
+	if (BTreeIndexSFltH.IsKey(KeyId)) {
+		BTreeIndexSFltH.GetDat(KeyId)->SearchRange(RangeMinMax, RecIdV);
+		RecIdV.Sort();
+	}
 	return TRecSet::New(Base->GetStoreByStoreId(StoreId), RecIdV);
 }
 
@@ -5792,7 +5889,11 @@ TPair<TBool, PRecSet> TBase::Search(const TQueryItem& QueryItem, const TIndex::P
         // must be handled by BTree linear index
         PRecSet RecSet = Index->SearchLinear(this, QueryItem.GetKeyId(), QueryItem.GetRangeFltMinMax());
         return TPair<TBool, PRecSet>(false, RecSet);
-    } else if (QueryItem.IsJoin()) {
+	} else if (QueryItem.IsRangeSFlt()) {
+		// must be handled by BTree linear index
+		PRecSet RecSet = Index->SearchLinear(this, QueryItem.GetKeyId(), QueryItem.GetRangeSFltMinMax());
+		return TPair<TBool, PRecSet>(false, RecSet);
+	} else if (QueryItem.IsJoin()) {
 		// special case when it's record passed by value
 		const TQueryItem& SubItem = QueryItem.GetItem(0);
 		if (SubItem.IsRec() && SubItem.GetRec().IsByVal()) {

@@ -1824,10 +1824,29 @@ public:
   TSFlt operator--(int){TSFlt oldVal = Val; Val--; return oldVal;} // postfix
   int GetMemUsed() const {return sizeof(TSFlt);}
 
+  static bool IsNum(const float& Val) {
+	  return (Mn <= Val) && (Val <= Mx);
+  }
+  static bool IsNan(const float& Val) {
+	  return (_isnan(Val) != 0);
+  }
+
+  bool IsNum() const { return IsNum(Val); }
+  bool IsNan() const { return IsNan(Val); }
+
   int GetPrimHashCd() const {
     int Expn; return int((frexp(Val, &Expn)-0.5)*double(TInt::Mx));}
   int GetSecHashCd() const {
     int Expn; frexp(Val, &Expn); return Expn;}
+  static float GetFromBufSafe(const char * Bf) {
+#ifdef ARM
+	  float Val;
+	  memcpy(&Val, Bf, sizeof(float)); //we cannot use a cast on ARM (needs 8byte memory aligned doubles)
+	  return Val;
+#else
+	  return *((float*)Bf);
+#endif
+  }
 };
 
 /////////////////////////////////////////////////

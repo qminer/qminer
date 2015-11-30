@@ -42,7 +42,7 @@ function TestStoreManager(field_type) {
 
 //////////////////////////////////////////////////////////////////////////////////////
 
-function PerformTest(field_type, min, max) {
+function PerformTest(field_type, min, max, do_round) {
 	var records = 100;
 	var diff = (max - min) / records;
     describe(field_type, function () {
@@ -56,7 +56,10 @@ function PerformTest(field_type, min, max) {
 				var vals = [];
 				// fill store
 				for (var i = 0; i < records; i++) {
-					var val = Math.round(min + i * diff);
+					var val = min + i * diff;
+					if (do_round) {
+						val = Math.round(val);
+					}
 					db.base.store(store_name).push({ name: "name" + val, val: val });
 					vals.push(val);
 				}
@@ -75,7 +78,10 @@ function PerformTest(field_type, min, max) {
 			try {
 				// fill store
 				for (var i = 0; i < records; i++) {
-					var val = Math.round(min + i * diff);
+					var val = min + i * diff;
+					if (do_round) {
+						val = Math.round(val);
+					}
 					db.base.store(store_name).push({ name: "name" + val, val: val });
 				}
 				assert.equal(db.base.store(store_name).allRecords.length, records);				
@@ -96,11 +102,13 @@ function PerformTest(field_type, min, max) {
 }
 
 describe('Int-ish field-type tests ', function () {
-	PerformTest("int", -100 * 256 * 256 * 256, 100 * 256 * 256 * 256);
-	PerformTest("int16", -100  * 256, 100  * 256);
-	PerformTest("int64", -100 * 256 * 256 * 256 * 256 * 256 * 256, 100 * 256 * 256 * 256 * 256 * 256 * 256);
-	PerformTest("byte", 0, 255);
-	PerformTest("uint", 0, 256 * 256 * 256 * 256 - 1);
-	PerformTest("uint16", 0, 256 * 256 - 1);
-	//PerformTest("uint64", 0, 256 * 256 * 256 * 256 * 256 * 256 * 256 * 256 - 1);
+	PerformTest("int", -100 * 256 * 256 * 256, 100 * 256 * 256 * 256, true);
+	PerformTest("int16", -100  * 256, 100  * 256, true);
+	PerformTest("int64", -100 * 256 * 256 * 256 * 256 * 256 * 256, 100 * 256 * 256 * 256 * 256 * 256 * 256, true);
+	PerformTest("byte", 0, 255, true);
+	PerformTest("uint", 0, 256 * 256 * 256 * 256 - 1, true);
+	PerformTest("uint16", 0, 256 * 256 - 1, true);
+	//PerformTest("uint64", 0, 256 * 256 * 256 * 256 * 256 * 256 * 256 * 256 - 1,  true);
+	
+	PerformTest("float", -1E-38, 1E-38, false);
 })

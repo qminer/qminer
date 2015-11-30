@@ -114,6 +114,7 @@ typedef TPair<TFlt, TInt> TFltIntPr;
 typedef TPair<TFlt, TUInt64> TFltUInt64Pr;
 typedef TPair<TFlt, TFlt> TFltPr;
 typedef TPair<TFlt, TStr> TFltStrPr;
+typedef TPair<TSFlt, TSFlt> TSFltPr;
 typedef TPair<TAscFlt, TInt> TAscFltIntPr;
 typedef TPair<TAscFlt, TAscFlt> TAscFltPr;
 typedef TPair<TFlt, TStr> TFltStrPr;
