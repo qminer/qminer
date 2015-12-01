@@ -1390,7 +1390,7 @@ void TNodeJsStore::getMatrix(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 				JsStore->Store->GetFieldNumSpV(Iter->GetRecId(), FieldId, ColV[RecN]);
 				Iter->Next();
 			}
-			Args.GetReturnValue().Set(TNodeJsSpMat::New(ColV));
+			Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsSpMat>(new TNodeJsSpMat(ColV)));
 			return;
 		}
 		else if (Desc.IsStr()) {
@@ -2405,7 +2405,11 @@ void TNodeJsRecSet::filterByField(const v8::FunctionCallbackInfo<v8::Value>& Arg
 	const int FieldId = JsRecSet->RecSet->GetStore()->GetFieldId(FieldNm);
 	const TQm::TFieldDesc& Desc = JsRecSet->RecSet->GetStore()->GetFieldDesc(FieldId);
 	// parse filter according to field type
-	if (Desc.IsInt()) {
+	if (Desc.IsBool()) {		
+		const bool Val = TNodeJsUtil::GetArgBool(Args, 1);
+		JsRecSet->RecSet->FilterByFieldBool(FieldId, Val);
+	}
+	else if (Desc.IsInt()) {
 		const int MnVal = TNodeJsUtil::GetArgInt32(Args, 1);
 		const int MxVal = TNodeJsUtil::GetArgInt32(Args, 2);
 		JsRecSet->RecSet->FilterByFieldInt(FieldId, MnVal, MxVal);
@@ -2846,7 +2850,7 @@ void TNodeJsRecSet::getMatrix(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		for (int RecN = 0; RecN < Recs; RecN++) {
 			Store->GetFieldNumSpV(RecSet()->GetRecId(RecN), FieldId, ColV[RecN]);
 		}
-		Args.GetReturnValue().Set(TNodeJsSpMat::New(ColV));
+		Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsSpMat>(new TNodeJsSpMat(ColV)));
 		return;
 	}
 	else if (Desc.IsStr()) {
@@ -3665,7 +3669,7 @@ void TNodeJsFtrSpace::extractSparseMatrix(const v8::FunctionCallbackInfo<v8::Val
 		JsFtrSpace->FtrSpace->GetSpVV(RecSet->RecSet, SpMat, FtrExtN);
 	}
 
-    Args.GetReturnValue().Set(TNodeJsSpMat::New(SpMat, -1));
+	Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsSpMat>(new TNodeJsSpMat(SpMat, -1)));
 }
 
 void TNodeJsFtrSpace::extractMatrix(const v8::FunctionCallbackInfo<v8::Value>& Args) {
