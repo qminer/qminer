@@ -47,8 +47,8 @@ TPartialGS::TPartialGS(PSVMTrainSet BigSet, const int& Dim, const double& Eps) {
         //NiV[i].Key = BigSet->DotProduct(i, i);
         NiV[i].Key = BigSet->GetNorm2(i);
         NiV[i].Dat = false;
-        /*IAssertR(NiV[i].Key.Val > 0.0 && _isnan(NiV[i].Key.Val) == 0,
-                 TInt::GetStr(i) + TStr(":") + TFlt::GetStr(NiV[i].Key));*/
+        IAssertR(NiV[i].Key.Val > 0.0 && _isnan(NiV[i].Key.Val) == 0,
+                 TInt::GetStr(i) + TStr(":") + TFlt::GetStr(NiV[i].Key));
     }
     R.Gen(Dim, 0);
     //for (i = 0; i < Dim; i++) R[i].Gen(Len-i);
@@ -89,7 +89,7 @@ TPartialGS::TPartialGS(PSVMTrainSet BigSet, const int& Dim, const double& Eps) {
                 RR -= R[t][j-t] * R[t][i-t];
             IAssertR(NiV[IdV[j]].Key.Val>0, TInt::GetStr(i));
             RR /= sqrt(NiV[IdV[j]].Key.Val);
-            //IAssertR(_isnan(RR) == 0, TInt::GetStr(IdV[j]) + TStr(":") + TFlt::GetStr(NiV[IdV[j]].Key.Val));
+            IAssertR(_isnan(RR) == 0, TInt::GetStr(IdV[j]) + TStr(":") + TFlt::GetStr(NiV[IdV[j]].Key.Val));
             R[j][i-j] = RR;
             NiV[IdV[i]].Key -= RR*RR;
         }
