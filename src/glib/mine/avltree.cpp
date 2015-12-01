@@ -1,21 +1,21 @@
 #include "avltree.h"
 
-AvlTree::AvlTree(): _root(NIL) {
+AvlTree::AvlTree(): _root(0) {
 	_n = 0;
-    _depth[NIL]     = 0;
-    _parent[NIL]    = 0;
-    _left[NIL]      = 0;
-    _right[NIL]     = 0;
+    _depth[0]     = 0;
+    _parent[0]    = 0;
+    _left[0]      = 0;
+    _right[0]     = 0;
 }
 
 TInt AvlTree::first(int node) const {
-    if(node == NIL) {
-        return NIL;
+    if(node == 0) {
+        return 0;
     }
 
     while(true) {
         const int left = leftNode(node);
-        if(left == NIL) {
+        if(left == 0) {
             break;
         }
         node = left;
@@ -26,7 +26,7 @@ TInt AvlTree::first(int node) const {
 TInt AvlTree::last(int node) const {
     while(true) {
         const int right = rightNode(node);
-        if(right == NIL) {
+        if(right == 0) {
             break;
         }
         node = right;
@@ -36,11 +36,11 @@ TInt AvlTree::last(int node) const {
 
 TInt AvlTree::nextNode(int node) const {
     const int right = rightNode(node);
-    if(right != NIL) {
+    if(right != 0) {
         return first(right);
     } else {
         int parent = parentNode(node);
-        while(parent != NIL && node == rightNode(parent)) {
+        while(parent != 0 && node == rightNode(parent)) {
             node = parent;
             parent = parentNode(parent);
         }
@@ -50,11 +50,11 @@ TInt AvlTree::nextNode(int node) const {
 
 TInt AvlTree::prevNode(int node) const {
     const int left = leftNode(node);
-    if(left != NIL) {
+    if(left != 0) {
         return last(left);
     } else {
         int parent = parentNode(node);
-        while(parent != NIL && node == leftNode(parent)) {
+        while(parent != 0 && node == leftNode(parent)) {
             node = parent;
             parent = parentNode(parent);
         }
@@ -64,20 +64,20 @@ TInt AvlTree::prevNode(int node) const {
 
 bool AvlTree::add(double x, TInt w) {
 	//printf("root: %f\n", _root);
-    if(_root == NIL) {
+    if(_root == 0) {
         _root = ++_n;
         _values[_root] = x;
         //printf(" x: %f", x);
         _count[_root] = w;
-        _left[_root] = NIL;
-        _right[_root] = NIL;
-        _parent[_root] = NIL;
+        _left[_root] = 0;
+        _right[_root] = 0;
+        _parent[_root] = 0;
         // Update depth and aggregates
         updateAggregates(_root);
         return true;
     } else {
         int node = _root;
-        int parent = NIL;
+        int parent = 0;
         int cmp;
         do {
             cmp = compare(node, x);
@@ -92,7 +92,7 @@ bool AvlTree::add(double x, TInt w) {
                 merge(node, x, w);
                 return false;
             }
-        } while(node != NIL);
+        } while(node != 0);
 
         //printf("%i\n", _n);
         node = ++_n;
@@ -105,8 +105,8 @@ bool AvlTree::add(double x, TInt w) {
         //printf("\n");
 
         _count[node] = w;
-        _left[node] = NIL;
-        _right[node] = NIL;
+        _left[node] = 0;
+        _right[node] = 0;
         _parent[node] = parent;
         if(cmp < 0) {
             _left[parent] = node;
@@ -122,7 +122,7 @@ bool AvlTree::add(double x, TInt w) {
 }
 
 int AvlTree::find(double x) const {
-    for(int node = _root; node != NIL;) {
+    for(int node = _root; node != 0;) {
         const int cmp = compare(node, x);
         if(cmp < 0) {
             node = leftNode(node);
@@ -132,12 +132,12 @@ int AvlTree::find(double x) const {
             return node;
         }
     }
-    return NIL;
+    return 0;
 }
 
 int AvlTree::floor(double x) const {
-    int f = NIL;
-    for(int node = _root; node != NIL; ) {
+    int f = 0;
+    for(int node = _root; node != 0; ) {
         const int cmp = compare(node, x);
         if(cmp <= 0) {
             node = leftNode(node);
@@ -150,8 +150,8 @@ int AvlTree::floor(double x) const {
 }
 
 int AvlTree::floorSum(long sum) const {
-    int f = NIL;
-    for(int node = _root; node != NIL; ) {
+    int f = 0;
+    for(int node = _root; node != 0; ) {
         const int left = leftNode(node);
         const long leftCount = aggregatedCount(left);
         if(leftCount <= sum) {
@@ -169,7 +169,7 @@ long AvlTree::ceilSum(int node) const {
     const int left = leftNode(node);
     long sum = aggregatedCount(left);
     int n = node;
-    for(int p = parentNode(node); p != NIL; p = parentNode(n)) {
+    for(int p = parentNode(node); p != 0; p = parentNode(n)) {
         if(n == rightNode(p)) {
             const int leftP = leftNode(p);
             sum += count(p) + aggregatedCount(leftP);
@@ -180,7 +180,7 @@ long AvlTree::ceilSum(int node) const {
 }
 
 void AvlTree::rebalance(int node) {
-    for(int n = node; n != NIL; ) {
+    for(int n = node; n != 0; ) {
         const int p = parentNode(n);
 
         updateAggregates(n);
@@ -221,13 +221,13 @@ void AvlTree::rotateLeft(int node) {
     const int lr = leftNode(r);
 
     _right[node] = lr;
-    if(lr != NIL) {
+    if(lr != 0) {
         _parent[lr] = node;
     }
 
     const int p = parentNode(node);
     _parent[r] = p;
-    if(p == NIL) {
+    if(p == 0) {
         _root = r;
     } else if(leftNode(p) == node) {
         _left[p] = r;
@@ -246,13 +246,13 @@ void AvlTree::rotateRight(int node) {
     const int rl = rightNode(l);
 
     _left[node] = rl;
-    if(rl != NIL) {
+    if(rl != 0) {
         _parent[rl] = node;
     }
 
     const int p = parentNode(node);
     _parent[l] = p;
-    if(p == NIL) {
+    if(p == 0) {
         _root = l;
     } else if(rightNode(p) == node) {
         _right[p] = l;

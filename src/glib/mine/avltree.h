@@ -16,7 +16,7 @@ class AvlTree {
         TInt _aggregatedCount[10000000];
 
     public:
-        static const int NIL = 0;
+        //static const int NIL = 0;
 
         AvlTree();
 
@@ -127,7 +127,7 @@ class AvlTree {
             _values[node] += w * (x - value(node)) / count(node);
             _count[node] += w;
             
-            for(int n = node; n != NIL; n = parentNode(n)) {
+            for(int n = node; n != 0; n = parentNode(n)) {
                updateAggregates(n);
             }
         }
@@ -137,7 +137,7 @@ class AvlTree {
             EAssert(value(node) == x);
             _count[node] += w;
             
-            for(int n = node; n != NIL; n = parentNode(n)) {
+            for(int n = node; n != 0; n = parentNode(n)) {
                updateAggregates(n);
             }
         }
@@ -180,7 +180,7 @@ class AvlTree {
 
         // Check balance integrity
         bool checkBalance(int node) const {
-            if(node == NIL) {
+            if(node == 0) {
                 return depth(node) == 0;
             } else {
             	TInt greater = depth(leftNode(node));
@@ -201,7 +201,7 @@ class AvlTree {
 
         // Check aggregates integrity
         bool checkAggregates(int node) const {
-            if(node == NIL) {
+            if(node == 0) {
                 return count(node) == 0;
             } else {
                 return _aggregatedCount[node] == _count[node] + _aggregatedCount[leftNode(node)] + _aggregatedCount[rightNode(node)]
@@ -216,15 +216,15 @@ class AvlTree {
 
         // Check integrity (order of nodes)
         bool checkIntegrity(int node) const {
-            if(node == NIL) {
+            if(node == 0) {
                 return true;
             } else {
                 bool ok = true;
-                if(leftNode(node) != NIL) {
+                if(leftNode(node) != 0) {
                     ok &= _values[node] >= _values[leftNode(node)];
                     ok &= checkIntegrity(leftNode(node));
                 }
-                if(rightNode(node) != NIL) {
+                if(rightNode(node) != 0) {
                     ok &= _values[node] <= _values[rightNode(node)];
                     ok &= checkIntegrity(rightNode(node));
                 }
@@ -237,7 +237,7 @@ class AvlTree {
 
         // Print as rows
         void print(int node) const {
-            if(node == NIL)
+            if(node == 0)
                 return;
 
             /*cout << "Node " << node << "=> ";
