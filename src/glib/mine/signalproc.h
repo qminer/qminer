@@ -811,18 +811,18 @@ public:
         void Compress();
         inline void Update(double x, double w) {
             int start = _centroids->floor(x);
-            if(start == AvlTree::NIL) {
+            if(start == 0) {
                 start = _centroids->first();
             }
 
-            if(start == AvlTree::NIL) {
+            if(start == 0) {
                 EAssert(_centroids->size() == 0);
                 _centroids->add(x, w);
                 Count += w;
             } else {
                 double minDistance = DBL_MAX;
-                int lastNeighbor = AvlTree::NIL;
-                for(int neighbor = start; start != AvlTree::NIL; neighbor = _centroids->nextNode(neighbor)) {
+                int lastNeighbor = 0;
+                for(int neighbor = start; start != 0; neighbor = _centroids->nextNode(neighbor)) {
                     double z = abs(_centroids->value(neighbor) - x);
                     if(z < minDistance) {
                         start = neighbor;
@@ -833,7 +833,7 @@ public:
                     }
                 }
 
-                int closest = AvlTree::NIL;
+                int closest = 0;
                 long sum = _centroids->ceilSum(start);
                 double n = 0;
                 for(int neighbor = start; neighbor != lastNeighbor; neighbor = _centroids->nextNode(neighbor)) {
@@ -856,7 +856,7 @@ public:
                     sum += _centroids->count(neighbor);
                 }
 
-                if(closest == AvlTree::NIL) {
+                if(closest == 0) {
                     _centroids->add(x, w);
                 } else {
                     _centroids->update(closest, x, w);
@@ -882,7 +882,7 @@ public:
         double Quantile(double q) const;
         inline void Merge(TTDigest* digest) {
                     AvlTree* centroids = digest->Centroids();
-                    for(int n = centroids->first(); n != AvlTree::NIL; n = centroids->nextNode(n)) {
+                    for(int n = centroids->first(); n != 0; n = centroids->nextNode(n)) {
                         Update(centroids->value(n), centroids->count(n));
                     }
                 }

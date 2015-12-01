@@ -1044,10 +1044,10 @@ double TTDigest::Quantile(double q) const {
 	double previousMean = NAN;
 	double previousIndex = 0;
 	int next = _centroids->floorSum(index);
-	EAssert(next != AvlTree::NIL);
+	EAssert(next != 0);
 	long total = _centroids->ceilSum(next);
 	const int prev = _centroids->prevNode(next);
-	if(prev != AvlTree::NIL) {
+	if(prev != 0) {
 		previousMean = _centroids->value(prev);
 		previousIndex = total - (_centroids->count(prev) + 1.0) / 2.0;
 	}
@@ -1068,7 +1068,7 @@ double TTDigest::Quantile(double q) const {
 			}
 			return Quantile(previousIndex, index, nextIndex, previousMean, _centroids->value(next));
 
-		} else if(_centroids->value(next) == AvlTree::NIL) {
+		} else if(_centroids->value(next) == 0) {
 			// Beyond last centroid
 			const double nextIndex2 = Count - 1;
 			const double nextMean2 = (_centroids->value(next) * (nextIndex2 - previousIndex ) - previousMean * (nextIndex2 - nextIndex)) / (nextIndex - previousIndex);
