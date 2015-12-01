@@ -3772,6 +3772,45 @@ describe('TDigest test', function () {
         store.push({ Time: '10', Value: 10 });
         console.log(td);      
     });
+    it('should reset a tdigest test aggregator', function () {
+    
+    	// add TDigest stream aggregator
+        var aggr = {
+            name: 'TDigest',
+            type: 'tdigest',
+            store: 'Processor',
+            inAggr: 'TickAggr',
+            quantile: 0.99
+        }
+        td = store.addStreamAggr(aggr);
+        
+    	// add some values (throwing a pair of dice)
+        store.push({ Time: '1', Value: 1 }); 
+        store.push({ Time: '2', Value: 2 }); 
+        store.push({ Time: '3', Value: 3 }); 
+        store.push({ Time: '4', Value: 4 });
+        store.push({ Time: '5', Value: 5 });
+        store.push({ Time: '6', Value: 6 });
+        store.push({ Time: '7', Value: 7 });
+        store.push({ Time: '8', Value: 8 });
+        store.push({ Time: '9', Value: 9 });
+        store.push({ Time: '10', Value: 10 });
+        console.log(td);
+        
+        var endVal = td.getFloat();
+
+		var fout = qm.fs.openWrite("aggr.tmp");
+		td.save(fout);
+		fout.close();
+		
+        store.resetStreamAggregates();       
+        
+		var fin = qm.fs.openRead("aggr.tmp");
+		td.load(fin);
+		fin.close();
+
+		assert(td.getFloat() == endVal);
+    });
 });
 
 describe('ChiSquare Tests', function () {
