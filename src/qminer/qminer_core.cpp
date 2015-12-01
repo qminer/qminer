@@ -561,16 +561,16 @@ TRec TStore::GetRec(const TStr& RecNm) {
 }
 
 PRecSet TStore::GetAllRecs() {
-	TUInt64IntKdV RecIdFqV((int)GetRecs(), 0);
+	TUInt64V RecIdV((int)GetRecs(), 0);
 	PStoreIter Iter = GetIter();
 	while (Iter->Next()) {
-		RecIdFqV.Add(TUInt64IntKd(Iter->GetRecId(), 1));
+		RecIdV.Add(Iter->GetRecId());
 	}
-	return TRecSet::New(TWPt<TStore>(this), RecIdFqV, false);
+	return TRecSet::New(TWPt<TStore>(this), RecIdV);
 }
 
 PRecSet TStore::GetRndRecs(const uint64& SampleSize) {
-	return GetAllRecs()->GetSampleRecSet((int)SampleSize, false);
+	return GetAllRecs()->GetSampleRecSet((int)SampleSize);
 }
 
 void TStore::AddJoin(const int& JoinId, const uint64& RecId, const uint64 JoinRecId, const int& JoinFq) {
@@ -1736,7 +1736,7 @@ PRecSet TRec::DoJoin(const TWPt<TBase>& Base, const int& JoinId) const {
 				JoinRecIdFqV.Load(MIn);
 			}
 		}
-		return TRecSet::New(JoinDesc.GetJoinStore(Base), JoinRecIdFqV, true);
+		return TRecSet::New(JoinDesc.GetJoinStore(Base), JoinRecIdFqV);
 	} else if (JoinDesc.IsFieldJoin()) {
 		// do join using store field
 		const int JoinRecFieldId = JoinDesc.GetJoinRecFieldId();
@@ -1768,7 +1768,7 @@ PRecSet TRec::DoJoin(const TWPt<TBase>& Base, const TStr& JoinNm) const {
 PRecSet TRec::DoJoin(const TWPt<TBase>& Base, const TIntPrV& JoinIdV) const {
 	PRecSet RecSet = DoJoin(Base, JoinIdV[0].Val1);
 	for (int JoinIdN = 1; JoinIdN < JoinIdV.Len(); JoinIdN++) {
-		RecSet = RecSet->DoJoin(Base, JoinIdV[JoinIdN].Val1, JoinIdV[JoinIdN].Val2, true);
+		RecSet = RecSet->DoJoin(Base, JoinIdV[JoinIdN].Val1, JoinIdV[JoinIdN].Val2);
 	}
 	return RecSet;
 }
@@ -2243,24 +2243,64 @@ TStrV TFieldReader::GetDateRange() {
 ///////////////////////////////
 // QMiner-ResultSet
 void TRecSet::GetSampleRecIdV(const int& SampleSize,
-	const bool& SortedP, TUInt64IntKdV& SampleRecIdFqV) const {
+	const bool& WgtSampleP, TUInt64IntKdV& SampleRecIdFqV) const {
 
 	if (SampleSize == -1) {
+        // we ask for all
 		SampleRecIdFqV = RecIdFqV;
-	} else if (SortedP) {
-		const int SampleRecs = TInt::GetMn(SampleSize, GetRecs());
-		SampleRecIdFqV.Gen(SampleRecs, 0);
-		for (int RecN = 0; RecN < SampleRecs; RecN++) {
-			SampleRecIdFqV.Add(RecIdFqV[RecN]);
+    } else if (SampleSize == 0) {
+        // we ask for nothing
+        SampleRecIdFqV.Clr();
+    } else if (SampleSize > GetRecs()) {
+        // we ask for more than we have, have to give it all
+        SampleRecIdFqV = RecIdFqV;
+	} else if (WgtSampleP) {
+        // Weighted random sampling with a reservoir
+        // we keep current top candidates in a heap
+        THeap<TFltIntKd> TopWgtRecN(SampleSize);
+        // function for scoring each element according to its weight
+        TRnd Rnd(1);
+        auto ScoreFun = [&Rnd](const int& Wgt) {
+            return pow(Rnd.GetUniDev(), 1.0 / (double)Wgt);
+        };
+        // Fill the reservoir with first SampleSize elements
+		for (int RecN = 0; RecN < SampleSize; RecN++) {
+            const double Wgt = ScoreFun(RecIdFqV[RecN].Dat);
+            TopWgtRecN.Add(TFltIntKd(Wgt, RecN));
 		}
+        TopWgtRecN.MakeHeap();
+        // randomly replace existing elements with new ones
+        for (int RecN = SampleSize; RecN < GetRecs(); RecN++) {
+            const double Wgt = ScoreFun(RecIdFqV[RecN].Dat);
+            if (Wgt > TopWgtRecN.TopHeap().Key) {
+                // remove current smallest element from the top
+                TopWgtRecN.PopHeap();
+                // add current one
+                TopWgtRecN.PushHeap(TFltIntKd(Wgt, RecN));
+            }
+        }
+        // use remaining top elements as result
+        SampleRecIdFqV.Gen(SampleSize, 0);
+        for (int RecNN = 0; RecNN < TopWgtRecN.Len(); RecNN++) {
+            const int RecN = TopWgtRecN()[RecNN].Dat;
+            SampleRecIdFqV.Add(RecIdFqV[RecN]);
+        }
 	} else {
-		for (int RecN = 0; RecN < GetRecs(); RecN++) {
+        // Reservoir sampling
+        SampleRecIdFqV.Gen(SampleSize, 0);
+        // Fill the reservoir with first SampleSize elements
+		for (int RecN = 0; RecN < SampleSize; RecN++) {
 			SampleRecIdFqV.Add(RecIdFqV[RecN]);
 		}
-		if (SampleSize < GetRecs()) {
-			TRnd Rnd(1); SampleRecIdFqV.Shuffle(Rnd);
-			SampleRecIdFqV.Trunc(SampleSize);
-		}
+        // randomly replace existing elements with new ones
+        TRnd Rnd(1); const double _SampleSize = (double)SampleSize;
+        for (int RecN = SampleSize; RecN < GetRecs(); RecN++) {
+            const double Ratio = _SampleSize / (double)RecN;
+            // check if we should replace existing element
+            if (Rnd.GetUniDev() < Ratio) {
+                SampleRecIdFqV[Rnd.GetUniDevInt(SampleSize)] = RecIdFqV[RecN];
+            }
+        }
 	}
 }
 
@@ -2290,7 +2330,7 @@ TRecSet::TRecSet(const TWPt<TStore>& _Store, const TIntV& RecIdV) : Store(_Store
 }
 
 TRecSet::TRecSet(const TWPt<TStore>& _Store, const TUInt64IntKdV& _RecIdFqV,
-	const bool& _WgtP) : Store(_Store), WgtP(_WgtP), RecIdFqV(_RecIdFqV) {}
+	const bool& _WgtP): Store(_Store), WgtP(_WgtP), RecIdFqV(_RecIdFqV) { }
 
 TRecSet::TRecSet(const TWPt<TBase>& Base, TSIn& SIn) {
 	Store = TStore::LoadById(Base, SIn);
@@ -2298,9 +2338,11 @@ TRecSet::TRecSet(const TWPt<TBase>& Base, TSIn& SIn) {
 	RecIdFqV.Load(SIn);
 }
 
-/*PRecSet TRecSet::New() {
-	return new TRecSet();
-}*/
+PRecSet TRecSet::New(const TWPt<TStore>& Store, const TUInt64IntKdV& RecIdFqV,
+        const bool& WgtP) {
+
+	return new TRecSet(Store, RecIdFqV, WgtP);
+}
 
 PRecSet TRecSet::New(const TWPt<TStore>& Store) {
 	return new TRecSet(Store, TUInt64V());
@@ -2323,8 +2365,8 @@ PRecSet TRecSet::New(const TWPt<TStore>& Store, const TIntV& RecIdV) {
 	return new TRecSet(Store, RecIdV);
 }
 
-PRecSet TRecSet::New(const TWPt<TStore>& Store, const TUInt64IntKdV& RecIdFqV, const bool& WgtP) {
-	return new TRecSet(Store, RecIdFqV, WgtP);
+PRecSet TRecSet::New(const TWPt<TStore>& Store, const TUInt64IntKdV& RecIdFqV) {
+	return new TRecSet(Store, RecIdFqV, true);
 }
 
 void TRecSet::Save(TSOut& SOut) {
@@ -2497,13 +2539,13 @@ void TRecSet::RemoveRecIdSet(THashSet<TUInt64>& RemoveItemIdSet) {
 }
 
 PRecSet TRecSet::Clone() const {
-	return TRecSet::New(Store, RecIdFqV, WgtP);
+	return new TRecSet(Store, RecIdFqV, WgtP);
 }
 
-PRecSet TRecSet::GetSampleRecSet(const int& SampleSize, const bool& SortedP) const {
+PRecSet TRecSet::GetSampleRecSet(const int& SampleSize) const {
 	TUInt64IntKdV SampleRecIdFqV;
-	GetSampleRecIdV(SampleSize, SortedP, SampleRecIdFqV);
-	return TRecSet::New(Store, SampleRecIdFqV, WgtP);
+	GetSampleRecIdV(SampleSize, WgtP, SampleRecIdFqV);
+	return new TRecSet(Store, SampleRecIdFqV, WgtP);
 }
 
 PRecSet TRecSet::GetLimit(const int& Limit, const int& Offset) const {
@@ -2521,7 +2563,7 @@ PRecSet TRecSet::GetLimit(const int& Limit, const int& Offset) const {
 			// get all items since offset till end
 			RecIdFqV.GetSubValV(Offset, End - 1, LimitRecIdFqV);
 		}
-		return TRecSet::New(Store, LimitRecIdFqV, WgtP);
+		return new TRecSet(Store, LimitRecIdFqV, WgtP);
 	}
 }
 
@@ -2561,18 +2603,16 @@ PRecSet TRecSet::GetIntersect(const PRecSet& RecSet) {
 	if (!_RecIdFqV.IsSorted()) { _RecIdFqV.Sort(); }
 	TUInt64IntKdV ResultRecIdFqV;
 	TargetRecIdFqV.Intrs(_RecIdFqV, ResultRecIdFqV);
-	return TRecSet::New(GetStore(), ResultRecIdFqV, false);
+	return new TRecSet(GetStore(), ResultRecIdFqV, false);
 }
 
-PRecSet TRecSet::DoJoin(const TWPt<TBase>& Base, const int& JoinId,
-	const int& SampleSize, const bool& SortedP) const {
-
+PRecSet TRecSet::DoJoin(const TWPt<TBase>& Base, const int& JoinId, const int& SampleSize) const {
 	// get join info
 	AssertR(Store->IsJoinId(JoinId), "Wrong Join ID");
 	const TJoinDesc& JoinDesc = Store->GetJoinDesc(JoinId);
 	// prepare joined record sample
 	TUInt64IntKdV SampleRecIdKdV;
-	GetSampleRecIdV(SampleSize, SortedP, SampleRecIdKdV);
+	GetSampleRecIdV(SampleSize, WgtP, SampleRecIdKdV);
 	const int SampleRecs = SampleRecIdKdV.Len();
 	// do the join
 	TUInt64IntKdV JoinRecIdFqV;
@@ -2604,28 +2644,27 @@ PRecSet TRecSet::DoJoin(const TWPt<TBase>& Base, const int& JoinId,
 		throw TQmExcept::New("Unsupported join type for join " + JoinDesc.GetJoinNm() + "!");
 	}
 	// create new RecSet
-	return TRecSet::New(JoinDesc.GetJoinStore(Base), JoinRecIdFqV, true);
+	return new TRecSet(JoinDesc.GetJoinStore(Base), JoinRecIdFqV, true);
 }
 
-PRecSet TRecSet::DoJoin(const TWPt<TBase>& Base, const TStr& JoinNm,
-	const int& SampleSize, const bool& SortedP) const {
+PRecSet TRecSet::DoJoin(const TWPt<TBase>& Base, const TStr& JoinNm, const int& SampleSize) const {
 
-if (Store->IsJoinNm(JoinNm)) {
-	return DoJoin(Base, Store->GetJoinId(JoinNm), SampleSize, SortedP);
-}
-throw TQmExcept::New("Unknown join " + JoinNm);
+    if (Store->IsJoinNm(JoinNm)) {
+        return DoJoin(Base, Store->GetJoinId(JoinNm), SampleSize);
+    }
+    throw TQmExcept::New("Unknown join " + JoinNm);
 }
 
-PRecSet TRecSet::DoJoin(const TWPt<TBase>& Base, const TIntPrV& JoinIdV, const bool& SortedP) const {
-	PRecSet RecSet = DoJoin(Base, JoinIdV[0].Val1, JoinIdV[0].Val2, SortedP);
+PRecSet TRecSet::DoJoin(const TWPt<TBase>& Base, const TIntPrV& JoinIdV) const {
+	PRecSet RecSet = DoJoin(Base, JoinIdV[0].Val1, JoinIdV[0].Val2);
 	for (int JoinIdN = 1; JoinIdN < JoinIdV.Len(); JoinIdN++) {
-		RecSet = RecSet->DoJoin(Base, JoinIdV[JoinIdN].Val1, JoinIdV[JoinIdN].Val2, true);
+		RecSet = RecSet->DoJoin(Base, JoinIdV[JoinIdN].Val1, JoinIdV[JoinIdN].Val2);
 	}
 	return RecSet;
 }
 
-PRecSet TRecSet::DoJoin(const TWPt<TBase>& Base, const TJoinSeq& JoinSeq, const bool& SortedP) const {
-	return DoJoin(Base, JoinSeq.GetJoinIdV(), SortedP);
+PRecSet TRecSet::DoJoin(const TWPt<TBase>& Base, const TJoinSeq& JoinSeq) const {
+	return DoJoin(Base, JoinSeq.GetJoinIdV());
 }
 
 void TRecSet::Print(const TWPt<TBase>& Base, TSOut& SOut) {
@@ -3675,9 +3714,13 @@ TWPt<TStore> TQueryItem::GetStore(const TWPt<TBase>& Base) const {
 }
 
 bool TQueryItem::IsWgt() const {
+
 	if (IsLeafGix() || IsLeafGixSmall() || IsGeo()) {
 		// always weighted when only one key
 		return true;
+    } else if (IsAnd() && ItemV.Len() == 1) {
+        // we have only one sub-query, check its status
+        return ItemV[0].IsWgt();
 	} else if (IsOr()) {
 		// or is weighted when all it's elements are 
 		bool WgtP = true;
@@ -5206,8 +5249,7 @@ TPair<TBool, PRecSet> TBase::Search(const TQueryItem& QueryItem, const TIndex::P
 			// in case it's negated, we must invert it
 			if (NotRecSet.Val1) { NotRecSet.Val2 = Invert(NotRecSet.Val2, Merger); }
 			// do the join
-			PRecSet JoinRecSet = NotRecSet.Val2->DoJoin(this, QueryItem.GetJoinId(),
-				QueryItem.GetSampleSize(), NotRecSet.Val2->IsWgt());
+			PRecSet JoinRecSet = NotRecSet.Val2->DoJoin(this, QueryItem.GetJoinId(), QueryItem.GetSampleSize());
 			// return joined record set
 			return TPair<TBool, PRecSet>(false, JoinRecSet);
 		}
