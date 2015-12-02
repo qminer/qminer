@@ -1223,16 +1223,6 @@
 	 */
  exports.PropHazards.prototype.save = function(sout) { return Object.create(require('qminer').fs.FOut.prototype); }
 /**
-	 * Fits the model onto the data. The data instances must be stored as column vectors in X, while their times
-	 * have to be stored in timeV. An optional parameter indicates wether the data provided is in
-	 * batches and indicates wether the instance at index i ends a batch.
-	 *
-	 * @param {Matrix} X - the column matrix containing the data instances
-	 * @param {Vector} timeV - a vector containing the sampling times of the instances
-	 * @param {BoolVector} [endsBatchV] - a vector of boolean indicating wether the current instance ends a batch
-	 * @returns {HMC} - returns itself
-	 */
-/**
 	 * Returns the probability distribution over the future states given that the current state is the one in
 	 * the parameter.
 	 *
@@ -2576,8 +2566,6 @@
         */
         this.save = function (fout) {
             fout.writeJson(this.metric.state);
-            fout.flush();
-            fout.close();
             return fout;
         }
 
@@ -2589,7 +2577,6 @@
         this.load = function (fin) {
             this.metric.state = fin.readJson();
             error = this.metric.state.error;
-            fin.close();
             return fin;
         }
 
