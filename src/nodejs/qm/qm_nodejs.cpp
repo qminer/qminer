@@ -3567,28 +3567,32 @@ void TNodeJsFtrSpace::extractSparseVector(const v8::FunctionCallbackInfo<v8::Val
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	QmAssertR(Args.Length() == 1, "Should have 1 argument!");
+	QmAssertR(Args.Length() == 1 || Args.Length() == 2, "Should have 1  or 2 arguments!");
+	
+	TIntFltKdV SpV; // result sparse vector
 	
 	TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
-	TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[0]->ToObject());
+	if (JsFtrSpace->GetFtrSpace()->GetFtrExts() == 0) {
+		Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsSpVec>(new TNodeJsSpVec(SpV, JsFtrSpace->FtrSpace->GetDim())));
+		return;
+	}
+	
+	TWPt<TQm::TStore> Store = JsFtrSpace->GetFtrSpace()->GetFtrExt(0)->GetFtrStore();
 
-	// create feature vector
-	TIntFltKdV SpV;
-
-	if (Args.Length() == 1) {
-        EAssertR(JsFtrSpace->FtrSpace->IsStartStore(JsRec->Rec.GetStore()->GetStoreId()),
-            "FeatureSpace.extractSparseVector: record's and feature extractor's store/source must be the same!");
-
-		// create feature vector, compute
-		JsFtrSpace->FtrSpace->GetSpV(JsRec->Rec, SpV);
-	} else {
-		const int FtrExtN = TNodeJsUtil::GetArgInt32(Args, 1);
-		EAssertR(0 <= FtrExtN && FtrExtN < JsFtrSpace->FtrSpace->GetFtrExts(), "FeatureSpace.extractSparseVector: invalid feature extractor ID!");
-
-		EAssertR(JsFtrSpace->FtrSpace->GetFtrExt(FtrExtN)->IsStartStore(JsRec->Rec.GetStore()->GetStoreId()),
-            "FeatureSpace.extractSparseVector: record's and feature extractor's store/source must be the same!");
-
+	const int FtrExtN = TNodeJsUtil::GetArgInt32(Args, 1, -1);
+	EAssertR(-1 <= FtrExtN && FtrExtN < JsFtrSpace->FtrSpace->GetFtrExts(), "FeatureSpace.extractSparseVector: invalid feature extractor ID!");
+	
+	if (TNodeJsUtil::IsArgWrapObj<TNodeJsRec>(Args, 0)) {
+		TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[0]->ToObject());		
+		QmAssertR(JsFtrSpace->FtrSpace->IsStartStore(JsRec->Rec.GetStore()->GetStoreId()),
+			"FeatureSpace.extractSparseVector: record's and feature extractor's store/source must be the same!");
 		JsFtrSpace->FtrSpace->GetSpV(JsRec->Rec, SpV, FtrExtN);
+	} else if (TNodeJsUtil::IsArgJson(Args, 0)) {
+		PJsonVal Json = TNodeJsUtil::GetArgJson(Args, 0);
+		TQm::TRec Rec(Store, Json);		
+		JsFtrSpace->FtrSpace->GetSpV(Rec, SpV, FtrExtN);
+	} else {
+		throw TQm::TQmExcept::New("extractSparseVector: unsupported type of argument 0");
 	}
 
 	Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsSpVec>(new TNodeJsSpVec(SpV, JsFtrSpace->FtrSpace->GetDim())));
