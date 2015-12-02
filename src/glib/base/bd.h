@@ -139,7 +139,7 @@ class TNm{
 class TNm; \
 typedef TPt<TNm> PNm; \
 class TNm{ \
-private: \
+protected: \
   TCRef CRef; \
 public: \
   friend class TPt<TNm>;
@@ -152,8 +152,6 @@ typedef TPt<TNm> PNm;
 class TNm; \
 typedef TPt<TNm> PNm; \
 class TNm: public ENm{ \
-private: \
-  TCRef CRef; \
 public: \
   friend class TPt<TNm>;
 
@@ -161,8 +159,6 @@ public: \
 class TNm; \
 typedef TPt<TNm> PNm; \
 class TNm: public ENm1, public ENm2{ \
-private: \
-  TCRef CRef; \
 public: \
   friend class TPt<TNm>;
 
@@ -176,7 +172,7 @@ class TNm; \
 typedef TPt<TNm> PNm; \
 typedef TVec<PNm> TNmV; \
 class TNm{ \
-private: \
+protected: \
   TCRef CRef; \
 public: \
   friend class TPt<TNm>;
@@ -193,7 +189,7 @@ typedef TVec<PNm> TNmV; \
 typedef TLst<PNm> TNmL; \
 typedef TLstNd<PNm>* TNmLN; \
 class TNm{ \
-private: \
+protected: \
   TCRef CRef; \
 public: \
   friend class TPt<TNm>;
@@ -480,7 +476,6 @@ template <class TRec> class TWPt;
 
 /////////////////////////////////////////////////
 // Smart-Pointer-With-Reference-Count
-
 template <class TRec>
 class TPt{
 public:

@@ -1,5 +1,54 @@
 # QMiner Change Log
 
+### 27 Nov 2015
+
+**New version: 3.5.0**
+
+**non-breaking with new features**
+
+Features:
+- Stream aggregates that get time series on input now support delayed inputs (can get more then one value per iteration): online histogram, window aggregates (sum, max, min, mean, variance)
+- Time series tick and window buffer can read from numeric fields of type other then double
+
+Bug fixes:
+- LIBSVM sparse matrix bug-fix when working with sparse vectors
+- Multinomial fix for sparse vectors (does not store zero elements)
+- Nearest neighbor  anomaly detector explains more in explain
+- ClassTPE defined reference counter is now protected and not private
+- Chi2 stream aggregate cleanup (save/load, etc.)
+- Stream aggregates implemented in JavaScript can (de)serialize their state
+- Renamed TNodeJsSA->TNodeJsStreamAggr
+- Renamed TNodeJsStreamAggr -> TNodeJsFuncStreamAggr
+
+
+### 20 Nov 2015
+
+**New version: 3.4.0**
+
+**non-breaking with new features**
+
+Feature:
+- Stream aggregates have `reset()` function that resets their state
+- Added serialisation to Chi^2 and online histogram
+- exposed FAcecss (mode in which base is opened) to js side in qm.base.getStats() method
+- Decision tree: explain for positive examples, correlation between attributes
+- Support for writing Node.js async code in C++: `TNodeTask`, macros for defining async functions, callback execution on main thread
+- Multinomial feature extractor can use numeric field as source for weight
+- Window stream aggregate: 
+  - possibility of delay before things go into the window
+  - changed interface: input and output elements both vectors
+  - does not store windowed elements anymore, keeping only pointers to store
+
+Bug fix:
+- Replaced `nodist` with `nvmw` to prepare binaries for Windows. (`nodist` started acting funny)
+- removed automatic closing and flushing file stream in `.save(fout)` and `.load(fin)` functions in online regression metric fixed unit tests according to previous commit
+- bugfix in resampler stream aggregate `.load` method
+- Compensation for numerical errors in `TSpecFunc::BetaCf` in `xmath.cpp`.
+
+Other:
+- Tests do not output to console anymore
+- Renamed `TWindowBuffer` to `TWinAggr`
+
 ### 13 Nov 2015
 
 **New version: 3.3.0**
@@ -23,15 +72,12 @@ Feature:
 Bugfixes:
 - Sort works with multiple threads and is more robust. Sort can take TRnd as argument.
 - undefined behaviour bug (works different on ARMv7): casting double to uint64 should be: (unsigned)(int64)(double)
-- portability problem with casting char * to
+- portability problem with casting char * to double * (ARMv7 bus errors)
 
 Other:
 - qminer works on tonic: go to https://tonicdev.com/npm/qminer
 - qminer win 32bit and linux 32bit binaries are published in the cloud
 - moved logistic regression classifier to classification.h/cpp
-
-Bugfixes:
-- ARMv7 bugs
 
 ### 6 Nov 2015
 

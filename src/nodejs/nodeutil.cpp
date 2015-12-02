@@ -590,6 +590,22 @@ void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun, const int& Ar
 	}
 }
 
+void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun,
+		const v8::Local<v8::Object>& Arg1, const v8::Local<v8::Object>& Arg2) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	v8::TryCatch TryCatch;
+
+	const int ArgC = 2;
+	v8::Handle<v8::Value> ArgV[ArgC] = { Arg1, Arg2 };
+	Fun->Call(Isolate->GetCurrentContext()->Global(), 2, ArgV);
+
+	if (TryCatch.HasCaught()) {
+		v8::String::Utf8Value Msg(TryCatch.Message()->Get());
+		throw TExcept::New("Exception while executing VOID: " + TStr(*Msg));
+	}
+}
+
 void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
@@ -694,4 +710,67 @@ PMem TNodeJsUtil::GetArgMem(const v8::FunctionCallbackInfo<v8::Value>& Args, con
 
 uint64 TNodeJsUtil::GetTmMSecs(v8::Handle<v8::Date>& Date) {
 	return GetCppTimestamp(int64(Date->NumberValue()));
+}
+
+
+//////////////////////////////////////////////////////
+// Async Stuff
+TNodeTask::TNodeTask(const v8::FunctionCallbackInfo<v8::Value>& Args):
+		Callback(),
+		ArgPersist(),
+		Except() {
+
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	if (Args.Length() == 0) { return; }
+
+	v8::Local<v8::Array> ArgsArr = v8::Array::New(Isolate, Args.Length());
+	for (int ArgN = 0; ArgN < Args.Length(); ArgN++) {
+		ArgsArr->Set(ArgN, Args[ArgN]);
+	}
+	ArgPersist.Reset(Isolate, ArgsArr);
+}
+
+TNodeTask::~TNodeTask() {
+	Callback.Reset();
+	ArgPersist.Reset();
+}
+
+v8::Local<v8::Value> TNodeTask::WrapResult() {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	return v8::Undefined(Isolate);
+}
+
+void TNodeTask::ExtractCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	Callback.Reset(Isolate, GetCallback(Args));
+}
+
+void TNodeTask::AfterRun() {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(!Callback.IsEmpty(), "The callback was not defined!");
+	v8::Local<v8::Function> Fun = v8::Local<v8::Function>::New(Isolate, Callback);
+
+	if (!Except.Empty()) {
+		TNodeJsUtil::ExecuteErr(Fun, Except);
+	} else {
+		const int ArgC = 2;
+		v8::Handle<v8::Value> ArgV[ArgC] = { v8::Undefined(Isolate), WrapResult() };
+		TNodeJsUtil::ExecuteVoid(Fun, ArgC, ArgV);
+	}
+}
+
+void TNodeTask::AfterRunSync(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	if (!Except.Empty()) { throw Except; }
+
+	Args.GetReturnValue().Set(WrapResult());
 }

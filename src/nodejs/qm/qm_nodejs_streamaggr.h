@@ -109,7 +109,8 @@
 * @property {string} StreamAggregateTimeSeriesWindow.store - The name of the store from which to takes the data.
 * @property {string} StreamAggregateTimeSeriesWindow.timestamp - The field of the store, where it takes the timestamp.
 * @property {string} StreamAggregateTimeSeriesWindow.value - The field of the store, where it takes the values.
-* @property {number} StreamAggregateTimeSeriesWindow.winsize - The size of the window, in miliseconds.
+* @property {number} StreamAggregateTimeSeriesWindow.winsize - The size of the window, in milliseconds.
+* @property {number} StreamAggregateTimeSeriesWindow.delay - Delay in milliseconds.
 * @example 
 * // import the qm module
 * var qm = require('qminer');
@@ -1020,7 +1021,7 @@
 * base.close();
 */
 
-class TNodeJsSA : public node::ObjectWrap {
+class TNodeJsStreamAggr : public node::ObjectWrap {
 	friend class TNodeJsUtil;
 private:
 	// Node framework
@@ -1034,14 +1035,19 @@ public:
 	TWPt<TQm::TStreamAggr> SA;
 
 	// C++ constructors
-	TNodeJsSA() { }
-	TNodeJsSA(TWPt<TQm::TStreamAggr> _SA) : SA(_SA) { }
-	~TNodeJsSA() { }
+	TNodeJsStreamAggr() { }
+	TNodeJsStreamAggr(TWPt<TQm::TStreamAggr> _SA) : SA(_SA) { }
+	~TNodeJsStreamAggr() { }
 
 
-	static TNodeJsSA* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+	static TNodeJsStreamAggr* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 public:
-
+	/**
+	* Resets the state of the aggregate.
+	* @returns {module:qm.StreamAggr} Self.
+	*/
+	//# exports.StreamAggr.prototype.reset = function () { return Object.create(require('qminer').StreamAggr.prototype);  };
+	JsDeclareFunction(reset);
 
 	/**
 	* Executes the function when a new record is put in store.
@@ -1516,7 +1522,25 @@ public:
 	*/
 	//# exports.StreamAggr.prototype.getInTimestamp = function () { return 0; };
 	JsDeclareFunction(getInTimestamp);
-	
+
+	/**
+	* Gets a vector containing the values that are entering the stream aggregator.
+	* @returns {module:la.Vector} The vector containing the values that are entering the buffer.
+	* @example
+	* // TODO + add unit test!
+	*/
+	//# exports.StreamAggr.prototype.getInFloatVector = function () { return Object.create(require('qminer').la.Vector.prototype); };
+	JsDeclareFunction(getInFloatVector);
+
+	/**
+	* Gets a vector containing the timestamps that are entering the stream aggregator.
+	* @returns {module:la.Vector} The vector containing the timestamps that are entering the buffer.
+	* @example
+	* // TODO + add unit test!
+	*/
+	//# exports.StreamAggr.prototype.getInTimestampVector = function () { return Object.create(require('qminer').la.Vector.prototype); };
+	JsDeclareFunction(getInTimestampVector);
+
 	/**
 	* Gets a vector containing the values that are leaving the stream aggregator.
 	* @returns {module:la.Vector} The vector containing the values that are leaving the buffer.
@@ -1663,7 +1687,7 @@ public:
 
 ///////////////////////////////
 // JavaScript Stream Aggregator
-class TNodeJsStreamAggr :
+class TNodeJsFuncStreamAggr :
 	public TQm::TStreamAggr,
 	public TQm::TStreamAggrOut::IInt,
 	public TQm::TStreamAggrOut::IFltTmIO,
@@ -1676,6 +1700,7 @@ class TNodeJsStreamAggr :
 {
 private:	
 	// callbacks
+	v8::Persistent<v8::Function> ResetFun;
 	v8::Persistent<v8::Function> OnAddFun;
 	v8::Persistent<v8::Function> OnUpdateFun;
 	v8::Persistent<v8::Function> OnDeleteFun;
@@ -1689,11 +1714,11 @@ private:
 	// IFltTmIO 
 	v8::Persistent<v8::Function> GetInFltFun;
 	v8::Persistent<v8::Function> GetInTmMSecsFun;
+	v8::Persistent<v8::Function> GetInFltVFun;
+	v8::Persistent<v8::Function> GetInTmMSecsVFun;
 	v8::Persistent<v8::Function> GetOutFltVFun;
 	v8::Persistent<v8::Function> GetOutTmMSecsVFun;
-	v8::Persistent<v8::Function> GetNFun;
-	v8::Persistent<v8::Function> GetOldestFltFun;
-	v8::Persistent<v8::Function> GetOldestTmMSecsFun;
+	v8::Persistent<v8::Function> GetNFun;	
 
 	// IFltVec
 	v8::Persistent<v8::Function> GetFltLenFun;
@@ -1716,13 +1741,14 @@ private:
 	v8::Persistent<v8::Function> LoadFun;
 
 public:
-	TNodeJsStreamAggr(TWPt<TQm::TBase> _Base, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal);
+	TNodeJsFuncStreamAggr(TWPt<TQm::TBase> _Base, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal);
 	static TQm::PStreamAggr New(TWPt<TQm::TBase> _Base, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal) {
-		return new TNodeJsStreamAggr(_Base, _AggrNm, TriggerVal);
+		return new TNodeJsFuncStreamAggr(_Base, _AggrNm, TriggerVal);
 	}
 
-	~TNodeJsStreamAggr();
+	~TNodeJsFuncStreamAggr();
 
+	void Reset();
 	void OnAddRec(const TQm::TRec& Rec);
 	void OnUpdateRec(const TQm::TRec& Rec);
 	void OnDeleteRec(const TQm::TRec& Rec);
@@ -1731,8 +1757,8 @@ public:
 	// stream aggregator type name 
 	static TStr GetType() { return "javaScript"; }
 	TStr Type() const { return GetType(); }
-	void _Save(TSOut& SOut) const;
-	void _Load(TSIn& SIn);
+	void SaveState(TSOut& SOut) const;
+	void LoadState(TSIn& SIn);
 
 	// IInt
 	int GetInt() const;
@@ -1743,11 +1769,13 @@ public:
 	// IFltTmIO 
 	double GetInFlt() const;
 	uint64 GetInTmMSecs() const;
+	bool DelayedP() const;
+
+	void GetInFltV(TFltV& ValV) const;
+	void GetInTmMSecsV(TUInt64V& MSecsV) const;
 	void GetOutFltV(TFltV& ValV) const;
 	void GetOutTmMSecsV(TUInt64V& MSecsV) const;
 	int GetN() const;
-	double GetOldestFlt() const;
-	uint64 GetOldestTmMSecs() const;
 
 	// IFltVec
 	int GetFltLen() const;

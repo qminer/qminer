@@ -209,12 +209,12 @@
 * // Each movie has a property corresponding to the join name: &#x27;director&#x27;. 
 * // Accessing the property returns a {@link module:qm.Record} from the store People.
 * var person = movie.director; // get the director
-* console.log(person.name); // prints &#x27;Jim Jarmusch&#x27;
+* var personName = person.name; // get person&#x27;s name (&#x27;Jim Jarmusch&#x27;)
 * // Each person has a property corresponding to the join name: &#x27;directed&#x27;. 
 * // Accessing the property returns a {@link module:qm.RecSet} from the store People.
 * var movies = person.directed; // get all the movies the person directed.
-* movies.each(function (movie) { console.log(movie.title); }); 
-* // prints: 
+* movies.each(function (movie) { var title = movie.title; });
+* // Gets the following titles:
 * //   &#x27;Broken Flowers&#x27;
 * //   &#x27;Coffee and Cigarettes&#x27;
 * base.close();
@@ -831,6 +831,10 @@
 	*/
  exports.Store.prototype.getStreamAggr = function (saName) { return Object.create(require(&#x27;qminer&#x27;).StreamAggr.prototype); }
 /**
+	* Resets all stream aggregates.
+	*/
+ exports.Store.prototype.resetStreamAggregates = function () { }
+/**
 	* Returns an array of the stream aggregates names connected to the store.
 	* @returns {Array.&amp;lt;string&gt;} An array of stream aggregates names.
 	*/
@@ -1140,6 +1144,10 @@
 	* Returns the store the record belongs to.
 	*/
  exports.Record.prototype.store = Object.create(&#x27;qminer&#x27;).Store.prototype;
+/**
+	 * Adds a new record to the vector.
+	 */
+ exports.RecVector.prototype.push = function (rec) {};
 /**
 * Record Set is a set of records.
 * &amp;lt;b&gt;Factory pattern&amp;lt;/b&gt;: this class cannot be construced using the new keyword. This class is constructed
@@ -2143,7 +2151,8 @@
 * @property {number} [FeatureExtractorMultinomial.hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hashDimension to get the corresponding dimension.
 * @property {Object} [FeatureExtractorMultinomial.datetime = false] - Same as &#x27;values&#x27;, only with predefined values which are extracted from date and time (month, day of month, day of week, time of day, hour).
 * &amp;lt;br&gt; This fixes the dimensionality of feature extractor at the start, making it not dimension as new dates are seen. Cannot be used the same time as values.
-* @property {string} FeatureExtractorMultinomial.field - The name of the field from which to take the value.
+* @property {(string|Array.&amp;lt;String&gt;)} FeatureExtractorMultinomial.field - The name of the field from which to take the key value.
+* @property {(string|Array.&amp;lt;String&gt;)} [FeatureExtractorMultinomial.valueField] - The name of the field from which to take the numeric value. When not provided, 1.0 is used as default numeric values for non-zero elements in the vector.
 * @property {module:qm~FeatureSource} FeatureExtractorMultinomial.source - The source of the extractor.
 * @example
 * var qm = require(&#x27;qminer&#x27;);
@@ -2941,14 +2950,20 @@
      * @param {function} [callback] - Callback function, called on errors and when the procedure finishes.
      */
     exports.Base.prototype.loadCSV = function (opts, callback) {
-    	console.log(&#x27;Loading CSV file ...&#x27;);
+    	// console.log(&#x27;Loading CSV file ...&#x27;);
 
     	if (opts.delimiter == null) opts.delimiter = &#x27;,&#x27;;
     	if (opts.quote == null) opts.quote = &#x27;&quot;&#x27;;
     	if (opts.ignoreFields == null) opts.ignoreFields = [];
     	if (opts.file == null) throw new Error(&#x27;Missing parameter file!&#x27;);
 
-    	if (callback == null) callback = function (e) { if (e != null) console.log(e.stack); }
+    	if (callback == null) {
+            callback = function (e) {
+                if (e != null) {
+                    // console.log(e.stack);
+                }
+            }
+        }
 
     	try {
     		var base = this;
@@ -3003,8 +3018,9 @@
     				}
     			}
 
-    			if (fieldTypesInitialized())
-    				console.log(&#x27;Fields initialized: &#x27; + JSON.stringify(fieldTypes));
+    			if (fieldTypesInitialized()) {
+    				// console.log(&#x27;Fields initialized: &#x27; + JSON.stringify(fieldTypes));
+                }
     		}
 
     		function fieldTypesInitialized() {
@@ -3050,7 +3066,7 @@
 	    				});
 	    			}
 
-	    			console.log(&#x27;Creating store with definition &#x27; + JSON.stringify(storeDef) + &#x27; ...&#x27;);
+	    			// console.log(&#x27;Creating store with definition &#x27; + JSON.stringify(storeDef) + &#x27; ...&#x27;);
 
 	    			base.createStore(storeDef);
 	    			store = base.store(storeName);
@@ -3066,7 +3082,7 @@
 
 			var storeCreated = false;
 			var line = 0;
-			console.log(&#x27;Saving CSV to store &#x27; + storeName + &#x27; &#x27; + fname + &#x27; ...&#x27;);
+			// console.log(&#x27;Saving CSV to store &#x27; + storeName + &#x27; &#x27; + fname + &#x27; ...&#x27;);
 
 			var fin = new fs.FIn(fname);
 			fs.readCsvLines(fin, {
@@ -3077,12 +3093,13 @@
 							for (var i = 0; i &amp;lt; lineArr.length; i++) {
 								headers.push(lineArr[i].replace(/\s+/g, &#x27;_&#x27;).replace(/\.|%|\(|\)|\/|-|\+/g, &#x27;&#x27;)) 	// remove invalid characters
 							}
-							console.log(&#x27;Headers initialized: &#x27; + JSON.stringify(headers));
+							// console.log(&#x27;Headers initialized: &#x27; + JSON.stringify(headers));
 						}
 						else {
-							if (line % 1000 == 0)
-								console.log(line + &#x27;&#x27;);
-
+							if (line % 1000 == 0) {
+								// console.log(line + &#x27;&#x27;);
+                            }
+                            
 							var data = transformLine(lineArr);
 
 							if (fieldTypes == null)
@@ -3099,13 +3116,13 @@
 								buff.push(data);
 						}
 					} catch (e) {
-						console.log(&#x27;Exception while reading CSV lines: &#x27; + e.stack);
+						// console.log(&#x27;Exception while reading CSV lines: &#x27; + e.stack);
 						callback(e);
 					}
 				},
 				onEnd: function () {
 					// finished
-					console.log(&#x27;Finished!&#x27;);
+					// console.log(&#x27;Finished!&#x27;);
 
 					if (callback != null) {
 			   			if (!fieldTypesInitialized()) {
@@ -3177,7 +3194,7 @@
                 count++;
                 if (limit != undefined &amp;amp;&amp;amp; count == limit) { break; }
             } catch (err) {
-                console.log(&quot;Error parsing [&quot; + line + &quot;]: &quot; + err)
+                // console.log(&quot;Error parsing [&quot; + line + &quot;]: &quot; + err)
             }
         }
         return count;

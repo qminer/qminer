@@ -64,6 +64,34 @@ private:
 public:
     static void Init(v8::Handle<v8::Object> exports);
     
+private:
+	class TReadCsvTask: public TNodeTask {
+	private:
+		PSIn SIn;
+		int Offset;
+		int Limit;
+		int BatchSize;
+		v8::Persistent<v8::Function> OnLine;
+
+	public:
+		TReadCsvTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+		~TReadCsvTask();
+
+		v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+		void Run();
+	};
+
+	struct TReadLinesCallback {
+		TVec<TStrV> CsvLineV;
+		v8::Persistent<v8::Function>* OnLine;
+		TReadLinesCallback(const int& BatchSize, v8::Persistent<v8::Function>* _OnLine):
+			CsvLineV(BatchSize, 0),
+			OnLine(_OnLine) {}
+		static void Run(const TReadLinesCallback& Task);
+	};
+
+public:
+
 	/**
 	* open file in read mode and return file input stream
 	* @param {string} fileName - File name.
@@ -182,32 +210,7 @@ public:
     //# exports.readLines = function (buffer, onLine, onEnd, onError) {}
     JsDeclareFunction(readLines);
 
-    /**
-	 * Reads a buffer line by line and calls a callback for each line.
-	 *
-	 * @param {String|FIn|Buffer} buffer - name of the file, input stream of a Node.js buffer
-	 * @param {function} onLine - a callback that gets called on each line (for example: function (line) {})
-	 * @param {function} onEnd - a callback that gets returned after all the lines have been read
-	 * @param {function} onError - a callback that gets called if an error occurs
-	 */
-	//# exports.readLines = function (buffer, onLine, onEnd, onError) {}
-	JsDeclareFunction(readLinesAsync);
-
-private:
-	struct TRealLines {
-		PSIn SIn;
-		int Offset;
-		int Limit;
-		TStrV LineV;
-		v8::Persistent<v8::Function> OnEnd;
-		bool HasError;
-
-		TRealLines(const v8::FunctionCallbackInfo<v8::Value>& Args);
-		~TRealLines();
-
-		static void Run(TRealLines& Data);
-		static void AfterRun(const TRealLines& Data);
-	};
+    JsDeclareAsyncFunction(readCsvAsync, TReadCsvTask);
 };
 
 ///////////////////////////////
@@ -237,6 +240,7 @@ public:
 	PSIn SIn;
 	// C++ constructor
 	TNodeJsFIn(const TStr& FNm) : SIn(TZipIn::NewIfZip(FNm)) { }
+	TNodeJsFIn(const PSIn& _SIn) : SIn(_SIn) { }
 private:	
 	/**
 	* Input file stream.
@@ -320,17 +324,19 @@ public:
 // NodeJs-FOut
 class TNodeJsFOut : public node::ObjectWrap {
 	friend class TNodeJsUtil;
-public:
-    PSOut SOut;
 private:
+	static v8::Persistent<v8::Function> Constructor;
+public:
+	static void Init(v8::Handle<v8::Object> exports);
+	static const TStr GetClassId() { return "FOut"; }
+
+	// wrapped C++ object
+	PSOut SOut;
+	// C++ constructor
     TNodeJsFOut(const TStr& FilePath, const bool& AppendP):
         SOut(TFOut::New(FilePath, AppendP)) { }
     TNodeJsFOut(const TStr& FilePath): SOut(TZipOut::NewIfZip(FilePath)) { }
-public:
-    static void Init(v8::Handle<v8::Object> exports);
-    static const TStr GetClassId() { return "FOut"; }
-
-    static v8::Local<v8::Object> New(const TStr& FilePath, const bool& AppendP = false);
+	TNodeJsFOut(const PSOut& _SOut) : SOut(_SOut) { }
 
 	/**
 	* Output file stream.
@@ -349,8 +355,8 @@ public:
 	* fout.close();
 	*/
 	//# exports.FOut = function(fileName, append) {}	
-	JsDeclareFunction(New);
-    
+	static TNodeJsFOut* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+public:
 	/**
 	* Writes a string or number or a JSON object in human readable form
 	* @param {(String | Number | Object)} arg - Argument to write
@@ -395,8 +401,6 @@ public:
 	*/
 	//# exports.FOut.prototype.close = function() {}
     JsDeclareFunction(close);
-private:
-    static v8::Persistent<v8::Function> constructor;
 };
 
 #endif

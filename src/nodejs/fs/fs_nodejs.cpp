@@ -69,7 +69,110 @@ void TNodeJsFs::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_METHOD(exports, "rmdir", _rmdir);
     NODE_SET_METHOD(exports, "listFile", _listFile);
     NODE_SET_METHOD(exports, "readLines", _readLines);
-    NODE_SET_METHOD(exports, "readLinesAsync", _readLinesAsync);
+    NODE_SET_METHOD(exports, "readCsvAsync", _readCsvAsync);
+}
+
+TNodeJsFs::TReadCsvTask::TReadCsvTask(const v8::FunctionCallbackInfo<v8::Value>& Args):
+			TNodeTask(Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 4, "TNodeJsFs::readCsvLinesAsync: Invalid number of arguments!");
+	EAssertR(!TNodeJsUtil::IsArgNull(Args, 0), "TNodeJsFs::readCsvLinesAsync: Buffer is null or undefined!");
+
+	if (TNodeJsUtil::IsArgStr(Args, 0)) {	// Read from file
+		const TStr FNm = TNodeJsUtil::GetArgStr(Args, 0);
+		SIn = TFIn::New(FNm);
+	} else if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFIn::GetClassId())) {	// Read from input stream
+		TNodeJsFIn* JsFIn = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFIn>(Args, 0);
+		SIn = JsFIn->SIn;
+	} else {	// Read from Node.js Buffer
+		v8::Local<v8::Object> BuffObj = Args[0]->ToObject();
+
+		EAssertR(BuffObj->HasIndexedPropertiesInExternalArrayData(), "TNodeJsFs::readLines: argument is not a buffer!");
+
+		char* Buff = node::Buffer::Data(BuffObj);
+		size_t BuffLen = node::Buffer::Length(BuffObj);
+		SIn = new TThinMIn(Buff, (int)BuffLen);
+	}
+
+	PJsonVal OptsJson = TNodeJsUtil::GetArgJson(Args, 1);
+	Offset = OptsJson->GetObjInt("offset", 0);
+	Limit = OptsJson->GetObjInt("limit", TInt::Mx);
+	BatchSize = OptsJson->GetObjInt("batchSize", 1000);
+
+	OnLine.Reset(Isolate, TNodeJsUtil::GetArgFun(Args, 2));
+}
+
+TNodeJsFs::TReadCsvTask::~TReadCsvTask() {
+	OnLine.Reset();
+}
+
+v8::Handle<v8::Function> TNodeJsFs::TReadCsvTask::GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	return TNodeJsUtil::GetArgFun(Args, 3);
+}
+
+void TNodeJsFs::TReadCsvTask::Run() {
+	TSsParser SsParser(SIn, ',', true, false, false);
+
+	TReadLinesCallback* Callback = new TReadLinesCallback(BatchSize, &OnLine);
+
+	int LineN = -1;
+	while (SsParser.Next()) {
+		try {
+			if (++LineN < Offset) { continue; }
+
+			TVec<TStrV>& CsvLineV = Callback->CsvLineV;
+
+			CsvLineV.Add(TStrV());
+
+			const int NFlds = SsParser.Len();
+			for (int FldN = 0; FldN < NFlds; FldN++) {
+				CsvLineV.Last().Add(SsParser[FldN]);
+			}
+
+			if (LineN - Offset + 1 >= Limit) { break; }
+
+			if (CsvLineV.Len() >= BatchSize) {
+				TNodeJsAsyncUtil::ExecuteOnMainAndWait(Callback, true);
+				Callback = new TReadLinesCallback(BatchSize, &OnLine);
+			}
+		} catch (const PExcept& _Except) {
+			SetExcept(_Except);
+			break;
+		}
+	}
+
+	if (!HasExcept() && !Callback->CsvLineV.Empty()) {
+		TNodeJsAsyncUtil::ExecuteOnMainAndWait(Callback, true);
+	} else {
+		delete Callback;
+	}
+}
+
+void TNodeJsFs::TReadLinesCallback::Run(const TReadLinesCallback& Task) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, *Task.OnLine);
+
+	const TVec<TStrV>& CsvLineV = Task.CsvLineV;
+	const int TotalLines = CsvLineV.Len();
+
+	v8::Local<v8::Array> LinesArr = v8::Array::New(Isolate, TotalLines);
+	for (int LineN = 0; LineN < TotalLines; LineN++) {
+		const TStrV& LineV = CsvLineV[LineN];
+		const int NFlds = LineV.Len();
+
+		v8::Local<v8::Array> LineArr = v8::Array::New(Isolate, NFlds);
+		for (int FldN = 0; FldN < NFlds; FldN++) {
+			LineArr->Set(FldN, v8::String::NewFromUtf8(Isolate, LineV[FldN].CStr()));
+		}
+
+		LinesArr->Set(LineN, LineArr);
+	}
+
+	TNodeJsUtil::ExecuteVoid(Callback, LinesArr);
 }
 
 void TNodeJsFs::openRead(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -90,7 +193,9 @@ void TNodeJsFs::openWrite(const v8::FunctionCallbackInfo<v8::Value>& Args) { // 
 
     EAssertR(Args.Length() == 1 && Args[0]->IsString(), "Expected file path.");
     TStr FNm(*v8::String::Utf8Value(Args[0]->ToString()));
-    Args.GetReturnValue().Set(TNodeJsFOut::New(FNm, false));
+
+	Args.GetReturnValue().Set(
+		TNodeJsUtil::NewInstance<TNodeJsFOut>(new TNodeJsFOut(FNm, false)));    
 }
 
 void TNodeJsFs::openAppend(const v8::FunctionCallbackInfo<v8::Value>& Args) { // Call with AppendP = true 
@@ -99,7 +204,9 @@ void TNodeJsFs::openAppend(const v8::FunctionCallbackInfo<v8::Value>& Args) { //
 
     EAssertR(Args.Length() == 1 && Args[0]->IsString(), "Expected file path.");
     TStr FNm(*v8::String::Utf8Value(Args[0]->ToString()));
-    Args.GetReturnValue().Set(TNodeJsFOut::New(FNm, true));
+
+	Args.GetReturnValue().Set(
+		TNodeJsUtil::NewInstance<TNodeJsFOut>(new TNodeJsFOut(FNm, true)));
 }
 
 void TNodeJsFs::exists(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -278,95 +385,6 @@ void TNodeJsFs::readLines(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 
-void TNodeJsFs::readLinesAsync(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	TNodeJsAsyncUtil::ExecuteOnWorker(new TRealLines(Args));
-}
-
-TNodeJsFs::TRealLines::TRealLines(const v8::FunctionCallbackInfo<v8::Value>& Args):
-		HasError(false) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	EAssertR(Args.Length() == 3, "TNodeJsFs::readLinesAsync: Invalid number of arguments!");
-	EAssertR(!TNodeJsUtil::IsArgNull(Args, 0), "TNodeJsFs::readLinesAsync: Buffer is null or undefined!");
-
-	if (TNodeJsUtil::IsArgStr(Args, 0)) {	// Read from file
-		const TStr FNm = TNodeJsUtil::GetArgStr(Args, 0);
-		SIn = TFIn::New(FNm);
-	} else if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFIn::GetClassId())) {	// Read from input stream
-		TNodeJsFIn* JsFIn = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFIn>(Args, 0);
-		SIn = JsFIn->SIn;
-	} else {	// Read from Node.js Buffer
-		v8::Local<v8::Object> BuffObj = Args[0]->ToObject();
-
-		EAssertR(BuffObj->HasIndexedPropertiesInExternalArrayData(), "TNodeJsFs::readLines: argument is not a buffer!");
-
-		char* Buff = node::Buffer::Data(BuffObj);
-		size_t BuffLen = node::Buffer::Length(BuffObj);
-		SIn = new TThinMIn(Buff, (int)BuffLen);
-	}
-
-	PJsonVal OptsJson = TNodeJsUtil::GetArgJson(Args, 1);
-	Offset = OptsJson->GetObjInt("offset", 0);
-	Limit = OptsJson->GetObjInt("limit", TInt::Mx);
-
-	OnEnd.Reset(Isolate, TNodeJsUtil::GetArgFun(Args, 2));
-}
-
-void TNodeJsFs::TRealLines::Run(TRealLines& Data) {
-	const int& Offset = Data.Offset;
-	const int& Limit = Data.Limit;
-
-	int Line = -1;
-	TStr LineStr;
-	while (Data.SIn->GetNextLn(LineStr)) {
-		try {
-			Line++;
-
-			if (Line < Offset) { continue; }
-
-			Data.LineV.Add(LineStr);
-		} catch (...) {
-			Data.HasError = true;
-			break;
-		}
-
-		if (Line - Offset + 1 >= Limit) { break; }
-	}
-}
-
-
-void TNodeJsFs::TRealLines::AfterRun(const TRealLines& Data) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, Data.OnEnd);
-
-	if (Data.HasError) {
-		TNodeJsUtil::ExecuteErr(Callback, TExcept::New("Exception while reading lines!"));
-	} else {
-		const TStrV& LineV = Data.LineV;
-		const int& Len = LineV.Len();
-
-		v8::Local<v8::Array> JsStrV = v8::Array::New(Isolate, Len);
-
-		for (int i = 0; i < Len; i++) {
-			JsStrV->Set(i, v8::String::NewFromUtf8(Isolate, LineV[i].CStr()));
-		}
-
-		const int ArgC = 2;
-		v8::Handle<v8::Value> ArgV[ArgC] = { v8::Undefined(Isolate), JsStrV };
-		TNodeJsUtil::ExecuteVoid(Callback, ArgC, ArgV);
-	}
-}
-
-TNodeJsFs::TRealLines::~TRealLines() {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	OnEnd.Reset();
-}
-
 ///////////////////////////////
 // NodeJs-FIn
 v8::Persistent<v8::Function> TNodeJsFIn::Constructor;
@@ -507,16 +525,24 @@ void TNodeJsFIn::length(v8::Local<v8::String> Name, const v8::PropertyCallbackIn
 
 ///////////////////////////////
 // NodeJs-FOut
-v8::Persistent<v8::Function> TNodeJsFOut::constructor;
+v8::Persistent<v8::Function> TNodeJsFOut::Constructor;
 
 void TNodeJsFOut::Init(v8::Handle<v8::Object> exports) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
+	// template for creating function from javascript using "new", uses _NewJs callback
+	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsFOut>);
+	// child will have the same properties and methods, but a different callback: _NewCpp
+	v8::Local<v8::FunctionTemplate> child = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewCpp<TNodeJsFOut>);
+	child->Inherit(tpl);
 
-    v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, _New);
-    tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "FOut"));
-    // ObjectWrap uses the first internal field to store the wrapped pointer
-    tpl->InstanceTemplate()->SetInternalFieldCount(1);
+	child->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
+	// ObjectWrap uses the first internal field to store the wrapped pointer
+	child->InstanceTemplate()->SetInternalFieldCount(1);
+
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
+	// ObjectWrap uses the first internal field to store the wrapped pointer
+	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
     // Add all prototype methods, getters and setters here.
     NODE_SET_PROTOTYPE_METHOD(tpl, "write", _write);
@@ -525,51 +551,23 @@ void TNodeJsFOut::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "writeJson", _writeJson);
     NODE_SET_PROTOTYPE_METHOD(tpl, "flush", _flush);
     NODE_SET_PROTOTYPE_METHOD(tpl, "close", _close);
-
-    // This has to be last, otherwise the properties won't show up on the
-    // object in JavaScript
-    constructor.Reset(Isolate, tpl->GetFunction());
-    #ifndef MODULE_INCLUDE_FS
-    exports->Set(v8::String::NewFromUtf8(Isolate, "FOut"),
-        tpl->GetFunction());
-    #endif
+	
+	// This has to be last, otherwise the properties won't show up on the object in JavaScript	
+	// Constructor is used when creating the object from C++
+	Constructor.Reset(Isolate, child->GetFunction());
+	// we need to export the class for calling using "new FIn(...)"
+	exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()),
+		tpl->GetFunction());
 }
 
-v8::Local<v8::Object> TNodeJsFOut::New(const TStr& FNm, const bool& AppendP) {
-    // called from C++	
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::EscapableHandleScope HandleScope(Isolate);
-	// create an instance using the constructor
-	EAssertR(!constructor.IsEmpty(), "TNodeJsFOut::New: constructor is empty. Did you call TNodeJsFOut::Init(exports); in this module's init function?");
-	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);		
-	// no arguments to constructor
-	v8::Local<v8::Object> Instance = cons->NewInstance();
-	// wrap our C++ object
-	TNodeJsFOut* Obj = new TNodeJsFOut(FNm, AppendP);
-	Obj->Wrap(Instance);	
-	return HandleScope.Escape(Instance);
-} 
-
-void TNodeJsFOut::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	EAssertR(Args.IsConstructCall(), "TNodeJsFOut: not a constructor call (you forgot to use the new operator)");
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::EscapableHandleScope HandleScope(Isolate);
-	// set hidden class id
-	v8::Local<v8::Object> Instance = Args.This();
-	v8::Handle<v8::String> key = v8::String::NewFromUtf8(Isolate, "class");
-	v8::Handle<v8::String> value = v8::String::NewFromUtf8(Isolate, GetClassId().CStr());
-	Instance->SetHiddenValue(key, value);		
-	// empty constructor call just forwards the instance
-	if (Args.Length() == 0) { Args.GetReturnValue().Set(Instance); return; }
+TNodeJsFOut* TNodeJsFOut::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	// parse arguments
 	EAssertR(Args.Length() >= 1 && Args[0]->IsString(),
 		"Expected file path.");
 	TStr FNm(*v8::String::Utf8Value(Args[0]->ToString()));
 	bool AppendP = Args.Length() >= 2 && Args[1]->IsBoolean() && Args[1]->BooleanValue();
-	// Args.This() is an instance, wrap our C++ object
-	TNodeJsFOut* Obj = new TNodeJsFOut(FNm, AppendP);
-	Obj->Wrap(Instance);
-	Args.GetReturnValue().Set(Instance);	
+	
+	return new TNodeJsFOut(FNm, AppendP);	
 }
 
 void TNodeJsFOut::write(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -589,7 +587,7 @@ void TNodeJsFOut::write(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	} else {
         EFailR("Invalid type passed to fout.write() function.");
     }
-    
+
     Args.GetReturnValue().Set(Args.Holder());
 }
 

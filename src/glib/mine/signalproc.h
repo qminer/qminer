@@ -70,8 +70,11 @@ public:
 	void Save(TSOut& SOut) const;
 
     bool IsInit() const { return (TmMSecs > 0); }
+	/// Resets the model state
+	void Reset() { Ma = 0.0; TmMSecs = 0; }
 	void Update(const double& InVal, const uint64& InTmMSecs,
         const TFltV& OutValV, const TUInt64V& OutTmMSecs, const int& N);	
+	void Update(const TFltV& InValV, const TUInt64V& InTmMSecsV, const TFltV& OutValV, const TUInt64V& OutTmMSecs, const int& N) { throw  TExcept::New("TSignalProc::TMa, delayed Update not implemented"); }
 	double GetValue() const { return Ma; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
 	void Clr() { Ma = 0; TmMSecs = 0; }
@@ -93,8 +96,12 @@ public:
 	void Save(TSOut& SOut) const;
 
     bool IsInit() const { return (TmMSecs > 0); }
+	/// Resets the model state
+	void Reset() { Sum = 0; TmMSecs = 0; }
 	void Update(const double& InVal, const uint64& InTmMSecs,
 		const TFltV& OutValV, const TUInt64V& OutTmMSecs);
+	void Update(const TFltV& InValV, const TUInt64V& InTmMSecsV, const TFltV& OutValV, const TUInt64V& OutTmMSecs) { throw  TExcept::New("TSignalProc::TSum, delayed Update not implemented"); }
+
 	double GetValue() const { return Sum; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
 };
@@ -115,8 +122,11 @@ public:
 	void Save(TSOut& SOut) const;
 
     bool IsInit() const { return (TmMSecs > 0); }
+	/// Resets the model state
+	void Reset() { Min = TFlt::Mx; TmMSecs = 0; }
 	void Update(const double& InVal, const uint64& InTmMSecs,
 		const TFltV& OutValV, const TUInt64V& OutTmMSecs);
+	void Update(const TFltV& InValV, const TUInt64V& InTmMSecsV, const TFltV& OutValV, const TUInt64V& OutTmMSecs) { throw  TExcept::New("TSignalProc::TMin, delayed Update not implemented"); }
 	double GetValue() const { return Min; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
 };
@@ -137,8 +147,11 @@ public:
 	void Save(TSOut& SOut) const;
 
     bool IsInit() const { return (TmMSecs > 0); }
+	/// Resets the model state
+	void Reset() { Max = TFlt::Mn; TmMSecs = 0; }
 	void Update(const double& InVal, const uint64& InTmMSecs,
 		const TFltV& OutValV, const TUInt64V& OutTmMSecs);
+	void Update(const TFltV& InValV, const TUInt64V& InTmMSecsV, const TFltV& OutValV, const TUInt64V& OutTmMSecs) { throw  TExcept::New("TSignalProc::TMax, delayed Update not implemented"); }
 	double GetValue() const { return Max; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
 };
@@ -177,6 +190,8 @@ public:
 	void Update(const double& Val, const uint64& NewTmMSecs);
 	// current status
 	bool IsInit() const { return InitP; }
+	/// Resets the aggregate
+	void Reset();
 	double GetValue() const { return Ema; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
 };
@@ -198,8 +213,12 @@ public:
 	void Save(TSOut& SOut) const;
 
     bool IsInit() const { return (TmMSecs > 0); }
+	/// Resets the model state
+	void Reset() { Ma = 0.0; M2 = 0.0; TmMSecs = 0; pNo = 1; }
 	void Update(const double& InVal, const uint64& InTmMSecs,
         const TFltV& OutValV, const TUInt64V& OutTmMSecsV, const int& N);
+	void Update(const TFltV& InValV, const TUInt64V& InTmMSecsV, const TFltV& OutValV, const TUInt64V& OutTmMSecs, const int& N) { throw  TExcept::New("TSignalProc::TVar, delayed Update not implemented"); }
+
 	// current status	
 	double GetValue() const { return (pNo > 1) ? (M2 / (pNo - 1)) : 0; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
@@ -217,7 +236,8 @@ private:
 public:
 	TCov() { };
     TCov(const PJsonVal& ParamVal) { };
-
+	/// Resets the aggregates
+	void Reset() { TmMSecs = 0; Cov = 0.0; pNo = 0.0; MaX = 0.0; MaY = 0.0; }
 	void Update(const double& InValX, const double& InValY, const uint64& InTmMSecs, 
         const TFltV& OutValVX, const TFltV& OutValVY, const TUInt64V& OutTmMSecsV, const int& N);	
 	double GetCov() const { return (pNo > 1) ? (Cov / (pNo - 1)) : 0; }
@@ -266,6 +286,8 @@ public:
     
     /// Is buffered initialized 
     bool IsInit() const { return ValV.Len() == BufferLen; }
+	/// Resets the buffer
+	void Reset() { NextValN = 0; ValV.Gen(0); }
     /// Is buffer empty
     bool Empty() const { return ValV.Empty(); }
     /// Number of elements at the moment
@@ -451,7 +473,7 @@ protected:
 	TLinkedBuffer<TPair<TUInt64, TFlt>> Buff;
 
 	TBufferedInterpolator(const TStr& InterpolatorType);
-	TBufferedInterpolator(TSIn& SIn);
+	TBufferedInterpolator(const TStr& InterpolatorType, TSIn& SIn);
 
 public:
 	virtual void Save(TSOut& SOut) const;
@@ -732,6 +754,9 @@ public:
 	/// Initializes the object, resets current content is present
 	void Init(const double& LBound, const double& UBound, const int& Bins, const bool& AddNegInf, const bool& AddPosInf);
 
+	/// Resets the counts
+	void Reset();
+
 	/// Loads the model from stream
 	void Load(TSIn& SIn) { *this = TOnlineHistogram(SIn); }
 	/// Saves the model to stream
@@ -763,13 +788,19 @@ public:
 /////////////////////////////////////////////////
 /// Chi square
 class TChiSquare {
-private:	       
-	TFlt Chi2, P;
+private:	     
+	// state
+	TFlt Chi2;
+	TFlt P;
+	// parameters
 	TInt DegreesOfFreedom;
 public:
 	TChiSquare() : P(TFlt::PInf) { }
 	TChiSquare(const PJsonVal& ParamVal);
-	void Update(const TFltV& OutValVX, const TFltV& OutValVY, const int Dof);
+	/// Reset
+	void Reset() { Chi2 = 0; P = TFlt::PInf; }
+	/// Compute two sample chi2 test
+	void Update(const TFltV& OutValVX, const TFltV& OutValVY);
 	/// Return Chi2 value
 	double GetChi2() const { return Chi2; }
 	/// Return P value
@@ -777,6 +808,11 @@ public:
 	int GetDof() const {return DegreesOfFreedom;}
 	/// Prints the model
 	void Print() const;
+
+	/// Load from stream
+	void LoadState(TSIn& SIn);
+	/// Store state into stream
+	void SaveState(TSOut& SOut) const;
 };
 
 }

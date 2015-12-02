@@ -195,6 +195,7 @@ typedef TTriple<TInt, TInt, TStr> TIntIntStrTr;
 typedef TTriple<TInt, TInt, TFlt> TIntIntFltTr;
 typedef TTriple<TInt, TFlt, TInt> TIntFltIntTr;
 typedef TTriple<TInt, TFlt, TFlt> TIntFltFltTr;
+typedef TTriple<TFlt, TInt, TFlt> TFltIntFltTr;
 typedef TTriple<TInt, TVec<TInt, int>, TInt> TIntIntVIntTr;
 typedef TTriple<TInt, TInt, TVec<TInt, int> > TIntIntIntVTr;
 typedef TTriple<TFlt, TFlt, TFlt> TFltTr;
@@ -665,7 +666,7 @@ public:
     //ValT[ValN2] = ValT[ValN1]; } // C++98
   /// Swaps elements at positions \c ValN1 and \c ValN2.
   void Swap(const TSizeTy& ValN1, const TSizeTy& ValN2){ 
-    std::swap(ValT[ValN1], ValT[ValN2]); } // C++11
+    Assert(0 <= ValN1 && ValN1 < Len() && 0 <= ValN2 && ValN2 < Len());	std::swap(ValT[ValN1], ValT[ValN2]); } // C++11
     // const TVal Val=ValT[ValN1]; ValT[ValN1]=ValT[ValN2]; ValT[ValN2]=Val;} // C++98
   /// Swaps the elements that iterators \c LVal and \c RVal point to.
   static void SwapI(TIter LVal, TIter RVal){ const TVal Val=*LVal; *LVal=*RVal; *RVal=Val;}
@@ -677,17 +678,18 @@ public:
   
   // Sorting functions
   /// Picks three random elements at positions <tt>LValN...RValN</tt> and returns the middle one.
-  TSizeTy GetPivotValN(const TSizeTy& LValN, const TSizeTy& RValN) const;
+  TSizeTy GetPivotValN(const TSizeTy& LValN, const TSizeTy& RValN, TRnd& Rnd) const;
   /// Bubble sorts the values between positions <tt>MnLValN...MxLValN</tt>. ##TVec::BSort
   void BSort(const TSizeTy& MnLValN, const TSizeTy& MxRValN, const bool& Asc);
   /// Insertion sorts the values between positions <tt>MnLValN...MxLValN</tt>. ##TVec::ISort
   void ISort(const TSizeTy& MnLValN, const TSizeTy& MxRValN, const bool& Asc);
   /// Partitions the values between positions <tt>MnLValN...MxLValN</tt>. ##TVec::Partition
-  TSizeTy Partition(const TSizeTy& MnLValN, const TSizeTy& MxRValN, const bool& Asc);
+  TSizeTy Partition(const TSizeTy& MnLValN, const TSizeTy& MxRValN, const bool& Asc, TRnd& Rnd);
   /// Quick sorts the values between positions <tt>MnLValN...MxLValN</tt>. ##TVec::QSort
-  void QSort(const TSizeTy& MnLValN, const TSizeTy& MxRValN, const bool& Asc);
+  void QSort(const TSizeTy& MnLValN, const TSizeTy& MxRValN, const bool& Asc, TRnd& Rnd);
   /// Sorts the elements of the vector. ##TVec::Sort
-  void Sort(const bool& Asc=true);
+  void Sort(TRnd& Rnd, const bool& Asc=true);
+  void Sort(const bool& Asc=true) { TRnd Rnd; Sort(Rnd, Asc); }
   /// Sorts the elements of the vector in a new copy and returns the permutation. ##TVec::SortGetPerm
   static void SortGetPerm(const TVec<TVal, TSizeTy>& Vec, TVec<TVal, TSizeTy>& SortedVec, TVec<TInt, TSizeTy>& PermV, bool Asc = true);
   /// Checks whether the vector is sorted in ascending (if \c Asc=true) or descending (if \c Asc=false) order.
@@ -913,14 +915,14 @@ void TVec<TVal, TSizeTy>::Resize(const TSizeTy& _MxVals){
   }
   if (ValT==NULL){
     try {ValT=new TVal[MxVals];}
-    catch (std::exception Ex){
+    catch (std::exception& Ex){
       FailR(TStr::Fmt("TVec::Resize: %s, Length:%s, Capacity:%s, New capacity:%s, Type:%s [Program failed to allocate more memory. Solution: Get a bigger machine and a 64-bit compiler.]",
         Ex.what(), TInt::GetStr(Vals).CStr(), TInt::GetStr(MxVals).CStr(), TInt::GetStr(_MxVals).CStr(), GetTypeNm(*this).CStr()).CStr());}
   } else {
     TVal* NewValT = NULL;
     try {
       NewValT=new TVal[MxVals];}
-    catch (std::exception Ex){
+    catch (std::exception& Ex){
       FailR(TStr::Fmt("TVec::Resize: %s, Length:%s, Capacity:%s, New capacity:%s, Type:%s [Program failed to allocate more memory. Solution: Get a bigger machine and a 64-bit compiler.]",
         Ex.what(), TInt::GetStr(Vals).CStr(), TInt::GetStr(MxVals).CStr(), TInt::GetStr(_MxVals).CStr(), GetTypeNm(*this).CStr()).CStr());}
     IAssert(NewValT!=NULL);
@@ -1322,12 +1324,12 @@ void TVec<TVal, TSizeTy>::ISort(const TSizeTy& MnLValN, const TSizeTy& MxRValN, 
 }
 
 template <class TVal, class TSizeTy>
-TSizeTy TVec<TVal, TSizeTy>::GetPivotValN(const TSizeTy& LValN, const TSizeTy& RValN) const {
+TSizeTy TVec<TVal, TSizeTy>::GetPivotValN(const TSizeTy& LValN, const TSizeTy& RValN, TRnd& Rnd) const {
   TSizeTy SubVals=RValN-LValN+1;
   if (SubVals > TInt::Mx-1) { SubVals = TInt::Mx-1; }
-  const TSizeTy ValN1=LValN+TInt::GetRnd(int(SubVals));
-  const TSizeTy ValN2=LValN+TInt::GetRnd(int(SubVals));
-  const TSizeTy ValN3=LValN+TInt::GetRnd(int(SubVals));
+  const TSizeTy ValN1=LValN+Rnd.GetUniDevInt(int(SubVals));
+  const TSizeTy ValN2=LValN+Rnd.GetUniDevInt(int(SubVals));
+  const TSizeTy ValN3=LValN+Rnd.GetUniDevInt(int(SubVals));
   const TVal& Val1=ValT[ValN1];
   const TVal& Val2=ValT[ValN2];
   const TVal& Val3=ValT[ValN3];
@@ -1343,8 +1345,9 @@ TSizeTy TVec<TVal, TSizeTy>::GetPivotValN(const TSizeTy& LValN, const TSizeTy& R
 }
 
 template <class TVal, class TSizeTy>
-TSizeTy TVec<TVal, TSizeTy>::Partition(const TSizeTy& MnLValN, const TSizeTy& MxRValN, const bool& Asc){
-  TSizeTy PivotValN=GetPivotValN(MnLValN, MxRValN);
+TSizeTy TVec<TVal, TSizeTy>::Partition(const TSizeTy& MnLValN, const TSizeTy& MxRValN, const bool& Asc, TRnd& Rnd){
+  TSizeTy PivotValN=GetPivotValN(MnLValN, MxRValN, Rnd);
+  Assert(MnLValN <= PivotValN && PivotValN <= MxRValN);
   Swap(PivotValN, MnLValN);
   TVal PivotVal=ValT[MnLValN];
   TSizeTy LValN=MnLValN-1;  TSizeTy RValN=MxRValN+1;
@@ -1362,21 +1365,21 @@ TSizeTy TVec<TVal, TSizeTy>::Partition(const TSizeTy& MnLValN, const TSizeTy& Mx
 }
 
 template <class TVal, class TSizeTy>
-void TVec<TVal, TSizeTy>::QSort(const TSizeTy& MnLValN, const TSizeTy& MxRValN, const bool& Asc){
+void TVec<TVal, TSizeTy>::QSort(const TSizeTy& MnLValN, const TSizeTy& MxRValN, const bool& Asc, TRnd& Rnd){
   if (MnLValN<MxRValN){
     if (MxRValN-MnLValN<20){
       ISort(MnLValN, MxRValN, Asc);
     } else {
-      TSizeTy SplitValN=Partition(MnLValN, MxRValN, Asc);
-      QSort(MnLValN, SplitValN, Asc);
-      QSort(SplitValN+1, MxRValN, Asc);
+      TSizeTy SplitValN=Partition(MnLValN, MxRValN, Asc, Rnd);
+      QSort(MnLValN, SplitValN, Asc, Rnd);
+      QSort(SplitValN+1, MxRValN, Asc, Rnd);
     }
   }
 }
 
 template <class TVal, class TSizeTy>
-void TVec<TVal, TSizeTy>::Sort(const bool& Asc){
-  QSort(0, Len()-1, Asc);
+void TVec<TVal, TSizeTy>::Sort(TRnd& Rnd, const bool& Asc){
+  QSort(0, Len()-1, Asc, Rnd);
 }
 
 template <class TVal, class TSizeTy>
@@ -1709,6 +1712,8 @@ typedef TVec<TIntStrPr> TIntStrPrV;
 typedef TVec<TIntIntStrTr> TIntIntStrTrV;
 typedef TVec<TIntIntFltTr> TIntIntFltTrV;
 typedef TVec<TIntFltIntTr> TIntFltIntTrV;
+typedef TVec<TIntFltFltTr> TIntFltFltTrV;
+typedef TVec<TFltIntFltTr> TFltIntFltTrV;
 typedef TVec<TIntStrIntTr> TIntStrIntTrV;
 typedef TVec<TIntKd> TIntKdV;
 typedef TVec<TUIntIntKd> TUIntIntKdV;
@@ -1825,7 +1830,8 @@ public:
   /// Deletes all elements of value \c DelVal from all vectors. ##TVecPool::CompactPool
   void CompactPool(const TVal& DelVal);
   /// Shuffles the order of all elements in the pool. ##TVecPool::ShuffleAll
-  void ShuffleAll(TRnd& Rnd=TInt::Rnd);
+  void ShuffleAll(TRnd& Rnd);
+  void ShuffleAll() { TRnd Rnd; ShuffleAll(Rnd); }
   
   /// Clears the contents of the pool. ##TVecPool::Clr
   void Clr(bool DoDel = true) {
@@ -1843,7 +1849,7 @@ void TVecPool<TVal, TSizeTy>::Resize(const TSize& _MxVals){
   if (_MxVals <= MxVals){ return; } else { MxVals = _MxVals; }
   if (ValBf == NULL) {
     try { ValBf = new TVal [MxVals]; }
-    catch (std::exception Ex) {
+    catch (std::exception& Ex) {
       FailR(TStr::Fmt("TVecPool::Resize 1: %s, MxVals: %s. [Program failed to allocate more memory. Solution: Get a bigger machine and a 64-bit compiler.]", Ex.what(), TInt::GetStr(uint64(_MxVals)).CStr()).CStr()); }
     IAssert(ValBf != NULL);
     if (EmptyVal != TVal()) { PutAll(EmptyVal); }
@@ -1851,7 +1857,7 @@ void TVecPool<TVal, TSizeTy>::Resize(const TSize& _MxVals){
     // printf("*** Resize vector pool: %llu -> %llu\n", uint64(Vals), uint64(MxVals));
     TVal* NewValBf = NULL;
     try { NewValBf = new TVal [MxVals]; }
-    catch (std::exception Ex) {
+    catch (std::exception& Ex) {
       FailR(TStr::Fmt("TVecPool::Resize 1: %s, MxVals: %s. [Program failed to allocate more memory. Solution: Get a bigger machine and a 64-bit compiler.]", Ex.what(), TInt::GetStr(uint64(_MxVals)).CStr()).CStr()); }
     IAssert(NewValBf != NULL);
     if (FastCopy) {
@@ -2004,7 +2010,7 @@ private:
 	class TNode {
 	public:
 		TNode* Next;
-		const TVal Val;
+		TVal Val;
 
 		TNode(TNode* Next, const TVal& Val);
 	};
@@ -2022,7 +2028,7 @@ public:
 
 	void Push(const TVal& Val);
 	TVal Pop();
-	const TVal& Peek();
+	TVal& Peek();
 	void DelFirst();
 
 	bool Empty() const { return Len() == 0; };
@@ -2092,7 +2098,7 @@ TVal TLinkedQueue<TVal, TSizeTy>::Pop() {
 }
 
 template <class TVal, class TSizeTy>
-const TVal& TLinkedQueue<TVal, TSizeTy>::Peek() {
+TVal& TLinkedQueue<TVal, TSizeTy>::Peek() {
 	IAssertR(!Empty(), "Cannot peek when the queue is empty!");
 	return First->Val;
 }
@@ -2179,7 +2185,8 @@ public:
     }
   }
   void CompactPool(const TVal& DelVal); // delete all elements of value DelVal from all vectors
-  void ShuffleAll(TRnd& Rnd=TInt::Rnd); // shuffles all the order of elements in the Pool (does not respect vector boundaries)
+  void ShuffleAll(TRnd& Rnd); // shuffles all the order of elements in the Pool (does not respect vector boundaries)
+  void ShuffleAll() { TRnd Rnd; ShuffleAll(Rnd); }
 
   //bool HasIdMap() const { return ! IdToOffV.Empty(); }
   //void ClrIdMap() { IdToOffV.Clr(true); }
@@ -3341,3 +3348,97 @@ public:
     Fail; return false;}
   TFuncPt operator()() const {return FuncPt;}
 };
+
+//#//////////////////////////////////////////////
+/// Simple heap data structure. ##THeap
+template <class TVal, class TCmp = TLss<TVal> >
+class THeap {
+private:
+  TCmp Cmp;
+  TVec<TVal> HeapV;
+private:
+  void PushHeap(const int& First, int HoleIdx, const int& Top, TVal Val);
+  void AdjustHeap(const int& First, int HoleIdx, const int& Len, TVal Val);
+  void MakeHeap(const int& First, const int& Len);
+public:
+  THeap() : HeapV() { }
+  THeap(const int& MxVals) : Cmp(), HeapV(MxVals, 0) { }
+  THeap(const TCmp& _Cmp) : Cmp(_Cmp), HeapV() { }
+  THeap(const TVec<TVal>& Vec) : Cmp(), HeapV(Vec) { MakeHeap(); }
+  THeap(const TVec<TVal>& Vec, const TCmp& _Cmp) : Cmp(_Cmp), HeapV(Vec) { MakeHeap(); }
+  THeap(const THeap& Heap) : Cmp(Heap.Cmp), HeapV(Heap.HeapV) { }
+  THeap& operator = (const THeap& H) { Cmp=H.Cmp; HeapV=H.HeapV; return *this; }
+
+  /// Returns a reference to the element at the top of the heap (the largest element of the heap).
+  const TVal& TopHeap() const { return HeapV[0]; }
+  /// Pushes an element \c Val to the heap.
+  void PushHeap(const TVal& Val);
+  /// Removes the top element from the heap.
+  TVal PopHeap();
+  /// Returns the number of elements in the heap.
+  int Len() const { return HeapV.Len(); }
+  /// Tests whether the heap is empty.
+  bool Empty() const { return HeapV.Empty(); }
+  /// Returns a reference to the vector containing the elements of the heap.
+  const TVec<TVal>& operator()() const { return HeapV; }
+  /// Returns a reference to the vector containing the elements of the heap.
+  TVec<TVal>& operator()() { return HeapV; }
+  /// Adds an element to the data structure. Heap property is not maintained by \c Add() and thus after all the elements are added \c MakeHeap() needs to be called.
+  void Add(const TVal& Val) { HeapV.Add(Val); }
+  /// Builds a heap from a set of elements.
+  void MakeHeap() { MakeHeap(0, Len()); }
+};
+
+template <class TVal, class TCmp>
+void THeap<TVal, TCmp>::PushHeap(const TVal& Val) {
+  HeapV.Add(Val);
+  PushHeap(0, HeapV.Len()-1, 0, Val);
+}
+
+template <class TVal, class TCmp>
+TVal THeap<TVal, TCmp>::PopHeap() {
+  IAssert(! HeapV.Empty());
+  const TVal Top = HeapV[0];
+  HeapV[0] = HeapV.Last();
+  HeapV.DelLast();
+  if (! HeapV.Empty()) {
+    AdjustHeap(0, 0, HeapV.Len(), HeapV[0]);
+  }
+  return Top;
+}
+
+template <class TVal, class TCmp>
+void THeap<TVal, TCmp>::PushHeap(const int& First, int HoleIdx, const int& Top, TVal Val) {
+  int Parent = (HoleIdx-1)/2;
+  while (HoleIdx > Top && Cmp(HeapV[First+Parent], Val)) {
+    HeapV[First+HoleIdx] = HeapV[First+Parent];
+    HoleIdx = Parent;  Parent = (HoleIdx-1)/2;
+  }
+  HeapV[First+HoleIdx] = Val;
+}
+
+template <class TVal, class TCmp>
+void THeap<TVal, TCmp>::AdjustHeap(const int& First, int HoleIdx, const int& Len, TVal Val) {
+  const int Top = HoleIdx;
+  int Right = 2*HoleIdx+2;
+  while (Right < Len) {
+    if (Cmp(HeapV[First+Right], HeapV[First+Right-1])) { Right--; }
+    HeapV[First+HoleIdx] = HeapV[First+Right];
+    HoleIdx = Right;  Right = 2*(Right+1); }
+  if (Right == Len) {
+    HeapV[First+HoleIdx] = HeapV[First+Right-1];
+    HoleIdx = Right-1; }
+  PushHeap(First, HoleIdx, Top, Val);
+}
+
+template <class TVal, class TCmp>
+void THeap<TVal, TCmp>::MakeHeap(const int& First, const int& Len) {
+  if (Len < 2) { return; }
+  int Parent = (Len-2)/2;
+  while (true) {
+    AdjustHeap(First, Parent, Len, HeapV[First+Parent]);
+    if (Parent == 0) { return; }
+    Parent--;
+  }
+}
+

@@ -246,12 +246,12 @@ private:
 * // Each movie has a property corresponding to the join name: 'director'. 
 * // Accessing the property returns a {@link module:qm.Record} from the store People.
 * var person = movie.director; // get the director
-* console.log(person.name); // prints 'Jim Jarmusch'
+* var personName = person.name; // get person's name ('Jim Jarmusch')
 * // Each person has a property corresponding to the join name: 'directed'. 
 * // Accessing the property returns a {@link module:qm.RecSet} from the store People.
 * var movies = person.directed; // get all the movies the person directed.
-* movies.each(function (movie) { console.log(movie.title); }); 
-* // prints: 
+* movies.each(function (movie) { var title = movie.title; });
+* // Gets the following titles:
 * //   'Broken Flowers'
 * //   'Coffee and Cigarettes'
 * base.close();
@@ -987,6 +987,12 @@ private:
 	JsDeclareFunction(getStreamAggr);
 
 	/**
+	* Resets all stream aggregates.
+	*/
+	//# exports.Store.prototype.resetStreamAggregates = function () { }
+	JsDeclareFunction(resetStreamAggregates);
+
+	/**
 	* Returns an array of the stream aggregates names connected to the store.
 	* @returns {Array.<string>} An array of stream aggregates names.
 	*/
@@ -1385,6 +1391,30 @@ private:
 	JsDeclareSetProperty(getField, setField);
 	JsDeclareProperty(join);
 	JsDeclareProperty(sjoin);
+};
+
+class TNodeJsRecByValV: public node::ObjectWrap {
+	friend class TNodeJsUtil;
+private:
+	// Node framework
+	static v8::Persistent<v8::Function> Constructor;
+public:
+	// Node framework
+	static void Init(v8::Handle<v8::Object> Exports);
+	static const TStr GetClassId() { return "RecordVector"; }
+
+	TVec<TQm::TRec> RecV;
+
+	TNodeJsRecByValV(): RecV() {}
+
+	static TNodeJsRecByValV* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+private:
+	/**
+	 * Adds a new record to the vector.
+	 */
+	//# exports.RecVector.prototype.push = function (rec) {};
+	JsDeclareFunction(push);
 };
 
 ///////////////////////////////
@@ -2644,7 +2674,8 @@ public:
 * @property {number} [FeatureExtractorMultinomial.hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hashDimension to get the corresponding dimension.
 * @property {Object} [FeatureExtractorMultinomial.datetime = false] - Same as 'values', only with predefined values which are extracted from date and time (month, day of month, day of week, time of day, hour).
 * <br> This fixes the dimensionality of feature extractor at the start, making it not dimension as new dates are seen. Cannot be used the same time as values.
-* @property {string} FeatureExtractorMultinomial.field - The name of the field from which to take the value.
+* @property {(string|Array.<String>)} FeatureExtractorMultinomial.field - The name of the field from which to take the key value.
+* @property {(string|Array.<String>)} [FeatureExtractorMultinomial.valueField] - The name of the field from which to take the numeric value. When not provided, 1.0 is used as default numeric values for non-zero elements in the vector.
 * @property {module:qm~FeatureSource} FeatureExtractorMultinomial.source - The source of the extractor.
 * @example
 * var qm = require('qminer');
@@ -2930,8 +2961,36 @@ public:
 	TNodeJsFtrSpace(const TWPt<TQm::TBase> Base, TSIn& SIn);
 	
 	TQm::PFtrSpace GetFtrSpace() { return FtrSpace; }
-public:
 	static TNodeJsFtrSpace* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+private:
+	class TUpdateRecsTask: public TNodeTask {
+	private:
+		TNodeJsFtrSpace* JsFtrSpace;
+		TNodeJsRecByValV* JsRecV;
+
+	public:
+		TUpdateRecsTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+		v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+		void Run();
+	};
+
+    class TExtractMatrixTask: public TNodeTask {
+    private:
+    	TNodeJsFtrSpace* JsFtrSpace;
+    	TNodeJsRecByValV* JsRecV;
+    	TNodeJsFltVV* JsFtrVV;
+
+    public:
+    	TExtractMatrixTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+    	v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+    	void Run();
+    	v8::Local<v8::Value> WrapResult();
+    };
+
+public:
 
     /**
 	* Returns the dimension of the feature space.
@@ -3117,6 +3176,8 @@ public:
 	//# exports.FeatureSpace.prototype.updateRecords = function (rs) { return Object.create(require('qminer').FeatureSpace.prototype); };
 	JsDeclareFunction(updateRecords);
 
+	JsDeclareAsyncFunction(updateRecordsAsync, TUpdateRecsTask);
+
 	/**
 	* Creates a sparse feature vector from the given record.
 	* @param {module:qm.Record} rec - The given record.
@@ -3280,6 +3341,8 @@ public:
 	*/
 	//# exports.FeatureSpace.prototype.extractMatrix = function (rs) { return Object.create(require('qminer').la.Matrix.prototype); };
     JsDeclareFunction(extractMatrix);
+
+    JsDeclareAsyncFunction(extractMatrixAsync, TExtractMatrixTask);
 
 	/**
 	* Gives the name of feature extractor at given position.

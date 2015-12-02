@@ -8,7 +8,7 @@
 var nodefs = require('fs');
 var util = require('util');
 
-module.exports = exports = function (pathQmBinary) {    
+module.exports = exports = function (pathQmBinary) {
     var qm = require(pathQmBinary); // This loads only c++ functions of qm
     var fs = qm.fs;
     exports = qm;
@@ -35,14 +35,20 @@ module.exports = exports = function (pathQmBinary) {
      * @param {function} [callback] - Callback function, called on errors and when the procedure finishes.
      */
     exports.Base.prototype.loadCSV = function (opts, callback) {
-    	console.log('Loading CSV file ...');
+    	// console.log('Loading CSV file ...');
 
     	if (opts.delimiter == null) opts.delimiter = ',';
     	if (opts.quote == null) opts.quote = '"';
     	if (opts.ignoreFields == null) opts.ignoreFields = [];
     	if (opts.file == null) throw new Error('Missing parameter file!');
 
-    	if (callback == null) callback = function (e) { if (e != null) console.log(e.stack); }
+    	if (callback == null) {
+            callback = function (e) {
+                if (e != null) {
+                    // console.log(e.stack);
+                }
+            }
+        }
 
     	try {
     		var base = this;
@@ -97,8 +103,9 @@ module.exports = exports = function (pathQmBinary) {
     				}
     			}
 
-    			if (fieldTypesInitialized())
-    				console.log('Fields initialized: ' + JSON.stringify(fieldTypes));
+    			if (fieldTypesInitialized()) {
+    				// console.log('Fields initialized: ' + JSON.stringify(fieldTypes));
+                }
     		}
 
     		function fieldTypesInitialized() {
@@ -144,7 +151,7 @@ module.exports = exports = function (pathQmBinary) {
 	    				});
 	    			}
 
-	    			console.log('Creating store with definition ' + JSON.stringify(storeDef) + ' ...');
+	    			// console.log('Creating store with definition ' + JSON.stringify(storeDef) + ' ...');
 
 	    			base.createStore(storeDef);
 	    			store = base.store(storeName);
@@ -160,7 +167,7 @@ module.exports = exports = function (pathQmBinary) {
 
 			var storeCreated = false;
 			var line = 0;
-			console.log('Saving CSV to store ' + storeName + ' ' + fname + ' ...');
+			// console.log('Saving CSV to store ' + storeName + ' ' + fname + ' ...');
 
 			var fin = new fs.FIn(fname);
 			fs.readCsvLines(fin, {
@@ -171,12 +178,13 @@ module.exports = exports = function (pathQmBinary) {
 							for (var i = 0; i < lineArr.length; i++) {
 								headers.push(lineArr[i].replace(/\s+/g, '_').replace(/\.|%|\(|\)|\/|-|\+/g, '')) 	// remove invalid characters
 							}
-							console.log('Headers initialized: ' + JSON.stringify(headers));
+							// console.log('Headers initialized: ' + JSON.stringify(headers));
 						}
 						else {
-							if (line % 1000 == 0)
-								console.log(line + '');
-
+							if (line % 1000 == 0) {
+								// console.log(line + '');
+                            }
+                            
 							var data = transformLine(lineArr);
 
 							if (fieldTypes == null)
@@ -193,13 +201,13 @@ module.exports = exports = function (pathQmBinary) {
 								buff.push(data);
 						}
 					} catch (e) {
-						console.log('Exception while reading CSV lines: ' + e.stack);
+						// console.log('Exception while reading CSV lines: ' + e.stack);
 						callback(e);
 					}
 				},
 				onEnd: function () {
 					// finished
-					console.log('Finished!');
+					// console.log('Finished!');
 
 					if (callback != null) {
 			   			if (!fieldTypesInitialized()) {
@@ -271,7 +279,7 @@ module.exports = exports = function (pathQmBinary) {
                 count++;
                 if (limit != undefined && count == limit) { break; }
             } catch (err) {
-                console.log("Error parsing [" + line + "]: " + err)
+                // console.log("Error parsing [" + line + "]: " + err)
             }
         }
         return count;

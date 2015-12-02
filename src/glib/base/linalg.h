@@ -216,8 +216,8 @@ public:
 	template <class TVal, class TSizeTy>
 	static void Range(const int& Dim, TVec<TVal, TSizeTy>& RangeV) {
 		if (RangeV.Len() != Dim) { RangeV.Gen(Dim); }
-		for (int i = 0; i < Dim; i++) {
-			RangeV[i] = i;
+		for (TSizeTy i = 0; i < Dim; i++) {
+			RangeV[i] = TVal(i);
 		}
 	}
 
@@ -1976,8 +1976,10 @@ public:
  	void TLinAlg::GetColNorm2V(const TFltVV& X, TFltV& ColNormV) {
  		const int Cols = X.GetCols();
  		ColNormV.Gen(Cols);
- 		for (int i = 0; i < Cols; i++) {
- 			ColNormV[i] = Norm2(X, i);
+
+		#pragma omp parallel for
+ 		for (int ColN = 0; ColN < Cols; ColN++) {
+ 			ColNormV[ColN] = Norm2(X, ColN);
  		}
  	}
 
@@ -2062,7 +2064,11 @@ public:
 	// find the index of maximum elements for each col of X
 	void TLinAlg::GetColMinIdxV(const TFltVV& X, TIntV& IdxV) {
 		int Cols = X.GetCols();
-		IdxV.Gen(X.GetCols());
+
+		if (IdxV.Empty()) { IdxV.Gen(Cols); }
+		EAssert(IdxV.Len() == Cols);
+
+		#pragma omp parallel for
 		for (int ColN = 0; ColN < Cols; ColN++) {
 			IdxV[ColN] = GetColMinIdx(X, ColN);
 		}

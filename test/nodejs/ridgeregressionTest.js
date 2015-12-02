@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -22,16 +22,6 @@ describe('Ridge Regression Tests', function () {
             var RR = new analytics.RidgeReg();
             var param = RR.getParams();
             assert.equal(param.gamma, 0);
-        })
-        it('should not throw an exception, gamma parameter', function () {
-            assert.doesNotThrow(function () {
-                var RR = new analytics.RidgeReg(5);
-            });
-        })
-        it('should create a new ridge regression model, gamma parameter', function () {
-            var RR = new analytics.RidgeReg(1);
-            var param = RR.getParams();
-            assert.equal(param.gamma, 1);
         })
         it('should not throw an exception, json parameter', function () {
             assert.doesNotThrow(function () {

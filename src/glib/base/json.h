@@ -114,7 +114,7 @@ public:
   bool GetBool() const {EAssert(IsBool()); return Bool;}
   double GetNum() const {EAssert(IsNum()); return Num;}
   int GetInt() const {EAssert(IsNum()); return TFlt::Round(Num);}
-  uint64 GetUInt64() const {EAssert(IsNum()); return uint64(Num);}
+  uint64 GetUInt64() const {EAssert(IsNum()); return (unsigned)(int64)(Num);}
   int64 GetInt64() const { EAssert(IsNum()); return int64(Num); }
   const TStr& GetStr() const {EAssert(IsStr()); return Str;}
   uint64 GetTmMSecs() const { return TTm::GetMSecsFromTm(GetTm()); }

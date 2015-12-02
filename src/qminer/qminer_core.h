@@ -1253,6 +1253,82 @@ public:
 	}
 };
 
+///////////////////////////////////////////////
+/// Field value reader.
+/// Utility functions for extracting and casting basic types out of records.
+class TFieldReader {
+private:
+    /// Store Id
+    TUInt StoreId;
+    /// Field Id
+	TIntV FieldIdV;
+    /// Field description
+    TFieldDescV FieldDescV;
+
+    /// Extract string fields out of date
+	void ParseDate(const TTm& Tm, TStrV& StrV) const;
+
+    /// Assert field can provide double values
+    static bool IsFlt(const TFieldDesc& FieldDesc);
+    /// Assert field can provide double values
+    static bool IsFltV(const TFieldDesc& FieldDesc);
+    /// Assert field can provide double values
+    static bool IsNumSpV(const TFieldDesc& FieldDesc);
+    /// Assert field can provide double values
+    static bool IsStr(const TFieldDesc& FieldDesc);
+    /// Assert field can provide double values
+    static bool IsStrV(const TFieldDesc& FieldDesc);
+    /// Assert field can provide double values
+    static bool IsTmMSecs(const TFieldDesc& FieldDesc);
+
+    /// Pointer to function which checks specific field for type
+	typedef bool (*TIsFun)(const TFieldDesc& FieldDesc);
+    /// Apply given function to all fields and return true of all tests pass
+    bool IsAll(TIsFun IsFun) const;
+
+public:
+    TFieldReader() { }
+    /// Create reader from single field
+    TFieldReader(const uint& _StoreId, const int& FieldId, const TFieldDesc& FieldDesc):
+      StoreId(_StoreId) { FieldIdV.Add(FieldId); FieldDescV.Add(FieldDesc); }
+    /// Create reader from multiple fields
+    TFieldReader(const uint& _StoreId, const TIntV& _FieldIdV, const TFieldDescV& _FieldDescV):
+      StoreId(_StoreId), FieldIdV(_FieldIdV), FieldDescV(_FieldDescV) { }
+
+    /// Assert field can provide double values
+    bool IsFlt() const { return IsAll(IsFlt); }
+    /// Assert field can provide double values
+    bool IsFltV() const { return IsAll(IsFltV); }
+    /// Assert field can provide double values
+    bool IsNumSpV() const { return IsAll(IsNumSpV); }
+    /// Assert field can provide double values
+    bool IsStr() const { return IsAll(IsStr); }
+    /// Assert field can provide double values
+    bool IsStrV() const { return IsAll(IsStrV); }
+    /// Assert field can provide double values
+    bool IsTmMSecs() const { return IsAll(IsTmMSecs); }
+
+    /// Get double from a given record
+	double GetFlt(const TRec& Rec) const;
+    /// Get string vector from a given record
+    void GetFltV(const TRec& FtrRec, TFltV& FltV) const;
+    /// Get string vector from a given record set
+    void GetFltV(const PRecSet& FtrRecSet, TFltV& FltV) const;
+    /// Get sparse vector from a given record
+    void GetNumSpV(const TRec& FtrRec, TIntFltKdV& NumSpV) const;
+    /// Get string from a given record
+    TStr GetStr(const TRec& FtrRec) const;
+    /// Get string vector from a given record
+    void GetStrV(const TRec& FtrRec, TStrV& StrV) const;
+    /// Get string vector from a given record set
+    void GetStrV(const PRecSet& FtrRecSet, TStrV& StrV) const;
+    /// Get miliseconds from a given record
+    uint64 GetTmMSecs(const TRec& FtrRec) const;
+
+    /// Generate all possibe values that can be extracted from date
+    static TStrV GetDateRange();
+};
+
 ///////////////////////////////
 /// Record Set. 
 /// Holds a collection of record IDs from one store.
@@ -1277,10 +1353,10 @@ private:
 private:
 	/// Samples records from result set
 	/// @param SampleSize number of records to sample out
-	/// @param SortedP true when records are ordered according to the weight
+	/// @param WgtSampleP true when records are ordered according to the weight
 	/// @param SampleRecIdFqV reference to vector for storing sampled records
 	void GetSampleRecIdV(const int& SampleSize, 
-		const bool& SortedP, TUInt64IntKdV& SampleRecIdFqV) const;
+		const bool& WgtSampleP, TUInt64IntKdV& SampleRecIdFqV) const;
 	/// Removes records from this result set that are not part of the provided
 	void LimitToSampleRecIdV(const TUInt64IntKdV& SampleRecIdFqV);
 
@@ -1291,6 +1367,11 @@ private:
 	TRecSet(const TWPt<TStore>& Store, const TUInt64IntKdV& _RecIdFqV, const bool& _WgtP);
 	TRecSet(const TWPt<TBase>& Base, TSIn& SIn);
 
+    /// Special access for TIndex and TBase to create weighted record sets
+	/// @param WgtP true when RecIdFqV contains valid weights
+	static PRecSet New(const TWPt<TStore>& Store, const TUInt64IntKdV& RecIdFqV, const bool& WgtP);
+    friend class TIndex;
+    friend class TBase;
 public:
 	/// Create empty set for a given store
 	static PRecSet New(const TWPt<TStore>& Store);
@@ -1303,8 +1384,7 @@ public:
 	/// Create record set from a given vector of record ids
 	static PRecSet New(const TWPt<TStore>& Store, const TIntV& RecIdV);
 	/// Create record set from given vector of (Record id, weight) pairs
-	/// @param WgtP true when RecIdFqV contains valid weights 
-	static PRecSet New(const TWPt<TStore>& Store, const TUInt64IntKdV& RecIdFqV, const bool& WgtP);
+	static PRecSet New(const TWPt<TStore>& Store, const TUInt64IntKdV& RecIdFqV);
 
 	/// Load record set from input stream.
 	static PRecSet Load(const TWPt<TBase>& Base, TSIn& SIn){ return new TRecSet(Base, SIn); }
@@ -1407,7 +1487,7 @@ public:
 	/// Create a cloned record set. Forgets aggregations.
 	PRecSet Clone() const;
 	/// Returns a new record set generated by sampling this one
-	PRecSet GetSampleRecSet(const int& SampleSize, const bool& SortedP) const;
+	PRecSet GetSampleRecSet(const int& SampleSize) const;
 	/// Get record set containing `Limit' records starting from `RecN=Offset'
 	PRecSet GetLimit(const int& Limit, const int& Offset) const;
 
@@ -1428,20 +1508,14 @@ public:
 
 	/// Execute join with the given id
 	/// @param SampleSize Sample size used to do the join. When set to -1, all the records are used.
-	/// @param SortedP True when records in this record set are sorted according the weight, to help with sampling
-	PRecSet DoJoin(const TWPt<TBase>& Base, const int& JoinId, 
-		const int& SampleSize = -1, const bool& SortedP = false) const;
+	PRecSet DoJoin(const TWPt<TBase>& Base, const int& JoinId, const int& SampleSize = -1) const;
 	/// Execute join with the given name
 	/// @param SampleSize Sample size used to do the join. When set to -1, all the records are used.
-	/// @param SortedP True when records in this record set are sorted according the weight, to help with sampling
-	PRecSet DoJoin(const TWPt<TBase>& Base, const TStr& JoinNm, 
-		const int& SampleSize = -1, const bool& SortedP = false) const;
+	PRecSet DoJoin(const TWPt<TBase>& Base, const TStr& JoinNm, const int& SampleSize = -1) const;
 	/// Execute given join sequence. Each join is given by pair (id, sample size).
-	/// @param SortedP True when records in this record set are sorted according the weight, to help with sampling
-	PRecSet DoJoin(const TWPt<TBase>& Base, const TIntPrV& JoinIdV, const bool& SortedP) const;
+	PRecSet DoJoin(const TWPt<TBase>& Base, const TIntPrV& JoinIdV) const;
 	/// Execute given join sequence.
-	/// @param SortedP True when records in this record set are sorted according the weight, to help with sampling
-	PRecSet DoJoin(const TWPt<TBase>& Base, const TJoinSeq& JoinSeq, const bool& SortedP) const;
+	PRecSet DoJoin(const TWPt<TBase>& Base, const TJoinSeq& JoinSeq) const;
 
 	/// Get number of aggregations in the record set
 	int GetAggrs() const { return AggrV.Len(); }
@@ -1490,7 +1564,7 @@ TVec<PRecSet> TRecSet::SplitBy(const TSplitter& Splitter) const {
 	for (int RecN = 1; RecN < GetRecs(); RecN++) {
 		if (Splitter(RecIdFqV[RecN-1], RecIdFqV[RecN])) {
 			// we need to split, first we create record set for all existing records
-			ResV.Add(TRecSet::New(Store, NewRecIdFqV, IsWgt()));
+			ResV.Add(TRecSet::New(Store, NewRecIdFqV));
 			// and initialize a new one
 			NewRecIdFqV.Clr(false);            
 		}
@@ -1498,7 +1572,7 @@ TVec<PRecSet> TRecSet::SplitBy(const TSplitter& Splitter) const {
 		NewRecIdFqV.Add(RecIdFqV[RecN]);
 	}
 	// add last record set to the result list
-	ResV.Add(TRecSet::New(GetStore(), NewRecIdFqV, IsWgt()));
+	ResV.Add(TRecSet::New(GetStore(), NewRecIdFqV));
 	// done
 	return ResV;
 }
@@ -2700,7 +2774,8 @@ protected:
 	TStr Guid;
 protected:
 	/// Create new stream aggregate from JSon parameters
-	TStreamAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm): AggrNm(_AggrNm) { }
+	TStreamAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm):
+        AggrNm(_AggrNm) { TValidNm::AssertValidNm(AggrNm); }
 	/// Create new stream aggregate from JSon parameters
 	TStreamAggr(const TWPt<TBase>& _Base, const PJsonVal& ParamVal);       
 
@@ -2721,6 +2796,9 @@ public:
 	const TStr& GetAggrNm() const { return AggrNm; }
 	/// Is the aggregate initialized. Used for aggregates, which require some time to get started.
 	virtual bool IsInit() const { return true; }
+
+	/// Reset the state of the aggregate
+	virtual void Reset() = 0;
 
 	/// Add new record to aggregate
 	virtual void OnAddRec(const TRec& Rec) = 0;
@@ -2746,6 +2824,17 @@ public:
 ///////////////////////////////
 // QMiner-Stream-Aggregator-Data-Interfaces
 namespace TStreamAggrOut {
+
+#define TStreamAggrOutHelper(Interface) \
+    static Interface* Cast ## Interface(const TWPt<TStreamAggr>& Aggr) { \
+		Interface* CastAggr = dynamic_cast<Interface*>(Aggr()); \
+		if (CastAggr != NULL) { \
+			return CastAggr; \
+		} else { \
+			throw TExcept::New("Dynamic cast failed for aggregate, " + Aggr->GetAggrNm()); \
+		} \
+    };
+
 	class IInt {
 	public:
 		// retireving value from the aggregate
@@ -2760,8 +2849,10 @@ namespace TStreamAggrOut {
 
 	class ITm {
 	public:
+		TStreamAggrOutHelper(ITm);
 		// retireving value from the aggregate
 		virtual uint64 GetTmMSecs() const = 0;
+		static uint64 GetTmMSecsCast(const TWPt<TStreamAggr>& Aggr) { return CastITm(Aggr)->GetTmMSecs(); }
 	};
 	
 	// combination of numeric value and timestamp
@@ -2771,6 +2862,9 @@ namespace TStreamAggrOut {
 	public:
 		virtual double GetInFlt() const = 0;
 		virtual uint64 GetInTmMSecs() const = 0;
+		virtual bool DelayedP() const = 0;
+		virtual void GetInFltV(TFltV& ValV) const = 0;
+		virtual void GetInTmMSecsV(TUInt64V& MSecsV) const = 0;
 		virtual void GetOutFltV(TFltV& ValV) const = 0;
 		virtual void GetOutTmMSecsV(TUInt64V& MSecsV) const = 0;
 		virtual int GetN() const = 0;
@@ -2836,6 +2930,9 @@ public:
 	int GetFirstStreamAggrId() const;
 	bool GetNextStreamAggrId(int& AggrId) const;
 	
+	/// reset all aggregates
+	void Reset();
+
 	// forward the calls to stream aggregates
 	void OnAddRec(const TRec& Rec);
 	void OnUpdateRec(const TRec& Rec);

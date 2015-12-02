@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-module.exports = exports = function (pathQmBinary) {    
+module.exports = exports = function (pathQmBinary) {
     var qm = require(pathQmBinary); // This loads only c++ functions of qm
     exports = qm.la;
 

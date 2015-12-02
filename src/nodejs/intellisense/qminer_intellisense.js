@@ -189,12 +189,12 @@ exports.datasets= require('qminer_datasets');
 * // Each movie has a property corresponding to the join name: 'director'. 
 * // Accessing the property returns a {@link module:qm.Record} from the store People.
 * var person = movie.director; // get the director
-* console.log(person.name); // prints 'Jim Jarmusch'
+* var personName = person.name; // get person's name ('Jim Jarmusch')
 * // Each person has a property corresponding to the join name: 'directed'. 
 * // Accessing the property returns a {@link module:qm.RecSet} from the store People.
 * var movies = person.directed; // get all the movies the person directed.
-* movies.each(function (movie) { console.log(movie.title); }); 
-* // prints: 
+* movies.each(function (movie) { var title = movie.title; });
+* // Gets the following titles:
 * //   'Broken Flowers'
 * //   'Coffee and Cigarettes'
 * base.close();
@@ -811,6 +811,10 @@ exports.datasets= require('qminer_datasets');
 	*/
  exports.Store.prototype.getStreamAggr = function (saName) { return Object.create(require('qminer').StreamAggr.prototype); }
 /**
+	* Resets all stream aggregates.
+	*/
+ exports.Store.prototype.resetStreamAggregates = function () { }
+/**
 	* Returns an array of the stream aggregates names connected to the store.
 	* @returns {Array.<string>} An array of stream aggregates names.
 	*/
@@ -1120,6 +1124,10 @@ exports.datasets= require('qminer_datasets');
 	* Returns the store the record belongs to.
 	*/
  exports.Record.prototype.store = Object.create('qminer').Store.prototype;
+/**
+	 * Adds a new record to the vector.
+	 */
+ exports.RecVector.prototype.push = function (rec) {};
 /**
 * Record Set is a set of records.
 * <b>Factory pattern</b>: this class cannot be construced using the new keyword. This class is constructed
@@ -2123,7 +2131,8 @@ exports.datasets= require('qminer_datasets');
 * @property {number} [FeatureExtractorMultinomial.hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hashDimension to get the corresponding dimension.
 * @property {Object} [FeatureExtractorMultinomial.datetime = false] - Same as 'values', only with predefined values which are extracted from date and time (month, day of month, day of week, time of day, hour).
 * <br> This fixes the dimensionality of feature extractor at the start, making it not dimension as new dates are seen. Cannot be used the same time as values.
-* @property {string} FeatureExtractorMultinomial.field - The name of the field from which to take the value.
+* @property {(string|Array.<String>)} FeatureExtractorMultinomial.field - The name of the field from which to take the key value.
+* @property {(string|Array.<String>)} [FeatureExtractorMultinomial.valueField] - The name of the field from which to take the numeric value. When not provided, 1.0 is used as default numeric values for non-zero elements in the vector.
 * @property {module:qm~FeatureSource} FeatureExtractorMultinomial.source - The source of the extractor.
 * @example
 * var qm = require('qminer');
@@ -2921,14 +2930,20 @@ exports.datasets= require('qminer_datasets');
      * @param {function} [callback] - Callback function, called on errors and when the procedure finishes.
      */
     exports.Base.prototype.loadCSV = function (opts, callback) {
-    	console.log('Loading CSV file ...');
+    	// console.log('Loading CSV file ...');
 
     	if (opts.delimiter == null) opts.delimiter = ',';
     	if (opts.quote == null) opts.quote = '"';
     	if (opts.ignoreFields == null) opts.ignoreFields = [];
     	if (opts.file == null) throw new Error('Missing parameter file!');
 
-    	if (callback == null) callback = function (e) { if (e != null) console.log(e.stack); }
+    	if (callback == null) {
+            callback = function (e) {
+                if (e != null) {
+                    // console.log(e.stack);
+                }
+            }
+        }
 
     	try {
     		var base = this;
@@ -2983,8 +2998,9 @@ exports.datasets= require('qminer_datasets');
     				}
     			}
 
-    			if (fieldTypesInitialized())
-    				console.log('Fields initialized: ' + JSON.stringify(fieldTypes));
+    			if (fieldTypesInitialized()) {
+    				// console.log('Fields initialized: ' + JSON.stringify(fieldTypes));
+                }
     		}
 
     		function fieldTypesInitialized() {
@@ -3030,7 +3046,7 @@ exports.datasets= require('qminer_datasets');
 	    				});
 	    			}
 
-	    			console.log('Creating store with definition ' + JSON.stringify(storeDef) + ' ...');
+	    			// console.log('Creating store with definition ' + JSON.stringify(storeDef) + ' ...');
 
 	    			base.createStore(storeDef);
 	    			store = base.store(storeName);
@@ -3046,7 +3062,7 @@ exports.datasets= require('qminer_datasets');
 
 			var storeCreated = false;
 			var line = 0;
-			console.log('Saving CSV to store ' + storeName + ' ' + fname + ' ...');
+			// console.log('Saving CSV to store ' + storeName + ' ' + fname + ' ...');
 
 			var fin = new fs.FIn(fname);
 			fs.readCsvLines(fin, {
@@ -3057,12 +3073,13 @@ exports.datasets= require('qminer_datasets');
 							for (var i = 0; i < lineArr.length; i++) {
 								headers.push(lineArr[i].replace(/\s+/g, '_').replace(/\.|%|\(|\)|\/|-|\+/g, '')) 	// remove invalid characters
 							}
-							console.log('Headers initialized: ' + JSON.stringify(headers));
+							// console.log('Headers initialized: ' + JSON.stringify(headers));
 						}
 						else {
-							if (line % 1000 == 0)
-								console.log(line + '');
-
+							if (line % 1000 == 0) {
+								// console.log(line + '');
+                            }
+                            
 							var data = transformLine(lineArr);
 
 							if (fieldTypes == null)
@@ -3079,13 +3096,13 @@ exports.datasets= require('qminer_datasets');
 								buff.push(data);
 						}
 					} catch (e) {
-						console.log('Exception while reading CSV lines: ' + e.stack);
+						// console.log('Exception while reading CSV lines: ' + e.stack);
 						callback(e);
 					}
 				},
 				onEnd: function () {
 					// finished
-					console.log('Finished!');
+					// console.log('Finished!');
 
 					if (callback != null) {
 			   			if (!fieldTypesInitialized()) {
@@ -3157,7 +3174,7 @@ exports.datasets= require('qminer_datasets');
                 count++;
                 if (limit != undefined && count == limit) { break; }
             } catch (err) {
-                console.log("Error parsing [" + line + "]: " + err)
+                // console.log("Error parsing [" + line + "]: " + err)
             }
         }
         return count;
