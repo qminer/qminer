@@ -2043,6 +2043,25 @@ public:
 	JsDeclareFunction(getParagraphs);
 };
 
+/**
+* @typedef {Object} MDSParam
+* @property {number} [maxSecs=500] - The maximum time period to compute MDS of a matrix.
+* @property {number} [maxStep=5000] - The maximum number of iterations.
+* @property {number} [minDiff=1e-4] - The minimum difference criteria in MDS.
+* @property {string} [distType="Euclid"] - The type of distance used. Available types: "Euclid", "Cos", "SqrtCos".
+*/
+
+/**
+* @class
+* @classdesc Multidimensional scaling
+* @param {(module:analytics~MDSParam | module:fs.FIn)} [params] - The parameters for the construction.
+* @example
+* // import analytics module
+* var analytics = require('qminer').analytics;
+* // construct a MDS instance
+* var mds = new analytics.MDS({ maxStep: 300, distType: 'Cos' });
+*/
+//# exports.MDS = function (params) { return Object.create(require('qminer').analytics.MDS.prototype); }
 class TNodeJsMDS : public node::ObjectWrap {
 	friend class TNodeJsUtil;
 public:
@@ -2063,7 +2082,34 @@ private:
 	static TNodeJsMDS* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
 public:
+	/**
+	* Get the parameters.
+	* @returns {module:analytics~MDSParam} The json object containing the parameters of the instance.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a MDS instance
+	* var mds = new analytics.MDS();
+	* // get the (default) parameters of the instance
+	* // returns { maxStep: 5000, maxSecs: 300, minDiff: 1e-4, distType: "Euclid" }
+	* var params = mds.getParams();
+	*/
+	//# exports.MDS.prototype.getParams = function () { return { maxStep: 0, maxSecs: 0, minDiff: 0, distType: "" }; }
 	JsDeclareFunction(getParams);
+
+	/**
+	* Set the parameters.
+	* @param {module:analytics~MDSParam} The json object containing the parameters for the instance.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a MDS instance
+	* var mds = new analytics.MDS();
+	* // get the (default) parameters of the instance
+	* // returns { maxStep: 5000, maxSecs: 300, minDiff: 1e-4, distType: "Euclid" }
+	* var params = mds.getParams();
+	*/
+	//# exports.MDS.prototype.setParams = function () { return { maxStep: 0, maxSecs: 0, minDiff: 0, distType: "" }; }
 	JsDeclareFunction(setParams);
 	JsDeclareFunction(fitTransform);
 	JsDeclareFunction(save);

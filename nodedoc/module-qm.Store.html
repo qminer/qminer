@@ -109,13 +109,13 @@
                     <dt><a href="module-qm.Store.html#getStreamAggr">getStreamAggr(saName)</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-qm.Store.html#getStreamAggrNames">getStreamAggrNames()</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.Store.html#getStreamAggrNames">getStreamAggrNames()</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="module-qm.Store.html#getVector">getVector(fieldName)</a></dt>
                     <dd>
                     </dd>
@@ -134,20 +134,20 @@
                     <dt><a href="module-qm.Store.html#loadJson">loadJson(file[, limit])</a></dt>
                     <dd>
                     </dd>
-                  </dl>
-                </div>
-                <div class="summary-column">
-                  <dl class="dl-summary-callout">
                     <dt><a href="module-qm.Store.html#map">map(callback)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.Store.html#newRecord">newRecord(json)</a></dt>
                     <dd>
                     </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
                     <dt><a href="module-qm.Store.html#newRecordSet">newRecordSet(idVec)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.Store.html#push">push(rec)</a></dt>
+                    <dt><a href="module-qm.Store.html#push">push(rec[, triggerEvents])</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.Store.html#recordByName">recordByName(recName)</a></dt>
@@ -157,6 +157,9 @@
                     <dd>
                     </dd>
                     <dt><a href="module-qm.Store.html#toJSON">toJSON()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.Store.html#triggerOnAddCallbacks">triggerOnAddCallbacks([arg])</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -1292,7 +1295,7 @@ base.close();</code></pre>
                   <p><code><a href="module-qm.RecordSet.html">module:qm.RecordSet</a></code>&nbsp;The record set that contains the records gained with idVec.</p>
                 </dd>
               </dl>
-              <h3 id="push"><span class="symbol-name">push</span><span class="signature"><span class="signature-params">(rec)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <h3 id="push"><span class="symbol-name">push</span><span class="signature"><span class="signature-params">(rec[, triggerEvents])</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
               <p>Adds a record to the store.</p>
               <section>
                 <h4>
@@ -1328,7 +1331,7 @@ base.close();	</code></pre>
                 </div>
               </section>
               <section>
-                <h4>Parameter</h4>
+                <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
                   <thead>
                     <tr>
@@ -1351,6 +1354,21 @@ base.close();	</code></pre>
                       </td>
                       <td>
                         <p>The added record. The record must be a JSON object corresponding to the store schema.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>triggerEvents</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>If true, all stream aggregate callbacks onAdd will be called after the record is inserted. If false, no stream aggregate will be updated.</p>
+                        <p>Defaults to <code>true</code>.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -1526,6 +1544,40 @@ base.close();</code></pre>
                 <dd>
                   <p><code>Object</code>&nbsp;The store as a JSON.</p>
                 </dd>
+              </dl>
+              <h3 id="triggerOnAddCallbacks"><span class="symbol-name">triggerOnAddCallbacks</span><span class="signature"><span class="signature-params">([arg])</span></span></h3>
+              <p>Calls onAdd callback on all stream aggregates</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>arg</p>
+                      </td>
+                      <td>
+                        <p>(<a href="module-qm.Record.html">module:qm.Record</a> or number)</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The record or recordId which will be passed to onAdd callbacks. If the record or recordId is not provided, the last record will be used. Throws exception if cannot be provided.</p>
+                        <p>Defaults to <code>this.last</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
               </dl>
             </section>
           </section>

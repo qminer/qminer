@@ -1544,6 +1544,33 @@
 	* var nnet2 = new analytics.NNet(fin);
 	*/
  exports.NNet.prototype.save = function (fout) { return Object.create(require(&#x27;qminer&#x27;).fs.FOut.prototype); } 
+/**
+* @class
+* @classdesc Multidimensional scaling
+* @param {(Object | module:fs.FIn)} [params] - The parameters for the construction.
+* @param {number} [params.maxSecs=500] - The maximum time period to compute MDS of a matrix.
+* @param {number} [params.maxStep=5000] - The maximum number of iterations.
+* @param {number} [params.minDiff=1e-4] - The minimum difference criteria in MDS.
+* @param {string} [params.distType=&quot;Euclid&quot;] - The type of distance used. Available types: &quot;Euclid&quot;, &quot;Cos&quot;, &quot;SqrtCos&quot;.
+* @example
+* // import analytics module
+* var analytics = require(&#x27;qminer&#x27;).analytics;
+* // construct a MDS instance
+* var mds = new analytics.MDS({ maxStep: 300, distType: &#x27;Cos&#x27; });
+*/
+ exports.MDS = function (params) { return Object.create(require(&#x27;qminer&#x27;).analytics.MDS.prototype); }
+/**
+	* Get the parameters.
+	* @returns {object} The json object containing the parameters of the instance.
+	* @example
+	* // import analytics module
+	* var analytics = require(&#x27;qminer&#x27;).analytics;
+	* // create a MDS instance
+	* var mds = new analytics.MDS();
+	* // get the (default) parameters of the instance
+	* var params = mds.getParams();
+	*/
+ exports.MDS.prototype.getParams = function () { return { maxStep: 0, maxSecs: 0, minDiff: 0, distType: &quot;&quot; }; }
 
 
     ///////////////////////////////////////////////////
@@ -2556,9 +2583,9 @@
     * be used directly.
     *
     */
-    function createOnlineMetric (updateCallback) {
+    function createOnlineMetric(callback) {
         var error = -1;
-        var calcError = new updateCallback();
+        this.metric = new callback(); // We can hide this later (just delete this)
 
         // check if input types are of correct type
         function checkPushParams() {
@@ -2582,7 +2609,7 @@
             // check if input types are of correct type
             checkPushParams(yTrue, yPred, ref_num);
             // calculate the error with provided function from the callback function
-            error = calcError.update(yTrue, yPred);
+            error = this.metric.update(yTrue, yPred);
         }
 
         /**
@@ -2592,6 +2619,31 @@
         this.getError = function () {
             return error;
         }
+
+        /**
+	    * Save metric state to provided output stream &#x60;FOut&#x60;.
+	    * @param {module:fs.FOut} FOut - The output stream.
+	    * @returns {module:fs.FOut} Provided output stream &#x60;FOut&#x60;.
+        */
+        this.save = function (fout) {
+            fout.writeJson(this.metric.state);
+            fout.flush();
+            fout.close();
+            return fout;
+        }
+
+        /**
+	    * Load metric state from provided input stream &#x60;FIn&#x60;.
+	    * @param {module:fs.FIn} FIn - The output stream.
+	    * @returns {module:fs.FIn} Provided output stream &#x60;FIn&#x60;.
+        */
+        this.load = function (fin) {
+            this.metric.state = fin.readJson();
+            error = this.metric.state.error;
+            fin.close();
+            return fin;
+        }
+
     }
 
     // MEAN ERROR (ME)
@@ -2599,22 +2651,32 @@
     * Create new (online) mean error instance.
     * @class
     * @classdesc Online Mean Error (ME) instance
+    * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
     * @extends module:analytics~createOnlineMetric
     */
-    metrics.MeanError = function () {
-        function calcError() {
-            this.sumErr = 0;
-            this.count = 0;
+    metrics.MeanError = function (fin) {
+        function metric() {
+            this.name = &quot;Mean Error&quot;
+            this.shortName = &quot;ME&quot;
+            this.state = {
+                sumErr: 0,
+                count: 0,
+                error: 0
+            }
             // update function
             this.update = function (yTrue, yPred) {
                 var err = yTrue - yPred;
-                this.sumErr += err;
-                this.count++;
-                var error = this.sumErr / this.count;
-                return error;
+                this.state.sumErr += err;
+                this.state.count++;
+                this.state.error = this.state.sumErr / this.state.count;
+                return this.state.error;
             }
         }
-        return new createOnlineMetric(calcError);
+        // create new metric instance, and load state from fin in defined
+        var errorMetric = new createOnlineMetric(metric);
+        if (typeof fin !== &#x27;undefined&#x27;) errorMetric.load(fin);
+
+        return errorMetric;
     };
 
     // MEAN ABSOLUTE ERROR (MAE)
@@ -2622,22 +2684,32 @@
     * Create new (online) mean absolute error instance.
     * @class
     * @classdesc Online Mean Absolute Error (MAE) instance
+    * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
     * @extends module:analytics~createOnlineMetric
     */
-    metrics.MeanAbsoluteError = function () {
-        function calcError() {
-            this.sumErr = 0;
-            this.count = 0;
+    metrics.MeanAbsoluteError = function (fin) {
+        function metric() {
+            this.name = &quot;Mean Absolute Error&quot;
+            this.shortName = &quot;MAE&quot;
+            this.state = {
+                sumErr: 0,
+                count: 0,
+                error: 0
+            }
             // update function
             this.update = function (yTrue, yPred) {
                 var err = yTrue - yPred;
-                this.sumErr += Math.abs(err);
-                this.count++;
-                var error = this.sumErr / this.count;
-                return error;
+                this.state.sumErr += Math.abs(err);
+                this.state.count++;
+                this.state.error = this.state.sumErr / this.state.count;
+                return this.state.error;
             }
         }
-        return new createOnlineMetric(calcError);
+        // create new metric instance, and load state from fin in defined
+        var errorMetric = new createOnlineMetric(metric);
+        if (typeof fin !== &#x27;undefined&#x27;) errorMetric.load(fin);
+
+        return errorMetric;
     }
 
     // MEAN SQUARE ERROR (MSE)
@@ -2645,22 +2717,32 @@
     * Create new (online) mean square error instance.
     * @class
     * @classdesc Online Mean Square Error (MSE) instance
+    * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
     * @extends module:analytics~createOnlineMetric
     */
-    metrics.MeanSquareError = function () {
-        function calcError() {
-            this.sumErr = 0;
-            this.count = 0;
+    metrics.MeanSquareError = function (fin) {
+        function metric() {
+            this.name = &quot;Mean Square Error&quot;
+            this.shortName = &quot;MSE&quot;
+            this.state = {
+                sumErr: 0,
+                count: 0,
+                error: 0
+            }
             // update function
             this.update = function (yTrue, yPred) {
                 var err = yTrue - yPred;
-                this.sumErr += (err * err);
-                this.count++;
-                var error = this.sumErr / this.count;
-                return error;
+                this.state.sumErr += (err * err);
+                this.state.count++;
+                this.state.error = this.state.sumErr / this.state.count;
+                return this.state.error;
             }
         }
-        return new createOnlineMetric(calcError);
+        // create new metric instance, and load state from fin in defined
+        var errorMetric = new createOnlineMetric(metric);
+        if (typeof fin !== &#x27;undefined&#x27;) errorMetric.load(fin);
+
+        return errorMetric;
     }
 
     // ROOT MEAN SQUARE ERROR (RMSE)
@@ -2668,22 +2750,32 @@
     * Create new (online) root mean square error instance.
     * @class
     * @classdesc Online Root Mean Square Error (RMSE) instance
+    * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
     * @extends module:analytics~createOnlineMetric
     */
-    metrics.RootMeanSquareError = function () {
-        function calcError() {
-            this.sumErr = 0;
-            this.count = 0;
+    metrics.RootMeanSquareError = function (fin) {
+        function metric() {
+            this.name = &quot;Root Mean Square Error&quot;
+            this.shortName = &quot;RMSE&quot;
+            this.state = {
+                sumErr: 0,
+                count: 0,
+                error: 0
+            }
             // update function
             this.update = function (yTrue, yPred) {
                 var err = yTrue - yPred;
-                this.sumErr += (err * err);
-                this.count++;
-                var error = this.sumErr / this.count;
-                return Math.sqrt(error);
+                this.state.sumErr += (err * err);
+                this.state.count++;
+                this.state.error = Math.sqrt(this.state.sumErr / this.state.count);
+                return this.state.error;
             }
         }
-        return new createOnlineMetric(calcError);
+        // create new metric instance, and load state from fin in defined
+        var errorMetric = new createOnlineMetric(metric);
+        if (typeof fin !== &#x27;undefined&#x27;) errorMetric.load(fin);
+
+        return errorMetric;
     }
 
     // MEAN ABSOLUTE PERCENTAGE ERROR (MAPE)
@@ -2691,24 +2783,34 @@
     * Create new (online) mean absolute percentage error instance.
     * @class
     * @classdesc Online Mean Absolute Percentage Error (MAPE) instance
+    * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
     * @extends module:analytics~createOnlineMetric
     */
-    metrics.MeanAbsolutePercentageError = function () {
-        function calcError() {
-            this.sumErr = 0;
-            this.count = 0;
+    metrics.MeanAbsolutePercentageError = function (fin) {
+        function metric() {
+            this.name = &quot;Mean Absolute Percentage Error&quot;
+            this.shortName = &quot;MAPE&quot;
+            this.state = {
+                sumErr: 0,
+                count: 0,
+                error: 0
+            }
             // update function
             this.update = function (yTrue, yPred) {
                 if (yTrue != 0) { // skip if yTrue is 0, otherwise we have devision by zero in the next step.
                     var err = yTrue - yPred;
-                    this.sumErr += Math.abs(err / yTrue) * 100;
+                    this.state.sumErr += Math.abs(err / yTrue) * 100;
                 }
-                this.count++;
-                var error = this.sumErr / this.count;
-                return error;
+                this.state.count++;
+                this.state.error = this.state.sumErr / this.state.count;
+                return this.state.error;
             }
         }
-        return new createOnlineMetric(calcError);
+        // create new metric instance, and load state from fin in defined
+        var errorMetric = new createOnlineMetric(metric);
+        if (typeof fin !== &#x27;undefined&#x27;) errorMetric.load(fin);
+
+        return errorMetric;
     }
 
     // R SQUARED SCORE (R2)
@@ -2716,33 +2818,45 @@
     * Create new (online) R Square instance. This statistic measures how successful the fit is in explaining the variation of the data. Best possible score is 1.0, lower values are worse.
     * @class
     * @classdesc Online R Squared (R2) score instance
+    * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
     * @extends module:analytics~createOnlineMetric
     */
-    metrics.R2Score = function () {
-        function calcError() {
-            this.sst = 0;
-            this.sse = 0;
-            this.mean = 0;
-            this.count = 0;
-            this.sumTrue = 0;
-            this.sumTrue2 = 0;
+    metrics.R2Score = function (fin) {
+        function metric() {
+            this.name = &quot;R2 Score&quot;
+            this.shortName = &quot;R2&quot;
+            this.state = {
+                sst: 0,
+                sse: 0,
+                mean: 0,
+                count: 0,
+                sumTrue: 0,
+                sumTrue2: 0,
+                error: 0
+            }
             // update function
             this.update = function (yTrue, yPred) {
-                this.count++;
-                this.sumTrue += yTrue;
-                this.sumTrue2 += yTrue * yTrue;
-                this.mean = this.sumTrue / this.count;
+                this.state.count++;
+                this.state.sumTrue += yTrue;
+                this.state.sumTrue2 += yTrue * yTrue;
+                this.state.mean = this.state.sumTrue / this.state.count;
                 //calculate R squared score
-                this.sse += (yTrue - yPred) * (yTrue - yPred);
-                this.sst = this.sumTrue2 - this.count * this.mean * this.mean;
-                if (this.sst == 0.0) {
-                    return (this.sse == 0.0) ? 1.0 : 0.0;
+                this.state.sse += (yTrue - yPred) * (yTrue - yPred);
+                this.state.sst = this.state.sumTrue2 - this.state.count * this.state.mean * this.state.mean;
+                if (this.state.sst == 0.0) {
+                    return (this.state.sse == 0.0) ? 1.0 : 0.0;
                 }
-                return 1 - this.sse / this.sst;
+                this.state.error = 1 - this.state.sse / this.state.sst;
+                return this.state.error;
             }
         }
-        return new createOnlineMetric(calcError);
+        // create new metric instance, and load state from fin in defined
+        var errorMetric = new createOnlineMetric(metric);
+        if (typeof fin !== &#x27;undefined&#x27;) errorMetric.load(fin);
+
+        return errorMetric;
     }
+
 
     //////////////////////////////////////////////////
     //////////// BATCH REGRESSION METRICS ////////////
@@ -3791,6 +3905,65 @@
 
     			return hist;
 	    	}
+	    	
+	    	//===================================================
+	    	// PREPROCESSING
+	    	//===================================================
+	    	
+    		function preprocessFit(opts) {
+    			if (opts.recSet == null &amp;amp;&amp;amp; opts.recV == null) 
+    				throw new Error(&#x27;StreamStory.fit: missing parameters recSet or recV&#x27;);
+    			
+    			var batchEndV = opts.batchEndV;
+    			var timeField = opts.timeField;
+    			
+    			var obsColMat;
+    			var contrColMat;
+    			var timeV;
+    			
+    			if (opts.recV != null) {
+    				var recV = opts.recV;
+    				var nInst = recV.length;
+    				
+    				log.info(&#x27;Updating feature spaces ...&#x27;);
+    				for (var i = 0; i &amp;lt; nInst; i++) {
+    					var rec = recV[i];
+    					obsFtrSpace.updateRecord(rec);
+						controlFtrSpace.updateRecord(rec);
+    				}
+    				
+    				obsColMat = new la.Matrix({rows: obsFtrSpace.dim, cols: nInst});
+    				contrColMat = new la.Matrix({rows: controlFtrSpace.dim, cols: nInst});
+    				timeV = new la.Vector({ vals: nInst });
+    				
+    				for (var i = 0; i &amp;lt; nInst; i++) {
+    					var rec = recV[i];
+    					var obsFtrV = obsFtrSpace.extractVector(rec);
+    					var contrFtrV = controlFtrSpace.extractVector(rec);
+    					var time = rec[timeField].getTime();
+    					
+    					obsColMat.setCol(i, obsFtrV);
+    					contrColMat.setCol(i, contrFtrV);
+    					timeV[i] = time;
+    				}
+    			} else {
+    				var recSet = opts.recSet;
+    				
+    				log.info(&#x27;Updating feature spaces ...&#x27;);
+    				obsFtrSpace.updateRecords(recSet);
+	    			controlFtrSpace.updateRecords(recSet);
+	    			
+	    			obsColMat = obsFtrSpace.extractMatrix(recSet);
+	    			contrColMat = controlFtrSpace.extractMatrix(recSet);
+	    			timeV = recSet.getVector(timeField);
+    			}
+    			
+    			return {
+    				obsColMat: obsColMat,
+    				contrColMat: contrColMat,
+    				timeV: timeV
+    			}
+    		}
 
 	    	//===================================================
 	    	// PUBLIC METHODS
@@ -3831,60 +4004,36 @@
 
 	    			var batchEndV = opts.batchEndV;
 	    			var timeField = opts.timeField;
-
-	    			var obsColMat;
-	    			var contrColMat;
-	    			var timeV;
-
-	    			if (opts.recV != null) {
-	    				var recV = opts.recV;
-	    				var nInst = recV.length;
-
-	    				log.info(&#x27;Updating feature spaces ...&#x27;);
-	    				for (var i = 0; i &amp;lt; nInst; i++) {
-	    					var rec = recV[i];
-	    					obsFtrSpace.updateRecord(rec);
-							controlFtrSpace.updateRecord(rec);
-	    				}
-
-	    				obsColMat = new la.Matrix({rows: obsFtrSpace.dim, cols: nInst});
-	    				contrColMat = new la.Matrix({rows: controlFtrSpace.dim, cols: nInst});
-	    				timeV = new la.Vector({ vals: nInst });
-
-	    				for (var i = 0; i &amp;lt; nInst; i++) {
-	    					var rec = recV[i];
-	    					var obsFtrV = obsFtrSpace.extractVector(rec);
-	    					var contrFtrV = controlFtrSpace.extractVector(rec);
-	    					var time = rec[timeField].getTime();
-
-	    					obsColMat.setCol(i, obsFtrV);
-	    					contrColMat.setCol(i, contrFtrV);
-	    					timeV[i] = time;
-	    				}
-	    			} else {
-	    				var recSet = opts.recSet;
-
-	    				log.info(&#x27;Updating feature spaces ...&#x27;);
-	    				obsFtrSpace.updateRecords(recSet);
-		    			controlFtrSpace.updateRecords(recSet);
-
-		    			obsColMat = obsFtrSpace.extractMatrix(recSet);
-		    			contrColMat = controlFtrSpace.extractMatrix(recSet);
-		    			timeV = recSet.getVector(timeField);
-	    			}
-
+	    			
+	    			var data = preprocessFit(opts);
+	
 	    			log.info(&#x27;Creating model ...&#x27;);
 	    			mc.fit({
-	    				observations: obsColMat,
-	    				controls: contrColMat,
-	    				times: timeV,
+	    				observations: data.obsColMat,
+	    				controls: data.contrColMat,
+	    				times: data.timeV,
 	    				batchV: batchEndV
 	    			});
 	    			log.info(&#x27;Done!&#x27;);
 
 	    			return that;
 	    		},
-
+	    		
+	    		fitAsync: function (opts, callback) {
+	    			var batchEndV = opts.batchEndV;
+	    			var timeField = opts.timeField;
+	    			
+	    			var data = preprocessFit(opts);
+	
+	    			log.info(&#x27;Creating model asynchronously ...&#x27;);
+	    			mc.fitAsync({
+	    				observations: data.obsColMat,
+	    				controls: data.contrColMat,
+	    				times: data.timeV,
+	    				batchV: batchEndV
+	    			}, callback);
+	    		},
+	
 	    		/**
 	    		 * Adds a new record. Doesn&#x27;t update the models statistics.
 	    		 */
