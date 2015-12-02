@@ -4180,7 +4180,7 @@ Window defined by parameter window, its value being the number of records to be 
         <p>Define window by number of records</p>
     <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
 // create base
-var base = new qm.Base({ mode: &#x27;cleanCreate&#x27; });
+var base = new qm.Base({ mode: &#x27;createClean&#x27; });
 // create store with window
 base.createStore({    &quot;name&quot;: &quot;TestStore&quot;,    &quot;fields&quot;: [        { &quot;name&quot;: &quot;DateTime&quot;, &quot;type&quot;: &quot;datetime&quot; },        { &quot;name&quot;: &quot;Measurement&quot;, &quot;type&quot;: &quot;float&quot; }    ],    window: 3,});
 
@@ -4201,12 +4201,12 @@ base.close();</code></pre>
         <p>Define window by time</p>
     <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
 // create base
-var base = new qm.Base({ mode: &#x27;cleanCreate&#x27; });
+var base = new qm.Base({ mode: &#x27;createClean&#x27; });
 // create store with window
 base.createStore({    &quot;name&quot;: &quot;TestStore&quot;,    &quot;fields&quot;: [        { &quot;name&quot;: &quot;DateTime&quot;, &quot;type&quot;: &quot;datetime&quot; },        { &quot;name&quot;: &quot;Measurement&quot;, &quot;type&quot;: &quot;float&quot; }    ],    timeWindow: {        duration: 2,        unit: &quot;hour&quot;,        field: &quot;DateTime&quot;    }});
 
 // push 5 records into created store
-for (var i = 0; i &lt; 5; i++) {    var rec = {        &quot;DateTime&quot;: new Date(new Date().getTime() + i * 3603600).toISOString(),        &quot;Measurement&quot;: i    };    base.store(&quot;TestStore&quot;).push(rec);}
+for (var i = 0; i &lt; 5; i++) {    var rec = {        &quot;DateTime&quot;: new Date(new Date().getTime() + i * 60 * 60 * 1001).toISOString(),        &quot;Measurement&quot;: i    };    base.store(&quot;TestStore&quot;).push(rec);}
 
 // check number of records in store
 console.log(base.store(&quot;TestStore&quot;).allRecords.length); // 5

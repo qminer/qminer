@@ -249,7 +249,7 @@ exports.datasets= require('qminer_datasets');
 * @example <caption>Define window by number of records</caption>
 * var qm = require('qminer');
 * // create base
-* var base = new qm.Base({ mode: 'cleanCreate' });
+* var base = new qm.Base({ mode: 'createClean' });
 * // create store with window
 * base.createStore({
 *     "name": "TestStore",
@@ -280,7 +280,7 @@ exports.datasets= require('qminer_datasets');
 * @example <caption>Define window by time</caption>
 * var qm = require('qminer');
 * // create base
-* var base = new qm.Base({ mode: 'cleanCreate' });
+* var base = new qm.Base({ mode: 'createClean' });
 * // create store with window
 * base.createStore({
 *     "name": "TestStore",
@@ -298,7 +298,7 @@ exports.datasets= require('qminer_datasets');
 * // push 5 records into created store
 * for (var i = 0; i < 5; i++) {
 *     var rec = {
-*         "DateTime": new Date(new Date().getTime() + i * 3603600).toISOString(),
+*         "DateTime": new Date(new Date().getTime() + i * 60 * 60 * 1001).toISOString(),
 *         "Measurement": i
 *     };
 *     base.store("TestStore").push(rec);

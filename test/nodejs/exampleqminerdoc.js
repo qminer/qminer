@@ -139,7 +139,7 @@ it("should make test number 6", function () {
 
  var qm = require('qminer');
  // create base
- var base = new qm.Base({ mode: 'cleanCreate' });
+ var base = new qm.Base({ mode: 'createClean' });
  // create store with window
  base.createStore({
      "name": "TestStore",
@@ -175,7 +175,7 @@ it("should make test number 7", function () {
 
  var qm = require('qminer');
  // create base
- var base = new qm.Base({ mode: 'cleanCreate' });
+ var base = new qm.Base({ mode: 'createClean' });
  // create store with window
  base.createStore({
      "name": "TestStore",
