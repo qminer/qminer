@@ -202,6 +202,10 @@ public:
   void Load(PSIn& SIn) {
 	  Clr(); SIn->Load(MxBfL); SIn->Load(BfL);
 	  Bf = new char[MxBfL = BfL]; SIn->LoadBf(Bf, BfL); Owner = true; }
+  void Load(TSIn& SIn) {
+	  Clr(); SIn.Load(MxBfL); SIn.Load(BfL);
+	  Bf = new char[MxBfL = BfL]; SIn.LoadBf(Bf, BfL); Owner = true; }
+
   void Save(TSOut& SOut) const {
     SOut.Save(MxBfL); SOut.Save(BfL); SOut.SaveBf(Bf, BfL);}
   void LoadXml(const PXmlTok& XmlTok, const TStr& Nm);
@@ -565,6 +569,8 @@ public:
   TStr& operator+=(const TStr& Str) { *this = (*this + Str); return *this; } ;
   /// Concatenates and assigns (not thread safe)
   TStr& operator+=(const char* _CStr) { *this = (*this + _CStr); return *this; } ;
+  /// Concatenates and assigns (not thread safe)
+  TStr& operator+=(const char Ch) { *this = (*this + Ch); return *this; };
 
   /// Boolean comparison TStr == char*
   bool operator==(const char* _CStr) const;
@@ -869,6 +875,17 @@ public:
   friend TStr operator+(const TStr& LStr, const char* RCStr);
   /// Concatenates the two strings
   friend TStr operator+(const TStr& LStr, const TStr& RStr);
+  /// Concatenates the first string parameter with single char
+  friend TStr operator+(const TStr& LStr, const char Ch);
+
+
+
+  /// Base64-encode given buffer and return resulting string
+  static TStr Base64Encode(const void* Bf, const int BfL);
+  /// Base64-encode given buffer and return resulting string
+  static TStr Base64Encode(const TMem& Mem) { return Base64Encode(Mem.GetBf(), Mem.Len()); }
+  /// Base64-decode given string and fill this TMem object
+  static void Base64Decode(const TStr& In, TMem& Mem);
 
 private:
   /// internal method used to check if the string stored in TChRet is an unsigned integer

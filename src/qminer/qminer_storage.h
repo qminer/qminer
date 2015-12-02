@@ -495,6 +495,11 @@ private:
 	void SetFieldNumSpV(TMem& RecMem, TMOut& SOut, const TFieldSerialDesc& FieldSerialDesc, const TIntFltKdV& SpV);
 	/// Variable-length field setter
 	void SetFieldBowSpV(TMem& RecMem, TMOut& SOut, const TFieldSerialDesc& FieldSerialDesc, const PBowSpV& SpV);    
+	/// Variable-length field setter
+	void SetFieldTMem(TMem& RecMem, TMOut& SOut, const TFieldSerialDesc& FieldSerialDesc, const TMem& Mem);
+	/// Variable-length field setter
+	void SetFieldJsonVal(TMem& RecMem, TMOut& SOut, const TFieldSerialDesc& FieldSerialDesc, const PJsonVal& Json);
+	
 	/// parse variable-length field JSon value and serialize it accordingly to it's type
 	void SetVarJsonVal(TMem& RecMem, TMOut& SOut, const TFieldSerialDesc& FieldSerialDesc, 
 		const TFieldDesc& FieldDesc, const PJsonVal& JsonVal);
@@ -579,6 +584,10 @@ public:
 	void GetFieldNumSpV(TThinMIn& min, const int& FieldId, TIntFltKdV& SpV) const;
 	/// Field getter
 	void GetFieldBowSpV(TThinMIn& min, const int& FieldId, PBowSpV& SpV) const;
+	/// Field getter
+	void GetFieldTMem(TThinMIn& min, const int& FieldId, TMem& Mem) const;
+	/// Field getter
+	PJsonVal GetFieldJsonVal(TThinMIn& min, const int& FieldId) const;
 
 	/// Field getter
 	bool IsFieldNull(const TMemBase& RecMem, const int& FieldId) const;
@@ -620,6 +629,10 @@ public:
 	void GetFieldNumSpV(const TMemBase& RecMem, const int& FieldId, TIntFltKdV& SpV) const;
 	/// Field getter
 	void GetFieldBowSpV(const TMemBase& RecMem, const int& FieldId, PBowSpV& SpV) const;
+	/// Field getter
+	void GetFieldTMem(const TMemBase& RecMem, const int& FieldId, TMem& Mem) const;
+	/// Field getter
+	PJsonVal GetFieldJsonVal(const TMemBase& RecMem, const int& FieldId) const;
 
 	/// Field setter
 	void SetFieldNull(char* Bf, const int& BfL, const int& FieldId, const bool& NullP);
@@ -692,6 +705,10 @@ public:
 	void SetFieldNumSpV(const TMemBase& InRecMem, TMem& OutRecMem, const int& FieldId, const TIntFltKdV& SpV);
 	/// Field setter
 	void SetFieldBowSpV(const TMemBase& InRecMem, TMem& OutRecMem, const int& FieldId, const PBowSpV& SpV);
+	/// Field setter
+	void SetFieldTMem(const TMemBase& InRecMem, TMem& OutRecMem, const int& FieldId, const TMem& Mem);
+	/// Field setter
+	void SetFieldJsonVal(const TMemBase& InRecMem, TMem& OutRecMem, const int& FieldId, const PJsonVal& Json);
 };
 
 ///////////////////////////////
@@ -971,7 +988,11 @@ public:
 	void GetFieldNumSpV(const uint64& RecId, const int& FieldId, TIntFltKdV& SpV) const;
 	/// Get field value using field id (default implementation throws exception)
 	void GetFieldBowSpV(const uint64& RecId, const int& FieldId, PBowSpV& SpV) const;
-	
+	/// Get field value using field id (default implementation throws exception)
+	void GetFieldTMem(const uint64& RecId, const int& FieldId, TMem& Mem) const;
+	/// Get field value using field id (default implementation throws exception)
+	PJsonVal GetFieldJsonVal(const uint64& RecId, const int& FieldId) const;
+
 	/// Set the value of given field to NULL
 	void SetFieldNull(const uint64& RecId, const int& FieldId);
 	/// Set field value using field id (default implementation throws exception)
@@ -1012,6 +1033,10 @@ public:
 	void SetFieldNumSpV(const uint64& RecId, const int& FieldId, const TIntFltKdV& SpV);
 	/// Set field value using field id (default implementation throws exception)
 	void SetFieldBowSpV(const uint64& RecId, const int& FieldId, const PBowSpV& SpV);
+	/// Set field value using field id (default implementation throws exception)
+	void SetFieldTMem(const uint64& RecId, const int& FieldId, const TMem& Mem);
+	/// Set field value using field id (default implementation throws exception)
+	void SetFieldJsonVal(const uint64& RecId, const int& FieldId, const PJsonVal& Json);
 
 	/// Helper function for returning JSon definition of store
 	PJsonVal GetStoreJson(const TWPt<TBase>& Base) const;
@@ -1197,6 +1222,10 @@ public:
     void GetFieldNumSpV(const uint64& RecId, const int& FieldId, TIntFltKdV& SpV) const;
     /// Get field value using field id (default implementation throws exception)
     void GetFieldBowSpV(const uint64& RecId, const int& FieldId, PBowSpV& SpV) const;
+	/// Get field value using field id (default implementation throws exception)
+	void GetFieldTMem(const uint64& RecId, const int& FieldId, TMem& Mem) const;
+	/// Get field value using field id (default implementation throws exception)
+	PJsonVal GetFieldJsonVal(const uint64& RecId, const int& FieldId) const;
 
     /// Set the value of given field to NULL
     void SetFieldNull(const uint64& RecId, const int& FieldId);
@@ -1238,6 +1267,10 @@ public:
     void SetFieldNumSpV(const uint64& RecId, const int& FieldId, const TIntFltKdV& SpV);
     /// Set field value using field id (default implementation throws exception)
     void SetFieldBowSpV(const uint64& RecId, const int& FieldId, const PBowSpV& SpV);
+	/// Set field value using field id (default implementation throws exception)
+	void SetFieldTMem(const uint64& RecId, const int& FieldId, const TMem& Mem);
+	/// Set field value using field id (default implementation throws exception)
+	void SetFieldJsonVal(const uint64& RecId, const int& FieldId, const PJsonVal& Json);
 
     /// Helper function for returning JSon definition of store
     PJsonVal GetStoreJson(const TWPt<TBase>& Base) const;

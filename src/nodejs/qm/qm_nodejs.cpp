@@ -783,6 +783,13 @@ v8::Local<v8::Value> TNodeJsStore::Field(const TQm::TRec& Rec, const int FieldId
 	}
 	else if (Desc.IsBowSpV()) {
 		throw TQm::TQmExcept::New("Store::Field BowSpV not implemented");
+	} else if (Desc.IsTMem()) {
+		TMem Val;
+		Rec.GetFieldTMem(FieldId, Val);
+		return HandleScope.Escape(v8::String::NewFromUtf8(Isolate, TStr::Base64Encode(Val).CStr()));
+	} else if (Desc.IsJson()) {
+		PJsonVal Val = Rec.GetFieldJsonVal(FieldId);
+		return HandleScope.Escape(TNodeJsUtil::ParseJson(Isolate, Val));
 	}
 	throw TQm::TQmExcept::New("Unknown field type " + Desc.GetFieldTypeStr());
 }
@@ -2203,6 +2210,20 @@ void TNodeJsRec::setField(v8::Local<v8::String> Name, v8::Local<v8::Value> Value
 	}
 	else if (Desc.IsBowSpV()) {
 		throw TQm::TQmExcept::New("Unsupported type for record setter: " + Desc.GetFieldTypeStr());
+	}
+	else if (Desc.IsTMem()) {
+		QmAssertR(Value->IsString(), "Field " + FieldNm + " not a string");
+		v8::String::Utf8Value Utf8(Value);
+		TStr Str(*Utf8);
+		TMem Mem;
+		TStr::Base64Decode(Str, Mem);
+		Rec.SetFieldTMem(FieldId, Mem);
+	}
+	else if (Desc.IsJson()) {
+		QmAssertR(Value->IsObject(), "Field " + FieldNm + " not an object");
+		v8::Handle<v8::Object> Object = v8::Handle<v8::Object>::Cast(Value);
+		PJsonVal Json = TNodeJsUtil::GetObjProps(Object);
+		Rec.SetFieldJsonVal(FieldId, Json);
 	}
 	else {
 		throw TQm::TQmExcept::New("Unsupported type for record setter: " + Desc.GetFieldTypeStr());

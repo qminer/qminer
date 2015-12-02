@@ -54,6 +54,8 @@ TStoreSchema::TMaps::TMaps() {
 	FieldTypeMap.AddDat("datetime") = oftTm;
 	FieldTypeMap.AddDat("num_sp_v") = oftNumSpV;
 	FieldTypeMap.AddDat("bow_sp_v") = oftBowSpV;
+	FieldTypeMap.AddDat("blob") = oftTMem;
+	FieldTypeMap.AddDat("json") = oftJson;
 
 	// time-window units
 	TimeWindowUnitMap.AddDat("second",                             1000);
@@ -1255,6 +1257,32 @@ void TRecSerializator::SetFieldBowSpV(TMem& RecMem, TMOut& SOut,
 	// Perform TOAST-ing if needed
 	CheckToast(SOut, VarContentOffset);
 }
+void TRecSerializator::SetFieldTMem(TMem& RecMem, TMOut& SOut,
+	const TFieldSerialDesc& FieldSerialDesc, const TMem& Mem) {
+
+	// location of the new variable-length value is at the end of current output stream
+	int VarContentOffset = SOut.Len();
+	// update it's location in the variable-index
+	SetLocationVar(RecMem, FieldSerialDesc, VarContentOffset);
+	// update value
+	if (UseToast) { SOut.PutCh(ToastNo); }
+	Mem.Save(SOut);
+	// Perform TOAST-ing if needed
+	CheckToast(SOut, VarContentOffset);
+}
+void TRecSerializator::SetFieldJsonVal(TMem& RecMem, TMOut& SOut,
+	const TFieldSerialDesc& FieldSerialDesc, const PJsonVal& Json) {
+
+	// location of the new variable-length value is at the end of current output stream
+	int VarContentOffset = SOut.Len();
+	// update it's location in the variable-index
+	SetLocationVar(RecMem, FieldSerialDesc, VarContentOffset);
+	// update value
+	if (UseToast) { SOut.PutCh(ToastNo); }
+	TJsonVal::GetStrFromVal(Json).Save(SOut);
+	// Perform TOAST-ing if needed
+	CheckToast(SOut, VarContentOffset);
+}
 
 void TRecSerializator::SetVarJsonVal(TMem& RecMem, TMOut& SOut,
 		const TFieldSerialDesc& FieldSerialDesc, const TFieldDesc& FieldDesc,
@@ -1292,6 +1320,17 @@ void TRecSerializator::SetVarJsonVal(TMem& RecMem, TMOut& SOut,
 			QmAssertR(JsonVal->IsArr(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not array.");
 			TIntFltKdV NumSpV; JsonVal->GetArrNumSpV(NumSpV);
 			SetFieldNumSpV(RecMem, SOut, FieldSerialDesc, NumSpV);
+			break;
+		}
+		case oftTMem: {
+			QmAssertR(JsonVal->IsStr(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not string.");
+			TMem Mem;
+			TStr::Base64Decode(JsonVal->GetStr(), Mem);
+			SetFieldTMem(RecMem, SOut, FieldSerialDesc, Mem);
+			break;
+		}
+		case oftJson: {
+			SetFieldJsonVal(RecMem, SOut, FieldSerialDesc, JsonVal);
 			break;
 		}
 		default:
@@ -1384,6 +1423,8 @@ TRecSerializator::TRecSerializator(const TWPt<TStore>& Store, const TWPt<TToaste
 			case oftTm: FixedSize = sizeof(uint64); break;
 			case oftNumSpV: FixedP = false; break;
 			case oftBowSpV: FixedP = false; break;
+			case oftTMem: FixedP = false; break;
+			case oftJson: FixedP = false; break;
 			default: throw TQmExcept::New("Unknown field type " + FieldDesc.GetFieldTypeStr());
 		}
 		// move variable offset for the fixed size of current field
@@ -1749,11 +1790,40 @@ void TRecSerializator::GetFieldBowSpV(TThinMIn& min, const int& FieldId, PBowSpV
 		TMem Mem;
 		Toaster->UnToastVal(Pt, Mem);
 		TThinMIn min2(Mem);
-		TBowSpV::Load(min2);
+		SpV = TBowSpV::Load(min2);
 	} else {
-		TBowSpV::Load(min);
+		SpV = TBowSpV::Load(min);
 	}
 	//SpV = TBowSpV::Load(min);
+}
+/// Field getter
+void TRecSerializator::GetFieldTMem(TThinMIn& min, const int& FieldId, TMem& Mem) const {
+	min.MoveTo(GetOffsetVar(min, GetFieldSerialDesc(FieldId)));
+	if (UseToast && min.GetCh() == ToastYes) {
+		TPgBlobPt Pt;
+		min.GetBf(&Pt, sizeof(TPgBlobPt));
+		Toaster->UnToastVal(Pt, Mem);
+	} else {
+		Mem.Load(min);
+	}
+}
+/// Field getter
+PJsonVal TRecSerializator::GetFieldJsonVal(TThinMIn& min, const int& FieldId) const {
+	min.MoveTo(GetOffsetVar(min, GetFieldSerialDesc(FieldId)));
+	if (UseToast && min.GetCh() == ToastYes) {
+		TPgBlobPt Pt;
+		min.GetBf(&Pt, sizeof(TPgBlobPt));
+		TMem Mem;
+		Toaster->UnToastVal(Pt, Mem);
+		TThinMIn min2(Mem);
+		TStr Str;
+		Str.Load(min2);
+		return TJsonVal::GetValFromStr(Str);
+	} else {
+		TStr Str;
+		Str.Load(min);
+		return TJsonVal::GetValFromStr(Str);
+	}
 }
 ///////////////////////////
 
@@ -1850,6 +1920,16 @@ void TRecSerializator::GetFieldNumSpV(const TMemBase& RecMem, const int& FieldId
 void TRecSerializator::GetFieldBowSpV(const TMemBase& RecMem, const int& FieldId, PBowSpV& SpV) const {
 	TThinMIn ThinMIn(RecMem);
 	GetFieldBowSpV(ThinMIn, FieldId, SpV);
+}
+
+void TRecSerializator::GetFieldTMem(const TMemBase& RecMem, const int& FieldId, TMem& Mem) const {
+	TThinMIn ThinMIn(RecMem);
+	GetFieldTMem(ThinMIn, FieldId, Mem);
+}
+
+PJsonVal TRecSerializator::GetFieldJsonVal(const TMemBase& RecMem, const int& FieldId) const {
+	TThinMIn ThinMIn(RecMem);
+	return GetFieldJsonVal(ThinMIn, FieldId);
 }
 
 void TRecSerializator::SetFieldNull(const TMemBase& InRecMem, TMem& OutRecMem, const int& FieldId) {
@@ -2184,6 +2264,56 @@ void TRecSerializator::SetFieldBowSpV(const TMemBase& InRecMem,
 			SetFieldNull(FixedMem, FieldSerialDesc, false);
 			// serialize to record buffer
 			SetFieldBowSpV(FixedMem, VarSOut, FieldSerialDesc, SpV);
+		} else if (!FieldSerialDesc.FixedPartP) {
+			// just copy other variable fields
+			CopyFieldVar(InRecMem, FixedMem, VarSOut, FieldSerialDesc);
+		}
+	}
+	// merge fixed and variable parts for final result
+	Merge(FixedMem, VarSOut, OutRecMem);
+}
+
+void TRecSerializator::SetFieldTMem(const TMemBase& InRecMem,
+	TMem& OutRecMem, const int& FieldId, const TMem& Mem) {
+
+	TToastWatcher Watcher(this); // to delay deletion of old TOASTS
+								 // split to fixed and variable parts
+	TMem FixedMem; TMOut VarSOut; ExtractFixedMem(InRecMem, FixedMem);
+	// iterate over fields and serialize them
+	for (int FieldSerialDescId = 0; FieldSerialDescId < FieldSerialDescV.Len(); FieldSerialDescId++) {
+		const TFieldSerialDesc& FieldSerialDesc = FieldSerialDescV[FieldSerialDescId];
+		if (FieldSerialDesc.FieldId == FieldId) {
+			// check if value is toasted => we need to delete it
+			CheckToastDel(InRecMem, FieldSerialDesc);
+			// remove null flag, just in case
+			SetFieldNull(FixedMem, FieldSerialDesc, false);
+			// serialize to record buffer
+			SetFieldTMem(FixedMem, VarSOut, FieldSerialDesc, Mem);
+		} else if (!FieldSerialDesc.FixedPartP) {
+			// just copy other variable fields
+			CopyFieldVar(InRecMem, FixedMem, VarSOut, FieldSerialDesc);
+		}
+	}
+	// merge fixed and variable parts for final result
+	Merge(FixedMem, VarSOut, OutRecMem);
+}
+
+void TRecSerializator::SetFieldJsonVal(const TMemBase& InRecMem,
+	TMem& OutRecMem, const int& FieldId, const PJsonVal& Json) {
+
+	TToastWatcher Watcher(this); // to delay deletion of old TOASTS
+								 // split to fixed and variable parts
+	TMem FixedMem; TMOut VarSOut; ExtractFixedMem(InRecMem, FixedMem);
+	// iterate over fields and serialize them
+	for (int FieldSerialDescId = 0; FieldSerialDescId < FieldSerialDescV.Len(); FieldSerialDescId++) {
+		const TFieldSerialDesc& FieldSerialDesc = FieldSerialDescV[FieldSerialDescId];
+		if (FieldSerialDesc.FieldId == FieldId) {
+			// check if value is toasted => we need to delete it
+			CheckToastDel(InRecMem, FieldSerialDesc);
+			// remove null flag, just in case
+			SetFieldNull(FixedMem, FieldSerialDesc, false);
+			// serialize to record buffer
+			SetFieldJsonVal(FixedMem, VarSOut, FieldSerialDesc, Json);
 		} else if (!FieldSerialDesc.FixedPartP) {
 			// just copy other variable fields
 			CopyFieldVar(InRecMem, FixedMem, VarSOut, FieldSerialDesc);
@@ -3326,6 +3456,16 @@ void TStoreImpl::GetFieldBowSpV(const uint64& RecId, const int& FieldId, PBowSpV
 	GetFieldSerializator(FieldId)->GetFieldBowSpV(RecMem, FieldId, SpV);
 }
 
+void TStoreImpl::GetFieldTMem(const uint64& RecId, const int& FieldId, TMem& Mem) const {
+	TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
+	GetFieldSerializator(FieldId)->GetFieldTMem(RecMem, FieldId, Mem);
+}
+
+PJsonVal TStoreImpl::GetFieldJsonVal(const uint64& RecId, const int& FieldId) const {
+	TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
+	return GetFieldSerializator(FieldId)->GetFieldJsonVal(RecMem, FieldId);
+}
+
 void TStoreImpl::SetFieldNull(const uint64& RecId, const int& FieldId) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
 	TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
@@ -3543,6 +3683,26 @@ void TStoreImpl::SetFieldBowSpV(const uint64& RecId, const int& FieldId, const P
 	PutRecMem(RecId, FieldId, OutRecMem);
 }
 
+void TStoreImpl::SetFieldTMem(const uint64& RecId, const int& FieldId, const TMem& Mem) {
+	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
+	TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
+	TMem OutRecMem;
+	FieldSerializator->SetFieldTMem(InRecMem, OutRecMem, FieldId, Mem);
+	RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, *FieldSerializator);
+	PutRecMem(RecId, FieldId, OutRecMem);
+}
+
+void TStoreImpl::SetFieldJsonVal(const uint64& RecId, const int& FieldId, const PJsonVal& Json) {
+	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
+	TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
+	TMem OutRecMem;
+	FieldSerializator->SetFieldJsonVal(InRecMem, OutRecMem, FieldId, Json);
+	RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, *FieldSerializator);
+	PutRecMem(RecId, FieldId, OutRecMem);
+}
+
+
+
 PJsonVal TStoreImpl::GetStoreJson(const TWPt<TBase>& Base) const {
 	PJsonVal Result = TStore::GetStoreJson(Base);
 
@@ -3705,6 +3865,8 @@ void TStorePbBlob::UpdateRec(const uint64& RecId, const PJsonVal& RecVal) {
             TFieldDesc fd = GetFieldDesc(FieldId);
             switch (fd.GetFieldType()) {
             case TFieldType::oftBowSpV:
+			case TFieldType::oftTMem:
+			case TFieldType::oftJson:
             case TFieldType::oftFltV:
             case TFieldType::oftIntV:
             case TFieldType::oftNumSpV:
@@ -3913,6 +4075,16 @@ void TStorePbBlob::GetFieldNumSpV(const uint64& RecId, const int& FieldId, TIntF
 void TStorePbBlob::GetFieldBowSpV(const uint64& RecId, const int& FieldId, PBowSpV& SpV) const {
     TThinMIn MIn = GetPgBf(RecId, FieldLocV[FieldId] != TStoreLoc::slDisk);
     GetSerializator(FieldLocV[FieldId])->GetFieldBowSpV(MIn, FieldId, SpV);
+}
+/// Get field value using field id (default implementation throws exception)
+void TStorePbBlob::GetFieldTMem(const uint64& RecId, const int& FieldId, TMem& Mem) const {
+	TThinMIn MIn = GetPgBf(RecId, FieldLocV[FieldId] != TStoreLoc::slDisk);
+	GetSerializator(FieldLocV[FieldId])->GetFieldTMem(MIn, FieldId, Mem);
+}
+/// Get field value using field id (default implementation throws exception)
+PJsonVal TStorePbBlob::GetFieldJsonVal(const uint64& RecId, const int& FieldId) const {
+	TThinMIn MIn = GetPgBf(RecId, FieldLocV[FieldId] != TStoreLoc::slDisk);
+	return GetSerializator(FieldLocV[FieldId])->GetFieldJsonVal(MIn, FieldId);
 }
 
 //////////////////////
@@ -4212,6 +4384,40 @@ void TStorePbBlob::SetFieldBowSpV(const uint64& RecId, const int& FieldId, const
         SerializatorMem->SetFieldBowSpV(mem_in, mem_out, FieldId, SpV);
         RecIdBlobPtHMem.GetDat(RecId) = DataMem->Put(mem_out.GetBf(), mem_out.Len(), PgPt);
     }
+}
+/// Set field value using field id (default implementation throws exception)
+void TStorePbBlob::SetFieldTMem(const uint64& RecId, const int& FieldId, const TMem& Mem) {
+	if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
+		TPgBlobPt& PgPt = RecIdBlobPtH.GetDat(RecId);
+		TThinMIn min = DataBlob->Get(PgPt);
+		TMem mem_in(min);
+		TMem mem_out;
+		SerializatorCache->SetFieldTMem(mem_in, mem_out, FieldId, Mem);
+		RecIdBlobPtH.GetDat(RecId) = DataBlob->Put(mem_out.GetBf(), mem_out.Len(), PgPt);
+	} else {
+		TPgBlobPt& PgPt = RecIdBlobPtHMem.GetDat(RecId);
+		TMemBase mem_in = DataMem->GetMemBase(PgPt);
+		TMem mem_out;
+		SerializatorMem->SetFieldTMem(mem_in, mem_out, FieldId, Mem);
+		RecIdBlobPtHMem.GetDat(RecId) = DataMem->Put(mem_out.GetBf(), mem_out.Len(), PgPt);
+	}
+}
+/// Set field value using field id (default implementation throws exception)
+void TStorePbBlob::SetFieldJsonVal(const uint64& RecId, const int& FieldId, const PJsonVal& Json) {
+	if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
+		TPgBlobPt& PgPt = RecIdBlobPtH.GetDat(RecId);
+		TThinMIn min = DataBlob->Get(PgPt);
+		TMem mem_in(min);
+		TMem mem_out;
+		SerializatorCache->SetFieldJsonVal(mem_in, mem_out, FieldId, Json);
+		RecIdBlobPtH.GetDat(RecId) = DataBlob->Put(mem_out.GetBf(), mem_out.Len(), PgPt);
+	} else {
+		TPgBlobPt& PgPt = RecIdBlobPtHMem.GetDat(RecId);
+		TMemBase mem_in = DataMem->GetMemBase(PgPt);
+		TMem mem_out;
+		SerializatorMem->SetFieldJsonVal(mem_in, mem_out, FieldId, Json);
+		RecIdBlobPtHMem.GetDat(RecId) = DataMem->Put(mem_out.GetBf(), mem_out.Len(), PgPt);
+	}
 }
 
 /// Check if given ID is valid

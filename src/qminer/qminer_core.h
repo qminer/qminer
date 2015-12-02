@@ -240,7 +240,9 @@ typedef enum {
 	oftFltV		= 10,///< Vector of double precision numbers
 	oftTm		= 7, ///< Date and time
 	oftNumSpV	= 11,///< Sparse vector -- vector of (integer,double) pairs 
-	oftBowSpV	= 12 ///< Bag-of-words sparse vector
+	oftBowSpV	= 12, ///< Bag-of-words sparse vector
+	oftTMem     = 19, ///< Memory buffer
+	oftJson     = 20  ///< JSON field
 } TFieldType;
 
 ///////////////////////////////
@@ -304,6 +306,8 @@ public:
 	bool IsTm() const { return FieldType == oftTm; }
 	bool IsNumSpV() const { return FieldType == oftNumSpV; }
 	bool IsBowSpV() const { return FieldType == oftBowSpV; }
+	bool IsTMem() const { return FieldType == oftTMem; }
+	bool IsJson() const { return FieldType == oftJson; }
 
 	// flags
 	bool IsNullable() const { return ((Flags & ofdfNull) != 0); }
@@ -662,6 +666,10 @@ public:
 	virtual void GetFieldNumSpV(const uint64& RecId, const int& FieldId, TIntFltKdV& SpV) const;
 	/// Get field value using field id (default implementation throws exception)
 	virtual void GetFieldBowSpV(const uint64& RecId, const int& FieldId, PBowSpV& SpV) const;
+	/// Get field value using field id (default implementation throws exception)
+	virtual void GetFieldTMem(const uint64& RecId, const int& FieldId, TMem& Mem) const;
+	/// Get field value using field id (default implementation throws exception)
+	virtual PJsonVal GetFieldJsonVal(const uint64& RecId, const int& FieldId) const;
 
 	/// Check if the value of given field for a given record is NULL
 	bool IsFieldNmNull(const uint64& RecId, const TStr& FieldNm) const;
@@ -691,7 +699,11 @@ public:
 	void GetFieldNmNumSpV(const uint64& RecId, const TStr& FieldNm, TIntFltKdV& SpV) const;
 	/// Get field value using field name (default implementation throws exception)
 	void GetFieldNmBowSpV(const uint64& RecId, const TStr& FieldNm, PBowSpV& SpV) const;
- 
+	/// Get field value using field name (default implementation throws exception)
+	void GetFieldNmTMem(const uint64& RecId, const TStr& FieldNm, TMem& mem) const;
+	/// Get field value using field name (default implementation throws exception)
+	PJsonVal GetFieldNmJsonVal(const uint64& RecId, const TStr& FieldNm) const;
+
 	/// Set the value of given field to NULL
 	virtual void SetFieldNull(const uint64& RecId, const int& FieldId);
 	/// Set field value using field id (default implementation throws exception)
@@ -732,6 +744,10 @@ public:
 	virtual void SetFieldNumSpV(const uint64& RecId, const int& FieldId, const TIntFltKdV& SpV);
 	/// Set field value using field id (default implementation throws exception)
 	virtual void SetFieldBowSpV(const uint64& RecId, const int& FieldId, const PBowSpV& SpV);
+	/// Set field value using field id (default implementation throws exception)
+	virtual void SetFieldTMem(const uint64& RecId, const int& FieldId, const TMem& Mem);
+	/// Set field value using field id (default implementation throws exception)
+	virtual void SetFieldJsonVal(const uint64& RecId, const int& FieldId, const PJsonVal& Json);
 
 	/// Set the value of given field to NULL
 	void SetFieldNmNull(const uint64& RecId, const TStr& FieldNm);
@@ -760,8 +776,12 @@ public:
 	/// Set field value using field name (default implementation throws exception)
 	void SetFieldNmNumSpV(const uint64& RecId, const TStr& FieldNm, const TIntFltKdV& SpV);
 	/// Set field value using field name (default implementation throws exception)
-	void SetFieldNmBowSpV(const uint64& RecId, const TStr& FieldNm, const PBowSpV& SpV);   
-	
+	void SetFieldNmBowSpV(const uint64& RecId, const TStr& FieldNm, const PBowSpV& SpV);
+	/// Set field value using field name (default implementation throws exception)
+	void SetFieldNmTMem(const uint64& RecId, const TStr& FieldNm, const TMem& Mem);   
+	/// Set field value using field name (default implementation throws exception)
+	void SetFieldNmJsonVal(const uint64& RecId, const TStr& FieldNm, const PJsonVal& Json);
+
 	/// Get field value as JSon object using field id
 	virtual PJsonVal GetFieldJson(const uint64& RecId, const int& FieldId) const;
 	/// Get field value as human-readable text using field id
@@ -909,6 +929,10 @@ public:
 	void GetFieldNumSpV(const int& FieldId, TIntFltKdV& NumSpV) const;
 	/// Field value retrieval
 	void GetFieldBowSpV(const int& FieldId, PBowSpV& BowSpV) const;
+	/// Field value retrieval
+	void GetFieldTMem(const int& FieldId, TMem& Mem) const;
+	/// Field value retrieval
+	PJsonVal GetFieldJsonVal(const int& FieldId) const;
 
 	/// Get field value as JSon object using field id
 	PJsonVal GetFieldJson(const int& FieldId) const;
@@ -955,6 +979,10 @@ public:
 	void SetFieldNumSpV(const int& FieldId, const TIntFltKdV& NumSpV);
 	/// Set field value
 	void SetFieldBowSpV(const int& FieldId, const PBowSpV& BowSpV);
+	/// Set field value
+	void SetFieldTMem(const int& FieldId, const TMem& Mem);
+	/// Set field value
+	void SetFieldJsonVal(const int& FieldId, const PJsonVal& Json);
 	/// Add join
 	void AddJoin(const int& JoinId, const PRecSet& JoinRecSet);
 
@@ -3287,7 +3315,7 @@ private:
 public:
 	static PStoreTrigger New(const PStreamAggrBase& StreamAggrBase);
 
-	// forward the calls to stream aggreagte base
+	// forward the calls to stream aggregate base
 	void OnAdd(const TRec& Rec);
 	void OnUpdate(const TRec& Rec);
 	void OnDelete(const TRec& Rec);

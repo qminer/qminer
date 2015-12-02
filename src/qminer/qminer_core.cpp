@@ -294,6 +294,8 @@ TStr TFieldDesc::GetFieldTypeStr() const {
 	case oftTm: return "datetime";
 	case oftNumSpV: return "num_sp_v";
 	case oftBowSpV: return "bow_sp_v";
+	case oftTMem: return "blob";
+	case oftJson: return "json";
 	}
 	Fail; return "";
 }
@@ -735,6 +737,14 @@ void TStore::GetFieldBowSpV(const uint64& RecId, const int& FieldId, PBowSpV& Sp
 	throw FieldError(FieldId, "BowSpV");
 }
 
+void TStore::GetFieldTMem(const uint64& RecId, const int& FieldId, TMem& Mem) const {
+	throw FieldError(FieldId, "TMem");
+}
+
+PJsonVal TStore::GetFieldJsonVal(const uint64& RecId, const int& FieldId) const {
+	throw FieldError(FieldId, "Json");
+}
+
 bool TStore::IsFieldNmNull(const uint64& RecId, const TStr& FieldNm) const {
 	return IsFieldNull(RecId, GetFieldId(FieldNm));
 }
@@ -789,6 +799,14 @@ void TStore::GetFieldNmNumSpV(const uint64& RecId, const TStr& FieldNm, TIntFltK
 
 void TStore::GetFieldNmBowSpV(const uint64& RecId, const TStr& FieldNm, PBowSpV& SpV) const {
 	GetFieldBowSpV(RecId, GetFieldId(FieldNm), SpV);
+}
+
+void TStore::GetFieldNmTMem(const uint64& RecId, const TStr& FieldNm, TMem& Mem) const {
+	GetFieldTMem(RecId, GetFieldId(FieldNm), Mem);
+}
+
+PJsonVal TStore::GetFieldNmJsonVal(const uint64& RecId, const TStr& FieldNm) const {
+	return GetFieldJsonVal(RecId, GetFieldId(FieldNm));
 }
 
 void TStore::SetFieldNull(const uint64& RecId, const int& FieldId) {
@@ -871,6 +889,15 @@ void TStore::SetFieldBowSpV(const uint64& RecId, const int& FieldId, const PBowS
 	throw FieldError(FieldId, "BowSpV");
 }
 
+void TStore::SetFieldTMem(const uint64& RecId, const int& FieldId, const TMem& Mem) {
+	throw FieldError(FieldId, "TMem");
+}
+
+void TStore::SetFieldJsonVal(const uint64& RecId, const int& FieldId, const PJsonVal& Json) {
+	throw FieldError(FieldId, "Json");
+}
+
+
 void TStore::SetFieldNmNull(const uint64& RecId, const TStr& FieldNm) {
 	SetFieldNull(RecId, GetFieldId(FieldNm));
 }
@@ -927,6 +954,14 @@ void TStore::SetFieldNmBowSpV(const uint64& RecId, const TStr& FieldNm, const PB
 	SetFieldBowSpV(RecId, GetFieldId(FieldNm), SpV);
 }
 
+void TStore::SetFieldNmTMem(const uint64& RecId, const TStr& FieldNm, const TMem& Mem) {
+	SetFieldTMem(RecId, GetFieldId(FieldNm), Mem);
+}
+
+void TStore::SetFieldNmJsonVal(const uint64& RecId, const TStr& FieldNm, const PJsonVal& Json) {
+	SetFieldJsonVal(RecId, GetFieldId(FieldNm), Json);
+}
+
 PJsonVal TStore::GetFieldJson(const uint64& RecId, const int& FieldId) const {
 	const TFieldDesc& Desc = GetFieldDesc(FieldId);
 	if (Desc.IsInt()) {
@@ -970,6 +1005,13 @@ PJsonVal TStore::GetFieldJson(const uint64& RecId, const int& FieldId) const {
 		return TJsonVal::NewStr(TStrUtil::GetStr(FieldIntFltKdV));
 	} else if (Desc.IsBowSpV()) {
 		return TJsonVal::NewStr("[PBowSpV]"); //TODO
+	} else if (Desc.IsTMem()) {
+		TMem Mem; 
+		GetFieldTMem(RecId, FieldId, Mem);
+		return TJsonVal::NewStr(TStr::Base64Encode(Mem));
+	} else if (Desc.IsJson()) {
+		PJsonVal Json = GetFieldJsonVal(RecId, FieldId);
+		return Json;
 	}
 	throw FieldError(FieldId, "GetFieldJson");
 }
@@ -1018,6 +1060,13 @@ TStr TStore::GetFieldText(const uint64& RecId, const int& FieldId) const {
 		return TStrUtil::GetStr(FieldIntFltKdV);
 	} else if (Desc.IsBowSpV()) {
 		return "[PBowSpV]"; //TODO
+	} else if (Desc.IsTMem()) {
+		TMem Mem; 
+		GetFieldTMem(RecId, FieldId, Mem);
+		return TStr::Base64Encode(Mem);
+	} else if (Desc.IsJson()) {
+		PJsonVal Json = GetFieldJsonVal(RecId, FieldId);
+		return TJsonVal::GetStrFromVal(Json);
 	}
 	throw FieldError(FieldId, "GetDisplayText");
 }
@@ -1461,6 +1510,18 @@ TRec::TRec(const TWPt<TStore>& _Store, const PJsonVal& JsonVal) :
 			SetFieldTm(FieldId, Tm);
 			break;
 		}
+		case oftTMem: {
+			QmAssertR(FieldVal->IsStr(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not a number or a string that represents DateTime.");
+			// TODO do we support anything else? probably not on this level...
+			TMem Mem;
+			TStr::Base64Decode(FieldVal->GetStr(), Mem);
+			SetFieldTMem(FieldId, Mem);
+			break;
+		}
+		case oftJson: {
+			SetFieldJsonVal(FieldId, FieldVal);
+			break;
+		}
 		default:
 			throw TQmExcept::New("Unsupported JSon data type for function - " + FieldDesc.GetFieldTypeStr());
 		}
@@ -1552,7 +1613,7 @@ uint TRec::GetFieldUInt(const int& FieldId) const {
 }
 uint16 TRec::GetFieldUInt16(const int& FieldId) const {
 	if (IsByRef()) {
-		return Store->GetFieldUInt64(RecId, FieldId);
+		return (uint16)Store->GetFieldUInt64(RecId, FieldId);
 	} else if (FieldIdPosH.IsKey(FieldId)) {
 		const int Pos = FieldIdPosH.GetDat(FieldId);
 		TMIn MIn(RecVal.GetBf() + Pos, RecVal.Len() - Pos, false);
@@ -1697,6 +1758,22 @@ void TRec::GetFieldBowSpV(const int& FieldId, PBowSpV& BowSpV) const {
 	}
 }
 
+void TRec::GetFieldTMem(const int& FieldId, TMem& Mem) const {
+	if (IsByRef()) {
+		Store->GetFieldTMem(RecId, FieldId, Mem);
+	} else {
+		throw FieldError(FieldId, "TMem");
+	}
+}
+
+PJsonVal TRec::GetFieldJsonVal(const int& FieldId) const {
+	if (IsByRef()) {
+		return Store->GetFieldJsonVal(RecId, FieldId);
+	} else {
+		throw FieldError(FieldId, "JsonVal");
+	}
+}
+
 PJsonVal TRec::GetFieldJson(const int& FieldId) const {
 	const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
 	if (Desc.IsInt()) {
@@ -1740,6 +1817,13 @@ PJsonVal TRec::GetFieldJson(const int& FieldId) const {
 		return TJsonVal::NewStr(TStrUtil::GetStr(FieldIntFltKdV));
 	} else if (Desc.IsBowSpV()) {
 		return TJsonVal::NewStr("[PBowSpV]"); //TODO
+	} else if (Desc.IsTMem()) {
+		TMem Mem; 
+		GetFieldTMem(FieldId, Mem);
+		return TJsonVal::NewStr(TStr::Base64Encode(Mem));
+	} else if (Desc.IsJson()) {
+		PJsonVal Json = GetFieldJsonVal(FieldId);
+		return Json;
 	}
 	throw FieldError(FieldId, "GetFieldJson");
 }
@@ -1788,6 +1872,13 @@ TStr TRec::GetFieldText(const int& FieldId) const {
 		return TStrUtil::GetStr(IntFltKdV);
 	} else if (Desc.IsBowSpV()) {
 		return "[PBowSpV]"; //TODO
+	} else if (Desc.IsTMem()) {
+		TMem Mem; 
+		GetFieldTMem(FieldId, Mem);
+		return TStr::Base64Encode(Mem);
+	} else if (Desc.IsJson()) {
+		PJsonVal Json = GetFieldJsonVal(FieldId);
+		return TJsonVal::GetStrFromVal(Json);
 	}
 	throw FieldError(FieldId, "GetDisplayText");
 }
@@ -1970,6 +2061,24 @@ void TRec::SetFieldBowSpV(const int& FieldId, const PBowSpV& BowSpV) {
 	} else {
 		FieldIdPosH.AddDat(FieldId, RecVal.Len());
 		BowSpV->Save(RecValOut);
+	}
+}
+
+void TRec::SetFieldTMem(const int& FieldId, const TMem& Mem) {
+	if (IsByRef()) {
+		Store->SetFieldTMem(RecId, FieldId, Mem);
+	} else {
+		FieldIdPosH.AddDat(FieldId, RecVal.Len());
+		Mem.Save(RecValOut);
+	}
+}
+
+void TRec::SetFieldJsonVal(const int& FieldId, const PJsonVal& Json) {
+	if (IsByRef()) {
+		Store->SetFieldJsonVal(RecId, FieldId, Json);
+	} else {
+		FieldIdPosH.AddDat(FieldId, RecVal.Len());
+		TJsonVal::GetStrFromVal(Json).Save(RecValOut);
 	}
 }
 
@@ -3928,7 +4037,7 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const
 				RangeInt64MnMx = TInt64Pr(KeyVal->GetObjInt64("$gt", TInt64::Mn), KeyVal->GetObjInt64("$lt", TInt64::Mx));
 			} else if (Key.IsSortAsByte()) {
                 Type = oqitRangeByte;
-                RangeUChMnMx = TUChPr(KeyVal->GetObjInt64("$gt", TUCh::Mn), KeyVal->GetObjInt64("$lt", TUCh::Mx));
+                RangeUChMnMx = TUChPr((uchar)KeyVal->GetObjInt("$gt", TUCh::Mn), (uchar)KeyVal->GetObjInt("$lt", TUCh::Mx));
             } else if (Key.IsSortAsUInt()) {
                 Type = oqitRangeUInt;
 				uint64 low = (uint64)KeyVal->GetObjNum("$gt", TUInt::Mn);
