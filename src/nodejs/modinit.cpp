@@ -120,7 +120,7 @@ void InitQm(Handle<Object> Exports) {
 	// QMiner package
 	TNodeJsQm::Init(Exports);
 	TNodeJsBase::Init(Exports);
-	TNodeJsSA::Init(Exports);
+	TNodeJsStreamAggr::Init(Exports);
 	TNodeJsStore::Init(Exports);
 	// the record templates are initiated elsewhere: qm.open, qm.create, base.createStore
 	TNodeJsRecByValV::Init(Exports);

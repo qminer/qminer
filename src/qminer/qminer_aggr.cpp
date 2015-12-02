@@ -217,7 +217,7 @@ TBow::TBow(const TWPt<TBase>& Base, const TStr& AggrNm,
 	// check if need to sample
 	SampleRecSet = _RecSet;
 	if (SampleSize != -1 && _RecSet->GetRecs() > SampleSize) {
-		SampleRecSet = _RecSet->GetSampleRecSet(SampleSize, false);
+		SampleRecSet = _RecSet->GetSampleRecSet(SampleSize);
 	}
 	// prepare documents
 	BowDocBs = TBowDocBs::New();
