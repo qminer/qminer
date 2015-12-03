@@ -8,6 +8,12 @@
 #include <limits.h>
 #include <locale.h>
 #include "svm.h"
+#include "qminer_core.h"
+
+// Need these to prevent LIBSVM polluting stdout and stderr.
+#define ErrorNotify TQm::TEnv::Error
+#define DebugNotify TQm::TEnv::Debug
+
 int libsvm_version = LIBSVM_VERSION;
 typedef float Qfloat;
 typedef signed char schar;
@@ -476,7 +482,7 @@ void Solver::reconstruct_gradient()
 			nr_free++;
 
 	if(2*nr_free < active_size)
-		info("\nWARNING: using -h 0 may be faster\n");
+		DebugNotify->OnStatusFmt("\nWARNING: using -h 0 may be faster\n");
 
 	if (nr_free*l > 2*active_size*(l-active_size))
 	{
@@ -569,7 +575,7 @@ void Solver::Solve(int l, const QMatrix& Q, const double *p_, const schar *y_,
 		{
 			counter = min(l,1000);
 			if(shrinking) do_shrinking();
-			info(".");
+			DebugNotify->OnStatusFmt(".");
 		}
 
 		int i,j;
@@ -579,7 +585,7 @@ void Solver::Solve(int l, const QMatrix& Q, const double *p_, const schar *y_,
 			reconstruct_gradient();
 			// reset active set size and check
 			active_size = l;
-			info("*");
+			DebugNotify->OnStatusFmt("*");
 			if(select_working_set(i,j)!=0)
 				break;
 			else
@@ -735,9 +741,9 @@ void Solver::Solve(int l, const QMatrix& Q, const double *p_, const schar *y_,
 			// reconstruct the whole gradient to calculate objective value
 			reconstruct_gradient();
 			active_size = l;
-			info("*");
+			DebugNotify->OnStatusFmt("*");
 		}
-		fprintf(stderr,"\nWARNING: reaching max number of iterations\n");
+		ErrorNotify->OnStatusFmt("\nWARNING: reaching max number of iterations\n");
 	}
 
 	// calculate rho
@@ -771,7 +777,7 @@ void Solver::Solve(int l, const QMatrix& Q, const double *p_, const schar *y_,
 	si->upper_bound_p = Cp;
 	si->upper_bound_n = Cn;
 
-	info("\noptimization finished, #iter = %d\n",iter);
+	DebugNotify->OnStatusFmt("\noptimization finished, #iter = %d\n",iter);
 
 	delete[] p;
 	delete[] y;
@@ -944,7 +950,7 @@ void Solver::do_shrinking()
 		unshrink = true;
 		reconstruct_gradient();
 		active_size = l;
-		info("*");
+		DebugNotify->OnStatusFmt("*");
 	}
 
 	for(i=0;i<active_size;i++)
@@ -1463,7 +1469,7 @@ static void solve_c_svc(
 		sum_alpha += alpha[i];
 
 	if (Cp==Cn)
-		info("nu = %f\n", sum_alpha/(Cp*prob->l));
+		DebugNotify->OnStatusFmt("nu = %f\n", sum_alpha/(Cp*prob->l));
 
 	for(i=0;i<l;i++)
 		alpha[i] *= y[i];
@@ -1513,7 +1519,7 @@ static void solve_nu_svc(
 		alpha, 1.0, 1.0, param->eps, si,  param->shrinking);
 	double r = si->r;
 
-	info("C = %f\n",1/r);
+	DebugNotify->OnStatusFmt("C = %f\n",1/r);
 
 	for(i=0;i<l;i++)
 		alpha[i] *= y[i]/r;
@@ -1590,7 +1596,7 @@ static void solve_epsilon_svr(
 		alpha[i] = alpha2[i] - alpha2[i+l];
 		sum_alpha += fabs(alpha[i]);
 	}
-	info("nu = %f\n",sum_alpha/(param->C*l));
+	DebugNotify->OnStatusFmt("nu = %f\n",sum_alpha/(param->C*l));
 
 	delete[] alpha2;
 	delete[] linear_term;
@@ -1625,7 +1631,7 @@ static void solve_nu_svr(
 	s.Solve(2*l, SVR_Q(*prob,*param), linear_term, y,
 		alpha2, C, C, param->eps, si, param->shrinking);
 
-	info("epsilon = %f\n",-si->r);
+	DebugNotify->OnStatusFmt("epsilon = %f\n",-si->r);
 
 	for(i=0;i<l;i++)
 		alpha[i] = alpha2[i] - alpha2[i+l];
@@ -1669,7 +1675,7 @@ static decision_function svm_train_one(
 			break;
 	}
 
-	info("obj = %f, rho = %f\n",si.obj,si.rho);
+	DebugNotify->OnStatusFmt("obj = %f, rho = %f\n",si.obj,si.rho);
 
 	// output SVs
 
@@ -1693,7 +1699,7 @@ static decision_function svm_train_one(
 		}
 	}
 
-	info("nSV = %d, nBSV = %d\n",nSV,nBSV);
+	DebugNotify->OnStatusFmt("nSV = %d, nBSV = %d\n",nSV,nBSV);
 
 	decision_function f;
 	f.alpha = alpha;
@@ -1805,13 +1811,13 @@ static void sigmoid_train(
 
 		if (stepsize < min_step)
 		{
-			info("Line search fails in two-class probability estimates\n");
+			DebugNotify->OnStatusFmt("Line search fails in two-class probability estimates\n");
 			break;
 		}
 	}
 
 	if (iter>=max_iter)
-		info("Reaching maximal iterations in two-class probability estimates\n");
+		DebugNotify->OnStatusFmt("Reaching maximal iterations in two-class probability estimates\n");
 	free(t);
 }
 
@@ -1883,7 +1889,7 @@ static void multiclass_probability(int k, double **r, double *p)
 		}
 	}
 	if (iter>=max_iter)
-		info("Exceeds max_iter in multiclass_prob\n");
+		DebugNotify->OnStatusFmt("Exceeds max_iter in multiclass_prob\n");
 	for(t=0;t<k;t++) free(Q[t]);
 	free(Q);
 	free(Qp);
@@ -2003,7 +2009,7 @@ static double svm_svr_probability(
 		else 
 			mae+=fabs(ymv[i]);
 	mae /= (prob->l-count);
-	info("Prob. model for test data: target value = predicted value + z,\nz: Laplace distribution e^(-|z|/sigma)/(2sigma),sigma= %g\n",mae);
+	DebugNotify->OnStatusFmt("Prob. model for test data: target value = predicted value + z,\nz: Laplace distribution e^(-|z|/sigma)/(2sigma),sigma= %g\n",mae);
 	free(ymv);
 	return mae;
 }
@@ -2151,7 +2157,7 @@ svm_model *svm_train(const svm_problem *prob, const svm_parameter *param)
 		// group training data of the same class
 		svm_group_classes(prob,&nr_class,&label,&start,&count,perm);
 		if(nr_class == 1) 
-			info("WARNING: training data in only one class. See README for details.\n");
+			DebugNotify->OnStatusFmt("WARNING: training data in only one class. See README for details.\n");
 		
 		svm_node **x = Malloc(svm_node *,l);
 		int i;
@@ -2170,7 +2176,7 @@ svm_model *svm_train(const svm_problem *prob, const svm_parameter *param)
 				if(param->weight_label[i] == label[j])
 					break;
 			if(j == nr_class)
-				fprintf(stderr,"WARNING: class label %d specified in weight is not found\n", param->weight_label[i]);
+				ErrorNotify->OnStatusFmt("WARNING: class label %d specified in weight is not found\n", param->weight_label[i]);
 			else
 				weighted_C[j] *= param->weight[i];
 		}
@@ -2270,7 +2276,7 @@ svm_model *svm_train(const svm_problem *prob, const svm_parameter *param)
 			nz_count[i] = nSV;
 		}
 		
-		info("Total nSV = %d\n",total_sv);
+		DebugNotify->OnStatusFmt("Total nSV = %d\n",total_sv);
 
 		model->l = total_sv;
 		model->SV = Malloc(svm_node *,total_sv);
@@ -2346,7 +2352,7 @@ void svm_cross_validation(const svm_problem *prob, const svm_parameter *param, i
 	if (nr_fold > l)
 	{
 		nr_fold = l;
-		fprintf(stderr,"WARNING: # folds > # data. Will use # folds = # data instead (i.e., leave-one-out cross validation)\n");
+		ErrorNotify->OnStatusFmt("WARNING: # folds > # data. Will use # folds = # data instead (i.e., leave-one-out cross validation)\n");
 	}
 	fold_start = Malloc(int,nr_fold+1);
 	// stratified cv may not give leave-one-out rate
@@ -2493,7 +2499,7 @@ double svm_get_svr_probability(const svm_model *model)
 		return model->probA[0];
 	else
 	{
-		fprintf(stderr,"Model doesn't contain information for SVR probability inference\n");
+		ErrorNotify->OnStatusFmt("Model doesn't contain information for SVR probability inference\n");
 		return 0;
 	}
 }
@@ -2783,7 +2789,7 @@ bool read_model_header(FILE *fp, svm_model* model)
 			}
 			if(svm_type_table[i] == NULL)
 			{
-				fprintf(stderr,"unknown svm type.\n");
+				ErrorNotify->OnStatusFmt("unknown svm type.\n");
 				return false;
 			}
 		}
@@ -2801,7 +2807,7 @@ bool read_model_header(FILE *fp, svm_model* model)
 			}
 			if(kernel_type_table[i] == NULL)
 			{
-				fprintf(stderr,"unknown kernel function.\n");	
+				ErrorNotify->OnStatusFmt("unknown kernel function.\n");	
 				return false;
 			}
 		}
@@ -2861,7 +2867,7 @@ bool read_model_header(FILE *fp, svm_model* model)
 		}
 		else
 		{
-			fprintf(stderr,"unknown text in model file: [%s]\n",cmd);
+			ErrorNotify->OnStatusFmt("unknown text in model file: [%s]\n",cmd);
 			return false;
 		}
 	}
@@ -2891,7 +2897,7 @@ svm_model *svm_load_model(const char *model_file_name)
 	// read header
 	if (!read_model_header(fp, model))
 	{
-		fprintf(stderr, "ERROR: fscanf failed to read model\n");
+		ErrorNotify->OnStatusFmt("ERROR: fscanf failed to read model\n");
 		setlocale(LC_ALL, old_locale);
 		free(old_locale);
 		free(model->rho);
