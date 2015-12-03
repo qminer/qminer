@@ -1226,16 +1226,6 @@ exports = {}; require.modules.qminer_analytics = exports;
 	 */
  exports.PropHazards.prototype.save = function(sout) { return Object.create(require('qminer').fs.FOut.prototype); }
 /**
-	 * Fits the model onto the data. The data instances must be stored as column vectors in X, while their times
-	 * have to be stored in timeV. An optional parameter indicates wether the data provided is in
-	 * batches and indicates wether the instance at index i ends a batch.
-	 *
-	 * @param {Matrix} X - the column matrix containing the data instances
-	 * @param {Vector} timeV - a vector containing the sampling times of the instances
-	 * @param {BoolVector} [endsBatchV] - a vector of boolean indicating wether the current instance ends a batch
-	 * @returns {HMC} - returns itself
-	 */
-/**
 	 * Returns the probability distribution over the future states given that the current state is the one in
 	 * the parameter.
 	 *
@@ -1524,6 +1514,86 @@ exports = {}; require.modules.qminer_analytics = exports;
 	* var nnet2 = new analytics.NNet(fin);
 	*/
  exports.NNet.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); } 
+/**
+* @typedef {Object} tokenizerParam
+* @property {string} type - The type of the tokenizer. The different types are: 
+*<br>"simple" -
+*<br>"html" -
+*<br>"unicode" -
+*/
+/**
+ * Tokenizer
+ * @class 
+ * @classdesc Breaks text into tokens (i.e. words).
+ * @param {module:analytics.tokenizerParam} param - The constructor parameters.
+ * @example
+ * // import analytics module
+ * var analytics = require('qminer').analytics;
+ * // construct model
+ * var tokenizer = new analytics.Tokenizer({ type: "simple" })
+ */
+ exports.Tokenizer = function (param) { return Object.create(require("qminer").analytics.Tokenizer.prototype); }
+/**
+	* This function tokenizes given strings and returns it as an array of strings.
+	* @param {String} str - String of text you want to tokenize.
+	* @returns {Array.<String>} Returns array of strings. The number of strings in this array is equal to number of words in input string parameter.
+	* Only keeps words, skips all punctuation.
+	* Tokenizing contractions (i.e. don't) depends on which type you use. Type 'html' breaks contractions into 2 tokens.
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // construct model
+	* var tokenizer = new analytics.Tokenizer({ type: "simple" });
+	* // string you wish to tokenize
+	* var string = "What a beautiful day!";
+	* // tokenize string using getTokens
+	* var tokens = tokenizer.getTokens(string);
+	* // output:
+	* tokens = ["What", "a", "beautiful", "day"];
+	*/
+ exports.Tokenizer.prototype.getTokens = function (str) { return [""]; }
+/**
+	* This function breaks text into sentences and returns them as an array of strings.
+	* @param {String} str - String of text you want to break into sentences.
+	* @returns {Array.<String>} Returns array of strings. The number of strings in this array is equal to number of sentences in input string parameter.
+	* How function breaks sentences depends on where you use a full-stop, exclamation mark, question mark or the new line command.
+	* Careful: the space between the lines is not ignored. 
+	* With all 3 types this function returns sentences as they are.
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // construct model
+	* var tokenizer = new analytics.Tokenizer({ type: "simple" });
+	* // string you wish to tokenize
+	* var string = "C++? Alright. Let's do this!";
+	* // tokenize text using getSentences
+	* var tokens = tokenizer.getSentences(string);
+	* // output:
+	* tokens = ["C++", " Alright", " Let's do this"];
+	*/
+ exports.Tokenizer.prototype.getSentences = function (str) { return [""]; }
+/**
+	* This function breaks text into paragraphs and returns them as an array of strings.
+	* @param {String} str - String of text you want to break into paragraphs.
+	* @returns {Array.<String>} Returns array of strings. The number of strings in this array is equal to number of paragraphs in input string parameter.
+	* When function detects commands '\n', '\r' or '\t' it breaks text as new paragraph.
+	* With all 3 types this function returns paragraphs as they are.
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // construct model
+	* var tokenizer = new analytics.Tokenizer({ type: "simple" });
+	* // string you wish to tokenize
+	* var string = "Yes!\t No?\n Maybe...";
+	* // tokenize text using getParagraphs
+	* var tokens = tokenizer.getParagraphs(string);
+	* // output:
+	* tokens = ["Yes", " No", " Maybe"];
+	*/
+ exports.Tokenizer.prototype.getParagraphs = function (str) { return [""]; }
 
 
     ///////////////////////////////////////////////////
@@ -2579,8 +2649,6 @@ exports = {}; require.modules.qminer_analytics = exports;
         */
         this.save = function (fout) {
             fout.writeJson(this.metric.state);
-            fout.flush();
-            fout.close();
             return fout;
         }
 
@@ -2592,7 +2660,6 @@ exports = {}; require.modules.qminer_analytics = exports;
         this.load = function (fin) {
             this.metric.state = fin.readJson();
             error = this.metric.state.error;
-            fin.close();
             return fin;
         }
 
@@ -2911,27 +2978,121 @@ exports = {}; require.modules.qminer_analytics = exports;
     exports.metrics = metrics;
 
     /**
+    * @typedef {Object} pcaParams
+    * @property {number} [k = null] - Number of eigenvectors to be computed.
+    * @property {number} [iter = 100] - Number of iterations.
+    */
+
+    /**
     * @classdesc Principal components analysis
     * @class
+    * @param {module:analytics~pcaParams | module:fs.FIn} [params] - The constructor parameters.
+    * @example <caption>Using default constructor</caption>
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // construct model
+    * var pca = new analytics.PCA();
+    * @example <caption>Using custom constructor</caption>
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // construct model
+    * var pca = new analytics.PCA({ k: 5, iter: 50 });
     */
     exports.PCA = function (param) {
-        param = param == undefined ? {} : param;
+        var iter, k;
+        this.P = undefined;
+        this.mu = undefined;
+        this.lambda = undefined;
+        var count = 1;
+        if (param != undefined && param.constructor.name == 'FIn') {
+            this.P = new la.Matrix();
+            this.P.load(param);
+            this.mu = new la.Vector();
+            this.mu.load(param);
+            this.lambda = new la.Vector();
+            this.lambda.load(param);
+            var params_vec = new la.Vector();
+            params_vec.load(param);
+            iter = params_vec[0];
+            k = params_vec[1];
+            param = { iter: iter, k: k };
+        } else if (param == undefined || typeof param == 'object') {
+            param = param == undefined ? {} : param;
 
-        // Fit params
-        var iter = param.iter == undefined ? 100 : param.iter;
-        var k = param.k; // can be undefined
-
+            // Fit params
+            var iter = param.iter == undefined ? 100 : param.iter;
+            var k = param.k; // can be undefined
+            param = { iter: iter, k: k };
+        } else {
+            throw "PCA.constructor: parameter must be a JSON object or a fs.FIn!";
+        }
         /**
         * Returns the model
         * @returns {Object} The model object whose keys are: P (eigenvectors), lambda (eigenvalues) and mu (mean)
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit matrix before getting the model
+        * pca.fit(matrix)
+        * // get your model using function getModel
+        * var model = pca.getModel();
         */
         this.getModel = function () {
             return { P: this.P, mu: this.mu, lambda: this.lambda };
         }
 
         /**
+        * Saves the model.
+        * @param {module:fs.FOut} fout - The output stream.
+        * @returns {module:fs.FOut} The given output stream fout.
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit matrix
+        * pca.fit(matrix);
+        * var model = pca.getModel();
+        * // save model
+        * pca.save(require('qminer').fs.openWrite('pca_test.bin')).close();
+        */
+        this.save = function (fout) {
+            if (!this.P) {
+                throw new Error("PCA.save() - model not created yet");
+            }
+
+            var params_vec = new la.Vector();
+            params_vec.push(iter);
+            params_vec.push(k);
+            
+            if (fout.constructor.name == 'FOut') {
+                this.P.save(fout);
+                this.mu.save(fout);
+                this.lambda.save(fout);
+                params_vec.save(fout);
+                return fout;
+            } else {
+                throw "PCA.save: input must be fs.FOut";
+            }
+        }
+        
+
+        /**
         * Sets parameters
         * @param {p} Object whose keys are: k (number of eigenvectors) and iter (maximum iterations)
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // set 5 eigenvectors and 10 iterations using setParams
+        * pca.setParams({iter: 10, k: 5});
         */
         this.setParams = function (p) {
             param = p;
@@ -2943,6 +3104,22 @@ exports = {}; require.modules.qminer_analytics = exports;
         /**
         * Gets parameters
         * @returns Object whose keys are: k (number of eigenvectors) and iter (maximum iterations)
+        * @example <caption>Using default constructor</caption>
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // check the constructor parameters
+        * var paramvalue = pca.getParams();
+        * @example <caption>Using custom constructor</caption>
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // set parameters
+        * pca.setParams({iter: 10, k: 5});
+        * // check the changed parameters
+        * var paramvalue = pca.getParams();
         */
         this.getParams = function () {
             return param;
@@ -2951,6 +3128,15 @@ exports = {}; require.modules.qminer_analytics = exports;
         /**
         * Finds the eigenvectors of the variance matrix.
         * @param {module:la.Matrix} A - Matrix whose columns correspond to examples.
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit the matrix
+        * pca.fit(matrix);
         */
         this.fit = function (A) {
             var rows = A.rows;
@@ -2980,6 +3166,32 @@ exports = {}; require.modules.qminer_analytics = exports;
         * in the eigenvector basis.
         * @param {(module:la.Vector | module:la.Matrix)} x - Test vector or matrix with column examples
         * @returns {(module:la.Vector | module:la.Matrix)} Returns projected vector or matrix
+        * @example <caption>Transforming the matrix</caption>
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit the matrix
+        * pca.fit(matrix);
+        * var model = pca.getModel();
+        * // transform matrix
+        * var transform = pca.transform(matrix);
+        * @example <caption>Transforming the vector</caption>
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create vector you wish to transform
+        * var vector = new la.Vector([0, -1]);
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit the matrix
+        * pca.fit(matrix);
+        * var model = pca.getModel();
+        * // transform vector
+        * var transform = pca.transform(vector);
         */
         this.transform = function (x) {
             if (x.constructor.name == 'Matrix') {
@@ -2996,6 +3208,32 @@ exports = {}; require.modules.qminer_analytics = exports;
         * Reconstructs the vector in the original space, reverses centering
         * @param {(module:la.Vector | module:la.Matrix)} x - Test vector or matrix with column examples, in the PCA space
         * @returns {(module:la.Vector | module:la.Matrix)} Returns the reconstruction
+        * @example <caption>Inverse transform of matrix</caption>
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit the matrix
+        * pca.fit(matrix);
+        * var model = pca.getModel();
+        * // use inverseTransform on matrix
+        * var invTransform = pca.inverseTransform(matrix);
+        * @example <caption>Inverse transform of vector</caption>
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create vector
+        * var vector = new la.Vector([0, -1]);
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit the matrix
+        * pca.fit(matrix);
+        * var model = pca.getModel();
+        * // use inverseTransform on vector
+        * var invTransform = pca.inverseTransform(vector);
         */
         this.inverseTransform = function (x) {
             if (x.constructor.name == 'Matrix') {

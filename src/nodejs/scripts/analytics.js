@@ -1402,27 +1402,121 @@ module.exports = exports = function (pathQmBinary) {
     exports.metrics = metrics;
 
     /**
+    * @typedef {Object} pcaParams
+    * @property {number} [k = null] - Number of eigenvectors to be computed.
+    * @property {number} [iter = 100] - Number of iterations.
+    */
+
+    /**
     * @classdesc Principal components analysis
     * @class
+    * @param {module:analytics~pcaParams | module:fs.FIn} [params] - The constructor parameters.
+    * @example <caption>Using default constructor</caption>
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // construct model
+    * var pca = new analytics.PCA();
+    * @example <caption>Using custom constructor</caption>
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // construct model
+    * var pca = new analytics.PCA({ k: 5, iter: 50 });
     */
     exports.PCA = function (param) {
-        param = param == undefined ? {} : param;
+        var iter, k;
+        this.P = undefined;
+        this.mu = undefined;
+        this.lambda = undefined;
+        var count = 1;
+        if (param != undefined && param.constructor.name == 'FIn') {
+            this.P = new la.Matrix();
+            this.P.load(param);
+            this.mu = new la.Vector();
+            this.mu.load(param);
+            this.lambda = new la.Vector();
+            this.lambda.load(param);
+            var params_vec = new la.Vector();
+            params_vec.load(param);
+            iter = params_vec[0];
+            k = params_vec[1];
+            param = { iter: iter, k: k };
+        } else if (param == undefined || typeof param == 'object') {
+            param = param == undefined ? {} : param;
 
-        // Fit params
-        var iter = param.iter == undefined ? 100 : param.iter;
-        var k = param.k; // can be undefined
-
+            // Fit params
+            var iter = param.iter == undefined ? 100 : param.iter;
+            var k = param.k; // can be undefined
+            param = { iter: iter, k: k };
+        } else {
+            throw "PCA.constructor: parameter must be a JSON object or a fs.FIn!";
+        }
         /**
         * Returns the model
         * @returns {Object} The model object whose keys are: P (eigenvectors), lambda (eigenvalues) and mu (mean)
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit matrix before getting the model
+        * pca.fit(matrix)
+        * // get your model using function getModel
+        * var model = pca.getModel();
         */
         this.getModel = function () {
             return { P: this.P, mu: this.mu, lambda: this.lambda };
         }
 
         /**
+        * Saves the model.
+        * @param {module:fs.FOut} fout - The output stream.
+        * @returns {module:fs.FOut} The given output stream fout.
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit matrix
+        * pca.fit(matrix);
+        * var model = pca.getModel();
+        * // save model
+        * pca.save(require('qminer').fs.openWrite('pca_test.bin')).close();
+        */
+        this.save = function (fout) {
+            if (!this.P) {
+                throw new Error("PCA.save() - model not created yet");
+            }
+
+            var params_vec = new la.Vector();
+            params_vec.push(iter);
+            params_vec.push(k);
+            
+            if (fout.constructor.name == 'FOut') {
+                this.P.save(fout);
+                this.mu.save(fout);
+                this.lambda.save(fout);
+                params_vec.save(fout);
+                return fout;
+            } else {
+                throw "PCA.save: input must be fs.FOut";
+            }
+        }
+        
+
+        /**
         * Sets parameters
         * @param {p} Object whose keys are: k (number of eigenvectors) and iter (maximum iterations)
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // set 5 eigenvectors and 10 iterations using setParams
+        * pca.setParams({iter: 10, k: 5});
         */
         this.setParams = function (p) {
             param = p;
@@ -1434,6 +1528,22 @@ module.exports = exports = function (pathQmBinary) {
         /**
         * Gets parameters
         * @returns Object whose keys are: k (number of eigenvectors) and iter (maximum iterations)
+        * @example <caption>Using default constructor</caption>
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // check the constructor parameters
+        * var paramvalue = pca.getParams();
+        * @example <caption>Using custom constructor</caption>
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // set parameters
+        * pca.setParams({iter: 10, k: 5});
+        * // check the changed parameters
+        * var paramvalue = pca.getParams();
         */
         this.getParams = function () {
             return param;
@@ -1442,6 +1552,15 @@ module.exports = exports = function (pathQmBinary) {
         /**
         * Finds the eigenvectors of the variance matrix.
         * @param {module:la.Matrix} A - Matrix whose columns correspond to examples.
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit the matrix
+        * pca.fit(matrix);
         */
         this.fit = function (A) {
             var rows = A.rows;
@@ -1471,6 +1590,32 @@ module.exports = exports = function (pathQmBinary) {
         * in the eigenvector basis.
         * @param {(module:la.Vector | module:la.Matrix)} x - Test vector or matrix with column examples
         * @returns {(module:la.Vector | module:la.Matrix)} Returns projected vector or matrix
+        * @example <caption>Transforming the matrix</caption>
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit the matrix
+        * pca.fit(matrix);
+        * var model = pca.getModel();
+        * // transform matrix
+        * var transform = pca.transform(matrix);
+        * @example <caption>Transforming the vector</caption>
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create vector you wish to transform
+        * var vector = new la.Vector([0, -1]);
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit the matrix
+        * pca.fit(matrix);
+        * var model = pca.getModel();
+        * // transform vector
+        * var transform = pca.transform(vector);
         */
         this.transform = function (x) {
             if (x.constructor.name == 'Matrix') {
@@ -1487,6 +1632,32 @@ module.exports = exports = function (pathQmBinary) {
         * Reconstructs the vector in the original space, reverses centering
         * @param {(module:la.Vector | module:la.Matrix)} x - Test vector or matrix with column examples, in the PCA space
         * @returns {(module:la.Vector | module:la.Matrix)} Returns the reconstruction
+        * @example <caption>Inverse transform of matrix</caption>
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit the matrix
+        * pca.fit(matrix);
+        * var model = pca.getModel();
+        * // use inverseTransform on matrix
+        * var invTransform = pca.inverseTransform(matrix);
+        * @example <caption>Inverse transform of vector</caption>
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create vector
+        * var vector = new la.Vector([0, -1]);
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit the matrix
+        * pca.fit(matrix);
+        * var model = pca.getModel();
+        * // use inverseTransform on vector
+        * var invTransform = pca.inverseTransform(vector);
         */
         this.inverseTransform = function (x) {
             if (x.constructor.name == 'Matrix') {
