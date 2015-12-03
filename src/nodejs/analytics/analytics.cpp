@@ -2836,8 +2836,7 @@ TNodeJsMDS::TNodeJsMDS(TSIn& SIn) :
 MxStep(TInt(SIn)),
 MxSecs(TInt(SIn)),
 MnDiff(TFlt(SIn)),
-DistType(LoadEnum<TVizDistType>(SIn)),
-MDS(SIn) {}
+DistType(LoadEnum<TVizDistType>(SIn)) {}
 
 void TNodeJsMDS::UpdateParams(const PJsonVal& ParamVal) {
 	if (ParamVal->IsObjKey("maxStep")) MxStep = ParamVal->GetObjNum("maxStep");
@@ -2879,7 +2878,6 @@ void TNodeJsMDS::Save(TSOut& SOut) const {
 	TInt(MxSecs).Save(SOut);
 	TFlt(MnDiff).Save(SOut);
 	SaveEnum<TVizDistType>(SOut, DistType);
-	MDS.Save(SOut);
 }
 
 void TNodeJsMDS::Init(v8::Handle<v8::Object> exports) {

@@ -34,8 +34,15 @@
           </header>
           <section id="summary">
             <div class="summary-callout">
-              <h2 class="summary-callout-heading">Method</h2>
+              <h2 class="summary-callout-heading">Methods</h2>
               <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.MDS.html#fitTransform">fitTransform(mat)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
                     <dt><a href="module-analytics.MDS.html#getParams">getParams()</a></dt>
@@ -44,8 +51,11 @@
                   </dl>
                 </div>
                 <div class="summary-column">
-                </div>
-                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.MDS.html#setParams">setParams(The)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
                 </div>
               </div>
             </div>
@@ -64,7 +74,7 @@ var mds = new analytics.MDS({ maxStep: 300, distType: &#x27;Cos&#x27; });</code>
               </div>
             </section>
             <section>
-              <h3>Parameters</h3>
+              <h3>Parameter</h3>
               <table class="jsdoc-details-table">
                 <thead>
                   <tr>
@@ -80,86 +90,13 @@ var mds = new analytics.MDS({ maxStep: 300, distType: &#x27;Cos&#x27; });</code>
                       <p>params</p>
                     </td>
                     <td>
-                      <p>(Object or <a href="module-fs.FIn.html">module:fs.FIn</a>)</p>
+                      <p>(<a href="module-analytics.html#~MDSParam">module:analytics~MDSParam</a> or <a href="module-fs.FIn.html">module:fs.FIn</a>)</p>
                     </td>
                     <td>
                       <p>Yes</p>
                     </td>
                     <td>
                       <p>The parameters for the construction.</p>
-                      <p>Values in <code>params</code> have the following properties:</p>
-                      <table class="jsdoc-details-table">
-                        <thead>
-                          <tr>
-                            <th>Name</th>
-                            <th>Type</th>
-                            <th>Optional</th>
-                            <th>Description</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr>
-                            <td>
-                              <p>maxSecs</p>
-                            </td>
-                            <td>
-                              <p>number</p>
-                            </td>
-                            <td>
-                              <p>Yes</p>
-                            </td>
-                            <td>
-                              <p>The maximum time period to compute MDS of a matrix.</p>
-                              <p>Defaults to <code>500</code>.</p>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
-                              <p>maxStep</p>
-                            </td>
-                            <td>
-                              <p>number</p>
-                            </td>
-                            <td>
-                              <p>Yes</p>
-                            </td>
-                            <td>
-                              <p>The maximum number of iterations.</p>
-                              <p>Defaults to <code>5000</code>.</p>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
-                              <p>minDiff</p>
-                            </td>
-                            <td>
-                              <p>number</p>
-                            </td>
-                            <td>
-                              <p>Yes</p>
-                            </td>
-                            <td>
-                              <p>The minimum difference criteria in MDS.</p>
-                              <p>Defaults to <code>1e-4</code>.</p>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
-                              <p>distType</p>
-                            </td>
-                            <td>
-                              <p>string</p>
-                            </td>
-                            <td>
-                              <p>Yes</p>
-                            </td>
-                            <td>
-                              <p>The type of distance used. Available types: &quot;Euclid&quot;, &quot;Cos&quot;, &quot;SqrtCos&quot;.</p>
-                              <p>Defaults to <code>"Euclid"</code>.</p>
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
                     </td>
                   </tr>
                 </tbody>
@@ -169,9 +106,62 @@ var mds = new analytics.MDS({ maxStep: 300, distType: &#x27;Cos&#x27; });</code>
             </dl>
           </section>
           <section>
-            <h2>Method</h2>
+            <h2>Methods</h2>
             <section>
-              <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> object</span></span></h3>
+              <h3 id="fitTransform"><span class="symbol-name">fitTransform</span><span class="signature"><span class="signature-params">(mat)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
+              <p>Get the MDS of the given matrix.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import the modules
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
+// create a MDS instance
+var mds = new analytics.MDS();
+// create the multidimensional matrix
+var mat = new la.Matrix({ rows: 50, cols: 10, random: true });
+// get the 2d representation of mat 
+var mat2d = mds.fitTransform(mat); </code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>mat</p>
+                      </td>
+                      <td>
+                        <p>(<a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The multidimensional matrix.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>&nbsp;The matrix of dimensions mat.cols x 2, where the i-th row of the matrix is the 2d representation of the i-th column of mat.</p>
+                </dd>
+              </dl>
+              <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.html#~MDSParam">module:analytics~MDSParam</a></span></span></h3>
               <p>Get the parameters.</p>
               <section>
                 <h4>
@@ -183,14 +173,62 @@ var analytics = require(&#x27;qminer&#x27;).analytics;
 // create a MDS instance
 var mds = new analytics.MDS();
 // get the (default) parameters of the instance
+// returns { maxStep: 5000, maxSecs: 300, minDiff: 1e-4, distType: &quot;Euclid&quot; }
 var params = mds.getParams();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>object</code>&nbsp;The json object containing the parameters of the instance.</p>
+                  <p><code><a href="module-analytics.html#~MDSParam">module:analytics~MDSParam</a></code>&nbsp;The json object containing the parameters of the instance.</p>
                 </dd>
+              </dl>
+              <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(The)</span></span></h3>
+              <p>Set the parameters.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import analytics module
+var analytics = require(&#x27;qminer&#x27;).analytics;
+// create a MDS instance
+var mds = new analytics.MDS();
+// get the (default) parameters of the instance
+// returns { maxStep: 5000, maxSecs: 300, minDiff: 1e-4, distType: &quot;Euclid&quot; }
+var params = mds.getParams();</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>The</p>
+                      </td>
+                      <td>
+                        <p><a href="module-analytics.html#~MDSParam">module:analytics~MDSParam</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>json object containing the parameters for the instance.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
               </dl>
             </section>
           </section>
