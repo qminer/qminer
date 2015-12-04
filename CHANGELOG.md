@@ -1,5 +1,31 @@
 # QMiner Change Log
 
+### 04 Dec 2015
+
+**New version: 3.6.0**
+
+**non-breaking with new features**
+
+Features:
+- Implement full API for MDS in `qm.analytics`
+- Record set filter by boolean
+- `FeatureSpace.extractSparseVector` can directly accept JSON, no need to do `store.newRecord(JSON)` before.
+
+Bug fixes:
+- Assert valid names on stream aggregates
+- Fixed text query returning non-weighted results bug (issue #176)
+- Fixed record set weighted sampling to actually work as promised (issue #177)
+- `TStore::GarbageCollect()` works well for stores with only in-mem fields (issue #329)
+- Fixed `createExampleTests.js` to not remove `*` from code
+- Cleaned sparse matrix JS constructor
+- Optimised dense matrix multiplication for row-major
+
+Other:
+- Added documentation and tests for timeWindow definition on stores
+- Added documentation and tests for MDS
+- Removed Eigen from repository, now included as git submodule
+
+
 ### 27 Nov 2015
 
 **New version: 3.5.0**
