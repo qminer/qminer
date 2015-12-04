@@ -261,22 +261,77 @@
 * Stores can have a window, which is used by garbage collector to delete records once they
 * fall out of the time window. Window can be defined by number of records or by time.
 * Window defined by parameter window, its value being the number of records to be kept.
+* &amp;lt;br&gt;&amp;lt;b&gt;Important:&amp;lt;/b&gt; {@link module:qm.Base#garbageCollect} must be called manually to remove records outside time window.
 * @typedef {Object} SchemaTimeWindowDefinition
 * @property {number} SchemaTimeWindowDefinition.duration - the size of the time window (in number of units).
 * @property {string} SchemaTimeWindowDefinition.unit - defines in which units the window size is specified. Possible values are &amp;lt;b&gt;second&amp;lt;/b&gt;, &amp;lt;b&gt;minute&amp;lt;/b&gt;, &amp;lt;b&gt;hour&amp;lt;/b&gt;, &amp;lt;b&gt;day&amp;lt;/b&gt;, &amp;lt;b&gt;week&amp;lt;/b&gt; or &amp;lt;b&gt;month&amp;lt;/b&gt;.
 * @property {string} [SchemaTimeWindowDefinition.field] - name of the datetime filed, which defines the time of the record. In case it is not given, the insert time is used in its place.
-* @example
+* @example &amp;lt;caption&gt;Define window by number of records&amp;lt;/caption&gt;
 * var qm = require(&#x27;qminer&#x27;);
-* // Create a store
-* // var base = new qm.Base([{
-* // ...
-* //  timeWindow : { 
-* //    duration : 12,
-* //    unit : &quot;hour&quot;,
-* //    field : &quot;DateTime&quot;
-* //  }
-* //}]);
-* //base.close();
+* // create base
+* var base = new qm.Base({ mode: &#x27;createClean&#x27; });
+* // create store with window
+* base.createStore({
+*     &quot;name&quot;: &quot;TestStore&quot;,
+*     &quot;fields&quot;: [
+*         { &quot;name&quot;: &quot;DateTime&quot;, &quot;type&quot;: &quot;datetime&quot; },
+*         { &quot;name&quot;: &quot;Measurement&quot;, &quot;type&quot;: &quot;float&quot; }
+*     ],
+*     window: 3,
+* });
+*
+* // push 5 records into created store
+* for (var i = 0; i &amp;lt; 5; i++) {
+*     var rec = {
+*         &quot;DateTime&quot;: new Date().toISOString(),
+*         &quot;Measurement&quot;: i
+*     };
+*     base.store(&quot;TestStore&quot;).push(rec);
+* }
+*
+* // check number of records in store
+* console.log(base.store(&quot;TestStore&quot;).allRecords.length); // 5
+* // clean base with garbage collector
+* base.garbageCollect();
+* // check number of records in store
+* console.log(base.store(&quot;TestStore&quot;).allRecords.length); // 3
+*
+* base.close();
+* @example &amp;lt;caption&gt;Define window by time&amp;lt;/caption&gt;
+* var qm = require(&#x27;qminer&#x27;);
+* // create base
+* var base = new qm.Base({ mode: &#x27;createClean&#x27; });
+* // create store with window
+* base.createStore({
+*     &quot;name&quot;: &quot;TestStore&quot;,
+*     &quot;fields&quot;: [
+*         { &quot;name&quot;: &quot;DateTime&quot;, &quot;type&quot;: &quot;datetime&quot; },
+*         { &quot;name&quot;: &quot;Measurement&quot;, &quot;type&quot;: &quot;float&quot; }
+*     ],
+*     timeWindow: {
+*         duration: 2,
+*         unit: &quot;hour&quot;,
+*         field: &quot;DateTime&quot;
+*     }
+* });
+*
+* // push 5 records into created store
+* for (var i = 0; i &amp;lt; 5; i++) {
+*     var rec = {
+*         &quot;DateTime&quot;: new Date(new Date().getTime() + i * 60 * 60 * 1001).toISOString(),
+*         &quot;Measurement&quot;: i
+*     };
+*     base.store(&quot;TestStore&quot;).push(rec);
+* }
+*
+* // check number of records in store
+* console.log(base.store(&quot;TestStore&quot;).allRecords.length); // 5
+* // clean base with garbage collector
+* base.garbageCollect();
+* // check number of records in store
+* console.log(base.store(&quot;TestStore&quot;).allRecords.length); // 2
+*
+* base.close();
 */
 /**
 * Base
