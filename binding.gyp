@@ -243,13 +243,10 @@
             'sources': [
                 'src/third_party/libsvm/svm.h',
                 'src/third_party/libsvm/svm.cpp',
-                'src/qminer/qminer_core.cpp'
             ],
             'include_dirs': [
                 'src/third_party/libsvm/',
-                'src/qminer/',
                 'src/glib/base/',
-                'src/glib/mine/'
             ]
         },
         {
