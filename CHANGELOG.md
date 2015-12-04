@@ -19,11 +19,14 @@ Bug fixes:
 - Fixed `createExampleTests.js` to not remove `*` from code
 - Cleaned sparse matrix JS constructor
 - Optimised dense matrix multiplication for row-major
+- Propagate LIBSVM error messages (issue #303)
+- Use TNotify for debug and error messages in LIBSVM (issue #302)
 
 Other:
-- Added documentation and tests for timeWindow definition on stores
-- Added documentation and tests for MDS
+- Added documentation and tests for timeWindow definition on stores (issue #329)
+- Added documentation and tests for MDS (issue #309)
 - Removed Eigen from repository, now included as git submodule
+- Added unit tests for LIBSVM (issue #301)
 
 
 ### 27 Nov 2015
