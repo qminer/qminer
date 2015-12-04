@@ -8,11 +8,7 @@
 #include <limits.h>
 #include <locale.h>
 #include "svm.h"
-#include "qminer_core.h"
-
-// Need these to prevent LIBSVM polluting stdout and stderr.
-#define ErrorNotify TQm::TEnv::Error
-#define DebugNotify TQm::TEnv::Debug
+#include "base.h"
 
 int libsvm_version = LIBSVM_VERSION;
 typedef float Qfloat;
@@ -398,7 +394,8 @@ double Kernel::k_function(const svm_node *x, const svm_node *y,
 //
 class Solver {
 public:
-	Solver() {};
+	Solver(PNotify DebugNotify_, PNotify ErrorNotify_)
+		: DebugNotify(DebugNotify_), ErrorNotify(ErrorNotify_) {};
 	virtual ~Solver() {};
 
 	struct SolutionInfo {
@@ -449,6 +446,7 @@ protected:
 	virtual int select_working_set(int &i, int &j);
 	virtual double calculate_rho();
 	virtual void do_shrinking();
+	PNotify DebugNotify, ErrorNotify;
 private:
 	bool be_shrunk(int i, double Gmax1, double Gmax2);
 };
@@ -1015,7 +1013,8 @@ double Solver::calculate_rho()
 class Solver_NU: public Solver
 {
 public:
-	Solver_NU() {}
+	Solver_NU(PNotify DebugNotify_, PNotify ErrorNotify_)
+		: Solver(DebugNotify_, ErrorNotify_) {}
 	void Solve(int l, const QMatrix& Q, const double *p, const schar *y,
 		   double *alpha, double Cp, double Cn, double eps,
 		   SolutionInfo* si, int shrinking)
@@ -1445,7 +1444,8 @@ private:
 //
 static void solve_c_svc(
 	const svm_problem *prob, const svm_parameter* param,
-	double *alpha, Solver::SolutionInfo* si, double Cp, double Cn)
+	double *alpha, Solver::SolutionInfo* si, double Cp, double Cn,
+	PNotify DebugNotify, PNotify ErrorNotify)
 {
 	int l = prob->l;
 	double *minus_ones = new double[l];
@@ -1460,7 +1460,7 @@ static void solve_c_svc(
 		if(prob->y[i] > 0) y[i] = +1; else y[i] = -1;
 	}
 
-	Solver s;
+	Solver s(DebugNotify, ErrorNotify);
 	s.Solve(l, SVC_Q(*prob,*param,y), minus_ones, y,
 		alpha, Cp, Cn, param->eps, si, param->shrinking);
 
@@ -1480,7 +1480,7 @@ static void solve_c_svc(
 
 static void solve_nu_svc(
 	const svm_problem *prob, const svm_parameter *param,
-	double *alpha, Solver::SolutionInfo* si)
+	double *alpha, Solver::SolutionInfo* si, PNotify DebugNotify, PNotify ErrorNotify)
 {
 	int i;
 	int l = prob->l;
@@ -1514,7 +1514,7 @@ static void solve_nu_svc(
 	for(i=0;i<l;i++)
 		zeros[i] = 0;
 
-	Solver_NU s;
+	Solver_NU s(DebugNotify, ErrorNotify);
 	s.Solve(l, SVC_Q(*prob,*param,y), zeros, y,
 		alpha, 1.0, 1.0, param->eps, si,  param->shrinking);
 	double r = si->r;
@@ -1535,7 +1535,7 @@ static void solve_nu_svc(
 
 static void solve_one_class(
 	const svm_problem *prob, const svm_parameter *param,
-	double *alpha, Solver::SolutionInfo* si)
+	double *alpha, Solver::SolutionInfo* si, PNotify DebugNotify, PNotify ErrorNotify)
 {
 	int l = prob->l;
 	double *zeros = new double[l];
@@ -1557,7 +1557,7 @@ static void solve_one_class(
 		ones[i] = 1;
 	}
 
-	Solver s;
+	Solver s(DebugNotify, ErrorNotify);
 	s.Solve(l, ONE_CLASS_Q(*prob,*param), zeros, ones,
 		alpha, 1.0, 1.0, param->eps, si, param->shrinking);
 
@@ -1567,7 +1567,7 @@ static void solve_one_class(
 
 static void solve_epsilon_svr(
 	const svm_problem *prob, const svm_parameter *param,
-	double *alpha, Solver::SolutionInfo* si)
+	double *alpha, Solver::SolutionInfo* si, PNotify DebugNotify, PNotify ErrorNotify)
 {
 	int l = prob->l;
 	double *alpha2 = new double[2*l];
@@ -1586,7 +1586,7 @@ static void solve_epsilon_svr(
 		y[i+l] = -1;
 	}
 
-	Solver s;
+	Solver s(DebugNotify, ErrorNotify);
 	s.Solve(2*l, SVR_Q(*prob,*param), linear_term, y,
 		alpha2, param->C, param->C, param->eps, si, param->shrinking);
 
@@ -1605,7 +1605,7 @@ static void solve_epsilon_svr(
 
 static void solve_nu_svr(
 	const svm_problem *prob, const svm_parameter *param,
-	double *alpha, Solver::SolutionInfo* si)
+	double *alpha, Solver::SolutionInfo* si, PNotify DebugNotify, PNotify ErrorNotify)
 {
 	int l = prob->l;
 	double C = param->C;
@@ -1627,7 +1627,7 @@ static void solve_nu_svr(
 		y[i+l] = -1;
 	}
 
-	Solver_NU s;
+	Solver_NU s(DebugNotify, ErrorNotify);
 	s.Solve(2*l, SVR_Q(*prob,*param), linear_term, y,
 		alpha2, C, C, param->eps, si, param->shrinking);
 
@@ -1652,26 +1652,26 @@ struct decision_function
 
 static decision_function svm_train_one(
 	const svm_problem *prob, const svm_parameter *param,
-	double Cp, double Cn)
+	double Cp, double Cn, PNotify DebugNotify, PNotify ErrorNotify)
 {
 	double *alpha = Malloc(double,prob->l);
 	Solver::SolutionInfo si;
 	switch(param->svm_type)
 	{
 		case C_SVC:
-			solve_c_svc(prob,param,alpha,&si,Cp,Cn);
+			solve_c_svc(prob,param,alpha,&si,Cp,Cn,DebugNotify,ErrorNotify);
 			break;
 		case NU_SVC:
-			solve_nu_svc(prob,param,alpha,&si);
+			solve_nu_svc(prob,param,alpha,&si,DebugNotify,ErrorNotify);
 			break;
 		case ONE_CLASS:
-			solve_one_class(prob,param,alpha,&si);
+			solve_one_class(prob,param,alpha,&si,DebugNotify,ErrorNotify);
 			break;
 		case EPSILON_SVR:
-			solve_epsilon_svr(prob,param,alpha,&si);
+			solve_epsilon_svr(prob,param,alpha,&si,DebugNotify,ErrorNotify);
 			break;
 		case NU_SVR:
-			solve_nu_svr(prob,param,alpha,&si);
+			solve_nu_svr(prob,param,alpha,&si,DebugNotify,ErrorNotify);
 			break;
 	}
 
@@ -1710,7 +1710,7 @@ static decision_function svm_train_one(
 // Platt's binary SVM Probablistic Output: an improvement from Lin et al.
 static void sigmoid_train(
 	int l, const double *dec_values, const double *labels, 
-	double& A, double& B)
+	double& A, double& B, PNotify DebugNotify)
 {
 	double prior1=0, prior0 = 0;
 	int i;
@@ -1832,7 +1832,8 @@ static double sigmoid_predict(double decision_value, double A, double B)
 }
 
 // Method 2 from the multiclass_prob paper by Wu, Lin, and Weng
-static void multiclass_probability(int k, double **r, double *p)
+static void multiclass_probability(int k, double **r, double *p,
+	PNotify DebugNotify)
 {
 	int t,j;
 	int iter = 0, max_iter=max(100,k);
@@ -1898,7 +1899,8 @@ static void multiclass_probability(int k, double **r, double *p)
 // Cross-validation decision values for probability estimates
 static void svm_binary_svc_probability(
 	const svm_problem *prob, const svm_parameter *param,
-	double Cp, double Cn, double& probA, double& probB)
+	double Cp, double Cn, double& probA, double& probB,
+	PNotify DebugNotify, PNotify ErrorNotify)
 {
 	int i;
 	int nr_fold = 5;
@@ -1964,7 +1966,7 @@ static void svm_binary_svc_probability(
 			subparam.weight_label[1]=-1;
 			subparam.weight[0]=Cp;
 			subparam.weight[1]=Cn;
-			struct svm_model *submodel = svm_train(&subprob,&subparam);
+			struct svm_model *submodel = svm_train(&subprob,&subparam,DebugNotify,ErrorNotify);
 			for(j=begin;j<end;j++)
 			{
 				svm_predict_values(submodel,prob->x[perm[j]],&(dec_values[perm[j]]));
@@ -1977,14 +1979,14 @@ static void svm_binary_svc_probability(
 		free(subprob.x);
 		free(subprob.y);
 	}		
-	sigmoid_train(prob->l,dec_values,prob->y,probA,probB);
+	sigmoid_train(prob->l,dec_values,prob->y,probA,probB,DebugNotify);
 	free(dec_values);
 	free(perm);
 }
 
 // Return parameter of a Laplace distribution 
 static double svm_svr_probability(
-	const svm_problem *prob, const svm_parameter *param)
+	const svm_problem *prob, const svm_parameter *param, PNotify DebugNotify, PNotify ErrorNotify)
 {
 	int i;
 	int nr_fold = 5;
@@ -1993,7 +1995,7 @@ static double svm_svr_probability(
 
 	svm_parameter newparam = *param;
 	newparam.probability = 0;
-	svm_cross_validation(prob,&newparam,nr_fold,ymv);
+	svm_cross_validation(prob,&newparam,nr_fold,ymv,ErrorNotify);
 	for(i=0;i<prob->l;i++)
 	{
 		ymv[i]=prob->y[i]-ymv[i];
@@ -2095,7 +2097,8 @@ static void svm_group_classes(const svm_problem *prob, int *nr_class_ret, int **
 //
 // Interface functions
 //
-svm_model *svm_train(const svm_problem *prob, const svm_parameter *param)
+svm_model *svm_train(const svm_problem *prob, const svm_parameter *param,
+	PNotify DebugNotify, PNotify ErrorNotify)
 {
 	svm_model *model = Malloc(svm_model,1);
 	model->param = *param;
@@ -2117,10 +2120,10 @@ svm_model *svm_train(const svm_problem *prob, const svm_parameter *param)
 		    param->svm_type == NU_SVR))
 		{
 			model->probA = Malloc(double,1);
-			model->probA[0] = svm_svr_probability(prob,param);
+			model->probA[0] = svm_svr_probability(prob,param,DebugNotify,ErrorNotify);
 		}
 
-		decision_function f = svm_train_one(prob,param,0,0);
+		decision_function f = svm_train_one(prob,param,0,0,DebugNotify,ErrorNotify);
 		model->rho = Malloc(double,1);
 		model->rho[0] = f.rho;
 
@@ -2218,9 +2221,9 @@ svm_model *svm_train(const svm_problem *prob, const svm_parameter *param)
 				}
 
 				if(param->probability)
-					svm_binary_svc_probability(&sub_prob,param,weighted_C[i],weighted_C[j],probA[p],probB[p]);
+					svm_binary_svc_probability(&sub_prob,param,weighted_C[i],weighted_C[j],probA[p],probB[p],DebugNotify,ErrorNotify);
 
-				f[p] = svm_train_one(&sub_prob,param,weighted_C[i],weighted_C[j]);
+				f[p] = svm_train_one(&sub_prob,param,weighted_C[i],weighted_C[j],DebugNotify,ErrorNotify);
 				for(k=0;k<ci;k++)
 					if(!nonzero[si+k] && fabs(f[p].alpha[k]) > 0)
 						nonzero[si+k] = true;
@@ -2342,7 +2345,7 @@ svm_model *svm_train(const svm_problem *prob, const svm_parameter *param)
 }
 
 // Stratified cross validation
-void svm_cross_validation(const svm_problem *prob, const svm_parameter *param, int nr_fold, double *target)
+void svm_cross_validation(const svm_problem *prob, const svm_parameter *param, int nr_fold, double *target, PNotify DebugNotify, PNotify ErrorNotify)
 {
 	int i;
 	int *fold_start;
@@ -2442,7 +2445,7 @@ void svm_cross_validation(const svm_problem *prob, const svm_parameter *param, i
 			subprob.y[k] = prob->y[perm[j]];
 			++k;
 		}
-		struct svm_model *submodel = svm_train(&subprob,param);
+		struct svm_model *submodel = svm_train(&subprob,param,DebugNotify,ErrorNotify);
 		if(param->probability && 
 		   (param->svm_type == C_SVC || param->svm_type == NU_SVC))
 		{
@@ -2492,7 +2495,7 @@ int svm_get_nr_sv(const svm_model *model)
 	return model->l;
 }
 
-double svm_get_svr_probability(const svm_model *model)
+double svm_get_svr_probability(const svm_model *model, PNotify ErrorNotify)
 {
 	if ((model->param.svm_type == EPSILON_SVR || model->param.svm_type == NU_SVR) &&
 	    model->probA!=NULL)
@@ -2596,7 +2599,8 @@ double svm_predict(const svm_model *model, const svm_node *x)
 }
 
 double svm_predict_probability(
-	const svm_model *model, const svm_node *x, double *prob_estimates)
+	const svm_model *model, const svm_node *x, double *prob_estimates,
+	PNotify DebugNotify)
 {
 	if ((model->param.svm_type == C_SVC || model->param.svm_type == NU_SVC) &&
 	    model->probA!=NULL && model->probB!=NULL)
@@ -2618,7 +2622,7 @@ double svm_predict_probability(
 				pairwise_prob[j][i]=1-pairwise_prob[i][j];
 				k++;
 			}
-		multiclass_probability(nr_class,pairwise_prob,prob_estimates);
+		multiclass_probability(nr_class,pairwise_prob,prob_estimates,DebugNotify);
 
 		int prob_max_idx = 0;
 		for(i=1;i<nr_class;i++)
@@ -2767,7 +2771,7 @@ static char* readline(FILE *input)
 // is used
 //
 #define FSCANF(_stream, _format, _var) do{ if (fscanf(_stream, _format, _var) != 1) return false; }while(0)
-bool read_model_header(FILE *fp, svm_model* model)
+bool read_model_header(FILE *fp, svm_model* model, PNotify ErrorNotify)
 {
 	svm_parameter& param = model->param;
 	char cmd[81];
@@ -2876,7 +2880,7 @@ bool read_model_header(FILE *fp, svm_model* model)
 
 }
 
-svm_model *svm_load_model(const char *model_file_name)
+svm_model *svm_load_model(const char *model_file_name, PNotify ErrorNotify)
 {
 	FILE *fp = fopen(model_file_name,"rb");
 	if(fp==NULL) return NULL;
@@ -2895,7 +2899,7 @@ svm_model *svm_load_model(const char *model_file_name)
 	model->nSV = NULL;
 	
 	// read header
-	if (!read_model_header(fp, model))
+	if (!read_model_header(fp, model, ErrorNotify))
 	{
 		ErrorNotify->OnStatusFmt("ERROR: fscanf failed to read model\n");
 		setlocale(LC_ALL, old_locale);
