@@ -1,5 +1,34 @@
 # QMiner Change Log
 
+### 04 Dec 2015
+
+**New version: 3.6.0**
+
+**non-breaking with new features**
+
+Features:
+- Implement full API for MDS in `qm.analytics`
+- Record set filter by boolean
+- `FeatureSpace.extractSparseVector` can directly accept JSON, no need to do `store.newRecord(JSON)` before.
+
+Bug fixes:
+- Assert valid names on stream aggregates
+- Fixed text query returning non-weighted results bug (issue #176)
+- Fixed record set weighted sampling to actually work as promised (issue #177)
+- `TStore::GarbageCollect()` works well for stores with only in-mem fields (issue #329)
+- Fixed `createExampleTests.js` to not remove `*` from code
+- Cleaned sparse matrix JS constructor
+- Optimised dense matrix multiplication for row-major
+- Propagate LIBSVM error messages (issue #303)
+- Use TNotify for debug and error messages in LIBSVM (issue #302)
+
+Other:
+- Added documentation and tests for timeWindow definition on stores (issue #329)
+- Added documentation and tests for MDS (issue #309)
+- Removed Eigen from repository, now included as git submodule
+- Added unit tests for LIBSVM (issue #301)
+
+
 ### 27 Nov 2015
 
 **New version: 3.5.0**
@@ -7,19 +36,18 @@
 **non-breaking with new features**
 
 Features:
-	- Stream aggregates that get time series on input now support delayed inputs (can get more then one value per iteration): online histogram, window aggregates (sum, max, min, mean, variance)
-	- Time series tick and window buffer can read from numeric fields of type other then double
-	
+- Stream aggregates that get time series on input now support delayed inputs (can get more then one value per iteration): online histogram, window aggregates (sum, max, min, mean, variance)
+- Time series tick and window buffer can read from numeric fields of type other then double
 
 Bug fixes:
-	- LIBSVM sparse matrix bug-fix when working with sparse vectors
-	- Multinomial fix for sparse vectors (does not store zero elements)
-	- Nearest neighbor  anomaly detector explains more in explain
-	- ClassTPE defined reference counter is now protected and not private
-	- Chi2 stream aggregate cleanup (save/load, etc.)
-	- Stream aggregates implemented in JavaScript can (de)serialize their state
-	- Renamed TNodeJsSA->TNodeJsStreamAggr
-	- Renamed TNodeJsStreamAggr -> TNodeJsFuncStreamAggr
+- LIBSVM sparse matrix bug-fix when working with sparse vectors
+- Multinomial fix for sparse vectors (does not store zero elements)
+- Nearest neighbor  anomaly detector explains more in explain
+- ClassTPE defined reference counter is now protected and not private
+- Chi2 stream aggregate cleanup (save/load, etc.)
+- Stream aggregates implemented in JavaScript can (de)serialize their state
+- Renamed TNodeJsSA->TNodeJsStreamAggr
+- Renamed TNodeJsStreamAggr -> TNodeJsFuncStreamAggr
 
 
 ### 20 Nov 2015

@@ -13,12 +13,6 @@ var assert = require("../../src/nodejs/scripts/assert.js");
 //Unit test for PCA
 
 describe("PCA test", function () {
-    beforeEach(function () {
-
-    });
-    afterEach(function () {
-
-    });
     describe("Constructor tests", function () {
         it("should not throw an exception", function () {
             assert.doesNotThrow(function () {
@@ -32,13 +26,13 @@ describe("PCA test", function () {
             assert.equal(params.k, undefined);
         });
         it("should return values of parameters", function () {
-            var pca = new analytics.PCA({iter: 100, k: 50});
+            var pca = new analytics.PCA({ iter: 100, k: 50 });
             var params = pca.getParams();
             assert.equal(params.iter, 100);
             assert.equal(params.k, 50);
         });
         it("should return values of parameters and added keys", function () {
-            var pca = new analytics.PCA({iter: 30, alpha: 3});
+            var pca = new analytics.PCA({ iter: 30, alpha: 3 });
             var params = pca.getParams();
             assert.equal(params.iter, 30);
             assert.equal(params.alpha, 3);
@@ -54,7 +48,7 @@ describe("PCA test", function () {
     describe("testing setParams", function () {
         it("should return changed values of parameters", function () {
             var pca = new analytics.PCA();
-            pca.setParams({iter: 10, k: 5});
+            pca.setParams({ iter: 10, k: 5 });
             var params = pca.getParams();
             assert.equal(params.iter, 10);
             assert.equal(params.k, 5);
@@ -76,11 +70,17 @@ describe("PCA test", function () {
             });
         });
         it("should throw an exception because k is bigger than matrix dimensions", function () {
-            var pca = new analytics.PCA({ k: 5});
+            var pca = new analytics.PCA({ k: 5 });
             var matrix = new la.Matrix([[1, -1], [0, 0]]);
-            assert.throws(function () {
-                pca.fit(matrix);
-            });
+            if (require('qminer').flags.blas) {
+                assert.doesNotThrow(function () {
+                    pca.fit(matrix);
+                });
+            } else {
+                assert.throws(function () {
+                    pca.fit(matrix);
+                });
+            }
         });
         it("should return the model parameters after using fit", function () {
             var pca = new analytics.PCA();
@@ -100,7 +100,7 @@ describe("PCA test", function () {
     describe("Ultimate test", function () {
         it("should achive perfect reconstruction", function () {
             var A = new la.Matrix([[10, 20, 110, 20, 10], [3, 4, 13, 63, 1]]);
-            var pca = new analytics.PCA({k : 2, iter : 1000});
+            var pca = new analytics.PCA({ k: 2, iter: 1000 });
             pca.fit(A);
             var pA = pca.transform(A);
             var rA = pca.inverseTransform(pA);
