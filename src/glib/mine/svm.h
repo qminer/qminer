@@ -51,13 +51,16 @@ public:
 
 // LIBSVM for Eps-Support Vector Regression for sparse input
 inline TLinModel LibSvmSolveRegression(const TVec<TIntFltKdV>& VecV, const TFltV& TargetV,
-        const double& Eps, const double& Cost) {
-        // Asserts for input arguments
+        const double& Eps, const double& Cost, PNotify DebugNotify, PNotify ErrorNotify) {
+     // Asserts for input arguments
     EAssertR(Cost > 0.0, "Cost parameter has to be positive.");
 
     svm_parameter_t svm_parameter;
     svm_parameter.svm_type = EPSILON_SVR;
     svm_parameter.kernel_type = LINEAR;
+    // If degree<0 svm_check_params reports an error, even though degree is
+    // ignored by the learning when kernel_type!=polynomial
+    svm_parameter.degree = 0;
     svm_parameter.C = Cost;
     svm_parameter.eps = Eps;
     // cache_size is only needed for kernel functions
@@ -96,7 +99,7 @@ inline TLinModel LibSvmSolveRegression(const TVec<TIntFltKdV>& VecV, const TFltV
     const char* error_msg = svm_check_parameter(&svm_problem, &svm_parameter);
     EAssertR(error_msg == NULL, error_msg);
 
-    svm_model_t* svm_model = svm_train(&svm_problem, &svm_parameter);
+    svm_model_t* svm_model = svm_train(&svm_problem, &svm_parameter, DebugNotify, ErrorNotify);
 
     TFltV WgtV(Dim);
     TFlt Bias = -svm_model->rho[0]; // LIBSVM does w*x-b, while we do w*x+b; thus the sign flip
@@ -121,7 +124,7 @@ inline TLinModel LibSvmSolveRegression(const TVec<TIntFltKdV>& VecV, const TFltV
 
 // LIBSVM for Eps-Support Vector Regression for TFltVV input
 inline TLinModel LibSvmSolveRegression(const TFltVV& VecV, const TFltV& TargetV,
-        const double& Eps, const double& Cost) {
+        const double& Eps, const double& Cost, PNotify DebugNotify, PNotify ErrorNotify) {
 
     // Asserts for input arguments
     EAssertR(Cost > 0.0, "Cost parameter has to be positive.");
@@ -129,6 +132,9 @@ inline TLinModel LibSvmSolveRegression(const TFltVV& VecV, const TFltV& TargetV,
     svm_parameter_t svm_parameter;
     svm_parameter.svm_type = EPSILON_SVR;
     svm_parameter.kernel_type = LINEAR;
+    // If degree<0 svm_check_params reports an error, even though degree is
+    // ignored by the learning when kernel_type!=polynomial
+    svm_parameter.degree = 0;
     svm_parameter.C = Cost;
     svm_parameter.eps = Eps;
     svm_parameter.nr_weight = 0;
@@ -174,7 +180,7 @@ inline TLinModel LibSvmSolveRegression(const TFltVV& VecV, const TFltV& TargetV,
     EAssertR(error_msg == NULL, error_msg);
 
     // Learn the model
-    svm_model_t* svm_model = svm_train(&svm_problem, &svm_parameter);
+    svm_model_t* svm_model = svm_train(&svm_problem, &svm_parameter, DebugNotify, ErrorNotify);
 
     // Make sure the WgtV is non-null, i.e., in case w=0 set WgtV to a vector
     // composed of a sufficient number of zeros (e.g. [0, 0, ..., 0]).
@@ -199,7 +205,8 @@ inline TLinModel LibSvmSolveRegression(const TFltVV& VecV, const TFltV& TargetV,
 }
 
 // LIBSVM for C-Support Vector Classification for sparse input
-inline TLinModel LibSvmSolveClassify(const TVec<TIntFltKdV>& VecV, const TFltV& TargetV, const double& Cost) {
+inline TLinModel LibSvmSolveClassify(const TVec<TIntFltKdV>& VecV, const TFltV& TargetV, const double& Cost,
+	PNotify DebugNotify, PNotify ErrorNotify) {
 
     // Asserts for input arguments
     EAssertR(Cost > 0.0, "Cost parameter has to be positive.");
@@ -208,6 +215,9 @@ inline TLinModel LibSvmSolveClassify(const TVec<TIntFltKdV>& VecV, const TFltV& 
     svm_parameter_t svm_parameter;
     svm_parameter.svm_type = C_SVC;
     svm_parameter.kernel_type = LINEAR;
+    // If degree<0 svm_check_params reports an error, even though degree is
+    // ignored by the learning when kernel_type!=polynomial
+    svm_parameter.degree = 0;
     svm_parameter.C = Cost;
     svm_parameter.nr_weight = 0;
     svm_parameter.weight = NULL;
@@ -252,7 +262,7 @@ inline TLinModel LibSvmSolveClassify(const TVec<TIntFltKdV>& VecV, const TFltV& 
     EAssertR(error_msg == NULL, error_msg);
 
     // train the model
-    svm_model_t* svm_model = svm_train(&svm_problem, &svm_parameter);
+    svm_model_t* svm_model = svm_train(&svm_problem, &svm_parameter, DebugNotify, ErrorNotify);
 
     // compute normal vector from support vectors
     TFltV WgtV(Dim);
@@ -277,18 +287,19 @@ inline TLinModel LibSvmSolveClassify(const TVec<TIntFltKdV>& VecV, const TFltV& 
 }
 
 // Use LIBSVM for C-Support Vector Classification
-inline TLinModel LibSvmSolveClassify(const TFltVV& VecV, const TFltV& TargetV, const double& Cost) {
+inline TLinModel LibSvmSolveClassify(const TFltVV& VecV, const TFltV& TargetV, const double& Cost,
+	PNotify DebugNotify, PNotify ErrorNotify) {
 
     // Asserts for input arguments
     EAssertR(Cost > 0.0, "Cost parameter has to be positive.");
 
+    // set trainig parameters
     svm_parameter_t svm_parameter;
     svm_parameter.svm_type = C_SVC;
-    // svm_parameter.kernel_type = RBF;
-  	// svm_parameter.degree = 3;
-    // svm_parameter.coef0 = 0;
-    // svm_parameter.nu = 0.5;
     svm_parameter.kernel_type = LINEAR;
+    // If degree<0 svm_check_params reports an error, even though degree is
+    // ignored by the learning when kernel_type!=polynomial
+    svm_parameter.degree = 0;
     svm_parameter.C = Cost;
     svm_parameter.nr_weight = 0;
     svm_parameter.weight = NULL;
@@ -296,7 +307,7 @@ inline TLinModel LibSvmSolveClassify(const TFltVV& VecV, const TFltV& TargetV, c
     // cache_size is only needed for kernel functions
     svm_parameter.cache_size = 100;
     svm_parameter.eps = 1e-3;
-    // svm_parameter.p = 0.1;
+    //  svm_parameter.p = 0.1;
     svm_parameter.shrinking = 0;
     svm_parameter.probability = 0;
 
@@ -332,7 +343,7 @@ inline TLinModel LibSvmSolveClassify(const TFltVV& VecV, const TFltV& TargetV, c
     const char* error_msg = svm_check_parameter(&svm_problem, &svm_parameter);
     EAssertR(error_msg == NULL, error_msg);
 
-    svm_model_t* svm_model = svm_train(&svm_problem, &svm_parameter);
+    svm_model_t* svm_model = svm_train(&svm_problem, &svm_parameter, DebugNotify, ErrorNotify);
 
     TFltV WgtV(DimN);
     TFlt Bias = -svm_model->rho[0]; // LIBSVM does w*x-b, while we do w*x+b; thus the sign flip
