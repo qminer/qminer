@@ -67,35 +67,39 @@ inline TLinModel LibSvmSolveRegression(const TVec<TIntFltKdV>& VecV, const TFltV
     svm_parameter.shrinking = 0;
     svm_parameter.probability = 0;
 
-    const int n = VecV.Len();
-
     svm_problem_t svm_problem;
-    svm_problem.l = n;
-    svm_problem.y = (double *)malloc(n*sizeof(double));
+    svm_problem.l = VecV.Len();
+    svm_problem.y = (double *)malloc(VecV.Len() * sizeof(double));
 
-    svm_problem.x = (svm_node_t **)malloc(n*sizeof(svm_node_t *));
-    int N = 0, prevN = 0;
-    for (int Idx = 0; Idx < VecV.Len(); ++Idx) { N += (VecV[Idx].Len() + 1); }
-    svm_node_t* x_space = (svm_node_t *)malloc(N*sizeof(svm_node_t));
-    N = 0;
-    for (int Idx = 0; Idx < VecV.Len(); ++Idx) {
-        prevN = N;
-        svm_problem.y[Idx] = TargetV[Idx];
-        for (int Jdx = 0; Jdx < VecV[Idx].Len(); ++Jdx) {
-            x_space[N].index = VecV[Idx][Jdx].Key+1;
-            x_space[N++].value = VecV[Idx][Jdx].Dat;
+    // compute number of nonzero elements and get dimensionalit
+    int NonZero = 0, Dim = 0;
+    for (int VecN = 0; VecN < VecV.Len(); ++VecN) {
+        NonZero += (VecV[VecN].Len() + 1);
+        if (!VecV[VecN].Empty()) {
+            Dim = TInt::GetMx(Dim, VecV[VecN].Last().Key + 1);
         }
-        x_space[N++].index = -1;
-        svm_problem.x[Idx] = &x_space[prevN];
     }
 
+    svm_node_t* x_space = (svm_node_t *)malloc(NonZero * sizeof(svm_node_t));
+    // load training data and vectors
+    int N = 0, prevN = 0;
+    for (int VecN = 0; VecN < VecV.Len(); ++VecN) {
+        prevN = N;
+        svm_problem.y[VecN] = TargetV[VecN];
+        for (int EltN = 0; EltN < VecV[VecN].Len(); ++EltN) {
+            x_space[N].index = VecV[VecN][EltN].Key+1;
+            x_space[N++].value = VecV[VecN][EltN].Dat;
+        }
+        x_space[N++].index = -1;
+        svm_problem.x[VecN] = &x_space[prevN];
+    }
     const char* error_msg = svm_check_parameter(&svm_problem, &svm_parameter);
     EAssertR(error_msg == NULL, error_msg);
 
     svm_model_t* svm_model = svm_train(&svm_problem, &svm_parameter);
 
-    TFltV WgtV(svm_model->l);
-    TFlt Bias = svm_model->rho[0];
+    TFltV WgtV(Dim);
+    TFlt Bias = -svm_model->rho[0]; // LIBSVM does w*x-b, while we do w*x+b; thus the sign flip
     EAssertR(TLinAlg::Norm(WgtV) == 0.0, "Expected a zero weight vector.");
     for (int Idx = 0; Idx < svm_model->l; ++Idx) {
         svm_node_t* SV = svm_model->SV[Idx];
@@ -169,13 +173,13 @@ inline TLinModel LibSvmSolveRegression(const TFltVV& VecV, const TFltV& TargetV,
     const char* error_msg = svm_check_parameter(&svm_problem, &svm_parameter);
     EAssertR(error_msg == NULL, error_msg);
 
+    // Learn the model
     svm_model_t* svm_model = svm_train(&svm_problem, &svm_parameter);
 
     // Make sure the WgtV is non-null, i.e., in case w=0 set WgtV to a vector
     // composed of a sufficient number of zeros (e.g. [0, 0, ..., 0]).
-    TFltV WgtV(svm_model->l);
-//printf("len=%d\n", svm_model->l); // XXX REMOVE
-    TFlt Bias = svm_model->rho[0];
+    TFltV WgtV(DimN);
+    TFlt Bias = -svm_model->rho[0]; // LIBSVM does w*x-b, while we do w*x+b; thus the sign flip
     EAssertR(TLinAlg::Norm(WgtV) == 0.0, "Expected a zero weight vector.");
     for (int Idx = 0; Idx < svm_model->l; ++Idx) {
         svm_node_t* SV = svm_model->SV[Idx];
@@ -252,7 +256,7 @@ inline TLinModel LibSvmSolveClassify(const TVec<TIntFltKdV>& VecV, const TFltV& 
 
     // compute normal vector from support vectors
     TFltV WgtV(Dim);
-    TFlt Bias = svm_model->rho[0];
+    TFlt Bias = -svm_model->rho[0]; // LIBSVM does w*x-b, while we do w*x+b; thus the sign flip
     EAssertR(TLinAlg::Norm(WgtV) == 0.0, "Expected a zero weight vector.");
     for (int Idx = 0; Idx < svm_model->l; ++Idx) {
         svm_node_t* SV = svm_model->SV[Idx];
@@ -331,7 +335,7 @@ inline TLinModel LibSvmSolveClassify(const TFltVV& VecV, const TFltV& TargetV, c
     svm_model_t* svm_model = svm_train(&svm_problem, &svm_parameter);
 
     TFltV WgtV(DimN);
-    TFlt Bias = svm_model->rho[0];
+    TFlt Bias = -svm_model->rho[0]; // LIBSVM does w*x-b, while we do w*x+b; thus the sign flip
     EAssertR(TLinAlg::Norm(WgtV) == 0.0, "Expected a zero weight vector.");
     for (int Idx = 0; Idx < svm_model->l; ++Idx) {
         svm_node_t* SV = svm_model->SV[Idx];
