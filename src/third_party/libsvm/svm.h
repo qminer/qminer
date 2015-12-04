@@ -74,7 +74,7 @@ struct svm_model
 };
 
 struct svm_model *svm_train(const struct svm_problem *prob, const struct svm_parameter *param, PNotify DebugNotify, PNotify ErrorNotify);
-void svm_cross_validation(const struct svm_problem *prob, const struct svm_parameter *param, int nr_fold, double *target, PNotify ErrorNotify);
+void svm_cross_validation(const struct svm_problem *prob, const struct svm_parameter *param, int nr_fold, double *target, PNotify DebugNotify, PNotify ErrorNotify);
 
 int svm_save_model(const char *model_file_name, const struct svm_model *model);
 struct svm_model *svm_load_model(const char *model_file_name, PNotify ErrorNotify);
@@ -88,7 +88,7 @@ double svm_get_svr_probability(const struct svm_model *model, PNotify ErrorNotif
 
 double svm_predict_values(const struct svm_model *model, const struct svm_node *x, double* dec_values);
 double svm_predict(const struct svm_model *model, const struct svm_node *x);
-double svm_predict_probability(const struct svm_model *model, const struct svm_node *x, double* prob_estimates);
+double svm_predict_probability(const struct svm_model *model, const struct svm_node *x, double* prob_estimates, PNotify DebugNotify);
 
 void svm_free_model_content(struct svm_model *model_ptr);
 void svm_free_and_destroy_model(struct svm_model **model_ptr_ptr);

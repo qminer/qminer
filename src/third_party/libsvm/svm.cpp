@@ -1995,7 +1995,7 @@ static double svm_svr_probability(
 
 	svm_parameter newparam = *param;
 	newparam.probability = 0;
-	svm_cross_validation(prob,&newparam,nr_fold,ymv,ErrorNotify);
+	svm_cross_validation(prob,&newparam,nr_fold,ymv,DebugNotify,ErrorNotify);
 	for(i=0;i<prob->l;i++)
 	{
 		ymv[i]=prob->y[i]-ymv[i];
@@ -2451,7 +2451,7 @@ void svm_cross_validation(const svm_problem *prob, const svm_parameter *param, i
 		{
 			double *prob_estimates=Malloc(double,svm_get_nr_class(submodel));
 			for(j=begin;j<end;j++)
-				target[perm[j]] = svm_predict_probability(submodel,prob->x[perm[j]],prob_estimates);
+				target[perm[j]] = svm_predict_probability(submodel,prob->x[perm[j]],prob_estimates,DebugNotify);
 			free(prob_estimates);
 		}
 		else
