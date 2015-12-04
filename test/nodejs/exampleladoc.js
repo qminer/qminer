@@ -118,7 +118,7 @@ it("should make test number 9", function () {
 	 var M = new la.Matrix([[1, 2], [-1, -5]]);
 	 // create a new vector
 	 var b = new la.Vector([-1, -6]);
-	 // solve the linear system Mx = b
+	 // solve the linear system M*x = b
 	 var x = M.solve(b); // returns vector [1, -1]
 	
 });

@@ -1177,14 +1177,14 @@
 	 * // create the Proportional Hazards model
 	 * var hazards = new analytics.PropHazards();
 	 * // create the input matrix and vector for fitting the model
-	 * var mat = new la.Matrix([[1, 1], [1, -1]]);
-     * var vec = new la.Vector([3, 3]);
+	 * var mat = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+	 * var vec = new la.Vector([1, 0, -1, -2]);
 	 * // if openblas used
 	 * if (require('qminer').flags.blas) {
 	 *     // fit the model
-	 *     hazards.fit(mat, vec);       
+	 *     hazards.fit(mat, vec);
 	 *     // create a vector for the prediction
-	 *      var test = new la.Vector([1, 2]);
+	 *     var test = new la.Vector([1, 0, -1, -2]);
 	 *     // predict the value
 	 *     var prediction = hazards.predict(test);
 	 * };
@@ -1511,86 +1511,6 @@
 	* var nnet2 = new analytics.NNet(fin);
 	*/
  exports.NNet.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); } 
-/**
-* @typedef {Object} MDSParam
-* @property {number} [maxSecs=500] - The maximum time period to compute MDS of a matrix.
-* @property {number} [maxStep=5000] - The maximum number of iterations.
-* @property {number} [minDiff=1e-4] - The minimum difference criteria in MDS.
-* @property {string} [distType="Euclid"] - The type of distance used. Available types: "Euclid", "Cos", "SqrtCos".
-*/
-/**
-* @class
-* @classdesc Multidimensional scaling
-* @param {(module:analytics~MDSParam | module:fs.FIn)} [params] - The parameters for the construction.
-* @example
-* // import analytics module
-* var analytics = require('qminer').analytics;
-* // construct a MDS instance
-* var mds = new analytics.MDS({ maxStep: 300, distType: 'Cos' });
-*/
- exports.MDS = function (params) { return Object.create(require('qminer').analytics.MDS.prototype); }
-/**
-	* Get the parameters.
-	* @returns {module:analytics~MDSParam} The json object containing the parameters of the instance.
-	* @example
-	* // import analytics module
-	* var analytics = require('qminer').analytics;
-	* // create a MDS instance
-	* var mds = new analytics.MDS();
-	* // get the (default) parameters of the instance
-	* // returns { maxStep: 5000, maxSecs: 300, minDiff: 1e-4, distType: "Euclid" }
-	* var params = mds.getParams();
-	*/
- exports.MDS.prototype.getParams = function () { return { maxStep: 0, maxSecs: 0, minDiff: 0, distType: "" }; }
-/**
-	* Set the parameters.
-	* @param {module:analytics~MDSParam} The json object containing the parameters for the instance.
-	* @example
-	* // import analytics module
-	* var analytics = require('qminer').analytics;
-	* // create a MDS instance
-	* var mds = new analytics.MDS();
-	* // get the (default) parameters of the instance
-	* // returns { maxStep: 5000, maxSecs: 300, minDiff: 1e-4, distType: "Euclid" }
-	* var params = mds.getParams();
-	*/
- exports.MDS.prototype.setParams = function () { return { maxStep: 0, maxSecs: 0, minDiff: 0, distType: "" }; }
-/**
-	* Get the MDS of the given matrix.
-	* @param {(module:la.Matrix | module:la.SparseMatrix)} mat - The multidimensional matrix.
-	* @returns {module:la.Matrix} The matrix of dimensions mat.cols x 2, where the i-th row of the matrix is the 2d representation 
-	* of the i-th column of mat.
-	* @example
-	* // import the modules
-	* var analytics = require('qminer').analytics;
-	* var la = require('qminer').la;
-	* // create a MDS instance
-	* var mds = new analytics.MDS();
-	* // create the multidimensional matrix
-	* var mat = new la.Matrix({ rows: 50, cols: 10, random: true });
-	* // get the 2d representation of mat 
-	* var mat2d = mds.fitTransform(mat); 
-	*/
- exports.MDS.prototype.fitTransform = function (mat) { return Object.create(require('qminer').la.Matrix.prototype); }
-/**
-	* Save the MDS.
-	* @param {module:fs.FOut} fout - The output stream.
-	* @returns {module:fs.FOut} The output stram fout.
-	* @example
-	* // import modules
-	* var analytics = require('qminer').analytics;
-	* var fs = require('qminer').fs;
-	* // create a MDS instance
-	* var mds = new analytics.MDS({ iter: 200, MaxStep: 10 });
-	* // create the file output stream
-	* var fout = new fs.openWrite('MDS.bin');
-	* // save the MDS instance
-	* mds.save(fout);
-	* fout.close();
-	* // load the MDS instance
-	* var fin = fs.openRead('MDS.bin');
-	* var mds2 = new analytics.MDS(fin);
-	*/
 
 
     ///////////////////////////////////////////////////
