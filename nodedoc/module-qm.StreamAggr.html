@@ -79,16 +79,22 @@
                     <dt><a href="module-qm.StreamAggr.html#getInFloat">getInFloat()</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-qm.StreamAggr.html#getInFloatVector">getInFloatVector()</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.StreamAggr.html#getInTimestamp">getInTimestamp()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.StreamAggr.html#getNumberOfRecords">getNumberOfRecords()</a></dt>
+                    <dt><a href="module-qm.StreamAggr.html#getInTimestampVector">getInTimestampVector()</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.StreamAggr.html#getNumberOfRecords">getNumberOfRecords()</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.StreamAggr.html#getOutFloatVector">getOutFloatVector()</a></dt>
                     <dd>
                     </dd>
@@ -542,6 +548,22 @@ base.close();</code></pre>
                   <p><code>number</code>&nbsp;The value of the newest record in the buffer.</p>
                 </dd>
               </dl>
+              <h3 id="getInFloatVector"><span class="symbol-name">getInFloatVector</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
+              <p>Gets a vector containing the values that are entering the stream aggregator.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// TODO + add unit test!</code></pre>
+                </div>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;The vector containing the values that are entering the buffer.</p>
+                </dd>
+              </dl>
               <h3 id="getInTimestamp"><span class="symbol-name">getInTimestamp</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
               <p>Gets the timestamp of the newest record added to the stream aggregator.</p>
               <section>
@@ -587,6 +609,22 @@ base.close();</code></pre>
                 <dt>Returns</dt>
                 <dd>
                   <p><code>number</code>&nbsp;The timestamp given as the number of miliseconds since 01.01.1601, time: 00:00:00.0.</p>
+                </dd>
+              </dl>
+              <h3 id="getInTimestampVector"><span class="symbol-name">getInTimestampVector</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
+              <p>Gets a vector containing the timestamps that are entering the stream aggregator.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// TODO + add unit test!</code></pre>
+                </div>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;The vector containing the timestamps that are entering the buffer.</p>
                 </dd>
               </dl>
               <h3 id="getNumberOfRecords"><span class="symbol-name">getNumberOfRecords</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>

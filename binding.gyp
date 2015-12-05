@@ -245,8 +245,9 @@
                 'src/third_party/libsvm/svm.cpp'
             ],
             'include_dirs': [
-                'src/third_party/libsvm/'
-            ],
+                'src/third_party/libsvm/',
+                'src/glib/base/'
+            ]
         },
         {
             # needed for publishing binaries with node-pre-gyp

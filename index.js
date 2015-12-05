@@ -29,14 +29,12 @@ if (foundBinary) {
 
 } else {
     // check if we're in tonic environment
-    if (process.platform == 'linux' && process.arch == 'x64' && process.versions.modules == '14' && process.version.substr(0, 5) == 'v0.12') {
-        var moduleStr = 'qminer-try';
-        try {
-            module.exports = exports = require(
-             '/app/available_modules/node-0.12/qminer-try/'
-             + require('child_process').execSync('ls -t /app/available_modules/node-0.12/qminer-try/ | head -n1', { encoding: 'utf8' }).trim()
-             + '/qminer-try/index.js');
-            foundtry = true;
+    if (process.env.TONIC_HOST) {
+    	try {
+    		module.exports = exports = require(
+				'/app/available_modules/'
+				+ (new Date().getTime())
+				+ '/qminer-try/index.js');
         } catch (e) {
             throw new Error('qminer-try binary not found!');
         }

@@ -3192,9 +3192,7 @@ void TStoreImpl::GarbageCollect() {
 	TUInt64V DelRecIdV;
 	if (WndDesc.WindowType == swtTime) {
 		// get last added record
-		const uint64 LastRecId = DataCache.GetLastValId();
-		// not sure why this here, report as error for now
-		if (!IsRecId(LastRecId)) { ErrorLog("Invalid last record in garbage collection"); return; }
+		const uint64 LastRecId = GetLastRecId();
 		// get time window field
 		const int TimeFieldId = GetFieldId(WndDesc.TimeFieldNm);
 		// get time which we use as end of time-window (could be insert time or field value)
