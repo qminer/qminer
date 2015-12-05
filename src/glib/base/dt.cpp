@@ -395,6 +395,8 @@ TMem TMem::GetFromHex(const TStr& Str) {
 
 ///////////////////////////////////////////////////////////////
 // Base64 encoding
+// Code skeleton taken from http://www.adp-gmbh.ch/cpp/common/base64.html
+// on 5.12.2015 and re-arranged to fit into glib.
 
 static const TStr base64_chars =
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -411,7 +413,7 @@ TStr TStr::Base64Encode(const void* Bf, const int BfL) {
 	int j = 0;
 	unsigned char char_array_3[3];
 	unsigned char char_array_4[4];
-	int BfLTmp;
+	int BfLTmp = BfL;
 	const uchar* BfTmp = (uchar*)Bf;
 	while (BfLTmp--) {
 		char_array_3[i++] = *(BfTmp++);
@@ -458,15 +460,16 @@ void TStr::Base64Decode(const TStr& In, TMem& Mem) {
 		in_++;
 		if (i == 4) {
 			for (i = 0; i < 4; i++) {
-				char_array_4[i] = base64_chars.SearchCh(char_array_4[i]);
+				char_array_4[i] = (uchar)base64_chars.SearchCh(char_array_4[i]);
 			}
 			char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
 			char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
 			char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
 
-			for (i = 0; (i < 3); i++) {
-				Mem.AddBf(&char_array_3[i], 1);
-			}
+			Mem.AddBf(&char_array_3, 3);
+			//for (i = 0; (i < 3); i++) {
+			//	Mem.AddBf(&char_array_3[i], 1);
+			//}
 			i = 0;
 		}
 	}
@@ -476,14 +479,14 @@ void TStr::Base64Decode(const TStr& In, TMem& Mem) {
 			char_array_4[j] = 0;
 		}
 		for (j = 0; j < 4; j++) {
-			char_array_4[j] = base64_chars.SearchCh(char_array_4[j]);
+			char_array_4[j] = (uchar)base64_chars.SearchCh(char_array_4[j]);
 		}
 		char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
 		char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
 		char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
 
 		for (j = 0; (j < i - 1); j++) {
-			Mem.AddBf(&char_array_3[i], 1);
+			Mem.AddBf(&char_array_3[j], 1);
 		}
 	}
 }

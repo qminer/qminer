@@ -883,7 +883,7 @@ public:
   /// Base64-encode given buffer and return resulting string
   static TStr Base64Encode(const void* Bf, const int BfL);
   /// Base64-encode given buffer and return resulting string
-  static TStr Base64Encode(const TMem& Mem) { return Base64Encode(Mem.GetBf(), Mem.Len()); }
+  static TStr Base64Encode(const TMemBase& Mem) { return Base64Encode(Mem.GetBf(), Mem.Len()); }
   /// Base64-decode given string and fill this TMem object
   static void Base64Decode(const TStr& In, TMem& Mem);
 

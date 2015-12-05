@@ -786,7 +786,8 @@ v8::Local<v8::Value> TNodeJsStore::Field(const TQm::TRec& Rec, const int FieldId
 	} else if (Desc.IsTMem()) {
 		TMem Val;
 		Rec.GetFieldTMem(FieldId, Val);
-		return HandleScope.Escape(v8::String::NewFromUtf8(Isolate, TStr::Base64Encode(Val).CStr()));
+		v8::Local<v8::Object> Bf = node::Buffer::New(Isolate, Val.GetBf(), Val.Len());
+		return HandleScope.Escape(Bf);
 	} else if (Desc.IsJson()) {
 		PJsonVal Val = Rec.GetFieldJsonVal(FieldId);
 		return HandleScope.Escape(TNodeJsUtil::ParseJson(Isolate, Val));
@@ -2212,11 +2213,15 @@ void TNodeJsRec::setField(v8::Local<v8::String> Name, v8::Local<v8::Value> Value
 		throw TQm::TQmExcept::New("Unsupported type for record setter: " + Desc.GetFieldTypeStr());
 	}
 	else if (Desc.IsTMem()) {
-		QmAssertR(Value->IsString(), "Field " + FieldNm + " not a string");
-		v8::String::Utf8Value Utf8(Value);
-		TStr Str(*Utf8);
+		QmAssertR(Value->IsObject(), "Field " + FieldNm + " not object");
+		v8::Handle<v8::Object> Object = v8::Handle<v8::Object>::Cast(Value);
+
+		QmAssertR(Object->HasIndexedPropertiesInExternalArrayData(), "TNodeJsRec::setField: argument is not a buffer!");
+		char* Buff = node::Buffer::Data(Object);
+		size_t BuffLen = node::Buffer::Length(Object);
+
 		TMem Mem;
-		TStr::Base64Decode(Str, Mem);
+		Mem.AddBf(Buff, BuffLen);
 		Rec.SetFieldTMem(FieldId, Mem);
 	}
 	else if (Desc.IsJson()) {
