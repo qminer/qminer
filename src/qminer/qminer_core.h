@@ -1097,6 +1097,25 @@ public:
 };
 
 ///////////////////////////////
+/// Record Filter by Bool Field. 
+class TRecFilterByFieldBool {
+private:
+	/// Store from which we are sorting the records 
+	TWPt<TStore> Store;
+	/// Field according to which we are sorting
+	TInt FieldId;	
+	/// Value
+	TBool Val;
+public:
+	TRecFilterByFieldBool(const TWPt<TStore>& _Store, const int& _FieldId, const bool& _Val) : Store(_Store), FieldId(_FieldId), Val(_Val) { }
+
+	bool operator()(const TUInt64IntKd& RecIdWgt) const {
+		const bool RecVal = Store->GetFieldBool(RecIdWgt.Key, FieldId);
+		return RecVal == Val;
+	}
+};
+
+///////////////////////////////
 /// Record Filter by Integer Field. 
 class TRecFilterByFieldInt {
 private:
@@ -1456,6 +1475,8 @@ public:
 	void FilterByRecIdSet(const TUInt64Set& RecIdSet);
 	/// Filter records to keep only the ones with weight between `MinFq' and `MaxFq'
 	void FilterByFq(const int& MinFq, const int& MaxFq);
+	/// Filter records to keep only the ones that match the boolean value
+	void FilterByFieldBool(const int& FieldId, const bool& Val);
 	/// Filter records to keep only the ones with values of a given field within given range
 	void FilterByFieldInt(const int& FieldId, const int& MinVal, const int& MaxVal);
 	/// Filter records to keep only the ones with values of a given field within given range
