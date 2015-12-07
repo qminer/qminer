@@ -1033,51 +1033,51 @@ double TTDigest::Quantile(double q) const {
 		return 0; // TODO
 	}
 
-	if(_centroids->size() == 0) {
+	if(Centroids->GetSize() == 0) {
 		return 0; // TODO
-	} else if(_centroids->size() == 1) {
-		return _centroids->value(_centroids->first());
+	} else if(Centroids->GetSize() == 1) {
+		return Centroids->GetValue(Centroids->First());
 	}
 
 	const double index = q * (Count - 1);
 
 	double previousMean = NAN;
 	double previousIndex = 0;
-	int next = _centroids->floorSum(index);
+	int next = Centroids->FloorSum(index);
 	EAssert(next != 0);
-	long total = _centroids->ceilSum(next);
-	const int prev = _centroids->prevNode(next);
+	long total = Centroids->CeilSum(next);
+	const int prev = Centroids->PrevNode(next);
 	if(prev != 0) {
-		previousMean = _centroids->value(prev);
-		previousIndex = total - (_centroids->count(prev) + 1.0) / 2.0;
+		previousMean = Centroids->GetValue(prev);
+		previousIndex = total - (Centroids->GetCount(prev) + 1.0) / 2.0;
 	}
 
 	while(true) {
-		const double nextIndex = total + (_centroids->count(next) - 1.0) / 2.0;
+		const double nextIndex = total + (Centroids->GetCount(next) - 1.0) / 2.0;
 		if(nextIndex >= index) {
 			if(previousMean == NAN) {
 				// Index is before first centroid
 				EAssert(total == 0);
 				if(nextIndex == previousIndex) {
-					return _centroids->value(next);
+					return Centroids->GetValue(next);
 				}
 				// We assume a linear increase
-				int next2 = _centroids->value(next);
-				const double nextIndex2 = total + _centroids->count(next) + (_centroids->count(next2) - 1.0) / 2.0;
-				previousMean = (nextIndex2 * _centroids->value(next) - nextIndex * _centroids->value(next2)) / (nextIndex2 - nextIndex);
+				int next2 = Centroids->GetValue(next);
+				const double nextIndex2 = total + Centroids->GetCount(next) + (Centroids->GetCount(next2) - 1.0) / 2.0;
+				previousMean = (nextIndex2 * Centroids->GetValue(next) - nextIndex * Centroids->GetValue(next2)) / (nextIndex2 - nextIndex);
 			}
-			return Quantile(previousIndex, index, nextIndex, previousMean, _centroids->value(next));
+			return Quantile(previousIndex, index, nextIndex, previousMean, Centroids->GetValue(next));
 
-		} else if(_centroids->value(next) == 0) {
+		} else if(Centroids->GetValue(next) == 0) {
 			// Beyond last centroid
 			const double nextIndex2 = Count - 1;
-			const double nextMean2 = (_centroids->value(next) * (nextIndex2 - previousIndex ) - previousMean * (nextIndex2 - nextIndex)) / (nextIndex - previousIndex);
-			return Quantile(nextIndex, index, nextIndex2, _centroids->value(next), nextMean2);
+			const double nextMean2 = (Centroids->GetValue(next) * (nextIndex2 - previousIndex ) - previousMean * (nextIndex2 - nextIndex)) / (nextIndex - previousIndex);
+			return Quantile(nextIndex, index, nextIndex2, Centroids->GetValue(next), nextMean2);
 		}
-		total += _centroids->count(next);
-		previousMean = _centroids->value(next);
+		total += Centroids->GetCount(next);
+		previousMean = Centroids->GetValue(next);
 		previousIndex = nextIndex;
-		next = _centroids->nextNode(next);
+		next = Centroids->NextNode(next);
 	}
 }
 

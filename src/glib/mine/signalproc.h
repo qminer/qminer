@@ -794,15 +794,15 @@ class TTDigest {
 private:
         TFlt Compression;
         TFlt Count;
-        AvlTree* _centroids;
+        AvlTree* Centroids;
 public: 
 
         /// Constructs uninitialized object
-        TTDigest() { Compression = 100; Count = 0; _centroids = new AvlTree(); };
+        TTDigest() { Compression = 100; Count = 0; Centroids = new AvlTree(); };
         /// Constructs given JSON arguments
-        TTDigest(const PJsonVal& ParamVal) { Compression = 100; Count = 0; _centroids = new AvlTree(); };
+        TTDigest(const PJsonVal& ParamVal) { Compression = 100; Count = 0; Centroids = new AvlTree(); };
         /// Constructs uninitialized object with compression
-        TTDigest (double compression): Compression(compression) { Compression = compression; Count = 0; _centroids = new AvlTree();}
+        TTDigest (double compression): Compression(compression) { Compression = compression; Count = 0; Centroids = new AvlTree();}
 
         /// Initializes the object, resets current content is present
         void Init();   
@@ -810,20 +810,20 @@ public:
         inline long Size() { return Count; }
         void Compress();
         inline void Update(double x, double w) {
-            int start = _centroids->floor(x);
+            int start = Centroids->Floor(x);
             if(start == 0) {
-                start = _centroids->first();
+                start = Centroids->First();
             }
 
             if(start == 0) {
-                EAssert(_centroids->size() == 0);
-                _centroids->add(x, w);
+                EAssert(Centroids->GetSize() == 0);
+                Centroids->Add(x, w);
                 Count += w;
             } else {
                 double minDistance = DBL_MAX;
                 int lastNeighbor = 0;
-                for(int neighbor = start; start != 0; neighbor = _centroids->nextNode(neighbor)) {
-                    double z = abs(_centroids->value(neighbor) - x);
+                for(int neighbor = start; start != 0; neighbor = Centroids->NextNode(neighbor)) {
+                    double z = TFlt::Abs(Centroids->GetValue(neighbor) - x);
                     if(z < minDistance) {
                         start = neighbor;
                         minDistance = z;
@@ -834,18 +834,19 @@ public:
                 }
 
                 int closest = 0;
-                long sum = _centroids->ceilSum(start);
+                long sum = Centroids->CeilSum(start);
                 double n = 0;
-                for(int neighbor = start; neighbor != lastNeighbor; neighbor = _centroids->nextNode(neighbor)) {
-                    EAssert(minDistance == abs(_centroids->value(neighbor) - x));
+                for(int neighbor = start; neighbor != lastNeighbor; neighbor = Centroids->NextNode(neighbor)) {
+                    //EAssert(minDistance == abs(Centroids->GetValue(neighbor) - x));
                     double q = 0.5;
                     if (Count != 1.0) {
-                    	q = (sum + (_centroids->count(neighbor) - 1 / 2. )) / (Count - 10);
+                    	q = (sum + (Centroids->GetCount(neighbor) - 1 / 2. )) / (Count - 10);
                     }
 
-                    double k = 4.0 * Count * q * (1.0 - q) / Compression;
+                    //double k = 4.0 * Count * q * (1.0 - q) / Compression;
+                    double k = sqrt(Count * q * (1.0 - q));
 
-                    if(_centroids->count(neighbor) + w <= k) {
+                    if(Centroids->GetCount(neighbor) + w <= k) {
                         n++;
                         float R = (float)rand() / RAND_MAX;
 
@@ -853,26 +854,26 @@ public:
                             closest = neighbor;
                         }
                     }
-                    sum += _centroids->count(neighbor);
+                    sum += Centroids->GetCount(neighbor);
                 }
 
                 if(closest == 0) {
-                    _centroids->add(x, w);
+                    Centroids->Add(x, w);
                 } else {
-                    _centroids->update(closest, x, w);
+                    Centroids->Update(closest, x, w);
                 }
                 Count += w;
 
-                if(_centroids->size() > 20 * Compression) {
+                if(Centroids->GetSize() > 20 * Compression) {
                     Compress();
                 }
             }
         }
         inline void Update(double x) { Update(x, 1.0); }
-        inline AvlTree* Centroids() const {
-            return _centroids;
+        inline AvlTree* GetCentroids() const {
+            return Centroids;
         }
-        inline int CentroidsCount() const { return _centroids->size();}
+        inline int CentroidsCount() const { return Centroids->GetSize();}
         inline double Quantile(double previousIndex, double index, double nextIndex, double previousMean, double nextMean) const {
         	const double delta = nextIndex - previousIndex;
             const double previousWeight = (nextIndex - index) / delta;
@@ -881,9 +882,9 @@ public:
         }
         double Quantile(double q) const;
         inline void Merge(TTDigest* digest) {
-                    AvlTree* centroids = digest->Centroids();
-                    for(int n = centroids->first(); n != 0; n = centroids->nextNode(n)) {
-                        Update(centroids->value(n), centroids->count(n));
+                    AvlTree* centroids = digest->GetCentroids();
+                    for(int n = centroids->First(); n != 0; n = centroids->NextNode(n)) {
+                        Update(centroids->GetValue(n), centroids->GetCount(n));
                     }
                 }
         double GetQuantile(double q) const { return Quantile(q); }

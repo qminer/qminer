@@ -1,20 +1,21 @@
 #include "avltree.h"
 
-AvlTree::AvlTree(): _root(0) {
-	_n = 0;
-    _depth[0]     = 0;
-    _parent[0]    = 0;
-    _left[0]      = 0;
-    _right[0]     = 0;
+AvlTree::AvlTree(): Root(0) {
+	N = 0;
+    Depth.AddDat(0, 0);
+    Parent.AddDat(0,0);
+    Left.AddDat(0, 0);
+    Right.AddDat(0, 0);
+    AggregatedCount.AddDat(0,0);
 }
 
-TInt AvlTree::first(int node) const {
+TInt AvlTree::First(TInt node) const {
     if(node == 0) {
         return 0;
     }
 
     while(true) {
-        const int left = leftNode(node);
+        const TInt left = GetLeftNode(node);
         if(left == 0) {
             break;
         }
@@ -23,9 +24,9 @@ TInt AvlTree::first(int node) const {
     return node;
 }
 
-TInt AvlTree::last(int node) const {
+TInt AvlTree::Last(TInt node) const {
     while(true) {
-        const int right = rightNode(node);
+        const TInt right = GetRightNode(node);
         if(right == 0) {
             break;
         }
@@ -34,100 +35,91 @@ TInt AvlTree::last(int node) const {
     return node;
 }
 
-TInt AvlTree::nextNode(int node) const {
-    const int right = rightNode(node);
+TInt AvlTree::NextNode(TInt node) const {
+    const TInt right = GetRightNode(node);
     if(right != 0) {
-        return first(right);
+        return First(right);
     } else {
-        int parent = parentNode(node);
-        while(parent != 0 && node == rightNode(parent)) {
+        TInt parent = GetParentNode(node);
+        while(parent != 0 && node == GetRightNode(parent)) {
             node = parent;
-            parent = parentNode(parent);
+            parent = GetParentNode(parent);
         }
         return parent;
     }
 }
 
-TInt AvlTree::prevNode(int node) const {
-    const int left = leftNode(node);
+TInt AvlTree::PrevNode(TInt node) const {
+    const TInt left = GetLeftNode(node);
     if(left != 0) {
-        return last(left);
+        return Last(left);
     } else {
-        int parent = parentNode(node);
-        while(parent != 0 && node == leftNode(parent)) {
+        TInt parent = GetParentNode(node);
+        while(parent != 0 && node == GetLeftNode(parent)) {
             node = parent;
-            parent = parentNode(parent);
+            parent = GetParentNode(parent);
         }
         return parent;
     }
 }
 
-bool AvlTree::add(double x, TInt w) {
-	//printf("root: %f\n", _root);
-    if(_root == 0) {
-        _root = ++_n;
-        _values[_root] = x;
-        //printf(" x: %f", x);
-        _count[_root] = w;
-        _left[_root] = 0;
-        _right[_root] = 0;
-        _parent[_root] = 0;
+bool AvlTree::Add(TFlt x, TInt w) {
+	//printf("root: %f\n", Root);
+    if(Root == 0) {
+        Root = ++N;
+        Values.AddDat(Root, x);
+        Count.AddDat(Root, w);
+        Left.AddDat(Root, 0);
+        Right.AddDat(Root, 0);
+        Parent.AddDat(Root,0);
         // Update depth and aggregates
-        updateAggregates(_root);
+        UpdateAggregates(Root);
         return true;
     } else {
-        int node = _root;
-        int parent = 0;
-        int cmp;
+        TInt node = Root;
+        TInt parent = 0;
+        TInt cmp;
         do {
-            cmp = compare(node, x);
+            cmp = Compare(node, x);
             if(cmp < 0) {
                 parent = node;
-                node = leftNode(node);
+                node = GetLeftNode(node);
             } else if (cmp > 0) {
                 parent = node;
-                node = rightNode(node);
+                node = GetRightNode(node);
             } else {
                 // we merge the node
-                merge(node, x, w);
+                Merge(node, x, w);
                 return false;
             }
         } while(node != 0);
 
-        //printf("%i\n", _n);
-        node = ++_n;
-        //printf("node, _n %i, %i\n", node, _n);
-        _values[node] = x;
-        //printf(" x: %f", x);
-        //for (int i=0; i<10; i++) {
-        //	printf("%f, ",_values[i]);
-        //}
-        //printf("\n");
-
-        _count[node] = w;
-        _left[node] = 0;
-        _right[node] = 0;
-        _parent[node] = parent;
+        node = ++N;
+        Values.AddDat(node, x);
+        Count.AddDat(node, w);
+        Left.AddDat(node, 0);
+        Right.AddDat(node, 0);
+        Parent.AddDat(node, parent);
         if(cmp < 0) {
-            _left[parent] = node;
+            Left.AddDat(parent, node);
         } else {
             //assert(cmp > 0);
-            _right[parent] = node;
+            Right.AddDat(parent, node);
         }
 
-        rebalance(node);
+        Rebalance(node);
 
         return true;
     }
 }
 
-int AvlTree::find(double x) const {
-    for(int node = _root; node != 0;) {
-        const int cmp = compare(node, x);
+TInt AvlTree::Find(TFlt x) const {
+    for(TInt node = Root; node != 0;) {
+        const TInt cmp = Compare(node, x);
         if(cmp < 0) {
-            node = leftNode(node);
+            node = GetLeftNode(node);
         } else if(cmp > 0) {
-            node = rightNode(node);
+            node = GetRightNode(node);
         } else {
             return node;
         }
@@ -135,71 +127,71 @@ int AvlTree::find(double x) const {
     return 0;
 }
 
-int AvlTree::floor(double x) const {
-    int f = 0;
-    for(int node = _root; node != 0; ) {
-        const int cmp = compare(node, x);
+TInt AvlTree::Floor(TFlt x) const {
+    TInt f = 0;
+    for(TInt node = Root; node != 0; ) {
+        const TInt cmp = Compare(node, x);
         if(cmp <= 0) {
-            node = leftNode(node);
+            node = GetLeftNode(node);
         } else {
             f = node;
-            node = rightNode(node);
+            node = GetRightNode(node);
         }
     }
     return f;
 }
 
-int AvlTree::floorSum(long sum) const {
-    int f = 0;
-    for(int node = _root; node != 0; ) {
-        const int left = leftNode(node);
-        const long leftCount = aggregatedCount(left);
+TInt AvlTree::FloorSum(long sum) const {
+    TInt f = 0;
+    for(TInt node = Root; node != 0; ) {
+        const TInt left = GetLeftNode(node);
+        const long leftCount = GetAggregatedCount(left);
         if(leftCount <= sum) {
             f = node;
-            sum -= leftCount + count(node);
-            node = rightNode(node);
+            sum -= leftCount + GetCount(node);
+            node = GetRightNode(node);
         } else {
-            node = leftNode(node);
+            node = GetLeftNode(node);
         }
     }
     return f;
 }
 
-long AvlTree::ceilSum(int node) const {
-    const int left = leftNode(node);
-    long sum = aggregatedCount(left);
-    int n = node;
-    for(int p = parentNode(node); p != 0; p = parentNode(n)) {
-        if(n == rightNode(p)) {
-            const int leftP = leftNode(p);
-            sum += count(p) + aggregatedCount(leftP);
+long AvlTree::CeilSum(TInt node) const {
+    const TInt left = GetLeftNode(node);
+    long sum = GetAggregatedCount(left);
+    TInt n = node;
+    for(TInt p = GetParentNode(node); p != 0; p = GetParentNode(n)) {
+        if(n == GetRightNode(p)) {
+            const TInt leftP = GetLeftNode(p);
+            sum += GetCount(p) + GetAggregatedCount(leftP);
         }
         n = p;
     }
     return sum;
 }
 
-void AvlTree::rebalance(int node) {
-    for(int n = node; n != 0; ) {
-        const int p = parentNode(n);
+void AvlTree::Rebalance(TInt node) {
+    for(TInt n = node; n != 0; ) {
+        const TInt p = GetParentNode(n);
 
-        updateAggregates(n);
+        UpdateAggregates(n);
 
-        switch(balanceFactor(n)) {
+        switch(BalanceFactor(n)) {
             case -2: {
-                         const int right = rightNode(n);
-                         if(balanceFactor(right) == 1) {
-                             rotateRight(right);
+                         const TInt right = GetRightNode(n);
+                         if(BalanceFactor(right) == 1) {
+                             RotateRight(right);
                          }
-                         rotateLeft(n);
+                         RotateLeft(n);
                          break;
                      }
             case 2: {
-                        const int left = leftNode(n);
-                        if(balanceFactor(left) == -1) {
-                            rotateLeft(left);
+                        const TInt left = GetLeftNode(n);
+                        if(BalanceFactor(left) == -1) {
+                            RotateLeft(left);
                         }
-                        rotateRight(n);
+                        RotateRight(n);
                         break;
                     }
             case -1:
@@ -216,52 +208,52 @@ void AvlTree::rebalance(int node) {
     }
 }
 
-void AvlTree::rotateLeft(int node) {
-    const int r  = rightNode(node);
-    const int lr = leftNode(r);
+void AvlTree::RotateLeft(TInt node) {
+    const TInt r  = GetRightNode(node);
+    const TInt lr = GetLeftNode(r);
 
-    _right[node] = lr;
+    Right.AddDat(node, lr);
     if(lr != 0) {
-        _parent[lr] = node;
+        Parent.AddDat(lr, node);
     }
 
-    const int p = parentNode(node);
-    _parent[r] = p;
+    const TInt p = GetParentNode(node);
+    Parent.AddDat(r, p);
     if(p == 0) {
-        _root = r;
-    } else if(leftNode(p) == node) {
-        _left[p] = r;
+        Root = r;
+    } else if(GetLeftNode(p) == node) {
+        Left.AddDat(p, r);
     } else {
          //assert(rightNode(p) == node);
-        _right[p] = r;
+        Right.AddDat(p, r);
     }
-    _left[r] = node;
-    _parent[node] = r;
-    updateAggregates(node);
-    updateAggregates(parentNode(node));
+    Left.AddDat(r, node);
+    Parent.AddDat(node, r);
+    UpdateAggregates(node);
+    UpdateAggregates(GetParentNode(node));
 }
 
-void AvlTree::rotateRight(int node) {
-    const int l = leftNode(node);
-    const int rl = rightNode(l);
+void AvlTree::RotateRight(TInt node) {
+    const TInt l = GetLeftNode(node);
+    const TInt rl = GetRightNode(l);
 
-    _left[node] = rl;
+    Left.AddDat(node, rl);
     if(rl != 0) {
-        _parent[rl] = node;
+        Parent.AddDat(rl, node);
     }
 
-    const int p = parentNode(node);
-    _parent[l] = p;
+    const TInt p = GetParentNode(node);
+    Parent.AddDat(l, p);
     if(p == 0) {
-        _root = l;
-    } else if(rightNode(p) == node) {
-        _right[p] = l;
+        Root = l;
+    } else if(GetRightNode(p) == node) {
+        Right.AddDat(p, l);
     } else {
         //assert(leftNode(p) == node);
-        _left[p] = l;
+        Left.AddDat(p, l);
     }
-    _right[l] = node;
-    _parent[node] = l;
-    updateAggregates(node);
-    updateAggregates(parentNode(node));
+    Right.AddDat(l, node);
+    Parent.AddDat(node, l);
+    UpdateAggregates(node);
+    UpdateAggregates(GetParentNode(node));
 }
