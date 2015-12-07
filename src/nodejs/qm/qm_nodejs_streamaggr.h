@@ -1766,21 +1766,24 @@ public:
 	double GetFlt() const;
 	// ITm 
 	uint64 GetTmMSecs() const;
+	
 	// IFltTmIO 
-	double GetInFlt() const;
+	TFlt GetInVal() const;
 	uint64 GetInTmMSecs() const;
 	bool DelayedP() const;
-
-	void GetInFltV(TFltV& ValV) const;
+	// incomming
+	void GetInValV(TFltV& ValV) const;
 	void GetInTmMSecsV(TUInt64V& MSecsV) const;
-	void GetOutFltV(TFltV& ValV) const;
+	// outgoing
+	void GetOutValV(TFltV& ValV) const;
 	void GetOutTmMSecsV(TUInt64V& MSecsV) const;
+	// in buffer
 	int GetN() const;
 
 	// IFltVec
-	int GetFltLen() const;
-	double GetFlt(const TInt& ElN) const; // GetFltAtFun
-	void GetFltV(TFltV& ValV) const;
+	int GetVals() const;
+	TFlt GetVal(const TInt& ElN) const; // GetFltAtFun
+	void GetValV(TFltV& ValV) const;
 	// ITmVec
 	int GetTmLen() const;
 	uint64 GetTm(const TInt& ElN) const; // GetTmAtFun

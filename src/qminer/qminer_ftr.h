@@ -143,11 +143,14 @@ private:
 	TFtrSpace(const TWPt<TBase>& _Base, const PFtrExt& FtrExt);
 	TFtrSpace(const TWPt<TBase>& _Base, const TFtrExtV& _FtrExtV);
     TFtrSpace(const TWPt<TBase>& _Base, TSIn& SIn);
+	TFtrSpace(const TWPt<TBase>& _Base, const PJsonVal& ParamVal);
 public:
     /// Create feature space with one feature extractor
 	static TPt<TFtrSpace> New(const TWPt<TBase>& Base, const PFtrExt& FtrExt); 
     /// Create feature space with multiple feature extractors
     static TPt<TFtrSpace> New(const TWPt<TBase>& Base, const TFtrExtV& FtrExtV);
+	/// Create feature space from JSON (array of feature extractor parameter JSONs)
+	static TPt<TFtrSpace> New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
     /// Load existing feature space from stream
     static TPt<TFtrSpace> Load(const TWPt<TBase>& Base, TSIn& SIn);
     /// Save feature space to stream
