@@ -13,6 +13,10 @@
 #include "qminer_storage.h"
 #include "qminer_ftr.h"
 
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
+
+
 namespace TQm {
 
 namespace TAggrs {
