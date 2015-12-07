@@ -1371,7 +1371,7 @@ double TCtMChain::HitTmPdf(const TFltVV& QMat, const int& StateId, const int& Ta
 
 	double CumReturnProb, HitProb, ReturnProb, Prob;
 
-	int n = 1;
+	int StepN = 1;
 	double CurrTm = TmStep;
 
 	while (CurrTm <= TotalTm) {
@@ -1383,24 +1383,22 @@ double TCtMChain::HitTmPdf(const TFltVV& QMat, const int& StateId, const int& Ta
 		EAssertR(!TFlt::IsNan(ReturnProb), "The return probability is nan!");
 
 		Prob = CurrProbMat(StateId, TargetStateId);
-		ReturnProbV[n] = ReturnProb;
+		ReturnProbV[StepN] = ReturnProb;
 
 		CumReturnProb = 0;
-		for (int TmN = 0; TmN < n; TmN++) {
-			CumReturnProb += HitProbV[TmN]*ReturnProbV[n - TmN];
+		for (int TmN = 0; TmN < StepN; TmN++) {
+			CumReturnProb += HitProbV[TmN]*ReturnProbV[StepN - TmN];
 		}
 
 		EAssertR(!TFlt::IsNan(Prob), "The probability of reachig the target state is nan!");
-
 		HitProb = Prob - CumReturnProb*TmStep;
 		EAssertR(!TFlt::IsNan(HitProb), "The HitProb is nan!");
 
 		CumHitProb += HitProb;
-		HitProbV[n] = HitProb;
-		TmV[n] = CurrTm;
+		HitProbV[StepN] = HitProb;
+		TmV[StepN] = CurrTm;
 
-
-		n++;
+		StepN++;
 		CurrTm += TmStep;
 	}
 
