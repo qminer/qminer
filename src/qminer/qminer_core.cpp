@@ -5783,7 +5783,10 @@ TFunRouter<PStreamAggr, TStreamAggr::TNewF> TStreamAggr::NewRouter;
 void TStreamAggr::Init() {
 	Register<TStreamAggrs::TRecBuffer>();
 	Register<TStreamAggrs::TTimeSeriesTick>();
-	Register<TStreamAggrs::TWinBuf>();
+	// two types of window buffers (different interfaces)
+	Register<TStreamAggrs::TWinBufFlt>();
+	Register<TStreamAggrs::TWinBufFtrSpVec>();
+	// these attach to TWinBufFlt
 	Register<TStreamAggrs::TWinBufSum>();
 	Register<TStreamAggrs::TWinBufMin>();
 	Register<TStreamAggrs::TWinBufMax>();

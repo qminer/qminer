@@ -147,6 +147,24 @@ TFtrSpace::TFtrSpace(const TWPt<TBase>& _Base, const PFtrExt& FtrExt):
 TFtrSpace::TFtrSpace(const TWPt<TBase>& _Base, const TFtrExtV& _FtrExtV): 
     Base(_Base), FtrExtV(_FtrExtV) { Init(); }
 
+TFtrSpace::TFtrSpace(const TWPt<TBase>& _Base, const PJsonVal& ParamVal) :
+Base(_Base) {
+	if (ParamVal->IsArr()) {
+		int Len = ParamVal->GetArrVals();
+		FtrExtV.Gen(Len);
+		for (int ParamN = 0; ParamN < Len; ParamN++) {
+			PJsonVal Param = ParamVal->GetArrVal(ParamN);
+			TStr Type = Param->GetObjStr("type");
+			FtrExtV.Add(TFtrExt::New(_Base, Type, Param));
+		}
+	}
+	else {
+		TStr Type = ParamVal->GetObjStr("type");
+		FtrExtV.Add(TFtrExt::New(_Base, Type, ParamVal));
+	}
+	Init();
+}
+
 TFtrSpace::TFtrSpace(const TWPt<TBase>& _Base, TSIn& SIn): 
         Base(_Base), Dim(SIn), DimV(SIn), VarDimFtrExtNV(SIn) {
 
@@ -164,6 +182,10 @@ TPt<TFtrSpace> TFtrSpace::New(const TWPt<TBase>& Base, const PFtrExt& FtrExt) {
 
 TPt<TFtrSpace> TFtrSpace::New(const TWPt<TBase>& Base, const TFtrExtV& FtrExtV) { 
     return new TFtrSpace(Base, FtrExtV); 
+}
+
+TPt<TFtrSpace> TFtrSpace::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+	return new TFtrSpace(Base, ParamVal);
 }
 
 TPt<TFtrSpace> TFtrSpace::Load(const TWPt<TBase>& Base, TSIn& SIn) { 

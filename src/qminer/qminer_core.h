@@ -3240,25 +3240,35 @@ namespace TStreamAggrOut {
 	// combination of numeric value and timestamp
 	class IFltTm: public IFlt, public ITm { };
 	
-	class IFltTmIO {
+	/// interface used by window buffer
+	template <class TVal>
+	class IValTmIO {
 	public:
-		virtual double GetInFlt() const = 0;
+		// valid only when not using delay
+		virtual TVal GetInVal() const = 0;
 		virtual uint64 GetInTmMSecs() const = 0;
+		// should return true if delay is used
 		virtual bool DelayedP() const = 0;
-		virtual void GetInFltV(TFltV& ValV) const = 0;
+		// incomming
+		virtual void GetInValV(TVec<TVal>& ValV) const = 0;
 		virtual void GetInTmMSecsV(TUInt64V& MSecsV) const = 0;
-		virtual void GetOutFltV(TFltV& ValV) const = 0;
+		// outgoing
+		virtual void GetOutValV(TVec<TVal>& ValV) const = 0;
 		virtual void GetOutTmMSecsV(TUInt64V& MSecsV) const = 0;
+		// retrieving vector of values from the aggregate
 		virtual int GetN() const = 0;
 	};
+	typedef IValTmIO<TFlt> IFltTmIO;
 
-	class IFltVec {
+	template <class TVal>
+	class IValVec {
 	public:
 		// retrieving vector of values from the aggregate
-		virtual int GetFltLen() const = 0;
-		virtual double GetFlt(const TInt& ElN) const = 0;
-		virtual void GetFltV(TFltV& ValV) const = 0;
+		virtual int GetVals() const = 0;
+		virtual TVal GetVal(const TInt& ElN) const = 0;
+		virtual void GetValV(TVec<TVal>& ValV) const = 0;
 	};
+	typedef IValVec<TFlt> IFltVec;
 
 	class ITmVec {
 	public:
