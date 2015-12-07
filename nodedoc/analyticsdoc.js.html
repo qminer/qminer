@@ -1574,7 +1574,7 @@
  exports.MDS.prototype.getParams = function () { return { maxStep: 0, maxSecs: 0, minDiff: 0, distType: &quot;&quot; }; }
 /**
 	* Set the parameters.
-	* @param {module:analytics~MDSParam} The json object containing the parameters for the instance.
+	* @param {module:analytics~MDSParam} params - The json object containing the parameters for the instance.
 	* @example
 	* // import analytics module
 	* var analytics = require(&#x27;qminer&#x27;).analytics;
@@ -1584,7 +1584,7 @@
 	* // returns { maxStep: 5000, maxSecs: 300, minDiff: 1e-4, distType: &quot;Euclid&quot; }
 	* var params = mds.getParams();
 	*/
- exports.MDS.prototype.setParams = function () { return { maxStep: 0, maxSecs: 0, minDiff: 0, distType: &quot;&quot; }; }
+ exports.MDS.prototype.setParams = function (params) { return { maxStep: 0, maxSecs: 0, minDiff: 0, distType: &quot;&quot; }; }
 /**
 	* Get the MDS of the given matrix.
 	* @param {(module:la.Matrix | module:la.SparseMatrix)} mat - The multidimensional matrix.
@@ -1621,6 +1621,7 @@
 	* var fin = fs.openRead(&#x27;MDS.bin&#x27;);
 	* var mds2 = new analytics.MDS(fin);
 	*/
+ exports.MDS.prototype.save = function (fout) { return Object.create(require(&#x27;qminer&#x27;).fs.FOut.prototype); }
 
 
     ///////////////////////////////////////////////////
