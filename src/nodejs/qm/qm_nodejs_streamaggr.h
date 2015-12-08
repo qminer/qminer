@@ -1666,6 +1666,13 @@ public:
 	//# exports.StreamAggr.prototype.getNumberOfRecords = function () { return 0; };
 	JsDeclareFunction(getNumberOfRecords);
 
+	// IValTmIO
+	JsDeclareFunction(getInValueVector);
+	JsDeclareFunction(getOutValueVector);
+	// IValVec
+	JsDeclareFunction(getValueVector);
+
+
 	/**
 	* Returns the name of the stream aggregate.
 	*/
@@ -1691,8 +1698,6 @@ class TNodeJsFuncStreamAggr :
 	public TQm::TStreamAggr,
 	public TQm::TStreamAggrOut::IInt,
 	public TQm::TStreamAggrOut::IFltTmIO,
-	public TQm::TStreamAggrOut::IFltVec,
-	public TQm::TStreamAggrOut::ITmVec,
 	public TQm::TStreamAggrOut::INmFlt,
 	public TQm::TStreamAggrOut::INmInt,
 	// combinations
