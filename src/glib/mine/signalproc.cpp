@@ -1083,7 +1083,7 @@ double TTDigest::Quantile(double q) const {
 }
 
 void TTDigest::Compress() {
-    // TODO: implement this one
+	// TODO: implement this one
 }
 
 /// Load from stream
@@ -1138,7 +1138,6 @@ void TChiSquare::Update(const TFltV& OutValVX, const TFltV& OutValVY) {
 	}
 }
 
-
 /// Load from stream
 void TChiSquare::LoadState(TSIn& SIn) {
 	Chi2.Load(SIn);
@@ -1148,7 +1147,121 @@ void TChiSquare::LoadState(TSIn& SIn) {
 /// Store state into stream
 void TChiSquare::SaveState(TSOut& SOut) const {
 	Chi2.Save(SOut);
-	P.Save(SOut);	
+	P.Save(SOut);
+}
+
+TCountMinSketch::TCountMinSketch(const PJsonVal& ParamVal) {
+	EAssertR(ParamVal->IsObjKey("epsilon"), "TCountMinSketch: epsilon key missing!");
+	EAssertR(ParamVal->IsObjKey("gamma"), "TCountMinSketch: gamma key missing!");
+	TFlt ep = ParamVal->GetObjNum("epsilon");
+	TFlt gamm = ParamVal->GetObjNum("gamma");
+	if (!(0.009 <= ep && ep < 1)) {
+			exit(EXIT_FAILURE);
+		} else if (!(0 < gamm && gamm < 1)) {
+			exit(EXIT_FAILURE);
+		}
+		Eps = ep;
+		Gamma = gamm;
+		W = ceil(exp(1)/Eps);
+		D = ceil(log(1/Gamma));
+		Total = 0;
+		// initialize counter array of arrays, C
+		C = new int *[D];
+		TInt i, j;
+		for (i = 0; i < D; i++) {
+			C[i] = new int[W];
+			for (j = 0; j < W; j++) {
+				C[i][j] = 0;
+			}
+		}
+		// initialize d pairwise independent hashes
+		srand(time(NULL));
+		Hashes = new int* [D];
+		for (i = 0; i < D; i++) {
+			Hashes[i] = new int[2];
+			Genajbj(Hashes, i);
+		}
+}
+
+// CountMinSketch constructor
+// ep -> error 0.01 < ep < 1 (the smaller the better)
+// gamma -> probability for error (the smaller the better) 0 < gamm < 1
+TCountMinSketch::TCountMinSketch(TFlt ep, TFlt gamm) {
+	if (!(0.009 <= ep && ep < 1)) {
+		exit(EXIT_FAILURE);
+	} else if (!(0 < gamm && gamm < 1)) {
+		exit(EXIT_FAILURE);
+	}
+	Eps = ep;
+	Gamma = gamm;
+	W = ceil(exp(1)/Eps);
+	D = ceil(log(1/Gamma));
+	Total = 0;
+	// initialize counter array of arrays, C
+	C = new int *[D];
+	TInt i, j;
+	for (i = 0; i < D; i++) {
+		C[i] = new int[W];
+		for (j = 0; j < W; j++) {
+			C[i][j] = 0;
+		}
+	}
+	// initialize d pairwise independent hashes
+	srand(time(NULL));
+	Hashes = new int* [D];
+	for (i = 0; i < D; i++) {
+		Hashes[i] = new int[2];
+		Genajbj(Hashes, i);
+	}
+}
+
+// generates aj,bj from field Z_p for use in hashing
+void TCountMinSketch::Genajbj(int** hashes, int i) {
+	hashes[i][0] = int(float(rand())*float(32993)/float(RAND_MAX) + 1);
+	hashes[i][1] = int(float(rand())*float(32993)/float(RAND_MAX) + 1);
+}
+
+// Total count of all items in the sketch
+TInt TCountMinSketch::GetTotalCount() const { return Total; }
+
+// countMinSketch update item count (int)
+void TCountMinSketch::Update(TInt Item, TInt C_) {
+	Total = Total + C_;
+	TInt hashval = 0;
+	for (TInt j = 0; j < D; j++) {
+		hashval = (Hashes[j][0]*Item+Hashes[j][1])%W;
+		C[j][hashval] = C[j][hashval] + C_;
+	}
+}
+
+// CountMinSketch estimate item count (int)
+TInt TCountMinSketch::Estimate(TInt item) const {
+	TInt Minval = TInt::Mx;
+	TInt Hashval = 0;
+	for (TInt j = 0; j < D; j++) {
+		Hashval = (Hashes[j][0] * item + Hashes[j][1]) % W;
+		if (C[j][Hashval] < Minval)
+			Minval = C[j][Hashval];
+	}
+	return Minval;
+}
+
+/// Load from stream
+void TCountMinSketch::LoadState(TSIn& SIn) {
+
+}
+
+/// Store state into stream
+void TCountMinSketch::SaveState(TSOut& SOut) const {
+
+}
+
+void TCountMinSketch::Print() const {
+	printf("W = %g", W);
+	printf("D = %g", D);
+	printf("Epsilon = %g", Eps);
+	printf("Gamma = %g", Gamma);
+	printf("Total = %g", Total);
 }
 
 }

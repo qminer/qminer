@@ -904,6 +904,38 @@ public:
 	TStr Type() const { return GetType(); }
 };
 
+///////////////////////////////
+/// TMinCountSketch stream aggregate.
+class TCountMinSketch : public TStreamAggr, public TStreamAggrOut::IFlt {
+private:
+	// input
+	TWPt<TStreamAggr> InAggr;
+	TWPt<TStreamAggrOut::IFltTm> InAggrVal;
+	// indicator
+	TSignalProc::TCountMinSketch Model;
+protected:
+	void OnAddRec(const TRec& Rec);
+	TCountMinSketch(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+public:
+	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+	// did we finish initialization
+	bool IsInit() const { return InAggr->IsInit(); }
+	/// Reset
+	void Reset() {  }
+	/// Load from stream
+	void LoadState(TSIn& SIn);
+	/// Store state into stream
+	void SaveState(TSOut& SOut) const;
+	/// get current Quantile value
+	double GetFlt() const {	return Model.Estimate(10); }
+	void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggr->GetAggrNm());}
+	// serialization to JSon
+	PJsonVal SaveJson(const int& Limit) const;
+	// stream aggregator type name
+	static TStr GetType() { return "countmin"; }
+	TStr Type() const { return GetType(); }
+};
+
 /////////////////////////////
 // Moving Window Buffer Sum
 template <>

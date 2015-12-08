@@ -5004,6 +5004,7 @@ void TStreamAggr::Init() {
 	Register<TStreamAggrs::TOnlineHistogram>();
 	Register<TStreamAggrs::TTDigest>();
 	Register<TStreamAggrs::TChiSquare>();
+	Register<TStreamAggrs::TCountMinSketch>();
 	Register<TStreamAggrs::TOnlineSlottedHistogram>();
 	Register<TStreamAggrs::TVecDiff>();
 }

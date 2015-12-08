@@ -927,6 +927,41 @@ public:
 	void SaveState(TSOut& SOut) const;
 };
 
+/////////////////////////////////////////////////
+///   Count-Min Sketch
+///   Muthukrishnan, Cormode (2004) - http://dimacs.rutgers.edu/~graham/pubs/papers/cmsoft.pdf
+///   Daniel Alabi C++ implementation: https://github.com/alabid/countminsketch
+class TCountMinSketch {
+private:
+        TInt W;
+        TInt D;
+        TFlt Eps; // Error rate 0.01 < Eps < 1
+        TFlt Gamma; // Probability for accuracy, 0 < Gamma < 1
+        TInt aj, bj;
+        // array of arrays of counters
+        int **C;
+        // array of hash values for a particular item
+        // contains two element arrays {aj,bj}
+        int **Hashes;
+        // generate "new" aj,bj
+        void Genajbj(int **hashes, int i);
+public:
+        TInt Total;
+        TCountMinSketch(const PJsonVal& ParamVal);
+        TCountMinSketch(TFlt eps, TFlt gamma);
+        // update item (int) by count c
+        void Update(TInt Item, TInt C);
+        // estimate count of item i and return count
+        TInt Estimate(TInt item) const;
+        // return total count
+        TInt GetTotalCount() const;
+        /// Load from stream
+        void LoadState(TSIn& SIn);
+        /// Store state into stream
+        void SaveState(TSOut& SOut) const;
+        void Print() const;
+};
+
 }
 
 #endif
