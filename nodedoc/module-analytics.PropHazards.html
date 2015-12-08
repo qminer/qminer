@@ -254,14 +254,14 @@ var la = require(&#x27;qminer&#x27;).la;
 // create the Proportional Hazards model
 var hazards = new analytics.PropHazards();
 // create the input matrix and vector for fitting the model
-var mat = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
-var vec = new la.Vector([1, 0, -1, -2]);
+var mat = new la.Matrix([[1, 1], [1, -1]]);
+var vec = new la.Vector([3, 3]);
 // if openblas used
 if (require(&#x27;qminer&#x27;).flags.blas) {
     // fit the model
-    hazards.fit(mat, vec);
+    hazards.fit(mat, vec);       
     // create a vector for the prediction
-    var test = new la.Vector([1, 0, -1, -2]);
+     var test = new la.Vector([1, 2]);
     // predict the value
     var prediction = hazards.predict(test);
 };</code></pre>

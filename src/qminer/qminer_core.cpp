@@ -2458,6 +2458,14 @@ void TRecSet::FilterByFq(const int& MinFq, const int& MaxFq) {
 	FilterBy(TRecFilterByRecFq(MinFq, MaxFq));
 }
 
+void TRecSet::FilterByFieldBool(const int& FieldId, const bool& Val) {
+	// get store and field type
+	const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
+	QmAssertR(Desc.IsBool(), "Wrong field type, boolean expected");
+	// apply the filter
+	FilterBy(TRecFilterByFieldBool(Store, FieldId, Val));
+}
+
 void TRecSet::FilterByFieldInt(const int& FieldId, const int& MinVal, const int& MaxVal) {
 	// get store and field type
 	const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
