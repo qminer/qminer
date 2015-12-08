@@ -1054,7 +1054,7 @@ double TTDigest::Quantile(double q) const {
 
 	while(true) {
 		const double nextIndex = total + (Centroids->GetCount(next) - 1.0) / 2.0;
-		TInt cent_val = Centroids->GetValue(next);
+		TFlt cent_val = Centroids->GetValue(next);
 		if(nextIndex >= index) {
 			if(previousMean == NAN) {
 				// Index is before first centroid
@@ -1069,7 +1069,7 @@ double TTDigest::Quantile(double q) const {
 			}
 			return Quantile(previousIndex, index, nextIndex, previousMean, Centroids->GetValue(next));
 
-		} else if(cent_val == 0) {
+		} else if(cent_val.Val() == 0.0) {
 			// Beyond last centroid
 			const double nextIndex2 = Count - 1;
 			const double nextMean2 = (Centroids->GetValue(next) * (nextIndex2 - previousIndex ) - previousMean * (nextIndex2 - nextIndex)) / (nextIndex - previousIndex);
