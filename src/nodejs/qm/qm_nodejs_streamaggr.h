@@ -1667,9 +1667,85 @@ public:
 	JsDeclareFunction(getNumberOfRecords);
 
 	// IValTmIO
+	/**
+	* Gets the vector of "just-in" values (values that have just entered the buffer). Values can be floats or sparse vectors.
+	* @returns {(module:la.Vector | module:la.SparseMatrix)} Vector of floats or a vector of sparse vectors
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a simple base containing one store
+	* var base = new qm.Base({
+    *      mode: 'createClean',
+    *      schema: [{
+    *        name: 'Docs',
+    *        fields: [
+    *          { name: 'Time', type: 'datetime' },
+    *          { name: 'Text', type: 'string' }
+    *        ]
+    *      }]
+    * });
+    * store = base.store('Docs');
+	* // the following aggregate maintains a window buffer (1000 milliseconds) with no delay
+	* // and contains a categorical feature extractor. The extractor maps records in the buffer
+	* // to sparse vectors (indicator vectors for growing set of categories). Each record that
+	* // enters the buffer updates the feature extractor (potentially introduces a new category,
+	* // which increases the dimensionality).
+	* var aggr = {
+    *      type: 'timeSeriesWinBufFeatureSpace',
+    *      store: 'Docs',
+    *      timestamp: 'Time',
+    *      featureSpace: {
+    *        type: "categorical",
+    *        source: "Docs",
+    *        field: "Text"
+    *      },
+    *      winsize: 1000
+    * };
+	* var streamAggregate = store.addStreamAggr(aggr);
+	* store.push({ Time: '2015-06-10T14:13:32.0', Text: 'a' });
+	* store.push({ Time: '2015-06-10T14:13:33.0', Text: 'b' });
+	* store.push({ Time: '2015-06-10T14:13:34.0', Text: 'c' });
+	* // we have three dimensions, where "a" -> [1,0,0], "b" -> [0,1,0], "c" -> [0,0,1]
+	* // the first record just fell out of the buffer, the third record just entered the buffer
+	* // and buffer currently contains the second and the third record.
+	* // In case of the feature space based window buffer, the vectors of just-in, just-out and in-the-buffer
+	* // values correspond to vectors of sparse vectors = sparse matrices.
+	* sa.getInValueVector().print(); // one column, one nonzero element at index 2
+	* // = [
+    * // 2 0 1.000000
+    * // ]
+	* sa.getOutValueVector().print(); // one column, one nonzero element at index 0
+	* // = [
+	* // 0 0 1.000000
+	* // ]
+	* sa.getValueVector().print(); // two column vectors, each with one nonzero element
+	* // = [
+	* // 1 0 1.000000
+	* // 2 1 1.000000
+	* // ]
+	* 
+	* base.close();
+	*/
+	//# exports.StreamAggr.prototype.getInValueVector = function () { };
 	JsDeclareFunction(getInValueVector);
+	
+	/**
+	* Gets the vector of "just-out" values (values that have just fallen out of the buffer). Values can be floats or sparse vectors.
+	* @returns {(module:la.Vector | module:la.SparseMatrix)} Vector of floats or a vector of sparse vectors
+	* @example
+	* // look at the example for getInValueVector
+	*/
+	//# exports.StreamAggr.prototype.getOutValueVector = function () { };
 	JsDeclareFunction(getOutValueVector);
+	
 	// IValVec
+	/**
+	* Gets the vector of values in the buffer. Values can be floats or sparse vectors.
+	* @returns {(module:la.Vector | module:la.SparseMatrix)} Vector of floats or a vector of sparse vectors
+	* @example
+	* // look at the example for getInValueVector
+	*/
+	//# exports.StreamAggr.prototype.getValueVector = function () { };
 	JsDeclareFunction(getValueVector);
 
 
