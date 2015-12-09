@@ -5801,6 +5801,8 @@ void TStreamAggr::Init() {
 	Register<TStreamAggrs::TChiSquare>();
 	Register<TStreamAggrs::TOnlineSlottedHistogram>();
 	Register<TStreamAggrs::TVecDiff>();
+	// these attach to TWinBufFtrSpVec
+	Register<TStreamAggrs::TWinBufSpVecSum>();
 }
 
 TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const PJsonVal& ParamVal) :

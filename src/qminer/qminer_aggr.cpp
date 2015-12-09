@@ -551,7 +551,7 @@ PJsonVal TTimeSeriesTick::SaveJson(const int& Limit) const {
 // Exponential Moving Average.
 void TEma::OnAddRec(const TRec& Rec) {
 	if (InAggr->IsInit()) {
-		Ema.Update(InAggrVal->GetFlt(), InAggrVal->GetTmMSecs());
+		Ema.Update(InAggrVal->GetVal(), InAggrVal->GetTmMSecs());
 	}
 }
 
@@ -651,9 +651,9 @@ void TCorr::InitInAggr(const TWPt<TStreamAggrBase> SABase,
 
 void TCorr::OnAddRec(const TRec& Rec) {
     //Corr = InAggrValCov->GetFlt() / ( sqrt(InAggrValVarX->GetFlt()) * sqrt(InAggrValVarY->GetFlt()));
-    TFlt Cov = InAggrValCov->GetFlt();
-    TFlt Var1 = InAggrValVarX->GetFlt();
-    TFlt Var2 = InAggrValVarY->GetFlt();
+    TFlt Cov = InAggrValCov->GetVal();
+    TFlt Var1 = InAggrValVarX->GetVal();
+    TFlt Var2 = InAggrValVarY->GetVal();
     if ((Var1 == 0.0) || (Var2 == 0.0)) {
         Corr = 1;
     } else {
@@ -1265,7 +1265,7 @@ void TOnlineHistogram::OnAddRec(const TRec& Rec) {
 			Model.Decrement(ForgetV[ElN]);
 		}
 	} else {
-		Model.Increment(InAggrVal->GetFlt());
+		Model.Increment(InAggrVal->GetVal());
 	}
 }
 
@@ -1444,7 +1444,7 @@ void TOnlineSlottedHistogram::OnAddRec(const TRec& Rec) {
 		}
 	} else {
 		LastTm = InAggrVal->GetTmMSecs();
-		Model->Add(InAggrVal->GetTmMSecs(), (int)InAggrVal->GetFlt());
+		Model->Add(InAggrVal->GetTmMSecs(), (int)InAggrVal->GetVal());
 	}
 }
 

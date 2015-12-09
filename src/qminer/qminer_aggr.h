@@ -250,6 +250,7 @@ public:
 
 	// current values
 	double GetFlt() const { return TickVal; }
+	TFlt GetVal() const { return GetFlt(); }
 	uint64 GetTmMSecs() const { return TmMSecs; }
 
 	// serialization to JSon
@@ -446,8 +447,8 @@ public:
 	TStr Type(void) const { return GetType(); }
 };
 
-///////////////////////////////////////
-// Windowed Stream aggregates (readers from TWinBuf) 
+//////////////////////////////////////////////////////////////////////////////////////
+// Windowed Stream aggregates (readers from TWinBuf), result is single float 
 template <class TSignalType>
 class TWinAggr : public TStreamAggr, public TStreamAggrOut::IFltTm {
 private:
@@ -500,6 +501,7 @@ public:
 	void Reset() { Signal.Reset(); }
 	// current values
 	double GetFlt() const { return Signal.GetValue(); }
+	TFlt GetVal() const { return GetFlt(); }
 	uint64 GetTmMSecs() const { return TStreamAggrOut::ITm::GetTmMSecsCast(InAggr); }
 	void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggr->GetAggrNm()); }
 
@@ -521,6 +523,83 @@ typedef TWinAggr<TSignalProc::TMin> TWinBufMin;
 typedef TWinAggr<TSignalProc::TMax> TWinBufMax;
 typedef TWinAggr<TSignalProc::TMa> TMa;
 typedef TWinAggr<TSignalProc::TVar> TVar;
+
+////////////////////////////////////////////////////////////////////////////////////////
+//// Windowed Stream aggregates (readers from TWinBuf), inputs are sparse vectors,
+//// the result is sparse vector.
+template <class TSignalType, class TVal>
+class TWinAggrSpVec : public TStreamAggr, public TStreamAggrOut::IValTm<TVal> {
+private:
+	// input
+	TWPt<TStreamAggr> InAggr;
+	TWPt<TStreamAggrOut::IValTmIO<TVal>> InAggrVal;
+	TSignalType Signal;
+
+protected:
+	void OnAddRec(const TRec& Rec) {
+		TVec<TVal> OutValV; 
+		InAggrVal->GetOutValV(OutValV);
+		TUInt64V OutTmMSecsV;
+		InAggrVal->GetOutTmMSecsV(OutTmMSecsV);
+		if (InAggr->IsInit()) {
+			if (!InAggrVal->DelayedP()) {
+				Signal.Update(InAggrVal->GetInVal(), InAggrVal->GetInTmMSecs(), OutValV, OutTmMSecsV);
+			} else {
+				TVec<TVal> InValV;
+				InAggrVal->GetInValV(InValV);
+				TUInt64V InTmMSecsV; 
+				InAggrVal->GetInTmMSecsV(InTmMSecsV);
+				Signal.Update(InValV, InTmMSecsV, OutValV, OutTmMSecsV);
+			}
+		};
+	}
+
+	TWinAggrSpVec(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal) {
+		// parse out input aggregate
+		TStr InStoreNm = ParamVal->GetObjStr("store");
+		TStr InAggrNm = ParamVal->GetObjStr("inAggr");
+		PStreamAggr _InAggr = Base->GetStreamAggr(InStoreNm, InAggrNm);
+		InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
+		QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
+		InAggrVal = dynamic_cast<TStreamAggrOut::IValTmIO<TVal>*>(_InAggr());
+		QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IValTmIO<TVal> interface: " + InAggrNm);
+	}
+
+public:
+
+	// json constructor 
+	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+		return new TWinAggrSpVec<TSignalType, TVal>(Base, ParamVal);
+	}
+
+	// Load stream aggregate state from stream
+	void LoadState(TSIn& SIn) { Signal.Load(SIn); }
+	// Save state of stream aggregate to stream
+	void SaveState(TSOut& SOut) const { Signal.Save(SOut); }
+
+	// did we finished initialization
+	bool IsInit() const { return Signal.IsInit(); }
+	/// Resets the aggregate
+	void Reset() { Signal.Reset(); }
+	// current values
+	TVal GetVal() const { return Signal.GetValue(); }
+	uint64 GetTmMSecs() const { return TStreamAggrOut::ITm::GetTmMSecsCast(InAggr); }
+	void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggr->GetAggrNm()); }
+
+	// serialization to JSon
+	PJsonVal SaveJson(const int& Limit) const {
+		PJsonVal Val = TJsonVal::NewObj();
+		Val->AddToObj("Val", Signal.GetJson());
+		Val->AddToObj("Time", TTm::GetTmFromMSecs(GetTmMSecs()).GetWebLogDateTimeStr(true, "T"));
+		return Val;
+	}
+
+	// stream aggregator type name 
+	static TStr GetType();
+	TStr Type() const { return GetType(); }
+};
+
+typedef TWinAggrSpVec<TSignalProc::TSumSpVec, TIntFltKdV> TWinBufSpVecSum;
 
 ///////////////////////////////
 // Exponential Moving Average.
@@ -550,6 +629,7 @@ public:
 	void Reset() { Ema.Reset(); }
 	// current values
 	double GetFlt() const { return Ema.GetValue(); }
+	TFlt GetVal() const { return GetFlt(); }
 	uint64 GetTmMSecs() const { return Ema.GetTmMSecs(); }
 	void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggr->GetAggrNm());}
 	// serialization to JSon
@@ -583,6 +663,7 @@ public:
 	void Reset() { Cov.Reset(); }
 	// current values
 	double GetFlt() const { return Cov.GetCov(); }
+	TFlt GetVal() const { return GetFlt(); }
 	uint64 GetTmMSecs() const { return Cov.GetTmMSecs(); }
 	void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggrX->GetAggrNm()); 
         InAggrNmV.Add(InAggrY->GetAggrNm());}
@@ -621,6 +702,7 @@ public:
 	void Reset() { TmMSecs = 0;  Corr = 0; }
 	// current values
 	double GetFlt() const { return Corr; }
+	TFlt GetVal() const { return GetFlt(); }
 	uint64 GetTmMSecs() const { return 0; }
 	void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggrCov->GetAggrNm()); 
         InAggrNmV.Add(InAggrVarX->GetAggrNm()); InAggrNmV.Add(InAggrVarY->GetAggrNm());}
@@ -935,6 +1017,11 @@ public:
 // Moving Window Buffer Sum
 template <>
 inline TStr TWinAggr<TSignalProc::TSum>::GetType() { return "winBufSum"; }
+
+/////////////////////////////
+// Moving-Window Buffer over Sparse-vectors sum
+template <>
+inline TStr TWinAggrSpVec<TSignalProc::TSumSpVec, TIntFltKdV>::GetType() { return "winBufSpVecSum"; }
 
 /////////////////////////////
 // Moving Window Buffer Min
