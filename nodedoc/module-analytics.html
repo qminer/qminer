@@ -52,6 +52,9 @@
                     <dt><a href="module-analytics.LogReg.html">LogReg([opts])</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-analytics.MDS.html">MDS([params])</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-analytics.NearestNeighborAD.html">NearestNeighborAD([detectorParam])</a></dt>
                     <dd>
                     </dd>
@@ -74,13 +77,13 @@
                     <dt><a href="module-analytics.RecLinReg.html">RecLinReg(param)</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-analytics.RidgeReg.html">RidgeReg([arg])</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.RidgeReg.html">RidgeReg([arg])</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="module-analytics.Sigmoid.html">Sigmoid([arg])</a></dt>
                     <dd>
                     </dd>
@@ -132,13 +135,16 @@
                     <dt><a href="module-analytics.html#~logisticRegParam">logisticRegParam</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.html#~NearestNeighborADExplain">NearestNeighborADExplain</a></dt>
+                    <dt><a href="module-analytics.html#~MDSParam">MDSParam</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.html#~NearestNeighborADExplain">NearestNeighborADExplain</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-analytics.html#~nnetParams">nnetParams</a></dt>
                     <dd>
                     </dd>
@@ -151,13 +157,13 @@
                     <dt><a href="module-analytics.html#~recLinRegModel">recLinRegModel</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.html#~ridgeRegModel">ridgeRegModel</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.html#~ridgeRegModel">ridgeRegModel</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-analytics.html#~ridgeRegParam">ridgeRegParam</a></dt>
                     <dd>
                     </dd>
@@ -180,6 +186,7 @@
             <section id='members-links'>
               <h3><a href="module-analytics.KMeans.html">KMeans</a></h3>
               <h3><a href="module-analytics.LogReg.html">LogReg</a></h3>
+              <h3><a href="module-analytics.MDS.html">MDS</a></h3>
               <h3><a href="module-analytics.NearestNeighborAD.html">NearestNeighborAD</a></h3>
               <h3><a href="module-analytics.NNet.html">NNet</a></h3>
               <h3><a href="module-analytics.OneVsAll.html">OneVsAll</a></h3>
@@ -387,6 +394,85 @@
                       <td>
                         <p>Indicates wether to automatically include the intercept.</p>
                         <p>Defaults to <code>false</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~MDSParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">MDSParam</span><small class="property-type">
+            &nbsp;Object</small></h3>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>maxSecs</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The maximum time period to compute MDS of a matrix.</p>
+                        <p>Defaults to <code>500</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>maxStep</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The maximum number of iterations.</p>
+                        <p>Defaults to <code>5000</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>minDiff</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The minimum difference criteria in MDS.</p>
+                        <p>Defaults to <code>1e-4</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>distType</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The type of distance used. Available types: &quot;Euclid&quot;, &quot;Cos&quot;, &quot;SqrtCos&quot;.</p>
+                        <p>Defaults to <code>"Euclid"</code>.</p>
                       </td>
                     </tr>
                   </tbody>

@@ -2715,7 +2715,7 @@ int TLinAlg::ComputeThinSVD(const TMatrix& XYt, const int& k, TFltVV& U, TFltV& 
 	 const int m = XYt.GetRows();
 	 const int n = XYt.GetCols();
 	 int l = (int)((11 / 10.0) * k);
-	 printf("l is %d\n", l);	 
+	 //printf("l is %d\n", l);	 
 	 if ((its+1)*l >= MIN(m, n)){
 		 TFltVV XYtfull; XYtfull.Gen(m, n);
 		 TFltVV Identity; Identity.Gen(n, n);
@@ -2736,8 +2736,8 @@ int TLinAlg::ComputeThinSVD(const TMatrix& XYt, const int& k, TFltVV& U, TFltV& 
 			 TFltVV H(n,l); TLAMisc::FillRnd(H);
 			 //TFltVV RSample; RSample.GenRandom(n, l);
 			 TFltVV F, F0, F1, F2; F0.Gen(m, l); F1.Gen(m, l); F2.Gen(m, l);
-			 Time.Start();
-			 printf("Start Multiplying with XYt'*XYt twice\n");
+			 //Time.Start();
+			 //printf("Start Multiplying with XYt'*XYt twice\n");
 			 //Size of F0 should be m x l
 			 XYt.Multiply(H, F0);
 			 //H is used for intermediate result and should be of the size n times l!
@@ -2746,39 +2746,39 @@ int TLinAlg::ComputeThinSVD(const TMatrix& XYt, const int& k, TFltVV& U, TFltV& 
 			 XYt.Multiply(H, F1);
 			 //H is used for intermediate result and should be of the size n times l!
 			 XYt.MultiplyT(F1, H); XYt.Multiply(H, F2);
-			 Time.Stop("Finish Multiplying with XYt'*XYt twice\n");
+			 //Time.Stop("Finish Multiplying with XYt'*XYt twice\n");
 			 //Free the memory
 			 H.Clr();
 			 typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> Mat;
 			 F.Gen(m, (its + 1) * l);//its+1
 			 typedef Eigen::Map<Mat> MatW;
 			 MatW FWrapped(&F(0, 0).Val, m, (its + 1) * l); MatW F0Wrapped(&F0(0, 0).Val, m, l); MatW F1Wrapped(&F1(0, 0).Val, m, l); MatW F2Wrapped(&F2(0, 0).Val, m, l);
-			 printf("Started to join the memory\n");
-			 Time.Start();
+			 //printf("Started to join the memory\n");
+			 //Time.Start();
 			 FWrapped << F0Wrapped, F1Wrapped, F2Wrapped;
-			 Time.Stop("Finished joining the memory\n");
+			 //Time.Stop("Finished joining the memory\n");
 			 //Free the memory
 			 F0.Clr(); F1.Clr(); F2.Clr();
 			 //Do QR in place at the end F becomes Q
-			 printf("Orthogonal basis in place computation\n");
-			 Time.Start();
+			 //printf("Orthogonal basis in place computation\n");
+			 //Time.Start();
 			 TLinAlg::QRbasis(F);
-			 Time.Stop("Orthogonal basis in place computation took: ");
+			 //Time.Stop("Orthogonal basis in place computation took: ");
 			 //Is F still valid
 			 TFltVV FF; FF.Gen(n, (its + 1) * l);
-			 printf("Start Multiplying with XYt'\n");
-			 Time.Start();
+			 //printf("Start Multiplying with XYt'\n");
+			 //Time.Start();
 			 XYt.MultiplyT(F, FF);
-			 Time.Stop("Multiplying with XYt' took: ");
+			 //Time.Stop("Multiplying with XYt' took: ");
 			 TFltVV UU, VT;
-			 printf("Size of matrix FF: %d\n", FF.GetCols());
-			 printf("Computation of thin SVD\n");
-			 Time.Start();
+			 //printf("Size of matrix FF: %d\n", FF.GetCols());
+			 //printf("Computation of thin SVD\n");
+			 //Time.Start();
 			 TFltVV FFT; FFT.Gen((its + 1) * l, n);
 			 TLinAlg::Transpose(FF, FFT);
 			 TLinAlg::thinSVD(FFT, UU, s, VT);
-			 Time.Stop("Computation of thin SVD took:");
-			 printf("UU (%d, %d)\n", UU.GetRows(), UU.GetCols());
+			 //Time.Stop("Computation of thin SVD took:");
+			 //printf("UU (%d, %d)\n", UU.GetRows(), UU.GetCols());
 			 //Copy and save U
 			 U.Gen(m, (its + 1)*l);
 			 TLinAlg::Multiply(F, UU, U);
@@ -2791,10 +2791,10 @@ int TLinAlg::ComputeThinSVD(const TMatrix& XYt, const int& k, TFltVV& U, TFltV& 
 			 TFltVV H(m,l); TLAMisc::FillRnd(H);
 			 //TFltVV RSample; RSample.GenRandom(n, l);
 			 TFltVV F, F0, F1, F2; F0.Gen(n, l); F1.Gen(n, l); F2.Gen(n, l);
-			 printf("Star Multiplying with XYt'*XYt\n");
+			 //printf("Star Multiplying with XYt'*XYt\n");
 			 //Size of F0 should be m x l
 			 XYt.MultiplyT(H, F0);
-			 printf("Finish Multiplying with XYt'*Xyt");
+			 //printf("Finish Multiplying with XYt'*Xyt");
 			 //H is used for intermediate result and should be of the size m times l!
 			 XYt.Multiply(F0, H);
 			 //H is used for intermediate result and should be of the size m times l!
@@ -2809,25 +2809,25 @@ int TLinAlg::ComputeThinSVD(const TMatrix& XYt, const int& k, TFltVV& U, TFltV& 
 
 			 typedef Eigen::Map<Mat> MatW;
 			 MatW FWrapped(&F(0, 0).Val, n, (its + 1) * l); MatW F0Wrapped(&F0(0, 0).Val, n, l); MatW F1Wrapped(&F1(0, 0).Val, n, l); MatW F2Wrapped(&F2(0, 0).Val, n, l);
-			 printf("Started to join the memory");
+			 //printf("Started to join the memory");
 			 FWrapped << F0Wrapped, F1Wrapped, F2Wrapped;
-			 printf("Finished join the memory");
+			 //printf("Finished join the memory");
 			 //Free the memory
 			 F0.Clr(); F1.Clr(); F2.Clr();
 			 //Do QR in place at the end F becomes Q
 			 TLinAlg::QRbasis(F);
-			 printf("QR finsihed\n");
+			 //printf("QR finsihed\n");
 			 //Is F still valid
 			 TFltVV FF; FF.Gen(m, (its + 1) * l);
 			 XYt.Multiply(F, FF);
 			 TFltVV VV, VVT;
-			 printf("Size of matrix FF: %d\n", FF.GetCols());
+			 //printf("Size of matrix FF: %d\n", FF.GetCols());
 			 TLinAlg::thinSVD(FF, U, s, VVT);
 			 VV.Gen(VVT.GetCols(), VVT.GetRows());
 			 TLinAlg::Transpose(VVT, VV);
 			 V.Gen(n, (its + 1)*l);
-			 printf("Almost done\n");
-			 printf("F sizes: (%d, %d), VV sizes (%d, %d), V sizes (%d, %d)", F.GetRows(), F.GetCols(), VV.GetRows(), VV.GetCols(), V.GetRows(), V.GetCols());
+			 //printf("Almost done\n");
+			 //printf("F sizes: (%d, %d), VV sizes (%d, %d), V sizes (%d, %d)", F.GetRows(), F.GetCols(), VV.GetRows(), VV.GetCols(), V.GetRows(), V.GetCols());
 			 TLinAlg::Multiply(F, VV, V);
 			 //V = Q*V2;
 		 }

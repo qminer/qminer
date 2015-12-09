@@ -2542,17 +2542,19 @@ public:
 #ifdef BLAS
 		TLinAlg::Multiply(A, B, C, TLinAlgBlasTranspose::NOTRANS, TLinAlgBlasTranspose::NOTRANS);
 #else
-		TSizeTy n = C.GetRows(), m = C.GetCols(), l = A.GetCols();
-		for (TSizeTy i = 0; i < n; i++) {
-			for (TSizeTy j = 0; j < m; j++) {
-				double sum = 0.0;
-				for (TSizeTy k = 0; k < l; k++)
-					sum += A(i, k)*B(k, j);
-				C(i, j) = sum;
+		TSizeTy RowsA = A.GetRows();		
+		TSizeTy ColsA = A.GetCols();
+		TSizeTy ColsB = B.GetCols();
+		C.PutAll(0.0);
+		for (TSizeTy RowN = 0; RowN < RowsA; RowN++) {
+			for (TSizeTy ColAN = 0; ColAN < ColsA; ColAN++) {
+				double Weight = A(RowN, ColAN);
+				for (TSizeTy ColBN = 0; ColBN < ColsB; ColBN++) {
+					C(RowN, ColBN) += Weight * B(ColAN, ColBN);
+				}
 			}
 		}
 #endif
-
 	}
 
 

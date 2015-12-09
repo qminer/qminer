@@ -1216,8 +1216,22 @@ it("should make test number 28", function () {
 	
 });
 });
-describe("Gets a vector containing the values that are leaving the stream aggregator, number 29", function () {
+describe("Gets a vector containing the values that are entering the stream aggregator, number 29", function () {
 it("should make test number 29", function () {
+
+	 // TODO + add unit test!
+	
+});
+});
+describe("Gets a vector containing the timestamps that are entering the stream aggregator, number 30", function () {
+it("should make test number 30", function () {
+
+	 // TODO + add unit test!
+	
+});
+});
+describe("Gets a vector containing the values that are leaving the stream aggregator, number 31", function () {
+it("should make test number 31", function () {
 
 	 // import qm module
 	 var qm = require('qminer');
@@ -1256,8 +1270,8 @@ it("should make test number 29", function () {
 	
 });
 });
-describe("Gets a vector containing the timestamps that are leaving the stream aggregator, number 30", function () {
-it("should make test number 30", function () {
+describe("Gets a vector containing the timestamps that are leaving the stream aggregator, number 32", function () {
+it("should make test number 32", function () {
 
 	 // import qm module
 	 var qm = require('qminer');
@@ -1297,8 +1311,8 @@ it("should make test number 30", function () {
 	
 });
 });
-describe("Gets the number of records in the stream aggregator, number 31", function () {
-it("should make test number 31", function () {
+describe("Gets the number of records in the stream aggregator, number 33", function () {
+it("should make test number 33", function () {
 
 	 // import qm module
 	 var qm = require('qminer');
