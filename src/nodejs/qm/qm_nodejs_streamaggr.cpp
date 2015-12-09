@@ -52,12 +52,18 @@ void TNodeJsStreamAggr::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getTimestampAt", _getTimestampAt);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getTimestampVector", _getTimestampVector);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getInFloat", _getInFloat);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "getInTimestamp", _getInTimestamp);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getInTimestamp", _getInTimestamp); // multiple interfaces
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getInFloatVector", _getInFloatVector);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "getInTimestampVector", _getInTimestampVector);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getInTimestampVector", _getInTimestampVector); // multiple interfaces
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getOutFloatVector", _getOutFloatVector);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getOutTimestampVector", _getOutTimestampVector); // multiple interfaces
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getNumberOfRecords", _getNumberOfRecords); // multiple interfaces
+
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getInValueVector", _getInValueVector);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getInTimestampVector", _getInTimestampVector);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getOutValueVector", _getOutValueVector);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getOutTimestampVector", _getOutTimestampVector);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "getNumberOfRecords", _getNumberOfRecords);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getValueVector", _getValueVector);
 
 	// Properties
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "name"), _name);
@@ -406,9 +412,9 @@ void TNodeJsStreamAggr::getInTimestamp(const v8::FunctionCallbackInfo<v8::Value>
 	// unwrap
 	TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
 	// try to cast as IFltTmIO
-	TWPt<TQm::TStreamAggrOut::IFltTmIO> Aggr = dynamic_cast<TQm::TStreamAggrOut::IFltTmIO*>(JsSA->SA());
+	TWPt<TQm::TStreamAggrOut::ITmIO> Aggr = dynamic_cast<TQm::TStreamAggrOut::ITmIO*>(JsSA->SA());
 	if (Aggr.Empty()) {
-		throw TQm::TQmExcept::New("TNodeJsStreamAggr::getInTm : stream aggregate does not implement IFltTmIO: " + JsSA->SA->GetAggrNm());
+		throw TQm::TQmExcept::New("TNodeJsStreamAggr::getInTm : stream aggregate does not implement ITmIO: " + JsSA->SA->GetAggrNm());
 	}
 	Args.GetReturnValue().Set(v8::Number::New(Isolate, (double)Aggr->GetInTmMSecs()));
 }
@@ -422,7 +428,7 @@ void TNodeJsStreamAggr::getInFloatVector(const v8::FunctionCallbackInfo<v8::Valu
 	// try to cast as IFltTmIO
 	TWPt<TQm::TStreamAggrOut::IFltTmIO> Aggr = dynamic_cast<TQm::TStreamAggrOut::IFltTmIO*>(JsSA->SA());
 	if (Aggr.Empty()) {
-		throw TQm::TQmExcept::New("TNodeJsStreamAggr::getOutFltV : stream aggregate does not implement IFltTmIO: " + JsSA->SA->GetAggrNm());
+		throw TQm::TQmExcept::New("TNodeJsStreamAggr::getInFloatVector : stream aggregate does not implement IFltTmIO: " + JsSA->SA->GetAggrNm());
 	}
 	TFltV Res;
 	Aggr->GetInValV(Res);
@@ -437,9 +443,9 @@ void TNodeJsStreamAggr::getInTimestampVector(const v8::FunctionCallbackInfo<v8::
 	// unwrap
 	TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
 	// try to cast as IFltTmIO
-	TWPt<TQm::TStreamAggrOut::IFltTmIO> Aggr = dynamic_cast<TQm::TStreamAggrOut::IFltTmIO*>(JsSA->SA());
+	TWPt<TQm::TStreamAggrOut::ITmIO> Aggr = dynamic_cast<TQm::TStreamAggrOut::ITmIO*>(JsSA->SA());
 	if (Aggr.Empty()) {
-		throw TQm::TQmExcept::New("TNodeJsStreamAggr::getOutTmV : stream aggregate does not implement IFltTmIO: " + JsSA->SA->GetAggrNm());
+		throw TQm::TQmExcept::New("TNodeJsStreamAggr::getOutTmV : stream aggregate does not implement ITmIO: " + JsSA->SA->GetAggrNm());
 	}
 	TUInt64V Res;
 	Aggr->GetInTmMSecsV(Res);
@@ -461,7 +467,7 @@ void TNodeJsStreamAggr::getOutFloatVector(const v8::FunctionCallbackInfo<v8::Val
 	// try to cast as IFltTmIO
 	TWPt<TQm::TStreamAggrOut::IFltTmIO> Aggr = dynamic_cast<TQm::TStreamAggrOut::IFltTmIO*>(JsSA->SA());
 	if (Aggr.Empty()) {
-		throw TQm::TQmExcept::New("TNodeJsStreamAggr::getOutFltV : stream aggregate does not implement IFltTmIO: " + JsSA->SA->GetAggrNm());
+		throw TQm::TQmExcept::New("TNodeJsStreamAggr::getOutFloatVector : stream aggregate does not implement IFltTmIO: " + JsSA->SA->GetAggrNm());
 	}
 	TFltV Res;
 	Aggr->GetOutValV(Res);
@@ -476,9 +482,9 @@ void TNodeJsStreamAggr::getOutTimestampVector(const v8::FunctionCallbackInfo<v8:
 	// unwrap
 	TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
 	// try to cast as IFltTmIO
-	TWPt<TQm::TStreamAggrOut::IFltTmIO> Aggr = dynamic_cast<TQm::TStreamAggrOut::IFltTmIO*>(JsSA->SA());
+	TWPt<TQm::TStreamAggrOut::ITmIO> Aggr = dynamic_cast<TQm::TStreamAggrOut::ITmIO*>(JsSA->SA());
 	if (Aggr.Empty()) {
-		throw TQm::TQmExcept::New("TNodeJsStreamAggr::getOutTmV : stream aggregate does not implement IFltTmIO: " + JsSA->SA->GetAggrNm());
+		throw TQm::TQmExcept::New("TNodeJsStreamAggr::getOutTmV : stream aggregate does not implement ITmIO: " + JsSA->SA->GetAggrNm());
 	}
 	TUInt64V Res;
 	Aggr->GetOutTmMSecsV(Res);
@@ -498,13 +504,94 @@ void TNodeJsStreamAggr::getNumberOfRecords(const v8::FunctionCallbackInfo<v8::Va
 	// unwrap
 	TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
 	// try to cast as IFltTmIO
-	TWPt<TQm::TStreamAggrOut::IFltTmIO> Aggr = dynamic_cast<TQm::TStreamAggrOut::IFltTmIO*>(JsSA->SA());
+	TWPt<TQm::TStreamAggrOut::ITmVec> Aggr = dynamic_cast<TQm::TStreamAggrOut::ITmVec*>(JsSA->SA());
 	if (Aggr.Empty()) {
-		throw TQm::TQmExcept::New("TNodeJsStreamAggr::getN : stream aggregate does not implement IFltTmIO: " + JsSA->SA->GetAggrNm());
+		throw TQm::TQmExcept::New("TNodeJsStreamAggr::getNumberOfRecords : stream aggregate does not implement IValTmIO: " + JsSA->SA->GetAggrNm());
 	}
-
-	Args.GetReturnValue().Set(v8::Number::New(Isolate, Aggr->GetN()));
+	Args.GetReturnValue().Set(v8::Number::New(Isolate, Aggr->GetTmLen()));
 }
+
+void TNodeJsStreamAggr::getInValueVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	// unwrap
+	TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+
+	// try to cast as IValTmIO
+	TWPt<TQm::TStreamAggrOut::IValTmIO<TFlt> > AggrFlt = dynamic_cast<TQm::TStreamAggrOut::IValTmIO<TFlt> *>(JsSA->SA());
+	TWPt<TQm::TStreamAggrOut::IValTmIO<TIntFltKdV> > AggrSpV = dynamic_cast<TQm::TStreamAggrOut::IValTmIO<TIntFltKdV> *>(JsSA->SA());
+
+	if (!AggrFlt.Empty()) {
+		TFltV Res;
+		AggrFlt->GetInValV(Res);
+		Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Res));
+	}
+	else if (!AggrSpV.Empty()){
+		TVec<TIntFltKdV> Res;
+		AggrSpV->GetInValV(Res);
+		Args.GetReturnValue().Set(
+			TNodeJsUtil::NewInstance<TNodeJsSpMat>(new TNodeJsSpMat(Res)));
+	}
+	else {
+		throw TQm::TQmExcept::New("TNodeJsStreamAggr::getInValueVector : stream aggregate does not implement IValTmIO: " + JsSA->SA->GetAggrNm());
+	}
+}
+
+void TNodeJsStreamAggr::getOutValueVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	// unwrap
+	TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+		
+	// try to cast as IValTmIO
+	TWPt<TQm::TStreamAggrOut::IValTmIO<TFlt> > AggrFlt = dynamic_cast<TQm::TStreamAggrOut::IValTmIO<TFlt> *>(JsSA->SA());
+	TWPt<TQm::TStreamAggrOut::IValTmIO<TIntFltKdV> > AggrSpV = dynamic_cast<TQm::TStreamAggrOut::IValTmIO<TIntFltKdV> *>(JsSA->SA());
+		
+	if (!AggrFlt.Empty()) {
+		TFltV Res;
+		AggrFlt->GetOutValV(Res);
+		Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Res));
+	}
+	else if (!AggrSpV.Empty()){
+		TVec<TIntFltKdV> Res;
+		AggrSpV->GetOutValV(Res);
+		Args.GetReturnValue().Set(
+			TNodeJsUtil::NewInstance<TNodeJsSpMat>(new TNodeJsSpMat(Res)));
+	} else {
+		throw TQm::TQmExcept::New("TNodeJsStreamAggr::getOutValueVector : stream aggregate does not implement IValTmIO: " + JsSA->SA->GetAggrNm());
+	}
+}
+
+void TNodeJsStreamAggr::getValueVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	// unwrap
+	TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+
+	// try to cast as IValTmIO
+	TWPt<TQm::TStreamAggrOut::IValVec<TFlt> > AggrFlt = dynamic_cast<TQm::TStreamAggrOut::IValVec<TFlt> *>(JsSA->SA());
+	TWPt<TQm::TStreamAggrOut::IValVec<TIntFltKdV> > AggrSpV = dynamic_cast<TQm::TStreamAggrOut::IValVec<TIntFltKdV> *>(JsSA->SA());
+
+	if (!AggrFlt.Empty()) {
+		TFltV Res;
+		AggrFlt->GetValV(Res);
+		Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Res));
+	}
+	else if (!AggrSpV.Empty()){
+		TVec<TIntFltKdV> Res;
+		AggrSpV->GetValV(Res);
+		Args.GetReturnValue().Set(
+			TNodeJsUtil::NewInstance<TNodeJsSpMat>(new TNodeJsSpMat(Res)));
+	}
+	else {
+		throw TQm::TQmExcept::New("TNodeJsStreamAggr::getValueVector : stream aggregate does not implement IValVec: " + JsSA->SA->GetAggrNm());
+	}
+}
+
+
 
 void TNodeJsStreamAggr::name(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();

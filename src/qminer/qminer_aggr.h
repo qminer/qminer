@@ -283,12 +283,11 @@ public:
 // with intervals.
 //
 template <class TVal>
-class TWinBuf : public TStreamAggr, public TStreamAggrOut::IValTmIO<TVal>,
-	public TStreamAggrOut::ITmVec, public TStreamAggrOut::IValVec<TVal>,
-	public TStreamAggrOut::ITm {
+class TWinBuf : public TStreamAggr, public TStreamAggrOut::IValTmIO<TVal>, public TStreamAggrOut::ITm {
 protected:
 	// STORAGE ACCESS
 	virtual TVal GetRecVal(const uint64& RecId) const = 0; ///< value getter
+	virtual void RecUpdate(const uint64& RecId) const { }
 	TWPt<TStore> Store; ///< needed to access records through IDs
 private:
 	TInt TimeFieldId; ///< field ID of the timestamp field in the store (used for efficiency)
@@ -332,7 +331,7 @@ public:
 
 	// IValTmIO
 	/// most recent values. Only makes sense if delay = 0!
-	TVal GetInVal() const { EAssertR(IsInit(), "WinBuf not initialized yet!"); EAssertR(B < D, "WinBuf is empty - GetInVal() isn't valid! You need to reimplement OnAdd of the aggregate that is connected to WinBuf to use GetInValV instead of GetInVal!"); return Value(D - 1); }
+	TVal GetInVal() const { EAssertR(IsInit(), "WinBuf not initialized yet!"); EAssertR(B < D, "WinBuf is empty - GetInVal() isn't valid! You need to reimplement OnAdd of the aggregate that is connected to WinBuf to use GetInValV instead of GetInVal!"); return GetRecVal(D - 1); }
 	/// most recent timestamps. Only makes sense if delay = 0!
 	uint64 GetInTmMSecs() const { EAssertR(IsInit(), "WinBuf not initialized yet!"); EAssertR(B < D, "WinBuf is empty - GetInTmMSecs() isn't valid! You need to reimplement OnAdd of the aggregate that is connected to WinBuf to use GetInTmMSecsV instead of GetInTmMSecs!"); return Time(D - 1); }
     /// Is the window delayed ?
@@ -346,20 +345,18 @@ public:
 	void GetOutValV(TVec<TVal>& ValV) const;
 	/// old timestamps that fall out of the buffer
 	void GetOutTmMSecsV(TUInt64V& MSecsV) const;
-	/// buffer length
-	int GetN() const { EAssertR(IsInit(), "WinBuf not initialized yet!"); return (int)(D - B); }
 	
 	// IValV
 	/// get buffer length
-	int GetVals() const { return GetN(); }
+	int GetVals() const { EAssertR(IsInit(), "WinBuf not initialized yet!"); return (int)(D - B); }
 	/// get value at
-	TVal GetVal(const TInt& ElN) const { return Value(B + ElN); }
+	TVal GetVal(const TInt& ElN) const { return GetRecVal(B + ElN); }
 	/// get float vector of all values in the buffer (IFltVec interface)
 	void GetValV(TVec<TVal>& ValV) const;
 
 	// ITmV
 	/// get buffer length
-	int GetTmLen() const { return GetN(); }
+	int GetTmLen() const { return GetVals(); }
 	/// get timestamp at
 	uint64 GetTm(const TInt& ElN) const { return Time(B + ElN); }
 	/// get timestamp vector of all timestamps in the buffer (ITmVec interface)
@@ -376,8 +373,6 @@ public:
 private:
 	// helper functions
 	uint64 Time(const uint64& RecId) const { return Store->GetFieldTmMSecs(RecId, TimeFieldId); }
-	TVal Value(const uint64& RecId) const { return GetRecVal(RecId); }
-	
 	
 	bool InStore(const uint64& RecId) const { return Store->IsRecId(RecId); }
 	bool BeforeStore(const uint64& RecId) const { return RecId < Store->GetFirstRecId(); }
@@ -434,9 +429,9 @@ protected:
 		FtrSpace->GetSpV(TRec(Store, RecId), Result);
 		return Result;
 	}
+	void RecUpdate(const uint64& RecId) const { FtrSpace->Update(TRec(Store, RecId)); }
 public:
 	TWinBufFtrSpVec(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TWinBuf<TIntFltKdV>(Base, ParamVal) {
-		// parse out input and output fields
 		PJsonVal FtrSpaceParam = ParamVal->GetObjKey("featureSpace");
 		FtrSpace = TFtrSpace::New(Store->GetBase(), FtrSpaceParam);
 	}
@@ -1042,11 +1037,11 @@ inline void TWinAggr<TSignalProc::TMa>::OnAddRec(const TRec& Rec) {
 	if (InAggr->IsInit()) {
 		if (!InAggrVal->DelayedP()) {
 			Signal.Update(InAggrVal->GetInVal(), InAggrVal->GetInTmMSecs(),
-				OutValV, OutTmMSecsV, InAggrVal->GetN());
+				OutValV, OutTmMSecsV, InAggrVal->GetVals());
 		} else {
 			TFltV InValV; InAggrVal->GetInValV(InValV);
 			TUInt64V InTmMSecsV; InAggrVal->GetInTmMSecsV(InTmMSecsV);
-			Signal.Update(InValV, InTmMSecsV, OutValV, OutTmMSecsV, InAggrVal->GetN());
+			Signal.Update(InValV, InTmMSecsV, OutValV, OutTmMSecsV, InAggrVal->GetVals());
 		}
 	}
 }
@@ -1063,11 +1058,11 @@ inline void TWinAggr<TSignalProc::TVar>::OnAddRec(const TRec& Rec) {
 	if (InAggr->IsInit()) {
 		if (!InAggrVal->DelayedP()) {
 			Signal.Update(InAggrVal->GetInVal(), InAggrVal->GetInTmMSecs(),
-				OutValV, OutTmMSecsV, InAggrVal->GetN());
+				OutValV, OutTmMSecsV, InAggrVal->GetVals());
 		} else {
 			TFltV InValV; InAggrVal->GetInValV(InValV);
 			TUInt64V InTmMSecsV; InAggrVal->GetInTmMSecsV(InTmMSecsV);
-			Signal.Update(InValV, InTmMSecsV, OutValV, OutTmMSecsV, InAggrVal->GetN());
+			Signal.Update(InValV, InTmMSecsV, OutValV, OutTmMSecsV, InAggrVal->GetVals());
 		}
 	}
 }
@@ -1242,6 +1237,11 @@ void TWinBuf<TVal>::OnAddRec(const TRec& Rec) {
 		D++;
 	}
 
+	// Call update on all incomming records, which includes records that skipped the buffer (both incomming and outgoing at the same time)
+	// C + Skip, D - 1
+	for (uint64 RecId = C; RecId < D; RecId++) {
+		RecUpdate(RecId);
+	}
 	//Print(true);
 }
 
@@ -1298,7 +1298,7 @@ void TWinBuf<TVal>::GetInValV(TVec<TVal>& ValV) const {
 	if (ValV.Len() != UpdateRecords) { ValV.Gen(UpdateRecords); }
 	// iterate
 	for (int RecN = 0; RecN < UpdateRecords; RecN++) {
-		ValV[RecN] = Value(C + Skip + RecN);
+		ValV[RecN] = GetRecVal(C + Skip + RecN);
 	}
 }
 
@@ -1322,7 +1322,7 @@ void TWinBuf<TVal>::GetOutValV(TVec<TVal>& ValV) const {
 	if (ValV.Len() != DropRecords) { ValV.Gen(DropRecords); }
 	// iterate
 	for (int RecN = 0; RecN < DropRecords; RecN++) {
-		ValV[RecN] = Value(A + RecN);
+		ValV[RecN] = GetRecVal(A + RecN);
 	}
 }
 
@@ -1341,7 +1341,7 @@ void TWinBuf<TVal>::GetOutTmMSecsV(TUInt64V& MSecsV) const {
 template <class TVal>
 void TWinBuf<TVal>::GetValV(TVec<TVal>& ValV) const {
 	EAssertR(IsInit(), "WinBuf not initialized yet!");
-	int Len = GetN();
+	int Len = GetVals();
 	if (ValV.Empty()) { ValV.Gen(Len); }
 	// iterate
 	for (int RecN = 0; RecN < Len; RecN++) {
@@ -1352,7 +1352,7 @@ void TWinBuf<TVal>::GetValV(TVec<TVal>& ValV) const {
 template <class TVal>
 void TWinBuf<TVal>::GetTmV(TUInt64V& MSecsV) const {
 	EAssertR(IsInit(), "WinBuf not initialized yet!");
-	int Len = GetN();
+	int Len = GetVals();
 	MSecsV.Gen(Len);
 	// iterate
 	for (int RecN = 0; RecN < Len; RecN++) {

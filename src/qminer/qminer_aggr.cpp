@@ -593,7 +593,7 @@ void TCov::OnAddRec(const TRec& Rec) {
     TFltV ValVY; InAggrValY->GetOutValV(ValVY);
 	if (InAggrX->IsInit() && InAggrY->IsInit()) {
 		Cov.Update(InAggrValX->GetInVal(), InAggrValY->GetInVal(), 
-            InAggrValX->GetInTmMSecs(), ValVX, ValVY, TmMSecsV, InAggrValX->GetN());
+            InAggrValX->GetInTmMSecs(), ValVX, ValVY, TmMSecsV, InAggrValX->GetVals());
 	}
 }
 
