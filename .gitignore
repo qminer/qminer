@@ -130,3 +130,5 @@ binding-1.gyp
 /test/nodejs/file.txt
 /test/my/
 /examples/streamaggregate/node_modules
+/examples/timeseries/node_modules
+/examples/movies/node_modules
