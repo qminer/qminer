@@ -13,6 +13,11 @@ hardware, providing efficient storage, retrieval and analytics mechanisms with r
 
 **[Project homepage](http://qminer.ijs.si/)**
 
+### Examples
+
+- [Twitter sentiment extraction](https://tonicdev.com/rupnikj/qminer-sentiment-extraction)
+- [Recommendation system](https://tonicdev.com/blazf/qminer-recommendation)
+
 ### Prerequisites
 
 **node.js v0.12 and npm 2.11 or higher**
