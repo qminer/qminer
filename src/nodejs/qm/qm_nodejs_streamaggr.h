@@ -1668,7 +1668,7 @@ public:
 
 	// IValTmIO
 	/**
-	* Gets the vector of "just-in" values (values that have just entered the buffer). Values can be floats or sparse vectors.
+	* Gets the vector of 'just-in' values (values that have just entered the buffer). Values can be floats or sparse vectors.
 	* @returns {(module:la.Vector | module:la.SparseMatrix)} Vector of floats or a vector of sparse vectors
 	* @example
 	* // import qm module
@@ -1710,15 +1710,15 @@ public:
 	* // and buffer currently contains the second and the third record.
 	* // In case of the feature space based window buffer, the vectors of just-in, just-out and in-the-buffer
 	* // values correspond to vectors of sparse vectors = sparse matrices.
-	* sa.getInValueVector().print(); // one column, one nonzero element at index 2
+	* streamAggregate.getInValueVector().print(); // one column, one nonzero element at index 2
 	* // = [
     * // 2 0 1.000000
     * // ]
-	* sa.getOutValueVector().print(); // one column, one nonzero element at index 0
+	* streamAggregate.getOutValueVector().print(); // one column, one nonzero element at index 0
 	* // = [
 	* // 0 0 1.000000
 	* // ]
-	* sa.getValueVector().print(); // two column vectors, each with one nonzero element
+	* streamAggregate.getValueVector().print(); // two column vectors, each with one nonzero element
 	* // = [
 	* // 1 0 1.000000
 	* // 2 1 1.000000
@@ -1730,7 +1730,7 @@ public:
 	JsDeclareFunction(getInValueVector);
 	
 	/**
-	* Gets the vector of "just-out" values (values that have just fallen out of the buffer). Values can be floats or sparse vectors.
+	* Gets the vector of 'just-out values (values that have just fallen out of the buffer). Values can be floats or sparse vectors.
 	* @returns {(module:la.Vector | module:la.SparseMatrix)} Vector of floats or a vector of sparse vectors
 	* @example
 	* // look at the example for getInValueVector
