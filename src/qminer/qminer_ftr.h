@@ -98,7 +98,7 @@ public:
 	virtual void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const = 0;
 
     // deprecated, to be removed
-	virtual double __GetVal(const double& InVal) const { throw TQmExcept::New("TFtrExt::GetVal not implemented"); };
+	virtual double __GetVal(const double& InVal) const { printf("__GetVal is DEPRECATED\n"); throw TQmExcept::New("TFtrExt::GetVal not implemented"); };
 
 	// for more strait-forward feature extraction (i.e. used by basic aggregators)
 	// attaches values to the given vector, keeps what is in there already

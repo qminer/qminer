@@ -348,6 +348,7 @@ void TFtrSpace::GetCentroidV(const PRecSet& RecSet,
 }
 
 double TFtrSpace::GetSingleFtr(const int& FtrExtN, const double& Val) const {
+	printf("GetSingleFtr is DEPRECATED\n");
 	const PFtrExt& FtrExt = FtrExtV[FtrExtN];
 	return FtrExt->__GetVal(Val);
 }
