@@ -1,6 +1,7 @@
 QMiner
 ======
 
+[![Join the chat at https://gitter.im/qminer/qminer](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/qminer/qminer?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![NPM Version][npm-image]][npm-url]
 [![NPM Downloads][downloads-image]][downloads-url]
 [![Linux Build][travis-linux-image]][travis-linux-url]
