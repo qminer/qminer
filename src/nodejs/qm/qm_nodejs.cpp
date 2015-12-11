@@ -291,6 +291,7 @@ void TNodeJsBase::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "store", _store);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStoreList", _getStoreList);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "createStore", _createStore);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "createJsStore", createJsStore);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "search", _search);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "garbageCollect", _garbageCollect);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "partialFlush", _partialFlush);
@@ -545,6 +546,41 @@ void TNodeJsBase::createStore(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		}
 	}
 	else {
+		Args.GetReturnValue().Set(v8::Null(Isolate));
+	}
+}
+
+void TNodeJsBase::createJsStore(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	// unwrap
+	TNodeJsBase* JsBase = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsBase>(Args.Holder());
+	TWPt<TQm::TBase> Base = JsBase->Base;
+	QmAssertR(!Base->IsRdOnly(), "Base opened as read-only");
+	// parse arguments
+	PJsonVal SchemaVal = TNodeJsUtil::GetArgJson(Args, 0);
+	
+	QmAssertR(Args.Length() == 2 && (Args[1]->IsObject() || Args[1]->IsArray()), "createJsStore expects 2 arguments: schema JSON (or array) and callback object (or array)");
+	// create new stores
+	TVec<TWPt<TQm::TStore> > NewStoreV = TQm::TStorage::CreateJsStoresFromSchema(
+		Base, SchemaVal, Args[1]->ToObject());
+	// Update record templates
+	for (int StoreN = 0; StoreN < NewStoreV.Len(); StoreN++) {
+		TNodeJsRec::Init(NewStoreV[StoreN]);
+	}
+	// return store (if only one) or array of stores (if more)
+	if (NewStoreV.Len() == 1) {
+		Args.GetReturnValue().Set(
+			TNodeJsUtil::NewInstance<TNodeJsStore>(
+			new TNodeJsStore(NewStoreV[0], JsBase->Watcher)));
+	} else if (NewStoreV.Len() > 1) {
+		v8::Local<v8::Array> JsNewStoreV = v8::Array::New(Isolate, NewStoreV.Len());
+		for (int NewStoreN = 0; NewStoreN < NewStoreV.Len(); NewStoreN++) {
+			JsNewStoreV->Set(v8::Number::New(Isolate, NewStoreN),
+				TNodeJsUtil::NewInstance<TNodeJsStore>(new TNodeJsStore(NewStoreV[NewStoreN], JsBase->Watcher))
+				);
+		}
+	} else {
 		Args.GetReturnValue().Set(v8::Null(Isolate));
 	}
 }
