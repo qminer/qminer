@@ -118,7 +118,7 @@ it("should make test number 9", function () {
 	 var M = new la.Matrix([[1, 2], [-1, -5]]);
 	 // create a new vector
 	 var b = new la.Vector([-1, -6]);
-	 // solve the linear system Mx = b
+	 // solve the linear system M*x = b
 	 var x = M.solve(b); // returns vector [1, -1]
 	
 });
@@ -438,12 +438,12 @@ it("should make test number 32", function () {
 	 // create a new sparse matrix
 	 var spMat = new la.SparseMatrix([[[0, 1]], [[0, 3], [1, 8]]]);
 	 // print sparse matrix on screen
-	 // each row represents a nonzero element, where first value is row index, second 
+	 // each row represents a nonzero element, where first value is row index, second
 	 // value is column index and third value is element value. For this matrix:
 	 // 0  0  1.000000
 	 // 0  1  3.000000
 	 // 1  1  8.000000
-	 spMat.print(); 
+	 spMat.print();
 	
 });
 });

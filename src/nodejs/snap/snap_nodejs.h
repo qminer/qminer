@@ -731,7 +731,7 @@ void TNodeJsGraph<T>::adjMat(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		Mat[RemappedNId].Sort();
 	}
 
-	Args.GetReturnValue().Set(TNodeJsSpMat::New(Mat));
+	Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsSpMat>(new TNodeJsSpMat(Mat)));
 }
 
 template <class T>
@@ -790,7 +790,8 @@ void TNodeJsGraph<T>::components(const v8::FunctionCallbackInfo<v8::Value>& Args
 		Mat[i].Sort();
 	}
 
-	Args.GetReturnValue().Set(TNodeJsSpMat::New(Mat, TLAMisc::GetMaxDimIdx(Mat) + 1));
+	Args.GetReturnValue().Set(
+		TNodeJsUtil::NewInstance<TNodeJsSpMat>(new TNodeJsSpMat(Mat, TLAMisc::GetMaxDimIdx(Mat) + 1)));
 }
 
 template <class T>

@@ -105,9 +105,9 @@ TJoinDescEx TStoreSchema::ParseJoinDescEx(const PJsonVal& JoinVal) {
 	QmAssertR(JoinVal->IsObjKey("type"), "Missing join type");
 	QmAssertR(JoinVal->IsObjKey("store"), "Missing join store");
 	// parse parameters
-	TStr JoinName = JoinVal->GetObjKey("name")->GetStr();
-	TStr JoinType = JoinVal->GetObjKey("type")->GetStr();
-	TStr JoinStore = JoinVal->GetObjKey("store")->GetStr();
+	TStr JoinName = JoinVal->GetObjStr("name");
+	TStr JoinType = JoinVal->GetObjStr("type", "index");
+	TStr JoinStore = JoinVal->GetObjStr("store");
 	// get extra description
 	TJoinDescEx JoinDescEx;
 	JoinDescEx.JoinName = JoinName;
@@ -122,11 +122,11 @@ TJoinDescEx TStoreSchema::ParseJoinDescEx(const PJsonVal& JoinVal) {
 	}
 	// get inverse join
 	if (JoinVal->IsObjKey("inverse")){
-		JoinDescEx.InverseJoinName = JoinVal->GetObjKey("inverse")->GetStr();
+		JoinDescEx.InverseJoinName = JoinVal->GetObjStr("inverse");
 	}
 	// get "is small" flag
 	if (JoinVal->IsObjKey("small")) {
-		JoinDescEx.IsSmall = JoinVal->GetObjKey("small")->GetBool();
+		JoinDescEx.IsSmall = JoinVal->GetObjBool("small");
 	}
 	// done
 	return JoinDescEx;
@@ -2780,9 +2780,7 @@ void TStoreImpl::GarbageCollect() {
 	TUInt64V DelRecIdV;
 	if (WndDesc.WindowType == swtTime) {
 		// get last added record
-		const uint64 LastRecId = DataCache.GetLastValId();
-		// not sure why this here, report as error for now
-		if (!IsRecId(LastRecId)) { ErrorLog("Invalid last record in garbage collection"); return; }
+		const uint64 LastRecId = GetLastRecId();
 		// get time window field
 		const int TimeFieldId = GetFieldId(WndDesc.TimeFieldNm);
 		// get time which we use as end of time-window (could be insert time or field value)

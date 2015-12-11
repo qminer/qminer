@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">RecordSet</span></h1>
-            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-1128">qminerdoc.<wbr>js:1128</a></p>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-1183">qminerdoc.<wbr>js:1183</a></p>
             <dl class="dl-compact">
             </dl>
           </header>
@@ -122,6 +122,9 @@
                     <dd>
                     </dd>
                     <dt><a href="module-qm.RecordSet.html#sortByField">sortByField(fieldName[, arc])</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.RecordSet.html#sortByFq">sortByFq([asc])</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.RecordSet.html#sortById">sortById([asc])</a></dt>
@@ -1453,6 +1456,44 @@ base.close();</code></pre>
                 <dt>Returns</dt>
                 <dd>
                   <p><code><a href="module-qm.RecordSet.html">module:qm.RecordSet</a></code>&nbsp;Self. Records are sorted according to fieldName and arc.</p>
+                </dd>
+              </dl>
+              <h3 id="sortByFq"><span class="symbol-name">sortByFq</span><span class="signature"><span class="signature-params">([asc])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecordSet.html">module:qm.RecordSet</a></span></span></h3>
+              <p>Sorts the records according to their weight.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>asc</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>If asc &gt; 0, it sorts in ascending order. Otherwise, it sorts in descending order.</p>
+                        <p>Defaults to <code>1</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.RecordSet.html">module:qm.RecordSet</a></code>&nbsp;Self. Records are sorted according to record weight and asc.</p>
                 </dd>
               </dl>
               <h3 id="sortById"><span class="symbol-name">sortById</span><span class="signature"><span class="signature-params">([asc])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecordSet.html">module:qm.RecordSet</a></span></span></h3>
