@@ -913,6 +913,7 @@ private:
 	TWPt<TStreamAggrOut::IFltTm> InAggrVal;
 	// indicator
 	TSignalProc::TCountMinSketch Model;
+	TIntV Vals;
 protected:
 	void OnAddRec(const TRec& Rec);
 	TCountMinSketch(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
@@ -926,8 +927,15 @@ public:
 	void LoadState(TSIn& SIn);
 	/// Store state into stream
 	void SaveState(TSOut& SOut) const;
-	/// get current Quantile value
-	double GetFlt() const {	return Model.Estimate(10); }
+	/// get current count value
+	double GetFlt() const {	return Model.Estimate(Vals[0]); }
+	/// get count value
+	double GetFlt(const TInt& Val) const {	return Model.Estimate(Val); }
+	void GetFltV(TFltV& ValV) const {
+		for (TInt i=0; i < Vals.Len(); i++) {
+			ValV[i] = Model.Estimate(Vals[i]);
+		}
+	}
 	void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggr->GetAggrNm());}
 	// serialization to JSon
 	PJsonVal SaveJson(const int& Limit) const;

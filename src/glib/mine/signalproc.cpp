@@ -1152,9 +1152,16 @@ void TChiSquare::SaveState(TSOut& SOut) const {
 
 TCountMinSketch::TCountMinSketch(const PJsonVal& ParamVal) {
 	EAssertR(ParamVal->IsObjKey("epsilon"), "TCountMinSketch: epsilon key missing!");
-	EAssertR(ParamVal->IsObjKey("gamma"), "TCountMinSketch: gamma key missing!");
 	TFlt ep = ParamVal->GetObjNum("epsilon");
+	EAssertR(ParamVal->IsObjKey("gamma"), "TCountMinSketch: gamma key missing!");
 	TFlt gamm = ParamVal->GetObjNum("gamma");
+	EAssertR(ParamVal->IsObjKey("vals"), "TCountMinSketch: lowerBound key missing!");
+	ParamVal->GetObjIntV("vals", InVals);
+
+	for (int ElN = 0; ElN <= InVals.Len(); ElN++) {
+		Counts.Add(0);
+	}
+
 	if (!(0.009 <= ep && ep < 1)) {
 			exit(EXIT_FAILURE);
 		} else if (!(0 < gamm && gamm < 1)) {
@@ -1257,11 +1264,11 @@ void TCountMinSketch::SaveState(TSOut& SOut) const {
 }
 
 void TCountMinSketch::Print() const {
-	printf("W = %g", W);
-	printf("D = %g", D);
-	printf("Epsilon = %g", Eps);
-	printf("Gamma = %g", Gamma);
-	printf("Total = %g", Total);
+	printf("W = %i", W);
+	printf("D = %i", D);
+	printf("Epsilon = %f", Eps);
+	printf("Gamma = %i", Gamma);
+	printf("Total = %i", Total);
 }
 
 }
