@@ -1264,11 +1264,11 @@ void TCountMinSketch::SaveState(TSOut& SOut) const {
 }
 
 void TCountMinSketch::Print() const {
-	printf("W = %i", W);
+	/*printf("W = %i", W);
 	printf("D = %i", D);
 	printf("Epsilon = %f", Eps);
 	printf("Gamma = %i", Gamma);
-	printf("Total = %i", Total);
+	printf("Total = %i", Total);*/
 }
 
 }
