@@ -29,31 +29,13 @@ namespace TQm {
 					AddFieldDesc(FieldDesc);
 				}
 			}
-
-			void SetCallback(v8::Handle<v8::Object>& CallbacksObj, v8::Persistent<v8::Function>& Callback, const TStr& Name) {
-				v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-				v8::HandleScope HandleScope(Isolate);
-
-				if (CallbacksObj->Has(v8::String::NewFromUtf8(Isolate, Name.CStr()))) {
-					v8::Handle<v8::Value> Fun = CallbacksObj->Get(v8::String::NewFromUtf8(Isolate, Name.CStr()));
-					QmAssert(Fun->IsFunction());
-					Callback.Reset(Isolate, v8::Handle<v8::Function>::Cast(Fun));
-				}
-			}
-
-			void InitCallbacks(v8::Handle<v8::Object>& CallbacksObj) {
-				SetCallback(CallbacksObj, GetRecsFun, "GetRecords");
-			}
+			/// Helper functio
+			void SetCallback(v8::Handle<v8::Object>& CallbacksObj, v8::Persistent<v8::Function>& Callback, const TStr& Name);
+			/// Sets all callbacks
+			void InitCallbacks(v8::Handle<v8::Object>& CallbacksObj);
 		public:
-			TNodeJsFuncStore(const TWPt<TBase>& _Base, uint _StoreId, const TStr& _StoreNm, const TStoreSchema& StoreSchema, v8::Handle<v8::Object>& CallbacksObj) : TStore(_Base, _StoreId, _StoreNm) {
-				SetStoreType("TNodeJsFuncStore");
-				InitFromSchema(StoreSchema);
-				InitCallbacks(CallbacksObj);
-
-			}
-			~TNodeJsFuncStore() {
-				GetRecsFun.Reset();
-			}
+			~TNodeJsFuncStore();
+			TNodeJsFuncStore(const TWPt<TBase>& _Base, uint _StoreId, const TStr& _StoreNm, const TStoreSchema& StoreSchema, v8::Handle<v8::Object>& CallbacksObj);
 
 			/// Check if record with given ID exists
 			virtual bool IsRecId(const uint64& RecId) const { throw TQmExcept::New("Not implemented"); }
@@ -64,23 +46,7 @@ namespace TQm {
 			/// Get record id for a given name
 			virtual uint64 GetRecId(const TStr& RecNm) const { throw TQmExcept::New("Not implemented"); }
 			/// Get number of records in the store
-			virtual uint64 GetRecs() const {
-				QmAssertR(!GetRecsFun.IsEmpty(), "TNodeJsFuncStore::GetRecsFun empty");
-				v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-				v8::HandleScope HandleScope(Isolate);
-
-				v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, GetRecsFun);
-				v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
-
-				v8::TryCatch TryCatch;
-				v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
-				if (TryCatch.HasCaught()) {
-					v8::String::Utf8Value Msg(TryCatch.Message()->Get());
-					throw TQm::TQmExcept::New("Javascript exception triggered from TNodeJsFuncStore::GetRecs, " + TStr(*Msg));
-				}
-				QmAssertR(RetVal->IsNumber(), "TNodeJsFuncStore::GetRecs: Return type expected to be number");
-				return (unsigned)(int64)RetVal->NumberValue();
-			}
+			virtual uint64 GetRecs() const;
 			/// Get iterator to go over all records in the store
 			virtual PStoreIter GetIter() const { throw TQmExcept::New("Not implemented"); }
 

@@ -10,6 +10,56 @@
 
 namespace TQm {
 	namespace TStorage {
+		void TNodeJsFuncStore::InitFromSchema(const TStoreSchema& StoreSchema) {
+			// create fields
+			for (int i = 0; i<StoreSchema.FieldH.Len(); i++) {
+				const TFieldDesc& FieldDesc = StoreSchema.FieldH[i];
+				AddFieldDesc(FieldDesc);
+			}
+		}
+
+		void TNodeJsFuncStore::SetCallback(v8::Handle<v8::Object>& CallbacksObj, v8::Persistent<v8::Function>& Callback, const TStr& Name) {
+			v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+			v8::HandleScope HandleScope(Isolate);
+
+			if (CallbacksObj->Has(v8::String::NewFromUtf8(Isolate, Name.CStr()))) {
+				v8::Handle<v8::Value> Fun = CallbacksObj->Get(v8::String::NewFromUtf8(Isolate, Name.CStr()));
+				QmAssert(Fun->IsFunction());
+				Callback.Reset(Isolate, v8::Handle<v8::Function>::Cast(Fun));
+			}
+		}
+
+		void TNodeJsFuncStore::InitCallbacks(v8::Handle<v8::Object>& CallbacksObj) {
+			SetCallback(CallbacksObj, GetRecsFun, "GetRecords");
+		}
+
+		TNodeJsFuncStore::~TNodeJsFuncStore() {
+			GetRecsFun.Reset();
+		}
+
+		TNodeJsFuncStore::TNodeJsFuncStore(const TWPt<TBase>& _Base, uint _StoreId, const TStr& _StoreNm, const TStoreSchema& StoreSchema, v8::Handle<v8::Object>& CallbacksObj) : TStore(_Base, _StoreId, _StoreNm) {
+			SetStoreType("TNodeJsFuncStore");
+			InitFromSchema(StoreSchema);
+			InitCallbacks(CallbacksObj);
+		}
+
+		uint64 TNodeJsFuncStore::GetRecs() const {
+			QmAssertR(!GetRecsFun.IsEmpty(), "TNodeJsFuncStore::GetRecsFun empty");
+			v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+			v8::HandleScope HandleScope(Isolate);
+
+			v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, GetRecsFun);
+			v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+
+			v8::TryCatch TryCatch;
+			v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
+			if (TryCatch.HasCaught()) {
+				v8::String::Utf8Value Msg(TryCatch.Message()->Get());
+				throw TQm::TQmExcept::New("Javascript exception triggered from TNodeJsFuncStore::GetRecs, " + TStr(*Msg));
+			}
+			QmAssertR(RetVal->IsNumber(), "TNodeJsFuncStore::GetRecs: Return type expected to be number");
+			return (unsigned)(int64)RetVal->NumberValue();
+		}
 
 
 		TVec<TWPt<TStore> > CreateJsStoresFromSchema(const TWPt<TBase>& Base, const PJsonVal& SchemaVal, v8::Handle<v8::Object>& CallbacksObj) {
