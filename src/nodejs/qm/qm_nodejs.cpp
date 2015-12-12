@@ -564,7 +564,7 @@ void TNodeJsBase::createJsStore(const v8::FunctionCallbackInfo<v8::Value>& Args)
 	QmAssertR(Args.Length() == 2 && (Args[1]->IsObject() || Args[1]->IsArray()), "createJsStore expects 2 arguments: schema JSON (or array) and callback object (or array)");
 	// create new stores
 	TVec<TWPt<TQm::TStore> > NewStoreV = TQm::TStorage::CreateJsStoresFromSchema(
-		Base, SchemaVal, Args[1]->ToObject());
+		Base, SchemaVal, Args[1]);
 	// Update record templates
 	for (int StoreN = 0; StoreN < NewStoreV.Len(); StoreN++) {
 		TNodeJsRec::Init(NewStoreV[StoreN]);

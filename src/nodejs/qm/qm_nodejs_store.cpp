@@ -19,18 +19,18 @@ namespace TQm {
 			}
 		}
 
-		void TNodeJsFuncStore::SetCallback(v8::Handle<v8::Object>& CallbacksObj, v8::Persistent<v8::Function>& Callback, const TStr& Name) {
+		void TNodeJsFuncStore::SetCallback(v8::Handle<v8::Value>& CallbacksObj, v8::Persistent<v8::Function>& Callback, const TStr& Name) {
 			v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 			v8::HandleScope HandleScope(Isolate);
 
-			if (CallbacksObj->Has(v8::String::NewFromUtf8(Isolate, Name.CStr()))) {
-				v8::Handle<v8::Value> Fun = CallbacksObj->Get(v8::String::NewFromUtf8(Isolate, Name.CStr()));
+			if (CallbacksObj->ToObject()->Has(v8::String::NewFromUtf8(Isolate, Name.CStr()))) {
+				v8::Handle<v8::Value> Fun = CallbacksObj->ToObject()->Get(v8::String::NewFromUtf8(Isolate, Name.CStr()));
 				QmAssert(Fun->IsFunction());
 				Callback.Reset(Isolate, v8::Handle<v8::Function>::Cast(Fun));
 			}
 		}
 
-		void TNodeJsFuncStore::InitCallbacks(v8::Handle<v8::Object>& CallbacksObj) {
+		void TNodeJsFuncStore::InitCallbacks(v8::Handle<v8::Value>& CallbacksObj) {
 			SetCallback(CallbacksObj, GetRecsFun, "GetRecords");
 			SetCallback(CallbacksObj, GetFieldFun, "GetField");
 			SetCallback(CallbacksObj, GetRecNmFun, "GetRecNm");
@@ -48,7 +48,7 @@ namespace TQm {
 			GetAllRecsFun.Reset();
 		}
 
-		TNodeJsFuncStore::TNodeJsFuncStore(const TWPt<TBase>& _Base, uint _StoreId, const TStr& _StoreNm, const TStoreSchema& StoreSchema, v8::Handle<v8::Object>& CallbacksObj) : TStore(_Base, _StoreId, _StoreNm) {
+		TNodeJsFuncStore::TNodeJsFuncStore(const TWPt<TBase>& _Base, uint _StoreId, const TStr& _StoreNm, const TStoreSchema& StoreSchema, v8::Handle<v8::Value>& CallbacksObj) : TStore(_Base, _StoreId, _StoreNm) {
 			SetStoreType("TNodeJsFuncStore");
 			InitFromSchema(StoreSchema);
 			InitCallbacks(CallbacksObj);
@@ -290,7 +290,7 @@ namespace TQm {
 			SpV = JsSpVec->Vec;
 		}
 
-		TVec<TWPt<TStore> > CreateJsStoresFromSchema(const TWPt<TBase>& Base, const PJsonVal& SchemaVal, v8::Handle<v8::Object>& CallbacksObj) {
+		TVec<TWPt<TStore> > CreateJsStoresFromSchema(const TWPt<TBase>& Base, const PJsonVal& SchemaVal, v8::Handle<v8::Value>& CallbacksObj) {
 			// parse and validate the schema
 			InfoLog("Parsing schema");
 			TStoreSchemaV SchemaV; TStoreSchema::ParseSchema(SchemaVal, SchemaV);
@@ -323,7 +323,7 @@ namespace TQm {
 					for (int CallbN = 0; CallbN < Len; CallbN++) {
 						QmAssert(Array->Get(CallbN)->IsObject());
 						// create new store from the schema
-						PStore Store = new TNodeJsFuncStore(Base, StoreId, StoreNm, StoreSchema, Array->Get(CallbN)->ToObject());
+						PStore Store = new TNodeJsFuncStore(Base, StoreId, StoreNm, StoreSchema, Array->Get(CallbN));
 						// add store to base
 						Base->AddStore(Store);
 						// remember we create the store
