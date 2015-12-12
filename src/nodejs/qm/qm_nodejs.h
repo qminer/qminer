@@ -536,6 +536,11 @@ private:
 	// Creates a javascript implemented stores (callbacks). Experimental feature!
 	JsDeclareFunction(createJsStore);
 
+	// adds a callback to a javascript implemented store (type == 'TNodeJsFuncStore')
+	// arg[0] = store, arg[1] = callback string, arg[2] = callback function
+	// Experimental feature!
+	JsDeclareFunction(addJsStoreCallback);
+
 	/**
 	* Creates a new store.
 	* @param {module:qm~QueryObject} query - query language JSON object	

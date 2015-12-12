@@ -291,7 +291,8 @@ void TNodeJsBase::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "store", _store);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStoreList", _getStoreList);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "createStore", _createStore);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "createJsStore", createJsStore);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "createJsStore", _createJsStore);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "addJsStoreCallback", _addJsStoreCallback);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "search", _search);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "garbageCollect", _garbageCollect);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "partialFlush", _partialFlush);
@@ -584,6 +585,32 @@ void TNodeJsBase::createJsStore(const v8::FunctionCallbackInfo<v8::Value>& Args)
 		Args.GetReturnValue().Set(v8::Null(Isolate));
 	}
 }
+
+void TNodeJsBase::addJsStoreCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	// unwrap
+	TNodeJsBase* JsBase = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsBase>(Args.Holder());
+	TWPt<TQm::TBase> Base = JsBase->Base;
+	QmAssert(Args.Length() == 3);
+	QmAssert(Args[0]->IsObject());
+	TNodeJsStore* JsStore = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsStore>(Args[0]->ToObject());
+	QmAssert(Args[1]->IsString());
+	TStr PropName = TNodeJsUtil::GetStr(Args[1]->ToString());
+	QmAssert(Args[2]->IsFunction());
+	
+	QmAssert(JsStore->Store->GetStoreType() == "TNodeJsFuncStore");
+	TQm::TStorage::TNodeJsFuncStore* JsImplStore = dynamic_cast<TQm::TStorage::TNodeJsFuncStore *>(JsStore->Store());
+	QmAssert(JsImplStore != NULL);
+
+	if (PropName == "GetAllRecs") {		
+		JsImplStore->GetAllRecsFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(Args[2]));
+	} else {
+		throw TQm::TQmExcept::New("store.addJsStoreCallback: unrecognized callback name: " + PropName);
+	}
+
+}
+
 
 void TNodeJsBase::search(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -1523,6 +1550,8 @@ void TNodeJsStore::allRecords(v8::Local<v8::String> Name, const v8::PropertyCall
 	v8::Local<v8::Object> Self = Info.Holder();
 	TNodeJsStore* JsStore = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsStore>(Self);
 
+	if (!JsStore->Store->HasGetAllRecs()) { return; }
+
 	TQm::PRecSet ResultSet = JsStore->Store->GetAllRecs();
 	Info.GetReturnValue().Set(
 		TNodeJsUtil::NewInstance<TNodeJsRecSet>(new TNodeJsRecSet(ResultSet, JsStore->Watcher)));
@@ -1625,6 +1654,8 @@ void TNodeJsStore::first(v8::Local<v8::String> Name, const v8::PropertyCallbackI
 	v8::Local<v8::Object> Self = Info.Holder();
 	TNodeJsStore* JsStore = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsStore>(Self);
 
+	if (!JsStore->Store->HasFirstRecId()) { return; }
+
 	const uint64 FirstRecId = JsStore->Store->GetFirstRecId();
 	if (FirstRecId == TUInt64::Mx) {
 		Info.GetReturnValue().Set(v8::Null(Isolate));
@@ -1641,6 +1672,8 @@ void TNodeJsStore::last(v8::Local<v8::String> Name, const v8::PropertyCallbackIn
 
 	v8::Local<v8::Object> Self = Info.Holder();
 	TNodeJsStore* JsStore = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsStore>(Self);
+
+	if (!JsStore->Store->HasLastRecId()) { return; }
 
 	const uint64 LastRecId = JsStore->Store->GetLastRecId();
 	if (LastRecId == TUInt64::Mx) {
@@ -1659,6 +1692,8 @@ void TNodeJsStore::forwardIter(v8::Local<v8::String> Name, const v8::PropertyCal
 	v8::Local<v8::Object> Self = Info.Holder();
 	TNodeJsStore* JsStore = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsStore>(Self);
 
+	if (!JsStore->Store->HasForwardIter()) { return; }
+
 	Info.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsStoreIter>(
 		new TNodeJsStoreIter(JsStore->Store, JsStore->Store->ForwardIter(), JsStore->Watcher)));
 }
@@ -1669,6 +1704,8 @@ void TNodeJsStore::backwardIter(v8::Local<v8::String> Name, const v8::PropertyCa
 
 	v8::Local<v8::Object> Self = Info.Holder();
 	TNodeJsStore* JsStore = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsStore>(Self);
+
+	if (!JsStore->Store->HasBackwardIter()) { return; }
 
 	Info.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsStoreIter>(
 		new TNodeJsStoreIter(JsStore->Store, JsStore->Store->BackwardIter(), JsStore->Watcher)));
@@ -2029,6 +2066,7 @@ void TNodeJsRec::setField(v8::Local<v8::String> Name, v8::Local<v8::Value> Value
 		QmAssert(Array->Get(0)->IsNumber());
 		QmAssert(Array->Get(1)->IsNumber());
 		TFltPr FltPr(Array->Get(0)->NumberValue(), Array->Get(1)->NumberValue());
+		Rec.SetFieldFltPr(FieldId, FltPr);
 	}
 	else if (Desc.IsFltV()) {
 		if (Value->IsArray()) {

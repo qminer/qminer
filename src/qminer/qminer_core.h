@@ -578,14 +578,25 @@ public:
 	bool Empty() const { return (GetRecs() == uint64(0)); }
 
 	/// Gets the first record in the store (order defined by store implementation)
-	virtual uint64 GetFirstRecId() const { throw TQmExcept::New("Not implemented"); }
+	virtual uint64 GetFirstRecId() const { throw TQmExcept::New("GetFirstRecId not implemented"); }
 	/// Gets the last record in the store (order defined by store implementation)
-	virtual uint64 GetLastRecId() const { throw TQmExcept::New("Not implemented"); };
+	virtual uint64 GetLastRecId() const { throw TQmExcept::New("GetLastRecId not implemented"); };
 	/// Gets forward moving iterator (order defined by store implementation)
-	virtual PStoreIter ForwardIter() const { throw TQmExcept::New("Not implemented"); };
+	virtual PStoreIter ForwardIter() const { throw TQmExcept::New("ForwardIter not implemented"); };
 	/// Gets backward moving iterator (order defined by store implementation)
-	virtual PStoreIter BackwardIter() const { throw TQmExcept::New("Not implemented"); };
+	virtual PStoreIter BackwardIter() const { throw TQmExcept::New("BackwardIter not implemented"); };
 	
+	/// Does the store implement GetAllRecs?
+	virtual bool HasGetAllRecs() const { return false; }
+	/// Is the forward iterator implemented?
+	virtual bool HasForwardIter() const { return false; }
+	/// Is the backward iterator implemented?
+	virtual bool HasBackwardIter() const { return false; }
+	/// Is the first record  id getter implemented?
+	virtual bool HasFirstRecId() const { return false; }
+	/// Is the last record id getter implemented?
+	virtual bool HasLastRecId() const { return false; }
+
 	/// Add new record provided as JSon
 	virtual uint64 AddRec(const PJsonVal& RecVal, const bool& TriggerEvents=true) = 0;
 	/// Update existing record with updates in provided JSon

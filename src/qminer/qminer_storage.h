@@ -844,6 +844,17 @@ public:
 	PStoreIter ForwardIter() const { return GetIter(); }
 	/// Gets backward moving iterator
 	PStoreIter BackwardIter() const;
+
+	/// Does the store implement GetAllRecs?
+	bool HasGetAllRecs() const { return true; }
+	/// Is the forward iterator implemented?
+	bool HasForwardIter() const { return true; }
+	/// Is the backward iterator implemented?
+	bool HasBackwardIter() const { return true; }
+	/// Is the first record  id getter implemented?
+	bool HasFirstRecId() const { return true; }
+	/// Is the last record id getter implemented?
+	bool HasLastRecId() const { return true; }
 	
 	/// Add new record
 	uint64 AddRec(const PJsonVal& RecVal, const bool& TriggerEvents=true);
@@ -1046,6 +1057,17 @@ public:
     uint64 GetRecs() const;
 	/// Get iterator to go over all records in the store
     PStoreIter GetIter() const;
+
+	/// Does the store implement GetAllRecs?
+	bool HasGetAllRecs() const { return true; }
+	/// Is the forward iterator implemented?
+	bool HasForwardIter() const { return true; }
+	/// Is the backward iterator implemented?
+	bool HasBackwardIter() const { return true; }
+	/// Is the first record  id getter implemented?
+	bool HasFirstRecId() const { return true; }
+	/// Is the last record id getter implemented?
+	bool HasLastRecId() const { return true; }
 
     /// Add new record
     uint64 AddRec(const PJsonVal& RecVal, const bool& TriggerEvents=true);

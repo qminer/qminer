@@ -19,36 +19,61 @@ namespace TQm {
 		class TNodeJsFuncStore : public TStore {
 		private:
 			v8::Persistent<v8::Function> GetRecsFun;
+			v8::Persistent<v8::Function> GetFieldFun;
+
+			v8::Persistent<v8::Function> GetRecNmFun;
+
+			v8::Persistent<v8::Function> GetFirstRecIdFun;
+			v8::Persistent<v8::Function> GetLastRecIdFun;
+
+		public:
+			v8::Persistent<v8::Function> GetAllRecsFun;
 
 		private:
 			/// Initialize from given store schema
-			void InitFromSchema(const TStoreSchema& StoreSchema) {
-				// create fields
-				for (int i = 0; i<StoreSchema.FieldH.Len(); i++) {
-					const TFieldDesc& FieldDesc = StoreSchema.FieldH[i];
-					AddFieldDesc(FieldDesc);
-				}
-			}
-			/// Helper functio
+			void InitFromSchema(const TStoreSchema& StoreSchema);
+			/// Helper function
 			void SetCallback(v8::Handle<v8::Object>& CallbacksObj, v8::Persistent<v8::Function>& Callback, const TStr& Name);
 			/// Sets all callbacks
 			void InitCallbacks(v8::Handle<v8::Object>& CallbacksObj);
+			/// Get field helper
+			v8::Handle<v8::Value> GetField(const uint64& RecId, const int& FieldId) const;
 		public:
 			~TNodeJsFuncStore();
 			TNodeJsFuncStore(const TWPt<TBase>& _Base, uint _StoreId, const TStr& _StoreNm, const TStoreSchema& StoreSchema, v8::Handle<v8::Object>& CallbacksObj);
 
+			virtual bool HasRecNm() const { return !GetRecNmFun.IsEmpty(); }
+
 			/// Check if record with given ID exists
-			virtual bool IsRecId(const uint64& RecId) const { throw TQmExcept::New("Not implemented"); }
+			virtual bool IsRecId(const uint64& RecId) const { return true; } // throw TQmExcept::New("IsRecId: Not implemented"); }
 			/// check if record with given name exists
-			virtual bool IsRecNm(const TStr& RecNm) const { throw TQmExcept::New("Not implemented"); }
+			virtual bool IsRecNm(const TStr& RecNm) const { throw TQmExcept::New("IsRecNm not implemented"); }
 			/// Get record name for a given id
-			virtual TStr GetRecNm(const uint64& RecId) const { throw TQmExcept::New("Not implemented"); }
+			virtual TStr GetRecNm(const uint64& RecId) const;
 			/// Get record id for a given name
-			virtual uint64 GetRecId(const TStr& RecNm) const { throw TQmExcept::New("Not implemented"); }
+			virtual uint64 GetRecId(const TStr& RecNm) const { throw TQmExcept::New("GetRecId not implemented"); }
 			/// Get number of records in the store
 			virtual uint64 GetRecs() const;
 			/// Get iterator to go over all records in the store
-			virtual PStoreIter GetIter() const { throw TQmExcept::New("Not implemented"); }
+			virtual PStoreIter GetIter() const { throw TQmExcept::New("GetIter not implemented"); }
+
+			/// Get record set with all the records in the store
+			virtual PRecSet GetAllRecs();
+			/// Gets the first record in the store
+			virtual uint64 GetFirstRecId() const;
+			/// Gets the last record in the store
+			virtual uint64 GetLastRecId() const;
+
+			/// Does the store implement GetAllRecs?
+			virtual bool HasGetAllRecs() const { return !GetAllRecsFun.IsEmpty(); }
+			/// Is the forward iterator implemented?
+			virtual bool HasForwardIter() const { return false; }
+			/// Is the backward iterator implemented?
+			virtual bool HasBackwardIter() const { return false; }
+			/// Is the first record  id getter implemented?
+			virtual bool HasFirstRecId() const { return !GetFirstRecIdFun.IsEmpty(); }
+			/// Is the last record id getter implemented?
+			virtual bool HasLastRecId() const { return !GetLastRecIdFun.IsEmpty(); }
 
 			// MANIPULATION
 
@@ -62,6 +87,33 @@ namespace TQm {
 			virtual void DeleteFirstRecs(const int& DelRecs) { throw TQmExcept::New("Not implemented"); }
 			/// Delete specific records
 			virtual void DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK = true) { throw TQmExcept::New("Not implemented"); }
+
+			/// Get field value using field id (default implementation throws exception)
+			virtual int GetFieldInt(const uint64& RecId, const int& FieldId) const;
+			/// Get field value using field id (default implementation throws exception)
+			virtual void GetFieldIntV(const uint64& RecId, const int& FieldId, TIntV& IntV) const;
+			/// Get field value using field id (default implementation throws exception)
+			virtual uint64 GetFieldUInt64(const uint64& RecId, const int& FieldId) const;
+			/// Get field value using field id (default implementation throws exception)
+			virtual TStr GetFieldStr(const uint64& RecId, const int& FieldId) const;
+			/// Get field value using field id (default implementation throws exception)
+			virtual void GetFieldStrV(const uint64& RecId, const int& FieldId, TStrV& StrV) const;
+			/// Get field value using field id (default implementation throws exception)
+			virtual bool GetFieldBool(const uint64& RecId, const int& FieldId) const;
+			/// Get field value using field id (default implementation throws exception)
+			virtual double GetFieldFlt(const uint64& RecId, const int& FieldId) const;
+			/// Get field value using field id (default implementation throws exception)
+			virtual TFltPr GetFieldFltPr(const uint64& RecId, const int& FieldId) const;
+			/// Get field value using field id (default implementation throws exception)
+			virtual void GetFieldFltV(const uint64& RecId, const int& FieldId, TFltV& FltV) const;
+			/// Get field value using field id (default implementation throws exception)
+			virtual void GetFieldTm(const uint64& RecId, const int& FieldId, TTm& Tm) const;
+			/// Get field value using field id (default implementation throws exception)
+			virtual uint64 GetFieldTmMSecs(const uint64& RecId, const int& FieldId) const;
+			/// Get field value using field id (default implementation throws exception)
+			virtual void GetFieldNumSpV(const uint64& RecId, const int& FieldId, TIntFltKdV& SpV) const;
+
+
 
 			virtual PJsonVal GetStats() { throw TQmExcept::New("Not implemented"); }
 		};
