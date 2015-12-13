@@ -2166,7 +2166,7 @@ void TNodeJsRec::setField(v8::Local<v8::String> Name, v8::Local<v8::Value> Value
 	}
 	else if (Desc.IsSFlt()) {
 		QmAssertR(Value->IsNumber(), "Field " + FieldNm + " not numeric");
-		TSFlt Val(Value->NumberValue());
+		TSFlt Val((float)Value->NumberValue());
 		bool NaNFound = Val.IsNan();
 		if (NaNFound) {
 			throw TQm::TQmExcept::New("Cannot set record field (type float) to NaN, for field name: " + FieldNm);
@@ -2221,7 +2221,7 @@ void TNodeJsRec::setField(v8::Local<v8::String> Name, v8::Local<v8::Value> Value
 		size_t BuffLen = node::Buffer::Length(Object);
 
 		TMem Mem;
-		Mem.AddBf(Buff, BuffLen);
+		Mem.AddBf(Buff, (int)BuffLen);
 		Rec.SetFieldTMem(FieldId, Mem);
 	}
 	else if (Desc.IsJson()) {

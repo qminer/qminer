@@ -880,4 +880,51 @@ describe('Time Series Window Buffer Feature Extractor', function () {
             assert.equal(valVec.full().minus(new qm.la.Matrix([[0,0], [0,0], [0,0], [0,0], [1,0], [0,1]])).frob(), 0);
         });
     });
+
+    describe('Complex Tests', function () {
+        it('should construct the time-series window-buffer and attach sum to it', function () {
+            var aggr = {
+                name: 'featureSpaceWindow',
+                type: 'timeSeriesWinBufFeatureSpace',
+                store: 'Docs',
+                timestamp: 'Time',
+                featureSpace: {
+                    type: "categorical",
+                    source: "Docs",
+                    field: "Text"
+                },
+                winsize: 1000
+            };
+            var sa = store.addStreamAggr(aggr);
+            var aggr2 = {
+                name: 'sparseVectorSum',
+                type: 'winBufSpVecSum',
+                store: 'Docs',
+                inAggr: 'featureSpaceWindow'
+            };
+            var sa2 = store.addStreamAggr(aggr2);
+            store.push({ Time: '2015-06-10T14:13:32.0', Text: 'a' }); // 0
+            store.push({ Time: '2015-06-10T14:13:33.0', Text: 'b' }); // 1
+            store.push({ Time: '2015-06-10T14:14:34.0', Text: 'c' }); // 2
+            store.push({ Time: '2015-06-10T14:15:35.0', Text: 'd' }); // 3
+            store.push({ Time: '2015-06-10T14:15:36.0', Text: 'e' }); // 4
+			store.push({ Time: '2015-06-10T14:15:37.0', Text: 'f' }); // 5
+			// 6 dim,  vals indices {4,5}, in {5}, out {3}
+            var inValVec = sa.getInValueVector();
+            assert.equal(inValVec.cols, 1);
+            assert.equal(inValVec.full().minus(new qm.la.Matrix([[0], [0], [0], [0], [0], [1]])).frob(), 0);
+            var outValVec = sa.getOutValueVector();
+            assert.equal(outValVec.cols, 1);
+            assert.equal(outValVec.full().minus(new qm.la.Matrix([[0], [0], [0], [1]])).frob(), 0);
+            var valVec = sa.getValueVector();
+            assert.equal(valVec.cols, 2);
+            assert.equal(valVec.full().minus(new qm.la.Matrix([[0,0], [0,0], [0,0], [0,0], [1,0], [0,1]])).frob(), 0);
+			
+			var valVec2 = sa2.getValueVector();
+            assert.equal(inValVec2.cols, 1);
+            assert.equal(inValVec2.full().minus(new qm.la.Matrix([[0], [0], [0], [0], [0], [1]])).frob(), 0);
+            
+			
+        });
+    });
 });
