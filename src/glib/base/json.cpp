@@ -216,6 +216,16 @@ int TJsonVal::GetObjInt(const char *Key, const int& DefInt) const {
   return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetInt() : DefInt;
 }
 
+int64 TJsonVal::GetObjInt64(const TStr& Key, const int64& DefInt) const {
+	EAssert(IsObj());
+	return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetInt64() : DefInt;
+}
+
+int64 TJsonVal::GetObjInt64(const char *Key, const int64& DefInt) const {
+	EAssert(IsObj());
+	return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetInt64() : DefInt;
+}
+
 uint64 TJsonVal::GetObjUInt64(const TStr& Key, const uint64& DefInt) const {
   EAssert(IsObj());
   return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetUInt64() : DefInt;

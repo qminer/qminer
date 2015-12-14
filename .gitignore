@@ -130,3 +130,5 @@ binding-1.gyp
 /test/nodejs/file.txt
 /test/my/
 /examples/streamaggregate/node_modules
+*.opendb
+/test/nodejs/store_and_index.js
