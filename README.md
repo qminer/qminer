@@ -1,6 +1,7 @@
 QMiner
 ======
 
+[![Join the chat at https://gitter.im/qminer/qminer](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/qminer/qminer?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![NPM Version][npm-image]][npm-url]
 [![NPM Downloads][downloads-image]][downloads-url]
 [![Linux Build][travis-linux-image]][travis-linux-url]
@@ -26,7 +27,7 @@ To test that your node.js version is correct, run ```node --version``` and ```np
 
 **Windows**
 - node.js **v0.12** [x64](https://nodejs.org/download/release/v0.12.7/x64/node-v0.12.7-x64.msi) or [x86](https://nodejs.org/download/release/v0.12.7/node-v0.12.7-x86.msi)
-- [Visual C++ Redistributable Packages for Visual Studio 2013](https://www.microsoft.com/en-us/download/details.aspx?id=40784)   download **vcredist_x64.exe** if your node.js x64 or **vcredist_x86.exe** for node.js x86.
+- [Visual C++ Redistributable Packages for Visual Studio 2013](https://www.microsoft.com/en-us/download/details.aspx?id=40784)   download **vcredist_x64.exe** for node.js x64 or **vcredist_x86.exe** for node.js x86.
 
 ### Install 
 

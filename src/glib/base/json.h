@@ -115,6 +115,7 @@ public:
   double GetNum() const {EAssert(IsNum()); return Num;}
   int GetInt() const {EAssert(IsNum()); return TFlt::Round(Num);}
   uint64 GetUInt64() const {EAssert(IsNum()); return (unsigned)(int64)(Num);}
+  uint GetUInt() const { EAssert(IsNum()); return uint(Num); }
   int64 GetInt64() const { EAssert(IsNum()); return int64(Num); }
   const TStr& GetStr() const {EAssert(IsStr()); return Str;}
   uint64 GetTmMSecs() const { return TTm::GetMSecsFromTm(GetTm()); }
@@ -157,6 +158,8 @@ public:
   double GetObjNum(const char *Key, const double& DefNum) const;
   int GetObjInt(const TStr& Key, const int& DefNum) const;
   int GetObjInt(const char *Key, const int& DefNum) const;
+  int64 GetObjInt64(const TStr& Key, const int64& DefNum) const;
+  int64 GetObjInt64(const char *Key, const int64& DefNum) const;
   uint64 GetObjUInt64(const TStr& Key, const uint64& DefNum) const;
   uint64 GetObjUInt64(const char *Key, const uint64& DefNum) const;
   void GetObjIntV(const TStr& Key, TIntV& IntV) const;
