@@ -1777,7 +1777,8 @@ class TNodeJsFuncStreamAggr :
 	public TQm::TStreamAggrOut::INmFlt,
 	public TQm::TStreamAggrOut::INmInt,
 	// combinations
-	public TQm::TStreamAggrOut::IFltTm
+	public TQm::TStreamAggrOut::IFltTm,
+	public TQm::TStreamAggrOut::ISparseVecTm
 {
 private:	
 	// callbacks
@@ -1817,6 +1818,7 @@ private:
 	v8::Persistent<v8::Function> IsNmFun;
 	v8::Persistent<v8::Function> GetNmIntFun;
 	v8::Persistent<v8::Function> GetNmIntVFun;
+
 	// Serialization
 	v8::Persistent<v8::Function> SaveFun;
 	v8::Persistent<v8::Function> LoadFun;
@@ -1877,6 +1879,8 @@ public:
 	bool IsNm(const TStr& Nm) const;
 	double GetNmInt(const TStr& Nm) const;
 	void GetNmIntV(TStrIntPrV& NmIntV) const;
+	// ISparseVec
+	const TIntFltKdV& GetSparseVec() const;
 };
 
 #endif

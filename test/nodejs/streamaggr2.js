@@ -921,8 +921,8 @@ describe('Time Series Window Buffer Feature Extractor', function () {
             assert.equal(valVec.full().minus(new qm.la.Matrix([[0,0], [0,0], [0,0], [0,0], [1,0], [0,1]])).frob(), 0);
 			
 			var valVec2 = sa2.getValueVector();
-            assert.equal(inValVec2.cols, 1);
-            assert.equal(inValVec2.full().minus(new qm.la.Matrix([[0], [0], [0], [0], [0], [1]])).frob(), 0);
+			console.log(valVec2.full().toString());
+            assert.equal(valVec2.full().minus(new qm.la.Vector([0, 0, 0, 0, 0, 1])).norm(), 0);
             
 			
         });

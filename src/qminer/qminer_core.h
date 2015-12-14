@@ -3219,27 +3219,35 @@ namespace TStreamAggrOut {
 
 	class IInt {
 	public:
-		// retireving value from the aggregate
+		// retrieving value from the aggregate
 		virtual int GetInt() const = 0;
 	};
 
 	class IFlt {
 	public:
-		// retireving value from the aggregate
+		// retrieving value from the aggregate
 		virtual double GetFlt() const = 0;
+	};
+
+	class ISparseVec {
+	public:
+		// retrieving value from the aggregate
+		virtual const TIntFltKdV& GetSparseVec() const = 0;
 	};
 
 	class ITm {
 	public:
 		TStreamAggrOutHelper(ITm);
-		// retireving value from the aggregate
+		// retrieving value from the aggregate
 		virtual uint64 GetTmMSecs() const = 0;
 		static uint64 GetTmMSecsCast(const TWPt<TStreamAggr>& Aggr) { return CastITm(Aggr)->GetTmMSecs(); }
 	};
 	
 	// combination of numeric value and timestamp
 	class IFltTm: public IFlt, public ITm { };
-	
+	// combination of sparse-vector and timestamp
+	class ISparseVecTm : public ISparseVec, public ITm {};
+
 	template <class TVal>
 	class IValVec {
 	public:
@@ -3248,7 +3256,8 @@ namespace TStreamAggrOut {
 		virtual TVal GetVal(const TInt& ElN) const = 0;
 		virtual void GetValV(TVec<TVal>& ValV) const = 0;
 	};
-	typedef IValVec<TFlt> IFltVec; 
+	typedef IValVec<TFlt> IFltVec;
+	typedef IValVec<TIntFltKdV> ISparseVVec;
 
 	class ITmVec {
 	public:
@@ -3293,7 +3302,8 @@ namespace TStreamAggrOut {
 	template <class TVal>
 	class IValTmIO : public IValIO<TVal>, public ITmIO {};
 	typedef IValTmIO<TFlt> IFltTmIO;
-	
+	typedef IValTmIO<TIntFltKdV> ISparseVecTmIO;
+
 	class INmFlt {
 	public:
 		// retrieving named values

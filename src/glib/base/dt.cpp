@@ -398,14 +398,7 @@ TMem TMem::GetFromHex(const TStr& Str) {
 // Code skeleton taken from http://www.adp-gmbh.ch/cpp/common/base64.html
 // on 5.12.2015 and re-arranged to fit into glib.
 
-static const TStr base64_chars =
-	"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	"abcdefghijklmnopqrstuvwxyz"
-	"0123456789+/";
-
-static inline bool is_base64(unsigned char c) {
-	return (isalnum(c) || (c == '+') || (c == '/'));
-}
+const TStr TStr::base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 TStr TStr::Base64Encode(const void* Bf, const int BfL) {
 	TStr ret;

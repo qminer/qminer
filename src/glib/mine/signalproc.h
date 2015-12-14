@@ -128,7 +128,7 @@ public:
 	void Update(const TVec<TIntFltKdV>& InValV, const TUInt64V& InTmMSecsV, const TVec<TIntFltKdV>& OutValV, const TUInt64V& OutTmMSecs) {
 		throw  TExcept::New("TSignalProc::TSumSpVec, delayed Update not implemented"); }
 
-	TIntFltKdV GetValue() const { return Sum; }
+	const TIntFltKdV& GetValue() const { return Sum; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
 	PJsonVal GetJson() const;
 	static void Pack(TIntFltKdV& Data);

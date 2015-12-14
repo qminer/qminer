@@ -572,6 +572,7 @@ void TNodeJsStreamAggr::getValueVector(const v8::FunctionCallbackInfo<v8::Value>
 	// try to cast as IValTmIO
 	TWPt<TQm::TStreamAggrOut::IValVec<TFlt> > AggrFlt = dynamic_cast<TQm::TStreamAggrOut::IValVec<TFlt> *>(JsSA->SA());
 	TWPt<TQm::TStreamAggrOut::IValVec<TIntFltKdV> > AggrSpV = dynamic_cast<TQm::TStreamAggrOut::IValVec<TIntFltKdV> *>(JsSA->SA());
+	TWPt<TQm::TStreamAggrOut::ISparseVec > SpV = dynamic_cast<TQm::TStreamAggrOut::ISparseVec *>(JsSA->SA());
 
 	if (!AggrFlt.Empty()) {
 		TFltV Res;
@@ -583,6 +584,11 @@ void TNodeJsStreamAggr::getValueVector(const v8::FunctionCallbackInfo<v8::Value>
 		AggrSpV->GetValV(Res);
 		Args.GetReturnValue().Set(
 			TNodeJsUtil::NewInstance<TNodeJsSpMat>(new TNodeJsSpMat(Res)));
+	} 
+	else if (!SpV.Empty()) {
+		const TIntFltKdV Res = SpV->GetSparseVec();
+		Args.GetReturnValue().Set(
+			TNodeJsUtil::NewInstance<TNodeJsSpVec>(new TNodeJsSpVec(Res)));
 	}
 	else {
 		throw TQm::TQmExcept::New("TNodeJsStreamAggr::getValueVector : stream aggregate does not implement IValVec: " + JsSA->SA->GetAggrNm());
@@ -1118,4 +1124,8 @@ double TNodeJsFuncStreamAggr::GetNmInt(const TStr& Nm) const {
 }
 void TNodeJsFuncStreamAggr::GetNmIntV(TStrIntPrV& NmIntV) const {
 	throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetNmIntV not implemented");
+}
+// ISparseVec
+const TIntFltKdV& TNodeJsFuncStreamAggr::GetSparseVec() const {
+	throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetSparseVec not implemented");
 }

@@ -888,6 +888,14 @@ public:
   static void Base64Decode(const TStr& In, TMem& Mem);
 
 private:
+
+  /// Static mapping utility for base64 characters
+  static const TStr base64_chars;
+
+  /// This method checks if given character belongs to base64 range
+  static inline bool is_base64(unsigned char c) { return (isalnum(c) || (c == '+') || (c == '/')); };
+
+
   /// internal method used to check if the string stored in TChRet is an unsigned integer
   /// IMPORTANT: TChRet must be initialized (GetCh() must be called at least once)
   static bool IsUInt(TChRet& Ch, const bool& Check, const uint& MnVal, const uint& MxVal, uint& Val);
