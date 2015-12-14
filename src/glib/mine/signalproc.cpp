@@ -116,6 +116,15 @@ void TSumSpVec::Pack(TIntFltKdV& Data) {
 				Tmp.Last().Dat += Data[i].Dat;
 			} else {
 				Tmp.Add(Data[i]);
+				Last = Tmp.Last().Key;
+			}
+			if (Tmp.Last().Dat == 0.0) {
+				Tmp.DelLast();
+				if (Tmp.Len() > 0) {
+					Last = Tmp.Last().Key;
+				} else {
+					Last = -1;
+				}
 			}
 		}
 	}
@@ -124,7 +133,7 @@ void TSumSpVec::Pack(TIntFltKdV& Data) {
 }
 
 /// Packs sparse vector
-void TSumSpVec::Update(const TIntFltKdV& InVal, const uint64& InTmMSecs, const TVec<TIntFltKdV>& OutValV, const TUInt64V& OutTmMSecsV) {
+void TSumSpVec::Update(const TVec<TIntFltKd>& InVal, const uint64& InTmMSecs, const TVec<TIntFltKdV>& OutValV, const TUInt64V& OutTmMSecsV) {
 
 	// remove old values from the sum
 	for (int i = 0; i < OutValV.Len(); i++) {

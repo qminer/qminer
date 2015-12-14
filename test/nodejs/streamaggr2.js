@@ -908,7 +908,8 @@ describe('Time Series Window Buffer Feature Extractor', function () {
             store.push({ Time: '2015-06-10T14:14:34.0', Text: 'c' }); // 2
             store.push({ Time: '2015-06-10T14:15:35.0', Text: 'd' }); // 3
             store.push({ Time: '2015-06-10T14:15:36.0', Text: 'e' }); // 4
-			store.push({ Time: '2015-06-10T14:15:37.0', Text: 'f' }); // 5
+            store.push({ Time: '2015-06-10T14:15:37.0', Text: 'f' }); // 5
+            
 			// 6 dim,  vals indices {4,5}, in {5}, out {3}
             var inValVec = sa.getInValueVector();
             assert.equal(inValVec.cols, 1);
@@ -921,10 +922,7 @@ describe('Time Series Window Buffer Feature Extractor', function () {
             assert.equal(valVec.full().minus(new qm.la.Matrix([[0,0], [0,0], [0,0], [0,0], [1,0], [0,1]])).frob(), 0);
 			
 			var valVec2 = sa2.getValueVector();
-			console.log(valVec2.full().toString());
-            assert.equal(valVec2.full().minus(new qm.la.Vector([0, 0, 0, 0, 0, 1])).norm(), 0);
-            
-			
+            assert.equal(valVec2.full().minus(new qm.la.Vector([0, 0, 0, 0, 1, 1])).norm(), 0);
         });
     });
 });
