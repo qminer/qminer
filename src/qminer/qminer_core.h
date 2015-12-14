@@ -3248,7 +3248,7 @@ namespace TStreamAggrOut {
 		virtual TVal GetVal(const TInt& ElN) const = 0;
 		virtual void GetValV(TVec<TVal>& ValV) const = 0;
 	};
-	typedef IValVec<TFlt> IFltVec;
+	typedef IValVec<TFlt> IFltVec; 
 
 	class ITmVec {
 	public:
@@ -3258,7 +3258,10 @@ namespace TStreamAggrOut {
 		virtual void GetTmV(TUInt64V& MSecsV) const = 0;
 	};
 
-	class IFltVecTm : public IFltVec, public ITm { };
+	template <class TVal>
+	class IValVecTm : public IValVec<TVal>, public ITm {};	
+	typedef IValVecTm<TFlt> IFltVecTm;	
+	//class IFltVecTm : public IFltVec, public ITm { };
 
 	// interfaces used by window buffer
 	class IBuffer {
