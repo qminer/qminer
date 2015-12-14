@@ -3229,26 +3229,16 @@ namespace TStreamAggrOut {
 		virtual double GetFlt() const = 0;
 	};
 
-	template <class TVal>
-	class IVal {
-	public:
-		// retireving value from the aggregate
-		virtual TVal GetVal() const = 0;
-	};
-
 	class ITm {
 	public:
 		TStreamAggrOutHelper(ITm);
-		// retrieving value from the aggregate
+		// retireving value from the aggregate
 		virtual uint64 GetTmMSecs() const = 0;
 		static uint64 GetTmMSecsCast(const TWPt<TStreamAggr>& Aggr) { return CastITm(Aggr)->GetTmMSecs(); }
 	};
 	
 	// combination of numeric value and timestamp
-	template <class TVal>
-	class IValTm : public IVal<TVal>, public ITm {};
-	typedef IValTm<TFlt> IFltTm;
-	//class IFltTm: public IFlt, public ITm { };
+	class IFltTm: public IFlt, public ITm { };
 	
 	template <class TVal>
 	class IValVec {
@@ -3268,10 +3258,7 @@ namespace TStreamAggrOut {
 		virtual void GetTmV(TUInt64V& MSecsV) const = 0;
 	};
 
-	template <class TVal>
-	class IValVecTm : public IValVec<TVal>, public ITm {};
-	typedef IValVecTm<TFlt> IFltVecTm;
-	//class IFltVecTm : public IFltVec, public ITm { };
+	class IFltVecTm : public IFltVec, public ITm { };
 
 	// interfaces used by window buffer
 	class IBuffer {

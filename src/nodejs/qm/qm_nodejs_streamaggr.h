@@ -1769,7 +1769,6 @@ public:
 	int GetInt() const;
 	// IFlt 
 	double GetFlt() const;
-	TFlt GetVal() const { return GetFlt(); }
 	// ITm 
 	uint64 GetTmMSecs() const;
 	
