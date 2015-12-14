@@ -60,9 +60,7 @@ void TNodeJsStreamAggr::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getNumberOfRecords", _getNumberOfRecords); // multiple interfaces
 
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getInValueVector", _getInValueVector);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "getInTimestampVector", _getInTimestampVector);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getOutValueVector", _getOutValueVector);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "getOutTimestampVector", _getOutTimestampVector);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getValueVector", _getValueVector);
 
 	// Properties

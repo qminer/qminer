@@ -107,6 +107,33 @@ public:
 };
 
 /////////////////////////////////////////////////
+// Online Summa of sparse vector
+class TSumSpVec {
+private:
+	TVec<TIntFltKd> Sum; // current computed SUM value 
+	TUInt64 TmMSecs; // timestamp of current MA	    
+public:
+	TSumSpVec() {};
+	TSumSpVec(const PJsonVal& ParamVal) {};
+	TSumSpVec(TSIn& SIn) : Sum(SIn), TmMSecs(SIn) {}
+
+	// serialization
+	void Load(TSIn& SIn);
+	void Save(TSOut& SOut) const;
+
+	bool IsInit() const { return (TmMSecs > 0); }
+	/// Resets the model state
+	void Reset() { Sum = TIntFltKdV(); TmMSecs = 0; }
+	void Update(const TVec<TIntFltKd>& InVal, const uint64& InTmMSecs, const TVec<TIntFltKdV>& OutValV, const TUInt64V& OutTmMSecs);
+	void Update(const TVec<TIntFltKdV>& InValV, const TUInt64V& InTmMSecsV, const TVec<TIntFltKdV>& OutValV, const TUInt64V& OutTmMSecs) {
+		throw  TExcept::New("TSignalProc::TSumSpVec, delayed Update not implemented"); }
+
+	TIntFltKdV GetValue() const { return Sum; }
+	uint64 GetTmMSecs() const { return TmMSecs; }
+	PJsonVal GetJson() const;
+	static void Pack(TIntFltKdV& Data);
+};
+/////////////////////////////////////////////////
 // Sliding Window Min
 class TMin {
 private:
