@@ -202,6 +202,10 @@ public:
   void Load(PSIn& SIn) {
 	  Clr(); SIn->Load(MxBfL); SIn->Load(BfL);
 	  Bf = new char[MxBfL = BfL]; SIn->LoadBf(Bf, BfL); Owner = true; }
+  void Load(TSIn& SIn) {
+	  Clr(); SIn.Load(MxBfL); SIn.Load(BfL);
+	  Bf = new char[MxBfL = BfL]; SIn.LoadBf(Bf, BfL); Owner = true; }
+
   void Save(TSOut& SOut) const {
     SOut.Save(MxBfL); SOut.Save(BfL); SOut.SaveBf(Bf, BfL);}
   void LoadXml(const PXmlTok& XmlTok, const TStr& Nm);
@@ -565,6 +569,8 @@ public:
   TStr& operator+=(const TStr& Str) { *this = (*this + Str); return *this; } ;
   /// Concatenates and assigns (not thread safe)
   TStr& operator+=(const char* _CStr) { *this = (*this + _CStr); return *this; } ;
+  /// Concatenates and assigns (not thread safe)
+  TStr& operator+=(const char Ch) { *this = (*this + Ch); return *this; };
 
   /// Boolean comparison TStr == char*
   bool operator==(const char* _CStr) const;
@@ -869,6 +875,17 @@ public:
   friend TStr operator+(const TStr& LStr, const char* RCStr);
   /// Concatenates the two strings
   friend TStr operator+(const TStr& LStr, const TStr& RStr);
+  /// Concatenates the first string parameter with single char
+  friend TStr operator+(const TStr& LStr, const char Ch);
+
+
+
+  /// Base64-encode given buffer and return resulting string
+  static TStr Base64Encode(const void* Bf, const int BfL);
+  /// Base64-encode given buffer and return resulting string
+  static TStr Base64Encode(const TMemBase& Mem) { return Base64Encode(Mem.GetBf(), Mem.Len()); }
+  /// Base64-decode given string and fill this TMem object
+  static void Base64Decode(const TStr& In, TMem& Mem);
 
 private:
   /// internal method used to check if the string stored in TChRet is an unsigned integer
@@ -1260,6 +1277,8 @@ public:
 // Short-Integer
 class TSInt{
 public:
+  static const int16 Mn;
+  static const int16 Mx;
   int16 Val;
 public:
   TSInt(): Val(0){}
@@ -1283,11 +1302,14 @@ public:
   TSInt& operator++() { ++Val; return *this; } // prefix
   TSInt& operator--() { --Val; return *this; } // prefix
 };
+typedef TSInt TInt16;
 
 /////////////////////////////////////////////////
 // Unsigned Short-Integer
 class TUSInt {
 public:
+	static const uint16 Mn;
+	static const uint16 Mx;
 	uint16 Val;
 public:
 	TUSInt() : Val(0) {}
@@ -1311,6 +1333,7 @@ public:
 	TUSInt& operator++() { ++Val; return *this; } // prefix
 	TUSInt& operator--() { --Val; return *this; } // prefix
 };
+typedef TUSInt TUInt16;
 
 /////////////////////////////////////////////////
 // Integer
@@ -1426,7 +1449,6 @@ public:
 /////////////////////////////////////////////////
 // Unsigned-Integer
 typedef TNum<uint> TUInt;
-typedef TNum<uint16> TUInt16;
 template<>
 class TNum<uint>{
 public:
@@ -1500,6 +1522,16 @@ int GetMemUsed() const {return sizeof(TNum);}
   static uint GetUIntFromIpStr(const TStr& IpStr, const char& SplitCh = '.');
   static TStr GetStrFromIpUInt(const uint& Ip);
   static bool IsIpv6Str(const TStr& IpStr, const char& SplitCh = ':');
+
+  static uint GetFromBufSafe(const char * Bf) {
+#ifdef ARM
+	  uint Val;
+	  memcpy(&Val, Bf, sizeof(uint)); //we cannot use a cast on ARM (needs 8byte memory aligned doubles)
+	  return Val;
+#else
+	  return *((uint*)Bf);
+#endif
+  }
 };
 
 /////////////////////////////////////////////////
@@ -1556,6 +1588,16 @@ public:
 	else if (Val>1000000000){
 	return GetStr(Val/1000000000)+"."+GetStr((Val%1000000000)/100000000)+"G";}
 	else {return GetMegaStr(Val);}}*/
+	
+	static int64 GetFromBufSafe(const char * Bf) {
+#ifdef ARM
+		int64 Val;
+		memcpy(&Val, Bf, sizeof(int64)); //we cannot use a cast on ARM (needs 8byte memory aligned doubles)
+		return Val;
+#else
+		return *((int64*)Bf);
+#endif
+	}
 };
 
 /////////////////////////////////////////////////
@@ -1799,10 +1841,29 @@ public:
   TSFlt operator--(int){TSFlt oldVal = Val; Val--; return oldVal;} // postfix
   int GetMemUsed() const {return sizeof(TSFlt);}
 
+  static bool IsNum(const float& Val) {
+	  return (Mn <= Val) && (Val <= Mx);
+  }
+  static bool IsNan(const float& Val) {
+	  return (_isnan(Val) != 0);
+  }
+
+  bool IsNum() const { return IsNum(Val); }
+  bool IsNan() const { return IsNan(Val); }
+
   int GetPrimHashCd() const {
     int Expn; return int((frexp(Val, &Expn)-0.5)*double(TInt::Mx));}
   int GetSecHashCd() const {
     int Expn; frexp(Val, &Expn); return Expn;}
+  static float GetFromBufSafe(const char * Bf) {
+#ifdef ARM
+	  float Val;
+	  memcpy(&Val, Bf, sizeof(float)); //we cannot use a cast on ARM (needs 8byte memory aligned doubles)
+	  return Val;
+#else
+	  return *((float*)Bf);
+#endif
+  }
 };
 
 /////////////////////////////////////////////////

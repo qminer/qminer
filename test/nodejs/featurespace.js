@@ -194,6 +194,13 @@ describe('Feature Space Tests', function () {
             var vec2 = ftr.extractVector(Store[1]);
             assert.equal(vec2.length, 1);
             assert.equal(vec2[0], 1.1);
+
+            // test that we get the same for a JSON input
+            var recJson = Store[0].toJSON();
+            var vec3 = ftr.extractVector(recJson);
+            assert.eqtol(vec3.minus(vec).norm(), 0);
+
+
         })
         it('should return a vector for the first record in store: categorical', function () {
             var ftr = new qm.FeatureSpace(base, { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] });
@@ -340,6 +347,12 @@ describe('Feature Space Tests', function () {
             var vec = ftr.extractSparseVector(Store[0]);
             assert.equal(vec.dim, 1);
             assert.equal(vec.at(0), 1.0);
+
+            // test that we get the same for a JSON input
+            var recJson = Store[0].toJSON();
+            var vec3 = ftr.extractSparseVector(recJson);
+            debugger
+            assert.eqtol(vec3.full().minus(vec.full()).norm(), 0);
         })
         it('should return a sparse vector for the first record in store: categorical', function () {
             var ftr = new qm.FeatureSpace(base, { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] });
@@ -1201,7 +1214,7 @@ describe('Feature Space Tests', function () {
             assert.eqtol(ftr.extractVector(Store[2]).at(0), 1, 0.0000001);
 
             for (var i = 3; i < 11; i++){
-            	ftr.updateRecord(Store[i]);
+            	ftr.updateRecord(Store[i].toJSON()); // test if updates work on JSON arguments
 			}
             var expected = [
 				-1.507556723,
@@ -1825,9 +1838,21 @@ describe('Feature Space Tests', function () {
             assert.equal(ftr.extractVector(Store[0]).at(3), 1);
             assert.equal(ftr.extractVector(Store[0]).at(4), 0);
             assert.equal(ftr.extractVector(Store[0]).at(5), 0);
+        });
+        it('should update the feature space by adding the whole store as a JSON array: multinomial', function () {
+            var ftr = new qm.FeatureSpace(base, { type: "multinomial", source: "FtrSpaceTest", field: "Categories", values: ["a", "b", "c", "q", "w", "e"] });
+            var rs = Store.allRecords.toJSON().records;
 
+            ftr.updateRecords(rs);
+            assert.equal(ftr.extractVector(Store[0]).length, 6);
+            assert.equal(ftr.extractVector(Store[0]).at(0), 1);
+            assert.equal(ftr.extractVector(Store[0]).at(1), 0);
+            assert.equal(ftr.extractVector(Store[0]).at(2), 0);
+            assert.equal(ftr.extractVector(Store[0]).at(3), 1);
+            assert.equal(ftr.extractVector(Store[0]).at(4), 0);
+            assert.equal(ftr.extractVector(Store[0]).at(5), 0);
+        });
 
-        })
         it('should update the feature space by adding the whole store: multinomial, normalize', function () {
             var ftr = new qm.FeatureSpace(base,
                 { type: "multinomial", source: "FtrSpaceTest", field: "Categories", normalize: true, values: ["a", "b", "c", "q", "w", "e"] }
@@ -1891,6 +1916,12 @@ describe('Feature Space Tests', function () {
             assert.eqtol(mat.at(0, 0), 1);
             assert.eqtol(mat.at(0, 5), 1.5);
             assert.eqtol(mat.at(0, 10), 2);
+
+            // test that we get the same for a JSON array input
+            var rsJson = Store.allRecords.toJSON().records;
+            var mat2 = ftr.extractSparseMatrix(rsJson);
+            assert.eqtol(mat.minus(mat2).frob(), 0);
+
         })
         it('should return a bigger space matrix gained from the numeric and categorical feature extractor', function () {
             var ftr = new qm.FeatureSpace(base, [
@@ -1926,6 +1957,12 @@ describe('Feature Space Tests', function () {
             assert.eqtol(mat.at(0, 0), 1);
             assert.eqtol(mat.at(0, 5), 1.5);
             assert.eqtol(mat.at(0, 10), 2);
+
+            // test that we get the same for a JSON array input
+            var rsJson = Store.allRecords.toJSON().records;
+            var mat2 = ftr.extractMatrix(rsJson);
+            assert.eqtol(mat.minus(mat2).frob(), 0);
+
         })
         it('should return a dense matrix gained from the numeric and categorical feature extractor', function () {
             var ftr = new qm.FeatureSpace(base, [

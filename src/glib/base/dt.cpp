@@ -393,6 +393,104 @@ TMem TMem::GetFromHex(const TStr& Str) {
 	return TMem(ChA.CStr(), ChA.Len());
 }
 
+///////////////////////////////////////////////////////////////
+// Base64 encoding
+// Code skeleton taken from http://www.adp-gmbh.ch/cpp/common/base64.html
+// on 5.12.2015 and re-arranged to fit into glib.
+
+static const TStr base64_chars =
+	"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	"abcdefghijklmnopqrstuvwxyz"
+	"0123456789+/";
+
+static inline bool is_base64(unsigned char c) {
+	return (isalnum(c) || (c == '+') || (c == '/'));
+}
+
+TStr TStr::Base64Encode(const void* Bf, const int BfL) {
+	TStr ret;
+	int i = 0;
+	int j = 0;
+	unsigned char char_array_3[3];
+	unsigned char char_array_4[4];
+	int BfLTmp = BfL;
+	const uchar* BfTmp = (uchar*)Bf;
+	while (BfLTmp--) {
+		char_array_3[i++] = *(BfTmp++);
+		if (i == 3) {
+			char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+			char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+			char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+			char_array_4[3] = char_array_3[2] & 0x3f;
+
+			for (i = 0; (i <4); i++)
+				ret += base64_chars[char_array_4[i]];
+			i = 0;
+		}
+	}
+
+	if (i) {
+		for (j = i; j < 3; j++) {
+			char_array_3[j] = '\0';
+		}
+		char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+		char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+		char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+		char_array_4[3] = char_array_3[2] & 0x3f;
+
+		for (j = 0; (j < i + 1); j++) {
+			ret += base64_chars[char_array_4[j]];
+		}
+		while ((i++ < 3)) {
+			ret += '=';
+		}
+	}
+	return ret;
+}
+
+void TStr::Base64Decode(const TStr& In, TMem& Mem) {
+	int in_len = In.Len();
+	int i = 0;
+	int j = 0;
+	int in_ = 0;
+	unsigned char char_array_4[4], char_array_3[3];
+	Mem.Reserve(In.Len());
+	while (in_len-- && (In[in_] != '=') && is_base64(In[in_])) {
+		char_array_4[i++] = In[in_]; 
+		in_++;
+		if (i == 4) {
+			for (i = 0; i < 4; i++) {
+				char_array_4[i] = (uchar)base64_chars.SearchCh(char_array_4[i]);
+			}
+			char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
+			char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
+			char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
+
+			Mem.AddBf(&char_array_3, 3);
+			//for (i = 0; (i < 3); i++) {
+			//	Mem.AddBf(&char_array_3[i], 1);
+			//}
+			i = 0;
+		}
+	}
+
+	if (i) {
+		for (j = i; j < 4; j++) {
+			char_array_4[j] = 0;
+		}
+		for (j = 0; j < 4; j++) {
+			char_array_4[j] = (uchar)base64_chars.SearchCh(char_array_4[j]);
+		}
+		char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
+		char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
+		char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
+
+		for (j = 0; (j < i - 1); j++) {
+			Mem.AddBf(&char_array_3[j], 1);
+		}
+	}
+}
+
 /////////////////////////////////////////////////
 // Input-Memory
 TMemIn::TMemIn(const TMem& _Mem, const int& _BfC):
@@ -2111,6 +2209,31 @@ TStr operator+(const TStr& LStr, const TStr& RStr) {
 	return operator+(LStr, RStr.CStr());
 }
 
+TStr operator+(const TStr& LStr, const char Ch) {
+	const size_t LeftLen = LStr.Len();
+	const size_t RightLen = 1;
+
+	// check if any of the strings are empty
+	if (LeftLen == 0) { return TStr(Ch); } 
+	else if (RightLen == 0) { return LStr; } 
+	else {
+		const char* LCStr = LStr.CStr();
+
+		// allocate memory
+		char* ConcatStr = new char[LeftLen + RightLen + 1];
+
+		// copy the two strings into the new memory
+		memcpy(ConcatStr, LCStr, LeftLen);
+		memcpy(ConcatStr + LeftLen, &Ch, RightLen);
+
+		// finish the new string
+		ConcatStr[LeftLen + RightLen] = 0;
+
+		// return
+		return TStr::WrapCStr(ConcatStr);
+	}
+}
+
 bool TStr::IsUInt(TChRet& Ch, const bool& Check, const uint& MnVal, const uint& MxVal, uint& Val) {
 	uint64 _Val;
 	// assign and check for overflow
@@ -2422,6 +2545,18 @@ void TUCh::LoadXml(const PXmlTok& XmlTok, const TStr& Nm){
 void TUCh::SaveXml(TSOut& SOut, const TStr& Nm) const {
   XSaveBETagArg(Nm, "Val", TInt::GetStr(Val));
 }
+
+/////////////////////////////////////////////////
+// Integer16
+
+const int16 TSInt::Mn = SHRT_MIN;
+const int16 TSInt::Mx = SHRT_MAX;
+
+/////////////////////////////////////////////////
+// Usigned Integer16
+
+const uint16 TUSInt::Mn = 0;
+const uint16 TUSInt::Mx = USHRT_MAX;
 
 /////////////////////////////////////////////////
 // Integer
