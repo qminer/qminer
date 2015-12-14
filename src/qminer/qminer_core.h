@@ -2994,7 +2994,7 @@ private:
 public:
 	static PStoreTrigger New(const PStreamAggrBase& StreamAggrBase);
 
-	// forward the calls to stream aggreagte base
+	// forward the calls to stream aggregate base
 	void OnAdd(const TRec& Rec);
 	void OnUpdate(const TRec& Rec);
 	void OnDelete(const TRec& Rec);
