@@ -240,9 +240,9 @@ public:
 	const TStr& GetStateNm(const int& StateId) const;
 
 	// set/remove target states
-	bool IsTarget(const int& StateId, const double& Height) const;
-	void SetTarget(const int& StateId, const double& Height);
-	void RemoveTarget(const int& StateId, const double& Height);
+	bool IsTarget(const int& StateId) const;
+	void SetTarget(const int& StateId);
+	void RemoveTarget(const int& StateId);
 
 	bool IsLeaf(const int& StateId) const;
 
@@ -263,6 +263,7 @@ private:
 	bool IsOnHeight(const int& StateId, const double& Height) const;
 	bool IsBelowHeight(const int& StateId, const double& Height) const;
 	bool IsAboveHeight(const int& StateId, const double& Height) const;
+	bool IsStateId(const int& StateId) const { return 0 <= StateId && StateId < HierarchV.Len(); }
 
 	// returns a hash table with keys being the states at the specified height
 	// and the values containing their successor leafs
@@ -775,8 +776,8 @@ public:
     uint64 GetTimeUnit() const;
 
     // target methods
-    bool IsTargetState(const int& StateId, const double& Height) const { return Hierarch->IsTarget(StateId, Height); }
-    void SetTargetState(const int& StateId, const double& Height, const bool& IsTrg);
+    bool IsTargetState(const int& StateId) const { return Hierarch->IsTarget(StateId); }
+    void SetTargetState(const int& StateId, const bool& IsTrg);
 
     bool IsLeaf(const int& StateId) const;
 

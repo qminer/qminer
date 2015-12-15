@@ -863,23 +863,22 @@ const TStr& THierarch::GetStateNm(const int& StateId) const {
 	return StateNmV[StateId];
 }
 
-bool THierarch::IsTarget(const int& StateId, const double& Height) const {
-	EAssertR(IsOnHeight(StateId, Height), "State " + TInt(StateId).GetStr() + " is not on height " + TFlt(Height).GetStr());
-	double StateHeight = GetNearestHeight(Height);
+bool THierarch::IsTarget(const int& StateId) const {
+	EAssert(IsStateId(StateId));
+	double StateHeight = GetStateHeight(StateId);
 	return TargetIdHeightSet.IsKey(TIntFltPr(StateId, StateHeight));
 }
 
-void THierarch::SetTarget(const int& StateId, const double& Height) {
-	EAssertR(IsOnHeight(StateId, Height), "State " + TInt(StateId).GetStr() + " is not on height " + TFlt(Height).GetStr());
-	double StateHeight = GetNearestHeight(Height);
+void THierarch::SetTarget(const int& StateId) {
+	EAssert(IsStateId(StateId));
+	double StateHeight = GetStateHeight(StateId);
 	TargetIdHeightSet.AddKey(TIntFltPr(StateId, StateHeight));
 }
 
-void THierarch::RemoveTarget(const int& StateId, const double& Height) {
-	EAssertR(IsOnHeight(StateId, Height), "State " + TInt(StateId).GetStr() + " is not on height " + TFlt(Height).GetStr());
-	EAssertR(IsTarget(StateId, Height), "State " + TInt(StateId).GetStr() + " is not a target on height " + TFlt(Height).GetStr());
+void THierarch::RemoveTarget(const int& StateId) {
+	EAssert(IsTarget(StateId));
 
-	double StateHeight = GetNearestHeight(Height);
+	double StateHeight = GetStateHeight(StateId);
 	TIntFltPr StateIdHeightPr(StateId, StateHeight);
 
 	TargetIdHeightSet.DelKey(StateIdHeightPr);
@@ -2628,7 +2627,7 @@ PJsonVal TStreamStory::GetJson() const {
 			StateJson->AddToObj("radius", RadiusV[StateN]);
 			StateJson->AddToObj("timeProportion", ProbV[StateN]);
 			StateJson->AddToObj("holdingTime", HoldingTimeV[StateN]);
-			StateJson->AddToObj("isTarget", Hierarch->IsTarget(StateId, CurrHeight));
+			StateJson->AddToObj("isTarget", Hierarch->IsTarget(StateId));
 
 			if (Hierarch->IsStateNm(StateId)) {
 				StateJson->AddToObj("name", Hierarch->GetStateNm(StateId));
@@ -2925,13 +2924,13 @@ uint64 TStreamStory::GetTimeUnit() const {
 	return MChain->GetTimeUnit();
 }
 
-void TStreamStory::SetTargetState(const int& StateId, const double& Height, const bool& IsTrg) {
-	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Setting target state %d on height %.3f, isTarget: %s", StateId, Height, TBool::GetStr(IsTrg).CStr());
+void TStreamStory::SetTargetState(const int& StateId, const bool& IsTrg) {
+	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Setting target state %d, isTarget: %s", StateId, TBool::GetStr(IsTrg).CStr());
 
 	if (IsTrg) {
-		Hierarch->SetTarget(StateId, Height);
+		Hierarch->SetTarget(StateId);
 	} else {
-		Hierarch->RemoveTarget(StateId, Height);
+		Hierarch->RemoveTarget(StateId);
 	}
 }
 

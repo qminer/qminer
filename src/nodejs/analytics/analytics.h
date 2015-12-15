@@ -1789,7 +1789,6 @@ public:
 	 * Returns true if the state is a target on the specified height.
 	 *
 	 * @param {Number} stateId - Id of the state
-	 * @param {Number} height - the height
 	 * @returns {Boolean}
 	 */
 	JsDeclareFunction(isTarget);
@@ -1798,7 +1797,6 @@ public:
 	 * Sets whether the specified state is a target state or not.
 	 *
 	 * @param {Number} stateId - ID of the state
-	 * @param {Number} height - the height on which the state is a target
 	 * @param {Boolean} isTarget - set target on/off
 	 */
 	JsDeclareFunction(setTarget);

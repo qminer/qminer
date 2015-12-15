@@ -2142,14 +2142,11 @@ void TNodeJsStreamStory::isTarget(const v8::FunctionCallbackInfo<v8::Value>& Arg
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	EAssertR(Args.Length() == 2, "hmc.setStateName: expects 2 arguments!");
-
 	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
 	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
-	const double Height = TNodeJsUtil::GetArgFlt(Args, 1);
 
-	bool Result = JsStreamStory->StreamStory->IsTargetState(StateId, Height);
+	bool Result = JsStreamStory->StreamStory->IsTargetState(StateId);
 	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, Result));
 }
 
@@ -2157,15 +2154,12 @@ void TNodeJsStreamStory::setTarget(const v8::FunctionCallbackInfo<v8::Value>& Ar
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	EAssertR(Args.Length() == 3, "hmc.setStateName: expects 2 arguments!");
-
 	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
 	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
-	const double Height = TNodeJsUtil::GetArgFlt(Args, 1);
-	const bool IsTarget = TNodeJsUtil::GetArgBool(Args, 2);
+	const bool IsTarget = TNodeJsUtil::GetArgBool(Args, 1);
 
-	JsStreamStory->StreamStory->SetTargetState(StateId, Height, IsTarget);
+	JsStreamStory->StreamStory->SetTargetState(StateId, IsTarget);
 
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
