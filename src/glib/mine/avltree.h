@@ -18,6 +18,49 @@ class AvlTree {
 
         AvlTree();
 
+        void SetVec(TIntV& Vec, TInt Key, TInt Val) {
+        	if (Vec.Len()-1 == Key) {
+        		Vec.Add(Val);
+        	}
+        	else if (Vec.Len()-1 < Key) {
+        		Vec.Add(Val);
+        		Vec[Key] = Val;
+        	}
+        	else {
+        		Vec[Key] = Val;
+        	}
+        }
+        void SetVec(TFltV& Vec, TInt Key, TFlt Val) {
+        	if (Vec.Len()-1 == Key) {
+				Vec.Add(Val);
+			}
+			else if (Vec.Len()-1 < Key) {
+				Vec.Add(Val);
+				Vec[Key] = Val;
+			}
+			else {
+				Vec[Key] = Val;
+			}
+        }
+        void SetVec(TIntH& Vec, TInt Key, TInt Val) {
+        	Vec.AddDat(Key, Val);
+        }
+        void SetVec(TIntFltH& Vec, TInt Key, TFlt Val) {
+        	Vec.AddDat(Key, Val);
+        }
+        void GetVec(TIntH Vec, TInt Key, TInt& Val) {
+        	Val = Vec.GetDat(Key);
+        }
+        TFlt GetVec(TIntFltH Vec, TInt Key) {
+        	return Vec.GetDat(Key);
+        }
+        TInt GetVec(TIntV Vec, TInt Key) {
+			return Vec[Key];
+		}
+        TFlt GetVec(TFltV Vec, TInt Key) {
+        	return Vec[Key];
+        }
+
         //
         // Node comparison
         //
@@ -57,23 +100,28 @@ class AvlTree {
 
         // O(1)
         inline TInt GetParentNode(TInt node) const {
-            return Parent.GetDat(node);
+        	return Parent.GetDat(node);
+        	//return Parent[node];
         }
         // O(1)
         inline TInt GetLeftNode(TInt node) const {
-            return Left.GetDat(node);
+        	return Left.GetDat(node);
+        	//return Left[node];
         }
         // O(1)
         inline TInt GetRightNode(TInt node) const {
             return Right.GetDat(node);
+            //return Right[node];
         }
         // O(1)
         inline TInt GetDepth(TInt node) const {
             return Depth.GetDat(node);
+        	//return Depth[node];
         }
         // O(1)
         inline TInt GetCount(TInt node) const {
             return Count.GetDat(node);
+        	//return Count[node];
         }
         // O(1)
         inline TInt GetAggregatedCount(TInt node) const {
@@ -116,7 +164,7 @@ class AvlTree {
         	if (GetDepth(GetLeftNode(node)) < GetDepth(GetRightNode(node))) {
         		greater = GetDepth(GetRightNode(node));
         	}
-        	Depth.AddDat(node, 1 + greater);
+        	SetVec(Depth, node, 1 + greater);
         	TInt val = GetCount(node) + GetAggregatedCount(GetLeftNode(node)) + GetAggregatedCount(GetRightNode(node));
             AggregatedCount.AddDat(node, val);
         }
@@ -126,7 +174,7 @@ class AvlTree {
         	TFlt old = Values.GetDat(node);
         	Values.AddDat(node, old + w * (x - GetValue(node)) / GetCount(node));
         	TInt old_count = Count.GetDat(node);
-            Count.AddDat(node, old_count + w);
+        	SetVec(Count, node, old_count + w);
 
             for(TInt n = node; n != 0; n = GetParentNode(n)) {
                UpdateAggregates(n);
@@ -137,7 +185,7 @@ class AvlTree {
         void Merge(TInt node, TFlt x, TInt w) {
             EAssert(GetValue(node) == x);
             TInt old_count = Count.GetDat(node);
-            Count.AddDat(node, old_count + w);
+            SetVec(Count, node, old_count + w);
             
             for(TInt n = node; n != 0; n = GetParentNode(n)) {
                UpdateAggregates(n);

@@ -2,10 +2,10 @@
 
 AvlTree::AvlTree(): Root(0) {
 	N = 0;
-    Depth.AddDat(0, 0);
-    Parent.AddDat(0,0);
-    Left.AddDat(0, 0);
-    Right.AddDat(0, 0);
+    SetVec(Depth, 0, 0);
+    SetVec(Parent, 0,0);
+    SetVec(Left, 0, 0);
+    SetVec(Right, 0, 0);
     AggregatedCount.AddDat(0,0);
 }
 
@@ -68,10 +68,10 @@ bool AvlTree::Add(TFlt x, TInt w) {
     if(Root == 0) {
         Root = ++N;
         Values.AddDat(Root, x);
-        Count.AddDat(Root, w);
-        Left.AddDat(Root, 0);
-        Right.AddDat(Root, 0);
-        Parent.AddDat(Root,0);
+        SetVec(Count, Root, w);
+        SetVec(Left, Root, 0);
+        SetVec(Right, Root, 0);
+        SetVec(Parent, Root,0);
         // Update depth and aggregates
         UpdateAggregates(Root);
         return true;
@@ -96,15 +96,15 @@ bool AvlTree::Add(TFlt x, TInt w) {
 
         node = ++N;
         Values.AddDat(node, x);
-        Count.AddDat(node, w);
-        Left.AddDat(node, 0);
-        Right.AddDat(node, 0);
-        Parent.AddDat(node, parent);
+        SetVec(Count, node, w);
+        SetVec(Left, node, 0);
+        SetVec(Right, node, 0);
+        SetVec(Parent, node, parent);
         if(cmp < 0) {
-            Left.AddDat(parent, node);
+            SetVec(Left, parent, node);
         } else {
             //assert(cmp > 0);
-            Right.AddDat(parent, node);
+            SetVec(Right, parent, node);
         }
 
         Rebalance(node);
@@ -212,23 +212,23 @@ void AvlTree::RotateLeft(TInt node) {
     const TInt r  = GetRightNode(node);
     const TInt lr = GetLeftNode(r);
 
-    Right.AddDat(node, lr);
+    SetVec(Right, node, lr);
     if(lr != 0) {
-        Parent.AddDat(lr, node);
+        SetVec(Parent, lr, node);
     }
 
     const TInt p = GetParentNode(node);
-    Parent.AddDat(r, p);
+    SetVec(Parent, r, p);
     if(p == 0) {
         Root = r;
     } else if(GetLeftNode(p) == node) {
-        Left.AddDat(p, r);
+        SetVec(Left, p, r);
     } else {
          //assert(rightNode(p) == node);
-        Right.AddDat(p, r);
+        SetVec(Right, p, r);
     }
-    Left.AddDat(r, node);
-    Parent.AddDat(node, r);
+    SetVec(Left, r, node);
+    SetVec(Parent, node, r);
     UpdateAggregates(node);
     UpdateAggregates(GetParentNode(node));
 }
@@ -236,24 +236,23 @@ void AvlTree::RotateLeft(TInt node) {
 void AvlTree::RotateRight(TInt node) {
     const TInt l = GetLeftNode(node);
     const TInt rl = GetRightNode(l);
-
-    Left.AddDat(node, rl);
+    SetVec(Left, node, rl);
     if(rl != 0) {
-        Parent.AddDat(rl, node);
+        SetVec(Parent, rl, node);
     }
 
     const TInt p = GetParentNode(node);
-    Parent.AddDat(l, p);
+    SetVec(Parent, l, p);
     if(p == 0) {
         Root = l;
     } else if(GetRightNode(p) == node) {
-        Right.AddDat(p, l);
+        SetVec(Right, p, l);
     } else {
         //assert(leftNode(p) == node);
-        Left.AddDat(p, l);
+        SetVec(Left, p, l);
     }
-    Right.AddDat(l, node);
-    Parent.AddDat(node, l);
+    SetVec(Right, l, node);
+    SetVec(Parent, node, l);
     UpdateAggregates(node);
     UpdateAggregates(GetParentNode(node));
 }
