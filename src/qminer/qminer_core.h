@@ -3234,7 +3234,7 @@ namespace TStreamAggrOut {
 		// retrieving value from the aggregate
 		virtual const TIntFltKdV& GetSparseVec() const = 0;
 	};
-
+	
 	class ITm {
 	public:
 		TStreamAggrOutHelper(ITm);

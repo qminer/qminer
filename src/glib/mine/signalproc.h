@@ -107,31 +107,32 @@ public:
 };
 
 /////////////////////////////////////////////////
-// Online Summa of sparse vector
+/// Online Summa of sparse vectors
 class TSumSpVec {
 private:
-	TVec<TIntFltKd> Sum; // current computed SUM value 
-	TUInt64 TmMSecs; // timestamp of current MA	    
+	TVec<TIntFltKd> Sum; ///< current computed SUM value 
+	TUInt64 TmMSecs; ///< timestamp of current MA	    
 public:
-	TSumSpVec() {};
-	TSumSpVec(const PJsonVal& ParamVal) {};
-	TSumSpVec(TSIn& SIn) : Sum(SIn), TmMSecs(SIn) {}
+	TSumSpVec() {}; ///< Simple constructor
+	TSumSpVec(const PJsonVal& ParamVal) {}; ///< Initialization from JSON value
+	TSumSpVec(TSIn& SIn) : Sum(SIn), TmMSecs(SIn) {} ///> Deserialization constructor
 
 	// serialization
-	void Load(TSIn& SIn);
-	void Save(TSOut& SOut) const;
+	void Load(TSIn& SIn); ///< Loading from binary stream
+	void Save(TSOut& SOut) const; ///< Saving to binary stream
 
-	bool IsInit() const { return (TmMSecs > 0); }
+	bool IsInit() const { return (TmMSecs > 0); } ///< Checks if this sum received any data yet
 	/// Resets the model state
 	void Reset() { Sum = TIntFltKdV(); TmMSecs = 0; }
+	/// Updates internal state with incoming and outgoing data
 	void Update(const TVec<TIntFltKd>& InVal, const uint64& InTmMSecs, const TVec<TIntFltKdV>& OutValV, const TUInt64V& OutTmMSecs);
+	/// Updates internal state with incoming and outgoing data - for delayed update
 	void Update(const TVec<TIntFltKdV>& InValV, const TUInt64V& InTmMSecsV, const TVec<TIntFltKdV>& OutValV, const TUInt64V& OutTmMSecs) {
 		throw  TExcept::New("TSignalProc::TSumSpVec, delayed Update not implemented"); }
 
-	const TIntFltKdV& GetValue() const { return Sum; }
-	uint64 GetTmMSecs() const { return TmMSecs; }
-	PJsonVal GetJson() const;
-	static void Pack(TIntFltKdV& Data);
+	const TIntFltKdV& GetValue() const { return Sum; } ///< Access current sum
+	uint64 GetTmMSecs() const { return TmMSecs; } ///< Access last received timestampe
+	PJsonVal GetJson() const; ///< Get JSON description of the sum
 };
 /////////////////////////////////////////////////
 // Sliding Window Min

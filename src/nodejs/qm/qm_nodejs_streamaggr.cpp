@@ -570,8 +570,8 @@ void TNodeJsStreamAggr::getValueVector(const v8::FunctionCallbackInfo<v8::Value>
 	TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
 
 	// try to cast as IValTmIO
-	TWPt<TQm::TStreamAggrOut::IValVec<TFlt> > AggrFlt = dynamic_cast<TQm::TStreamAggrOut::IValVec<TFlt> *>(JsSA->SA());
-	TWPt<TQm::TStreamAggrOut::IValVec<TIntFltKdV> > AggrSpV = dynamic_cast<TQm::TStreamAggrOut::IValVec<TIntFltKdV> *>(JsSA->SA());
+	TWPt<TQm::TStreamAggrOut::IFltVec > AggrFlt = dynamic_cast<TQm::TStreamAggrOut::IFltVec *>(JsSA->SA());
+	TWPt<TQm::TStreamAggrOut::ISparseVVec > AggrSpV = dynamic_cast<TQm::TStreamAggrOut::ISparseVVec *>(JsSA->SA());
 	TWPt<TQm::TStreamAggrOut::ISparseVec > SpV = dynamic_cast<TQm::TStreamAggrOut::ISparseVec *>(JsSA->SA());
 
 	if (!AggrFlt.Empty()) {
@@ -586,7 +586,7 @@ void TNodeJsStreamAggr::getValueVector(const v8::FunctionCallbackInfo<v8::Value>
 			TNodeJsUtil::NewInstance<TNodeJsSpMat>(new TNodeJsSpMat(Res)));
 	} 
 	else if (!SpV.Empty()) {
-		const TIntFltKdV Res = SpV->GetSparseVec();
+		const TIntFltKdV& Res = SpV->GetSparseVec();
 		Args.GetReturnValue().Set(
 			TNodeJsUtil::NewInstance<TNodeJsSpVec>(new TNodeJsSpVec(Res)));
 	}
