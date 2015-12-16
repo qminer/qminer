@@ -467,23 +467,23 @@ public:
 	}
 
 	static void TPgBlob_Page_Init() {
-		char* bf = new char[PAGE_SIZE];
+		char* bf = new char[PG_PAGE_SIZE];
 
 		TPgBlob::InitPageP(bf);
 		auto header = (TPgBlob::TPgHeader*)bf;
 
-		EXPECT_EQ(header->PageSize, PAGE_SIZE);
+		EXPECT_EQ(header->PageSize, PG_PAGE_SIZE);
 		EXPECT_EQ(header->IsDirty(), true); // new page is not saved yet
 		EXPECT_EQ(header->IsLock(), false);
 		EXPECT_EQ(header->ItemCount, 0);
 		EXPECT_EQ(header->OffsetFreeStart, 10);
-		EXPECT_EQ(header->OffsetFreeEnd, PAGE_SIZE);
+		EXPECT_EQ(header->OffsetFreeEnd, PG_PAGE_SIZE);
 
 		delete[] bf;
 	}
 
 	static void TPgBlob_Page_AddInt() {
-		char* bf = new char[PAGE_SIZE];
+		char* bf = new char[PG_PAGE_SIZE];
 		int data = 8765;
 
 		TPgBlob::InitPageP(bf);
@@ -494,12 +494,12 @@ public:
 
 		// check internal state
 		auto header = (TPgBlob::TPgHeader*)bf;
-		EXPECT_EQ(header->PageSize, PAGE_SIZE);
+		EXPECT_EQ(header->PageSize, PG_PAGE_SIZE);
 		EXPECT_EQ(header->IsDirty(), true);
 		EXPECT_EQ(header->IsLock(), false);
 		EXPECT_EQ(header->ItemCount, 1);
 		EXPECT_EQ(header->OffsetFreeStart, 10 + 4); // item record
-		EXPECT_EQ(header->OffsetFreeEnd, PAGE_SIZE - 4);
+		EXPECT_EQ(header->OffsetFreeEnd, PG_PAGE_SIZE - 4);
 
 		// retrieve value
 		auto rec = TPgBlob::GetItemRec(bf, res);
@@ -510,7 +510,7 @@ public:
 	}
 
 	static void TPgBlob_Page_AddDouble() {
-		char* bf = new char[PAGE_SIZE];
+		char* bf = new char[PG_PAGE_SIZE];
 		double data = 8765.4321;
 
 		TPgBlob::InitPageP(bf);
@@ -521,12 +521,12 @@ public:
 
 		// check internal state
 		auto header = (TPgBlob::TPgHeader*)bf;
-		EXPECT_EQ(header->PageSize, PAGE_SIZE);
+		EXPECT_EQ(header->PageSize, PG_PAGE_SIZE);
 		EXPECT_EQ(header->IsDirty(), true);
 		EXPECT_EQ(header->IsLock(), false);
 		EXPECT_EQ(header->ItemCount, 1);
 		EXPECT_EQ(header->OffsetFreeStart, 10 + 4); // item record
-		EXPECT_EQ(header->OffsetFreeEnd, PAGE_SIZE - 8);
+		EXPECT_EQ(header->OffsetFreeEnd, PG_PAGE_SIZE - 8);
 
 		// retrieve value
 		auto rec = TPgBlob::GetItemRec(bf, res);
@@ -537,7 +537,7 @@ public:
 	}
 
 	static void TPgBlob_Page_AddIntSeveral() {
-		char* bf = new char[PAGE_SIZE];
+		char* bf = new char[PG_PAGE_SIZE];
 		int data1 = 8765;
 		int data2 = 77;
 		int data3 = 91826;
@@ -554,12 +554,12 @@ public:
 
 		// check internal state
 		auto header = (TPgBlob::TPgHeader*)bf;
-		EXPECT_EQ(header->PageSize, PAGE_SIZE);
+		EXPECT_EQ(header->PageSize, PG_PAGE_SIZE);
 		EXPECT_EQ(header->IsDirty(), true);
 		EXPECT_EQ(header->IsLock(), false);
 		EXPECT_EQ(header->ItemCount, 3);
 		EXPECT_EQ(header->OffsetFreeStart, 10 + 3 * 4); // item record
-		EXPECT_EQ(header->OffsetFreeEnd, PAGE_SIZE - 3 * 4);
+		EXPECT_EQ(header->OffsetFreeEnd, PG_PAGE_SIZE - 3 * 4);
 
 		// retrieve values
 		auto rec1 = TPgBlob::GetItemRec(bf, res1);
@@ -576,7 +576,7 @@ public:
 	}
 
 	static void TPgBlob_Page_AddIntMany() {
-		char* bf = new char[PAGE_SIZE];
+		char* bf = new char[PG_PAGE_SIZE];
 		int data1 = 5;
 
 		TPgBlob::InitPageP(bf);
@@ -589,12 +589,12 @@ public:
 
 		// check internal state
 		auto header = (TPgBlob::TPgHeader*)bf;
-		EXPECT_EQ(header->PageSize, PAGE_SIZE);
+		EXPECT_EQ(header->PageSize, PG_PAGE_SIZE);
 		EXPECT_EQ(header->IsDirty(), true);
 		EXPECT_EQ(header->IsLock(), false);
 		EXPECT_EQ(header->ItemCount, 1000);
 		EXPECT_EQ(header->OffsetFreeStart, 10 + 1000 * 4); // item record
-		EXPECT_EQ(header->OffsetFreeEnd, PAGE_SIZE - 1000 * 4);
+		EXPECT_EQ(header->OffsetFreeEnd, PG_PAGE_SIZE - 1000 * 4);
 
 		// retrieve values
 		data1 = 5;
@@ -609,7 +609,7 @@ public:
 	}
 
 	static void TPgBlob_Page_AddIntSeveralDelete() {
-		char* bf = new char[PAGE_SIZE];
+		char* bf = new char[PG_PAGE_SIZE];
 		int data1 = 8765;
 		int data2 = 77;
 		int data3 = 91826;
@@ -625,12 +625,12 @@ public:
 
 		// check internal state
 		auto header = (TPgBlob::TPgHeader*)bf;
-		EXPECT_EQ(header->PageSize, PAGE_SIZE);
+		EXPECT_EQ(header->PageSize, PG_PAGE_SIZE);
 		EXPECT_EQ(header->IsDirty(), true);
 		EXPECT_EQ(header->IsLock(), false);
 		EXPECT_EQ(header->ItemCount, 3);
 		EXPECT_EQ(header->OffsetFreeStart, 10 + 3 * 4); // 3 items
-		EXPECT_EQ(header->OffsetFreeEnd, PAGE_SIZE - 2 * 4); // 2 actually contain data
+		EXPECT_EQ(header->OffsetFreeEnd, PG_PAGE_SIZE - 2 * 4); // 2 actually contain data
 
 															 // retrieve values
 		auto rec1 = TPgBlob::GetItemRec(bf, res1);
@@ -644,7 +644,7 @@ public:
 	}
 
 	static void TPgBlob_Page_AddIntSeveralDelete2() {
-		char* bf = new char[PAGE_SIZE];
+		char* bf = new char[PG_PAGE_SIZE];
 		int data1 = 8765;
 		int data2 = 77;
 		int data3 = 91826;
@@ -660,12 +660,12 @@ public:
 
 		// check internal state
 		auto header = (TPgBlob::TPgHeader*)bf;
-		EXPECT_EQ(header->PageSize, PAGE_SIZE);
+		EXPECT_EQ(header->PageSize, PG_PAGE_SIZE);
 		EXPECT_EQ(header->IsDirty(), true);
 		EXPECT_EQ(header->IsLock(), false);
 		EXPECT_EQ(header->ItemCount, 3);
 		EXPECT_EQ(header->OffsetFreeStart, 10 + 3 * 4); // 3 items
-		EXPECT_EQ(header->OffsetFreeEnd, PAGE_SIZE - 2 * 4); // 2 actually contain data
+		EXPECT_EQ(header->OffsetFreeEnd, PG_PAGE_SIZE - 2 * 4); // 2 actually contain data
 
 															 // retrieve values
 		auto rec2 = TPgBlob::GetItemRec(bf, res2);
