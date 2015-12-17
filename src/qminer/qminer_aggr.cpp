@@ -7,8 +7,6 @@
  */
 
 #include "qminer_aggr.h"
-#define __STDC_FORMAT_MACROS
-#include <inttypes.h>
 
 #ifdef OG_AGGR_DOC_ATLAS
 #include <gkswf.h>
@@ -548,200 +546,6 @@ PJsonVal TTimeSeriesTick::SaveJson(const int& Limit) const {
 	return Val;
 }
 
-///////////////////////////////
-// Time series winbuf.
-void TWinBuf::OnAddRec(const TRec& Rec) {
-	InitP = true;
-
-	Timestamp = Rec.GetFieldTmMSecs(TimeFieldId);
-
-	A = B;
-	// B = first record ID in the buffer, or first record ID after the buffer (indicates an empty buffer)
-	while (BeforeBuffer(B, Timestamp)) {
-		B++;
-	}
-	
-	C = D;
-	// D = the first record ID after the buffer
-	while (!AfterBuffer(D, Timestamp)) {
-		D++;
-	}	
-
-	//Print(true);
-}
-
-TWinBuf::TWinBuf(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal) {
-	// parse out input and output fields
-    TStr StoreNm = ParamVal->GetObjStr("store");
-	Store = Base->GetStoreByStoreNm(StoreNm);    
-	TStr TimeFieldNm = ParamVal->GetObjStr("timestamp");
-	TimeFieldId = Store->GetFieldId(TimeFieldNm);
-    TStr ValFieldNm = ParamVal->GetObjStr("value");
-	ValFieldId = Store->GetFieldId(ValFieldNm);
-    ValReader = TFieldReader(Store->GetStoreId(), ValFieldId, Store->GetFieldDesc(ValFieldId));
-    WinSizeMSecs = ParamVal->GetObjUInt64("winsize");;
-	DelayMSecs = ParamVal->GetObjUInt64("delay", 0);
-    // make sure parameters make sense
-    QmAssertR(Store->GetFieldDesc(TimeFieldId).IsTm(), "[Window buffer] field " + TimeFieldNm + " not of type 'datetime'");
-    QmAssertR(ValReader.IsFlt(), "[Window buffer] field " + ValFieldNm + " cannot be casted to 'double'");
-}
-
-PStreamAggr TWinBuf::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
-    return new TWinBuf(Base, ParamVal);
-}
-
-void TWinBuf::LoadState(TSIn& SIn) {
-	InitP.Load(SIn);
-	A.Load(SIn);
-	B.Load(SIn);
-	C.Load(SIn);
-	D.Load(SIn);
-	Timestamp.Load(SIn);
-	TestValid(); // checks if the buffer exists in store
-}
-
-void TWinBuf::SaveState(TSOut& SOut) const {
-	InitP.Save(SOut);
-	A.Save(SOut);
-	B.Save(SOut);
-	C.Save(SOut);
-	D.Save(SOut);
-	Timestamp.Save(SOut);
-}
-
-void TWinBuf::Reset() {
-	InitP = false;
-	A = Store->GetRecs() == 0 ? 0 : Store->GetLastRecId() + 1;
-	B = Store->GetRecs() == 0 ? 0 : Store->GetLastRecId() + 1;
-	C = Store->GetRecs() == 0 ? 0 : Store->GetLastRecId() + 1;
-	D = Store->GetRecs() == 0 ? 0 : Store->GetLastRecId() + 1;
-	Timestamp = 0;
-}
-
-void TWinBuf::GetInFltV(TFltV& ValV) const {
-	EAssertR(IsInit(), "WinBuf not initialized yet!");
-	int Skip = B > C ? int(B - C) : 0;
-	int UpdateRecords = int(D - C) - Skip;
-	if (ValV.Len() != UpdateRecords) { ValV.Gen(UpdateRecords); }
-	// iterate
-	for (int RecN = 0; RecN < UpdateRecords; RecN++) {
-		ValV[RecN] = Value(C + Skip + RecN);
-	}
-}
-
-void TWinBuf::GetInTmMSecsV(TUInt64V& MSecsV) const {
-	EAssertR(IsInit(), "WinBuf not initialized yet!");
-	int Skip = B > C ? int(B - C) : 0;
-	int UpdateRecords = int(D - C) - Skip;
-	if (MSecsV.Len() != UpdateRecords) { MSecsV.Gen(UpdateRecords); }
-	// iterate
-	for (int RecN = 0; RecN < UpdateRecords; RecN++) {
-		MSecsV[RecN] = Time(C + Skip + RecN);
-	}
-}
-
-void TWinBuf::GetOutFltV(TFltV& ValV) const {
-	EAssertR(IsInit(), "WinBuf not initialized yet!");
-	int Skip = B > C ? int(B - C) : 0;
-	int DropRecords = int(B - A) - Skip;
-	if (ValV.Len() != DropRecords) { ValV.Gen(DropRecords); }
-	// iterate
-	for (int RecN = 0; RecN < DropRecords; RecN++) {
-		ValV[RecN] = Value(A + RecN);
-	}
-}
-
-void TWinBuf::GetOutTmMSecsV(TUInt64V& MSecsV) const {
-	EAssertR(IsInit(), "WinBuf not initialized yet!");
-	int Skip = B > C ? int(B - C) : 0;
-	int DropRecords = int(B - A) - Skip;
-	if (MSecsV.Len() != DropRecords) { MSecsV.Gen(DropRecords); }
-	// iterate
-	for (int RecN = 0; RecN < DropRecords; RecN++) {
-		MSecsV[RecN] = Time(A + RecN);
-	}
-}
-
-void TWinBuf::GetFltV(TFltV& ValV) const {
-	EAssertR(IsInit(), "WinBuf not initialized yet!");
-	int Len = GetN();
-	if (ValV.Empty()) { ValV.Gen(Len); }	
-	// iterate
-	for (int RecN = 0; RecN < Len; RecN++) {
-		ValV[RecN] = GetFlt(RecN);
-	}
-}
-
-void TWinBuf::GetTmV(TUInt64V& MSecsV) const {
-	EAssertR(IsInit(), "WinBuf not initialized yet!");
-	int Len = GetN();
-	MSecsV.Gen(Len);
-	// iterate
-	for (int RecN = 0; RecN < Len; RecN++) {
-		MSecsV[RecN] = GetTm(RecN);
-	}
-}
-
-PJsonVal TWinBuf::SaveJson(const int& Limit) const {
-	// TODO change the returned object so that it reflects state
-	PJsonVal Val = TJsonVal::NewObj();
-	Val->AddToObj("Val", GetInFlt());
-	Val->AddToObj("Time", TTm::GetTmFromMSecs(GetInTmMSecs()).GetWebLogDateTimeStr(true, "T"));	
-	return Val;
-}
-
-bool TWinBuf::TestValid() const {
-	// non-initialized model is valid
-	if (!InitP()) { return true; }	
-	uint64 LastRecTmMSecs = Time(Store->GetLastRecId());
-	for (uint64 RecId = B; RecId < D; RecId++) {
-		if (!InBuffer(RecId, LastRecTmMSecs)) { return false; }
-	}
-	return true;
-}
-
-void TWinBuf::Print(const bool& PrintState) {
-	int Skip = B > C ? int(B - C) : 0;
-	printf("TWinBuf: initialized:%s, window:%d, delay: %d, skip:%d\n",
-		IsInit() ? "true" : "false", int(WinSizeMSecs), int(DelayMSecs), Skip);
-	printf("\033[34m A=%" PRIu64 ", B=%" PRIu64 ", C=%" PRIu64 ", D=%" PRIu64 "\033[0m\n", A.Val, B.Val, C.Val, D.Val);
-
-	//if (A == 0 || B == 0 || C == 0 || D == 0) return;
-	
-	printf("Forget interval: %" PRIu64 " - %" PRIu64 "\n", A.Val, B.Val - 1 - Skip);
-	printf("Buffer interval: %" PRIu64 " - %" PRIu64 "\n", B.Val, D.Val - 1);
-	printf("Update interval: %" PRIu64 " - %" PRIu64 "\n", C.Val + Skip, D.Val - 1);
-	if (PrintState && IsInit()) {
-		uint64 LastRecId = Store->GetLastRecId();
-		PrintInterval(LastRecId, LastRecId, "Last rec:");
-		printf("Constraint: [%s - %s]\n", 
-			TTm::GetTmFromMSecs(Time(LastRecId) - DelayMSecs - WinSizeMSecs).GetWebLogTimeStr().CStr(),
-			TTm::GetTmFromMSecs(Time(LastRecId) - DelayMSecs).GetWebLogTimeStr().CStr());
-		if (D > 0) {
-			PrintInterval(B, D - 1, "New buff:", "32");
-			PrintInterval(C + Skip, D - 1, "Just in: ");
-		} else {
-			printf("New buff: [ ]\n");
-			printf("Just in: [ ]\n");
-		}
-		if (B - Skip > 0) {
-			PrintInterval(A, B - 1 - Skip, "Just out:");
-		} else {
-			printf("Just out: [ ]\n");
-		}
-		PrintInterval(D, LastRecId, "Pending: ");
-		PrintInterval(Store->GetFirstRecId(), LastRecId, "All recs:");
-	}
-	printf("\n");
-}
-
-void TWinBuf::PrintInterval(const uint64& StartId, const uint64& EndId, const TStr& Label, const TStr& ModCode) const {
-	printf("%s [ \033[1;%sm", Label.CStr(), ModCode.CStr());
-	for (uint64 RecId = StartId; RecId <= EndId; RecId++) {
-		printf("(%g, %s), ", Value(RecId), TTm::GetTmFromMSecs(Time(RecId)).GetWebLogTimeStr().CStr());
-	}
-	printf("\033[0m]\n");
-}
 
 ///////////////////////////////
 // Exponential Moving Average.
@@ -784,12 +588,12 @@ PJsonVal TEma::SaveJson(const int& Limit) const {
 ///////////////////////////////
 // Moving Covariance
 void TCov::OnAddRec(const TRec& Rec) {
-    TFltV ValVX; InAggrValX->GetOutFltV(ValVX);
+    TFltV ValVX; InAggrValX->GetOutValV(ValVX);
     TUInt64V TmMSecsV; InAggrValX->GetOutTmMSecsV(TmMSecsV);        
-    TFltV ValVY; InAggrValY->GetOutFltV(ValVY);
+    TFltV ValVY; InAggrValY->GetOutValV(ValVY);
 	if (InAggrX->IsInit() && InAggrY->IsInit()) {
-		Cov.Update(InAggrValX->GetInFlt(), InAggrValY->GetInFlt(), 
-            InAggrValX->GetInTmMSecs(), ValVX, ValVY, TmMSecsV, InAggrValX->GetN());
+		Cov.Update(InAggrValX->GetInVal(), InAggrValY->GetInVal(), 
+            InAggrValX->GetInTmMSecs(), ValVX, ValVY, TmMSecsV, InAggrValX->GetVals());
 	}
 }
 
@@ -1424,9 +1228,9 @@ PStreamAggr TFtrExtAggr::New(const TWPt<TBase>& Base, const TStr& AggrNm, const 
 	return new TFtrExtAggr(Base, AggrNm, _FtrSpace);
 }
 
-double TFtrExtAggr::GetFlt(const TInt& ElN) const {
+void TFtrExtAggr::GetVal(const TInt& ElN, TFlt& Val) const {
 	QmAssertR(Vec.Len() > ElN, "TFtrExtAggr : GetFlt : index out of bounds");
-	return Vec[ElN]; 
+	Val = Vec[ElN];
 }
 
 void TFtrExtAggr::Save(TSOut& SOut) const {
@@ -1451,12 +1255,12 @@ PJsonVal TFtrExtAggr::SaveJson(const int& Limit) const {
 void TOnlineHistogram::OnAddRec(const TRec& Rec) {
 	if (BufferedP) {
 		TFltV UpdateV;
-		InAggrValBuffer->GetInFltV(UpdateV);
+		InAggrValBuffer->GetInValV(UpdateV);
 		for (int ElN = 0; ElN < UpdateV.Len(); ElN++) {
 			Model.Increment(UpdateV[ElN]);
 		}
 		TFltV ForgetV;
-		InAggrValBuffer->GetOutFltV(ForgetV);
+		InAggrValBuffer->GetOutValV(ForgetV);
 		for (int ElN = 0; ElN < ForgetV.Len(); ElN++) {
 			Model.Decrement(ForgetV[ElN]);
 		}
@@ -1505,8 +1309,8 @@ void TOnlineHistogram::SaveState(TSOut& SOut) const {
 ///////////////////////////////
 /// Chi square stream aggregate
 void TChiSquare::OnAddRec(const TRec& Rec) {
-    TFltV ValVX; InAggrValX->GetFltV(ValVX);        
-    TFltV ValVY; InAggrValY->GetFltV(ValVY);
+    TFltV ValVX; InAggrValX->GetValV(ValVX);        
+    TFltV ValVY; InAggrValY->GetValV(ValVY);
 	if (InAggrX->IsInit() && InAggrY->IsInit()) {
 		ChiSquare.Update(ValVX, ValVY);
 	}
@@ -1630,10 +1434,10 @@ void TSlottedHistogram::GetStats(const uint64 TsMin, const uint64 TsMax, TFltV& 
 void TOnlineSlottedHistogram::OnAddRec(const TRec& Rec) {
 	if (BufferedP) {
 		LastTm = InAggrValBuffer->GetInTmMSecs();
-		Model->Add(InAggrValBuffer->GetInTmMSecs(), (int)InAggrValBuffer->GetInFlt());
+		Model->Add(InAggrValBuffer->GetInTmMSecs(), (int)InAggrValBuffer->GetInVal());
 		TFltV ForgetV;
 		TUInt64V ForgetTmV;
-		InAggrValBuffer->GetOutFltV(ForgetV);
+		InAggrValBuffer->GetOutValV(ForgetV);
 		InAggrValBuffer->GetOutTmMSecsV(ForgetTmV);
 		for (int ElN = 0; ElN < ForgetV.Len(); ElN++) {
 			Model->Remove(ForgetTmV[ElN], (int)ForgetV[ElN]);
@@ -1688,7 +1492,7 @@ TOnlineSlottedHistogram::TOnlineSlottedHistogram(const TWPt<TBase>& Base, const 
 /// serilization to JSon
 PJsonVal TOnlineSlottedHistogram::SaveJson(const int& Limit) const {
 	TFltV ValV;
-	GetFltV(ValV);
+	GetValV(ValV);
 	
 	PJsonVal Counts = TJsonVal::NewArr();
 	for (int i = 0; i < ValV.Len(); i++) {
@@ -1700,10 +1504,10 @@ PJsonVal TOnlineSlottedHistogram::SaveJson(const int& Limit) const {
 	return Res;
 }
 /// returns frequencies in a given bin
-double TOnlineSlottedHistogram::GetFlt(const TInt& ElN) const {
+void TOnlineSlottedHistogram::GetVal(const TInt& ElN, TFlt& Val) const {
 	TFltV Tmp;
-	GetFltV(Tmp);
-	return Tmp[ElN];
+	GetValV(Tmp);
+	Val = Tmp[ElN];
 }
 /// Load saved state
 void TOnlineSlottedHistogram::LoadState(TSIn& SIn) {
@@ -1748,10 +1552,10 @@ PStreamAggr TVecDiff::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
 }
 
 /// returns the vector of frequencies
-void TVecDiff::GetFltV(TFltV& ValV) const {
+void TVecDiff::GetValV(TFltV& ValV) const {
 	TFltV ValV1, ValV2;
-	InAggrValX->GetFltV(ValV1);
-	InAggrValY->GetFltV(ValV2);
+	InAggrValX->GetValV(ValV1);
+	InAggrValY->GetValV(ValV2);
 	for (int i = 0; i < ValV1.Len(); i++) {
 		ValV.Add(ValV1[i] - ValV2[i]);
 	}
@@ -1765,7 +1569,7 @@ PJsonVal TVecDiff::SaveJson(const int& Limit) const {
 	Res->AddToObj("aggr2", InAggrY->SaveJson(Limit));
 
 	TFltV ValV;
-	GetFltV(ValV);
+	GetValV(ValV);
 	PJsonVal CountsArr = TJsonVal::NewArr();
 	for (int ElN = 0; ElN < ValV.Len(); ElN++) {
 		CountsArr->AddToArr(ValV[ElN]);

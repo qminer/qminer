@@ -3219,46 +3219,46 @@ namespace TStreamAggrOut {
 
 	class IInt {
 	public:
-		// retireving value from the aggregate
+		// retrieving value from the aggregate
 		virtual int GetInt() const = 0;
 	};
 
 	class IFlt {
 	public:
-		// retireving value from the aggregate
+		// retrieving value from the aggregate
 		virtual double GetFlt() const = 0;
 	};
 
+	//class ISparseVec {
+	//public:
+	//	// retrieving value from the aggregate
+	//	virtual const TIntFltKdV& GetSparseVec() const = 0;
+	//};
+	
 	class ITm {
 	public:
 		TStreamAggrOutHelper(ITm);
-		// retireving value from the aggregate
+		// retrieving value from the aggregate
 		virtual uint64 GetTmMSecs() const = 0;
 		static uint64 GetTmMSecsCast(const TWPt<TStreamAggr>& Aggr) { return CastITm(Aggr)->GetTmMSecs(); }
 	};
 	
 	// combination of numeric value and timestamp
 	class IFltTm: public IFlt, public ITm { };
-	
-	class IFltTmIO {
-	public:
-		virtual double GetInFlt() const = 0;
-		virtual uint64 GetInTmMSecs() const = 0;
-		virtual bool DelayedP() const = 0;
-		virtual void GetInFltV(TFltV& ValV) const = 0;
-		virtual void GetInTmMSecsV(TUInt64V& MSecsV) const = 0;
-		virtual void GetOutFltV(TFltV& ValV) const = 0;
-		virtual void GetOutTmMSecsV(TUInt64V& MSecsV) const = 0;
-		virtual int GetN() const = 0;
-	};
 
-	class IFltVec {
+	template <class TVal>
+	class IValVec {
 	public:
 		// retrieving vector of values from the aggregate
-		virtual int GetFltLen() const = 0;
-		virtual double GetFlt(const TInt& ElN) const = 0;
-		virtual void GetFltV(TFltV& ValV) const = 0;
+		virtual int GetVals() const = 0;
+		virtual void GetVal(const TInt& ElN, TVal& Val) const = 0;
+		virtual void GetValV(TVec<TVal>& ValV) const = 0;
 	};
+	typedef IValVec<TFlt> IFltVec;
+	typedef IValVec<TIntFltKdV> ISparseVVec;
+	typedef IValVec<TIntFltKd> ISparseVec;
+	// combination of sparse-vector and timestamp
+	class ISparseVecTm : public ISparseVec, public ITm {};
 
 	class ITmVec {
 	public:
@@ -3268,7 +3268,42 @@ namespace TStreamAggrOut {
 		virtual void GetTmV(TUInt64V& MSecsV) const = 0;
 	};
 
-	class IFltVecTm : public IFltVec, public ITm { };
+	template <class TVal>
+	class IValVecTm : public IValVec<TVal>, public ITm {};	
+	typedef IValVecTm<TFlt> IFltVecTm;	
+	//class IFltVecTm : public IFltVec, public ITm { };
+
+	// interfaces used by window buffer
+	class IBuffer {
+	public:
+		virtual bool DelayedP() const = 0;
+	};
+
+	template <class TVal>
+	class IValIO : public IValVec<TVal> , public virtual IBuffer {
+	public:
+		// valid only when not using delay
+		virtual TVal GetInVal() const = 0;
+		// incomming
+		virtual void GetInValV(TVec<TVal>& ValV) const = 0;
+		// outgoing
+		virtual void GetOutValV(TVec<TVal>& ValV) const = 0;
+	};
+
+	class ITmIO : public ITmVec, public virtual IBuffer {
+	public:
+		// valid only when not using delay
+		virtual uint64 GetInTmMSecs() const = 0;
+		// incomming
+		virtual void GetInTmMSecsV(TUInt64V& MSecsV) const = 0;
+		// outgoing
+		virtual void GetOutTmMSecsV(TUInt64V& MSecsV) const = 0;
+	};
+	
+	template <class TVal>
+	class IValTmIO : public IValIO<TVal>, public ITmIO {};
+	typedef IValTmIO<TFlt> IFltTmIO;
+	typedef IValTmIO<TIntFltKdV> ISparseVecTmIO;
 
 	class INmFlt {
 	public:
