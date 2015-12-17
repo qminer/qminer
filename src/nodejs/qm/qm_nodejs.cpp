@@ -791,8 +791,9 @@ v8::Local<v8::Value> TNodeJsStore::Field(const TQm::TRec& Rec, const int FieldId
 		// which is just a wrapper around v8::Local<> that "enforces a check
 		// ehther v8::Local<> is empty before it can be used." For details, see
 		// http://v8.paulfryzel.com/docs/master/singletonv8_1_1_maybe_local.html
-		printf("Using TMEM\n");
-		v8::Local<v8::Object> Bf = node::Buffer::New(Isolate, Val.GetBf(), Val.Len()).ToLocalChecked();
+		v8::MaybeLocal<v8::Object> TmpBf = node::Buffer::Copy(Isolate, Val.GetBf(), Val.Len());
+		EAssertR(!TmpBf.IsEmpty(), "The handle is empty.");
+		v8::Local<v8::Object> Bf = TmpBf.ToLocalChecked();
 		return HandleScope.Escape(Bf);
 #else
 		v8::Local<v8::Object> Bf = node::Buffer::New(Isolate, Val.GetBf(), Val.Len());
