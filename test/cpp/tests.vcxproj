@@ -106,6 +106,7 @@
     <ClCompile Include="test-TGix.cpp" />
     <ClCompile Include="test-THash.cpp" />
     <ClCompile Include="test-TStr.cpp" />
+    <ClCompile Include="test-TSumSpVec.cpp" />
     <ClCompile Include="test-zipfl.cpp" />
     <ClCompile Include="test-tpt.cpp" />
   </ItemGroup>

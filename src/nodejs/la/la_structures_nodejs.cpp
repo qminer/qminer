@@ -1169,6 +1169,8 @@ void TNodeJsSpMat::Init(v8::Handle<v8::Object> exports) {
 
     // Properties 
     tpl->InstanceTemplate()->SetIndexedPropertyHandler(_indexGet, _indexSet);
+	child->InstanceTemplate()->SetIndexedPropertyHandler(_indexGet, _indexSet);
+
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "rows"), _rows);
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "cols"), _cols);
 

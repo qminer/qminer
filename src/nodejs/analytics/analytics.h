@@ -2095,7 +2095,7 @@ public:
 
 	/**
 	* Set the parameters.
-	* @param {module:analytics~MDSParam} The json object containing the parameters for the instance.
+	* @param {module:analytics~MDSParam} params - The json object containing the parameters for the instance.
 	* @example
 	* // import analytics module
 	* var analytics = require('qminer').analytics;
@@ -2105,7 +2105,7 @@ public:
 	* // returns { maxStep: 5000, maxSecs: 300, minDiff: 1e-4, distType: "Euclid" }
 	* var params = mds.getParams();
 	*/
-	//# exports.MDS.prototype.setParams = function () { return { maxStep: 0, maxSecs: 0, minDiff: 0, distType: "" }; }
+	//# exports.MDS.prototype.setParams = function (params) { return { maxStep: 0, maxSecs: 0, minDiff: 0, distType: "" }; }
 	JsDeclareFunction(setParams);
 
 	/**
@@ -2146,7 +2146,7 @@ public:
 	* var fin = fs.openRead('MDS.bin');
 	* var mds2 = new analytics.MDS(fin);
 	*/
-	// exports.MDS.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
+	//# exports.MDS.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 	JsDeclareFunction(save);
 
 private:

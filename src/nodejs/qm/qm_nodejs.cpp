@@ -2177,7 +2177,7 @@ void TNodeJsRec::setField(v8::Local<v8::String> Name, v8::Local<v8::Value> Value
 	}
 	else if (Desc.IsSFlt()) {
 		QmAssertR(Value->IsNumber(), "Field " + FieldNm + " not numeric");
-		TSFlt Val(Value->NumberValue());
+		TSFlt Val((float)Value->NumberValue());
 		bool NaNFound = Val.IsNan();
 		if (NaNFound) {
 			throw TQm::TQmExcept::New("Cannot set record field (type float) to NaN, for field name: " + FieldNm);
@@ -2235,7 +2235,7 @@ void TNodeJsRec::setField(v8::Local<v8::String> Name, v8::Local<v8::Value> Value
 		size_t BuffLen = node::Buffer::Length(Object);
 
 		TMem Mem;
-		Mem.AddBf(Buff, BuffLen);
+		Mem.AddBf(Buff, (int)BuffLen);
 		Rec.SetFieldTMem(FieldId, Mem);
 	}
 	else if (Desc.IsJson()) {
@@ -3915,13 +3915,24 @@ void TNodeJsFtrSpace::updateRecord(const v8::FunctionCallbackInfo<v8::Value>& Ar
 	QmAssertR(Args.Length() == 1, "Should have 1 argument!");
 
 	TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
-	TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[0]->ToObject());
+	if (JsFtrSpace->GetFtrSpace()->GetFtrExts() == 0) {
+		return;
+	}
 
-    EAssertR(JsFtrSpace->FtrSpace->IsStartStore(JsRec->Rec.GetStore()->GetStoreId()),
-        "FeatureSpace.updateRecord: record's and feature extractor's store/source must be the same!");
-
-	// update with new records
-	JsFtrSpace->FtrSpace->Update(JsRec->Rec);
+	TWPt<TQm::TStore> Store = JsFtrSpace->GetFtrSpace()->GetFtrExt(0)->GetFtrStore();
+	
+	if (TNodeJsUtil::IsArgWrapObj<TNodeJsRec>(Args, 0)) {
+		TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[0]->ToObject());
+		QmAssertR(JsFtrSpace->FtrSpace->IsStartStore(JsRec->Rec.GetStore()->GetStoreId()),
+			"FeatureSpace.updateRecord: record's and feature extractor's store/source must be the same!");
+		JsFtrSpace->FtrSpace->Update(JsRec->Rec);
+	} else if (TNodeJsUtil::IsArgJson(Args, 0)) {
+		PJsonVal Json = TNodeJsUtil::GetArgJson(Args, 0);
+		TQm::TRec Rec(Store, Json);
+		JsFtrSpace->FtrSpace->Update(Rec);
+	} else {
+		throw TQm::TQmExcept::New("FeatureSpace.updateRecord: unsupported type of argument 0");
+	}
 
 	Args.GetReturnValue().Set(Args.Holder());
 }
@@ -3933,13 +3944,30 @@ void TNodeJsFtrSpace::updateRecords(const v8::FunctionCallbackInfo<v8::Value>& A
 	QmAssertR(Args.Length() == 1, "Should have 1 argument!");
 
     TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
-    TNodeJsRecSet* JsRecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args[0]->ToObject());
+	if (JsFtrSpace->GetFtrSpace()->GetFtrExts() == 0) {
+		return;
+	}
 
-    EAssertR(JsFtrSpace->FtrSpace->IsStartStore(JsRecSet->RecSet->GetStore()->GetStoreId()),
-        "FeatureSpace.updateRecords: record's and feature extractor's store/source must be the same!");
+	TWPt<TQm::TStore> Store = JsFtrSpace->GetFtrSpace()->GetFtrExt(0)->GetFtrStore();
 
-    // update with new records
-    JsFtrSpace->FtrSpace->Update(JsRecSet->RecSet);
+	if (TNodeJsUtil::IsArgWrapObj<TNodeJsRecSet>(Args, 0)) {
+		TNodeJsRecSet* JsRecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args[0]->ToObject());
+
+		EAssertR(JsFtrSpace->FtrSpace->IsStartStore(JsRecSet->RecSet->GetStore()->GetStoreId()),
+			"FeatureSpace.updateRecords: record's and feature extractor's store/source must be the same!");
+
+		JsFtrSpace->FtrSpace->Update(JsRecSet->RecSet);
+	} else if (TNodeJsUtil::IsArgJson(Args, 0)) {
+		PJsonVal Json = TNodeJsUtil::GetArgJson(Args, 0);
+		EAssertR(Json->IsArr(), "FeatureSpace.updateRecords: expected record set or a JSON array");
+		int Len = Json->GetArrVals();
+		for (int RecN = 0; RecN < Len; RecN++) {
+			TQm::TRec Rec(Store, Json->GetArrVal(RecN));
+			JsFtrSpace->FtrSpace->Update(Rec);
+		}
+	} else {
+		throw TQm::TQmExcept::New("FeatureSpace.updateRecords: unsupported type of argument 0");
+	}
 
     Args.GetReturnValue().Set(Args.Holder());
 }
@@ -3983,34 +4011,43 @@ void TNodeJsFtrSpace::extractVector(const v8::FunctionCallbackInfo<v8::Value>& A
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	QmAssertR(Args.Length() == 1 || Args.Length() == 2, "Should have 1 or 2 arguments!");
-
-	TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
-	TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[0]->ToObject());
+	QmAssertR(Args.Length() == 1 || Args.Length() == 2, "Should have 1  or 2 arguments!");
 
 	TFltV FltV;
 
-	if (Args.Length() == 1) {
-        EAssertR(JsFtrSpace->FtrSpace->IsStartStore(JsRec->Rec.GetStore()->GetStoreId()),
-            "FeatureSpace.extractVector: record's and feature extractor's store/source must be the same!");
+	TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
+	if (JsFtrSpace->GetFtrSpace()->GetFtrExts() == 0) {
+		Args.GetReturnValue().Set(TNodeJsFltV::New(FltV));
+		return;
+	}
 
-		// create feature vector, compute
-		JsFtrSpace->FtrSpace->GetFullV(JsRec->Rec, FltV);
-	} else {
-		const int FtrExtN = TNodeJsUtil::GetArgInt32(Args, 1);
-		EAssertR(0 <= FtrExtN && FtrExtN < JsFtrSpace->FtrSpace->GetFtrExts(), "FeatureSpace.extractVector: invalid feature extractor ID!");
+	TWPt<TQm::TStore> Store = JsFtrSpace->GetFtrSpace()->GetFtrExt(0)->GetFtrStore();
 
-		EAssertR(JsFtrSpace->FtrSpace->GetFtrExt(FtrExtN)->IsStartStore(JsRec->Rec.GetStore()->GetStoreId()),
-            "FeatureSpace.extractVector: record's and feature extractor's store/source must be the same!");
+	const int FtrExtN = TNodeJsUtil::GetArgInt32(Args, 1, -1);
+	EAssertR(-1 <= FtrExtN && FtrExtN < JsFtrSpace->FtrSpace->GetFtrExts(), "FeatureSpace.extractVector: invalid feature extractor ID!");
 
+	if (TNodeJsUtil::IsArgWrapObj<TNodeJsRec>(Args, 0)) {
+		TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[0]->ToObject());
+		QmAssertR(JsFtrSpace->FtrSpace->IsStartStore(JsRec->Rec.GetStore()->GetStoreId()),
+			"FeatureSpace.extractVector: record's and feature extractor's store/source must be the same!");
 		JsFtrSpace->FtrSpace->GetFullV(JsRec->Rec, FltV, FtrExtN);
+	}
+	else if (TNodeJsUtil::IsArgJson(Args, 0)) {
+		PJsonVal Json = TNodeJsUtil::GetArgJson(Args, 0);
+		TQm::TRec Rec(Store, Json);
+		JsFtrSpace->FtrSpace->GetFullV(Rec, FltV, FtrExtN);
+	}
+	else {
+		throw TQm::TQmExcept::New("extractVector: unsupported type of argument 0");
 	}
 
 	Args.GetReturnValue().Set(TNodeJsFltV::New(FltV));
+
 }
 
 // deprecated
 void TNodeJsFtrSpace::extractFeature(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	printf("extractFeature is DEPRECATED\n");
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
@@ -4030,28 +4067,41 @@ void TNodeJsFtrSpace::extractSparseMatrix(const v8::FunctionCallbackInfo<v8::Val
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	QmAssertR(Args.Length() == 1, "Should have 1 argument!");
+	QmAssertR(Args.Length() == 1 || Args.Length() == 2, "Should have 1  or 2 arguments!");
 
-    TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
-    TNodeJsRecSet* RecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args[0]->ToObject());
+	TVec<TIntFltKdV> SpMat;
 
-    // create feature matrix
-    TVec<TIntFltKdV> SpMat(RecSet->RecSet->GetRecs(), 0);
+	TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
+	if (JsFtrSpace->GetFtrSpace()->GetFtrExts() == 0) {
+		Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsSpMat>(new TNodeJsSpMat(SpMat)));
+		return;
+	}
 
-	if (Args.Length() == 1) {
-        EAssertR(JsFtrSpace->FtrSpace->IsStartStore(RecSet->RecSet->GetStore()->GetStoreId()),
-            "FeatureSpace.extractSparseMatrix: record's and feature extractor's store/source must be the same!");
+	TWPt<TQm::TStore> Store = JsFtrSpace->GetFtrSpace()->GetFtrExt(0)->GetFtrStore();
 
-		// create feature vector, compute
-		JsFtrSpace->FtrSpace->GetSpVV(RecSet->RecSet, SpMat);
-	} else {
-		const int FtrExtN = TNodeJsUtil::GetArgInt32(Args, 1);
-		EAssertR(0 <= FtrExtN && FtrExtN < JsFtrSpace->FtrSpace->GetFtrExts(), "FeatureSpace.extractSparseMatrix: invalid feature extractor ID!");
+	const int FtrExtN = TNodeJsUtil::GetArgInt32(Args, 1, -1);
+	EAssertR(-1 <= FtrExtN && FtrExtN < JsFtrSpace->FtrSpace->GetFtrExts(), "FeatureSpace.extractSparseMatrix: invalid feature extractor ID!");
 
-        EAssertR(JsFtrSpace->FtrSpace->GetFtrExt(FtrExtN)->IsStartStore(RecSet->RecSet->GetStore()->GetStoreId()),
-            "FeatureSpace.extractSparseMatrix: record's and feature extractor's store/source must be the same!");
+	if (TNodeJsUtil::IsArgWrapObj<TNodeJsRecSet>(Args, 0)) {
+		TNodeJsRecSet* RecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args[0]->ToObject());
+
+		EAssertR(JsFtrSpace->FtrSpace->IsStartStore(RecSet->RecSet->GetStore()->GetStoreId()),
+			"FeatureSpace.extractSparseMatrix: record's and feature extractor's store/source must be the same!");
 
 		JsFtrSpace->FtrSpace->GetSpVV(RecSet->RecSet, SpMat, FtrExtN);
+	} else if (TNodeJsUtil::IsArgJson(Args, 0)) {
+		PJsonVal Json = TNodeJsUtil::GetArgJson(Args, 0);
+		EAssertR(Json->IsArr(), "FeatureSpace.extractSparseMatrix: expected record set or a JSON array");
+		int Len = Json->GetArrVals();
+		SpMat.Gen(Len, 0);
+		for (int RecN = 0; RecN < Len; RecN++) {
+			TIntFltKdV SpVec;
+			TQm::TRec Rec(Store, Json->GetArrVal(RecN));
+			JsFtrSpace->FtrSpace->GetSpV(Rec, SpVec, FtrExtN);
+			SpMat.Add(SpVec);
+		}		
+	} else {
+		throw TQm::TQmExcept::New("extractSparseMatrix: unsupported type of argument 0");
 	}
 
 	Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsSpMat>(new TNodeJsSpMat(SpMat, -1)));
@@ -4061,31 +4111,48 @@ void TNodeJsFtrSpace::extractMatrix(const v8::FunctionCallbackInfo<v8::Value>& A
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	QmAssertR(Args.Length() == 1, "Should have 1 argument!");
+	QmAssertR(Args.Length() == 1 || Args.Length() == 2, "Should have 1  or 2 arguments!");
 
-    TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
-    TNodeJsRecSet* RecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args[0]->ToObject());
+	TFltVV Mat;
 
-    // create feature matrix
-    TFltVV Mat;
+	TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
+	if (JsFtrSpace->GetFtrSpace()->GetFtrExts() == 0) {
+		Args.GetReturnValue().Set(TNodeJsFltVV::New(Mat));
+		return;
+	}
 
-	if (Args.Length() == 1) {
-        EAssertR(JsFtrSpace->FtrSpace->IsStartStore(RecSet->RecSet->GetStore()->GetStoreId()),
-            "FeatureSpace.extractMatrix: record's and feature extractor's store/source must be the same!");
+	TWPt<TQm::TStore> Store = JsFtrSpace->GetFtrSpace()->GetFtrExt(0)->GetFtrStore();
 
-		// create feature vector, compute
-		JsFtrSpace->FtrSpace->GetFullVV(RecSet->RecSet, Mat);
-	} else {
-		const int FtrExtN = TNodeJsUtil::GetArgInt32(Args, 1);
-		EAssertR(0 <= FtrExtN && FtrExtN < JsFtrSpace->FtrSpace->GetFtrExts(), "FeatureSpace.extractMatrix: invalid feature extractor ID!");
+	const int FtrExtN = TNodeJsUtil::GetArgInt32(Args, 1, -1);
+	EAssertR(-1 <= FtrExtN && FtrExtN < JsFtrSpace->FtrSpace->GetFtrExts(), "FeatureSpace.extractMatrix: invalid feature extractor ID!");
 
-        EAssertR(JsFtrSpace->FtrSpace->GetFtrExt(FtrExtN)->IsStartStore(RecSet->RecSet->GetStore()->GetStoreId()),
-            "FeatureSpace.extractMatrix: record's and feature extractor's store/source must be the same!");
+	if (TNodeJsUtil::IsArgWrapObj<TNodeJsRecSet>(Args, 0)) {
+		TNodeJsRecSet* RecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args[0]->ToObject());
+
+		EAssertR(JsFtrSpace->FtrSpace->IsStartStore(RecSet->RecSet->GetStore()->GetStoreId()),
+			"FeatureSpace.extractMatrix: record's and feature extractor's store/source must be the same!");
 
 		JsFtrSpace->FtrSpace->GetFullVV(RecSet->RecSet, Mat, FtrExtN);
 	}
+	else if (TNodeJsUtil::IsArgJson(Args, 0)) {
+		PJsonVal Json = TNodeJsUtil::GetArgJson(Args, 0);
+		EAssertR(Json->IsArr(), "FeatureSpace.extractMatrix: expected record set or a JSON array");
+		int Len = Json->GetArrVals();
+		
+		Mat.Gen(JsFtrSpace->FtrSpace->GetDim(), Len);
+		for (int RecN = 0; RecN < Len; RecN++) {
+			TFltV Vec;
+			TQm::TRec Rec(Store, Json->GetArrVal(RecN));
+			JsFtrSpace->FtrSpace->GetFullV(Rec, Vec, FtrExtN);
+			Mat.SetCol(RecN, Vec);
+		}
+	}
+	else {
+		throw TQm::TQmExcept::New("FeatureSpace.extractMatrix: unsupported type of argument 0");
+	}
 
-    Args.GetReturnValue().Set(TNodeJsFltVV::New(Mat));
+	Args.GetReturnValue().Set(TNodeJsFltVV::New(Mat));
+
 }
 
 void TNodeJsFtrSpace::getFeatureExtractor(const v8::FunctionCallbackInfo<v8::Value>& Args) {
