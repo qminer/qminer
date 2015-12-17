@@ -1,3 +1,0 @@
-[submodule "src/third_party/eigen"]
-	path = src/third_party/eigen
-	url = https://github.com/RLovelett/eigen.git
