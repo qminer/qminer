@@ -3229,11 +3229,11 @@ namespace TStreamAggrOut {
 		virtual double GetFlt() const = 0;
 	};
 
-	class ISparseVec {
-	public:
-		// retrieving value from the aggregate
-		virtual const TIntFltKdV& GetSparseVec() const = 0;
-	};
+	//class ISparseVec {
+	//public:
+	//	// retrieving value from the aggregate
+	//	virtual const TIntFltKdV& GetSparseVec() const = 0;
+	//};
 	
 	class ITm {
 	public:
@@ -3245,19 +3245,20 @@ namespace TStreamAggrOut {
 	
 	// combination of numeric value and timestamp
 	class IFltTm: public IFlt, public ITm { };
-	// combination of sparse-vector and timestamp
-	class ISparseVecTm : public ISparseVec, public ITm {};
 
 	template <class TVal>
 	class IValVec {
 	public:
 		// retrieving vector of values from the aggregate
 		virtual int GetVals() const = 0;
-		virtual TVal GetVal(const TInt& ElN) const = 0;
+		virtual void GetVal(const TInt& ElN, TVal& Val) const = 0;
 		virtual void GetValV(TVec<TVal>& ValV) const = 0;
 	};
 	typedef IValVec<TFlt> IFltVec;
 	typedef IValVec<TIntFltKdV> ISparseVVec;
+	typedef IValVec<TIntFltKd> ISparseVec;
+	// combination of sparse-vector and timestamp
+	class ISparseVecTm : public ISparseVec, public ITm {};
 
 	class ITmVec {
 	public:

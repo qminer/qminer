@@ -87,6 +87,7 @@
 * @property {module:qm~StreamAggregateSum} sum - The sum type.
 * @property {module:qm~StreamAggregateMin} min - The minimal type.
 * @property {module:qm~StreamAggregateMax} max - The maximal type.
+* @property {module:qm~StreamAggregateSparseVecSum} sum - The sparse-vector-sum type.
 * @property {module:qm~StreamAggregateTimeSeriesTick} tick - The time series tick type.
 * @property {module:qm~StreamAggregateMovingAverage} ma - The moving average type.
 * @property {module:qm~StreamAggregateEMA} ema - The exponental moving average type.
@@ -318,6 +319,64 @@
 *    inAggr: 'TimeSeriesAggr'
 * };
 * var maximal = base.store("Heat").addStreamAggr(max);
+* base.close();
+*/
+
+/**
+* @typedef {module:qm.StreamAggr} StreamAggregateSparseVecSum
+* This stream aggregator represents the sparse-vector-sum moving window buffer. It sums all the sparse-vector values, that are in the connected stream aggregator.
+* It implements the following methods:
+* <br>{@link module:qm.StreamAggr#getValueVector} returns the sum of the values of the records in it's buffer window.
+* <br>{@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the newest record in it's buffer window.
+* @property {string} StreamAggregateSum.name - The given name of the stream aggregator.
+* @property {string} StreamAggregateSum.type - The type of the stream aggregator. It must be equal to <b>'winBufSpVecSum'</b>.
+* @property {string} StreamAggregateSum.store - The name of the store from which it takes the data.
+* @property {string} StreamAggregateSum.inAggr - The name of the stream aggregator to which it connects and gets data.
+* @example
+* var qm = require('qminer');
+* var base = new qm.Base({
+* 	mode: 'createClean',
+* 	schema: [{
+* 		name: 'Docs',
+* 		fields: [
+* 			{ name: 'Time', type: 'datetime' },
+* 			{ name: 'Text', type: 'string' }
+* 		]
+* 	}]
+* });
+* var store = base.store('Docs');
+*
+* var aggr = {
+* 	name: 'featureSpaceWindow',
+* 	type: 'timeSeriesWinBufFeatureSpace',
+* 	store: 'Docs',
+* 	timestamp: 'Time',
+* 	featureSpace: {
+* 		type: "categorical",
+* 		source: "Docs",
+* 		field: "Text"
+* 	},
+* 	winsize: 1000
+* };
+* var sa = store.addStreamAggr(aggr);
+*
+* var aggr2 = {
+* 	name: 'sparseVectorSum',
+* 	type: 'winBufSpVecSum',
+* 	store: 'Docs',
+* 	inAggr: 'featureSpaceWindow'
+* };
+* var sa2 = store.addStreamAggr(aggr2);
+*
+* store.push({ Time: '2015-06-10T14:13:32.0', Text: 'a' }); // 0
+* store.push({ Time: '2015-06-10T14:13:33.0', Text: 'b' }); // 1
+* store.push({ Time: '2015-06-10T14:14:34.0', Text: 'c' }); // 2
+* store.push({ Time: '2015-06-10T14:15:35.0', Text: 'd' }); // 3
+* store.push({ Time: '2015-06-10T14:15:36.0', Text: 'e' }); // 4
+* store.push({ Time: '2015-06-10T14:15:37.0', Text: 'f' }); // 5
+*
+* var valVec2 = sa2.getValueVector(); // [0, 0, 0, 0, 1, 1] - only vectors 4 and 5 remain in window
+*
 * base.close();
 */
 
@@ -1865,7 +1924,7 @@ public:
 
 	// IFltVec
 	int GetVals() const;
-	TFlt GetVal(const TInt& ElN) const; // GetFltAtFun
+	void GetVal(const TInt& ElN, TFlt& Val) const; // GetFltAtFun
 	void GetValV(TFltV& ValV) const;
 	// ITmVec
 	int GetTmLen() const;
@@ -1880,7 +1939,9 @@ public:
 	double GetNmInt(const TStr& Nm) const;
 	void GetNmIntV(TStrIntPrV& NmIntV) const;
 	// ISparseVec
-	const TIntFltKdV& GetSparseVec() const;
+	//int GetVals() const; - this one is "shared" with IFltVec
+	void GetVal(const TInt& ElN, TIntFltKd& Val) const; // GetFltAtFun
+	void GetValV(TIntFltKdV& ValV) const;
 };
 
 #endif

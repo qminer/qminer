@@ -320,7 +320,9 @@ void TNodeJsStreamAggr::getFloatAt(const v8::FunctionCallbackInfo<v8::Value>& Ar
 		throw TQm::TQmExcept::New("TNodeJsStreamAggr::getFltAt : stream aggregate does not implement IFltVec: " + JsSA->SA->GetAggrNm());
 	}
 
-	Args.GetReturnValue().Set(v8::Number::New(Isolate, Aggr->GetVal(ElN)));
+	TFlt Flt;
+	Aggr->GetVal(ElN, Flt);
+	Args.GetReturnValue().Set(v8::Number::New(Isolate, Flt));
 }
 void TNodeJsStreamAggr::getFloatVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -586,7 +588,8 @@ void TNodeJsStreamAggr::getValueVector(const v8::FunctionCallbackInfo<v8::Value>
 			TNodeJsUtil::NewInstance<TNodeJsSpMat>(new TNodeJsSpMat(Res)));
 	} 
 	else if (!SpV.Empty()) {
-		const TIntFltKdV& Res = SpV->GetSparseVec();
+		TIntFltKdV Res;
+		SpV->GetValV(Res);
 		Args.GetReturnValue().Set(
 			TNodeJsUtil::NewInstance<TNodeJsSpVec>(new TNodeJsSpVec(Res)));
 	}
@@ -1066,10 +1069,12 @@ int TNodeJsFuncStreamAggr::GetN() const {
 
 // IFltVec
 int TNodeJsFuncStreamAggr::GetVals() const {
-	throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetFltLen not implemented");
+	// here be carefull when writing implementation
+	// this method can be called via IFltVec or via ISparseVec
+	throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetVals not implemented");
 }
-TFlt TNodeJsFuncStreamAggr::GetVal(const TInt& ElN) const {
-	throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetFlt not implemented");
+void TNodeJsFuncStreamAggr::GetVal(const TInt& ElN, TFlt& Val) const {
+	throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetVal not implemented");
 } // GetFltAtFun
 
 void TNodeJsFuncStreamAggr::GetValV(TFltV& ValV) const {
@@ -1092,7 +1097,7 @@ void TNodeJsFuncStreamAggr::GetValV(TFltV& ValV) const {
 		ValV = JsVec->Vec;
 
 	} else {
-		throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", getFloatVector() callback is empty!");
+		throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetValV() callback is empty!");
 	}
 }
 // ITmVec
@@ -1126,6 +1131,13 @@ void TNodeJsFuncStreamAggr::GetNmIntV(TStrIntPrV& NmIntV) const {
 	throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetNmIntV not implemented");
 }
 // ISparseVec
-const TIntFltKdV& TNodeJsFuncStreamAggr::GetSparseVec() const {
-	throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetSparseVec not implemented");
+//const TIntFltKdV& TNodeJsFuncStreamAggr::GetSparseVec() const {
+//	throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetSparseVec not implemented");
+//}
+
+void TNodeJsFuncStreamAggr::GetVal(const TInt& ElN, TIntFltKd& Val) const {
+	throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetVal not implemented");
+}
+void TNodeJsFuncStreamAggr::GetValV(TIntFltKdV& ValV) const {
+	throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetValV not implemented");
 }

@@ -349,7 +349,7 @@ public:
 	/// get buffer length
 	int GetVals() const { EAssertR(IsInit(), "WinBuf not initialized yet!"); return (int)(D - B); }
 	/// get value at
-	TVal GetVal(const TInt& ElN) const { return GetRecVal(B + ElN); }
+	void GetVal(const TInt& ElN, TVal& Val) const { Val = GetRecVal(B + ElN); }
 	/// get float vector of all values in the buffer (IFltVec interface)
 	void GetValV(TVec<TVal>& ValV) const;
 
@@ -575,7 +575,10 @@ public:
 	/// Resets the aggregate
 	void Reset() { Signal.Reset(); }
 	// current values
-	const TIntFltKdV& GetSparseVec() const { return Signal.GetValue(); }
+	//const TIntFltKdV& GetSparseVec() const { return Signal.GetValue(); }
+	int GetVals() const { return Signal.GetValue().Len(); }
+	void GetVal(const TInt& ElN, TIntFltKd& Val) const { Val = Signal.GetValue()[0]; }
+	void GetValV(TVec<TIntFltKd>& ValV) const { ValV = Signal.GetValue(); }
 	uint64 GetTmMSecs() const { return TStreamAggrOut::ITm::GetTmMSecsCast(InAggr); }
 	void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggr->GetAggrNm()); }
 
@@ -903,7 +906,7 @@ public:
 	// retrieving vector of values from the aggregate
 	int GetVals() const { return FtrSpace->GetDim(); }
 	void GetValV(TFltV& ValV) const { ValV = Vec; }
-	TFlt GetVal(const TInt& ElN) const;
+	void GetVal(const TInt& ElN, TFlt& Val) const;
 
 	/// Save stream aggregate to stream
 	void Save(TSOut& SOut) const;
@@ -965,7 +968,7 @@ public:
 	/// returns the number of bins 
 	int GetVals() const { return Model.GetBins(); }
 	/// returns frequencies in a given bin
-	TFlt GetVal(const TInt& ElN) const { return Model.GetCountN(ElN); }
+	void GetVal(const TInt& ElN, TFlt& Val) const { Val = Model.GetCountN(ElN); }
 	/// returns the vector of frequencies
 	void GetValV(TFltV& ValV) const { Model.GetCountV(ValV); }
 };
@@ -1164,7 +1167,7 @@ public:
 	/// returns the number of bins 
 	int GetVals() const { return Model->GetBins(); }
 	/// returns frequencies in a given bin
-	TFlt GetVal(const TInt& ElN) const;
+	void GetVal(const TInt& ElN, TFlt& Val) const;
 	/// returns the vector of frequencies
 	void GetValV(TFltV& ValV) const { Model->GetStats(LastTm - WndLen, LastTm, ValV); }
 };
@@ -1196,7 +1199,7 @@ public:
 	/// returns the number of bins 
 	int GetVals() const { return InAggrValX->GetVals(); }
 	/// returns frequencies in a given bin
-	TFlt GetVal(const TInt& ElN) const { return InAggrValX->GetVal(ElN) - InAggrValY->GetVal(ElN); }
+	void GetVal(const TInt& ElN, TFlt& Val) const { TFlt Flt1, Flt2; InAggrValX->GetVal(ElN, Flt1); InAggrValY->GetVal(ElN, Flt2); Val = Flt1 - Flt2; }
 	/// returns the vector of frequencies
 	void GetValV(TFltV& ValV) const;
 	/// serialization to JSon
@@ -1339,7 +1342,7 @@ void TWinBuf<TVal>::GetValV(TVec<TVal>& ValV) const {
 	if (ValV.Empty()) { ValV.Gen(Len); }
 	// iterate
 	for (int RecN = 0; RecN < Len; RecN++) {
-		ValV[RecN] = GetVal(RecN);
+		GetVal(RecN, ValV[RecN]);
 	}
 }
 
