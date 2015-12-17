@@ -88,9 +88,11 @@ TNodeJsFs::TReadCsvTask::TReadCsvTask(const v8::FunctionCallbackInfo<v8::Value>&
 		SIn = JsFIn->SIn;
 	} else {	// Read from Node.js Buffer
 		v8::Local<v8::Object> BuffObj = Args[0]->ToObject();
-
+#if NODE_MODULE_VERSION == 47 /* Node.js v5.0.0 */
+		EAssertR(BuffObj->IsUint8Array(), "TNodeJsFs::readLines: argument not a buffer!");
+#else
 		EAssertR(BuffObj->HasIndexedPropertiesInExternalArrayData(), "TNodeJsFs::readLines: argument is not a buffer!");
-
+#endif
 		char* Buff = node::Buffer::Data(BuffObj);
 		size_t BuffLen = node::Buffer::Length(BuffObj);
 		SIn = new TThinMIn(Buff, (int)BuffLen);
@@ -355,9 +357,11 @@ void TNodeJsFs::readLines(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     	SIn = JsFIn->SIn;
     } else {	// Read from Node.js Buffer
     	v8::Local<v8::Object> BuffObj = Args[0]->ToObject();
-
+#if NODE_MODULE_VERSION == 47 /* Node.js v5.0.0 */
+		EAssertR(BuffObj->IsUint8Array(), "TNodeJsFs::readLines: argument not a buffer");
+#else
 		EAssertR(BuffObj->HasIndexedPropertiesInExternalArrayData(), "TNodeJsFs::readLines: argument is not a buffer!");
-
+#endif
     	char* Buff = node::Buffer::Data(BuffObj);
 		size_t BuffLen = node::Buffer::Length(BuffObj);
 		SIn = new TThinMIn(Buff, (int)BuffLen);

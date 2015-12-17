@@ -14,6 +14,9 @@
 
 #include <node.h>
 #include <node_object_wrap.h>
+#if NODE_MODULE_VERSION == 47 /* Node.js v5.0.0 */
+    #include <node_buffer.h>
+#endif
 #include <uv.h>
 #include "base.h"
 

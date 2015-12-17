@@ -786,8 +786,18 @@ v8::Local<v8::Value> TNodeJsStore::Field(const TQm::TRec& Rec, const int FieldId
 	} else if (Desc.IsTMem()) {
 		TMem Val;
 		Rec.GetFieldTMem(FieldId, Val);
+#if NODE_MODULE_VERSION == 47 /* Node.js v5.0.0 */
+		// The function node::Buffer::New returns a v8::MaybeLocal<v8::Object>,
+		// which is just a wrapper around v8::Local<> that "enforces a check
+		// ehther v8::Local<> is empty before it can be used." For details, see
+		// http://v8.paulfryzel.com/docs/master/singletonv8_1_1_maybe_local.html
+		printf("Using TMEM\n");
+		v8::Local<v8::Object> Bf = node::Buffer::New(Isolate, Val.GetBf(), Val.Len()).ToLocalChecked();
+		return HandleScope.Escape(Bf);
+#else
 		v8::Local<v8::Object> Bf = node::Buffer::New(Isolate, Val.GetBf(), Val.Len());
 		return HandleScope.Escape(Bf);
+#endif
 	} else if (Desc.IsJson()) {
 		PJsonVal Val = Rec.GetFieldJsonVal(FieldId);
 		return HandleScope.Escape(TNodeJsUtil::ParseJson(Isolate, Val));
@@ -2215,8 +2225,11 @@ void TNodeJsRec::setField(v8::Local<v8::String> Name, v8::Local<v8::Value> Value
 	else if (Desc.IsTMem()) {
 		QmAssertR(Value->IsObject(), "Field " + FieldNm + " not object");
 		v8::Handle<v8::Object> Object = v8::Handle<v8::Object>::Cast(Value);
-
+#if NODE_MODULE_VERSION == 47 /* Node.js v5.0.0 */
+		QmAssertR(Object->IsUint8Array(), "TNodeJsRec::setField: argument not a buffer");
+#else
 		QmAssertR(Object->HasIndexedPropertiesInExternalArrayData(), "TNodeJsRec::setField: argument is not a buffer!");
+#endif
 		char* Buff = node::Buffer::Data(Object);
 		size_t BuffLen = node::Buffer::Length(Object);
 

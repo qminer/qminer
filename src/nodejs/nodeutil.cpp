@@ -702,10 +702,15 @@ PMem TNodeJsUtil::GetArgMem(const v8::FunctionCallbackInfo<v8::Value>& Args, con
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 	v8::Local<v8::Object> Obj = Args[0]->ToObject();
+#if NODE_MODULE_VERSION == 47 /* Node.js v5.0.0 */
+	if (!Obj->IsUint8Array()) return TMem::New();
+	return TMem::New(node::Buffer::Data(Obj), node::Buffer::Length(Obj));
+#else
 	v8::ExternalArrayType ExternalType = Obj->GetIndexedPropertiesExternalArrayDataType();
 	if (ExternalType != v8::ExternalArrayType::kExternalUint8Array) return TMem::New();
 	int Len = Obj->GetIndexedPropertiesExternalArrayDataLength();
 	return TMem::New(static_cast<char*>(Obj->GetIndexedPropertiesExternalArrayData()), Len);
+#endif
 }
 
 uint64 TNodeJsUtil::GetTmMSecs(v8::Handle<v8::Date>& Date) {
