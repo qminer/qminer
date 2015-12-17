@@ -1228,9 +1228,9 @@ PStreamAggr TFtrExtAggr::New(const TWPt<TBase>& Base, const TStr& AggrNm, const 
 	return new TFtrExtAggr(Base, AggrNm, _FtrSpace);
 }
 
-TFlt TFtrExtAggr::GetVal(const TInt& ElN) const {
+void TFtrExtAggr::GetVal(const TInt& ElN, TFlt& Val) const {
 	QmAssertR(Vec.Len() > ElN, "TFtrExtAggr : GetFlt : index out of bounds");
-	return Vec[ElN]; 
+	Val = Vec[ElN];
 }
 
 void TFtrExtAggr::Save(TSOut& SOut) const {
@@ -1504,10 +1504,10 @@ PJsonVal TOnlineSlottedHistogram::SaveJson(const int& Limit) const {
 	return Res;
 }
 /// returns frequencies in a given bin
-TFlt TOnlineSlottedHistogram::GetVal(const TInt& ElN) const {
+void TOnlineSlottedHistogram::GetVal(const TInt& ElN, TFlt& Val) const {
 	TFltV Tmp;
 	GetValV(Tmp);
-	return Tmp[ElN];
+	Val = Tmp[ElN];
 }
 /// Load saved state
 void TOnlineSlottedHistogram::LoadState(TSIn& SIn) {

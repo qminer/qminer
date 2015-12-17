@@ -223,18 +223,26 @@ typedef TVec<TJoinSeq> TJoinSeqV;
 /// Field Type
 typedef enum { 
 	oftUndef    = -1,///< Undefined
-	oftInt		= 0, ///< Integer
+	oftByte     = 17,///< Unsigned 8-bit integer
+	oftInt		= 0, ///< 32-bit integer
+	oftInt16    = 15,///< 16-bit integer
+	oftInt64    = 16,///< 64-bit integer
 	oftIntV		= 9, ///< Vector of integers
+	oftUInt     = 13,///< Unsigned 32bit integer
+	oftUInt16   = 14,///< Unsigned 16bit integer
 	oftUInt64	= 8, ///< Unsigned 64bit integer
 	oftStr		= 1, ///< String
 	oftStrV		= 2, ///< Vector of strings
 	oftBool		= 4, ///< Boolean
 	oftFlt		= 5, ///< Double precision number
+	oftSFlt     = 18,///< Single precision number
 	oftFltPr	= 6, ///< Pair of double precision numbers, useful for storing geographic coordinates
 	oftFltV		= 10,///< Vector of double precision numbers
 	oftTm		= 7, ///< Date and time
 	oftNumSpV	= 11,///< Sparse vector -- vector of (integer,double) pairs 
-	oftBowSpV	= 12 ///< Bag-of-words sparse vector
+	oftBowSpV	= 12, ///< Bag-of-words sparse vector
+	oftTMem     = 19, ///< Memory buffer
+	oftJson     = 20  ///< JSON field
 } TFieldType;
 
 ///////////////////////////////
@@ -280,18 +288,26 @@ public:
 	// field data-type
 	TFieldType GetFieldType() const { return FieldType; }
 	TStr GetFieldTypeStr() const;
+	bool IsByte() const { return FieldType == oftByte; }
 	bool IsInt() const { return FieldType == oftInt; }
+	bool IsInt16() const { return FieldType == oftInt16; }
+	bool IsInt64() const { return FieldType == oftInt64; }
 	bool IsIntV() const { return FieldType == oftIntV; }
+	bool IsUInt() const { return FieldType == oftUInt; }
+	bool IsUInt16() const { return FieldType == oftUInt16; }
 	bool IsUInt64() const { return FieldType == oftUInt64; }
 	bool IsStr() const { return FieldType == oftStr; }
 	bool IsStrV() const { return FieldType == oftStrV; }
 	bool IsBool() const { return FieldType == oftBool; }
 	bool IsFlt() const { return FieldType == oftFlt; }
+	bool IsSFlt() const { return FieldType == oftSFlt; }
 	bool IsFltPr() const { return FieldType == oftFltPr; }
 	bool IsFltV() const { return FieldType == oftFltV; }
 	bool IsTm() const { return FieldType == oftTm; }
 	bool IsNumSpV() const { return FieldType == oftNumSpV; }
 	bool IsBowSpV() const { return FieldType == oftBowSpV; }
+	bool IsTMem() const { return FieldType == oftTMem; }
+	bool IsJson() const { return FieldType == oftJson; }
 
 	// flags
 	bool IsNullable() const { return ((Flags & ofdfNull) != 0); }
@@ -626,7 +642,17 @@ public:
 	/// Get field value using field id (default implementation throws exception)
 	virtual int GetFieldInt(const uint64& RecId, const int& FieldId) const;
 	/// Get field value using field id (default implementation throws exception)
+	virtual int16 GetFieldInt16(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id (default implementation throws exception)
+	virtual int64 GetFieldInt64(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id (default implementation throws exception)
+	virtual uchar GetFieldByte(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id (default implementation throws exception)
 	virtual void GetFieldIntV(const uint64& RecId, const int& FieldId, TIntV& IntV) const;
+	/// Get field value using field id (default implementation throws exception)
+	virtual uint GetFieldUInt(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id (default implementation throws exception)
+	virtual uint16 GetFieldUInt16(const uint64& RecId, const int& FieldId) const;
 	/// Get field value using field id (default implementation throws exception)
 	virtual uint64 GetFieldUInt64(const uint64& RecId, const int& FieldId) const;
 	/// Get field value using field id (default implementation throws exception)
@@ -637,6 +663,8 @@ public:
 	virtual bool GetFieldBool(const uint64& RecId, const int& FieldId) const;
 	/// Get field value using field id (default implementation throws exception)
 	virtual double GetFieldFlt(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id (default implementation throws exception)
+	virtual float GetFieldSFlt(const uint64& RecId, const int& FieldId) const;
 	/// Get field value using field id (default implementation throws exception)
 	virtual TFltPr GetFieldFltPr(const uint64& RecId, const int& FieldId) const;
 	/// Get field value using field id (default implementation throws exception)
@@ -649,6 +677,10 @@ public:
 	virtual void GetFieldNumSpV(const uint64& RecId, const int& FieldId, TIntFltKdV& SpV) const;
 	/// Get field value using field id (default implementation throws exception)
 	virtual void GetFieldBowSpV(const uint64& RecId, const int& FieldId, PBowSpV& SpV) const;
+	/// Get field value using field id (default implementation throws exception)
+	virtual void GetFieldTMem(const uint64& RecId, const int& FieldId, TMem& Mem) const;
+	/// Get field value using field id (default implementation throws exception)
+	virtual PJsonVal GetFieldJsonVal(const uint64& RecId, const int& FieldId) const;
 
 	/// Check if the value of given field for a given record is NULL
 	bool IsFieldNmNull(const uint64& RecId, const TStr& FieldNm) const;
@@ -678,13 +710,27 @@ public:
 	void GetFieldNmNumSpV(const uint64& RecId, const TStr& FieldNm, TIntFltKdV& SpV) const;
 	/// Get field value using field name (default implementation throws exception)
 	void GetFieldNmBowSpV(const uint64& RecId, const TStr& FieldNm, PBowSpV& SpV) const;
- 
+	/// Get field value using field name (default implementation throws exception)
+	void GetFieldNmTMem(const uint64& RecId, const TStr& FieldNm, TMem& mem) const;
+	/// Get field value using field name (default implementation throws exception)
+	PJsonVal GetFieldNmJsonVal(const uint64& RecId, const TStr& FieldNm) const;
+
 	/// Set the value of given field to NULL
 	virtual void SetFieldNull(const uint64& RecId, const int& FieldId);
 	/// Set field value using field id (default implementation throws exception)
+	virtual void SetFieldByte(const uint64& RecId, const int& FieldId, const uchar& Byte);
+	/// Set field value using field id (default implementation throws exception)
 	virtual void SetFieldInt(const uint64& RecId, const int& FieldId, const int& Int);
 	/// Set field value using field id (default implementation throws exception)
+	virtual void SetFieldInt16(const uint64& RecId, const int& FieldId, const int16& Int16);
+	/// Set field value using field id (default implementation throws exception)
+	virtual void SetFieldInt64(const uint64& RecId, const int& FieldId, const int64& Int64);
+	/// Set field value using field id (default implementation throws exception)
 	virtual void SetFieldIntV(const uint64& RecId, const int& FieldId, const TIntV& IntV);
+	/// Set field value using field id (default implementation throws exception)
+	virtual void SetFieldUInt(const uint64& RecId, const int& FieldId, const uint& UInt);
+	/// Set field value using field id (default implementation throws exception)
+	virtual void SetFieldUInt16(const uint64& RecId, const int& FieldId, const uint16& UInt16);
 	/// Set field value using field id (default implementation throws exception)
 	virtual void SetFieldUInt64(const uint64& RecId, const int& FieldId, const uint64& UInt64);
 	/// Set field value using field id (default implementation throws exception)
@@ -695,6 +741,8 @@ public:
 	virtual void SetFieldBool(const uint64& RecId, const int& FieldId, const bool& Bool);
 	/// Set field value using field id (default implementation throws exception)
 	virtual void SetFieldFlt(const uint64& RecId, const int& FieldId, const double& Flt);
+	/// Set field value using field id (default implementation throws exception)
+	virtual void SetFieldSFlt(const uint64& RecId, const int& FieldId, const float& Flt);
 	/// Set field value using field id (default implementation throws exception)
 	virtual void SetFieldFltPr(const uint64& RecId, const int& FieldId, const TFltPr& FltPr);
 	/// Set field value using field id (default implementation throws exception)
@@ -707,6 +755,10 @@ public:
 	virtual void SetFieldNumSpV(const uint64& RecId, const int& FieldId, const TIntFltKdV& SpV);
 	/// Set field value using field id (default implementation throws exception)
 	virtual void SetFieldBowSpV(const uint64& RecId, const int& FieldId, const PBowSpV& SpV);
+	/// Set field value using field id (default implementation throws exception)
+	virtual void SetFieldTMem(const uint64& RecId, const int& FieldId, const TMem& Mem);
+	/// Set field value using field id (default implementation throws exception)
+	virtual void SetFieldJsonVal(const uint64& RecId, const int& FieldId, const PJsonVal& Json);
 
 	/// Set the value of given field to NULL
 	void SetFieldNmNull(const uint64& RecId, const TStr& FieldNm);
@@ -735,8 +787,12 @@ public:
 	/// Set field value using field name (default implementation throws exception)
 	void SetFieldNmNumSpV(const uint64& RecId, const TStr& FieldNm, const TIntFltKdV& SpV);
 	/// Set field value using field name (default implementation throws exception)
-	void SetFieldNmBowSpV(const uint64& RecId, const TStr& FieldNm, const PBowSpV& SpV);   
-	
+	void SetFieldNmBowSpV(const uint64& RecId, const TStr& FieldNm, const PBowSpV& SpV);
+	/// Set field value using field name (default implementation throws exception)
+	void SetFieldNmTMem(const uint64& RecId, const TStr& FieldNm, const TMem& Mem);   
+	/// Set field value using field name (default implementation throws exception)
+	void SetFieldNmJsonVal(const uint64& RecId, const TStr& FieldNm, const PJsonVal& Json);
+
 	/// Get field value as JSon object using field id
 	virtual PJsonVal GetFieldJson(const uint64& RecId, const int& FieldId) const;
 	/// Get field value as human-readable text using field id
@@ -847,9 +903,19 @@ public:
 	/// Checks if field value is null
 	bool IsFieldNull(const int& FieldId) const;
 	/// Field value retrieval
+	uchar GetFieldByte(const int& FieldId) const;
+	/// Field value retrieval
 	int GetFieldInt(const int& FieldId) const;
 	/// Field value retrieval
+	int16 GetFieldInt16(const int& FieldId) const;
+	/// Field value retrieval
+	int64 GetFieldInt64(const int& FieldId) const;
+	/// Field value retrieval
 	void GetFieldIntV(const int& FieldId, TIntV& IntV) const;
+	/// Field value retrieval
+	uint GetFieldUInt(const int& FieldId) const;
+	/// Field value retrieval
+	uint16 GetFieldUInt16(const int& FieldId) const;
 	/// Field value retrieval
 	uint64 GetFieldUInt64(const int& FieldId) const;
 	/// Field value retrieval
@@ -860,6 +926,8 @@ public:
 	bool GetFieldBool(const int& FieldId) const;
 	/// Field value retrieval
 	double GetFieldFlt(const int& FieldId) const;
+	/// Field value retrieval
+	float GetFieldSFlt(const int& FieldId) const;
 	/// Field value retrieval
 	TFltPr GetFieldFltPr(const int& FieldId) const;
 	/// Field value retrieval
@@ -872,6 +940,10 @@ public:
 	void GetFieldNumSpV(const int& FieldId, TIntFltKdV& NumSpV) const;
 	/// Field value retrieval
 	void GetFieldBowSpV(const int& FieldId, PBowSpV& BowSpV) const;
+	/// Field value retrieval
+	void GetFieldTMem(const int& FieldId, TMem& Mem) const;
+	/// Field value retrieval
+	PJsonVal GetFieldJsonVal(const int& FieldId) const;
 
 	/// Get field value as JSon object using field id
 	PJsonVal GetFieldJson(const int& FieldId) const;
@@ -881,9 +953,19 @@ public:
 	/// Set field value to NULL
 	void SetFieldNull(const int& FieldId);
 	/// Set field value
+	void SetFieldByte(const int& FieldId, const uchar& Int);
+	/// Set field value
 	void SetFieldInt(const int& FieldId, const int& Int);
 	/// Set field value
+	void SetFieldInt16(const int& FieldId, const int16& Int);
+	/// Set field value
+	void SetFieldInt64(const int& FieldId, const int64& Int);
+	/// Set field value
 	void SetFieldIntV(const int& FieldId, const TIntV& IntV);
+	/// Set field value
+	void SetFieldUInt(const int& FieldId, const uint& UInt);
+	/// Set field value
+	void SetFieldUInt16(const int& FieldId, const uint16& UInt16);
 	/// Set field value
 	void SetFieldUInt64(const int& FieldId, const uint64& UInt64);
 	/// Set field value
@@ -894,6 +976,8 @@ public:
 	void SetFieldBool(const int& FieldId, const bool& Bool);
 	/// Set field value
 	void SetFieldFlt(const int& FieldId, const double& Flt);
+	/// Set field value
+	void SetFieldSFlt(const int& FieldId, const float& Flt);
 	/// Set field value
 	void SetFieldFltV(const int& FieldId, const TFltV& FltV);
 	/// Set field value
@@ -906,6 +990,10 @@ public:
 	void SetFieldNumSpV(const int& FieldId, const TIntFltKdV& NumSpV);
 	/// Set field value
 	void SetFieldBowSpV(const int& FieldId, const PBowSpV& BowSpV);
+	/// Set field value
+	void SetFieldTMem(const int& FieldId, const TMem& Mem);
+	/// Set field value
+	void SetFieldJsonVal(const int& FieldId, const PJsonVal& Json);
 	/// Add join
 	void AddJoin(const int& JoinId, const PRecSet& JoinRecSet);
 
@@ -1149,6 +1237,116 @@ public:
 };
 
 ///////////////////////////////
+/// Record Filter by Integer Field. 
+class TRecFilterByFieldInt16 {
+private:
+	/// Store from which we are sorting the records 
+	TWPt<TStore> Store;
+	/// Field according to which we are sorting
+	TInt FieldId;
+	/// Minimal value
+	TInt16 MinVal;
+	/// Maximal value
+	TInt16 MaxVal;
+public:
+	TRecFilterByFieldInt16(const TWPt<TStore>& _Store, const int& _FieldId, const int16& _MinVal,
+		const int16& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
+
+	bool operator()(const TUInt64IntKd& RecIdWgt) const {
+		const int16 RecVal = Store->GetFieldInt16(RecIdWgt.Key, FieldId);
+		return (MinVal <= RecVal) && (RecVal <= MaxVal);
+	}
+};
+
+///////////////////////////////
+/// Record Filter by Integer Field. 
+class TRecFilterByFieldInt64 {
+private:
+	/// Store from which we are sorting the records 
+	TWPt<TStore> Store;
+	/// Field according to which we are sorting
+	TInt FieldId;
+	/// Minimal value
+	TInt64 MinVal;
+	/// Maximal value
+	TInt64 MaxVal;
+public:
+	TRecFilterByFieldInt64(const TWPt<TStore>& _Store, const int& _FieldId, const int64& _MinVal,
+		const int64& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
+
+	bool operator()(const TUInt64IntKd& RecIdWgt) const {
+		const int64 RecVal = Store->GetFieldInt64(RecIdWgt.Key, FieldId);
+		return (MinVal <= RecVal) && (RecVal <= MaxVal);
+	}
+};
+
+///////////////////////////////
+/// Record Filter by Integer Field. 
+class TRecFilterByFieldUCh {
+private:
+	/// Store from which we are sorting the records 
+	TWPt<TStore> Store;
+	/// Field according to which we are sorting
+	TInt FieldId;
+	/// Minimal value
+	TUCh MinVal;
+	/// Maximal value
+	TUCh MaxVal;
+public:
+	TRecFilterByFieldUCh(const TWPt<TStore>& _Store, const int& _FieldId, const uchar& _MinVal,
+		const uchar& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
+
+	bool operator()(const TUInt64IntKd& RecIdWgt) const {
+		const uchar RecVal = Store->GetFieldByte(RecIdWgt.Key, FieldId);
+		return (MinVal <= RecVal) && (RecVal <= MaxVal);
+	}
+};
+
+///////////////////////////////
+/// Record Filter by Integer Field. 
+class TRecFilterByFieldUInt {
+private:
+	/// Store from which we are sorting the records 
+	TWPt<TStore> Store;
+	/// Field according to which we are sorting
+	TInt FieldId;
+	/// Minimal value
+	TUInt MinVal;
+	/// Maximal value
+	TUInt MaxVal;
+public:
+	TRecFilterByFieldUInt(const TWPt<TStore>& _Store, const int& _FieldId, const uint& _MinVal,
+		const uint& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
+
+	bool operator()(const TUInt64IntKd& RecIdWgt) const {
+		const uint RecVal = Store->GetFieldUInt(RecIdWgt.Key, FieldId);
+		return (MinVal <= RecVal) && (RecVal <= MaxVal);
+	}
+};
+
+///////////////////////////////
+/// Record Filter by Integer Field. 
+class TRecFilterByFieldUInt16 {
+private:
+	/// Store from which we are sorting the records 
+	TWPt<TStore> Store;
+	/// Field according to which we are sorting
+	TInt FieldId;
+	/// Minimal value
+	TUInt16 MinVal;
+	/// Maximal value
+	TUInt16 MaxVal;
+public:
+	TRecFilterByFieldUInt16(const TWPt<TStore>& _Store, const int& _FieldId, const uint16& _MinVal,
+		const uint16& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
+
+	bool operator()(const TUInt64IntKd& RecIdWgt) const {
+		const uint16 RecVal = Store->GetFieldUInt16(RecIdWgt.Key, FieldId);
+		return (MinVal <= RecVal) && (RecVal <= MaxVal);
+	}
+};
+
+///////////////////////////////
 /// Record Filter by Numeric Field. 
 class TRecFilterByFieldFlt {
 private:
@@ -1166,6 +1364,28 @@ public:
 	
 	bool operator()(const TUInt64IntKd& RecIdWgt) const {
 		const double RecVal = Store->GetFieldFlt(RecIdWgt.Key, FieldId);
+		return (MinVal <= RecVal) && (RecVal <= MaxVal);
+	}
+};
+
+///////////////////////////////
+/// Record Filter by Numeric Field. 
+class TRecFilterByFieldSFlt {
+private:
+	/// Store from which we are sorting the records 
+	TWPt<TStore> Store;
+	/// Field according to which we are sorting
+	TInt FieldId;
+	/// Minimal value
+	TSFlt MinVal;
+	/// Maximal value
+	TSFlt MaxVal;
+public:
+	TRecFilterByFieldSFlt(const TWPt<TStore>& _Store, const int& _FieldId, const float& _MinVal,
+		const float& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
+
+	bool operator()(const TUInt64IntKd& RecIdWgt) const {
+		const float RecVal = Store->GetFieldSFlt(RecIdWgt.Key, FieldId);
 		return (MinVal <= RecVal) && (RecVal <= MaxVal);
 	}
 };
@@ -1491,7 +1711,19 @@ public:
 	/// Filter records to keep only the ones with values of a given field within given range
 	void FilterByFieldInt(const int& FieldId, const int& MinVal, const int& MaxVal);
 	/// Filter records to keep only the ones with values of a given field within given range
+	void FilterByFieldInt16(const int& FieldId, const int16& MinVal, const int16& MaxVal);
+	/// Filter records to keep only the ones with values of a given field within given range
+	void FilterByFieldInt64(const int& FieldId, const int64& MinVal, const int64& MaxVal);
+	/// Filter records to keep only the ones with values of a given field within given range
+	void FilterByFieldByte(const int& FieldId, const uchar& MinVal, const uchar& MaxVal);
+	/// Filter records to keep only the ones with values of a given field within given range
+	void FilterByFieldUInt(const int& FieldId, const uint& MinVal, const uint& MaxVal);
+	/// Filter records to keep only the ones with values of a given field within given range
+	void FilterByFieldUInt16(const int& FieldId, const uint16& MinVal, const uint16& MaxVal);
+	/// Filter records to keep only the ones with values of a given field within given range
 	void FilterByFieldFlt(const int& FieldId, const double& MinVal, const double& MaxVal);
+	/// Filter records to keep only the ones with values of a given field within given range
+	void FilterByFieldSFlt(const int& FieldId, const float& MinVal, const float& MaxVal);
 	/// Filter records to keep only the ones with values of a given field equal to `FldVal'
     void FilterByFieldStr(const int& FieldId, const TStr& FldVal);
     /// Filter records to keep only the ones with values of a given field between `FldValMin' and `FldValMax' (both inclusive)
@@ -1621,7 +1853,7 @@ typedef enum {
 	oiktValue    = (1 << 0), ///< Index by exact value, using inverted index
 	oiktText     = (1 << 1), ///< Index as free text, using inverted index 
 	oiktLocation = (1 << 2), ///< Index as location. using geoindex 
-	oiktLinear   = (1 << 5), ///< Index as linarly ordered value using b-tree
+	oiktLinear   = (1 << 5), ///< Index as linearly ordered value using b-tree
 	oiktInternal = (1 << 3), ///< Index used internaly for joins, using inverted index
 	oiktSmall    = (1 << 4)  ///< Index uses small inverted index storage type
 } TIndexKeyType;
@@ -1635,10 +1867,16 @@ typedef enum {
 	oikstById     = 2, ///< Sort by index word id
 	oikstByFlt    = 3, ///< Sort as float
     // for Linear BTree sorting
-	oikstAsInt    = 4, ///< Sort as integer
+	oikstAsByte   = 8, ///< Sort as byte
+	oikstAsInt    = 4, ///< Sort as int
+	oikstAsInt16  = 9, ///< Sort as int16
+	oikstAsInt64  =10, ///< Sort as int64
+	oikstAsUInt   =11, ///< Sort as uint
+	oikstAsUInt16 =12, ///< Sort as uint16
 	oikstAsUInt64 = 5, ///< Sort as uint64
     oikstAsTm     = 6, ///< Sort as date-time
-	oikstAsFlt    = 7, ///< Sort as float
+	oikstAsFlt    = 7, ///< Sort as double
+	oikstAsSFlt   = 13, ///< Sort as float
 } TIndexKeySortType;
 
 ///////////////////////////////
@@ -1718,14 +1956,26 @@ public:
 	/// Checks if key is sortable by word id in the vocabulary (GIX)
 	bool IsSortById() const { return SortType == oikstById; }
 
-    /// Check if key is sortable by integers (BTree)
-    bool IsSortAsInt() const { return SortType == oikstAsInt; }
-    /// Check if key is sortable by integers (BTree)
-    bool IsSortAsUInt64() const { return SortType == oikstAsUInt64; }
-    /// Check if key is sortable by integers (BTree)
+    /// Check if key is sortable by bytes (BTree)
+    bool IsSortAsByte() const { return SortType == oikstAsByte; }
+	/// Check if key is sortable by integers (BTree)
+	bool IsSortAsInt() const { return SortType == oikstAsInt; }
+	/// Check if key is sortable by int16 (BTree)
+	bool IsSortAsInt16() const { return SortType == oikstAsInt16; }
+	/// Check if key is sortable by int64 (BTree)
+	bool IsSortAsInt64() const { return SortType == oikstAsInt64; }
+	/// Check if key is sortable by integers (BTree)
+    bool IsSortAsUInt() const { return SortType == oikstAsUInt; }
+	/// Check if key is sortable by integers (BTree)
+	bool IsSortAsUInt16() const { return SortType == oikstAsUInt16; }
+	/// Check if key is sortable by integers (BTree)
+	bool IsSortAsUInt64() const { return SortType == oikstAsUInt64; }
+	/// Check if key is sortable by integers (BTree)
     bool IsSortAsTm() const { return SortType == oikstAsTm; }
     /// Check if key is sortable by integers (BTree)
     bool IsSortAsFlt() const { return SortType == oikstAsFlt; }
+	/// Check if key is sortable by integers (BTree)
+	bool IsSortAsSFlt() const { return SortType == oikstAsSFlt; }
 
 	/// Checks if the key has assigned word vocabulary (e.g. locations and joins do not)
 	bool IsWordVoc() const { return WordVocId != -1; }
@@ -1941,8 +2191,14 @@ typedef enum {
 	oqitLeafGix      = 1, ///< Leaf inverted index query
 	oqitLeafGixSmall = 10,///< Leaf inverted index query - for small items
 	oqitGeo          = 8, ///< Geoindex query
-    oqitRangeInt     = 11,///< Range BTree integer query
-    oqitRangeUInt64  = 12,///< Range BTree uint64 query
+	oqitRangeByte    = 15,///< Range BTree byte query
+	oqitRangeInt     = 11,///< Range BTree integer query
+	oqitRangeInt16   = 16,///< Range BTree int16 query
+	oqitRangeInt64   = 17,///< Range BTree int64 query
+	oqitRangeUInt    = 18,///< Range BTree uint query
+	oqitRangeUInt16  = 19,///< Range BTree uint16 query
+	oqitRangeUInt64  = 12,///< Range BTree uint64 query
+    oqitRangeSFlt    = 20,///< Range BTree float query
     oqitRangeFlt     = 13,///< Range BTree float query
     oqitRangeTm      = 14,///< Range BTree date-time query
 	oqitAnd          = 2, ///< AND between two or more queries
@@ -1959,9 +2215,9 @@ typedef enum {
 /// Comparison operators that can be specified between a field and a value
 typedef enum { 
 	oqctUndef    = 0,
-	oqctEqual    = 1, ///< Equalst (==)
-	oqctGreater  = 2, ///< Greater then (>)
-	oqctLess     = 3, ///< Less then (<)
+	oqctEqual    = 1, ///< Equals (==)
+	oqctGreater  = 2, ///< Greater than (>)
+	oqctLess     = 3, ///< Less than (<)
 	oqctNotEqual = 4, ///< Not equal (!=)
 	oqctWildChar = 5 ///< Wildchar string matching (* for zero or more chars, ? for exactly one char)
 } TQueryCmpType;
@@ -1996,12 +2252,26 @@ private:
 	TFlt LocRadius;
 	/// Number of nearest neighbors of search space (for location query)
 	TInt LocLimit;
+
     /// Edge parameters for range integer query
     TIntPr RangeIntMnMx;
-    /// Edge parameters for range uint64 query
-    TUInt64Pr RangeUInt64MnMx;
-    /// Edge parameters for range float query
+	/// Edge parameters for range int16 query
+	TInt16Pr RangeInt16MnMx;
+	/// Edge parameters for range int64 query
+	TInt64Pr RangeInt64MnMx;
+	/// Edge parameters for range byte query
+	TUChPr RangeUChMnMx;
+	/// Edge parameters for range uint query
+    TUIntUIntPr RangeUIntMnMx;
+	/// Edge parameters for range uint16 query
+	TUInt16Pr RangeUInt16MnMx;
+	/// Edge parameters for range uint64 query
+	TUInt64Pr RangeUInt64MnMx;
+	/// Edge parameters for range float query
     TFltPr RangeFltMnMx;
+	/// Edge parameters for range float query
+	TSFltPr RangeSFltMnMx;
+	
 	/// List of subordinate query items.
 	/// Has exactly one element when NOT or JOIN node type
 	TQueryItemV ItemV;
@@ -2105,13 +2375,25 @@ public:
 	/// Check query type
 	bool IsRangeInt() const { return (Type == oqitRangeInt); }
 	/// Check query type
+	bool IsRangeInt16() const { return (Type == oqitRangeInt16); }
+	/// Check query type
+	bool IsRangeInt64() const { return (Type == oqitRangeInt64); }
+	/// Check query type
+	bool IsRangeByte() const { return (Type == oqitRangeByte); }
+	/// Check query type
+	bool IsRangeUInt() const { return (Type == oqitRangeUInt); }
+	/// Check query type
+	bool IsRangeUInt16() const { return (Type == oqitRangeUInt16); }
+	/// Check query type
 	bool IsRangeUInt64() const { return (Type == oqitRangeUInt64); }
 	/// Check query type
 	bool IsRangeTm() const { return (Type == oqitRangeTm); }
 	/// Check query type
 	bool IsRangeFlt() const { return (Type == oqitRangeFlt); }
 	/// Check query type
-	bool IsRange() const { return (IsRangeInt() || IsRangeUInt64() || IsRangeTm() || IsRangeFlt()); }
+	bool IsRangeSFlt() const { return (Type == oqitRangeSFlt); }
+	/// Check query type
+	bool IsRange() const { return (IsRangeInt() || IsRangeUInt64() || IsRangeTm() || IsRangeFlt() || IsRangeSFlt()); }
 	/// Check query type
 	bool IsAnd() const { return (Type == oqitAnd); }
 	/// Check query type
@@ -2153,12 +2435,25 @@ public:
 	double GetLocRadius() const { return LocRadius; }
 	/// Get location query maximal number of neighbors (for location queries)
 	int GetLocLimit() const { return LocLimit; }
-    /// Get integer range
+
+	/// Get integer range
     TIntPr GetRangeIntMinMax() const { return RangeIntMnMx; }
-    /// Get uint64 integer range
-    TUInt64Pr GetRangeUInt64MinMax() const { return RangeUInt64MnMx; }
-    /// Get float range
+	/// Get integer range
+	TInt16Pr GetRangeInt16MinMax() const { return RangeInt16MnMx; }
+	/// Get integer range
+	TInt64Pr GetRangeInt64MinMax() const { return RangeInt64MnMx; }
+	/// Get integer range
+	TUChPr GetRangeByteMinMax() const { return RangeUChMnMx; }
+	/// Get uint64 integer range
+    TUIntUIntPr GetRangeUIntMinMax() const { return RangeUIntMnMx; }
+	/// Get uint64 integer range
+	TUInt16Pr GetRangeUInt16MinMax() const { return RangeUInt16MnMx; }
+	/// Get uint64 integer range
+	TUInt64Pr GetRangeUInt64MinMax() const { return RangeUInt64MnMx; }
+	/// Get float range
     TFltPr GetRangeFltMinMax() const { return RangeFltMnMx; }
+	/// Get float range
+	TSFltPr GetRangeSFltMinMax() const { return RangeSFltMnMx; }
 
 	/// Get comparison type
 	TQueryCmpType GetCmpType() const { return CmpType; }
@@ -2513,9 +2808,15 @@ public:
 	typedef TPt<TQmGixExpItemSmall> PQmGixExpItemSmall;
 
     // b-tree definitions
-    typedef TPt<TBTreeIndex<TInt>> PBTreeIndexInt;
-    typedef TPt<TBTreeIndex<TUInt64>> PBTreeIndexUInt64;
+	typedef TPt<TBTreeIndex<TUCh>> PBTreeIndexUCh;
+	typedef TPt<TBTreeIndex<TInt>> PBTreeIndexInt;
+	typedef TPt<TBTreeIndex<TInt16>> PBTreeIndexInt16;
+	typedef TPt<TBTreeIndex<TInt64>> PBTreeIndexInt64;
+	typedef TPt<TBTreeIndex<TUInt>> PBTreeIndexUInt;
+	typedef TPt<TBTreeIndex<TUInt16>> PBTreeIndexUInt16;
+	typedef TPt<TBTreeIndex<TUInt64>> PBTreeIndexUInt64;
     typedef TPt<TBTreeIndex<TFlt>> PBTreeIndexFlt;
+	typedef TPt<TBTreeIndex<TSFlt>> PBTreeIndexSFlt;
 
 private:    
 	/// Remember index location
@@ -2529,12 +2830,24 @@ private:
 
 	/// Location index (one for each key)
 	THash<TInt, PGeoIndex> GeoIndexH;
-    /// BTree index for integers (one for each key)
-    THash<TInt, PBTreeIndexInt> BTreeIndexIntH;
-    /// BTree index uint64 (one for each key)
-    THash<TInt, PBTreeIndexUInt64> BTreeIndexUInt64H;
-    /// BTree index for floats (one for each key)
+    /// BTree index for bytes (one for each key)
+    THash<TInt, PBTreeIndexUCh> BTreeIndexByteH;
+	/// BTree index for integers (one for each key)
+	THash<TInt, PBTreeIndexInt> BTreeIndexIntH;
+	/// BTree index for int16 (one for each key)
+	THash<TInt, PBTreeIndexInt16> BTreeIndexInt16H;
+	/// BTree index for inte64 (one for each key)
+	THash<TInt, PBTreeIndexInt64> BTreeIndexInt64H;
+	/// BTree index uint (one for each key)
+    THash<TInt, PBTreeIndexUInt> BTreeIndexUIntH;
+	/// BTree index uint16 (one for each key)
+	THash<TInt, PBTreeIndexUInt16> BTreeIndexUInt16H;
+	/// BTree index uint64 (one for each key)
+	THash<TInt, PBTreeIndexUInt64> BTreeIndexUInt64H;
+	/// BTree index for floats (one for each key)
     THash<TInt, PBTreeIndexFlt> BTreeIndexFltH;
+	/// BTree index for floats (one for each key)
+	THash<TInt, PBTreeIndexSFlt> BTreeIndexSFltH;
 
 	/// Index Vocabulary
 	PIndexVoc IndexVoc;
@@ -2666,25 +2979,61 @@ public:
     void IndexLinear(const uint& StoreId, const TStr& KeyNm, const uint64& Val, const uint64& RecId);
     /// Add RecId to linear index under (Key, Val)
     void IndexLinear(const uint& StoreId, const TStr& KeyNm, const double& Val, const uint64& RecId);
-    /// Add RecId to linear index under (Key, Val)
-    void IndexLinear(const int& KeyId, const int& Val, const uint64& RecId);
-    /// Add RecId to linear index under (Key, Val)
+	/// Add RecId to linear index under (Key, Val)
+	void IndexLinear(const int& KeyId, const uchar& Val, const uint64& RecId);
+	/// Add RecId to linear index under (Key, Val)
+	void IndexLinear(const int& KeyId, const int& Val, const uint64& RecId);
+	/// Add RecId to linear index under (Key, Val)
+	void IndexLinear(const int& KeyId, const int16& Val, const uint64& RecId);
+	/// Add RecId to linear index under (Key, Val)
+    void IndexLinear(const int& KeyId, const int64& Val, const uint64& RecId);
+	/// Add RecId to linear index under (Key, Val)
+	void IndexLinear(const int& KeyId, const uint& Val, const uint64& RecId);
+	/// Add RecId to linear index under (Key, Val)
+	void IndexLinear(const int& KeyId, const uint16& Val, const uint64& RecId);
+	/// Add RecId to linear index under (Key, Val)
     void IndexLinear(const int& KeyId, const uint64& Val, const uint64& RecId);
     /// Add RecId to linear index under (Key, Val)
     void IndexLinear(const int& KeyId, const double& Val, const uint64& RecId);
+	/// Add RecId to linear index under (Key, Val)
+	void IndexLinear(const int& KeyId, const float& Val, const uint64& RecId);
 
     /// Delete RecId from linear index under (Key, Val)
-    void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const int& Val, const uint64& RecId);
-    /// Delete RecId from linear index under (Key, Val)
-    void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const uint64& Val, const uint64& RecId);
-    /// Delete RecId from linear index under (Key, Val)
+    void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const uchar& Val, const uint64& RecId);
+	/// Delete RecId from linear index under (Key, Val)
+	void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const int& Val, const uint64& RecId);
+	/// Delete RecId from linear index under (Key, Val)
+	void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const int16& Val, const uint64& RecId);
+	/// Delete RecId from linear index under (Key, Val)
+	void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const int64& Val, const uint64& RecId);
+	/// Delete RecId from linear index under (Key, Val)
+    void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const uint& Val, const uint64& RecId);
+	/// Delete RecId from linear index under (Key, Val)
+	void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const uint16& Val, const uint64& RecId);
+	/// Delete RecId from linear index under (Key, Val)
+	void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const uint64& Val, const uint64& RecId);
+	/// Delete RecId from linear index under (Key, Val)
     void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const double& Val, const uint64& RecId);
+	/// Delete RecId from linear index under (Key, Val)
+	void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const float& Val, const uint64& RecId);
+	/// Delete RecId from linear index under (Key, Val)
+	void DeleteLinear(const int& KeyId, const uchar& Val, const uint64& RecId);
+	/// Delete RecId from linear index under (Key, Val)
+	void DeleteLinear(const int& KeyId, const int& Val, const uint64& RecId);
+	/// Delete RecId from linear index under (Key, Val)
+	void DeleteLinear(const int& KeyId, const int16& Val, const uint64& RecId);
+	/// Delete RecId from linear index under (Key, Val)
+    void DeleteLinear(const int& KeyId, const int64& Val, const uint64& RecId);
     /// Delete RecId from linear index under (Key, Val)
-    void DeleteLinear(const int& KeyId, const int& Val, const uint64& RecId);
-    /// Delete RecId from linear index under (Key, Val)
-    void DeleteLinear(const int& KeyId, const uint64& Val, const uint64& RecId);
-    /// Delete RecId from linear index under (Key, Val)
+    void DeleteLinear(const int& KeyId, const uint& Val, const uint64& RecId);
+	/// Delete RecId from linear index under (Key, Val)
+	void DeleteLinear(const int& KeyId, const uint16& Val, const uint64& RecId);
+	/// Delete RecId from linear index under (Key, Val)
+	void DeleteLinear(const int& KeyId, const uint64& Val, const uint64& RecId);
+	/// Delete RecId from linear index under (Key, Val)
     void DeleteLinear(const int& KeyId, const double& Val, const uint64& RecId);
+	/// Delete RecId from linear index under (Key, Val)
+	void DeleteLinear(const int& KeyId, const float& Val, const uint64& RecId);
 
 	/// Check if index opened in read-only mode
 	bool IsReadOnly() const { return Access == faRdOnly; }
@@ -2701,13 +3050,25 @@ public:
 	/// Do geo-location nearest-neighbor search
 	PRecSet SearchGeoNn(const TWPt<TBase>& Base, const int& KeyId,
 		const TFltPr& Loc, const int& Limit) const;
+	/// Do B-Tree linear search
+	PRecSet SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TUChPr& RangeMinMax);
+	/// Do B-Tree linear search
+	PRecSet SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TIntPr& RangeMinMax);
+	/// Do B-Tree linear search
+	PRecSet SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TInt16Pr& RangeMinMax);
+	/// Do B-Tree linear search
+    PRecSet SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TInt64Pr& RangeMinMax);
     /// Do B-Tree linear search
-    PRecSet SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TIntPr& RangeMinMax);
-    /// Do B-Tree linear search
-    PRecSet SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TUInt64Pr& RangeMinMax);
-    /// Do B-Tree linear search
+    PRecSet SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TUIntUIntPr& RangeMinMax);
+	/// Do B-Tree linear search
+	PRecSet SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TUInt16Pr& RangeMinMax);
+	/// Do B-Tree linear search
+	PRecSet SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TUInt64Pr& RangeMinMax);
+	/// Do B-Tree linear search
     PRecSet SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TFltPr& RangeMinMax);
-    /// Get records ids and counts that are joined with given RecId (via given join key)
+	/// Do B-Tree linear search
+	PRecSet SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TSFltPr& RangeMinMax);
+	/// Get records ids and counts that are joined with given RecId (via given join key)
 	void GetJoinRecIdFqV(const int& JoinKeyId, const uint64& RecId, TUInt64IntKdV& JoinRecIdFqV) const;
 
 	/// Save debug statistics to a file
@@ -2869,36 +3230,46 @@ namespace TStreamAggrOut {
 
 	class IInt {
 	public:
-		// retireving value from the aggregate
+		// retrieving value from the aggregate
 		virtual int GetInt() const = 0;
 	};
 
 	class IFlt {
 	public:
-		// retireving value from the aggregate
+		// retrieving value from the aggregate
 		virtual double GetFlt() const = 0;
 	};
 
+	//class ISparseVec {
+	//public:
+	//	// retrieving value from the aggregate
+	//	virtual const TIntFltKdV& GetSparseVec() const = 0;
+	//};
+	
 	class ITm {
 	public:
 		TStreamAggrOutHelper(ITm);
-		// retireving value from the aggregate
+		// retrieving value from the aggregate
 		virtual uint64 GetTmMSecs() const = 0;
 		static uint64 GetTmMSecsCast(const TWPt<TStreamAggr>& Aggr) { return CastITm(Aggr)->GetTmMSecs(); }
 	};
 	
 	// combination of numeric value and timestamp
 	class IFltTm: public IFlt, public ITm { };
-	
+
 	template <class TVal>
 	class IValVec {
 	public:
 		// retrieving vector of values from the aggregate
 		virtual int GetVals() const = 0;
-		virtual TVal GetVal(const TInt& ElN) const = 0;
+		virtual void GetVal(const TInt& ElN, TVal& Val) const = 0;
 		virtual void GetValV(TVec<TVal>& ValV) const = 0;
 	};
 	typedef IValVec<TFlt> IFltVec;
+	typedef IValVec<TIntFltKdV> ISparseVVec;
+	typedef IValVec<TIntFltKd> ISparseVec;
+	// combination of sparse-vector and timestamp
+	class ISparseVecTm : public ISparseVec, public ITm {};
 
 	class ITmVec {
 	public:
@@ -2908,7 +3279,10 @@ namespace TStreamAggrOut {
 		virtual void GetTmV(TUInt64V& MSecsV) const = 0;
 	};
 
-	class IFltVecTm : public IFltVec, public ITm { };
+	template <class TVal>
+	class IValVecTm : public IValVec<TVal>, public ITm {};	
+	typedef IValVecTm<TFlt> IFltVecTm;	
+	//class IFltVecTm : public IFltVec, public ITm { };
 
 	// interfaces used by window buffer
 	class IBuffer {
@@ -2940,7 +3314,8 @@ namespace TStreamAggrOut {
 	template <class TVal>
 	class IValTmIO : public IValIO<TVal>, public ITmIO {};
 	typedef IValTmIO<TFlt> IFltTmIO;
-	
+	typedef IValTmIO<TIntFltKdV> ISparseVecTmIO;
+
 	class INmFlt {
 	public:
 		// retrieving named values
@@ -3005,7 +3380,7 @@ private:
 public:
 	static PStoreTrigger New(const PStreamAggrBase& StreamAggrBase);
 
-	// forward the calls to stream aggreagte base
+	// forward the calls to stream aggregate base
 	void OnAdd(const TRec& Rec);
 	void OnUpdate(const TRec& Rec);
 	void OnDelete(const TRec& Rec);

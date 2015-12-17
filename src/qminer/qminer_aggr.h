@@ -349,7 +349,7 @@ public:
 	/// get buffer length
 	int GetVals() const { EAssertR(IsInit(), "WinBuf not initialized yet!"); return (int)(D - B); }
 	/// get value at
-	TVal GetVal(const TInt& ElN) const { return GetRecVal(B + ElN); }
+	void GetVal(const TInt& ElN, TVal& Val) const { Val = GetRecVal(B + ElN); }
 	/// get float vector of all values in the buffer (IFltVec interface)
 	void GetValV(TVec<TVal>& ValV) const;
 
@@ -516,6 +516,90 @@ typedef TWinAggr<TSignalProc::TMin> TWinBufMin;
 typedef TWinAggr<TSignalProc::TMax> TWinBufMax;
 typedef TWinAggr<TSignalProc::TMa> TMa;
 typedef TWinAggr<TSignalProc::TVar> TVar;
+
+////////////////////////////////////////////////////////////////////////////////////////
+//// Windowed Stream aggregates (readers from TWinBuf), inputs are sparse vectors,
+//// the result is sparse vector.
+template <class TSignalType>
+class TWinAggrSpVec : public TStreamAggr, 
+	public TStreamAggrOut::ISparseVecTm {
+private:
+	// input
+	TWPt<TStreamAggr> InAggr;
+	TWPt<TStreamAggrOut::IValTmIO<TIntFltKdV>> InAggrVal;
+	TSignalType Signal;
+
+protected:
+	void OnAddRec(const TRec& Rec) {
+		TVec<TIntFltKdV> OutValV;
+		InAggrVal->GetOutValV(OutValV);
+		TUInt64V OutTmMSecsV;
+		InAggrVal->GetOutTmMSecsV(OutTmMSecsV);
+		if (InAggr->IsInit()) {
+			if (!InAggrVal->DelayedP()) {
+				Signal.Update(InAggrVal->GetInVal(), InAggrVal->GetInTmMSecs(), OutValV, OutTmMSecsV);
+			} else {
+				TVec<TIntFltKdV> InValV;
+				InAggrVal->GetInValV(InValV);
+				TUInt64V InTmMSecsV;
+				InAggrVal->GetInTmMSecsV(InTmMSecsV);
+				Signal.Update(InValV, InTmMSecsV, OutValV, OutTmMSecsV);
+			}
+		};
+	}
+	TWinAggrSpVec(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal) {
+		// parse out input aggregate
+		TStr InStoreNm = ParamVal->GetObjStr("store");
+		TStr InAggrNm = ParamVal->GetObjStr("inAggr");
+		PStreamAggr _InAggr = Base->GetStreamAggr(InStoreNm, InAggrNm);
+		InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
+		QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
+		InAggrVal = dynamic_cast<TStreamAggrOut::IValTmIO<TIntFltKdV>*>(_InAggr());
+		QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IValTmIO<TVal> interface: " + InAggrNm);
+	}
+
+public:
+
+	// json constructor 
+	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+		return new TWinAggrSpVec<TSignalType>(Base, ParamVal);
+	}
+
+	// Load stream aggregate state from stream
+	void LoadState(TSIn& SIn) { Signal.Load(SIn); }
+	// Save state of stream aggregate to stream
+	void SaveState(TSOut& SOut) const { Signal.Save(SOut); }
+
+	// did we finished initialization
+	bool IsInit() const { return Signal.IsInit(); }
+	/// Resets the aggregate
+	void Reset() { Signal.Reset(); }
+	// current values
+	//const TIntFltKdV& GetSparseVec() const { return Signal.GetValue(); }
+	int GetVals() const { return Signal.GetValue().Len(); }
+	void GetVal(const TInt& ElN, TIntFltKd& Val) const { Val = Signal.GetValue()[0]; }
+	void GetValV(TVec<TIntFltKd>& ValV) const { ValV = Signal.GetValue(); }
+	uint64 GetTmMSecs() const { return TStreamAggrOut::ITm::GetTmMSecsCast(InAggr); }
+	void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggr->GetAggrNm()); }
+
+	// serialization to JSon
+	PJsonVal SaveJson(const int& Limit) const {
+		PJsonVal Val = TJsonVal::NewObj();
+		Val->AddToObj("Val", Signal.GetJson());
+		Val->AddToObj("Time", TTm::GetTmFromMSecs(GetTmMSecs()).GetWebLogDateTimeStr(true, "T"));
+		return Val;
+	}
+
+	// stream aggregator type name 
+	static TStr GetType();
+	TStr Type() const { return GetType(); }
+};
+
+typedef TWinAggrSpVec<TSignalProc::TSumSpVec> TWinBufSpVecSum;
+
+// Moving-Window Buffer over Sparse-vectors sum
+template <>
+inline TStr TWinAggrSpVec<TSignalProc::TSumSpVec>::GetType() { return "winBufSpVecSum"; }
 
 ///////////////////////////////
 // Exponential Moving Average.
@@ -822,7 +906,7 @@ public:
 	// retrieving vector of values from the aggregate
 	int GetVals() const { return FtrSpace->GetDim(); }
 	void GetValV(TFltV& ValV) const { ValV = Vec; }
-	TFlt GetVal(const TInt& ElN) const;
+	void GetVal(const TInt& ElN, TFlt& Val) const;
 
 	/// Save stream aggregate to stream
 	void Save(TSOut& SOut) const;
@@ -884,7 +968,7 @@ public:
 	/// returns the number of bins 
 	int GetVals() const { return Model.GetBins(); }
 	/// returns frequencies in a given bin
-	TFlt GetVal(const TInt& ElN) const { return Model.GetCountN(ElN); }
+	void GetVal(const TInt& ElN, TFlt& Val) const { Val = Model.GetCountN(ElN); }
 	/// returns the vector of frequencies
 	void GetValV(TFltV& ValV) const { Model.GetCountV(ValV); }
 };
@@ -1083,7 +1167,7 @@ public:
 	/// returns the number of bins 
 	int GetVals() const { return Model->GetBins(); }
 	/// returns frequencies in a given bin
-	TFlt GetVal(const TInt& ElN) const;
+	void GetVal(const TInt& ElN, TFlt& Val) const;
 	/// returns the vector of frequencies
 	void GetValV(TFltV& ValV) const { Model->GetStats(LastTm - WndLen, LastTm, ValV); }
 };
@@ -1115,7 +1199,7 @@ public:
 	/// returns the number of bins 
 	int GetVals() const { return InAggrValX->GetVals(); }
 	/// returns frequencies in a given bin
-	TFlt GetVal(const TInt& ElN) const { return InAggrValX->GetVal(ElN) - InAggrValY->GetVal(ElN); }
+	void GetVal(const TInt& ElN, TFlt& Val) const { TFlt Flt1, Flt2; InAggrValX->GetVal(ElN, Flt1); InAggrValY->GetVal(ElN, Flt2); Val = Flt1 - Flt2; }
 	/// returns the vector of frequencies
 	void GetValV(TFltV& ValV) const;
 	/// serialization to JSon
@@ -1258,7 +1342,7 @@ void TWinBuf<TVal>::GetValV(TVec<TVal>& ValV) const {
 	if (ValV.Empty()) { ValV.Gen(Len); }
 	// iterate
 	for (int RecN = 0; RecN < Len; RecN++) {
-		ValV[RecN] = GetVal(RecN);
+		GetVal(RecN, ValV[RecN]);
 	}
 }
 
