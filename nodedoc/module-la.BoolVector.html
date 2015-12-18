@@ -24,7 +24,8 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-la.html">la</a>.<wbr></small><span class="symbol-name">BoolVector</span></h1>
+            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div>
+            <h1><small><a href="module-la.html">la</a>.<wbr></small><span class="symbol-name">BoolVector</span></h1>
             <p class="source-link">Source: <a href="ladoc.js.html#source-line-2306">ladoc.<wbr>js:2306</a></p>
             <div class="symbol-classdesc">
               <p>Wraps a C++ array.</p>
@@ -117,11 +118,11 @@
             Example
         </h3>
               <div>
-                <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
+                <pre class="prettyprint"><code>var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new empty vector
-var vec = new la.BoolVector();
+var vec &#x3D; new la.BoolVector();
 // create a new vector
-var vec2 = new la.BoolVector([true, true, false]);</code></pre>
+var vec2 &#x3D; new la.BoolVector([true, true, false]);</code></pre>
               </div>
             </section>
             <section>
@@ -217,12 +218,12 @@ var vec2 = new la.BoolVector([true, true, false]);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import fs module
-var fs = require(&#x27;qminer&#x27;).fs;
-var la = require(&#x27;qminer&#x27;).la;
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create an empty vector
-var vec = new la.BoolVector();
+var vec &#x3D; new la.BoolVector();
 // open a read stream
-var fin = fs.openRead(&#x27;vec.dat&#x27;);
+var fin &#x3D; fs.openRead(&#x27;vec.dat&#x27;);
 // load the vector
 vec.load(fin);</code></pre>
                 </div>
@@ -270,12 +271,12 @@ vec.load(fin);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import fs module
-var fs = require(&#x27;qminer&#x27;).fs;
-var la = require(&#x27;qminer&#x27;).la;
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create an empty vector
-var vec = new la.BoolVector();
+var vec &#x3D; new la.BoolVector();
 // open a read stream
-var fin = fs.openRead(&#x27;vec.dat&#x27;);
+var fin &#x3D; fs.openRead(&#x27;vec.dat&#x27;);
 // load the matrix
 vec.loadascii(fin);</code></pre>
                 </div>
@@ -448,12 +449,12 @@ vec.loadascii(fin);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import fs module
-var fs = require(&#x27;qminer&#x27;).fs;
-var la = require(&#x27;qminer&#x27;).la;
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec = new la.BoolVector([true, true, false]);
+var vec &#x3D; new la.BoolVector([true, true, false]);
 // open write stream
-var fout = fs.openWrite(&#x27;vec.dat&#x27;);
+var fout &#x3D; fs.openWrite(&#x27;vec.dat&#x27;);
 // save vector and close write stream
 vec.save(fout).close();</code></pre>
                 </div>
@@ -501,12 +502,12 @@ vec.save(fout).close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import fs module
-var fs = require(&#x27;qminer&#x27;).fs;
-var la = require(&#x27;qminer&#x27;).la;
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec = new la.BoolVector([true, true, false]);
+var vec &#x3D; new la.BoolVector([true, true, false]);
 // open write stream
-var fout = fs.openWrite(&#x27;vec.dat&#x27;);
+var fout &#x3D; fs.openWrite(&#x27;vec.dat&#x27;);
 // save matrix and close write stream
 vec.saveascii(fout).close();</code></pre>
                 </div>
@@ -561,9 +562,9 @@ vec.saveascii(fout).close();</code></pre>
             Example
         </h4>
                 <div>
-                  <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
+                  <pre class="prettyprint"><code>var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec = new la.BoolVector([true, true, false]);
+var vec &#x3D; new la.BoolVector([true, true, false]);
 // splice the vector by removing the last two elements and adding false, true
 vec.splice(1, 2, false, true)// returns vector [true, false, true]</code></pre>
                 </div>
@@ -676,9 +677,9 @@ vec.splice(1, 2, false, true)// returns vector [true, false, true]</code></pre>
             Example
         </h4>
                 <div>
-                  <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
+                  <pre class="prettyprint"><code>var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec = new la.BoolVector([true, true, false]);
+var vec &#x3D; new la.BoolVector([true, true, false]);
 // create vector as string
 vec.toString(); // returns &#x27;true, true, false&#x27;</code></pre>
                 </div>
@@ -696,9 +697,9 @@ vec.toString(); // returns &#x27;true, true, false&#x27;</code></pre>
             Example
         </h4>
                 <div>
-                  <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
+                  <pre class="prettyprint"><code>var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec = new la.BoolVector([true, true, false]);
+var vec &#x3D; new la.BoolVector([true, true, false]);
 // trunc all elements with index 1 or more
 vec.trunc(1); // returns vector [true]</code></pre>
                 </div>

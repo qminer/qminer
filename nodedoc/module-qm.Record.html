@@ -24,7 +24,8 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">Record</span></h1>
+            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div>
+            <h1><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">Record</span></h1>
             <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-1079">qminerdoc.<wbr>js:1079</a></p>
             <dl class="dl-compact">
             </dl>
@@ -189,9 +190,9 @@
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a new base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;StarWarsMovies&quot;,
@@ -207,7 +208,7 @@ base.store(&quot;StarWarsMovies&quot;).push({ Title: &quot;Attack of the Clones&
 base.store(&quot;StarWarsMovies&quot;).push({ Title: &quot;The Empire Strikes Back&quot;, ReleseDate: &quot;1980-06-20T00:00:00&quot;, Length: 124 });
 base.store(&quot;StarWarsMovies&quot;).push({ Title: &quot;Return of the Jedi&quot;, ReleseDate: &quot;1983-05-25T00:00:00&quot;, Length: 134 });
 // create a clone of the &quot;Attack of the Clones&quot; record
-var clone = base.store(&quot;StarWarsMovies&quot;)[0].$clone();
+var clone &#x3D; base.store(&quot;StarWarsMovies&quot;)[0].$clone();
 base.close();</code></pre>
                 </div>
               </section>
@@ -291,9 +292,9 @@ base.close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a new base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;Musicians&quot;,
@@ -310,7 +311,7 @@ base.store(&quot;Musicians&quot;).push({ Name: &quot;Beyonce&quot;, DateOfBirth:
 // get a JSON version of the &quot;Beyonce&quot; record 
 // The JSON object for this example si:
 // { &#x27;$id&#x27;: 1, Name: &#x27;Beyonce&#x27;, ActiveSince: &#x27;1981-09-04T00:00:00&#x27;, GreatestHits: [&#x27;Single Ladies (Put a Ring on It)&#x27;] }
-var json = base.store(&quot;Musicians&quot;).recordByName(&quot;Beyonce&quot;).toJSON();
+var json &#x3D; base.store(&quot;Musicians&quot;).recordByName(&quot;Beyonce&quot;).toJSON();
 base.close();</code></pre>
                 </div>
               </section>

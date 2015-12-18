@@ -75,6 +75,7 @@
 * @property {module:qm~StreamAggregateSum} sum - The sum type.
 * @property {module:qm~StreamAggregateMin} min - The minimal type.
 * @property {module:qm~StreamAggregateMax} max - The maximal type.
+* @property {module:qm~StreamAggregateSparseVecSum} sum - The sparse-vector-sum type.
 * @property {module:qm~StreamAggregateTimeSeriesTick} tick - The time series tick type.
 * @property {module:qm~StreamAggregateMovingAverage} ma - The moving average type.
 * @property {module:qm~StreamAggregateEMA} ema - The exponental moving average type.
@@ -301,6 +302,63 @@
 *    inAggr: 'TimeSeriesAggr'
 * };
 * var maximal = base.store("Heat").addStreamAggr(max);
+* base.close();
+*/
+/**
+* @typedef {module:qm.StreamAggr} StreamAggregateSparseVecSum
+* This stream aggregator represents the sparse-vector-sum moving window buffer. It sums all the sparse-vector values, that are in the connected stream aggregator.
+* It implements the following methods:
+* <br>{@link module:qm.StreamAggr#getValueVector} returns the sum of the values of the records in it's buffer window.
+* <br>{@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the newest record in it's buffer window.
+* @property {string} StreamAggregateSum.name - The given name of the stream aggregator.
+* @property {string} StreamAggregateSum.type - The type of the stream aggregator. It must be equal to <b>'winBufSpVecSum'</b>.
+* @property {string} StreamAggregateSum.store - The name of the store from which it takes the data.
+* @property {string} StreamAggregateSum.inAggr - The name of the stream aggregator to which it connects and gets data.
+* @example
+* var qm = require('qminer');
+* var base = new qm.Base({
+* 	mode: 'createClean',
+* 	schema: [{
+* 		name: 'Docs',
+* 		fields: [
+* 			{ name: 'Time', type: 'datetime' },
+* 			{ name: 'Text', type: 'string' }
+* 		]
+* 	}]
+* });
+* var store = base.store('Docs');
+*
+* var aggr = {
+* 	name: 'featureSpaceWindow',
+* 	type: 'timeSeriesWinBufFeatureSpace',
+* 	store: 'Docs',
+* 	timestamp: 'Time',
+* 	featureSpace: {
+* 		type: "categorical",
+* 		source: "Docs",
+* 		field: "Text"
+* 	},
+* 	winsize: 1000
+* };
+* var sa = store.addStreamAggr(aggr);
+*
+* var aggr2 = {
+* 	name: 'sparseVectorSum',
+* 	type: 'winBufSpVecSum',
+* 	store: 'Docs',
+* 	inAggr: 'featureSpaceWindow'
+* };
+* var sa2 = store.addStreamAggr(aggr2);
+*
+* store.push({ Time: '2015-06-10T14:13:32.0', Text: 'a' }); // 0
+* store.push({ Time: '2015-06-10T14:13:33.0', Text: 'b' }); // 1
+* store.push({ Time: '2015-06-10T14:14:34.0', Text: 'c' }); // 2
+* store.push({ Time: '2015-06-10T14:15:35.0', Text: 'd' }); // 3
+* store.push({ Time: '2015-06-10T14:15:36.0', Text: 'e' }); // 4
+* store.push({ Time: '2015-06-10T14:15:37.0', Text: 'f' }); // 5
+*
+* var valVec2 = sa2.getValueVector(); // [0, 0, 0, 0, 1, 1] - only vectors 4 and 5 remain in window
+*
 * base.close();
 */
 /**
@@ -1568,6 +1626,80 @@
 	* base.close();
 	*/
  exports.StreamAggr.prototype.getNumberOfRecords = function () { return 0; };
+/**
+	* Gets the vector of 'just-in' values (values that have just entered the buffer). Values can be floats or sparse vectors.
+	* @returns {(module:la.Vector | module:la.SparseMatrix)} Vector of floats or a vector of sparse vectors
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a simple base containing one store
+	* var base = new qm.Base({
+    *      mode: 'createClean',
+    *      schema: [{
+    *        name: 'Docs',
+    *        fields: [
+    *          { name: 'Time', type: 'datetime' },
+    *          { name: 'Text', type: 'string' }
+    *        ]
+    *      }]
+    * });
+    * store = base.store('Docs');
+	* // the following aggregate maintains a window buffer (1000 milliseconds) with no delay
+	* // and contains a categorical feature extractor. The extractor maps records in the buffer
+	* // to sparse vectors (indicator vectors for growing set of categories). Each record that
+	* // enters the buffer updates the feature extractor (potentially introduces a new category,
+	* // which increases the dimensionality).
+	* var aggr = {
+    *      type: 'timeSeriesWinBufFeatureSpace',
+    *      store: 'Docs',
+    *      timestamp: 'Time',
+    *      featureSpace: {
+    *        type: "categorical",
+    *        source: "Docs",
+    *        field: "Text"
+    *      },
+    *      winsize: 1000
+    * };
+	* var streamAggregate = store.addStreamAggr(aggr);
+	* store.push({ Time: '2015-06-10T14:13:32.0', Text: 'a' });
+	* store.push({ Time: '2015-06-10T14:13:33.0', Text: 'b' });
+	* store.push({ Time: '2015-06-10T14:13:34.0', Text: 'c' });
+	* // we have three dimensions, where "a" -> [1,0,0], "b" -> [0,1,0], "c" -> [0,0,1]
+	* // the first record just fell out of the buffer, the third record just entered the buffer
+	* // and buffer currently contains the second and the third record.
+	* // In case of the feature space based window buffer, the vectors of just-in, just-out and in-the-buffer
+	* // values correspond to vectors of sparse vectors = sparse matrices.
+	* streamAggregate.getInValueVector().print(); // one column, one nonzero element at index 2
+	* // = [
+    * // 2 0 1.000000
+    * // ]
+	* streamAggregate.getOutValueVector().print(); // one column, one nonzero element at index 0
+	* // = [
+	* // 0 0 1.000000
+	* // ]
+	* streamAggregate.getValueVector().print(); // two column vectors, each with one nonzero element
+	* // = [
+	* // 1 0 1.000000
+	* // 2 1 1.000000
+	* // ]
+	* 
+	* base.close();
+	*/
+ exports.StreamAggr.prototype.getInValueVector = function () { };
+/**
+	* Gets the vector of 'just-out values (values that have just fallen out of the buffer). Values can be floats or sparse vectors.
+	* @returns {(module:la.Vector | module:la.SparseMatrix)} Vector of floats or a vector of sparse vectors
+	* @example
+	* // look at the example for getInValueVector
+	*/
+ exports.StreamAggr.prototype.getOutValueVector = function () { };
+/**
+	* Gets the vector of values in the buffer. Values can be floats or sparse vectors.
+	* @returns {(module:la.Vector | module:la.SparseMatrix)} Vector of floats or a vector of sparse vectors
+	* @example
+	* // look at the example for getInValueVector
+	*/
+ exports.StreamAggr.prototype.getValueVector = function () { };
 /**
 	* Returns the name of the stream aggregate.
 	*/

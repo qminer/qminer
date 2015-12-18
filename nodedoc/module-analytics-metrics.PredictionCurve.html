@@ -24,8 +24,9 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>~<wbr><a href="module-analytics-metrics.html">metrics</a>.<wbr></small><span class="symbol-name">PredictionCurve</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-2215">analyticsdoc.<wbr>js:2215</a></p>
+            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div>
+            <h1><small><a href="module-analytics.html">analytics</a>~<wbr><a href="module-analytics-metrics.html">metrics</a>.<wbr></small><span class="symbol-name">PredictionCurve</span></h1>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-2295">analyticsdoc.<wbr>js:2295</a></p>
             <div class="symbol-classdesc">
               <p>used for computing ROC curve and other related measures such as AUC</p>
             </div>
@@ -116,14 +117,14 @@
         </h3>
               <div>
                 <pre class="prettyprint"><code>// import metrics module
-var metrics = require(&#x27;qminer&#x27;).analytics.metrics;
+var metrics &#x3D; require(&#x27;qminer&#x27;).analytics.metrics;
 
 // true and predicted lables
-var true_lables = [0, 1, 0, 0, 1];
-var pred_prob = [0.3, 0.5, 0.2, 0.5, 0.8];
+var true_lables &#x3D; [0, 1, 0, 0, 1];
+var pred_prob &#x3D; [0.3, 0.5, 0.2, 0.5, 0.8];
 
 // create predictionCurve instance
-var predictionCurve = new metrics.PredictionCurve();
+var predictionCurve &#x3D; new metrics.PredictionCurve();
 
 // simulate data flow
 for (var i in true_lables) {
@@ -131,9 +132,9 @@ for (var i in true_lables) {
    predictionCurve.push(true_lables[i], pred_prob[i]);
 }
 
-var roc = predictionCurve.roc(); // get ROC
-var auc = predictionCurve.auc(); // get AUC
-var pr = predictionCurve.precisionRecallCurve() // get precision-recall curve</code></pre>
+var roc &#x3D; predictionCurve.roc(); // get ROC
+var auc &#x3D; predictionCurve.auc(); // get AUC
+var pr &#x3D; predictionCurve.precisionRecallCurve() // get precision-recall curve</code></pre>
               </div>
             </section>
             <section>
