@@ -28,17 +28,5 @@ if (foundBinary) {
     exports.qm_util = require('./src/nodejs/scripts/qm_util.js');
 
 } else {
-    // check if we're in tonic environment
-    if (process.env.TONIC_HOST) {
-    	try {
-    		module.exports = exports = require(
-				'/app/available_modules/'
-				+ (new Date().getTime())
-				+ '/qminer-try/index.js');
-        } catch (e) {
-            throw new Error('qminer-try binary not found!');
-        }
-    } else {
-        throw new Error('qminer binary not found!');
-    }
+    throw new Error('qminer binary not found!');
 }
