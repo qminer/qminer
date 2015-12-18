@@ -1246,7 +1246,7 @@ private:
 	* Creates a record set containing all the records from the store.
 	*/
 	//# exports.Store.prototype.allRecords = Object.create(require('qminer').RecordSet.prototype);
-	JsDeclareProperty(allRecords);
+	JsDeclareFunction(allRecords);
 
 	/**
 	* Gives an array of all field descriptor JSON objects.
@@ -1270,25 +1270,25 @@ private:
 	* Returns the first record of the store.
 	*/
 	//# exports.Store.prototype.first = Object.create(require('qminer').Record.prototype);
-	JsDeclareProperty(first);
+	JsDeclareFunction(first);
 
 	/**
 	* Returns the last record of the store.
 	*/
 	//# exports.Store.prototype.last = Object.create(require('qminer').Record.prototype);
-	JsDeclareProperty(last);
+	JsDeclareFunction(last);
 
 	/**
 	* Returns an iterator for iterating over the store from start to end.
 	*/
 	//# exports.Store.prototype.forwardIter = Object.create(require('qminer').Iterator.prototype);
-	JsDeclareProperty(forwardIter);
+	JsDeclareFunction(forwardIter);
 
 	/**
 	* Returns an iterator for iterating over the store form end to start.
 	*/
 	//# exports.Store.prototype.backwardIter = Object.create(require('qminer').Iterator.prototype);
-	JsDeclareProperty(backwardIter);
+	JsDeclareFunction(backwardIter);
 
 	//!- `rec = store[recId]` -- get record with ID `recId`; 
 	//!     returns `null` when no such record exists
@@ -1305,7 +1305,7 @@ private:
 	* Returns the base, in which the store is contained.
 	*/
 	//# exports.Store.prototype.base = Object.create(require('qminer').Base.prototype);
-	JsDeclareProperty(base);
+	JsDeclareFunction(base);
 	//!JSIMPLEMENT:src/qminer/store.js
 };
 
@@ -1450,11 +1450,11 @@ private:
 	* Returns the store the record belongs to.
 	*/
 	//# exports.Record.prototype.store = Object.create('qminer').Store.prototype;
-	JsDeclareProperty(store);
+	JsDeclareFunction(store);
 
 	JsDeclareSetProperty(getField, setField);
-	JsDeclareProperty(join);
-	JsDeclareProperty(sjoin);
+	JsDeclareFunction(join);
+	JsDeclareFunction(sjoin);
 };
 
 class TNodeJsRecByValV: public node::ObjectWrap {
@@ -2327,7 +2327,7 @@ private:
 	* Returns the store, where the records in the record set are stored.
 	*/
 	//# exports.RecordSet.prototype.store = Object.create(require('qminer').Store.prototype);
-	JsDeclareProperty(store);
+	JsDeclareFunction(store);
 
 	/**
 	* Returns the number of records in record set.
@@ -2449,13 +2449,13 @@ public:
 	* Gives the store of the iterator.
 	*/
 	//# exports.Iterator.prototype.store = Object.create(require('qminer').Store.prototype);
-	JsDeclareProperty(store);
+	JsDeclareFunction(store);
 
 	/**
 	* Gives the current record.
 	*/
 	//# exports.Iterator.prototype.record = Object.create(require('qminer').Record.prototype);
-	JsDeclareProperty(record);
+	JsDeclareFunction(record);
 };
 
 ///////////////////////////////
@@ -2523,7 +2523,7 @@ public:
     
 public:
 	//!- `store = key.store` -- gets the key's store
-	JsDeclareProperty(store);
+	JsDeclareFunction(store);
 	//!- `keyName = key.name` -- gets the key's name
 	JsDeclareProperty(name);
 	//!- `strArr = key.vocabulary` -- gets the array of words (as strings) in the vocabulary
