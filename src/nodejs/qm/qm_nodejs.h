@@ -16,6 +16,7 @@
 #include "../nodeutil.h"
 
 #include "qm_nodejs_streamaggr.h"
+#include "qm_nodejs_store.h"
 
 ///////////////////////////////
 // NodeJs QMiner.
@@ -531,6 +532,14 @@ private:
 	*/
 	//# exports.Base.prototype.createStore = function (storeDef, storeSizeInMB) { return storeDef instanceof Array ? [Object.create(require('qminer').Store.prototype)] : Object.create(require('qminer').Store.prototype) ;}
 	JsDeclareFunction(createStore);
+	
+	// Creates a javascript implemented stores (callbacks). Experimental feature!
+	JsDeclareFunction(createJsStore);
+
+	// adds a callback to a javascript implemented store (type == 'TNodeJsFuncStore')
+	// arg[0] = store, arg[1] = callback string, arg[2] = callback function
+	// Experimental feature!
+	JsDeclareFunction(addJsStoreCallback);
 
 	/**
 	* Creates a new store.
