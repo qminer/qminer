@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 CURRENT_PATH=`pwd`
 
 TEST_PATH_=`readlink -f $0`
@@ -27,3 +29,4 @@ do
 done
 
 echo "Tests success!"
+
