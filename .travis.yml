@@ -1,46 +1,25 @@
 sudo: false
 
-language: c
+language: node_js
+
+node_js:
+  - "0.12"
+  - "4"
+  - "5"
 
 git:
   depth: 10
 
-addons:
-  apt:
-    sources:
-    - ubuntu-toolchain-r-test
-    - llvm-toolchain-precise-3.6
-    packages:
-     - clang-3.6
-
 matrix:
   include:
      # clang
-     - env: NODE_VERSION="5" CXXFLAGS=-std=c++0x CXX=clang++-3.6 CC=clang NPMOPT=--clang=1
-       addons:
-         apt:
-            sources: [ 'ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.6' ]
-            packages: [ 'clang-3.6']
-     - env: NODE_VERSION="4" CXXFLAGS=-std=c++0x CXX=clang++-3.6 CC=clang NPMOPT=--clang=1
-       addons:
-         apt:
-            sources: [ 'ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.6' ]
-            packages: [ 'clang-3.6']
-     - env: NODE_VERSION="0.12" CXXFLAGS=-std=c++0x CXX=clang++-3.6 CC=clang NPMOPT=--clang=1
+     - env: CXXFLAGS=-std=c++0x CXX=clang++-3.6 CC=clang NPMOPT=--clang=1
        addons:
          apt:
             sources: [ 'ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.6' ]
             packages: [ 'clang-3.6']
      # gcc
-     - env: NODE_VERSION="5" CXXFLAGS=-std=c++0x CXX=g++ CC=gcc
-       addons:
-         apt:
-            sources: [ 'gcc-multilib', 'g++-multilib', libc6-dev-i386 ]
-     - env: NODE_VERSION="4" CXXFLAGS=-std=c++0x CXX=g++ CC=gcc
-       addons:
-         apt:
-            sources: [ 'gcc-multilib', 'g++-multilib', libc6-dev-i386 ]
-     - env: NODE_VERSION="0.12" CXXFLAGS=-std=c++0x CXX=g++ CC=gcc
+     - env: CXXFLAGS=-std=c++0x CXX=g++ CC=gcc
        addons:
          apt:
             sources: [ 'gcc-multilib', 'g++-multilib', libc6-dev-i386 ]
@@ -51,8 +30,6 @@ env:
    - secure: "dBebU6FnEv3z/ht9ImWUgOGR5acvbzqihuQ/l57dJiblWYl3OWGG+1z3bw+doIhTcPp3JmgeznapN/Cv6cPGx1cuoGQrcFQrWearikzz7zms0ZJr9klNjI2BYEo/wT9B7wB4ubsjuZUXvc203QGFIsIC9qx1+ByeFb1cen7IUIE="
 
 before_install:
-  - npm install -g mocha
-  - npm install -g mustache
   # get commit message
   - COMMIT_MESSAGE=$(git show -s --pretty=oneline $TRAVIS_COMMIT | tr -d '\n')
   # figure out if we should publish
@@ -60,11 +37,13 @@ before_install:
   - TEST_PUBLISH_BINARY=false
   # if we put [publish binary] in the commit message
   - if test "${COMMIT_MESSAGE#*'[publish binary]'}" != "$COMMIT_MESSAGE"; then PUBLISH_BINARY=true; fi;
-  - source ./tools/install_node.sh ${NODE_VERSION}
 
 install:
   - npm install --build-from-source $NPMOPT
+
 script:
+  - npm install -g mocha
+  - npm install -g mustache
   - ./tools/genExampleTests.sh
   - ./test/nodejs/test.sh
   - if [ "$CXX" = "g++" ] ; then echo gpp ok ; fi
