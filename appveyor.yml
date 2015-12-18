@@ -5,6 +5,8 @@ environment:
     secure: 7nDsFrQjWQfhXAPESzf6JO+mslguRKGAPyZ5C4x6Sklcuv4E8/3gkGqoahJJKbZo
   matrix:
   - nodejs_version: "0.12"
+  - nodejs_version: "4"
+  - nodejs_version: "5"
 
 platform:
   - x86

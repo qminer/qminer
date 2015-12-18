@@ -87,9 +87,6 @@
     "url": "https://github.com/qminer/qminer"
   },
   "main": "./index.js",
-  "engines": {
-    "node": "0.12.7"
-  },
   "dependencies": {
     "sget": "~0.1.5",
     "node-pre-gyp": "0.6.x"
