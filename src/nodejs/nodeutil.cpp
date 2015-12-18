@@ -253,6 +253,23 @@ bool TNodeJsUtil::IsArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args, con
 	return Val->IsObject();
 }
 
+bool TNodeJsUtil::IsArgBuffer(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	EAssertR(ArgN < Args.Length() && ArgN >= 0, "Argument index out of bounds.");
+	return IsBuffer(Args[ArgN]->ToObject());
+}
+
+bool TNodeJsUtil::IsBuffer(const v8::Local<v8::Object>& Object) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+#if NODE_MODULE_VERSION >= 46 /* Node.js >= v4.x.x */
+		return Object->IsUint8Array();
+#else
+		return Object->HasIndexedPropertiesInExternalArrayData();
+#endif
+}
+
 v8::Handle<v8::Function> TNodeJsUtil::GetArgFun(const v8::FunctionCallbackInfo<v8::Value>& Args,
 		const int& ArgN) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -695,6 +712,20 @@ v8::Local<v8::Value> TNodeJsUtil::GetStrArr(const TStrV& StrV) {
     return EscapableHandleScope.Escape(JsStrV);
 }
 
+v8::Local<v8::Object> TNodeJsUtil::NewBuffer(const char* ChA, const size_t& Len) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::EscapableHandleScope HandleScope(Isolate);
+#if NODE_MODULE_VERSION >= 46 /* From Node.js v4.0.0 on */
+    // The function node::Buffer::New returns a v8::MaybeLocal<v8::Object>,
+    // which is just a wrapper around v8::Local<> that "enforces a check
+    // whether v8::Local<> is empty before it can be used." For details, see
+    // http://v8.paulfryzel.com/docs/master/singletonv8_1_1_maybe_local.html
+	return HandleScope.Escape(node::Buffer::Copy(Isolate, ChA, Len).ToLocalChecked());
+#else
+	return HandleScope.Escape(node::Buffer::New(Isolate, ChA, Len));
+#endif
+}
+
 PMem TNodeJsUtil::GetArgMem(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
 	EAssertR(Args.Length() >= ArgN, "TNodeJsUtil::GetArgMem: Invalid number of arguments!");
 	EAssertR(Args[ArgN]->IsObject(), "TNodeJsUtil::GetArgMem: Argument is not an object!");
@@ -702,10 +733,15 @@ PMem TNodeJsUtil::GetArgMem(const v8::FunctionCallbackInfo<v8::Value>& Args, con
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 	v8::Local<v8::Object> Obj = Args[0]->ToObject();
+#if NODE_MODULE_VERSION >= 46 /* Node.js >= v4.0.0 */
+	if (!Obj->IsUint8Array()) return TMem::New();
+	return TMem::New(node::Buffer::Data(Obj), node::Buffer::Length(Obj));
+#else
 	v8::ExternalArrayType ExternalType = Obj->GetIndexedPropertiesExternalArrayDataType();
 	if (ExternalType != v8::ExternalArrayType::kExternalUint8Array) return TMem::New();
 	int Len = Obj->GetIndexedPropertiesExternalArrayDataLength();
 	return TMem::New(static_cast<char*>(Obj->GetIndexedPropertiesExternalArrayData()), Len);
+#endif
 }
 
 uint64 TNodeJsUtil::GetTmMSecs(v8::Handle<v8::Date>& Date) {

@@ -102,6 +102,47 @@ void TSum::Save(TSOut& SOut) const {
 }
 
 /////////////////////////////////////////////////
+// Online Summa 
+
+/// Packs sparse vector
+void TSumSpVec::Update(const TVec<TIntFltKd>& InVal, const uint64& InTmMSecs, const TVec<TIntFltKdV>& OutValV, const TUInt64V& OutTmMSecsV) {
+
+	// remove old values from the sum
+	TIntFltKdV Tmp;
+	for (int i = 0; i < OutValV.Len(); i++) {
+		TLinAlg::LinComb(1, Sum, -1, OutValV[i], Tmp);
+		Sum = Tmp;
+	}
+	TLinAlg::LinComb(1, Sum, 1, InVal, Tmp);
+	Sum = Tmp;
+	TmMSecs = InTmMSecs;
+}
+
+void TSumSpVec::Load(TSIn& SIn) {
+	*this = TSumSpVec(SIn);
+}
+
+void TSumSpVec::Save(TSOut& SOut) const {
+	// parameters
+	Sum.Save(SOut);
+	TmMSecs.Save(SOut);
+}
+
+PJsonVal TSumSpVec::GetJson() const {
+	PJsonVal arr = TJsonVal::NewArr();
+	for (int i = 0; i < Sum.Len(); i++) {
+		PJsonVal tmp = TJsonVal::NewObj();
+		tmp->AddToObj("Idx", Sum[i].Key);
+		tmp->AddToObj("Val", Sum[i].Dat);
+		arr->AddToArr(tmp);
+	}
+	PJsonVal res = TJsonVal::NewObj();
+	res->AddToObj("Sum", arr);
+	res->AddToObj("Tm", TmMSecs);
+	return res;
+}
+
+/////////////////////////////////////////////////
 // Online Min 
 void TMin::Update(const double& InVal, const uint64& InTmMSecs,
 	const TFltV& OutValV, const TUInt64V& OutTmMSecsV){
