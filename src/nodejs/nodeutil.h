@@ -14,7 +14,7 @@
 
 #include <node.h>
 #include <node_object_wrap.h>
-#if NODE_MODULE_VERSION == 47 /* Node.js v5.0.0 */
+#if NODE_MODULE_VERSION >= 46 /* Node.js v5.0.0 */
     #include <node_buffer.h>
 #endif
 #include <uv.h>
@@ -198,6 +198,11 @@ public:
     static bool IsArgStr(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
     /// Check if is argument ArgN is a JSON object
     static bool IsArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
+    /// Check whether Args[ArgN] is a buffer
+    static bool IsArgBuffer(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
+
+    // Check whether Object is a buffer
+    static bool IsBuffer(const v8::Local<v8::Value>& Object);
 
     /// Extracts argument ArgN as a function
     static v8::Handle<v8::Function> GetArgFun(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
@@ -317,6 +322,8 @@ public:
 
     /// TStrV -> v8 string array
     static v8::Local<v8::Value> GetStrArr(const TStrV& StrV);	
+
+    static v8::Local<v8::Object> NewBuffer(const char* ChA, const size_t& Len);
 
 	/// Convert v8 external array (binary data) to PMem
 	static PMem GetArgMem(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
