@@ -38,7 +38,7 @@ Other:
 - Added recordSet.sortByFq to documentation
 - Added examples to linear algebra
 - Updated travis and appveyor to test: arch x64/x86 - node 0.12/4/5 - platform win/linux/osx
-- Made qm structers safe for Tonic notebooks (no crashing due to infinite recursion)
+- Made qm structures safe for Tonic notebooks (no crashing due to infinite recursion)
 
 ### 04 Dec 2015
 
