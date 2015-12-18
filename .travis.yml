@@ -12,8 +12,8 @@ node_js:
 
 addons:
   apt:
-    sources: [ 'ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.6', 'gcc-multilib', 'g++-multilib', libc6-dev-i386 ]
-    packages: [ 'clang-3.6', 'gcc-4.8', 'g++-4.8']
+    sources: [ 'ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.6' ]
+    packages: [ 'clang-3.6', 'gcc-4.8', 'g++-4.8', 'gcc-multilib', 'g++-multilib', 'libc6-dev-i386']
 
 env:
   global:
