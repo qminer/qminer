@@ -7,6 +7,7 @@
 **breaking with new features**
 
 Features:
+- Now works with Node.js 4.x and 5.x
 - (breaking) `QMiner` now supports the following new types:
   - `byte` - unsigned value between 0 and 255
   - `int16` - 16-bit integer

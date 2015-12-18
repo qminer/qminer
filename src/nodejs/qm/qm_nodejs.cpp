@@ -849,7 +849,7 @@ v8::Local<v8::Value> TNodeJsStore::Field(const TQm::TRec& Rec, const int FieldId
 	} else if (Desc.IsTMem()) {
 		TMem Val;
 		Rec.GetFieldTMem(FieldId, Val);
-		v8::Local<v8::Object> Bf = node::Buffer::New(Isolate, Val.GetBf(), Val.Len());
+		v8::Local<v8::Object> Bf = TNodeJsUtil::NewBuffer(Val.GetBf(), Val.Len());
 		return HandleScope.Escape(Bf);
 	} else if (Desc.IsJson()) {
 		PJsonVal Val = Rec.GetFieldJsonVal(FieldId);
@@ -2288,9 +2288,10 @@ void TNodeJsRec::setField(v8::Local<v8::String> Name, v8::Local<v8::Value> Value
 	}
 	else if (Desc.IsTMem()) {
 		QmAssertR(Value->IsObject(), "Field " + FieldNm + " not object");
-		v8::Handle<v8::Object> Object = v8::Handle<v8::Object>::Cast(Value);
 
-		QmAssertR(Object->HasIndexedPropertiesInExternalArrayData(), "TNodeJsRec::setField: argument is not a buffer!");
+		v8::Handle<v8::Object> Object = v8::Handle<v8::Object>::Cast(Value);
+		QmAssertR(TNodeJsUtil::IsBuffer(Object), "TNodeJsRec::setField: argument not a buffer");
+
 		char* Buff = node::Buffer::Data(Object);
 		size_t BuffLen = node::Buffer::Length(Object);
 
