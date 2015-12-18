@@ -256,10 +256,11 @@ bool TNodeJsUtil::IsArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args, con
 bool TNodeJsUtil::IsArgBuffer(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
+	EAssertR(ArgN < Args.Length() && ArgN >= 0, "Argument index out of bounds.");
 	return IsBuffer(Args[ArgN]->ToObject());
 }
 
-bool TNodeJsUtil::IsBuffer(const v8::Local<v8::Value>& Object) {
+bool TNodeJsUtil::IsBuffer(const v8::Local<v8::Object>& Object) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 #if NODE_MODULE_VERSION >= 46 /* Node.js >= v4.x.x */

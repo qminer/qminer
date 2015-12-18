@@ -14,9 +14,7 @@
 
 #include <node.h>
 #include <node_object_wrap.h>
-#if NODE_MODULE_VERSION >= 46 /* Node.js v5.0.0 */
-    #include <node_buffer.h>
-#endif
+#include <node_buffer.h>
 #include <uv.h>
 #include "base.h"
 
@@ -202,7 +200,7 @@ public:
     static bool IsArgBuffer(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
 
     // Check whether Object is a buffer
-    static bool IsBuffer(const v8::Local<v8::Value>& Object);
+    static bool IsBuffer(const v8::Local<v8::Object>& Object);
 
     /// Extracts argument ArgN as a function
     static v8::Handle<v8::Function> GetArgFun(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
