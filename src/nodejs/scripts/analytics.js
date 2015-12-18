@@ -1424,6 +1424,7 @@ module.exports = exports = function (pathQmBinary) {
     */
     exports.PCA = function (param) {
         var iter, k;
+        var initParam;
         this.P = undefined;
         this.mu = undefined;
         this.lambda = undefined;
@@ -1439,17 +1440,15 @@ module.exports = exports = function (pathQmBinary) {
             params_vec.load(param);
             iter = params_vec[0];
             k = params_vec[1];
-            param = { iter: iter, k: k };
         } else if (param == undefined || typeof param == 'object') {
             param = param == undefined ? {} : param;
-
             // Fit params
             var iter = param.iter == undefined ? 100 : param.iter;
             var k = param.k; // can be undefined
-            param = { iter: iter, k: k };
         } else {
             throw "PCA.constructor: parameter must be a JSON object or a fs.FIn!";
         }
+        initParam = { iter: iter, k: k };
         /**
         * Returns the model
         * @returns {Object} The model object whose keys are: P (eigenvectors), lambda (eigenvalues) and mu (mean)
@@ -1518,11 +1517,10 @@ module.exports = exports = function (pathQmBinary) {
         * // set 5 eigenvectors and 10 iterations using setParams
         * pca.setParams({iter: 10, k: 5});
         */
-        this.setParams = function (p) {
-            param = p;
-
+        this.setParams = function (param) {
             iter = param.iter == undefined ? iter : param.iter;
-            k = param.k == undefined ? k : param.iter;
+            k = param.k == undefined ? k : param.k;
+            initParam = { iter: iter, k: k };
         }
 
         /**
@@ -1546,7 +1544,7 @@ module.exports = exports = function (pathQmBinary) {
         * var paramvalue = pca.getParams();
         */
         this.getParams = function () {
-            return param;
+            return initParam;
         }
 
         /**
@@ -1619,7 +1617,7 @@ module.exports = exports = function (pathQmBinary) {
         */
         this.transform = function (x) {
             if (x.constructor.name == 'Matrix') {
-                // P * (x - mu*ones(1, size(x,2))
+                // P * (x - mu*ones(1, size(x,2)))
                 return this.P.multiplyT(x.minus(this.mu.outer(la.ones(x.cols))));
 
             } else if (x.constructor.name == 'Vector') {
