@@ -807,7 +807,7 @@ public:
         /// Initializes the object, resets current content is present
         void Init();   
 
-        long Size() { return Count; }
+        TFlt Size() { return Count; }
         void Compress();
         void Update(TFlt x, TFlt w) {
             int start = Centroids->Floor(x);
@@ -869,19 +869,19 @@ public:
                 }
             }
         }
-        inline void Update(double x) { Update(x, 1.0); }
-        inline AvlTree* GetCentroids() const {
+        void Update(TFlt x) { Update(x, 1.0); }
+        AvlTree* GetCentroids() const {
             return Centroids;
         }
-        inline int CentroidsCount() const { return Centroids->GetSize();}
-        inline double Quantile(double previousIndex, double index, double nextIndex, double previousMean, double nextMean) const {
+        TInt CentroidsCount() const { return Centroids->GetSize();}
+        double Quantile(double previousIndex, double index, double nextIndex, double previousMean, double nextMean) const {
         	const double delta = nextIndex - previousIndex;
             const double previousWeight = (nextIndex - index) / delta;
             const double nextWeight = (index - previousIndex) / delta;
             return previousMean * previousWeight + nextMean * nextWeight;
         }
-        double Quantile(double q) const;
-        inline void Merge(TTDigest* digest) {
+        TFlt Quantile(const TFlt& q) const;
+        void Merge(TTDigest* digest) {
                     AvlTree* centroids = digest->GetCentroids();
                     for(TInt n = centroids->First(); n != 0; n = centroids->NextNode(n)) {
                     	TFlt a = centroids->GetValue(n);
@@ -889,7 +889,7 @@ public:
                         Update(a, (double)b);
                     }
                 }
-        double GetQuantile(double q) const { return Quantile(q); }
+        TFlt GetQuantile(const TFlt& q) const { return Quantile(q); }
         /// Prints the model
         void Print() const;
         /// Load from stream

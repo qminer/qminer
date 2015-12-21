@@ -1028,7 +1028,7 @@ PJsonVal TOnlineHistogram::SaveJson() const {
 	return Result;
 }
 
-double TTDigest::Quantile(double q) const {
+TFlt TTDigest::Quantile(const TFlt& q) const {
 	if(q < 0 || q > 1) {
 		return 0; // TODO
 	}
