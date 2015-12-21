@@ -874,7 +874,7 @@ public:
             return Centroids;
         }
         TInt CentroidsCount() const { return Centroids->GetSize();}
-        TFlt Quantile(TFlt previousIndex, TFlt index, TFlt nextIndex, TFlt previousMean, TFlt nextMean) const {
+        TFlt Quantile(const TFlt& previousIndex, const TFlt& index, const TFlt& nextIndex, const TFlt& previousMean, const TFlt& nextMean) const {
         	const TFlt delta = nextIndex - previousIndex;
             const TFlt previousWeight = (nextIndex - index) / delta;
             const TFlt nextWeight = (index - previousIndex) / delta;
