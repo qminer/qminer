@@ -1043,7 +1043,7 @@ double TTDigest::Quantile(double q) const {
 
 	double previousMean = NAN;
 	double previousIndex = 0;
-	int next = Centroids->FloorSum(index);
+	TInt next = Centroids->FloorSum(index);
 	EAssert(next != 0);
 	long total = Centroids->CeilSum(next);
 	const int prev = Centroids->PrevNode(next);

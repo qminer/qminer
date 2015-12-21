@@ -807,9 +807,9 @@ public:
         /// Initializes the object, resets current content is present
         void Init();   
 
-        inline long Size() { return Count; }
+        long Size() { return Count; }
         void Compress();
-        inline void Update(double x, double w) {
+        void Update(TFlt x, TFlt w) {
             int start = Centroids->Floor(x);
             if(start == 0) {
                 start = Centroids->First();
@@ -817,12 +817,12 @@ public:
 
             if(start == 0) {
                 EAssert(Centroids->GetSize() == 0);
-                Centroids->Add(x, w);
+                Centroids->Add(x, (int)w);
                 Count += w;
             } else {
                 double minDistance = DBL_MAX;
                 int lastNeighbor = 0;
-                for(int neighbor = start; start != 0; neighbor = Centroids->NextNode(neighbor)) {
+                for(TInt neighbor = start; start != 0; neighbor = Centroids->NextNode(neighbor)) {
                     double z = TFlt::Abs(Centroids->GetValue(neighbor) - x);
                     if(z < minDistance) {
                         start = neighbor;
@@ -836,7 +836,7 @@ public:
                 int closest = 0;
                 long sum = Centroids->CeilSum(start);
                 double n = 0;
-                for(int neighbor = start; neighbor != lastNeighbor; neighbor = Centroids->NextNode(neighbor)) {
+                for(TInt neighbor = start; neighbor != lastNeighbor; neighbor = Centroids->NextNode(neighbor)) {
                     //EAssert(minDistance == abs(Centroids->GetValue(neighbor) - x));
                     double q = 0.5;
                     if (Count != 1.0) {
@@ -858,7 +858,7 @@ public:
                 }
 
                 if(closest == 0) {
-                    Centroids->Add(x, w);
+                    Centroids->Add(x, (int)w);
                 } else {
                     Centroids->Update(closest, x, w);
                 }
@@ -883,8 +883,10 @@ public:
         double Quantile(double q) const;
         inline void Merge(TTDigest* digest) {
                     AvlTree* centroids = digest->GetCentroids();
-                    for(int n = centroids->First(); n != 0; n = centroids->NextNode(n)) {
-                        Update(centroids->GetValue(n), centroids->GetCount(n));
+                    for(TInt n = centroids->First(); n != 0; n = centroids->NextNode(n)) {
+                    	TFlt a = centroids->GetValue(n);
+                    	TInt b = centroids->GetCount(n);
+                        Update(a, (double)b);
                     }
                 }
         double GetQuantile(double q) const { return Quantile(q); }

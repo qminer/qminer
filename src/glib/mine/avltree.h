@@ -66,10 +66,10 @@ class AvlTree {
         //
 
         // O(1)
-        inline TInt Compare(TInt node, TFlt x) const {
-            if(GetValue(node) < x) {
+        TInt Compare(const TInt& Node, const TFlt& x) const {
+            if(GetValue(Node) < x) {
                 return 1;
-            } else if(GetValue(node) == x) {
+            } else if(GetValue(Node) == x) {
                 return 0;
             } else {
                 return -1;
@@ -77,8 +77,9 @@ class AvlTree {
         }
     
         // O(1)
-        inline TInt Compare(TInt nodeA, TInt nodeB) const {
-            return Compare(nodeA, GetValue(nodeB));
+        TInt Compare(const TInt& NodeA, const TInt& NodeB) const {
+        	TInt B = (int)GetValue(NodeB);
+            return Compare(NodeA, B);
         }
 
         //
@@ -86,11 +87,11 @@ class AvlTree {
         //
 
         // O(1)
-        inline TInt GetRoot() const {
+        TInt GetRoot() const {
             return Root;
         }
         // O(1)
-        inline TInt GetSize() const {
+        TInt GetSize() const {
             return N;
         }
 
@@ -99,37 +100,37 @@ class AvlTree {
         //
 
         // O(1)
-        inline TInt GetParentNode(TInt node) const {
-        	return Parent.GetDat(node);
+        TInt GetParentNode(const TInt& Node) const {
+        	return Parent.GetDat(Node);
         	//return Parent[node];
         }
         // O(1)
-        inline TInt GetLeftNode(TInt node) const {
-        	return Left.GetDat(node);
+        TInt GetLeftNode(const TInt& Node) const {
+        	return Left.GetDat(Node);
         	//return Left[node];
         }
         // O(1)
-        inline TInt GetRightNode(TInt node) const {
-            return Right.GetDat(node);
+        TInt GetRightNode(const TInt& Node) const {
+            return Right.GetDat(Node);
             //return Right[node];
         }
         // O(1)
-        inline TInt GetDepth(TInt node) const {
-            return Depth.GetDat(node);
+        TInt GetDepth(const TInt& Node) const {
+            return Depth.GetDat(Node);
         	//return Depth[node];
         }
         // O(1)
-        inline TInt GetCount(TInt node) const {
-            return Count.GetDat(node);
+        TInt GetCount(const TInt& Node) const {
+            return Count.GetDat(Node);
         	//return Count[node];
         }
         // O(1)
-        inline TInt GetAggregatedCount(TInt node) const {
-            return AggregatedCount.GetDat(node);
+        TInt GetAggregatedCount(const TInt& Node) const {
+            return AggregatedCount.GetDat(Node);
         }
         // O(1)
-        inline TFlt GetValue(TInt node) const {
-        	return Values.GetDat(node);
+        TFlt GetValue(const TInt& Node) const {
+        	return Values.GetDat(Node);
         }
 
         //
@@ -137,91 +138,94 @@ class AvlTree {
         //
 
         // O(log(n))
-        TInt First(TInt node) const;
+        TInt First(TInt& Node) const;
 
         // O(log(n))
-        inline TInt First() const {
+        TInt First() {
             return First(Root);
         }
 
         // O(log(n)) 
-        TInt Last(TInt node) const;
+        TInt Last(TInt& Node) const;
 
         // O(log(n))
-        TInt NextNode(TInt node) const;
+        TInt NextNode(TInt& Node) const;
 
         // O(log(n))
-        TInt PrevNode(TInt node) const;
+        TInt PrevNode(TInt& Node) const;
 
         //
         // Mutators
         //
 
         // O(1)
-        inline void UpdateAggregates(TInt node) {
+        void UpdateAggregates(const TInt& Node) {
             // Updating depth
-        	TInt greater = GetDepth(GetLeftNode(node));
-        	if (GetDepth(GetLeftNode(node)) < GetDepth(GetRightNode(node))) {
-        		greater = GetDepth(GetRightNode(node));
+        	TInt Ln = GetLeftNode(Node);
+        	TInt Rn = GetRightNode(Node);
+        	TInt Greater = GetDepth(Ln);
+        	if (GetDepth(Ln) < GetDepth(Rn)) {
+        		Greater = GetDepth(Rn);
         	}
-        	SetVec(Depth, node, 1 + greater);
-        	TInt val = GetCount(node) + GetAggregatedCount(GetLeftNode(node)) + GetAggregatedCount(GetRightNode(node));
-            AggregatedCount.AddDat(node, val);
+        	SetVec(Depth, Node, 1 + Greater);
+        	TInt Val = GetCount(Node) + GetAggregatedCount(Ln) + GetAggregatedCount(Rn);
+            AggregatedCount.AddDat(Node, Val);
         }
 
         // O(log(n))
-        void Update(TInt node, TFlt x, TInt w) {
-        	TFlt old = Values.GetDat(node);
-        	Values.AddDat(node, old + w * (x - GetValue(node)) / GetCount(node));
-        	TInt old_count = Count.GetDat(node);
-        	SetVec(Count, node, old_count + w);
+        void Update(const TInt& Node, const TFlt& X, const TFlt& W) {
+        	TFlt Old = Values.GetDat(Node);
+        	Values.AddDat(Node, Old + W * (X - GetValue(Node)) / GetCount(Node));
+        	TInt Oldcount = Count.GetDat(Node);
+        	SetVec(Count, Node, Oldcount + W);
 
-            for(TInt n = node; n != 0; n = GetParentNode(n)) {
-               UpdateAggregates(n);
+            for(TInt N = Node; N != 0; N = GetParentNode(N)) {
+               UpdateAggregates(N);
             }
         }
 
         // O(log(n))
-        void Merge(TInt node, TFlt x, TInt w) {
-            EAssert(GetValue(node) == x);
-            TInt old_count = Count.GetDat(node);
-            SetVec(Count, node, old_count + w);
+        void Merge(const TInt& Node, const TFlt& X, const TInt& W) {
+            TInt OldCount = Count.GetDat(Node);
+            SetVec(Count, Node, OldCount + W);
             
-            for(TInt n = node; n != 0; n = GetParentNode(n)) {
-               UpdateAggregates(n);
+            for(TInt N = Node; N != 0; N = GetParentNode(N)) {
+               UpdateAggregates(N);
             }
         }
 
         // O(log(n)) 
-        bool Add(TFlt x, TInt w);
+        bool Add(const TFlt& X, const TInt& W);
 
         // O(log(n))
-        TInt Find(TFlt x) const;
+        TInt Find(const TFlt& X) const;
         
         // O(log(n))
-        TInt Floor(TFlt x) const;
+        TInt Floor(const TFlt& X) const;
 
         // O(log(n))
-        TInt FloorSum(long sum) const;
+        TInt FloorSum(TInt Sum) const;
 
         // O(log(n))
-        long CeilSum(TInt node) const;
+        TInt CeilSum(const TInt& Node) const;
 
     private:
         // O(1)
-        inline TInt BalanceFactor(TInt node) const {
-            return GetDepth(GetLeftNode(node)) - GetDepth(GetRightNode(node));
+        inline TInt BalanceFactor(const TInt& Node) const {
+        	TInt Ln = GetLeftNode(Node);
+        	TInt Rn = GetRightNode(Node);
+            return GetDepth(Ln) - GetDepth(Rn);
         }
 
         // (O(log(n)^2)
-        void Rebalance(TInt node);
+        void Rebalance(const TInt& Node);
 
         // O(log(n))
-        void RotateLeft(TInt node);
+        void RotateLeft(const TInt& Node);
 
         // O(log(n))
         // TODO to factor with rotateLeft
-        void RotateRight(TInt node);
+        void RotateRight(const TInt& Node);
 
     public:
         // 
@@ -229,18 +233,20 @@ class AvlTree {
         //
 
         // Check balance integrity
-        bool CheckBalance(TInt node) const {
-            if(node == 0) {
-                return GetDepth(node) == 0;
+        bool CheckBalance(const TInt& Node) const {
+        	TInt Ln = GetLeftNode(Node);
+        	TInt Rn = GetRightNode(Node);
+            if(Node == 0) {
+                return GetDepth(Node) == 0;
             } else {
-            	TInt greater = GetDepth(GetLeftNode(node));
-            	if (GetDepth(GetLeftNode(node)) < GetDepth(GetRightNode(node))) {
-            		greater = GetDepth(GetRightNode(node));
+            	TInt Greater = GetDepth(Ln);
+            	if (GetDepth(Ln) < GetDepth(Rn)) {
+            		Greater = GetDepth(Rn);
             	}
-            	return GetDepth(node) == 1 + greater
-                    && abs(GetDepth(GetLeftNode(node)) - GetDepth(GetRightNode(node))) <= 1
-                    && CheckBalance(GetLeftNode(node))
-                    && CheckBalance(GetRightNode(node))
+            	return GetDepth(Node) == 1 + Greater
+                    && TInt::Abs(GetDepth(Ln) - GetDepth(Rn)) <= 1
+                    && CheckBalance(GetLeftNode(Node))
+                    && CheckBalance(GetRightNode(Node))
                 ;
             }
         }
@@ -250,33 +256,33 @@ class AvlTree {
         }
 
         // Check aggregates integrity
-        bool CheckAggregates(TInt node) const {
-            if(node == 0) {
-                return GetCount(node) == 0;
+        bool CheckAggregates(const TInt& Node) const {
+            if(Node == 0) {
+                return GetCount(Node) == 0;
             } else {
-            	TInt val = Count.GetDat(node) + AggregatedCount.GetDat(GetLeftNode(node)) + AggregatedCount.GetDat(GetRightNode(node));
-                return AggregatedCount.GetDat(node) == val && CheckAggregates(GetLeftNode(node)) && CheckAggregates(GetRightNode(node));
+            	TInt val = Count.GetDat(Node) + AggregatedCount.GetDat(GetLeftNode(Node)) + AggregatedCount.GetDat(GetRightNode(Node));
+                return AggregatedCount.GetDat(Node) == val && CheckAggregates(GetLeftNode(Node)) && CheckAggregates(GetRightNode(Node));
             }
         }
         inline bool CheckAggregates() const {
             return CheckAggregates(Root);
         }
 
-        // Check integrity (order of nodes)
-        bool CheckIntegrity(TInt node) const {
-            if(node == 0) {
+        // Check integrity (order of Nodes)
+        bool CheckIntegrity(const TInt& Node) const {
+            if(Node == 0) {
                 return true;
             } else {
-                bool ok = true;
-                if(GetLeftNode(node) != 0) {
-                    ok &= Values.GetDat(node) >= Values.GetDat(GetLeftNode(node));
-                    ok &= CheckIntegrity(GetLeftNode(node));
+                bool Ok = true;
+                if(GetLeftNode(Node) != 0) {
+                    Ok &= Values.GetDat(Node) >= Values.GetDat(GetLeftNode(Node));
+                    Ok &= CheckIntegrity(GetLeftNode(Node));
                 }
-                if(GetRightNode(node) != 0) {
-                    ok &= Values.GetDat(node) <= Values.GetDat(GetRightNode(node));
-                    ok &= CheckIntegrity(GetRightNode(node));
+                if(GetRightNode(Node) != 0) {
+                    Ok &= Values.GetDat(Node) <= Values.GetDat(GetRightNode(Node));
+                    Ok &= CheckIntegrity(GetRightNode(Node));
                 }
-                return ok;
+                return Ok;
             }
         }
         inline bool CheckIntegrity() const {
@@ -284,12 +290,12 @@ class AvlTree {
         }
 
         // Print as rows
-        void print(TInt node) const {
-            if(node == 0)
+        void Print(const TInt& Node) const {
+            if(Node == 0)
                 return;
         }
-        void print() const {
-            print(Root);
+        void Print() const {
+            Print(Root);
         }
 
 };
