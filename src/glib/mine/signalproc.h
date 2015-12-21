@@ -803,6 +803,8 @@ public:
         TTDigest(const PJsonVal& ParamVal) { Compression = 100; Count = 0; Centroids = new AvlTree(); };
         /// Constructs uninitialized object with compression
         TTDigest (TFlt CompressionN): Compression(CompressionN) { Compression = CompressionN; Count = 0; Centroids = new AvlTree();}
+        /// Destructor
+        ~TTDigest() { delete Centroids;}
 
         /// Initializes the object, resets current content is present
         void Init();   
@@ -833,21 +835,21 @@ public:
                     }
                 }
 
-                int Closest = 0;
-                TInt64 Sum = Centroids->CeilSum(Start);
-                double N = 0;
+                TFlt Closest = 0;
+                TInt Sum = Centroids->CeilSum(Start);
+                TFlt N = 0;
                 for(TInt Neighbor = Start; Neighbor != LastNeighbor; Neighbor = Centroids->NextNode(Neighbor)) {
-                    double Q = 0.5;
+                    TFlt Q = 0.5;
                     if (Count != 1.0) {
                     	Q = (Sum + (Centroids->GetCount(Neighbor) - 1 / 2. )) / (Count - 10);
                     }
 
-                    //double k = 4.0 * Count * q * (1.0 - q) / Compression;
-                    double K = TMath::Sqrt(Count * Q * (1.0 - Q));
+                    const TFlt K = 4.0 * Count * Q * (1.0 - Q) / Compression;
+                    //const TFlt K = TMath::Sqrt(Count * Q * (1.0 - Q));
 
                     if(Centroids->GetCount(Neighbor) + W <= K) {
                         N++;
-                        float R = (float)rand() / RAND_MAX;
+                        TFlt R = (float)rand() / RAND_MAX;
 
                         if(R < 1.0 / N) {
                             Closest = Neighbor;
@@ -856,10 +858,10 @@ public:
                     Sum += Centroids->GetCount(Neighbor);
                 }
 
-                if(Closest == 0) {
+                if(Closest == 0.0) {
                     Centroids->Add(X, (int)W);
                 } else {
-                    Centroids->Update(Closest, X, W);
+                    Centroids->Update((int)Closest, X, (int)W);
                 }
                 Count += W;
 
@@ -873,22 +875,22 @@ public:
             return Centroids;
         }
         TInt CentroidsCount() const { return Centroids->GetSize();}
-        TFlt Quantile(const TFlt& previousIndex, const TFlt& index, const TFlt& nextIndex, const TFlt& previousMean, const TFlt& nextMean) const {
-        	const TFlt delta = nextIndex - previousIndex;
-            const TFlt previousWeight = (nextIndex - index) / delta;
-            const TFlt nextWeight = (index - previousIndex) / delta;
-            return previousMean * previousWeight + nextMean * nextWeight;
+        TFlt Quantile(const TFlt& PreviousIndex, const TFlt& Index, const TFlt& NextIndex, const TFlt& PreviousMean, const TFlt& NextMean) const {
+        	const TFlt Delta = NextIndex - PreviousIndex;
+            const TFlt PreviousWeight = (NextIndex - Index) / Delta;
+            const TFlt NextWeight = (Index - PreviousIndex) / Delta;
+            return PreviousMean * PreviousWeight + NextMean * NextWeight;
         }
-        TFlt Quantile(const TFlt& q) const;
-        void Merge(TTDigest* digest) {
-                    AvlTree* centroids = digest->GetCentroids();
-                    for(TInt n = centroids->First(); n != 0; n = centroids->NextNode(n)) {
-                    	TFlt a = centroids->GetValue(n);
-                    	TInt b = centroids->GetCount(n);
-                        Update(a, (double)b);
+        TFlt Quantile(const TFlt& Q) const;
+        void Merge(TTDigest* Digest) {
+                    AvlTree* CentroidsN = Digest->GetCentroids();
+                    for(TInt N = CentroidsN->First(); N != 0; N = CentroidsN->NextNode(N)) {
+                    	TFlt A = CentroidsN->GetValue(N);
+                    	TInt B = CentroidsN->GetCount(N);
+                        Update(A, (double)B);
                     }
                 }
-        TFlt GetQuantile(const TFlt& q) const { return Quantile(q); }
+        TFlt GetQuantile(const TFlt& Q) const { return Quantile(Q); }
         /// Prints the model
         void Print() const;
         /// Load from stream
