@@ -319,7 +319,7 @@ namespace TQm {
 					int Len = SchemaVal->GetArrVals();
 					QmAssert(CallbacksObj->IsArray());
 					v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(CallbacksObj);
-					QmAssert(Len == Array->Length());
+					QmAssert(Len == (int)Array->Length());
 					for (int CallbN = 0; CallbN < Len; CallbN++) {
 						QmAssert(Array->Get(CallbN)->IsObject());
 						// create new store from the schema
