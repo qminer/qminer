@@ -836,14 +836,14 @@ public:
 
 ///////////////////////////////
 /// TDigest stream aggregate.
-class TTDigest : public TStreamAggr, public TStreamAggrOut::IFlt {
+class TTDigest : public TStreamAggr, public TStreamAggrOut::IFltVec {
 private:
 	// input
 	TWPt<TStreamAggr> InAggr;
 	TWPt<TStreamAggrOut::IFltTm> InAggrVal;
 	// indicator
 	TSignalProc::TTDigest Model;
-	TFlt QuantilesVal;
+	TFltV QuantilesVals;
 protected:
 	void OnAddRec(const TRec& Rec);
 	TTDigest(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
@@ -858,7 +858,13 @@ public:
 	/// Store state into stream
 	void SaveState(TSOut& SOut) const;
 	/// get current Quantile value
-	double GetFlt() const { return Model.GetQuantile(QuantilesVal); }
+	double GetFlt(const TInt& ElN) const { return Model.GetQuantile(QuantilesVals[ElN]); }
+		/// returns the vector of frequencies
+	void GetFltV(TFltV& ValV) const {
+		for (int ElN=0; ElN<ValV.Len(); ElN++) {
+			ValV.Add(Model.GetQuantile(QuantilesVals[ElN]))
+		}
+	}
 	void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggr->GetAggrNm());}
 	// serialization to JSon
 	PJsonVal SaveJson(const int& Limit) const;
