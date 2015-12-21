@@ -163,6 +163,7 @@ public:
   uint64 GetObjUInt64(const TStr& Key, const uint64& DefNum) const;
   uint64 GetObjUInt64(const char *Key, const uint64& DefNum) const;
   void GetObjIntV(const TStr& Key, TIntV& IntV) const;
+  void GetObjFltV(const TStr& Key, TFltV& FltV) const;
   const TStr& GetObjStr(const TStr& Key, const TStr& DefStr) const;
   const TStr& GetObjStr(const char *Key, const TStr& DefStr) const;
   void GetObjStrV(const TStr& Key, TStrV& StrV) const;

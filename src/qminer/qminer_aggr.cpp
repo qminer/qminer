@@ -1507,7 +1507,7 @@ TTDigest::TTDigest(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAg
     // parse out input aggregate
 	TStr InStoreNm = ParamVal->GetObjStr("store");
 	TStr InAggrNm = ParamVal->GetObjStr("inAggr");
-	QuantilesVal = ParamVal->GetObjNum("quantile");
+	ParamVal->GetObjFltV("quantiles", QuantilesVals);
 	PStreamAggr _InAggr = Base->GetStreamAggr(InStoreNm, InAggrNm);
 
 	InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
@@ -1517,8 +1517,14 @@ TTDigest::TTDigest(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAg
 
 }
 
+TTDigest::TTDigest(const TFltV& Quantiles): Model(Quantiles) { }
+
 PStreamAggr TTDigest::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
     return new TTDigest(Base, ParamVal);
+}
+
+static PStreamAggr New(const TFltV& Quantiles) {
+	return new TTDigest(Quantiles);
 }
 
 void TTDigest::OnAddRec(const TRec& Rec) {
@@ -1528,9 +1534,15 @@ void TTDigest::OnAddRec(const TRec& Rec) {
 	}
 }
 
+void TTDigest::Add(const TInt& Val) {
+	if (InAggr->IsInit()) {
+	    Model.Update(Val);
+	}
+}
+
 PJsonVal TTDigest::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
-	Val->AddToObj("Q", Model.GetQuantile(QuantilesVal));
+	Val->AddToObj("Q", Model.GetQuantile(QuantilesVals[0]));
 	Val->AddToObj("Centroids", Model.CentroidsCount());
 	return Val;
 }

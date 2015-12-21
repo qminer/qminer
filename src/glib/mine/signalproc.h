@@ -798,7 +798,7 @@ private:
 public: 
 
         /// Constructs uninitialized object
-        TTDigest() { Compression = 100; Count = 0; Centroids = new AvlTree(); };
+        TTDigest(const TFltV& Quantiles) { Compression = 100; Count = 0; Centroids = new AvlTree(); };
         /// Constructs given JSON arguments
         TTDigest(const PJsonVal& ParamVal) { Compression = 100; Count = 0; Centroids = new AvlTree(); };
         /// Constructs uninitialized object with compression

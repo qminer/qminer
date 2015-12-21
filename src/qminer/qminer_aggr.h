@@ -847,8 +847,12 @@ private:
 protected:
 	void OnAddRec(const TRec& Rec);
 	TTDigest(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+	TTDigest(const TFltV& Quantiles);
 public:
+	/// Add new data to statistics
+	void Add(const TInt& Val);
 	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+	static PStreamAggr New(const TFltV Quantiles);
 	// did we finish initialization
 	bool IsInit() const { return InAggr->IsInit(); }
 	/// Reset
@@ -861,10 +865,11 @@ public:
 	double GetFlt(const TInt& ElN) const { return Model.GetQuantile(QuantilesVals[ElN]); }
 		/// returns the vector of frequencies
 	void GetFltV(TFltV& ValV) const {
-		for (int ElN=0; ElN<ValV.Len(); ElN++) {
-			ValV.Add(Model.GetQuantile(QuantilesVals[ElN]))
+		for (int ElN=0; ElN<QuantilesVals.Len(); ElN++) {
+			ValV.Add(Model.GetQuantile(QuantilesVals[ElN]));
 		}
 	}
+	int GetFltLen() const { return QuantilesVals.Len(); }
 	void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggr->GetAggrNm());}
 	// serialization to JSon
 	PJsonVal SaveJson(const int& Limit) const;
