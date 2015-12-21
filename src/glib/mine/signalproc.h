@@ -802,67 +802,66 @@ public:
         /// Constructs given JSON arguments
         TTDigest(const PJsonVal& ParamVal) { Compression = 100; Count = 0; Centroids = new AvlTree(); };
         /// Constructs uninitialized object with compression
-        TTDigest (double compression): Compression(compression) { Compression = compression; Count = 0; Centroids = new AvlTree();}
+        TTDigest (TFlt CompressionN): Compression(CompressionN) { Compression = CompressionN; Count = 0; Centroids = new AvlTree();}
 
         /// Initializes the object, resets current content is present
         void Init();   
 
         TFlt Size() { return Count; }
         void Compress();
-        void Update(TFlt x, TFlt w) {
-            int start = Centroids->Floor(x);
-            if(start == 0) {
-                start = Centroids->First();
+        void Update(TFlt X, TFlt W) {
+            int Start = Centroids->Floor(X);
+            if(Start == 0) {
+                Start = Centroids->First();
             }
 
-            if(start == 0) {
+            if(Start == 0) {
                 EAssert(Centroids->GetSize() == 0);
-                Centroids->Add(x, (int)w);
-                Count += w;
+                Centroids->Add(X, (int)W);
+                Count += W;
             } else {
-                double minDistance = DBL_MAX;
-                int lastNeighbor = 0;
-                for(TInt neighbor = start; start != 0; neighbor = Centroids->NextNode(neighbor)) {
-                    double z = TFlt::Abs(Centroids->GetValue(neighbor) - x);
-                    if(z < minDistance) {
-                        start = neighbor;
-                        minDistance = z;
+                double MinDistance = DBL_MAX;
+                int LastNeighbor = 0;
+                for(TInt Neighbor = Start; Start != 0; Neighbor = Centroids->NextNode(Neighbor)) {
+                    double Z = TFlt::Abs(Centroids->GetValue(Neighbor) - X);
+                    if(Z < MinDistance) {
+                        Start = Neighbor;
+                        MinDistance = Z;
                     } else {
-                        lastNeighbor = neighbor;
+                        LastNeighbor = Neighbor;
                         break;
                     }
                 }
 
-                int closest = 0;
-                long sum = Centroids->CeilSum(start);
-                double n = 0;
-                for(TInt neighbor = start; neighbor != lastNeighbor; neighbor = Centroids->NextNode(neighbor)) {
-                    //EAssert(minDistance == abs(Centroids->GetValue(neighbor) - x));
-                    double q = 0.5;
+                int Closest = 0;
+                TInt64 Sum = Centroids->CeilSum(Start);
+                double N = 0;
+                for(TInt Neighbor = Start; Neighbor != LastNeighbor; Neighbor = Centroids->NextNode(Neighbor)) {
+                    double Q = 0.5;
                     if (Count != 1.0) {
-                    	q = (sum + (Centroids->GetCount(neighbor) - 1 / 2. )) / (Count - 10);
+                    	Q = (Sum + (Centroids->GetCount(Neighbor) - 1 / 2. )) / (Count - 10);
                     }
 
                     //double k = 4.0 * Count * q * (1.0 - q) / Compression;
-                    double k = sqrt(Count * q * (1.0 - q));
+                    double K = TMath::Sqrt(Count * Q * (1.0 - Q));
 
-                    if(Centroids->GetCount(neighbor) + w <= k) {
-                        n++;
+                    if(Centroids->GetCount(Neighbor) + W <= K) {
+                        N++;
                         float R = (float)rand() / RAND_MAX;
 
-                        if(R < 1.0 / n) {
-                            closest = neighbor;
+                        if(R < 1.0 / N) {
+                            Closest = Neighbor;
                         }
                     }
-                    sum += Centroids->GetCount(neighbor);
+                    Sum += Centroids->GetCount(Neighbor);
                 }
 
-                if(closest == 0) {
-                    Centroids->Add(x, (int)w);
+                if(Closest == 0) {
+                    Centroids->Add(X, (int)W);
                 } else {
-                    Centroids->Update(closest, x, w);
+                    Centroids->Update(Closest, X, W);
                 }
-                Count += w;
+                Count += W;
 
                 if(Centroids->GetSize() > 20 * Compression) {
                     Compress();
