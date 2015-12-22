@@ -86,32 +86,6 @@ void DebugLog(const TStr& MsgStr) {
 }
 
 ///////////////////////////////
-// QMiner-Valid-Name-Enforcer
-TChA TValidNm::ValidFirstCh = "_";
-TChA TValidNm::ValidCh = "_$";
-
-void TValidNm::AssertValidNm(const TStr& NmStr) {
-	// must be non-empty
-	QmAssertR(!NmStr.Empty(), "Name: cannot be empty");
-	// check first character
-	const char FirstCh = NmStr[0];
-	if ((('A' <= FirstCh) && (FirstCh <= 'Z')) || (('a' <= FirstCh) && (FirstCh <= 'z')) || ValidFirstCh.IsChIn(FirstCh)) {
-		// all fine
-	} else {
-		throw TQmExcept::New("Name: invalid first character in '" + NmStr + "'");
-	}
-	// check rest
-	for (int ChN = 1; ChN < NmStr.Len(); ChN++) {
-		const char Ch = NmStr[ChN];
-		if ((('A' <= Ch) && (Ch <= 'Z')) || (('a' <= Ch) && (Ch <= 'z')) || (('0' <= Ch) && (Ch <= '9')) || ValidCh.IsChIn(Ch)) {
-			// all fine
-		} else {
-			throw TQmExcept::New(TStr::Fmt("Name: invalid %d character in '%s'", ChN, NmStr.CStr()));
-		}
-	}
-}
-
-///////////////////////////////
 // QMiner Exception
 PExcept TQmExcept::New(const TStr& MsgStr, const TStr& LocStr) {
 	TChA Stack = LocStr;
@@ -125,7 +99,7 @@ PExcept TQmExcept::New(const TStr& MsgStr, const TStr& LocStr) {
 
 ///////////////////////////////
 // QMiner-Join-Description
-TJoinDesc::TJoinDesc(const TStr& _JoinNm, const uint& _JoinStoreId,
+TJoinDesc::TJoinDesc(const TWPt<TBase>& Base, const TStr& _JoinNm, const uint& _JoinStoreId,
 	const uint& StoreId, const TWPt<TIndexVoc>& IndexVoc, const bool& IsSmall) :
 	JoinId(-1), InverseJoinId(-1) {
 
@@ -137,10 +111,24 @@ TJoinDesc::TJoinDesc(const TStr& _JoinNm, const uint& _JoinStoreId,
 	JoinFqFieldId = -1;
 	// create an internal join key in the index
 	TStr JoinKeyNm = "Join" + JoinNm;
-	JoinKeyId = IndexVoc->AddInternalKey(StoreId, JoinKeyNm, JoinNm, IsSmall);
+	JoinKeyId = IndexVoc->AddInternalKey(Base, StoreId, JoinKeyNm, JoinNm, IsSmall);
 	// assert the name is valid
-	TValidNm::AssertValidNm(JoinNm);
+	Base->AssertValidFldNm1(JoinNm);
 }
+
+TJoinDesc::TJoinDesc(const TWPt<TBase>& Base, const TStr& _JoinNm, const uint& _JoinStoreId,
+		const int& _JoinRecFieldId, const int& _JoinFqFieldId):
+			JoinId(-1),
+			JoinNm(_JoinNm),
+			JoinStoreId(_JoinStoreId),
+			JoinType(osjtField),
+			JoinKeyId(-1),
+			JoinRecFieldId(_JoinRecFieldId),
+			JoinFqFieldId(_JoinFqFieldId),
+			InverseJoinId(-1) {
+	Base->AssertValidFldNm1(JoinNm);
+}
+
 
 TJoinDesc::TJoinDesc(TSIn& SIn) : JoinId(SIn), JoinNm(SIn), JoinStoreId(SIn),
 	JoinKeyId(SIn), JoinRecFieldId(SIn), JoinFqFieldId(SIn), InverseJoinId(SIn) {
@@ -246,11 +234,11 @@ TStr TJoinSeq::GetJoinPathStr(const TWPt<TBase>& Base, const TStr& SepStr) const
 
 ///////////////////////////////
 // QMiner-Field-Description
-TFieldDesc::TFieldDesc(const TStr& _FieldNm, TFieldType _FieldType,
+TFieldDesc::TFieldDesc(const TWPt<TBase>& Base, const TStr& _FieldNm, TFieldType _FieldType,
 	const bool& PrimaryP, const bool& NullP, const bool& InternalP) :
 	FieldId(-1), FieldNm(_FieldNm), FieldType(_FieldType) {
 
-	TValidNm::AssertValidNm(FieldNm);
+	Base->AssertValidFldNm1(FieldNm);
 	// set flags
 	if (PrimaryP) { Flags.Val |= ofdfPrimary; }
 	if (NullP) { Flags.Val |= ofdfNull; }
@@ -345,7 +333,7 @@ void TStore::LoadStore(TSIn& SIn) {
 
 TStore::TStore(const TWPt<TBase>& _Base, uint _StoreId, const TStr& _StoreNm) :
 	Base(_Base), Index(_Base->GetIndex()), StoreId(_StoreId), StoreNm(_StoreNm) {
-	TValidNm::AssertValidNm(StoreNm);
+	Base->AssertValidFldNm1(StoreNm);
 }
 
 TStore::TStore(const TWPt<TBase>& _Base, TSIn& SIn) :
@@ -2291,17 +2279,17 @@ PJsonVal TRecSet::GetJson(const TWPt<TBase>& Base, const int& _MxHits, const int
 
 ///////////////////////////////
 // QMiner-Index-Key
-TIndexKey::TIndexKey(const uint& _StoreId, const TStr& _KeyNm, const TStr& _JoinNm,
+TIndexKey::TIndexKey(const TWPt<TBase>& Base, const uint& _StoreId, const TStr& _KeyNm, const TStr& _JoinNm,
     const bool& IsSmall): StoreId(_StoreId), KeyNm(_KeyNm), WordVocId(-1),
     TypeFlags(oiktInternal), SortType(oikstUndef), JoinNm(_JoinNm) {
 
     if (IsSmall) {
         TypeFlags = (TIndexKeyType)(TypeFlags | oiktSmall);
     }
-    TValidNm::AssertValidNm(KeyNm);
+    Base->AssertValidFldNm1(KeyNm);
 }
 
-TIndexKey::TIndexKey(const uint& _StoreId, const TStr& _KeyNm, const int& _WordVocId,
+TIndexKey::TIndexKey(const TWPt<TBase>& Base, const uint& _StoreId, const TStr& _KeyNm, const int& _WordVocId,
 	const TIndexKeyType& _Type, const TIndexKeySortType& _SortType) : StoreId(_StoreId),
 	KeyNm(_KeyNm), WordVocId(_WordVocId), TypeFlags(_Type), SortType(_SortType) {
 
@@ -2312,7 +2300,7 @@ TIndexKey::TIndexKey(const uint& _StoreId, const TStr& _KeyNm, const int& _WordV
 	// location does not need vocabualry
 	if (IsLocation()) { QmAssert(WordVocId == -1); }
 	// name must be valid
-	TValidNm::AssertValidNm(KeyNm);
+	Base->AssertValidFldNm1(KeyNm);
 }
 
 TIndexKey::TIndexKey(TSIn& SIn) : StoreId(SIn), KeyId(SIn),
@@ -2487,12 +2475,12 @@ void TIndexVoc::SetWordVocNm(const int& WordVocId, const TStr& WordVocNm) {
 	WordVocV[WordVocId]->SetWordVocNm(WordVocNm);
 }
 
-int TIndexVoc::AddKey(const uint& StoreId, const TStr& KeyNm, const int& WordVocId,
+int TIndexVoc::AddKey(const TWPt<TBase>& Base, const uint& StoreId, const TStr& KeyNm, const int& WordVocId,
 	const TIndexKeyType& Type, const TIndexKeySortType& SortType) {
 
 	// create key
 	const int KeyId = KeyH.AddKey(TUIntStrPr(StoreId, KeyNm));
-	KeyH[KeyId] = TIndexKey(StoreId, KeyNm, WordVocId, Type, SortType);
+	KeyH[KeyId] = TIndexKey(Base, StoreId, KeyNm, WordVocId, Type, SortType);
 	// tell to the key its ID
 	KeyH[KeyId].PutKeyId(KeyId);
 	// add the key to the associated store key set
@@ -2500,9 +2488,9 @@ int TIndexVoc::AddKey(const uint& StoreId, const TStr& KeyNm, const int& WordVoc
 	return KeyId;
 }
 
-int TIndexVoc::AddInternalKey(const uint& StoreId, const TStr& KeyNm, const TStr& JoinNm, const bool& IsSmall) {
+int TIndexVoc::AddInternalKey(const TWPt<TBase>& Base, const uint& StoreId, const TStr& KeyNm, const TStr& JoinNm, const bool& IsSmall) {
 	const int KeyId = KeyH.AddKey(TUIntStrPr(StoreId, KeyNm));
-	KeyH[KeyId] = TIndexKey(StoreId, KeyNm, JoinNm, IsSmall);
+	KeyH[KeyId] = TIndexKey(Base, StoreId, KeyNm, JoinNm, IsSmall);
 	KeyH[KeyId].PutKeyId(KeyId);
 	return KeyId;
 }
@@ -3373,7 +3361,7 @@ TQueryAggr::TQueryAggr(const TWPt<TBase>& Base,
 	QmAssertR(AggrVal->IsObjKey("type"), "Missing aggregate 'type'.");
 	AggrType = AggrVal->GetObjStr("type");
 	// assert name is fine
-	TValidNm::AssertValidNm(AggrNm);
+	Base->AssertValidFldNm1(AggrNm);
 	// remember the json parameters
 	ParamVal = AggrVal;
 }
@@ -4573,7 +4561,7 @@ void TStreamAggr::Init() {
 
 TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const PJsonVal& ParamVal) :
 Base(_Base), AggrNm(ParamVal->IsObjKey("name") ? ParamVal->GetObjStr("name") : "sa" + TGuid::GenGuid().GetHex()), Guid(TGuid::GenGuid()) {
-	TValidNm::AssertValidNm(AggrNm);
+	Base->AssertValidFldNm1(AggrNm);
 }
 
 PStreamAggr TStreamAggr::New(const TWPt<TBase>& Base, const TStr& TypeNm, const PJsonVal& ParamVal) {
@@ -4678,8 +4666,47 @@ void TStreamAggrTrigger::OnDelete(const TRec& Rec) {
 }
 
 ///////////////////////////////
+// QMiner-Valid-Name-Enforcer
+TChA TFldNmValidator::ValidFirstCh = "_";
+TChA TFldNmValidator::ValidCh = "_$";
+
+void TFldNmValidator::Save(TSOut& SOut) const {
+	StrictNmP.Save(SOut);
+}
+
+void TFldNmValidator::AssertValidNm(const TStr& NmStr) const {
+	// must be non-empty
+	QmAssertR(!NmStr.Empty(), "Name: cannot be empty");
+	if (!StrictNmP) { return; }
+
+	// check first character
+	QmAssertR(IsValidJsFirstCharacter(NmStr), "Name: invalid first character in '" + NmStr + "'");
+
+	// check rest
+	for (int ChN = 1; ChN < NmStr.Len(); ChN++) {
+		const char Ch = NmStr[ChN];
+		QmAssertR(IsValidJsCharacter(Ch), TStr::Fmt("Name: invalid %d character in '%s'", ChN, NmStr.CStr()));
+	}
+}
+
+void TFldNmValidator::SetStrictNmP(const bool& _StrictNmP) {
+	StrictNmP = _StrictNmP;
+}
+
+bool TFldNmValidator::IsValidJsFirstCharacter(const TStr& NmStr) {
+	const char FirstCh = NmStr[0];
+	return (('A' <= FirstCh) && (FirstCh <= 'Z')) || (('a' <= FirstCh) && (FirstCh <= 'z')) || ValidFirstCh.IsChIn(FirstCh);
+}
+
+bool TFldNmValidator::IsValidJsCharacter(const char& Ch) {
+	return (('A' <= Ch) && (Ch <= 'Z')) || (('a' <= Ch) && (Ch <= 'z')) || (('0' <= Ch) && (Ch <= '9')) || ValidCh.IsChIn(Ch);
+}
+
+///////////////////////////////
 // QMiner-Base
-TBase::TBase(const TStr& _FPath, const int64& IndexCacheSize, const int& SplitLen) : InitP(false) {
+TBase::TBase(const TStr& _FPath, const int64& IndexCacheSize, const int& SplitLen, const bool& StrictNmP) :
+		InitP(false),
+		FldNmValidator(StrictNmP) {
 	IAssertR(TEnv::IsInit(), "QMiner environment (TQm::TEnv) is not initialized");
 	// open as create
 	FAccess = faCreate; FPath = _FPath;
@@ -4696,7 +4723,10 @@ TBase::TBase(const TStr& _FPath, const int64& IndexCacheSize, const int& SplitLe
 	TempFPathP = false;
 }
 
-TBase::TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCacheSize, const int& SplitLen) : InitP(false) {
+TBase::TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCacheSize,
+		const int& SplitLen) :
+			InitP(false),
+			FldNmValidator(false) {
 	IAssertR(TEnv::IsInit(), "QMiner environment (TQm::TEnv) is not initialized");
 	// assert open type and remember location
 	FAccess = _FAccess; FPath = _FPath;
@@ -4708,8 +4738,12 @@ TBase::TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCac
 	} else if (FAccess == faRestore) {
 		TEnv::Logger->OnStatus("Opening in restore mode");
 	}
-	// load index
+
+	// open file input streams
 	TFIn IndexVocFIn(FPath + "IndexVoc.dat");
+//	TFIn BasePropsFIn(_FPath + "Base.dat");
+
+	// load index
 	IndexVoc = TIndexVoc::Load(IndexVocFIn);
 	Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize, IndexCacheSize, SplitLen);
 	// initialize with empty stores
@@ -4719,13 +4753,20 @@ TBase::TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCac
 	StreamAggrDefaultBase = TStreamAggrBase::New();
 	// by default no temporary folder
 	TempFPathP = false;
+
+	// load the base properties
+//	FldNmValidator = TFldNmValidator(BasePropsFIn);
 }
 
 TBase::~TBase() {
 	if (FAccess != faRdOnly) {
 		TEnv::Logger->OnStatus("Saving index vocabulary ... ");
+
 		TFOut IndexVocFOut(FPath + "IndexVoc.dat");
+		TFOut BasePropsFOut(FPath + "Base.dat");
+
 		IndexVoc->Save(IndexVocFOut);
+		FldNmValidator.Save(BasePropsFOut);
 	} else {
 		TEnv::Logger->OnStatus("No saving of qminer base neccessary!");
 	}
@@ -5074,7 +5115,7 @@ int TBase::NewIndexKey(const TWPt<TStore>& Store, const TStr& KeyNm, const int& 
 
 	QmAssertR(!IndexVoc->IsKeyNm(Store->GetStoreId(), KeyNm),
 		"Key " + Store->GetStoreNm() + "." + KeyNm + " already exists!");
-	const int KeyId = IndexVoc->AddKey(Store->GetStoreId(), KeyNm, WordVocId, Type, SortType);
+	const int KeyId = IndexVoc->AddKey(Store->GetBase(), Store->GetStoreId(), KeyNm, WordVocId, Type, SortType);
 	return KeyId;
 }
 
@@ -5102,7 +5143,7 @@ int TBase::NewFieldIndexKey(const TWPt<TStore>& Store, const TStr& KeyNm, const 
 
 	QmAssertR(!IndexVoc->IsKeyNm(Store->GetStoreId(), KeyNm),
 		"Key " + Store->GetStoreNm() + "." + KeyNm + " already exists!");
-	const int KeyId = IndexVoc->AddKey(Store->GetStoreId(), KeyNm, WordVocId, Type, SortType);
+	const int KeyId = IndexVoc->AddKey(Store->GetBase(), Store->GetStoreId(), KeyNm, WordVocId, Type, SortType);
 	IndexVoc->AddKeyField(KeyId, Store->GetStoreId(), FieldId);
 	Store->AddFieldKey(FieldId, KeyId);
 	return KeyId;

@@ -361,7 +361,7 @@ double TSpecFunc::StudentCdf(const double& Val, const int& Df) {
 
 double TSpecFunc::StudentCdf(const double& Val, const double& Mean,
 		const double& Std, const int& Df) {
-	return StudentCdf((Val - Mean) / sqrt(Std / (Df + 1)), Df);
+	return StudentCdf((Val - Mean) / TMath::Sqrt(Std / (Df + 1)), Df);
 }
 
 /////////////////////////////////////////////////

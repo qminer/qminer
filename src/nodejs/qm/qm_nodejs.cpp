@@ -74,6 +74,7 @@ void TNodeJsQm::create(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	TStr ConfFNm = TNodeJsUtil::GetArgStr(Args, 0, "qm.conf");
 	TStr SchemaFNm = TNodeJsUtil::GetArgStr(Args, 1, "");
 	TBool Clear = TNodeJsUtil::GetArgBool(Args, 2, false);
+	TBool StrictNmP = TNodeJsUtil::GetArgBool(Args, 3, true);
 
 	// parse configuration file
 	TQmParam Param(ConfFNm);
@@ -105,7 +106,7 @@ void TNodeJsQm::create(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		PJsonVal SchemaVal = SchemaFNm.Empty() ? TJsonVal::NewArr() :
 			TJsonVal::GetValFromStr(TStr::LoadTxt(SchemaFNm));
 		// initialize base		
-		TWPt<TQm::TBase> Base_ = TQm::TStorage::NewBase(Param.DbFPath, SchemaVal, Param.IndexCacheSize, Param.DefStoreCacheSize);
+		TWPt<TQm::TBase> Base_ = TQm::TStorage::NewBase(Param.DbFPath, SchemaVal, Param.IndexCacheSize, Param.DefStoreCacheSize, StrictNmP);
 		// save base		
 		TQm::TStorage::SaveBase(Base_);
 
@@ -305,7 +306,7 @@ void TNodeJsBase::Init(v8::Handle<v8::Object> exports) {
 }
 
 TNodeJsBase::TNodeJsBase(const TStr& DbFPath_, const TStr& SchemaFNm, const PJsonVal& Schema,
-        const bool& Create, const bool& ForceCreate, const bool& RdOnlyP,
+        const bool& Create, const bool& ForceCreate, const bool& RdOnlyP, const bool& StrictNmP,
         const uint64& IndexCacheSize, const uint64& StoreCacheSize) {
     
     Watcher = TNodeJsBaseWatcher::New();
@@ -360,7 +361,7 @@ TNodeJsBase::TNodeJsBase(const TStr& DbFPath_, const TStr& SchemaFNm, const PJso
 			TJsonVal::GetValFromStr(TStr::LoadTxt(SchemaFNm));
 		// initialize base		
 
-		Base = TQm::TStorage::NewBase(DbFPath, SchemaVal, IndexCacheSize, StoreCacheSize);
+		Base = TQm::TStorage::NewBase(DbFPath, SchemaVal, IndexCacheSize, StoreCacheSize, StrictNmP);
 		// save base		
 		TQm::TStorage::SaveBase(Base);
 
@@ -417,6 +418,7 @@ TNodeJsBase* TNodeJsBase::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>&
 	TStr DbPath = Val->GetObjStr("dbPath", "./db/");
 	// mode: create, createClean, open, openReadOnly
 	TStr Mode = Val->GetObjStr("mode", "openReadOnly");
+	const bool StrictNmP = Val->GetObjBool("strictNames", true);
 
 	TStr SchemaFNm = Val->GetObjStr("schemaPath", "");
 	PJsonVal Schema = TJsonVal::NewArr();
@@ -434,7 +436,7 @@ TNodeJsBase* TNodeJsBase::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>&
 	TStr StopWordsPath = Val->GetObjStr("stopwords", TQm::TEnv::QMinerFPath + "resources/stopwords/");
 	TSwSet::LoadSwDir(StopWordsPath);
 
-	return new TNodeJsBase(DbPath, SchemaFNm, Schema, Create, ForceCreate, ReadOnly, IndexCache, StoreCache);
+	return new TNodeJsBase(DbPath, SchemaFNm, Schema, Create, ForceCreate, ReadOnly, StrictNmP, IndexCache, StoreCache);
 }
 
 void TNodeJsBase::close(const v8::FunctionCallbackInfo<v8::Value>& Args) {

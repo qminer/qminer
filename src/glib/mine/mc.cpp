@@ -586,7 +586,6 @@ THierarch::THierarch(const bool& _HistCacheSize, const bool& _Verbose):
 		MxHeight(TFlt::Mn),
 		HistCacheSize(_HistCacheSize),
 		PastStateIdV(),
-//		StateCoordV(),
 		NLeafs(0),
 		Verbose(_Verbose),
 		Notify(_Verbose ? TNotify::StdNotify : TNotify::NullNotify) {
@@ -601,7 +600,6 @@ THierarch::THierarch(TSIn& SIn):
 		MxHeight(SIn),
 		HistCacheSize(TInt(SIn)),
 		PastStateIdV(SIn),
-//		StateCoordV(SIn),
 		NLeafs(TInt(SIn)),
 		StateNmV(SIn),
 		TargetIdHeightSet(SIn),
@@ -618,7 +616,6 @@ void THierarch::Save(TSOut& SOut) const {
 	MxHeight.Save(SOut);
 	TInt(HistCacheSize).Save(SOut);
 	PastStateIdV.Save(SOut);
-//	StateCoordV.Save(SOut);
 	TInt(NLeafs).Save(SOut);
 	StateNmV.Save(SOut);
 	TargetIdHeightSet.Save(SOut);
@@ -1083,6 +1080,7 @@ void TBernoulliIntens::GetQMat(const TStateFtrVV& StateFtrVV, TFltVV& QMat) cons
 void TBernoulliIntens::GetQMatRow(const int& RowN, const TFltV& FtrV, TFltV& IntensV) const {
 	if (IntensV.Empty()) { IntensV.Gen(NStates); }
 	Assert(IntensV.Len() == NStates);
+	Assert(DeltaTm > 0);
 
 	double Prob;
 	for (int ColN = 0; ColN < NStates; ColN++) {
@@ -1095,6 +1093,7 @@ void TBernoulliIntens::GetQMatRow(const int& RowN, const TFltV& FtrV, TFltV& Int
 	for (int ColN = 0; ColN < NStates; ColN++) {
 		IntensV[ColN] /= DeltaTm;
 		EAssertR(IntensV[ColN] >= 0, "Intensity is less than 0!!!");
+		EAssert(!TFlt::IsNan(IntensV[ColN]));
 		if (IntensV[ColN] > 10000) { IntensV[ColN] = 10000; }	// TODO fix
 	}
 
@@ -1191,6 +1190,7 @@ void TCtMChain::GetAggrQMat(const TFltVV& QMat, const TStateSetV& AggrStateV,
 			}
 
 			AggrQMat(JoinState1Idx, JoinState2Idx) = Sum / SumP;
+			AssertR(!TFlt::IsNan(AggrQMat(JoinState1Idx, JoinState2Idx)), "NaN appears when aggregating the QMatrix, this means that the joined stationary distribution is 0 for some states. Please check that the dataset is recurrent!");
 		}
 
 		const double Q_ii = -TLinAlg::SumRow(AggrQMat, JoinState1Idx);;
@@ -1228,7 +1228,7 @@ void TCtMChain::GetStatDistV(const TFltVV& QMat, TFltV& ProbV) {
 	TFltVV QMatT(QMat.GetCols(), QMat.GetRows());	TLinAlg::Transpose(QMat, QMatT);
 	TNumericalStuff::GetEigenVec(QMatT, 0.0, ProbV);
 
-	const double EigSum = TLinAlg::SumVec(ProbV);
+	double EigSum = TLinAlg::SumVec(ProbV);
 
 	EAssertR(EigSum != 0, "Eigenvector should not be 0, norm is " + TFlt::GetStr(TLinAlg::Norm(ProbV)) + "!");
 	EAssertR(!TFlt::IsNan(EigSum), "NaNs in eigenvector!");
@@ -1243,8 +1243,23 @@ void TCtMChain::GetStatDistV(const TFltVV& QMat, TFltV& ProbV) {
 	//===========================================================
 
 	// normalize to get a distribution
+	bool NumErr = false;
 	for (int i = 0; i < Dim; i++) {
 		ProbV[i] /= EigSum;
+
+		// fix numerical issues (this happened once when I was testing for the evaluation (using MKLFunctions))
+		EAssert(ProbV[i] > -1e-3);
+		if (ProbV[i] < 0) {
+			ProbV[i] = 0;
+			NumErr = true;
+		}
+	}
+
+	if (NumErr) {
+		EigSum = TLinAlg::SumVec(ProbV);
+		for (int i = 0; i < Dim; i++) {
+			ProbV[i] /= EigSum;
+		}
 	}
 }
 
