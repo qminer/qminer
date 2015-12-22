@@ -319,7 +319,7 @@ module.exports = exports = function (pathQmBinary) {
     	if (opts.includeHeaders) {
     		var headerLine = '';
     		for (var i = 0; i < nFields; i++) {
-    			headerLine += fieldDesc[i].name;
+    			headerLine += '"' + fieldDesc[i].name + '"';
     			if (i < nFields - 1)
     				headerLine += ',';
     		}
