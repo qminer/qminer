@@ -2048,7 +2048,7 @@ void TCtModeler::GetFutureProbVV(const TFltVV& QMat, const double& Tm,
 /////////////////////////////////////////////////////////////////
 // UI helper
 const double TUiHelper::STEP_FACTOR = 1e-2;
-const double TUiHelper::INIT_RADIUS_FACTOR = 2;
+const double TUiHelper::INIT_RADIUS_FACTOR = 2;//1.2;
 
 TUiHelper::TUiHelper(const TRnd& _Rnd, const bool& _Verbose):
 		StateCoordV(),
