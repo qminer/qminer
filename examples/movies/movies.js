@@ -185,3 +185,5 @@ console.log("Top genre: " + genreLabelSpace.getFeature(genreModel.predict(newCom
 var newComedyMovieRatingVector = ratingFeatureSpace.extractSparseVector(newComedyMovie);
 console.log("Predicted rating: " + ratingModel.predict(newComedyMovieRatingVector).toFixed(1));
 console.log("True rating:      " + newComedyMovie.Rating);
+var search = base.search({$from : 'Movies', Plot: 'Die'});
+console.log(search)

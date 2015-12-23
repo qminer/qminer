@@ -1,7 +1,7 @@
 #ifndef AVLTREE_H
 #define AVLTREE_H
 
-class AvlTree {
+class TAvlTree {
 
     private:
         TInt Root;
@@ -16,7 +16,7 @@ class AvlTree {
 
     public:
 
-        AvlTree();
+        TAvlTree();
 
         void SetVec(TIntV& Vec, TInt Key, TInt Val) {
         	if (Vec.Len()-1 == Key) {
@@ -55,10 +55,10 @@ class AvlTree {
         	return Vec.GetDat(Key);
         }
         TInt GetVec(TIntV Vec, TInt Key) {
-			return Vec[Key];
+			return Vec.GetVal(Key);
 		}
         TFlt GetVec(TFltV Vec, TInt Key) {
-        	return Vec[Key];
+        	return Vec.GetVal(Key);
         }
 
         //

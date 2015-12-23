@@ -850,7 +850,7 @@ protected:
 	TTDigest(const TFltV& Quantiles);
 public:
 	/// Add new data to statistics
-	void Add(const TInt& Val);
+	void Add(const TFlt& Val);
 	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 	static PStreamAggr New(const TFltV Quantiles);
 	// did we finish initialization

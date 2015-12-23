@@ -1,6 +1,6 @@
 #include "avltree.h"
 
-AvlTree::AvlTree(): Root(0) {
+TAvlTree::TAvlTree(): Root(0) {
 	N = 0;
     SetVec(Depth, 0, 0);
     SetVec(Parent, 0,0);
@@ -9,7 +9,7 @@ AvlTree::AvlTree(): Root(0) {
     AggregatedCount.AddDat(0,0);
 }
 
-TInt AvlTree::First(TInt& Node) const {
+TInt TAvlTree::First(TInt& Node) const {
     if(Node == 0) {
         return 0;
     }
@@ -24,7 +24,7 @@ TInt AvlTree::First(TInt& Node) const {
     return Node;
 }
 
-TInt AvlTree::Last(TInt& Node) const {
+TInt TAvlTree::Last(TInt& Node) const {
     while(true) {
         const TInt Right = GetRightNode(Node);
         if(Right == 0) {
@@ -35,7 +35,7 @@ TInt AvlTree::Last(TInt& Node) const {
     return Node;
 }
 
-TInt AvlTree::NextNode(TInt& Node) const {
+TInt TAvlTree::NextNode(TInt& Node) const {
     TInt Right = GetRightNode(Node);
     if(Right != 0) {
         return First(Right);
@@ -49,7 +49,7 @@ TInt AvlTree::NextNode(TInt& Node) const {
     }
 }
 
-TInt AvlTree::PrevNode(TInt& Node) const {
+TInt TAvlTree::PrevNode(TInt& Node) const {
     TInt Left = GetLeftNode(Node);
     if(Left != 0) {
         return Last(Left);
@@ -63,7 +63,7 @@ TInt AvlTree::PrevNode(TInt& Node) const {
     }
 }
 
-bool AvlTree::Add(const TFlt& X, const TInt& W) {
+bool TAvlTree::Add(const TFlt& X, const TInt& W) {
     if(Root == 0) {
         Root = ++N;
         Values.AddDat(Root, X);
@@ -112,7 +112,7 @@ bool AvlTree::Add(const TFlt& X, const TInt& W) {
     }
 }
 
-TInt AvlTree::Find(const TFlt& X) const {
+TInt TAvlTree::Find(const TFlt& X) const {
     for(TInt Node = Root; Node != 0;) {
         const TInt Cmp = Compare(Node, X);
         if(Cmp < 0) {
@@ -126,7 +126,7 @@ TInt AvlTree::Find(const TFlt& X) const {
     return 0;
 }
 
-TInt AvlTree::Floor(const TFlt& X) const {
+TInt TAvlTree::Floor(const TFlt& X) const {
     TInt F = 0;
     for(TInt Node = Root; Node != 0; ) {
         const TInt Cmp = Compare(Node, X);
@@ -140,7 +140,7 @@ TInt AvlTree::Floor(const TFlt& X) const {
     return F;
 }
 
-TInt AvlTree::FloorSum(TInt Sum) const {
+TInt TAvlTree::FloorSum(TInt Sum) const {
     TInt F = 0;
     for(TInt Node = Root; Node != 0; ) {
         TInt Left = GetLeftNode(Node);
@@ -156,7 +156,7 @@ TInt AvlTree::FloorSum(TInt Sum) const {
     return F;
 }
 
-TInt AvlTree::CeilSum(const TInt& Node) const {
+TInt TAvlTree::CeilSum(const TInt& Node) const {
     TInt Left = GetLeftNode(Node);
     TInt Sum = GetAggregatedCount(Left);
     TInt N = Node;
@@ -170,7 +170,7 @@ TInt AvlTree::CeilSum(const TInt& Node) const {
     return Sum;
 }
 
-void AvlTree::Rebalance(const TInt& Node) {
+void TAvlTree::Rebalance(const TInt& Node) {
     for(TInt N = Node; N != 0; ) {
         const TInt P = GetParentNode(N);
 
@@ -207,7 +207,7 @@ void AvlTree::Rebalance(const TInt& Node) {
     }
 }
 
-void AvlTree::RotateLeft(const TInt& Node) {
+void TAvlTree::RotateLeft(const TInt& Node) {
     TInt R  = GetRightNode(Node);
     TInt Lr = GetLeftNode(R);
 
@@ -232,7 +232,7 @@ void AvlTree::RotateLeft(const TInt& Node) {
     UpdateAggregates(GetParentNode(Node));
 }
 
-void AvlTree::RotateRight(const TInt& Node) {
+void TAvlTree::RotateRight(const TInt& Node) {
     TInt L = GetLeftNode(Node);
     TInt Rl = GetRightNode(L);
     SetVec(Left, Node, Rl);

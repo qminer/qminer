@@ -793,23 +793,24 @@ public:
 class TTDigest {
 private:
         TFlt Compression;
-        TFlt Count;
-        AvlTree* Centroids;
+        TInt Count;
+        TAvlTree* Centroids;
 public: 
 
         /// Constructs uninitialized object
-        TTDigest(const TFltV& Quantiles) { Compression = 100; Count = 0; Centroids = new AvlTree(); };
+        TTDigest(const TFltV& Quantiles) { Compression = 100; Count = 0; Centroids = new TAvlTree(); };
         /// Constructs given JSON arguments
-        TTDigest(const PJsonVal& ParamVal) { Compression = 100; Count = 0; Centroids = new AvlTree(); };
+        TTDigest(const PJsonVal& ParamVal) { Compression = 100; Count = 0; Centroids = new TAvlTree(); };
         /// Constructs uninitialized object with compression
-        TTDigest (TFlt CompressionN): Compression(CompressionN) { Compression = CompressionN; Count = 0; Centroids = new AvlTree();}
+        TTDigest (TFlt CompressionN): Compression(CompressionN) { Compression = CompressionN; Count = 0; Centroids = new TAvlTree();}
         /// Destructor
         ~TTDigest() { delete Centroids;}
 
         /// Initializes the object, resets current content is present
         void Init();   
 
-        TFlt Size() { return Count; }
+        // Number of digested inputs
+        TInt Size() { return Count; }
         void Compress();
         void Update(TFlt X, TFlt W) {
             int Start = Centroids->Floor(X);
@@ -840,12 +841,13 @@ public:
                 TFlt N = 0;
                 for(TInt Neighbor = Start; Neighbor != LastNeighbor; Neighbor = Centroids->NextNode(Neighbor)) {
                     TFlt Q = 0.5;
-                    if (Count != 1.0) {
+                    if (Count != 1) {
                     	Q = (Sum + (Centroids->GetCount(Neighbor) - 1 / 2. )) / (Count - 10);
                     }
 
                     const TFlt K = 4.0 * Count * Q * (1.0 - Q) / Compression;
                     //const TFlt K = TMath::Sqrt(Count * Q * (1.0 - Q));
+                    //const TFlt K = sqrt(Count * Q * (1.0 - Q));
 
                     if(Centroids->GetCount(Neighbor) + W <= K) {
                         N++;
@@ -871,7 +873,7 @@ public:
             }
         }
         void Update(TFlt x) { Update(x, 1.0); }
-        AvlTree* GetCentroids() const {
+        TAvlTree* GetCentroids() const {
             return Centroids;
         }
         TInt CentroidsCount() const { return Centroids->GetSize();}
@@ -883,7 +885,7 @@ public:
         }
         TFlt Quantile(const TFlt& Q) const;
         void Merge(TTDigest* Digest) {
-                    AvlTree* CentroidsN = Digest->GetCentroids();
+                    TAvlTree* CentroidsN = Digest->GetCentroids();
                     for(TInt N = CentroidsN->First(); N != 0; N = CentroidsN->NextNode(N)) {
                     	TFlt A = CentroidsN->GetValue(N);
                     	TInt B = CentroidsN->GetCount(N);

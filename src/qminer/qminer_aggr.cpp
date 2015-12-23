@@ -1517,15 +1517,15 @@ TTDigest::TTDigest(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAg
 
 }
 
-TTDigest::TTDigest(const TFltV& Quantiles): Model(Quantiles) { }
+//TTDigest::TTDigest(const TFltV& Quantiles): Model(Quantiles) { }
 
 PStreamAggr TTDigest::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
     return new TTDigest(Base, ParamVal);
 }
 
-static PStreamAggr New(const TFltV& Quantiles) {
-	return new TTDigest(Quantiles);
-}
+//static PStreamAggr New(const TFltV& Quantiles) {
+//	return new TTDigest(Quantiles);
+//}
 
 void TTDigest::OnAddRec(const TRec& Rec) {
     TFlt Val = InAggrVal->GetFlt();
@@ -1534,7 +1534,7 @@ void TTDigest::OnAddRec(const TRec& Rec) {
 	}
 }
 
-void TTDigest::Add(const TInt& Val) {
+void TTDigest::Add(const TFlt& Val) {
 	if (InAggr->IsInit()) {
 	    Model.Update(Val);
 	}
