@@ -231,6 +231,18 @@ public:
 		}
 	}
 
+	template <class TType, class TSizeTy, bool ColMajor>
+	static void Diag(const TVec<TType, TSizeTy>& DiagV, TVVec<TType, TSizeTy, ColMajor>& D) {
+		const TSizeTy Dim = DiagV.Len();
+
+		if (D.Empty()) { D.Gen(Dim, Dim); }
+		EAssert(D.GetRows() == Dim && D.GetCols() == Dim);
+
+		for (TSizeTy i = 0; i < Dim; i++) {
+			D(i,i) = DiagV[i];
+		}
+	}
+
 	// returns a sub matrix of the input matrix in range [StartRow, EndRow) x [StartCol, EndCol)
 	template <class TType, class TSizeTy, bool ColMajor>
 	static void SubMat(const TVVec<TType, TSizeTy, ColMajor>& Mat, const TSizeTy& StartRow,
@@ -948,6 +960,13 @@ public:
 	}
 #endif
 	static int ComputeThinSVD(const TMatrix& X, const int& k, TFltVV& U, TFltV& s, TFltVV& V, const int Iters = 2, const double Tol = 1e-6);
+
+	// generalized eigenvalue decomposition A * V(:,j) = lambda(j) * B * V(:,j)
+	template <class TType, class TSizeTy, bool ColMajor>
+	static void GeneralizedEigDecomp(const TVVec<TNum<TType>, TSizeTy, ColMajor>& A,
+			const TVVec<TNum<TType>, TSizeTy, ColMajor>& B, TVec<TNum<TType>, TSizeTy>& EigValV,
+			TVVec<TNum<TType>, TSizeTy, ColMajor>& V);
+
 #ifdef INTEL
 	template <class TType, class TSizeTy, bool ColMajor = false>
 	inline static void MultiplySF(const TTriple<TVec<TNum<TSizeTy>, TSizeTy>, TVec<TNum<TSizeTy>, TSizeTy>, TVec<TType, TSizeTy>>& A, const TVVec<TType, TSizeTy, false>& B,
@@ -963,7 +982,8 @@ public:
 	template <class IndexType = TInt, class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void MultiplyT(const TPair<TVec<IndexType, TSizeTy>, TVec<TType, TSizeTy>>& x, const TVVec<TType, TSizeTy, ColMajor>& A, TVec<TType, TSizeTy>& y);
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
-	inline static void MultiplyT(const TVVec<TNum<TType>, TSizeTy, ColMajor>& A, const TVec<TNum<TType>, TSizeTy>& x, TVec<TNum<TType>, TSizeTy>& y);
+	inline static void MultiplyT(const TVVec<TNum<TType>, TSizeTy, ColMajor>& A,
+			const TVec<TNum<TType>, TSizeTy>& x, TVec<TNum<TType>, TSizeTy>& y);
 #ifdef BLAS
 	typedef enum { NOTRANS = 0, TRANS = 1 } TLinAlgBlasTranspose;
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
@@ -2268,6 +2288,65 @@ public:
 	//A m x k, B op(m, k) x n, C op(m, k) x n
 	//C := alpha*op(A)*B + beta*C
 	//	matdescra[6] ={'G', 'G', 'N', 'C', 'Q', 'Q'}; //General, General, Nonunit diagonal, Zero Based indexing
+
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::GeneralizedEigDecomp(const TVVec<TNum<TType>, TSizeTy, ColMajor>& A,
+			const TVVec<TNum<TType>, TSizeTy, ColMajor>& B, TVec<TNum<TType>, TSizeTy>& EigValV,
+			TVVec<TNum<TType>, TSizeTy, ColMajor>& V) {
+#ifdef BLAS
+		const TSizeTy Dim = A.GetRows();
+
+		// asserts
+		EAssert(Dim > 0);
+		EAssert(A.GetCols() == Dim && B.GetRows() == Dim && B.GetCols() == Dim);
+
+		// output variables
+		V.Gen(Dim, Dim);
+		EigValV.Gen(Dim);
+
+		TVec<TNum<TType>, TSizeTy> AlphaR(Dim);
+		TVec<TNum<TType>, TSizeTy> AlphaI(Dim);
+		TVec<TNum<TType>, TSizeTy> Beta(Dim);
+
+		// construct input
+		TSizeTy LeadingDimA = ColMajor ? A.GetRows() : A.GetCols();
+		TSizeTy LeadingDimB = ColMajor ? B.GetRows() : B.GetCols();	// TODO is this correct???
+		TSizeTy LeadingDimV = ColMajor ? V.GetRows() : V.GetCols();
+		int Layout = ColMajor ? LAPACK_COL_MAJOR : LAPACK_ROW_MAJOR;
+
+		// A will get overwritten
+		int Info = LAPACKE_dggev(
+			Layout,					// matrix layout
+			'N',					// don't compute left eigenvectors
+			'V',					// compute right eigenvectors
+			Dim,					// order of matrices A,B,Vl,Vr
+			(double*) &A(0,0),		// A
+			LeadingDimA,			// leading dimension of A
+			(double*) &B(0,0),		// B
+			LeadingDimB,			// leading dimension of B
+			(double*) &AlphaR[0],	// real part of the eigenvalues
+			(double*) &AlphaI[0],	// imaginary part of the eigenvalues
+			(double*) &Beta[0],		// used to compute the eigenvalues
+			nullptr,				// left eigenvectors Vl
+			1,						// leading dimension of Vl (>= 1)
+			(double*) &V(0,0),		// right eigenvectors Vr
+			LeadingDimV				// leading dimension of Vr
+		);
+
+		EAssertR(Info == 0, "Failed to compute the generalized eigen decomposition!");
+
+		// construct the eigenvalues
+		// the generalized eigenvalues will be: (AlphaR[j] + AlphaI[j]*i) / Beta[j], j = 1,...,N
+		for (int i = 0; i < Dim; i++) {
+			EAssertR(AlphaI[i] == 0.0, "Got complex eigenvalues!");
+			EAssertR(Beta[i] != 0.0, "Infinite generalized eigenvalue!");
+			EigValV[i] = AlphaR[i] / Beta[i];
+		}
+#else
+		throw TExcept::New("TLinAlg::GeneralizedEigDecomp: Not implemented!");
+#endif
+	}
+
 #ifdef INTEL
 	// INTEL
 	//Be careful C should be of the proper size! if not populated (works only for rowmajor!)
@@ -2933,7 +3012,8 @@ public:
 
 	// subtypes of finding an inverse (works only for TFltVV, cuz of TSvd)
 	template <class TType, class TSizeTy, bool ColMajor>
-	void TLinAlg::InverseSVD(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor>& B, const double& tol) {
+	void TLinAlg::InverseSVD(const TVVec<TType, TSizeTy, ColMajor>& A,
+			TVVec<TType, TSizeTy, ColMajor>& B, const double& tol) {
 		// create temp matrices
 		TVVec<TType, TSizeTy, ColMajor> U, V;
 		TVec<TType, TSizeTy> E;

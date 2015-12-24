@@ -15,7 +15,8 @@ using namespace TClustering;
 namespace {
 	typedef TIntV TStateIdV;
 	typedef TIntSet TStateIdSet;
-	typedef TVec<TIntV> TStateSetV;
+	typedef TIntV TAggState;
+	typedef TVec<TAggState> TStateSetV;
 	typedef TVec<TFltV> TStateFtrVV;
 
 	typedef TAbsKMeans TClust;
@@ -330,9 +331,6 @@ public:
 // Continuous time Markov chain
 class TCtMChain {
 public:
-	/// get a model where states are aggregated
-	static void GetAggrQMat(const TFltVV& QMat, const TStateSetV& AggrStateV, TFltVV& AggrQMat);
-
 	/// get the reverse time model
 	static void GetRevQMat(const TFltVV& QMat, TFltVV& RevQMat);
 
@@ -360,6 +358,21 @@ public:
 	static double HitTmPdf(const TFltVV& QMat, const int& StateId, const int& TargetStateId,
 			const double& DeltaTm, const double& TotalTm, const int& PdfBins, TFltV& TmV,
 			TFltV& HitProbV);
+
+	// aggregation and partitioning
+	/// get a model where states are aggregated
+	static void GetAggrQMat(const TFltVV& QMat, const TStateSetV& AggrStateV, TFltVV& AggrQMat);
+	static void GetSubChain(const TFltVV& QMat, const TIntV& StateIdV, TFltVV& SubQMat);
+
+	static void BiPartition(const TFltVV& QMat, TIntV& PartV);
+	/// recursive algorithm to partition a Markov chain
+	static void Partition(const TFltVV& QMat, TIntV& HierarchV, TFltV& ScoreV);
+
+	// distance measures
+	static double WassersteinDist1(const TFltVV& QMat, const TStateSetV& StateSetV);
+
+private:
+
 };
 
 /////////////////////////////////////////////////////////////////

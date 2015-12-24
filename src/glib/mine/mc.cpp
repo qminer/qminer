@@ -1154,51 +1154,6 @@ void TDtMChain::GetStatDistV(const TFltVV& PMat, TFltV& DistV) {
 
 /////////////////////////////////////////////////////////////////
 // Continuous time Markov chain
-void TCtMChain::GetAggrQMat(const TFltVV& QMat, const TStateSetV& AggrStateV,
-		TFltVV& AggrQMat) {
-	const int NAggrStates = AggrStateV.Len();
-
-	if (AggrQMat.Empty()) { AggrQMat.Gen(NAggrStates, NAggrStates); }
-	EAssert(AggrQMat.GetRows() == NAggrStates && AggrQMat.GetCols() == NAggrStates);
-
-	TFltV StatDistV;	GetStatDistV(QMat, StatDistV);
-
-	for (int JoinState1Idx = 0; JoinState1Idx < NAggrStates; JoinState1Idx++) {
-		const TIntV& JoinState1 = AggrStateV[JoinState1Idx];
-		for (int JoinState2Idx = 0; JoinState2Idx < NAggrStates; JoinState2Idx++) {
-			if (JoinState1Idx == JoinState2Idx) { continue; }
-
-			const TIntV& JoinState2 = AggrStateV[JoinState2Idx];
-
-			// the transition probability from set Ai to Aj can be
-			// calculated as: q_{A_i,A_j} = \frac {\sum_{k \in A_i} \pi_k * \sum_{l \in A_j} q_{k,l}} {\sum_{k \in A_i} \pi_k}
-
-			double Sum = 0, SumP = 0;
-			for (int k = 0; k < JoinState1.Len(); k++) {
-				const int StateK = JoinState1[k];
-				const double PiK = StatDistV[JoinState1[k]];
-
-				double SumK = 0;
-				for (int l = 0; l < JoinState2.Len(); l++) {
-					const int StateL = JoinState2[l];
-					const double Q_kl = QMat(StateK,StateL);
-					SumK += Q_kl;
-				}
-
-				Sum += PiK*SumK;
-				SumP += PiK;
-			}
-
-			AggrQMat(JoinState1Idx, JoinState2Idx) = Sum / SumP;
-			AssertR(!TFlt::IsNan(AggrQMat(JoinState1Idx, JoinState2Idx)), "NaN appears when aggregating the QMatrix, this means that the joined stationary distribution is 0 for some states. Please check that the dataset is recurrent!");
-		}
-
-		const double Q_ii = -TLinAlg::SumRow(AggrQMat, JoinState1Idx);;
-		EAssertR(NAggrStates == 1 || Q_ii != 0, "Aggregated QMatrix has a zero on diagonal!");
-		AggrQMat(JoinState1Idx, JoinState1Idx) = Q_ii;
-	}
-}
-
 void TCtMChain::GetRevQMat(const TFltVV& QMat, TFltVV& RevQMat) {
 	const int States = QMat.GetRows();
 
@@ -1417,6 +1372,309 @@ double TCtMChain::HitTmPdf(const TFltVV& QMat, const int& StateId, const int& Ta
 	}
 
 	return CumHitProb * TmStep;
+}
+
+void TCtMChain::GetAggrQMat(const TFltVV& QMat, const TStateSetV& AggrStateV,
+		TFltVV& AggrQMat) {
+	const int NAggrStates = AggrStateV.Len();
+
+	if (AggrQMat.Empty()) { AggrQMat.Gen(NAggrStates, NAggrStates); }
+	EAssert(AggrQMat.GetRows() == NAggrStates && AggrQMat.GetCols() == NAggrStates);
+
+	TFltV StatDistV;	GetStatDistV(QMat, StatDistV);
+
+	for (int JoinState1Idx = 0; JoinState1Idx < NAggrStates; JoinState1Idx++) {
+		const TIntV& JoinState1 = AggrStateV[JoinState1Idx];
+		for (int JoinState2Idx = 0; JoinState2Idx < NAggrStates; JoinState2Idx++) {
+			if (JoinState1Idx == JoinState2Idx) { continue; }
+
+			const TIntV& JoinState2 = AggrStateV[JoinState2Idx];
+
+			// the transition probability from set Ai to Aj can be
+			// calculated as: q_{A_i,A_j} = \frac {\sum_{k \in A_i} \pi_k * \sum_{l \in A_j} q_{k,l}} {\sum_{k \in A_i} \pi_k}
+
+			double Sum = 0, SumP = 0;
+			for (int k = 0; k < JoinState1.Len(); k++) {
+				const int StateK = JoinState1[k];
+				const double PiK = StatDistV[JoinState1[k]];
+
+				double SumK = 0;
+				for (int l = 0; l < JoinState2.Len(); l++) {
+					const int StateL = JoinState2[l];
+					const double Q_kl = QMat(StateK,StateL);
+					SumK += Q_kl;
+				}
+
+				Sum += PiK*SumK;
+				SumP += PiK;
+			}
+
+			AggrQMat(JoinState1Idx, JoinState2Idx) = Sum / SumP;
+			AssertR(!TFlt::IsNan(AggrQMat(JoinState1Idx, JoinState2Idx)), "NaN appears when aggregating the QMatrix, this means that the joined stationary distribution is 0 for some states. Please check that the dataset is recurrent!");
+		}
+
+		const double Q_ii = -TLinAlg::SumRow(AggrQMat, JoinState1Idx);;
+		EAssertR(NAggrStates == 1 || Q_ii != 0, "Aggregated QMatrix has a zero on diagonal!");
+		AggrQMat(JoinState1Idx, JoinState1Idx) = Q_ii;
+	}
+}
+
+void TCtMChain::GetSubChain(const TFltVV& QMat, const TIntV& StateIdV, TFltVV& SubQMat) {
+	const int SubMatDim = StateIdV.Len();
+
+	if (SubQMat.Empty()) { SubQMat.Gen(SubMatDim, SubMatDim); }
+	EAssert(SubQMat.GetRows() == SubMatDim && SubQMat.GetCols() == SubMatDim);
+
+	double RowSum, Val;
+	for (int ColN = 0; ColN < SubMatDim; ColN++) {
+		RowSum = 0;
+		for (int RowN = 0; RowN < SubMatDim; RowN++) {
+			if (RowN != ColN) {
+				Val = QMat(StateIdV[RowN], StateIdV[ColN]);
+				SubQMat(RowN, ColN) = Val;
+				RowSum += Val;
+			}
+		}
+		SubQMat(ColN, ColN) = -RowSum;
+	}
+
+}
+
+void TCtMChain::BiPartition(const TFltVV& QMat, TIntV& PartV) {
+	// TODO debug this method!!!
+	const int Dim = QMat.GetRows();
+
+	if (PartV.Empty()) { PartV.Gen(Dim); }
+	EAssert(PartV.Len() == Dim);
+
+	// calculate Qs = (Pi*Q + Q'*Pi) / 2
+	// the stationary distribution
+	TFltV ProbV;	GetStatDistV(QMat, ProbV);
+
+	TFltVV QSim(Dim, Dim);
+	for (int RowN = 0; RowN < Dim; RowN++) {
+		for (int ColN = 0; ColN < Dim; ColN++) {
+			QSim(RowN, ColN) = (ProbV[RowN]*QMat(RowN, ColN) + QMat(ColN, RowN)*ProbV[ColN]) / 2;
+		}
+	}
+
+	// solve the following generalized eigenvalue problem: Qs*v = l2*Pi*v
+	TFltVV Pi;	TLAUtil::Diag(ProbV, Pi);
+
+	TFltVV EigVecVV;	TFltV EigValV;
+	TLinAlg::GeneralizedEigDecomp(QSim, Pi, EigValV, EigVecVV);
+
+	//============================================================
+	// TODO remove this
+	printf("Generalized eigenvalues: %s\n", TStrUtil::GetStr(EigValV, ",", "%.5f").CStr());
+	//============================================================
+
+	// find the second largest eigenvalue
+	double MaxEig = TFlt::NInf;
+	double SecondMaxEig = TFlt::NInf;
+	int MaxEigN = -1;
+	int SecondMaxEigN = -1;
+
+	double EigVal;
+	for (int EigN = 0; EigN < Dim; EigN++) {
+		EigVal = EigValV[EigN];
+		if (EigVal > MaxEig) {
+			SecondMaxEig = MaxEig;
+			SecondMaxEigN = MaxEigN;
+			MaxEig = EigVal;
+			MaxEigN = EigN;
+		} else if (EigVal > SecondMaxEig) {
+			SecondMaxEig = EigVal;
+			SecondMaxEigN = EigN;
+		}
+	}
+
+	// extract the partition from the eigenvector corresponding to the second
+	// largest eigevvalue
+	TFltV EigV;	EigVecVV.GetCol(SecondMaxEigN, EigV);
+	for (int i = 0; i < Dim; i++) {
+		PartV[i] = EigV[i] >= 0 ? 1 : 0;
+	}
+}
+
+void TCtMChain::Partition(const TFltVV& QMat, TIntV& HierarchV, TFltV& ScoreV) {
+	const int NStates = QMat.GetCols();
+
+	const int TotalStates = 2*NStates - 1;
+	const int RootId = TotalStates - 1;
+
+	// initialize
+	// the initial partition has only one super state with all the states inside
+	TStateSetV CurrStateSetV(NStates, 0);
+	CurrStateSetV.Add(TAggState(NStates, 0));
+	for (int StateN = 0; StateN < NStates; StateN++) {
+		CurrStateSetV[0].Add(StateN);
+	}
+
+	TIntV StateIdV;	StateIdV.Add(RootId);
+
+	// insert the initial partition into the result
+	HierarchV[RootId] = RootId;
+	ScoreV[RootId] = WassersteinDist1(QMat, CurrStateSetV);
+
+	// run the algorithm
+	double MinDist;
+	int BestStateN;
+	int CurrStateId = RootId;
+	for (int SplitN = 0; SplitN < NStates; SplitN++) {
+		MinDist = TFlt::PInf;
+		BestStateN = -1;
+
+		for (int StateN = 0; StateN < CurrStateSetV.Len(); StateN++) {
+			if (CurrStateSetV[StateN].Len() > 1) {
+				// get a sub chain formed from a single state
+				TAggState AggState = CurrStateSetV[StateN];
+				// remove the state
+				CurrStateSetV.Del(StateN);
+
+				// partition the state
+				TFltVV SubQMat;	GetSubChain(QMat, AggState, SubQMat);
+				TIntV BiPartV;	BiPartition(SubQMat, BiPartV);
+
+				// add the two new partitions to the current chain
+				CurrStateSetV.Add(TAggState());
+				CurrStateSetV.Add(TAggState());
+
+				TAggState& NewState0 = CurrStateSetV[CurrStateSetV.Len()-2];
+				TAggState& NewState1 = CurrStateSetV[CurrStateSetV.Len()-1];
+				for (int i = 0; i < BiPartV.Len(); i++) {
+					if (BiPartV[0] == 0) {
+						NewState0.Add(AggState[i]);
+					} else {
+						NewState1.Add(AggState[i]);
+					}
+				}
+
+				// calculate the distance to the original chain
+				double DistToOrig = WassersteinDist1(QMat, CurrStateSetV);
+				if (DistToOrig < MinDist) {
+					MinDist = DistToOrig;
+					BestStateN = StateN;
+				}
+
+				// restore the partition to the way it was
+				CurrStateSetV.DelLast();
+				CurrStateSetV.DelLast();
+
+				CurrStateSetV.Ins(StateN, AggState);
+			}
+		}
+
+		EAssert(BestStateN >= 0);
+
+		// bi-partition the best candidate
+		int ParentId = StateIdV[BestStateN];
+		const TAggState& AggState = CurrStateSetV[BestStateN];
+
+		TFltVV SubQMat;	GetSubChain(QMat, AggState, SubQMat);
+		TIntV BiPartV;	BiPartition(SubQMat, BiPartV);
+
+		// insert the two new states
+		CurrStateSetV.Add(TAggState());	StateIdV.Add(--CurrStateId);
+		CurrStateSetV.Add(TAggState());	StateIdV.Add(--CurrStateId);
+
+		TAggState& NewState0 = CurrStateSetV[CurrStateSetV.Len()-2];
+		TAggState& NewState1 = CurrStateSetV[CurrStateSetV.Len()-1];
+		for (int i = 0; i < BiPartV.Len(); i++) {
+			if (BiPartV[0] == 0) {
+				NewState0.Add(AggState[i]);
+			} else {
+				NewState1.Add(AggState[i]);
+			}
+		}
+
+		// remove the candidate
+		CurrStateSetV.Del(BestStateN);
+		StateIdV.Del(BestStateN);
+
+		// insert this into the result
+		// get the index of the new states parent
+		--CurrStateId;
+		StateIdV.Add(CurrStateId);
+		HierarchV[CurrStateId] = ParentId;
+		ScoreV[CurrStateId] = MinDist;
+		--CurrStateId;
+		StateIdV.Add(CurrStateId);
+		HierarchV[CurrStateId] = ParentId;
+		ScoreV[CurrStateId] = MinDist;
+	}
+}
+
+double TCtMChain::WassersteinDist1(const TFltVV& QMat, const TStateSetV& StateSetV) {
+	const int NStates = QMat.GetRows();	// TODO debug this method, it is important!! Compare with matlab
+	const int NAggStates = StateSetV.Len();
+
+	//=============================================================
+	printf("%s\n", TStrUtil::GetStr(QMat, ",", "%.15f").CStr());
+	printf("State sets:\n");
+	for (int i = 0; i < StateSetV.Len(); i++) {
+		printf("%s\n", TStrUtil::GetStr(StateSetV[i], ",").CStr());
+	}
+	//=============================================================
+
+	// the distance is defined as:
+	// \sum_{i \in X}\sum_{\psi(j) \in Y} |\sum_{j \in \psi(j)} (p_{\psi(i)}inv(P'\Pi P)P'\Pi - p_i)inv(Q)p_j|
+
+	TFltVV QInv;	TLinAlg::InverseSVD(QMat, QInv, 0);
+	TFltV ProbV;	GetStatDistV(QMat, ProbV);
+
+	TFltV ProjDiffV(NStates);
+	TFltV ProjDiffTimesQ(NStates);
+
+	double Dist = 0;
+	for (int PsiiN = 0; PsiiN < NAggStates; PsiiN++) {
+		const TAggState& PsiI = StateSetV[PsiiN];
+
+		// construct the left projection vector: p_{\psi(i)}inv(P'\Pi P)P'\Pi = \tilde(p)_{\psi(i)}
+		// first clear the projection
+		for (int StateN = 0; StateN < NStates; StateN++) {
+			ProjDiffV[StateN] = 0;
+		}
+
+		// fill the projection for the current aggregated state
+		double PsiIProb = 0;
+		for (int i = 0; i < PsiI.Len(); i++) {
+			PsiIProb += ProbV[PsiI[i]];
+		}
+		for (int i = 0; i < PsiI.Len(); i++) {
+			const int StateN = PsiI[i];
+			ProjDiffV[StateN] = ProbV[StateN] / PsiIProb;
+		}
+
+		// do the work
+		for (int i = 0; i < PsiI.Len(); i++) {
+			const int StateI = PsiI[i];
+
+			// compute dp = \tilde(p)_{\psi(i)} - p_i
+			// set the projection for this particular i
+			ProjDiffV[StateI] = ProbV[StateI] / PsiIProb - 1;
+
+			// multiply dp*Q
+			TLinAlg::MultiplyT(QInv, ProjDiffV, ProjDiffTimesQ);
+
+			for (int PsijN = 0; PsijN < NAggStates; PsijN++) {
+				const TAggState& PsiJ = StateSetV[PsijN];
+
+				double Sum = 0;
+				for (int j = 0; j < PsiJ.Len(); j++) {
+					const int StateJ = PsiJ[j];
+					Sum += ProjDiffTimesQ[StateJ];
+				}
+
+				Dist += TFlt::Abs(Sum);
+			}
+
+			// clear the projection for this particular i
+			ProjDiffV[StateI] = ProbV[StateI] / PsiIProb;
+		}
+	}
+
+	return Dist;
 }
 
 /////////////////////////////////////////////////////////////////
