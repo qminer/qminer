@@ -96,10 +96,11 @@
     "node-pre-gyp"
   ],
   "devDependencies": {
+    "aws-sdk": "~2.0.0-rc.15",
     "jsdoc": "~3.3.0-beta3",
-    "mustache": "~2.2.0",
+    "jsdoc-baseline": "https://github.com/hegemonic/baseline/tarball/master",
     "mocha": "2.1.x",
-    "aws-sdk": "~2.0.0-rc.15"
+    "mustache": "~2.2.0"
   },
   "scripts": {
     "install": "node-pre-gyp install --fallback-to-build",

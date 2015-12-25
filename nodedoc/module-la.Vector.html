@@ -24,7 +24,8 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-la.html">la</a>.<wbr></small><span class="symbol-name">Vector</span></h1>
+            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div>
+            <h1><small><a href="module-la.html">la</a>.<wbr></small><span class="symbol-name">Vector</span></h1>
             <p class="source-link">Source: <a href="ladoc.js.html#source-line-1388">ladoc.<wbr>js:1388</a></p>
             <div class="symbol-classdesc">
               <p>Wraps a C++ array.</p>
@@ -171,11 +172,11 @@
             Example
         </h3>
               <div>
-                <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
+                <pre class="prettyprint"><code>var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new empty vector
-var vec = new la.Vector();
+var vec &#x3D; new la.Vector();
 // create a new vector
-var vec2 = new la.Vector([1, 2, 3]);</code></pre>
+var vec2 &#x3D; new la.Vector([1, 2, 3]);</code></pre>
               </div>
             </section>
             <section>
@@ -270,12 +271,12 @@ var vec2 = new la.Vector([1, 2, 3]);</code></pre>
             Example
         </h4>
                 <div>
-                  <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
+                  <pre class="prettyprint"><code>var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create two vectors
-var x = new la.Vector([1, 0]);
-var y = new la.Vector([0, 1]);
+var x &#x3D; new la.Vector([1, 0]);
+var y &#x3D; new la.Vector([0, 1]);
 // calculate the cosine between those two vectors
-var num = x.cosine(y); // returns 0</code></pre>
+var num &#x3D; x.cosine(y); // returns 0</code></pre>
                 </div>
               </section>
               <section>
@@ -370,12 +371,12 @@ var num = x.cosine(y); // returns 0</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import fs module
-var fs = require(&#x27;qminer&#x27;).fs;
-var la = require(&#x27;qminer&#x27;).la;
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create an empty vector
-var vec = new la.Vector();
+var vec &#x3D; new la.Vector();
 // open a read stream
-var fin = fs.openRead(&#x27;vec.dat&#x27;);
+var fin &#x3D; fs.openRead(&#x27;vec.dat&#x27;);
 // load the vector
 vec.load(fin);</code></pre>
                 </div>
@@ -423,12 +424,12 @@ vec.load(fin);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import fs module
-var fs = require(&#x27;qminer&#x27;).fs;
-var la = require(&#x27;qminer&#x27;).la;
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create an empty vector
-var vec = new la.Vector();
+var vec &#x3D; new la.Vector();
 // open a read stream
-var fin = fs.openRead(&#x27;vec.dat&#x27;);
+var fin &#x3D; fs.openRead(&#x27;vec.dat&#x27;);
 // load the matrix
 vec.loadascii(fin);</code></pre>
                 </div>
@@ -565,12 +566,12 @@ vec.loadascii(fin);</code></pre>
             Example
         </h4>
                 <div>
-                  <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
+                  <pre class="prettyprint"><code>var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create two vectors
-var x = new la.Vector([1, 2, 3]);
-var y = new la.Vector([4, 5]);
+var x &#x3D; new la.Vector([1, 2, 3]);
+var y &#x3D; new la.Vector([4, 5]);
 // create the outer product of these vectors
-var A = x.outer(y); // creates the dense matrix [[4, 5], [8, 10], [12, 15]]</code></pre>
+var A &#x3D; x.outer(y); // creates the dense matrix [[4, 5], [8, 10], [12, 15]]</code></pre>
                 </div>
               </section>
               <section>
@@ -653,9 +654,9 @@ var A = x.outer(y); // creates the dense matrix [[4, 5], [8, 10], [12, 15]]</cod
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec = new la.Vector([1, 2, 3]);
+var vec &#x3D; new la.Vector([1, 2, 3]);
 // print the vector
 // For this example it prints:
 // [1, 2, 3]
@@ -797,12 +798,12 @@ vec.print();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import fs module
-var fs = require(&#x27;qminer&#x27;).fs;
-var la = require(&#x27;qminer&#x27;).la;
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec = new la.Vector([1, 2, 3]);
+var vec &#x3D; new la.Vector([1, 2, 3]);
 // open write stream
-var fout = fs.openWrite(&#x27;vec.dat&#x27;);
+var fout &#x3D; fs.openWrite(&#x27;vec.dat&#x27;);
 // save vector and close write stream
 vec.save(fout).close();</code></pre>
                 </div>
@@ -850,12 +851,12 @@ vec.save(fout).close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import fs module
-var fs = require(&#x27;qminer&#x27;).fs;
-var la = require(&#x27;qminer&#x27;).la;
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec = new la.Vector([1, 2, 3]);
+var vec &#x3D; new la.Vector([1, 2, 3]);
 // open write stream
-var fout = fs.openWrite(&#x27;vec.dat&#x27;);
+var fout &#x3D; fs.openWrite(&#x27;vec.dat&#x27;);
 // save matrix and close write stream
 vec.saveascii(fout).close();</code></pre>
                 </div>
@@ -910,9 +911,9 @@ vec.saveascii(fout).close();</code></pre>
             Example
         </h4>
                 <div>
-                  <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
+                  <pre class="prettyprint"><code>var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec = new la.Vector([-2.0, 1.0, 3.0]);
+var vec &#x3D; new la.Vector([-2.0, 1.0, 3.0]);
 // sort ascending
 vec.sort(); // sorts to: [-2.0, 1.0, 3.0]
 // sort using callback
@@ -966,11 +967,11 @@ vec.sort(function(arg1, arg2) { return Math.abs(arg1) - Math.abs(arg2); }); // s
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec = new la.Vector([-2.0, 1.0, 3.0]);
+var vec &#x3D; new la.Vector([-2.0, 1.0, 3.0]);
 // sort ascending
-var result = vec.sortPerm(); // result.vec: [-2.0, 1.0, 3.0]
+var result &#x3D; vec.sortPerm(); // result.vec: [-2.0, 1.0, 3.0]
 result.perm; // permutation index vector</code></pre>
                 </div>
               </section>
@@ -1032,9 +1033,9 @@ result.perm; // permutation index vector</code></pre>
             Example
         </h4>
                 <div>
-                  <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
+                  <pre class="prettyprint"><code>var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec = new la.Vector([1, 2, 3]);
+var vec &#x3D; new la.Vector([1, 2, 3]);
 // splice the vector by removing the last two elements and adding 4, 5
 vec.splice(1, 2, 4, 5)// returns vector [1, 4, 5]</code></pre>
                 </div>
@@ -1156,11 +1157,11 @@ vec.splice(1, 2, 4, 5)// returns vector [1, 4, 5]</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec = new la.Vector([1, 2, 3]);
+var vec &#x3D; new la.Vector([1, 2, 3]);
 // create a JavaScript array out of vec
-var arr = vec.toArray(); // returns an array [1, 2, 3]</code></pre>
+var arr &#x3D; vec.toArray(); // returns an array [1, 2, 3]</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -1184,9 +1185,9 @@ var arr = vec.toArray(); // returns an array [1, 2, 3]</code></pre>
             Example
         </h4>
                 <div>
-                  <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
+                  <pre class="prettyprint"><code>var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec = new la.Vector([1, 2, 3]);
+var vec &#x3D; new la.Vector([1, 2, 3]);
 // create vector as string
 vec.toString(); // returns &#x27;1, 2, 3&#x27;</code></pre>
                 </div>
@@ -1204,9 +1205,9 @@ vec.toString(); // returns &#x27;1, 2, 3&#x27;</code></pre>
             Example
         </h4>
                 <div>
-                  <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
+                  <pre class="prettyprint"><code>var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec = new la.Vector([1, 2, 3]);
+var vec &#x3D; new la.Vector([1, 2, 3]);
 // trunc all elements with index 1 or more
 vec.trunc(1); // returns vector [1]</code></pre>
                 </div>
