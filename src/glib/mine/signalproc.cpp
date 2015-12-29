@@ -1028,57 +1028,56 @@ PJsonVal TOnlineHistogram::SaveJson() const {
 	return Result;
 }
 
-TFlt TTDigest::Quantile(const TFlt& q) const {
-	if(q < 0 || q > 1) {
-		return 0; // TODO
+TFlt TTDigest::Quantile(const TFlt& Q) const {
+	if(Q < 0 || Q > 1) {
+		throw TExcept::New("TTDigest::Quantile(const TFlt& q): no data processed");
 	}
-
 	if(Centroids->GetSize() == 0) {
-		return 0; // TODO
+		throw TExcept::New("TTDigest::Quantile(const TFlt& q): no data processed");
 	} else if(Centroids->GetSize() == 1) {
 		return Centroids->GetValue(Centroids->First());
 	}
 
-	const double index = q * (Count - 1);
+	const TFlt Index = Q * (Count - 1);
 
-	double previousMean = NAN;
-	double previousIndex = 0;
-	TInt next = Centroids->FloorSum(index);
-	EAssert(next != 0);
-	long total = Centroids->CeilSum(next);
-	const int prev = Centroids->PrevNode(next);
-	if(prev != 0) {
-		previousMean = Centroids->GetValue(prev);
-		previousIndex = total - (Centroids->GetCount(prev) + 1.0) / 2.0;
+	double PreviousMean = NAN;
+	double PreviousIndex = 0;
+	TInt Next = Centroids->FloorSum((int)Index);
+	EAssert(Next != 0);
+	TInt Total = Centroids->CeilSum(Next);
+	const int Prev = Centroids->PrevNode(Next);
+	if(Prev != 0) {
+		PreviousMean = Centroids->GetValue(Prev);
+		PreviousIndex = Total - (Centroids->GetCount(Prev) + 1.0) / 2.0;
 	}
 
 	while(true) {
-		const double nextIndex = total + (Centroids->GetCount(next) - 1.0) / 2.0;
-		TFlt cent_val = Centroids->GetValue(next);
-		if(nextIndex >= index) {
-			if(previousMean == NAN) {
+		const TFlt NextIndex = Total + (Centroids->GetCount(Next) - 1.0) / 2.0;
+		TFlt CentVal = Centroids->GetValue(Next);
+		if(NextIndex >= Index) {
+			if(PreviousMean == NAN) {
 				// Index is before first centroid
-				EAssert(total == 0);
-				if(nextIndex == previousIndex) {
-					return Centroids->GetValue(next);
+				EAssert(Total == 0);
+				if(NextIndex == PreviousIndex) {
+					return Centroids->GetValue(Next);
 				}
 				// We assume a linear increase
-				int next2 = Centroids->GetValue(next);
-				const double nextIndex2 = total + Centroids->GetCount(next) + (Centroids->GetCount(next2) - 1.0) / 2.0;
-				previousMean = (nextIndex2 * Centroids->GetValue(next) - nextIndex * Centroids->GetValue(next2)) / (nextIndex2 - nextIndex);
+				TInt Next2 = (int)Centroids->GetValue(Next);
+				const TFlt NextIndex2 = Total + Centroids->GetCount(Next) + (Centroids->GetCount(Next2) - 1.0) / 2.0;
+				PreviousMean = (NextIndex2 * Centroids->GetValue(Next) - NextIndex * Centroids->GetValue(Next2)) / (NextIndex2 - NextIndex);
 			}
-			return Quantile(previousIndex, index, nextIndex, previousMean, Centroids->GetValue(next));
+			return Quantile(PreviousIndex, Index, NextIndex, PreviousMean, Centroids->GetValue(Next));
 
-		} else if(cent_val.Val == 0.0) {
+		} else if(CentVal == 0.0) {
 			// Beyond last centroid
-			const double nextIndex2 = Count - 1;
-			const double nextMean2 = (Centroids->GetValue(next) * (nextIndex2 - previousIndex ) - previousMean * (nextIndex2 - nextIndex)) / (nextIndex - previousIndex);
-			return Quantile(nextIndex, index, nextIndex2, Centroids->GetValue(next), nextMean2);
+			const TFlt NextIndex2 = Count - 1;
+			const TFlt NextMean2 = (Centroids->GetValue(Next) * (NextIndex2 - PreviousIndex ) - PreviousMean * (NextIndex2 - NextIndex)) / (NextIndex - PreviousIndex);
+			return Quantile(NextIndex, Index, NextIndex2, Centroids->GetValue(Next), NextMean2);
 		}
-		total += Centroids->GetCount(next);
-		previousMean = Centroids->GetValue(next);
-		previousIndex = nextIndex;
-		next = Centroids->NextNode(next);
+		Total += Centroids->GetCount(Next);
+		PreviousMean = Centroids->GetValue(Next);
+		PreviousIndex = NextIndex;
+		Next = Centroids->NextNode(Next);
 	}
 }
 
@@ -1086,14 +1085,15 @@ void TTDigest::Compress() {
 	// TODO: implement this one
 }
 
-/// Load from stream
-void TTDigest::LoadState(TSIn& SIn) {
-
-}
-
 /// Store state into stream
 void TTDigest::SaveState(TSOut& SOut) const {
+	Centroids->SaveState(SOut);
+	Count.Save(SOut);
+}
 
+void TTDigest::LoadState(TSIn& SIn) {
+	Centroids->LoadState(SIn);
+	Count.Load(SIn);
 }
 
 void TTDigest::Print() const {

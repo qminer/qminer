@@ -18,7 +18,7 @@ class TAvlTree {
 
         TAvlTree();
 
-        void SetVec(TIntV& Vec, TInt Key, TInt Val) {
+        void SetVec(TIntV& Vec, const TInt& Key, const TInt& Val) const {
         	if (Vec.Len()-1 == Key) {
         		Vec.Add(Val);
         	}
@@ -30,7 +30,7 @@ class TAvlTree {
         		Vec[Key] = Val;
         	}
         }
-        void SetVec(TFltV& Vec, TInt Key, TFlt Val) {
+        void SetVec(TFltV& Vec, TInt Key, TFlt Val) const {
         	if (Vec.Len()-1 == Key) {
 				Vec.Add(Val);
 			}
@@ -42,22 +42,22 @@ class TAvlTree {
 				Vec[Key] = Val;
 			}
         }
-        void SetVec(TIntH& Vec, TInt Key, TInt Val) {
+        void SetVec(TIntH& Vec, const TInt& Key, const TInt& Val) const {
         	Vec.AddDat(Key, Val);
         }
-        void SetVec(TIntFltH& Vec, TInt Key, TFlt Val) {
+        void SetVec(TIntFltH& Vec, const TInt& Key, const TFlt& Val) const {
         	Vec.AddDat(Key, Val);
         }
-        void GetVec(TIntH Vec, TInt Key, TInt& Val) {
-        	Val = Vec.GetDat(Key);
-        }
-        TFlt GetVec(TIntFltH Vec, TInt Key) {
+        TInt GetVec(const TIntH& Vec, const TInt& Key, const TInt& Val) const {
         	return Vec.GetDat(Key);
         }
-        TInt GetVec(TIntV Vec, TInt Key) {
+        TFlt GetVec(TIntFltH& Vec, const TInt& Key) const {
+        	return Vec.GetDat(Key);
+        }
+        TInt GetVec(TIntV& Vec, const TInt& Key) const {
 			return Vec.GetVal(Key);
 		}
-        TFlt GetVec(TFltV Vec, TInt Key) {
+        TFlt GetVec(TFltV& Vec, const TInt& Key) const {
         	return Vec.GetVal(Key);
         }
 
@@ -101,8 +101,15 @@ class TAvlTree {
 
         // O(1)
         TInt GetParentNode(const TInt& Node) const {
+        		//return GetVec(Parent, Node);
+                return Parent.GetDat(Node);
+        		//return Parent.GetVal(Node);
+        }
+        TInt GetParentNode(const TIntH& Parent, const TInt& Node) const {
         	return Parent.GetDat(Node);
-        	//return Parent[node];
+        }
+        TInt GetParentNode(const TIntV& Parent, const TInt& Node) const {
+        	return Parent.GetVal(Node);
         }
         // O(1)
         TInt GetLeftNode(const TInt& Node) const {
@@ -297,7 +304,28 @@ class TAvlTree {
         void Print() const {
             Print(Root);
         }
-
+        void SaveState(TSOut& SOut) const {
+        	Root.Save(SOut);
+        	N.Save(SOut);
+        	Parent.Save(SOut);
+        	Left.Save(SOut);
+        	Right.Save(SOut);
+        	Depth.Save(SOut);
+        	Count.Save(SOut);
+        	Values.Save(SOut);
+        	AggregatedCount.Save(SOut);
+        };
+        void LoadState(TSIn& SIn)  {
+			Root.Load(SIn);
+			N.Load(SIn);
+			Parent.Load(SIn);
+			Left.Load(SIn);
+			Right.Load(SIn);
+			Depth.Load(SIn);
+			Count.Load(SIn);
+			Values.Load(SIn);
+			AggregatedCount.Load(SIn);
+        };
 };
 
 #endif
