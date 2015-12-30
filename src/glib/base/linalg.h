@@ -32,7 +32,6 @@
 #endif
 #include "base.h"
 
-
 namespace TypeCheck {
 	template<typename T1>
 	struct is_float { static const bool value = false; };
@@ -1062,6 +1061,9 @@ public:
 			TVVec<TType, TSizeTy, ColMajor>& PowVV);
 };
 
+#ifdef LAPACKE
+#include "MKLfunctions.h"
+#endif
 
 //////////////////////////////////////////////////////////////////////
 // Basic Linear Algebra Operations
@@ -2314,15 +2316,18 @@ public:
 		TSizeTy LeadingDimV = ColMajor ? V.GetRows() : V.GetCols();
 		int Layout = ColMajor ? LAPACK_COL_MAJOR : LAPACK_ROW_MAJOR;
 
+		TVVec<TNum<TType>, TSizeTy, ColMajor> A1 = A;	// A is overwritten
+		TVVec<TNum<TType>, TSizeTy, ColMajor> B1 = B;	// B is overwritten
+
 		// A will get overwritten
 		int Info = LAPACKE_dggev(
 			Layout,					// matrix layout
 			'N',					// don't compute left eigenvectors
 			'V',					// compute right eigenvectors
 			Dim,					// order of matrices A,B,Vl,Vr
-			(double*) &A(0,0),		// A
+			(double*) &A1(0,0),		// A
 			LeadingDimA,			// leading dimension of A
-			(double*) &B(0,0),		// B
+			(double*) &B1(0,0),		// B
 			LeadingDimB,			// leading dimension of B
 			(double*) &AlphaR[0],	// real part of the eigenvalues
 			(double*) &AlphaI[0],	// imaginary part of the eigenvalues
@@ -2333,7 +2338,7 @@ public:
 			LeadingDimV				// leading dimension of Vr
 		);
 
-		EAssertR(Info == 0, "Failed to compute the generalized eigen decomposition!");
+		EAssertR(Info == 0, "Failed to compute the generalized eigen decomposition, error: " + TInt::GetStr(Info) + "!");
 
 		// construct the eigenvalues
 		// the generalized eigenvalues will be: (AlphaR[j] + AlphaI[j]*i) / Beta[j], j = 1,...,N
@@ -3014,17 +3019,42 @@ public:
 	template <class TType, class TSizeTy, bool ColMajor>
 	void TLinAlg::InverseSVD(const TVVec<TType, TSizeTy, ColMajor>& A,
 			TVVec<TType, TSizeTy, ColMajor>& B, const double& tol) {
+		// check the size of B
+		if (B.Empty()) { B.Gen(A.GetCols(), A.GetRows()); }
+		EAssert(B.GetCols() == A.GetRows() && B.GetRows() == A.GetCols());
+
 		// create temp matrices
-		TVVec<TType, TSizeTy, ColMajor> U, V;
 		TVec<TType, TSizeTy> E;
 		TSvd SVD;
 
 		//U.Gen(M.GetRows(), M.GetRows());
 		//V.Gen(M.GetCols(), M.GetCols());
+
+		// do the SVD decompostion
+#ifdef LAPACKE
+		TVVec<TType, TSizeTy, ColMajor> U, Vt;
+		U.Gen(A.GetRows(), A.GetRows());
+		Vt.Gen(A.GetCols(), A.GetCols());
+
+		MKLfunctions::SVDFactorization(A, U, E, Vt);
+
+		const double Threshold = tol*E[0];
+		double Sum;
+		for (int i = 0; i < Vt.GetCols(); i++) {
+			for (int j = 0; j < U.GetRows(); j++) {
+				Sum = 0;
+				for (int k = 0; k < E.Len(); k++) {
+					if (E[k] <= Threshold) { break; }
+					Sum += Vt(k,i)*U(j,k) / E[k];	// V is transposed
+				}
+				B(i,j) = Sum;
+			}
+		}
+#else
+		TVVec<TType, TSizeTy, ColMajor> U, V;
 		U.Gen(A.GetRows(), A.GetRows());
 		V.Gen(A.GetCols(), A.GetCols());
 
-		// do the SVD decompostion
 		SVD.Svd(A, U, E, V);
 
 		// calculate reciprocal values for diagonal matrix = inverse diagonal
@@ -3048,6 +3078,7 @@ public:
 				B.At(i, j) = sum;
 			}
 		}
+#endif
 	}
 
 	// subtypes of finding an inverse (works only for TFltVV, cuz of TSvd)
@@ -3966,9 +3997,5 @@ TFullMatrix& TFullMatrix::Map(const TFunc& Func) {
 
 	return *this;
 }
-
-#ifdef LAPACKE
-#include "MKLfunctions.h"
-#endif
 
 #endif

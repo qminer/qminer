@@ -60,6 +60,18 @@ TStr TStrUtil::GetStr(const TStrIntPrV& StrIntPrV,
   return ResChA;
 }
 
+TStr TStrUtil::GetStr(const TIntFltPrV& IntFltPrV, const TStr& FieldDelimiterStr,
+		const TStr& DelimiterStr, const TStr& FmtStr) {
+	TChA ResChA;
+	for (int i = 0; i < IntFltPrV.Len(); i++) {
+		if (!ResChA.Empty()) { ResChA += DelimiterStr; }
+		ResChA += IntFltPrV[i].Val1.GetStr();
+		ResChA += FieldDelimiterStr;
+		ResChA += TFlt::GetStr(IntFltPrV[i].Val2, FmtStr);
+	}
+	return ResChA;
+}
+
 TStr TStrUtil::GetStr(const TFltV& FltV, const TStr& DelimiterStr, const TStr& FmtStr) {
   TChA ResChA;
   for (int FltN = 0; FltN < FltV.Len(); FltN++) {

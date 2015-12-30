@@ -579,445 +579,6 @@ void TEuclMds::Project(const TFltVV& FtrVV, TFltVV& ProjVV, const int& d) {
 }
 
 /////////////////////////////////////////////////////////////////
-// Agglomerative clustering
-THierarch::THierarch(const bool& _HistCacheSize, const bool& _Verbose):
-		HierarchV(),
-		StateHeightV(),
-		MxHeight(TFlt::Mn),
-		HistCacheSize(_HistCacheSize),
-		PastStateIdV(),
-		NLeafs(0),
-		Verbose(_Verbose),
-		Notify(_Verbose ? TNotify::StdNotify : TNotify::NullNotify) {
-
-	EAssertR(HistCacheSize >= 1, "Have to hold at least the current state!");
-}
-
-THierarch::THierarch(TSIn& SIn):
-		HierarchV(SIn),
-		StateHeightV(SIn),
-		UniqueHeightV(SIn),
-		MxHeight(SIn),
-		HistCacheSize(TInt(SIn)),
-		PastStateIdV(SIn),
-		NLeafs(TInt(SIn)),
-		StateNmV(SIn),
-		TargetIdHeightSet(SIn),
-		Verbose(TBool(SIn)),
-		Notify(nullptr) {
-
-	Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
-}
-
-void THierarch::Save(TSOut& SOut) const {
-	HierarchV.Save(SOut);
-	StateHeightV.Save(SOut);
-	UniqueHeightV.Save(SOut);
-	MxHeight.Save(SOut);
-	TInt(HistCacheSize).Save(SOut);
-	PastStateIdV.Save(SOut);
-	TInt(NLeafs).Save(SOut);
-	StateNmV.Save(SOut);
-	TargetIdHeightSet.Save(SOut);
-	TBool(Verbose).Save(SOut);
-}
-
-THierarch* THierarch::Load(TSIn& SIn) {
-	return new THierarch(SIn);
-}
-
-void THierarch::Init(const int& CurrLeafId, const TStateIdentifier& StateIdentifier) {
-	const TFltVV& CentroidMat = StateIdentifier.GetCentroidMat();
-
-	ClrFlds();
-
-	NLeafs = CentroidMat.GetCols();
-
-	// create a hierarchy
-	TIntIntFltTrV MergeV;	TAlAggClust::MakeDendro(CentroidMat, MergeV, Notify);
-
-	Notify->OnNotify(TNotifyType::ntInfo, TStrUtil::GetStr(MergeV, ", "));
-
-	const int NMiddleStates = MergeV.Len();
-	const int NStates = NLeafs + NMiddleStates;
-
-	HierarchV.Gen(NStates);
-	StateHeightV.Gen(NStates);
-
-	for (int i = 0; i < HierarchV.Len(); i++) {
-		HierarchV[i] = -1;
-	}
-
-	for (int i = 0; i < MergeV.Len(); i++) {
-		const int LeafState1Idx = MergeV[i].Val1;
-		const int LeafState2Idx = MergeV[i].Val2;
-		const double Height = MergeV[i].Val3;
-
-		// find the states into which state 1 and state 2 were merged
-		const int State1Idx = GetOldestAncestIdx(LeafState1Idx);
-		const int State2Idx = GetOldestAncestIdx(LeafState2Idx);
-		const int MergeStateIdx = NLeafs + i;
-
-		HierarchV[State1Idx] = MergeStateIdx;
-		HierarchV[State2Idx] = MergeStateIdx;
-		StateHeightV[MergeStateIdx] = Height;
-
-		EAssertR(StateHeightV[MergeStateIdx] > StateHeightV[State1Idx] && StateHeightV[MergeStateIdx] > StateHeightV[State2Idx], "Parent should have greater height that any of its children!");
-
-		if (Height > MxHeight) { MxHeight = Height; }
-	}
-
-	HierarchV.Last() = HierarchV.Len() - 1;
-
-	// compute state coordinates
-//	ComputeStateCoords(CentroidMat, NStates, StateIdentifier);
-
-	// initialize history
-	GenUniqueHeightV(StateHeightV, UniqueHeightV);
-	PastStateIdV.Gen(UniqueHeightV.Len(), UniqueHeightV.Len());
-	UpdateHistory(CurrLeafId);
-
-	// initialize state names
-	StateNmV.Gen(HierarchV.Len());
-}
-
-void THierarch::UpdateHistory(const int& CurrLeafId) {
-	const TFltV& HeightV = GetUniqueHeightV();
-	TIntFltPrV StateIdHeightPrV;	GetAncestorV(CurrLeafId, StateIdHeightPrV);
-
-	EAssertR(HeightV.Len() == PastStateIdV.Len(), "Number of heights doesn't match the number of heights in the past state cache!");
-
-	int CurrHeightIdx = 0;
-	for (int i = 0; i < StateIdHeightPrV.Len(); i++) {
-		const int CurrStateId = StateIdHeightPrV[i].Val1;
-
-		while (CurrHeightIdx < HeightV.Len() && IsOnHeight(CurrStateId, HeightV[CurrHeightIdx])) {
-			if (PastStateIdV[CurrHeightIdx].Empty() || PastStateIdV[CurrHeightIdx][0] != CurrStateId) {
-				PastStateIdV[CurrHeightIdx].Ins(0, CurrStateId);
-				// cleanup
-				while (PastStateIdV[CurrHeightIdx].Len() > 2 /* HistCacheSize TODO */) { PastStateIdV[CurrHeightIdx].DelLast(); }
-			}
-			CurrHeightIdx++;
-		}
-	}
-}
-
-void THierarch::GetStateIdHeightPrV(TIntFltPrV& StateIdHeightPrV) const {
-	const int NStates = GetStates();
-
-	for (int StateId = 0; StateId < NStates; StateId++) {
-		StateIdHeightPrV.Add(TIntFltPr(StateId, GetStateHeight(StateId)));
-	}
-}
-
-void THierarch::GetStateSetsAtHeight(const double& Height, TStateIdV& StateIdV,
-		TStateSetV& StateSetV) const {
-	TIntIntVH StateSubStateH;	GetAncSuccH(Height, StateSubStateH);
-
-	StateIdV.Gen(StateSubStateH.Len());
-	StateSetV.Gen(StateSubStateH.Len());
-
-	int i = 0;
-	int KeyId = StateSubStateH.FFirstKeyId();
-	while (StateSubStateH.FNextKeyId(KeyId)) {
-		const int StateIdx = StateSubStateH.GetKey(KeyId);
-
-		if (StateSubStateH[KeyId].Empty()) {
-			StateSetV[i].Add(StateIdx);
-		} else {
-			StateSetV[i] = StateSubStateH[KeyId];
-		}
-
-		StateIdV[i] = StateIdx;
-
-		i++;
-	}
-}
-
-void THierarch::GetStatesAtHeight(const double& Height, TIntSet& StateIdV) const {
-	const int NStates = GetStates();
-
-	for (int StateIdx = 0; StateIdx < NStates; StateIdx++) {
-		if (IsOnHeight(StateIdx, Height)) {
-			StateIdV.AddKey(StateIdx);
-		}
-	}
-}
-
-void THierarch::GetAncestorV(const int& StateId, TIntFltPrV& StateIdHeightPrV) const {
-	StateIdHeightPrV.Add(TIntFltPr(StateId, GetStateHeight(StateId)));
-
-	int AncestorId = StateId;
-	do {
-		AncestorId = GetParentId(AncestorId);
-		StateIdHeightPrV.Add(TIntFltPr(AncestorId, GetStateHeight(AncestorId)));
-	} while (!IsRoot(AncestorId));
-}
-
-int THierarch::GetAncestorAtHeight(const int& StateId, const double& Height) const {
-	EAssertR(Height <= MxHeight, "Cannot search for states at height larger than MxHeight!");
-	EAssert(IsOnHeight(StateId, Height) || IsBelowHeight(StateId, Height));
-
-	int AncestorId = StateId;
-
-	while (!IsOnHeight(AncestorId, Height)) {
-		AncestorId = GetParentId(AncestorId);
-	}
-
-	return AncestorId;
-}
-
-void THierarch::GetLeafDescendantV(const int& TargetStateId, TIntV& DescendantV) const {
-	if (IsLeaf(TargetStateId)) {
-		DescendantV.Add(TargetStateId);
-		return;
-	}
-
-	const int NStates = HierarchV.Len();
-
-	TIntV TempHierarchV(HierarchV);
-
-	// for each state compute the oldest ancestor until you hit the target state or root
-	bool Change;
-	do {
-		Change = false;
-
-		for (int LeafId = 0; LeafId < NStates; LeafId++) {
-			if (GetParentId(LeafId, TempHierarchV) != TargetStateId && !IsRoot(GetParentId(LeafId, TempHierarchV), TempHierarchV)) {
-				GetParentId(LeafId, TempHierarchV) = GetGrandparentId(LeafId, TempHierarchV);
-				Change = true;
-			}
-		}
-	} while (Change);
-
-	// take only the leafs with the target ancestor
-	for (int LeafId = 0; LeafId < NLeafs; LeafId++) {
-		if (GetParentId(LeafId, TempHierarchV) == TargetStateId) {
-			DescendantV.Add(LeafId);
-		}
-	}
-}
-
-void THierarch::GetCurrStateIdHeightPrV(TIntFltPrV& StateIdHeightPrV) const {
-	const TFltV& HeightV = GetUniqueHeightV();
-	for (int i = 0; i < PastStateIdV.Len(); i++) {
-		const TIntV& PastStateIdVOnH = PastStateIdV[i];
-		EAssertR(!PastStateIdVOnH.Empty(), "Past state cache empty!");
-		StateIdHeightPrV.Add(TIntFltPr(PastStateIdVOnH[0], HeightV[i]));
-	}
-}
-
-void THierarch::GetHistStateIdV(const double& Height, TStateIdV& StateIdV) const {
-	const int NearestHeightIdx = GetNearestHeightIdx(Height);
-	const TIntV& HistV = PastStateIdV[NearestHeightIdx];
-	for (int i = 1; i < HistV.Len(); i++) {
-		StateIdV.Add(HistV[i]);
-	}
-}
-
-void THierarch::GetLeafSuccesorCountV(TIntV& LeafCountV) const {
-	const int NStates = GetStates();
-
-	LeafCountV.Gen(NStates, NStates);
-
-	for (int i = 0; i < NLeafs; i++) {
-		LeafCountV[i] = 1;
-	}
-
-	TIntV TempHierarchV(HierarchV);
-
-	bool Change;
-	do {
-		Change = false;
-
-		for (int LeafId = 0; LeafId < NLeafs; LeafId++) {
-			const int AncestorId = GetParentId(LeafId, TempHierarchV);
-			const int LeafWeight = LeafCountV[LeafId];
-			LeafCountV[AncestorId] += LeafWeight;
-		}
-
-		for (int LeafId = 0; LeafId < NLeafs; LeafId++) {
-			// check if the parent is root
-			if (!IsRoot(GetParentId(LeafId, TempHierarchV), TempHierarchV)) {
-				GetParentId(LeafId, TempHierarchV) = GetGrandparentId(LeafId, TempHierarchV);
-				Change = true;
-			}
-		}
-	} while (Change);
-}
-
-bool THierarch::IsStateNm(const int& StateId) const {
-	return 0 <= StateId && StateId < HierarchV.Len() && !StateNmV[StateId].Empty();
-}
-
-void THierarch::SetStateNm(const int& StateId, const TStr& StateNm) {
-	EAssertR(0 <= StateId && StateId < StateNmV.Len(), "THierarch::SetStateNm: Invalid state ID!");
-	StateNmV[StateId] = StateNm;
-}
-
-const TStr& THierarch::GetStateNm(const int& StateId) const {
-	EAssertR(0 <= StateId && StateId < StateNmV.Len(), "THierarch::GetStateNm: Invalid state ID!");
-	return StateNmV[StateId];
-}
-
-bool THierarch::IsTarget(const int& StateId) const {
-	EAssert(IsStateId(StateId));
-	double StateHeight = GetStateHeight(StateId);
-	return TargetIdHeightSet.IsKey(TIntFltPr(StateId, StateHeight));
-}
-
-void THierarch::SetTarget(const int& StateId) {
-	EAssert(IsStateId(StateId));
-	double StateHeight = GetStateHeight(StateId);
-	TargetIdHeightSet.AddKey(TIntFltPr(StateId, StateHeight));
-}
-
-void THierarch::RemoveTarget(const int& StateId) {
-	EAssert(IsTarget(StateId));
-
-	double StateHeight = GetStateHeight(StateId);
-	TIntFltPr StateIdHeightPr(StateId, StateHeight);
-
-	TargetIdHeightSet.DelKey(StateIdHeightPr);
-}
-
-bool THierarch::IsLeaf(const int& StateId) const {
-	return StateId < NLeafs;
-}
-
-void THierarch::SetVerbose(const bool& _Verbose) {
-	if (_Verbose != Verbose) {
-		Verbose = _Verbose;
-		Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
-	}
-}
-
-void THierarch::PrintHierarch() const {
-	TChA ChA = "";
-
-	for (int i = 0; i < HierarchV.Len(); i++) {
-		ChA += "(" + TInt(i).GetStr() + "," + TInt::GetStr(GetParentId(i)) + "," + TFlt::GetStr(GetStateHeight(i), "%.3f") + ")";
-		if (i < HierarchV.Len()-1) { ChA += ","; }
-	}
-
-	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Hierarchy: %s", ChA.CStr());
-}
-
-int THierarch::GetParentId(const int& StateId) const {
-	return GetParentId(StateId, HierarchV);
-}
-
-int THierarch::GetNearestHeightIdx(const double& Height) const {
-	// TODO optimize:
-	// 1) use binary search to find the nearest height
-	const TFltV& HeightV = GetUniqueHeightV();
-	for (int i = 0; i < HeightV.Len() - 1; i++) {
-		if (HeightV[i] <= Height && HeightV[i+1] > Height) {
-			return i;
-		}
-	}
-	return HeightV.Len() - 1;
-}
-
-double THierarch::GetNearestHeight(const double& InHeight) const {
-	return UniqueHeightV[GetNearestHeightIdx(InHeight)];
-}
-
-bool THierarch::IsRoot(const int& StateId) const {
-	return IsRoot(StateId, HierarchV);
-}
-
-bool THierarch::IsOnHeight(const int& StateId, const double& Height) const {
-	if (IsRoot(StateId) && Height >= MxHeight) { return true; }
-
-	const double StateHeight = GetStateHeight(StateId);
-	const double ParentHeight = GetStateHeight(GetParentId(StateId));
-
-	return StateHeight <= Height && Height < ParentHeight;
-}
-
-bool THierarch::IsBelowHeight(const int& StateId, const double& Height) const {
-	if (IsOnHeight(StateId, Height)) { return false; }
-	return GetStateHeight(GetParentId(StateId)) <= Height;
-}
-
-bool THierarch::IsAboveHeight(const int& StateId, const double& Height) const {
-	return !IsOnHeight(StateId, Height) && !IsBelowHeight(StateId, Height);
-}
-
-void THierarch::GetAncSuccH(const double& Height, TIntIntVH& StateSubStateH) const {
-	const int NStates = GetStates();
-
-	// build a model on this height
-	// get all the states on this height
-	TIntSet StateSet;	GetStatesAtHeight(Height, StateSet);
-
-	int KeyId = StateSet.FFirstKeyId();
-	while (StateSet.FNextKeyId(KeyId)) {
-		StateSubStateH.AddDat(StateSet.GetKey(KeyId), TIntV());
-	}
-
-	// get all the substates of the states on this height
-	TIntV TempHierarchV(HierarchV);
-	bool Change;
-	do {
-		Change = false;
-		for (int StateIdx = 0; StateIdx < NStates; StateIdx++) {
-			if (!StateSet.IsKey(TempHierarchV[StateIdx]) &&
-					TempHierarchV[StateIdx] != TempHierarchV[TempHierarchV[StateIdx]]) {
-				TempHierarchV[StateIdx] = TempHierarchV[TempHierarchV[StateIdx]];
-				Change = true;
-			}
-		}
-	} while (Change);
-
-	for (int StateIdx = 0; StateIdx < NLeafs; StateIdx++) {
-		if (StateSet.IsKey(TempHierarchV[StateIdx])) {
-			StateSubStateH.GetDat(TempHierarchV[StateIdx]).Add(StateIdx);
-		}
-	}
-}
-
-int THierarch::GetOldestAncestIdx(const int& StateIdx) const {
-	int AncestIdx = StateIdx;
-
-	while (HierarchV[AncestIdx] != -1) {
-		AncestIdx = HierarchV[AncestIdx];
-	}
-
-	return AncestIdx;
-}
-
-bool THierarch::IsRoot(const int& StateId, const TIntV& HierarchV) {
-	return GetParentId(StateId, HierarchV) == StateId;
-}
-
-void THierarch::GenUniqueHeightV(const TFltV& HeightV, TFltV& UniqueHeightV) {
-	TFltSet UsedHeightSet;
-	for (int i = 0; i < HeightV.Len(); i++) {
-		if (!UsedHeightSet.IsKey(HeightV[i])) {
-			UniqueHeightV.Add(HeightV[i]);
-			UsedHeightSet.AddKey(HeightV[i]);
-		}
-	}
-
-	UniqueHeightV.Sort(true);	// sort ascending
-}
-
-void THierarch::ClrFlds() {
-	HierarchV.Clr();
-	StateHeightV.Clr();
-	UniqueHeightV.Clr();
-	MxHeight = TFlt::Mn;
-	HistCacheSize = 1;
-	PastStateIdV.Clr();
-//	StateCoordV.Clr();
-	NLeafs = 0;
-	StateNmV.Clr();
-	TargetIdHeightSet.Clr();
-}
-
-/////////////////////////////////////////////////////////////////
 // TBernoulliIntens
 const double TBernoulliIntens::MIN_PROB = 1e-5;
 
@@ -1421,33 +982,43 @@ void TCtMChain::GetAggrQMat(const TFltVV& QMat, const TStateSetV& AggrStateV,
 
 void TCtMChain::GetSubChain(const TFltVV& QMat, const TIntV& StateIdV, TFltVV& SubQMat) {
 	const int SubMatDim = StateIdV.Len();
+	const double Eps = 1e-6;
 
 	if (SubQMat.Empty()) { SubQMat.Gen(SubMatDim, SubMatDim); }
 	EAssert(SubQMat.GetRows() == SubMatDim && SubQMat.GetCols() == SubMatDim);
 
 	double RowSum, Val;
-	for (int ColN = 0; ColN < SubMatDim; ColN++) {
+	for (int RowN = 0; RowN < SubMatDim; RowN++) {
 		RowSum = 0;
-		for (int RowN = 0; RowN < SubMatDim; RowN++) {
-			if (RowN != ColN) {
+		for (int ColN = 0; ColN < SubMatDim; ColN++) {
+			if (ColN != RowN) {
 				Val = QMat(StateIdV[RowN], StateIdV[ColN]);
 				SubQMat(RowN, ColN) = Val;
 				RowSum += Val;
 			}
 		}
-		SubQMat(ColN, ColN) = -RowSum;
-	}
 
+		if (RowSum != 0.0) {
+			SubQMat(RowN,RowN) = -RowSum;
+		}
+		else {	// edge case, add eps to all transitions
+			for (int ColN = 0; ColN < SubMatDim; ColN++) {
+				if (RowN != ColN) {
+					SubQMat(RowN, ColN) = Eps;
+				}
+			}
+			SubQMat(RowN,RowN) = -(SubMatDim-1)*Eps;
+		}
+	}
 }
 
 void TCtMChain::BiPartition(const TFltVV& QMat, TIntV& PartV) {
-	// TODO debug this method!!!
 	const int Dim = QMat.GetRows();
 
 	if (PartV.Empty()) { PartV.Gen(Dim); }
 	EAssert(PartV.Len() == Dim);
 
-	// calculate Qs = (Pi*Q + Q'*Pi) / 2
+	// calculate the symmetrized laplacian Qs = (Pi*Q + Q'*Pi) / 2
 	// the stationary distribution
 	TFltV ProbV;	GetStatDistV(QMat, ProbV);
 
@@ -1460,14 +1031,13 @@ void TCtMChain::BiPartition(const TFltVV& QMat, TIntV& PartV) {
 
 	// solve the following generalized eigenvalue problem: Qs*v = l2*Pi*v
 	TFltVV Pi;	TLAUtil::Diag(ProbV, Pi);
+//
+//	printf("Q:\n%s\n", TStrUtil::GetStr(QMat, ",", "%.15f").CStr());
+//	printf("QSim:\n%s\n", TStrUtil::GetStr(QSim, ",", "%.15f").CStr());
+//	printf("Pi:\n%s\n", TStrUtil::GetStr(Pi, ",", "%.15f").CStr());
 
 	TFltVV EigVecVV;	TFltV EigValV;
 	TLinAlg::GeneralizedEigDecomp(QSim, Pi, EigValV, EigVecVV);
-
-	//============================================================
-	// TODO remove this
-	printf("Generalized eigenvalues: %s\n", TStrUtil::GetStr(EigValV, ",", "%.5f").CStr());
-	//============================================================
 
 	// find the second largest eigenvalue
 	double MaxEig = TFlt::NInf;
@@ -1495,132 +1065,150 @@ void TCtMChain::BiPartition(const TFltVV& QMat, TIntV& PartV) {
 	for (int i = 0; i < Dim; i++) {
 		PartV[i] = EigV[i] >= 0 ? 1 : 0;
 	}
+//
+////	// TODO remove
+//	TFltV EigValSortV(EigValV);
+//	EigValSortV.Sort(false);
+////
+////	//============================================================
+//	printf("QSim:\n%s\n", TStrUtil::GetStr(QSim, ",", "%.5f").CStr());
+//	printf("Pi:\n%s\n", TStrUtil::GetStr(Pi, ",", "%.5f").CStr());
+////	// TODO remove this
+//	printf("Generalized eigenvalues: %s\n", TStrUtil::GetStr(EigValSortV, ",", "%.5f").CStr());
+//	printf("Eigen vector: %s\n", TStrUtil::GetStr(EigV, ",", "%.5f").CStr());
+//	printf("Partition: %s\n", TStrUtil::GetStr(PartV).CStr());
+//	printf("Stationary: %s\n", TStrUtil::GetStr(ProbV).CStr());
+////	//============================================================
 }
 
-void TCtMChain::Partition(const TFltVV& QMat, TIntV& HierarchV, TFltV& ScoreV) {
+void TCtMChain::Partition(const TFltVV& QMat, TIntV& HierarchV, TFltV& HeightV) {
 	const int NStates = QMat.GetCols();
+	const int NSplits = NStates-1;
 
 	const int TotalStates = 2*NStates - 1;
 	const int RootId = TotalStates - 1;
 
+	HierarchV.Gen(TotalStates);
+	HeightV.Gen(TotalStates);
+	TIntV StateIdV;
+
 	// initialize
 	// the initial partition has only one super state with all the states inside
-	TStateSetV CurrStateSetV(NStates, 0);
-	CurrStateSetV.Add(TAggState(NStates, 0));
+	TStateSetV CurrAggStateV(TotalStates, 0);
+	CurrAggStateV.Add(TAggState(NStates, 0));
 	for (int StateN = 0; StateN < NStates; StateN++) {
-		CurrStateSetV[0].Add(StateN);
+		CurrAggStateV[0].Add(StateN);
 	}
-
-	TIntV StateIdV;	StateIdV.Add(RootId);
 
 	// insert the initial partition into the result
 	HierarchV[RootId] = RootId;
-	ScoreV[RootId] = WassersteinDist1(QMat, CurrStateSetV);
+	HeightV[RootId] = TFlt::PInf;
+	StateIdV.Add(RootId);
 
 	// run the algorithm
 	double MinDist;
 	int BestStateN;
+	TIntV BestPartV;
+
+	int TempCurrStateId;
 	int CurrStateId = RootId;
-	for (int SplitN = 0; SplitN < NStates; SplitN++) {
+	for (int SplitN = 0; SplitN < NSplits; SplitN++) {
 		MinDist = TFlt::PInf;
 		BestStateN = -1;
 
-		for (int StateN = 0; StateN < CurrStateSetV.Len(); StateN++) {
-			if (CurrStateSetV[StateN].Len() > 1) {
-				// get a sub chain formed from a single state
-				TAggState AggState = CurrStateSetV[StateN];
-				// remove the state
-				CurrStateSetV.Del(StateN);
+		printf("====================================================================\n");
+		printf("====================================================================\n");
+		printf("State sets:\n");
+		for (int i = 0; i < CurrAggStateV.Len(); i++) {
+			printf("%s\n", TStrUtil::GetStr(CurrAggStateV[i], ",").CStr());
+		}
 
+		for (int StateN = 0; StateN < CurrAggStateV.Len(); StateN++) {
+			printf("%s\n", TStrUtil::GetStr(CurrAggStateV[StateN], ",").CStr());
+			if (CurrAggStateV[StateN].Len() > 1) {
+				// get a sub chain formed from a single state
+				const int StateId = StateIdV[StateN];
+				const TAggState AggState = CurrAggStateV[StateN];
 				// partition the state
 				TFltVV SubQMat;	GetSubChain(QMat, AggState, SubQMat);
 				TIntV BiPartV;	BiPartition(SubQMat, BiPartV);
 
-				// add the two new partitions to the current chain
-				CurrStateSetV.Add(TAggState());
-				CurrStateSetV.Add(TAggState());
+//				printf("Qs:\n%s\n", TStrUtil::GetStr(SubQMat, ",", "%.5f").CStr());
 
-				TAggState& NewState0 = CurrStateSetV[CurrStateSetV.Len()-2];
-				TAggState& NewState1 = CurrStateSetV[CurrStateSetV.Len()-1];
-				for (int i = 0; i < BiPartV.Len(); i++) {
-					if (BiPartV[0] == 0) {
-						NewState0.Add(AggState[i]);
-					} else {
-						NewState1.Add(AggState[i]);
-					}
-				}
+				// add the two new partitions to the current chain
+				TempCurrStateId = CurrStateId;
+				SplitAggState(StateN, BiPartV, CurrAggStateV, StateIdV, TempCurrStateId);
 
 				// calculate the distance to the original chain
-				double DistToOrig = WassersteinDist1(QMat, CurrStateSetV);
+				const double DistToOrig = WassersteinDist1(QMat, CurrAggStateV);
+
 				if (DistToOrig < MinDist) {
 					MinDist = DistToOrig;
 					BestStateN = StateN;
+					BestPartV = BiPartV;
+					printf("Best state:\n%s\n", TStrUtil::GetStr(AggState, ",").CStr());
 				}
 
-				// restore the partition to the way it was
-				CurrStateSetV.DelLast();
-				CurrStateSetV.DelLast();
+				printf("index %d, dist: %.5f, best: %.5f\n", StateN, DistToOrig, MinDist);
 
-				CurrStateSetV.Ins(StateN, AggState);
+				// restore the partition to the way it was
+				StateIdV.DelLast();
+				StateIdV.DelLast();
+				CurrAggStateV.DelLast();
+				CurrAggStateV.DelLast();
+
+				StateIdV.Ins(StateN, StateId);
+				CurrAggStateV.Ins(StateN, AggState);
 			}
 		}
 
 		EAssert(BestStateN >= 0);
 
-		// bi-partition the best candidate
-		int ParentId = StateIdV[BestStateN];
-		const TAggState& AggState = CurrStateSetV[BestStateN];
+		printf("====================================================================\n");
 
-		TFltVV SubQMat;	GetSubChain(QMat, AggState, SubQMat);
-		TIntV BiPartV;	BiPartition(SubQMat, BiPartV);
+		printf("Best state idx: %d\n", BestStateN);
+
+		// bi-partition the best candidate
+		const int ParentId = StateIdV[BestStateN];
+		const TAggState ParentState = CurrAggStateV[BestStateN];
+
+		printf("Parent id: %d\n", ParentId);
+		printf("Parent state: %s\n", TStrUtil::GetStr(ParentState).CStr());
+		printf("Partition: %s\n", TStrUtil::GetStr(BestPartV).CStr());
 
 		// insert the two new states
-		CurrStateSetV.Add(TAggState());	StateIdV.Add(--CurrStateId);
-		CurrStateSetV.Add(TAggState());	StateIdV.Add(--CurrStateId);
-
-		TAggState& NewState0 = CurrStateSetV[CurrStateSetV.Len()-2];
-		TAggState& NewState1 = CurrStateSetV[CurrStateSetV.Len()-1];
-		for (int i = 0; i < BiPartV.Len(); i++) {
-			if (BiPartV[0] == 0) {
-				NewState0.Add(AggState[i]);
-			} else {
-				NewState1.Add(AggState[i]);
-			}
-		}
-
-		// remove the candidate
-		CurrStateSetV.Del(BestStateN);
-		StateIdV.Del(BestStateN);
+		SplitAggState(BestStateN, BestPartV, CurrAggStateV, StateIdV, CurrStateId);
 
 		// insert this into the result
 		// get the index of the new states parent
-		--CurrStateId;
-		StateIdV.Add(CurrStateId);
-		HierarchV[CurrStateId] = ParentId;
-		ScoreV[CurrStateId] = MinDist;
-		--CurrStateId;
-		StateIdV.Add(CurrStateId);
-		HierarchV[CurrStateId] = ParentId;
-		ScoreV[CurrStateId] = MinDist;
+		AddAggSet(QMat, CurrAggStateV.Len()-2, CurrAggStateV, StateIdV, ParentId, HierarchV, HeightV);
+		AddAggSet(QMat, CurrAggStateV.Len()-1, CurrAggStateV, StateIdV, ParentId, HierarchV, HeightV);
 	}
+
+	// clean the hierarchy vector for the bottom-most states (numerical errors)
+	for (int i = 0; i < NStates; i++ ) {
+		HeightV[i] = 0.0;
+	}
+
+	printf("State sets:\n");
+	for (int i = 0; i < CurrAggStateV.Len(); i++) {
+		printf("%s\n", TStrUtil::GetStr(CurrAggStateV[i], ",").CStr());
+	}
+
+	TFltV TempHeightV;	HeightV.GetSubValV(0, HeightV.Len()-2, TempHeightV);
+	printf("Number of leafs: %d\n", NStates);
+	printf("HeightV: %s\n", TStrUtil::GetStr(TempHeightV, ",", "%.15f").CStr());
+	printf("Hierarchy: %s\n", TStrUtil::GetStr(HierarchV).CStr());
 }
 
 double TCtMChain::WassersteinDist1(const TFltVV& QMat, const TStateSetV& StateSetV) {
-	const int NStates = QMat.GetRows();	// TODO debug this method, it is important!! Compare with matlab
+	const int NStates = QMat.GetRows();
 	const int NAggStates = StateSetV.Len();
-
-	//=============================================================
-	printf("%s\n", TStrUtil::GetStr(QMat, ",", "%.15f").CStr());
-	printf("State sets:\n");
-	for (int i = 0; i < StateSetV.Len(); i++) {
-		printf("%s\n", TStrUtil::GetStr(StateSetV[i], ",").CStr());
-	}
-	//=============================================================
 
 	// the distance is defined as:
 	// \sum_{i \in X}\sum_{\psi(j) \in Y} |\sum_{j \in \psi(j)} (p_{\psi(i)}inv(P'\Pi P)P'\Pi - p_i)inv(Q)p_j|
 
-	TFltVV QInv;	TLinAlg::InverseSVD(QMat, QInv, 0);
+	TFltVV QInv;	TLinAlg::InverseSVD(QMat, QInv, 1e-9);
 	TFltV ProbV;	GetStatDistV(QMat, ProbV);
 
 	TFltV ProjDiffV(NStates);
@@ -1636,6 +1224,7 @@ double TCtMChain::WassersteinDist1(const TFltVV& QMat, const TStateSetV& StateSe
 			ProjDiffV[StateN] = 0;
 		}
 
+		// compute \tilde(p)_{\psi(i)}
 		// fill the projection for the current aggregated state
 		double PsiIProb = 0;
 		for (int i = 0; i < PsiI.Len(); i++) {
@@ -1830,53 +1419,6 @@ void TTransitionModeler::RemoveHiddenStateProb(TIntFltPrV& StateIdProbV) const {
 		}
 	}
 }
-
-//void TTransitionModeler::GetFutureProbVOverTm(const TFltVV& PMat, const int& StateIdx,
-//		const int& Steps, TVec<TFltV>& ProbVV, const PNotify& Notify, const bool IncludeT0) {
-//
-//	const int Dim = PMat.GetRows();
-//
-//	TFltVV X(Dim, Dim);
-//	TFltVV X1(Dim, Dim);
-//
-//	TFltVV* XPtr = &X;
-//	TFltVV* X1Ptr = &X1;
-//
-//	TFltV ProbV;
-//
-//	TLAUtil::Identity(PMat.GetRows(), *XPtr);
-//	TLAUtil::GetRow(*XPtr, StateIdx, ProbV);
-//
-//	if (IncludeT0) {
-//		ProbVV.Add(ProbV);
-//	}
-//
-//	TFltVV* TempVV;
-//	double Sum;
-//
-//	for (int i = 0; i < Steps; i++) {
-//		if (i % 100 == 0) {
-//			Notify->OnNotifyFmt(TNotifyType::ntInfo, "steps: %d", i);
-//		}
-//		// increase time
-//		TLinAlg::Multiply(*XPtr, PMat, *X1Ptr);
-//
-//		TempVV = X1Ptr;
-//		X1Ptr = XPtr;
-//		XPtr = TempVV;
-//
-//		TLAUtil::GetRow(*XPtr, StateIdx, ProbV);
-//
-//		// normalize to minimize the error
-//		Sum = TLinAlg::SumVec(ProbV);
-//		for (int k = 0; k < Dim; k++) {
-//			ProbV[k] /= Sum;
-//		}
-//
-//		// add to result
-//		ProbVV.Add(ProbV);
-//	}
-//}
 
 /////////////////////////////////////////////////////////////////
 // Continous time Markov Chain
@@ -2304,9 +1846,473 @@ void TCtModeler::GetFutureProbVV(const TFltVV& QMat, const double& Tm,
 }
 
 /////////////////////////////////////////////////////////////////
+// Agglomerative clustering
+THierarch::THierarch(const bool& _HistCacheSize, const bool& _Verbose):
+		HierarchV(),
+		StateHeightV(),
+		MxHeight(TFlt::Mn),
+		HistCacheSize(_HistCacheSize),
+		PastStateIdV(),
+		NLeafs(0),
+		Verbose(_Verbose),
+		Notify(_Verbose ? TNotify::StdNotify : TNotify::NullNotify) {
+
+	EAssertR(HistCacheSize >= 1, "Have to hold at least the current state!");
+}
+
+THierarch::THierarch(TSIn& SIn):
+		HierarchV(SIn),
+		StateHeightV(SIn),
+		UniqueHeightV(SIn),
+		MxHeight(SIn),
+		HistCacheSize(TInt(SIn)),
+		PastStateIdV(SIn),
+		NLeafs(TInt(SIn)),
+		StateNmV(SIn),
+		TargetIdHeightSet(SIn),
+		Verbose(TBool(SIn)),
+		Notify(nullptr) {
+
+	Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
+}
+
+void THierarch::Save(TSOut& SOut) const {
+	HierarchV.Save(SOut);
+	StateHeightV.Save(SOut);
+	UniqueHeightV.Save(SOut);
+	MxHeight.Save(SOut);
+	TInt(HistCacheSize).Save(SOut);
+	PastStateIdV.Save(SOut);
+	TInt(NLeafs).Save(SOut);
+	StateNmV.Save(SOut);
+	TargetIdHeightSet.Save(SOut);
+	TBool(Verbose).Save(SOut);
+}
+
+THierarch* THierarch::Load(TSIn& SIn) {
+	return new THierarch(SIn);
+}
+
+void THierarch::Init(const int& CurrLeafId, const TStateIdentifier& StateIdentifier,
+		const TTransitionModeler& MChain) {
+	const TFltVV& CentroidMat = StateIdentifier.GetCentroidMat();
+
+	ClrFlds();
+
+	NLeafs = CentroidMat.GetCols();
+
+	InitHierarchyTrans(StateIdentifier, MChain);
+//	InitHierarchyDist(StateIdentifier);
+
+	// compute state coordinates
+//	ComputeStateCoords(CentroidMat, NStates, StateIdentifier);
+
+	// initialize history
+	GenUniqueHeightV(StateHeightV, UniqueHeightV);
+	PastStateIdV.Gen(UniqueHeightV.Len(), UniqueHeightV.Len());
+	UpdateHistory(CurrLeafId);
+
+	// initialize state names
+	StateNmV.Gen(HierarchV.Len());
+}
+
+void THierarch::UpdateHistory(const int& CurrLeafId) {
+	const TFltV& HeightV = GetUniqueHeightV();
+	TIntFltPrV StateIdHeightPrV;	GetAncestorV(CurrLeafId, StateIdHeightPrV);
+
+	EAssertR(HeightV.Len() == PastStateIdV.Len(), "Number of heights doesn't match the number of heights in the past state cache!");
+
+	int CurrHeightIdx = 0;
+	for (int i = 0; i < StateIdHeightPrV.Len(); i++) {
+		const int CurrStateId = StateIdHeightPrV[i].Val1;
+
+		while (CurrHeightIdx < HeightV.Len() && IsOnHeight(CurrStateId, HeightV[CurrHeightIdx])) {
+			if (PastStateIdV[CurrHeightIdx].Empty() || PastStateIdV[CurrHeightIdx][0] != CurrStateId) {
+				PastStateIdV[CurrHeightIdx].Ins(0, CurrStateId);
+				// cleanup
+				while (PastStateIdV[CurrHeightIdx].Len() > 2 /* HistCacheSize TODO */) { PastStateIdV[CurrHeightIdx].DelLast(); }
+			}
+			CurrHeightIdx++;
+		}
+	}
+}
+
+void THierarch::GetStateIdHeightPrV(TIntFltPrV& StateIdHeightPrV) const {
+	const int NStates = GetStates();
+
+	for (int StateId = 0; StateId < NStates; StateId++) {
+		StateIdHeightPrV.Add(TIntFltPr(StateId, GetStateHeight(StateId)));
+	}
+}
+
+void THierarch::GetStateSetsAtHeight(const double& Height, TStateIdV& StateIdV,
+		TStateSetV& StateSetV) const {
+	TIntIntVH StateSubStateH;	GetAncSuccH(Height, StateSubStateH);
+
+	StateIdV.Gen(StateSubStateH.Len());
+	StateSetV.Gen(StateSubStateH.Len());
+
+	int i = 0;
+	int KeyId = StateSubStateH.FFirstKeyId();
+	while (StateSubStateH.FNextKeyId(KeyId)) {
+		const int StateIdx = StateSubStateH.GetKey(KeyId);
+
+		if (StateSubStateH[KeyId].Empty()) {
+			StateSetV[i].Add(StateIdx);
+		} else {
+			StateSetV[i] = StateSubStateH[KeyId];
+		}
+
+		StateIdV[i] = StateIdx;
+
+		i++;
+	}
+}
+
+void THierarch::GetStatesAtHeight(const double& Height, TIntSet& StateIdV) const {
+	const int NStates = GetStates();
+
+	for (int StateIdx = 0; StateIdx < NStates; StateIdx++) {
+		if (IsOnHeight(StateIdx, Height)) {
+			StateIdV.AddKey(StateIdx);
+		}
+	}
+}
+
+void THierarch::GetAncestorV(const int& StateId, TIntFltPrV& StateIdHeightPrV) const {
+	StateIdHeightPrV.Add(TIntFltPr(StateId, GetStateHeight(StateId)));
+
+	int AncestorId = StateId;
+	do {
+		AncestorId = GetParentId(AncestorId);
+		StateIdHeightPrV.Add(TIntFltPr(AncestorId, GetStateHeight(AncestorId)));
+	} while (!IsRoot(AncestorId));
+}
+
+int THierarch::GetAncestorAtHeight(const int& StateId, const double& Height) const {
+	EAssertR(Height <= MxHeight, "Cannot search for states at height larger than MxHeight!");
+	EAssert(IsOnHeight(StateId, Height) || IsBelowHeight(StateId, Height));
+
+	int AncestorId = StateId;
+
+	while (!IsOnHeight(AncestorId, Height)) {
+		AncestorId = GetParentId(AncestorId);
+	}
+
+	return AncestorId;
+}
+
+void THierarch::GetLeafDescendantV(const int& TargetStateId, TIntV& DescendantV) const {
+	if (IsLeaf(TargetStateId)) {
+		DescendantV.Add(TargetStateId);
+		return;
+	}
+
+	const int NStates = HierarchV.Len();
+
+	TIntV TempHierarchV(HierarchV);
+
+	// for each state compute the oldest ancestor until you hit the target state or root
+	bool Change;
+	do {
+		Change = false;
+
+		for (int LeafId = 0; LeafId < NStates; LeafId++) {
+			if (GetParentId(LeafId, TempHierarchV) != TargetStateId && !IsRoot(GetParentId(LeafId, TempHierarchV), TempHierarchV)) {
+				GetParentId(LeafId, TempHierarchV) = GetGrandparentId(LeafId, TempHierarchV);
+				Change = true;
+			}
+		}
+	} while (Change);
+
+	// take only the leafs with the target ancestor
+	for (int LeafId = 0; LeafId < NLeafs; LeafId++) {
+		if (GetParentId(LeafId, TempHierarchV) == TargetStateId) {
+			DescendantV.Add(LeafId);
+		}
+	}
+}
+
+void THierarch::GetCurrStateIdHeightPrV(TIntFltPrV& StateIdHeightPrV) const {
+	const TFltV& HeightV = GetUniqueHeightV();
+	for (int i = 0; i < PastStateIdV.Len(); i++) {
+		const TIntV& PastStateIdVOnH = PastStateIdV[i];
+		EAssertR(!PastStateIdVOnH.Empty(), "Past state cache empty!");
+		StateIdHeightPrV.Add(TIntFltPr(PastStateIdVOnH[0], HeightV[i]));
+	}
+}
+
+void THierarch::GetHistStateIdV(const double& Height, TStateIdV& StateIdV) const {
+	const int NearestHeightIdx = GetNearestHeightIdx(Height);
+	const TIntV& HistV = PastStateIdV[NearestHeightIdx];
+	for (int i = 1; i < HistV.Len(); i++) {
+		StateIdV.Add(HistV[i]);
+	}
+}
+
+void THierarch::GetLeafSuccesorCountV(TIntV& LeafCountV) const {
+	const int NStates = GetStates();
+
+	LeafCountV.Gen(NStates, NStates);
+
+	for (int i = 0; i < NLeafs; i++) {
+		LeafCountV[i] = 1;
+	}
+
+	TIntV TempHierarchV(HierarchV);
+
+	bool Change;
+	do {
+		Change = false;
+
+		for (int LeafId = 0; LeafId < NLeafs; LeafId++) {
+			const int AncestorId = GetParentId(LeafId, TempHierarchV);
+			const int LeafWeight = LeafCountV[LeafId];
+			LeafCountV[AncestorId] += LeafWeight;
+		}
+
+		for (int LeafId = 0; LeafId < NLeafs; LeafId++) {
+			// check if the parent is root
+			if (!IsRoot(GetParentId(LeafId, TempHierarchV), TempHierarchV)) {
+				GetParentId(LeafId, TempHierarchV) = GetGrandparentId(LeafId, TempHierarchV);
+				Change = true;
+			}
+		}
+	} while (Change);
+}
+
+bool THierarch::IsStateNm(const int& StateId) const {
+	return 0 <= StateId && StateId < HierarchV.Len() && !StateNmV[StateId].Empty();
+}
+
+void THierarch::SetStateNm(const int& StateId, const TStr& StateNm) {
+	EAssertR(0 <= StateId && StateId < StateNmV.Len(), "THierarch::SetStateNm: Invalid state ID!");
+	StateNmV[StateId] = StateNm;
+}
+
+const TStr& THierarch::GetStateNm(const int& StateId) const {
+	EAssertR(0 <= StateId && StateId < StateNmV.Len(), "THierarch::GetStateNm: Invalid state ID!");
+	return StateNmV[StateId];
+}
+
+bool THierarch::IsTarget(const int& StateId) const {
+	EAssert(IsStateId(StateId));
+	double StateHeight = GetStateHeight(StateId);
+	return TargetIdHeightSet.IsKey(TIntFltPr(StateId, StateHeight));
+}
+
+void THierarch::SetTarget(const int& StateId) {
+	EAssert(IsStateId(StateId));
+	double StateHeight = GetStateHeight(StateId);
+	TargetIdHeightSet.AddKey(TIntFltPr(StateId, StateHeight));
+}
+
+void THierarch::RemoveTarget(const int& StateId) {
+	EAssert(IsTarget(StateId));
+
+	double StateHeight = GetStateHeight(StateId);
+	TIntFltPr StateIdHeightPr(StateId, StateHeight);
+
+	TargetIdHeightSet.DelKey(StateIdHeightPr);
+}
+
+bool THierarch::IsLeaf(const int& StateId) const {
+	return StateId < NLeafs;
+}
+
+void THierarch::SetVerbose(const bool& _Verbose) {
+	if (_Verbose != Verbose) {
+		Verbose = _Verbose;
+		Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
+	}
+}
+
+void THierarch::PrintHierarch() const {
+	TChA ChA = "";
+
+	for (int i = 0; i < HierarchV.Len(); i++) {
+		ChA += "(" + TInt(i).GetStr() + "," + TInt::GetStr(GetParentId(i)) + "," + TFlt::GetStr(GetStateHeight(i), "%.3f") + ")";
+		if (i < HierarchV.Len()-1) { ChA += ","; }
+	}
+
+	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Hierarchy: %s", ChA.CStr());
+}
+
+void THierarch::InitHierarchyDist(const TStateIdentifier& StateIdentifier) {
+	const TFltVV& CentroidMat = StateIdentifier.GetCentroidMat();
+
+	// create a hierarchy
+	TIntIntFltTrV MergeV;	TAlAggClust::MakeDendro(CentroidMat, MergeV, Notify);
+
+	Notify->OnNotify(TNotifyType::ntInfo, TStrUtil::GetStr(MergeV, ", "));
+
+	const int NMiddleStates = MergeV.Len();
+	const int NStates = NLeafs + NMiddleStates;
+
+	HierarchV.Gen(NStates);
+	StateHeightV.Gen(NStates);
+
+	for (int i = 0; i < HierarchV.Len(); i++) {
+		HierarchV[i] = -1;
+	}
+
+	for (int i = 0; i < MergeV.Len(); i++) {
+		const int LeafState1Idx = MergeV[i].Val1;
+		const int LeafState2Idx = MergeV[i].Val2;
+		const double Height = MergeV[i].Val3;
+
+		// find the states into which state 1 and state 2 were merged
+		const int State1Idx = GetOldestAncestIdx(LeafState1Idx);
+		const int State2Idx = GetOldestAncestIdx(LeafState2Idx);
+		const int MergeStateIdx = NLeafs + i;
+
+		HierarchV[State1Idx] = MergeStateIdx;
+		HierarchV[State2Idx] = MergeStateIdx;
+		StateHeightV[MergeStateIdx] = Height;
+
+		EAssertR(StateHeightV[MergeStateIdx] > StateHeightV[State1Idx] && StateHeightV[MergeStateIdx] > StateHeightV[State2Idx], "Parent should have greater height that any of its children!");
+
+		if (Height > MxHeight) { MxHeight = Height; }
+	}
+
+	HierarchV.Last() = HierarchV.Len() - 1;
+}
+
+void THierarch::InitHierarchyTrans(const TStateIdentifier& StateIdentifier,
+		const TTransitionModeler& MChain) {
+
+	TStateFtrVV StateFtrVV;	StateIdentifier.GetControlCentroidVV(StateFtrVV);
+
+	TStateSetV StateSetV;
+	for (int StateId = 0; StateId < StateIdentifier.GetStates(); StateId++) {
+		StateSetV.Add(TAggState());
+		StateSetV[StateId].Add(StateId);
+	}
+
+	TFltVV QMat;	MChain.GetModel(StateSetV, StateFtrVV, QMat);	// TODO add method GetLowestLevelModel, or maybe call Partition from the transition modeller
+
+	TCtMChain::Partition(QMat, HierarchV, StateHeightV);
+	MxHeight = StateHeightV.Last();
+}
+
+int THierarch::GetParentId(const int& StateId) const {
+	return GetParentId(StateId, HierarchV);
+}
+
+int THierarch::GetNearestHeightIdx(const double& Height) const {
+	// TODO optimize:
+	// 1) use binary search to find the nearest height
+	const TFltV& HeightV = GetUniqueHeightV();
+	for (int i = 0; i < HeightV.Len() - 1; i++) {
+		if (HeightV[i] <= Height && HeightV[i+1] > Height) {
+			return i;
+		}
+	}
+	return HeightV.Len() - 1;
+}
+
+double THierarch::GetNearestHeight(const double& InHeight) const {
+	return UniqueHeightV[GetNearestHeightIdx(InHeight)];
+}
+
+bool THierarch::IsRoot(const int& StateId) const {
+	return IsRoot(StateId, HierarchV);
+}
+
+bool THierarch::IsOnHeight(const int& StateId, const double& Height) const {
+	if (IsRoot(StateId) && Height >= MxHeight) { return true; }
+
+	const double StateHeight = GetStateHeight(StateId);
+	const double ParentHeight = GetStateHeight(GetParentId(StateId));
+
+	return StateHeight <= Height && Height < ParentHeight;
+}
+
+bool THierarch::IsBelowHeight(const int& StateId, const double& Height) const {
+	if (IsOnHeight(StateId, Height)) { return false; }
+	return GetStateHeight(GetParentId(StateId)) <= Height;
+}
+
+bool THierarch::IsAboveHeight(const int& StateId, const double& Height) const {
+	return !IsOnHeight(StateId, Height) && !IsBelowHeight(StateId, Height);
+}
+
+void THierarch::GetAncSuccH(const double& Height, TIntIntVH& StateSubStateH) const {
+	const int NStates = GetStates();
+
+	// build a model on this height
+	// get all the states on this height
+	TIntSet StateSet;	GetStatesAtHeight(Height, StateSet);
+
+	int KeyId = StateSet.FFirstKeyId();
+	while (StateSet.FNextKeyId(KeyId)) {
+		StateSubStateH.AddDat(StateSet.GetKey(KeyId), TIntV());
+	}
+
+	// get all the substates of the states on this height
+	TIntV TempHierarchV(HierarchV);
+	bool Change;
+	do {
+		Change = false;
+		for (int StateIdx = 0; StateIdx < NStates; StateIdx++) {
+			if (!StateSet.IsKey(TempHierarchV[StateIdx]) &&
+					TempHierarchV[StateIdx] != TempHierarchV[TempHierarchV[StateIdx]]) {
+				TempHierarchV[StateIdx] = TempHierarchV[TempHierarchV[StateIdx]];
+				Change = true;
+			}
+		}
+	} while (Change);
+
+	for (int StateIdx = 0; StateIdx < NLeafs; StateIdx++) {
+		if (StateSet.IsKey(TempHierarchV[StateIdx])) {
+			StateSubStateH.GetDat(TempHierarchV[StateIdx]).Add(StateIdx);
+		}
+	}
+}
+
+int THierarch::GetOldestAncestIdx(const int& StateIdx) const {
+	int AncestIdx = StateIdx;
+
+	while (HierarchV[AncestIdx] != -1) {
+		AncestIdx = HierarchV[AncestIdx];
+	}
+
+	return AncestIdx;
+}
+
+bool THierarch::IsRoot(const int& StateId, const TIntV& HierarchV) {
+	return GetParentId(StateId, HierarchV) == StateId;
+}
+
+void THierarch::GenUniqueHeightV(const TFltV& HeightV, TFltV& UniqueHeightV) {
+	TFltSet UsedHeightSet;
+	for (int i = 0; i < HeightV.Len(); i++) {
+		if (!UsedHeightSet.IsKey(HeightV[i])) {
+			UniqueHeightV.Add(HeightV[i]);
+			UsedHeightSet.AddKey(HeightV[i]);
+		}
+	}
+
+	UniqueHeightV.Sort(true);	// sort ascending
+}
+
+void THierarch::ClrFlds() {
+	HierarchV.Clr();
+	StateHeightV.Clr();
+	UniqueHeightV.Clr();
+	MxHeight = TFlt::Mn;
+	HistCacheSize = 1;
+	PastStateIdV.Clr();
+//	StateCoordV.Clr();
+	NLeafs = 0;
+	StateNmV.Clr();
+	TargetIdHeightSet.Clr();
+}
+
+/////////////////////////////////////////////////////////////////
 // UI helper
 const double TUiHelper::STEP_FACTOR = 1e-2;
-const double TUiHelper::INIT_RADIUS_FACTOR = 2;//1.2;
+const double TUiHelper::INIT_RADIUS_FACTOR = 1.4;//1.2;
 
 TUiHelper::TUiHelper(const TRnd& _Rnd, const bool& _Verbose):
 		StateCoordV(),
@@ -2475,6 +2481,8 @@ void TUiHelper::RefineStateCoordV(const TStateIdentifier& StateIdentifier,
 			}
 		}
 	} while (Change);
+
+	Notify->OnNotify(TNotifyType::ntInfo, "Done!");
 }
 
 double TUiHelper::GetUIStateRaduis(const double& Prob) {
@@ -2556,6 +2564,10 @@ void TStateAssist::Init(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const 
 
 	// get all the heights from the hierarchy
 	TIntFltPrV StateIdHeightPrV;	Hierarch.GetStateIdHeightPrV(StateIdHeightPrV);
+//	//====================================================
+//	// TODO
+//	printf("StateIdHeightPrV: %s\n", TStrUtil::GetStr(StateIdHeightPrV).CStr());
+//	//====================================================
 	TIntV AssignV;	Clust.Assign(ObsFtrVV, AssignV);
 
 	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Computing state assist, total states %d ...", StateIdHeightPrV.Len());
@@ -2967,7 +2979,7 @@ void TStreamStory::InitMChain(const TFltVV& FtrVV, const TIntV& AssignV,
 }
 
 void TStreamStory::InitHierarch() {
-	Hierarch->Init(MChain->GetCurrStateId(), *StateIdentifier);
+	Hierarch->Init(MChain->GetCurrStateId(), *StateIdentifier, *MChain);
 }
 
 void TStreamStory::InitHistograms(const TFltVV& ObsMat, const TFltVV& ControlMat,
@@ -3065,19 +3077,6 @@ void TStreamStory::GetPrevStateProbV(const double& Height, const int& StateId, T
 		throw Except;
 	}
 }
-
-//void TStreamStory::GetProbVOverTm(const double& Height, const int& StateId, const double StartTm, const double EndTm, const double& DeltaTm, TStateIdV& StateIdV, TVec<TFltV>& FutProbV, TVec<TFltV>& PastProbV) const {
-//	try {
-//		TStateSetV StateSetV;
-//		TStateFtrVV StateFtrVV;
-//
-//		GetStatsAtHeight(Height, StateSetV, StateIdV, StateFtrVV);
-//		MChain->GetProbVOverTm(Height, StateId, StartTm, EndTm, DeltaTm, StateSetV, StateFtrVV, StateIdV, FutProbV, PastProbV);
-//	} catch (const PExcept& Except) {
-//		Notify->OnNotifyFmt(TNotifyType::ntErr, "THierarch::GetPrevStateProbV: Failed to compute future state probabilities: %s", Except->GetMsgStr().CStr());
-//		throw Except;
-//	}
-//}
 
 void TStreamStory::GetProbVAtTime(const int& StartStateId, const double& Height, const double& Time,
 		TIntV& StateIdV, TFltV& ProbV) const {

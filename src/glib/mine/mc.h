@@ -169,125 +169,6 @@ public:
 	static void Project(const TFltVV& X, TFltVV& ProjVV, const int& d=2);
 };
 
-////////////////////////////////////////////
-// Hierarchy modeler
-class THierarch {
-private:
-    // a vector which describes the hierarchy. each state has its own index
-    // and the value at index i is the index of i-ths parent
-    TIntV HierarchV;
-
-    // state heights in the hierarchy
-    TFltV StateHeightV, UniqueHeightV;
-    TFlt MxHeight;
-
-    // past states
-    int HistCacheSize;
-    TVec<TStateIdV> PastStateIdV;	// TODO not optimal structure
-
-//    TFltPrV StateCoordV;
-    // number of leaf states, these are stored in the first part of the hierarchy vector
-    int NLeafs;
-
-    TStrV StateNmV;
-
-    TIntFltPrSet TargetIdHeightSet;
-
-    bool Verbose;
-    PNotify Notify;
-
-public:
-    THierarch(const bool& HistCacheSize, const bool& Verbose=false);
-    THierarch(TSIn& SIn);
-
-	// saves the model to the output stream
-	void Save(TSOut& SOut) const;
-	// loads the model from the output stream
-	static THierarch* Load(TSIn& SIn);
-
-	void Init(const int& CurrLeafId, const TStateIdentifier& StateIdentifier);
-	void UpdateHistory(const int& CurrLeafId);
-
-	const TFltV& GetUniqueHeightV() const { return UniqueHeightV; }
-	const TIntV& GetHierarchV() const { return HierarchV; }
-
-	// return a list of state IDs and their heights
-	void GetStateIdHeightPrV(TIntFltPrV& StateIdHeightPrV) const;
-	// returns the 'joined' states at the specified height, puts teh state IDs into StateIdV
-	// and sets of their leafs into JoinedStateVV
-	void GetStateSetsAtHeight(const double& Height, TStateIdV& StateIdV, TStateSetV& StateSetV) const;
-	// returns all the states just below the specified height
-	void GetStatesAtHeight(const double& Height, TIntSet& StateIdV) const;
-	// fills the vector with IDs of the ancestors of the given state along with their heights
-	void GetAncestorV(const int& StateId, TIntFltPrV& StateIdHeightPrV) const;
-	// returns the ID of the ancestor of the given leaf at the specified height
-	int GetAncestorAtHeight(const int& LeafId, const double& Height) const;
-	// fills the vector with leaf descendants
-	void GetLeafDescendantV(const int& StateId, TIntV& DescendantV) const;
-
-	void GetCurrStateIdHeightPrV(TIntFltPrV& StateIdHeightPrV) const;
-	void GetHistStateIdV(const double& Height, TStateIdV& StateIdV) const;
-
-	// for each state returns the number of leafs it's subtree has
-	void GetLeafSuccesorCountV(TIntV& LeafCountV) const;
-
-	// returns the total number of states in the hierarchy
-	int GetStates() const { return HierarchV.Len(); }
-	// returns the number of leafs in the hierarchy
-	int GetLeafs() const { return NLeafs; }
-
-	bool IsStateNm(const int& StateId) const;
-	void SetStateNm(const int& StateId, const TStr& StateNm);
-	const TStr& GetStateNm(const int& StateId) const;
-
-	// set/remove target states
-	bool IsTarget(const int& StateId) const;
-	void SetTarget(const int& StateId);
-	void RemoveTarget(const int& StateId);
-
-	bool IsLeaf(const int& StateId) const;
-
-	const TIntFltPrSet& GetTargetStateIdSet() const { return TargetIdHeightSet; }
-
-	void SetVerbose(const bool& Verbose);
-	void PrintHierarch() const;
-
-private:
-	// returns the ID of the parent state
-	int GetParentId(const int& StateId) const;
-	// returns the height of the state
-	double GetStateHeight(const int& StateId) const { return StateHeightV[StateId]; }
-	int GetNearestHeightIdx(const double& Height) const;
-	double GetNearestHeight(const double& InHeight) const;
-
-	bool IsRoot(const int& StateId) const;
-	bool IsOnHeight(const int& StateId, const double& Height) const;
-	bool IsBelowHeight(const int& StateId, const double& Height) const;
-	bool IsAboveHeight(const int& StateId, const double& Height) const;
-	bool IsStateId(const int& StateId) const { return 0 <= StateId && StateId < HierarchV.Len(); }
-
-	// returns a hash table with keys being the states at the specified height
-	// and the values containing their successor leafs
-	void GetAncSuccH(const double& Height, TIntIntVH& StateSubStateH) const;
-
-	// internal methods used during initialization
-	// returns the index of the oldest ancestor of the state
-	// this method is only used when initially building the hierarchy
-	int GetOldestAncestIdx(const int& StateIdx) const;
-
-	// static functions
-	static TInt& GetParentId(const int& StateId, TIntV& HierarchV) { return HierarchV[StateId]; }
-	static int GetParentId(const int& StateId, const TIntV& HierarchV) { return HierarchV[StateId]; }
-	static int GetGrandparentId(const int& StateId, const TIntV& HierarchV)
-		{ return GetParentId(GetParentId(StateId, HierarchV), HierarchV); }
-	static bool IsRoot(const int& StateId, const TIntV& HierarchV);
-	// returns a vector of unique heights
-	static void GenUniqueHeightV(const TFltV& HeightV, TFltV& UniqueHeightV);
-
-	// clears the state
-	void ClrFlds();
-};
-
 /////////////////////////////////////////////////////////////////
 // Intensity Modeler
 class TBernoulliIntens {
@@ -366,13 +247,61 @@ public:
 
 	static void BiPartition(const TFltVV& QMat, TIntV& PartV);
 	/// recursive algorithm to partition a Markov chain
-	static void Partition(const TFltVV& QMat, TIntV& HierarchV, TFltV& ScoreV);
+	static void Partition(const TFltVV& QMat, TIntV& HierarchV, TFltV& HeightV);
 
 	// distance measures
 	static double WassersteinDist1(const TFltVV& QMat, const TStateSetV& StateSetV);
 
 private:
+	static void AddAggSet(const TFltVV& QMat, const int& StateN, const TStateSetV& AggStateV,
+			const TIntV& StateIdV, const int& ParentId, TIntV& HierarchV, TFltV& HeightV) {
 
+		const int NLeafs = QMat.GetCols();
+
+		const int StateId = StateIdV[StateN];
+		const TAggState& AggState = AggStateV[StateN];
+
+		TIntSet AggStateH(AggState);
+		TStateSetV TempAggStateV;
+		for (int StateId = 0; StateId < NLeafs; StateId++) {
+			if (!AggStateH.IsKey(StateId)) {
+				TempAggStateV.Add(TAggState());
+				TempAggStateV.Last().Add(StateId);
+			}
+		}
+		TempAggStateV.Add(AggState);
+
+		HierarchV[StateId] = ParentId;
+		HeightV[StateId] = WassersteinDist1(QMat, TempAggStateV);
+
+		EAssertR(HeightV[StateId] < HeightV[ParentId], "Child has higher height than it's parent, childId: " + TInt::GetStr(StateId) + ", parentId: " + TInt::GetStr(ParentId) + ", childH: " + TFlt::GetStr(HeightV[StateId]) + ", parentH: " + TFlt::GetStr(HeightV[ParentId]) + "!");
+	}
+
+	static void SplitAggState(const int& StateN, const TIntV& PartV, TStateSetV& AggStateV, TIntV& StateIdV, int& CurrStateId) {
+		const TAggState& AggState = AggStateV[StateN];
+
+		AggStateV.Add(TAggState());
+		AggStateV.Add(TAggState());
+
+		TAggState& NewState0 = AggStateV[AggStateV.Len()-2];
+		TAggState& NewState1 = AggStateV[AggStateV.Len()-1];
+		for (int i = 0; i < PartV.Len(); i++) {
+			if (PartV[i] == 0) {
+				NewState0.Add(AggState[i]);
+			} else {
+				NewState1.Add(AggState[i]);
+			}
+		}
+
+		StateIdV.Add(NewState0.Len() == 1 ? int(NewState0[0]) : --CurrStateId);
+		StateIdV.Add(NewState1.Len() == 1 ? int(NewState1[0]) : --CurrStateId);
+
+		printf("New state 0: %s\n", TStrUtil::GetStr(NewState0).CStr());
+		printf("New state 1: %s\n", TStrUtil::GetStr(NewState1).CStr());
+
+		StateIdV.Del(StateN);
+		AggStateV.Del(StateN);
+	}
 };
 
 /////////////////////////////////////////////////////////////////
@@ -608,6 +537,129 @@ private:
 
 	static void GetFutureProbVV(const TFltVV& QMat, const double& Tm,
 			const double& DeltaTm, TFltVV& ProbVV, const bool HasHiddenState=false);
+};
+
+////////////////////////////////////////////
+// Hierarchy modeler
+class THierarch {
+private:
+    // a vector which describes the hierarchy. each state has its own index
+    // and the value at index i is the index of i-ths parent
+    TIntV HierarchV;
+
+    // state heights in the hierarchy
+    TFltV StateHeightV, UniqueHeightV;
+    TFlt MxHeight;
+
+    // past states
+    int HistCacheSize;
+    TVec<TStateIdV> PastStateIdV;	// TODO not optimal structure
+
+    // number of leaf states, these are stored in the first part of the hierarchy vector
+    int NLeafs;
+
+    TStrV StateNmV;
+
+    TIntFltPrSet TargetIdHeightSet;
+
+    bool Verbose;
+    PNotify Notify;
+
+public:
+    THierarch(const bool& HistCacheSize, const bool& Verbose=false);
+    THierarch(TSIn& SIn);
+
+	// saves the model to the output stream
+	void Save(TSOut& SOut) const;
+	// loads the model from the output stream
+	static THierarch* Load(TSIn& SIn);
+
+	void Init(const int& CurrLeafId, const TStateIdentifier& StateIdentifier,
+			const TTransitionModeler& MChain);
+	void UpdateHistory(const int& CurrLeafId);
+
+	const TFltV& GetUniqueHeightV() const { return UniqueHeightV; }
+	const TIntV& GetHierarchV() const { return HierarchV; }
+
+	// return a list of state IDs and their heights
+	void GetStateIdHeightPrV(TIntFltPrV& StateIdHeightPrV) const;
+	// returns the 'joined' states at the specified height, puts teh state IDs into StateIdV
+	// and sets of their leafs into JoinedStateVV
+	void GetStateSetsAtHeight(const double& Height, TStateIdV& StateIdV, TStateSetV& StateSetV) const;
+	// returns all the states just below the specified height
+	void GetStatesAtHeight(const double& Height, TIntSet& StateIdV) const;
+	// fills the vector with IDs of the ancestors of the given state along with their heights
+	void GetAncestorV(const int& StateId, TIntFltPrV& StateIdHeightPrV) const;
+	// returns the ID of the ancestor of the given leaf at the specified height
+	int GetAncestorAtHeight(const int& LeafId, const double& Height) const;
+	// fills the vector with leaf descendants
+	void GetLeafDescendantV(const int& StateId, TIntV& DescendantV) const;
+
+	void GetCurrStateIdHeightPrV(TIntFltPrV& StateIdHeightPrV) const;
+	void GetHistStateIdV(const double& Height, TStateIdV& StateIdV) const;
+
+	// for each state returns the number of leafs it's subtree has
+	void GetLeafSuccesorCountV(TIntV& LeafCountV) const;
+
+	// returns the total number of states in the hierarchy
+	int GetStates() const { return HierarchV.Len(); }
+	// returns the number of leafs in the hierarchy
+	int GetLeafs() const { return NLeafs; }
+
+	bool IsStateNm(const int& StateId) const;
+	void SetStateNm(const int& StateId, const TStr& StateNm);
+	const TStr& GetStateNm(const int& StateId) const;
+
+	// set/remove target states
+	bool IsTarget(const int& StateId) const;
+	void SetTarget(const int& StateId);
+	void RemoveTarget(const int& StateId);
+
+	bool IsLeaf(const int& StateId) const;
+
+	const TIntFltPrSet& GetTargetStateIdSet() const { return TargetIdHeightSet; }
+
+	void SetVerbose(const bool& Verbose);
+	void PrintHierarch() const;
+
+private:
+	void InitHierarchyDist(const TStateIdentifier& StateIdentifier);
+	void InitHierarchyTrans(const TStateIdentifier& StateIdentifier,
+			const TTransitionModeler& MChain);
+
+	// returns the ID of the parent state
+	int GetParentId(const int& StateId) const;
+	// returns the height of the state
+	double GetStateHeight(const int& StateId) const { return StateHeightV[StateId]; }
+	int GetNearestHeightIdx(const double& Height) const;
+	double GetNearestHeight(const double& InHeight) const;
+
+	bool IsRoot(const int& StateId) const;
+	bool IsOnHeight(const int& StateId, const double& Height) const;
+	bool IsBelowHeight(const int& StateId, const double& Height) const;
+	bool IsAboveHeight(const int& StateId, const double& Height) const;
+	bool IsStateId(const int& StateId) const { return 0 <= StateId && StateId < HierarchV.Len(); }
+
+	// returns a hash table with keys being the states at the specified height
+	// and the values containing their successor leafs
+	void GetAncSuccH(const double& Height, TIntIntVH& StateSubStateH) const;
+
+	// internal methods used during initialization
+	// returns the index of the oldest ancestor of the state
+	// this method is only used when initially building the hierarchy
+	int GetOldestAncestIdx(const int& StateIdx) const;
+
+	// static functions
+	static TInt& GetParentId(const int& StateId, TIntV& HierarchV) { return HierarchV[StateId]; }
+	static int GetParentId(const int& StateId, const TIntV& HierarchV) { return HierarchV[StateId]; }
+	static int GetGrandparentId(const int& StateId, const TIntV& HierarchV)
+		{ return GetParentId(GetParentId(StateId, HierarchV), HierarchV); }
+	static bool IsRoot(const int& StateId, const TIntV& HierarchV);
+	// returns a vector of unique heights
+	static void GenUniqueHeightV(const TFltV& HeightV, TFltV& UniqueHeightV);
+
+	// clears the state
+	void ClrFlds();
 };
 
 /////////////////////////////////////////////////////////////////
