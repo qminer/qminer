@@ -190,18 +190,18 @@ typedef enum { etPreviousPoint, etLinear, etNextPoint } TEmaType;
 class TEma {
 private:
 	// parameters
-	TFlt Decay; // decaying factor
-	TEmaType Type; // interpolation type
+	TFlt Decay; ///< decaying factor
+	TEmaType Type; ///< interpolation type
 	// current state
-	TFlt LastVal; // last input value
-	TFlt Ema; // current computed EMA value 
-	TUInt64 TmMSecs; // timestamp of current EMA
-	double TmInterval; // time interval for definition of decay
+	TFlt LastVal; ///< last input value
+	TFlt Ema; ///< current computed EMA value 
+	TUInt64 TmMSecs; ///< timestamp of current EMA
+	double TmInterval; ///< time interval for definition of decay
 	// buffer for initialization
-	TBool InitP; // true if already initialized
-	TUInt64 InitMinMSecs; // time window of requiered values for initialization
-	TFltV InitValV; // first N values
-	TUInt64V InitMSecsV; // weights of first N values
+	TBool InitP; ///< true if already initialized
+	TUInt64 InitMinMSecs; ///< time window of required values for initialization
+	TFltV InitValV; ///< first N values
+	TUInt64V InitMSecsV; ///< weights of first N values
  	
 	double GetNi(const double& Alpha, const double& Mi);
 public:
@@ -224,6 +224,45 @@ public:
 	uint64 GetTmMSecs() const { return TmMSecs; }
 };
 
+
+class TEmaSpVec {
+private:
+	// parameters
+	TFlt Decay; ///< decaying factor
+	TEmaType Type; ///< interpolation type
+    // current state
+	TIntFltKdV LastVal; ///< last input value
+	TIntFltKdV Ema; ///< current computed EMA value 
+	TUInt64 TmMSecs; ///< timestamp of current EMA
+	double TmInterval; ///< time interval for definition of decay
+	// buffer for initialization
+	TBool InitP; ///< true if already initialized
+	TUInt64 InitMinMSecs; ///< time window of required values for initialization
+	TVec<TIntFltKdV> InitValV; ///< first N values
+	TUInt64V InitMSecsV; ///< weights of first N values
+
+	double GetNi(const double& Alpha, const double& Mi);
+public:
+	TEmaSpVec(const double& _Decay, const TEmaType& _Type,
+		const uint64& _InitMinMSecs, const double& _TmInterval);
+	TEmaSpVec(const TEmaType& _Type, const uint64& _InitMinMSecs,
+		const double& _TmInterval);
+	TEmaSpVec(const PJsonVal& ParamVal);
+	TEmaSpVec(TSIn& SIn);
+
+	// serialization
+	void Load(TSIn& SIn);
+	void Save(TSOut& SOut) const;
+
+	void Update(const TIntFltKdV& Val, const uint64& NewTmMSecs);
+	// current status
+	bool IsInit() const { return InitP; }
+	
+	/// Resets the aggregate
+	void Reset();
+	const TIntFltKdV GetValue() const { return Ema; }
+	uint64 GetTmMSecs() const { return TmMSecs; }
+};
 /////////////////////////////////////////////////
 // Online M2 (variance)
 class TVar {

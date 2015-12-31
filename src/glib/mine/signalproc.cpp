@@ -350,6 +350,161 @@ void TEma::Reset() {
 }
 
 /////////////////////////////////////////////////
+// Exponential Moving Average - for sparse vectors
+
+double TEmaSpVec::GetNi(const double& Alpha, const double& Mi) {
+	switch (Type) {
+	case etPreviousPoint: return 1.0;
+	case etLinear: return (1 - Mi) / Alpha;
+	case etNextPoint: return Mi;
+	}
+	throw TExcept::New("Unknown EMA interpolation type");
+}
+
+//TODO: compute InitMinMSecs initialization time window from decay factor
+TEmaSpVec::TEmaSpVec(const double& _Decay, const TEmaType& _Type, const uint64& _InitMinMSecs,
+	const double& _TmInterval) : Decay(_Decay), Type(_Type), LastVal(),
+	TmInterval(_TmInterval), InitP(false), InitMinMSecs(_InitMinMSecs) {}
+
+//TODO: compute InitMinMSecs initialization time window from decay factor
+TEmaSpVec::TEmaSpVec(const TEmaType& _Type, const uint64& _InitMinMSecs, const double& _TmInterval) :
+	Type(_Type), LastVal(TFlt::Mn), TmInterval(_TmInterval), InitP(false),
+	InitMinMSecs(_InitMinMSecs) {}
+
+TEmaSpVec::TEmaSpVec(const PJsonVal& ParamVal) : LastVal(), InitP(false) {
+	// type
+	TStr TypeStr = ParamVal->GetObjStr("emaType");
+	if (TypeStr == "previous") {
+		Type = etPreviousPoint;
+	} else if (TypeStr == "linear") {
+		Type = etLinear;
+	} else if (TypeStr == "next") {
+		Type = etNextPoint;
+	} else {
+		throw TExcept::New("Unknown ema type " + TypeStr);
+	}
+	// rest
+	TmInterval = ParamVal->GetObjNum("interval");
+	InitMinMSecs = ParamVal->GetObjInt("initWindow", 0);
+}
+
+TEmaSpVec::TEmaSpVec(TSIn& SIn) : Decay(SIn), LastVal(SIn), Ema(SIn), TmMSecs(SIn), InitP(SIn),
+InitMinMSecs(SIn), InitValV(SIn), InitMSecsV(SIn) {
+
+	TInt TypeI; TypeI.Load(SIn);
+	Type = static_cast<TEmaType>((int)TypeI);
+	TFlt TmIntervalFlt; TmIntervalFlt.Load(SIn); TmInterval = TmIntervalFlt;
+}
+
+void TEmaSpVec::Load(TSIn& SIn) {
+	*this = TEmaSpVec(SIn);
+}
+
+void TEmaSpVec::Save(TSOut& SOut) const {
+	// parameters
+	Decay.Save(SOut);
+	LastVal.Save(SOut);
+	Ema.Save(SOut);
+	TmMSecs.Save(SOut);
+	InitP.Save(SOut);
+	InitMinMSecs.Save(SOut);
+	InitValV.Save(SOut);
+	InitMSecsV.Save(SOut);
+	// TODO: Use macro for saving enum (SaveEnum, LoadEnum)
+	// TODO: change TmInterval from double to TFlt
+	// PROBLEM: After changing TmInterval from double to TFlt Qminer crashes hard!
+	TInt TypeI = Type; // TEmaType 
+	TypeI.Save(SOut);
+	TFlt TmIntervalFlt = TmInterval; // double
+	TmIntervalFlt.Save(SOut);;
+}
+
+void TEmaSpVec::Update(const TIntFltKdV& Val, const uint64& NewTmMSecs) {
+	double TmInterval1;
+	// EMA(first_point) = first_point (no smoothing is possible)
+	if (InitMinMSecs == 0) {
+		if (LastVal.Empty()) { 
+			LastVal = Val; 
+			Ema = Val; 
+			TmMSecs = NewTmMSecs; 
+			InitP = true;  
+			return; 
+		}
+	}
+	if (NewTmMSecs == TmMSecs) {
+		TmInterval1 = 1.0;
+	} else {
+		TmInterval1 = (double)(NewTmMSecs - TmMSecs);
+	}
+	if (InitP) {
+		// compute parameters for EMA
+		double Alpha;
+		if (Decay == 0.0) {
+			Alpha = TmInterval1 / TmInterval;
+		} else {
+			Alpha = TmInterval1 / TmInterval  * (-1.0) * TMath::Log(Decay);
+		}
+		const double Mi = exp(-Alpha);
+		const double Ni = GetNi(Alpha, Mi);
+		// compute new ema
+		//Ema = Mi*Ema + (Ni - Mi)*LastVal + (1.0 - Ni)*Val;
+		TIntFltKdV Tmp;
+		TLinAlg::LinComb(Mi, Ema, Ni - Mi, LastVal, Tmp);
+		TLinAlg::LinComb(1, Tmp, 1.0 - Ni, Val, Ema);
+				
+		// TODO cut off dimensions when value is too small 
+	} else {
+		// update buffers
+		InitValV.Add(Val);
+		InitMSecsV.Add(NewTmMSecs);
+		// initialize when enough data
+		const uint64 StartInitMSecs = InitMSecsV[0] + InitMinMSecs;
+		if (StartInitMSecs < NewTmMSecs) {
+			// Initialize using "buildup time interval",
+			//TODO: check how interpolation type influences this code
+			const int Vals = InitMSecsV.Len();
+			// compute weights for each value in buffer
+			TFltV WeightV(Vals, 0);
+			for (int ValN = 0; ValN < Vals; ValN++) {
+				const double Alpha = (double)(TmInterval1) / Decay;
+				WeightV.Add(exp(-Alpha));
+			}
+			// normalize weights so they sum to 1.0
+			TLinAlg::NormalizeL1(WeightV);
+			// compute initial value of EMA as weighted sum
+			//Ema = TLinAlg::DotProduct(WeightV, InitValV);
+			TIntFltKdV Tmp;
+			for (int i = 0; i < WeightV.Len(); i++) {
+				TIntFltKdV Tmp2;
+				TLinAlg::LinComb(1, Tmp, WeightV[i], InitValV[i], Tmp2);
+				Tmp = Tmp2;
+			}
+
+			// TODO cut off dimensions when value is too small 
+			Ema = Tmp;
+
+			// mark that we are done and clean up after us
+			InitP = true; 
+			InitValV.Clr();
+			InitMSecsV.Clr();
+		}
+	}
+	// update last value
+	LastVal = Val;
+	// update curret time
+	TmMSecs = NewTmMSecs;
+}
+
+void TEmaSpVec::Reset() {
+	InitP = false;
+	LastVal.Clr();
+	Ema.Clr();
+	TmMSecs = 0;
+	InitValV.Gen(0);
+	InitMSecsV.Gen(0);
+}
+
+/////////////////////////////////////////////////
 // Online Moving Standard M2 
 void TVar::Update(const double& InVal, const uint64& InTmMSecs, 
         const TFltV& OutValV, const TUInt64V& OutTmMSecsV, const int& N) {
