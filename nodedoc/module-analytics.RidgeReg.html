@@ -24,7 +24,8 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">RidgeReg</span></h1>
+            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div>
+            <h1><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">RidgeReg</span></h1>
             <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-377">analyticsdoc.<wbr>js:377</a></p>
             <dl class="dl-compact">
             </dl>
@@ -95,18 +96,18 @@
         </h3>
               <div>
                 <pre class="prettyprint"><code>// import modules
-la = require(&#x27;qminer&#x27;).la;
-analytics = require(&#x27;qminer&#x27;).analytics;
-// create a new model with gamma = 1.0
-var regmod = new analytics.RidgeReg({ gamma: 1.0 });
+la &#x3D; require(&#x27;qminer&#x27;).la;
+analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+// create a new model with gamma &#x3D; 1.0
+var regmod &#x3D; new analytics.RidgeReg({ gamma: 1.0 });
 // generate a random feature matrix
-var A = la.randn(10,100);
+var A &#x3D; la.randn(10,100);
 // generate a random model
-var w = la.randn(10);
+var w &#x3D; la.randn(10);
 // generate noise
-var n = la.randn(100).multiply(0.01);
+var n &#x3D; la.randn(100).multiply(0.01);
 // generate responses (model&#x27;*data + noise)
-var b = A.transpose().multiply(w).plus(n);
+var b &#x3D; A.transpose().multiply(w).plus(n);
 // fit model
 regmod.fit(A, b);
 // compare
@@ -115,7 +116,7 @@ w.print();
 // trained model&#x27;);
 regmod.weights.print();
 // cosine between the true and the estimated model should be close to 1 if the fit succeeded
-var cos = regmod.weights.cosine(w);</code></pre>
+var cos &#x3D; regmod.weights.cosine(w);</code></pre>
               </div>
             </section>
             <section>
@@ -196,20 +197,20 @@ var cos = regmod.weights.cosine(w);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new Ridge Regression object
-var regmod = new analytics.RidgeReg();
+var regmod &#x3D; new analytics.RidgeReg();
 // create the test matrix and vector
-var X = new la.Matrix([[1, 2], [1, -1]]);
-var y = new la.Vector([3, 3]);
+var X &#x3D; new la.Matrix([[1, 2], [1, -1]]);
+var y &#x3D; new la.Vector([3, 3]);
 // fit the model with X and y
 regmod.fit(X, y);
 // create a new vector for the prediction
-var vec = new la.Vector([3, 4]);
+var vec &#x3D; new la.Vector([3, 4]);
 // create the prediction
 // returns the value 10
-var prediction = regmod.decisionFunction(vec);</code></pre>
+var prediction &#x3D; regmod.decisionFunction(vec);</code></pre>
                 </div>
               </section>
               <section>
@@ -255,13 +256,13 @@ var prediction = regmod.decisionFunction(vec);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new Ridge Regression object
-var regmod = new analytics.RidgeReg();
+var regmod &#x3D; new analytics.RidgeReg();
 // create the test matrix and vector
-var X = new la.Matrix([[1, 2], [1, -1]]);
-var y = new la.Vector([3, 3]);
+var X &#x3D; new la.Matrix([[1, 2], [1, -1]]);
+var y &#x3D; new la.Vector([3, 3]);
 // fit the model with X and y
 // the weights of the model are 2, 1
 regmod.fit(X, y);</code></pre>
@@ -324,11 +325,11 @@ regmod.fit(X, y);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
 // create the Ridge Regression model
-var regmod = new analytics.RidgeReg();
+var regmod &#x3D; new analytics.RidgeReg();
 // get the model
-var model = regmod.getModel(); // returns { weights: new require(&#x27;qminer&#x27;).la.Vector(); }</code></pre>
+var model &#x3D; regmod.getModel(); // returns { weights: new require(&#x27;qminer&#x27;).la.Vector(); }</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -345,12 +346,12 @@ var model = regmod.getModel(); // returns { weights: new require(&#x27;qminer&#x
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
 // create a new Ridge Regression object
-var regmod = new analytics.RidgeReg({ gamma: 5 });
+var regmod &#x3D; new analytics.RidgeReg({ gamma: 5 });
 // get the parameters
 // returns a json object { gamma: 5 }
-var param = regmod.getParams();</code></pre>
+var param &#x3D; regmod.getParams();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -367,20 +368,20 @@ var param = regmod.getParams();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new Ridge Regression object
-var regmod = new analytics.RidgeReg();
+var regmod &#x3D; new analytics.RidgeReg();
 // create the test matrix and vector
-var X = new la.Matrix([[1, 2], [1, -1]]);
-var y = new la.Vector([3, 3]);
+var X &#x3D; new la.Matrix([[1, 2], [1, -1]]);
+var y &#x3D; new la.Vector([3, 3]);
 // fit the model with X and y
 regmod.fit(X, y);
 // create a new vector for the prediction
-var vec = new la.Vector([3, 4]);
+var vec &#x3D; new la.Vector([3, 4]);
 // create the prediction
 // returns the value 10
-var prediction = regmod.predict(vec);</code></pre>
+var prediction &#x3D; regmod.predict(vec);</code></pre>
                 </div>
               </section>
               <section>
@@ -426,23 +427,23 @@ var prediction = regmod.predict(vec);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
-var fs = require(&#x27;qminer&#x27;).fs;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
 // create a new Ridge Regression object
-var regmod = new analytics.RidgeReg();
+var regmod &#x3D; new analytics.RidgeReg();
 // create the test matrix and vector
-var X = new la.Matrix([[1, 2], [1, -1]]);
-var y = new la.Vector([3, 3]);
+var X &#x3D; new la.Matrix([[1, 2], [1, -1]]);
+var y &#x3D; new la.Vector([3, 3]);
 // fit the model with X and y
 regmod.fit(X, y);
 // create an output stream object and save the model
-var fout = fs.openWrite(&#x27;regmod_example.bin&#x27;);
+var fout &#x3D; fs.openWrite(&#x27;regmod_example.bin&#x27;);
 regmod.save(fout);
 fout.close();
 // create a new Ridge Regression model by loading the model
-var fin = fs.openRead(&#x27;regmod_example.bin&#x27;);
-var regmod2 = new analytics.RidgeReg(fin);</code></pre>
+var fin &#x3D; fs.openRead(&#x27;regmod_example.bin&#x27;);
+var regmod2 &#x3D; new analytics.RidgeReg(fin);</code></pre>
                 </div>
               </section>
               <section>
@@ -488,11 +489,11 @@ var regmod2 = new analytics.RidgeReg(fin);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
 // create a new Ridge Regression object
-var regmod = new analytics.RidgeReg({ gamma: 5 });
+var regmod &#x3D; new analytics.RidgeReg({ gamma: 5 });
 // set the parameters of the object
-var param = regmod.setParams({ gamma: 10 });</code></pre>
+var param &#x3D; regmod.setParams({ gamma: 10 });</code></pre>
                 </div>
               </section>
               <section>

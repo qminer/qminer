@@ -1441,7 +1441,6 @@ exports.datasets= require('qminer_datasets');
 	* Sorts the records according to their weight.
 	* @param {number} [asc=1] - If asc > 0, it sorts in ascending order. Otherwise, it sorts in descending order.
 	* @returns {module:qm.RecordSet} Self. Records are sorted according to record weight and asc.
-	* @ignore
 	*/
  exports.RecordSet.prototype.sortByFq = function (asc) { return Object.create(require('qminer').RecordSet.prototype); }; 
 /**

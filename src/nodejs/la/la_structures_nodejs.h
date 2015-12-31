@@ -105,6 +105,13 @@ private:
 	* @param {number} rowIdx - Row index (zero based).
 	* @param {number} colIdx - Column index (zero based).
 	* @returns {number} The matrix element.
+	* @example
+	* // import la module
+	* var la = require('qminer').la;
+	* // create a new matrix
+	* var mat = new la.Matrix([[2, 3], [-2, -2], [-3, 1]]);
+	* // get the value at the index (2, 1)
+	* var value = mat.at(2, 1); // returns the value 1
 	*/
 	//# exports.Matrix.prototype.at = function(rowIdx, colIdx) { return 0.0; }
 	JsDeclareFunction(at);
@@ -243,6 +250,13 @@ private:
 	/**
 	* Returns a vector of row norms.
 	* @returns {module:la.Vector} Vector, where the value at i-th index is the norm of the i-th row of matrix.
+	* @example
+	* // import la module
+	* var la = require('qminer').la;
+	* // create a new matrix
+	* var mat = new la.Matrix([[3, 4], [4, 15/2]]);
+	* // get the row norms of the matrix
+	* var rowNorms = mat.rowNorms(); // returns the vector [5, 17/2]
 	*/
 	//# exports.Matrix.prototype.rowNorms = function () { return Object.create(require('qminer').la.Vector.prototype); }
 	JsDeclareFunction(rowNorms);
@@ -250,6 +264,13 @@ private:
 	/**
 	* Returns a vector of column norms.
 	* @returns {module:la.Vector} Vector, where the value at i-th index is the norm of the i-th column of matrix.
+	* @example
+	* // import la module
+	* var la = require('qminer').la;
+	* // create a new matrix
+	* var mat = new la.Matrix([[3, 4], [4, 15/2]]);
+	* // get the row norms of the matrix
+	* var rowNorms = mat.colNorms(); // returns the vector [5, 17/2]
 	*/
 	//# exports.Matrix.prototype.colNorms = function () { return Object.create(require('qminer').la.Vector.prototype); }
 	JsDeclareFunction(colNorms);
@@ -257,6 +278,15 @@ private:
 	/**
 	* Normalizes each column of matrix.
 	* @returns {module:la.Matrix} Self. The columns of the matrix are normalized. 
+	* // import la module
+	* var la = require('qminer').la;
+	* // create a new matrix
+	* var mat = new la.Matrix([[3, 4], [4, 15/2]]);
+	* // normalize the columns of the matrix
+	* // the matrix is going to be of the form:
+	* // 3/5     8/17
+	* // 4/5    15/17
+	* mat.normalizeCols();
 	*/
 	//# exports.Matrix.prototype.normalizeCols = function () { return Object.create(require('qminer').la.Matrix.prototype); }
 	JsDeclareFunction(normalizeCols);
@@ -278,6 +308,13 @@ private:
 	/**
 	* Transforms the matrix from dense to sparse format.
 	* @returns {module:la.SparseMatrix} Sparse column matrix representation of dense matrix.
+	* @example
+	* // import la module
+	* var la = require('qminer').la;
+	* // create the matrix
+	* var mat = new la.Matrix([[1, 2], [0, 3], [-4, 0]]);
+	* // transform the matrix into the sparse form
+	* var spMat = mat.sparse();
 	*/
 	//# exports.Matrix.prototype.sparse = function () { return Object.create(require('qminer').la.SparseMatrix.prototype); }
 	JsDeclareFunction(sparse);
@@ -285,6 +322,13 @@ private:
 	/**
 	* Returns the frobenious norm of matrix.
 	* @returns {number} Frobenious norm of matrix.
+	* @example
+	* // import la module
+	* var la = require('qminer').la;
+	* // create the matrix
+	* var mat = new la.Matrix([[1, 2], [3, 4]]);
+	* // get the frobenious norm of the matrix
+	* var frob = mat.frob(); // returns the value Math.sqrt(30)
 	*/
 	//# exports.Matrix.prototype.frob = function () { return 0.0; }
 	JsDeclareFunction(frob);
@@ -292,6 +336,13 @@ private:
 	/**
 	* Gives the number of rows of matrix.
 	* @returns {number} Number of rows in matrix.
+	* @example
+	* // import la module
+	* var la = require('qminer').la;
+	* // create the matrix
+	* var mat = new la.Matrix([[1, 2], [3, 1], [-4, 5]]);
+	* // get the number of rows
+	* var rowN = mat.rows; // returns 3
 	*/
 	//# exports.Matrix.prototype.rows = 0;
 	JsDeclareProperty(rows);
@@ -299,6 +350,13 @@ private:
 	/**
 	* Gives the number of columns of matrix.
 	* @returns {number} Number of columns in matrix.
+	* @example
+	* // import la module
+	* var la = require('qminer').la;
+	* // create the matrix
+	* var mat = new la.Matrix([[1, 2], [3, 1], [-4, 5]]);
+	* // get the number of cols
+	* var colsN = mat.cols; // returns 2
 	*/
 	//# exports.Matrix.prototype.cols = 0;
 	JsDeclareProperty(cols);
@@ -307,6 +365,13 @@ private:
 	* Gives the index of the maximum element in the given row.
 	* @param {number} rowIdx - Row index (zero based).
 	* @returns {number} Column index (zero based) of the maximum value in the rowIdx-th row of matrix.
+	* @example
+	* // import la module
+	* var la = require('qminer').la;
+	* // create the matrix
+	* var mat = new la.Matrix([[1, 2], [3, 1], [-4, 5]]);
+	* // get the column id of the maximum value of the second row
+	* var maxRow = mat.rowMaxIdx(1); // returns the value 0
 	*/
 	//# exports.Matrix.prototype.rowMaxIdx = function (rowIdx) { return 0; }
 	JsDeclareFunction(rowMaxIdx);
@@ -315,6 +380,13 @@ private:
 	* Gives the index of the maximum element in the given column.
 	* @param {number} colIdx - Column index (zero based).
 	* @returns {number} Row index (zero based) of the maximum value in colIdx-th column of matrix.
+	* @example
+	* // import la module
+	* var la = require('qminer').la;
+	* // create the matrix
+	* var mat = new la.Matrix([[1, 2], [3, 1], [-4, 5]]);
+	* // get the row id of the maximum value of the second column
+	* var maxRow = mat.colMaxIdx(1); // returns the value 2
 	*/
 	//# exports.Matrix.prototype.colMaxIdx = function (colIdx) { return 0; }
 	JsDeclareFunction(colMaxIdx);
@@ -323,6 +395,13 @@ private:
 	* Returns the corresponding column of matrix as vector.
 	* @param {number} colIdx - Column index (zero based).
 	* @returns {module:la.Vector} The colIdx-th column of matrix.
+	* @example
+	* // import la module
+	* var la = require('qminer').la;
+	* // create the matrix
+	* var mat = new la.Matrix([[1, 2], [3, 1], [-4, 5]]);
+	* // get the second column of the matrix
+	* var col = mat.getCol(1);
 	*/
 	//# exports.Matrix.prototype.getCol = function (colIdx) { return Object.create(require('qminer').la.Vector.prototype); }
 	JsDeclareFunction(getCol);
@@ -372,6 +451,13 @@ private:
 	* Returns the corresponding row of matrix as vector.
 	* @param {number} rowIdx - Row index (zero based).
 	* @returns {module:la.Vector} The rowIdx-th row of matrix.
+	* @example
+	* // import la module
+	* var la = require('qminer').la;
+	* // create the matrix
+	* var mat = new la.Matrix([[1, 2], [3, 1], [-4, 5]]);
+	* // get the first row of the matrix
+	* var row = mat.getRow(1);
 	*/
 	//# exports.Matrix.prototype.getRow = function (rowIdx) { return Object.create(require('qminer').la.Vector.prototype); }
 	JsDeclareFunction(getRow);

@@ -35,11 +35,11 @@
     * random sample generators that can be used to build artificial datasets of controlled size and complexity.
     * @module datasets
     * @example &amp;lt;caption&gt;Asynchronous loading&amp;lt;/caption&gt;
-    * var qm = require(&#x27;qminer&#x27;);
-    * var datasets = qm.datasets;
+    * var qm &#x3D; require(&#x27;qminer&#x27;);
+    * var datasets &#x3D; qm.datasets;
     *
     * // Create clean base
-    * var base = new qm.Base({ mode: &#x27;createClean&#x27; });
+    * var base &#x3D; new qm.Base({ mode: &#x27;createClean&#x27; });
     *
     * // Load Iris dataset in async way
     * datasets.loadIris(base, function (err, store) {
@@ -49,14 +49,14 @@
     * });
     *
     * @example &amp;lt;caption&gt;Synchronous loading&amp;lt;/caption&gt;
-    * var qm = require(&#x27;qminer&#x27;);
-    * var datasets = qm.datasets;
+    * var qm &#x3D; require(&#x27;qminer&#x27;);
+    * var datasets &#x3D; qm.datasets;
     *
     * // Create clean base
-    * var base = new qm.Base({ mode: &#x27;createClean&#x27; });
+    * var base &#x3D; new qm.Base({ mode: &#x27;createClean&#x27; });
     *
     * // Load Iris in sync way.
-    * var Iris = datasets.loadIrisSync(base);
+    * var Iris &#x3D; datasets.loadIrisSync(base);
     * // Sucessfully loaded database
     * base.close();
     */
@@ -66,9 +66,9 @@
     * @param {module:qm.Base} base
     * @returns {module:qm.Store} Store with Iris dataset.
     */
-    exports.loadIris = function (_base, callback) {
+    exports.loadIris &#x3D; function (_base, callback) {
 
-        var options = {
+        var options &#x3D; {
             file: __dirname + &#x27;/data/iris.csv&#x27;,
             store: &#x27;Iris&#x27;,
             base: _base
@@ -77,7 +77,7 @@
         _base.loadCSV(options, function (err) {
             if (err) return callback(err);
 
-            var Iris = _base.store(options.store);
+            var Iris &#x3D; _base.store(options.store);
 
             return callback(null, Iris)
         })
@@ -88,9 +88,9 @@
     * @param {module:qm.Base} base
     * @returns {module:qm.Store} Store with Iris dataset.
     */
-    exports.loadIrisSync = function (_base) {
+    exports.loadIrisSync &#x3D; function (_base) {
 
-        var options = {
+        var options &#x3D; {
             file: __dirname + &#x27;/data/iris.csv&#x27;,
             store: &#x27;Iris&#x27;,
             base: _base
@@ -102,7 +102,7 @@
     }
 
     // Module description
-    exports.description = function () {
+    exports.description &#x3D; function () {
         return (&quot;Module includes functions to load and make datasets.&quot;);
     }
 
