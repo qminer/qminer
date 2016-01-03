@@ -806,8 +806,12 @@ public:
 ///    setting.
 class TOnlineHistogram {
 private:
+	// state
 	TFltV Counts; ///< Number of occurrences
 	TFltV Bounds; ///< Interval bounds (Bounds.Len() == Counts.Len() + 1)
+	TFlt Count; ///< Sum of counts
+	// parameters
+	TFlt MinCount; ///< If Count < MinCount, then IsInit returns false
 public:	
 	/// Constructs uninitialized object
 	TOnlineHistogram() {};
@@ -816,7 +820,7 @@ public:
 	/// Constructs given JSON arguments
 	TOnlineHistogram(const PJsonVal& ParamVal);
 	/// Constructs from stream
-	TOnlineHistogram(TSIn& SIn) : Counts(SIn), Bounds(SIn) {}
+	TOnlineHistogram(TSIn& SIn) : Counts(SIn), Bounds(SIn), Count(SIn) { }
 
 	/// Initializes the object, resets current content is present
 	void Init(const double& LBound, const double& UBound, const int& Bins, const bool& AddNegInf, const bool& AddPosInf);
@@ -827,7 +831,7 @@ public:
 	/// Loads the model from stream
 	void Load(TSIn& SIn) { *this = TOnlineHistogram(SIn); }
 	/// Saves the model to stream
-	void Save(TSOut& SOut) const { Counts.Save(SOut); Bounds.Save(SOut); }
+	void Save(TSOut& SOut) const { Counts.Save(SOut); Bounds.Save(SOut); SOut.Save(Count); }
 	/// Finds the bin index given val, returns -1 if not found
 	int FindBin(const double& Val) const;
 	/// Increments the number of occurrences of values that fall within the same bin as Val
@@ -842,8 +846,8 @@ public:
 	void GetCountV(TFltV& Vec) const { Vec = Counts; }
 	/// Returns an element of count vector given index
 	double GetCountN(const int& CountN) const { return Counts[CountN]; }
-	/// Has the model beeen initialized?
-	bool IsInit() const {	return Counts.Len() > 0 && Bounds.Len() > 0; }
+	/// Has the model beeen initialized and has sufficient data?
+	bool IsInit() const { return Counts.Len() > 0 && Bounds.Len() > 0 && Count >= MinCount; }
 	/// Clears the model
 	void Clr() { Counts.Clr(); Bounds.Clr(); }
 	/// Prints the model

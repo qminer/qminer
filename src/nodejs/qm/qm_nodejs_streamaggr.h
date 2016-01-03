@@ -1846,6 +1846,7 @@ private:
 	v8::Persistent<v8::Function> OnUpdateFun;
 	v8::Persistent<v8::Function> OnDeleteFun;
 	v8::Persistent<v8::Function> SaveJsonFun;
+	v8::Persistent<v8::Function> IsInitFun;
 
 	v8::Persistent<v8::Function> GetIntFun;
 	// IFlt 
@@ -1895,6 +1896,7 @@ public:
 	void OnUpdateRec(const TQm::TRec& Rec);
 	void OnDeleteRec(const TQm::TRec& Rec);
 	PJsonVal SaveJson(const int& Limit) const;
+	bool IsInit() const;
 
 	// stream aggregator type name 
 	static TStr GetType() { return "javaScript"; }
