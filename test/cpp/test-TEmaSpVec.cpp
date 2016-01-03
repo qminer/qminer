@@ -35,6 +35,8 @@ TEST(TEmaSpVec, Simple1) {
 		
 		sum.Update(in1, timestamp1);
 		ema2.Update(1.0, timestamp1);
+		ema5.Update(0.0, timestamp1);
+		ema6.Update(0.0, timestamp1);
 
 		EXPECT_EQ(sum.GetTmMSecs(), timestamp1);
 		//const TIntFltKdV& res1 = sum.GetValue();
@@ -50,6 +52,7 @@ TEST(TEmaSpVec, Simple1) {
 		sum.Update(in2, timestamp2);
 		ema2.Update(0.0, timestamp2);
 		ema5.Update(2.0, timestamp2);
+		ema6.Update(0.0, timestamp2);
 
 		EXPECT_EQ(sum.GetTmMSecs(), timestamp2);
 		const TIntFltKdV& res2 = sum.GetValue();
