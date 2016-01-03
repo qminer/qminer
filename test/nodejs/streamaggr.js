@@ -88,9 +88,14 @@ describe('Stream Aggregator Tests', function () {
     	        this.reset = function () {
     	            data = {};
     	        };
+    	        this.init = function() {
+    	            return data.Name != undefined;	
+    	        }
     	    });
+    	    assert(!s.init);
             // add a record
     	    store.push({ Name: 'John', Gender: 'Male' });
+    	    assert(s.init);
             // check state
     	    var state = s.saveJson();
     	    assert.equal(state.Name, 'John');

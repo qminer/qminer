@@ -987,7 +987,7 @@ void TOnlineHistogram::Init(const double& LBound, const double& UBound, const in
 
 void TOnlineHistogram::Reset() {
 	for (int ElN = 0; ElN < Counts.Len(); ElN++) {
-		Counts[ElN] = 0;
+		Counts[ElN] = 0; Count = 0;
 	}
 }
 
@@ -1006,6 +1006,8 @@ TOnlineHistogram::TOnlineHistogram(const PJsonVal& ParamVal) {
 	TBool AddNegInf = ParamVal->GetObjBool("addNegInf", false);
 	TBool AddPosInf = ParamVal->GetObjBool("addPosInf", false);
 	
+	MinCount = ParamVal->GetObjInt("initMinCount", 0);
+
 	Init(LBound, UBound, Bins, AddNegInf, AddPosInf);
 };
 
@@ -1033,14 +1035,14 @@ int TOnlineHistogram::FindBin(const double& Val) const {
 	return -1;
 }
 
-void TOnlineHistogram::Increment(const double& Val) {
+void TOnlineHistogram::Increment(const double& Val) {	
 	int Idx = FindBin(Val);
-	if (Idx >= 0) { Counts[Idx]++; }
+	if (Idx >= 0) { Counts[Idx]++; Count++; }
 }
 
 void TOnlineHistogram::Decrement(const double& Val) {
 	int Idx = FindBin(Val);
-	if (Idx >= 0) { Counts[Idx]--; }
+	if (Idx >= 0) { Counts[Idx]--; Count--; }
 }
 
 double TOnlineHistogram::GetCount(const double& Val) const {
