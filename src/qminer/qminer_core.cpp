@@ -2502,6 +2502,13 @@ void TFieldReader::GetFltV(const PRecSet& FtrRecSet, TFltV& FltV) const {
                     FltV.Add(FtrStore->GetFieldFlt(RecId, FieldId));
                 }
             }
+		} else if (FieldDesc.IsSFlt()) {
+			for (int RecN = 0; RecN < FtrRecSet->GetRecs(); RecN++) {
+				const uint64 RecId = FtrRecSet->GetRecId(RecN);
+				if (!FtrStore->IsFieldNull(RecId, FieldId)) {
+					FltV.Add((double)FtrStore->GetFieldSFlt(RecId, FieldId));
+				}
+			}
         } else if (FieldDesc.IsFltPr()) {
             for (int RecN = 0; RecN < FtrRecSet->GetRecs(); RecN++) {
                 const uint64 RecId = FtrRecSet->GetRecId(RecN);
@@ -2525,6 +2532,20 @@ void TFieldReader::GetFltV(const PRecSet& FtrRecSet, TFltV& FltV) const {
                     FltV.Add((double)FtrStore->GetFieldUInt64(RecId, FieldId));
                 }
             }
+		} else if (FieldDesc.IsUInt()) {
+			for (int RecN = 0; RecN < FtrRecSet->GetRecs(); RecN++) {
+				const uint64 RecId = FtrRecSet->GetRecId(RecN);
+				if (!FtrStore->IsFieldNull(RecId, FieldId)) {
+					FltV.Add((double)FtrStore->GetFieldUInt(RecId, FieldId));
+				}
+			}
+		} else if (FieldDesc.IsUInt16()) {
+			for (int RecN = 0; RecN < FtrRecSet->GetRecs(); RecN++) {
+				const uint64 RecId = FtrRecSet->GetRecId(RecN);
+				if (!FtrStore->IsFieldNull(RecId, FieldId)) {
+					FltV.Add((double)FtrStore->GetFieldUInt16(RecId, FieldId));
+				}
+			}
         } else if (FieldDesc.IsBool()) {
             for (int RecN = 0; RecN < FtrRecSet->GetRecs(); RecN++) {
                 const uint64 RecId = FtrRecSet->GetRecId(RecN);
