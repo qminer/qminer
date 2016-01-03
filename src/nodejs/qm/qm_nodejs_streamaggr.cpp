@@ -661,6 +661,13 @@ TNodeJsFuncStreamAggr::TNodeJsFuncStreamAggr(TWPt<TQm::TBase> _Base, const TStr&
 	v8::Handle<v8::Value> _SaveJsonFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "saveJson"));
 	QmAssert(_SaveJsonFun->IsFunction());
 	SaveJsonFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_SaveJsonFun));
+	
+	// StreamAggr::IsInit
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "init"))) {
+		v8::Handle<v8::Value> _IsInit = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "init"));
+		QmAssert(_IsInit->IsFunction());
+		IsInitFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_IsInit));
+	}
 
 	// StreamAggr::SaveState
 	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "save"))) {
@@ -791,6 +798,7 @@ TNodeJsFuncStreamAggr::~TNodeJsFuncStreamAggr() {
 	OnUpdateFun.Reset();
 	OnDeleteFun.Reset();
 	SaveJsonFun.Reset();
+	IsInitFun.Reset();
 
 	GetIntFun.Reset();
 	// IFlt
@@ -921,6 +929,27 @@ PJsonVal TNodeJsFuncStreamAggr::SaveJson(const int& Limit) const {
 	}
 	else {
 		return TJsonVal::NewObj();
+	}
+}
+
+bool TNodeJsFuncStreamAggr::IsInit() const {
+	if (!IsInitFun.IsEmpty()) {
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope HandleScope(Isolate);
+		
+		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, IsInitFun);
+		v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+
+		v8::TryCatch TryCatch;
+		v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
+		if (TryCatch.HasCaught()) {
+			v8::String::Utf8Value Msg(TryCatch.Message()->Get());
+			throw TQm::TQmExcept::New("Javascript exception from callback triggered in TNodeJsFuncStreamAggr, name: " + GetAggrNm() + "," + TStr(*Msg));
+		}
+		QmAssertR(RetVal->IsBoolean(), "TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", init did not return a boolean!");
+		return RetVal->BooleanValue();
+	} else {
+		return true;
 	}
 }
 
