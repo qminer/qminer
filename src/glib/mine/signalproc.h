@@ -235,6 +235,7 @@ private:
 	TIntFltKdV Ema; ///< current computed EMA value 
 	TUInt64 TmMSecs; ///< timestamp of current EMA
 	double TmInterval; ///< time interval for definition of decay
+	double Cutoff; ///< Minimal value for dimension - if it falls below this, it is removed from Ema
 	// buffer for initialization
 	TBool InitP; ///< true if already initialized
 	TUInt64 InitMinMSecs; ///< time window of required values for initialization
@@ -244,9 +245,9 @@ private:
 	double GetNi(const double& Alpha, const double& Mi);
 public:
 	TEmaSpVec(const double& _Decay, const TEmaType& _Type,
-		const uint64& _InitMinMSecs, const double& _TmInterval);
+		const uint64& _InitMinMSecs, const double& _TmInterval, const double& _Cutoff);
 	TEmaSpVec(const TEmaType& _Type, const uint64& _InitMinMSecs,
-		const double& _TmInterval);
+		const double& _TmInterval, const double& _Cutoff);
 	TEmaSpVec(const PJsonVal& ParamVal);
 	TEmaSpVec(TSIn& SIn);
 
@@ -262,6 +263,8 @@ public:
 	void Reset();
 	const TIntFltKdV GetValue() const { return Ema; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
+	
+	PJsonVal GetJson() const; ///< Get JSON description of the sum
 };
 /////////////////////////////////////////////////
 // Online M2 (variance)

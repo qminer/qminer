@@ -363,13 +363,13 @@ double TEmaSpVec::GetNi(const double& Alpha, const double& Mi) {
 
 //TODO: compute InitMinMSecs initialization time window from decay factor
 TEmaSpVec::TEmaSpVec(const double& _Decay, const TEmaType& _Type, const uint64& _InitMinMSecs,
-	const double& _TmInterval) : Decay(_Decay), Type(_Type), LastVal(),
-	TmInterval(_TmInterval), InitP(false), InitMinMSecs(_InitMinMSecs) {}
+	const double& _TmInterval, const double& _Cutoff) : Decay(_Decay), Type(_Type), LastVal(),
+	TmInterval(_TmInterval), InitP(false), InitMinMSecs(_InitMinMSecs), Cutoff(_Cutoff) {}
 
 //TODO: compute InitMinMSecs initialization time window from decay factor
-TEmaSpVec::TEmaSpVec(const TEmaType& _Type, const uint64& _InitMinMSecs, const double& _TmInterval) :
+TEmaSpVec::TEmaSpVec(const TEmaType& _Type, const uint64& _InitMinMSecs, const double& _TmInterval, const double& _Cutoff) :
 	Type(_Type), LastVal(TFlt::Mn), TmInterval(_TmInterval), InitP(false),
-	InitMinMSecs(_InitMinMSecs) {}
+	InitMinMSecs(_InitMinMSecs), Cutoff(_Cutoff) {}
 
 TEmaSpVec::TEmaSpVec(const PJsonVal& ParamVal) : LastVal(), InitP(false) {
 	// type
@@ -385,6 +385,7 @@ TEmaSpVec::TEmaSpVec(const PJsonVal& ParamVal) : LastVal(), InitP(false) {
 	}
 	// rest
 	TmInterval = ParamVal->GetObjNum("interval");
+	Cutoff = ParamVal->GetObjNum("cutoff", 0.0001);
 	InitMinMSecs = ParamVal->GetObjInt("initWindow", 0);
 }
 
@@ -394,6 +395,7 @@ InitMinMSecs(SIn), InitValV(SIn), InitMSecsV(SIn) {
 	TInt TypeI; TypeI.Load(SIn);
 	Type = static_cast<TEmaType>((int)TypeI);
 	TFlt TmIntervalFlt; TmIntervalFlt.Load(SIn); TmInterval = TmIntervalFlt;
+	TFlt CutoffFlt; CutoffFlt.Load(SIn); Cutoff = CutoffFlt;
 }
 
 void TEmaSpVec::Load(TSIn& SIn) {
@@ -416,7 +418,9 @@ void TEmaSpVec::Save(TSOut& SOut) const {
 	TInt TypeI = Type; // TEmaType 
 	TypeI.Save(SOut);
 	TFlt TmIntervalFlt = TmInterval; // double
-	TmIntervalFlt.Save(SOut);;
+	TmIntervalFlt.Save(SOut);
+	TFlt CutoffFlt = Cutoff; // double
+	CutoffFlt.Save(SOut);
 }
 
 void TEmaSpVec::Update(const TIntFltKdV& Val, const uint64& NewTmMSecs) {
@@ -449,7 +453,7 @@ void TEmaSpVec::Update(const TIntFltKdV& Val, const uint64& NewTmMSecs) {
 		// compute new ema
 		//Ema = Mi*Ema + (Ni - Mi)*LastVal + (1.0 - Ni)*Val;
 		TIntFltKdV Tmp;
-		TLinAlg::LinComb(Mi, Ema, Ni - Mi, LastVal, Tmp);
+		TLinAlg::LinComb(Mi, Ema, Ni - Mi, LastVal, Tmp);		
 		TLinAlg::LinComb(1, Tmp, 1.0 - Ni, Val, Ema);
 				
 		// TODO cut off dimensions when value is too small 
@@ -489,9 +493,18 @@ void TEmaSpVec::Update(const TIntFltKdV& Val, const uint64& NewTmMSecs) {
 			InitMSecsV.Clr();
 		}
 	}
+	// remove dimensions bellow cutoff
+	TIntFltKdV TmpEma;
+	for (int i = 0; i < Ema.Len(); i++) {
+		if (abs(Ema[i].Dat) >= Cutoff) {
+			TmpEma.Add(Ema[i]);
+		}
+	}
+	Ema = TmpEma;
+
 	// update last value
 	LastVal = Val;
-	// update curret time
+	// update current time
 	TmMSecs = NewTmMSecs;
 }
 
@@ -502,6 +515,20 @@ void TEmaSpVec::Reset() {
 	TmMSecs = 0;
 	InitValV.Gen(0);
 	InitMSecsV.Gen(0);
+}
+
+PJsonVal TEmaSpVec::GetJson() const {
+	PJsonVal arr = TJsonVal::NewArr();
+	for (int i = 0; i < Ema.Len(); i++) {
+		PJsonVal tmp = TJsonVal::NewObj();
+		tmp->AddToObj("Idx", Ema[i].Key);
+		tmp->AddToObj("Val", Ema[i].Dat);
+		arr->AddToArr(tmp);
+	}
+	PJsonVal res = TJsonVal::NewObj();
+	res->AddToObj("Sum", arr);
+	res->AddToObj("Tm", TmMSecs);
+	return res;
 }
 
 /////////////////////////////////////////////////

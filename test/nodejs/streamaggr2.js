@@ -1026,3 +1026,123 @@ describe('Time Series Window Buffer Feature Extractor', function () {
         });
     });
 });
+
+
+
+describe('Time Series  - EMA for sparse vectors', function () {
+    var qm = require('qminer');
+    var base = undefined;
+    var store = undefined;
+    beforeEach(function () {
+        base = new qm.Base({
+            mode: 'createClean',
+            schema: [{
+                name: 'Docs',
+                fields: [
+                    { name: 'Time', type: 'datetime' },
+                    { name: 'Text', type: 'string' }
+                ]
+            }]
+        });
+        store = base.store('Docs');
+    });
+    afterEach(function () {
+        base.close();
+    });
+
+    
+    it('should construct simple time series - no forgetting', function () {
+        var aggr = {
+            name: 'featureSpaceWindow',
+            type: 'timeSeriesWinBufFeatureSpace',
+            store: 'Docs',
+            timestamp: 'Time',
+            featureSpace: {
+                type: "categorical",
+                source: "Docs",
+                field: "Text"
+            },
+            winsize: 100000
+        };
+        var sa = store.addStreamAggr(aggr);
+        var aggr2 = {
+            name: 'sparseVectorSum',
+            type: 'winBufSpVecSum',
+            store: 'Docs',
+            inAggr: 'featureSpaceWindow'
+        };
+        var sa2 = store.addStreamAggr(aggr2);
+        var aggr3 = {
+            name: 'sparseVectorEma',
+            type: 'emaSpVec',
+            store: 'Docs',
+            inAggr: 'sparseVectorSum',
+            emaType: "linear",
+            interval: 0, // no forgetting
+            initWindow: 0
+        };
+        var sa3 = store.addStreamAggr(aggr3);
+        store.push({ Time: '2015-06-10T14:13:32.0', Text: 'a' }); // 0
+        store.push({ Time: '2015-06-10T14:13:33.0', Text: 'b' }); // 1
+        store.push({ Time: '2015-06-10T14:13:34.0', Text: 'c' }); // 2
+        store.push({ Time: '2015-06-10T14:13:35.0', Text: 'd' }); // 3
+        store.push({ Time: '2015-06-10T14:13:36.0', Text: 'e' }); // 4
+        store.push({ Time: '2015-06-10T14:13:37.0', Text: 'f' }); // 5
+                    
+        // var valVec2 = sa2.getValueVector();
+        // valVec2.print();
+        // assert.equal(valVec2.full().minus(new qm.la.Vector([1, 1, 1, 1, 1, 1])).norm(), 0);
+        // 
+        // var valVec3 = sa3.getValueVector();
+        // valVec3.print();
+        // assert.equal(valVec3.full().minus(new qm.la.Vector([1, 1, 1, 1, 1, 1])).norm(), 0);
+    });
+    
+    it('should construct simple time series - with forgetting', function () {
+        var aggr = {
+            name: 'featureSpaceWindow',
+            type: 'timeSeriesWinBufFeatureSpace',
+            store: 'Docs',
+            timestamp: 'Time',
+            featureSpace: {
+                type: "categorical",
+                source: "Docs",
+                field: "Text"
+            },
+            winsize: 100000
+        };
+        var sa = store.addStreamAggr(aggr);
+        var aggr2 = {
+            name: 'sparseVectorSum',
+            type: 'winBufSpVecSum',
+            store: 'Docs',
+            inAggr: 'featureSpaceWindow'
+        };
+        var sa2 = store.addStreamAggr(aggr2);
+        var aggr3 = {
+            name: 'sparseVectorEma',
+            type: 'emaSpVec',
+            store: 'Docs',
+            inAggr: 'sparseVectorSum',
+            emaType: "linear",
+            interval: 1000,  // each second
+            initWindow: 0
+        };
+        var sa3 = store.addStreamAggr(aggr3);
+        store.push({ Time: '2015-06-10T14:13:32.0', Text: 'a' }); // 0
+        store.push({ Time: '2015-06-10T14:13:33.0', Text: 'b' }); // 1
+        store.push({ Time: '2015-06-10T14:13:34.0', Text: 'c' }); // 2
+        store.push({ Time: '2015-06-10T14:13:35.0', Text: 'd' }); // 3
+        store.push({ Time: '2015-06-10T14:13:36.0', Text: 'e' }); // 4
+        store.push({ Time: '2015-06-10T14:13:37.0', Text: 'f' }); // 5
+                    
+        // var valVec2 = sa2.getValueVector();
+        // valVec2.print();
+        // assert.equal(valVec2.full().minus(new qm.la.Vector([1, 1, 1, 1, 1, 1])).norm(), 0);
+        // 
+        // var valVec3 = sa3.getValueVector();
+        // valVec3.print();
+        // assert.equal(valVec3.full().minus(new qm.la.Vector([1, 1, 1, 1, 1, 1])).norm(), 0);
+    });    
+    
+});

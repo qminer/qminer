@@ -5823,6 +5823,9 @@ void TStreamAggr::Init() {
 	Register<TStreamAggrs::TOnlineSlottedHistogram>();
 	Register<TStreamAggrs::TVecDiff>();
 
+	// these attach to ISparseVecTm
+	Register<TStreamAggrs::TEmaSpVec>();
+
 	// these attach to TWinBufFtrSpVec
 	Register<TStreamAggrs::TWinBufSpVecSum>();
 }
