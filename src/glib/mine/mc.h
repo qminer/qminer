@@ -561,12 +561,13 @@ private:
     TStrV StateNmV;
 
     TIntFltPrSet TargetIdHeightSet;
+    bool IsTransitionBased;
 
     bool Verbose;
     PNotify Notify;
 
 public:
-    THierarch(const bool& HistCacheSize, const bool& Verbose=false);
+    THierarch(const bool& HistCacheSize, const bool& IsTransitionBased, const bool& Verbose=false);
     THierarch(TSIn& SIn);
 
 	// saves the model to the output stream

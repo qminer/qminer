@@ -981,6 +981,7 @@ void TCtMChain::GetAggrQMat(const TFltVV& QMat, const TStateSetV& AggrStateV,
 }
 
 void TCtMChain::GetSubChain(const TFltVV& QMat, const TIntV& StateIdV, TFltVV& SubQMat) {
+	// TODO think about how to properly implement this method
 	const int SubMatDim = StateIdV.Len();
 	const double Eps = 1e-6;
 
@@ -1010,6 +1011,26 @@ void TCtMChain::GetSubChain(const TFltVV& QMat, const TIntV& StateIdV, TFltVV& S
 			SubQMat(RowN,RowN) = -(SubMatDim-1)*Eps;
 		}
 	}
+
+	// check if any of the states is inaccessible
+	for (int ColN = 0; ColN < SubMatDim; ColN++) {
+		double ColSum = 0;
+
+		for (int RowN = 0; RowN < SubMatDim; RowN++) {
+			if (RowN != ColN) {
+				ColSum += SubQMat(RowN, ColN);
+			}
+		}
+
+		if (ColSum == 0) {
+			for (int RowN = 0; RowN < SubMatDim; RowN++) {
+				if (RowN != ColN) {
+					SubQMat(RowN, ColN) = Eps;
+					SubQMat(RowN, RowN) -= Eps;
+				}
+			}
+		}
+	}
 }
 
 void TCtMChain::BiPartition(const TFltVV& QMat, TIntV& PartV) {
@@ -1032,9 +1053,9 @@ void TCtMChain::BiPartition(const TFltVV& QMat, TIntV& PartV) {
 	// solve the following generalized eigenvalue problem: Qs*v = l2*Pi*v
 	TFltVV Pi;	TLAUtil::Diag(ProbV, Pi);
 //
-//	printf("Q:\n%s\n", TStrUtil::GetStr(QMat, ",", "%.15f").CStr());
-//	printf("QSim:\n%s\n", TStrUtil::GetStr(QSim, ",", "%.15f").CStr());
-//	printf("Pi:\n%s\n", TStrUtil::GetStr(Pi, ",", "%.15f").CStr());
+	printf("Q:\n%s\n", TStrUtil::GetStr(QMat, ",", "%.15f").CStr());
+	printf("QSim:\n%s\n", TStrUtil::GetStr(QSim, ",", "%.15f").CStr());
+	printf("Pi:\n%s\n", TStrUtil::GetStr(Pi, ",", "%.15f").CStr());
 
 	TFltVV EigVecVV;	TFltV EigValV;
 	TLinAlg::GeneralizedEigDecomp(QSim, Pi, EigValV, EigVecVV);
@@ -1847,13 +1868,15 @@ void TCtModeler::GetFutureProbVV(const TFltVV& QMat, const double& Tm,
 
 /////////////////////////////////////////////////////////////////
 // Agglomerative clustering
-THierarch::THierarch(const bool& _HistCacheSize, const bool& _Verbose):
+THierarch::THierarch(const bool& _HistCacheSize, const bool& _IsTransitionBased,
+			const bool& _Verbose):
 		HierarchV(),
 		StateHeightV(),
 		MxHeight(TFlt::Mn),
 		HistCacheSize(_HistCacheSize),
 		PastStateIdV(),
 		NLeafs(0),
+		IsTransitionBased(_IsTransitionBased),
 		Verbose(_Verbose),
 		Notify(_Verbose ? TNotify::StdNotify : TNotify::NullNotify) {
 
@@ -1870,6 +1893,7 @@ THierarch::THierarch(TSIn& SIn):
 		NLeafs(TInt(SIn)),
 		StateNmV(SIn),
 		TargetIdHeightSet(SIn),
+		IsTransitionBased(TBool(SIn)),
 		Verbose(TBool(SIn)),
 		Notify(nullptr) {
 
@@ -1886,6 +1910,7 @@ void THierarch::Save(TSOut& SOut) const {
 	TInt(NLeafs).Save(SOut);
 	StateNmV.Save(SOut);
 	TargetIdHeightSet.Save(SOut);
+	TBool(IsTransitionBased).Save(SOut);
 	TBool(Verbose).Save(SOut);
 }
 
@@ -1901,8 +1926,11 @@ void THierarch::Init(const int& CurrLeafId, const TStateIdentifier& StateIdentif
 
 	NLeafs = CentroidMat.GetCols();
 
-	InitHierarchyTrans(StateIdentifier, MChain);
-//	InitHierarchyDist(StateIdentifier);
+	if (IsTransitionBased) {
+		InitHierarchyTrans(StateIdentifier, MChain);
+	} else {
+		InitHierarchyDist(StateIdentifier);
+	}
 
 	// compute state coordinates
 //	ComputeStateCoords(CentroidMat, NStates, StateIdentifier);
