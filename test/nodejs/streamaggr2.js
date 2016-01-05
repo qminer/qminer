@@ -1099,7 +1099,8 @@ describe('Time Series  - EMA for sparse vectors', function () {
         assert.equal(valVec2.full().minus(new qm.la.Vector([0, 0, 0, 0, 0, 1])).norm(), 0);
 
         var valVec3 = sa3.getValueVector();
-        //valVec3.print();
+        valVec3.print();
+        console.log(valVec3.full().length);
         assert.ok(valVec3.full().minus(new qm.la.Vector([
             0.082085,
             0.05325, 
