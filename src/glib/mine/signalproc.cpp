@@ -350,6 +350,184 @@ void TEma::Reset() {
 }
 
 /////////////////////////////////////////////////
+// Exponential Moving Average - for sparse vectors
+
+double TEmaSpVec::GetNi(const double& Alpha, const double& Mi) {
+	switch (Type) {
+	case etPreviousPoint: return 1.0;
+	case etLinear: return (1 - Mi) / Alpha;
+	case etNextPoint: return Mi;
+	}
+	throw TExcept::New("Unknown EMA interpolation type");
+}
+
+//TODO: compute InitMinMSecs initialization time window from decay factor
+TEmaSpVec::TEmaSpVec(const double& _Decay, const TEmaType& _Type, const uint64& _InitMinMSecs,
+	const double& _TmInterval, const double& _Cutoff) : Decay(_Decay), Type(_Type), LastVal(),
+	TmInterval(_TmInterval), InitP(false), InitMinMSecs(_InitMinMSecs), Cutoff(_Cutoff) {}
+
+//TODO: compute InitMinMSecs initialization time window from decay factor
+TEmaSpVec::TEmaSpVec(const TEmaType& _Type, const uint64& _InitMinMSecs, const double& _TmInterval, const double& _Cutoff) :
+	Type(_Type), LastVal(TFlt::Mn), TmInterval(_TmInterval), InitP(false),
+	InitMinMSecs(_InitMinMSecs), Cutoff(_Cutoff) {}
+
+TEmaSpVec::TEmaSpVec(const PJsonVal& ParamVal) : LastVal(), InitP(false) {
+	// type
+	TStr TypeStr = ParamVal->GetObjStr("emaType");
+	if (TypeStr == "previous") {
+		Type = etPreviousPoint;
+	} else if (TypeStr == "linear") {
+		Type = etLinear;
+	} else if (TypeStr == "next") {
+		Type = etNextPoint;
+	} else {
+		throw TExcept::New("Unknown ema type " + TypeStr);
+	}
+	// rest
+	TmInterval = ParamVal->GetObjNum("interval");
+	Cutoff = ParamVal->GetObjNum("cutoff", 0.0001);
+	InitMinMSecs = ParamVal->GetObjInt("initWindow", 0);
+}
+
+TEmaSpVec::TEmaSpVec(TSIn& SIn) : Decay(SIn), LastVal(SIn), Ema(SIn), TmMSecs(SIn), InitP(SIn),
+InitMinMSecs(SIn), InitValV(SIn), InitMSecsV(SIn) {
+
+	TInt TypeI; TypeI.Load(SIn);
+	Type = static_cast<TEmaType>((int)TypeI);
+	TFlt TmIntervalFlt; TmIntervalFlt.Load(SIn); TmInterval = TmIntervalFlt;
+	TFlt CutoffFlt; CutoffFlt.Load(SIn); Cutoff = CutoffFlt;
+}
+
+void TEmaSpVec::Load(TSIn& SIn) {
+	*this = TEmaSpVec(SIn);
+}
+
+void TEmaSpVec::Save(TSOut& SOut) const {
+	// parameters
+	Decay.Save(SOut);
+	LastVal.Save(SOut);
+	Ema.Save(SOut);
+	TmMSecs.Save(SOut);
+	InitP.Save(SOut);
+	InitMinMSecs.Save(SOut);
+	InitValV.Save(SOut);
+	InitMSecsV.Save(SOut);
+	// TODO: Use macro for saving enum (SaveEnum, LoadEnum)
+	// TODO: change TmInterval from double to TFlt
+	// PROBLEM: After changing TmInterval from double to TFlt Qminer crashes hard!
+	TInt TypeI = Type; // TEmaType 
+	TypeI.Save(SOut);
+	TFlt TmIntervalFlt = TmInterval; // double
+	TmIntervalFlt.Save(SOut);
+	TFlt CutoffFlt = Cutoff; // double
+	CutoffFlt.Save(SOut);
+}
+
+void TEmaSpVec::Update(const TIntFltKdV& Val, const uint64& NewTmMSecs) {
+	double TmInterval1;
+	// EMA(first_point) = first_point (no smoothing is possible)
+	if (InitMinMSecs == 0) {
+		if (LastVal.Empty()) { 
+			LastVal = Val; 
+			Ema = Val; 
+			TmMSecs = NewTmMSecs; 
+			InitP = true;  
+			return; 
+		}
+	}
+	if (NewTmMSecs == TmMSecs) {
+		TmInterval1 = 1.0;
+	} else {
+		TmInterval1 = (double)(NewTmMSecs - TmMSecs);
+	}
+	if (InitP) {
+		// compute parameters for EMA
+		double Alpha;
+		if (Decay == 0.0) {
+			Alpha = TmInterval1 / TmInterval;
+		} else {
+			Alpha = TmInterval1 / TmInterval  * (-1.0) * TMath::Log(Decay);
+		}
+		const double Mi = exp(-Alpha);
+		const double Ni = GetNi(Alpha, Mi);
+		// compute new ema
+		//Ema = Mi*Ema + (Ni - Mi)*LastVal + (1.0 - Ni)*Val;
+		TIntFltKdV Tmp;
+		TLinAlg::LinComb(Mi, Ema, Ni - Mi, LastVal, Tmp);		
+		TLinAlg::LinComb(1, Tmp, 1.0 - Ni, Val, Ema);
+	} else {
+		// update buffers
+		InitValV.Add(Val);
+		InitMSecsV.Add(NewTmMSecs);
+		// initialize when enough data
+		const uint64 StartInitMSecs = InitMSecsV[0] + InitMinMSecs;
+		if (StartInitMSecs < NewTmMSecs) {
+			// Initialize using "buildup time interval",
+			//TODO: check how interpolation type influences this code
+			const int Vals = InitMSecsV.Len();
+			// compute weights for each value in buffer
+			TFltV WeightV(Vals, 0);
+			for (int ValN = 0; ValN < Vals; ValN++) {
+				const double Alpha = (double)(TmInterval1) / Decay;
+				WeightV.Add(exp(-Alpha));
+			}
+			// normalize weights so they sum to 1.0
+			TLinAlg::NormalizeL1(WeightV);
+			// compute initial value of EMA as weighted sum
+			//Ema = TLinAlg::DotProduct(WeightV, InitValV);
+			TIntFltKdV Tmp;
+			for (int i = 0; i < WeightV.Len(); i++) {
+				TIntFltKdV Tmp2;
+				TLinAlg::LinComb(1, Tmp, WeightV[i], InitValV[i], Tmp2);
+				Tmp = Tmp2;
+			}
+			Ema = Tmp;
+
+			// mark that we are done and clean up after us
+			InitP = true; 
+			InitValV.Clr();
+			InitMSecsV.Clr();
+		}
+	}
+	// remove dimensions bellow cutoff
+	TIntFltKdV TmpEma;
+	for (int i = 0; i < Ema.Len(); i++) {
+		if (abs(Ema[i].Dat) >= Cutoff) {
+			TmpEma.Add(Ema[i]);
+		}
+	}
+	Ema = TmpEma;
+
+	// update last value
+	LastVal = Val;
+	// update current time
+	TmMSecs = NewTmMSecs;
+}
+
+void TEmaSpVec::Reset() {
+	InitP = false;
+	LastVal.Clr();
+	Ema.Clr();
+	TmMSecs = 0;
+	InitValV.Gen(0);
+	InitMSecsV.Gen(0);
+}
+
+PJsonVal TEmaSpVec::GetJson() const {
+	PJsonVal arr = TJsonVal::NewArr();
+	for (int i = 0; i < Ema.Len(); i++) {
+		PJsonVal tmp = TJsonVal::NewObj();
+		tmp->AddToObj("Idx", Ema[i].Key);
+		tmp->AddToObj("Val", Ema[i].Dat);
+		arr->AddToArr(tmp);
+	}
+	PJsonVal res = TJsonVal::NewObj();
+	res->AddToObj("Sum", arr);
+	res->AddToObj("Tm", TmMSecs);
+	return res;
+}
+
+/////////////////////////////////////////////////
 // Online Moving Standard M2 
 void TVar::Update(const double& InVal, const uint64& InTmMSecs, 
         const TFltV& OutValV, const TUInt64V& OutTmMSecsV, const int& N) {
@@ -987,7 +1165,7 @@ void TOnlineHistogram::Init(const double& LBound, const double& UBound, const in
 
 void TOnlineHistogram::Reset() {
 	for (int ElN = 0; ElN < Counts.Len(); ElN++) {
-		Counts[ElN] = 0;
+		Counts[ElN] = 0; Count = 0;
 	}
 }
 
@@ -1006,6 +1184,8 @@ TOnlineHistogram::TOnlineHistogram(const PJsonVal& ParamVal) {
 	TBool AddNegInf = ParamVal->GetObjBool("addNegInf", false);
 	TBool AddPosInf = ParamVal->GetObjBool("addPosInf", false);
 	
+	MinCount = ParamVal->GetObjInt("initMinCount", 0);
+
 	Init(LBound, UBound, Bins, AddNegInf, AddPosInf);
 };
 
@@ -1033,14 +1213,14 @@ int TOnlineHistogram::FindBin(const double& Val) const {
 	return -1;
 }
 
-void TOnlineHistogram::Increment(const double& Val) {
+void TOnlineHistogram::Increment(const double& Val) {	
 	int Idx = FindBin(Val);
-	if (Idx >= 0) { Counts[Idx]++; }
+	if (Idx >= 0) { Counts[Idx]++; Count++; }
 }
 
 void TOnlineHistogram::Decrement(const double& Val) {
 	int Idx = FindBin(Val);
-	if (Idx >= 0) { Counts[Idx]--; }
+	if (Idx >= 0) { Counts[Idx]--; Count--; }
 }
 
 double TOnlineHistogram::GetCount(const double& Val) const {

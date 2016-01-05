@@ -24,8 +24,9 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">CircularRecordBuffer</span></h1>
-            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-3331">qminerdoc.<wbr>js:3331</a></p>
+            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div>
+            <h1><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">CircularRecordBuffer</span></h1>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-3330">qminerdoc.<wbr>js:3330</a></p>
             <div class="symbol-classdesc">
               <p>Circular buffer for storing records. Size of buffer is defined at start and is denoted in number of records. When buffer is full, old records are removed from the buffer and new records are stored in their place. For adding and deleting
                 a callback is called. Records are stored by their IDs.</p>
@@ -95,75 +96,6 @@
                     </td>
                     <td>
                       <p>Constructor parameters</p>
-                      <p>Values in <code>param</code> have the following properties:</p>
-                      <table class="jsdoc-details-table">
-                        <thead>
-                          <tr>
-                            <th>Name</th>
-                            <th>Type</th>
-                            <th>Optional</th>
-                            <th>Description</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr>
-                            <td>
-                              <p>store</p>
-                            </td>
-                            <td>
-                              <p><a href="module-qm.Store.html">module:qm.Store</a></p>
-                            </td>
-                            <td>
-                              <p>&nbsp;</p>
-                            </td>
-                            <td>
-                              <p>Store for the records in the buffer.</p>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
-                              <p>size</p>
-                            </td>
-                            <td>
-                              <p>number</p>
-                            </td>
-                            <td>
-                              <p>&nbsp;</p>
-                            </td>
-                            <td>
-                              <p>Size of the buffer (number of records).</p>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
-                              <p>onAdd</p>
-                            </td>
-                            <td>
-                              <p>function()</p>
-                            </td>
-                            <td>
-                              <p>Yes</p>
-                            </td>
-                            <td>
-                              <p>Callback executed when new record is added to the buffer. Callback is give two parameters: record and instance of CircularRecordBuffer.</p>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
-                              <p>onDelete</p>
-                            </td>
-                            <td>
-                              <p>function()</p>
-                            </td>
-                            <td>
-                              <p>Yes</p>
-                            </td>
-                            <td>
-                              <p>Callback executed when record is removed from the buffer. Callback is give two parameters: record and instance of CircularRecordBuffer.</p>
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
                     </td>
                   </tr>
                 </tbody>

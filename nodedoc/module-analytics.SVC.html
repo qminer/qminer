@@ -24,7 +24,8 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">SVC</span></h1>
+            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div>
+            <h1><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">SVC</span></h1>
             <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-49">analyticsdoc.<wbr>js:49</a></p>
             <div class="symbol-classdesc">
               <p>Support Vector Machine Classifier. Implements a soft margin linear support vector classifier using the PEGASOS algorithm, see: <a href="http://ttic.uchicago.edu/~nati/Publications/PegasosMPB.pdf">Pegasos: Primal Estimated sub-GrAdient SOlver for SVM</a>.</p>
@@ -97,22 +98,22 @@
         </h3>
               <div>
                 <pre class="prettyprint"><code>// import modules
-var la = require(&#x27;qminer&#x27;).la;
-var analytics = require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
 // CLASSIFICATION WITH SVC
 // set up fake train and test data
-// four training examples with number of features = 2
-var featureMatrix = new la.Matrix({ rows: 2, cols: 4, random: true });
+// four training examples with number of features &#x3D; 2
+var featureMatrix &#x3D; new la.Matrix({ rows: 2, cols: 4, random: true });
 // classification targets for four examples
-var targets = new la.Vector([-1, -1, 1, 1]);
+var targets &#x3D; new la.Vector([-1, -1, 1, 1]);
 // set up the classification model
-var SVC = new analytics.SVC({ verbose: false });
+var SVC &#x3D; new analytics.SVC({ verbose: false });
 // train classifier
 SVC.fit(featureMatrix, targets);
 // set up a fake test vector
-var test = new la.Vector([1.1, -0.5]);
+var test &#x3D; new la.Vector([1.1, -0.5]);
 // predict the target value
-var prediction = SVC.predict(test);</code></pre>
+var prediction &#x3D; SVC.predict(test);</code></pre>
               </div>
             </section>
             <section>
@@ -158,17 +159,17 @@ var prediction = SVC.predict(test);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import the analytics and la modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new SVC object
-var SVC = new analytics.SVC();
+var SVC &#x3D; new analytics.SVC();
 // create the matrix containing the input features and the input vector for each matrix.
-var matrix = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
-var vec = new la.Vector([1, 1, -1, -1]);
+var matrix &#x3D; new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+var vec &#x3D; new la.Vector([1, 1, -1, -1]);
 // fit the model
 SVC.fit(matrix, vec);
 // get the weights
-var weights = SVC.weights; // returns the coefficients of the normal vector of the hyperplane gained from the model: [1, 1]</code></pre>
+var weights &#x3D; SVC.weights; // returns the coefficients of the normal vector of the hyperplane gained from the model: [1, 1]</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -188,19 +189,19 @@ var weights = SVC.weights; // returns the coefficients of the normal vector of t
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import the analytics and la modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new SVC object
-var SVC = new analytics.SVC();
+var SVC &#x3D; new analytics.SVC();
 // create the matrix containing the input features and the input vector for each matrix
-var matrix = new la.Matrix([[1, 0], [0, -1]]);
-var vec = new la.Vector([1, -1]);
+var matrix &#x3D; new la.Matrix([[1, 0], [0, -1]]);
+var vec &#x3D; new la.Vector([1, -1]);
 // fit the model
 SVC.fit(matrix, vec);
 // create the vector you want to get the distance from the model
-var vec2 = new la.Vector([2, 3]);
+var vec2 &#x3D; new la.Vector([2, 3]);
 // use the decisionFunction to get the distance of vec2 from the model
-var distance = SVC.decisionFunction(vec2); // returns something close to 5</code></pre>
+var distance &#x3D; SVC.decisionFunction(vec2); // returns something close to 5</code></pre>
                 </div>
               </section>
               <section>
@@ -249,13 +250,13 @@ var distance = SVC.decisionFunction(vec2); // returns something close to 5</code
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import the analytics and la modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new SVC object
-var SVC = new analytics.SVC();
+var SVC &#x3D; new analytics.SVC();
 // create the matrix containing the input features and the input vector for each matrix.
-var matrix = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
-var vec = new la.Vector([1, 1, -1, -1]);
+var matrix &#x3D; new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+var vec &#x3D; new la.Vector([1, 1, -1, -1]);
 // fit the model
 SVC.fit(matrix, vec); // creates a model, where the hyperplane has the normal semi-equal to [1, 1]</code></pre>
                 </div>
@@ -317,11 +318,11 @@ SVC.fit(matrix, vec); // creates a model, where the hyperplane has the normal se
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
 // create a SVC model
-var SVC = new analytics.SVC();
+var SVC &#x3D; new analytics.SVC();
 // get the properties of the model
-var model = SVC.getModel(); // returns { weight: new require(&#x27;qminer&#x27;).la.Vector(); }</code></pre>
+var model &#x3D; SVC.getModel(); // returns { weight: new require(&#x27;qminer&#x27;).la.Vector(); }</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -338,12 +339,12 @@ var model = SVC.getModel(); // returns { weight: new require(&#x27;qminer&#x27;)
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
 // create a new SVC model with json
-var SVC = new analytics.SVC({ c: 5, j: 10, batchSize: 2000, maxIterations: 12000, maxTime: 2, minDiff: 1e-10, verbose: true });
+var SVC &#x3D; new analytics.SVC({ c: 5, j: 10, batchSize: 2000, maxIterations: 12000, maxTime: 2, minDiff: 1e-10, verbose: true });
 // get the parameters of the SVC model
 // returns { algorithm: &#x27;SGD&#x27; c: 5, j: 10, batchSize: 2000, maxIterations: 12000, maxTime: 2, minDiff: 1e-10, verbose: true }
-var json = SVC.getParams(); </code></pre>
+var json &#x3D; SVC.getParams(); </code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -360,19 +361,19 @@ var json = SVC.getParams(); </code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import the analytics and la modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new SVC object
-var SVC = new analytics.SVC();
+var SVC &#x3D; new analytics.SVC();
 // create the matrix containing the input features and the input vector for each matrix
-var matrix = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
-var vec = new la.Vector([1, 1, -1, -1]);
+var matrix &#x3D; new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+var vec &#x3D; new la.Vector([1, 1, -1, -1]);
 // fit the model
 SVC.fit(matrix, vec);
 // create a vector you want to predict 
-var vec2 = new la.Vector([3, 5]);
+var vec2 &#x3D; new la.Vector([3, 5]);
 // predict the vector
-var prediction = SVC.predict(vec2); // returns 1</code></pre>
+var prediction &#x3D; SVC.predict(vec2); // returns 1</code></pre>
                 </div>
               </section>
               <section>
@@ -421,25 +422,25 @@ var prediction = SVC.predict(vec2); // returns 1</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import the analytics and la modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
-var fs = require(&#x27;qminer&#x27;).fs;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
 // create a new SVC object
-var SVC = new analytics.SVC();
+var SVC &#x3D; new analytics.SVC();
 // create the matrix containing the input features and the input vector for each matrix column.
-var matrix = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);	
-var vec = new la.Vector([1, 0, -1, -2]);
+var matrix &#x3D; new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);	
+var vec &#x3D; new la.Vector([1, 0, -1, -2]);
 // fit the model
 SVC.fit(matrix, vec);
 // create output stream
-var fout = fs.openWrite(&#x27;svc_example.bin&#x27;);
+var fout &#x3D; fs.openWrite(&#x27;svc_example.bin&#x27;);
 // save SVC object (model and parameters) to output stream and close it
 SVC.save(fout);
 fout.close();
 // create input stream
-var fin = fs.openRead(&#x27;svc_example.bin&#x27;);
+var fin &#x3D; fs.openRead(&#x27;svc_example.bin&#x27;);
 // create a SVC object that loads the model and parameters from input stream
-var SVC2 = new analytics.SVC(fin);	</code></pre>
+var SVC2 &#x3D; new analytics.SVC(fin);	</code></pre>
                 </div>
               </section>
               <section>
@@ -485,9 +486,9 @@ var SVC2 = new analytics.SVC(fin);	</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
 // create a default SVC model
-var SVC = new analytics.SVC();
+var SVC &#x3D; new analytics.SVC();
 // change the parameters of the SVC with the json { j: 5, maxIterations: 12000, minDIff: 1e-10 }
 SVC.setParams({ j: 5, maxIterations: 12000, minDiff: 1e-10 }); // returns self</code></pre>
                 </div>

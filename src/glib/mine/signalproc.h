@@ -190,18 +190,18 @@ typedef enum { etPreviousPoint, etLinear, etNextPoint } TEmaType;
 class TEma {
 private:
 	// parameters
-	TFlt Decay; // decaying factor
-	TEmaType Type; // interpolation type
+	TFlt Decay; ///< decaying factor
+	TEmaType Type; ///< interpolation type
 	// current state
-	TFlt LastVal; // last input value
-	TFlt Ema; // current computed EMA value 
-	TUInt64 TmMSecs; // timestamp of current EMA
-	double TmInterval; // time interval for definition of decay
+	TFlt LastVal; ///< last input value
+	TFlt Ema; ///< current computed EMA value 
+	TUInt64 TmMSecs; ///< timestamp of current EMA
+	double TmInterval; ///< time interval for definition of decay
 	// buffer for initialization
-	TBool InitP; // true if already initialized
-	TUInt64 InitMinMSecs; // time window of requiered values for initialization
-	TFltV InitValV; // first N values
-	TUInt64V InitMSecsV; // weights of first N values
+	TBool InitP; ///< true if already initialized
+	TUInt64 InitMinMSecs; ///< time window of required values for initialization
+	TFltV InitValV; ///< first N values
+	TUInt64V InitMSecsV; ///< weights of first N values
  	
 	double GetNi(const double& Alpha, const double& Mi);
 public:
@@ -224,6 +224,48 @@ public:
 	uint64 GetTmMSecs() const { return TmMSecs; }
 };
 
+
+class TEmaSpVec {
+private:
+	// parameters
+	TFlt Decay; ///< decaying factor
+	TEmaType Type; ///< interpolation type
+    // current state
+	TIntFltKdV LastVal; ///< last input value
+	TIntFltKdV Ema; ///< current computed EMA value 
+	TUInt64 TmMSecs; ///< timestamp of current EMA
+	double TmInterval; ///< time interval for definition of decay
+	double Cutoff; ///< Minimal value for dimension - if it falls below this, it is removed from Ema
+	// buffer for initialization
+	TBool InitP; ///< true if already initialized
+	TUInt64 InitMinMSecs; ///< time window of required values for initialization
+	TVec<TIntFltKdV> InitValV; ///< first N values
+	TUInt64V InitMSecsV; ///< weights of first N values
+
+	double GetNi(const double& Alpha, const double& Mi);
+public:
+	TEmaSpVec(const double& _Decay, const TEmaType& _Type,
+		const uint64& _InitMinMSecs, const double& _TmInterval, const double& _Cutoff);
+	TEmaSpVec(const TEmaType& _Type, const uint64& _InitMinMSecs,
+		const double& _TmInterval, const double& _Cutoff);
+	TEmaSpVec(const PJsonVal& ParamVal);
+	TEmaSpVec(TSIn& SIn);
+
+	// serialization
+	void Load(TSIn& SIn);
+	void Save(TSOut& SOut) const;
+
+	void Update(const TIntFltKdV& Val, const uint64& NewTmMSecs);
+	// current status
+	bool IsInit() const { return InitP; }
+	
+	/// Resets the aggregate
+	void Reset();
+	const TIntFltKdV GetValue() const { return Ema; }
+	uint64 GetTmMSecs() const { return TmMSecs; }
+	
+	PJsonVal GetJson() const; ///< Get JSON description of the sum
+};
 /////////////////////////////////////////////////
 // Online M2 (variance)
 class TVar {
@@ -767,8 +809,12 @@ public:
 ///    setting.
 class TOnlineHistogram {
 private:
+	// state
 	TFltV Counts; ///< Number of occurrences
 	TFltV Bounds; ///< Interval bounds (Bounds.Len() == Counts.Len() + 1)
+	TFlt Count; ///< Sum of counts
+	// parameters
+	TFlt MinCount; ///< If Count < MinCount, then IsInit returns false
 public:	
 	/// Constructs uninitialized object
 	TOnlineHistogram() {};
@@ -777,7 +823,7 @@ public:
 	/// Constructs given JSON arguments
 	TOnlineHistogram(const PJsonVal& ParamVal);
 	/// Constructs from stream
-	TOnlineHistogram(TSIn& SIn) : Counts(SIn), Bounds(SIn) {}
+	TOnlineHistogram(TSIn& SIn) : Counts(SIn), Bounds(SIn), Count(SIn) { }
 
 	/// Initializes the object, resets current content is present
 	void Init(const double& LBound, const double& UBound, const int& Bins, const bool& AddNegInf, const bool& AddPosInf);
@@ -788,7 +834,7 @@ public:
 	/// Loads the model from stream
 	void Load(TSIn& SIn) { *this = TOnlineHistogram(SIn); }
 	/// Saves the model to stream
-	void Save(TSOut& SOut) const { Counts.Save(SOut); Bounds.Save(SOut); }
+	void Save(TSOut& SOut) const { Counts.Save(SOut); Bounds.Save(SOut); SOut.Save(Count); }
 	/// Finds the bin index given val, returns -1 if not found
 	int FindBin(const double& Val) const;
 	/// Increments the number of occurrences of values that fall within the same bin as Val
@@ -803,8 +849,8 @@ public:
 	void GetCountV(TFltV& Vec) const { Vec = Counts; }
 	/// Returns an element of count vector given index
 	double GetCountN(const int& CountN) const { return Counts[CountN]; }
-	/// Has the model beeen initialized?
-	bool IsInit() const {	return Counts.Len() > 0 && Bounds.Len() > 0; }
+	/// Has the model beeen initialized and has sufficient data?
+	bool IsInit() const { return Counts.Len() > 0 && Bounds.Len() > 0 && Count >= MinCount; }
 	/// Clears the model
 	void Clr() { Counts.Clr(); Bounds.Clr(); }
 	/// Prints the model

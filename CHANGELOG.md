@@ -1,5 +1,45 @@
 # QMiner Change Log
 
+### 18 Dec 2015
+
+**New version: 4.0.0**
+
+**breaking with new features**
+
+Features:
+- Now works with Node.js 4.x and 5.x
+- (breaking) `QMiner` now supports the following new types:
+  - `byte` - unsigned value between 0 and 255
+  - `int16` - 16-bit integer
+  - `uint16` - 16-bit unsigned integer
+  - `uint` - 32-bit unsigned integer
+  - `int64` - 64-bit integer
+  - `sfloat` - single-precision float value (existing type `float` uses double precision)
+  - `json` - arbitrary `javascript` object. Internally it will be stored as `JSON`. Automatically (de)serialized.
+  - `blob` - binary buffer (uses `TMem` internally). When new record is created, this field needs to be sent in as base64-encoded string. When the record is accessed, the field is represented and can be manipulated as javascript's `Buffer` object.
+- `TStreamAggrOut` two interfaces are now templated `IValTmIO` and `TValVec`
+  - `TFltTmIO` is a typedef for `IValTmIO<TFlt>`
+  - `TFltVec` is a typedef for `TValVec<TFlt>`
+- `TWinBuf` is now templated (according to new templated interfaces) and an abstract class. A derived class must implement `TVal GetRecVal(const uint64& RecId)`. 
+  - Two derived classes:
+    - the old `TWinBuf` is implemented as `TWinBufFlt : public TWinBuf<TFlt>`
+    - `TWinBufFtrSpVec : TWinBuf<TIntFltKdV>` takes a JSON array (or a single JSON) of feature extractor descriptors and computes sparse vectors of type TIntFltKdV on records
+  — Added new interface functions to stream aggregate Node.js API 
+- Added support for JSON argument inputs for: `extractVector`, `extractSparseVector`, `extractMatrix`, `updateRecord`, `updateRecords`. The methods that expected a record set can now take an array of JSON objects, where each object respects the store schema.
+- Added sparse-vector sum aggregate for sparse vectors that maintains centroid vector of sparse vectors coming out of window buffer feature space aggregate.
+- Introduced `qminer-data-loader` NPM module to handle datasets for examples.
+- Node.js `TStore` implementation that let us wrap external data sources as stores. For now works with feature extractors
+- Joins have index type by default.
+
+Bug fixes:
+- MDS documentation fixed.
+
+Other:
+- Added recordSet.sortByFq to documentation
+- Added examples to linear algebra
+- Updated travis and appveyor to test: arch x64/x86 - node 0.12/4/5 - platform win/linux/osx
+- Made qm structures safe for Tonic notebooks (no crashing due to infinite recursion)
+
 ### 04 Dec 2015
 
 **New version: 3.6.0**
