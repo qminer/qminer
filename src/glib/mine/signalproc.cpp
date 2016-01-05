@@ -455,8 +455,6 @@ void TEmaSpVec::Update(const TIntFltKdV& Val, const uint64& NewTmMSecs) {
 		TIntFltKdV Tmp;
 		TLinAlg::LinComb(Mi, Ema, Ni - Mi, LastVal, Tmp);		
 		TLinAlg::LinComb(1, Tmp, 1.0 - Ni, Val, Ema);
-				
-		// TODO cut off dimensions when value is too small 
 	} else {
 		// update buffers
 		InitValV.Add(Val);
@@ -483,8 +481,6 @@ void TEmaSpVec::Update(const TIntFltKdV& Val, const uint64& NewTmMSecs) {
 				TLinAlg::LinComb(1, Tmp, WeightV[i], InitValV[i], Tmp2);
 				Tmp = Tmp2;
 			}
-
-			// TODO cut off dimensions when value is too small 
 			Ema = Tmp;
 
 			// mark that we are done and clean up after us
