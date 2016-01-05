@@ -2210,28 +2210,39 @@ describe('EMA Tests', function () {
             store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
             assert.equal(ema.getFloat(), 1);
         })
-        it('should reset the buffer and  return the ema of the records in the buffer with initWindow', function () {
+        it('complex value test', function () {
             var aggr = {
                 name: 'EmaAggr',
                 type: 'ema',
                 store: 'Function',
                 inAggr: 'TickAggr',
                 emaType: 'previous',
-                interval: 3000,
-                initWindow: 1000
+                interval: 2000,
+                initWindow: 0
             };
             var ema = store.addStreamAggr(aggr);
-            store.push({ Time: '2015-06-10T14:13:32.0', Value: 0 });
-            store.push({ Time: '2015-06-10T14:13:33.0', Value: 1 });
-            store.push({ Time: '2015-06-10T14:13:34.0', Value: 0 });
-            assert.equal(ema.getFloat(), 0);
-
-            store.resetStreamAggregates();
-
-            store.push({ Time: '2015-06-10T14:13:32.0', Value: 0 });
-            store.push({ Time: '2015-06-10T14:13:33.0', Value: 1 });
-            store.push({ Time: '2015-06-10T14:13:34.0', Value: 0 });
-            assert.equal(ema.getFloat(), 0);
+            store.push({ Time: 1000, Value: 1 }); //console.log(ema.getFloat());
+            assert.equal(ema.getFloat(), 1);
+            store.push({ Time: 2000, Value: 1 }); //console.log(ema.getFloat());
+            assert.equal(ema.getFloat(), 1);
+            store.push({ Time: 3000, Value: 1 }); //console.log(ema.getFloat());
+            assert.equal(ema.getFloat(), 1);
+            store.push({ Time: 4000, Value: 2 }); //console.log(ema.getFloat());
+            assert.equal(ema.getFloat(), 1);
+            store.push({ Time: 5000, Value: 2 }); //console.log(ema.getFloat());
+            assert.equal(ema.getFloat().toFixed(6), 1.393469);
+            store.push({ Time: 6000, Value: 3 }); //console.log(ema.getFloat());
+            assert.equal(ema.getFloat().toFixed(6), 1.632121);
+            store.push({ Time: 7000, Value: 3 }); //console.log(ema.getFloat());
+            assert.equal(ema.getFloat().toFixed(6), 2.170339);
+            store.push({ Time: 8000, Value: 3 }); //console.log(ema.getFloat());
+            assert.equal(ema.getFloat().toFixed(6), 2.496785);
+            store.push({ Time: 10000, Value: 4 }); //console.log(ema.getFloat());
+            assert.equal(ema.getFloat().toFixed(6), 2.814878);
+            store.push({ Time: 30000, Value: 5 }); //console.log(ema.getFloat());
+            assert.equal(ema.getFloat().toFixed(6), 3.999946);
+            store.push({ Time: 31000, Value: 5 }); //console.log(ema.getFloat());
+            assert.equal(ema.getFloat().toFixed(6), 4.393437);
         })
     });
 
