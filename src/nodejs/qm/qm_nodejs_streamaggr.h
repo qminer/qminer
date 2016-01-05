@@ -563,41 +563,40 @@
 *        ]
 *    }]
 * });
-*
+* var store = base.store("Data");
 * // create a new time series that emits data as sparse vector, based on text.
 * var aggr = {
 *    name: 'featureSpaceWindow',
 *    type: 'timeSeriesWinBufFeatureSpace',
-*    store: 'Docs',
+*    store: store.name,
 *    timestamp: 'Time',
 *    featureSpace: {
 *       type: "categorical",
-*       source: "Docs",
+*       source: store.name,
 *       field: "Text"
 *    },
 *    winsize: 1 // keep only most recent value in window
 * };
 * // attach sum
-* var sa = base.store("Data").addStreamAggr(aggr);
+* var sa = store.addStreamAggr(aggr);
 * var aggr2 = {
 *    name: 'sparseVectorSum',
 *    type: 'winBufSpVecSum',
-*    store: 'Docs',
-*    inAggr: 'featureSpaceWindow' // this means that sum is equal to the most recent data
+*    store: store.name,
+*    inAggr: aggr.name // this means that sum is equal to the most recent data
 * };
 * // ok, now attach EMA
 * var sa2 = store.addStreamAggr(aggr2);
 * var ema_def = {
 *    name: 'sparseVectorEma',
 *    type: 'emaSpVec',
-*    store: 'Docs',
-*    inAggr: 'sparseVectorSum',
+*    store: store.name,
+*    inAggr: aggr2.name,
 *    emaType: "next",
 *    interval: 2000,
 *    initWindow: 0
 * };
 * var ema = store.addStreamAggr(ema_def);
-* 
 * // add some data
 * store.push({ Time: 1000, Text: 'a' });
 * store.push({ Time: 2000, Text: 'b' });
