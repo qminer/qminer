@@ -279,7 +279,7 @@ module.exports = exports = function (pathQmBinary) {
                 count++;
                 if (limit != undefined && count == limit) { break; }
             } catch (err) {
-                // console.log("Error parsing [" + line + "]: " + err)
+                throw new Error("Error parsing line number: " + count + ", line content:[" + line + "]: " + err);                
             }
         }
         return count;
