@@ -304,6 +304,25 @@ class TAvlTree {
         void Print() const {
             Print(Root);
         }
+        void Reset() {
+        	// Clear values
+        	Root = 0;
+        	N = 0;
+        	Parent.Clr();
+        	Left.Clr();
+        	Right.Clr();
+        	Depth.Clr();
+        	Count.Clr();
+        	Values.Clr();
+        	AggregatedCount.Clr();
+        	// Set values
+        	N = 0;
+            SetVec(Depth, 0, 0);
+            SetVec(Parent, 0,0);
+            SetVec(Left, 0, 0);
+            SetVec(Right, 0, 0);
+            AggregatedCount.AddDat(0,0);
+        }
         void SaveState(TSOut& SOut) const {
         	Root.Save(SOut);
         	N.Save(SOut);

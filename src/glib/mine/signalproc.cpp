@@ -1082,7 +1082,8 @@ TFlt TTDigest::Quantile(const TFlt& Q) const {
 }
 
 void TTDigest::Compress() {
-	// TODO: implement this one
+	Centroids->Reset();
+	Count = 0;
 }
 
 /// Store state into stream

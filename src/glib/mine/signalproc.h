@@ -798,15 +798,15 @@ private:
 public: 
 
         /// Constructs uninitialized object
-        TTDigest(const TFltV& Quantiles) { Compression = 100; Count = 0; Centroids = new TAvlTree(); };
+        TTDigest(const TFltV& Quantiles) { Compression = 1000; Count = 0; Centroids = new TAvlTree(); };
         /// Constructs given JSON arguments
-        TTDigest(const PJsonVal& ParamVal) { Compression = 100; Count = 0; Centroids = new TAvlTree(); };
+        TTDigest(const PJsonVal& ParamVal) { Compression = 1000; Count = 0; Centroids = new TAvlTree(); };
         /// Constructs uninitialized object with compression
         TTDigest (TFlt CompressionN): Compression(CompressionN) { Compression = CompressionN; Count = 0; Centroids = new TAvlTree();}
         /// Destructor
         ~TTDigest() { delete Centroids;}
 
-        /// Initializes the object, resets current content is present
+        /// Initializes the object, resets current content if present
         void Init();   
 
         // Number of digested inputs
@@ -867,7 +867,7 @@ public:
                 }
                 Count += W;
 
-                if(Centroids->GetSize() > 20 * Compression) {
+                if(Centroids->GetSize() > 100 * Compression) {
                     Compress();
                 }
             }
