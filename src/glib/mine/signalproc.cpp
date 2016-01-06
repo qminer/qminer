@@ -480,14 +480,14 @@ void TEmaSpVec::Update(const TIntFltKdV& Val, const uint64& NewTmMSecs) {
 			InitMSecsV.Clr();
 		}
 	}
-	//// remove dimensions bellow cutoff
-	//TIntFltKdV TmpEma;
-	//for (int i = 0; i < Ema.Len(); i++) {
-	//	if (abs(Ema[i].Dat) >= Cutoff) {
-	//		TmpEma.Add(Ema[i]);
-	//	}
-	//}
-	//Ema = TmpEma;
+	// remove dimensions bellow cutoff
+	TIntFltKdV TmpEma;
+	for (int i = 0; i < Ema.Len(); i++) {
+		if (abs(Ema[i].Dat) >= Cutoff) {
+			TmpEma.Add(Ema[i]);
+		}
+	}
+	Ema = TmpEma;
 
 	// update last value
 	LastVal = Val;
