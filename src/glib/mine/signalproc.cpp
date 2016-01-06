@@ -361,12 +361,6 @@ double TEmaSpVec::GetNi(const double& Alpha, const double& Mi) {
 	throw TExcept::New("Unknown EMA interpolation type");
 }
 
-//TODO: compute InitMinMSecs initialization time window from decay factor
-TEmaSpVec::TEmaSpVec(const double& _Decay, const TEmaType& _Type, const uint64& _InitMinMSecs,
-	const double& _TmInterval, const double& _Cutoff) : Decay(_Decay), Type(_Type), LastVal(),
-	TmInterval(_TmInterval), Cutoff(_Cutoff), InitP(false), InitMinMSecs(_InitMinMSecs) {}
-
-//TODO: compute InitMinMSecs initialization time window from decay factor
 TEmaSpVec::TEmaSpVec(const TEmaType& _Type, const uint64& _InitMinMSecs, const double& _TmInterval, const double& _Cutoff) :
 	Type(_Type), LastVal(TFlt::Mn), TmInterval(_TmInterval), Cutoff(_Cutoff), InitP(false),
 	InitMinMSecs(_InitMinMSecs) {}
@@ -389,7 +383,7 @@ TEmaSpVec::TEmaSpVec(const PJsonVal& ParamVal) : LastVal(), InitP(false) {
 	InitMinMSecs = ParamVal->GetObjInt("initWindow", 0);
 }
 
-TEmaSpVec::TEmaSpVec(TSIn& SIn) : Decay(SIn), LastVal(SIn), Ema(SIn), TmMSecs(SIn), 
+TEmaSpVec::TEmaSpVec(TSIn& SIn) : LastVal(SIn), Ema(SIn), TmMSecs(SIn), 
 	TmInterval(SIn), Cutoff(SIn), InitP(SIn),
 	InitMinMSecs(SIn), InitValV(SIn), InitMSecsV(SIn) {
 
@@ -405,7 +399,6 @@ void TEmaSpVec::Load(TSIn& SIn) {
 
 void TEmaSpVec::Save(TSOut& SOut) const {
 	// parameters
-	Decay.Save(SOut);
 	LastVal.Save(SOut);
 	Ema.Save(SOut);
 	TmMSecs.Save(SOut);
@@ -445,12 +438,7 @@ void TEmaSpVec::Update(const TIntFltKdV& Val, const uint64& NewTmMSecs) {
 	}
 	if (InitP) {
 		// compute parameters for EMA
-		double Alpha;
-		if (Decay == 0.0) {
-			Alpha = TmInterval1 / TmInterval;
-		} else {
-			Alpha = TmInterval1 / TmInterval  * (-1.0) * TMath::Log(Decay);
-		}
+		double Alpha = TmInterval1 / TmInterval;
 		const double Mi = exp(-Alpha);
 		const double Ni = GetNi(Alpha, Mi);
 		// compute new ema
@@ -471,7 +459,7 @@ void TEmaSpVec::Update(const TIntFltKdV& Val, const uint64& NewTmMSecs) {
 			// compute weights for each value in buffer
 			TFltV WeightV(Vals, 0);
 			for (int ValN = 0; ValN < Vals; ValN++) {
-				const double Alpha = (double)(TmInterval1) / Decay;
+				const double Alpha = (double)(TmInterval1);
 				WeightV.Add(exp(-Alpha));
 			}
 			// normalize weights so they sum to 1.0
@@ -492,14 +480,14 @@ void TEmaSpVec::Update(const TIntFltKdV& Val, const uint64& NewTmMSecs) {
 			InitMSecsV.Clr();
 		}
 	}
-	// remove dimensions bellow cutoff
-	TIntFltKdV TmpEma;
-	for (int i = 0; i < Ema.Len(); i++) {
-		if (abs(Ema[i].Dat) >= Cutoff) {
-			TmpEma.Add(Ema[i]);
-		}
-	}
-	Ema = TmpEma;
+	//// remove dimensions bellow cutoff
+	//TIntFltKdV TmpEma;
+	//for (int i = 0; i < Ema.Len(); i++) {
+	//	if (abs(Ema[i].Dat) >= Cutoff) {
+	//		TmpEma.Add(Ema[i]);
+	//	}
+	//}
+	//Ema = TmpEma;
 
 	// update last value
 	LastVal = Val;

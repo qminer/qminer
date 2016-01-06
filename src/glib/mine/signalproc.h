@@ -228,7 +228,6 @@ public:
 class TEmaSpVec {
 private:
 	// parameters
-	TFlt Decay; ///< decaying factor
 	TEmaType Type; ///< interpolation type
     // current state
 	TIntFltKdV LastVal; ///< last input value
@@ -244,10 +243,7 @@ private:
 
 	double GetNi(const double& Alpha, const double& Mi);
 public:
-	TEmaSpVec(const double& _Decay, const TEmaType& _Type,
-		const uint64& _InitMinMSecs, const double& _TmInterval, const double& _Cutoff);
-	TEmaSpVec(const TEmaType& _Type, const uint64& _InitMinMSecs,
-		const double& _TmInterval, const double& _Cutoff);
+	TEmaSpVec(const TEmaType& _Type, const uint64& _InitMinMSecs, const double& _TmInterval, const double& _Cutoff);
 	TEmaSpVec(const PJsonVal& ParamVal);
 	TEmaSpVec(TSIn& SIn);
 
