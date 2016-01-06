@@ -1082,25 +1082,25 @@ describe('Time Series  - EMA for sparse vectors', function () {
         };
         var sa3 = store.addStreamAggr(aggr3);
         store.push({ Time: 1000, Text: 'a' }); // 0
-        sa3.getValueVector().print();
+        //sa3.getValueVector().print();
         store.push({ Time: 2000, Text: 'b' }); // 1
-        sa3.getValueVector().print();
+        //sa3.getValueVector().print();
         store.push({ Time: 3000, Text: 'c' }); // 2
-        sa3.getValueVector().print();
+        //sa3.getValueVector().print();
         store.push({ Time: 4000, Text: 'd' }); // 3
-        sa3.getValueVector().print();
+        //sa3.getValueVector().print();
         store.push({ Time: 5000, Text: 'e' }); // 4
-        sa3.getValueVector().print();
+        //sa3.getValueVector().print();
         store.push({ Time: 6000, Text: 'f' }); // 5
-        sa3.getValueVector().print();
+        //sa3.getValueVector().print();
                     
         var valVec2 = sa2.getValueVector();
-        valVec2.print();
+        //valVec2.print();
         assert.equal(valVec2.full().minus(new qm.la.Vector([0, 0, 0, 0, 0, 1])).norm(), 0);
 
         var valVec3 = sa3.getValueVector();
-        valVec3.print();
-        console.log(valVec3.full().length);
+        //valVec3.print();
+        //console.log(valVec3.full().length);
         assert.ok(valVec3.full().minus(new qm.la.Vector([
             0.082085,
             0.05325, 
