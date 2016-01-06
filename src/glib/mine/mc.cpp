@@ -2975,10 +2975,15 @@ void TStreamStory::Init(TFltVV& ObservFtrVV, const TFltVV& ControlFtrVV, const T
 		const bool& MultiThread) {
 	TFltVV FtrVV;	CreateFtrVV(ObservFtrVV, ControlFtrVV, RecTmV, TBoolV(), FtrVV);
 
+	Callback->OnProgress(0, "Clustering ...");
 	TIntV AssignV;	InitClust(ObservFtrVV, FtrVV, AssignV);
+	Callback->OnProgress(30, "Modeling transitions ...");
 	InitMChain(FtrVV, AssignV, RecTmV, false, TBoolV());
+	Callback->OnProgress(50, "Initializing hierarchy ...");
 	InitHierarch();
+	Callback->OnProgress(70, "Initializing states ...");
 	InitStateAssist(ObservFtrVV, ControlFtrVV, MultiThread);
+	Callback->OnProgress(90, "Computing positions ...");
 	UiHelper->Init(*StateIdentifier, *Hierarch, *MChain);
 }
 

@@ -899,6 +899,7 @@ public:
     	virtual void OnStateChanged(const TIntFltPrV& StateIdHeightV) = 0;
     	virtual void OnAnomaly(const TStr& AnomalyDesc) = 0;
     	virtual void OnOutlier(const TFltV& FtrV) = 0;
+    	virtual void OnProgress(const int& Perc, const TStr& Msg) = 0;
     	virtual void OnPrediction(const uint64& RecTm, const int& CurrStateId,
     			const int& TargetStateId, const double& Prob, const TFltV& ProbV,
 				const TFltV& TmV) = 0;

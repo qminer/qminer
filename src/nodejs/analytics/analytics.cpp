@@ -1488,6 +1488,7 @@ void TNodeJsStreamStory::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "onStateChanged", _onStateChanged);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "onAnomaly", _onAnomaly);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "onOutlier", _onOutlier);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "onProgress", _onProgress);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "onPrediction", _onPrediction);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "rebuildHierarchy", _rebuildHierarchy);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "rebuildHistograms", _rebuildHistograms);
@@ -1523,6 +1524,7 @@ TNodeJsStreamStory::~TNodeJsStreamStory() {
 	StateChangedCallback.Reset();
 	AnomalyCallback.Reset();
 	OutlierCallback.Reset();
+	ProgressCallback.Reset();
 	PredictionCallback.Reset();
 	delete StreamStory;
 }
@@ -1620,48 +1622,18 @@ void TNodeJsStreamStory::TFitTask::Run() {
 	}
 }
 
-//void TNodeJsStreamStory::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-//	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-//	v8::HandleScope HandleScope(Isolate);
-//
-//	EAssertR(Args.Length() == 1, "hmc.fit expects 1 argument!");
-//
-//	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
-//	v8::Local<v8::Object> ArgObj = Args[0]->ToObject();
-//
-//	EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "observations", TNodeJsFltVV::GetClassId()), "Missing field observations or invalid class!");
-//	EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "controls", TNodeJsFltVV::GetClassId()), "Missing field controls or invalid class!");
-//	EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "times", TNodeJsFltV::GetClassId()), "Missing field times or invalid class!");
-//
-//	TNodeJsFltVV* JsObservFtrs = TNodeJsUtil::GetUnwrapFld<TNodeJsFltVV>(ArgObj, "observations");
-//	TNodeJsFltVV* JsControlFtrs = TNodeJsUtil::GetUnwrapFld<TNodeJsFltVV>(ArgObj, "controls");
-//	TNodeJsFltV* JsRecTmV = TNodeJsUtil::GetUnwrapFld<TNodeJsFltV>(ArgObj, "times");
-//
-//	TUInt64V RecTmV;	TNodeJsUtil::GetCppTmMSecsV(JsRecTmV->Vec, RecTmV);
-//
-//	if (!TNodeJsUtil::IsFldNull(ArgObj, "batchV")) {
-//		EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "batchV", TNodeJsBoolV::GetClassId()), "Invalid class of field batchV!");
-//		const TNodeJsBoolV* BatchEndJsV = TNodeJsUtil::GetUnwrapFld<TNodeJsBoolV>(ArgObj, "batchV");
-//		const TBoolV& BatchEndV = BatchEndJsV->Vec;
-//		JsStreamStory->StreamStory->InitBatches(JsObservFtrs->Mat, JsControlFtrs->Mat, RecTmV, BatchEndV, false);
-//	} else {
-//		JsStreamStory->StreamStory->Init(JsObservFtrs->Mat, JsControlFtrs->Mat, RecTmV, false);
-//	}
-//
-//	Args.GetReturnValue().Set(v8::Undefined(Isolate));
-//}
+void TNodeJsStreamStory::TProgressTask::Run(const TProgressTask& Task) {
+	if (!Task.ProgressCallback->IsEmpty()) {
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope HandleScope(Isolate);
 
-//void TNodeJsStreamStory::fitAsync(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-//	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-//	v8::HandleScope HandleScope(Isolate);
-//
-////	TNodeJsAsyncUtil::ExecuteOnWorker(new TFitAsync(Args));
-//	TFitAsync* Task = new TFitAsync(Args);
-//	Task->ExtractCallback(Args);
-//	TNodeJsAsyncUtil::ExecuteOnWorker(Task);
-//
-//	Args.GetReturnValue().Set(v8::Undefined(Isolate));
-//}
+		v8::Local<v8::Integer> JsPerc = v8::Integer::New(Isolate, Task.Perc);
+		v8::Local<v8::String> JsMsg = v8::String::NewFromUtf8(Isolate, Task.Msg.CStr());
+
+		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, *Task.ProgressCallback);
+		TNodeJsUtil::ExecuteVoid(Callback, JsPerc->ToObject(), JsMsg->ToObject());
+	}
+}
 
 void TNodeJsStreamStory::update(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -2037,6 +2009,23 @@ void TNodeJsStreamStory::onOutlier(const v8::FunctionCallbackInfo<v8::Value>& Ar
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 
+void TNodeJsStreamStory::onProgress(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+
+	if (TNodeJsUtil::IsArgNullOrUndef(Args, 0)) {
+		JsStreamStory->ProgressCallback.Reset();
+	} else {
+		EAssertR(Args.Length() > 0 && Args[0]->IsFunction(), "hmc.onProgress: First argument expected to be a function!");
+		v8::Handle<v8::Function> Callback = v8::Handle<v8::Function>::Cast(Args[0]);
+		JsStreamStory->ProgressCallback.Reset(Isolate, Callback);
+	}
+
+	Args.GetReturnValue().Set(v8::Undefined(Isolate));
+}
+
 void TNodeJsStreamStory::onPrediction(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
@@ -2362,6 +2351,10 @@ void TNodeJsStreamStory::OnOutlier(const TFltV& FtrV) {
 		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, OutlierCallback);
 		TNodeJsUtil::ExecuteVoid(Callback, TNodeJsFltV::New(FtrV));
 	}
+}
+
+void TNodeJsStreamStory::OnProgress(const int& Perc, const TStr& Msg) {
+	TNodeJsAsyncUtil::ExecuteOnMainAndWait(new TProgressTask(Perc, Msg, &ProgressCallback), true);
 }
 
 void TNodeJsStreamStory::OnPrediction(const uint64& RecTm, const int& CurrStateId, const int& TargetStateId,

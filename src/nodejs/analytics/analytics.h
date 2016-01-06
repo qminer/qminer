@@ -1564,6 +1564,7 @@ private:
 	v8::Persistent<v8::Function> StateChangedCallback;
 	v8::Persistent<v8::Function> AnomalyCallback;
 	v8::Persistent<v8::Function> OutlierCallback;
+	v8::Persistent<v8::Function> ProgressCallback;
 	v8::Persistent<v8::Function> PredictionCallback;
 
 	TNodeJsStreamStory(TMc::TStreamStory* McModel);
@@ -1587,6 +1588,19 @@ private:
 
 		v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
 		void Run();
+	};
+
+	class TProgressTask {
+	private:
+		int Perc;
+		TStr Msg;
+		v8::Persistent<v8::Function>* ProgressCallback;
+	public:
+		TProgressTask(const int& _Perc, const TStr& _Msg, v8::Persistent<v8::Function>* _ProgressCallback):
+			Perc(_Perc),
+			Msg(_Msg),
+			ProgressCallback(_ProgressCallback) {}
+		static void Run(const TProgressTask& Task);
 	};
 
 public:
@@ -1737,6 +1751,8 @@ public:
 	 */
 	JsDeclareFunction(onOutlier);
 
+	JsDeclareFunction(onProgress);
+
 	/**
 	 * Sets a callback function which is fired when a prediction is made. 4 paramters are passed
 	 * to the callback:
@@ -1852,6 +1868,7 @@ public:
 	void OnStateChanged(const TIntFltPrV& StateIdHeightV);
 	void OnAnomaly(const TStr& AnomalyDesc);
 	void OnOutlier(const TFltV& FtrV);
+	void OnProgress(const int& Perc, const TStr& Msg);
 	void OnPrediction(const uint64& RecTm, const int& CurrStateId, const int& TargetStateId,
 			const double& Prob, const TFltV& ProbV, const TFltV& TmV);
 
