@@ -482,6 +482,7 @@ void TEmaSpVec::Update(const TIntFltKdV& Val, const uint64& NewTmMSecs) {
 	}
 	// remove dimensions bellow cutoff
 	TIntFltKdV TmpEma;
+	printf("cutoff %f\n", Cutoff.Val);
 	for (int i = 0; i < Ema.Len(); i++) {
 		if (abs(Ema[i].Dat) >= Cutoff) {
 			TmpEma.Add(Ema[i]);
