@@ -364,12 +364,12 @@ double TEmaSpVec::GetNi(const double& Alpha, const double& Mi) {
 //TODO: compute InitMinMSecs initialization time window from decay factor
 TEmaSpVec::TEmaSpVec(const double& _Decay, const TEmaType& _Type, const uint64& _InitMinMSecs,
 	const double& _TmInterval, const double& _Cutoff) : Decay(_Decay), Type(_Type), LastVal(),
-	TmInterval(_TmInterval), InitP(false), InitMinMSecs(_InitMinMSecs), Cutoff(_Cutoff) {}
+	TmInterval(_TmInterval), Cutoff(_Cutoff), InitP(false), InitMinMSecs(_InitMinMSecs) {}
 
 //TODO: compute InitMinMSecs initialization time window from decay factor
 TEmaSpVec::TEmaSpVec(const TEmaType& _Type, const uint64& _InitMinMSecs, const double& _TmInterval, const double& _Cutoff) :
-	Type(_Type), LastVal(TFlt::Mn), TmInterval(_TmInterval), InitP(false),
-	InitMinMSecs(_InitMinMSecs), Cutoff(_Cutoff) {}
+	Type(_Type), LastVal(TFlt::Mn), TmInterval(_TmInterval), Cutoff(_Cutoff), InitP(false),
+	InitMinMSecs(_InitMinMSecs) {}
 
 TEmaSpVec::TEmaSpVec(const PJsonVal& ParamVal) : LastVal(), InitP(false) {
 	// type
@@ -389,13 +389,14 @@ TEmaSpVec::TEmaSpVec(const PJsonVal& ParamVal) : LastVal(), InitP(false) {
 	InitMinMSecs = ParamVal->GetObjInt("initWindow", 0);
 }
 
-TEmaSpVec::TEmaSpVec(TSIn& SIn) : Decay(SIn), LastVal(SIn), Ema(SIn), TmMSecs(SIn), InitP(SIn),
-InitMinMSecs(SIn), InitValV(SIn), InitMSecsV(SIn) {
+TEmaSpVec::TEmaSpVec(TSIn& SIn) : Decay(SIn), LastVal(SIn), Ema(SIn), TmMSecs(SIn), 
+	TmInterval(SIn), Cutoff(SIn), InitP(SIn),
+	InitMinMSecs(SIn), InitValV(SIn), InitMSecsV(SIn) {
 
 	TInt TypeI; TypeI.Load(SIn);
 	Type = static_cast<TEmaType>((int)TypeI);
-	TFlt TmIntervalFlt; TmIntervalFlt.Load(SIn); TmInterval = TmIntervalFlt;
-	TFlt CutoffFlt; CutoffFlt.Load(SIn); Cutoff = CutoffFlt;
+	//TFlt TmIntervalFlt; TmIntervalFlt.Load(SIn); TmInterval = TmIntervalFlt;
+	//TFlt CutoffFlt; CutoffFlt.Load(SIn); Cutoff = CutoffFlt;
 }
 
 void TEmaSpVec::Load(TSIn& SIn) {
@@ -408,6 +409,8 @@ void TEmaSpVec::Save(TSOut& SOut) const {
 	LastVal.Save(SOut);
 	Ema.Save(SOut);
 	TmMSecs.Save(SOut);
+	TmInterval.Save(SOut);
+	Cutoff.Save(SOut);
 	InitP.Save(SOut);
 	InitMinMSecs.Save(SOut);
 	InitValV.Save(SOut);
@@ -417,10 +420,10 @@ void TEmaSpVec::Save(TSOut& SOut) const {
 	// PROBLEM: After changing TmInterval from double to TFlt Qminer crashes hard!
 	TInt TypeI = Type; // TEmaType 
 	TypeI.Save(SOut);
-	TFlt TmIntervalFlt = TmInterval; // double
-	TmIntervalFlt.Save(SOut);
-	TFlt CutoffFlt = Cutoff; // double
-	CutoffFlt.Save(SOut);
+	//TFlt TmIntervalFlt = TmInterval; // double
+	//TmIntervalFlt.Save(SOut);
+	//TFlt CutoffFlt = Cutoff; // double
+	//CutoffFlt.Save(SOut);
 }
 
 void TEmaSpVec::Update(const TIntFltKdV& Val, const uint64& NewTmMSecs) {

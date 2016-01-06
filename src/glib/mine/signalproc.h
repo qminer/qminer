@@ -234,8 +234,8 @@ private:
 	TIntFltKdV LastVal; ///< last input value
 	TIntFltKdV Ema; ///< current computed EMA value 
 	TUInt64 TmMSecs; ///< timestamp of current EMA
-	double TmInterval; ///< time interval for definition of decay
-	double Cutoff; ///< Minimal value for dimension - if it falls below this, it is removed from Ema
+	TFlt TmInterval; ///< time interval for definition of decay
+	TFlt Cutoff; ///< Minimal value for dimension - if it falls below this, it is removed from Ema
 	// buffer for initialization
 	TBool InitP; ///< true if already initialized
 	TUInt64 InitMinMSecs; ///< time window of required values for initialization
