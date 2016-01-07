@@ -23,6 +23,20 @@ namespace {
 	typedef PDnsKMeans PClust;
 }
 
+// helper classes
+class TStreamStoryCallback {
+public:
+	virtual ~TStreamStoryCallback() {}
+
+	virtual void OnStateChanged(const TIntFltPrV& StateIdHeightV) = 0;
+	virtual void OnAnomaly(const TStr& AnomalyDesc) = 0;
+	virtual void OnOutlier(const TFltV& FtrV) = 0;
+	virtual void OnProgress(const int& Perc, const TStr& Msg) = 0;
+	virtual void OnPrediction(const uint64& RecTm, const int& CurrStateId,
+			const int& TargetStateId, const double& Prob, const TFltV& ProbV,
+			const TFltV& TmV) = 0;
+};
+
 //////////////////////////////////////////////////
 // Histogram class
 class THistogram {
@@ -250,11 +264,13 @@ public:
 	static void Partition(const TFltVV& QMat, TIntV& HierarchV, TFltV& HeightV);
 
 	// distance measures
-	static double WassersteinDist1(const TFltVV& QMat, const TStateSetV& StateSetV);
+	static double WassersteinDist1(const TFltVV& QMat, const TStateSetV& AggStateV);
+	static double RelativeEntropy(const TFltVV& QMat, const TStateSetV& AggStateV);
 
 private:
 	static void AddAggSet(const TFltVV& QMat, const int& StateN, const TStateSetV& AggStateV,
-			const TIntV& StateIdV, const int& ParentId, TIntV& HierarchV, TFltV& HeightV) {
+			const TIntV& StateIdV, const int& ParentId, const double& MinDist,
+			TIntV& HierarchV, TFltV& HeightV) {
 
 		const int NLeafs = QMat.GetCols();
 
@@ -272,9 +288,7 @@ private:
 		TempAggStateV.Add(AggState);
 
 		HierarchV[StateId] = ParentId;
-		HeightV[StateId] = WassersteinDist1(QMat, TempAggStateV);
-
-		EAssertR(HeightV[StateId] < HeightV[ParentId], "Child has higher height than it's parent, childId: " + TInt::GetStr(StateId) + ", parentId: " + TInt::GetStr(ParentId) + ", childH: " + TFlt::GetStr(HeightV[StateId]) + ", parentH: " + TFlt::GetStr(HeightV[ParentId]) + "!");
+		HeightV[StateId] = RelativeEntropy(QMat, TempAggStateV);
 	}
 
 	static void SplitAggState(const int& StateN, const TIntV& PartV, TStateSetV& AggStateV, TIntV& StateIdV, int& CurrStateId) {
@@ -559,6 +573,7 @@ private:
     int NLeafs;
 
     TStrV StateNmV;
+    TStrV StateLabelV;
 
     TIntFltPrSet TargetIdHeightSet;
     bool IsTransitionBased;
@@ -610,6 +625,7 @@ public:
 	bool IsStateNm(const int& StateId) const;
 	void SetStateNm(const int& StateId, const TStr& StateNm);
 	const TStr& GetStateNm(const int& StateId) const;
+	const TStr& GetStateLabel(const int& StateId) const;
 
 	// set/remove target states
 	bool IsTarget(const int& StateId) const;
@@ -726,7 +742,7 @@ public:
 	void Save(TSOut& SOut) const;
 
 	void Init(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const TStateIdentifier& Clust,
-			const THierarch& Hierarch, const bool& MultiThread=true);
+			const THierarch& Hierarch, TStreamStoryCallback* Callback, const bool& MultiThread=true);
 	void InitFtrBounds(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV);
 
 	const TFltPr& GetFtrBounds(const int& FtrId) const;
@@ -743,8 +759,6 @@ private:
 };
 
 class TStreamStory {
-public:
-	class TCallback;	// declaration in the helper classes section
 private:
 	TStateIdentifier* StateIdentifier;
 	TTransitionModeler* MChain;
@@ -757,7 +771,7 @@ private:
 
     bool Verbose;
 
-    TCallback* Callback;
+    TStreamStoryCallback* Callback;
 
     PNotify Notify;
 
@@ -870,7 +884,7 @@ public:
     void SetPdfBins(const int& Bins) { MChain->SetPdfBins(Bins); }
     bool IsVerbose() const { return Verbose; }
     void SetVerbose(const bool& Verbose);
-    void SetCallback(TCallback* Callback);
+    void SetCallback(TStreamStoryCallback* Callback);
 
 private:
     void CreateFtrVV(const TFltVV& ObservFtrMat, const TFltVV& ControlFtrMat,
@@ -889,21 +903,6 @@ private:
     void PredictTargets(const uint64& RecTm, const TStateFtrVV& StateFtrVV, const int& CurrStateId) const;
 
     void CheckBatches(const TUInt64V& TmV, const TBoolV& BatchEndV) const;
-
-public:
-    // helper classes
-    class TCallback {
-    public:
-    	virtual ~TCallback() {}
-
-    	virtual void OnStateChanged(const TIntFltPrV& StateIdHeightV) = 0;
-    	virtual void OnAnomaly(const TStr& AnomalyDesc) = 0;
-    	virtual void OnOutlier(const TFltV& FtrV) = 0;
-    	virtual void OnProgress(const int& Perc, const TStr& Msg) = 0;
-    	virtual void OnPrediction(const uint64& RecTm, const int& CurrStateId,
-    			const int& TargetStateId, const double& Prob, const TFltV& ProbV,
-				const TFltV& TmV) = 0;
-    };
 };
 
 }

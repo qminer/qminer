@@ -1550,7 +1550,7 @@ public:
 //!
 //!- `hmc = new analytics.HMC(params)` -- Creates a new model using `params` JSON. TODO param description.
 //!- `hmc = new analytics.HMC(fin)` -- Loads the model from input stream `fin`.
-class TNodeJsStreamStory : public node::ObjectWrap, public TMc::TStreamStory::TCallback {
+class TNodeJsStreamStory : public node::ObjectWrap, public TMc::TStreamStoryCallback {
 	friend class TNodeJsUtil;
 public:
 	static void Init(v8::Handle<v8::Object> exports);
