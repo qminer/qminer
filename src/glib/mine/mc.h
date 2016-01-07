@@ -259,7 +259,7 @@ public:
 	static void GetAggrQMat(const TFltVV& QMat, const TStateSetV& AggrStateV, TFltVV& AggrQMat);
 	static void GetSubChain(const TFltVV& QMat, const TIntV& StateIdV, TFltVV& SubQMat);
 
-	static void BiPartition(const TFltVV& QMat, TIntV& PartV);
+	static void BiPartition(const TFltVV& QMat, const TFltV& ProbV, TIntV& PartV);
 	/// recursive algorithm to partition a Markov chain
 	static void Partition(const TFltVV& QMat, TIntV& HierarchV, TFltV& HeightV);
 

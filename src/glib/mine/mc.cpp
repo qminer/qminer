@@ -983,7 +983,7 @@ void TCtMChain::GetAggrQMat(const TFltVV& QMat, const TStateSetV& AggrStateV,
 void TCtMChain::GetSubChain(const TFltVV& QMat, const TIntV& StateIdV, TFltVV& SubQMat) {
 	// TODO think about how to properly implement this method
 	const int SubMatDim = StateIdV.Len();
-	const double Eps = 1e-6;
+//	const double Eps = 1e-6;
 
 	if (SubQMat.Empty()) { SubQMat.Gen(SubMatDim, SubMatDim); }
 	EAssert(SubQMat.GetRows() == SubMatDim && SubQMat.GetCols() == SubMatDim);
@@ -1002,38 +1002,38 @@ void TCtMChain::GetSubChain(const TFltVV& QMat, const TIntV& StateIdV, TFltVV& S
 		if (RowSum != 0.0) {
 			SubQMat(RowN,RowN) = -RowSum;
 		}
-		else {	// edge case, add eps to all transitions
-			for (int ColN = 0; ColN < SubMatDim; ColN++) {
-				if (RowN != ColN) {
-					SubQMat(RowN, ColN) = Eps;
-				}
-			}
-			SubQMat(RowN,RowN) = -(SubMatDim-1)*Eps;
-		}
+//		else {	// edge case, add eps to all transitions
+//			for (int ColN = 0; ColN < SubMatDim; ColN++) {
+//				if (RowN != ColN) {
+//					SubQMat(RowN, ColN) = Eps;
+//				}
+//			}
+//			SubQMat(RowN,RowN) = -(SubMatDim-1)*Eps;
+//		}
 	}
 
-	// check if any of the states is inaccessible
-	for (int ColN = 0; ColN < SubMatDim; ColN++) {
-		double ColSum = 0;
-
-		for (int RowN = 0; RowN < SubMatDim; RowN++) {
-			if (RowN != ColN) {
-				ColSum += SubQMat(RowN, ColN);
-			}
-		}
-
-		if (ColSum == 0) {
-			for (int RowN = 0; RowN < SubMatDim; RowN++) {
-				if (RowN != ColN) {
-					SubQMat(RowN, ColN) = Eps;
-					SubQMat(RowN, RowN) -= Eps;
-				}
-			}
-		}
-	}
+//	// check if any of the states is inaccessible
+//	for (int ColN = 0; ColN < SubMatDim; ColN++) {
+//		double ColSum = 0;
+//
+//		for (int RowN = 0; RowN < SubMatDim; RowN++) {
+//			if (RowN != ColN) {
+//				ColSum += SubQMat(RowN, ColN);
+//			}
+//		}
+//
+//		if (ColSum == 0) {
+//			for (int RowN = 0; RowN < SubMatDim; RowN++) {
+//				if (RowN != ColN) {
+//					SubQMat(RowN, ColN) = Eps;
+//					SubQMat(RowN, RowN) -= Eps;
+//				}
+//			}
+//		}
+//	}
 }
 
-void TCtMChain::BiPartition(const TFltVV& QMat, TIntV& PartV) {
+void TCtMChain::BiPartition(const TFltVV& QMat, const TFltV& ProbV, TIntV& PartV) {
 	const int Dim = QMat.GetRows();
 
 	if (PartV.Empty()) { PartV.Gen(Dim); }
@@ -1041,7 +1041,7 @@ void TCtMChain::BiPartition(const TFltVV& QMat, TIntV& PartV) {
 
 	// calculate the symmetrized laplacian Qs = (Pi*Q + Q'*Pi) / 2
 	// the stationary distribution
-	TFltV ProbV;	GetStatDistV(QMat, ProbV);
+//	TFltV ProbV;	GetStatDistV(QMat, ProbV);
 
 	TFltVV QSim(Dim, Dim);
 	for (int RowN = 0; RowN < Dim; RowN++) {
@@ -1109,6 +1109,8 @@ void TCtMChain::Partition(const TFltVV& QMat, TIntV& HierarchV, TFltV& HeightV) 
 	const int TotalStates = 2*NStates - 1;
 	const int RootId = TotalStates - 1;
 
+	TFltV StatDistV;	GetStatDistV(QMat, StatDistV);
+
 	HierarchV.Gen(TotalStates);
 	HeightV.Gen(TotalStates);
 	TIntV StateIdV;
@@ -1150,11 +1152,20 @@ void TCtMChain::Partition(const TFltVV& QMat, TIntV& HierarchV, TFltV& HeightV) 
 				// get a sub chain formed from a single state
 				const int StateId = StateIdV[StateN];
 				const TAggState AggState = CurrAggStateV[StateN];
+
+				// calculate the static distribution in the aggregated state
+				TFltV ProbV(AggState.Len());
+				double AggProbSum = 0;
+				for (int i = 0; i < AggState.Len(); i++) {
+					AggProbSum += StatDistV[AggState[i]];
+				}
+				for (int i = 0; i < AggState.Len(); i++) {
+					ProbV[i] = StatDistV[AggState[i]] / AggProbSum;
+				}
+
 				// partition the state
 				TFltVV SubQMat;	GetSubChain(QMat, AggState, SubQMat);
-				TIntV BiPartV;	BiPartition(SubQMat, BiPartV);
-
-//				printf("Qs:\n%s\n", TStrUtil::GetStr(SubQMat, ",", "%.5f").CStr());
+				TIntV BiPartV;	BiPartition(SubQMat, ProbV, BiPartV);
 
 				// add the two new partitions to the current chain
 				TempCurrStateId = CurrStateId;
