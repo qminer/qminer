@@ -595,11 +595,17 @@ public:
 	TStr Type() const { return GetType(); }
 };
 
-typedef TWinAggrSpVec<TSignalProc::TSumSpVec> TWinBufSpVecSum;
 
 // Moving-Window Buffer over Sparse-vectors sum
+typedef TWinAggrSpVec<TSignalProc::TSumSpVec> TWinBufSpVecSum;
 template <>
 inline TStr TWinAggrSpVec<TSignalProc::TSumSpVec>::GetType() { return "winBufSpVecSum"; }
+
+//// Moving-Window Buffer over Sparse-vectors EMA
+//typedef TWinAggrSpVec<TSignalProc::TEmaSpVec> TWinBufSpVecEma;
+//template <>
+//inline TStr TWinAggrSpVec<TSignalProc::TEmaSpVec>::GetType() { return "winBufSpVecEma"; }
+
 
 ///////////////////////////////
 // Exponential Moving Average.
@@ -639,6 +645,47 @@ public:
 	TStr Type() const { return GetType(); }
 };
 
+///////////////////////////////
+// Exponential Moving Average.
+class TEmaSpVec : public TStreamAggr, public TStreamAggrOut::ISparseVecTm {
+private:
+	// input
+	TWPt<TStreamAggr> InAggr;
+	TWPt<TStreamAggrOut::ISparseVecTm> InAggrVal;
+	// indicator
+	TSignalProc::TEmaSpVec Ema;
+
+protected:
+	void OnAddRec(const TRec& Rec);
+
+	TEmaSpVec(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+public:
+	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+
+	/// Load stream aggregate state from stream
+	void LoadState(TSIn& SIn);
+	/// Save state of stream aggregate to stream
+	void SaveState(TSOut& SOut) const;
+
+	// did we finish initialization
+	bool IsInit() const { return Ema.IsInit(); }
+	/// Resets the aggregate
+	void Reset() { Ema.Reset(); }
+	// current values
+	//double GetFlt() const { return Ema.GetValue(); }
+	int GetVals() const { return Ema.GetValue().Len(); }
+	void GetVal(const TInt& ElN, TIntFltKd& Val) const { Val = Ema.GetValue()[ElN]; }
+	virtual void GetValV(TVec<TIntFltKd>& ValV) const { ValV.Clr(); ValV.AddV(Ema.GetValue()); }
+
+	uint64 GetTmMSecs() const { return Ema.GetTmMSecs(); }
+	void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggr->GetAggrNm()); }
+	// serialization to JSon
+	PJsonVal SaveJson(const int& Limit) const;
+
+	// stream aggregator type name 
+	static TStr GetType() { return "emaSpVec"; }
+	TStr Type() const { return GetType(); }
+};
 ///////////////////////////////
 // Moving Covariance.
 class TCov : public TStreamAggr, public TStreamAggrOut::IFltTm {

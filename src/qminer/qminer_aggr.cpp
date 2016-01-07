@@ -586,6 +586,46 @@ PJsonVal TEma::SaveJson(const int& Limit) const {
 }
 
 ///////////////////////////////
+// Exponential Moving Average for sparse vectors
+void TEmaSpVec::OnAddRec(const TRec& Rec) {
+	if (InAggr->IsInit()) {
+		TIntFltKdV Vals;
+		InAggrVal->GetValV(Vals);
+		Ema.Update(Vals, InAggrVal->GetTmMSecs());
+	}
+}
+
+TEmaSpVec::TEmaSpVec(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal), Ema(ParamVal) {
+	// parse out input aggregate
+	TStr InStoreNm = ParamVal->GetObjStr("store", "");
+	TStr InAggrNm = ParamVal->GetObjStr("inAggr");
+	PStreamAggr _InAggr = Base->GetStreamAggr(InStoreNm, InAggrNm);
+	InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
+	QmAssertR(!InAggr.Empty(), "TEmaSpVec::TEmaSpVec : Stream aggregate does not exist: " + InAggrNm);
+	InAggrVal = dynamic_cast<TStreamAggrOut::ISparseVecTm*>(_InAggr());
+	QmAssertR(!InAggrVal.Empty(), "TEmaSpVec::TEmaSpVec Stream aggregate does not implement ISparseVecTm interface: " + InAggrNm);
+}
+
+PStreamAggr TEmaSpVec::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+	return new TEmaSpVec(Base, ParamVal);
+}
+
+void TEmaSpVec::LoadState(TSIn& SIn) {
+	Ema.Load(SIn);
+}
+
+void TEmaSpVec::SaveState(TSOut& SOut) const {
+	Ema.Save(SOut);
+}
+
+PJsonVal TEmaSpVec::SaveJson(const int& Limit) const {
+	PJsonVal Val = TJsonVal::NewObj();
+	Val->AddToObj("Val", Ema.GetJson());
+	Val->AddToObj("Time", TTm::GetTmFromMSecs(Ema.GetTmMSecs()).GetWebLogDateTimeStr(true, "T"));
+	return Val;
+}
+
+///////////////////////////////
 // Moving Covariance
 void TCov::OnAddRec(const TRec& Rec) {
     TFltV ValVX; InAggrValX->GetOutValV(ValVX);
