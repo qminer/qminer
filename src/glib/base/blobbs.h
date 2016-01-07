@@ -14,7 +14,7 @@ ClassTVQ(TBlobPt, TBlobPtV, TBlobPtQ)//{
 public:
   static const int MnBlobBfL;
   static const int Flags;
-  uint Seg;
+  uchar Seg;
   uint Addr;
   TB8Set FSet1, FSet2, FSet3;
 public:
@@ -23,10 +23,10 @@ public:
   TBlobPt(const TBlobPt& Pt):
     Seg(Pt.Seg), Addr(Pt.Addr),
     FSet1(Pt.FSet1), FSet2(Pt.FSet2), FSet3(Pt.FSet3){}
-  TBlobPt(const uint& _Seg, const uint& _Addr,
+  TBlobPt(const uchar& _Seg, const uint& _Addr,
    const TB8Set& _FSet1, const TB8Set& _FSet2, const TB8Set& _FSet3):
     Seg(_Seg), Addr(_Addr), FSet1(_FSet1), FSet2(_FSet2), FSet3(_FSet3){}
-  TBlobPt(const uint& _Seg, const uint& _Addr):
+  TBlobPt(const uchar& _Seg, const uint& _Addr):
     Seg(_Seg), Addr(_Addr), FSet1(), FSet2(), FSet3(){}
   TBlobPt(const uint& _Addr):
     Seg(0), Addr(_Addr), FSet1(), FSet2(), FSet3(){}
@@ -56,8 +56,8 @@ public:
 
   bool Empty() const {return Addr==TUInt::Mx;}
   void Clr(){Seg=0; Addr=TUInt::Mx;}
-  void PutSeg(const uint& _Seg){Seg=_Seg;}
-  uint GetSeg() const {return Seg;}
+  void PutSeg(const uchar& _Seg){Seg=_Seg;}
+  uchar GetSeg() const {return Seg;}
   void PutAddr(const uint& _Addr){Addr=_Addr;}
   uint GetAddr() const {return Addr;}
   void PutFlag(const int& FlagN, const bool& Val);
@@ -68,15 +68,15 @@ public:
   TB8Set GetFSet(const int& FSetN);
 
   static TBlobPt Load(const PFRnd& FRnd){
-	uint Seg=FRnd->GetUInt(); uint Addr=FRnd->GetUInt();
+	uchar Seg=FRnd->GetUCh(); uint Addr=FRnd->GetUInt();
     TB8Set B8Set1(FRnd->GetUCh()); TB8Set B8Set2(FRnd->GetUCh());
     TB8Set B8Set3(FRnd->GetUCh());
     return TBlobPt(Seg, Addr, B8Set1, B8Set2, B8Set3);}
   void Save(const PFRnd& FRnd) const {
-    FRnd->PutUInt(Seg); FRnd->PutUInt(Addr);
+    FRnd->PutUCh(Seg); FRnd->PutUInt(Addr);
     FRnd->PutUCh(FSet1.GetUCh()); FRnd->PutUCh(FSet2.GetUCh());
     FRnd->PutUCh(FSet3.GetUCh());}
-  static TBlobPt LoadAddr(const PFRnd& FRnd, const uint& Seg=0){
+  static TBlobPt LoadAddr(const PFRnd& FRnd, const uchar& Seg=0){
     return TBlobPt(Seg, FRnd->GetUInt());}
   void SaveAddr(const PFRnd& FRnd) const {
     FRnd->PutUInt(Addr);}

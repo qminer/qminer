@@ -68,7 +68,6 @@ TStr TBlobPt::GetStr() const {
 // Blob-Base
 const int TBlobBs::MnBlobBfL=16;
 const int TBlobBs::MxBlobFLen=1000000000;
-//const int TBlobBs::MxBlobFLen = 1000000;
 
 void TBlobBs::PutVersionStr(const PFRnd& FBlobBs){
   FBlobBs->PutStr(GetVersionStr());
@@ -557,7 +556,7 @@ TBlobPt TMBlobBs::PutBlob(const PSIn& SIn){
   EAssert((Access==faCreate)||(Access==faUpdate)||(Access==faRestore));
   TBlobPt BlobPt=SegV[CurSegN]->PutBlob(SIn);
   if (BlobPt.Empty()){
-    for (uint SegN=0; SegN<SegV.Len(); SegN++){
+    for (uchar SegN=0; SegN<SegV.Len(); SegN++){
       BlobPt=SegV[CurSegN=SegN]->PutBlob(SIn);
       if (!BlobPt.Empty()){break;}
     }
@@ -565,12 +564,12 @@ TBlobPt TMBlobBs::PutBlob(const PSIn& SIn){
       TStr SegFNm=GetSegFNm(NrFPath, NrFMid, SegV.Len());
       PBlobBs Seg=TGBlobBs::New(SegFNm, faCreate, MxSegLen);
       CurSegN=SegV.Add(Seg); 
-	  //EAssert(CurSegN <= 255);
+	  EAssert(CurSegN <= 255);
       BlobPt=SegV[CurSegN]->PutBlob(SIn);
     }
   }
   if (!BlobPt.Empty()){
-    BlobPt.PutSeg(uint(CurSegN));}
+    BlobPt.PutSeg(uchar(CurSegN));}
   return BlobPt;
 }
 
@@ -605,7 +604,7 @@ TBlobPt TMBlobBs::FFirstBlobPt(){
 }
 
 bool TMBlobBs::FNextBlobPt(TBlobPt& TrvBlobPt, TBlobPt& BlobPt, PSIn& BlobSIn){
-  uint SegN=TrvBlobPt.GetSeg();
+  uchar SegN=TrvBlobPt.GetSeg();
   if (SegV[SegN]->FNextBlobPt(TrvBlobPt, BlobPt, BlobSIn)){
     TrvBlobPt.PutSeg(SegN);
     BlobPt.PutSeg(SegN);
