@@ -760,6 +760,11 @@ public:
 	/// Set field value using field id (default implementation throws exception)
 	virtual void SetFieldJsonVal(const uint64& RecId, const int& FieldId, const PJsonVal& Json);
 
+    /// Set field value using field id (default implementation throws exception)
+    virtual void SetFieldUInt64Safe(const uint64& RecId, const int& FieldId, const uint64& UInt64);
+    /// Set field value using field id (default implementation throws exception)
+    virtual void SetFieldInt64Safe(const uint64& RecId, const int& FieldId, const int64& Int64);
+
 	/// Set the value of given field to NULL
 	void SetFieldNmNull(const uint64& RecId, const TStr& FieldNm);
 	/// Set field value using field name (default implementation throws exception)
@@ -944,6 +949,17 @@ public:
 	void GetFieldTMem(const int& FieldId, TMem& Mem) const;
 	/// Field value retrieval
 	PJsonVal GetFieldJsonVal(const int& FieldId) const;
+
+    /// Field value retrieval - SAFE
+    uint16 GetFieldUInt16Safe(const int& FieldId) const;
+    /// Field value retrieval - SAFE
+    int16 GetFieldInt16Safe(const int& FieldId) const;
+    /// Field value retrieval - SAFE
+    uint GetFieldUIntSafe(const int& FieldId) const;
+    /// Field value retrieval - SAFE
+    int GetFieldIntSafe(const int& FieldId) const;
+    /// Field value retrieval - SAFE
+    uint64 GetFieldUInt64Safe(const int& FieldId) const;
 
 	/// Get field value as JSon object using field id
 	PJsonVal GetFieldJson(const int& FieldId) const;

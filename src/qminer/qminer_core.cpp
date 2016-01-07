@@ -445,88 +445,90 @@ void TStore::IntVToStrV(const TIntV& IntV, TStrV& StrV) const {
 }
 
 void TStore::AddJoinRec(const uint64& RecId, const PJsonVal& RecVal) {
-	// check join records for each join
-	for (int JoinN = 0; JoinN < GetJoins(); JoinN++) {
-		// get join parameters
-		const TJoinDesc& JoinDesc = GetJoinDesc(JoinN);
-		// check if we have the join in JSon
-		if (RecVal->IsObjKey(JoinDesc.GetJoinNm())) {
-			// get join store
-			TWPt<TStore> JoinStore = Base->GetStoreByStoreId(JoinDesc.GetJoinStoreId());
-			// different handling for field and index joins
-			if (JoinDesc.IsFieldJoin()) {
-				// get join record JSon object
-				PJsonVal JoinRecVal = RecVal->GetObjKey(JoinDesc.GetJoinNm());
+    // check join records for each join
+    for (int JoinN = 0; JoinN < GetJoins(); JoinN++) {
+        // get join parameters
+        const TJoinDesc& JoinDesc = GetJoinDesc(JoinN);
+        // check if we have the join in JSon
+        if (RecVal->IsObjKey(JoinDesc.GetJoinNm())) {
+            // get join store
+            TWPt<TStore> JoinStore = Base->GetStoreByStoreId(JoinDesc.GetJoinStoreId());
+            // different handling for field and index joins
+            if (JoinDesc.IsFieldJoin()) {
+                // get join record JSon object
+                PJsonVal JoinRecVal = RecVal->GetObjKey(JoinDesc.GetJoinNm());
                 // make sure it's an object and not array
                 if (!JoinRecVal->IsObj()) {
-					ErrorLog("[TStoreImpl::AddJoinRec] Expected object for join " + JoinDesc.GetJoinNm());
+                    ErrorLog("[TStoreImpl::AddJoinRec] Expected object for join " + JoinDesc.GetJoinNm());
                     if (JoinRecVal->IsArr()) { ErrorLog("[TStoreImpl::AddJoinRec] Got array instead"); }
-					continue;
-				}
+                    continue;
+                }
                 // first make an empty join
+                SetFieldUInt64Safe(RecId, JoinDesc.GetJoinRecFieldId(), TUInt64::Mx);
+                if (JoinDesc.GetJoinFqFieldId() >= 0) {
+                    SetFieldInt64Safe(RecId, JoinDesc.GetJoinFqFieldId(), 0);
+                }
+                // insert join record
+                const uint64 JoinRecId = JoinStore->AddRec(JoinRecVal);
+                // get join weight (useful only for inverse index joins)
+                int JoinFq = JoinRecVal->GetObjInt("$fq", 1);
+                // make sure weight is from valid range
+                if (JoinFq < 1) {
+                    ErrorLog("[TStoreImpl::AddJoinRec] Join frequency must be positive");
+                    JoinFq = 1;
+                }
+                // mark the join
+                AddJoin(JoinDesc.GetJoinId(), RecId, JoinRecId, JoinFq);
+            } else if (JoinDesc.IsIndexJoin()) {
+                // index joins must be in an array
+                PJsonVal JoinArrVal = RecVal->GetObjKey(JoinDesc.GetJoinNm());
+                if (!JoinArrVal->IsArr()) {
+                    ErrorLog("[TStoreImpl::AddJoinRec] Expected array for join " + JoinDesc.GetJoinNm());
+                    continue;
+                }
+                // add join records and remember their record ids and weights
+                TUInt64IntKdV JoinRecIdFqVH(JoinArrVal->GetArrVals(), 0);
+                for (int JoinRecN = 0; JoinRecN < JoinArrVal->GetArrVals(); JoinRecN++) {
+                    // get join record JSon
+                    PJsonVal JoinRecVal = JoinArrVal->GetArrVal(JoinRecN);
+                    // insert join record
+                    uint64 JoinRecId = JoinStore->AddRec(JoinRecVal);
+                    // get join weight, default is 1
+                    int JoinFq = JoinRecVal->GetObjInt("$fq", 1);
+                    // make sure weight is from valid range
+                    if (JoinFq < 1) {
+                        ErrorLog("[TStoreImpl::AddJoinRec] Join frequency must be positive");
+                        JoinFq = 1;
+                    }
+                    // index the join
+                    AddJoin(JoinDesc.GetJoinId(), RecId, JoinRecId, JoinFq);
+                }
+            }
+        } else {
+            // we don't have join specified, set field joins to point to nothing (TUInt64::Mx)
+            if (JoinDesc.IsFieldJoin()) {
                 SetFieldUInt64(RecId, JoinDesc.GetJoinRecFieldId(), TUInt64::Mx);
                 SetFieldInt(RecId, JoinDesc.GetJoinFqFieldId(), 0);
-				// insert join record
-				const uint64 JoinRecId = JoinStore->AddRec(JoinRecVal);
-				// get join weight (useful only for inverse index joins)
-				int JoinFq = JoinRecVal->GetObjInt("$fq", 1);
-				// make sure weight is from valid range
-				if (JoinFq < 1) {
-					ErrorLog("[TStoreImpl::AddJoinRec] Join frequency must be positive");
-					JoinFq = 1;
-				}
-				// mark the join
-				AddJoin(JoinDesc.GetJoinId(), RecId, JoinRecId, JoinFq);
-			} else if (JoinDesc.IsIndexJoin()) {
-				// index joins must be in an array
-				PJsonVal JoinArrVal = RecVal->GetObjKey(JoinDesc.GetJoinNm());
-				if (!JoinArrVal->IsArr()) {
-					ErrorLog("[TStoreImpl::AddJoinRec] Expected array for join " + JoinDesc.GetJoinNm());
-					continue;
-				}
-				// add join records and remember their record ids and weights
-				TUInt64IntKdV JoinRecIdFqVH(JoinArrVal->GetArrVals(), 0);
-				for (int JoinRecN = 0; JoinRecN < JoinArrVal->GetArrVals(); JoinRecN++) {
-					// get join record JSon
-					PJsonVal JoinRecVal = JoinArrVal->GetArrVal(JoinRecN);
-					// insert join record
-					uint64 JoinRecId = JoinStore->AddRec(JoinRecVal);
-					// get join weight, default is 1
-					int JoinFq = JoinRecVal->GetObjInt("$fq", 1);
-					// make sure weight is from valid range
-					if (JoinFq < 1) {
-						ErrorLog("[TStoreImpl::AddJoinRec] Join frequency must be positive");
-						JoinFq = 1;
-					}
-					// index the join
-					AddJoin(JoinDesc.GetJoinId(), RecId, JoinRecId, JoinFq);
-				}
-			}
-		} else {
-			// we don't have join specified, set field joins to point to nothing (TUInt64::Mx)
-			if (JoinDesc.IsFieldJoin()) {
-				SetFieldUInt64(RecId, JoinDesc.GetJoinRecFieldId(), TUInt64::Mx);
-				SetFieldInt(RecId, JoinDesc.GetJoinFqFieldId(), 0);
-			}
-		}
-	}
+            }
+        }
+    }
 }
 
 int TStore::AddJoinDesc(const TJoinDesc& JoinDesc) {
-	// Join and Field names must be unique
-	QmAssertR(!IsJoinNm((JoinDesc.GetJoinNm())), "[AddJoinDesc] Name already taken: " + JoinDesc.GetJoinNm());
-	QmAssertR(!IsFieldNm((JoinDesc.GetJoinNm())), "[AddJoinDesc] Name already taken: " + JoinDesc.GetJoinNm());
-	// remember new field
-	const int JoinId = JoinDescV.Add(JoinDesc);
-	// set field ID mappings
-	JoinDescV[JoinId].PutJoinId(JoinId);
-	JoinNmToIdH.AddDat(JoinDesc.GetJoinNm()) = JoinId;
-	// remember name-> key id mapping
-	if (JoinDesc.IsIndexJoin()) {
-		JoinNmToKeyIdH.AddDat(JoinDesc.GetJoinNm(), JoinDesc.GetJoinKeyId());
-	}
-	// return the ID of the new field
-	return JoinId;
+    // Join and Field names must be unique
+    QmAssertR(!IsJoinNm((JoinDesc.GetJoinNm())), "[AddJoinDesc] Name already taken: " + JoinDesc.GetJoinNm());
+    QmAssertR(!IsFieldNm((JoinDesc.GetJoinNm())), "[AddJoinDesc] Name already taken: " + JoinDesc.GetJoinNm());
+    // remember new field
+    const int JoinId = JoinDescV.Add(JoinDesc);
+    // set field ID mappings
+    JoinDescV[JoinId].PutJoinId(JoinId);
+    JoinNmToIdH.AddDat(JoinDesc.GetJoinNm()) = JoinId;
+    // remember name-> key id mapping
+    if (JoinDesc.IsIndexJoin()) {
+        JoinNmToKeyIdH.AddDat(JoinDesc.GetJoinNm(), JoinDesc.GetJoinKeyId());
+    }
+    // return the ID of the new field
+    return JoinId;
 }
 
 void TStore::PutInverseJoinId(const int& JoinId, const int& InverseJoinId) {
@@ -582,43 +584,43 @@ PRecSet TStore::GetRndRecs(const uint64& SampleSize) {
 }
 
 void TStore::AddJoin(const int& JoinId, const uint64& RecId, const uint64 JoinRecId, const int& JoinFq) {
-	const TJoinDesc& JoinDesc = GetJoinDesc(JoinId);
-	// different handling for field and index joins
-	if (JoinDesc.IsIndexJoin()) {
-		Index->IndexJoin(this, JoinId, RecId, JoinRecId, JoinFq);
-	} else if (JoinDesc.IsFieldJoin()) {
-		const uint64 ExistingJoinRecId = GetFieldUInt64(RecId, JoinDesc.GetJoinRecFieldId());
-		// if we have an existing join and the target record is different
-		// then we first have to remove the existing join
-		if (ExistingJoinRecId != TUInt64::Mx && ExistingJoinRecId != JoinRecId) {
-			const int Fq = GetFieldInt(RecId, JoinDesc.GetJoinFqFieldId());
-			DelJoin(JoinDesc.GetJoinId(), RecId, ExistingJoinRecId, Fq);
-		}
-		SetFieldUInt64(RecId, JoinDesc.GetJoinRecFieldId(), JoinRecId);
-		SetFieldInt(RecId, JoinDesc.GetJoinFqFieldId(), JoinFq);
-	}
-	// check if inverse join is defined
-	if (JoinDesc.IsInverseJoinId()) {
-		// get inverse join parameters
-		TWPt<TStore> JoinStore = JoinDesc.GetJoinStore(Base);
-		const int InverseJoinId = JoinDesc.GetInverseJoinId();
-		const TJoinDesc& InverseJoinDesc = JoinStore->GetJoinDesc(InverseJoinId);
-		// different handling for field and index joins
-		if (InverseJoinDesc.IsIndexJoin()) {
-			Index->IndexJoin(JoinStore, InverseJoinId, JoinRecId, RecId, JoinFq);
-		} else if (InverseJoinDesc.IsFieldJoin()) {
-			// does the JoinRecId already have a join? If yes, we need to remove it first
-			// start by finding to which item does JoinRecId currently point to
-			const uint64 ExistingJoinRecId = JoinStore->GetFieldUInt64(JoinRecId, InverseJoinDesc.GetJoinRecFieldId());
-			// if ExistingJoinRecId is a valid record and is different than RecId
-			// then we have to delete the join first, before setting new values
-			if (ExistingJoinRecId != TUInt64::Mx && ExistingJoinRecId != RecId) {
-				const int Fq = JoinStore->GetFieldInt(JoinRecId, InverseJoinDesc.GetJoinFqFieldId());				JoinStore->DelJoin(InverseJoinDesc.GetJoinId(), JoinRecId, ExistingJoinRecId, Fq);
-			}
-			JoinStore->SetFieldUInt64(JoinRecId, InverseJoinDesc.GetJoinRecFieldId(), RecId);
-			JoinStore->SetFieldInt(JoinRecId, InverseJoinDesc.GetJoinFqFieldId(), JoinFq);
-		}
-	}
+    const TJoinDesc& JoinDesc = GetJoinDesc(JoinId);
+    // different handling for field and index joins
+    if (JoinDesc.IsIndexJoin()) {
+        Index->IndexJoin(this, JoinId, RecId, JoinRecId, JoinFq);
+    } else if (JoinDesc.IsFieldJoin()) {
+        const uint64 ExistingJoinRecId = GetFieldUInt64(RecId, JoinDesc.GetJoinRecFieldId());
+        // if we have an existing join and the target record is different
+        // then we first have to remove the existing join
+        if (ExistingJoinRecId != TUInt64::Mx && ExistingJoinRecId != JoinRecId) {
+            const int Fq = GetFieldInt(RecId, JoinDesc.GetJoinFqFieldId());
+            DelJoin(JoinDesc.GetJoinId(), RecId, ExistingJoinRecId, Fq);
+        }
+        SetFieldUInt64Safe(RecId, JoinDesc.GetJoinRecFieldId(), JoinRecId);
+        SetFieldInt64Safe(RecId, JoinDesc.GetJoinFqFieldId(), JoinFq);
+    }
+    // check if inverse join is defined
+    if (JoinDesc.IsInverseJoinId()) {
+        // get inverse join parameters
+        TWPt<TStore> JoinStore = JoinDesc.GetJoinStore(Base);
+        const int InverseJoinId = JoinDesc.GetInverseJoinId();
+        const TJoinDesc& InverseJoinDesc = JoinStore->GetJoinDesc(InverseJoinId);
+        // different handling for field and index joins
+        if (InverseJoinDesc.IsIndexJoin()) {
+            Index->IndexJoin(JoinStore, InverseJoinId, JoinRecId, RecId, JoinFq);
+        } else if (InverseJoinDesc.IsFieldJoin()) {
+            // does the JoinRecId already have a join? If yes, we need to remove it first
+            // start by finding to which item does JoinRecId currently point to
+            const uint64 ExistingJoinRecId = JoinStore->GetFieldUInt64(JoinRecId, InverseJoinDesc.GetJoinRecFieldId());
+            // if ExistingJoinRecId is a valid record and is different than RecId
+            // then we have to delete the join first, before setting new values
+            if (ExistingJoinRecId != TUInt64::Mx && ExistingJoinRecId != RecId) {
+                const int Fq = JoinStore->GetFieldInt(JoinRecId, InverseJoinDesc.GetJoinFqFieldId());				JoinStore->DelJoin(InverseJoinDesc.GetJoinId(), JoinRecId, ExistingJoinRecId, Fq);
+            }
+            JoinStore->SetFieldUInt64(JoinRecId, InverseJoinDesc.GetJoinRecFieldId(), RecId);
+            JoinStore->SetFieldInt(JoinRecId, InverseJoinDesc.GetJoinFqFieldId(), JoinFq);
+        }
+    }
 }
 
 void TStore::AddJoin(const TStr& JoinNm, const uint64& RecId, const uint64 JoinRecId, const int& JoinFq) {
@@ -844,6 +846,16 @@ void TStore::SetFieldUInt16(const uint64& RecId, const int& FieldId, const uint1
 void TStore::SetFieldUInt64(const uint64& RecId, const int& FieldId, const uint64& UInt64) {
 	throw FieldError(FieldId, "UInt64");
 }
+
+/// Set field value using field id (default implementation throws exception)
+void TStore::SetFieldUInt64Safe(const uint64& RecId, const int& FieldId, const uint64& UInt64) {
+    throw FieldError(FieldId, "UInt64");
+}
+/// Set field value using field id (default implementation throws exception)
+void TStore::SetFieldInt64Safe(const uint64& RecId, const int& FieldId, const int64& Int64) {
+    throw FieldError(FieldId, "Int64");
+}
+
 
 void TStore::SetFieldStr(const uint64& RecId, const int& FieldId, const TStr& Str) {
 	throw FieldError(FieldId, "Str");
@@ -1632,6 +1644,54 @@ uint64 TRec::GetFieldUInt64(const int& FieldId) const {
 	throw FieldError(FieldId, "UInt64");
 }
 
+uint64 TRec::GetFieldUInt64Safe(const int& FieldId) const {
+    switch (Store->GetFieldDesc(FieldId).GetFieldType()) {
+    case TFieldType::oftByte: return (uint64)GetFieldByte(FieldId); break;
+    case TFieldType::oftUInt16: return (uint64)GetFieldUInt16(FieldId); break;
+    case TFieldType::oftInt16: return (uint64)GetFieldInt16(FieldId); break;
+    case TFieldType::oftInt: return (uint64)GetFieldInt(FieldId); break;
+    case TFieldType::oftUInt: return (uint64)GetFieldUInt(FieldId); break;
+    case TFieldType::oftUInt64: return (uint64)GetFieldUInt64(FieldId); break;
+    default: QmAssertR(false, TStr("Field cannot be safely retrieved as uint64:") + FieldId);
+    }
+}
+
+uint TRec::GetFieldUIntSafe(const int& FieldId) const {
+    switch (Store->GetFieldDesc(FieldId).GetFieldType()) {
+    case TFieldType::oftByte: return (uint)GetFieldByte(FieldId); break;
+    case TFieldType::oftUInt16: return (uint)GetFieldUInt16(FieldId); break;
+    case TFieldType::oftInt16: return (uint)GetFieldInt16(FieldId); break;
+    case TFieldType::oftUInt: return (uint)GetFieldUInt(FieldId); break;
+    default: QmAssertR(false, TStr("Field cannot be safely retrieved as uint:") + FieldId);
+    }
+}
+
+uint16 TRec::GetFieldUInt16Safe(const int& FieldId) const {
+    switch (Store->GetFieldDesc(FieldId).GetFieldType()) {
+    case TFieldType::oftByte: return (uint16)GetFieldByte(FieldId); break;
+    case TFieldType::oftUInt16: return (uint16)GetFieldUInt16(FieldId); break;
+    default: QmAssertR(false, TStr("Field cannot be safely retrieved as uint16:") + FieldId);
+    }
+}
+
+int TRec::GetFieldIntSafe(const int& FieldId) const {
+    switch (Store->GetFieldDesc(FieldId).GetFieldType()) {
+    case TFieldType::oftByte: return (int)GetFieldByte(FieldId); break;
+    case TFieldType::oftUInt16: return (int)GetFieldUInt16(FieldId); break;
+    case TFieldType::oftInt16: return (int)GetFieldInt16(FieldId); break;
+    case TFieldType::oftInt: return (int)GetFieldInt(FieldId); break;
+    default: QmAssertR(false, TStr("Field cannot be safely retrieved as int:") + FieldId);
+    }
+}
+
+int16 TRec::GetFieldInt16Safe(const int& FieldId) const {
+    switch (Store->GetFieldDesc(FieldId).GetFieldType()) {
+    case TFieldType::oftByte: return (int16)GetFieldByte(FieldId); break;
+    case TFieldType::oftInt16: return (int16)GetFieldInt16(FieldId); break;
+    default: QmAssertR(false, TStr("Field cannot be safely retrieved as int16:") + FieldId);
+    }
+}
+
 TStr TRec::GetFieldStr(const int& FieldId) const {
 	if (IsByRef()) {
 		return Store->GetFieldStr(RecId, FieldId);
@@ -2093,48 +2153,48 @@ PRecSet TRec::ToRecSet() const {
 }
 
 PRecSet TRec::DoJoin(const TWPt<TBase>& Base, const int& JoinId) const {
-	// get join info
-	AssertR(Store->IsJoinId(JoinId), "Wrong Join ID");
-	const TJoinDesc& JoinDesc = Store->GetJoinDesc(JoinId);
-	// check if index join
-	if (JoinDesc.IsIndexJoin()) {
-		TUInt64IntKdV JoinRecIdFqV;
-		if (IsByRef()) {
-			// by reference
-			Assert(Store->IsRecId(GetRecId()));
-			// do join using index
-			const int JoinKeyId = JoinDesc.GetJoinKeyId();
-			// prepare join query
-			TIntUInt64PrV JoinQueryV = TIntUInt64PrV::GetV(TIntUInt64Pr(JoinKeyId, GetRecId()));
-			// execute join query
-			Base->GetIndex()->SearchOr(JoinQueryV, JoinRecIdFqV);
-		} else {
-			// do join using serialized record set
-			if (JoinIdPosH.IsKey(JoinId)) {
-				const int Pos = JoinIdPosH.GetKey(JoinId);
-				TMIn MIn(RecVal.GetBf() + Pos, RecVal.Len() - Pos, false);
-				JoinRecIdFqV.Load(MIn);
-			}
-		}
-		return TRecSet::New(JoinDesc.GetJoinStore(Base), JoinRecIdFqV);
-	} else if (JoinDesc.IsFieldJoin()) {
-		// do join using store field
-		const int JoinRecFieldId = JoinDesc.GetJoinRecFieldId();
-		const uint64 JoinRecId = IsFieldNull(JoinRecFieldId) ? TUInt64::Mx : GetFieldUInt64(JoinRecFieldId);
-		// get join weight
-		const int JoinFqFieldId = JoinDesc.GetJoinFqFieldId();
-		const int JoinRecFq = IsFieldNull(JoinRecFieldId) ? 0 : GetFieldInt(JoinFqFieldId);
-		// return record set
-		if (JoinRecId != TUInt64::Mx) {
-			// return record
-			return TRecSet::New(JoinDesc.GetJoinStore(Base), JoinRecId, JoinRecFq);
-		} else {
-			// no record, return empty set
-			return TRecSet::New(JoinDesc.GetJoinStore(Base));
-		}
-	}
-	// unknown join type
-	throw TQmExcept::New("Unsupported join type for join " + JoinDesc.GetJoinNm() + "!");
+    // get join info
+    AssertR(Store->IsJoinId(JoinId), "Wrong Join ID");
+    const TJoinDesc& JoinDesc = Store->GetJoinDesc(JoinId);
+    // check if index join
+    if (JoinDesc.IsIndexJoin()) {
+        TUInt64IntKdV JoinRecIdFqV;
+        if (IsByRef()) {
+            // by reference
+            Assert(Store->IsRecId(GetRecId()));
+            // do join using index
+            const int JoinKeyId = JoinDesc.GetJoinKeyId();
+            // prepare join query
+            TIntUInt64PrV JoinQueryV = TIntUInt64PrV::GetV(TIntUInt64Pr(JoinKeyId, GetRecId()));
+            // execute join query
+            Base->GetIndex()->SearchOr(JoinQueryV, JoinRecIdFqV);
+        } else {
+            // do join using serialized record set
+            if (JoinIdPosH.IsKey(JoinId)) {
+                const int Pos = JoinIdPosH.GetKey(JoinId);
+                TMIn MIn(RecVal.GetBf() + Pos, RecVal.Len() - Pos, false);
+                JoinRecIdFqV.Load(MIn);
+            }
+        }
+        return TRecSet::New(JoinDesc.GetJoinStore(Base), JoinRecIdFqV);
+    } else if (JoinDesc.IsFieldJoin()) {
+        // do join using store field
+        const int JoinRecFieldId = JoinDesc.GetJoinRecFieldId();
+        const uint64 JoinRecId = IsFieldNull(JoinRecFieldId) ? TUInt64::Mx : GetFieldUInt64Safe(JoinRecFieldId);
+        // get join weight
+        const int JoinFqFieldId = JoinDesc.GetJoinFqFieldId();
+        const int JoinRecFq = IsFieldNull(JoinRecFieldId) ? 0 : GetFieldIntSafe(JoinFqFieldId);
+        // return record set
+        if (JoinRecId != TUInt64::Mx) {
+            // return record
+            return TRecSet::New(JoinDesc.GetJoinStore(Base), JoinRecId, JoinRecFq);
+        } else {
+            // no record, return empty set
+            return TRecSet::New(JoinDesc.GetJoinStore(Base));
+        }
+    }
+    // unknown join type
+    throw TQmExcept::New("Unsupported join type for join " + JoinDesc.GetJoinNm() + "!");
 }
 
 PRecSet TRec::DoJoin(const TWPt<TBase>& Base, const TStr& JoinNm) const {
