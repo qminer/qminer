@@ -981,7 +981,6 @@ void TCtMChain::GetAggrQMat(const TFltVV& QMat, const TStateSetV& AggrStateV,
 }
 
 void TCtMChain::GetSubChain(const TFltVV& QMat, const TIntV& StateIdV, TFltVV& SubQMat) {
-	// TODO think about how to properly implement this method
 	const int SubMatDim = StateIdV.Len();
 //	const double Eps = 1e-6;
 
@@ -1304,7 +1303,7 @@ double TCtMChain::RelativeEntropy(const TFltVV& QMat, const TStateSetV& AggState
 
 	const int NAggStates = AggStateV.Len();
 
-	double Sum1, Sum2;
+	double Sum1 = 0, Sum2 = 0;
 
 	int i, j;
 	for (int PsiiN = 0; PsiiN < NAggStates; PsiiN++) {
