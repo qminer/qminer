@@ -1083,11 +1083,11 @@ void TRecSerializator::SetFieldInt(char* Bf, const int& BfL, const int& FieldId,
 }
 /// Fixed-length field setter
 void TRecSerializator::SetFieldInt16(char* Bf, const int& BfL, const int& FieldId, const int16& Int16) {
-	SetFieldInt(Bf, BfL, GetFieldSerialDesc(FieldId), Int16);
+	SetFieldInt16(Bf, BfL, GetFieldSerialDesc(FieldId), Int16);
 }
 /// Fixed-length field setter
 void TRecSerializator::SetFieldInt64(char* Bf, const int& BfL, const int& FieldId, const int64& Int64) {
-	SetFieldInt(Bf, BfL, GetFieldSerialDesc(FieldId), Int64);
+	SetFieldInt64(Bf, BfL, GetFieldSerialDesc(FieldId), Int64);
 }
 /// Fixed-length field setter
 void TRecSerializator::SetFieldUInt(char* Bf, const int& BfL, const int& FieldId, const uint& UInt) {
@@ -1730,7 +1730,7 @@ bool TRecSerializator::GetFieldBool(TThinMIn& min, const int& FieldId) const {
 /// Field getter
 double TRecSerializator::GetFieldFlt(TThinMIn& min, const int& FieldId) const {
 	const char* Bf = GetLocationFixed(min, GetFieldSerialDesc(FieldId));
-        return TFlt::GetFromBufSafe(Bf); // do not cast (not portable to ARM)
+	return TFlt::GetFromBufSafe(Bf); // do not cast (not portable to ARM)
 }
 /// Field getter
 float TRecSerializator::GetFieldSFlt(TThinMIn& min, const int& FieldId) const {
