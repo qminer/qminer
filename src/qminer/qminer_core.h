@@ -639,163 +639,168 @@ public:
 	
 	/// Check if the value of given field for a given record is NULL
 	virtual bool IsFieldNull(const uint64& RecId, const int& FieldId) const { return false; }
-	/// Get field value using field id (default implementation throws exception)
-	virtual int GetFieldInt(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual int16 GetFieldInt16(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual int64 GetFieldInt64(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual uchar GetFieldByte(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual void GetFieldIntV(const uint64& RecId, const int& FieldId, TIntV& IntV) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual uint GetFieldUInt(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual uint16 GetFieldUInt16(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual uint64 GetFieldUInt64(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual TStr GetFieldStr(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual void GetFieldStrV(const uint64& RecId, const int& FieldId, TStrV& StrV) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual bool GetFieldBool(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual double GetFieldFlt(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual float GetFieldSFlt(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual TFltPr GetFieldFltPr(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual void GetFieldFltV(const uint64& RecId, const int& FieldId, TFltV& FltV) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual void GetFieldTm(const uint64& RecId, const int& FieldId, TTm& Tm) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual uint64 GetFieldTmMSecs(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual void GetFieldNumSpV(const uint64& RecId, const int& FieldId, TIntFltKdV& SpV) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual void GetFieldBowSpV(const uint64& RecId, const int& FieldId, PBowSpV& SpV) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual void GetFieldTMem(const uint64& RecId, const int& FieldId, TMem& Mem) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual PJsonVal GetFieldJsonVal(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id   
+	virtual int GetFieldInt(const uint64& RecId, const int& FieldId) const = 0;
+	/// Get field value using field id   
+	virtual int16 GetFieldInt16(const uint64& RecId, const int& FieldId) const = 0;
+	/// Get field value using field id   
+	virtual int64 GetFieldInt64(const uint64& RecId, const int& FieldId) const = 0;
+	/// Get field value using field id   
+	virtual uchar GetFieldByte(const uint64& RecId, const int& FieldId) const = 0;
+	/// Get field value using field id   
+	virtual void GetFieldIntV(const uint64& RecId, const int& FieldId, TIntV& IntV) const = 0;
+	/// Get field value using field id   
+	virtual uint GetFieldUInt(const uint64& RecId, const int& FieldId) const = 0;
+	/// Get field value using field id   
+	virtual uint16 GetFieldUInt16(const uint64& RecId, const int& FieldId) const = 0;
+	/// Get field value using field id   
+	virtual uint64 GetFieldUInt64(const uint64& RecId, const int& FieldId) const = 0;
+    /// Get field value using field id   
+	virtual TStr GetFieldStr(const uint64& RecId, const int& FieldId) const = 0;
+	/// Get field value using field id   
+	virtual void GetFieldStrV(const uint64& RecId, const int& FieldId, TStrV& StrV) const = 0;
+	/// Get field value using field id   
+	virtual bool GetFieldBool(const uint64& RecId, const int& FieldId) const = 0;
+	/// Get field value using field id   
+	virtual double GetFieldFlt(const uint64& RecId, const int& FieldId) const = 0;
+	/// Get field value using field id   
+	virtual float GetFieldSFlt(const uint64& RecId, const int& FieldId) const = 0;
+	/// Get field value using field id   
+	virtual TFltPr GetFieldFltPr(const uint64& RecId, const int& FieldId) const = 0;
+	/// Get field value using field id   
+	virtual void GetFieldFltV(const uint64& RecId, const int& FieldId, TFltV& FltV) const = 0;
+	/// Get field value using field id   
+	virtual void GetFieldTm(const uint64& RecId, const int& FieldId, TTm& Tm) const = 0;
+	/// Get field value using field id   
+	virtual uint64 GetFieldTmMSecs(const uint64& RecId, const int& FieldId) const = 0;
+	/// Get field value using field id   
+	virtual void GetFieldNumSpV(const uint64& RecId, const int& FieldId, TIntFltKdV& SpV) const = 0;
+	/// Get field value using field id   
+	virtual void GetFieldBowSpV(const uint64& RecId, const int& FieldId, PBowSpV& SpV) const = 0;
+	/// Get field value using field id   
+	virtual void GetFieldTMem(const uint64& RecId, const int& FieldId, TMem& Mem) const = 0;
+	/// Get field value using field id   
+	virtual PJsonVal GetFieldJsonVal(const uint64& RecId, const int& FieldId) const = 0;
+
+    /// Get field value using field id safely   
+    virtual uint64 GetFieldUInt64Safe(const uint64& RecId, const int& FieldId) const;
+    /// Get field value using field id safely   
+    virtual int64 GetFieldInt64Safe(const uint64& RecId, const int& FieldId) const;
 
 	/// Check if the value of given field for a given record is NULL
 	bool IsFieldNmNull(const uint64& RecId, const TStr& FieldNm) const;
-	/// Get field value using field name (default implementation throws exception)
+	/// Get field value using field name   
 	int GetFieldNmInt(const uint64& RecId, const TStr& FieldNm) const;
-	/// Get field value using field name (default implementation throws exception)
+	/// Get field value using field name   
 	void GetFieldNmIntV(const uint64& RecId, const TStr& FieldNm, TIntV& IntV) const;
-	/// Get field value using field name (default implementation throws exception)
+	/// Get field value using field name   
 	uint64 GetFieldNmUInt64(const uint64& RecId, const TStr& FieldNm) const;
-	/// Get field value using field name (default implementation throws exception)
+	/// Get field value using field name   
 	TStr GetFieldNmStr(const uint64& RecId, const TStr& FieldNm) const;
-	/// Get field value using field name (default implementation throws exception)
+	/// Get field value using field name   
 	void GetFieldNmStrV(const uint64& RecId, const TStr& FieldNm, TStrV& StrV) const;
-	/// Get field value using field name (default implementation throws exception)
+	/// Get field value using field name   
 	bool GetFieldNmBool(const uint64& RecId, const TStr& FieldNm) const;
-	/// Get field value using field name (default implementation throws exception)
+	/// Get field value using field name   
 	double GetFieldNmFlt(const uint64& RecId, const TStr& FieldNm) const;
-	/// Get field value using field name (default implementation throws exception)
+	/// Get field value using field name   
 	TFltPr GetFieldNmFltPr(const uint64& RecId, const TStr& FieldNm) const;
-	/// Get field value using field name (default implementation throws exception)
+	/// Get field value using field name   
 	void GetFieldNmFltV(const uint64& RecId, const TStr& FieldNm, TFltV& FltV) const;
-	/// Get field value using field name (default implementation throws exception)
+	/// Get field value using field name   
 	void GetFieldNmTm(const uint64& RecId, const TStr& FieldNm, TTm& Tm) const;
-	/// Get field value using field name (default implementation throws exception)
+	/// Get field value using field name   
 	uint64 GetFieldNmTmMSecs(const uint64& RecId, const TStr& FieldNm) const;
-	/// Get field value using field name (default implementation throws exception)
+	/// Get field value using field name   
 	void GetFieldNmNumSpV(const uint64& RecId, const TStr& FieldNm, TIntFltKdV& SpV) const;
-	/// Get field value using field name (default implementation throws exception)
+	/// Get field value using field name   
 	void GetFieldNmBowSpV(const uint64& RecId, const TStr& FieldNm, PBowSpV& SpV) const;
-	/// Get field value using field name (default implementation throws exception)
+	/// Get field value using field name   
 	void GetFieldNmTMem(const uint64& RecId, const TStr& FieldNm, TMem& mem) const;
-	/// Get field value using field name (default implementation throws exception)
+	/// Get field value using field name   
 	PJsonVal GetFieldNmJsonVal(const uint64& RecId, const TStr& FieldNm) const;
 
 	/// Set the value of given field to NULL
-	virtual void SetFieldNull(const uint64& RecId, const int& FieldId);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldByte(const uint64& RecId, const int& FieldId, const uchar& Byte);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldInt(const uint64& RecId, const int& FieldId, const int& Int);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldInt16(const uint64& RecId, const int& FieldId, const int16& Int16);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldInt64(const uint64& RecId, const int& FieldId, const int64& Int64);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldIntV(const uint64& RecId, const int& FieldId, const TIntV& IntV);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldUInt(const uint64& RecId, const int& FieldId, const uint& UInt);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldUInt16(const uint64& RecId, const int& FieldId, const uint16& UInt16);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldUInt64(const uint64& RecId, const int& FieldId, const uint64& UInt64);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldStr(const uint64& RecId, const int& FieldId, const TStr& Str);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldStrV(const uint64& RecId, const int& FieldId, const TStrV& StrV);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldBool(const uint64& RecId, const int& FieldId, const bool& Bool);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldFlt(const uint64& RecId, const int& FieldId, const double& Flt);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldSFlt(const uint64& RecId, const int& FieldId, const float& Flt);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldFltPr(const uint64& RecId, const int& FieldId, const TFltPr& FltPr);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldFltV(const uint64& RecId, const int& FieldId, const TFltV& FltV);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldTm(const uint64& RecId, const int& FieldId, const TTm& Tm);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldTmMSecs(const uint64& RecId, const int& FieldId, const uint64& TmMSecs);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldNumSpV(const uint64& RecId, const int& FieldId, const TIntFltKdV& SpV);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldBowSpV(const uint64& RecId, const int& FieldId, const PBowSpV& SpV);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldTMem(const uint64& RecId, const int& FieldId, const TMem& Mem);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldJsonVal(const uint64& RecId, const int& FieldId, const PJsonVal& Json);
+	virtual void SetFieldNull(const uint64& RecId, const int& FieldId) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldByte(const uint64& RecId, const int& FieldId, const uchar& Byte) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldInt(const uint64& RecId, const int& FieldId, const int& Int) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldInt16(const uint64& RecId, const int& FieldId, const int16& Int16) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldInt64(const uint64& RecId, const int& FieldId, const int64& Int64) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldIntV(const uint64& RecId, const int& FieldId, const TIntV& IntV) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldUInt(const uint64& RecId, const int& FieldId, const uint& UInt) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldUInt16(const uint64& RecId, const int& FieldId, const uint16& UInt16) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldUInt64(const uint64& RecId, const int& FieldId, const uint64& UInt64) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldStr(const uint64& RecId, const int& FieldId, const TStr& Str) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldStrV(const uint64& RecId, const int& FieldId, const TStrV& StrV) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldBool(const uint64& RecId, const int& FieldId, const bool& Bool) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldFlt(const uint64& RecId, const int& FieldId, const double& Flt) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldSFlt(const uint64& RecId, const int& FieldId, const float& Flt) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldFltPr(const uint64& RecId, const int& FieldId, const TFltPr& FltPr) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldFltV(const uint64& RecId, const int& FieldId, const TFltV& FltV) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldTm(const uint64& RecId, const int& FieldId, const TTm& Tm) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldTmMSecs(const uint64& RecId, const int& FieldId, const uint64& TmMSecs) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldNumSpV(const uint64& RecId, const int& FieldId, const TIntFltKdV& SpV) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldBowSpV(const uint64& RecId, const int& FieldId, const PBowSpV& SpV) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldTMem(const uint64& RecId, const int& FieldId, const TMem& Mem) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldJsonVal(const uint64& RecId, const int& FieldId, const PJsonVal& Json) = 0;
 
-    /// Set field value using field id (default implementation throws exception)
+    /// Set field value using field id   
     virtual void SetFieldUInt64Safe(const uint64& RecId, const int& FieldId, const uint64& UInt64);
-    /// Set field value using field id (default implementation throws exception)
+    /// Set field value using field id   
     virtual void SetFieldInt64Safe(const uint64& RecId, const int& FieldId, const int64& Int64);
 
 	/// Set the value of given field to NULL
 	void SetFieldNmNull(const uint64& RecId, const TStr& FieldNm);
-	/// Set field value using field name (default implementation throws exception)
+	/// Set field value using field name   
 	void SetFieldNmInt(const uint64& RecId, const TStr& FieldNm, const int& Int);
-	/// Set field value using field name (default implementation throws exception)
+	/// Set field value using field name   
 	void SetFieldNmIntV(const uint64& RecId, const TStr& FieldNm, const TIntV& IntV);
-	/// Set field value using field name (default implementation throws exception)
+	/// Set field value using field name   
 	void SetFieldNmUInt64(const uint64& RecId, const TStr& FieldNm, const uint64& UInt64);
-	/// Set field value using field name (default implementation throws exception)
+	/// Set field value using field name   
 	void SetFieldNmStr(const uint64& RecId, const TStr& FieldNm, const TStr& Str);
-	/// Set field value using field name (default implementation throws exception)
+	/// Set field value using field name   
 	void SetFieldNmStrV(const uint64& RecId, const TStr& FieldNm, const TStrV& StrV);
-	/// Set field value using field name (default implementation throws exception)
+	/// Set field value using field name   
 	void SetFieldNmBool(const uint64& RecId, const TStr& FieldNm, const bool& Bool);
-	/// Set field value using field name (default implementation throws exception)
+	/// Set field value using field name   
 	void SetFieldNmFlt(const uint64& RecId, const TStr& FieldNm, const double& Flt);
-	/// Set field value using field name (default implementation throws exception)
+	/// Set field value using field name   
 	void SetFieldNmFltPr(const uint64& RecId, const TStr& FieldNm, const TFltPr& FltPr);
-	/// Set field value using field name (default implementation throws exception)
+	/// Set field value using field name   
 	void SetFieldNmFltV(const uint64& RecId, const TStr& FieldNm, const TFltV& FltV);
-	/// Set field value using field name (default implementation throws exception)
+	/// Set field value using field name   
 	void SetFieldNmTm(const uint64& RecId, const TStr& FieldNm, const TTm& Tm);
-	/// Set field value using field name (default implementation throws exception)
+	/// Set field value using field name   
 	void SetFieldNmTmMSecs(const uint64& RecId, const TStr& FieldNm, const uint64& TmMSecs);
-	/// Set field value using field name (default implementation throws exception)
+	/// Set field value using field name   
 	void SetFieldNmNumSpV(const uint64& RecId, const TStr& FieldNm, const TIntFltKdV& SpV);
-	/// Set field value using field name (default implementation throws exception)
+	/// Set field value using field name   
 	void SetFieldNmBowSpV(const uint64& RecId, const TStr& FieldNm, const PBowSpV& SpV);
-	/// Set field value using field name (default implementation throws exception)
+	/// Set field value using field name   
 	void SetFieldNmTMem(const uint64& RecId, const TStr& FieldNm, const TMem& Mem);   
-	/// Set field value using field name (default implementation throws exception)
+	/// Set field value using field name   
 	void SetFieldNmJsonVal(const uint64& RecId, const TStr& FieldNm, const PJsonVal& Json);
 
 	/// Get field value as JSon object using field id

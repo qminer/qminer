@@ -14,7 +14,7 @@
 namespace TQm {
 
 namespace TStorage {
-	
+
 ///////////////////////////////
 /// Location to where field is serialized
 typedef enum { 
@@ -89,18 +89,23 @@ public:
 // Schema description of join 
 class TJoinDescEx {
 public:
-	/// Join name
-	TStr JoinName;
-	/// Join store name
-	TStr JoinStoreName;
-	/// Join type
-	TStoreJoinType JoinType;
-	/// Name of reverse join (empty if none)
-	TStr InverseJoinName;
-	/// Flag if index should use small storage
-	TBool IsSmall;
+    /// Join name
+    TStr JoinName;
+    /// Join store name
+    TStr JoinStoreName;
+    /// Join type
+    TStoreJoinType JoinType;
+    /// Name of reverse join (empty if none)
+    TStr InverseJoinName;
+    /// Flag if index should use small storage
+    TBool IsSmall;
+    /// Type of field that contains joined record id (for field join)
+    TFieldType RecIdFieldType;
+    /// Type of field that contains join frequency (for field join).
+    /// Value "oftUndef" means no field.
+    TFieldType FreqFieldType;
 public:
-	TJoinDescEx(): JoinType(osjtUndef) { }
+    TJoinDescEx() : JoinType(osjtUndef) {}
 };
 
 ///////////////////////////////
@@ -795,88 +800,88 @@ public:
 
 ///////////////////////////////
 /// Implementation of store which can be initialized from a schema.
-class TStoreImpl: public TStore, public TToaster {
+class TStoreImpl : public TStore, public TToaster {
 private:
-	/// For temporarily storing inverse joins which need to be indexed after adding records
-	struct TFieldJoinDat {
-		TWPt<TStore> JoinStore;
-		TInt InverseJoinId;
-		TUInt64 JoinRecId;
-		TInt JoinFq;
-	};
-	
+    /// For temporarily storing inverse joins which need to be indexed after adding records
+    struct TFieldJoinDat {
+        TWPt<TStore> JoinStore;
+        TInt InverseJoinId;
+        TUInt64 JoinRecId;
+        TInt JoinFq;
+    };
+
 private:
-	/// Store filename
-	TStr StoreFNm;
-	/// Open mode
-	TFAccess FAccess;
-	
-	/// Do we have a primary field which can act as record name
-	TBool RecNmFieldP;
-	/// Id of primary field (-1 if not defined)
-	TInt PrimaryFieldId;
-	/// Type of primary field
-	TFieldType PrimaryFieldType;
-	/// Hash map from TStr primary field to record ID
-	THash<TStr, TUInt64> PrimaryStrIdH;
-	/// Hash map from TInt primary field to record ID
-	THash<TInt, TUInt64> PrimaryIntIdH;
-	/// Hash map from TUInt64 primary field to record ID
-	THash<TUInt64, TUInt64> PrimaryUInt64IdH;
-	/// Hash map from TFlt primary field to record ID
-	THash<TFlt, TUInt64> PrimaryFltIdH;
-	/// Hash map from TTm primary field to record ID
-	THash<TUInt64, TUInt64> PrimaryTmMSecsIdH;
-	
-	/// Flag if we are using cache store
-	TBool DataCacheP;
-	/// Store for parts of records that go to disk
-	TWndBlockCache<TMem> DataCache;
-	/// Flag if we are using in-memory store
-	TBool DataMemP;
-	/// Store for parts of records that should be in-memory
-	TInMemStorage DataMem;
-	/// Serializator to disk
-	TRecSerializator *SerializatorCache;
-	/// Serializator to memory
-	TRecSerializator *SerializatorMem;
-	/// Map from fields to storage location
-	TVec<TStoreLoc> FieldLocV;
-	
-	// record indexer
-	TRecIndexer RecIndexer;
-	
-	/// Time window settings
-	TStoreWndDesc WndDesc;
-	
-	/// initialize field storage location map
-	void InitFieldLocV();
-	/// Get TMem serialization of record from specified storage
-	void GetRecMem(const TStoreLoc& RecLoc, const uint64& RecId, TMem& Rec) const;
-	/// Get TMem serialization of record from specified where field is stored
-	void GetRecMem(const uint64& RecId, const int& FieldId, TMem& Rec) const;
-	/// Set TMem serialization of record to a specified storage
-	void PutRecMem(const TStoreLoc& RecLoc, const uint64& RecId, const TMem& Rec);
-	/// Set TMem serialization of record to storage where field is stored
-	void PutRecMem(const uint64& RecId, const int& FieldId, const TMem& Rec);
-	/// True when field is stored on disk
-	bool IsFieldDisk(const int &FieldId) const;
-	/// True when field is stored in-memory
-	bool IsFieldInMemory(const int &FieldId) const;
-	/// Get serializator for given location
-	TRecSerializator* GetSerializator(const TStoreLoc& StoreLoc);
-	/// Get serializator for given location
-	const TRecSerializator* GetSerializator(const TStoreLoc& StoreLoc) const;
-	/// Get serializator for given field
-	TRecSerializator* GetFieldSerializator(const int &FieldId);
-	/// Get serializator for given field
-	const TRecSerializator* GetFieldSerializator(const int &FieldId) const;
-	/// Remove record from name-id map
-	inline void DelRecNm(const uint64& RecId);    
-	/// Do we have a primary field
-	bool IsPrimaryField() const { return PrimaryFieldId != -1; }
-	/// Set primary field map
-	void SetPrimaryField(const uint64& RecId);
+    /// Store filename
+    TStr StoreFNm;
+    /// Open mode
+    TFAccess FAccess;
+
+    /// Do we have a primary field which can act as record name
+    TBool RecNmFieldP;
+    /// Id of primary field (-1 if not defined)
+    TInt PrimaryFieldId;
+    /// Type of primary field
+    TFieldType PrimaryFieldType;
+    /// Hash map from TStr primary field to record ID
+    THash<TStr, TUInt64> PrimaryStrIdH;
+    /// Hash map from TInt primary field to record ID
+    THash<TInt, TUInt64> PrimaryIntIdH;
+    /// Hash map from TUInt64 primary field to record ID
+    THash<TUInt64, TUInt64> PrimaryUInt64IdH;
+    /// Hash map from TFlt primary field to record ID
+    THash<TFlt, TUInt64> PrimaryFltIdH;
+    /// Hash map from TTm primary field to record ID
+    THash<TUInt64, TUInt64> PrimaryTmMSecsIdH;
+
+    /// Flag if we are using cache store
+    TBool DataCacheP;
+    /// Store for parts of records that go to disk
+    TWndBlockCache<TMem> DataCache;
+    /// Flag if we are using in-memory store
+    TBool DataMemP;
+    /// Store for parts of records that should be in-memory
+    TInMemStorage DataMem;
+    /// Serializator to disk
+    TRecSerializator *SerializatorCache;
+    /// Serializator to memory
+    TRecSerializator *SerializatorMem;
+    /// Map from fields to storage location
+    TVec<TStoreLoc> FieldLocV;
+
+    // record indexer
+    TRecIndexer RecIndexer;
+
+    /// Time window settings
+    TStoreWndDesc WndDesc;
+
+    /// initialize field storage location map
+    void InitFieldLocV();
+    /// Get TMem serialization of record from specified storage
+    void GetRecMem(const TStoreLoc& RecLoc, const uint64& RecId, TMem& Rec) const;
+    /// Get TMem serialization of record from specified where field is stored
+    void GetRecMem(const uint64& RecId, const int& FieldId, TMem& Rec) const;
+    /// Set TMem serialization of record to a specified storage
+    void PutRecMem(const TStoreLoc& RecLoc, const uint64& RecId, const TMem& Rec);
+    /// Set TMem serialization of record to storage where field is stored
+    void PutRecMem(const uint64& RecId, const int& FieldId, const TMem& Rec);
+    /// True when field is stored on disk
+    bool IsFieldDisk(const int &FieldId) const;
+    /// True when field is stored in-memory
+    bool IsFieldInMemory(const int &FieldId) const;
+    /// Get serializator for given location
+    TRecSerializator* GetSerializator(const TStoreLoc& StoreLoc);
+    /// Get serializator for given location
+    const TRecSerializator* GetSerializator(const TStoreLoc& StoreLoc) const;
+    /// Get serializator for given field
+    TRecSerializator* GetFieldSerializator(const int &FieldId);
+    /// Get serializator for given field
+    const TRecSerializator* GetFieldSerializator(const int &FieldId) const;
+    /// Remove record from name-id map
+    inline void DelRecNm(const uint64& RecId);
+    /// Do we have a primary field
+    bool IsPrimaryField() const { return PrimaryFieldId != -1; }
+    /// Set primary field map
+    void SetPrimaryField(const uint64& RecId);
     /// Set primary field map for a given string value
     void SetPrimaryFieldStr(const uint64& RecId, const TStr& Str);
     /// Set primary field map for a given integer value
@@ -887,8 +892,8 @@ private:
     void SetPrimaryFieldFlt(const uint64& RecId, const double& Flt);
     /// Set primary field map for a given TTm value
     void SetPrimaryFieldMSecs(const uint64& RecId, const uint64& MSecs);
-	/// Delete primary field map
-	void DelPrimaryField(const uint64& RecId);
+    /// Delete primary field map
+    void DelPrimaryField(const uint64& RecId);
     /// Delete primary field map for a given string value
     void DelPrimaryFieldStr(const uint64& RecId, const TStr& Str);
     /// Delete primary field map for a given integer value
@@ -899,163 +904,173 @@ private:
     void DelPrimaryFieldFlt(const uint64& RecId, const double& Flt);
     /// Delete primary field map for a given TTm value
     void DelPrimaryFieldMSecs(const uint64& RecId, const uint64& MSecs);
-	/// Transform Join name to it's corresponding field name
-	TStr GetJoinFieldNm(const TStr& JoinNm) const { return JoinNm + "Id"; }
+    /// Transform Join name to it's corresponding field name
+    TStr GetJoinFieldNm(const TStr& JoinNm) const { return JoinNm + "Id"; }
 
-	/// Initialize from given store schema
-	void InitFromSchema(const TStoreSchema& StoreSchema);    
-	/// Initialize field location flags
-	void InitDataFlags();
+    /// Initialize from given store schema
+    void InitFromSchema(const TStoreSchema& StoreSchema);
+    /// Initialize field location flags
+    void InitDataFlags();
 
 public:
-	TStoreImpl(const TWPt<TBase>& _Base, const uint& StoreId, 
-		const TStr& StoreName, const TStoreSchema& StoreSchema, 
-		const TStr& _StoreFNm, const int64& _MxCacheSize, const int& BlockSize);
-	TStoreImpl(const TWPt<TBase>& _Base, const TStr& _StoreFNm,
-		const TFAccess& _FAccess, const int64& _MxCacheSize, const bool& _Lazy = false);
-	// need to override destructor, to clear cache
-	~TStoreImpl();
+    TStoreImpl(const TWPt<TBase>& _Base, const uint& StoreId,
+        const TStr& StoreName, const TStoreSchema& StoreSchema,
+        const TStr& _StoreFNm, const int64& _MxCacheSize, const int& BlockSize);
+    TStoreImpl(const TWPt<TBase>& _Base, const TStr& _StoreFNm,
+        const TFAccess& _FAccess, const int64& _MxCacheSize, const bool& _Lazy = false);
+    // need to override destructor, to clear cache
+    ~TStoreImpl();
 
-	bool IsRecId(const uint64& RecId) const;
-	bool HasRecNm() const { return RecNmFieldP; }
-	bool IsRecNm(const TStr& RecNm) const;
-	TStr GetRecNm(const uint64& RecId) const;
-	uint64 GetRecId(const TStr& RecNm) const;
-	uint64 GetRecs() const;
+    bool IsRecId(const uint64& RecId) const;
+    bool HasRecNm() const { return RecNmFieldP; }
+    bool IsRecNm(const TStr& RecNm) const;
+    TStr GetRecNm(const uint64& RecId) const;
+    uint64 GetRecId(const TStr& RecNm) const;
+    uint64 GetRecs() const;
 
-	PStoreIter GetIter() const;
-	
-	/// Gets the first record in the store
-	uint64 GetFirstRecId() const;
-	/// Gets the last record in the store
-	uint64 GetLastRecId() const;
-	/// Gets forward moving iterator
-	PStoreIter ForwardIter() const { return GetIter(); }
-	/// Gets backward moving iterator
-	PStoreIter BackwardIter() const;
+    PStoreIter GetIter() const;
 
-	/// Does the store implement GetAllRecs?
-	bool HasGetAllRecs() const { return true; }
-	/// Is the forward iterator implemented?
-	bool HasForwardIter() const { return true; }
-	/// Is the backward iterator implemented?
-	bool HasBackwardIter() const { return true; }
-	/// Is the first record  id getter implemented?
-	bool HasFirstRecId() const { return true; }
-	/// Is the last record id getter implemented?
-	bool HasLastRecId() const { return true; }
-	
-	/// Add new record
-	uint64 AddRec(const PJsonVal& RecVal, const bool& TriggerEvents=true);
-	/// Update existing record
-	void UpdateRec(const uint64& RecId, const PJsonVal& RecVal);
+    /// Gets the first record in the store
+    uint64 GetFirstRecId() const;
+    /// Gets the last record in the store
+    uint64 GetLastRecId() const;
+    /// Gets forward moving iterator
+    PStoreIter ForwardIter() const { return GetIter(); }
+    /// Gets backward moving iterator
+    PStoreIter BackwardIter() const;
 
-	/// Purge records that fall out of store window (when it has one)
-	void GarbageCollect();
-	/// Deletes all records
-	void DeleteAllRecs();
-	/// Delete the first DelRecs records (the records that were inserted first)
-	void DeleteFirstRecs(const int& Recs);
-	/// Delete specific record
-	void DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK = true);
+    /// Does the store implement GetAllRecs?
+    bool HasGetAllRecs() const { return true; }
+    /// Is the forward iterator implemented?
+    bool HasForwardIter() const { return true; }
+    /// Is the backward iterator implemented?
+    bool HasBackwardIter() const { return true; }
+    /// Is the first record  id getter implemented?
+    bool HasFirstRecId() const { return true; }
+    /// Is the last record id getter implemented?
+    bool HasLastRecId() const { return true; }
 
-	/// Check if the value of given field for a given record is NULL
-	bool IsFieldNull(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	uchar GetFieldByte(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	int GetFieldInt(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	int16 GetFieldInt16(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	int64 GetFieldInt64(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	void GetFieldIntV(const uint64& RecId, const int& FieldId, TIntV& IntV) const;
-	/// Get field value using field id (default implementation throws exception)
-	uint GetFieldUInt(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	uint16 GetFieldUInt16(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	uint64 GetFieldUInt64(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	TStr GetFieldStr(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	void GetFieldStrV(const uint64& RecId, const int& FieldId, TStrV& StrV) const;
-	/// Get field value using field id (default implementation throws exception)
-	bool GetFieldBool(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	double GetFieldFlt(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	float GetFieldSFlt(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	TFltPr GetFieldFltPr(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	void GetFieldFltV(const uint64& RecId, const int& FieldId, TFltV& FltV) const;
-	/// Get field value using field id (default implementation throws exception)
-	void GetFieldTm(const uint64& RecId, const int& FieldId, TTm& Tm) const;
-	/// Get field value using field id (default implementation throws exception)
-	uint64 GetFieldTmMSecs(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	void GetFieldNumSpV(const uint64& RecId, const int& FieldId, TIntFltKdV& SpV) const;
-	/// Get field value using field id (default implementation throws exception)
-	void GetFieldBowSpV(const uint64& RecId, const int& FieldId, PBowSpV& SpV) const;
-	/// Get field value using field id (default implementation throws exception)
-	void GetFieldTMem(const uint64& RecId, const int& FieldId, TMem& Mem) const;
-	/// Get field value using field id (default implementation throws exception)
-	PJsonVal GetFieldJsonVal(const uint64& RecId, const int& FieldId) const;
+    /// Add new record
+    uint64 AddRec(const PJsonVal& RecVal, const bool& TriggerEvents = true);
+    /// Update existing record
+    void UpdateRec(const uint64& RecId, const PJsonVal& RecVal);
 
-	/// Set the value of given field to NULL
-	void SetFieldNull(const uint64& RecId, const int& FieldId);
-	/// Set field value using field id (default implementation throws exception)
-	void SetFieldByte(const uint64& RecId, const int& FieldId, const uchar& Byte);
-	/// Set field value using field id (default implementation throws exception)
-	void SetFieldInt(const uint64& RecId, const int& FieldId, const int& Int);
-	/// Set field value using field id (default implementation throws exception)
-	void SetFieldInt16(const uint64& RecId, const int& FieldId, const int16& Int16);
-	/// Set field value using field id (default implementation throws exception)
-	void SetFieldInt64(const uint64& RecId, const int& FieldId, const int64& Int64);
-	/// Set field value using field id (default implementation throws exception)
-	void SetFieldIntV(const uint64& RecId, const int& FieldId, const TIntV& IntV);
-	/// Set field value using field id (default implementation throws exception)
-	void SetFieldUInt(const uint64& RecId, const int& FieldId, const uint& UInt);
-	/// Set field value using field id (default implementation throws exception)
-	void SetFieldUInt16(const uint64& RecId, const int& FieldId, const uint16& UInt16);
-	/// Set field value using field id (default implementation throws exception)
-	void SetFieldUInt64(const uint64& RecId, const int& FieldId, const uint64& UInt64);
-	/// Set field value using field id (default implementation throws exception)
-	void SetFieldStr(const uint64& RecId, const int& FieldId, const TStr& Str);
-	/// Set field value using field id (default implementation throws exception)
-	void SetFieldStrV(const uint64& RecId, const int& FieldId, const TStrV& StrV);
-	/// Set field value using field id (default implementation throws exception)
-	void SetFieldBool(const uint64& RecId, const int& FieldId, const bool& Bool);
-	/// Set field value using field id (default implementation throws exception)
-	void SetFieldFlt(const uint64& RecId, const int& FieldId, const double& Flt);
-	/// Set field value using field id (default implementation throws exception)
-	void SetFieldSFlt(const uint64& RecId, const int& FieldId, const float& SFlt);
-	/// Set field value using field id (default implementation throws exception)
-	void SetFieldFltPr(const uint64& RecId, const int& FieldId, const TFltPr& FltPr);
-	/// Set field value using field id (default implementation throws exception)
-	void SetFieldFltV(const uint64& RecId, const int& FieldId, const TFltV& FltV);
-	/// Set field value using field id (default implementation throws exception)
-	void SetFieldTm(const uint64& RecId, const int& FieldId, const TTm& Tm);
-	/// Set field value using field id (default implementation throws exception)
-	void SetFieldTmMSecs(const uint64& RecId, const int& FieldId, const uint64& TmMSecs);
-	/// Set field value using field id (default implementation throws exception)
-	void SetFieldNumSpV(const uint64& RecId, const int& FieldId, const TIntFltKdV& SpV);
-	/// Set field value using field id (default implementation throws exception)
-	void SetFieldBowSpV(const uint64& RecId, const int& FieldId, const PBowSpV& SpV);
-	/// Set field value using field id (default implementation throws exception)
-	void SetFieldTMem(const uint64& RecId, const int& FieldId, const TMem& Mem);
-	/// Set field value using field id (default implementation throws exception)
-	void SetFieldJsonVal(const uint64& RecId, const int& FieldId, const PJsonVal& Json);
+    /// Purge records that fall out of store window (when it has one)
+    void GarbageCollect();
+    /// Deletes all records
+    void DeleteAllRecs();
+    /// Delete the first DelRecs records (the records that were inserted first)
+    void DeleteFirstRecs(const int& Recs);
+    /// Delete specific record
+    void DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK = true);
 
-	/// Helper function for returning JSon definition of store
-	PJsonVal GetStoreJson(const TWPt<TBase>& Base) const;
+    /// Check if the value of given field for a given record is NULL
+    bool IsFieldNull(const uint64& RecId, const int& FieldId) const;
+    /// Get field value using field id (default implementation throws exception)
+    uchar GetFieldByte(const uint64& RecId, const int& FieldId) const;
+    /// Get field value using field id (default implementation throws exception)
+    int GetFieldInt(const uint64& RecId, const int& FieldId) const;
+    /// Get field value using field id (default implementation throws exception)
+    int16 GetFieldInt16(const uint64& RecId, const int& FieldId) const;
+    /// Get field value using field id (default implementation throws exception)
+    int64 GetFieldInt64(const uint64& RecId, const int& FieldId) const;
+    /// Get field value using field id (default implementation throws exception)
+    void GetFieldIntV(const uint64& RecId, const int& FieldId, TIntV& IntV) const;
+    /// Get field value using field id (default implementation throws exception)
+    uint GetFieldUInt(const uint64& RecId, const int& FieldId) const;
+    /// Get field value using field id (default implementation throws exception)
+    uint16 GetFieldUInt16(const uint64& RecId, const int& FieldId) const;
+    /// Get field value using field id (default implementation throws exception)
+    uint64 GetFieldUInt64(const uint64& RecId, const int& FieldId) const;
+    /// Get field value using field id (default implementation throws exception)
+    TStr GetFieldStr(const uint64& RecId, const int& FieldId) const;
+    /// Get field value using field id (default implementation throws exception)
+    void GetFieldStrV(const uint64& RecId, const int& FieldId, TStrV& StrV) const;
+    /// Get field value using field id (default implementation throws exception)
+    bool GetFieldBool(const uint64& RecId, const int& FieldId) const;
+    /// Get field value using field id (default implementation throws exception)
+    double GetFieldFlt(const uint64& RecId, const int& FieldId) const;
+    /// Get field value using field id (default implementation throws exception)
+    float GetFieldSFlt(const uint64& RecId, const int& FieldId) const;
+    /// Get field value using field id (default implementation throws exception)
+    TFltPr GetFieldFltPr(const uint64& RecId, const int& FieldId) const;
+    /// Get field value using field id (default implementation throws exception)
+    void GetFieldFltV(const uint64& RecId, const int& FieldId, TFltV& FltV) const;
+    /// Get field value using field id (default implementation throws exception)
+    void GetFieldTm(const uint64& RecId, const int& FieldId, TTm& Tm) const;
+    /// Get field value using field id (default implementation throws exception)
+    uint64 GetFieldTmMSecs(const uint64& RecId, const int& FieldId) const;
+    /// Get field value using field id (default implementation throws exception)
+    void GetFieldNumSpV(const uint64& RecId, const int& FieldId, TIntFltKdV& SpV) const;
+    /// Get field value using field id (default implementation throws exception)
+    void GetFieldBowSpV(const uint64& RecId, const int& FieldId, PBowSpV& SpV) const;
+    /// Get field value using field id (default implementation throws exception)
+    void GetFieldTMem(const uint64& RecId, const int& FieldId, TMem& Mem) const;
+    /// Get field value using field id (default implementation throws exception)
+    PJsonVal GetFieldJsonVal(const uint64& RecId, const int& FieldId) const;
 
-	/// Save part of the data, given time-window
-	int PartialFlush(int WndInMsec = 500);
-	/// Retrieve performance statistics for this store
-	PJsonVal GetStats();
+
+    /// Get field value using field id safely (default implementation throws exception)
+    uint64 GetFieldUInt64Safe(const uint64& RecId, const int& FieldId) const;
+    /// Get field value using field id safely (default implementation throws exception)
+    int64 GetFieldInt64Safe(const uint64& RecId, const int& FieldId) const;
+    /// Set field value using field id (default implementation throws exception)
+    void SetFieldUInt64Safe(const uint64& RecId, const int& FieldId, const uint64& UInt64);
+    /// Set field value using field id (default implementation throws exception)
+    void SetFieldInt64Safe(const uint64& RecId, const int& FieldId, const int64& Int64);
+
+    /// Set the value of given field to NULL
+    void SetFieldNull(const uint64& RecId, const int& FieldId);
+    /// Set field value using field id (default implementation throws exception)
+    void SetFieldByte(const uint64& RecId, const int& FieldId, const uchar& Byte);
+    /// Set field value using field id (default implementation throws exception)
+    void SetFieldInt(const uint64& RecId, const int& FieldId, const int& Int);
+    /// Set field value using field id (default implementation throws exception)
+    void SetFieldInt16(const uint64& RecId, const int& FieldId, const int16& Int16);
+    /// Set field value using field id (default implementation throws exception)
+    void SetFieldInt64(const uint64& RecId, const int& FieldId, const int64& Int64);
+    /// Set field value using field id (default implementation throws exception)
+    void SetFieldIntV(const uint64& RecId, const int& FieldId, const TIntV& IntV);
+    /// Set field value using field id (default implementation throws exception)
+    void SetFieldUInt(const uint64& RecId, const int& FieldId, const uint& UInt);
+    /// Set field value using field id (default implementation throws exception)
+    void SetFieldUInt16(const uint64& RecId, const int& FieldId, const uint16& UInt16);
+    /// Set field value using field id (default implementation throws exception)
+    void SetFieldUInt64(const uint64& RecId, const int& FieldId, const uint64& UInt64);
+    /// Set field value using field id (default implementation throws exception)
+    void SetFieldStr(const uint64& RecId, const int& FieldId, const TStr& Str);
+    /// Set field value using field id (default implementation throws exception)
+    void SetFieldStrV(const uint64& RecId, const int& FieldId, const TStrV& StrV);
+    /// Set field value using field id (default implementation throws exception)
+    void SetFieldBool(const uint64& RecId, const int& FieldId, const bool& Bool);
+    /// Set field value using field id (default implementation throws exception)
+    void SetFieldFlt(const uint64& RecId, const int& FieldId, const double& Flt);
+    /// Set field value using field id (default implementation throws exception)
+    void SetFieldSFlt(const uint64& RecId, const int& FieldId, const float& SFlt);
+    /// Set field value using field id (default implementation throws exception)
+    void SetFieldFltPr(const uint64& RecId, const int& FieldId, const TFltPr& FltPr);
+    /// Set field value using field id (default implementation throws exception)
+    void SetFieldFltV(const uint64& RecId, const int& FieldId, const TFltV& FltV);
+    /// Set field value using field id (default implementation throws exception)
+    void SetFieldTm(const uint64& RecId, const int& FieldId, const TTm& Tm);
+    /// Set field value using field id (default implementation throws exception)
+    void SetFieldTmMSecs(const uint64& RecId, const int& FieldId, const uint64& TmMSecs);
+    /// Set field value using field id (default implementation throws exception)
+    void SetFieldNumSpV(const uint64& RecId, const int& FieldId, const TIntFltKdV& SpV);
+    /// Set field value using field id (default implementation throws exception)
+    void SetFieldBowSpV(const uint64& RecId, const int& FieldId, const PBowSpV& SpV);
+    /// Set field value using field id (default implementation throws exception)
+    void SetFieldTMem(const uint64& RecId, const int& FieldId, const TMem& Mem);
+    /// Set field value using field id (default implementation throws exception)
+    void SetFieldJsonVal(const uint64& RecId, const int& FieldId, const PJsonVal& Json);
+
+    /// Helper function for returning JSon definition of store
+    PJsonVal GetStoreJson(const TWPt<TBase>& Base) const;
+
+    /// Save part of the data, given time-window
+    int PartialFlush(int WndInMsec = 500);
+    /// Retrieve performance statistics for this store
+    PJsonVal GetStats();
 };
 
 ///////////////////////////////

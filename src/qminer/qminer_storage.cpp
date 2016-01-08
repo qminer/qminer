@@ -108,147 +108,166 @@ TFieldDescEx TStoreSchema::ParseFieldDescEx(const PJsonVal& FieldVal) {
 }
 
 TJoinDescEx TStoreSchema::ParseJoinDescEx(const PJsonVal& JoinVal) {
-	// assert necessary stuff there
-	QmAssertR(JoinVal->IsObjKey("name"), "Missing join name");
-	QmAssertR(JoinVal->IsObjKey("type"), "Missing join type");
-	QmAssertR(JoinVal->IsObjKey("store"), "Missing join store");
-	// parse parameters
-	TStr JoinName = JoinVal->GetObjStr("name");
-	TStr JoinType = JoinVal->GetObjStr("type", "index");
-	TStr JoinStore = JoinVal->GetObjStr("store");
-	// get extra description
-	TJoinDescEx JoinDescEx;
-	JoinDescEx.JoinName = JoinName;
-	JoinDescEx.JoinStoreName = JoinStore;
-	// get join type
-	if (JoinType == "index") {
-		JoinDescEx.JoinType = osjtIndex;
-	} else if (JoinType == "field") {
-		JoinDescEx.JoinType = osjtField;
-	} else {
-		throw TQmExcept::New("Unsupported join type");
-	}
-	// get inverse join
-	if (JoinVal->IsObjKey("inverse")){
-		JoinDescEx.InverseJoinName = JoinVal->GetObjStr("inverse");
-	}
-	// get "is small" flag
-	if (JoinVal->IsObjKey("small")) {
-		JoinDescEx.IsSmall = JoinVal->GetObjBool("small");
-	}
-	// done
-	return JoinDescEx;
+    // assert necessary stuff there
+    QmAssertR(JoinVal->IsObjKey("name"), "Missing join name");
+    QmAssertR(JoinVal->IsObjKey("type"), "Missing join type");
+    QmAssertR(JoinVal->IsObjKey("store"), "Missing join store");
+    // parse parameters
+    TStr JoinName = JoinVal->GetObjStr("name");
+    TStr JoinType = JoinVal->GetObjStr("type", "index");
+    TStr JoinStore = JoinVal->GetObjStr("store");
+    // get extra description
+    TJoinDescEx JoinDescEx;
+    JoinDescEx.JoinName = JoinName;
+    JoinDescEx.JoinStoreName = JoinStore;
+    // get join type
+    if (JoinType == "index") {
+        JoinDescEx.JoinType = osjtIndex;
+    } else if (JoinType == "field") {
+        JoinDescEx.JoinType = osjtField;
+    } else {
+        throw TQmExcept::New("Unsupported join type");
+    }
+    // get inverse join
+    if (JoinVal->IsObjKey("inverse")) {
+        JoinDescEx.InverseJoinName = JoinVal->GetObjStr("inverse");
+    }
+    // get "is small" flag
+    JoinDescEx.IsSmall = false;
+    JoinDescEx.RecIdFieldType = oftUInt64;
+    JoinDescEx.FreqFieldType = oftInt;
+    if (JoinVal->IsObjKey("small")) {
+        JoinDescEx.IsSmall = JoinVal->GetObjBool("small");
+        if (JoinDescEx.IsSmall) {
+            JoinDescEx.RecIdFieldType = oftUInt;
+            JoinDescEx.FreqFieldType = oftInt16;
+        }
+    }
+    if (JoinVal->IsObjKey("storage")) {
+        TStr TypeStr = JoinVal->GetObjStr("storage");
+        TStrV Parts;
+        TypeStr.SplitOnAllCh('-', Parts);
+        if (Parts.Len() == 2) {
+            JoinDescEx.RecIdFieldType = (TFieldType)Maps.FieldTypeMap.GetDat(Parts[0]).Val;
+            JoinDescEx.FreqFieldType = (TFieldType)Maps.FieldTypeMap.GetDat(Parts[1]).Val;
+        } else {
+            JoinDescEx.RecIdFieldType = (TFieldType)Maps.FieldTypeMap.GetDat(Parts[0]).Val;
+            JoinDescEx.FreqFieldType = TFieldType::oftUndef; // no field for frequency, value is 1 by default
+        }
+    }
+    // done
+    return JoinDescEx;
 }
 
 TIndexKeyEx TStoreSchema::ParseIndexKeyEx(const PJsonVal& IndexKeyVal) {
-	// check for mandatory fields
-	QmAssertR(IndexKeyVal->IsObjKey("field"), "Missing key-index field");
-	QmAssertR(IndexKeyVal->IsObjKey("type"), "Missing key-index type");
-	// parse out indexed field
-	TIndexKeyEx IndexKeyEx;
-	IndexKeyEx.FieldName = IndexKeyVal->GetObjStr("field");
-	// check if it is a valid field name
-	QmAssertR(FieldH.IsKey(IndexKeyEx.FieldName), "Target field for key-index unknown");
-	// get field type to avoid further lookups when indexing
-	TFieldType FieldType = FieldH.GetDat(IndexKeyEx.FieldName).GetFieldType();
-	// parse out key name, use field name as default
-	IndexKeyEx.KeyIndexName = IndexKeyVal->GetObjStr("name", IndexKeyEx.FieldName);
-	// get and parse key type
+    // check for mandatory fields
+    QmAssertR(IndexKeyVal->IsObjKey("field"), "Missing key-index field");
+    QmAssertR(IndexKeyVal->IsObjKey("type"), "Missing key-index type");
+    // parse out indexed field
+    TIndexKeyEx IndexKeyEx;
+    IndexKeyEx.FieldName = IndexKeyVal->GetObjStr("field");
+    // check if it is a valid field name
+    QmAssertR(FieldH.IsKey(IndexKeyEx.FieldName), "Target field for key-index unknown");
+    // get field type to avoid further lookups when indexing
+    TFieldType FieldType = FieldH.GetDat(IndexKeyEx.FieldName).GetFieldType();
+    // parse out key name, use field name as default
+    IndexKeyEx.KeyIndexName = IndexKeyVal->GetObjStr("name", IndexKeyEx.FieldName);
+    // get and parse key type
 
-	TStr KeyTypeStr = IndexKeyVal->GetObjStr("type");
-	if (KeyTypeStr == "value") {
-		IndexKeyEx.KeyType = oiktValue;
-	} else if (KeyTypeStr == "text") {
-		IndexKeyEx.KeyType = oiktText;
-	} else if (KeyTypeStr == "location") {
-		IndexKeyEx.KeyType = oiktLocation;
+    TStr KeyTypeStr = IndexKeyVal->GetObjStr("type");
+    if (KeyTypeStr == "value") {
+        IndexKeyEx.KeyType = oiktValue;
+    } else if (KeyTypeStr == "text") {
+        IndexKeyEx.KeyType = oiktText;
+    } else if (KeyTypeStr == "location") {
+        IndexKeyEx.KeyType = oiktLocation;
     } else if (KeyTypeStr == "linear") {
         IndexKeyEx.KeyType = oiktLinear;
-	} else {
-		throw TQmExcept::New("Unknown key type " +  KeyTypeStr);
-	}
-	// check if small index should be used
-	if (IndexKeyVal->IsObjKey("small") && IndexKeyVal->GetObjBool("small")) {
-		IndexKeyEx.KeyType = (TIndexKeyType)(IndexKeyEx.KeyType | oiktSmall);
-	}
-	// check field type and index type match
-	if (FieldType == oftStr && IndexKeyEx.IsValue()) {
-	} else if (FieldType == oftStr && IndexKeyEx.IsText()) {
-	} else if (FieldType == oftStrV && IndexKeyEx.IsValue()) {
-	} else if (FieldType == oftTm && IndexKeyEx.IsValue()) {
-	} else if (FieldType == oftFltPr && IndexKeyEx.IsLocation()) {
-	} else if (FieldType == oftByte && IndexKeyEx.IsLinear()) {
+    } else {
+        throw TQmExcept::New("Unknown key type " + KeyTypeStr);
+    }
+    // check if small index should be used
+    if (IndexKeyVal->IsObjKey("small") && IndexKeyVal->GetObjBool("small")) {
+        IndexKeyEx.KeyType = (TIndexKeyType)(IndexKeyEx.KeyType | oiktSmall);
+    }
+    // check field type and index type match
+    if (FieldType == oftStr && IndexKeyEx.IsValue()) {
+    } else if (FieldType == oftStr && IndexKeyEx.IsText()) {
+    } else if (FieldType == oftStrV && IndexKeyEx.IsValue()) {
+    } else if (FieldType == oftTm && IndexKeyEx.IsValue()) {
+    } else if (FieldType == oftFltPr && IndexKeyEx.IsLocation()) {
+    } else if (FieldType == oftByte && IndexKeyEx.IsLinear()) {
     } else if (FieldType == oftInt && IndexKeyEx.IsLinear()) {
-	} else if (FieldType == oftInt16 && IndexKeyEx.IsLinear()) {
-	} else if (FieldType == oftInt64 && IndexKeyEx.IsLinear()) {
-	} else if (FieldType == oftUInt && IndexKeyEx.IsLinear()) {
-	} else if (FieldType == oftUInt16 && IndexKeyEx.IsLinear()) {
+    } else if (FieldType == oftInt16 && IndexKeyEx.IsLinear()) {
+    } else if (FieldType == oftInt64 && IndexKeyEx.IsLinear()) {
+    } else if (FieldType == oftUInt && IndexKeyEx.IsLinear()) {
+    } else if (FieldType == oftUInt16 && IndexKeyEx.IsLinear()) {
     } else if (FieldType == oftUInt64 && IndexKeyEx.IsLinear()) {
     } else if (FieldType == oftTm && IndexKeyEx.IsLinear()) {
     } else if (FieldType == oftFlt && IndexKeyEx.IsLinear()) {
-	} else if (FieldType == oftSFlt && IndexKeyEx.IsLinear()) {
-	} else {
-		// not supported, lets complain about it...
-		throw TQmExcept::New("Indexing '" + KeyTypeStr + "' not supported for field " + IndexKeyEx.FieldName);
-	}
-	// get and parse sort type
-	if (IndexKeyVal->IsObjKey("sort")) {
+    } else if (FieldType == oftSFlt && IndexKeyEx.IsLinear()) {
+    } else {
+        // not supported, lets complain about it...
+        throw TQmExcept::New("Indexing '" + KeyTypeStr + "' not supported for field " + IndexKeyEx.FieldName);
+    }
+    // get and parse sort type
+    if (IndexKeyVal->IsObjKey("sort")) {
         // check if we can even handle sort for this key
         if (!IndexKeyEx.IsValue()) {
             throw TQmExcept::New("Sort only possible for keys of type 'value' and not " + KeyTypeStr);
         }
         // we can, parse out how we sort the values
-		TStr SortTypeStr = IndexKeyVal->GetObjStr("sort");
-		if (SortTypeStr == "string") {
-			IndexKeyEx.SortType = oikstByStr;
-		} else if (SortTypeStr == "id") {
-			IndexKeyEx.SortType = oikstById;
-		} else if (SortTypeStr == "number") {
-			IndexKeyEx.SortType = oikstByFlt;
-		} else {
-			throw TQmExcept::New("Unsupported sort type " + SortTypeStr);
-		}
-	} else if (IndexKeyEx.IsLinear()) {
+        TStr SortTypeStr = IndexKeyVal->GetObjStr("sort");
+        if (SortTypeStr == "string") {
+            IndexKeyEx.SortType = oikstByStr;
+        } else if (SortTypeStr == "id") {
+            IndexKeyEx.SortType = oikstById;
+        } else if (SortTypeStr == "number") {
+            IndexKeyEx.SortType = oikstByFlt;
+        } else {
+            throw TQmExcept::New("Unsupported sort type " + SortTypeStr);
+        }
+    } else if (IndexKeyEx.IsLinear()) {
         // sort type depends on the field type, used by btree
         if (FieldType == oftInt) {
             IndexKeyEx.SortType = oikstAsInt;
-		} else if (FieldType == oftByte) {
-			IndexKeyEx.SortType = oikstAsByte;
-		} else if (FieldType == oftInt16) {
-			IndexKeyEx.SortType = oikstAsInt16;
-		} else if (FieldType == oftInt64) {
-			IndexKeyEx.SortType = oikstAsInt64;
-		} else if (FieldType == oftUInt) {
-			IndexKeyEx.SortType = oikstAsUInt;
-		} else if (FieldType == oftUInt16) {
-			IndexKeyEx.SortType = oikstAsUInt16;
+        } else if (FieldType == oftByte) {
+            IndexKeyEx.SortType = oikstAsByte;
+        } else if (FieldType == oftInt16) {
+            IndexKeyEx.SortType = oikstAsInt16;
+        } else if (FieldType == oftInt64) {
+            IndexKeyEx.SortType = oikstAsInt64;
+        } else if (FieldType == oftUInt) {
+            IndexKeyEx.SortType = oikstAsUInt;
+        } else if (FieldType == oftUInt16) {
+            IndexKeyEx.SortType = oikstAsUInt16;
         } else if (FieldType == oftUInt64) {
             IndexKeyEx.SortType = oikstAsUInt64;
         } else if (FieldType == oftTm) {
             IndexKeyEx.SortType = oikstAsTm;
         } else if (FieldType == oftFlt) {
             IndexKeyEx.SortType = oikstAsFlt;
-		} else if (FieldType == oftSFlt) {
-			IndexKeyEx.SortType = oikstAsSFlt;
+        } else if (FieldType == oftSFlt) {
+            IndexKeyEx.SortType = oikstAsSFlt;
         }
     } else {
-		IndexKeyEx.SortType = oikstUndef;
-	}
-	// parse out word vocabulary
-	IndexKeyEx.WordVocName = IndexKeyVal->GetObjStr("vocabulary", "");
-	// parse out tokenizer
-	if (IndexKeyEx.IsText()) {
-		if (IndexKeyVal->IsObjKey("tokenizer")) {
-			PJsonVal TokenizerVal = IndexKeyVal->GetObjKey("tokenizer");
-			QmAssertR(TokenizerVal->IsObjKey("type"), 
-				"Missing tokenizer type " + TokenizerVal->SaveStr());
-			const TStr& TypeNm = TokenizerVal->GetObjStr("type");
-			IndexKeyEx.Tokenizer = TTokenizer::New(TypeNm, TokenizerVal);
-		} else {
-			IndexKeyEx.Tokenizer = TTokenizers::THtmlUnicode::New();
-		}
-	}
-	return IndexKeyEx;
+        IndexKeyEx.SortType = oikstUndef;
+    }
+    // parse out word vocabulary
+    IndexKeyEx.WordVocName = IndexKeyVal->GetObjStr("vocabulary", "");
+    // parse out tokenizer
+    if (IndexKeyEx.IsText()) {
+        if (IndexKeyVal->IsObjKey("tokenizer")) {
+            PJsonVal TokenizerVal = IndexKeyVal->GetObjKey("tokenizer");
+            QmAssertR(TokenizerVal->IsObjKey("type"),
+                "Missing tokenizer type " + TokenizerVal->SaveStr());
+            const TStr& TypeNm = TokenizerVal->GetObjStr("type");
+            IndexKeyEx.Tokenizer = TTokenizer::New(TypeNm, TokenizerVal);
+        } else {
+            IndexKeyEx.Tokenizer = TTokenizers::THtmlUnicode::New();
+        }
+    }
+    return IndexKeyEx;
 }
 
 TStoreSchema::TStoreSchema(const PJsonVal& StoreVal) : StoreId(0), HasStoreIdP(false) {
@@ -315,11 +334,13 @@ TStoreSchema::TStoreSchema(const PJsonVal& StoreVal) : StoreId(0), HasStoreIdP(f
                 TStr JoinRecFieldNm = JoinDescEx.JoinName + "Id";
                 TStr JoinFqFieldNm = JoinDescEx.JoinName + "Fq";
                 // prepare join field descriptions
-                FieldH.AddDat(JoinRecFieldNm, TFieldDesc(JoinRecFieldNm, (JoinDescEx.IsSmall ? oftUInt : oftUInt64), false, true, true));
-                FieldH.AddDat(JoinFqFieldNm, TFieldDesc(JoinFqFieldNm, (JoinDescEx.IsSmall ? oftInt16 : oftInt), false, true, true));
-                // prepare extended field description
+                FieldH.AddDat(JoinRecFieldNm, TFieldDesc(JoinRecFieldNm, JoinDescEx.RecIdFieldType, false, true, true));
                 FieldExH.AddDat(JoinRecFieldNm, TFieldDescEx(slMemory, false, false));
-                FieldExH.AddDat(JoinFqFieldNm, TFieldDescEx(slMemory, false, false));
+                // prepare extended field description
+                if (JoinDescEx.FreqFieldType != oftUndef) {
+                    FieldExH.AddDat(JoinFqFieldNm, TFieldDescEx(slMemory, false, false));
+                    FieldH.AddDat(JoinFqFieldNm, TFieldDesc(JoinFqFieldNm, JoinDescEx.FreqFieldType, false, true, true));
+                }
             }
             // remember join
             JoinDescExV.Add(JoinDescEx);
@@ -3031,108 +3052,110 @@ PStoreIter TStoreImpl::BackwardIter() const {
 }
 
 uint64 TStoreImpl::AddRec(const PJsonVal& RecVal, const bool& TriggerEvents) {
-	// check if we are given reference to existing record
-	try {        
-		// parse out record id, if referred directly
-		{
-			const uint64 RecId = TStore::GetRecId(RecVal);
-			if (IsRecId(RecId)) {
-				// check if we have anything more than record identifier, which would require calling UpdateRec
-				if (RecVal->GetObjKeys() > 1) { UpdateRec(RecId, RecVal); }
-				// return named record
-				return RecId;
-			}
-		}
-		// check if we have a primary field
-		if (IsPrimaryField()) {
-			uint64 PrimaryRecId = TUInt64::Mx;        
-			// primary field cannot be nullable, so we must have it
-			const TStr& PrimaryField = GetFieldNm(PrimaryFieldId);
-			QmAssertR(RecVal->IsObjKey(PrimaryField), "Missing primary field in the record: " + PrimaryField);
-			// parse based on the field type
-			if (PrimaryFieldType == oftStr) {
-				TStr FieldVal = RecVal->GetObjStr(PrimaryField);
-				if (PrimaryStrIdH.IsKey(FieldVal)) {
-					PrimaryRecId = PrimaryStrIdH.GetDat(FieldVal);
-				}
-			} else if (PrimaryFieldType == oftInt) {
-				const int FieldVal = RecVal->GetObjInt(PrimaryField);
-				if (PrimaryIntIdH.IsKey(FieldVal)) {
-					PrimaryRecId = PrimaryIntIdH.GetDat(FieldVal);
-				}
-			} else if (PrimaryFieldType == oftUInt64) {
-				const uint64 FieldVal = RecVal->GetObjUInt64(PrimaryField);
-				if (PrimaryUInt64IdH.IsKey(FieldVal)) {
-					PrimaryRecId = PrimaryUInt64IdH.GetDat(FieldVal);
-				}
-			} else if (PrimaryFieldType == oftFlt) {
-				const double FieldVal = RecVal->GetObjNum(PrimaryField);
-				if (PrimaryFltIdH.IsKey(FieldVal)) {
-					PrimaryRecId = PrimaryFltIdH.GetDat(FieldVal);
-				}
-			} else if (PrimaryFieldType == oftTm) {
-				const uint64 FieldVal = RecVal->GetObjTmMSecs(PrimaryField);
-				if (PrimaryTmMSecsIdH.IsKey(FieldVal)) {
-					PrimaryRecId = PrimaryTmMSecsIdH.GetDat(FieldVal);
-				}
-			} else {
-				EAssertR(false, "Unsupported primary-field type");
-			}
-			// check if we found primary field with existing value
-			if (PrimaryRecId != TUInt64::Mx) {
-				// check if we have anything more than primary field, which would require redirect to UpdateRec
-				if (RecVal->GetObjKeys() > 1) { UpdateRec(PrimaryRecId, RecVal); }
-				// return id of named record
-				return PrimaryRecId;
-			}
-		}
-	} catch (const PExcept& Except) {
-		// error parsing, report error and return nothing
-		ErrorLog("[TStoreImpl::AddRec] Error parsing out reference to existing record:");
-		ErrorLog(Except->GetMsgStr());
-		return TUInt64::Mx;
-	}
+    // check if we are given reference to existing record
+    try {
+        // parse out record id, if referred directly
+        {
+            const uint64 RecId = TStore::GetRecId(RecVal);
+            if (IsRecId(RecId)) {
+                // check if we have anything more than record identifier, which would require calling UpdateRec
+                if (RecVal->GetObjKeys() > 1) { UpdateRec(RecId, RecVal); }
+                // return named record
+                return RecId;
+            }
+        }
+        // check if we have a primary field
+        if (IsPrimaryField()) {
+            uint64 PrimaryRecId = TUInt64::Mx;
+            // primary field cannot be nullable, so we must have it
+            const TStr& PrimaryField = GetFieldNm(PrimaryFieldId);
+            QmAssertR(RecVal->IsObjKey(PrimaryField), "Missing primary field in the record: " + PrimaryField);
+            // parse based on the field type
+            if (PrimaryFieldType == oftStr) {
+                TStr FieldVal = RecVal->GetObjStr(PrimaryField);
+                if (PrimaryStrIdH.IsKey(FieldVal)) {
+                    PrimaryRecId = PrimaryStrIdH.GetDat(FieldVal);
+                }
+            } else if (PrimaryFieldType == oftInt) {
+                const int FieldVal = RecVal->GetObjInt(PrimaryField);
+                if (PrimaryIntIdH.IsKey(FieldVal)) {
+                    PrimaryRecId = PrimaryIntIdH.GetDat(FieldVal);
+                }
+            } else if (PrimaryFieldType == oftUInt64) {
+                const uint64 FieldVal = RecVal->GetObjUInt64(PrimaryField);
+                if (PrimaryUInt64IdH.IsKey(FieldVal)) {
+                    PrimaryRecId = PrimaryUInt64IdH.GetDat(FieldVal);
+                }
+            } else if (PrimaryFieldType == oftFlt) {
+                const double FieldVal = RecVal->GetObjNum(PrimaryField);
+                if (PrimaryFltIdH.IsKey(FieldVal)) {
+                    PrimaryRecId = PrimaryFltIdH.GetDat(FieldVal);
+                }
+            } else if (PrimaryFieldType == oftTm) {
+                const uint64 FieldVal = RecVal->GetObjTmMSecs(PrimaryField);
+                if (PrimaryTmMSecsIdH.IsKey(FieldVal)) {
+                    PrimaryRecId = PrimaryTmMSecsIdH.GetDat(FieldVal);
+                }
+            } else {
+                EAssertR(false, "Unsupported primary-field type");
+            }
+            // check if we found primary field with existing value
+            if (PrimaryRecId != TUInt64::Mx) {
+                // check if we have anything more than primary field, which would require redirect to UpdateRec
+                if (RecVal->GetObjKeys() > 1) { UpdateRec(PrimaryRecId, RecVal); }
+                // return id of named record
+                return PrimaryRecId;
+            }
+        }
+    } catch (const PExcept& Except) {
+        // error parsing, report error and return nothing
+        ErrorLog("[TStoreImpl::AddRec] Error parsing out reference to existing record:");
+        ErrorLog(Except->GetMsgStr());
+        return TUInt64::Mx;
+    }
 
-	// always add system field that means "inserted_at"
-	RecVal->AddToObj(TStoreWndDesc::SysInsertedAtFieldName, TTm::GetCurUniTm().GetStr());
+    // always add system field that means "inserted_at"
+    RecVal->AddToObj(TStoreWndDesc::SysInsertedAtFieldName, TTm::GetCurUniTm().GetStr());
 
-	// for storing record id
-	uint64 RecId = TUInt64::Mx;    
-	uint64 CacheRecId = TUInt64::Mx;    
-	uint64 MemRecId = TUInt64::Mx;        
-	// store to disk storage
-	if (DataCacheP) {
-		TMem CacheRecMem; SerializatorCache->Serialize(RecVal, CacheRecMem, this);
-		CacheRecId = DataCache.AddVal(CacheRecMem);
-		RecId = CacheRecId;
-		// index new record
-		RecIndexer.IndexRec(CacheRecMem, RecId, *SerializatorCache);
-	}
-	// store to in-memory storage
-	if (DataMemP) {
-		TMem MemRecMem; SerializatorMem->Serialize(RecVal, MemRecMem, this);
-		MemRecId = DataMem.AddVal(MemRecMem);
-		RecId = MemRecId;
-		// index new record
-		RecIndexer.IndexRec(MemRecMem, RecId, *SerializatorMem);
-	}
-	// make sure we are consistent with respect to Ids!
-	if (DataCacheP && DataMemP) {
-		EAssert(CacheRecId == MemRecId);
-	}
-	
-	// remember value-recordId map when primary field available
-	if (IsPrimaryField()) { SetPrimaryField(RecId); }
-	
-	// insert nested join records
-	AddJoinRec(RecId, RecVal);
-	// call add triggers
-	if (TriggerEvents) {
-		OnAdd(RecId);
-	}
-	
-	// return record Id of the new record
-	return RecId;
+    // for storing record id
+    uint64 RecId = TUInt64::Mx;
+    uint64 CacheRecId = TUInt64::Mx;
+    uint64 MemRecId = TUInt64::Mx;
+    // store to disk storage
+    if (DataCacheP) {
+        TMem CacheRecMem;
+        SerializatorCache->Serialize(RecVal, CacheRecMem, this);
+        CacheRecId = DataCache.AddVal(CacheRecMem);
+        RecId = CacheRecId;
+        // index new record
+        RecIndexer.IndexRec(CacheRecMem, RecId, *SerializatorCache);
+    }
+    // store to in-memory storage
+    if (DataMemP) {
+        TMem MemRecMem;
+        SerializatorMem->Serialize(RecVal, MemRecMem, this);
+        MemRecId = DataMem.AddVal(MemRecMem);
+        RecId = MemRecId;
+        // index new record
+        RecIndexer.IndexRec(MemRecMem, RecId, *SerializatorMem);
+    }
+    // make sure we are consistent with respect to Ids!
+    if (DataCacheP && DataMemP) {
+        EAssert(CacheRecId == MemRecId);
+    }
+
+    // remember value-recordId map when primary field available
+    if (IsPrimaryField()) { SetPrimaryField(RecId); }
+
+    // insert nested join records
+    AddJoinRec(RecId, RecVal);
+    // call add triggers
+    if (TriggerEvents) {
+        OnAdd(RecId);
+    }
+
+    // return record Id of the new record
+    return RecId;
 }
 
 void TStoreImpl::UpdateRec(const uint64& RecId, const PJsonVal& RecVal) {    
@@ -4948,9 +4971,11 @@ TVec<TWPt<TStore> > CreateStoresFromSchema(const TWPt<TBase>& Base, const PJsonV
             if (JoinDescEx.JoinType == osjtField) {
                 // field join
                 int JoinRecFieldId = Store->GetFieldId(JoinDescEx.JoinName + "Id");
-                int JoinFqFieldId = Store->GetFieldId(JoinDescEx.JoinName + "Fq");
-                Store->AddJoinDesc(TJoinDesc(JoinDescEx.JoinName,
-                    JoinStore->GetStoreId(), JoinRecFieldId, JoinFqFieldId));
+                int JoinFqFieldId = -1; // frequency field is optional - in that case store -1
+                if (Store->IsFieldNm(JoinDescEx.JoinName + "Fq")) {
+                    JoinFqFieldId = Store->GetFieldId(JoinDescEx.JoinName + "Fq");
+                }
+                Store->AddJoinDesc(TJoinDesc(JoinDescEx.JoinName, JoinStore->GetStoreId(), JoinRecFieldId, JoinFqFieldId));
             } else if (JoinDescEx.JoinType == osjtIndex) {
                 // index join
                 Store->AddJoinDesc(TJoinDesc(JoinDescEx.JoinName,
