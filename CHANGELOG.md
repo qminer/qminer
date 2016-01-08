@@ -17,6 +17,15 @@ Bug fixes:
 Other:
 - Added tests and documentation for Tokenizer and PCA
 
+### 24 Dec 2015
+
+**New version: 4.0.1**
+
+**patch**
+
+Bug fixes:
+- Fixed reflexion of storage related objects (example: store.allRecords now reports to be a getter instead of a value). API was not changed. This fixes Tonic crashes.
+
 ### 18 Dec 2015
 
 **New version: 4.0.0**
