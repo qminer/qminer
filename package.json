@@ -1,8 +1,10 @@
 {
   "name": "qminer",
-  "version": "4.0.1",
+  "version": "4.1.0",
   "description": "A C++ based data analytics platform for processing large-scale real-time streams containing structured and unstructured data",
-  "engines" : { "node" : ">=0.12" },
+  "engines": {
+    "node": ">=0.12"
+  },
   "license": "BSD-2-Clause-FreeBSD",
   "author": "Blaz Fortuna <blaz@blazfortuna.com>",
   "contributors": [
