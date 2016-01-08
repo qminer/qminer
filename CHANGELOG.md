@@ -2,9 +2,9 @@
 
 ### 8 Jan 2016
 
-** New version: 4.1.0 **
+**New version: 4.1.0**
 
-** non-breaking with new features **
+**non-breaking with new features**
 
 Features:
 - Stream aggregate `TEmaSpVec` - exponential moving average for sparse vectors.
