@@ -24,7 +24,8 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">PropHazards</span></h1>
+            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div>
+            <h1><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">PropHazards</span></h1>
             <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1120">analyticsdoc.<wbr>js:1120</a></p>
             <dl class="dl-compact">
             </dl>
@@ -89,9 +90,9 @@
         </h3>
               <div>
                 <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
 // create a Proportional Hazard model
-var hazard = new analytics.PropHazards();</code></pre>
+var hazard &#x3D; new analytics.PropHazards();</code></pre>
               </div>
             </section>
             <section>
@@ -144,13 +145,13 @@ var hazard = new analytics.PropHazards();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create the Proportional Hazards model
-var hazards = new analytics.PropHazards();
+var hazards &#x3D; new analytics.PropHazards();
 // create the input matrix and vector for fitting the model
-var mat = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
-var vec = new la.Vector([1, 0, -1, -2]);
+var mat &#x3D; new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+var vec &#x3D; new la.Vector([1, 0, -1, -2]);
 // if openblas used, fit the model
 if (require(&#x27;qminer&#x27;).flags.blas) {
     hazards.fit(mat, vec);
@@ -228,11 +229,11 @@ if (require(&#x27;qminer&#x27;).flags.blas) {
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
 // create a Proportional Hazard model
-var hazard = new analytics.PropHazards({ lambda: 5 });
+var hazard &#x3D; new analytics.PropHazards({ lambda: 5 });
 // get the parameters of the model
-var param = hazard.getParams();</code></pre>
+var param &#x3D; hazard.getParams();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -249,21 +250,21 @@ var param = hazard.getParams();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create the Proportional Hazards model
-var hazards = new analytics.PropHazards();
+var hazards &#x3D; new analytics.PropHazards();
 // create the input matrix and vector for fitting the model
-var mat = new la.Matrix([[1, 1], [1, -1]]);
-var vec = new la.Vector([3, 3]);
+var mat &#x3D; new la.Matrix([[1, 1], [1, -1]]);
+var vec &#x3D; new la.Vector([3, 3]);
 // if openblas used
 if (require(&#x27;qminer&#x27;).flags.blas) {
     // fit the model
     hazards.fit(mat, vec);       
     // create a vector for the prediction
-     var test = new la.Vector([1, 2]);
+     var test &#x3D; new la.Vector([1, 2]);
     // predict the value
-    var prediction = hazards.predict(test);
+    var prediction &#x3D; hazards.predict(test);
 };</code></pre>
                 </div>
               </section>
@@ -310,26 +311,26 @@ if (require(&#x27;qminer&#x27;).flags.blas) {
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
-var fs = require(&#x27;qminer&#x27;).fs;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
 // create the Proportional Hazards model
-var hazards = new analytics.PropHazards();
+var hazards &#x3D; new analytics.PropHazards();
 // create the input matrix and vector for fitting the model
-var mat = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
-var vec = new la.Vector([1, 0, -1, -2]);
+var mat &#x3D; new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+var vec &#x3D; new la.Vector([1, 0, -1, -2]);
 // if openblas used, fit the model
 if (require(&#x27;qminer&#x27;).flags.blas) {
     hazards.fit(mat, vec);
 };
 // create an output stream and save the model
-var fout = fs.openWrite(&#x27;hazards_example.bin&#x27;);
+var fout &#x3D; fs.openWrite(&#x27;hazards_example.bin&#x27;);
 hazards.save(fout);
 fout.close();
 // create input stream
-var fin = fs.openRead(&#x27;hazards_example.bin&#x27;);
+var fin &#x3D; fs.openRead(&#x27;hazards_example.bin&#x27;);
 // create a Proportional Hazards object that loads the model and parameters from input stream
-var hazards2 = new analytics.PropHazards(fin);	</code></pre>
+var hazards2 &#x3D; new analytics.PropHazards(fin);	</code></pre>
                 </div>
               </section>
               <section>
@@ -375,9 +376,9 @@ var hazards2 = new analytics.PropHazards(fin);	</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
 // create a Proportional Hazard model
-var hazard = new analytics.PropHazards({ lambda: 5 });
+var hazard &#x3D; new analytics.PropHazards({ lambda: 5 });
 // set the parameters of the model
 hazard.setParams({ lambda: 10 });</code></pre>
                 </div>

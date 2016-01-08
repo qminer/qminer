@@ -20,7 +20,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
@@ -103,6 +102,7 @@
     <ClCompile Include="..\..\src\third_party\sole\sole.cpp" />
     <ClCompile Include="run-all-tests.cpp" />
     <ClCompile Include="test-aggr.cpp" />
+    <ClCompile Include="test-TEmaSpVec.cpp" />
     <ClCompile Include="test-TGix.cpp" />
     <ClCompile Include="test-THash.cpp" />
     <ClCompile Include="test-TStr.cpp" />

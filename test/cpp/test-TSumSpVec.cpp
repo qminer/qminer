@@ -70,7 +70,7 @@ TEST(TSumSpVec, Simple1) {
 
 		EXPECT_EQ(sum.GetTmMSecs(), timestamp3);
 		TIntFltKdV res3(sum.GetValue());
-		sum.Pack(res3);
+		//sum.Pack(res3);
 		EXPECT_EQ(res3.Len(), 2);
 		EXPECT_EQ(res3[0].Key, 5);
 		EXPECT_EQ(res3[0].Dat, 5.0);
