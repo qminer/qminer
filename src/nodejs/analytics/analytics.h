@@ -1794,6 +1794,8 @@ public:
 	 */
 	JsDeclareFunction(setStateName);
 
+	JsDeclareFunction(setStateCoords);
+
 	/**
 	 * Sets the name of the state.
 	 *

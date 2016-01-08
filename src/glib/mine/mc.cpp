@@ -2526,6 +2526,18 @@ const TFltPr& TUiHelper::GetStateCoords(const int& StateId) const {
 	return StateCoordV[StateId];
 }
 
+void TUiHelper::SetStateCoords(const int& StateId, const double& x, const double& y) {
+	EAssertR(0 <= StateId && StateId < StateCoordV.Len(), TStr::Fmt("Invalid state id: %d", StateId));
+	StateCoordV[StateId].Val1 = x;
+	StateCoordV[StateId].Val2 = y;
+}
+
+void TUiHelper::SetStateCoords(const TFltPrV& CoordV) {
+	for (int StateId = 0; StateId < CoordV.Len(); StateId++) {
+		SetStateCoords(StateId, CoordV[StateId].Val1, CoordV[StateId].Val2);
+	}
+}
+
 void TUiHelper::GetStateRadiusV(const TFltV& ProbV, TFltV& RadiusV) const {
 	RadiusV.Gen(ProbV.Len());
 	for (int i = 0; i < ProbV.Len(); i++) {
@@ -3408,6 +3420,15 @@ void TStreamStory::SetStateNm(const int& StateId, const TStr& StateNm) {
 		Hierarch->SetStateNm(StateId, StateNm);
 	} catch (const PExcept& Except) {
 		Notify->OnNotifyFmt(TNotifyType::ntErr, "TStreamStory::SetStateNm: Failed to set name of state %d: %s", StateId, Except->GetMsgStr().CStr());
+		throw Except;
+	}
+}
+
+void TStreamStory::SetStatePosV(const TFltPrV& PosV) {
+	try {
+		UiHelper->SetStateCoords(PosV);
+	} catch (const PExcept& Except) {
+		Notify->OnNotifyFmt(TNotifyType::ntErr, "TStreamStory::SetStatePosV: Failed to set state positions: %s", Except->GetMsgStr().CStr());
 		throw Except;
 	}
 }

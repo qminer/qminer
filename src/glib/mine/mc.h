@@ -701,6 +701,8 @@ public:
 			const TTransitionModeler& MChain);
 
 	const TFltPr& GetStateCoords(const int& StateId) const;
+	void SetStateCoords(const int& StateId, const double& x, const double& y);
+	void SetStateCoords(const TFltPrV& CoordV);
 	void GetStateRadiusV(const TFltV& ProbV, TFltV& SizeV) const;
 
 private:
@@ -863,6 +865,7 @@ public:
 
     // sets the name of the specified state
     void SetStateNm(const int& StateId, const TStr& StateNm);
+    void SetStatePosV(const TFltPrV& PosV);
 
     // control features
     void SetControlFtrVal(const int& StateId, const int& ContrFtrId, const double& Val);

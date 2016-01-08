@@ -1494,6 +1494,7 @@ void TNodeJsStreamStory::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "rebuildHistograms", _rebuildHistograms);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStateName", _getStateName);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "setStateName", _setStateName);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "setStateCoords", _setStateCoords);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "clearStateName", _clearStateName);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "isTarget", _isTarget);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "setTarget", _setTarget);
@@ -2114,6 +2115,30 @@ void TNodeJsStreamStory::setStateName(const v8::FunctionCallbackInfo<v8::Value>&
 
 	JsMChain->StreamStory->SetStateNm(StateId, StateNm);
 
+	Args.GetReturnValue().Set(v8::Undefined(Isolate));
+}
+
+void TNodeJsStreamStory::setStateCoords(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+
+	const PJsonVal PosJsonArr = TNodeJsUtil::GetArgJson(Args, 0);
+
+	TFltPrV PosV(JsStreamStory->StreamStory->GetStates());
+	for (int i = 0; i < PosJsonArr->GetArrVals(); i++) {
+		const PJsonVal StateJson = PosJsonArr->GetArrVal(i);
+		const PJsonVal PosJson = StateJson->GetObjKey("position");
+
+		const int StateId = StateJson->GetObjInt("id");
+		const double x = PosJson->GetObjNum("x");
+		const double y = PosJson->GetObjNum("y");
+
+		PosV[StateId] = TFltPr(x, y);
+	}
+
+	JsStreamStory->StreamStory->SetStatePosV(PosV);
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 
