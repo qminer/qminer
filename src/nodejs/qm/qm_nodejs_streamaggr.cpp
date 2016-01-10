@@ -62,6 +62,8 @@ void TNodeJsStreamAggr::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getInValueVector", _getInValueVector);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getOutValueVector", _getOutValueVector);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getValueVector", _getValueVector);
+	
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getFeatureSpace", _getFeatureSpace);
 
 	// Properties
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "name"), _name);
@@ -564,6 +566,25 @@ void TNodeJsStreamAggr::getOutValueVector(const v8::FunctionCallbackInfo<v8::Val
 	}
 }
 
+void TNodeJsStreamAggr::getFeatureSpace(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	// unwrap
+	TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+
+	// try to cast as IFtrSpace
+	TWPt<TQm::TStreamAggrOut::IFtrSpace > Aggr = dynamic_cast<TQm::TStreamAggrOut::IFtrSpace *>(JsSA->SA());
+
+	if (!Aggr.Empty()) {
+		TQm::PFtrSpace FtrSpace = Aggr->GetFtrSpace();		
+		Args.GetReturnValue().Set(
+			TNodeJsUtil::NewInstance<TNodeJsFtrSpace>(new TNodeJsFtrSpace(FtrSpace)));
+	} else {
+		throw TQm::TQmExcept::New("TNodeJsStreamAggr::getFeatureSpace : stream aggregate does not implement IFtrSpace: " + JsSA->SA->GetAggrNm());
+	}
+}
+
 void TNodeJsStreamAggr::getValueVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
@@ -580,25 +601,20 @@ void TNodeJsStreamAggr::getValueVector(const v8::FunctionCallbackInfo<v8::Value>
 		TFltV Res;
 		AggrFlt->GetValV(Res);
 		Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Res));
-	}
-	else if (!AggrSpV.Empty()){
+	} else if (!AggrSpV.Empty()){
 		TVec<TIntFltKdV> Res;
 		AggrSpV->GetValV(Res);
 		Args.GetReturnValue().Set(
 			TNodeJsUtil::NewInstance<TNodeJsSpMat>(new TNodeJsSpMat(Res)));
-	} 
-	else if (!SpV.Empty()) {
+	} else if (!SpV.Empty()) {
 		TIntFltKdV Res;
 		SpV->GetValV(Res);
 		Args.GetReturnValue().Set(
 			TNodeJsUtil::NewInstance<TNodeJsSpVec>(new TNodeJsSpVec(Res)));
-	}
-	else {
+	} else {
 		throw TQm::TQmExcept::New("TNodeJsStreamAggr::getValueVector : stream aggregate does not implement IValVec: " + JsSA->SA->GetAggrNm());
 	}
 }
-
-
 
 void TNodeJsStreamAggr::name(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();

@@ -1059,6 +1059,12 @@ public:
 	*/
 	//# exports.NearestNeighborAD.prototype.explain = function(x) { return {}; }
 	JsDeclareFunction(explain);
+
+	/**
+	* Returns true when the model has enough data to initialize.
+	*/
+	//# exports.NearestNeighborAD.prototype.init = false;
+	JsDeclareProperty(init);
 };
 
 ///////////////////////////////
