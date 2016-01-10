@@ -1022,9 +1022,9 @@ void TNodeJsSpVec::normalize(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     if (JsSpVec->Vec.Len() > 0) {
         TLinAlg::Normalize(JsSpVec->Vec);
-    } // XXX: Otherwise, throw an exception? 
+    }
 
-    Args.GetReturnValue().Set(v8::Boolean::New(Isolate, true));
+    Args.GetReturnValue().Set(Args.Holder());
 }
 
 void TNodeJsSpVec::norm(const v8::FunctionCallbackInfo<v8::Value>& Args) {

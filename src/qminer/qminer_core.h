@@ -26,6 +26,7 @@ class TAggr; typedef TPt<TAggr> PAggr;
 class TStreamAggr; typedef TPt<TStreamAggr> PStreamAggr;
 class TStreamAggrBase; typedef TPt<TStreamAggrBase> PStreamAggrBase;
 class TFtrExt; typedef TPt<TFtrExt> PFtrExt;
+class TFtrSpace; typedef TPt<TFtrSpace> PFtrSpace;
 
 ///////////////////////////////
 /// QMiner Environment.
@@ -3330,6 +3331,12 @@ namespace TStreamAggrOut {
 		virtual bool IsNm(const TStr& Nm) const = 0;
 		virtual double GetNmInt(const TStr& Nm) const = 0;
 		virtual void GetNmIntV(TStrIntPrV& NmIntV) const = 0;
+	};
+
+	class IFtrSpace {
+	public:
+		// get feature space
+		virtual PFtrSpace GetFtrSpace() const = 0;
 	};
 }
 ///////////////////////////////
