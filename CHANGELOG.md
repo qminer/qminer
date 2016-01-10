@@ -1,5 +1,31 @@
 # QMiner Change Log
 
+### 8 Jan 2016
+
+**New version: 4.1.0**
+
+**non-breaking with new features**
+
+Features:
+- Stream aggregate `TEmaSpVec` - exponential moving average for sparse vectors.
+
+Bug fixes:
+- `TNodeJsFuncStreamAggr` supports the `IsInit` method of the `TStreamAggr` interface provided by `init` function. Added unit tests.
+- `TOnlineHistogram` supports additional init logic by specifying minimum count (when we have less than the given min, init is false).
+- Code for new `int16` and `int64` types was copy-pasted in one place and not fixed.
+
+Other:
+- Added tests and documentation for Tokenizer and PCA
+
+### 24 Dec 2015
+
+**New version: 4.0.1**
+
+**patch**
+
+Bug fixes:
+- Fixed reflexion of storage related objects (example: store.allRecords now reports to be a getter instead of a value). API was not changed. This fixes Tonic crashes.
+
 ### 18 Dec 2015
 
 **New version: 4.0.0**
