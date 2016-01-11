@@ -3485,6 +3485,15 @@ const TFltPr& TStreamStory::GetFtrBounds(const int& FtrId) const {
 	}
 }
 
+const TStr& TStreamStory::GetStateLabel(const int& StateId) const {
+	try {
+		return Hierarch->GetStateLabel(StateId);
+	} catch (const PExcept& Except) {
+		Notify->OnNotifyFmt(TNotifyType::ntErr, "TStreamStory::GetStateLabel: Failed to get label of state %d: %s", StateId, Except->GetMsgStr().CStr());
+		throw Except;
+	}
+}
+
 const TStr& TStreamStory::GetStateNm(const int& StateId) const {
 	try {
 		return Hierarch->GetStateNm(StateId);

@@ -876,6 +876,7 @@ public:
     bool IsAnyControlFtrSet() const;
 
     const TFltPr& GetFtrBounds(const int& FtrId) const;
+    const TStr& GetStateLabel(const int& StateId) const;
     const TStr& GetStateNm(const int& StateId) const;
 
     // get/set parameters
