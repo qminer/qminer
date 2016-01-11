@@ -437,12 +437,12 @@ public:
 
 	/// Load stream aggregate state from stream
 	void LoadState(TSIn& SIn) {
-		TStreamAggr::LoadState(SIn);
+		TWinBuf<TIntFltKdV>::LoadState(SIn);
 		FtrSpace->Load(Store->GetBase(), SIn);
 	}
 	/// Save state of stream aggregate to stream
 	void SaveState(TSOut& SOut) const {
-		TStreamAggr::SaveState(SOut);
+		TWinBuf<TIntFltKdV>::SaveState(SOut);
 		FtrSpace->Save(SOut);
 	}
 

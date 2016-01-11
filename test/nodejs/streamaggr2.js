@@ -1007,6 +1007,37 @@ describe('Time Series Window Buffer Feature Extractor', function () {
         });
     });
 
+	describe('WinBuf Feature serialzie/desiralize', function () {
+        it('should save and load the stream aggregate', function () {
+            var aggr = {
+                name: 'featureSpaceWindow',
+                type: 'timeSeriesWinBufFeatureSpace',
+                store: 'Docs',
+                timestamp: 'Time',
+                featureSpace: {
+                    type: "categorical",
+                    source: "Docs",
+                    field: "Text"
+                },
+                winsize: 1000
+            };
+            var sa = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Text: 'a' }); // 0
+            store.push({ Time: '2015-06-10T14:13:33.0', Text: 'b' }); // 1
+            store.push({ Time: '2015-06-10T14:14:34.0', Text: 'c' }); // 2
+            store.push({ Time: '2015-06-10T14:15:35.0', Text: 'd' }); // 3
+            store.push({ Time: '2015-06-10T14:15:36.0', Text: 'e' }); // 4
+			store.push({ Time: '2015-06-10T14:15:37.0', Text: 'f' }); // 5
+			
+			var fout = qm.fs.openWrite('fsWinBuf.bin');
+			sa.save(fout).close();
+			var fin = qm.fs.openRead('fsWinBuf.bin');
+            sa.load(fin);
+		    var featureSpace = sa.getFeatureSpace();
+		    assert.equal(featureSpace.dim, 6);
+        });
+    });
+
     describe('Complex Tests', function () {
         it('should construct the time-series window-buffer and attach sum to it', function () {
             var aggr = {
