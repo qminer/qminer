@@ -5,11 +5,55 @@
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
+
+var qm = require('qminer');
+var assert = require('assert');
+
+function CreateBase(type, type2) {
+    var base = new qm.Base({
+        mode: 'createClean',
+        schema: [
+            {
+                name: 'People',
+                fields: [{ name: 'name', type: 'string', primary: true }],
+                joins: [{ name: 'friends', type: 'index', store: 'People', storage: type + "-" + type2 }]
+            }
+        ]
+    });    
+    return base;
+}
+
+function FillAndCheck(base) {
+    var id1 = base.store('People').push({ name: "John" });
+    var id2 = base.store('People').push({ name: "Mary" });
+    var id3 = base.store('People').push({ name: "Jim" });
+
+    base.store('People')[id1].$addJoin('friends', id2, 7);
+    base.store('People')[id1].$addJoin('friends', id3, 8);
+
+    base.store('People')[id2].$addJoin('friends', base.store('People')[id1], 9);
+    base.store('People')[id2].$addJoin('friends', base.store('People')[id2], 3);
+
+    assert(base.store('People')[id1].friends.length == 2);
+    assert(base.store('People')[id1].friends[0].name == "Mary");
+    assert(base.store('People')[id1].friends[0].$fq == 7);
+    assert(base.store('People')[id1].friends[1].name == "Jim");
+    assert(base.store('People')[id1].friends[1].$fq == 8);
+    
+    assert(base.store('People')[id2].friends.length == 2);
+    assert(base.store('People')[id2].friends[0].name == "John");
+    assert(base.store('People')[id2].friends[0].$fq == 9);
+    assert(base.store('People')[id2].friends[1].name == "Mary");
+    assert(base.store('People')[id2].friends[1].$fq == 3);
+
+    //base.store('People')[id2].friends.each(function (rec) { console.log(rec.name); });
+
+    base.close();    
+}
+
 describe('Join Tests', function () {
     it('should pass', function () {
 
-        var qm = require('qminer');
-        var assert = require('assert');
         var base = new qm.Base({
             mode: 'createClean',
             schema: [
@@ -20,22 +64,26 @@ describe('Join Tests', function () {
               }
             ]
         });
+        FillAndCheck(base)
+    })
+});
 
-        var id1 = base.store('People').push({ name: "John" });
-        var id2 = base.store('People').push({ name: "Mary" });
-        var id3 = base.store('People').push({ name: "Jim" });
 
-        base.store('People')[id1].$addJoin('friends', id2);
-        base.store('People')[id1].$addJoin('friends', id3);
+describe('Different join-field-type tests', function () {
+    this.timeout(15000);
+    it('should pass', function () {
+        var rec_id_types = ["uint64", "uint", "uint16", "byte"];
+        var freq_types = ["uint64", "uint", "uint16", "byte", "int64", "int", "int16", ""];
 
-        base.store('People')[id2].$addJoin('friends', base.store('People')[id1]);
-        base.store('People')[id2].$addJoin('friends', base.store('People')[id2]);
-
-        assert(base.store('People')[id1].friends.length == 2);
-        assert(base.store('People')[id2].friends.length == 2);
-
-        //base.store('People')[id2].friends.each(function (rec) { console.log(rec.name); });
-
-        base.close();
+        for (var i = 0 ; i < rec_id_types.length; i++) {
+            for (var j = 0 ; j < freq_types.length; j++) {
+                var rec_id_type = rec_id_types[i];
+                var freq_type = freq_types[j]; 
+                
+                console.log(rec_id_type, freq_type);
+                var base = CreateBase(rec_id_type, freq_type);
+                FillAndCheck(base);
+            }    
+        }
     })
 });
