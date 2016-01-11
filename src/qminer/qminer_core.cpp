@@ -2237,9 +2237,30 @@ PRecSet TRec::ToRecSet() const {
 	return IsDef() ? TRecSet::New(Store, RecId) : TRecSet::New(Store);
 }
 
+int TRec::GetFieldJoinFq(const int& JoinId) const {
+    if (!Store->IsJoinId(JoinId)) {
+        return -1;
+    }
+    const TJoinDesc& JoinDesc = Store->GetJoinDesc(JoinId);
+    return GetFieldJoinFq(JoinDesc);
+}
+
+int TRec::GetFieldJoinFq(const TJoinDesc& JoinDesc) const {
+    if (!JoinDesc.IsFieldJoin()) {
+        return -1;
+    }
+    // get join weight
+    const int JoinFqFieldId = JoinDesc.GetJoinFqFieldId();
+    int JoinRecFq = 1;
+    if (JoinFqFieldId > 0) {
+        JoinRecFq = GetFieldIntSafe(JoinFqFieldId);
+    }
+    return JoinRecFq;
+}
+
 PRecSet TRec::DoJoin(const TWPt<TBase>& Base, const int& JoinId) const {
     // get join info
-    AssertR(Store->IsJoinId(JoinId), "Wrong Join ID");
+    QmAssertR(Store->IsJoinId(JoinId), "Wrong Join ID");
     const TJoinDesc& JoinDesc = Store->GetJoinDesc(JoinId);
     // check if index join
     if (JoinDesc.IsIndexJoin()) {
@@ -2268,14 +2289,7 @@ PRecSet TRec::DoJoin(const TWPt<TBase>& Base, const int& JoinId) const {
         const uint64 JoinRecId = IsFieldNull(JoinRecFieldId) ? TUInt64::Mx : GetFieldUInt64Safe(JoinRecFieldId);
         // return record set
         if (JoinRecId != TUInt64::Mx) {
-            // get join weight
-            const int JoinFqFieldId = JoinDesc.GetJoinFqFieldId();
-            int JoinRecFq = 1;
-            if (JoinFqFieldId > 0) {
-                JoinRecFq = GetFieldIntSafe(JoinFqFieldId);
-            }            
-            // return record
-            return TRecSet::New(JoinDesc.GetJoinStore(Base), JoinRecId, JoinRecFq);
+            return TRecSet::New(JoinDesc.GetJoinStore(Base), JoinRecId, GetFieldJoinFq(JoinDesc));
         } else {
             // no record, return empty set
             return TRecSet::New(JoinDesc.GetJoinStore(Base));
@@ -2294,39 +2308,43 @@ PRecSet TRec::DoJoin(const TWPt<TBase>& Base, const TStr& JoinNm) const {
 }
 
 PRecSet TRec::DoJoin(const TWPt<TBase>& Base, const TIntPrV& JoinIdV) const {
-	PRecSet RecSet = DoJoin(Base, JoinIdV[0].Val1);
-	for (int JoinIdN = 1; JoinIdN < JoinIdV.Len(); JoinIdN++) {
-		RecSet = RecSet->DoJoin(Base, JoinIdV[JoinIdN].Val1, JoinIdV[JoinIdN].Val2);
-	}
-	return RecSet;
+    PRecSet RecSet = DoJoin(Base, JoinIdV[0].Val1);
+    for (int JoinIdN = 1; JoinIdN < JoinIdV.Len(); JoinIdN++) {
+        RecSet = RecSet->DoJoin(Base, JoinIdV[JoinIdN].Val1, JoinIdV[JoinIdN].Val2);
+    }
+    return RecSet;
 }
 
 PRecSet TRec::DoJoin(const TWPt<TBase>& Base, const TJoinSeq& JoinSeq) const {
-	return DoJoin(Base, JoinSeq.GetJoinIdV());
+    return DoJoin(Base, JoinSeq.GetJoinIdV());
 }
 
 TRec TRec::DoSingleJoin(const TWPt<TBase>& Base, const int& JoinId) const {
-	PRecSet JoinRecSet = DoJoin(Base, JoinId);
-	return TRec(JoinRecSet->GetStore(),
-		JoinRecSet->Empty() ? (uint64)TUInt64::Mx : JoinRecSet->GetRecId(0));
+    PRecSet JoinRecSet = DoJoin(Base, JoinId);
+    return TRec(JoinRecSet->GetStore(),
+        JoinRecSet->Empty() ? (uint64)TUInt64::Mx : JoinRecSet->GetRecId(0),
+        GetFieldJoinFq(JoinId));
 }
 
 TRec TRec::DoSingleJoin(const TWPt<TBase>& Base, const TStr& JoinNm) const {
-	PRecSet JoinRecSet = DoJoin(Base, JoinNm);
-	return TRec(JoinRecSet->GetStore(),
-		JoinRecSet->Empty() ? (uint64)TUInt64::Mx : JoinRecSet->GetRecId(0));
+    PRecSet JoinRecSet = DoJoin(Base, JoinNm);
+    return TRec(JoinRecSet->GetStore(),
+        JoinRecSet->Empty() ? (uint64)TUInt64::Mx : JoinRecSet->GetRecId(0),
+        GetFieldJoinFq(Store->GetJoinId(JoinNm)));
 }
 
 TRec TRec::DoSingleJoin(const TWPt<TBase>& Base, const TIntPrV& JoinIdV) const {
-	PRecSet JoinRecSet = DoJoin(Base, JoinIdV);
-	return TRec(JoinRecSet->GetStore(),
-		JoinRecSet->Empty() ? (uint64)TUInt64::Mx : JoinRecSet->GetRecId(0));
+    PRecSet JoinRecSet = DoJoin(Base, JoinIdV);
+    return TRec(JoinRecSet->GetStore(),
+        JoinRecSet->Empty() ? (uint64)TUInt64::Mx : JoinRecSet->GetRecId(0),
+        JoinRecSet->Empty() ? 0 : JoinRecSet->GetRecFq(0));
 }
 
 TRec TRec::DoSingleJoin(const TWPt<TBase>& Base, const TJoinSeq& JoinSeq) const {
-	PRecSet JoinRecSet = DoJoin(Base, JoinSeq);
-	return TRec(JoinRecSet->GetStore(),
-		JoinRecSet->Empty() ? (uint64)TUInt64::Mx : JoinRecSet->GetRecId(0));
+    PRecSet JoinRecSet = DoJoin(Base, JoinSeq);
+    return TRec(JoinRecSet->GetStore(),
+        JoinRecSet->Empty() ? (uint64)TUInt64::Mx : JoinRecSet->GetRecId(0),
+        JoinRecSet->Empty() ? 0 :JoinRecSet->GetRecFq(0));
 }
 
 PJsonVal TRec::GetJson(const TWPt<TBase>& Base, const bool& FieldsP,
@@ -4151,11 +4169,11 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const
 }
 
 TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const TStr& KeyNm, const PJsonVal& KeyVal) {
-	// check key exists for the specified store
-	TWPt<TIndexVoc> IndexVoc = Base->GetIndexVoc();
-	QmAssertR(IndexVoc->IsKeyNm(Store->GetStoreId(), KeyNm), "Query: unknown key " + KeyNm);
+    // check key exists for the specified store
+    TWPt<TIndexVoc> IndexVoc = Base->GetIndexVoc();
+    QmAssertR(IndexVoc->IsKeyNm(Store->GetStoreId(), KeyNm), "Query: unknown key " + KeyNm);
     // get key and its type
-	const TIndexKey& Key = IndexVoc->GetKey(Store->GetStoreId(), KeyNm);
+    const TIndexKey& Key = IndexVoc->GetKey(Store->GetStoreId(), KeyNm);
     // check for possible types of queries
     if (KeyVal->IsObj() && KeyVal->IsObjKey("$or")) {
         // we are an OR query of multiple subqueries on the same key
@@ -4187,30 +4205,30 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const
             CmpType = oqctEqual;
             // get target word id(s)
             ParseWordStr(KeyVal->GetStr(), IndexVoc);
-		} else if (KeyVal->IsObj() && KeyVal->IsObjKey("$ne")) {
+        } else if (KeyVal->IsObj() && KeyVal->IsObjKey("$ne")) {
             // not-equal query
-			QmAssertR(KeyVal->GetObjKey("$ne")->IsStr(), "Query: $ne value must be string");
-			CmpType = oqctNotEqual;
+            QmAssertR(KeyVal->GetObjKey("$ne")->IsStr(), "Query: $ne value must be string");
+            CmpType = oqctNotEqual;
             // get target word id(s)
-			ParseWordStr(KeyVal->GetObjKey("$ne")->GetStr(), IndexVoc);
-		} else if (KeyVal->IsObj() && KeyVal->IsObjKey("$gt")) {
+            ParseWordStr(KeyVal->GetObjKey("$ne")->GetStr(), IndexVoc);
+        } else if (KeyVal->IsObj() && KeyVal->IsObjKey("$gt")) {
             // greater-than query
-			QmAssertR(KeyVal->GetObjKey("$gt")->IsStr(), "Query: $gt value must be string");
-			CmpType = oqctGreater;
+            QmAssertR(KeyVal->GetObjKey("$gt")->IsStr(), "Query: $gt value must be string");
+            CmpType = oqctGreater;
             // identify all words that are greater
-			ParseWordStr(KeyVal->GetObjKey("$gt")->GetStr(), IndexVoc);
-		} else if (KeyVal->IsObj() && KeyVal->IsObjKey("$lt")) {
+            ParseWordStr(KeyVal->GetObjKey("$gt")->GetStr(), IndexVoc);
+        } else if (KeyVal->IsObj() && KeyVal->IsObjKey("$lt")) {
             // less-than query
-			QmAssertR(KeyVal->GetObjKey("$lt")->IsStr(), "Query: $lt value must be string");
-			CmpType = oqctLess;
+            QmAssertR(KeyVal->GetObjKey("$lt")->IsStr(), "Query: $lt value must be string");
+            CmpType = oqctLess;
             // identify all words that are smaller
-			ParseWordStr(KeyVal->GetObjKey("$lt")->GetStr(), IndexVoc);
-		} else if (KeyVal->IsObj() && KeyVal->IsObjKey("$wc")) {
-			// wildchars interparted as or with all possibilities
-			QmAssertR(KeyVal->GetObjKey("$wc")->IsStr(), "Query: $wc value must be string");
-			CmpType = oqctWildChar;
-			// identify possibilities
-			ParseWordStr(KeyVal->GetObjKey("$wc")->GetStr(), IndexVoc);
+            ParseWordStr(KeyVal->GetObjKey("$lt")->GetStr(), IndexVoc);
+        } else if (KeyVal->IsObj() && KeyVal->IsObjKey("$wc")) {
+            // wildchars interparted as or with all possibilities
+            QmAssertR(KeyVal->GetObjKey("$wc")->IsStr(), "Query: $wc value must be string");
+            CmpType = oqctWildChar;
+            // identify possibilities
+            ParseWordStr(KeyVal->GetObjKey("$wc")->GetStr(), IndexVoc);
         } else {
             throw TQmExcept::New("Query: Invalid key definition: '" + TJsonVal::GetStrFromVal(KeyVal) + "'");
         }
@@ -4238,8 +4256,8 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const
                 if (LocLimit <= 0) { throw TQmExcept::New("Query: $limit must be greater then zero"); }
             }
         } else {
-			throw TQmExcept::New("Query: invalid value for location key: '" + TJsonVal::GetStrFromVal(KeyVal) + "'");
-		}
+            throw TQmExcept::New("Query: invalid value for location key: '" + TJsonVal::GetStrFromVal(KeyVal) + "'");
+        }
     } else if (Key.IsLinear()) {
         // remember key id
         KeyId = Key.GetKeyId();
@@ -4247,40 +4265,40 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const
         if (KeyVal->IsObj()) {
             // key is index using btree, check field type and extract type-appropriate range
             // by default range is always (-inf, inf), unless specified explicitly
-			if (Key.IsSortAsInt()) {
-				Type = oqitRangeInt;
-				RangeIntMnMx = TIntPr(KeyVal->GetObjInt("$gt", TInt::Mn), KeyVal->GetObjInt("$lt", TInt::Mx));
-			} else if (Key.IsSortAsInt16()) {
-				Type = oqitRangeInt16;
-				RangeInt16MnMx = TInt16Pr(KeyVal->GetObjInt("$gt", TInt16::Mn), KeyVal->GetObjInt("$lt", TInt16::Mx));
-			} else if (Key.IsSortAsInt64()) {
-				Type = oqitRangeInt64;
-				RangeInt64MnMx = TInt64Pr(KeyVal->GetObjInt64("$gt", TInt64::Mn), KeyVal->GetObjInt64("$lt", TInt64::Mx));
-			} else if (Key.IsSortAsByte()) {
+            if (Key.IsSortAsInt()) {
+                Type = oqitRangeInt;
+                RangeIntMnMx = TIntPr(KeyVal->GetObjInt("$gt", TInt::Mn), KeyVal->GetObjInt("$lt", TInt::Mx));
+            } else if (Key.IsSortAsInt16()) {
+                Type = oqitRangeInt16;
+                RangeInt16MnMx = TInt16Pr(KeyVal->GetObjInt("$gt", TInt16::Mn), KeyVal->GetObjInt("$lt", TInt16::Mx));
+            } else if (Key.IsSortAsInt64()) {
+                Type = oqitRangeInt64;
+                RangeInt64MnMx = TInt64Pr(KeyVal->GetObjInt64("$gt", TInt64::Mn), KeyVal->GetObjInt64("$lt", TInt64::Mx));
+            } else if (Key.IsSortAsByte()) {
                 Type = oqitRangeByte;
                 RangeUChMnMx = TUChPr((uchar)KeyVal->GetObjInt("$gt", TUCh::Mn), (uchar)KeyVal->GetObjInt("$lt", TUCh::Mx));
             } else if (Key.IsSortAsUInt()) {
                 Type = oqitRangeUInt;
-				uint64 low = (uint64)KeyVal->GetObjNum("$gt", TUInt::Mn);
-				uint64 high = (uint64)KeyVal->GetObjNum("$lt", TUInt::Mx);
-				RangeUIntMnMx = TUIntUIntPr((uint)low, (uint)high);
+                uint64 low = (uint64)KeyVal->GetObjNum("$gt", TUInt::Mn);
+                uint64 high = (uint64)KeyVal->GetObjNum("$lt", TUInt::Mx);
+                RangeUIntMnMx = TUIntUIntPr((uint)low, (uint)high);
                 //RangeUIntMnMx = TUIntUIntPr((uint)KeyVal->GetObjUInt64("$gt", TUInt::Mn), (uint)KeyVal->GetObjUInt64("$lt", TUInt::Mx));
-			} else if (Key.IsSortAsUInt16()) {
-				Type = oqitRangeUInt16;
-				RangeUInt16MnMx = TUInt16Pr((uint16)KeyVal->GetObjUInt64("$gt", TUInt16::Mn), (uint16)KeyVal->GetObjUInt64("$lt", TUInt16::Mx));
-			} else if (Key.IsSortAsUInt64()) {
-				Type = oqitRangeUInt64;
-				RangeUInt64MnMx = TUInt64Pr(KeyVal->GetObjUInt64("$gt", TUInt64::Mn), KeyVal->GetObjUInt64("$lt", TUInt64::Mx));
-			} else if (Key.IsSortAsTm()) {
+            } else if (Key.IsSortAsUInt16()) {
+                Type = oqitRangeUInt16;
+                RangeUInt16MnMx = TUInt16Pr((uint16)KeyVal->GetObjUInt64("$gt", TUInt16::Mn), (uint16)KeyVal->GetObjUInt64("$lt", TUInt16::Mx));
+            } else if (Key.IsSortAsUInt64()) {
+                Type = oqitRangeUInt64;
+                RangeUInt64MnMx = TUInt64Pr(KeyVal->GetObjUInt64("$gt", TUInt64::Mn), KeyVal->GetObjUInt64("$lt", TUInt64::Mx));
+            } else if (Key.IsSortAsTm()) {
                 Type = oqitRangeTm;
                 RangeUInt64MnMx = TUInt64Pr(TUInt64::Mn, TUInt64::Mx);
                 // check if we have lower bound
                 if (KeyVal->IsObjKey("$gt")) { RangeUInt64MnMx.Val1 = ParseTm(KeyVal->GetObjKey("$gt")); }
                 if (KeyVal->IsObjKey("$lt")) { RangeUInt64MnMx.Val2 = ParseTm(KeyVal->GetObjKey("$lt")); }
-			} else if (Key.IsSortAsSFlt()) {
-				Type = oqitRangeSFlt;
-				RangeSFltMnMx = TSFltPr((float)KeyVal->GetObjNum("$gt", TSFlt::Mn), (float)KeyVal->GetObjNum("$lt", TSFlt::Mx));
-			} else if (Key.IsSortAsFlt()) {
+            } else if (Key.IsSortAsSFlt()) {
+                Type = oqitRangeSFlt;
+                RangeSFltMnMx = TSFltPr((float)KeyVal->GetObjNum("$gt", TSFlt::Mn), (float)KeyVal->GetObjNum("$lt", TSFlt::Mx));
+            } else if (Key.IsSortAsFlt()) {
                 Type = oqitRangeFlt;
                 RangeFltMnMx = TFltPr(KeyVal->GetObjNum("$gt", TFlt::Mn), KeyVal->GetObjNum("$lt", TFlt::Mx));
             }
@@ -4292,39 +4310,39 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const
             QmAssertR(Key.IsSortAsInt() || Key.IsSortAsUInt64() || Key.IsSortAsFlt(),
                 "Query: wrong key value for non-integer key " + KeyNm);
             // we are given exact number, make it a range query with both edges equal
-			if (Key.IsSortAsInt()) {
-				Type = oqitRangeInt;
-				RangeIntMnMx.Val1 = RangeIntMnMx.Val2 = KeyVal->GetInt();
-			} else if (Key.IsSortAsInt16()) {
-				Type = oqitRangeInt16;
-				RangeInt16MnMx.Val1 = RangeInt16MnMx.Val2 = (int16)KeyVal->GetInt();
-			} else if (Key.IsSortAsInt64()) {
-				Type = oqitRangeInt64;
-				RangeInt64MnMx.Val1 = RangeInt64MnMx.Val2 = KeyVal->GetInt64();
-			} else if (Key.IsSortAsByte()) {
+            if (Key.IsSortAsInt()) {
+                Type = oqitRangeInt;
+                RangeIntMnMx.Val1 = RangeIntMnMx.Val2 = KeyVal->GetInt();
+            } else if (Key.IsSortAsInt16()) {
+                Type = oqitRangeInt16;
+                RangeInt16MnMx.Val1 = RangeInt16MnMx.Val2 = (int16)KeyVal->GetInt();
+            } else if (Key.IsSortAsInt64()) {
+                Type = oqitRangeInt64;
+                RangeInt64MnMx.Val1 = RangeInt64MnMx.Val2 = KeyVal->GetInt64();
+            } else if (Key.IsSortAsByte()) {
                 Type = oqitRangeByte;
                 RangeUChMnMx.Val1 = RangeUChMnMx.Val2 = (uchar)KeyVal->GetInt();
             } else if (Key.IsSortAsUInt()) {
                 Type = oqitRangeUInt;
                 RangeUIntMnMx.Val1 = RangeUIntMnMx.Val2 = (uint)KeyVal->GetUInt64();
-			} else if (Key.IsSortAsUInt16()) {
-				Type = oqitRangeUInt16;
-				RangeUInt16MnMx.Val1 = RangeUInt16MnMx.Val2 = (uint16)KeyVal->GetUInt64();
-			} else if (Key.IsSortAsUInt64()) {
-				Type = oqitRangeUInt64;
-				RangeUInt64MnMx.Val1 = RangeUInt64MnMx.Val2 = KeyVal->GetUInt64();
-			} else if (Key.IsSortAsSFlt()) {
+            } else if (Key.IsSortAsUInt16()) {
+                Type = oqitRangeUInt16;
+                RangeUInt16MnMx.Val1 = RangeUInt16MnMx.Val2 = (uint16)KeyVal->GetUInt64();
+            } else if (Key.IsSortAsUInt64()) {
+                Type = oqitRangeUInt64;
+                RangeUInt64MnMx.Val1 = RangeUInt64MnMx.Val2 = KeyVal->GetUInt64();
+            } else if (Key.IsSortAsSFlt()) {
                 Type = oqitRangeSFlt;
                 RangeSFltMnMx.Val1 = RangeSFltMnMx.Val2 = (float)KeyVal->GetNum();
-			} else if (Key.IsSortAsFlt()) {
-				Type = oqitRangeFlt;
-				RangeFltMnMx.Val1 = RangeFltMnMx.Val2 = KeyVal->GetNum();
-			}
+            } else if (Key.IsSortAsFlt()) {
+                Type = oqitRangeFlt;
+                RangeFltMnMx.Val1 = RangeFltMnMx.Val2 = KeyVal->GetNum();
+            }
         }
     } else {
-		throw TQmExcept::New("Query: Invalid key definition: '" + TJsonVal::GetStrFromVal(KeyVal) + "'");
-	}
-	SetGixFlag();
+        throw TQmExcept::New("Query: Invalid key definition: '" + TJsonVal::GetStrFromVal(KeyVal) + "'");
+    }
+    SetGixFlag();
 }
 
 TQueryItem::TQueryItem(const TWPt<TStore>& Store, const uint64& RecId) :

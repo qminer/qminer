@@ -861,6 +861,8 @@ private:
 	TBool ByRefP;
 	/// Record ID (by reference)
 	TUInt64 RecId;
+    /// Frequency of record, default 1, can be set when this record is accessed from field join
+    TInt Fq;
 	/// Field position in serialization (by value)
 	THash<TInt, TInt> FieldIdPosH;
 	/// Join position in serialization (by value)
@@ -882,8 +884,8 @@ public:
 	TRec(const TWPt<TStore>& _Store): Store(_Store), 
 		ByRefP(false), RecId(TUInt64::Mx), RecValOut(RecVal) { }
 	/// Create record by reference
-	TRec(const TWPt<TStore>& _Store, const uint64& _RecId): Store(_Store), 
-		ByRefP(true), RecId(_RecId), RecValOut(RecVal) { }
+	TRec(const TWPt<TStore>& _Store, const uint64& _RecId, const int& _Fq = 1): Store(_Store), 
+		ByRefP(true), RecId(_RecId), Fq(_Fq), RecValOut(RecVal) { }
 	/// Constructor from JSon
 	TRec(const TWPt<TStore>& _Store, const PJsonVal& JsonVal);    
 	/// Copy-constructor
@@ -909,6 +911,8 @@ public:
 	uint64 GetRecId() const { return RecId; }
 	/// Get record name (only valid when by reference)
 	TStr GetRecNm() const { return Store->GetRecNm(RecId); }
+    /// Get record id (only valid when by reference)
+    int GetRecFq() const { return Fq; }
 
 	/// Checks if field value is null
 	bool IsFieldNull(const int& FieldId) const;
@@ -1041,6 +1045,11 @@ public:
 	/// by pair (id, sample size). In case more records in the result, returns 
 	/// the first record.
 	TRec DoSingleJoin(const TWPt<TBase>& Base, const TJoinSeq& JoinSeq) const;
+
+    /// Returns frequency of given field join
+    int GetFieldJoinFq(const int& JoinId) const;
+    /// Returns frequency of given field join
+    int GetFieldJoinFq(const TJoinDesc& JoinId) const;
 
 	/// Get record as JSon object
 	PJsonVal GetJson(const TWPt<TBase>& Base, const bool& FieldsP = true, 

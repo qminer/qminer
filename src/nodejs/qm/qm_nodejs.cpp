@@ -2325,25 +2325,23 @@ void TNodeJsRec::join(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 }
 
 void TNodeJsRec::sjoin(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
 
-	v8::Local<v8::Object> Self = Args.Holder();
-	TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Self);
-	QmAssert(Args.Data()->IsString());
-	TStr JoinNm = TNodeJsUtil::GetStr(Args.Data()->ToString());
-	TQm::TRec JoinRec = JsRec->Rec.DoSingleJoin(JsRec->Rec.GetStore()->GetBase(), JoinNm);
-	TWPt<TQm::TStore> JoinStore = JoinRec.GetStore();
-	if (JoinRec.IsDef() && JoinStore->IsRecId(JoinRec.GetRecId())) {
-		Args.GetReturnValue().Set(
-			TNodeJsRec::NewInstance(new TNodeJsRec(JsRec->Watcher, JoinRec))
-			);
-		return;
-	}
-	else {
-		Args.GetReturnValue().Set(v8::Null(Isolate));
-		return;
-	}
+    v8::Local<v8::Object> Self = Args.Holder();
+    TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Self);
+    QmAssert(Args.Data()->IsString());
+    TStr JoinNm = TNodeJsUtil::GetStr(Args.Data()->ToString());
+    TQm::TRec JoinRec = JsRec->Rec.DoSingleJoin(JsRec->Rec.GetStore()->GetBase(), JoinNm);
+    TWPt<TQm::TStore> JoinStore = JoinRec.GetStore();
+    if (JoinRec.IsDef() && JoinStore->IsRecId(JoinRec.GetRecId())) {
+        Args.GetReturnValue().Set(
+            TNodeJsRec::NewInstance(new TNodeJsRec(JsRec->Watcher, JoinRec, JoinRec.GetRecFq())));
+        return;
+    } else {
+        Args.GetReturnValue().Set(v8::Null(Isolate));
+        return;
+    }
 }
 
 v8::Persistent<v8::Function> TNodeJsRecByValV::Constructor;
