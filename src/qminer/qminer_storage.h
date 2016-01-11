@@ -1351,6 +1351,121 @@ TWPt<TBase> LoadBase(const TStr& FPath, const TFAccess& FAccess, const uint64& I
 /// Save base created from a schema definition
 void SaveBase(const TWPt<TBase>& Base);
 
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+/// Base class for derived stores, it implements all abstract method with an implementation
+/// that just throws an exception.
+
+class TStoreNotImpl : public TStore {
+private:
+	
+public:
+	
+
+private:
+	
+public:
+	/// Create new store with given ID and name
+	TStoreNotImpl(const TWPt<TBase>& _Base, uint _StoreId, const TStr& _StoreNm);
+	/// Load store from input stream
+	TStoreNotImpl(const TWPt<TBase>& _Base, TSIn& SIn);
+	/// Load store from file
+	TStoreNotImpl(const TWPt<TBase>& _Base, const TStr& FNm);
+	/// Destructor
+	~TStoreNotImpl() { }
+
+	/// Get field value using field id   
+	int GetFieldInt(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id   
+	int16 GetFieldInt16(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id   
+	int64 GetFieldInt64(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id   
+	uchar GetFieldByte(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id   
+	void GetFieldIntV(const uint64& RecId, const int& FieldId, TIntV& IntV) const;
+	/// Get field value using field id   
+	uint GetFieldUInt(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id   
+	uint16 GetFieldUInt16(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id   
+	uint64 GetFieldUInt64(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id   
+	TStr GetFieldStr(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id   
+	void GetFieldStrV(const uint64& RecId, const int& FieldId, TStrV& StrV) const;
+	/// Get field value using field id   
+	bool GetFieldBool(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id   
+	double GetFieldFlt(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id   
+	float GetFieldSFlt(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id   
+	TFltPr GetFieldFltPr(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id   
+	void GetFieldFltV(const uint64& RecId, const int& FieldId, TFltV& FltV) const;
+	/// Get field value using field id   
+	void GetFieldTm(const uint64& RecId, const int& FieldId, TTm& Tm) const;
+	/// Get field value using field id   
+	uint64 GetFieldTmMSecs(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id   
+	void GetFieldNumSpV(const uint64& RecId, const int& FieldId, TIntFltKdV& SpV) const;
+	/// Get field value using field id   
+	void GetFieldBowSpV(const uint64& RecId, const int& FieldId, PBowSpV& SpV) const;
+	/// Get field value using field id   
+	void GetFieldTMem(const uint64& RecId, const int& FieldId, TMem& Mem) const;
+	/// Get field value using field id   
+	PJsonVal GetFieldJsonVal(const uint64& RecId, const int& FieldId) const;
+
+	/// Set the value of given field to NULL
+	void SetFieldNull(const uint64& RecId, const int& FieldId);
+	/// Set field value using field id   
+	void SetFieldByte(const uint64& RecId, const int& FieldId, const uchar& Byte);
+	/// Set field value using field id   
+	void SetFieldInt(const uint64& RecId, const int& FieldId, const int& Int);
+	/// Set field value using field id   
+	void SetFieldInt16(const uint64& RecId, const int& FieldId, const int16& Int16);
+	/// Set field value using field id   
+	void SetFieldInt64(const uint64& RecId, const int& FieldId, const int64& Int64);
+	/// Set field value using field id   
+	void SetFieldIntV(const uint64& RecId, const int& FieldId, const TIntV& IntV);
+	/// Set field value using field id   
+	void SetFieldUInt(const uint64& RecId, const int& FieldId, const uint& UInt);
+	/// Set field value using field id   
+	void SetFieldUInt16(const uint64& RecId, const int& FieldId, const uint16& UInt16);
+	/// Set field value using field id   
+	void SetFieldUInt64(const uint64& RecId, const int& FieldId, const uint64& UInt64);
+	/// Set field value using field id   
+	void SetFieldStr(const uint64& RecId, const int& FieldId, const TStr& Str);
+	/// Set field value using field id   
+	void SetFieldStrV(const uint64& RecId, const int& FieldId, const TStrV& StrV);
+	/// Set field value using field id   
+	void SetFieldBool(const uint64& RecId, const int& FieldId, const bool& Bool);
+	/// Set field value using field id   
+	void SetFieldFlt(const uint64& RecId, const int& FieldId, const double& Flt);
+	/// Set field value using field id   
+	void SetFieldSFlt(const uint64& RecId, const int& FieldId, const float& Flt);
+	/// Set field value using field id   
+	void SetFieldFltPr(const uint64& RecId, const int& FieldId, const TFltPr& FltPr);
+	/// Set field value using field id   
+	void SetFieldFltV(const uint64& RecId, const int& FieldId, const TFltV& FltV);
+	/// Set field value using field id   
+	void SetFieldTm(const uint64& RecId, const int& FieldId, const TTm& Tm);
+	/// Set field value using field id   
+	void SetFieldTmMSecs(const uint64& RecId, const int& FieldId, const uint64& TmMSecs);
+	/// Set field value using field id   
+	void SetFieldNumSpV(const uint64& RecId, const int& FieldId, const TIntFltKdV& SpV);
+	/// Set field value using field id   
+	void SetFieldBowSpV(const uint64& RecId, const int& FieldId, const PBowSpV& SpV);
+	/// Set field value using field id   
+	void SetFieldTMem(const uint64& RecId, const int& FieldId, const TMem& Mem);
+	/// Set field value using field id   
+	void SetFieldJsonVal(const uint64& RecId, const int& FieldId, const PJsonVal& Json);
+};
+
+
+	
+
 } // TStorage name space
 
 }

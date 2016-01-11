@@ -5092,6 +5092,183 @@ void SaveBase(const TWPt<TBase>& Base) {
     }
 }
 
+////////////////////////////////////////////////////////////////////////////////////
+
+/// Create new store with given ID and name
+TStoreNotImpl::TStoreNotImpl(const TWPt<TBase>& _Base, uint _StoreId, const TStr& _StoreNm) : TStore(_Base, _StoreId, _StoreNm) {}
+/// Load store from input stream
+TStoreNotImpl::TStoreNotImpl(const TWPt<TBase>& _Base, TSIn& SIn) : TStore(_Base, SIn) {}
+/// Load store from file
+TStoreNotImpl::TStoreNotImpl(const TWPt<TBase>& _Base, const TStr& FNm) : TStore(_Base, FNm) {}
+
+
+int TStoreNotImpl::GetFieldInt(const uint64& RecId, const int& FieldId) const {
+	throw FieldError(FieldId, "Int");
+}
+int16 TStoreNotImpl::GetFieldInt16(const uint64& RecId, const int& FieldId) const {
+	throw FieldError(FieldId, "Int16");
+}
+int64 TStoreNotImpl::GetFieldInt64(const uint64& RecId, const int& FieldId) const {
+	throw FieldError(FieldId, "Int64");
+}
+uchar TStoreNotImpl::GetFieldByte(const uint64& RecId, const int& FieldId) const {
+	throw FieldError(FieldId, "Byte");
+}
+
+void TStoreNotImpl::GetFieldIntV(const uint64& RecId, const int& FieldId, TIntV& IntV) const {
+	throw FieldError(FieldId, "IntV");
+}
+
+uint TStoreNotImpl::GetFieldUInt(const uint64& RecId, const int& FieldId) const {
+	throw FieldError(FieldId, "UInt");
+}
+uint16 TStoreNotImpl::GetFieldUInt16(const uint64& RecId, const int& FieldId) const {
+	throw FieldError(FieldId, "UInt16");
+}
+uint64 TStoreNotImpl::GetFieldUInt64(const uint64& RecId, const int& FieldId) const {
+	throw FieldError(FieldId, "UInt64");
+}
+
+TStr TStoreNotImpl::GetFieldStr(const uint64& RecId, const int& FieldId) const {
+	throw FieldError(FieldId, "Str");
+}
+
+void TStoreNotImpl::GetFieldStrV(const uint64& RecId, const int& FieldId, TStrV& StrV) const {
+	throw FieldError(FieldId, "StrV");
+}
+
+bool TStoreNotImpl::GetFieldBool(const uint64& RecId, const int& FieldId) const {
+	throw FieldError(FieldId, "Bool");
+}
+
+double TStoreNotImpl::GetFieldFlt(const uint64& RecId, const int& FieldId) const {
+	throw FieldError(FieldId, "Flt");
+}
+
+float TStoreNotImpl::GetFieldSFlt(const uint64& RecId, const int& FieldId) const {
+	throw FieldError(FieldId, "Flt");
+}
+
+TFltPr TStoreNotImpl::GetFieldFltPr(const uint64& RecId, const int& FieldId) const {
+	throw FieldError(FieldId, "FltPr");
+}
+
+void TStoreNotImpl::GetFieldFltV(const uint64& RecId, const int& FieldId, TFltV& FltV) const {
+	throw FieldError(FieldId, "FltV");
+}
+
+void TStoreNotImpl::GetFieldTm(const uint64& RecId, const int& FieldId, TTm& Tm) const {
+	throw FieldError(FieldId, "Tm");
+}
+
+uint64 TStoreNotImpl::GetFieldTmMSecs(const uint64& RecId, const int& FieldId) const {
+	TTm Tm; GetFieldTm(RecId, FieldId, Tm);
+	return Tm.IsDef() ? TTm::GetMSecsFromTm(Tm) : TUInt64::Mx;
+}
+
+void TStoreNotImpl::GetFieldNumSpV(const uint64& RecId, const int& FieldId, TIntFltKdV& SpV) const {
+	throw FieldError(FieldId, "NumSpV");
+}
+
+void TStoreNotImpl::GetFieldBowSpV(const uint64& RecId, const int& FieldId, PBowSpV& SpV) const {
+	throw FieldError(FieldId, "BowSpV");
+}
+
+void TStoreNotImpl::GetFieldTMem(const uint64& RecId, const int& FieldId, TMem& Mem) const {
+	throw FieldError(FieldId, "TMem");
+}
+
+PJsonVal TStoreNotImpl::GetFieldJsonVal(const uint64& RecId, const int& FieldId) const {
+	throw FieldError(FieldId, "Json");
+}
+void TStoreNotImpl::SetFieldNull(const uint64& RecId, const int& FieldId) {
+	throw FieldError(FieldId, "SetNull");
+}
+
+void TStoreNotImpl::SetFieldByte(const uint64& RecId, const int& FieldId, const uchar& Byte) {
+	throw FieldError(FieldId, "Byte");
+}
+
+void TStoreNotImpl::SetFieldInt(const uint64& RecId, const int& FieldId, const int& Int) {
+	throw FieldError(FieldId, "Int");
+}
+
+void TStoreNotImpl::SetFieldInt16(const uint64& RecId, const int& FieldId, const int16& Int16) {
+	throw FieldError(FieldId, "Int16");
+}
+
+void TStoreNotImpl::SetFieldInt64(const uint64& RecId, const int& FieldId, const int64& Int64) {
+	throw FieldError(FieldId, "Int64");
+}
+
+void TStoreNotImpl::SetFieldIntV(const uint64& RecId, const int& FieldId, const TIntV& IntV) {
+	throw FieldError(FieldId, "IntV");
+}
+
+void TStoreNotImpl::SetFieldUInt(const uint64& RecId, const int& FieldId, const uint& UInt16) {
+	throw FieldError(FieldId, "UInt");
+}
+
+void TStoreNotImpl::SetFieldUInt16(const uint64& RecId, const int& FieldId, const uint16& UInt16) {
+	throw FieldError(FieldId, "UInt16");
+}
+
+void TStoreNotImpl::SetFieldUInt64(const uint64& RecId, const int& FieldId, const uint64& UInt64) {
+	throw FieldError(FieldId, "UInt64");
+}
+
+void TStoreNotImpl::SetFieldStr(const uint64& RecId, const int& FieldId, const TStr& Str) {
+	throw FieldError(FieldId, "Str");
+}
+
+void TStoreNotImpl::SetFieldStrV(const uint64& RecId, const int& FieldId, const TStrV& StrV) {
+	throw FieldError(FieldId, "StrV");
+}
+
+void TStoreNotImpl::SetFieldBool(const uint64& RecId, const int& FieldId, const bool& Bool) {
+	throw FieldError(FieldId, "Bool");
+}
+
+void TStoreNotImpl::SetFieldFlt(const uint64& RecId, const int& FieldId, const double& Flt) {
+	throw FieldError(FieldId, "Flt");
+}
+
+void TStoreNotImpl::SetFieldSFlt(const uint64& RecId, const int& FieldId, const float& Flt) {
+	throw FieldError(FieldId, "SFlt");
+}
+
+void TStoreNotImpl::SetFieldFltPr(const uint64& RecId, const int& FieldId, const TFltPr& FltPr) {
+	throw FieldError(FieldId, "FltPr");
+}
+
+void TStoreNotImpl::SetFieldFltV(const uint64& RecId, const int& FieldId, const TFltV& FltV) {
+	throw FieldError(FieldId, "FltV");
+}
+
+void TStoreNotImpl::SetFieldTm(const uint64& RecId, const int& FieldId, const TTm& Tm) {
+	throw FieldError(FieldId, "Tm");
+}
+
+void TStoreNotImpl::SetFieldTmMSecs(const uint64& RecId, const int& FieldId, const uint64& TmMSecs) {
+	throw FieldError(FieldId, "TmMSecs");
+}
+
+void TStoreNotImpl::SetFieldNumSpV(const uint64& RecId, const int& FieldId, const TIntFltKdV& SpV) {
+	throw FieldError(FieldId, "NumSpV");
+}
+
+void TStoreNotImpl::SetFieldBowSpV(const uint64& RecId, const int& FieldId, const PBowSpV& SpV) {
+	throw FieldError(FieldId, "BowSpV");
+}
+
+void TStoreNotImpl::SetFieldTMem(const uint64& RecId, const int& FieldId, const TMem& Mem) {
+	throw FieldError(FieldId, "TMem");
+}
+
+void TStoreNotImpl::SetFieldJsonVal(const uint64& RecId, const int& FieldId, const PJsonVal& Json) {
+	throw FieldError(FieldId, "Json");
+}
+
 } // TStorage
 
 }

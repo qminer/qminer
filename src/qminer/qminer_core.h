@@ -683,9 +683,9 @@ public:
 	virtual PJsonVal GetFieldJsonVal(const uint64& RecId, const int& FieldId) const = 0;
 
     /// Get field value using field id safely   
-    virtual uint64 GetFieldUInt64Safe(const uint64& RecId, const int& FieldId) const;
+    uint64 GetFieldUInt64Safe(const uint64& RecId, const int& FieldId) const;
     /// Get field value using field id safely   
-    virtual int64 GetFieldInt64Safe(const uint64& RecId, const int& FieldId) const;
+    int64 GetFieldInt64Safe(const uint64& RecId, const int& FieldId) const;
 
 	/// Check if the value of given field for a given record is NULL
 	bool IsFieldNmNull(const uint64& RecId, const TStr& FieldNm) const;
@@ -766,9 +766,9 @@ public:
 	virtual void SetFieldJsonVal(const uint64& RecId, const int& FieldId, const PJsonVal& Json) = 0;
 
     /// Set field value using field id   
-    virtual void SetFieldUInt64Safe(const uint64& RecId, const int& FieldId, const uint64& UInt64);
+    void SetFieldUInt64Safe(const uint64& RecId, const int& FieldId, const uint64& UInt64);
     /// Set field value using field id   
-    virtual void SetFieldInt64Safe(const uint64& RecId, const int& FieldId, const int64& Int64);
+    void SetFieldInt64Safe(const uint64& RecId, const int& FieldId, const int64& Int64);
 
 	/// Set the value of given field to NULL
 	void SetFieldNmNull(const uint64& RecId, const TStr& FieldNm);

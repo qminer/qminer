@@ -48,7 +48,7 @@ namespace TQm {
 			GetAllRecsFun.Reset();
 		}
 
-		TNodeJsFuncStore::TNodeJsFuncStore(const TWPt<TBase>& _Base, uint _StoreId, const TStr& _StoreNm, const TStoreSchema& StoreSchema, const v8::Handle<v8::Value>& CallbacksObj) : TStore(_Base, _StoreId, _StoreNm) {
+		TNodeJsFuncStore::TNodeJsFuncStore(const TWPt<TBase>& _Base, uint _StoreId, const TStr& _StoreNm, const TStoreSchema& StoreSchema, const v8::Handle<v8::Value>& CallbacksObj) : TStoreNotImpl(_Base, _StoreId, _StoreNm) {
 			SetStoreType("TNodeJsFuncStore");
 			InitFromSchema(StoreSchema);
 			InitCallbacks(CallbacksObj);
