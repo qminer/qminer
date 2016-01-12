@@ -1028,6 +1028,227 @@ PJsonVal TOnlineHistogram::SaveJson() const {
 	return Result;
 }
 
+void TTDigest::Update(const TFlt& V) {
+	const TFlt Count = 1;
+	Update(V, Count);
+}
+
+void TTDigest::Update(const TFlt& V, const TFlt& Count) {
+	if (TempLast >= TempWeight.Len()) {
+		MergeValues();
+	}
+	TInt N_ = TempLast++;
+	TempWeight[N_] = Count;
+	TempMean[N_] = V;
+	UnmergedSum += Count;
+}
+
+TFlt TTDigest::GetQuantile(const TFlt& Q) {
+		MergeValues();
+
+		TFlt Total = TotalSum;
+		TInt N_ = Last;
+		TFltV U = Mean;
+	    TFltV W = Weight;
+	    TFltV C = MergeMean;
+	    TInt I;
+		TFlt L, R;
+	    TFlt Min_, Max_;
+
+	    L = Min_ = Min;
+	    R = Max_ = Max;
+
+	    if (Total == 0) { return -1; }
+	    if (Q <= 0) { return Min_; }
+	    if (Q >= 1) { return Max_; }
+	    if (N_ == 0) { return U[0]; }
+
+	    // calculate boundaries, pick centroid via binary search
+	    TFlt Q_ = Q * Total;
+
+	    TInt N1 = N_+1;
+	    I = Bisect(C, Q_, 0, N1);
+
+	    if (I > 0) {
+	    	L = Boundary(I-1, I, U, W);
+	    }
+	    if (I < N_) {
+	    	R = Boundary(I, I+1, U, W);
+	    }
+	    return L + (R-L) * (Q_ - (C[I-1])) / W[I];
+	};
+
+void TTDigest::MergeValues() {
+		if (UnmergedSum == 0.0) {
+			return;
+		}
+		TFltV Tw = TempWeight;
+		TFltV Tu = TempMean;
+		TInt Tn = TempLast;
+		TFltV W = Weight;
+		TFltV U = Mean;
+		TInt N_ = 0;
+		TFlt Sum = 0;
+		TInt Ii, I, J;
+		TFlt K1;
+
+		TFltV TuUnsort = Tu;
+		Tu.Sort();
+
+		if (TotalSum > 0.0) {
+			N_ = Last + 1;
+		}
+
+		Last = 0;
+		TotalSum += UnmergedSum;
+		UnmergedSum = 0.0;
+
+		// merge existing centroids with added values in temp buffers
+		for (I=J=K1=0; I < Tn && J < N_;) {
+			if (Tu[I] <= U[J]) {
+				Sum += Tw[I];
+				K1 = MergeCentroid(Sum, K1, Tw[I], Tu[I]);
+				I++;
+			} else {
+				Sum += W[J];
+				K1 = MergeCentroid(Sum, K1, W[J], U[J]);
+				J++;
+			}
+		}
+
+		// only temp buffer values remain
+		for (; I < Tn; ++I) {
+			Sum += Tw[I];
+			K1 = MergeCentroid(Sum, K1, Tw[I], Tu[I]);
+		}
+
+		// only existing centroids remain
+		for (; J < N_; ++J) {
+			Sum += W[J];
+			K1 = MergeCentroid(Sum, K1, W[J], U[J]);
+		}
+
+		TempLast = 0;
+
+		// swap pointers for working space and merge space
+		Weight = MergeWeight;
+		Mean = MergeMean;
+
+		MergeMean = U;
+		MergeWeight = W;
+
+		MergeMean[0] = Weight[0];
+		for (I=1, N_= Last, MergeWeight[0]=0; I<=N_; ++I) {
+			MergeWeight[I] = 0; // zero out merge weights
+			MergeMean[I] = MergeMean[I-1] + Weight[I]; // stash cumulative dist
+		}
+
+		TempMean = TuUnsort;
+
+		Min = TMath::Mx(Min, Mean[0]);
+		Max = TMath::Mx(Max, Mean[N_]);
+	}
+
+TFlt TTDigest::MergeCentroid(TFlt Sum, TFlt& K1, TFlt& Wt, TFlt& Ut) {
+	TFlt K2 = Integrate(Sum);
+	if (K2 - K1 <= 1.0 || MergeWeight[Last] == 0.0) {
+		// merge into existing centroid if centroid index difference (k2-k1)
+		// is within 1 or if current centroid is empty
+		MergeWeight[Last] += Wt;
+		MergeMean[Last] += (Ut - MergeMean[Last]) * Wt / MergeWeight[Last];
+	} else {
+		// otherwise create a new centroid
+		++Last;
+		MergeMean[Last] = Ut;
+		MergeWeight[Last] = Wt;
+		TFlt Sum_ = Sum - Wt;
+		K1 = Integrate(Sum_);
+	}
+	return K1;
+};
+
+TFlt TTDigest::Integrate(TFlt& Sum) const {
+	// First, scale and bias the quantile domain to [-1, 1]
+	// Next, bias and scale the arcsin range to [0, 1]
+	// This gives us a [0,1] interpolant following the arcsin shape
+	// Finally, multiply by centroid count for centroid scale value
+	return Nc * (asin(2 * (Sum/TotalSum) - 1) + TMath::Pi / 2) / TMath::Pi;
+}
+
+TInt TTDigest::Bisect(const TFltV& A, const TFlt& X, TInt Low, TInt& Hi) const {
+	while (Low < Hi) {
+		TInt Mid = (Low + Hi) >> 1;
+		if (A[Mid] < X) {
+			Low = Mid + 1;
+		}
+		else {
+			Hi = Mid;
+		}
+	}
+	return Low;
+}
+
+TFlt TTDigest::Interp(const TFlt& X, const TFlt& X0, const TFlt& X1) const {
+	TFlt Denom = X1 - X0;
+	return Denom > EPSILON ? (X - X0) / Denom : 0.5;
+}
+
+TFlt TTDigest::Boundary(const TInt& I, const TInt& J, const TFltV& U, const TFltV& W) const {
+	return U[I] + (U[J] - U[I]) * W[I] / (W[I] + W[J]);
+}
+
+TInt TTDigest::NumTemp(const TInt& N) const {
+	TInt Lo = 1, Hi = N, Mid;
+	while (Lo < Hi) {
+		Mid = (Lo + Hi) >> 1;
+		if (N > Mid * TMath::Log(Mid) / TMath::Log(2)) {
+			Lo = Mid + 1;
+		}
+		else {
+			Hi = Mid;
+		}
+  }
+  return Lo;
+}
+
+void TTDigest::Print() const {
+	for (int Iter =0; Iter < Weight.Len(); Iter++) {
+		printf("Weight: %f\n", Weight[Iter]);
+	}
+	for (int Iter =0; Iter < Mean.Len(); Iter++) {
+		printf("Mean: %f\n", Mean[Iter]);
+	}
+	printf("Total sum: %f\n", TotalSum);
+}
+
+void TTDigest::SaveState(TSOut& SOut) const {
+	Nc.Save(SOut);
+	Weight.Save(SOut);
+	Mean.Save(SOut);
+	MergeWeight.Save(SOut);
+	MergeMean.Save(SOut);
+	TempMean.Save(SOut);
+	TempWeight.Save(SOut);
+}
+
+void TTDigest::LoadState(TSIn& SIn) {
+	UnmergedSum = 0;
+	TempLast = 0;
+	DEFAULT_CENTROIDS = 100;
+	Nc.Load(SIn);
+	Size = ceil(Nc * TMath::Pi/2);
+	TotalSum = 0;
+	Last = 0;
+	Weight.Load(SIn);
+	Mean.Load(SIn);
+	MergeWeight.Load(SIn);
+	MergeMean.Load(SIn);
+	TempMean.Load(SIn);
+	TempWeight.Load(SIn);
+	Min = TFlt::Mx;
+	Min = -TFlt::Mx;
+}
+
 TFlt TTDigestAvl::Quantile(const TFlt& Q) const {
 	if(Q < 0 || Q > 1) {
 		throw TExcept::New("TTDigestAvl::Quantile(const TFlt& q): no data processed");
