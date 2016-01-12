@@ -762,24 +762,24 @@ void TCtMChain::GetStatDistV(const TFltVV& QMat, TFltV& ProbV) {
 
 	// normalize to get a distribution
 	bool NumErr = false;
-	for (int i = 0; i < Dim; i++) {
-		ProbV[i] /= EigSum;
+	for (int StateId = 0; StateId < Dim; StateId++) {
+		ProbV[StateId] /= EigSum;
 
 		// fix numerical issues (this happened once when I was testing for the evaluation (using MKLFunctions))
-		EAssert(ProbV[i] > -1e-3);
+		EAssert(ProbV[StateId] > -1e-3);
 
 		// correct the stationary distribution so we don't get states
 		// with probability 0
-		if (ProbV[i] < EPS) {
-			ProbV[i] = EPS;
+		if (ProbV[StateId] < EPS) {
+			ProbV[StateId] = EPS;
 			NumErr = true;
 		}
 	}
 
 	if (NumErr) {
 		EigSum = TLinAlg::SumVec(ProbV);
-		for (int i = 0; i < Dim; i++) {
-			ProbV[i] /= EigSum;
+		for (int StateId = 0; StateId < Dim; StateId++) {
+			ProbV[StateId] /= EigSum;
 		}
 	}
 }
