@@ -979,8 +979,18 @@ void TCtMChain::GetAggrQMat(const TFltVV& QMat, const TStateSetV& AggrStateV,
 			AssertR(!TFlt::IsNan(AggrQMat(JoinState1Idx, JoinState2Idx)), "NaN appears when aggregating the QMatrix, this means that the joined stationary distribution is 0 for some states. Please check that the dataset is recurrent!");
 		}
 
-		const double Q_ii = -TLinAlg::SumRow(AggrQMat, JoinState1Idx);;
-		EAssertR(NAggrStates == 1 || Q_ii != 0, "Aggregated QMatrix has a zero on diagonal!");
+		const double Q_ii = -TLinAlg::SumRow(AggrQMat, JoinState1Idx);
+
+		// check if we have zero on the diagonal
+		if (NAggrStates > 1 && Q_ii == 0) {
+			TStr AggStateVStr;
+			for (int AggStateId = 0; AggStateId < AggrStateV.Len(); AggStateId++) {
+				AggStateVStr += TStrUtil::GetStr(AggrStateV[AggStateId]) + "\n";
+			}
+			throw TExcept::New("Aggregated QMatrix has a zero on diagonal:\nQMat:\n" + TStrUtil::GetStr(QMat) + "\nAgg states:\n" + AggStateVStr);
+		}
+
+//		EAssertR(NAggrStates == 1 || Q_ii != 0, "Aggregated QMatrix has a zero on diagonal!");
 		AggrQMat(JoinState1Idx, JoinState1Idx) = Q_ii;
 	}
 }
@@ -1090,20 +1100,6 @@ void TCtMChain::BiPartition(const TFltVV& QMat, const TFltV& ProbV, TIntV& PartV
 	for (int i = 0; i < Dim; i++) {
 		PartV[i] = EigV[i] >= 0 ? 1 : 0;
 	}
-//
-////	// TODO remove
-//	TFltV EigValSortV(EigValV);
-//	EigValSortV.Sort(false);
-////
-////	//============================================================
-//	printf("QSim:\n%s\n", TStrUtil::GetStr(QSim, ",", "%.5f").CStr());
-//	printf("Pi:\n%s\n", TStrUtil::GetStr(Pi, ",", "%.5f").CStr());
-////	// TODO remove this
-//	printf("Generalized eigenvalues: %s\n", TStrUtil::GetStr(EigValSortV, ",", "%.5f").CStr());
-//	printf("Eigen vector: %s\n", TStrUtil::GetStr(EigV, ",", "%.5f").CStr());
-//	printf("Partition: %s\n", TStrUtil::GetStr(PartV).CStr());
-//	printf("Stationary: %s\n", TStrUtil::GetStr(ProbV).CStr());
-////	//============================================================
 }
 
 void TCtMChain::Partition(const TFltVV& QMat, TIntV& HierarchV, TFltV& HeightV) {
