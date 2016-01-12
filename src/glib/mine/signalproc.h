@@ -786,11 +786,398 @@ public:
 	PJsonVal SaveJson() const;
 };
 
+class TBlank {
+private:
+	TFltV Vector;
+public:
+	TBlank() {
+		for (int Iter = 0; Iter < 100; Iter ++) {
+			Vector.Add(Iter);
+		}
+	}
+	TFltV Get() {
+		TFltV Out;
+		for (int Iter = 0; Iter < 100; Iter ++) {
+			Out.Add(Vector[Iter]);
+		}
+		return Out;
+	}
+
+	TFlt Get(int N) {
+		TFlt Out;
+		return Vector[N];
+	}
+
+	void Set(int N, double Val) {
+		Vector[N] = Val;
+	}
+
+};
+
+/////////////////////////////////////////////////
+///   TDigestSimple
+///   Data Lib Sketch Implementation https://github.com/vega/datalib-sketch/blob/master/src/t-digest.js
+class TTDigest {
+private:
+	TInt Nc;
+	TInt Size;
+	TInt Last;
+	TFlt TotalSum;
+	TFltV Weight;
+	TFltV Mean;
+	TFlt Min;
+	TFlt Max;
+	// double buffer to simplify merge operations
+	// MergeWeight also used for transient storage of cumulative weights
+	TFltV MergeWeight;
+	TFltV MergeMean;
+
+	// temporary buffers for recently added values
+	TInt Tempsize;
+	TFlt UnmergedSum;
+	TInt TempLast;
+	TFltV TempWeight;
+	TFltV TempMean;
+	TIntFltH Order; // for sorting
+
+	TFlt EPSILON;
+	TFlt DEFAULT_CENTROIDS;
+
+	TFltV Quantiles;
+public:
+	/// Constructs uninitialized object
+	TTDigest() {
+		Nc = 10;
+		UnmergedSum = 0;
+		TempLast = 0;
+		EPSILON = 1e-300;
+		DEFAULT_CENTROIDS = 100;
+
+		Size = ceil(Nc * TMath::Pi/2);
+		TotalSum = 0;
+		Last = 0;
+
+		for (int Iter = 0; Iter < Size; Iter++) {
+			Weight.Add(0);
+			Mean.Add(0);
+			MergeWeight.Add(0);
+			MergeMean.Add(0);
+		}
+
+		int Tempsize = NumTemp(Nc);
+		for (int Iter = 0; Iter < Tempsize; Iter++) {
+			TempMean.Add(0);
+			TempWeight.Add(0);
+		}
+
+		Min = TFlt::Mx;
+		Min = -TFlt::Mx;
+	}
+    /// Constructs uninitialized object
+    TTDigest(const TFltV& Quantiles) {
+    	Nc = 100;
+		UnmergedSum = 0;
+		TempLast = 0;
+		EPSILON = 1e-300;
+		DEFAULT_CENTROIDS = 100;
+
+		Size = ceil(Nc * TMath::Pi/2);
+		TotalSum = 0;
+		Last = 0;
+
+		for (int Iter = 0; Iter < Size; Iter++) {
+			Weight.Add(0);
+			Mean.Add(0);
+			MergeWeight.Add(0);
+			MergeMean.Add(0);
+		}
+
+		int Tempsize = NumTemp(Nc);
+		for (int Iter = 0; Iter < Tempsize; Iter++) {
+			TempMean.Add(0);
+			TempWeight.Add(0);
+		}
+
+		Min = TFlt::Mx;
+		Min = -TFlt::Mx;
+    };
+    /// Constructs given JSON arguments
+    TTDigest(const PJsonVal& ParamVal) {  };
+	/// Constructs initialized object
+	TTDigest(const TInt& N) {
+		Nc = N;
+		UnmergedSum = 0;
+		TempLast = 0;
+		EPSILON = 1e-300;
+		DEFAULT_CENTROIDS = 100;
+
+		Size = ceil(Nc * TMath::Pi/2);
+
+		TotalSum = 0;
+		Last = 0;
+
+		for (int Iter = 0; Iter < Size; Iter++) {
+			Weight.Add(0);
+			Mean.Add(0);
+			MergeWeight.Add(0);
+			MergeMean.Add(0);
+		}
+
+		int Tempsize = NumTemp(Nc);
+		for (int Iter = 0; Iter < Tempsize; Iter++) {
+			TempMean.Add(0);
+			TempWeight.Add(0);
+		}
+
+		Min = TFlt::Mx;
+		Min = -TFlt::Mx;
+	};
+
+	void Print() {
+		for (int Iter =0; Iter < Weight.Len(); Iter++) {
+			printf("Weight: %f\n", Weight[Iter]);
+		}
+		for (int Iter =0; Iter < Mean.Len(); Iter++) {
+			printf("Mean: %f\n", Mean[Iter]);
+		}
+		printf("Total sum: %f\n", TotalSum);
+	}
+	//~TTDigest() {}
+
+	// Given the number of centroids, determine temp buffer size
+	// Perform binary search to find value k such that N = k log2 k
+	// This should give us good amortized asymptotic complexity
+	TInt NumTemp(const TInt& N) const {
+		TInt Lo = 1, Hi = N, Mid;
+		while (Lo < Hi) {
+			Mid = (Lo + Hi) >> 1;
+			if (N > Mid * TMath::Log(Mid) / TMath::Log(2)) {
+				Lo = Mid + 1;
+			}
+			else {
+				Hi = Mid;
+			}
+	  }
+	  return Lo;
+	}
+	// Converts a quantile into a centroid index value. The centroid index is
+	// nominally the number k of the centroid that a quantile point q should
+	// belong to. Due to round-offs, however, we can't align things perfectly
+	// without splitting points and centroids. We don't want to do that, so we
+	// have to allow for offsets.
+	// In the end, the criterion is that any quantile range that spans a centroid
+	// index range more than one should be split across more than one centroid if
+	// possible. This won't be possible if the quantile range refers to a single
+	// point or an already existing centroid.
+	// We use the arcsin function to map from the quantile domain to the centroid
+	// index range. This produces a mapping that is steep near q=0 or q=1 so each
+	// centroid there will correspond to less q range. Near q=0.5, the mapping is
+	// flatter so that centroids there will represent a larger chunk of quantiles.
+	TFlt Integrate(TFlt& Sum) const {
+		// First, scale and bias the quantile domain to [-1, 1]
+		// Next, bias and scale the arcsin range to [0, 1]
+		// This gives us a [0,1] interpolant following the arcsin shape
+		// Finally, multiply by centroid count for centroid scale value
+		return Nc * (asin(2 * (Sum/TotalSum) - 1) + TMath::Pi / 2) / TMath::Pi;
+	}
+
+	TFlt MergeCentroid(TFlt Sum, TFlt& K1, TFlt& Wt, TFlt& Ut) {
+	    TFlt K2 = Integrate(Sum);
+	    TFltV W = MergeWeight;
+	    TFltV U = MergeMean;
+	    TInt N_ = Last;
+
+		if (K2 - K1 <= 1.0 || W[N_] == 0.0) {
+			// merge into existing centroid if centroid index difference (k2-k1)
+			// is within 1 or if current centroid is empty
+			W[N_] += Wt;
+			U[N_] += (Ut - U[N_]) * Wt / W[N_];
+		} else {
+			// otherwise create a new centroid
+			N_ = ++N_;
+			U[N_] = Ut;
+			W[N_] = Wt;
+			TFlt Sum_ = Sum - Wt;
+			K1 = Integrate(Sum_);
+		}
+		MergeWeight = W;
+	    MergeMean = U;
+	    Last = N_;
+		return K1;
+	};
+
+	void MergeValues() {
+		if (UnmergedSum == 0) {
+			return;
+		}
+		TFltV Tw = TempWeight;
+		TFltV Tu = TempMean;
+		TInt Tn = TempLast;
+		TFltV W = Weight;
+		TFltV U = Mean;
+		TInt N_ = 0;
+		TFlt Sum = 0;
+		TInt Ii, I, J;
+		TFlt K1;
+
+		TFltV TuUnsort = Tu;
+		Tu.Sort();
+
+		if (TotalSum > 0.0) {
+			N_ = Last + 1;
+		}
+
+		Last = 0;
+		TotalSum += UnmergedSum;
+		UnmergedSum = 0.0;
+
+		// merge existing centroids with added values in temp buffers
+		for (I=J=K1=0; I < Tn && J < N_;) {
+			if (Tu[I] <= U[J]) {
+				Sum += Tw[I];
+				K1 = MergeCentroid(Sum, K1, Tw[I], Tu[I]);
+				I++;
+			} else {
+				Sum += W[J];
+				K1 = MergeCentroid(Sum, K1, W[J], U[J]);
+				J++;
+			}
+		}
+
+		// only temp buffer values remain
+		for (; I < Tn; ++I) {
+			Sum += Tw[I];
+			K1 = MergeCentroid(Sum, K1, Tw[I], Tu[I]);
+		}
+
+		// only existing centroids remain
+		for (; J < N_; ++J) {
+			Sum += W[J];
+			K1 = MergeCentroid(Sum, K1, W[J], U[J]);
+		}
+
+		TempLast = 0;
+
+		// swap pointers for working space and merge space
+		Weight = MergeWeight;
+		Mean = MergeMean;
+
+		MergeMean = U;
+		MergeWeight = W;
+
+		MergeMean[0] = Weight[0];
+		for (I=1, N_= Last, MergeWeight[0]=0; I<=N_; ++I) {
+			MergeWeight[I] = 0; // zero out merge weights
+			MergeMean[I] = MergeMean[I-1] + Weight[I]; // stash cumulative dist
+		}
+
+		TempMean = TuUnsort;
+
+		Min = TMath::Mx(Min, Mean[0]);
+		Max = TMath::Mx(Max, Mean[N_]);
+	}
+
+	TInt Bisect(TFltV& A, TFlt& X, TInt Low, TInt& Hi) const {
+		while (Low < Hi) {
+			TInt Mid = (Low + Hi) >> 1;
+			if (A[Mid] < X) {
+				Low = Mid + 1;
+			}
+			else {
+				Hi = Mid;
+			}
+		}
+		return Low;
+	}
+
+	TFlt Boundary(const TInt& I, const TInt& J, const TFltV& U, const TFltV& W) const {
+		return U[I] + (U[J] - U[I]) * W[I] / (W[I] + W[J]);
+	}
+
+	TFlt Interp(TFlt& X, TFlt& X0, TFlt& X1) const {
+		TFlt Denom = X1 - X0;
+		return Denom > this->EPSILON ? (X - X0) / Denom : 0.5;
+	}
+
+	// Query for estimated quantile *q*.
+	// Argument *q* is a desired quantile in the range (0,1)
+	// For example, q = 0.5 queries for the median.
+	TFlt Quantile(const TFlt& Q) {
+		//MergeValues();
+
+		TFlt Total = TotalSum;
+		TInt N_ = Last;
+		TFltV U = Mean;
+	    TFltV W = Weight;
+	    TFltV C = MergeMean;
+	    TInt I;
+		TFlt L, R;
+	    TFlt Min_, Max_;
+
+	    L = Min_ = Min;
+	    R = Max_ = Max;
+
+	    if (Total == 0) { return -1; }
+	    if (Q <= 0) { return Min_; }
+	    if (Q >= 1) { return Max_; }
+	    if (N_ == 0) { return U[0]; }
+
+	    // calculate boundaries, pick centroid via binary search
+	    TFlt Q_ = Q * Total;
+
+	    TInt N1 = N_+1;
+	    I = Bisect(C, Q_, 0, N1);
+
+	    if (I > 0) {
+	    	L = Boundary(I-1, I, U, W);
+	    }
+	    if (I < N_) {
+	    	R = Boundary(I, I+1, U, W);
+	    }
+
+	    return L + (R-L) * (Q_ - (C[I-1])) / W[I];
+	};
+
+	// Add a value to the t-digest.
+	// Argument *v* is the value to add.
+	// Argument *count* is the integer number of occurrences to add.
+	// If not provided, *count* defaults to 1.
+	void Update(const TFlt& V) {
+		const TFlt Count = 1;
+		Update(V, Count);
+	}
+
+	void Update(const TFlt& V, const TFlt& Count) {
+
+		if (TempLast >= TempWeight.Len()) {
+			MergeValues();
+		}
+		TInt N_ = TempLast++;
+		TempWeight[N_] = Count;
+		TempMean[N_] = V;
+		UnmergedSum += Count;
+	};
+
+	TInt CentroidsCount() const {
+		return Mean.Len();
+	}
+
+	TFlt GetQuantile(const TFlt& Q) { return Quantile(Q); }
+
+	/// Prints the model
+	void Print() const;
+	/// Load from stream
+	void LoadState(TSIn& SIn);
+	/// Store state into stream
+	void SaveState(TSOut& SOut) const;
+
+};
+
 /////////////////////////////////////////////////
 ///   TDigest
 ///   Ted Dunning, Otmar Ertl - https://github.com/tdunning/t-digest/blob/master/docs/t-digest-paper/histo.pdf
 ///   Gabriel Pichot C++ implementation: https://github.com/gpichot/cpp-tdigest
-class TTDigest {
+class TTDigestAvl {
 private:
         TFlt Compression;
         TInt Count;
@@ -798,13 +1185,13 @@ private:
 public: 
 
         /// Constructs uninitialized object
-        TTDigest(const TFltV& Quantiles) { Compression = 1000; Count = 0; Centroids = new TAvlTree(); };
+        TTDigestAvl(const TFltV& Quantiles) { Compression = 1000; Count = 0; Centroids = new TAvlTree(); };
         /// Constructs given JSON arguments
-        TTDigest(const PJsonVal& ParamVal) { Compression = 1000; Count = 0; Centroids = new TAvlTree(); };
+        TTDigestAvl(const PJsonVal& ParamVal) { Compression = 1000; Count = 0; Centroids = new TAvlTree(); };
         /// Constructs uninitialized object with compression
-        TTDigest (TFlt CompressionN): Compression(CompressionN) { Compression = CompressionN; Count = 0; Centroids = new TAvlTree();}
+        TTDigestAvl (TFlt CompressionN): Compression(CompressionN) { Compression = CompressionN; Count = 0; Centroids = new TAvlTree();}
         /// Destructor
-        ~TTDigest() { delete Centroids;}
+        ~TTDigestAvl() { delete Centroids;}
 
         /// Initializes the object, resets current content if present
         void Init();   
@@ -884,7 +1271,7 @@ public:
             return PreviousMean * PreviousWeight + NextMean * NextWeight;
         }
         TFlt Quantile(const TFlt& Q) const;
-        void Merge(TTDigest* Digest) {
+        void Merge(TTDigestAvl* Digest) {
                     TAvlTree* CentroidsN = Digest->GetCentroids();
                     for(TInt N = CentroidsN->First(); N != 0; N = CentroidsN->NextNode(N)) {
                     	TFlt A = CentroidsN->GetValue(N);
@@ -900,7 +1287,6 @@ public:
         /// Store state into stream
         void SaveState(TSOut& SOut) const;
 };
-
 
 /////////////////////////////////////////////////
 /// Chi square

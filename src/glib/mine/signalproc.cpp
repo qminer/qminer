@@ -1028,12 +1028,12 @@ PJsonVal TOnlineHistogram::SaveJson() const {
 	return Result;
 }
 
-TFlt TTDigest::Quantile(const TFlt& Q) const {
+TFlt TTDigestAvl::Quantile(const TFlt& Q) const {
 	if(Q < 0 || Q > 1) {
-		throw TExcept::New("TTDigest::Quantile(const TFlt& q): no data processed");
+		throw TExcept::New("TTDigestAvl::Quantile(const TFlt& q): no data processed");
 	}
 	if(Centroids->GetSize() == 0) {
-		throw TExcept::New("TTDigest::Quantile(const TFlt& q): no data processed");
+		throw TExcept::New("TTDigestAvl::Quantile(const TFlt& q): no data processed");
 	} else if(Centroids->GetSize() == 1) {
 		return Centroids->GetValue(Centroids->First());
 	}
@@ -1081,23 +1081,23 @@ TFlt TTDigest::Quantile(const TFlt& Q) const {
 	}
 }
 
-void TTDigest::Compress() {
+void TTDigestAvl::Compress() {
 	Centroids->Reset();
 	Count = 0;
 }
 
 /// Store state into stream
-void TTDigest::SaveState(TSOut& SOut) const {
+void TTDigestAvl::SaveState(TSOut& SOut) const {
 	Centroids->SaveState(SOut);
 	Count.Save(SOut);
 }
 
-void TTDigest::LoadState(TSIn& SIn) {
+void TTDigestAvl::LoadState(TSIn& SIn) {
 	Centroids->LoadState(SIn);
 	Count.Load(SIn);
 }
 
-void TTDigest::Print() const {
+void TTDigestAvl::Print() const {
 
 }
 

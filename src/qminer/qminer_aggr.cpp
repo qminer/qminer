@@ -1542,7 +1542,6 @@ void TTDigest::Add(const TFlt& Val) {
 
 PJsonVal TTDigest::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
-	Val->AddToObj("Q", Model.GetQuantile(QuantilesVals[0]));
 	Val->AddToObj("Centroids", Model.CentroidsCount());
 	return Val;
 }
