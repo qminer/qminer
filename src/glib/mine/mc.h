@@ -225,6 +225,9 @@ public:
 /////////////////////////////////////////////////////////////////
 // Continuous time Markov chain
 class TCtMChain {
+private:
+	static const double EPS;
+
 public:
 	/// get the reverse time model
 	static void GetRevQMat(const TFltVV& QMat, TFltVV& RevQMat);

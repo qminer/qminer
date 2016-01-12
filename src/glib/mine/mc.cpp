@@ -715,6 +715,8 @@ void TDtMChain::GetStatDistV(const TFltVV& PMat, TFltV& DistV) {
 
 /////////////////////////////////////////////////////////////////
 // Continuous time Markov chain
+const double TCtMChain::EPS = 1e-6;
+
 void TCtMChain::GetRevQMat(const TFltVV& QMat, TFltVV& RevQMat) {
 	const int States = QMat.GetRows();
 
@@ -765,8 +767,11 @@ void TCtMChain::GetStatDistV(const TFltVV& QMat, TFltV& ProbV) {
 
 		// fix numerical issues (this happened once when I was testing for the evaluation (using MKLFunctions))
 		EAssert(ProbV[i] > -1e-3);
-		if (ProbV[i] < 0) {
-			ProbV[i] = 0;
+
+		// correct the stationary distribution so we don't get states
+		// with probability 0
+		if (ProbV[i] < EPS) {
+			ProbV[i] = EPS;
 			NumErr = true;
 		}
 	}
