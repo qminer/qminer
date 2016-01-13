@@ -94,6 +94,26 @@ module.exports = exports = function (pathQmBinary) {
     exports.readCsvLines = function (fin, opts) {
     	exports.readLines(fin, processCsvLine(opts), opts.onEnd);
     }
+    
+    /**
+     * Reads json that was serialized using `fs.FOut.writeJson`.
+     * @returns {Object} Json object
+     */
+    exports.FIn.prototype.readJson = function () {
+    	var str = this.readString();
+    	return JSON.parse(str);
+    }
+    
+    /**
+     * Saves json object, which can be read by `fs.FIn.readJson`.
+     * @returns {Object} obj - Json object to write
+     * @returns {module:fs.FOut} Self.
+     */
+    exports.FOut.prototype.writeJson = function (json) {
+    	var str = JSON.stringify(json);
+    	this.writeBinary(str);
+    	return this;
+    }
 
     //!ENDJSDOC
 

@@ -108,6 +108,34 @@ public:
 };
 
 /////////////////////////////////////////////////
+/// Online Summa of sparse vectors
+class TSumSpVec {
+private:
+	TVec<TIntFltKd> Sum; ///< current computed SUM value 
+	TUInt64 TmMSecs; ///< timestamp of current MA	    
+public:
+	TSumSpVec() {}; ///< Simple constructor
+	TSumSpVec(const PJsonVal& ParamVal) {}; ///< Initialization from JSON value
+	TSumSpVec(TSIn& SIn) : Sum(SIn), TmMSecs(SIn) {} ///> Deserialization constructor
+
+	// serialization
+	void Load(TSIn& SIn); ///< Loading from binary stream
+	void Save(TSOut& SOut) const; ///< Saving to binary stream
+
+	bool IsInit() const { return (TmMSecs > 0); } ///< Checks if this sum received any data yet
+	/// Resets the model state
+	void Reset() { Sum = TIntFltKdV(); TmMSecs = 0; }
+	/// Updates internal state with incoming and outgoing data
+	void Update(const TVec<TIntFltKd>& InVal, const uint64& InTmMSecs, const TVec<TIntFltKdV>& OutValV, const TUInt64V& OutTmMSecs);
+	/// Updates internal state with incoming and outgoing data - for delayed update
+	void Update(const TVec<TIntFltKdV>& InValV, const TUInt64V& InTmMSecsV, const TVec<TIntFltKdV>& OutValV, const TUInt64V& OutTmMSecs) {
+		throw  TExcept::New("TSignalProc::TSumSpVec, delayed Update not implemented"); }
+
+	const TIntFltKdV& GetValue() const { return Sum; } ///< Access current sum
+	uint64 GetTmMSecs() const { return TmMSecs; } ///< Access last received timestampe
+	PJsonVal GetJson() const; ///< Get JSON description of the sum
+};
+/////////////////////////////////////////////////
 // Sliding Window Min
 class TMin {
 private:
@@ -163,18 +191,18 @@ typedef enum { etPreviousPoint, etLinear, etNextPoint } TEmaType;
 class TEma {
 private:
 	// parameters
-	TFlt Decay; // decaying factor
-	TEmaType Type; // interpolation type
+	TFlt Decay; ///< decaying factor
+	TEmaType Type; ///< interpolation type
 	// current state
-	TFlt LastVal; // last input value
-	TFlt Ema; // current computed EMA value 
-	TUInt64 TmMSecs; // timestamp of current EMA
-	double TmInterval; // time interval for definition of decay
+	TFlt LastVal; ///< last input value
+	TFlt Ema; ///< current computed EMA value 
+	TUInt64 TmMSecs; ///< timestamp of current EMA
+	double TmInterval; ///< time interval for definition of decay
 	// buffer for initialization
-	TBool InitP; // true if already initialized
-	TUInt64 InitMinMSecs; // time window of requiered values for initialization
-	TFltV InitValV; // first N values
-	TUInt64V InitMSecsV; // weights of first N values
+	TBool InitP; ///< true if already initialized
+	TUInt64 InitMinMSecs; ///< time window of required values for initialization
+	TFltV InitValV; ///< first N values
+	TUInt64V InitMSecsV; ///< weights of first N values
  	
 	double GetNi(const double& Alpha, const double& Mi);
 public:
@@ -197,6 +225,44 @@ public:
 	uint64 GetTmMSecs() const { return TmMSecs; }
 };
 
+
+class TEmaSpVec {
+private:
+	// parameters
+	TEmaType Type; ///< interpolation type
+    // current state
+	TIntFltKdV LastVal; ///< last input value
+	TIntFltKdV Ema; ///< current computed EMA value 
+	TUInt64 TmMSecs; ///< timestamp of current EMA
+	TFlt TmInterval; ///< time interval for definition of decay
+	TFlt Cutoff; ///< Minimal value for dimension - if it falls below this, it is removed from Ema
+	// buffer for initialization
+	TBool InitP; ///< true if already initialized
+	TUInt64 InitMinMSecs; ///< time window of required values for initialization
+	TVec<TIntFltKdV> InitValV; ///< first N values
+	TUInt64V InitMSecsV; ///< weights of first N values
+
+	double GetNi(const double& Alpha, const double& Mi);
+public:
+	TEmaSpVec(const TEmaType& _Type, const uint64& _InitMinMSecs, const double& _TmInterval, const double& _Cutoff);
+	TEmaSpVec(const PJsonVal& ParamVal);
+	TEmaSpVec(TSIn& SIn);
+
+	// serialization
+	void Load(TSIn& SIn);
+	void Save(TSOut& SOut) const;
+
+	void Update(const TIntFltKdV& Val, const uint64& NewTmMSecs);
+	// current status
+	bool IsInit() const { return InitP; }
+	
+	/// Resets the aggregate
+	void Reset();
+	const TIntFltKdV GetValue() const { return Ema; }
+	uint64 GetTmMSecs() const { return TmMSecs; }
+	
+	PJsonVal GetJson() const; ///< Get JSON description of the sum
+};
 /////////////////////////////////////////////////
 // Online M2 (variance)
 class TVar {
@@ -740,8 +806,12 @@ public:
 ///    setting.
 class TOnlineHistogram {
 private:
+	// state
 	TFltV Counts; ///< Number of occurrences
 	TFltV Bounds; ///< Interval bounds (Bounds.Len() == Counts.Len() + 1)
+	TFlt Count; ///< Sum of counts
+	// parameters
+	TFlt MinCount; ///< If Count < MinCount, then IsInit returns false
 public:	
 	/// Constructs uninitialized object
 	TOnlineHistogram() {};
@@ -750,7 +820,7 @@ public:
 	/// Constructs given JSON arguments
 	TOnlineHistogram(const PJsonVal& ParamVal);
 	/// Constructs from stream
-	TOnlineHistogram(TSIn& SIn) : Counts(SIn), Bounds(SIn) {}
+	TOnlineHistogram(TSIn& SIn) : Counts(SIn), Bounds(SIn), Count(SIn) { }
 
 	/// Initializes the object, resets current content is present
 	void Init(const double& LBound, const double& UBound, const int& Bins, const bool& AddNegInf, const bool& AddPosInf);
@@ -761,7 +831,7 @@ public:
 	/// Loads the model from stream
 	void Load(TSIn& SIn) { *this = TOnlineHistogram(SIn); }
 	/// Saves the model to stream
-	void Save(TSOut& SOut) const { Counts.Save(SOut); Bounds.Save(SOut); }
+	void Save(TSOut& SOut) const { Counts.Save(SOut); Bounds.Save(SOut); SOut.Save(Count); }
 	/// Finds the bin index given val, returns -1 if not found
 	int FindBin(const double& Val) const;
 	/// Increments the number of occurrences of values that fall within the same bin as Val
@@ -776,8 +846,8 @@ public:
 	void GetCountV(TFltV& Vec) const { Vec = Counts; }
 	/// Returns an element of count vector given index
 	double GetCountN(const int& CountN) const { return Counts[CountN]; }
-	/// Has the model beeen initialized?
-	bool IsInit() const {	return Counts.Len() > 0 && Bounds.Len() > 0; }
+	/// Has the model beeen initialized and has sufficient data?
+	bool IsInit() const { return Counts.Len() > 0 && Bounds.Len() > 0 && Count >= MinCount; }
 	/// Clears the model
 	void Clr() { Counts.Clr(); Bounds.Clr(); }
 	/// Prints the model

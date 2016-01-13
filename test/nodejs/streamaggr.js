@@ -88,9 +88,14 @@ describe('Stream Aggregator Tests', function () {
     	        this.reset = function () {
     	            data = {};
     	        };
+    	        this.init = function() {
+    	            return data.Name != undefined;	
+    	        }
     	    });
+    	    assert(!s.init);
             // add a record
     	    store.push({ Name: 'John', Gender: 'Male' });
+    	    assert(s.init);
             // check state
     	    var state = s.saveJson();
     	    assert.equal(state.Name, 'John');
@@ -2205,28 +2210,39 @@ describe('EMA Tests', function () {
             store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
             assert.equal(ema.getFloat(), 1);
         })
-        it('should reset the buffer and  return the ema of the records in the buffer with initWindow', function () {
+        it('complex value test', function () {
             var aggr = {
                 name: 'EmaAggr',
                 type: 'ema',
                 store: 'Function',
                 inAggr: 'TickAggr',
                 emaType: 'previous',
-                interval: 3000,
-                initWindow: 1000
+                interval: 2000,
+                initWindow: 0
             };
             var ema = store.addStreamAggr(aggr);
-            store.push({ Time: '2015-06-10T14:13:32.0', Value: 0 });
-            store.push({ Time: '2015-06-10T14:13:33.0', Value: 1 });
-            store.push({ Time: '2015-06-10T14:13:34.0', Value: 0 });
-            assert.equal(ema.getFloat(), 0);
-
-            store.resetStreamAggregates();
-
-            store.push({ Time: '2015-06-10T14:13:32.0', Value: 0 });
-            store.push({ Time: '2015-06-10T14:13:33.0', Value: 1 });
-            store.push({ Time: '2015-06-10T14:13:34.0', Value: 0 });
-            assert.equal(ema.getFloat(), 0);
+            store.push({ Time: 1000, Value: 1 }); //console.log(ema.getFloat());
+            assert.equal(ema.getFloat(), 1);
+            store.push({ Time: 2000, Value: 1 }); //console.log(ema.getFloat());
+            assert.equal(ema.getFloat(), 1);
+            store.push({ Time: 3000, Value: 1 }); //console.log(ema.getFloat());
+            assert.equal(ema.getFloat(), 1);
+            store.push({ Time: 4000, Value: 2 }); //console.log(ema.getFloat());
+            assert.equal(ema.getFloat(), 1);
+            store.push({ Time: 5000, Value: 2 }); //console.log(ema.getFloat());
+            assert.equal(ema.getFloat().toFixed(6), 1.393469);
+            store.push({ Time: 6000, Value: 3 }); //console.log(ema.getFloat());
+            assert.equal(ema.getFloat().toFixed(6), 1.632121);
+            store.push({ Time: 7000, Value: 3 }); //console.log(ema.getFloat());
+            assert.equal(ema.getFloat().toFixed(6), 2.170339);
+            store.push({ Time: 8000, Value: 3 }); //console.log(ema.getFloat());
+            assert.equal(ema.getFloat().toFixed(6), 2.496785);
+            store.push({ Time: 10000, Value: 4 }); //console.log(ema.getFloat());
+            assert.equal(ema.getFloat().toFixed(6), 2.814878);
+            store.push({ Time: 30000, Value: 5 }); //console.log(ema.getFloat());
+            assert.equal(ema.getFloat().toFixed(6), 3.999946);
+            store.push({ Time: 31000, Value: 5 }); //console.log(ema.getFloat());
+            assert.equal(ema.getFloat().toFixed(6), 4.393437);
         })
     });
 
@@ -3911,6 +3927,178 @@ describe('ChiSquare Tests', function () {
                 fields: [
                     { name: "Sample1", type: "float" },
                     { name: "Sample2", type: "float" },
+                    { name: "Time", type: "datetime" }
+                ]
+            }]
+        });
+        store = base.store('Dice');
+
+        // create a new time series stream aggregator for the 'Dice' store, that takes the expected values of throwing a dice
+        // and the timestamp from the 'Time' field. The size of the window is 1 day.
+        var timeser = {
+            name: 'TimeSeries1',
+            type: 'timeSeriesWinBuf',
+            store: 'Dice',
+            timestamp: 'Time',
+            value: 'Sample1',
+            winsize: 86400000 // one day in miliseconds
+        };
+
+        var timeSeries1 = base.store("Dice").addStreamAggr(timeser);
+
+        // create a new time series stream aggregator for the 'Dice' store, that takes the actual values of throwing a dice
+        // and the timestamp from the 'Time' field. The size of the window is 1 day.
+        timeser = {
+            name: 'TimeSeries2',
+            type: 'timeSeriesWinBuf',
+            store: 'Dice',
+            timestamp: 'Time',
+            value: 'Sample2',
+            winsize: 86400000 // one day in miliseconds
+        };
+
+        var timeSeries2 = base.store("Dice").addStreamAggr(timeser);
+
+        // add a histogram aggregator, that is connected with the 'TimeSeries1' aggregator
+        var aggrJson = {
+            name: 'Histogram1',
+            type: 'onlineHistogram',
+            store: 'Dice',
+            inAggr: 'TimeSeries1',
+            lowerBound: 1,
+            upperBound: 7,
+            bins: 6,
+            addNegInf: false,
+            addPosInf: false
+        };
+
+        hist1 = base.store("Dice").addStreamAggr(aggrJson);
+
+        // add a histogram aggregator, that is connected with the 'TimeSeries2' aggregator
+        var aggrJson = {
+            name: 'Histogram2',
+            type: 'onlineHistogram',
+            store: 'Dice',
+            inAggr: 'TimeSeries2',
+            lowerBound: 1,
+            upperBound: 7,
+            bins: 6,
+            addNegInf: false,
+            addPosInf: false
+        };
+
+        hist2 = base.store("Dice").addStreamAggr(aggrJson);
+    });
+    afterEach(function () {
+        base.close();
+    });
+    it('should create an chi square test aggregator', function () {
+
+        // add ChiSquare aggregator that connects with Histogram1 with expected values and Histogram2 with actual values
+        aggr = {
+            name: 'ChiAggr',
+            type: 'chiSquare',
+            storeX: 'Dice',
+            storeY: 'Dice',
+            inAggrX: 'Histogram1',
+            inAggrY: 'Histogram2',
+            degreesOfFreedom: 5
+        }
+        var chi = store.addStreamAggr(aggr);
+
+        // add some values (throwing a pair of dice)
+        store.push({ Time: '2015-06-10T14:13:30.0', Sample1: 2 , Sample2: 4 }); 
+        store.push({ Time: '2015-06-10T14:13:31.0', Sample1: 2 , Sample2: 5 }); 
+        store.push({ Time: '2015-06-10T14:13:32.0', Sample1: 2 , Sample2: 2 }); 
+        store.push({ Time: '2015-06-10T14:13:33.0', Sample1: 2 , Sample2: 2 }); 
+        store.push({ Time: '2015-06-10T14:13:34.0', Sample1: 6 , Sample2: 2 }); 
+        store.push({ Time: '2015-06-10T14:13:35.0', Sample1: 3 , Sample2: 5 }); 
+        store.push({ Time: '2015-06-10T14:13:41.0', Sample1: 2 , Sample2: 3 }); 
+        store.push({ Time: '2015-06-10T14:13:41.0', Sample1: 6 , Sample2: 6 }); 
+        store.push({ Time: '2015-06-10T14:13:42.0', Sample1: 5 , Sample2: 1 }); 
+        store.push({ Time: '2015-06-10T14:13:43.0', Sample1: 2 , Sample2: 3 }); 
+        store.push({ Time: '2015-06-10T14:13:44.0', Sample1: 1 , Sample2: 4 }); 
+        store.push({ Time: '2015-06-10T14:13:45.0', Sample1: 3 , Sample2: 2 }); 
+        store.push({ Time: '2015-06-10T14:13:50.0', Sample1: 6 , Sample2: 4 }); 
+        store.push({ Time: '2015-06-10T14:13:51.0', Sample1: 3 , Sample2: 1 }); 
+        store.push({ Time: '2015-06-10T14:13:52.0', Sample1: 4 , Sample2: 1 }); 
+        store.push({ Time: '2015-06-10T14:13:53.0', Sample1: 5 , Sample2: 1 }); 
+        store.push({ Time: '2015-06-10T14:13:54.0', Sample1: 5 , Sample2: 3 }); 
+        store.push({ Time: '2015-06-10T14:13:55.0', Sample1: 4 , Sample2: 1 });
+        
+        assert(Math.abs(chi.getFloat() - 4.4666) < 0.001);
+        // todo assert correct result
+    });
+
+    it('should reset an chi square test aggregator', function () {
+
+        // add ChiSquare aggregator that connects with Histogram1 with expected values and Histogram2 with actual values
+        aggr = {
+            name: 'ChiAggr',
+            type: 'chiSquare',
+            storeX: 'Dice',
+            storeY: 'Dice',
+            inAggrX: 'Histogram1',
+            inAggrY: 'Histogram2',
+            degreesOfFreedom: 2
+        }
+        var chi = store.addStreamAggr(aggr);
+
+        // add some values (throwing a pair of dice)
+        store.push({ Time: '2015-06-10T14:13:30.0', Sample1: 2, Sample2: 4 });
+        store.push({ Time: '2015-06-10T14:13:31.0', Sample1: 2, Sample2: 5 });
+        store.push({ Time: '2015-06-10T14:13:32.0', Sample1: 2, Sample2: 2 });
+        store.push({ Time: '2015-06-10T14:13:33.0', Sample1: 2, Sample2: 2 });
+        store.push({ Time: '2015-06-10T14:13:34.0', Sample1: 6, Sample2: 2 });
+        store.push({ Time: '2015-06-10T14:13:35.0', Sample1: 3, Sample2: 5 });
+        store.push({ Time: '2015-06-10T14:13:41.0', Sample1: 2, Sample2: 3 });
+        store.push({ Time: '2015-06-10T14:13:41.0', Sample1: 6, Sample2: 6 });
+        store.push({ Time: '2015-06-10T14:13:42.0', Sample1: 5, Sample2: 1 });
+        store.push({ Time: '2015-06-10T14:13:43.0', Sample1: 2, Sample2: 3 });
+        store.push({ Time: '2015-06-10T14:13:44.0', Sample1: 1, Sample2: 4 });
+        store.push({ Time: '2015-06-10T14:13:45.0', Sample1: 3, Sample2: 2 });
+        store.push({ Time: '2015-06-10T14:13:50.0', Sample1: 6, Sample2: 4 });
+        store.push({ Time: '2015-06-10T14:13:51.0', Sample1: 3, Sample2: 1 });
+        store.push({ Time: '2015-06-10T14:13:52.0', Sample1: 4, Sample2: 1 });
+        store.push({ Time: '2015-06-10T14:13:53.0', Sample1: 5, Sample2: 1 });
+        store.push({ Time: '2015-06-10T14:13:54.0', Sample1: 5, Sample2: 3 });
+        store.push({ Time: '2015-06-10T14:13:55.0', Sample1: 4, Sample2: 1 });
+        
+		var endVal = chi.getFloat();
+
+		var fout = qm.fs.openWrite("aggr.tmp");
+		chi.save(fout);
+		fout.close();
+		
+        store.resetStreamAggregates();       
+        
+		var fin = qm.fs.openRead("aggr.tmp");
+		chi.load(fin);
+		fin.close();
+
+		assert(chi.getFloat() == endVal);
+
+    });
+
+});
+
+
+describe('ChiSquare Tests - sfloat', function () {
+    var base = undefined;
+    var store = undefined;
+    var hist1 = undefined;
+    var hist2 = undefined;
+    beforeEach(function () {
+        // create a base with a simple store
+        // the store records results of throwing two independent fair dices        
+        base = new qm.Base({
+            mode: "createClean",
+            schema: [
+            {
+                name: "Dice",
+                fields: [
+                    { name: "Sample1", type: "sfloat" },
+                    { name: "Sample2", type: "sfloat" },
                     { name: "Time", type: "datetime" }
                 ]
             }]

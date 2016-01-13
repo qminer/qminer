@@ -33,9 +33,7 @@ private:
     TInt NextCol;
 	/// ID vector
 	TIntV IDVec;
-
-    /// Check if model is initialized
-    bool IsInit() const { return (InitVecs == WindowSize); }
+    
     /// Update all distances as if Mat[ColId] is new vector, ignoring column IgnoreColId
     void UpdateDistance(const int& ColId, const int& IgnoreColId = -1);
     /// Forget vector Mat[ColId] from the nearest neighbors
@@ -59,6 +57,9 @@ public:
 	/// Returns the JSON that contains the ID of the nearest neighbour and a vector of per-feature
     /// contributions to the total distance to the nearest neighbor. Returns null JSON if not initialized.
 	PJsonVal Explain(const TIntFltKdV& Vec) const;
+	
+	/// Check if model is initialized
+	bool IsInit() const { return (InitVecs == WindowSize); }
 
     // parameters
     int GetRates() const { return RateV.Len(); }

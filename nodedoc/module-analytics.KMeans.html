@@ -24,8 +24,9 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">KMeans</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-3094">analyticsdoc.<wbr>js:3094</a></p>
+            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div>
+            <h1><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">KMeans</span></h1>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-3344">analyticsdoc.<wbr>js:3344</a></p>
             <div class="symbol-classdesc">
               <p>KMeans clustering</p>
             </div>
@@ -89,12 +90,12 @@
         </h3>
               <div>
                 <pre class="prettyprint"><code>// import analytics and la modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a KMeans object
-var KMeans = new analytics.KMeans();
+var KMeans &#x3D; new analytics.KMeans();
 // create the matrix to be fitted
-var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+var X &#x3D; new la.Matrix([[1, -2, -1], [1, 1, -3]]);
 // create the model
 KMeans.fit(X);</code></pre>
               </div>
@@ -198,19 +199,19 @@ KMeans.fit(X);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
 // import linear algebra module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new KMeans object
-var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+var KMeans &#x3D; new analytics.KMeans({ iter: 1000, k: 3 });
 // create a matrix to be fitted
-var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+var X &#x3D; new la.Matrix([[1, -2, -1], [1, 1, -3]]);
 // create the model with the matrix X using the column IDs [0,1,2]
 KMeans.fit(X, [1234,1142,2355]);
 // create the matrix of the prediction vectors
-var test = new la.Matrix([[2, -1, 1], [1, 0, -3]]);
+var test &#x3D; new la.Matrix([[2, -1, 1], [1, 0, -3]]);
 // predict/explain - return the closest medoids
-var explanation = KMeans.explain(test);</code></pre>
+var explanation &#x3D; KMeans.explain(test);</code></pre>
                 </div>
               </section>
               <section>
@@ -256,11 +257,11 @@ var explanation = KMeans.explain(test);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
 // create a new KMeans object
-var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+var KMeans &#x3D; new analytics.KMeans({ iter: 1000, k: 3 });
 // create a matrix to be fitted
-var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+var X &#x3D; new la.Matrix([[1, -2, -1], [1, 1, -3]]);
 // create the model with the matrix X
 KMeans.fit(X);</code></pre>
                 </div>
@@ -322,16 +323,16 @@ KMeans.fit(X);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create the KMeans object
-var KMeans = new analytics.KMeans({ iter: 1000 });
+var KMeans &#x3D; new analytics.KMeans({ iter: 1000 });
 // create a matrix to be fitted
-var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+var X &#x3D; new la.Matrix([[1, -2, -1], [1, 1, -3]]);
 // create the model
 KMeans.fit(X);
 // get the model
-var model = KMeans.getModel();</code></pre>
+var model &#x3D; KMeans.getModel();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -348,11 +349,11 @@ var model = KMeans.getModel();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
 // create a new KMeans object
-var KMeans = new analytics.KMeans({ iter: 1000, k: 5 });
+var KMeans &#x3D; new analytics.KMeans({ iter: 1000, k: 5 });
 // get the parameters
-var json = KMeans.getParams();</code></pre>
+var json &#x3D; KMeans.getParams();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -402,17 +403,17 @@ var json = KMeans.getParams();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
 // create a new KMeans object
-var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+var KMeans &#x3D; new analytics.KMeans({ iter: 1000, k: 3 });
 // create a matrix to be fitted
-var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+var X &#x3D; new la.Matrix([[1, -2, -1], [1, 1, -3]]);
 // create the model with the matrix X
 KMeans.fit(X);
 // create the matrix of the prediction vectors
-var pred = new la.Matrix([[2, -1, 1], [1, 0, -3]]);
+var pred &#x3D; new la.Matrix([[2, -1, 1], [1, 0, -3]]);
 // predict the values
-var prediction = KMeans.predict(pred);</code></pre>
+var prediction &#x3D; KMeans.predict(pred);</code></pre>
                 </div>
               </section>
               <section>
@@ -495,9 +496,9 @@ var prediction = KMeans.predict(pred);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
 // create a new KMeans object
-var KMeans = new analytics.KMeans();
+var KMeans &#x3D; new analytics.KMeans();
 // change the parameters of the KMeans object
 KMeans.setParams({ iter: 1000, k: 5 });</code></pre>
                 </div>
@@ -545,16 +546,16 @@ KMeans.setParams({ iter: 1000, k: 5 });</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new KMeans object
-var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+var KMeans &#x3D; new analytics.KMeans({ iter: 1000, k: 3 });
 // create a matrix to be fitted
-var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+var X &#x3D; new la.Matrix([[1, -2, -1], [1, 1, -3]]);
 // create the model with the matrix X
 KMeans.fit(X);
 // create the matrix of the transform vectors
-var matrix = new la.Matrix([[-2, 0], [0, -3]]);
+var matrix &#x3D; new la.Matrix([[-2, 0], [0, -3]]);
 // get the transform values of matrix
 // returns the matrix
 //  10    17
@@ -598,7 +599,8 @@ KMeans.transform(matrix);</code></pre>
                   <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>&nbsp;Matrix where each column represents the squared distances to the centroid vectors.</p>
                 </dd>
               </dl>
-              <h3 id="~featureContrib"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">featureContrib</span><span class="signature"><span class="signature-params">(x, y)</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
+              <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div>
+              <h3 id="~featureContrib"><span class="symbol-name">featureContrib</span><span class="signature"><span class="signature-params">(x, y)</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
               <p>Returns the weights and feature IDs that contributed to the distance between two vectors</p>
               <section>
                 <h4>Parameters</h4>

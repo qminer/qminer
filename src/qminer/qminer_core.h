@@ -26,6 +26,7 @@ class TAggr; typedef TPt<TAggr> PAggr;
 class TStreamAggr; typedef TPt<TStreamAggr> PStreamAggr;
 class TStreamAggrBase; typedef TPt<TStreamAggrBase> PStreamAggrBase;
 class TFtrExt; typedef TPt<TFtrExt> PFtrExt;
+class TFtrSpace; typedef TPt<TFtrSpace> PFtrSpace;
 
 ///////////////////////////////
 /// QMiner Environment.
@@ -594,14 +595,25 @@ public:
 	bool Empty() const { return (GetRecs() == uint64(0)); }
 
 	/// Gets the first record in the store (order defined by store implementation)
-	virtual uint64 GetFirstRecId() const { throw TQmExcept::New("Not implemented"); }
+	virtual uint64 GetFirstRecId() const { throw TQmExcept::New("GetFirstRecId not implemented"); }
 	/// Gets the last record in the store (order defined by store implementation)
-	virtual uint64 GetLastRecId() const { throw TQmExcept::New("Not implemented"); };
+	virtual uint64 GetLastRecId() const { throw TQmExcept::New("GetLastRecId not implemented"); };
 	/// Gets forward moving iterator (order defined by store implementation)
-	virtual PStoreIter ForwardIter() const { throw TQmExcept::New("Not implemented"); };
+	virtual PStoreIter ForwardIter() const { throw TQmExcept::New("ForwardIter not implemented"); };
 	/// Gets backward moving iterator (order defined by store implementation)
-	virtual PStoreIter BackwardIter() const { throw TQmExcept::New("Not implemented"); };
+	virtual PStoreIter BackwardIter() const { throw TQmExcept::New("BackwardIter not implemented"); };
 	
+	/// Does the store implement GetAllRecs?
+	virtual bool HasGetAllRecs() const { return false; }
+	/// Is the forward iterator implemented?
+	virtual bool HasForwardIter() const { return false; }
+	/// Is the backward iterator implemented?
+	virtual bool HasBackwardIter() const { return false; }
+	/// Is the first record  id getter implemented?
+	virtual bool HasFirstRecId() const { return false; }
+	/// Is the last record id getter implemented?
+	virtual bool HasLastRecId() const { return false; }
+
 	/// Add new record provided as JSon
 	virtual uint64 AddRec(const PJsonVal& RecVal, const bool& TriggerEvents=true) = 0;
 	/// Update existing record with updates in provided JSon
@@ -3219,46 +3231,46 @@ namespace TStreamAggrOut {
 
 	class IInt {
 	public:
-		// retireving value from the aggregate
+		// retrieving value from the aggregate
 		virtual int GetInt() const = 0;
 	};
 
 	class IFlt {
 	public:
-		// retireving value from the aggregate
+		// retrieving value from the aggregate
 		virtual double GetFlt() const = 0;
 	};
 
+	//class ISparseVec {
+	//public:
+	//	// retrieving value from the aggregate
+	//	virtual const TIntFltKdV& GetSparseVec() const = 0;
+	//};
+	
 	class ITm {
 	public:
 		TStreamAggrOutHelper(ITm);
-		// retireving value from the aggregate
+		// retrieving value from the aggregate
 		virtual uint64 GetTmMSecs() const = 0;
 		static uint64 GetTmMSecsCast(const TWPt<TStreamAggr>& Aggr) { return CastITm(Aggr)->GetTmMSecs(); }
 	};
 	
 	// combination of numeric value and timestamp
 	class IFltTm: public IFlt, public ITm { };
-	
-	class IFltTmIO {
-	public:
-		virtual double GetInFlt() const = 0;
-		virtual uint64 GetInTmMSecs() const = 0;
-		virtual bool DelayedP() const = 0;
-		virtual void GetInFltV(TFltV& ValV) const = 0;
-		virtual void GetInTmMSecsV(TUInt64V& MSecsV) const = 0;
-		virtual void GetOutFltV(TFltV& ValV) const = 0;
-		virtual void GetOutTmMSecsV(TUInt64V& MSecsV) const = 0;
-		virtual int GetN() const = 0;
-	};
 
-	class IFltVec {
+	template <class TVal>
+	class IValVec {
 	public:
 		// retrieving vector of values from the aggregate
-		virtual int GetFltLen() const = 0;
-		virtual double GetFlt(const TInt& ElN) const = 0;
-		virtual void GetFltV(TFltV& ValV) const = 0;
+		virtual int GetVals() const = 0;
+		virtual void GetVal(const TInt& ElN, TVal& Val) const = 0;
+		virtual void GetValV(TVec<TVal>& ValV) const = 0;
 	};
+	typedef IValVec<TFlt> IFltVec;
+	typedef IValVec<TIntFltKdV> ISparseVVec;
+	typedef IValVec<TIntFltKd> ISparseVec;
+	// combination of sparse-vector and timestamp
+	class ISparseVecTm : public ISparseVec, public ITm {};
 
 	class ITmVec {
 	public:
@@ -3268,7 +3280,42 @@ namespace TStreamAggrOut {
 		virtual void GetTmV(TUInt64V& MSecsV) const = 0;
 	};
 
-	class IFltVecTm : public IFltVec, public ITm { };
+	template <class TVal>
+	class IValVecTm : public IValVec<TVal>, public ITm {};	
+	typedef IValVecTm<TFlt> IFltVecTm;	
+	//class IFltVecTm : public IFltVec, public ITm { };
+
+	// interfaces used by window buffer
+	class IBuffer {
+	public:
+		virtual bool DelayedP() const = 0;
+	};
+
+	template <class TVal>
+	class IValIO : public IValVec<TVal> , public virtual IBuffer {
+	public:
+		// valid only when not using delay
+		virtual TVal GetInVal() const = 0;
+		// incomming
+		virtual void GetInValV(TVec<TVal>& ValV) const = 0;
+		// outgoing
+		virtual void GetOutValV(TVec<TVal>& ValV) const = 0;
+	};
+
+	class ITmIO : public ITmVec, public virtual IBuffer {
+	public:
+		// valid only when not using delay
+		virtual uint64 GetInTmMSecs() const = 0;
+		// incomming
+		virtual void GetInTmMSecsV(TUInt64V& MSecsV) const = 0;
+		// outgoing
+		virtual void GetOutTmMSecsV(TUInt64V& MSecsV) const = 0;
+	};
+	
+	template <class TVal>
+	class IValTmIO : public IValIO<TVal>, public ITmIO {};
+	typedef IValTmIO<TFlt> IFltTmIO;
+	typedef IValTmIO<TIntFltKdV> ISparseVecTmIO;
 
 	class INmFlt {
 	public:
@@ -3284,6 +3331,12 @@ namespace TStreamAggrOut {
 		virtual bool IsNm(const TStr& Nm) const = 0;
 		virtual double GetNmInt(const TStr& Nm) const = 0;
 		virtual void GetNmIntV(TStrIntPrV& NmIntV) const = 0;
+	};
+
+	class IFtrSpace {
+	public:
+		// get feature space
+		virtual PFtrSpace GetFtrSpace() const = 0;
 	};
 }
 ///////////////////////////////

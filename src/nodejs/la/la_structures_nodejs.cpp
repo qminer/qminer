@@ -1022,9 +1022,9 @@ void TNodeJsSpVec::normalize(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     if (JsSpVec->Vec.Len() > 0) {
         TLinAlg::Normalize(JsSpVec->Vec);
-    } // XXX: Otherwise, throw an exception? 
+    }
 
-    Args.GetReturnValue().Set(v8::Boolean::New(Isolate, true));
+    Args.GetReturnValue().Set(Args.Holder());
 }
 
 void TNodeJsSpVec::norm(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -1169,6 +1169,8 @@ void TNodeJsSpMat::Init(v8::Handle<v8::Object> exports) {
 
     // Properties 
     tpl->InstanceTemplate()->SetIndexedPropertyHandler(_indexGet, _indexSet);
+	child->InstanceTemplate()->SetIndexedPropertyHandler(_indexGet, _indexSet);
+
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "rows"), _rows);
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "cols"), _cols);
 

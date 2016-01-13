@@ -87,9 +87,11 @@
 * @property {module:qm~StreamAggregateSum} sum - The sum type.
 * @property {module:qm~StreamAggregateMin} min - The minimal type.
 * @property {module:qm~StreamAggregateMax} max - The maximal type.
+* @property {module:qm~StreamAggregateSparseVecSum} sum - The sparse-vector-sum type.
 * @property {module:qm~StreamAggregateTimeSeriesTick} tick - The time series tick type.
 * @property {module:qm~StreamAggregateMovingAverage} ma - The moving average type.
 * @property {module:qm~StreamAggregateEMA} ema - The exponental moving average type.
+* @property {module:qm~StreamAggregateEMASpVec} ema - The exponental moving average for sparse vectors type.
 * @property {module:qm~StreamAggregateMovingVariance} var - The moving variance type.
 * @property {module:qm~StreamAggregateMovingCovariance} cov - The moving covariance type.
 * @property {module:qm~StreamAggregateMovingCorrelation} cor - The moving correlation type.
@@ -322,6 +324,64 @@
 */
 
 /**
+* @typedef {module:qm.StreamAggr} StreamAggregateSparseVecSum
+* This stream aggregator represents the sparse-vector-sum moving window buffer. It sums all the sparse-vector values, that are in the connected stream aggregator.
+* It implements the following methods:
+* <br>{@link module:qm.StreamAggr#getValueVector} returns the sum of the values of the records in it's buffer window.
+* <br>{@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the newest record in it's buffer window.
+* @property {string} StreamAggregateSum.name - The given name of the stream aggregator.
+* @property {string} StreamAggregateSum.type - The type of the stream aggregator. It must be equal to <b>'winBufSpVecSum'</b>.
+* @property {string} StreamAggregateSum.store - The name of the store from which it takes the data.
+* @property {string} StreamAggregateSum.inAggr - The name of the stream aggregator to which it connects and gets data.
+* @example
+* var qm = require('qminer');
+* var base = new qm.Base({
+* 	mode: 'createClean',
+* 	schema: [{
+* 		name: 'Docs',
+* 		fields: [
+* 			{ name: 'Time', type: 'datetime' },
+* 			{ name: 'Text', type: 'string' }
+* 		]
+* 	}]
+* });
+* var store = base.store('Docs');
+*
+* var aggr = {
+* 	name: 'featureSpaceWindow',
+* 	type: 'timeSeriesWinBufFeatureSpace',
+* 	store: 'Docs',
+* 	timestamp: 'Time',
+* 	featureSpace: {
+* 		type: "categorical",
+* 		source: "Docs",
+* 		field: "Text"
+* 	},
+* 	winsize: 1000
+* };
+* var sa = store.addStreamAggr(aggr);
+*
+* var aggr2 = {
+* 	name: 'sparseVectorSum',
+* 	type: 'winBufSpVecSum',
+* 	store: 'Docs',
+* 	inAggr: 'featureSpaceWindow'
+* };
+* var sa2 = store.addStreamAggr(aggr2);
+*
+* store.push({ Time: '2015-06-10T14:13:32.0', Text: 'a' }); // 0
+* store.push({ Time: '2015-06-10T14:13:33.0', Text: 'b' }); // 1
+* store.push({ Time: '2015-06-10T14:14:34.0', Text: 'c' }); // 2
+* store.push({ Time: '2015-06-10T14:15:35.0', Text: 'd' }); // 3
+* store.push({ Time: '2015-06-10T14:15:36.0', Text: 'e' }); // 4
+* store.push({ Time: '2015-06-10T14:15:37.0', Text: 'f' }); // 5
+*
+* var valVec2 = sa2.getValueVector(); // [0, 0, 0, 0, 1, 1] - only vectors 4 and 5 remain in window
+*
+* base.close();
+*/
+
+/**
 * @typedef {module:qm.StreamAggr} StreamAggregateTimeSeriesTick
 * This stream aggregator represents the time series tick window buffer. It exposes the data to other stream aggregators 
 * (similar to {@link module:qm~StreamAggr_TimeSeriesWindow}). It implements the following methods:
@@ -470,6 +530,81 @@
 * base.close();
 */
 
+/**
+* @typedef {module:qmStreamAggr} StreamAggregateEMASpVec
+* This stream aggregator represents the exponential moving average window buffer for sparse vectors. It calculates the weighted moving average
+* of the values in the connected stream aggregator, where the weights are exponentially decreasing.  It implements the following methods:
+* <br>{@link module:qm.StreamAggr#getValueVector} returns the exponentional average of the sparse-vector values in it's buffer window.
+* <br>{@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the newest record in it's buffer window.
+* @property {string} StreamAggregateEMA.name - The given name for the stream aggregator.
+* @property {string} StreamAggregateEMA.type - The type of the stream aggregator. It must be equal to <b>'ema'</b>.
+* @property {string} StreamAggregateEMA.store - The name of the store from which it takes the data.
+* @property {string} StreamAggregateEMA.inAggr - The name of the stream aggregator to which it connects and gets data.
+* It <b>cannot</b> connect to the {@link module:qm~StreamAggr_TimeSeriesWindow}.
+* @property {string} StreamAggregateEMA.emaType - The type of interpolation. The choices are 'previous', 'linear' and 'next'.
+* <br> Type 'previous' interpolates with the previous value.
+* <br> Type 'next' interpolates with the next value.
+* <br> Type 'linear' makes a linear interpolation.
+* @property {number} StreamAggregateEMA.interval - The time interval defining the decay. It must be greater than initWindow.
+* @property {number} StreamAggregateEMA.initWindow - The time window of required values for initialization. Optional, default is 0.
+* @property {number} StreamAggregateEMA.cuttof - Minimal value for any dimension. If value of certain dimension falls bellow thsi value, the dimension is pruned from average. Optional, default is 0.001.
+* @example
+* // import the qm module
+* var qm = require('qminer');
+* // create a base with a simple store
+* var base = new qm.Base({
+*    mode: "createClean",
+*    schema: [
+*    {
+*        name: "Data",
+*        fields: [
+*            { name: "Text", type: "string" },
+*            { name: "Time", type: "datetime" }
+*        ]
+*    }]
+* });
+* var store = base.store("Data");
+* // create a new time series that emits data as sparse vector, based on text.
+* var aggr = {
+*    name: 'featureSpaceWindow',
+*    type: 'timeSeriesWinBufFeatureSpace',
+*    store: store.name,
+*    timestamp: 'Time',
+*    featureSpace: {
+*       type: "categorical",
+*       source: store.name,
+*       field: "Text"
+*    },
+*    winsize: 1 // keep only most recent value in window
+* };
+* // attach sum
+* var sa = store.addStreamAggr(aggr);
+* var aggr2 = {
+*    name: 'sparseVectorSum',
+*    type: 'winBufSpVecSum',
+*    store: store.name,
+*    inAggr: aggr.name // this means that sum is equal to the most recent data
+* };
+* // ok, now attach EMA
+* var sa2 = store.addStreamAggr(aggr2);
+* var ema_def = {
+*    name: 'sparseVectorEma',
+*    type: 'emaSpVec',
+*    store: store.name,
+*    inAggr: aggr2.name,
+*    emaType: "next",
+*    interval: 2000,
+*    initWindow: 0
+* };
+* var ema = store.addStreamAggr(ema_def);
+* // add some data
+* store.push({ Time: 1000, Text: 'a' });
+* store.push({ Time: 2000, Text: 'b' });
+* store.push({ Time: 3000, Text: 'c' });
+* // display EMA data
+* ema.getValueVector().print();
+* base.close();
+*/
 /**
 * @typedef {module:qm.StreamAggr} StreamAggregateMovingVariance
 * This stream aggregator represents the moving variance window buffer. It calculates the moving variance of the stream aggregator, that it's connected to. 
@@ -1666,6 +1801,94 @@ public:
 	//# exports.StreamAggr.prototype.getNumberOfRecords = function () { return 0; };
 	JsDeclareFunction(getNumberOfRecords);
 
+	// IValTmIO
+	/**
+	* Gets the vector of 'just-in' values (values that have just entered the buffer). Values can be floats or sparse vectors.
+	* @returns {(module:la.Vector | module:la.SparseMatrix)} Vector of floats or a vector of sparse vectors
+	* @example
+	* // import qm module
+	* var qm = require('qminer');
+	* // create a simple base containing one store
+	* var base = new qm.Base({
+    *      mode: 'createClean',
+    *      schema: [{
+    *        name: 'Docs',
+    *        fields: [
+    *          { name: 'Time', type: 'datetime' },
+    *          { name: 'Text', type: 'string' }
+    *        ]
+    *      }]
+    * });
+    * store = base.store('Docs');
+	* // the following aggregate maintains a window buffer (1000 milliseconds) with no delay
+	* // and contains a categorical feature extractor. The extractor maps records in the buffer
+	* // to sparse vectors (indicator vectors for growing set of categories). Each record that
+	* // enters the buffer updates the feature extractor (potentially introduces a new category,
+	* // which increases the dimensionality).
+	* var aggr = {
+    *      type: 'timeSeriesWinBufFeatureSpace',
+    *      store: 'Docs',
+    *      timestamp: 'Time',
+    *      featureSpace: {
+    *        type: "categorical",
+    *        source: "Docs",
+    *        field: "Text"
+    *      },
+    *      winsize: 1000
+    * };
+	* var streamAggregate = store.addStreamAggr(aggr);
+	* store.push({ Time: '2015-06-10T14:13:32.0', Text: 'a' });
+	* store.push({ Time: '2015-06-10T14:13:33.0', Text: 'b' });
+	* store.push({ Time: '2015-06-10T14:13:34.0', Text: 'c' });
+	* // we have three dimensions, where "a" -> [1,0,0], "b" -> [0,1,0], "c" -> [0,0,1]
+	* // the first record just fell out of the buffer, the third record just entered the buffer
+	* // and buffer currently contains the second and the third record.
+	* // In case of the feature space based window buffer, the vectors of just-in, just-out and in-the-buffer
+	* // values correspond to vectors of sparse vectors = sparse matrices.
+	* streamAggregate.getInValueVector().print(); // one column, one nonzero element at index 2
+	* // = [
+    * // 2 0 1.000000
+    * // ]
+	* streamAggregate.getOutValueVector().print(); // one column, one nonzero element at index 0
+	* // = [
+	* // 0 0 1.000000
+	* // ]
+	* streamAggregate.getValueVector().print(); // two column vectors, each with one nonzero element
+	* // = [
+	* // 1 0 1.000000
+	* // 2 1 1.000000
+	* // ]
+	* 
+	* base.close();
+	*/
+	//# exports.StreamAggr.prototype.getInValueVector = function () { };
+	JsDeclareFunction(getInValueVector);
+	
+	/**
+	* Gets the vector of 'just-out values (values that have just fallen out of the buffer). Values can be floats or sparse vectors.
+	* @returns {(module:la.Vector | module:la.SparseMatrix)} Vector of floats or a vector of sparse vectors
+	* @example
+	* // look at the example for getInValueVector
+	*/
+	//# exports.StreamAggr.prototype.getOutValueVector = function () { };
+	JsDeclareFunction(getOutValueVector);
+	
+	// IValVec
+	/**
+	* Gets the vector of values in the buffer. Values can be floats or sparse vectors.
+	* @returns {(module:la.Vector | module:la.SparseMatrix)} Vector of floats or a vector of sparse vectors
+	* @example
+	* // look at the example for getInValueVector
+	*/
+	//# exports.StreamAggr.prototype.getValueVector = function () { };
+	JsDeclareFunction(getValueVector);
+
+	/**
+	* Returns a feature space
+	*/
+	//# exports.StreamAggr.prototype.getFeatureSpace = function() { return Object.create(require('qminer').FeatureSpace.prototype); };
+	JsDeclareFunction(getFeatureSpace);
+
 	/**
 	* Returns the name of the stream aggregate.
 	*/
@@ -1691,12 +1914,11 @@ class TNodeJsFuncStreamAggr :
 	public TQm::TStreamAggr,
 	public TQm::TStreamAggrOut::IInt,
 	public TQm::TStreamAggrOut::IFltTmIO,
-	public TQm::TStreamAggrOut::IFltVec,
-	public TQm::TStreamAggrOut::ITmVec,
 	public TQm::TStreamAggrOut::INmFlt,
 	public TQm::TStreamAggrOut::INmInt,
 	// combinations
-	public TQm::TStreamAggrOut::IFltTm
+	public TQm::TStreamAggrOut::IFltTm,
+	public TQm::TStreamAggrOut::ISparseVecTm
 {
 private:	
 	// callbacks
@@ -1705,6 +1927,7 @@ private:
 	v8::Persistent<v8::Function> OnUpdateFun;
 	v8::Persistent<v8::Function> OnDeleteFun;
 	v8::Persistent<v8::Function> SaveJsonFun;
+	v8::Persistent<v8::Function> IsInitFun;
 
 	v8::Persistent<v8::Function> GetIntFun;
 	// IFlt 
@@ -1736,6 +1959,7 @@ private:
 	v8::Persistent<v8::Function> IsNmFun;
 	v8::Persistent<v8::Function> GetNmIntFun;
 	v8::Persistent<v8::Function> GetNmIntVFun;
+
 	// Serialization
 	v8::Persistent<v8::Function> SaveFun;
 	v8::Persistent<v8::Function> LoadFun;
@@ -1753,6 +1977,7 @@ public:
 	void OnUpdateRec(const TQm::TRec& Rec);
 	void OnDeleteRec(const TQm::TRec& Rec);
 	PJsonVal SaveJson(const int& Limit) const;
+	bool IsInit() const;
 
 	// stream aggregator type name 
 	static TStr GetType() { return "javaScript"; }
@@ -1766,21 +1991,24 @@ public:
 	double GetFlt() const;
 	// ITm 
 	uint64 GetTmMSecs() const;
+	
 	// IFltTmIO 
-	double GetInFlt() const;
+	TFlt GetInVal() const;
 	uint64 GetInTmMSecs() const;
 	bool DelayedP() const;
-
-	void GetInFltV(TFltV& ValV) const;
+	// incomming
+	void GetInValV(TFltV& ValV) const;
 	void GetInTmMSecsV(TUInt64V& MSecsV) const;
-	void GetOutFltV(TFltV& ValV) const;
+	// outgoing
+	void GetOutValV(TFltV& ValV) const;
 	void GetOutTmMSecsV(TUInt64V& MSecsV) const;
+	// in buffer
 	int GetN() const;
 
 	// IFltVec
-	int GetFltLen() const;
-	double GetFlt(const TInt& ElN) const; // GetFltAtFun
-	void GetFltV(TFltV& ValV) const;
+	int GetVals() const;
+	void GetVal(const TInt& ElN, TFlt& Val) const; // GetFltAtFun
+	void GetValV(TFltV& ValV) const;
 	// ITmVec
 	int GetTmLen() const;
 	uint64 GetTm(const TInt& ElN) const; // GetTmAtFun
@@ -1793,6 +2021,10 @@ public:
 	bool IsNm(const TStr& Nm) const;
 	double GetNmInt(const TStr& Nm) const;
 	void GetNmIntV(TStrIntPrV& NmIntV) const;
+	// ISparseVec
+	//int GetVals() const; - this one is "shared" with IFltVec
+	void GetVal(const TInt& ElN, TIntFltKd& Val) const; // GetFltAtFun
+	void GetValV(TIntFltKdV& ValV) const;
 };
 
 #endif

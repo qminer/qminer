@@ -13,6 +13,10 @@
 #include "qminer_storage.h"
 #include "qminer_ftr.h"
 
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
+
+
 namespace TQm {
 
 namespace TAggrs {
@@ -277,15 +281,16 @@ public:
 // We assume the streaming store: no holes in record IDs, increasing timestamps, consistent
 // with intervals.
 //
-class TWinBuf : public TStreamAggr, public TStreamAggrOut::IFltTmIO,
-	public TStreamAggrOut::IFltVec, public TStreamAggrOut::ITmVec, public TStreamAggrOut::ITm {
-private:
+template <class TVal>
+class TWinBuf : public TStreamAggr, public TStreamAggrOut::IValTmIO<TVal>, public TStreamAggrOut::ITm {
+protected:
 	// STORAGE ACCESS
+	virtual TVal GetRecVal(const uint64& RecId) const = 0; ///< value getter
+	virtual void RecUpdate(const uint64& RecId) const { }
 	TWPt<TStore> Store; ///< needed to access records through IDs
-    TInt TimeFieldId; ///< field ID of the timestamp field in the store (used for efficiency)
-    TInt ValFieldId; ///< field ID of the value field in the store (used for efficiency)
-    TFieldReader ValReader;
-
+private:
+	TInt TimeFieldId; ///< field ID of the timestamp field in the store (used for efficiency)
+	
 	// ALGORITHM PARAMETERS
 	TUInt64 WinSizeMSecs; ///< window size in milliseconds
 	TUInt64 DelayMSecs;  ///< delay in milliseconds
@@ -306,8 +311,6 @@ protected:
 	/// JSON based constructor
     TWinBuf(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:
-	/// Smart pointer JSON based constructor
-    static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 	
 	/// Load stream aggregate state from stream
 	void LoadState(TSIn& SIn);
@@ -318,48 +321,49 @@ public:
 	bool IsInit() const { return InitP; }
 	/// Resets the model state
 	void Reset();
+
+	// INTERFACE
+	
+	// ITm
+	/// time stamp of the last record
+	uint64 GetTmMSecs() const { return Timestamp; }
+
+	// IValTmIO
 	/// most recent values. Only makes sense if delay = 0!
-	double GetInFlt() const { EAssertR(IsInit(), "WinBuf not initialized yet!"); EAssertR(B < D, "WinBuf is empty - GetInFlt() isn't valid! You need to reimplement OnAdd of the aggregate that is connected to WinBuf to use GetInFltV instead of GetInFlt!"); return Value(D - 1); }
+	TVal GetInVal() const { EAssertR(IsInit(), "WinBuf not initialized yet!"); EAssertR(B < D, "WinBuf is empty - GetInVal() isn't valid! You need to reimplement OnAdd of the aggregate that is connected to WinBuf to use GetInValV instead of GetInVal!"); return GetRecVal(D - 1); }
 	/// most recent timestamps. Only makes sense if delay = 0!
 	uint64 GetInTmMSecs() const { EAssertR(IsInit(), "WinBuf not initialized yet!"); EAssertR(B < D, "WinBuf is empty - GetInTmMSecs() isn't valid! You need to reimplement OnAdd of the aggregate that is connected to WinBuf to use GetInTmMSecsV instead of GetInTmMSecs!"); return Time(D - 1); }
     /// Is the window delayed ?
 	bool DelayedP() const { return DelayMSecs > 0; }
 
 	/// new values that just entered the buffer (needed if delay is nonzero)
-	void GetInFltV(TFltV& ValV) const;
+	void GetInValV(TVec<TVal>& ValV) const;
 	/// new timestamps that just entered the buffer (needed if delay is nonzero)
 	void GetInTmMSecsV(TUInt64V& MSecsV) const;
-	
 	/// old values that fall out of the buffer
-	void GetOutFltV(TFltV& ValV) const;
+	void GetOutValV(TVec<TVal>& ValV) const;
 	/// old timestamps that fall out of the buffer
 	void GetOutTmMSecsV(TUInt64V& MSecsV) const;
-
-	uint64 GetTmMSecs() const { return Timestamp; }
-		
-    /// buffer length
-	int GetN() const { EAssertR(IsInit(), "WinBuf not initialized yet!"); return (int)(D - B); }
-
-	/// get float vector length (IFltVec interface)
-	int GetFltLen() const { return GetN(); }
-	/// get float vector element (IFltVec interface)
-	double GetFlt(const TInt& ElN) const { return Value(B + ElN); }
+	
+	// IValV
+	/// get buffer length
+	int GetVals() const { EAssertR(IsInit(), "WinBuf not initialized yet!"); return (int)(D - B); }
+	/// get value at
+	void GetVal(const TInt& ElN, TVal& Val) const { Val = GetRecVal(B + ElN); }
 	/// get float vector of all values in the buffer (IFltVec interface)
-	void GetFltV(TFltV& ValV) const;
-	/// get time vector length (ITmVec interface) 
-	int GetTmLen() const { return GetN(); }
-	/// get time vector element (ITmVec interface
+	void GetValV(TVec<TVal>& ValV) const;
+
+	// ITmV
+	/// get buffer length
+	int GetTmLen() const { return GetVals(); }
+	/// get timestamp at
 	uint64 GetTm(const TInt& ElN) const { return Time(B + ElN); }
 	/// get timestamp vector of all timestamps in the buffer (ITmVec interface)
 	void GetTmV(TUInt64V& MSecsV) const;
-	
+
+
 	/// serialization to JSon
 	PJsonVal SaveJson(const int& Limit) const;
-    
-	/// stream aggregator type name 
-    static TStr GetType() { return "timeSeriesWinBuf"; }
-	/// stream aggregator type name 
-	TStr Type() const { return GetType(); }
 	
 	/// Test if current state is consistent with store and parameters
 	bool TestValid() const;
@@ -368,7 +372,6 @@ public:
 private:
 	// helper functions
 	uint64 Time(const uint64& RecId) const { return Store->GetFieldTmMSecs(RecId, TimeFieldId); }
-	double Value(const uint64& RecId) const { return ValReader.GetFlt(TRec(Store, RecId)); }
 	
 	bool InStore(const uint64& RecId) const { return Store->IsRecId(RecId); }
 	bool BeforeStore(const uint64& RecId) const { return RecId < Store->GetFirstRecId(); }
@@ -386,6 +389,71 @@ private:
 	void PrintInterval(const uint64& StartId, const uint64& EndId, const TStr& Label = "", const TStr& ModCode = "39") const;
 };
 
+class TWinBufFlt : public TWinBuf<TFlt> {
+private:
+	TFieldReader ValReader; ///< float field reader
+protected:	
+	TFlt GetRecVal(const uint64& RecId) const {
+		return ValReader.GetFlt(TRec(Store, RecId));
+	}
+public:
+	TWinBufFlt(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TWinBuf<TFlt>(Base, ParamVal) { 
+		// parse out input and output fields
+		TStr ValFieldNm = ParamVal->GetObjStr("value");
+		int ValFieldId = Store->GetFieldId(ValFieldNm);
+		ValReader = TFieldReader(Store->GetStoreId(), ValFieldId, Store->GetFieldDesc(ValFieldId));
+		// make sure parameters make sense
+		QmAssertR(ValReader.IsFlt(), "[Window buffer] field " + ValFieldNm + " cannot be casted to 'double'");
+	}
+	PJsonVal SaveJson(const int& Limit) const {
+		// TODO change the returned object so that it reflects state
+		PJsonVal Val = TJsonVal::NewObj();
+		Val->AddToObj("Val", GetInVal());
+		Val->AddToObj("Time", TTm::GetTmFromMSecs(GetInTmMSecs()).GetWebLogDateTimeStr(true, "T"));
+		return Val;
+	}
+
+	/// Smart pointer JSON based constructor
+	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) { return new TWinBufFlt(Base, ParamVal); }
+	static TStr GetType() { return "timeSeriesWinBuf"; }
+	TStr Type(void) const { return GetType(); }
+};
+
+class TWinBufFtrSpVec : public TWinBuf<TIntFltKdV>, public TStreamAggrOut::IFtrSpace {
+private:
+	PFtrSpace FtrSpace;
+protected:
+	TIntFltKdV GetRecVal(const uint64& RecId) const {
+		TIntFltKdV Result;
+		FtrSpace->GetSpV(TRec(Store, RecId), Result);
+		return Result;
+	}
+	void RecUpdate(const uint64& RecId) const { FtrSpace->Update(TRec(Store, RecId)); }
+public:
+	TWinBufFtrSpVec(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TWinBuf<TIntFltKdV>(Base, ParamVal) {
+		PJsonVal FtrSpaceParam = ParamVal->GetObjKey("featureSpace");
+		FtrSpace = TFtrSpace::New(Store->GetBase(), FtrSpaceParam);
+	}
+
+	/// Load stream aggregate state from stream
+	void LoadState(TSIn& SIn) {
+		TWinBuf<TIntFltKdV>::LoadState(SIn);
+		FtrSpace->Load(Store->GetBase(), SIn);
+	}
+	/// Save state of stream aggregate to stream
+	void SaveState(TSOut& SOut) const {
+		TWinBuf<TIntFltKdV>::SaveState(SOut);
+		FtrSpace->Save(SOut);
+	}
+
+	/// Smart pointer JSON based constructor
+	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) { return new TWinBufFtrSpVec(Base, ParamVal); }
+	static TStr GetType() { return "timeSeriesWinBufFeatureSpace"; }
+	TStr Type(void) const { return GetType(); }
+
+	PFtrSpace GetFtrSpace() const {	return FtrSpace; }
+};
+
 ///////////////////////////////////////
 // Windowed Stream aggregates (readers from TWinBuf) 
 template <class TSignalType>
@@ -398,13 +466,13 @@ private:
 
 protected:
 	void OnAddRec(const TRec& Rec) {		
-		TFltV OutValV; InAggrVal->GetOutFltV(OutValV);
+		TFltV OutValV; InAggrVal->GetOutValV(OutValV);
 		TUInt64V OutTmMSecsV; InAggrVal->GetOutTmMSecsV(OutTmMSecsV);
 		if (InAggr->IsInit()) {
 			if (!InAggrVal->DelayedP()) {
-				Signal.Update(InAggrVal->GetInFlt(), InAggrVal->GetInTmMSecs(), OutValV, OutTmMSecsV);
+				Signal.Update(InAggrVal->GetInVal(), InAggrVal->GetInTmMSecs(), OutValV, OutTmMSecsV);
 			} else {
-				TFltV InValV; InAggrVal->GetInFltV(InValV);
+				TFltV InValV; InAggrVal->GetInValV(InValV);
 				TUInt64V InTmMSecsV; InAggrVal->GetInTmMSecsV(InTmMSecsV);
 				Signal.Update(InValV, InTmMSecsV, OutValV, OutTmMSecsV);
 			}
@@ -462,6 +530,90 @@ typedef TWinAggr<TSignalProc::TMax> TWinBufMax;
 typedef TWinAggr<TSignalProc::TMa> TMa;
 typedef TWinAggr<TSignalProc::TVar> TVar;
 
+////////////////////////////////////////////////////////////////////////////////////////
+//// Windowed Stream aggregates (readers from TWinBuf), inputs are sparse vectors,
+//// the result is sparse vector.
+template <class TSignalType>
+class TWinAggrSpVec : public TStreamAggr, 
+	public TStreamAggrOut::ISparseVecTm {
+private:
+	// input
+	TWPt<TStreamAggr> InAggr;
+	TWPt<TStreamAggrOut::IValTmIO<TIntFltKdV>> InAggrVal;
+	TSignalType Signal;
+
+protected:
+	void OnAddRec(const TRec& Rec) {
+		TVec<TIntFltKdV> OutValV;
+		InAggrVal->GetOutValV(OutValV);
+		TUInt64V OutTmMSecsV;
+		InAggrVal->GetOutTmMSecsV(OutTmMSecsV);
+		if (InAggr->IsInit()) {
+			if (!InAggrVal->DelayedP()) {
+				Signal.Update(InAggrVal->GetInVal(), InAggrVal->GetInTmMSecs(), OutValV, OutTmMSecsV);
+			} else {
+				TVec<TIntFltKdV> InValV;
+				InAggrVal->GetInValV(InValV);
+				TUInt64V InTmMSecsV;
+				InAggrVal->GetInTmMSecsV(InTmMSecsV);
+				Signal.Update(InValV, InTmMSecsV, OutValV, OutTmMSecsV);
+			}
+		};
+	}
+	TWinAggrSpVec(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal) {
+		// parse out input aggregate
+		TStr InStoreNm = ParamVal->GetObjStr("store");
+		TStr InAggrNm = ParamVal->GetObjStr("inAggr");
+		PStreamAggr _InAggr = Base->GetStreamAggr(InStoreNm, InAggrNm);
+		InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
+		QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
+		InAggrVal = dynamic_cast<TStreamAggrOut::IValTmIO<TIntFltKdV>*>(_InAggr());
+		QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IValTmIO<TVal> interface: " + InAggrNm);
+	}
+
+public:
+
+	// json constructor 
+	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+		return new TWinAggrSpVec<TSignalType>(Base, ParamVal);
+	}
+
+	// Load stream aggregate state from stream
+	void LoadState(TSIn& SIn) { Signal.Load(SIn); }
+	// Save state of stream aggregate to stream
+	void SaveState(TSOut& SOut) const { Signal.Save(SOut); }
+
+	// did we finished initialization
+	bool IsInit() const { return Signal.IsInit(); }
+	/// Resets the aggregate
+	void Reset() { Signal.Reset(); }
+	// current values
+	//const TIntFltKdV& GetSparseVec() const { return Signal.GetValue(); }
+	int GetVals() const { return Signal.GetValue().Len(); }
+	void GetVal(const TInt& ElN, TIntFltKd& Val) const { Val = Signal.GetValue()[0]; }
+	void GetValV(TVec<TIntFltKd>& ValV) const { ValV = Signal.GetValue(); }
+	uint64 GetTmMSecs() const { return TStreamAggrOut::ITm::GetTmMSecsCast(InAggr); }
+	void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggr->GetAggrNm()); }
+
+	// serialization to JSon
+	PJsonVal SaveJson(const int& Limit) const {
+		PJsonVal Val = TJsonVal::NewObj();
+		Val->AddToObj("Val", Signal.GetJson());
+		Val->AddToObj("Time", TTm::GetTmFromMSecs(GetTmMSecs()).GetWebLogDateTimeStr(true, "T"));
+		return Val;
+	}
+
+	// stream aggregator type name 
+	static TStr GetType();
+	TStr Type() const { return GetType(); }
+};
+
+
+// Moving-Window Buffer over Sparse-vectors sum
+typedef TWinAggrSpVec<TSignalProc::TSumSpVec> TWinBufSpVecSum;
+template <>
+inline TStr TWinAggrSpVec<TSignalProc::TSumSpVec>::GetType() { return "winBufSpVecSum"; }
+
 ///////////////////////////////
 // Exponential Moving Average.
 class TEma : public TStreamAggr, public TStreamAggrOut::IFltTm {
@@ -500,6 +652,47 @@ public:
 	TStr Type() const { return GetType(); }
 };
 
+///////////////////////////////
+// Exponential Moving Average.
+class TEmaSpVec : public TStreamAggr, public TStreamAggrOut::ISparseVecTm {
+private:
+	// input
+	TWPt<TStreamAggr> InAggr;
+	TWPt<TStreamAggrOut::ISparseVecTm> InAggrVal;
+	// indicator
+	TSignalProc::TEmaSpVec Ema;
+
+protected:
+	void OnAddRec(const TRec& Rec);
+
+	TEmaSpVec(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+public:
+	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+
+	/// Load stream aggregate state from stream
+	void LoadState(TSIn& SIn);
+	/// Save state of stream aggregate to stream
+	void SaveState(TSOut& SOut) const;
+
+	// did we finish initialization
+	bool IsInit() const { return Ema.IsInit(); }
+	/// Resets the aggregate
+	void Reset() { Ema.Reset(); }
+	// current values
+	//double GetFlt() const { return Ema.GetValue(); }
+	int GetVals() const { return Ema.GetValue().Len(); }
+	void GetVal(const TInt& ElN, TIntFltKd& Val) const { Val = Ema.GetValue()[ElN]; }
+	virtual void GetValV(TVec<TIntFltKd>& ValV) const { ValV.Clr(); ValV.AddV(Ema.GetValue()); }
+
+	uint64 GetTmMSecs() const { return Ema.GetTmMSecs(); }
+	void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggr->GetAggrNm()); }
+	// serialization to JSon
+	PJsonVal SaveJson(const int& Limit) const;
+
+	// stream aggregator type name 
+	static TStr GetType() { return "emaSpVec"; }
+	TStr Type() const { return GetType(); }
+};
 ///////////////////////////////
 // Moving Covariance.
 class TCov : public TStreamAggr, public TStreamAggrOut::IFltTm {
@@ -765,9 +958,9 @@ public:
 	/// Reset
 	void Reset() { }
 	// retrieving vector of values from the aggregate
-	int GetFltLen() const { return FtrSpace->GetDim(); }
-	void GetFltV(TFltV& ValV) const { ValV = Vec; }
-	double GetFlt(const TInt& ElN) const;
+	int GetVals() const { return FtrSpace->GetDim(); }
+	void GetValV(TFltV& ValV) const { ValV = Vec; }
+	void GetVal(const TInt& ElN, TFlt& Val) const;
 
 	/// Save stream aggregate to stream
 	void Save(TSOut& SOut) const;
@@ -827,11 +1020,11 @@ public:
 	TStr Type() const { return GetType(); }
 
 	/// returns the number of bins 
-	int GetFltLen() const { return Model.GetBins(); }
+	int GetVals() const { return Model.GetBins(); }
 	/// returns frequencies in a given bin
-	double GetFlt(const TInt& ElN) const { return Model.GetCountN(ElN); }
+	void GetVal(const TInt& ElN, TFlt& Val) const { Val = Model.GetCountN(ElN); }
 	/// returns the vector of frequencies
-	void GetFltV(TFltV& ValV) const { Model.GetCountV(ValV); }
+	void GetValV(TFltV& ValV) const { Model.GetCountV(ValV); }
 };
 
 ///////////////////////////////
@@ -969,16 +1162,16 @@ inline TStr TWinAggr<TSignalProc::TMax>::GetType() { return "winBufMax"; }
 // Moving Average
 template <>
 inline void TWinAggr<TSignalProc::TMa>::OnAddRec(const TRec& Rec) {
-	TFltV OutValV; InAggrVal->GetOutFltV(OutValV);
+	TFltV OutValV; InAggrVal->GetOutValV(OutValV);
 	TUInt64V OutTmMSecsV; InAggrVal->GetOutTmMSecsV(OutTmMSecsV);
 	if (InAggr->IsInit()) {
 		if (!InAggrVal->DelayedP()) {
-			Signal.Update(InAggrVal->GetInFlt(), InAggrVal->GetInTmMSecs(),
-				OutValV, OutTmMSecsV, InAggrVal->GetN());
+			Signal.Update(InAggrVal->GetInVal(), InAggrVal->GetInTmMSecs(),
+				OutValV, OutTmMSecsV, InAggrVal->GetVals());
 		} else {
-			TFltV InValV; InAggrVal->GetInFltV(InValV);
+			TFltV InValV; InAggrVal->GetInValV(InValV);
 			TUInt64V InTmMSecsV; InAggrVal->GetInTmMSecsV(InTmMSecsV);
-			Signal.Update(InValV, InTmMSecsV, OutValV, OutTmMSecsV, InAggrVal->GetN());
+			Signal.Update(InValV, InTmMSecsV, OutValV, OutTmMSecsV, InAggrVal->GetVals());
 		}
 	}
 }
@@ -990,16 +1183,16 @@ inline TStr TWinAggr<TSignalProc::TMa>::GetType() { return "ma"; }
 // Moving Variance
 template <>
 inline void TWinAggr<TSignalProc::TVar>::OnAddRec(const TRec& Rec) {
-	TFltV OutValV; InAggrVal->GetOutFltV(OutValV);
+	TFltV OutValV; InAggrVal->GetOutValV(OutValV);
 	TUInt64V OutTmMSecsV; InAggrVal->GetOutTmMSecsV(OutTmMSecsV);
 	if (InAggr->IsInit()) {
 		if (!InAggrVal->DelayedP()) {
-			Signal.Update(InAggrVal->GetInFlt(), InAggrVal->GetInTmMSecs(),
-				OutValV, OutTmMSecsV, InAggrVal->GetN());
+			Signal.Update(InAggrVal->GetInVal(), InAggrVal->GetInTmMSecs(),
+				OutValV, OutTmMSecsV, InAggrVal->GetVals());
 		} else {
-			TFltV InValV; InAggrVal->GetInFltV(InValV);
+			TFltV InValV; InAggrVal->GetInValV(InValV);
 			TUInt64V InTmMSecsV; InAggrVal->GetInTmMSecsV(InTmMSecsV);
-			Signal.Update(InValV, InTmMSecsV, OutValV, OutTmMSecsV, InAggrVal->GetN());
+			Signal.Update(InValV, InTmMSecsV, OutValV, OutTmMSecsV, InAggrVal->GetVals());
 		}
 	}
 }
@@ -1105,11 +1298,11 @@ public:
 	TStr Type() const { return GetType(); }
 
 	/// returns the number of bins 
-	int GetFltLen() const { return Model->GetBins(); }
+	int GetVals() const { return Model->GetBins(); }
 	/// returns frequencies in a given bin
-	double GetFlt(const TInt& ElN) const;
+	void GetVal(const TInt& ElN, TFlt& Val) const;
 	/// returns the vector of frequencies
-	void GetFltV(TFltV& ValV) const { Model->GetStats(LastTm - WndLen, LastTm, ValV); }
+	void GetValV(TFltV& ValV) const { Model->GetStats(LastTm - WndLen, LastTm, ValV); }
 };
 
 
@@ -1137,11 +1330,11 @@ public:
 	void SaveState(TSOut& SOut) const { /* do nothing, there is not state */ }
 	
 	/// returns the number of bins 
-	int GetFltLen() const { return InAggrValX->GetFltLen(); }
+	int GetVals() const { return InAggrValX->GetVals(); }
 	/// returns frequencies in a given bin
-	double GetFlt(const TInt& ElN) const { return InAggrValX->GetFlt(ElN) - InAggrValY->GetFlt(ElN); }
+	void GetVal(const TInt& ElN, TFlt& Val) const { TFlt Flt1, Flt2; InAggrValX->GetVal(ElN, Flt1); InAggrValY->GetVal(ElN, Flt2); Val = Flt1 - Flt2; }
 	/// returns the vector of frequencies
-	void GetFltV(TFltV& ValV) const;
+	void GetValV(TFltV& ValV) const;
 	/// serialization to JSon
 	PJsonVal SaveJson(const int& Limit) const;
 	/// stream aggregator type name 
@@ -1149,8 +1342,226 @@ public:
 	/// stream aggregator type name 
 	TStr Type() const { return GetType(); }
 };
+
+
+//////////////// IMPLEMENTATIONS
+
+
+///////////////////////////////
+// Time series window buffer.
+template <class TVal>
+void TWinBuf<TVal>::OnAddRec(const TRec& Rec) {
+	InitP = true;
+
+	Timestamp = Rec.GetFieldTmMSecs(TimeFieldId);
+
+	A = B;
+	// B = first record ID in the buffer, or first record ID after the buffer (indicates an empty buffer)
+	while (BeforeBuffer(B, Timestamp)) {
+		B++;
+	}
+
+	C = D;
+	// D = the first record ID after the buffer
+	while (!AfterBuffer(D, Timestamp)) {
+		D++;
+	}
+
+	// Call update on all incomming records, which includes records that skipped the buffer (both incomming and outgoing at the same time)
+	// C + Skip, D - 1
+	for (uint64 RecId = C; RecId < D; RecId++) {
+		RecUpdate(RecId);
+	}
+	//Print(true);
+}
+
+template <class TVal>
+TWinBuf<TVal>::TWinBuf(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal) {
+	// parse out input and output fields
+	TStr StoreNm = ParamVal->GetObjStr("store");
+	Store = Base->GetStoreByStoreNm(StoreNm);
+	TStr TimeFieldNm = ParamVal->GetObjStr("timestamp");
+	TimeFieldId = Store->GetFieldId(TimeFieldNm);
+	WinSizeMSecs = ParamVal->GetObjUInt64("winsize");
+	DelayMSecs = ParamVal->GetObjUInt64("delay", 0);
+	// make sure parameters make sense
+	QmAssertR(Store->GetFieldDesc(TimeFieldId).IsTm(), "[Window buffer] field " + TimeFieldNm + " not of type 'datetime'");
+}
+
+template <class TVal>
+void TWinBuf<TVal>::LoadState(TSIn& SIn) {
+	InitP.Load(SIn);
+	A.Load(SIn);
+	B.Load(SIn);
+	C.Load(SIn);
+	D.Load(SIn);
+	Timestamp.Load(SIn);
+	TestValid(); // checks if the buffer exists in store
+}
+
+template <class TVal>
+void TWinBuf<TVal>::SaveState(TSOut& SOut) const {
+	InitP.Save(SOut);
+	A.Save(SOut);
+	B.Save(SOut);
+	C.Save(SOut);
+	D.Save(SOut);
+	Timestamp.Save(SOut);
+}
+
+template <class TVal>
+void TWinBuf<TVal>::Reset() {
+	InitP = false;
+	A = Store->GetRecs() == 0 ? 0 : Store->GetLastRecId() + 1;
+	B = Store->GetRecs() == 0 ? 0 : Store->GetLastRecId() + 1;
+	C = Store->GetRecs() == 0 ? 0 : Store->GetLastRecId() + 1;
+	D = Store->GetRecs() == 0 ? 0 : Store->GetLastRecId() + 1;
+	Timestamp = 0;
+}
+
+
+template <class TVal>
+void TWinBuf<TVal>::GetInValV(TVec<TVal>& ValV) const {
+	EAssertR(IsInit(), "WinBuf not initialized yet!");
+	int Skip = B > C ? int(B - C) : 0;
+	int UpdateRecords = int(D - C) - Skip;
+	if (ValV.Len() != UpdateRecords) { ValV.Gen(UpdateRecords); }
+	// iterate
+	for (int RecN = 0; RecN < UpdateRecords; RecN++) {
+		ValV[RecN] = GetRecVal(C + Skip + RecN);
+	}
+}
+
+template <class TVal>
+void TWinBuf<TVal>::GetInTmMSecsV(TUInt64V& MSecsV) const {
+	EAssertR(IsInit(), "WinBuf not initialized yet!");
+	int Skip = B > C ? int(B - C) : 0;
+	int UpdateRecords = int(D - C) - Skip;
+	if (MSecsV.Len() != UpdateRecords) { MSecsV.Gen(UpdateRecords); }
+	// iterate
+	for (int RecN = 0; RecN < UpdateRecords; RecN++) {
+		MSecsV[RecN] = Time(C + Skip + RecN);
+	}
+}
+
+template <class TVal>
+void TWinBuf<TVal>::GetOutValV(TVec<TVal>& ValV) const {
+	EAssertR(IsInit(), "WinBuf not initialized yet!");
+	int Skip = B > C ? int(B - C) : 0;
+	int DropRecords = int(B - A) - Skip;
+	if (ValV.Len() != DropRecords) { ValV.Gen(DropRecords); }
+	// iterate
+	for (int RecN = 0; RecN < DropRecords; RecN++) {
+		ValV[RecN] = GetRecVal(A + RecN);
+	}
+}
+
+template <class TVal>
+void TWinBuf<TVal>::GetOutTmMSecsV(TUInt64V& MSecsV) const {
+	EAssertR(IsInit(), "WinBuf not initialized yet!");
+	int Skip = B > C ? int(B - C) : 0;
+	int DropRecords = int(B - A) - Skip;
+	if (MSecsV.Len() != DropRecords) { MSecsV.Gen(DropRecords); }
+	// iterate
+	for (int RecN = 0; RecN < DropRecords; RecN++) {
+		MSecsV[RecN] = Time(A + RecN);
+	}
+}
+
+template <class TVal>
+void TWinBuf<TVal>::GetValV(TVec<TVal>& ValV) const {
+	EAssertR(IsInit(), "WinBuf not initialized yet!");
+	int Len = GetVals();
+	if (ValV.Empty()) { ValV.Gen(Len); }
+	// iterate
+	for (int RecN = 0; RecN < Len; RecN++) {
+		GetVal(RecN, ValV[RecN]);
+	}
+}
+
+template <class TVal>
+void TWinBuf<TVal>::GetTmV(TUInt64V& MSecsV) const {
+	EAssertR(IsInit(), "WinBuf not initialized yet!");
+	int Len = GetVals();
+	MSecsV.Gen(Len);
+	// iterate
+	for (int RecN = 0; RecN < Len; RecN++) {
+		MSecsV[RecN] = GetTm(RecN);
+	}
+}
+
+template <class TVal>
+PJsonVal TWinBuf<TVal>::SaveJson(const int& Limit) const {
+	PJsonVal Val = TJsonVal::NewObj();
+	Val->AddToObj("init", InitP);
+	Val->AddToObj("A", A);
+	Val->AddToObj("B", B);
+	Val->AddToObj("C", C);
+	Val->AddToObj("D", D);
+	Val->AddToObj("timestamp", TTm::GetTmFromMSecs(Timestamp).GetWebLogDateTimeStr(true, "T"));
+	return Val;
+}
+
+template <class TVal>
+bool TWinBuf<TVal>::TestValid() const {
+	// non-initialized model is valid
+	if (!InitP()) { return true; }
+	uint64 LastRecTmMSecs = Time(Store->GetLastRecId());
+	for (uint64 RecId = B; RecId < D; RecId++) {
+		if (!InBuffer(RecId, LastRecTmMSecs)) { return false; }
+	}
+	return true;
+}
+
+template <class TVal>
+void TWinBuf<TVal>::Print(const bool& PrintState) {
+	int Skip = B > C ? int(B - C) : 0;
+	printf("TWinBuf: initialized:%s, window:%d, delay: %d, skip:%d\n",
+		IsInit() ? "true" : "false", int(WinSizeMSecs), int(DelayMSecs), Skip);
+	printf("\033[34m A=%" PRIu64 ", B=%" PRIu64 ", C=%" PRIu64 ", D=%" PRIu64 "\033[0m\n", A.Val, B.Val, C.Val, D.Val);
+
+	//if (A == 0 || B == 0 || C == 0 || D == 0) return;
+
+	printf("Forget interval: %" PRIu64 " - %" PRIu64 "\n", A.Val, B.Val - 1 - Skip);
+	printf("Buffer interval: %" PRIu64 " - %" PRIu64 "\n", B.Val, D.Val - 1);
+	printf("Update interval: %" PRIu64 " - %" PRIu64 "\n", C.Val + Skip, D.Val - 1);
+	if (PrintState && IsInit()) {
+		uint64 LastRecId = Store->GetLastRecId();
+		PrintInterval(LastRecId, LastRecId, "Last rec:");
+		printf("Constraint: [%s - %s]\n",
+			TTm::GetTmFromMSecs(Time(LastRecId) - DelayMSecs - WinSizeMSecs).GetWebLogTimeStr().CStr(),
+			TTm::GetTmFromMSecs(Time(LastRecId) - DelayMSecs).GetWebLogTimeStr().CStr());
+		if (D > 0) {
+			PrintInterval(B, D - 1, "New buff:", "32");
+			PrintInterval(C + Skip, D - 1, "Just in: ");
+		}
+		else {
+			printf("New buff: [ ]\n");
+			printf("Just in: [ ]\n");
+		}
+		if (B - Skip > 0) {
+			PrintInterval(A, B - 1 - Skip, "Just out:");
+		}
+		else {
+			printf("Just out: [ ]\n");
+		}
+		PrintInterval(D, LastRecId, "Pending: ");
+		PrintInterval(Store->GetFirstRecId(), LastRecId, "All recs:");
+	}
+	printf("\n");
+}
+
+template <class TVal>
+void TWinBuf<TVal>::PrintInterval(const uint64& StartId, const uint64& EndId, const TStr& Label, const TStr& ModCode) const {
+	printf("%s [ \033[1;%sm", Label.CStr(), ModCode.CStr());
+	for (uint64 RecId = StartId; RecId <= EndId; RecId++) {
+		printf("(%s), ", TTm::GetTmFromMSecs(Time(RecId)).GetWebLogTimeStr().CStr());
+	}
+	printf("\033[0m]\n");
+}
+
+
 } // TStreamAggrs namespace
 } // TQm namespace
-
 
 #endif

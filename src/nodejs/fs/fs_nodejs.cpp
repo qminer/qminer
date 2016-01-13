@@ -88,9 +88,7 @@ TNodeJsFs::TReadCsvTask::TReadCsvTask(const v8::FunctionCallbackInfo<v8::Value>&
 		SIn = JsFIn->SIn;
 	} else {	// Read from Node.js Buffer
 		v8::Local<v8::Object> BuffObj = Args[0]->ToObject();
-
-		EAssertR(BuffObj->HasIndexedPropertiesInExternalArrayData(), "TNodeJsFs::readLines: argument is not a buffer!");
-
+		EAssertR(TNodeJsUtil::IsBuffer(BuffObj), "TNodeJsFs::readLines: argument not a buffer!");
 		char* Buff = node::Buffer::Data(BuffObj);
 		size_t BuffLen = node::Buffer::Length(BuffObj);
 		SIn = new TThinMIn(Buff, (int)BuffLen);
@@ -354,13 +352,11 @@ void TNodeJsFs::readLines(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     	TNodeJsFIn* JsFIn = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFIn>(Args, 0);
     	SIn = JsFIn->SIn;
     } else {	// Read from Node.js Buffer
-    	v8::Local<v8::Object> BuffObj = Args[0]->ToObject();
-
-		EAssertR(BuffObj->HasIndexedPropertiesInExternalArrayData(), "TNodeJsFs::readLines: argument is not a buffer!");
-
-    	char* Buff = node::Buffer::Data(BuffObj);
-		size_t BuffLen = node::Buffer::Length(BuffObj);
-		SIn = new TThinMIn(Buff, (int)BuffLen);
+        EAssertR(TNodeJsUtil::IsArgBuffer(Args, 0), "TNodeJsFs::readLines: argument not a buffer");
+        v8::Local<v8::Object> BuffObj = Args[0]->ToObject();
+        char* Buff = node::Buffer::Data(BuffObj);
+	    size_t BuffLen = node::Buffer::Length(BuffObj);
+	    SIn = new TThinMIn(Buff, (int)BuffLen);
     }
 
     v8::Handle<v8::Function> LineCallback = TNodeJsUtil::GetArgFun(Args, 1);//TNodeJsUtil::GetFldFun(Args[1]->ToObject(), "onLine");
@@ -410,7 +406,7 @@ void TNodeJsFIn::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "peekCh", _peekCh);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getCh", _getCh);
     NODE_SET_PROTOTYPE_METHOD(tpl, "readLine", _readLine);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "readJson", _readJson);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "readString", _readString);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "readAll", _readAll);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "close", _close);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "isClosed", _isClosed);
@@ -462,16 +458,16 @@ void TNodeJsFIn::readLine(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, LnChA.CStr()));
 }
 
-void TNodeJsFIn::readJson(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsFIn::readString(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
 	TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args.This());
 	EAssertR(!JsFIn->SIn.Empty(), "Input stream is closed!");
-    TStr JsonStr = TStr(*JsFIn->SIn);
-    PJsonVal JsonVal = TJsonVal::GetValFromStr(JsonStr);
-    
-    Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, JsonVal));
+    TStr Str = TStr(*JsFIn->SIn);
+
+	Args.GetReturnValue().Set(
+		v8::String::NewFromUtf8(Isolate, Str.CStr()));
 }
 
 void TNodeJsFIn::readAll(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -548,7 +544,6 @@ void TNodeJsFOut::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "write", _write);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "writeBinary", _writeBinary);
     NODE_SET_PROTOTYPE_METHOD(tpl, "writeLine", _writeLine);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "writeJson", _writeJson);
     NODE_SET_PROTOTYPE_METHOD(tpl, "flush", _flush);
     NODE_SET_PROTOTYPE_METHOD(tpl, "close", _close);
 	
@@ -598,7 +593,8 @@ void TNodeJsFOut::writeBinary(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args.This());
 	EAssertR(!JsFOut->SOut.Empty(), "Output stream already closed!");
 	if (Args[0]->IsString()) {
-		JsFOut->SOut->Save(*v8::String::Utf8Value(Args[0]->ToString()));
+		TStr Str = TNodeJsUtil::GetArgStr(Args, 0);
+		Str.Save(*JsFOut->SOut);
 	} else if (Args[0]->IsNumber()) {
 		JsFOut->SOut->Save(Args[0]->NumberValue());
 	} else if (TNodeJsUtil::IsArgJson(Args, 0)) {
@@ -621,20 +617,6 @@ void TNodeJsFOut::writeLine(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     EAssertR(!JsFOut->SOut.Empty(), "Output stream already closed!");
     JsFOut->SOut->PutLn();
 
-    Args.GetReturnValue().Set(Args.Holder());
-}
-
-void TNodeJsFOut::writeJson(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::HandleScope HandleScope(Isolate);
-    
-    PJsonVal JsonVal = TNodeJsUtil::GetArgJson(Args, 0);
-    TStr JsonStr = JsonVal->SaveStr();
-    
-    TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args.This());
-    EAssertR(!JsFOut->SOut.Empty(), "Output stream already closed!");
-    JsonStr.Save(*JsFOut->SOut);
-    
     Args.GetReturnValue().Set(Args.Holder());
 }
 

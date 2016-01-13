@@ -1,5 +1,6 @@
 // Import main modules
 var qm = require('qminer');
+var loader = require('qminer-data-loader');
 var fs = qm.fs;
 var analytics = qm.analytics;
 
@@ -89,20 +90,4 @@ Resampled.addTrigger({
     }
 });
 
-// Load training data from CSV file.
-var fin = fs.openRead("./sandbox/timeseries/series.csv");
-var header = fin.readLine(); var lines = 0;
-while (!fin.eof) {
-    lines = lines + 1;
-    if (lines % 1000 == 0) { console.log("Loaded: " + lines); }
-    var line = fin.readLine();
-    if (line == "") { continue; }
-    try {
-        var vals = line.split(',');
-        var rec = { "Time": vals[1], "Value": parseFloat(vals[0]) };
-        Raw.push(rec);
-    } catch (err) { 
-        console.log("Raw", err);
-    }
-}
-
+loader.loadForexDataset(Raw);

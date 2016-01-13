@@ -24,7 +24,8 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">Iterator</span></h1>
+            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div>
+            <h1><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">Iterator</span></h1>
             <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-1990">qminerdoc.<wbr>js:1990</a></p>
             <dl class="dl-compact">
             </dl>
@@ -79,9 +80,9 @@
         </h3>
               <div>
                 <pre class="prettyprint"><code>// import qm module
-qm = require(&#x27;qminer&#x27;);
+qm &#x3D; require(&#x27;qminer&#x27;);
 // create a new base with a simple store
-var base = new qm.Base({ mode: &quot;createClean&quot; });
+var base &#x3D; new qm.Base({ mode: &quot;createClean&quot; });
 base.createStore({
     name: &quot;People&quot;,
     fields: [
@@ -95,7 +96,7 @@ base.store(&quot;People&quot;).push({ Name: &quot;Pochahontas&quot;, Gender: &qu
 base.store(&quot;People&quot;).push({ Name: &quot;John Rolfe&quot;, Gender: &quot;Male&quot; });
 base.store(&quot;People&quot;).push({ Name: &quot;John Smith&quot;, Gender: &quot;Male&quot;});
 // factory based construction with forwardIter
-var iter = base.store(&quot;People&quot;).forwardIter;
+var iter &#x3D; base.store(&quot;People&quot;).forwardIter;
 base.close();</code></pre>
               </div>
             </section>
@@ -124,9 +125,9 @@ base.close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a new base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;TheWitcherSaga&quot;,
@@ -145,7 +146,7 @@ base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;The Swallow&#x27;s To
 base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Lady of the Lake&quot;, YearOfRelease: 1999, EnglishEdition: false });
 base.store(&quot;TheWitcherSaga&quot;).push({ Title: &quot;Season of Storms&quot;, YearOfRelease: 2013, EnglishEdition: false });
 // create an iterator for the store
-var iter = base.store(&quot;TheWitcherSaga&quot;).forwardIter;
+var iter &#x3D; base.store(&quot;TheWitcherSaga&quot;).forwardIter;
 // go to the first record in the store
 iter.next(); // returns true
 base.close();</code></pre>

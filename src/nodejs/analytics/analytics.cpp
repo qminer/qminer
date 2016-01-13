@@ -769,6 +769,7 @@ void TNodeJsNNAnomalies::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);	
 	NODE_SET_PROTOTYPE_METHOD(tpl, "explain", _explain);
 	
+	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "init"), _init);
 
 	exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
 }
@@ -955,6 +956,16 @@ void TNodeJsNNAnomalies::explain(const v8::FunctionCallbackInfo<v8::Value>& Args
 	// return result
 	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, Explanation));
 }
+
+void TNodeJsNNAnomalies::init(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	// unwrap
+	TNodeJsNNAnomalies* JsModel = ObjectWrap::Unwrap<TNodeJsNNAnomalies>(Info.Holder());	
+	Info.GetReturnValue().Set(v8::Boolean::New(Isolate, JsModel->Model.IsInit()));
+}
+
 
 ////////////////////////////////////////////////
 // QMiner-NodeJS-Recursive-Linear-Regression

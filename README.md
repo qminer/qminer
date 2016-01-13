@@ -21,12 +21,11 @@ hardware, providing efficient storage, retrieval and analytics mechanisms with r
 
 ### Prerequisites
 
-**node.js v0.12 and npm 2.11 or higher**
+**node.js v0.12.x or v4.x or v5.x and npm 2.11 or higher**
 
-To test that your node.js version is correct, run ```node --version``` and ```npm --version```. Older or newer major node.js releases are not compatible (0.10, 2.0, 3.0, ...)
+To test that your node.js version is correct, run ```node --version``` and ```npm --version```. Not compatible with nodejs v0.10 or older.
 
 **Windows**
-- node.js **v0.12** [x64](https://nodejs.org/download/release/v0.12.7/x64/node-v0.12.7-x64.msi) or [x86](https://nodejs.org/download/release/v0.12.7/node-v0.12.7-x86.msi)
 - [Visual C++ Redistributable Packages for Visual Studio 2013](https://www.microsoft.com/en-us/download/details.aspx?id=40784)   download **vcredist_x64.exe** for node.js x64 or **vcredist_x86.exe** for node.js x86.
 
 ### Install 

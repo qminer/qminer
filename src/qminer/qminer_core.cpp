@@ -1280,19 +1280,19 @@ void TStore::PrintAll(const TWPt<TBase>& Base, TSOut& SOut, const bool& Includin
 				SOut.PutStrFmtLn("  %s: %d", Desc.GetFieldNm().CStr(), FieldInt);
 			} else if (Desc.IsInt64()) {
 				const int64 FieldInt = GetFieldInt64(RecId, FieldId);
-				SOut.PutStrFmtLn("  %s: %I64", Desc.GetFieldNm().CStr(), FieldInt);
+				SOut.PutStrFmtLn("  %s: %s", Desc.GetFieldNm().CStr(), TInt64::GetStr(FieldInt).CStr());
 			} else if (Desc.IsByte()) {
 				const int FieldInt = GetFieldByte(RecId, FieldId);
 				SOut.PutStrFmtLn("  %s: %d", Desc.GetFieldNm().CStr(), FieldInt);
 			} else if (Desc.IsUInt()) {
 				const uint64 FieldInt = GetFieldUInt(RecId, FieldId);
-				SOut.PutStrFmtLn("  %s: %I64u", Desc.GetFieldNm().CStr(), FieldInt);
+				SOut.PutStrFmtLn("  %s: %s", Desc.GetFieldNm().CStr(), TInt64::GetStr(FieldInt).CStr());
 			} else if (Desc.IsUInt16()) {
 				const uint64 FieldInt = GetFieldUInt16(RecId, FieldId);
-				SOut.PutStrFmtLn("  %s: %I64u", Desc.GetFieldNm().CStr(), FieldInt);
+				SOut.PutStrFmtLn("  %s: %s", Desc.GetFieldNm().CStr(), TInt64::GetStr(FieldInt).CStr());
 			} else if (Desc.IsUInt64()) {
 				const uint64 FieldInt = GetFieldUInt64(RecId, FieldId);
-				SOut.PutStrFmtLn("  %s: %I64u", Desc.GetFieldNm().CStr(), FieldInt);
+				SOut.PutStrFmtLn("  %s: %s", Desc.GetFieldNm().CStr(), TInt64::GetStr(FieldInt).CStr());
 			} else if (Desc.IsFlt()) {
 				const double FieldFlt = GetFieldFlt(RecId, FieldId);
 				SOut.PutStrFmtLn("  %s: %g", Desc.GetFieldNm().CStr(), FieldFlt);
@@ -2502,6 +2502,13 @@ void TFieldReader::GetFltV(const PRecSet& FtrRecSet, TFltV& FltV) const {
                     FltV.Add(FtrStore->GetFieldFlt(RecId, FieldId));
                 }
             }
+		} else if (FieldDesc.IsSFlt()) {
+			for (int RecN = 0; RecN < FtrRecSet->GetRecs(); RecN++) {
+				const uint64 RecId = FtrRecSet->GetRecId(RecN);
+				if (!FtrStore->IsFieldNull(RecId, FieldId)) {
+					FltV.Add((double)FtrStore->GetFieldSFlt(RecId, FieldId));
+				}
+			}
         } else if (FieldDesc.IsFltPr()) {
             for (int RecN = 0; RecN < FtrRecSet->GetRecs(); RecN++) {
                 const uint64 RecId = FtrRecSet->GetRecId(RecN);
@@ -2525,6 +2532,20 @@ void TFieldReader::GetFltV(const PRecSet& FtrRecSet, TFltV& FltV) const {
                     FltV.Add((double)FtrStore->GetFieldUInt64(RecId, FieldId));
                 }
             }
+		} else if (FieldDesc.IsUInt()) {
+			for (int RecN = 0; RecN < FtrRecSet->GetRecs(); RecN++) {
+				const uint64 RecId = FtrRecSet->GetRecId(RecN);
+				if (!FtrStore->IsFieldNull(RecId, FieldId)) {
+					FltV.Add((double)FtrStore->GetFieldUInt(RecId, FieldId));
+				}
+			}
+		} else if (FieldDesc.IsUInt16()) {
+			for (int RecN = 0; RecN < FtrRecSet->GetRecs(); RecN++) {
+				const uint64 RecId = FtrRecSet->GetRecId(RecN);
+				if (!FtrStore->IsFieldNull(RecId, FieldId)) {
+					FltV.Add((double)FtrStore->GetFieldUInt16(RecId, FieldId));
+				}
+			}
         } else if (FieldDesc.IsBool()) {
             for (int RecN = 0; RecN < FtrRecSet->GetRecs(); RecN++) {
                 const uint64 RecId = FtrRecSet->GetRecId(RecN);
@@ -5783,7 +5804,10 @@ TFunRouter<PStreamAggr, TStreamAggr::TNewF> TStreamAggr::NewRouter;
 void TStreamAggr::Init() {
 	Register<TStreamAggrs::TRecBuffer>();
 	Register<TStreamAggrs::TTimeSeriesTick>();
-	Register<TStreamAggrs::TWinBuf>();
+	// two types of window buffers (different interfaces)
+	Register<TStreamAggrs::TWinBufFlt>();
+	Register<TStreamAggrs::TWinBufFtrSpVec>();
+	// these attach to TWinBufFlt
 	Register<TStreamAggrs::TWinBufSum>();
 	Register<TStreamAggrs::TWinBufMin>();
 	Register<TStreamAggrs::TWinBufMax>();
@@ -5800,6 +5824,12 @@ void TStreamAggr::Init() {
 	Register<TStreamAggrs::TCountMinSketch>();
 	Register<TStreamAggrs::TOnlineSlottedHistogram>();
 	Register<TStreamAggrs::TVecDiff>();
+
+	// these attach to ISparseVecTm
+	Register<TStreamAggrs::TEmaSpVec>();
+
+	// these attach to TWinBufFtrSpVec
+	Register<TStreamAggrs::TWinBufSpVecSum>();
 }
 
 TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const PJsonVal& ParamVal) :

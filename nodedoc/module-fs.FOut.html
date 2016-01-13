@@ -24,7 +24,8 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-fs.html">fs</a>.<wbr></small><span class="symbol-name">FOut</span></h1>
+            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div>
+            <h1><small><a href="module-fs.html">fs</a>.<wbr></small><span class="symbol-name">FOut</span></h1>
             <p class="source-link">Source: <a href="fsdoc.js.html#source-line-186">fsdoc.<wbr>js:186</a></p>
             <div class="symbol-classdesc">
               <p>Used for writing files.</p>
@@ -78,9 +79,9 @@
         </h3>
               <div>
                 <pre class="prettyprint"><code>// import module
-var fs = require(&#x27;qminer&#x27;).fs;
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
 // open file in write mode
-var fout = new fs.FOut(&#x27;file.txt&#x27;);
+var fout &#x3D; new fs.FOut(&#x27;file.txt&#x27;);
 // write a line
 fout.writeLine(&#x27;example text&#x27;);
 // close
