@@ -3804,7 +3804,7 @@ describe('TDigest test', function () {
 		}
 
 		for (var i=1; i<=10000; i++) {
-        	store.push({ Time: '+i+', Value: getRnd(0,1) });
+        	store.push({ Time: '2015-12-01T14:20:32.0', Value: getRnd(0,1) });
         }
       
 		assert(td.getFloatAt(0) > 0 && td.getFloatAt(0) < 1);
@@ -3829,7 +3829,7 @@ describe('TDigest test', function () {
 		}
 
 		for (var i=1; i<=10000; i++) {
-        	store.push({ Time: '+i+', Value: i });
+        	store.push({ Time: '2015-12-01T14:20:32.0', Value: i });
         }
       
 		assert(td.getFloatAt(0) > 0 && td.getFloatAt(0) < 10000);
