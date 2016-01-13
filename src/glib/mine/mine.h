@@ -67,9 +67,6 @@
 // cross-lingual
 #include "crosslingual.h"
 
-// Georgy Adelson-Velsky and Evgenii Landis' self-balancing binary search tree
-#include "avltree.h"
-
 // Signal-Processing
 #include "signalproc.h"
 
