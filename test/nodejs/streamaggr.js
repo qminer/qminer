@@ -3770,8 +3770,7 @@ describe('TDigest test', function () {
             type: 'tdigest',
             store: 'Processor',
             inAggr: 'TickAggr',
-            clusters: 10,
-            quantiles: [0.95, 0.99, 0.999]
+            quantiles: [0.9, 0.95, 0.99, 0.999]
         }
         td = store.addStreamAggr(aggr);
         
@@ -3787,36 +3786,6 @@ describe('TDigest test', function () {
         store.push({ Time: '2015-12-01T14:13:32.0', Value: 0.5574567409 }); 
         store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.1929709807 });      
     });
-    it('should test t-digest precision is within 5%', function () {
-    	// add TDigest stream aggregator
-        var aggr = {
-            name: 'TDigest',
-            type: 'tdigest',
-            store: 'Processor',
-            inAggr: 'TickAggr',
-            quantiles: [0.90, 0.95, 0.99, 0.999]
-        }
-        
-        td = store.addStreamAggr(aggr);
-
-        store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.9948628368 });
-        store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.1077458826 });
-        store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.9855685823 });
-        store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.7796449082 });
-        store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.0844943286 });
-        store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.187490856  });
-        store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.0779815107 });
-        store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.8945312691 });
-        store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.5574567409 });
-      
-        var result = td.getFloatVector();
-        
-		assert(result[0] > 0.8506286283 && result[0] <= 0.9493713717);
-		assert(result[1] > 0.9034122697 && result[1] <= 0.9965877303);
-		assert(result[2] > 0.9402553097 && result[2] <= 1.0);
-		assert(result[3] > 0.9491173424 && result[3] <= 1.0);
-
-    });
     it('should test t-digest with nodejs datalib output', function () {
     	// add TDigest stream aggregator
         var aggr = {
@@ -3829,29 +3798,29 @@ describe('TDigest test', function () {
         
         // add values
         store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.9948628368});
-		store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.1077458826});
-		store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.9855685823});
-		store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.7796449082});
-		store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.0844943286});
-		store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.187490856});
-		store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.0779815107});
-		store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.8945312691});
-		store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.5574567409});
-		store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.1929709807});
-		store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.9307831991});
-		store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.9549126723});
-		store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.3991612836});
-		store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.295941045});
-		store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.3841261603});
-		store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.6689624672});
-		store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.477037447});
-		store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.3977089832});
-		store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.2465190131});
-		store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.7456648378});
-		store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.9979597451});
-		store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.5717752152});
-		store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.7872615189});
-		store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.9502113182});
+		store.push({ Time: '2015-12-01T14:20:33.0', Value: 0.1077458826});
+		store.push({ Time: '2015-12-01T14:20:34.0', Value: 0.9855685823});
+		store.push({ Time: '2015-12-01T14:20:35.0', Value: 0.7796449082});
+		store.push({ Time: '2015-12-01T14:20:36.0', Value: 0.0844943286});
+		store.push({ Time: '2015-12-01T14:20:37.0', Value: 0.187490856});
+		store.push({ Time: '2015-12-01T14:20:38.0', Value: 0.0779815107});
+		store.push({ Time: '2015-12-01T14:20:39.0', Value: 0.8945312691});
+		store.push({ Time: '2015-12-01T14:20:40.0', Value: 0.5574567409});
+		store.push({ Time: '2015-12-01T14:20:41.0', Value: 0.1929709807});
+		store.push({ Time: '2015-12-01T14:20:42.0', Value: 0.9307831991});
+		store.push({ Time: '2015-12-01T14:20:43.0', Value: 0.9549126723});
+		store.push({ Time: '2015-12-01T14:20:44.0', Value: 0.3991612836});
+		store.push({ Time: '2015-12-01T14:20:45.0', Value: 0.295941045});
+		store.push({ Time: '2015-12-01T14:20:46.0', Value: 0.3841261603});
+		store.push({ Time: '2015-12-01T14:20:47.0', Value: 0.6689624672});
+		store.push({ Time: '2015-12-01T14:20:48.0', Value: 0.477037447});
+		store.push({ Time: '2015-12-01T14:20:49.0', Value: 0.3977089832});
+		store.push({ Time: '2015-12-01T14:20:50.0', Value: 0.2465190131});
+		store.push({ Time: '2015-12-01T14:20:51.0', Value: 0.7456648378});
+		store.push({ Time: '2015-12-01T14:20:52.0', Value: 0.9979597451});
+		store.push({ Time: '2015-12-01T14:20:53.0', Value: 0.5717752152});
+		store.push({ Time: '2015-12-01T14:20:54.0', Value: 0.7872615189});
+		store.push({ Time: '2015-12-01T14:20:55.0', Value: 0.9502113182});
         
         var result = td.getFloatVector();
         
@@ -3873,17 +3842,16 @@ describe('TDigest test', function () {
         td = store.addStreamAggr(aggr);
 
         store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.9948628368 });
-        store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.1077458826 });
-        store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.9855685823 });
-        store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.7796449082 });
-        store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.0844943286 });
-        store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.187490856  });
-        store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.0779815107 });
-        store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.8945312691 });
-        store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.5574567409 });
+        store.push({ Time: '2015-12-01T14:20:33.0', Value: 0.1077458826 });
+        store.push({ Time: '2015-12-01T14:20:34.0', Value: 0.9855685823 });
+        store.push({ Time: '2015-12-01T14:20:35.0', Value: 0.7796449082 });
+        store.push({ Time: '2015-12-01T14:20:36.0', Value: 0.0844943286 });
+        store.push({ Time: '2015-12-01T14:20:37.0', Value: 0.187490856  });
+        store.push({ Time: '2015-12-01T14:20:38.0', Value: 0.0779815107 });
+        store.push({ Time: '2015-12-01T14:20:39.0', Value: 0.8945312691 });
+        store.push({ Time: '2015-12-01T14:20:40.0', Value: 0.5574567409 });
       
         var result = td.getFloatVector();
-        
         
         var fout = qm.fs.openWrite("aggr.tmp");
 		td.save(fout);
