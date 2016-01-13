@@ -1443,54 +1443,6 @@ void TChiSquare::SaveState(TSOut& SOut) const {
 	ChiSquare.SaveState(SOut);
 }
 
-/////////////////////////////////////////////
-/// Count Min Sketch square stream aggregate
-
-void TCountMinSketch::OnAddRec(const TRec& Rec) {
-    TFlt Val = InAggrVal->GetFlt();
-	if (InAggr->IsInit()) {
-	    Model.Update((int)Val, 1);
-	}
-}
-
-TCountMinSketch::TCountMinSketch(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal), Model(ParamVal) {
-    // parse out input aggregate
-    TStr InStoreNm = ParamVal->GetObjStr("store");;
-    TStr InAggrNm = ParamVal->GetObjStr("inAggr");
-    PStreamAggr _InAggr = Base->GetStreamAggr(InStoreNm, InAggrNm);
-    EAssertR(ParamVal->IsObjKey("vals"), "TCountMinSketch: vals key missing!");
-    ParamVal->GetObjIntV("vals",Vals);
-
-    InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
-    QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
-    InAggrVal = dynamic_cast<TStreamAggrOut::IFltTm*>(_InAggr());
-    QmAssertR(!InAggrVal.Empty(), "TCountMinSketch::TCountMinSketch Stream aggregate does not implement IFltTm interface: " + InAggrNm);
-}
-
-PStreamAggr TCountMinSketch::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
-    return new TCountMinSketch(Base, ParamVal);
-}
-
-PJsonVal TCountMinSketch::SaveJson(const int& Limit) const {
-	PJsonVal Val = TJsonVal::NewObj();
-	/*Val->AddToObj("W", Model.W);
-	Val->AddToObj("D", Model.D);
-	Val->AddToObj("Eps", Model.Eps);
-	Val->AddToObj("Gamma", Model.Gamma);*/
-	Val->AddToObj("Total", Model.Total);
-	return Val;
-}
-
-/// Load from stream
-void TCountMinSketch::LoadState(TSIn& SIn) {
-	Model.LoadState(SIn);
-}
-
-/// Store state into stream
-void TCountMinSketch::SaveState(TSOut& SOut) const {
-	Model.SaveState(SOut);
-}
-
 /////////////////////////////////////////////////////////////////////////////////////////
 
 /// Constructor, reserves appropriate internal storage

@@ -9,8 +9,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-#include "avltree.h"
-
 namespace TSignalProc {
 
 /////////////////////////////////////////////////
@@ -969,121 +967,6 @@ public:
 };
 
 /////////////////////////////////////////////////
-///   TDigest
-///   Ted Dunning, Otmar Ertl - https://github.com/tdunning/t-digest/blob/master/docs/t-digest-paper/histo.pdf
-///   Gabriel Pichot C++ implementation: https://github.com/gpichot/cpp-tdigest
-class TTDigestAvl {
-private:
-        TFlt Compression;
-        TInt Count;
-        TAvlTree* Centroids;
-public: 
-
-        /// Constructs uninitialized object
-        TTDigestAvl(const TFltV& Quantiles) { Compression = 1000; Count = 0; Centroids = new TAvlTree(); };
-        /// Constructs given JSON arguments
-        TTDigestAvl(const PJsonVal& ParamVal) { Compression = 1000; Count = 0; Centroids = new TAvlTree(); };
-        /// Constructs uninitialized object with compression
-        TTDigestAvl (TFlt CompressionN): Compression(CompressionN) { Compression = CompressionN; Count = 0; Centroids = new TAvlTree();}
-        /// Destructor
-        ~TTDigestAvl() { delete Centroids;}
-
-        /// Initializes the object, resets current content if present
-        void Init();   
-
-        // Number of digested inputs
-        TInt Size() { return Count; }
-        void Compress();
-        void Update(TFlt X, TFlt W) {
-            int Start = Centroids->Floor(X);
-            if(Start == 0) {
-                Start = Centroids->First();
-            }
-
-            if(Start == 0) {
-                EAssert(Centroids->GetSize() == 0);
-                Centroids->Add(X, (int)W);
-                Count += W;
-            } else {
-                double MinDistance = DBL_MAX;
-                int LastNeighbor = 0;
-                for(TInt Neighbor = Start; Start != 0; Neighbor = Centroids->NextNode(Neighbor)) {
-                    double Z = TFlt::Abs(Centroids->GetValue(Neighbor) - X);
-                    if(Z < MinDistance) {
-                        Start = Neighbor;
-                        MinDistance = Z;
-                    } else {
-                        LastNeighbor = Neighbor;
-                        break;
-                    }
-                }
-
-                TFlt Closest = 0;
-                TInt Sum = Centroids->CeilSum(Start);
-                TFlt N = 0;
-                for(TInt Neighbor = Start; Neighbor != LastNeighbor; Neighbor = Centroids->NextNode(Neighbor)) {
-                    TFlt Q = 0.5;
-                    if (Count != 1) {
-                    	Q = (Sum + (Centroids->GetCount(Neighbor) - 1 / 2. )) / (Count - 10);
-                    }
-
-                    const TFlt K = 4.0 * Count * Q * (1.0 - Q) / Compression;
-                    //const TFlt K = TMath::Sqrt(Count * Q * (1.0 - Q));
-                    //const TFlt K = sqrt(Count * Q * (1.0 - Q));
-
-                    if(Centroids->GetCount(Neighbor) + W <= K) {
-                        N++;
-                        TFlt R = (float)rand() / RAND_MAX;
-
-                        if(R < 1.0 / N) {
-                            Closest = Neighbor;
-                        }
-                    }
-                    Sum += Centroids->GetCount(Neighbor);
-                }
-
-                if(Closest == 0.0) {
-                    Centroids->Add(X, (int)W);
-                } else {
-                    Centroids->Update((int)Closest, X, (int)W);
-                }
-                Count += W;
-
-                if(Centroids->GetSize() > 100 * Compression) {
-                    Compress();
-                }
-            }
-        }
-        void Update(TFlt x) { Update(x, 1.0); }
-        TAvlTree* GetCentroids() const {
-            return Centroids;
-        }
-        TInt CentroidsCount() const { return Centroids->GetSize();}
-        TFlt Quantile(const TFlt& PreviousIndex, const TFlt& Index, const TFlt& NextIndex, const TFlt& PreviousMean, const TFlt& NextMean) const {
-        	const TFlt Delta = NextIndex - PreviousIndex;
-            const TFlt PreviousWeight = (NextIndex - Index) / Delta;
-            const TFlt NextWeight = (Index - PreviousIndex) / Delta;
-            return PreviousMean * PreviousWeight + NextMean * NextWeight;
-        }
-        TFlt Quantile(const TFlt& Q) const;
-        void Merge(TTDigestAvl* Digest) {
-                    TAvlTree* CentroidsN = Digest->GetCentroids();
-                    for(TInt N = CentroidsN->First(); N != 0; N = CentroidsN->NextNode(N)) {
-                    	TFlt A = CentroidsN->GetValue(N);
-                    	TInt B = CentroidsN->GetCount(N);
-                        Update(A, (double)B);
-                    }
-                }
-        TFlt GetQuantile(const TFlt& Q) const { return Quantile(Q); }
-        /// Prints the model
-        void Print() const;
-        /// Load from stream
-        void LoadState(TSIn& SIn);
-        /// Store state into stream
-        void SaveState(TSOut& SOut) const;
-};
-
-/////////////////////////////////////////////////
 /// Chi square
 class TChiSquare {
 private:	     
@@ -1111,43 +994,6 @@ public:
 	void LoadState(TSIn& SIn);
 	/// Store state into stream
 	void SaveState(TSOut& SOut) const;
-};
-
-/////////////////////////////////////////////////
-///   Count-Min Sketch
-///   Muthukrishnan, Cormode (2004) - http://dimacs.rutgers.edu/~graham/pubs/papers/cmsoft.pdf
-///   Daniel Alabi C++ implementation: https://github.com/alabid/countminsketch
-class TCountMinSketch {
-private:
-        TInt W;
-        TInt D;
-        TFlt Eps; // Error rate 0.01 < Eps < 1
-        TFlt Gamma; // Probability for accuracy, 0 < Gamma < 1
-        TInt aj, bj;
-        TIntV InVals;
-        // array of arrays of counters
-        int **C;
-        // array of hash values for a particular item
-        // contains two element arrays {aj,bj}
-        int **Hashes;
-        // generate "new" aj,bj
-        void Genajbj(int **hashes, int i);
-public:
-        TInt Total;
-        TIntV Counts;
-        TCountMinSketch(const PJsonVal& ParamVal);
-        TCountMinSketch(TFlt eps, TFlt gamma);
-        // update item (int) by count c
-        void Update(TInt Item, TInt C);
-        // estimate count of item i and return count
-        TInt Estimate(TInt item) const;
-        // return total count
-        TInt GetTotalCount() const;
-        /// Load from stream
-        void LoadState(TSIn& SIn);
-        /// Store state into stream
-        void SaveState(TSOut& SOut) const;
-        void Print() const;
 };
 
 }
