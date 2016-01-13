@@ -1029,6 +1029,12 @@ public:
 
 ///////////////////////////////
 /// TDigest stream aggregate.
+/////////////////////////////////////////////////
+///   TDigest
+///   Data structure useful for percentile and quantile estimation for online data streams.
+///   It can be added to any anomaly detector to set the number of alarms triggered as a percentage of the total samples.
+///   This is the Data Lib Sketch Implementation: https://github.com/vega/datalib-sketch/blob/master/src/t-digest.js
+///   Paper: Ted Dunning, Otmar Ertl - https://github.com/tdunning/t-digest/blob/master/docs/t-digest-paper/histo.pdf
 class TTDigest : public TStreamAggr, public TStreamAggrOut::IFltVec {
 private:
 	// input

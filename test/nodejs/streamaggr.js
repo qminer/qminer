@@ -3819,7 +3819,16 @@ describe('TDigest test', function () {
 		td.save(fout);
 		fout.close();
 		
-        td1 = store.addStreamAggr(aggr);
+		var aggr1 = {
+            name: 'TDigestNew',
+            type: 'tdigest',
+            store: 'Processor',
+            inAggr: 'TickAggr',
+            clusters: 10,
+            quantiles: [0.95, 0.99, 0.999]
+        }
+        
+        td1 = store.addStreamAggr(aggr1);
         
 		var fin = qm.fs.openRead("aggr.tmp");
 		td1.load(fin);
@@ -3854,10 +3863,10 @@ describe('TDigest test', function () {
         store.push({ Time: '2015-12-01T14:13:32.0', Value: 0.5574567409 }); 
         store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.1929709807 });
       
-		assert(td1.getFloatAt(0) >= 0.8551782441 && td1.getFloatAt(0) <= 0.9448217559);
-		assert(td1.getFloatAt(1) >= 0.9034122697 && td1.getFloatAt(1) <= 0.9965877303);
-		assert(td1.getFloatAt(2) >= 0.9402553097 && td1.getFloatAt(2) <= 1.0397446903);
-		assert(td1.getFloatAt(3) >= 0.9491173424 && td1.getFloatAt(3) <= 1.0488826576);
+		assert(td.getFloatAt(0) >= 0.8551782441 && td.getFloatAt(0) <= 0.9448217559);
+		assert(td.getFloatAt(1) >= 0.9034122697 && td.getFloatAt(1) <= 0.9965877303);
+		assert(td.getFloatAt(2) >= 0.9402553097 && td.getFloatAt(2) <= 1.0397446903);
+		assert(td.getFloatAt(3) >= 0.9491173424 && td.getFloatAt(3) <= 1.0488826576);
     });
     it('should test t-digest for 10000 inserts', function () {
     	// add TDigest stream aggregator
@@ -3879,10 +3888,10 @@ describe('TDigest test', function () {
         	store.push({ Time: '+i+', Value: getRnd(0,1) });
         }
       
-		assert(td1.getFloatAt(0) > 0 && td1.getFloatAt(0) < 1);
-		assert(td1.getFloatAt(1) > 0 && td1.getFloatAt(1) < 1);
-		assert(td1.getFloatAt(2) > 0 && td1.getFloatAt(2) < 1);
-		assert(td1.getFloatAt(3) > 0 && td1.getFloatAt(3) < 1);
+		assert(td.getFloatAt(0) > 0 && td.getFloatAt(0) < 1);
+		assert(td.getFloatAt(1) > 0 && td.getFloatAt(1) < 1);
+		assert(td.getFloatAt(2) > 0 && td.getFloatAt(2) < 1);
+		assert(td.getFloatAt(3) > 0 && td.getFloatAt(3) < 1);
     });
     it('should test t-digest for 10000 sequential inserts', function () {
     	// add TDigest stream aggregator
@@ -3904,10 +3913,10 @@ describe('TDigest test', function () {
         	store.push({ Time: '+i+', Value: i });
         }
       
-		assert(td1.getFloatAt(0) > 0 && td1.getFloatAt(0) < 10000);
-		assert(td1.getFloatAt(1) > 0 && td1.getFloatAt(1) < 10000);
-		assert(td1.getFloatAt(2) > 0 && td1.getFloatAt(2) < 10000);
-		assert(td1.getFloatAt(3) > 0 && td1.getFloatAt(3) < 10000);
+		assert(td.getFloatAt(0) > 0 && td.getFloatAt(0) < 10000);
+		assert(td.getFloatAt(1) > 0 && td.getFloatAt(1) < 10000);
+		assert(td.getFloatAt(2) > 0 && td.getFloatAt(2) < 10000);
+		assert(td.getFloatAt(3) > 0 && td.getFloatAt(3) < 10000);
     });
 });
 
