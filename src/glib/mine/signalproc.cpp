@@ -1043,8 +1043,8 @@ void TTDigest::Update(const TFlt& V, const TFlt& Count) {
 	UnmergedSum += Count;
 }
 
-TFlt TTDigest::GetQuantile(const TFlt& Q) {
-		MergeValues();
+TFlt TTDigest::GetQuantile(const TFlt& Q) const {
+		//MergeValues();
 
 		TFlt Total = TotalSum;
 		TInt N_ = Last;
@@ -1082,9 +1082,6 @@ void TTDigest::MergeValues() {
 		if (UnmergedSum == 0.0) {
 			return;
 		}
-		TFltV Tw = TempWeight;
-		TFltV Tu = TempMean;
-		TInt Tn = TempLast;
 		TFltV W = Weight;
 		TFltV U = Mean;
 		TInt N_ = 0;
@@ -1092,8 +1089,8 @@ void TTDigest::MergeValues() {
 		TInt Ii, I, J;
 		TFlt K1;
 
-		TFltV TuUnsort = Tu;
-		Tu.Sort();
+		//TFltV TuUnsort = TempMean;
+		TempMean.Sort();
 
 		if (TotalSum > 0.0) {
 			N_ = Last + 1;
@@ -1104,10 +1101,10 @@ void TTDigest::MergeValues() {
 		UnmergedSum = 0.0;
 
 		// merge existing centroids with added values in temp buffers
-		for (I=J=K1=0; I < Tn && J < N_;) {
-			if (Tu[I] <= U[J]) {
-				Sum += Tw[I];
-				K1 = MergeCentroid(Sum, K1, Tw[I], Tu[I]);
+		for (I=J=K1=0; I < TempLast && J < N_;) {
+			if (TempMean[I] <= U[J]) {
+				Sum += TempWeight[I];
+				K1 = MergeCentroid(Sum, K1, TempWeight[I], TempMean[I]);
 				I++;
 			} else {
 				Sum += W[J];
@@ -1117,9 +1114,9 @@ void TTDigest::MergeValues() {
 		}
 
 		// only temp buffer values remain
-		for (; I < Tn; ++I) {
-			Sum += Tw[I];
-			K1 = MergeCentroid(Sum, K1, Tw[I], Tu[I]);
+		for (; I < TempLast; ++I) {
+			Sum += TempWeight[I];
+			K1 = MergeCentroid(Sum, K1, TempWeight[I], TempMean[I]);
 		}
 
 		// only existing centroids remain
@@ -1136,14 +1133,14 @@ void TTDigest::MergeValues() {
 
 		MergeMean = U;
 		MergeWeight = W;
-
 		MergeMean[0] = Weight[0];
+
 		for (I=1, N_= Last, MergeWeight[0]=0; I<=N_; ++I) {
 			MergeWeight[I] = 0; // zero out merge weights
 			MergeMean[I] = MergeMean[I-1] + Weight[I]; // stash cumulative dist
 		}
 
-		TempMean = TuUnsort;
+		//TempMean = TuUnsort;
 
 		Min = TMath::Mx(Min, Mean[0]);
 		Max = TMath::Mx(Max, Mean[N_]);
@@ -1211,18 +1208,16 @@ TInt TTDigest::NumTemp(const TInt& N) const {
   return Lo;
 }
 
-void TTDigest::Print() const {
-	for (int Iter =0; Iter < Weight.Len(); Iter++) {
-		printf("Weight: %f\n", Weight[Iter]);
-	}
-	for (int Iter =0; Iter < Mean.Len(); Iter++) {
-		printf("Mean: %f\n", Mean[Iter]);
-	}
-	printf("Total sum: %f\n", TotalSum);
-}
+void TTDigest::Print() const {}
 
 void TTDigest::SaveState(TSOut& SOut) const {
+	UnmergedSum.Save(SOut);
+	TempLast.Save(SOut);
+	DEFAULT_CENTROIDS.Save(SOut);
 	Nc.Save(SOut);
+	Size.Save(SOut);
+	TotalSum.Save(SOut);
+	Last.Save(SOut);
 	Weight.Save(SOut);
 	Mean.Save(SOut);
 	MergeWeight.Save(SOut);
@@ -1232,19 +1227,71 @@ void TTDigest::SaveState(TSOut& SOut) const {
 }
 
 void TTDigest::LoadState(TSIn& SIn) {
-	UnmergedSum = 0;
-	TempLast = 0;
-	DEFAULT_CENTROIDS = 100;
+	UnmergedSum.Load(SIn);
+	TempLast.Load(SIn);
+	DEFAULT_CENTROIDS.Load(SIn);
 	Nc.Load(SIn);
-	Size = ceil(Nc * TMath::Pi/2);
-	TotalSum = 0;
-	Last = 0;
+	Size.Load(SIn);
+	TotalSum.Load(SIn);
+	Last.Load(SIn);
 	Weight.Load(SIn);
 	Mean.Load(SIn);
 	MergeWeight.Load(SIn);
 	MergeMean.Load(SIn);
 	TempMean.Load(SIn);
 	TempWeight.Load(SIn);
+}
+
+void TTDigest::Init(const TInt& N) {
+	Nc = N;
+	UnmergedSum = 0;
+	TempLast = 0;
+	DEFAULT_CENTROIDS = 100;
+
+	Size = ceil(Nc * TMath::Pi/2);
+	TotalSum = 0;
+	Last = 0;
+
+	for (int Iter = 0; Iter < Size; Iter++) {
+		Weight.Add(0);
+		Mean.Add(0);
+		MergeWeight.Add(0);
+		MergeMean.Add(0);
+	}
+
+	int Tempsize = NumTemp(Nc);
+	for (int Iter = 0; Iter < Tempsize; Iter++) {
+		TempMean.Add(0);
+		TempWeight.Add(0);
+	}
+
+	Min = TFlt::Mx;
+	Min = -TFlt::Mx;
+}
+
+void TTDigest::Init() {
+	Nc = 100;
+	UnmergedSum = 0;
+	TempLast = 0;
+	DEFAULT_CENTROIDS = 100;
+
+	Size = ceil(Nc * TMath::Pi/2);
+	TotalSum = 0;
+	Last = 0;
+
+	for (int Iter = 0; Iter < Size; Iter++) {
+		Weight.Add(0);
+		Mean.Add(0);
+		MergeWeight.Add(0);
+		MergeMean.Add(0);
+	}
+
+	int Tempsize = NumTemp(Nc);
+	for (int Iter = 0; Iter < Tempsize; Iter++) {
+		TempMean.Add(0);
+		TempWeight.Add(0);
+	}
+
 	Min = TFlt::Mx;
 	Min = -TFlt::Mx;
 }

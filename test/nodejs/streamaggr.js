@@ -3748,68 +3748,150 @@ describe('TDigest test', function () {
         base.close();
     });
     it('should create a tdigest test aggregator', function () {
-    
     	// add TDigest stream aggregator
         var aggr = {
             name: 'TDigest',
             type: 'tdigest',
             store: 'Processor',
             inAggr: 'TickAggr',
-            quantile: 0.99
+            clusters: 10,
+            quantiles: [0.95, 0.99, 0.999]
         }
         td = store.addStreamAggr(aggr);
         
-    	// add some values (throwing a pair of dice)
-        store.push({ Time: '2015-12-01T14:11:32.0', Value: 1 }); 
-        store.push({ Time: '2015-12-01T14:16:32.0', Value: 6 });
-        store.push({ Time: '2015-12-01T14:14:32.0', Value: 4 });
-        store.push({ Time: '2015-12-01T14:15:32.0', Value: 5 });
-        store.push({ Time: '2015-12-01T14:18:32.0', Value: 8 });
-        store.push({ Time: '2015-12-01T14:19:32.0', Value: 9 });
-        store.push({ Time: '2015-12-01T14:12:32.0', Value: 2 }); 
-        store.push({ Time: '2015-12-01T14:17:32.0', Value: 7 });
-        store.push({ Time: '2015-12-01T14:13:32.0', Value: 3 }); 
-        store.push({ Time: '2015-12-01T14:20:32.0', Value: 10 });
-        console.log(td);      
+    	// add some values
+        store.push({ Time: '2015-12-01T14:11:32.0', Value: 0.9948628368 }); 
+        store.push({ Time: '2015-12-01T14:16:32.0', Value: 0.1077458826 });
+        store.push({ Time: '2015-12-01T14:14:32.0', Value: 0.9855685823 });
+        store.push({ Time: '2015-12-01T14:15:32.0', Value: 0.7796449082 });
+        store.push({ Time: '2015-12-01T14:18:32.0', Value: 0.0844943286 });
+        store.push({ Time: '2015-12-01T14:19:32.0', Value: 0.187490856 });
+        store.push({ Time: '2015-12-01T14:12:32.0', Value: 0.0779815107 }); 
+        store.push({ Time: '2015-12-01T14:17:32.0', Value: 0.8945312691 });
+        store.push({ Time: '2015-12-01T14:13:32.0', Value: 0.5574567409 }); 
+        store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.1929709807 });      
     });
-    it('should reset a tdigest test aggregator', function () {
-    
+    it('should save and load a tdigest test aggregator', function () {
     	// add TDigest stream aggregator
         var aggr = {
             name: 'TDigest',
             type: 'tdigest',
             store: 'Processor',
             inAggr: 'TickAggr',
-            quantile: 0.99
+            clusters: 10,
+            quantiles: [0.95, 0.99, 0.999]
         }
+        
         td = store.addStreamAggr(aggr);
         
     	// add some values (throwing a pair of dice)
-        store.push({ Time: '2015-12-01T14:11:32.0', Value: 1 }); 
-        store.push({ Time: '2015-12-01T14:16:32.0', Value: 6 });
-        store.push({ Time: '2015-12-01T14:14:32.0', Value: 4 });
-        store.push({ Time: '2015-12-01T14:15:32.0', Value: 5 });
-        store.push({ Time: '2015-12-01T14:18:32.0', Value: 8 });
-        store.push({ Time: '2015-12-01T14:19:32.0', Value: 9 });
-        store.push({ Time: '2015-12-01T14:12:32.0', Value: 2 }); 
-        store.push({ Time: '2015-12-01T14:17:32.0', Value: 7 });
-        store.push({ Time: '2015-12-01T14:13:32.0', Value: 3 }); 
-        store.push({ Time: '2015-12-01T14:20:32.0', Value: 10 });
-        console.log(td);
+        store.push({ Time: '2015-12-01T14:11:32.0', Value: 0.9948628368 }); 
+        store.push({ Time: '2015-12-01T14:16:32.0', Value: 0.1077458826 });
+        store.push({ Time: '2015-12-01T14:14:32.0', Value: 0.9855685823 });
+        store.push({ Time: '2015-12-01T14:15:32.0', Value: 0.7796449082 });
+        store.push({ Time: '2015-12-01T14:18:32.0', Value: 0.0844943286 });
+        store.push({ Time: '2015-12-01T14:19:32.0', Value: 0.187490856 });
+        store.push({ Time: '2015-12-01T14:12:32.0', Value: 0.0779815107 }); 
+        store.push({ Time: '2015-12-01T14:17:32.0', Value: 0.8945312691 });
+        store.push({ Time: '2015-12-01T14:13:32.0', Value: 0.5574567409 }); 
+        store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.1929709807 });
         
-        var endVal = td.getFloat();
-
+        var valSave1 = td.getFloatAt(0);
+        var valSave2 = td.getFloatAt(2);
+        var valSave3 = td.getFloatAt(3);
 		var fout = qm.fs.openWrite("aggr.tmp");
 		td.save(fout);
 		fout.close();
 		
-        store.resetStreamAggregates();       
+        td1 = store.addStreamAggr(aggr);
         
 		var fin = qm.fs.openRead("aggr.tmp");
-		td.load(fin);
+		td1.load(fin);
 		fin.close();
 
-		assert(td.getFloat() == endVal);
+		assert(td1.getFloatAt(0) == valSave1);
+		assert(td1.getFloatAt(1) == valSave2);
+		assert(td1.getFloatAt(2) == valSave3);
+    });
+    it('should test t-digest quantile estimate precision within 5%', function () {
+    	// add TDigest stream aggregator
+        var aggr = {
+            name: 'TDigest',
+            type: 'tdigest',
+            store: 'Processor',
+            inAggr: 'TickAggr',
+            clusters: 10,
+            quantiles: [0.90, 0.95, 0.99, 0.999]
+        }
+        
+        td = store.addStreamAggr(aggr);
+        
+    	// add some values
+        store.push({ Time: '2015-12-01T14:11:32.0', Value: 0.9948628368 }); 
+        store.push({ Time: '2015-12-01T14:16:32.0', Value: 0.1077458826 });
+        store.push({ Time: '2015-12-01T14:14:32.0', Value: 0.9855685823 });
+        store.push({ Time: '2015-12-01T14:15:32.0', Value: 0.7796449082 });
+        store.push({ Time: '2015-12-01T14:18:32.0', Value: 0.0844943286 });
+        store.push({ Time: '2015-12-01T14:19:32.0', Value: 0.187490856 });
+        store.push({ Time: '2015-12-01T14:12:32.0', Value: 0.0779815107 }); 
+        store.push({ Time: '2015-12-01T14:17:32.0', Value: 0.8945312691 });
+        store.push({ Time: '2015-12-01T14:13:32.0', Value: 0.5574567409 }); 
+        store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.1929709807 });
+      
+		assert(td1.getFloatAt(0) >= 0.8551782441 && td1.getFloatAt(0) <= 0.9448217559);
+		assert(td1.getFloatAt(1) >= 0.9034122697 && td1.getFloatAt(1) <= 0.9965877303);
+		assert(td1.getFloatAt(2) >= 0.9402553097 && td1.getFloatAt(2) <= 1.0397446903);
+		assert(td1.getFloatAt(3) >= 0.9491173424 && td1.getFloatAt(3) <= 1.0488826576);
+    });
+    it('should test t-digest for 10000 inserts', function () {
+    	// add TDigest stream aggregator
+        var aggr = {
+            name: 'TDigest',
+            type: 'tdigest',
+            store: 'Processor',
+            inAggr: 'TickAggr',
+            quantiles: [0.90, 0.95, 0.99, 0.999]
+        }
+        
+        td = store.addStreamAggr(aggr);
+        
+    	function getRnd(min, max) {
+        	return Math.random() * (max - min) + min;
+		}
+
+		for (var i=1; i<=10000; i++) {
+        	store.push({ Time: '+i+', Value: getRnd(0,1) });
+        }
+      
+		assert(td1.getFloatAt(0) > 0 && td1.getFloatAt(0) < 1);
+		assert(td1.getFloatAt(1) > 0 && td1.getFloatAt(1) < 1);
+		assert(td1.getFloatAt(2) > 0 && td1.getFloatAt(2) < 1);
+		assert(td1.getFloatAt(3) > 0 && td1.getFloatAt(3) < 1);
+    });
+    it('should test t-digest for 10000 sequential inserts', function () {
+    	// add TDigest stream aggregator
+        var aggr = {
+            name: 'TDigest',
+            type: 'tdigest',
+            store: 'Processor',
+            inAggr: 'TickAggr',
+            quantiles: [0.90, 0.95, 0.99, 0.999]
+        }
+        
+        td = store.addStreamAggr(aggr);
+        
+    	function getRnd(min, max) {
+        	return Math.random() * (max - min) + min;
+		}
+
+		for (var i=1; i<=10000; i++) {
+        	store.push({ Time: '+i+', Value: i });
+        }
+      
+		assert(td1.getFloatAt(0) > 0 && td1.getFloatAt(0) < 10000);
+		assert(td1.getFloatAt(1) > 0 && td1.getFloatAt(1) < 10000);
+		assert(td1.getFloatAt(2) > 0 && td1.getFloatAt(2) < 10000);
+		assert(td1.getFloatAt(3) > 0 && td1.getFloatAt(3) < 10000);
     });
 });
 

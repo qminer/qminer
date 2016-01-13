@@ -848,11 +848,14 @@ protected:
 	void OnAddRec(const TRec& Rec);
 	TTDigest(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 	TTDigest(const TFltV& Quantiles);
+	TTDigest(const TInt& N);
+	TTDigest();
 public:
 	/// Add new data to statistics
 	void Add(const TFlt& Val);
 	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
-	static PStreamAggr New(const TFltV Quantiles);
+	static PStreamAggr New(const TFltV& Quantiles);
+	static PStreamAggr New(const TInt& N);
 	// did we finish initialization
 	bool IsInit() const { return InAggr->IsInit(); }
 	/// Reset

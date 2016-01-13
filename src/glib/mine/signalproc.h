@@ -877,100 +877,35 @@ private:
 
 	TFlt Interp(const TFlt& X, const TFlt& X0, const TFlt& X1) const;
 
+	void Init(const TInt& N);
 public:
 	/// Constructs uninitialized object
 	TTDigest() {
-		Nc = 10;
-		UnmergedSum = 0;
-		TempLast = 0;
-		EPSILON = 1e-300;
-		DEFAULT_CENTROIDS = 100;
-
-		Size = ceil(Nc * TMath::Pi/2);
-		TotalSum = 0;
-		Last = 0;
-
-		for (int Iter = 0; Iter < Size; Iter++) {
-			Weight.Add(0);
-			Mean.Add(0);
-			MergeWeight.Add(0);
-			MergeMean.Add(0);
-		}
-
-		int Tempsize = NumTemp(Nc);
-		for (int Iter = 0; Iter < Tempsize; Iter++) {
-			TempMean.Add(0);
-			TempWeight.Add(0);
-		}
-
-		Min = TFlt::Mx;
-		Min = -TFlt::Mx;
+		Init();
 	}
-    /// Constructs uninitialized object
-    TTDigest(const TFltV& Quantiles) {
-    	Nc = 100;
-		UnmergedSum = 0;
-		TempLast = 0;
-		EPSILON = 1e-300;
-		DEFAULT_CENTROIDS = 100;
-
-		Size = ceil(Nc * TMath::Pi/2);
-		TotalSum = 0;
-		Last = 0;
-
-		for (int Iter = 0; Iter < Size; Iter++) {
-			Weight.Add(0);
-			Mean.Add(0);
-			MergeWeight.Add(0);
-			MergeMean.Add(0);
-		}
-
-		int Tempsize = NumTemp(Nc);
-		for (int Iter = 0; Iter < Tempsize; Iter++) {
-			TempMean.Add(0);
-			TempWeight.Add(0);
-		}
-
-		Min = TFlt::Mx;
-		Min = -TFlt::Mx;
-    };
     /// Constructs given JSON arguments
-    TTDigest(const PJsonVal& ParamVal) {  };
+    TTDigest(const PJsonVal& ParamVal) {
+		if (ParamVal->IsObjKey("clusters")) {
+			Init(ParamVal->GetObjInt("clusters"));
+		}
+		else {
+			Init();
+		}
+    };
 	/// Constructs initialized object
 	TTDigest(const TInt& N) {
-		Nc = N;
-		UnmergedSum = 0;
-		TempLast = 0;
-		EPSILON = 1e-300;
-		DEFAULT_CENTROIDS = 100;
-
-		Size = ceil(Nc * TMath::Pi/2);
-		TotalSum = 0;
-		Last = 0;
-
-		for (int Iter = 0; Iter < Size; Iter++) {
-			Weight.Add(0);
-			Mean.Add(0);
-			MergeWeight.Add(0);
-			MergeMean.Add(0);
-		}
-
-		int Tempsize = NumTemp(Nc);
-		for (int Iter = 0; Iter < Tempsize; Iter++) {
-			TempMean.Add(0);
-			TempWeight.Add(0);
-		}
-
-		Min = TFlt::Mx;
-		Min = -TFlt::Mx;
+		Init(N);
 	};
 
 	~TTDigest() {}
 
+	/// Initializes the object, resets current content if present
+	void Init();
+
 	// Query for estimated quantile *q*.
 	// Argument *q* is a desired quantile in the range (0,1)
 	// For example, q = 0.5 queries for the median.
-	TFlt GetQuantile(const TFlt& Q);
+	TFlt GetQuantile(const TFlt& Q) const;
 
 	// Add a value to the t-digest.
 	// Argument *v* is the value to add.
