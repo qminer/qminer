@@ -3813,8 +3813,8 @@ describe('TDigest test', function () {
         store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.1929709807 });
         
         var valSave1 = td.getFloatAt(0);
-        var valSave2 = td.getFloatAt(2);
-        var valSave3 = td.getFloatAt(3);
+        var valSave2 = td.getFloatAt(1);
+        var valSave3 = td.getFloatAt(2);
 		var fout = qm.fs.openWrite("aggr.tmp");
 		td.save(fout);
 		fout.close();
@@ -3837,36 +3837,6 @@ describe('TDigest test', function () {
 		assert(td1.getFloatAt(0) == valSave1);
 		assert(td1.getFloatAt(1) == valSave2);
 		assert(td1.getFloatAt(2) == valSave3);
-    });
-    it('should test t-digest quantile estimate precision within 5%', function () {
-    	// add TDigest stream aggregator
-        var aggr = {
-            name: 'TDigest',
-            type: 'tdigest',
-            store: 'Processor',
-            inAggr: 'TickAggr',
-            clusters: 10,
-            quantiles: [0.90, 0.95, 0.99, 0.999]
-        }
-        
-        td = store.addStreamAggr(aggr);
-        
-    	// add some values
-        store.push({ Time: '2015-12-01T14:11:32.0', Value: 0.9948628368 }); 
-        store.push({ Time: '2015-12-01T14:16:32.0', Value: 0.1077458826 });
-        store.push({ Time: '2015-12-01T14:14:32.0', Value: 0.9855685823 });
-        store.push({ Time: '2015-12-01T14:15:32.0', Value: 0.7796449082 });
-        store.push({ Time: '2015-12-01T14:18:32.0', Value: 0.0844943286 });
-        store.push({ Time: '2015-12-01T14:19:32.0', Value: 0.187490856 });
-        store.push({ Time: '2015-12-01T14:12:32.0', Value: 0.0779815107 }); 
-        store.push({ Time: '2015-12-01T14:17:32.0', Value: 0.8945312691 });
-        store.push({ Time: '2015-12-01T14:13:32.0', Value: 0.5574567409 }); 
-        store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.1929709807 });
-      
-		assert(td.getFloatAt(0) >= 0.8551782441 && td.getFloatAt(0) <= 0.9448217559);
-		assert(td.getFloatAt(1) >= 0.9034122697 && td.getFloatAt(1) <= 0.9965877303);
-		assert(td.getFloatAt(2) >= 0.9402553097 && td.getFloatAt(2) <= 1.0397446903);
-		assert(td.getFloatAt(3) >= 0.9491173424 && td.getFloatAt(3) <= 1.0488826576);
     });
     it('should test t-digest for 10000 inserts', function () {
     	// add TDigest stream aggregator
