@@ -2240,7 +2240,7 @@ PRecSet TRec::ToRecSet() const {
 uint64 TRec::GetFieldJoinRecId(const int& JoinId) const {
     QmAssertR(Store->IsJoinId(JoinId), "Invalid JoinId");
     const TJoinDesc& JoinDesc = Store->GetJoinDesc(JoinId);
-    return GetFieldJoinFq(JoinDesc);
+    return GetFieldJoinRecId(JoinDesc);
 }
 
 /// Returns record-id of given field join
