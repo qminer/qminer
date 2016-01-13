@@ -1255,7 +1255,9 @@ void TTDigest::Update(const TFlt& V, const TFlt& Count) {
 	TempMean[N_] = V;
 	UnmergedSum += Count;
 }
-
+TInt TTDigest::GetClusters() const {
+	return Mean.Len();
+}
 TFlt TTDigest::GetQuantile(const TFlt& Q) const {
 		//MergeValues();
 

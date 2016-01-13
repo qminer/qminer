@@ -856,34 +856,6 @@ public:
 	PJsonVal SaveJson() const;
 };
 
-class TBlank {
-private:
-	TFltV Vector;
-public:
-	TBlank() {
-		for (int Iter = 0; Iter < 100; Iter ++) {
-			Vector.Add(Iter);
-		}
-	}
-	TFltV Get() {
-		TFltV Out;
-		for (int Iter = 0; Iter < 100; Iter ++) {
-			Out.Add(Vector[Iter]);
-		}
-		return Out;
-	}
-
-	TFlt Get(int N) {
-		TFlt Out;
-		return Vector[N];
-	}
-
-	void Set(int N, double Val) {
-		Vector[N] = Val;
-	}
-
-};
-
 /////////////////////////////////////////////////
 ///   TDigest
 ///   Data structure useful for percentile and quantile estimation for online data streams.
@@ -976,6 +948,8 @@ public:
 	// Argument *q* is a desired quantile in the range (0,1)
 	// For example, q = 0.5 queries for the median.
 	TFlt GetQuantile(const TFlt& Q) const;
+
+	TInt GetClusters() const;
 
 	// Add a value to the t-digest.
 	// Argument *v* is the value to add.

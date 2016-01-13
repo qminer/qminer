@@ -1057,15 +1057,16 @@ public:
 	void LoadState(TSIn& SIn);
 	/// Store state into stream
 	void SaveState(TSOut& SOut) const;
-	/// get current Quantile value
-	double GetFlt(const TInt& ElN) const { return Model.GetQuantile(QuantilesVals[ElN]); }
-		/// returns the vector of frequencies
-	void GetFltV(TFltV& ValV) const {
+	/// returns the number of clusters
+	int GetVals() const { return Model.GetClusters(); }
+	/// get current Quantile value vector
+	void GetVal(const TInt& ElN, TFlt& Val) const { Val = Model.GetQuantile(QuantilesVals[ElN]); }
+	/// get current Quantile value vector
+	void GetValV(TFltV& ValV) const {
 		for (int ElN=0; ElN<QuantilesVals.Len(); ElN++) {
 			ValV.Add(Model.GetQuantile(QuantilesVals[ElN]));
 		}
 	}
-	int GetFltLen() const { return QuantilesVals.Len(); }
 	void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggr->GetAggrNm());}
 	// serialization to JSon
 	PJsonVal SaveJson(const int& Limit) const;
