@@ -1124,6 +1124,7 @@ private:
         TFlt Eps; // Error rate 0.01 < Eps < 1
         TFlt Gamma; // Probability for accuracy, 0 < Gamma < 1
         TInt aj, bj;
+        TIntV InVals;
         // array of arrays of counters
         int **C;
         // array of hash values for a particular item
@@ -1133,6 +1134,7 @@ private:
         void Genajbj(int **hashes, int i);
 public:
         TInt Total;
+        TIntV Counts;
         TCountMinSketch(const PJsonVal& ParamVal);
         TCountMinSketch(TFlt eps, TFlt gamma);
         // update item (int) by count c

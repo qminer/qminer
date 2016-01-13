@@ -1458,6 +1458,8 @@ TCountMinSketch::TCountMinSketch(const TWPt<TBase>& Base, const PJsonVal& ParamV
     TStr InStoreNm = ParamVal->GetObjStr("store");;
     TStr InAggrNm = ParamVal->GetObjStr("inAggr");
     PStreamAggr _InAggr = Base->GetStreamAggr(InStoreNm, InAggrNm);
+    EAssertR(ParamVal->IsObjKey("vals"), "TCountMinSketch: vals key missing!");
+    ParamVal->GetObjIntV("vals",Vals);
 
     InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
     QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);

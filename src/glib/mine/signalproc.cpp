@@ -1636,9 +1636,17 @@ void TChiSquare::SaveState(TSOut& SOut) const {
 
 TCountMinSketch::TCountMinSketch(const PJsonVal& ParamVal) {
 	EAssertR(ParamVal->IsObjKey("epsilon"), "TCountMinSketch: epsilon key missing!");
+	TFlt ep = ParamVal->GetObjNum("epsilon");
 	EAssertR(ParamVal->IsObjKey("gamma"), "TCountMinSketch: gamma key missing!");
 	TFlt ep = ParamVal->GetObjNum("epsilon");
 	TFlt gamm = ParamVal->GetObjNum("gamma");
+	EAssertR(ParamVal->IsObjKey("vals"), "TCountMinSketch: lowerBound key missing!");
+	ParamVal->GetObjIntV("vals", InVals);
+
+	for (int ElN = 0; ElN <= InVals.Len(); ElN++) {
+		Counts.Add(0);
+	}
+
 	if (!(0.009 <= ep && ep < 1)) {
 			exit(EXIT_FAILURE);
 		} else if (!(0 < gamm && gamm < 1)) {
