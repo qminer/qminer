@@ -1589,6 +1589,30 @@ public:
     }
 };
 
+
+///////////////////////////////
+/// Record Filter by index-join. 
+class TRecFilterByIndexJoin {
+private:
+    /// Store from which we are sorting the records 
+    TWPt<TStore> Store;
+    /// Index object to use for index-joins
+    TWPt<TIndex> Index;
+    /// Field according to which we are sorting
+    TInt JoinId;
+    /// Minimal value
+    TUInt64 MinVal;
+    /// Maximal value
+    TUInt64 MaxVal;
+    /// Join key ID
+    int JoinKeyId;
+public:
+    /// Constructor
+    TRecFilterByIndexJoin(const TWPt<TStore>& _Store, const int& _JoinId, const uint64& _MinVal, const uint64& _MaxVal);
+    /// Main operator
+    bool operator()(const TUInt64IntKd& RecIdWgt) const;
+};
+
 ///////////////////////////////
 /// Record Splitter by Time Field. 
 class TRecSplitterByFieldTm {
@@ -1848,6 +1872,8 @@ public:
 	void FilterByFieldTm(const int& FieldId, const TTm& MinVal, const TTm& MaxVal);
     /// Filter records to keep only the ones with values of a given field within given range
     void FilterByFieldSafe(const int& FieldId, const uint64& MinVal, const uint64& MaxVal);
+    /// Filter records to keep only the ones with join-record within given range
+    void FilterByIndexJoin(const TWPt<TBase>& Base, const int& JoinId, const uint64& MinVal, const uint64& MaxVal);
 	/// Filter records to keep only the ones with values of a given field within given range
 	template <class TFilter> void FilterBy(const TFilter& Filter);
 	

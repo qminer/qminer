@@ -2679,6 +2679,7 @@ void TNodeJsRecSet::filterByField(const v8::FunctionCallbackInfo<v8::Value>& Arg
     const TStr FieldNm = TNodeJsUtil::GetArgStr(Args, 0);
     int FieldId;
     bool IsFieldJoin = false;
+    bool IsIndexJoin = false;
     const TWPt<TQm::TStore>& Store = JsRecSet->RecSet->GetStore();
     if (Store->IsFieldNm(FieldNm)) {
         // normal field
@@ -2694,7 +2695,9 @@ void TNodeJsRecSet::filterByField(const v8::FunctionCallbackInfo<v8::Value>& Arg
                 is_ok = true;
                 IsFieldJoin = true;
             } else {
-                //is_ok = false;
+                FieldId = JoinId; // this is not field id, but join id
+                IsIndexJoin = true;
+                is_ok = true;
             }
         } else {
             //is_ok = false;
@@ -2704,7 +2707,17 @@ void TNodeJsRecSet::filterByField(const v8::FunctionCallbackInfo<v8::Value>& Arg
 
     const TQm::TFieldDesc& Desc = JsRecSet->RecSet->GetStore()->GetFieldDesc(FieldId);
     // parse filter according to field type
-    if (IsFieldJoin) {
+    if (IsIndexJoin) {
+        uint64 MnVal = TUInt64::Mn;
+        uint64 MxVal = TUInt64::Mx;
+        if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
+            MnVal = static_cast<uint64> (TNodeJsUtil::GetArgFlt(Args, 1));
+        }
+        if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
+            MxVal = static_cast<uint64> (TNodeJsUtil::GetArgFlt(Args, 2));
+        }
+        JsRecSet->RecSet->FilterByIndexJoin(Store->GetBase(), FieldId, MnVal, MxVal);
+    } else if (IsFieldJoin) {
         uint64 MnVal = TUInt64::Mn;
         uint64 MxVal = TUInt64::Mx;
         if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {

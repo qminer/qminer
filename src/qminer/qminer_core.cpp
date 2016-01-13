@@ -2234,6 +2234,28 @@ PJsonVal TRec::GetJson(const TWPt<TBase>& Base, const bool& FieldsP,
 	return RecVal;
 }
 
+///////////////////////////////////////////////////////////////////////////////////
+// TRecFilterByIndexJoin
+
+/// Constructor
+TRecFilterByIndexJoin::TRecFilterByIndexJoin(const TWPt<TStore>& _Store, const int& _JoinId, const uint64& _MinVal, const uint64& _MaxVal) :
+    Store(_Store), Index(Store->GetBase()->GetIndex()), JoinId(_JoinId), MinVal(_MinVal), MaxVal(_MaxVal) {
+    JoinKeyId = Store->GetJoinDesc(JoinId).GetJoinKeyId();
+}
+
+/// Main operator
+bool TRecFilterByIndexJoin::operator()(const TUInt64IntKd& RecIdWgt) const {
+    TUInt64IntKdV Res;
+    Index->GetJoinRecIdFqV(JoinKeyId, RecIdWgt.Key, Res); // perform join lookup
+    for (int i = 0; i < Res.Len(); i++) {
+        uint64 Val = Res[i].Key;
+        if ((MinVal <= Val) && (Val <= MaxVal)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 ///////////////////////////////////////////////
 /// Record value reader.
 void TFieldReader::ParseDate(const TTm& Tm, TStrV& StrV) const {
@@ -3110,6 +3132,13 @@ void TRecSet::FilterByFieldSafe(const int& FieldId, const uint64& MinVal, const 
     QmAssertR(Desc.IsTm() || Desc.IsUInt64() || Desc.IsInt64() || Desc.IsUInt() || Desc.IsInt() || Desc.IsUInt16() || Desc.IsInt16() || Desc.IsByte(), "Wrong field type, numeric field expected");
     // apply the filter
     FilterBy(TRecFilterByFieldSafe(Store, FieldId, MinVal, MaxVal));
+}
+
+void TRecSet::FilterByIndexJoin(const TWPt<TBase>& Base, const int& JoinId, const uint64& MinVal, const uint64& MaxVal) {
+    // get store and field type
+    QmAssertR(Store->IsJoinId(JoinId), "Invalid join id");
+    // apply the filter
+    FilterBy(TRecFilterByIndexJoin(Store, JoinId, MinVal, MaxVal));
 }
 
 TVec<PRecSet> TRecSet::SplitByFieldTm(const int& FieldId, const uint64& DiffMSecs) const {
