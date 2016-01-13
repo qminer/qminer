@@ -3266,10 +3266,9 @@ void TRecSet::FilterByFieldStrSet(const int& FieldId, const TStrSet& ValSet) {
 }
 
 void TRecSet::FilterByFieldTm(const int& FieldId, const uint64& MinVal, const uint64& MaxVal) {
-
 	// get store and field type
 	const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
-	QmAssertR(Desc.IsTm(), "Wrong field type, time expected");
+	QmAssertR(Desc.IsTm() || Desc.IsUInt64(), "Wrong field type, time expected");
 	// apply the filter
 	FilterBy(TRecFilterByFieldTm(Store, FieldId, MinVal, MaxVal));
 }
@@ -3280,6 +3279,14 @@ void TRecSet::FilterByFieldTm(const int& FieldId, const TTm& MinVal, const TTm& 
 	QmAssertR(Desc.IsTm(), "Wrong field type, time expected");
 	// apply the filter
 	FilterBy(TRecFilterByFieldTm(Store, FieldId, MinVal, MaxVal));
+}
+
+void TRecSet::FilterByFieldSafe(const int& FieldId, const uint64& MinVal, const uint64& MaxVal) {
+    // get store and field type
+    const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
+    QmAssertR(Desc.IsTm() || Desc.IsUInt64() || Desc.IsInt64() || Desc.IsUInt() || Desc.IsInt() || Desc.IsUInt16() || Desc.IsInt16() || Desc.IsByte(), "Wrong field type, numeric field expected");
+    // apply the filter
+    FilterBy(TRecFilterByFieldSafe(Store, FieldId, MinVal, MaxVal));
 }
 
 TVec<PRecSet> TRecSet::SplitByFieldTm(const int& FieldId, const uint64& DiffMSecs) const {

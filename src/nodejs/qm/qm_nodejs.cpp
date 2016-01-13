@@ -2616,127 +2616,148 @@ void TNodeJsRecSet::sortByField(const v8::FunctionCallbackInfo<v8::Value>& Args)
 }
 
 void TNodeJsRecSet::sort(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-	TNodeJsRecSet* JsRecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args.Holder());
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    TNodeJsRecSet* JsRecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args.Holder());
 
-	QmAssertR(Args.Length() == 1 && Args[0]->IsFunction(),
-		"sort(..) expects one argument, which is a function.");
-	v8::Local<v8::Function> Callback = v8::Local<v8::Function>::Cast(Args[0]);
-	for (int i = 0; i < JsRecSet->RecSet->GetRecs(); i++) {
-		JsRecSet->RecSet->PutRecFq(i, i);
-	}
-	JsRecSet->RecSet->SortCmp(TJsRecPairFilter(JsRecSet->RecSet->GetStore(), Callback));
-	Args.GetReturnValue().Set(Args.Holder());
+    QmAssertR(Args.Length() == 1 && Args[0]->IsFunction(),
+        "sort(..) expects one argument, which is a function.");
+    v8::Local<v8::Function> Callback = v8::Local<v8::Function>::Cast(Args[0]);
+    for (int i = 0; i < JsRecSet->RecSet->GetRecs(); i++) {
+        JsRecSet->RecSet->PutRecFq(i, i);
+    }
+    JsRecSet->RecSet->SortCmp(TJsRecPairFilter(JsRecSet->RecSet->GetStore(), Callback));
+    Args.GetReturnValue().Set(Args.Holder());
 }
 
 void TNodeJsRecSet::filterById(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-	TNodeJsRecSet* JsRecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args.Holder());
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    TNodeJsRecSet* JsRecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args.Holder());
 
-	if (Args.Length() == 1) {
-		// we expect an array of IDs which we filter out
-		PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
-		if (!ParamVal->IsArr()) {
-			throw TQm::TQmExcept::New("Expected Array.");
-		}
-		TUInt64Set RecIdSet;
-		for (int ArrValN = 0; ArrValN < ParamVal->GetArrVals(); ArrValN++) {
-			PJsonVal Val = ParamVal->GetArrVal(ArrValN);
-			uint64 RecId = (uint64)Val->GetNum();
-			RecIdSet.AddKey(RecId);
-		}
-		JsRecSet->RecSet->FilterByRecIdSet(RecIdSet);
-	}
-	else if (Args.Length() == 2) {
-		// we expect min and max ID
-		const int MnRecId = TNodeJsUtil::GetArgInt32(Args, 0);
-		const int MxRecId = TNodeJsUtil::GetArgInt32(Args, 1);
-		JsRecSet->RecSet->FilterByRecId((uint64)MnRecId, (uint64)MxRecId);
-	}
+    if (Args.Length() == 1) {
+        // we expect an array of IDs which we filter out
+        PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+        if (!ParamVal->IsArr()) {
+            throw TQm::TQmExcept::New("Expected Array.");
+        }
+        TUInt64Set RecIdSet;
+        for (int ArrValN = 0; ArrValN < ParamVal->GetArrVals(); ArrValN++) {
+            PJsonVal Val = ParamVal->GetArrVal(ArrValN);
+            uint64 RecId = (uint64)Val->GetNum();
+            RecIdSet.AddKey(RecId);
+        }
+        JsRecSet->RecSet->FilterByRecIdSet(RecIdSet);
+    } else if (Args.Length() == 2) {
+        // we expect min and max ID
+        const int MnRecId = TNodeJsUtil::GetArgInt32(Args, 0);
+        const int MxRecId = TNodeJsUtil::GetArgInt32(Args, 1);
+        JsRecSet->RecSet->FilterByRecId((uint64)MnRecId, (uint64)MxRecId);
+    }
 
-	Args.GetReturnValue().Set(Args.Holder());
+    Args.GetReturnValue().Set(Args.Holder());
 }
 
 void TNodeJsRecSet::filterByFq(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-	TNodeJsRecSet* JsRecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args.Holder());
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    TNodeJsRecSet* JsRecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args.Holder());
 
-	const int MnFq = TNodeJsUtil::GetArgInt32(Args, 0);
-	const int MxFq = TNodeJsUtil::GetArgInt32(Args, 1);
-	JsRecSet->RecSet->FilterByFq(MnFq, MxFq);
+    const int MnFq = TNodeJsUtil::GetArgInt32(Args, 0);
+    const int MxFq = TNodeJsUtil::GetArgInt32(Args, 1);
+    JsRecSet->RecSet->FilterByFq(MnFq, MxFq);
 
-	Args.GetReturnValue().Set(Args.Holder());
+    Args.GetReturnValue().Set(Args.Holder());
 }
 
 void TNodeJsRecSet::filterByField(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-	TNodeJsRecSet* JsRecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args.Holder());
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    TNodeJsRecSet* JsRecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args.Holder());
 
-	// get field
-	const TStr FieldNm = TNodeJsUtil::GetArgStr(Args, 0);
-    QmAssertR(JsRecSet->RecSet->GetStore()->IsFieldNm(FieldNm),
-        "RecordSet.filterByField: invalid field name " + FieldNm);
-	const int FieldId = JsRecSet->RecSet->GetStore()->GetFieldId(FieldNm);
-	const TQm::TFieldDesc& Desc = JsRecSet->RecSet->GetStore()->GetFieldDesc(FieldId);
-	// parse filter according to field type
-	if (Desc.IsBool()) {		
-		const bool Val = TNodeJsUtil::GetArgBool(Args, 1);
-		JsRecSet->RecSet->FilterByFieldBool(FieldId, Val);
-	}
-	else if (Desc.IsInt()) {
-		int MnVal = TInt::Mn;
-		int MxVal = TInt::Mx;
-		if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
-			MnVal = TNodeJsUtil::GetArgInt32(Args, 1);
-		}
-		if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
-			MxVal = TNodeJsUtil::GetArgInt32(Args, 2);
-		}
-		//const int MnVal = TNodeJsUtil::GetArgInt32(Args, 1);
-		//const int MxVal = TNodeJsUtil::GetArgInt32(Args, 2);
-		JsRecSet->RecSet->FilterByFieldInt(FieldId, MnVal, MxVal);
-	} else if (Desc.IsInt16()) {
-		int16 MnVal = TInt16::Mn;
-		int16 MxVal = TInt16::Mx;
-		if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
-			MnVal = TNodeJsUtil::GetArgInt32(Args, 1);
-		}
-		if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
-			MxVal = TNodeJsUtil::GetArgInt32(Args, 2);
-		}
-		//const int16 MnVal = TNodeJsUtil::GetArgInt32(Args, 1);
-		//const int16 MxVal = TNodeJsUtil::GetArgInt32(Args, 2);
-		JsRecSet->RecSet->FilterByFieldInt16(FieldId, MnVal, MxVal);
-	} else if (Desc.IsInt64()) {
-		int64 MnVal = TInt64::Mn;
-		int64 MxVal = TInt64::Mx;
-		if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
-			MnVal = (int64)TNodeJsUtil::GetArgFlt(Args, 1);
-		}
-		if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
-			MxVal = (int64)TNodeJsUtil::GetArgFlt(Args, 2);
-		}
-		//const int64 MnVal = (int64)TNodeJsUtil::GetArgFlt(Args, 1);
-		//const int64 MxVal = (int64)TNodeJsUtil::GetArgFlt(Args, 2);
-		JsRecSet->RecSet->FilterByFieldInt64(FieldId, MnVal, MxVal);
-	} else if (Desc.IsByte()) {
-		uchar MnVal = TUCh::Mn;
-		uchar MxVal = TUCh::Mx;
-		if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
-			MnVal = (uchar)TNodeJsUtil::GetArgInt32(Args, 1);
-		}
-		if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
-			MxVal = (uchar)TNodeJsUtil::GetArgInt32(Args, 2);
-		}
-		//const uchar MnVal = (uchar)TNodeJsUtil::GetArgInt32(Args, 1);
-		//const uchar MxVal = (uchar)TNodeJsUtil::GetArgInt32(Args, 2);
-		JsRecSet->RecSet->FilterByFieldByte(FieldId, MnVal, MxVal);
-	}
-	else if (Desc.IsStr()) {
+    // get field
+    const TStr FieldNm = TNodeJsUtil::GetArgStr(Args, 0);
+    int FieldId;
+    bool IsFieldJoin = false;
+    const TWPt<TQm::TStore>& Store = JsRecSet->RecSet->GetStore();
+    if (Store->IsFieldNm(FieldNm)) {
+        // normal field
+        FieldId = Store->GetFieldId(FieldNm);
+    } else {
+        // check if this is field join
+        bool is_ok = false;
+        if (Store->IsJoinNm(FieldNm)) {
+            const int JoinId = Store->GetJoinId(FieldNm);
+            const TQm::TJoinDesc& JoinDesc = Store->GetJoinDesc(JoinId);
+            if (JoinDesc.IsFieldJoin()) {
+                FieldId = JoinDesc.GetJoinRecFieldId();
+                is_ok = true;
+                IsFieldJoin = true;
+            } else {
+                //is_ok = false;
+            }
+        } else {
+            //is_ok = false;
+        }
+        QmAssertR(is_ok, "RecordSet.filterByField: invalid field name " + FieldNm);
+    }
+
+    const TQm::TFieldDesc& Desc = JsRecSet->RecSet->GetStore()->GetFieldDesc(FieldId);
+    // parse filter according to field type
+    if (IsFieldJoin) {
+        uint64 MnVal = TUInt64::Mn;
+        uint64 MxVal = TUInt64::Mx;
+        if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
+            MnVal = static_cast<uint64> (TNodeJsUtil::GetArgFlt(Args, 1));
+        }
+        if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
+            MxVal = static_cast<uint64> (TNodeJsUtil::GetArgFlt(Args, 2));
+        }
+        JsRecSet->RecSet->FilterByFieldSafe(FieldId, MnVal, MxVal);
+    } else if (Desc.IsBool()) {
+        const bool Val = TNodeJsUtil::GetArgBool(Args, 1);
+        JsRecSet->RecSet->FilterByFieldBool(FieldId, Val);
+    } else if (Desc.IsInt()) {
+        int MnVal = TInt::Mn;
+        int MxVal = TInt::Mx;
+        if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
+            MnVal = TNodeJsUtil::GetArgInt32(Args, 1);
+        }
+        if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
+            MxVal = TNodeJsUtil::GetArgInt32(Args, 2);
+        }
+        JsRecSet->RecSet->FilterByFieldInt(FieldId, MnVal, MxVal);
+    } else if (Desc.IsInt16()) {
+        int16 MnVal = TInt16::Mn;
+        int16 MxVal = TInt16::Mx;
+        if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
+            MnVal = TNodeJsUtil::GetArgInt32(Args, 1);
+        }
+        if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
+            MxVal = TNodeJsUtil::GetArgInt32(Args, 2);
+        }
+        JsRecSet->RecSet->FilterByFieldInt16(FieldId, MnVal, MxVal);
+    } else if (Desc.IsInt64()) {
+        int64 MnVal = TInt64::Mn;
+        int64 MxVal = TInt64::Mx;
+        if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
+            MnVal = (int64)TNodeJsUtil::GetArgFlt(Args, 1);
+        }
+        if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
+            MxVal = (int64)TNodeJsUtil::GetArgFlt(Args, 2);
+        }
+        JsRecSet->RecSet->FilterByFieldInt64(FieldId, MnVal, MxVal);
+    } else if (Desc.IsByte()) {
+        uchar MnVal = TUCh::Mn;
+        uchar MxVal = TUCh::Mx;
+        if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
+            MnVal = (uchar)TNodeJsUtil::GetArgInt32(Args, 1);
+        }
+        if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
+            MxVal = (uchar)TNodeJsUtil::GetArgInt32(Args, 2);
+        }
+        JsRecSet->RecSet->FilterByFieldByte(FieldId, MnVal, MxVal);
+    } else if (Desc.IsStr()) {
         if (Args.Length() < 3 || !TNodeJsUtil::IsArgStr(Args, 2)) {
             TStr StrVal = TNodeJsUtil::GetArgStr(Args, 1);
             JsRecSet->RecSet->FilterByFieldStr(FieldId, StrVal);
@@ -2745,8 +2766,7 @@ void TNodeJsRecSet::filterByField(const v8::FunctionCallbackInfo<v8::Value>& Arg
             TStr StrValMax = TNodeJsUtil::GetArgStr(Args, 2);
             JsRecSet->RecSet->FilterByFieldStrMinMax(FieldId, StrValMin, StrValMax);
         }
-	}
-    else if (Desc.IsFlt()) {
+    } else if (Desc.IsFlt()) {
         double MnVal = TFlt::Mn;
         double MxVal = TFlt::Mx;
         if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
@@ -2755,20 +2775,18 @@ void TNodeJsRecSet::filterByField(const v8::FunctionCallbackInfo<v8::Value>& Arg
         if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
             MxVal = TNodeJsUtil::GetArgFlt(Args, 2);
         }
-		JsRecSet->RecSet->FilterByFieldFlt(FieldId, MnVal, MxVal);
-    }
-	else if (Desc.IsSFlt()) {
-		float MnVal = TSFlt::Mn;
-		float MxVal = TSFlt::Mx;
-		if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
-			MnVal = (float)TNodeJsUtil::GetArgFlt(Args, 1);
-		}
-		if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
-			MxVal = (float)TNodeJsUtil::GetArgFlt(Args, 2);
-		}
-		JsRecSet->RecSet->FilterByFieldSFlt(FieldId, MnVal, MxVal);
-	}
-	else if (Desc.IsUInt()) {
+        JsRecSet->RecSet->FilterByFieldFlt(FieldId, MnVal, MxVal);
+    } else if (Desc.IsSFlt()) {
+        float MnVal = TSFlt::Mn;
+        float MxVal = TSFlt::Mx;
+        if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
+            MnVal = (float)TNodeJsUtil::GetArgFlt(Args, 1);
+        }
+        if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
+            MxVal = (float)TNodeJsUtil::GetArgFlt(Args, 2);
+        }
+        JsRecSet->RecSet->FilterByFieldSFlt(FieldId, MnVal, MxVal);
+    } else if (Desc.IsUInt()) {
         uint MnVal = TUInt::Mn;
         uint MxVal = TUInt::Mx;
         if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
@@ -2777,34 +2795,31 @@ void TNodeJsRecSet::filterByField(const v8::FunctionCallbackInfo<v8::Value>& Arg
         if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
             MxVal = static_cast<uint> (TNodeJsUtil::GetArgFlt(Args, 2));
         }
-		JsRecSet->RecSet->FilterByFieldUInt(FieldId, MnVal, MxVal);
-	} else if (Desc.IsUInt16()) {
-		uint16 MnVal = TUInt16::Mn;
-		uint16 MxVal = TUInt16::Mx;
-		if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
-			MnVal = static_cast<uint16> (TNodeJsUtil::GetArgFlt(Args, 1));
-		}
-		if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
-			MxVal = static_cast<uint16> (TNodeJsUtil::GetArgFlt(Args, 2));
-		}
-		JsRecSet->RecSet->FilterByFieldUInt16(FieldId, MnVal, MxVal);
-	} else if (Desc.IsUInt64()) {
-		uint64 MnVal = TUInt64::Mn;
-		uint64 MxVal = TUInt64::Mx;
-		if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
-			MnVal = static_cast<uint64_t> (TNodeJsUtil::GetArgFlt(Args, 1));
-		}
-		if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
-			MxVal = static_cast<uint64_t> (TNodeJsUtil::GetArgFlt(Args, 2));
-		}
-		//const uint64 MnVal = static_cast<uint64_t> (TNodeJsUtil::GetArgFlt(Args, 1));
-		//const uint64 MxVal = static_cast<uint64_t> (TNodeJsUtil::GetArgFlt(Args, 2));
-		JsRecSet->RecSet->FilterByFieldTm(FieldId, MnVal, MxVal);
-	}
-    else if (Desc.IsTm()) {
+        JsRecSet->RecSet->FilterByFieldUInt(FieldId, MnVal, MxVal);
+    } else if (Desc.IsUInt16()) {
+        uint16 MnVal = TUInt16::Mn;
+        uint16 MxVal = TUInt16::Mx;
+        if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
+            MnVal = static_cast<uint16> (TNodeJsUtil::GetArgFlt(Args, 1));
+        }
+        if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
+            MxVal = static_cast<uint16> (TNodeJsUtil::GetArgFlt(Args, 2));
+        }
+        JsRecSet->RecSet->FilterByFieldUInt16(FieldId, MnVal, MxVal);
+    } else if (Desc.IsUInt64()) {
+        uint64 MnVal = TUInt64::Mn;
+        uint64 MxVal = TUInt64::Mx;
+        if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
+            MnVal = static_cast<uint64_t> (TNodeJsUtil::GetArgFlt(Args, 1));
+        }
+        if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
+            MxVal = static_cast<uint64_t> (TNodeJsUtil::GetArgFlt(Args, 2));
+        }
+        JsRecSet->RecSet->FilterByFieldTm(FieldId, MnVal, MxVal);
+    } else if (Desc.IsTm()) {
         uint64 MnTmMSecs = TUInt64::Mn;
         uint64 MxTmMSecs = TUInt64::Mx;
-            
+
         if (TNodeJsUtil::IsArgNull(Args, 1)) {
             // nothing, default value is ok
         } else if (TNodeJsUtil::IsArgStr(Args, 1)) {
@@ -2814,8 +2829,8 @@ void TNodeJsRecSet::filterByField(const v8::FunctionCallbackInfo<v8::Value>& Arg
             MnTmMSecs = TTm::GetWinMSecsFromUnixMSecs(static_cast<uint64_t> (TNodeJsUtil::GetArgFlt(Args, 1)));
         }
 
-		if (Args.Length() >= 3) {
-			// we have upper limit
+        if (Args.Length() >= 3) {
+            // we have upper limit
             if (TNodeJsUtil::IsArgNull(Args, 2)) {
                 // nothing, default value is ok
             } else if (TNodeJsUtil::IsArgStr(Args, 2)) {
@@ -2823,15 +2838,14 @@ void TNodeJsRecSet::filterByField(const v8::FunctionCallbackInfo<v8::Value>& Arg
                 MxTmMSecs = TTm::GetMSecsFromTm(TTm::GetTmFromWebLogDateTimeStr(MxTmStr, '-', ':', '.', 'T'));
             } else if (TNodeJsUtil::IsArgFlt(Args, 2)) {
                 MxTmMSecs = TTm::GetWinMSecsFromUnixMSecs(static_cast<uint64_t> (TNodeJsUtil::GetArgFlt(Args, 2)));
-            }			
-		}
+            }
+        }
         JsRecSet->RecSet->FilterByFieldTm(FieldId, MnTmMSecs, MxTmMSecs);
-	}
-	else {
-		throw TQm::TQmExcept::New("Unsupported filed type for record set filtering: " + Desc.GetFieldTypeStr());
-	}
+    } else {
+        throw TQm::TQmExcept::New("Unsupported filed type for record set filtering: " + Desc.GetFieldTypeStr());
+    }
 
-	Args.GetReturnValue().Set(Args.Holder());
+    Args.GetReturnValue().Set(Args.Holder());
 }
 
 void TNodeJsRecSet::filter(const v8::FunctionCallbackInfo<v8::Value>& Args) {
