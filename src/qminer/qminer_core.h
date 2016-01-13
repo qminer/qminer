@@ -540,6 +540,8 @@ public:
 	int GetJoinKeyId(const int& JoinId) const { return JoinDescV[JoinId].GetJoinKeyId(); }
 	/// Get full join description for the join with the given ID
 	const TJoinDesc& GetJoinDesc(const int& JoinId) const { return JoinDescV[JoinId]; }
+    /// Get full join description for the join with the given name
+    const TJoinDesc& GetJoinDesc(const TStr& JoinNm) const { return JoinDescV[GetJoinId(JoinNm)]; }
 	/// Register inverse join
 	void PutInverseJoinId(const int& JoinId, const int& InverseJoinId);
 
@@ -1046,10 +1048,18 @@ public:
 	/// the first record.
 	TRec DoSingleJoin(const TWPt<TBase>& Base, const TJoinSeq& JoinSeq) const;
 
+    /// Returns record-id of given field join
+    uint64 GetFieldJoinRecId(const int& JoinId) const;
+    /// Returns record-id of given field join
+    uint64 GetFieldJoinRecId(const TStr& JoinNm) const { return GetFieldJoinRecId(Store->GetJoinId(JoinNm));  }
+    /// Returns record-id of given field join
+    uint64 GetFieldJoinRecId(const TJoinDesc& JoinDesc) const;
     /// Returns frequency of given field join
     int GetFieldJoinFq(const int& JoinId) const;
     /// Returns frequency of given field join
-    int GetFieldJoinFq(const TJoinDesc& JoinId) const;
+    int GetFieldJoinFq(const TStr& JoinNm) const { return GetFieldJoinFq(Store->GetJoinId(JoinNm)); }
+    /// Returns frequency of given field join
+    int GetFieldJoinFq(const TJoinDesc& JoinDesc) const;
 
 	/// Get record as JSon object
 	PJsonVal GetJson(const TWPt<TBase>& Base, const bool& FieldsP = true, 
