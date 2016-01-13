@@ -1273,7 +1273,7 @@ TFlt TTDigest::GetQuantile(const TFlt& Q) const {
 	    L = Min_ = Min;
 	    R = Max_ = Max;
 
-	    if (Total == 0) { return -1; }
+	    if (Total == 0.0) { return -1.0; }
 	    if (Q <= 0) { return Min_; }
 	    if (Q >= 1) { return Max_; }
 	    if (N_ == 0) { return U[0]; }
@@ -1638,7 +1638,6 @@ TCountMinSketch::TCountMinSketch(const PJsonVal& ParamVal) {
 	EAssertR(ParamVal->IsObjKey("epsilon"), "TCountMinSketch: epsilon key missing!");
 	TFlt ep = ParamVal->GetObjNum("epsilon");
 	EAssertR(ParamVal->IsObjKey("gamma"), "TCountMinSketch: gamma key missing!");
-	TFlt ep = ParamVal->GetObjNum("epsilon");
 	TFlt gamm = ParamVal->GetObjNum("gamma");
 	EAssertR(ParamVal->IsObjKey("vals"), "TCountMinSketch: lowerBound key missing!");
 	ParamVal->GetObjIntV("vals", InVals);
