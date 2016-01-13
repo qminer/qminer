@@ -907,7 +907,7 @@ private:
 	// index range. This produces a mapping that is steep near q=0 or q=1 so each
 	// centroid there will correspond to less q range. Near q=0.5, the mapping is
 	// flatter so that centroids there will represent a larger chunk of quantiles.
-	TFlt Integrate(TFlt& Sum) const;
+	TFlt Integrate(TFlt Nc, TFlt Q_) const;
 
 	TFlt MergeCentroid(TFlt Sum, TFlt& K1, TFlt& Wt, TFlt& Ut);
 

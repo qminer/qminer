@@ -1254,6 +1254,7 @@ void TTDigest::Update(const TFlt& V, const TFlt& Count) {
 	TempWeight[N_] = Count;
 	TempMean[N_] = V;
 	UnmergedSum += Count;
+	MergeValues();
 }
 TInt TTDigest::GetClusters() const {
 	return Mean.Len();
@@ -1294,75 +1295,88 @@ TFlt TTDigest::GetQuantile(const TFlt& Q) const {
 	};
 
 void TTDigest::MergeValues() {
-		if (UnmergedSum == 0.0) {
-			return;
+	if (UnmergedSum == 0.0) {
+		return;
+	}
+	TFltV W = Weight;
+	TFltV U = Mean;
+	TInt N_ = 0;
+	TFlt Sum = 0;
+	TInt Ii, I, J;
+	TFlt K1;
+
+	for (int i=0; i<TempMean.Len(); i++) {
+		if (TempMean[i] == 0.0) {
+			TempMean[i] = TFlt::Mx;
 		}
-		TFltV W = Weight;
-		TFltV U = Mean;
-		TInt N_ = 0;
-		TFlt Sum = 0;
-		TInt Ii, I, J;
-		TFlt K1;
-
-		//TFltV TuUnsort = TempMean;
-		TempMean.Sort();
-
-		if (TotalSum > 0.0) {
-			N_ = Last + 1;
-		}
-
-		Last = 0;
-		TotalSum += UnmergedSum;
-		UnmergedSum = 0.0;
-
-		// merge existing centroids with added values in temp buffers
-		for (I=J=K1=0; I < TempLast && J < N_;) {
-			if (TempMean[I] <= U[J]) {
-				Sum += TempWeight[I];
-				K1 = MergeCentroid(Sum, K1, TempWeight[I], TempMean[I]);
-				I++;
-			} else {
-				Sum += W[J];
-				K1 = MergeCentroid(Sum, K1, W[J], U[J]);
-				J++;
-			}
-		}
-
-		// only temp buffer values remain
-		for (; I < TempLast; ++I) {
-			Sum += TempWeight[I];
-			K1 = MergeCentroid(Sum, K1, TempWeight[I], TempMean[I]);
-		}
-
-		// only existing centroids remain
-		for (; J < N_; ++J) {
-			Sum += W[J];
-			K1 = MergeCentroid(Sum, K1, W[J], U[J]);
-		}
-
-		TempLast = 0;
-
-		// swap pointers for working space and merge space
-		Weight = MergeWeight;
-		Mean = MergeMean;
-
-		MergeMean = U;
-		MergeWeight = W;
-		MergeMean[0] = Weight[0];
-
-		for (I=1, N_= Last, MergeWeight[0]=0; I<=N_; ++I) {
-			MergeWeight[I] = 0; // zero out merge weights
-			MergeMean[I] = MergeMean[I-1] + Weight[I]; // stash cumulative dist
-		}
-
-		//TempMean = TuUnsort;
-
-		Min = TMath::Mx(Min, Mean[0]);
-		Max = TMath::Mx(Max, Mean[N_]);
 	}
 
+	//TFltV TuUnsort = TempMean;
+	TempMean.Sort();
+
+	for (int i=0; i<TempMean.Len(); i++) {
+		if (TempMean[i] == TFlt::Mx) {
+			TempMean[i] = 0;
+		}
+	}
+
+	if (TotalSum > 0.0) {
+		N_ = Last + 1;
+	}
+
+	Last = 0;
+	TotalSum += UnmergedSum;
+	UnmergedSum = 0.0;
+
+	// merge existing centroids with added values in temp buffers
+	for (I=J=K1=0; I < TempLast && J < N_;) {
+		if (TempMean[I] <= U[J]) {
+			Sum += TempWeight[I];
+			K1 = MergeCentroid(Sum, K1, TempWeight[I], TempMean[I]);
+			I++;
+		} else {
+			Sum += W[J];
+			K1 = MergeCentroid(Sum, K1, W[J], U[J]);
+			J++;
+		}
+	}
+
+	// only temp buffer values remain
+	for (; I < TempLast; ++I) {
+		Sum += TempWeight[I];
+		K1 = MergeCentroid(Sum, K1, TempWeight[I], TempMean[I]);
+	}
+
+	// only existing centroids remain
+	for (; J < N_; ++J) {
+		Sum += W[J];
+		K1 = MergeCentroid(Sum, K1, W[J], U[J]);
+	}
+
+	TempLast = 0;
+
+	// swap pointers for working space and merge space
+
+	Weight = MergeWeight;
+	Mean = MergeMean;
+
+	MergeMean = U;
+	MergeWeight = W;
+
+	MergeMean[0] = Weight[0];
+	for (I=1, N_= Last, MergeWeight[0]=0; I<=N_; ++I) {
+		MergeWeight[I] = 0; // zero out merge weights
+		MergeMean[I] = MergeMean[I-1] + Weight[I]; // stash cumulative dist
+	}
+
+	//TempMean = TuUnsort;
+
+	Min = TMath::Mx(Min, Mean[0]);
+	Max = TMath::Mx(Max, Mean[N_]);
+}
+
 TFlt TTDigest::MergeCentroid(TFlt Sum, TFlt& K1, TFlt& Wt, TFlt& Ut) {
-	TFlt K2 = Integrate(Sum);
+	TFlt K2 = Integrate((double)Nc, Sum/TotalSum);
 	if (K2 - K1 <= 1.0 || MergeWeight[Last] == 0.0) {
 		// merge into existing centroid if centroid index difference (k2-k1)
 		// is within 1 or if current centroid is empty
@@ -1370,21 +1384,20 @@ TFlt TTDigest::MergeCentroid(TFlt Sum, TFlt& K1, TFlt& Wt, TFlt& Ut) {
 		MergeMean[Last] += (Ut - MergeMean[Last]) * Wt / MergeWeight[Last];
 	} else {
 		// otherwise create a new centroid
-		++Last;
+		Last = ++Last;
 		MergeMean[Last] = Ut;
 		MergeWeight[Last] = Wt;
-		TFlt Sum_ = Sum - Wt;
-		K1 = Integrate(Sum_);
+		K1 = Integrate((double)Nc, (Sum - Wt)/TotalSum);
 	}
 	return K1;
 };
 
-TFlt TTDigest::Integrate(TFlt& Sum) const {
+TFlt TTDigest::Integrate(TFlt Nc, TFlt Q_) const {
 	// First, scale and bias the quantile domain to [-1, 1]
 	// Next, bias and scale the arcsin range to [0, 1]
 	// This gives us a [0,1] interpolant following the arcsin shape
 	// Finally, multiply by centroid count for centroid scale value
-	return Nc * (asin(2 * (Sum/TotalSum) - 1) + TMath::Pi / 2) / TMath::Pi;
+	return Nc * (asin(2 * Q_ - 1) + TMath::Pi / 2) / TMath::Pi;
 }
 
 TInt TTDigest::Bisect(const TFltV& A, const TFlt& X, TInt Low, TInt& Hi) const {
