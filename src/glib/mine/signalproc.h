@@ -880,14 +880,12 @@ private:
 	TInt TempLast;
 	TFltV TempWeight;
 	TFltV TempMean;
-	TFlt EPSILON;
-	TFlt DEFAULT_CENTROIDS;
 	TFltV Quantiles;
 
 	// Given the number of centroids, determine temp buffer size
 	// Perform binary search to find value k such that N = k log2 k
 	// This should give us good amortized asymptotic complexity
-	TInt NumTemp(const TInt& N) const;
+	int NumTemp(const int& N) const;
 	// Converts a quantile into a centroid index value. The centroid index is
 	// nominally the number k of the centroid that a quantile point q should
 	// belong to. Due to round-offs, however, we can't align things perfectly
@@ -901,23 +899,21 @@ private:
 	// index range. This produces a mapping that is steep near q=0 or q=1 so each
 	// centroid there will correspond to less q range. Near q=0.5, the mapping is
 	// flatter so that centroids there will represent a larger chunk of quantiles.
-	TFlt Integrate(TFlt Nc, TFlt Q_) const;
+	double Integrate(const double& Nc, const double& Q_) const;
 
-	TFlt MergeCentroid(TFlt Sum, TFlt& K1, TFlt& Wt, TFlt& Ut);
+	double MergeCentroid(double& Sum, double& K1, double& Wt, double& Ut);
 
 	void MergeValues();
 
-	TInt Bisect(const TFltV& A, const TFlt& X, TInt Low, TInt& Hi) const;
+	int Bisect(const TFltV& A, const double& X, int& Low, int& Hi) const;
 
-	TFlt Boundary(const TInt& I, const TInt& J, const TFltV& U, const TFltV& W) const;
+	double Boundary(const int& I, const int& J, const TFltV& U, const TFltV& W) const;
 
-	TFlt Interp(const TFlt& X, const TFlt& X0, const TFlt& X1) const;
-
-	void Init(const TInt& N);
+	void Init(const int& N);
 public:
 	/// Constructs uninitialized object
 	TTDigest() {
-		Init();
+		Init(100);
 	}
     /// Constructs given JSON arguments
     TTDigest(const PJsonVal& ParamVal) {
@@ -926,7 +922,7 @@ public:
 			Init(N);
 		}
 		else {
-			Init();
+			Init(100);
 		}
     };
 	/// Constructs initialized object
@@ -940,15 +936,15 @@ public:
 	// Query for estimated quantile *q*.
 	// Argument *q* is a desired quantile in the range (0,1)
 	// For example, q = 0.5 queries for the median.
-	TFlt GetQuantile(const TFlt& Q) const;
+	double GetQuantile(const double& Q) const;
 	// Number of clusters
-	TInt GetClusters() const;
+	int GetClusters() const;
 	// Add a value to the t-digest.
 	// Argument *v* is the value to add.
 	// Argument *count* is the integer number of occurrences to add.
 	// If not provided, *count* defaults to 1.
-	void Update(const TFlt& V);
-	void Update(const TFlt& V, const TFlt& Count);
+	void Update(const double& V);
+	void Update(const double& V, const double& Count);
 	/// Prints the model
 	void Print() const;
 	/// Load from stream
