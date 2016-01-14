@@ -3788,7 +3788,36 @@ describe('TDigest test', function () {
 	        store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.1929709807 });      
     	});
     });
-    describe('Datalib output comparison test', function () {						
+    describe('Datalib output test', function () {	
+    	it('should test t-digest precision is within 10%', function () {
+	    	// add TDigest stream aggregator
+	        var aggr = {
+	            name: 'TDigest',
+	            type: 'tdigest',
+	            store: 'Processor',
+	            inAggr: 'TickAggr',
+	            quantiles: [0.90, 0.95, 0.99, 0.999]
+	        }
+	        
+	        td = store.addStreamAggr(aggr);
+	
+	        store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.9948628368 });
+	        store.push({ Time: '2015-12-01T14:20:33.0', Value: 0.1077458826 });
+	        store.push({ Time: '2015-12-01T14:20:34.0', Value: 0.9855685823 });
+	        store.push({ Time: '2015-12-01T14:20:35.0', Value: 0.7796449082 });
+	        store.push({ Time: '2015-12-01T14:20:36.0', Value: 0.0844943286 });
+	        store.push({ Time: '2015-12-01T14:20:37.0', Value: 0.187490856  });
+	        store.push({ Time: '2015-12-01T14:20:38.0', Value: 0.0779815107 });
+	        store.push({ Time: '2015-12-01T14:20:39.0', Value: 0.8945312691 });
+	        store.push({ Time: '2015-12-01T14:20:40.0', Value: 0.5574567409 });
+	      
+	        var result = td.getFloatVector();
+	        
+			assert(result[0] >= 0.8012572567 && result[0] <= 0.9987427433);
+			assert(result[1] >= 0.8568245395 && result[1] <= 1.0);
+			assert(result[2] >= 0.8905106194 && result[2] <= 1.0);
+			assert(result[3] >= 0.8992346849 && result[3] <= 1.0);
+	    });					
 	    it('should test t-digest with nodejs datalib output', function () {
 	    	// add TDigest stream aggregator
 	        var aggr = {
@@ -3798,6 +3827,8 @@ describe('TDigest test', function () {
 	            inAggr: 'TickAggr',
 	            quantiles: [0.90, 0.95, 0.99, 0.999]
 	        }
+	        
+	        td = store.addStreamAggr(aggr);
 	        
 	        // add values
 	        store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.9948628368});
@@ -3831,6 +3862,58 @@ describe('TDigest test', function () {
 			assert.equal(result[1], 0.99517217467);
 			assert.equal(result[2], 0.997588116104);
 			assert.equal(result[3], 0.9979225822004);
+		});
+	});
+	describe('Input stress test', function () {
+		it('should test t-digest for 10000 inserts', function () {
+			// add TDigest stream aggregator
+		    var aggr = {
+		        name: 'TDigest',
+		        type: 'tdigest',
+		        store: 'Processor',
+		        inAggr: 'TickAggr',
+		        quantiles: [0.90, 0.95, 0.99, 0.999]
+		    }
+		    
+		    td = store.addStreamAggr(aggr);
+		    
+			function getRnd(min, max) {
+		    	return Math.random() * (max - min) + min;
+			}
+		
+			for (var i=1; i<=10000; i++) {
+		    	store.push({ Time: '2015-12-01T14:20:32.0', Value: getRnd(0,1) });
+		    }
+		  
+			assert(td.getFloatAt(0) > 0.8 && td.getFloatAt(0) < 1);
+			assert(td.getFloatAt(1) > 0.8 && td.getFloatAt(1) < 1);
+			assert(td.getFloatAt(2) > 0.8 && td.getFloatAt(2) < 1);
+			assert(td.getFloatAt(3) > 0.8 && td.getFloatAt(3) < 1);
+		});
+		it('should test t-digest for 10000 sequential inserts', function () {
+			// add TDigest stream aggregator
+		    var aggr = {
+		        name: 'TDigest',
+		        type: 'tdigest',
+		        store: 'Processor',
+		        inAggr: 'TickAggr',
+		        quantiles: [0.90, 0.95, 0.99, 0.999]
+		    }
+		    
+		    td = store.addStreamAggr(aggr);
+		    
+			function getRnd(min, max) {
+		    	return Math.random() * (max - min) + min;
+			}
+		
+			for (var i=1; i<=10000; i++) {
+		    	store.push({ Time: '2015-12-01T14:20:32.0', Value: i });
+		    }
+		  
+			assert(td.getFloatAt(0) > 0 && td.getFloatAt(0) < 10000);
+			assert(td.getFloatAt(1) > 0 && td.getFloatAt(1) < 10000);
+			assert(td.getFloatAt(2) > 0 && td.getFloatAt(2) < 10000);
+			assert(td.getFloatAt(3) > 0 && td.getFloatAt(3) < 10000);
 		});
 	});
 	describe('Save and load test', function () {	
@@ -3875,97 +3958,14 @@ describe('TDigest test', function () {
 			var fin = qm.fs.openRead("aggr.tmp");
 			td1.load(fin);
 			fin.close();
-			
-			assert.equal(result[0], td1.getFloatAt(0));
-			assert.equal(result[1], td1.getFloatAt(1));
-			assert.equal(result[2], td1.getFloatAt(2));
-			assert.equal(result[3], td1.getFloatAt(3));
+		    
+		    var result1 = td1.getFloatVector();
+		    	
+			assert.equal(result[0], result1[0]);
+			assert.equal(result[1], result1[1]);
+			assert.equal(result[2], result1[2]);
+			assert.equal(result[3], result1[3]);
 		});
-	});
-	describe('Intensive input test', function () {
-		it('should test t-digest for 10000 inserts', function () {
-			// add TDigest stream aggregator
-		    var aggr = {
-		        name: 'TDigest',
-		        type: 'tdigest',
-		        store: 'Processor',
-		        inAggr: 'TickAggr',
-		        quantiles: [0.90, 0.95, 0.99, 0.999]
-		    }
-		    
-		    td = store.addStreamAggr(aggr);
-		    
-			function getRnd(min, max) {
-		    	return Math.random() * (max - min) + min;
-			}
-		
-			for (var i=1; i<=10000; i++) {
-		    	store.push({ Time: '2015-12-01T14:20:32.0', Value: getRnd(0,1) });
-		    }
-		  
-			assert(td.getFloatAt(0) > 0.8 && td.getFloatAt(0) < 1);
-			assert(td.getFloatAt(1) > 0.8 && td.getFloatAt(1) < 1);
-			assert(td.getFloatAt(2) > 0.8 && td.getFloatAt(2) < 1);
-			assert(td.getFloatAt(3) > 0.8 && td.getFloatAt(3) < 1);
-		});
-	});
-	describe('Intensive sequential input test', function () {
-		it('should test t-digest for 10000 sequential inserts', function () {
-			// add TDigest stream aggregator
-		    var aggr = {
-		        name: 'TDigest',
-		        type: 'tdigest',
-		        store: 'Processor',
-		        inAggr: 'TickAggr',
-		        quantiles: [0.90, 0.95, 0.99, 0.999]
-		    }
-		    
-		    td = store.addStreamAggr(aggr);
-		    
-			function getRnd(min, max) {
-		    	return Math.random() * (max - min) + min;
-			}
-		
-			for (var i=1; i<=10000; i++) {
-		    	store.push({ Time: '2015-12-01T14:20:32.0', Value: i });
-		    }
-		  
-			assert(td.getFloatAt(0) > 0 && td.getFloatAt(0) < 10000);
-			assert(td.getFloatAt(1) > 0 && td.getFloatAt(1) < 10000);
-			assert(td.getFloatAt(2) > 0 && td.getFloatAt(2) < 10000);
-			assert(td.getFloatAt(3) > 0 && td.getFloatAt(3) < 10000);
-		});
-	});
-	describe('Precision test', function () {
-		it('should test t-digest precision is within 5%', function () {
-	    	// add TDigest stream aggregator
-	        var aggr = {
-	            name: 'TDigest',
-	            type: 'tdigest',
-	            store: 'Processor',
-	            inAggr: 'TickAggr',
-	            quantiles: [0.90, 0.95, 0.99, 0.999]
-	        }
-	        
-	        td = store.addStreamAggr(aggr);
-	
-	        store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.9948628368 });
-	        store.push({ Time: '2015-12-01T14:20:33.0', Value: 0.1077458826 });
-	        store.push({ Time: '2015-12-01T14:20:34.0', Value: 0.9855685823 });
-	        store.push({ Time: '2015-12-01T14:20:35.0', Value: 0.7796449082 });
-	        store.push({ Time: '2015-12-01T14:20:36.0', Value: 0.0844943286 });
-	        store.push({ Time: '2015-12-01T14:20:37.0', Value: 0.187490856  });
-	        store.push({ Time: '2015-12-01T14:20:38.0', Value: 0.0779815107 });
-	        store.push({ Time: '2015-12-01T14:20:39.0', Value: 0.8945312691 });
-	        store.push({ Time: '2015-12-01T14:20:40.0', Value: 0.5574567409 });
-	      
-	        var result = td.getFloatVector();
-	        
-			assert(result[0] > 0.8506286283 && result[0] <= 0.9493713717);
-			assert(result[1] > 0.9034122697 && result[1] <= 0.9965877303);
-			assert(result[2] > 0.9402553097 && result[2] <= 1.0);
-			assert(result[3] > 0.9491173424 && result[3] <= 1.0);
-	    });
 	});
 });
 

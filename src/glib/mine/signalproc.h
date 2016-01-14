@@ -874,18 +874,14 @@ private:
 	// MergeWeight also used for transient storage of cumulative weights
 	TFltV MergeWeight;
 	TFltV MergeMean;
-
 	// temporary buffers for recently added values
 	TInt Tempsize;
 	TFlt UnmergedSum;
 	TInt TempLast;
 	TFltV TempWeight;
 	TFltV TempMean;
-	TIntFltH Order; // for sorting
-
 	TFlt EPSILON;
 	TFlt DEFAULT_CENTROIDS;
-
 	TFltV Quantiles;
 
 	// Given the number of centroids, determine temp buffer size
@@ -926,7 +922,8 @@ public:
     /// Constructs given JSON arguments
     TTDigest(const PJsonVal& ParamVal) {
 		if (ParamVal->IsObjKey("clusters")) {
-			Init(ParamVal->GetObjInt("clusters"));
+			TInt N = ParamVal->GetObjInt("clusters");
+			Init(N);
 		}
 		else {
 			Init();
@@ -936,34 +933,28 @@ public:
 	TTDigest(const TInt& N) {
 		Init(N);
 	};
-
-	~TTDigest() {}
-
+	// Destructor
+	//~TTDigest() {}
 	/// Initializes the object, resets current content if present
 	void Init();
-
 	// Query for estimated quantile *q*.
 	// Argument *q* is a desired quantile in the range (0,1)
 	// For example, q = 0.5 queries for the median.
 	TFlt GetQuantile(const TFlt& Q) const;
-
+	// Number of clusters
 	TInt GetClusters() const;
-
 	// Add a value to the t-digest.
 	// Argument *v* is the value to add.
 	// Argument *count* is the integer number of occurrences to add.
 	// If not provided, *count* defaults to 1.
 	void Update(const TFlt& V);
-
 	void Update(const TFlt& V, const TFlt& Count);
-
 	/// Prints the model
 	void Print() const;
 	/// Load from stream
 	void LoadState(TSIn& SIn);
 	/// Store state into stream
 	void SaveState(TSOut& SOut) const;
-
 };
 
 /////////////////////////////////////////////////

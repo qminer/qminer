@@ -1439,35 +1439,44 @@ TInt TTDigest::NumTemp(const TInt& N) const {
 void TTDigest::Print() const {}
 
 void TTDigest::SaveState(TSOut& SOut) const {
-	UnmergedSum.Save(SOut);
-	TempLast.Save(SOut);
-	DEFAULT_CENTROIDS.Save(SOut);
 	Nc.Save(SOut);
 	Size.Save(SOut);
-	TotalSum.Save(SOut);
 	Last.Save(SOut);
+	TotalSum.Save(SOut);
 	Weight.Save(SOut);
 	Mean.Save(SOut);
+	Min.Save(SOut);
+	Max.Save(SOut);
 	MergeWeight.Save(SOut);
 	MergeMean.Save(SOut);
-	TempMean.Save(SOut);
+	Tempsize.Save(SOut);
+	UnmergedSum.Save(SOut);
+	TempLast.Save(SOut);
 	TempWeight.Save(SOut);
+	TempMean.Save(SOut);
+	DEFAULT_CENTROIDS.Save(SOut);
+	Quantiles.Save(SOut);
 }
 
 void TTDigest::LoadState(TSIn& SIn) {
-	UnmergedSum.Load(SIn);
-	TempLast.Load(SIn);
-	DEFAULT_CENTROIDS.Load(SIn);
 	Nc.Load(SIn);
 	Size.Load(SIn);
-	TotalSum.Load(SIn);
 	Last.Load(SIn);
+	TotalSum.Load(SIn);
 	Weight.Load(SIn);
 	Mean.Load(SIn);
+	Min.Load(SIn);
+	Max.Load(SIn);
 	MergeWeight.Load(SIn);
 	MergeMean.Load(SIn);
-	TempMean.Load(SIn);
+	Tempsize.Load(SIn);
+	UnmergedSum.Load(SIn);
+	TempLast.Load(SIn);
 	TempWeight.Load(SIn);
+	TempMean.Load(SIn);
+	DEFAULT_CENTROIDS.Load(SIn);
+	Quantiles.Load(SIn);
+	MergeValues();
 }
 
 void TTDigest::Init(const TInt& N) {
