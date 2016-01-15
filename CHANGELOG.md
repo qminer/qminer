@@ -1,5 +1,29 @@
 # QMiner Change Log
 
+### 15 Jan 2016
+
+**New version:**
+
+**Breaking with new features**
+
+Features:
+- Nearest neighbor init method exposed
+- `TNodeJsFtrSpace` factory constructor added
+- `IFtrSpace` interface added, implemented by `TWinBufFtrSpVec`, exposed in JS
+- Field-join binary representation: Field-joins can now be stored in more compact way. Develop can specify field-types to be used for storing the field-join's record id and frequency by providing `storage` tag. Default is `uint64-int`. It is also possible to set frequency type to empty string, which means that frequency will be always 1 and it wont take any space in the storage. Example: `joins: [{ name: 'parent', type: 'field', store: 'People', storage: 'int16-byte' }]`
+- `filterByField`: Recordset provides utility method `filterByField` that can now also operate on field joins: `recordset.filterByField("parent", parent_id, parent_id);`. It currently accepts record ids. Caller can provide a range of IDs (min and max).
+- added tdigest stream aggregator for estimating any percentile from streaming data
+
+Bug fixes:
+- Sparse vector normalize fixed
+- `TWinBufFtrSpVec` save/load fix
+- `writeJson` and `readJson` do not parse and stringify in C++ but instead use `JSON.stringify` and `JSON.parse`
+- added `readString` to `FIn` that complements `FOut.writeBinary`
+
+Other:
+- test stream aggregate `getFeatureSpace`
+- `TWinBufFtrSpVec` save/load test
+
 ### 8 Jan 2016
 
 **New version: 4.1.0**
