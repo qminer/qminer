@@ -419,7 +419,7 @@ public:
 	TStr Type(void) const { return GetType(); }
 };
 
-class TWinBufFtrSpVec : public TWinBuf<TIntFltKdV> {
+class TWinBufFtrSpVec : public TWinBuf<TIntFltKdV>, public TStreamAggrOut::IFtrSpace {
 private:
 	PFtrSpace FtrSpace;
 protected:
@@ -435,10 +435,23 @@ public:
 		FtrSpace = TFtrSpace::New(Store->GetBase(), FtrSpaceParam);
 	}
 
+	/// Load stream aggregate state from stream
+	void LoadState(TSIn& SIn) {
+		TWinBuf<TIntFltKdV>::LoadState(SIn);
+		FtrSpace->Load(Store->GetBase(), SIn);
+	}
+	/// Save state of stream aggregate to stream
+	void SaveState(TSOut& SOut) const {
+		TWinBuf<TIntFltKdV>::SaveState(SOut);
+		FtrSpace->Save(SOut);
+	}
+
 	/// Smart pointer JSON based constructor
 	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) { return new TWinBufFtrSpVec(Base, ParamVal); }
 	static TStr GetType() { return "timeSeriesWinBufFeatureSpace"; }
 	TStr Type(void) const { return GetType(); }
+
+	PFtrSpace GetFtrSpace() const {	return FtrSpace; }
 };
 
 ///////////////////////////////////////
@@ -600,12 +613,6 @@ public:
 typedef TWinAggrSpVec<TSignalProc::TSumSpVec> TWinBufSpVecSum;
 template <>
 inline TStr TWinAggrSpVec<TSignalProc::TSumSpVec>::GetType() { return "winBufSpVecSum"; }
-
-//// Moving-Window Buffer over Sparse-vectors EMA
-//typedef TWinAggrSpVec<TSignalProc::TEmaSpVec> TWinBufSpVecEma;
-//template <>
-//inline TStr TWinAggrSpVec<TSignalProc::TEmaSpVec>::GetType() { return "winBufSpVecEma"; }
-
 
 ///////////////////////////////
 // Exponential Moving Average.
@@ -1021,6 +1028,60 @@ public:
 };
 
 ///////////////////////////////
+/// TDigest stream aggregate.
+/////////////////////////////////////////////////
+///   TDigest
+///   Data structure useful for percentile and quantile estimation for online data streams.
+///   It can be added to any anomaly detector to set the number of alarms triggered as a percentage of the total samples.
+///   This is the Data Lib Sketch Implementation: https://github.com/vega/datalib-sketch/blob/master/src/t-digest.js
+///   Paper: Ted Dunning, Otmar Ertl - https://github.com/tdunning/t-digest/blob/master/docs/t-digest-paper/histo.pdf
+class TTDigest : public TStreamAggr, public TStreamAggrOut::IFltVec {
+private:
+	// input
+	TWPt<TStreamAggr> InAggr;
+	TWPt<TStreamAggrOut::IFltTm> InAggrVal;
+	// indicator
+	TSignalProc::TTDigest Model;
+	TFltV QuantilesVals;
+protected:
+	void OnAddRec(const TRec& Rec);
+	TTDigest(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+	TTDigest(const TFltV& Quantiles);
+	TTDigest(const TInt& N);
+	TTDigest();
+public:
+	/// Add new data to statistics
+	void Add(const TFlt& Val);
+	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+	static PStreamAggr New(const TFltV& Quantiles);
+	static PStreamAggr New(const TInt& N);
+	// did we finish initialization
+	bool IsInit() const { return InAggr->IsInit(); }
+	/// Reset
+	void Reset() {  }
+	/// Load from stream
+	void LoadState(TSIn& SIn);
+	/// Store state into stream
+	void SaveState(TSOut& SOut) const;
+	/// returns the number of clusters
+	int GetVals() const { return Model.GetClusters(); }
+	/// get current Quantile value vector
+	void GetVal(const TInt& ElN, TFlt& Val) const { Val = Model.GetQuantile(QuantilesVals[ElN]); }
+	/// get current Quantile value vector
+	void GetValV(TFltV& ValV) const {
+		for (int ElN=0; ElN<QuantilesVals.Len(); ElN++) {
+			ValV.Add(Model.GetQuantile(QuantilesVals[ElN]));
+		}
+	}
+	void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggr->GetAggrNm());}
+	// serialization to JSon
+	PJsonVal SaveJson(const int& Limit) const;
+	// stream aggregator type name
+	static TStr GetType() { return "tdigest"; }
+	TStr Type() const { return GetType(); }
+};
+
+///////////////////////////////
 /// Chi square stream aggregate.
 /// Updates a chi square model, connects to an online histogram stream aggregate
 /// that implements TStreamAggrOut::IFltVec
@@ -1296,7 +1357,7 @@ TWinBuf<TVal>::TWinBuf(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStr
 	Store = Base->GetStoreByStoreNm(StoreNm);
 	TStr TimeFieldNm = ParamVal->GetObjStr("timestamp");
 	TimeFieldId = Store->GetFieldId(TimeFieldNm);
-	WinSizeMSecs = ParamVal->GetObjUInt64("winsize");;
+	WinSizeMSecs = ParamVal->GetObjUInt64("winsize");
 	DelayMSecs = ParamVal->GetObjUInt64("delay", 0);
 	// make sure parameters make sense
 	QmAssertR(Store->GetFieldDesc(TimeFieldId).IsTm(), "[Window buffer] field " + TimeFieldNm + " not of type 'datetime'");
