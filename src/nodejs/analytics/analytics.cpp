@@ -1484,6 +1484,7 @@ void TNodeJsStreamStory::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getClassifyTree", _getClassifyTree);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "explainState", _explainState);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "toJSON", _toJSON);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getSubModelJson", _getSubModelJson);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getTransitionModel", _getTransitionModel);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "onStateChanged", _onStateChanged);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "onAnomaly", _onAnomaly);
@@ -1567,7 +1568,7 @@ TNodeJsStreamStory* TNodeJsStreamStory::NewFromArgs(const v8::FunctionCallbackIn
 		const bool IsTransitionBased = HierarchJson->GetObjBool("isTransitionBased");
 
 		TMc::TStateIdentifier* StateIdentifier = new TMc::TStateIdentifier(GetClust(ClustJson, Rnd), NHistBins, Sample, Rnd, Verbose);
-		TMc::TTransitionModeler* MChain = new TMc::TCtModeler(TimeUnit, DeltaTm, Verbose);
+		TMc::TCtmcModeller* MChain = new TMc::TCtmcModeller(TimeUnit, DeltaTm, Verbose);
 		TMc::THierarch* Hierarch = new TMc::THierarch(NPastStates + 1, IsTransitionBased, Verbose);
 
 		// finish
@@ -1765,8 +1766,20 @@ void TNodeJsStreamStory::toJSON(const v8::FunctionCallbackInfo<v8::Value>& Args)
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
-	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, JsMChain->StreamStory->GetJson()));
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, JsStreamStory->StreamStory->GetJson()));
+}
+
+void TNodeJsStreamStory::getSubModelJson(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+
+	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
+	const PJsonVal ModelJson = JsStreamStory->StreamStory->GetSubModelJson(StateId);
+
+	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, ModelJson));
 }
 
 void TNodeJsStreamStory::getTransitionModel(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -2215,15 +2228,15 @@ void TNodeJsStreamStory::getTimeUnit(const v8::FunctionCallbackInfo<v8::Value>& 
 
 	const uint64 TimeUnit = JsStreamStory->StreamStory->GetTimeUnit();
 
-	if (TimeUnit == TMc::TCtModeler::TU_SECOND) {
+	if (TimeUnit == TMc::TCtmcModeller::TU_SECOND) {
 		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "second"));
-	} else if (TimeUnit == TMc::TCtModeler::TU_MINUTE) {
+	} else if (TimeUnit == TMc::TCtmcModeller::TU_MINUTE) {
 		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "minute"));
-	} else if (TimeUnit == TMc::TCtModeler::TU_HOUR) {
+	} else if (TimeUnit == TMc::TCtmcModeller::TU_HOUR) {
 		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "hour"));
-	} else if (TimeUnit == TMc::TCtModeler::TU_DAY) {
+	} else if (TimeUnit == TMc::TCtmcModeller::TU_DAY) {
 		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "day"));
-	} else if (TimeUnit == TMc::TCtModeler::TU_MONTH) {
+	} else if (TimeUnit == TMc::TCtmcModeller::TU_MONTH) {
 		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "month"));
 	} else {
 		throw TExcept::New("Invalid time unit!", "TNodeJsStreamStory::getTimeUnit");
@@ -2469,15 +2482,15 @@ void TNodeJsStreamStory::WrapHistogram(const v8::FunctionCallbackInfo<v8::Value>
 
 uint64 TNodeJsStreamStory::GetTmUnit(const TStr& TimeUnitStr) {
 	if (TimeUnitStr == "second") {
-		return TMc::TCtModeler::TU_SECOND;
+		return TMc::TCtmcModeller::TU_SECOND;
 	} else if (TimeUnitStr == "minute") {
-		return TMc::TCtModeler::TU_MINUTE;
+		return TMc::TCtmcModeller::TU_MINUTE;
 	} else if (TimeUnitStr == "hour") {
-		return TMc::TCtModeler::TU_HOUR;
+		return TMc::TCtmcModeller::TU_HOUR;
 	} else if (TimeUnitStr == "day") {
-		return TMc::TCtModeler::TU_DAY;
+		return TMc::TCtmcModeller::TU_DAY;
 	} else if (TimeUnitStr == "month") {
-		return TMc::TCtModeler::TU_MONTH;
+		return TMc::TCtmcModeller::TU_MONTH;
 	} else {
 		throw TExcept::New("Invalid time unit: " + TimeUnitStr, "TNodeJsStreamStory::GetTmUnit");
 	}

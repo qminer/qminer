@@ -1658,6 +1658,14 @@ public:
 	JsDeclareFunction(toJSON);
 
 	/**
+	 * Returns an object representation of a subset of this model.
+	 *
+	 * @param {Number} stateId - state to zoom into
+	 * @returns {Object}
+	 */
+	JsDeclareFunction(getSubModelJson);
+
+	/**
 	 * Returns the underlying transition model at the lowest level. (for CTMC the matrix of intensities)
 	 *
 	 * @returns {Array} - the transition model

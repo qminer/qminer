@@ -16,7 +16,7 @@ namespace {
 	typedef TIntV TStateIdV;
 	typedef TIntSet TStateIdSet;
 	typedef TIntV TAggState;
-	typedef TVec<TAggState> TStateSetV;
+	typedef TVec<TAggState> TAggStateV;
 	typedef TVec<TFltV> TStateFtrVV;
 
 	typedef TAbsKMeans TClust;
@@ -259,7 +259,7 @@ public:
 
 	// aggregation and partitioning
 	/// get a model where states are aggregated
-	static void GetAggrQMat(const TFltVV& QMat, const TStateSetV& AggrStateV, TFltVV& AggrQMat);
+	static void GetAggrQMat(const TFltVV& QMat, const TAggStateV& AggStateV, TFltVV& AggrQMat);
 	static void GetSubChain(const TFltVV& QMat, const TIntV& StateIdV, TFltVV& SubQMat);
 
 	static void BiPartition(const TFltVV& QMat, const TFltV& ProbV, TIntV& PartV);
@@ -267,185 +267,142 @@ public:
 	static void Partition(const TFltVV& QMat, TIntV& HierarchV, TFltV& HeightV);
 
 	// distance measures
-	static double WassersteinDist1(const TFltVV& QMat, const TStateSetV& AggStateV);
-	static double RelativeEntropy(const TFltVV& QMat, const TStateSetV& AggStateV);
+	static double WassersteinDist1(const TFltVV& QMat, const TAggStateV& AggStateV);
+	static double RelativeEntropy(const TFltVV& QMat, const TAggStateV& AggStateV);
 
 private:
-	static void AddAggSet(const TFltVV& QMat, const int& StateN, const TStateSetV& AggStateV,
+	static void AddAggSet(const TFltVV& QMat, const int& StateN, const TAggStateV& AggStateV,
 			const TIntV& StateIdV, const int& ParentId, const double& MinDist,
-			TIntV& HierarchV, TFltV& HeightV) {
-
-		const int NLeafs = QMat.GetCols();
-
-		const int StateId = StateIdV[StateN];
-		const TAggState& AggState = AggStateV[StateN];
-
-		TIntSet AggStateH(AggState);
-		TStateSetV TempAggStateV;
-		for (int StateId = 0; StateId < NLeafs; StateId++) {
-			if (!AggStateH.IsKey(StateId)) {
-				TempAggStateV.Add(TAggState());
-				TempAggStateV.Last().Add(StateId);
-			}
-		}
-		TempAggStateV.Add(AggState);
-
-		HierarchV[StateId] = ParentId;
-		HeightV[StateId] = RelativeEntropy(QMat, TempAggStateV);
-	}
-
-	static void SplitAggState(const int& StateN, const TIntV& PartV, TStateSetV& AggStateV, TIntV& StateIdV, int& CurrStateId) {
-		const TAggState& AggState = AggStateV[StateN];
-
-		AggStateV.Add(TAggState());
-		AggStateV.Add(TAggState());
-
-		TAggState& NewState0 = AggStateV[AggStateV.Len()-2];
-		TAggState& NewState1 = AggStateV[AggStateV.Len()-1];
-		for (int i = 0; i < PartV.Len(); i++) {
-			if (PartV[i] == 0) {
-				NewState0.Add(AggState[i]);
-			} else {
-				NewState1.Add(AggState[i]);
-			}
-		}
-
-		StateIdV.Add(NewState0.Len() == 1 ? int(NewState0[0]) : --CurrStateId);
-		StateIdV.Add(NewState1.Len() == 1 ? int(NewState1[0]) : --CurrStateId);
-
-		printf("New state 0: %s\n", TStrUtil::GetStr(NewState0).CStr());
-		printf("New state 1: %s\n", TStrUtil::GetStr(NewState1).CStr());
-
-		StateIdV.Del(StateN);
-		AggStateV.Del(StateN);
-	}
+			TIntV& HierarchV, TFltV& HeightV);
+	static void SplitAggState(const int& StateN, const TIntV& PartV, TAggStateV& AggStateV,
+			TIntV& StateIdV, int& CurrStateId);
 };
 
 /////////////////////////////////////////////////////////////////
 // Markov Chain
-class TTransitionModeler {
-protected:
-	int NStates;
-	int CurrStateId;
-
-	double TmHorizon;
-	double PredictionThreshold;
-	int PdfBins;
-
-	bool HasHiddenState;
-
-	bool Verbose;
-
-	PNotify Notify;
-
-	// constructors
-	TTransitionModeler(const bool& Verbose);
-	TTransitionModeler(TSIn& SIn);
-
-public:
-	// destructor
-	virtual ~TTransitionModeler() {}
-
-	// save / load
-	// saves the model to the output stream
-	virtual void Save(TSOut& SOut) const;
-	// loads the model from the output stream
-	static TTransitionModeler* Load(TSIn& SIn);
-
-	// initializes the markov chain
-	void Init(const TFltVV& FtrVV, const int& NStates, const TIntV& StateAssignV,
-			const TUInt64V& TmV, const bool SequencedData, const TBoolV& SequenceEndV);
-
-	// adds a single record to the model, the flag UpdateStates indicates if the statistics
-	// should be updated
-	void OnAddRec(const int& StateId, const uint64& RecTm, const bool IsLastInSeq);
-
-	// get future state probabilities for a fixed time in the future
-	void GetFutureProbV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
-			const TStateIdV& StateIdV, const int& StateId, const double& Tm,
-			TIntFltPrV& StateIdProbV) const;
-	// get past state probabilities for a fixed time in the past
-	void GetPastProbV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
-			const TStateIdV& StateIdV, const int& StateId, const double& Tm,
-			TIntFltPrV& StateIdProbV) const;
-	// returns the most likely next states, excluding the current state,
-	// along with probabilities of going into those states
-	virtual void GetNextStateProbV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
-			const TStateIdV& StateIdV, const int& StateId, TIntFltPrV& StateIdProbV,
-			const int& NFutStates) const = 0;
-	// returns the most likely previous states, excluding the current state,
-	// along with probabilities of going into those states
-	virtual void GetPrevStateProbV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
-			const TStateIdV& StateIdV, const int& StateId, TIntFltPrV& StateIdProbV,
-			const int& NFutStates) const = 0;
-
-	virtual void GetProbVAtTime(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
-			const TStateIdV& StateIdV, const int& StartStateId, const double& Tm,
-			TFltV& ProbV) const = 0;
-
-	virtual bool PredictOccurenceTime(const TStateFtrVV& StateFtrVV, const TStateSetV& StateSetV,
-			const TStateIdV& StateIdV, const int& CurrStateId, const int& TargetStateId,
-			double& Prob, TFltV& ProbV, TFltV& TmV) const = 0;
-
-	// static distribution
-	// returns the static distribution for the joined states
-	virtual void GetStatDist(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
-			TFltV& StatDist) const = 0;
-
-	// returns a vector of state sizes
-	virtual void GetTransitionVV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
-			TFltVV& TransVV) const = 0;
-	virtual void GetModel(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
-			TFltVV& Mat) const = 0;
-
-	virtual void GetHoldingTimeV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV, TFltV& HoldingTmV) const = 0;
-
-	// returns the number of states
-	int GetStates() const { return NStates; };
-	virtual const uint64& GetTimeUnit() const = 0;
-	// returns the ID of the current state
-	int GetCurrStateId() const { return CurrStateId; };
-
-	// returns true is the jump from OldStateId to NewStateId is considered anomalous
-	virtual bool IsAnomalousJump(const TFltV& FtrV, const int& NewStateId, const int& OldStateId) const = 0;
-
-	// set params
-	double GetTimeHorizon() const { return TmHorizon; }
-	void SetTimeHorizon(const double& Horizon) { TmHorizon = Horizon; }
-    double GetPredictionThreshold() const { return PredictionThreshold; }
-	void SetPredictionThreshold(const double& Threshold) { PredictionThreshold = Threshold; }
-	int GetPdfBins() const { return PdfBins; }
-	void SetPdfBins(const int Bins) { PdfBins = Bins; }
-	void SetVerbose(const bool& Verbose);
-
-protected:
-	// handling the hidden state
-	int GetHiddenStateId() const;
-	// inserts the hidden state into the state set vector
-	void InsHiddenState(TStateSetV& StateSetV) const;
-	// inserts the hidden state into the state set vector
-	void InsHiddenState(TStateIdV& StateIdV) const;
-	// removes the hidden state probability from the probability vector
-	void RemoveHiddenStateProb(TIntFltPrV& StateIdProbV) const;
-
-	// initializes the statistics
-	virtual void AbsOnAddRec(const int& StateId, const uint64& RecTm, const bool EndsBatch) = 0;
-
-	// get future state probabilities for all the states for a fixed time in the future
-	virtual void GetFutureProbVV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
-			const double& Tm, TFltVV& ProbVV) const = 0;
-	// get [ast state probabilities for all the states for a fixed time in the past
-	virtual void GetPastProbVV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
-			const double& Tm, TFltVV& ProbVV) const = 0;
-
-	virtual void InitIntensities(const TFltVV& FtrV, const TUInt64V& TmV, const TIntV& AssignV,
-			const TBoolV& EndsBatchV) = 0;
-	virtual const TStr GetType() const = 0;
-};
+//class TTransitionModeler {
+//protected:
+//	int NStates;
+//	int CurrStateId;
+//
+//	double TmHorizon;
+//	double PredictionThreshold;
+//	int PdfBins;
+//
+//	bool HasHiddenState;
+//
+//	bool Verbose;
+//
+//	PNotify Notify;
+//
+//	// constructors
+//	TTransitionModeler(const bool& Verbose);
+//	TTransitionModeler(TSIn& SIn);
+//
+//public:
+//	// destructor
+//	virtual ~TTransitionModeler() {}
+//
+//	// save / load
+//	// saves the model to the output stream
+//	virtual void Save(TSOut& SOut) const;
+//	// loads the model from the output stream
+//	static TTransitionModeler* Load(TSIn& SIn);
+//
+//	// initializes the markov chain
+//	void Init(const TFltVV& FtrVV, const int& NStates, const TIntV& StateAssignV,
+//			const TUInt64V& TmV, const bool SequencedData, const TBoolV& SequenceEndV);
+//
+//	// adds a single record to the model, the flag UpdateStates indicates if the statistics
+//	// should be updated
+//	void OnAddRec(const int& StateId, const uint64& RecTm, const bool IsLastInSeq);
+//
+//	// get future state probabilities for a fixed time in the future
+//	void GetFutureProbV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
+//			const TStateIdV& StateIdV, const int& StateId, const double& Tm,
+//			TIntFltPrV& StateIdProbV) const;
+//	// get past state probabilities for a fixed time in the past
+//	void GetPastProbV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
+//			const TStateIdV& StateIdV, const int& StateId, const double& Tm,
+//			TIntFltPrV& StateIdProbV) const;
+//	// returns the most likely next states, excluding the current state,
+//	// along with probabilities of going into those states
+//	virtual void GetNextStateProbV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
+//			const TStateIdV& StateIdV, const int& StateId, TIntFltPrV& StateIdProbV,
+//			const int& NFutStates) const = 0;
+//	// returns the most likely previous states, excluding the current state,
+//	// along with probabilities of going into those states
+//	virtual void GetPrevStateProbV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
+//			const TStateIdV& StateIdV, const int& StateId, TIntFltPrV& StateIdProbV,
+//			const int& NFutStates) const = 0;
+//
+//	virtual void GetProbVAtTime(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
+//			const TStateIdV& StateIdV, const int& StartStateId, const double& Tm,
+//			TFltV& ProbV) const = 0;
+//
+//	virtual bool PredictOccurenceTime(const TStateFtrVV& StateFtrVV, const TStateSetV& StateSetV,
+//			const TStateIdV& StateIdV, const int& CurrStateId, const int& TargetStateId,
+//			double& Prob, TFltV& ProbV, TFltV& TmV) const = 0;
+//
+//	// static distribution
+//	// returns the static distribution for the joined states
+//	virtual void GetStatDist(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
+//			TFltV& StatDist) const = 0;
+//
+//	// returns a vector of state sizes
+//	virtual void GetTransitionVV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
+//			TFltVV& TransVV) const = 0;
+//	virtual void GetModel(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
+//			TFltVV& Mat) const = 0;
+//
+//	virtual void GetHoldingTimeV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV, TFltV& HoldingTmV) const = 0;
+//
+//	// returns the number of states
+//	int GetStates() const { return NStates; };
+//	virtual const uint64& GetTimeUnit() const = 0;
+//	// returns the ID of the current state
+//	int GetCurrStateId() const { return CurrStateId; };
+//
+//	// returns true is the jump from OldStateId to NewStateId is considered anomalous
+//	virtual bool IsAnomalousJump(const TFltV& FtrV, const int& NewStateId, const int& OldStateId) const = 0;
+//
+//	// set params
+//	double GetTimeHorizon() const { return TmHorizon; }
+//	void SetTimeHorizon(const double& Horizon) { TmHorizon = Horizon; }
+//    double GetPredictionThreshold() const { return PredictionThreshold; }
+//	void SetPredictionThreshold(const double& Threshold) { PredictionThreshold = Threshold; }
+//	int GetPdfBins() const { return PdfBins; }
+//	void SetPdfBins(const int Bins) { PdfBins = Bins; }
+//	void SetVerbose(const bool& Verbose);
+//
+//protected:
+//	// handling the hidden state
+//	int GetHiddenStateId() const;
+//	// inserts the hidden state into the state set vector
+//	void InsHiddenState(TStateSetV& StateSetV) const;
+//	// inserts the hidden state into the state set vector
+//	void InsHiddenState(TStateIdV& StateIdV) const;
+//	// removes the hidden state probability from the probability vector
+//	void RemoveHiddenStateProb(TIntFltPrV& StateIdProbV) const;
+//
+//	// initializes the statistics
+//	virtual void AbsOnAddRec(const int& StateId, const uint64& RecTm, const bool EndsBatch) = 0;
+//
+//	// get future state probabilities for all the states for a fixed time in the future
+//	virtual void GetFutureProbVV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
+//			const double& Tm, TFltVV& ProbVV) const = 0;
+//	// get [ast state probabilities for all the states for a fixed time in the past
+//	virtual void GetPastProbVV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
+//			const double& Tm, TFltVV& ProbVV) const = 0;
+//
+//	virtual void InitIntensities(const TFltVV& FtrV, const TUInt64V& TmV, const TIntV& AssignV,
+//			const TBoolV& EndsBatchV) = 0;
+//	virtual const TStr GetType() const = 0;
+//};
 
 /////////////////////////////////////////////////////////////////
 // Continous time Markov Chain
-class TCtModeler: public TTransitionModeler {
+class TCtmcModeller {//: public TTransitionModeler {
 	typedef TFltV TLabelV;
 	typedef TVec<TFltV> TFtrVV;
 	typedef TFltVV TJumpFtrMat;
@@ -466,67 +423,115 @@ private:
 	static const double MIN_STAY_TM;
 	static const double HIDDEN_STATE_INTENSITY;
 
+	int NStates;
+
+	int CurrStateId;
+	uint64 PrevJumpTm;
+
 	TIntensModel IntensModel;
+
+	bool HasHiddenState;
 	// stores how many jump from the hidden state to the specified state occurred
 	TIntV HiddenStateJumpCountV;
 
+	uint64 TimeUnit;
 	double DeltaTm;
 
-	uint64 TimeUnit;
-	uint64 PrevJumpTm;
+	double TmHorizon;
+	double PredictionThreshold;
+	int PdfBins;
+
+	bool Verbose;
+	PNotify Notify;
 
 public:
-	TCtModeler(const uint64& TimeUnit, const double& DeltaTm, const bool& Verbose=false);
-	TCtModeler(TSIn& SIn);
+	TCtmcModeller(const uint64& TimeUnit, const double& DeltaTm, const bool& Verbose=false);
+	TCtmcModeller(TSIn& SIn);
 
     // saves the model to the output stream
 	void Save(TSOut& SOut) const;
+	static TCtmcModeller* Load(TSIn& SIn);
+
+	// initialization
+	void Init(const TFltVV& FtrVV, const int& NStates, const TIntV& StateAssignV,
+			const TUInt64V& TmV, const bool SequencedData, const TBoolV& SequenceEndV);
+
+	void OnAddRec(const int& StateId, const uint64& RecTm, const bool EndsBatch);
+
+	void GetFutureProbV(const TAggStateV& StateSetV, const TStateFtrVV& StateFtrVV,
+			const TStateIdV& StateIdV, const int& StateId, const double& Tm,
+			TIntFltPrV& StateIdProbV) const;
+	void GetPastProbV(const TAggStateV& StateSetV, const TStateFtrVV& StateFtrVV,
+			const TStateIdV& StateIdV, const int& StateId, const double& Tm,
+			TIntFltPrV& StateIdProbV) const;
 
 	// returns the most likely next states excluding the current state
-	void GetNextStateProbV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
+	void GetNextStateProbV(const TAggStateV& StateSetV, const TStateFtrVV& StateFtrVV,
 			const TStateIdV& StateIdV, const int& StateId, TIntFltPrV& StateIdProbV,
 			const int& NFutStates) const;
 	// returns the most likely previous states excluding the current state
-	void GetPrevStateProbV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
+	void GetPrevStateProbV(const TAggStateV& StateSetV, const TStateFtrVV& StateFtrVV,
 			const TStateIdV& StateIdV, const int& StateId, TIntFltPrV& StateIdProbV,
 			const int& NFutStates) const;
 
-	void GetProbVAtTime(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
+	void GetProbVAtTime(const TAggStateV& StateSetV, const TStateFtrVV& StateFtrVV,
 			const TStateIdV& StateIdV, const int& StartStateId, const double& Tm,
 			TFltV& ProbV) const;
 
 	// approximates the probability of jumping into the target state in the prespecified
 	// time horizon
-	bool PredictOccurenceTime(const TStateFtrVV& StateFtrVV, const TStateSetV& StateSetV,
+	bool PredictOccurenceTime(const TStateFtrVV& StateFtrVV, const TAggStateV& StateSetV,
 			const TStateIdV& StateIdV, const int& CurrStateId, const int& TargetStateId,
 			double& Prob, TFltV& ProbV, TFltV& TmV) const;
 
 	// continuous time Markov chain stuff
 	// returns the stationary distribution of the stohastic process
-	void GetStatDist(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
+	void GetStatDist(const TAggStateV& StateSetV, const TStateFtrVV& StateFtrVV,
 			TFltV& ProbV) const;
 
-	void GetTransitionVV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
-			TFltVV& TransVV) const;
-	void GetJumpVV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV, TFltVV& JumpVV) const;
-	void GetModel(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV, TFltVV& QMat) const;
+	void GetJumpVV(const TAggStateV& StateSetV, const TStateFtrVV& StateFtrVV, TFltVV& JumpVV) const;
 
-	void GetHoldingTimeV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
+	// Q-Matrix
+	void GetQMatrix(const TAggStateV& StateSetV, const TStateFtrVV& StateFtrVV,
+			TFltVV& QMat) const;
+	void GetSubQMatrix(const TAggStateV& StateSetV, const TStateFtrVV& StateFtrVV,
+			const TAggState& TargetState, TFltVV& SubQMat);
+
+	void GetHoldingTmV(const TAggStateV& StateSetV, const TStateFtrVV& StateFtrVV,
 			TFltV& HoldingTmV) const;
 
 	// returns true if the jump from OldStateId to NewStateId has a low enough probability
 	bool IsAnomalousJump(const TFltV& FtrV, const int& NewStateId, const int& OldStateId) const;
 
+	// get model state variables
+	int GetCurrStateId() const { return CurrStateId; };
+
+	// get methods
 	int GetStates() const { return NStates; }
 	const uint64& GetTimeUnit() const { return TimeUnit; }
 
+	// get/set methods
+	int GetPdfBins() const { return PdfBins; }
+	void SetPdfBins(const int Bins) { PdfBins = Bins; }
+
+	double GetPredictionThreshold() const { return PredictionThreshold; }
+	void SetPredictionThreshold(const double& Threshold) { PredictionThreshold = Threshold; }
+
+	double GetTimeHorizon() const { return TmHorizon; }
+	void SetTimeHorizon(const double& Horizon) { TmHorizon = Horizon; }
+
+	void SetVerbose(const bool& Verbose);
+
+	// static methods
+	static void GetJumpVV(const TFltVV& QMat, TFltVV& JumpVV) { TCtMChain::GetJumpVV(QMat, JumpVV); }
+	static void GetHoldingTmV(const TFltVV& QMat, TFltV& TmV) { TCtMChain::GetHoldingTmV(QMat, TmV); }
 protected:
 	void AbsOnAddRec(const int& StateId, const uint64& RecTm, const bool EndsBatch);
 
 	// get future state probabilities for all the states for a fixed time in the future
-	void GetFutureProbVV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
+	void GetFutureProbVV(const TAggStateV& StateSetV, const TStateFtrVV& StateFtrVV,
 			const double& Tm, TFltVV& ProbVV) const;
-	void GetPastProbVV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
+	void GetPastProbVV(const TAggStateV& StateSetV, const TStateFtrVV& StateFtrVV,
 			const double& Tm, TFltVV& ProbVV) const;
 
 	void InitIntensities(const TFltVV& FtrVV, const TUInt64V& TmV, const TIntV& AssignV,
@@ -539,14 +544,16 @@ private:
 
 	// returns the intensity matrix (Q-matrix)
 	void GetQMatrix(const TStateFtrVV& StateFtrVV, TFltVV& QMat) const;
-	// returns a Q matrix for the joined states
-	void GetQMatrix(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
-			TFltVV& QMat) const;
 	// returns a Q matrix for the joined states for the time reversal Markov chain
-	void GetRevQMatrix(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
+	void GetRevQMatrix(const TAggStateV& StateSetV, const TStateFtrVV& StateFtrVV,
 			TFltVV& RevQMat) const;
 
-	bool IsHiddenStateId(const int& StateId) const { return HasHiddenState && StateId == GetHiddenStateId(); }
+	// handle the hidden state
+	void InsHiddenState(TAggStateV& StateSetV) const;
+	void InsHiddenState(TStateIdV& StateIdV) const;
+	bool IsHiddenStateId(const int& StateId) const;
+	int GetHiddenStateId() const;
+	void RemoveHiddenStateProb(TIntFltPrV& StateIdProbV) const;
 
 	static void GetNextStateProbV(const TFltVV& QMat, const TStateIdV& StateIdV,
 			const int& StateId, TIntFltPrV& StateIdProbV, const int& NFutStates,
@@ -594,7 +601,7 @@ public:
 	static THierarch* Load(TSIn& SIn);
 
 	void Init(const int& CurrLeafId, const TStateIdentifier& StateIdentifier,
-			const TTransitionModeler& MChain);
+			const TCtmcModeller& MChain);
 	void UpdateHistory(const int& CurrLeafId);
 
 	const TFltV& GetUniqueHeightV() const { return UniqueHeightV; }
@@ -604,7 +611,7 @@ public:
 	void GetStateIdHeightPrV(TIntFltPrV& StateIdHeightPrV) const;
 	// returns the 'joined' states at the specified height, puts teh state IDs into StateIdV
 	// and sets of their leafs into JoinedStateVV
-	void GetStateSetsAtHeight(const double& Height, TStateIdV& StateIdV, TStateSetV& StateSetV) const;
+	void GetStateSetsAtHeight(const double& Height, TStateIdV& StateIdV, TAggStateV& StateSetV) const;
 	// returns all the states just below the specified height
 	void GetStatesAtHeight(const double& Height, TIntSet& StateIdV) const;
 	// fills the vector with IDs of the ancestors of the given state along with their heights
@@ -645,7 +652,7 @@ public:
 private:
 	void InitHierarchyDist(const TStateIdentifier& StateIdentifier);
 	void InitHierarchyTrans(const TStateIdentifier& StateIdentifier,
-			const TTransitionModeler& MChain);
+			const TCtmcModeller& MChain);
 
 	// returns the ID of the parent state
 	int GetParentId(const int& StateId) const;
@@ -701,7 +708,7 @@ public:
 	void Save(TSOut& SOut) const;
 
 	void Init(const TStateIdentifier& StateIdentifier, const THierarch& Hierarch,
-			const TTransitionModeler& MChain);
+			const TCtmcModeller& MChain);
 
 	const TFltPr& GetStateCoords(const int& StateId) const;
 	void SetStateCoords(const int& StateId, const double& x, const double& y);
@@ -715,7 +722,7 @@ private:
 	void InitStateCoordV(const TStateIdentifier& StateIdentifier,
 			const THierarch& Hierarch);
 	void RefineStateCoordV(const TStateIdentifier& StateIdentifier,
-			const THierarch& Hierarch, const TTransitionModeler& MChain);
+			const THierarch& Hierarch, const TCtmcModeller& MChain);
 
 	static double GetUIStateRaduis(const double& Prob);
 	static bool NodesOverlap(const int& StartId, const int& EndId, const TFltPrV& CoordV,
@@ -766,7 +773,7 @@ private:
 class TStreamStory {
 private:
 	TStateIdentifier* StateIdentifier;
-	TTransitionModeler* MChain;
+	TCtmcModeller* MChain;
     THierarch* Hierarch;
     TStateAssist* StateAssist;
     TUiHelper* UiHelper;
@@ -783,7 +790,7 @@ private:
 public:
     // constructors
     TStreamStory();
-    TStreamStory(TStateIdentifier* Clust, TTransitionModeler* MChain, THierarch* Hierarch,
+    TStreamStory(TStateIdentifier* Clust, TCtmcModeller* MChain, THierarch* Hierarch,
     		const TRnd& Rnd=TRnd(0), const bool& Verbose=true);
     TStreamStory(TSIn& SIn);
 
@@ -794,6 +801,7 @@ public:
 
 	// saves this models as JSON
 	PJsonVal GetJson() const;
+	PJsonVal GetSubModelJson(const int& StateId) const;
 
 	// update methods
 	// initializes the model
@@ -894,6 +902,9 @@ public:
     void SetCallback(TStreamStoryCallback* Callback);
 
 private:
+    PJsonVal GetLevelJson(const double& Height, const TStateIdV& StateIdV, const TFltVV& TransitionVV,
+    		const TFltV& HoldingTimeV, const TFltV& ProbV, const TFltV& RadiusV) const;
+
     void CreateFtrVV(const TFltVV& ObservFtrMat, const TFltVV& ControlFtrMat,
     		const TUInt64V& RecTmV, const TBoolV& EndsBatchV, TFltVV& FtrMat) const;
     void CreateFtrV(const TFltV& ObsFtrV, const TFltV& ContrFtrV, const uint64& RecTm,
@@ -901,7 +912,7 @@ private:
 
     void GetStateFtrVV(TStateFtrVV& StateFtrVV) const;
 
-    void GetStatsAtHeight(const double& Height, TStateSetV& StateSetV, TStateIdV& StateIdV,
+    void GetStatsAtHeight(const double& Height, TAggStateV& AggStateV, TStateIdV& StateIdV,
     		TStateFtrVV& StateFtrVV) const;
 
     void DetectAnomalies(const int& NewStateId, const int& OldStateId, const TFltV& ObsFtrV,
