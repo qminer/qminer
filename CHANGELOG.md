@@ -2,9 +2,9 @@
 
 ### 15 Jan 2016
 
-**New version:**
+**New version: 4.2.0**
 
-**Breaking with new features**
+**Non-breaking with new features**
 
 Features:
 - Nearest neighbor init method exposed
