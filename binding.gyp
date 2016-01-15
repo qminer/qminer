@@ -170,7 +170,6 @@
                 '<(LIN_EIGEN_INCLUDE)'
             ],
             'dependencies': [
-                'libsvm',
                 'glib',
                 'snap_lib',
                 'qminer',
@@ -228,28 +227,18 @@
                 'src/glib/mine/mine.h',
                 'src/glib/mine/mine.cpp',
                 'src/third_party/sole/sole.cpp',
+                'src/third_party/libsvm/svm.h',
+                'src/third_party/libsvm/svm.cpp'
             ],
             'include_dirs': [
                 'src/glib/base/',
                 'src/glib/mine/',
                 'src/glib/misc/',
                 'src/third_party/sole/',
+                'src/third_party/libsvm/',
                 '<(LIN_ALG_INCLUDE)',
                 '<(LIN_EIGEN_INCLUDE)'
             ],
-        },
-        {
-            # libsvm
-            'target_name': 'libsvm',
-            'type': 'static_library',
-            'sources': [
-                'src/third_party/libsvm/svm.h',
-                'src/third_party/libsvm/svm.cpp'
-            ],
-            'include_dirs': [
-                'src/third_party/libsvm/',
-                'src/glib/base/'
-            ]
         },
         {
             # needed for publishing binaries with node-pre-gyp
