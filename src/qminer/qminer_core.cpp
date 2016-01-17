@@ -687,104 +687,16 @@ void TStore::DelJoins(const int& JoinId, const uint64& RecId) {
 void TStore::DelJoins(const TStr& JoinNm, const uint64& RecId) {
 	DelJoins(GetJoinId(JoinNm), RecId);
 }
-/*
-int TStore::GetFieldInt(const uint64& RecId, const int& FieldId) const {
-	throw FieldError(FieldId, "Int");
-}
-int16 TStore::GetFieldInt16(const uint64& RecId, const int& FieldId) const {
-	throw FieldError(FieldId, "Int16");
-}
-int64 TStore::GetFieldInt64(const uint64& RecId, const int& FieldId) const {
-	throw FieldError(FieldId, "Int64");
-}
-uchar TStore::GetFieldByte(const uint64& RecId, const int& FieldId) const {
-	throw FieldError(FieldId, "Byte");
-}
-
-void TStore::GetFieldIntV(const uint64& RecId, const int& FieldId, TIntV& IntV) const {
-	throw FieldError(FieldId, "IntV");
-}
-
-uint TStore::GetFieldUInt(const uint64& RecId, const int& FieldId) const {
-	throw FieldError(FieldId, "UInt");
-}
-uint16 TStore::GetFieldUInt16(const uint64& RecId, const int& FieldId) const {
-	throw FieldError(FieldId, "UInt16");
-}
-uint64 TStore::GetFieldUInt64(const uint64& RecId, const int& FieldId) const {
-	throw FieldError(FieldId, "UInt64");
-}
-
-uint64 TStore::GetFieldUInt64Safe(const uint64& RecId, const int& FieldId) const {
-    throw FieldError(FieldId, "UInt64");
-}
-int64 TStore::GetFieldInt64Safe(const uint64& RecId, const int& FieldId) const {
-    throw FieldError(FieldId, "Int64");
-}
-
-TStr TStore::GetFieldStr(const uint64& RecId, const int& FieldId) const {
-	throw FieldError(FieldId, "Str");
-}
-
-void TStore::GetFieldStrV(const uint64& RecId, const int& FieldId, TStrV& StrV) const {
-	throw FieldError(FieldId, "StrV");
-}
-
-bool TStore::GetFieldBool(const uint64& RecId, const int& FieldId) const {
-	throw FieldError(FieldId, "Bool");
-}
-
-double TStore::GetFieldFlt(const uint64& RecId, const int& FieldId) const {
-	throw FieldError(FieldId, "Flt");
-}
-
-float TStore::GetFieldSFlt(const uint64& RecId, const int& FieldId) const {
-	throw FieldError(FieldId, "Flt");
-}
-
-TFltPr TStore::GetFieldFltPr(const uint64& RecId, const int& FieldId) const {
-	throw FieldError(FieldId, "FltPr");
-}
-
-void TStore::GetFieldFltV(const uint64& RecId, const int& FieldId, TFltV& FltV) const {
-	throw FieldError(FieldId, "FltV");
-}
-
-void TStore::GetFieldTm(const uint64& RecId, const int& FieldId, TTm& Tm) const {
-	throw FieldError(FieldId, "Tm");
-}
-
-uint64 TStore::GetFieldTmMSecs(const uint64& RecId, const int& FieldId) const {
-	TTm Tm; GetFieldTm(RecId, FieldId, Tm);
-	return Tm.IsDef() ? TTm::GetMSecsFromTm(Tm) : TUInt64::Mx;
-}
-
-void TStore::GetFieldNumSpV(const uint64& RecId, const int& FieldId, TIntFltKdV& SpV) const {
-	throw FieldError(FieldId, "NumSpV");
-}
-
-void TStore::GetFieldBowSpV(const uint64& RecId, const int& FieldId, PBowSpV& SpV) const {
-	throw FieldError(FieldId, "BowSpV");
-}
-
-void TStore::GetFieldTMem(const uint64& RecId, const int& FieldId, TMem& Mem) const {
-	throw FieldError(FieldId, "TMem");
-}
-
-PJsonVal TStore::GetFieldJsonVal(const uint64& RecId, const int& FieldId) const {
-	throw FieldError(FieldId, "Json");
-}
-*/
 
 /// Get field value using field id safely
 uint64 TStore::GetFieldUInt64Safe(const uint64& RecId, const int& FieldId) const {
     switch (GetFieldDesc(FieldId).GetFieldType()) {
-    case oftByte: return GetFieldByte(RecId, FieldId); break;
-    case oftInt16: return GetFieldInt16(RecId, FieldId); break;
-    case oftInt: return GetFieldInt(RecId, FieldId); break;
+    case oftByte: return (uint64)GetFieldByte(RecId, FieldId); break;
+    case oftInt16: return (uint64)GetFieldInt16(RecId, FieldId); break;
+    case oftInt: return (uint64)GetFieldInt(RecId, FieldId); break;
     case oftInt64: return (uint64)GetFieldInt64(RecId, FieldId); break;
-    case oftUInt16: return GetFieldUInt16(RecId, FieldId); break;
-    case oftUInt: return GetFieldUInt(RecId, FieldId); break;
+    case oftUInt16: return (uint64)GetFieldUInt16(RecId, FieldId); break;
+    case oftUInt: return (uint64)GetFieldUInt(RecId, FieldId); break;
     case oftUInt64: return GetFieldUInt64(RecId, FieldId); break;
     default: QmAssertR(false, TStr("GetFieldUInt64Safe: unsupported conversion for field id ") + FieldId);
     }
@@ -793,12 +705,12 @@ uint64 TStore::GetFieldUInt64Safe(const uint64& RecId, const int& FieldId) const
 /// Get field value using field id safely
 int64 TStore::GetFieldInt64Safe(const uint64& RecId, const int& FieldId) const {
     switch (GetFieldDesc(FieldId).GetFieldType()) {
-    case oftByte: return GetFieldByte(RecId, FieldId); break;
-    case oftInt16: return GetFieldInt16(RecId, FieldId); break;
-    case oftInt: return GetFieldInt(RecId, FieldId); break;
+    case oftByte: return (int64)GetFieldByte(RecId, FieldId); break;
+    case oftInt16: return (int64)GetFieldInt16(RecId, FieldId); break;
+    case oftInt: return (int64)GetFieldInt(RecId, FieldId); break;
     case oftInt64: return GetFieldInt64(RecId, FieldId); break;
-    case oftUInt16: return GetFieldUInt16(RecId, FieldId); break;
-    case oftUInt: return GetFieldUInt(RecId, FieldId); break;
+    case oftUInt16: return (int64)GetFieldUInt16(RecId, FieldId); break;
+    case oftUInt: return (int64)GetFieldUInt(RecId, FieldId); break;
     case oftUInt64: return (int64)GetFieldUInt64(RecId, FieldId); break;
     default: QmAssertR(false, TStr("GetFieldInt64Safe: unsupported conversion for field id ") + FieldId);
     }
@@ -895,105 +807,6 @@ void TStore::GetFieldNmTMem(const uint64& RecId, const TStr& FieldNm, TMem& Mem)
 PJsonVal TStore::GetFieldNmJsonVal(const uint64& RecId, const TStr& FieldNm) const {
 	return GetFieldJsonVal(RecId, GetFieldId(FieldNm));
 }
-/*
-void TStore::SetFieldNull(const uint64& RecId, const int& FieldId) {
-	throw FieldError(FieldId, "SetNull");
-}
-
-void TStore::SetFieldByte(const uint64& RecId, const int& FieldId, const uchar& Byte) {
-	throw FieldError(FieldId, "Byte");
-}
-
-void TStore::SetFieldInt(const uint64& RecId, const int& FieldId, const int& Int) {
-	throw FieldError(FieldId, "Int");
-}
-
-void TStore::SetFieldInt16(const uint64& RecId, const int& FieldId, const int16& Int16) {
-	throw FieldError(FieldId, "Int16");
-}
-
-void TStore::SetFieldInt64(const uint64& RecId, const int& FieldId, const int64& Int64) {
-	throw FieldError(FieldId, "Int64");
-}
-
-void TStore::SetFieldIntV(const uint64& RecId, const int& FieldId, const TIntV& IntV) {
-	throw FieldError(FieldId, "IntV");
-}
-
-void TStore::SetFieldUInt(const uint64& RecId, const int& FieldId, const uint& UInt16) {
-	throw FieldError(FieldId, "UInt");
-}
-
-void TStore::SetFieldUInt16(const uint64& RecId, const int& FieldId, const uint16& UInt16) {
-	throw FieldError(FieldId, "UInt16");
-}
-
-void TStore::SetFieldUInt64(const uint64& RecId, const int& FieldId, const uint64& UInt64) {
-	throw FieldError(FieldId, "UInt64");
-}
-
-/// Set field value using field id (default implementation throws exception)
-void TStore::SetFieldUInt64Safe(const uint64& RecId, const int& FieldId, const uint64& UInt64) {
-    throw FieldError(FieldId, "UInt64");
-}
-/// Set field value using field id (default implementation throws exception)
-void TStore::SetFieldInt64Safe(const uint64& RecId, const int& FieldId, const int64& Int64) {
-    throw FieldError(FieldId, "Int64");
-}
-
-
-void TStore::SetFieldStr(const uint64& RecId, const int& FieldId, const TStr& Str) {
-	throw FieldError(FieldId, "Str");
-}
-
-void TStore::SetFieldStrV(const uint64& RecId, const int& FieldId, const TStrV& StrV) {
-	throw FieldError(FieldId, "StrV");
-}
-
-void TStore::SetFieldBool(const uint64& RecId, const int& FieldId, const bool& Bool) {
-	throw FieldError(FieldId, "Bool");
-}
-
-void TStore::SetFieldFlt(const uint64& RecId, const int& FieldId, const double& Flt) {
-	throw FieldError(FieldId, "Flt");
-}
-
-void TStore::SetFieldSFlt(const uint64& RecId, const int& FieldId, const float& Flt) {
-	throw FieldError(FieldId, "SFlt");
-}
-
-void TStore::SetFieldFltPr(const uint64& RecId, const int& FieldId, const TFltPr& FltPr) {
-	throw FieldError(FieldId, "FltPr");
-}
-
-void TStore::SetFieldFltV(const uint64& RecId, const int& FieldId, const TFltV& FltV) {
-	throw FieldError(FieldId, "FltV");
-}
-
-void TStore::SetFieldTm(const uint64& RecId, const int& FieldId, const TTm& Tm) {
-	throw FieldError(FieldId, "Tm");
-}
-
-void TStore::SetFieldTmMSecs(const uint64& RecId, const int& FieldId, const uint64& TmMSecs) {
-	throw FieldError(FieldId, "TmMSecs");
-}
-
-void TStore::SetFieldNumSpV(const uint64& RecId, const int& FieldId, const TIntFltKdV& SpV) {
-	throw FieldError(FieldId, "NumSpV");
-}
-
-void TStore::SetFieldBowSpV(const uint64& RecId, const int& FieldId, const PBowSpV& SpV) {
-	throw FieldError(FieldId, "BowSpV");
-}
-
-void TStore::SetFieldTMem(const uint64& RecId, const int& FieldId, const TMem& Mem) {
-	throw FieldError(FieldId, "TMem");
-}
-
-void TStore::SetFieldJsonVal(const uint64& RecId, const int& FieldId, const PJsonVal& Json) {
-	throw FieldError(FieldId, "Json");
-}
-*/
 
 void TStore::SetFieldNmNull(const uint64& RecId, const TStr& FieldNm) {
 	SetFieldNull(RecId, GetFieldId(FieldNm));
@@ -2236,19 +2049,32 @@ PRecSet TRec::ToRecSet() const {
 	QmAssertR(IsByRef(), "Cannot transform record passed by value to a set!");
 	return IsDef() ? TRecSet::New(Store, RecId) : TRecSet::New(Store);
 }
+/// Returns record-id of given field join
+uint64 TRec::GetFieldJoinRecId(const int& JoinId) const {
+    QmAssertR(Store->IsJoinId(JoinId), "Invalid JoinId");
+    const TJoinDesc& JoinDesc = Store->GetJoinDesc(JoinId);
+    return GetFieldJoinRecId(JoinDesc);
+}
+
+/// Returns record-id of given field join
+uint64 TRec::GetFieldJoinRecId(const TJoinDesc& JoinDesc) const {
+    QmAssertR(JoinDesc.IsFieldJoin(), "Join is not field-join");
+    // get join weight
+    const int JoinRecFieldId = JoinDesc.GetJoinRecFieldId();
+    if (IsFieldNull(JoinRecFieldId)) {
+        return TUInt64::Mx;
+    }
+    return GetFieldUInt64Safe(JoinRecFieldId);
+}
 
 int TRec::GetFieldJoinFq(const int& JoinId) const {
-    if (!Store->IsJoinId(JoinId)) {
-        return -1;
-    }
+    QmAssertR(Store->IsJoinId(JoinId), "Invalid JoinId");
     const TJoinDesc& JoinDesc = Store->GetJoinDesc(JoinId);
     return GetFieldJoinFq(JoinDesc);
 }
 
 int TRec::GetFieldJoinFq(const TJoinDesc& JoinDesc) const {
-    if (!JoinDesc.IsFieldJoin()) {
-        return -1;
-    }
+    QmAssertR(JoinDesc.IsFieldJoin(), "Join is not field-join");
     // get join weight
     const int JoinFqFieldId = JoinDesc.GetJoinFqFieldId();
     int JoinRecFq = 1;
@@ -2320,17 +2146,14 @@ PRecSet TRec::DoJoin(const TWPt<TBase>& Base, const TJoinSeq& JoinSeq) const {
 }
 
 TRec TRec::DoSingleJoin(const TWPt<TBase>& Base, const int& JoinId) const {
-    PRecSet JoinRecSet = DoJoin(Base, JoinId);
-    return TRec(JoinRecSet->GetStore(),
-        JoinRecSet->Empty() ? (uint64)TUInt64::Mx : JoinRecSet->GetRecId(0),
-        GetFieldJoinFq(JoinId));
+    PStore JoinStore = Store->GetJoinDesc(JoinId).GetJoinStore(Base);
+    return TRec(JoinStore, GetFieldJoinRecId(JoinId), GetFieldJoinFq(JoinId));
 }
 
 TRec TRec::DoSingleJoin(const TWPt<TBase>& Base, const TStr& JoinNm) const {
-    PRecSet JoinRecSet = DoJoin(Base, JoinNm);
-    return TRec(JoinRecSet->GetStore(),
-        JoinRecSet->Empty() ? (uint64)TUInt64::Mx : JoinRecSet->GetRecId(0),
-        GetFieldJoinFq(Store->GetJoinId(JoinNm)));
+    const int& JoinId = Store->GetJoinId(JoinNm);
+    PStore JoinStore = Store->GetJoinDesc(JoinId).GetJoinStore(Base);
+    return TRec(JoinStore, GetFieldJoinRecId(JoinId), GetFieldJoinFq(JoinId));
 }
 
 TRec TRec::DoSingleJoin(const TWPt<TBase>& Base, const TIntPrV& JoinIdV) const {
@@ -2409,6 +2232,28 @@ PJsonVal TRec::GetJson(const TWPt<TBase>& Base, const bool& FieldsP,
 	}
 	// finalize
 	return RecVal;
+}
+
+///////////////////////////////////////////////////////////////////////////////////
+// TRecFilterByIndexJoin
+
+/// Constructor
+TRecFilterByIndexJoin::TRecFilterByIndexJoin(const TWPt<TStore>& _Store, const int& _JoinId, const uint64& _MinVal, const uint64& _MaxVal) :
+    Store(_Store), Index(Store->GetBase()->GetIndex()), JoinId(_JoinId), MinVal(_MinVal), MaxVal(_MaxVal) {
+    JoinKeyId = Store->GetJoinDesc(JoinId).GetJoinKeyId();
+}
+
+/// Main operator
+bool TRecFilterByIndexJoin::operator()(const TUInt64IntKd& RecIdWgt) const {
+    TUInt64IntKdV Res;
+    Index->GetJoinRecIdFqV(JoinKeyId, RecIdWgt.Key, Res); // perform join lookup
+    for (int i = 0; i < Res.Len(); i++) {
+        uint64 Val = Res[i].Key;
+        if ((MinVal <= Val) && (Val <= MaxVal)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 ///////////////////////////////////////////////
@@ -3287,6 +3132,13 @@ void TRecSet::FilterByFieldSafe(const int& FieldId, const uint64& MinVal, const 
     QmAssertR(Desc.IsTm() || Desc.IsUInt64() || Desc.IsInt64() || Desc.IsUInt() || Desc.IsInt() || Desc.IsUInt16() || Desc.IsInt16() || Desc.IsByte(), "Wrong field type, numeric field expected");
     // apply the filter
     FilterBy(TRecFilterByFieldSafe(Store, FieldId, MinVal, MaxVal));
+}
+
+void TRecSet::FilterByIndexJoin(const TWPt<TBase>& Base, const int& JoinId, const uint64& MinVal, const uint64& MaxVal) {
+    // get store and field type
+    QmAssertR(Store->IsJoinId(JoinId), "Invalid join id");
+    // apply the filter
+    FilterBy(TRecFilterByIndexJoin(Store, JoinId, MinVal, MaxVal));
 }
 
 TVec<PRecSet> TRecSet::SplitByFieldTm(const int& FieldId, const uint64& DiffMSecs) const {

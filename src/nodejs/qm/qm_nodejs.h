@@ -3014,6 +3014,8 @@ public:
 
 class TNodeJsFtrSpace : public node::ObjectWrap {
 	friend class TNodeJsUtil;
+private:
+	static v8::Persistent<v8::Function> Constructor;
 public:
 	// Node framework
 	static void Init(v8::Handle<v8::Object> exports);

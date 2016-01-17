@@ -1883,6 +1883,11 @@ public:
 	//# exports.StreamAggr.prototype.getValueVector = function () { };
 	JsDeclareFunction(getValueVector);
 
+	/**
+	* Returns a feature space
+	*/
+	//# exports.StreamAggr.prototype.getFeatureSpace = function() { return Object.create(require('qminer').FeatureSpace.prototype); };
+	JsDeclareFunction(getFeatureSpace);
 
 	/**
 	* Returns the name of the stream aggregate.

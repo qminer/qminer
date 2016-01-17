@@ -26,6 +26,7 @@ class TAggr; typedef TPt<TAggr> PAggr;
 class TStreamAggr; typedef TPt<TStreamAggr> PStreamAggr;
 class TStreamAggrBase; typedef TPt<TStreamAggrBase> PStreamAggrBase;
 class TFtrExt; typedef TPt<TFtrExt> PFtrExt;
+class TFtrSpace; typedef TPt<TFtrSpace> PFtrSpace;
 
 ///////////////////////////////
 /// QMiner Environment.
@@ -540,6 +541,8 @@ public:
 	int GetJoinKeyId(const int& JoinId) const { return JoinDescV[JoinId].GetJoinKeyId(); }
 	/// Get full join description for the join with the given ID
 	const TJoinDesc& GetJoinDesc(const int& JoinId) const { return JoinDescV[JoinId]; }
+    /// Get full join description for the join with the given name
+    const TJoinDesc& GetJoinDesc(const TStr& JoinNm) const { return JoinDescV[GetJoinId(JoinNm)]; }
 	/// Register inverse join
 	void PutInverseJoinId(const int& JoinId, const int& InverseJoinId);
 
@@ -1046,10 +1049,18 @@ public:
 	/// the first record.
 	TRec DoSingleJoin(const TWPt<TBase>& Base, const TJoinSeq& JoinSeq) const;
 
+    /// Returns record-id of given field join
+    uint64 GetFieldJoinRecId(const int& JoinId) const;
+    /// Returns record-id of given field join
+    uint64 GetFieldJoinRecId(const TStr& JoinNm) const { return GetFieldJoinRecId(Store->GetJoinId(JoinNm));  }
+    /// Returns record-id of given field join
+    uint64 GetFieldJoinRecId(const TJoinDesc& JoinDesc) const;
     /// Returns frequency of given field join
     int GetFieldJoinFq(const int& JoinId) const;
     /// Returns frequency of given field join
-    int GetFieldJoinFq(const TJoinDesc& JoinId) const;
+    int GetFieldJoinFq(const TStr& JoinNm) const { return GetFieldJoinFq(Store->GetJoinId(JoinNm)); }
+    /// Returns frequency of given field join
+    int GetFieldJoinFq(const TJoinDesc& JoinDesc) const;
 
 	/// Get record as JSon object
 	PJsonVal GetJson(const TWPt<TBase>& Base, const bool& FieldsP = true, 
@@ -1579,6 +1590,30 @@ public:
     }
 };
 
+
+///////////////////////////////
+/// Record Filter by index-join. 
+class TRecFilterByIndexJoin {
+private:
+    /// Store from which we are sorting the records 
+    TWPt<TStore> Store;
+    /// Index object to use for index-joins
+    TWPt<TIndex> Index;
+    /// Field according to which we are sorting
+    TInt JoinId;
+    /// Minimal value
+    TUInt64 MinVal;
+    /// Maximal value
+    TUInt64 MaxVal;
+    /// Join key ID
+    int JoinKeyId;
+public:
+    /// Constructor
+    TRecFilterByIndexJoin(const TWPt<TStore>& _Store, const int& _JoinId, const uint64& _MinVal, const uint64& _MaxVal);
+    /// Main operator
+    bool operator()(const TUInt64IntKd& RecIdWgt) const;
+};
+
 ///////////////////////////////
 /// Record Splitter by Time Field. 
 class TRecSplitterByFieldTm {
@@ -1838,6 +1873,8 @@ public:
 	void FilterByFieldTm(const int& FieldId, const TTm& MinVal, const TTm& MaxVal);
     /// Filter records to keep only the ones with values of a given field within given range
     void FilterByFieldSafe(const int& FieldId, const uint64& MinVal, const uint64& MaxVal);
+    /// Filter records to keep only the ones with join-record within given range
+    void FilterByIndexJoin(const TWPt<TBase>& Base, const int& JoinId, const uint64& MinVal, const uint64& MaxVal);
 	/// Filter records to keep only the ones with values of a given field within given range
 	template <class TFilter> void FilterBy(const TFilter& Filter);
 	
@@ -3434,6 +3471,12 @@ namespace TStreamAggrOut {
 		virtual bool IsNm(const TStr& Nm) const = 0;
 		virtual double GetNmInt(const TStr& Nm) const = 0;
 		virtual void GetNmIntV(TStrIntPrV& NmIntV) const = 0;
+	};
+
+	class IFtrSpace {
+	public:
+		// get feature space
+		virtual PFtrSpace GetFtrSpace() const = 0;
 	};
 }
 ///////////////////////////////

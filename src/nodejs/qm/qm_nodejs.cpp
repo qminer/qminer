@@ -2679,6 +2679,7 @@ void TNodeJsRecSet::filterByField(const v8::FunctionCallbackInfo<v8::Value>& Arg
     const TStr FieldNm = TNodeJsUtil::GetArgStr(Args, 0);
     int FieldId;
     bool IsFieldJoin = false;
+    bool IsIndexJoin = false;
     const TWPt<TQm::TStore>& Store = JsRecSet->RecSet->GetStore();
     if (Store->IsFieldNm(FieldNm)) {
         // normal field
@@ -2694,7 +2695,9 @@ void TNodeJsRecSet::filterByField(const v8::FunctionCallbackInfo<v8::Value>& Arg
                 is_ok = true;
                 IsFieldJoin = true;
             } else {
-                //is_ok = false;
+                FieldId = JoinId; // this is not field id, but join id
+                IsIndexJoin = true;
+                is_ok = true;
             }
         } else {
             //is_ok = false;
@@ -2704,7 +2707,17 @@ void TNodeJsRecSet::filterByField(const v8::FunctionCallbackInfo<v8::Value>& Arg
 
     const TQm::TFieldDesc& Desc = JsRecSet->RecSet->GetStore()->GetFieldDesc(FieldId);
     // parse filter according to field type
-    if (IsFieldJoin) {
+    if (IsIndexJoin) {
+        uint64 MnVal = TUInt64::Mn;
+        uint64 MxVal = TUInt64::Mx;
+        if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
+            MnVal = static_cast<uint64> (TNodeJsUtil::GetArgFlt(Args, 1));
+        }
+        if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
+            MxVal = static_cast<uint64> (TNodeJsUtil::GetArgFlt(Args, 2));
+        }
+        JsRecSet->RecSet->FilterByIndexJoin(Store->GetBase(), FieldId, MnVal, MxVal);
+    } else if (IsFieldJoin) {
         uint64 MnVal = TUInt64::Mn;
         uint64 MxVal = TUInt64::Mx;
         if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
@@ -3687,6 +3700,8 @@ void TNodeJsFuncFtrExt::ExtractFltV(const TQm::TRec& FtrRec, TFltV& FltV) const 
 
 ///////////////////////////////
 // NodeJs QMiner Feature Space
+v8::Persistent<v8::Function> TNodeJsFtrSpace::Constructor;
+
 TNodeJsFtrSpace::TNodeJsFtrSpace(const TQm::PFtrSpace& _FtrSpace) :
 		FtrSpace(_FtrSpace) {}
 
@@ -3699,6 +3714,13 @@ void TNodeJsFtrSpace::Init(v8::Handle<v8::Object> exports) {
 	v8::HandleScope HandleScope(Isolate);
 
 	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsFtrSpace>);
+	// child will have the same properties and methods, but a different callback: _NewCpp
+	v8::Local<v8::FunctionTemplate> child = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewCpp<TNodeJsFtrSpace>);
+	child->Inherit(tpl);
+	child->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
+	// ObjectWrap uses the first internal field to store the wrapped pointer
+	child->InstanceTemplate()->SetInternalFieldCount(1);
+	
 	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
 	// ObjectWrap uses the first internal field to store the wrapped pointer.
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
@@ -3726,6 +3748,10 @@ void TNodeJsFtrSpace::Init(v8::Handle<v8::Object> exports) {
 	// properties
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "dim"), _dim);
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "dims"), _dims);
+
+	// This has to be last, otherwise the properties won't show up on the object in JavaScript	
+	// Constructor is used when creating the object from C++
+	Constructor.Reset(Isolate, child->GetFunction());
 
 	// So we can call new FeatureSpace
 	exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());

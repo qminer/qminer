@@ -980,6 +980,63 @@ describe('Time Series Window Buffer Feature Extractor', function () {
             assert.equal(valVec.full().minus(new qm.la.Matrix([[0,0], [0,0], [0,0], [0,0], [1,0], [0,1]])).frob(), 0);
         });
     });
+    
+    describe('Feature space getter', function () {
+        it('should return the internal feature space', function () {
+            var aggr = {
+                name: 'featureSpaceWindow',
+                type: 'timeSeriesWinBufFeatureSpace',
+                store: 'Docs',
+                timestamp: 'Time',
+                featureSpace: {
+                    type: "categorical",
+                    source: "Docs",
+                    field: "Text"
+                },
+                winsize: 1000
+            };
+            var sa = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Text: 'a' }); // 0
+            store.push({ Time: '2015-06-10T14:13:33.0', Text: 'b' }); // 1
+            store.push({ Time: '2015-06-10T14:14:34.0', Text: 'c' }); // 2
+            store.push({ Time: '2015-06-10T14:15:35.0', Text: 'd' }); // 3
+            store.push({ Time: '2015-06-10T14:15:36.0', Text: 'e' }); // 4
+			store.push({ Time: '2015-06-10T14:15:37.0', Text: 'f' }); // 5				
+		    var featureSpace = sa.getFeatureSpace();
+		    assert.equal(featureSpace.dim, 6);
+        });
+    });
+
+	describe('WinBuf Feature serialzie/desiralize', function () {
+        it('should save and load the stream aggregate', function () {
+            var aggr = {
+                name: 'featureSpaceWindow',
+                type: 'timeSeriesWinBufFeatureSpace',
+                store: 'Docs',
+                timestamp: 'Time',
+                featureSpace: {
+                    type: "categorical",
+                    source: "Docs",
+                    field: "Text"
+                },
+                winsize: 1000
+            };
+            var sa = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Text: 'a' }); // 0
+            store.push({ Time: '2015-06-10T14:13:33.0', Text: 'b' }); // 1
+            store.push({ Time: '2015-06-10T14:14:34.0', Text: 'c' }); // 2
+            store.push({ Time: '2015-06-10T14:15:35.0', Text: 'd' }); // 3
+            store.push({ Time: '2015-06-10T14:15:36.0', Text: 'e' }); // 4
+			store.push({ Time: '2015-06-10T14:15:37.0', Text: 'f' }); // 5
+			
+			var fout = qm.fs.openWrite('fsWinBuf.bin');
+			sa.save(fout).close();
+			var fin = qm.fs.openRead('fsWinBuf.bin');
+            sa.load(fin);
+		    var featureSpace = sa.getFeatureSpace();
+		    assert.equal(featureSpace.dim, 6);
+        });
+    });
 
     describe('Complex Tests', function () {
         it('should construct the time-series window-buffer and attach sum to it', function () {
@@ -1061,7 +1118,7 @@ describe('Time Series  - EMA for sparse vectors', function () {
                 source: "Docs",
                 field: "Text"
             },
-            winsize: 1 // keep only most recent value in window
+            winsize: 0 // keep only most recent value in window
         };
         var sa = store.addStreamAggr(aggr);
         var aggr2 = {

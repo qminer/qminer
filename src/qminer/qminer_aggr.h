@@ -419,7 +419,7 @@ public:
 	TStr Type(void) const { return GetType(); }
 };
 
-class TWinBufFtrSpVec : public TWinBuf<TIntFltKdV> {
+class TWinBufFtrSpVec : public TWinBuf<TIntFltKdV>, public TStreamAggrOut::IFtrSpace {
 private:
 	PFtrSpace FtrSpace;
 protected:
@@ -435,10 +435,23 @@ public:
 		FtrSpace = TFtrSpace::New(Store->GetBase(), FtrSpaceParam);
 	}
 
+	/// Load stream aggregate state from stream
+	void LoadState(TSIn& SIn) {
+		TWinBuf<TIntFltKdV>::LoadState(SIn);
+		FtrSpace->Load(Store->GetBase(), SIn);
+	}
+	/// Save state of stream aggregate to stream
+	void SaveState(TSOut& SOut) const {
+		TWinBuf<TIntFltKdV>::SaveState(SOut);
+		FtrSpace->Save(SOut);
+	}
+
 	/// Smart pointer JSON based constructor
 	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) { return new TWinBufFtrSpVec(Base, ParamVal); }
 	static TStr GetType() { return "timeSeriesWinBufFeatureSpace"; }
 	TStr Type(void) const { return GetType(); }
+
+	PFtrSpace GetFtrSpace() const {	return FtrSpace; }
 };
 
 ///////////////////////////////////////
@@ -600,12 +613,6 @@ public:
 typedef TWinAggrSpVec<TSignalProc::TSumSpVec> TWinBufSpVecSum;
 template <>
 inline TStr TWinAggrSpVec<TSignalProc::TSumSpVec>::GetType() { return "winBufSpVecSum"; }
-
-//// Moving-Window Buffer over Sparse-vectors EMA
-//typedef TWinAggrSpVec<TSignalProc::TEmaSpVec> TWinBufSpVecEma;
-//template <>
-//inline TStr TWinAggrSpVec<TSignalProc::TEmaSpVec>::GetType() { return "winBufSpVecEma"; }
-
 
 ///////////////////////////////
 // Exponential Moving Average.
@@ -1296,7 +1303,7 @@ TWinBuf<TVal>::TWinBuf(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStr
 	Store = Base->GetStoreByStoreNm(StoreNm);
 	TStr TimeFieldNm = ParamVal->GetObjStr("timestamp");
 	TimeFieldId = Store->GetFieldId(TimeFieldNm);
-	WinSizeMSecs = ParamVal->GetObjUInt64("winsize");;
+	WinSizeMSecs = ParamVal->GetObjUInt64("winsize");
 	DelayMSecs = ParamVal->GetObjUInt64("delay", 0);
 	// make sure parameters make sense
 	QmAssertR(Store->GetFieldDesc(TimeFieldId).IsTm(), "[Window buffer] field " + TimeFieldNm + " not of type 'datetime'");
