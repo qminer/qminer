@@ -47,7 +47,7 @@ TPartialGS::TPartialGS(PSVMTrainSet BigSet, const int& Dim, const double& Eps) {
         //NiV[i].Key = BigSet->DotProduct(i, i);
         NiV[i].Key = BigSet->GetNorm2(i);
         NiV[i].Dat = false;
-        IAssertR(NiV[i].Key.Val > 0.0 && _isnan(NiV[i].Key.Val) == 0, 
+        IAssertR(NiV[i].Key.Val > 0.0 && _isnan(NiV[i].Key.Val) == 0,
                  TInt::GetStr(i) + TStr(":") + TFlt::GetStr(NiV[i].Key));
     }
     R.Gen(Dim, 0);

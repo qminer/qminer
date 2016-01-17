@@ -227,7 +227,7 @@
                 'src/glib/base/base.cpp',
                 'src/glib/mine/mine.h',
                 'src/glib/mine/mine.cpp',
-                'src/third_party/sole/sole.cpp',
+                'src/third_party/sole/sole.cpp'
             ],
             'include_dirs': [
                 'src/glib/base/',

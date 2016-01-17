@@ -5885,6 +5885,7 @@ void TStreamAggr::Init() {
 	Register<TStreamAggrs::TMerger>();
 	Register<TStreamAggrs::TResampler>();
 	Register<TStreamAggrs::TOnlineHistogram>();
+	Register<TStreamAggrs::TTDigest>();
 	Register<TStreamAggrs::TChiSquare>();
 	Register<TStreamAggrs::TOnlineSlottedHistogram>();
 	Register<TStreamAggrs::TVecDiff>();

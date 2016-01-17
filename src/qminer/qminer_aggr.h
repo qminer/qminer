@@ -1028,6 +1028,60 @@ public:
 };
 
 ///////////////////////////////
+/// TDigest stream aggregate.
+/////////////////////////////////////////////////
+///   TDigest
+///   Data structure useful for percentile and quantile estimation for online data streams.
+///   It can be added to any anomaly detector to set the number of alarms triggered as a percentage of the total samples.
+///   This is the Data Lib Sketch Implementation: https://github.com/vega/datalib-sketch/blob/master/src/t-digest.js
+///   Paper: Ted Dunning, Otmar Ertl - https://github.com/tdunning/t-digest/blob/master/docs/t-digest-paper/histo.pdf
+class TTDigest : public TStreamAggr, public TStreamAggrOut::IFltVec {
+private:
+	// input
+	TWPt<TStreamAggr> InAggr;
+	TWPt<TStreamAggrOut::IFltTm> InAggrVal;
+	// indicator
+	TSignalProc::TTDigest Model;
+	TFltV QuantilesVals;
+protected:
+	void OnAddRec(const TRec& Rec);
+	TTDigest(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+	TTDigest(const TFltV& Quantiles);
+	TTDigest(const TInt& N);
+	TTDigest();
+public:
+	/// Add new data to statistics
+	void Add(const TFlt& Val);
+	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+	static PStreamAggr New(const TFltV& Quantiles);
+	static PStreamAggr New(const TInt& N);
+	// did we finish initialization
+	bool IsInit() const { return InAggr->IsInit(); }
+	/// Reset
+	void Reset() {  }
+	/// Load from stream
+	void LoadState(TSIn& SIn);
+	/// Store state into stream
+	void SaveState(TSOut& SOut) const;
+	/// returns the number of clusters
+	int GetVals() const { return Model.GetClusters(); }
+	/// get current Quantile value vector
+	void GetVal(const TInt& ElN, TFlt& Val) const { Val = Model.GetQuantile(QuantilesVals[ElN]); }
+	/// get current Quantile value vector
+	void GetValV(TFltV& ValV) const {
+		for (int ElN=0; ElN<QuantilesVals.Len(); ElN++) {
+			ValV.Add(Model.GetQuantile(QuantilesVals[ElN]));
+		}
+	}
+	void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggr->GetAggrNm());}
+	// serialization to JSon
+	PJsonVal SaveJson(const int& Limit) const;
+	// stream aggregator type name
+	static TStr GetType() { return "tdigest"; }
+	TStr Type() const { return GetType(); }
+};
+
+///////////////////////////////
 /// Chi square stream aggregate.
 /// Updates a chi square model, connects to an online histogram stream aggregate
 /// that implements TStreamAggrOut::IFltVec

@@ -82,5 +82,4 @@
 // hoeffding trees 
 #include "hoeffding.h"
 
-
 #endif
