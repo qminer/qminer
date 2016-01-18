@@ -825,6 +825,19 @@ public:
 	virtual PJsonVal GetStoreJson(const TWPt<TBase>& Base) const;
 	/// Parse out record id from record JSon serialization
 	uint64 GetRecId(const PJsonVal& RecVal) const;
+
+    /// Returns record-id of given field join
+    uint64 GetFieldJoinRecId(const uint64& RecId, const int& JoinId);
+    /// Returns record-id of given field join
+    uint64 GetFieldJoinRecId(const uint64& RecId, const TStr& JoinNm) { return GetFieldJoinRecId(RecId, GetJoinId(JoinNm)); }
+    /// Returns record-id of given field join
+    uint64 GetFieldJoinRecId(const uint64& RecId, const TJoinDesc& JoinDesc);
+    /// Returns frequency of given field join
+    int GetFieldJoinFq(const uint64& RecId, const int& JoinId);
+    /// Returns frequency of given field join
+    int GetFieldJoinFq(const uint64& RecId, const TStr& JoinNm) { return GetFieldJoinFq(RecId, GetJoinId(JoinNm)); }
+    /// Returns frequency of given field join
+    int GetFieldJoinFq(const uint64& RecId, const TJoinDesc& JoinDesc);
 	
 	/// Prints record set with all the field values, useful for debugging
 	void PrintRecSet(const TWPt<TBase>& Base, const PRecSet& RecSet, TSOut& SOut) const;

@@ -1097,6 +1097,42 @@ uint64 TStore::GetRecId(const PJsonVal& RecVal) const {
 	return TUInt64::Mx;
 }
 
+/// Returns record-id of given field join
+uint64 TStore::GetFieldJoinRecId(const uint64& RecId, const int& JoinId) {
+    QmAssertR(IsJoinId(JoinId), "Invalid JoinId");
+    const TJoinDesc& JoinDesc = GetJoinDesc(JoinId);
+    return GetFieldJoinRecId(RecId, JoinDesc);
+}
+/// Returns record-id of given field join
+uint64 TStore::GetFieldJoinRecId(const uint64& RecId, const TJoinDesc& JoinDesc) {
+    QmAssertR(JoinDesc.IsFieldJoin(), "Join is not field-join");
+    // get join weight
+    const int JoinRecFieldId = JoinDesc.GetJoinRecFieldId();
+    const TRec Rec = GetRec(RecId);
+    if (Rec.IsFieldNull(JoinRecFieldId)) {
+        return TUInt64::Mx;
+    }
+    return Rec.GetFieldUInt64Safe(JoinRecFieldId);
+}
+/// Returns frequency of given field join
+int TStore::GetFieldJoinFq(const uint64& RecId, const int& JoinId) {
+    QmAssertR(IsJoinId(JoinId), "Invalid JoinId");
+    const TJoinDesc& JoinDesc = GetJoinDesc(JoinId);
+    return GetFieldJoinFq(RecId, JoinDesc);
+}
+/// Returns frequency of given field join
+int TStore::GetFieldJoinFq(const uint64& RecId, const TJoinDesc& JoinDesc) {
+    QmAssertR(JoinDesc.IsFieldJoin(), "Join is not field-join");
+    // get join weight
+    const int JoinFqFieldId = JoinDesc.GetJoinFqFieldId();
+    int JoinRecFq = 1;
+    if (JoinFqFieldId > 0) {
+        const TRec Rec = GetRec(RecId);
+        JoinRecFq = Rec.GetFieldIntSafe(JoinFqFieldId);
+    }
+    return JoinRecFq;
+}
+
 void TStore::PrintRecSet(const TWPt<TBase>& Base, const PRecSet& RecSet, TSOut& SOut) const {
 	// print records
 	SOut.PutStrFmtLn("Records: %d", RecSet->GetRecs());

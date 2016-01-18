@@ -132,3 +132,4 @@ binding-1.gyp
 /examples/streamaggregate/node_modules
 *.opendb
 /test/nodejs/store_and_index.js
+/test/nodejs/jointest.dbg.js
