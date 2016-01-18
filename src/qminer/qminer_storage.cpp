@@ -155,6 +155,17 @@ TJoinDescEx TStoreSchema::ParseJoinDescEx(const PJsonVal& JoinVal) {
             JoinDescEx.FreqFieldType = TFieldType::oftUndef; // no field for frequency, value is 1 by default
         }
     }
+    // field-join only - check flags where fields are stored
+    if (JoinDescEx.JoinType == osjtField) {
+        TStr StoreLocStr = JoinVal->GetObjStr("storage_location", "memory"); // default is store in memory
+        if (StoreLocStr == "memory") {
+            JoinDescEx.FieldStoreLoc = slMemory;
+        } else if (StoreLocStr == "cache") {
+            JoinDescEx.FieldStoreLoc = slDisk;
+        } else {
+            throw TQmExcept::New(TStr::Fmt("Unsupported 'storage_location' flag for join: %s", StoreLocStr.CStr()));
+        }
+    }
     // done
     return JoinDescEx;
 }
@@ -335,10 +346,10 @@ TStoreSchema::TStoreSchema(const PJsonVal& StoreVal) : StoreId(0), HasStoreIdP(f
                 TStr JoinFqFieldNm = JoinDescEx.JoinName + "Fq";
                 // prepare join field descriptions
                 FieldH.AddDat(JoinRecFieldNm, TFieldDesc(JoinRecFieldNm, JoinDescEx.RecIdFieldType, false, true, true));
-                FieldExH.AddDat(JoinRecFieldNm, TFieldDescEx(slMemory, false, false));
+                FieldExH.AddDat(JoinRecFieldNm, TFieldDescEx(JoinDescEx.FieldStoreLoc, false, false));
                 // prepare extended field description
                 if (JoinDescEx.FreqFieldType != oftUndef) {
-                    FieldExH.AddDat(JoinFqFieldNm, TFieldDescEx(slMemory, false, false));
+                    FieldExH.AddDat(JoinFqFieldNm, TFieldDescEx(JoinDescEx.FieldStoreLoc, false, false));
                     FieldH.AddDat(JoinFqFieldNm, TFieldDesc(JoinFqFieldNm, JoinDescEx.FreqFieldType, false, true, true));
                 }
             }

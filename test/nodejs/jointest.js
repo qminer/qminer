@@ -68,14 +68,14 @@ describe('Index-Join Test', function () {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // utility functions
 
-function CreateBase(type, type2) {
+function CreateBase(type, type2, sloc) {
     var base = new qm.Base({
         mode: 'createClean',
         schema: [
             {
                 name: 'People',
                 fields: [{ name: 'name', type: 'string', primary: true }],
-                joins: [{ name: 'parent', type: 'field', store: 'People', storage: type + "-" + type2 }]
+                joins: [{ name: 'parent', type: 'field', store: 'People', storage: type + "-" + type2, storage_location: sloc || "memory" }]
             }
         ]
     });    
@@ -122,15 +122,18 @@ describe('Different join-field-type tests', function () {
         var rec_id_types = ["uint64", "uint", "uint16", "byte"];
         var freq_types = ["uint16", "byte", "int", "int16", ""];
 
-        for (var i = 0 ; i < rec_id_types.length; i++) {
-            for (var j = 0 ; j < freq_types.length; j++) {
-                var rec_id_type = rec_id_types[i];
-                var freq_type = freq_types[j]; 
-                
-                console.log(rec_id_type, "-", freq_type);
-                var base = CreateBase(rec_id_type, freq_type);
-                FillAndCheck(base, rec_id_type, freq_type);
-            }    
+        for (var k = 0; k < 2; k++) {
+            var sloc = (k == 0 ? "memory" : "cache");
+            for (var i = 0 ; i < rec_id_types.length; i++) {
+                for (var j = 0 ; j < freq_types.length; j++) {
+                    var rec_id_type = rec_id_types[i];
+                    var freq_type = freq_types[j]; 
+                    
+                    console.log(rec_id_type, "-", freq_type, " ", sloc);
+                    var base = CreateBase(rec_id_type, freq_type, sloc);
+                    FillAndCheck(base, rec_id_type, freq_type);
+                }    
+            }            
         }
     })
 });
