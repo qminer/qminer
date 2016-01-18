@@ -1241,6 +1241,245 @@ PJsonVal TOnlineHistogram::SaveJson() const {
 	return Result;
 }
 
+void TTDigest::Update(const double& V) {
+	const TFlt Count = 1;
+	Update(V, Count);
+}
+
+void TTDigest::Update(const double& V, const double& Count) {
+	if (TempLast >= TempWeight.Len()) {
+		MergeValues();
+	}
+	TInt N_ = TempLast++;
+	TempWeight[N_] = Count;
+	TempMean[N_] = V;
+	UnmergedSum += Count;
+	MergeValues();
+}
+
+int TTDigest::GetClusters() const {
+	return Mean.Len();
+}
+double TTDigest::GetQuantile(const double& Q) const {
+	double Left = Min;
+	double Right = Max;
+
+	if (TotalSum == 0.0) { return -1.0; }
+	if (Q <= 0) { return Min; }
+	if (Q >= 1) { return Max; }
+	if (Last == 0) { return Mean[0]; }
+
+	// calculate boundaries, pick centroid via binary search
+	double QSum = Q * TotalSum;
+
+	int N1 = Last + 1;
+	int N0 = 0;
+	int I = Bisect(MergeMean, QSum, N0, N1);
+
+	if (I > 0) {
+		Left = Boundary(I-1, I, Mean, Weight);
+	}
+	if (I < Last) {
+		Right = Boundary(I, I+1, Mean, Weight);
+	}
+	return Left + (Right - Left) * (QSum - (MergeMean[I-1])) / Weight[I];
+};
+
+void TTDigest::MergeValues() {
+	if (UnmergedSum == 0.0) {
+		return;
+	}
+	TFltV W = Weight;
+	TFltV U = Mean;
+	TInt LastN = 0;
+	double Sum = 0;
+
+	TempMean.Sort();
+
+	if (TotalSum > 0.0) {
+		LastN = Last + 1;
+	}
+
+	Last = 0;
+	TotalSum += UnmergedSum;
+	UnmergedSum = 0.0;
+
+	double NewCentroid = 0;
+	int IterI = 0, IterJ = 0;
+	// merge existing centroids with added values in temp buffers
+	while (IterI < TempLast && IterJ < LastN) {
+		if (TempMean[IterI] <= U[IterJ]) {
+			Sum += TempWeight[IterI];
+			double TW = TempWeight[IterI];
+			double TM = TempMean[IterI];
+			NewCentroid = MergeCentroid(Sum, NewCentroid, TW, TM);
+			IterI++;
+		} else {
+			Sum += W[IterJ];
+			double TW = W[IterJ];
+			double TM = U[IterJ];
+			NewCentroid = MergeCentroid(Sum, NewCentroid, TW, TM);
+			IterJ++;
+		}
+	}
+
+	while (IterI < TempLast) {
+		Sum += TempWeight[IterI];
+		double TW = TempWeight[IterI];
+		double TM = TempMean[IterI];
+		NewCentroid = MergeCentroid(Sum, NewCentroid, TW, TM);
+		IterI++;
+	}
+
+	// only existing centroids remain
+	while (IterJ < LastN) {
+		Sum += W[IterJ];
+		double TW = W[IterJ];
+		double TM = U[IterJ];
+		NewCentroid = MergeCentroid(Sum, NewCentroid, TW, TM);
+		IterJ++;
+	}
+
+	TempLast = 0;
+
+	// swap pointers for working space and merge space
+
+	Weight = MergeWeight;
+	Mean = MergeMean;
+
+	MergeMean = U;
+	MergeWeight = W;
+
+	MergeMean[0] = Weight[0];
+	MergeWeight[0] = 0;
+	for (int Iter = 1; Iter<=Last; ++Iter) {
+		MergeWeight[Iter] = 0; // zero out merge weights
+		MergeMean[Iter] = MergeMean[Iter-1] + Weight[Iter]; // stash cumulative dist
+	}
+
+	Min = TMath::Mx(Min, Mean[0]);
+	Max = TMath::Mx(Max, Mean[LastN]);
+}
+
+double TTDigest::MergeCentroid(double& Sum, double& K1, double& Wt, double& Ut) {
+	double K2 = Integrate((double)Nc, Sum/TotalSum);
+	if (K2 - K1 <= 1.0 || MergeWeight[Last] == 0.0) {
+		// merge into existing centroid if centroid index difference (k2-k1)
+		// is within 1 or if current centroid is empty
+		MergeWeight[Last] += Wt;
+		MergeMean[Last] += (Ut - MergeMean[Last]) * Wt / MergeWeight[Last];
+	} else {
+		// otherwise create a new centroid
+		Last = ++Last;
+		MergeMean[Last] = Ut;
+		MergeWeight[Last] = Wt;
+		K1 = Integrate((double)Nc, (Sum - Wt)/TotalSum);
+	}
+	return K1;
+};
+
+double TTDigest::Integrate(const double& Nc, const double& Q_) const {
+	// First, scale and bias the quantile domain to [-1, 1]
+	// Next, bias and scale the arcsin range to [0, 1]
+	// This gives us a [0,1] interpolant following the arcsin shape
+	// Finally, multiply by centroid count for centroid scale value
+	return Nc * (asin(2 * Q_ - 1) + TMath::Pi / 2) / TMath::Pi;
+}
+
+int TTDigest::Bisect(const TFltV& A, const double& X, int& Low, int& Hi) const {
+	while (Low < Hi) {
+		TInt Mid = (Low + Hi) >> 1;
+		if (A[Mid] < X) {
+			Low = Mid + 1;
+		}
+		else {
+			Hi = Mid;
+		}
+	}
+	return Low;
+}
+
+double TTDigest::Boundary(const int& I, const int& J, const TFltV& U, const TFltV& W) const {
+	return U[I] + (U[J] - U[I]) * W[I] / (W[I] + W[J]);
+}
+
+int TTDigest::NumTemp(const int& N) const {
+	int Lo = 1, Hi = N, Mid;
+	while (Lo < Hi) {
+		Mid = (Lo + Hi) >> 1;
+		if (N > Mid * TMath::Log(Mid) / TMath::Log(2)) {
+			Lo = Mid + 1;
+		}
+		else {
+			Hi = Mid;
+		}
+  }
+  return Lo;
+}
+
+void TTDigest::Print() const {}
+
+void TTDigest::SaveState(TSOut& SOut) const {
+	Nc.Save(SOut);
+	Size.Save(SOut);
+	Last.Save(SOut);
+	TotalSum.Save(SOut);
+	Weight.Save(SOut);
+	Mean.Save(SOut);
+	Min.Save(SOut);
+	Max.Save(SOut);
+	MergeWeight.Save(SOut);
+	MergeMean.Save(SOut);
+	Tempsize.Save(SOut);
+	UnmergedSum.Save(SOut);
+	TempLast.Save(SOut);
+	TempWeight.Save(SOut);
+	TempMean.Save(SOut);
+}
+
+void TTDigest::LoadState(TSIn& SIn) {
+	Nc.Load(SIn);
+	Size.Load(SIn);
+	Last.Load(SIn);
+	TotalSum.Load(SIn);
+	Weight.Load(SIn);
+	Mean.Load(SIn);
+	Min.Load(SIn);
+	Max.Load(SIn);
+	MergeWeight.Load(SIn);
+	MergeMean.Load(SIn);
+	Tempsize.Load(SIn);
+	UnmergedSum.Load(SIn);
+	TempLast.Load(SIn);
+	TempWeight.Load(SIn);
+	TempMean.Load(SIn);
+}
+
+void TTDigest::Init(const int& N) {
+	Nc = N;
+	Max = TFlt::Mn;
+	Min = TFlt::Mx;
+	UnmergedSum = 0;
+	TempLast = 0;
+
+	Size = ceil(Nc * TMath::Pi/2);
+	TotalSum = 0;
+	Last = 0;
+
+	for (int Iter = 0; Iter < Size; Iter++) {
+		Weight.Add(0);
+		Mean.Add(0);
+		MergeWeight.Add(0);
+		MergeMean.Add(0);
+	}
+
+	int Tempsize = NumTemp(Nc);
+	for (int Iter = 0; Iter < Tempsize; Iter++) {
+		TempMean.Add(TFlt::Mx);
+		TempWeight.Add(0);
+	}
+}
+
 TChiSquare::TChiSquare(const PJsonVal& ParamVal): P(TFlt::PInf) {
 	// P value is set to infinity by default (null hypothesis is not rejected)
 	EAssertR(ParamVal->IsObjKey("degreesOfFreedom"), "TChiSquare: degreesOfFreedom key missing!");
@@ -1279,7 +1518,6 @@ void TChiSquare::Update(const TFltV& OutValVX, const TFltV& OutValVY) {
 	}
 }
 
-
 /// Load from stream
 void TChiSquare::LoadState(TSIn& SIn) {
 	Chi2.Load(SIn);
@@ -1289,7 +1527,7 @@ void TChiSquare::LoadState(TSIn& SIn) {
 /// Store state into stream
 void TChiSquare::SaveState(TSOut& SOut) const {
 	Chi2.Save(SOut);
-	P.Save(SOut);	
+	P.Save(SOut);
 }
 
 }

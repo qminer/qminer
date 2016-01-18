@@ -1335,7 +1335,6 @@ TOnlineHistogram::TOnlineHistogram(const TWPt<TBase>& Base, const PJsonVal& Para
 	BufferedP = (InAggrValBuffer != NULL);
 }
 
-
 /// Load from stream
 void TOnlineHistogram::LoadState(TSIn& SIn) {
 	Model.Load(SIn);
@@ -1344,6 +1343,53 @@ void TOnlineHistogram::LoadState(TSIn& SIn) {
 /// Store state into stream
 void TOnlineHistogram::SaveState(TSOut& SOut) const {
 	Model.Save(SOut);
+}
+
+///////////////////////////////
+/// TDigest stream aggregate
+TTDigest::TTDigest(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal), Model(ParamVal) {
+    // parse out input aggregate
+	TStr InStoreNm = ParamVal->GetObjStr("store");
+	TStr InAggrNm = ParamVal->GetObjStr("inAggr");
+	ParamVal->GetObjFltV("quantiles", QuantilesVals);
+	PStreamAggr _InAggr = Base->GetStreamAggr(InStoreNm, InAggrNm);
+	InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
+	QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
+	InAggrVal = dynamic_cast<TStreamAggrOut::IFltTm*>(_InAggr());
+	QmAssertR(!InAggrVal.Empty(), "TTDigest::TTDigest Stream aggregate does not implement IFltTm interface: " + InAggrNm);
+}
+
+PStreamAggr TTDigest::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+    return new TTDigest(Base, ParamVal);
+}
+
+void TTDigest::OnAddRec(const TRec& Rec) {
+    TFlt Val = InAggrVal->GetFlt();
+	if (InAggr->IsInit()) {
+	    Model.Update(Val);
+	}
+}
+
+void TTDigest::Add(const TFlt& Val) {
+	if (InAggr->IsInit()) {
+	    Model.Update(Val);
+	}
+}
+
+PJsonVal TTDigest::SaveJson(const int& Limit) const {
+	PJsonVal Val = TJsonVal::NewObj();
+	//Val->AddToObj("Centroids", Model.GetQuantile(0.9));
+	return Val;
+}
+
+/// Load from stream
+void TTDigest::LoadState(TSIn& SIn) {
+	Model.LoadState(SIn);
+}
+
+/// Store state into stream
+void TTDigest::SaveState(TSOut& SOut) const {
+	Model.SaveState(SOut);
 }
 
 ///////////////////////////////
@@ -1387,7 +1433,6 @@ PJsonVal TChiSquare::SaveJson(const int& Limit) const {
 	return Val;
 }
 
-
 /// Load from stream
 void TChiSquare::LoadState(TSIn& SIn) {
 	ChiSquare.LoadState(SIn);
@@ -1402,7 +1447,6 @@ void TChiSquare::SaveState(TSOut& SOut) const {
 
 /// Constructor, reserves appropriate internal storage
 TSlottedHistogram::TSlottedHistogram(const uint64 _Period, const uint64 _Slot, const int _Bins) {
-
 	PeriodLen = _Period;
 	SlotGran = _Slot;
 	Bins = _Bins;

@@ -242,6 +242,12 @@ void TJsonVal::GetObjIntV(const TStr& Key, TIntV& IntV) const {
     GetObjKey(Key)->GetArrIntV(IntV);
 }
 
+void TJsonVal::GetObjFltV(const TStr& Key, TFltV& FltV) const {
+    EAssert(IsObj());
+    EAssert(IsObjKey(Key));
+    GetObjKey(Key)->GetArrNumV(FltV);
+}
+
 const TStr& TJsonVal::GetObjStr(const TStr& Key, const TStr& DefStr) const { 
   EAssert(IsObj());
   return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetStr() : DefStr;

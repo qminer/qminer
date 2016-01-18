@@ -11,7 +11,6 @@
 
 namespace TSignalProc {
 
-
 /////////////////////////////////////////////////
 // Online Moving Average
 class TMaSimple {
@@ -853,6 +852,105 @@ public:
 	void Print() const;
 	/// Returns a JSON representation of the model
 	PJsonVal SaveJson() const;
+};
+
+/////////////////////////////////////////////////
+///   TDigest
+///   Data structure useful for percentile and quantile estimation for online data streams.
+///   It can be added to any anomaly detector to set the number of alarms triggered as a percentage of the total samples.
+///   This is the Data Lib Sketch Implementation: https://github.com/vega/datalib-sketch/blob/master/src/t-digest.js
+///    Paper: Ted Dunning, Otmar Ertl - https://github.com/tdunning/t-digest/blob/master/docs/t-digest-paper/histo.pdf
+class TTDigest {
+private:
+	TInt Nc;
+	TInt Size;
+	TInt Last;
+	TFlt TotalSum;
+	TFltV Weight;
+	TFltV Mean;
+	TFlt Min;
+	TFlt Max;
+	// double buffer to simplify merge operations
+	// MergeWeight also used for transient storage of cumulative weights
+	TFltV MergeWeight;
+	TFltV MergeMean;
+	// temporary buffers for recently added values
+	TInt Tempsize;
+	TFlt UnmergedSum;
+	TInt TempLast;
+	TFltV TempWeight;
+	TFltV TempMean;
+	TFltV Quantiles;
+
+	// Given the number of centroids, determine temp buffer size
+	// Perform binary search to find value k such that N = k log2 k
+	// This should give us good amortized asymptotic complexity
+	int NumTemp(const int& N) const;
+	// Converts a quantile into a centroid index value. The centroid index is
+	// nominally the number k of the centroid that a quantile point q should
+	// belong to. Due to round-offs, however, we can't align things perfectly
+	// without splitting points and centroids. We don't want to do that, so we
+	// have to allow for offsets.
+	// In the end, the criterion is that any quantile range that spans a centroid
+	// index range more than one should be split across more than one centroid if
+	// possible. This won't be possible if the quantile range refers to a single
+	// point or an already existing centroid.
+	// We use the arcsin function to map from the quantile domain to the centroid
+	// index range. This produces a mapping that is steep near q=0 or q=1 so each
+	// centroid there will correspond to less q range. Near q=0.5, the mapping is
+	// flatter so that centroids there will represent a larger chunk of quantiles.
+	double Integrate(const double& Nc, const double& Q_) const;
+
+	double MergeCentroid(double& Sum, double& K1, double& Wt, double& Ut);
+
+	void MergeValues();
+
+	int Bisect(const TFltV& A, const double& X, int& Low, int& Hi) const;
+
+	double Boundary(const int& I, const int& J, const TFltV& U, const TFltV& W) const;
+
+	void Init(const int& N);
+public:
+	/// Constructs uninitialized object
+	TTDigest() {
+		Init(100);
+	}
+    /// Constructs given JSON arguments
+    TTDigest(const PJsonVal& ParamVal) {
+		if (ParamVal->IsObjKey("clusters")) {
+			TInt N = ParamVal->GetObjInt("clusters");
+			Init(N);
+		}
+		else {
+			Init(100);
+		}
+    };
+	/// Constructs initialized object
+	TTDigest(const TInt& N) {
+		Init(N);
+	};
+	// Destructor
+	//~TTDigest() {}
+	/// Initializes the object, resets current content if present
+	void Init();
+	// Query for estimated quantile *q*.
+	// Argument *q* is a desired quantile in the range (0,1)
+	// For example, q = 0.5 queries for the median.
+	double GetQuantile(const double& Q) const;
+	// Number of clusters
+	int GetClusters() const;
+	// Add a value to the t-digest.
+	// Argument *v* is the value to add.
+	// Argument *count* is the integer number of occurrences to add.
+	// If not provided, *count* defaults to 1.
+	void Update(const double& V);
+	void Update(const double& V, const double& Count);
+	/// Prints the model
+	void Print() const;
+	/// Load from stream
+	void LoadState(TSIn& SIn);
+	/// Store state into stream
+	void SaveState(TSOut& SOut) const;
 };
 
 /////////////////////////////////////////////////
