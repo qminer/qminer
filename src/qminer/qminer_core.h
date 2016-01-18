@@ -1132,6 +1132,29 @@ public:
 };
 
 ///////////////////////////////
+/// Record Filter by UInt64 Field. 
+class TRecFilterByFieldUInt64 {
+private:
+	/// Store from which we are sorting the records 
+	TWPt<TStore> Store;
+	/// Field according to which we are sorting
+	TInt FieldId;
+	/// Minimal value
+	TUInt64 MinVal;
+	/// Maximal value
+	TUInt64 MaxVal;
+public:
+	TRecFilterByFieldUInt64(const TWPt<TStore>& _Store, const int& _FieldId, const uint64& _MinVal,
+		const uint64& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) { 
+	}
+
+	bool operator()(const TUInt64IntKd& RecIdWgt) const {
+		const uint64 RecVal = Store->GetFieldUInt64(RecIdWgt.Key, FieldId);
+		return (MinVal <= RecVal) && (RecVal <= MaxVal);
+	}
+};
+
+///////////////////////////////
 /// Record Filter by String Field. 
 class TRecFilterByFieldStr {
 private:
@@ -1347,6 +1370,8 @@ public:
 	void FilterByFieldInt(const int& FieldId, const int& MinVal, const int& MaxVal);
 	/// Filter records to keep only the ones with values of a given field within given range
 	void FilterByFieldFlt(const int& FieldId, const double& MinVal, const double& MaxVal);
+	/// Filter records to keep only the ones with values of a given field within given range
+	void FilterByFieldUInt64(const int& FieldId, const uint64& MinVal, const uint64& MaxVal);
 	/// Filter records to keep only the ones with values of a given field equal to `FldVal'
 	void FilterByFieldStr(const int& FieldId, const TStr& FldVal);
 	/// Filter records to keep only the ones with values of a given field present in `ValSet'
@@ -2369,6 +2394,8 @@ public:
 		const TFltPr& Loc, const int& Limit) const;
 	/// Get records ids and counts that are joined with given RecId (via given join key)
 	void GetJoinRecIdFqV(const int& JoinKeyId, const uint64& RecId, TUInt64IntKdV& JoinRecIdFqV) const;
+	/// Are there any existing joins from RecId using JoinKeyId
+	bool HasJoin(const int& JoinKeyId, const uint64& RecId) const;
 
 	/// Save debug statistics to a file
 	void SaveTxt(const TWPt<TBase>& Base, const TStr& FNm);

@@ -2033,6 +2033,14 @@ void TRecSet::FilterByFieldFlt(const int& FieldId, const double& MinVal, const d
 	FilterBy(TRecFilterByFieldFlt(Store, FieldId, MinVal, MaxVal));
 }
 
+void TRecSet::FilterByFieldUInt64(const int& FieldId, const uint64& MinVal, const uint64& MaxVal) {
+	// get store and field type
+	const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
+	QmAssertR(Desc.IsUInt64(), "Wrong field type, integer expected");
+	// apply the filter
+	FilterBy(TRecFilterByFieldUInt64(Store, FieldId, MinVal, MaxVal));
+}
+
 void TRecSet::FilterByFieldStr(const int& FieldId, const TStr& FldVal) {
 	// get store and field type
 	const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
@@ -4328,6 +4336,17 @@ void TIndex::GetJoinRecIdFqV(const int& JoinKeyId, const uint64& RecId, TUInt64I
 		for (int i = 0; i < res->GetItems(); i++) {
 			JoinRecIdFqV.Add(res->GetItem(i));
 		}
+	}
+}
+
+bool TIndex::HasJoin(const int& JoinKeyId, const uint64& RecId) const
+{
+	TKeyWord KeyWord(JoinKeyId, RecId);
+	if (UseGixSmall(JoinKeyId)) {
+		return GixSmall->IsKey(KeyWord);
+	}
+	else {
+		return Gix->IsKey(KeyWord);
 	}
 }
 
