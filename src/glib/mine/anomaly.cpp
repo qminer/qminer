@@ -186,6 +186,10 @@ PJsonVal TNearestNeighbor::Explain(const TIntFltKdV& Vec) const {
         }
     }
     ResVal->AddToObj("features", DiffVal);
+	// first and last record in the buffer
+	ResVal->AddToObj("oldestID", IDVec[NextCol]);
+	int CurCol = NextCol > 0 ? NextCol - 1 : WindowSize - 1;
+	ResVal->AddToObj("newestID", IDVec[CurCol]);
 	return ResVal;
 }
 

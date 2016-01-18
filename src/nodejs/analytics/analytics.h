@@ -1036,6 +1036,8 @@ public:
 	* @param {number} nearestID - The ID of the nearest neighbor
 	* @param {number} distance - The distance to the nearest neighbor
 	* @param {Array<module:analytics~NearestNeighborADFeatureContribution>} features - An array with feature contributions
+	* @param {number} oldestID - The ID of the oldest record in the internal buffer (the record that was added first)
+	* @param {number} newestID - The ID of the newest record in the internal buffer (the record that was added last)
     */
 
 	/**
