@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.3.2">
+  <meta name="generator" content="JSDoc 3">
   <meta charset="utf-8">
   <title>Class: SVR</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
@@ -24,8 +24,9 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">SVR</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-201">analyticsdoc.<wbr>js:201</a></p>
+            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div>
+            <h1><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">SVR</span></h1>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-222">analyticsdoc.<wbr>js:222</a></p>
             <div class="symbol-classdesc">
               <p>Support Vector Machine Regression. Implements a soft margin linear support vector regression using the PEGASOS algorithm with epsilon insensitive loss, see: <a href="http://ttic.uchicago.edu/~nati/Publications/PegasosMPB.pdf">Pegasos: Primal Estimated sub-GrAdient SOlver for SVM</a>.</p>
             </div>
@@ -97,22 +98,22 @@
         </h3>
               <div>
                 <pre class="prettyprint"><code>// import module
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // REGRESSION WITH SVR
 // Set up fake train and test data.
-// Four training examples with, number of features = 2
-var featureMatrix = new la.Matrix({ rows: 2, cols: 4, random: true });
+// Four training examples with, number of features &#x3D; 2
+var featureMatrix &#x3D; new la.Matrix({ rows: 2, cols: 4, random: true });
 // Regression targets for four examples
-var targets = new la.Vector([1.1, -2, 3, 4.2]);
+var targets &#x3D; new la.Vector([1.1, -2, 3, 4.2]);
 // Set up the regression model
-var SVR = new analytics.SVR({ verbose: true });
+var SVR &#x3D; new analytics.SVR({ verbose: false });
 // Train regression
 SVR.fit(featureMatrix, targets);
 // Set up a fake test vector
-var test = new la.Vector([1.1, -0.8]);
+var test &#x3D; new la.Vector([1.1, -0.8]);
 // Predict the target value
-var prediction = SVR.predict(test);</code></pre>
+var prediction &#x3D; SVR.predict(test);</code></pre>
               </div>
             </section>
             <section>
@@ -169,18 +170,18 @@ var prediction = SVR.predict(test);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import the modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new SVR object
-var SVR = new analytics.SVR({ c: 10 });
+var SVR &#x3D; new analytics.SVR({ c: 10 });
 // create a matrix and vector for the model
-var matrix = new la.Matrix([[1, -1], [1, 1]]);
-var vector = new la.Vector([1, 1]);
+var matrix &#x3D; new la.Matrix([[1, -1], [1, 1]]);
+var vector &#x3D; new la.Vector([1, 1]);
 // create the model by fitting the values
 SVR.fit(matrix, vector);
 // get the distance between the model and the given vector
-var vec2 = new la.Vector([-5, 1]);
-var distance = SVR.decisionFunction(vec2);</code></pre>
+var vec2 &#x3D; new la.Vector([-5, 1]);
+var distance &#x3D; SVR.decisionFunction(vec2);</code></pre>
                 </div>
               </section>
               <section>
@@ -228,13 +229,13 @@ var distance = SVR.decisionFunction(vec2);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import the modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new SVR object
-var SVR = new analytics.SVR({ c: 10 });
+var SVR &#x3D; new analytics.SVR({ c: 10 });
 // create a matrix and vector for the model
-var matrix = new la.Matrix([[1, -1], [1, 1]]);
-var vector = new la.Vector([1, 1]);
+var matrix &#x3D; new la.Matrix([[1, -1], [1, 1]]);
+var vector &#x3D; new la.Vector([1, 1]);
 // create the model by fitting the values
 SVR.fit(matrix, vector);</code></pre>
                 </div>
@@ -296,11 +297,11 @@ SVR.fit(matrix, vector);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
 // create a SVR model
-var SVR = new analytics.SVR();
+var SVR &#x3D; new analytics.SVR();
 // get the properties of the model
-var model = SVR.getModel(); // returns { weights: new require(&#x27;qminer&#x27;).la.Vector(); }</code></pre>
+var model &#x3D; SVR.getModel(); // returns { weights: new require(&#x27;qminer&#x27;).la.Vector(); }</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -317,11 +318,11 @@ var model = SVR.getModel(); // returns { weights: new require(&#x27;qminer&#x27;
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
 // create a new SVR object
-var SVR = new analytics.SVR({ c: 10, eps: 1e-10, maxTime: 12000, verbose: true });
+var SVR &#x3D; new analytics.SVR({ c: 10, eps: 1e-10, maxTime: 12000, verbose: true });
 // get the parameters of SVR
-var params = SVR.getParams();</code></pre>
+var params &#x3D; SVR.getParams();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -338,18 +339,18 @@ var params = SVR.getParams();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import the modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new SVR object
-var SVR = new analytics.SVR({ c: 10 });
+var SVR &#x3D; new analytics.SVR({ c: 10 });
 // create a matrix and vector for the model
-var matrix = new la.Matrix([[1, -1], [1, 1]]);
-var vector = new la.Vector([1, 1]);
+var matrix &#x3D; new la.Matrix([[1, -1], [1, 1]]);
+var vector &#x3D; new la.Vector([1, 1]);
 // create the model by fitting the values
 SVR.fit(matrix, vector);
 // predict the value of the given vector
-var vec2 = new la.Vector([-5, 1]);
-var prediction = SVR.predict(vec2);</code></pre>
+var vec2 &#x3D; new la.Vector([-5, 1]);
+var prediction &#x3D; SVR.predict(vec2);</code></pre>
                 </div>
               </section>
               <section>
@@ -391,6 +392,31 @@ var prediction = SVR.predict(vec2);</code></pre>
               </dl>
               <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
               <p>Saves model to output file stream.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import the modules
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
+// create a new SVR object
+var SVR &#x3D; new analytics.SVR({ c: 10 });
+// create a matrix and vector for the model
+var matrix &#x3D; new la.Matrix([[1, -1], [1, 1]]);
+var vector &#x3D; new la.Vector([1, 1]);
+// create the model by fitting the values
+SVR.fit(matrix, vector);
+// save the model in a binary file
+var fout &#x3D; fs.openWrite(&#x27;svr_example.bin&#x27;);
+SVR.save(fout);
+fout.close();
+// construct a SVR model by loading from the binary file
+var fin &#x3D; fs.openRead(&#x27;svr_example.bin&#x27;);
+var SVR2 &#x3D; new analytics.SVR()</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -434,9 +460,9 @@ var prediction = SVR.predict(vec2);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
 // create a new SVR object
-var SVR = new analytics.SVR();
+var SVR &#x3D; new analytics.SVR();
 // set the parameters of the SVR object
 SVR.setParams({ c: 10, maxTime: 12000 });</code></pre>
                 </div>
@@ -486,7 +512,7 @@ SVR.setParams({ c: 10, maxTime: 12000 });</code></pre>
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on August 28, 2015.
+        
       </p>
     </div>
   </footer>

@@ -1,18 +1,15 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
- 
-console.log(__filename)
+
+// console.log(__filename)
 var qm = require('qminer');
 var assert = require('assert')
 var datasets = qm.datasets;
-
-qm.delLock();
-qm.config('qm.conf', true, 8080, 1024);
 
 describe('qm.datasets', function () {
 
@@ -30,7 +27,7 @@ describe('qm.datasets', function () {
 
         // Create base and load data before tests
         before(function () {
-            base = qm.create('qm.conf', '', true);
+            base = new qm.Base({ mode: 'createClean' });
             Iris = datasets.loadIrisSync(base);
         });
 
@@ -59,7 +56,7 @@ describe('qm.datasets', function () {
 
         // Reload base, and wait for store to be loaded.
         before(function (done) {
-            base = qm.create('qm.conf', '', true);
+            base = new qm.Base({ mode: 'createClean' });
 
             datasets.loadIris(base, function (err, store) {
                 if (err) throw err;

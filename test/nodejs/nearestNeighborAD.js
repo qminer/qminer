@@ -1,3 +1,11 @@
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ *
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 
 var assert = require("../../src/nodejs/scripts/assert.js");
 
@@ -168,6 +176,25 @@ describe('NearestNeighborAD Tests', function () {
             var vector = new la.SparseVector([[0, 4], [1, 0]]);
             var prediction = neighbor.predict(vector);
             assert.equal(prediction, 1);
+        })
+        it('should explain differences for the given vector', function () {
+            var neighbor = new analytics.NearestNeighborAD({ windowSize: 3 });
+            var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
+            var idVec = new la.IntVector([1, 2, 3]);
+            neighbor.fit(matrix, idVec);
+
+            var vector = new la.SparseVector([[0, 1], [1, 4]]);
+            var explain = neighbor.explain(vector);
+            assert.equal(explain.nearestID, 1);
+            assert.equal(explain.distance, 4);
+            assert.equal(explain.features[0].id, 0);
+            assert.equal(explain.features[0].val, 1);
+            assert.equal(explain.features[0].nearVal, 1);
+            assert.equal(explain.features[0].contribution, 0);
+            assert.equal(explain.features[1].id, 1);
+            assert.equal(explain.features[1].val, 4);
+            assert.equal(explain.features[1].nearVal, 2);
+            assert.equal(explain.features[1].contribution, 1);
         })
     });
 

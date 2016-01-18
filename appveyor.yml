@@ -1,28 +1,39 @@
 environment:
+  node_pre_gyp_accessKeyId:
+    secure: jxPeHdKaFnYcMFAUkX+/lcUCKEha3yp5pxxMACxx/lM=
+  node_pre_gyp_secretAccessKey:
+    secure: 7nDsFrQjWQfhXAPESzf6JO+mslguRKGAPyZ5C4x6Sklcuv4E8/3gkGqoahJJKbZo
   matrix:
-    - nodejs_version: 0.12.7
+  - nodejs_version: "0.12"
+  - nodejs_version: "4"
+  - nodejs_version: "5"
 
 platform:
+  - x86
   - x64
 
 shallow_clone: true
 
 install:
-  - ps: Install-Product node $env:nodejs_version $env:Platform
-  - node --version
-  - npm --version
-  - SET PATH=%APPDATA%\npm;%PATH%
-  - npm update -g npm
-  - npm --version
-  - node -e "console.log(process.arch);"
+  # Set paths
   - SET PATH=C:\Program Files (x86)\MSBuild\12.0\bin\;%PATH%
   - if "%PLATFORM%" == "x64" set PATH=C:\Python27-x64;%PATH%
   - if "%PLATFORM%" == "x86" SET PATH=C:\python27;%PATH%
-  - npm install --verbose
-  - cd test\nodejs
-  - npm install -g mocha
-  - mocha *.js
+  # Check if we're publishing. Only punlish commits including [publish binary] at qminer/qminer (ignore pull requests)
+  - SET CM=%APPVEYOR_REPO_COMMIT_MESSAGE%
+  - ECHO commit message %CM%
+  - ECHO %APPVEYOR_REPO_NAME%
+  - ps: Install-Product node $env:nodejs_version $env:platform
 
-build: off
+build_script:
+  - npm install -g mustache
+  - npm install --build-from-source --verbose --msvs_version=2013
+  - cd tools
+  - genExampleTests.bat
+  - cd ..
+  - .\test\nodejs\test.bat
+  - node_modules\.bin\node-pre-gyp package
+  - if not "%CM%" == "%CM:[publish binary]=%" if "%APPVEYOR_REPO_NAME%" == "qminer/qminer" if not defined APPVEYOR_PULL_REQUEST_NUMBER  node_modules\.bin\node-pre-gyp unpublish publish
+
 test: off
 deploy: off

@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.3.2">
+  <meta name="generator" content="JSDoc 3">
   <meta charset="utf-8">
   <title>Class: SparseMatrix</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
@@ -24,8 +24,9 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-la.html">la</a>.<wbr></small><span class="symbol-name">SparseMatrix</span></h1>
-            <p class="source-link">Source: <a href="ladoc.js.html#source-line-464">ladoc.<wbr>js:464</a></p>
+            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div>
+            <h1><small><a href="module-la.html">la</a>.<wbr></small><span class="symbol-name">SparseMatrix</span></h1>
+            <p class="source-link">Source: <a href="ladoc.js.html#source-line-587">ladoc.<wbr>js:587</a></p>
             <div class="symbol-classdesc">
               <p>Represents a sparse matrix.</p>
             </div>
@@ -115,10 +116,13 @@
                     <dt><a href="module-la.SparseMatrix.html#put">put(rowIdx, colIdx, num)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-la.SparseMatrix.html#save">save(fout)</a></dt>
+                    <dt><a href="module-la.SparseMatrix.html#save">save(fout[, saveMatlab])</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-la.SparseMatrix.html#setCol">setCol(colIdx, spVec)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-la.SparseMatrix.html#setRowDim">setRowDim(rowDim)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-la.SparseMatrix.html#toString">toString()</a></dt>
@@ -141,11 +145,11 @@
         </h3>
               <div>
                 <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new sparse matrix with array
-var mat = new la.SparseMatrix([[[0, 2]], [[0, 1], [2, 3]]]);
+var mat &#x3D; new la.SparseMatrix([[[0, 2]], [[0, 1], [2, 3]]]);
 // create a new sparse matrix with specified max rows
-var mat2 = new la.SparseMatrix([[[0, 2]], [[0, 1], [2, 3]]], 3);</code></pre>
+var mat2 &#x3D; new la.SparseMatrix([[[0, 2]], [[0, 1], [2, 3]]], 3);</code></pre>
               </div>
             </section>
             <section>
@@ -227,9 +231,9 @@ var mat2 = new la.SparseMatrix([[[0, 2]], [[0, 1], [2, 3]]], 3);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a sparse matrix
-var mat = new la.SparseMatrix([[[0, 2]], [[0, 1], [2, 3]]]);
+var mat &#x3D; new la.SparseMatrix([[[0, 2]], [[0, 1], [2, 3]]]);
 // get the value at the position (1, 1)
 mat.at(1, 1); // returns 3</code></pre>
                 </div>
@@ -323,11 +327,11 @@ mat.at(1, 1); // returns 3</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a sparse matrix
-var mat = new la.SparseMatrix([[[0, 3], [1, 2]], [[1, -2], [3, 4]], [[10, 8]]]);
+var mat &#x3D; new la.SparseMatrix([[[0, 3], [1, 2]], [[1, -2], [3, 4]], [[10, 8]]]);
 // get the first column as a vector
-var first = mat.getCol(0); // returns the first column of the sparse matrix</code></pre>
+var first &#x3D; mat.getCol(0); // returns the first column of the sparse matrix</code></pre>
                 </div>
               </section>
               <section>
@@ -373,12 +377,12 @@ var first = mat.getCol(0); // returns the first column of the sparse matrix</cod
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import the modules
-var fs = require(&#x27;qminer&#x27;).fs;
-var la = require(&#x27;qminer&#x27;).la;
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create an empty matrix
-var mat = new la.SparseMatrix();
+var mat &#x3D; new la.SparseMatrix();
 // open a read stream (&#x27;mat.dat&#x27; was previously created)
-var fin = fs.openRead(&#x27;mat.dat&#x27;);
+var fin &#x3D; fs.openRead(&#x27;mat.dat&#x27;);
 // load the matrix
 mat.load(fin);</code></pre>
                 </div>
@@ -426,17 +430,17 @@ mat.load(fin);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create two sparse matrices
-var mat = new la.SparseMatrix([[[0, 1], [3, 2]], [[1, -3]]]);
-var mat2 = new la.SparseMatrix([[[0, 3]],[[2, 1]]]);
+var mat &#x3D; new la.SparseMatrix([[[0, 1], [3, 2]], [[1, -3]]]);
+var mat2 &#x3D; new la.SparseMatrix([[[0, 3]],[[2, 1]]]);
 // get the sum of the two matrices
 // returns the sum ( insparse form)
 // -2    0
 //  0   -3
 //  0   -1
 //  2    0
-var diff = mat.minus(mat2);</code></pre>
+var diff &#x3D; mat.minus(mat2);</code></pre>
                 </div>
               </section>
               <section>
@@ -576,17 +580,17 @@ var diff = mat.minus(mat2);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create two sparse matrices
-var mat = new la.SparseMatrix([[[0, 1], [3, 2]], [[1, -3]]]);
-var mat2 = new la.SparseMatrix([[[0, 3]],[[2, 1]]]);
+var mat &#x3D; new la.SparseMatrix([[[0, 1], [3, 2]], [[1, -3]]]);
+var mat2 &#x3D; new la.SparseMatrix([[[0, 3]],[[2, 1]]]);
 // get the sum of the two matrices
 // returns the sum ( insparse form)
 // 4    0
 // 0   -3
 // 0    1
 // 2    0
-var sum = mat.plus(mat2);</code></pre>
+var sum &#x3D; mat.plus(mat2);</code></pre>
                 </div>
               </section>
               <section>
@@ -632,16 +636,16 @@ var sum = mat.plus(mat2);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new sparse matrix
-var spMat = new la.SparseMatrix([[[0, 1]], [[0, 3], [1, 8]]]);
+var spMat &#x3D; new la.SparseMatrix([[[0, 1]], [[0, 3], [1, 8]]]);
 // print sparse matrix on screen
-// each row represents a nonzero element, where first value is row index, second 
+// each row represents a nonzero element, where first value is row index, second
 // value is column index and third value is element value. For this matrix:
 // 0  0  1.000000
 // 0  1  3.000000
 // 1  1  8.000000
-spMat.print(); </code></pre>
+spMat.print();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -654,11 +658,11 @@ spMat.print(); </code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new sparse vector
-var mat = new la.SparseMatrix([[[0, 2], [3, 5]], [[1, -3]]]);
+var mat &#x3D; new la.SparseMatrix([[[0, 2], [3, 5]], [[1, -3]]]);
 // create a new vector
-var vec = new la.SparseVector([[0, 2], [2, -3]]);
+var vec &#x3D; new la.SparseVector([[0, 2], [2, -3]]);
 // push the newly created vector to the matrix
 // the new matrix is going to be (in sparse form)
 // 2    0    2
@@ -711,9 +715,9 @@ mat.push(vec);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new sparse matrix
-var mat = new la.SparseMatrix([[[0, 3], [1, 2]], [[1, -2], [3, 4]], [[10, 8]]]);
+var mat &#x3D; new la.SparseMatrix([[[0, 3], [1, 2]], [[1, -2], [3, 4]], [[10, 8]]]);
 // set the value at position (2, 2) to -4
 mat.put(2, 2, -4);</code></pre>
                 </div>
@@ -781,7 +785,7 @@ mat.put(2, 2, -4);</code></pre>
                   <p><code><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></code>&nbsp;Self. The value at position (rowIdx, colIdx) is changed.</p>
                 </dd>
               </dl>
-              <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
+              <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout[, saveMatlab])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
               <p>Saves the sparse matrix as output stream.</p>
               <section>
                 <h4>
@@ -789,18 +793,18 @@ mat.put(2, 2, -4);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import the modules
-var fs = require(&#x27;qminer&#x27;).fs;
-var la = require(&#x27;qminer&#x27;).la;
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new sparse matrix
-var mat = new la.SparseMatrix([[[0, 1]], [[0, 3], [1, 12]]]);
+var mat &#x3D; new la.SparseMatrix([[[0, 1]], [[0, 3], [1, 12]]]);
 // open write stream
-var fout = fs.openWrite(&#x27;mat.dat&#x27;);
+var fout &#x3D; fs.openWrite(&#x27;mat.dat&#x27;);
 // save matrix and close write stream
 mat.save(fout).close();</code></pre>
                 </div>
               </section>
               <section>
-                <h4>Parameter</h4>
+                <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
                   <thead>
                     <tr>
@@ -825,6 +829,21 @@ mat.save(fout).close();</code></pre>
                         <p>Output stream.</p>
                       </td>
                     </tr>
+                    <tr>
+                      <td>
+                        <p>saveMatlab</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>If true, saves using matlab three column text format. Otherwise, saves using binary format.</p>
+                        <p>Defaults to <code>false</code>.</p>
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               </section>
@@ -842,11 +861,11 @@ mat.save(fout).close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new sparse matrix
-var mat = new la.SparseMatrix([[[0, 3], [1, 2]], [[1, -2], [3, 4]], [[10, 8]]]);
+var mat &#x3D; new la.SparseMatrix([[[0, 3], [1, 2]], [[1, -2], [3, 4]], [[10, 8]]]);
 // create a new sparse vector to replace the third column
-var vec = new la.SparseVector([[0, 3], [2, -5]]);
+var vec &#x3D; new la.SparseVector([[0, 3], [2, -5]]);
 // set the third column of mat to vec
 mat.setCol(2, vec); // returns mat with the third column changed</code></pre>
                 </div>
@@ -900,6 +919,52 @@ mat.setCol(2, vec); // returns mat with the third column changed</code></pre>
                   <p><code><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></code>&nbsp;Self.</p>
                 </dd>
               </dl>
+              <h3 id="setRowDim"><span class="symbol-name">setRowDim</span><span class="signature"><span class="signature-params">(rowDim)</span></span></h3>
+              <p>Sets the row dimension</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import the modules
+var la &#x3D; require(&#x27;qminer&#x27;).la;
+// create an empty matrix
+var mat &#x3D; new la.SparseMatrix();
+mat.setRowDim(2);
+mat.rows // prints 2</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>rowDim</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Row dimension</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
               <h3 id="toString"><span class="symbol-name">toString</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> string</span></span></h3>
               <p>Returns a string displaying rows, columns and number of non-zero elements of sparse matrix.</p>
               <section>
@@ -908,11 +973,11 @@ mat.setCol(2, vec); // returns mat with the third column changed</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new sparse matrix
-var mat = new la.SparseMatrix([[[0, 1]], [[0, 2], [1, 8]]]);
+var mat &#x3D; new la.SparseMatrix([[[0, 1]], [[0, 2], [1, 8]]]);
 // create the string
-var text = mat.toString(); // returns &#x27;rows: -1, cols: 2, nnz: 3&#x27;</code></pre>
+var text &#x3D; mat.toString(); // returns &#x27;rows: -1, cols: 2, nnz: 3&#x27;</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -929,9 +994,9 @@ var text = mat.toString(); // returns &#x27;rows: -1, cols: 2, nnz: 3&#x27;</cod
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new sparse matrix
-var mat = new la.SparseMatrix([[[0, 2], [2, -3]], [[1, 1], [3, -2]]]);
+var mat &#x3D; new la.SparseMatrix([[[0, 2], [2, -3]], [[1, 1], [3, -2]]]);
 // transpose the sparse matrix
 // returns the transposed matrix (in sparse form)
 // 2    0   -3    0
@@ -955,7 +1020,7 @@ mat.transpose();</code></pre>
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on August 28, 2015.
+        
       </p>
     </div>
   </footer>

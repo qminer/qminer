@@ -41,7 +41,7 @@ exports = {}; require.modules.qminer_analytics = exports;
 * // classification targets for four examples
 * var targets = new la.Vector([-1, -1, 1, 1]);
 * // set up the classification model
-* var SVC = new analytics.SVC({ verbose: true });
+* var SVC = new analytics.SVC({ verbose: false });
 * // train classifier
 * SVC.fit(featureMatrix, targets);
 * // set up a fake test vector
@@ -98,6 +98,27 @@ exports = {}; require.modules.qminer_analytics = exports;
 	* Saves model to output file stream.
 	* @param {module:fs.FOut} fout - Output stream.
 	* @returns {module:fs.FOut} The Output stream.
+	* @example
+	* // import the analytics and la modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* var fs = require('qminer').fs;
+	* // create a new SVC object
+	* var SVC = new analytics.SVC();
+	* // create the matrix containing the input features and the input vector for each matrix column.
+	* var matrix = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);	
+	* var vec = new la.Vector([1, 0, -1, -2]);
+	* // fit the model
+	* SVC.fit(matrix, vec);
+	* // create output stream
+	* var fout = fs.openWrite('svc_example.bin');
+	* // save SVC object (model and parameters) to output stream and close it
+	* SVC.save(fout);
+	* fout.close();
+	* // create input stream
+	* var fin = fs.openRead('svc_example.bin');
+	* // create a SVC object that loads the model and parameters from input stream
+	* var SVC2 = new analytics.SVC(fin);	
 	*/
  exports.SVC.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 /**
@@ -193,7 +214,7 @@ exports = {}; require.modules.qminer_analytics = exports;
 * // Regression targets for four examples
 * var targets = new la.Vector([1.1, -2, 3, 4.2]);
 * // Set up the regression model
-* var SVR = new analytics.SVR({ verbose: true });
+* var SVR = new analytics.SVR({ verbose: false });
 * // Train regression
 * SVR.fit(featureMatrix, targets);
 * // Set up a fake test vector
@@ -236,6 +257,25 @@ exports = {}; require.modules.qminer_analytics = exports;
 	* Saves model to output file stream.
 	* @param {module:fs.FOut} fout - Output stream.
 	* @returns {module:fs.FOut} Output stream.
+	* @example
+	* // import the modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* var fs = require('qminer').fs;
+	* // create a new SVR object
+	* var SVR = new analytics.SVR({ c: 10 });
+	* // create a matrix and vector for the model
+	* var matrix = new la.Matrix([[1, -1], [1, 1]]);
+	* var vector = new la.Vector([1, 1]);
+	* // create the model by fitting the values
+	* SVR.fit(matrix, vector);
+	* // save the model in a binary file
+	* var fout = fs.openWrite('svr_example.bin');
+	* SVR.save(fout);
+	* fout.close();
+	* // construct a SVR model by loading from the binary file
+	* var fin = fs.openRead('svr_example.bin');
+	* var SVR2 = new analytics.SVR()
 	*/
  exports.SVR.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 /**
@@ -318,7 +358,7 @@ exports = {}; require.modules.qminer_analytics = exports;
  * la = require('qminer').la;
  * analytics = require('qminer').analytics;
  * // create a new model with gamma = 1.0
- * var regmod = new analytics.RidgeReg(1.0);
+ * var regmod = new analytics.RidgeReg({ gamma: 1.0 });
  * // generate a random feature matrix
  * var A = la.randn(10,100);
  * // generate a random model
@@ -330,12 +370,12 @@ exports = {}; require.modules.qminer_analytics = exports;
  * // fit model
  * regmod.fit(A, b);
  * // compare
- * console.log('true model:');
+ * // true model
  * w.print();
- * console.log('trained model:');
+ * // trained model');
  * regmod.weights.print();
  * // cosine between the true and the estimated model should be close to 1 if the fit succeeded
- * console.log('cosine(w, regmod.weights): ' + regmod.weights.cosine(w));
+ * var cos = regmod.weights.cosine(w);
  */
  exports.RidgeReg = function(arg) {};
 /**
@@ -439,6 +479,25 @@ exports = {}; require.modules.qminer_analytics = exports;
      *
      * @param {module:fs.FOut} fout - Output stream.
 	 * @returns {module:fs.FOut} THe output stream fout.
+	 * @example
+	 * // import modules
+	 * var analytics = require('qminer').analytics;
+	 * var la = require('qminer').la;
+	 * var fs = require('qminer').fs;
+	 * // create a new Ridge Regression object
+	 * var regmod = new analytics.RidgeReg();
+	 * // create the test matrix and vector
+	 * var X = new la.Matrix([[1, 2], [1, -1]]);
+	 * var y = new la.Vector([3, 3]);
+	 * // fit the model with X and y
+	 * regmod.fit(X, y);
+	 * // create an output stream object and save the model
+	 * var fout = fs.openWrite('regmod_example.bin');
+	 * regmod.save(fout);
+	 * fout.close();
+	 * // create a new Ridge Regression model by loading the model
+	 * var fin = fs.openRead('regmod_example.bin');
+	 * var regmod2 = new analytics.RidgeReg(fin);
      */
  exports.RidgeReg.prototype.save = function(fout) { Object.create(require('qminer').fs.FOut.prototype); };
 /**
@@ -571,6 +630,25 @@ exports = {}; require.modules.qminer_analytics = exports;
      *
      * @param {module:fs.FOut} fout - Output stream.
 	 * @returns {module:fs.FOut} The output stream fout.
+	 * @example
+	 * // import modules
+	 * var analytics = require('qminer').analytics;
+	 * var la = require('qminer').la;
+	 * var fs = require('qminer').fs;
+	 * // create the Sigmoid model
+	 * var s = new analytics.Sigmoid();
+	 * // create the predicted values and the binary labels
+	 * var X = new la.Vector([-3, -2, -1, 1, 2, 3]);
+	 * var y = new la.Vector([-1, -1, -1, 1, 1, 1]);
+	 * // fit the model
+	 * s.fit(X, y);
+	 * // create an output stream object and save the model
+	 * var fout = fs.openWrite('sigmoid_example.bin');
+	 * s.save(fout);
+	 * fout.close();
+	 * // create a new Sigmoid model by loading the model
+	 * var fin = fs.openRead('sigmoid_example.bin');
+	 * var s2 = new analytics.Sigmoid(fin);
      */
  exports.Sigmoid.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); };
 /**
@@ -583,7 +661,7 @@ exports = {}; require.modules.qminer_analytics = exports;
  * Nearest Neighbour Anomaly Detection 
  * @classdesc Anomaly detector that checks if the test point is too far from the nearest known point.
  * @class
- * @param {module:analytics~detectorParam} [detectorParam] - Constructor parameters.
+ * @param {(module:analytics~detectorParam|module:fs.FIn)} [detectorParam] - Constructor parameters.
  * @example
  * // import modules
  * var analytics = require('qminer').analytics;
@@ -630,6 +708,24 @@ exports = {}; require.modules.qminer_analytics = exports;
      * Save model to provided output stream.
      * @param {module:fs.FOut} fout - The output stream.
      * @returns {module:fs.FOut} Provided output stream fout.
+	 * @example
+	 * // import modules
+	 * var analytics = require('qminer').analytics;
+	 * var la = require('qminer').la;
+	 * var fs = require('qminer').fs;
+	 * // create a new NearestNeighborAD object
+	 * var neighbor = new analytics.NearestNeighborAD();
+	 * // create a new sparse matrix
+	 * var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
+	 * // fit the model with the matrix
+	 * neighbor.fit(matrix);
+	 * // create an output stream object and save the model
+	 * var fout = fs.openWrite('neighbor_example.bin');
+	 * neighbor.save(fout);
+	 * fout.close();
+	 * // create a new Nearest Neighbor Anomaly model by loading the model
+	 * var fin = fs.openRead('neighbor_example.bin');
+	 * var neighbor2 = new analytics.NearestNeighborAD(fin);
      */
  exports.NearestNeighborAD.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 /**
@@ -648,8 +744,9 @@ exports = {}; require.modules.qminer_analytics = exports;
 	*/
  exports.NearestNeighborAD.prototype.getModel = function () { return { threshold: 0.0 }; }
 /**
-	* Adds a new point (or points) to the known points and recomputes the threshold.
-	* @param {(module:la.SparseVector | module:la.SparseMatrix)} X - Test example (vector input) or column examples (matrix input).
+	* Adds a new point to the known points and recomputes the threshold.
+	* @param {module:la.SparseVector} X - Test example (vector input)
+	* @param {number} recId - Integer record ID, used in NearestNeighborAD.explain
 	* @returns {module:analytics.NearestNeighborAD} Self. The model is updated.
 	* @example
 	* // import modules
@@ -670,6 +767,7 @@ exports = {}; require.modules.qminer_analytics = exports;
 /**
 	* Analyzes the nearest neighbor distances and computes the detector threshold based on the rate parameter.
 	* @param {module:la.SparseMatrix} A - Matrix whose columns correspond to known examples. Gets saved as it is part of
+	* @param {module:la.IntVector} [idVec] - An integer vector of IDs
 	* the model.
 	* @returns {module:analytics.NearestNeighborAD} Self. The model is set by the matrix A.
 	* @example
@@ -683,7 +781,7 @@ exports = {}; require.modules.qminer_analytics = exports;
 	* // fit the model with the matrix
 	* neighbor.fit(matrix);
 	*/
- exports.NearestNeighborAD.prototype.fit = function(A) { return Object.create(require('qminer').NearestNeighborAD.prototype); }
+ exports.NearestNeighborAD.prototype.fit = function(A, idVec) { return Object.create(require('qminer').NearestNeighborAD.prototype); }
 /**
      * Compares the point to the known points and returns distance to the nearest one.
      * @param {module:la.Vector} x - Test vector.
@@ -725,6 +823,33 @@ exports = {}; require.modules.qminer_analytics = exports;
 	*/
  exports.NearestNeighborAD.prototype.predict = function(x) { return 0.0; }
 /**
+	* @typedef {Object} NearestNeighborADExplain
+	* A Json object used for interpreting the predictions of {@link module:analytics.NearestNeighborAD}.
+	* @param {number} nearestID - The ID of the nearest neighbor
+	* @param {Array<number>} featureIDs - the IDs of the features that contributed to the distance score
+	* @param {Array<number>} featureContributions - fractions of the contributions of each feature to the total distance (the scores sum to 1.0). The elements correspond to features in the array `featureIDs`
+	*/
+/**
+	* Returns a JSON object that encodes the ID of the nearest neighbor and the features that contributed to the distance
+	* @param {module:la.SparseVector} x - Test vector.
+	* @returns {module:analytics~NearestNeighborADExplain} The explanation object
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // create a new NearestNeighborAD object
+	* var neighbor = new analytics.NearestNeighborAD({rate:0.05, windowSize:3});
+	* // create a new sparse matrix
+	* var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
+	* // fit the model with the matrix and provide a vector record IDs
+	* neighbor.fit(matrix, new la.IntVector([3541,1112,4244]));
+	* // create a new sparse vector
+	* var vector = new la.SparseVector([[0, 4], [1, 0]]);
+	* // check if the vector is an anomaly
+	* var explanation = neighbor.explain(vector); // returns an explanation
+	*/
+ exports.NearestNeighborAD.prototype.explain = function(x) { return {}; }
+/**
 * @typedef {Object} recLinearRegParam
 * The constructor parameter for {@link module:analytics.RecLinReg}.
 * @param {number} dim - The dimension of the model.
@@ -735,7 +860,7 @@ exports = {}; require.modules.qminer_analytics = exports;
 * Recursive Linear Regression
 * @classdesc Holds the Recursive Linear Regression model.
 * @class
-* @param {module:analytics~recLinearRegParam} param - The constructor parameter json object.
+* @param {(module:analytics~recLinearRegParam|module:fs.FIn)} param - The constructor parameter json object.
 * @example
 * // import analytics module
 * var analytics = require('qminer').analytics;
@@ -836,83 +961,270 @@ exports = {}; require.modules.qminer_analytics = exports;
 	* Save model to provided output stream.
 	* @param {module:fs.FOut} fout - The output stream.
 	* @returns {module:fs.FOut} Provided output stream fout.
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* var fs = require('qminer').fs;
+	* // create the Recursive Linear Regression model
+	* var linreg = new analytics.RecLinReg({ dim: 2.0, recFact: 1e-10 });
+	* // create a new dense matrix and target vector
+	* var mat = new la.Matrix([[1, 2], [1, -1]]);
+	* var vec = new la.Vector([3, 3]);
+	* // fit the model with the matrix
+	* linreg.fit(mat, vec);
+	* // create an output stream object and save the model
+	* var fout = fs.openWrite('linreg_example.bin');
+	* linreg.save(fout);
+	* fout.close();
+	* // create a new Nearest Neighbor Anomaly model by loading the model
+	* var fin = fs.openRead('linreg_example.bin');
+	* var linreg2 = new analytics.RecLinReg(fin);
 	*/
  exports.RecLinReg.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 /**
+* @typedef {Object} logisticRegParam
+* The Json constructor parameters for {@link module:analytics.LogReg}.
+* @property {number} [lambda=1] - The regularization parameter.
+* @property {boolean} [intercept=false] - Indicates wether to automatically include the intercept.
+*/
+/**
  * Logistic regression model. Uses Newtons method to compute the weights.
- *
+ * <b>Before use: include BLAS library.</b>
  * @constructor
- * @property {Object|FIn} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.
- * @property {Number} [opts.lambda = 1] - the regularization parameter
- * @property {Boolean} [opts.intercept = false] - indicates wether to automatically include the intercept
+ * @param {(module:analytics~logisticRegParam|module:fs.FIn)} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.
+ * @example
+ * // import analytics module
+ * var analytics = require('qminer').analytics;
+ * // create the Logistic Regression model
+ * var logreg = new analytics.LogReg({ lambda: 2 });
  */
+ exports.LogReg = function (opts) { return Object.create(require('qminer').analytics.LogReg.prototype); }
+/**
+	* Gets the parameters.
+	* @returns {module:analytics~logisticRegParam} The parameters of the model.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create the Logistic Regression model
+	* var logreg = new analytics.LogReg({ lambda: 10 });
+	* // get the parameters of the model
+	* var param = logreg.getParams(); // returns { lambda: 10, intercept: false }
+	*/
+ exports.LogReg.prototype.getParams = function () { return { lambda: 1.0, intercept: false } };
+/**
+	* Set the parameters.
+	* @param {module:analytics~logisticRegParam} param - The new parameters.
+	* @returns {module:analytics.LogReg} Self. The parameters are updated.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a logistic regression model
+	* var logreg = new analytics.LogReg({ lambda: 10 });
+	* // set the parameters of the model
+	* logreg.setParams({ lambda: 1 });
+	*/
+ exports.LogReg.prototype.setParams = function () { return Object.create(require('qminer').analytics.LogReg.prototype); }
 /**
 	 * Fits a column matrix of feature vectors X onto the response variable y.
-	 *
-	 * @param {Matrix} X - the column matrix which stores the feature vectors.
-	 * @param {Vector} y - the response variable.
-	 * @param {Number} [eps] - the epsilon used for convergence
-	 * @returns {LogReg} - returns itself
+	 * @param {module:la.Matrix} X - the column matrix which stores the feature vectors.
+	 * @param {module:la.Vector} y - the response variable.
+	 * @param {number} [eps] - the epsilon used for convergence.
+	 * @returns {module:analytics.LogReg} Self.
+	 * @example
+	 * // import modules
+	 * var analytics = require('qminer').analytics;
+	 * var la = require('qminer').la;
+	 * // create the logistic regression model
+	 * var logreg = new analytics.LogReg();
+	 * // create the input matrix and vector for fitting the model
+	 * var mat = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+	 * var vec = new la.Vector([1, 0, -1, -2]);
+	 * // if openblas is used, fit the model
+	 * if (require('qminer').flags.blas) {
+	 *     logreg.fit(mat, vec);
+	 * }
 	 */
+ exports.LogReg.prototype.fit = function (X, y, eps) { return Object.create(require('qminer').analytics.LogReg.prototype); }
 /**
 	 * Returns the expected response for the provided feature vector.
-	 *
-	 * @param {Vector} x - the feature vector
-	 * @returns {Number} - the expected response
+	 * @param {module:la.Vector} x - the feature vector.
+	 * @returns {number} the expected response.
+	 * @example
+	 * // import modules
+	 * var analytics = require('qminer').analytics;
+	 * var la = require('qminer').la;
+	 * // create the logistic regression model
+	 * var logreg = new analytics.LogReg();
+	 * // create the input matrix and vector for fitting the model
+	 * var mat = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+	 * var vec = new la.Vector([1, 0, -1, -2]);
+	 * // if openblas is used
+	 * if (require('qminer').flags.blas) {
+	 *     // fit the model
+	 *     logreg.fit(mat, vec);
+	 *     // create the vector for the prediction
+	 *     var test = new la.Vector([1, 1]);
+	 *     // get the prediction
+	 *     var prediction = logreg.predict(test);
+	 * };
 	 */
+ exports.LogReg.prototype.predict = function (x) { return 0.0; } 
 /**
-	 * The models weights.
-	 *
-	 * @type {Vector}
+	 * Gives the weights of the model.
 	 */
+ exports.LogReg.prototype.weights = Object.create(require('qminer').la.vector.prototype);
 /**
 	 * Saves the model into the output stream.
-	 *
-	 * @param {FOut} sout - the output stream
+	 * @param {module:fs.FOut} fout - the output stream.
+	 * @returns {module:fs.FOut} The output stream fout.
+	 * @example
+	 * // import modules
+	 * var analytics = require('qminer').analytics;
+	 * var la = require('qminer').la;
+	 * var fs = require('qminer').fs;
+	 * // create the logistic regression model
+	 * var logreg = new analytics.LogReg();
+	 * // create the input matrix and vector for fitting the model
+	 * var mat = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+	 * var vec = new la.Vector([1, 0, -1, -2]);
+	 * // if openblas is used, fit the model
+	 * if (require('qminer').flags.blas) {
+	 *     logreg.fit(mat, vec);
+	 * };
+	 * // create an output stream object and save the model
+	 * var fout = fs.openWrite('logreg_example.bin');
+	 * logreg.save(fout);
+	 * fout.close();
+	 * // create input stream
+	 * var fin = fs.openRead('logreg_example.bin');
+	 * // create a Logistic Regression object that loads the model and parameters from input stream
+	 * var logreg2 = new analytics.LogReg(fin);
 	 */
+ exports.LogReg.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 /**
- * Proportional Hazards model with a constant hazard function.
- *
+* @typedef {Object} hazardModelParam
+* The constructor parameters for the Proportional Hazards Model.
+* @property {number} [lambda = 0] - The regularization parameter.
+*/
+/**
+ * Proportional Hazards Model with a constant hazard function.
  * Uses Newtons method to compute the weights.
+ * <b>Before use: include BLAS library.</b>
  *
  * @constructor
- * @property {Object|FIn} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.
- * @property {Number} [opts.lambda = 0] - the regularization parameter
+ * @property {module:analytics~hazardModelParam|module:fs.FIn} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.
+ * @example
+ * // import analytics module
+ * var analytics = require('qminer').analytics;
+ * // create a Proportional Hazard model
+ * var hazard = new analytics.PropHazards();
  */
+ exports.PropHazards = function (opts) { return Object.create(require('qminer').analytics.PropHazards.prototype); }
+/**
+	* Gets the parameters of the model.
+	* @returns {module:analytics~hazardModelParam} The parameters of the model.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a Proportional Hazard model
+	* var hazard = new analytics.PropHazards({ lambda: 5 });
+	* // get the parameters of the model
+	* var param = hazard.getParams();
+	*/
+ exports.PropHazards.prototype.getParams = function () { return { lambda: 0.0 }; }
+/**
+	* Sets the parameters of the model.
+	* @param {module:analytics~hazardModelParam} params - The parameters given to the model.
+	* @returns {module:analytics.PropHazards} Self.
+	* @example 
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a Proportional Hazard model
+	* var hazard = new analytics.PropHazards({ lambda: 5 });
+	* // set the parameters of the model
+	* hazard.setParams({ lambda: 10 });
+	*/
+ exports.PropHazards.prototype.setParams = function (params) { return Object.create(require('qminer').analytics.PropHazards.prototype); }
 /**
 	 * Fits a column matrix of feature vectors X onto the response variable y.
 	 *
-	 * @param {Matrix} X - the column matrix which stores the feature vectors.
-	 * @param {Vector} y - the response variable.
-	 * @param {Number} [eps] - the epsilon used for convergence
-	 * @returns {ExpReg} - returns itself
+	 * @param {module:la.Matrix} X - The column matrix which stores the feature vectors.
+	 * @param {module:la.Vector} y - The response variable.
+	 * @param {number} [eps] - The epsilon used for convergence.
+	 * @returns {module:analytics.PropHazards} Self.
+	 * @example
+	 * // import modules
+	 * var analytics = require('qminer').analytics;
+	 * var la = require('qminer').la;
+	 * // create the Proportional Hazards model
+	 * var hazards = new analytics.PropHazards();
+	 * // create the input matrix and vector for fitting the model
+	 * var mat = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+	 * var vec = new la.Vector([1, 0, -1, -2]);
+	 * // if openblas used, fit the model
+	 * if (require('qminer').flags.blas) {
+	 *     hazards.fit(mat, vec);
+	 * };
 	 */
+ exports.PropHazards.prototype.fit = function(X, y, eps) { return Object.create(require('qminer').analytics.PropHazards.prototype); }
 /**
 	 * Returns the expected response for the provided feature vector.
 	 *
-	 * @param {Vector} x - the feature vector
-	 * @returns {Number} - the expected response
+	 * @param {module:la.Vector} x - The feature vector.
+	 * @returns {number} The expected response.
+	 * @example
+	 * // import modules
+	 * var analytics = require('qminer').analytics;
+	 * var la = require('qminer').la;
+	 * // create the Proportional Hazards model
+	 * var hazards = new analytics.PropHazards();
+	 * // create the input matrix and vector for fitting the model
+	 * var mat = new la.Matrix([[1, 1], [1, -1]]);
+     * var vec = new la.Vector([3, 3]);
+	 * // if openblas used
+	 * if (require('qminer').flags.blas) {
+	 *     // fit the model
+	 *     hazards.fit(mat, vec);       
+	 *     // create a vector for the prediction
+	 *      var test = new la.Vector([1, 2]);
+	 *     // predict the value
+	 *     var prediction = hazards.predict(test);
+	 * };
 	 */
+ exports.PropHazards.prototype.predict = function(x) { return 0.0; }
 /**
 	 * The models weights.
-	 *
-	 * @type {Vector}
 	 */
+ exports.PropHazards.prototype.weights = Object.create(require('qminer').la.Vector.prototype);
 /**
 	 * Saves the model into the output stream.
-	 *
-	 * @param {FOut} sout - the output stream
+	 * @param {module:fs.FOut} sout - The output stream.
+	 * @returns {module:fs.FOut} The output stream sout.
+	 * @example
+	 * // import modules
+	 * var analytics = require('qminer').analytics;
+	 * var la = require('qminer').la;
+	 * var fs = require('qminer').fs;
+	 * // create the Proportional Hazards model
+	 * var hazards = new analytics.PropHazards();
+	 * // create the input matrix and vector for fitting the model
+	 * var mat = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+	 * var vec = new la.Vector([1, 0, -1, -2]);
+	 * // if openblas used, fit the model
+	 * if (require('qminer').flags.blas) {
+	 *     hazards.fit(mat, vec);
+	 * };
+	 * // create an output stream and save the model
+	 * var fout = fs.openWrite('hazards_example.bin');
+	 * hazards.save(fout);
+	 * fout.close();
+	 * // create input stream
+	 * var fin = fs.openRead('hazards_example.bin');
+	 * // create a Proportional Hazards object that loads the model and parameters from input stream
+	 * var hazards2 = new analytics.PropHazards(fin);	
 	 */
-/**
-	 * Fits the model onto the data. The data instances must be stored as column vectors in X, while their times
-	 * have to be stored in timeV. An optional parameter indicates wether the data provided is in
-	 * batches and indicates wether the instance at index i ends a batch.
-	 *
-	 * @param {Matrix} X - the column matrix containing the data instances
-	 * @param {Vector} timeV - a vector containing the sampling times of the instances
-	 * @param {BoolVector} [endsBatchV] - a vector of boolean indicating wether the current instance ends a batch
-	 * @returns {HMC} - returns itself
-	 */
+ exports.PropHazards.prototype.save = function(sout) { return Object.create(require('qminer').fs.FOut.prototype); }
 /**
 	 * Returns the probability distribution over the future states given that the current state is the one in
 	 * the parameter.
@@ -934,10 +1246,10 @@ exports = {}; require.modules.qminer_analytics = exports;
 /**
 	 * Returns the probability distribution of past and future states over time.
 	 *
-	 * @param {Number} level - the level on which we want the distributions
-	 * @param {Number} state - the state we are starting from
-	 * @param {Number} dt - the time step (lower dt => more distributions will be returned)
-	 * @returns {Array} - array of probability distributions over time
+	 * @param {Number} stateId - ID if the starting state
+	 * @param {Number} height - the hieght
+	 * @param {Number} time - the time at which we want the probabilities
+	 * @returns {Array} - array of state ids and their probabilities
 	 */
 /**
 	 * Returns information about previous states.
@@ -977,6 +1289,11 @@ exports = {}; require.modules.qminer_analytics = exports;
 	 * @returns {Array} - the histogram
 	 */
 /**
+	 * Returns the lower and upper bound of the feature.
+	 *
+	 * @param {Integer} ftrId - id of the feature
+	 */
+/**
 	 * Returns an array of IDs of all the states on the specified height.
 	 *
 	 * @param {Number} height - the height
@@ -987,6 +1304,13 @@ exports = {}; require.modules.qminer_analytics = exports;
 	 *
 	 * @param {Number} stateId - The Id of the state.
 	 * @returns {Array} - An array of weights.
+	 */
+/**
+	 * Returns a JSON representation of a decision tree, which classifies
+	 * this state against other states
+	 *
+	 * @param {Number} stateId
+	 * @returns {Object}
 	 */
 /**
 	 * Sets a callback function which is fired when the model changes states. An array of current states
@@ -1038,6 +1362,11 @@ exports = {}; require.modules.qminer_analytics = exports;
 	 * @param {String} name - name of the state
 	 */
 /**
+	 * Sets the name of the state.
+	 *
+	 * @param {Number} stateId - ID of the state
+	 */
+/**
 	 * Returns true if the state is a target on the specified height.
 	 *
 	 * @param {Number} stateId - Id of the state
@@ -1052,34 +1381,370 @@ exports = {}; require.modules.qminer_analytics = exports;
 	 * @param {Boolean} isTarget - set target on/off
 	 */
 /**
+	 * Returns true if the state defined by the ID is at the bottom of the hierarchy.
+	 *
+	 * @param {Number} stateId - ID of the state
+	 */
+/**
+	 * Returns the time unit used by this model.
+	 *
+	 * @returns {String} timeUnit
+	 */
+/**
 	 * Sets the factor of the specified control:
 	 *
-	 * @param {Number} ftrIdx - the index of the control feature
-	 * @param {Number} factor
+	 * @param {Object} params - the parameters
+	 * @property {Number} [params.stateId] - id of the state, if not present, all the states will be set
+	 * @property {Number} params.ftrId - the index of the control feature
+	 * @property {Number} params.val - the value of the featuere
+	 */
+/**
+	 * Returns true is any of the control parameters have been set in any of the states.
+	 *
+	 * @returns {Boolean}
 	 */
 /**
 	 * Saves the model to the output stream.
 	 *
 	 * @param {FOut} fout - the output stream
 	 */
+/**
+* @typedef {Object} nnetParams
+* @property {module:la.IntVector} [layout] - The integer vector with the corresponding values of the number of neutrons. Default is the integer vector [1, 2 ,1].
+* @property {number} [learnRate = 0.1] - The learning rate.
+* @property {number} [momentum = 0.5] - The momentum of optimization.
+* @property {string} [tFuncHidden = 'tanHyper'] - The function.
+* @property {string} [tFuncOut = 'tanHyper'] - The function.
+*/
+/**
+* Neural Network Model
+* @classdesc Holds online/offline neural network model.
+* @class
+* @param {module:analytics~nnetParams|module:fs.FIn} [params] - The parameters for the construction of the model.
+*/
+ exports.NNet = function (params) { return Object.create(require('qminer').analytics.NNet.prototype); }
+/**
+	* Get the parameters of the model.
+	* @returns {module:analytics~nnetParams} The constructor parameters.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a Neural Networks model
+	* var nnet = new analytics.NNet();
+	* // get the parameters
+	* var params = nnet.getParams();
+	*/
+ exports.NNet.prototype.getParams = function () { return { layout: Object.create(require('qminer').la.IntVector.prototype), learnRate: 0.0, momentum: 0.0, tFuncHidden: "", TFuncOut: "" }; }
+/**
+	* Sets the parameters of the model.
+	* @params {module:analytics~nnetParams} params - The given parameters.
+	* @returns {module:analytics.NNet} Self.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a Neural Networks model
+	* var nnet = new analytics.NNet();
+	* // set the parameters
+	* nnet.setParams({ learnRate: 1, momentum: 10, layout: [1, 4, 3] });
+	*/
+ exports.NNet.prototype.setParams = function (params) { return Object.create(require('qminer').analytics.NNet.prototype); }
+/**
+	* Fits the model.
+	* @param {(module:la.Vector|module:la.Matrix)} input1 - The input vector or matrix.
+	* @param {(module:la.Vector|module:la.Matrix)} input2 - The input vector or matrix.
+	* <br> If input1 and input2 are both {@link module:la.Vector}, then the fitting is in online mode.
+	* <br> If input1 and input2 are both {@link module:la.Matrix}, then the fitting is in batch mode.
+	* @returns {module:analytics.NNet} Self.
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // create a Neural Networks model
+	* var nnet = new analytics.NNet({ layout: [2, 3, 4] });
+	* // create the matrices for the fitting of the model
+	* var matIn = new la.Matrix([[1, 0], [0, 1]]);
+	* var matOut = new la.Matrix([[1, 1], [1, 2], [-1, 8], [-3, -3]]);
+	* // fit the model
+	* nnet.fit(matIn, matOut);
+	*/
+ exports.NNet.prototype.fit = function (input1, input2) { return Object.create(require('qminer').analytics.NNet.prototype); }
+/**
+	* Sends the vector through the model and get the prediction.
+	* @param {module:la.Vector} vec - The sent vector.
+	* @returns {number} The prediction of the vector vec.
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // create a Neural Networks model
+	* var nnet = new analytics.NNet({ layout: [2, 3, 4] });
+	* // create the matrices for the fitting of the model
+	* var matIn = new la.Matrix([[1, 0], [0, 1]]);
+	* var matOut = new la.Matrix([[1, 1], [1, 2], [-1, 8], [-3, -3]]);
+	* // fit the model
+	* nnet.fit(matIn, matOut);
+	* // create the vector for the prediction
+	* var test = new la.Vector([1, 1]);
+	* // predict the value
+	* var prediction = nnet.predict(test);
+	*/
+ exports.NNet.prototype.predict = function (vec) { return 0.0; }
+/**
+	* Saves the model.
+	* @param {module:fs.FOut} fout - The output stream.
+	* @returns {module:fs.FOut} The output stream fout.
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* var fs = require('qminer').fs;
+	* // create a Neural Networks model
+	* var nnet = new analytics.NNet({ layout: [2, 3, 4] });
+	* // create the matrices for the fitting of the model
+	* var matIn = new la.Matrix([[1, 0], [0, 1]]);
+	* var matOut = new la.Matrix([[1, 1], [1, 2], [-1, 8], [-3, -3]]);
+	* // fit the model
+	* nnet.fit(matIn, matOut);
+	* // create an output stream object and save the model
+	* var fout = fs.openWrite('nnet_example.bin');
+	* nnet.save(fout);
+	* fout.close();
+	* // load the Neural Network model from the binary
+	* var fin = fs.openRead('nnet_example.bin');
+	* var nnet2 = new analytics.NNet(fin);
+	*/
+ exports.NNet.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); } 
+/**
+* @typedef {Object} tokenizerParam
+* @property {string} type - The type of the tokenizer. The different types are: 
+*<br>"simple" -
+*<br>"html" -
+*<br>"unicode" -
+*/
+/**
+ * Tokenizer
+ * @class 
+ * @classdesc Breaks text into tokens (i.e. words).
+ * @param {module:analytics.tokenizerParam} param - The constructor parameters.
+ * @example
+ * // import analytics module
+ * var analytics = require('qminer').analytics;
+ * // construct model
+ * var tokenizer = new analytics.Tokenizer({ type: "simple" })
+ */
+ exports.Tokenizer = function (param) { return Object.create(require("qminer").analytics.Tokenizer.prototype); }
+/**
+	* This function tokenizes given strings and returns it as an array of strings.
+	* @param {String} str - String of text you want to tokenize.
+	* @returns {Array.<String>} Returns array of strings. The number of strings in this array is equal to number of words in input string parameter.
+	* Only keeps words, skips all punctuation.
+	* Tokenizing contractions (i.e. don't) depends on which type you use. Type 'html' breaks contractions into 2 tokens.
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // construct model
+	* var tokenizer = new analytics.Tokenizer({ type: "simple" });
+	* // string you wish to tokenize
+	* var string = "What a beautiful day!";
+	* // tokenize string using getTokens
+	* var tokens = tokenizer.getTokens(string);
+	* // output:
+	* tokens = ["What", "a", "beautiful", "day"];
+	*/
+ exports.Tokenizer.prototype.getTokens = function (str) { return [""]; }
+/**
+	* This function breaks text into sentences and returns them as an array of strings.
+	* @param {String} str - String of text you want to break into sentences.
+	* @returns {Array.<String>} Returns array of strings. The number of strings in this array is equal to number of sentences in input string parameter.
+	* How function breaks sentences depends on where you use a full-stop, exclamation mark, question mark or the new line command.
+	* Careful: the space between the lines is not ignored. 
+	* With all 3 types this function returns sentences as they are.
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // construct model
+	* var tokenizer = new analytics.Tokenizer({ type: "simple" });
+	* // string you wish to tokenize
+	* var string = "C++? Alright. Let's do this!";
+	* // tokenize text using getSentences
+	* var tokens = tokenizer.getSentences(string);
+	* // output:
+	* tokens = ["C++", " Alright", " Let's do this"];
+	*/
+ exports.Tokenizer.prototype.getSentences = function (str) { return [""]; }
+/**
+	* This function breaks text into paragraphs and returns them as an array of strings.
+	* @param {String} str - String of text you want to break into paragraphs.
+	* @returns {Array.<String>} Returns array of strings. The number of strings in this array is equal to number of paragraphs in input string parameter.
+	* When function detects commands '\n', '\r' or '\t' it breaks text as new paragraph.
+	* With all 3 types this function returns paragraphs as they are.
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // construct model
+	* var tokenizer = new analytics.Tokenizer({ type: "simple" });
+	* // string you wish to tokenize
+	* var string = "Yes!\t No?\n Maybe...";
+	* // tokenize text using getParagraphs
+	* var tokens = tokenizer.getParagraphs(string);
+	* // output:
+	* tokens = ["Yes", " No", " Maybe"];
+	*/
+ exports.Tokenizer.prototype.getParagraphs = function (str) { return [""]; }
+/**
+* @typedef {Object} MDSParam
+* @property {number} [maxSecs=500] - The maximum time period to compute MDS of a matrix.
+* @property {number} [maxStep=5000] - The maximum number of iterations.
+* @property {number} [minDiff=1e-4] - The minimum difference criteria in MDS.
+* @property {string} [distType="Euclid"] - The type of distance used. Available types: "Euclid", "Cos", "SqrtCos".
+*/
+/**
+* @class
+* @classdesc Multidimensional scaling
+* @param {(module:analytics~MDSParam | module:fs.FIn)} [params] - The parameters for the construction.
+* @example
+* // import analytics module
+* var analytics = require('qminer').analytics;
+* // construct a MDS instance
+* var mds = new analytics.MDS({ maxStep: 300, distType: 'Cos' });
+*/
+ exports.MDS = function (params) { return Object.create(require('qminer').analytics.MDS.prototype); }
+/**
+	* Get the parameters.
+	* @returns {module:analytics~MDSParam} The json object containing the parameters of the instance.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a MDS instance
+	* var mds = new analytics.MDS();
+	* // get the (default) parameters of the instance
+	* // returns { maxStep: 5000, maxSecs: 300, minDiff: 1e-4, distType: "Euclid" }
+	* var params = mds.getParams();
+	*/
+ exports.MDS.prototype.getParams = function () { return { maxStep: 0, maxSecs: 0, minDiff: 0, distType: "" }; }
+/**
+	* Set the parameters.
+	* @param {module:analytics~MDSParam} params - The json object containing the parameters for the instance.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a MDS instance
+	* var mds = new analytics.MDS();
+	* // get the (default) parameters of the instance
+	* // returns { maxStep: 5000, maxSecs: 300, minDiff: 1e-4, distType: "Euclid" }
+	* var params = mds.getParams();
+	*/
+ exports.MDS.prototype.setParams = function (params) { return { maxStep: 0, maxSecs: 0, minDiff: 0, distType: "" }; }
+/**
+	* Get the MDS of the given matrix.
+	* @param {(module:la.Matrix | module:la.SparseMatrix)} mat - The multidimensional matrix.
+	* @returns {module:la.Matrix} The matrix of dimensions mat.cols x 2, where the i-th row of the matrix is the 2d representation 
+	* of the i-th column of mat.
+	* @example
+	* // import the modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // create a MDS instance
+	* var mds = new analytics.MDS();
+	* // create the multidimensional matrix
+	* var mat = new la.Matrix({ rows: 50, cols: 10, random: true });
+	* // get the 2d representation of mat 
+	* var mat2d = mds.fitTransform(mat); 
+	*/
+ exports.MDS.prototype.fitTransform = function (mat) { return Object.create(require('qminer').la.Matrix.prototype); }
+/**
+	* Save the MDS.
+	* @param {module:fs.FOut} fout - The output stream.
+	* @returns {module:fs.FOut} The output stram fout.
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var fs = require('qminer').fs;
+	* // create a MDS instance
+	* var mds = new analytics.MDS({ iter: 200, MaxStep: 10 });
+	* // create the file output stream
+	* var fout = new fs.openWrite('MDS.bin');
+	* // save the MDS instance
+	* mds.save(fout);
+	* fout.close();
+	* // load the MDS instance
+	* var fin = fs.openRead('MDS.bin');
+	* var mds2 = new analytics.MDS(fin);
+	*/
+ exports.MDS.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 
-    exports.preprocessing = new function() {
-        this.binarize = function (y, labelId) {
+
+    ///////////////////////////////////////////////////
+    /////////////   DATA PREPROCESSING   //////////////
+    ///////////////////////////////////////////////////
+
+    /**
+    * Preprocessing
+    * @namespace
+    * @desc Preprocessing functions for preparing labels in formats accepted
+    * by learning moduls in qm.analytics.
+    */
+    var preprocessing = preprocessing || {};
+    // namespacing: http://addyosmani.com/blog/essential-js-namespacing/
+
+    /**
+    * Transforming arrays with labels to vector appropriate for binary classifiers.
+    * @class
+    * @classdesc
+    * Transform given array of labels into binary vector with different
+    * numeric value for elements when label matches specified label and
+    * for other elements. By default, these values are +1 for matching
+    * labels, and -1 for the rest.
+    * @param {Array} y - labels
+    * @param {(string | number)} positiveLabel - positive label
+    * @param {number} [positiveId = 1] - value when matching positive label
+    * @param {number} [negativeId = -1] - value when not matching positive label
+    * @example
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // create binarizer with 'b' as positive label
+    * var binarizer = new analytics.preprocessing.Binarizer('b');
+    * // get vector with binarized labels
+    * var bins = binarizer.transform(['a','b','a','c']);
+    */
+    preprocessing.Binarizer = function (positiveLabel, positiveId, negativeId) {
+        if (positiveLabel == undefined) { throw "Binarizer needs positive label"; }
+
+        this.positiveLabel = positiveLabel;
+        this.positiveId = (positiveId == undefined) ? 1 : positiveId;
+        this.negativeId = (negativeId == undefined) ? -1 : negativeId;
+
+        this.fit = function () {
+            // do nothing
+        }
+
+        /**
+        * Transform given array of labels to binary numeric vector.
+        * @param {(Array<number> | Array<string> | module:la.Vector | module:la.StrVector)} y - labels
+        * @return {modul:la.Vector} binarized vector
+        */
+        this.transform = function (y) {
             var target = new la.Vector();
             for (var i = 0; i < y.length; i++) {
-                target.push(y[i] === labelId ? 1 : -1);
-            }
-            return target;
-        };
-
-        this.applyModel = function (model, X) {
-            var target = new la.Vector();
-            for (var i = 0; i < X.cols; i++) {
-                target.push(model.decisionFunction(X[i]));
+                target.push(y[i] === this.positiveLabel ? this.positiveId : this.negativeId);
             }
             return target;
         }
     };
+
+    preprocessing.applyModel = function (model, X) {
+        var target = new la.Vector();
+        for (var i = 0; i < X.cols; i++) {
+            target.push(model.decisionFunction(X[i]));
+        }
+        return target;
+    }
+
+    // Exports preprocessing namespace
+    exports.preprocessing = preprocessing;
 
     /**
     * SVM model.
@@ -1147,18 +1812,6 @@ exports = {}; require.modules.qminer_analytics = exports;
     * var model = linreg.getModel(); // returns { weights: new require('qminer').la.Vector(); }
     */
     exports.RecLinReg.prototype.getModel = function () { return { weights: this.weights } }
-
-    // var model = new OneVsAll({
-    //     model : analytics.SVC,
-    //     modelParam: { c: 10, j: 10, maxTime: 123 },
-    //     cats : 123
-    // });
-    //
-    // var X = featureSpace.extractSparseMatrix(recordSet);
-    // var y = store.getCol("label");
-    // model.fit(X, y);
-    //
-    // model.predict(featureSpace.extractSparseVector(record));
 
     /**
     * @typedef {Object} oneVsAllParam
@@ -1248,7 +1901,7 @@ exports = {}; require.modules.qminer_analytics = exports;
          * // create the vector for the decisionFunction
          * var test = new la.Vector([1, 2]);
          * // give the vector to the decision function
-         * var prediction = onevsall.predict(test); // returns the vector of scores 
+         * var prediction = onevsall.predict(test); // returns the vector of scores
          */
         this.decisionFunction = function(X) {
             // check what is our input
@@ -1333,7 +1986,7 @@ exports = {}; require.modules.qminer_analytics = exports;
          * var vector = new la.Vector([0, 0, 1, 1]);
          * // fit the model
          * onevsall.fit(matrix, vector);
-         */        
+         */
         this.fit = function(X, y) {
             models = [ ];
             // make model for each category
@@ -1342,7 +1995,11 @@ exports = {}; require.modules.qminer_analytics = exports;
                     console.log("Fitting label", (cat + 1), "/", cats);
                 };
                 // prepare targert vector for current category
-                var target = exports.preprocessing.binarize(y, cat);
+                var target = (y instanceof la.Matrix) ?
+                    // we have a special bianary vector for each category, make it into -1/+1
+                    (new exports.preprocessing.Binarizer(1)).transform(y.getRow(cat)) :
+                    // we have a vector with label for each element, get out -1/+1 vector
+                    (new exports.preprocessing.Binarizer(cat)).transform(y);
                 // get the model
                 var catModel = new model(modelParam);
                 models.push(catModel.fit(X, target));
@@ -1418,337 +2075,1147 @@ exports = {}; require.modules.qminer_analytics = exports;
         }
     }
 
-    exports.metrics = new function() {
-        // For evaluating provided categories (precision, recall, F1).
-        this.ClassificationScore  = function (yTrue, yPred) {
-            this.scores = {
-                count: 0, predictionCount: 0,
-                TP: 0, TN: 0, FP: 0, FN: 0,
-                all: function () { return this.TP + this.FP + this.TN + this.FN; },
-                precision: function () { return (this.FP == 0) ? 1 : this.TP / (this.TP + this.FP); },
-                recall: function () { return this.TP / (this.TP + this.FN); },
-                f1: function () { return 2 * this.precision() * this.recall() / (this.precision() + this.recall()); },
-                accuracy: function () { return (this.TP + this.TN) / this.all(); }
-            };
 
-            // adds prediction to the current statistics. `correct` corresponds to the correct
-            // label(s), `predicted` correspond to predicted lable(s). Labels can be either integers
-            // or integer array (when there are zero or more then one lables).
-            this.push = function (correct, predicted) {
-                var catCorrect = (correct > 0);
-                var catPredicted = (predicted > 0);
-                // update counts for correct categories
-                if (catCorrect) { this.scores.count++; }
-                // update counts for how many times category was predicted
-                if (catPredicted) { this.scores.predictionCount++; }
-                // update true/false positive/negative count
-                if (catCorrect && catPredicted) {
-                    // both predicted and correct say true
-                    this.scores.TP++;
-                } else if (catCorrect) {
-                    // this was only correct but not predicted
-                    this.scores.FN++;
-                } else if (catPredicted) {
-                    // this was only predicted but not correct
-                    this.scores.FP++;
-                } else {
-                    // both predicted and correct say false
-                    this.scores.TN++;
-                }
-            };
+    /**
+    * Metrics
+    * @namespace
+    * @desc Classification and regression metrics
+    * @example <caption>Batch classification example</caption>
+    * // import metrics module
+    * var analytics = require('qminer').analytics;
+    *
+    * // true and predicted lables
+    * var true_lables = [0, 1, 0, 0, 1];
+    * var pred_prob = [0.3, 0.5, 0.2, 0.5, 0.8];
+    *
+    * // compute ROC curve
+    * var roc = analytics.metrics.rocCurve(true_lables, pred_prob);
+    * @example <caption>Online classification example</caption>
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // true and predicted lables
+    * var true_lables = [0, 1, 0, 0, 1];
+    * var pred_prob = [0.3, 0.5, 0.2, 0.5, 0.8];
+    *
+    * // create predictionCurve instance
+    * var predictionCurve = new analytics.metrics.PredictionCurve();
+    *
+    * // simulate data flow
+    * for (var i in true_lables) {
+    *    // push new value
+    *    predictionCurve.push(true_lables[i], pred_prob[i]);
+    *}
+    *
+    * var roc = predictionCurve.roc(); // get ROC
+    * @example <caption>Batch regression example</caption>
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // true and predicted data
+    * var true_vals = [1, 2, 3, 4, 5];
+    * var pred_vals = [3, 4, 5, 6, 7];
+    *
+    * // use batch MAE method
+    * analytics.metrics.meanAbsoluteError(true_vals, pred_vals);
+    * @example <caption>Online regression example</caption>
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // true and predicted data
+    * var true_vals = [1, 2, 3, 4, 5];
+    * var pred_vals = [3, 4, 5, 6, 7];
+    *
+    * // create online MAE metric instance
+    * var mae = new analytics.metrics.MeanAbsoluteError();
+    *
+    * // simulate data flow
+    * for (var i in true_vals) {
+    *   // push new value
+    *   mae.push(true_vals[i], pred_vals[i]);
+    * }
+    * // get updated error
+    * mae.getError();
+    */
+    var metrics = metrics || {};
+    // namespacing: http://addyosmani.com/blog/essential-js-namespacing/
 
-            // initialize if we are passed the data
-            if (arguments.length >= 2) {
-                for (var i = 0; i < yTrue.length; i++) {
-                    this.push(yTrue[i], yPred[i]);
-                }
+    ///////////////////////////////////////////////////
+    ///////////// CLASSIFICATION METRICS //////////////
+    ///////////////////////////////////////////////////
+
+    /**
+    * For evaluating provided categories from binary? classifiers.
+    * @class
+    * @classdesc Class implements several classification measures (precision, recall, F1, accuracy)
+    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lable(s)
+    * @param {(Array<number> | module:la.Vector)} yPred - Predicted (estimated) lable(s)
+    */
+    metrics.ClassificationScore = function (yTrue, yPred) {
+        /**
+        * Returns `Object` containing different classification measures
+        * @returns {Object} scores - Object with different classification socres
+        * @returns {number} scores.count - Count
+        * @returns {number} scores.TP - Number of true positives
+        * @returns {number} scores.TN - Number of true negative
+        * @returns {number} scores.FP - Number of false positives
+        * @returns {number} scores.FN - Number of false positives
+        * @returns {number} scores.all - Number of all results
+        * @returns {number} scores.accuracy - Accuracy score. Formula: (tp + tn) / (tp + fp + fn + tn)
+        * @returns {number} scores.precision - Precision score. Formula: tp / (tp + fp)
+        * @returns {number} scores.recall - Recall score. Formula: tp / (tp + fn)
+        * @returns {number} scores.f1 - F1 score. Formula:  2 * (precision * recall) / (precision + recall)
+        */
+        this.scores = {
+            count: 0, predictionCount: 0,
+            TP: 0, TN: 0, FP: 0, FN: 0,
+            all: function () { return this.TP + this.FP + this.TN + this.FN; },
+            precision: function () { return (this.FP == 0) ? 1 : this.TP / (this.TP + this.FP); },
+            recall: function () { return (this.FN == 0) ? 1 : this.TP / (this.TP + this.FN); },
+            f1: function () { return ((this.precision() + this.recall()) == 0) ? 0 :
+                2 * this.precision() * this.recall() / (this.precision() + this.recall()); },
+            accuracy: function () { return (this.TP + this.TN) / this.all(); }
+        };
+
+        /**
+        * Adds prediction to the current statistics. Labels can be either integers
+        * or integer array (when there are zero or more then one lables).
+        * @param {number} correct - Correct lable.
+        * @param {number} predicted - Predicted lable.
+        */
+        this.push = function (correct, predicted) {
+            var catCorrect = (correct > 0);
+            var catPredicted = (predicted > 0);
+            // update counts for correct categories
+            if (catCorrect) { this.scores.count++; }
+            // update counts for how many times category was predicted
+            if (catPredicted) { this.scores.predictionCount++; }
+            // update true/false positive/negative count
+            if (catCorrect && catPredicted) {
+                // both predicted and correct say true
+                this.scores.TP++;
+            } else if (catCorrect) {
+                // this was only correct but not predicted
+                this.scores.FN++;
+            } else if (catPredicted) {
+                // this was only predicted but not correct
+                this.scores.FP++;
+            } else {
+                // both predicted and correct say false
+                this.scores.TN++;
             }
         };
 
-        this.accuracyScore = function (yTrue, yPred) {
-            return new this.ClassificationScore (yTrue, yPred).scores.accuracy();
-        };
-
-        this.precisionScore = function (yTrue, yPred) {
-            return new this.ClassificationScore (yTrue, yPred).scores.precision();
-        };
-
-        this.recallScore = function (yTrue, yPred) {
-            return new this.ClassificationScore (yTrue, yPred).scores.recall();
-        };
-
-        this.f1Score = function (yTrue, yPred) {
-            return new this.ClassificationScore (yTrue, yPred).scores.accuracy();
-        };
-
-        // used for computing ROC curve and other related measures such as AUC;
-        this.PredictionCurve = function (yTrue, yPred) {
-            // count of all examples
-            this.length = 0;
-            // count of all the positive and negative examples
-    		this.allPositives = 0;
-    		this.allNegatives = 0;
-    		// store of predictions and ground truths
-    		this.grounds = new la.Vector();
-    		this.predictions = new la.Vector();
-
-            // add new measurement with ground score (1 or -1) and predicted value
-            this.push = function (ground, predict) {
-                // remember the scores
-                this.grounds.push(ground)
-                this.predictions.push(predict);
-                // update counts
-                this.length++;
-                if (ground > 0) {
-                    this.allPositives++;
-                } else {
-                    this.allNegatives++;
-                }
-            };
-
-            // initialize if we are given data
-            if (arguments.length >= 2) {
-                for (var i = 0; i < yTrue.length; i++) {
-                    this.push(yTrue[i], yPred[i]);
-                }
+        // initialize if we are passed the data
+        if (arguments.length >= 2) {
+            for (var i = 0; i < yTrue.length; i++) {
+                this.push(yTrue[i], yPred[i]);
             }
+        }
 
-            // get ROC parametrization sampled on `sample' points
-    		this.roc = function (sample) {
-    			// default sample size is 10
-    			sample = sample || 10;
-    			// sort according to predictions
-    			var perm = this.predictions.sortPerm(false);
-    			// maintaining the results as we go along
-    			var TP = 0, FP = 0, ROC = [[0, 0]];
-    			// for figuring out when to dump a new ROC sample
-    			var next = Math.floor(perm.perm.length / sample);
-    			// go over the sorted results
-    			for (var i = 0; i < perm.perm.length; i++) {
-    				// get the ground
-    				var ground = this.grounds[perm.perm[i]];
-    				// update TP/FP counts according to the ground
-    				if (ground > 0) { TP++ } else { FP++; }
-    				// see if time to do next save
-    				next = next - 1;
-    				if (next <= 0) {
-    					// add new datapoint to the curve
-    					ROC.push([FP/this.allNegatives, TP/this.allPositives]);
-    					// setup next timer
-    					next = Math.floor(perm.perm.length / sample);
-    				}
-    			}
-    			// add the last point
-    			ROC.push([1,1]);
-    			// return ROC
-    			return ROC;
-    		}
-
-            // get AUC of the current curve
-    		this.auc = function (sample) {
-    			// default sample size is 10
-    			sample = sample || 10;
-    	        // get the curve
-    	        var curve = this.curve(sample);
-    	        // compute the area
-    	        var result = 0;
-    	        for (var i = 1; i < curve.length; i++) {
-    	            // get edge points
-    	            var left = curve[i-1];
-    	            var right = curve[i];
-    	            // first the rectangle bellow
-    	            result = result + (right[0] - left[0]) * left[1];
-    	            // an then the triangle above
-    	            result = result + (right[0] - left[0]) * (right[1] - left[1]) / 2;
-    	        }
-    	        return result;
-    	    }
-
-            this.evalPrecisionRecall = function (callback) {
-                // sort according to predictions
-                var perm = this.predictions.sortPerm(false);
-                // maintaining the results as we go along
-                var TP = 0, FP = 0, TN = this.allNegatives, FN = this.allPositives;
-                // go over the sorted results
-                for (var i = 0; i < perm.perm.length; i++) {
-                    // get the ground
-                    var ground = this.grounds[perm.perm[i]];
-                    // update TP/FP counts according to the ground
-                    if (ground > 0) { TP++; FN--; } else { FP++; TN--; }
-                    // do the update
-                    if ((TP + FP) > 0 && (TP + FN) > 0 && TP > 0) {
-                        // compute current precision and recall
-                        var precision = TP / (TP + FP);
-                        var recall = TP / (TP + FN);
-                        // see if we need to update current bep
-                        callback.update(ground, perm.vec[i], precision, recall);
-                    }
-                }
-                return callback.finish();
+        // check if input parameters are of correct type and binary
+        for (var i = 0; i < arguments.length; i++) {
+            // check type
+            var argumentType = arguments[i].constructor.name;
+            if (argumentType !== "Array" && argumentType !== "Vector") {
+                throw new TypeError('input param must be of type "Array" or "Vector", but is ' + argumentType + ' instead');
             }
-
-            // get precision recall curve sampled on `sample' points
-            this.precisionRecallCurve = function (sample) {
-                return this.evalPrecisionRecall(new function (sample, length) {
-                    // default sample size is 10
-                    this.sample = sample || 10;
-                    // curve
-                    this.curve = [[0, 1]];
-                    // for figuring out when to dump a new ROC sample
-                    this.next = Math.floor(length / (this.sample));
-                    this.counter = this.next;
-                    console.log(length, this.sample, this.next);
-                    // keep last value
-                    this.precision = 0; this.recall = 0;
-                    // handlers
-                    this.update = function (yTrue, yPred, precision, recall) {
-                        this.counter = this.counter - 1;
-                        if (this.counter <= 0) {
-                            // add to the curve
-                            this.curve.push([recall, precision]);
-                            // setup next timer
-                            this.counter = this.next;
-                        }
-                        // always remember last value
-                        this.precision = precision; this.recall = recall;
-                    }
-                    this.finish = function () {
-                        // add the last point
-                        this.curve.push([this.recall, this.precision]);
-                        return this.curve;
-                    }
-                }(sample, this.length));
-            };
-
-            // get break-even point, the value where precision and recall intersect
-            this.breakEvenPoint = function () {
-                return this.evalPrecisionRecall(new function () {
-                    this.minDiff = 1.0; this.bep = -1.0;
-                    this.update = function (yTrue, yPred, precision, recall) {
-                        var diff = Math.abs(precision - recall);
-                        if (diff < minDiff) { minDiff = diff; bep = (precision + recall) / 2; }
-                    }
-                    this.finish = function () { return this.bep; }
-                }());
-            }
-
-            // gets threshold for prediction score, which results in the highest F1
-            this.bestF1 = function () {
-                return this.evalPrecisionRecall(new function () {
-                    this.maxF1 = 0.0; this.threshold = 0.0;
-                    this.update = function (yTrue, yPred, precision, recall) {
-                        var f1 = 2 * precision * recall / (precision + recall);
-                        if (f1 > this.maxF1) {
-                            this.maxF1 = f1;
-                            this.threshold = yPred;
-                        }
-                    }
-                    this.finish = function () { return this.threshold; }
-                }());
-            }
-
-            // gets threshold for prediction score, nearest to specified recall
-            this.desiredRecall = function (desiredRecall) {
-                return this.evalPrecisionRecall(new function () {
-                    this.recallDiff = 1.0; this.threshold = 0.0;
-                    this.update = function (yTrue, yPred, precision, recall) {
-                        var diff = Math.abs(desiredRecall - recall);
-                        if (diff < this.recallDiff) {
-                            this.recallDiff = diff;
-                            this.threshold = yPred;
-                        }
-                    }
-                    this.finish = function () { return this.threshold; }
-                }());
-            }
-
-            // gets threshold for prediction score, nearest to specified recall
-            this.desiredPrecision = function (desiredPrecision) {
-                return this.evalPrecisionRecall(new function () {
-                    this.precisionDiff = 1.0; this.threshold = 0.0;
-                    this.update = function (yTrue, yPred, precision, recall) {
-                        var diff = Math.abs(desiredPrecision - precision);
-                        if (diff < this.precisionDiff) {
-                            this.precisionDiff = diff;
-                            this.threshold = yPred;
-                        }
-                    }
-                    this.finish = function () { return this.threshold; }
-                }());
-            }
-        };
-
-        this.rocCurve = function (yTrue, yPred, sample) {
-            return new this.PredictionCurve(yTrue, yPred).roc(sample);
-        };
-
-        this.rocAucScore = function (yTrue, yPred, sample) {
-            return new this.PredictionCurve(yTrue, yPred).roc(sample);
-        };
-
-        this.precisionRecallCurve = function (yTrue, yPred, sample) {
-            return new this.PredictionCurve(yTrue, yPred).precisionRecallCurve(sample);
-        };
-
-        this.breakEventPointScore = function (yTrue, yPred) {
-            return new this.PredictionCurve(yTrue, yPred).breakEvenPoint();
-        };
-
-        this.bestF1Threshold = function (yTrue, yPred) {
-            return new this.PredictionCurve(yTrue, yPred).bestF1();
-        };
-
-        this.desiredRecallThreshold = function (yTrue, yPred, desiredRecall) {
-            return new this.PredictionCurve(yTrue, yPred).desiredRecall(desiredRecall);
-        };
-
-        this.desiredPrecisionThreshold = function (yTrue, yPred, desiredPrecision) {
-            return new this.PredictionCurve(yTrue, yPred).desiredPrecision(desiredPrecision);
-        };
+        }
     };
 
+    /**
+    * Accuracy score is the proportion of true results (both true positives and true negatives)
+    * among the total number of cases examined.
+    * Formula: (tp + tn) / (tp + fp + fn + tn).
+    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables
+    * @param {(Array<number> | module:la.Vector)} yPred - Predicted (estimated) lables
+    * @returns {number} Accuracy value
+    */
+    metrics.accuracyScore = function (yTrue, yPred) {
+        return new metrics.ClassificationScore(yTrue, yPred).scores.accuracy();
+    };
+
+    /**
+    * Precision score is defined as the proportion of the true positives against all the
+    * positive results (both true positives and false positives).
+    * Formula: tp / (tp + fp).
+    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables
+    * @param {(Array<number> | module:la.Vector)} yPred - Predicted (estimated) lables
+    * @returns {number} Precission score
+    */
+    metrics.precisionScore = function (yTrue, yPred) {
+        return new metrics.ClassificationScore(yTrue, yPred).scores.precision();
+    };
+
+    /**
+    * Recall score is intuitively the ability of the classifier to find all the positive samples.
+    * Formula: tp / (tp + fn).
+    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables
+    * @param {(Array<number> | module:la.Vector)} yPred - Predicted (estimated) lables
+    * @returns {number} Recall score
+    */
+    metrics.recallScore = function (yTrue, yPred) {
+        return new metrics.ClassificationScore(yTrue, yPred).scores.recall();
+    };
+
+    /**
+    * The F1 score can be interpreted as a weighted average of the precision and recall, where
+    * an F1 score reaches its best value at 1 and worst score at 0. The relative contribution of
+    * precision and recall to the F1 score are equal.
+    * Formula: 2 * (precision * recall) / (precision + recall)
+    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables
+    * @param {(Array<number> | module:la.Vector)} yPred - Predicted (estimated) lables
+    * @returns {number} F1 score
+    */
+    metrics.f1Score = function (yTrue, yPred) {
+        return new metrics.ClassificationScore(yTrue, yPred).scores.f1();
+    };
+
+    /**
+    * Class implements several prediction curve measures (ROC, AOC, Precision-Recall, ...)
+    * @class
+    * @classdesc used for computing ROC curve and other related measures such as AUC
+    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lable(s) of binary classification in range {-1, 1} or {0, 1}.
+    * @param {(Array<number> | module:la.Vector)} yPred - Estimated probabilities
+    * @example
+    * // import metrics module
+    * var metrics = require('qminer').analytics.metrics;
+    *
+    * // true and predicted lables
+    * var true_lables = [0, 1, 0, 0, 1];
+    * var pred_prob = [0.3, 0.5, 0.2, 0.5, 0.8];
+    *
+    * // create predictionCurve instance
+    * var predictionCurve = new metrics.PredictionCurve();
+    *
+    * // simulate data flow
+    * for (var i in true_lables) {
+    *    // push new value
+    *    predictionCurve.push(true_lables[i], pred_prob[i]);
+    *}
+    *
+    * var roc = predictionCurve.roc(); // get ROC
+    * var auc = predictionCurve.auc(); // get AUC
+    * var pr = predictionCurve.precisionRecallCurve() // get precision-recall curve
+    */
+    metrics.PredictionCurve = function (yTrue, yPred) {
+        /**
+        * Count of all examples
+        * @name module:analytics~metrics.PredictionCurve#length
+        * @type number
+        */
+        this.length = 0;
+        /**
+        * Count of all positive examples
+        * @name module:analytics~metrics.PredictionCurve#allPositives
+        * @type number
+        */
+        this.allPositives = 0;
+        /**
+        * Count of all negative examples
+        * @name module:analytics~metrics.PredictionCurve#allNegatives
+        * @type number
+        */
+        this.allNegatives = 0;
+        // store of predictions and ground truths
+        /**
+        * Store of ground truths
+        * @name module:analytics~metrics.PredictionCurve#grounds
+        * @type module:la.Vector
+        */
+        this.grounds = new la.Vector();
+        /**
+        * Store of predictions
+        * @name module:analytics~metrics.PredictionCurve#predictions
+        * @type module:la.Vector
+        */
+        this.predictions = new la.Vector();
+
+        /**
+        * Add new measurement with ground score (1 or -1) and predicted value
+        * or integer array (when there are zero or more then one lables).
+        * @param {number} ground - Correct lable.
+        * @param {number} predicted - Estimated probabilities.
+        */
+        this.push = function (ground, predict) {
+            // remember the scores
+            this.grounds.push(ground)
+            this.predictions.push(predict);
+            // update counts
+            this.length++;
+            if (ground > 0) {
+                this.allPositives++;
+            } else {
+                this.allNegatives++;
+            }
+        };
+
+        // initialize if we are given data
+        if (arguments.length >= 2) {
+            for (var i = 0; i < yTrue.length; i++) {
+                this.push(yTrue[i], yPred[i]);
+            }
+        }
+
+        // check if input parameters are of correct type and binary
+        for (var i = 0; i < arguments.length; i++) {
+            // check type
+            var argumentType = arguments[i].constructor.name;
+            if (argumentType !== "Array" && argumentType !== "Vector") {
+                throw new TypeError('input param must be of type "Array" or "Vector", but is ' + argumentType + ' instead');
+            }
+        }
+
+        /**
+        * Get  Receiver Operating Characteristic (ROC) parametrization sampled on `sample` points
+        * @param {number} [sample=10] - Desired number of samples in output
+        * @returns {module:la.Matrix} A matrix with increasing false and true positive rates
+        */
+        this.roc = function (sample) {
+            // default sample size is 10
+            sample = sample || 10;
+            // sort according to predictions
+            var perm = this.predictions.sortPerm(false);
+            // maintaining the results as we go along
+            var TP = 0, FP = 0, ROC = [[0, 0]];
+
+            // check input samples
+            if (this.allNegatives == 0) throw new Error('No positive samples in yTrue, true positive value should be meaningless.');
+            if (this.allNegatives == this.length) throw new Error('No negative samples in yTrue, false positive value should be meaningless.');
+
+            // for figuring out when to dump a new ROC sample
+            var unique = 1;
+            for (var i = 1; i < perm.perm.length; i++) {
+                if (Math.abs(perm.vec[i] - perm.vec[i - 1]) > 1e-8) {
+                    unique++;
+                }
+            }
+
+            var next = Math.floor(unique / sample);
+
+            // go over the sorted results
+            for (var i = 0; i < perm.perm.length; i++) {
+                // get the ground
+                var ground = this.grounds[perm.perm[i]];
+                // update TP/FP counts according to the ground
+                if (ground > 0) { TP++ } else { FP++; }
+
+                // see if time to do next save
+                if ((i < perm.perm.length - 1) && (Math.abs(perm.vec[i] - perm.vec[i + 1]) > 1e-8)) {
+                    next = next - 1;
+                }
+
+                if (next < 0) {
+                    // add new datapoint to the curve
+                    ROC.push([FP / this.allNegatives, TP / this.allPositives]);
+                    // setup next timer
+                    next = Math.floor(unique / sample);
+                }
+            }
+            // add the last point
+            ROC.push([1, 1]);
+            // return ROC
+            return ROC;
+        }
+
+        /**
+        * Get Area Under the Curve (AUC) of the current curve
+        * @param {number} [sample=10] - Desired number of samples in output
+        * @returns {number} Area under ROC curve
+        */
+        this.auc = function (sample) {
+            // default sample size is 10
+            sample = sample || 10;
+            // get the curve
+            var curve = this.roc(sample);
+            // compute the area
+            var result = 0;
+            for (var i = 1; i < curve.length; i++) {
+                // get edge points
+                var left = curve[i - 1];
+                var right = curve[i];
+                // first the rectangle bellow
+                result = result + (right[0] - left[0]) * left[1];
+                // an then the triangle above
+                result = result + (right[0] - left[0]) * (right[1] - left[1]) / 2;
+            }
+            return result;
+        }
+
+        /**
+        * evalPrecisionRecall
+        * @private
+        * @param {callback} callback
+        */
+        this.evalPrecisionRecall = function (callback) {
+            // sort according to predictions
+            var perm = this.predictions.sortPerm(false);
+            // maintaining the results as we go along
+            var TP = 0, FP = 0, TN = this.allNegatives, FN = this.allPositives;
+            // go over the sorted results
+            for (var i = 0; i < perm.perm.length; i++) {
+                // get the ground
+                var ground = this.grounds[perm.perm[i]];
+                // update TP/FP counts according to the ground
+                if (ground > 0) { TP++; FN--; } else { FP++; TN--; }
+                // do the update
+                if ((TP + FP) > 0 && (TP + FN) > 0 && TP > 0) {
+                    // compute current precision and recall
+                    var precision = TP / (TP + FP);
+                    var recall = TP / (TP + FN);
+                    // see if we need to update current bep
+                    callback.update(ground, perm.vec[i], precision, recall);
+                }
+            }
+            return callback.finish();
+        }
+
+        /**
+        * Get precision recall curve sampled on `sample` points
+        * @param {number} [sample=10] - Desired number of samples in output
+        * @returns {module:la.Matrix} Precision-recall pairs.
+        */
+        this.precisionRecallCurve = function (sample) {
+            return this.evalPrecisionRecall(new function (sample, length) {
+                // default sample size is 10
+                this.sample = sample || 10;
+                // curve
+                this.curve = [[0, 1]];
+                // for figuring out when to dump a new ROC sample
+                this.next = Math.floor(length / (this.sample));
+                this.counter = this.next;
+                // keep last value
+                this.precision = 0; this.recall = 0;
+                // handlers
+                this.update = function (yTrue, yPred, precision, recall) {
+                    this.counter = this.counter - 1;
+                    if (this.counter <= 0) {
+                        // add to the curve
+                        this.curve.push([recall, precision]);
+                        // setup next timer
+                        this.counter = this.next;
+                    }
+                    // always remember last value
+                    this.precision = precision; this.recall = recall;
+                }
+                this.finish = function () {
+                    // add the last point
+                    this.curve.push([this.recall, this.precision]);
+                    return this.curve;
+                }
+            }(sample, this.length));
+        };
+
+        /**
+        * Get break-even point, the value where precision and recall intersect
+        * @returns {number} Break-even point.
+        */
+        this.breakEvenPoint = function () {
+            return this.evalPrecisionRecall(new function () {
+                this.minDiff = 1.0; this.bep = -1.0;
+                this.update = function (yTrue, yPred, precision, recall) {
+                    var diff = Math.abs(precision - recall);
+                    if (diff < this.minDiff) { this.minDiff = diff; bep = (precision + recall) / 2; }
+                }
+                this.finish = function () { return this.bep; }
+            }());
+        }
+
+        /**
+        * Gets threshold for prediction score, which results in the highest F1
+        * @returns {number} Threshold with highest F1 score.
+        */
+        this.bestF1 = function () {
+            return this.evalPrecisionRecall(new function () {
+                this.maxF1 = 0.0; this.threshold = 0.0;
+                this.update = function (yTrue, yPred, precision, recall) {
+                    var f1 = 2 * precision * recall / (precision + recall);
+                    if (f1 > this.maxF1) {
+                        this.maxF1 = f1;
+                        this.threshold = yPred;
+                    }
+                }
+                this.finish = function () { return this.threshold; }
+            }());
+        }
+
+        /**
+        * Gets threshold for prediction score, nearest to specified recall
+        * @param {number} desiredRecall - Desired recall score.
+        * @returns {number} recal score threshold - Threshold for recall score, nearest to specified `recall`
+        */
+        this.desiredRecall = function (desiredRecall) {
+            return this.evalPrecisionRecall(new function () {
+                this.recallDiff = 1.0; this.threshold = 0.0;
+                this.update = function (yTrue, yPred, precision, recall) {
+                    var diff = Math.abs(desiredRecall - recall);
+                    if (diff < this.recallDiff) {
+                        this.recallDiff = diff;
+                        this.threshold = yPred;
+                    }
+                }
+                this.finish = function () { return this.threshold; }
+            }());
+        }
+
+        /**
+        * Gets threshold for prediction score, nearest to specified precision
+        * @param {number} desiredPrecision - Desired precision score.
+        * @returns {number} Threshold for prediction score, nearest to specified `precision`
+        */
+        this.desiredPrecision = function (desiredPrecision) {
+            return this.evalPrecisionRecall(new function () {
+                this.precisionDiff = 1.0; this.threshold = 0.0;
+                this.update = function (yTrue, yPred, precision, recall) {
+                    var diff = Math.abs(desiredPrecision - precision);
+                    if (diff < this.precisionDiff) {
+                        this.precisionDiff = diff;
+                        this.threshold = yPred;
+                    }
+                }
+                this.finish = function () { return this.threshold; }
+            }());
+        }
+    };
+
+    /**
+    * Get ROC parametrization sampled on `sample` points
+    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables
+    * @param {(Array<number> | module:la.Vector)} yPred - Estimated probabilities
+    * @param {number} [sample=10] - Desired number of samples in output
+    * @returns {module:la.Matrix} A matrix with increasing false and true positive rates
+    * @example
+    * // import metrics module
+    * var metrics = require('qminer').analytics.metrics;
+    *
+    * // true and predicted lables
+    * var true_lables = [0, 1, 0, 0, 1];
+    * var pred_prob = [0.3, 0.5, 0.2, 0.5, 0.8];
+    *
+    * // compute ROC curve
+    * var roc = metrics.rocCurve(true_lables, pred_prob); // output: [ [ 0, 0 ], [0, 0.5], [[ 0.34, 1 ],], [ 0.67, 0 ], [ 1, 1 ] ]
+    */
+    metrics.rocCurve = function (yTrue, yPred, sample) {
+        return new metrics.PredictionCurve(yTrue, yPred).roc(sample);
+    };
+
+    /**
+    * Get AUC of the current curve
+    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables
+    * @param {(Array<number> | module:la.Vector)} yPred - Estimated probabilities
+    * @param {number} [sample=10] - Desired number of samples in output
+    * @returns {number} Area under ROC curve
+    * @example
+    * // import metrics module
+    * var metrics = require('qminer').analytics.metrics;
+    *
+    * // true and predicted lables
+    * var true_lables = [0, 1, 0, 0, 1];
+    * var pred_prob = [0.3, 0.5, 0.2, 0.5, 0.8];
+    *
+    * // compute ROC curve
+    * var auc = metrics.rocAucScore(true_lables, pred_prob); // output: 0.92
+    */
+    metrics.rocAucScore = function (yTrue, yPred, sample) {
+        return new metrics.PredictionCurve(yTrue, yPred).auc(sample);
+    };
+
+    /**
+    * Get precision recall curve sampled on `sample` points
+    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables
+    * @param {(Array<number> | module:la.Vector)} yPred - Estimated probabilities
+    * @param {number} [sample=10] - Desired number of samples in output
+    * @returns {module:la.Matrix} Precision-recall pairs
+    */
+    metrics.precisionRecallCurve = function (yTrue, yPred, sample) {
+        return new metrics.PredictionCurve(yTrue, yPred).precisionRecallCurve(sample);
+    };
+
+    /**
+    * Get break-even point, the value where precision and recall intersect
+    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables
+    * @param {(Array<number> | module:la.Vector)} yPred - Estimated probabilities
+    * @returns {number} Break-even point score
+    */
+    metrics.breakEventPointScore = function (yTrue, yPred) {
+        return new metrics.PredictionCurve(yTrue, yPred).breakEvenPoint();
+    };
+
+    /**
+    * Gets threshold for prediction score, which results in the highest F1
+    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables
+    * @param {(Array<number> | module:la.Vector)} yPred - Estimated probabilities
+    * @returns {number} Threshold with highest F1 score
+    */
+    metrics.bestF1Threshold = function (yTrue, yPred) {
+        return new metrics.PredictionCurve(yTrue, yPred).bestF1();
+    };
+
+    /**
+    * Gets threshold for recall score, nearest to specified recall
+    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables
+    * @param {(Array<number> | module:la.Vector)} yPred - Estimated probabilities
+    * @param {number} desiredRecall - Desired recall score.
+    * @returns {number} Threshold for recall score, nearest to specified `recall`
+    */
+    metrics.desiredRecallThreshold = function (yTrue, yPred, desiredRecall) {
+        return new metrics.PredictionCurve(yTrue, yPred).desiredRecall(desiredRecall);
+    };
+
+    /**
+    * Gets threshold for prediction score, nearest to specified precision
+    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables
+    * @param {(Array<number> | module:la.Vector)} yPred - Estimated probabilities
+    * @param {number} desiredPrecision - Desired precision score.
+    * @returns {number} Threshold for prediction score, nearest to specified `precision`
+    */
+    metrics.desiredPrecisionThreshold = function (yTrue, yPred, desiredPrecision) {
+        return new metrics.PredictionCurve(yTrue, yPred).desiredPrecision(desiredPrecision);
+    };
+
+    ///////////////////////////////////////////////////
+    //////////// ONLINE REGRESSION METRICS ////////////
+    ///////////////////////////////////////////////////
+
+    // Online regression metrics used for evaluating online models
+
+    // Main object for online metrics model
+    /**
+    * createOnlineMetric
+    * @private
+    * @class
+    *
+    * This provides methods used for event handling. It's not meant to
+    * be used directly.
+    *
+    */
+    function createOnlineMetric(callback) {
+        var error = -1;
+        this.metric = new callback(); // We can hide this later (just delete this)
+
+        // check if input types are of correct type
+        function checkPushParams() {
+            for (var i = 0, j = arguments.length; i < j; i++) {
+                var argumentType = arguments[i].constructor.name;
+                if (argumentType !== "Number") {
+                    throw new TypeError('input param ' + i + ' must be of type "Number", but is ' + argumentType + ' instead');
+                }
+            }
+        }
+
+        /**
+        * Updates metric with ground truth target value `yTrue` and estimated target value `yPred`.
+        * @param {number} yTrue - Ground truth (correct) target value
+        * @param {number} yPred - Estimated target value
+        */
+        this.push = function (yTrue, yPred, ref_num) {
+            // set default values of optional input parameters
+            var yPred = yPred == null ? 0 : yPred;
+            var ref_num = ref_num == null ? 0 : ref_num;
+            // check if input types are of correct type
+            checkPushParams(yTrue, yPred, ref_num);
+            // calculate the error with provided function from the callback function
+            error = this.metric.update(yTrue, yPred);
+        }
+
+        /**
+        * Returns error value.
+        * @returns {number} Error value
+        */
+        this.getError = function () {
+            return error;
+        }
+
+        /**
+	    * Save metric state to provided output stream `FOut`.
+	    * @param {module:fs.FOut} FOut - The output stream.
+	    * @returns {module:fs.FOut} Provided output stream `FOut`.
+        */
+        this.save = function (fout) {
+            fout.writeJson(this.metric.state);
+            return fout;
+        }
+
+        /**
+	    * Load metric state from provided input stream `FIn`.
+	    * @param {module:fs.FIn} FIn - The output stream.
+	    * @returns {module:fs.FIn} Provided output stream `FIn`.
+        */
+        this.load = function (fin) {
+            this.metric.state = fin.readJson();
+            error = this.metric.state.error;
+            return fin;
+        }
+
+    }
+
+    // MEAN ERROR (ME)
+    /**
+    * Create new (online) mean error instance.
+    * @class
+    * @classdesc Online Mean Error (ME) instance
+    * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
+    * @extends module:analytics~createOnlineMetric
+    */
+    metrics.MeanError = function (fin) {
+        function metric() {
+            this.name = "Mean Error"
+            this.shortName = "ME"
+            this.state = {
+                sumErr: 0,
+                count: 0,
+                error: 0
+            }
+            // update function
+            this.update = function (yTrue, yPred) {
+                var err = yTrue - yPred;
+                this.state.sumErr += err;
+                this.state.count++;
+                this.state.error = this.state.sumErr / this.state.count;
+                return this.state.error;
+            }
+        }
+        // create new metric instance, and load state from fin in defined
+        var errorMetric = new createOnlineMetric(metric);
+        if (typeof fin !== 'undefined') errorMetric.load(fin);
+
+        return errorMetric;
+    };
+
+    // MEAN ABSOLUTE ERROR (MAE)
+    /**
+    * Create new (online) mean absolute error instance.
+    * @class
+    * @classdesc Online Mean Absolute Error (MAE) instance
+    * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
+    * @extends module:analytics~createOnlineMetric
+    */
+    metrics.MeanAbsoluteError = function (fin) {
+        function metric() {
+            this.name = "Mean Absolute Error"
+            this.shortName = "MAE"
+            this.state = {
+                sumErr: 0,
+                count: 0,
+                error: 0
+            }
+            // update function
+            this.update = function (yTrue, yPred) {
+                var err = yTrue - yPred;
+                this.state.sumErr += Math.abs(err);
+                this.state.count++;
+                this.state.error = this.state.sumErr / this.state.count;
+                return this.state.error;
+            }
+        }
+        // create new metric instance, and load state from fin in defined
+        var errorMetric = new createOnlineMetric(metric);
+        if (typeof fin !== 'undefined') errorMetric.load(fin);
+
+        return errorMetric;
+    }
+
+    // MEAN SQUARE ERROR (MSE)
+    /**
+    * Create new (online) mean square error instance.
+    * @class
+    * @classdesc Online Mean Square Error (MSE) instance
+    * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
+    * @extends module:analytics~createOnlineMetric
+    */
+    metrics.MeanSquareError = function (fin) {
+        function metric() {
+            this.name = "Mean Square Error"
+            this.shortName = "MSE"
+            this.state = {
+                sumErr: 0,
+                count: 0,
+                error: 0
+            }
+            // update function
+            this.update = function (yTrue, yPred) {
+                var err = yTrue - yPred;
+                this.state.sumErr += (err * err);
+                this.state.count++;
+                this.state.error = this.state.sumErr / this.state.count;
+                return this.state.error;
+            }
+        }
+        // create new metric instance, and load state from fin in defined
+        var errorMetric = new createOnlineMetric(metric);
+        if (typeof fin !== 'undefined') errorMetric.load(fin);
+
+        return errorMetric;
+    }
+
+    // ROOT MEAN SQUARE ERROR (RMSE)
+    /**
+    * Create new (online) root mean square error instance.
+    * @class
+    * @classdesc Online Root Mean Square Error (RMSE) instance
+    * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
+    * @extends module:analytics~createOnlineMetric
+    */
+    metrics.RootMeanSquareError = function (fin) {
+        function metric() {
+            this.name = "Root Mean Square Error"
+            this.shortName = "RMSE"
+            this.state = {
+                sumErr: 0,
+                count: 0,
+                error: 0
+            }
+            // update function
+            this.update = function (yTrue, yPred) {
+                var err = yTrue - yPred;
+                this.state.sumErr += (err * err);
+                this.state.count++;
+                this.state.error = Math.sqrt(this.state.sumErr / this.state.count);
+                return this.state.error;
+            }
+        }
+        // create new metric instance, and load state from fin in defined
+        var errorMetric = new createOnlineMetric(metric);
+        if (typeof fin !== 'undefined') errorMetric.load(fin);
+
+        return errorMetric;
+    }
+
+    // MEAN ABSOLUTE PERCENTAGE ERROR (MAPE)
+    /**
+    * Create new (online) mean absolute percentage error instance.
+    * @class
+    * @classdesc Online Mean Absolute Percentage Error (MAPE) instance
+    * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
+    * @extends module:analytics~createOnlineMetric
+    */
+    metrics.MeanAbsolutePercentageError = function (fin) {
+        function metric() {
+            this.name = "Mean Absolute Percentage Error"
+            this.shortName = "MAPE"
+            this.state = {
+                sumErr: 0,
+                count: 0,
+                error: 0
+            }
+            // update function
+            this.update = function (yTrue, yPred) {
+                if (yTrue != 0) { // skip if yTrue is 0, otherwise we have devision by zero in the next step.
+                    var err = yTrue - yPred;
+                    this.state.sumErr += Math.abs(err / yTrue) * 100;
+                }
+                this.state.count++;
+                this.state.error = this.state.sumErr / this.state.count;
+                return this.state.error;
+            }
+        }
+        // create new metric instance, and load state from fin in defined
+        var errorMetric = new createOnlineMetric(metric);
+        if (typeof fin !== 'undefined') errorMetric.load(fin);
+
+        return errorMetric;
+    }
+
+    // R SQUARED SCORE (R2)
+    /**
+    * Create new (online) R Square instance. This statistic measures how successful the fit is in explaining the variation of the data. Best possible score is 1.0, lower values are worse.
+    * @class
+    * @classdesc Online R Squared (R2) score instance
+    * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
+    * @extends module:analytics~createOnlineMetric
+    */
+    metrics.R2Score = function (fin) {
+        function metric() {
+            this.name = "R2 Score"
+            this.shortName = "R2"
+            this.state = {
+                sst: 0,
+                sse: 0,
+                mean: 0,
+                count: 0,
+                sumTrue: 0,
+                sumTrue2: 0,
+                error: 0
+            }
+            // update function
+            this.update = function (yTrue, yPred) {
+                this.state.count++;
+                this.state.sumTrue += yTrue;
+                this.state.sumTrue2 += yTrue * yTrue;
+                this.state.mean = this.state.sumTrue / this.state.count;
+                //calculate R squared score
+                this.state.sse += (yTrue - yPred) * (yTrue - yPred);
+                this.state.sst = this.state.sumTrue2 - this.state.count * this.state.mean * this.state.mean;
+                if (this.state.sst == 0.0) {
+                    return (this.state.sse == 0.0) ? 1.0 : 0.0;
+                }
+                this.state.error = 1 - this.state.sse / this.state.sst;
+                return this.state.error;
+            }
+        }
+        // create new metric instance, and load state from fin in defined
+        var errorMetric = new createOnlineMetric(metric);
+        if (typeof fin !== 'undefined') errorMetric.load(fin);
+
+        return errorMetric;
+    }
+
+
+    //////////////////////////////////////////////////
+    //////////// BATCH REGRESSION METRICS ////////////
+    //////////////////////////////////////////////////
+
+    // function checks if input parameters are of appropriate type
+    function checkBatchParams() {
+        for (var i = 0, j = arguments.length; i < j; i++) {
+            var argumentType = arguments[i].constructor.name;
+            if (argumentType !== "Array" && argumentType !== "Vector") {
+                throw new TypeError('input param ' + i + ' must be of type "Array" or "Vector", but is ' + argumentType + ' instead');
+            }
+        }
+    }
+
+    // calculate batch regression metrics
+    function calcBatchError(yTrueVec, yPredVec) {
+        // check input parameters
+        checkBatchParams(yTrueVec, yPredVec);
+        // calculate error with metric defined as callback functio
+        function calcErr(metric) {
+            // iterage over array of input data
+            for (var i = 0; i < yTrueVec.length; i++) {
+                metric.push(yTrueVec[i], yPredVec[i]);
+            }
+            // return final error
+            return metric.getError()
+        }
+
+        // expose metrics which will be used in calcErr() to return error
+        this.ME = function () { return calcErr(new metrics.MeanError()) };
+        this.MAE = function () { return calcErr(new metrics.MeanAbsoluteError()) };
+        this.MSE = function () { return calcErr(new metrics.MeanSquareError()) };
+        this.RMSE = function () { return calcErr(new metrics.RootMeanSquareError()) };
+        this.MAPE = function () { return calcErr(new metrics.MeanAbsolutePercentageError()) };
+        this.R2 = function () { return calcErr(new metrics.R2Score()) };
+    };
+
+    /**
+    * Mean error (ME) regression loss.
+    * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`
+    * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`
+    * @returns {number} Error value
+    */
+    metrics.meanError = function (yTrueVec, yPredVec) {
+        return new calcBatchError(yTrueVec, yPredVec).ME()
+    }
+
+    /**
+    * Mean absolute error (MAE) regression loss.
+    * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`
+    * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`
+    * @returns {number} Error value
+    */
+    metrics.meanAbsoluteError = function (yTrueVec, yPredVec) {
+        return new calcBatchError(yTrueVec, yPredVec).MAE()
+    }
+
+    /**
+    * Mean square error (MSE) regression loss.
+    * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`
+    * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`
+    * @returns {number} Error value
+    */
+    metrics.meanSquareError = function (yTrueVec, yPredVec) {
+        return new calcBatchError(yTrueVec, yPredVec).MSE()
+    }
+
+    /**
+    * Root mean square (RMSE) error regression loss.
+    * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`
+    * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`
+    * @returns {number} Error value
+    */
+    metrics.rootMeanSquareError = function (yTrueVec, yPredVec) {
+        return new calcBatchError(yTrueVec, yPredVec).RMSE()
+    }
+
+    /**
+    * Mean absolute percentage error (MAPE) regression loss.
+    * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`
+    * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`
+    * @returns {number} Error value
+    */
+    metrics.meanAbsolutePercentageError = function (yTrueVec, yPredVec) {
+        return new calcBatchError(yTrueVec, yPredVec).MAPE()
+    }
+
+    /**
+    * R^2 (coefficient of determination) regression score.
+    * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`
+    * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`
+    * @returns {number} Error value
+    */
+    metrics.r2Score = function (yTrueVec, yPredVec) {
+        return new calcBatchError(yTrueVec, yPredVec).R2()
+    }
+
+    // Exports metrics namespace
+    exports.metrics = metrics;
+
+    /**
+    * @typedef {Object} pcaParams
+    * @property {number} [k = null] - Number of eigenvectors to be computed.
+    * @property {number} [iter = 100] - Number of iterations.
+    */
 
     /**
     * @classdesc Principal components analysis
     * @class
+    * @param {module:analytics~pcaParams | module:fs.FIn} [params] - The constructor parameters.
+    * @example <caption>Using default constructor</caption>
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // construct model
+    * var pca = new analytics.PCA();
+    * @example <caption>Using custom constructor</caption>
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // construct model
+    * var pca = new analytics.PCA({ k: 5, iter: 50 });
     */
     exports.PCA = function (param) {
-        param = param == undefined ? {} : param;
-
-        // Fit params
-        var iter = param.iter == undefined ? 100 : param.iter;
-        var k = param.k; // can be undefined
-
+        var iter, k;
+        var initParam;
+        this.P = undefined;
+        this.mu = undefined;
+        this.lambda = undefined;
+        var count = 1;
+        if (param != undefined && param.constructor.name == 'FIn') {
+            this.P = new la.Matrix();
+            this.P.load(param);
+            this.mu = new la.Vector();
+            this.mu.load(param);
+            this.lambda = new la.Vector();
+            this.lambda.load(param);
+            var params_vec = new la.Vector();
+            params_vec.load(param);
+            iter = params_vec[0];
+            k = params_vec[1];
+        } else if (param == undefined || typeof param == 'object') {
+            param = param == undefined ? {} : param;
+            // Fit params
+            var iter = param.iter == undefined ? 100 : param.iter;
+            var k = param.k; // can be undefined
+        } else {
+            throw "PCA.constructor: parameter must be a JSON object or a fs.FIn!";
+        }
+        initParam = { iter: iter, k: k };
         /**
         * Returns the model
         * @returns {Object} The model object whose keys are: P (eigenvectors), lambda (eigenvalues) and mu (mean)
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit matrix before getting the model
+        * pca.fit(matrix)
+        * // get your model using function getModel
+        * var model = pca.getModel();
         */
         this.getModel = function () {
             return { P: this.P, mu: this.mu, lambda: this.lambda };
         }
 
         /**
+        * Saves the model.
+        * @param {module:fs.FOut} fout - The output stream.
+        * @returns {module:fs.FOut} The given output stream fout.
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit matrix
+        * pca.fit(matrix);
+        * var model = pca.getModel();
+        * // save model
+        * pca.save(require('qminer').fs.openWrite('pca_test.bin')).close();
+        */
+        this.save = function (fout) {
+            if (!this.P) {
+                throw new Error("PCA.save() - model not created yet");
+            }
+
+            var params_vec = new la.Vector();
+            params_vec.push(iter);
+            params_vec.push(k);
+            
+            if (fout.constructor.name == 'FOut') {
+                this.P.save(fout);
+                this.mu.save(fout);
+                this.lambda.save(fout);
+                params_vec.save(fout);
+                return fout;
+            } else {
+                throw "PCA.save: input must be fs.FOut";
+            }
+        }
+        
+
+        /**
         * Sets parameters
         * @param {p} Object whose keys are: k (number of eigenvectors) and iter (maximum iterations)
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // set 5 eigenvectors and 10 iterations using setParams
+        * pca.setParams({iter: 10, k: 5});
         */
-        this.setParams = function (p) {
-            param = p;
-
+        this.setParams = function (param) {
             iter = param.iter == undefined ? iter : param.iter;
-            k = param.k == undefined ? k : param.iter; 
+            k = param.k == undefined ? k : param.k;
+            initParam = { iter: iter, k: k };
         }
 
         /**
         * Gets parameters
         * @returns Object whose keys are: k (number of eigenvectors) and iter (maximum iterations)
+        * @example <caption>Using default constructor</caption>
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // check the constructor parameters
+        * var paramvalue = pca.getParams();
+        * @example <caption>Using custom constructor</caption>
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // set parameters
+        * pca.setParams({iter: 10, k: 5});
+        * // check the changed parameters
+        * var paramvalue = pca.getParams();
         */
         this.getParams = function () {
-            return param;
+            return initParam;
         }
 
         /**
         * Finds the eigenvectors of the variance matrix.
         * @param {module:la.Matrix} A - Matrix whose columns correspond to examples.
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit the matrix
+        * pca.fit(matrix);
         */
         this.fit = function (A) {
             var rows = A.rows;
@@ -1778,10 +3245,36 @@ exports = {}; require.modules.qminer_analytics = exports;
         * in the eigenvector basis.
         * @param {(module:la.Vector | module:la.Matrix)} x - Test vector or matrix with column examples
         * @returns {(module:la.Vector | module:la.Matrix)} Returns projected vector or matrix
+        * @example <caption>Transforming the matrix</caption>
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit the matrix
+        * pca.fit(matrix);
+        * var model = pca.getModel();
+        * // transform matrix
+        * var transform = pca.transform(matrix);
+        * @example <caption>Transforming the vector</caption>
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create vector you wish to transform
+        * var vector = new la.Vector([0, -1]);
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit the matrix
+        * pca.fit(matrix);
+        * var model = pca.getModel();
+        * // transform vector
+        * var transform = pca.transform(vector);
         */
         this.transform = function (x) {
             if (x.constructor.name == 'Matrix') {
-                // P * (x - mu*ones(1, size(x,2))
+                // P * (x - mu*ones(1, size(x,2)))
                 return this.P.multiplyT(x.minus(this.mu.outer(la.ones(x.cols))));
 
             } else if (x.constructor.name == 'Vector') {
@@ -1794,6 +3287,32 @@ exports = {}; require.modules.qminer_analytics = exports;
         * Reconstructs the vector in the original space, reverses centering
         * @param {(module:la.Vector | module:la.Matrix)} x - Test vector or matrix with column examples, in the PCA space
         * @returns {(module:la.Vector | module:la.Matrix)} Returns the reconstruction
+        * @example <caption>Inverse transform of matrix</caption>
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit the matrix
+        * pca.fit(matrix);
+        * var model = pca.getModel();
+        * // use inverseTransform on matrix
+        * var invTransform = pca.inverseTransform(matrix);
+        * @example <caption>Inverse transform of vector</caption>
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create vector
+        * var vector = new la.Vector([0, -1]);
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit the matrix
+        * pca.fit(matrix);
+        * var model = pca.getModel();
+        * // use inverseTransform on vector
+        * var invTransform = pca.inverseTransform(vector);
         */
         this.inverseTransform = function (x) {
             if (x.constructor.name == 'Matrix') {
@@ -1812,6 +3331,8 @@ exports = {}; require.modules.qminer_analytics = exports;
     * @property {number} iter - The maximum number of iterations.
     * @property {number} k - The number of centroids.
     * @property {boolean} verbose - If false, the console output is supressed.
+    * @property {Array} fitIdx - Array of indexes that should be used as starting centroids. Optional.
+    * @property {model} fitStart - Model from another KMeans algorithm (obtained via getModel() method). Its centroids are used as starting centroids for this model. Optional.
     * @example
     * // import analytics and la modules
     * var analytics = require('qminer').analytics;
@@ -1820,26 +3341,53 @@ exports = {}; require.modules.qminer_analytics = exports;
     * var KMeans = new analytics.KMeans();
     * // create the matrix to be fitted
     * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
-    * // create the model 
+    * // create the model
     * KMeans.fit(X);
     */
     exports.KMeans = function (param) {
-        param = param == undefined ? {} : param;
 
         // Fit params
-        var iter = param.iter == undefined ? 100 : param.iter;
-        var k = param.k == undefined ? 2 : param.k;
-        var verbose = param.verbose == undefined ? false : param.verbose;
-        var fitIdx = param.fitIdx == undefined ? undefined : param.fitIdx;
+        // var iter = param.iter == undefined ? 100 : param.iter;
+        // var k = param.k == undefined ? 2 : param.k;
+        // var verbose = param.verbose == undefined ? false : param.verbose;
+        // var fitIdx = param.fitIdx == undefined ? undefined : param.fitIdx;
 
         // Model
         var C = undefined;
         var idxv = undefined;
         var norC2 = undefined;
+        var iter = undefined;
+        var k = undefined;
+        var verbose = undefined;
+        var fitIdx = undefined;
+        var fitStart = undefined;
+        var medoids = new la.Vector();
+
+        if (param != undefined && param instanceof fs.FIn) {
+		    C = new la.Matrix(); C.load(param);
+		    norC2 = new la.Vector(); norC2.load(param);
+		    idxv = new la.IntVector(); idxv.load(param);
+		    var fin_params = param.readJson();
+		    iter = fin_params.iter;
+		    k = fin_params.k;
+		    verbose = fin_params.verbose;
+		    medoids.load(param);
+	    } else if (param == undefined || typeof param == 'object') {
+            param = param == undefined ? {} : param;
+            // Fit params
+            iter = (param.iter == undefined) ? 100 : param.iter;
+            k = (param.k == undefined) ? 2 : param.k;
+            verbose = (param.verbose == undefined) ? false : param.verbose;
+            fitIdx = param.fitIdx == undefined ? undefined : param.fitIdx;
+            fitStart = param.fitStart == undefined ? undefined : param.fitStart;
+        } else {
+            throw "KMeans.constructor: parameter must be a JSON object or a fs.FIn!";
+        }
+        param = { iter: iter, k: k, verbose: verbose };
 
         /**
         * Permutes centroid with given mapping.
-        @param {object} mapping - object that contains the mappping. E.g. mapping[4]=2 means "map cluster 4 into cluster 2"
+        * @param {object} mapping - object that contains the mapping. E.g. mapping[4]=2 means "map cluster 4 into cluster 2"
         */
         this.permuteCentroids = function (mapping) {
             var cl_count = C.cols;
@@ -1855,11 +3403,16 @@ exports = {}; require.modules.qminer_analytics = exports;
             C = C_new;
             norC2 = la.square(C.colNorms());
             idxv = idxv_new;
+            if (medoids.length != 0) {
+                var medoids_new = new la.Vector(medoids);
+                for (var i = 0; i < medoids_new.length; i++) {
+                    medoids_new[i] = mapping[medoids[i]]
+                }
+                medoids = medoids_new;
+            }
         }
         /**
         * Returns the model
-        * @returns {Object} The model object whose keys are: C (centroids), norC2 (centroid norms squared) and idxv (cluster ids of the training data)
-        * Returns the model.
         * @returns {Object} The model object whose keys are: C (centroids) and idxv (cluster ids of the training data).
         * @example
         * // import modules
@@ -1897,6 +3450,7 @@ exports = {}; require.modules.qminer_analytics = exports;
             k = param.k == undefined ? k : param.k;
             verbose = param.verbose == undefined ? verbose : param.verbose;
             fitIdx = param.fitIdx == undefined ? fitIdx : param.fitIdx;
+            fitStart = param.fitStart == undefined ? undefined : param.fitStart;
         }
 
         /**
@@ -1911,12 +3465,13 @@ exports = {}; require.modules.qminer_analytics = exports;
         * var json = KMeans.getParams();
         */
         this.getParams = function () {
-            return param;
+            return  { iter: iter, k: k, verbose: verbose }
         }
 
         /**
-        * Computes the centroids
-        * @param {(module:la.Matrix | module:la.SparseMatrix)} A - Matrix whose columns correspond to examples.
+        * Computes the centroids.
+        * @param {(module:la.Matrix | module:la.SparseMatrix)} X - Matrix whose columns correspond to examples.
+        * @param {module:la.IntVector} [recIds] - IDs of columns of X. The fit function stores the IDs of the medoids, which are used by the KMeans.explain function.
         * @returns {module:analytics.KMeans} Self. It stores the info about the new model.
         * @example
         * // import analytics module
@@ -1928,22 +3483,29 @@ exports = {}; require.modules.qminer_analytics = exports;
         * // create the model with the matrix X
         * KMeans.fit(X);
         */
-        this.fit = function (X) {
+        this.fit = function (X, recIds) {
             // select random k columns of X, returns a dense C++ matrix
             var selectCols = function (X, k) {
-                var idx;
-                if (fitIdx == undefined) {
-                    idx = la.randi(X.cols, k);
-                } else {
-                    assert(fitIdx.length == k, "Error: fitIdx is not of length k!");
-                    assert(Math.max.apply(Math, fitIdx) < X.cols, "Error: fitIdx contains index greater than number of columns in matrix. Index out of range!");
-                    idx = fitIdx;
-                }
-                var idxMat = new la.SparseMatrix({ cols: 0, rows: X.cols });
-                for (var i = 0; i < idx.length; i++) {
-                    var spVec = new la.SparseVector([[idx[i], 1.0]], X.cols);
-                    idxMat.push(spVec);
-                }
+                if (fitStart) {
+                    assert(fitStart.C.cols == k, "Error: fitStart.C.cols is not of length k!");
+					var result = {};
+					result.C = fitStart.C;
+					result.idx = la.randi(X.cols, k); // this assignment is irrelevant, really
+					return result;
+				}
+				var idx;
+				if (fitIdx == undefined) {
+					idx = la.randi(X.cols, k);
+				} else {
+					assert(fitIdx.length == k, "Error: fitIdx is not of length k!");
+					assert(Math.max.apply(Math, fitIdx) < X.cols, "Error: fitIdx contains index greater than number of columns in matrix. Index out of range!");
+					idx = fitIdx;
+				}
+				var idxMat = new la.SparseMatrix({ cols: 0, rows: X.cols });
+				for (var i = 0; i < idx.length; i++) {
+					var spVec = new la.SparseVector([[idx[i], 1.0]], X.cols);
+					idxMat.push(spVec);
+				}
                 var C = X.multiply(idxMat);
                 var result = {};
                 result.C = C;
@@ -1998,7 +3560,7 @@ exports = {}; require.modules.qminer_analytics = exports;
                 norC2 = la.square(C.colNorms());
                 //D =  full(C'* X) - norC2' * (0.5* ones(1, n)) - (0.5 * ones(k,1) )* norX2';
                 var D = C.multiplyT(X).minus(norC2.outer(ones_n)).minus(ones_k.outer(norX2));
-                idxv = la.findMaxIdx(D);
+                idxv = new la.IntVector(la.findMaxIdx(D));
 
                 if (verbose) {
                     var energy = 0.0;
@@ -2015,17 +3577,26 @@ exports = {}; require.modules.qminer_analytics = exports;
                     }
                     break;
                 }
-                idxvOld = idxv.slice();
+                idxvOld = new la.IntVector(idxv);
                 C = getCentroids(X, idxv, C); //drag
             }
             if (verbose) {
                 w.toc("end");
             }
             norC2 = la.square(C.colNorms());
+            if (recIds != undefined) {
+                assert(recIds.length == X.cols);
+                var D = X.multiplyT(C).minus(ones_n.outer(norC2)).minus(norX2.outer(ones_k));
+                medoidIdx = la.findMaxIdx(D);
+                medoids = new la.Vector(medoidIdx);
+                for (var i = 0; i < medoids.length; i++) {
+                    medoids[i] = recIds[medoidIdx[i]];
+                }
+            }
         };
 
         /**
-        * Returns an vector of cluster id assignments
+        * Returns an vector of cluster id assignments.
         * @param {(module:la.Matrix | module:la.SparseMatrix)} A - Matrix whose columns correspond to examples.
         * @returns {module:la.IntVector} Vector of cluster assignments.
         * @example
@@ -2048,6 +3619,75 @@ exports = {}; require.modules.qminer_analytics = exports;
             var norX2 = la.square(X.colNorms());
             var D = C.multiplyT(X).minus(norC2.outer(ones_n)).minus(ones_k.outer(norX2));
             return la.findMaxIdx(D);
+        }
+
+        /**
+        * @typedef KMeansExplanation
+        * @type {Object}
+        * @property {number} medoidID - The ID of the nearest medoids
+        * @property {module:la.IntVector} featureIDs - The IDs of features, sorted by contribution
+        * @property {module:la.Vector} featureContributions - Weights of each feature contribution (sum to 1.0)
+        */
+
+        /**
+        * Returns the IDs of the nearest medoid for each example.
+        * @param {(module:la.Matrix | module:la.SparseMatrix)} X - Matrix whose columns correspond to examples.
+        * @returns {Array.<KMeansExplanation>} Object containing the vector of medoid IDs.
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // import linear algebra module
+        * var la = require('qminer').la;
+        * // create a new KMeans object
+        * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+        * // create a matrix to be fitted
+        * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+        * // create the model with the matrix X using the column IDs [0,1,2]
+        * KMeans.fit(X, [1234,1142,2355]);
+        * // create the matrix of the prediction vectors
+        * var test = new la.Matrix([[2, -1, 1], [1, 0, -3]]);
+        * // predict/explain - return the closest medoids
+        * var explanation = KMeans.explain(test);
+        */
+        this.explain = function (X) {
+            if (medoids == undefined) {
+                return { medoidIDs: null };
+            }
+            var ones_n = la.ones(X.cols).multiply(0.5);
+            var ones_k = la.ones(k).multiply(0.5);
+            var norX2 = la.square(X.colNorms());
+            var D = C.multiplyT(X).minus(norC2.outer(ones_n)).minus(ones_k.outer(norX2));
+            var centroids = la.findMaxIdx(D);
+            var medoidIDs = new la.IntVector(centroids);
+            assert(medoids.length == k);
+            var result = [];
+            for (var i = 0; i < centroids.length; i++) {
+                var explanation = featureContrib(X.getCol(i), C.getCol(centroids[i]));
+                result[i] = {
+                    medoidID: medoids[centroids[i]],
+                    featureIDs: explanation.featureIDs,
+                    featureContributions: explanation.featureContributions
+                }
+            }
+            return result;
+        }
+
+        /**
+        * Returns the weights and feature IDs that contributed to the distance between two vectors
+        * @param {(module:la.Vector | module:la.SparseVector)} x - Vector
+        * @param {(module:la.Vector | module:la.SparseVector)} y - Vector
+        * @returns {Object} Feature IDs and feature contributions
+        **/
+        function featureContrib(x, y) {
+            var fx = x.constructor.name == 'SparseVector' ? x.full() : x;
+            var fy = y.constructor.name == 'SparseVector' ? y.full() : y;
+            var diff = fx.minus(fy);
+            var nor2 = Math.pow(diff.norm(), 2);
+            for (var i = 0; i < diff.length; i++) {
+                diff[i] = Math.pow(diff[i], 2) / nor2;
+            }
+            var sorted = diff.sortPerm(false); // sort descending
+            return { featureIDs: sorted.perm, featureContributions: sorted.vec };
         }
 
         /**
@@ -2082,298 +3722,32 @@ exports = {}; require.modules.qminer_analytics = exports;
             return D;
         }
 		/**
-        * Saves KMeans internal state into (binary) file
-        * @param {string} fname - Name of the file to write into.
+        * Saves KMeans internal state into (binary) file.
+        * @param {module:fs.FOut} arg - The output stream.
+        * @returns {module:fs.FOut} The output stream fout.
         */
-        this.save = function(fname){
-			if (!C) {
-				throw new Error("KMeans.save() - model not created yet");
-			}
-
-			var params_vec = new la.Vector();
-			params_vec.push(iter);
-			params_vec.push(k);
-			params_vec.push(verbose ? 1.0 : 0.0);
-
-			var xfs = qm.fs;
-			var fout = xfs.openWrite(fname);
+        this.save = function (fout) {
+			if (!C) { throw new Error("KMeans.save() - model not created yet"); }
 			C.save(fout);
-			norC2.save(fout);
-			(new la.Vector(idxv)).save(fout);
-			params_vec.save(fout);
-			fout.close();
-			fout = null;
-		}
-		/**
-        * Loads KMeans internal state from (binary) file
-        * @param {string} fname - Name of the file to read from.
-        */
-        this.load = function (fname) {
-		    var xfs = qm.fs;
-		    var fin = xfs.openRead(fname);
-
-		    C = new la.Matrix();
-		    C.load(fin);
-		    norC2 = new la.Vector();
-		    norC2.load(fin);
-
-		    var idxvtmp = new la.Vector();
-		    idxvtmp.load(fin);
-		    idxv = idxvtmp; // make normal vector (?)
-
-		    var params_vec = new la.Vector();
-		    params_vec.load(fin);
-		    iter = params_vec[0];
-		    k = params_vec[1];
-		    verbose = (params_vec[2] != 0);
-
-		    fin = null;
+            norC2.save(fout);
+            idxv.save(fout);
+            fout.writeJson({
+				iter: iter,
+				k: k,
+				verbose: verbose
+			});
+			medoids.save(fout);
+            return fout;
 		}
     }
-
-    ///////////////////////////////
-    ////// code below not yet ported or verified for scikit
-    ///////////////////////////////
 
     function defarg(arg, defaultval) {
         return arg == undefined ? defaultval : arg;
     }
 
-    function createBatchModel(featureSpace, models) {
-        this.featureSpace = featureSpace;
-        this.models = models;
-        // get targets
-        this.target = [];
-        for (var cat in this.models) { this.target.push(cat); }
-        // serialize to stream
-        this.save = function (sout) {
-            // save list
-            sout.writeLine(this.models);
-            // save feature space
-            this.featureSpace.save(sout);
-            // save models
-            for (var cat in this.models) {
-                this.models[cat].model.save(sout);
-            }
-            return sout;
-        }
-
-        this.predict = function (record) {
-            var vec = this.featureSpace.extractSparseVector(record);
-            var result = {};
-            for (var cat in this.models) {
-                result[cat] = this.models[cat].model.predict(vec);
-            }
-            return result;
-        }
-
-        this.predictLabels = function (record) {
-            var result = this.predict(record);
-            var labels = [];
-            for (var cat in result) {
-                if (result[cat] > 0.0) {
-                    labels.push(cat);
-                }
-            }
-            return labels;
-        }
-
-        this.predictTop = function (record) {
-            var result = this.predict(record);
-            var top = null;
-            for (var cat in result) {
-                if (top) {
-                    if (top.weight > result[cat]) {
-                        top.category = cat;
-                        top.weight = result[cat];
-                    }
-                } else {
-                    top = { category: cat, weight: result[cat] }
-                }
-            }
-            return top.category;
-        }
-        return this;
-    }
-
-    //!- `batchModel = analytics.newBatchModel(rs, features, target)` -- learns a new batch model
-    //!     using record set `rs` as training data and `features`; `target` is
-    //!     a field descriptor JSON object for the records which we are trying to predict
-	//!     (obtained by calling store.field("Rating");
-    //!     if target field string or string vector, the result is a SVM classification model,
-    //!     and if target field is a float, the result is a SVM regression model; resulting
-    //!     model has the following functions:
-    //!   - `strArr = batchModel.target` -- array of categories for which we have models
-    //!   - `scoreArr = batchModel.predict(rec)` -- creates feature vector from record `rec`, sends it
-    //!     through the model and returns the result as a dictionary where labels are keys and scores (numbers) are values.
-    //!   - `labelArr = batchModel.predictLabels(rec)` -- creates feature vector from record `rec`,
-    //!     sends it through the model and returns the labels with positive weights as `labelArr`.
-    //!   - `labelStr = batchModel.predictTop(rec)` -- creates feature vector from record `rec`,
-    //!     sends it through the model and returns the top ranked label `labelStr`.
-    //!   - `batchModel.save(fout)` -- saves the model to `fout` output stream
-    exports.newBatchModel = function (records, features, target, limitCategories) {
-        console.log("newBatchModel", "Start");
-        // prepare feature space
-        console.log("newBatchModel", "  creating feature space");
-        var featureSpace = new qm.FeatureSpace(records.store.base, features);
-        // initialize features
-        featureSpace.updateRecords(records);
-        console.log("newBatchModel", "  number of dimensions = " + featureSpace.dim);
-        // prepare spare vectors
-        console.log("newBatchModel", "  preparing feature vectors");
-        var sparseVecs = featureSpace.extractSparseMatrix(records);
-        // prepare target vectors
-        var targets = {};
-        // figure out if new category name, or update count
-        function initCats(categories, catName) {
-            if (categories[catName]) {
-                categories[catName].count++;
-            } else {
-                // check if we should ignore this category
-                if (limitCategories && !qm_util.isInArray(limitCategories, catName)) { return; }
-                // check if we should ignore this category
-                categories[catName] = {
-                    name: catName,
-                    type: "classification",
-                    count: 1,
-                    target: new la.Vector({ mxVals: records.length })
-                };
-            }
-        }
-        // initialize targets
-        console.log("newBatchModel", "  preparing target vectors");
-        if (target.type === "string_v") {
-            // get all possible values for the field
-            for (var i = 0; i < records.length; i++) {
-                var cats = records[i][target.name];
-                for (var j = 0; j < cats.length; j++) {
-                    initCats(targets, cats[j]);
-                }
-            }
-            // initialized with +1 or -1 for each category
-            for (var i = 0; i < records.length; i++) {
-                var cats = la.copyVecToArray(records[i][target.name]);
-                for (var cat in targets) {
-                    targets[cat].target.push(qm_util.isInArray(cats, cat) ? 1.0 : -1.0);
-                }
-            }
-        } else if (target.type === "string") {
-            // get all possible values for the field
-            for (var i = 0; i < records.length; i++) {
-                var recCat = records[i][target.name];
-                initCats(targets, recCat);
-            }
-            // initialized with +1 or -1 for each category
-            for (var i = 0; i < records.length; i++) {
-                var recCat = records[i][target.name];
-                for (var cat in targets) {
-                    targets[cat].target.push((recCat === cat) ? 1.0 : -1.0);
-                }
-            }
-        } else if (target.type === "float") {
-            // initialized with +1 or -1 for each category
-            targets[target.name] = {
-                name: target.name,
-                type: "regression",
-                count: records.length,
-                target: new la.Vector({ mxVals: records.length })
-
-            };
-            for (var i = 0; i < records.length; i++) {
-                targets[target.name].target.push(records[i][target.name]);
-            }
-        }
-        // training model for each category
-        console.log("newBatchModel", "  training SVM");
-        var models = {};
-        for (var cat in targets) {
-            if (targets[cat].count >= 50) {
-                models[cat] = {
-                    name: targets[cat].name,
-                    type: targets[cat].type,
-                };
-                if (targets[cat].type === "classification") {
-                    console.log("newBatchModel", "    ... " + cat + " (classification)");
-                    models[cat].model = new exports.SVC({ c: 1, j: 10, batchSize: 10000, maxIterations: 100000, maxTime: 1800, minDiff: 0.001 });
-                    models[cat].model.fit(sparseVecs, targets[cat].target);
-                } else if (targets[cat].type === "regression") {
-                    console.log("newBatchModel", "    ... " + cat + " (regression)");
-                    models[cat].model = new exports.SVR({ c: 1, eps: 1e-2, batchSize: 10000, maxIterations: 100000, maxTime: 1800, minDiff: 0.001 });
-                    models[cat].model.fit(sparseVecs, targets[cat].target);
-                }
-            }
-        }
-        // done
-        console.log("newBatchModel", "Done");
-        // we finished the constructor
-        return new createBatchModel(featureSpace, models);
-    };
-
-    //!- `batchModel = analytics.loadBatchModel(base, fin)` -- loads batch model frm input stream `fin`
-    exports.loadBatchModel = function (base, sin) {
-        var models = JSON.parse(sin.readLine());
-        var featureSpace = new qm.FeatureSpace(base, sin);
-        for (var cat in models) {
-            models[cat].model = new exports.SVC(sin);
-        }
-        // we finished the constructor
-        return new createBatchModel(featureSpace, models);
-    };
-
-	//!- `result = analytics.crossValidation(rs, features, target, folds)` -- creates a batch
-    //!     model for records from record set `rs` using `features; `target` is the
-    //!     target field and is assumed discrete; the result is a results object
-    //!     with the following API:
-    //!     - `result.target` -- an object with categories as keys and the following
-    //!       counts as members of these keys: `count`, `TP`, `TN`, `FP`, `FN`,
-    //!       `all()`, `precision()`, `recall()`, `accuracy()`.
-    //!     - `result.confusion` -- confusion matrix between categories
-    //!     - `result.report()` -- prints basic report on to the console
-    //!     - `result.reportCSV(fout)` -- prints CSV output to the `fout` output stream
-    exports.crossValidation = function (records, features, target, folds, limitCategories) {
-        // create empty folds
-        var fold = [];
-        for (var i = 0; i < folds; i++) {
-            fold.push(new la.IntVector());
-        }
-        // split records into folds
-        records.shuffle(1);
-        var fold_i = 0;
-        for (var i = 0; i < records.length; i++) {
-            fold[fold_i].push(records[i].$id);
-            fold_i++; if (fold_i >= folds) { fold_i = 0; }
-        }
-        // do cross validation
-        var cfyRes = null;
-        for (var fold_i = 0; fold_i < folds; fold_i++) {
-            // prepare train and test record sets
-            var train = new la.IntVector();
-            var test = new la.IntVector();
-            for (var i = 0; i < folds; i++) {
-                if (i == fold_i) {
-                    test.pushV(fold[i]);
-                } else {
-                    train.pushV(fold[i]);
-                }
-            }
-            var trainRecs = records.store.newRecSet(train);
-            var testRecs = records.store.newRecSet(test);
-            console.log("Fold " + fold_i + ": " + trainRecs.length + " training and " + testRecs.length + " testing");
-            // create model for the fold
-            var model = exports.newBatchModel(trainRecs, features, target, limitCategories);
-            // prepare test counts for each target
-            if (!cfyRes) { cfyRes = new exports.ClassificationScore (model.target); }
-            // evaluate predictions
-            for (var i = 0; i < testRecs.length; i++) {
-                var correct = testRecs[i][target.name];
-                var predicted = model.predictLabels(testRecs[i]);
-                cfyRes.count(correct, predicted);
-            }
-            // report
-            cfyRes.report();
-        }
-        return cfyRes;
-    };
+    ///////////////////////////////
+    ////// code below not yet ported or verified for scikit
+    ///////////////////////////////
 
     //!- `alModel = analytics.newActiveLearner(query, qRecSet, fRecSet, ftrSpace, settings)` -- initializes the
     //!    active learning. The algorihm is run by calling `model.startLoop()`. The algorithm has two stages: query mode, where the algorithm suggests potential
@@ -2620,377 +3994,4 @@ exports = {}; require.modules.qminer_analytics = exports;
         //this.loadLabeled
     };
 
-
-	//////////// RIDGE REGRESSION
-	// solve a regularized least squares problem
-	//!- `ridgeRegressionModel = new analytics.RidgeRegression(kappa, dim, buffer)` -- solves a regularized ridge
-	//!  regression problem: min|X w - y|^2 + kappa |w|^2. The inputs to the algorithm are: `kappa`, the regularization parameter,
-	//!  `dim` the dimension of the model and (optional) parameter `buffer` (integer) which specifies
-	//!  the length of the window of tracked examples (useful in online mode). The model exposes the following functions:
-	exports.RidgeRegression = function (kappa, dim, buffer) {
-	    var X = [];
-	    var y = [];
-	    buffer = typeof buffer !== 'undefined' ? buffer : -1;
-	    var w = new la.Vector({ "vals": dim });
-	    //!   - `ridgeRegressionModel.add(vec, num)` -- adds a vector `vec` and target `num` (number) to the training set
-	    this.add = function (x, target) {
-	        X.push(x);
-	        y.push(target);
-	        if (buffer > 0) {
-	            if (X.length > buffer) {
-	                this.forget(X.length - buffer);
-	            }
-	        }
-	    };
-	    //!   - `ridgeRegressionModel.addupdate(vec, num)` -- adds a vector `vec` and target `num` (number) to the training set and retrains the model
-	    this.addupdate = function (x, target) {
-	        this.add(x, target);
-	        this.update();
-	    }
-	    //!   - `ridgeRegressionModel.forget(n)` -- deletes first `n` (integer) examples from the training set
-	    this.forget = function (ndeleted) {
-	        ndeleted = typeof ndeleted !== 'undefined' ? ndeleted : 1;
-	        ndeleted = Math.min(X.length, ndeleted);
-	        X.splice(0, ndeleted);
-	        y.splice(0, ndeleted);
-	    };
-	    //!   - `ridgeRegressionModel.update()` -- recomputes the model
-	    this.update = function () {
-	        var A = this.getMatrix();
-	        var b = new la.Vector(y);
-	        w = this.compute(A, b);
-	    };
-	    //!   - `vec = ridgeRegressionModel.getModel()` -- returns the parameter vector `vec` (dense vector)
-	    this.getModel = function () {
-	        return w;
-	    };
-	    this.getMatrix = function () {
-	        if (X.length > 0) {
-	            var A = new la.Matrix({ "cols": X[0].length, "rows": X.length });
-	            for (var i = 0; i < X.length; i++) {
-	                A.setRow(i, X[i]);
-	            }
-	            return A;
-	        }
-	    };
-	    //!   - `vec2 = ridgeRegressionModel.compute(mat, vec)` -- computes the model parameters `vec2`, given
-	    //!    a row training example matrix `mat` and target vector `vec` (dense vector). The vector `vec2` solves min_vec2 |mat' vec2 - vec|^2 + kappa |vec2|^2.
-	    //!   - `vec2 = ridgeRegressionModel.compute(spMat, vec)` -- computes the model parameters `vec2`, given
-	    //!    a row training example sparse matrix `spMat` and target vector `vec` (dense vector). The vector `vec2` solves min_vec2 |spMat' vec2 - vec|^2 + kappa |vec2|^2.
-	    this.compute = function (A, b) {
-	        var I = la.eye(A.cols);
-	        var coefs = (A.transpose().multiply(A).plus(I.multiply(kappa))).solve(A.transpose().multiply(b));
-	        return coefs;
-	    };
-	    //!   - `num = model.predict(vec)` -- predicts the target `num` (number), given feature vector `vec` based on the internal model parameters.
-	    this.predict = function (x) {
-	        return w.inner(x);
-	    };
-	};
-
-
-    /**
-     * StreamStory.
-     * @class
-     * @param {opts} HierarchMarkovParam - parameters. TODO typedef and describe
-     */
-    exports.HierarchMarkov = function (opts) {
-    	// constructor
-    	if (opts == null) throw 'Missing parameters!';
-    	if (opts.base == null) throw 'Missing parameter base!';
-
-    	// create model and feature space
-    	var mc;
-    	var obsFtrSpace;
-    	var controlFtrSpace;
-
-    	if (opts.hmcConfig != null && opts.obsFields != null &&
-    			opts.contrFields != null && opts.base != null) {
-
-    		mc = opts.sequenceEndV != null ? new exports.HMC(opts.hmcConfig, opts.sequenceEndV) : new exports.HMC(opts.hmcConfig);
-
-    		obsFtrSpace = new qm.FeatureSpace(opts.base, opts.obsFields);
-    		controlFtrSpace = new qm.FeatureSpace(opts.base, opts.contrFields);
-    	}
-    	else if (opts.hmcFile != null) {
-    		var fin = new fs.FIn(opts.hmcFile);
-    		mc = new exports.HMC(fin);
-    		obsFtrSpace = new qm.FeatureSpace(opts.base, fin);
-    		controlFtrSpace = new qm.FeatureSpace(opts.base, fin);
-    	}
-    	else {
-    		throw 'Parameters missing: ' + JSON.stringify(opts);
-    	}
-
-    	function getFtrNames(ftrSpace) {
-    		var names = [];
-
-    		var dims = ftrSpace.dims;
-    		for (var i = 0; i < dims.length; i++) {
-				names.push(ftrSpace.getFeature(i));
-			}
-
-    		return names;
-    	}
-
-    	function getObsFtrCount() {
-			return obsFtrSpace.dims.length;
-		}
-
-    	function getObsFtrNames() {
-    		return getFtrNames(obsFtrSpace);
-    	}
-
-    	function getControlFtrNames() {
-    		return getFtrNames(controlFtrSpace);
-    	}
-
-    	function getFtrDescriptions(stateId) {
-    		var observations = [];
-    		var controls = [];
-
-			var coords = mc.fullCoords(stateId);
-			var obsFtrNames = getObsFtrNames();
-			var invObsCoords = obsFtrSpace.invertFeatureVector(coords);
-			for (var i = 0; i < invObsCoords.length; i++) {
-				observations.push({name: obsFtrNames[i], value: invObsCoords.at(i)});
-			}
-
-			var controlCoords = mc.fullCoords(stateId, false);
-			var contrFtrNames = getControlFtrNames();
-			var invControlCoords = controlFtrSpace.invertFeatureVector(controlCoords);
-			for (var i = 0; i < invControlCoords.length; i++) {
-				controls.push({name: contrFtrNames[i], value: invControlCoords.at(i)});
-			}
-
-			return {
-				observations: observations,
-				controls: controls
-			};
-    	}
-
-    	function getFtrCoord(stateId, ftrIdx) {
-    		if (ftrIdx < obsFtrSpace.dims.length) {
-    			return obsFtrSpace.invertFeatureVector(mc.fullCoords(stateId))[ftrIdx];
-    		} else {
-    			return controlFtrSpace.invertFeatureVector(mc.fullCoords(stateId, false))[ftrIdx - obsFtrSpace.dims.length];
-    		}
-    	}
-
-    	// public methods
-    	var that = {
-    		/**
-    		 * Creates a new model out of the record set.
-    		 */
-    		fit: function (opts) {
-    			var recSet = opts.recSet;
-    			var batchEndV = opts.batchEndV;
-    			var timeField = opts.timeField;
-
-    			log.info('Updating feature space ...');
-    			obsFtrSpace.updateRecords(recSet);
-    			controlFtrSpace.updateRecords(recSet);
-
-    			var obsColMat = obsFtrSpace.extractMatrix(recSet);
-    			var contrColMat = controlFtrSpace.extractMatrix(recSet);
-    			var timeV = recSet.getVector(timeField);
-
-    			log.info('Creating model ...');
-    			mc.fit({
-    				observations: obsColMat,
-    				controls: contrColMat,
-    				times: timeV,
-    				batchV: batchEndV
-    			});
-    			log.info('Done!');
-
-    			return that;
-    		},
-
-    		/**
-    		 * Adds a new record. Doesn't update the models statistics.
-    		 */
-    		update: function (rec) {
-    			if (rec == null) return;
-
-    			var obsFtrVec = obsFtrSpace.extractVector(rec);
-    			var contFtrVec = controlFtrSpace.extractVector(rec);
-    			var timestamp = rec.time.getTime();
-
-    			mc.update(obsFtrVec, contFtrVec, timestamp);
-    		},
-
-    		/**
-    		 * Saves the feature space and model into the specified files.
-    		 */
-    		save: function (mcFName) {
-    			try {
-    				console.log('Saving Markov chain ...');
-
-    				var fout = new fs.FOut(mcFName);
-
-	    			mc.save(fout);
-	    			obsFtrSpace.save(fout);
-	    			controlFtrSpace.save(fout);
-
-	    			fout.flush();
-	    			fout.close();
-
-	    			console.log('Done!');
-    			} catch (e) {
-    				console.log('Failed to save the model!!' + e.message);
-    			}
-    		},
-
-    		/**
-    		 * Returns the state used in the visualization.
-    		 */
-    		getVizState: function () {
-    			log.debug('Fetching visualization ...');
-    			return mc.toJSON();
-    		},
-
-    		/**
-    		 * Returns the hierarchical Markov chain model.
-    		 */
-    		getModel: function () {
-    			return mc;
-    		},
-
-    		/**
-    		 * Returns the feature space.
-    		 */
-    		getFtrSpace: function () {
-    			return { observations: obsFtrSpace, controls: controlFtrSpace };
-    		},
-
-    		/**
-    		 * Returns the current state at the specified height. If the height is not specified it
-    		 * returns the current states through the hierarchy.
-    		 */
-    		currState: function (height) {
-    			return mc.currState(height);
-    		},
-
-    		/**
-    		 * Returns the most likely future states.
-    		 */
-    		futureStates: function (level, state, time) {
-    			return mc.futureStates(level, state, time);
-    		},
-
-    		/**
-    		 * Returns the most likely future states.
-    		 */
-    		pastStates: function (level, state, time) {
-    			return mc.pastStates(level, state, time);
-    		},
-
-    		getFtrNames: function () {
-    			return {
-    				observation: getObsFtrNames(),
-    				control: getControlFtrNames()
-    			}
-    		},
-
-    		/**
-    		 * Returns state details as a Javascript object.
-    		 */
-    		stateDetails: function (stateId, height) {
-    			var futureStates = mc.futureStates(height, stateId);
-    			var pastStates = mc.pastStates(height, stateId);
-    			var isTarget = mc.isTarget(stateId, height);
-    			var stateNm = mc.getStateName(stateId);
-    			var wgts = mc.getStateWgtV(stateId);
-
-    			var features = getFtrDescriptions(stateId);
-
-    			return {
-    				id: stateId,
-    				name: stateNm.length > 0 ? stateNm : null,
-    				isTarget: isTarget,
-    				features: features,
-    				futureStates: futureStates,
-    				pastStates: pastStates,
-    				featureWeights: wgts
-    			};
-    		},
-
-    		/**
-    		 * Returns a histogram for the desired feature in the desired state.
-    		 */
-    		histogram: function (stateId, ftrIdx) {
-    			var hist = mc.histogram(stateId, ftrIdx);
-
-    			var nObsFtrs = getObsFtrCount();
-
-    			if (ftrIdx < nObsFtrs) {
-	    			for (var i = 0; i < hist.binStartV.length; i++) {
-	    				hist.binStartV[i] = obsFtrSpace.invertFeature(ftrIdx, hist.binStartV[i]);
-	    			}
-    			} else {
-    				for (var i = 0; i < hist.binStartV.length; i++) {
-	    				hist.binStartV[i] = controlFtrSpace.invertFeature(ftrIdx - nObsFtrs, hist.binStartV[i]);
-	    			}
-    			}
-
-    			return hist;
-    		},
-
-    		/**
-    		 * Callback when the current state changes.
-    		 */
-    		onStateChanged: function (callback) {
-    			mc.onStateChanged(callback);
-    		},
-
-    		/**
-    		 * Callback when an anomaly is detected.
-    		 */
-    		onAnomaly: function (callback) {
-    			mc.onAnomaly(callback);
-    		},
-
-    		onOutlier: function (callback) {
-    			mc.onOutlier(function (ftrV) {
-    				var invFtrV = obsFtrSpace.invertFeatureVector(ftrV);
-
-    				var features = [];
-    				for (var i = 0; i < invFtrV.length; i++) {
-    					features.push({name: obsFtrSpace.getFeature(i), value: invFtrV.at(i)});
-    				}
-
-    				callback(features);
-    			});
-    		},
-
-    		onPrediction: function (callback) {
-    			mc.onPrediction(callback);
-    		},
-
-    		/**
-    		 * Returns the distribution of features accross the states on the
-    		 * specified height.
-    		 */
-    		getFtrDist: function (height, ftrIdx) {
-    			var stateIds = mc.stateIds(height);
-
-    			var result = [];
-    			for (var i = 0; i < stateIds.length; i++) {
-    				var stateId = stateIds[i];
-    				var coord = getFtrCoord(stateId, ftrIdx);
-    				result.push({ state: stateId, value: coord });
-    			}
-
-    			return result;
-    		},
-
-    		setControl: function (ftrIdx, factor) {
-    			var controlFtrIdx = ftrIdx - obsFtrSpace.dims.length;
-    			mc.setControlFactor(controlFtrIdx, factor);
-    		}
-    	};
-
-    	return that;
-    };
     

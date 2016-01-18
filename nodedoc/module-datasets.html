@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.3.2">
+  <meta name="generator" content="JSDoc 3">
   <meta charset="utf-8">
   <title>Module: datasets</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
@@ -24,7 +24,8 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">module</span></div><small></small><span class="symbol-name">datasets</span></h1>
+            <div class="symbol-detail-labels"><span class="label label-kind">module</span></div>
+            <h1><small></small><span class="symbol-name">datasets</span></h1>
             <p class="source-link">Source: <a href="datasetsdoc.js.html#source-line-2">datasetsdoc.<wbr>js:2</a></p>
             <div class="symbol-description">
               <p>Datasets module includes some standard toy datasets. In addition, this module also includes various random sample generators that can be used to build artificial datasets of controlled size and complexity.</p>
@@ -35,35 +36,31 @@
         </h2>
               <div>
                 <p>Asynchronous loading</p>
-                <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
-var datasets = qm.datasets;
+                <pre class="prettyprint"><code>var qm &#x3D; require(&#x27;qminer&#x27;);
+var datasets &#x3D; qm.datasets;
 
-qm.delLock();
-qm.config(&#x27;qm.conf&#x27;, true, 8080, 1024);
-
-var base = qm.create(&#x27;qm.conf&#x27;, &#x27;&#x27;, true);
+// Create clean base
+var base &#x3D; new qm.Base({ mode: &#x27;createClean&#x27; });
 
 // Load Iris dataset in async way
 datasets.loadIris(base, function (err, store) {
     if (err) throw err;
-    console.log(&quot;\nSucessfully loaded database: &quot; + store.name)
-    console.log(JSON.stringify(store.first, null, 2));
-})</code></pre>
+    // Sucessfully loaded database
+    base.close();
+});</code></pre>
               </div>
               <div>
                 <p>Synchronous loading</p>
-                <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
-var datasets = qm.datasets;
+                <pre class="prettyprint"><code>var qm &#x3D; require(&#x27;qminer&#x27;);
+var datasets &#x3D; qm.datasets;
 
-qm.delLock();
-qm.config(&#x27;qm.conf&#x27;, true, 8080, 1024);
-
-var base = qm.create(&#x27;qm.conf&#x27;, &#x27;&#x27;, true);
+// Create clean base
+var base &#x3D; new qm.Base({ mode: &#x27;createClean&#x27; });
 
 // Load Iris in sync way.
-var Iris = datasets.loadIrisSync(base);
-console.log(&quot;\nSucessfully loaded database: &quot; + Iris.name)
-console.log(JSON.stringify(Iris.first, null, 2));</code></pre>
+var Iris &#x3D; datasets.loadIrisSync(base);
+// Sucessfully loaded database
+base.close();</code></pre>
               </div>
             </section>
             <dl class="dl-compact">
@@ -95,7 +92,8 @@ console.log(JSON.stringify(Iris.first, null, 2));</code></pre>
           <section>
             <h2>Methods</h2>
             <section>
-              <h3 id=".loadIris"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">loadIris</span><span class="signature"><span class="signature-params">(base)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.Store.html">module:qm.Store</a></span></span></h3>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".loadIris"><span class="symbol-name">loadIris</span><span class="signature"><span class="signature-params">(base)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.Store.html">module:qm.Store</a></span></span></h3>
               <p>Loads Iris dataset in asynchronous way. Returns link to the created Irsi store.</p>
               <section>
                 <h4>Parameter</h4>
@@ -131,7 +129,8 @@ console.log(JSON.stringify(Iris.first, null, 2));</code></pre>
                   <p><code><a href="module-qm.Store.html">module:qm.Store</a></code>&nbsp;Store with Iris dataset.</p>
                 </dd>
               </dl>
-              <h3 id=".loadIrisSync"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">loadIrisSync</span><span class="signature"><span class="signature-params">(base)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.Store.html">module:qm.Store</a></span></span></h3>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".loadIrisSync"><span class="symbol-name">loadIrisSync</span><span class="signature"><span class="signature-params">(base)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.Store.html">module:qm.Store</a></span></span></h3>
               <p>Loads Iris dataset in synchronous way. Returns link to the created Iris store.</p>
               <section>
                 <h4>Parameter</h4>
@@ -177,7 +176,7 @@ console.log(JSON.stringify(Iris.first, null, 2));</code></pre>
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on August 28, 2015.
+        
       </p>
     </div>
   </footer>

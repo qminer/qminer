@@ -2,9 +2,9 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.3.2">
+  <meta name="generator" content="JSDoc 3">
   <meta charset="utf-8">
-  <title>Factory class: RecordSet</title>
+  <title>Class: RecordSet</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -24,11 +24,9 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">factory class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">RecordSet</span></h1>
-            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-1108">qminerdoc.<wbr>js:1108</a></p>
-            <div class="symbol-description">
-              <p>Record Set (factory pattern). The Record Set is a set of records.</p>
-            </div>
+            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div>
+            <h1><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">RecordSet</span></h1>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-1183">qminerdoc.<wbr>js:1183</a></p>
             <dl class="dl-compact">
             </dl>
           </header>
@@ -127,6 +125,9 @@
                     <dt><a href="module-qm.RecordSet.html#sortByField">sortByField(fieldName[, arc])</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-qm.RecordSet.html#sortByFq">sortByFq([asc])</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.RecordSet.html#sortById">sortById([asc])</a></dt>
                     <dd>
                     </dd>
@@ -143,6 +144,14 @@
                 </div>
               </div>
             </div>
+          </section>
+          <section>
+            <h2 id="RecordSet"><span class="symbol-name">RecordSet</span><span class="signature"><span class="signature-params">()</span></span></h2>
+            <p>Record Set is a set of records.
+              <b>Factory pattern</b>: this class cannot be construced using the new keyword. This class is constructed when calling a specific method or attribute, e.g. using <a href="module-qm.Store.html#allRecords">module:qm.Store#allRecords</a> to
+              get all the records in the store as a record set.</p>
+            <dl class="dl-compact">
+            </dl>
           </section>
           <section>
             <h2>Properties</h2>
@@ -174,9 +183,9 @@
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a new base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;Philosophers&quot;,
@@ -193,9 +202,9 @@ base.store(&quot;Philosophers&quot;).push({ Name: &quot;Emmanuel Levinas&quot;, 
 base.store(&quot;Philosophers&quot;).push({ Name: &quot;Rene Descartes&quot;, Era: &quot;17th-century philosophy&quot; });
 base.store(&quot;Philosophers&quot;).push({ Name: &quot;Confucius&quot;, Era: &quot;Ancient philosophy&quot; });
 // create a record set out of the records in store
-var recordSet = base.store(&quot;Philosophers&quot;).allRecords;
+var recordSet &#x3D; base.store(&quot;Philosophers&quot;).allRecords;
 // clone the record set of the &quot;Philosophers&quot; store
-var philosophers = recordSet.clone();
+var philosophers &#x3D; recordSet.clone();
 base.close();</code></pre>
                 </div>
               </section>
@@ -213,9 +222,9 @@ base.close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a new base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;BookWriters&quot;,
@@ -235,9 +244,9 @@ base.store(&quot;BookWriters&quot;).push({ Name: &quot;George R.R. Martin&quot;,
 base.store(&quot;BookWriters&quot;).push({ Name: &quot;J. K. Rowling&quot;, Genre: &quot;Fantasy&quot;, Books: [&quot;Harry Potter and the Philosopher&#x27;s Stone&quot;] });
 base.store(&quot;BookWriters&quot;).push({ Name: &quot;Ivan Cankar&quot;, Genre: &quot;Drama&quot;, Books: [&quot;On the Hill&quot;, &quot;The King of Betajnova&quot;, &quot;The Serfs&quot;] });
 // create one record set containing all records of store
-var recordSet = base.store(&quot;BookWriters&quot;).allRecords;
+var recordSet &#x3D; base.store(&quot;BookWriters&quot;).allRecords;
 // create one record set containing the records with genre &quot;Fantasy&quot;
-var fantasy = base.store(&quot;BookWriters&quot;).allRecords.filterByField(&quot;Genre&quot;, &quot;Fantasy&quot;);
+var fantasy &#x3D; base.store(&quot;BookWriters&quot;).allRecords.filterByField(&quot;Genre&quot;, &quot;Fantasy&quot;);
 // delete the records in recordSet, that are also in fantasy
 recordSet.deleteRecords(fantasy); // returns self, containing only three records: &quot;Douglas Adams&quot;, &quot;Fyodor Dostoyevsky&quot; and &quot;Ivan Cankar&quot;
 base.close();</code></pre>
@@ -286,9 +295,9 @@ base.close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a new base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;People&quot;,
@@ -303,9 +312,9 @@ base.store(&quot;People&quot;).push({ Name: &quot;Eric Sugar&quot;, Gender: &quo
 base.store(&quot;People&quot;).push({ Name: &quot;Jane Tokyo&quot;, Gender: &quot;Female&quot; });
 base.store(&quot;People&quot;).push({ Name: &quot;Mister Tea&quot;, Gender: &quot;Male&quot; });
 // create a record set out of the records of the store
-var recordSet = base.store(&quot;People&quot;).allRecords;
+var recordSet &#x3D; base.store(&quot;People&quot;).allRecords;
 // change the Name of all records into &quot;Anonymous&quot;
-recordSet.each(function (rec) { rec.Name = &quot;Anonymous&quot;; }); // returns self, all record&#x27;s Name are &quot;Anonymous&quot;
+recordSet.each(function (rec) { rec.Name &#x3D; &quot;Anonymous&quot;; }); // returns self, all record&#x27;s Name are &quot;Anonymous&quot;
 base.close();</code></pre>
                 </div>
               </section>
@@ -354,9 +363,9 @@ base.close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a new base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;ArcheryChampionship&quot;,
@@ -371,9 +380,9 @@ base.store(&quot;ArcheryChampionship&quot;).push({ Name: &quot;Robin Hood&quot;,
 base.store(&quot;ArcheryChampionship&quot;).push({ Name: &quot;Oliver Queen&quot;, ScorePerRound: [44, 46, 44] });
 base.store(&quot;ArcheryChampionship&quot;).push({ Name: &quot;Legolas&quot;, ScorePerRound: [50, 50, 48] });
 // create a record set out of the records of the store
-var recordSet = base.store(&quot;ArcheryChampionship&quot;).allRecords;
+var recordSet &#x3D; base.store(&quot;ArcheryChampionship&quot;).allRecords;
 // filter the records: which archers have scored 48 points in the third round
-recordSet.filter(function (rec) { return rec.ScorePerRound[2] == 48; }); // keeps only the records, where the score of the third round is equal 48
+recordSet.filter(function (rec) { return rec.ScorePerRound[2] &#x3D;&#x3D; 48; }); // keeps only the records, where the score of the third round is equal 48
 base.close();</code></pre>
                 </div>
               </section>
@@ -420,9 +429,9 @@ base.close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a new base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;WeatherForcast&quot;,
@@ -441,7 +450,7 @@ base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Mostly Cloudy&quot;
 base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Scattered Showers&quot;, Date: &quot;2015-05-31T11:00:00&quot;, TemperatureDegrees: 24 });
 base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Mostly Cloudy&quot;, Date: &quot;2015-06-01T11:00:00&quot;, TemperatureDegrees: 27 });
 // get the record set containing the records from the &quot;WeatherForcast&quot; store
-var recordSet = base.store(&quot;WeatherForcast&quot;).allRecords;
+var recordSet &#x3D; base.store(&quot;WeatherForcast&quot;).allRecords;
 // filter only the records, where the weather is Mostly Cloudy
 recordSet.filterByField(&quot;Weather&quot;, &quot;Mostly Cloudy&quot;); // returns self, containing only the records, where the weather is &quot;Mostly Cloudy&quot;
 base.close();</code></pre>
@@ -522,9 +531,9 @@ base.close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm require
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a new base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;FrankSinatraGreatestHits&quot;,
@@ -543,7 +552,7 @@ base.store(&quot;FrankSinatraGreatestHits&quot;).push({ Title: &quot;Forget Doma
 base.store(&quot;FrankSinatraGreatestHits&quot;).push({ Title: &quot;Somethin&#x27; Stupid&quot;, Length: 155 });
 base.store(&quot;FrankSinatraGreatestHits&quot;).push({ Title: &quot;This Town&quot;, Length: 186 });
 // get the records of the store as a record set
-var recordSet = base.store(&quot;FrankSinatraGreatestHits&quot;).allRecords;
+var recordSet &#x3D; base.store(&quot;FrankSinatraGreatestHits&quot;).allRecords;
 // from the record set keep the records with indeces between or equal 2 and 5
 recordSet.filterById(2, 5);
 base.close();</code></pre>
@@ -608,9 +617,9 @@ base.close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a new base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;ArcheryChampionship&quot;,
@@ -625,14 +634,14 @@ base.store(&quot;ArcheryChampionship&quot;).push({ Name: &quot;Robin Hood&quot;,
 base.store(&quot;ArcheryChampionship&quot;).push({ Name: &quot;Oliver Queen&quot;, ScorePerRound: [44, 46, 44] });
 base.store(&quot;ArcheryChampionship&quot;).push({ Name: &quot;Legolas&quot;, ScorePerRound: [50, 50, 48] });
 // create a record set of the records in store
-var recordSet = base.store(&quot;ArcheryChampionship&quot;).allRecords;
+var recordSet &#x3D; base.store(&quot;ArcheryChampionship&quot;).allRecords;
 // create a matrix from the &quot;ScorePerRound&quot; field
 // the i-th column of the matrix is the data of the i-th record in record set
 // the matrix will look like
 // 50  44  50
 // 48  46  50
 // 48  44  48
-var matrix = recordSet.getMatrix(&quot;ScorePerRound&quot;);
+var matrix &#x3D; recordSet.getMatrix(&quot;ScorePerRound&quot;);
 base.close();</code></pre>
                 </div>
               </section>
@@ -679,9 +688,9 @@ base.close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;TVSeries&quot;,
@@ -698,10 +707,10 @@ base.store(&quot;TVSeries&quot;).push({ Title: &quot;New Girl&quot;, NumberOfEpi
 base.store(&quot;TVSeries&quot;).push({ Title: &quot;Rick and Morty&quot;, NumberOfEpisodes: 11 });
 base.store(&quot;TVSeries&quot;).push({ Title: &quot;Game of Thrones&quot;, NumberOfEpisodes: 47 });
 // create a record set of the records of store
-var recordSet = base.store(&quot;TVSeries&quot;).allRecords;
+var recordSet &#x3D; base.store(&quot;TVSeries&quot;).allRecords;
 // create a vector containing the number of episodes for each series
 // the vector will look like [75, 574, 94, 11, 47]
-var vector = recordSet.getVector(&quot;NumberOfEpisodes&quot;);
+var vector &#x3D; recordSet.getVector(&quot;NumberOfEpisodes&quot;);
 base.close();</code></pre>
                 </div>
               </section>
@@ -748,9 +757,9 @@ base.close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a new base containing two stores, with join attributes
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [
    {
@@ -780,10 +789,10 @@ base.store(&quot;Musicians&quot;).push({ Name: &quot;Jimmy Page&quot;, Instrumen
 base.store(&quot;Bands&quot;).push({ Name: &quot;The White Stripes&quot;, Genre: &quot;Rock&quot; });
 // create a record set containing the musicians, that are members of some bend
 // returns a record set containing the records of &quot;Robert Plant&quot; and &quot;Jimmy Page&quot;
-var ledZeppelin = base.store(&quot;Bands&quot;).allRecords.join(&quot;Members&quot;);
+var ledZeppelin &#x3D; base.store(&quot;Bands&quot;).allRecords.join(&quot;Members&quot;);
 // create a record set containing the first musician, that is a member of some band
 // returns a record set containing only one record, which is &quot;Robert Plant&quot; or &quot;Jimmy Page&quot;
-var ledMember = base.store(&quot;Bands&quot;).allRecords.join(&quot;Members&quot;, 1);
+var ledMember &#x3D; base.store(&quot;Bands&quot;).allRecords.join(&quot;Members&quot;, 1);
 base.close();</code></pre>
                 </div>
               </section>
@@ -844,9 +853,9 @@ base.close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a new base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;People&quot;,
@@ -861,9 +870,9 @@ base.store(&quot;People&quot;).push({ Name: &quot;Eric Sugar&quot;, Gender: &quo
 base.store(&quot;People&quot;).push({ Name: &quot;Jane Tokyo&quot;, Gender: &quot;Female&quot; });
 base.store(&quot;People&quot;).push({ Name: &quot;Mister Tea&quot;, Gender: &quot;Male&quot; });
 // create a record set out of the records of the store
-var recordSet = base.store(&quot;People&quot;).allRecords;
+var recordSet &#x3D; base.store(&quot;People&quot;).allRecords;
 // make an array of record Names
-var arr = recordSet.map(function (rec) { return rec.Name; }); // returns an array: [&quot;Eric Sugar&quot;, &quot;Jane Tokyo&quot;, &quot;Mister Tea&quot;]
+var arr &#x3D; recordSet.map(function (rec) { return rec.Name; }); // returns an array: [&quot;Eric Sugar&quot;, &quot;Jane Tokyo&quot;, &quot;Mister Tea&quot;]
 base.close();</code></pre>
                 </div>
               </section>
@@ -912,9 +921,9 @@ base.close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a new base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;WeatherForcast&quot;,
@@ -933,7 +942,7 @@ base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Mostly Cloudy&quot;
 base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Scattered Showers&quot;, Date: &quot;2015-05-31T11:00:00&quot;, TemperatureDegrees: 24 });
 base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Mostly Cloudy&quot;, Date: &quot;2015-06-01T11:00:00&quot;, TemperatureDegrees: 27 });
 // get the record set containing the records from the &quot;WeatherForcast&quot; store
-var recordSet = base.store(&quot;WeatherForcast&quot;).allRecords;
+var recordSet &#x3D; base.store(&quot;WeatherForcast&quot;).allRecords;
 // reverse the record order in the record set
 recordSet.reverse(); // returns self, the records in the record set are in the reverse order
 base.close();</code></pre>
@@ -953,9 +962,9 @@ base.close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a new base with one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;Movies&quot;,
@@ -973,7 +982,7 @@ base.store(&quot;Movies&quot;).push({ Title: &quot;The Avengers&quot;, Length: 1
 base.store(&quot;Movies&quot;).push({ Title: &quot;The Clockwork Orange&quot;, Length: 136, Director: &quot;Stanley Kubrick&quot; });
 base.store(&quot;Movies&quot;).push({ Title: &quot;Full Metal Jacket&quot;, Length: 116, Director: &quot;Stanely Kubrick&quot; });
 // create a sample record set of containing 3 records from the &quot;Movies&quot; store
-var sample = base.store(&quot;Movies&quot;).allRecords.sample(3);
+var sample &#x3D; base.store(&quot;Movies&quot;).allRecords.sample(3);
 base.close();</code></pre>
                 </div>
               </section>
@@ -1020,9 +1029,9 @@ base.close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a new base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;BookWriters&quot;,
@@ -1042,11 +1051,11 @@ base.store(&quot;BookWriters&quot;).push({ Name: &quot;George R.R. Martin&quot;,
 base.store(&quot;BookWriters&quot;).push({ Name: &quot;J. K. Rowling&quot;, Genre: &quot;Fantasy&quot;, Books: [&quot;Harry Potter and the Philosopher&#x27;s Stone&quot;] });
 base.store(&quot;BookWriters&quot;).push({ Name: &quot;Ivan Cankar&quot;, Genre: &quot;Drama&quot;, Books: [&quot;On the Hill&quot;, &quot;The King of Betajnova&quot;, &quot;The Serfs&quot;] });
 // create one record set containing all records of store
-var recordSet = base.store(&quot;BookWriters&quot;).allRecords;
+var recordSet &#x3D; base.store(&quot;BookWriters&quot;).allRecords;
 // create one record set containing the records with genre &quot;Fantasy&quot;
-var fantasy = base.store(&quot;BookWriters&quot;).allRecords.filterByField(&quot;Genre&quot;, &quot;Fantasy&quot;);
+var fantasy &#x3D; base.store(&quot;BookWriters&quot;).allRecords.filterByField(&quot;Genre&quot;, &quot;Fantasy&quot;);
 // create a new record set containing the difference of recordSet and fantasy
-var difference = recordSet.setDiff(fantasy); // returns a record set, containing the records of Douglas Adams, Fyodor Dostoyevsky and Ivan Cankar
+var difference &#x3D; recordSet.setDiff(fantasy); // returns a record set, containing the records of Douglas Adams, Fyodor Dostoyevsky and Ivan Cankar
 base.close();</code></pre>
                 </div>
               </section>
@@ -1093,9 +1102,9 @@ base.close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a new base with one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;Movies&quot;,
@@ -1113,11 +1122,11 @@ base.store(&quot;Movies&quot;).push({ Title: &quot;The Avengers&quot;, Length: 1
 base.store(&quot;Movies&quot;).push({ Title: &quot;The Clockwork Orange&quot;, Length: 136, Director: &quot;Stanley Kubrick&quot; });
 base.store(&quot;Movies&quot;).push({ Title: &quot;Full Metal Jacket&quot;, Length: 116, Director: &quot;Stanely Kubrick&quot; });
 // create a record set out of the records in store, where length of the movie is greater than 110
-var greaterSet = base.store(&quot;Movies&quot;).allRecords.filterByField(&quot;Length&quot;, 110, 150);
+var greaterSet &#x3D; base.store(&quot;Movies&quot;).allRecords.filterByField(&quot;Length&quot;, 110, 150);
 // create a record set out of the records in store, where the length of the movie is lesser than 130
-var lesserSet = base.store(&quot;Movies&quot;).allRecords.filterByField(&quot;Length&quot;, 0, 130);
+var lesserSet &#x3D; base.store(&quot;Movies&quot;).allRecords.filterByField(&quot;Length&quot;, 0, 130);
 // get the intersection of greaterSet and lesserSet
-var intersection = greaterSet.setIntersect(lesserSet); // returns a record set, containing the movies with lengths between 110 and 130
+var intersection &#x3D; greaterSet.setIntersect(lesserSet); // returns a record set, containing the movies with lengths between 110 and 130
 base.close();</code></pre>
                 </div>
               </section>
@@ -1164,9 +1173,9 @@ base.close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;TVSeries&quot;,
@@ -1183,11 +1192,11 @@ base.store(&quot;TVSeries&quot;).push({ Title: &quot;New Girl&quot;, NumberOfEpi
 base.store(&quot;TVSeries&quot;).push({ Title: &quot;Rick and Morty&quot;, NumberOfEpisodes: 11 });
 base.store(&quot;TVSeries&quot;).push({ Title: &quot;Game of Thrones&quot;, NumberOfEpisodes: 47 });
 // create a record set out of the records in store, where the number of episodes is lesser than 47
-var lesserSet = base.store(&quot;TVSeries&quot;).allRecords.filterByField(&quot;NumberOfEpisodes&quot;, 0, 47);
+var lesserSet &#x3D; base.store(&quot;TVSeries&quot;).allRecords.filterByField(&quot;NumberOfEpisodes&quot;, 0, 47);
 // create a record set out of the records in store, where the number of episodes is greater than 100
-var greaterSet = base.store(&quot;TVSeries&quot;).allRecords.filterByField(&quot;NumberOfEpisodes&quot;, 100, 600);
+var greaterSet &#x3D; base.store(&quot;TVSeries&quot;).allRecords.filterByField(&quot;NumberOfEpisodes&quot;, 100, 600);
 // get the union of lesserSet and greaterSet
-var union = lesserSet.setUnion(greaterSet); // returns a record set, which is the union of the two record sets
+var union &#x3D; lesserSet.setUnion(greaterSet); // returns a record set, which is the union of the two record sets
 base.close();</code></pre>
                 </div>
               </section>
@@ -1234,9 +1243,9 @@ base.close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a new base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;WeatherForcast&quot;,
@@ -1255,7 +1264,7 @@ base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Mostly Cloudy&quot;
 base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Scattered Showers&quot;, Date: &quot;2015-05-31T11:00:00&quot;, TemperatureDegrees: 24 });
 base.store(&quot;WeatherForcast&quot;).push({ Weather: &quot;Mostly Cloudy&quot;, Date: &quot;2015-06-01T11:00:00&quot;, TemperatureDegrees: 27 });
 // get the record set containing the records from the &quot;WeatherForcast&quot; store
-var recordSet = base.store(&quot;WeatherForcast&quot;).allRecords;
+var recordSet &#x3D; base.store(&quot;WeatherForcast&quot;).allRecords;
 // shuffle the records in the newly created record set. Use the number 100 as the seed for the shuffle
 recordSet.shuffle(100); // returns self, the records in the record set are shuffled
 base.close();</code></pre>
@@ -1304,9 +1313,9 @@ base.close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a new base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;TVSeries&quot;,
@@ -1323,7 +1332,7 @@ base.store(&quot;TVSeries&quot;).push({ Title: &quot;New Girl&quot;, NumberOfEpi
 base.store(&quot;TVSeries&quot;).push({ Title: &quot;Rick and Morty&quot;, NumberOfEpisodes: 11 });
 base.store(&quot;TVSeries&quot;).push({ Title: &quot;Game of Thrones&quot;, NumberOfEpisodes: 47 });
 // get the records of the &quot;TVSeries&quot; store as a record set
-var recordSet = base.store(&quot;TVSeries&quot;).allRecords;
+var recordSet &#x3D; base.store(&quot;TVSeries&quot;).allRecords;
 // sort the records by their number of episodes
 recordSet.sort(function (rec, rec2) { return rec.NumberOfEpisodes &lt; rec2.NumberOfEpisodes; }); // returns self, records are sorted by the number of episodes
 base.close();</code></pre>
@@ -1375,9 +1384,9 @@ base.close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a new base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;TVSeries&quot;,
@@ -1394,7 +1403,7 @@ base.store(&quot;TVSeries&quot;).push({ Title: &quot;New Girl&quot;, NumberOfEpi
 base.store(&quot;TVSeries&quot;).push({ Title: &quot;Rick and Morty&quot;, NumberOfEpisodes: 11 });
 base.store(&quot;TVSeries&quot;).push({ Title: &quot;Game of Thrones&quot;, NumberOfEpisodes: 47 });
 // get the records of the &quot;TVSeries&quot; store as a record set
-var recordSet = base.store(&quot;TVSeries&quot;).allRecords;
+var recordSet &#x3D; base.store(&quot;TVSeries&quot;).allRecords;
 // sort the records by their &quot;Title&quot; field in ascending order 
 recordSet.sortByField(&quot;Title&quot;, true); // returns self, record are sorted by their &quot;Title&quot;
 base.close();</code></pre>
@@ -1450,6 +1459,44 @@ base.close();</code></pre>
                   <p><code><a href="module-qm.RecordSet.html">module:qm.RecordSet</a></code>&nbsp;Self. Records are sorted according to fieldName and arc.</p>
                 </dd>
               </dl>
+              <h3 id="sortByFq"><span class="symbol-name">sortByFq</span><span class="signature"><span class="signature-params">([asc])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecordSet.html">module:qm.RecordSet</a></span></span></h3>
+              <p>Sorts the records according to their weight.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>asc</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>If asc &gt; 0, it sorts in ascending order. Otherwise, it sorts in descending order.</p>
+                        <p>Defaults to <code>1</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.RecordSet.html">module:qm.RecordSet</a></code>&nbsp;Self. Records are sorted according to record weight and asc.</p>
+                </dd>
+              </dl>
               <h3 id="sortById"><span class="symbol-name">sortById</span><span class="signature"><span class="signature-params">([asc])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecordSet.html">module:qm.RecordSet</a></span></span></h3>
               <p>Sorts the records according to record id.</p>
               <section>
@@ -1458,9 +1505,9 @@ base.close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a new base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;Tea&quot;,
@@ -1477,7 +1524,7 @@ base.store(&quot;Tea&quot;).push({ Name: &quot;Rou Gui&quot;, Type: &quot;White&
 base.store(&quot;Tea&quot;).push({ Name: &quot;Tieluohan Tea&quot;, Type: &quot;Wuyi&quot;, Origin: &quot;Northern Fujian&quot; });
 base.store(&quot;Tea&quot;).push({ Name: &quot;Red Robe&quot;, Type: &quot;Oolong&quot;, Origin: &quot;Wuyi Mountains&quot; });
 // get the records of the &quot;Tea&quot; store as a record set
-var recordSet = base.store(&quot;Tea&quot;).allRecords;
+var recordSet &#x3D; base.store(&quot;Tea&quot;).allRecords;
 // sort the records in the record set by their id in descending order
 recordSet.sortById(); // returns self, the records are sorted in descending order (default)
 // sort the records in the record set by their id in ascending order
@@ -1529,9 +1576,9 @@ base.close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&quot;qminer&quot;);
+var qm &#x3D; require(&quot;qminer&quot;);
 // create a new base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;SocialGames&quot;,
@@ -1549,14 +1596,14 @@ base.store(&quot;SocialGames&quot;).push({ Title: &quot;Dobble&quot;, Type: &quo
 base.store(&quot;SocialGames&quot;).push({ Title: &quot;Settlers of Catan&quot;, Type: &quot;Board&quot;, MinPlayers: 3, MaxPlayers: 4 });
 base.store(&quot;SocialGames&quot;).push({ Title: &quot;Munchkin&quot;, Type: &quot;Card&quot;, MinPlayers: 3, MaxPlayers: 6 });
 // create a record set out of the records of the store
-var recordSet = base.store(&quot;SocialGames&quot;).allRecords;
+var recordSet &#x3D; base.store(&quot;SocialGames&quot;).allRecords;
 // sort the records by MinPlayers in ascending order
 recordSet.sortByField(&quot;MinPlayers&quot;, true);
 // split the record set by the minimum number of players
 // returns an array containing three record sets: the first containing the &quot;DungeonsAndDragons&quot; record,
 // the second containing the &quot;Settlers of Catan&quot; and &quot;Munchkin&quot; records and the third containing the 
 // &quot;Dobble&quot; record
-var arr = recordSet.split(function (rec, rec2) { return rec.MinPlayers &lt; rec2.MinPlayers; });
+var arr &#x3D; recordSet.split(function (rec, rec2) { return rec.MinPlayers &lt; rec2.MinPlayers; });
 base.close();</code></pre>
                 </div>
               </section>
@@ -1603,9 +1650,9 @@ base.close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a new base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;Musicians&quot;,
@@ -1620,9 +1667,9 @@ var base = new qm.Base({
 base.store(&quot;Musicians&quot;).push({ Name: &quot;Jimmy Page&quot;, DateOfBirth:  &quot;1944-01-09T00:00:00&quot;, GreatestHits: [&quot;Stairway to Heaven&quot;, &quot;Whole Lotta Love&quot;] });
 base.store(&quot;Musicians&quot;).push({ Name: &quot;Beyonce&quot;, DateOfBirth: &quot;1981-09-04T00:00:00&quot;, GreatestHits: [&quot;Single Ladies (Put a Ring on It)&quot;] });
 // create a record set out of the records in the &quot;Musicians&quot; store
-var recordSet = base.store(&quot;Musicians&quot;).allRecords;
+var recordSet &#x3D; base.store(&quot;Musicians&quot;).allRecords;
 // create a JSON object out of the record set
-var json = recordSet.toJSON();
+var json &#x3D; recordSet.toJSON();
 base.close();</code></pre>
                 </div>
               </section>
@@ -1640,9 +1687,9 @@ base.close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a new base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;Philosophers&quot;,
@@ -1659,8 +1706,8 @@ base.store(&quot;Philosophers&quot;).push({ Name: &quot;Emmanuel Levinas&quot;, 
 base.store(&quot;Philosophers&quot;).push({ Name: &quot;Rene Descartes&quot;, Era: &quot;17th-century philosophy&quot; });
 base.store(&quot;Philosophers&quot;).push({ Name: &quot;Confucius&quot;, Era: &quot;Ancient philosophy&quot; });
 // create two identical record sets of the &quot;Philosophers&quot; store
-var recordSet1 = base.store(&quot;Philosophers&quot;).allRecords;
-var recordSet2 = base.store(&quot;Philosophers&quot;).allRecords;
+var recordSet1 &#x3D; base.store(&quot;Philosophers&quot;).allRecords;
+var recordSet2 &#x3D; base.store(&quot;Philosophers&quot;).allRecords;
 // truncate the first 3 records in recordSet1
 recordSet1.trunc(3); // return self, containing only the first 3 records (&quot;Plato&quot;, &quot;Immanuel Kant&quot;, &quot;Emmanuel Levinas&quot;)
 // truncate the first 2 records in recordSet2, starting with &quot;Emmanuel Levinas&quot;
@@ -1727,7 +1774,7 @@ base.close();</code></pre>
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on August 28, 2015.
+        
       </p>
     </div>
   </footer>

@@ -170,13 +170,23 @@ var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
-// adding the css files (or static files) to the server
-app.use(express.static(path.join(__dirname + '/public')));
+// make server function
+function makeServer() {
+	// adding the css files (or static files) to the server
+	app.use(express.static(path.join(__dirname + '/public')));
 
-// when the client calls the server, it calls the dataSystemStats() and the example.html
-app.get('/', function (request, response) {
-    response.sendFile(__dirname + '/streamaggregate.html');
-});
+	// when the client calls the server, it calls the dataSystemStats() and the example.html
+	app.get('/', function (request, response) {
+	    response.sendFile(__dirname + '/streamaggregate.html');
+	});
+
+	// creates the server listener, so that we know that it's connected
+	var server = http.listen(3000, function () {
+		var port = server.address().port;
+		console.log('Server started at port %s', port);
+	});
+	return server;
+};
 
 // the callback function
 var getData = function () {
@@ -290,7 +300,8 @@ var getData = function () {
 
 // create the stream aggregates that send the data to the client-side
 getData();
+// start server
+makeServer();
 
-// creates the server listener, so that we know that it's connected
-http.listen(3000, '95.87.154.136');
-console.log('Server running at http://95.87.154.136:3000/');
+// exports server
+module.exports = makeServer;

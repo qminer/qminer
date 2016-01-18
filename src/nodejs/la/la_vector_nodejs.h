@@ -967,7 +967,8 @@ inline void TNodeJsVec<TFlt, TAuxFltV>::spDiag(const v8::FunctionCallbackInfo<v8
 	// computation
 	TLAMisc::Diag(JsVec->Vec, Result);
 
-	Args.GetReturnValue().Set(TNodeJsSpMat::New(Result, JsVec->Vec.Len()));
+	Args.GetReturnValue().Set(
+		TNodeJsUtil::NewInstance<TNodeJsSpMat>(new TNodeJsSpMat(Result, JsVec->Vec.Len())));
 }
 
 template<>
@@ -1217,11 +1218,11 @@ void TNodeJsVec<TVal, TAux>::push(const v8::FunctionCallbackInfo<v8::Value>& Arg
 			v8::String::NewFromUtf8(Isolate, "Expected 1 argument, 0 given.")));
 	}
 	else if (!Args[0]->IsNumber() && !Args[0]->IsString() && !Args[0]->IsBoolean()) {
-		// TODO: int vector should not silently pass and truncate non-integer values!
 		Isolate->ThrowException(v8::Exception::TypeError(
 			v8::String::NewFromUtf8(Isolate, "Expected number, string or boolean")));
 	}
 	else {
+		
 		JsVec->Vec.Add(TAux::CastVal(Args[0]));
 		Args.GetReturnValue().Set(v8::Number::New(Isolate, JsVec->Vec.Len()));
 	}

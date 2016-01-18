@@ -1,3 +1,11 @@
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ *
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 // JavaScript source code
 var analytics = require("qminer").analytics;
 var la = require('qminer').la;
@@ -6,12 +14,6 @@ var assert = require("../../src/nodejs/scripts/assert.js");
 //Unit test for SVC
 
 describe("SVC test", function () {
-    beforeEach(function () {
-
-    });
-    afterEach(function () {
-
-    });
 
     describe("Constructor test", function () {
         it("It should return a default constructor", function () {
@@ -228,7 +230,6 @@ describe("SVC test", function () {
             assert.eqtol(model.weights[1], 0, 1e-2);
         })
         it('should forget the previous model', function () {
-            this.timeout(4000);
             var matrix = new la.Matrix([[0, 1, -1, 0], [1, 0, 0, -1]]);
             var vec = new la.Vector([1, 1, -1, -1]);
             var SVC = new analytics.SVC();
@@ -432,6 +433,18 @@ describe("SVC test", function () {
             assert.throws(function () {
                 SVC.decisionFunction(matrix2);
             });
+        })
+    });
+    describe('Serialization Tests', function () {
+        it('should serialize and deserialize', function () {
+            var matrix = new la.Matrix([[1, -1], [0, 0]]);
+            var vec = new la.Vector([1, -1]);
+            var SVC = new analytics.SVC();
+            SVC.fit(matrix, vec);
+			SVC.save(require('qminer').fs.openWrite('svr_test.bin')).close();
+            var SVC2 = new analytics.SVC(require('qminer').fs.openRead('svr_test.bin'));
+            assert.deepEqual(SVC.getParams(), SVC2.getParams());
+            assert.eqtol(SVC.weights.minus(SVC2.weights).norm(), 0, 1e-8);
         })
     });
 });

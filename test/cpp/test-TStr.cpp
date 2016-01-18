@@ -1,3 +1,11 @@
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 #include <base.h>
 ///////////////////////////////////////////////////////////////////////////////
 // Google Test
@@ -1088,4 +1096,50 @@ TEST(TStr, OperatorPlus) {
 	EXPECT_EQ(Empty + "abc", "abc");
 	EXPECT_EQ(Str + "", "abc");	
 	EXPECT_EQ(Str + nullptr, "abc");
+}
+
+//////////////////////////////////////////////////////////////////////
+// Base64 tests
+
+TEST(TStr, Base64Encode1) {
+	uchar src[] = { 'a', 'b', 'c', 'd' };
+	TMem Mem(src, sizeof(src));
+	TStr Str = TStr::Base64Encode(Mem);
+	EXPECT_EQ(Str, "YWJjZA==");
+}
+
+TEST(TStr, Base64Encode2) {
+	uchar src[] = { 'a', 'b', 'c', 'd', 'd', 'd', 'd', 'd', 'd' };
+	TMem Mem(src, sizeof(src));
+	TStr Str = TStr::Base64Encode(Mem);
+	EXPECT_EQ(Str, "YWJjZGRkZGRk");
+}
+
+TEST(TStr, Base64Decode1) {
+	TStr Str = "YWJjZA==";
+	TMem Mem;
+	TStr::Base64Decode(Str, Mem);
+	EXPECT_EQ(Mem.Len(), 4);
+	const char* Bf = Mem.GetBf();
+	EXPECT_EQ(Bf[0], 'a');
+	EXPECT_EQ(Bf[1], 'b');
+	EXPECT_EQ(Bf[2], 'c');
+	EXPECT_EQ(Bf[3], 'd');
+}
+
+TEST(TStr, Base64Decode2) {
+	TStr Str = "YWJjZGRkZGRk";
+	TMem Mem;
+	TStr::Base64Decode(Str, Mem);
+	EXPECT_EQ(Mem.Len(), 9);
+	const char* Bf = Mem.GetBf();
+	EXPECT_EQ(Bf[0], 'a');
+	EXPECT_EQ(Bf[1], 'b');
+	EXPECT_EQ(Bf[2], 'c');
+	EXPECT_EQ(Bf[3], 'd');
+	EXPECT_EQ(Bf[4], 'd');
+	EXPECT_EQ(Bf[5], 'd');
+	EXPECT_EQ(Bf[6], 'd');
+	EXPECT_EQ(Bf[7], 'd');
+	EXPECT_EQ(Bf[8], 'd');
 }

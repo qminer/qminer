@@ -8,15 +8,6 @@
 #ifndef PGBLOB_H
 #define PGBLOB_H
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-
-#include <bd.h>
-#include <base.h>
-#include <mine.h>
-
-
 //////////////////////////////////////////////////////////////////
 // Foward declarations
 class TPgBlobPgPt;
@@ -30,9 +21,9 @@ typedef TPt<TPgBlobFile> PPgBlobFile;
 typedef TPt<TPgBlob> PPgBlob;
 
 // Macros and constants	
-#define PAGE_SIZE (8 * 1024) // Page size is 8k
-#define EXTENT_PCOUNT 8        // Number of pages per extent
-#define EXTENT_SIZE (PAGE_SIZE * EXTENT_PCOUNT) // Extent size - 64k
+#define PG_PAGE_SIZE (8 * 1024) // Page size is 8k
+#define PG_EXTENT_PCOUNT 8        // Number of pages per extent
+#define PG_EXTENT_SIZE (PG_PAGE_SIZE * PG_EXTENT_PCOUNT) // Extent size - 64k
 #define PgHeaderDirtyFlag (0x01)
 #define PgHeaderSLockFlag (0x02)
 #define PgHeaderXLockFlag (0x04)
@@ -103,7 +94,7 @@ public:
 	TPgBlobPt(TSIn& SIn) {
 		SIn.Load(Page);  SIn.Load(FileIndex); SIn.Load(ItemIndex);
 	}
-	// Set constructor
+	/// Set constructor
 	TPgBlobPt(int16 _FileIndex, uint32 _Page, uint16 _ItemIndex) {
 		Page = _Page; FileIndex = _FileIndex; ItemIndex = _ItemIndex;
 	}
@@ -366,8 +357,8 @@ protected:
 	/// Returns starting address of page in Bf
 	char* GetPageBf(int Pg) {
 		return
-			Extents[Pg / EXTENT_PCOUNT].GetBf() +
-			PAGE_SIZE *(Pg % EXTENT_PCOUNT);
+			Extents[Pg / PG_EXTENT_PCOUNT].GetBf() +
+			PG_PAGE_SIZE *(Pg % PG_EXTENT_PCOUNT);
 	}
 
 	// Method for handling LRU list ///////////////////////////////////
@@ -464,7 +455,7 @@ public:
 	PJsonVal GetStats();
 
 	/// Returns maximal BLOB length that can be stored in single page
-	int GetMxBlobLen() const { return PAGE_SIZE - sizeof(TPgHeader) - sizeof(TPgBlobPageItem); }
+	int GetMxBlobLen() const { return PG_PAGE_SIZE - sizeof(TPgHeader) - sizeof(TPgBlobPageItem); }
 
 #ifdef XTEST
 	friend class XTest;

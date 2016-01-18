@@ -1,3 +1,11 @@
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 #ifndef MKLFUNCTIONS_H
 #define MKLFUNCTIONS_H
 
@@ -228,7 +236,7 @@ public:
 	// Solves the system of linear equations A * x = b, where A is a matrix, x and b are vectors.
 	// Solution is saved in x.
 	template<class Type, class Size, bool ColMajor = false>
-	static void LUSolve(TVVec<TNum<Type>, Size, ColMajor>& A, TVec<TNum<Type>, Size>& x, TVec<TNum<Type>, Size>& b) {
+	static void LUSolve(const TVVec<TNum<Type>, Size, ColMajor>& A, TVec<TNum<Type>, Size>& x, const TVec<TNum<Type>, Size>& b) {
 		Assert(A.GetRows() == b.Len());
 
 		// for matrix
@@ -968,6 +976,28 @@ static void SVDFactorization(TVVec<Type, Size, ColMajor>& A,
 		// data used for factorization
 		Size NumOfRows_Matrix = A.GetRows();
 		Size NumOfCols_Matrix = A.GetCols();
+
+		// handle edge cases where the factorization is trivial. Double and float only!
+		if (NumOfRows_Matrix == 1) {
+			U.Gen(1, 1);
+			U(0, 0) = 1;
+			VT = A;
+			Sing.Gen(1);			
+			// normalize VT and set Sing[0] = oldnorm(VT)
+			TVec<Type, Size>& RawV = VT.Get1DVec();
+			Sing[0] = TLinAlg::Normalize(RawV);			
+			return;
+		} else if (NumOfCols_Matrix == 1) {
+			VT.Gen(1, 1);
+			VT(0, 0) = 1;
+			U = A;
+			Sing.Gen(1);
+			// normalize U and set Sing[0] = oldnorm(U)
+			TVec<Type, Size>& RawV = U.Get1DVec();
+			Sing[0] = TLinAlg::Normalize(RawV);
+			return;
+		}
+
 		Size LeadingDimension_Matrix = ColMajor ? NumOfRows_Matrix : NumOfCols_Matrix;
 		int Matrix_Layout = ColMajor ? LAPACK_COL_MAJOR : LAPACK_ROW_MAJOR;
 
@@ -1097,7 +1127,8 @@ static void SVDFactorization(TVVec<Type, Size, ColMajor>& A,
 	// SVDSolve solves the Least Squares problem of equation A * x = b, where A is a matrix, x and b are vectors.
 	// The solution is saved in x.
 	template<class Type, class Size, bool ColMajor = false>
-static void SVDSolve(TVVec<Type, Size, ColMajor>& A, TVec<Type, Size>& x, TVec<Type, Size>& b, const Type& threshold = 1e-8) {
+static void SVDSolve(const TVVec<Type, Size, ColMajor>& A, TVec<Type, Size>& x,
+			const TVec<Type, Size>& b, const Type& EpsSing) {
 		Assert(A.GetRows() == b.Len());
 
 		// data used for solution
@@ -1114,13 +1145,14 @@ static void SVDSolve(TVVec<Type, Size, ColMajor>& A, TVec<Type, Size>& x, TVec<T
 		TVec<Type, Size> ui; ui.Gen(U.GetRows());
 		TVec<Type, Size> vi; vi.Gen(VT.GetCols());
 
-		for (Size i = 0; i < MIN(NumOfRows_Matrix, NumOfCols_Matrix); i++) {
+		Size i = 0;
+		while (i < MIN(NumOfRows_Matrix, NumOfCols_Matrix) && Sing[i].Val > EpsSing*Sing[0]) {
 			U.GetCol(i, ui);
 			VT.GetRow(i, vi);
 			Type Scalar = TLinAlg::DotProduct(ui, b) / Sing[i].Val;
 			//Correct Type->TNum<Type>! in the whole file
-			if (Sing[i].Val < threshold.Val) break;
 			TLinAlg::AddVec(Scalar.Val, vi, x);
+			i++;
 		}
 	}
 

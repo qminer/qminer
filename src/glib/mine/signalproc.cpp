@@ -102,6 +102,47 @@ void TSum::Save(TSOut& SOut) const {
 }
 
 /////////////////////////////////////////////////
+// Online Summa 
+
+/// Packs sparse vector
+void TSumSpVec::Update(const TVec<TIntFltKd>& InVal, const uint64& InTmMSecs, const TVec<TIntFltKdV>& OutValV, const TUInt64V& OutTmMSecsV) {
+
+	// remove old values from the sum
+	TIntFltKdV Tmp;
+	for (int i = 0; i < OutValV.Len(); i++) {
+		TLinAlg::LinComb(1, Sum, -1, OutValV[i], Tmp);
+		Sum = Tmp;
+	}
+	TLinAlg::LinComb(1, Sum, 1, InVal, Tmp);
+	Sum = Tmp;
+	TmMSecs = InTmMSecs;
+}
+
+void TSumSpVec::Load(TSIn& SIn) {
+	*this = TSumSpVec(SIn);
+}
+
+void TSumSpVec::Save(TSOut& SOut) const {
+	// parameters
+	Sum.Save(SOut);
+	TmMSecs.Save(SOut);
+}
+
+PJsonVal TSumSpVec::GetJson() const {
+	PJsonVal arr = TJsonVal::NewArr();
+	for (int i = 0; i < Sum.Len(); i++) {
+		PJsonVal tmp = TJsonVal::NewObj();
+		tmp->AddToObj("Idx", Sum[i].Key);
+		tmp->AddToObj("Val", Sum[i].Dat);
+		arr->AddToArr(tmp);
+	}
+	PJsonVal res = TJsonVal::NewObj();
+	res->AddToObj("Sum", arr);
+	res->AddToObj("Tm", TmMSecs);
+	return res;
+}
+
+/////////////////////////////////////////////////
 // Online Min 
 void TMin::Update(const double& InVal, const uint64& InTmMSecs,
 	const TFltV& OutValV, const TUInt64V& OutTmMSecsV){
@@ -299,6 +340,185 @@ void TEma::Update(const double& Val, const uint64& NewTmMSecs) {
 	TmMSecs = NewTmMSecs;
 }
 
+void TEma::Reset() {
+	InitP = false;
+	LastVal = TFlt::Mn;
+	Ema = 0.0;
+	TmMSecs = 0;
+	InitValV.Gen(0);
+	InitMSecsV.Gen(0);
+}
+
+/////////////////////////////////////////////////
+// Exponential Moving Average - for sparse vectors
+
+double TEmaSpVec::GetNi(const double& Alpha, const double& Mi) {
+	switch (Type) {
+	case etPreviousPoint: return 1.0;
+	case etLinear: return (1 - Mi) / Alpha;
+	case etNextPoint: return Mi;
+	}
+	throw TExcept::New("Unknown EMA interpolation type");
+}
+
+TEmaSpVec::TEmaSpVec(const TEmaType& _Type, const uint64& _InitMinMSecs, const double& _TmInterval, const double& _Cutoff) :
+	Type(_Type), LastVal(TFlt::Mn), TmInterval(_TmInterval), Cutoff(_Cutoff), InitP(false),
+	InitMinMSecs(_InitMinMSecs) {}
+
+TEmaSpVec::TEmaSpVec(const PJsonVal& ParamVal) : LastVal(), InitP(false) {
+	// type
+	TStr TypeStr = ParamVal->GetObjStr("emaType");
+	if (TypeStr == "previous") {
+		Type = etPreviousPoint;
+	} else if (TypeStr == "linear") {
+		Type = etLinear;
+	} else if (TypeStr == "next") {
+		Type = etNextPoint;
+	} else {
+		throw TExcept::New("Unknown ema type " + TypeStr);
+	}
+	// rest
+	TmInterval = ParamVal->GetObjNum("interval");
+	Cutoff = ParamVal->GetObjNum("cutoff", 0.0001);
+	InitMinMSecs = ParamVal->GetObjInt("initWindow", 0);
+}
+
+TEmaSpVec::TEmaSpVec(TSIn& SIn) : LastVal(SIn), Ema(SIn), TmMSecs(SIn), 
+	TmInterval(SIn), Cutoff(SIn), InitP(SIn),
+	InitMinMSecs(SIn), InitValV(SIn), InitMSecsV(SIn) {
+
+	TInt TypeI; TypeI.Load(SIn);
+	Type = static_cast<TEmaType>((int)TypeI);
+	//TFlt TmIntervalFlt; TmIntervalFlt.Load(SIn); TmInterval = TmIntervalFlt;
+	//TFlt CutoffFlt; CutoffFlt.Load(SIn); Cutoff = CutoffFlt;
+}
+
+void TEmaSpVec::Load(TSIn& SIn) {
+	*this = TEmaSpVec(SIn);
+}
+
+void TEmaSpVec::Save(TSOut& SOut) const {
+	// parameters
+	LastVal.Save(SOut);
+	Ema.Save(SOut);
+	TmMSecs.Save(SOut);
+	TmInterval.Save(SOut);
+	Cutoff.Save(SOut);
+	InitP.Save(SOut);
+	InitMinMSecs.Save(SOut);
+	InitValV.Save(SOut);
+	InitMSecsV.Save(SOut);
+	// TODO: Use macro for saving enum (SaveEnum, LoadEnum)
+	// TODO: change TmInterval from double to TFlt
+	// PROBLEM: After changing TmInterval from double to TFlt Qminer crashes hard!
+	TInt TypeI = Type; // TEmaType 
+	TypeI.Save(SOut);
+	//TFlt TmIntervalFlt = TmInterval; // double
+	//TmIntervalFlt.Save(SOut);
+	//TFlt CutoffFlt = Cutoff; // double
+	//CutoffFlt.Save(SOut);
+}
+
+void TEmaSpVec::Update(const TIntFltKdV& Val, const uint64& NewTmMSecs) {
+	double TmInterval1;
+	// EMA(first_point) = first_point (no smoothing is possible)
+	if (InitMinMSecs == 0) {
+		if (LastVal.Empty()) { 
+			LastVal = Val; 
+			Ema = Val; 
+			TmMSecs = NewTmMSecs; 
+			InitP = true;  
+			return; 
+		}
+	}
+	if (NewTmMSecs == TmMSecs) {
+		TmInterval1 = 1.0;
+	} else {
+		TmInterval1 = (double)(NewTmMSecs - TmMSecs);
+	}
+	if (InitP) {
+		// compute parameters for EMA
+		double Alpha = TmInterval1 / TmInterval;
+		const double Mi = exp(-Alpha);
+		const double Ni = GetNi(Alpha, Mi);
+		// compute new ema
+		//Ema = Mi*Ema + (Ni - Mi)*LastVal + (1.0 - Ni)*Val;
+		TIntFltKdV Tmp;
+		TLinAlg::LinComb(Mi, Ema, Ni - Mi, LastVal, Tmp);		
+		TLinAlg::LinComb(1, Tmp, 1.0 - Ni, Val, Ema);
+	} else {
+		// update buffers
+		InitValV.Add(Val);
+		InitMSecsV.Add(NewTmMSecs);
+		// initialize when enough data
+		const uint64 StartInitMSecs = InitMSecsV[0] + InitMinMSecs;
+		if (StartInitMSecs < NewTmMSecs) {
+			// Initialize using "buildup time interval",
+			//TODO: check how interpolation type influences this code
+			const int Vals = InitMSecsV.Len();
+			// compute weights for each value in buffer
+			TFltV WeightV(Vals, 0);
+			for (int ValN = 0; ValN < Vals; ValN++) {
+				const double Alpha = (double)(TmInterval1);
+				WeightV.Add(exp(-Alpha));
+			}
+			// normalize weights so they sum to 1.0
+			TLinAlg::NormalizeL1(WeightV);
+			// compute initial value of EMA as weighted sum
+			//Ema = TLinAlg::DotProduct(WeightV, InitValV);
+			TIntFltKdV Tmp;
+			for (int i = 0; i < WeightV.Len(); i++) {
+				TIntFltKdV Tmp2;
+				TLinAlg::LinComb(1, Tmp, WeightV[i], InitValV[i], Tmp2);
+				Tmp = Tmp2;
+			}
+			Ema = Tmp;
+
+			// mark that we are done and clean up after us
+			InitP = true; 
+			InitValV.Clr();
+			InitMSecsV.Clr();
+		}
+	}
+	// remove dimensions bellow cutoff
+	TIntFltKdV TmpEma;
+	//printf("cutoff %f\n", Cutoff.Val);
+	for (int i = 0; i < Ema.Len(); i++) {
+		if (TFlt::Abs(Ema[i].Dat.Val) >= Cutoff) {
+			TmpEma.Add(Ema[i]);
+		}
+	}
+	Ema = TmpEma;
+
+	// update last value
+	LastVal = Val;
+	// update current time
+	TmMSecs = NewTmMSecs;
+}
+
+void TEmaSpVec::Reset() {
+	InitP = false;
+	LastVal.Clr();
+	Ema.Clr();
+	TmMSecs = 0;
+	InitValV.Gen(0);
+	InitMSecsV.Gen(0);
+}
+
+PJsonVal TEmaSpVec::GetJson() const {
+	PJsonVal arr = TJsonVal::NewArr();
+	for (int i = 0; i < Ema.Len(); i++) {
+		PJsonVal tmp = TJsonVal::NewObj();
+		tmp->AddToObj("Idx", Ema[i].Key);
+		tmp->AddToObj("Val", Ema[i].Dat);
+		arr->AddToArr(tmp);
+	}
+	PJsonVal res = TJsonVal::NewObj();
+	res->AddToObj("Sum", arr);
+	res->AddToObj("Tm", TmMSecs);
+	return res;
+}
+
 /////////////////////////////////////////////////
 // Online Moving Standard M2 
 void TVar::Update(const double& InVal, const uint64& InTmMSecs, 
@@ -422,8 +642,8 @@ TBufferedInterpolator::TBufferedInterpolator(const TStr& _InterpolatorType):
 		TInterpolator(_InterpolatorType),
 		Buff() {}
 
-TBufferedInterpolator::TBufferedInterpolator(TSIn& SIn):
-		TInterpolator(SIn),
+TBufferedInterpolator::TBufferedInterpolator(const TStr& _InterpolatorType, TSIn& SIn) :
+        TInterpolator(_InterpolatorType),
 		Buff(SIn) {}
 
 void TBufferedInterpolator::Save(TSOut& SOut) const {
@@ -438,7 +658,7 @@ void TBufferedInterpolator::AddPoint(const double& Val, const uint64& Tm) {
 	if (!Buff.Empty()) {
 		const TUInt64FltPr& LastRec = Buff.GetNewest();
 		EAssertR(LastRec.Val1 < Tm || (LastRec.Val1 == Tm && LastRec.Val2 == Val),
-            "New point has a timestamp lower then the last point in the buffer, or same with different values!");
+            "New point has a timestamp lower then the last point in the buffer, or same with different values " + TTm::GetTmFromDateTimeInt((uint)LastRec.Val1).GetStr() + " >= " + TTm::GetTmFromDateTimeInt((uint)Tm).GetStr() + "!");
 	}
 
 	// add the new point
@@ -452,7 +672,7 @@ TPreviousPoint::TPreviousPoint():
 		TBufferedInterpolator(TPreviousPoint::GetType()) {}
 
 TPreviousPoint::TPreviousPoint(TSIn& SIn):
-		TBufferedInterpolator(SIn) {}
+    TBufferedInterpolator(GetType(), SIn) {}
 
 void TPreviousPoint::SetNextInterpTm(const uint64& Time) {
 	// TODO optimize
@@ -477,7 +697,7 @@ TCurrentPoint::TCurrentPoint():
 		TBufferedInterpolator(TCurrentPoint::GetType()) {}
 
 TCurrentPoint::TCurrentPoint(TSIn& SIn):
-		TBufferedInterpolator(SIn) {}
+    TBufferedInterpolator(GetType(), SIn) {}
 
 void TCurrentPoint::SetNextInterpTm(const uint64& Tm) {
 	// at least one past (or current time) record needs to be in the buffer
@@ -509,7 +729,7 @@ TLinear::TLinear():
 		TBufferedInterpolator(TLinear::GetType()) {}
 
 TLinear::TLinear(TSIn& SIn):
-		TBufferedInterpolator(SIn) {}
+    TBufferedInterpolator(GetType(), SIn) {}
 
 void TLinear::SetNextInterpTm(const uint64& Time) {
 	while (Buff.Len() > 1 && Buff.GetOldest(1).Val1 <= Time) {
@@ -697,14 +917,15 @@ TNNet::TLayer::TLayer(const TInt& NeuronsN, const TInt& OutputsN, const TTFunc& 
     // Add neurons to the layer, plus bias neuron
     for(int NeuronN = 0; NeuronN <= NeuronsN; ++NeuronN){
         NeuronV.Add(TNeuron(OutputsN, NeuronN, TransFunc));
-        printf("Made a neuron!");
+		// debugging
+        /*printf("Made a neuron!");
         printf(" Neuron N: %d", NeuronN);
         printf(" Neuron H: %d", NeuronV.Len());
-        printf("\n");
+        printf("\n");*/
     } 
     // Force the bias node's output value to 1.0
     NeuronV.Last().SetOutVal(1.0);
-    printf("\n");
+    //printf("\n");
 }
 TNNet::TLayer::TLayer(TSIn& SIn){
 	NeuronV.Load(SIn);
@@ -732,7 +953,8 @@ TNNet::TNNet(const TIntV& LayoutV, const TFlt& _LearnRate,
         TInt NeuronsN = LayoutV[LayerN];
         // Add a layer to the net
         LayerV.Add(TLayer(NeuronsN, OutputsN, TransFunc));
-        printf("LayerV.Len(): %d \n", LayerV.Len() );
+		//for debugging
+        //printf("LayerV.Len(): %d \n", LayerV.Len() );
     }
 }
 
@@ -748,7 +970,7 @@ PNNet TNNet::Load(TSIn& SIn) {
 
 void TNNet::FeedFwd(const TFltV& InValV){
     // check if number of input values same as number of input neurons
-    Assert(InValV.Len() == LayerV[0].GetNeuronN() - 1);
+    EAssertR(InValV.Len() == LayerV[0].GetNeuronN() - 1, "InValV must be of equal length than the first layer!");
     // assign input values to input neurons
     for(int InputN = 0; InputN < InValV.Len(); ++InputN){
         LayerV[0].SetOutVal(InputN, InValV[InputN]);
@@ -768,6 +990,7 @@ void TNNet::BackProp(const TFltV& TargValV, const TBool& UpdateWeights){
     TLayer& OutputLayer = LayerV.Last();
     Error = 0.0;
 
+	EAssertR(TargValV.Len() == OutputLayer.GetNeuronN() - 1, "TargValV must be of equal length than the last layer!");
     for(int NeuronN = 0; NeuronN < OutputLayer.GetNeuronN() - 1; ++NeuronN){
         TFlt Delta = TargValV[NeuronN] - OutputLayer.GetOutVal(NeuronN);
         Error += Delta * Delta;
@@ -818,6 +1041,26 @@ void TNNet::Save(TSOut& SOut) const {
 	LearnRate.Save(SOut);
 	Momentum.Save(SOut);
 	LayerV.Save(SOut);
+}
+
+TStr TNNet::GetFunction(const TTFunc& FuncEnum) {
+	TStr FuncString;
+	if (FuncEnum == TSignalProc::TTFunc::tanHyper) {
+		FuncString = "tanHyper";
+	} else if (FuncEnum == TSignalProc::TTFunc::sigmoid) {
+		FuncString = "sigmoid";
+	} else if (FuncEnum == TSignalProc::TTFunc::fastTanh) {
+		FuncString = "fastTanh";
+	} else if (FuncEnum == TSignalProc::TTFunc::softPlus) {
+		FuncString = "softPlus";
+	} else if (FuncEnum == TSignalProc::TTFunc::fastSigmoid) {
+		FuncString = "fastSigmoid";
+	} else if (FuncEnum == TSignalProc::TTFunc::linear) {
+		FuncString = "linear";
+	} else {
+		throw TExcept::New("Unknown transfer function type " + FuncString);
+	}
+	return FuncString;
 }
 
 ///////////////////////////////////////////////////////////////////
@@ -899,6 +1142,392 @@ bool TRecLinReg::HasNaN() const {
 		}
 	}
 	return false;
+}
+
+void TOnlineHistogram::Init(const double& LBound, const double& UBound, const int& Bins, const bool& AddNegInf, const bool& AddPosInf) {
+	int TotalBins = Bins + (AddNegInf ? 1 : 0) + (AddPosInf ? 1 : 0);
+	Counts.Gen(TotalBins); // sets to zero
+	Bounds.Gen(TotalBins + 1, 0);
+	if (AddNegInf) { Bounds.Add(TFlt::NInf); }
+	for (int ElN = 0; ElN <= Bins; ElN++) {
+		Bounds.Add(LBound + ElN * (UBound - LBound) / Bins);
+	}
+	if (AddPosInf) { Bounds.Add(TFlt::PInf); }
+}
+
+void TOnlineHistogram::Reset() {
+	for (int ElN = 0; ElN < Counts.Len(); ElN++) {
+		Counts[ElN] = 0; Count = 0;
+	}
+}
+
+TOnlineHistogram::TOnlineHistogram(const PJsonVal& ParamVal) {
+	EAssertR(ParamVal->IsObjKey("lowerBound"), "TOnlineHistogram: lowerBound key missing!");
+	EAssertR(ParamVal->IsObjKey("upperBound"), "TOnlineHistogram: upperBound key missing!");
+	// bounded lowest point
+	TFlt LBound = ParamVal->GetObjNum("lowerBound");
+	// bounded highest point
+	TFlt UBound = ParamVal->GetObjNum("upperBound");
+	EAssertR(LBound < UBound, "TOnlineHistogram: Lower bound should be smaller than upper bound");
+	// number of equal bins ? (not counting possibly infinite ones)
+	TInt Bins = ParamVal->GetObjInt("bins", 5);
+	EAssertR(Bins > 0, "TOnlineHistogram: Number of bins should be greater than 0");
+	// include infinities in the bounds?
+	TBool AddNegInf = ParamVal->GetObjBool("addNegInf", false);
+	TBool AddPosInf = ParamVal->GetObjBool("addPosInf", false);
+	
+	MinCount = ParamVal->GetObjInt("initMinCount", 0);
+
+	Init(LBound, UBound, Bins, AddNegInf, AddPosInf);
+};
+
+
+int TOnlineHistogram::FindBin(const double& Val) const {
+	int Bins = Bounds.Len() - 1;
+	int LBound = 0;
+	int UBound = Bins - 1;
+	
+	// out of bounds
+	if ((Val < Bounds[0]) || (Val > Bounds.Last())) { return -1; }
+	// the last bound is an exception: the interval is closed from the right
+	if (Val == Bounds.Last()) { return UBound; }
+
+	while (LBound <= UBound) {
+		int Idx = (LBound + UBound) / 2;
+		if ((Val >= Bounds[Idx]) && (Val < Bounds[Idx + 1])) { // value between
+			return Idx; 
+		} else if (Val < Bounds[Idx]) { // value on the left, move upper bound
+			UBound = Idx - 1;
+		} else { // Val > Bounds[Idx + 1]
+			LBound = Idx + 1;
+		}
+	}
+	return -1;
+}
+
+void TOnlineHistogram::Increment(const double& Val) {	
+	int Idx = FindBin(Val);
+	if (Idx >= 0) { Counts[Idx]++; Count++; }
+}
+
+void TOnlineHistogram::Decrement(const double& Val) {
+	int Idx = FindBin(Val);
+	if (Idx >= 0) { Counts[Idx]--; Count--; }
+}
+
+double TOnlineHistogram::GetCount(const double& Val) const {
+	int Idx = FindBin(Val);
+	return Idx >= 0 ? (double)Counts[Idx] : 0.0;
+}
+
+void TOnlineHistogram::Print() const {
+	printf("Histogram:\n");
+	for (int BinN = 0; BinN < Counts.Len(); BinN++) {
+		printf("%g [%g, %g]\n", Counts[BinN].Val, Bounds[BinN].Val, Bounds[BinN + 1].Val);
+	}
+}
+
+PJsonVal TOnlineHistogram::SaveJson() const {
+	PJsonVal Result = TJsonVal::NewObj();
+	PJsonVal BoundsArr = TJsonVal::NewArr();
+	PJsonVal CountsArr = TJsonVal::NewArr();
+	for (int ElN = 0; ElN < Counts.Len(); ElN++) {
+		BoundsArr->AddToArr(Bounds[ElN]);
+		CountsArr->AddToArr(Counts[ElN]);
+	}
+	BoundsArr->AddToArr(Bounds.Last());
+	Result->AddToObj("bounds", BoundsArr);
+	Result->AddToObj("counts", CountsArr);
+	return Result;
+}
+
+void TTDigest::Update(const double& V) {
+	const TFlt Count = 1;
+	Update(V, Count);
+}
+
+void TTDigest::Update(const double& V, const double& Count) {
+	if (TempLast >= TempWeight.Len()) {
+		MergeValues();
+	}
+	TInt N_ = TempLast++;
+	TempWeight[N_] = Count;
+	TempMean[N_] = V;
+	UnmergedSum += Count;
+	MergeValues();
+}
+
+int TTDigest::GetClusters() const {
+	return Mean.Len();
+}
+double TTDigest::GetQuantile(const double& Q) const {
+	double Left = Min;
+	double Right = Max;
+
+	if (TotalSum == 0.0) { return -1.0; }
+	if (Q <= 0) { return Min; }
+	if (Q >= 1) { return Max; }
+	if (Last == 0) { return Mean[0]; }
+
+	// calculate boundaries, pick centroid via binary search
+	double QSum = Q * TotalSum;
+
+	int N1 = Last + 1;
+	int N0 = 0;
+	int I = Bisect(MergeMean, QSum, N0, N1);
+
+	if (I > 0) {
+		Left = Boundary(I-1, I, Mean, Weight);
+	}
+	if (I < Last) {
+		Right = Boundary(I, I+1, Mean, Weight);
+	}
+	return Left + (Right - Left) * (QSum - (MergeMean[I-1])) / Weight[I];
+};
+
+void TTDigest::MergeValues() {
+	if (UnmergedSum == 0.0) {
+		return;
+	}
+	TFltV W = Weight;
+	TFltV U = Mean;
+	TInt LastN = 0;
+	double Sum = 0;
+
+	TempMean.Sort();
+
+	if (TotalSum > 0.0) {
+		LastN = Last + 1;
+	}
+
+	Last = 0;
+	TotalSum += UnmergedSum;
+	UnmergedSum = 0.0;
+
+	double NewCentroid = 0;
+	int IterI = 0, IterJ = 0;
+	// merge existing centroids with added values in temp buffers
+	while (IterI < TempLast && IterJ < LastN) {
+		if (TempMean[IterI] <= U[IterJ]) {
+			Sum += TempWeight[IterI];
+			double TW = TempWeight[IterI];
+			double TM = TempMean[IterI];
+			NewCentroid = MergeCentroid(Sum, NewCentroid, TW, TM);
+			IterI++;
+		} else {
+			Sum += W[IterJ];
+			double TW = W[IterJ];
+			double TM = U[IterJ];
+			NewCentroid = MergeCentroid(Sum, NewCentroid, TW, TM);
+			IterJ++;
+		}
+	}
+
+	while (IterI < TempLast) {
+		Sum += TempWeight[IterI];
+		double TW = TempWeight[IterI];
+		double TM = TempMean[IterI];
+		NewCentroid = MergeCentroid(Sum, NewCentroid, TW, TM);
+		IterI++;
+	}
+
+	// only existing centroids remain
+	while (IterJ < LastN) {
+		Sum += W[IterJ];
+		double TW = W[IterJ];
+		double TM = U[IterJ];
+		NewCentroid = MergeCentroid(Sum, NewCentroid, TW, TM);
+		IterJ++;
+	}
+
+	TempLast = 0;
+
+	// swap pointers for working space and merge space
+
+	Weight = MergeWeight;
+	Mean = MergeMean;
+
+	MergeMean = U;
+	MergeWeight = W;
+
+	MergeMean[0] = Weight[0];
+	MergeWeight[0] = 0;
+	for (int Iter = 1; Iter<=Last; ++Iter) {
+		MergeWeight[Iter] = 0; // zero out merge weights
+		MergeMean[Iter] = MergeMean[Iter-1] + Weight[Iter]; // stash cumulative dist
+	}
+
+	Min = TMath::Mx(Min, Mean[0]);
+	Max = TMath::Mx(Max, Mean[LastN]);
+}
+
+double TTDigest::MergeCentroid(double& Sum, double& K1, double& Wt, double& Ut) {
+	double K2 = Integrate((double)Nc, Sum/TotalSum);
+	if (K2 - K1 <= 1.0 || MergeWeight[Last] == 0.0) {
+		// merge into existing centroid if centroid index difference (k2-k1)
+		// is within 1 or if current centroid is empty
+		MergeWeight[Last] += Wt;
+		MergeMean[Last] += (Ut - MergeMean[Last]) * Wt / MergeWeight[Last];
+	} else {
+		// otherwise create a new centroid
+		Last = ++Last;
+		MergeMean[Last] = Ut;
+		MergeWeight[Last] = Wt;
+		K1 = Integrate((double)Nc, (Sum - Wt)/TotalSum);
+	}
+	return K1;
+};
+
+double TTDigest::Integrate(const double& Nc, const double& Q_) const {
+	// First, scale and bias the quantile domain to [-1, 1]
+	// Next, bias and scale the arcsin range to [0, 1]
+	// This gives us a [0,1] interpolant following the arcsin shape
+	// Finally, multiply by centroid count for centroid scale value
+	return Nc * (asin(2 * Q_ - 1) + TMath::Pi / 2) / TMath::Pi;
+}
+
+int TTDigest::Bisect(const TFltV& A, const double& X, int& Low, int& Hi) const {
+	while (Low < Hi) {
+		TInt Mid = (Low + Hi) >> 1;
+		if (A[Mid] < X) {
+			Low = Mid + 1;
+		}
+		else {
+			Hi = Mid;
+		}
+	}
+	return Low;
+}
+
+double TTDigest::Boundary(const int& I, const int& J, const TFltV& U, const TFltV& W) const {
+	return U[I] + (U[J] - U[I]) * W[I] / (W[I] + W[J]);
+}
+
+int TTDigest::NumTemp(const int& N) const {
+	int Lo = 1, Hi = N, Mid;
+	while (Lo < Hi) {
+		Mid = (Lo + Hi) >> 1;
+		if (N > Mid * TMath::Log(Mid) / TMath::Log(2)) {
+			Lo = Mid + 1;
+		}
+		else {
+			Hi = Mid;
+		}
+  }
+  return Lo;
+}
+
+void TTDigest::Print() const {}
+
+void TTDigest::SaveState(TSOut& SOut) const {
+	Nc.Save(SOut);
+	Size.Save(SOut);
+	Last.Save(SOut);
+	TotalSum.Save(SOut);
+	Weight.Save(SOut);
+	Mean.Save(SOut);
+	Min.Save(SOut);
+	Max.Save(SOut);
+	MergeWeight.Save(SOut);
+	MergeMean.Save(SOut);
+	Tempsize.Save(SOut);
+	UnmergedSum.Save(SOut);
+	TempLast.Save(SOut);
+	TempWeight.Save(SOut);
+	TempMean.Save(SOut);
+}
+
+void TTDigest::LoadState(TSIn& SIn) {
+	Nc.Load(SIn);
+	Size.Load(SIn);
+	Last.Load(SIn);
+	TotalSum.Load(SIn);
+	Weight.Load(SIn);
+	Mean.Load(SIn);
+	Min.Load(SIn);
+	Max.Load(SIn);
+	MergeWeight.Load(SIn);
+	MergeMean.Load(SIn);
+	Tempsize.Load(SIn);
+	UnmergedSum.Load(SIn);
+	TempLast.Load(SIn);
+	TempWeight.Load(SIn);
+	TempMean.Load(SIn);
+}
+
+void TTDigest::Init(const int& N) {
+	Nc = N;
+	Max = TFlt::Mn;
+	Min = TFlt::Mx;
+	UnmergedSum = 0;
+	TempLast = 0;
+
+	Size = ceil(Nc * TMath::Pi/2);
+	TotalSum = 0;
+	Last = 0;
+
+	for (int Iter = 0; Iter < Size; Iter++) {
+		Weight.Add(0);
+		Mean.Add(0);
+		MergeWeight.Add(0);
+		MergeMean.Add(0);
+	}
+
+	int Tempsize = NumTemp(Nc);
+	for (int Iter = 0; Iter < Tempsize; Iter++) {
+		TempMean.Add(TFlt::Mx);
+		TempWeight.Add(0);
+	}
+}
+
+TChiSquare::TChiSquare(const PJsonVal& ParamVal): P(TFlt::PInf) {
+	// P value is set to infinity by default (null hypothesis is not rejected)
+	EAssertR(ParamVal->IsObjKey("degreesOfFreedom"), "TChiSquare: degreesOfFreedom key missing!");
+	// degrees of freedom
+	DegreesOfFreedom = ParamVal->GetObjInt("degreesOfFreedom");
+}
+
+void TChiSquare::Print() const {
+	printf("Chi2 = %g", Chi2.Val);
+	printf("P = %g", P.Val);	
+}
+
+void TChiSquare::Update(const TFltV& OutValVX, const TFltV& OutValVY) {
+	Chi2 = 0.0;	
+	EAssertR(OutValVX.Len() == OutValVY.Len(), "TChiSquare: histogram dimensions do not match!");
+	// http://www.itl.nist.gov/div898/software/dataplot/refman1/auxillar/chi2samp.htm
+	double SumR = TLinAlg::SumVec(OutValVX);
+	double SumS = TLinAlg::SumVec(OutValVY);
+	// Do nothing if zero histogram is detected
+	if (SumR <= 0.0 || SumS <= 0.0) { return; }
+	double K1 = TMath::Sqrt(SumS / SumR);
+	double K2 = 1.0 / K1;
+	for (int ValN = 0; ValN < OutValVX.Len(); ValN++) {
+		double Ri = OutValVX[ValN];
+		double Si = OutValVY[ValN];
+		double RpS = Ri + Si;
+		if (RpS > 0) {
+			Chi2 += TMath::Sqr(K1 * Ri - K2 * Si) / RpS;
+		}
+	}
+	if (Chi2 == 0.0) {
+		P = TFlt::PInf;
+	}
+	else {
+		P = TSpecFunc::GammaQ(0.5*(DegreesOfFreedom), 0.5*(Chi2));
+	}
+}
+
+/// Load from stream
+void TChiSquare::LoadState(TSIn& SIn) {
+	Chi2.Load(SIn);
+	P.Load(SIn);	
+}
+
+/// Store state into stream
+void TChiSquare::SaveState(TSOut& SOut) const {
+	Chi2.Save(SOut);
+	P.Save(SOut);
 }
 
 }

@@ -16,85 +16,6 @@ void TNodeJsSnap::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 	// Add all methods, getters and setters here.
-	NODE_SET_METHOD(exports, "cmtyEvolution", _cmtyEvolution);
-
-}
-
-void TNodeJsSnap::cmtyEvolution(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	printf("cmty evolution alg");
-	/*
-	int ArgsLen = Args.Length();
-	if (ArgsLen == 9 || ArgsLen == 10){
-
-		v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
-		TVec<PUNGraph, TSize> gs;
-
-		if (ArgsLen == 10) {
-			v8::String::Utf8Value str(Args[9]->ToString());
-			TStr path = *str;
-			TSnap::LoadGraphArray(path, gs);
-			for (int i = 0; i < gs.Len(); i++) {
-				Array->Set(i, TNodeJsGraph<TUNGraph>::New(gs[i]));
-			}
-		}
-		else {
-			for (int i = 0; i<Array->Length(); i++) {
-				v8::Local<v8::Object> g = Array->Get(i)->ToObject();
-				v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(g->GetInternalField(0));
-				TNodeJsGraph<TUNGraph>* JsGraph = static_cast<TNodeJsGraph<TUNGraph>*>(WrappedObject->Value());
-				gs.Add(JsGraph->Graph());
-			}
-		}
-
-		double alpha = Args[1]->ToNumber()->Value();
-		double beta = Args[2]->ToNumber()->Value();
-
-		v8::Local<v8::Object> GraphObj = Args[3]->ToObject();
-		TNodeJsGraph<TNGraph>* JsOutGraph = ObjectWrap::Unwrap<TNodeJsGraph<TNGraph>>(GraphObj);
-		PNGraph outGraph = JsOutGraph->Graph();
-		
-		NEED TNodeJsQminer Hash to finish this!!!
-
-		
-		TJsHash<TInt, TInt, TAuxIntIntH>* timeHash = TJsObjUtil<TJsHash<TInt, TInt, TAuxIntIntH>>::GetArgObj(Args, 4);
-		TIntH& t = timeHash->Map;
-
-		TJsHash<TInt, TInt, TAuxIntIntH>* commHash = TJsObjUtil<TJsHash<TInt, TInt, TAuxIntIntH>>::GetArgObj(Args, 5);
-		TIntH& c = commHash->Map;
-
-		TJsHash<TInt, TInt, TAuxIntIntH>* sizeHash = TJsObjUtil<TJsHash<TInt, TInt, TAuxIntIntH>>::GetArgObj(Args, 6);
-		TIntH& s = sizeHash->Map;
-
-		TJsIntV* edgeSize = TJsObjUtil<TQm::TJsIntV>::GetArgObj(Args, 7);
-		TIntV& e = edgeSize->Vec;
-
-		TJsSpMat* membersMat = TJsObjUtil<TJsSpMat>::GetArgObj(Args, 8);
-		TIntIntVH m;
-
-		TSnap::CmtyEvolutionBatchGraph(gs, outGraph, t, c, s, e, m, alpha, beta, 2);
-
-		TVec<TIntFltKdV> Mat(m.Len());
-
-		for (int i = 0; i < m.Len(); i++) {
-			Mat[i].Gen(m[i].Len());
-			for (int j = 0; j < m[i].Len(); j++) {
-				int id = m[i][j];
-				Mat[i][j].Key = id;
-				Mat[i][j].Dat = 1;
-			}
-		}
-
-		TVec<TIntFltKdV>& M = membersMat->Mat;
-		M = Mat;
-
-		
-
-		Args.GetReturnValue().Set(Args.Holder);
-	}*/
-	
 }
 
  ///////////////////////////////
@@ -126,6 +47,7 @@ void TNodeJsGraph<TUNGraph>::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "eachEdge", _eachEdge);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "adjMat", _adjMat);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "dump", _dump);
+        NODE_SET_PROTOTYPE_METHOD(tpl, "clusteringCoefficient", _clusteringCoefficient);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "components", _components);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "renumber", _renumber);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "degreeCentrality", _degreeCentrality);
@@ -166,6 +88,7 @@ void TNodeJsGraph<TNGraph>::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "eachEdge", _eachEdge);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "adjMat", _adjMat);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "dump", _dump);
+        NODE_SET_PROTOTYPE_METHOD(tpl, "clusteringCoefficient", _clusteringCoefficient);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "components", _components);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "renumber", _renumber);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "degreeCentrality", _degreeCentrality);
@@ -206,6 +129,7 @@ void TNodeJsGraph<TNEGraph>::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "eachEdge", _eachEdge);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "adjMat", _adjMat);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "dump", _dump);
+        NODE_SET_PROTOTYPE_METHOD(tpl, "clusteringCoefficient", _clusteringCoefficient);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "components", _components);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "renumber", _renumber);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "degreeCentrality", _degreeCentrality);

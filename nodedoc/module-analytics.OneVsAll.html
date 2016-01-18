@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.3.2">
+  <meta name="generator" content="JSDoc 3">
   <meta charset="utf-8">
   <title>Class: OneVsAll</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
@@ -24,8 +24,9 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">OneVsAll</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1182">analyticsdoc.<wbr>js:1182</a></p>
+            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div>
+            <h1><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">OneVsAll</span></h1>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1835">analyticsdoc.<wbr>js:1835</a></p>
             <div class="symbol-classdesc">
               <p>One vs. all model for multiclass prediction. Builds binary model for each category and predicts the one with the highest score. Binary model is provided as part of the constructor.</p>
             </div>
@@ -74,9 +75,9 @@
         </h3>
               <div>
                 <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
 // create a new OneVsAll object with the model analytics.SVC
-var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });</code></pre>
+var onevsall &#x3D; new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });</code></pre>
               </div>
             </section>
             <section>
@@ -122,19 +123,19 @@ var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 1
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new OneVsAll object with the model analytics.SVC
-var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
+var onevsall &#x3D; new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
 // create the data (matrix and vector) used to fit the model
-var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
-var vector = new la.Vector([0, 0, 1, 1]);
+var matrix &#x3D; new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
+var vector &#x3D; new la.Vector([0, 0, 1, 1]);
 // fit the model
 onevsall.fit(matrix, vector);
 // create the vector for the decisionFunction
-var test = new la.Vector([1, 2]);
+var test &#x3D; new la.Vector([1, 2]);
 // give the vector to the decision function
-var prediction = onevsall.predict(test); // returns the vector of scores </code></pre>
+var prediction &#x3D; onevsall.predict(test); // returns the vector of scores</code></pre>
                 </div>
               </section>
               <section>
@@ -182,13 +183,13 @@ var prediction = onevsall.predict(test); // returns the vector of scores </code>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new OneVsAll object with the model analytics.SVC
-var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
+var onevsall &#x3D; new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
 // create the data (matrix and vector) used to fit the model
-var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
-var vector = new la.Vector([0, 0, 1, 1]);
+var matrix &#x3D; new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
+var vector &#x3D; new la.Vector([0, 0, 1, 1]);
 // fit the model
 onevsall.fit(matrix, vector);</code></pre>
                 </div>
@@ -250,13 +251,13 @@ onevsall.fit(matrix, vector);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
 // create a new OneVsAll object with the model analytics.SVC
-var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
+var onevsall &#x3D; new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
 // get the parameters
 // returns the JSon object
 // { model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2, models: [] }
-var params = onevsall.getParams();</code></pre>
+var params &#x3D; onevsall.getParams();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -273,19 +274,19 @@ var params = onevsall.getParams();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new OneVsAll object with the model analytics.SVC
-var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
+var onevsall &#x3D; new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
 // create the data (matrix and vector) used to fit the model
-var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
-var vector = new la.Vector([0, 0, 1, 1]);
+var matrix &#x3D; new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
+var vector &#x3D; new la.Vector([0, 0, 1, 1]);
 // fit the model
 onevsall.fit(matrix, vector);
 // create the vector for the prediction
-var test = new la.Vector([1, 2]);
+var test &#x3D; new la.Vector([1, 2]);
 // get the prediction of the vector
-var prediction = onevsall.predict(test); // returns 0</code></pre>
+var prediction &#x3D; onevsall.predict(test); // returns 0</code></pre>
                 </div>
               </section>
               <section>
@@ -333,11 +334,11 @@ var prediction = onevsall.predict(test); // returns 0</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
 // create a new OneVsAll object with the model analytics.SVC
-var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
+var onevsall &#x3D; new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
 // set the parameters
-var params = onevsall.setParams({ model: analytics.SVR, modelParam: { c: 12, maxTime: 10000}, cats: 3, verbose: true });</code></pre>
+var params &#x3D; onevsall.setParams({ model: analytics.SVR, modelParam: { c: 12, maxTime: 10000}, cats: 3, verbose: true });</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -356,7 +357,7 @@ var params = onevsall.setParams({ model: analytics.SVR, modelParam: { c: 12, max
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.2 on August 28, 2015.
+        
       </p>
     </div>
   </footer>

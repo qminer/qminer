@@ -30,4 +30,8 @@ node factorydoc.js ../nodedoc/module-qm.Record.html
 node factorydoc.js ../nodedoc/module-qm.RecordSet.html
 node factorydoc.js ../nodedoc/module-qm.Store.html
 
+node removeTimestamp.js ../nodedoc
+
 cp -r pictures/ ../nodedoc/pictures/
+
+node createExampleTests.js ../nodedoc/ ../test/nodejs/

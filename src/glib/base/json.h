@@ -28,7 +28,7 @@ private:
   TJsonValType JsonValType;
   TBool Bool; 
   TFlt Num; 
-  TStr Str; 
+  TStr Str;
   TJsonValV ValV;
   THash<TStr, PJsonVal> KeyValH;
   UndefCopyAssign(TJsonVal);
@@ -108,12 +108,19 @@ public:
   bool IsStr() const {return JsonValType==jvtStr;}
   bool IsArr() const {return JsonValType==jvtArr;}
   bool IsObj() const {return JsonValType==jvtObj;}
+  bool IsTm() const;
 
   // getting value
   bool GetBool() const {EAssert(IsBool()); return Bool;}
   double GetNum() const {EAssert(IsNum()); return Num;}
   int GetInt() const {EAssert(IsNum()); return TFlt::Round(Num);}
+  uint64 GetUInt64() const {EAssert(IsNum()); return (unsigned)(int64)(Num);}
+  uint GetUInt() const { EAssert(IsNum()); return uint(Num); }
+  int64 GetInt64() const { EAssert(IsNum()); return int64(Num); }
   const TStr& GetStr() const {EAssert(IsStr()); return Str;}
+  uint64 GetTmMSecs() const { return TTm::GetMSecsFromTm(GetTm()); }
+  TTm GetTm() const;
+
   int GetArrVals() const {EAssert(IsArr()); return ValV.Len();}
   PJsonVal GetArrVal(const int& ValN) const {return ValV[ValN];}
   void GetArrNumV(TFltV& FltV) const;
@@ -135,15 +142,28 @@ public:
   double GetObjNum(const char *Key) const { return GetObjKey(Key)->GetNum(); }
   int GetObjInt(const TStr& Key) const { return GetObjKey(Key)->GetInt(); }
   int GetObjInt(const char *Key) const { return GetObjKey(Key)->GetInt(); }
+  uint64 GetObjUInt64(const TStr& Key) const { return GetObjKey(Key)->GetUInt64(); }
+  uint64 GetObjUInt64(const char *Key) const { return GetObjKey(Key)->GetUInt64(); }
+  int64 GetObjInt64(const char* Key) const { return GetObjKey(Key)->GetInt64(); }
+  int64 GetObjInt64(const TStr& Key) const { return GetObjInt64(Key.CStr()); }
   const TStr& GetObjStr(const TStr& Key) const { return GetObjKey(Key)->GetStr(); }
   const TStr& GetObjStr(const char *Key) const { return GetObjKey(Key)->GetStr(); }
+  TTm GetObjTm(const char* Key) const { return GetObjKey(Key)->GetTm(); }
+  TTm GetObjTm(const TStr& Key) const { return GetObjTm(Key.CStr()); }
+  uint64 GetObjTmMSecs(const char* Key) const { return GetObjKey(Key)->GetTmMSecs(); }
+  uint64 GetObjTmMSecs(const TStr& Key) const { return GetObjTmMSecs(Key.CStr()); }
   bool GetObjBool(const TStr& Key, const bool& DefBool) const;
   bool GetObjBool(const char *Key, const bool& DefBool) const;
   double GetObjNum(const TStr& Key, const double& DefNum) const;
   double GetObjNum(const char *Key, const double& DefNum) const;
   int GetObjInt(const TStr& Key, const int& DefNum) const;
   int GetObjInt(const char *Key, const int& DefNum) const;
+  int64 GetObjInt64(const TStr& Key, const int64& DefNum) const;
+  int64 GetObjInt64(const char *Key, const int64& DefNum) const;
+  uint64 GetObjUInt64(const TStr& Key, const uint64& DefNum) const;
+  uint64 GetObjUInt64(const char *Key, const uint64& DefNum) const;
   void GetObjIntV(const TStr& Key, TIntV& IntV) const;
+  void GetObjFltV(const TStr& Key, TFltV& FltV) const;
   const TStr& GetObjStr(const TStr& Key, const TStr& DefStr) const;
   const TStr& GetObjStr(const char *Key, const TStr& DefStr) const;
   void GetObjStrV(const TStr& Key, TStrV& StrV) const;

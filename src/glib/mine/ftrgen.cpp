@@ -165,14 +165,17 @@ void TMultinomial::AddFtr(const TStr& Str, TFltV& FullV, int& Offset) const {
     Offset += GetDim();    
 }
 
-void TMultinomial::AddFtr(const TStrV& StrV, TIntFltKdV& SpV) const {
+void TMultinomial::AddFtr(const TStrV& StrV, const TFltV& FltV, TIntFltKdV& SpV) const {
+    // make sure we either do not have explicit values, or their dimension matches with string keys
+    EAssertR(FltV.Empty() || (StrV.Len() == FltV.Len()), "TMultinomial::AddFtr:: String and double values not aligned");
     // generate internal feature vector
     SpV.Gen(StrV.Len(), 0);
     for (int StrN = 0; StrN < StrV.Len(); StrN++) {
         const int FtrId = FtrGen.GetFtr(StrV[StrN]);
         // only use features we've seen during updates
         if (FtrId != -1) {
-            SpV.Add(TIntFltKd(FtrId, 1.0));
+            const double Val = FltV.Empty() ? 1.0 : FltV[StrN].Val;
+            if (Val > 1e-16) { SpV.Add(TIntFltKd(FtrId, Val)); }
         }
     }
     SpV.Sort();
@@ -195,9 +198,9 @@ void TMultinomial::AddFtr(const TStrV& StrV, TIntFltKdV& SpV) const {
     if (Type == mtNormalize) { TLinAlg::Normalize(SpV); }    
 }
 
-void TMultinomial::AddFtr(const TStrV& StrV, TIntFltKdV& SpV, int& Offset) const {
+void TMultinomial::AddFtr(const TStrV& StrV, const TFltV& FltV, TIntFltKdV& SpV, int& Offset) const {
     // generate feature 
-    TIntFltKdV ValSpV; AddFtr(StrV, ValSpV);    
+    TIntFltKdV ValSpV; AddFtr(StrV, FltV, ValSpV);
     // add to the full feature vector and increase offset count
     for (int ValSpN = 0; ValSpN < ValSpV.Len(); ValSpN++) {
         const TIntFltKd& ValSp = ValSpV[ValSpN];
@@ -207,9 +210,9 @@ void TMultinomial::AddFtr(const TStrV& StrV, TIntFltKdV& SpV, int& Offset) const
     Offset += GetDim();
 }
 
-void TMultinomial::AddFtr(const TStrV& StrV, TFltV& FullV, int& Offset) const {
+void TMultinomial::AddFtr(const TStrV& StrV, const TFltV& FltV, TFltV& FullV, int& Offset) const {
     // generate feature 
-    TIntFltKdV ValSpV; AddFtr(StrV, ValSpV);    
+    TIntFltKdV ValSpV; AddFtr(StrV, FltV, ValSpV);
     // add to the full feature vector and increase offset count
     for (int ValSpN = 0; ValSpN < ValSpV.Len(); ValSpN++) {
         const TIntFltKd& ValSp = ValSpV[ValSpN];
@@ -273,6 +276,7 @@ void TBagOfWords::Clr() {
         // if hashing, allocate the document counts and set to zero
         DocFqV.Gen(HashDim); DocFqV.PutAll(0);
         OldDocFqV.Gen(HashDim); OldDocFqV.PutAll(0.0);
+        if (IsStoreHashWords()) { HashWordV.Clr(); }
     } else {
         // if normal vector space, just forget the existing tokens and document counts
         TokenSet.Clr(); DocFqV.Clr(); OldDocFqV.Clr();

@@ -87,7 +87,9 @@ public:
 	static void SaveCsvTFltV(const TFltV& Vec, TSOut& SOut);
 	// Dumps sparse vector to file so Matlab can read it
 	static void SaveMatlabTFltIntKdV(const TIntFltKdV& SpV, const int& ColN, TSOut& SOut);
-	// Dumps sparse matrix to file so Matlab can read it
+	/// Dumps sparse matrix to file so Matlab can read it
+	static void SaveMatlabSpMat(const TVec<TIntFltKdV>& SpMat, TSOut& SOut);
+	/// Dumps sparse matrix to file so Matlab can read it
 	static void SaveMatlabSpMat(const TTriple<TIntV, TIntV, TFltV>& SpMat, TSOut& SOut);
 	// Dumps vector to file so Matlab can read it
 	static void SaveMatlabTFltV(const TFltV& m, const TStr& FName);
@@ -194,6 +196,120 @@ void TLAMisc::FillRangeS(const TTSizeTyTy& Vals, TVec<TVal, TTSizeTyTy>& Vec) {
     for (int i = 0; i < Vals; i++){
         Vec[i] = i;
     }
+};
+
+//////////////////////////////////////////////////////////////////////
+// Linear Algebra Utilities
+class TLAUtil {
+public:
+	// generates a vector of ones with dimension dim
+	template <class TVal, class TSizeTy>
+	static void Ones(const int& Dim, TVec<TVal, TSizeTy>& OnesV) {
+		if (OnesV.Len() != Dim) { OnesV.Gen(Dim); }
+
+		for (int i = 0; i < Dim; i++) {
+			OnesV[i] = 1;
+		}
+	}
+
+	// generates a vector with i on index i
+	template <class TVal, class TSizeTy>
+	static void Range(const int& Dim, TVec<TVal, TSizeTy>& RangeV) {
+		if (RangeV.Len() != Dim) { RangeV.Gen(Dim); }
+		for (TSizeTy i = 0; i < Dim; i++) {
+			RangeV[i] = TVal(i);
+		}
+	}
+
+	template <class TType, class TSizeTy, bool ColMajor>
+	static void Identity(const TSizeTy& Dim, TVVec<TType, TSizeTy, ColMajor>& X) {
+		if (X.Empty()) { X.Gen(Dim, Dim); }
+		EAssert(X.GetRows() == Dim && X.GetCols() == Dim);
+
+		for (TSizeTy i = 0; i < Dim; i++) {
+			X(i,i) = 1;
+		}
+	}
+
+	// returns a sub matrix of the input matrix in range [StartRow, EndRow) x [StartCol, EndCol)
+	template <class TType, class TSizeTy, bool ColMajor>
+	static void SubMat(const TVVec<TType, TSizeTy, ColMajor>& Mat, const TSizeTy& StartRow,
+			const TSizeTy& EndRow, const TSizeTy& StartCol, const TSizeTy& EndCol,
+			TVVec<TType, TSizeTy, ColMajor>& SubMat) {
+		EAssert(StartRow >= 0 && StartCol >= 0);
+		EAssert(EndRow < Mat.GetRows() && EndCol < Mat.GetCols());
+
+		if (SubMat.GetRows() != EndRow - StartRow || SubMat.GetCols() != EndCol - StartCol) {
+			SubMat.Gen(EndRow - StartRow, EndCol - StartCol);
+		}
+
+		for (TSizeTy i = StartRow; i < EndRow; i++) {
+			for (TSizeTy j = StartCol; j < EndCol; j++) {
+				SubMat.PutXY(i - StartRow, j - StartCol, Mat(i,j));
+			}
+		}
+	}
+
+	template <class TType, class TVecVal, class TSizeTy, bool ColMajor>
+	static void SubMat(const TVVec<TType, TSizeTy, ColMajor>& Mat, const TVec<TVecVal, TSizeTy>& ColIdxV,
+			TVVec<TType, TSizeTy, ColMajor>& SubMat) {
+
+		if (SubMat.Empty()) { SubMat.Gen(Mat.GetRows(), ColIdxV.Len()); }
+		EAssert(SubMat.GetRows() == Mat.GetRows() && SubMat.GetCols() == ColIdxV.Len());
+
+		TVec<TType, TSizeTy> ColV;
+		for (TSizeTy i = 0; i < ColIdxV.Len(); i++) {
+			const TSizeTy& ColN = ColIdxV[i];
+			EAssert(0 <= ColN && ColN < Mat.GetCols());
+			Mat.GetCol(ColN, ColV);
+			SubMat.SetCol(i, ColV);
+		}
+	}
+
+	template <class TType, class TSizeTy, bool ColMajor>
+	static void GetRow(const TVVec<TType, TSizeTy, ColMajor>& Mat,
+			const TSizeTy& RowN, TVec<TType, TSizeTy>& RowV) {
+		EAssert(0 <= RowN && RowN < Mat.GetRows());
+		const TSizeTy Cols = Mat.GetCols();
+		if (RowV.Len() != Mat.GetCols()) { RowV.Gen(Cols); }
+		for (TSizeTy ColN = 0; ColN < Cols; ColN++) {
+			RowV[ColN] = Mat(RowN, ColN);
+		}
+	}
+
+	template <class TVal, class TSizeTy>
+	static TSizeTy GetMaxIdx(const TVec<TVal, TSizeTy>& Vec) {
+		if (Vec.Empty()) { return -1; }
+
+		TSizeTy MxIdx = 0;
+		TVal MxVal = Vec[0];
+		for (TSizeTy i = 1; i < Vec.Len(); i++ ) {
+			if (Vec[i] > MxVal) {
+				MxVal = Vec[i];
+				MxIdx = i;
+			}
+		}
+
+		return MxIdx;
+	}
+
+	template <class TType, class TSizeTy, bool ColMajor>
+	static void CenterRows(TVVec<TType, TSizeTy, ColMajor>& X) {
+		const TSizeTy Rows = X.GetRows();
+		const TSizeTy Cols = X.GetCols();
+
+		#pragma omp parallel for
+		for (TSizeTy RowIdx = 0; RowIdx < Rows; RowIdx++) {
+			TType RowMean = 0;
+			for (TSizeTy ColIdx = 0; ColIdx < Cols; ColIdx++) {
+				RowMean += X(RowIdx, ColIdx);
+			}
+			RowMean /= Cols;
+			for (int ColIdx = 0; ColIdx < Cols; ColIdx++) {
+				X(RowIdx, ColIdx) -= RowMean;
+			}
+		}
+	}
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -347,7 +463,7 @@ public:
 class TSparseColMatrix : public TMatrix {
 public:
 	// number of rows and columns of matrix
-	int RowN, ColN;
+	TInt RowN, ColN;
 	// vector of sparse columns
 	TVec<TIntFltKdV> ColSpVV;
 protected:
@@ -364,21 +480,22 @@ protected:
 	// Result = A' * B
 	virtual void PMultiplyT(const TFltVV& B, TFltVV& Result) const;
 
+    void Init();
 	int PGetRows() const { return RowN; }
 	int PGetCols() const { return ColN; }
 
 public:
-	TSparseColMatrix() : TMatrix() {}
-	TSparseColMatrix(const int& _RowN, const int& _ColN) : RowN(_RowN), ColN(_ColN), ColSpVV() {}
-	TSparseColMatrix(TVec<TIntFltKdV> _ColSpVV) : TMatrix(), ColSpVV(_ColSpVV) {}
-	TSparseColMatrix(TVec<TIntFltKdV> _ColSpVV, const int& _RowN, const int& _ColN) :
+	TSparseColMatrix(): TMatrix() {}
+	TSparseColMatrix(const int& _RowN, const int& _ColN): RowN(_RowN), ColN(_ColN), ColSpVV() {}
+	TSparseColMatrix(const TVec<TIntFltKdV>& _ColSpVV): TMatrix(), ColSpVV(_ColSpVV) { Init(); }
+	TSparseColMatrix(const TVec<TIntFltKdV>& _ColSpVV, const int& _RowN, const int& _ColN) :
 		TMatrix(), RowN(_RowN), ColN(_ColN), ColSpVV(_ColSpVV) {}
 
 	void Save(TSOut& SOut) {
-		SOut.Save(RowN); SOut.Save(ColN); ColSpVV.Save(SOut);
+        RowN.Save(SOut); ColN.Save(SOut); ColSpVV.Save(SOut);
 	}
 	void Load(TSIn& SIn) {
-		SIn.Load(RowN); SIn.Load(ColN); ColSpVV = TVec<TIntFltKdV>(SIn);
+        RowN.Load(SIn); ColN.Load(SIn); ColSpVV = TVec<TIntFltKdV>(SIn);
 	}
 };
 
@@ -388,7 +505,7 @@ public:
 class TSparseRowMatrix : public TMatrix {
 public:
 	// number of rows and columns of matrix
-	int RowN, ColN;
+	TInt RowN, ColN;
 	// vector of sparse rows
 	TVec<TIntFltKdV> RowSpVV;
 protected:
@@ -405,22 +522,23 @@ protected:
 	// Result = A' * B
 	virtual void PMultiplyT(const TFltVV& B, TFltVV& Result) const { FailR("Not implemented yet"); } // TODO
 
+    void Init();
 	int PGetRows() const { return RowN; }
 	int PGetCols() const { return ColN; }
 
 public:
-	TSparseRowMatrix() : TMatrix() {}
-	TSparseRowMatrix(TVec<TIntFltKdV> _RowSpVV) : TMatrix(), RowSpVV(_RowSpVV) {}
-	TSparseRowMatrix(TVec<TIntFltKdV> _RowSpVV, const int& _RowN, const int& _ColN) :
+	TSparseRowMatrix(): TMatrix() {}
+	TSparseRowMatrix(const TVec<TIntFltKdV>& _RowSpVV): TMatrix(), RowSpVV(_RowSpVV) { Init(); }
+	TSparseRowMatrix(const TVec<TIntFltKdV>& _RowSpVV, const int& _RowN, const int& _ColN):
 		TMatrix(), RowN(_RowN), ColN(_ColN), RowSpVV(_RowSpVV) {}
 	// loads Matlab sparse matrix format: row, column, value.
 	//   Indexes start with 1.
 	TSparseRowMatrix(const TStr& MatlabMatrixFNm);
 	void Save(TSOut& SOut) {
-		SOut.Save(RowN); SOut.Save(ColN); RowSpVV.Save(SOut);
+		RowN.Save(SOut); ColN.Save(SOut); RowSpVV.Save(SOut);
 	}
 	void Load(TSIn& SIn) {
-		SIn.Load(RowN); SIn.Load(ColN); RowSpVV = TVec<TIntFltKdV>(SIn);
+		RowN.Load(SIn); ColN.Load(SIn); RowSpVV = TVec<TIntFltKdV>(SIn);
 	}
 };
 
@@ -430,7 +548,7 @@ public:
 class TFullColMatrix : public TMatrix {
 public:
 	// number of rows and columns of matrix
-	int RowN, ColN;
+	TInt RowN, ColN;
 	// vector of sparse columns
 	TVec<TFltV> ColV;
 protected:
@@ -451,13 +569,13 @@ protected:
 	int PGetCols() const { return ColN; }
 
 public:
-	TFullColMatrix() : TMatrix() {}
+	TFullColMatrix(): TMatrix() {}
 	// loads matrix saved in matlab with command:
 	//  save -ascii Matrix.dat M
 	TFullColMatrix(const TStr& MatlabMatrixFNm);
 	TFullColMatrix(TVec<TFltV>& RowVV);
-	void Save(TSOut& SOut) { SOut.Save(RowN); SOut.Save(ColN);  ColV.Save(SOut); }
-	void Load(TSIn& SIn) { SIn.Load(RowN); SIn.Load(ColN); ColV.Load(SIn); }
+	void Save(TSOut& SOut) { RowN.Save(SOut); ColN.Save(SOut);  ColV.Save(SOut); }
+	void Load(TSIn& SIn) { RowN.Load(SIn); ColN.Load(SIn); ColV.Load(SIn); }
 };
 
 ///////////////////////////////////////////////////////////////////////
@@ -612,6 +730,8 @@ public:
 	inline static void Convert(const TVec<TIntFltKdV>& A, TTriple<TIntV, TIntV, TFltV>&B);
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void Sum(const TVVec<TType, TSizeTy, ColMajor>& X, TVec<TType, TSizeTy>& y, const int Dimension = 1);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static double SumRow(const TVVec<TType, TSizeTy, ColMajor>& X, const int& RowN);
 	template <class TType, class TSizeTy = int, bool ColMajor = false, class IndexType = TInt>
 	inline static void Sum(const TTriple<TVec<IndexType, TSizeTy>, TVec<IndexType, TSizeTy>, TVec<TType, TSizeTy>>& X, TVec<TType, TSizeTy>& y, const int Dimension = 1);
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
@@ -736,6 +856,96 @@ public:
 	//S S option ensures that A is not modified
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void thinSVD(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor>& U, TVec<TType, TSizeTy>& S, TVVec<TType, TSizeTy, ColMajor>& VT);
+
+	static void SVDFactorization(const TFltVV& A, TFltVV& U, TFltV& Sing, TFltVV& VT) {
+		// data used for factorization
+		int NumOfRows_Matrix = A.GetRows();
+		int NumOfCols_Matrix = A.GetCols();
+
+		// handle edge cases where the factorization is trivial. Double and float only!
+		if (NumOfRows_Matrix == 1) {
+			U.Gen(1, 1);
+			U(0, 0) = 1;
+			VT = A;
+			Sing.Gen(1);			
+			// normalize VT and set Sing[0] = oldnorm(VT)
+			TFltV& RawV = VT.Get1DVec();
+			Sing[0] = TLinAlg::Normalize(RawV);			
+			return;
+		} else if (NumOfCols_Matrix == 1) {
+			VT.Gen(1, 1);
+			VT(0, 0) = 1;
+			U = A;
+			Sing.Gen(1);
+			// normalize U and set Sing[0] = oldnorm(U)
+			TFltV& RawV = U.Get1DVec();
+			Sing[0] = TLinAlg::Normalize(RawV);
+			return;
+		}
+
+		int LeadingDimension_Matrix = NumOfCols_Matrix;
+		int Matrix_Layout = LAPACK_ROW_MAJOR;
+
+		// preperation for factorization
+		Sing.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix));
+		TFltV UpDiag, TauQ, TauP;
+		UpDiag.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix) - 1);
+		TauQ.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix));
+		TauP.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix));
+
+		// bidiagonalization of Matrix
+		TFltVV M = A;
+		LAPACKE_dgebrd(Matrix_Layout, NumOfRows_Matrix, NumOfCols_Matrix, &M(0, 0).Val, LeadingDimension_Matrix,
+			&Sing[0].Val, &UpDiag[0].Val, &TauQ[0].Val, &TauP[0].Val);
+
+		// matrix U used in the SVD factorization
+		U = M;
+		LAPACKE_dorgbr(Matrix_Layout, 'Q', NumOfRows_Matrix, MIN(NumOfRows_Matrix, NumOfCols_Matrix), NumOfCols_Matrix,
+			&U(0, 0).Val, LeadingDimension_Matrix, &TauQ[0].Val);
+
+		// matrix VT used in the SVD factorization
+		VT = M;
+		LAPACKE_dorgbr(Matrix_Layout, 'P', MIN(NumOfRows_Matrix, NumOfCols_Matrix), NumOfCols_Matrix, NumOfRows_Matrix,
+			&VT(0, 0).Val, LeadingDimension_Matrix, &TauP[0].Val);
+
+		// factorization
+		TFltVV C(U.GetCols(), 1);
+		char UpperLower = NumOfRows_Matrix >= NumOfCols_Matrix ? 'U' : 'L';
+		int LeadingDimension_VT = VT.GetCols();
+		int LeadingDimension_U = U.GetCols();
+		LAPACKE_dbdsqr(Matrix_Layout, UpperLower, Sing.Len(), VT.GetCols(), U.GetRows(), 0, &Sing[0].Val, &UpDiag[0].Val,
+			&VT(0, 0).Val, LeadingDimension_VT, &U(0, 0).Val, LeadingDimension_U, &C(0, 0).Val, 1);
+	}
+
+	static void SVDSolve(const TFltVV& A, TFltV& x, const TFltV& b,
+			const double& EpsSing) {
+		Assert(A.GetRows() == b.Len());
+
+		// data used for solution
+		int NumOfRows_Matrix = A.GetRows();
+		int NumOfCols_Matrix = A.GetCols();
+
+		// generating the SVD factorization
+		TFltVV U, VT, M = A;
+		TFltV Sing;
+		SVDFactorization(M, U, Sing, VT);
+
+		// generating temporary solution
+		x.Gen(NumOfCols_Matrix);
+		TLAMisc::FillZero(x);
+		TFltV ui; ui.Gen(U.GetRows());
+		TFltV vi; vi.Gen(VT.GetCols());
+
+		double Scalar;
+		int i = 0;
+		while (i < MIN(NumOfRows_Matrix, NumOfCols_Matrix) && Sing[i].Val > EpsSing*Sing[0]) {
+			U.GetCol(i, ui);
+			VT.GetRow(i, vi);
+			Scalar = TLinAlg::DotProduct(ui, b) / Sing[i].Val;
+			TLinAlg::AddVec(Scalar, vi, x);
+			i++;
+		}
+	}
 #endif
 	static int ComputeThinSVD(const TMatrix& X, const int& k, TFltVV& U, TFltV& s, TFltVV& V, const int Iters = 2, const double Tol = 1e-6);
 #ifdef INTEL
@@ -823,6 +1033,13 @@ public:
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void AssertOrtogonality(const TVVec<TType, TSizeTy, ColMajor>& Vecs, const double& Threshold);
 	inline static bool IsOrthonormal(const TFltVV& Vecs, const double& Threshold);
+	inline static bool IsZero(const TFltV& Vec);
+
+	// returns the k-th power of the given matrix
+	// negative values of k are allowed
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void Pow(const TVVec<TType, TSizeTy, ColMajor>& Mat, const int& k,
+			TVVec<TType, TSizeTy, ColMajor>& PowVV);
 };
 
 
@@ -1458,6 +1675,18 @@ public:
 		else FailR("Dimension should be 1 or 2");
 	}
 
+	template <class TType, class TSizeTy, bool ColMajor>
+	double TLinAlg::SumRow(const TVVec<TType, TSizeTy, ColMajor>& X, const int& RowN) {
+		EAssertR(RowN < X.GetRows(), "Row index exceeds the number of rows!");
+		const int Cols = X.GetCols();
+
+		double Sum = 0;
+		for (int ColN = 0; ColN < Cols; ColN++) {
+			Sum += X(RowN, ColN);
+		}
+		return Sum;
+	}
+
 	// TEST
 	// sum columns (Dimesnion = 2) or rows (Dimension = 1) and store them in vector y
 	template <class TType, class TSizeTy, bool ColMajor, class IndexType>
@@ -1747,8 +1976,10 @@ public:
  	void TLinAlg::GetColNorm2V(const TFltVV& X, TFltV& ColNormV) {
  		const int Cols = X.GetCols();
  		ColNormV.Gen(Cols);
- 		for (int i = 0; i < Cols; i++) {
- 			ColNormV[i] = Norm2(X, i);
+
+		#pragma omp parallel for
+ 		for (int ColN = 0; ColN < Cols; ColN++) {
+ 			ColNormV[ColN] = Norm2(X, ColN);
  		}
  	}
 
@@ -1833,7 +2064,11 @@ public:
 	// find the index of maximum elements for each col of X
 	void TLinAlg::GetColMinIdxV(const TFltVV& X, TIntV& IdxV) {
 		int Cols = X.GetCols();
-		IdxV.Gen(X.GetCols());
+
+		if (IdxV.Empty()) { IdxV.Gen(Cols); }
+		EAssert(IdxV.Len() == Cols);
+
+		#pragma omp parallel for
 		for (int ColN = 0; ColN < Cols; ColN++) {
 			IdxV[ColN] = GetColMinIdx(X, ColN);
 		}
@@ -1889,16 +2124,17 @@ public:
 	// y := A * x
 	template <class TType, class TSizeTy, bool ColMajor>
 	void TLinAlg::Multiply(const TVVec<TType, TSizeTy, ColMajor>& A, const TVec<TType, TSizeTy>& x, TVec<TType, TSizeTy>& y) {
+		if (y.Empty()) { y.Gen(A.GetRows()); }
+		EAssert(A.GetCols() == x.Len() && A.GetRows() == y.Len());
 #ifdef BLAS
 		TLinAlg::Multiply(A, x, y, TLinAlgBlasTranspose::NOTRANS, 1.0, 0.0);
 #else
-		if (y.Empty()) y.Gen(A.GetRows());
-		EAssert(A.GetCols() == x.Len() && A.GetRows() == y.Len());
 		int n = A.GetRows(), m = A.GetCols();
 		for (int i = 0; i < n; i++) {
 			y[i] = 0.0;
-			for (int j = 0; j < m; j++)
+			for (int j = 0; j < m; j++) {
 				y[i] += A(i, j) * x[j];
+            }
 		}
 #endif
 	}
@@ -2010,7 +2246,6 @@ public:
 		}*/
 		LAPACKE_dgesvd(opt, 'S', 'S', m, n, const_cast<double *>(&A(0, 0).Val), lda, &S[0].Val, &U(0, 0).Val, ldu, &VT(0, 0).Val, ldvt, &superb[0].Val);
 	}
-
 #endif
 	//int TLinAlg::ComputeThinSVD(const TMatrix& X, const int& k, TFltVV& U, TFltV& s, TFltVV& V, const int Iters = 2, const double Tol = 1e-6);
 
@@ -2243,10 +2478,17 @@ public:
 		TSizeTy m = A.GetRows();
 		TSizeTy n = A.GetCols();
 		//Can we multiply and store in y?
-		if (BlasTransposeFlagA)//A'*x n*m x m -> n
-			EAssert(x.Len() == m && y.Reserved() == n);
+		if (BlasTransposeFlagA) {//A'*x n*m x m -> n
+			EAssertR(x.Len() == m, "TLinAlg::Multiply: Invalid dimension of input vector!");
+			if (y.Reserved() != n) {	// TODO should I do this here?? Meybe if the length is > n it would also be OK??
+				y.Gen(n, n);
+			}
+		}
 		else{//A*x  m x n * n -> m
-			EAssert(x.Len() == n && y.Reserved() == m);
+			EAssertR(x.Len() == n, "TLinAlg::Multiply: Invalid dimension of input vector!");
+			if (y.Reserved() != m) {	// TODO should I do this here?? Meybe if the length is > m it would also be OK??
+				y.Gen(m, m);
+			}
 		}
 		TSizeTy lda = ColMajor ? m : n;
 		TSizeTy incx = /*ColMajor ? x.Len() :*/ 1;
@@ -2300,18 +2542,19 @@ public:
 #ifdef BLAS
 		TLinAlg::Multiply(A, B, C, TLinAlgBlasTranspose::NOTRANS, TLinAlgBlasTranspose::NOTRANS);
 #else
-		EAssert(A.GetRows() == C.GetRows() && B.GetCols() == C.GetCols() && A.GetCols() == B.GetRows());
-		TSizeTy n = C.GetRows(), m = C.GetCols(), l = A.GetCols();
-		for (TSizeTy i = 0; i < n; i++) {
-			for (TSizeTy j = 0; j < m; j++) {
-				double sum = 0.0;
-				for (TSizeTy k = 0; k < l; k++)
-					sum += A(i, k)*B(k, j);
-				C(i, j) = sum;
+		TSizeTy RowsA = A.GetRows();		
+		TSizeTy ColsA = A.GetCols();
+		TSizeTy ColsB = B.GetCols();
+		C.PutAll(0.0);
+		for (TSizeTy RowN = 0; RowN < RowsA; RowN++) {
+			for (TSizeTy ColAN = 0; ColAN < ColsA; ColAN++) {
+				double Weight = A(RowN, ColAN);
+				for (TSizeTy ColBN = 0; ColBN < ColsB; ColBN++) {
+					C(RowN, ColBN) += Weight * B(ColAN, ColBN);
+				}
 			}
 		}
 #endif
-
 	}
 
 
@@ -2319,6 +2562,7 @@ public:
 	// C = A' * B
 	template <class TType, class TSizeTy, bool ColMajor>
 	void TLinAlg::MultiplyT(const TVVec<TType, TSizeTy, ColMajor>& A, const TVVec<TType, TSizeTy, ColMajor>& B, TVVec<TType, TSizeTy, ColMajor>& C) {
+		if (C.Empty()) { C.Gen(A.GetCols(), B.GetCols()); }
 		EAssert(A.GetCols() == C.GetRows() && B.GetCols() == C.GetCols() && A.GetRows() == B.GetRows());
 #ifdef BLAS
 		TLinAlg::Multiply(A, B, C, TLinAlgBlasTranspose::TRANS, TLinAlgBlasTranspose::NOTRANS);
@@ -2774,6 +3018,8 @@ public:
 	// transpose matrix - B = A'
 	template <class TType, class TSizeTy, bool ColMajor>
 	void TLinAlg::Transpose(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor>& B) {
+		if (B.Empty()) { B.Gen(A.GetCols(), A.GetRows()); }
+
 		EAssert(B.GetRows() == A.GetCols() && B.GetCols() == A.GetRows());
 		for (TSizeTy i = 0; i < A.GetCols(); i++) {
 			for (TSizeTy j = 0; j < A.GetRows(); j++) {
@@ -2911,6 +3157,77 @@ public:
 		TLinAlg::MultiplyT(Vecs, Vecs, R);
 		for (int i = 0; i < m; i++) { R(i, i) -= 1; }
 		return TLinAlg::Frob(R) < Threshold;
+	}
+
+	bool TLinAlg::IsZero(const TFltV& Vec) {
+		int Len = Vec.Len();
+		for (int i = 0; i < Len; i++) {
+			if (Vec[i] != 0.0) { return false; }
+		}
+		return true;
+	}
+
+	template <class TType, class TSizeTy, bool ColMajor>
+	inline void TLinAlg::Pow(const TVVec<TType, TSizeTy, ColMajor>& Mat,
+			const int& k, TVVec<TType, TSizeTy, ColMajor>& PowVV) {
+		EAssertR(Mat.GetRows() == Mat.GetCols(), "TLinAlg::Pow: Can only compute powers of square matrices!");
+
+		const TSizeTy Dim = Mat.GetRows();
+
+		if (k == 0) {
+			TLAUtil::Identity(Dim, PowVV);
+		} else if (k < 0) {
+			TVVec<TType, TSizeTy, ColMajor> InverseVV;
+			TLinAlg::Inverse(Mat, InverseVV, TLinAlgInverseType::DECOMP_SVD);
+			Pow(InverseVV, -k, PowVV);
+		} else {
+			PowVV.Gen(Dim, Dim);
+
+			// we will compute the power using the binary algorithm
+			// we will always hold the newest values in X, so when
+			// finishing the algorithm, the result will be in X
+
+			// X <- A
+			TVVec<TType, TSizeTy, ColMajor> TempMat(Mat);			// temporary matrix
+
+			// pointers, so swapping is faster
+			TVVec<TType, TSizeTy, ColMajor>* X = &TempMat;
+			TVVec<TType, TSizeTy, ColMajor>* X1 = &PowVV;			// use the space already available
+
+			// temporary variables
+			TVVec<TType, TSizeTy, ColMajor>* Temp;
+
+			// do the work
+			uint k1 = (uint) k;
+			uint n = (uint) TMath::Log2(k);
+
+			uint b;
+
+			for (uint i = 1; i <= n; i++) {
+				b = (k1 >> (n-i)) & 1;
+
+				// X <- X*X
+				TLinAlg::Multiply(*X, *X, *X1);
+				// swap X and X1 so that X holds the content
+				Temp = X1;
+				X1 = X;
+				X = Temp;
+				if (b == 1) {
+					// X <- X*A
+					TLinAlg::Multiply(*X, Mat, *X1);
+					// swap X and X1 so that X holds the content
+					Temp = X1;
+					X1 = X;
+					X = Temp;
+				}
+			}
+
+			if (&PowVV != X) {
+				// the values are in X, but we are returning X1
+				// copy X to PowVV
+				PowVV = *X;
+			}
+		}
 	}
 //};
 
@@ -3085,42 +3402,8 @@ public:
 	// Computes the eigenvector of A belonging to the specified eigenvalue
     // uses the inverse iteration algorithm
     // the algorithms does modify A due to its use of LU decomposition
-    static void GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV& EigenV, const double& ConvergEps=1e-7);
-
-#ifdef BLAS
-    // LU midstep used for LUFactorization and LUSolve
-    // (Warning: the matrix is overwritten in the process)
-    static void LUStep(TFltVV& A, TIntV& PermV);
-    // LUFactorization create the matrices L, U and vector of permutations P such that P*A = L*U.
-    // The L is unit lower triangular matrix and U is an upper triangular matrix.
-    // Vector P tell's us: column i is swapped with column P[i].
-    static void LUFactorization(const TFltVV& A, TFltVV& L, TFltVV& U, TIntV& P);
-    // Solves the system of linear equations A * x = b, where A is a matrix, x and b are vectors.
-    // Solution is saved in x.
-    static void LUSolve(const TFltVV& A, TFltV& x, const TFltV& b);
-    // Solves the system of linear equations A * X = B, where A, X and B are matrices.
-    // Solution is saved in X.
-    static void LUSolve(const TFltVV& A, TFltVV& X, const TFltVV& B);
-
-    // solves the system A * x = b, where A is a triangular matrix, x and b are vectors.
-    // The solution is saved in x.
-    // UpperTriangFlag: if the matrix is upper triangular (true) or lower triangular (false).
-    // DiagUnitFlag: if the matrix has ones on the diagonal (true) or not (false).
-    static void TriangularSolve(TFltVV& A, TFltV& x, TFltV& b,
-    		bool UpperTriangFlag = true, bool DiagonalUnitFlag = false);
-
-	///////////////////////////////////////////////////////////////////////////
-	// SVD factorization and solution
-
-	// Makes the SVD factorization of matrix Matrix, such that A = U * Sing * VT.
-	// Sing is the vector containing singular values, U is the matrix with left singular vectors,
-	// VT is the matrix with right singular vectors.
-	static void SVDFactorization(const TFltVV& A, TFltVV& U, TFltV& Sing, TFltVV& VT);
-
-	// SVDSolve solves the Least Squares problem of equation A * x = b, where A is a matrix, x and b are vectors.
-	// The solution is saved in x.
-	static void SVDSolve(const TFltVV& A, TFltV& x, const TFltV& b, const double& EpsSing=0);
-#endif
+    static void GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV& EigenV,
+    		const double& ConvergEps=1e-7);
 };
 
 ///////////////////////////////////////////////////////////////////////
@@ -3387,7 +3670,8 @@ public:
 	TFullMatrix(const int& Rows, const int& Cols);
 	// matrix from TFltVV, if IsWrapper is set to true then the
 	// underlying matrix will not be deleted
-	TFullMatrix(TFltVV& Mat, const bool IsWrapper = false);
+	TFullMatrix(TFltVV& Mat, const bool IsWrapper);
+	TFullMatrix(const TFltVV& Mat);
 	// matrix from vector
 	TFullMatrix(const TVector& Vec);
 	// copy constructor
@@ -3442,6 +3726,7 @@ public:
 	virtual void Transpose();
 	// returns the transpose of this matrix
 	TFullMatrix GetT() const;
+	void GetT(TFltVV& TransposedVV) const;
 	// returns the value at position (i,j)
 	TFlt& At(const int& i, const int& j) { return Mat->operator ()(i, j); }
 	const TFlt& At(const int& i, const int& j) const { return Mat->operator ()(i, j); }
@@ -3450,6 +3735,7 @@ public:
 	// returns true if the matrix is empty
 	bool Empty() const { return Mat->Empty(); }
 
+	TFullMatrix& AddCol(const TFltV& Col);
 	TFullMatrix& AddCol(const TVector& Col);
 	TFullMatrix& AddCols(const TFullMatrix& Cols);
 

@@ -12,16 +12,14 @@ if (hfile != 0) {
 var JSFiles = [];
 for (var i = 0; i < fileNames.length; i++) {
     if (fileNames[i].indexOf(".js") != -1 && fileNames[i].indexOf(".html") == -1) {
-        if (fileNames[i].indexOf("datasets") == -1) {
-            JSFiles.push(fileNames[i]);
-        }
+        JSFiles.push(fileNames[i]);
     }
 }
 
 // constructs the it('should something', function () { ... }) test
-var constructIt = function (str, i) {
-    var test = "it('should make test number " + i + "', function () {\n this.timeout(10000); \n";
-    test += str + "\n});\n";
+var constructIt = function (describe, str, i) {
+    var test = 'describe("'+ describe + ', number ' + i +'", function () {\nit("should make test number ' + i + '", function () {\n';
+    test += str + "\n});\n});\n";
     return test;
 }
 
@@ -33,16 +31,20 @@ for (var i = 0; i < JSFiles.length; i++) {
     }
 
     // write the describe of the file (to know in which file the test throws the error)
+    fout.write("require('qminer').la.Vector.prototype.print = function () { };");
+    fout.write("require('qminer').la.SparseVector.prototype.print = function () { };");
+    fout.write("require('qminer').la.SparseMatrix.prototype.print = function () { };");
+    fout.write("require('qminer').la.Matrix.prototype.print = function () { };");
     fout.write("describe('example tests for the " + JSFiles[i] + " file', function () {\n");
 
     var hstr = fs.readFileSync(hfile + JSFiles[i], 'ascii');
-    // get the rows between * @example and */ - getting the example code
+    // get the rows between * @example and @example or */ - getting the example code
     var regex = /(\/\*\*([\s\S]*?)\*\/)/g;
     var count = 0;
     while ((match = regex.exec(hstr)) != null) {
         str = match[0];
 
-        if ((str.indexOf("IntVector") != -1 || str.indexOf("StrVector") != -1 || str.indexOf("BoolVector") != -1) && 
+        if ((str.indexOf("IntVector") != -1 || str.indexOf("StrVector") != -1 || str.indexOf("BoolVector") != -1) &&
             (str.indexOf("cosine") != -1 || str.indexOf("sortPerm") != -1 || str.indexOf("outer") != -1)) {
             continue;
         }
@@ -66,16 +68,26 @@ for (var i = 0; i < JSFiles.length; i++) {
         // if it has the example
         var exampleIdx = str.indexOf('@example');
         if (exampleIdx != -1) {
-            count += 1;
-            // write the description
-            fout.write('describe("' + describe + '", function () {\n');
             // create the it block/test
-            str = str.slice(exampleIdx);
-            str = str.replace(/(\*)/g, '');
-            str = str.slice(8, str.length - 2);
-            fout.write(constructIt(str, count));
-            // end the description block
-            fout.write("});\n");
+			str = str.slice(exampleIdx);
+			examples = str.split('@example');
+			for (var ExpN = 0; ExpN < examples.length; ExpN++) {
+				var example = examples[ExpN];
+				//console.log(example);
+				if (example == '') { continue; }
+				if (example.indexOf('</caption>') != -1) {
+					example = example.slice(example.indexOf('</caption>') + 10);
+				}
+				count += 1;
+				example = example.replace(/(\n\s*)\*/g, '$1');
+				if (example.indexOf('*/') != -1) { example = example.slice(0, example.length - 2);}
+				else { example = example.slice(0, example.length - 1); }
+				fout.write(constructIt(describe, example, count));
+			}
+            // str = str.slice(exampleIdx);
+            // str = str.replace(/(\*)/g, '');
+            // str = str.slice(8, str.length - 2);
+            // fout.write(constructIt(str, count));
         }
     }
     fout.write("\n});\n");

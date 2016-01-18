@@ -1,17 +1,32 @@
+#!/usr/bin/env bash
+
 CURRENT_PATH=`pwd`
 
 TEST_PATH_=`readlink -f $0`
 TEST_PATH=`dirname $TEST_PATH_`
 
 cd $TEST_PATH
-mocha *.js
-CODE=$?
+mocha --timeout 30000 *.js
+#echo "test"
+CODES[0]=$?
+
+EXAMPLES_PATH=./../../examples/streamaggregate
+cd $EXAMPLES_PATH
+npm install
+npm test
+CODES[1]=$?
+
 cd $CURRENT_PATH
 
-if [ $CODE -eq 0 ]
-then
-    echo "Tests success!"
-else
-    echo "Errors found!"
-    exit 1
-fi
+for CODE in ${CODES[*]}
+do
+    if [ $CODE -ne 0 ]
+    then
+        echo "Errors found!"
+        exit 1
+        break
+    fi
+done
+
+echo "Tests success!"
+

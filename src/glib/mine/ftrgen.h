@@ -87,7 +87,6 @@ private:
     /// Feature generation handled by categorical feature generator
     TCategorical FtrGen;
 
-    
 public:
 	TMultinomial(const bool& NormalizeP = true) : Type(NormalizeP ? mtNormalize : mtNone), FtrGen() { }
 	TMultinomial(const bool& NormalizeP, const TStrV& ValV) : Type(NormalizeP ? mtNormalize : mtNone), FtrGen(ValV) { }
@@ -100,9 +99,9 @@ public:
     bool Update(const TStrV& StrV);
     void AddFtr(const TStr& Str, TIntFltKdV& SpV, int& Offset) const;
     void AddFtr(const TStr& Str, TFltV& FullV, int& Offset) const;
-    void AddFtr(const TStrV& StrV, TIntFltKdV& SpV) const;
-    void AddFtr(const TStrV& StrV, TIntFltKdV& SpV, int& Offset) const;
-    void AddFtr(const TStrV& StrV, TFltV& FullV, int& Offset) const;
+    void AddFtr(const TStrV& StrV, const TFltV& FltV, TIntFltKdV& SpV) const;
+    void AddFtr(const TStrV& StrV, const TFltV& FltV, TIntFltKdV& SpV, int& Offset) const;
+    void AddFtr(const TStrV& StrV, const TFltV& FltV, TFltV& FullV, int& Offset) const;
 
     int GetDim() const { return FtrGen.GetDim(); }
     TStr GetVal(const int& ValN) const { return FtrGen.GetVal(ValN); }
@@ -255,7 +254,8 @@ public:
     int GetFtr(const TTm& Val) const;
     void AddFtr(const TTm& Val, TIntFltKdV& SpV, int& Offset) const;
     void AddFtr(const TTm& Val, TFltV& FullV, int& Offset) const;
-    
+
+    bool IsInit() const { return InitP; }
     int GetDim() const { return EndUnit - StartUnit + WndSize; }
 };
 
