@@ -1947,9 +1947,9 @@ TStr TStr::GetNrFExt(const TStr& FExt){
   else {return TStr(".")+FExt;}
 }
 
-TStr TStr::GetNrNumFExt(const int& FExtN){
+TStr TStr::GetNrNumFExt(const int& FExtN, const int& MinLen){
   TStr FExtNStr=TInt::GetStr(FExtN);
-  while (FExtNStr.Len()<3){
+  while (FExtNStr.Len()<MinLen){
     FExtNStr=TStr("0")+FExtNStr;}
   return FExtNStr;
 }

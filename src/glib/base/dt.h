@@ -838,7 +838,7 @@ public:
   static TStr GetNrFPath(const TStr& FPath);
   static TStr GetNrFMid(const TStr& FMid);
   static TStr GetNrFExt(const TStr& FExt);
-  static TStr GetNrNumFExt(const int& FExtN);
+  static TStr GetNrNumFExt(const int& FExtN, const int& MinLen = 3);
   static TStr GetNrFNm(const TStr& FNm);
   static TStr GetNrAbsFPath(const TStr& FPath, const TStr& BaseFPath=TStr());
   static bool IsAbsFPath(const TStr& FPath);
