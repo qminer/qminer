@@ -145,6 +145,7 @@ public:
     PortV(Hash.PortV), KeyDatV(Hash.KeyDatV), AutoSizeP(Hash.AutoSizeP),
     FFreeKeyId(Hash.FFreeKeyId), FreeKeys(Hash.FreeKeys){}
   explicit THash(const int& ExpectVals, const bool& _AutoSizeP=false);
+  explicit THash(const TVec<TKeyDat<TKey, TDat> >& KeyDatV);
   explicit THash(TSIn& SIn):
     PortV(SIn), KeyDatV(SIn),
     AutoSizeP(SIn), FFreeKeyId(SIn), FreeKeys(SIn){
@@ -327,6 +328,14 @@ THash<TKey, TDat, THashFunc>::THash(const int& ExpectVals, const bool& _AutoSize
   PortV(GetNextPrime(ExpectVals/2)), KeyDatV(ExpectVals, 0),
   AutoSizeP(_AutoSizeP), FFreeKeyId(-1), FreeKeys(0){
   PortV.PutAll(TInt(-1));
+}
+
+template<class TKey, class TDat, class THashFunc>
+THash<TKey, TDat, THashFunc>::THash(const TVec<TKeyDat<TKey, TDat> >& KeyDatV):
+  PortV(), KeyDatV(), AutoSizeP(true), FFreeKeyId(-1), FreeKeys(0) 
+{
+  for (int N = 0; N < KeyDatV.Len(); N++)
+    AddDat(KeyDatV[N].Key, KeyDatV[N].Dat);
 }
 
 template<class TKey, class TDat, class THashFunc>
@@ -844,7 +853,7 @@ public:
   void GetDatKeyPrV(TVec<TPair<TDat, TStr> >& DatKeyPrV) const;
 
   void Pack(){KeyDatV.Pack();}
-  int GetMemUsed() const {
+  uint64 GetMemUsed() const {
       return PortV.GetMemUsed() + KeyDatV.GetMemUsedDeep() +
           AutoSizeP.GetMemUsed() + FFreeKeyId.GetMemUsed() +
           FreeKeys.GetMemUsed() + Pool->GetMemUsed();
