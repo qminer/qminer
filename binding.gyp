@@ -226,7 +226,7 @@
                 'src/glib/base/base.cpp',
                 'src/glib/mine/mine.h',
                 'src/glib/mine/mine.cpp',
-                'src/third_party/sole/sole.cpp'
+                'src/third_party/sole/sole.cpp',
                 'src/third_party/libsvm/svm.h',
                 'src/third_party/libsvm/svm.cpp'
             ],
