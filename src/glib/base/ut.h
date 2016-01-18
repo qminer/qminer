@@ -84,8 +84,8 @@ public:
   static void DfOnNotify(const TNotifyType& Type, const TStr& MsgStr);
 
   static const PNotify NullNotify;
-  static const PNotify StdNotify;
-  static const PNotify StdErrNotify;
+  static PNotify StdNotify;
+  static PNotify StdErrNotify;
 };
 
 /////////////////////////////////////////////////
@@ -148,9 +148,14 @@ public:
 /////////////////////////////////////////////////
 // Standard-Notifier
 class TStdNotify: public TNotify{
-public:
-  TStdNotify(){}
-  static PNotify New(){return PNotify(new TStdNotify());}
+public: 
+  bool AddTimeStamp;
+  TStdNotify(const bool& _AddTimeStamp = false) { 
+    AddTimeStamp = _AddTimeStamp; 
+  }
+  static PNotify New(const bool& AddTimeStamp = false){
+	  return PNotify(new TStdNotify(AddTimeStamp));
+  }
 
   void OnNotify(const TNotifyType& Type, const TStr& MsgStr);
   void OnStatus(const TStr& MsgStr);
@@ -160,8 +165,13 @@ public:
 // Standard-Error-Notifier
 class TStdErrNotify: public TNotify{
 public:
-  TStdErrNotify(){}
-  static PNotify New(){return PNotify(new TStdErrNotify());}
+  bool AddTimeStamp;
+  TStdErrNotify(const bool& _AddTimeStamp = false) { 
+    AddTimeStamp = _AddTimeStamp; 
+  }
+  static PNotify New(const bool& AddTimeStamp = false){
+	  return PNotify(new TStdErrNotify(AddTimeStamp));
+  }
 
   void OnNotify(const TNotifyType& Type, const TStr& MsgStr);
   void OnStatus(const TStr& MsgStr);
@@ -198,11 +208,15 @@ ClassTP(TExcept, PExcept)//{
 private:
   TStr MsgStr;
   TStr LocStr;
+  TInt ErrorCode;
   UndefDefaultCopyAssign(TExcept);
 public:
   TExcept(const TStr& _MsgStr): MsgStr(_MsgStr), LocStr(){}
   TExcept(const TStr& _MsgStr, const TStr& _LocStr): MsgStr(_MsgStr), LocStr(_LocStr){}
+  TExcept(const int& _ErrorCode, const TStr& _MsgStr, const TStr& _LocStr) : 
+	  ErrorCode(_ErrorCode), MsgStr(_MsgStr), LocStr(_LocStr) {}
   static PExcept New(const TStr& MsgStr, const TStr& LocStr = TStr());
+  static PExcept New(const int& ErrorCode, const TStr& MsgStr, const TStr& LocStr = TStr());
   virtual ~TExcept(){}
 
   TStr GetMsgStr() const {return MsgStr;}
@@ -210,6 +224,7 @@ public:
   TStr GetStr() const {
     if (LocStr.Empty()){return GetMsgStr();}
     else {return GetLocStr()+": "+GetMsgStr();}}
+  int GetErrorCode() { return ErrorCode; }
 
   // replacement exception handler
   typedef void (*TOnExceptF)(const TStr& MsgStr);
@@ -266,9 +281,12 @@ protected:
 public:
 	TBufferStackWalker();
 	TChA GetOutput();
+	void ClearOutput() { Output = ""; }
 
 	// static method that generates stack trace and returns it
 	static TChA GetStackTrace();
 };
+
+extern TBufferStackWalker GlobalStackWalker;
 
 #endif
