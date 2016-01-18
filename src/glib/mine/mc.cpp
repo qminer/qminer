@@ -782,6 +782,9 @@ void TCtMChain::GetStatDistV(const TFltVV& QMat, TFltV& ProbV) {
 			ProbV[StateId] /= EigSum;
 		}
 	}
+
+	// TODO remove
+	printf("Static distribution: %s\n", TStrUtil::GetStr(ProbV, ", ", "%.10f").CStr());
 }
 
 void TCtMChain::GetHoldingTmV(const TFltVV& QMat, TFltV& HoldingTmV) {
@@ -951,10 +954,13 @@ void TCtMChain::GetAggrQMat(const TFltVV& QMat, const TAggStateV& AggrStateV,
 
 	for (int JoinState1Idx = 0; JoinState1Idx < NAggrStates; JoinState1Idx++) {
 		const TIntV& JoinState1 = AggrStateV[JoinState1Idx];
+		EAssertR(!JoinState1.Empty(), "An aggregated state is empty!");
+
 		for (int JoinState2Idx = 0; JoinState2Idx < NAggrStates; JoinState2Idx++) {
 			if (JoinState1Idx == JoinState2Idx) { continue; }
 
 			const TIntV& JoinState2 = AggrStateV[JoinState2Idx];
+			EAssertR(!JoinState2.Empty(), "An aggregated state is empty!");
 
 			// the transition probability from set Ai to Aj can be
 			// calculated as: q_{A_i,A_j} = \frac {\sum_{k \in A_i} \pi_k * \sum_{l \in A_j} q_{k,l}} {\sum_{k \in A_i} \pi_k}
@@ -2269,11 +2275,43 @@ void THierarch::GetStateSetsAtHeight(const double& Height, TStateIdV& StateIdV,
 void THierarch::GetStatesAtHeight(const double& Height, TIntSet& StateIdV) const {
 	const int NStates = GetStates();
 
-	for (int StateIdx = 0; StateIdx < NStates; StateIdx++) {
-		if (IsOnHeight(StateIdx, Height)) {
-			StateIdV.AddKey(StateIdx);
+	for (int StateId = 0; StateId < NStates; StateId++) {
+		if (IsOnHeight(StateId, Height)) {
+			StateIdV.AddKey(StateId);
 		}
 	}
+}
+
+double THierarch::GetNextLevel(const TIntV& CurrLevelIdV, TIntV& NextLevelIdV) const {
+	double NextHeight = TFlt::PInf;
+	for (int StateN = 0; StateN < CurrLevelIdV.Len(); StateN++) {
+		const int ParentId = GetParentId(CurrLevelIdV[StateN]);
+		const double ParentHeight = GetStateHeight(ParentId);
+		if (ParentHeight < NextHeight) {
+			NextHeight = ParentHeight;
+		}
+	}
+
+	TIntSet TakenParentIdSet;
+	for (int StateN = 0; StateN < CurrLevelIdV.Len(); StateN++) {
+		const int StateId = CurrLevelIdV[StateN];
+		const int ParentId = GetParentId(StateId);
+
+		if (GetStateHeight(ParentId) <= NextHeight) {
+			if (!TakenParentIdSet.IsKey(ParentId)) {
+				TakenParentIdSet.AddKey(ParentId);
+				NextLevelIdV.Add(ParentId);
+			}
+		} else {
+			NextLevelIdV.Add(StateId);
+		}
+	}
+
+	// TODO remove
+	printf("Curr level: %s\n", TStrUtil::GetStr(CurrLevelIdV).CStr());
+	printf("Next level: %s\n", TStrUtil::GetStr(NextLevelIdV).CStr());
+
+	return NextHeight;
 }
 
 void THierarch::GetAncestorV(const int& StateId, TIntFltPrV& StateIdHeightPrV) const {
@@ -2300,6 +2338,8 @@ int THierarch::GetAncestorAtHeight(const int& StateId, const double& Height) con
 }
 
 void THierarch::GetLeafDescendantV(const int& TargetStateId, TIntV& DescendantV) const {
+	if (!DescendantV.Empty()) { DescendantV.Clr(); }
+
 	if (IsLeaf(TargetStateId)) {
 		DescendantV.Add(TargetStateId);
 		return;
@@ -2327,6 +2367,93 @@ void THierarch::GetLeafDescendantV(const int& TargetStateId, TIntV& DescendantV)
 		if (GetParentId(LeafId, TempHierarchV) == TargetStateId) {
 			DescendantV.Add(LeafId);
 		}
+	}
+}
+
+void THierarch::GetDescendantsAtHeight(const double& Height, const TIntV& StateIdV, TAggStateV& AggStateV) {
+	const int NStates = StateIdV.Len();
+	AggStateV.Gen(NStates, NStates);
+
+	TIntH StateIdStateNH;
+	for (int StateN = 0; StateN < StateIdV.Len(); StateN++) {
+		StateIdStateNH.AddDat(StateIdV[StateN], StateN);
+	}
+
+	TIntV TempHierarchV = HierarchV;
+
+	if (Height <= 0) {
+		bool Change;
+		do {
+			Change = false;
+			for (int StateId = 0; StateId < TempHierarchV.Len(); StateId++) {
+				const int AncestorId = TempHierarchV[StateId];
+
+				if (!StateIdStateNH.IsKey(AncestorId) && !IsRoot(AncestorId)) {
+					TempHierarchV[StateId] = TempHierarchV[TempHierarchV[StateId]];
+					Change = true;
+				}
+			}
+		} while (Change);
+
+		for (int StateId = 0; StateId < NLeafs; StateId++) {
+			const int AncestorId = TempHierarchV[StateId];
+
+			EAssert(StateIdStateNH.IsKey(AncestorId));
+
+			const int AncestorN = StateIdStateNH.GetDat(AncestorId);
+
+			AggStateV[AncestorN].Add(StateId);
+		}
+	} else {
+		bool Change;
+		do {
+			Change = false;
+			for (int StateId = 0; StateId < TempHierarchV.Len(); StateId++) {
+				const int AncestorId = TempHierarchV[StateId];
+
+				if (IsOnHeight(AncestorId, Height)) { continue; }
+
+				if (!StateIdStateNH.IsKey(AncestorId) && !IsRoot(AncestorId)) {
+					TempHierarchV[StateId] = TempHierarchV[TempHierarchV[StateId]];
+					Change = true;
+				}
+			}
+		} while (Change);
+
+		// TODO remove
+		//===================================================
+		printf("StateIdV: %s\n", TStrUtil::GetStr(StateIdV).CStr());
+		printf("HeightV: %s\n", TStrUtil::GetStr(StateHeightV, ", ", "%.3f").CStr());
+		printf("HierarchV: %s\n", TStrUtil::GetStr(HierarchV).CStr());
+		printf("TempHierV: %s\n", TStrUtil::GetStr(TempHierarchV).CStr());
+		//===================================================
+
+		TIntSet UsedStateIdSet;
+		for (int StateId = 0; StateId < NLeafs; StateId++) {
+			const int AncestorOnHeightId = TempHierarchV[StateId];
+
+			if (StateIdStateNH.IsKey(AncestorOnHeightId)) {
+				const int AncestorN = StateIdStateNH.GetDat(AncestorOnHeightId);
+				AggStateV[AncestorN].Add(StateId);
+				UsedStateIdSet.AddKey(StateId);
+			} else {
+				const int SuperAncestorId = TempHierarchV[AncestorOnHeightId];
+				EAssert(StateIdStateNH.IsKey(SuperAncestorId));
+				if (!UsedStateIdSet.IsKey(AncestorOnHeightId)) {
+					const int AncestorN = StateIdStateNH.GetDat(SuperAncestorId);
+					AggStateV[AncestorN].Add(AncestorOnHeightId);
+					UsedStateIdSet.AddKey(AncestorOnHeightId);
+				}
+			}
+		}
+		// TODO remove
+		//===================================================
+		printf("Descendants at height:\n");
+		for (int i = 0; i < AggStateV.Len(); i++) {
+			printf("%s\n", TStrUtil::GetStr(AggStateV[i]).CStr());
+		}
+		printf("==\n");
+		//===================================================
 	}
 }
 
@@ -3292,52 +3419,97 @@ PJsonVal TStreamStory::GetJson() const {
 }
 
 PJsonVal TStreamStory::GetSubModelJson(const int& StateId) const {
-	TIntV DescendantIdV;	Hierarch->GetLeafDescendantV(StateId, DescendantIdV);
-
-	Notify->OnNotify(TNotifyType::ntInfo, "TStreamStory::GetJson: saving JSON ...");
+	PJsonVal Result = TJsonVal::NewArr();
 
 	TStateFtrVV StateFtrVV;	GetStateFtrVV(StateFtrVV);
 
-	PJsonVal Result = TJsonVal::NewArr();
+	const double MxHeight = Hierarch->GetStateHeight(StateId);
+	TIntV TopStateIdV;	TAggStateV TopStateAggV;
+	Hierarch->GetStateSetsAtHeight(MxHeight, TopStateIdV, TopStateAggV);
 
-	// construct for height 0
-	const double CurrHeight = 0;
-	const int NStates = DescendantIdV.Len();
-	PJsonVal LevelJsonVal = TJsonVal::NewObj();
+	const int TargetStateN = TopStateIdV.SearchForw(StateId);
 
-	TAggStateV AggStateV;
-	for (int StateId = 0; StateId < MChain->GetStates(); StateId++) {
-		AggStateV.Add(TIntV(1, 1));
-		AggStateV[StateId][0] = StateId;
-	}
+	TIntV DescendantIdV = TopStateAggV[TargetStateN];
 
-//	TFltVV SubQMat;	MChain->GetSubQMatrix(AggStateV, StateFtrVV, DescendantIdV, SubQMat);
+	Notify->OnNotify(TNotifyType::ntInfo, "TStreamStory::GetSubModelJson: saving JSON ...");
 
-	// construct the values for the original chain
-	TFltVV AllJumpVV;		MChain->GetJumpVV(AggStateV, StateFtrVV, AllJumpVV);//TCtmcModeller::GetJumpVV(SubQMat, TransitionVV);
-	TFltV AllHoldingTmV;	MChain->GetHoldingTmV(AggStateV, StateFtrVV, AllHoldingTmV);
-	TFltV AllProbV;			MChain->GetStatDist(AggStateV, StateFtrVV, AllProbV);
-	TFltV AllRadiusV;		UiHelper->GetStateRadiusV(AllProbV, AllRadiusV);
-
-	// construct the values for the sub chain
-	TFltVV JumpVV(NStates, NStates);
-	TFltV HoldingTmV(NStates, NStates), ProbV(NStates, NStates), RadiusV(NStates, NStates);
-	for (int StateN = 0; StateN < DescendantIdV.Len(); StateN++) {
-		const int StateId = DescendantIdV[StateN];
-
-		HoldingTmV[StateN] = AllHoldingTmV[StateId];
-		ProbV[StateN] = AllProbV[StateId];
-		RadiusV[StateN] = AllRadiusV[StateId];
-
-		for (int DstStateN = 0; DstStateN < NStates; DstStateN++) {
-			const int DstStateId = DescendantIdV[DstStateN];
-
-			JumpVV(StateN, DstStateN) = AllJumpVV(StateId, DstStateId);
+	TAggStateV AncAggStateV;
+	TAggStateV AggStateV(TopStateIdV.Len()-1, 0);
+	{
+		Hierarch->GetDescendantsAtHeight(0, TopStateIdV, AncAggStateV);
+//		const TIntV& LevelAggTargetState = AncAggStateV[TargetStateN];
+		for (int StateN = 0; StateN < AncAggStateV.Len(); StateN++) {
+			if (StateN != TargetStateN) {
+				AggStateV.Add(AncAggStateV[StateN]);
+			}
 		}
 	}
 
-	PJsonVal LevelJsonV = GetLevelJson(CurrHeight, DescendantIdV, JumpVV, HoldingTmV, ProbV, RadiusV);
-	Result->AddToArr(LevelJsonV);
+
+	// construct for height 0
+	double CurrHeight = 0;
+	TIntV NewDescIdV;
+	while (CurrHeight < MxHeight) {
+		PJsonVal LevelJsonVal = TJsonVal::NewObj();
+
+		// prepare the structures
+		AncAggStateV.Clr();
+		AggStateV.Trunc(TopStateIdV.Len()-1);
+
+		Hierarch->GetDescendantsAtHeight(CurrHeight, TopStateIdV, AncAggStateV);
+
+		const TIntV& LevelAggTargetState = AncAggStateV[TargetStateN];
+		for (int StateN = 0; StateN < LevelAggTargetState.Len(); StateN++) {
+			AggStateV.Add(TIntV());
+			Hierarch->GetLeafDescendantV(LevelAggTargetState[StateN], AggStateV.Last());
+		}
+
+		// TODO remove
+		//===================================================
+		printf("AggStateV:\n");
+		for (int i = 0; i < AggStateV.Len(); i++) {
+			printf("%s\n", TStrUtil::GetStr(AggStateV[i]).CStr());
+		}
+		printf("==\n");
+
+		//===================================================
+
+		// construct this level
+		TFltVV AllJumpVV;		MChain->GetJumpVV(AggStateV, StateFtrVV, AllJumpVV);//TCtmcModeller::GetJumpVV(SubQMat, TransitionVV);
+		TFltV AllHoldingTmV;	MChain->GetHoldingTmV(AggStateV, StateFtrVV, AllHoldingTmV);
+		TFltV AllProbV;			MChain->GetStatDist(AggStateV, StateFtrVV, AllProbV);
+		TFltV AllRadiusV;		UiHelper->GetStateRadiusV(AllProbV, AllRadiusV);
+
+		// construct the values for the sub chain
+		const int NStates = LevelAggTargetState.Len();
+
+		TFltVV JumpVV(NStates, NStates);
+		TFltV HoldingTmV(NStates, NStates);
+		TFltV ProbV(NStates, NStates);
+		TFltV RadiusV(NStates, NStates);
+
+		for (int StateN = 0; StateN < NStates; StateN++) {
+			const int AllStateN = (AncAggStateV.Len() - 1) + StateN;
+
+			HoldingTmV[StateN] = AllHoldingTmV[AllStateN];
+			ProbV[StateN] = AllProbV[AllStateN];
+			RadiusV[StateN] = AllRadiusV[AllStateN];
+
+			for (int DstStateN = 0; DstStateN < NStates; DstStateN++) {
+				const int DstAllStateN = (AncAggStateV.Len() - 1) + DstStateN;
+
+				JumpVV(StateN, DstStateN) = AllJumpVV(AllStateN, DstAllStateN);
+			}
+		}
+
+		PJsonVal LevelJsonV = GetLevelJson(CurrHeight, LevelAggTargetState, JumpVV, HoldingTmV, ProbV, RadiusV);
+		Result->AddToArr(LevelJsonV);
+
+		// move the the next level
+		CurrHeight = Hierarch->GetNextLevel(DescendantIdV, NewDescIdV);
+		DescendantIdV = NewDescIdV;
+		NewDescIdV.Clr();
+	}
 
 	return Result;
 }

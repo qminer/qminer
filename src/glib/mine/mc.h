@@ -607,6 +607,7 @@ public:
 	const TFltV& GetUniqueHeightV() const { return UniqueHeightV; }
 	const TIntV& GetHierarchV() const { return HierarchV; }
 
+	double GetStateHeight(const int& StateId) const { return StateHeightV[StateId]; }
 	// return a list of state IDs and their heights
 	void GetStateIdHeightPrV(TIntFltPrV& StateIdHeightPrV) const;
 	// returns the 'joined' states at the specified height, puts teh state IDs into StateIdV
@@ -614,12 +615,15 @@ public:
 	void GetStateSetsAtHeight(const double& Height, TStateIdV& StateIdV, TAggStateV& StateSetV) const;
 	// returns all the states just below the specified height
 	void GetStatesAtHeight(const double& Height, TIntSet& StateIdV) const;
+	// returns the next level of the level passed as the argument along with it's height
+	double GetNextLevel(const TIntV& CurrLevelIdV, TIntV& NextLevelIdV) const;
 	// fills the vector with IDs of the ancestors of the given state along with their heights
 	void GetAncestorV(const int& StateId, TIntFltPrV& StateIdHeightPrV) const;
 	// returns the ID of the ancestor of the given leaf at the specified height
 	int GetAncestorAtHeight(const int& LeafId, const double& Height) const;
 	// fills the vector with leaf descendants
 	void GetLeafDescendantV(const int& StateId, TIntV& DescendantV) const;
+	void GetDescendantsAtHeight(const double& Height, const TIntV& StateIdV, TAggStateV& AggStateV);
 
 	void GetCurrStateIdHeightPrV(TIntFltPrV& StateIdHeightPrV) const;
 	void GetHistStateIdV(const double& Height, TStateIdV& StateIdV) const;
@@ -657,7 +661,6 @@ private:
 	// returns the ID of the parent state
 	int GetParentId(const int& StateId) const;
 	// returns the height of the state
-	double GetStateHeight(const int& StateId) const { return StateHeightV[StateId]; }
 	int GetNearestHeightIdx(const double& Height) const;
 	double GetNearestHeight(const double& InHeight) const;
 
