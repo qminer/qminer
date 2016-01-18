@@ -104,8 +104,10 @@ public:
     /// Type of field that contains join frequency (for field join).
     /// Value "oftUndef" means no field.
     TFieldType FreqFieldType;
+    /// Field-join only - Where will the fields be stored
+    TStoreLoc FieldStoreLoc;
 public:
-    TJoinDescEx() : JoinType(osjtUndef) {}
+    TJoinDescEx() : JoinType(osjtUndef), FieldStoreLoc(slMemory){}
 };
 
 ///////////////////////////////
