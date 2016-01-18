@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-console.log(__filename)
+// console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js'); //adds assert.run function
 var qm = require('qminer');
 
@@ -14,6 +14,7 @@ var qm = require('qminer');
 //describe('Movies test, old', function () {
 //	it('should survive', function () {
 describe('Movies Tests', function () {
+    this.timeout(5000);
 
     it('should pass', function () {
         qm.delLock();

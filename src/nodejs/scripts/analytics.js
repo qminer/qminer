@@ -5,17 +5,17 @@
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
- 
-module.exports = exports = function (pathQmBinary) {    
+
+module.exports = exports = function (pathQmBinary) {
     var qm = require(pathQmBinary); // This loads only c++ functions of qm
     var fs = qm.fs;
     var la = qm.la;
     var stat = qm.statistics;
     exports = qm.analytics;
-    
-    var sget = require('sget');    
+
+    var sget = require('sget');
     var assert = require('assert');
-    
+
     var qm_util = require(__dirname + '/qm_util.js');
 
     //!STARTJSDOC
@@ -824,7 +824,6 @@ module.exports = exports = function (pathQmBinary) {
                 // for figuring out when to dump a new ROC sample
                 this.next = Math.floor(length / (this.sample));
                 this.counter = this.next;
-                //console.log(length, this.sample, this.next);
                 // keep last value
                 this.precision = 0; this.recall = 0;
                 // handlers
@@ -1030,9 +1029,9 @@ module.exports = exports = function (pathQmBinary) {
     * be used directly.
     *
     */
-    function createOnlineMetric (updateCallback) {
+    function createOnlineMetric(callback) {
         var error = -1;
-        var calcError = new updateCallback();
+        this.metric = new callback(); // We can hide this later (just delete this)
 
         // check if input types are of correct type
         function checkPushParams() {
@@ -1056,7 +1055,7 @@ module.exports = exports = function (pathQmBinary) {
             // check if input types are of correct type
             checkPushParams(yTrue, yPred, ref_num);
             // calculate the error with provided function from the callback function
-            error = calcError.update(yTrue, yPred);
+            error = this.metric.update(yTrue, yPred);
         }
 
         /**
@@ -1066,6 +1065,28 @@ module.exports = exports = function (pathQmBinary) {
         this.getError = function () {
             return error;
         }
+
+        /**
+	    * Save metric state to provided output stream `FOut`.
+	    * @param {module:fs.FOut} FOut - The output stream.
+	    * @returns {module:fs.FOut} Provided output stream `FOut`.
+        */
+        this.save = function (fout) {
+            fout.writeJson(this.metric.state);
+            return fout;
+        }
+
+        /**
+	    * Load metric state from provided input stream `FIn`.
+	    * @param {module:fs.FIn} FIn - The output stream.
+	    * @returns {module:fs.FIn} Provided output stream `FIn`.
+        */
+        this.load = function (fin) {
+            this.metric.state = fin.readJson();
+            error = this.metric.state.error;
+            return fin;
+        }
+
     }
 
     // MEAN ERROR (ME)
@@ -1073,22 +1094,32 @@ module.exports = exports = function (pathQmBinary) {
     * Create new (online) mean error instance.
     * @class
     * @classdesc Online Mean Error (ME) instance
+    * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
     * @extends module:analytics~createOnlineMetric
     */
-    metrics.MeanError = function () {
-        function calcError() {
-            this.sumErr = 0;
-            this.count = 0;
+    metrics.MeanError = function (fin) {
+        function metric() {
+            this.name = "Mean Error"
+            this.shortName = "ME"
+            this.state = {
+                sumErr: 0,
+                count: 0,
+                error: 0
+            }
             // update function
             this.update = function (yTrue, yPred) {
                 var err = yTrue - yPred;
-                this.sumErr += err;
-                this.count++;
-                var error = this.sumErr / this.count;
-                return error;
+                this.state.sumErr += err;
+                this.state.count++;
+                this.state.error = this.state.sumErr / this.state.count;
+                return this.state.error;
             }
         }
-        return new createOnlineMetric(calcError);
+        // create new metric instance, and load state from fin in defined
+        var errorMetric = new createOnlineMetric(metric);
+        if (typeof fin !== 'undefined') errorMetric.load(fin);
+
+        return errorMetric;
     };
 
     // MEAN ABSOLUTE ERROR (MAE)
@@ -1096,22 +1127,32 @@ module.exports = exports = function (pathQmBinary) {
     * Create new (online) mean absolute error instance.
     * @class
     * @classdesc Online Mean Absolute Error (MAE) instance
+    * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
     * @extends module:analytics~createOnlineMetric
     */
-    metrics.MeanAbsoluteError = function () {
-        function calcError() {
-            this.sumErr = 0;
-            this.count = 0;
+    metrics.MeanAbsoluteError = function (fin) {
+        function metric() {
+            this.name = "Mean Absolute Error"
+            this.shortName = "MAE"
+            this.state = {
+                sumErr: 0,
+                count: 0,
+                error: 0
+            }
             // update function
             this.update = function (yTrue, yPred) {
                 var err = yTrue - yPred;
-                this.sumErr += Math.abs(err);
-                this.count++;
-                var error = this.sumErr / this.count;
-                return error;
+                this.state.sumErr += Math.abs(err);
+                this.state.count++;
+                this.state.error = this.state.sumErr / this.state.count;
+                return this.state.error;
             }
         }
-        return new createOnlineMetric(calcError);
+        // create new metric instance, and load state from fin in defined
+        var errorMetric = new createOnlineMetric(metric);
+        if (typeof fin !== 'undefined') errorMetric.load(fin);
+
+        return errorMetric;
     }
 
     // MEAN SQUARE ERROR (MSE)
@@ -1119,22 +1160,32 @@ module.exports = exports = function (pathQmBinary) {
     * Create new (online) mean square error instance.
     * @class
     * @classdesc Online Mean Square Error (MSE) instance
+    * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
     * @extends module:analytics~createOnlineMetric
     */
-    metrics.MeanSquareError = function () {
-        function calcError() {
-            this.sumErr = 0;
-            this.count = 0;
+    metrics.MeanSquareError = function (fin) {
+        function metric() {
+            this.name = "Mean Square Error"
+            this.shortName = "MSE"
+            this.state = {
+                sumErr: 0,
+                count: 0,
+                error: 0
+            }
             // update function
             this.update = function (yTrue, yPred) {
                 var err = yTrue - yPred;
-                this.sumErr += (err * err);
-                this.count++;
-                var error = this.sumErr / this.count;
-                return error;
+                this.state.sumErr += (err * err);
+                this.state.count++;
+                this.state.error = this.state.sumErr / this.state.count;
+                return this.state.error;
             }
         }
-        return new createOnlineMetric(calcError);
+        // create new metric instance, and load state from fin in defined
+        var errorMetric = new createOnlineMetric(metric);
+        if (typeof fin !== 'undefined') errorMetric.load(fin);
+
+        return errorMetric;
     }
 
     // ROOT MEAN SQUARE ERROR (RMSE)
@@ -1142,22 +1193,32 @@ module.exports = exports = function (pathQmBinary) {
     * Create new (online) root mean square error instance.
     * @class
     * @classdesc Online Root Mean Square Error (RMSE) instance
+    * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
     * @extends module:analytics~createOnlineMetric
     */
-    metrics.RootMeanSquareError = function () {
-        function calcError() {
-            this.sumErr = 0;
-            this.count = 0;
+    metrics.RootMeanSquareError = function (fin) {
+        function metric() {
+            this.name = "Root Mean Square Error"
+            this.shortName = "RMSE"
+            this.state = {
+                sumErr: 0,
+                count: 0,
+                error: 0
+            }
             // update function
             this.update = function (yTrue, yPred) {
                 var err = yTrue - yPred;
-                this.sumErr += (err * err);
-                this.count++;
-                var error = this.sumErr / this.count;
-                return Math.sqrt(error);
+                this.state.sumErr += (err * err);
+                this.state.count++;
+                this.state.error = Math.sqrt(this.state.sumErr / this.state.count);
+                return this.state.error;
             }
         }
-        return new createOnlineMetric(calcError);
+        // create new metric instance, and load state from fin in defined
+        var errorMetric = new createOnlineMetric(metric);
+        if (typeof fin !== 'undefined') errorMetric.load(fin);
+
+        return errorMetric;
     }
 
     // MEAN ABSOLUTE PERCENTAGE ERROR (MAPE)
@@ -1165,24 +1226,34 @@ module.exports = exports = function (pathQmBinary) {
     * Create new (online) mean absolute percentage error instance.
     * @class
     * @classdesc Online Mean Absolute Percentage Error (MAPE) instance
+    * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
     * @extends module:analytics~createOnlineMetric
     */
-    metrics.MeanAbsolutePercentageError = function () {
-        function calcError() {
-            this.sumErr = 0;
-            this.count = 0;
+    metrics.MeanAbsolutePercentageError = function (fin) {
+        function metric() {
+            this.name = "Mean Absolute Percentage Error"
+            this.shortName = "MAPE"
+            this.state = {
+                sumErr: 0,
+                count: 0,
+                error: 0
+            }
             // update function
             this.update = function (yTrue, yPred) {
                 if (yTrue != 0) { // skip if yTrue is 0, otherwise we have devision by zero in the next step.
                     var err = yTrue - yPred;
-                    this.sumErr += Math.abs(err / yTrue) * 100;
+                    this.state.sumErr += Math.abs(err / yTrue) * 100;
                 }
-                this.count++;
-                var error = this.sumErr / this.count;
-                return error;
+                this.state.count++;
+                this.state.error = this.state.sumErr / this.state.count;
+                return this.state.error;
             }
         }
-        return new createOnlineMetric(calcError);
+        // create new metric instance, and load state from fin in defined
+        var errorMetric = new createOnlineMetric(metric);
+        if (typeof fin !== 'undefined') errorMetric.load(fin);
+
+        return errorMetric;
     }
 
     // R SQUARED SCORE (R2)
@@ -1190,33 +1261,45 @@ module.exports = exports = function (pathQmBinary) {
     * Create new (online) R Square instance. This statistic measures how successful the fit is in explaining the variation of the data. Best possible score is 1.0, lower values are worse.
     * @class
     * @classdesc Online R Squared (R2) score instance
+    * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
     * @extends module:analytics~createOnlineMetric
     */
-    metrics.R2Score = function () {
-        function calcError() {
-            this.sst = 0;
-            this.sse = 0;
-            this.mean = 0;
-            this.count = 0;
-            this.sumTrue = 0;
-            this.sumTrue2 = 0;
+    metrics.R2Score = function (fin) {
+        function metric() {
+            this.name = "R2 Score"
+            this.shortName = "R2"
+            this.state = {
+                sst: 0,
+                sse: 0,
+                mean: 0,
+                count: 0,
+                sumTrue: 0,
+                sumTrue2: 0,
+                error: 0
+            }
             // update function
             this.update = function (yTrue, yPred) {
-                this.count++;
-                this.sumTrue += yTrue;
-                this.sumTrue2 += yTrue * yTrue;
-                this.mean = this.sumTrue / this.count;
+                this.state.count++;
+                this.state.sumTrue += yTrue;
+                this.state.sumTrue2 += yTrue * yTrue;
+                this.state.mean = this.state.sumTrue / this.state.count;
                 //calculate R squared score
-                this.sse += (yTrue - yPred) * (yTrue - yPred);
-                this.sst = this.sumTrue2 - this.count * this.mean * this.mean;
-                if (this.sst == 0.0) {
-                    return (this.sse == 0.0) ? 1.0 : 0.0;
+                this.state.sse += (yTrue - yPred) * (yTrue - yPred);
+                this.state.sst = this.state.sumTrue2 - this.state.count * this.state.mean * this.state.mean;
+                if (this.state.sst == 0.0) {
+                    return (this.state.sse == 0.0) ? 1.0 : 0.0;
                 }
-                return 1 - this.sse / this.sst;
+                this.state.error = 1 - this.state.sse / this.state.sst;
+                return this.state.error;
             }
         }
-        return new createOnlineMetric(calcError);
+        // create new metric instance, and load state from fin in defined
+        var errorMetric = new createOnlineMetric(metric);
+        if (typeof fin !== 'undefined') errorMetric.load(fin);
+
+        return errorMetric;
     }
+
 
     //////////////////////////////////////////////////
     //////////// BATCH REGRESSION METRICS ////////////
@@ -1319,46 +1402,163 @@ module.exports = exports = function (pathQmBinary) {
     exports.metrics = metrics;
 
     /**
+    * @typedef {Object} pcaParams
+    * @property {number} [k = null] - Number of eigenvectors to be computed.
+    * @property {number} [iter = 100] - Number of iterations.
+    */
+
+    /**
     * @classdesc Principal components analysis
     * @class
+    * @param {module:analytics~pcaParams | module:fs.FIn} [params] - The constructor parameters.
+    * @example <caption>Using default constructor</caption>
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // construct model
+    * var pca = new analytics.PCA();
+    * @example <caption>Using custom constructor</caption>
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // construct model
+    * var pca = new analytics.PCA({ k: 5, iter: 50 });
     */
     exports.PCA = function (param) {
-        param = param == undefined ? {} : param;
-
-        // Fit params
-        var iter = param.iter == undefined ? 100 : param.iter;
-        var k = param.k; // can be undefined
-
+        var iter, k;
+        var initParam;
+        this.P = undefined;
+        this.mu = undefined;
+        this.lambda = undefined;
+        var count = 1;
+        if (param != undefined && param.constructor.name == 'FIn') {
+            this.P = new la.Matrix();
+            this.P.load(param);
+            this.mu = new la.Vector();
+            this.mu.load(param);
+            this.lambda = new la.Vector();
+            this.lambda.load(param);
+            var params_vec = new la.Vector();
+            params_vec.load(param);
+            iter = params_vec[0];
+            k = params_vec[1];
+        } else if (param == undefined || typeof param == 'object') {
+            param = param == undefined ? {} : param;
+            // Fit params
+            var iter = param.iter == undefined ? 100 : param.iter;
+            var k = param.k; // can be undefined
+        } else {
+            throw "PCA.constructor: parameter must be a JSON object or a fs.FIn!";
+        }
+        initParam = { iter: iter, k: k };
         /**
         * Returns the model
         * @returns {Object} The model object whose keys are: P (eigenvectors), lambda (eigenvalues) and mu (mean)
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit matrix before getting the model
+        * pca.fit(matrix)
+        * // get your model using function getModel
+        * var model = pca.getModel();
         */
         this.getModel = function () {
             return { P: this.P, mu: this.mu, lambda: this.lambda };
         }
 
         /**
+        * Saves the model.
+        * @param {module:fs.FOut} fout - The output stream.
+        * @returns {module:fs.FOut} The given output stream fout.
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit matrix
+        * pca.fit(matrix);
+        * var model = pca.getModel();
+        * // save model
+        * pca.save(require('qminer').fs.openWrite('pca_test.bin')).close();
+        */
+        this.save = function (fout) {
+            if (!this.P) {
+                throw new Error("PCA.save() - model not created yet");
+            }
+
+            var params_vec = new la.Vector();
+            params_vec.push(iter);
+            params_vec.push(k);
+            
+            if (fout.constructor.name == 'FOut') {
+                this.P.save(fout);
+                this.mu.save(fout);
+                this.lambda.save(fout);
+                params_vec.save(fout);
+                return fout;
+            } else {
+                throw "PCA.save: input must be fs.FOut";
+            }
+        }
+        
+
+        /**
         * Sets parameters
         * @param {p} Object whose keys are: k (number of eigenvectors) and iter (maximum iterations)
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // set 5 eigenvectors and 10 iterations using setParams
+        * pca.setParams({iter: 10, k: 5});
         */
-        this.setParams = function (p) {
-            param = p;
-
+        this.setParams = function (param) {
             iter = param.iter == undefined ? iter : param.iter;
-            k = param.k == undefined ? k : param.iter;
+            k = param.k == undefined ? k : param.k;
+            initParam = { iter: iter, k: k };
         }
 
         /**
         * Gets parameters
         * @returns Object whose keys are: k (number of eigenvectors) and iter (maximum iterations)
+        * @example <caption>Using default constructor</caption>
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // check the constructor parameters
+        * var paramvalue = pca.getParams();
+        * @example <caption>Using custom constructor</caption>
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // set parameters
+        * pca.setParams({iter: 10, k: 5});
+        * // check the changed parameters
+        * var paramvalue = pca.getParams();
         */
         this.getParams = function () {
-            return param;
+            return initParam;
         }
 
         /**
         * Finds the eigenvectors of the variance matrix.
         * @param {module:la.Matrix} A - Matrix whose columns correspond to examples.
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit the matrix
+        * pca.fit(matrix);
         */
         this.fit = function (A) {
             var rows = A.rows;
@@ -1388,10 +1588,36 @@ module.exports = exports = function (pathQmBinary) {
         * in the eigenvector basis.
         * @param {(module:la.Vector | module:la.Matrix)} x - Test vector or matrix with column examples
         * @returns {(module:la.Vector | module:la.Matrix)} Returns projected vector or matrix
+        * @example <caption>Transforming the matrix</caption>
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit the matrix
+        * pca.fit(matrix);
+        * var model = pca.getModel();
+        * // transform matrix
+        * var transform = pca.transform(matrix);
+        * @example <caption>Transforming the vector</caption>
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create vector you wish to transform
+        * var vector = new la.Vector([0, -1]);
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit the matrix
+        * pca.fit(matrix);
+        * var model = pca.getModel();
+        * // transform vector
+        * var transform = pca.transform(vector);
         */
         this.transform = function (x) {
             if (x.constructor.name == 'Matrix') {
-                // P * (x - mu*ones(1, size(x,2))
+                // P * (x - mu*ones(1, size(x,2)))
                 return this.P.multiplyT(x.minus(this.mu.outer(la.ones(x.cols))));
 
             } else if (x.constructor.name == 'Vector') {
@@ -1404,6 +1630,32 @@ module.exports = exports = function (pathQmBinary) {
         * Reconstructs the vector in the original space, reverses centering
         * @param {(module:la.Vector | module:la.Matrix)} x - Test vector or matrix with column examples, in the PCA space
         * @returns {(module:la.Vector | module:la.Matrix)} Returns the reconstruction
+        * @example <caption>Inverse transform of matrix</caption>
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit the matrix
+        * pca.fit(matrix);
+        * var model = pca.getModel();
+        * // use inverseTransform on matrix
+        * var invTransform = pca.inverseTransform(matrix);
+        * @example <caption>Inverse transform of vector</caption>
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create vector
+        * var vector = new la.Vector([0, -1]);
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit the matrix
+        * pca.fit(matrix);
+        * var model = pca.getModel();
+        * // use inverseTransform on vector
+        * var invTransform = pca.inverseTransform(vector);
         */
         this.inverseTransform = function (x) {
             if (x.constructor.name == 'Matrix') {
@@ -1822,11 +2074,6 @@ module.exports = exports = function (pathQmBinary) {
 			C.save(fout);
             norC2.save(fout);
             idxv.save(fout);
-            console.log({
-				iter: iter,
-				k: k,
-				verbose: verbose
-			});
             fout.writeJson({
 				iter: iter,
 				k: k,

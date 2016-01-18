@@ -179,12 +179,12 @@
 * // Each movie has a property corresponding to the join name: 'director'. 
 * // Accessing the property returns a {@link module:qm.Record} from the store People.
 * var person = movie.director; // get the director
-* console.log(person.name); // prints 'Jim Jarmusch'
+* var personName = person.name; // get person's name ('Jim Jarmusch')
 * // Each person has a property corresponding to the join name: 'directed'. 
 * // Accessing the property returns a {@link module:qm.RecSet} from the store People.
 * var movies = person.directed; // get all the movies the person directed.
-* movies.each(function (movie) { console.log(movie.title); }); 
-* // prints: 
+* movies.each(function (movie) { var title = movie.title; });
+* // Gets the following titles:
 * //   'Broken Flowers'
 * //   'Coffee and Cigarettes'
 * base.close();
@@ -231,22 +231,77 @@
 * Stores can have a window, which is used by garbage collector to delete records once they
 * fall out of the time window. Window can be defined by number of records or by time.
 * Window defined by parameter window, its value being the number of records to be kept.
+* <br><b>Important:</b> {@link module:qm.Base#garbageCollect} must be called manually to remove records outside time window.
 * @typedef {Object} SchemaTimeWindowDefinition
 * @property {number} SchemaTimeWindowDefinition.duration - the size of the time window (in number of units).
 * @property {string} SchemaTimeWindowDefinition.unit - defines in which units the window size is specified. Possible values are <b>second</b>, <b>minute</b>, <b>hour</b>, <b>day</b>, <b>week</b> or <b>month</b>.
 * @property {string} [SchemaTimeWindowDefinition.field] - name of the datetime filed, which defines the time of the record. In case it is not given, the insert time is used in its place.
-* @example
+* @example <caption>Define window by number of records</caption>
 * var qm = require('qminer');
-* // Create a store
-* // var base = new qm.Base([{
-* // ...
-* //  timeWindow : { 
-* //    duration : 12,
-* //    unit : "hour",
-* //    field : "DateTime"
-* //  }
-* //}]);
-* //base.close();
+* // create base
+* var base = new qm.Base({ mode: 'createClean' });
+* // create store with window
+* base.createStore({
+*     "name": "TestStore",
+*     "fields": [
+*         { "name": "DateTime", "type": "datetime" },
+*         { "name": "Measurement", "type": "float" }
+*     ],
+*     window: 3,
+* });
+*
+* // push 5 records into created store
+* for (var i = 0; i < 5; i++) {
+*     var rec = {
+*         "DateTime": new Date().toISOString(),
+*         "Measurement": i
+*     };
+*     base.store("TestStore").push(rec);
+* }
+*
+* // check number of records in store
+* console.log(base.store("TestStore").allRecords.length); // 5
+* // clean base with garbage collector
+* base.garbageCollect();
+* // check number of records in store
+* console.log(base.store("TestStore").allRecords.length); // 3
+*
+* base.close();
+* @example <caption>Define window by time</caption>
+* var qm = require('qminer');
+* // create base
+* var base = new qm.Base({ mode: 'createClean' });
+* // create store with window
+* base.createStore({
+*     "name": "TestStore",
+*     "fields": [
+*         { "name": "DateTime", "type": "datetime" },
+*         { "name": "Measurement", "type": "float" }
+*     ],
+*     timeWindow: {
+*         duration: 2,
+*         unit: "hour",
+*         field: "DateTime"
+*     }
+* });
+*
+* // push 5 records into created store
+* for (var i = 0; i < 5; i++) {
+*     var rec = {
+*         "DateTime": new Date(new Date().getTime() + i * 60 * 60 * 1001).toISOString(),
+*         "Measurement": i
+*     };
+*     base.store("TestStore").push(rec);
+* }
+*
+* // check number of records in store
+* console.log(base.store("TestStore").allRecords.length); // 5
+* // clean base with garbage collector
+* base.garbageCollect();
+* // check number of records in store
+* console.log(base.store("TestStore").allRecords.length); // 2
+*
+* base.close();
 */
 /**
 * Base
@@ -546,6 +601,7 @@
 /**
 	* Adds a record to the store.
 	* @param {Object} rec - The added record. The record must be a JSON object corresponding to the store schema.
+	* @param {boolean} [triggerEvents=true] - If true, all stream aggregate callbacks onAdd will be called after the record is inserted. If false, no stream aggregate will be updated.
 	* @returns {number} The ID of the added record.
 	* @example
 	* // import qm module
@@ -575,7 +631,7 @@
 	* base.store("Supervillians").push({ Name: "Lex Luthor", Superpowers: ["expert engineer", "genius-level intellect", "money"] }); // returns 0
 	* base.close();	
 	*/
- exports.Store.prototype.push = function (rec) { return 0; }
+ exports.Store.prototype.push = function (rec, triggerEvents) { return 0; }
 /**
 	* Creates a new record of given store. The record is not added to the store.
 	* @param {Object} json - A JSON value of the record.
@@ -800,6 +856,10 @@
 	*/
  exports.Store.prototype.getStreamAggr = function (saName) { return Object.create(require('qminer').StreamAggr.prototype); }
 /**
+	* Resets all stream aggregates.
+	*/
+ exports.Store.prototype.resetStreamAggregates = function () { }
+/**
 	* Returns an array of the stream aggregates names connected to the store.
 	* @returns {Array.<string>} An array of stream aggregates names.
 	*/
@@ -948,6 +1008,11 @@
 	* base.close();
 	*/
  exports.Store.prototype.cell = function (recId, fieldName) {};
+/**
+	* Calls onAdd callback on all stream aggregates
+	* @param {(module:qm.Record | number)} [arg=this.last] - The record or recordId which will be passed to onAdd callbacks. If the record or recordId is not provided, the last record will be used. Throws exception if cannot be provided.
+	*/
+ exports.Store.prototype.triggerOnAddCallbacks = function (arg) {};
 /**
 	* Gives the name of the store.
 	*/
@@ -1104,6 +1169,10 @@
 	* Returns the store the record belongs to.
 	*/
  exports.Record.prototype.store = Object.create('qminer').Store.prototype;
+/**
+	 * Adds a new record to the vector.
+	 */
+ exports.RecVector.prototype.push = function (rec) {};
 /**
 * Record Set is a set of records.
 * <b>Factory pattern</b>: this class cannot be construced using the new keyword. This class is constructed
@@ -1362,7 +1431,6 @@
 	* Sorts the records according to their weight.
 	* @param {number} [asc=1] - If asc > 0, it sorts in ascending order. Otherwise, it sorts in descending order.
 	* @returns {module:qm.RecordSet} Self. Records are sorted according to record weight and asc.
-	* @ignore
 	*/
  exports.RecordSet.prototype.sortByFq = function (asc) { return Object.create(require('qminer').RecordSet.prototype); }; 
 /**
@@ -2107,7 +2175,8 @@
 * @property {number} [FeatureExtractorMultinomial.hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hashDimension to get the corresponding dimension.
 * @property {Object} [FeatureExtractorMultinomial.datetime = false] - Same as 'values', only with predefined values which are extracted from date and time (month, day of month, day of week, time of day, hour).
 * <br> This fixes the dimensionality of feature extractor at the start, making it not dimension as new dates are seen. Cannot be used the same time as values.
-* @property {string} FeatureExtractorMultinomial.field - The name of the field from which to take the value.
+* @property {(string|Array.<String>)} FeatureExtractorMultinomial.field - The name of the field from which to take the key value.
+* @property {(string|Array.<String>)} [FeatureExtractorMultinomial.valueField] - The name of the field from which to take the numeric value. When not provided, 1.0 is used as default numeric values for non-zero elements in the vector.
 * @property {module:qm~FeatureSource} FeatureExtractorMultinomial.source - The source of the extractor.
 * @example
 * var qm = require('qminer');
@@ -2884,7 +2953,7 @@
 	*/
  exports.FeatureSpace.prototype.extractStrings = function (rec) {return ['']; }; 
 
-    
+
     //==================================================================
     // BASE
     //==================================================================
@@ -2905,49 +2974,55 @@
      * @param {function} [callback] - Callback function, called on errors and when the procedure finishes.
      */
     exports.Base.prototype.loadCSV = function (opts, callback) {
-    	console.log('Loading CSV file ...');
+    	// console.log('Loading CSV file ...');
 
     	if (opts.delimiter == null) opts.delimiter = ',';
     	if (opts.quote == null) opts.quote = '"';
     	if (opts.ignoreFields == null) opts.ignoreFields = [];
     	if (opts.file == null) throw new Error('Missing parameter file!');
-    	
-    	if (callback == null) callback = function (e) { if (e != null) console.log(e.stack); }
-    	
+
+    	if (callback == null) {
+            callback = function (e) {
+                if (e != null) {
+                    // console.log(e.stack);
+                }
+            }
+        }
+
     	try {
     		var base = this;
-    		
+
 	    	var fname = opts.file;
 			var storeName = opts.store;
-	
+
 			var fieldTypes = null;
 			var store = null;
 			var buff = [];
-	
+
 			var ignoreFields = {};
 			for (var i = 0; i < opts.ignoreFields.length; i++)
 				ignoreFields[opts.ignoreFields] = null;
-			
+
 			// read the CSV file and fill the store
 			var headers = null;
-			
+
 			function transformLine(line) {
 				var transformed = {};
-				
+
 				for (var i = 0; i < line.length; i++) {
 					var header = headers[i];
 					var value = line[i];
-					
+
 					if (fieldTypes != null && fieldTypes[header] != null) {
 						transformed[header] = fieldTypes[header] == 'float' ? parseFloat(value) : value;
 					} else {
 						transformed[header] = (isNaN(value) || value.length == 0) ? value : parseFloat(value);
 					}
 				}
-				
+
 				return transformed;
 			}
-			
+
     		function initFieldTypes(data) {
     			if (fieldTypes == null) fieldTypes = {};
 
@@ -2966,11 +3041,12 @@
 
     				}
     			}
-    			
-    			if (fieldTypesInitialized())
-    				console.log('Fields initialized: ' + JSON.stringify(fieldTypes));
+
+    			if (fieldTypesInitialized()) {
+    				// console.log('Fields initialized: ' + JSON.stringify(fieldTypes));
+                }
     		}
-			
+
     		function fieldTypesInitialized() {
     			if (fieldTypes == null) return false;
 
@@ -2984,7 +3060,7 @@
 
     			return true;
     		}
-			
+
 			function getUninitializedFlds() {
     			var result = [];
 
@@ -2998,7 +3074,7 @@
 
     			return result;
     		}
-			
+
 			function createStore(rec) {
     			try {
 	    			var storeDef = {
@@ -3013,12 +3089,12 @@
 							"null": true,
 	    				});
 	    			}
-	    			
-	    			console.log('Creating store with definition ' + JSON.stringify(storeDef) + ' ...');
+
+	    			// console.log('Creating store with definition ' + JSON.stringify(storeDef) + ' ...');
 
 	    			base.createStore(storeDef);
 	    			store = base.store(storeName);
-	    				    			
+
 	    			// insert all the record in the buffer into the store
 	    			buff.forEach(function (data) {
 	    				store.push(data);
@@ -3027,50 +3103,51 @@
 					callback(e);
     			}
     		}
-			
+
 			var storeCreated = false;
 			var line = 0;
-			console.log('Saving CSV to store ' + storeName + ' ' + fname + ' ...');
-			
+			// console.log('Saving CSV to store ' + storeName + ' ' + fname + ' ...');
+
 			var fin = new fs.FIn(fname);
 			fs.readCsvLines(fin, {
-				onLine: function (lineArr) {					
-					try {						
+				onLine: function (lineArr) {
+					try {
 						if (line++ == 0) {	// the first line are the headers
 							headers = [];
 							for (var i = 0; i < lineArr.length; i++) {
 								headers.push(lineArr[i].replace(/\s+/g, '_').replace(/\.|%|\(|\)|\/|-|\+/g, '')) 	// remove invalid characters
 							}
-							console.log('Headers initialized: ' + JSON.stringify(headers));
+							// console.log('Headers initialized: ' + JSON.stringify(headers));
 						}
 						else {
-							if (line % 1000 == 0)
-								console.log(line + '');
-							
+							if (line % 1000 == 0) {
+								// console.log(line + '');
+                            }
+                            
 							var data = transformLine(lineArr);
-														
+
 							if (fieldTypes == null)
 								initFieldTypes(data);
-							
+
 							if (store == null && fieldTypesInitialized())
 								createStore(data);
 							else if (!fieldTypesInitialized())
 								initFieldTypes(data);
-							
+
 							if (store != null) {
 								store.push(data);
 							} else
 								buff.push(data);
 						}
 					} catch (e) {
-						console.log('Exception while reading CSV lines: ' + e.stack);
+						// console.log('Exception while reading CSV lines: ' + e.stack);
 						callback(e);
 					}
 				},
 				onEnd: function () {
 					// finished
-					console.log('Finished!');
-					
+					// console.log('Finished!');
+
 					if (callback != null) {
 			   			if (!fieldTypesInitialized()) {
 				   			var fieldNames = getUninitializedFlds();
@@ -3082,20 +3159,20 @@
 				   		}
 			   		}
 				}
-			});	
-			
+			});
+
 			fin.close();
     	} catch (e) {
 			callback(e);
     	}
     };
-    
+
     /**
-     * Loads the store from a CSV file. 
+     * Loads the store from a CSV file.
      * @param {module:qm~baseLoadCSVParam} opts - Options object.
      * @param {function} [callback] - Callback function, called on errors and when the procedure finishes.
      */
-    
+
     //==================================================================
     // STORE
     //==================================================================
@@ -3122,7 +3199,6 @@
         return util.inspect(this, { depth: d, 'customInspect': false });
     }
 
-    // loading data into stores
     /**
      * Load given file line by line, parse each line to JSON and push it to the store.
      *
@@ -3142,7 +3218,7 @@
                 count++;
                 if (limit != undefined && count == limit) { break; }
             } catch (err) {
-                console.log("Error parsing [" + line + "]: " + err)
+                // console.log("Error parsing [" + line + "]: " + err)
             }
         }
         return count;
@@ -3154,7 +3230,7 @@
 
     /**
      * Stores the record set as a CSV file.
-     * 
+     *
      * @param {Object} opts - arguments
      * @property {String} opts.fname - name of the output file
      * @property {Boolean} [opts.includeHeaders] - indicates wether to include the header in the first line
@@ -3164,27 +3240,27 @@
     	if (opts == null || opts.fname == null) throw new Error('Missing parameter fname!');
     	if (opts.includeHeaders == null) opts.includeHeaders = true;
     	if (opts.timestampType == null) opts.timestampType = 'timestamp';
-    	
+
     	// read field descriptions
     	var fields = this.store.fields;
     	var fieldDesc = [];
     	for (var i = 0; i < fields.length; i++) {
     		var desc = fields[i];
     		var type = desc.type;
-    		
+
     		if (type != 'float' && type != 'int' && type != 'bool' && type != 'datetime' &&
     				type != 'string')
     			throw new Error('Invalid field type: ' + type);
     		if (desc.internal) continue;
-    		
+
     		fieldDesc.push({name: desc.name, type: desc.type});
     	}
-    	
+
     	var nFields = fieldDesc.length;
     	var useTimestamp = opts.timestampType != 'ISO';
-    	
+
     	var fout = new fs.FOut(opts.fname);
-    	
+
     	// write the headers
     	if (opts.includeHeaders) {
     		var headerLine = '';
@@ -3195,7 +3271,7 @@
     		}
     		fout.writeLine(headerLine);
     	}
-    	
+
     	// write the lines
     	var len = this.length;
     	var recN = 0;
@@ -3204,7 +3280,7 @@
     		for (var i = 0; i < nFields; i++) {
     			var fldVal = rec[fieldDesc[i].name];
     			var type = fieldDesc[i].type;
-    			
+
     			if (fldVal != null) {
 	    			if (type == 'float' || type == 'int' || type == 'bool') {
 	    				line += fldVal;
@@ -3216,17 +3292,17 @@
 	    				throw new Error('Invalid type of field: ' + type);
 	    			}
     			}
-    			
+
     			if (i < nFields - 1)
     				line += ',';
     		}
-    		
+
     		if (recN++ < len - 1)
     			fout.writeLine(line);
     		else
     			fout.write(line);
     	});
-    	
+
     	fout.flush();
     	fout.close();
     }
@@ -3338,6 +3414,18 @@
     //==================================================================
     // EXPORTS
     //==================================================================
+
+    // deprecated, here for backwards compatibility
+    exports.load = function () {
+        var _obj = {};
+        _obj.jsonFileLimit = function (store, file, limit) {
+            return store.loadJson(file, limit);
+        }
+        _obj.jsonFile = function (store, file) {
+            return store.loadJson(file);
+        }
+        return _obj;
+    }();
 
     exports.delLock = function () {
         if (nodefs.existsSync('lock')) {

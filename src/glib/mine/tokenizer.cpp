@@ -189,7 +189,6 @@ void TTokenizerUtil::Sentencize(const PSIn& SIn, TStrV& Sentences, const bool& S
 			case '\t': {
 				if (SentenceBuf.Len() > 2) {
 					Sentences.Add(SentenceBuf);
-					printf("%s\n", SentenceBuf.CStr());
 					SentenceBuf.Clr();
 				}
 				break;

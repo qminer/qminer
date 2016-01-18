@@ -563,7 +563,8 @@ TBlobPt TMBlobBs::PutBlob(const PSIn& SIn){
     if (BlobPt.Empty()){
       TStr SegFNm=GetSegFNm(NrFPath, NrFMid, SegV.Len());
       PBlobBs Seg=TGBlobBs::New(SegFNm, faCreate, MxSegLen);
-      CurSegN=SegV.Add(Seg); EAssert(CurSegN<=255);
+      CurSegN=SegV.Add(Seg); 
+	  EAssert(CurSegN <= 255);
       BlobPt=SegV[CurSegN]->PutBlob(SIn);
     }
   }

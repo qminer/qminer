@@ -24,8 +24,9 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">Base</span></h1>
-            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-267">qminerdoc.<wbr>js:267</a></p>
+            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div>
+            <h1><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">Base</span></h1>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-322">qminerdoc.<wbr>js:322</a></p>
             <div class="symbol-classdesc">
               <p>Represents the database and holds stores. The base object can be opened in multiple modes: 'create' - create a new database, 'createClean' - force create, and 'openReadOnly' - open in read-only mode.</p>
             </div>
@@ -93,9 +94,9 @@
         </h3>
               <div>
                 <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // using a constructor, in open mode
-var base = new qm.Base({mode: &#x27;open&#x27;});
+var base &#x3D; new qm.Base({mode: &#x27;open&#x27;});
 base.close();</code></pre>
               </div>
             </section>
@@ -207,9 +208,9 @@ base.close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a new base with one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [
    {
@@ -486,9 +487,9 @@ base.close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a base with two stores
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [
    {
@@ -508,7 +509,7 @@ var base = new qm.Base({
    }]
 });
 // get the &quot;KwikEMart&quot; store 
-var store = base.store(&quot;KwikEMart&quot;);	// returns the store with the name &quot;KwikEMart&quot;
+var store &#x3D; base.store(&quot;KwikEMart&quot;);	// returns the store with the name &quot;KwikEMart&quot;
 base.close();</code></pre>
                 </div>
               </section>

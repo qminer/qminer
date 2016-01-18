@@ -128,6 +128,8 @@ binding-1.gyp
 /test/nodejs/tmpclfile2
 /test/nodejs/recordset_plain.js
 /test/nodejs/file.txt
-
+/test/my/
 /examples/streamaggregate/node_modules
-
+*.opendb
+/test/nodejs/store_and_index.js
+/test/nodejs/jointest.dbg.js

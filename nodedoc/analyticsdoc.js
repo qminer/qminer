@@ -355,7 +355,7 @@
  * la = require('qminer').la;
  * analytics = require('qminer').analytics;
  * // create a new model with gamma = 1.0
- * var regmod = new analytics.RidgeReg(1.0);
+ * var regmod = new analytics.RidgeReg({ gamma: 1.0 });
  * // generate a random feature matrix
  * var A = la.randn(10,100);
  * // generate a random model
@@ -367,12 +367,12 @@
  * // fit model
  * regmod.fit(A, b);
  * // compare
- * console.log('true model:');
+ * // true model
  * w.print();
- * console.log('trained model:');
+ * // trained model');
  * regmod.weights.print();
  * // cosine between the true and the estimated model should be close to 1 if the fit succeeded
- * console.log('cosine(w, regmod.weights): ' + regmod.weights.cosine(w));
+ * var cos = regmod.weights.cosine(w);
  */
  exports.RidgeReg = function(arg) {};
 /**
@@ -1177,14 +1177,14 @@
 	 * // create the Proportional Hazards model
 	 * var hazards = new analytics.PropHazards();
 	 * // create the input matrix and vector for fitting the model
-	 * var mat = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
-	 * var vec = new la.Vector([1, 0, -1, -2]);
+	 * var mat = new la.Matrix([[1, 1], [1, -1]]);
+     * var vec = new la.Vector([3, 3]);
 	 * // if openblas used
 	 * if (require('qminer').flags.blas) {
 	 *     // fit the model
-	 *     hazards.fit(mat, vec);
+	 *     hazards.fit(mat, vec);       
 	 *     // create a vector for the prediction
-	 *     var test = new la.Vector([1, 0, -1, -2]);
+	 *      var test = new la.Vector([1, 2]);
 	 *     // predict the value
 	 *     var prediction = hazards.predict(test);
 	 * };
@@ -1222,16 +1222,6 @@
 	 * var hazards2 = new analytics.PropHazards(fin);	
 	 */
  exports.PropHazards.prototype.save = function(sout) { return Object.create(require('qminer').fs.FOut.prototype); }
-/**
-	 * Fits the model onto the data. The data instances must be stored as column vectors in X, while their times
-	 * have to be stored in timeV. An optional parameter indicates wether the data provided is in
-	 * batches and indicates wether the instance at index i ends a batch.
-	 *
-	 * @param {Matrix} X - the column matrix containing the data instances
-	 * @param {Vector} timeV - a vector containing the sampling times of the instances
-	 * @param {BoolVector} [endsBatchV] - a vector of boolean indicating wether the current instance ends a batch
-	 * @returns {HMC} - returns itself
-	 */
 /**
 	 * Returns the probability distribution over the future states given that the current state is the one in
 	 * the parameter.
@@ -1311,6 +1301,13 @@
 	 *
 	 * @param {Number} stateId - The Id of the state.
 	 * @returns {Array} - An array of weights.
+	 */
+/**
+	 * Returns a JSON representation of a decision tree, which classifies
+	 * this state against other states
+	 *
+	 * @param {Number} stateId
+	 * @returns {Object}
 	 */
 /**
 	 * Sets a callback function which is fired when the model changes states. An array of current states
@@ -1514,6 +1511,167 @@
 	* var nnet2 = new analytics.NNet(fin);
 	*/
  exports.NNet.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); } 
+/**
+* @typedef {Object} tokenizerParam
+* @property {string} type - The type of the tokenizer. The different types are: 
+*<br>"simple" -
+*<br>"html" -
+*<br>"unicode" -
+*/
+/**
+ * Tokenizer
+ * @class 
+ * @classdesc Breaks text into tokens (i.e. words).
+ * @param {module:analytics.tokenizerParam} param - The constructor parameters.
+ * @example
+ * // import analytics module
+ * var analytics = require('qminer').analytics;
+ * // construct model
+ * var tokenizer = new analytics.Tokenizer({ type: "simple" })
+ */
+ exports.Tokenizer = function (param) { return Object.create(require("qminer").analytics.Tokenizer.prototype); }
+/**
+	* This function tokenizes given strings and returns it as an array of strings.
+	* @param {String} str - String of text you want to tokenize.
+	* @returns {Array.<String>} Returns array of strings. The number of strings in this array is equal to number of words in input string parameter.
+	* Only keeps words, skips all punctuation.
+	* Tokenizing contractions (i.e. don't) depends on which type you use. Type 'html' breaks contractions into 2 tokens.
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // construct model
+	* var tokenizer = new analytics.Tokenizer({ type: "simple" });
+	* // string you wish to tokenize
+	* var string = "What a beautiful day!";
+	* // tokenize string using getTokens
+	* var tokens = tokenizer.getTokens(string);
+	* // output:
+	* tokens = ["What", "a", "beautiful", "day"];
+	*/
+ exports.Tokenizer.prototype.getTokens = function (str) { return [""]; }
+/**
+	* This function breaks text into sentences and returns them as an array of strings.
+	* @param {String} str - String of text you want to break into sentences.
+	* @returns {Array.<String>} Returns array of strings. The number of strings in this array is equal to number of sentences in input string parameter.
+	* How function breaks sentences depends on where you use a full-stop, exclamation mark, question mark or the new line command.
+	* Careful: the space between the lines is not ignored. 
+	* With all 3 types this function returns sentences as they are.
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // construct model
+	* var tokenizer = new analytics.Tokenizer({ type: "simple" });
+	* // string you wish to tokenize
+	* var string = "C++? Alright. Let's do this!";
+	* // tokenize text using getSentences
+	* var tokens = tokenizer.getSentences(string);
+	* // output:
+	* tokens = ["C++", " Alright", " Let's do this"];
+	*/
+ exports.Tokenizer.prototype.getSentences = function (str) { return [""]; }
+/**
+	* This function breaks text into paragraphs and returns them as an array of strings.
+	* @param {String} str - String of text you want to break into paragraphs.
+	* @returns {Array.<String>} Returns array of strings. The number of strings in this array is equal to number of paragraphs in input string parameter.
+	* When function detects commands '\n', '\r' or '\t' it breaks text as new paragraph.
+	* With all 3 types this function returns paragraphs as they are.
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // construct model
+	* var tokenizer = new analytics.Tokenizer({ type: "simple" });
+	* // string you wish to tokenize
+	* var string = "Yes!\t No?\n Maybe...";
+	* // tokenize text using getParagraphs
+	* var tokens = tokenizer.getParagraphs(string);
+	* // output:
+	* tokens = ["Yes", " No", " Maybe"];
+	*/
+ exports.Tokenizer.prototype.getParagraphs = function (str) { return [""]; }
+/**
+* @typedef {Object} MDSParam
+* @property {number} [maxSecs=500] - The maximum time period to compute MDS of a matrix.
+* @property {number} [maxStep=5000] - The maximum number of iterations.
+* @property {number} [minDiff=1e-4] - The minimum difference criteria in MDS.
+* @property {string} [distType="Euclid"] - The type of distance used. Available types: "Euclid", "Cos", "SqrtCos".
+*/
+/**
+* @class
+* @classdesc Multidimensional scaling
+* @param {(module:analytics~MDSParam | module:fs.FIn)} [params] - The parameters for the construction.
+* @example
+* // import analytics module
+* var analytics = require('qminer').analytics;
+* // construct a MDS instance
+* var mds = new analytics.MDS({ maxStep: 300, distType: 'Cos' });
+*/
+ exports.MDS = function (params) { return Object.create(require('qminer').analytics.MDS.prototype); }
+/**
+	* Get the parameters.
+	* @returns {module:analytics~MDSParam} The json object containing the parameters of the instance.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a MDS instance
+	* var mds = new analytics.MDS();
+	* // get the (default) parameters of the instance
+	* // returns { maxStep: 5000, maxSecs: 300, minDiff: 1e-4, distType: "Euclid" }
+	* var params = mds.getParams();
+	*/
+ exports.MDS.prototype.getParams = function () { return { maxStep: 0, maxSecs: 0, minDiff: 0, distType: "" }; }
+/**
+	* Set the parameters.
+	* @param {module:analytics~MDSParam} params - The json object containing the parameters for the instance.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a MDS instance
+	* var mds = new analytics.MDS();
+	* // get the (default) parameters of the instance
+	* // returns { maxStep: 5000, maxSecs: 300, minDiff: 1e-4, distType: "Euclid" }
+	* var params = mds.getParams();
+	*/
+ exports.MDS.prototype.setParams = function (params) { return { maxStep: 0, maxSecs: 0, minDiff: 0, distType: "" }; }
+/**
+	* Get the MDS of the given matrix.
+	* @param {(module:la.Matrix | module:la.SparseMatrix)} mat - The multidimensional matrix.
+	* @returns {module:la.Matrix} The matrix of dimensions mat.cols x 2, where the i-th row of the matrix is the 2d representation 
+	* of the i-th column of mat.
+	* @example
+	* // import the modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // create a MDS instance
+	* var mds = new analytics.MDS();
+	* // create the multidimensional matrix
+	* var mat = new la.Matrix({ rows: 50, cols: 10, random: true });
+	* // get the 2d representation of mat 
+	* var mat2d = mds.fitTransform(mat); 
+	*/
+ exports.MDS.prototype.fitTransform = function (mat) { return Object.create(require('qminer').la.Matrix.prototype); }
+/**
+	* Save the MDS.
+	* @param {module:fs.FOut} fout - The output stream.
+	* @returns {module:fs.FOut} The output stram fout.
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var fs = require('qminer').fs;
+	* // create a MDS instance
+	* var mds = new analytics.MDS({ iter: 200, MaxStep: 10 });
+	* // create the file output stream
+	* var fout = new fs.openWrite('MDS.bin');
+	* // save the MDS instance
+	* mds.save(fout);
+	* fout.close();
+	* // load the MDS instance
+	* var fin = fs.openRead('MDS.bin');
+	* var mds2 = new analytics.MDS(fin);
+	*/
+ exports.MDS.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 
 
     ///////////////////////////////////////////////////
@@ -2320,7 +2478,6 @@
                 // for figuring out when to dump a new ROC sample
                 this.next = Math.floor(length / (this.sample));
                 this.counter = this.next;
-                //console.log(length, this.sample, this.next);
                 // keep last value
                 this.precision = 0; this.recall = 0;
                 // handlers
@@ -2526,9 +2683,9 @@
     * be used directly.
     *
     */
-    function createOnlineMetric (updateCallback) {
+    function createOnlineMetric(callback) {
         var error = -1;
-        var calcError = new updateCallback();
+        this.metric = new callback(); // We can hide this later (just delete this)
 
         // check if input types are of correct type
         function checkPushParams() {
@@ -2552,7 +2709,7 @@
             // check if input types are of correct type
             checkPushParams(yTrue, yPred, ref_num);
             // calculate the error with provided function from the callback function
-            error = calcError.update(yTrue, yPred);
+            error = this.metric.update(yTrue, yPred);
         }
 
         /**
@@ -2562,6 +2719,28 @@
         this.getError = function () {
             return error;
         }
+
+        /**
+	    * Save metric state to provided output stream `FOut`.
+	    * @param {module:fs.FOut} FOut - The output stream.
+	    * @returns {module:fs.FOut} Provided output stream `FOut`.
+        */
+        this.save = function (fout) {
+            fout.writeJson(this.metric.state);
+            return fout;
+        }
+
+        /**
+	    * Load metric state from provided input stream `FIn`.
+	    * @param {module:fs.FIn} FIn - The output stream.
+	    * @returns {module:fs.FIn} Provided output stream `FIn`.
+        */
+        this.load = function (fin) {
+            this.metric.state = fin.readJson();
+            error = this.metric.state.error;
+            return fin;
+        }
+
     }
 
     // MEAN ERROR (ME)
@@ -2569,22 +2748,32 @@
     * Create new (online) mean error instance.
     * @class
     * @classdesc Online Mean Error (ME) instance
+    * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
     * @extends module:analytics~createOnlineMetric
     */
-    metrics.MeanError = function () {
-        function calcError() {
-            this.sumErr = 0;
-            this.count = 0;
+    metrics.MeanError = function (fin) {
+        function metric() {
+            this.name = "Mean Error"
+            this.shortName = "ME"
+            this.state = {
+                sumErr: 0,
+                count: 0,
+                error: 0
+            }
             // update function
             this.update = function (yTrue, yPred) {
                 var err = yTrue - yPred;
-                this.sumErr += err;
-                this.count++;
-                var error = this.sumErr / this.count;
-                return error;
+                this.state.sumErr += err;
+                this.state.count++;
+                this.state.error = this.state.sumErr / this.state.count;
+                return this.state.error;
             }
         }
-        return new createOnlineMetric(calcError);
+        // create new metric instance, and load state from fin in defined
+        var errorMetric = new createOnlineMetric(metric);
+        if (typeof fin !== 'undefined') errorMetric.load(fin);
+
+        return errorMetric;
     };
 
     // MEAN ABSOLUTE ERROR (MAE)
@@ -2592,22 +2781,32 @@
     * Create new (online) mean absolute error instance.
     * @class
     * @classdesc Online Mean Absolute Error (MAE) instance
+    * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
     * @extends module:analytics~createOnlineMetric
     */
-    metrics.MeanAbsoluteError = function () {
-        function calcError() {
-            this.sumErr = 0;
-            this.count = 0;
+    metrics.MeanAbsoluteError = function (fin) {
+        function metric() {
+            this.name = "Mean Absolute Error"
+            this.shortName = "MAE"
+            this.state = {
+                sumErr: 0,
+                count: 0,
+                error: 0
+            }
             // update function
             this.update = function (yTrue, yPred) {
                 var err = yTrue - yPred;
-                this.sumErr += Math.abs(err);
-                this.count++;
-                var error = this.sumErr / this.count;
-                return error;
+                this.state.sumErr += Math.abs(err);
+                this.state.count++;
+                this.state.error = this.state.sumErr / this.state.count;
+                return this.state.error;
             }
         }
-        return new createOnlineMetric(calcError);
+        // create new metric instance, and load state from fin in defined
+        var errorMetric = new createOnlineMetric(metric);
+        if (typeof fin !== 'undefined') errorMetric.load(fin);
+
+        return errorMetric;
     }
 
     // MEAN SQUARE ERROR (MSE)
@@ -2615,22 +2814,32 @@
     * Create new (online) mean square error instance.
     * @class
     * @classdesc Online Mean Square Error (MSE) instance
+    * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
     * @extends module:analytics~createOnlineMetric
     */
-    metrics.MeanSquareError = function () {
-        function calcError() {
-            this.sumErr = 0;
-            this.count = 0;
+    metrics.MeanSquareError = function (fin) {
+        function metric() {
+            this.name = "Mean Square Error"
+            this.shortName = "MSE"
+            this.state = {
+                sumErr: 0,
+                count: 0,
+                error: 0
+            }
             // update function
             this.update = function (yTrue, yPred) {
                 var err = yTrue - yPred;
-                this.sumErr += (err * err);
-                this.count++;
-                var error = this.sumErr / this.count;
-                return error;
+                this.state.sumErr += (err * err);
+                this.state.count++;
+                this.state.error = this.state.sumErr / this.state.count;
+                return this.state.error;
             }
         }
-        return new createOnlineMetric(calcError);
+        // create new metric instance, and load state from fin in defined
+        var errorMetric = new createOnlineMetric(metric);
+        if (typeof fin !== 'undefined') errorMetric.load(fin);
+
+        return errorMetric;
     }
 
     // ROOT MEAN SQUARE ERROR (RMSE)
@@ -2638,22 +2847,32 @@
     * Create new (online) root mean square error instance.
     * @class
     * @classdesc Online Root Mean Square Error (RMSE) instance
+    * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
     * @extends module:analytics~createOnlineMetric
     */
-    metrics.RootMeanSquareError = function () {
-        function calcError() {
-            this.sumErr = 0;
-            this.count = 0;
+    metrics.RootMeanSquareError = function (fin) {
+        function metric() {
+            this.name = "Root Mean Square Error"
+            this.shortName = "RMSE"
+            this.state = {
+                sumErr: 0,
+                count: 0,
+                error: 0
+            }
             // update function
             this.update = function (yTrue, yPred) {
                 var err = yTrue - yPred;
-                this.sumErr += (err * err);
-                this.count++;
-                var error = this.sumErr / this.count;
-                return Math.sqrt(error);
+                this.state.sumErr += (err * err);
+                this.state.count++;
+                this.state.error = Math.sqrt(this.state.sumErr / this.state.count);
+                return this.state.error;
             }
         }
-        return new createOnlineMetric(calcError);
+        // create new metric instance, and load state from fin in defined
+        var errorMetric = new createOnlineMetric(metric);
+        if (typeof fin !== 'undefined') errorMetric.load(fin);
+
+        return errorMetric;
     }
 
     // MEAN ABSOLUTE PERCENTAGE ERROR (MAPE)
@@ -2661,24 +2880,34 @@
     * Create new (online) mean absolute percentage error instance.
     * @class
     * @classdesc Online Mean Absolute Percentage Error (MAPE) instance
+    * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
     * @extends module:analytics~createOnlineMetric
     */
-    metrics.MeanAbsolutePercentageError = function () {
-        function calcError() {
-            this.sumErr = 0;
-            this.count = 0;
+    metrics.MeanAbsolutePercentageError = function (fin) {
+        function metric() {
+            this.name = "Mean Absolute Percentage Error"
+            this.shortName = "MAPE"
+            this.state = {
+                sumErr: 0,
+                count: 0,
+                error: 0
+            }
             // update function
             this.update = function (yTrue, yPred) {
                 if (yTrue != 0) { // skip if yTrue is 0, otherwise we have devision by zero in the next step.
                     var err = yTrue - yPred;
-                    this.sumErr += Math.abs(err / yTrue) * 100;
+                    this.state.sumErr += Math.abs(err / yTrue) * 100;
                 }
-                this.count++;
-                var error = this.sumErr / this.count;
-                return error;
+                this.state.count++;
+                this.state.error = this.state.sumErr / this.state.count;
+                return this.state.error;
             }
         }
-        return new createOnlineMetric(calcError);
+        // create new metric instance, and load state from fin in defined
+        var errorMetric = new createOnlineMetric(metric);
+        if (typeof fin !== 'undefined') errorMetric.load(fin);
+
+        return errorMetric;
     }
 
     // R SQUARED SCORE (R2)
@@ -2686,33 +2915,45 @@
     * Create new (online) R Square instance. This statistic measures how successful the fit is in explaining the variation of the data. Best possible score is 1.0, lower values are worse.
     * @class
     * @classdesc Online R Squared (R2) score instance
+    * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
     * @extends module:analytics~createOnlineMetric
     */
-    metrics.R2Score = function () {
-        function calcError() {
-            this.sst = 0;
-            this.sse = 0;
-            this.mean = 0;
-            this.count = 0;
-            this.sumTrue = 0;
-            this.sumTrue2 = 0;
+    metrics.R2Score = function (fin) {
+        function metric() {
+            this.name = "R2 Score"
+            this.shortName = "R2"
+            this.state = {
+                sst: 0,
+                sse: 0,
+                mean: 0,
+                count: 0,
+                sumTrue: 0,
+                sumTrue2: 0,
+                error: 0
+            }
             // update function
             this.update = function (yTrue, yPred) {
-                this.count++;
-                this.sumTrue += yTrue;
-                this.sumTrue2 += yTrue * yTrue;
-                this.mean = this.sumTrue / this.count;
+                this.state.count++;
+                this.state.sumTrue += yTrue;
+                this.state.sumTrue2 += yTrue * yTrue;
+                this.state.mean = this.state.sumTrue / this.state.count;
                 //calculate R squared score
-                this.sse += (yTrue - yPred) * (yTrue - yPred);
-                this.sst = this.sumTrue2 - this.count * this.mean * this.mean;
-                if (this.sst == 0.0) {
-                    return (this.sse == 0.0) ? 1.0 : 0.0;
+                this.state.sse += (yTrue - yPred) * (yTrue - yPred);
+                this.state.sst = this.state.sumTrue2 - this.state.count * this.state.mean * this.state.mean;
+                if (this.state.sst == 0.0) {
+                    return (this.state.sse == 0.0) ? 1.0 : 0.0;
                 }
-                return 1 - this.sse / this.sst;
+                this.state.error = 1 - this.state.sse / this.state.sst;
+                return this.state.error;
             }
         }
-        return new createOnlineMetric(calcError);
+        // create new metric instance, and load state from fin in defined
+        var errorMetric = new createOnlineMetric(metric);
+        if (typeof fin !== 'undefined') errorMetric.load(fin);
+
+        return errorMetric;
     }
+
 
     //////////////////////////////////////////////////
     //////////// BATCH REGRESSION METRICS ////////////
@@ -2815,46 +3056,163 @@
     exports.metrics = metrics;
 
     /**
+    * @typedef {Object} pcaParams
+    * @property {number} [k = null] - Number of eigenvectors to be computed.
+    * @property {number} [iter = 100] - Number of iterations.
+    */
+
+    /**
     * @classdesc Principal components analysis
     * @class
+    * @param {module:analytics~pcaParams | module:fs.FIn} [params] - The constructor parameters.
+    * @example <caption>Using default constructor</caption>
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // construct model
+    * var pca = new analytics.PCA();
+    * @example <caption>Using custom constructor</caption>
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // construct model
+    * var pca = new analytics.PCA({ k: 5, iter: 50 });
     */
     exports.PCA = function (param) {
-        param = param == undefined ? {} : param;
-
-        // Fit params
-        var iter = param.iter == undefined ? 100 : param.iter;
-        var k = param.k; // can be undefined
-
+        var iter, k;
+        var initParam;
+        this.P = undefined;
+        this.mu = undefined;
+        this.lambda = undefined;
+        var count = 1;
+        if (param != undefined && param.constructor.name == 'FIn') {
+            this.P = new la.Matrix();
+            this.P.load(param);
+            this.mu = new la.Vector();
+            this.mu.load(param);
+            this.lambda = new la.Vector();
+            this.lambda.load(param);
+            var params_vec = new la.Vector();
+            params_vec.load(param);
+            iter = params_vec[0];
+            k = params_vec[1];
+        } else if (param == undefined || typeof param == 'object') {
+            param = param == undefined ? {} : param;
+            // Fit params
+            var iter = param.iter == undefined ? 100 : param.iter;
+            var k = param.k; // can be undefined
+        } else {
+            throw "PCA.constructor: parameter must be a JSON object or a fs.FIn!";
+        }
+        initParam = { iter: iter, k: k };
         /**
         * Returns the model
         * @returns {Object} The model object whose keys are: P (eigenvectors), lambda (eigenvalues) and mu (mean)
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit matrix before getting the model
+        * pca.fit(matrix)
+        * // get your model using function getModel
+        * var model = pca.getModel();
         */
         this.getModel = function () {
             return { P: this.P, mu: this.mu, lambda: this.lambda };
         }
 
         /**
+        * Saves the model.
+        * @param {module:fs.FOut} fout - The output stream.
+        * @returns {module:fs.FOut} The given output stream fout.
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit matrix
+        * pca.fit(matrix);
+        * var model = pca.getModel();
+        * // save model
+        * pca.save(require('qminer').fs.openWrite('pca_test.bin')).close();
+        */
+        this.save = function (fout) {
+            if (!this.P) {
+                throw new Error("PCA.save() - model not created yet");
+            }
+
+            var params_vec = new la.Vector();
+            params_vec.push(iter);
+            params_vec.push(k);
+            
+            if (fout.constructor.name == 'FOut') {
+                this.P.save(fout);
+                this.mu.save(fout);
+                this.lambda.save(fout);
+                params_vec.save(fout);
+                return fout;
+            } else {
+                throw "PCA.save: input must be fs.FOut";
+            }
+        }
+        
+
+        /**
         * Sets parameters
         * @param {p} Object whose keys are: k (number of eigenvectors) and iter (maximum iterations)
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // set 5 eigenvectors and 10 iterations using setParams
+        * pca.setParams({iter: 10, k: 5});
         */
-        this.setParams = function (p) {
-            param = p;
-
+        this.setParams = function (param) {
             iter = param.iter == undefined ? iter : param.iter;
-            k = param.k == undefined ? k : param.iter;
+            k = param.k == undefined ? k : param.k;
+            initParam = { iter: iter, k: k };
         }
 
         /**
         * Gets parameters
         * @returns Object whose keys are: k (number of eigenvectors) and iter (maximum iterations)
+        * @example <caption>Using default constructor</caption>
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // check the constructor parameters
+        * var paramvalue = pca.getParams();
+        * @example <caption>Using custom constructor</caption>
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // set parameters
+        * pca.setParams({iter: 10, k: 5});
+        * // check the changed parameters
+        * var paramvalue = pca.getParams();
         */
         this.getParams = function () {
-            return param;
+            return initParam;
         }
 
         /**
         * Finds the eigenvectors of the variance matrix.
         * @param {module:la.Matrix} A - Matrix whose columns correspond to examples.
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit the matrix
+        * pca.fit(matrix);
         */
         this.fit = function (A) {
             var rows = A.rows;
@@ -2884,10 +3242,36 @@
         * in the eigenvector basis.
         * @param {(module:la.Vector | module:la.Matrix)} x - Test vector or matrix with column examples
         * @returns {(module:la.Vector | module:la.Matrix)} Returns projected vector or matrix
+        * @example <caption>Transforming the matrix</caption>
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit the matrix
+        * pca.fit(matrix);
+        * var model = pca.getModel();
+        * // transform matrix
+        * var transform = pca.transform(matrix);
+        * @example <caption>Transforming the vector</caption>
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create vector you wish to transform
+        * var vector = new la.Vector([0, -1]);
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit the matrix
+        * pca.fit(matrix);
+        * var model = pca.getModel();
+        * // transform vector
+        * var transform = pca.transform(vector);
         */
         this.transform = function (x) {
             if (x.constructor.name == 'Matrix') {
-                // P * (x - mu*ones(1, size(x,2))
+                // P * (x - mu*ones(1, size(x,2)))
                 return this.P.multiplyT(x.minus(this.mu.outer(la.ones(x.cols))));
 
             } else if (x.constructor.name == 'Vector') {
@@ -2900,6 +3284,32 @@
         * Reconstructs the vector in the original space, reverses centering
         * @param {(module:la.Vector | module:la.Matrix)} x - Test vector or matrix with column examples, in the PCA space
         * @returns {(module:la.Vector | module:la.Matrix)} Returns the reconstruction
+        * @example <caption>Inverse transform of matrix</caption>
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit the matrix
+        * pca.fit(matrix);
+        * var model = pca.getModel();
+        * // use inverseTransform on matrix
+        * var invTransform = pca.inverseTransform(matrix);
+        * @example <caption>Inverse transform of vector</caption>
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // construct model
+        * var pca = new analytics.PCA();
+        * // create vector
+        * var vector = new la.Vector([0, -1]);
+        * // create matrix
+        * var matrix = new la.Matrix([[0, 1], [-1, 0]]);
+        * // fit the matrix
+        * pca.fit(matrix);
+        * var model = pca.getModel();
+        * // use inverseTransform on vector
+        * var invTransform = pca.inverseTransform(vector);
         */
         this.inverseTransform = function (x) {
             if (x.constructor.name == 'Matrix') {
@@ -3318,11 +3728,6 @@
 			C.save(fout);
             norC2.save(fout);
             idxv.save(fout);
-            console.log({
-				iter: iter,
-				k: k,
-				verbose: verbose
-			});
             fout.writeJson({
 				iter: iter,
 				k: k,
@@ -3586,505 +3991,4 @@
         //this.loadLabeled
     };
 
-
-	{
-	    /**
-	     * StreamStory.
-	     * @class
-	     * @param {opts} HierarchMarkovParam - parameters. TODO typedef and describe
-	     */
-	    exports.StreamStory = function (opts) {
-	    	//===================================================
-	    	// CONSTRUCTOR
-	    	//===================================================
-
-	    	if (opts == null) throw new Error('Missing parameters!');
-	    	if (opts.base == null) throw new Error('Missing parameter base!');
-
-	    	// create model and feature space
-	    	var mc;
-	    	var base = opts.base;
-	    	var obsFtrSpace;
-	    	var controlFtrSpace;
-	    	var id;
-	    	var active = false;
-	    	var online = false;
-
-	    	if (opts.base != null && opts.config != null) {
-	    		mc = new exports._StreamStory(opts.config);
-	    		if (opts.obsFields != null && opts.contrFields != null) {
-		    		obsFtrSpace = new qm.FeatureSpace(opts.base, opts.obsFields);
-		    		controlFtrSpace = new qm.FeatureSpace(opts.base, opts.contrFields);
-	    		}
-	    		else if (opts.obsFtrSpace != null && opts.controlFtrSpace != null) {
-	    			obsFtrSpace = opts.obsFtrSpace;
-	    			controlFtrSpace = opts.controlFtrSpace;
-	    		}
-	    		else {
-	    			throw new Error('Missing feature space configuration!');
-	    		}
-	    	}
-	    	else if (opts.fname != null) {
-	    		console.log('Loading StreamStory from: ' + opts.fname);
-	    		var fin = new fs.FIn(opts.fname);
-	    		mc = new exports._StreamStory(fin);
-	    		console.log('Loading feature spaces ...');
-	    		obsFtrSpace = new qm.FeatureSpace(base, fin);
-	    		controlFtrSpace = new qm.FeatureSpace(base, fin);
-	    		console.log('Loaded!');
-	    	}
-	    	else {
-	    		throw new Error('Missing parameters (base and config) or fname!');
-	    	}
-
-	    	//===================================================
-	    	// FEATURE HELPER FUNCTIONS
-	    	//===================================================
-
-
-	    	function getFtrNames(ftrSpace) {
-	    		var names = [];
-
-	    		var dims = ftrSpace.dims;
-	    		for (var i = 0; i < dims.length; i++) {
-	    			var ftrDesc = ftrSpace.getFeature(i);
-	    			var match = ftrDesc.match(/\[\w*\]$/)[0];	// remove Numeric[ ]
-
-	    			if (match != null)
-	    				names.push(match.substring(1, match.length-1));
-	    			else
-	    				names.push(ftrDesc);
-				}
-
-	    		return names;
-	    	}
-
-	    	function getFtrCount(ftrSpace) {
-	    		return ftrSpace.dims.length
-	    	}
-
-	    	function getObsFtrCount() {
-	    		return getFtrCount(obsFtrSpace);
-			}
-
-	    	function getContrFtrCount() {
-	    		return getFtrCount(controlFtrSpace);
-			}
-
-	    	function getObsFtrNames() {
-	    		return getFtrNames(obsFtrSpace);
-	    	}
-
-	    	function getControlFtrNames() {
-	    		return getFtrNames(controlFtrSpace);
-	    	}
-
-	    	function getFtrDescriptions(stateId) {
-	    		var observations = [];
-	    		var controls = [];
-
-	    		var obsFtrCount = getObsFtrCount();
-
-				var coords = mc.fullCoords(stateId);
-				var obsFtrNames = getObsFtrNames();
-				var invObsCoords = obsFtrSpace.invertFeatureVector(coords);
-				for (var i = 0; i < invObsCoords.length; i++) {
-					observations.push({
-						name: obsFtrNames[i],
-						value: invObsCoords.at(i),
-						isControl: false,
-						bounds: getFtrBounds(i)
-					});
-				}
-
-				var controlCoords = mc.fullCoords(stateId, false);
-				var contrFtrNames = getControlFtrNames();
-				var invControlCoords = controlFtrSpace.invertFeatureVector(controlCoords);
-				for (var i = 0; i < invControlCoords.length; i++) {
-					controls.push({
-						name: contrFtrNames[i],
-						value: invControlCoords.at(i),
-						isControl: true,
-						bounds: getFtrBounds(i + obsFtrCount)
-					});
-				}
-
-				return {
-					observations: observations,
-					controls: controls,
-					isBottom: mc.isLeaf(stateId)
-				};
-	    	}
-
-	    	function getFtrCoord(stateId, ftrIdx) {
-	    		if (ftrIdx < obsFtrSpace.dims.length) {
-	    			return obsFtrSpace.invertFeatureVector(mc.fullCoords(stateId))[ftrIdx];
-	    		} else {
-	    			return controlFtrSpace.invertFeatureVector(mc.fullCoords(stateId, false))[ftrIdx - obsFtrSpace.dims.length];
-	    		}
-	    	}
-
-	    	function getFtrBounds(ftrId) {
-	    		var obsFtrCount = getObsFtrCount();
-	    		var bounds = mc.getFtrBounds(ftrId);
-
-	    		if (ftrId < obsFtrCount) {
-	    			return {
-	    				min: obsFtrSpace.invertFeature(ftrId, bounds.min),
-	    				max: obsFtrSpace.invertFeature(ftrId, bounds.max)
-	    			}
-	    		} else {
-	    			return {
-	    				min: controlFtrSpace.invertFeature(ftrId - obsFtrCount, bounds.min),
-	    				max: controlFtrSpace.invertFeature(ftrId - obsFtrCount, bounds.max)
-	    			}
-	    		}
-	    	}
-
-	    	//===================================================
-	    	// HISTOGRAM
-	    	//===================================================
-
-
-	    	function toServerHistogram(hist, ftrId) {
-	    		var nObsFtrs = getObsFtrCount();
-
-    			if (ftrId < nObsFtrs) {
-	    			for (var i = 0; i < hist.binStartV.length; i++) {
-	    				hist.binStartV[i] = obsFtrSpace.invertFeature(ftrId, hist.binStartV[i]);
-	    			}
-    			} else {
-    				for (var i = 0; i < hist.binStartV.length; i++) {
-	    				hist.binStartV[i] = controlFtrSpace.invertFeature(ftrId - nObsFtrs, hist.binStartV[i]);
-	    			}
-    			}
-
-    			return hist;
-	    	}
-
-	    	//===================================================
-	    	// PUBLIC METHODS
-	    	//===================================================
-
-	    	// public methods
-	    	var that = {
-	    		getId: function () {
-	    			return id;
-	    		},
-
-	    		setId: function (modelId) {
-	    			id = modelId;
-	    		},
-
-	    		isActive: function () {
-	    			return active;
-	    		},
-
-	    		setActive: function (act) {
-	    			active = act;
-	    		},
-
-	    		isOnline: function () {
-	    			return online;
-	    		},
-
-	    		setOnline: function (isOnline) {
-	    			online = isOnline;
-	    		},
-
-	    		/**
-	    		 * Creates a new model out of the record set.
-	    		 */
-	    		fit: function (opts) {
-	    			if (opts.recSet == null && opts.recV == null)
-	    				throw new Error('StreamStory.fit: missing parameters recSet or recV');
-
-	    			var batchEndV = opts.batchEndV;
-	    			var timeField = opts.timeField;
-
-	    			var obsColMat;
-	    			var contrColMat;
-	    			var timeV;
-
-	    			if (opts.recV != null) {
-	    				var recV = opts.recV;
-	    				var nInst = recV.length;
-
-	    				log.info('Updating feature spaces ...');
-	    				for (var i = 0; i < nInst; i++) {
-	    					var rec = recV[i];
-	    					obsFtrSpace.updateRecord(rec);
-							controlFtrSpace.updateRecord(rec);
-	    				}
-
-	    				obsColMat = new la.Matrix({rows: obsFtrSpace.dim, cols: nInst});
-	    				contrColMat = new la.Matrix({rows: controlFtrSpace.dim, cols: nInst});
-	    				timeV = new la.Vector({ vals: nInst });
-
-	    				for (var i = 0; i < nInst; i++) {
-	    					var rec = recV[i];
-	    					var obsFtrV = obsFtrSpace.extractVector(rec);
-	    					var contrFtrV = controlFtrSpace.extractVector(rec);
-	    					var time = rec[timeField].getTime();
-
-	    					obsColMat.setCol(i, obsFtrV);
-	    					contrColMat.setCol(i, contrFtrV);
-	    					timeV[i] = time;
-	    				}
-	    			} else {
-	    				var recSet = opts.recSet;
-
-	    				log.info('Updating feature spaces ...');
-	    				obsFtrSpace.updateRecords(recSet);
-		    			controlFtrSpace.updateRecords(recSet);
-
-		    			obsColMat = obsFtrSpace.extractMatrix(recSet);
-		    			contrColMat = controlFtrSpace.extractMatrix(recSet);
-		    			timeV = recSet.getVector(timeField);
-	    			}
-
-	    			log.info('Creating model ...');
-	    			mc.fit({
-	    				observations: obsColMat,
-	    				controls: contrColMat,
-	    				times: timeV,
-	    				batchV: batchEndV
-	    			});
-	    			log.info('Done!');
-
-	    			return that;
-	    		},
-
-	    		/**
-	    		 * Adds a new record. Doesn't update the models statistics.
-	    		 */
-	    		update: function (rec) {
-	    			if (rec == null) return;
-
-	    			var obsFtrVec = obsFtrSpace.extractVector(rec);
-	    			var contFtrVec = controlFtrSpace.extractVector(rec);
-	    			var timestamp = rec.time.getTime();
-
-	    			mc.update(obsFtrVec, contFtrVec, timestamp);
-	    		},
-
-	    		/**
-	    		 * Saves the feature space and model into the specified files.
-	    		 */
-	    		save: function (mcFName) {
-	    			try {
-	    				console.log('Saving Markov chain ...');
-
-	    				var fout = new fs.FOut(mcFName);
-
-		    			mc.save(fout);
-		    			obsFtrSpace.save(fout);
-		    			controlFtrSpace.save(fout);
-
-		    			fout.flush();
-		    			fout.close();
-
-		    			console.log('Done!');
-	    			} catch (e) {
-	    				console.log('Failed to save the model!!' + e.message);
-	    			}
-	    		},
-
-	    		/**
-	    		 * Returns the state used in the visualization.
-	    		 */
-	    		getVizState: function () {
-	    			log.debug('Fetching visualization ...');
-	    			return mc.toJSON();
-	    		},
-
-	    		/**
-	    		 * Returns the hierarchical Markov chain model.
-	    		 */
-	    		getModel: function () {
-	    			return mc;
-	    		},
-
-	    		/**
-	    		 * Returns the feature space.
-	    		 */
-	    		getFtrSpace: function () {
-	    			return { observations: obsFtrSpace, controls: controlFtrSpace };
-	    		},
-
-	    		/**
-	    		 * Returns the current state at the specified height. If the height is not specified it
-	    		 * returns the current states through the hierarchy.
-	    		 */
-	    		currState: function (height) {
-	    			return mc.currState(height);
-	    		},
-
-	    		/**
-	    		 * Returns the most likely future states.
-	    		 */
-	    		futureStates: function (level, state, time) {
-	    			return mc.futureStates(level, state, time);
-	    		},
-
-	    		/**
-	    		 * Returns the most likely future states.
-	    		 */
-	    		pastStates: function (level, state, time) {
-	    			return mc.pastStates(level, state, time);
-	    		},
-
-	    		getFtrDesc: function (ftrId) {
-	    			var nObsFtrs = getObsFtrCount();
-
-	    			if (ftrId == null) {
-	    				var n = nObsFtrs + getContrFtrCount();
-
-	    				var obsFtrs = [];
-	        			var contrFtrs = [];
-
-	    				for (var i = 0; i < n; i++) {
-	    					var ftrDesc = that.getFtrDesc(i);
-
-	    					if (i < nObsFtrs) {
-	    						obsFtrs.push(ftrDesc);
-	    					} else {
-	    						contrFtrs.push(ftrDesc);
-	    					}
-	    				}
-
-	    				return {
-	        				observation: obsFtrs,
-	        				control: contrFtrs
-	        			}
-	    			}
-	    			else {
-	    				if (ftrId < nObsFtrs) {
-	    					var ftrNames = getObsFtrNames();
-	    					return {
-	    						name: ftrNames[ftrId],
-	    						bounds: getFtrBounds(ftrId)
-	    					}
-	    				} else {
-	    					var ftrNames = getControlFtrNames();
-	    					return {
-	    						name: ftrNames[ftrId - nObsFtrs],
-	    						bounds: getFtrBounds(ftrId)
-	    					}
-	    				}
-	    			}
-	    		},
-
-	    		/**
-	    		 * Returns state details as a Javascript object.
-	    		 */
-	    		stateDetails: function (stateId, height) {
-	    			var futureStates = mc.futureStates(height, stateId);
-	    			var pastStates = mc.pastStates(height, stateId);
-	    			var isTarget = mc.isTarget(stateId, height);
-	    			var isLeaf = mc.isLeaf(stateId);
-	    			var stateNm = mc.getStateName(stateId);
-	    			var wgts = mc.getStateWgtV(stateId);
-
-	    			var features = getFtrDescriptions(stateId);
-
-	    			return {
-	    				id: stateId,
-	    				name: stateNm.length > 0 ? stateNm : null,
-	    				isTarget: isTarget,
-	    				isLeaf: isLeaf,
-	    				features: features,
-	    				futureStates: futureStates,
-	    				pastStates: pastStates,
-	    				featureWeights: wgts
-	    			};
-	    		},
-
-	    		/**
-	    		 * Returns a histogram for the desired feature in the desired state.
-	    		 */
-	    		histogram: function (stateId, ftrId) {
-	    			var hist = mc.histogram(stateId, ftrId);
-	    			return toServerHistogram(hist, ftrId);
-	    		},
-
-	    		transitionHistogram: function (sourceId, targetId, ftrId) {
-	    			var hist = mc.transitionHistogram(sourceId, targetId, ftrId);
-	    			return toServerHistogram(hist, ftrId);
-	    		},
-
-	    		/**
-	    		 * Callback when the current state changes.
-	    		 */
-	    		onStateChanged: function (callback) {
-	    			mc.onStateChanged(callback);
-	    		},
-
-	    		/**
-	    		 * Callback when an anomaly is detected.
-	    		 */
-	    		onAnomaly: function (callback) {
-	    			mc.onAnomaly(callback);
-	    		},
-
-	    		onOutlier: function (callback) {
-	    			mc.onOutlier(function (ftrV) {
-	    				var invFtrV = obsFtrSpace.invertFeatureVector(ftrV);
-
-	    				var features = [];
-	    				for (var i = 0; i < invFtrV.length; i++) {
-	    					features.push({name: obsFtrSpace.getFeature(i), value: invFtrV.at(i)});
-	    				}
-
-	    				callback(features);
-	    			});
-	    		},
-
-	    		onPrediction: function (callback) {
-	    			mc.onPrediction(callback);
-	    		},
-
-	    		/**
-	    		 * Returns the distribution of features accross the states on the
-	    		 * specified height.
-	    		 */
-	    		getFtrDist: function (height, ftrIdx) {
-	    			var stateIds = mc.stateIds(height);
-
-	    			var result = [];
-	    			for (var i = 0; i < stateIds.length; i++) {
-	    				var stateId = stateIds[i];
-	    				var coord = getFtrCoord(stateId, ftrIdx);
-	    				result.push({ state: stateId, value: coord });
-	    			}
-
-	    			return result;
-	    		},
-
-	    		setControlVal: function (opts) {
-	    			if (opts.ftrId == null) throw new Error('Missing parameter ftrId!');
-	    			var controlFtrId = opts.ftrId - getObsFtrCount();
-
-	    			var params = {
-	    				ftrId: opts.ftrId,
-	    				val: controlFtrSpace.extractFeature(controlFtrId, opts.val)
-	    			};
-
-	    			if (opts.stateId != null) params.stateId = opts.stateId;
-
-	    			mc.setControlVal(params);
-	    		},
-
-	    		resetControlVal: function (opts) {
-	    			var params = {};
-	    			if (opts.stateId != null) params.stateId = opts.stateId;
-	    			if (opts.ftrId != null) params.ftrId = opts.ftrId;
-
-	    			mc.resetControlVal(params);
-	    		}
-	    	};
-
-	    	return that;
-	    };
-	}
     

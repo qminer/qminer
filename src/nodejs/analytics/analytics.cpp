@@ -324,6 +324,10 @@ void TNodeJsSVC::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 					TIntV(), TSVMLearnParam::Lin(JsModel->MxTime, JsModel->Verbose ? 2 : 0));
 				JsModel->Model = TSvm::TLinModel(SvmModel->GetWgtV(), SvmModel->GetThresh());
 			}
+			else if (JsModel->Algorithm == "LIBSVM") {
+				JsModel->Model = TSvm::LibSvmSolveClassify(VecV, ClsV, JsModel->SvmCost,
+					TQm::TEnv::Debug, TQm::TEnv::Error);
+			}
 			else {
 				throw TExcept::New("SVC.fit: unknown algorithm " + JsModel->Algorithm);
 			}
@@ -340,6 +344,10 @@ void TNodeJsSVC::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 				PSVMModel SvmModel = TSVMModel::NewClsLinear(TrainSet, JsModel->SvmCost, JsModel->SvmUnbalance,
 					TIntV(), TSVMLearnParam::Lin(JsModel->MxTime, JsModel->Verbose ? 2 : 0));
 				JsModel->Model = TSvm::TLinModel(SvmModel->GetWgtV(), SvmModel->GetThresh());
+			}
+			else if (JsModel->Algorithm == "LIBSVM") {
+				JsModel->Model = TSvm::LibSvmSolveClassify(VecV, ClsV, JsModel->SvmCost,
+					TQm::TEnv::Debug, TQm::TEnv::Error);
 			}
 			else {
 				throw TExcept::New("SVC.fit: unknown algorithm " + JsModel->Algorithm);
@@ -408,6 +416,10 @@ void TNodeJsSVR::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 					TIntV(), TSVMLearnParam::Lin(JsModel->MxTime, JsModel->Verbose ? 2 : 0));
 				JsModel->Model = TSvm::TLinModel(SvmModel->GetWgtV(), SvmModel->GetThresh());
 			}
+			else if (JsModel->Algorithm == "LIBSVM") {
+				JsModel->Model = TSvm::LibSvmSolveRegression(VecV, ClsV, JsModel->SvmEps, JsModel->SvmCost,
+					TQm::TEnv::Debug, TQm::TEnv::Error);
+			}
 			else {
 				throw TExcept::New("SVR.fit: unknown algorithm " + JsModel->Algorithm);
 			}
@@ -424,6 +436,10 @@ void TNodeJsSVR::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 				PSVMModel SvmModel = TSVMModel::NewRegLinear(TrainSet, JsModel->SvmEps, JsModel->SvmCost,
 					TIntV(), TSVMLearnParam::Lin(JsModel->MxTime, JsModel->Verbose ? 2 : 0));
 				JsModel->Model = TSvm::TLinModel(SvmModel->GetWgtV(), SvmModel->GetThresh());
+			}
+			else if (JsModel->Algorithm == "LIBSVM") {
+				JsModel->Model = TSvm::LibSvmSolveRegression(VecV, ClsV, JsModel->SvmEps, JsModel->SvmCost,
+					TQm::TEnv::Debug, TQm::TEnv::Error);
 			}
 			else {
 				throw TExcept::New("SVR.fit: unknown algorithm " + JsModel->Algorithm);
@@ -481,7 +497,7 @@ TNodeJsRidgeReg* TNodeJsRidgeReg::NewFromArgs(const v8::FunctionCallbackInfo<v8:
 		return new TNodeJsRidgeReg(TRegression::TRidgeReg(Gamma));
 	}
 	else if (Args.Length() == 1 && TNodeJsUtil::IsArgFlt(Args, 0)) {
-		printf("DEPRICATED: consider using Json object as argument!\n");
+		printf("DEPRECATED: consider using Json object as argument!\n");
 		// create new model from given gamma parameter
 		const double Gamma = TNodeJsUtil::GetArgFlt(Args, 0, 0.0);
 		return new TNodeJsRidgeReg(TRegression::TRidgeReg(Gamma));
@@ -753,6 +769,7 @@ void TNodeJsNNAnomalies::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);	
 	NODE_SET_PROTOTYPE_METHOD(tpl, "explain", _explain);
 	
+	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "init"), _init);
 
 	exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
 }
@@ -939,6 +956,16 @@ void TNodeJsNNAnomalies::explain(const v8::FunctionCallbackInfo<v8::Value>& Args
 	// return result
 	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, Explanation));
 }
+
+void TNodeJsNNAnomalies::init(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	// unwrap
+	TNodeJsNNAnomalies* JsModel = ObjectWrap::Unwrap<TNodeJsNNAnomalies>(Info.Holder());	
+	Info.GetReturnValue().Set(v8::Boolean::New(Isolate, JsModel->Model.IsInit()));
+}
+
 
 ////////////////////////////////////////////////
 // QMiner-NodeJS-Recursive-Linear-Regression
@@ -2851,4 +2878,204 @@ void TNodeJsTokenizer::getParagraphs(const v8::FunctionCallbackInfo<v8::Value>& 
 	TStrV ParagraphV; TTokenizerUtil::Sentencize(TextStr, ParagraphV);
 
 	Args.GetReturnValue().Set(TNodeJsUtil::GetStrArr(ParagraphV));
+}
+
+/////////////////////////////////////////////
+// Multidimensional Scaling
+
+TNodeJsMDS::TNodeJsMDS(const PJsonVal& ParamVal) :
+MxStep(5000),
+MxSecs(500),
+MnDiff(1e-4),
+DistType(TVizDistType::vdtEucl) {
+	UpdateParams(ParamVal);
+}
+
+TNodeJsMDS::TNodeJsMDS(TSIn& SIn) :
+MxStep(TInt(SIn)),
+MxSecs(TInt(SIn)),
+MnDiff(TFlt(SIn)),
+DistType(LoadEnum<TVizDistType>(SIn)) {}
+
+void TNodeJsMDS::UpdateParams(const PJsonVal& ParamVal) {
+	if (ParamVal->IsObjKey("maxStep")) MxStep = ParamVal->GetObjNum("maxStep");
+	if (ParamVal->IsObjKey("maxSecs")) MxSecs = ParamVal->GetObjNum("maxSecs");
+	if (ParamVal->IsObjKey("minDiff")) MnDiff = ParamVal->GetObjNum("minDiff");
+	if (ParamVal->IsObjKey("distType")) { 
+		TStr Type = ParamVal->GetObjStr("distType"); 
+		if (Type == "Euclid") {
+			DistType = TVizDistType::vdtEucl;
+		} else if (Type == "Cos") {
+			DistType = TVizDistType::vdtCos;
+		} else if (Type == "SqrtCos") {
+			DistType = TVizDistType::vdtSqrtCos;
+		} else {
+			throw TExcept::New("MDS: unsupported distance type!");
+		}
+	}
+}
+
+PJsonVal TNodeJsMDS::GetParams() const {
+	PJsonVal ParamVal = TJsonVal::NewObj();
+
+	ParamVal->AddToObj("maxStep", MxStep);
+	ParamVal->AddToObj("maxSecs", MxSecs);
+	ParamVal->AddToObj("minDiff", MnDiff);
+	switch (DistType) {
+	case (vdtEucl) :
+		ParamVal->AddToObj("distType", "Euclid"); break;
+	case (vdtCos) :
+		ParamVal->AddToObj("distType", "Cos"); break;
+	case (vdtSqrtCos) :
+		ParamVal->AddToObj("distType", "SqrtCos"); break;
+	case vdtDistMtx:
+		ParamVal->AddToObj("distType", "Mtx"); break;	// FIXME is the name correct?
+	}
+	return ParamVal;
+}
+
+void TNodeJsMDS::Save(TSOut& SOut) const {
+	TInt(MxStep).Save(SOut);
+	TInt(MxSecs).Save(SOut);
+	TFlt(MnDiff).Save(SOut);
+	SaveEnum<TVizDistType>(SOut, DistType);
+}
+
+void TNodeJsMDS::Init(v8::Handle<v8::Object> exports) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsMDS>);
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
+	// ObjectWrap uses the first internal field to store the wrapped pointer.
+	tpl->InstanceTemplate()->SetInternalFieldCount(1);
+
+	// Add all methods, getters and setters here.
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _setParams);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "fitTransform", _fitTransform);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
+
+	// properties
+	exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
+}
+
+TNodeJsMDS* TNodeJsMDS::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	if (Args.Length() == 0) {
+		// create new model with default parameters
+		return new TNodeJsMDS(TJsonVal::NewObj());
+	}
+	else if (Args.Length() == 1 && TNodeJsUtil::IsArgWrapObj<TNodeJsFIn>(Args, 0)) {
+		// load the model from the input stream
+		TNodeJsFIn* JsFIn = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFIn>(Args, 0);
+		return new TNodeJsMDS(*JsFIn->SIn);
+	}
+	else if (Args.Length() == 1 && TNodeJsUtil::IsArgObj(Args, 0)) {
+		// create new model from given parameters
+		PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+		return new TNodeJsMDS(ParamVal);
+	}
+	else {
+		throw TExcept::New("new MDS: wrong arguments in constructor!");
+	}
+}
+
+void TNodeJsMDS::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 0, "MDS.getParams: takes 0 argument!");
+
+	try {
+		TNodeJsMDS* JsMDS = TNodeJsMDS::Unwrap<TNodeJsMDS>(Args.Holder());
+		Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, JsMDS->GetParams()));
+	}
+	catch (const PExcept& Except) {
+		throw TExcept::New(Except->GetMsgStr(), "MDS::getParams");
+	}
+}
+
+void TNodeJsMDS::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1, "MDS.setParams: takes 1 argument!");
+	EAssertR(TNodeJsUtil::IsArgJson(Args, 0), "MDS.setParams: first argument should be a Javascript object!");
+
+	try {
+		TNodeJsMDS* JsMDS = ObjectWrap::Unwrap<TNodeJsMDS>(Args.Holder());
+		PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+
+		JsMDS->UpdateParams(ParamVal);
+
+		Args.GetReturnValue().Set(Args.Holder());
+	}
+	catch (const PExcept& Except) {
+		throw TExcept::New(Except->GetMsgStr(), "MDS::setParams");
+	}
+}
+
+void TNodeJsMDS::fitTransform(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1, "MDS.fitTransform: expecting 1 argument!");
+	TNodeJsMDS* JsMDS = ObjectWrap::Unwrap<TNodeJsMDS>(Args.Holder());
+
+	TVec<TFltV> Temp;
+	TFltV DummyClsV;
+	PSVMTrainSet TrainSet;
+	// algorithm parameters
+	int MxStep = JsMDS->MxStep;
+	int MxSecs = JsMDS->MxSecs;
+	int MnDiff = JsMDS->MnDiff;
+	bool RndStartPos = true;
+
+	PNotify Noty = TQm::TEnv::Logger;
+	if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltVV>(Args, 0)) {
+		const TFltVV& Mat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltVV>(Args, 0)->Mat;
+		DummyClsV.Gen(Mat.GetCols());
+		TrainSet = TRefDenseTrainSet::New(Mat, DummyClsV);
+		TVizMapFactory::MakeFlat(TrainSet, TVizDistType::vdtEucl, Temp, MxStep, MxSecs, MnDiff, RndStartPos, Noty);
+	}
+	else if (TNodeJsUtil::IsArgWrapObj<TNodeJsSpMat>(Args, 0)) {
+		const TVec<TIntFltKdV>& Mat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpMat>(Args, 0)->Mat;
+		DummyClsV.Gen(Mat.Len());
+		TrainSet = TRefSparseTrainSet::New(Mat, DummyClsV);
+		TVizMapFactory::MakeFlat(TrainSet, TVizDistType::vdtEucl, Temp, MxStep, MxSecs, MnDiff, RndStartPos, Noty);
+	}
+	else {
+		throw TExcept::New("MDS.fitTransform: argument not a sparse or dense matrix!");
+	}
+	
+	TFltVV Result(Temp.Len(), Temp[0].Len());
+	for (int RowN = 0; RowN < Temp.Len(); RowN++) {
+		for (int ColN = 0; ColN < Temp[0].Len(); ColN++) {
+			Result(RowN, ColN) = Temp[RowN][ColN];
+		}
+	}
+	Args.GetReturnValue().Set(TNodeJsFltVV::New(Result));
+}
+
+void TNodeJsMDS::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1, "MDS.save: Should have 1 argument!");
+
+	try {
+		TNodeJsMDS* JsMDS = ObjectWrap::Unwrap<TNodeJsMDS>(Args.Holder());
+		// get output stream from argumetns
+		TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
+		// save model
+		JsMDS->Save(*JsFOut->SOut);
+		// return output stream for convenience
+		Args.GetReturnValue().Set(Args[0]);
+	}
+	catch (const PExcept& Except) {
+		throw TExcept::New(Except->GetMsgStr(), "MDS::save");
+	}
 }

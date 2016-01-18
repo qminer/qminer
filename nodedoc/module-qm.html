@@ -23,7 +23,7 @@
                                 <div id="jsdoc-content-container">
                                         <div id="jsdoc-main" role="main">
                     <header class="page-header">
-        <h1><div class="symbol-detail-labels"><span class="label label-kind">module</span></div><small></small><span class="symbol-name">qm</span></h1>        <p class="source-link">Source: <a href="qminer_aggrdoc.js.html#source-line-8">qminer_aggrdoc.<wbr>js:8</a></p>
+<div class="symbol-detail-labels"><span class="label label-kind">module</span></div><h1><small></small><span class="symbol-name">qm</span></h1>        <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-8">qminerdoc.<wbr>js:8</a></p>
             <div class="symbol-description">
                     <p>Qminer module.</p>
 
@@ -33,8 +33,7 @@
             Example
         </h2>
                 <div>
-    <pre class="prettyprint"><code>// import module
-var qm = require(&#x27;qminer&#x27;);</code></pre>
+    <pre class="prettyprint"><code>// import modulevar qm &#x3D; require(&#x27;qminer&#x27;);</code></pre>
 </div>
 
     </section>
@@ -176,7 +175,7 @@ var qm = require(&#x27;qminer&#x27;);</code></pre>
                 <dt><a href="module-qm.html#~BaseConstructorParam">BaseConstructorParam</a></dt>
                 <dd>
                 </dd>
-                <dt><a href="module-qm.html#~baseLoadCSVParam">baseLoadCSVParam</a></dt>
+                <dt><a href="module-qm.html#~BaseLoadCSVParam">BaseLoadCSVParam</a></dt>
                 <dd>
                 </dd>
                 <dt><a href="module-qm.html#~FeatureExtractorCategorical">FeatureExtractorCategorical</a></dt>
@@ -273,10 +272,16 @@ var qm = require(&#x27;qminer&#x27;);</code></pre>
                 <dt><a href="module-qm.html#~StreamAggregateMovingVariance">StreamAggregateMovingVariance</a></dt>
                 <dd>
                 </dd>
+                <dt><a href="module-qm.html#~StreamAggregateRecordBuffer">StreamAggregateRecordBuffer</a></dt>
+                <dd>
+                </dd>
                 <dt><a href="module-qm.html#~StreamAggregateResampler">StreamAggregateResampler</a></dt>
                 <dd>
                 </dd>
                 <dt><a href="module-qm.html#~StreamAggregateSlottedHistogram">StreamAggregateSlottedHistogram</a></dt>
+                <dd>
+                </dd>
+                <dt><a href="module-qm.html#~StreamAggregateSparseVecSum">StreamAggregateSparseVecSum</a></dt>
                 <dd>
                 </dd>
                 <dt><a href="module-qm.html#~StreamAggregateSum">StreamAggregateSum</a></dt>
@@ -344,7 +349,7 @@ var qm = require(&#x27;qminer&#x27;);</code></pre>
 
                 <h2>Properties</h2>
     <section>
-                <h3 id=".flags"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">flags</span></h3>
+                <div class="symbol-detail-labels"><span class="label label-static">static</span></div><h3 id=".flags"><span class="symbol-name">flags</span></h3>
     
     
     
@@ -406,7 +411,7 @@ var qm = require(&#x27;qminer&#x27;);</code></pre>
         
     </dl>
 
-                <h3 id="~BaseModes"><div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><span class="symbol-name">BaseModes</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><h3 id="~BaseModes"><span class="symbol-name">BaseModes</span><small class="property-type">
             &nbsp;string</small></h3>
         <p>Base access modes.</p>
 
@@ -515,7 +520,7 @@ var qm = require(&#x27;qminer&#x27;);</code></pre>
         
     </dl>
 
-                <h3 id="~FeatureMode"><div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><span class="symbol-name">FeatureMode</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><h3 id="~FeatureMode"><span class="symbol-name">FeatureMode</span><small class="property-type">
             &nbsp;string</small></h3>
         <p>How are multi-record cases combined into a single vector. //TODO not implemented for join record cases (works only if the start store and the
 feature store are the same)</p>
@@ -610,7 +615,7 @@ feature store are the same)</p>
         
     </dl>
 
-                <h3 id="~FeatureStream"><div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><span class="symbol-name">FeatureStream</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><h3 id="~FeatureStream"><span class="symbol-name">FeatureStream</span><small class="property-type">
             &nbsp;string</small></h3>
         <p>Details on forgetting old IDFs when running on stream.</p>
 
@@ -704,7 +709,7 @@ feature store are the same)</p>
         
     </dl>
 
-                <h3 id="~FeatureTokenizerStemmer"><div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><span class="symbol-name">FeatureTokenizerStemmer</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><h3 id="~FeatureTokenizerStemmer"><span class="symbol-name">FeatureTokenizerStemmer</span><small class="property-type">
             &nbsp;Object</small></h3>
         <p>The steemer used for extraction.</p>
 
@@ -798,7 +803,7 @@ feature store are the same)</p>
         
     </dl>
 
-                <h3 id="~FeatureTokenizerStopwords"><div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><span class="symbol-name">FeatureTokenizerStopwords</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><h3 id="~FeatureTokenizerStopwords"><span class="symbol-name">FeatureTokenizerStopwords</span><small class="property-type">
             &nbsp;Object</small></h3>
         <p>THe stopwords used for extraction.</p>
 
@@ -937,7 +942,7 @@ feature store are the same)</p>
         
     </dl>
 
-                <h3 id="~FeatureTokenizerType"><div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><span class="symbol-name">FeatureTokenizerType</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><h3 id="~FeatureTokenizerType"><span class="symbol-name">FeatureTokenizerType</span><small class="property-type">
             &nbsp;string</small></h3>
         <p>The type of the encoding text.</p>
 
@@ -1031,7 +1036,7 @@ feature store are the same)</p>
         
     </dl>
 
-                <h3 id="~FeatureWeight"><div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><span class="symbol-name">FeatureWeight</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><h3 id="~FeatureWeight"><span class="symbol-name">FeatureWeight</span><small class="property-type">
             &nbsp;string</small></h3>
         <p>Type of weighting used for scoring terms.</p>
 
@@ -1140,7 +1145,7 @@ feature store are the same)</p>
         
     </dl>
 
-                <h3 id="~FieldTypes"><div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><span class="symbol-name">FieldTypes</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span>&nbsp;<span class="label label-readonly">read-only</span></div><h3 id="~FieldTypes"><span class="symbol-name">FieldTypes</span><small class="property-type">
             &nbsp;string</small></h3>
         <p>Field types.</p>
 
@@ -1344,7 +1349,7 @@ feature store are the same)</p>
 
                 <h2>Method</h2>
     <section>
-                <h3 id=".verbosity"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">verbosity</span><span class="signature"><span class="signature-params">([level])</span></span></h3>
+                <div class="symbol-detail-labels"><span class="label label-static">static</span></div><h3 id=".verbosity"><span class="symbol-name">verbosity</span><span class="signature"><span class="signature-params">([level])</span></span></h3>
         <p>Set verbosity of QMiner internals.</p>
 
     
@@ -1413,7 +1418,7 @@ feature store are the same)</p>
 
                 <h2>Abstract types</h2>
     <section>
-                <h3 id="~BaseConstructorParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">BaseConstructorParam</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><h3 id="~BaseConstructorParam"><span class="symbol-name">BaseConstructorParam</span><small class="property-type">
             &nbsp;Object</small></h3>
         <p>Base constructor parameter object</p>
 
@@ -1562,7 +1567,7 @@ feature store are the same)</p>
         
     </dl>
 
-                <h3 id="~baseLoadCSVParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">baseLoadCSVParam</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><h3 id="~BaseLoadCSVParam"><span class="symbol-name">BaseLoadCSVParam</span><small class="property-type">
             &nbsp;object</small></h3>
         <p>The parameter given to <a href="module-qm.Base.html#loadCSV">module:qm.Base#loadCSV</a>.</p>
 
@@ -1582,7 +1587,7 @@ feature store are the same)</p>
         <tbody>
                 <tr>
         <td>
-            <p>baseLoadCSVParam.file</p>
+            <p>BaseLoadCSVParam.file</p>
         </td>
         <td>
                 <p>string</p>
@@ -1597,7 +1602,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>baseLoadCSVParam.store</p>
+            <p>BaseLoadCSVParam.store</p>
         </td>
         <td>
                 <p>string</p>
@@ -1612,7 +1617,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>baseLoadCSVParam.base</p>
+            <p>BaseLoadCSVParam.base</p>
         </td>
         <td>
                 <p><a href="module-qm.Base.html">module:qm.Base</a></p>
@@ -1627,7 +1632,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>baseLoadCSVParam.delimiter</p>
+            <p>BaseLoadCSVParam.delimiter</p>
         </td>
         <td>
                 <p>string</p>
@@ -1643,7 +1648,7 @@ feature store are the same)</p>
 
                 <tr>
         <td>
-            <p>baseLoadCSVParam.quote</p>
+            <p>BaseLoadCSVParam.quote</p>
         </td>
         <td>
                 <p>string</p>
@@ -1688,7 +1693,7 @@ feature store are the same)</p>
         
     </dl>
 
-                <h3 id="~FeatureExtractorCategorical"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorCategorical</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><h3 id="~FeatureExtractorCategorical"><span class="symbol-name">FeatureExtractorCategorical</span><small class="property-type">
             &nbsp;Object</small></h3>
         <p>The feature extractor of type 'categorical'.</p>
 
@@ -1697,23 +1702,7 @@ feature store are the same)</p>
             Example
         </h4>
                 <div>
-    <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
-// create a simple base, where each record contains the student name and it&#x27;s study group
-// here we know the student is part of only one study group
-var base = new qm.Base({
-   mode: &#x27;createClean&#x27;,
-   schema: [{
-      name: &quot;Class&quot;,
-      fields: [
-         { name: &quot;Name&quot;, type: &quot;string&quot; },
-         { name: &quot;StudyGroup&quot;, type: &quot;string&quot; }
-      ]
-   }]
-});
-// create a feature space containing the categorical extractor, where the it&#x27;s values
-// are taken from the field &quot;StudyGroup&quot;: &quot;A&quot;, &quot;B&quot;, &quot;C&quot; and &quot;D&quot;
-var ftr = new qm.FeatureSpace(base, { type: &quot;categorical&quot;, source: &quot;Class&quot;, field: &quot;StudyGroup&quot;, values: [&quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;] });
-base.close();</code></pre>
+    <pre class="prettyprint"><code>var qm &#x3D; require(&#x27;qminer&#x27;);// create a simple base, where each record contains the student name and it&#x27;s study group// here we know the student is part of only one study groupvar base &#x3D; new qm.Base({   mode: &#x27;createClean&#x27;,   schema: [{      name: &quot;Class&quot;,      fields: [         { name: &quot;Name&quot;, type: &quot;string&quot; },         { name: &quot;StudyGroup&quot;, type: &quot;string&quot; }      ]   }]});// create a feature space containing the categorical extractor, where the it&#x27;s values// are taken from the field &quot;StudyGroup&quot;: &quot;A&quot;, &quot;B&quot;, &quot;C&quot; and &quot;D&quot;var ftr &#x3D; new qm.FeatureSpace(base, { type: &quot;categorical&quot;, source: &quot;Class&quot;, field: &quot;StudyGroup&quot;, values: [&quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;] });base.close();</code></pre>
 </div>
 
     </section>
@@ -1837,7 +1826,7 @@ base.close();</code></pre>
         
     </dl>
 
-                <h3 id="~FeatureExtractorConstant"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorConstant</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><h3 id="~FeatureExtractorConstant"><span class="symbol-name">FeatureExtractorConstant</span><small class="property-type">
             &nbsp;Object</small></h3>
         <p>The feature extractor of type 'contant'.</p>
 
@@ -1846,18 +1835,7 @@ base.close();</code></pre>
             Example
         </h4>
                 <div>
-    <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
-// create a simple base, where each record contains only a persons name
-var base = new qm.Base({
-  mode: &#x27;createClean&#x27;,
-  schema: [{
-     name: &quot;Person&quot;,
-     fields: [{ name: &quot;Name&quot;, type: &quot;string&quot; }]
-  }]
-});
-// create a feature space containing the constant extractor, where the constant is equal 5
-var ftr = new qm.FeatureSpace(base, { type: &quot;constant&quot;, source: &quot;Person&quot;, const: 5 });
-base.close();</code></pre>
+    <pre class="prettyprint"><code>var qm &#x3D; require(&#x27;qminer&#x27;);// create a simple base, where each record contains only a persons namevar base &#x3D; new qm.Base({  mode: &#x27;createClean&#x27;,  schema: [{     name: &quot;Person&quot;,     fields: [{ name: &quot;Name&quot;, type: &quot;string&quot; }]  }]});// create a feature space containing the constant extractor, where the constant is equal 5var ftr &#x3D; new qm.FeatureSpace(base, { type: &quot;constant&quot;, source: &quot;Person&quot;, const: 5 });base.close();</code></pre>
 </div>
 
     </section>
@@ -1952,7 +1930,7 @@ base.close();</code></pre>
         
     </dl>
 
-                <h3 id="~FeatureExtractorDateWindow"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorDateWindow</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><h3 id="~FeatureExtractorDateWindow"><span class="symbol-name">FeatureExtractorDateWindow</span><small class="property-type">
             &nbsp;Object</small></h3>
         <p>The feature extractor of type 'dateWindow'.</p>
 
@@ -1961,8 +1939,7 @@ base.close();</code></pre>
             Example
         </h4>
                 <div>
-    <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);</code></pre>
+    <pre class="prettyprint"><code>// import qm modulevar qm &#x3D; require(&#x27;qminer&#x27;);</code></pre>
 </div>
 
     </section>
@@ -2120,7 +2097,7 @@ var qm = require(&#x27;qminer&#x27;);</code></pre>
         
     </dl>
 
-                <h3 id="~FeatureExtractorJoin"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorJoin</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><h3 id="~FeatureExtractorJoin"><span class="symbol-name">FeatureExtractorJoin</span><small class="property-type">
             &nbsp;Object</small></h3>
         <p>The feature extractor of type 'join'.</p>
 
@@ -2129,8 +2106,7 @@ var qm = require(&#x27;qminer&#x27;);</code></pre>
             Example
         </h4>
                 <div>
-    <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);</code></pre>
+    <pre class="prettyprint"><code>// import qm modulevar qm &#x3D; require(&#x27;qminer&#x27;);</code></pre>
 </div>
 
     </section>
@@ -2225,7 +2201,7 @@ var qm = require(&#x27;qminer&#x27;);</code></pre>
         
     </dl>
 
-                <h3 id="~FeatureExtractorJsfunc"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorJsfunc</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><h3 id="~FeatureExtractorJsfunc"><span class="symbol-name">FeatureExtractorJsfunc</span><small class="property-type">
             &nbsp;Object</small></h3>
         <p>The feature extractor of type 'jsfunc'.</p>
 
@@ -2234,27 +2210,7 @@ var qm = require(&#x27;qminer&#x27;);</code></pre>
             Example
         </h4>
                 <div>
-    <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
-// create a simple base, where each record contains the name of the student and his study groups
-// each student is part of multiple study groups
-var base = new qm.Base({
-   mode: &#x27;createClean&#x27;,
-   schema: [{
-      name: &quot;Class&quot;,
-      fields: [
-         { name: &quot;Name&quot;, type: &quot;string&quot; },
-         { name: &quot;StudyGroups&quot;, type: &quot;string_v&quot; }
-      ]
-   }]
-});
-// create a feature space containing the jsfunc extractor, where the function counts the number
-// of study groups each student is part of. The functions name is &quot;NumberOFGroups&quot;, it&#x27;s dimension
-// is 1 (returns only one value, not an array)
-var ftr = new qm.FeatureSpace(base, {
-             type: &quot;jsfunc&quot;, source: &quot;Class&quot;, name: &quot;NumberOfGroups&quot;, dim: 1,
-             fun: function (rec) { return rec.StudyGroups.length; }
-          });
-base.close();</code></pre>
+    <pre class="prettyprint"><code>var qm &#x3D; require(&#x27;qminer&#x27;);// create a simple base, where each record contains the name of the student and his study groups// each student is part of multiple study groupsvar base &#x3D; new qm.Base({   mode: &#x27;createClean&#x27;,   schema: [{      name: &quot;Class&quot;,      fields: [         { name: &quot;Name&quot;, type: &quot;string&quot; },         { name: &quot;StudyGroups&quot;, type: &quot;string_v&quot; }      ]   }]});// create a feature space containing the jsfunc extractor, where the function counts the number// of study groups each student is part of. The functions name is &quot;NumberOFGroups&quot;, it&#x27;s dimension// is 1 (returns only one value, not an array)var ftr &#x3D; new qm.FeatureSpace(base, {             type: &quot;jsfunc&quot;, source: &quot;Class&quot;, name: &quot;NumberOfGroups&quot;, dim: 1,             fun: function (rec) { return rec.StudyGroups.length; }          });base.close();</code></pre>
 </div>
 
     </section>
@@ -2379,7 +2335,7 @@ base.close();</code></pre>
         
     </dl>
 
-                <h3 id="~FeatureExtractorMultinomial"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorMultinomial</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><h3 id="~FeatureExtractorMultinomial"><span class="symbol-name">FeatureExtractorMultinomial</span><small class="property-type">
             &nbsp;Object</small></h3>
         <p>The feature extractor of type 'multinomial'.</p>
 
@@ -2388,25 +2344,7 @@ base.close();</code></pre>
             Example
         </h4>
                 <div>
-    <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
-// create a simple base, where each record contains the student name and an array of study groups
-// here we know a student can be part of multiple study groups
-var base = new qm.Base({
-   mode: &#x27;createClean&#x27;,
-   schema: [{
-      name: &quot;Class&quot;,
-      fields: [
-         { name: &quot;Name&quot;, type: &quot;string&quot; },
-         { name: &quot;StudyGroups&quot;, type: &quot;string_v&quot; }
-      ]
-   }]
-});
-// create a feature space containing the multinomial extractor, where the values are normalized,
-// and taken from the field &quot;StudyGroup&quot;: &quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;, &quot;E&quot;, &quot;F&quot;
-var ftr = new qm.FeatureSpace(base, {
-             type: &quot;multinomial&quot;, source: &quot;Class&quot;, field: &quot;StudyGroups&quot;, normalize: true, values: [&quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;, &quot;E&quot;, &quot;F&quot;]
-          });
-base.close();</code></pre>
+    <pre class="prettyprint"><code>var qm &#x3D; require(&#x27;qminer&#x27;);// create a simple base, where each record contains the student name and an array of study groups// here we know a student can be part of multiple study groupsvar base &#x3D; new qm.Base({   mode: &#x27;createClean&#x27;,   schema: [{      name: &quot;Class&quot;,      fields: [         { name: &quot;Name&quot;, type: &quot;string&quot; },         { name: &quot;StudyGroups&quot;, type: &quot;string_v&quot; }      ]   }]});// create a feature space containing the multinomial extractor, where the values are normalized,// and taken from the field &quot;StudyGroup&quot;: &quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;, &quot;E&quot;, &quot;F&quot;var ftr &#x3D; new qm.FeatureSpace(base, {             type: &quot;multinomial&quot;, source: &quot;Class&quot;, field: &quot;StudyGroups&quot;, normalize: true, values: [&quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;, &quot;E&quot;, &quot;F&quot;]          });base.close();</code></pre>
 </div>
 
     </section>
@@ -2507,13 +2445,28 @@ base.close();</code></pre>
             <p>FeatureExtractorMultinomial.field</p>
         </td>
         <td>
-                <p>string</p>
+                <p>(string or Array of String)</p>
         </td>
         <td>
                 <p>&nbsp;</p>
         </td>
         <td>
-                <p>The name of the field from which to take the value.</p>
+                <p>The name of the field from which to take the key value.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>FeatureExtractorMultinomial.valueField</p>
+        </td>
+        <td>
+                <p>(string or Array of String)</p>
+        </td>
+        <td>
+                <p>Yes</p>
+        </td>
+        <td>
+                <p>The name of the field from which to take the numeric value. When not provided, 1.0 is used as default numeric values for non-zero elements in the vector.</p>
         </td>
 </tr>
 
@@ -2563,7 +2516,7 @@ base.close();</code></pre>
         
     </dl>
 
-                <h3 id="~FeatureExtractorNumeric"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorNumeric</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><h3 id="~FeatureExtractorNumeric"><span class="symbol-name">FeatureExtractorNumeric</span><small class="property-type">
             &nbsp;Object</small></h3>
         <p>The feature extractor of type 'numeric'.</p>
 
@@ -2572,22 +2525,7 @@ base.close();</code></pre>
             Example
         </h4>
                 <div>
-    <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
-// create a simple base, where each record contains the student name and it&#x27;s grade
-var base = new qm.Base({
-   mode: &#x27;createClean&#x27;,
-   schema: [{
-      name: &quot;Class&quot;,
-      fields: [
-         { name: &quot;Name&quot;, type: &quot;string&quot; },
-         { name: &quot;Grade&quot;, type: &quot;int&quot; }
-      ]
-   }]
-});
-// create a feature space containing the numeric extractor, where the values are
-// normalized, the values are taken from the field &quot;Grade&quot;
-var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;Class&quot;, normalize: true, field: &quot;Grade&quot; });
-base.close();</code></pre>
+    <pre class="prettyprint"><code>var qm &#x3D; require(&#x27;qminer&#x27;);// create a simple base, where each record contains the student name and it&#x27;s gradevar base &#x3D; new qm.Base({   mode: &#x27;createClean&#x27;,   schema: [{      name: &quot;Class&quot;,      fields: [         { name: &quot;Name&quot;, type: &quot;string&quot; },         { name: &quot;Grade&quot;, type: &quot;int&quot; }      ]   }]});// create a feature space containing the numeric extractor, where the values are// normalized, the values are taken from the field &quot;Grade&quot;var ftr &#x3D; new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;Class&quot;, normalize: true, field: &quot;Grade&quot; });base.close();</code></pre>
 </div>
 
     </section>
@@ -2727,7 +2665,7 @@ base.close();</code></pre>
         
     </dl>
 
-                <h3 id="~FeatureExtractorPair"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorPair</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><h3 id="~FeatureExtractorPair"><span class="symbol-name">FeatureExtractorPair</span><small class="property-type">
             &nbsp;Object</small></h3>
         <p>The feature extractor of type 'pair'.</p>
 
@@ -2736,7 +2674,7 @@ base.close();</code></pre>
             Example
         </h4>
                 <div>
-    <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);</code></pre>
+    <pre class="prettyprint"><code>var qm &#x3D; require(&#x27;qminer&#x27;);</code></pre>
 </div>
 
     </section>
@@ -2845,7 +2783,7 @@ base.close();</code></pre>
         
     </dl>
 
-                <h3 id="~FeatureExtractorRandom"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorRandom</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><h3 id="~FeatureExtractorRandom"><span class="symbol-name">FeatureExtractorRandom</span><small class="property-type">
             &nbsp;Object</small></h3>
         <p>The feature extractor of type 'random'.</p>
 
@@ -2854,18 +2792,7 @@ base.close();</code></pre>
             Example
         </h4>
                 <div>
-    <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
-// create a simple base, where each record contains only a persons name
-var base = new qm.Base({
-  mode: &#x27;createClean&#x27;,
-  schema: [{
-     name: &quot;Person&quot;,
-     fields: [{ name: &quot;Name&quot;, type: &quot;string&quot; }]
-  }]
-});
-// create a feature space containing the random extractor
-var ftr = new qm.FeatureSpace(base, { type: &quot;random&quot;, source: &quot;Person&quot; });
-base.close();</code></pre>
+    <pre class="prettyprint"><code>var qm &#x3D; require(&#x27;qminer&#x27;);// create a simple base, where each record contains only a persons namevar base &#x3D; new qm.Base({  mode: &#x27;createClean&#x27;,  schema: [{     name: &quot;Person&quot;,     fields: [{ name: &quot;Name&quot;, type: &quot;string&quot; }]  }]});// create a feature space containing the random extractorvar ftr &#x3D; new qm.FeatureSpace(base, { type: &quot;random&quot;, source: &quot;Person&quot; });base.close();</code></pre>
 </div>
 
     </section>
@@ -2960,7 +2887,7 @@ base.close();</code></pre>
         
     </dl>
 
-                <h3 id="~FeatureExtractors"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractors</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><h3 id="~FeatureExtractors"><span class="symbol-name">FeatureExtractors</span><small class="property-type">
             &nbsp;Object</small></h3>
         <p>Feature extractor types.</p>
 
@@ -3174,7 +3101,7 @@ base.close();</code></pre>
         
     </dl>
 
-                <h3 id="~FeatureExtractorSparseVector"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorSparseVector</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><h3 id="~FeatureExtractorSparseVector"><span class="symbol-name">FeatureExtractorSparseVector</span><small class="property-type">
             &nbsp;Object</small></h3>
         <p>The feature extractor of type 'num_sp_v'.</p>
 
@@ -3183,22 +3110,7 @@ base.close();</code></pre>
             Example
         </h4>
                 <div>
-    <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
-// create a simple base, where each record contains the student name and it&#x27;s grade
-var base = new qm.Base({
-   mode: &#x27;createClean&#x27;,
-   schema: [{
-      &quot;name&quot;: &quot;Class&quot;,
-      &quot;fields&quot;: [
-         { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },
-         { &quot;name&quot;: &quot;Features&quot;, &quot;type&quot;: &quot;num_sp_v&quot; }
-      ]
-   }]
-});
-// create a feature space containing the numeric extractor, where the values are
-// normalized, the values are taken from the field &quot;Grade&quot;
-var ftr = new qm.FeatureSpace(base, { type: &quot;num_sp_v&quot;, source: &quot;Class&quot;, normalize: false, field: &quot;Features&quot; });
-base.close();</code></pre>
+    <pre class="prettyprint"><code>var qm &#x3D; require(&#x27;qminer&#x27;);// create a simple base, where each record contains the student name and it&#x27;s gradevar base &#x3D; new qm.Base({   mode: &#x27;createClean&#x27;,   schema: [{      &quot;name&quot;: &quot;Class&quot;,      &quot;fields&quot;: [         { &quot;name&quot;: &quot;Name&quot;, &quot;type&quot;: &quot;string&quot; },         { &quot;name&quot;: &quot;Features&quot;, &quot;type&quot;: &quot;num_sp_v&quot; }      ]   }]});// create a feature space containing the numeric extractor, where the values are// normalized, the values are taken from the field &quot;Grade&quot;var ftr &#x3D; new qm.FeatureSpace(base, { type: &quot;num_sp_v&quot;, source: &quot;Class&quot;, normalize: false, field: &quot;Features&quot; });base.close();</code></pre>
 </div>
 
     </section>
@@ -3324,7 +3236,7 @@ base.close();</code></pre>
         
     </dl>
 
-                <h3 id="~FeatureExtractorText"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureExtractorText</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><h3 id="~FeatureExtractorText"><span class="symbol-name">FeatureExtractorText</span><small class="property-type">
             &nbsp;Object</small></h3>
         <p>The feature extractor of type 'text'.</p>
 
@@ -3333,25 +3245,7 @@ base.close();</code></pre>
             Example
         </h4>
                 <div>
-    <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
-// create a simple base, where each record contains the title of the article and it&#x27;s content
-var base = new qm.Base({
-   mode: &#x27;createClean&#x27;,
-   schema: [{
-      name: &quot;Articles&quot;,
-      fields: [
-         { name: &quot;Title&quot;, type: &quot;string&quot; },
-         { name: &quot;Text&quot;, type: &quot;string&quot; }
-      ]
-   }]
-});
-// create a feature spave containing the text (bag of words) extractor, where the values are normalized,
-// weighted with &#x27;tfidf&#x27; and the tokenizer is of &#x27;simple&#x27; type, it uses english stopwords.
-var ftr = new qm.FeatureSpace(base, {
-             type: &quot;text&quot;, source: &quot;Articles&quot;, field: &quot;Text&quot;, normalize: true, weight: &quot;tfidf&quot;,
-             tokenizer: { type: &quot;simple&quot;, stopwords: &quot;en&quot;}
-          });
-base.close();</code></pre>
+    <pre class="prettyprint"><code>var qm &#x3D; require(&#x27;qminer&#x27;);// create a simple base, where each record contains the title of the article and it&#x27;s contentvar base &#x3D; new qm.Base({   mode: &#x27;createClean&#x27;,   schema: [{      name: &quot;Articles&quot;,      fields: [         { name: &quot;Title&quot;, type: &quot;string&quot; },         { name: &quot;Text&quot;, type: &quot;string&quot; }      ]   }]});// create a feature spave containing the text (bag of words) extractor, where the values are normalized,// weighted with &#x27;tfidf&#x27; and the tokenizer is of &#x27;simple&#x27; type, it uses english stopwords.var ftr &#x3D; new qm.FeatureSpace(base, {             type: &quot;text&quot;, source: &quot;Articles&quot;, field: &quot;Text&quot;, normalize: true, weight: &quot;tfidf&quot;,             tokenizer: { type: &quot;simple&quot;, stopwords: &quot;en&quot;}          });base.close();</code></pre>
 </div>
 
     </section>
@@ -3537,7 +3431,7 @@ base.close();</code></pre>
         
     </dl>
 
-                <h3 id="~FeatureSource"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureSource</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><h3 id="~FeatureSource"><span class="symbol-name">FeatureSource</span><small class="property-type">
             &nbsp;Object</small></h3>
         <p>From where are the input records taken.</p>
 
@@ -3601,7 +3495,7 @@ base.close();</code></pre>
         
     </dl>
 
-                <h3 id="~FeatureTokenizer"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FeatureTokenizer</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><h3 id="~FeatureTokenizer"><span class="symbol-name">FeatureTokenizer</span><small class="property-type">
             &nbsp;Object</small></h3>
         <p>The settings for extraction of text.</p>
 
@@ -3714,7 +3608,7 @@ base.close();</code></pre>
         
     </dl>
 
-                <h3 id="~SchemaDefinition"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">SchemaDefinition</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><h3 id="~SchemaDefinition"><span class="symbol-name">SchemaDefinition</span><small class="property-type">
             &nbsp;Object</small></h3>
         <p>Store schema definition object</p>
 
@@ -3723,16 +3617,7 @@ base.close();</code></pre>
             Example
         </h4>
                 <div>
-    <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
-// create a simple movies store, where each record contains only the movie title.
-var base = new qm.Base({
-    mode: &#x27;createClean&#x27;,
-    schema: [{
-      name: &quot;Movies&quot;,
-      fields: [{ name: &quot;title&quot;, type: &quot;string&quot; }]
-    }]
-});
-base.close();</code></pre>
+    <pre class="prettyprint"><code>var qm &#x3D; require(&#x27;qminer&#x27;);// create a simple movies store, where each record contains only the movie title.var base &#x3D; new qm.Base({    mode: &#x27;createClean&#x27;,    schema: [{      name: &quot;Movies&quot;,      fields: [{ name: &quot;title&quot;, type: &quot;string&quot; }]    }]});base.close();</code></pre>
 </div>
 
     </section>
@@ -3858,7 +3743,7 @@ base.close();</code></pre>
         
     </dl>
 
-                <h3 id="~SchemaFieldDefinition"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">SchemaFieldDefinition</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><h3 id="~SchemaFieldDefinition"><span class="symbol-name">SchemaFieldDefinition</span><small class="property-type">
             &nbsp;Object</small></h3>
         <p>Store schema field definition object</p>
 
@@ -3867,34 +3752,7 @@ base.close();</code></pre>
             Example
         </h4>
                 <div>
-    <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
- var base = new qm.Base({
-     mode: &#x27;createClean&#x27;,
-     schema: [
-       { name: &#x27;NewsArticles&#x27;,
-         fields: [
-           { name: &quot;ID&quot;, primary: true, type: &quot;string&quot;, shortstring: true },
-           { name: &quot;Source&quot;, type: &quot;string&quot;, codebook: true },
-           { name: &quot;DateTime&quot;, type: &quot;datetime&quot; },
-           { name: &quot;Title&quot;, type: &quot;string&quot;, store: &quot;cache&quot; },
-           { name: &quot;Tokens&quot;, type: &quot;string_v&quot;, store: &quot;cache&quot;, null: true },
-           { name: &quot;Vector&quot;, type: &quot;num_sp_v&quot;, store: &quot;cache&quot;, null: true }]
-       }
-    ]
- });
-// add a record:
-// - we set the date using the ISO string representation
-// - we set the string vector Tokens with an array of strings
-// - we set the numeric sparse vector Vector with an array of two element arrays
-//   (index, value), see the sparse vector constructor {@link module:la.SparseVector}
-base.store(&#x27;NewsArticles&#x27;).push({
-  ID: &#x27;t12344&#x27;, 
-  Source: &#x27;s1234&#x27;, 
-  DateTime: &#x27;2015-01-01T00:05:00&#x27;, 
-  Title: &#x27;the title&#x27;, 
-  Tokens: [&#x27;token1&#x27;, &#x27;token2&#x27;], 
-  Vector: [[0,1], [1,1]]});
-base.close();</code></pre>
+    <pre class="prettyprint"><code>var qm &#x3D; require(&#x27;qminer&#x27;); var base &#x3D; new qm.Base({     mode: &#x27;createClean&#x27;,     schema: [       { name: &#x27;NewsArticles&#x27;,         fields: [           { name: &quot;ID&quot;, primary: true, type: &quot;string&quot;, shortstring: true },           { name: &quot;Source&quot;, type: &quot;string&quot;, codebook: true },           { name: &quot;DateTime&quot;, type: &quot;datetime&quot; },           { name: &quot;Title&quot;, type: &quot;string&quot;, store: &quot;cache&quot; },           { name: &quot;Tokens&quot;, type: &quot;string_v&quot;, store: &quot;cache&quot;, null: true },           { name: &quot;Vector&quot;, type: &quot;num_sp_v&quot;, store: &quot;cache&quot;, null: true }]       }    ] });// add a record:// - we set the date using the ISO string representation// - we set the string vector Tokens with an array of strings// - we set the numeric sparse vector Vector with an array of two element arrays//   (index, value), see the sparse vector constructor {@link module:la.SparseVector}base.store(&#x27;NewsArticles&#x27;).push({  ID: &#x27;t12344&#x27;,   Source: &#x27;s1234&#x27;,   DateTime: &#x27;2015-01-01T00:05:00&#x27;,   Title: &#x27;the title&#x27;,   Tokens: [&#x27;token1&#x27;, &#x27;token2&#x27;],   Vector: [[0,1], [1,1]]});base.close();</code></pre>
 </div>
 
     </section>
@@ -4068,7 +3926,7 @@ base.close();</code></pre>
         
     </dl>
 
-                <h3 id="~SchemaJoinDefinition"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">SchemaJoinDefinition</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><h3 id="~SchemaJoinDefinition"><span class="symbol-name">SchemaJoinDefinition</span><small class="property-type">
             &nbsp;Object</small></h3>
         <p>Store schema join definition object</p>
 
@@ -4077,47 +3935,7 @@ base.close();</code></pre>
             Example
         </h4>
                 <div>
-    <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
-// Create two stores: People which stores only names of persons and Movies, which stores only titles.
-// Each person can direct zero or more movies, so we use an index join named &#x27;directed&#x27; and
-// each movie has a single director, so we use a field join &#x27;director&#x27;. The joins are 
-// inverses of each other. The inverse join simplifies the linking, since only one join needs
-// to be specified, and the other direction can be linked automatically (in the example 
-// below we specify only the &#x27;director&#x27; link and the &#x27;directed&#x27; join is updated automatically).
-//
-var base = new qm.Base({
-    mode: &#x27;createClean&#x27;,
-    schema: [
-      { name: &#x27;People&#x27;, 
-        fields: [{ name: &#x27;name&#x27;, type: &#x27;string&#x27;, primary: true }], 
-        joins: [{ name: &#x27;directed&#x27;, &#x27;type&#x27;: &#x27;index&#x27;, &#x27;store&#x27;: &#x27;Movies&#x27;, &#x27;inverse&#x27;: &#x27;director&#x27; }] },
-      { name: &#x27;Movies&#x27;, 
-        fields: [{ name: &#x27;title&#x27;, type: &#x27;string&#x27;, primary: true }], 
-        joins: [{ name: &#x27;director&#x27;, &#x27;type&#x27;: &#x27;field&#x27;, &#x27;store&#x27;: &#x27;People&#x27;, &#x27;inverse&#x27;: &#x27;directed&#x27; }] }
-    ]
-});
-// Adds a movie, automatically adds &#x27;Jim Jarmusch&#x27; to People, sets the &#x27;director&#x27; join (field join)
-// and automatically updates the index join &#x27;directed&#x27;, since it&#x27;s an inverse join of &#x27;director&#x27;
-base.store(&#x27;Movies&#x27;).push({ title: &#x27;Broken Flowers&#x27;, director: { name: &#x27;Jim Jarmusch&#x27; } });
-// Adds a movie, sets the &#x27;director&#x27; join, updates the index join of &#x27;Jim Jarmusch&#x27;
-base.store(&#x27;Movies&#x27;).push({ title: &#x27;Coffee and Cigarettes&#x27;, director: { name: &#x27;Jim Jarmusch&#x27; } });
-// Adds movie, automatically adds &#x27;Lars von Trier&#x27; to People, sets the &#x27;director&#x27; join
-// and &#x27;directed&#x27; inverse join (automatically)
-base.store(&#x27;Movies&#x27;).push({ title: &#x27;Dogville&#x27;, director: { name: &#x27;Lars von Trier&#x27; } });
-
-var movie = base.store(&#x27;Movies&#x27;)[0]; // get the first movie (Broken Flowers)
-// Each movie has a property corresponding to the join name: &#x27;director&#x27;. 
-// Accessing the property returns a {@link module:qm.Record} from the store People.
-var person = movie.director; // get the director
-console.log(person.name); // prints &#x27;Jim Jarmusch&#x27;
-// Each person has a property corresponding to the join name: &#x27;directed&#x27;. 
-// Accessing the property returns a {@link module:qm.RecSet} from the store People.
-var movies = person.directed; // get all the movies the person directed.
-movies.each(function (movie) { console.log(movie.title); }); 
-// prints: 
-//   &#x27;Broken Flowers&#x27;
-//   &#x27;Coffee and Cigarettes&#x27;
-base.close();</code></pre>
+    <pre class="prettyprint"><code>var qm &#x3D; require(&#x27;qminer&#x27;);// Create two stores: People which stores only names of persons and Movies, which stores only titles.// Each person can direct zero or more movies, so we use an index join named &#x27;directed&#x27; and// each movie has a single director, so we use a field join &#x27;director&#x27;. The joins are // inverses of each other. The inverse join simplifies the linking, since only one join needs// to be specified, and the other direction can be linked automatically (in the example // below we specify only the &#x27;director&#x27; link and the &#x27;directed&#x27; join is updated automatically).//var base &#x3D; new qm.Base({    mode: &#x27;createClean&#x27;,    schema: [      { name: &#x27;People&#x27;,         fields: [{ name: &#x27;name&#x27;, type: &#x27;string&#x27;, primary: true }],         joins: [{ name: &#x27;directed&#x27;, &#x27;type&#x27;: &#x27;index&#x27;, &#x27;store&#x27;: &#x27;Movies&#x27;, &#x27;inverse&#x27;: &#x27;director&#x27; }] },      { name: &#x27;Movies&#x27;,         fields: [{ name: &#x27;title&#x27;, type: &#x27;string&#x27;, primary: true }],         joins: [{ name: &#x27;director&#x27;, &#x27;type&#x27;: &#x27;field&#x27;, &#x27;store&#x27;: &#x27;People&#x27;, &#x27;inverse&#x27;: &#x27;directed&#x27; }] }    ]});// Adds a movie, automatically adds &#x27;Jim Jarmusch&#x27; to People, sets the &#x27;director&#x27; join (field join)// and automatically updates the index join &#x27;directed&#x27;, since it&#x27;s an inverse join of &#x27;director&#x27;base.store(&#x27;Movies&#x27;).push({ title: &#x27;Broken Flowers&#x27;, director: { name: &#x27;Jim Jarmusch&#x27; } });// Adds a movie, sets the &#x27;director&#x27; join, updates the index join of &#x27;Jim Jarmusch&#x27;base.store(&#x27;Movies&#x27;).push({ title: &#x27;Coffee and Cigarettes&#x27;, director: { name: &#x27;Jim Jarmusch&#x27; } });// Adds movie, automatically adds &#x27;Lars von Trier&#x27; to People, sets the &#x27;director&#x27; join// and &#x27;directed&#x27; inverse join (automatically)base.store(&#x27;Movies&#x27;).push({ title: &#x27;Dogville&#x27;, director: { name: &#x27;Lars von Trier&#x27; } });var movie &#x3D; base.store(&#x27;Movies&#x27;)[0]; // get the first movie (Broken Flowers)// Each movie has a property corresponding to the join name: &#x27;director&#x27;. // Accessing the property returns a {@link module:qm.Record} from the store People.var person &#x3D; movie.director; // get the directorvar personName &#x3D; person.name; // get person&#x27;s name (&#x27;Jim Jarmusch&#x27;)// Each person has a property corresponding to the join name: &#x27;directed&#x27;. // Accessing the property returns a {@link module:qm.RecSet} from the store People.var movies &#x3D; person.directed; // get all the movies the person directed.movies.each(function (movie) { var title &#x3D; movie.title; });// Gets the following titles://   &#x27;Broken Flowers&#x27;//   &#x27;Coffee and Cigarettes&#x27;base.close();</code></pre>
 </div>
 
     </section>
@@ -4213,7 +4031,7 @@ base.close();</code></pre>
         
     </dl>
 
-                <h3 id="~SchemaKeyDefinition"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">SchemaKeyDefinition</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><h3 id="~SchemaKeyDefinition"><span class="symbol-name">SchemaKeyDefinition</span><small class="property-type">
             &nbsp;Object</small></h3>
         <p>Store schema key definition object</p>
 
@@ -4222,30 +4040,7 @@ base.close();</code></pre>
             Example
         </h4>
                 <div>
-    <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
-// Create a store People which stores only names of persons.
-var base = new qm.Base({
-    mode: &#x27;createClean&#x27;,
-    schema: [
-        { name: &#x27;People&#x27;,
-          fields: [{ name: &#x27;name&#x27;, type: &#x27;string&#x27;, primary: true }],
-          keys: [
-            { field: &#x27;name&#x27;, type: &#x27;value&#x27;}, 
-            { field: &#x27;name&#x27;, name: &#x27;nameText&#x27;, type: &#x27;text&#x27;}
-         ]
-       }
-    ]
-});
-
-base.store(&#x27;People&#x27;).push({name : &#x27;John Smith&#x27;});
-base.store(&#x27;People&#x27;).push({name : &#x27;Mary Smith&#x27;});
-// search based on indexed values
-base.search({$from : &#x27;People&#x27;, name: &#x27;John Smith&#x27;}); // Return the record set containing &#x27;John Smith&#x27;
-// search based on indexed values
-base.search({$from : &#x27;People&#x27;, name: &#x27;Smith&#x27;}); // Returns the empty record set.
-// search based on text indexing
-base.search({$from : &#x27;People&#x27;, nameText: &#x27;Smith&#x27;}); // Returns both records.
-base.close();</code></pre>
+    <pre class="prettyprint"><code>var qm &#x3D; require(&#x27;qminer&#x27;);// Create a store People which stores only names of persons.var base &#x3D; new qm.Base({    mode: &#x27;createClean&#x27;,    schema: [        { name: &#x27;People&#x27;,          fields: [{ name: &#x27;name&#x27;, type: &#x27;string&#x27;, primary: true }],          keys: [            { field: &#x27;name&#x27;, type: &#x27;value&#x27;},             { field: &#x27;name&#x27;, name: &#x27;nameText&#x27;, type: &#x27;text&#x27;}         ]       }    ]});base.store(&#x27;People&#x27;).push({name : &#x27;John Smith&#x27;});base.store(&#x27;People&#x27;).push({name : &#x27;Mary Smith&#x27;});// search based on indexed valuesbase.search({$from : &#x27;People&#x27;, name: &#x27;John Smith&#x27;}); // Return the record set containing &#x27;John Smith&#x27;// search based on indexed valuesbase.search({$from : &#x27;People&#x27;, name: &#x27;Smith&#x27;}); // Returns the empty record set.// search based on text indexingbase.search({$from : &#x27;People&#x27;, nameText: &#x27;Smith&#x27;}); // Returns both records.base.close();</code></pre>
 </div>
 
     </section>
@@ -4373,28 +4168,25 @@ base.close();</code></pre>
         
     </dl>
 
-                <h3 id="~SchemaTimeWindowDefinition"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">SchemaTimeWindowDefinition</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><h3 id="~SchemaTimeWindowDefinition"><span class="symbol-name">SchemaTimeWindowDefinition</span><small class="property-type">
             &nbsp;Object</small></h3>
         <p>Stores can have a window, which is used by garbage collector to delete records once they
 fall out of the time window. Window can be defined by number of records or by time.
-Window defined by parameter window, its value being the number of records to be kept.</p>
+Window defined by parameter window, its value being the number of records to be kept.
+<br><b>Important:</b> <a href="module-qm.Base.html#garbageCollect">module:qm.Base#garbageCollect</a> must be called manually to remove records outside time window.</p>
 
         <section>
         <h4>
-            Example
+            Examples
         </h4>
                 <div>
-    <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
-// Create a store
-// var base = new qm.Base([{
-// ...
-//  timeWindow : { 
-//    duration : 12,
-//    unit : &quot;hour&quot;,
-//    field : &quot;DateTime&quot;
-//  }
-//}]);
-//base.close();</code></pre>
+        <p>Define window by number of records</p>
+    <pre class="prettyprint"><code>var qm &#x3D; require(&#x27;qminer&#x27;);// create basevar base &#x3D; new qm.Base({ mode: &#x27;createClean&#x27; });// create store with windowbase.createStore({    &quot;name&quot;: &quot;TestStore&quot;,    &quot;fields&quot;: [        { &quot;name&quot;: &quot;DateTime&quot;, &quot;type&quot;: &quot;datetime&quot; },        { &quot;name&quot;: &quot;Measurement&quot;, &quot;type&quot;: &quot;float&quot; }    ],    window: 3,});// push 5 records into created storefor (var i &#x3D; 0; i &lt; 5; i++) {    var rec &#x3D; {        &quot;DateTime&quot;: new Date().toISOString(),        &quot;Measurement&quot;: i    };    base.store(&quot;TestStore&quot;).push(rec);}// check number of records in storeconsole.log(base.store(&quot;TestStore&quot;).allRecords.length); // 5// clean base with garbage collectorbase.garbageCollect();// check number of records in storeconsole.log(base.store(&quot;TestStore&quot;).allRecords.length); // 3base.close();</code></pre>
+</div>
+
+                <div>
+        <p>Define window by time</p>
+    <pre class="prettyprint"><code>var qm &#x3D; require(&#x27;qminer&#x27;);// create basevar base &#x3D; new qm.Base({ mode: &#x27;createClean&#x27; });// create store with windowbase.createStore({    &quot;name&quot;: &quot;TestStore&quot;,    &quot;fields&quot;: [        { &quot;name&quot;: &quot;DateTime&quot;, &quot;type&quot;: &quot;datetime&quot; },        { &quot;name&quot;: &quot;Measurement&quot;, &quot;type&quot;: &quot;float&quot; }    ],    timeWindow: {        duration: 2,        unit: &quot;hour&quot;,        field: &quot;DateTime&quot;    }});// push 5 records into created storefor (var i &#x3D; 0; i &lt; 5; i++) {    var rec &#x3D; {        &quot;DateTime&quot;: new Date(new Date().getTime() + i * 60 * 60 * 1001).toISOString(),        &quot;Measurement&quot;: i    };    base.store(&quot;TestStore&quot;).push(rec);}// check number of records in storeconsole.log(base.store(&quot;TestStore&quot;).allRecords.length); // 5// clean base with garbage collectorbase.garbageCollect();// check number of records in storeconsole.log(base.store(&quot;TestStore&quot;).allRecords.length); // 2base.close();</code></pre>
 </div>
 
     </section>
@@ -4488,7 +4280,7 @@ Window defined by parameter window, its value being the number of records to be 
         
     </dl>
 
-                <h3 id="~StreamAggregateEMA"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggregateEMA</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><h3 id="~StreamAggregateEMA"><span class="symbol-name">StreamAggregateEMA</span><small class="property-type">
             &nbsp;module:qmStreamAggr</small></h3>
         <p>This stream aggregator represents the exponential moving average window buffer. It calculates the weighted moving average 
 of the values in the connected stream aggregator, where the weights are exponentially decreasing.  It implements the following methods:
@@ -4500,46 +4292,7 @@ of the values in the connected stream aggregator, where the weights are exponent
             Example
         </h4>
                 <div>
-    <pre class="prettyprint"><code>// import the qm module
-var qm = require(&#x27;qminer&#x27;);
-// create a base with a simple store
-var base = new qm.Base({
-   mode: &quot;createClean&quot;,
-   schema: [
-   {
-       name: &quot;Heat&quot;,
-       fields: [
-           { name: &quot;Celcius&quot;, type: &quot;float&quot; },
-           { name: &quot;Time&quot;, type: &quot;datetime&quot; }
-       ]
-   }]
-});
-
-// create a new time series tick stream aggregator for the &#x27;Heat&#x27; store, that takes the values from the &#x27;Celcius&#x27; field
-// and the timestamp from the &#x27;Time&#x27; field. The size of the window should be 1 hour.
-var timeser = {
-   name: &#x27;TimeSeriesAggr&#x27;,
-   type: &#x27;timeSeriesTick&#x27;,
-   store: &#x27;Heat&#x27;,
-   timestamp: &#x27;Time&#x27;,
-   value: &#x27;Celcius&#x27;,
-   winsize: 3600000
-};
-var timeSeries = base.store(&quot;Heat&quot;).addStreamAggr(timeser);
-
-// add an exponentional moving average aggregator, that is connected with the &#x27;TimeSeriesAggr&#x27; aggregator.
-// It should interpolate with the previous value, the decay should be 3 seconds and the initWindow should be 2 seconds.
-var ema = {
-   name: &#x27;emaAggr&#x27;,
-   type: &#x27;ema&#x27;,
-   store: &#x27;Heat&#x27;,
-   inAggr: &#x27;TimeSeriesAggr&#x27;,
-   emaType: &#x27;previous&#x27;,
-   interval: 3000,
-   initWindow: 2000
-};
-var expoMovingAverage = base.store(&quot;Heat&quot;).addStreamAggr(ema);
-base.close();</code></pre>
+    <pre class="prettyprint"><code>// import the qm modulevar qm &#x3D; require(&#x27;qminer&#x27;);// create a base with a simple storevar base &#x3D; new qm.Base({   mode: &quot;createClean&quot;,   schema: [   {       name: &quot;Heat&quot;,       fields: [           { name: &quot;Celcius&quot;, type: &quot;float&quot; },           { name: &quot;Time&quot;, type: &quot;datetime&quot; }       ]   }]});// create a new time series tick stream aggregator for the &#x27;Heat&#x27; store, that takes the values from the &#x27;Celcius&#x27; field// and the timestamp from the &#x27;Time&#x27; field. The size of the window should be 1 hour.var timeser &#x3D; {   name: &#x27;TimeSeriesAggr&#x27;,   type: &#x27;timeSeriesTick&#x27;,   store: &#x27;Heat&#x27;,   timestamp: &#x27;Time&#x27;,   value: &#x27;Celcius&#x27;,   winsize: 3600000};var timeSeries &#x3D; base.store(&quot;Heat&quot;).addStreamAggr(timeser);// add an exponentional moving average aggregator, that is connected with the &#x27;TimeSeriesAggr&#x27; aggregator.// It should interpolate with the previous value, the decay should be 3 seconds and the initWindow should be 2 seconds.var ema &#x3D; {   name: &#x27;emaAggr&#x27;,   type: &#x27;ema&#x27;,   store: &#x27;Heat&#x27;,   inAggr: &#x27;TimeSeriesAggr&#x27;,   emaType: &#x27;previous&#x27;,   interval: 3000,   initWindow: 2000};var expoMovingAverage &#x3D; base.store(&quot;Heat&quot;).addStreamAggr(ema);base.close();</code></pre>
 </div>
 
     </section>
@@ -4697,7 +4450,7 @@ It <b>cannot</b> connect to the module:qm~StreamAggr_TimeSeriesWindow.</p>
         
     </dl>
 
-                <h3 id="~StreamAggregateHistogram"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggregateHistogram</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><h3 id="~StreamAggregateHistogram"><span class="symbol-name">StreamAggregateHistogram</span><small class="property-type">
             &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
         <p>This stream aggregator represents an online histogram. It can connect to a buffered aggregate (such as <a href="module-qm.html#~StreamAggregateTimeSeriesWindow">module:qm~StreamAggregateTimeSeriesWindow</a>)
 or a time series (such as <a href="module-qm.html#~StreamAggregateEMA">module:qm~StreamAggregateEMA</a>).
@@ -4714,47 +4467,7 @@ It implements the following methods:
             Example
         </h4>
                 <div>
-    <pre class="prettyprint"><code>// import the qm module
-var qm = require(&#x27;qminer&#x27;);
-// create a base with a simple store
-var base = new qm.Base({
-   mode: &quot;createClean&quot;,
-   schema: [
-   {
-       name: &quot;Heat&quot;,
-       fields: [
-           { name: &quot;Celcius&quot;, type: &quot;float&quot; },
-           { name: &quot;Time&quot;, type: &quot;datetime&quot; }
-       ]
-   }]
-});
-
-// create a new time series stream aggregator for the &#x27;Heat&#x27; store, that takes the values from the &#x27;Celcius&#x27; field
-// and the timestamp from the &#x27;Time&#x27; field. The size of the window is 1 day.
-var timeser = {
-   name: &#x27;TimeSeriesBuffer&#x27;,
-   type: &#x27;timeSeriesWinBuf&#x27;,
-   store: &#x27;Heat&#x27;,
-   timestamp: &#x27;Time&#x27;,
-   value: &#x27;Celcius&#x27;,
-   winsize: 86400000 // one day in miliseconds
-};
-var timeSeries = base.store(&quot;Heat&quot;).addStreamAggr(timeser);
-
-// add a histogram aggregator, that is connected with the &#x27;TimeSeriesAggr&#x27; aggregator
-var aggrJson = {
-   name: &#x27;Histogram&#x27;,
-   type: &#x27;onlineHistogram&#x27;,
-   store: &#x27;Heat&#x27;,
-   inAggr: &#x27;TimeSeriesBuffer&#x27;,
-   lowerBound: 0,
-   upperBound: 10,
-   bins: 5,
-   addNegInf: false,
-   addPosInf: false
-};
-var hist = base.store(&quot;Heat&quot;).addStreamAggr(aggrJson);
-base.close();</code></pre>
+    <pre class="prettyprint"><code>// import the qm modulevar qm &#x3D; require(&#x27;qminer&#x27;);// create a base with a simple storevar base &#x3D; new qm.Base({   mode: &quot;createClean&quot;,   schema: [   {       name: &quot;Heat&quot;,       fields: [           { name: &quot;Celcius&quot;, type: &quot;float&quot; },           { name: &quot;Time&quot;, type: &quot;datetime&quot; }       ]   }]});// create a new time series stream aggregator for the &#x27;Heat&#x27; store, that takes the values from the &#x27;Celcius&#x27; field// and the timestamp from the &#x27;Time&#x27; field. The size of the window is 1 day.var timeser &#x3D; {   name: &#x27;TimeSeriesBuffer&#x27;,   type: &#x27;timeSeriesWinBuf&#x27;,   store: &#x27;Heat&#x27;,   timestamp: &#x27;Time&#x27;,   value: &#x27;Celcius&#x27;,   winsize: 86400000 // one day in miliseconds};var timeSeries &#x3D; base.store(&quot;Heat&quot;).addStreamAggr(timeser);// add a histogram aggregator, that is connected with the &#x27;TimeSeriesAggr&#x27; aggregatorvar aggrJson &#x3D; {   name: &#x27;Histogram&#x27;,   type: &#x27;onlineHistogram&#x27;,   store: &#x27;Heat&#x27;,   inAggr: &#x27;TimeSeriesBuffer&#x27;,   lowerBound: 0,   upperBound: 10,   bins: 5,   addNegInf: false,   addPosInf: false};var hist &#x3D; base.store(&quot;Heat&quot;).addStreamAggr(aggrJson);base.close();</code></pre>
 </div>
 
     </section>
@@ -4941,7 +4654,7 @@ base.close();</code></pre>
         
     </dl>
 
-                <h3 id="~StreamAggregateMax"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggregateMax</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><h3 id="~StreamAggregateMax"><span class="symbol-name">StreamAggregateMax</span><small class="property-type">
             &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
         <p>This stream aggregator represents the maximum moving window buffer. It monitors the maximal value in the connected stream aggregator. 
 It implements the following methods:
@@ -4953,42 +4666,7 @@ It implements the following methods:
             Example
         </h4>
                 <div>
-    <pre class="prettyprint"><code>// import the qm module
-var qm = require(&#x27;qminer&#x27;);
-// create a base with a simple store
-var base = new qm.Base({
-   mode: &quot;createClean&quot;,
-   schema: [
-   {
-       name: &quot;Heat&quot;,
-       fields: [
-           { name: &quot;Celcius&quot;, type: &quot;float&quot; },
-           { name: &quot;Time&quot;, type: &quot;datetime&quot; }
-       ]
-   }]
-});
-
-// create a new time series stream aggregator for the &#x27;Heat&#x27; store, that takes the values from the &#x27;Celcius&#x27; field
-// and the timestamp from the &#x27;Time&#x27; field. The size of the window is 1 day.
-var timeser = {
-   name: &#x27;TimeSeriesAggr&#x27;,
-   type: &#x27;timeSeriesWinBuf&#x27;,
-   store: &#x27;Heat&#x27;,
-   timestamp: &#x27;Time&#x27;,
-   value: &#x27;Celcius&#x27;,
-   winsize: 86400000 // one day in miliseconds
-};
-var timeSeries = base.store(&quot;Heat&quot;).addStreamAggr(timeser);
-
-// add a max aggregator, that is connected with the &#x27;TimeSeriesAggr&#x27; aggregator
-var max = {
-   name: &#x27;MaxAggr&#x27;,
-   type: &#x27;winBufMax&#x27;,
-   store: &#x27;Heat&#x27;,
-   inAggr: &#x27;TimeSeriesAggr&#x27;
-};
-var maximal = base.store(&quot;Heat&quot;).addStreamAggr(max);
-base.close();</code></pre>
+    <pre class="prettyprint"><code>// import the qm modulevar qm &#x3D; require(&#x27;qminer&#x27;);// create a base with a simple storevar base &#x3D; new qm.Base({   mode: &quot;createClean&quot;,   schema: [   {       name: &quot;Heat&quot;,       fields: [           { name: &quot;Celcius&quot;, type: &quot;float&quot; },           { name: &quot;Time&quot;, type: &quot;datetime&quot; }       ]   }]});// create a new time series stream aggregator for the &#x27;Heat&#x27; store, that takes the values from the &#x27;Celcius&#x27; field// and the timestamp from the &#x27;Time&#x27; field. The size of the window is 1 day.var timeser &#x3D; {   name: &#x27;TimeSeriesAggr&#x27;,   type: &#x27;timeSeriesWinBuf&#x27;,   store: &#x27;Heat&#x27;,   timestamp: &#x27;Time&#x27;,   value: &#x27;Celcius&#x27;,   winsize: 86400000 // one day in miliseconds};var timeSeries &#x3D; base.store(&quot;Heat&quot;).addStreamAggr(timeser);// add a max aggregator, that is connected with the &#x27;TimeSeriesAggr&#x27; aggregatorvar max &#x3D; {   name: &#x27;MaxAggr&#x27;,   type: &#x27;winBufMax&#x27;,   store: &#x27;Heat&#x27;,   inAggr: &#x27;TimeSeriesAggr&#x27;};var maximal &#x3D; base.store(&quot;Heat&quot;).addStreamAggr(max);base.close();</code></pre>
 </div>
 
     </section>
@@ -5097,7 +4775,7 @@ base.close();</code></pre>
         
     </dl>
 
-                <h3 id="~StreamAggregateMerger"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggregateMerger</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><h3 id="~StreamAggregateMerger"><span class="symbol-name">StreamAggregateMerger</span><small class="property-type">
             &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
         <p>This stream aggregator represents the merger aggregator. It merges records from two or more stores into a new store
 depending on the timestamp. No methods are implemented for this aggregator.</p>
@@ -5108,50 +4786,7 @@ depending on the timestamp. No methods are implemented for this aggregator.</p>
             Example
         </h4>
                 <div>
-    <pre class="prettyprint"><code>// import the qm module
-var qm = require(&#x27;qminer&#x27;);
-// create a base with a simple store
-var base = new qm.Base({
-   mode: &quot;createClean&quot;,
-   schema: [
-   {
-       name: &quot;Cars&quot;,
-       fields: [
-           { name: &quot;NumberOfCars&quot;, type: &quot;float&quot; },
-           { name: &quot;Time&quot;, type: &quot;datetime&quot; }
-       ]
-   },
-   {
-       name: &quot;Temperature&quot;,
-       fields: [
-           { name: &quot;Celcius&quot;, type: &quot;float&quot; },
-           { name: &quot;Time&quot;, type: &quot;datetime&quot; }
-       ]
-   },
-   {
-       name: &quot;Merged&quot;,
-       fields: [
-           { name: &quot;NumberOfCars&quot;, type: &quot;float&quot; },
-           { name: &quot;Celcius&quot;, type: &quot;float&quot; },
-           { name: &quot;Time&quot;, type: &quot;datetime&quot; }
-       ]
-   }]
-});
-// create a new merger stream aggregator that mergers the records of the &#x27;Cars&#x27; and &#x27;Temperature&#x27; stores.
-// The records are interpolated linearly and stored in the &#x27;Merged&#x27; store.
-var mer = {
-   name: &#x27;MergerAggr&#x27;,
-   type: &#x27;stmerger&#x27;,
-   outStore: &#x27;Merged&#x27;,
-   createStore: false,
-   timestamp: &#x27;Time&#x27;,
-   fields: [
-       { source: &#x27;Cars&#x27;, inField: &#x27;NumberOfCars&#x27;, outField: &#x27;NumberOfCars&#x27;, interpolation: &#x27;linear&#x27;, timestamp: &#x27;Time&#x27; },
-       { source: &#x27;Temperature&#x27;, inField: &#x27;Celcius&#x27;, outField: &#x27;Celcius&#x27;, interpolation: &#x27;linear&#x27;, timestamp: &#x27;Time&#x27; }
-   ]
-};
-var merger = new qm.StreamAggr(base, mer);
-base.close();</code></pre>
+    <pre class="prettyprint"><code>// import the qm modulevar qm &#x3D; require(&#x27;qminer&#x27;);// create a base with a simple storevar base &#x3D; new qm.Base({   mode: &quot;createClean&quot;,   schema: [   {       name: &quot;Cars&quot;,       fields: [           { name: &quot;NumberOfCars&quot;, type: &quot;float&quot; },           { name: &quot;Time&quot;, type: &quot;datetime&quot; }       ]   },   {       name: &quot;Temperature&quot;,       fields: [           { name: &quot;Celcius&quot;, type: &quot;float&quot; },           { name: &quot;Time&quot;, type: &quot;datetime&quot; }       ]   },   {       name: &quot;Merged&quot;,       fields: [           { name: &quot;NumberOfCars&quot;, type: &quot;float&quot; },           { name: &quot;Celcius&quot;, type: &quot;float&quot; },           { name: &quot;Time&quot;, type: &quot;datetime&quot; }       ]   }]});// create a new merger stream aggregator that mergers the records of the &#x27;Cars&#x27; and &#x27;Temperature&#x27; stores.// The records are interpolated linearly and stored in the &#x27;Merged&#x27; store.var mer &#x3D; {   name: &#x27;MergerAggr&#x27;,   type: &#x27;stmerger&#x27;,   outStore: &#x27;Merged&#x27;,   createStore: false,   timestamp: &#x27;Time&#x27;,   fields: [       { source: &#x27;Cars&#x27;, inField: &#x27;NumberOfCars&#x27;, outField: &#x27;NumberOfCars&#x27;, interpolation: &#x27;linear&#x27;, timestamp: &#x27;Time&#x27; },       { source: &#x27;Temperature&#x27;, inField: &#x27;Celcius&#x27;, outField: &#x27;Celcius&#x27;, interpolation: &#x27;linear&#x27;, timestamp: &#x27;Time&#x27; }   ]};var merger &#x3D; new qm.StreamAggr(base, mer);base.close();</code></pre>
 </div>
 
     </section>
@@ -5295,7 +4930,7 @@ base.close();</code></pre>
         
     </dl>
 
-                <h3 id="~StreamAggregateMin"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggregateMin</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><h3 id="~StreamAggregateMin"><span class="symbol-name">StreamAggregateMin</span><small class="property-type">
             &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
         <p>This stream aggregator represents the minimum moving window buffer. It monitors the minimal value in the connected stream aggregator.
 It implements the following methods:
@@ -5307,42 +4942,7 @@ It implements the following methods:
             Example
         </h4>
                 <div>
-    <pre class="prettyprint"><code>// import the qm module
-var qm = require(&#x27;qminer&#x27;);
-// create a base with a simple store
-var base = new qm.Base({
-   mode: &quot;createClean&quot;,
-   schema: [
-   {
-       name: &quot;Heat&quot;,
-       fields: [
-           { name: &quot;Celcius&quot;, type: &quot;float&quot; },
-           { name: &quot;Time&quot;, type: &quot;datetime&quot; }
-       ]
-   }]
-});
-
-// create a new time series stream aggregator for the &#x27;Heat&#x27; store, that takes the values from the &#x27;Celcius&#x27; field
-// and the timestamp from the &#x27;Time&#x27; field. The size of the window is 1 day.
-var timeser = {
-   name: &#x27;TimeSeriesAggr&#x27;,
-   type: &#x27;timeSeriesWinBuf&#x27;,
-   store: &#x27;Heat&#x27;,
-   timestamp: &#x27;Time&#x27;,
-   value: &#x27;Celcius&#x27;,
-   winsize: 86400000 // 1 day in miliseconds
-};
-var timeSeries = base.store(&quot;Heat&quot;).addStreamAggr(timeser);
-
-// add a min aggregator, that is connected with the &#x27;TimeSeriesAggr&#x27; aggregator
-var min = {
-   name: &#x27;MinAggr&#x27;,
-   type: &#x27;winBufMin&#x27;,
-   store: &#x27;Heat&#x27;,
-   inAggr: &#x27;TimeSeriesAggr&#x27;
-};
-var minimal = base.store(&quot;Heat&quot;).addStreamAggr(min);
-base.close();</code></pre>
+    <pre class="prettyprint"><code>// import the qm modulevar qm &#x3D; require(&#x27;qminer&#x27;);// create a base with a simple storevar base &#x3D; new qm.Base({   mode: &quot;createClean&quot;,   schema: [   {       name: &quot;Heat&quot;,       fields: [           { name: &quot;Celcius&quot;, type: &quot;float&quot; },           { name: &quot;Time&quot;, type: &quot;datetime&quot; }       ]   }]});// create a new time series stream aggregator for the &#x27;Heat&#x27; store, that takes the values from the &#x27;Celcius&#x27; field// and the timestamp from the &#x27;Time&#x27; field. The size of the window is 1 day.var timeser &#x3D; {   name: &#x27;TimeSeriesAggr&#x27;,   type: &#x27;timeSeriesWinBuf&#x27;,   store: &#x27;Heat&#x27;,   timestamp: &#x27;Time&#x27;,   value: &#x27;Celcius&#x27;,   winsize: 86400000 // 1 day in miliseconds};var timeSeries &#x3D; base.store(&quot;Heat&quot;).addStreamAggr(timeser);// add a min aggregator, that is connected with the &#x27;TimeSeriesAggr&#x27; aggregatorvar min &#x3D; {   name: &#x27;MinAggr&#x27;,   type: &#x27;winBufMin&#x27;,   store: &#x27;Heat&#x27;,   inAggr: &#x27;TimeSeriesAggr&#x27;};var minimal &#x3D; base.store(&quot;Heat&quot;).addStreamAggr(min);base.close();</code></pre>
 </div>
 
     </section>
@@ -5451,7 +5051,7 @@ base.close();</code></pre>
         
     </dl>
 
-                <h3 id="~StreamAggregateMovingAverage"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggregateMovingAverage</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><h3 id="~StreamAggregateMovingAverage"><span class="symbol-name">StreamAggregateMovingAverage</span><small class="property-type">
             &nbsp;module:qmStreamAggr</small></h3>
         <p>This stream aggregator represents the moving average window buffer. It calculates the moving average value of the connected stream aggregator values.
 It implements the following methods:
@@ -5463,42 +5063,7 @@ It implements the following methods:
             Example
         </h4>
                 <div>
-    <pre class="prettyprint"><code>// import the qm module
-var qm = require(&#x27;qminer&#x27;);
-// create a base with a simple store
-var base = new qm.Base({
-   mode: &quot;createClean&quot;,
-   schema: [
-   {
-       name: &quot;Heat&quot;,
-       fields: [
-           { name: &quot;Celcius&quot;, type: &quot;float&quot; },
-           { name: &quot;Time&quot;, type: &quot;datetime&quot; }
-       ]
-   }]
-});
-
-// create a new time series stream aggregator for the &#x27;Heat&#x27; store, that takes the values from the &#x27;Celcius&#x27; field
-// and the timestamp from the &#x27;Time&#x27; field. The size of the window should be 1 day.
-var timeser = {
-   name: &#x27;TimeSeriesAggr&#x27;,
-   type: &#x27;timeSeriesWinBuf&#x27;,
-   store: &#x27;Heat&#x27;,
-   timestamp: &#x27;Time&#x27;,
-   value: &#x27;Celcius&#x27;,
-   winsize: 86400000
-};
-var timeSeries = base.store(&quot;Heat&quot;).addStreamAggr(timeser);
-
-// add a moving average aggregator, that is connected with the &#x27;TimeSeriesAggr&#x27; aggregator
-var ma = {
-   name: &#x27;movingAverageAggr&#x27;,
-   type: &#x27;ma&#x27;,
-   store: &#x27;Heat&#x27;,
-   inAggr: &#x27;TimeSeriesAggr&#x27;
-};
-var movingAverage = base.store(&quot;Heat&quot;).addStreamAggr(ma);
-base.close();</code></pre>
+    <pre class="prettyprint"><code>// import the qm modulevar qm &#x3D; require(&#x27;qminer&#x27;);// create a base with a simple storevar base &#x3D; new qm.Base({   mode: &quot;createClean&quot;,   schema: [   {       name: &quot;Heat&quot;,       fields: [           { name: &quot;Celcius&quot;, type: &quot;float&quot; },           { name: &quot;Time&quot;, type: &quot;datetime&quot; }       ]   }]});// create a new time series stream aggregator for the &#x27;Heat&#x27; store, that takes the values from the &#x27;Celcius&#x27; field// and the timestamp from the &#x27;Time&#x27; field. The size of the window should be 1 day.var timeser &#x3D; {   name: &#x27;TimeSeriesAggr&#x27;,   type: &#x27;timeSeriesWinBuf&#x27;,   store: &#x27;Heat&#x27;,   timestamp: &#x27;Time&#x27;,   value: &#x27;Celcius&#x27;,   winsize: 86400000};var timeSeries &#x3D; base.store(&quot;Heat&quot;).addStreamAggr(timeser);// add a moving average aggregator, that is connected with the &#x27;TimeSeriesAggr&#x27; aggregatorvar ma &#x3D; {   name: &#x27;movingAverageAggr&#x27;,   type: &#x27;ma&#x27;,   store: &#x27;Heat&#x27;,   inAggr: &#x27;TimeSeriesAggr&#x27;};var movingAverage &#x3D; base.store(&quot;Heat&quot;).addStreamAggr(ma);base.close();</code></pre>
 </div>
 
     </section>
@@ -5607,7 +5172,7 @@ base.close();</code></pre>
         
     </dl>
 
-                <h3 id="~StreamAggregateMovingCorrelation"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggregateMovingCorrelation</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><h3 id="~StreamAggregateMovingCorrelation"><span class="symbol-name">StreamAggregateMovingCorrelation</span><small class="property-type">
             &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
         <p>This stream aggregator represents the moving covariance window buffer. It calculates the moving correlation of the three stream aggregators,
 that it's connected to. It implements the following methods:
@@ -5619,79 +5184,7 @@ that it's connected to. It implements the following methods:
             Example
         </h4>
                 <div>
-    <pre class="prettyprint"><code>// import the qm module
-var qm = require(&#x27;qminer&#x27;);
-// create a base with a simple store
-var base = new qm.Base({
-   mode: &quot;createClean&quot;,
-   schema: [
-   {
-       name: &quot;Heat&quot;,
-       fields: [
-           { name: &quot;Celcius&quot;, type: &quot;float&quot; },
-           { name: &quot;WaterConsumption&quot;, type: &quot;float&quot; },
-           { name: &quot;Time&quot;, type: &quot;datetime&quot; }
-       ]
-   }]
-});
-
-// create a new time series stream aggregator for the &#x27;Heat&#x27; store, that takes the values from the &#x27;Celcius&#x27; field
-// and the timestamp from the &#x27;Time&#x27; field. The size of the window is 1 day.
-var celcius = {
-   name: &#x27;CelciusAggr&#x27;,
-   type: &#x27;timeSeriesWinBuf&#x27;,
-   store: &#x27;Heat&#x27;,
-   timestamp: &#x27;Time&#x27;,
-   value: &#x27;Celcius&#x27;,
-   winsize: 86400000
-}; base.store(&quot;Heat&quot;).addStreamAggr(celcius);
-
-// create a new time series stream aggregator for the &#x27;Heat&#x27; store, that takes the values from the &#x27;WaterConsumption&#x27; field
-// and the timestamp from the &#x27;Time&#x27; field. The size of the window is 1 day.
-var water = {
-   name: &#x27;WaterAggr&#x27;,
-   type: &#x27;timeSeriesWinBuf&#x27;,
-   store: &#x27;Heat&#x27;,
-   timestamp: &#x27;Time&#x27;,
-   value: &#x27;WaterConsumption&#x27;,
-   winsize: 86400000
-}; base.store(&quot;Heat&quot;).addStreamAggr(water);
-
-// add a covariance aggregator, that is connected with the &#x27;CelciusAggr&#x27; and &#x27;WaterAggr&#x27; aggregators
-var covariance = {
-   name: &#x27;covarianceAggr&#x27;,
-   type: &#x27;covariance&#x27;,
-   store: &#x27;Heat&#x27;,
-   inAggrX: &#x27;CelciusAggr&#x27;,
-   inAggrY: &#x27;WaterAggr&#x27;
-}; base.store(&quot;Heat&quot;).addStreamAggr(covariance);
-
-// add the two variance aggregators, that take from the &#x27;Celcius&#x27; and &#x27;WaterConsumption&#x27; fields, respectively.
-var celVar = {
-   name: &#x27;celciusVarAggr&#x27;,
-   type: &#x27;variance&#x27;,
-   store: &#x27;Heat&#x27;,
-   inAggr: &#x27;CelciusAggr&#x27;
-}; base.store(&quot;Heat&quot;).addStreamAggr(celVar);
-
-var waterVar = {
-   name: &#x27;waterVarAggr&#x27;,
-   type: &#x27;variance&#x27;,
-   store: &#x27;Heat&#x27;,
-   inAggr: &#x27;WaterAggr&#x27;
-}; base.store(&quot;Heat&quot;).addStreamAggr(waterVar);
-
-// add a correlation aggregator, that is connected to &#x27;CovarianceAggr&#x27;, &#x27;CelciusVarAggr&#x27; and &#x27;WaterValAggr&#x27; aggregators
-var corr = {
-   name: &#x27;corrAggr&#x27;,
-   type: &#x27;correlation&#x27;,
-   store: &#x27;Heat&#x27;,
-   inAggrCov: &#x27;covarianceAggr&#x27;,
-   inAggrVarX: &#x27;celciusVarAggr&#x27;,
-   inAggrVarY: &#x27;waterVarAggr&#x27;
-};
-var correlation = base.store(&quot;Heat&quot;).addStreamAggr(corr);
-base.close();</code></pre>
+    <pre class="prettyprint"><code>// import the qm modulevar qm &#x3D; require(&#x27;qminer&#x27;);// create a base with a simple storevar base &#x3D; new qm.Base({   mode: &quot;createClean&quot;,   schema: [   {       name: &quot;Heat&quot;,       fields: [           { name: &quot;Celcius&quot;, type: &quot;float&quot; },           { name: &quot;WaterConsumption&quot;, type: &quot;float&quot; },           { name: &quot;Time&quot;, type: &quot;datetime&quot; }       ]   }]});// create a new time series stream aggregator for the &#x27;Heat&#x27; store, that takes the values from the &#x27;Celcius&#x27; field// and the timestamp from the &#x27;Time&#x27; field. The size of the window is 1 day.var celcius &#x3D; {   name: &#x27;CelciusAggr&#x27;,   type: &#x27;timeSeriesWinBuf&#x27;,   store: &#x27;Heat&#x27;,   timestamp: &#x27;Time&#x27;,   value: &#x27;Celcius&#x27;,   winsize: 86400000}; base.store(&quot;Heat&quot;).addStreamAggr(celcius);// create a new time series stream aggregator for the &#x27;Heat&#x27; store, that takes the values from the &#x27;WaterConsumption&#x27; field// and the timestamp from the &#x27;Time&#x27; field. The size of the window is 1 day.var water &#x3D; {   name: &#x27;WaterAggr&#x27;,   type: &#x27;timeSeriesWinBuf&#x27;,   store: &#x27;Heat&#x27;,   timestamp: &#x27;Time&#x27;,   value: &#x27;WaterConsumption&#x27;,   winsize: 86400000}; base.store(&quot;Heat&quot;).addStreamAggr(water);// add a covariance aggregator, that is connected with the &#x27;CelciusAggr&#x27; and &#x27;WaterAggr&#x27; aggregatorsvar covariance &#x3D; {   name: &#x27;covarianceAggr&#x27;,   type: &#x27;covariance&#x27;,   store: &#x27;Heat&#x27;,   inAggrX: &#x27;CelciusAggr&#x27;,   inAggrY: &#x27;WaterAggr&#x27;}; base.store(&quot;Heat&quot;).addStreamAggr(covariance);// add the two variance aggregators, that take from the &#x27;Celcius&#x27; and &#x27;WaterConsumption&#x27; fields, respectively.var celVar &#x3D; {   name: &#x27;celciusVarAggr&#x27;,   type: &#x27;variance&#x27;,   store: &#x27;Heat&#x27;,   inAggr: &#x27;CelciusAggr&#x27;}; base.store(&quot;Heat&quot;).addStreamAggr(celVar);var waterVar &#x3D; {   name: &#x27;waterVarAggr&#x27;,   type: &#x27;variance&#x27;,   store: &#x27;Heat&#x27;,   inAggr: &#x27;WaterAggr&#x27;}; base.store(&quot;Heat&quot;).addStreamAggr(waterVar);// add a correlation aggregator, that is connected to &#x27;CovarianceAggr&#x27;, &#x27;CelciusVarAggr&#x27; and &#x27;WaterValAggr&#x27; aggregatorsvar corr &#x3D; {   name: &#x27;corrAggr&#x27;,   type: &#x27;correlation&#x27;,   store: &#x27;Heat&#x27;,   inAggrCov: &#x27;covarianceAggr&#x27;,   inAggrVarX: &#x27;celciusVarAggr&#x27;,   inAggrVarY: &#x27;waterVarAggr&#x27;};var correlation &#x3D; base.store(&quot;Heat&quot;).addStreamAggr(corr);base.close();</code></pre>
 </div>
 
     </section>
@@ -5830,7 +5323,7 @@ base.close();</code></pre>
         
     </dl>
 
-                <h3 id="~StreamAggregateMovingCovariance"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggregateMovingCovariance</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><h3 id="~StreamAggregateMovingCovariance"><span class="symbol-name">StreamAggregateMovingCovariance</span><small class="property-type">
             &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
         <p>This stream aggregator represents the moving covariance window buffer. It calculates the moving covariance of the two stream aggregators, that it's connected to.
 It implements the following methods:
@@ -5842,54 +5335,7 @@ It implements the following methods:
             Example
         </h4>
                 <div>
-    <pre class="prettyprint"><code>// import the qm module
-var qm = require(&#x27;qminer&#x27;);
-// create a base with a simple store
-var base = new qm.Base({
-   mode: &quot;createClean&quot;,
-   schema: [
-   {
-       name: &quot;Heat&quot;,
-       fields: [
-           { name: &quot;Celcius&quot;, type: &quot;float&quot; },
-           { name: &quot;WaterConsumption&quot;, type: &quot;float&quot; },
-           { name: &quot;Time&quot;, type: &quot;datetime&quot; }
-       ]
-   }]
-});
-
-// create a new time series stream aggregator for the &#x27;Heat&#x27; store, that takes the values from the &#x27;Celcius&#x27; field
-// and the timestamp from the &#x27;Time&#x27; field. The size of the window is 1 day.
-var celcius = {
-   name: &#x27;CelciusAggr&#x27;,
-   type: &#x27;timeSeriesWinBuf&#x27;,
-   store: &#x27;Heat&#x27;,
-   timestamp: &#x27;Time&#x27;,
-   value: &#x27;Celcius&#x27;,
-   winsize: 86400000
-}; base.store(&quot;Heat&quot;).addStreamAggr(celcius);
-
-// create a new time series stream aggregator for the &#x27;Heat&#x27; store, that takes the values from the &#x27;WaterConsumption&#x27; field
-// and the timestamp from the &#x27;Time&#x27; field. The size of the window is 1 day.
-var water = {
-   name: &#x27;WaterAggr&#x27;,
-   type: &#x27;timeSeriesWinBuf&#x27;,
-   store: &#x27;Heat&#x27;,
-   timestamp: &#x27;Time&#x27;,
-   value: &#x27;WaterConsumption&#x27;,
-   winsize: 86400000
-}; base.store(&quot;Heat&quot;).addStreamAggr(water);
-
-// add a covariance aggregator, that is connected with the &#x27;CelciusAggr&#x27; and &#x27;WaterAggr&#x27; stream aggregators
-var covariance = {
-   name: &#x27;covAggr&#x27;,
-   type: &#x27;covariance&#x27;,
-   store: &#x27;Heat&#x27;,
-   inAggrX: &#x27;CelciusAggr&#x27;,
-   inAggrY: &#x27;WaterAggr&#x27;
-};
-var covarianceAggr = base.store(&quot;Heat&quot;).addStreamAggr(covariance);
-base.close();</code></pre>
+    <pre class="prettyprint"><code>// import the qm modulevar qm &#x3D; require(&#x27;qminer&#x27;);// create a base with a simple storevar base &#x3D; new qm.Base({   mode: &quot;createClean&quot;,   schema: [   {       name: &quot;Heat&quot;,       fields: [           { name: &quot;Celcius&quot;, type: &quot;float&quot; },           { name: &quot;WaterConsumption&quot;, type: &quot;float&quot; },           { name: &quot;Time&quot;, type: &quot;datetime&quot; }       ]   }]});// create a new time series stream aggregator for the &#x27;Heat&#x27; store, that takes the values from the &#x27;Celcius&#x27; field// and the timestamp from the &#x27;Time&#x27; field. The size of the window is 1 day.var celcius &#x3D; {   name: &#x27;CelciusAggr&#x27;,   type: &#x27;timeSeriesWinBuf&#x27;,   store: &#x27;Heat&#x27;,   timestamp: &#x27;Time&#x27;,   value: &#x27;Celcius&#x27;,   winsize: 86400000}; base.store(&quot;Heat&quot;).addStreamAggr(celcius);// create a new time series stream aggregator for the &#x27;Heat&#x27; store, that takes the values from the &#x27;WaterConsumption&#x27; field// and the timestamp from the &#x27;Time&#x27; field. The size of the window is 1 day.var water &#x3D; {   name: &#x27;WaterAggr&#x27;,   type: &#x27;timeSeriesWinBuf&#x27;,   store: &#x27;Heat&#x27;,   timestamp: &#x27;Time&#x27;,   value: &#x27;WaterConsumption&#x27;,   winsize: 86400000}; base.store(&quot;Heat&quot;).addStreamAggr(water);// add a covariance aggregator, that is connected with the &#x27;CelciusAggr&#x27; and &#x27;WaterAggr&#x27; stream aggregatorsvar covariance &#x3D; {   name: &#x27;covAggr&#x27;,   type: &#x27;covariance&#x27;,   store: &#x27;Heat&#x27;,   inAggrX: &#x27;CelciusAggr&#x27;,   inAggrY: &#x27;WaterAggr&#x27;};var covarianceAggr &#x3D; base.store(&quot;Heat&quot;).addStreamAggr(covariance);base.close();</code></pre>
 </div>
 
     </section>
@@ -6013,7 +5459,7 @@ base.close();</code></pre>
         
     </dl>
 
-                <h3 id="~StreamAggregateMovingVariance"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggregateMovingVariance</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><h3 id="~StreamAggregateMovingVariance"><span class="symbol-name">StreamAggregateMovingVariance</span><small class="property-type">
             &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
         <p>This stream aggregator represents the moving variance window buffer. It calculates the moving variance of the stream aggregator, that it's connected to. 
 It implements the following methods:
@@ -6025,42 +5471,7 @@ It implements the following methods:
             Example
         </h4>
                 <div>
-    <pre class="prettyprint"><code>// import the qm module
-var qm = require(&#x27;qminer&#x27;);
-// create a base with a simple store
-var base = new qm.Base({
-   mode: &quot;createClean&quot;,
-   schema: [
-   {
-       name: &quot;Heat&quot;,
-       fields: [
-           { name: &quot;Celcius&quot;, type: &quot;float&quot; },
-           { name: &quot;Time&quot;, type: &quot;datetime&quot; }
-       ]
-   }]
-});
-
-// create a new time series stream aggregator for the &#x27;Heat&#x27; store, that takes the values from the &#x27;Celcius&#x27; field
-// and the timestamp from the &#x27;Time&#x27; field. The size of the window is 1 day.
-var timeser = {
-   name: &#x27;TimeSeriesAggr&#x27;,
-   type: &#x27;timeSeriesWinBuf&#x27;,
-   store: &#x27;Heat&#x27;,
-   timestamp: &#x27;Time&#x27;,
-   value: &#x27;Celcius&#x27;,
-   winsize: 86400000
-};
-var timeSeries = base.store(&quot;Heat&quot;).addStreamAggr(timeser);
-
-// add a variance aggregator, that is connected with the &#x27;TimeSeriesAggr&#x27; aggregator
-var variance = {
-   name: &#x27;varAggr&#x27;,
-   type: &#x27;variance&#x27;,
-   store: &#x27;Heat&#x27;,
-   inAggr: &#x27;TimeSeriesAggr&#x27;
-};
-var varianceAggr = base.store(&quot;Heat&quot;).addStreamAggr(variance);
-base.close();</code></pre>
+    <pre class="prettyprint"><code>// import the qm modulevar qm &#x3D; require(&#x27;qminer&#x27;);// create a base with a simple storevar base &#x3D; new qm.Base({   mode: &quot;createClean&quot;,   schema: [   {       name: &quot;Heat&quot;,       fields: [           { name: &quot;Celcius&quot;, type: &quot;float&quot; },           { name: &quot;Time&quot;, type: &quot;datetime&quot; }       ]   }]});// create a new time series stream aggregator for the &#x27;Heat&#x27; store, that takes the values from the &#x27;Celcius&#x27; field// and the timestamp from the &#x27;Time&#x27; field. The size of the window is 1 day.var timeser &#x3D; {   name: &#x27;TimeSeriesAggr&#x27;,   type: &#x27;timeSeriesWinBuf&#x27;,   store: &#x27;Heat&#x27;,   timestamp: &#x27;Time&#x27;,   value: &#x27;Celcius&#x27;,   winsize: 86400000};var timeSeries &#x3D; base.store(&quot;Heat&quot;).addStreamAggr(timeser);// add a variance aggregator, that is connected with the &#x27;TimeSeriesAggr&#x27; aggregatorvar variance &#x3D; {   name: &#x27;varAggr&#x27;,   type: &#x27;variance&#x27;,   store: &#x27;Heat&#x27;,   inAggr: &#x27;TimeSeriesAggr&#x27;};var varianceAggr &#x3D; base.store(&quot;Heat&quot;).addStreamAggr(variance);base.close();</code></pre>
 </div>
 
     </section>
@@ -6169,7 +5580,111 @@ base.close();</code></pre>
         
     </dl>
 
-                <h3 id="~StreamAggregateResampler"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggregateResampler</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><h3 id="~StreamAggregateRecordBuffer"><span class="symbol-name">StreamAggregateRecordBuffer</span><small class="property-type">
+            &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
+        <p>This stream aggregator represents record buffer. It stores the values inside a moving window.
+It implements all the methods of <b>except</b> <a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a>, <a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a>.</p>
+
+        <section>
+        <h4>
+            Example
+        </h4>
+                <div>
+    <pre class="prettyprint"><code>// import the qm modulevar qm &#x3D; require(&#x27;qminer&#x27;);// create a base with a simple storevar base &#x3D; new qm.Base({   mode: &quot;createClean&quot;,   schema: [   {       name: &quot;Heat&quot;,       fields: [           { name: &quot;Celcius&quot;, type: &quot;float&quot; },           { name: &quot;Time&quot;, type: &quot;datetime&quot; }       ]   }]});// create a new time series stream aggregator for the &#x27;Heat&#x27; store. The size of the window is 3 records.var aggr &#x3D; {   name: &#x27;Delay&#x27;,   type: &#x27;recordBuffer&#x27;,   size: 3};base.store(&quot;Heat&quot;).addStreamAggr(aggr);base.close();</code></pre>
+</div>
+
+    </section>
+
+    
+        <section>
+        <h4>Properties</h4>
+            <table class="jsdoc-details-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Optional</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+                <tr>
+        <td>
+            <p>StreamAggregateTimeSeriesWindow.name</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The given name of the stream aggregator.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>StreamAggregateTimeSeriesWindow.type</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The type of the stream aggregator. It must be equal to <b>'recordBuffer'</b>.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>StreamAggregateTimeSeriesWindow.size</p>
+        </td>
+        <td>
+                <p>number</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The size of the window.</p>
+        </td>
+</tr>
+
+        </tbody>
+</table>
+
+    </section>
+
+
+    <dl class="dl-compact">
+        
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+        
+        
+        
+        
+        
+    </dl>
+
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><h3 id="~StreamAggregateResampler"><span class="symbol-name">StreamAggregateResampler</span><small class="property-type">
             &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
         <p>This stream aggregator represents the resampler window buffer. It creates new values that are interpolated by using the values from an existing store.
 No methods are implemented for this aggregator.</p>
@@ -6179,45 +5694,7 @@ No methods are implemented for this aggregator.</p>
             Example
         </h4>
                 <div>
-    <pre class="prettyprint"><code>// import the qm module
-var qm = require(&#x27;qminer&#x27;);
-// create a base with a simple store
-var base = new qm.Base({
-   mode: &quot;createClean&quot;,
-   schema: [
-   {
-       name: &quot;Heat&quot;,
-       fields: [
-           { name: &quot;Celcius&quot;, type: &quot;float&quot; },
-           { name: &quot;Time&quot;, type: &quot;datetime&quot; }
-       ]
-   },
-   {
-       name: &quot;interpolatedValues&quot;,
-       fields: [
-           { name: &quot;Value&quot;, type: &quot;float&quot; },
-           { name: &quot;Time&quot;, type: &quot;datetime&quot; }
-       ]
-   }]
-});
-// create a new resampler stream aggregator for the &#x27;Heat&#x27; store, that takes the values from the &#x27;Celcius&#x27; field
-// and the timestamp from the &#x27;Time&#x27; field. The interpolated values are stored in the &#x27;interpolatedValues&#x27; store.
-// The interpolation should be linear and the interval should be 2 seconds.
-var res = {
-   name: &#x27;resamplerAggr&#x27;,
-   type: &#x27;resampler&#x27;,
-   store: &#x27;Heat&#x27;,
-   outStore: &#x27;interpolatedValues&#x27;,
-   timestamp: &#x27;Time&#x27;,
-   fields: [{
-       name: &#x27;Celcius&#x27;,
-       interpolator: &#x27;linear&#x27;
-   }],
-   createStore: false,
-   interval: 2000
-};
-var resampler = base.store(&quot;Heat&quot;).addStreamAggr(res);
-base.close();</code></pre>
+    <pre class="prettyprint"><code>// import the qm modulevar qm &#x3D; require(&#x27;qminer&#x27;);// create a base with a simple storevar base &#x3D; new qm.Base({   mode: &quot;createClean&quot;,   schema: [   {       name: &quot;Heat&quot;,       fields: [           { name: &quot;Celcius&quot;, type: &quot;float&quot; },           { name: &quot;Time&quot;, type: &quot;datetime&quot; }       ]   },   {       name: &quot;interpolatedValues&quot;,       fields: [           { name: &quot;Value&quot;, type: &quot;float&quot; },           { name: &quot;Time&quot;, type: &quot;datetime&quot; }       ]   }]});// create a new resampler stream aggregator for the &#x27;Heat&#x27; store, that takes the values from the &#x27;Celcius&#x27; field// and the timestamp from the &#x27;Time&#x27; field. The interpolated values are stored in the &#x27;interpolatedValues&#x27; store.// The interpolation should be linear and the interval should be 2 seconds.var res &#x3D; {   name: &#x27;resamplerAggr&#x27;,   type: &#x27;resampler&#x27;,   store: &#x27;Heat&#x27;,   outStore: &#x27;interpolatedValues&#x27;,   timestamp: &#x27;Time&#x27;,   fields: [{       name: &#x27;Celcius&#x27;,       interpolator: &#x27;linear&#x27;   }],   createStore: false,   interval: 2000};var resampler &#x3D; base.store(&quot;Heat&quot;).addStreamAggr(res);base.close();</code></pre>
 </div>
 
     </section>
@@ -6389,7 +5866,7 @@ base.close();</code></pre>
         
     </dl>
 
-                <h3 id="~StreamAggregateSlottedHistogram"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggregateSlottedHistogram</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><h3 id="~StreamAggregateSlottedHistogram"><span class="symbol-name">StreamAggregateSlottedHistogram</span><small class="property-type">
             &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
         <p>This stream aggregator represents an online slotted histogram. It can connect to a buffered aggregate (such as <a href="module-qm.html#~StreamAggregateTimeSeriesWindow">module:qm~StreamAggregateTimeSeriesWindow</a>)
 or a time series (such as <a href="module-qm.html#~StreamAggregateEMA">module:qm~StreamAggregateEMA</a>). 
@@ -6407,47 +5884,7 @@ It implements the following methods:
             Example
         </h4>
                 <div>
-    <pre class="prettyprint"><code>// import the qm module
-var qm = require(&#x27;qminer&#x27;);
-// create a base with a simple store
-var base = new qm.Base({
-   mode: &quot;createClean&quot;,
-   schema: [
-   {
-       name: &quot;Heat&quot;,
-       fields: [
-           { name: &quot;Celcius&quot;, type: &quot;float&quot; },
-           { name: &quot;Time&quot;, type: &quot;datetime&quot; }
-       ]
-   }]
-});
-
-// create a new time series stream aggregator for the &#x27;Heat&#x27; store, that takes the values from the &#x27;Celcius&#x27; field
-// and the timestamp from the &#x27;Time&#x27; field. The size of the window is 4 weeks.
-var timeser = {
-   name: &#x27;TimeSeriesBuffer&#x27;,
-   type: &#x27;timeSeriesWinBuf&#x27;,
-   store: &#x27;Heat&#x27;,
-   timestamp: &#x27;Time&#x27;,
-   value: &#x27;Celcius&#x27;,
-   winsize: 2419200000 // 4 weeks
-};
-var timeSeries = base.store(&quot;Heat&quot;).addStreamAggr(timeser);
-
-// add a slotted-histogram aggregator, that is connected with the &#x27;TimeSeriesAggr&#x27; aggregator
-// it will present accumulated histogram for the last 2 hours (window) of the week (period) for the last 4 weeks (see aggregate above)
-var aggrJson = {
-   name: &#x27;Histogram&#x27;,
-   type: &#x27;onlineSlottedHistogram&#x27;,
-   store: &#x27;Heat&#x27;,
-   inAggr: &#x27;TimeSeriesBuffer&#x27;,
-   period: 604800000, // 1 week
-   window: 7200000, // 2h
-   bins: 5, // 5 possible clusters
-   granularity: 300000  // 5 min
-};
-var hist = base.store(&quot;Heat&quot;).addStreamAggr(aggrJson);
-base.close();</code></pre>
+    <pre class="prettyprint"><code>// import the qm modulevar qm &#x3D; require(&#x27;qminer&#x27;);// create a base with a simple storevar base &#x3D; new qm.Base({   mode: &quot;createClean&quot;,   schema: [   {       name: &quot;Heat&quot;,       fields: [           { name: &quot;Celcius&quot;, type: &quot;float&quot; },           { name: &quot;Time&quot;, type: &quot;datetime&quot; }       ]   }]});// create a new time series stream aggregator for the &#x27;Heat&#x27; store, that takes the values from the &#x27;Celcius&#x27; field// and the timestamp from the &#x27;Time&#x27; field. The size of the window is 4 weeks.var timeser &#x3D; {   name: &#x27;TimeSeriesBuffer&#x27;,   type: &#x27;timeSeriesWinBuf&#x27;,   store: &#x27;Heat&#x27;,   timestamp: &#x27;Time&#x27;,   value: &#x27;Celcius&#x27;,   winsize: 2419200000 // 4 weeks};var timeSeries &#x3D; base.store(&quot;Heat&quot;).addStreamAggr(timeser);// add a slotted-histogram aggregator, that is connected with the &#x27;TimeSeriesAggr&#x27; aggregator// it will present accumulated histogram for the last 2 hours (window) of the week (period) for the last 4 weeks (see aggregate above)var aggrJson &#x3D; {   name: &#x27;Histogram&#x27;,   type: &#x27;onlineSlottedHistogram&#x27;,   store: &#x27;Heat&#x27;,   inAggr: &#x27;TimeSeriesBuffer&#x27;,   period: 604800000, // 1 week   window: 7200000, // 2h   bins: 5, // 5 possible clusters   granularity: 300000  // 5 min};var hist &#x3D; base.store(&quot;Heat&quot;).addStreamAggr(aggrJson);base.close();</code></pre>
 </div>
 
     </section>
@@ -6616,7 +6053,128 @@ base.close();</code></pre>
         
     </dl>
 
-                <h3 id="~StreamAggregateSum"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggregateSum</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><h3 id="~StreamAggregateSparseVecSum"><span class="symbol-name">StreamAggregateSparseVecSum</span><small class="property-type">
+            &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
+        <p>This stream aggregator represents the sparse-vector-sum moving window buffer. It sums all the sparse-vector values, that are in the connected stream aggregator.
+It implements the following methods:
+<br><a href="module-qm.StreamAggr.html#getValueVector">module:qm.StreamAggr#getValueVector</a> returns the sum of the values of the records in it's buffer window.
+<br><a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a> returns the timestamp of the newest record in it's buffer window.</p>
+
+        <section>
+        <h4>
+            Example
+        </h4>
+                <div>
+    <pre class="prettyprint"><code>var qm &#x3D; require(&#x27;qminer&#x27;);var base &#x3D; new qm.Base({	mode: &#x27;createClean&#x27;,	schema: [{		name: &#x27;Docs&#x27;,		fields: [			{ name: &#x27;Time&#x27;, type: &#x27;datetime&#x27; },			{ name: &#x27;Text&#x27;, type: &#x27;string&#x27; }		]	}]});var store &#x3D; base.store(&#x27;Docs&#x27;);var aggr &#x3D; {	name: &#x27;featureSpaceWindow&#x27;,	type: &#x27;timeSeriesWinBufFeatureSpace&#x27;,	store: &#x27;Docs&#x27;,	timestamp: &#x27;Time&#x27;,	featureSpace: {		type: &quot;categorical&quot;,		source: &quot;Docs&quot;,		field: &quot;Text&quot;	},	winsize: 1000};var sa &#x3D; store.addStreamAggr(aggr);var aggr2 &#x3D; {	name: &#x27;sparseVectorSum&#x27;,	type: &#x27;winBufSpVecSum&#x27;,	store: &#x27;Docs&#x27;,	inAggr: &#x27;featureSpaceWindow&#x27;};var sa2 &#x3D; store.addStreamAggr(aggr2);store.push({ Time: &#x27;2015-06-10T14:13:32.0&#x27;, Text: &#x27;a&#x27; }); // 0store.push({ Time: &#x27;2015-06-10T14:13:33.0&#x27;, Text: &#x27;b&#x27; }); // 1store.push({ Time: &#x27;2015-06-10T14:14:34.0&#x27;, Text: &#x27;c&#x27; }); // 2store.push({ Time: &#x27;2015-06-10T14:15:35.0&#x27;, Text: &#x27;d&#x27; }); // 3store.push({ Time: &#x27;2015-06-10T14:15:36.0&#x27;, Text: &#x27;e&#x27; }); // 4store.push({ Time: &#x27;2015-06-10T14:15:37.0&#x27;, Text: &#x27;f&#x27; }); // 5var valVec2 &#x3D; sa2.getValueVector(); // [0, 0, 0, 0, 1, 1] - only vectors 4 and 5 remain in windowbase.close();</code></pre>
+</div>
+
+    </section>
+
+    
+        <section>
+        <h4>Properties</h4>
+            <table class="jsdoc-details-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Optional</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+                <tr>
+        <td>
+            <p>StreamAggregateSum.name</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The given name of the stream aggregator.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>StreamAggregateSum.type</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The type of the stream aggregator. It must be equal to <b>'winBufSpVecSum'</b>.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>StreamAggregateSum.store</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The name of the store from which it takes the data.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>StreamAggregateSum.inAggr</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The name of the stream aggregator to which it connects and gets data.</p>
+        </td>
+</tr>
+
+        </tbody>
+</table>
+
+    </section>
+
+
+    <dl class="dl-compact">
+        
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+        
+        
+        
+        
+        
+    </dl>
+
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><h3 id="~StreamAggregateSum"><span class="symbol-name">StreamAggregateSum</span><small class="property-type">
             &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
         <p>This stream aggregator represents the sum moving window buffer. It sums all the values, that are in the connected stream aggregator.
 It implements the following methods:
@@ -6628,42 +6186,7 @@ It implements the following methods:
             Example
         </h4>
                 <div>
-    <pre class="prettyprint"><code>// import the qm module
-var qm = require(&#x27;qminer&#x27;);
-// create a base with a simple store
-var base = new qm.Base({
-   mode: &quot;createClean&quot;,
-   schema: [
-   {
-       name: &quot;Income&quot;,
-       fields: [
-           { name: &quot;Amount&quot;, type: &quot;float&quot; },
-           { name: &quot;Time&quot;, type: &quot;datetime&quot; }
-       ]
-   }]
-});
-
-// create a new time series stream aggregator for the &#x27;Income&#x27; store, that takes the values from the &#x27;Amount&#x27; field
-// and the timestamp from the &#x27;Time&#x27; field. The size of the window should 1 week.
-var timeser = {
-   name: &#x27;TimeSeriesAggr&#x27;,
-   type: &#x27;timeSeriesWinBuf&#x27;,
-   store: &#x27;Income&#x27;,
-   timestamp: &#x27;Time&#x27;,
-   value: &#x27;Amount&#x27;,
-   winsize: 604800000 // 7 days in miliseconds
-};
-var timeSeries = base.store(&quot;Income&quot;).addStreamAggr(timeser);
-
-// add a sum aggregator, that is connected with the &#x27;TimeSeriesAggr&#x27; aggregator
-var sum = {
-   name: &#x27;SumAggr&#x27;,
-   type: &#x27;winBufSum&#x27;,
-   store: &#x27;Heat&#x27;,
-   inAggr: &#x27;TimeSeriesAggr&#x27;
-};
-var sumAggr = base.store(&quot;Income&quot;).addStreamAggr(sum);
-base.close();</code></pre>
+    <pre class="prettyprint"><code>// import the qm modulevar qm &#x3D; require(&#x27;qminer&#x27;);// create a base with a simple storevar base &#x3D; new qm.Base({   mode: &quot;createClean&quot;,   schema: [   {       name: &quot;Income&quot;,       fields: [           { name: &quot;Amount&quot;, type: &quot;float&quot; },           { name: &quot;Time&quot;, type: &quot;datetime&quot; }       ]   }]});// create a new time series stream aggregator for the &#x27;Income&#x27; store, that takes the values from the &#x27;Amount&#x27; field// and the timestamp from the &#x27;Time&#x27; field. The size of the window should 1 week.var timeser &#x3D; {   name: &#x27;TimeSeriesAggr&#x27;,   type: &#x27;timeSeriesWinBuf&#x27;,   store: &#x27;Income&#x27;,   timestamp: &#x27;Time&#x27;,   value: &#x27;Amount&#x27;,   winsize: 604800000 // 7 days in miliseconds};var timeSeries &#x3D; base.store(&quot;Income&quot;).addStreamAggr(timeser);// add a sum aggregator, that is connected with the &#x27;TimeSeriesAggr&#x27; aggregatorvar sum &#x3D; {   name: &#x27;SumAggr&#x27;,   type: &#x27;winBufSum&#x27;,   store: &#x27;Heat&#x27;,   inAggr: &#x27;TimeSeriesAggr&#x27;};var sumAggr &#x3D; base.store(&quot;Income&quot;).addStreamAggr(sum);base.close();</code></pre>
 </div>
 
     </section>
@@ -6772,7 +6295,7 @@ base.close();</code></pre>
         
     </dl>
 
-                <h3 id="~StreamAggregateTimeSeriesTick"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggregateTimeSeriesTick</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><h3 id="~StreamAggregateTimeSeriesTick"><span class="symbol-name">StreamAggregateTimeSeriesTick</span><small class="property-type">
             &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
         <p>This stream aggregator represents the time series tick window buffer. It exposes the data to other stream aggregators 
 (similar to module:qm~StreamAggr_TimeSeriesWindow). It implements the following methods:
@@ -6784,32 +6307,7 @@ base.close();</code></pre>
             Example
         </h4>
                 <div>
-    <pre class="prettyprint"><code>// import the qm module
-var qm = require(&#x27;qminer&#x27;);
-// create a base with a simple store
-var base = new qm.Base({
-   mode: &quot;createClean&quot;,
-   schema: [
-   {
-       name: &quot;Students&quot;,
-       fields: [
-           { name: &quot;Id&quot;, type: &quot;float&quot; },
-           { name: &quot;TimeOfGraduation&quot;, type: &quot;datetime&quot; }
-       ]
-   }]
-});
-
-// create a new time series tick stream aggregator for the &#x27;Students&#x27; store, that takes the values from the &#x27;Id&#x27; field
-// and the timestamp from the &#x27;TimeOfGraduation&#x27; field.
-var tick = {
-   name: &#x27;TimeSeriesTickAggr&#x27;,
-   type: &#x27;timeSeriesTick&#x27;,
-   store: &#x27;Students&#x27;,
-   timestamp: &#x27;TimeOfGraduation&#x27;,
-   value: &#x27;Id&#x27;,
-};
-var timeSeriesTick = base.store(&quot;Students&quot;).addStreamAggr(tick);
-base.close();</code></pre>
+    <pre class="prettyprint"><code>// import the qm modulevar qm &#x3D; require(&#x27;qminer&#x27;);// create a base with a simple storevar base &#x3D; new qm.Base({   mode: &quot;createClean&quot;,   schema: [   {       name: &quot;Students&quot;,       fields: [           { name: &quot;Id&quot;, type: &quot;float&quot; },           { name: &quot;TimeOfGraduation&quot;, type: &quot;datetime&quot; }       ]   }]});// create a new time series tick stream aggregator for the &#x27;Students&#x27; store, that takes the values from the &#x27;Id&#x27; field// and the timestamp from the &#x27;TimeOfGraduation&#x27; field.var tick &#x3D; {   name: &#x27;TimeSeriesTickAggr&#x27;,   type: &#x27;timeSeriesTick&#x27;,   store: &#x27;Students&#x27;,   timestamp: &#x27;TimeOfGraduation&#x27;,   value: &#x27;Id&#x27;,};var timeSeriesTick &#x3D; base.store(&quot;Students&quot;).addStreamAggr(tick);base.close();</code></pre>
 </div>
 
     </section>
@@ -6933,7 +6431,7 @@ base.close();</code></pre>
         
     </dl>
 
-                <h3 id="~StreamAggregateTimeSeriesWindow"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggregateTimeSeriesWindow</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><h3 id="~StreamAggregateTimeSeriesWindow"><span class="symbol-name">StreamAggregateTimeSeriesWindow</span><small class="property-type">
             &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
         <p>This stream aggregator represents the time series window buffer. It stores the values inside a moving window. 
 It implements all the methods of <b>except</b> <a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a>, <a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a>.</p>
@@ -6943,33 +6441,7 @@ It implements all the methods of <b>except</b> <a href="module-qm.StreamAggr.htm
             Example
         </h4>
                 <div>
-    <pre class="prettyprint"><code>// import the qm module
-var qm = require(&#x27;qminer&#x27;);
-// create a base with a simple store
-var base = new qm.Base({
-   mode: &quot;createClean&quot;,
-   schema: [
-   {
-       name: &quot;Heat&quot;,
-       fields: [
-           { name: &quot;Celcius&quot;, type: &quot;float&quot; },
-           { name: &quot;Time&quot;, type: &quot;datetime&quot; }
-       ]
-   }]
-});
-
-// create a new time series stream aggregator for the &#x27;Heat&#x27; store, that takes the values from the &#x27;Celcius&#x27; field
-// and the timestamp from the &#x27;Time&#x27; field. The size of the window is 2 seconds (2000ms).
-var aggr = {
-   name: &#x27;TimeSeriesAggr&#x27;,
-   type: &#x27;timeSeriesWinBuf&#x27;,
-   store: &#x27;Heat&#x27;,
-   timestamp: &#x27;Time&#x27;,
-   value: &#x27;Celcius&#x27;,
-   winsize: 2000
-};
-base.store(&quot;Heat&quot;).addStreamAggr(aggr); 
-base.close();</code></pre>
+    <pre class="prettyprint"><code>// import the qm modulevar qm &#x3D; require(&#x27;qminer&#x27;);// create a base with a simple storevar base &#x3D; new qm.Base({   mode: &quot;createClean&quot;,   schema: [   {       name: &quot;Heat&quot;,       fields: [           { name: &quot;Celcius&quot;, type: &quot;float&quot; },           { name: &quot;Time&quot;, type: &quot;datetime&quot; }       ]   }]});// create a new time series stream aggregator for the &#x27;Heat&#x27; store, that takes the values from the &#x27;Celcius&#x27; field// and the timestamp from the &#x27;Time&#x27; field. The size of the window is 2 seconds (2000ms).var aggr &#x3D; {   name: &#x27;TimeSeriesAggr&#x27;,   type: &#x27;timeSeriesWinBuf&#x27;,   store: &#x27;Heat&#x27;,   timestamp: &#x27;Time&#x27;,   value: &#x27;Celcius&#x27;,   winsize: 2000};base.store(&quot;Heat&quot;).addStreamAggr(aggr); base.close();</code></pre>
 </div>
 
     </section>
@@ -7073,7 +6545,22 @@ base.close();</code></pre>
                 <p>&nbsp;</p>
         </td>
         <td>
-                <p>The size of the window, in miliseconds.</p>
+                <p>The size of the window, in milliseconds.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>StreamAggregateTimeSeriesWindow.delay</p>
+        </td>
+        <td>
+                <p>number</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>Delay in milliseconds.</p>
         </td>
 </tr>
 
@@ -7108,7 +6595,7 @@ base.close();</code></pre>
         
     </dl>
 
-                <h3 id="~StreamAggregateVecDiff"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggregateVecDiff</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><h3 id="~StreamAggregateVecDiff"><span class="symbol-name">StreamAggregateVecDiff</span><small class="property-type">
             &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
         <p>This stream aggregator represents difference between two vectors (e.g. online histograms). </p>
 <p>It implements the following methods:
@@ -7121,87 +6608,7 @@ base.close();</code></pre>
             Example
         </h4>
                 <div>
-    <pre class="prettyprint"><code>// import the qm module
-var qm = require(&#x27;qminer&#x27;);
-// create a base with a simple store
-// the store records results of clustering
-var base = new qm.Base({
-mode: &quot;createClean&quot;,
-schema: [
-{
-	name: &quot;Rpm&quot;,
-	fields: [
-		{ name: &quot;ClusterId&quot;, type: &quot;float&quot; },
-		{ name: &quot;Time&quot;, type: &quot;datetime&quot; }
-	]
-}]
-});		
-
-var store = base.store(&#x27;Rpm&#x27;);
-
-// create a new time series stream aggregator for the &#x27;Rpm&#x27; store that takes the recorded cluster id
-// and the timestamp from the &#x27;Time&#x27; field. The size of the window is 4 weeks.
-var timeser1 = {
-	name: &#x27;TimeSeries1&#x27;,
-	type: &#x27;timeSeriesWinBuf&#x27;,
-	store: &#x27;Rpm&#x27;,
-	timestamp: &#x27;Time&#x27;,
-	value: &#x27;ClusterId&#x27;,
-	winsize: 7200000 // 2 hours
-};
-var timeSeries1 = base.store(&quot;Rpm&quot;).addStreamAggr(timeser1);
-
-// add a histogram aggregator, that is connected with the &#x27;TimeSeries1&#x27; aggregator
-var aggrJson1 = {
-	name: &#x27;Histogram1&#x27;,
-	type: &#x27;onlineHistogram&#x27;,
-	store: &#x27;Rpm&#x27;,
-	inAggr: &#x27;TimeSeries1&#x27;,
-	lowerBound: 0,
-	upperBound: 5,
-	bins: 5,
-	addNegInf: false,
-	addPosInf: false
-};
-var hist1 = base.store(&quot;Rpm&quot;).addStreamAggr(aggrJson1);
-
-// create a new time series stream aggregator for the &#x27;Rpm&#x27; store that takes the recorded cluster id
-// and the timestamp from the &#x27;Time&#x27; field. 
-var timeser2 = {
-	name: &#x27;TimeSeries2&#x27;,
-	type: &#x27;timeSeriesWinBuf&#x27;,
-	store: &#x27;Rpm&#x27;,
-	timestamp: &#x27;Time&#x27;,
-	value: &#x27;ClusterId&#x27;,
-	winsize: 21600000 // 6 hours
-};
-var timeSeries2 = base.store(&quot;Rpm&quot;).addStreamAggr(timeser2);
-
-// add a histogram aggregator, that is connected with the &#x27;TimeSeries1&#x27; aggregator
-var aggrJson2 = {
-	name: &#x27;Histogram2&#x27;,
-	type: &#x27;onlineHistogram&#x27;,
-	store: &#x27;Rpm&#x27;,
-	inAggr: &#x27;TimeSeries2&#x27;,
-	lowerBound: 0,
-	upperBound: 5,
-	bins: 5,
-	addNegInf: false,
-	addPosInf: false
-};
-var hist2 = base.store(&quot;Rpm&quot;).addStreamAggr(aggrJson2);
-
-// add diff aggregator that subtracts Histogram1 with 2h window from Histogram2 with 6h window
-var aggrJson3 = {
-	name: &#x27;DiffAggr&#x27;,
-	type: &#x27;onlineVecDiff&#x27;,
-	storeX: &#x27;Rpm&#x27;,
-	storeY: &#x27;Rpm&#x27;,
-	inAggrX: &#x27;Histogram2&#x27;,
-	inAggrY: &#x27;Histogram1&#x27;
-}
-var diff = store.addStreamAggr(aggrJson3);
-base.close();</code></pre>
+    <pre class="prettyprint"><code>// import the qm modulevar qm &#x3D; require(&#x27;qminer&#x27;);// create a base with a simple store// the store records results of clusteringvar base &#x3D; new qm.Base({mode: &quot;createClean&quot;,schema: [{	name: &quot;Rpm&quot;,	fields: [		{ name: &quot;ClusterId&quot;, type: &quot;float&quot; },		{ name: &quot;Time&quot;, type: &quot;datetime&quot; }	]}]});		var store &#x3D; base.store(&#x27;Rpm&#x27;);// create a new time series stream aggregator for the &#x27;Rpm&#x27; store that takes the recorded cluster id// and the timestamp from the &#x27;Time&#x27; field. The size of the window is 4 weeks.var timeser1 &#x3D; {	name: &#x27;TimeSeries1&#x27;,	type: &#x27;timeSeriesWinBuf&#x27;,	store: &#x27;Rpm&#x27;,	timestamp: &#x27;Time&#x27;,	value: &#x27;ClusterId&#x27;,	winsize: 7200000 // 2 hours};var timeSeries1 &#x3D; base.store(&quot;Rpm&quot;).addStreamAggr(timeser1);// add a histogram aggregator, that is connected with the &#x27;TimeSeries1&#x27; aggregatorvar aggrJson1 &#x3D; {	name: &#x27;Histogram1&#x27;,	type: &#x27;onlineHistogram&#x27;,	store: &#x27;Rpm&#x27;,	inAggr: &#x27;TimeSeries1&#x27;,	lowerBound: 0,	upperBound: 5,	bins: 5,	addNegInf: false,	addPosInf: false};var hist1 &#x3D; base.store(&quot;Rpm&quot;).addStreamAggr(aggrJson1);// create a new time series stream aggregator for the &#x27;Rpm&#x27; store that takes the recorded cluster id// and the timestamp from the &#x27;Time&#x27; field. var timeser2 &#x3D; {	name: &#x27;TimeSeries2&#x27;,	type: &#x27;timeSeriesWinBuf&#x27;,	store: &#x27;Rpm&#x27;,	timestamp: &#x27;Time&#x27;,	value: &#x27;ClusterId&#x27;,	winsize: 21600000 // 6 hours};var timeSeries2 &#x3D; base.store(&quot;Rpm&quot;).addStreamAggr(timeser2);// add a histogram aggregator, that is connected with the &#x27;TimeSeries1&#x27; aggregatorvar aggrJson2 &#x3D; {	name: &#x27;Histogram2&#x27;,	type: &#x27;onlineHistogram&#x27;,	store: &#x27;Rpm&#x27;,	inAggr: &#x27;TimeSeries2&#x27;,	lowerBound: 0,	upperBound: 5,	bins: 5,	addNegInf: false,	addPosInf: false};var hist2 &#x3D; base.store(&quot;Rpm&quot;).addStreamAggr(aggrJson2);// add diff aggregator that subtracts Histogram1 with 2h window from Histogram2 with 6h windowvar aggrJson3 &#x3D; {	name: &#x27;DiffAggr&#x27;,	type: &#x27;onlineVecDiff&#x27;,	storeX: &#x27;Rpm&#x27;,	storeY: &#x27;Rpm&#x27;,	inAggrX: &#x27;Histogram2&#x27;,	inAggrY: &#x27;Histogram1&#x27;}var diff &#x3D; store.addStreamAggr(aggrJson3);base.close();</code></pre>
 </div>
 
     </section>
@@ -7340,7 +6747,7 @@ base.close();</code></pre>
         
     </dl>
 
-                <h3 id="~StreamAggregators"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggregators</span><small class="property-type">
+                <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><h3 id="~StreamAggregators"><span class="symbol-name">StreamAggregators</span><small class="property-type">
             &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
         <p>Stream aggregator types.</p>
 
@@ -7370,6 +6777,21 @@ base.close();</code></pre>
         </td>
         <td>
                 <p>The time series type.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>recordBuffer</p>
+        </td>
+        <td>
+                <p><a href="module-qm.html#~StreamAggregateRecordBuffer">module:qm~StreamAggregateRecordBuffer</a></p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The record buffer type.</p>
         </td>
 </tr>
 
@@ -7415,6 +6837,21 @@ base.close();</code></pre>
         </td>
         <td>
                 <p>The maximal type.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>sum</p>
+        </td>
+        <td>
+                <p><a href="module-qm.html#~StreamAggregateSparseVecSum">module:qm~StreamAggregateSparseVecSum</a></p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The sparse-vector-sum type.</p>
         </td>
 </tr>
 

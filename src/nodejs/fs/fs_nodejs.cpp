@@ -88,9 +88,7 @@ TNodeJsFs::TReadCsvTask::TReadCsvTask(const v8::FunctionCallbackInfo<v8::Value>&
 		SIn = JsFIn->SIn;
 	} else {	// Read from Node.js Buffer
 		v8::Local<v8::Object> BuffObj = Args[0]->ToObject();
-
-		EAssertR(BuffObj->HasIndexedPropertiesInExternalArrayData(), "TNodeJsFs::readLines: argument is not a buffer!");
-
+		EAssertR(TNodeJsUtil::IsBuffer(BuffObj), "TNodeJsFs::readLines: argument not a buffer!");
 		char* Buff = node::Buffer::Data(BuffObj);
 		size_t BuffLen = node::Buffer::Length(BuffObj);
 		SIn = new TThinMIn(Buff, (int)BuffLen);
@@ -193,7 +191,9 @@ void TNodeJsFs::openWrite(const v8::FunctionCallbackInfo<v8::Value>& Args) { // 
 
     EAssertR(Args.Length() == 1 && Args[0]->IsString(), "Expected file path.");
     TStr FNm(*v8::String::Utf8Value(Args[0]->ToString()));
-    Args.GetReturnValue().Set(TNodeJsFOut::New(FNm, false));
+
+	Args.GetReturnValue().Set(
+		TNodeJsUtil::NewInstance<TNodeJsFOut>(new TNodeJsFOut(FNm, false)));    
 }
 
 void TNodeJsFs::openAppend(const v8::FunctionCallbackInfo<v8::Value>& Args) { // Call with AppendP = true 
@@ -202,7 +202,9 @@ void TNodeJsFs::openAppend(const v8::FunctionCallbackInfo<v8::Value>& Args) { //
 
     EAssertR(Args.Length() == 1 && Args[0]->IsString(), "Expected file path.");
     TStr FNm(*v8::String::Utf8Value(Args[0]->ToString()));
-    Args.GetReturnValue().Set(TNodeJsFOut::New(FNm, true));
+
+	Args.GetReturnValue().Set(
+		TNodeJsUtil::NewInstance<TNodeJsFOut>(new TNodeJsFOut(FNm, true)));
 }
 
 void TNodeJsFs::exists(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -350,13 +352,11 @@ void TNodeJsFs::readLines(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     	TNodeJsFIn* JsFIn = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFIn>(Args, 0);
     	SIn = JsFIn->SIn;
     } else {	// Read from Node.js Buffer
-    	v8::Local<v8::Object> BuffObj = Args[0]->ToObject();
-
-		EAssertR(BuffObj->HasIndexedPropertiesInExternalArrayData(), "TNodeJsFs::readLines: argument is not a buffer!");
-
-    	char* Buff = node::Buffer::Data(BuffObj);
-		size_t BuffLen = node::Buffer::Length(BuffObj);
-		SIn = new TThinMIn(Buff, (int)BuffLen);
+        EAssertR(TNodeJsUtil::IsArgBuffer(Args, 0), "TNodeJsFs::readLines: argument not a buffer");
+        v8::Local<v8::Object> BuffObj = Args[0]->ToObject();
+        char* Buff = node::Buffer::Data(BuffObj);
+	    size_t BuffLen = node::Buffer::Length(BuffObj);
+	    SIn = new TThinMIn(Buff, (int)BuffLen);
     }
 
     v8::Handle<v8::Function> LineCallback = TNodeJsUtil::GetArgFun(Args, 1);//TNodeJsUtil::GetFldFun(Args[1]->ToObject(), "onLine");
@@ -406,7 +406,7 @@ void TNodeJsFIn::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "peekCh", _peekCh);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getCh", _getCh);
     NODE_SET_PROTOTYPE_METHOD(tpl, "readLine", _readLine);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "readJson", _readJson);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "readString", _readString);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "readAll", _readAll);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "close", _close);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "isClosed", _isClosed);
@@ -458,15 +458,16 @@ void TNodeJsFIn::readLine(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, LnChA.CStr()));
 }
 
-void TNodeJsFIn::readJson(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsFIn::readString(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
-    TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args.This());
-    TStr JsonStr = TStr(*JsFIn->SIn);
-    PJsonVal JsonVal = TJsonVal::GetValFromStr(JsonStr);
-    
-    Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, JsonVal));
+
+	TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args.This());
+	EAssertR(!JsFIn->SIn.Empty(), "Input stream is closed!");
+    TStr Str = TStr(*JsFIn->SIn);
+
+	Args.GetReturnValue().Set(
+		v8::String::NewFromUtf8(Isolate, Str.CStr()));
 }
 
 void TNodeJsFIn::readAll(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -520,69 +521,48 @@ void TNodeJsFIn::length(v8::Local<v8::String> Name, const v8::PropertyCallbackIn
 
 ///////////////////////////////
 // NodeJs-FOut
-v8::Persistent<v8::Function> TNodeJsFOut::constructor;
+v8::Persistent<v8::Function> TNodeJsFOut::Constructor;
 
 void TNodeJsFOut::Init(v8::Handle<v8::Object> exports) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
+	// template for creating function from javascript using "new", uses _NewJs callback
+	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsFOut>);
+	// child will have the same properties and methods, but a different callback: _NewCpp
+	v8::Local<v8::FunctionTemplate> child = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewCpp<TNodeJsFOut>);
+	child->Inherit(tpl);
 
-    v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, _New);
-    tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "FOut"));
-    // ObjectWrap uses the first internal field to store the wrapped pointer
-    tpl->InstanceTemplate()->SetInternalFieldCount(1);
+	child->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
+	// ObjectWrap uses the first internal field to store the wrapped pointer
+	child->InstanceTemplate()->SetInternalFieldCount(1);
+
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
+	// ObjectWrap uses the first internal field to store the wrapped pointer
+	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
     // Add all prototype methods, getters and setters here.
     NODE_SET_PROTOTYPE_METHOD(tpl, "write", _write);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "writeBinary", _writeBinary);
     NODE_SET_PROTOTYPE_METHOD(tpl, "writeLine", _writeLine);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "writeJson", _writeJson);
     NODE_SET_PROTOTYPE_METHOD(tpl, "flush", _flush);
     NODE_SET_PROTOTYPE_METHOD(tpl, "close", _close);
-
-    // This has to be last, otherwise the properties won't show up on the
-    // object in JavaScript
-    constructor.Reset(Isolate, tpl->GetFunction());
-    #ifndef MODULE_INCLUDE_FS
-    exports->Set(v8::String::NewFromUtf8(Isolate, "FOut"),
-        tpl->GetFunction());
-    #endif
+	
+	// This has to be last, otherwise the properties won't show up on the object in JavaScript	
+	// Constructor is used when creating the object from C++
+	Constructor.Reset(Isolate, child->GetFunction());
+	// we need to export the class for calling using "new FIn(...)"
+	exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()),
+		tpl->GetFunction());
 }
 
-v8::Local<v8::Object> TNodeJsFOut::New(const TStr& FNm, const bool& AppendP) {
-    // called from C++	
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::EscapableHandleScope HandleScope(Isolate);
-	// create an instance using the constructor
-	EAssertR(!constructor.IsEmpty(), "TNodeJsFOut::New: constructor is empty. Did you call TNodeJsFOut::Init(exports); in this module's init function?");
-	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);		
-	// no arguments to constructor
-	v8::Local<v8::Object> Instance = cons->NewInstance();
-	// wrap our C++ object
-	TNodeJsFOut* Obj = new TNodeJsFOut(FNm, AppendP);
-	Obj->Wrap(Instance);	
-	return HandleScope.Escape(Instance);
-} 
-
-void TNodeJsFOut::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	EAssertR(Args.IsConstructCall(), "TNodeJsFOut: not a constructor call (you forgot to use the new operator)");
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::EscapableHandleScope HandleScope(Isolate);
-	// set hidden class id
-	v8::Local<v8::Object> Instance = Args.This();
-	v8::Handle<v8::String> key = v8::String::NewFromUtf8(Isolate, "class");
-	v8::Handle<v8::String> value = v8::String::NewFromUtf8(Isolate, GetClassId().CStr());
-	Instance->SetHiddenValue(key, value);		
-	// empty constructor call just forwards the instance
-	if (Args.Length() == 0) { Args.GetReturnValue().Set(Instance); return; }
+TNodeJsFOut* TNodeJsFOut::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	// parse arguments
 	EAssertR(Args.Length() >= 1 && Args[0]->IsString(),
 		"Expected file path.");
 	TStr FNm(*v8::String::Utf8Value(Args[0]->ToString()));
 	bool AppendP = Args.Length() >= 2 && Args[1]->IsBoolean() && Args[1]->BooleanValue();
-	// Args.This() is an instance, wrap our C++ object
-	TNodeJsFOut* Obj = new TNodeJsFOut(FNm, AppendP);
-	Obj->Wrap(Instance);
-	Args.GetReturnValue().Set(Instance);	
+	
+	return new TNodeJsFOut(FNm, AppendP);	
 }
 
 void TNodeJsFOut::write(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -602,7 +582,7 @@ void TNodeJsFOut::write(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	} else {
         EFailR("Invalid type passed to fout.write() function.");
     }
-    
+
     Args.GetReturnValue().Set(Args.Holder());
 }
 
@@ -613,7 +593,8 @@ void TNodeJsFOut::writeBinary(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args.This());
 	EAssertR(!JsFOut->SOut.Empty(), "Output stream already closed!");
 	if (Args[0]->IsString()) {
-		JsFOut->SOut->Save(*v8::String::Utf8Value(Args[0]->ToString()));
+		TStr Str = TNodeJsUtil::GetArgStr(Args, 0);
+		Str.Save(*JsFOut->SOut);
 	} else if (Args[0]->IsNumber()) {
 		JsFOut->SOut->Save(Args[0]->NumberValue());
 	} else if (TNodeJsUtil::IsArgJson(Args, 0)) {
@@ -636,20 +617,6 @@ void TNodeJsFOut::writeLine(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     EAssertR(!JsFOut->SOut.Empty(), "Output stream already closed!");
     JsFOut->SOut->PutLn();
 
-    Args.GetReturnValue().Set(Args.Holder());
-}
-
-void TNodeJsFOut::writeJson(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::HandleScope HandleScope(Isolate);
-    
-    PJsonVal JsonVal = TNodeJsUtil::GetArgJson(Args, 0);
-    TStr JsonStr = JsonVal->SaveStr();
-    
-    TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args.This());
-    EAssertR(!JsFOut->SOut.Empty(), "Output stream already closed!");
-    JsonStr.Save(*JsFOut->SOut);
-    
     Args.GetReturnValue().Set(Args.Holder());
 }
 

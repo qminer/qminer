@@ -1,0 +1,274 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="generator" content="JSDoc 3">
+  <meta charset="utf-8">
+  <title>Source: fsdoc.js</title>
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
+  <link href="css/baseline.css" rel="stylesheet">
+</head>
+
+<body onload="prettyPrint()">
+  <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
+    <div id="jsdoc-navbar-container">
+      <div id="jsdoc-navbar-content">
+        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+      </div>
+    </div>
+  </nav>
+  <div id="jsdoc-body-container">
+    <div id="jsdoc-content">
+      <div id="jsdoc-content-container">
+        <div id="jsdoc-banner" role="banner">
+        </div>
+        <div id="jsdoc-main" role="main">
+          <header class="page-header">
+            <h1>Source: fsdoc.js</h1>
+          </header>
+          <article>
+            <pre class="prettyprint linenums"><code>/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+/**
+* File-system module.
+* @module fs
+* @example
+* // import module
+* var fs &#x3D; require(&#x27;qminer&#x27;).fs;
+* // open file in write mode
+* var fout &#x3D; fs.openWrite(&#x27;file.txt&#x27;);
+* // write sync and close
+* fout.writeLine(&#x27;example text&#x27;);
+* fout.close();
+* // open file in read mode
+* var fin &#x3D; fs.openRead(&#x27;file.txt&#x27;);
+* // read a line
+* var str &#x3D; fin.readLine();
+*/
+/**
+	* open file in read mode and return file input stream
+	* @param {string} fileName - File name.
+	* @returns {module:fs.FIn} Input stream.
+	*/
+ exports.openRead &#x3D; function(fileName) { return Object.create(require(&#x27;qminer&#x27;).fs.FIn.prototype); }
+/**
+	* open file in write mode and return file output stream
+	* @param {string} fileName - File name.
+	* @returns {module:fs.FOut} Output stream.
+	*/
+ exports.openWrite &#x3D; function(fileName) { return Object.create(require(&#x27;qminer&#x27;).fs.FOut.prototype); }
+/**
+	* open file in append mode and return file output stream
+	* @param {string} fileName - File name.
+	* @returns {module:fs.FOut} Output stream.
+	*/
+ exports.openAppend &#x3D; function(fileName) { return Object.create(require(&#x27;qminer&#x27;).fs.FOut.prototype); }	
+/**
+	* checks if the file exists
+	* @param {string} fileName - File name.
+	* @returns {boolean} True if file exists.
+	*/
+ exports.exists &#x3D; function(fileName) { return false; }	
+/**
+	* copies a file
+	* @param {string} source - Source file name.
+	* @param {string} dest - Destination file name.
+	*/
+ exports.copy &#x3D; function(source, dest) {}	
+/**
+	* moves a file
+	* @param {string} source - Source file name.
+	* @param {string} dest - Destination file name.
+	*/
+ exports.move &#x3D; function(source, dest) {}
+/**
+	* deletes a file
+	* @param {string} fileName - File name.
+	* @returns {boolean} True if delete succeeded.
+	*/
+ exports.del &#x3D; function(fileName) { return false; }	
+/**
+	* renames a file
+	* @param {string} source - Source file name.
+	* @param {string} dest - Destination file name.
+	*/
+ exports.rename &#x3D; function(source, dest) {}
+/**
+	* Information about the file
+	* @typedef {Object} FileInfo 	
+	* @property  {string} FileInfo.createTime - Create time.
+	* @property  {string} FileInfo.lastAccessTime - Last access time.
+	* @property  {string} FileInfo.lastWriteTime - Last write time.
+	* @property  {number} FileInfo.size - File size in bytes.	
+	*/
+/**
+	* returns the file info
+	* @param {string} fileName - File name.
+	* @returns {module:fs~FileInfo} File info object.
+	*/
+ exports.fileInfo &#x3D; function(fileName) { return { createTime : &quot;&quot;,  lastAccessTime: &quot;&quot;, lastWriteTime: &quot;&quot;, size: 0 }}	
+/**
+	* Creates a folder
+	* @param {string} dirName - Folder name.
+	* @returns {boolean} True if succeeded.
+	*/
+ exports.mkdir &#x3D; function(dirName) { return false; }	
+/**
+	* Removes a folder
+	* @param {string} dirName - Folder name.
+	* @returns {boolean} True if succeeded.
+	*/
+ exports.rmdir &#x3D; function(dirName) { return false; }
+/**
+	* Returns a list fo files in the folder
+	* @param {string} dirName - Folder name.
+	* @param {string} [fileExtension] - Results are filtered by file extension.
+	* @param {boolean} [recursive&#x3D;false] - Recursively searches for file names if true.
+	* @returns {string[]} Array of file names.
+	*/
+ exports.listFile &#x3D; function(dirName, fileExtension, recursive) { return [&#x27;&#x27;]; }
+/**
+     * Reads a buffer line by line and calls a callback for each line.
+     *
+     * @param {String|FIn|Buffer} buffer - name of the file, input stream of a Node.js buffer
+     * @param {function} onLine - a callback that gets called on each line (for example: function (line) {})
+     * @param {function} onEnd - a callback that gets returned after all the lines have been read
+     * @param {function} onError - a callback that gets called if an error occurs
+     */
+ exports.readLines &#x3D; function (buffer, onLine, onEnd, onError) {}
+/**
+	* Input file stream.
+	* @classdesc Used for reading files.
+	* @class
+	* @param {string} fileName - File name
+	* @example
+	* // import module
+	* var fs &#x3D; require(&#x27;qminer&#x27;).fs;
+	* // open file in read mode
+	* var fin &#x3D; new fs.FIn(&#x27;file.txt&#x27;);
+	* // read a line
+	* var str &#x3D; fin.readLine();
+	*/
+ exports.FIn &#x3D; function(fnm) {}	
+/**
+	* Peeks a character
+	* @returns {string} Character string.
+	*/
+ exports.FIn.prototype.peekCh&#x3D; function() { return &#x27;&#x27;; }
+/**
+	* Reads a character
+	* @returns {string} Character string.
+	*/
+ exports.FIn.prototype.getCh&#x3D; function() { return &#x27;&#x27;; }
+/**
+	* Reads a line	
+	* @returns {string} Line string.
+	*/
+ exports.FIn.prototype.readLine &#x3D; function() { return &#x27;&#x27;; }
+/**
+     * Reads json that was serialized using &#x60;fs.FOut.writeJson&#x60;.
+     * @returns {Object} Json object
+     */
+ exports.FIn.prototype.readJson &#x3D; function() { return {}; }
+/**
+	* @property {boolean} eof - True if end of file is detected.
+	*/
+ exports.FIn.prototype.eof &#x3D; false;
+/**
+	* @property {number} length - Length of input stream.
+	*/
+ exports.FIn.prototype.length &#x3D; 0;
+/**
+	* Reads the whole stream
+	* @returns {string} Content of the file.
+	*/
+ exports.FIn.prototype.readAll &#x3D; function() { return &#x27;&#x27;; }
+/**
+	* Closes the input stream.
+	*/
+ exports.FIn.prototype.close &#x3D; function() { return &#x27;&#x27;; }
+/**
+	* Checks if the input stream is closed.
+	*/
+ exports.FIn.prototype.isClosed &#x3D; function() { return &#x27;&#x27;; }
+/**
+	* Output file stream.
+	* @classdesc Used for writing files.
+	* @class
+	* @param {String} fileName - File name
+	* @param {boolean} [append&#x3D;false] - Append flag
+	* @example
+	* // import module
+	* var fs &#x3D; require(&#x27;qminer&#x27;).fs;
+	* // open file in write mode
+	* var fout &#x3D; new fs.FOut(&#x27;file.txt&#x27;);
+	* // write a line
+	* fout.writeLine(&#x27;example text&#x27;);
+	* // close
+	* fout.close();
+	*/
+ exports.FOut &#x3D; function(fileName, append) {}	
+/**
+	* Writes a string or number or a JSON object in human readable form
+	* @param {(String | Number | Object)} arg - Argument to write
+	* @returns {module:fs.FOut} Self.
+	*/
+ exports.FOut.prototype.write &#x3D; function(arg) { return this; }
+/**
+	* Writes a string or number or a JSON object in binary form
+	* @param {(String | Number | Object)} str - Argument to write
+	* @returns {module:fs.FOut} Self.
+	*/
+ exports.FOut.prototype.writeBinary &#x3D; function(arg) { return this; }
+/**
+	* Writes a string and adds a new line
+	* @param {String} str - String to write
+	* @returns {module:fs.FOut} Self.
+	*/
+ exports.FOut.prototype.writeLine &#x3D; function(str) { return this; }
+/**
+     * Saves json object, which can be read by &#x60;fs.FIn.readJson&#x60;.
+     * @returns {Object} obj - Json object to write
+     * @returns {module:fs.FOut} Self.
+     */
+ exports.FOut.prototype.writeJson &#x3D; function(obj) { return this; }
+/**
+	* Flushes the output stream
+	* @returns {module:fs.FOut} Self.
+	*/
+ exports.FOut.prototype.flush &#x3D; function() { return this; }
+/**
+	* Closes the output stream
+	*/
+ exports.FOut.prototype.close &#x3D; function() {}
+</code></pre>
+          </article>
+        </div>
+      </div>
+      <nav id="jsdoc-toc-nav" role="navigation"></nav>
+    </div>
+  </div>
+  <footer id="jsdoc-footer" class="jsdoc-footer">
+    <div id="jsdoc-footer-container">
+      <p>
+        
+      </p>
+    </div>
+  </footer>
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/jquery.cookie.js"></script>
+  <script src="scripts/tree.jquery.js"></script>
+  <script src="scripts/prettify.js"></script>
+  <script src="scripts/jsdoc-toc.js"></script>
+  <script src="scripts/linenumber.js"></script>
+  <script src="scripts/scrollanchor.js"></script>
+</body>
+
+</html>

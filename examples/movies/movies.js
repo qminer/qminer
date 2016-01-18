@@ -1,5 +1,6 @@
 // import libraries
 var qm = require('qminer.js');
+var loader = require('qminer-data-loader');
 var la = qm.la;
 var analytics = qm.analytics;
 var fs = qm.fs;
@@ -45,8 +46,8 @@ var base = new qm.Base({
 });
 
 // We are, we start by loading in the dataset.
-console.log("Movies", "Loading and indexing input data")
-base.store("Movies").loadJson("./movies.json");
+console.log("Movies", "Loading and indexing input data");
+loader.loadMoviesDataset(base.store("Movies"));
 // Prepare shortcuts to set of all people and all movies
 var people = base.store("People").allRecords;
 var movies = base.store("Movies").allRecords;
@@ -74,7 +75,7 @@ console.log("Dimensionality of label space: " + genreLabelSpace.dims);
 // We will use one-vs-all model for gener classification
 var genreModel = new analytics.OneVsAll({
 	model: analytics.SVC,
-	modelParam: { c: 10 },
+	modelParam: { c: 10, algorithm: "LIBSVM" },
 	cats: genreLabelMatrix.rows,
 	verbose: true
 });
@@ -185,3 +186,5 @@ console.log("Top genre: " + genreLabelSpace.getFeature(genreModel.predict(newCom
 var newComedyMovieRatingVector = ratingFeatureSpace.extractSparseVector(newComedyMovie);
 console.log("Predicted rating: " + ratingModel.predict(newComedyMovieRatingVector).toFixed(1));
 console.log("True rating:      " + newComedyMovie.Rating);
+var search = base.search({$from : 'Movies', Plot: 'Die'});
+console.log(search)

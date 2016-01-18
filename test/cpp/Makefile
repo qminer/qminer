@@ -24,10 +24,7 @@ include $(GLIB)/Makefile.config
 ## Main application file
 MAIN = run-all-tests
 
-TEST_SRCS = \
-	test-TStr.cpp \
-	test-THash.cpp \
-	test-zipfl.cpp
+TEST_SRCS = test-TTDigest.cpp
 
 TEST_OBJS = $(TEST_SRCS:.cpp=.o)
 

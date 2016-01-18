@@ -105,6 +105,13 @@ private:
 	* @param {number} rowIdx - Row index (zero based).
 	* @param {number} colIdx - Column index (zero based).
 	* @returns {number} The matrix element.
+	* @example
+	* // import la module
+	* var la = require('qminer').la;
+	* // create a new matrix
+	* var mat = new la.Matrix([[2, 3], [-2, -2], [-3, 1]]);
+	* // get the value at the index (2, 1)
+	* var value = mat.at(2, 1); // returns the value 1
 	*/
 	//# exports.Matrix.prototype.at = function(rowIdx, colIdx) { return 0.0; }
 	JsDeclareFunction(at);
@@ -243,6 +250,13 @@ private:
 	/**
 	* Returns a vector of row norms.
 	* @returns {module:la.Vector} Vector, where the value at i-th index is the norm of the i-th row of matrix.
+	* @example
+	* // import la module
+	* var la = require('qminer').la;
+	* // create a new matrix
+	* var mat = new la.Matrix([[3, 4], [4, 15/2]]);
+	* // get the row norms of the matrix
+	* var rowNorms = mat.rowNorms(); // returns the vector [5, 17/2]
 	*/
 	//# exports.Matrix.prototype.rowNorms = function () { return Object.create(require('qminer').la.Vector.prototype); }
 	JsDeclareFunction(rowNorms);
@@ -250,6 +264,13 @@ private:
 	/**
 	* Returns a vector of column norms.
 	* @returns {module:la.Vector} Vector, where the value at i-th index is the norm of the i-th column of matrix.
+	* @example
+	* // import la module
+	* var la = require('qminer').la;
+	* // create a new matrix
+	* var mat = new la.Matrix([[3, 4], [4, 15/2]]);
+	* // get the row norms of the matrix
+	* var rowNorms = mat.colNorms(); // returns the vector [5, 17/2]
 	*/
 	//# exports.Matrix.prototype.colNorms = function () { return Object.create(require('qminer').la.Vector.prototype); }
 	JsDeclareFunction(colNorms);
@@ -257,6 +278,15 @@ private:
 	/**
 	* Normalizes each column of matrix.
 	* @returns {module:la.Matrix} Self. The columns of the matrix are normalized. 
+	* // import la module
+	* var la = require('qminer').la;
+	* // create a new matrix
+	* var mat = new la.Matrix([[3, 4], [4, 15/2]]);
+	* // normalize the columns of the matrix
+	* // the matrix is going to be of the form:
+	* // 3/5     8/17
+	* // 4/5    15/17
+	* mat.normalizeCols();
 	*/
 	//# exports.Matrix.prototype.normalizeCols = function () { return Object.create(require('qminer').la.Matrix.prototype); }
 	JsDeclareFunction(normalizeCols);
@@ -278,6 +308,13 @@ private:
 	/**
 	* Transforms the matrix from dense to sparse format.
 	* @returns {module:la.SparseMatrix} Sparse column matrix representation of dense matrix.
+	* @example
+	* // import la module
+	* var la = require('qminer').la;
+	* // create the matrix
+	* var mat = new la.Matrix([[1, 2], [0, 3], [-4, 0]]);
+	* // transform the matrix into the sparse form
+	* var spMat = mat.sparse();
 	*/
 	//# exports.Matrix.prototype.sparse = function () { return Object.create(require('qminer').la.SparseMatrix.prototype); }
 	JsDeclareFunction(sparse);
@@ -285,6 +322,13 @@ private:
 	/**
 	* Returns the frobenious norm of matrix.
 	* @returns {number} Frobenious norm of matrix.
+	* @example
+	* // import la module
+	* var la = require('qminer').la;
+	* // create the matrix
+	* var mat = new la.Matrix([[1, 2], [3, 4]]);
+	* // get the frobenious norm of the matrix
+	* var frob = mat.frob(); // returns the value Math.sqrt(30)
 	*/
 	//# exports.Matrix.prototype.frob = function () { return 0.0; }
 	JsDeclareFunction(frob);
@@ -292,6 +336,13 @@ private:
 	/**
 	* Gives the number of rows of matrix.
 	* @returns {number} Number of rows in matrix.
+	* @example
+	* // import la module
+	* var la = require('qminer').la;
+	* // create the matrix
+	* var mat = new la.Matrix([[1, 2], [3, 1], [-4, 5]]);
+	* // get the number of rows
+	* var rowN = mat.rows; // returns 3
 	*/
 	//# exports.Matrix.prototype.rows = 0;
 	JsDeclareProperty(rows);
@@ -299,6 +350,13 @@ private:
 	/**
 	* Gives the number of columns of matrix.
 	* @returns {number} Number of columns in matrix.
+	* @example
+	* // import la module
+	* var la = require('qminer').la;
+	* // create the matrix
+	* var mat = new la.Matrix([[1, 2], [3, 1], [-4, 5]]);
+	* // get the number of cols
+	* var colsN = mat.cols; // returns 2
 	*/
 	//# exports.Matrix.prototype.cols = 0;
 	JsDeclareProperty(cols);
@@ -307,6 +365,13 @@ private:
 	* Gives the index of the maximum element in the given row.
 	* @param {number} rowIdx - Row index (zero based).
 	* @returns {number} Column index (zero based) of the maximum value in the rowIdx-th row of matrix.
+	* @example
+	* // import la module
+	* var la = require('qminer').la;
+	* // create the matrix
+	* var mat = new la.Matrix([[1, 2], [3, 1], [-4, 5]]);
+	* // get the column id of the maximum value of the second row
+	* var maxRow = mat.rowMaxIdx(1); // returns the value 0
 	*/
 	//# exports.Matrix.prototype.rowMaxIdx = function (rowIdx) { return 0; }
 	JsDeclareFunction(rowMaxIdx);
@@ -315,6 +380,13 @@ private:
 	* Gives the index of the maximum element in the given column.
 	* @param {number} colIdx - Column index (zero based).
 	* @returns {number} Row index (zero based) of the maximum value in colIdx-th column of matrix.
+	* @example
+	* // import la module
+	* var la = require('qminer').la;
+	* // create the matrix
+	* var mat = new la.Matrix([[1, 2], [3, 1], [-4, 5]]);
+	* // get the row id of the maximum value of the second column
+	* var maxRow = mat.colMaxIdx(1); // returns the value 2
 	*/
 	//# exports.Matrix.prototype.colMaxIdx = function (colIdx) { return 0; }
 	JsDeclareFunction(colMaxIdx);
@@ -323,6 +395,13 @@ private:
 	* Returns the corresponding column of matrix as vector.
 	* @param {number} colIdx - Column index (zero based).
 	* @returns {module:la.Vector} The colIdx-th column of matrix.
+	* @example
+	* // import la module
+	* var la = require('qminer').la;
+	* // create the matrix
+	* var mat = new la.Matrix([[1, 2], [3, 1], [-4, 5]]);
+	* // get the second column of the matrix
+	* var col = mat.getCol(1);
 	*/
 	//# exports.Matrix.prototype.getCol = function (colIdx) { return Object.create(require('qminer').la.Vector.prototype); }
 	JsDeclareFunction(getCol);
@@ -358,9 +437,27 @@ private:
 	JsDeclareFunction(getColSubmatrix);
 
 	/**
+	* Gets the submatrix from the column ids.
+	* @param {number} minRow - The minimum row index.
+	* @param {number} maxRow - The maximum row index.
+	* @param {number} minCol - The minimum column index.
+	* @param {number} maxCol - The maximum column index.
+	* @returns {module:la.Matrix} The submatrix of the original matrix.
+	*/
+	//# exports.Matrix.prototype.getSubmatrix = function (minRow, maxRow, minCol, maxCol) { return Object.create(require('qminer').la.Matrix.prototype); }
+	JsDeclareFunction(getSubmatrix);
+
+	/**
 	* Returns the corresponding row of matrix as vector.
 	* @param {number} rowIdx - Row index (zero based).
 	* @returns {module:la.Vector} The rowIdx-th row of matrix.
+	* @example
+	* // import la module
+	* var la = require('qminer').la;
+	* // create the matrix
+	* var mat = new la.Matrix([[1, 2], [3, 1], [-4, 5]]);
+	* // get the first row of the matrix
+	* var row = mat.getRow(1);
 	*/
 	//# exports.Matrix.prototype.getRow = function (rowIdx) { return Object.create(require('qminer').la.Vector.prototype); }
 	JsDeclareFunction(getRow);
@@ -672,24 +769,24 @@ public:
 //# exports.SparseMatrix = function(arg) { return Object.create(require('qminer').la.SparseMatrix.prototype); }	
 
 class TNodeJsSpMat : public node::ObjectWrap {
-public:
-	TNodeJsSpMat() : Rows(-1) { }
-	TNodeJsSpMat(const TVec<TIntFltKdV>& _Mat, const int& _Rows = -1)
-		: Mat(_Mat), Rows(_Rows) { }
+	friend class TNodeJsUtil;
+private:
+	static v8::Persistent<v8::Function> Constructor;
 public:
 	static void Init(v8::Handle<v8::Object> exports);
 	static const TStr GetClassId() { return "SparseMatrix"; }
-	static v8::Local<v8::Object> New(const TVec<TIntFltKdV>& Mat, const int& Rows = -1);
-public:
-	//! 
-	//! **Functions and properties:**
-	//! 
 
-	//!- `spMat = new la.newSpMat()` -- creates an empty sparse matrix `spMat`
-	//!- `spMat = new la.newSpMat(rowIdxVec, colIdxVec, valVec [, rows, cols])` -- creates an sparse matrix based on two int vectors `rowIdxVec` (row indices) and `colIdxVec` (column indices) and float vector of values `valVec` and optionally sets the row and column dimension
-	//!- `spMat = new la.newSpMat(doubleNestedArr, rows)` -- creates an sparse matrix with `rows` rows (optional parameter), where `doubleNestedArr` is a javascript array of arrays that correspond to sparse matrix columns and each column is a javascript array of arrays corresponding to nonzero elements. Each element is an array of size 2, where the first number is an int (row index) and the second value is a number (value). Example: `spMat = linalg.newSpMat([[[0, 1.1], [1, 2.2], [3, 3.3]], [[2, 1.2]]], { "rows": 4 });`
-	//!- `spMat = new la.newSpMat({"rows":num, "cols":num2})` -- creates a sparse matrix with `num` rows and `num2` columns, which should be integers
-	JsDeclareFunction(New);
+	// wrapped C++ object
+	TVec<TIntFltKdV> Mat;
+	TInt Rows;
+
+	// C++ constructor
+	TNodeJsSpMat() : Rows(-1) { }
+	TNodeJsSpMat(const TVec<TIntFltKdV>& _Mat, const int& _Rows = -1)
+		: Mat(_Mat), Rows(_Rows) { }
+
+public:
+	static TNodeJsSpMat* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
 	/**
 	* Returns an element of the sparse matrix at the given location.
@@ -744,7 +841,7 @@ public:
 	//# exports.SparseMatrix.prototype.getCol = function (colIdx) { return Object.create(require('qminer').la.SparseVector.prototype); }
 	JsDeclareFunction(indexSet);
 
-	/** 
+	/**
 	* Sets a column in sparse matrix.
 	* @param {number} colIdx - Column index (zero based).
 	* @param {module:la.SparseVector} spVec - The new column sparse vector.
@@ -912,12 +1009,12 @@ public:
 	* // create a new sparse matrix
 	* var spMat = new la.SparseMatrix([[[0, 1]], [[0, 3], [1, 8]]]);
 	* // print sparse matrix on screen
-	* // each row represents a nonzero element, where first value is row index, second 
+	* // each row represents a nonzero element, where first value is row index, second
 	* // value is column index and third value is element value. For this matrix:
 	* // 0  0  1.000000
 	* // 0  1  3.000000
 	* // 1  1  8.000000
-	* spMat.print(); 
+	* spMat.print();
 	*/
 	//# exports.SparseMatrix.prototype.print = function () {}
 	JsDeclareFunction(print);
@@ -972,15 +1069,11 @@ public:
 	*/
 	//# exports.SparseMatrix.prototype.setRowDim = function (dim) { }
 	JsDeclareFunction(setRowDim);
-	
+
 	//!- `spMat2 = spMat.sign()` -- create a new sparse matrix `spMat2` whose elements are sign function applied to elements of `spMat`.
 	// (TODO) JsDeclareFunction(sign);
 	//!JSIMPLEMENT:src/qminer/spMat.js
-public:
-	TVec<TIntFltKdV> Mat;
-	TInt Rows;
-private:
-	static v8::Persistent<v8::Function> constructor;
+
 };
 
 #endif

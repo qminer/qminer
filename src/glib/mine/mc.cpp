@@ -2395,15 +2395,35 @@ void THierarch::GetDescendantsAtHeight(const double& Height, const TIntV& StateI
 			}
 		} while (Change);
 
+		// TODO remove
+		//===================================================
+		printf("StateIdV: %s\n", TStrUtil::GetStr(StateIdV).CStr());
+		printf("HeightV: %s\n", TStrUtil::GetStr(StateHeightV, ", ", "%.3f").CStr());
+		printf("HierarchV: %s\n", TStrUtil::GetStr(HierarchV).CStr());
+		printf("TempHierV: %s\n", TStrUtil::GetStr(TempHierarchV).CStr());
+		//===================================================
+
 		for (int StateId = 0; StateId < NLeafs; StateId++) {
-			const int AncestorId = TempHierarchV[StateId];
+			if (StateIdStateNH.IsKey(StateId)) {
+				const int StateN = StateIdStateNH.GetDat(StateId);
+				AggStateV[StateN].Add(StateId);
+			} else {
+				const int AncestorId = TempHierarchV[StateId];
+				EAssertR(StateIdStateNH.IsKey(AncestorId), "State " + TInt::GetStr(AncestorId) + " is not in the super states!");
+				const int AncestorN = StateIdStateNH.GetDat(AncestorId);
 
-			EAssert(StateIdStateNH.IsKey(AncestorId));
-
-			const int AncestorN = StateIdStateNH.GetDat(AncestorId);
-
-			AggStateV[AncestorN].Add(StateId);
+				AggStateV[AncestorN].Add(StateId);
+			}
 		}
+
+		// TODO remove
+		//===================================================
+		printf("Descendants at height:\n");
+		for (int i = 0; i < AggStateV.Len(); i++) {
+			printf("%s\n", TStrUtil::GetStr(AggStateV[i]).CStr());
+		}
+		printf("==\n");
+		//===================================================
 	} else {
 		bool Change;
 		do {
@@ -2430,20 +2450,29 @@ void THierarch::GetDescendantsAtHeight(const double& Height, const TIntV& StateI
 
 		TIntSet UsedStateIdSet;
 		for (int StateId = 0; StateId < NLeafs; StateId++) {
-			const int AncestorOnHeightId = TempHierarchV[StateId];
 
-			if (StateIdStateNH.IsKey(AncestorOnHeightId)) {
-				const int AncestorN = StateIdStateNH.GetDat(AncestorOnHeightId);
-				AggStateV[AncestorN].Add(StateId);
-				UsedStateIdSet.AddKey(StateId);
+			int AddStateN, AddStateId;
+
+			if (StateIdStateNH.IsKey(StateId)) {
+				AddStateId = StateId;
+				AddStateN = StateIdStateNH.GetDat(StateId);
 			} else {
-				const int SuperAncestorId = TempHierarchV[AncestorOnHeightId];
-				EAssert(StateIdStateNH.IsKey(SuperAncestorId));
-				if (!UsedStateIdSet.IsKey(AncestorOnHeightId)) {
-					const int AncestorN = StateIdStateNH.GetDat(SuperAncestorId);
-					AggStateV[AncestorN].Add(AncestorOnHeightId);
-					UsedStateIdSet.AddKey(AncestorOnHeightId);
+				const int AncestorOnHeightId = TempHierarchV[StateId];
+				if (StateIdStateNH.IsKey(AncestorOnHeightId)) {
+					AddStateId = StateId;
+					AddStateN = StateIdStateNH.GetDat(AncestorOnHeightId);
+				} else {
+					const int SuperAncestorId = TempHierarchV[AncestorOnHeightId];
+					EAssert(StateIdStateNH.IsKey(SuperAncestorId));
+
+					AddStateN = StateIdStateNH.GetDat(SuperAncestorId);
+					AddStateId = AncestorOnHeightId;
 				}
+			}
+
+			if (!UsedStateIdSet.IsKey(AddStateId)) {
+				AggStateV[AddStateN].Add(AddStateId);
+				UsedStateIdSet.AddKey(AddStateId);
 			}
 		}
 		// TODO remove

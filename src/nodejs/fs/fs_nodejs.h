@@ -240,6 +240,7 @@ public:
 	PSIn SIn;
 	// C++ constructor
 	TNodeJsFIn(const TStr& FNm) : SIn(TZipIn::NewIfZip(FNm)) { }
+	TNodeJsFIn(const PSIn& _SIn) : SIn(_SIn) { }
 private:	
 	/**
 	* Input file stream.
@@ -279,12 +280,12 @@ public:
 	//# exports.FIn.prototype.readLine = function() { return ''; }
 	JsDeclareFunction(readLine);
     
-    /**
-     * Reads json that was serialized using `fs.FOut.writeJson`.
-     * @returns {Object} Json object
-     */
-    //# exports.FIn.prototype.readJson = function() { return {}; }
-    JsDeclareFunction(readJson);
+	/**
+	* Reads a string that was serialized using `fs.FOut.writeBinary`.
+	* @returns {string} String
+	*/
+    //# exports.FIn.prototype.readString = function() { return ''; }
+    JsDeclareFunction(readString);
 	
 	/**
 	* @property {boolean} eof - True if end of file is detected.
@@ -323,17 +324,19 @@ public:
 // NodeJs-FOut
 class TNodeJsFOut : public node::ObjectWrap {
 	friend class TNodeJsUtil;
-public:
-    PSOut SOut;
 private:
+	static v8::Persistent<v8::Function> Constructor;
+public:
+	static void Init(v8::Handle<v8::Object> exports);
+	static const TStr GetClassId() { return "FOut"; }
+
+	// wrapped C++ object
+	PSOut SOut;
+	// C++ constructor
     TNodeJsFOut(const TStr& FilePath, const bool& AppendP):
         SOut(TFOut::New(FilePath, AppendP)) { }
     TNodeJsFOut(const TStr& FilePath): SOut(TZipOut::NewIfZip(FilePath)) { }
-public:
-    static void Init(v8::Handle<v8::Object> exports);
-    static const TStr GetClassId() { return "FOut"; }
-
-    static v8::Local<v8::Object> New(const TStr& FilePath, const bool& AppendP = false);
+	TNodeJsFOut(const PSOut& _SOut) : SOut(_SOut) { }
 
 	/**
 	* Output file stream.
@@ -352,8 +355,8 @@ public:
 	* fout.close();
 	*/
 	//# exports.FOut = function(fileName, append) {}	
-	JsDeclareFunction(New);
-    
+	static TNodeJsFOut* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+public:
 	/**
 	* Writes a string or number or a JSON object in human readable form
 	* @param {(String | Number | Object)} arg - Argument to write
@@ -378,14 +381,6 @@ public:
 	//# exports.FOut.prototype.writeLine = function(str) { return this; }
     JsDeclareFunction(writeLine);
     
-    /**
-     * Saves json object, which can be read by `fs.FIn.readJson`.
-     * @returns {Object} obj - Json object to write
-     * @returns {module:fs.FOut} Self.
-     */
-    //# exports.FOut.prototype.writeJson = function(obj) { return this; }
-    JsDeclareFunction(writeJson);
-
 	/**
 	* Flushes the output stream
 	* @returns {module:fs.FOut} Self.
@@ -398,8 +393,6 @@ public:
 	*/
 	//# exports.FOut.prototype.close = function() {}
     JsDeclareFunction(close);
-private:
-    static v8::Persistent<v8::Function> constructor;
 };
 
 #endif

@@ -183,6 +183,9 @@ void TNodeJsQm::flags(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo
 
 	v8::Handle<v8::Object> JsObj = v8::Object::New(Isolate);
 
+	TStr BuildTime = TStr(__DATE__) + " " + TStr(__TIME__);
+	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "buildTime")), v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, BuildTime.CStr())));
+
 #ifdef GLib_WIN
 	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "win")), v8::Boolean::New(Isolate, true));
 #else
@@ -289,6 +292,8 @@ void TNodeJsBase::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "store", _store);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStoreList", _getStoreList);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "createStore", _createStore);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "createJsStore", _createJsStore);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "addJsStoreCallback", _addJsStoreCallback);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "search", _search);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "garbageCollect", _garbageCollect);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "partialFlush", _partialFlush);
@@ -548,6 +553,67 @@ void TNodeJsBase::createStore(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	}
 }
 
+void TNodeJsBase::createJsStore(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	// unwrap
+	TNodeJsBase* JsBase = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsBase>(Args.Holder());
+	TWPt<TQm::TBase> Base = JsBase->Base;
+	QmAssertR(!Base->IsRdOnly(), "Base opened as read-only");
+	// parse arguments
+	PJsonVal SchemaVal = TNodeJsUtil::GetArgJson(Args, 0);
+	
+	QmAssertR(Args.Length() == 2 && (Args[1]->IsObject() || Args[1]->IsArray()), "createJsStore expects 2 arguments: schema JSON (or array) and callback object (or array)");
+	// create new stores
+	TVec<TWPt<TQm::TStore> > NewStoreV = TQm::TStorage::CreateJsStoresFromSchema(
+		Base, SchemaVal, Args[1]);
+	// Update record templates
+	for (int StoreN = 0; StoreN < NewStoreV.Len(); StoreN++) {
+		TNodeJsRec::Init(NewStoreV[StoreN]);
+	}
+	// return store (if only one) or array of stores (if more)
+	if (NewStoreV.Len() == 1) {
+		Args.GetReturnValue().Set(
+			TNodeJsUtil::NewInstance<TNodeJsStore>(
+			new TNodeJsStore(NewStoreV[0], JsBase->Watcher)));
+	} else if (NewStoreV.Len() > 1) {
+		v8::Local<v8::Array> JsNewStoreV = v8::Array::New(Isolate, NewStoreV.Len());
+		for (int NewStoreN = 0; NewStoreN < NewStoreV.Len(); NewStoreN++) {
+			JsNewStoreV->Set(v8::Number::New(Isolate, NewStoreN),
+				TNodeJsUtil::NewInstance<TNodeJsStore>(new TNodeJsStore(NewStoreV[NewStoreN], JsBase->Watcher))
+				);
+		}
+	} else {
+		Args.GetReturnValue().Set(v8::Null(Isolate));
+	}
+}
+
+void TNodeJsBase::addJsStoreCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	// unwrap
+	TNodeJsBase* JsBase = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsBase>(Args.Holder());
+	TWPt<TQm::TBase> Base = JsBase->Base;
+	QmAssert(Args.Length() == 3);
+	QmAssert(Args[0]->IsObject());
+	TNodeJsStore* JsStore = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsStore>(Args[0]->ToObject());
+	QmAssert(Args[1]->IsString());
+	TStr PropName = TNodeJsUtil::GetStr(Args[1]->ToString());
+	QmAssert(Args[2]->IsFunction());
+	
+	QmAssert(JsStore->Store->GetStoreType() == "TNodeJsFuncStore");
+	TQm::TStorage::TNodeJsFuncStore* JsImplStore = dynamic_cast<TQm::TStorage::TNodeJsFuncStore *>(JsStore->Store());
+	QmAssert(JsImplStore != NULL);
+
+	if (PropName == "GetAllRecs") {		
+		JsImplStore->GetAllRecsFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(Args[2]));
+	} else {
+		throw TQm::TQmExcept::New("store.addJsStoreCallback: unrecognized callback name: " + PropName);
+	}
+
+}
+
+
 void TNodeJsBase::search(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
@@ -608,7 +674,7 @@ void TNodeJsBase::getStreamAggr(const v8::FunctionCallbackInfo<v8::Value>& Args)
 	const TStr AggrNm = TNodeJsUtil::GetArgStr(Args, 0);
 	if (JsBase->Base->IsStreamAggr(AggrNm)) {
 		TQm::PStreamAggr StreamAggr = JsBase->Base->GetStreamAggr(AggrNm);
-		Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsSA>(new TNodeJsSA(StreamAggr)));
+		Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsStreamAggr>(new TNodeJsStreamAggr(StreamAggr)));
 	}
 }
 
@@ -660,27 +726,29 @@ void TNodeJsStore::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "isDate", _isDate);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "key", _key);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStreamAggr", _getStreamAggr);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "resetStreamAggregates", _resetStreamAggregates);	
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStreamAggrNames", _getStreamAggrNames);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "toJSON", _toJSON);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "clear", _clear);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getVector", _getVector);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getMatrix", _getMatrix);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "cell", _cell);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "triggerOnAddCallbacks", _triggerOnAddCallbacks);
 
 	// Properties 
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "name"), _name);
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "empty"), _empty);
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "length"), _length);
-	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "allRecords"), _allRecords);
+	tpl->InstanceTemplate()->SetAccessorProperty(v8::String::NewFromUtf8(Isolate, "allRecords"), v8::FunctionTemplate::New(Isolate, _allRecords));
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "fields"), _fields);
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "joins"), _joins);
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "keys"), _keys);
-	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "first"), _first);
-	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "last"), _last);
-	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "forwardIter"), _forwardIter);
-	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "backwardIter"), _backwardIter);
+	tpl->InstanceTemplate()->SetAccessorProperty(v8::String::NewFromUtf8(Isolate, "first"), v8::FunctionTemplate::New(Isolate, _first));
+	tpl->InstanceTemplate()->SetAccessorProperty(v8::String::NewFromUtf8(Isolate, "last"), v8::FunctionTemplate::New(Isolate, _last));
+	tpl->InstanceTemplate()->SetAccessorProperty(v8::String::NewFromUtf8(Isolate, "forwardIter"), v8::FunctionTemplate::New(Isolate, _forwardIter));
+	tpl->InstanceTemplate()->SetAccessorProperty(v8::String::NewFromUtf8(Isolate, "backwardIter"), v8::FunctionTemplate::New(Isolate, _backwardIter));
 	tpl->InstanceTemplate()->SetIndexedPropertyHandler(_indexId);
-	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "base"), _base);
+	tpl->InstanceTemplate()->SetAccessorProperty(v8::String::NewFromUtf8(Isolate, "base"), v8::FunctionTemplate::New(Isolate, _base));
 
 	// This has to be last, otherwise the properties won't show up on the object in JavaScript.
 	Constructor.Reset(Isolate, tpl->GetFunction());
@@ -701,15 +769,35 @@ v8::Local<v8::Value> TNodeJsStore::Field(const TQm::TRec& Rec, const int FieldId
 	if (Desc.IsInt()) {
 		const int Val = Rec.GetFieldInt(FieldId);
 		return HandleScope.Escape(v8::Integer::New(Isolate, Val));
+	} 
+	else if (Desc.IsInt16()) {
+		const int16 Val = Rec.GetFieldInt16(FieldId);
+		return HandleScope.Escape(v8::Integer::New(Isolate, Val));
+	} 
+	else if (Desc.IsInt64()) {
+		const int64 Val = Rec.GetFieldInt64(FieldId);
+		return HandleScope.Escape(v8::Number::New(Isolate, Val));
+	} 
+	else if (Desc.IsByte()) {
+		const uchar Val = Rec.GetFieldByte(FieldId);
+		return HandleScope.Escape(v8::Integer::New(Isolate, Val));
 	}
 	else if (Desc.IsIntV()) {
 		TIntV IntV; Rec.GetFieldIntV(FieldId, IntV);
 		return HandleScope.Escape(TNodeJsVec<TInt, TAuxIntV>::New(IntV));
 	}
+	else if (Desc.IsUInt()) {
+		const uint Val = Rec.GetFieldUInt(FieldId);
+		return HandleScope.Escape(v8::Number::New(Isolate, Val));
+	}
+	else if (Desc.IsUInt16()) {
+		const uint16 Val = Rec.GetFieldUInt16(FieldId);
+		return HandleScope.Escape(v8::Integer::New(Isolate, Val));
+	} 
 	else if (Desc.IsUInt64()) {
 		const uint64 Val = Rec.GetFieldUInt64(FieldId);
 		return HandleScope.Escape(v8::Integer::New(Isolate, (int)Val));
-	}
+	} 
 	else if (Desc.IsStr()) {
 		const TStr Val = Rec.GetFieldStr(FieldId);
 		return HandleScope.Escape(v8::String::NewFromUtf8(Isolate, Val.CStr()));
@@ -724,6 +812,10 @@ v8::Local<v8::Value> TNodeJsStore::Field(const TQm::TRec& Rec, const int FieldId
 	}
 	else if (Desc.IsFlt()) {
 		const double Val = Rec.GetFieldFlt(FieldId);
+		return HandleScope.Escape(v8::Number::New(Isolate, Val));
+	} 
+	else if (Desc.IsSFlt()) {
+		const float Val = Rec.GetFieldSFlt(FieldId);
 		return HandleScope.Escape(v8::Number::New(Isolate, Val));
 	}
 	else if (Desc.IsFltPr()) {
@@ -756,6 +848,14 @@ v8::Local<v8::Value> TNodeJsStore::Field(const TQm::TRec& Rec, const int FieldId
 	}
 	else if (Desc.IsBowSpV()) {
 		throw TQm::TQmExcept::New("Store::Field BowSpV not implemented");
+	} else if (Desc.IsTMem()) {
+		TMem Val;
+		Rec.GetFieldTMem(FieldId, Val);
+		v8::Local<v8::Object> Bf = TNodeJsUtil::NewBuffer(Val.GetBf(), Val.Len());
+		return HandleScope.Escape(Bf);
+	} else if (Desc.IsJson()) {
+		PJsonVal Val = Rec.GetFieldJsonVal(FieldId);
+		return HandleScope.Escape(TNodeJsUtil::ParseJson(Isolate, Val));
 	}
 	throw TQm::TQmExcept::New("Unknown field type " + Desc.GetFieldTypeStr());
 }
@@ -1023,7 +1123,7 @@ void TNodeJsStore::isNumeric(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		const int FldId = JsStore->Store->GetFieldId(FldNm);
 		const TQm::TFieldDesc& FldDesc = Store->GetFieldDesc(FldId);
 
-		Args.GetReturnValue().Set(v8::Boolean::New(Isolate, FldDesc.IsFlt() || FldDesc.IsInt() || FldDesc.IsUInt64()));
+		Args.GetReturnValue().Set(v8::Boolean::New(Isolate, FldDesc.IsFlt() || FldDesc.IsSFlt() || FldDesc.IsInt() || FldDesc.IsInt16() || FldDesc.IsInt64() || FldDesc.IsByte() || FldDesc.IsUInt() || FldDesc.IsUInt16() || FldDesc.IsUInt64()));
 	}
 	catch (const PExcept& Except) {
 		throw TQm::TQmExcept::New("[except] " + Except->GetMsgStr());
@@ -1112,7 +1212,7 @@ void TNodeJsStore::getStreamAggr(const v8::FunctionCallbackInfo<v8::Value>& Args
 
 		if (Base->IsStreamAggr(StoreId, AggrNm)) {
 			TQm::PStreamAggr StreamAggr = Base->GetStreamAggr(StoreId, AggrNm);
-			Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsSA>(new TNodeJsSA(StreamAggr)));
+			Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsStreamAggr>(new TNodeJsStreamAggr(StreamAggr)));
 		}
 		else {
 			Args.GetReturnValue().Set(v8::Null(Isolate));
@@ -1121,6 +1221,19 @@ void TNodeJsStore::getStreamAggr(const v8::FunctionCallbackInfo<v8::Value>& Args
 	catch (const PExcept& Except) {
 		throw TQm::TQmExcept::New("[except] " + Except->GetMsgStr());
 	}
+}
+
+
+void TNodeJsStore::resetStreamAggregates(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsStore* JsStore = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsStore>(Args.Holder());
+	TWPt<TQm::TStore>& Store = JsStore->Store;
+	const TWPt<TQm::TBase>& Base = JsStore->Store->GetBase();
+
+	TQm::PStreamAggrBase SABase = Base->GetStreamAggrBase(Store->GetStoreId());
+	SABase->Reset();
 }
 
 void TNodeJsStore::getStreamAggrNames(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -1214,6 +1327,62 @@ void TNodeJsStore::getVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 			Args.GetReturnValue().Set(TNodeJsVec<TInt, TAuxIntV>::New(ColV));
 			return;
+		} 
+		else if (Desc.IsInt16()) {
+			TIntV ColV(Recs);
+
+			TQm::PStoreIter Iter = Store->ForwardIter(); Iter->Next();
+			for (int RecN = 0; RecN < Recs; RecN++) {
+				ColV[RecN] = JsStore->Store->GetFieldInt16(Iter->GetRecId(), FieldId);
+				Iter->Next();
+			}
+
+			Args.GetReturnValue().Set(TNodeJsVec<TInt, TAuxIntV>::New(ColV));
+			return;
+		} 
+		else if (Desc.IsInt64()) {
+			TFltV ColV(Recs);
+
+			TQm::PStoreIter Iter = Store->ForwardIter(); Iter->Next();
+			for (int RecN = 0; RecN < Recs; RecN++) {
+				ColV[RecN] = JsStore->Store->GetFieldInt64(Iter->GetRecId(), FieldId);
+				Iter->Next();
+			}
+
+			Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(ColV));
+			return;
+		} 
+		else if (Desc.IsByte()) {
+			TIntV ColV(Recs);
+
+			TQm::PStoreIter Iter = Store->ForwardIter(); Iter->Next();
+			for (int RecN = 0; RecN < Recs; RecN++) {
+				ColV[RecN] = JsStore->Store->GetFieldByte(Iter->GetRecId(), FieldId);
+				Iter->Next();
+			}
+
+			Args.GetReturnValue().Set(TNodeJsVec<TInt, TAuxIntV>::New(ColV));
+			return;
+		}
+		else if (Desc.IsUInt()) {
+			TFltV ColV(Recs);
+			TQm::PStoreIter Iter = Store->ForwardIter(); Iter->Next();
+			for (int RecN = 0; RecN < Recs; RecN++) {
+				ColV[RecN] = (double)JsStore->Store->GetFieldUInt(Iter->GetRecId(), FieldId);
+				Iter->Next();
+			}
+			Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(ColV));
+			return;
+		}
+		else if (Desc.IsUInt16()) {
+			TFltV ColV(Recs);
+			TQm::PStoreIter Iter = Store->ForwardIter(); Iter->Next();
+			for (int RecN = 0; RecN < Recs; RecN++) {
+				ColV[RecN] = (double)JsStore->Store->GetFieldUInt16(Iter->GetRecId(), FieldId);
+				Iter->Next();
+			}
+			Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(ColV));
+			return;
 		}
 		else if (Desc.IsUInt64()) {
 			TFltV ColV(Recs);
@@ -1252,6 +1421,16 @@ void TNodeJsStore::getVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			TQm::PStoreIter Iter = Store->ForwardIter(); Iter->Next();
 			for (int RecN = 0; RecN < Recs; RecN++) {
 				ColV[RecN] = JsStore->Store->GetFieldFlt(Iter->GetRecId(), FieldId);
+				Iter->Next();
+			}
+			Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(ColV));
+			return;
+		}
+		else if (Desc.IsSFlt()) {
+			TFltV ColV(Recs);
+			TQm::PStoreIter Iter = Store->ForwardIter(); Iter->Next();
+			for (int RecN = 0; RecN < Recs; RecN++) {
+				ColV[RecN] = JsStore->Store->GetFieldSFlt(Iter->GetRecId(), FieldId);
 				Iter->Next();
 			}
 			Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(ColV));
@@ -1309,7 +1488,52 @@ void TNodeJsStore::getMatrix(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			Args.GetReturnValue().Set(TNodeJsFltVV::New(ColV));
 			return;
 		}
-		else if (Desc.IsUInt64()) {
+		else if (Desc.IsInt16()) {
+			TFltVV ColV(1, Recs);
+			TQm::PStoreIter Iter = Store->ForwardIter(); Iter->Next();
+			for (int RecN = 0; RecN < Recs; RecN++) {
+				ColV.At(0, RecN) = (double)JsStore->Store->GetFieldInt16(Iter->GetRecId(), FieldId);
+				Iter->Next();
+			}
+			Args.GetReturnValue().Set(TNodeJsFltVV::New(ColV));
+			return;
+		} else if (Desc.IsInt64()) {
+			TFltVV ColV(1, Recs);
+			TQm::PStoreIter Iter = Store->ForwardIter(); Iter->Next();
+			for (int RecN = 0; RecN < Recs; RecN++) {
+				ColV.At(0, RecN) = (double)JsStore->Store->GetFieldInt64(Iter->GetRecId(), FieldId);
+				Iter->Next();
+			}
+			Args.GetReturnValue().Set(TNodeJsFltVV::New(ColV));
+			return;
+		} else if (Desc.IsByte()) {
+			TFltVV ColV(1, Recs);
+			TQm::PStoreIter Iter = Store->ForwardIter(); Iter->Next();
+			for (int RecN = 0; RecN < Recs; RecN++) {
+				ColV.At(0, RecN) = (double)JsStore->Store->GetFieldByte(Iter->GetRecId(), FieldId);
+				Iter->Next();
+			}
+			Args.GetReturnValue().Set(TNodeJsFltVV::New(ColV));
+			return;
+		} else if (Desc.IsUInt()) {
+			TFltVV ColV(1, Recs);
+			TQm::PStoreIter Iter = Store->ForwardIter(); Iter->Next();
+			for (int RecN = 0; RecN < Recs; RecN++) {
+				ColV.At(0, RecN) = (double)JsStore->Store->GetFieldUInt(Iter->GetRecId(), FieldId);
+				Iter->Next();
+			}
+			Args.GetReturnValue().Set(TNodeJsFltVV::New(ColV));
+			return;
+		} else if (Desc.IsUInt16()) {
+			TFltVV ColV(1, Recs);
+			TQm::PStoreIter Iter = Store->ForwardIter(); Iter->Next();
+			for (int RecN = 0; RecN < Recs; RecN++) {
+				ColV.At(0, RecN) = (double)JsStore->Store->GetFieldUInt16(Iter->GetRecId(), FieldId);
+				Iter->Next();
+			}
+			Args.GetReturnValue().Set(TNodeJsFltVV::New(ColV));
+			return;
+		} else if (Desc.IsUInt64()) {
 			TFltVV ColV(1, Recs);
 			TQm::PStoreIter Iter = Store->ForwardIter(); Iter->Next();
 			for (int RecN = 0; RecN < Recs; RecN++) {
@@ -1334,6 +1558,16 @@ void TNodeJsStore::getMatrix(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			TQm::PStoreIter Iter = Store->ForwardIter(); Iter->Next();
 			for (int RecN = 0; RecN < Recs; RecN++) {
 				ColV.At(0, RecN) = JsStore->Store->GetFieldFlt(Iter->GetRecId(), FieldId);
+				Iter->Next();
+			}
+			Args.GetReturnValue().Set(TNodeJsFltVV::New(ColV));
+			return;
+		} 
+		else if (Desc.IsSFlt()) {
+			TFltVV ColV(1, Recs);
+			TQm::PStoreIter Iter = Store->ForwardIter(); Iter->Next();
+			for (int RecN = 0; RecN < Recs; RecN++) {
+				ColV.At(0, RecN) = JsStore->Store->GetFieldSFlt(Iter->GetRecId(), FieldId);
 				Iter->Next();
 			}
 			Args.GetReturnValue().Set(TNodeJsFltVV::New(ColV));
@@ -1374,7 +1608,7 @@ void TNodeJsStore::getMatrix(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 				JsStore->Store->GetFieldNumSpV(Iter->GetRecId(), FieldId, ColV[RecN]);
 				Iter->Next();
 			}
-			Args.GetReturnValue().Set(TNodeJsSpMat::New(ColV));
+			Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsSpMat>(new TNodeJsSpMat(ColV)));
 			return;
 		}
 		else if (Desc.IsStr()) {
@@ -1414,6 +1648,27 @@ void TNodeJsStore::cell(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	Args.GetReturnValue().Set(TNodeJsStore::Field(JsStore->Store, RecId, FieldId));
 }
 
+void TNodeJsStore::triggerOnAddCallbacks(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsStore* JsStore = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsStore>(Args.Holder());
+	TWPt<TQm::TStore> Store = JsStore->Store;
+	QmAssertR((Args.Length() == 1) || (Args.Length() == 0 && Store->GetRecs() > 0), "Store.triggerOnAddCallbacks: at most one argument expected!");
+
+	if (Args.Length() == 1) {
+		if (Args[0]->IsInt32()) {
+			int RecId = TNodeJsUtil::GetArgInt32(Args, 0);
+			Store->OnAdd(RecId);
+		} else {
+			TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[0]->ToObject());
+			Store->OnAdd(JsRec->Rec);
+		}
+	} else {
+		Store->OnAdd(Store->GetLastRecId());
+	}
+}
+
 void TNodeJsStore::name(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
@@ -1443,15 +1698,17 @@ void TNodeJsStore::length(v8::Local<v8::String> Name, const v8::PropertyCallback
 	Info.GetReturnValue().Set(v8::Integer::New(Isolate, (int)JsStore->Store->GetRecs()));
 }
 
-void TNodeJsStore::allRecords(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsStore::allRecords(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	v8::Local<v8::Object> Self = Info.Holder();
+	v8::Local<v8::Object> Self = Args.Holder();
 	TNodeJsStore* JsStore = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsStore>(Self);
 
+	if (!JsStore->Store->HasGetAllRecs()) { return; }
+
 	TQm::PRecSet ResultSet = JsStore->Store->GetAllRecs();
-	Info.GetReturnValue().Set(
+	Args.GetReturnValue().Set(
 		TNodeJsUtil::NewInstance<TNodeJsRecSet>(new TNodeJsRecSet(ResultSet, JsStore->Watcher)));
 }
 
@@ -1545,59 +1802,67 @@ void TNodeJsStore::keys(v8::Local<v8::String> Name, const v8::PropertyCallbackIn
 	Info.GetReturnValue().Set(KeyNmV);
 }
 
-void TNodeJsStore::first(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsStore::first(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	v8::Local<v8::Object> Self = Info.Holder();
+	v8::Local<v8::Object> Self = Args.Holder();
 	TNodeJsStore* JsStore = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsStore>(Self);
+
+	if (!JsStore->Store->HasFirstRecId()) { return; }
 
 	const uint64 FirstRecId = JsStore->Store->GetFirstRecId();
 	if (FirstRecId == TUInt64::Mx) {
-		Info.GetReturnValue().Set(v8::Null(Isolate));
+		Args.GetReturnValue().Set(v8::Null(Isolate));
 		return;
 	}
-	Info.GetReturnValue().Set(
+	Args.GetReturnValue().Set(
 		TNodeJsRec::NewInstance(new TNodeJsRec(JsStore->Watcher, JsStore->Store->GetRec(FirstRecId)))
 		);
 }
 
-void TNodeJsStore::last(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsStore::last(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	v8::Local<v8::Object> Self = Info.Holder();
+	v8::Local<v8::Object> Self = Args.Holder();
 	TNodeJsStore* JsStore = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsStore>(Self);
+
+	if (!JsStore->Store->HasLastRecId()) { return; }
 
 	const uint64 LastRecId = JsStore->Store->GetLastRecId();
 	if (LastRecId == TUInt64::Mx) {
-		Info.GetReturnValue().Set(v8::Null(Isolate));
+		Args.GetReturnValue().Set(v8::Null(Isolate));
 		return;
 	}
-	Info.GetReturnValue().Set(
+	Args.GetReturnValue().Set(
 		TNodeJsRec::NewInstance(new TNodeJsRec(JsStore->Watcher, JsStore->Store->GetRec(LastRecId)))
 	);
 }
 
-void TNodeJsStore::forwardIter(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsStore::forwardIter(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	v8::Local<v8::Object> Self = Info.Holder();
+	v8::Local<v8::Object> Self = Args.Holder();
 	TNodeJsStore* JsStore = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsStore>(Self);
 
-	Info.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsStoreIter>(
+	if (!JsStore->Store->HasForwardIter()) { return; }
+
+	Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsStoreIter>(
 		new TNodeJsStoreIter(JsStore->Store, JsStore->Store->ForwardIter(), JsStore->Watcher)));
 }
 
-void TNodeJsStore::backwardIter(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsStore::backwardIter(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	v8::Local<v8::Object> Self = Info.Holder();
+	v8::Local<v8::Object> Self = Args.Holder();
 	TNodeJsStore* JsStore = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsStore>(Self);
 
-	Info.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsStoreIter>(
+	if (!JsStore->Store->HasBackwardIter()) { return; }
+
+	Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsStoreIter>(
 		new TNodeJsStoreIter(JsStore->Store, JsStore->Store->BackwardIter(), JsStore->Watcher)));
 }
 
@@ -1617,13 +1882,13 @@ void TNodeJsStore::indexId(uint32_t Index, const v8::PropertyCallbackInfo<v8::Va
 	Info.GetReturnValue().Set(v8::Null(Isolate));
 }
 
-void TNodeJsStore::base(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsStore::base(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	v8::Local<v8::Object> Self = Info.Holder();
+	v8::Local<v8::Object> Self = Args.Holder();
 	TNodeJsStore* JsStore = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsStore>(Self);
-	Info.GetReturnValue().Set(
+	Args.GetReturnValue().Set(
 		TNodeJsUtil::NewInstance<TNodeJsBase>(new TNodeJsBase(JsStore->Store->GetBase())));
 
 }
@@ -1666,7 +1931,8 @@ void TNodeJsRec::Init(const TWPt<TQm::TStore>& Store) {
 		tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "$id"), _id);
 		tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "$name"), _name);
 		tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "$fq"), _fq);
-		tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "$store"), _store);
+		tpl->InstanceTemplate()->SetAccessorProperty(v8::String::NewFromUtf8(Isolate, "$store"), v8::FunctionTemplate::New(Isolate, _store));
+
 		// register all the fields
 		for (int FieldN = 0; FieldN < Store->GetFields(); FieldN++) {
 			TStr FieldNm = Store->GetFieldDesc(FieldN).GetFieldNm();
@@ -1676,10 +1942,9 @@ void TNodeJsRec::Init(const TWPt<TQm::TStore>& Store) {
 		for (int JoinId = 0; JoinId < Store->GetJoins(); JoinId++) {
 			const TQm::TJoinDesc& JoinDesc = Store->GetJoinDesc(JoinId);
 			if (JoinDesc.IsFieldJoin()) {
-				tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, JoinDesc.GetJoinNm().CStr()), _sjoin);
-			}
-			else if (JoinDesc.IsIndexJoin()) {
-				tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, JoinDesc.GetJoinNm().CStr()), _join);
+				tpl->InstanceTemplate()->SetAccessorProperty(v8::String::NewFromUtf8(Isolate, JoinDesc.GetJoinNm().CStr()), v8::FunctionTemplate::New(Isolate, _sjoin, v8::String::NewFromUtf8(Isolate, JoinDesc.GetJoinNm().CStr())));
+			} else if (JoinDesc.IsIndexJoin()) {
+				tpl->InstanceTemplate()->SetAccessorProperty(v8::String::NewFromUtf8(Isolate, JoinDesc.GetJoinNm().CStr()), v8::FunctionTemplate::New(Isolate, _join, v8::String::NewFromUtf8(Isolate, JoinDesc.GetJoinNm().CStr())));
 			}
 			else {
 				TQm::ErrorLog("Unknown join type " + Store->GetStoreNm() + "." + JoinDesc.GetJoinNm());
@@ -1853,13 +2118,13 @@ void TNodeJsRec::fq(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v
 	Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsRec->Fq));
 }
 
-void TNodeJsRec::store(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsRec::store(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	v8::Local<v8::Object> Self = Info.Holder();
+	v8::Local<v8::Object> Self = Args.Holder();
 	TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Self);
-	Info.GetReturnValue().Set(
+	Args.GetReturnValue().Set(
 		TNodeJsUtil::NewInstance<TNodeJsStore>(new TNodeJsStore(JsRec->Rec.GetStore(), JsRec->Watcher))
 		);
 
@@ -1900,6 +2165,21 @@ void TNodeJsRec::setField(v8::Local<v8::String> Name, v8::Local<v8::Value> Value
 		QmAssertR(Value->IsInt32(), "Field " + FieldNm + " not integer");
 		const int Int = Value->Int32Value();
 		Rec.SetFieldInt(FieldId, Int);
+	} 
+	else if (Desc.IsInt16()) {
+		QmAssertR(Value->IsInt32(), "Field " + FieldNm + " not integer");
+		const int Int = Value->Int32Value();
+		Rec.SetFieldInt16(FieldId, (int16)Int);
+	} 
+	else if (Desc.IsInt64()) {
+		QmAssertR(Value->IsInt32(), "Field " + FieldNm + " not integer");
+		const int64 Int = Value->IntegerValue();
+		Rec.SetFieldInt64(FieldId, Int);
+	} 
+	else if (Desc.IsByte()) {
+		QmAssertR(Value->IsInt32(), "Field " + FieldNm + " not integer");
+		const int Int = Value->Int32Value();
+		Rec.SetFieldByte(FieldId, (uchar)Int);
 	}
 	else if (Desc.IsIntV()) {
 		// check if we have JavaScript array
@@ -1913,6 +2193,16 @@ void TNodeJsRec::setField(v8::Local<v8::String> Name, v8::Local<v8::Value> Value
 			IntV.Add(Val);
 		}
 		Rec.SetFieldIntV(FieldId, IntV);
+	} 
+	else if (Desc.IsUInt()) {
+		QmAssertR(Value->IsNumber(), "Field " + FieldNm + " not uint64");
+		const uint UInt = (uint)Value->IntegerValue();
+		Rec.SetFieldUInt64(FieldId, UInt);
+	} 
+	else if (Desc.IsUInt16()) {
+		QmAssertR(Value->IsNumber(), "Field " + FieldNm + " not uint64");
+		const uint16 UInt16 = (uint16)Value->IntegerValue();
+		Rec.SetFieldUInt64(FieldId, UInt16);
 	}
 	else if (Desc.IsUInt64()) {
 		QmAssertR(Value->IsNumber(), "Field " + FieldNm + " not uint64");
@@ -1939,7 +2229,7 @@ void TNodeJsRec::setField(v8::Local<v8::String> Name, v8::Local<v8::Value> Value
 	else if (Desc.IsBool()) {
 		QmAssertR(Value->IsBoolean(), "Field " + FieldNm + " not boolean");
 		Rec.SetFieldBool(FieldId, Value->BooleanValue());
-	}
+	} 
 	else if (Desc.IsFlt()) {
 		QmAssertR(Value->IsNumber(), "Field " + FieldNm + " not numeric");
 		TFlt Val(Value->NumberValue());
@@ -1949,6 +2239,15 @@ void TNodeJsRec::setField(v8::Local<v8::String> Name, v8::Local<v8::Value> Value
 		}
 		Rec.SetFieldFlt(FieldId, Val);
 	}
+	else if (Desc.IsSFlt()) {
+		QmAssertR(Value->IsNumber(), "Field " + FieldNm + " not numeric");
+		TSFlt Val((float)Value->NumberValue());
+		bool NaNFound = Val.IsNan();
+		if (NaNFound) {
+			throw TQm::TQmExcept::New("Cannot set record field (type float) to NaN, for field name: " + FieldNm);
+		}
+		Rec.SetFieldSFlt(FieldId, Val);
+	}
 	else if (Desc.IsFltPr()) {
 		QmAssertR(Value->IsArray(), "Field " + FieldNm + " not array");
 		v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Value);
@@ -1956,6 +2255,7 @@ void TNodeJsRec::setField(v8::Local<v8::String> Name, v8::Local<v8::Value> Value
 		QmAssert(Array->Get(0)->IsNumber());
 		QmAssert(Array->Get(1)->IsNumber());
 		TFltPr FltPr(Array->Get(0)->NumberValue(), Array->Get(1)->NumberValue());
+		Rec.SetFieldFltPr(FieldId, FltPr);
 	}
 	else if (Desc.IsFltV()) {
 		if (Value->IsArray()) {
@@ -1988,45 +2288,62 @@ void TNodeJsRec::setField(v8::Local<v8::String> Name, v8::Local<v8::Value> Value
 	else if (Desc.IsBowSpV()) {
 		throw TQm::TQmExcept::New("Unsupported type for record setter: " + Desc.GetFieldTypeStr());
 	}
+	else if (Desc.IsTMem()) {
+		QmAssertR(Value->IsObject(), "Field " + FieldNm + " not object");
+
+		v8::Handle<v8::Object> Object = v8::Handle<v8::Object>::Cast(Value);
+		QmAssertR(TNodeJsUtil::IsBuffer(Object), "TNodeJsRec::setField: argument not a buffer");
+
+		char* Buff = node::Buffer::Data(Object);
+		size_t BuffLen = node::Buffer::Length(Object);
+
+		TMem Mem;
+		Mem.AddBf(Buff, (int)BuffLen);
+		Rec.SetFieldTMem(FieldId, Mem);
+	}
+	else if (Desc.IsJson()) {
+		QmAssertR(Value->IsObject(), "Field " + FieldNm + " not an object");
+		v8::Handle<v8::Object> Object = v8::Handle<v8::Object>::Cast(Value);
+		PJsonVal Json = TNodeJsUtil::GetObjProps(Object);
+		Rec.SetFieldJsonVal(FieldId, Json);
+	}
 	else {
 		throw TQm::TQmExcept::New("Unsupported type for record setter: " + Desc.GetFieldTypeStr());
 	}
 }
 
 
-void TNodeJsRec::join(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsRec::join(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	v8::Local<v8::Object> Self = Info.Holder();
+	v8::Local<v8::Object> Self = Args.Holder();
 	TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Self);
-
-	TStr JoinNm = TNodeJsUtil::GetStr(Name);
+	QmAssert(Args.Data()->IsString());
+	TStr JoinNm = TNodeJsUtil::GetStr(Args.Data()->ToString());
 	TQm::PRecSet RecSet = JsRec->Rec.DoJoin(JsRec->Rec.GetStore()->GetBase(), JoinNm);
-	Info.GetReturnValue().Set(
+	Args.GetReturnValue().Set(
 		TNodeJsUtil::NewInstance<TNodeJsRecSet>(new TNodeJsRecSet(RecSet, JsRec->Watcher)));
 }
 
-void TNodeJsRec::sjoin(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
+void TNodeJsRec::sjoin(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
 
-	v8::Local<v8::Object> Self = Info.Holder();
-	TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Self);
-
-	TStr JoinNm = TNodeJsUtil::GetStr(Name);
-	TQm::TRec JoinRec = JsRec->Rec.DoSingleJoin(JsRec->Rec.GetStore()->GetBase(), JoinNm);
-	TWPt<TQm::TStore> JoinStore = JoinRec.GetStore();
-	if (JoinRec.IsDef() && JoinStore->IsRecId(JoinRec.GetRecId())) {
-		Info.GetReturnValue().Set(
-			TNodeJsRec::NewInstance(new TNodeJsRec(JsRec->Watcher, JoinRec))
-			);
-		return;
-	}
-	else {
-		Info.GetReturnValue().Set(v8::Null(Isolate));
-		return;
-	}
+    v8::Local<v8::Object> Self = Args.Holder();
+    TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Self);
+    QmAssert(Args.Data()->IsString());
+    TStr JoinNm = TNodeJsUtil::GetStr(Args.Data()->ToString());
+    TQm::TRec JoinRec = JsRec->Rec.DoSingleJoin(JsRec->Rec.GetStore()->GetBase(), JoinNm);
+    TWPt<TQm::TStore> JoinStore = JoinRec.GetStore();
+    if (JoinRec.IsDef() && JoinStore->IsRecId(JoinRec.GetRecId())) {
+        Args.GetReturnValue().Set(
+            TNodeJsRec::NewInstance(new TNodeJsRec(JsRec->Watcher, JoinRec, JoinRec.GetRecFq())));
+        return;
+    } else {
+        Args.GetReturnValue().Set(v8::Null(Isolate));
+        return;
+    }
 }
 
 v8::Persistent<v8::Function> TNodeJsRecByValV::Constructor;
@@ -2103,8 +2420,8 @@ void TNodeJsRecSet::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getVector", _getVector);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getMatrix", _getMatrix);
 
-	// Properties 
-	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "store"), _store);
+	// Properties 	
+	tpl->InstanceTemplate()->SetAccessorProperty(v8::String::NewFromUtf8(Isolate, "store"), v8::FunctionTemplate::New(Isolate, _store));
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "length"), _length);
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "empty"), _empty);
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weighted"), _weighted);
@@ -2221,7 +2538,7 @@ void TNodeJsRecSet::sample(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	TNodeJsRecSet* JsRecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args.Holder());
 
 	const int SampleSize = TNodeJsUtil::GetArgInt32(Args, 0);
-	TQm::PRecSet ResultSet = JsRecSet->RecSet->GetSampleRecSet(SampleSize, false);
+	TQm::PRecSet ResultSet = JsRecSet->RecSet->GetSampleRecSet(SampleSize);
 
 	Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsRecSet>(new TNodeJsRecSet(ResultSet, JsRecSet->Watcher)));
 }
@@ -2301,79 +2618,161 @@ void TNodeJsRecSet::sortByField(const v8::FunctionCallbackInfo<v8::Value>& Args)
 }
 
 void TNodeJsRecSet::sort(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-	TNodeJsRecSet* JsRecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args.Holder());
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    TNodeJsRecSet* JsRecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args.Holder());
 
-	QmAssertR(Args.Length() == 1 && Args[0]->IsFunction(),
-		"sort(..) expects one argument, which is a function.");
-	v8::Local<v8::Function> Callback = v8::Local<v8::Function>::Cast(Args[0]);
-	for (int i = 0; i < JsRecSet->RecSet->GetRecs(); i++) {
-		JsRecSet->RecSet->PutRecFq(i, i);
-	}
-	JsRecSet->RecSet->SortCmp(TJsRecPairFilter(JsRecSet->RecSet->GetStore(), Callback));
-	Args.GetReturnValue().Set(Args.Holder());
+    QmAssertR(Args.Length() == 1 && Args[0]->IsFunction(),
+        "sort(..) expects one argument, which is a function.");
+    v8::Local<v8::Function> Callback = v8::Local<v8::Function>::Cast(Args[0]);
+    for (int i = 0; i < JsRecSet->RecSet->GetRecs(); i++) {
+        JsRecSet->RecSet->PutRecFq(i, i);
+    }
+    JsRecSet->RecSet->SortCmp(TJsRecPairFilter(JsRecSet->RecSet->GetStore(), Callback));
+    Args.GetReturnValue().Set(Args.Holder());
 }
 
 void TNodeJsRecSet::filterById(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-	TNodeJsRecSet* JsRecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args.Holder());
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    TNodeJsRecSet* JsRecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args.Holder());
 
-	if (Args.Length() == 1) {
-		// we expect an array of IDs which we filter out
-		PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
-		if (!ParamVal->IsArr()) {
-			throw TQm::TQmExcept::New("Expected Array.");
-		}
-		TUInt64Set RecIdSet;
-		for (int ArrValN = 0; ArrValN < ParamVal->GetArrVals(); ArrValN++) {
-			PJsonVal Val = ParamVal->GetArrVal(ArrValN);
-			uint64 RecId = (uint64)Val->GetNum();
-			RecIdSet.AddKey(RecId);
-		}
-		JsRecSet->RecSet->FilterByRecIdSet(RecIdSet);
-	}
-	else if (Args.Length() == 2) {
-		// we expect min and max ID
-		const int MnRecId = TNodeJsUtil::GetArgInt32(Args, 0);
-		const int MxRecId = TNodeJsUtil::GetArgInt32(Args, 1);
-		JsRecSet->RecSet->FilterByRecId((uint64)MnRecId, (uint64)MxRecId);
-	}
+    if (Args.Length() == 1) {
+        // we expect an array of IDs which we filter out
+        PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+        if (!ParamVal->IsArr()) {
+            throw TQm::TQmExcept::New("Expected Array.");
+        }
+        TUInt64Set RecIdSet;
+        for (int ArrValN = 0; ArrValN < ParamVal->GetArrVals(); ArrValN++) {
+            PJsonVal Val = ParamVal->GetArrVal(ArrValN);
+            uint64 RecId = (uint64)Val->GetNum();
+            RecIdSet.AddKey(RecId);
+        }
+        JsRecSet->RecSet->FilterByRecIdSet(RecIdSet);
+    } else if (Args.Length() == 2) {
+        // we expect min and max ID
+        const int MnRecId = TNodeJsUtil::GetArgInt32(Args, 0);
+        const int MxRecId = TNodeJsUtil::GetArgInt32(Args, 1);
+        JsRecSet->RecSet->FilterByRecId((uint64)MnRecId, (uint64)MxRecId);
+    }
 
-	Args.GetReturnValue().Set(Args.Holder());
+    Args.GetReturnValue().Set(Args.Holder());
 }
 
 void TNodeJsRecSet::filterByFq(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-	TNodeJsRecSet* JsRecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args.Holder());
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    TNodeJsRecSet* JsRecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args.Holder());
 
-	const int MnFq = TNodeJsUtil::GetArgInt32(Args, 0);
-	const int MxFq = TNodeJsUtil::GetArgInt32(Args, 1);
-	JsRecSet->RecSet->FilterByFq(MnFq, MxFq);
+    const int MnFq = TNodeJsUtil::GetArgInt32(Args, 0);
+    const int MxFq = TNodeJsUtil::GetArgInt32(Args, 1);
+    JsRecSet->RecSet->FilterByFq(MnFq, MxFq);
 
-	Args.GetReturnValue().Set(Args.Holder());
+    Args.GetReturnValue().Set(Args.Holder());
 }
 
 void TNodeJsRecSet::filterByField(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-	TNodeJsRecSet* JsRecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args.Holder());
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    TNodeJsRecSet* JsRecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args.Holder());
 
-	// get field
-	const TStr FieldNm = TNodeJsUtil::GetArgStr(Args, 0);
-    QmAssertR(JsRecSet->RecSet->GetStore()->IsFieldNm(FieldNm),
-        "RecordSet.filterByField: invalid field name " + FieldNm);
-	const int FieldId = JsRecSet->RecSet->GetStore()->GetFieldId(FieldNm);
-	const TQm::TFieldDesc& Desc = JsRecSet->RecSet->GetStore()->GetFieldDesc(FieldId);
-	// parse filter according to field type
-	if (Desc.IsInt()) {
-		const int MnVal = TNodeJsUtil::GetArgInt32(Args, 1);
-		const int MxVal = TNodeJsUtil::GetArgInt32(Args, 2);
-		JsRecSet->RecSet->FilterByFieldInt(FieldId, MnVal, MxVal);
-	}
-	else if (Desc.IsStr()) {
+    // get field
+    const TStr FieldNm = TNodeJsUtil::GetArgStr(Args, 0);
+    int FieldId;
+    bool IsFieldJoin = false;
+    bool IsIndexJoin = false;
+    const TWPt<TQm::TStore>& Store = JsRecSet->RecSet->GetStore();
+    if (Store->IsFieldNm(FieldNm)) {
+        // normal field
+        FieldId = Store->GetFieldId(FieldNm);
+    } else {
+        // check if this is field join
+        bool is_ok = false;
+        if (Store->IsJoinNm(FieldNm)) {
+            const int JoinId = Store->GetJoinId(FieldNm);
+            const TQm::TJoinDesc& JoinDesc = Store->GetJoinDesc(JoinId);
+            if (JoinDesc.IsFieldJoin()) {
+                FieldId = JoinDesc.GetJoinRecFieldId();
+                is_ok = true;
+                IsFieldJoin = true;
+            } else {
+                FieldId = JoinId; // this is not field id, but join id
+                IsIndexJoin = true;
+                is_ok = true;
+            }
+        } else {
+            //is_ok = false;
+        }
+        QmAssertR(is_ok, "RecordSet.filterByField: invalid field name " + FieldNm);
+    }
+
+    const TQm::TFieldDesc& Desc = JsRecSet->RecSet->GetStore()->GetFieldDesc(FieldId);
+    // parse filter according to field type
+    if (IsIndexJoin) {
+        uint64 MnVal = TUInt64::Mn;
+        uint64 MxVal = TUInt64::Mx;
+        if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
+            MnVal = static_cast<uint64> (TNodeJsUtil::GetArgFlt(Args, 1));
+        }
+        if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
+            MxVal = static_cast<uint64> (TNodeJsUtil::GetArgFlt(Args, 2));
+        }
+        JsRecSet->RecSet->FilterByIndexJoin(Store->GetBase(), FieldId, MnVal, MxVal);
+    } else if (IsFieldJoin) {
+        uint64 MnVal = TUInt64::Mn;
+        uint64 MxVal = TUInt64::Mx;
+        if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
+            MnVal = static_cast<uint64> (TNodeJsUtil::GetArgFlt(Args, 1));
+        }
+        if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
+            MxVal = static_cast<uint64> (TNodeJsUtil::GetArgFlt(Args, 2));
+        }
+        JsRecSet->RecSet->FilterByFieldSafe(FieldId, MnVal, MxVal);
+    } else if (Desc.IsBool()) {
+        const bool Val = TNodeJsUtil::GetArgBool(Args, 1);
+        JsRecSet->RecSet->FilterByFieldBool(FieldId, Val);
+    } else if (Desc.IsInt()) {
+        int MnVal = TInt::Mn;
+        int MxVal = TInt::Mx;
+        if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
+            MnVal = TNodeJsUtil::GetArgInt32(Args, 1);
+        }
+        if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
+            MxVal = TNodeJsUtil::GetArgInt32(Args, 2);
+        }
+        JsRecSet->RecSet->FilterByFieldInt(FieldId, MnVal, MxVal);
+    } else if (Desc.IsInt16()) {
+        int16 MnVal = TInt16::Mn;
+        int16 MxVal = TInt16::Mx;
+        if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
+            MnVal = TNodeJsUtil::GetArgInt32(Args, 1);
+        }
+        if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
+            MxVal = TNodeJsUtil::GetArgInt32(Args, 2);
+        }
+        JsRecSet->RecSet->FilterByFieldInt16(FieldId, MnVal, MxVal);
+    } else if (Desc.IsInt64()) {
+        int64 MnVal = TInt64::Mn;
+        int64 MxVal = TInt64::Mx;
+        if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
+            MnVal = (int64)TNodeJsUtil::GetArgFlt(Args, 1);
+        }
+        if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
+            MxVal = (int64)TNodeJsUtil::GetArgFlt(Args, 2);
+        }
+        JsRecSet->RecSet->FilterByFieldInt64(FieldId, MnVal, MxVal);
+    } else if (Desc.IsByte()) {
+        uchar MnVal = TUCh::Mn;
+        uchar MxVal = TUCh::Mx;
+        if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
+            MnVal = (uchar)TNodeJsUtil::GetArgInt32(Args, 1);
+        }
+        if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
+            MxVal = (uchar)TNodeJsUtil::GetArgInt32(Args, 2);
+        }
+        JsRecSet->RecSet->FilterByFieldByte(FieldId, MnVal, MxVal);
+    } else if (Desc.IsStr()) {
         if (Args.Length() < 3 || !TNodeJsUtil::IsArgStr(Args, 2)) {
             TStr StrVal = TNodeJsUtil::GetArgStr(Args, 1);
             JsRecSet->RecSet->FilterByFieldStr(FieldId, StrVal);
@@ -2382,8 +2781,7 @@ void TNodeJsRecSet::filterByField(const v8::FunctionCallbackInfo<v8::Value>& Arg
             TStr StrValMax = TNodeJsUtil::GetArgStr(Args, 2);
             JsRecSet->RecSet->FilterByFieldStrMinMax(FieldId, StrValMin, StrValMax);
         }
-	}
-    else if (Desc.IsFlt()) {
+    } else if (Desc.IsFlt()) {
         double MnVal = TFlt::Mn;
         double MxVal = TFlt::Mx;
         if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
@@ -2392,7 +2790,37 @@ void TNodeJsRecSet::filterByField(const v8::FunctionCallbackInfo<v8::Value>& Arg
         if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
             MxVal = TNodeJsUtil::GetArgFlt(Args, 2);
         }
-		JsRecSet->RecSet->FilterByFieldFlt(FieldId, MnVal, MxVal);
+        JsRecSet->RecSet->FilterByFieldFlt(FieldId, MnVal, MxVal);
+    } else if (Desc.IsSFlt()) {
+        float MnVal = TSFlt::Mn;
+        float MxVal = TSFlt::Mx;
+        if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
+            MnVal = (float)TNodeJsUtil::GetArgFlt(Args, 1);
+        }
+        if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
+            MxVal = (float)TNodeJsUtil::GetArgFlt(Args, 2);
+        }
+        JsRecSet->RecSet->FilterByFieldSFlt(FieldId, MnVal, MxVal);
+    } else if (Desc.IsUInt()) {
+        uint MnVal = TUInt::Mn;
+        uint MxVal = TUInt::Mx;
+        if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
+            MnVal = static_cast<uint> (TNodeJsUtil::GetArgFlt(Args, 1));
+        }
+        if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
+            MxVal = static_cast<uint> (TNodeJsUtil::GetArgFlt(Args, 2));
+        }
+        JsRecSet->RecSet->FilterByFieldUInt(FieldId, MnVal, MxVal);
+    } else if (Desc.IsUInt16()) {
+        uint16 MnVal = TUInt16::Mn;
+        uint16 MxVal = TUInt16::Mx;
+        if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
+            MnVal = static_cast<uint16> (TNodeJsUtil::GetArgFlt(Args, 1));
+        }
+        if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
+            MxVal = static_cast<uint16> (TNodeJsUtil::GetArgFlt(Args, 2));
+        }
+        JsRecSet->RecSet->FilterByFieldUInt16(FieldId, MnVal, MxVal);
     } else if (Desc.IsUInt64()) {
         uint64 MnVal = TUInt64::Mn;
         uint64 MxVal = TUInt64::Mx;
@@ -2402,14 +2830,11 @@ void TNodeJsRecSet::filterByField(const v8::FunctionCallbackInfo<v8::Value>& Arg
         if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
             MxVal = static_cast<uint64_t> (TNodeJsUtil::GetArgFlt(Args, 2));
         }
-		//const uint64 MnVal = static_cast<uint64_t> (TNodeJsUtil::GetArgFlt(Args, 1));
-		//const uint64 MxVal = static_cast<uint64_t> (TNodeJsUtil::GetArgFlt(Args, 2));
-		JsRecSet->RecSet->FilterByFieldTm(FieldId, MnVal, MxVal);
-	}
-    else if (Desc.IsTm()) {
+        JsRecSet->RecSet->FilterByFieldTm(FieldId, MnVal, MxVal);
+    } else if (Desc.IsTm()) {
         uint64 MnTmMSecs = TUInt64::Mn;
         uint64 MxTmMSecs = TUInt64::Mx;
-            
+
         if (TNodeJsUtil::IsArgNull(Args, 1)) {
             // nothing, default value is ok
         } else if (TNodeJsUtil::IsArgStr(Args, 1)) {
@@ -2419,8 +2844,8 @@ void TNodeJsRecSet::filterByField(const v8::FunctionCallbackInfo<v8::Value>& Arg
             MnTmMSecs = TTm::GetWinMSecsFromUnixMSecs(static_cast<uint64_t> (TNodeJsUtil::GetArgFlt(Args, 1)));
         }
 
-		if (Args.Length() >= 3) {
-			// we have upper limit
+        if (Args.Length() >= 3) {
+            // we have upper limit
             if (TNodeJsUtil::IsArgNull(Args, 2)) {
                 // nothing, default value is ok
             } else if (TNodeJsUtil::IsArgStr(Args, 2)) {
@@ -2428,15 +2853,14 @@ void TNodeJsRecSet::filterByField(const v8::FunctionCallbackInfo<v8::Value>& Arg
                 MxTmMSecs = TTm::GetMSecsFromTm(TTm::GetTmFromWebLogDateTimeStr(MxTmStr, '-', ':', '.', 'T'));
             } else if (TNodeJsUtil::IsArgFlt(Args, 2)) {
                 MxTmMSecs = TTm::GetWinMSecsFromUnixMSecs(static_cast<uint64_t> (TNodeJsUtil::GetArgFlt(Args, 2)));
-            }			
-		}
+            }
+        }
         JsRecSet->RecSet->FilterByFieldTm(FieldId, MnTmMSecs, MxTmMSecs);
-	}
-	else {
-		throw TQm::TQmExcept::New("Unsupported filed type for record set filtering: " + Desc.GetFieldTypeStr());
-	}
+    } else {
+        throw TQm::TQmExcept::New("Unsupported filed type for record set filtering: " + Desc.GetFieldTypeStr());
+    }
 
-	Args.GetReturnValue().Set(Args.Holder());
+    Args.GetReturnValue().Set(Args.Holder());
 }
 
 void TNodeJsRecSet::filter(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -2681,7 +3105,42 @@ void TNodeJsRecSet::getVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		Args.GetReturnValue().Set(TNodeJsVec<TInt, TAuxIntV>::New(ColV));
 		return;
 	}
-	else if (Desc.IsUInt64()) {
+	else if (Desc.IsInt16()) {
+		TIntV ColV(Recs);
+		for (int RecN = 0; RecN < Recs; RecN++) {
+			ColV[RecN] = Store->GetFieldInt16(RecSet()->GetRecId(RecN), FieldId);
+		}
+		Args.GetReturnValue().Set(TNodeJsVec<TInt, TAuxIntV>::New(ColV));
+		return;
+	} else if (Desc.IsInt64()) {
+		TFltV ColV(Recs);
+		for (int RecN = 0; RecN < Recs; RecN++) {
+			ColV[RecN] = (double)Store->GetFieldInt64(RecSet()->GetRecId(RecN), FieldId);
+		}
+		Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(ColV));
+		return;
+	} else if (Desc.IsByte()) {
+		TIntV ColV(Recs);
+		for (int RecN = 0; RecN < Recs; RecN++) {
+			ColV[RecN] = Store->GetFieldByte(RecSet()->GetRecId(RecN), FieldId);
+		}
+		Args.GetReturnValue().Set(TNodeJsVec<TInt, TAuxIntV>::New(ColV));
+		return;
+	} else if (Desc.IsUInt()) {
+		TFltV ColV(Recs);
+		for (int RecN = 0; RecN < Recs; RecN++) {
+			ColV[RecN] = (double)Store->GetFieldUInt(RecSet()->GetRecId(RecN), FieldId);
+		}
+		Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(ColV));
+		return;
+	} else if (Desc.IsUInt16()) {
+		TFltV ColV(Recs);
+		for (int RecN = 0; RecN < Recs; RecN++) {
+			ColV[RecN] = (double)Store->GetFieldUInt16(RecSet()->GetRecId(RecN), FieldId);
+		}
+		Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(ColV));
+		return;
+	} else if (Desc.IsUInt64()) {
 		TFltV ColV(Recs);
 		for (int RecN = 0; RecN < Recs; RecN++) {
 			ColV[RecN] = (double)Store->GetFieldUInt64(RecSet()->GetRecId(RecN), FieldId);
@@ -2709,6 +3168,14 @@ void TNodeJsRecSet::getVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		TFltV ColV(Recs);
 		for (int RecN = 0; RecN < Recs; RecN++) {
 			ColV[RecN] = Store->GetFieldFlt(RecSet()->GetRecId(RecN), FieldId);
+		}
+		Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(ColV));
+		return;
+	}
+	else if (Desc.IsSFlt()) {
+		TFltV ColV(Recs);
+		for (int RecN = 0; RecN < Recs; RecN++) {
+			ColV[RecN] = Store->GetFieldSFlt(RecSet()->GetRecId(RecN), FieldId);
 		}
 		Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(ColV));
 		return;
@@ -2755,7 +3222,42 @@ void TNodeJsRecSet::getMatrix(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		Args.GetReturnValue().Set(TNodeJsFltVV::New(ColV));
 		return;
 	}
-	else if (Desc.IsUInt64()) {
+	else if (Desc.IsInt16()) {
+		TFltVV ColV(1, Recs);
+		for (int RecN = 0; RecN < Recs; RecN++) {
+			ColV(0, RecN) = (double)Store->GetFieldInt16(RecSet()->GetRecId(RecN), FieldId);
+		}
+		Args.GetReturnValue().Set(TNodeJsFltVV::New(ColV));
+		return;
+	} else if (Desc.IsInt64()) {
+		TFltVV ColV(1, Recs);
+		for (int RecN = 0; RecN < Recs; RecN++) {
+			ColV(0, RecN) = (double)Store->GetFieldInt64(RecSet()->GetRecId(RecN), FieldId);
+		}
+		Args.GetReturnValue().Set(TNodeJsFltVV::New(ColV));
+		return;
+	} else if (Desc.IsByte()) {
+		TFltVV ColV(1, Recs);
+		for (int RecN = 0; RecN < Recs; RecN++) {
+			ColV(0, RecN) = (double)Store->GetFieldByte(RecSet()->GetRecId(RecN), FieldId);
+		}
+		Args.GetReturnValue().Set(TNodeJsFltVV::New(ColV));
+		return;
+	} else if (Desc.IsUInt()) {
+		TFltVV ColV(1, Recs);
+		for (int RecN = 0; RecN < Recs; RecN++) {
+			ColV(0, RecN) = (double)Store->GetFieldUInt(RecSet()->GetRecId(RecN), FieldId);
+		}
+		Args.GetReturnValue().Set(TNodeJsFltVV::New(ColV));
+		return;
+	} else if (Desc.IsUInt16()) {
+		TFltVV ColV(1, Recs);
+		for (int RecN = 0; RecN < Recs; RecN++) {
+			ColV(0, RecN) = (double)Store->GetFieldUInt16(RecSet()->GetRecId(RecN), FieldId);
+		}
+		Args.GetReturnValue().Set(TNodeJsFltVV::New(ColV));
+		return;
+	} else if (Desc.IsUInt64()) {
 		TFltVV ColV(1, Recs);
 		for (int RecN = 0; RecN < Recs; RecN++) {
 			ColV(0, RecN) = (double)Store->GetFieldUInt64(RecSet()->GetRecId(RecN), FieldId);
@@ -2775,6 +3277,14 @@ void TNodeJsRecSet::getMatrix(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		TFltVV ColV(1, Recs);
 		for (int RecN = 0; RecN < Recs; RecN++) {
 			ColV(0, RecN) = Store->GetFieldFlt(RecSet()->GetRecId(RecN), FieldId);
+		}
+		Args.GetReturnValue().Set(TNodeJsFltVV::New(ColV));
+		return;
+	} 
+	else if (Desc.IsSFlt()) {
+		TFltVV ColV(1, Recs);
+		for (int RecN = 0; RecN < Recs; RecN++) {
+			ColV(0, RecN) = Store->GetFieldSFlt(RecSet()->GetRecId(RecN), FieldId);
 		}
 		Args.GetReturnValue().Set(TNodeJsFltVV::New(ColV));
 		return;
@@ -2809,7 +3319,7 @@ void TNodeJsRecSet::getMatrix(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		for (int RecN = 0; RecN < Recs; RecN++) {
 			Store->GetFieldNumSpV(RecSet()->GetRecId(RecN), FieldId, ColV[RecN]);
 		}
-		Args.GetReturnValue().Set(TNodeJsSpMat::New(ColV));
+		Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsSpMat>(new TNodeJsSpMat(ColV)));
 		return;
 	}
 	else if (Desc.IsStr()) {
@@ -2818,13 +3328,13 @@ void TNodeJsRecSet::getMatrix(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	throw TQm::TQmExcept::New("Unknown field type " + Desc.GetFieldTypeStr());
 }
 
-void TNodeJsRecSet::store(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsRecSet::store(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	TNodeJsRecSet* JsRecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Info.Holder());
+	TNodeJsRecSet* JsRecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args.Holder());
 
-	Info.GetReturnValue().Set(
+	Args.GetReturnValue().Set(
 		TNodeJsUtil::NewInstance<TNodeJsStore>(new TNodeJsStore(JsRecSet->RecSet->GetStore(), JsRecSet->Watcher))
 		);
 
@@ -2890,8 +3400,8 @@ void TNodeJsStoreIter::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "next", _next);
 
 	// Properties 
-	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "store"), _store);
-	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "record"), _record);
+	tpl->InstanceTemplate()->SetAccessorProperty(v8::String::NewFromUtf8(Isolate, "store"), v8::FunctionTemplate::New(Isolate, _store));
+	tpl->InstanceTemplate()->SetAccessorProperty(v8::String::NewFromUtf8(Isolate, "record"), v8::FunctionTemplate::New(Isolate, _record));
 
 	// This has to be last, otherwise the properties won't show up on the object in JavaScript.
 	Constructor.Reset(Isolate, tpl->GetFunction());
@@ -2921,24 +3431,24 @@ void TNodeJsStoreIter::next(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, NextP));
 }
 
-void TNodeJsStoreIter::store(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsStoreIter::store(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	TNodeJsStoreIter* JsStoreIter = ObjectWrap::Unwrap<TNodeJsStoreIter>(Info.Holder());
+	TNodeJsStoreIter* JsStoreIter = ObjectWrap::Unwrap<TNodeJsStoreIter>(Args.Holder());
 
-	Info.GetReturnValue().Set(
+	Args.GetReturnValue().Set(
 		TNodeJsUtil::NewInstance<TNodeJsStore>(new TNodeJsStore(JsStoreIter->Store, JsStoreIter->Watcher))
 		);
 }
 
-void TNodeJsStoreIter::record(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsStoreIter::record(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	TNodeJsStoreIter* JsStoreIter = ObjectWrap::Unwrap<TNodeJsStoreIter>(Info.Holder());
+	TNodeJsStoreIter* JsStoreIter = ObjectWrap::Unwrap<TNodeJsStoreIter>(Args.Holder());
 
-	Info.GetReturnValue().Set(JsStoreIter->RecObj);
+	Args.GetReturnValue().Set(JsStoreIter->RecObj);
 }
 
 ///////////////////////////////
@@ -3006,7 +3516,7 @@ void TNodeJsIndexKey::Init(v8::Handle<v8::Object> exports) {
 	// Add all prototype methods, getters and setters here.
 
 	// Properties
-	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "store"), _store);
+	tpl->InstanceTemplate()->SetAccessorProperty(v8::String::NewFromUtf8(Isolate, "store"), v8::FunctionTemplate::New(Isolate, _store));
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "name"), _name);
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "vocabulary"), _vocabulary);
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "fq"), _fq);
@@ -3015,13 +3525,13 @@ void TNodeJsIndexKey::Init(v8::Handle<v8::Object> exports) {
 	Constructor.Reset(Isolate, tpl->GetFunction());
 }
 
-void TNodeJsIndexKey::store(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsIndexKey::store(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 	// unwrap
-	TNodeJsIndexKey* JsIndexKey = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsIndexKey>(Info.Holder());
+	TNodeJsIndexKey* JsIndexKey = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsIndexKey>(Args.Holder());
 	// return
-	Info.GetReturnValue().Set(
+	Args.GetReturnValue().Set(
 		TNodeJsUtil::NewInstance<TNodeJsStore>(new TNodeJsStore(JsIndexKey->Store, JsIndexKey->Watcher))
 		);
 }
@@ -3192,6 +3702,8 @@ void TNodeJsFuncFtrExt::ExtractFltV(const TQm::TRec& FtrRec, TFltV& FltV) const 
 
 ///////////////////////////////
 // NodeJs QMiner Feature Space
+v8::Persistent<v8::Function> TNodeJsFtrSpace::Constructor;
+
 TNodeJsFtrSpace::TNodeJsFtrSpace(const TQm::PFtrSpace& _FtrSpace) :
 		FtrSpace(_FtrSpace) {}
 
@@ -3204,6 +3716,13 @@ void TNodeJsFtrSpace::Init(v8::Handle<v8::Object> exports) {
 	v8::HandleScope HandleScope(Isolate);
 
 	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsFtrSpace>);
+	// child will have the same properties and methods, but a different callback: _NewCpp
+	v8::Local<v8::FunctionTemplate> child = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewCpp<TNodeJsFtrSpace>);
+	child->Inherit(tpl);
+	child->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
+	// ObjectWrap uses the first internal field to store the wrapped pointer
+	child->InstanceTemplate()->SetInternalFieldCount(1);
+	
 	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
 	// ObjectWrap uses the first internal field to store the wrapped pointer.
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
@@ -3231,6 +3750,10 @@ void TNodeJsFtrSpace::Init(v8::Handle<v8::Object> exports) {
 	// properties
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "dim"), _dim);
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "dims"), _dims);
+
+	// This has to be last, otherwise the properties won't show up on the object in JavaScript	
+	// Constructor is used when creating the object from C++
+	Constructor.Reset(Isolate, child->GetFunction());
 
 	// So we can call new FeatureSpace
 	exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
@@ -3493,13 +4016,24 @@ void TNodeJsFtrSpace::updateRecord(const v8::FunctionCallbackInfo<v8::Value>& Ar
 	QmAssertR(Args.Length() == 1, "Should have 1 argument!");
 
 	TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
-	TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[0]->ToObject());
+	if (JsFtrSpace->GetFtrSpace()->GetFtrExts() == 0) {
+		return;
+	}
 
-    EAssertR(JsFtrSpace->FtrSpace->IsStartStore(JsRec->Rec.GetStore()->GetStoreId()),
-        "FeatureSpace.updateRecord: record's and feature extractor's store/source must be the same!");
-
-	// update with new records
-	JsFtrSpace->FtrSpace->Update(JsRec->Rec);
+	TWPt<TQm::TStore> Store = JsFtrSpace->GetFtrSpace()->GetFtrExt(0)->GetFtrStore();
+	
+	if (TNodeJsUtil::IsArgWrapObj<TNodeJsRec>(Args, 0)) {
+		TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[0]->ToObject());
+		QmAssertR(JsFtrSpace->FtrSpace->IsStartStore(JsRec->Rec.GetStore()->GetStoreId()),
+			"FeatureSpace.updateRecord: record's and feature extractor's store/source must be the same!");
+		JsFtrSpace->FtrSpace->Update(JsRec->Rec);
+	} else if (TNodeJsUtil::IsArgJson(Args, 0)) {
+		PJsonVal Json = TNodeJsUtil::GetArgJson(Args, 0);
+		TQm::TRec Rec(Store, Json);
+		JsFtrSpace->FtrSpace->Update(Rec);
+	} else {
+		throw TQm::TQmExcept::New("FeatureSpace.updateRecord: unsupported type of argument 0");
+	}
 
 	Args.GetReturnValue().Set(Args.Holder());
 }
@@ -3511,13 +4045,30 @@ void TNodeJsFtrSpace::updateRecords(const v8::FunctionCallbackInfo<v8::Value>& A
 	QmAssertR(Args.Length() == 1, "Should have 1 argument!");
 
     TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
-    TNodeJsRecSet* JsRecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args[0]->ToObject());
+	if (JsFtrSpace->GetFtrSpace()->GetFtrExts() == 0) {
+		return;
+	}
 
-    EAssertR(JsFtrSpace->FtrSpace->IsStartStore(JsRecSet->RecSet->GetStore()->GetStoreId()),
-        "FeatureSpace.updateRecords: record's and feature extractor's store/source must be the same!");
+	TWPt<TQm::TStore> Store = JsFtrSpace->GetFtrSpace()->GetFtrExt(0)->GetFtrStore();
 
-    // update with new records
-    JsFtrSpace->FtrSpace->Update(JsRecSet->RecSet);
+	if (TNodeJsUtil::IsArgWrapObj<TNodeJsRecSet>(Args, 0)) {
+		TNodeJsRecSet* JsRecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args[0]->ToObject());
+
+		EAssertR(JsFtrSpace->FtrSpace->IsStartStore(JsRecSet->RecSet->GetStore()->GetStoreId()),
+			"FeatureSpace.updateRecords: record's and feature extractor's store/source must be the same!");
+
+		JsFtrSpace->FtrSpace->Update(JsRecSet->RecSet);
+	} else if (TNodeJsUtil::IsArgJson(Args, 0)) {
+		PJsonVal Json = TNodeJsUtil::GetArgJson(Args, 0);
+		EAssertR(Json->IsArr(), "FeatureSpace.updateRecords: expected record set or a JSON array");
+		int Len = Json->GetArrVals();
+		for (int RecN = 0; RecN < Len; RecN++) {
+			TQm::TRec Rec(Store, Json->GetArrVal(RecN));
+			JsFtrSpace->FtrSpace->Update(Rec);
+		}
+	} else {
+		throw TQm::TQmExcept::New("FeatureSpace.updateRecords: unsupported type of argument 0");
+	}
 
     Args.GetReturnValue().Set(Args.Holder());
 }
@@ -3526,28 +4077,32 @@ void TNodeJsFtrSpace::extractSparseVector(const v8::FunctionCallbackInfo<v8::Val
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	QmAssertR(Args.Length() == 1, "Should have 1 argument!");
+	QmAssertR(Args.Length() == 1 || Args.Length() == 2, "Should have 1  or 2 arguments!");
+	
+	TIntFltKdV SpV; // result sparse vector
 	
 	TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
-	TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[0]->ToObject());
+	if (JsFtrSpace->GetFtrSpace()->GetFtrExts() == 0) {
+		Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsSpVec>(new TNodeJsSpVec(SpV, JsFtrSpace->FtrSpace->GetDim())));
+		return;
+	}
+	
+	TWPt<TQm::TStore> Store = JsFtrSpace->GetFtrSpace()->GetFtrExt(0)->GetFtrStore();
 
-	// create feature vector
-	TIntFltKdV SpV;
-
-	if (Args.Length() == 1) {
-        EAssertR(JsFtrSpace->FtrSpace->IsStartStore(JsRec->Rec.GetStore()->GetStoreId()),
-            "FeatureSpace.extractSparseVector: record's and feature extractor's store/source must be the same!");
-
-		// create feature vector, compute
-		JsFtrSpace->FtrSpace->GetSpV(JsRec->Rec, SpV);
-	} else {
-		const int FtrExtN = TNodeJsUtil::GetArgInt32(Args, 1);
-		EAssertR(0 <= FtrExtN && FtrExtN < JsFtrSpace->FtrSpace->GetFtrExts(), "FeatureSpace.extractSparseVector: invalid feature extractor ID!");
-
-		EAssertR(JsFtrSpace->FtrSpace->GetFtrExt(FtrExtN)->IsStartStore(JsRec->Rec.GetStore()->GetStoreId()),
-            "FeatureSpace.extractSparseVector: record's and feature extractor's store/source must be the same!");
-
+	const int FtrExtN = TNodeJsUtil::GetArgInt32(Args, 1, -1);
+	EAssertR(-1 <= FtrExtN && FtrExtN < JsFtrSpace->FtrSpace->GetFtrExts(), "FeatureSpace.extractSparseVector: invalid feature extractor ID!");
+	
+	if (TNodeJsUtil::IsArgWrapObj<TNodeJsRec>(Args, 0)) {
+		TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[0]->ToObject());		
+		QmAssertR(JsFtrSpace->FtrSpace->IsStartStore(JsRec->Rec.GetStore()->GetStoreId()),
+			"FeatureSpace.extractSparseVector: record's and feature extractor's store/source must be the same!");
 		JsFtrSpace->FtrSpace->GetSpV(JsRec->Rec, SpV, FtrExtN);
+	} else if (TNodeJsUtil::IsArgJson(Args, 0)) {
+		PJsonVal Json = TNodeJsUtil::GetArgJson(Args, 0);
+		TQm::TRec Rec(Store, Json);		
+		JsFtrSpace->FtrSpace->GetSpV(Rec, SpV, FtrExtN);
+	} else {
+		throw TQm::TQmExcept::New("extractSparseVector: unsupported type of argument 0");
 	}
 
 	Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsSpVec>(new TNodeJsSpVec(SpV, JsFtrSpace->FtrSpace->GetDim())));
@@ -3557,34 +4112,43 @@ void TNodeJsFtrSpace::extractVector(const v8::FunctionCallbackInfo<v8::Value>& A
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	QmAssertR(Args.Length() == 1 || Args.Length() == 2, "Should have 1 or 2 arguments!");
-
-	TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
-	TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[0]->ToObject());
+	QmAssertR(Args.Length() == 1 || Args.Length() == 2, "Should have 1  or 2 arguments!");
 
 	TFltV FltV;
 
-	if (Args.Length() == 1) {
-        EAssertR(JsFtrSpace->FtrSpace->IsStartStore(JsRec->Rec.GetStore()->GetStoreId()),
-            "FeatureSpace.extractVector: record's and feature extractor's store/source must be the same!");
+	TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
+	if (JsFtrSpace->GetFtrSpace()->GetFtrExts() == 0) {
+		Args.GetReturnValue().Set(TNodeJsFltV::New(FltV));
+		return;
+	}
 
-		// create feature vector, compute
-		JsFtrSpace->FtrSpace->GetFullV(JsRec->Rec, FltV);
-	} else {
-		const int FtrExtN = TNodeJsUtil::GetArgInt32(Args, 1);
-		EAssertR(0 <= FtrExtN && FtrExtN < JsFtrSpace->FtrSpace->GetFtrExts(), "FeatureSpace.extractVector: invalid feature extractor ID!");
+	TWPt<TQm::TStore> Store = JsFtrSpace->GetFtrSpace()->GetFtrExt(0)->GetFtrStore();
 
-		EAssertR(JsFtrSpace->FtrSpace->GetFtrExt(FtrExtN)->IsStartStore(JsRec->Rec.GetStore()->GetStoreId()),
-            "FeatureSpace.extractVector: record's and feature extractor's store/source must be the same!");
+	const int FtrExtN = TNodeJsUtil::GetArgInt32(Args, 1, -1);
+	EAssertR(-1 <= FtrExtN && FtrExtN < JsFtrSpace->FtrSpace->GetFtrExts(), "FeatureSpace.extractVector: invalid feature extractor ID!");
 
+	if (TNodeJsUtil::IsArgWrapObj<TNodeJsRec>(Args, 0)) {
+		TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[0]->ToObject());
+		QmAssertR(JsFtrSpace->FtrSpace->IsStartStore(JsRec->Rec.GetStore()->GetStoreId()),
+			"FeatureSpace.extractVector: record's and feature extractor's store/source must be the same!");
 		JsFtrSpace->FtrSpace->GetFullV(JsRec->Rec, FltV, FtrExtN);
+	}
+	else if (TNodeJsUtil::IsArgJson(Args, 0)) {
+		PJsonVal Json = TNodeJsUtil::GetArgJson(Args, 0);
+		TQm::TRec Rec(Store, Json);
+		JsFtrSpace->FtrSpace->GetFullV(Rec, FltV, FtrExtN);
+	}
+	else {
+		throw TQm::TQmExcept::New("extractVector: unsupported type of argument 0");
 	}
 
 	Args.GetReturnValue().Set(TNodeJsFltV::New(FltV));
+
 }
 
 // deprecated
 void TNodeJsFtrSpace::extractFeature(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	printf("extractFeature is DEPRECATED\n");
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
@@ -3604,62 +4168,92 @@ void TNodeJsFtrSpace::extractSparseMatrix(const v8::FunctionCallbackInfo<v8::Val
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	QmAssertR(Args.Length() == 1, "Should have 1 argument!");
+	QmAssertR(Args.Length() == 1 || Args.Length() == 2, "Should have 1  or 2 arguments!");
 
-    TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
-    TNodeJsRecSet* RecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args[0]->ToObject());
+	TVec<TIntFltKdV> SpMat;
 
-    // create feature matrix
-    TVec<TIntFltKdV> SpMat(RecSet->RecSet->GetRecs(), 0);
-
-	if (Args.Length() == 1) {
-        EAssertR(JsFtrSpace->FtrSpace->IsStartStore(RecSet->RecSet->GetStore()->GetStoreId()),
-            "FeatureSpace.extractSparseMatrix: record's and feature extractor's store/source must be the same!");
-
-		// create feature vector, compute
-		JsFtrSpace->FtrSpace->GetSpVV(RecSet->RecSet, SpMat);
-	} else {
-		const int FtrExtN = TNodeJsUtil::GetArgInt32(Args, 1);
-		EAssertR(0 <= FtrExtN && FtrExtN < JsFtrSpace->FtrSpace->GetFtrExts(), "FeatureSpace.extractSparseMatrix: invalid feature extractor ID!");
-
-        EAssertR(JsFtrSpace->FtrSpace->GetFtrExt(FtrExtN)->IsStartStore(RecSet->RecSet->GetStore()->GetStoreId()),
-            "FeatureSpace.extractSparseMatrix: record's and feature extractor's store/source must be the same!");
-
-		JsFtrSpace->FtrSpace->GetSpVV(RecSet->RecSet, SpMat, FtrExtN);
+	TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
+	if (JsFtrSpace->GetFtrSpace()->GetFtrExts() == 0) {
+		Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsSpMat>(new TNodeJsSpMat(SpMat)));
+		return;
 	}
 
-    Args.GetReturnValue().Set(TNodeJsSpMat::New(SpMat, -1));
+	TWPt<TQm::TStore> Store = JsFtrSpace->GetFtrSpace()->GetFtrExt(0)->GetFtrStore();
+
+	const int FtrExtN = TNodeJsUtil::GetArgInt32(Args, 1, -1);
+	EAssertR(-1 <= FtrExtN && FtrExtN < JsFtrSpace->FtrSpace->GetFtrExts(), "FeatureSpace.extractSparseMatrix: invalid feature extractor ID!");
+
+	if (TNodeJsUtil::IsArgWrapObj<TNodeJsRecSet>(Args, 0)) {
+		TNodeJsRecSet* RecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args[0]->ToObject());
+
+		EAssertR(JsFtrSpace->FtrSpace->IsStartStore(RecSet->RecSet->GetStore()->GetStoreId()),
+			"FeatureSpace.extractSparseMatrix: record's and feature extractor's store/source must be the same!");
+
+		JsFtrSpace->FtrSpace->GetSpVV(RecSet->RecSet, SpMat, FtrExtN);
+	} else if (TNodeJsUtil::IsArgJson(Args, 0)) {
+		PJsonVal Json = TNodeJsUtil::GetArgJson(Args, 0);
+		EAssertR(Json->IsArr(), "FeatureSpace.extractSparseMatrix: expected record set or a JSON array");
+		int Len = Json->GetArrVals();
+		SpMat.Gen(Len, 0);
+		for (int RecN = 0; RecN < Len; RecN++) {
+			TIntFltKdV SpVec;
+			TQm::TRec Rec(Store, Json->GetArrVal(RecN));
+			JsFtrSpace->FtrSpace->GetSpV(Rec, SpVec, FtrExtN);
+			SpMat.Add(SpVec);
+		}		
+	} else {
+		throw TQm::TQmExcept::New("extractSparseMatrix: unsupported type of argument 0");
+	}
+
+	Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsSpMat>(new TNodeJsSpMat(SpMat, -1)));
 }
 
 void TNodeJsFtrSpace::extractMatrix(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	QmAssertR(Args.Length() == 1, "Should have 1 argument!");
+	QmAssertR(Args.Length() == 1 || Args.Length() == 2, "Should have 1  or 2 arguments!");
 
-    TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
-    TNodeJsRecSet* RecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args[0]->ToObject());
+	TFltVV Mat;
 
-    // create feature matrix
-    TFltVV Mat;
+	TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
+	if (JsFtrSpace->GetFtrSpace()->GetFtrExts() == 0) {
+		Args.GetReturnValue().Set(TNodeJsFltVV::New(Mat));
+		return;
+	}
 
-	if (Args.Length() == 1) {
-        EAssertR(JsFtrSpace->FtrSpace->IsStartStore(RecSet->RecSet->GetStore()->GetStoreId()),
-            "FeatureSpace.extractMatrix: record's and feature extractor's store/source must be the same!");
+	TWPt<TQm::TStore> Store = JsFtrSpace->GetFtrSpace()->GetFtrExt(0)->GetFtrStore();
 
-		// create feature vector, compute
-		JsFtrSpace->FtrSpace->GetFullVV(RecSet->RecSet, Mat);
-	} else {
-		const int FtrExtN = TNodeJsUtil::GetArgInt32(Args, 1);
-		EAssertR(0 <= FtrExtN && FtrExtN < JsFtrSpace->FtrSpace->GetFtrExts(), "FeatureSpace.extractMatrix: invalid feature extractor ID!");
+	const int FtrExtN = TNodeJsUtil::GetArgInt32(Args, 1, -1);
+	EAssertR(-1 <= FtrExtN && FtrExtN < JsFtrSpace->FtrSpace->GetFtrExts(), "FeatureSpace.extractMatrix: invalid feature extractor ID!");
 
-        EAssertR(JsFtrSpace->FtrSpace->GetFtrExt(FtrExtN)->IsStartStore(RecSet->RecSet->GetStore()->GetStoreId()),
-            "FeatureSpace.extractMatrix: record's and feature extractor's store/source must be the same!");
+	if (TNodeJsUtil::IsArgWrapObj<TNodeJsRecSet>(Args, 0)) {
+		TNodeJsRecSet* RecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args[0]->ToObject());
+
+		EAssertR(JsFtrSpace->FtrSpace->IsStartStore(RecSet->RecSet->GetStore()->GetStoreId()),
+			"FeatureSpace.extractMatrix: record's and feature extractor's store/source must be the same!");
 
 		JsFtrSpace->FtrSpace->GetFullVV(RecSet->RecSet, Mat, FtrExtN);
 	}
+	else if (TNodeJsUtil::IsArgJson(Args, 0)) {
+		PJsonVal Json = TNodeJsUtil::GetArgJson(Args, 0);
+		EAssertR(Json->IsArr(), "FeatureSpace.extractMatrix: expected record set or a JSON array");
+		int Len = Json->GetArrVals();
+		
+		Mat.Gen(JsFtrSpace->FtrSpace->GetDim(), Len);
+		for (int RecN = 0; RecN < Len; RecN++) {
+			TFltV Vec;
+			TQm::TRec Rec(Store, Json->GetArrVal(RecN));
+			JsFtrSpace->FtrSpace->GetFullV(Rec, Vec, FtrExtN);
+			Mat.SetCol(RecN, Vec);
+		}
+	}
+	else {
+		throw TQm::TQmExcept::New("FeatureSpace.extractMatrix: unsupported type of argument 0");
+	}
 
-    Args.GetReturnValue().Set(TNodeJsFltVV::New(Mat));
+	Args.GetReturnValue().Set(TNodeJsFltVV::New(Mat));
+
 }
 
 void TNodeJsFtrSpace::getFeatureExtractor(const v8::FunctionCallbackInfo<v8::Value>& Args) {

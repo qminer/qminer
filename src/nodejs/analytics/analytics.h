@@ -14,6 +14,7 @@
 #include "fs_nodejs.h"
 #include "la_nodejs.h"
 #include "qminer_ftr.h"
+#include "../../glib/mine/mine.h"
 
 /**
  * Analytics module.
@@ -30,8 +31,7 @@ class TNodeJsSvmModel : public node::ObjectWrap {
 	friend class TNodeJsSVC;
 	friend class TNodeJsSVR;
 public:
-    static const TStr GetClassId() { return "SvmModel"; }
-    
+	static const TStr GetClassId() { return "SvmModel"; }
 private:
     // parameters
 	TStr Algorithm;	
@@ -45,13 +45,13 @@ private:
 	bool Verbose;
 	PNotify Notify;
 
-    // model
+	// model
 	TSvm::TLinModel Model;
 
 	TNodeJsSvmModel(const PJsonVal& ParamVal);
 	TNodeJsSvmModel(TSIn& SIn);
-    
-    static TNodeJsSvmModel* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+	static TNodeJsSvmModel* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
 public:
 	//- `params = svmModel.getParams()` -- returns the parameters of this model as a Javascript object
@@ -460,7 +460,7 @@ public:
  * la = require('qminer').la;
  * analytics = require('qminer').analytics;
  * // create a new model with gamma = 1.0
- * var regmod = new analytics.RidgeReg(1.0);
+ * var regmod = new analytics.RidgeReg({ gamma: 1.0 });
  * // generate a random feature matrix
  * var A = la.randn(10,100);
  * // generate a random model
@@ -472,12 +472,12 @@ public:
  * // fit model
  * regmod.fit(A, b);
  * // compare
- * console.log('true model:');
+ * // true model
  * w.print();
- * console.log('trained model:');
+ * // trained model');
  * regmod.weights.print();
  * // cosine between the true and the estimated model should be close to 1 if the fit succeeded
- * console.log('cosine(w, regmod.weights): ' + regmod.weights.cosine(w));
+ * var cos = regmod.weights.cosine(w);
  */
 //# exports.RidgeReg = function(arg) {};
 class TNodeJsRidgeReg : public node::ObjectWrap {
@@ -1059,6 +1059,12 @@ public:
 	*/
 	//# exports.NearestNeighborAD.prototype.explain = function(x) { return {}; }
 	JsDeclareFunction(explain);
+
+	/**
+	* Returns true when the model has enough data to initialize.
+	*/
+	//# exports.NearestNeighborAD.prototype.init = false;
+	JsDeclareProperty(init);
 };
 
 ///////////////////////////////
@@ -1490,14 +1496,14 @@ public:
 	 * // create the Proportional Hazards model
 	 * var hazards = new analytics.PropHazards();
 	 * // create the input matrix and vector for fitting the model
-	 * var mat = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
-	 * var vec = new la.Vector([1, 0, -1, -2]);
+	 * var mat = new la.Matrix([[1, 1], [1, -1]]);
+     * var vec = new la.Vector([3, 3]);
 	 * // if openblas used
 	 * if (require('qminer').flags.blas) {
 	 *     // fit the model
-	 *     hazards.fit(mat, vec);
+	 *     hazards.fit(mat, vec);       
 	 *     // create a vector for the prediction
-	 *     var test = new la.Vector([1, 0, -1, -2]);
+	 *      var test = new la.Vector([1, 2]);
 	 *     // predict the value
 	 *     var prediction = hazards.predict(test);
 	 * };
@@ -2032,10 +2038,27 @@ public:
 
 /////////////////////////////////////////////
 // QMiner-JavaScript-Tokenizer
-//!
-//! ### Tokenizer
-//!
-//! Breaks text into tokens (i.e. words).
+
+/**
+* @typedef {Object} tokenizerParam
+* @property {string} type - The type of the tokenizer. The different types are: 
+*<br>"simple" -
+*<br>"html" -
+*<br>"unicode" -
+*/
+
+/**
+ * Tokenizer
+ * @class 
+ * @classdesc Breaks text into tokens (i.e. words).
+ * @param {module:analytics.tokenizerParam} param - The constructor parameters.
+ * @example
+ * // import analytics module
+ * var analytics = require('qminer').analytics;
+ * // construct model
+ * var tokenizer = new analytics.Tokenizer({ type: "simple" })
+ */
+//# exports.Tokenizer = function (param) { return Object.create(require("qminer").analytics.Tokenizer.prototype); }
 class TNodeJsTokenizer : public node::ObjectWrap {
 	friend class TNodeJsUtil;
 public:
@@ -2047,26 +2070,193 @@ private:
 public:
 	static void Init(v8::Handle<v8::Object> exports);
 	static const TStr GetClassId() { return "Tokenizer"; }
-
 	
-	//!
-	//! **Constructor:**
-	//!
-	//!- `tokenizer = new analytics.Tokenizer({ type: <type>, ...})` -- create new tokenizer
-	//!     of type `<type>`. Syntax same as when defining index keys in stores or `text` feature 
-	//!     extractors.
 	static TNodeJsTokenizer* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
-	//!
-	//! **Functions and properties:**
-	//!
-	//!- `arr = tokenizer.getTokens(string)` -- tokenizes given strings and returns it as an array of strings.
+	// Functions:
+	/**
+	* This function tokenizes given strings and returns it as an array of strings.
+	* @param {String} str - String of text you want to tokenize.
+	* @returns {Array.<String>} Returns array of strings. The number of strings in this array is equal to number of words in input string parameter.
+	* Only keeps words, skips all punctuation.
+	* Tokenizing contractions (i.e. don't) depends on which type you use. Type 'html' breaks contractions into 2 tokens.
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // construct model
+	* var tokenizer = new analytics.Tokenizer({ type: "simple" });
+	* // string you wish to tokenize
+	* var string = "What a beautiful day!";
+	* // tokenize string using getTokens
+	* var tokens = tokenizer.getTokens(string);
+	* // output:
+	* tokens = ["What", "a", "beautiful", "day"];
+	*/
+	//# exports.Tokenizer.prototype.getTokens = function (str) { return [""]; }
 	JsDeclareFunction(getTokens);
-	//!- `arr = tokenizer.getSentences(string)` -- breaks text into sentence and returns them as an array of strings.
+
+	/**
+	* This function breaks text into sentences and returns them as an array of strings.
+	* @param {String} str - String of text you want to break into sentences.
+	* @returns {Array.<String>} Returns array of strings. The number of strings in this array is equal to number of sentences in input string parameter.
+	* How function breaks sentences depends on where you use a full-stop, exclamation mark, question mark or the new line command.
+	* Careful: the space between the lines is not ignored. 
+	* With all 3 types this function returns sentences as they are.
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // construct model
+	* var tokenizer = new analytics.Tokenizer({ type: "simple" });
+	* // string you wish to tokenize
+	* var string = "C++? Alright. Let's do this!";
+	* // tokenize text using getSentences
+	* var tokens = tokenizer.getSentences(string);
+	* // output:
+	* tokens = ["C++", " Alright", " Let's do this"];
+	*/
+	//# exports.Tokenizer.prototype.getSentences = function (str) { return [""]; }
 	JsDeclareFunction(getSentences);
-	//!- `arr = tokenizer.getParagraphs(string)` -- breaks text into paragraphs and returns them as an array of strings.
+	
+	/**
+	* This function breaks text into paragraphs and returns them as an array of strings.
+	* @param {String} str - String of text you want to break into paragraphs.
+	* @returns {Array.<String>} Returns array of strings. The number of strings in this array is equal to number of paragraphs in input string parameter.
+	* When function detects commands '\n', '\r' or '\t' it breaks text as new paragraph.
+	* With all 3 types this function returns paragraphs as they are.
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // construct model
+	* var tokenizer = new analytics.Tokenizer({ type: "simple" });
+	* // string you wish to tokenize
+	* var string = "Yes!\t No?\n Maybe...";
+	* // tokenize text using getParagraphs
+	* var tokens = tokenizer.getParagraphs(string);
+	* // output:
+	* tokens = ["Yes", " No", " Maybe"];
+	*/
+	//# exports.Tokenizer.prototype.getParagraphs = function (str) { return [""]; }
 	JsDeclareFunction(getParagraphs);
+	
 };
+
+/**
+* @typedef {Object} MDSParam
+* @property {number} [maxSecs=500] - The maximum time period to compute MDS of a matrix.
+* @property {number} [maxStep=5000] - The maximum number of iterations.
+* @property {number} [minDiff=1e-4] - The minimum difference criteria in MDS.
+* @property {string} [distType="Euclid"] - The type of distance used. Available types: "Euclid", "Cos", "SqrtCos".
+*/
+
+/**
+* @class
+* @classdesc Multidimensional scaling
+* @param {(module:analytics~MDSParam | module:fs.FIn)} [params] - The parameters for the construction.
+* @example
+* // import analytics module
+* var analytics = require('qminer').analytics;
+* // construct a MDS instance
+* var mds = new analytics.MDS({ maxStep: 300, distType: 'Cos' });
+*/
+//# exports.MDS = function (params) { return Object.create(require('qminer').analytics.MDS.prototype); }
+class TNodeJsMDS : public node::ObjectWrap {
+	friend class TNodeJsUtil;
+public:
+	static void Init(v8::Handle<v8::Object> exports);
+	static const TStr GetClassId() { return "MDS"; }
+
+private:
+	// parameters
+	int MxStep, MxSecs;
+	double MnDiff;
+	TVizDistType DistType;
+
+	TNodeJsMDS(const PJsonVal& ParamVal);
+	TNodeJsMDS(TSIn& SIn);
+
+	static TNodeJsMDS* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+public:
+	/**
+	* Get the parameters.
+	* @returns {module:analytics~MDSParam} The json object containing the parameters of the instance.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a MDS instance
+	* var mds = new analytics.MDS();
+	* // get the (default) parameters of the instance
+	* // returns { maxStep: 5000, maxSecs: 300, minDiff: 1e-4, distType: "Euclid" }
+	* var params = mds.getParams();
+	*/
+	//# exports.MDS.prototype.getParams = function () { return { maxStep: 0, maxSecs: 0, minDiff: 0, distType: "" }; }
+	JsDeclareFunction(getParams);
+
+	/**
+	* Set the parameters.
+	* @param {module:analytics~MDSParam} params - The json object containing the parameters for the instance.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a MDS instance
+	* var mds = new analytics.MDS();
+	* // get the (default) parameters of the instance
+	* // returns { maxStep: 5000, maxSecs: 300, minDiff: 1e-4, distType: "Euclid" }
+	* var params = mds.getParams();
+	*/
+	//# exports.MDS.prototype.setParams = function (params) { return { maxStep: 0, maxSecs: 0, minDiff: 0, distType: "" }; }
+	JsDeclareFunction(setParams);
+
+	/**
+	* Get the MDS of the given matrix.
+	* @param {(module:la.Matrix | module:la.SparseMatrix)} mat - The multidimensional matrix.
+	* @returns {module:la.Matrix} The matrix of dimensions mat.cols x 2, where the i-th row of the matrix is the 2d representation 
+	* of the i-th column of mat.
+	* @example
+	* // import the modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // create a MDS instance
+	* var mds = new analytics.MDS();
+	* // create the multidimensional matrix
+	* var mat = new la.Matrix({ rows: 50, cols: 10, random: true });
+	* // get the 2d representation of mat 
+	* var mat2d = mds.fitTransform(mat); 
+	*/
+	//# exports.MDS.prototype.fitTransform = function (mat) { return Object.create(require('qminer').la.Matrix.prototype); }
+	JsDeclareFunction(fitTransform);
+
+	/**
+	* Save the MDS.
+	* @param {module:fs.FOut} fout - The output stream.
+	* @returns {module:fs.FOut} The output stram fout.
+	* @example
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var fs = require('qminer').fs;
+	* // create a MDS instance
+	* var mds = new analytics.MDS({ iter: 200, MaxStep: 10 });
+	* // create the file output stream
+	* var fout = new fs.openWrite('MDS.bin');
+	* // save the MDS instance
+	* mds.save(fout);
+	* fout.close();
+	* // load the MDS instance
+	* var fin = fs.openRead('MDS.bin');
+	* var mds2 = new analytics.MDS(fin);
+	*/
+	//# exports.MDS.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
+	JsDeclareFunction(save);
+
+private:
+	void UpdateParams(const PJsonVal& ParamVal);
+	PJsonVal GetParams() const;
+	void Save(TSOut& SOut) const;
+};
+
 
 #endif /* ANALYTICS_H_ */
 

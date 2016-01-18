@@ -16,6 +16,7 @@
 #include "../nodeutil.h"
 
 #include "qm_nodejs_streamaggr.h"
+#include "qm_nodejs_store.h"
 
 ///////////////////////////////
 // NodeJs QMiner.
@@ -246,12 +247,12 @@ private:
 * // Each movie has a property corresponding to the join name: 'director'. 
 * // Accessing the property returns a {@link module:qm.Record} from the store People.
 * var person = movie.director; // get the director
-* console.log(person.name); // prints 'Jim Jarmusch'
+* var personName = person.name; // get person's name ('Jim Jarmusch')
 * // Each person has a property corresponding to the join name: 'directed'. 
 * // Accessing the property returns a {@link module:qm.RecSet} from the store People.
 * var movies = person.directed; // get all the movies the person directed.
-* movies.each(function (movie) { console.log(movie.title); }); 
-* // prints: 
+* movies.each(function (movie) { var title = movie.title; });
+* // Gets the following titles:
 * //   'Broken Flowers'
 * //   'Coffee and Cigarettes'
 * base.close();
@@ -300,22 +301,77 @@ private:
 * Stores can have a window, which is used by garbage collector to delete records once they
 * fall out of the time window. Window can be defined by number of records or by time.
 * Window defined by parameter window, its value being the number of records to be kept.
+* <br><b>Important:</b> {@link module:qm.Base#garbageCollect} must be called manually to remove records outside time window.
 * @typedef {Object} SchemaTimeWindowDefinition
 * @property {number} SchemaTimeWindowDefinition.duration - the size of the time window (in number of units).
 * @property {string} SchemaTimeWindowDefinition.unit - defines in which units the window size is specified. Possible values are <b>second</b>, <b>minute</b>, <b>hour</b>, <b>day</b>, <b>week</b> or <b>month</b>.
 * @property {string} [SchemaTimeWindowDefinition.field] - name of the datetime filed, which defines the time of the record. In case it is not given, the insert time is used in its place.
-* @example
+* @example <caption>Define window by number of records</caption>
 * var qm = require('qminer');
-* // Create a store
-* // var base = new qm.Base([{
-* // ...
-* //  timeWindow : { 
-* //    duration : 12,
-* //    unit : "hour",
-* //    field : "DateTime"
-* //  }
-* //}]);
-* //base.close();
+* // create base
+* var base = new qm.Base({ mode: 'createClean' });
+* // create store with window
+* base.createStore({
+*     "name": "TestStore",
+*     "fields": [
+*         { "name": "DateTime", "type": "datetime" },
+*         { "name": "Measurement", "type": "float" }
+*     ],
+*     window: 3,
+* });
+*
+* // push 5 records into created store
+* for (var i = 0; i < 5; i++) {
+*     var rec = {
+*         "DateTime": new Date().toISOString(),
+*         "Measurement": i
+*     };
+*     base.store("TestStore").push(rec);
+* }
+*
+* // check number of records in store
+* console.log(base.store("TestStore").allRecords.length); // 5
+* // clean base with garbage collector
+* base.garbageCollect();
+* // check number of records in store
+* console.log(base.store("TestStore").allRecords.length); // 3
+*
+* base.close();
+* @example <caption>Define window by time</caption>
+* var qm = require('qminer');
+* // create base
+* var base = new qm.Base({ mode: 'createClean' });
+* // create store with window
+* base.createStore({
+*     "name": "TestStore",
+*     "fields": [
+*         { "name": "DateTime", "type": "datetime" },
+*         { "name": "Measurement", "type": "float" }
+*     ],
+*     timeWindow: {
+*         duration: 2,
+*         unit: "hour",
+*         field: "DateTime"
+*     }
+* });
+*
+* // push 5 records into created store
+* for (var i = 0; i < 5; i++) {
+*     var rec = {
+*         "DateTime": new Date(new Date().getTime() + i * 60 * 60 * 1001).toISOString(),
+*         "Measurement": i
+*     };
+*     base.store("TestStore").push(rec);
+* }
+*
+* // check number of records in store
+* console.log(base.store("TestStore").allRecords.length); // 5
+* // clean base with garbage collector
+* base.garbageCollect();
+* // check number of records in store
+* console.log(base.store("TestStore").allRecords.length); // 2
+*
+* base.close();
 */
 
 
@@ -477,6 +533,14 @@ private:
 	*/
 	//# exports.Base.prototype.createStore = function (storeDef, storeSizeInMB) { return storeDef instanceof Array ? [Object.create(require('qminer').Store.prototype)] : Object.create(require('qminer').Store.prototype) ;}
 	JsDeclareFunction(createStore);
+	
+	// Creates a javascript implemented stores (callbacks). Experimental feature!
+	JsDeclareFunction(createJsStore);
+
+	// adds a callback to a javascript implemented store (type == 'TNodeJsFuncStore')
+	// arg[0] = store, arg[1] = callback string, arg[2] = callback function
+	// Experimental feature!
+	JsDeclareFunction(addJsStoreCallback);
 
 	/**
 	* Creates a new store.
@@ -710,6 +774,7 @@ private:
 	/**
 	* Adds a record to the store.
 	* @param {Object} rec - The added record. The record must be a JSON object corresponding to the store schema.
+	* @param {boolean} [triggerEvents=true] - If true, all stream aggregate callbacks onAdd will be called after the record is inserted. If false, no stream aggregate will be updated.
 	* @returns {number} The ID of the added record.
 	* @example
 	* // import qm module
@@ -739,7 +804,7 @@ private:
 	* base.store("Supervillians").push({ Name: "Lex Luthor", Superpowers: ["expert engineer", "genius-level intellect", "money"] }); // returns 0
 	* base.close();	
 	*/
-	//# exports.Store.prototype.push = function (rec) { return 0; }
+	//# exports.Store.prototype.push = function (rec, triggerEvents) { return 0; }
 	JsDeclareFunction(push);
 
 	/**
@@ -987,6 +1052,12 @@ private:
 	JsDeclareFunction(getStreamAggr);
 
 	/**
+	* Resets all stream aggregates.
+	*/
+	//# exports.Store.prototype.resetStreamAggregates = function () { }
+	JsDeclareFunction(resetStreamAggregates);
+
+	/**
 	* Returns an array of the stream aggregates names connected to the store.
 	* @returns {Array.<string>} An array of stream aggregates names.
 	*/
@@ -1148,6 +1219,13 @@ private:
 	JsDeclareFunction(cell);
 
 	/**
+	* Calls onAdd callback on all stream aggregates
+	* @param {(module:qm.Record | number)} [arg=this.last] - The record or recordId which will be passed to onAdd callbacks. If the record or recordId is not provided, the last record will be used. Throws exception if cannot be provided.
+	*/
+	//# exports.Store.prototype.triggerOnAddCallbacks = function (arg) {};
+	JsDeclareFunction(triggerOnAddCallbacks);
+
+	/**
 	* Gives the name of the store.
 	*/
 	//# exports.Store.prototype.name = "";
@@ -1169,7 +1247,7 @@ private:
 	* Creates a record set containing all the records from the store.
 	*/
 	//# exports.Store.prototype.allRecords = Object.create(require('qminer').RecordSet.prototype);
-	JsDeclareProperty(allRecords);
+	JsDeclareFunction(allRecords);
 
 	/**
 	* Gives an array of all field descriptor JSON objects.
@@ -1193,25 +1271,25 @@ private:
 	* Returns the first record of the store.
 	*/
 	//# exports.Store.prototype.first = Object.create(require('qminer').Record.prototype);
-	JsDeclareProperty(first);
+	JsDeclareFunction(first);
 
 	/**
 	* Returns the last record of the store.
 	*/
 	//# exports.Store.prototype.last = Object.create(require('qminer').Record.prototype);
-	JsDeclareProperty(last);
+	JsDeclareFunction(last);
 
 	/**
 	* Returns an iterator for iterating over the store from start to end.
 	*/
 	//# exports.Store.prototype.forwardIter = Object.create(require('qminer').Iterator.prototype);
-	JsDeclareProperty(forwardIter);
+	JsDeclareFunction(forwardIter);
 
 	/**
 	* Returns an iterator for iterating over the store form end to start.
 	*/
 	//# exports.Store.prototype.backwardIter = Object.create(require('qminer').Iterator.prototype);
-	JsDeclareProperty(backwardIter);
+	JsDeclareFunction(backwardIter);
 
 	//!- `rec = store[recId]` -- get record with ID `recId`; 
 	//!     returns `null` when no such record exists
@@ -1228,7 +1306,7 @@ private:
 	* Returns the base, in which the store is contained.
 	*/
 	//# exports.Store.prototype.base = Object.create(require('qminer').Base.prototype);
-	JsDeclareProperty(base);
+	JsDeclareFunction(base);
 	//!JSIMPLEMENT:src/qminer/store.js
 };
 
@@ -1373,11 +1451,11 @@ private:
 	* Returns the store the record belongs to.
 	*/
 	//# exports.Record.prototype.store = Object.create('qminer').Store.prototype;
-	JsDeclareProperty(store);
+	JsDeclareFunction(store);
 
 	JsDeclareSetProperty(getField, setField);
-	JsDeclareProperty(join);
-	JsDeclareProperty(sjoin);
+	JsDeclareFunction(join);
+	JsDeclareFunction(sjoin);
 };
 
 class TNodeJsRecByValV: public node::ObjectWrap {
@@ -1698,7 +1776,6 @@ private:
 	* Sorts the records according to their weight.
 	* @param {number} [asc=1] - If asc > 0, it sorts in ascending order. Otherwise, it sorts in descending order.
 	* @returns {module:qm.RecordSet} Self. Records are sorted according to record weight and asc.
-	* @ignore
 	*/
 	//# exports.RecordSet.prototype.sortByFq = function (asc) { return Object.create(require('qminer').RecordSet.prototype); }; 
 	JsDeclareFunction(sortByFq);
@@ -2251,7 +2328,7 @@ private:
 	* Returns the store, where the records in the record set are stored.
 	*/
 	//# exports.RecordSet.prototype.store = Object.create(require('qminer').Store.prototype);
-	JsDeclareProperty(store);
+	JsDeclareFunction(store);
 
 	/**
 	* Returns the number of records in record set.
@@ -2373,13 +2450,13 @@ public:
 	* Gives the store of the iterator.
 	*/
 	//# exports.Iterator.prototype.store = Object.create(require('qminer').Store.prototype);
-	JsDeclareProperty(store);
+	JsDeclareFunction(store);
 
 	/**
 	* Gives the current record.
 	*/
 	//# exports.Iterator.prototype.record = Object.create(require('qminer').Record.prototype);
-	JsDeclareProperty(record);
+	JsDeclareFunction(record);
 };
 
 ///////////////////////////////
@@ -2447,7 +2524,7 @@ public:
     
 public:
 	//!- `store = key.store` -- gets the key's store
-	JsDeclareProperty(store);
+	JsDeclareFunction(store);
 	//!- `keyName = key.name` -- gets the key's name
 	JsDeclareProperty(name);
 	//!- `strArr = key.vocabulary` -- gets the array of words (as strings) in the vocabulary
@@ -2661,7 +2738,8 @@ public:
 * @property {number} [FeatureExtractorMultinomial.hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hashDimension to get the corresponding dimension.
 * @property {Object} [FeatureExtractorMultinomial.datetime = false] - Same as 'values', only with predefined values which are extracted from date and time (month, day of month, day of week, time of day, hour).
 * <br> This fixes the dimensionality of feature extractor at the start, making it not dimension as new dates are seen. Cannot be used the same time as values.
-* @property {string} FeatureExtractorMultinomial.field - The name of the field from which to take the value.
+* @property {(string|Array.<String>)} FeatureExtractorMultinomial.field - The name of the field from which to take the key value.
+* @property {(string|Array.<String>)} [FeatureExtractorMultinomial.valueField] - The name of the field from which to take the numeric value. When not provided, 1.0 is used as default numeric values for non-zero elements in the vector.
 * @property {module:qm~FeatureSource} FeatureExtractorMultinomial.source - The source of the extractor.
 * @example
 * var qm = require('qminer');
@@ -2937,6 +3015,8 @@ public:
 
 class TNodeJsFtrSpace : public node::ObjectWrap {
 	friend class TNodeJsUtil;
+private:
+	static v8::Persistent<v8::Function> Constructor;
 public:
 	// Node framework
 	static void Init(v8::Handle<v8::Object> exports);

@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-console.log(__filename)
+// console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js');     //adds assert.run function
 var qm = require('qminer');
 var fs = qm.fs;
@@ -767,6 +767,54 @@ describe("Two Store Tests", function () {
 });
 
 ///////////////////////////////////////////////////////////////////////////////
+// Many Stores
+
+describe('Many Stores Test', function () {
+    this.timeout(30000);
+
+    var base = undefined;
+    beforeEach(function () {
+        base = new qm.Base({ mode: 'createClean' });
+    });
+    afterEach(function () {
+        base.close();
+    });
+
+    describe('Creating 254 Stores Test', function () {
+        it('should create 254 stores', function () {
+            var numOfStores = 254
+
+            for (i = 0; i < numOfStores; i++) {
+                var storeDef = {
+                    "name": "TestStore_" + i,
+                    "fields": [{ "name": "Test", "type": "float" }]
+                }
+                base.createStore(storeDef);
+            }
+
+            assert.equal(254, base.getStoreList().length);
+        })
+    });
+    
+    // takes to long
+    //describe('Creating 1000 Stores Test', function () {
+    //    it('should create 1000 stores', function () {
+    //        var numOfStores = 1000
+
+    //        for (i = 0; i < numOfStores; i++) {
+    //            var storeDef = {
+    //                "name": "TestStore_" + i,
+    //                "fields": [{ "name": "Test", "type": "float" }]
+    //            }
+    //            base.createStore(storeDef);
+    //        }
+
+    //        assert.equal(1000, base.getStoreList().length);
+    //    })
+    //});
+})
+
+///////////////////////////////////////////////////////////////////////////////
 // AddTrigger
 
 describe('AddTrigger Tests', function () {
@@ -943,3 +991,93 @@ describe('Query Tests', function () {
 //		});
 //	})
 //});
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Schema Time WIndow Test#
+
+describe('Schema Time Window Test', function () {
+
+    describe('Testing window (size: 3)', function () { 
+        // generate store with window 3
+        base = new qm.Base({ mode: 'createClean' });
+        base.createStore({
+            "name": "TestStore",
+            "fields": [
+                { "name": "DateTime", "type": "datetime" },
+                { "name": "Measurement", "type": "float" }
+            ],
+            window: 3,
+        });
+
+        // push 5 records into created store
+        for (var i = 0; i < 5; i++) {
+            var rec = {
+                "DateTime": new Date().toISOString(),
+                "Measurement": i
+            };
+            base.store("TestStore").push(rec);
+        }
+
+        // clean base with garbage collector
+        var before = base.store("TestStore").allRecords.length;
+        base.garbageCollect();
+        var after =  base.store("TestStore").allRecords.length;
+
+        // test number of records in store before garbage cleanup
+        it('store should contain 5 records before .garbageCollect()', function () {
+            assert.equal(5, before);
+        });
+
+        // test number of records in store after garbage cleanup
+        it('store should contain 3 records after .garbageCollect()', function () {
+            assert.equal(3, after);
+        });
+
+        base.close();
+    });
+
+    describe('Testing timeWindow (size: 2h)', function () { 
+                // generate store with window 3
+        base = new qm.Base({ mode: 'createClean' });
+        base.createStore({
+            "name": "TestStore",
+            "fields": [
+                { "name": "DateTime", "type": "datetime" },
+                { "name": "Measurement", "type": "float" }
+            ],
+            timeWindow: {
+                duration: 2,
+                unit: "hour",
+                field: "DateTime"
+            }
+        });
+
+        // push 5 records into created store
+        for (var i = 0; i < 5; i++) {
+            var rec = {
+                "DateTime": new Date(new Date().getTime() + i * 60 * 60 * 1001).toISOString(),
+                "Measurement": i
+            };
+            base.store("TestStore").push(rec);
+        }
+
+        // clean base with garbage collector
+        var before = base.store("TestStore").allRecords.length;
+        base.garbageCollect();
+        var after =  base.store("TestStore").allRecords.length;
+
+        // test number of records in store before garbage cleanup
+        it('store should contain 5 records before .garbageCollect()', function () {
+            assert.equal(5, before);
+        });
+
+        // test number of records in store after garbage cleanup
+        it('store should contain 2 records after .garbageCollect()', function () {
+            assert.equal(2, after);
+        });
+
+        base.close();
+    });
+
+})

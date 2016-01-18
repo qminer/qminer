@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-console.log(__filename)
+// console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js'); //adds assert.run function
 var qm = require('qminer');
 
@@ -26,6 +26,7 @@ describe('Feature Space Tests', function () {
             "fields": [
               { "name": "Value", "type": "float" },
               { "name": "Category", "type": "string" },
+              { "name": "Values", "type": "float_v" },
               { "name": "Categories", "type": "string_v" },
               { "name": "Date", "type": "datetime" },
               { "name": "Text", "type": "string" }
@@ -34,17 +35,17 @@ describe('Feature Space Tests', function () {
             "keys": []
         });
         Store = base.store("FtrSpaceTest");
-        Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Barclays dropped a bombshell on its investment bankers last week." });
-        Store.push({ Value: 1.1, Category: "b", Categories: ["b", "w"], Date: "2014-10-11T00:11:22", Text: "Amid a general retreat by banks from bond trading and other volatile business lines, Barclays was particularly aggressive." });
-        Store.push({ Value: 1.2, Category: "c", Categories: ["c", "e"], Date: "2014-10-12T00:11:22", Text: "In what CEO Antony Jenkins dubbed a “bold simplification,” Barclays will cut 7,000 jobs in its investment bank by 2016 and will trim the unit to 30% of the group’s risk-weighted assets." });
-        Store.push({ Value: 1.3, Category: "a", Categories: ["a", "q"], Date: "2014-10-13T00:11:22", Text: "The bank is relegating £400 billion ($676 billion) in assets to its “non-core” unit, effectively quarantining them from the rest of the business." });
-        Store.push({ Value: 1.4, Category: "b", Categories: ["b", "w"], Date: "2014-10-14T00:11:22", Text: "Just about every large lender these days has chucked a chunk of its toxic cast-offs into a so-called “bad bank,” but none with the same zeal as Barclays." });
-        Store.push({ Value: 1.5, Category: "c", Categories: ["c", "e"], Date: "2014-10-15T00:11:22", Text: "The last time we drew up the league table for bad banks, UBS was on top." });
-        Store.push({ Value: 1.6, Category: "a", Categories: ["a", "q"], Date: "2014-10-16T00:11:22", Text: "But Barclays has now taken the crown, with “non-core” assets accounting for nearly 30% of the bank’s total balance sheet." });
-        Store.push({ Value: 1.7, Category: "b", Categories: ["b", "w"], Date: "2014-10-17T00:11:22", Text: "Details about a bad bank are typically relegated deep in the depths of a bank’s financial report, while it prominently trumpets the brilliant “adjusted” results of its unsullied core business." });
-        Store.push({ Value: 1.8, Category: "c", Categories: ["c", "e"], Date: "2014-10-18T00:11:22", Text: "These assets still belong to the bank, and factor into its capital ratios and other important measures of financial soundness." });
-        Store.push({ Value: 1.9, Category: "a", Categories: ["a", "q"], Date: "2014-10-19T00:11:22", Text: "But because selling everything at once would produce a huge loss, carving out an internal bad bank is the next best option." });
-        Store.push({ Value: 2.0, Category: "b", Categories: ["b", "w"], Date: "2014-10-20T00:11:22", Text: "The Barbie doll is an icon that young girls have played with since 1959, when Barbie settled in as an American fixture in the lives of children, first in the United States and in more recent years, worldwide." });
+        Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Barclays dropped a bombshell on its investment bankers last week." });
+        Store.push({ Value: 1.1, Category: "b", Values: [1.1, 1.9], Categories: ["b", "w"], Date: "2014-10-11T00:11:22", Text: "Amid a general retreat by banks from bond trading and other volatile business lines, Barclays was particularly aggressive." });
+        Store.push({ Value: 1.2, Category: "c", Values: [1.2, 1.8], Categories: ["c", "e"], Date: "2014-10-12T00:11:22", Text: "In what CEO Antony Jenkins dubbed a “bold simplification,” Barclays will cut 7,000 jobs in its investment bank by 2016 and will trim the unit to 30% of the group’s risk-weighted assets." });
+        Store.push({ Value: 1.3, Category: "a", Values: [1.3, 1.7], Categories: ["a", "q"], Date: "2014-10-13T00:11:22", Text: "The bank is relegating £400 billion ($676 billion) in assets to its “non-core” unit, effectively quarantining them from the rest of the business." });
+        Store.push({ Value: 1.4, Category: "b", Values: [1.4, 1.6], Categories: ["b", "w"], Date: "2014-10-14T00:11:22", Text: "Just about every large lender these days has chucked a chunk of its toxic cast-offs into a so-called “bad bank,” but none with the same zeal as Barclays." });
+        Store.push({ Value: 1.5, Category: "c", Values: [1.5, 1.5], Categories: ["c", "e"], Date: "2014-10-15T00:11:22", Text: "The last time we drew up the league table for bad banks, UBS was on top." });
+        Store.push({ Value: 1.6, Category: "a", Values: [1.6, 1.4], Categories: ["a", "q"], Date: "2014-10-16T00:11:22", Text: "But Barclays has now taken the crown, with “non-core” assets accounting for nearly 30% of the bank’s total balance sheet." });
+        Store.push({ Value: 1.7, Category: "b", Values: [1.7, 1.3], Categories: ["b", "w"], Date: "2014-10-17T00:11:22", Text: "Details about a bad bank are typically relegated deep in the depths of a bank’s financial report, while it prominently trumpets the brilliant “adjusted” results of its unsullied core business." });
+        Store.push({ Value: 1.8, Category: "c", Values: [1.8, 1.2], Categories: ["c", "e"], Date: "2014-10-18T00:11:22", Text: "These assets still belong to the bank, and factor into its capital ratios and other important measures of financial soundness." });
+        Store.push({ Value: 1.9, Category: "a", Values: [1.9, 1.1], Categories: ["a", "q"], Date: "2014-10-19T00:11:22", Text: "But because selling everything at once would produce a huge loss, carving out an internal bad bank is the next best option." });
+        Store.push({ Value: 2.0, Category: "b", Values: [2.0, 1.0], Categories: ["b", "w"], Date: "2014-10-20T00:11:22", Text: "The Barbie doll is an icon that young girls have played with since 1959, when Barbie settled in as an American fixture in the lives of children, first in the United States and in more recent years, worldwide." });
 
     });
     afterEach(function () {
@@ -60,7 +61,6 @@ describe('Feature Space Tests', function () {
             assert.throws(function () {
                 var ftr = new qm.FeatureSpace(base);
             })
-            console.log("should be seen on screen: base");
         })
         it('should throw an exception, if only the feature extractor is given', function () {
             assert.throws(function () {
@@ -80,7 +80,6 @@ describe('Feature Space Tests', function () {
         it('should throw an exception, if no parameters are given', function () {
             assert.throws(function () {
                 var ftr = new qm.FeatureSpace();
-                console.log("should be seen on screen: none");
             })
         })
 
@@ -195,6 +194,13 @@ describe('Feature Space Tests', function () {
             var vec2 = ftr.extractVector(Store[1]);
             assert.equal(vec2.length, 1);
             assert.equal(vec2[0], 1.1);
+
+            // test that we get the same for a JSON input
+            var recJson = Store[0].toJSON();
+            var vec3 = ftr.extractVector(recJson);
+            assert.eqtol(vec3.minus(vec).norm(), 0);
+
+
         })
         it('should return a vector for the first record in store: categorical', function () {
             var ftr = new qm.FeatureSpace(base, { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] });
@@ -214,6 +220,18 @@ describe('Feature Space Tests', function () {
             assert.equal(vec[1], 0);
             assert.equal(vec[2], 0);
             assert.equal(vec[3], 1);
+            assert.equal(vec[4], 0);
+            assert.equal(vec[5], 0);
+        })
+        it('should return a vector for the first record in store: multinomial', function () {
+            var ftr = new qm.FeatureSpace(base, { type: "multinomial", source: "FtrSpaceTest", field: "Categories", valueField: "Values", values: ["a", "b", "c", "q", "w", "e"] });
+            var vec = ftr.extractVector(Store[0]);
+
+            assert.equal(vec.length, 6);
+            assert.equal(vec[0], 1)
+            assert.equal(vec[1], 0);
+            assert.equal(vec[2], 0);
+            assert.equal(vec[3], 2);
             assert.equal(vec[4], 0);
             assert.equal(vec[5], 0);
         })
@@ -329,6 +347,12 @@ describe('Feature Space Tests', function () {
             var vec = ftr.extractSparseVector(Store[0]);
             assert.equal(vec.dim, 1);
             assert.equal(vec.at(0), 1.0);
+
+            // test that we get the same for a JSON input
+            var recJson = Store[0].toJSON();
+            var vec3 = ftr.extractSparseVector(recJson);
+            debugger
+            assert.eqtol(vec3.full().minus(vec.full()).norm(), 0);
         })
         it('should return a sparse vector for the first record in store: categorical', function () {
             var ftr = new qm.FeatureSpace(base, { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] });
@@ -386,10 +410,11 @@ describe('Feature Space Tests', function () {
                 { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] },
                 { type: "categorical", source: "FtrSpaceTest", field: "Category", hashDimension: 2 },
                 { type: "multinomial", source: "FtrSpaceTest", field: "Categories", values: ["a", "b", "c", "q", "w", "e"] },
-                { type: "multinomial", source: "FtrSpaceTest", field: "Categories", hashDimension: 4 }
+                { type: "multinomial", source: "FtrSpaceTest", field: "Categories", hashDimension: 4 },
+                { type: "multinomial", source: "FtrSpaceTest", field: "Categories", valueField: "Values", values: ["a", "b", "c", "q", "w", "e"] }
             ]);
             var vec = ftr.extractSparseVector(Store[10]);
-            assert.equal(vec.dim, 16);
+            assert.equal(vec.dim, 22);
             assert.equal(vec.at(0), 2.0);
             assert.equal(vec.at(1), 0);
             assert.equal(vec.at(2), 1);
@@ -400,6 +425,9 @@ describe('Feature Space Tests', function () {
             assert.equal(vec.at(9), 0);
             assert.equal(vec.at(10), 1);
             assert.equal(vec.at(11), 0);
+            assert.equal(vec.at(10), 1);
+            assert.equal(vec.at(17), 2);
+            assert.equal(vec.at(20), 1);
         })
         it('should throw an exception, if no parameter is given', function () {
             var ftr = new qm.FeatureSpace(base, [
@@ -1186,7 +1214,7 @@ describe('Feature Space Tests', function () {
             assert.eqtol(ftr.extractVector(Store[2]).at(0), 1, 0.0000001);
 
             for (var i = 3; i < 11; i++){
-            	ftr.updateRecord(Store[i]);
+            	ftr.updateRecord(Store[i].toJSON()); // test if updates work on JSON arguments
 			}
             var expected = [
 				-1.507556723,
@@ -1225,6 +1253,21 @@ describe('Feature Space Tests', function () {
         })
         it('should update the feature space with a new record: multinomial', function () {
             var ftr = new qm.FeatureSpace(base,
+                { type: "multinomial", source: "FtrSpaceTest", field: "Categories" }
+            );
+
+            assert.equal(ftr.dim, 0);
+            ftr.updateRecord(Store[0]);
+            assert.equal(ftr.dim, 2);
+            ftr.updateRecord(Store[1]);
+            assert.equal(ftr.dim, 4);
+            ftr.updateRecord(Store[2]);
+            assert.equal(ftr.dim, 6);
+            ftr.updateRecord(Store[3]);
+            assert.equal(ftr.dim, 6);
+        })
+        it('should update the feature space with a new record: multinomial', function () {
+            var ftr = new qm.FeatureSpace(base,
                 { type: "multinomial", source: "FtrSpaceTest", field: "Categories", values: ["a", "b", "c", "q", "w", "e"] }
             );
 
@@ -1234,6 +1277,18 @@ describe('Feature Space Tests', function () {
             ftr.updateRecord(Store[0]);
             assert.eqtol(ftr.extractVector(Store[0]).at(0), 1);
             assert.eqtol(ftr.extractVector(Store[0]).at(3), 1);
+        })
+        it('should update the feature space with a new record: multinomial', function () {
+            var ftr = new qm.FeatureSpace(base,
+                { type: "multinomial", source: "FtrSpaceTest", field: "Categories", valueField: "Values", values: ["a", "b", "c", "q", "w", "e"] }
+            );
+
+            assert.eqtol(ftr.extractVector(Store[0]).at(0), 1);
+            assert.eqtol(ftr.extractVector(Store[0]).at(3), 2);
+
+            ftr.updateRecord(Store[0]);
+            assert.eqtol(ftr.extractVector(Store[0]).at(0), 1);
+            assert.eqtol(ftr.extractVector(Store[0]).at(3), 2);
         })
         it('should update the feature space with a new record: multinomial, normalize', function () {
             var ftr = new qm.FeatureSpace(base,
@@ -1246,10 +1301,21 @@ describe('Feature Space Tests', function () {
             assert.eqtol(ftr.extractVector(Store[0]).at(0), 1 / Math.sqrt(2));
             assert.eqtol(ftr.extractVector(Store[0]).at(3), 1 / Math.sqrt(2));
         })
+        it('should update the feature space with a new record: multinomial, normalize', function () {
+            var ftr = new qm.FeatureSpace(base,
+                { type: "multinomial", source: "FtrSpaceTest", field: "Categories", valueField: "Values", normalize: true, values: ["a", "b", "c", "q", "w", "e"] }
+            );
+            assert.eqtol(ftr.extractVector(Store[0]).at(0), 1 / Math.sqrt(5));
+            assert.eqtol(ftr.extractVector(Store[0]).at(3), 2 / Math.sqrt(5));
+
+            ftr.updateRecord(Store[0]);
+            assert.eqtol(ftr.extractVector(Store[0]).at(0), 1 / Math.sqrt(5));
+            assert.eqtol(ftr.extractVector(Store[0]).at(3), 2 / Math.sqrt(5));
+        })
         it('should update the feature space with a new record: text', function () {
             var ftr = new qm.FeatureSpace(base, { type: "text", source: "FtrSpaceTest", field: "Text", ngrams: [1, 1] });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
             ftr.updateRecord(Store[11]);
             ftr.updateRecord(Store[12]);
             assert.equal(ftr.extractVector(Store[11]).length, 2);
@@ -1258,8 +1324,6 @@ describe('Feature Space Tests', function () {
             assert.equal(ftr.extractVector(Store[12]).length, 2);
             assert.equal(ftr.extractVector(Store[12]).at(0), 0);
             assert.equal(ftr.extractVector(Store[12]).at(1), 1);
-
-            //ftr.extractVector(Store[13]); // C++ exception
         })
         it('should update the feature space with a new record: jsfunc', function () {
             var ftr = new qm.FeatureSpace(base, {
@@ -1319,10 +1383,10 @@ describe('Feature Space Tests', function () {
     describe('Tokenizer Tests', function () {
         it('should update the feature space, text: default settings', function () {
             var ftr = new qm.FeatureSpace(base, { type: "text", source: "FtrSpaceTest", field: "Text" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabet" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabeth a a" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabet" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabeth a a" });
 
             ftr.updateRecord(Store[11]);
             ftr.updateRecord(Store[12]);
@@ -1351,10 +1415,10 @@ describe('Feature Space Tests', function () {
         })
         it('should update the feature space, text: normalize-false, other default settings', function () {
             var ftr = new qm.FeatureSpace(base, { type: "text", source: "FtrSpaceTest", normalize: false, field: "Text" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabet" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabeth a a" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabet" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabeth a a" });
 
             ftr.updateRecord(Store[11]);
             ftr.updateRecord(Store[12]);
@@ -1383,10 +1447,10 @@ describe('Feature Space Tests', function () {
         })
         it('should update the feature space, text: normalize-false, ngrams[2, 3]', function () {
             var ftr = new qm.FeatureSpace(base, { type: "text", source: "FtrSpaceTest", normalize: false, field: "Text", ngrams: [2, 3] });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet Beta, Gamma" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabet Beta Omega" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabeth a a Omicron, Omicron" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet Beta, Gamma" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabet Beta Omega" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabeth a a Omicron, Omicron" });
 
             ftr.updateRecord(Store[11]);
             ftr.updateRecord(Store[12]);
@@ -1402,10 +1466,10 @@ describe('Feature Space Tests', function () {
                 type: "text", source: "FtrSpaceTest", normalize: false, field: "Text",
                 tokenizer: { type: "simple", stopwords: "none" }
             });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet Beta, Gamma" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabet Beta Omega" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabeth a a Omicron, Omicron" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet Beta, Gamma" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabet Beta Omega" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabeth a a Omicron, Omicron" });
 
             ftr.updateRecord(Store[11]);
             ftr.updateRecord(Store[12]);
@@ -1432,10 +1496,10 @@ describe('Feature Space Tests', function () {
                 tokenizer: { type: "simple", stopwords: "en" }
             });
 
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabet" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabeth a a" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabet" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha Alphabeth a a" });
 
             ftr.updateRecord(Store[11]);
             ftr.updateRecord(Store[12]);
@@ -1468,10 +1532,10 @@ describe('Feature Space Tests', function () {
                 tokenizer: { type: "simple", stopwords: "si" }
             });
 
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Abeceda" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Miloš zna abecedo" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Kaj pa to Miloš Abeceda?" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Miloš in Abeceda" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Abeceda" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Miloš zna abecedo" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Kaj pa to Miloš Abeceda?" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Miloš in Abeceda" });
 
             ftr.updateRecord(Store[11]);
             ftr.updateRecord(Store[12]);
@@ -1491,10 +1555,10 @@ describe('Feature Space Tests', function () {
                 tokenizer: { type: "simple", stopwords: "es" }
             });
 
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "¿Quién se robó mi teléfono?" });         // who stole my phone
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Se robó el teléfono!" });                // he stole the phone
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Por cuánto usted vende el teléfono?" }); // for how much do you sell the phone
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "mamá tiene un nuevo teléfono." });       // mom has a new phone
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "¿Quién se robó mi teléfono?" });         // who stole my phone
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Se robó el teléfono!" });                // he stole the phone
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Por cuánto usted vende el teléfono?" }); // for how much do you sell the phone
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "mamá tiene un nuevo teléfono." });       // mom has a new phone
 
             ftr.updateRecord(Store[11]);
             ftr.updateRecord(Store[12]);
@@ -1525,10 +1589,10 @@ describe('Feature Space Tests', function () {
                 tokenizer: { type: "simple", stopwords: "de" }
             });
 
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Die mein Handy gestohlen?" });           // who stole my phone
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "er habe das Handy!" });                  // he stole the phone
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Für wie viel wissen Sie das Telefon verkaufen?" }); // for how much do you sell the phone
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Mutter hat ein neues Handy." });       // mom has a new phone
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Die mein Handy gestohlen?" });           // who stole my phone
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "er habe das Handy!" });                  // he stole the phone
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Für wie viel wissen Sie das Telefon verkaufen?" }); // for how much do you sell the phone
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Mutter hat ein neues Handy." });       // mom has a new phone
 
             ftr.updateRecord(Store[11]);
             ftr.updateRecord(Store[12]);
@@ -1559,10 +1623,10 @@ describe('Feature Space Tests', function () {
                 tokenizer: { type: "simple", stopwords: ["an", "a", "butterfly"] }
             });
 
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Have you seen the butterfly?" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "An elephant and a butterfly." });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Is you is or is you ain't my baby?" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "The butterfly dagger!" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Have you seen the butterfly?" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "An elephant and a butterfly." });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Is you is or is you ain't my baby?" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "The butterfly dagger!" });
 
             ftr.updateRecord(Store[11]);
             ftr.updateRecord(Store[12]);
@@ -1592,10 +1656,10 @@ describe('Feature Space Tests', function () {
                 type: "text", source: "FtrSpaceTest", normalize: false, field: "Text",
                 tokenizer: { type: "simple", stopwords: "none", uppercase: false }
             });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha alphabet" });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "alpha Alphabeth a a" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha alphabet" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "alpha Alphabeth a a" });
 
             ftr.updateRecord(Store[11]);
             ftr.updateRecord(Store[12]);
@@ -1615,10 +1679,10 @@ describe('Feature Space Tests', function () {
                 type: "text", source: "FtrSpaceTest", normalize: false, field: "Text",
                 tokenizer: { type: "simple", stopwords: "none", stemmer: false }
             });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Jimmy Carr bought a car." });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "My dad sold a lot of cars." });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "The union of dads are buying cars." });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Car Cars Car, buy them!" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Jimmy Carr bought a car." });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "My dad sold a lot of cars." });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "The union of dads are buying cars." });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Car Cars Car, buy them!" });
 
             ftr.updateRecord(Store[11]);
             ftr.updateRecord(Store[12]);
@@ -1653,10 +1717,10 @@ describe('Feature Space Tests', function () {
                 type: "text", source: "FtrSpaceTest", normalize: false, field: "Text",
                 tokenizer: { type: "simple", stopwords: "none", stemmer: true }
             });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Jimmy Carr bought a car." });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "My dad sold a lot of cars." });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "The union of dads are buying cars." });
-            Store.push({ Value: 1.0, Category: "a", Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Car Cars Car, buy them!" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Jimmy Carr bought a car." });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "My dad sold a lot of cars." });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "The union of dads are buying cars." });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Car Cars Car, buy them!" });
 
             ftr.updateRecord(Store[11]);
             ftr.updateRecord(Store[12]);
@@ -1774,9 +1838,21 @@ describe('Feature Space Tests', function () {
             assert.equal(ftr.extractVector(Store[0]).at(3), 1);
             assert.equal(ftr.extractVector(Store[0]).at(4), 0);
             assert.equal(ftr.extractVector(Store[0]).at(5), 0);
+        });
+        it('should update the feature space by adding the whole store as a JSON array: multinomial', function () {
+            var ftr = new qm.FeatureSpace(base, { type: "multinomial", source: "FtrSpaceTest", field: "Categories", values: ["a", "b", "c", "q", "w", "e"] });
+            var rs = Store.allRecords.toJSON().records;
 
+            ftr.updateRecords(rs);
+            assert.equal(ftr.extractVector(Store[0]).length, 6);
+            assert.equal(ftr.extractVector(Store[0]).at(0), 1);
+            assert.equal(ftr.extractVector(Store[0]).at(1), 0);
+            assert.equal(ftr.extractVector(Store[0]).at(2), 0);
+            assert.equal(ftr.extractVector(Store[0]).at(3), 1);
+            assert.equal(ftr.extractVector(Store[0]).at(4), 0);
+            assert.equal(ftr.extractVector(Store[0]).at(5), 0);
+        });
 
-        })
         it('should update the feature space by adding the whole store: multinomial, normalize', function () {
             var ftr = new qm.FeatureSpace(base,
                 { type: "multinomial", source: "FtrSpaceTest", field: "Categories", normalize: true, values: ["a", "b", "c", "q", "w", "e"] }
@@ -1840,6 +1916,12 @@ describe('Feature Space Tests', function () {
             assert.eqtol(mat.at(0, 0), 1);
             assert.eqtol(mat.at(0, 5), 1.5);
             assert.eqtol(mat.at(0, 10), 2);
+
+            // test that we get the same for a JSON array input
+            var rsJson = Store.allRecords.toJSON().records;
+            var mat2 = ftr.extractSparseMatrix(rsJson);
+            assert.eqtol(mat.minus(mat2).frob(), 0);
+
         })
         it('should return a bigger space matrix gained from the numeric and categorical feature extractor', function () {
             var ftr = new qm.FeatureSpace(base, [
@@ -1875,6 +1957,12 @@ describe('Feature Space Tests', function () {
             assert.eqtol(mat.at(0, 0), 1);
             assert.eqtol(mat.at(0, 5), 1.5);
             assert.eqtol(mat.at(0, 10), 2);
+
+            // test that we get the same for a JSON array input
+            var rsJson = Store.allRecords.toJSON().records;
+            var mat2 = ftr.extractMatrix(rsJson);
+            assert.eqtol(mat.minus(mat2).frob(), 0);
+
         })
         it('should return a dense matrix gained from the numeric and categorical feature extractor', function () {
             var ftr = new qm.FeatureSpace(base, [

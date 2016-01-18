@@ -1,43 +1,49 @@
+sudo: false
+
+git:
+  depth: 10
+
 language: node_js
+
 node_js:
-  - "0.12.7"
+  - "0.12"
+  - "4"
+  - "5"
+
+addons:
+  apt:
+    sources: [ 'ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.6' ]
+    packages: [ 'clang-3.6', 'gcc-4.8', 'g++-4.8', 'gcc-4.8-multilib', 'g++-4.8-multilib', 'libc6-dev-i386', 'linux-libc-dev:i386' ]
 
 env:
   global:
    - secure: "jnpbDDHcg2Llnqr+eRrpGS+Bi+Xzcs3XJM+go9kFjM/oVVaB5etCJ3pNyD6zZNJRR00xub7XMODtNYGnJAh5b9Z73zN5QhoB4+czijUyibpBGzhQ+V4kEmycz+9ByDTmpH9rJKPB+kNlGU4htUrwSpgr/mUkymqfRgkaoZSVkAo="
    - secure: "dBebU6FnEv3z/ht9ImWUgOGR5acvbzqihuQ/l57dJiblWYl3OWGG+1z3bw+doIhTcPp3JmgeznapN/Cv6cPGx1cuoGQrcFQrWearikzz7zms0ZJr9klNjI2BYEo/wT9B7wB4ubsjuZUXvc203QGFIsIC9qx1+ByeFb1cen7IUIE="
   matrix:
-    - CXXFLAGS=-std=c++0x CXX=g++ CC=gcc
-    - CXXFLAGS=-std=c++0x CXX=clang++-3.6 CC=clang NPMOPT=--clang=1
-before_install:
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq uuid-dev
-  - sudo apt-get install build-essential
-  - npm install -g mocha
-  - npm install -g mustache
+   - CXXFLAGS=-std=c++0x CXX=clang++-3.6 CC=clang NPMOPT=--clang=1
+   - CXXFLAGS=-std=c++0x CC=gcc-4.8 CXX=g++-4.8
 
-  # clang setup
-  - if [ "$CXX" = "clang++-3.6" ]; then sudo apt-add-repository --yes ppa:ubuntu-toolchain-r/test; fi
-  - if [ "$CXX" = "clang++-3.6" ]; then sudo sh -c "echo 'deb http://llvm.org/apt/precise/ llvm-toolchain-precise-3.6 main' >> /etc/apt/sources.list"; fi
-  - if [ "$CXX" = "clang++-3.6" ]; then wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key|sudo apt-key add -; fi
-  - if [ "$CXX" = "clang++-3.6" ]; then sudo apt-get update; fi
-  - if [ "$CXX" = "clang++-3.6" ]; then apt-cache search clang; fi
-  - if [ "$CXX" = "clang++-3.6" ]; then sudo apt-get install -y clang-3.6; fi
+before_install:
   # get commit message
   - COMMIT_MESSAGE=$(git show -s --pretty=oneline $TRAVIS_COMMIT | tr -d '\n')
   # figure out if we should publish
   - PUBLISH_BINARY=false
+  - TEST_PUBLISH_BINARY=false
   # if we put [publish binary] in the commit message
   - if test "${COMMIT_MESSAGE#*'[publish binary]'}" != "$COMMIT_MESSAGE"; then PUBLISH_BINARY=true; fi;
 
 install:
   - npm install --build-from-source $NPMOPT
+
 script:
+  - npm install -g mocha
+  - npm install -g mustache
   - ./tools/genExampleTests.sh
   - ./test/nodejs/test.sh
-  - if [ "$CXX" = "g++" ] ; then echo gpp ok ; fi
+  - if [ "$CXX" = "g++-4.8" ] ; then echo gpp ok ; fi
   - echo status pub && echo $PUBLISH_BINARY && echo $TRAVIS_REPO_SLUG && echo $TRAVIS_PULL_REQUEST
-  - if [ "$CXX" = "g++" ] && [[ $PUBLISH_BINARY == true ]] && [ "$TRAVIS_REPO_SLUG" = "qminer/qminer" ] && [[ $TRAVIS_PULL_REQUEST == false ]]; then echo publishing && ./node_modules/.bin/node-pre-gyp package unpublish publish; fi
+  # publishing will work from qminer/qminer only!
+  - if [ "$CXX" = "g++-4.8" ] && [[ $PUBLISH_BINARY == true ]] && [ "$TRAVIS_REPO_SLUG" = "qminer/qminer" ] && [[ $TRAVIS_PULL_REQUEST == false ]]; then echo publishing && ./node_modules/.bin/node-pre-gyp package unpublish publish && ./tools/publish32.sh; fi
 os: linux
 notifications:
   email:  

@@ -146,31 +146,47 @@ int TNearestNeighbor::Predict(const TIntFltKdV& Vec) const {
 PJsonVal TNearestNeighbor::Explain(const TIntFltKdV& Vec) const {
 	// if not initialized, return null (JSON)
 	if (!IsInit()) { return TJsonVal::NewNull(); }
-	
+	// find nearest neighbor
 	double NearDist = TFlt::Mx;
-	int NearestColN = -1;
+	int NearColN = -1;
 	TIntFltKdV DiffV;
 	for (int ColN = 0; ColN < Mat.Len(); ColN++) {		
 		const double Dist = TLinAlg::Norm2(Vec) - 2 * TLinAlg::DotProduct(Vec, Mat[ColN]) + TLinAlg::Norm2(Mat[ColN]);
-		if (Dist < NearDist) { NearDist = Dist; NearestColN = ColN; }
+		if (Dist < NearDist) { NearDist = Dist; NearColN = ColN; }
 	}
-	// set diff vector accordingly
-	TSparseOps<TInt, TFlt>::SparseLinComb(-1.0, Mat[NearestColN], 1.0, Vec, DiffV);
-	
-	PJsonVal Res = TJsonVal::NewObj();
-	Res->AddToObj("nearestID", IDVec[NearestColN]);
-	PJsonVal IDArr = TJsonVal::NewArr();
-	PJsonVal ContribArr = TJsonVal::NewArr();
-	for (int elN = 0; elN < DiffV.Len(); elN++) {				
-		IDArr->AddToArr(DiffV[elN].Key);
-		// square nonzero elements and divide by total squared distance
-		ContribArr->AddToArr(DiffV[elN].Dat * DiffV[elN].Dat / NearDist);
-	}
-	Res->AddToObj("featureIDs", IDArr);
-	Res->AddToObj("featureContributions", ContribArr);
-
-	return Res;
+    const TIntFltKdV& NearVec = Mat[NearColN];
+	// generate JSon explanations
+	PJsonVal ResVal = TJsonVal::NewObj();
+    // id of the nearest element
+	ResVal->AddToObj("nearestID", IDVec[NearColN]);
+	ResVal->AddToObj("distance", NearDist);
+    // element-wise difference
+    PJsonVal DiffVal = TJsonVal::NewArr();
+    int NearEltN = 0, EltN = 0;
+    while (NearEltN < NearVec.Len() && EltN < Vec.Len()) {
+        // get values
+        const int FtrId =      (NearVec[NearEltN].Key < Vec[EltN].Key) ? NearVec[NearEltN].Key     : Vec[EltN].Key;
+        const double Val =     (NearVec[NearEltN].Key >= Vec[EltN].Key) ? Vec[EltN].Dat.Val : 0.0;
+        const double NearVal = (NearVec[NearEltN].Key <= Vec[EltN].Key) ? NearVec[NearEltN].Dat.Val : 0.0;
+        const double Diff    = TMath::Sqr(NearVal - Val) / NearDist;
+        // add to json result
+        PJsonVal FtrVal = TJsonVal::NewObj();
+        FtrVal->AddToObj("id", FtrId);
+        FtrVal->AddToObj("val", Val);
+        FtrVal->AddToObj("nearVal", NearVal);
+        FtrVal->AddToObj("contribution", Diff);
+        DiffVal->AddToArr(FtrVal);
+        // move to the next feature
+        if (NearVec[NearEltN].Key > Vec[EltN].Key) {
+            EltN++;
+        } else if (NearVec[NearEltN].Key < Vec[EltN].Key) {
+            NearEltN++;
+        } else {
+            NearEltN++; EltN++;
+        }
+    }
+    ResVal->AddToObj("features", DiffVal);
+	return ResVal;
 }
-
 
 };
