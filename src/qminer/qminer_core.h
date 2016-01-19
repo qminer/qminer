@@ -75,21 +75,6 @@ void InfoLog(const TStr& MsgStr);
 void DebugLog(const TStr& MsgStr);
 
 ///////////////////////////////
-/// QMiner Valid Name Enforcer.
-class TValidNm {
-private:
-	/// Valid non-alpha-numeric first character of store/field/join/key name
-	static TChA ValidFirstCh;
-	/// Valid non-alpha-numeric non-first character of store/field/join/key name
-	static TChA ValidCh;
-public:
-	/// Validate if given string is a valid store/field/join/key name.
-	/// Valid names begin with alphabetical or ValidFirstCh and continues with
-	/// any alphanumerical or ValidCh character (e.g. '_ThisIsValid_123_Name').
-	static void AssertValidNm(const TStr& NmStr);
-};
-
-///////////////////////////////
 /// QMiner Exception
 class TQmExcept : public TExcept {
 private:
@@ -141,13 +126,11 @@ public:
 	/// Create an empty join description
 	TJoinDesc(): JoinId(-1), JoinStoreId(TUInt::Mx), JoinType(osjtUndef), InverseJoinId(-1) { } 
 	/// Create an index based join (1-N or N-M)
-	TJoinDesc(const TStr& _JoinNm, const uint& _JoinStoreId,
+	TJoinDesc(const TWPt<TBase>& Base, const TStr& _JoinNm, const uint& _JoinStoreId,
 		const uint& StoreId, const TWPt<TIndexVoc>& IndexVoc, const bool& IsSmall);
 	/// Create a field based join (1-1)
-	TJoinDesc(const TStr& _JoinNm, const uint& _JoinStoreId, const int& _JoinRecFieldId,
-		const int& _JoinFqFieldId): JoinId(-1), JoinNm(_JoinNm), JoinStoreId(_JoinStoreId), 
-		JoinType(osjtField), JoinKeyId(-1), JoinRecFieldId(_JoinRecFieldId), 
-		JoinFqFieldId(_JoinFqFieldId), InverseJoinId(-1) { TValidNm::AssertValidNm(JoinNm); }
+	TJoinDesc(const TWPt<TBase>& Base, const TStr& _JoinNm, const uint& _JoinStoreId, const int& _JoinRecFieldId,
+		const int& _JoinFqFieldId);
 
 	TJoinDesc(TSIn& SIn);
 	void Save(TSOut& SOut) const;
@@ -275,7 +258,7 @@ public:
 	/// @param _FieldType Field type
 	/// @param NullP Can field be empty for some records
 	/// @param InternalP Filed was created is and being used internally by QMiner (E.g. for field joins)
-	TFieldDesc(const TStr& _FieldNm, TFieldType _FieldType, const bool& Primary,
+	TFieldDesc(const TWPt<TBase>& Base, const TStr& _FieldNm, TFieldType _FieldType, const bool& Primary,
 		const bool& NullP, const bool& InternalP);
 	
 	TFieldDesc(TSIn& SIn);
@@ -2062,9 +2045,9 @@ public:
 	TIndexKey(): StoreId(TUInt::Mx), KeyId(-1), KeyNm(""), 
 		WordVocId(-1), TypeFlags(oiktUndef), SortType(oikstUndef) {}
 	/// Create internal key, used for index joins
-	TIndexKey(const uint& _StoreId, const TStr& _KeyNm, const TStr& _JoinNm, const bool& IsSmall);
+	TIndexKey(const TWPt<TBase>& Base, const uint& _StoreId, const TStr& _KeyNm, const TStr& _JoinNm, const bool& IsSmall);
     /// Create new key using given word vocabulary
-	TIndexKey(const uint& _StoreId, const TStr& _KeyNm, const int& _WordVocId, 
+	TIndexKey(const TWPt<TBase>& Base, const uint& _StoreId, const TStr& _KeyNm, const int& _WordVocId,
 		const TIndexKeyType& _Type, const TIndexKeySortType& _SortType);
 	
 	/// Deserialize key from the stream
@@ -2284,10 +2267,10 @@ public:
 	void SetWordVocNm(const int& WordVocId, const TStr& WordVocNm);
 	
 	/// Create new key in the index vocabulary
-	int AddKey(const uint& StoreId, const TStr& KeyNm, const int& WordVocId, 
+	int AddKey(const TWPt<TBase>& Base, const uint& StoreId, const TStr& KeyNm, const int& WordVocId,
 		const TIndexKeyType& Type, const TIndexKeySortType& SortType = oikstUndef);
 	/// Create new internal key
-	int AddInternalKey(const uint& StoreId, const TStr& KeyNm, const TStr& JoinNm, const bool& IsSmall);
+	int AddInternalKey(const TWPt<TBase>& Base, const uint& StoreId, const TStr& KeyNm, const TStr& JoinNm, const bool& IsSmall);
 	/// Linking key to a field
 	void AddKeyField(const int& KeyId, const uint& StoreId, const int& FieldId);
 	/// Check if store has any index keys
@@ -3321,8 +3304,7 @@ protected:
 	TStr Guid;
 protected:
 	/// Create new stream aggregate from JSon parameters
-	TStreamAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm):
-        AggrNm(_AggrNm) { TValidNm::AssertValidNm(AggrNm); }
+	TStreamAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm);
 	/// Create new stream aggregate from JSon parameters
 	TStreamAggr(const TWPt<TBase>& _Base, const PJsonVal& ParamVal);       
 
@@ -3547,6 +3529,36 @@ public:
 };
 
 ///////////////////////////////
+/// QMiner Valid Name Enforcer.
+class TNmValidator {
+private:
+	/// Valid non-alpha-numeric first character of store/field/join/key name
+	static TChA ValidFirstCh;
+	/// Valid non-alpha-numeric non-first character of store/field/join/key name
+	static TChA ValidCh;
+	/// is set to true, all field names will be valid
+	TBool StrictNmP;
+public:
+	TNmValidator(const bool& _StrictNmP):
+		StrictNmP(_StrictNmP) {}
+	TNmValidator(TSIn& SIn):
+		StrictNmP(SIn) {}
+
+	void Save(TSOut& SOut) const;
+
+	/// Validate if given string is a valid store/field/join/key name.
+	/// Valid names begin with alphabetical or ValidFirstCh and continues with
+	/// any alphanumerical or ValidCh character (e.g. '_ThisIsValid_123_Name').
+	void AssertValidNm(const TStr& NmStr) const;
+	/// when set to false, all field names will be allowed
+	void SetStrictNmP(const bool& AllValid);
+
+private:
+	static bool IsValidJsFirstCharacter(const TStr& NmStr);
+	static bool IsValidJsCharacter(const char& Ch);
+};
+
+///////////////////////////////
 // QMiner-Base
 class TBase {
 private: 
@@ -3576,10 +3588,13 @@ private:
 	TVec<PStreamAggrBase> StreamAggrBaseV;
 	// default stream aggregate base (store independent)
 	PStreamAggrBase StreamAggrDefaultBase;
-
+	// validates names of fields
+	TNmValidator NmValidator;
 private:
-	TBase(const TStr& _FPath, const int64& IndexCacheSize, const int& SplitLen);
-	TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCacheSize, const int& SplitLen);
+	TBase(const TStr& _FPath, const int64& IndexCacheSize, const int& SplitLen,
+			const bool& StrictNmP);
+	TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCacheSize,
+			const int& SplitLen);
 public:
 	~TBase();
 private:	
@@ -3588,8 +3603,9 @@ private:
 	TPair<TBool, PRecSet> Search(const TQueryItem& QueryItem, const TIndex::PQmGixExpMerger& Merger, const TIndex::PQmGixExpMergerSmall& MergerSmall, const TQueryGixUsedType& ParentGixFlag);
 
 public:
-	static TWPt<TBase> New(const TStr& FPath, const int64& IndexCacheSize, const int& SplitLen) {
-		return new TBase(FPath, IndexCacheSize, SplitLen);
+	static TWPt<TBase> New(const TStr& FPath, const int64& IndexCacheSize, const int& SplitLen,
+			const bool& StrictNmP) {
+		return new TBase(FPath, IndexCacheSize, SplitLen, StrictNmP);
 	}
 	static TWPt<TBase> Load(const TStr& FPath, const TFAccess& FAccess, const int64& IndexCacheSize, const int& SplitLen) {
 		return new TBase(FPath, FAccess, IndexCacheSize, SplitLen);
@@ -3647,7 +3663,7 @@ public:
 		const TIndexKeySortType& SortType = oikstUndef);
 	// creates index key, without linking it to a field using specified vocabulary,
 	// returns the id of created key
-	int NewIndexKey(const TWPt<TStore>& Store, const TStr& KeyNm, const int& WordVocId, 
+	int NewIndexKey(const TWPt<TStore>& Store, const TStr& KeyNm, const int& WordVocId,
 		const TIndexKeyType& Type = oiktValue, const TIndexKeySortType& SortType = oikstUndef);
 	// create index key for a specified (store, field) pair, returns the id of created key
 	int NewFieldIndexKey(const TWPt<TStore>& Store, const TStr& KeyNm, const int& FieldId,
@@ -3705,6 +3721,11 @@ public:
 
 	// perform partial flush of data
 	int PartialFlush(int WndInMsec = 500);
+
+	/// asserts if a field name is valid
+	void AssertValidNm(const TStr& FldNm) const { NmValidator.AssertValidNm(FldNm); }
+	/// when set to true, all field names except an empty string will be valid
+	void SetStrictNmP(const bool& StrictNmP) { NmValidator.SetStrictNmP(StrictNmP); }
 };
 
 ////////////////////////////////////////////////////////////////////////////

@@ -184,7 +184,7 @@ public:
 	
 private:
 	/// Parse field description from JSon
-	TFieldDesc ParseFieldDesc(const PJsonVal& FieldVal);
+	TFieldDesc ParseFieldDesc(const TWPt<TBase>& Base, const PJsonVal& FieldVal);
 	/// Parse extended field description from JSon
 	TFieldDescEx ParseFieldDescEx(const PJsonVal& FieldVal);
 	/// Parse extended join description from JSon
@@ -194,10 +194,10 @@ private:
 	
 public:
 	TStoreSchema() { }
-	TStoreSchema(const PJsonVal& StoreVal);
+	TStoreSchema(const TWPt<TBase>& Base, const PJsonVal& StoreVal);
 	
 	/// Parse JSon definition file and return vector of store schemas
-	static void ParseSchema(const PJsonVal& SchemaVal, TVec<TStoreSchema>& SchemaV);
+	static void ParseSchema(const TWPt<TBase>& Base, const PJsonVal& SchemaVal, TVec<TStoreSchema>& SchemaV);
 	/// Validate give vector of store schemas
 	static void ValidateSchema(const TWPt<TBase>& Base, TVec<TStoreSchema>& SchemaV);
 };
@@ -1340,7 +1340,7 @@ TVec<TWPt<TStore> > CreateStoresFromSchema(const TWPt<TBase>& Base, const PJsonV
 ///////////////////////////////
 /// Create new base given a schema definition
 TWPt<TBase> NewBase(const TStr& FPath, const PJsonVal& SchemaVal, const uint64& IndexCacheSize,
-    const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH = TStrUInt64H(),
+    const uint64& DefStoreCacheSize, const bool& StrictNameP, const TStrUInt64H& StoreNmCacheSizeH = TStrUInt64H(),
     const bool& InitP = true, const int& SplitLen = 1024, bool UsePaged = true);
 
 ///////////////////////////////
