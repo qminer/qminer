@@ -474,10 +474,13 @@ public:
 			const TStateIdV& StateIdV, const int& StateId, TIntFltPrV& StateIdProbV,
 			const int& NFutStates) const;
 
+	void GetLikelyPathTree(const int& StartStateId, const TIntV& StateIdV, const TAggStateV& AggStateV,
+			const TStateFtrVV& StateFtrVV, const int& MxDepth, TFltVV& PMat, TIntV& PMatStateIdV,
+			const double& TransThreshold=0.0) const;
+
 	void GetProbVAtTime(const TAggStateV& StateSetV, const TStateFtrVV& StateFtrVV,
 			const TStateIdV& StateIdV, const int& StartStateId, const double& Tm,
 			TFltV& ProbV) const;
-
 	// approximates the probability of jumping into the target state in the prespecified
 	// time horizon
 	bool PredictOccurenceTime(const TStateFtrVV& StateFtrVV, const TAggStateV& StateSetV,
@@ -555,6 +558,11 @@ private:
 	int GetHiddenStateId() const;
 	void RemoveHiddenStateProb(TIntFltPrV& StateIdProbV) const;
 
+	PJsonVal GetLikelyPathTree(const int& StartStateId, const TIntV& StateIdV, const TAggStateV& AggStateV,
+			const TStateFtrVV& StateFtrVV, const int& MxDepth, int& GeneratedStates, const double& TransThreshold=0.0) const;
+	int PMatFromTree(const PJsonVal& TreeJson, int& CurrStateN, TFltVV& PMat,
+			TIntV& PMatStateIdV) const;
+
 	static void GetNextStateProbV(const TFltVV& QMat, const TStateIdV& StateIdV,
 			const int& StateId, TIntFltPrV& StateIdProbV, const int& NFutStates,
 			const PNotify& Notify);
@@ -612,7 +620,7 @@ public:
 	void GetStateIdHeightPrV(TIntFltPrV& StateIdHeightPrV) const;
 	// returns the 'joined' states at the specified height, puts teh state IDs into StateIdV
 	// and sets of their leafs into JoinedStateVV
-	void GetStateSetsAtHeight(const double& Height, TStateIdV& StateIdV, TAggStateV& StateSetV) const;
+	void GetStateSetsAtHeight(const double& Height, TStateIdV& StateIdV, TAggStateV& AggStateV) const;
 	// returns all the states just below the specified height
 	void GetStatesAtHeight(const double& Height, TIntSet& StateIdV) const;
 	// returns the next level of the level passed as the argument along with it's height
@@ -727,7 +735,7 @@ private:
 	void RefineStateCoordV(const TStateIdentifier& StateIdentifier,
 			const THierarch& Hierarch, const TCtmcModeller& MChain);
 
-	static double GetUIStateRaduis(const double& Prob);
+	static double GetStateRaduis(const double& Prob);
 	static bool NodesOverlap(const int& StartId, const int& EndId, const TFltPrV& CoordV,
 			const TFltV& RaduisV);
 	static int CountOverlaps(const int& StartId, const int& EndId, const TFltPrV& CoordV,
@@ -805,6 +813,8 @@ public:
 	// saves this models as JSON
 	PJsonVal GetJson() const;
 	PJsonVal GetSubModelJson(const int& StateId) const;
+	PJsonVal GetLikelyPathTreeJson(const int& StateId, const double& Height, const int& Depth,
+			const double& TransThreshold) const;
 
 	// update methods
 	// initializes the model
@@ -924,6 +934,12 @@ private:
     void PredictTargets(const uint64& RecTm, const TStateFtrVV& StateFtrVV, const int& CurrStateId) const;
 
     void CheckBatches(const TUInt64V& TmV, const TBoolV& BatchEndV) const;
+
+    void TreeLayout(const TFltVV& PMat, const TIntV& StateIdV, const TFltV& RadiusV, TFltPrV& PosV) const;
+    void CalcTreeWidthV(const TFltVV& PMat, const TFltV& RadiusV, const double& NodePadding,
+    		const int& RootN, TFltV& WidthV) const;
+    void CalcTreePosV(const TFltVV& PMat, const int& RootN, const TFltV& RadiusV, const TFltV& WidthV,
+    		const double& RootX, const double& RootY, TFltPrV& PosV) const;
 };
 
 }
