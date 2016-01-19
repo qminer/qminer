@@ -6,8 +6,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-#include <shash.h>
-
 /////////////////////////////////////////////////
 // String-Utilities
 class TStrUtil {
@@ -29,9 +27,6 @@ public:
 
 	template <class TKey, class TDat>
 	static TStr GetStr(const THash<TKey, TDat>& KeyDatH);
-
-	// just like TStr::SplitOnAllAnyCh but uses THashSet<TCh> with chars to split on - fast in case of larger set of split chars (>10)
-	static void SplitOnAllAnyCh(const TStr& InputStr, const THashSet<TCh>& SplitChH, TStrV& StrV, const bool& SkipEmpty = true);
 };
 
 template <class TKey, class TDat>

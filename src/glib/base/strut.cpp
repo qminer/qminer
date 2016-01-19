@@ -127,27 +127,3 @@ TStr TStrUtil::GetStr(const TStrH& StrH, const TStr& FieldDelimiterStr, const TS
   }
   return ResChA;
 }
-
-void TStrUtil::SplitOnAllAnyCh(const TStr& InputStr, const THashSet<TCh>& SplitChH, TStrV& StrV, const bool& SkipEmpty) {
-	// reset string output-vector
-	StrV.Clr();
-	// prepare working-copy of string
-	char* Bf = InputStr.CloneCStr();
-	char* CurStrBf = Bf; // pointer to current string
-	while (true)
-	{
-		char* BfC = CurStrBf; // set the counter for working-string
-		while (*BfC != 0) {
-			if (SplitChH.IsKey(*BfC))
-				break; // if split-char found
-			BfC++;
-		}
-		bool IsEnd = (*BfC == 0);
-		*BfC = 0;
-		if ((BfC > CurStrBf) || (!SkipEmpty)) { StrV.Add(TStr(CurStrBf)); }
-		if (IsEnd) { break; }
-		CurStrBf = BfC + 1;
-	}
-		// delete working-copy
-	delete[] Bf;
-}
