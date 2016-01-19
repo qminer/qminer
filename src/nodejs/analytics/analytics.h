@@ -1034,10 +1034,21 @@ public:
 	* @typedef {Object} NearestNeighborADExplain
 	* A Json object used for interpreting the predictions of {@link module:analytics.NearestNeighborAD}.
 	* @param {number} nearestID - The ID of the nearest neighbor
-	* @param {Array<number>} featureIDs - the IDs of the features that contributed to the distance score
-	* @param {Array<number>} featureContributions - fractions of the contributions of each feature to the total distance (the scores sum to 1.0). The elements correspond to features in the array `featureIDs`
-	*/
+	* @param {number} distance - The distance to the nearest neighbor
+	* @param {Array<module:analytics~NearestNeighborADFeatureContribution>} features - An array with feature contributions
+	* @param {number} oldestID - The ID of the oldest record in the internal buffer (the record that was added first)
+	* @param {number} newestID - The ID of the newest record in the internal buffer (the record that was added last)
+    */
 
+	/**
+	* @typedef {Object} NearestNeighborADFeatureContribution
+	* A JSON object explaining the prediction of {@link module:analytics.NearestNeighborAD} in terms of a single feature.
+	* @param {number} id - The ID of the feature
+	* @param {number} val - The value of the feature for the vector we are explaining
+	* @param {number} nearVal - The the value of the feature for the nearest neighbor
+	* @param {number} contribution - fraction of the total distance  (v(i) - n(i))^2 / ||v - n||^2
+	*/
+	
 	/**
 	* Returns a JSON object that encodes the ID of the nearest neighbor and the features that contributed to the distance
 	* @param {module:la.SparseVector} x - Test vector.
