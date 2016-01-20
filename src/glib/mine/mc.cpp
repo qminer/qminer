@@ -1920,7 +1920,7 @@ void TCtmcModeller::InitIntensities(const TFltVV& FtrVV, const TUInt64V& TmV,
 		DeltaTm = TmV[CurrTmN+1] - TmV[CurrTmN];
 		MeanSampleInterval += double(DeltaTm) / TimeUnit;
 
-		EAssertR(DeltaTm > 0, "Delta time is not positive!");
+		EAssertR(DeltaTm > 0, "Delta time is not positive time: " + TmV[CurrTmN+1].GetStr() + ", prev time: " + TmV[CurrTmN].GetStr() + ", index: " + TInt::GetStr(CurrTmN));
 
 		FtrVV.GetCol(CurrTmN, FtrV);				// feature vector
 
