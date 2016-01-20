@@ -3679,6 +3679,7 @@ PJsonVal TStreamStory::GetLikelyPathTreeJson(const int& StateId, const double& H
 
 void TStreamStory::Init(TFltVV& ObservFtrVV, const TFltVV& ControlFtrVV, const TUInt64V& RecTmV,
 		const bool& MultiThread) {
+	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Creating a model on %d instances ...", ObservFtrVV.GetCols());
 	TFltVV FtrVV;	CreateFtrVV(ObservFtrVV, ControlFtrVV, RecTmV, TBoolV(), FtrVV);
 
 	Callback->OnProgress(0, "Clustering ...");
