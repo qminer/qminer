@@ -1072,13 +1072,13 @@ private:
 public:
     TRecCmpByFq(const bool& _Asc) : Asc(_Asc) {}
 
-    bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
+    bool operator()(const TUInt64IntKd& RecIdFq1, const TUInt64IntKd& RecIdFq2) const {
         if (Asc) {
-            return (RecIdWgt1.Dat == RecIdWgt2.Dat) ?
-                (RecIdWgt1.Key < RecIdWgt2.Key) : (RecIdWgt1.Dat < RecIdWgt2.Dat);
+            return (RecIdFq1.Dat == RecIdFq2.Dat) ?
+                (RecIdFq1.Key < RecIdFq2.Key) : (RecIdFq1.Dat < RecIdFq2.Dat);
         } else {
-            return (RecIdWgt2.Dat == RecIdWgt1.Dat) ?
-                (RecIdWgt2.Key < RecIdWgt1.Key) : (RecIdWgt2.Dat < RecIdWgt1.Dat);
+            return (RecIdFq2.Dat == RecIdFq1.Dat) ?
+                (RecIdFq2.Key < RecIdFq1.Key) : (RecIdFq2.Dat < RecIdFq1.Dat);
         }
     }
 };
@@ -1097,13 +1097,13 @@ public:
     TRecCmpByFieldInt(const TWPt<TStore>& _Store, const int& _FieldId,
         const bool& _Asc) : Store(_Store), FieldId(_FieldId), Asc(_Asc) {}
 
-    bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
-        if (Store->IsFieldNull(RecIdWgt1.Key, FieldId))
+    bool operator()(const TUInt64IntKd& RecIdFq1, const TUInt64IntKd& RecIdFq2) const {
+        if (Store->IsFieldNull(RecIdFq1.Key, FieldId))
             return false;
-        if (Store->IsFieldNull(RecIdWgt2.Key, FieldId))
+        if (Store->IsFieldNull(RecIdFq2.Key, FieldId))
             return false;
-        const int RecVal1 = Store->GetFieldInt(RecIdWgt1.Key, FieldId);
-        const int RecVal2 = Store->GetFieldInt(RecIdWgt2.Key, FieldId);
+        const int RecVal1 = Store->GetFieldInt(RecIdFq1.Key, FieldId);
+        const int RecVal2 = Store->GetFieldInt(RecIdFq2.Key, FieldId);
         if (Asc) { return RecVal1 < RecVal2; } else { return RecVal2 < RecVal1; }
     }
 };
@@ -1122,13 +1122,13 @@ public:
     TRecCmpByFieldFlt(const TWPt<TStore>& _Store, const int& _FieldId,
         const bool& _Asc) : Store(_Store), FieldId(_FieldId), Asc(_Asc) {}
 
-    bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
-        if (Store->IsFieldNull(RecIdWgt1.Key, FieldId))
+    bool operator()(const TUInt64IntKd& RecIdFq1, const TUInt64IntKd& RecIdFq2) const {
+        if (Store->IsFieldNull(RecIdFq1.Key, FieldId))
             return false;
-        if (Store->IsFieldNull(RecIdWgt2.Key, FieldId))
+        if (Store->IsFieldNull(RecIdFq2.Key, FieldId))
             return false;
-        const double RecVal1 = Store->GetFieldFlt(RecIdWgt1.Key, FieldId);
-        const double RecVal2 = Store->GetFieldFlt(RecIdWgt2.Key, FieldId);
+        const double RecVal1 = Store->GetFieldFlt(RecIdFq1.Key, FieldId);
+        const double RecVal2 = Store->GetFieldFlt(RecIdFq2.Key, FieldId);
         if (Asc) { return RecVal1 < RecVal2; } else { return RecVal2 < RecVal1; }
     }
 };
@@ -1147,13 +1147,13 @@ public:
     TRecCmpByFieldStr(const TWPt<TStore>& _Store, const int& _FieldId,
         const bool& _Asc) : Store(_Store), FieldId(_FieldId), Asc(_Asc) {}
 
-    bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
-        if (Store->IsFieldNull(RecIdWgt1.Key, FieldId))
+    bool operator()(const TUInt64IntKd& RecIdFq1, const TUInt64IntKd& RecIdFq2) const {
+        if (Store->IsFieldNull(RecIdFq1.Key, FieldId))
             return false;
-        if (Store->IsFieldNull(RecIdWgt2.Key, FieldId))
+        if (Store->IsFieldNull(RecIdFq2.Key, FieldId))
             return false;
-        const TStr RecVal1 = Store->GetFieldStr(RecIdWgt1.Key, FieldId);
-        const TStr RecVal2 = Store->GetFieldStr(RecIdWgt2.Key, FieldId);
+        const TStr RecVal1 = Store->GetFieldStr(RecIdFq1.Key, FieldId);
+        const TStr RecVal2 = Store->GetFieldStr(RecIdFq2.Key, FieldId);
         if (Asc) { return RecVal1 < RecVal2; } else { return RecVal2 < RecVal1; }
     }
 };
@@ -1172,13 +1172,13 @@ public:
     TRecCmpByFieldTm(const TWPt<TStore>& _Store, const int& _FieldId,
         const bool& _Asc) : Store(_Store), FieldId(_FieldId), Asc(_Asc) {}
 
-    bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
-        if (Store->IsFieldNull(RecIdWgt1.Key, FieldId))
+    bool operator()(const TUInt64IntKd& RecIdFq1, const TUInt64IntKd& RecIdFq2) const {
+        if (Store->IsFieldNull(RecIdFq1.Key, FieldId))
             return false;
-        if (Store->IsFieldNull(RecIdWgt2.Key, FieldId))
+        if (Store->IsFieldNull(RecIdFq2.Key, FieldId))
             return false;
-        const uint64 RecVal1 = Store->GetFieldTmMSecs(RecIdWgt1.Key, FieldId);
-        const uint64 RecVal2 = Store->GetFieldTmMSecs(RecIdWgt2.Key, FieldId);
+        const uint64 RecVal1 = Store->GetFieldTmMSecs(RecIdFq1.Key, FieldId);
+        const uint64 RecVal2 = Store->GetFieldTmMSecs(RecIdFq2.Key, FieldId);
         if (Asc) { return RecVal1 < RecVal2; } else { return RecVal2 < RecVal1; }
     }
 };
@@ -1192,8 +1192,8 @@ private:
 public:
     TRecFilterByExists(const TWPt<TStore>& _Store) : Store(_Store) {}
 
-    bool operator()(const TUInt64IntKd& RecIdWgt) const {
-        return Store->IsRecId(RecIdWgt.Key);
+    bool operator()(const TUInt64IntKd& RecIdFq) const {
+        return Store->IsRecId(RecIdFq.Key);
     }
 };
 
@@ -1209,8 +1209,8 @@ public:
     TRecFilterByRecId(const uint64& _MinRecId, const uint64& _MaxRecId) :
         MinRecId(_MinRecId), MaxRecId(_MaxRecId) {}
 
-    bool operator()(const TUInt64IntKd& RecIdWgt) const {
-        return (MinRecId <= RecIdWgt.Key) && (RecIdWgt.Key <= MaxRecId);
+    bool operator()(const TUInt64IntKd& RecIdFq) const {
+        return (MinRecId <= RecIdFq.Key) && (RecIdFq.Key <= MaxRecId);
     }
 };
 
@@ -1226,8 +1226,8 @@ public:
     TRecFilterByRecIdSet(const TUInt64Set& _RecIdSet, const bool _InP) :
         RecIdSet(_RecIdSet), InP(_InP) {}
 
-    bool operator()(const TUInt64IntKd& RecIdWgt) const {
-        return InP ? RecIdSet.IsKey(RecIdWgt.Key) : !RecIdSet.IsKey(RecIdWgt.Key);
+    bool operator()(const TUInt64IntKd& RecIdFq) const {
+        return InP ? RecIdSet.IsKey(RecIdFq.Key) : !RecIdSet.IsKey(RecIdFq.Key);
     }
 };
 
@@ -1243,8 +1243,8 @@ public:
     TRecFilterByRecFq(const int& _MinFq, const int& _MaxFq) :
         MinFq(_MinFq), MaxFq(_MaxFq) {}
 
-    bool operator()(const TUInt64IntKd& RecIdWgt) const {
-        return (MinFq <= RecIdWgt.Dat) && (RecIdWgt.Dat <= MaxFq);
+    bool operator()(const TUInt64IntKd& RecIdFq) const {
+        return (MinFq <= RecIdFq.Dat) && (RecIdFq.Dat <= MaxFq);
     }
 };
 
@@ -1261,10 +1261,9 @@ private:
 public:
     TRecFilterByFieldBool(const TWPt<TStore>& _Store, const int& _FieldId, const bool& _Val) : Store(_Store), FieldId(_FieldId), Val(_Val) {}
 
-    bool operator()(const TUInt64IntKd& RecIdWgt) const {
-        if (Store->IsFieldNull(RecIdWgt.Key, FieldId))
-            return false;
-        const bool RecVal = Store->GetFieldBool(RecIdWgt.Key, FieldId);
+    bool operator()(const TUInt64IntKd& RecIdFq) const {
+        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
+        const bool RecVal = Store->GetFieldBool(RecIdFq.Key, FieldId);
         return RecVal == Val;
     }
 };
@@ -1285,10 +1284,9 @@ public:
     TRecFilterByFieldInt(const TWPt<TStore>& _Store, const int& _FieldId, const int& _MinVal,
         const int& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
 
-    bool operator()(const TUInt64IntKd& RecIdWgt) const {
-        if (Store->IsFieldNull(RecIdWgt.Key, FieldId))
-            return false;
-        const int RecVal = Store->GetFieldInt(RecIdWgt.Key, FieldId);
+    bool operator()(const TUInt64IntKd& RecIdFq) const {
+        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
+        const int RecVal = Store->GetFieldInt(RecIdFq.Key, FieldId);
         return (MinVal <= RecVal) && (RecVal <= MaxVal);
     }
 };
@@ -1309,10 +1307,9 @@ public:
     TRecFilterByFieldInt16(const TWPt<TStore>& _Store, const int& _FieldId, const int16& _MinVal,
         const int16& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
 
-    bool operator()(const TUInt64IntKd& RecIdWgt) const {
-        if (Store->IsFieldNull(RecIdWgt.Key, FieldId))
-            return false;
-        const int16 RecVal = Store->GetFieldInt16(RecIdWgt.Key, FieldId);
+    bool operator()(const TUInt64IntKd& RecIdFq) const {
+        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
+        const int16 RecVal = Store->GetFieldInt16(RecIdFq.Key, FieldId);
         return (MinVal <= RecVal) && (RecVal <= MaxVal);
     }
 };
@@ -1333,10 +1330,9 @@ public:
     TRecFilterByFieldInt64(const TWPt<TStore>& _Store, const int& _FieldId, const int64& _MinVal,
         const int64& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
 
-    bool operator()(const TUInt64IntKd& RecIdWgt) const {
-        if (Store->IsFieldNull(RecIdWgt.Key, FieldId))
-            return false;
-        const int64 RecVal = Store->GetFieldInt64(RecIdWgt.Key, FieldId);
+    bool operator()(const TUInt64IntKd& RecIdFq) const {
+        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
+        const int64 RecVal = Store->GetFieldInt64(RecIdFq.Key, FieldId);
         return (MinVal <= RecVal) && (RecVal <= MaxVal);
     }
 };
@@ -1357,10 +1353,9 @@ public:
     TRecFilterByFieldUCh(const TWPt<TStore>& _Store, const int& _FieldId, const uchar& _MinVal,
         const uchar& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
 
-    bool operator()(const TUInt64IntKd& RecIdWgt) const {
-        if (Store->IsFieldNull(RecIdWgt.Key, FieldId))
-            return false;
-        const uchar RecVal = Store->GetFieldByte(RecIdWgt.Key, FieldId);
+    bool operator()(const TUInt64IntKd& RecIdFq) const {
+        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
+        const uchar RecVal = Store->GetFieldByte(RecIdFq.Key, FieldId);
         return (MinVal <= RecVal) && (RecVal <= MaxVal);
     }
 };
@@ -1381,10 +1376,9 @@ public:
     TRecFilterByFieldUInt(const TWPt<TStore>& _Store, const int& _FieldId, const uint& _MinVal,
         const uint& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
 
-    bool operator()(const TUInt64IntKd& RecIdWgt) const {
-        if (Store->IsFieldNull(RecIdWgt.Key, FieldId))
-            return false;
-        const uint RecVal = Store->GetFieldUInt(RecIdWgt.Key, FieldId);
+    bool operator()(const TUInt64IntKd& RecIdFq) const {
+        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
+        const uint RecVal = Store->GetFieldUInt(RecIdFq.Key, FieldId);
         return (MinVal <= RecVal) && (RecVal <= MaxVal);
     }
 };
@@ -1405,10 +1399,9 @@ public:
     TRecFilterByFieldUInt16(const TWPt<TStore>& _Store, const int& _FieldId, const uint16& _MinVal,
         const uint16& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
 
-    bool operator()(const TUInt64IntKd& RecIdWgt) const {
-        if (Store->IsFieldNull(RecIdWgt.Key, FieldId))
-            return false;
-        const uint16 RecVal = Store->GetFieldUInt16(RecIdWgt.Key, FieldId);
+    bool operator()(const TUInt64IntKd& RecIdFq) const {
+        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
+        const uint16 RecVal = Store->GetFieldUInt16(RecIdFq.Key, FieldId);
         return (MinVal <= RecVal) && (RecVal <= MaxVal);
     }
 };
@@ -1429,10 +1422,9 @@ public:
     TRecFilterByFieldFlt(const TWPt<TStore>& _Store, const int& _FieldId, const double& _MinVal,
         const double& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
 
-    bool operator()(const TUInt64IntKd& RecIdWgt) const {
-        if (Store->IsFieldNull(RecIdWgt.Key, FieldId))
-            return false;
-        const double RecVal = Store->GetFieldFlt(RecIdWgt.Key, FieldId);
+    bool operator()(const TUInt64IntKd& RecIdFq) const {
+        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
+        const double RecVal = Store->GetFieldFlt(RecIdFq.Key, FieldId);
         return (MinVal <= RecVal) && (RecVal <= MaxVal);
     }
 };
@@ -1453,10 +1445,9 @@ public:
     TRecFilterByFieldSFlt(const TWPt<TStore>& _Store, const int& _FieldId, const float& _MinVal,
         const float& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
 
-    bool operator()(const TUInt64IntKd& RecIdWgt) const {
-        if (Store->IsFieldNull(RecIdWgt.Key, FieldId))
-            return false;
-        const float RecVal = Store->GetFieldSFlt(RecIdWgt.Key, FieldId);
+    bool operator()(const TUInt64IntKd& RecIdFq) const {
+        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
+        const float RecVal = Store->GetFieldSFlt(RecIdFq.Key, FieldId);
         return (MinVal <= RecVal) && (RecVal <= MaxVal);
     }
 };
@@ -1500,10 +1491,9 @@ public:
         const TStr& _StrVal) :
         Store(_Store), FieldId(_FieldId), StrVal(_StrVal) {}
 
-    bool operator()(const TUInt64IntKd& RecIdWgt) const {
-        if (Store->IsFieldNull(RecIdWgt.Key, FieldId))
-            return false;
-        const TStr RecVal = Store->GetFieldStr(RecIdWgt.Key, FieldId);
+    bool operator()(const TUInt64IntKd& RecIdFq) const {
+        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
+        const TStr RecVal = Store->GetFieldStr(RecIdFq.Key, FieldId);
         return StrVal == RecVal;
     }
 };
@@ -1525,10 +1515,9 @@ public:
         const TStr& _StrVal, const TStr& _StrValMax) :
         Store(_Store), FieldId(_FieldId), StrValMin(_StrVal), StrValMax(_StrValMax) {}
 
-    bool operator()(const TUInt64IntKd& RecIdWgt) const {
-        if (Store->IsFieldNull(RecIdWgt.Key, FieldId))
-            return false;
-        const TStr RecVal = Store->GetFieldStr(RecIdWgt.Key, FieldId);
+    bool operator()(const TUInt64IntKd& RecIdFq) const {
+        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
+        const TStr RecVal = Store->GetFieldStr(RecIdFq.Key, FieldId);
         return (StrValMin <= RecVal) && (RecVal <= StrValMax);
     }
 };
@@ -1547,10 +1536,9 @@ public:
     TRecFilterByFieldStrSet(const TWPt<TStore>& _Store, const int& _FieldId,
         const TStrSet& _StrSet) : Store(_Store), FieldId(_FieldId), StrSet(_StrSet) {}
 
-    bool operator()(const TUInt64IntKd& RecIdWgt) const {
-        if (Store->IsFieldNull(RecIdWgt.Key, FieldId))
-            return false;
-        const TStr RecVal = Store->GetFieldStr(RecIdWgt.Key, FieldId);
+    bool operator()(const TUInt64IntKd& RecIdFq) const {
+        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
+        const TStr RecVal = Store->GetFieldStr(RecIdFq.Key, FieldId);
         return StrSet.IsKey(RecVal);
     }
 };
@@ -1576,10 +1564,9 @@ public:
         MinVal(_MinVal.IsDef() ? TTm::GetMSecsFromTm(_MinVal) : (uint64)TUInt64::Mn),
         MaxVal(_MaxVal.IsDef() ? TTm::GetMSecsFromTm(_MaxVal) : (uint64)TUInt64::Mx) {}
 
-    bool operator()(const TUInt64IntKd& RecIdWgt) const {
-        if (Store->IsFieldNull(RecIdWgt.Key, FieldId))
-            return false;
-        const uint64 RecVal = Store->GetFieldTmMSecs(RecIdWgt.Key, FieldId);
+    bool operator()(const TUInt64IntKd& RecIdFq) const {
+        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
+        const uint64 RecVal = Store->GetFieldTmMSecs(RecIdFq.Key, FieldId);
         return (MinVal <= RecVal) && (RecVal <= MaxVal);
     }
 };
@@ -1602,10 +1589,9 @@ public:
     TRecFilterByFieldSafe(const TWPt<TStore>& _Store, const int& _FieldId, const uint64& _MinVal,
         const uint64& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
     /// Main operator
-    bool operator()(const TUInt64IntKd& RecIdWgt) const {
-        if (Store->IsFieldNull(RecIdWgt.Key, FieldId))
-            return false;
-        const uint64 RecVal = Store->GetFieldUInt64Safe(RecIdWgt.Key, FieldId);
+    bool operator()(const TUInt64IntKd& RecIdFq) const {
+        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
+        const uint64 RecVal = Store->GetFieldUInt64Safe(RecIdFq.Key, FieldId);
         return (MinVal <= RecVal) && (RecVal <= MaxVal);
     }
 };
@@ -1631,7 +1617,7 @@ public:
     /// Constructor
     TRecFilterByIndexJoin(const TWPt<TStore>& _Store, const int& _JoinId, const uint64& _MinVal, const uint64& _MaxVal);
     /// Main operator
-    bool operator()(const TUInt64IntKd& RecIdWgt) const;
+    bool operator()(const TUInt64IntKd& RecIdFq) const;
 };
 
 ///////////////////////////////
@@ -1649,13 +1635,11 @@ public:
     TRecSplitterByFieldTm(const TWPt<TStore>& _Store, const int& _FieldId, const uint64& _DiffMSecs) :
         Store(_Store), FieldId(_FieldId), DiffMSecs(_DiffMSecs) {}
 
-    bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
-        if (Store->IsFieldNull(RecIdWgt1.Key, FieldId))
-            return false;
-        if (Store->IsFieldNull(RecIdWgt2.Key, FieldId))
-            return false;
-        const uint64 RecVal1 = Store->GetFieldTmMSecs(RecIdWgt1.Key, FieldId);
-        const uint64 RecVal2 = Store->GetFieldTmMSecs(RecIdWgt2.Key, FieldId);
+    bool operator()(const TUInt64IntKd& RecIdFq1, const TUInt64IntKd& RecIdFq2) const {
+        if (Store->IsFieldNull(RecIdFq1.Key, FieldId)) { return false; }
+        if (Store->IsFieldNull(RecIdFq2.Key, FieldId)) { return false; }
+        const uint64 RecVal1 = Store->GetFieldTmMSecs(RecIdFq1.Key, FieldId);
+        const uint64 RecVal2 = Store->GetFieldTmMSecs(RecIdFq2.Key, FieldId);
         return (RecVal2 - RecVal1) > DiffMSecs;
     }
 };
@@ -1751,7 +1735,7 @@ private:
 	/// Store
 	TWPt<TStore> Store;
 	/// True when records have valid weights
-	TBool WgtP;
+	TBool FqP;
 	/// Vector of pairs (record id, weight)
 	TUInt64IntKdV RecIdFqV;
 	/// Vector of computed aggregates
@@ -1760,30 +1744,30 @@ private:
 private:
 	/// Samples records from result set
 	/// @param SampleSize number of records to sample out
-	/// @param WgtSampleP true when records are ordered according to the weight
+	/// @param FqSampleP true when records are ordered according to the weight
 	/// @param SampleRecIdFqV reference to vector for storing sampled records
 	void GetSampleRecIdV(const int& SampleSize, 
-		const bool& WgtSampleP, TUInt64IntKdV& SampleRecIdFqV) const;
+		const bool& FqSampleP, TUInt64IntKdV& SampleRecIdFqV) const;
 	/// Removes records from this result set that are not part of the provided
 	void LimitToSampleRecIdV(const TUInt64IntKdV& SampleRecIdFqV);
 
 	TRecSet() { }
-	TRecSet(const TWPt<TStore>& Store, const uint64& RecId, const int& Wgt);
+	TRecSet(const TWPt<TStore>& Store, const uint64& RecId, const int& Fq);
 	TRecSet(const TWPt<TStore>& Store, const TUInt64V& RecIdV);
 	TRecSet(const TWPt<TStore>& Store, const TIntV& RecIdV);
-	TRecSet(const TWPt<TStore>& Store, const TUInt64IntKdV& _RecIdFqV, const bool& _WgtP);
+	TRecSet(const TWPt<TStore>& Store, const TUInt64IntKdV& _RecIdFqV, const bool& _FqP);
 	TRecSet(const TWPt<TBase>& Base, TSIn& SIn);
 
     /// Special access for TIndex and TBase to create weighted record sets
-	/// @param WgtP true when RecIdFqV contains valid weights
-	static PRecSet New(const TWPt<TStore>& Store, const TUInt64IntKdV& RecIdFqV, const bool& WgtP);
+	/// @param FqP true when RecIdFqV contains valid weights
+	static PRecSet New(const TWPt<TStore>& Store, const TUInt64IntKdV& RecIdFqV, const bool& FqP);
     friend class TIndex;
     friend class TBase;
 public:
 	/// Create empty set for a given store
 	static PRecSet New(const TWPt<TStore>& Store);
 	/// Create record set with one record
-	static PRecSet New(const TWPt<TStore>& Store, const uint64& RecId, const int& Wgt = 1);
+	static PRecSet New(const TWPt<TStore>& Store, const uint64& RecId, const int& Fq = 1);
 	/// Create record set with one record (must be by reference)
 	static PRecSet New(const TWPt<TStore>& Store, const TRec& Rec);
 	/// Create record set from a given vector of record ids
@@ -1799,7 +1783,7 @@ public:
 	void Save(TSOut& SOut);
 
 	/// True when record set contains valid record weights
-	bool IsWgt() const { return WgtP; }
+	bool IsFq() const { return FqP; }
 	/// True when no record
 	bool Empty() const { return RecIdFqV.Empty(); }
 	/// Get store of the record set
@@ -1814,7 +1798,7 @@ public:
 	/// Get id of RecN-th record
 	uint64 GetRecId(const int& RecN) const { return RecIdFqV[RecN].Key; }
 	/// Get weight of RecN-th record
-	int GetRecFq(const int& RecN) const { return WgtP ? RecIdFqV[RecN].Dat.Val : 1; }
+	int GetRecFq(const int& RecN) const { return FqP ? RecIdFqV[RecN].Dat.Val : 1; }
 	/// Get last record in the set as TRec by reference
 	TRec GetLastRec() const { return TRec(GetStore(), RecIdFqV.Last().Key); }
 	/// Get id of the last record in the set
@@ -1914,7 +1898,8 @@ public:
 	/// Create a cloned record set. Forgets aggregations.
 	PRecSet Clone() const;
 	/// Returns a new record set generated by sampling this one
-	PRecSet GetSampleRecSet(const int& SampleSize) const;
+    /// @param IgnoreFqP Ignores record frequency when available during sampling
+	PRecSet GetSampleRecSet(const int& SampleSize, const bool& IgnoreFqP = false) const;
 	/// Get record set containing `Limit' records starting from `RecN=Offset'
 	PRecSet GetLimit(const int& Limit, const int& Offset) const;
 
@@ -1935,10 +1920,12 @@ public:
 
 	/// Execute join with the given id
 	/// @param SampleSize Sample size used to do the join. When set to -1, all the records are used.
-	PRecSet DoJoin(const TWPt<TBase>& Base, const int& JoinId, const int& SampleSize = -1) const;
+    /// @param IgnoreFqP Ignores record frequency when available during sampling
+	PRecSet DoJoin(const TWPt<TBase>& Base, const int& JoinId, const int& SampleSize = -1, const bool& IgnoreFqP = false) const;
 	/// Execute join with the given name
 	/// @param SampleSize Sample size used to do the join. When set to -1, all the records are used.
-	PRecSet DoJoin(const TWPt<TBase>& Base, const TStr& JoinNm, const int& SampleSize = -1) const;
+    /// @param IgnoreFqP Ignores record frequency when available during sampling
+	PRecSet DoJoin(const TWPt<TBase>& Base, const TStr& JoinNm, const int& SampleSize = -1, const bool& IgnoreFqP = false) const;
 	/// Execute given join sequence. Each join is given by pair (id, sample size).
 	PRecSet DoJoin(const TWPt<TBase>& Base, const TIntPrV& JoinIdV) const;
 	/// Execute given join sequence.
@@ -2580,7 +2567,7 @@ public:
 	/// Check if there are no subordinate items or values
 	bool Empty() const { return !IsItems() && !IsWordIds(); }
 	/// Check if result is weighted (only or-items)
-	bool IsWgt() const;
+	bool IsFq() const;
 
 	/// Get number of values (for inverted index queries)
 	bool IsWordIds() const { return !WordIdV.Empty(); }
@@ -2727,7 +2714,7 @@ public:
 	/// Does query have any item
 	bool Empty() const { return QueryItem.Empty(); }
 	/// Are results weighted by default?
-	bool IsWgt() const { return QueryItem.IsWgt(); }
+	bool IsFq() const { return QueryItem.IsFq(); }
 	/// Get the result store
 	TWPt<TStore> GetStore(const TWPt<TBase>& Base);
 	/// Is there any sorting specified

@@ -214,7 +214,7 @@ public:
   TExcept(const TStr& _MsgStr): MsgStr(_MsgStr), LocStr(){}
   TExcept(const TStr& _MsgStr, const TStr& _LocStr): MsgStr(_MsgStr), LocStr(_LocStr){}
   TExcept(const int& _ErrorCode, const TStr& _MsgStr, const TStr& _LocStr) : 
-	  ErrorCode(_ErrorCode), MsgStr(_MsgStr), LocStr(_LocStr) {}
+	  MsgStr(_MsgStr), LocStr(_LocStr), ErrorCode(_ErrorCode) {}
   static PExcept New(const TStr& MsgStr, const TStr& LocStr = TStr());
   static PExcept New(const int& ErrorCode, const TStr& MsgStr, const TStr& LocStr = TStr());
   virtual ~TExcept(){}
