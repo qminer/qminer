@@ -1672,6 +1672,17 @@ public:
 	JsDeclareFunction(getSubModelJson);
 
 	/**
+	 * Returns an object representation of a subset of this model.
+	 *
+	 * @param {Number} stateId - the starting state id
+	 * @param {Number} height - the height on which the path is requested
+	 * @param {Number} length - the length of the path
+	 * @param {Number} [transTreshold=0.2] - only consider transitions above this threshold
+	 * @returns {Object}
+	 */
+	JsDeclareFunction(getStatePath);
+
+	/**
 	 * Returns the underlying transition model at the lowest level. (for CTMC the matrix of intensities)
 	 *
 	 * @returns {Array} - the transition model

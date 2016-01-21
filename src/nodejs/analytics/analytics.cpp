@@ -1512,6 +1512,7 @@ void TNodeJsStreamStory::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "explainState", _explainState);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "toJSON", _toJSON);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getSubModelJson", _getSubModelJson);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getStatePath", _getStatePath);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getTransitionModel", _getTransitionModel);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "onStateChanged", _onStateChanged);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "onAnomaly", _onAnomaly);
@@ -1807,6 +1808,22 @@ void TNodeJsStreamStory::getSubModelJson(const v8::FunctionCallbackInfo<v8::Valu
 	const PJsonVal ModelJson = JsStreamStory->StreamStory->GetSubModelJson(StateId);
 
 	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, ModelJson));
+}
+
+void TNodeJsStreamStory::getStatePath(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+
+	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
+	const double Height = TNodeJsUtil::GetArgFlt(Args, 1);
+	const int Depth = TNodeJsUtil::GetArgInt32(Args, 2);
+	const double TransThreshold = TNodeJsUtil::GetArgFlt(Args, 3, 0.2);
+
+	const PJsonVal PathJson = JsStreamStory->StreamStory->GetLikelyPathTreeJson(StateId, Height, Depth, TransThreshold);
+
+	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, PathJson));
 }
 
 void TNodeJsStreamStory::getTransitionModel(const v8::FunctionCallbackInfo<v8::Value>& Args) {

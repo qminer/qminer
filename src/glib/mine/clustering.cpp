@@ -117,9 +117,15 @@ void TAbsKMeans::GetDistVV(const TFltVV& FtrVV, TFltVV& DistVV) const {
 	const int Cols = DistVV.GetCols();
 
 	// compute the square root of each element
+	double Dist;
 	for (int RowN = 0; RowN < Rows; RowN++) {
 		for (int ColN = 0; ColN < Cols; ColN++) {
-			DistVV.PutXY(RowN, ColN, TMath::Sqrt(DistVV(RowN, ColN)));
+			Dist = DistVV(RowN, ColN);
+
+			AssertR(Dist < -1e-8, "Distance lower than numerical error threshold!");
+			if (Dist < 0) { Dist = 0; }
+
+			DistVV.PutXY(RowN, ColN, TMath::Sqrt(Dist));
 		}
 	}
 }

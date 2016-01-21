@@ -1727,6 +1727,24 @@ void TCtmcModeller::GetPrevStateProbV(const TAggStateV& StateSetV, const TStateF
 	}
 }
 
+void TCtmcModeller::GetLikelyPathTree(const int& StartStateId, const TIntV& StateIdV, const TAggStateV& AggStateV,
+		const TStateFtrVV& StateFtrVV, const int& MxDepth, TFltVV& PMat, TIntV& PMatStateIdV,
+		const double& TransThreshold) const {
+
+	int TotalStates = 0;
+	PJsonVal RootJson = GetLikelyPathTree(StartStateId, StateIdV, AggStateV, StateFtrVV, MxDepth, TotalStates, TransThreshold);
+
+	PJsonVal RootWrapper = TJsonVal::NewObj();
+	RootWrapper->AddToObj("prob", 1);
+	RootWrapper->AddToObj("state", RootJson);
+
+	PMat.Gen(TotalStates, TotalStates);
+	PMatStateIdV.Gen(TotalStates);
+
+	int CurrStateN = 0;
+	PMatFromTree(RootWrapper, CurrStateN, PMat, PMatStateIdV);
+}
+
 void TCtmcModeller::GetProbVAtTime(const TAggStateV& StateSetV, const TStateFtrVV& StateFtrVV,
 		const TStateIdV& StateIdV, const int& StartStateId, const double& Tm,
 		TFltV& ProbV) const {
@@ -1902,7 +1920,7 @@ void TCtmcModeller::InitIntensities(const TFltVV& FtrVV, const TUInt64V& TmV,
 		DeltaTm = TmV[CurrTmN+1] - TmV[CurrTmN];
 		MeanSampleInterval += double(DeltaTm) / TimeUnit;
 
-		EAssertR(DeltaTm > 0, "Delta time is not positive!");
+		EAssertR(DeltaTm > 0, "Delta time is not positive time: " + TmV[CurrTmN+1].GetStr() + ", prev time: " + TmV[CurrTmN].GetStr() + ", index: " + TInt::GetStr(CurrTmN));
 
 		FtrVV.GetCol(CurrTmN, FtrV);				// feature vector
 
@@ -2047,6 +2065,67 @@ void TCtmcModeller::RemoveHiddenStateProb(TIntFltPrV& StateIdProbV) const {
 			break;
 		}
 	}
+}
+
+PJsonVal TCtmcModeller::GetLikelyPathTree(const int& StartStateId, const TIntV& StateIdV,
+		const TAggStateV& AggStateV, const TStateFtrVV& StateFtrVV, const int& MxDepth,
+		int& GeneratedStates, const double& TransThreshold) const {
+
+	EAssert(0 <= TransThreshold && TransThreshold <= 1);
+
+	PJsonVal RootJson = TJsonVal::NewObj();
+	PJsonVal ChildJsonV = TJsonVal::NewArr();
+
+	if (MxDepth > 0) {
+		const int Dim = StateIdV.Len();
+
+		TIntFltPrV NextStateIdProbPrV;
+		GetNextStateProbV(AggStateV, StateFtrVV, StateIdV, StartStateId, NextStateIdProbPrV, Dim);
+
+		for (int StateN = 0; StateN < NextStateIdProbPrV.Len(); StateN++) {
+			const TIntFltPr& StateIdProbPr = NextStateIdProbPrV[StateN];
+			const int& ChildId = StateIdProbPr.Val1;
+			const double& Prob = StateIdProbPr.Val2;
+
+			if (Prob < TransThreshold) { break; }
+
+			PJsonVal ChildJson = GetLikelyPathTree(ChildId, StateIdV, AggStateV, StateFtrVV, MxDepth-1, GeneratedStates, TransThreshold);
+
+			PJsonVal ChildWrapJson = TJsonVal::NewObj();
+			ChildWrapJson->AddToObj("state", ChildJson);
+			ChildWrapJson->AddToObj("prob", Prob);
+
+			ChildJsonV->AddToArr(ChildWrapJson);
+		}
+	}
+
+	RootJson->AddToObj("id", StartStateId);
+	RootJson->AddToObj("children", ChildJsonV);
+
+	GeneratedStates++;
+
+	return RootJson;
+}
+
+int TCtmcModeller::PMatFromTree(const PJsonVal& RootJsonWrap, int& CurrStateN, TFltVV& PMat,
+			TIntV& PMatStateIdV) const {
+	const int RootN = CurrStateN++;
+
+	const PJsonVal RootJson = RootJsonWrap->GetObjKey("state");
+	const PJsonVal ChildWrapV = RootJson->GetObjKey("children");
+	const int RootId = RootJson->GetObjInt("id");
+
+	for (int ChildN = 0; ChildN < ChildWrapV->GetArrVals(); ChildN++) {
+		const PJsonVal ChildJsonWrap = ChildWrapV->GetArrVal(ChildN);
+		const double Prob = ChildJsonWrap->GetObjNum("prob");
+
+		const int ChildPMatN = PMatFromTree(ChildJsonWrap, CurrStateN, PMat, PMatStateIdV);
+		PMat(RootN, ChildPMatN) = Prob;
+	}
+
+	PMatStateIdV[RootN] = RootId;
+
+	return RootN;
 }
 
 void TCtmcModeller::GetNextStateProbV(const TFltVV& QMat, const TStateIdV& StateIdV,
@@ -2249,11 +2328,11 @@ void THierarch::GetStateIdHeightPrV(TIntFltPrV& StateIdHeightPrV) const {
 }
 
 void THierarch::GetStateSetsAtHeight(const double& Height, TStateIdV& StateIdV,
-		TAggStateV& StateSetV) const {
+		TAggStateV& AggStateV) const {
 	TIntIntVH StateSubStateH;	GetAncSuccH(Height, StateSubStateH);
 
 	StateIdV.Gen(StateSubStateH.Len());
-	StateSetV.Gen(StateSubStateH.Len());
+	AggStateV.Gen(StateSubStateH.Len());
 
 	int i = 0;
 	int KeyId = StateSubStateH.FFirstKeyId();
@@ -2261,9 +2340,9 @@ void THierarch::GetStateSetsAtHeight(const double& Height, TStateIdV& StateIdV,
 		const int StateIdx = StateSubStateH.GetKey(KeyId);
 
 		if (StateSubStateH[KeyId].Empty()) {
-			StateSetV[i].Add(StateIdx);
+			AggStateV[i].Add(StateIdx);
 		} else {
-			StateSetV[i] = StateSubStateH[KeyId];
+			AggStateV[i] = StateSubStateH[KeyId];
 		}
 
 		StateIdV[i] = StateIdx;
@@ -2885,7 +2964,7 @@ void TUiHelper::SetStateCoords(const TFltPrV& CoordV) {
 void TUiHelper::GetStateRadiusV(const TFltV& ProbV, TFltV& RadiusV) const {
 	RadiusV.Gen(ProbV.Len());
 	for (int i = 0; i < ProbV.Len(); i++) {
-		RadiusV[i] = GetUIStateRaduis(ProbV[i]);// / (Height + .1);
+		RadiusV[i] = GetStateRaduis(ProbV[i]);// / (Height + .1);
 	}
 }
 
@@ -3021,7 +3100,7 @@ void TUiHelper::RefineStateCoordV(const TStateIdentifier& StateIdentifier,
 	Notify->OnNotify(TNotifyType::ntInfo, "Done!");
 }
 
-double TUiHelper::GetUIStateRaduis(const double& Prob) {
+double TUiHelper::GetStateRaduis(const double& Prob) {
 	// the probability is proportional to the area, so the raduis should
 	// be proportional to the square root of the probability
 	return TMath::Sqrt(Prob / TMath::Pi);
@@ -3466,7 +3545,6 @@ PJsonVal TStreamStory::GetSubModelJson(const int& StateId) const {
 	TAggStateV AggStateV(TopStateIdV.Len()-1, 0);
 	{
 		Hierarch->GetDescendantsAtHeight(0, TopStateIdV, AncAggStateV);
-//		const TIntV& LevelAggTargetState = AncAggStateV[TargetStateN];
 		for (int StateN = 0; StateN < AncAggStateV.Len(); StateN++) {
 			if (StateN != TargetStateN) {
 				AggStateV.Add(AncAggStateV[StateN]);
@@ -3540,11 +3618,68 @@ PJsonVal TStreamStory::GetSubModelJson(const int& StateId) const {
 		NewDescIdV.Clr();
 	}
 
+	Notify->OnNotify(TNotifyType::ntInfo, "Done.");
+
+	return Result;
+}
+
+PJsonVal TStreamStory::GetLikelyPathTreeJson(const int& StateId, const double& Height,
+		const int& MxDepth, const double& TransThreshold) const {
+	TIntV StateIdV;	TAggStateV AggStateV;
+	Hierarch->GetStateSetsAtHeight(Height, StateIdV, AggStateV);
+
+	TStateFtrVV StateFtrVV;	GetStateFtrVV(StateFtrVV);
+
+	TFltVV PMat; TIntV PMatStateIdV;
+	MChain->GetLikelyPathTree(StateId, StateIdV, AggStateV, StateFtrVV, MxDepth, PMat, PMatStateIdV, TransThreshold);
+
+	// construct the result
+	PJsonVal Result = TJsonVal::NewArr();
+
+	TFltV AllHoldingTmV;	MChain->GetHoldingTmV(AggStateV, StateFtrVV, AllHoldingTmV);
+	TFltV AllProbV;			MChain->GetStatDist(AggStateV, StateFtrVV, AllProbV);
+	TFltV AllRadiusV;		UiHelper->GetStateRadiusV(AllProbV, AllRadiusV);
+
+	TFltV HoldingTmV(PMatStateIdV.Len());
+	TFltV ProbV(PMatStateIdV.Len());
+	TFltV RadiusV(PMatStateIdV.Len());
+
+	TIntH StateIdStateNH;
+	for (int StateN = 0; StateN < StateIdV.Len(); StateN++) {
+		StateIdStateNH.AddDat(StateIdV[StateN], StateN);
+	}
+
+	for (int PMatStateN = 0; PMatStateN < PMatStateIdV.Len(); PMatStateN++) {
+		const int StateId = PMatStateIdV[PMatStateN];
+		const int StateN = StateIdStateNH.GetDat(StateId);
+
+		HoldingTmV[PMatStateN] = AllHoldingTmV[StateN];
+		ProbV[PMatStateN] = AllProbV[StateN];
+		RadiusV[PMatStateN] = AllRadiusV[StateN];
+	}
+
+	TFltPrV StatePosV;	TreeLayout(PMat, StateIdV, RadiusV, StatePosV);
+
+	PJsonVal LevelJson = GetLevelJson(Height, PMatStateIdV, PMat, HoldingTmV, ProbV, RadiusV);
+
+	// state ids repeat, so transform them for the UI
+	PJsonVal StatesJson = LevelJson->GetObjKey("states");
+
+	for (int StateN = 0; StateN < StatesJson->GetArrVals(); StateN++) {
+		PJsonVal StateJson = StatesJson->GetArrVal(StateN);
+
+		StateJson->AddToObj("x", StatePosV[StateN].Val1);
+		StateJson->AddToObj("y", StatePosV[StateN].Val2);
+	}
+
+	Result->AddToArr(LevelJson);
+
 	return Result;
 }
 
 void TStreamStory::Init(TFltVV& ObservFtrVV, const TFltVV& ControlFtrVV, const TUInt64V& RecTmV,
 		const bool& MultiThread) {
+	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Creating a model on %d instances ...", ObservFtrVV.GetCols());
 	TFltVV FtrVV;	CreateFtrVV(ObservFtrVV, ControlFtrVV, RecTmV, TBoolV(), FtrVV);
 
 	Callback->OnProgress(0, "Clustering ...");
@@ -4060,4 +4195,73 @@ void TStreamStory::CheckBatches(const TUInt64V& TmV, const TBoolV& BatchEndV) co
 	}
 
 	Notify->OnNotify(TNotifyType::ntInfo, "The batches are OK!");
+}
+
+void TStreamStory::TreeLayout(const TFltVV& PMat, const TIntV& StateIdV, const TFltV& RadiusV,
+		TFltPrV& PosV) const {
+	const int RootN = 0;
+	const double NodePadding = .05;
+
+	PosV.Gen(PMat.GetCols());
+	TFltV WidthV(PMat.GetCols());
+
+	CalcTreeWidthV(PMat, RadiusV, NodePadding, RootN, WidthV);
+	CalcTreePosV(PMat, RootN, RadiusV, WidthV, 0.0, 0.0, PosV);
+}
+
+void TStreamStory::CalcTreeWidthV(const TFltVV& PMat, const TFltV& RadiusV,
+		const double& NodePadding, const int& RootN, TFltV& WidthV) const {
+	const int NStates = PMat.GetCols();
+
+	// construct the vector of children
+	TIntV ChildNV;
+	for (int StateN = 0; StateN < NStates; StateN++) {
+		if (PMat(RootN, StateN) > 0) {
+			ChildNV.Add(StateN);
+		}
+	}
+
+	const bool IsLeaf = ChildNV.Empty();
+	if (IsLeaf) {
+		WidthV[RootN] = 3*RadiusV[RootN];// + NodePadding);	TODO remove node padding
+	} else {
+		double NodeW = 0;
+		for (int StateN = 0; StateN < ChildNV.Len(); StateN++) {
+			const int ChildN = ChildNV[StateN];
+			CalcTreeWidthV(PMat, RadiusV, NodePadding, ChildN, WidthV);
+			NodeW += WidthV[ChildN];// + 2*NodePadding;
+		}
+		WidthV[RootN] = NodeW;
+	}
+}
+
+void TStreamStory::CalcTreePosV(const TFltVV& PMat, const int& RootN, const TFltV& RadiusV,
+		const TFltV& WidthV, const double& RootX, const double& RootY, TFltPrV& PosV) const {
+	const int NStates = PMat.GetCols();
+
+	// set root position
+	PosV[RootN].Val1 = RootX;
+	PosV[RootN].Val2 = RootY;
+
+	// find & layout the children
+	TIntV ChildNV;
+	for (int StateN = 0; StateN < NStates; StateN++) {
+		if (PMat(RootN,StateN) > 0) {
+			ChildNV.Add(StateN);
+		}
+	}
+
+	const double StartX = RootX - WidthV[RootN] / 2;
+	double WidthSum = 0;
+	for (int StateN = 0; StateN < ChildNV.Len(); StateN++) {
+		const int ChildN = ChildNV[StateN];
+
+		const double ChildWidth = WidthV[ChildN];
+		const double ChildY = RootY + 2*(RadiusV[RootN] + RadiusV[ChildN]);
+		const double ChildX = StartX + WidthSum + .5*ChildWidth;
+
+		CalcTreePosV(PMat, ChildN, RadiusV, WidthV, ChildX, ChildY, PosV);
+
+		WidthSum += ChildWidth;
+	}
 }
