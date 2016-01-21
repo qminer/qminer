@@ -776,6 +776,7 @@ TNodeTask::~TNodeTask() {
 v8::Local<v8::Value> TNodeTask::WrapResult() {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
+	printf("calling default wrap result ...\n");	// TODO remove me
 	return v8::Undefined(Isolate);
 }
 
