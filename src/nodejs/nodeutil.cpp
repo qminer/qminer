@@ -773,11 +773,11 @@ TNodeTask::~TNodeTask() {
 	ArgPersist.Reset();
 }
 
-v8::Local<v8::Value> TNodeTask::WrapResult() {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-	return v8::Undefined(Isolate);
-}
+//v8::Local<v8::Value> TNodeTask::WrapResult() {
+//	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+//	v8::HandleScope HandleScope(Isolate);
+//	return v8::Undefined(Isolate);
+//}
 
 void TNodeTask::AfterRun() {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -796,9 +796,6 @@ void TNodeTask::AfterRun() {
 //		//============================
 
 		TNodeJsUtil::ExecuteVoid(Fun, v8::Undefined(Isolate), WrapResult());
-//		const int ArgC = 2;
-//		v8::Handle<v8::Value> ArgV[ArgC] = { v8::Undefined(Isolate), Result };
-//		TNodeJsUtil::ExecuteVoid(Fun, ArgC, ArgV);
 	}
 }
 
