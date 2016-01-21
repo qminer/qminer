@@ -611,7 +611,6 @@ void TNodeJsAsyncUtil::OnWorker(uv_work_t* UvReq) {
 
 	try {
 		Task->Task->Run();
-//		TTask::Run(*Task->Task);
 	} catch (const PExcept& Except) {
 		printf("Exception on worker thread: %s!", Except->GetMsgStr().CStr());
 	}
@@ -623,9 +622,8 @@ void TNodeJsAsyncUtil::AfterOnWorker(uv_work_t* UvReq, int Status) {
 
 	try {
 		Task->Task->AfterRun();
-//		TTask::AfterRun(*Task->Task);
 	} catch (const PExcept& Except) {
-		printf("Exception on worker thread: %s!", Except->GetMsgStr().CStr());
+		printf("Exception when calling callback: %s!", Except->GetMsgStr().CStr());
 	}
 
 	delete Task;
