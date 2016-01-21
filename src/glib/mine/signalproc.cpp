@@ -1309,28 +1309,17 @@ void TTDigest::MergeValues() {
 	int IterI = 0, IterJ = 0;
 	// merge existing centroids with added values in temp buffers
 	while (IterI < TempLast && IterJ < LastN) {
-		printf("a \n");
 		if (TempMean[IterI] <= U[IterJ]) {
-			printf("b \n");
 			Sum += TempWeight[IterI];
-			printf("c \n");
 			double TW = TempWeight[IterI];
-			printf("d \n");
 			double TM = TempMean[IterI];
-			printf("e \n");
 			NewCentroid = MergeCentroid(Sum, NewCentroid, TW, TM);
-			printf("f \n");
 			IterI++;
 		} else {
-			printf("g \n");
 			Sum += W[IterJ];
-			printf("h \n");
 			double TW = W[IterJ];
-			printf("i \n");
 			double TM = U[IterJ];
-			printf("j \n");
 			NewCentroid = MergeCentroid(Sum, NewCentroid, TW, TM);
-			printf("k \n");
 			IterJ++;
 		}
 	}
