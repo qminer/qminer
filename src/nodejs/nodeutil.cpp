@@ -773,8 +773,13 @@ TNodeTask::~TNodeTask() {
 	ArgPersist.Reset();
 }
 
-v8::Local<v8::Value> TNodeTask::WrapResult(v8::Isolate* Isolate) {
-	return v8::Undefined(Isolate);
+v8::Local<v8::Value> TNodeTask::WrapResult() {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::EscapableHandleScope HandleScope(Isolate);
+
+	v8::Local<v8::Value> Result = v8::Undefined(Isolate);
+
+	return HandleScope.Escape(Result);
 }
 
 void TNodeTask::AfterRun() {
@@ -787,7 +792,7 @@ void TNodeTask::AfterRun() {
 	if (HasExcept()) {
 		TNodeJsUtil::ExecuteErr(Fun, Except);
 	} else {
-		TNodeJsUtil::ExecuteVoid(Fun, v8::Undefined(Isolate), WrapResult(Isolate));
+		TNodeJsUtil::ExecuteVoid(Fun, v8::Undefined(Isolate), WrapResult());
 	}
 }
 
@@ -797,7 +802,7 @@ void TNodeTask::AfterRunSync(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 	if (HasExcept()) { throw Except; }
 
-	Args.GetReturnValue().Set(WrapResult(Isolate));
+	Args.GetReturnValue().Set(WrapResult());
 }
 
 void TNodeTask::ExtractCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) {
