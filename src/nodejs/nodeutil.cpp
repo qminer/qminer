@@ -789,8 +789,10 @@ void TNodeTask::AfterRun() {
 	if (HasExcept()) {
 		TNodeJsUtil::ExecuteErr(Fun, Except);
 	} else {
+		v8::Local<v8::Value> Result = WrapResult();
+
 		const int ArgC = 2;
-		v8::Handle<v8::Value> ArgV[ArgC] = { v8::Undefined(Isolate), WrapResult() };
+		v8::Handle<v8::Value> ArgV[ArgC] = { v8::Undefined(Isolate), Result };
 		TNodeJsUtil::ExecuteVoid(Fun, ArgC, ArgV);
 	}
 }
