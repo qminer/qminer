@@ -496,7 +496,7 @@ public:
 	virtual ~TNodeTask();
 
 	virtual v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) = 0;
-	virtual v8::Local<v8::Value> WrapResult();
+	virtual v8::Local<v8::Value> WrapResult(v8::Isolate* Isolate);
 
 	void AfterRun();
 	void AfterRunSync(const v8::FunctionCallbackInfo<v8::Value>& Args);

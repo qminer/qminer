@@ -773,9 +773,7 @@ TNodeTask::~TNodeTask() {
 	ArgPersist.Reset();
 }
 
-v8::Local<v8::Value> TNodeTask::WrapResult() {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
+v8::Local<v8::Value> TNodeTask::WrapResult(v8::Isolate* Isolate) {
 	return v8::Undefined(Isolate);
 }
 
@@ -790,10 +788,10 @@ void TNodeTask::AfterRun() {
 		TNodeJsUtil::ExecuteErr(Fun, Except);
 	} else {
 //		// TODO remove
-		printf("In after run: %s\n", TJsonVal::GetStrFromVal(TNodeJsUtil::GetObjJson(WrapResult())).CStr());
+		printf("In after run: %s\n", TJsonVal::GetStrFromVal(TNodeJsUtil::GetObjJson(WrapResult(Isolate))).CStr());
 //		//============================
 
-		TNodeJsUtil::ExecuteVoid(Fun, v8::Undefined(Isolate), WrapResult());
+		TNodeJsUtil::ExecuteVoid(Fun, v8::Undefined(Isolate), WrapResult(Isolate));
 	}
 }
 
@@ -803,9 +801,9 @@ void TNodeTask::AfterRunSync(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 	if (HasExcept()) { throw Except; }
 
-	printf("In after run sync: %s\n", TJsonVal::GetStrFromVal(TNodeJsUtil::GetObjJson(WrapResult())).CStr());
+	printf("In after run sync: %s\n", TJsonVal::GetStrFromVal(TNodeJsUtil::GetObjJson(WrapResult(Isolate))).CStr());
 
-	Args.GetReturnValue().Set(WrapResult());
+	Args.GetReturnValue().Set(WrapResult(Isolate));
 }
 
 void TNodeTask::ExtractCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) {
