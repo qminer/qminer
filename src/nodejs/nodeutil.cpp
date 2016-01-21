@@ -792,7 +792,7 @@ void TNodeTask::AfterRun() {
 //		v8::Local<v8::Value> Result = WrapResult();
 //
 //		// TODO remove
-//		printf("In after run: %s\n", TJsonVal::GetStrFromVal(TNodeJsUtil::GetObjJson(Result)).CStr());
+		printf("In after run: %s\n", TJsonVal::GetStrFromVal(TNodeJsUtil::GetObjJson(WrapResult())).CStr());
 //		//============================
 
 		TNodeJsUtil::ExecuteVoid(Fun, v8::Undefined(Isolate), WrapResult());
