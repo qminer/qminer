@@ -794,7 +794,7 @@ void TNodeTask::AfterRun() {
 		// TODO remove
 		PJsonVal ResVal = TNodeJsUtil::GetObjJson(Result);
 		printf("In after run: %s\n", ResVal->GetStr().CStr());
-		//=========================
+		//============================
 
 		const int ArgC = 2;
 		v8::Handle<v8::Value> ArgV[ArgC] = { v8::Undefined(Isolate), Result };
