@@ -787,10 +787,6 @@ void TNodeTask::AfterRun() {
 	if (HasExcept()) {
 		TNodeJsUtil::ExecuteErr(Fun, Except);
 	} else {
-//		// TODO remove
-		printf("In after run: %s\n", TJsonVal::GetStrFromVal(TNodeJsUtil::GetObjJson(WrapResult(Isolate))).CStr());
-//		//============================
-
 		TNodeJsUtil::ExecuteVoid(Fun, v8::Undefined(Isolate), WrapResult(Isolate));
 	}
 }
@@ -800,8 +796,6 @@ void TNodeTask::AfterRunSync(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::HandleScope HandleScope(Isolate);
 
 	if (HasExcept()) { throw Except; }
-
-	printf("In after run sync: %s\n", TJsonVal::GetStrFromVal(TNodeJsUtil::GetObjJson(WrapResult(Isolate))).CStr());
 
 	Args.GetReturnValue().Set(WrapResult(Isolate));
 }
