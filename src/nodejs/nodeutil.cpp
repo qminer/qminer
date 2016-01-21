@@ -779,13 +779,6 @@ v8::Local<v8::Value> TNodeTask::WrapResult() {
 	return v8::Undefined(Isolate);
 }
 
-void TNodeTask::ExtractCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	Callback.Reset(Isolate, GetCallback(Args));
-}
-
 void TNodeTask::AfterRun() {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
@@ -793,7 +786,7 @@ void TNodeTask::AfterRun() {
 	EAssertR(!Callback.IsEmpty(), "The callback was not defined!");
 	v8::Local<v8::Function> Fun = v8::Local<v8::Function>::New(Isolate, Callback);
 
-	if (!Except.Empty()) {
+	if (HasExcept()) {
 		TNodeJsUtil::ExecuteErr(Fun, Except);
 	} else {
 		const int ArgC = 2;
@@ -806,7 +799,14 @@ void TNodeTask::AfterRunSync(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	if (!Except.Empty()) { throw Except; }
+	if (HasExcept()) { throw Except; }
 
 	Args.GetReturnValue().Set(WrapResult());
+}
+
+void TNodeTask::ExtractCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	Callback.Reset(Isolate, GetCallback(Args));
 }

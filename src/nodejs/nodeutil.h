@@ -498,10 +498,10 @@ public:
 	virtual v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) = 0;
 	virtual v8::Local<v8::Value> WrapResult();
 
-	void ExtractCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
-
 	void AfterRun();
 	void AfterRunSync(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+	void ExtractCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
 protected:
 	void SetExcept(const PExcept& _Except) { Except = _Except; }
