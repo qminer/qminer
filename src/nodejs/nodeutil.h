@@ -276,8 +276,8 @@ public:
 
     static void ExecuteVoid(const v8::Handle<v8::Function>& Fun, const int& ArgC,
     		v8::Handle<v8::Value> ArgV[]);
-    static void ExecuteVoid(const v8::Handle<v8::Function>& Fun, const v8::Local<v8::Object>& Arg1,
-    		const v8::Local<v8::Object>& Arg2);
+    static void ExecuteVoid(const v8::Handle<v8::Function>& Fun, const v8::Local<v8::Value>& Arg1,
+    		const v8::Local<v8::Value>& Arg2);
 
     static void ExecuteVoid(const v8::Handle<v8::Function>& Fun);
     static void ExecuteErr(const v8::Handle<v8::Function>& Fun, const PExcept& Except);

@@ -608,7 +608,7 @@ void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun, const int& Ar
 }
 
 void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun,
-		const v8::Local<v8::Object>& Arg1, const v8::Local<v8::Object>& Arg2) {
+		const v8::Local<v8::Value>& Arg1, const v8::Local<v8::Value>& Arg2) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 	v8::TryCatch TryCatch;
@@ -776,7 +776,6 @@ TNodeTask::~TNodeTask() {
 v8::Local<v8::Value> TNodeTask::WrapResult() {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-	printf("calling default wrap result ...\n");	// TODO remove me
 	return v8::Undefined(Isolate);
 }
 
@@ -790,16 +789,16 @@ void TNodeTask::AfterRun() {
 	if (HasExcept()) {
 		TNodeJsUtil::ExecuteErr(Fun, Except);
 	} else {
-		v8::Local<v8::Value> Result = WrapResult();
+//		v8::Local<v8::Value> Result = WrapResult();
+//
+//		// TODO remove
+//		printf("In after run: %s\n", TJsonVal::GetStrFromVal(TNodeJsUtil::GetObjJson(Result)).CStr());
+//		//============================
 
-		// TODO remove
-		PJsonVal ResVal = TNodeJsUtil::GetObjJson(Result);
-		printf("In after run: %s\n", TJsonVal::GetStrFromVal(ResVal).CStr());
-		//============================
-
-		const int ArgC = 2;
-		v8::Handle<v8::Value> ArgV[ArgC] = { v8::Undefined(Isolate), Result };
-		TNodeJsUtil::ExecuteVoid(Fun, ArgC, ArgV);
+		TNodeJsUtil::ExecuteVoid(Fun, v8::Undefined(Isolate), WrapResult());
+//		const int ArgC = 2;
+//		v8::Handle<v8::Value> ArgV[ArgC] = { v8::Undefined(Isolate), Result };
+//		TNodeJsUtil::ExecuteVoid(Fun, ArgC, ArgV);
 	}
 }
 
