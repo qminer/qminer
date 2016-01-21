@@ -24,7 +24,7 @@ include $(GLIB)/Makefile.config
 ## Main application file
 MAIN = run-all-tests
 
-TEST_SRCS = test-TTDigest.cpp
+TEST_SRCS = test-AggrOnStep.cpp
 
 TEST_OBJS = $(TEST_SRCS:.cpp=.o)
 

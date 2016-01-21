@@ -903,8 +903,6 @@ private:
 
 	double MergeCentroid(double& Sum, double& K1, double& Wt, double& Ut);
 
-	void MergeValues();
-
 	int Bisect(const TFltV& A, const double& X, int& Low, int& Hi) const;
 
 	double Boundary(const int& I, const int& J, const TFltV& U, const TFltV& W) const;
@@ -945,6 +943,7 @@ public:
 	// If not provided, *count* defaults to 1.
 	void Update(const double& V);
 	void Update(const double& V, const double& Count);
+	void MergeValues();
 	/// Prints the model
 	void Print() const;
 	/// Load from stream

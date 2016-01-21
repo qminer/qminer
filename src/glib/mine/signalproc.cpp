@@ -1291,11 +1291,12 @@ void TTDigest::MergeValues() {
 	}
 	TFltV W = Weight;
 	TFltV U = Mean;
-	TInt LastN = 0;
+
 	double Sum = 0;
 
 	TempMean.Sort();
 
+	TInt LastN = 0;
 	if (TotalSum > 0.0) {
 		LastN = Last + 1;
 	}
@@ -1308,17 +1309,28 @@ void TTDigest::MergeValues() {
 	int IterI = 0, IterJ = 0;
 	// merge existing centroids with added values in temp buffers
 	while (IterI < TempLast && IterJ < LastN) {
+		printf("a \n");
 		if (TempMean[IterI] <= U[IterJ]) {
+			printf("b \n");
 			Sum += TempWeight[IterI];
+			printf("c \n");
 			double TW = TempWeight[IterI];
+			printf("d \n");
 			double TM = TempMean[IterI];
+			printf("e \n");
 			NewCentroid = MergeCentroid(Sum, NewCentroid, TW, TM);
+			printf("f \n");
 			IterI++;
 		} else {
+			printf("g \n");
 			Sum += W[IterJ];
+			printf("h \n");
 			double TW = W[IterJ];
+			printf("i \n");
 			double TM = U[IterJ];
+			printf("j \n");
 			NewCentroid = MergeCentroid(Sum, NewCentroid, TW, TM);
+			printf("k \n");
 			IterJ++;
 		}
 	}
@@ -1331,7 +1343,7 @@ void TTDigest::MergeValues() {
 		IterI++;
 	}
 
-	// only existing centroids remain
+	// only existing	 centroids remain
 	while (IterJ < LastN) {
 		Sum += W[IterJ];
 		double TW = W[IterJ];
@@ -1352,7 +1364,7 @@ void TTDigest::MergeValues() {
 
 	MergeMean[0] = Weight[0];
 	MergeWeight[0] = 0;
-	for (int Iter = 1; Iter<=Last; ++Iter) {
+	for (int Iter = 1; Iter<=Last && Iter<MergeMean.Len(); ++Iter) {
 		MergeWeight[Iter] = 0; // zero out merge weights
 		MergeMean[Iter] = MergeMean[Iter-1] + Weight[Iter]; // stash cumulative dist
 	}
@@ -1363,18 +1375,19 @@ void TTDigest::MergeValues() {
 
 double TTDigest::MergeCentroid(double& Sum, double& K1, double& Wt, double& Ut) {
 	double K2 = Integrate((double)Nc, Sum/TotalSum);
-	if (K2 - K1 <= 1.0 || MergeWeight[Last] == 0.0) {
-		// merge into existing centroid if centroid index difference (k2-k1)
-		// is within 1 or if current centroid is empty
-		MergeWeight[Last] += Wt;
-		MergeMean[Last] += (Ut - MergeMean[Last]) * Wt / MergeWeight[Last];
-	} else {
-		// otherwise create a new centroid
-		Last = ++Last;
-		MergeMean[Last] = Ut;
-		MergeWeight[Last] = Wt;
-		K1 = Integrate((double)Nc, (Sum - Wt)/TotalSum);
-	}
+		if (K2 - K1 <= 1.0 || MergeWeight[Last] == 0.0) {
+			// merge into existing centroid if centroid index difference (k2-k1)
+			// is within 1 or if current centroid is empty
+			MergeWeight[Last] += Wt;
+			MergeMean[Last] += (Ut - MergeMean[Last]) * Wt / MergeWeight[Last];
+		} else {
+			// otherwise create a new centroid
+			Last = ++Last;
+			MergeMean[Last] = Ut;
+			MergeWeight[Last] = Wt;
+			K1 = Integrate((double)Nc, (Sum - Wt)/TotalSum);
+		}
+
 	return K1;
 };
 
