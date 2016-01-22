@@ -144,6 +144,7 @@ TJoinDescEx TStoreSchema::ParseJoinDescEx(const PJsonVal& JoinVal) {
         }
     }
     if (JoinVal->IsObjKey("storage")) {
+        QmAssertR(JoinDescEx.JoinType == osjtField, "Index-join doesn't support storage flag");
         TStr TypeStr = JoinVal->GetObjStr("storage");
         TStrV Parts;
         TypeStr.SplitOnAllCh('-', Parts);
