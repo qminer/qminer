@@ -62,13 +62,13 @@ void TNearestNeighbor::Forget(const int& ColId) {
     }
 }
 
-TNearestNeighbor::TNearestNeighbor(const double& Rate, const int& _WindowSize):
-        WindowSize(_WindowSize) {
+TNearestNeighbor::TNearestNeighbor(const TFltV& _RateV, const int& _WindowSize):
+        RateV(_RateV), WindowSize(_WindowSize) {
 
     // assert rate parameter range
-    EAssertR(0.0 < Rate && Rate < 1.0, "TAnomalyDetection::TNearestNeighbor: Rate parameter not > 0.0 and < 1.0");
-    // remember the rate
-    RateV.Add(Rate);
+    for (const double Rate : RateV) {
+        EAssertR(0.0 < Rate && Rate < 1.0, "TAnomalyDetection::TNearestNeighbor: Rate parameter not > 0.0 and < 1.0");
+    }
     // initialize all vectors to window size
     Mat.Gen(WindowSize, 0);
     DistV.Gen(WindowSize, 0);
@@ -147,10 +147,8 @@ PJsonVal TNearestNeighbor::Explain(const TIntFltKdV& Vec) const {
 	// if not initialized, return null (JSON)
 	if (!IsInit()) { return TJsonVal::NewNull(); }
 	// find nearest neighbor
-	double NearDist = TFlt::Mx;
-	int NearColN = -1;
-	TIntFltKdV DiffV;
-	for (int ColN = 0; ColN < Mat.Len(); ColN++) {		
+	double NearDist = TFlt::Mx; int NearColN = -1;
+	for (int ColN = 0; ColN < Mat.Len(); ColN++) {
 		const double Dist = TLinAlg::Norm2(Vec) - 2 * TLinAlg::DotProduct(Vec, Mat[ColN]) + TLinAlg::Norm2(Mat[ColN]);
 		if (Dist < NearDist) { NearDist = Dist; NearColN = ColN; }
 	}
@@ -186,6 +184,10 @@ PJsonVal TNearestNeighbor::Explain(const TIntFltKdV& Vec) const {
         }
     }
     ResVal->AddToObj("features", DiffVal);
+	// first and last record in the buffer
+	ResVal->AddToObj("oldestID", IDVec[NextCol]);
+	int CurCol = NextCol > 0 ? NextCol - 1 : WindowSize - 1;
+	ResVal->AddToObj("newestID", IDVec[CurCol]);
 	return ResVal;
 }
 

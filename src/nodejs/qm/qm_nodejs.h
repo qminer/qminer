@@ -399,6 +399,7 @@ typedef TPt<TNodeJsBaseWatcher> PNodeJsBaseWatcher;
 * @property {String} paramObj.mode - The mode in which base is opened.
 * @property [String] paramObj.dbPath - The path to the location of the database.
 * @property [Object] paramObj.schema - The database schema.
+* @property [String] paramObj.strictNames - Wether to use JavaScript compliant field/store names. If set to false, all field/store names are allowed.
 * @example
 * // import qm module
 * var qm = require('qminer');
@@ -420,7 +421,7 @@ public:
 	TNodeJsBase(const TWPt<TQm::TBase>& Base_) : Base(Base_) { Watcher = TNodeJsBaseWatcher::New(); }
 	TNodeJsBase(const TStr& DbPath, const TStr& SchemaFNm, const PJsonVal& Schema,
         const bool& Create, const bool& ForceCreate, const bool& ReadOnly,
-        const uint64& IndexCache, const uint64& StoreCache);
+        const bool& UseStrictFldNames, const uint64& IndexCache, const uint64& StoreCache);
 	// Object that knows if Base is valid
 	PNodeJsBaseWatcher Watcher;
 private:		

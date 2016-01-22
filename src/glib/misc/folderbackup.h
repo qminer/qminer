@@ -64,7 +64,7 @@ private:
 	TVec<TBackupLogInfo> LogV;
 
 	TStr GetFolderNameForCurrentTime() const;
-	void CopyFolder(const TStr& BaseTargetFolder, const TStr& SourceFolder, const TStrV& Extensions, const TStrV& SkipIfContainingV, const bool& IncludeSubfolders, TStr& ErrMsg);
+	void CopyFolder(const TStr& BaseTargetFolder, const TStr& SourceFolder, const TStrV& Extensions, const TStrV& SkipIfContainingV, const bool& IncludeSubfolders, const bool& ReportP, TStr& ErrMsg);
 	
 	void SaveLogs() const;
 
@@ -74,8 +74,8 @@ public:
 
 	TBackupProfile() {}
 	TBackupProfile(const PJsonVal& SettingsJson, const TStr& DestinationDirNm, const TStr& ProfileName);
-	TBackupLogInfo CreateBackup();
-	void Restore(const TStr& BackupFolderName, const ERestoringMode& RestoringMode) const;
+	TBackupLogInfo CreateBackup(const bool& ReportP);
+	void Restore(const TStr& BackupFolderName, const ERestoringMode& RestoringMode, const bool& ReportP) const;
 
 	int GetVersionsToKeep() const { return VersionsToKeep; }
 	TStr GetDestination() const { return Destination; }
@@ -92,6 +92,7 @@ class TFolderBackup
 {
 private:
 	TStr DestinationDirNm;
+	bool ReportP;
 
 	THash<TStr, TBackupProfile> ProfileH;
 	
@@ -100,8 +101,8 @@ private:
 public:
 	
 
-	TFolderBackup(const TStr& SettingsFNm);
-	TFolderBackup(const PJsonVal& SettingsJson);
+	TFolderBackup(const TStr& SettingsFNm, const bool& ReportP = true);
+	TFolderBackup(const PJsonVal& SettingsJson, const bool& ReportP = true);
 
 	// backup a particular profile
 	TBackupLogInfo CreateBackup(const TStr& ProfileName);

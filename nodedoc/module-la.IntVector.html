@@ -24,8 +24,7 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div>
-            <h1><small><a href="module-la.html">la</a>.<wbr></small><span class="symbol-name">IntVector</span></h1>
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-la.html">la</a>.<wbr></small><span class="symbol-name">IntVector</span></h1>
             <p class="source-link">Source: <a href="ladoc.js.html#source-line-2000">ladoc.<wbr>js:2000</a></p>
             <div class="symbol-classdesc">
               <p>Wraps a C++ array.</p>
@@ -124,11 +123,11 @@
             Example
         </h3>
               <div>
-                <pre class="prettyprint"><code>var la &#x3D; require(&#x27;qminer&#x27;).la;
+                <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
 // create a new empty vector
-var vec &#x3D; new la.IntVector();
+var vec = new la.IntVector();
 // create a new vector
-var vec2 &#x3D; new la.IntVector([1, 2, 3]);</code></pre>
+var vec2 = new la.IntVector([1, 2, 3]);</code></pre>
               </div>
             </section>
             <section>
@@ -232,12 +231,12 @@ var vec2 &#x3D; new la.IntVector([1, 2, 3]);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import fs module
-var fs &#x3D; require(&#x27;qminer&#x27;).fs;
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var fs = require(&#x27;qminer&#x27;).fs;
+var la = require(&#x27;qminer&#x27;).la;
 // create an empty vector
-var vec &#x3D; new la.IntVector();
+var vec = new la.IntVector();
 // open a read stream
-var fin &#x3D; fs.openRead(&#x27;vec.dat&#x27;);
+var fin = fs.openRead(&#x27;vec.dat&#x27;);
 // load the vector
 vec.load(fin);</code></pre>
                 </div>
@@ -285,12 +284,12 @@ vec.load(fin);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import fs module
-var fs &#x3D; require(&#x27;qminer&#x27;).fs;
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var fs = require(&#x27;qminer&#x27;).fs;
+var la = require(&#x27;qminer&#x27;).la;
 // create an empty vector
-var vec &#x3D; new la.IntVector();
+var vec = new la.IntVector();
 // open a read stream
-var fin &#x3D; fs.openRead(&#x27;vec.dat&#x27;);
+var fin = fs.openRead(&#x27;vec.dat&#x27;);
 // load the matrix
 vec.loadascii(fin);</code></pre>
                 </div>
@@ -463,12 +462,12 @@ vec.loadascii(fin);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import fs module
-var fs &#x3D; require(&#x27;qminer&#x27;).fs;
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var fs = require(&#x27;qminer&#x27;).fs;
+var la = require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec &#x3D; new la.IntVector([1, 2, 3]);
+var vec = new la.IntVector([1, 2, 3]);
 // open write stream
-var fout &#x3D; fs.openWrite(&#x27;vec.dat&#x27;);
+var fout = fs.openWrite(&#x27;vec.dat&#x27;);
 // save vector and close write stream
 vec.save(fout).close();</code></pre>
                 </div>
@@ -516,12 +515,12 @@ vec.save(fout).close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import fs module
-var fs &#x3D; require(&#x27;qminer&#x27;).fs;
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var fs = require(&#x27;qminer&#x27;).fs;
+var la = require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec &#x3D; new la.IntVector([1, 2, 3]);
+var vec = new la.IntVector([1, 2, 3]);
 // open write stream
-var fout &#x3D; fs.openWrite(&#x27;vec.dat&#x27;);
+var fout = fs.openWrite(&#x27;vec.dat&#x27;);
 // save matrix and close write stream
 vec.saveascii(fout).close();</code></pre>
                 </div>
@@ -576,9 +575,9 @@ vec.saveascii(fout).close();</code></pre>
             Example
         </h4>
                 <div>
-                  <pre class="prettyprint"><code>var la &#x3D; require(&#x27;qminer&#x27;).la;
+                  <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec &#x3D; new la.IntVector([1, 2, 3]);
+var vec = new la.IntVector([1, 2, 3]);
 // splice the vector by removing the last two elements and adding 4, 5
 vec.splice(1, 2, 4, 5)// returns vector [1, 4, 5]</code></pre>
                 </div>
@@ -699,9 +698,9 @@ vec.splice(1, 2, 4, 5)// returns vector [1, 4, 5]</code></pre>
             Example
         </h4>
                 <div>
-                  <pre class="prettyprint"><code>var la &#x3D; require(&#x27;qminer&#x27;).la;
+                  <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec &#x3D; new la.IntVector([1, 2, 3]);
+var vec = new la.IntVector([1, 2, 3]);
 // create vector as string
 vec.toString(); // returns &#x27;1, 2, 3&#x27;</code></pre>
                 </div>
@@ -719,9 +718,9 @@ vec.toString(); // returns &#x27;1, 2, 3&#x27;</code></pre>
             Example
         </h4>
                 <div>
-                  <pre class="prettyprint"><code>var la &#x3D; require(&#x27;qminer&#x27;).la;
+                  <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec &#x3D; new la.IntVector([1, 2, 3]);
+var vec = new la.IntVector([1, 2, 3]);
 // trunc all elements with index 1 or more
 vec.trunc(1); // returns vector [1]</code></pre>
                 </div>

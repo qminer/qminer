@@ -24,8 +24,7 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <div class="symbol-detail-labels"><span class="label label-kind">module</span></div>
-            <h1><small></small><span class="symbol-name">datasets</span></h1>
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">module</span></div><small></small><span class="symbol-name">datasets</span></h1>
             <p class="source-link">Source: <a href="datasetsdoc.js.html#source-line-2">datasetsdoc.<wbr>js:2</a></p>
             <div class="symbol-description">
               <p>Datasets module includes some standard toy datasets. In addition, this module also includes various random sample generators that can be used to build artificial datasets of controlled size and complexity.</p>
@@ -36,11 +35,11 @@
         </h2>
               <div>
                 <p>Asynchronous loading</p>
-                <pre class="prettyprint"><code>var qm &#x3D; require(&#x27;qminer&#x27;);
-var datasets &#x3D; qm.datasets;
+                <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+var datasets = qm.datasets;
 
 // Create clean base
-var base &#x3D; new qm.Base({ mode: &#x27;createClean&#x27; });
+var base = new qm.Base({ mode: &#x27;createClean&#x27; });
 
 // Load Iris dataset in async way
 datasets.loadIris(base, function (err, store) {
@@ -51,14 +50,14 @@ datasets.loadIris(base, function (err, store) {
               </div>
               <div>
                 <p>Synchronous loading</p>
-                <pre class="prettyprint"><code>var qm &#x3D; require(&#x27;qminer&#x27;);
-var datasets &#x3D; qm.datasets;
+                <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+var datasets = qm.datasets;
 
 // Create clean base
-var base &#x3D; new qm.Base({ mode: &#x27;createClean&#x27; });
+var base = new qm.Base({ mode: &#x27;createClean&#x27; });
 
 // Load Iris in sync way.
-var Iris &#x3D; datasets.loadIrisSync(base);
+var Iris = datasets.loadIrisSync(base);
 // Sucessfully loaded database
 base.close();</code></pre>
               </div>
@@ -92,8 +91,7 @@ base.close();</code></pre>
           <section>
             <h2>Methods</h2>
             <section>
-              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
-              <h3 id=".loadIris"><span class="symbol-name">loadIris</span><span class="signature"><span class="signature-params">(base)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.Store.html">module:qm.Store</a></span></span></h3>
+              <h3 id=".loadIris"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">loadIris</span><span class="signature"><span class="signature-params">(base)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.Store.html">module:qm.Store</a></span></span></h3>
               <p>Loads Iris dataset in asynchronous way. Returns link to the created Irsi store.</p>
               <section>
                 <h4>Parameter</h4>
@@ -129,8 +127,7 @@ base.close();</code></pre>
                   <p><code><a href="module-qm.Store.html">module:qm.Store</a></code>&nbsp;Store with Iris dataset.</p>
                 </dd>
               </dl>
-              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
-              <h3 id=".loadIrisSync"><span class="symbol-name">loadIrisSync</span><span class="signature"><span class="signature-params">(base)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.Store.html">module:qm.Store</a></span></span></h3>
+              <h3 id=".loadIrisSync"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">loadIrisSync</span><span class="signature"><span class="signature-params">(base)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.Store.html">module:qm.Store</a></span></span></h3>
               <p>Loads Iris dataset in synchronous way. Returns link to the created Iris store.</p>
               <section>
                 <h4>Parameter</h4>

@@ -970,8 +970,9 @@ static void LQSolve(TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, ColMajor>&
 	// Sing is the vector containing singular values, U is the matrix with left singular vectors,
 	// VT is the matrix with right singular vectors.
 	template<class Type, class Size, bool ColMajor = false>
-static void SVDFactorization(TVVec<Type, Size, ColMajor>& A, 
-		TVVec<Type, Size, ColMajor>& U, TVec<Type, Size>& Sing, TVVec<Type, Size, ColMajor>& VT) {
+static void SVDFactorization(const TVVec<Type, Size, ColMajor>& A,
+		TVVec<Type, Size, ColMajor>& U, TVec<Type, Size>& Sing,
+		TVVec<Type, Size, ColMajor>& VT) {
 
 		// data used for factorization
 		Size NumOfRows_Matrix = A.GetRows();
@@ -1092,35 +1093,49 @@ static void SVDFactorization(TVVec<Type, Size, ColMajor>& A,
 		}*/
 
 		// factorization
-		TVVec<Type, Size, ColMajor> C;
+//		TVVec<Type, Size, ColMajor> C;	// TODO do we need this matrix? Can't we just use a nullptr on the input???
 		char UpperLower = NumOfRows_Matrix >= NumOfCols_Matrix ? 'U' : 'L';
 		Size LeadingDimension_VT = ColMajor ? VT.GetRows() : VT.GetCols();
 		Size LeadingDimension_U = ColMajor ? U.GetRows() : U.GetCols();
 
 		if (TypeCheck::is_double<Type>::value == true){
 			typedef double Loc;
-			LAPACKE_dbdsqr(Matrix_Layout, UpperLower, Sing.Len(), VT.GetCols(), U.GetRows(), 0, (Loc *)&Sing[0].Val, (Loc *)&UpDiag[0].Val,
-				(Loc *)&VT(0, 0).Val, LeadingDimension_VT, (Loc *)&U(0, 0).Val, LeadingDimension_U, (Loc *)&C(0, 0).Val, 1);
+			LAPACKE_dbdsqr(
+				Matrix_Layout,
+				UpperLower,
+				Sing.Len(),
+				VT.GetCols(),
+				U.GetRows(),
+				0,									// NCC, if NCC == 0 then C is not referenced
+				(Loc *)&Sing[0].Val,
+				(Loc *)&UpDiag[0].Val,
+				(Loc *)&VT(0, 0).Val,
+				LeadingDimension_VT,
+				(Loc *)&U(0, 0).Val,				// U: U is overwritten by U * Q
+				LeadingDimension_U,
+				nullptr,//(Loc *)&C(0, 0).Val,		// C: C is overwritten by Q**T * C
+				1									// LDC: LDC >= max(1,N) if NCC > 0; LDC >=1 if NCC = 0
+			);
 		}
 		else
 		if (TypeCheck::is_float<Type>::value == true){
 			typedef float Loc;
 			LAPACKE_sbdsqr(Matrix_Layout, UpperLower, Sing.Len(), VT.GetCols(), U.GetRows(), 0, (Loc *)&Sing[0].Val, (Loc *)&UpDiag[0].Val,
-				(Loc *)&VT(0, 0).Val, LeadingDimension_VT, (Loc *)&U(0, 0).Val, LeadingDimension_U, (Loc *)&C(0, 0).Val, 1);
+				(Loc *)&VT(0, 0).Val, LeadingDimension_VT, (Loc *)&U(0, 0).Val, LeadingDimension_U, nullptr, 1);
 		}
 		else
 		if (TypeCheck::is_complex_double<Type>::value == true){
 			typedef std::complex<double> Loc;
 			typedef double LocSing;
 			LAPACKE_zbdsqr(Matrix_Layout, UpperLower, Sing.Len(), VT.GetCols(), U.GetRows(), 0, (LocSing *)&Sing[0].Val, (LocSing *)&UpDiag[0].Val,
-				(Loc *)&VT(0, 0).Val, LeadingDimension_VT, (Loc *)&U(0, 0).Val, LeadingDimension_U, (Loc *)&C(0, 0).Val, 1);
+				(Loc *)&VT(0, 0).Val, LeadingDimension_VT, (Loc *)&U(0, 0).Val, LeadingDimension_U, nullptr, 1);
 		}
 		else
 		if (TypeCheck::is_complex_float<Type>::value == true){
 			typedef std::complex<float> Loc;
 			typedef float LocSing;
 			LAPACKE_cbdsqr(Matrix_Layout, UpperLower, Sing.Len(), VT.GetCols(), U.GetRows(), 0, (LocSing *)&Sing[0].Val, (LocSing *)&UpDiag[0].Val,
-				(Loc *)&VT(0, 0).Val, LeadingDimension_VT, (Loc *)&U(0, 0).Val, LeadingDimension_U, (Loc *)&C(0, 0).Val, 1);
+				(Loc *)&VT(0, 0).Val, LeadingDimension_VT, (Loc *)&U(0, 0).Val, LeadingDimension_U, nullptr, 1);
 		}
 	}
 
