@@ -1010,7 +1010,7 @@ public:
     if (Offset != 0) return GetPrimHashCd(Bf + Offset); else return GetPrimHashCd(""); }
   int GetSecHashCd(const uint& Offset) { Assert(Offset < BfL);
     if (Offset != 0) return GetSecHashCd(Bf + Offset); else return GetSecHashCd(""); }
-  int GetMemUsed() const { return (int) MxBfL + 3*sizeof(uint); }
+  int GetMemUsed() const { return (int) (MxBfL + 3*sizeof(uint)); }
 };
 
 /////////////////////////////////////////////////

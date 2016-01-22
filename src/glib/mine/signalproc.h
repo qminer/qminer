@@ -24,7 +24,7 @@ public:
 	// serialization
 	void Load(TSIn& SIn) { *this = TMaSimple(SIn); }
 	void Save(TSOut& SOut) const { Ma.Save(SOut); N.Save(SOut); }
-	void Update(const double& InVal) { Ma = Ma + (InVal - Ma) / ++N; }
+	void Update(const double& InVal) { Ma = Ma + (InVal - Ma) / double(++N); }
 	double GetMa() const { return Ma; }
 	void Clr() { Ma = 0; N = 0; }
 };
@@ -50,7 +50,7 @@ public:
 	uint64 GetN() const { return N; }
 	double GetMean() const { return N > 0 ? (double)NewM : 0.0; }
 	double GetStDev() const { return sqrt((double)GetVar()); }
-	double GetVar() const { return (N > 1 ? NewS / (N - 1) : 0.0); }
+	double GetVar() const { return (N > 1 ? NewS / double(N - 1) : 0.0); }
 	void Clr() { OldM = NewM = OldS = NewS = 0.0; N = 0; }
 };
 

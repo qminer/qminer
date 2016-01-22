@@ -361,8 +361,13 @@ double TEmaSpVec::GetNi(const double& Alpha, const double& Mi) {
 	throw TExcept::New("Unknown EMA interpolation type");
 }
 
-TEmaSpVec::TEmaSpVec(const TEmaType& _Type, const uint64& _InitMinMSecs, const double& _TmInterval, const double& _Cutoff) :
-	Type(_Type), LastVal(TFlt::Mn), TmInterval(_TmInterval), Cutoff(_Cutoff), InitP(false),
+TEmaSpVec::TEmaSpVec(const TEmaType& _Type, const uint64& _InitMinMSecs,
+		const double& _TmInterval, const double& _Cutoff) :
+	Type(_Type),
+	LastVal(TFlt::Mn),	// XXX conversion from double to int
+	TmInterval(_TmInterval),
+	Cutoff(_Cutoff),
+	InitP(false),
 	InitMinMSecs(_InitMinMSecs) {}
 
 TEmaSpVec::TEmaSpVec(const PJsonVal& ParamVal) : LastVal(), InitP(false) {
@@ -1462,7 +1467,7 @@ void TTDigest::Init(const int& N) {
 	UnmergedSum = 0;
 	TempLast = 0;
 
-	Size = ceil(Nc * TMath::Pi/2);
+	Size = (int) ceil(Nc * TMath::Pi/2);
 	TotalSum = 0;
 	Last = 0;
 

@@ -182,7 +182,7 @@ void TStateIdentifier::GetJoinedCentroid(const TIntV& CentroidIdV, TFltV& Centro
 	double TotalSize = 0;
 	for (int i = 0; i < CentroidIdV.Len(); i++) {
 		const int CentroidIdx = CentroidIdV[i];
-		const uint64 CentroidSize = GetClustSize(CentroidIdx);
+		const double CentroidSize = (double) GetClustSize(CentroidIdx);
 
 		GetCentroid(CentroidIdx, FtrV);
 
@@ -209,7 +209,7 @@ void TStateIdentifier::GetJoinedControlCentroid(const TIntV& CentroidIdV, TFltV&
 	double TotalSize = 0;
 	for (int i = 0; i < CentroidIdV.Len(); i++) {
 		const int CentroidIdx = CentroidIdV[i];
-		const uint64 CentroidSize = GetClustSize(CentroidIdx);
+		const double CentroidSize = (double) GetClustSize(CentroidIdx);
 
 		GetControlCentroid(CentroidIdx, FtrV);
 
@@ -227,7 +227,7 @@ void TStateIdentifier::GetJoinedControlCentroid(const TIntV& CentroidIdV, TFltV&
 
 double TStateIdentifier::GetMeanPtCentDist(const int& CentroidIdx) const {
 	EAssertR(CentroidIdx < GetStates(), TStr::Fmt("TFullKMeans::GetMeanPtCentDist: Invalid centroid index: %d", CentroidIdx));
-	return CentroidDistStatV[CentroidIdx].Val2 / CentroidDistStatV[CentroidIdx].Val1;
+	return CentroidDistStatV[CentroidIdx].Val2 / double(CentroidDistStatV[CentroidIdx].Val1);
 }
 
 uint64 TStateIdentifier::GetClustSize(const int& ClustIdx) const {
@@ -365,20 +365,11 @@ void TStateIdentifier::SetVerbose(const bool& _Verbose) {
 	}
 }
 
-//void TStateIdentifier::Assign(const TFltVV& X, const TFltV& NormX2, const TFltV& NormC2,
-//		TIntV& AssignV) const {
-////	return GetDistMat2(X, NormX2, CentroidMat.ColNorm2V().Transpose(), OnesN, OnesK).GetColMinIdxV();
-//	TFltVV DistVV;	GetDistMat2(X, NormX2, NormC2, DistVV);
-//	TLinAlg::GetColMinIdxV(DistVV, AssignV);
-//}
-
 void TStateIdentifier::InitStatistics(const TFltVV& X) {
 	TIntV AssignV;	KMeans->Assign(X, AssignV);
 
 	const int K = GetStates();
 	TFltVV DistMat;	KMeans->GetDistVV(X, DistMat);
-
-	TVector OnesDim = TVector::Ones(X.GetRows());
 
 	CentroidDistStatV.Gen(K,K);
 	for (int ClustN = 0; ClustN < K; ClustN++) {
@@ -406,7 +397,7 @@ void TStateIdentifier::InitControlCentroids(const TFltVV& ObsMat,  const TFltVV&
 	for (int ColN = 0; ColN < NInst; ColN++) {
 		const int CentId = AssignV[ColN];
 		for (int RowN = 0; RowN < Dim; RowN++) {
-			ControlCentroidMat(RowN, CentId) += ControlFtrVV(RowN, ColN) / CountV[CentId];
+			ControlCentroidMat(RowN, CentId) += ControlFtrVV(RowN, ColN) / double(CountV[CentId]);
 		}
 	}
 }
@@ -1918,7 +1909,7 @@ void TCtmcModeller::InitIntensities(const TFltVV& FtrVV, const TUInt64V& TmV,
 		NextStateId = AssignV[CurrTmN+1];
 
 		DeltaTm = TmV[CurrTmN+1] - TmV[CurrTmN];
-		MeanSampleInterval += double(DeltaTm) / TimeUnit;
+		MeanSampleInterval += double(DeltaTm) / double(TimeUnit);
 
 		EAssertR(DeltaTm > 0, "Delta time is not positive time: " + TmV[CurrTmN+1].GetStr() + ", prev time: " + TmV[CurrTmN].GetStr() + ", index: " + TInt::GetStr(CurrTmN));
 
@@ -3395,7 +3386,7 @@ void TStateAssist::FitAssistModels(const TFltVV& FtrVV, const TFltV& LabelV, TLo
 	{
 		int NPos = 0;
 		for (int ColN = 0; ColN < NInst; ColN++) {
-			NPos += LabelV[ColN];
+			NPos += (int) LabelV[ColN];
 		}
 
 		const int MinExamples = TMath::Mn(50, NInst / 32);
