@@ -24,9 +24,8 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div>
-            <h1><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">RecLinReg</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-867">analyticsdoc.<wbr>js:867</a></p>
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">RecLinReg</span></h1>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-881">analyticsdoc.<wbr>js:881</a></p>
             <div class="symbol-classdesc">
               <p>Holds the Recursive Linear Regression model.</p>
             </div>
@@ -103,9 +102,9 @@
         </h3>
               <div>
                 <pre class="prettyprint"><code>// import analytics module
-var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var analytics = require(&#x27;qminer&#x27;).analytics;
 // create the recursive linear regression model holder
-var linreg &#x3D; new analytics.RecLinReg({ dim: 10, regFact: 1.0, forgetFact: 1.0 });</code></pre>
+var linreg = new analytics.RecLinReg({ dim: 10, regFact: 1.0, forgetFact: 1.0 });</code></pre>
               </div>
             </section>
             <section>
@@ -162,13 +161,13 @@ var linreg &#x3D; new analytics.RecLinReg({ dim: 10, regFact: 1.0, forgetFact: 1
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
 // create the Recursive Linear Regression model
-var linreg &#x3D; new analytics.RecLinReg({ dim: 2.0 });
+var linreg = new analytics.RecLinReg({ dim: 2.0 });
 // create a new dense matrix and target vector
-var mat &#x3D; new la.Matrix([[1, 2, 3], [3, 4, 5]]);
-var vec &#x3D; new la.Vector([3, 5, -1]);
+var mat = new la.Matrix([[1, 2, 3], [3, 4, 5]]);
+var vec = new la.Vector([3, 5, -1]);
 // fit the model with the matrix
 linreg.fit(mat, vec);</code></pre>
                 </div>
@@ -230,11 +229,11 @@ linreg.fit(mat, vec);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
-var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var analytics = require(&#x27;qminer&#x27;).analytics;
 // create the Recursive Linear Regression model
-var linreg &#x3D; new analytics.RecLinReg({ dim: 10 });
+var linreg = new analytics.RecLinReg({ dim: 10 });
 // get the model
-var model &#x3D; linreg.getModel(); // returns { weights: new require(&#x27;qminer&#x27;).la.Vector(); }</code></pre>
+var model = linreg.getModel(); // returns { weights: new require(&#x27;qminer&#x27;).la.Vector(); }</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -251,11 +250,11 @@ var model &#x3D; linreg.getModel(); // returns { weights: new require(&#x27;qmin
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
-var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var analytics = require(&#x27;qminer&#x27;).analytics;
 // create a new Recursive Linear Regression model
-var linreg &#x3D; new analytics.RecLinReg({ dim: 10 });
+var linreg = new analytics.RecLinReg({ dim: 10 });
 // get the parameters of the model
-var params &#x3D; linreg.getParams(); // returns { dim: 10, recFact: 1.0, forgetFact: 1.0 }</code></pre>
+var params = linreg.getParams(); // returns { dim: 10, recFact: 1.0, forgetFact: 1.0 }</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -272,12 +271,12 @@ var params &#x3D; linreg.getParams(); // returns { dim: 10, recFact: 1.0, forget
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
 // create the Recursive Linear Regression model
-var linreg &#x3D; new analytics.RecLinReg({ dim: 3.0 });
+var linreg = new analytics.RecLinReg({ dim: 3.0 });
 // create a new dense vector
-var vec &#x3D; new la.Vector([1, 2, 3]);
+var vec = new la.Vector([1, 2, 3]);
 // fit the model with the vector
 linreg.partialFit(vec, 6);</code></pre>
                 </div>
@@ -339,19 +338,19 @@ linreg.partialFit(vec, 6);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
 // create the Recursive Linear Regression model
-var linreg &#x3D; new analytics.RecLinReg({ dim: 2.0, recFact: 1e-10 });
+var linreg = new analytics.RecLinReg({ dim: 2.0, recFact: 1e-10 });
 // create a new dense matrix and target vector
-var mat &#x3D; new la.Matrix([[1, 2], [1, -1]]);
-var vec &#x3D; new la.Vector([3, 3]);
+var mat = new la.Matrix([[1, 2], [1, -1]]);
+var vec = new la.Vector([3, 3]);
 // fit the model with the matrix
 linreg.fit(mat, vec);
 // create the vector to be predicted
-var pred &#x3D; new la.Vector([1, 1]);
+var pred = new la.Vector([1, 1]);
 // predict the value of the vector
-var prediction &#x3D; linreg.predict(pred); // returns something close to 3.0</code></pre>
+var prediction = linreg.predict(pred); // returns something close to 3.0</code></pre>
                 </div>
               </section>
               <section>
@@ -397,23 +396,23 @@ var prediction &#x3D; linreg.predict(pred); // returns something close to 3.0</c
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
-var la &#x3D; require(&#x27;qminer&#x27;).la;
-var fs &#x3D; require(&#x27;qminer&#x27;).fs;
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
+var fs = require(&#x27;qminer&#x27;).fs;
 // create the Recursive Linear Regression model
-var linreg &#x3D; new analytics.RecLinReg({ dim: 2.0, recFact: 1e-10 });
+var linreg = new analytics.RecLinReg({ dim: 2.0, recFact: 1e-10 });
 // create a new dense matrix and target vector
-var mat &#x3D; new la.Matrix([[1, 2], [1, -1]]);
-var vec &#x3D; new la.Vector([3, 3]);
+var mat = new la.Matrix([[1, 2], [1, -1]]);
+var vec = new la.Vector([3, 3]);
 // fit the model with the matrix
 linreg.fit(mat, vec);
 // create an output stream object and save the model
-var fout &#x3D; fs.openWrite(&#x27;linreg_example.bin&#x27;);
+var fout = fs.openWrite(&#x27;linreg_example.bin&#x27;);
 linreg.save(fout);
 fout.close();
 // create a new Nearest Neighbor Anomaly model by loading the model
-var fin &#x3D; fs.openRead(&#x27;linreg_example.bin&#x27;);
-var linreg2 &#x3D; new analytics.RecLinReg(fin);</code></pre>
+var fin = fs.openRead(&#x27;linreg_example.bin&#x27;);
+var linreg2 = new analytics.RecLinReg(fin);</code></pre>
                 </div>
               </section>
               <section>
@@ -459,9 +458,9 @@ var linreg2 &#x3D; new analytics.RecLinReg(fin);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
-var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var analytics = require(&#x27;qminer&#x27;).analytics;
 // create a new Recursive Linear Regression model
-var linreg &#x3D; new analytics.RecLinReg({ dim: 10 });
+var linreg = new analytics.RecLinReg({ dim: 10 });
 // set the parameters of the model
 linreg.setParams({ dim: 3, recFact: 1e2, forgetFact: 0.5 });</code></pre>
                 </div>
