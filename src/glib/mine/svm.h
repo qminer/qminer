@@ -66,7 +66,7 @@ inline TLinModel LibSvmSolveRegression(const TVec<TIntFltKdV>& VecV, const TFltV
     // cache_size is only needed for kernel functions
     svm_parameter.cache_size = 100;
     svm_parameter.eps = 1e-3;
-    //  svm_parameter.p = 0.1;
+	svm_parameter.p = 0.1; // not needed but it has to be positive as it is checked
     svm_parameter.shrinking = 0;
     svm_parameter.probability = 0;
 	//  not needed for linear SVM, but it has to be positive as it is checked
@@ -144,12 +144,11 @@ inline TLinModel LibSvmSolveRegression(const TFltVV& VecV, const TFltV& TargetV,
     svm_parameter.weight_label = NULL;
     // cache_size is only needed for kernel functions
     svm_parameter.cache_size = 100;
-    svm_parameter.eps = 1e-3;
-    //  svm_parameter.p = 0.1;
+    svm_parameter.eps = 1e-3;	
+	svm_parameter.p = 0.1; // not needed but it has to be positive as it is checked
     svm_parameter.shrinking = 0;
-    svm_parameter.probability = 0;
-	//  not needed for linear SVM, but it has to be positive as it is checked
-	svm_parameter.gamma = 1.0;
+    svm_parameter.probability = 0;	
+	svm_parameter.gamma = 1.0; //  not needed for linear SVM, but it has to be positive as it is checked
 
     const int DimN = VecV.GetXDim(); // Number of features
     const int AllN = VecV.GetYDim(); // Number of examples
@@ -229,7 +228,7 @@ inline TLinModel LibSvmSolveClassify(const TVec<TIntFltKdV>& VecV, const TFltV& 
     // cache_size is only needed for kernel functions
     svm_parameter.cache_size = 100;
     svm_parameter.eps = 1e-3;
-    //  svm_parameter.p = 0.1;
+	//svm_parameter.p = 0.1; // not needed but it has to be positive as it is checked
     svm_parameter.shrinking = 0;
     svm_parameter.probability = 0;
 	//  not needed for linear SVM, but it has to be positive as it is checked
@@ -313,7 +312,7 @@ inline TLinModel LibSvmSolveClassify(const TFltVV& VecV, const TFltV& TargetV, c
     // cache_size is only needed for kernel functions
     svm_parameter.cache_size = 100;
     svm_parameter.eps = 1e-3;
-    //  svm_parameter.p = 0.1;
+	//svm_parameter.p = 0.1; // not needed but it has to be positive as it is checked
     svm_parameter.shrinking = 0;
     svm_parameter.probability = 0;
 	//  not needed for linear SVM, but it has to be positive as it is checked
