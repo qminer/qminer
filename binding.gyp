@@ -40,7 +40,7 @@
                     'MACOSX_DEPLOYMENT_TARGET': '10.7',
                     'GCC_ENABLE_CPP_RTTI': 'YES',
                     'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
-                    'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ]
+                    'OTHER_CFLAGS': [ '-Wconversion', '-std=c++11', '-stdlib=libc++' ]
                 },
             }],
         ],
@@ -53,7 +53,7 @@
                 # GCC flags
                 'cflags_cc!': [ '-fno-rtti', '-fno-exceptions' ],
                 'cflags_cc': [ '-std=c++0x', '-frtti', '-fexceptions' ],
-                'cflags': [ '-Wno-deprecated-declarations', '-fopenmp' ],
+                'cflags': [ '-Wconversion', '-Wno-deprecated-declarations', '-fopenmp' ],
                 # additional flags for ARM
                 'conditions': [
                     ['target_arch == "arm"', {
