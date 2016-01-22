@@ -1,5 +1,28 @@
 # QMiner Change Log
 
+### 22 Jan 2016
+
+**New version: 4.3.0**
+
+**Non-breaking with new features**
+
+Features:
+- Location of join fields can be defined in schema (memory or cache).
+- Nearest neighbor anomaly detector explain exposes first and last record ID
+- Nearest neighbor anomaly detector accepts vector of rates (as opposed to only single rate). Predict returns position of the rate that is reached starting with 1 (or 0 if none).
+- Can disable field name validation (`scrictNames` in base definition)
+- TLinAlg can solve generalized eigenvalue problems
+- added `TRecSet::TRecFilterByFieldUInt64`
+- added `TIndex::HasJoin(const int& JoinKeyId, const uint64& RecId) const`
+- added `THash::THash(const TVec<TKeyDat<TKey, TDat> >& KeyDatV)` constructor
+- added `TStr::GetNrNumFExt` can generate any number of leading zeros
+
+Big fixes:
+- GYP fixed to make `libsvm` work.
+- `qm.saveCsv` puts headers always in quotes
+- TZipIn::CreateZipProcess puts filename in quotes
+- Consolidated all references to records with frequency to Fq.
+
 ### 15 Jan 2016
 
 **New version: 4.2.0**
