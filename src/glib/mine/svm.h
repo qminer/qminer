@@ -69,6 +69,8 @@ inline TLinModel LibSvmSolveRegression(const TVec<TIntFltKdV>& VecV, const TFltV
     //  svm_parameter.p = 0.1;
     svm_parameter.shrinking = 0;
     svm_parameter.probability = 0;
+	//  not needed for linear SVM, but it has to be positive as it is checked
+	svm_parameter.gamma = 1.0;
 
     svm_problem_t svm_problem;
     svm_problem.l = VecV.Len();
@@ -146,6 +148,8 @@ inline TLinModel LibSvmSolveRegression(const TFltVV& VecV, const TFltV& TargetV,
     //  svm_parameter.p = 0.1;
     svm_parameter.shrinking = 0;
     svm_parameter.probability = 0;
+	//  not needed for linear SVM, but it has to be positive as it is checked
+	svm_parameter.gamma = 1.0;
 
     const int DimN = VecV.GetXDim(); // Number of features
     const int AllN = VecV.GetYDim(); // Number of examples
@@ -228,6 +232,8 @@ inline TLinModel LibSvmSolveClassify(const TVec<TIntFltKdV>& VecV, const TFltV& 
     //  svm_parameter.p = 0.1;
     svm_parameter.shrinking = 0;
     svm_parameter.probability = 0;
+	//  not needed for linear SVM, but it has to be positive as it is checked
+	svm_parameter.gamma = 1.0;
 
     // load train data
     svm_problem_t svm_problem;
@@ -310,6 +316,8 @@ inline TLinModel LibSvmSolveClassify(const TFltVV& VecV, const TFltV& TargetV, c
     //  svm_parameter.p = 0.1;
     svm_parameter.shrinking = 0;
     svm_parameter.probability = 0;
+	//  not needed for linear SVM, but it has to be positive as it is checked
+	svm_parameter.gamma = 1.0;
 
     const int DimN = VecV.GetXDim(); // Number of features
     const int AllN = VecV.GetYDim(); // Number of examples
