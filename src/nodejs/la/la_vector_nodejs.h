@@ -989,12 +989,13 @@ inline void TNodeJsVec<TFlt, TAuxFltV>::sparse(const v8::FunctionCallbackInfo<v8
 
 	TNodeJsVec<TFlt, TAuxFltV>* JsVec =
 		ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args.This());
-
-	TIntFltKdV Res;
+	
+	int Dim = TNodeJsUtil::GetArgInt32(Args, 0, JsVec->Vec.Len());
+    TIntFltKdV Res;
 	TLAMisc::ToSpVec(JsVec->Vec, Res);
 
 	Args.GetReturnValue().Set(
-		TNodeJsUtil::NewInstance<TNodeJsSpVec>(new TNodeJsSpVec(Res, JsVec->Vec.Len())));
+		TNodeJsUtil::NewInstance<TNodeJsSpVec>(new TNodeJsSpVec(Res, Dim)));
 }
 
 template<>
