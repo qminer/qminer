@@ -284,9 +284,9 @@ class TFIn: public TSIn{
 private:
   static const int MxBfL;
   TFileId FileId;
-  char* Bf;		// buffer that was read from the disk and is (partially) usable for future GetBf calls
-  int BfC;		// index to the next data in Bf that we can use (0 <= BfC <= BfL)	
-  int BfL;		// the length of the buffer Bf (0 <= BfL <= MxBfL)
+  char* Bf; //< buffer that was read from the disk and is (partially) usable for future GetBf calls
+  int BfC;  //< index to the next data in Bf that we can use (0 <= BfC <= BfL)	
+  int BfL;  //< the length of the buffer Bf (0 <= BfL <= MxBfL)
 
   TFIn();
   TFIn(const TFIn&);

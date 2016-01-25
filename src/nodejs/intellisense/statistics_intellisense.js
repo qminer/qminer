@@ -53,6 +53,6 @@ exports = {}; require.modules.qminer_stat = exports;
 	* @param {number} Val - The average value of the sample you want to calculate the p-value for
 	* @param {number} Mean - The mean value of the sample you want to calculate the p-value for
 	* @param {number} Std - The sample standard deviation of the sample you want to calculate the p-value for
-	* @param {number} Df - Degrees of freedom for the sample (if your sample is n big then degrees of freedom in n-1)
+	* @param {number} Df - Degrees of freedom for the sample (if your sample is n big then degrees of freedom is n-1)
 	* @returns {Alpha}
 	*/

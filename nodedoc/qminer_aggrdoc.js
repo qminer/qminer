@@ -79,6 +79,7 @@
 * @property {module:qm~StreamAggregateTimeSeriesTick} tick - The time series tick type.
 * @property {module:qm~StreamAggregateMovingAverage} ma - The moving average type.
 * @property {module:qm~StreamAggregateEMA} ema - The exponental moving average type.
+* @property {module:qm~StreamAggregateEMASpVec} ema - The exponental moving average for sparse vectors type.
 * @property {module:qm~StreamAggregateMovingVariance} var - The moving variance type.
 * @property {module:qm~StreamAggregateMovingCovariance} cov - The moving covariance type.
 * @property {module:qm~StreamAggregateMovingCorrelation} cor - The moving correlation type.
@@ -87,8 +88,6 @@
 * @property {module:qm~StreamAggregateHistogram} hist - The online histogram type.
 * @property {module:qm~StreamAggregateSlottedHistogram} slotted-hist - The online slotted-histogram type.
 * @property {module:qm~StreamAggregateVecDiff} vec-diff - The difference of two vectors (e.g. online histograms) type.
-* @property {module:qm~StreamAggregateTDigest} quantile - ...
-
 */
 /**
 * @typedef {module:qm.StreamAggr} StreamAggregateTimeSeriesWindow
@@ -507,6 +506,81 @@
 *    initWindow: 2000
 * };
 * var expoMovingAverage = base.store("Heat").addStreamAggr(ema);
+* base.close();
+*/
+/**
+* @typedef {module:qmStreamAggr} StreamAggregateEMASpVec
+* This stream aggregator represents the exponential moving average window buffer for sparse vectors. It calculates the weighted moving average
+* of the values in the connected stream aggregator, where the weights are exponentially decreasing.  It implements the following methods:
+* <br>{@link module:qm.StreamAggr#getValueVector} returns the exponentional average of the sparse-vector values in it's buffer window.
+* <br>{@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the newest record in it's buffer window.
+* @property {string} StreamAggregateEMA.name - The given name for the stream aggregator.
+* @property {string} StreamAggregateEMA.type - The type of the stream aggregator. It must be equal to <b>'ema'</b>.
+* @property {string} StreamAggregateEMA.store - The name of the store from which it takes the data.
+* @property {string} StreamAggregateEMA.inAggr - The name of the stream aggregator to which it connects and gets data.
+* It <b>cannot</b> connect to the {@link module:qm~StreamAggr_TimeSeriesWindow}.
+* @property {string} StreamAggregateEMA.emaType - The type of interpolation. The choices are 'previous', 'linear' and 'next'.
+* <br> Type 'previous' interpolates with the previous value.
+* <br> Type 'next' interpolates with the next value.
+* <br> Type 'linear' makes a linear interpolation.
+* @property {number} StreamAggregateEMA.interval - The time interval defining the decay. It must be greater than initWindow.
+* @property {number} StreamAggregateEMA.initWindow - The time window of required values for initialization. Optional, default is 0.
+* @property {number} StreamAggregateEMA.cuttof - Minimal value for any dimension. If value of certain dimension falls bellow thsi value, the dimension is pruned from average. Optional, default is 0.001.
+* @example
+* // import the qm module
+* var qm = require('qminer');
+* // create a base with a simple store
+* var base = new qm.Base({
+*    mode: "createClean",
+*    schema: [
+*    {
+*        name: "Data",
+*        fields: [
+*            { name: "Text", type: "string" },
+*            { name: "Time", type: "datetime" }
+*        ]
+*    }]
+* });
+* var store = base.store("Data");
+* // create a new time series that emits data as sparse vector, based on text.
+* var aggr = {
+*    name: 'featureSpaceWindow',
+*    type: 'timeSeriesWinBufFeatureSpace',
+*    store: store.name,
+*    timestamp: 'Time',
+*    featureSpace: {
+*       type: "categorical",
+*       source: store.name,
+*       field: "Text"
+*    },
+*    winsize: 1 // keep only most recent value in window
+* };
+* // attach sum
+* var sa = store.addStreamAggr(aggr);
+* var aggr2 = {
+*    name: 'sparseVectorSum',
+*    type: 'winBufSpVecSum',
+*    store: store.name,
+*    inAggr: aggr.name // this means that sum is equal to the most recent data
+* };
+* // ok, now attach EMA
+* var sa2 = store.addStreamAggr(aggr2);
+* var ema_def = {
+*    name: 'sparseVectorEma',
+*    type: 'emaSpVec',
+*    store: store.name,
+*    inAggr: aggr2.name,
+*    emaType: "next",
+*    interval: 2000,
+*    initWindow: 0
+* };
+* var ema = store.addStreamAggr(ema_def);
+* // add some data
+* store.push({ Time: 1000, Text: 'a' });
+* store.push({ Time: 2000, Text: 'b' });
+* store.push({ Time: 3000, Text: 'c' });
+* // display EMA data
+* ema.getValueVector().print();
 * base.close();
 */
 /**
@@ -1702,6 +1776,10 @@
 	* // look at the example for getInValueVector
 	*/
  exports.StreamAggr.prototype.getValueVector = function () { };
+/**
+	* Returns a feature space
+	*/
+ exports.StreamAggr.prototype.getFeatureSpace = function() { return Object.create(require('qminer').FeatureSpace.prototype); };
 /**
 	* Returns the name of the stream aggregate.
 	*/

@@ -1567,7 +1567,7 @@ public:
 //!
 //!- `hmc = new analytics.HMC(params)` -- Creates a new model using `params` JSON. TODO param description.
 //!- `hmc = new analytics.HMC(fin)` -- Loads the model from input stream `fin`.
-class TNodeJsStreamStory : public node::ObjectWrap, public TMc::TStreamStory::TCallback {
+class TNodeJsStreamStory : public node::ObjectWrap, public TMc::TStreamStoryCallback {
 	friend class TNodeJsUtil;
 public:
 	static void Init(v8::Handle<v8::Object> exports);
@@ -1581,6 +1581,7 @@ private:
 	v8::Persistent<v8::Function> StateChangedCallback;
 	v8::Persistent<v8::Function> AnomalyCallback;
 	v8::Persistent<v8::Function> OutlierCallback;
+	v8::Persistent<v8::Function> ProgressCallback;
 	v8::Persistent<v8::Function> PredictionCallback;
 
 	TNodeJsStreamStory(TMc::TStreamStory* McModel);
@@ -1604,6 +1605,19 @@ private:
 
 		v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
 		void Run();
+	};
+
+	class TProgressTask {
+	private:
+		int Perc;
+		TStr Msg;
+		v8::Persistent<v8::Function>* ProgressCallback;
+	public:
+		TProgressTask(const int& _Perc, const TStr& _Msg, v8::Persistent<v8::Function>* _ProgressCallback):
+			Perc(_Perc),
+			Msg(_Msg),
+			ProgressCallback(_ProgressCallback) {}
+		static void Run(const TProgressTask& Task);
 	};
 
 public:
@@ -1659,6 +1673,14 @@ public:
 	 * @returns {Object}
 	 */
 	JsDeclareFunction(toJSON);
+
+	/**
+	 * Returns an object representation of a subset of this model.
+	 *
+	 * @param {Number} stateId - state to zoom into
+	 * @returns {Object}
+	 */
+	JsDeclareFunction(getSubModelJson);
 
 	/**
 	 * Returns the underlying transition model at the lowest level. (for CTMC the matrix of intensities)
@@ -1754,6 +1776,8 @@ public:
 	 */
 	JsDeclareFunction(onOutlier);
 
+	JsDeclareFunction(onProgress);
+
 	/**
 	 * Sets a callback function which is fired when a prediction is made. 4 paramters are passed
 	 * to the callback:
@@ -1779,6 +1803,8 @@ public:
 	 */
 	JsDeclareFunction(rebuildHistograms);
 
+	JsDeclareFunction(getStateLabel);
+
 	/**
 	 * Returns the name of a state.
 	 *
@@ -1795,6 +1821,8 @@ public:
 	 */
 	JsDeclareFunction(setStateName);
 
+	JsDeclareFunction(setStateCoords);
+
 	/**
 	 * Sets the name of the state.
 	 *
@@ -1806,7 +1834,6 @@ public:
 	 * Returns true if the state is a target on the specified height.
 	 *
 	 * @param {Number} stateId - Id of the state
-	 * @param {Number} height - the height
 	 * @returns {Boolean}
 	 */
 	JsDeclareFunction(isTarget);
@@ -1815,7 +1842,6 @@ public:
 	 * Sets whether the specified state is a target state or not.
 	 *
 	 * @param {Number} stateId - ID of the state
-	 * @param {Number} height - the height on which the state is a target
 	 * @param {Boolean} isTarget - set target on/off
 	 */
 	JsDeclareFunction(setTarget);
@@ -1871,6 +1897,7 @@ public:
 	void OnStateChanged(const TIntFltPrV& StateIdHeightV);
 	void OnAnomaly(const TStr& AnomalyDesc);
 	void OnOutlier(const TFltV& FtrV);
+	void OnProgress(const int& Perc, const TStr& Msg);
 	void OnPrediction(const uint64& RecTm, const int& CurrStateId, const int& TargetStateId,
 			const double& Prob, const TFltV& ProbV, const TFltV& TmV);
 

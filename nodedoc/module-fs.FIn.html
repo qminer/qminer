@@ -24,8 +24,7 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div>
-            <h1><small><a href="module-fs.html">fs</a>.<wbr></small><span class="symbol-name">FIn</span></h1>
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-fs.html">fs</a>.<wbr></small><span class="symbol-name">FIn</span></h1>
             <p class="source-link">Source: <a href="fsdoc.js.html#source-line-128">fsdoc.<wbr>js:128</a></p>
             <div class="symbol-classdesc">
               <p>Used for reading files.</p>
@@ -79,14 +78,14 @@
                     <dt><a href="module-fs.FIn.html#readAll">readAll()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-fs.FIn.html#readJson">readJson()</a></dt>
+                    <dt><a href="module-fs.FIn.html#readLine">readLine()</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-fs.FIn.html#readLine">readLine()</a></dt>
+                    <dt><a href="module-fs.FIn.html#readString">readString()</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -103,11 +102,11 @@
         </h3>
               <div>
                 <pre class="prettyprint"><code>// import module
-var fs &#x3D; require(&#x27;qminer&#x27;).fs;
+var fs = require(&#x27;qminer&#x27;).fs;
 // open file in read mode
-var fin &#x3D; new fs.FIn(&#x27;file.txt&#x27;);
+var fin = new fs.FIn(&#x27;file.txt&#x27;);
 // read a line
-var str &#x3D; fin.readLine();</code></pre>
+var str = fin.readLine();</code></pre>
               </div>
             </section>
             <section>
@@ -244,20 +243,20 @@ var str &#x3D; fin.readLine();</code></pre>
                   <p><code>string</code>&nbsp;Content of the file.</p>
                 </dd>
               </dl>
-              <h3 id="readJson"><span class="symbol-name">readJson</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
-              <p>Reads json that was serialized using <code>fs.FOut.writeJson</code>.</p>
-              <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code>Object</code>&nbsp;Json object</p>
-                </dd>
-              </dl>
               <h3 id="readLine"><span class="symbol-name">readLine</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> string</span></span></h3>
               <p>Reads a line</p>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
                   <p><code>string</code>&nbsp;Line string.</p>
+                </dd>
+              </dl>
+              <h3 id="readString"><span class="symbol-name">readString</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> string</span></span></h3>
+              <p>Reads a string that was serialized using <code>fs.FOut.writeBinary</code>.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>string</code>&nbsp;String</p>
                 </dd>
               </dl>
             </section>

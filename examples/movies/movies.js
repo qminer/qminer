@@ -1,5 +1,5 @@
 // import libraries
-var qm = require('qminer.js');
+var qm = require('qminer');
 var loader = require('qminer-data-loader');
 var la = qm.la;
 var analytics = qm.analytics;

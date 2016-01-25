@@ -24,8 +24,7 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div>
-            <h1><small><a href="module-la.html">la</a>.<wbr></small><span class="symbol-name">Matrix</span></h1>
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-la.html">la</a>.<wbr></small><span class="symbol-name">Matrix</span></h1>
             <p class="source-link">Source: <a href="ladoc.js.html#source-line-59">ladoc.<wbr>js:59</a></p>
             <div class="symbol-classdesc">
               <p>Represents a dense matrix (2d array), wraps a C++ object implemented in glib/base/ds.h.</p>
@@ -166,11 +165,11 @@
         </h3>
               <div>
                 <pre class="prettyprint"><code>// import la module
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var la = require(&#x27;qminer&#x27;).la;
 // create new matrix with matrixArg
-var mat &#x3D; new la.Matrix({&quot;rows&quot;: 3, &quot;cols&quot;: 2, &quot;random&quot;: true}); // creates a 3 x 2 matrix with random values
+var mat = new la.Matrix({&quot;rows&quot;: 3, &quot;cols&quot;: 2, &quot;random&quot;: true}); // creates a 3 x 2 matrix with random values
 // create a new matrix with nested arrays
-var mat2 &#x3D; new la.Matrix([[1, 7, 4], [-10, 0, 3]]); // creates a 2 x 3 matrix with the designated values</code></pre>
+var mat2 = new la.Matrix([[1, 7, 4], [-10, 0, 3]]); // creates a 2 x 3 matrix with the designated values</code></pre>
               </div>
             </section>
             <section>
@@ -219,11 +218,11 @@ var mat2 &#x3D; new la.Matrix([[1, 7, 4], [-10, 0, 3]]); // creates a 2 x 3 matr
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var la = require(&#x27;qminer&#x27;).la;
 // create the matrix
-var mat &#x3D; new la.Matrix([[1, 2], [3, 1], [-4, 5]]);
+var mat = new la.Matrix([[1, 2], [3, 1], [-4, 5]]);
 // get the number of cols
-var colsN &#x3D; mat.cols; // returns 2</code></pre>
+var colsN = mat.cols; // returns 2</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -240,11 +239,11 @@ var colsN &#x3D; mat.cols; // returns 2</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var la = require(&#x27;qminer&#x27;).la;
 // create the matrix
-var mat &#x3D; new la.Matrix([[1, 2], [3, 1], [-4, 5]]);
+var mat = new la.Matrix([[1, 2], [3, 1], [-4, 5]]);
 // get the number of rows
-var rowN &#x3D; mat.rows; // returns 3</code></pre>
+var rowN = mat.rows; // returns 3</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -264,11 +263,11 @@ var rowN &#x3D; mat.rows; // returns 3</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var la = require(&#x27;qminer&#x27;).la;
 // create a new matrix
-var mat &#x3D; new la.Matrix([[2, 3], [-2, -2], [-3, 1]]);
+var mat = new la.Matrix([[2, 3], [-2, -2], [-3, 1]]);
 // get the value at the index (2, 1)
-var value &#x3D; mat.at(2, 1); // returns the value 1</code></pre>
+var value = mat.at(2, 1); // returns the value 1</code></pre>
                 </div>
               </section>
               <section>
@@ -328,11 +327,11 @@ var value &#x3D; mat.at(2, 1); // returns the value 1</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var la = require(&#x27;qminer&#x27;).la;
 // create the matrix
-var mat &#x3D; new la.Matrix([[1, 2], [3, 1], [-4, 5]]);
+var mat = new la.Matrix([[1, 2], [3, 1], [-4, 5]]);
 // get the row id of the maximum value of the second column
-var maxRow &#x3D; mat.colMaxIdx(1); // returns the value 2</code></pre>
+var maxRow = mat.colMaxIdx(1); // returns the value 2</code></pre>
                 </div>
               </section>
               <section>
@@ -378,11 +377,11 @@ var maxRow &#x3D; mat.colMaxIdx(1); // returns the value 2</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var la = require(&#x27;qminer&#x27;).la;
 // create a new matrix
-var mat &#x3D; new la.Matrix([[3, 4], [4, 15/2]]);
+var mat = new la.Matrix([[3, 4], [4, 15/2]]);
 // get the row norms of the matrix
-var rowNorms &#x3D; mat.colNorms(); // returns the vector [5, 17/2]</code></pre>
+var rowNorms = mat.colNorms(); // returns the vector [5, 17/2]</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -399,11 +398,11 @@ var rowNorms &#x3D; mat.colNorms(); // returns the vector [5, 17/2]</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var la = require(&#x27;qminer&#x27;).la;
 // create a new matrix
-var mat &#x3D; new la.Matrix([[1, -1, 0], [15, 8, 3], [0, 1, 0]]);
+var mat = new la.Matrix([[1, -1, 0], [15, 8, 3], [0, 1, 0]]);
 // call diag function
-var vec &#x3D; mat.diag(); // returns a vector [1, 8, 0]</code></pre>
+var vec = mat.diag(); // returns a vector [1, 8, 0]</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -420,11 +419,11 @@ var vec &#x3D; mat.diag(); // returns a vector [1, 8, 0]</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var la = require(&#x27;qminer&#x27;).la;
 // create the matrix
-var mat &#x3D; new la.Matrix([[1, 2], [3, 4]]);
+var mat = new la.Matrix([[1, 2], [3, 4]]);
 // get the frobenious norm of the matrix
-var frob &#x3D; mat.frob(); // returns the value Math.sqrt(30)</code></pre>
+var frob = mat.frob(); // returns the value Math.sqrt(30)</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -441,11 +440,11 @@ var frob &#x3D; mat.frob(); // returns the value Math.sqrt(30)</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var la = require(&#x27;qminer&#x27;).la;
 // create the matrix
-var mat &#x3D; new la.Matrix([[1, 2], [3, 1], [-4, 5]]);
+var mat = new la.Matrix([[1, 2], [3, 1], [-4, 5]]);
 // get the second column of the matrix
-var col &#x3D; mat.getCol(1);</code></pre>
+var col = mat.getCol(1);</code></pre>
                 </div>
               </section>
               <section>
@@ -528,11 +527,11 @@ var col &#x3D; mat.getCol(1);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var la = require(&#x27;qminer&#x27;).la;
 // create the matrix
-var mat &#x3D; new la.Matrix([[1, 2], [3, 1], [-4, 5]]);
+var mat = new la.Matrix([[1, 2], [3, 1], [-4, 5]]);
 // get the first row of the matrix
-var row &#x3D; mat.getRow(1);</code></pre>
+var row = mat.getRow(1);</code></pre>
                 </div>
               </section>
               <section>
@@ -657,12 +656,12 @@ var row &#x3D; mat.getRow(1);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import the modules
-var fs &#x3D; require(&#x27;qminer&#x27;).fs;
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var fs = require(&#x27;qminer&#x27;).fs;
+var la = require(&#x27;qminer&#x27;).la;
 // create an empty matrix
-var mat &#x3D; new la.Matrix();
+var mat = new la.Matrix();
 // open a read stream (&#x27;mat.dat&#x27; is pre-saved)
-var fin &#x3D; fs.openRead(&#x27;mat.dat&#x27;);
+var fin = fs.openRead(&#x27;mat.dat&#x27;);
 // load the matrix
 mat.load(fin);</code></pre>
                 </div>
@@ -710,15 +709,15 @@ mat.load(fin);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var la = require(&#x27;qminer&#x27;).la;
 // create two matrices
-var mat &#x3D; new la.Matrix([[1, 2], [-1, 5]]);
-var mat2 &#x3D; new la.Matrix([[1, -1], [3, 2]]);
+var mat = new la.Matrix([[1, 2], [-1, 5]]);
+var mat2 = new la.Matrix([[1, -1], [3, 2]]);
 // substract the matrices
 // the return matrix is
 //  0   3
 // -4   3
-var diff &#x3D; mat.minus(mat2);</code></pre>
+var diff = mat.minus(mat2);</code></pre>
                 </div>
               </section>
               <section>
@@ -764,13 +763,13 @@ var diff &#x3D; mat.minus(mat2);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var la = require(&#x27;qminer&#x27;).la;
 // create a new matrix
-var mat &#x3D; new la.Matrix([[1, 2], [-1, 5]]);
+var mat = new la.Matrix([[1, 2], [-1, 5]]);
 // create a new vector
-var vec &#x3D; new la.Vector([1, -1]);
+var vec = new la.Vector([1, -1]);
 //multiply mat and vec
-var vec2 &#x3D; mat.multiply(vec); // returns vector [-1, -6]</code></pre>
+var vec2 = mat.multiply(vec); // returns vector [-1, -6]</code></pre>
                 </div>
               </section>
               <section>
@@ -818,13 +817,13 @@ var vec2 &#x3D; mat.multiply(vec); // returns vector [-1, -6]</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var la = require(&#x27;qminer&#x27;).la;
 // create a new matrix
-var mat &#x3D; new la.Matrix([[1, 2], [-1, 5]]);
+var mat = new la.Matrix([[1, 2], [-1, 5]]);
 // create a new vector
-var vec &#x3D; new la.Vector([1, -1]);
+var vec = new la.Vector([1, -1]);
 //multiply mat and vec
-var vec2 &#x3D; mat.multiplyT(vec); // returns vector [2, 7]</code></pre>
+var vec2 = mat.multiplyT(vec); // returns vector [2, 7]</code></pre>
                 </div>
               </section>
               <section>
@@ -882,15 +881,15 @@ var vec2 &#x3D; mat.multiplyT(vec); // returns vector [2, 7]</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var la = require(&#x27;qminer&#x27;).la;
 // create two matrices
-var mat &#x3D; new la.Matrix([[1, 2], [-1, 5]]);
-var mat2 &#x3D; new la.Matrix([[1, -1], [3, 2]]);
+var mat = new la.Matrix([[1, 2], [-1, 5]]);
+var mat2 = new la.Matrix([[1, -1], [3, 2]]);
 // add the matrices 
 // the return matrix is
 // 2   1
 // 2   7
-var sum &#x3D; mat.plus(mat2);</code></pre>
+var sum = mat.plus(mat2);</code></pre>
                 </div>
               </section>
               <section>
@@ -936,9 +935,9 @@ var sum &#x3D; mat.plus(mat2);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var la = require(&#x27;qminer&#x27;).la;
 // create a new matrix
-var mat &#x3D; new la.Matrix([[1, 2], [3, 4]]);
+var mat = new la.Matrix([[1, 2], [3, 4]]);
 // print the matrix
 // each row represents a row in the matrix. For this example:
 // 1  2
@@ -956,10 +955,10 @@ mat.print();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var la = require(&#x27;qminer&#x27;).la;
 // create a new matrix
-var mat &#x3D; new la.Matrix([[1, 2, 3], [4, 5, 6], [7, 8, 9]]);
-var arg &#x3D; new la.Matrix([[10, 11], [12, 13]]);
+var mat = new la.Matrix([[1, 2, 3], [4, 5, 6], [7, 8, 9]]);
+var arg = new la.Matrix([[10, 11], [12, 13]]);
 mat.put(0, 1, arg);
 // updates the matrix to
 // 1  10  11
@@ -1038,11 +1037,11 @@ mat.put(0, 1, arg);
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var la = require(&#x27;qminer&#x27;).la;
 // create the matrix
-var mat &#x3D; new la.Matrix([[1, 2], [3, 1], [-4, 5]]);
+var mat = new la.Matrix([[1, 2], [3, 1], [-4, 5]]);
 // get the column id of the maximum value of the second row
-var maxRow &#x3D; mat.rowMaxIdx(1); // returns the value 0</code></pre>
+var maxRow = mat.rowMaxIdx(1); // returns the value 0</code></pre>
                 </div>
               </section>
               <section>
@@ -1088,11 +1087,11 @@ var maxRow &#x3D; mat.rowMaxIdx(1); // returns the value 0</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var la = require(&#x27;qminer&#x27;).la;
 // create a new matrix
-var mat &#x3D; new la.Matrix([[3, 4], [4, 15/2]]);
+var mat = new la.Matrix([[3, 4], [4, 15/2]]);
 // get the row norms of the matrix
-var rowNorms &#x3D; mat.rowNorms(); // returns the vector [5, 17/2]</code></pre>
+var rowNorms = mat.rowNorms(); // returns the vector [5, 17/2]</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -1109,12 +1108,12 @@ var rowNorms &#x3D; mat.rowNorms(); // returns the vector [5, 17/2]</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import the modules
-var fs &#x3D; require(&#x27;qminer&#x27;).fs;
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var fs = require(&#x27;qminer&#x27;).fs;
+var la = require(&#x27;qminer&#x27;).la;
 // create new matrix
-var mat &#x3D; new la.Matrix([[1, 2], [3, 4]]);
+var mat = new la.Matrix([[1, 2], [3, 4]]);
 // open write stream
-var fout &#x3D; fs.openWrite(&#x27;mat.dat&#x27;);
+var fout = fs.openWrite(&#x27;mat.dat&#x27;);
 // save matrix and close write stream
 mat.save(fout).close();</code></pre>
                 </div>
@@ -1162,11 +1161,11 @@ mat.save(fout).close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var la = require(&#x27;qminer&#x27;).la;
 // create a matrix
-var mat &#x3D; new la.Matrix([[1, -3, 2], [9, 2, -4],  [-2, 3, 3]]);
+var mat = new la.Matrix([[1, -3, 2], [9, 2, -4],  [-2, 3, 3]]);
 // create a vector
-var vec &#x3D; new la.Vector([-3, 2, 2]);
+var vec = new la.Vector([-3, 2, 2]);
 // set the first column of the matrix with the vector
 // the changed matrix is now
 // -3   -3    2
@@ -1232,11 +1231,11 @@ mat.setCol(0, vec);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var la = require(&#x27;qminer&#x27;).la;
 // create a matrix
-var mat &#x3D; new la.Matrix([[1, -3, 2], [9, 2, -4],  [-2, 3, 3]]);
+var mat = new la.Matrix([[1, -3, 2], [9, 2, -4],  [-2, 3, 3]]);
 // create a vector
-var vec &#x3D; new la.Vector([-3, 2, 2]);
+var vec = new la.Vector([-3, 2, 2]);
 // set the first row of the matrix with the vector
 // the changed matrix is now
 // -3    2    2
@@ -1302,13 +1301,13 @@ mat.setRow(0, vec);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var la = require(&#x27;qminer&#x27;).la;
 // create a new matrix
-var M &#x3D; new la.Matrix([[1, 2], [-1, -5]]);
+var M = new la.Matrix([[1, 2], [-1, -5]]);
 // create a new vector
-var b &#x3D; new la.Vector([-1, -6]);
-// solve the linear system M*x &#x3D; b
-var x &#x3D; M.solve(b); // returns vector [1, -1]</code></pre>
+var b = new la.Vector([-1, -6]);
+// solve the linear system M*x = b
+var x = M.solve(b); // returns vector [1, -1]</code></pre>
                 </div>
               </section>
               <section>
@@ -1354,11 +1353,11 @@ var x &#x3D; M.solve(b); // returns vector [1, -1]</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var la = require(&#x27;qminer&#x27;).la;
 // create the matrix
-var mat &#x3D; new la.Matrix([[1, 2], [0, 3], [-4, 0]]);
+var mat = new la.Matrix([[1, 2], [0, 3], [-4, 0]]);
 // transform the matrix into the sparse form
-var spMat &#x3D; mat.sparse();</code></pre>
+var spMat = mat.sparse();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -1375,11 +1374,11 @@ var spMat &#x3D; mat.sparse();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var la = require(&#x27;qminer&#x27;).la;
 // create a new matrix
-var mat &#x3D; new la.Matrix([[1, 2], [3, 4]]);
+var mat = new la.Matrix([[1, 2], [3, 4]]);
 // create a JavaScript array out of matrix
-var arr &#x3D; mat.toArray(); // returns an array [[1, 2], [3, 4]]</code></pre>
+var arr = mat.toArray(); // returns an array [[1, 2], [3, 4]]</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -1404,11 +1403,11 @@ var arr &#x3D; mat.toArray(); // returns an array [[1, 2], [3, 4]]</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var la = require(&#x27;qminer&#x27;).la;
 // create a new matrix
-var mat &#x3D; new la.Matrix([[1, 2], [3, 5]]);
+var mat = new la.Matrix([[1, 2], [3, 5]]);
 // get matrix as string
-var text &#x3D; mat.toString(); // returns &#x60;1 2 \n3 5 \n\n&#x60;</code></pre>
+var text = mat.toString(); // returns &#x60;1 2 \n3 5 \n\n&#x60;</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -1425,14 +1424,14 @@ var text &#x3D; mat.toString(); // returns &#x60;1 2 \n3 5 \n\n&#x60;</code></pr
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var la = require(&#x27;qminer&#x27;).la;
 // create a matrix
-var mat &#x3D; new la.Matrix([[2, -5], [3, 1]]);
+var mat = new la.Matrix([[2, -5], [3, 1]]);
 // transpose the matrix
 // the return matrix is
 //  2   3
 // -5   1
-var trans &#x3D; mat.transpose();</code></pre>
+var trans = mat.transpose();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">

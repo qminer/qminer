@@ -293,7 +293,7 @@ namespace TQm {
 		TVec<TWPt<TStore> > CreateJsStoresFromSchema(const TWPt<TBase>& Base, const PJsonVal& SchemaVal, const v8::Handle<v8::Value>& CallbacksObj) {
 			// parse and validate the schema
 			InfoLog("Parsing schema");
-			TStoreSchemaV SchemaV; TStoreSchema::ParseSchema(SchemaVal, SchemaV);
+			TStoreSchemaV SchemaV; TStoreSchema::ParseSchema(Base, SchemaVal, SchemaV);
 			TStoreSchema::ValidateSchema(Base, SchemaV);
 
 			// create stores	
