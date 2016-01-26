@@ -16,7 +16,7 @@
 namespace TQm {
 	namespace TStorage {
 
-		class TNodeJsFuncStore : public TStore {
+		class TNodeJsFuncStore : public TStoreNotImpl {
 		private:
 			v8::Persistent<v8::Function> GetRecsFun;
 			v8::Persistent<v8::Function> GetFieldFun;

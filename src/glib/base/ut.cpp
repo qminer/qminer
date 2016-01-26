@@ -70,12 +70,16 @@ void TNotify::DfOnNotify(const TNotifyType& Type, const TStr& MsgStr){
 }
 
 const PNotify TNotify::NullNotify=TNullNotify::New();
-const PNotify TNotify::StdNotify=TStdNotify::New();
-const PNotify TNotify::StdErrNotify=TStdErrNotify::New();
+PNotify TNotify::StdNotify=TStdNotify::New();
+PNotify TNotify::StdErrNotify=TStdErrNotify::New();
 
 /////////////////////////////////////////////////
 // Standard-Notifier
 void TStdNotify::OnNotify(const TNotifyType& Type, const TStr& MsgStr){
+  if (AddTimeStamp) {
+    TTm NowTm = TTm::GetCurLocTm();
+	printf("[%s] ", NowTm.GetHMSTColonDotStr(true, false).CStr());
+  }
   if (Type==ntInfo){
     printf("%s\n", MsgStr.CStr());
   } else {
@@ -85,6 +89,10 @@ void TStdNotify::OnNotify(const TNotifyType& Type, const TStr& MsgStr){
 }
 
 void TStdNotify::OnStatus(const TStr& MsgStr){
+  if (AddTimeStamp) {
+    TTm NowTm = TTm::GetCurLocTm();
+	printf("[%s] ", NowTm.GetHMSTColonDotStr(true, false).CStr());
+  }
   printf("%s", MsgStr.CStr());
   // print '\n' if message not overlayed
   if ((!MsgStr.Empty())&&(MsgStr.LastCh()!='\r')){
@@ -94,6 +102,10 @@ void TStdNotify::OnStatus(const TStr& MsgStr){
 /////////////////////////////////////////////////
 // Standard-Error-Notifier
 void TStdErrNotify::OnNotify(const TNotifyType& Type, const TStr& MsgStr){
+  if (AddTimeStamp) {
+    TTm NowTm = TTm::GetCurLocTm();
+	fprintf(stderr, "[%s] ", NowTm.GetHMSTColonDotStr(true, false).CStr());
+  }
   if (Type==ntInfo){
     fprintf(stderr, "%s\n", MsgStr.CStr());
   } else {
@@ -103,6 +115,10 @@ void TStdErrNotify::OnNotify(const TNotifyType& Type, const TStr& MsgStr){
 }
 
 void TStdErrNotify::OnStatus(const TStr& MsgStr){
+  if (AddTimeStamp) {
+    TTm NowTm = TTm::GetCurLocTm();
+	fprintf(stderr, "[%s] ", NowTm.GetHMSTColonDotStr(true, false).CStr());
+  }
   fprintf(stderr, "%s", MsgStr.CStr());
   // print '\n' if message not overlayed
   if ((!MsgStr.Empty())&&(MsgStr.LastCh()!='\r')){
@@ -154,8 +170,20 @@ PExcept TExcept::New(const TStr& MsgStr, const TStr& LocStr) {
 #endif
 	  
 	return PExcept(new TExcept(MsgStr, Stack));
-  }
-  
+}
+
+PExcept TExcept::New(const int& ErrorCode, const TStr& MsgStr, const TStr& LocStr) {
+	TChA Stack = LocStr;
+
+#ifdef GLib_WIN
+	if (Stack.Len() > 0) { Stack += "\n"; }
+	Stack += "Stack trace:\n";
+	Stack += TBufferStackWalker::GetStackTrace();
+#endif
+
+	return PExcept(new TExcept(ErrorCode, MsgStr, Stack));
+}
+
 #ifdef GLib_WIN
 /////////////////////////////////////////////////
 // Stack-trace output for Windows
@@ -231,10 +259,14 @@ TBufferStackWalker::TBufferStackWalker() : StackWalker() {  }
 
 TChA TBufferStackWalker::GetOutput() { return Output; }
 
+// we create a global instance of the stalk walker. The first time it will be used
+// it will load the modules. This is a slow process so we want to call it only once.
+TBufferStackWalker GlobalStackWalker;
+
 // static method that generates stack trace and returns it
 TChA TBufferStackWalker::GetStackTrace() {
-    TBufferStackWalker Walker;
-    Walker.ShowCallstack();
-    return Walker.GetOutput();
+	GlobalStackWalker.ClearOutput();
+	GlobalStackWalker.ShowCallstack();
+    return GlobalStackWalker.GetOutput();
 }
 #endif

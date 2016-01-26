@@ -42,7 +42,8 @@ private:
     void UpdateThreshold();
 
 public:
-    TNearestNeighbor(const double& Rate, const int& WindowSize);
+    TNearestNeighbor() { }
+    TNearestNeighbor(const TFltV& _RateV, const int& WindowSize);
 
     TNearestNeighbor(TSIn& SIn);
     void Save(TSOut& SOut);
@@ -62,6 +63,7 @@ public:
 	bool IsInit() const { return (InitVecs == WindowSize); }
 
     // parameters
+    const TFltV& GetRateV() const { return RateV; }
     int GetRates() const { return RateV.Len(); }
     double GetRate(const int& RateN) const { return RateV[RateN]; }
     double GetThreshold(const int& RateN) const { return IsInit() ? ThresholdV[RateN].Val : 0.0; }

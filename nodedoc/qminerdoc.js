@@ -312,6 +312,7 @@
 * @property {String} paramObj.mode - The mode in which base is opened.
 * @property [String] paramObj.dbPath - The path to the location of the database.
 * @property [Object] paramObj.schema - The database schema.
+* @property [String] paramObj.strictNames - Wether to use JavaScript compliant field/store names. If set to false, all field/store names are allowed.
 * @example
 * // import qm module
 * var qm = require('qminer');
@@ -3218,7 +3219,7 @@
                 count++;
                 if (limit != undefined && count == limit) { break; }
             } catch (err) {
-                // console.log("Error parsing [" + line + "]: " + err)
+                throw new Error("Error parsing line number: " + count + ", line content:[" + line + "]: " + err);                
             }
         }
         return count;
@@ -3265,7 +3266,7 @@
     	if (opts.includeHeaders) {
     		var headerLine = '';
     		for (var i = 0; i < nFields; i++) {
-    			headerLine += fieldDesc[i].name;
+    			headerLine += '"' + fieldDesc[i].name + '"';
     			if (i < nFields - 1)
     				headerLine += ',';
     		}

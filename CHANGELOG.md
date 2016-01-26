@@ -1,5 +1,52 @@
 # QMiner Change Log
 
+### 22 Jan 2016
+
+**New version: 4.3.0**
+
+**Non-breaking with new features**
+
+Features:
+- Location of join fields can be defined in schema (memory or cache).
+- Nearest neighbor anomaly detector explain exposes first and last record ID
+- Nearest neighbor anomaly detector accepts vector of rates (as opposed to only single rate). Predict returns position of the rate that is reached starting with 1 (or 0 if none).
+- Can disable field name validation (`scrictNames` in base definition)
+- TLinAlg can solve generalized eigenvalue problems
+- added `TRecSet::TRecFilterByFieldUInt64`
+- added `TIndex::HasJoin(const int& JoinKeyId, const uint64& RecId) const`
+- added `THash::THash(const TVec<TKeyDat<TKey, TDat> >& KeyDatV)` constructor
+- added `TStr::GetNrNumFExt` can generate any number of leading zeros
+
+Big fixes:
+- GYP fixed to make `libsvm` work.
+- `qm.saveCsv` puts headers always in quotes
+- TZipIn::CreateZipProcess puts filename in quotes
+- Consolidated all references to records with frequency to Fq.
+
+### 15 Jan 2016
+
+**New version: 4.2.0**
+
+**Non-breaking with new features**
+
+Features:
+- Nearest neighbor init method exposed
+- `TNodeJsFtrSpace` factory constructor added
+- `IFtrSpace` interface added, implemented by `TWinBufFtrSpVec`, exposed in JS
+- Field-join binary representation: Field-joins can now be stored in more compact way. Develop can specify field-types to be used for storing the field-join's record id and frequency by providing `storage` tag. Default is `uint64-int`. It is also possible to set frequency type to empty string, which means that frequency will be always 1 and it wont take any space in the storage. Example: `joins: [{ name: 'parent', type: 'field', store: 'People', storage: 'int16-byte' }]`
+- `filterByField`: Recordset provides utility method `filterByField` that can now also operate on field joins: `recordset.filterByField("parent", parent_id, parent_id);`. It currently accepts record ids. Caller can provide a range of IDs (min and max).
+- added tdigest stream aggregator for estimating any percentile from streaming data
+
+Bug fixes:
+- Sparse vector normalize fixed
+- `TWinBufFtrSpVec` save/load fix
+- `writeJson` and `readJson` do not parse and stringify in C++ but instead use `JSON.stringify` and `JSON.parse`
+- added `readString` to `FIn` that complements `FOut.writeBinary`
+
+Other:
+- test stream aggregate `getFeatureSpace`
+- `TWinBufFtrSpVec` save/load test
+
 ### 8 Jan 2016
 
 **New version: 4.1.0**

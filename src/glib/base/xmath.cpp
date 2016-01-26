@@ -361,7 +361,7 @@ double TSpecFunc::StudentCdf(const double& Val, const int& Df) {
 
 double TSpecFunc::StudentCdf(const double& Val, const double& Mean,
 		const double& Std, const int& Df) {
-	return StudentCdf((Val - Mean) / (Std / sqrt(Df + 1)), Df);
+	return StudentCdf((Val - Mean) / (Std / TMath::Sqrt(Df + 1)), Df);
 }
 
 /////////////////////////////////////////////////
@@ -1018,7 +1018,7 @@ double TSvd::NR_pythag(double a, double b){
 }
 
 void TSvd::NR_svdcmp(TFltVV& a, int m, int n, TFltV& w, TFltVV& v){
-  int flag,i,its,j,jj,k,l=0,nm;
+  int flag,i,its,j,jj,k,l=0,nm=0;
   double anorm,c,f,g,h,s,scale,x,y,z;
 
   TFltV rv1(n+1);
