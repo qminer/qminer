@@ -3883,7 +3883,7 @@ describe('TDigest test', function () {
 		});
 	});
 	describe('Input stress test', function () {
-		it('should test t-digest for 10000 inserts', function () {
+		it.skip('should test t-digest for 10000 inserts', function () {
 			// add TDigest stream aggregator
 		    var aggr = {
 		        name: 'TDigest',
@@ -3910,7 +3910,7 @@ describe('TDigest test', function () {
 			assert(result[2] > 0.8 && result[2] < 1);
 			assert(result[3] > 0.8 && result[3] < 1);
 		});
-		it('should test t-digest for 10000 sequential inserts', function () {
+		it.skip('should test t-digest for 10000 sequential inserts', function () {
 			// add TDigest stream aggregator
 		    var aggr = {
 		        name: 'TDigest',

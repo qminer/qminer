@@ -81,7 +81,7 @@ TStr TBackupProfile::GetFolderNameForCurrentTime() const
 
 // create the actual backup of a given profile
 // additionally also check if we already have too many backups and remove the oldest one
-TBackupLogInfo TBackupProfile::CreateBackup()
+TBackupLogInfo TBackupProfile::CreateBackup(const bool& ReportP)
 {
 	try {
 		// create folder for the current backup
@@ -98,7 +98,7 @@ TBackupLogInfo TBackupProfile::CreateBackup()
 		for (int N = 0; N < FolderV.Len(); N++) {
 			TStr ErrMsg;
 			// copy files
-			CopyFolder(FullDateFolder, FolderV[N].Folder, FolderV[N].Extensions, FolderV[N].SkipIfContainingV, FolderV[N].IncludeSubfolders, ErrMsg);
+			CopyFolder(FullDateFolder, FolderV[N].Folder, FolderV[N].Extensions, FolderV[N].SkipIfContainingV, FolderV[N].IncludeSubfolders, ReportP, ErrMsg);
 			if (ErrMsg != "")
 				ErrMsgs += (ErrMsgs.Len() > 0) ? "\n" + ErrMsg : ErrMsg;
 		}
@@ -131,7 +131,7 @@ TBackupLogInfo TBackupProfile::CreateBackup()
 }
 
 // copy files for a particular folder info
-void TBackupProfile::CopyFolder(const TStr& BaseTargetFolder, const TStr& SourceFolder, const TStrV& Extensions, const TStrV& SkipIfContainingV, const bool& IncludeSubfolders, TStr& ErrMsg)
+void TBackupProfile::CopyFolder(const TStr& BaseTargetFolder, const TStr& SourceFolder, const TStrV& Extensions, const TStrV& SkipIfContainingV, const bool& IncludeSubfolders, const bool& ReportP, TStr& ErrMsg)
 {
 	try {
 		// get the name of the source folder
@@ -162,6 +162,8 @@ void TBackupProfile::CopyFolder(const TStr& BaseTargetFolder, const TStr& Source
 				if (!ShouldCopy)
 					continue;
 				const TStr TargetFNm = TargetFolder + FileName;
+				if (ReportP)
+					TNotify::StdNotify->OnStatusFmt("Copying file: %s\r", FileName.CStr());
 				TFile::Copy(FileV[N], TargetFNm);
 			}
 			// we found a folder
@@ -172,7 +174,7 @@ void TBackupProfile::CopyFolder(const TStr& BaseTargetFolder, const TStr& Source
 
 		if (IncludeSubfolders) {
 			for (int N = 0; N < FolderV.Len(); N++)
-				CopyFolder(TargetFolder, FolderV[N], Extensions, SkipIfContainingV, IncludeSubfolders, ErrMsg);
+				CopyFolder(TargetFolder, FolderV[N], Extensions, SkipIfContainingV, IncludeSubfolders, ReportP, ErrMsg);
 		}
 	}
 	catch (PExcept E) {
@@ -188,7 +190,7 @@ void TBackupProfile::CopyFolder(const TStr& BaseTargetFolder, const TStr& Source
 }
 
 
-void TBackupProfile::Restore(const TStr& BackupFolderName, const ERestoringMode& RestoringMode) const
+void TBackupProfile::Restore(const TStr& BackupFolderName, const ERestoringMode& RestoringMode, const bool& ReportP) const
 {
 	for (int N = 0; N < LogV.Len(); N++) {
 		// find the folder that matches the BackupFolderName
@@ -205,6 +207,8 @@ void TBackupProfile::Restore(const TStr& BackupFolderName, const ERestoringMode&
 
 				// copy data from backup to the destination folder
 				const TStr SourceFolder = Destination + ProfileName + "/" + BackupFolderName + "/" + LastFolderNamePart;
+				if (ReportP)
+					TNotify::StdNotify->OnStatusFmt("Copying folder: %s", SourceFolder.CStr());
 				if (TDir::Exists(SourceFolder))
 					TDir::CopyDir(SourceFolder, TargetFolder, RestoringMode == OverwriteIfExisting);
 				else
@@ -229,8 +233,9 @@ void TBackupProfile::SaveLogs() const
 //
 // TFolderBackup
 //
-TFolderBackup::TFolderBackup(const TStr& SettingsFNm)
+TFolderBackup::TFolderBackup(const TStr& SettingsFNm, const bool& _ReportP)
 {
+	ReportP = _ReportP;
 	if (!TFile::Exists(SettingsFNm)) {
 		TNotify::StdNotify->OnStatusFmt("Unable to load settings file name for TBackupData. File %s is missing.", SettingsFNm.CStr());
 		return;
@@ -240,8 +245,9 @@ TFolderBackup::TFolderBackup(const TStr& SettingsFNm)
 	ParseSettings(SettingsJson);
 }
 
-TFolderBackup::TFolderBackup(const PJsonVal& SettingsJson)
+TFolderBackup::TFolderBackup(const PJsonVal& SettingsJson, const bool& _ReportP)
 {
+	ReportP = _ReportP;
 	ParseSettings(SettingsJson);
 }
 
@@ -268,7 +274,7 @@ TBackupLogInfo TFolderBackup::CreateBackup(const TStr& ProfileName)
 	if (ProfileH.IsKey(ProfileName)) {
 		// execute the backup
 		TBackupProfile Profile = ProfileH.GetDat(ProfileName);
-		TBackupLogInfo Info = Profile.CreateBackup();
+		TBackupLogInfo Info = Profile.CreateBackup(ReportP);
 		return Info;
 	}
 	else {
@@ -315,7 +321,7 @@ int TFolderBackup::GetBackupCount(const TStr& ProfileName) const
 void TFolderBackup::Restore(const TStr& ProfileName, const TStr& BackupFolderName, const TBackupProfile::ERestoringMode& RestoringMode) const
 {
 	if (ProfileH.IsKey(ProfileName))
-		ProfileH.GetDat(ProfileName).Restore(BackupFolderName, RestoringMode);
+		ProfileH.GetDat(ProfileName).Restore(BackupFolderName, RestoringMode, ReportP);
 }
 
 bool TFolderBackup::RestoreLatest(const TStr& ProfileName, const TBackupProfile::ERestoringMode& RestoringMode) const
@@ -323,7 +329,7 @@ bool TFolderBackup::RestoreLatest(const TStr& ProfileName, const TBackupProfile:
 	if (ProfileH.IsKey(ProfileName)) {
 		TStrV FolderV; GetBackupFolders(ProfileName, FolderV);
 		if (FolderV.Len() > 0) {
-			ProfileH.GetDat(ProfileName).Restore(FolderV[FolderV.Len()-1], RestoringMode);
+			ProfileH.GetDat(ProfileName).Restore(FolderV[FolderV.Len()-1], RestoringMode, ReportP);
 			return true;
 		}
 	}

@@ -24,8 +24,7 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <div class="symbol-detail-labels"><span class="label label-kind">module</span></div>
-            <h1><small></small><span class="symbol-name">la</span></h1>
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">module</span></div><small></small><span class="symbol-name">la</span></h1>
             <p class="source-link">Source: <a href="ladoc.js.html#source-line-8">ladoc.<wbr>js:8</a></p>
             <div class="symbol-description">
               <p>Linear algebra module.</p>
@@ -209,8 +208,7 @@
             </section>
             <h2>Methods</h2>
             <section>
-              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
-              <h3 id=".cat"><span class="symbol-name">cat</span><span class="signature"><span class="signature-params">(matrixDoubleArr)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
+              <h3 id=".cat"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">cat</span><span class="signature"><span class="signature-params">(matrixDoubleArr)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
               <p>Constructs a matrix by concatenating a doubly-nested array of matrices.</p>
               <section>
                 <h4>
@@ -218,14 +216,14 @@
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var la = require(&#x27;qminer&#x27;).la;
 // create four matrices and concatenate (2 block columns, 2 block rows)
-var la &#x3D; require(&#x27;qminer&#x27;).la;
-var A &#x3D; new la.Matrix([[1,2], [3,4]]);
-var B &#x3D; new la.Matrix([[5,6], [7,8]]);
-var C &#x3D; new la.Matrix([[9,10], [11,12]]);
-var D &#x3D; new la.Matrix([[13,14], [15,16]]);
-var mat &#x3D; la.cat([[A,B], [C,D]]);
+var la = require(&#x27;qminer&#x27;).la;
+var A = new la.Matrix([[1,2], [3,4]]);
+var B = new la.Matrix([[5,6], [7,8]]);
+var C = new la.Matrix([[9,10], [11,12]]);
+var D = new la.Matrix([[13,14], [15,16]]);
+var mat = la.cat([[A,B], [C,D]]);
 // returns the matrix:
 // 1  2  5  6
 // 3  4  7  8
@@ -268,8 +266,7 @@ var mat &#x3D; la.cat([[A,B], [C,D]]);
                   <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>&nbsp;Concatenated matrix</p>
                 </dd>
               </dl>
-              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
-              <h3 id=".conjgrad"><span class="symbol-name">conjgrad</span><span class="signature"><span class="signature-params">(A, b[, x])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
+              <h3 id=".conjgrad"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">conjgrad</span><span class="signature"><span class="signature-params">(A, b[, x])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
               <p>Solves the PSD symmetric system: A x = b, where A is a positive-definite symmetric matrix.</p>
               <section>
                 <h4>Parameters</h4>
@@ -334,8 +331,7 @@ var mat &#x3D; la.cat([[A,B], [C,D]]);
                   <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;Solution to the system.</p>
                 </dd>
               </dl>
-              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
-              <h3 id=".copyVecToArray"><span class="symbol-name">copyVecToArray</span><span class="signature"><span class="signature-params">(vec)</span>&nbsp;&rarr; <span class="signature-returns"> Array of number</span></span></h3>
+              <h3 id=".copyVecToArray"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">copyVecToArray</span><span class="signature"><span class="signature-params">(vec)</span>&nbsp;&rarr; <span class="signature-returns"> Array of number</span></span></h3>
               <p>Copies the vector into a JavaScript array of numbers.</p>
               <section>
                 <h4>
@@ -343,11 +339,11 @@ var mat &#x3D; la.cat([[A,B], [C,D]]);
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var la = require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec &#x3D; new la.Vector([1, 2, 3]);
+var vec = new la.Vector([1, 2, 3]);
 // create a JavaScript array out of vec
-var arr &#x3D; la.copyVecToArray(vec); // returns an array [1, 2, 3]</code></pre>
+var arr = la.copyVecToArray(vec); // returns an array [1, 2, 3]</code></pre>
                 </div>
               </section>
               <section>
@@ -385,8 +381,7 @@ var arr &#x3D; la.copyVecToArray(vec); // returns an array [1, 2, 3]</code></pre
                   <p><code>Array of number</code>&nbsp;A JavaScript array of numbers.</p>
                 </dd>
               </dl>
-              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
-              <h3 id=".eye"><span class="symbol-name">eye</span><span class="signature"><span class="signature-params">(dim)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
+              <h3 id=".eye"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">eye</span><span class="signature"><span class="signature-params">(dim)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
               <p>Returns an dense identity matrix</p>
               <section>
                 <h4>Parameter</h4>
@@ -423,8 +418,7 @@ var arr &#x3D; la.copyVecToArray(vec); // returns an array [1, 2, 3]</code></pre
                   <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>&nbsp;A dim-by-dim identity matrix.</p>
                 </dd>
               </dl>
-              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
-              <h3 id=".findMaxIdx"><span class="symbol-name">findMaxIdx</span><span class="signature"><span class="signature-params">(X)</span>&nbsp;&rarr; <span class="signature-returns"> Array of number</span></span></h3>
+              <h3 id=".findMaxIdx"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">findMaxIdx</span><span class="signature"><span class="signature-params">(X)</span>&nbsp;&rarr; <span class="signature-returns"> Array of number</span></span></h3>
               <p>returns a JS array of indices <code>idxArray</code> that correspond to the max elements in each column of dense matrix. The resulting array has one element for vector input.</p>
               <section>
                 <h4>
@@ -432,9 +426,9 @@ var arr &#x3D; la.copyVecToArray(vec); // returns an array [1, 2, 3]</code></pre
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var la = require(&#x27;qminer&#x27;).la;
 // create a dense matrix
-var mat &#x3D; new la.Matrix([[1, 2], [2, 0]]);
+var mat = new la.Matrix([[1, 2], [2, 0]]);
 la.findMaxIdx(mat)
 // returns the array:
 // [1, 0]</code></pre>
@@ -475,8 +469,7 @@ la.findMaxIdx(mat)
                   <p><code>Array of number</code>&nbsp;Array of indexes where maximum is found, one for each column</p>
                 </dd>
               </dl>
-              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
-              <h3 id=".inverseSVD"><span class="symbol-name">inverseSVD</span><span class="signature"><span class="signature-params">(mat)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
+              <h3 id=".inverseSVD"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">inverseSVD</span><span class="signature"><span class="signature-params">(mat)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
               <p>Calculates the inverse matrix with SVD.</p>
               <section>
                 <h4>Parameter</h4>
@@ -513,8 +506,7 @@ la.findMaxIdx(mat)
                   <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>&nbsp;The inverse matrix of mat.</p>
                 </dd>
               </dl>
-              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
-              <h3 id=".ones"><span class="symbol-name">ones</span><span class="signature"><span class="signature-params">(dim)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
+              <h3 id=".ones"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">ones</span><span class="signature"><span class="signature-params">(dim)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
               <p>Returns a vector with all entries set to 1.0.</p>
               <section>
                 <h4>
@@ -522,9 +514,9 @@ la.findMaxIdx(mat)
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var la = require(&#x27;qminer&#x27;).la;
 // create a 3-dimensional vector with all entries set to 1.0
-var vec &#x3D; la.ones(3);</code></pre>
+var vec = la.ones(3);</code></pre>
                 </div>
               </section>
               <section>
@@ -562,8 +554,7 @@ var vec &#x3D; la.ones(3);</code></pre>
                   <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;A dim-dimensional vector whose entries are set to 1.0.</p>
                 </dd>
               </dl>
-              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
-              <h3 id=".pdist2"><span class="symbol-name">pdist2</span><span class="signature"><span class="signature-params">(X1, X2)</span>&nbsp;&rarr; <span class="signature-returns"> la.Matrix</span></span></h3>
+              <h3 id=".pdist2"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">pdist2</span><span class="signature"><span class="signature-params">(X1, X2)</span>&nbsp;&rarr; <span class="signature-returns"> la.Matrix</span></span></h3>
               <p>computes and returns the pairwise squared euclidean distances between columns of <code>X1</code> and <code>X2</code> (<code>mat3[i,j] = ||mat(:,i) - mat2(:,j)||^2</code>).</p>
               <section>
                 <h4>
@@ -571,10 +562,10 @@ var vec &#x3D; la.ones(3);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var la = require(&#x27;qminer&#x27;).la;
 // construct two input matrices
-var X1 &#x3D; new la.Matrix([[1,2], [2,0]]);
-var X2 &#x3D; new la.Matrix([[1,0.5,0],[0,-0.5,-1]]);
+var X1 = new la.Matrix([[1,2], [2,0]]);
+var X2 = new la.Matrix([[1,0.5,0],[0,-0.5,-1]]);
 la.pdist2(X1, X2)
 // returns the matrix:
 // 4 6.5 10
@@ -630,8 +621,7 @@ la.pdist2(X1, X2)
                   <p><code>la.Matrix</code>&nbsp;Matrix with <code>X1.cols</code> rows and <code>X2.cols</code> columns containing squared euclidiean distances.</p>
                 </dd>
               </dl>
-              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
-              <h3 id=".randi"><span class="symbol-name">randi</span><span class="signature"><span class="signature-params">(num[, len])</span>&nbsp;&rarr; <span class="signature-returns"> (number or la.IntVector)</span></span></h3>
+              <h3 id=".randi"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">randi</span><span class="signature"><span class="signature-params">(num[, len])</span>&nbsp;&rarr; <span class="signature-returns"> (number or la.IntVector)</span></span></h3>
               <p>Returns a randomly selected integer from an array..</p>
               <section>
                 <h4>Parameters</h4>
@@ -684,8 +674,7 @@ la.pdist2(X1, X2)
                     <br>2. <a href="module-la.Vector.html">module:la.Vector</a>, if parameter len is given. The vector contains random integers from the array [0, ..., num-1] (with repetition)</p>
                 </dd>
               </dl>
-              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
-              <h3 id=".randn"><span class="symbol-name">randn</span><span class="signature"><span class="signature-params">([arg1][, arg2])</span>&nbsp;&rarr; <span class="signature-returns"> (number, <a href="module-la.Vector.html">module:la.Vector</a>, or <a href="module-la.Matrix.html">module:la.Matrix</a>)</span></span></h3>
+              <h3 id=".randn"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">randn</span><span class="signature"><span class="signature-params">([arg1][, arg2])</span>&nbsp;&rarr; <span class="signature-returns"> (number, <a href="module-la.Vector.html">module:la.Vector</a>, or <a href="module-la.Matrix.html">module:la.Matrix</a>)</span></span></h3>
               <p>Returns an object with random numbers</p>
               <section>
                 <h4>Parameters</h4>
@@ -739,8 +728,7 @@ la.pdist2(X1, X2)
                     <br>3. <a href="module-la.Matrix.html">module:la.Matrix</a>, if parameters arg1 and arg2 are given.</p>
                 </dd>
               </dl>
-              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
-              <h3 id=".randPerm"><span class="symbol-name">randPerm</span><span class="signature"><span class="signature-params">(k)</span>&nbsp;&rarr; <span class="signature-returns"> Array of number</span></span></h3>
+              <h3 id=".randPerm"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">randPerm</span><span class="signature"><span class="signature-params">(k)</span>&nbsp;&rarr; <span class="signature-returns"> Array of number</span></span></h3>
               <p>Returns a permutation of elements.</p>
               <section>
                 <h4>Parameter</h4>
@@ -777,8 +765,7 @@ la.pdist2(X1, X2)
                   <p><code>Array of number</code>&nbsp;A JavaScript array of integers. Represents a permutation of k elements.</p>
                 </dd>
               </dl>
-              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
-              <h3 id=".randVariation"><span class="symbol-name">randVariation</span><span class="signature"><span class="signature-params">(n, k)</span>&nbsp;&rarr; <span class="signature-returns"> Array of number</span></span></h3>
+              <h3 id=".randVariation"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">randVariation</span><span class="signature"><span class="signature-params">(n, k)</span>&nbsp;&rarr; <span class="signature-returns"> Array of number</span></span></h3>
               <p>Returns a JavaScript array, which is a sample of integers from an array.</p>
               <section>
                 <h4>Parameters</h4>
@@ -829,8 +816,7 @@ la.pdist2(X1, X2)
                   <p><code>Array of number</code>&nbsp;The sample of k numbers from [0, ..., n-1], sampled without replacement.</p>
                 </dd>
               </dl>
-              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
-              <h3 id=".rangeVec"><span class="symbol-name">rangeVec</span><span class="signature"><span class="signature-params">(min, max)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.IntVector.html">module:la.IntVector</a></span></span></h3>
+              <h3 id=".rangeVec"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">rangeVec</span><span class="signature"><span class="signature-params">(min, max)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.IntVector.html">module:la.IntVector</a></span></span></h3>
               <p>Generates an integer vector given range</p>
               <section>
                 <h4>
@@ -838,8 +824,8 @@ la.pdist2(X1, X2)
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la &#x3D; require(&#x27;qminer&#x27;).la;
-var vec &#x3D; la.rangeVec(1, 3);
+var la = require(&#x27;qminer&#x27;).la;
+var vec = la.rangeVec(1, 3);
 // returns the vector:
 // 1  2  3</code></pre>
                 </div>
@@ -893,8 +879,7 @@ var vec &#x3D; la.rangeVec(1, 3);
                   <p><code><a href="module-la.IntVector.html">module:la.IntVector</a></code>&nbsp;Integer range vector</p>
                 </dd>
               </dl>
-              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
-              <h3 id=".sparse"><span class="symbol-name">sparse</span><span class="signature"><span class="signature-params">(rows, cols)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span></span></h3>
+              <h3 id=".sparse"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">sparse</span><span class="signature"><span class="signature-params">(rows, cols)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span></span></h3>
               <p>Returns a sparse zero matrix.</p>
               <section>
                 <h4>Parameters</h4>
@@ -945,8 +930,7 @@ var vec &#x3D; la.rangeVec(1, 3);
                   <p><code><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></code>&nbsp;A rows-by-cols sparse zero matrix.</p>
                 </dd>
               </dl>
-              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
-              <h3 id=".speye"><span class="symbol-name">speye</span><span class="signature"><span class="signature-params">(dim)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span></span></h3>
+              <h3 id=".speye"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">speye</span><span class="signature"><span class="signature-params">(dim)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span></span></h3>
               <p>Returns a sparse identity matrix</p>
               <section>
                 <h4>Parameter</h4>
@@ -983,8 +967,7 @@ var vec &#x3D; la.rangeVec(1, 3);
                   <p><code><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></code>&nbsp;A dim-by-dim identity matrix.</p>
                 </dd>
               </dl>
-              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
-              <h3 id=".zeros"><span class="symbol-name">zeros</span><span class="signature"><span class="signature-params">(rows, cols)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
+              <h3 id=".zeros"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">zeros</span><span class="signature"><span class="signature-params">(rows, cols)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
               <p>Returns a dense zero matrix.</p>
               <section>
                 <h4>Parameters</h4>
@@ -1143,6 +1126,49 @@ var vec &#x3D; la.rangeVec(1, 3);
                       </td>
                       <td>
                         <p>The JSON object containing the properties iter and tol:</p>
+                        <p>Values in <code>json</code> have the following properties:</p>
+                        <table class="jsdoc-details-table">
+                          <thead>
+                            <tr>
+                              <th>Name</th>
+                              <th>Type</th>
+                              <th>Optional</th>
+                              <th>Description</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td>
+                                <p>iter</p>
+                              </td>
+                              <td>
+                                <p>number</p>
+                              </td>
+                              <td>
+                                <p>Yes</p>
+                              </td>
+                              <td>
+                                <p>The number of iterations used for the algorithm.</p>
+                                <p>Defaults to <code>100</code>.</p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <p>tol</p>
+                              </td>
+                              <td>
+                                <p>number</p>
+                              </td>
+                              <td>
+                                <p>Yes</p>
+                              </td>
+                              <td>
+                                <p>The tolerance number.</p>
+                                <p>Defaults to <code>1e-6</code>.</p>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
                       </td>
                     </tr>
                   </tbody>
@@ -1160,8 +1186,7 @@ var vec &#x3D; la.rangeVec(1, 3);
             </section>
             <h2>Abstract types</h2>
             <section>
-              <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div>
-              <h3 id="~boolVectorCompareCb"><span class="symbol-name">boolVectorCompareCb</span><span class="signature"><span class="signature-params">(arg1, arg2)</span>&nbsp;&rarr; <span class="signature-returns"> (number or boolean)</span></span></h3>
+              <h3 id="~boolVectorCompareCb"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">boolVectorCompareCb</span><span class="signature"><span class="signature-params">(arg1, arg2)</span>&nbsp;&rarr; <span class="signature-returns"> (number or boolean)</span></span></h3>
               <p>Vector sort comparator callback.</p>
               <section>
                 <h4>Parameters</h4>
@@ -1212,8 +1237,7 @@ var vec &#x3D; la.rangeVec(1, 3);
                   <p><code>(number or boolean)</code>&nbsp;If boolVectorCompareCb(arg1, arg2) is less than 0 or false, sort arg1 to a lower index than arg2, i.e. arg1 comes first.</p>
                 </dd>
               </dl>
-              <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div>
-              <h3 id="~intVectorCompareCb"><span class="symbol-name">intVectorCompareCb</span><span class="signature"><span class="signature-params">(arg1, arg2)</span>&nbsp;&rarr; <span class="signature-returns"> (number or boolean)</span></span></h3>
+              <h3 id="~intVectorCompareCb"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">intVectorCompareCb</span><span class="signature"><span class="signature-params">(arg1, arg2)</span>&nbsp;&rarr; <span class="signature-returns"> (number or boolean)</span></span></h3>
               <p>Vector sort comparator callback.</p>
               <section>
                 <h4>Parameters</h4>
@@ -1264,8 +1288,7 @@ var vec &#x3D; la.rangeVec(1, 3);
                   <p><code>(number or boolean)</code>&nbsp;If intVectorCompareCb(arg1, arg2) is less than 0 or false, sort arg1 to a lower index than arg2, i.e. arg1 comes first.</p>
                 </dd>
               </dl>
-              <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div>
-              <h3 id="~matrixArg"><span class="symbol-name">matrixArg</span><small class="property-type">
+              <h3 id="~matrixArg"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">matrixArg</span><small class="property-type">
             &nbsp;Object</small></h3>
               <p>Matrix constructor parameter object.</p>
               <section>
@@ -1328,8 +1351,55 @@ var vec &#x3D; la.rangeVec(1, 3);
               </section>
               <dl class="dl-compact">
               </dl>
-              <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div>
-              <h3 id="~SortResult"><span class="symbol-name">SortResult</span><small class="property-type">
+              <h3 id="~SortResult"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">SortResult</span><small class="property-type">
+            &nbsp;Object</small></h3>
+              <p>Sort with permutation output result</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>SortResult.vec</p>
+                      </td>
+                      <td>
+                        <p><a href="module-la.IntVector.html">module:la.IntVector</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Sorted vector.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>SortResult.perm</p>
+                      </td>
+                      <td>
+                        <p><a href="module-la.IntVector.html">module:la.IntVector</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Permutation vector, where SortResult.vec[i] = unsortedVec[SortResult.perm[i]].</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~SortResult"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">SortResult</span><small class="property-type">
             &nbsp;Object</small></h3>
               <p>Sort with permutation output result</p>
               <section>
@@ -1377,57 +1447,7 @@ var vec &#x3D; la.rangeVec(1, 3);
               </section>
               <dl class="dl-compact">
               </dl>
-              <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div>
-              <h3 id="~SortResult"><span class="symbol-name">SortResult</span><small class="property-type">
-            &nbsp;Object</small></h3>
-              <p>Sort with permutation output result</p>
-              <section>
-                <h4>Properties</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>SortResult.vec</p>
-                      </td>
-                      <td>
-                        <p><a href="module-la.IntVector.html">module:la.IntVector</a></p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>Sorted vector.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>SortResult.perm</p>
-                      </td>
-                      <td>
-                        <p><a href="module-la.IntVector.html">module:la.IntVector</a></p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>Permutation vector, where SortResult.vec[i] = unsortedVec[SortResult.perm[i]].</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-              </dl>
-              <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div>
-              <h3 id="~SortResult"><span class="symbol-name">SortResult</span><small class="property-type">
+              <h3 id="~SortResult"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">SortResult</span><small class="property-type">
             &nbsp;Object</small></h3>
               <p>Sort with permutation output result</p>
               <section>
@@ -1475,8 +1495,7 @@ var vec &#x3D; la.rangeVec(1, 3);
               </section>
               <dl class="dl-compact">
               </dl>
-              <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div>
-              <h3 id="~SortResult"><span class="symbol-name">SortResult</span><small class="property-type">
+              <h3 id="~SortResult"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">SortResult</span><small class="property-type">
             &nbsp;Object</small></h3>
               <p>Sort with permutation output result</p>
               <section>
@@ -1524,8 +1543,7 @@ var vec &#x3D; la.rangeVec(1, 3);
               </section>
               <dl class="dl-compact">
               </dl>
-              <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div>
-              <h3 id="~strVectorCompareCb"><span class="symbol-name">strVectorCompareCb</span><span class="signature"><span class="signature-params">(arg1, arg2)</span>&nbsp;&rarr; <span class="signature-returns"> (number or boolean)</span></span></h3>
+              <h3 id="~strVectorCompareCb"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">strVectorCompareCb</span><span class="signature"><span class="signature-params">(arg1, arg2)</span>&nbsp;&rarr; <span class="signature-returns"> (number or boolean)</span></span></h3>
               <p>Vector sort comparator callback.</p>
               <section>
                 <h4>Parameters</h4>
@@ -1576,8 +1594,7 @@ var vec &#x3D; la.rangeVec(1, 3);
                   <p><code>(number or boolean)</code>&nbsp;If strVectorCompareCb(arg1, arg2) is less than 0 or false, sort arg1 to a lower index than arg2, i.e. arg1 comes first.</p>
                 </dd>
               </dl>
-              <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div>
-              <h3 id="~vectorCompareCb"><span class="symbol-name">vectorCompareCb</span><span class="signature"><span class="signature-params">(arg1, arg2)</span>&nbsp;&rarr; <span class="signature-returns"> (number or boolean)</span></span></h3>
+              <h3 id="~vectorCompareCb"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">vectorCompareCb</span><span class="signature"><span class="signature-params">(arg1, arg2)</span>&nbsp;&rarr; <span class="signature-returns"> (number or boolean)</span></span></h3>
               <p>Vector sort comparator callback.</p>
               <section>
                 <h4>Parameters</h4>

@@ -24,9 +24,8 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div>
-            <h1><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">LogReg</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-999">analyticsdoc.<wbr>js:999</a></p>
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">LogReg</span></h1>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1013">analyticsdoc.<wbr>js:1013</a></p>
             <dl class="dl-compact">
             </dl>
           </header>
@@ -90,9 +89,9 @@
         </h3>
               <div>
                 <pre class="prettyprint"><code>// import analytics module
-var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var analytics = require(&#x27;qminer&#x27;).analytics;
 // create the Logistic Regression model
-var logreg &#x3D; new analytics.LogReg({ lambda: 2 });</code></pre>
+var logreg = new analytics.LogReg({ lambda: 2 });</code></pre>
               </div>
             </section>
             <section>
@@ -145,13 +144,13 @@ var logreg &#x3D; new analytics.LogReg({ lambda: 2 });</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
 // create the logistic regression model
-var logreg &#x3D; new analytics.LogReg();
+var logreg = new analytics.LogReg();
 // create the input matrix and vector for fitting the model
-var mat &#x3D; new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
-var vec &#x3D; new la.Vector([1, 0, -1, -2]);
+var mat = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+var vec = new la.Vector([1, 0, -1, -2]);
 // if openblas is used, fit the model
 if (require(&#x27;qminer&#x27;).flags.blas) {
     logreg.fit(mat, vec);
@@ -229,11 +228,11 @@ if (require(&#x27;qminer&#x27;).flags.blas) {
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
-var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var analytics = require(&#x27;qminer&#x27;).analytics;
 // create the Logistic Regression model
-var logreg &#x3D; new analytics.LogReg({ lambda: 10 });
+var logreg = new analytics.LogReg({ lambda: 10 });
 // get the parameters of the model
-var param &#x3D; logreg.getParams(); // returns { lambda: 10, intercept: false }</code></pre>
+var param = logreg.getParams(); // returns { lambda: 10, intercept: false }</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -250,21 +249,21 @@ var param &#x3D; logreg.getParams(); // returns { lambda: 10, intercept: false }
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
 // create the logistic regression model
-var logreg &#x3D; new analytics.LogReg();
+var logreg = new analytics.LogReg();
 // create the input matrix and vector for fitting the model
-var mat &#x3D; new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
-var vec &#x3D; new la.Vector([1, 0, -1, -2]);
+var mat = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+var vec = new la.Vector([1, 0, -1, -2]);
 // if openblas is used
 if (require(&#x27;qminer&#x27;).flags.blas) {
     // fit the model
     logreg.fit(mat, vec);
     // create the vector for the prediction
-    var test &#x3D; new la.Vector([1, 1]);
+    var test = new la.Vector([1, 1]);
     // get the prediction
-    var prediction &#x3D; logreg.predict(test);
+    var prediction = logreg.predict(test);
 };</code></pre>
                 </div>
               </section>
@@ -311,26 +310,26 @@ if (require(&#x27;qminer&#x27;).flags.blas) {
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
-var la &#x3D; require(&#x27;qminer&#x27;).la;
-var fs &#x3D; require(&#x27;qminer&#x27;).fs;
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
+var fs = require(&#x27;qminer&#x27;).fs;
 // create the logistic regression model
-var logreg &#x3D; new analytics.LogReg();
+var logreg = new analytics.LogReg();
 // create the input matrix and vector for fitting the model
-var mat &#x3D; new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
-var vec &#x3D; new la.Vector([1, 0, -1, -2]);
+var mat = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+var vec = new la.Vector([1, 0, -1, -2]);
 // if openblas is used, fit the model
 if (require(&#x27;qminer&#x27;).flags.blas) {
     logreg.fit(mat, vec);
 };
 // create an output stream object and save the model
-var fout &#x3D; fs.openWrite(&#x27;logreg_example.bin&#x27;);
+var fout = fs.openWrite(&#x27;logreg_example.bin&#x27;);
 logreg.save(fout);
 fout.close();
 // create input stream
-var fin &#x3D; fs.openRead(&#x27;logreg_example.bin&#x27;);
+var fin = fs.openRead(&#x27;logreg_example.bin&#x27;);
 // create a Logistic Regression object that loads the model and parameters from input stream
-var logreg2 &#x3D; new analytics.LogReg(fin);</code></pre>
+var logreg2 = new analytics.LogReg(fin);</code></pre>
                 </div>
               </section>
               <section>
@@ -376,9 +375,9 @@ var logreg2 &#x3D; new analytics.LogReg(fin);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
-var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var analytics = require(&#x27;qminer&#x27;).analytics;
 // create a logistic regression model
-var logreg &#x3D; new analytics.LogReg({ lambda: 10 });
+var logreg = new analytics.LogReg({ lambda: 10 });
 // set the parameters of the model
 logreg.setParams({ lambda: 1 });</code></pre>
                 </div>

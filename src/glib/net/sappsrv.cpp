@@ -134,7 +134,7 @@ void TSAppSrvFun::Exec(const TStrKdV& FldNmValPrV, const PSAppSrvRqEnv& RqEnv) {
 	try {
         // log the call
 		if (NotifyOnRequest)
-			Notify->OnStatus(TStr::Fmt("[%s] RequestStart  %s", TTm::GetCurLocTm().GetWebLogDateTimeStr(true, " ", false).CStr(), FunNm.CStr()));
+			Notify->OnStatus(TStr::Fmt("RequestStart  %s", FunNm.CStr()));
 		TTmStopWatch StopWatch(true);
 		// execute the actual function, according to the type
 		PSIn BodySIn; TStr ContTypeVal;
@@ -151,16 +151,16 @@ void TSAppSrvFun::Exec(const TStrKdV& FldNmValPrV, const PSAppSrvRqEnv& RqEnv) {
 			BodySIn = ExecSIn(FldNmValPrV, RqEnv, ContTypeVal);
 		}
 		if (ReportResponseSize)
-			Notify->OnStatusFmt("[%s] Response size: %.1f KB", TTm::GetCurLocTm().GetWebLogDateTimeStr(true, " ", false).CStr(), BodySIn->Len() / (double) TInt::Kilo);
+			Notify->OnStatusFmt("Response size: %.1f KB", BodySIn->Len() / (double) TInt::Kilo);
 		// log finish of the call
 		if (NotifyOnRequest)
-			Notify->OnStatus(TStr::Fmt("[%s] RequestFinish %s [request took %d ms]", TTm::GetCurLocTm().GetWebLogDateTimeStr(true, " ", false).CStr(), FunNm.CStr(), StopWatch.GetMSecInt()));
+			Notify->OnStatus(TStr::Fmt("RequestFinish %s [request took %d ms]", FunNm.CStr(), StopWatch.GetMSecInt()));
 		// prepare response
 		HttpResp = THttpResp::New(THttp::OkStatusCd, 
 			ContTypeVal, false, BodySIn);
     } catch (PExcept Except) {
         // known internal error
-        Notify->OnStatusFmt("[%s] Exception: %s", TTm::GetCurLocTm().GetWebLogDateTimeStr(true, " ", false).CStr(), Except->GetMsgStr().CStr());
+        Notify->OnStatusFmt("Exception: %s", Except->GetMsgStr().CStr());
         Notify->OnStatusFmt("Location: %s", Except->GetLocStr().CStr());
         TStr ResStr, ContTypeVal = THttp::TextPlainFldVal;
 		if (GetFunOutType() == saotXml) {
@@ -303,7 +303,7 @@ void TSAppSrv::OnHttpRq(const uint64& SockId, const PHttpRq& HttpRq) {
 		TStrKdV FldNmValPrV; HttpRqUrlEnv->GetKeyValPrV(FldNmValPrV);
         
 		// report call
-		if (ShowParamP) {  GetNotify()->OnStatus(" " + HttpRq->GetUrl()->GetUrlStr()); }
+		if (ShowParamP) {  GetNotify()->OnStatus(HttpRq->GetUrl()->GetUrlStr()); }
 		// request parsed well, from now on it's internal error
 		ErrStatusCd = THttp::InternalErrStatusCd;
 		// processed requested function

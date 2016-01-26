@@ -24,9 +24,8 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div>
-            <h1><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">MDS</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1611">analyticsdoc.<wbr>js:1611</a></p>
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">MDS</span></h1>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1629">analyticsdoc.<wbr>js:1629</a></p>
             <div class="symbol-classdesc">
               <p>Multidimensional scaling</p>
             </div>
@@ -70,9 +69,9 @@
         </h3>
               <div>
                 <pre class="prettyprint"><code>// import analytics module
-var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var analytics = require(&#x27;qminer&#x27;).analytics;
 // construct a MDS instance
-var mds &#x3D; new analytics.MDS({ maxStep: 300, distType: &#x27;Cos&#x27; });</code></pre>
+var mds = new analytics.MDS({ maxStep: 300, distType: &#x27;Cos&#x27; });</code></pre>
               </div>
             </section>
             <section>
@@ -118,14 +117,14 @@ var mds &#x3D; new analytics.MDS({ maxStep: 300, distType: &#x27;Cos&#x27; });</
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import the modules
-var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
 // create a MDS instance
-var mds &#x3D; new analytics.MDS();
+var mds = new analytics.MDS();
 // create the multidimensional matrix
-var mat &#x3D; new la.Matrix({ rows: 50, cols: 10, random: true });
+var mat = new la.Matrix({ rows: 50, cols: 10, random: true });
 // get the 2d representation of mat 
-var mat2d &#x3D; mds.fitTransform(mat); </code></pre>
+var mat2d = mds.fitTransform(mat); </code></pre>
                 </div>
               </section>
               <section>
@@ -171,12 +170,12 @@ var mat2d &#x3D; mds.fitTransform(mat); </code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
-var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var analytics = require(&#x27;qminer&#x27;).analytics;
 // create a MDS instance
-var mds &#x3D; new analytics.MDS();
+var mds = new analytics.MDS();
 // get the (default) parameters of the instance
 // returns { maxStep: 5000, maxSecs: 300, minDiff: 1e-4, distType: &quot;Euclid&quot; }
-var params &#x3D; mds.getParams();</code></pre>
+var params = mds.getParams();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -193,18 +192,18 @@ var params &#x3D; mds.getParams();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
-var fs &#x3D; require(&#x27;qminer&#x27;).fs;
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var fs = require(&#x27;qminer&#x27;).fs;
 // create a MDS instance
-var mds &#x3D; new analytics.MDS({ iter: 200, MaxStep: 10 });
+var mds = new analytics.MDS({ iter: 200, MaxStep: 10 });
 // create the file output stream
-var fout &#x3D; new fs.openWrite(&#x27;MDS.bin&#x27;);
+var fout = new fs.openWrite(&#x27;MDS.bin&#x27;);
 // save the MDS instance
 mds.save(fout);
 fout.close();
 // load the MDS instance
-var fin &#x3D; fs.openRead(&#x27;MDS.bin&#x27;);
-var mds2 &#x3D; new analytics.MDS(fin);</code></pre>
+var fin = fs.openRead(&#x27;MDS.bin&#x27;);
+var mds2 = new analytics.MDS(fin);</code></pre>
                 </div>
               </section>
               <section>
@@ -250,12 +249,12 @@ var mds2 &#x3D; new analytics.MDS(fin);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
-var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var analytics = require(&#x27;qminer&#x27;).analytics;
 // create a MDS instance
-var mds &#x3D; new analytics.MDS();
+var mds = new analytics.MDS();
 // get the (default) parameters of the instance
 // returns { maxStep: 5000, maxSecs: 300, minDiff: 1e-4, distType: &quot;Euclid&quot; }
-var params &#x3D; mds.getParams();</code></pre>
+var params = mds.getParams();</code></pre>
                 </div>
               </section>
               <section>

@@ -75,21 +75,6 @@ void InfoLog(const TStr& MsgStr);
 void DebugLog(const TStr& MsgStr);
 
 ///////////////////////////////
-/// QMiner Valid Name Enforcer.
-class TValidNm {
-private:
-	/// Valid non-alpha-numeric first character of store/field/join/key name
-	static TChA ValidFirstCh;
-	/// Valid non-alpha-numeric non-first character of store/field/join/key name
-	static TChA ValidCh;
-public:
-	/// Validate if given string is a valid store/field/join/key name.
-	/// Valid names begin with alphabetical or ValidFirstCh and continues with
-	/// any alphanumerical or ValidCh character (e.g. '_ThisIsValid_123_Name').
-	static void AssertValidNm(const TStr& NmStr);
-};
-
-///////////////////////////////
 /// QMiner Exception
 class TQmExcept : public TExcept {
 private:
@@ -141,13 +126,11 @@ public:
 	/// Create an empty join description
 	TJoinDesc(): JoinId(-1), JoinStoreId(TUInt::Mx), JoinType(osjtUndef), InverseJoinId(-1) { } 
 	/// Create an index based join (1-N or N-M)
-	TJoinDesc(const TStr& _JoinNm, const uint& _JoinStoreId,
+	TJoinDesc(const TWPt<TBase>& Base, const TStr& _JoinNm, const uint& _JoinStoreId,
 		const uint& StoreId, const TWPt<TIndexVoc>& IndexVoc, const bool& IsSmall);
 	/// Create a field based join (1-1)
-	TJoinDesc(const TStr& _JoinNm, const uint& _JoinStoreId, const int& _JoinRecFieldId,
-		const int& _JoinFqFieldId): JoinId(-1), JoinNm(_JoinNm), JoinStoreId(_JoinStoreId), 
-		JoinType(osjtField), JoinKeyId(-1), JoinRecFieldId(_JoinRecFieldId), 
-		JoinFqFieldId(_JoinFqFieldId), InverseJoinId(-1) { TValidNm::AssertValidNm(JoinNm); }
+	TJoinDesc(const TWPt<TBase>& Base, const TStr& _JoinNm, const uint& _JoinStoreId, const int& _JoinRecFieldId,
+		const int& _JoinFqFieldId);
 
 	TJoinDesc(TSIn& SIn);
 	void Save(TSOut& SOut) const;
@@ -275,7 +258,7 @@ public:
 	/// @param _FieldType Field type
 	/// @param NullP Can field be empty for some records
 	/// @param InternalP Filed was created is and being used internally by QMiner (E.g. for field joins)
-	TFieldDesc(const TStr& _FieldNm, TFieldType _FieldType, const bool& Primary,
+	TFieldDesc(const TWPt<TBase>& Base, const TStr& _FieldNm, TFieldType _FieldType, const bool& Primary,
 		const bool& NullP, const bool& InternalP);
 	
 	TFieldDesc(TSIn& SIn);
@@ -541,6 +524,8 @@ public:
 	int GetJoinKeyId(const int& JoinId) const { return JoinDescV[JoinId].GetJoinKeyId(); }
 	/// Get full join description for the join with the given ID
 	const TJoinDesc& GetJoinDesc(const int& JoinId) const { return JoinDescV[JoinId]; }
+    /// Get full join description for the join with the given name
+    const TJoinDesc& GetJoinDesc(const TStr& JoinNm) const { return JoinDescV[GetJoinId(JoinNm)]; }
 	/// Register inverse join
 	void PutInverseJoinId(const int& JoinId, const int& InverseJoinId);
 
@@ -640,158 +625,168 @@ public:
 	
 	/// Check if the value of given field for a given record is NULL
 	virtual bool IsFieldNull(const uint64& RecId, const int& FieldId) const { return false; }
-	/// Get field value using field id (default implementation throws exception)
-	virtual int GetFieldInt(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual int16 GetFieldInt16(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual int64 GetFieldInt64(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual uchar GetFieldByte(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual void GetFieldIntV(const uint64& RecId, const int& FieldId, TIntV& IntV) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual uint GetFieldUInt(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual uint16 GetFieldUInt16(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual uint64 GetFieldUInt64(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual TStr GetFieldStr(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual void GetFieldStrV(const uint64& RecId, const int& FieldId, TStrV& StrV) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual bool GetFieldBool(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual double GetFieldFlt(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual float GetFieldSFlt(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual TFltPr GetFieldFltPr(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual void GetFieldFltV(const uint64& RecId, const int& FieldId, TFltV& FltV) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual void GetFieldTm(const uint64& RecId, const int& FieldId, TTm& Tm) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual uint64 GetFieldTmMSecs(const uint64& RecId, const int& FieldId) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual void GetFieldNumSpV(const uint64& RecId, const int& FieldId, TIntFltKdV& SpV) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual void GetFieldBowSpV(const uint64& RecId, const int& FieldId, PBowSpV& SpV) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual void GetFieldTMem(const uint64& RecId, const int& FieldId, TMem& Mem) const;
-	/// Get field value using field id (default implementation throws exception)
-	virtual PJsonVal GetFieldJsonVal(const uint64& RecId, const int& FieldId) const;
+	/// Get field value using field id   
+	virtual int GetFieldInt(const uint64& RecId, const int& FieldId) const = 0;
+	/// Get field value using field id   
+	virtual int16 GetFieldInt16(const uint64& RecId, const int& FieldId) const = 0;
+	/// Get field value using field id   
+	virtual int64 GetFieldInt64(const uint64& RecId, const int& FieldId) const = 0;
+	/// Get field value using field id   
+	virtual uchar GetFieldByte(const uint64& RecId, const int& FieldId) const = 0;
+	/// Get field value using field id   
+	virtual void GetFieldIntV(const uint64& RecId, const int& FieldId, TIntV& IntV) const = 0;
+	/// Get field value using field id   
+	virtual uint GetFieldUInt(const uint64& RecId, const int& FieldId) const = 0;
+	/// Get field value using field id   
+	virtual uint16 GetFieldUInt16(const uint64& RecId, const int& FieldId) const = 0;
+	/// Get field value using field id   
+	virtual uint64 GetFieldUInt64(const uint64& RecId, const int& FieldId) const = 0;
+    /// Get field value using field id   
+	virtual TStr GetFieldStr(const uint64& RecId, const int& FieldId) const = 0;
+	/// Get field value using field id   
+	virtual void GetFieldStrV(const uint64& RecId, const int& FieldId, TStrV& StrV) const = 0;
+	/// Get field value using field id   
+	virtual bool GetFieldBool(const uint64& RecId, const int& FieldId) const = 0;
+	/// Get field value using field id   
+	virtual double GetFieldFlt(const uint64& RecId, const int& FieldId) const = 0;
+	/// Get field value using field id   
+	virtual float GetFieldSFlt(const uint64& RecId, const int& FieldId) const = 0;
+	/// Get field value using field id   
+	virtual TFltPr GetFieldFltPr(const uint64& RecId, const int& FieldId) const = 0;
+	/// Get field value using field id   
+	virtual void GetFieldFltV(const uint64& RecId, const int& FieldId, TFltV& FltV) const = 0;
+	/// Get field value using field id   
+	virtual void GetFieldTm(const uint64& RecId, const int& FieldId, TTm& Tm) const = 0;
+	/// Get field value using field id   
+	virtual uint64 GetFieldTmMSecs(const uint64& RecId, const int& FieldId) const = 0;
+	/// Get field value using field id   
+	virtual void GetFieldNumSpV(const uint64& RecId, const int& FieldId, TIntFltKdV& SpV) const = 0;
+	/// Get field value using field id   
+	virtual void GetFieldBowSpV(const uint64& RecId, const int& FieldId, PBowSpV& SpV) const = 0;
+	/// Get field value using field id   
+	virtual void GetFieldTMem(const uint64& RecId, const int& FieldId, TMem& Mem) const = 0;
+	/// Get field value using field id   
+	virtual PJsonVal GetFieldJsonVal(const uint64& RecId, const int& FieldId) const = 0;
+
+    /// Get field value using field id safely   
+    uint64 GetFieldUInt64Safe(const uint64& RecId, const int& FieldId) const;
+    /// Get field value using field id safely   
+    int64 GetFieldInt64Safe(const uint64& RecId, const int& FieldId) const;
 
 	/// Check if the value of given field for a given record is NULL
 	bool IsFieldNmNull(const uint64& RecId, const TStr& FieldNm) const;
-	/// Get field value using field name (default implementation throws exception)
+	/// Get field value using field name   
 	int GetFieldNmInt(const uint64& RecId, const TStr& FieldNm) const;
-	/// Get field value using field name (default implementation throws exception)
+	/// Get field value using field name   
 	void GetFieldNmIntV(const uint64& RecId, const TStr& FieldNm, TIntV& IntV) const;
-	/// Get field value using field name (default implementation throws exception)
+	/// Get field value using field name   
 	uint64 GetFieldNmUInt64(const uint64& RecId, const TStr& FieldNm) const;
-	/// Get field value using field name (default implementation throws exception)
+	/// Get field value using field name   
 	TStr GetFieldNmStr(const uint64& RecId, const TStr& FieldNm) const;
-	/// Get field value using field name (default implementation throws exception)
+	/// Get field value using field name   
 	void GetFieldNmStrV(const uint64& RecId, const TStr& FieldNm, TStrV& StrV) const;
-	/// Get field value using field name (default implementation throws exception)
+	/// Get field value using field name   
 	bool GetFieldNmBool(const uint64& RecId, const TStr& FieldNm) const;
-	/// Get field value using field name (default implementation throws exception)
+	/// Get field value using field name   
 	double GetFieldNmFlt(const uint64& RecId, const TStr& FieldNm) const;
-	/// Get field value using field name (default implementation throws exception)
+	/// Get field value using field name   
 	TFltPr GetFieldNmFltPr(const uint64& RecId, const TStr& FieldNm) const;
-	/// Get field value using field name (default implementation throws exception)
+	/// Get field value using field name   
 	void GetFieldNmFltV(const uint64& RecId, const TStr& FieldNm, TFltV& FltV) const;
-	/// Get field value using field name (default implementation throws exception)
+	/// Get field value using field name   
 	void GetFieldNmTm(const uint64& RecId, const TStr& FieldNm, TTm& Tm) const;
-	/// Get field value using field name (default implementation throws exception)
+	/// Get field value using field name   
 	uint64 GetFieldNmTmMSecs(const uint64& RecId, const TStr& FieldNm) const;
-	/// Get field value using field name (default implementation throws exception)
+	/// Get field value using field name   
 	void GetFieldNmNumSpV(const uint64& RecId, const TStr& FieldNm, TIntFltKdV& SpV) const;
-	/// Get field value using field name (default implementation throws exception)
+	/// Get field value using field name   
 	void GetFieldNmBowSpV(const uint64& RecId, const TStr& FieldNm, PBowSpV& SpV) const;
-	/// Get field value using field name (default implementation throws exception)
+	/// Get field value using field name   
 	void GetFieldNmTMem(const uint64& RecId, const TStr& FieldNm, TMem& mem) const;
-	/// Get field value using field name (default implementation throws exception)
+	/// Get field value using field name   
 	PJsonVal GetFieldNmJsonVal(const uint64& RecId, const TStr& FieldNm) const;
 
 	/// Set the value of given field to NULL
-	virtual void SetFieldNull(const uint64& RecId, const int& FieldId);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldByte(const uint64& RecId, const int& FieldId, const uchar& Byte);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldInt(const uint64& RecId, const int& FieldId, const int& Int);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldInt16(const uint64& RecId, const int& FieldId, const int16& Int16);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldInt64(const uint64& RecId, const int& FieldId, const int64& Int64);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldIntV(const uint64& RecId, const int& FieldId, const TIntV& IntV);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldUInt(const uint64& RecId, const int& FieldId, const uint& UInt);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldUInt16(const uint64& RecId, const int& FieldId, const uint16& UInt16);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldUInt64(const uint64& RecId, const int& FieldId, const uint64& UInt64);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldStr(const uint64& RecId, const int& FieldId, const TStr& Str);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldStrV(const uint64& RecId, const int& FieldId, const TStrV& StrV);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldBool(const uint64& RecId, const int& FieldId, const bool& Bool);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldFlt(const uint64& RecId, const int& FieldId, const double& Flt);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldSFlt(const uint64& RecId, const int& FieldId, const float& Flt);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldFltPr(const uint64& RecId, const int& FieldId, const TFltPr& FltPr);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldFltV(const uint64& RecId, const int& FieldId, const TFltV& FltV);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldTm(const uint64& RecId, const int& FieldId, const TTm& Tm);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldTmMSecs(const uint64& RecId, const int& FieldId, const uint64& TmMSecs);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldNumSpV(const uint64& RecId, const int& FieldId, const TIntFltKdV& SpV);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldBowSpV(const uint64& RecId, const int& FieldId, const PBowSpV& SpV);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldTMem(const uint64& RecId, const int& FieldId, const TMem& Mem);
-	/// Set field value using field id (default implementation throws exception)
-	virtual void SetFieldJsonVal(const uint64& RecId, const int& FieldId, const PJsonVal& Json);
+	virtual void SetFieldNull(const uint64& RecId, const int& FieldId) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldByte(const uint64& RecId, const int& FieldId, const uchar& Byte) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldInt(const uint64& RecId, const int& FieldId, const int& Int) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldInt16(const uint64& RecId, const int& FieldId, const int16& Int16) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldInt64(const uint64& RecId, const int& FieldId, const int64& Int64) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldIntV(const uint64& RecId, const int& FieldId, const TIntV& IntV) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldUInt(const uint64& RecId, const int& FieldId, const uint& UInt) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldUInt16(const uint64& RecId, const int& FieldId, const uint16& UInt16) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldUInt64(const uint64& RecId, const int& FieldId, const uint64& UInt64) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldStr(const uint64& RecId, const int& FieldId, const TStr& Str) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldStrV(const uint64& RecId, const int& FieldId, const TStrV& StrV) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldBool(const uint64& RecId, const int& FieldId, const bool& Bool) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldFlt(const uint64& RecId, const int& FieldId, const double& Flt) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldSFlt(const uint64& RecId, const int& FieldId, const float& Flt) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldFltPr(const uint64& RecId, const int& FieldId, const TFltPr& FltPr) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldFltV(const uint64& RecId, const int& FieldId, const TFltV& FltV) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldTm(const uint64& RecId, const int& FieldId, const TTm& Tm) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldTmMSecs(const uint64& RecId, const int& FieldId, const uint64& TmMSecs) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldNumSpV(const uint64& RecId, const int& FieldId, const TIntFltKdV& SpV) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldBowSpV(const uint64& RecId, const int& FieldId, const PBowSpV& SpV) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldTMem(const uint64& RecId, const int& FieldId, const TMem& Mem) = 0;
+	/// Set field value using field id   
+	virtual void SetFieldJsonVal(const uint64& RecId, const int& FieldId, const PJsonVal& Json) = 0;
+
+    /// Set field value using field id   
+    void SetFieldUInt64Safe(const uint64& RecId, const int& FieldId, const uint64& UInt64);
+    /// Set field value using field id   
+    void SetFieldInt64Safe(const uint64& RecId, const int& FieldId, const int64& Int64);
 
 	/// Set the value of given field to NULL
 	void SetFieldNmNull(const uint64& RecId, const TStr& FieldNm);
-	/// Set field value using field name (default implementation throws exception)
+	/// Set field value using field name   
 	void SetFieldNmInt(const uint64& RecId, const TStr& FieldNm, const int& Int);
-	/// Set field value using field name (default implementation throws exception)
+	/// Set field value using field name   
 	void SetFieldNmIntV(const uint64& RecId, const TStr& FieldNm, const TIntV& IntV);
-	/// Set field value using field name (default implementation throws exception)
+	/// Set field value using field name   
 	void SetFieldNmUInt64(const uint64& RecId, const TStr& FieldNm, const uint64& UInt64);
-	/// Set field value using field name (default implementation throws exception)
+	/// Set field value using field name   
 	void SetFieldNmStr(const uint64& RecId, const TStr& FieldNm, const TStr& Str);
-	/// Set field value using field name (default implementation throws exception)
+	/// Set field value using field name   
 	void SetFieldNmStrV(const uint64& RecId, const TStr& FieldNm, const TStrV& StrV);
-	/// Set field value using field name (default implementation throws exception)
+	/// Set field value using field name   
 	void SetFieldNmBool(const uint64& RecId, const TStr& FieldNm, const bool& Bool);
-	/// Set field value using field name (default implementation throws exception)
+	/// Set field value using field name   
 	void SetFieldNmFlt(const uint64& RecId, const TStr& FieldNm, const double& Flt);
-	/// Set field value using field name (default implementation throws exception)
+	/// Set field value using field name   
 	void SetFieldNmFltPr(const uint64& RecId, const TStr& FieldNm, const TFltPr& FltPr);
-	/// Set field value using field name (default implementation throws exception)
+	/// Set field value using field name   
 	void SetFieldNmFltV(const uint64& RecId, const TStr& FieldNm, const TFltV& FltV);
-	/// Set field value using field name (default implementation throws exception)
+	/// Set field value using field name   
 	void SetFieldNmTm(const uint64& RecId, const TStr& FieldNm, const TTm& Tm);
-	/// Set field value using field name (default implementation throws exception)
+	/// Set field value using field name   
 	void SetFieldNmTmMSecs(const uint64& RecId, const TStr& FieldNm, const uint64& TmMSecs);
-	/// Set field value using field name (default implementation throws exception)
+	/// Set field value using field name   
 	void SetFieldNmNumSpV(const uint64& RecId, const TStr& FieldNm, const TIntFltKdV& SpV);
-	/// Set field value using field name (default implementation throws exception)
+	/// Set field value using field name   
 	void SetFieldNmBowSpV(const uint64& RecId, const TStr& FieldNm, const PBowSpV& SpV);
-	/// Set field value using field name (default implementation throws exception)
+	/// Set field value using field name   
 	void SetFieldNmTMem(const uint64& RecId, const TStr& FieldNm, const TMem& Mem);   
-	/// Set field value using field name (default implementation throws exception)
+	/// Set field value using field name   
 	void SetFieldNmJsonVal(const uint64& RecId, const TStr& FieldNm, const PJsonVal& Json);
 
 	/// Get field value as JSon object using field id
@@ -813,6 +808,19 @@ public:
 	virtual PJsonVal GetStoreJson(const TWPt<TBase>& Base) const;
 	/// Parse out record id from record JSon serialization
 	uint64 GetRecId(const PJsonVal& RecVal) const;
+
+    /// Returns record-id of given field join
+    uint64 GetFieldJoinRecId(const uint64& RecId, const int& JoinId);
+    /// Returns record-id of given field join
+    uint64 GetFieldJoinRecId(const uint64& RecId, const TStr& JoinNm) { return GetFieldJoinRecId(RecId, GetJoinId(JoinNm)); }
+    /// Returns record-id of given field join
+    uint64 GetFieldJoinRecId(const uint64& RecId, const TJoinDesc& JoinDesc);
+    /// Returns frequency of given field join
+    int GetFieldJoinFq(const uint64& RecId, const int& JoinId);
+    /// Returns frequency of given field join
+    int GetFieldJoinFq(const uint64& RecId, const TStr& JoinNm) { return GetFieldJoinFq(RecId, GetJoinId(JoinNm)); }
+    /// Returns frequency of given field join
+    int GetFieldJoinFq(const uint64& RecId, const TJoinDesc& JoinDesc);
 	
 	/// Prints record set with all the field values, useful for debugging
 	void PrintRecSet(const TWPt<TBase>& Base, const PRecSet& RecSet, TSOut& SOut) const;
@@ -852,6 +860,8 @@ private:
 	TBool ByRefP;
 	/// Record ID (by reference)
 	TUInt64 RecId;
+    /// Frequency of record, default 1, can be set when this record is accessed from field join
+    TInt Fq;
 	/// Field position in serialization (by value)
 	THash<TInt, TInt> FieldIdPosH;
 	/// Join position in serialization (by value)
@@ -873,8 +883,8 @@ public:
 	TRec(const TWPt<TStore>& _Store): Store(_Store), 
 		ByRefP(false), RecId(TUInt64::Mx), RecValOut(RecVal) { }
 	/// Create record by reference
-	TRec(const TWPt<TStore>& _Store, const uint64& _RecId): Store(_Store), 
-		ByRefP(true), RecId(_RecId), RecValOut(RecVal) { }
+	TRec(const TWPt<TStore>& _Store, const uint64& _RecId, const int& _Fq = 1): Store(_Store), 
+		ByRefP(true), RecId(_RecId), Fq(_Fq), RecValOut(RecVal) { }
 	/// Constructor from JSon
 	TRec(const TWPt<TStore>& _Store, const PJsonVal& JsonVal);    
 	/// Copy-constructor
@@ -900,6 +910,8 @@ public:
 	uint64 GetRecId() const { return RecId; }
 	/// Get record name (only valid when by reference)
 	TStr GetRecNm() const { return Store->GetRecNm(RecId); }
+    /// Get record id (only valid when by reference)
+    int GetRecFq() const { return Fq; }
 
 	/// Checks if field value is null
 	bool IsFieldNull(const int& FieldId) const;
@@ -945,6 +957,17 @@ public:
 	void GetFieldTMem(const int& FieldId, TMem& Mem) const;
 	/// Field value retrieval
 	PJsonVal GetFieldJsonVal(const int& FieldId) const;
+
+    /// Field value retrieval - SAFE
+    uint16 GetFieldUInt16Safe(const int& FieldId) const;
+    /// Field value retrieval - SAFE
+    int16 GetFieldInt16Safe(const int& FieldId) const;
+    /// Field value retrieval - SAFE
+    uint GetFieldUIntSafe(const int& FieldId) const;
+    /// Field value retrieval - SAFE
+    int GetFieldIntSafe(const int& FieldId) const;
+    /// Field value retrieval - SAFE
+    uint64 GetFieldUInt64Safe(const int& FieldId) const;
 
 	/// Get field value as JSon object using field id
 	PJsonVal GetFieldJson(const int& FieldId) const;
@@ -1022,6 +1045,19 @@ public:
 	/// the first record.
 	TRec DoSingleJoin(const TWPt<TBase>& Base, const TJoinSeq& JoinSeq) const;
 
+    /// Returns record-id of given field join
+    uint64 GetFieldJoinRecId(const int& JoinId) const;
+    /// Returns record-id of given field join
+    uint64 GetFieldJoinRecId(const TStr& JoinNm) const { return GetFieldJoinRecId(Store->GetJoinId(JoinNm));  }
+    /// Returns record-id of given field join
+    uint64 GetFieldJoinRecId(const TJoinDesc& JoinDesc) const;
+    /// Returns frequency of given field join
+    int GetFieldJoinFq(const int& JoinId) const;
+    /// Returns frequency of given field join
+    int GetFieldJoinFq(const TStr& JoinNm) const { return GetFieldJoinFq(Store->GetJoinId(JoinNm)); }
+    /// Returns frequency of given field join
+    int GetFieldJoinFq(const TJoinDesc& JoinDesc) const;
+
 	/// Get record as JSon object
 	PJsonVal GetJson(const TWPt<TBase>& Base, const bool& FieldsP = true, 
 		const bool& StoreInfoP = true, const bool& JoinRecsP = false, 
@@ -1032,361 +1068,410 @@ public:
 /// Record Comparator by Frequency. If same, sort by ID
 class TRecCmpByFq {
 private:
-	TBool Asc;
+    TBool Asc;
 public:
-	TRecCmpByFq(const bool& _Asc) : Asc(_Asc) { }
+    TRecCmpByFq(const bool& _Asc) : Asc(_Asc) {}
 
-	bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
-		if (Asc) {
-			return (RecIdWgt1.Dat == RecIdWgt2.Dat) ?
-				(RecIdWgt1.Key < RecIdWgt2.Key) : (RecIdWgt1.Dat < RecIdWgt2.Dat);
-		} else {
-			return (RecIdWgt2.Dat == RecIdWgt1.Dat) ?
-				(RecIdWgt2.Key < RecIdWgt1.Key) : (RecIdWgt2.Dat < RecIdWgt1.Dat);
-		}
-	}
+    bool operator()(const TUInt64IntKd& RecIdFq1, const TUInt64IntKd& RecIdFq2) const {
+        if (Asc) {
+            return (RecIdFq1.Dat == RecIdFq2.Dat) ?
+                (RecIdFq1.Key < RecIdFq2.Key) : (RecIdFq1.Dat < RecIdFq2.Dat);
+        } else {
+            return (RecIdFq2.Dat == RecIdFq1.Dat) ?
+                (RecIdFq2.Key < RecIdFq1.Key) : (RecIdFq2.Dat < RecIdFq1.Dat);
+        }
+    }
 };
 
 ///////////////////////////////
 /// Record Comparator by Integer Field. 
 class TRecCmpByFieldInt {
 private:
-	/// Store from which we are sorting the records 
-	TWPt<TStore> Store;
-	/// Field according to which we are sorting
-	TInt FieldId;
-	/// Sort direction
-	TBool Asc;
+    /// Store from which we are sorting the records 
+    TWPt<TStore> Store;
+    /// Field according to which we are sorting
+    TInt FieldId;
+    /// Sort direction
+    TBool Asc;
 public:
-	TRecCmpByFieldInt(const TWPt<TStore>& _Store, const int& _FieldId,
-		const bool& _Asc): Store(_Store), FieldId(_FieldId), Asc(_Asc) { }
-	
-	bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
-		const int RecVal1 = Store->GetFieldInt(RecIdWgt1.Key, FieldId);
-		const int RecVal2 = Store->GetFieldInt(RecIdWgt2.Key, FieldId);
-		if (Asc) { return RecVal1 < RecVal2; } else { return RecVal2 < RecVal1; }
-	}
+    TRecCmpByFieldInt(const TWPt<TStore>& _Store, const int& _FieldId,
+        const bool& _Asc) : Store(_Store), FieldId(_FieldId), Asc(_Asc) {}
+
+    bool operator()(const TUInt64IntKd& RecIdFq1, const TUInt64IntKd& RecIdFq2) const {
+        if (Store->IsFieldNull(RecIdFq1.Key, FieldId))
+            return false;
+        if (Store->IsFieldNull(RecIdFq2.Key, FieldId))
+            return false;
+        const int RecVal1 = Store->GetFieldInt(RecIdFq1.Key, FieldId);
+        const int RecVal2 = Store->GetFieldInt(RecIdFq2.Key, FieldId);
+        if (Asc) { return RecVal1 < RecVal2; } else { return RecVal2 < RecVal1; }
+    }
 };
 
 ///////////////////////////////
 /// Record Comparator by Numeric Field. 
 class TRecCmpByFieldFlt {
 private:
-	/// Store from which we are sorting the records 
-	TWPt<TStore> Store;
-	/// Field according to which we are sorting
-	TInt FieldId;
-	/// Sort direction
-	TBool Asc;
+    /// Store from which we are sorting the records 
+    TWPt<TStore> Store;
+    /// Field according to which we are sorting
+    TInt FieldId;
+    /// Sort direction
+    TBool Asc;
 public:
-	TRecCmpByFieldFlt(const TWPt<TStore>& _Store, const int& _FieldId,
-		const bool& _Asc): Store(_Store), FieldId(_FieldId), Asc(_Asc) { }
-	
-	bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
-		const double RecVal1 = Store->GetFieldFlt(RecIdWgt1.Key, FieldId);
-		const double RecVal2 = Store->GetFieldFlt(RecIdWgt2.Key, FieldId);
-		if (Asc) { return RecVal1 < RecVal2; } else { return RecVal2 < RecVal1; }
-	}
+    TRecCmpByFieldFlt(const TWPt<TStore>& _Store, const int& _FieldId,
+        const bool& _Asc) : Store(_Store), FieldId(_FieldId), Asc(_Asc) {}
+
+    bool operator()(const TUInt64IntKd& RecIdFq1, const TUInt64IntKd& RecIdFq2) const {
+        if (Store->IsFieldNull(RecIdFq1.Key, FieldId))
+            return false;
+        if (Store->IsFieldNull(RecIdFq2.Key, FieldId))
+            return false;
+        const double RecVal1 = Store->GetFieldFlt(RecIdFq1.Key, FieldId);
+        const double RecVal2 = Store->GetFieldFlt(RecIdFq2.Key, FieldId);
+        if (Asc) { return RecVal1 < RecVal2; } else { return RecVal2 < RecVal1; }
+    }
 };
 
 ///////////////////////////////
 /// Record Comparator by String Field. 
 class TRecCmpByFieldStr {
 private:
-	/// Store from which we are sorting the records 
-	TWPt<TStore> Store;
-	/// Field according to which we are sorting
-	TInt FieldId;
-	/// Sort direction
-	TBool Asc;
+    /// Store from which we are sorting the records 
+    TWPt<TStore> Store;
+    /// Field according to which we are sorting
+    TInt FieldId;
+    /// Sort direction
+    TBool Asc;
 public:
-	TRecCmpByFieldStr(const TWPt<TStore>& _Store, const int& _FieldId,
-		const bool& _Asc): Store(_Store), FieldId(_FieldId), Asc(_Asc) { }
-	
-	bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
-		const TStr RecVal1 = Store->GetFieldStr(RecIdWgt1.Key, FieldId);
-		const TStr RecVal2 = Store->GetFieldStr(RecIdWgt2.Key, FieldId);
-		if (Asc) { return RecVal1 < RecVal2; } else { return RecVal2 < RecVal1; }
-	}
+    TRecCmpByFieldStr(const TWPt<TStore>& _Store, const int& _FieldId,
+        const bool& _Asc) : Store(_Store), FieldId(_FieldId), Asc(_Asc) {}
+
+    bool operator()(const TUInt64IntKd& RecIdFq1, const TUInt64IntKd& RecIdFq2) const {
+        if (Store->IsFieldNull(RecIdFq1.Key, FieldId))
+            return false;
+        if (Store->IsFieldNull(RecIdFq2.Key, FieldId))
+            return false;
+        const TStr RecVal1 = Store->GetFieldStr(RecIdFq1.Key, FieldId);
+        const TStr RecVal2 = Store->GetFieldStr(RecIdFq2.Key, FieldId);
+        if (Asc) { return RecVal1 < RecVal2; } else { return RecVal2 < RecVal1; }
+    }
 };
 
 ///////////////////////////////
 /// Record Comparator by Time Field. 
 class TRecCmpByFieldTm {
 private:
-	/// Store from which we are sorting the records 
-	TWPt<TStore> Store;
-	/// Field according to which we are sorting
-	TInt FieldId;
-	/// Sort direction
-	TBool Asc;
+    /// Store from which we are sorting the records 
+    TWPt<TStore> Store;
+    /// Field according to which we are sorting
+    TInt FieldId;
+    /// Sort direction
+    TBool Asc;
 public:
-	TRecCmpByFieldTm(const TWPt<TStore>& _Store, const int& _FieldId,
-		const bool& _Asc): Store(_Store), FieldId(_FieldId), Asc(_Asc) { }
-	
-	bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
-		const uint64 RecVal1 = Store->GetFieldTmMSecs(RecIdWgt1.Key, FieldId);
-		const uint64 RecVal2 = Store->GetFieldTmMSecs(RecIdWgt2.Key, FieldId);
-		if (Asc) { return RecVal1 < RecVal2; } else { return RecVal2 < RecVal1; }
-	}
+    TRecCmpByFieldTm(const TWPt<TStore>& _Store, const int& _FieldId,
+        const bool& _Asc) : Store(_Store), FieldId(_FieldId), Asc(_Asc) {}
+
+    bool operator()(const TUInt64IntKd& RecIdFq1, const TUInt64IntKd& RecIdFq2) const {
+        if (Store->IsFieldNull(RecIdFq1.Key, FieldId))
+            return false;
+        if (Store->IsFieldNull(RecIdFq2.Key, FieldId))
+            return false;
+        const uint64 RecVal1 = Store->GetFieldTmMSecs(RecIdFq1.Key, FieldId);
+        const uint64 RecVal2 = Store->GetFieldTmMSecs(RecIdFq2.Key, FieldId);
+        if (Asc) { return RecVal1 < RecVal2; } else { return RecVal2 < RecVal1; }
+    }
 };
 
 ///////////////////////////////
 /// Record Filter by Record Exists. 
 class TRecFilterByExists {
 private:
-	/// Store from which we are sorting the records 
-	TWPt<TStore> Store;
+    /// Store from which we are sorting the records 
+    TWPt<TStore> Store;
 public:
-	TRecFilterByExists(const TWPt<TStore>& _Store): Store(_Store) { }
-	
-	bool operator()(const TUInt64IntKd& RecIdWgt) const {
-		return Store->IsRecId(RecIdWgt.Key);
-	}
+    TRecFilterByExists(const TWPt<TStore>& _Store) : Store(_Store) {}
+
+    bool operator()(const TUInt64IntKd& RecIdFq) const {
+        return Store->IsRecId(RecIdFq.Key);
+    }
 };
 
 ///////////////////////////////
 /// Record Filter by Record Id. 
 class TRecFilterByRecId {
 private:
-	/// Minimal value
-	TUInt64 MinRecId;
-	/// Maximal value
-	TUInt64 MaxRecId;
+    /// Minimal value
+    TUInt64 MinRecId;
+    /// Maximal value
+    TUInt64 MaxRecId;
 public:
-	TRecFilterByRecId(const uint64& _MinRecId, const uint64& _MaxRecId): 
-		MinRecId(_MinRecId), MaxRecId(_MaxRecId) { }
-	
-	bool operator()(const TUInt64IntKd& RecIdWgt) const {
-		return (MinRecId <= RecIdWgt.Key) && (RecIdWgt.Key <= MaxRecId);
-	}
+    TRecFilterByRecId(const uint64& _MinRecId, const uint64& _MaxRecId) :
+        MinRecId(_MinRecId), MaxRecId(_MaxRecId) {}
+
+    bool operator()(const TUInt64IntKd& RecIdFq) const {
+        return (MinRecId <= RecIdFq.Key) && (RecIdFq.Key <= MaxRecId);
+    }
 };
 
 ///////////////////////////////
 /// Record Filter by Record Id Set. 
 class TRecFilterByRecIdSet {
 private:
-	/// Store from which we are sorting the records 
-	const TUInt64Set& RecIdSet;
-	/// Check for in our out
-	TBool InP;
+    /// Store from which we are sorting the records 
+    const TUInt64Set& RecIdSet;
+    /// Check for in our out
+    TBool InP;
 public:
-	TRecFilterByRecIdSet(const TUInt64Set& _RecIdSet, const bool _InP): 
-		RecIdSet(_RecIdSet), InP(_InP) { }
-	
-	bool operator()(const TUInt64IntKd& RecIdWgt) const {
-		return InP ? RecIdSet.IsKey(RecIdWgt.Key) : !RecIdSet.IsKey(RecIdWgt.Key);
-	}
+    TRecFilterByRecIdSet(const TUInt64Set& _RecIdSet, const bool _InP) :
+        RecIdSet(_RecIdSet), InP(_InP) {}
+
+    bool operator()(const TUInt64IntKd& RecIdFq) const {
+        return InP ? RecIdSet.IsKey(RecIdFq.Key) : !RecIdSet.IsKey(RecIdFq.Key);
+    }
 };
 
 ///////////////////////////////
 /// Record Filter by Record Id. 
 class TRecFilterByRecFq {
 private:
-	/// Minimal value
-	TInt MinFq;
-	/// Maximal value
-	TInt MaxFq;
+    /// Minimal value
+    TInt MinFq;
+    /// Maximal value
+    TInt MaxFq;
 public:
-	TRecFilterByRecFq(const int& _MinFq, const int& _MaxFq): 
-		MinFq(_MinFq), MaxFq(_MaxFq) { }
-	
-	bool operator()(const TUInt64IntKd& RecIdWgt) const {
-		return (MinFq <= RecIdWgt.Dat) && (RecIdWgt.Dat <= MaxFq);
-	}
+    TRecFilterByRecFq(const int& _MinFq, const int& _MaxFq) :
+        MinFq(_MinFq), MaxFq(_MaxFq) {}
+
+    bool operator()(const TUInt64IntKd& RecIdFq) const {
+        return (MinFq <= RecIdFq.Dat) && (RecIdFq.Dat <= MaxFq);
+    }
 };
 
 ///////////////////////////////
 /// Record Filter by Bool Field. 
 class TRecFilterByFieldBool {
 private:
-	/// Store from which we are sorting the records 
-	TWPt<TStore> Store;
-	/// Field according to which we are sorting
-	TInt FieldId;	
-	/// Value
-	TBool Val;
+    /// Store from which we are sorting the records 
+    TWPt<TStore> Store;
+    /// Field according to which we are sorting
+    TInt FieldId;
+    /// Value
+    TBool Val;
 public:
-	TRecFilterByFieldBool(const TWPt<TStore>& _Store, const int& _FieldId, const bool& _Val) : Store(_Store), FieldId(_FieldId), Val(_Val) { }
+    TRecFilterByFieldBool(const TWPt<TStore>& _Store, const int& _FieldId, const bool& _Val) : Store(_Store), FieldId(_FieldId), Val(_Val) {}
 
-	bool operator()(const TUInt64IntKd& RecIdWgt) const {
-		const bool RecVal = Store->GetFieldBool(RecIdWgt.Key, FieldId);
-		return RecVal == Val;
-	}
+    bool operator()(const TUInt64IntKd& RecIdFq) const {
+        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
+        const bool RecVal = Store->GetFieldBool(RecIdFq.Key, FieldId);
+        return RecVal == Val;
+    }
 };
 
 ///////////////////////////////
 /// Record Filter by Integer Field. 
 class TRecFilterByFieldInt {
 private:
-	/// Store from which we are sorting the records 
-	TWPt<TStore> Store;
-	/// Field according to which we are sorting
-	TInt FieldId;
-	/// Minimal value
-	TInt MinVal;
-	/// Maximal value
-	TInt MaxVal;
+    /// Store from which we are sorting the records 
+    TWPt<TStore> Store;
+    /// Field according to which we are sorting
+    TInt FieldId;
+    /// Minimal value
+    TInt MinVal;
+    /// Maximal value
+    TInt MaxVal;
 public:
-	TRecFilterByFieldInt(const TWPt<TStore>& _Store, const int& _FieldId, const int& _MinVal,
-		const int& _MaxVal): Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) { }
-	
-	bool operator()(const TUInt64IntKd& RecIdWgt) const {
-		const int RecVal = Store->GetFieldInt(RecIdWgt.Key, FieldId);
-		return (MinVal <= RecVal) && (RecVal <= MaxVal);
-	}
+    TRecFilterByFieldInt(const TWPt<TStore>& _Store, const int& _FieldId, const int& _MinVal,
+        const int& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
+
+    bool operator()(const TUInt64IntKd& RecIdFq) const {
+        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
+        const int RecVal = Store->GetFieldInt(RecIdFq.Key, FieldId);
+        return (MinVal <= RecVal) && (RecVal <= MaxVal);
+    }
 };
 
 ///////////////////////////////
 /// Record Filter by Integer Field. 
 class TRecFilterByFieldInt16 {
 private:
-	/// Store from which we are sorting the records 
-	TWPt<TStore> Store;
-	/// Field according to which we are sorting
-	TInt FieldId;
-	/// Minimal value
-	TInt16 MinVal;
-	/// Maximal value
-	TInt16 MaxVal;
+    /// Store from which we are sorting the records 
+    TWPt<TStore> Store;
+    /// Field according to which we are sorting
+    TInt FieldId;
+    /// Minimal value
+    TInt16 MinVal;
+    /// Maximal value
+    TInt16 MaxVal;
 public:
-	TRecFilterByFieldInt16(const TWPt<TStore>& _Store, const int& _FieldId, const int16& _MinVal,
-		const int16& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
+    TRecFilterByFieldInt16(const TWPt<TStore>& _Store, const int& _FieldId, const int16& _MinVal,
+        const int16& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
 
-	bool operator()(const TUInt64IntKd& RecIdWgt) const {
-		const int16 RecVal = Store->GetFieldInt16(RecIdWgt.Key, FieldId);
-		return (MinVal <= RecVal) && (RecVal <= MaxVal);
-	}
+    bool operator()(const TUInt64IntKd& RecIdFq) const {
+        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
+        const int16 RecVal = Store->GetFieldInt16(RecIdFq.Key, FieldId);
+        return (MinVal <= RecVal) && (RecVal <= MaxVal);
+    }
 };
 
 ///////////////////////////////
 /// Record Filter by Integer Field. 
 class TRecFilterByFieldInt64 {
 private:
-	/// Store from which we are sorting the records 
-	TWPt<TStore> Store;
-	/// Field according to which we are sorting
-	TInt FieldId;
-	/// Minimal value
-	TInt64 MinVal;
-	/// Maximal value
-	TInt64 MaxVal;
+    /// Store from which we are sorting the records 
+    TWPt<TStore> Store;
+    /// Field according to which we are sorting
+    TInt FieldId;
+    /// Minimal value
+    TInt64 MinVal;
+    /// Maximal value
+    TInt64 MaxVal;
 public:
-	TRecFilterByFieldInt64(const TWPt<TStore>& _Store, const int& _FieldId, const int64& _MinVal,
-		const int64& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
+    TRecFilterByFieldInt64(const TWPt<TStore>& _Store, const int& _FieldId, const int64& _MinVal,
+        const int64& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
 
-	bool operator()(const TUInt64IntKd& RecIdWgt) const {
-		const int64 RecVal = Store->GetFieldInt64(RecIdWgt.Key, FieldId);
-		return (MinVal <= RecVal) && (RecVal <= MaxVal);
-	}
+    bool operator()(const TUInt64IntKd& RecIdFq) const {
+        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
+        const int64 RecVal = Store->GetFieldInt64(RecIdFq.Key, FieldId);
+        return (MinVal <= RecVal) && (RecVal <= MaxVal);
+    }
 };
 
 ///////////////////////////////
 /// Record Filter by Integer Field. 
 class TRecFilterByFieldUCh {
 private:
-	/// Store from which we are sorting the records 
-	TWPt<TStore> Store;
-	/// Field according to which we are sorting
-	TInt FieldId;
-	/// Minimal value
-	TUCh MinVal;
-	/// Maximal value
-	TUCh MaxVal;
+    /// Store from which we are sorting the records 
+    TWPt<TStore> Store;
+    /// Field according to which we are sorting
+    TInt FieldId;
+    /// Minimal value
+    TUCh MinVal;
+    /// Maximal value
+    TUCh MaxVal;
 public:
-	TRecFilterByFieldUCh(const TWPt<TStore>& _Store, const int& _FieldId, const uchar& _MinVal,
-		const uchar& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
+    TRecFilterByFieldUCh(const TWPt<TStore>& _Store, const int& _FieldId, const uchar& _MinVal,
+        const uchar& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
 
-	bool operator()(const TUInt64IntKd& RecIdWgt) const {
-		const uchar RecVal = Store->GetFieldByte(RecIdWgt.Key, FieldId);
-		return (MinVal <= RecVal) && (RecVal <= MaxVal);
-	}
+    bool operator()(const TUInt64IntKd& RecIdFq) const {
+        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
+        const uchar RecVal = Store->GetFieldByte(RecIdFq.Key, FieldId);
+        return (MinVal <= RecVal) && (RecVal <= MaxVal);
+    }
 };
 
 ///////////////////////////////
 /// Record Filter by Integer Field. 
 class TRecFilterByFieldUInt {
 private:
-	/// Store from which we are sorting the records 
-	TWPt<TStore> Store;
-	/// Field according to which we are sorting
-	TInt FieldId;
-	/// Minimal value
-	TUInt MinVal;
-	/// Maximal value
-	TUInt MaxVal;
+    /// Store from which we are sorting the records 
+    TWPt<TStore> Store;
+    /// Field according to which we are sorting
+    TInt FieldId;
+    /// Minimal value
+    TUInt MinVal;
+    /// Maximal value
+    TUInt MaxVal;
 public:
-	TRecFilterByFieldUInt(const TWPt<TStore>& _Store, const int& _FieldId, const uint& _MinVal,
-		const uint& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
+    TRecFilterByFieldUInt(const TWPt<TStore>& _Store, const int& _FieldId, const uint& _MinVal,
+        const uint& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
 
-	bool operator()(const TUInt64IntKd& RecIdWgt) const {
-		const uint RecVal = Store->GetFieldUInt(RecIdWgt.Key, FieldId);
-		return (MinVal <= RecVal) && (RecVal <= MaxVal);
-	}
+    bool operator()(const TUInt64IntKd& RecIdFq) const {
+        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
+        const uint RecVal = Store->GetFieldUInt(RecIdFq.Key, FieldId);
+        return (MinVal <= RecVal) && (RecVal <= MaxVal);
+    }
 };
 
 ///////////////////////////////
 /// Record Filter by Integer Field. 
 class TRecFilterByFieldUInt16 {
 private:
-	/// Store from which we are sorting the records 
-	TWPt<TStore> Store;
-	/// Field according to which we are sorting
-	TInt FieldId;
-	/// Minimal value
-	TUInt16 MinVal;
-	/// Maximal value
-	TUInt16 MaxVal;
+    /// Store from which we are sorting the records 
+    TWPt<TStore> Store;
+    /// Field according to which we are sorting
+    TInt FieldId;
+    /// Minimal value
+    TUInt16 MinVal;
+    /// Maximal value
+    TUInt16 MaxVal;
 public:
-	TRecFilterByFieldUInt16(const TWPt<TStore>& _Store, const int& _FieldId, const uint16& _MinVal,
-		const uint16& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
+    TRecFilterByFieldUInt16(const TWPt<TStore>& _Store, const int& _FieldId, const uint16& _MinVal,
+        const uint16& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
 
-	bool operator()(const TUInt64IntKd& RecIdWgt) const {
-		const uint16 RecVal = Store->GetFieldUInt16(RecIdWgt.Key, FieldId);
-		return (MinVal <= RecVal) && (RecVal <= MaxVal);
-	}
+    bool operator()(const TUInt64IntKd& RecIdFq) const {
+        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
+        const uint16 RecVal = Store->GetFieldUInt16(RecIdFq.Key, FieldId);
+        return (MinVal <= RecVal) && (RecVal <= MaxVal);
+    }
 };
 
 ///////////////////////////////
 /// Record Filter by Numeric Field. 
 class TRecFilterByFieldFlt {
 private:
-	/// Store from which we are sorting the records 
-	TWPt<TStore> Store;
-	/// Field according to which we are sorting
-	TInt FieldId;
-	/// Minimal value
-	TFlt MinVal;
-	/// Maximal value
-	TFlt MaxVal;
+    /// Store from which we are sorting the records 
+    TWPt<TStore> Store;
+    /// Field according to which we are sorting
+    TInt FieldId;
+    /// Minimal value
+    TFlt MinVal;
+    /// Maximal value
+    TFlt MaxVal;
 public:
-	TRecFilterByFieldFlt(const TWPt<TStore>& _Store, const int& _FieldId, const double& _MinVal,
-		const double& _MaxVal): Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) { }
-	
-	bool operator()(const TUInt64IntKd& RecIdWgt) const {
-		const double RecVal = Store->GetFieldFlt(RecIdWgt.Key, FieldId);
-		return (MinVal <= RecVal) && (RecVal <= MaxVal);
-	}
+    TRecFilterByFieldFlt(const TWPt<TStore>& _Store, const int& _FieldId, const double& _MinVal,
+        const double& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
+
+    bool operator()(const TUInt64IntKd& RecIdFq) const {
+        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
+        const double RecVal = Store->GetFieldFlt(RecIdFq.Key, FieldId);
+        return (MinVal <= RecVal) && (RecVal <= MaxVal);
+    }
 };
 
 ///////////////////////////////
 /// Record Filter by Numeric Field. 
 class TRecFilterByFieldSFlt {
 private:
+    /// Store from which we are sorting the records 
+    TWPt<TStore> Store;
+    /// Field according to which we are sorting
+    TInt FieldId;
+    /// Minimal value
+    TSFlt MinVal;
+    /// Maximal value
+    TSFlt MaxVal;
+public:
+    TRecFilterByFieldSFlt(const TWPt<TStore>& _Store, const int& _FieldId, const float& _MinVal,
+        const float& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
+
+    bool operator()(const TUInt64IntKd& RecIdFq) const {
+        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
+        const float RecVal = Store->GetFieldSFlt(RecIdFq.Key, FieldId);
+        return (MinVal <= RecVal) && (RecVal <= MaxVal);
+    }
+};
+
+///////////////////////////////
+
+/// Record Filter by UInt64 Field. 
+class TRecFilterByFieldUInt64 {
+private:
 	/// Store from which we are sorting the records 
 	TWPt<TStore> Store;
 	/// Field according to which we are sorting
 	TInt FieldId;
 	/// Minimal value
-	TSFlt MinVal;
+	TUInt64 MinVal;
 	/// Maximal value
-	TSFlt MaxVal;
+	TUInt64 MaxVal;
 public:
-	TRecFilterByFieldSFlt(const TWPt<TStore>& _Store, const int& _FieldId, const float& _MinVal,
-		const float& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
+	TRecFilterByFieldUInt64(const TWPt<TStore>& _Store, const int& _FieldId, const uint64& _MinVal,
+		const uint64& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) { 
+	}
 
 	bool operator()(const TUInt64IntKd& RecIdWgt) const {
-		const float RecVal = Store->GetFieldSFlt(RecIdWgt.Key, FieldId);
+		const uint64 RecVal = Store->GetFieldUInt64(RecIdWgt.Key, FieldId);
 		return (MinVal <= RecVal) && (RecVal <= MaxVal);
 	}
 };
@@ -1395,21 +1480,22 @@ public:
 /// Record Filter by String Field. 
 class TRecFilterByFieldStr {
 private:
-	/// Store from which we are sorting the records 
-	TWPt<TStore> Store;
-	/// Field according to which we are sorting
-	TInt FieldId;
-	/// String value
+    /// Store from which we are sorting the records 
+    TWPt<TStore> Store;
+    /// Field according to which we are sorting
+    TInt FieldId;
+    /// String value
     const TStr& StrVal;
 public:
-	TRecFilterByFieldStr(const TWPt<TStore>& _Store, const int& _FieldId, 
-        const TStr& _StrVal) : 
-        Store(_Store), FieldId(_FieldId), StrVal(_StrVal) { }
-	
-	bool operator()(const TUInt64IntKd& RecIdWgt) const {
-        const TStr RecVal = Store->GetFieldStr(RecIdWgt.Key, FieldId);
+    TRecFilterByFieldStr(const TWPt<TStore>& _Store, const int& _FieldId,
+        const TStr& _StrVal) :
+        Store(_Store), FieldId(_FieldId), StrVal(_StrVal) {}
+
+    bool operator()(const TUInt64IntKd& RecIdFq) const {
+        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
+        const TStr RecVal = Store->GetFieldStr(RecIdFq.Key, FieldId);
         return StrVal == RecVal;
-	}
+    }
 };
 
 ///////////////////////////////
@@ -1429,8 +1515,9 @@ public:
         const TStr& _StrVal, const TStr& _StrValMax) :
         Store(_Store), FieldId(_FieldId), StrValMin(_StrVal), StrValMax(_StrValMax) {}
 
-    bool operator()(const TUInt64IntKd& RecIdWgt) const {
-        const TStr RecVal = Store->GetFieldStr(RecIdWgt.Key, FieldId);
+    bool operator()(const TUInt64IntKd& RecIdFq) const {
+        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
+        const TStr RecVal = Store->GetFieldStr(RecIdFq.Key, FieldId);
         return (StrValMin <= RecVal) && (RecVal <= StrValMax);
     }
 };
@@ -1439,20 +1526,21 @@ public:
 /// Record Filter by String Field Set. 
 class TRecFilterByFieldStrSet {
 private:
-	/// Store from which we are sorting the records 
-	TWPt<TStore> Store;
-	/// Field according to which we are sorting
-	TInt FieldId;
-	/// String values
-	const TStrSet& StrSet;
+    /// Store from which we are sorting the records 
+    TWPt<TStore> Store;
+    /// Field according to which we are sorting
+    TInt FieldId;
+    /// String values
+    const TStrSet& StrSet;
 public:
-	TRecFilterByFieldStrSet(const TWPt<TStore>& _Store, const int& _FieldId, 
-		const TStrSet& _StrSet): Store(_Store), FieldId(_FieldId), StrSet(_StrSet) { }
-	
-	bool operator()(const TUInt64IntKd& RecIdWgt) const {
-		const TStr RecVal = Store->GetFieldStr(RecIdWgt.Key, FieldId);
-		return StrSet.IsKey(RecVal);
-	}
+    TRecFilterByFieldStrSet(const TWPt<TStore>& _Store, const int& _FieldId,
+        const TStrSet& _StrSet) : Store(_Store), FieldId(_FieldId), StrSet(_StrSet) {}
+
+    bool operator()(const TUInt64IntKd& RecIdFq) const {
+        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
+        const TStr RecVal = Store->GetFieldStr(RecIdFq.Key, FieldId);
+        return StrSet.IsKey(RecVal);
+    }
 };
 
 
@@ -1460,48 +1548,100 @@ public:
 /// Record Filter by Time Field. 
 class TRecFilterByFieldTm {
 private:
-	/// Store from which we are sorting the records 
-	TWPt<TStore> Store;
-	/// Field according to which we are sorting
-	TInt FieldId;
-	/// Minimal value
-	TUInt64 MinVal;
-	/// Maximal value
-	TUInt64 MaxVal;
+    /// Store from which we are sorting the records 
+    TWPt<TStore> Store;
+    /// Field according to which we are sorting
+    TInt FieldId;
+    /// Minimal value
+    TUInt64 MinVal;
+    /// Maximal value
+    TUInt64 MaxVal;
 public:
-	TRecFilterByFieldTm(const TWPt<TStore>& _Store, const int& _FieldId, const uint64& _MinVal,
-		const uint64& _MaxVal): Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) { }
-	TRecFilterByFieldTm(const TWPt<TStore>& _Store, const int& _FieldId, 
-		const TTm& _MinVal, const TTm& _MaxVal): Store(_Store), FieldId(_FieldId), 
-		MinVal(_MinVal.IsDef() ? TTm::GetMSecsFromTm(_MinVal) : (uint64)TUInt64::Mn), 
-		MaxVal(_MaxVal.IsDef() ? TTm::GetMSecsFromTm(_MaxVal) : (uint64)TUInt64::Mx) { }
-	
-	bool operator()(const TUInt64IntKd& RecIdWgt) const {
-		const uint64 RecVal = Store->GetFieldTmMSecs(RecIdWgt.Key, FieldId);
-		return (MinVal <= RecVal) && (RecVal <= MaxVal);
-	}
+    TRecFilterByFieldTm(const TWPt<TStore>& _Store, const int& _FieldId, const uint64& _MinVal,
+        const uint64& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
+    TRecFilterByFieldTm(const TWPt<TStore>& _Store, const int& _FieldId,
+        const TTm& _MinVal, const TTm& _MaxVal) : Store(_Store), FieldId(_FieldId),
+        MinVal(_MinVal.IsDef() ? TTm::GetMSecsFromTm(_MinVal) : (uint64)TUInt64::Mn),
+        MaxVal(_MaxVal.IsDef() ? TTm::GetMSecsFromTm(_MaxVal) : (uint64)TUInt64::Mx) {}
+
+    bool operator()(const TUInt64IntKd& RecIdFq) const {
+        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
+        const uint64 RecVal = Store->GetFieldTmMSecs(RecIdFq.Key, FieldId);
+        return (MinVal <= RecVal) && (RecVal <= MaxVal);
+    }
+};
+
+
+///////////////////////////////
+/// Record Filter by numeric Field. 
+class TRecFilterByFieldSafe {
+private:
+    /// Store from which we are sorting the records 
+    TWPt<TStore> Store;
+    /// Field according to which we are sorting
+    TInt FieldId;
+    /// Minimal value
+    TUInt64 MinVal;
+    /// Maximal value
+    TUInt64 MaxVal;
+public:
+    /// Constructor
+    TRecFilterByFieldSafe(const TWPt<TStore>& _Store, const int& _FieldId, const uint64& _MinVal,
+        const uint64& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
+    /// Main operator
+    bool operator()(const TUInt64IntKd& RecIdFq) const {
+        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
+        const uint64 RecVal = Store->GetFieldUInt64Safe(RecIdFq.Key, FieldId);
+        return (MinVal <= RecVal) && (RecVal <= MaxVal);
+    }
+};
+
+
+///////////////////////////////
+/// Record Filter by index-join. 
+class TRecFilterByIndexJoin {
+private:
+    /// Store from which we are sorting the records 
+    TWPt<TStore> Store;
+    /// Index object to use for index-joins
+    TWPt<TIndex> Index;
+    /// Field according to which we are sorting
+    TInt JoinId;
+    /// Minimal value
+    TUInt64 MinVal;
+    /// Maximal value
+    TUInt64 MaxVal;
+    /// Join key ID
+    int JoinKeyId;
+public:
+    /// Constructor
+    TRecFilterByIndexJoin(const TWPt<TStore>& _Store, const int& _JoinId, const uint64& _MinVal, const uint64& _MaxVal);
+    /// Main operator
+    bool operator()(const TUInt64IntKd& RecIdFq) const;
 };
 
 ///////////////////////////////
 /// Record Splitter by Time Field. 
 class TRecSplitterByFieldTm {
 private:
-	/// Store from which we are sorting the records 
-	TWPt<TStore> Store;
-	/// Field according to which we are sorting
-	TInt FieldId;
-	/// Maximal difference value
-	TUInt64 DiffMSecs;
-	
+    /// Store from which we are sorting the records 
+    TWPt<TStore> Store;
+    /// Field according to which we are sorting
+    TInt FieldId;
+    /// Maximal difference value
+    TUInt64 DiffMSecs;
+
 public:
-	TRecSplitterByFieldTm(const TWPt<TStore>& _Store, const int& _FieldId, const uint64& _DiffMSecs):
-		Store(_Store), FieldId(_FieldId), DiffMSecs(_DiffMSecs) { }
-	
-	bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
-		const uint64 RecVal1 = Store->GetFieldTmMSecs(RecIdWgt1.Key, FieldId);
-		const uint64 RecVal2 = Store->GetFieldTmMSecs(RecIdWgt2.Key, FieldId);
-		return (RecVal2 - RecVal1) > DiffMSecs;
-	}
+    TRecSplitterByFieldTm(const TWPt<TStore>& _Store, const int& _FieldId, const uint64& _DiffMSecs) :
+        Store(_Store), FieldId(_FieldId), DiffMSecs(_DiffMSecs) {}
+
+    bool operator()(const TUInt64IntKd& RecIdFq1, const TUInt64IntKd& RecIdFq2) const {
+        if (Store->IsFieldNull(RecIdFq1.Key, FieldId)) { return false; }
+        if (Store->IsFieldNull(RecIdFq2.Key, FieldId)) { return false; }
+        const uint64 RecVal1 = Store->GetFieldTmMSecs(RecIdFq1.Key, FieldId);
+        const uint64 RecVal2 = Store->GetFieldTmMSecs(RecIdFq2.Key, FieldId);
+        return (RecVal2 - RecVal1) > DiffMSecs;
+    }
 };
 
 ///////////////////////////////////////////////
@@ -1595,7 +1735,7 @@ private:
 	/// Store
 	TWPt<TStore> Store;
 	/// True when records have valid weights
-	TBool WgtP;
+	TBool FqP;
 	/// Vector of pairs (record id, weight)
 	TUInt64IntKdV RecIdFqV;
 	/// Vector of computed aggregates
@@ -1604,30 +1744,30 @@ private:
 private:
 	/// Samples records from result set
 	/// @param SampleSize number of records to sample out
-	/// @param WgtSampleP true when records are ordered according to the weight
+	/// @param FqSampleP true when records are ordered according to the weight
 	/// @param SampleRecIdFqV reference to vector for storing sampled records
 	void GetSampleRecIdV(const int& SampleSize, 
-		const bool& WgtSampleP, TUInt64IntKdV& SampleRecIdFqV) const;
+		const bool& FqSampleP, TUInt64IntKdV& SampleRecIdFqV) const;
 	/// Removes records from this result set that are not part of the provided
 	void LimitToSampleRecIdV(const TUInt64IntKdV& SampleRecIdFqV);
 
 	TRecSet() { }
-	TRecSet(const TWPt<TStore>& Store, const uint64& RecId, const int& Wgt);
+	TRecSet(const TWPt<TStore>& Store, const uint64& RecId, const int& Fq);
 	TRecSet(const TWPt<TStore>& Store, const TUInt64V& RecIdV);
 	TRecSet(const TWPt<TStore>& Store, const TIntV& RecIdV);
-	TRecSet(const TWPt<TStore>& Store, const TUInt64IntKdV& _RecIdFqV, const bool& _WgtP);
+	TRecSet(const TWPt<TStore>& Store, const TUInt64IntKdV& _RecIdFqV, const bool& _FqP);
 	TRecSet(const TWPt<TBase>& Base, TSIn& SIn);
 
     /// Special access for TIndex and TBase to create weighted record sets
-	/// @param WgtP true when RecIdFqV contains valid weights
-	static PRecSet New(const TWPt<TStore>& Store, const TUInt64IntKdV& RecIdFqV, const bool& WgtP);
+	/// @param FqP true when RecIdFqV contains valid weights
+	static PRecSet New(const TWPt<TStore>& Store, const TUInt64IntKdV& RecIdFqV, const bool& FqP);
     friend class TIndex;
     friend class TBase;
 public:
 	/// Create empty set for a given store
 	static PRecSet New(const TWPt<TStore>& Store);
 	/// Create record set with one record
-	static PRecSet New(const TWPt<TStore>& Store, const uint64& RecId, const int& Wgt = 1);
+	static PRecSet New(const TWPt<TStore>& Store, const uint64& RecId, const int& Fq = 1);
 	/// Create record set with one record (must be by reference)
 	static PRecSet New(const TWPt<TStore>& Store, const TRec& Rec);
 	/// Create record set from a given vector of record ids
@@ -1643,7 +1783,7 @@ public:
 	void Save(TSOut& SOut);
 
 	/// True when record set contains valid record weights
-	bool IsWgt() const { return WgtP; }
+	bool IsFq() const { return FqP; }
 	/// True when no record
 	bool Empty() const { return RecIdFqV.Empty(); }
 	/// Get store of the record set
@@ -1658,7 +1798,7 @@ public:
 	/// Get id of RecN-th record
 	uint64 GetRecId(const int& RecN) const { return RecIdFqV[RecN].Key; }
 	/// Get weight of RecN-th record
-	int GetRecFq(const int& RecN) const { return WgtP ? RecIdFqV[RecN].Dat.Val : 1; }
+	int GetRecFq(const int& RecN) const { return FqP ? RecIdFqV[RecN].Dat.Val : 1; }
 	/// Get last record in the set as TRec by reference
 	TRec GetLastRec() const { return TRec(GetStore(), RecIdFqV.Last().Key); }
 	/// Get id of the last record in the set
@@ -1725,6 +1865,8 @@ public:
 	void FilterByFieldFlt(const int& FieldId, const double& MinVal, const double& MaxVal);
 	/// Filter records to keep only the ones with values of a given field within given range
 	void FilterByFieldSFlt(const int& FieldId, const float& MinVal, const float& MaxVal);
+    /// Filter records to keep only the ones with values of a given field within given range
+	void FilterByFieldUInt64(const int& FieldId, const uint64& MinVal, const uint64& MaxVal);
 	/// Filter records to keep only the ones with values of a given field equal to `FldVal'
     void FilterByFieldStr(const int& FieldId, const TStr& FldVal);
     /// Filter records to keep only the ones with values of a given field between `FldValMin' and `FldValMax' (both inclusive)
@@ -1735,6 +1877,10 @@ public:
 	void FilterByFieldTm(const int& FieldId, const uint64& MinVal, const uint64& MaxVal);
 	/// Filter records to keep only the ones with values of a given field within given range
 	void FilterByFieldTm(const int& FieldId, const TTm& MinVal, const TTm& MaxVal);
+    /// Filter records to keep only the ones with values of a given field within given range
+    void FilterByFieldSafe(const int& FieldId, const uint64& MinVal, const uint64& MaxVal);
+    /// Filter records to keep only the ones with join-record within given range
+    void FilterByIndexJoin(const TWPt<TBase>& Base, const int& JoinId, const uint64& MinVal, const uint64& MaxVal);
 	/// Filter records to keep only the ones with values of a given field within given range
 	template <class TFilter> void FilterBy(const TFilter& Filter);
 	
@@ -1752,7 +1898,8 @@ public:
 	/// Create a cloned record set. Forgets aggregations.
 	PRecSet Clone() const;
 	/// Returns a new record set generated by sampling this one
-	PRecSet GetSampleRecSet(const int& SampleSize) const;
+    /// @param IgnoreFqP Ignores record frequency when available during sampling
+	PRecSet GetSampleRecSet(const int& SampleSize, const bool& IgnoreFqP = false) const;
 	/// Get record set containing `Limit' records starting from `RecN=Offset'
 	PRecSet GetLimit(const int& Limit, const int& Offset) const;
 
@@ -1773,10 +1920,12 @@ public:
 
 	/// Execute join with the given id
 	/// @param SampleSize Sample size used to do the join. When set to -1, all the records are used.
-	PRecSet DoJoin(const TWPt<TBase>& Base, const int& JoinId, const int& SampleSize = -1) const;
+    /// @param IgnoreFqP Ignores record frequency when available during sampling
+	PRecSet DoJoin(const TWPt<TBase>& Base, const int& JoinId, const int& SampleSize = -1, const bool& IgnoreFqP = false) const;
 	/// Execute join with the given name
 	/// @param SampleSize Sample size used to do the join. When set to -1, all the records are used.
-	PRecSet DoJoin(const TWPt<TBase>& Base, const TStr& JoinNm, const int& SampleSize = -1) const;
+    /// @param IgnoreFqP Ignores record frequency when available during sampling
+	PRecSet DoJoin(const TWPt<TBase>& Base, const TStr& JoinNm, const int& SampleSize = -1, const bool& IgnoreFqP = false) const;
 	/// Execute given join sequence. Each join is given by pair (id, sample size).
 	PRecSet DoJoin(const TWPt<TBase>& Base, const TIntPrV& JoinIdV) const;
 	/// Execute given join sequence.
@@ -1909,9 +2058,9 @@ public:
 	TIndexKey(): StoreId(TUInt::Mx), KeyId(-1), KeyNm(""), 
 		WordVocId(-1), TypeFlags(oiktUndef), SortType(oikstUndef) {}
 	/// Create internal key, used for index joins
-	TIndexKey(const uint& _StoreId, const TStr& _KeyNm, const TStr& _JoinNm, const bool& IsSmall);
+	TIndexKey(const TWPt<TBase>& Base, const uint& _StoreId, const TStr& _KeyNm, const TStr& _JoinNm, const bool& IsSmall);
     /// Create new key using given word vocabulary
-	TIndexKey(const uint& _StoreId, const TStr& _KeyNm, const int& _WordVocId, 
+	TIndexKey(const TWPt<TBase>& Base, const uint& _StoreId, const TStr& _KeyNm, const int& _WordVocId,
 		const TIndexKeyType& _Type, const TIndexKeySortType& _SortType);
 	
 	/// Deserialize key from the stream
@@ -2131,10 +2280,10 @@ public:
 	void SetWordVocNm(const int& WordVocId, const TStr& WordVocNm);
 	
 	/// Create new key in the index vocabulary
-	int AddKey(const uint& StoreId, const TStr& KeyNm, const int& WordVocId, 
+	int AddKey(const TWPt<TBase>& Base, const uint& StoreId, const TStr& KeyNm, const int& WordVocId,
 		const TIndexKeyType& Type, const TIndexKeySortType& SortType = oikstUndef);
 	/// Create new internal key
-	int AddInternalKey(const uint& StoreId, const TStr& KeyNm, const TStr& JoinNm, const bool& IsSmall);
+	int AddInternalKey(const TWPt<TBase>& Base, const uint& StoreId, const TStr& KeyNm, const TStr& JoinNm, const bool& IsSmall);
 	/// Linking key to a field
 	void AddKeyField(const int& KeyId, const uint& StoreId, const int& FieldId);
 	/// Check if store has any index keys
@@ -2418,7 +2567,7 @@ public:
 	/// Check if there are no subordinate items or values
 	bool Empty() const { return !IsItems() && !IsWordIds(); }
 	/// Check if result is weighted (only or-items)
-	bool IsWgt() const;
+	bool IsFq() const;
 
 	/// Get number of values (for inverted index queries)
 	bool IsWordIds() const { return !WordIdV.Empty(); }
@@ -2565,7 +2714,7 @@ public:
 	/// Does query have any item
 	bool Empty() const { return QueryItem.Empty(); }
 	/// Are results weighted by default?
-	bool IsWgt() const { return QueryItem.IsWgt(); }
+	bool IsFq() const { return QueryItem.IsFq(); }
 	/// Get the result store
 	TWPt<TStore> GetStore(const TWPt<TBase>& Base);
 	/// Is there any sorting specified
@@ -3071,6 +3220,8 @@ public:
 	PRecSet SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TSFltPr& RangeMinMax);
 	/// Get records ids and counts that are joined with given RecId (via given join key)
 	void GetJoinRecIdFqV(const int& JoinKeyId, const uint64& RecId, TUInt64IntKdV& JoinRecIdFqV) const;
+	/// Are there any existing joins from RecId using JoinKeyId
+	bool HasJoin(const int& JoinKeyId, const uint64& RecId) const;
 
 	/// Save debug statistics to a file
 	void SaveTxt(const TWPt<TBase>& Base, const TStr& FNm);
@@ -3168,8 +3319,7 @@ protected:
 	TStr Guid;
 protected:
 	/// Create new stream aggregate from JSon parameters
-	TStreamAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm):
-        AggrNm(_AggrNm) { TValidNm::AssertValidNm(AggrNm); }
+	TStreamAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm);
 	/// Create new stream aggregate from JSon parameters
 	TStreamAggr(const TWPt<TBase>& _Base, const PJsonVal& ParamVal);       
 
@@ -3399,6 +3549,36 @@ public:
 };
 
 ///////////////////////////////
+/// QMiner Valid Name Enforcer.
+class TNmValidator {
+private:
+	/// Valid non-alpha-numeric first character of store/field/join/key name
+	static TChA ValidFirstCh;
+	/// Valid non-alpha-numeric non-first character of store/field/join/key name
+	static TChA ValidCh;
+	/// is set to true, all field names will be valid
+	TBool StrictNmP;
+public:
+	TNmValidator(const bool& _StrictNmP):
+		StrictNmP(_StrictNmP) {}
+	TNmValidator(TSIn& SIn):
+		StrictNmP(SIn) {}
+
+	void Save(TSOut& SOut) const;
+
+	/// Validate if given string is a valid store/field/join/key name.
+	/// Valid names begin with alphabetical or ValidFirstCh and continues with
+	/// any alphanumerical or ValidCh character (e.g. '_ThisIsValid_123_Name').
+	void AssertValidNm(const TStr& NmStr) const;
+	/// when set to false, all field names will be allowed
+	void SetStrictNmP(const bool& AllValid);
+
+private:
+	static bool IsValidJsFirstCharacter(const TStr& NmStr);
+	static bool IsValidJsCharacter(const char& Ch);
+};
+
+///////////////////////////////
 // QMiner-Base
 class TBase {
 private: 
@@ -3428,10 +3608,13 @@ private:
 	TVec<PStreamAggrBase> StreamAggrBaseV;
 	// default stream aggregate base (store independent)
 	PStreamAggrBase StreamAggrDefaultBase;
-
+	// validates names of fields
+	TNmValidator NmValidator;
 private:
-	TBase(const TStr& _FPath, const int64& IndexCacheSize, const int& SplitLen);
-	TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCacheSize, const int& SplitLen);
+	TBase(const TStr& _FPath, const int64& IndexCacheSize, const int& SplitLen,
+			const bool& StrictNmP);
+	TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCacheSize,
+			const int& SplitLen);
 public:
 	~TBase();
 private:	
@@ -3440,8 +3623,9 @@ private:
 	TPair<TBool, PRecSet> Search(const TQueryItem& QueryItem, const TIndex::PQmGixExpMerger& Merger, const TIndex::PQmGixExpMergerSmall& MergerSmall, const TQueryGixUsedType& ParentGixFlag);
 
 public:
-	static TWPt<TBase> New(const TStr& FPath, const int64& IndexCacheSize, const int& SplitLen) {
-		return new TBase(FPath, IndexCacheSize, SplitLen);
+	static TWPt<TBase> New(const TStr& FPath, const int64& IndexCacheSize, const int& SplitLen,
+			const bool& StrictNmP) {
+		return new TBase(FPath, IndexCacheSize, SplitLen, StrictNmP);
 	}
 	static TWPt<TBase> Load(const TStr& FPath, const TFAccess& FAccess, const int64& IndexCacheSize, const int& SplitLen) {
 		return new TBase(FPath, FAccess, IndexCacheSize, SplitLen);
@@ -3499,7 +3683,7 @@ public:
 		const TIndexKeySortType& SortType = oikstUndef);
 	// creates index key, without linking it to a field using specified vocabulary,
 	// returns the id of created key
-	int NewIndexKey(const TWPt<TStore>& Store, const TStr& KeyNm, const int& WordVocId, 
+	int NewIndexKey(const TWPt<TStore>& Store, const TStr& KeyNm, const int& WordVocId,
 		const TIndexKeyType& Type = oiktValue, const TIndexKeySortType& SortType = oikstUndef);
 	// create index key for a specified (store, field) pair, returns the id of created key
 	int NewFieldIndexKey(const TWPt<TStore>& Store, const TStr& KeyNm, const int& FieldId,
@@ -3557,6 +3741,11 @@ public:
 
 	// perform partial flush of data
 	int PartialFlush(int WndInMsec = 500);
+
+	/// asserts if a field name is valid
+	void AssertValidNm(const TStr& FldNm) const { NmValidator.AssertValidNm(FldNm); }
+	/// when set to true, all field names except an empty string will be valid
+	void SetStrictNmP(const bool& StrictNmP) { NmValidator.SetStrictNmP(StrictNmP); }
 };
 
 ////////////////////////////////////////////////////////////////////////////
