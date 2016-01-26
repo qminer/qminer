@@ -1358,8 +1358,10 @@ void TTDigest::MergeValues() {
 		MergeMean[Iter] = MergeMean[Iter-1] + Weight[Iter]; // stash cumulative dist
 	}
 
-	Min = TMath::Mx(Min, Mean[0]);
-	Max = TMath::Mx(Max, Mean[LastN]);
+	Min = TMath::Mn(Min, Mean[0]);
+	if (LastN < Mean.Len()) {
+		Max = TMath::Mx(Max, Mean[LastN]);
+	}
 }
 
 double TTDigest::MergeCentroid(double& Sum, double& K1, double& Wt, double& Ut) {
