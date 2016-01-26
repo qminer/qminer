@@ -1306,21 +1306,25 @@ void TTDigest::MergeValues() {
 	UnmergedSum = 0.0;
 
 	double NewCentroid = 0;
-	int IterI = 0, IterJ = 0;
+	int IterI = 0;
+	int IterJ = 0;
 	// merge existing centroids with added values in temp buffers
+
 	while (IterI < TempLast && IterJ < LastN) {
 		if (TempMean[IterI] <= U[IterJ]) {
 			Sum += TempWeight[IterI];
 			double TW = TempWeight[IterI];
 			double TM = TempMean[IterI];
-			NewCentroid = MergeCentroid(Sum, NewCentroid, TW, TM);
 			IterI++;
+			NewCentroid = MergeCentroid(Sum, NewCentroid, TW, TM);
+
 		} else {
 			Sum += W[IterJ];
 			double TW = W[IterJ];
 			double TM = U[IterJ];
-			NewCentroid = MergeCentroid(Sum, NewCentroid, TW, TM);
 			IterJ++;
+			NewCentroid = MergeCentroid(Sum, NewCentroid, TW, TM);
+
 		}
 	}
 
@@ -1358,8 +1362,12 @@ void TTDigest::MergeValues() {
 		MergeMean[Iter] = MergeMean[Iter-1] + Weight[Iter]; // stash cumulative dist
 	}
 
-	Min = TMath::Mx(Min, Mean[0]);
-	Max = TMath::Mx(Max, Mean[LastN]);
+	Min = TMath::Mn(Min, Mean[0]);
+	if (LastN < Mean.Len()) {
+		Max = TMath::Mx(Max, Mean[LastN]);
+	} else {
+		Max = TMath::Mx(Max, Mean.Last());
+	}
 }
 
 double TTDigest::MergeCentroid(double& Sum, double& K1, double& Wt, double& Ut) {

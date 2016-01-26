@@ -233,9 +233,7 @@ private:
 	
 protected:
 	void OnAddRec(const TRec& Rec);
-	void OnStep() {
-		InitP = true;
-	}
+	void OnTime(const uint64& TmMsec);
     TTimeSeriesTick(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
@@ -1047,7 +1045,7 @@ private:
 	TFltV QuantilesVals;
 protected:
 	void OnAddRec(const TRec& Rec);
-	//void OnStep();
+	void OnStep();
 	TTDigest(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 	TTDigest(const TFltV& Quantiles);
 	TTDigest(const TInt& N);

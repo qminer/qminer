@@ -3195,9 +3195,9 @@ public:
 	virtual void Reset() = 0;
 
 	/// Update state of the aggregate
-	//virtual void OnStep();
+	virtual void OnStep() { }
 	/// Add new time to aggregate
-	//virtual void OnTime();
+	virtual void OnTime(const uint64& TmMsec) { }
 	/// Add new record to aggregate
 	virtual void OnAddRec(const TRec& Rec) = 0;
 	/// Recored already added to the aggregate is being updated

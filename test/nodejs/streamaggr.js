@@ -2017,6 +2017,24 @@ describe('TimeSeriesTick Tests', function () {
             store.push({ Time: '2015-06-10T14:13:35.400', Value: 5 });
             assert.equal(tick.getTimestamp() - 11644473600000, new Date('2015-06-10T14:13:35.400').getTime());
         })
+        it('should update only the time', function () {
+            var aggr = {
+                name: 'TickAggr',
+                type: 'timeSeriesTick',
+                store: 'Function',
+                timestamp: 'Time',
+                value: 'Value',
+            };
+            var tick = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            store.push({ Time: '2015-06-10T14:13:34.0', Value: 3 });
+            store.push({ Time: '2015-06-10T14:13:33.400', Value: 4 });
+            store.push({ Time: '2015-06-10T14:13:35.400', Value: 5 });
+            tick.onTime(1453384425232);
+            assert.equal(tick.getTimestamp() - 11644473600000, 1453384425232);
+            assert.equal(tick.getFloat(), 5);
+        })
     });
     describe('Property Tests', function () {
         it('should return the name of the aggregator', function () {
@@ -3904,20 +3922,15 @@ describe('TDigest test', function () {
 		    
 		    td = store.addStreamAggr(aggr);
 
-			for (var i=1; i<=3000; i++) {
+			for (var i=1; i<=10000; i++) {
 		    	store.push({ Time: '2015-12-01T14:20:32.0', Value: i });
 		    }
 		  
 		    var result = td.getFloatVector();
-		    console.log("SEQUENTIAL");
-			console.log(result[0]);
-			console.log(result[1]);
-			console.log(result[2]);
-			console.log(result[3]);
-			assert(result[0] > 0.0 && result[0] < 10000.0);
-			assert(result[1] > 0.0 && result[1] < 10000.0);
-			assert(result[2] > 0.0 && result[2] < 10000.0);
-			assert(result[3] > 0.0 && result[3] < 10000.0);
+			assert(result[0] > 9000.0 && result[0] < 10000.0);
+			assert(result[1] > 9000.0 && result[1] < 10000.0);
+			assert(result[2] > 9000.0 && result[2] < 10000.0);
+			assert(result[3] > 9000.0 && result[3] < 10000.0);
 		});
 	});
 	describe('Save and load test', function () {	

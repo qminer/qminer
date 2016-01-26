@@ -1185,6 +1185,22 @@ public:
 	JsDeclareFunction(reset);
 
 	/**
+	* TODO: UPDATE - Executes the function when a new record is put in store.
+	* @param {module:qm.Record} rec - The record given to the stream aggregator.
+	* @returns {module:qm.StreamAggr} Self. Values in the stream aggregator are changed as defined in the inner onAdd function.
+	*/
+	//# exports.StreamAggr.prototype.onAdd = function (rec) { return Object.create(require('qminer').StreamAggr.prototype); };
+	JsDeclareFunction(onStep);
+
+	/**
+	* TODO: UPDATE -Executes the function when a new record is put in store.
+	* @param {module:qm.Record} rec - The record given to the stream aggregator.
+	* @returns {module:qm.StreamAggr} Self. Values in the stream aggregator are changed as defined in the inner onAdd function.
+	*/
+	//# exports.StreamAggr.prototype.onAdd = function (rec) { return Object.create(require('qminer').StreamAggr.prototype); };
+	JsDeclareFunction(onTime);
+
+	/**
 	* Executes the function when a new record is put in store.
 	* @param {module:qm.Record} rec - The record given to the stream aggregator.
 	* @returns {module:qm.StreamAggr} Self. Values in the stream aggregator are changed as defined in the inner onAdd function.
@@ -1923,6 +1939,8 @@ class TNodeJsFuncStreamAggr :
 private:	
 	// callbacks
 	v8::Persistent<v8::Function> ResetFun;
+	v8::Persistent<v8::Function> OnStepFun;
+	v8::Persistent<v8::Function> OnTimeFun;
 	v8::Persistent<v8::Function> OnAddFun;
 	v8::Persistent<v8::Function> OnUpdateFun;
 	v8::Persistent<v8::Function> OnDeleteFun;
@@ -1973,6 +1991,8 @@ public:
 	~TNodeJsFuncStreamAggr();
 
 	void Reset();
+	void OnStep();
+	void OnTime(const uint64& Time);
 	void OnAddRec(const TQm::TRec& Rec);
 	void OnUpdateRec(const TQm::TRec& Rec);
 	void OnDeleteRec(const TQm::TRec& Rec);

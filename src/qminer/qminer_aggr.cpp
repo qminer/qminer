@@ -507,6 +507,13 @@ void TTimeSeriesTick::OnAddRec(const TRec& Rec) {
     InitP = true;
 }
 
+void TTimeSeriesTick::OnTime(const uint64& Time) {
+	printf("Set Tick %i \n", Time);
+	TmMSecs = Time;
+	InitP = true;
+}
+
+
 TTimeSeriesTick::TTimeSeriesTick(const TWPt<TBase>& Base, const PJsonVal& ParamVal): 
         TStreamAggr(Base, ParamVal) {
         
@@ -1370,9 +1377,9 @@ void TTDigest::OnAddRec(const TRec& Rec) {
 	}
 }
 
-/*void TTDigest::OnStep() {
+void TTDigest::OnStep() {
 	Model.MergeValues();
-}*/
+}
 
 void TTDigest::Add(const TFlt& Val) {
 	if (InAggr->IsInit()) {
