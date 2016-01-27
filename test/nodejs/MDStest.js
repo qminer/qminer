@@ -26,13 +26,26 @@ describe('MDS Tests', function () {
             assert.eqtol(params.minDiff, 1e-4);
             assert.equal(params.distType, "Euclid");
         })
-        it('should create the custom constructor', function () {
+        it('should create the custom constructor, type: Cos', function () {
             var mds = new analytics.MDS({ maxStep: 100, maxSecs: 50, minDiff: 1e-7, distType: "Cos" });
             var params = mds.getParams();
             assert.equal(params.maxSecs, 50);
             assert.equal(params.maxStep, 100);
             assert.eqtol(params.minDiff, 1e-7);
             assert.equal(params.distType, "Cos");
+        })
+        it('should create the custom constructor, type: SqrtCos', function () {
+            var mds = new analytics.MDS({ maxStep: 100, maxSecs: 50, minDiff: 1e-7, distType: "SqrtCos" });
+            var params = mds.getParams();
+            assert.equal(params.maxSecs, 50);
+            assert.equal(params.maxStep, 100);
+            assert.eqtol(params.minDiff, 1e-7);
+            assert.equal(params.distType, "SqrtCos");
+        })
+        it('should throw an exception for any other distance type', function () {
+            assert.throws(function () {
+                var mds = new analytics.MDS({ maxStep: 100, maxSecs: 50, minDiff: 1e-7, distType: "Matrix" });
+            })
         })
     });
     describe('GetParams Tests', function () {
@@ -69,7 +82,7 @@ describe('MDS Tests', function () {
             var mds = new analytics.MDS();
             assert.throws(function () {
                 var params = mds.getParams(10);
-            })
+            });
         })
     })
     describe('SetParams Tests', function () {
@@ -87,6 +100,12 @@ describe('MDS Tests', function () {
             assert.equal(params.maxStep, 100);
             assert.eqtol(params.minDiff, 1e-7);
             assert.equal(params.distType, "Cos");
+        })
+        it('should throw an exception if the parameters are not valid', function () {
+            var mds = new analytics.MDS();
+            assert.throws(function () {
+                mds.setParams({ maxStep: 100, maxSecs: 50, minDiff: 1e-7, distType: "Matrix" });
+            });
         })
         it('should throw an exception if no parameters are given', function () {
             var mds = new analytics.MDS();

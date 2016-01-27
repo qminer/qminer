@@ -2935,14 +2935,14 @@ PJsonVal TNodeJsMDS::GetParams() const {
 	ParamVal->AddToObj("maxSecs", MxSecs);
 	ParamVal->AddToObj("minDiff", MnDiff);
 	switch (DistType) {
-	case (vdtEucl) :
+	case vdtEucl:
 		ParamVal->AddToObj("distType", "Euclid"); break;
-	case (vdtCos) :
+	case vdtCos:
 		ParamVal->AddToObj("distType", "Cos"); break;
-	case (vdtSqrtCos) :
+	case vdtSqrtCos:
 		ParamVal->AddToObj("distType", "SqrtCos"); break;
-	case vdtDistMtx:
-		ParamVal->AddToObj("distType", "Mtx"); break;	// FIXME is the name correct?
+	default:
+		throw TExcept::New("MDS.GetParams: unsupported distance type detected!");
 	}
 	return ParamVal;
 }
@@ -3045,20 +3045,21 @@ void TNodeJsMDS::fitTransform(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	int MxStep = JsMDS->MxStep;
 	int MxSecs = JsMDS->MxSecs;
 	int MnDiff = JsMDS->MnDiff;
+	TVizDistType DistType = JsMDS->DistType;
 	bool RndStartPos = true;
-
 	PNotify Noty = TQm::TEnv::Logger;
+
 	if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltVV>(Args, 0)) {
 		const TFltVV& Mat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltVV>(Args, 0)->Mat;
 		DummyClsV.Gen(Mat.GetCols());
 		TrainSet = TRefDenseTrainSet::New(Mat, DummyClsV);
-		TVizMapFactory::MakeFlat(TrainSet, TVizDistType::vdtEucl, Temp, MxStep, MxSecs, MnDiff, RndStartPos, Noty);
+		TVizMapFactory::MakeFlat(TrainSet, DistType, Temp, MxStep, MxSecs, MnDiff, RndStartPos, Noty);
 	}
 	else if (TNodeJsUtil::IsArgWrapObj<TNodeJsSpMat>(Args, 0)) {
 		const TVec<TIntFltKdV>& Mat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpMat>(Args, 0)->Mat;
 		DummyClsV.Gen(Mat.Len());
 		TrainSet = TRefSparseTrainSet::New(Mat, DummyClsV);
-		TVizMapFactory::MakeFlat(TrainSet, TVizDistType::vdtEucl, Temp, MxStep, MxSecs, MnDiff, RndStartPos, Noty);
+		TVizMapFactory::MakeFlat(TrainSet, DistType, Temp, MxStep, MxSecs, MnDiff, RndStartPos, Noty);
 	}
 	else {
 		throw TExcept::New("MDS.fitTransform: argument not a sparse or dense matrix!");
