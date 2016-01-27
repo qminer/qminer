@@ -5,25 +5,19 @@ git:
 
 language: node_js
 
-node_js:
-  - 0.12
-  - 5
 
 addons:
   apt:
     sources: [ 'ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.6' ]
     packages: [ 'clang-3.6', 'gcc-4.8', 'g++-4.8', 'gcc-4.8-multilib', 'g++-4.8-multilib', 'libc6-dev-i386', 'linux-libc-dev:i386' ]
 
-env:
-  - CXXFLAGS=-std=c++0x CXX=clang++-3.6 CC=clang NPMOPT=--clang=1 QMDEBUG=--debug
-  - CXXFLAGS=-std=c++0x CC=gcc-4.8 CXX=g++-4.8
 
 matrix:
-  exclude:
-  - node_js: 0.12
-      env: CC=gcc-4.8
-  - node_js: 5
-      env: CC=clang
+  include:
+    - node_js: 0.12
+      env: CXXFLAGS=-std=c++0x CXX=clang++-3.6 CC=clang NPMOPT=--clang=1 QMDEBUG=--debug
+    - node_js: 5
+      env: CXXFLAGS=-std=c++0x CC=gcc-4.8 CXX=g++-4.8
 
 install:
   - npm install --build-from-source $NPMOPT $QMDEBUG
