@@ -3884,11 +3884,13 @@ describe('TDigest test', function () {
 			for (var i=1; i<=10000; i++) {
 		    	store.push({ Time: '2015-12-01T14:20:32.0', Value: getRnd(0,1) });
 		    }
+		    
+		    var result = td.getFloatVector();
 		  
-			assert(td.getFloatAt(0) > 0.8 && td.getFloatAt(0) < 1);
-			assert(td.getFloatAt(1) > 0.8 && td.getFloatAt(1) < 1);
-			assert(td.getFloatAt(2) > 0.8 && td.getFloatAt(2) < 1);
-			assert(td.getFloatAt(3) > 0.8 && td.getFloatAt(3) < 1);
+			assert(result[0] > 0.8 && result[0] < 1);
+			assert(result[1] > 0.8 && result[1] < 1);
+			assert(result[2] > 0.8 && result[2] < 1);
+			assert(result[3] > 0.8 && result[3] < 1);
 		});
 		it.skip('should test t-digest for 10000 sequential inserts', function () {
 			// add TDigest stream aggregator
@@ -3901,19 +3903,16 @@ describe('TDigest test', function () {
 		    }
 		    
 		    td = store.addStreamAggr(aggr);
-		    
-			function getRnd(min, max) {
-		    	return Math.random() * (max - min) + min;
-			}
-		
+
 			for (var i=1; i<=10000; i++) {
 		    	store.push({ Time: '2015-12-01T14:20:32.0', Value: i });
 		    }
 		  
-			assert(td.getFloatAt(0) > 0 && td.getFloatAt(0) < 10000);
-			assert(td.getFloatAt(1) > 0 && td.getFloatAt(1) < 10000);
-			assert(td.getFloatAt(2) > 0 && td.getFloatAt(2) < 10000);
-			assert(td.getFloatAt(3) > 0 && td.getFloatAt(3) < 10000);
+		    var result = td.getFloatVector();
+			assert(result[0] > 9000.0 && result[0] < 10000.0);
+			assert(result[1] > 9000.0 && result[1] < 10000.0);
+			assert(result[2] > 9000.0 && result[2] < 10000.0);
+			assert(result[3] > 9900.0 && result[3] < 10000.0);
 		});
 	});
 	describe('Save and load test', function () {	
