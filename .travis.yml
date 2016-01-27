@@ -14,7 +14,7 @@ addons:
 
 matrix:
   exclude:
-    - node_js: 0.10
+    - env: CXXFLAGS=
   include:
     - node_js: 0.12
       env: CXXFLAGS=-std=c++0x CXX=clang++-3.6 CC=clang NPMOPT=--clang=1 QMDEBUG=--debug
