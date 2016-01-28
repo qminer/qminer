@@ -1583,6 +1583,7 @@ private:
 	v8::Persistent<v8::Function> OutlierCallback;
 	v8::Persistent<v8::Function> ProgressCallback;
 	v8::Persistent<v8::Function> PredictionCallback;
+	v8::Persistent<v8::Function> ActivityCallback;
 
 	TNodeJsStreamStory(TMc::TStreamStory* McModel);
 	TNodeJsStreamStory(PSIn& SIn);
@@ -1595,8 +1596,9 @@ private:
 	class TFitTask: public TNodeTask {
 	private:
 		TNodeJsStreamStory* JsStreamStory;
-		TNodeJsFltVV* JsObservFtrs;
-		TNodeJsFltVV* JsControlFtrs;
+		TNodeJsFltVV* JsObservFtrVV;
+		TNodeJsFltVV* JsControlFtrVV;
+		TNodeJsFltVV* JsIgnoredFtrVV;
 		TNodeJsFltV* JsRecTmV;
 		TNodeJsBoolV* JsBatchEndJsV;
 
@@ -1624,7 +1626,7 @@ public:
 
 	JsDeclareSyncAsync(fit,fitAsync,TFitTask);
 
-	//!- `hmc.update(ftrVec, recTm)` TODO write documentation
+	//!- `hmc.update(obsFtrV, contrFtrV, recTm)` TODO write documentation
 	JsDeclareFunction(update);
 
 	/**
@@ -1713,7 +1715,7 @@ public:
 	 * Returns the centroid of the specified state containing only the observation parameters.
 	 *
 	 * @param {Number} stateId - the ID of the state
-	 * @param {Boolean} [observations=true] - indicates wether to output observation or control coordinates
+	 * @param {Integer} [ftrSpaceN] - indicates wether to output observation or control coordinates
 	 * @returns {Array} - the coordinates of the state
 	 */
 	JsDeclareFunction(fullCoords);
@@ -1721,8 +1723,8 @@ public:
 	/**
 	 * Returns a histogram of the specified feature in the specified state.
 	 *
-	 * @param {Number} stateId - the ID of the state
 	 * @param {Number} ftrId - the ID of the feature
+	 * @param {Number} [stateId] - the ID of the statem if no state is provided, a histogram for all the states is returned
 	 * @returns {Array} - the histogram
 	 */
 	JsDeclareFunction(histogram);
@@ -1763,6 +1765,8 @@ public:
 
 	JsDeclareFunction(explainState);
 
+	JsDeclareFunction(setActivity);
+
 	/**
 	 * Sets a callback function which is fired when the model changes states. An array of current states
 	 * throughout the hierarchy is passed to the callback.
@@ -1800,6 +1804,8 @@ public:
 	 * @param {function} callback - the funciton which is called
 	 */
 	JsDeclareFunction(onPrediction);
+
+	JsDeclareFunction(onActivity);
 
 	/**
 	 * Rebuilds its hierarchy.
@@ -1911,13 +1917,14 @@ public:
 	void OnProgress(const int& Perc, const TStr& Msg);
 	void OnPrediction(const uint64& RecTm, const int& CurrStateId, const int& TargetStateId,
 			const double& Prob, const TFltV& ProbV, const TFltV& TmV);
+	void OnActivityDetected(const uint64& StartTm, const uint64& EndTm, const TStr& ActNm);
 
 private:
 	void SetParams(const PJsonVal& ParamVal);
 	void InitCallbacks();
 
-	static void WrapHistogram(const v8::FunctionCallbackInfo<v8::Value>& Args,
-			const TFltV& BinStartV, const TFltV& ProbV);
+	static v8::Local<v8::Object> WrapHistogram(const TFltV& BinStartV, const TFltV& ProbV,
+			const TFltV& AllProbV);
 	static uint64 GetTmUnit(const TStr& TmUnitStr);
 	static TClustering::PDnsKMeans GetClust(const PJsonVal& ParamJson, const TRnd& Rnd);
 };

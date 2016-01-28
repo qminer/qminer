@@ -122,7 +122,7 @@ void TAbsKMeans::GetDistVV(const TFltVV& FtrVV, TFltVV& DistVV) const {
 		for (int ColN = 0; ColN < Cols; ColN++) {
 			Dist = DistVV(RowN, ColN);
 
-			AssertR(Dist < -1e-8, "Distance lower than numerical error threshold!");
+			AssertR(Dist > -1e-8, "Distance lower than numerical error threshold!");
 			if (Dist < 0) { Dist = 0; }
 
 			DistVV.PutXY(RowN, ColN, TMath::Sqrt(Dist));

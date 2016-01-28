@@ -1305,8 +1305,10 @@ public:
   bool operator<(const TSInt& Int) const { return Val<Int.Val; }
   bool operator<(const int16& Int) const { return Val<Int; }
   int operator()() const { return Val; }
+
   TSInt& operator+=(const int16& Int) { Val += Int; return *this; }
   TSInt& operator-=(const int16& Int) { Val -= Int; return *this; }
+
   TSInt& operator++() { ++Val; return *this; } // prefix
   TSInt& operator--() { --Val; return *this; } // prefix
 };

@@ -447,6 +447,34 @@ PJsonVal TNodeJsUtil::GetArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args
 	return GetObjJson(Args[ArgN]->ToObject());
 }
 
+void TNodeJsUtil::GetArgIntVV(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN,
+		TVec<TIntV>& IntVV) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() >= ArgN, "TNodeJsUtil::GetArgIntVV: Invalid number of arguments!");
+	EAssertR(Args[ArgN]->IsArray(), "TNodeJsUtil::GetArgIntVV: argument is not an array!");
+
+	v8::Array* JsIntVV = v8::Array::Cast(*Args[ArgN]);
+
+	const int OuterLen = JsIntVV->Length();
+	IntVV.Gen(OuterLen);
+
+	for (int i = 0; i < OuterLen; i++) {
+		v8::Local<v8::Value> OuterVal = JsIntVV->Get(i);
+		EAssertR(OuterVal->IsArray(), "TNodeJsUtil::GetArgIntVV: value is not an array!");
+		v8::Array* JsIntV = v8::Array::Cast(*OuterVal);
+		const int InnerLen = JsIntV->Length();
+		IntVV[i].Gen(InnerLen);
+
+		for (int j = 0; j < InnerLen; j++) {
+			v8::Local<v8::Value> InnerVal = JsIntV->Get(j);
+			EAssertR(InnerVal->IsNumber() || InnerVal->IsInt32(), "TNodeJsUtil::GetArgIntVV: value is not an integer!");
+			IntVV[i][j] = InnerVal->ToNumber()->NumberValue();
+		}
+	}
+}
+
 bool TNodeJsUtil::IsObjFld(v8::Local<v8::Object> Obj, const TStr& FldNm) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);

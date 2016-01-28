@@ -67,6 +67,12 @@ TStateIdentifier::TStateIdentifier(const PClust& _KMeans, const int _NHistBins,
 		KMeans(_KMeans),
 		CentroidDistStatV(),
 		NHistBins(_NHistBins),
+		ObsHistVV(),
+		ControlHistVV(),
+		IgnoredHistVV(),
+		ObsTransHistVV(),
+		ContrTransHistVV(),
+		IgnoredTransHistVV(),
 		StateContrFtrValVV(),
 		Sample(_Sample),
 		Verbose(_Verbose),
@@ -78,12 +84,16 @@ TStateIdentifier::TStateIdentifier(const PClust& _KMeans, const int _NHistBins,
 TStateIdentifier::TStateIdentifier(TSIn& SIn):
 	Rnd(SIn),
 	KMeans(TClust::Load(SIn)),
-	ControlCentroidMat(SIn),
+	ControlCentroidVV(SIn),
+	IgnoredCentroidVV(SIn),
 	CentroidDistStatV(SIn),
 	NHistBins(TInt(SIn)),
 	ObsHistVV(SIn),
 	ControlHistVV(SIn),
-	TransHistMat(SIn),
+	IgnoredHistVV(SIn),
+	ObsTransHistVV(SIn),
+	ContrTransHistVV(SIn),
+	IgnoredTransHistVV(SIn),
 	StateContrFtrValVV(SIn),
 	Sample(TFlt(SIn)),
 	Verbose(TBool(SIn)) {
@@ -94,18 +104,22 @@ TStateIdentifier::TStateIdentifier(TSIn& SIn):
 void TStateIdentifier::Save(TSOut& SOut) const {
 	Rnd.Save(SOut);
 	KMeans->Save(SOut);
-	ControlCentroidMat.Save(SOut);
+	ControlCentroidVV.Save(SOut);
+	IgnoredCentroidVV.Save(SOut);
 	CentroidDistStatV.Save(SOut);
 	TInt(NHistBins).Save(SOut);
 	ObsHistVV.Save(SOut);
 	ControlHistVV.Save(SOut);
-	TransHistMat.Save(SOut);
+	IgnoredHistVV.Save(SOut);
+	ObsTransHistVV.Save(SOut);
+	ContrTransHistVV.Save(SOut);
+	IgnoredTransHistVV.Save(SOut);
 	StateContrFtrValVV.Save(SOut);
 	TFlt(Sample).Save(SOut);
 	TBool(Verbose).Save(SOut);
 }
 
-void TStateIdentifier::Init(TFltVV& ObsFtrVV, const TFltVV& ControlFtrVV) {
+void TStateIdentifier::Init(TFltVV& ObsFtrVV, const TFltVV& ControlFtrVV, const TFltVV& IgnoredFtrVV) {
 	EAssertR(Sample >= 0, "Cannot sample a negative number of instances!");
 
 	const int NInst = ObsFtrVV.GetCols();
@@ -132,25 +146,32 @@ void TStateIdentifier::Init(TFltVV& ObsFtrVV, const TFltVV& ControlFtrVV) {
 
 	InitStatistics(ObsFtrVV);
 
-	InitControlCentroids(ObsFtrVV, ControlFtrVV);
-	InitHistograms(ObsFtrVV, ControlFtrVV);
+	TIntV AssignV;	Assign(ObsFtrVV, AssignV);
+	InitCentroidVV(AssignV, ControlFtrVV, ControlCentroidVV);
+	InitCentroidVV(AssignV, IgnoredFtrVV, IgnoredCentroidVV);
+	InitHistograms(ObsFtrVV, ControlFtrVV, IgnoredFtrVV);
 	ClearControlFtrVV(ControlFtrVV.GetRows());
 
 	Notify->OnNotify(TNotifyType::ntInfo, "Done.");
 }
 
-void TStateIdentifier::InitHistograms(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV) {
+void TStateIdentifier::InitHistograms(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV,
+		const TFltVV& IgnoredFtrVV) {
 	Notify->OnNotify(TNotifyType::ntInfo, "Computing histograms ...");
 
 	const int NClusts = GetStates();
 
 	TIntV AssignV;	Assign(ObsFtrVV, AssignV);
 
-	InitHists(ObsFtrVV, ContrFtrVV);
+	InitHists(ObsFtrVV, ContrFtrVV, IgnoredFtrVV);
 
-	UpdateHist(ObsFtrVV, AssignV, NClusts, ObsHistVV);
-	UpdateHist(ContrFtrVV, AssignV, NClusts, ControlHistVV);
-	UpdateTransitionHist(ObsFtrVV, ContrFtrVV, AssignV);
+	UpdateHistVV(ObsFtrVV, AssignV, NClusts, ObsHistVV);
+	UpdateHistVV(ContrFtrVV, AssignV, NClusts, ControlHistVV);
+	UpdateHistVV(IgnoredFtrVV, AssignV, NClusts, IgnoredHistVV);
+
+	UpdateTransHistVV(ObsFtrVV, AssignV, ObsTransHistVV);
+	UpdateTransHistVV(ContrFtrVV, AssignV, ContrTransHistVV);
+	UpdateTransHistVV(IgnoredFtrVV, AssignV, IgnoredTransHistVV);
 }
 
 int TStateIdentifier::Assign(const TFltV& x) const {
@@ -171,150 +192,109 @@ double TStateIdentifier::GetDist(const int& StateId, const TFltV& FtrV) const {
 	return KMeans->GetDist(StateId, FtrV);
 }
 
-void TStateIdentifier::GetJoinedCentroid(const TIntV& CentroidIdV, TFltV& Centroid) const {
-	const int Dim = GetDim();
-
-	if (Centroid.Empty()) { Centroid.Gen(Dim); }
-	EAssert(Centroid.Len() == Dim);
-
-	TFltV FtrV;
-
-	double TotalSize = 0;
-	for (int i = 0; i < CentroidIdV.Len(); i++) {
-		const int CentroidIdx = CentroidIdV[i];
-		const double CentroidSize = (double) GetClustSize(CentroidIdx);
-
-		GetCentroid(CentroidIdx, FtrV);
-
-		for (int FtrN = 0; FtrN < Dim; FtrN++) {
-			Centroid[FtrN] += FtrV[FtrN] * CentroidSize;
-		}
-
-		TotalSize += CentroidSize;
+void TStateIdentifier::GetJoinedCentroid(const int& FtrSpaceN, const TIntV& StateIdV, TFltV& FtrV) const {
+	TUInt64V StateSizeV(StateIdV.Len());
+	for (int StateN = 0; StateN < StateIdV.Len(); StateN++) {
+		StateSizeV[StateN] = GetStateSize(StateIdV[StateN]);
 	}
 
-	for (int i = 0; i < Dim; i++) {
-		Centroid[i] /= TotalSize;
+	switch (FtrSpaceN) {
+	case 0:
+		GetJoinedCentroid(StateIdV, KMeans->GetCentroidVV(), StateSizeV, FtrV);
+		break;
+	case 1:
+		GetJoinedCentroid(StateIdV, ControlCentroidVV, StateSizeV, FtrV);
+		break;
+	case 2:
+		GetJoinedCentroid(StateIdV, IgnoredCentroidVV, StateSizeV, FtrV);
+		break;
+	default:
+		throw TExcept::New("Invalid feature space number: " + TInt::GetStr(FtrSpaceN));
 	}
 }
 
-void TStateIdentifier::GetJoinedControlCentroid(const TIntV& CentroidIdV, TFltV& Centroid) const {
-	const int Dim = GetControlDim();
-
-	if (Centroid.Empty()) { Centroid.Gen(Dim); }
-	EAssert(Centroid.Len() == Dim);
-
-	TFltV FtrV;
-
-	double TotalSize = 0;
-	for (int i = 0; i < CentroidIdV.Len(); i++) {
-		const int CentroidIdx = CentroidIdV[i];
-		const double CentroidSize = (double) GetClustSize(CentroidIdx);
-
-		GetControlCentroid(CentroidIdx, FtrV);
-
-		for (int FtrN = 0; FtrN < Dim; FtrN++) {
-			Centroid[FtrN] += FtrV[FtrN] * CentroidSize;
-		}
-
-		TotalSize += CentroidSize;
-	}
-
-	for (int i = 0; i < Dim; i++) {
-		Centroid[i] /= TotalSize;
-	}
-}
+//void TStateIdentifier::GetJoinedControlCentroid(const TIntV& CentroidIdV, TFltV& Centroid) const {
+//	const int Dim = GetControlDim();
+//
+//	if (Centroid.Empty()) { Centroid.Gen(Dim); }
+//	EAssert(Centroid.Len() == Dim);
+//
+//	TFltV FtrV;
+//
+//	double TotalSize = 0;
+//	for (int i = 0; i < CentroidIdV.Len(); i++) {
+//		const int CentroidIdx = CentroidIdV[i];
+//		const double CentroidSize = (double) GetClustSize(CentroidIdx);
+//
+//		GetControlCentroid(CentroidIdx, FtrV);
+//
+//		for (int FtrN = 0; FtrN < Dim; FtrN++) {
+//			Centroid[FtrN] += FtrV[FtrN] * CentroidSize;
+//		}
+//
+//		TotalSize += CentroidSize;
+//	}
+//
+//	for (int i = 0; i < Dim; i++) {
+//		Centroid[i] /= TotalSize;
+//	}
+//}
 
 double TStateIdentifier::GetMeanPtCentDist(const int& CentroidIdx) const {
 	EAssertR(CentroidIdx < GetStates(), TStr::Fmt("TFullKMeans::GetMeanPtCentDist: Invalid centroid index: %d", CentroidIdx));
 	return CentroidDistStatV[CentroidIdx].Val2 / double(CentroidDistStatV[CentroidIdx].Val1);
 }
 
-uint64 TStateIdentifier::GetClustSize(const int& ClustIdx) const {
-	return CentroidDistStatV[ClustIdx].Val1;
+uint64 TStateIdentifier::GetStateSize(const int& StateId) const {
+	return CentroidDistStatV[StateId].Val1;
 }
 
-void TStateIdentifier::GetHistogram(const int& FtrId, const TIntV& StateSet, TFltV& BinStartV, TFltV& BinV) const {
-	EAssertR(FtrId < GetDim() + GetControlDim(), "Invalid feature ID: " + TInt::GetStr(FtrId));
+void TStateIdentifier::GetHistogram(const int& FtrId, const TIntV& AggState, TFltV& BinStartV, TFltV& BinV) const {
+	EAssertR(FtrId < GetAllDim(), "Invalid feature ID: " + TInt::GetStr(FtrId));
 
-	BinV.Gen(NHistBins+2);
-
-	const int FtrN = FtrId < GetDim() ? FtrId : FtrId - GetDim();
-	const TStateFtrHistVV& StateIdFtrIdHistVV = FtrId < GetDim() ? ObsHistVV : ControlHistVV;
-
-	// go through all the features and extract the bin start vectors
-
-	BinStartV = StateIdFtrIdHistVV[0][FtrN].GetBinStartV();
-
-	for (int i = 0; i < StateSet.Len(); i++) {
-		const int StateId = StateSet[i];
-		const THistogram& Hist = StateIdFtrIdHistVV[StateId][FtrN];
-		const TIntV& CountV = Hist.GetCountV();
-
-		for (int j = 0; j < CountV.Len(); j++) {
-			BinV[j] += (double) CountV[j];
-		}
+	if (FtrId < GetDim()) {
+		GetHistogram(ObsHistVV, FtrId, AggState, BinStartV, BinV);
+	} else if (FtrId < GetDim() + GetControlDim()) {
+		GetHistogram(ControlHistVV, FtrId - GetDim(), AggState, BinStartV, BinV);
+	} else {
+		GetHistogram(IgnoredHistVV, FtrId - GetDim() - GetControlDim(), AggState, BinStartV, BinV);
 	}
-
-	TLinAlg::NormalizeL1(BinV);
 }
 
 void TStateIdentifier::GetTransitionHistogram(const int& FtrId, const TIntV& SourceStateSet,
 		const TIntV& TargetStateSet, TFltV& BinStartV, TFltV& ProbV) const {
-	EAssertR(FtrId < GetDim() + GetControlDim(), "Invalid feature ID: " + TInt::GetStr(FtrId));
+	EAssertR(FtrId < GetAllDim(), "Invalid feature ID: " + TInt::GetStr(FtrId));
 
-	ProbV.Gen(NHistBins+2);
-	BinStartV.Clr();
-
-	for (int SourceN = 0; SourceN < SourceStateSet.Len(); SourceN++) {
-		const int& SourceId = SourceStateSet[SourceN];
-
-		for (int TargetN = 0; TargetN < TargetStateSet.Len(); TargetN++) {
-			const int& TargetId = TargetStateSet[TargetN];
-
-			const TFtrHistV& FtrIdHistV = TransHistMat(SourceId, TargetId);
-			EAssertR(FtrId < FtrIdHistV.Len(), "Invalid feature ID: " + TInt::GetHexStr(FtrId));
-			const THistogram& Hist = FtrIdHistV[FtrId];
-
-			if (Hist.Empty()) { continue; }
-
-			const TIntV& CountV = Hist.GetCountV();
-			for (int i = 0; i < CountV.Len(); i++) {
-				ProbV[i] += (double) CountV[i];
-			}
-
-			// initialize the bin start vector if not already
-			// try to think of anything better than lazy initialization
-			if (BinStartV.Empty()) {
-				BinStartV = Hist.GetBinStartV();
-			}
-		}
-	}
-
-	TLinAlg::NormalizeL1(ProbV);
-}
-
-void TStateIdentifier::GetCentroidVV(TVec<TFltV>& ResultVV) const {
-	const TFltVV& CentroidMat = KMeans->GetCentroidVV();
-	const int Cols = CentroidMat.GetCols();
-
-	ResultVV.Gen(Cols);
-
-	for (int ColN = 0; ColN < Cols; ColN++) {
-		CentroidMat.GetCol(ColN, ResultVV[ColN]);
+	if (FtrId < GetDim()) {
+		GetTransitionHistogram(FtrId, GetDim(), NHistBins, ObsTransHistVV, SourceStateSet, TargetStateSet, BinStartV, ProbV);
+	} else if (FtrId < GetDim() + GetControlDim()) {
+		GetTransitionHistogram(FtrId - GetDim(), GetControlDim(), NHistBins, ContrTransHistVV, SourceStateSet, TargetStateSet, BinStartV, ProbV);
+	} else {
+		GetTransitionHistogram(FtrId - GetDim() - GetControlDim(), GetIgnoredDim(), NHistBins, IgnoredTransHistVV, SourceStateSet, TargetStateSet, BinStartV, ProbV);
 	}
 }
+
+//void TStateIdentifier::GetCentroidVV(TVec<TFltV>& ResultVV) const {
+//	const TFltVV& CentroidMat = KMeans->GetCentroidVV();
+//	const int Cols = CentroidMat.GetCols();
+//
+//	ResultVV.Gen(Cols);
+//
+//	for (int ColN = 0; ColN < Cols; ColN++) {
+//		CentroidMat.GetCol(ColN, ResultVV[ColN]);
+//	}
+//}
 
 void TStateIdentifier::GetControlCentroidVV(TStateFtrVV& StateFtrVV) const {
-	const int Cols = ControlCentroidMat.GetCols();
-	const int Rows = ControlCentroidMat.GetRows();
+	const int Cols = ControlCentroidVV.GetCols();
+	const int Rows = ControlCentroidVV.GetRows();
 
 	StateFtrVV.Gen(Cols);
 
 	for (int StateId = 0; StateId < Cols; StateId++) {
 		StateFtrVV[StateId].Gen(Rows);
 		for (int FtrId = 0; FtrId < Rows; FtrId++) {
-			const double& FtrVal = GetControlFtr(StateId, FtrId, ControlCentroidMat(FtrId, StateId));
+			const double& FtrVal = GetControlFtr(StateId, FtrId, ControlCentroidVV(FtrId, StateId));
 			StateFtrVV[StateId][FtrId] = FtrVal;
 		}
 	}
@@ -381,15 +361,15 @@ void TStateIdentifier::InitStatistics(const TFltVV& X) {
 	}
 }
 
-void TStateIdentifier::InitControlCentroids(const TFltVV& ObsMat,  const TFltVV& ControlFtrVV) {
+void TStateIdentifier::InitCentroidVV(const TIntV& AssignV, const TFltVV& FtrVV,
+		TFltVV& CentroidVV) {
 	const int NCentroids = GetStates();
-	const int Dim = ControlFtrVV.GetRows();
-	const int NInst = ControlFtrVV.GetCols();
+	const int Dim = FtrVV.GetRows();
+	const int NInst = FtrVV.GetCols();
 
-	ControlCentroidMat.Gen(Dim, NCentroids);
+	CentroidVV.Gen(Dim, NCentroids);
 	TUInt64V CountV(NCentroids);
 
-	TIntV AssignV;	Assign(ObsMat, AssignV);
 	for (int i = 0; i < NInst; i++) {
 		CountV[AssignV[i]]++;
 	}
@@ -397,7 +377,7 @@ void TStateIdentifier::InitControlCentroids(const TFltVV& ObsMat,  const TFltVV&
 	for (int ColN = 0; ColN < NInst; ColN++) {
 		const int CentId = AssignV[ColN];
 		for (int RowN = 0; RowN < Dim; RowN++) {
-			ControlCentroidMat(RowN, CentId) += ControlFtrVV(RowN, ColN) / double(CountV[CentId]);
+			CentroidVV(RowN, CentId) += FtrVV(RowN, ColN) / double(CountV[CentId]);
 		}
 	}
 }
@@ -408,8 +388,8 @@ void TStateIdentifier::GetCentroid(const int& StateId, TFltV& FtrV) const {
 }
 
 void TStateIdentifier::GetControlCentroid(const int& StateId, TFltV& FtrV) const {
-	EAssert(0 <= StateId && StateId < ControlCentroidMat.GetCols());
-	ControlCentroidMat.GetCol(StateId, FtrV);
+	EAssert(0 <= StateId && StateId < ControlCentroidVV.GetCols());
+	ControlCentroidVV.GetCol(StateId, FtrV);
 }
 
 double TStateIdentifier::GetControlFtr(const int& StateId, const int& FtrId) const {
@@ -430,96 +410,73 @@ void TStateIdentifier::ClearControlFtrVV(const int& Dim) {
 	}
 }
 
-void TStateIdentifier::InitHists(const TFltVV& ObsFtrVV, const TFltVV& ConstFtrVV) {
-	const int States = GetStates();
-	const int Bins = NHistBins;
-	const int NInst = ObsFtrVV.GetCols();
+void TStateIdentifier::GetHistogram(const TStateFtrHistVV& StateHistVV, const int& FtrN,
+		const TIntV& AggState, TFltV& BinStartV, TFltV& BinV) const {
+	BinV.Gen(NHistBins+2);
+	BinStartV = StateHistVV[0][FtrN].GetBinStartV();
 
-	ObsHistVV.Gen(States);
-	ControlHistVV.Gen(States);
-	TransHistMat.Gen(States, States);
+	for (int i = 0; i < AggState.Len(); i++) {
+		const int StateId = AggState[i];
+		const THistogram& Hist = StateHistVV[StateId][FtrN];
+		const TIntV& CountV = Hist.GetCountV();
+
+		for (int j = 0; j < CountV.Len(); j++) {
+			BinV[j] += (double) CountV[j];
+		}
+	}
+
+	TLinAlg::NormalizeL1(BinV);
+}
+
+void TStateIdentifier::InitHistVV(const int& NInst, const TFltVV& FtrVV,
+		TStateFtrHistVV& HistVV, THistMat& TransHistVV) {
+	const int States = GetStates();
+	const int Dim = FtrVV.GetRows();
+	const int Bins = NHistBins;
+
+	HistVV.Gen(States);
+	TransHistVV.Gen(States, States);
 
 	for (int State1Id = 0; State1Id < States; State1Id++) {
-		ObsHistVV[State1Id].Gen(ObsFtrVV.GetRows());
-		ControlHistVV[State1Id].Gen(ConstFtrVV.GetRows());
+		HistVV[State1Id].Gen(FtrVV.GetRows());
 		for (int State2Id = 0; State2Id < States; State2Id++) {
-			TransHistMat(State1Id, State2Id).Gen(ObsFtrVV.GetRows() + ConstFtrVV.GetRows());
+			TransHistVV(State1Id, State2Id).Gen(Dim);
 		}
 	}
 
-	// find the min and max value of each observation feature
 	double MnVal, MxVal;
-	for (int FtrN = 0; FtrN < ObsFtrVV.GetRows(); FtrN++) {
+	for (int FtrN = 0; FtrN < Dim; FtrN++) {
 		// find min and max value
 		MnVal = TFlt::Mx;
 		MxVal = TFlt::Mn;
 
 		for (int InstN = 0; InstN < NInst; InstN++) {
-			if (ObsFtrVV(FtrN, InstN) < MnVal) { MnVal = ObsFtrVV(FtrN, InstN); }
-			if (ObsFtrVV(FtrN, InstN) > MxVal) { MxVal = ObsFtrVV(FtrN, InstN); }
+			if (FtrVV(FtrN, InstN) < MnVal) { MnVal = FtrVV(FtrN, InstN); }
+			if (FtrVV(FtrN, InstN) > MxVal) { MxVal = FtrVV(FtrN, InstN); }
 		}
 
 		// go through all the histograms and initialize them
 		for (int State1Id = 0; State1Id < States; State1Id++) {
-			ObsHistVV[State1Id].SetVal(FtrN, THistogram(Bins, MnVal, MxVal));
+			HistVV[State1Id].SetVal(FtrN, THistogram(Bins, MnVal, MxVal));
 			for (int State2Id = 0; State2Id < States; State2Id++) {
-				TransHistMat(State1Id, State2Id).SetVal(FtrN, THistogram(Bins, MnVal, MxVal));
-			}
-		}
-	}
-
-	// find the min and max value of each control feature
-	for (int FtrN = 0; FtrN < ConstFtrVV.GetRows(); FtrN++) {
-		// find min and max value
-		MnVal = TFlt::Mx;
-		MxVal = TFlt::Mn;
-
-		for (int InstN = 0; InstN < NInst; InstN++) {
-			if (ConstFtrVV(FtrN, InstN) < MnVal) { MnVal = ConstFtrVV(FtrN, InstN); }
-			if (ConstFtrVV(FtrN, InstN) > MxVal) { MxVal = ConstFtrVV(FtrN, InstN); }
-		}
-
-		// go through all the histograms and initialize them
-		for (int State1Id = 0; State1Id < States; State1Id++) {
-			ControlHistVV[State1Id].SetVal(FtrN, THistogram(Bins, MnVal, MxVal));
-			for (int State2Id = 0; State2Id < States; State2Id++) {
-				TransHistMat(State1Id, State2Id).SetVal(ObsFtrVV.GetRows() + FtrN, THistogram(Bins, MnVal, MxVal));
+				TFtrHistV& HistV = TransHistVV(State1Id, State2Id);
+				HistV.SetVal(FtrN, THistogram(Bins, MnVal, MxVal));
 			}
 		}
 	}
 }
 
-void TStateIdentifier::UpdateTransitionHist(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV,
-			const TIntV& AssignV) {
-	const int NInst = AssignV.Len();
+void TStateIdentifier::InitHists(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV,
+		const TFltVV& IgnoredFtrVV) {
 
-	EAssertR(NInst > 0, "Cannot fit a model to 0 instances!");
+	const int NInst = ObsFtrVV.GetCols();
 
-	const int ObsDim = ObsFtrVV.GetRows();
-	const int ContrDim = ContrFtrVV.GetRows();
-
-	int CurrState, PrevState = AssignV[0];
-	for (int InstN = 0; InstN < NInst; InstN++) {
-		CurrState = AssignV[InstN];
-
-		if (CurrState != PrevState) {	// we have just jumped
-			// get the features of the previous time step
-			const int JumpInst = InstN-1;
-			TFtrHistV& FtrIdHistV = TransHistMat(PrevState, CurrState);
-
-			for (int FtrN = 0; FtrN < ObsDim; FtrN++) {
-				FtrIdHistV[FtrN].Update(ObsFtrVV(FtrN, JumpInst));
-			}
-			for (int FtrN = 0; FtrN < ContrDim; FtrN++) {
-				FtrIdHistV[GetDim() + FtrN].Update(ContrFtrVV(FtrN, JumpInst));
-			}
-
-			PrevState = CurrState;
-		}
-	}
+	InitHistVV(NInst, ObsFtrVV, ObsHistVV, ObsTransHistVV);
+	InitHistVV(NInst, ContrFtrVV, ControlHistVV, ContrTransHistVV);
+	InitHistVV(NInst, IgnoredFtrVV, IgnoredHistVV, IgnoredTransHistVV);
 }
 
-void TStateIdentifier::UpdateHist(const TFltVV& FtrVV, const TIntV& AssignV,
+void TStateIdentifier::UpdateHistVV(const TFltVV& FtrVV, const TIntV& AssignV,
 		const int& States, TStateFtrHistVV& StateFtrHistVV) {
 
 	const int NInst = FtrVV.GetCols();
@@ -535,6 +492,95 @@ void TStateIdentifier::UpdateHist(const TFltVV& FtrVV, const TIntV& AssignV,
 		for (int FtrN = 0; FtrN < Dim; FtrN++) {
 			FtrHistV[FtrN].Update(FtrVV(FtrN, InstN));
 		}
+	}
+}
+
+void TStateIdentifier::UpdateTransHistVV(const TFltVV& FtrVV, const TIntV& AssignV,
+		THistMat& TransHistVV) {
+	const int NInst = AssignV.Len();
+	const int Dim = FtrVV.GetRows();
+
+	EAssertR(NInst > 0, "Cannot fit a model to 0 instances!");
+
+	int CurrState, PrevState = AssignV[0];
+	for (int InstN = 0; InstN < NInst; InstN++) {
+		CurrState = AssignV[InstN];
+
+		if (CurrState != PrevState) {	// we have just jumped
+			// get the features of the previous time step
+			const int JumpInst = InstN-1;
+			TFtrHistV& FtrIdHistV = TransHistVV(PrevState, CurrState);
+
+			for (int FtrN = 0; FtrN < Dim; FtrN++) {
+				FtrIdHistV[FtrN].Update(FtrVV(FtrN, JumpInst));
+			}
+
+			PrevState = CurrState;
+		}
+	}
+}
+
+void TStateIdentifier::GetTransitionHistogram(const int& FtrN, const int& Dim, const int& Bins,
+		const THistMat& HistVV, const TIntV& SourceStateSet, const TIntV& TargetStateSet,
+		TFltV& BinStartV, TFltV& ProbV) {
+
+	EAssertR(FtrN < Dim, "Invalid feature number: " + TInt::GetStr(FtrN));
+
+	ProbV.Gen(Bins+2);
+	BinStartV.Clr();
+
+	for (int SourceN = 0; SourceN < SourceStateSet.Len(); SourceN++) {
+		const int& SourceId = SourceStateSet[SourceN];
+
+		for (int TargetN = 0; TargetN < TargetStateSet.Len(); TargetN++) {
+			const int& TargetId = TargetStateSet[TargetN];
+
+			const TFtrHistV& FtrIdHistV = HistVV(SourceId, TargetId);
+			EAssertR(FtrN < FtrIdHistV.Len(), "Invalid feature number: " + TInt::GetStr(FtrN));
+			const THistogram& Hist = FtrIdHistV[FtrN];
+
+			if (Hist.Empty()) { continue; }
+
+			const TIntV& CountV = Hist.GetCountV();
+			for (int i = 0; i < CountV.Len(); i++) {
+				ProbV[i] += (double) CountV[i];
+			}
+
+			// initialize the bin start vector if not already
+			// try to think of anything better than lazy initialization
+			if (BinStartV.Empty()) {
+				BinStartV = Hist.GetBinStartV();
+			}
+		}
+	}
+
+	TLinAlg::NormalizeL1(ProbV);
+}
+
+void TStateIdentifier::GetJoinedCentroid(const TIntV& StateIdV,
+		const TFltVV& CentroidVV, const TUInt64V& StateSizeV, TFltV& FtrV) {
+	const int Dim = CentroidVV.GetRows();
+
+	if (FtrV.Empty()) { FtrV.Gen(Dim); }
+	EAssert(FtrV.Len() == Dim);
+
+	TFltV CentroidV;
+	double TotalSize = 0;
+	for (int StateN = 0; StateN < StateIdV.Len(); StateN++) {
+		const int StateId = StateIdV[StateN];
+		const double StateSize = (double) StateSizeV[StateN];
+
+		CentroidVV.GetCol(StateId, CentroidV);
+
+		for (int FtrN = 0; FtrN < Dim; FtrN++) {
+			FtrV[FtrN] += CentroidV[FtrN] * StateSize;
+		}
+
+		TotalSize += StateSize;
+	}
+
+	for (int FtrN = 0; FtrN < Dim; FtrN++) {
+		FtrV[FtrN] /= TotalSize;
 	}
 }
 
@@ -2440,6 +2486,17 @@ void THierarch::GetLeafDescendantV(const int& TargetStateId, TIntV& DescendantV)
 	}
 }
 
+void THierarch::GetLeafIdV(TIntV& LeafIdV) const {
+	const int NStates = GetStates();
+
+	LeafIdV.Gen(GetLeafs(), 0);
+	for (int StateId = 0; StateId < NStates; StateId++) {
+		if (IsLeaf(StateId)) {
+			LeafIdV.Add(StateId);
+		}
+	}
+}
+
 void THierarch::GetDescendantsAtHeight(const double& Height, const TIntV& StateIdV, TAggStateV& AggStateV) {
 	const int NStates = StateIdV.Len();
 	AggStateV.Gen(NStates, NStates);
@@ -2465,14 +2522,6 @@ void THierarch::GetDescendantsAtHeight(const double& Height, const TIntV& StateI
 			}
 		} while (Change);
 
-		// TODO remove
-		//===================================================
-		printf("StateIdV: %s\n", TStrUtil::GetStr(StateIdV).CStr());
-		printf("HeightV: %s\n", TStrUtil::GetStr(StateHeightV, ", ", "%.3f").CStr());
-		printf("HierarchV: %s\n", TStrUtil::GetStr(HierarchV).CStr());
-		printf("TempHierV: %s\n", TStrUtil::GetStr(TempHierarchV).CStr());
-		//===================================================
-
 		for (int StateId = 0; StateId < NLeafs; StateId++) {
 			if (StateIdStateNH.IsKey(StateId)) {
 				const int StateN = StateIdStateNH.GetDat(StateId);
@@ -2485,15 +2534,6 @@ void THierarch::GetDescendantsAtHeight(const double& Height, const TIntV& StateI
 				AggStateV[AncestorN].Add(StateId);
 			}
 		}
-
-		// TODO remove
-		//===================================================
-		printf("Descendants at height:\n");
-		for (int i = 0; i < AggStateV.Len(); i++) {
-			printf("%s\n", TStrUtil::GetStr(AggStateV[i]).CStr());
-		}
-		printf("==\n");
-		//===================================================
 	} else {
 		bool Change;
 		do {
@@ -2509,14 +2549,6 @@ void THierarch::GetDescendantsAtHeight(const double& Height, const TIntV& StateI
 				}
 			}
 		} while (Change);
-
-		// TODO remove
-		//===================================================
-		printf("StateIdV: %s\n", TStrUtil::GetStr(StateIdV).CStr());
-		printf("HeightV: %s\n", TStrUtil::GetStr(StateHeightV, ", ", "%.3f").CStr());
-		printf("HierarchV: %s\n", TStrUtil::GetStr(HierarchV).CStr());
-		printf("TempHierV: %s\n", TStrUtil::GetStr(TempHierarchV).CStr());
-		//===================================================
 
 		TIntSet UsedStateIdSet;
 		for (int StateId = 0; StateId < NLeafs; StateId++) {
@@ -2545,14 +2577,6 @@ void THierarch::GetDescendantsAtHeight(const double& Height, const TIntV& StateI
 				UsedStateIdSet.AddKey(AddStateId);
 			}
 		}
-		// TODO remove
-		//===================================================
-		printf("Descendants at height:\n");
-		for (int i = 0; i < AggStateV.Len(); i++) {
-			printf("%s\n", TStrUtil::GetStr(AggStateV[i]).CStr());
-		}
-		printf("==\n");
-		//===================================================
 	}
 }
 
@@ -3161,12 +3185,34 @@ void TStateAssist::Save(TSOut& SOut) const {
 	TBool(Verbose).Save(SOut);
 }
 
-void TStateAssist::Init(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const TStateIdentifier& Clust,
-		const THierarch& Hierarch, TStreamStoryCallback* Callback, const bool& MultiThread) {
+void TStateAssist::Init(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const TFltVV& IgnFtrVV,
+		const TStateIdentifier& Clust, const THierarch& Hierarch,
+		TStreamStoryCallback* Callback, const bool& MultiThread) {
 
 	Notify->OnNotify(TNotifyType::ntInfo, "Computing state assist ...");
 
-	InitFtrBounds(ObsFtrVV, ContrFtrVV);
+	const int NInst = ObsFtrVV.GetCols();
+
+	const int ObsDim = ObsFtrVV.GetRows();
+	const int ContrDim = ContrFtrVV.GetRows();
+	const int IgnDim = IgnFtrVV.GetRows();
+
+	const int AllDim = ObsDim + ContrDim + IgnDim;
+
+	TFltVV AllFtrVV(AllDim, NInst);
+	for (int ColN = 0; ColN < NInst; ColN++) {
+		for (int RowN = 0; RowN < ObsDim; RowN++) {
+			AllFtrVV(RowN, ColN) = ObsFtrVV(RowN, ColN);
+		}
+		for (int RowN = 0; RowN < ContrDim; RowN++) {
+			AllFtrVV(ObsDim + RowN, ColN) = ContrFtrVV(RowN, ColN);
+		}
+		for (int RowN = 0; RowN < IgnDim; RowN++) {
+			AllFtrVV(ObsDim + ContrDim + RowN, ColN) = IgnFtrVV(RowN, ColN);
+		}
+	}
+
+	InitFtrBounds(ObsFtrVV, ContrFtrVV, IgnFtrVV);
 
 	// get all the heights from the hierarchy
 	TIntFltPrV StateIdHeightPrV;	Hierarch.GetStateIdHeightPrV(StateIdHeightPrV);
@@ -3188,6 +3234,7 @@ void TStateAssist::Init(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const 
 		DecisionTreeV.Add(TDecisionTree());
 	}
 
+	// initialize
 	if (MultiThread) {
 		int NFinished = 0;
 		const int TotalTasks = StateIdHeightPrV.Len();
@@ -3201,7 +3248,7 @@ void TStateAssist::Init(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const 
 		for (int HeightN = 0; HeightN < TotalTasks; HeightN++) {
 			const TIntFltPr StateIdHeightPr = StateIdHeightPrV[HeightN];
 
-			InitSingle(ObsFtrVV, StateIdHeightPr.Val1, StateIdHeightPr.Val2, Hierarch,
+			InitSingle(AllFtrVV, StateIdHeightPr.Val1, StateIdHeightPr.Val2, Hierarch,
 					AssignV, RndV[HeightN], ClassifyV[HeightN], DecisionTreeV[HeightN]);
 
 			#pragma omp critical
@@ -3220,7 +3267,7 @@ void TStateAssist::Init(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const 
 
 			Notify->OnNotifyFmt(TNotifyType::ntInfo, "Computing state assist for state %d ...", StateId);
 
-			InitSingle(ObsFtrVV, StateId, Height, Hierarch, AssignV, Rnd, ClassifyV[HeightN], DecisionTreeV[HeightN]);
+			InitSingle(AllFtrVV, StateId, Height, Hierarch, AssignV, Rnd, ClassifyV[HeightN], DecisionTreeV[HeightN]);
 
 			if (Callback != nullptr) {
 				Callback->OnProgress(70, "Initilized " + TInt::GetStr(HeightN+1) + " of " + TInt::GetStr(StateIdHeightPrV.Len()) + " states ...");
@@ -3231,10 +3278,13 @@ void TStateAssist::Init(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const 
 	Notify->OnNotify(TNotifyType::ntInfo, "State assist initialized!");
 }
 
-void TStateAssist::InitFtrBounds(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV) {
+void TStateAssist::InitFtrBounds(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV,
+		const TFltVV& IgnoredFtrVV) {
 	const int NObsFtrs = ObsFtrVV.GetRows();
 	const int NContrFtrs = ContrFtrVV.GetRows();
-	const int TotalFtrs = NObsFtrs + NContrFtrs;
+	const int NIgnFtrs = IgnoredFtrVV.GetRows();
+
+	const int TotalFtrs = NObsFtrs + NContrFtrs + NIgnFtrs;
 	const int NInst = ObsFtrVV.GetCols();
 
 
@@ -3259,6 +3309,16 @@ void TStateAssist::InitFtrBounds(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrV
 
 		FtrBoundV[NObsFtrs + FtrN] = TFltPr(Min, Max);
 	}
+
+	for (int FtrN = 0; FtrN < NIgnFtrs; FtrN++) {
+		double Min = TFlt::Mx, Max = TFlt::Mn;
+		for (int InstN = 0; InstN < NInst; InstN++) {
+			if (IgnoredFtrVV(FtrN, InstN) < Min) { Min = IgnoredFtrVV(FtrN, InstN); }
+			if (IgnoredFtrVV(FtrN, InstN) > Max) { Max = IgnoredFtrVV(FtrN, InstN); }
+		}
+
+		FtrBoundV[FtrN + NObsFtrs + NContrFtrs] = TFltPr(Min, Max);
+	}
 }
 
 const TFltPr& TStateAssist::GetFtrBounds(const int& FtrId) const {
@@ -3266,7 +3326,7 @@ const TFltPr& TStateAssist::GetFtrBounds(const int& FtrId) const {
 	return FtrBoundV[FtrId];
 }
 
-void TStateAssist::GetSuggestFtrs(const int& StateId, TFltV& WgtV) const {
+void TStateAssist::GetFtrWgtV(const int& StateId, TFltV& WgtV) const {
 	EAssertR(0 <= StateId && StateId < ClassifyV.Len(), "Invalid state ID!");
 
 	const TLogReg& Classify = ClassifyV[StateId];
@@ -3283,15 +3343,14 @@ PJsonVal TStateAssist::GetStateExplain(const int& StateId) const {
 	return DecisionTreeV[StateId].ExplainPositive();
 }
 
-void TStateAssist::InitSingle(const TFltVV& ObsFtrVV, const int& StateId, const double& Height,
+void TStateAssist::InitSingle(const TFltVV& FtrVV, const int& StateId, const double& Height,
 		const THierarch& Hierarch, const TIntV& AssignV, TRnd& Rnd, TLogReg& LogReg,
-		TDecisionTree& Tree, const bool& Sample) {
+		TDecisionTree& Tree) {
 
-	const int NInst = ObsFtrVV.GetCols();
-	const int Dim = ObsFtrVV.GetRows();
+	const int NInst = FtrVV.GetCols();
 
-	TStateIdV StateIdV; TAggStateV StateSetV;
-	Hierarch.GetStateSetsAtHeight(Height, StateIdV, StateSetV);
+	TStateIdV StateIdV; TAggStateV AggStateV;
+	Hierarch.GetStateSetsAtHeight(Height, StateIdV, AggStateV);
 
 	const int NStates = StateIdV.Len();
 	const int TrgStateIdx = StateIdV.SearchForw(StateId);
@@ -3303,80 +3362,18 @@ void TStateAssist::InitSingle(const TFltVV& ObsFtrVV, const int& StateId, const 
 	TIntSet TargetStateSet;
 	for (int StateN = 0; StateN < NStates; StateN++) {
 		if (StateIdV[StateN] == StateId) {
-			TargetStateSet.AddKeyV(StateSetV[StateN]);
+			TargetStateSet.AddKeyV(AggStateV[StateN]);
 		}
 	}
 
 	EAssert(!TargetStateSet.Empty());
 
-	if (Sample) {
-		for (int StateN = 0; StateN < NStates; StateN++) {
-			const TIntSet StateSet(StateSetV[StateN]);
-			AssignV.FindAllSatisfy([&](const TInt& StateId) { return StateSet.IsKey(StateId); }, StateIdFtrIdxVV[StateN]);
-			StateIdFtrIdxVV[StateN].Shuffle(Rnd);
-		}
-
-		// while there are instances select one instance from each state
-		// so that we always get instances from all the states
-		bool AllEmpty;
-		do {
-			AllEmpty = true;
-
-			for (int StateN = 0; StateN < NStates; StateN++) {
-				TIntV& IdxV = StateIdFtrIdxVV[StateN];
-
-				if (IdxV.Empty()) { continue; }
-
-				if (StateN == TrgStateIdx) {
-					TargetIdxV.Add(IdxV.Last());
-				} else {
-					NonTargetIdxV.Add(IdxV.Last());
-				}
-
-				IdxV.DelLast();
-				AllEmpty = false;
-			}
-		} while (!AllEmpty);
-
-		// truncate the larger dataset
-		if (TargetIdxV.Len() > NonTargetIdxV.Len()) {
-			TargetIdxV.Trunc(NonTargetIdxV.Len());
-		} else if (NonTargetIdxV.Len() > TargetIdxV.Len()) {
-			NonTargetIdxV.Trunc(TargetIdxV.Len());
-		}
-
-		if (TargetIdxV.Empty() || NonTargetIdxV.Empty()) { return; }
-
-		// construct a feature matrix
-		TFltVV FtrVV(Dim, TargetIdxV.Len() + NonTargetIdxV.Len());
-		TFltV LabelV(TargetIdxV.Len() + NonTargetIdxV.Len());
-
-		for (int ColIdx = 0; ColIdx < TargetIdxV.Len(); ColIdx++) {
-			const TInt& TargetColN = TargetIdxV[ColIdx];
-			const TInt& NonTargetColN = NonTargetIdxV[ColIdx];
-
-			const int TargetColIdx = ColIdx;
-			const int NonTargetColIdx = TargetIdxV.Len() + ColIdx;
-
-			for (int RowN = 0; RowN < Dim; RowN++) {
-				FtrVV(RowN, TargetColIdx) = ObsFtrVV(RowN, TargetColN);
-				FtrVV(RowN, NonTargetColIdx) = ObsFtrVV(RowN, NonTargetColN);
-			}
-
-			LabelV[TargetColIdx] = 1;
-			LabelV[NonTargetColIdx] = 0;
-		}
-
-		FitAssistModels(FtrVV, LabelV, LogReg, Tree);
-	} else {
-		TFltV LabelV(NInst);
-
-		for (int ColN = 0; ColN < NInst; ColN++) {
-			LabelV[ColN] = TargetStateSet.IsKey(AssignV[ColN]) ? 1 : 0;
-		}
-
-		FitAssistModels(ObsFtrVV, LabelV, LogReg, Tree);
+	TFltV LabelV(NInst);
+	for (int ColN = 0; ColN < NInst; ColN++) {
+		LabelV[ColN] = TargetStateSet.IsKey(AssignV[ColN]) ? 1 : 0;
 	}
+
+	FitAssistModels(FtrVV, LabelV, LogReg, Tree);
 }
 
 void TStateAssist::FitAssistModels(const TFltVV& FtrVV, const TFltV& LabelV, TLogReg& LogReg,
@@ -3405,12 +3402,181 @@ void TStateAssist::FitAssistModels(const TFltVV& FtrVV, const TFltV& LabelV, TLo
 }
 
 /////////////////////////////////////////////////////////////////
-// Hierarchical continous time Markov Chain
+// Activity info
+TActivityDetector::TActivity::TActivity():
+		ActivitySeq(),
+		UniqueStepV(),
+		StepTmStepIdV() {}
+
+TActivityDetector::TActivity::TActivity(const TActivityStepV& StepV):
+		ActivitySeq(),
+		UniqueStepV(),
+		StepTmStepIdV() {
+
+	// construct unique steps
+	for (int StepN = 0; StepN < StepV.Len(); StepN++) {
+		const TActivityStep& Step = StepV[StepN];
+
+		if (!ContainsStep(Step)) {
+			UniqueStepV.Add(Step);
+		}
+	}
+
+	for (int StepN = 0; StepN < StepV.Len(); StepN++) {
+		const TActivityStep& Step = StepV[StepN];
+		const int StateId = Step[0];
+		const int StepId = GetStepId(StateId);
+		ActivitySeq.Add(StepId);
+	}
+}
+
+TActivityDetector::TActivity::TActivity(TSIn& SIn):
+		ActivitySeq(SIn),
+		UniqueStepV(SIn),
+		StepTmStepIdV(SIn) {}
+
+void TActivityDetector::TActivity::Save(TSOut& SOut) const {
+	ActivitySeq.Save(SOut);
+	UniqueStepV.Save(SOut);
+	StepTmStepIdV.Save(SOut);
+}
+
+bool TActivityDetector::TActivity::Update(const uint64& Tm, const int& StateId,
+		const PNotify& Notify) {
+	const int StepId = GetStepId(StateId);
+	if (StepTmStepIdV.Empty() || StepTmStepIdV.Last().Val2 != StepId) {
+		StepTmStepIdV.Add(TUInt64IntPr(Tm, StepId));
+
+		while (StepTmStepIdV.Len() > ActivitySeq.Len() + 1) {
+			StepTmStepIdV.Del(0);
+		}
+
+		Notify->OnNotifyFmt(TNotifyType::ntInfo, "Updated history: %s", TStrUtil::GetStr(StepTmStepIdV).CStr());
+		return true;
+	}
+
+	return false;
+}
+
+bool TActivityDetector::TActivity::Detect(uint64& StartTm, uint64& EndTm, const PNotify& Notify) {
+	if (StepTmStepIdV.Len() != ActivitySeq.Len() + 1) {
+		Notify->OnNotify(TNotifyType::ntInfo, "Won't detect activities, not enough history ...");
+		return false;
+	}
+
+	for (int StepN = 0; StepN < ActivitySeq.Len(); StepN++) {
+		const int& TemplateStepId = ActivitySeq[StepN];
+		const int& RealStepId = StepTmStepIdV[StepN].Val2;
+
+		Notify->OnNotifyFmt(TNotifyType::ntInfo, "Matching steps, template: %d, real: %d", TemplateStepId, RealStepId);
+
+		if (TemplateStepId != RealStepId) {
+			return false;
+		}
+	}
+
+	// remove the history, so we don't detect the activity again
+	const int DelVals = ActivitySeq.Len()-1;
+	StepTmStepIdV.Del(0, DelVals-1);
+
+	// set the start/end times
+	StartTm = StepTmStepIdV[0].Val1;
+	EndTm = StepTmStepIdV.Last().Val1;
+	return true;
+}
+
+int TActivityDetector::TActivity::GetStepId(const int& StateId) const {
+	int Result = -1;
+	for (int StepN = 0; StepN < UniqueStepV.Len(); StepN++) {
+		if (UniqueStepV[StepN].IsKey(StateId)) {
+			Result = StepN;
+		}
+	}
+	return Result;
+}
+
+bool TActivityDetector::TActivity::ContainsStep(const TActivityStep& Step) const {
+	for (int StepN = 0; StepN < UniqueStepV.Len(); StepN++) {
+		if (UniqueStepV[StepN] == Step) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/////////////////////////////////////////////////////////////////
+// Activity detector
+const int TActivityDetector::STATE_CACHE_SIZE = 150;
+
+TActivityDetector::TActivityDetector(const bool& _Verbose):
+		ActivityH(),
+		StateIdHistoryV(STATE_CACHE_SIZE, 0),
+		Callback(nullptr),
+		Verbose(_Verbose),
+		Notify() {
+	SetVerbose(Verbose);
+}
+
+TActivityDetector::TActivityDetector(TSIn& SIn):
+		ActivityH(SIn),
+		StateIdHistoryV(SIn),
+		Callback(nullptr),
+		Verbose(TBool(SIn)),
+		Notify() {
+	SetVerbose(Verbose);
+}
+
+void TActivityDetector::Save(TSOut& SOut) const {
+	ActivityH.Save(SOut);
+	StateIdHistoryV.Save(SOut);
+	TBool(Verbose).Save(SOut);
+}
+
+void TActivityDetector::OnStateChanged(const uint64& Tm, const int& NewStateId) {
+	Notify->OnNotify(TNotifyType::ntInfo, "Matching activities ...");
+
+	// check is any of the activities match
+	int KeyId = ActivityH.FFirstKeyId();
+	while (ActivityH.FNextKeyId(KeyId)) {
+		const TStr& ActNm = ActivityH.GetKey(KeyId);
+		TActivity& Activity = ActivityH[KeyId];
+
+		Notify->OnNotifyFmt(TNotifyType::ntInfo, "Updating activity \"%s\" ...", ActNm.CStr());
+
+		if (!Activity.Update(Tm, NewStateId, Notify)) { continue; }
+
+		Notify->OnNotifyFmt(TNotifyType::ntInfo, "Matching activity \"%s\" ...", ActNm.CStr());
+
+		uint64 StartTm, EndTm;
+		if (Activity.Detect(StartTm, EndTm, Notify)) {
+			Notify->OnNotifyFmt(TNotifyType::ntInfo, "Found activity match: %s", ActNm.CStr());
+			if (Callback != nullptr) { Callback->OnActivityDetected(StartTm, EndTm, ActNm); }
+		}
+	}
+}
+
+void TActivityDetector::AddActivity(const TStr& ActName, const TActivityStepV& StepV) {
+	EAssertR(!ActivityH.IsKey(ActName), "Activity " + ActName + " already present!");
+	ActivityH.AddDat(ActName, TActivity(StepV));
+}
+
+void TActivityDetector::SetCallback(TStreamStoryCallback* _Callback) {
+	Callback = _Callback;
+}
+
+void TActivityDetector::SetVerbose(const bool& _Verbose) {
+	Verbose = _Verbose;
+	Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
+}
+
+/////////////////////////////////////////////////////////////////
+// Main StreamStory component
 TStreamStory::TStreamStory():
 		StateIdentifier(nullptr),
 		MChain(nullptr),
 		Hierarch(nullptr),
 		StateAssist(nullptr),
+		ActivityDetector(nullptr),
 		UiHelper(nullptr),
 		PrevObsFtrV(),
 		PrevContrFtrV(),
@@ -3426,6 +3592,7 @@ TStreamStory::TStreamStory(TStateIdentifier* _StateIdentifier,
 		MChain(_MChain),
 		Hierarch(_Hierarch),
 		StateAssist(new TStateAssist(_Verbose)),
+		ActivityDetector(new TActivityDetector(_Verbose)),
 		UiHelper(new TUiHelper(Rnd, _Verbose)),
 		PrevObsFtrV(),
 		PrevContrFtrV(),
@@ -3440,6 +3607,7 @@ TStreamStory::TStreamStory(TSIn& SIn):
 		MChain(TCtmcModeller::Load(SIn)),
 		Hierarch(THierarch::Load(SIn)),
 		StateAssist(new TStateAssist(SIn)),
+		ActivityDetector(new TActivityDetector(SIn)),
 		UiHelper(new TUiHelper(SIn)),
 		PrevObsFtrV(SIn),
 		PrevContrFtrV(SIn),
@@ -3452,11 +3620,12 @@ TStreamStory::TStreamStory(TSIn& SIn):
 }
 
 TStreamStory::~TStreamStory() {
-	delete StateIdentifier;
-	delete MChain;
-	delete Hierarch;
-	delete StateAssist;
-	delete UiHelper;
+	if (StateIdentifier != nullptr) { delete StateIdentifier; }
+	if (MChain != nullptr) { delete MChain; }
+	if (Hierarch != nullptr) { delete Hierarch; }
+	if (StateAssist != nullptr) { delete StateAssist; }
+	if (ActivityDetector != nullptr) { delete ActivityDetector; }
+	if (UiHelper != nullptr) { delete UiHelper; }
 }
 
 void TStreamStory::Save(TSOut& SOut) const {
@@ -3466,6 +3635,7 @@ void TStreamStory::Save(TSOut& SOut) const {
 	MChain->Save(SOut);
 	Hierarch->Save(SOut);
 	StateAssist->Save(SOut);
+	ActivityDetector->Save(SOut);
 	UiHelper->Save(SOut);
 	PrevObsFtrV.Save(SOut);
 	PrevContrFtrV.Save(SOut);
@@ -3668,39 +3838,39 @@ PJsonVal TStreamStory::GetLikelyPathTreeJson(const int& StateId, const double& H
 	return Result;
 }
 
-void TStreamStory::Init(TFltVV& ObservFtrVV, const TFltVV& ControlFtrVV, const TUInt64V& RecTmV,
-		const bool& MultiThread) {
+void TStreamStory::Init(TFltVV& ObservFtrVV, const TFltVV& ControlFtrVV,
+		const TFltVV& IgnoredFtrVV, const TUInt64V& RecTmV, const bool& MultiThread) {
 	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Creating a model on %d instances ...", ObservFtrVV.GetCols());
 	TFltVV FtrVV;	CreateFtrVV(ObservFtrVV, ControlFtrVV, RecTmV, TBoolV(), FtrVV);
 
 	Callback->OnProgress(0, "Clustering ...");
-	TIntV AssignV;	InitClust(ObservFtrVV, FtrVV, AssignV);
+	TIntV AssignV;	InitClust(ObservFtrVV, FtrVV, IgnoredFtrVV, AssignV);
 	Callback->OnProgress(30, "Modeling transitions ...");
 	InitMChain(FtrVV, AssignV, RecTmV, false, TBoolV());
 	Callback->OnProgress(50, "Initializing hierarchy ...");
 	InitHierarch();
 	Callback->OnProgress(60, "Initializing states ...");
-	InitStateAssist(ObservFtrVV, ControlFtrVV, MultiThread);
+	InitStateAssist(ObservFtrVV, ControlFtrVV, IgnoredFtrVV, MultiThread);
 	Callback->OnProgress(90, "Computing positions ...");
 	UiHelper->Init(*StateIdentifier, *Hierarch, *MChain);
 }
 
-void TStreamStory::InitBatches(TFltVV& ObservFtrVV, const TFltVV& ControlFtrVV,
+void TStreamStory::InitBatches(TFltVV& ObservFtrVV, const TFltVV& ControlFtrVV, const TFltVV& IgnoredFtrVV,
 		const TUInt64V& RecTmV, const TBoolV& BatchEndV, const bool& MultiThread) {
 	CheckBatches(RecTmV, BatchEndV);
 
 	TFltVV FtrVV;	CreateFtrVV(ObservFtrVV, ControlFtrVV, RecTmV, BatchEndV, FtrVV);
 
-	TIntV AssignV;	InitClust(ObservFtrVV, FtrVV, AssignV);
+	TIntV AssignV;	InitClust(ObservFtrVV, FtrVV, IgnoredFtrVV, AssignV);
 	InitMChain(FtrVV, AssignV, RecTmV, true, BatchEndV);
 	InitHierarch();
-	InitStateAssist(ObservFtrVV, ControlFtrVV, MultiThread);
+	InitStateAssist(ObservFtrVV, ControlFtrVV, IgnoredFtrVV, MultiThread);
 	UiHelper->Init(*StateIdentifier, *Hierarch, *MChain);
 }
 
-void TStreamStory::InitClust(TFltVV& ObsFtrVV, const TFltVV& FtrVV,
+void TStreamStory::InitClust(TFltVV& ObsFtrVV, const TFltVV& FtrVV, const TFltVV& IgnoredFtrVV,
 		TIntV& AssignV) {
-	StateIdentifier->Init(ObsFtrVV, FtrVV);
+	StateIdentifier->Init(ObsFtrVV, FtrVV, IgnoredFtrVV);
 	StateIdentifier->Assign(ObsFtrVV, AssignV);
 }
 
@@ -3713,14 +3883,15 @@ void TStreamStory::InitHierarch() {
 	Hierarch->Init(MChain->GetCurrStateId(), *StateIdentifier, *MChain);
 }
 
-void TStreamStory::InitHistograms(const TFltVV& ObsMat, const TFltVV& ControlMat,
-		const TUInt64V& RecTmV, const TBoolV& BatchEndV) {
-	TFltVV FtrVV;	CreateFtrVV(ObsMat, ControlMat, RecTmV, BatchEndV, FtrVV);
-	StateIdentifier->InitHistograms(ObsMat, FtrVV);
+void TStreamStory::InitHistograms(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV,
+		const TFltVV& IgnoredFtrVV, const TUInt64V& RecTmV, const TBoolV& BatchEndV) {
+	TFltVV FtrVV;	CreateFtrVV(ObsFtrVV, ContrFtrVV, RecTmV, BatchEndV, FtrVV);
+	StateIdentifier->InitHistograms(ObsFtrVV, FtrVV, IgnoredFtrVV);
 }
 
-void TStreamStory::InitStateAssist(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const bool& MultiThread) {
-	StateAssist->Init(ObsFtrVV, ContrFtrVV, *StateIdentifier, *Hierarch, Callback, MultiThread);
+void TStreamStory::InitStateAssist(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV,
+		const TFltVV& IgnFtrVV, const bool& MultiThread) {
+	StateAssist->Init(ObsFtrVV, ContrFtrVV, IgnFtrVV, *StateIdentifier, *Hierarch, Callback, MultiThread);
 }
 
 void TStreamStory::OnAddRec(const uint64& RecTm, const TFltV& ObsFtrV, const TFltV& ContrFtrV) {
@@ -3738,6 +3909,7 @@ void TStreamStory::OnAddRec(const uint64& RecTm, const TFltV& ObsFtrV, const TFl
 		if (NewStateId != OldStateId && Callback != nullptr) {
 			PredictTargets(RecTm, StateFtrVV, NewStateId);
 			Hierarch->UpdateHistory(NewStateId);
+			ActivityDetector->OnStateChanged(RecTm, NewStateId);
 
 			TIntFltPrV CurrStateV;	GetCurrStateAncestry(CurrStateV);
 			Callback->OnStateChanged(CurrStateV);
@@ -3831,11 +4003,32 @@ void TStreamStory::GetHistStateIdV(const double& Height, TStateIdV& StateIdV) co
 	}
 }
 
-void TStreamStory::GetHistogram(const int& StateId, const int& FtrId, TFltV& BinStartV, TFltV& ProbV) const {
+void TStreamStory::GetHistogram(const int& StateId, const int& FtrId, TFltV& BinStartV,
+		TFltV& ProbV, TFltV& AllProbV) const {
 	try {
-		TIntV LeafV;
-		Hierarch->GetLeafDescendantV(StateId, LeafV);
-		StateIdentifier->GetHistogram(FtrId, LeafV, BinStartV, ProbV);
+		TIntV LeafIdV;
+		TIntV AllLeafIdV;
+
+		Hierarch->GetLeafDescendantV(StateId, LeafIdV);
+		Hierarch->GetLeafIdV(AllLeafIdV);
+
+		StateIdentifier->GetHistogram(FtrId, LeafIdV, BinStartV, ProbV);
+		StateIdentifier->GetHistogram(FtrId, AllLeafIdV, BinStartV, AllProbV);
+
+		uint64 NDescPts = 0;
+		uint64 NLeafPts = 0;
+		for (int StateN = 0; StateN < LeafIdV.Len(); StateN++) {
+			NDescPts += StateIdentifier->GetStateSize(LeafIdV[StateN]);
+		}
+		for (int StateN = 0; StateN < AllLeafIdV.Len(); StateN++) {
+			NLeafPts += StateIdentifier->GetStateSize(AllLeafIdV[StateN]);
+		}
+
+		const double Ratio = NLeafPts != 0 ? double(NDescPts) / NLeafPts : 0;
+
+		for (int BinN = 0; BinN < ProbV.Len(); BinN++) {
+			ProbV[BinN] *= Ratio;
+		}
 	} catch (const PExcept& Except) {
 		Notify->OnNotifyFmt(TNotifyType::ntErr, "THierarch::GetHistogram: Failed to fetch histogram: %s", Except->GetMsgStr().CStr());
 		throw Except;
@@ -3857,7 +4050,7 @@ void TStreamStory::GetTransitionHistogram(const int& SourceId, const int& Target
 
 void TStreamStory::GetStateWgtV(const int& StateId, TFltV& WgtV) const {
 	try {
-		StateAssist->GetSuggestFtrs(StateId, WgtV);
+		StateAssist->GetFtrWgtV(StateId, WgtV);
 	} catch (const PExcept& Except) {
 		Notify->OnNotifyFmt(TNotifyType::ntErr, "TStreamStory::GetStateWgtV: Failed to fetch weight vector for state %d: %s", StateId, Except->GetMsgStr().CStr());
 		throw Except;
@@ -3903,14 +4096,10 @@ int TStreamStory::GetCurrStateId(const double& Height) const {
 	return Hierarch->GetAncestorAtHeight(MChain->GetCurrStateId(), Height);
 }
 
-void TStreamStory::GetCentroid(const int& StateId, TFltV& FtrV, const bool ObsCentroid) const {
+void TStreamStory::GetCentroid(const int& StateId, const int& FtrSpaceN, TFltV& FtrV) const {
 	TIntV LeafIdV;	Hierarch->GetLeafDescendantV(StateId, LeafIdV);
 
-	if (ObsCentroid) {
-		StateIdentifier->GetJoinedCentroid(LeafIdV, FtrV);
-	} else {
-		StateIdentifier->GetJoinedControlCentroid(LeafIdV, FtrV);
-	}
+	StateIdentifier->GetJoinedCentroid(FtrSpaceN, LeafIdV, FtrV);
 }
 
 void TStreamStory::GetStateIdVAtHeight(const double& Height, TStateIdV& StateIdV) const {
@@ -3935,6 +4124,26 @@ void TStreamStory::SetTargetState(const int& StateId, const bool& IsTrg) {
 	} else {
 		Hierarch->RemoveTarget(StateId);
 	}
+}
+
+void TStreamStory::AddActivity(const TStr& ActName, const TVec<TIntV>& StateIdSeqVV) {
+	// find the leafs of each state
+	TVec<TIntSet> LeafStateIdSeqVV(StateIdSeqVV.Len());
+
+	for (int StepN = 0; StepN < StateIdSeqVV.Len(); StepN++) {
+		const TIntV& Step = StateIdSeqVV[StepN];
+		for (int StateN = 0; StateN < Step.Len(); StateN++) {
+			const int StateId = Step[StateN];
+
+			TIntV LeafIdV;	Hierarch->GetLeafDescendantV(StateId, LeafIdV);
+			for (int LeafN = 0; LeafN < LeafIdV.Len(); LeafN++) {
+				LeafStateIdSeqVV[StepN].AddKey(LeafIdV[LeafN]);
+			}
+		}
+	}
+
+
+	ActivityDetector->AddActivity(ActName, LeafStateIdSeqVV);
 }
 
 bool TStreamStory::IsLeaf(const int& StateId) const {
@@ -4038,10 +4247,12 @@ void TStreamStory::SetVerbose(const bool& _Verbose) {
 	StateIdentifier->SetVerbose(Verbose);
 	MChain->SetVerbose(Verbose);
 	Hierarch->SetVerbose(Verbose);
+	ActivityDetector->SetVerbose(Verbose);
 }
 
 void TStreamStory::SetCallback(TStreamStoryCallback* _Callback) {
 	Callback = _Callback;
+	ActivityDetector->SetCallback(Callback);
 }
 
 PJsonVal TStreamStory::GetLevelJson(const double& Height, const TStateIdV& StateIdV, const TFltVV& TransitionVV,

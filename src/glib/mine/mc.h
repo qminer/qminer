@@ -35,6 +35,7 @@ public:
 	virtual void OnPrediction(const uint64& RecTm, const int& CurrStateId,
 			const int& TargetStateId, const double& Prob, const TFltV& ProbV,
 			const TFltV& TmV) = 0;
+	virtual void OnActivityDetected(const uint64& StartTm, const uint64& EndTm, const TStr& ActNm) = 0;
 };
 
 //////////////////////////////////////////////////
@@ -77,7 +78,8 @@ private:
   	// clustering
   	PClust KMeans;
   	// holds centroids as column vectors
-  	TFltVV ControlCentroidMat;
+  	TFltVV ControlCentroidVV;
+  	TFltVV IgnoredCentroidVV;
   	// holds pairs <n,sum> where n is the number of points assigned to the
   	// centroid at index i and sum is the sum of distances of all the points
   	// assigned to the centroid to the centroid
@@ -86,7 +88,10 @@ private:
   	int NHistBins;					// the number of bins used in a histogram
   	TStateFtrHistVV ObsHistVV;		// histograms of observation features
   	TStateFtrHistVV ControlHistVV;	// histograms of control features
-  	THistMat TransHistMat;			// histograms of transitions
+  	TStateFtrHistVV IgnoredHistVV;	// histograms of the ignored features
+  	THistMat ObsTransHistVV;		// histograms of observation transitions
+  	THistMat ContrTransHistVV;		// histograms of control transitions
+  	THistMat IgnoredTransHistVV;	// histograms of ignored transitions
 
   	TVec<TFltV> StateContrFtrValVV;
 
@@ -102,12 +107,12 @@ public:
 
 	virtual ~TStateIdentifier() {}
 	// saves the model to the output stream
-	virtual void Save(TSOut& SOut) const;
+	void Save(TSOut& SOut) const;
 
 	// performs the clustering
-	void Init(TFltVV& ObsFtrVV, const TFltVV& ControlFtrVV);
+	void Init(TFltVV& ObsFtrVV, const TFltVV& ControlFtrVV, const TFltVV& IgnoredFtrVV);
 	// initializes histograms for every feature
-	void InitHistograms(const TFltVV& ObsMat, const TFltVV& ControlFtrVV);
+	void InitHistograms(const TFltVV& ObsMat, const TFltVV& ControlFtrVV, const TFltVV& IgnoredFtrVV);
 
 	// assign methods
 	// assign instances to centroids
@@ -123,25 +128,27 @@ public:
 	double GetDist(const int& CentroidId, const TFltV& Pt) const;
 
 	// returns the coordinates of a "joined" centroid
-	void GetJoinedCentroid(const TIntV& CentroidIdV, TFltV& Centroid) const;
-	void GetJoinedControlCentroid(const TIntV& CentroidIdV, TFltV& Centroid) const;
+	void GetJoinedCentroid(const int& FtrSpaceN, const TIntV& StateIdV, TFltV& FtrV) const;
 
 	// cluster statistics
 	// returns the means distance of all the points assigned to centroid CentroidIdx
 	// to that centroid
 	double GetMeanPtCentDist(const int& CentroidId) const;
 	// returns the number of points in the cluster
-	uint64 GetClustSize(const int& ClustId) const;
+	uint64 GetStateSize(const int& ClustId) const;
 
 	void GetHistogram(const int& FtrId, const TIntV& StateSet, TFltV& BinStartV, TFltV& BinV) const;
 	void GetTransitionHistogram(const int& FtrId, const TIntV& SourceStateSet,
 			const TIntV& TargetStateSet, TFltV& BinStartV, TFltV& ProbV) const;
 
 	int GetStates() const { return KMeans->GetClusts(); }
+
 	int GetDim() const { return KMeans->GetDim(); }
-	int GetControlDim() const { return ControlCentroidMat.GetRows(); }
+	int GetControlDim() const { return ControlCentroidVV.GetRows(); }
+	int GetIgnoredDim() const { return IgnoredCentroidVV.GetRows(); }
+	int GetAllDim() const { return GetDim() + GetControlDim() + GetIgnoredDim(); }
+
 	const TFltVV& GetCentroidMat() const { return KMeans->GetCentroidVV(); }
-	void GetCentroidVV(TVec<TFltV>& CentroidVV) const;
 	void GetControlCentroidVV(TStateFtrVV& StateFtrVV) const;
 
 	// manual setting of control features
@@ -160,7 +167,7 @@ protected:
 	void InitStatistics(const TFltVV& X);
 
 private:
-	void InitControlCentroids(const TFltVV& X,  const TFltVV& ControlFtrVV);
+	void InitCentroidVV(const TIntV& AssignV, const TFltVV& FtrVV, TFltVV& CentroidVV);
 	// returns the coordinates of the centroid with the specified ID
 	void GetCentroid(const int& StateId, TFltV& FtrV) const;
 	void GetControlCentroid(const int& StateId, TFltV& FtrV) const;
@@ -168,12 +175,25 @@ private:
 	double GetControlFtr(const int& StateId, const int& FtrId) const;
 	void ClearControlFtrVV(const int& Dim);
 
+	void GetHistogram(const TStateFtrHistVV& StateHistVV, const int& FtrN,
+			const TIntV& AggState, TFltV& BinStartV, TFltV& BinV) const;
+
 	// histograms
-	void InitHists(const TFltVV& ObsFtrVV, const TFltVV& ConstFtrVV);
-	void UpdateTransitionHist(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV,
-			const TIntV& AssignV);
-	static void UpdateHist(const TFltVV& FtrVV, const TIntV& AssignV,
+	void InitHistVV(const int& NInst, const TFltVV& FtrVV, TStateFtrHistVV& HistVV,
+			THistMat& TransHistVV);
+	void InitHists(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const TFltVV& IgnoredFtrVV);
+//	void UpdateTransitionHist(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV,
+//			const TIntV& AssignV);
+	static void UpdateHistVV(const TFltVV& FtrVV, const TIntV& AssignV,
 			const int& States, TStateFtrHistVV& StateFtrHistVV);
+	static void UpdateTransHistVV(const TFltVV& FtrVV, const TIntV& AssignV,
+			THistMat& TransHistVV);
+
+	static void GetTransitionHistogram(const int& FtrN, const int& Dim, const int& Bins,
+			const THistMat& HistVV, const TIntV& SourceStateSet, const TIntV& TargetStateSet,
+			TFltV& BinStartV, TFltV& ProbV);
+	static void GetJoinedCentroid(const TIntV& StateIdV,
+			const TFltVV& CentroidVV, const TUInt64V& StateSizeV, TFltV& FtrV);
 };
 
 class TEuclMds {
@@ -277,128 +297,6 @@ private:
 	static void SplitAggState(const int& StateN, const TIntV& PartV, TAggStateV& AggStateV,
 			TIntV& StateIdV, int& CurrStateId);
 };
-
-/////////////////////////////////////////////////////////////////
-// Markov Chain
-//class TTransitionModeler {
-//protected:
-//	int NStates;
-//	int CurrStateId;
-//
-//	double TmHorizon;
-//	double PredictionThreshold;
-//	int PdfBins;
-//
-//	bool HasHiddenState;
-//
-//	bool Verbose;
-//
-//	PNotify Notify;
-//
-//	// constructors
-//	TTransitionModeler(const bool& Verbose);
-//	TTransitionModeler(TSIn& SIn);
-//
-//public:
-//	// destructor
-//	virtual ~TTransitionModeler() {}
-//
-//	// save / load
-//	// saves the model to the output stream
-//	virtual void Save(TSOut& SOut) const;
-//	// loads the model from the output stream
-//	static TTransitionModeler* Load(TSIn& SIn);
-//
-//	// initializes the markov chain
-//	void Init(const TFltVV& FtrVV, const int& NStates, const TIntV& StateAssignV,
-//			const TUInt64V& TmV, const bool SequencedData, const TBoolV& SequenceEndV);
-//
-//	// adds a single record to the model, the flag UpdateStates indicates if the statistics
-//	// should be updated
-//	void OnAddRec(const int& StateId, const uint64& RecTm, const bool IsLastInSeq);
-//
-//	// get future state probabilities for a fixed time in the future
-//	void GetFutureProbV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
-//			const TStateIdV& StateIdV, const int& StateId, const double& Tm,
-//			TIntFltPrV& StateIdProbV) const;
-//	// get past state probabilities for a fixed time in the past
-//	void GetPastProbV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
-//			const TStateIdV& StateIdV, const int& StateId, const double& Tm,
-//			TIntFltPrV& StateIdProbV) const;
-//	// returns the most likely next states, excluding the current state,
-//	// along with probabilities of going into those states
-//	virtual void GetNextStateProbV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
-//			const TStateIdV& StateIdV, const int& StateId, TIntFltPrV& StateIdProbV,
-//			const int& NFutStates) const = 0;
-//	// returns the most likely previous states, excluding the current state,
-//	// along with probabilities of going into those states
-//	virtual void GetPrevStateProbV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
-//			const TStateIdV& StateIdV, const int& StateId, TIntFltPrV& StateIdProbV,
-//			const int& NFutStates) const = 0;
-//
-//	virtual void GetProbVAtTime(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
-//			const TStateIdV& StateIdV, const int& StartStateId, const double& Tm,
-//			TFltV& ProbV) const = 0;
-//
-//	virtual bool PredictOccurenceTime(const TStateFtrVV& StateFtrVV, const TStateSetV& StateSetV,
-//			const TStateIdV& StateIdV, const int& CurrStateId, const int& TargetStateId,
-//			double& Prob, TFltV& ProbV, TFltV& TmV) const = 0;
-//
-//	// static distribution
-//	// returns the static distribution for the joined states
-//	virtual void GetStatDist(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
-//			TFltV& StatDist) const = 0;
-//
-//	// returns a vector of state sizes
-//	virtual void GetTransitionVV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
-//			TFltVV& TransVV) const = 0;
-//	virtual void GetModel(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
-//			TFltVV& Mat) const = 0;
-//
-//	virtual void GetHoldingTimeV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV, TFltV& HoldingTmV) const = 0;
-//
-//	// returns the number of states
-//	int GetStates() const { return NStates; };
-//	virtual const uint64& GetTimeUnit() const = 0;
-//	// returns the ID of the current state
-//	int GetCurrStateId() const { return CurrStateId; };
-//
-//	// returns true is the jump from OldStateId to NewStateId is considered anomalous
-//	virtual bool IsAnomalousJump(const TFltV& FtrV, const int& NewStateId, const int& OldStateId) const = 0;
-//
-//	// set params
-//	double GetTimeHorizon() const { return TmHorizon; }
-//	void SetTimeHorizon(const double& Horizon) { TmHorizon = Horizon; }
-//    double GetPredictionThreshold() const { return PredictionThreshold; }
-//	void SetPredictionThreshold(const double& Threshold) { PredictionThreshold = Threshold; }
-//	int GetPdfBins() const { return PdfBins; }
-//	void SetPdfBins(const int Bins) { PdfBins = Bins; }
-//	void SetVerbose(const bool& Verbose);
-//
-//protected:
-//	// handling the hidden state
-//	int GetHiddenStateId() const;
-//	// inserts the hidden state into the state set vector
-//	void InsHiddenState(TStateSetV& StateSetV) const;
-//	// inserts the hidden state into the state set vector
-//	void InsHiddenState(TStateIdV& StateIdV) const;
-//	// removes the hidden state probability from the probability vector
-//	void RemoveHiddenStateProb(TIntFltPrV& StateIdProbV) const;
-//
-//	// initializes the statistics
-//	virtual void AbsOnAddRec(const int& StateId, const uint64& RecTm, const bool EndsBatch) = 0;
-//
-//	// get future state probabilities for all the states for a fixed time in the future
-//	virtual void GetFutureProbVV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
-//			const double& Tm, TFltVV& ProbVV) const = 0;
-//	// get [ast state probabilities for all the states for a fixed time in the past
-//	virtual void GetPastProbVV(const TStateSetV& StateSetV, const TStateFtrVV& StateFtrVV,
-//			const double& Tm, TFltVV& ProbVV) const = 0;
-//
-//	virtual void InitIntensities(const TFltVV& FtrV, const TUInt64V& TmV, const TIntV& AssignV,
-//			const TBoolV& EndsBatchV) = 0;
-//	virtual const TStr GetType() const = 0;
-//};
 
 /////////////////////////////////////////////////////////////////
 // Continous time Markov Chain
@@ -631,6 +529,7 @@ public:
 	int GetAncestorAtHeight(const int& LeafId, const double& Height) const;
 	// fills the vector with leaf descendants
 	void GetLeafDescendantV(const int& StateId, TIntV& DescendantV) const;
+	void GetLeafIdV(TIntV& LeafIdV) const;
 	void GetDescendantsAtHeight(const double& Height, const TIntV& StateIdV, TAggStateV& AggStateV);
 
 	void GetCurrStateIdHeightPrV(TIntFltPrV& StateIdHeightPrV) const;
@@ -764,29 +663,87 @@ public:
 
 	void Save(TSOut& SOut) const;
 
-	void Init(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const TStateIdentifier& Clust,
-			const THierarch& Hierarch, TStreamStoryCallback* Callback, const bool& MultiThread=true);
-	void InitFtrBounds(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV);
+	void Init(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const TFltVV& IgnFtrVV,
+			const TStateIdentifier& Clust, const THierarch& Hierarch, TStreamStoryCallback* Callback,
+			const bool& MultiThread=true);
+	void InitFtrBounds(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const TFltVV& IgnoredFtrVV);
 
 	const TFltPr& GetFtrBounds(const int& FtrId) const;
-	void GetSuggestFtrs(const int& StateId, TFltV& WgtV) const;
+	void GetFtrWgtV(const int& StateId, TFltV& WgtV) const;
 	PJsonVal GetStateClassifyTree(const int& StateId) const;
 	PJsonVal GetStateExplain(const int& StateId) const;
 
 private:
-	void InitSingle(const TFltVV& ObsFtrVV, const int& StateId, const double& Height,
+	void InitSingle(const TFltVV& FtrVV, const int& StateId, const double& Height,
 			const THierarch& Hierarch, const TIntV& AssignV, TRnd& Rnd, TLogReg& LogReg,
-			TDecisionTree& Tree, const bool& Sample=false);
+			TDecisionTree& Tree);
 	void FitAssistModels(const TFltVV& FtrVV, const TFltV& LabelV, TLogReg& LogReg,
 			TDecisionTree& DecisionTree);
 };
 
+/////////////////////////////////////////////////////////////////
+// Activity detector
+class TActivityDetector {
+	typedef TIntSet TActivityStep;
+	typedef TVec<TIntSet> TActivityStepV;
+
+private:
+	class TActivity {
+	private:
+		TIntV ActivitySeq;
+		TActivityStepV UniqueStepV;
+		TUInt64IntPrV StepTmStepIdV;		// represents the history
+	public:
+		TActivity();
+		TActivity(const TActivityStepV& StepV);
+		TActivity(TSIn& SIn);
+
+		void Save(TSOut& SOut) const;
+
+		bool Update(const uint64& Tm, const int& StateId, const PNotify& Notify);
+		bool Detect(uint64& StartTm, uint64& EndTm, const PNotify& Notify);
+
+	private:
+		int GetStepId(const int& StateId) const;
+		bool ContainsStep(const TActivityStep& Step) const;
+	};
+
+	typedef THash<TStr, TActivity> TActivityH;
+
+	static const int STATE_CACHE_SIZE;
+
+	TActivityH ActivityH;
+	TUInt64IntPrV StateIdHistoryV;
+
+	TStreamStoryCallback* Callback;
+
+	bool Verbose;
+	PNotify Notify;
+
+public:
+	TActivityDetector(const bool& Verbose);
+	TActivityDetector(TSIn& SIn);
+	~TActivityDetector() {}
+
+	void Save(TSOut& SOut) const;
+
+	void OnStateChanged(const uint64& Tm, const int& NewStateId);
+
+	void AddActivity(const TStr& ActName, const TActivityStepV& StepV);
+
+	void SetCallback(TStreamStoryCallback* Callback);
+	void SetVerbose(const bool& Verbose);
+};
+
+/////////////////////////////////////////////////////////////////
+// StreamStory
 class TStreamStory {
 private:
 	TStateIdentifier* StateIdentifier;
 	TCtmcModeller* MChain;
     THierarch* Hierarch;
     TStateAssist* StateAssist;
+    TActivityDetector* ActivityDetector;
     TUiHelper* UiHelper;
 
     TFltV PrevObsFtrV, PrevContrFtrV;
@@ -818,19 +775,20 @@ public:
 
 	// update methods
 	// initializes the model
-	void Init(TFltVV& ObservVV, const TFltVV& ControlVV, const TUInt64V& RecTmV,
-			const bool& MultiThread=true);
-	void InitBatches(TFltVV& ObservFtrVV, const TFltVV& ControlFtrVV,
+	void Init(TFltVV& ObservFtrVV, const TFltVV& ControlFtrVV, const TFltVV& IgnoredFtrVV,
+			const TUInt64V& RecTmV, const bool& MultiThread=true);
+	void InitBatches(TFltVV& ObservFtrVV, const TFltVV& ControlFtrVV, const TFltVV& IgnoredFtrVV,
 			const TUInt64V& RecTmV, const TBoolV& BatchEndV,
 			const bool& MultiThread=true);
-	void InitClust(TFltVV& ObsFtrVV, const TFltVV& FtrVV,
+	void InitClust(TFltVV& ObsFtrVV, const TFltVV& FtrVV, const TFltVV& IgnoredFtrVV,
 			TIntV& AssignV);	// TODO add const
 	void InitMChain(const TFltVV& FtrVV, const TIntV& AssignV, const TUInt64V& RecTmV,
 			const bool IsBatchData, const TBoolV& EndBatchV);
 	void InitHierarch();
-	void InitHistograms(const TFltVV& ObsMat, const TFltVV& ControlMat,
+	void InitHistograms(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const TFltVV& IgnoredFtrVV,
 			const TUInt64V& RecTmV, const TBoolV& BatchEndV);
-	void InitStateAssist(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const bool& MultiThread);
+	void InitStateAssist(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV,
+			const TFltVV& IgnFtrVV, const bool& MultiThread);
 
 	void OnAddRec(const uint64& RecTm, const TFltV& ObsFtrV, const TFltV& ContrFtrV);
 
@@ -856,7 +814,8 @@ public:
 	void GetHistStateIdV(const double& Height, TStateIdV& StateIdV) const;
 
 	// histograms
-	void GetHistogram(const int& StateId, const int& FtrId, TFltV& BinStartV, TFltV& ProbV) const;
+	void GetHistogram(const int& StateId, const int& FtrId, TFltV& BinStartV, TFltV& ProbV,
+			TFltV& AllProbV) const;
 	void GetTransitionHistogram(const int& SourceId, const int& TargetId, const int& FtrId,
 			TFltV& BinStartV, TFltV& ProbV) const;
 
@@ -874,7 +833,7 @@ public:
 	// returns the current state on the specified level
 	int GetCurrStateId(const double& Height) const;
 	// returns the centroid of the given state
-	void GetCentroid(const int& StateId, TFltV& FtrV, const bool ObsCentroid=true) const;
+	void GetCentroid(const int& StateId, const int& FtrSpaceN, TFltV& FtrV) const;
 	// returns the IDs of all the states on the specified height
 	void GetStateIdVAtHeight(const double& Height, TStateIdV& StateIdV) const;
 	// returns the number of states in the hierarchy
@@ -884,6 +843,8 @@ public:
     // target methods
     bool IsTargetState(const int& StateId) const { return Hierarch->IsTarget(StateId); }
     void SetTargetState(const int& StateId, const bool& IsTrg);
+
+    void AddActivity(const TStr& ActName, const TVec<TIntV>& StateIdSeqVV);
 
     bool IsLeaf(const int& StateId) const;
 

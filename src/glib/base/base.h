@@ -182,8 +182,9 @@ typedef long long index_t;
 #include "ds.h"
 #include "bits.h"
 #include "hash.h"
-#include "strut.h"
 #include "xml.h"
+#include "shash.h"
+#include "strut.h"
 
 #include "xmath.h"
 #include "xmlser.h"
@@ -191,7 +192,6 @@ typedef long long index_t;
 #include "unicode.h"
 #include "unicodestring.h"
 #include "tm.h"
-#include "shash.h"
 #include "os.h"
 
 #include "env.h"
