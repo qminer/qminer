@@ -2911,8 +2911,8 @@ MnDiff(TFlt(SIn)),
 DistType(LoadEnum<TVizDistType>(SIn)) {}
 
 void TNodeJsMDS::UpdateParams(const PJsonVal& ParamVal) {
-	if (ParamVal->IsObjKey("maxStep")) MxStep = ParamVal->GetObjNum("maxStep");
-	if (ParamVal->IsObjKey("maxSecs")) MxSecs = ParamVal->GetObjNum("maxSecs");
+	if (ParamVal->IsObjKey("maxStep")) MxStep = (int) ParamVal->GetObjNum("maxStep");
+	if (ParamVal->IsObjKey("maxSecs")) MxSecs = (int) ParamVal->GetObjNum("maxSecs");
 	if (ParamVal->IsObjKey("minDiff")) MnDiff = ParamVal->GetObjNum("minDiff");
 	if (ParamVal->IsObjKey("distType")) { 
 		TStr Type = ParamVal->GetObjStr("distType"); 
@@ -2942,7 +2942,7 @@ PJsonVal TNodeJsMDS::GetParams() const {
 	case vdtSqrtCos:
 		ParamVal->AddToObj("distType", "SqrtCos"); break;
 	default:
-		throw TExcept::New("MDS.GetParams: unsupported distance type detected!");
+		throw TExcept::New("MDS.GetParams: unsupported distance type " + (int)DistType);
 	}
 	return ParamVal;
 }
@@ -3044,7 +3044,7 @@ void TNodeJsMDS::fitTransform(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	// algorithm parameters
 	int MxStep = JsMDS->MxStep;
 	int MxSecs = JsMDS->MxSecs;
-	int MnDiff = JsMDS->MnDiff;
+	double MnDiff = JsMDS->MnDiff;
 	TVizDistType DistType = JsMDS->DistType;
 	bool RndStartPos = true;
 	PNotify Noty = TQm::TEnv::Logger;
