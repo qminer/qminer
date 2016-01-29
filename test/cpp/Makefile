@@ -24,12 +24,12 @@ include $(GLIB)/Makefile.config
 ## Main application file
 MAIN = run-all-tests
 
-TEST_SRCS = test-TTDigest.cpp
+TEST_SRCS = test-AggrOnStep.cpp
 
 TEST_OBJS = $(TEST_SRCS:.cpp=.o)
 
 # we test in release	
-CXXFLAGS += -O3 -DNDEBUG
+CXXFLAGS += -O0 -DEBUG
 
 .PHONY: all run
 all: $(MAIN)
@@ -44,7 +44,7 @@ $(MAIN): $(MAIN).o $(TEST_OBJS) $(GLIB)/glib.a
 
 .PHONY: $(GLIB)/glib.a
 $(GLIB)/glib.a:
-	$(MAKE) -C $(GLIB) release
+	$(MAKE) -C $(GLIB) debug
 
 .PHONY: test
 test: $(MAIN)

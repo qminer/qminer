@@ -1,5 +1,22 @@
 # QMiner Change Log
 
+### 29 Jan 2016
+
+**New version: 4.4.0**
+
+**Non-breaking with new features**
+
+New features:
+- `Vector.sparse` takes an optional integer argument for the sparse vector dimension, which can be set to -1 for unknown
+
+Bug fixes:
+- SVR debug test fix
+- MDS no longer returns compile warnings and actually uses selected distance metric.
+- `TTDigest MergeValues()` tests no longer break in debug mode (`streamaggr.js` sequential insert test)
+
+Other:
+- debug builds are now tested
+
 ### 22 Jan 2016
 
 **New version: 4.3.0**
