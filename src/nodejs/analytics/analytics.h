@@ -1765,7 +1765,10 @@ public:
 
 	JsDeclareFunction(explainState);
 
+	// activities
 	JsDeclareFunction(setActivity);
+	JsDeclareFunction(removeActivity);
+	JsDeclareFunction(getActivities);
 
 	/**
 	 * Sets a callback function which is fired when the model changes states. An array of current states

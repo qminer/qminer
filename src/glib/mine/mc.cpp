@@ -3475,13 +3475,14 @@ bool TActivityDetector::TActivity::Detect(uint64& StartTm, uint64& EndTm, const 
 		}
 	}
 
+	// set the start/end times
+	StartTm = StepTmStepIdV[0].Val1;
+	EndTm = StepTmStepIdV.Last().Val1;
+
 	// remove the history, so we don't detect the activity again
 	const int DelVals = ActivitySeq.Len()-1;
 	StepTmStepIdV.Del(0, DelVals-1);
 
-	// set the start/end times
-	StartTm = StepTmStepIdV[0].Val1;
-	EndTm = StepTmStepIdV.Last().Val1;
 	return true;
 }
 
@@ -3558,6 +3559,21 @@ void TActivityDetector::OnStateChanged(const uint64& Tm, const int& NewStateId) 
 void TActivityDetector::AddActivity(const TStr& ActName, const TActivityStepV& StepV) {
 	EAssertR(!ActivityH.IsKey(ActName), "Activity " + ActName + " already present!");
 	ActivityH.AddDat(ActName, TActivity(StepV));
+}
+
+void TActivityDetector::RemoveActivity(const TStr& ActNm) {
+	EAssertR(ActivityH.IsKey(ActNm), "Activity " + ActNm + " is not present!");
+	ActivityH.DelKey(ActNm);
+}
+
+void TActivityDetector::GetActivities(TStrV& ActNmV, TIntV& NumStepsV) const {
+	int KeyId = ActivityH.FFirstKeyId();
+	while (ActivityH.FNextKeyId(KeyId)) {
+		const TActivity& Activity = ActivityH[KeyId];
+
+		ActNmV.Add(ActivityH.GetKey(KeyId));
+		NumStepsV.Add(Activity.GetNumSteps());
+	}
 }
 
 void TActivityDetector::SetCallback(TStreamStoryCallback* _Callback) {
@@ -4144,6 +4160,14 @@ void TStreamStory::AddActivity(const TStr& ActName, const TVec<TIntV>& StateIdSe
 
 
 	ActivityDetector->AddActivity(ActName, LeafStateIdSeqVV);
+}
+
+void TStreamStory::RemoveActivity(const TStr& ActNm) {
+	ActivityDetector->RemoveActivity(ActNm);
+}
+
+void TStreamStory::GetActivities(TStrV& ActNmV, TIntV& NumStepsV) const {
+	ActivityDetector->GetActivities(ActNmV, NumStepsV);
 }
 
 bool TStreamStory::IsLeaf(const int& StateId) const {

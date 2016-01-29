@@ -703,6 +703,8 @@ private:
 		bool Update(const uint64& Tm, const int& StateId, const PNotify& Notify);
 		bool Detect(uint64& StartTm, uint64& EndTm, const PNotify& Notify);
 
+		int GetNumSteps() const { return ActivitySeq.Len(); }
+
 	private:
 		int GetStepId(const int& StateId) const;
 		bool ContainsStep(const TActivityStep& Step) const;
@@ -730,6 +732,8 @@ public:
 	void OnStateChanged(const uint64& Tm, const int& NewStateId);
 
 	void AddActivity(const TStr& ActName, const TActivityStepV& StepV);
+	void RemoveActivity(const TStr& ActNm);
+	void GetActivities(TStrV& ActNmV, TIntV& NumStepsV) const;
 
 	void SetCallback(TStreamStoryCallback* Callback);
 	void SetVerbose(const bool& Verbose);
@@ -845,6 +849,8 @@ public:
     void SetTargetState(const int& StateId, const bool& IsTrg);
 
     void AddActivity(const TStr& ActName, const TVec<TIntV>& StateIdSeqVV);
+    void RemoveActivity(const TStr& ActNm);
+    void GetActivities(TStrV& ActNmV, TIntV& NumStepsV) const;
 
     bool IsLeaf(const int& StateId) const;
 

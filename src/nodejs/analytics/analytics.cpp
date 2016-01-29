@@ -1511,6 +1511,8 @@ void TNodeJsStreamStory::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getClassifyTree", _getClassifyTree);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "explainState", _explainState);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "setActivity", _setActivity);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "removeActivity", _removeActivity);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getActivities", _getActivities);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "toJSON", _toJSON);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getSubModelJson", _getSubModelJson);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStatePath", _getStatePath);
@@ -2034,6 +2036,45 @@ void TNodeJsStreamStory::setActivity(const v8::FunctionCallbackInfo<v8::Value>& 
 	JsStreamStory->StreamStory->AddActivity(ActName, StateIdSeqVV);
 
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
+}
+
+void TNodeJsStreamStory::removeActivity(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+
+	const TStr ActNm = TNodeJsUtil::GetArgStr(Args, 0);
+
+	JsStreamStory->StreamStory->RemoveActivity(ActNm);
+
+	Args.GetReturnValue().Set(v8::Undefined(Isolate));
+}
+
+void TNodeJsStreamStory::getActivities(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+
+	TStrV ActNmV;
+	TIntV ActStepsV;
+	JsStreamStory->StreamStory->GetActivities(ActNmV, ActStepsV);
+
+	v8::Local<v8::String> JsNmStr = v8::String::NewFromUtf8(Isolate, "name");
+	v8::Local<v8::String> JsStepsStr = v8::String::NewFromUtf8(Isolate, "steps");
+
+	v8::Local<v8::Array> JsActV = v8::Array::New(Isolate, ActNmV.Len());
+	for (int ActN = 0; ActN < ActNmV.Len(); ActN++) {
+		v8::Local<v8::Object> JsAct = v8::Object::New(Isolate);
+
+		JsAct->Set(JsNmStr, v8::String::NewFromUtf8(Isolate, ActNmV[ActN].CStr()));
+		JsAct->Set(JsStepsStr, v8::Integer::New(Isolate, ActStepsV[ActN]));
+
+		JsActV->Set(ActN, JsAct);
+	}
+
+	Args.GetReturnValue().Set(JsActV);
 }
 
 void TNodeJsStreamStory::onStateChanged(const v8::FunctionCallbackInfo<v8::Value>& Args) {
