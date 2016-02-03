@@ -12,6 +12,10 @@ platform:
   - x86
   - x64
 
+configuration:
+  - debug
+  - release
+
 shallow_clone: true
 
 install:
@@ -27,13 +31,13 @@ install:
 
 build_script:
   - npm install -g mustache
-  - npm install --build-from-source --verbose --msvs_version=2013
+  - npm install --build-from-source --verbose --msvs_version=2013 --%CONFIGURATION%
   - cd tools
   - genExampleTests.bat
   - cd ..
   - .\test\nodejs\test.bat
   - node_modules\.bin\node-pre-gyp package
-  - if not "%CM%" == "%CM:[publish binary]=%" if "%APPVEYOR_REPO_NAME%" == "qminer/qminer" if not defined APPVEYOR_PULL_REQUEST_NUMBER  node_modules\.bin\node-pre-gyp unpublish publish
+  - if not "%CONFIGURATION%" == "debug" if not "%CM%" == "%CM:[publish binary]=%" if "%APPVEYOR_REPO_NAME%" == "qminer/qminer" if not defined APPVEYOR_PULL_REQUEST_NUMBER  node_modules\.bin\node-pre-gyp unpublish publish
 
 test: off
 deploy: off

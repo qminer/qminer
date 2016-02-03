@@ -3344,6 +3344,10 @@ public:
 	/// Reset the state of the aggregate
 	virtual void Reset() = 0;
 
+	/// Update state of the aggregate
+	//virtual void OnStep();
+	/// Add new time to aggregate
+	//virtual void OnTime();
 	/// Add new record to aggregate
 	virtual void OnAddRec(const TRec& Rec) = 0;
 	/// Recored already added to the aggregate is being updated
@@ -3519,6 +3523,7 @@ public:
 	void Reset();
 
 	// forward the calls to stream aggregates
+	void OnStep();
 	void OnAddRec(const TRec& Rec);
 	void OnUpdateRec(const TRec& Rec);
 	void OnDeleteRec(const TRec& Rec);

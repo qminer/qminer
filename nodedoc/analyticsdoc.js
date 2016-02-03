@@ -823,8 +823,18 @@
 	* @typedef {Object} NearestNeighborADExplain
 	* A Json object used for interpreting the predictions of {@link module:analytics.NearestNeighborAD}.
 	* @param {number} nearestID - The ID of the nearest neighbor
-	* @param {Array<number>} featureIDs - the IDs of the features that contributed to the distance score
-	* @param {Array<number>} featureContributions - fractions of the contributions of each feature to the total distance (the scores sum to 1.0). The elements correspond to features in the array `featureIDs`
+	* @param {number} distance - The distance to the nearest neighbor
+	* @param {Array<module:analytics~NearestNeighborADFeatureContribution>} features - An array with feature contributions
+	* @param {number} oldestID - The ID of the oldest record in the internal buffer (the record that was added first)
+	* @param {number} newestID - The ID of the newest record in the internal buffer (the record that was added last)
+    */
+/**
+	* @typedef {Object} NearestNeighborADFeatureContribution
+	* A JSON object explaining the prediction of {@link module:analytics.NearestNeighborAD} in terms of a single feature.
+	* @param {number} id - The ID of the feature
+	* @param {number} val - The value of the feature for the vector we are explaining
+	* @param {number} nearVal - The the value of the feature for the nearest neighbor
+	* @param {number} contribution - fraction of the total distance  (v(i) - n(i))^2 / ||v - n||^2
 	*/
 /**
 	* Returns a JSON object that encodes the ID of the nearest neighbor and the features that contributed to the distance
@@ -846,6 +856,10 @@
 	* var explanation = neighbor.explain(vector); // returns an explanation
 	*/
  exports.NearestNeighborAD.prototype.explain = function(x) { return {}; }
+/**
+	* Returns true when the model has enough data to initialize.
+	*/
+ exports.NearestNeighborAD.prototype.init = false;
 /**
 * @typedef {Object} recLinearRegParam
 * The constructor parameter for {@link module:analytics.RecLinReg}.
@@ -1260,6 +1274,12 @@
 	 * @returns {Object}
 	 */
 /**
+	 * Returns an object representation of a subset of this model.
+	 *
+	 * @param {Number} stateId - state to zoom into
+	 * @returns {Object}
+	 */
+/**
 	 * Returns the underlying transition model at the lowest level. (for CTMC the matrix of intensities)
 	 *
 	 * @returns {Array} - the transition model
@@ -1367,14 +1387,12 @@
 	 * Returns true if the state is a target on the specified height.
 	 *
 	 * @param {Number} stateId - Id of the state
-	 * @param {Number} height - the height
 	 * @returns {Boolean}
 	 */
 /**
 	 * Sets whether the specified state is a target state or not.
 	 *
 	 * @param {Number} stateId - ID of the state
-	 * @param {Number} height - the height on which the state is a target
 	 * @param {Boolean} isTarget - set target on/off
 	 */
 /**

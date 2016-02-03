@@ -24,8 +24,7 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div>
-            <h1><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">NearestNeighborAD</span></h1>
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">NearestNeighborAD</span></h1>
             <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-677">analyticsdoc.<wbr>js:677</a></p>
             <div class="symbol-classdesc">
               <p>Anomaly detector that checks if the test point is too far from the nearest known point.</p>
@@ -34,6 +33,22 @@
             </dl>
           </header>
           <section id="summary">
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Property</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.NearestNeighborAD.html#init">init</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                </div>
+                <div class="summary-column">
+                </div>
+              </div>
+            </div>
             <div class="summary-callout">
               <h2 class="summary-callout-heading">Methods</h2>
               <div class="summary-content">
@@ -88,18 +103,18 @@
         </h3>
               <div>
                 <pre class="prettyprint"><code>// import modules
-var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
 // create a new NearestNeighborAD object
-var neighbor &#x3D; new analytics.NearestNeighborAD({ rate: 0.1 });
+var neighbor = new analytics.NearestNeighborAD({ rate: 0.1 });
 // create a sparse matrix 
-var matrix &#x3D; new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
+var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
 // fit the model with the matrix
 neighbor.fit(matrix);
 // create a new sparse vector
-var vector &#x3D; new la.SparseVector([[0, 4], [1, 0]]);
+var vector = new la.SparseVector([[0, 4], [1, 0]]);
 // predict if the vector is an anomaly or not
-var prediction &#x3D; neighbor.predict(vector);</code></pre>
+var prediction = neighbor.predict(vector);</code></pre>
               </div>
             </section>
             <section>
@@ -135,6 +150,13 @@ var prediction &#x3D; neighbor.predict(vector);</code></pre>
             </dl>
           </section>
           <section>
+            <h2>Property</h2>
+            <section>
+              <h3 id="init"><span class="symbol-name">init</span></h3>
+              <p>Returns true when the model has enough data to initialize.</p>
+              <dl class="dl-compact">
+              </dl>
+            </section>
             <h2>Methods</h2>
             <section>
               <h3 id="decisionFunction"><span class="symbol-name">decisionFunction</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
@@ -145,18 +167,18 @@ var prediction &#x3D; neighbor.predict(vector);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
 // create a new NearestNeighborAD object
-var neighbor &#x3D; new analytics.NearestNeighborAD();
+var neighbor = new analytics.NearestNeighborAD();
 // create a new sparse matrix
-var matrix &#x3D; new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
+var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
 // fit the model with the matrix
 neighbor.fit(matrix);
 // create a new sparse vector
-var vector &#x3D; new la.SparseVector([[0, 4], [1, 0]]);
+var vector = new la.SparseVector([[0, 4], [1, 0]]);
 // get the distance of the vector from the model
-var prediction &#x3D; neighbor.decisionFunction(vector); // returns 1</code></pre>
+var prediction = neighbor.decisionFunction(vector); // returns 1</code></pre>
                 </div>
               </section>
               <section>
@@ -202,18 +224,18 @@ var prediction &#x3D; neighbor.decisionFunction(vector); // returns 1</code></pr
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
 // create a new NearestNeighborAD object
-var neighbor &#x3D; new analytics.NearestNeighborAD({rate:0.05, windowSize:3});
+var neighbor = new analytics.NearestNeighborAD({rate:0.05, windowSize:3});
 // create a new sparse matrix
-var matrix &#x3D; new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
+var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
 // fit the model with the matrix and provide a vector record IDs
 neighbor.fit(matrix, new la.IntVector([3541,1112,4244]));
 // create a new sparse vector
-var vector &#x3D; new la.SparseVector([[0, 4], [1, 0]]);
+var vector = new la.SparseVector([[0, 4], [1, 0]]);
 // check if the vector is an anomaly
-var explanation &#x3D; neighbor.explain(vector); // returns an explanation</code></pre>
+var explanation = neighbor.explain(vector); // returns an explanation</code></pre>
                 </div>
               </section>
               <section>
@@ -259,12 +281,12 @@ var explanation &#x3D; neighbor.explain(vector); // returns an explanation</code
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
 // create a new NearestNeighborAD object
-var neighbor &#x3D; new analytics.NearestNeighborAD();
+var neighbor = new analytics.NearestNeighborAD();
 // create a new sparse matrix
-var matrix &#x3D; new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
+var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
 // fit the model with the matrix
 neighbor.fit(matrix);</code></pre>
                 </div>
@@ -326,12 +348,12 @@ neighbor.fit(matrix);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
-var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var analytics = require(&#x27;qminer&#x27;).analytics;
 // create a new NearestNeighborAD object
-var neighbor &#x3D; new analytics.NearestNeighborAD({ rate: 0.1 });
+var neighbor = new analytics.NearestNeighborAD({ rate: 0.1 });
 // get the model of the object
 // returns a json object { rate: 0.1, window: 0 }
-var model &#x3D; neighbor.getModel();</code></pre>
+var model = neighbor.getModel();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -350,12 +372,12 @@ var model &#x3D; neighbor.getModel();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
-var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var analytics = require(&#x27;qminer&#x27;).analytics;
 // create a new NearestNeighborAD object
-var neighbor &#x3D; new analytics.NearestNeighborAD();
+var neighbor = new analytics.NearestNeighborAD();
 // get the parameters of the object
 // returns a json object { rate: 0.05 }
-var params &#x3D; neighbor.getParams();</code></pre>
+var params = neighbor.getParams();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -372,16 +394,16 @@ var params &#x3D; neighbor.getParams();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
 // create a new NearestNeighborAD object
-var neighbor &#x3D; new analytics.NearestNeighborAD();
+var neighbor = new analytics.NearestNeighborAD();
 // create a new sparse matrix
-var matrix &#x3D; new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
+var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
 // fit the model with the matrix
 neighbor.fit(matrix);
 // create a new sparse vector
-var vector &#x3D; new la.SparseVector([[0, 2], [1, 5]]);
+var vector = new la.SparseVector([[0, 2], [1, 5]]);
 // update the model with the vector
 neighbor.partialFit(vector);</code></pre>
                 </div>
@@ -443,18 +465,18 @@ neighbor.partialFit(vector);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
-var la &#x3D; require(&#x27;qminer&#x27;).la;
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
 // create a new NearestNeighborAD object
-var neighbor &#x3D; new analytics.NearestNeighborAD();
+var neighbor = new analytics.NearestNeighborAD();
 // create a new sparse matrix
-var matrix &#x3D; new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
+var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
 // fit the model with the matrix
 neighbor.fit(matrix);
 // create a new sparse vector
-var vector &#x3D; new la.SparseVector([[0, 4], [1, 0]]);
+var vector = new la.SparseVector([[0, 4], [1, 0]]);
 // check if the vector is an anomaly
-var prediction &#x3D; neighbor.predict(vector); // returns 1</code></pre>
+var prediction = neighbor.predict(vector); // returns 1</code></pre>
                 </div>
               </section>
               <section>
@@ -500,22 +522,22 @@ var prediction &#x3D; neighbor.predict(vector); // returns 1</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
-var la &#x3D; require(&#x27;qminer&#x27;).la;
-var fs &#x3D; require(&#x27;qminer&#x27;).fs;
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
+var fs = require(&#x27;qminer&#x27;).fs;
 // create a new NearestNeighborAD object
-var neighbor &#x3D; new analytics.NearestNeighborAD();
+var neighbor = new analytics.NearestNeighborAD();
 // create a new sparse matrix
-var matrix &#x3D; new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
+var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
 // fit the model with the matrix
 neighbor.fit(matrix);
 // create an output stream object and save the model
-var fout &#x3D; fs.openWrite(&#x27;neighbor_example.bin&#x27;);
+var fout = fs.openWrite(&#x27;neighbor_example.bin&#x27;);
 neighbor.save(fout);
 fout.close();
 // create a new Nearest Neighbor Anomaly model by loading the model
-var fin &#x3D; fs.openRead(&#x27;neighbor_example.bin&#x27;);
-var neighbor2 &#x3D; new analytics.NearestNeighborAD(fin);</code></pre>
+var fin = fs.openRead(&#x27;neighbor_example.bin&#x27;);
+var neighbor2 = new analytics.NearestNeighborAD(fin);</code></pre>
                 </div>
               </section>
               <section>
@@ -561,9 +583,9 @@ var neighbor2 &#x3D; new analytics.NearestNeighborAD(fin);</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
-var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var analytics = require(&#x27;qminer&#x27;).analytics;
 // create a new NearestNeighborAD object
-var neighbor &#x3D; new analytics.NearestNeighborAD();
+var neighbor = new analytics.NearestNeighborAD();
 // set it&#x27;s parameters to rate: 0.1
 neighbor.setParams({ rate: 0.1 });</code></pre>
                 </div>
