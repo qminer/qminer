@@ -1365,8 +1365,6 @@ void TTDigest::MergeValues() {
 	Min = TMath::Mn(Min, Mean[0]);
 	if (LastN < Mean.Len()) {
 		Max = TMath::Mx(Max, Mean[LastN]);
-	} else {
-		Max = TMath::Mx(Max, Mean.Last());
 	}
 }
 
