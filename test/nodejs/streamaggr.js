@@ -442,6 +442,25 @@ describe('Time Series Window Buffer Tests', function () {
             assert.equal(json.Val, 2);
         })
     });
+    describe('Updating Only Time Test', function () {
+        it('should update the time and value of the stream aggregate', function () {
+            var aggr = {
+                name: 'TimeSeriesWindowAggr',
+                type: 'timeSeriesWinBuf',
+                store: 'Function',
+                timestamp: 'Time',
+                value: 'Value',
+                winsize: 2000
+            };
+            var sa = store.addStreamAggr(aggr);
+			store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+			store.push({ Time: '2015-06-10T14:23:32.0', Value: 2 });
+			store.push({ Time: '2015-06-10T14:33:32.0', Value: 3 });
+			
+			sa.onTime(new Date('2016-02-03T14:13:32.0').getTime());
+            assert.equal(new Date(sa.getTimestamp()-11644473600000).toString(), new Date('2016-02-03T14:13:32.0').toString());
+        })
+    });
     describe('Reset Tests', function () {
         it('should reset the stream aggregate', function () {
             var aggr = {
@@ -1219,6 +1238,20 @@ describe('MovingWindowBufferSum Tests', function () {
             store.push({ Time: '2015-06-10T14:13:34.0', Value: 3 });
             assert.equal(suma.getTimestamp() - 11644473600000, new Date('2015-06-10T14:13:34.0').getTime());
         })
+        it('should return last timestam of newest record', function () {
+            var aggr = {
+                name: 'SumaAggr',
+                type: 'winBufSum',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            };
+            var suma = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            store.push({ Time: '2015-06-10T14:13:34.0', Value: 3 });
+            suma.onTime(new Date('2016-02-03T14:13:34.0').getTime());
+            assert.equal(suma.getTimestamp() - 11644473600000, new Date('2015-06-10T14:13:34.0').getTime());
+        })
         it('should reutrn 0 if the buffer is empty', function () {
             var aggr = {
                 name: 'SumaAggr',
@@ -1799,6 +1832,20 @@ describe('MovingAverage Tests', function () {
             store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
             store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
             store.push({ Time: '2015-06-10T14:13:34.0', Value: 3 });
+            assert.equal(ma.getTimestamp() - 11644473600000, new Date('2015-06-10T14:13:34.0').getTime());
+        })
+        it('sshould return the newest timestamp in the buffer without a change with onTime()', function () {
+            var aggr = {
+                name: 'AverageAggr',
+                type: 'ma',
+                store: 'Function',
+                inAggr: 'TimeSeriesWindowAggr'
+            };
+            var ma = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            store.push({ Time: '2015-06-10T14:13:34.0', Value: 3 });
+            ma.onTime(new Date('2016-02-03T14:13:34.0').getTime());
             assert.equal(ma.getTimestamp() - 11644473600000, new Date('2015-06-10T14:13:34.0').getTime());
         })
         it('should return the default timestamp if no record is in the buffer', function () {
