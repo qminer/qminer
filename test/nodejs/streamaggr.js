@@ -3930,7 +3930,7 @@ describe('TDigest test', function () {
 			assert(result[0] > 9000.0 && result[0] < 10000.0);
 			assert(result[1] > 9000.0 && result[1] < 10000.0);
 			assert(result[2] > 9000.0 && result[2] < 10000.0);
-			assert(result[3] > 9000.0 && result[3] < 10000.0);
+			assert(result[3] > 9900.0 && result[3] < 10000.0);
 		});
 	});
 	describe('Save and load test', function () {	
