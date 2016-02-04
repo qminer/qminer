@@ -96,7 +96,7 @@ TFieldDescEx TStoreSchema::ParseFieldDescEx(const PJsonVal& FieldVal) {
 	}
 	// get storage place (cache or memory)
 
-    if (FieldVal->IsObjKey("storage_location")) {
+    if (FieldVal->IsObjKey("store")) {
         TStr StoreLocStr = FieldVal->GetObjStr("store");
         if (StoreLocStr == "memory") {
             FieldDescEx.FieldStoreLoc = slMemory;
