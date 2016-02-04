@@ -516,6 +516,9 @@ void TTimeSeriesTick::OnTime(const uint64& Time) {
 	InitP = true;
 }
 
+void TTimeSeriesTick::OnStep() {
+	QmAssertR(false, "This should have not been executed.");
+}
 
 TTimeSeriesTick::TTimeSeriesTick(const TWPt<TBase>& Base, const PJsonVal& ParamVal): 
         TStreamAggr(Base, ParamVal) {

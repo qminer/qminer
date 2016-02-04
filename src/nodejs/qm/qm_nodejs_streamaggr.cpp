@@ -173,19 +173,6 @@ void TNodeJsStreamAggr::reset(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	Args.GetReturnValue().Set(Args.Holder());
 }
 
-void TNodeJsStreamAggr::onStep(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	// unwrap
-	TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
-
-	QmAssertR(Args.Length() == 0, "sa.onStep does not take arguments");
-	JsSA->SA->OnStep();
-
-	Args.GetReturnValue().Set(Args.Holder());
-}
-
 void TNodeJsStreamAggr::onTime(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);

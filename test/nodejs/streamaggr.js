@@ -1834,7 +1834,7 @@ describe('MovingAverage Tests', function () {
             store.push({ Time: '2015-06-10T14:13:34.0', Value: 3 });
             assert.equal(ma.getTimestamp() - 11644473600000, new Date('2015-06-10T14:13:34.0').getTime());
         })
-        it('sshould return the newest timestamp in the buffer without a change with onTime()', function () {
+        it('should return the newest timestamp in the buffer, onTime() does nothing', function () {
             var aggr = {
                 name: 'AverageAggr',
                 type: 'ma',
@@ -1953,6 +1953,21 @@ describe('TimeSeriesTick Tests', function () {
             store.push({ Time: '2015-06-10T14:13:34.0', Value: 3 });
             assert.equal(tick.getFloat(), 3);
         })
+        it('should return the value of the newest record in buffer after onTime()', function () {
+            var aggr = {
+                name: 'TickAggr',
+                type: 'timeSeriesTick',
+                store: 'Function',
+                timestamp: 'Time',
+                value: 'Value',
+            };
+            var tick = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            store.push({ Time: '2015-06-10T14:13:34.0', Value: 3 });
+            tick.onTime(new Date('2015-06-10T14:13:34.0').getTime());
+            assert.equal(tick.getFloat(), 3);
+        })
         it('should return the value of the newest, still in the window, record of the buffer', function () {
             var aggr = {
                 name: 'TickAggr',
@@ -2048,6 +2063,21 @@ describe('TimeSeriesTick Tests', function () {
             store.push({ Time: '2015-06-10T14:13:34.0', Value: 3 });
             assert.equal(tick.getTimestamp() - 11644473600000, new Date('2015-06-10T14:13:34.0').getTime());
         })
+        it('should return the timestamp given with onTime()', function () {
+            var aggr = {
+                name: 'TickAggr',
+                type: 'timeSeriesTick',
+                store: 'Function',
+                timestamp: 'Time',
+                value: 'Value',
+            };
+            var tick = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            store.push({ Time: '2015-06-10T14:13:34.0', Value: 3 });
+            tick.onTime(new Date('2016-02-03T14:13:34.0').getTime());
+            assert.equal(tick.getTimestamp() - 11644473600000, new Date('2016-02-03T14:13:34.0').getTime());
+        })
         it('should return the timestamp of the newest, still in the window, record in the buffer', function () {
             var aggr = {
                 name: 'TickAggr',
@@ -2063,24 +2093,6 @@ describe('TimeSeriesTick Tests', function () {
             store.push({ Time: '2015-06-10T14:13:33.400', Value: 4 });
             store.push({ Time: '2015-06-10T14:13:35.400', Value: 5 });
             assert.equal(tick.getTimestamp() - 11644473600000, new Date('2015-06-10T14:13:35.400').getTime());
-        })
-        it('should update only the time', function () {
-            var aggr = {
-                name: 'TickAggr',
-                type: 'timeSeriesTick',
-                store: 'Function',
-                timestamp: 'Time',
-                value: 'Value',
-            };
-            var tick = store.addStreamAggr(aggr);
-            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
-            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
-            store.push({ Time: '2015-06-10T14:13:34.0', Value: 3 });
-            store.push({ Time: '2015-06-10T14:13:33.400', Value: 4 });
-            store.push({ Time: '2015-06-10T14:13:35.400', Value: 5 });
-            tick.onTime(1453384425232);
-            assert.equal(tick.getTimestamp() - 11644473600000, 1453384425232);
-            assert.equal(tick.getFloat(), 5);
         })
     });
     describe('Property Tests', function () {
@@ -2309,6 +2321,32 @@ describe('EMA Tests', function () {
             store.push({ Time: 31000, Value: 5 }); //console.log(ema.getFloat());
             assert.equal(ema.getFloat().toFixed(6), 4.393437);
         })
+        it('complex value with onTime() test', function () {
+            var aggr = {
+                name: 'EmaAggr',
+                type: 'ema',
+                store: 'Function',
+                inAggr: 'TickAggr',
+                emaType: 'previous',
+                interval: 2000,
+                initWindow: 0
+            };
+            var ema = store.addStreamAggr(aggr);
+            store.push({ Time: 10000, Value: 1 }); //console.log(ema.getFloat());
+			store.push({ Time: 20000, Value: 2 }); //console.log(ema.getFloat());
+			store.push({ Time: 30000, Value: 3 }); //console.log(ema.getFloat());
+			store.push({ Time: 40000, Value: 4 }); //console.log(ema.getFloat());
+			store.push({ Time: 50000, Value: 5 }); //console.log(ema.getFloat());
+			store.push({ Time: 60000, Value: 6 }); //console.log(ema.getFloat());
+			store.push({ Time: 70000, Value: 7 }); //console.log(ema.getFloat());
+			store.push({ Time: 80000, Value: 8 }); //console.log(ema.getFloat());
+			store.push({ Time: 90000, Value: 9 }); //console.log(ema.getFloat());
+			store.push({ Time: 100000, Value: 10 }); //console.log(ema.getFloat());
+			for (var i=100001; i<110000; i++) {
+			        ema.onTime(i);
+			}
+            assert.equal(ema.getFloat().toFixed(2), 9.99);
+        })
     });
 
     describe('GetTimestamp Tests', function () {
@@ -2371,6 +2409,25 @@ describe('EMA Tests', function () {
             store.push({ Time: '2015-06-10T14:13:34.0', Value: 3 });
             store.push({ Time: '2015-06-10T14:13:33.400', Value: 4 });
             store.push({ Time: '2015-06-10T14:13:35.400', Value: 5 });
+            assert.equal(ema.getTimestamp() - 11644473600000, new Date('2015-06-10T14:13:35.400').getTime());
+        })
+        it('should return the timestamp of the newest, still in the window, record of the buffer despite onTime', function () {
+            var aggr = {
+                name: 'EmaAggr',
+                type: 'ema',
+                store: 'Function',
+                inAggr: 'TickAggr',
+                emaType: 'previous',
+                interval: 3000,
+                initWindow: 1000
+            };
+            var ema = store.addStreamAggr(aggr);
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
+            store.push({ Time: '2015-06-10T14:13:34.0', Value: 3 });
+            store.push({ Time: '2015-06-10T14:13:33.400', Value: 4 });
+            store.push({ Time: '2015-06-10T14:13:35.400', Value: 5 });
+            ema.onTime(new Date('2016-02-03T14:13:32.0').getTime());
             assert.equal(ema.getTimestamp() - 11644473600000, new Date('2015-06-10T14:13:35.400').getTime());
         })
     });
@@ -2508,7 +2565,7 @@ describe('MovingVariance Tests', function () {
 
     describe('Reset Tests', function () {
 
-        it('should reset andget the variance of all the records in the buffer', function () {
+        it('should reset and get the variance of all the records in the buffer', function () {
             var aggr = {
                 name: 'VarAggr',
                 type: 'variance',

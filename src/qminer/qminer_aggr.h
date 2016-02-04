@@ -236,6 +236,7 @@ private:
 protected:
 	void OnAddRec(const TRec& Rec);
 	void OnTime(const uint64& TmMsec);
+	void OnStep();
     TTimeSeriesTick(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
@@ -1196,6 +1197,38 @@ inline TStr TWinAggr<TSignalProc::TMa>::GetType() { return "ma"; }
 // Moving Variance
 template <>
 inline void TWinAggr<TSignalProc::TVar>::OnAddRec(const TRec& Rec) {
+	TFltV OutValV; InAggrVal->GetOutValV(OutValV);
+	TUInt64V OutTmMSecsV; InAggrVal->GetOutTmMSecsV(OutTmMSecsV);
+	if (InAggr->IsInit()) {
+		if (!InAggrVal->DelayedP()) {
+			Signal.Update(InAggrVal->GetInVal(), InAggrVal->GetInTmMSecs(),
+				OutValV, OutTmMSecsV, InAggrVal->GetVals());
+		} else {
+			TFltV InValV; InAggrVal->GetInValV(InValV);
+			TUInt64V InTmMSecsV; InAggrVal->GetInTmMSecsV(InTmMSecsV);
+			Signal.Update(InValV, InTmMSecsV, OutValV, OutTmMSecsV, InAggrVal->GetVals());
+		}
+	}
+}
+
+template <>
+inline void TWinAggr<TSignalProc::TVar>::OnTime(const uint64& TmMsec) {
+	TFltV OutValV; InAggrVal->GetOutValV(OutValV);
+	TUInt64V OutTmMSecsV; InAggrVal->GetOutTmMSecsV(OutTmMSecsV);
+	if (InAggr->IsInit()) {
+		if (!InAggrVal->DelayedP()) {
+			Signal.Update(InAggrVal->GetInVal(), InAggrVal->GetInTmMSecs(),
+				OutValV, OutTmMSecsV, InAggrVal->GetVals());
+		} else {
+			TFltV InValV; InAggrVal->GetInValV(InValV);
+			TUInt64V InTmMSecsV; InAggrVal->GetInTmMSecsV(InTmMSecsV);
+			Signal.Update(InValV, InTmMSecsV, OutValV, OutTmMSecsV, InAggrVal->GetVals());
+		}
+	}
+}
+
+template <>
+inline void TWinAggr<TSignalProc::TVar>::OnStep() {
 	TFltV OutValV; InAggrVal->GetOutValV(OutValV);
 	TUInt64V OutTmMSecsV; InAggrVal->GetOutTmMSecsV(OutTmMSecsV);
 	if (InAggr->IsInit()) {
