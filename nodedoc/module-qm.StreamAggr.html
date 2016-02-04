@@ -24,8 +24,7 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div>
-            <h1><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">StreamAggr</span></h1>
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">StreamAggr</span></h1>
             <p class="source-link">Source: <a href="qminer_aggrdoc.js.html#source-line-69">qminer_aggrdoc.<wbr>js:69</a></p>
             <div class="symbol-classdesc">
               <p>Represents the stream aggregate. The class can construct these <a href="module-qm.html#~StreamAggregators">module:qm~StreamAggregators</a>. Also turn to these stream aggregators to see which methods are implemented for them.</p>
@@ -65,6 +64,9 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.StreamAggr.html#getFeatureSpace">getFeatureSpace()</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.StreamAggr.html#getFloat">getFloat()</a></dt>
                     <dd>
                     </dd>
@@ -89,13 +91,13 @@
                     <dt><a href="module-qm.StreamAggr.html#getInTimestampVector">getInTimestampVector()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.StreamAggr.html#getInValueVector">getInValueVector()</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.StreamAggr.html#getInValueVector">getInValueVector()</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.StreamAggr.html#getNumberOfRecords">getNumberOfRecords()</a></dt>
                     <dd>
                     </dd>
@@ -120,13 +122,13 @@
                     <dt><a href="module-qm.StreamAggr.html#getTimestampVector">getTimestampVector()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.StreamAggr.html#getValueVector">getValueVector()</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.StreamAggr.html#getValueVector">getValueVector()</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.StreamAggr.html#load">load(fin)</a></dt>
                     <dd>
                     </dd>
@@ -162,9 +164,9 @@
         </h3>
               <div>
                 <pre class="prettyprint"><code>// import qm module
-var qm &#x3D; require(&#x27;qminer&#x27;);
+var qm = require(&#x27;qminer&#x27;);
 // create a simple base containing one store
-var base &#x3D; new qm.Base({
+var base = new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;People&quot;,
@@ -183,19 +185,19 @@ var base &#x3D; new qm.Base({
 });
 
 // create a new stream aggregator for &#x27;People&#x27; store, get the length of the record name (with the function object)
-var aggr &#x3D; new qm.StreamAggr(base, new function () {
-   var length &#x3D; 0;
-   this.name &#x3D; &#x27;nameLength&#x27;,
-   this.onAdd &#x3D; function (rec) {
-       length &#x3D; rec.Name.length;
+var aggr = new qm.StreamAggr(base, new function () {
+   var length = 0;
+   this.name = &#x27;nameLength&#x27;,
+   this.onAdd = function (rec) {
+       length = rec.Name.length;
    };
-   this.saveJson &#x3D; function (limit) {
+   this.saveJson = function (limit) {
        return { val: length };
    }
 }, &quot;People&quot;);
 
 // create a new time series window buffer stream aggregator for &#x27;Laser&#x27; store (with the JSON object)
-var wavelength &#x3D; {
+var wavelength = {
     name: &quot;WaveLengthLaser&quot;,
     type: &quot;timeSeriesWinBuf&quot;,
     store: &quot;Laser&quot;,
@@ -203,7 +205,7 @@ var wavelength &#x3D; {
     value: &quot;WaveLength&quot;,
     winsize: 10000
 }
-var sa &#x3D; base.store(&quot;Laser&quot;).addStreamAggr(wavelength);
+var sa = base.store(&quot;Laser&quot;).addStreamAggr(wavelength);
 base.close();</code></pre>
               </div>
             </section>
@@ -285,6 +287,10 @@ base.close();</code></pre>
             </section>
             <h2>Methods</h2>
             <section>
+              <h3 id="getFeatureSpace"><span class="symbol-name">getFeatureSpace</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Returns a feature space</p>
+              <dl class="dl-compact">
+              </dl>
               <h3 id="getFloat"><span class="symbol-name">getFloat</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
               <p>Returns the value of the specific stream aggregator. For return values see <a href="module-qm.html#~StreamAggregators">module:qm~StreamAggregators</a>.</p>
               <section>
@@ -293,9 +299,9 @@ base.close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm &#x3D; require(&#x27;qminer&#x27;);
+var qm = require(&#x27;qminer&#x27;);
 // create a simple base containing one store
-var base &#x3D; new qm.Base({
+var base = new qm.Base({
    mode: &#x27;createClean&#x27;,
    schema: [{
        name: &#x27;Grades&#x27;,
@@ -308,7 +314,7 @@ var base &#x3D; new qm.Base({
 });
 // create a new time series stream aggregator which takes the values from the &#x27;Procents&#x27; field 
 // and the timestamp from the &#x27;Time&#x27; field. The size of the window is 1 year.
-var ts &#x3D; {
+var ts = {
    name: &#x27;GradesAggr&#x27;,
    type: &#x27;timeSeriesWinBuf&#x27;,
    store: &#x27;Grades&#x27;,
@@ -316,22 +322,22 @@ var ts &#x3D; {
    value: &#x27;Procents&#x27;,
    winsize: 31536000000 
 };
-var timeSeries &#x3D; base.store(&#x27;Grades&#x27;).addStreamAggr(ts);
+var timeSeries = base.store(&#x27;Grades&#x27;).addStreamAggr(ts);
 // create a new moving average stream aggregator that takes the values from the 
 // &#x27;GradesAggr&#x27; stream aggregator
-var ma &#x3D; {
+var ma = {
    name: &#x27;AverageGrade&#x27;,
    type: &#x27;ma&#x27;,
    store: &#x27;Grades&#x27;,
    inAggr: &#x27;GradesAggr&#x27;
 }
-var averageGrade &#x3D; base.store(&#x27;Grades&#x27;).addStreamAggr(ma);
+var averageGrade = base.store(&#x27;Grades&#x27;).addStreamAggr(ma);
 // add some grades in the &#x27;Grades&#x27; store
 base.store(&quot;Grades&quot;).push({ Grade: 7, Procents: 65, Time: &#x27;2014-11-23T10:00:00.0&#x27; });
 base.store(&quot;Grades&quot;).push({ Grade: 9, Procents: 88, Time: &#x27;2014-12-20T12:00:00.0&#x27; });
 base.store(&quot;Grades&quot;).push({ Grade: 8, Procents: 70, Time: &#x27;2015-02-03T10:00:00.0&#x27; });
 // get the average grade procents by using the getFloat method
-var average &#x3D; averageGrade.getFloat(); // returns 74 + 1/3
+var average = averageGrade.getFloat(); // returns 74 + 1/3
 base.close();</code></pre>
                 </div>
               </section>
@@ -349,9 +355,9 @@ base.close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm &#x3D; require(&#x27;qminer&#x27;);
+var qm = require(&#x27;qminer&#x27;);
 // create a simple base containing one store
-var base &#x3D; new qm.Base({
+var base = new qm.Base({
    mode: &#x27;createClean&#x27;,
    schema: [{
        name: &#x27;MusicSale&#x27;,
@@ -363,7 +369,7 @@ var base &#x3D; new qm.Base({
 });
 // create a time series containing the &#x27;NumberOfAlbums&#x27; values and getting the timestamp from the &#x27;Time&#x27; field.
 // The window size should be 1 week.
-var ts &#x3D; {
+var ts = {
    name: &#x27;Sales&#x27;,
    type: &#x27;timeSeriesWinBuf&#x27;,
    store: &#x27;MusicSale&#x27;,
@@ -371,14 +377,14 @@ var ts &#x3D; {
    value: &#x27;NumberOfAlbums&#x27;,
    winsize: 604800000
 };
-var weekSales &#x3D; base.store(&#x27;MusicSale&#x27;).addStreamAggr(ts);
+var weekSales = base.store(&#x27;MusicSale&#x27;).addStreamAggr(ts);
 // add some records in the store
 base.store(&#x27;MusicSale&#x27;).push({ NumberOfAlbums: 10, Time: &#x27;2015-03-15T00:00:00.0&#x27; });
 base.store(&#x27;MusicSale&#x27;).push({ NumberOfAlbums: 15, Time: &#x27;2015-03-18T00:00:00.0&#x27; });
 base.store(&#x27;MusicSale&#x27;).push({ NumberOfAlbums: 30, Time: &#x27;2015-03-19T00:00:00.0&#x27; });
 base.store(&#x27;MusicSale&#x27;).push({ NumberOfAlbums: 45, Time: &#x27;2015-03-20T00:00:00.0&#x27; });
 // get the second value of the value vector 
-var albums &#x3D; weekSales.getFloatAt(1); // returns 15
+var albums = weekSales.getFloatAt(1); // returns 15
 base.close();</code></pre>
                 </div>
               </section>
@@ -425,9 +431,9 @@ base.close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm &#x3D; require(&#x27;qminer&#x27;);
+var qm = require(&#x27;qminer&#x27;);
 // create a simple base containing one store
-var base &#x3D; new qm.Base({
+var base = new qm.Base({
    mode: &#x27;createClean&#x27;,
    schema: [{
        name: &#x27;IceCreams&#x27;,
@@ -440,7 +446,7 @@ var base &#x3D; new qm.Base({
 });
 // create a time series stream aggregator, that takes values from the &#x27;Price&#x27; field and the timestamp
 //  from the &#x27;TimeOfConsumation&#x27; field of &#x27;IceCream&#x27; store. The window size should be 1 day.
-var ts &#x3D; {
+var ts = {
    name: &#x27;IcePrice&#x27;,
    type: &#x27;timeSeriesWinBuf&#x27;,
    store: &#x27;IceCreams&#x27;,
@@ -448,13 +454,13 @@ var ts &#x3D; {
    value: &#x27;Price&#x27;,
    winsize: 86400000
 };
-var icePrice &#x3D; base.store(&#x27;IceCreams&#x27;).addStreamAggr(ts);
+var icePrice = base.store(&#x27;IceCreams&#x27;).addStreamAggr(ts);
 // add some ice creams in the store
 base.store(&#x27;IceCreams&#x27;).push({ Type: &#x27;Chocholate&#x27;, Price: 5, TimeOfConsumption: &#x27;2015-07-21T09:00:00.0&#x27; });
 base.store(&#x27;IceCreams&#x27;).push({ Type: &#x27;Blue Sky&#x27;, Price: 3, TimeOfConsumption: &#x27;2015-07-21T14:13:00.0&#x27; });
 base.store(&#x27;IceCreams&#x27;).push({ Type: &#x27;Stracciatella&#x27;, Price: 5, TimeOfConsumption: &#x27;2015-07-21T21:05:00.0&#x27; });
 // get the number of ice creams consumed by using getFloatLength method
-var numberOfIceCreamsEaten &#x3D; icePrice.getFloatLength(); // returns 3
+var numberOfIceCreamsEaten = icePrice.getFloatLength(); // returns 3
 base.close();</code></pre>
                 </div>
               </section>
@@ -472,9 +478,9 @@ base.close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm &#x3D; require(&#x27;qminer&#x27;);
+var qm = require(&#x27;qminer&#x27;);
 // create a simple base containing one store
-var base &#x3D; new qm.Base({
+var base = new qm.Base({
    mode: &#x27;createClean&#x27;,
    schema: [{
        name: &#x27;Hospital&#x27;,
@@ -486,7 +492,7 @@ var base &#x3D; new qm.Base({
 });
 // create a new time series stream aggregator that takes the values from the &#x27;NumberOfPatients&#x27; field
 // and the timestamp from the &#x27;Date&#x27; field. The window size should be 1 week.
-var ts &#x3D; {
+var ts = {
    name: &#x27;WeekPatients&#x27;,
    type: &#x27;timeSeriesWinBuf&#x27;,
    store: &#x27;Hospital&#x27;,
@@ -494,14 +500,14 @@ var ts &#x3D; {
    value: &#x27;NumberOfPatients&#x27;,
    winsize: 604800000
 };
-var weekPatients &#x3D; base.store(&#x27;Hospital&#x27;).addStreamAggr(ts);
+var weekPatients = base.store(&#x27;Hospital&#x27;).addStreamAggr(ts);
 // add some records in the store
 base.store(&#x27;Hospital&#x27;).push({ NumberOfPatients: 50, Date: &#x27;2015-05-20T00:00:00.0&#x27; });
 base.store(&#x27;Hospital&#x27;).push({ NumberOfPatients: 56, Date: &#x27;2015-05-21T00:00:00.0&#x27; });
 base.store(&#x27;Hospital&#x27;).push({ NumberOfPatients: 120, Date: &#x27;2015-05-22T00:00:00.0&#x27; });
 base.store(&#x27;Hospital&#x27;).push({ NumberOfPatients: 40, Date: &#x27;2015-05-23T00:00:00.0&#x27; });
 // get the values that are in the time series window buffer as a vector
-var values &#x3D; weekPatients.getFloatVector(); // returns the vector [50, 56, 120, 40]
+var values = weekPatients.getFloatVector(); // returns the vector [50, 56, 120, 40]
 base.close();</code></pre>
                 </div>
               </section>
@@ -519,9 +525,9 @@ base.close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm &#x3D; require(&#x27;qminer&#x27;);
+var qm = require(&#x27;qminer&#x27;);
 // create a simple base containing one store
-var base &#x3D; new qm.Base({
+var base = new qm.Base({
    mode: &#x27;createClean&#x27;,
    schema: [{
        name: &#x27;Marathon&#x27;,
@@ -534,7 +540,7 @@ var base &#x3D; new qm.Base({
 });
 // create a time series stream aggregator that gets the values from the &#x27;Speed&#x27; field
 // and the timestamp from the &#x27;Time&#x27; field. The window size should be 10 minutes.
-var ts &#x3D; {
+var ts = {
    name: &#x27;Sensor&#x27;,
    type: &#x27;timeSeriesWinBuf&#x27;,
    store: &#x27;Marathon&#x27;,
@@ -542,13 +548,13 @@ var ts &#x3D; {
    value: &#x27;Speed&#x27;,
    winsize: 600000
 };
-var sensor &#x3D; base.store(&#x27;Marathon&#x27;).addStreamAggr(ts);
+var sensor = base.store(&#x27;Marathon&#x27;).addStreamAggr(ts);
 // add some records to the store
 base.store(&#x27;Marathon&#x27;).push({ Runner: &#x27;Marko Primozic&#x27;, Speed: 13.4, Time: &#x27;2015-07-21T20:23:13.0&#x27; });
 base.store(&#x27;Marathon&#x27;).push({ Runner: &#x27;Leonard Cohen&#x27;, Speed: 14.1, Time: &#x27;2015-07-21T20:24:01.0&#x27; });
 base.store(&#x27;Marathon&#x27;).push({ Runner: &#x27;Coco Chanelle&#x27;, Speed: 13.7, Time: &#x27;2015-07-21T20:24:27.0&#x27; });
 // get the last value that got in the buffer
-var last &#x3D; sensor.getInFloat(); // returns 13.7
+var last = sensor.getInFloat(); // returns 13.7
 base.close();</code></pre>
                 </div>
               </section>
@@ -582,9 +588,9 @@ base.close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm &#x3D; require(&#x27;qminer&#x27;);
+var qm = require(&#x27;qminer&#x27;);
 // create a simple base containing one store
-var base &#x3D; new qm.Base({
+var base = new qm.Base({
    mode: &#x27;createClean&#x27;,
    schema: [{
        name: &#x27;F1&#x27;,
@@ -597,7 +603,7 @@ var base &#x3D; new qm.Base({
 });
 // create a time series stream aggregator that gets the values from the &#x27;Speed&#x27; field
 // and the timestamp from the &#x27;Time&#x27; field. The window size should be 5 minutes.
-var ts &#x3D; {
+var ts = {
    name: &#x27;Sensor&#x27;,
    type: &#x27;timeSeriesWinBuf&#x27;,
    store: &#x27;F1&#x27;,
@@ -605,13 +611,13 @@ var ts &#x3D; {
    value: &#x27;Speed&#x27;,
    winsize: 300000
 };
-var sensor &#x3D; base.store(&#x27;F1&#x27;).addStreamAggr(ts);
+var sensor = base.store(&#x27;F1&#x27;).addStreamAggr(ts);
 // add some records to the store
 base.store(&#x27;F1&#x27;).push({ Driver: &#x27;Sebastian Vettel&#x27;, Speed: 203.4, Time: &#x27;2015-07-19T09:32:01.0&#x27; });
 base.store(&#x27;F1&#x27;).push({ Driver: &#x27;Thomas &quot;Tommy&quot; Angelo&#x27;, Speed: 152.8, Time: &#x27;2015-07-19T09:35:23.0&#x27; });
 base.store(&#x27;F1&#x27;).push({ Driver: &#x27;Mark Ham&#x27;, Speed: 189.5, Time: &#x27;2015-07-19T09:38:43.0&#x27; });
 // get the last timestamp that was added in the window buffer
-var time &#x3D; sensor.getInTimestamp(); // returns 13081772323000
+var time = sensor.getInTimestamp(); // returns 13081772323000
 base.close();</code></pre>
                 </div>
               </section>
@@ -645,9 +651,9 @@ base.close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm &#x3D; require(&#x27;qminer&#x27;);
+var qm = require(&#x27;qminer&#x27;);
 // create a simple base containing one store
-var base &#x3D; new qm.Base({
+var base = new qm.Base({
      mode: &#x27;createClean&#x27;,
      schema: [{
        name: &#x27;Docs&#x27;,
@@ -657,13 +663,13 @@ var base &#x3D; new qm.Base({
        ]
      }]
 });
-store &#x3D; base.store(&#x27;Docs&#x27;);
+store = base.store(&#x27;Docs&#x27;);
 // the following aggregate maintains a window buffer (1000 milliseconds) with no delay
 // and contains a categorical feature extractor. The extractor maps records in the buffer
 // to sparse vectors (indicator vectors for growing set of categories). Each record that
 // enters the buffer updates the feature extractor (potentially introduces a new category,
 // which increases the dimensionality).
-var aggr &#x3D; {
+var aggr = {
      type: &#x27;timeSeriesWinBufFeatureSpace&#x27;,
      store: &#x27;Docs&#x27;,
      timestamp: &#x27;Time&#x27;,
@@ -674,7 +680,7 @@ var aggr &#x3D; {
      },
      winsize: 1000
 };
-var streamAggregate &#x3D; store.addStreamAggr(aggr);
+var streamAggregate = store.addStreamAggr(aggr);
 store.push({ Time: &#x27;2015-06-10T14:13:32.0&#x27;, Text: &#x27;a&#x27; });
 store.push({ Time: &#x27;2015-06-10T14:13:33.0&#x27;, Text: &#x27;b&#x27; });
 store.push({ Time: &#x27;2015-06-10T14:13:34.0&#x27;, Text: &#x27;c&#x27; });
@@ -682,17 +688,17 @@ store.push({ Time: &#x27;2015-06-10T14:13:34.0&#x27;, Text: &#x27;c&#x27; });
 // the first record just fell out of the buffer, the third record just entered the buffer
 // and buffer currently contains the second and the third record.
 // In case of the feature space based window buffer, the vectors of just-in, just-out and in-the-buffer
-// values correspond to vectors of sparse vectors &#x3D; sparse matrices.
+// values correspond to vectors of sparse vectors = sparse matrices.
 streamAggregate.getInValueVector().print(); // one column, one nonzero element at index 2
-// &#x3D; [
+// = [
 // 2 0 1.000000
 // ]
 streamAggregate.getOutValueVector().print(); // one column, one nonzero element at index 0
-// &#x3D; [
+// = [
 // 0 0 1.000000
 // ]
 streamAggregate.getValueVector().print(); // two column vectors, each with one nonzero element
-// &#x3D; [
+// = [
 // 1 0 1.000000
 // 2 1 1.000000
 // ]
@@ -714,9 +720,9 @@ base.close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm &#x3D; require(&#x27;qminer&#x27;);
+var qm = require(&#x27;qminer&#x27;);
 // create a simple base containing one store
-var base &#x3D; new qm.Base({
+var base = new qm.Base({
    mode: &#x27;createClean&#x27;,
    schema: [{
        name: &#x27;MusicSale&#x27;,
@@ -728,7 +734,7 @@ var base &#x3D; new qm.Base({
 });
 // create a time series containing the values from the &#x27;NumberOfAlbums&#x27; field and 
 // the timestamp from the &#x27;Time&#x27; field. The window size should be 1 week.
-var ts &#x3D; {
+var ts = {
    name: &#x27;Sales&#x27;,
    type: &#x27;timeSeriesWinBuf&#x27;,
    store: &#x27;MusicSale&#x27;,
@@ -736,14 +742,14 @@ var ts &#x3D; {
    value: &#x27;NumberOfAlbums&#x27;,
    winsize: 604800000
 };
-var weekSales &#x3D; base.store(&#x27;MusicSale&#x27;).addStreamAggr(ts);
+var weekSales = base.store(&#x27;MusicSale&#x27;).addStreamAggr(ts);
 // add some records in the store
 base.store(&#x27;MusicSale&#x27;).push({ NumberOfAlbums: 10, Time: &#x27;2015-03-15T00:00:00.0&#x27; });
 base.store(&#x27;MusicSale&#x27;).push({ NumberOfAlbums: 15, Time: &#x27;2015-03-18T00:00:00.0&#x27; });
 base.store(&#x27;MusicSale&#x27;).push({ NumberOfAlbums: 30, Time: &#x27;2015-03-19T00:00:00.0&#x27; });
 base.store(&#x27;MusicSale&#x27;).push({ NumberOfAlbums: 45, Time: &#x27;2015-03-20T00:00:00.0&#x27; });
 // get the number of records in the window buffer
-var num &#x3D; weekSales.getNumberOfRecords(); // returns 4
+var num = weekSales.getNumberOfRecords(); // returns 4
 base.close();</code></pre>
                 </div>
               </section>
@@ -761,9 +767,9 @@ base.close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm &#x3D; require(&#x27;qminer&#x27;);
+var qm = require(&#x27;qminer&#x27;);
 // create a simple base containing one store
-var base &#x3D; new qm.Base({
+var base = new qm.Base({
    mode: &#x27;createClean&#x27;,
    schema: [{
        name: &#x27;F1&#x27;,
@@ -776,7 +782,7 @@ var base &#x3D; new qm.Base({
 });
 // create a time series stream aggregator that gets the values from the &#x27;Speed&#x27; field
 // and the timestamp from the &#x27;Time&#x27; field. The window size should be 5 minutes.
-var ts &#x3D; {
+var ts = {
    name: &#x27;Sensor&#x27;,
    type: &#x27;timeSeriesWinBuf&#x27;,
    store: &#x27;F1&#x27;,
@@ -784,7 +790,7 @@ var ts &#x3D; {
    value: &#x27;Speed&#x27;,
    winsize: 300000
 };
-var sensor &#x3D; base.store(&#x27;F1&#x27;).addStreamAggr(ts);
+var sensor = base.store(&#x27;F1&#x27;).addStreamAggr(ts);
 // add some records to the store
 base.store(&#x27;F1&#x27;).push({ Driver: &#x27;Sebastian Vettel&#x27;, Speed: 203.4, Time: &#x27;2015-07-19T09:32:01.0&#x27; });
 base.store(&#x27;F1&#x27;).push({ Driver: &#x27;Thomas &quot;Tommy&quot; Angelo&#x27;, Speed: 152.8, Time: &#x27;2015-07-19T09:35:23.0&#x27; });
@@ -792,7 +798,7 @@ base.store(&#x27;F1&#x27;).push({ Driver: &#x27;Mark Ham&#x27;, Speed: 189.5, Ti
 base.store(&#x27;F1&#x27;).push({ Driver: &#x27;Speedy Gonzales&#x27;, Speed: 171.4, Time: &#x27;2015-07-19T09:40:32.0&#x27; });
 // get the values, that have got out of the window buffer.
 // because the window size is 5 seconds, the last value that have left the buffer is 152.8
-var left &#x3D; sensor.getOutFloatVector(); // returns [152.8]
+var left = sensor.getOutFloatVector(); // returns [152.8]
 base.close();</code></pre>
                 </div>
               </section>
@@ -810,9 +816,9 @@ base.close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm &#x3D; require(&#x27;qminer&#x27;);
+var qm = require(&#x27;qminer&#x27;);
 // create a simple base containing one store
-var base &#x3D; new qm.Base({
+var base = new qm.Base({
    mode: &#x27;createClean&#x27;,
    schema: [{
        name: &#x27;Noise&#x27;,
@@ -824,7 +830,7 @@ var base &#x3D; new qm.Base({
 });
 // create a time series stream aggregator that takes the values from the &#x27;Decibels&#x27; field
 // and timestamps from the &#x27;Time&#x27; fields. The window size should be 1 second.
-var ts &#x3D; {
+var ts = {
    name: &#x27;Music&#x27;,
    type: &#x27;timeSeriesWinBuf&#x27;,
    store: &#x27;Noise&#x27;,
@@ -832,7 +838,7 @@ var ts &#x3D; {
    value: &#x27;Decibels&#x27;,
    winsize: 1000
 };
-var music &#x3D; base.store(&#x27;Noise&#x27;).addStreamAggr(ts);
+var music = base.store(&#x27;Noise&#x27;).addStreamAggr(ts);
 // add some records in the store
 base.store(&#x27;Noise&#x27;).push({ Decibels: 54, Time: &#x27;2015-07-21T14:43:00.0&#x27; });
 base.store(&#x27;Noise&#x27;).push({ Decibels: 55, Time: &#x27;2015-07-21T14:43:00.200&#x27; });
@@ -842,7 +848,7 @@ base.store(&#x27;Noise&#x27;).push({ Decibels: 53, Time: &#x27;2015-07-21T14:43:
 base.store(&#x27;Noise&#x27;).push({ Decibels: 54, Time: &#x27;2015-07-21T14:43:01.0&#x27; });
 base.store(&#x27;Noise&#x27;).push({ Decibels: 53, Time: &#x27;2015-07-21T14:43:01.2&#x27; });
 // get the timestamps that just left the window buffer by adding the last record
-var last &#x3D; music.getOutTimestampVector(); // returns [13081963380000]
+var last = music.getOutTimestampVector(); // returns [13081963380000]
 base.close();</code></pre>
                 </div>
               </section>
@@ -876,9 +882,9 @@ base.close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm &#x3D; require(&#x27;qminer&#x27;);
+var qm = require(&#x27;qminer&#x27;);
 // create a simple base containing one store
-var base &#x3D; new qm.Base({
+var base = new qm.Base({
    mode: &#x27;createClean&#x27;,
    schema: [{
        name: &#x27;GameCollection&#x27;,
@@ -891,7 +897,7 @@ var base &#x3D; new qm.Base({
 });
 // create a new time series stream aggregator which takes the values from the &#x27;Price&#x27; field
 // and the timestamps from the &#x27;ReleaseDate&#x27; field. The window size should be 1 month.
-var ts &#x3D; {
+var ts = {
    name: &#x27;GameSeries&#x27;,
    type: &#x27;timeSeriesWinBuf&#x27;,
    store: &#x27;GameCollection&#x27;,
@@ -899,21 +905,21 @@ var ts &#x3D; {
    value: &#x27;Price&#x27;,
    winsize: 2678400000
 };
-var timeSeries &#x3D; base.store(&#x27;GameCollection&#x27;).addStreamAggr(ts);
+var timeSeries = base.store(&#x27;GameCollection&#x27;).addStreamAggr(ts);
 // create a new sum stream aggregator
-var sum &#x3D; {
+var sum = {
    name: &#x27;SumPrice&#x27;,
    type: &#x27;winBufSum&#x27;,
    store: &#x27;GameCollection&#x27;,
    inAggr: &#x27;GameSeries&#x27;
 };
-var priceSum &#x3D; base.store(&#x27;GameCollection&#x27;).addStreamAggr(sum);
+var priceSum = base.store(&#x27;GameCollection&#x27;).addStreamAggr(sum);
 // put some records in the store
 base.store(&#x27;GameCollection&#x27;).push({ GameName: &#x27;Tetris&#x27;, Price: 0, ReleaseDate: &#x27;1984-06-06T00:00:00.0&#x27; });
 base.store(&#x27;GameCollection&#x27;).push({ GameName: &#x27;Super Mario Bros.&#x27;, Price: 100, ReleaseDate: &#x27;1985-09-13T00:00:00.0&#x27; });
 base.store(&#x27;GameCollection&#x27;).push({ GameName: &#x27;The Legend of Zelda&#x27;, Price: 90, ReleaseDate: &#x27;1986-02-21T00:00:00.0 &#x27;});
 // get the timestamp of the last bought game by using getTimestamp
-var date &#x3D; priceSum.getTimestamp(); // returns 12153801600000 (the miliseconds since 1601-01-01T00:00:00.0)
+var date = priceSum.getTimestamp(); // returns 12153801600000 (the miliseconds since 1601-01-01T00:00:00.0)
 base.close();</code></pre>
                 </div>
               </section>
@@ -931,9 +937,9 @@ base.close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm &#x3D; require(&#x27;qminer&#x27;);
+var qm = require(&#x27;qminer&#x27;);
 // create a simple base containing one store
-var base &#x3D; new qm.Base({
+var base = new qm.Base({
    mode: &#x27;createClean&#x27;,
    schema: [{
        name: &#x27;Route66&#x27;,
@@ -945,7 +951,7 @@ var base &#x3D; new qm.Base({
 });
 // create a time series stream aggregator that takes the values from the &#x27;NumberOfCars&#x27; field
 // and the timestamps from the &#x27;Time&#x27; field. The window size should be 1 day.
-var ts &#x3D; {
+var ts = {
    name: &#x27;Traffic&#x27;,
    type: &#x27;timeSeriesWinBuf&#x27;,
    store: &#x27;Route66&#x27;,
@@ -953,7 +959,7 @@ var ts &#x3D; {
    value: &#x27;NumberOfCars&#x27;,
    winsize: 86400000
 };
-var traffic &#x3D; base.store(&#x27;Route66&#x27;).addStreamAggr(ts);
+var traffic = base.store(&#x27;Route66&#x27;).addStreamAggr(ts);
 // add some records in the store
 base.store(&#x27;Route66&#x27;).push({ NumberOfCars: 100, Time: &#x27;2015-06-15T06:00:00.0&#x27; });
 base.store(&#x27;Route66&#x27;).push({ NumberOfCars: 88, Time: &#x27;2015-06-15T:10:00.0&#x27; });
@@ -961,7 +967,7 @@ base.store(&#x27;Route66&#x27;).push({ NumberOfCars: 60, Time: &#x27;2015-06-15T
 base.store(&#x27;Route66&#x27;).push({ NumberOfCars: 90, Time: &#x27;2015-06-15T18:00:00.0&#x27; });
 base.store(&#x27;Route66&#x27;).push({ NumberOfCars: 110, Time: &#x27;2015-06-16T00:00:00.0&#x27; });
 // get the third timestamp in the buffer
-var time &#x3D; traffic.getTimestampAt(2); // returns 13078864800000
+var time = traffic.getTimestampAt(2); // returns 13078864800000
 base.close();</code></pre>
                 </div>
               </section>
@@ -1008,9 +1014,9 @@ base.close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm &#x3D; require(&#x27;qminer&#x27;);
+var qm = require(&#x27;qminer&#x27;);
 // create a simple base containing one store
-var base &#x3D; new qm.Base({
+var base = new qm.Base({
    mode: &#x27;createClean&#x27;,
    schema: [{
        name: &#x27;Medicine&#x27;,
@@ -1022,7 +1028,7 @@ var base &#x3D; new qm.Base({
 });
 // create a time series stream aggregator that takes the values from the &#x27;NumberOfPills&#x27; field
 // and the timestamp from the &#x27;Time&#x27; field. The window size should be 1 week.
-var ts &#x3D; {
+var ts = {
    name: &#x27;WeekPills&#x27;,
    type: &#x27;timeSeriesWinBuf&#x27;,
    store: &#x27;Medicine&#x27;,
@@ -1030,7 +1036,7 @@ var ts &#x3D; {
    value: &#x27;NumberOfPills&#x27;,
    winsize: 604800000
 };
-var weekly &#x3D; base.store(&#x27;Medicine&#x27;).addStreamAggr(ts);
+var weekly = base.store(&#x27;Medicine&#x27;).addStreamAggr(ts);
 // add some records in the store
 base.store(&#x27;Medicine&#x27;).push({ NumberOfPills: 4, Time: &#x27;2015-07-21T09:00:00.0&#x27; });
 base.store(&#x27;Medicine&#x27;).push({ NumberOfPills: 5, Time: &#x27;2015-07-21T19:00:00.0&#x27; });
@@ -1040,7 +1046,7 @@ base.store(&#x27;Medicine&#x27;).push({ NumberOfPills: 4, Time: &#x27;2015-07-23
 base.store(&#x27;Medicine&#x27;).push({ NumberOfPills: 6, Time: &#x27;2015-07-23T19:00:00.0&#x27; });
 base.store(&#x27;Medicine&#x27;).push({ NumberOfPills: 4, Time: &#x27;2015-07-24T09:00:00.0&#x27; });
 // get the length of the timestamp vector
-var length &#x3D; weekly.getTimestampLength(); // returns 7
+var length = weekly.getTimestampLength(); // returns 7
 base.close();</code></pre>
                 </div>
               </section>
@@ -1058,9 +1064,9 @@ base.close();</code></pre>
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm &#x3D; require(&#x27;qminer&#x27;);
+var qm = require(&#x27;qminer&#x27;);
 // create a simple base containing one store
-var base &#x3D; new qm.Base({
+var base = new qm.Base({
    mode: &#x27;createClean&#x27;,
    schema: [{
        name: &#x27;Signals&#x27;,
@@ -1072,7 +1078,7 @@ var base &#x3D; new qm.Base({
 });
 // create a time series stream aggregator that gets the values from the &#x27;BeepLoudness&#x27; field and
 // the timestamp from the &#x27;Time&#x27; field. The window size should be 10 seconds.
-var ts &#x3D; {
+var ts = {
    name: &#x27;SignalBeep&#x27;,
    type: &#x27;timeSeriesWinBuf&#x27;,
    store: &#x27;Signals&#x27;,
@@ -1080,13 +1086,13 @@ var ts &#x3D; {
    value: &#x27;BeepLoudness&#x27;,
    winsize: 10000
 };
-var signalBeep &#x3D; base.store(&#x27;Signals&#x27;).addStreamAggr(ts);
+var signalBeep = base.store(&#x27;Signals&#x27;).addStreamAggr(ts);
 // add some records to the store
 base.store(&#x27;Signals&#x27;).push({ BeepLoudness: 10, Time: &#x27;2015-07-21T12:30:30.0&#x27; });
 base.store(&#x27;Signals&#x27;).push({ BeepLoudness: 25, Time: &#x27;2015-07-21T12:30:31.0&#x27; });
 base.store(&#x27;Signals&#x27;).push({ BeepLoudness: 20, Time: &#x27;2015-07-21T12:30:32.0&#x27; });
 // get the timestamp vector of signalBeep
-var vec &#x3D; signalBeep.getTimestampVector(); // returns vector [13081955430000, 13081955431000, 13081955432000]
+var vec = signalBeep.getTimestampVector(); // returns vector [13081955430000, 13081955431000, 13081955432000]
 base.close();</code></pre>
                 </div>
               </section>

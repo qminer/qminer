@@ -774,9 +774,9 @@ void TNodeJsNNAnomalies::Init(v8::Handle<v8::Object> exports) {
 	exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
 }
 
-TNodeJsNNAnomalies::TNodeJsNNAnomalies(const PJsonVal& ParamVal) :
-Model(ParamVal->GetObjNum("rate", 0.05), ParamVal->GetObjInt("windowSize", 100)) { }
-
+TNodeJsNNAnomalies::TNodeJsNNAnomalies(const PJsonVal& ParamVal) {
+    SetParams(ParamVal);
+}
 
 TNodeJsNNAnomalies* TNodeJsNNAnomalies::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -795,14 +795,27 @@ TNodeJsNNAnomalies* TNodeJsNNAnomalies::NewFromArgs(const v8::FunctionCallbackIn
 }
 
 void TNodeJsNNAnomalies::SetParams(const PJsonVal& ParamVal) {
-	Model = TAnomalyDetection::TNearestNeighbor(
-		ParamVal->GetObjNum("rate", 0.05),
-		ParamVal->GetObjInt("windowSize", 100));
+    // parse rate parameter(s)
+    TFltV RateV;
+    if (ParamVal->IsObjKey("rate")) {
+        // check if we get single number or array of numbers
+        if (ParamVal->GetObjKey("rate")->IsNum()) {
+            // we have a number
+            RateV.Add(ParamVal->GetObjNum("rate"));
+        } else {
+            // must be an array
+            ParamVal->GetObjFltV("rate", RateV);
+        }
+    }
+    // if empty, use 0.05
+    if (RateV.Empty()) { RateV.Add(0.05); }
+    // create model
+	Model = TAnomalyDetection::TNearestNeighbor(RateV, ParamVal->GetObjInt("windowSize", 100));
 }
 
 PJsonVal TNodeJsNNAnomalies::GetParams() const {
 	PJsonVal ParamVal = TJsonVal::NewObj();
-	ParamVal->AddToObj("rate", Model.GetRate(0));
+	ParamVal->AddToObj("rate", TJsonVal::NewArr(Model.GetRateV()));
 	ParamVal->AddToObj("windowSize", Model.GetWindowSize());
 	return ParamVal;
 }
@@ -3060,14 +3073,14 @@ PJsonVal TNodeJsMDS::GetParams() const {
 	ParamVal->AddToObj("maxSecs", MxSecs);
 	ParamVal->AddToObj("minDiff", MnDiff);
 	switch (DistType) {
-	case (vdtEucl) :
+	case vdtEucl:
 		ParamVal->AddToObj("distType", "Euclid"); break;
-	case (vdtCos) :
+	case vdtCos:
 		ParamVal->AddToObj("distType", "Cos"); break;
-	case (vdtSqrtCos) :
+	case vdtSqrtCos:
 		ParamVal->AddToObj("distType", "SqrtCos"); break;
-	case vdtDistMtx:
-		ParamVal->AddToObj("distType", "Mtx"); break;	// FIXME is the name correct?
+	default:
+		throw TExcept::New("MDS.GetParams: unsupported distance type detected!");
 	}
 	return ParamVal;
 }
@@ -3170,20 +3183,21 @@ void TNodeJsMDS::fitTransform(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	int MxStep = JsMDS->MxStep;
 	int MxSecs = JsMDS->MxSecs;
 	int MnDiff = JsMDS->MnDiff;
+	TVizDistType DistType = JsMDS->DistType;
 	bool RndStartPos = true;
-
 	PNotify Noty = TQm::TEnv::Logger;
+
 	if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltVV>(Args, 0)) {
 		const TFltVV& Mat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltVV>(Args, 0)->Mat;
 		DummyClsV.Gen(Mat.GetCols());
 		TrainSet = TRefDenseTrainSet::New(Mat, DummyClsV);
-		TVizMapFactory::MakeFlat(TrainSet, TVizDistType::vdtEucl, Temp, MxStep, MxSecs, MnDiff, RndStartPos, Noty);
+		TVizMapFactory::MakeFlat(TrainSet, DistType, Temp, MxStep, MxSecs, MnDiff, RndStartPos, Noty);
 	}
 	else if (TNodeJsUtil::IsArgWrapObj<TNodeJsSpMat>(Args, 0)) {
 		const TVec<TIntFltKdV>& Mat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpMat>(Args, 0)->Mat;
 		DummyClsV.Gen(Mat.Len());
 		TrainSet = TRefSparseTrainSet::New(Mat, DummyClsV);
-		TVizMapFactory::MakeFlat(TrainSet, TVizDistType::vdtEucl, Temp, MxStep, MxSecs, MnDiff, RndStartPos, Noty);
+		TVizMapFactory::MakeFlat(TrainSet, DistType, Temp, MxStep, MxSecs, MnDiff, RndStartPos, Noty);
 	}
 	else {
 		throw TExcept::New("MDS.fitTransform: argument not a sparse or dense matrix!");

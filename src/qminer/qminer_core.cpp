@@ -2268,9 +2268,9 @@ TRecFilterByIndexJoin::TRecFilterByIndexJoin(const TWPt<TStore>& _Store, const i
 }
 
 /// Main operator
-bool TRecFilterByIndexJoin::operator()(const TUInt64IntKd& RecIdWgt) const {
+bool TRecFilterByIndexJoin::operator()(const TUInt64IntKd& RecIdFq) const {
     TUInt64IntKdV Res;
-    Index->GetJoinRecIdFqV(JoinKeyId, RecIdWgt.Key, Res); // perform join lookup
+    Index->GetJoinRecIdFqV(JoinKeyId, RecIdFq.Key, Res); // perform join lookup
     for (int i = 0; i < Res.Len(); i++) {
         uint64 Val = Res[i].Key;
         if ((MinVal <= Val) && (Val <= MaxVal)) {
@@ -2823,7 +2823,7 @@ TStrV TFieldReader::GetDateRange() {
 ///////////////////////////////
 // QMiner-ResultSet
 void TRecSet::GetSampleRecIdV(const int& SampleSize,
-	const bool& WgtSampleP, TUInt64IntKdV& SampleRecIdFqV) const {
+	const bool& FqSampleP, TUInt64IntKdV& SampleRecIdFqV) const {
 
 	if (SampleSize == -1) {
         // we ask for all
@@ -2834,7 +2834,7 @@ void TRecSet::GetSampleRecIdV(const int& SampleSize,
     } else if (SampleSize > GetRecs()) {
         // we ask for more than we have, have to give it all
         SampleRecIdFqV = RecIdFqV;
-	} else if (WgtSampleP) {
+	} else if (FqSampleP) {
         // Weighted random sampling with a reservoir
         // we keep current top candidates in a heap
         THeap<TFltIntKd> TopWgtRecN(SampleSize);
@@ -2888,20 +2888,20 @@ void TRecSet::LimitToSampleRecIdV(const TUInt64IntKdV& SampleRecIdFqV) {
 	RecIdFqV = SampleRecIdFqV;
 }
 
-TRecSet::TRecSet(const TWPt<TStore>& _Store, const uint64& RecId, const int& Wgt) :
-	Store(_Store), WgtP(Wgt > 1) {
+TRecSet::TRecSet(const TWPt<TStore>& _Store, const uint64& RecId, const int& Fq) :
+	Store(_Store), FqP(Fq > 1) {
 
-	RecIdFqV.Gen(1, 0); RecIdFqV.Add(TUInt64IntKd(RecId, Wgt));
+	RecIdFqV.Gen(1, 0); RecIdFqV.Add(TUInt64IntKd(RecId, Fq));
 }
 
-TRecSet::TRecSet(const TWPt<TStore>& _Store, const TUInt64V& RecIdV) : Store(_Store), WgtP(false) {
+TRecSet::TRecSet(const TWPt<TStore>& _Store, const TUInt64V& RecIdV) : Store(_Store), FqP(false) {
 	RecIdFqV.Gen(RecIdV.Len(), 0);
 	for (int RecN = 0; RecN < RecIdV.Len(); RecN++) {
 		RecIdFqV.Add(TUInt64IntKd(RecIdV[RecN], 0));
 	}
 }
 
-TRecSet::TRecSet(const TWPt<TStore>& _Store, const TIntV& RecIdV) : Store(_Store), WgtP(false) {
+TRecSet::TRecSet(const TWPt<TStore>& _Store, const TIntV& RecIdV) : Store(_Store), FqP(false) {
 	RecIdFqV.Gen(RecIdV.Len(), 0);
 	int Len = RecIdV.Len();
 	for (int RecN = 0; RecN < Len; RecN++) {
@@ -2910,26 +2910,26 @@ TRecSet::TRecSet(const TWPt<TStore>& _Store, const TIntV& RecIdV) : Store(_Store
 }
 
 TRecSet::TRecSet(const TWPt<TStore>& _Store, const TUInt64IntKdV& _RecIdFqV,
-	const bool& _WgtP): Store(_Store), WgtP(_WgtP), RecIdFqV(_RecIdFqV) { }
+	const bool& _FqP): Store(_Store), FqP(_FqP), RecIdFqV(_RecIdFqV) { }
 
 TRecSet::TRecSet(const TWPt<TBase>& Base, TSIn& SIn) {
 	Store = TStore::LoadById(Base, SIn);
-	WgtP.Load(SIn);
+	FqP.Load(SIn);
 	RecIdFqV.Load(SIn);
 }
 
 PRecSet TRecSet::New(const TWPt<TStore>& Store, const TUInt64IntKdV& RecIdFqV,
-        const bool& WgtP) {
+        const bool& FqP) {
 
-	return new TRecSet(Store, RecIdFqV, WgtP);
+	return new TRecSet(Store, RecIdFqV, FqP);
 }
 
 PRecSet TRecSet::New(const TWPt<TStore>& Store) {
 	return new TRecSet(Store, TUInt64V());
 }
 
-PRecSet TRecSet::New(const TWPt<TStore>& Store, const uint64& RecId, const int& Wgt) {
-	return new TRecSet(Store, RecId, Wgt);
+PRecSet TRecSet::New(const TWPt<TStore>& Store, const uint64& RecId, const int& Fq) {
+	return new TRecSet(Store, RecId, Fq);
 }
 
 PRecSet TRecSet::New(const TWPt<TStore>& Store, const TRec& Rec) {
@@ -2951,7 +2951,7 @@ PRecSet TRecSet::New(const TWPt<TStore>& Store, const TUInt64IntKdV& RecIdFqV) {
 
 void TRecSet::Save(TSOut& SOut) {
 	Store->SaveId(SOut);
-	WgtP.Save(SOut);
+	FqP.Save(SOut);
 	RecIdFqV.Save(SOut);
 }
 
@@ -3110,6 +3110,14 @@ void TRecSet::FilterByFieldSFlt(const int& FieldId, const float& MinVal, const f
 	FilterBy(TRecFilterByFieldSFlt(Store, FieldId, MinVal, MaxVal));
 }
 
+void TRecSet::FilterByFieldUInt64(const int& FieldId, const uint64& MinVal, const uint64& MaxVal) {
+	// get store and field type
+	const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
+	QmAssertR(Desc.IsUInt64(), "Wrong field type, integer expected");
+	// apply the filter
+	FilterBy(TRecFilterByFieldUInt64(Store, FieldId, MinVal, MaxVal));
+}
+
 void TRecSet::FilterByFieldStr(const int& FieldId, const TStr& FldVal) {
 	// get store and field type
 	const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
@@ -3189,13 +3197,14 @@ void TRecSet::RemoveRecIdSet(THashSet<TUInt64>& RemoveItemIdSet) {
 }
 
 PRecSet TRecSet::Clone() const {
-	return new TRecSet(Store, RecIdFqV, WgtP);
+	return new TRecSet(Store, RecIdFqV, FqP);
 }
 
-PRecSet TRecSet::GetSampleRecSet(const int& SampleSize) const {
+PRecSet TRecSet::GetSampleRecSet(const int& SampleSize, const bool& IgnoreFqP) const {
 	TUInt64IntKdV SampleRecIdFqV;
-	GetSampleRecIdV(SampleSize, WgtP, SampleRecIdFqV);
-	return new TRecSet(Store, SampleRecIdFqV, WgtP);
+    const bool UseFqP = IgnoreFqP ? false : FqP.Val;
+	GetSampleRecIdV(SampleSize, UseFqP, SampleRecIdFqV);
+	return new TRecSet(Store, SampleRecIdFqV, FqP);
 }
 
 PRecSet TRecSet::GetLimit(const int& Limit, const int& Offset) const {
@@ -3213,7 +3222,7 @@ PRecSet TRecSet::GetLimit(const int& Limit, const int& Offset) const {
 			// get all items since offset till end
 			RecIdFqV.GetSubValV(Offset, End - 1, LimitRecIdFqV);
 		}
-		return new TRecSet(Store, LimitRecIdFqV, WgtP);
+		return new TRecSet(Store, LimitRecIdFqV, FqP);
 	}
 }
 
@@ -3256,13 +3265,14 @@ PRecSet TRecSet::GetIntersect(const PRecSet& RecSet) {
 	return new TRecSet(GetStore(), ResultRecIdFqV, false);
 }
 
-PRecSet TRecSet::DoJoin(const TWPt<TBase>& Base, const int& JoinId, const int& SampleSize) const {
+PRecSet TRecSet::DoJoin(const TWPt<TBase>& Base, const int& JoinId, const int& SampleSize, const bool& IgnoreFqP) const {
     // get join info
     AssertR(Store->IsJoinId(JoinId), "Wrong Join ID");
     const TJoinDesc& JoinDesc = Store->GetJoinDesc(JoinId);
     // prepare joined record sample
     TUInt64IntKdV SampleRecIdKdV;
-    GetSampleRecIdV(SampleSize, WgtP, SampleRecIdKdV);
+    const bool UseFqP = IgnoreFqP ? false : FqP.Val;
+    GetSampleRecIdV(SampleSize, UseFqP, SampleRecIdKdV);
     const int SampleRecs = SampleRecIdKdV.Len();
     // do the join
     TUInt64IntKdV JoinRecIdFqV;
@@ -3302,10 +3312,10 @@ PRecSet TRecSet::DoJoin(const TWPt<TBase>& Base, const int& JoinId, const int& S
     return new TRecSet(JoinDesc.GetJoinStore(Base), JoinRecIdFqV, true);
 }
 
-PRecSet TRecSet::DoJoin(const TWPt<TBase>& Base, const TStr& JoinNm, const int& SampleSize) const {
+PRecSet TRecSet::DoJoin(const TWPt<TBase>& Base, const TStr& JoinNm, const int& SampleSize, const bool& IgnoreFqP) const {
 
     if (Store->IsJoinNm(JoinNm)) {
-        return DoJoin(Base, Store->GetJoinId(JoinNm), SampleSize);
+        return DoJoin(Base, Store->GetJoinId(JoinNm), SampleSize, IgnoreFqP);
     }
     throw TQmExcept::New("Unknown join " + JoinNm);
 }
@@ -3351,7 +3361,7 @@ PJsonVal TRecSet::GetJson(const TWPt<TBase>& Base, const int& _MxHits, const int
 		PJsonVal StoreVal = TJsonVal::NewObj();
 		StoreVal->AddToObj("$id", Store->GetStoreId());
 		StoreVal->AddToObj("$name", Store->GetStoreNm());
-		StoreVal->AddToObj("$wgt", IsWgt());
+		StoreVal->AddToObj("$fq", IsFq());
 		RecSetVal->AddToObj("$store", StoreVal);
 	}
 	const int Recs = GetRecs();
@@ -4407,21 +4417,21 @@ TWPt<TStore> TQueryItem::GetStore(const TWPt<TBase>& Base) const {
 	return Base->GetStoreByStoreId(GetStoreId(Base));
 }
 
-bool TQueryItem::IsWgt() const {
+bool TQueryItem::IsFq() const {
 
 	if (IsLeafGix() || IsLeafGixSmall() || IsGeo()) {
 		// always weighted when only one key
 		return true;
     } else if (IsAnd() && ItemV.Len() == 1) {
         // we have only one sub-query, check its status
-        return ItemV[0].IsWgt();
+        return ItemV[0].IsFq();
 	} else if (IsOr()) {
 		// or is weighted when all it's elements are 
-		bool WgtP = true;
+		bool FqP = true;
 		for (int ItemN = 0; ItemN < ItemV.Len(); ItemN++) {
-			WgtP = WgtP && ItemV[ItemN].IsWgt();
+			FqP = FqP && ItemV[ItemN].IsFq();
 		}
-		return WgtP;
+		return FqP;
 	} else if (IsJoin()) {
 		// joins are also weighted
 		return true;
@@ -5658,7 +5668,7 @@ TPair<TBool, PRecSet> TIndex::Search(const TWPt<TBase>& Base, const TQueryItem& 
 		TUInt64IntKdV StoreRecIdFqV;
 		const bool NotP = DoQuery(ExpItem, Merger, StoreRecIdFqV);
 		// return record set
-		PRecSet RecSet = TRecSet::New(Store, StoreRecIdFqV, QueryItem.IsWgt());
+		PRecSet RecSet = TRecSet::New(Store, StoreRecIdFqV, QueryItem.IsFq());
 		return TPair<TBool, PRecSet>(NotP, RecSet);
 	} else if (gix_flag == qgutSmall) {
 		// prepare the query
@@ -5669,7 +5679,7 @@ TPair<TBool, PRecSet> TIndex::Search(const TWPt<TBase>& Base, const TQueryItem& 
 		TQmGixItemV StoreRecIdFqV;
 		Upgrade(StoreRecIdFqVSmall, StoreRecIdFqV);
 		// return record set
-		PRecSet RecSet = TRecSet::New(Store, StoreRecIdFqV, QueryItem.IsWgt());
+		PRecSet RecSet = TRecSet::New(Store, StoreRecIdFqV, QueryItem.IsFq());
 		return TPair<TBool, PRecSet>(NotP, RecSet);
 
 	}
@@ -5704,6 +5714,7 @@ PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TI
     }
 	return TRecSet::New(Base->GetStoreByStoreId(StoreId), RecIdV);
 }
+
 PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TInt16Pr& RangeMinMax) {
 
 	TUInt64V RecIdV;
@@ -5714,6 +5725,7 @@ PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TI
 	}
 	return TRecSet::New(Base->GetStoreByStoreId(StoreId), RecIdV);
 }
+
 PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TInt64Pr& RangeMinMax) {
 
 	TUInt64V RecIdV;
@@ -5724,8 +5736,8 @@ PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TI
 	}
 	return TRecSet::New(Base->GetStoreByStoreId(StoreId), RecIdV);
 }
-PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TUChPr& RangeMinMax) {
 
+PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TUChPr& RangeMinMax) {
 	TUInt64V RecIdV;
 	const uint StoreId = IndexVoc->GetKey(KeyId).GetStoreId();
 	if (BTreeIndexByteH.IsKey(KeyId)) {
@@ -5745,6 +5757,7 @@ PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TU
     }
 	return TRecSet::New(Base->GetStoreByStoreId(StoreId), RecIdV);
 }
+
 PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TUInt16Pr& RangeMinMax) {
 
 	TUInt64V RecIdV;
@@ -5755,6 +5768,7 @@ PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TU
 	}
 	return TRecSet::New(Base->GetStoreByStoreId(StoreId), RecIdV);
 }
+
 PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TUInt64Pr& RangeMinMax) {
 
 	TUInt64V RecIdV;
@@ -5776,6 +5790,7 @@ PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TF
     }
 	return TRecSet::New(Base->GetStoreByStoreId(StoreId), RecIdV);
 }
+
 PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TSFltPr& RangeMinMax) {
 
 	TUInt64V RecIdV;
@@ -5802,6 +5817,17 @@ void TIndex::GetJoinRecIdFqV(const int& JoinKeyId, const uint64& RecId, TUInt64I
 		for (int i = 0; i < res->GetItems(); i++) {
 			JoinRecIdFqV.Add(res->GetItem(i));
 		}
+	}
+}
+
+bool TIndex::HasJoin(const int& JoinKeyId, const uint64& RecId) const
+{
+	TKeyWord KeyWord(JoinKeyId, RecId);
+	if (UseGixSmall(JoinKeyId)) {
+		return GixSmall->IsKey(KeyWord);
+	}
+	else {
+		return Gix->IsKey(KeyWord);
 	}
 }
 
@@ -5956,6 +5982,13 @@ void TStreamAggrBase::Reset() {
 		GetStreamAggr(AggrId)->Reset();
 	}
 }
+
+/*void TStreamAggrBase::OnStep() {
+	int KeyId = StreamAggrH.FFirstKeyId();
+	while (StreamAggrH.FNextKeyId(KeyId)) {
+		StreamAggrH[KeyId]->OnStep();
+	}
+}*/
 
 void TStreamAggrBase::OnAddRec(const TRec& Rec) {
 	int KeyId = StreamAggrH.FFirstKeyId();
@@ -6327,7 +6360,7 @@ TPair<TBool, PRecSet> TBase::Search(const TQueryItem& QueryItem, const TIndex::P
 					}
 				}
 				// prepare resulting record set
-				RecSet = TRecSet::New(RecSet->GetStore(), ResRecIdFqV, QueryItem.IsWgt());
+				RecSet = TRecSet::New(RecSet->GetStore(), ResRecIdFqV, QueryItem.IsFq());
 				return TPair<TBool, PRecSet>(NotP, RecSet);
 			} else if (QueryItem.IsNot()) {
 				QmAssert(RecSetV.Len() == 1);

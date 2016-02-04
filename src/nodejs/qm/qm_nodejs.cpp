@@ -3363,7 +3363,7 @@ void TNodeJsRecSet::weighted(v8::Local<v8::String> Name, const v8::PropertyCallb
 	v8::HandleScope HandleScope(Isolate);
 	TNodeJsRecSet* JsRecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Info.Holder());
 
-	Info.GetReturnValue().Set(v8::Boolean::New(Isolate, JsRecSet->RecSet->IsWgt()));
+	Info.GetReturnValue().Set(v8::Boolean::New(Isolate, JsRecSet->RecSet->IsFq()));
 }
 
 void TNodeJsRecSet::indexId(uint32_t Index, const v8::PropertyCallbackInfo<v8::Value>& Info) {

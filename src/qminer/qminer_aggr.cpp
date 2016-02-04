@@ -1428,6 +1428,10 @@ void TTDigest::OnAddRec(const TRec& Rec) {
 	}
 }
 
+/*void TTDigest::OnStep() {
+	Model.MergeValues();
+}*/
+
 void TTDigest::Add(const TFlt& Val) {
 	if (InAggr->IsInit()) {
 	    Model.Update(Val);
