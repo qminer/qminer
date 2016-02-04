@@ -1601,6 +1601,14 @@ void TSlottedHistogram::GetStats(const uint64 TsMin, const uint64 TsMax, TFltV& 
 
 /// Triggered when a record is added
 void TOnlineSlottedHistogram::OnAddRec(const TRec& Rec) {
+	OnStep();
+}
+
+void TOnlineSlottedHistogram::OnTime(const uint64& TmMsec) {
+	OnStep();
+}
+
+void TOnlineSlottedHistogram::OnStep() {
 	if (BufferedP) {
 		LastTm = InAggrValBuffer->GetInTmMSecs();
 		Model->Add(InAggrValBuffer->GetInTmMSecs(), (int)InAggrValBuffer->GetInVal());

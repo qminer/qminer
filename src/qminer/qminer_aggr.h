@@ -1322,6 +1322,8 @@ private:
 protected:
 	/// Triggered when a record is added
 	void OnAddRec(const TRec& Rec);
+	void OnTime(const uint64& TmMsec);
+	void OnStep();
 	/// JSON constructor
 	TOnlineSlottedHistogram(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:
