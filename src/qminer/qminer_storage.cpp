@@ -95,14 +95,19 @@ TFieldDescEx TStoreSchema::ParseFieldDescEx(const PJsonVal& FieldVal) {
 		FieldDescEx.DefaultVal = FieldVal->GetObjKey("default");
 	}
 	// get storage place (cache or memory)
-	TStr StoreLocStr = FieldVal->GetObjStr("store", "memory"); // default is store in memory
-	if (StoreLocStr == "memory") {
-		FieldDescEx.FieldStoreLoc = slMemory;
-	} else if (StoreLocStr == "cache") {
-		FieldDescEx.FieldStoreLoc = slDisk;
-	} else {
-		throw TQmExcept::New(TStr::Fmt("Unsupported 'store' flag for field: %s", StoreLocStr.CStr()));
-	}
+
+    if (FieldVal->IsObjKey("store")) {
+        TStr StoreLocStr = FieldVal->GetObjStr("store");
+        if (StoreLocStr == "memory") {
+            FieldDescEx.FieldStoreLoc = slMemory;
+        } else if (StoreLocStr == "cache") {
+            FieldDescEx.FieldStoreLoc = slDisk;
+        } else {
+            throw TQmExcept::New(TStr::Fmt("Unsupported 'store' flag for field: %s", StoreLocStr.CStr()));
+        }
+    } else {
+        FieldDescEx.FieldStoreLoc = DefaultFieldStoreLoc;
+    }
 	// done
 	return FieldDescEx;
 }
@@ -144,6 +149,7 @@ TJoinDescEx TStoreSchema::ParseJoinDescEx(const PJsonVal& JoinVal) {
         }
     }
     if (JoinVal->IsObjKey("storage")) {
+        QmAssertR(JoinDescEx.JoinType == osjtField, "Index-join doesn't support storage flag");
         TStr TypeStr = JoinVal->GetObjStr("storage");
         TStrV Parts;
         TypeStr.SplitOnAllCh('-', Parts);
@@ -157,13 +163,17 @@ TJoinDescEx TStoreSchema::ParseJoinDescEx(const PJsonVal& JoinVal) {
     }
     // field-join only - check flags where fields are stored
     if (JoinDescEx.JoinType == osjtField) {
-        TStr StoreLocStr = JoinVal->GetObjStr("storage_location", "memory"); // default is store in memory
-        if (StoreLocStr == "memory") {
-            JoinDescEx.FieldStoreLoc = slMemory;
-        } else if (StoreLocStr == "cache") {
-            JoinDescEx.FieldStoreLoc = slDisk;
+        if (JoinVal->IsObjKey("storage_location")) {
+            TStr StoreLocStr = JoinVal->GetObjStr("storage_location");
+            if (StoreLocStr == "memory") {
+                JoinDescEx.FieldStoreLoc = slMemory;
+            } else if (StoreLocStr == "cache") {
+                JoinDescEx.FieldStoreLoc = slDisk;
+            } else {
+                throw TQmExcept::New(TStr::Fmt("Unsupported 'storage_location' flag for join: %s", StoreLocStr.CStr()));
+            }
         } else {
-            throw TQmExcept::New(TStr::Fmt("Unsupported 'storage_location' flag for join: %s", StoreLocStr.CStr()));
+            JoinDescEx.FieldStoreLoc = DefaultFieldStoreLoc;
         }
     }
     // done
@@ -281,7 +291,7 @@ TIndexKeyEx TStoreSchema::ParseIndexKeyEx(const PJsonVal& IndexKeyVal) {
     return IndexKeyEx;
 }
 
-TStoreSchema::TStoreSchema(const TWPt<TBase>& Base, const PJsonVal& StoreVal) : StoreId(0), HasStoreIdP(false) {
+TStoreSchema::TStoreSchema(const TWPt<TBase>& Base, const PJsonVal& StoreVal) : StoreId(0), HasStoreIdP(false), DefaultFieldStoreLoc(slMemory) {
     QmAssertR(StoreVal->IsObj(), "Invalid JSON for store definition.");
     // get store name
     QmAssertR(StoreVal->IsObjKey("name"), "Missing store name.");
@@ -292,6 +302,16 @@ TStoreSchema::TStoreSchema(const TWPt<TBase>& Base, const PJsonVal& StoreVal) : 
         PJsonVal options = StoreVal->GetObjKey("options");
         if (options->IsObjKey("type")) {
             StoreType = options->GetObjStr("type");
+        }
+        if (options->IsObjKey("storage_location")) {
+            TStr StoreLocStr = options->GetObjStr("storage_location");
+            if (StoreLocStr == "memory") {
+                DefaultFieldStoreLoc = slMemory;
+            } else if (StoreLocStr == "cache") {
+                DefaultFieldStoreLoc = slDisk;
+            } else {
+                throw TQmExcept::New(TStr::Fmt("Unsupported 'storage_location' flag for store %s: %s", StoreName.CStr(), StoreLocStr.CStr()));
+            }
         }
         // parse block size
         BlockSizeMem = MAX(1, options->GetObjInt("block_size_mem", BlockSizeMem));
