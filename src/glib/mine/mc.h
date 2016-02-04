@@ -28,7 +28,7 @@ class TStreamStoryCallback {
 public:
 	virtual ~TStreamStoryCallback() {}
 
-	virtual void OnStateChanged(const TIntFltPrV& StateIdHeightV) = 0;
+	virtual void OnStateChanged(const uint64 Tm, const TIntFltPrV& StateIdHeightV) = 0;
 	virtual void OnAnomaly(const TStr& AnomalyDesc) = 0;
 	virtual void OnOutlier(const TFltV& FtrV) = 0;
 	virtual void OnProgress(const int& Perc, const TStr& Msg) = 0;
@@ -820,8 +820,9 @@ public:
 	// histograms
 	void GetHistogram(const int& StateId, const int& FtrId, TFltV& BinStartV, TFltV& ProbV,
 			TFltV& AllProbV) const;
-	void GetTransitionHistogram(const int& SourceId, const int& TargetId, const int& FtrId,
-			TFltV& BinStartV, TFltV& ProbV) const;
+	void GetTransitionHistogram(const int& SourceId, const int& TargetId,
+			const int& FtrId, TFltV& BinStartV, TFltV& SourceProbV, TFltV& TargetProbV,
+			TFltV& AllProbV) const;
 
 	// state explanations
 	void GetStateWgtV(const int& StateId, TFltV& WgtV) const;

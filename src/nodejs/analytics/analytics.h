@@ -1914,7 +1914,7 @@ public:
 	JsDeclareFunction(save);
 
 	// TMcCallback - callbacks
-	void OnStateChanged(const TIntFltPrV& StateIdHeightV);
+	void OnStateChanged(const uint64 Tm, const TIntFltPrV& StateIdHeightV);
 	void OnAnomaly(const TStr& AnomalyDesc);
 	void OnOutlier(const TFltV& FtrV);
 	void OnProgress(const int& Perc, const TStr& Msg);
@@ -1926,8 +1926,8 @@ private:
 	void SetParams(const PJsonVal& ParamVal);
 	void InitCallbacks();
 
-	static v8::Local<v8::Object> WrapHistogram(const TFltV& BinStartV, const TFltV& ProbV,
-			const TFltV& AllProbV);
+	static v8::Local<v8::Object> WrapHistogram(const TFltV& BinStartV,
+			const TFltV& SourceProbV, const TFltV& TargetProbV, const TFltV& AllProbV);
 	static uint64 GetTmUnit(const TStr& TmUnitStr);
 	static TClustering::PDnsKMeans GetClust(const PJsonVal& ParamJson, const TRnd& Rnd);
 };

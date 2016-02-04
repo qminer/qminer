@@ -1561,6 +1561,7 @@ TNodeJsStreamStory::~TNodeJsStreamStory() {
 	OutlierCallback.Reset();
 	ProgressCallback.Reset();
 	PredictionCallback.Reset();
+	ActivityCallback.Reset();
 	delete StreamStory;
 }
 
@@ -1916,7 +1917,7 @@ void TNodeJsStreamStory::histogram(const v8::FunctionCallbackInfo<v8::Value>& Ar
 	TFltV BinStartV, ProbV, AllProbV;
 	JsStreamStory->StreamStory->GetHistogram(StateId, FtrId, BinStartV, ProbV, AllProbV);
 
-	v8::Local<v8::Object> Result = WrapHistogram(BinStartV, ProbV, AllProbV);
+	v8::Local<v8::Object> Result = WrapHistogram(BinStartV, ProbV, TFltV(), AllProbV);
 	Args.GetReturnValue().Set(Result);
 }
 
@@ -1932,11 +1933,11 @@ void TNodeJsStreamStory::transitionHistogram(const v8::FunctionCallbackInfo<v8::
 	const int TargetId = TNodeJsUtil::GetArgInt32(Args, 1);
 	const int FtrId = TNodeJsUtil::GetArgInt32(Args, 2);
 
-	TFltV BinStartV, ProbV;
+	TFltV BinStartV, SourceProbV, TargetProbV, AllProbV;
 
-	JsStreamStory->StreamStory->GetTransitionHistogram(SourceId, TargetId, FtrId, BinStartV, ProbV);
+	JsStreamStory->StreamStory->GetTransitionHistogram(SourceId, TargetId, FtrId, BinStartV, SourceProbV, TargetProbV, AllProbV);
 
-	v8::Local<v8::Object> Result = WrapHistogram(BinStartV, ProbV, TFltV());
+	v8::Local<v8::Object> Result = WrapHistogram(BinStartV, SourceProbV, TargetProbV, AllProbV);
 	Args.GetReturnValue().Set(Result);
 }
 
@@ -2486,12 +2487,14 @@ void TNodeJsStreamStory::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	}
 }
 
-void TNodeJsStreamStory::OnStateChanged(const TIntFltPrV& StateIdHeightV) {
+void TNodeJsStreamStory::OnStateChanged(const uint64 Tm, const TIntFltPrV& StateIdHeightV) {
 	if (!StateChangedCallback.IsEmpty()) {
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::HandleScope HandleScope(Isolate);
 
+		v8::Local<v8::Value> JsTm = v8::Date::New(Isolate, (double) TNodeJsUtil::GetJsTimestamp(Tm));
 		v8::Local<v8::Array> StateArr = v8::Array::New(Isolate, StateIdHeightV.Len());
+
 		for (int i = 0; i < StateIdHeightV.Len(); i++) {
 			v8::Local<v8::Object> StateObj = v8::Object::New(Isolate);
 
@@ -2502,7 +2505,7 @@ void TNodeJsStreamStory::OnStateChanged(const TIntFltPrV& StateIdHeightV) {
 		}
 
 		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, StateChangedCallback);
-		TNodeJsUtil::ExecuteVoid(Callback, StateArr);
+		TNodeJsUtil::ExecuteVoid(Callback, JsTm, StateArr);
 	}
 }
 
@@ -2596,14 +2599,14 @@ void TNodeJsStreamStory::InitCallbacks() {
 	StreamStory->SetCallback(this);
 }
 
-v8::Local<v8::Object> TNodeJsStreamStory::WrapHistogram(const TFltV& BinStartV, const TFltV& ProbV,
-		const TFltV& AllProbV) {
+v8::Local<v8::Object> TNodeJsStreamStory::WrapHistogram(const TFltV& BinStartV,
+		const TFltV& SourceProbV, const TFltV& TargetProbV, const TFltV& AllProbV) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::EscapableHandleScope HandleScope(Isolate);
 
 	v8::Local<v8::Object> Result = v8::Object::New(Isolate);
 	v8::Local<v8::Array> BinStartJsV = v8::Array::New(Isolate, BinStartV.Len());
-	v8::Local<v8::Array> ProbJsV = v8::Array::New(Isolate, ProbV.Len());
+	v8::Local<v8::Array> ProbJsV = v8::Array::New(Isolate, SourceProbV.Len());
 
 	double TotalProb = 0;
 
@@ -2611,14 +2614,25 @@ v8::Local<v8::Object> TNodeJsStreamStory::WrapHistogram(const TFltV& BinStartV, 
 		BinStartJsV->Set(i, v8::Number::New(Isolate, BinStartV[i]));
 	}
 
-	for (int i = 0; i < ProbV.Len(); i++) {
-		ProbJsV->Set(i, v8::Number::New(Isolate, ProbV[i]));
-		TotalProb += ProbV[i];
+	for (int i = 0; i < SourceProbV.Len(); i++) {
+		ProbJsV->Set(i, v8::Number::New(Isolate, SourceProbV[i]));
+		TotalProb += SourceProbV[i];
 	}
 
 	Result->Set(v8::String::NewFromUtf8(Isolate, "binStartV"), BinStartJsV);
 	Result->Set(v8::String::NewFromUtf8(Isolate, "probV"), ProbJsV);
 	Result->Set(v8::String::NewFromUtf8(Isolate, "probSum"), v8::Number::New(Isolate, TotalProb));
+
+	if (!TargetProbV.Empty()) {
+		v8::Local<v8::Array> TargetProbJsV = v8::Array::New(Isolate, TargetProbV.Len());
+		double TargetProbSum = 0;
+		for (int i = 0; i < TargetProbV.Len(); i++) {
+			TargetProbJsV->Set(i, v8::Number::New(Isolate, TargetProbV[i]));
+			TargetProbSum += TargetProbV[i];
+		}
+		Result->Set(v8::String::NewFromUtf8(Isolate, "targetProbV"), TargetProbJsV);
+		Result->Set(v8::String::NewFromUtf8(Isolate, "targetProbSum"), v8::Number::New(Isolate, TargetProbSum));
+	}
 
 	if (!AllProbV.Empty()) {
 		v8::Local<v8::Array> AllProbJsV = v8::Array::New(Isolate, AllProbV.Len());

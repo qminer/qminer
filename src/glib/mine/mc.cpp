@@ -2930,7 +2930,7 @@ void THierarch::ClrFlds() {
 /////////////////////////////////////////////////////////////////
 // UI helper
 const double TUiHelper::STEP_FACTOR = 1e-2;
-const double TUiHelper::INIT_RADIUS_FACTOR = 1.4;//1.2;
+const double TUiHelper::INIT_RADIUS_FACTOR = 1.2;
 
 TUiHelper::TUiHelper(const TRnd& _Rnd, const bool& _Verbose):
 		StateCoordV(),
@@ -3928,7 +3928,7 @@ void TStreamStory::OnAddRec(const uint64& RecTm, const TFltV& ObsFtrV, const TFl
 			ActivityDetector->OnStateChanged(RecTm, NewStateId);
 
 			TIntFltPrV CurrStateV;	GetCurrStateAncestry(CurrStateV);
-			Callback->OnStateChanged(CurrStateV);
+			Callback->OnStateChanged(RecTm, CurrStateV);
 		}
 	}
 
@@ -4051,13 +4051,46 @@ void TStreamStory::GetHistogram(const int& StateId, const int& FtrId, TFltV& Bin
 	}
 }
 
-void TStreamStory::GetTransitionHistogram(const int& SourceId, const int& TargetId, const int& FtrId,
-		TFltV& BinStartV, TFltV& ProbV) const {
+void TStreamStory::GetTransitionHistogram(const int& SourceId, const int& TargetId,
+		const int& FtrId, TFltV& BinStartV, TFltV& SourceProbV, TFltV& TargetProbV,
+		TFltV& AllProbV) const {
 	try {
-		TIntV SourceLeafV, TargetLeafV;
-		Hierarch->GetLeafDescendantV(SourceId, SourceLeafV);
-		Hierarch->GetLeafDescendantV(TargetId, TargetLeafV);
-		StateIdentifier->GetTransitionHistogram(FtrId, SourceLeafV, TargetLeafV, BinStartV, ProbV);
+		TIntV SourceLeafIdV;
+		TIntV TargetLeafIdV;
+		TIntV AllLeafIdV;
+
+		Hierarch->GetLeafDescendantV(SourceId, SourceLeafIdV);
+		Hierarch->GetLeafDescendantV(TargetId, TargetLeafIdV);
+		Hierarch->GetLeafIdV(AllLeafIdV);
+
+		StateIdentifier->GetHistogram(FtrId, SourceLeafIdV, BinStartV, SourceProbV);
+		StateIdentifier->GetHistogram(FtrId, TargetLeafIdV, BinStartV, TargetProbV);
+		StateIdentifier->GetHistogram(FtrId, AllLeafIdV, BinStartV, AllProbV);
+
+		uint64 NSourcePts = 0;
+		uint64 NTargetPts = 0;
+		uint64 NAllPts = 0;
+		for (int StateN = 0; StateN < SourceLeafIdV.Len(); StateN++) {
+			NSourcePts += StateIdentifier->GetStateSize(SourceLeafIdV[StateN]);
+		}
+		for (int StateN = 0; StateN < TargetLeafIdV.Len(); StateN++) {
+			NTargetPts += StateIdentifier->GetStateSize(TargetLeafIdV[StateN]);
+		}
+		for (int StateN = 0; StateN < AllLeafIdV.Len(); StateN++) {
+			NAllPts += StateIdentifier->GetStateSize(AllLeafIdV[StateN]);
+		}
+
+		const double SourceRatio = NAllPts == 0 ? 0.0 : double(NSourcePts) / NAllPts;
+		const double TargetRatio = NAllPts == 0 ? 0.0 : double(NTargetPts) / NAllPts;
+
+		EAssert(SourceProbV.Len() == TargetProbV.Len());
+
+		for (int BinN = 0; BinN < SourceProbV.Len(); BinN++) {
+			SourceProbV[BinN] *= SourceRatio;
+			TargetProbV[BinN] *= TargetRatio;
+		}
+
+//		StateIdentifier->GetTransitionHistogram(FtrId, SourceLeafV, TargetLeafV, BinStartV, ProbV);
 	} catch (const PExcept& Except) {
 		Notify->OnNotifyFmt(TNotifyType::ntErr, "THierarch::GetTransitionHistogram: Failed to fetch histogram: %s", Except->GetMsgStr().CStr());
 		throw Except;
