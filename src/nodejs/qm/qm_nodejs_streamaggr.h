@@ -578,7 +578,7 @@
 *    inAggr: 'TimeSeriesAggr',
 *    threshold: 3
 * };
-* var expoMovingAverage = base.store("Heat").addStreamAggr(ema);
+* var expoMovingAverage = base.store("Heat").addStreamAggr(thresholdAggr);
 * base.close();
 */
 
