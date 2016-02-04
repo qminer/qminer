@@ -36,7 +36,6 @@ void TNodeJsStreamAggr::Init(v8::Handle<v8::Object> exports) {
 	
 	// Add all methods, getters and setters here.
 	NODE_SET_PROTOTYPE_METHOD(tpl, "reset", _reset);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "onStep", _onStep);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "onTime", _onTime);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "onAdd", _onAdd);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "onUpdate", _onUpdate);
