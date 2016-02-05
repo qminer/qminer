@@ -5983,12 +5983,12 @@ void TStreamAggrBase::Reset() {
 	}
 }
 
-/*void TStreamAggrBase::OnStep() {
+void TStreamAggrBase::OnStep() {
 	int KeyId = StreamAggrH.FFirstKeyId();
 	while (StreamAggrH.FNextKeyId(KeyId)) {
 		StreamAggrH[KeyId]->OnStep();
 	}
-}*/
+}
 
 void TStreamAggrBase::OnAddRec(const TRec& Rec) {
 	int KeyId = StreamAggrH.FFirstKeyId();

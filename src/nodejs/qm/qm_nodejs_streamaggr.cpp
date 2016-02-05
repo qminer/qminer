@@ -36,6 +36,7 @@ void TNodeJsStreamAggr::Init(v8::Handle<v8::Object> exports) {
 	
 	// Add all methods, getters and setters here.
 	NODE_SET_PROTOTYPE_METHOD(tpl, "reset", _reset);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "onTime", _onTime);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "onAdd", _onAdd);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "onUpdate", _onUpdate);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "onDelete", _onDelete);
@@ -167,6 +168,19 @@ void TNodeJsStreamAggr::reset(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	// unwrap
 	TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
 	JsSA->SA->Reset();
+
+	Args.GetReturnValue().Set(Args.Holder());
+}
+
+void TNodeJsStreamAggr::onTime(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	// unwrap
+	TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+	QmAssertR(Args.Length() == 1 && Args[0]->IsNumber(), "sa.onTime should take one argument of type TUInt64");
+	const uint64 Time = TNodeJsUtil::GetArgTmMSecs(Args, 0);
+	JsSA->SA->OnTime(Time);
 
 	Args.GetReturnValue().Set(Args.Holder());
 }
@@ -659,6 +673,18 @@ TNodeJsFuncStreamAggr::TNodeJsFuncStreamAggr(TWPt<TQm::TBase> _Base, const TStr&
 		ResetFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_ResetFun));
 	}
 
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "onStep"))) {
+		v8::Handle<v8::Value> _OnStepFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "onStep"));
+		QmAssert(_OnStepFun->IsFunction());
+		OnStepFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_OnStepFun));
+	}
+
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "onTime"))) {
+		v8::Handle<v8::Value> _OnTimeFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "onTime"));
+		QmAssert(_OnTimeFun->IsFunction());
+		OnTimeFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_OnTimeFun));
+	}
+
 	v8::Handle<v8::Value> _OnAddFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "onAdd"));
 	QmAssert(_OnAddFun->IsFunction());
 	OnAddFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_OnAddFun));
@@ -810,6 +836,8 @@ TNodeJsFuncStreamAggr::TNodeJsFuncStreamAggr(TWPt<TQm::TBase> _Base, const TStr&
 TNodeJsFuncStreamAggr::~TNodeJsFuncStreamAggr() {
 	// callbacks
 	ResetFun.Reset();
+	OnStepFun.Reset();
+	OnTimeFun.Reset();
 	OnAddFun.Reset();
 	OnUpdateFun.Reset();
 	OnDeleteFun.Reset();
@@ -864,6 +892,43 @@ void TNodeJsFuncStreamAggr::Reset() {
 		if (TryCatch.HasCaught()) {
 			v8::String::Utf8Value Msg(TryCatch.Message()->Get());
 			throw TQm::TQmExcept::New("Javascript exception from callback triggered in " + TStr(__FUNCTION__) + TStr(": ") + TStr(*Msg));
+		}
+	}
+}
+
+void TNodeJsFuncStreamAggr::OnStep() {
+	if (!OnStepFun.IsEmpty()) {
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope HandleScope(Isolate);
+
+		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, OnStepFun);
+		v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+
+		v8::TryCatch TryCatch;
+		Callback->Call(GlobalContext, 0, NULL);
+		if (TryCatch.HasCaught()) {
+			v8::String::Utf8Value Msg(TryCatch.Message()->Get());
+			throw TQm::TQmExcept::New("Javascript exception from callback triggered in TNodeJsFuncStreamAggr::OnStep :" + TStr(*Msg));
+		}
+	}
+}
+
+void TNodeJsFuncStreamAggr::OnTime(const uint64& Time) {
+	if (!OnTimeFun.IsEmpty()) {
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope HandleScope(Isolate);
+
+		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, OnTimeFun);
+		v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+
+		const unsigned Argc = 1;
+		v8::Local<v8::Value> ArgV[Argc] = { v8::Number::New(Isolate, Time) };
+		v8::TryCatch TryCatch;
+		Callback->Call(GlobalContext, Argc, ArgV);
+
+		if (TryCatch.HasCaught()) {
+			v8::String::Utf8Value Msg(TryCatch.Message()->Get());
+			throw TQm::TQmExcept::New("Javascript exception from callback triggered in TNodeJsFuncStreamAggr::OnTimeFun :" + TStr(*Msg));
 		}
 	}
 }
