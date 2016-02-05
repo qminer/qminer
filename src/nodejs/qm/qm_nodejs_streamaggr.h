@@ -575,7 +575,7 @@
 *    name: 'thresholdAggr1',
 *    type: 'threshold',
 *    store: 'Heat',
-*    inAggr: 'TimeSeriesAggr',
+*    inAggr: 'TimeSeriesTickAggr',
 *    threshold: 3
 * };
 * var expoMovingAverage = base.store("Heat").addStreamAggr(thresholdAggr);
