@@ -1189,7 +1189,7 @@ public:
 	* @param {TmMsec} ts - Timestamp in milliseconds.
 	* @returns {module:qm.StreamAggr} Self. Values in the stream aggregator are changed as defined in the inner onTime function.
 	*/
-	//# exports.StreamAggr.prototype.onAdd = function (rec) { return Object.create(require('qminer').StreamAggr.prototype); };
+	//# exports.StreamAggr.prototype.onTime = function (ts) { return Object.create(require('qminer').StreamAggr.prototype); };
 	JsDeclareFunction(onTime);
 
 	/**
