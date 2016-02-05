@@ -1132,6 +1132,12 @@
 	*/
  exports.StreamAggr.prototype.reset = function () { return Object.create(require('qminer').StreamAggr.prototype);  };
 /**
+	* Executes the function that updates the aggregate at a given timestamp
+	* @param {TmMsec} ts - Timestamp in milliseconds.
+	* @returns {module:qm.StreamAggr} Self. Values in the stream aggregator are changed as defined in the inner onTime function.
+	*/
+ exports.StreamAggr.prototype.onTime = function (ts) { return Object.create(require('qminer').StreamAggr.prototype); };
+/**
 	* Executes the function when a new record is put in store.
 	* @param {module:qm.Record} rec - The record given to the stream aggregator.
 	* @returns {module:qm.StreamAggr} Self. Values in the stream aggregator are changed as defined in the inner onAdd function.
