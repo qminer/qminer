@@ -68,6 +68,7 @@ describe('Index-Join Test', function () {
 // utility functions
 
 function CreateBase(type, type2, sloc) {
+    console.log(type + "/" + type2 + "/" + sloc); // this output is here to verify that correct combinations are executed
     var base = new qm.Base({
         mode: 'createClean',
         schema: [
@@ -110,10 +111,8 @@ function FillAndCheck(base, rec_id_type, freq_type) {
     assert(rs_all.length == 1);
     assert(rs_all[0].$id == id1);
     assert(rs_all[0].name == "John");
-
-    base.close();
 }
-
+/*
 // field joins
 describe('Different join-field-type tests', function () {
     this.timeout(15000);
@@ -131,8 +130,54 @@ describe('Different join-field-type tests', function () {
                     //console.log(rec_id_type, "-", freq_type, " ", sloc);
                     var base = CreateBase(rec_id_type, freq_type, sloc);
                     FillAndCheck(base, rec_id_type, freq_type);
+                    base.close();
                 }
             }
         }
     })
 });
+*/
+
+var rec_id_types = ["uint64", "uint", "uint16", "byte"];
+var freq_types = ["uint16", "byte", "int", "int16", ""];
+function SingleStep(_rec_id_type, _freq_type, _sloc) {
+    var base = CreateBase(_rec_id_type, _freq_type, _sloc);
+    FillAndCheck(base, _rec_id_type, _freq_type);
+    base.close();
+}
+
+for (var k = 0; k < 2; k++) {
+    var sloc = (k == 0 ? "memory" : "cache");
+    for (var i = 0 ; i < rec_id_types.length; i++) {
+        for (var j = 0 ; j < freq_types.length; j++) {
+            var rec_id_type = rec_id_types[i];
+            var freq_type = freq_types[j];
+            describe('Different join-field-type tests ' + rec_id_type + "/" + freq_type + "/" + sloc, function () {
+                this.timeout(15000);
+                it('should pass', function (rec_id_type, freq_type, sloc) {
+                    return function() {
+                        SingleStep(rec_id_type, freq_type, sloc);
+                    };
+                }(rec_id_type, freq_type, sloc))
+            });
+        }
+    }
+}
+/*
+{
+    console.log("##");
+    var rec_id_type = rec_id_types[2];
+    var freq_type = freq_types[4];
+    var sloc = "memory"; // : "cache");
+    var base = CreateBase(rec_id_type, freq_type, sloc);
+    FillAndCheck(base, rec_id_type, freq_type);
+    console.log("##");
+    
+    for (var i = 0; i < 5000; i++) {
+        base.store('People').push({ name: "Jim" + i })
+    }
+    console.log("##");
+    
+    base.close();
+}
+*/

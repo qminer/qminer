@@ -92,6 +92,8 @@ function PerformTest(field_type, min, max, do_round) {
 				assert.equal(result.length, 0);
 				result = db.base.search({ $from: store_name, val: { $lt: min} });
 				assert.equal(result.length, 1);
+				result = db.base.search({ $from: store_name, val: min });
+				assert.equal(result.length, 1);
 				result = db.base.search({ $from: store_name, val: { $lt: max} });
 				assert.equal(result.length, records);
 			} finally {
