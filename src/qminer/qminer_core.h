@@ -3345,11 +3345,11 @@ public:
 	virtual void Reset() = 0;
 
 	/// Update state of the aggregate
-	virtual void OnStep() = 0;
+	virtual void OnStep() { }
 	/// Update state of the aggregate at time
-	virtual void OnTime(const uint64& TmMsec) = 0;
+	virtual void OnTime(const uint64& TmMsec) { OnStep(); }
 	/// Add new record to aggregate
-	virtual void OnAddRec(const TRec& Rec) = 0;
+	virtual void OnAddRec(const TRec& Rec) { OnStep(); }
 	/// Recored already added to the aggregate is being updated
 	virtual void OnUpdateRec(const TRec& Rec) { }
 	/// Recored already added to the aggregate is being deleted from the store 
