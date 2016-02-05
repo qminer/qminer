@@ -138,6 +138,9 @@
                     <dt><a href="module-qm.StreamAggr.html#onDelete">onDelete(rec)</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-qm.StreamAggr.html#onTime">onTime(ts)</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.StreamAggr.html#onUpdate">onUpdate(rec)</a></dt>
                     <dd>
                     </dd>
@@ -1227,6 +1230,43 @@ base.close();</code></pre>
                 <dt>Returns</dt>
                 <dd>
                   <p><code><a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></code>&nbsp;Self. The values in the stream aggregator are changed as defined in the inner onDelete function.</p>
+                </dd>
+              </dl>
+              <h3 id="onTime"><span class="symbol-name">onTime</span><span class="signature"><span class="signature-params">(ts)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></span></span></h3>
+              <p>Executes the function that updates the aggregate at a given timestamp</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>ts</p>
+                      </td>
+                      <td>
+                        <p>TmMsec</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Timestamp in milliseconds.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></code>&nbsp;Self. Values in the stream aggregator are changed as defined in the inner onTime function.</p>
                 </dd>
               </dl>
               <h3 id="onUpdate"><span class="symbol-name">onUpdate</span><span class="signature"><span class="signature-params">(rec)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></span></span></h3>

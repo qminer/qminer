@@ -471,6 +471,10 @@ void TRecBuffer::OnAddRec(const TRec& Rec) {
 	Buffer.Update(Rec.GetRecId());
 }
 
+void TRecBuffer::OnTime(const uint64& TmMsec) { }
+
+void TRecBuffer::OnStep() { }
+
 TRecBuffer::TRecBuffer(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
     TStreamAggr(Base, ParamVal), Buffer(ParamVal->GetObjInt("size")), Store(Base->GetStoreByStoreNm(ParamVal->GetObjStr("store"))) { }
 
@@ -505,6 +509,15 @@ void TTimeSeriesTick::OnAddRec(const TRec& Rec) {
 	TickVal = ValReader.GetFlt(Rec);
 	TmMSecs = Rec.GetFieldTmMSecs(TimeFieldId);
     InitP = true;
+}
+
+void TTimeSeriesTick::OnTime(const uint64& Time) {
+	TmMSecs = Time;
+	InitP = true;
+}
+
+void TTimeSeriesTick::OnStep() {
+	QmAssertR(false, "This should have not been executed.");
 }
 
 TTimeSeriesTick::TTimeSeriesTick(const TWPt<TBase>& Base, const PJsonVal& ParamVal): 
@@ -546,14 +559,22 @@ PJsonVal TTimeSeriesTick::SaveJson(const int& Limit) const {
 	return Val;
 }
 
-
 ///////////////////////////////
 // Exponential Moving Average.
 void TEma::OnAddRec(const TRec& Rec) {
+	OnStep();
+}
+
+void TEma::OnTime(const uint64& TmMsec) {
+	OnStep();
+}
+
+void TEma::OnStep() {
 	if (InAggr->IsInit()) {
 		Ema.Update(InAggrVal->GetFlt(), InAggrVal->GetTmMSecs());
 	}
 }
+
 
 TEma::TEma(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal), Ema(ParamVal) {
     // parse out input aggregate
@@ -588,13 +609,20 @@ PJsonVal TEma::SaveJson(const int& Limit) const {
 ///////////////////////////////
 // Exponential Moving Average for sparse vectors
 void TEmaSpVec::OnAddRec(const TRec& Rec) {
+	OnStep();
+}
+
+void TEmaSpVec::OnTime(const uint64& TmMsec) {
+	OnStep();
+}
+
+void TEmaSpVec::OnStep() {
 	if (InAggr->IsInit()) {
 		TIntFltKdV Vals;
 		InAggrVal->GetValV(Vals);
 		Ema.Update(Vals, InAggrVal->GetTmMSecs());
 	}
 }
-
 TEmaSpVec::TEmaSpVec(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal), Ema(ParamVal) {
 	// parse out input aggregate
 	TStr InStoreNm = ParamVal->GetObjStr("store", "");
@@ -628,11 +656,19 @@ PJsonVal TEmaSpVec::SaveJson(const int& Limit) const {
 ///////////////////////////////
 // Moving Covariance
 void TCov::OnAddRec(const TRec& Rec) {
+    OnStep();
+}
+
+void TCov::OnTime(const uint64& TmMsec) {
+    OnStep();
+}
+
+void TCov::OnStep() {
     TFltV ValVX; InAggrValX->GetOutValV(ValVX);
-    TUInt64V TmMSecsV; InAggrValX->GetOutTmMSecsV(TmMSecsV);        
+    TUInt64V TmMSecsV; InAggrValX->GetOutTmMSecsV(TmMSecsV);
     TFltV ValVY; InAggrValY->GetOutValV(ValVY);
 	if (InAggrX->IsInit() && InAggrY->IsInit()) {
-		Cov.Update(InAggrValX->GetInVal(), InAggrValY->GetInVal(), 
+		Cov.Update(InAggrValX->GetInVal(), InAggrValY->GetInVal(),
             InAggrValX->GetInTmMSecs(), ValVX, ValVY, TmMSecsV, InAggrValX->GetVals());
 	}
 }
@@ -690,6 +726,14 @@ void TCorr::InitInAggr(const TWPt<TStreamAggrBase> SABase,
 }
 
 void TCorr::OnAddRec(const TRec& Rec) {
+    OnStep();
+}
+
+void TCorr::OnTime(const uint64& TmMsec) {
+	OnStep();
+}
+
+void TCorr::OnStep() {
     //Corr = InAggrValCov->GetFlt() / ( sqrt(InAggrValVarX->GetFlt()) * sqrt(InAggrValVarY->GetFlt()));
     TFlt Cov = InAggrValCov->GetFlt();
     TFlt Var1 = InAggrValVarX->GetFlt();
@@ -929,6 +973,14 @@ void TMerger::OnAddRec(const TQm::TRec& Rec) {
 	}
 }
 
+void TMerger::OnTime(const uint64& TmMsec) {
+	QmAssertR(false, "Merger::OnTime(const uint64& TmMsec) not supported.");
+}
+
+void TMerger::OnStep() {
+	QmAssertR(false, "Merger::OnStep() should not be executed.");
+}
+
 void TMerger::OnAddRec(const TQm::TRec& Rec, const TInt& FieldMapIdx) {
 	const int InterpIdx = FieldMapIdx; //StoreIdFldIdPrBuffIdxH.GetDat(StoreIdInFldIdPr);
 	
@@ -1151,6 +1203,9 @@ void TResampler::OnAddRec(const TRec& Rec) {
 	RefreshInterpolators(RecTmMSecs);
 }
 
+void TResampler::OnTime(const uint64& TmMsec) { QmAssertR(false, "TResampler::OnTime(const uint64& TmMsec): not supported."); }
+void TResampler::OnStep() { QmAssertR(false, "TResampler::OnStep(): should not be executed."); }
+
 void TResampler::RefreshInterpolators(const uint64& Tm) {
 	// update time in the interpolators
 	for (int i = 0; i < InterpolatorV.Len(); i++) {
@@ -1258,6 +1313,10 @@ void TFtrExtAggr::OnAddRec(const TRec& Rec) {
 	FtrSpace->GetFullV(Rec, Vec);
 }
 
+void TFtrExtAggr::OnTime(const uint64& TmMsec) { }
+
+void TFtrExtAggr::OnStep() { }
+
 TFtrExtAggr::TFtrExtAggr(const TWPt<TBase>& Base, const TStr& AggrNm, const TWPt<TFtrSpace>& _FtrSpace) :
 	TStreamAggr(Base, AggrNm) {
 
@@ -1293,6 +1352,15 @@ PJsonVal TFtrExtAggr::SaveJson(const int& Limit) const {
 ///////////////////////////////
 /// Histogram stream aggregate
 void TOnlineHistogram::OnAddRec(const TRec& Rec) {
+	OnStep();
+}
+
+void TOnlineHistogram::OnTime(const uint64& TmMsec) {
+	OnStep();
+}
+
+
+void TOnlineHistogram::OnStep() {
 	if (BufferedP) {
 		TFltV UpdateV;
 		InAggrValBuffer->GetInValV(UpdateV);
@@ -1308,6 +1376,7 @@ void TOnlineHistogram::OnAddRec(const TRec& Rec) {
 		Model.Increment(InAggrVal->GetFlt());
 	}
 }
+
 
 TOnlineHistogram::TOnlineHistogram(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
 		TStreamAggr(Base, ParamVal), Model(ParamVal) {
@@ -1364,15 +1433,19 @@ PStreamAggr TTDigest::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
 }
 
 void TTDigest::OnAddRec(const TRec& Rec) {
-    TFlt Val = InAggrVal->GetFlt();
-	if (InAggr->IsInit()) {
-	    Model.Update(Val);
-	}
+	OnStep();
 }
 
-/*void TTDigest::OnStep() {
-	Model.MergeValues();
-}*/
+void TTDigest::OnTime(const uint64& TmMsec) {
+	OnStep();
+}
+
+void TTDigest::OnStep() {
+	TFlt Val = InAggrVal->GetFlt();
+	if (InAggr->IsInit()) {
+		Model.Update(Val);
+	}
+}
 
 void TTDigest::Add(const TFlt& Val) {
 	if (InAggr->IsInit()) {
@@ -1399,7 +1472,15 @@ void TTDigest::SaveState(TSOut& SOut) const {
 ///////////////////////////////
 /// Chi square stream aggregate
 void TChiSquare::OnAddRec(const TRec& Rec) {
-    TFltV ValVX; InAggrValX->GetValV(ValVX);        
+    OnStep();
+}
+
+void TChiSquare::OnTime(const uint64& TmMsec) {
+    OnStep();
+}
+
+void TChiSquare::OnStep() {
+    TFltV ValVX; InAggrValX->GetValV(ValVX);
     TFltV ValVY; InAggrValY->GetValV(ValVY);
 	if (InAggrX->IsInit() && InAggrY->IsInit()) {
 		ChiSquare.Update(ValVX, ValVY);
@@ -1520,6 +1601,14 @@ void TSlottedHistogram::GetStats(const uint64 TsMin, const uint64 TsMax, TFltV& 
 
 /// Triggered when a record is added
 void TOnlineSlottedHistogram::OnAddRec(const TRec& Rec) {
+	OnStep();
+}
+
+void TOnlineSlottedHistogram::OnTime(const uint64& TmMsec) {
+	OnStep();
+}
+
+void TOnlineSlottedHistogram::OnStep() {
 	if (BufferedP) {
 		LastTm = InAggrValBuffer->GetInTmMSecs();
 		Model->Add(InAggrValBuffer->GetInTmMSecs(), (int)InAggrValBuffer->GetInVal());
@@ -1638,6 +1727,16 @@ TVecDiff::TVecDiff(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamA
 PStreamAggr TVecDiff::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
 	return new TVecDiff(Base, ParamVal);
 }
+
+void TVecDiff::OnAddRec(const TRec& Rec) {
+	OnStep();
+}
+
+void TVecDiff::OnTime(const uint64& TmMsec) {
+	OnStep();
+}
+
+void TVecDiff::OnStep() { } // do nothing
 
 /// returns the vector of frequencies
 void TVecDiff::GetValV(TFltV& ValV) const {

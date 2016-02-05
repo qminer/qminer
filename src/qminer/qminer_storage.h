@@ -181,7 +181,8 @@ public:
 	TVec<TJoinDescEx> JoinDescExV;
 	/// Size of blocks for memory storage
 	TInt BlockSizeMem;
-	
+    /// What is the default storage location for fields and field-joins
+    TStoreLoc DefaultFieldStoreLoc;
 private:
 	/// Parse field description from JSon
 	TFieldDesc ParseFieldDesc(const TWPt<TBase>& Base, const PJsonVal& FieldVal);
@@ -193,7 +194,7 @@ private:
 	TIndexKeyEx ParseIndexKeyEx(const PJsonVal& IndexKeyVal);
 	
 public:
-	TStoreSchema() { }
+	TStoreSchema(): DefaultFieldStoreLoc(slMemory) { }
 	TStoreSchema(const TWPt<TBase>& Base, const PJsonVal& StoreVal);
 	
 	/// Parse JSon definition file and return vector of store schemas
