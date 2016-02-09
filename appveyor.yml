@@ -1,19 +1,11 @@
 environment:
-  node_pre_gyp_accessKeyId:
-    secure: jxPeHdKaFnYcMFAUkX+/lcUCKEha3yp5pxxMACxx/lM=
-  node_pre_gyp_secretAccessKey:
-    secure: 7nDsFrQjWQfhXAPESzf6JO+mslguRKGAPyZ5C4x6Sklcuv4E8/3gkGqoahJJKbZo
   matrix:
-  - nodejs_version: "0.12"
   - nodejs_version: "4"
-  - nodejs_version: "5"
 
 platform:
-  - x86
   - x64
 
 configuration:
-  - debug
   - release
 
 shallow_clone: true
@@ -36,8 +28,7 @@ build_script:
   - genExampleTests.bat
   - cd ..
   - .\test\nodejs\test.bat
-  - node_modules\.bin\node-pre-gyp package
-  - if not "%CONFIGURATION%" == "debug" if not "%CM%" == "%CM:[publish binary]=%" if "%APPVEYOR_REPO_NAME%" == "qminer/qminer" if not defined APPVEYOR_PULL_REQUEST_NUMBER  node_modules\.bin\node-pre-gyp unpublish publish
+
 
 test: off
 deploy: off
