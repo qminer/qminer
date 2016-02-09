@@ -4200,7 +4200,8 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const
             Type = oqitRangeUInt64;
             RangeUInt64MnMx.Val1 = RangeUInt64MnMx.Val2 = ParseTm(KeyVal);
         } else if (KeyVal->IsNum()) {
-            QmAssertR(Key.IsSortAsInt() || Key.IsSortAsUInt64() || Key.IsSortAsFlt(),
+            QmAssertR(
+                Key.IsSortAsInt() || Key.IsSortAsInt16() || Key.IsSortAsInt64() || Key.IsSortAsByte() || Key.IsSortAsUInt64() || Key.IsSortAsUInt() || Key.IsSortAsUInt16() || Key.IsSortAsFlt() || Key.IsSortAsSFlt(),
                 "Query: wrong key value for non-integer key " + KeyNm);
             // we are given exact number, make it a range query with both edges equal
             if (Key.IsSortAsInt()) {
@@ -5983,12 +5984,12 @@ void TStreamAggrBase::Reset() {
 	}
 }
 
-/*void TStreamAggrBase::OnStep() {
+void TStreamAggrBase::OnStep() {
 	int KeyId = StreamAggrH.FFirstKeyId();
 	while (StreamAggrH.FNextKeyId(KeyId)) {
 		StreamAggrH[KeyId]->OnStep();
 	}
-}*/
+}
 
 void TStreamAggrBase::OnAddRec(const TRec& Rec) {
 	int KeyId = StreamAggrH.FFirstKeyId();

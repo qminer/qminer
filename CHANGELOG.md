@@ -1,12 +1,39 @@
 # QMiner Change Log
 
-### 29 Jan 2016
+### 5 Feb 2016
 
-**New version: 4.4.0**
+**New version: 4.5.0**
 
 **Non-breaking with new features**
 
 New features:
+- Added support for default field-storage location for whole store. Add special tag `storage_location` in the `options` node of store schema. In the following example, Here, all fields of the store will be stored in cache as this is now the default for the whole store. Each individual field can still override this setting.
+
+```
+{
+    "name": store_name,
+    "fields": [
+        { "name": "name", "type": "string" },
+        { "name": "val", "type": "int" }
+    ],
+    "options": {
+        "storage_location": "cache"
+    }
+}
+```
+- Added on `onTime(unit64 TmMsec)` and `onStep()` functions that enable updating of aggregates without adding a new record in the store. `onTime(unit64 TmMsec)` is added to the NodeJs interface, while `onStep()` is an internal function.
+
+Bug fix:
+- MDS no longer generates compile warnings
+
+
+### 29 Jan 2016
+
+**New version: 4.4.0**
+
+**Non-breaking with new feature**
+
+New feature:
 - `Vector.sparse` takes an optional integer argument for the sparse vector dimension, which can be set to -1 for unknown
 
 Bug fixes:

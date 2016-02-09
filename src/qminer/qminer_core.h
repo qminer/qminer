@@ -2543,7 +2543,7 @@ public:
 	/// Check query type
 	bool IsRangeSFlt() const { return (Type == oqitRangeSFlt); }
 	/// Check query type
-	bool IsRange() const { return (IsRangeInt() || IsRangeUInt64() || IsRangeTm() || IsRangeFlt() || IsRangeSFlt()); }
+	bool IsRange() const { return (IsRangeInt() || IsRangeInt16() || IsRangeInt64() || IsRangeByte() || IsRangeUInt64() || IsRangeUInt() || IsRangeUInt16() || IsRangeTm() || IsRangeFlt() || IsRangeSFlt()); }
 	/// Check query type
 	bool IsAnd() const { return (Type == oqitAnd); }
 	/// Check query type
@@ -3345,11 +3345,11 @@ public:
 	virtual void Reset() = 0;
 
 	/// Update state of the aggregate
-	//virtual void OnStep();
-	/// Add new time to aggregate
-	//virtual void OnTime();
+	virtual void OnStep() { }
+	/// Update state of the aggregate at time
+	virtual void OnTime(const uint64& TmMsec) { OnStep(); }
 	/// Add new record to aggregate
-	virtual void OnAddRec(const TRec& Rec) = 0;
+	virtual void OnAddRec(const TRec& Rec) { OnStep(); }
 	/// Recored already added to the aggregate is being updated
 	virtual void OnUpdateRec(const TRec& Rec) { }
 	/// Recored already added to the aggregate is being deleted from the store 
