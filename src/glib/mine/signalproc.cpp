@@ -1306,21 +1306,25 @@ void TTDigest::MergeValues() {
 	UnmergedSum = 0.0;
 
 	double NewCentroid = 0;
-	int IterI = 0, IterJ = 0;
+	int IterI = 0;
+	int IterJ = 0;
 	// merge existing centroids with added values in temp buffers
+
 	while (IterI < TempLast && IterJ < LastN) {
 		if (TempMean[IterI] <= U[IterJ]) {
 			Sum += TempWeight[IterI];
 			double TW = TempWeight[IterI];
 			double TM = TempMean[IterI];
-			NewCentroid = MergeCentroid(Sum, NewCentroid, TW, TM);
 			IterI++;
+			NewCentroid = MergeCentroid(Sum, NewCentroid, TW, TM);
+
 		} else {
 			Sum += W[IterJ];
 			double TW = W[IterJ];
 			double TM = U[IterJ];
-			NewCentroid = MergeCentroid(Sum, NewCentroid, TW, TM);
 			IterJ++;
+			NewCentroid = MergeCentroid(Sum, NewCentroid, TW, TM);
+
 		}
 	}
 
