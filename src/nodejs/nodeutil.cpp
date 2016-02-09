@@ -779,6 +779,10 @@ uint64 TNodeJsUtil::GetTmMSecs(v8::Handle<v8::Date>& Date) {
 
 //////////////////////////////////////////////////////
 // Async Stuff
+TNodeJsAsyncUtil::TMainData::TMainData(TMainThreadTask* _Task, const bool& _DelTask):
+		Task(_Task),
+		DelTask(_DelTask) {}
+
 TNodeTask::TNodeTask(const v8::FunctionCallbackInfo<v8::Value>& Args):
 		Callback(),
 		ArgPersist(),
@@ -838,4 +842,95 @@ void TNodeTask::ExtractCallback(const v8::FunctionCallbackInfo<v8::Value>& Args)
 	v8::HandleScope HandleScope(Isolate);
 
 	Callback.Reset(Isolate, GetCallback(Args));
+}
+
+//////////////////////////////////////////////////////
+// Node - Asynchronous Utilities
+void TNodeJsAsyncUtil::OnMain(uv_async_t* UvAsync) {
+	TMainData* TaskWrapper = static_cast<TMainData*>(UvAsync->data);
+
+	try {
+		TaskWrapper->Task->Run();
+	} catch (const PExcept& Except) {
+		printf("Exception on main thread: %s!", Except->GetMsgStr().CStr());
+	}
+
+	// clean up
+	uv_close((uv_handle_t*) UvAsync, DelHandle<uv_async_t>);
+	delete TaskWrapper;
+}
+
+void TNodeJsAsyncUtil::OnMainBlock(uv_async_t* UvAsync) {
+	TMainSemaphoreData* Task = static_cast<TMainSemaphoreData*>(UvAsync->data);
+
+	try {
+		Task->Task->Run();
+	} catch (const PExcept& Except) {
+		printf("Exception on main thread: %s!", Except->GetMsgStr().CStr());
+	}
+
+	// clean up
+	uv_close((uv_handle_t*) UvAsync, DelHandle<uv_async_t>);
+
+	uv_sem_post(&Task->Semaphore);
+	uv_sem_destroy(&Task->Semaphore);
+
+	delete Task;
+}
+
+void TNodeJsAsyncUtil::OnWorker(uv_work_t* UvReq) {
+	TWorkerData* Task = static_cast<TWorkerData*>(UvReq->data);
+
+	try {
+		Task->Task->Run();
+	} catch (const PExcept& Except) {
+		printf("Exception on worker thread: %s!", Except->GetMsgStr().CStr());
+	}
+}
+
+void TNodeJsAsyncUtil::AfterOnWorker(uv_work_t* UvReq, int Status) {
+	TWorkerData* Task = static_cast<TWorkerData*>(UvReq->data);
+
+	try {
+		Task->Task->AfterRun();
+	} catch (const PExcept& Except) {
+		printf("Exception when calling callback: %s!", Except->GetMsgStr().CStr());
+	}
+
+	delete Task;
+	delete UvReq;
+}
+
+void TNodeJsAsyncUtil::ExecuteOnMain(TMainThreadTask* Task, const bool& DelTask) {
+	uv_async_t* UvAsync = new uv_async_t;
+	UvAsync->data = new TMainData(Task, DelTask);
+
+	uv_async_init(uv_default_loop(), UvAsync, OnMain);
+	uv_async_send(UvAsync);
+}
+
+void TNodeJsAsyncUtil::ExecuteOnMainAndWait(TMainThreadTask* Task, const bool& DelTask) {
+	uv_async_t* UvAsync = new uv_async_t;
+	TMainSemaphoreData* TaskWrapper = new TMainSemaphoreData(Task, DelTask);
+
+	UvAsync->data = TaskWrapper;
+
+	int Err = uv_sem_init(&TaskWrapper->Semaphore, 0);
+
+	if (Err != 0) {
+		delete UvAsync;
+		delete TaskWrapper;
+		throw TExcept::New("Failed to create a semaphore, code: " + TInt::GetStr(Err) + "!");
+	} else {
+		uv_async_init(uv_default_loop(), UvAsync, OnMainBlock);
+		uv_async_send(UvAsync);
+		uv_sem_wait(&TaskWrapper->Semaphore);
+	}
+}
+
+void TNodeJsAsyncUtil::ExecuteOnWorker(TAsyncTask* Task) {
+	uv_work_t* UvReq = new uv_work_t;
+	UvReq->data = new TWorkerData(Task);
+
+	uv_queue_work(uv_default_loop(), UvReq, OnWorker, AfterOnWorker);
 }

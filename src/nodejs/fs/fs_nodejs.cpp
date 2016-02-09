@@ -148,13 +148,12 @@ void TNodeJsFs::TReadCsvTask::Run() {
 	}
 }
 
-void TNodeJsFs::TReadLinesCallback::Run(const TReadLinesCallback& Task) {
+void TNodeJsFs::TReadLinesCallback::Run() {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, *Task.OnLine);
+	v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, *OnLine);
 
-	const TVec<TStrV>& CsvLineV = Task.CsvLineV;
 	const int TotalLines = CsvLineV.Len();
 
 	v8::Local<v8::Array> LinesArr = v8::Array::New(Isolate, TotalLines);

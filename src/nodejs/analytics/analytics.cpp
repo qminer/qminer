@@ -1673,15 +1673,15 @@ void TNodeJsStreamStory::TFitTask::Run() {
 	}
 }
 
-void TNodeJsStreamStory::TProgressTask::Run(const TProgressTask& Task) {
-	if (!Task.ProgressCallback->IsEmpty()) {
+void TNodeJsStreamStory::TProgressTask::Run() {
+	if (!ProgressCallback->IsEmpty()) {
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::HandleScope HandleScope(Isolate);
 
-		v8::Local<v8::Integer> JsPerc = v8::Integer::New(Isolate, Task.Perc);
-		v8::Local<v8::String> JsMsg = v8::String::NewFromUtf8(Isolate, Task.Msg.CStr());
+		v8::Local<v8::Integer> JsPerc = v8::Integer::New(Isolate, Perc);
+		v8::Local<v8::String> JsMsg = v8::String::NewFromUtf8(Isolate, Msg.CStr());
 
-		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, *Task.ProgressCallback);
+		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, *ProgressCallback);
 		TNodeJsUtil::ExecuteVoid(Callback, JsPerc->ToObject(), JsMsg->ToObject());
 	}
 }

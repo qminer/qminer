@@ -1609,7 +1609,7 @@ private:
 		void Run();
 	};
 
-	class TProgressTask {
+	class TProgressTask: public TMainThreadTask {
 	private:
 		int Perc;
 		TStr Msg;
@@ -1619,7 +1619,7 @@ private:
 			Perc(_Perc),
 			Msg(_Msg),
 			ProgressCallback(_ProgressCallback) {}
-		static void Run(const TProgressTask& Task);
+		void Run();
 	};
 
 public:
