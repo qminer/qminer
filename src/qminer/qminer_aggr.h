@@ -225,6 +225,8 @@ private:
 	
 protected:
 	void OnAddRec(const TRec& Rec);
+	void OnTime(const uint64& TmMsec);
+	void OnStep();
 
     TRecBuffer(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:
@@ -263,9 +265,8 @@ private:
 	
 protected:
 	void OnAddRec(const TRec& Rec);
-	void OnStep() {
-		InitP = true;
-	}
+	void OnTime(const uint64& TmMsec);
+	void OnStep();
     TTimeSeriesTick(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
@@ -340,6 +341,8 @@ private:
 protected:
 	/// Stream aggregate update function called when a record is added
 	void OnAddRec(const TRec& Rec);
+	void OnTime(const uint64& TmMsec);
+	void OnStep();
 	/// JSON based constructor
     TWinBuf(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:
@@ -497,7 +500,7 @@ private:
 	TSignalType Signal;
 
 protected:
-	void OnAddRec(const TRec& Rec) {		
+	void OnAddRec(const TRec& Rec) {
 		TFltV OutValV; InAggrVal->GetOutValV(OutValV);
 		TUInt64V OutTmMSecsV; InAggrVal->GetOutTmMSecsV(OutTmMSecsV);
 		if (InAggr->IsInit()) {
@@ -509,6 +512,14 @@ protected:
 				Signal.Update(InValV, InTmMSecsV, OutValV, OutTmMSecsV);
 			}
 		};
+	}
+	void OnTime(const uint64& TmMsec) {
+		TRec Rec;
+		OnAddRec(Rec);
+	}
+	void OnStep() {
+		TRec Rec;
+		OnAddRec(Rec);
 	}
 
 	TWinAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal) {
@@ -576,6 +587,12 @@ private:
 
 protected:
 	void OnAddRec(const TRec& Rec) {
+		OnStep();
+	}
+	void OnTime(const uint64& TmMsec) {
+		OnStep();
+	}
+	void OnStep() {
 		TVec<TIntFltKdV> OutValV;
 		InAggrVal->GetOutValV(OutValV);
 		TUInt64V OutTmMSecsV;
@@ -658,6 +675,8 @@ private:
 
 protected:
 	void OnAddRec(const TRec& Rec);
+	void OnTime(const uint64& TmMsec);
+	void OnStep();
     
 	TEma(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:
@@ -696,6 +715,8 @@ private:
 
 protected:
 	void OnAddRec(const TRec& Rec);
+	void OnTime(const uint64& TmMsec);
+	void OnStep();
 
 	TEmaSpVec(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:
@@ -737,6 +758,8 @@ private:
 
 protected:
 	void OnAddRec(const TRec& Rec);
+	void OnTime(const uint64& TmMsec);
+	void OnStep();
 
 	TCov(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:    
@@ -775,7 +798,9 @@ private:
         const TStr& InAggrNmVarX, const TStr& InAggrNmVarY);
     
 protected:
-	void OnAddRec(const TRec& Rec);    
+	void OnAddRec(const TRec& Rec);
+	void OnTime(const uint64& TmMsec);
+	void OnStep();
 	TCorr(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
@@ -894,6 +919,8 @@ private:
 
 protected:
 	void OnAddRec(const TQm::TRec& Rec);
+	void OnTime(const uint64& TmMsec);
+	void OnStep();
 
 private:
 	void OnAddRec(const TQm::TRec& Rec,  const TInt& FieldMapIdx);
@@ -944,6 +971,8 @@ private:
 	
 protected:	
 	void OnAddRec(const TRec& Rec);
+	void OnTime(const uint64& TmMsec);
+	void OnStep();
     
 private:
 	// refreshes the interpolators to the specified time
@@ -980,6 +1009,8 @@ private:
 
 protected:
 	void OnAddRec(const TRec& Rec);
+	void OnTime(const uint64& TmMsec);
+	void OnStep();
 	TFtrExtAggr(const TWPt<TBase>& Base, const TStr& AggrNm, const TWPt<TFtrSpace>& _FtrSpace);
 
 public:
@@ -1029,6 +1060,8 @@ private:
 protected:
 	/// Triggered when a record is added
 	void OnAddRec(const TRec& Rec);
+	void OnTime(const uint64& TmMsec);
+	void OnStep();
 	/// JSON constructor
 	TOnlineHistogram(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:
@@ -1077,7 +1110,8 @@ private:
 	TFltV QuantilesVals;
 protected:
 	void OnAddRec(const TRec& Rec);
-	//void OnStep();
+	void OnTime(const uint64& TmMsec);
+	void OnStep();
 	TTDigest(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 	TTDigest(const TFltV& Quantiles);
 	TTDigest(const TInt& N);
@@ -1128,6 +1162,8 @@ private:
 
 protected:
 	void OnAddRec(const TRec& Rec);
+	void OnTime(const uint64& TmMsec);
+	void OnStep();
 	TChiSquare(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:    
 	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
@@ -1191,6 +1227,38 @@ inline TStr TWinAggr<TSignalProc::TMa>::GetType() { return "ma"; }
 // Moving Variance
 template <>
 inline void TWinAggr<TSignalProc::TVar>::OnAddRec(const TRec& Rec) {
+	TFltV OutValV; InAggrVal->GetOutValV(OutValV);
+	TUInt64V OutTmMSecsV; InAggrVal->GetOutTmMSecsV(OutTmMSecsV);
+	if (InAggr->IsInit()) {
+		if (!InAggrVal->DelayedP()) {
+			Signal.Update(InAggrVal->GetInVal(), InAggrVal->GetInTmMSecs(),
+				OutValV, OutTmMSecsV, InAggrVal->GetVals());
+		} else {
+			TFltV InValV; InAggrVal->GetInValV(InValV);
+			TUInt64V InTmMSecsV; InAggrVal->GetInTmMSecsV(InTmMSecsV);
+			Signal.Update(InValV, InTmMSecsV, OutValV, OutTmMSecsV, InAggrVal->GetVals());
+		}
+	}
+}
+
+template <>
+inline void TWinAggr<TSignalProc::TVar>::OnTime(const uint64& TmMsec) {
+	TFltV OutValV; InAggrVal->GetOutValV(OutValV);
+	TUInt64V OutTmMSecsV; InAggrVal->GetOutTmMSecsV(OutTmMSecsV);
+	if (InAggr->IsInit()) {
+		if (!InAggrVal->DelayedP()) {
+			Signal.Update(InAggrVal->GetInVal(), InAggrVal->GetInTmMSecs(),
+				OutValV, OutTmMSecsV, InAggrVal->GetVals());
+		} else {
+			TFltV InValV; InAggrVal->GetInValV(InValV);
+			TUInt64V InTmMSecsV; InAggrVal->GetInTmMSecsV(InTmMSecsV);
+			Signal.Update(InValV, InTmMSecsV, OutValV, OutTmMSecsV, InAggrVal->GetVals());
+		}
+	}
+}
+
+template <>
+inline void TWinAggr<TSignalProc::TVar>::OnStep() {
 	TFltV OutValV; InAggrVal->GetOutValV(OutValV);
 	TUInt64V OutTmMSecsV; InAggrVal->GetOutTmMSecsV(OutTmMSecsV);
 	if (InAggr->IsInit()) {
@@ -1284,6 +1352,8 @@ private:
 protected:
 	/// Triggered when a record is added
 	void OnAddRec(const TRec& Rec);
+	void OnTime(const uint64& TmMsec);
+	void OnStep();
 	/// JSON constructor
 	TOnlineSlottedHistogram(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:
@@ -1326,7 +1396,9 @@ private:
 	TWPt<TStreamAggrOut::IFltVec> InAggrValX, InAggrValY;
 
 protected:
-	void OnAddRec(const TRec& Rec) {} // do nothing
+	void OnAddRec(const TRec& Rec);
+	void OnTime(const uint64& TmMsec);
+	void OnStep();
 	TVecDiff(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:
 	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
@@ -1381,6 +1453,37 @@ void TWinBuf<TVal>::OnAddRec(const TRec& Rec) {
 		RecUpdate(RecId);
 	}
 	//Print(true);
+}
+
+template <class TVal>
+void TWinBuf<TVal>::OnTime(const uint64& TmMsec) {
+	InitP = true;
+
+	Timestamp = TmMsec;
+
+	A = B;
+	// B = first record ID in the buffer, or first record ID after the buffer (indicates an empty buffer)
+	while (BeforeBuffer(B, Timestamp)) {
+		B++;
+	}
+
+	C = D;
+	// D = the first record ID after the buffer
+	while (!AfterBuffer(D, Timestamp)) {
+		D++;
+	}
+
+	// Call update on all incomming records, which includes records that skipped the buffer (both incomming and outgoing at the same time)
+	// C + Skip, D - 1
+	for (uint64 RecId = C; RecId < D; RecId++) {
+		RecUpdate(RecId);
+	}
+	//Print(true);
+}
+
+template <class TVal>
+void TWinBuf<TVal>::OnStep() {
+	EAssertR(true, "Should not be executed.");
 }
 
 template <class TVal>
