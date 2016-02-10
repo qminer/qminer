@@ -39,6 +39,12 @@ public:
       Next=HashKeyDat.Next; HashCd=HashKeyDat.HashCd;
       Key=HashKeyDat.Key; Dat=HashKeyDat.Dat;}
     return *this;}
+  THashKeyDat& operator=(THashKeyDat&& HashKeyDat){
+    if (this!=&HashKeyDat){
+      Next=HashKeyDat.Next; HashCd=HashKeyDat.HashCd;
+      Key=std::move(HashKeyDat.Key); Dat=std::move(HashKeyDat.Dat);}
+    return *this;}
+
   uint64 GetMemUsed() const {
 	  return uint64(2 * sizeof(TInt)) + Key.GetMemUsed() + Dat.GetMemUsed();
   }
