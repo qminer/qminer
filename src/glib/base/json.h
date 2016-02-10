@@ -92,6 +92,8 @@ public:
 	  PJsonVal Val = TJsonVal::New(); Val->PutObj(); Val->AddToObj(KeyNm, ObjVal); return Val; }
   static PJsonVal NewObj(const TStr& KeyNm, const int& ObjVal) {
 	  PJsonVal Val = TJsonVal::New(); Val->PutObj(); Val->AddToObj(KeyNm, ObjVal); return Val; }
+  static PJsonVal NewObj(const TStr& KeyNm, const uint64& ObjVal) {
+      PJsonVal Val = TJsonVal::New(); Val->PutObj(); Val->AddToObj(KeyNm, ObjVal); return Val; }
   static PJsonVal NewObj(const TStr& KeyNm, const double& ObjVal) {
 	  PJsonVal Val = TJsonVal::New(); Val->PutObj(); Val->AddToObj(KeyNm, ObjVal); return Val; }
   static PJsonVal NewObj(const TStr& KeyNm, const TStr& ObjVal) {
