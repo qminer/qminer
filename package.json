@@ -100,7 +100,7 @@
   "devDependencies": {
     "aws-sdk": "~2.0.0-rc.15",
     "jsdoc": "~3.3.0-beta3",
-    "jsdoc-baseline": "https://github.com/hegemonic/baseline/tarball/master",
+    "jsdoc-baseline": "https://github.com/hegemonic/jsdoc-baseline.git#d161c4136e12ca5d5674747d4b115067a6980185",
     "mocha": "2.1.x",
     "mustache": "~2.2.0"
   },
