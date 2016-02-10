@@ -5852,6 +5852,7 @@ void TAggr::Init() {
 	Register<TAggrs::THistogram>();
 	Register<TAggrs::TKeywords>();
 	Register<TAggrs::TTimeLine>();
+    Register<TAggrs::TTimeSpan>();
 #ifdef OG_AGGR_DOC_ATLAS
 	Register<TAggrs::TDocAtlas>();
 #endif

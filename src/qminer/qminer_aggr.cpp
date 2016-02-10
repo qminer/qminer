@@ -18,7 +18,7 @@ namespace TQm {
 namespace TAggrs {
     
 ///////////////////////////////
-// QMiner-Aggregator-Piechart
+// QMiner-Aggregator-Count
 TCount::TCount(const TWPt<TBase>& Base, const TStr& AggrNm,
 		const PRecSet& RecSet, const PFtrExt& FtrExt): TAggr(Base, AggrNm) {
 
@@ -457,6 +457,74 @@ PJsonVal TTimeLine::SaveJson() const {
 	ResVal->AddToObj("date", GetJsonList(AbsDateH));
 
 	return ResVal;
+}
+
+///////////////////////////////
+// QMiner-Aggregator-TimeLine
+PJsonVal TTimeSpan::GetJsonList(const TUInt64H& DataH) const {
+    const double FltCount = (Count > 0) ? double(Count) : 1.0;
+    PJsonVal JsonVal = TJsonVal::NewArr();
+    int KeyId = DataH.FFirstKeyId();
+    while (DataH.FNextKeyId(KeyId)) {
+        const int ValFq = DataH[KeyId];
+        PJsonVal EltVal = TJsonVal::NewObj("slot", DataH.GetKey(KeyId) * SlotLen);
+        EltVal->AddToObj("count", ValFq);
+        JsonVal->AddToArr(EltVal);
+    }
+    return JsonVal;
+}
+
+TTimeSpan::TTimeSpan(const TWPt<TBase>& Base, const TStr& AggrNm,
+    const PRecSet& RecSet, const PFtrExt& FtrExt, const uint64 _SlotLen) : TAggr(Base, AggrNm) {
+
+    // prepare join path string, if necessary
+    JoinPathStr = FtrExt->GetJoinSeq(RecSet->GetStoreId()).GetJoinPathStr(Base);
+    // prepare field name
+    FieldNm = FtrExt->GetNm();
+    // prepare peichart
+    const int Recs = RecSet->GetRecs();
+    for (int RecN = 0; RecN < Recs; RecN++) {
+        TTmV FtrValV; FtrExt->ExtractTmV(RecSet->GetRec(RecN), FtrValV);
+        for (int FtrValN = 0; FtrValN < FtrValV.Len(); FtrValN++) {
+            const TTm& Tm = FtrValV[FtrValN];
+            if (Tm.IsDef()) {
+                uint64 slot = TTm::GetMSecsFromTm(Tm) / SlotLen;
+                CountsH.AddDat(slot)++;
+            }
+        }
+    }
+    CountsH.SortByKey(true);
+}
+
+PAggr TTimeSpan::New(const TWPt<TBase>& Base, const TStr& AggrNm,
+    const PRecSet& RecSet, const PJsonVal& JsonVal) {
+
+    // parse join
+    TJoinSeq JoinSeq = JsonVal->IsObjKey("join") ?
+        TJoinSeq(Base, RecSet->GetStoreId(), JsonVal->GetObjKey("join")) :
+        TJoinSeq(RecSet->GetStoreId());
+    // get the field
+    const TStr FieldNm = JsonVal->GetObjStr("field");
+    // get the field
+    const TUInt64 SlotLen = JsonVal->GetObjUInt64("slot_length");
+    // assert if valid field
+    TWPt<TStore> Store = JoinSeq.GetEndStore(Base);
+    QmAssert(Store->IsFieldNm(FieldNm));
+    // get the field id
+    const int FieldId = Store->GetFieldId(FieldNm);
+    // is there a join?
+    PFtrExt FtrExt = TFtrExts::TMultinomial::New(Base, JoinSeq, FieldId);
+    return New(Base, AggrNm, RecSet, FtrExt, SlotLen);
+}
+
+PJsonVal TTimeSpan::SaveJson() const {
+    PJsonVal ResVal = TJsonVal::NewObj();
+    ResVal->AddToObj("type", "timespan");
+    ResVal->AddToObj("field", FieldNm);
+    ResVal->AddToObj("join", JoinPathStr);
+    ResVal->AddToObj("slot_length", SlotLen);
+    ResVal->AddToObj("slots", GetJsonList(CountsH));
+    return ResVal;
 }
 
 }
