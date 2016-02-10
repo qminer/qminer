@@ -460,14 +460,16 @@ PJsonVal TTimeLine::SaveJson() const {
 }
 
 ///////////////////////////////
-// QMiner-Aggregator-TimeLine
+// QMiner-Aggregator-TimeSpan
+
 PJsonVal TTimeSpan::GetJsonList(const TUInt64H& DataH) const {
     const double FltCount = (Count > 0) ? double(Count) : 1.0;
     PJsonVal JsonVal = TJsonVal::NewArr();
     int KeyId = DataH.FFirstKeyId();
     while (DataH.FNextKeyId(KeyId)) {
         const int ValFq = DataH[KeyId];
-        PJsonVal EltVal = TJsonVal::NewObj("slot", DataH.GetKey(KeyId) * SlotLen);
+        uint64 UnixTs = TTm::GetUnixMSecsFromWinMSecs(DataH.GetKey(KeyId) * SlotLen);
+        PJsonVal EltVal = TJsonVal::NewObj("slot", UnixTs);
         EltVal->AddToObj("count", ValFq);
         JsonVal->AddToArr(EltVal);
     }
@@ -475,7 +477,8 @@ PJsonVal TTimeSpan::GetJsonList(const TUInt64H& DataH) const {
 }
 
 TTimeSpan::TTimeSpan(const TWPt<TBase>& Base, const TStr& AggrNm,
-    const PRecSet& RecSet, const PFtrExt& FtrExt, const uint64 _SlotLen) : TAggr(Base, AggrNm) {
+    const PRecSet& RecSet, const PFtrExt& FtrExt, const uint64 _SlotLen) 
+    : TAggr(Base, AggrNm), SlotLen(_SlotLen) {
 
     // prepare join path string, if necessary
     JoinPathStr = FtrExt->GetJoinSeq(RecSet->GetStoreId()).GetJoinPathStr(Base);
