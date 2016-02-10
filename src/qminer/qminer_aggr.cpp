@@ -463,7 +463,6 @@ PJsonVal TTimeLine::SaveJson() const {
 // QMiner-Aggregator-TimeSpan
 
 PJsonVal TTimeSpan::GetJsonList(const TUInt64H& DataH) const {
-    const double FltCount = (Count > 0) ? double(Count) : 1.0;
     PJsonVal JsonVal = TJsonVal::NewArr();
     int KeyId = DataH.FFirstKeyId();
     while (DataH.FNextKeyId(KeyId)) {
