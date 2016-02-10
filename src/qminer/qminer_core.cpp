@@ -86,32 +86,6 @@ void DebugLog(const TStr& MsgStr) {
 }
 
 ///////////////////////////////
-// QMiner-Valid-Name-Enforcer
-TChA TValidNm::ValidFirstCh = "_";
-TChA TValidNm::ValidCh = "_$";
-
-void TValidNm::AssertValidNm(const TStr& NmStr) {
-	// must be non-empty
-	QmAssertR(!NmStr.Empty(), "Name: cannot be empty");
-	// check first character
-	const char FirstCh = NmStr[0];
-	if ((('A' <= FirstCh) && (FirstCh <= 'Z')) || (('a' <= FirstCh) && (FirstCh <= 'z')) || ValidFirstCh.IsChIn(FirstCh)) {
-		// all fine
-	} else {
-		throw TQmExcept::New("Name: invalid first character in '" + NmStr + "'");
-	}
-	// check rest
-	for (int ChN = 1; ChN < NmStr.Len(); ChN++) {
-		const char Ch = NmStr[ChN];
-		if ((('A' <= Ch) && (Ch <= 'Z')) || (('a' <= Ch) && (Ch <= 'z')) || (('0' <= Ch) && (Ch <= '9')) || ValidCh.IsChIn(Ch)) {
-			// all fine
-		} else {
-			throw TQmExcept::New(TStr::Fmt("Name: invalid %d character in '%s'", ChN, NmStr.CStr()));
-		}
-	}
-}
-
-///////////////////////////////
 // QMiner Exception
 PExcept TQmExcept::New(const TStr& MsgStr, const TStr& LocStr) {
 	TChA Stack = LocStr;
@@ -125,7 +99,7 @@ PExcept TQmExcept::New(const TStr& MsgStr, const TStr& LocStr) {
 
 ///////////////////////////////
 // QMiner-Join-Description
-TJoinDesc::TJoinDesc(const TStr& _JoinNm, const uint& _JoinStoreId,
+TJoinDesc::TJoinDesc(const TWPt<TBase>& Base, const TStr& _JoinNm, const uint& _JoinStoreId,
 	const uint& StoreId, const TWPt<TIndexVoc>& IndexVoc, const bool& IsSmall) :
 	JoinId(-1), InverseJoinId(-1) {
 
@@ -137,10 +111,24 @@ TJoinDesc::TJoinDesc(const TStr& _JoinNm, const uint& _JoinStoreId,
 	JoinFqFieldId = -1;
 	// create an internal join key in the index
 	TStr JoinKeyNm = "Join" + JoinNm;
-	JoinKeyId = IndexVoc->AddInternalKey(StoreId, JoinKeyNm, JoinNm, IsSmall);
+	JoinKeyId = IndexVoc->AddInternalKey(Base, StoreId, JoinKeyNm, JoinNm, IsSmall);
 	// assert the name is valid
-	TValidNm::AssertValidNm(JoinNm);
+	Base->AssertValidNm(JoinNm);
 }
+
+TJoinDesc::TJoinDesc(const TWPt<TBase>& Base, const TStr& _JoinNm, const uint& _JoinStoreId,
+		const int& _JoinRecFieldId, const int& _JoinFqFieldId):
+			JoinId(-1),
+			JoinNm(_JoinNm),
+			JoinStoreId(_JoinStoreId),
+			JoinType(osjtField),
+			JoinKeyId(-1),
+			JoinRecFieldId(_JoinRecFieldId),
+			JoinFqFieldId(_JoinFqFieldId),
+			InverseJoinId(-1) {
+	Base->AssertValidNm(JoinNm);
+}
+
 
 TJoinDesc::TJoinDesc(TSIn& SIn) : JoinId(SIn), JoinNm(SIn), JoinStoreId(SIn),
 	JoinKeyId(SIn), JoinRecFieldId(SIn), JoinFqFieldId(SIn), InverseJoinId(SIn) {
@@ -246,11 +234,11 @@ TStr TJoinSeq::GetJoinPathStr(const TWPt<TBase>& Base, const TStr& SepStr) const
 
 ///////////////////////////////
 // QMiner-Field-Description
-TFieldDesc::TFieldDesc(const TStr& _FieldNm, TFieldType _FieldType,
+TFieldDesc::TFieldDesc(const TWPt<TBase>& Base, const TStr& _FieldNm, TFieldType _FieldType,
 	const bool& PrimaryP, const bool& NullP, const bool& InternalP) :
 	FieldId(-1), FieldNm(_FieldNm), FieldType(_FieldType) {
 
-	TValidNm::AssertValidNm(FieldNm);
+	Base->AssertValidNm(FieldNm);
 	// set flags
 	if (PrimaryP) { Flags.Val |= ofdfPrimary; }
 	if (NullP) { Flags.Val |= ofdfNull; }
@@ -353,7 +341,7 @@ void TStore::LoadStore(TSIn& SIn) {
 
 TStore::TStore(const TWPt<TBase>& _Base, uint _StoreId, const TStr& _StoreNm) :
 	Base(_Base), Index(_Base->GetIndex()), StoreId(_StoreId), StoreNm(_StoreNm) {
-	TValidNm::AssertValidNm(StoreNm);
+	Base->AssertValidNm(StoreNm);
 }
 
 TStore::TStore(const TWPt<TBase>& _Base, TSIn& SIn) :
@@ -2280,9 +2268,9 @@ TRecFilterByIndexJoin::TRecFilterByIndexJoin(const TWPt<TStore>& _Store, const i
 }
 
 /// Main operator
-bool TRecFilterByIndexJoin::operator()(const TUInt64IntKd& RecIdWgt) const {
+bool TRecFilterByIndexJoin::operator()(const TUInt64IntKd& RecIdFq) const {
     TUInt64IntKdV Res;
-    Index->GetJoinRecIdFqV(JoinKeyId, RecIdWgt.Key, Res); // perform join lookup
+    Index->GetJoinRecIdFqV(JoinKeyId, RecIdFq.Key, Res); // perform join lookup
     for (int i = 0; i < Res.Len(); i++) {
         uint64 Val = Res[i].Key;
         if ((MinVal <= Val) && (Val <= MaxVal)) {
@@ -2835,7 +2823,7 @@ TStrV TFieldReader::GetDateRange() {
 ///////////////////////////////
 // QMiner-ResultSet
 void TRecSet::GetSampleRecIdV(const int& SampleSize,
-	const bool& WgtSampleP, TUInt64IntKdV& SampleRecIdFqV) const {
+	const bool& FqSampleP, TUInt64IntKdV& SampleRecIdFqV) const {
 
 	if (SampleSize == -1) {
         // we ask for all
@@ -2846,7 +2834,7 @@ void TRecSet::GetSampleRecIdV(const int& SampleSize,
     } else if (SampleSize > GetRecs()) {
         // we ask for more than we have, have to give it all
         SampleRecIdFqV = RecIdFqV;
-	} else if (WgtSampleP) {
+	} else if (FqSampleP) {
         // Weighted random sampling with a reservoir
         // we keep current top candidates in a heap
         THeap<TFltIntKd> TopWgtRecN(SampleSize);
@@ -2900,20 +2888,20 @@ void TRecSet::LimitToSampleRecIdV(const TUInt64IntKdV& SampleRecIdFqV) {
 	RecIdFqV = SampleRecIdFqV;
 }
 
-TRecSet::TRecSet(const TWPt<TStore>& _Store, const uint64& RecId, const int& Wgt) :
-	Store(_Store), WgtP(Wgt > 1) {
+TRecSet::TRecSet(const TWPt<TStore>& _Store, const uint64& RecId, const int& Fq) :
+	Store(_Store), FqP(Fq > 1) {
 
-	RecIdFqV.Gen(1, 0); RecIdFqV.Add(TUInt64IntKd(RecId, Wgt));
+	RecIdFqV.Gen(1, 0); RecIdFqV.Add(TUInt64IntKd(RecId, Fq));
 }
 
-TRecSet::TRecSet(const TWPt<TStore>& _Store, const TUInt64V& RecIdV) : Store(_Store), WgtP(false) {
+TRecSet::TRecSet(const TWPt<TStore>& _Store, const TUInt64V& RecIdV) : Store(_Store), FqP(false) {
 	RecIdFqV.Gen(RecIdV.Len(), 0);
 	for (int RecN = 0; RecN < RecIdV.Len(); RecN++) {
 		RecIdFqV.Add(TUInt64IntKd(RecIdV[RecN], 0));
 	}
 }
 
-TRecSet::TRecSet(const TWPt<TStore>& _Store, const TIntV& RecIdV) : Store(_Store), WgtP(false) {
+TRecSet::TRecSet(const TWPt<TStore>& _Store, const TIntV& RecIdV) : Store(_Store), FqP(false) {
 	RecIdFqV.Gen(RecIdV.Len(), 0);
 	int Len = RecIdV.Len();
 	for (int RecN = 0; RecN < Len; RecN++) {
@@ -2922,26 +2910,26 @@ TRecSet::TRecSet(const TWPt<TStore>& _Store, const TIntV& RecIdV) : Store(_Store
 }
 
 TRecSet::TRecSet(const TWPt<TStore>& _Store, const TUInt64IntKdV& _RecIdFqV,
-	const bool& _WgtP): Store(_Store), WgtP(_WgtP), RecIdFqV(_RecIdFqV) { }
+	const bool& _FqP): Store(_Store), FqP(_FqP), RecIdFqV(_RecIdFqV) { }
 
 TRecSet::TRecSet(const TWPt<TBase>& Base, TSIn& SIn) {
 	Store = TStore::LoadById(Base, SIn);
-	WgtP.Load(SIn);
+	FqP.Load(SIn);
 	RecIdFqV.Load(SIn);
 }
 
 PRecSet TRecSet::New(const TWPt<TStore>& Store, const TUInt64IntKdV& RecIdFqV,
-        const bool& WgtP) {
+        const bool& FqP) {
 
-	return new TRecSet(Store, RecIdFqV, WgtP);
+	return new TRecSet(Store, RecIdFqV, FqP);
 }
 
 PRecSet TRecSet::New(const TWPt<TStore>& Store) {
 	return new TRecSet(Store, TUInt64V());
 }
 
-PRecSet TRecSet::New(const TWPt<TStore>& Store, const uint64& RecId, const int& Wgt) {
-	return new TRecSet(Store, RecId, Wgt);
+PRecSet TRecSet::New(const TWPt<TStore>& Store, const uint64& RecId, const int& Fq) {
+	return new TRecSet(Store, RecId, Fq);
 }
 
 PRecSet TRecSet::New(const TWPt<TStore>& Store, const TRec& Rec) {
@@ -2963,7 +2951,7 @@ PRecSet TRecSet::New(const TWPt<TStore>& Store, const TUInt64IntKdV& RecIdFqV) {
 
 void TRecSet::Save(TSOut& SOut) {
 	Store->SaveId(SOut);
-	WgtP.Save(SOut);
+	FqP.Save(SOut);
 	RecIdFqV.Save(SOut);
 }
 
@@ -3122,6 +3110,14 @@ void TRecSet::FilterByFieldSFlt(const int& FieldId, const float& MinVal, const f
 	FilterBy(TRecFilterByFieldSFlt(Store, FieldId, MinVal, MaxVal));
 }
 
+void TRecSet::FilterByFieldUInt64(const int& FieldId, const uint64& MinVal, const uint64& MaxVal) {
+	// get store and field type
+	const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
+	QmAssertR(Desc.IsUInt64(), "Wrong field type, integer expected");
+	// apply the filter
+	FilterBy(TRecFilterByFieldUInt64(Store, FieldId, MinVal, MaxVal));
+}
+
 void TRecSet::FilterByFieldStr(const int& FieldId, const TStr& FldVal) {
 	// get store and field type
 	const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
@@ -3201,13 +3197,14 @@ void TRecSet::RemoveRecIdSet(THashSet<TUInt64>& RemoveItemIdSet) {
 }
 
 PRecSet TRecSet::Clone() const {
-	return new TRecSet(Store, RecIdFqV, WgtP);
+	return new TRecSet(Store, RecIdFqV, FqP);
 }
 
-PRecSet TRecSet::GetSampleRecSet(const int& SampleSize) const {
+PRecSet TRecSet::GetSampleRecSet(const int& SampleSize, const bool& IgnoreFqP) const {
 	TUInt64IntKdV SampleRecIdFqV;
-	GetSampleRecIdV(SampleSize, WgtP, SampleRecIdFqV);
-	return new TRecSet(Store, SampleRecIdFqV, WgtP);
+    const bool UseFqP = IgnoreFqP ? false : FqP.Val;
+	GetSampleRecIdV(SampleSize, UseFqP, SampleRecIdFqV);
+	return new TRecSet(Store, SampleRecIdFqV, FqP);
 }
 
 PRecSet TRecSet::GetLimit(const int& Limit, const int& Offset) const {
@@ -3225,7 +3222,7 @@ PRecSet TRecSet::GetLimit(const int& Limit, const int& Offset) const {
 			// get all items since offset till end
 			RecIdFqV.GetSubValV(Offset, End - 1, LimitRecIdFqV);
 		}
-		return new TRecSet(Store, LimitRecIdFqV, WgtP);
+		return new TRecSet(Store, LimitRecIdFqV, FqP);
 	}
 }
 
@@ -3268,13 +3265,14 @@ PRecSet TRecSet::GetIntersect(const PRecSet& RecSet) {
 	return new TRecSet(GetStore(), ResultRecIdFqV, false);
 }
 
-PRecSet TRecSet::DoJoin(const TWPt<TBase>& Base, const int& JoinId, const int& SampleSize) const {
+PRecSet TRecSet::DoJoin(const TWPt<TBase>& Base, const int& JoinId, const int& SampleSize, const bool& IgnoreFqP) const {
     // get join info
     AssertR(Store->IsJoinId(JoinId), "Wrong Join ID");
     const TJoinDesc& JoinDesc = Store->GetJoinDesc(JoinId);
     // prepare joined record sample
     TUInt64IntKdV SampleRecIdKdV;
-    GetSampleRecIdV(SampleSize, WgtP, SampleRecIdKdV);
+    const bool UseFqP = IgnoreFqP ? false : FqP.Val;
+    GetSampleRecIdV(SampleSize, UseFqP, SampleRecIdKdV);
     const int SampleRecs = SampleRecIdKdV.Len();
     // do the join
     TUInt64IntKdV JoinRecIdFqV;
@@ -3314,10 +3312,10 @@ PRecSet TRecSet::DoJoin(const TWPt<TBase>& Base, const int& JoinId, const int& S
     return new TRecSet(JoinDesc.GetJoinStore(Base), JoinRecIdFqV, true);
 }
 
-PRecSet TRecSet::DoJoin(const TWPt<TBase>& Base, const TStr& JoinNm, const int& SampleSize) const {
+PRecSet TRecSet::DoJoin(const TWPt<TBase>& Base, const TStr& JoinNm, const int& SampleSize, const bool& IgnoreFqP) const {
 
     if (Store->IsJoinNm(JoinNm)) {
-        return DoJoin(Base, Store->GetJoinId(JoinNm), SampleSize);
+        return DoJoin(Base, Store->GetJoinId(JoinNm), SampleSize, IgnoreFqP);
     }
     throw TQmExcept::New("Unknown join " + JoinNm);
 }
@@ -3363,7 +3361,7 @@ PJsonVal TRecSet::GetJson(const TWPt<TBase>& Base, const int& _MxHits, const int
 		PJsonVal StoreVal = TJsonVal::NewObj();
 		StoreVal->AddToObj("$id", Store->GetStoreId());
 		StoreVal->AddToObj("$name", Store->GetStoreNm());
-		StoreVal->AddToObj("$wgt", IsWgt());
+		StoreVal->AddToObj("$fq", IsFq());
 		RecSetVal->AddToObj("$store", StoreVal);
 	}
 	const int Recs = GetRecs();
@@ -3390,17 +3388,17 @@ PJsonVal TRecSet::GetJson(const TWPt<TBase>& Base, const int& _MxHits, const int
 
 ///////////////////////////////
 // QMiner-Index-Key
-TIndexKey::TIndexKey(const uint& _StoreId, const TStr& _KeyNm, const TStr& _JoinNm,
+TIndexKey::TIndexKey(const TWPt<TBase>& Base, const uint& _StoreId, const TStr& _KeyNm, const TStr& _JoinNm,
     const bool& IsSmall): StoreId(_StoreId), KeyNm(_KeyNm), WordVocId(-1),
     TypeFlags(oiktInternal), SortType(oikstUndef), JoinNm(_JoinNm) {
 
     if (IsSmall) {
         TypeFlags = (TIndexKeyType)(TypeFlags | oiktSmall);
     }
-    TValidNm::AssertValidNm(KeyNm);
+    Base->AssertValidNm(KeyNm);
 }
 
-TIndexKey::TIndexKey(const uint& _StoreId, const TStr& _KeyNm, const int& _WordVocId,
+TIndexKey::TIndexKey(const TWPt<TBase>& Base, const uint& _StoreId, const TStr& _KeyNm, const int& _WordVocId,
 	const TIndexKeyType& _Type, const TIndexKeySortType& _SortType) : StoreId(_StoreId),
 	KeyNm(_KeyNm), WordVocId(_WordVocId), TypeFlags(_Type), SortType(_SortType) {
 
@@ -3411,7 +3409,7 @@ TIndexKey::TIndexKey(const uint& _StoreId, const TStr& _KeyNm, const int& _WordV
 	// location does not need vocabualry
 	if (IsLocation()) { QmAssert(WordVocId == -1); }
 	// name must be valid
-	TValidNm::AssertValidNm(KeyNm);
+	Base->AssertValidNm(KeyNm);
 }
 
 TIndexKey::TIndexKey(TSIn& SIn) : StoreId(SIn), KeyId(SIn),
@@ -3586,12 +3584,12 @@ void TIndexVoc::SetWordVocNm(const int& WordVocId, const TStr& WordVocNm) {
 	WordVocV[WordVocId]->SetWordVocNm(WordVocNm);
 }
 
-int TIndexVoc::AddKey(const uint& StoreId, const TStr& KeyNm, const int& WordVocId,
+int TIndexVoc::AddKey(const TWPt<TBase>& Base, const uint& StoreId, const TStr& KeyNm, const int& WordVocId,
 	const TIndexKeyType& Type, const TIndexKeySortType& SortType) {
 
 	// create key
 	const int KeyId = KeyH.AddKey(TUIntStrPr(StoreId, KeyNm));
-	KeyH[KeyId] = TIndexKey(StoreId, KeyNm, WordVocId, Type, SortType);
+	KeyH[KeyId] = TIndexKey(Base, StoreId, KeyNm, WordVocId, Type, SortType);
 	// tell to the key its ID
 	KeyH[KeyId].PutKeyId(KeyId);
 	// add the key to the associated store key set
@@ -3599,9 +3597,9 @@ int TIndexVoc::AddKey(const uint& StoreId, const TStr& KeyNm, const int& WordVoc
 	return KeyId;
 }
 
-int TIndexVoc::AddInternalKey(const uint& StoreId, const TStr& KeyNm, const TStr& JoinNm, const bool& IsSmall) {
+int TIndexVoc::AddInternalKey(const TWPt<TBase>& Base, const uint& StoreId, const TStr& KeyNm, const TStr& JoinNm, const bool& IsSmall) {
 	const int KeyId = KeyH.AddKey(TUIntStrPr(StoreId, KeyNm));
-	KeyH[KeyId] = TIndexKey(StoreId, KeyNm, JoinNm, IsSmall);
+	KeyH[KeyId] = TIndexKey(Base, StoreId, KeyNm, JoinNm, IsSmall);
 	KeyH[KeyId].PutKeyId(KeyId);
 	return KeyId;
 }
@@ -4202,7 +4200,8 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const
             Type = oqitRangeUInt64;
             RangeUInt64MnMx.Val1 = RangeUInt64MnMx.Val2 = ParseTm(KeyVal);
         } else if (KeyVal->IsNum()) {
-            QmAssertR(Key.IsSortAsInt() || Key.IsSortAsUInt64() || Key.IsSortAsFlt(),
+            QmAssertR(
+                Key.IsSortAsInt() || Key.IsSortAsInt16() || Key.IsSortAsInt64() || Key.IsSortAsByte() || Key.IsSortAsUInt64() || Key.IsSortAsUInt() || Key.IsSortAsUInt16() || Key.IsSortAsFlt() || Key.IsSortAsSFlt(),
                 "Query: wrong key value for non-integer key " + KeyNm);
             // we are given exact number, make it a range query with both edges equal
             if (Key.IsSortAsInt()) {
@@ -4419,21 +4418,21 @@ TWPt<TStore> TQueryItem::GetStore(const TWPt<TBase>& Base) const {
 	return Base->GetStoreByStoreId(GetStoreId(Base));
 }
 
-bool TQueryItem::IsWgt() const {
+bool TQueryItem::IsFq() const {
 
 	if (IsLeafGix() || IsLeafGixSmall() || IsGeo()) {
 		// always weighted when only one key
 		return true;
     } else if (IsAnd() && ItemV.Len() == 1) {
         // we have only one sub-query, check its status
-        return ItemV[0].IsWgt();
+        return ItemV[0].IsFq();
 	} else if (IsOr()) {
 		// or is weighted when all it's elements are 
-		bool WgtP = true;
+		bool FqP = true;
 		for (int ItemN = 0; ItemN < ItemV.Len(); ItemN++) {
-			WgtP = WgtP && ItemV[ItemN].IsWgt();
+			FqP = FqP && ItemV[ItemN].IsFq();
 		}
-		return WgtP;
+		return FqP;
 	} else if (IsJoin()) {
 		// joins are also weighted
 		return true;
@@ -4515,7 +4514,7 @@ TQueryAggr::TQueryAggr(const TWPt<TBase>& Base,
 	QmAssertR(AggrVal->IsObjKey("type"), "Missing aggregate 'type'.");
 	AggrType = AggrVal->GetObjStr("type");
 	// assert name is fine
-	TValidNm::AssertValidNm(AggrNm);
+	Base->AssertValidNm(AggrNm);
 	// remember the json parameters
 	ParamVal = AggrVal;
 }
@@ -5670,7 +5669,7 @@ TPair<TBool, PRecSet> TIndex::Search(const TWPt<TBase>& Base, const TQueryItem& 
 		TUInt64IntKdV StoreRecIdFqV;
 		const bool NotP = DoQuery(ExpItem, Merger, StoreRecIdFqV);
 		// return record set
-		PRecSet RecSet = TRecSet::New(Store, StoreRecIdFqV, QueryItem.IsWgt());
+		PRecSet RecSet = TRecSet::New(Store, StoreRecIdFqV, QueryItem.IsFq());
 		return TPair<TBool, PRecSet>(NotP, RecSet);
 	} else if (gix_flag == qgutSmall) {
 		// prepare the query
@@ -5681,7 +5680,7 @@ TPair<TBool, PRecSet> TIndex::Search(const TWPt<TBase>& Base, const TQueryItem& 
 		TQmGixItemV StoreRecIdFqV;
 		Upgrade(StoreRecIdFqVSmall, StoreRecIdFqV);
 		// return record set
-		PRecSet RecSet = TRecSet::New(Store, StoreRecIdFqV, QueryItem.IsWgt());
+		PRecSet RecSet = TRecSet::New(Store, StoreRecIdFqV, QueryItem.IsFq());
 		return TPair<TBool, PRecSet>(NotP, RecSet);
 
 	}
@@ -5716,6 +5715,7 @@ PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TI
     }
 	return TRecSet::New(Base->GetStoreByStoreId(StoreId), RecIdV);
 }
+
 PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TInt16Pr& RangeMinMax) {
 
 	TUInt64V RecIdV;
@@ -5726,6 +5726,7 @@ PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TI
 	}
 	return TRecSet::New(Base->GetStoreByStoreId(StoreId), RecIdV);
 }
+
 PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TInt64Pr& RangeMinMax) {
 
 	TUInt64V RecIdV;
@@ -5736,8 +5737,8 @@ PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TI
 	}
 	return TRecSet::New(Base->GetStoreByStoreId(StoreId), RecIdV);
 }
-PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TUChPr& RangeMinMax) {
 
+PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TUChPr& RangeMinMax) {
 	TUInt64V RecIdV;
 	const uint StoreId = IndexVoc->GetKey(KeyId).GetStoreId();
 	if (BTreeIndexByteH.IsKey(KeyId)) {
@@ -5757,6 +5758,7 @@ PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TU
     }
 	return TRecSet::New(Base->GetStoreByStoreId(StoreId), RecIdV);
 }
+
 PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TUInt16Pr& RangeMinMax) {
 
 	TUInt64V RecIdV;
@@ -5767,6 +5769,7 @@ PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TU
 	}
 	return TRecSet::New(Base->GetStoreByStoreId(StoreId), RecIdV);
 }
+
 PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TUInt64Pr& RangeMinMax) {
 
 	TUInt64V RecIdV;
@@ -5788,6 +5791,7 @@ PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TF
     }
 	return TRecSet::New(Base->GetStoreByStoreId(StoreId), RecIdV);
 }
+
 PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TSFltPr& RangeMinMax) {
 
 	TUInt64V RecIdV;
@@ -5814,6 +5818,17 @@ void TIndex::GetJoinRecIdFqV(const int& JoinKeyId, const uint64& RecId, TUInt64I
 		for (int i = 0; i < res->GetItems(); i++) {
 			JoinRecIdFqV.Add(res->GetItem(i));
 		}
+	}
+}
+
+bool TIndex::HasJoin(const int& JoinKeyId, const uint64& RecId) const
+{
+	TKeyWord KeyWord(JoinKeyId, RecId);
+	if (UseGixSmall(JoinKeyId)) {
+		return GixSmall->IsKey(KeyWord);
+	}
+	else {
+		return Gix->IsKey(KeyWord);
 	}
 }
 
@@ -5898,9 +5913,16 @@ void TStreamAggr::Init() {
 	Register<TStreamAggrs::TWinBufSpVecSum>();
 }
 
+TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm) :
+		Base(_Base),
+		AggrNm(_AggrNm),
+		Guid(TGuid::GenGuid()) {
+	Base->AssertValidNm(AggrNm);
+}
+
 TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const PJsonVal& ParamVal) :
-Base(_Base), AggrNm(ParamVal->GetObjStr("name", TGuid::GenSafeGuid())), Guid(TGuid::GenGuid()) {
-	TValidNm::AssertValidNm(AggrNm);
+		Base(_Base), AggrNm(ParamVal->GetObjStr("name", TGuid::GenSafeGuid())), Guid(TGuid::GenGuid()) {
+	Base->AssertValidNm(AggrNm);
 }
 
 PStreamAggr TStreamAggr::New(const TWPt<TBase>& Base, const TStr& TypeNm, const PJsonVal& ParamVal) {
@@ -5962,6 +5984,13 @@ void TStreamAggrBase::Reset() {
 	}
 }
 
+/*void TStreamAggrBase::OnStep() {
+	int KeyId = StreamAggrH.FFirstKeyId();
+	while (StreamAggrH.FNextKeyId(KeyId)) {
+		StreamAggrH[KeyId]->OnStep();
+	}
+}*/
+
 void TStreamAggrBase::OnAddRec(const TRec& Rec) {
 	int KeyId = StreamAggrH.FFirstKeyId();
 	while (StreamAggrH.FNextKeyId(KeyId)) {
@@ -6014,8 +6043,47 @@ void TStreamAggrTrigger::OnDelete(const TRec& Rec) {
 }
 
 ///////////////////////////////
+// QMiner-Valid-Name-Enforcer
+TChA TNmValidator::ValidFirstCh = "_";
+TChA TNmValidator::ValidCh = "_$";
+
+void TNmValidator::Save(TSOut& SOut) const {
+	StrictNmP.Save(SOut);
+}
+
+void TNmValidator::AssertValidNm(const TStr& NmStr) const {
+	// must be non-empty
+	QmAssertR(!NmStr.Empty(), "Name: cannot be empty");
+	if (!StrictNmP) { return; }
+
+	// check first character
+	QmAssertR(IsValidJsFirstCharacter(NmStr), "Name: invalid first character in '" + NmStr + "'");
+
+	// check rest
+	for (int ChN = 1; ChN < NmStr.Len(); ChN++) {
+		const char Ch = NmStr[ChN];
+		QmAssertR(IsValidJsCharacter(Ch), TStr::Fmt("Name: invalid %d character in '%s'", ChN, NmStr.CStr()));
+	}
+}
+
+void TNmValidator::SetStrictNmP(const bool& _StrictNmP) {
+	StrictNmP = _StrictNmP;
+}
+
+bool TNmValidator::IsValidJsFirstCharacter(const TStr& NmStr) {
+	const char FirstCh = NmStr[0];
+	return (('A' <= FirstCh) && (FirstCh <= 'Z')) || (('a' <= FirstCh) && (FirstCh <= 'z')) || ValidFirstCh.IsChIn(FirstCh);
+}
+
+bool TNmValidator::IsValidJsCharacter(const char& Ch) {
+	return (('A' <= Ch) && (Ch <= 'Z')) || (('a' <= Ch) && (Ch <= 'z')) || (('0' <= Ch) && (Ch <= '9')) || ValidCh.IsChIn(Ch);
+}
+
+///////////////////////////////
 // QMiner-Base
-TBase::TBase(const TStr& _FPath, const int64& IndexCacheSize, const int& SplitLen) : InitP(false) {
+TBase::TBase(const TStr& _FPath, const int64& IndexCacheSize, const int& SplitLen, const bool& StrictNmP) :
+		InitP(false),
+		NmValidator(StrictNmP) {
 	IAssertR(TEnv::IsInit(), "QMiner environment (TQm::TEnv) is not initialized");
 	// open as create
 	FAccess = faCreate; FPath = _FPath;
@@ -6032,7 +6100,10 @@ TBase::TBase(const TStr& _FPath, const int64& IndexCacheSize, const int& SplitLe
 	TempFPathP = false;
 }
 
-TBase::TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCacheSize, const int& SplitLen) : InitP(false) {
+TBase::TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCacheSize,
+		const int& SplitLen) :
+			InitP(false),
+			NmValidator(false) {
 	IAssertR(TEnv::IsInit(), "QMiner environment (TQm::TEnv) is not initialized");
 	// assert open type and remember location
 	FAccess = _FAccess; FPath = _FPath;
@@ -6044,8 +6115,12 @@ TBase::TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCac
 	} else if (FAccess == faRestore) {
 		TEnv::Logger->OnStatus("Opening in restore mode");
 	}
-	// load index
+
+	// open file input streams
 	TFIn IndexVocFIn(FPath + "IndexVoc.dat");
+//	TFIn BasePropsFIn(_FPath + "Base.dat");
+
+	// load index
 	IndexVoc = TIndexVoc::Load(IndexVocFIn);
 	Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize, IndexCacheSize, SplitLen);
 	// initialize with empty stores
@@ -6055,13 +6130,20 @@ TBase::TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCac
 	StreamAggrDefaultBase = TStreamAggrBase::New();
 	// by default no temporary folder
 	TempFPathP = false;
+
+	// load the base properties
+//	FldNmValidator = TFldNmValidator(BasePropsFIn);
 }
 
 TBase::~TBase() {
 	if (FAccess != faRdOnly) {
 		TEnv::Logger->OnStatus("Saving index vocabulary ... ");
+
 		TFOut IndexVocFOut(FPath + "IndexVoc.dat");
+		TFOut BasePropsFOut(FPath + "Base.dat");
+
 		IndexVoc->Save(IndexVocFOut);
+		NmValidator.Save(BasePropsFOut);
 	} else {
 		TEnv::Logger->OnStatus("No saving of qminer base neccessary!");
 	}
@@ -6279,7 +6361,7 @@ TPair<TBool, PRecSet> TBase::Search(const TQueryItem& QueryItem, const TIndex::P
 					}
 				}
 				// prepare resulting record set
-				RecSet = TRecSet::New(RecSet->GetStore(), ResRecIdFqV, QueryItem.IsWgt());
+				RecSet = TRecSet::New(RecSet->GetStore(), ResRecIdFqV, QueryItem.IsFq());
 				return TPair<TBool, PRecSet>(NotP, RecSet);
 			} else if (QueryItem.IsNot()) {
 				QmAssert(RecSetV.Len() == 1);
@@ -6433,7 +6515,7 @@ int TBase::NewIndexKey(const TWPt<TStore>& Store, const TStr& KeyNm, const int& 
 
 	QmAssertR(!IndexVoc->IsKeyNm(Store->GetStoreId(), KeyNm),
 		"Key " + Store->GetStoreNm() + "." + KeyNm + " already exists!");
-	const int KeyId = IndexVoc->AddKey(Store->GetStoreId(), KeyNm, WordVocId, Type, SortType);
+	const int KeyId = IndexVoc->AddKey(Store->GetBase(), Store->GetStoreId(), KeyNm, WordVocId, Type, SortType);
 	return KeyId;
 }
 
@@ -6461,7 +6543,7 @@ int TBase::NewFieldIndexKey(const TWPt<TStore>& Store, const TStr& KeyNm, const 
 
 	QmAssertR(!IndexVoc->IsKeyNm(Store->GetStoreId(), KeyNm),
 		"Key " + Store->GetStoreNm() + "." + KeyNm + " already exists!");
-	const int KeyId = IndexVoc->AddKey(Store->GetStoreId(), KeyNm, WordVocId, Type, SortType);
+	const int KeyId = IndexVoc->AddKey(Store->GetBase(), Store->GetStoreId(), KeyNm, WordVocId, Type, SortType);
 	IndexVoc->AddKeyField(KeyId, Store->GetStoreId(), FieldId);
 	Store->AddFieldKey(FieldId, KeyId);
 	return KeyId;

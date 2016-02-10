@@ -67,7 +67,7 @@ TStoreSchema::TMaps::TMaps() {
 	TimeWindowUnitMap.AddDat("year",  uint64(365) * 24 * 60 * 60 * 1000);
 }
 
-TFieldDesc TStoreSchema::ParseFieldDesc(const PJsonVal& FieldVal) {
+TFieldDesc TStoreSchema::ParseFieldDesc(const TWPt<TBase>& Base, const PJsonVal& FieldVal) {
 	// assert necessary stuff there
 	QmAssertR(FieldVal->IsObjKey("name"), "Missing field name");
 	QmAssertR(FieldVal->IsObjKey("type"), "Missing field type");
@@ -77,12 +77,12 @@ TFieldDesc TStoreSchema::ParseFieldDesc(const PJsonVal& FieldVal) {
 	const bool NullableP = FieldVal->GetObjBool("null", false);
 	const bool PrimaryP = FieldVal->GetObjBool("primary", false);
 	// validate
-	TValidNm::AssertValidNm(FieldName);
+	Base->AssertValidNm(FieldName);
 	QmAssertR(Maps.FieldTypeMap.IsKey(FieldTypeStr), "Unsupported field type " + FieldTypeStr);
 	// map field type to enum
 	TFieldType FieldType = (TFieldType)Maps.FieldTypeMap.GetDat(FieldTypeStr).Val;
 	// done
-	return TFieldDesc(FieldName, FieldType,  PrimaryP, NullableP, false);
+	return TFieldDesc(Base, FieldName, FieldType,  PrimaryP, NullableP, false);
 }
 
 TFieldDescEx TStoreSchema::ParseFieldDescEx(const PJsonVal& FieldVal) {
@@ -95,14 +95,19 @@ TFieldDescEx TStoreSchema::ParseFieldDescEx(const PJsonVal& FieldVal) {
 		FieldDescEx.DefaultVal = FieldVal->GetObjKey("default");
 	}
 	// get storage place (cache or memory)
-	TStr StoreLocStr = FieldVal->GetObjStr("store", "memory"); // default is store in memory
-	if (StoreLocStr == "memory") {
-		FieldDescEx.FieldStoreLoc = slMemory;
-	} else if (StoreLocStr == "cache") {
-		FieldDescEx.FieldStoreLoc = slDisk;
-	} else {
-		throw TQmExcept::New(TStr::Fmt("Unsupported 'store' flag for field: %s", StoreLocStr.CStr()));
-	}
+
+    if (FieldVal->IsObjKey("store")) {
+        TStr StoreLocStr = FieldVal->GetObjStr("store");
+        if (StoreLocStr == "memory") {
+            FieldDescEx.FieldStoreLoc = slMemory;
+        } else if (StoreLocStr == "cache") {
+            FieldDescEx.FieldStoreLoc = slDisk;
+        } else {
+            throw TQmExcept::New(TStr::Fmt("Unsupported 'store' flag for field: %s", StoreLocStr.CStr()));
+        }
+    } else {
+        FieldDescEx.FieldStoreLoc = DefaultFieldStoreLoc;
+    }
 	// done
 	return FieldDescEx;
 }
@@ -144,6 +149,7 @@ TJoinDescEx TStoreSchema::ParseJoinDescEx(const PJsonVal& JoinVal) {
         }
     }
     if (JoinVal->IsObjKey("storage")) {
+        QmAssertR(JoinDescEx.JoinType == osjtField, "Index-join doesn't support storage flag");
         TStr TypeStr = JoinVal->GetObjStr("storage");
         TStrV Parts;
         TypeStr.SplitOnAllCh('-', Parts);
@@ -153,6 +159,21 @@ TJoinDescEx TStoreSchema::ParseJoinDescEx(const PJsonVal& JoinVal) {
         } else {
             JoinDescEx.RecIdFieldType = (TFieldType)Maps.FieldTypeMap.GetDat(Parts[0]).Val;
             JoinDescEx.FreqFieldType = TFieldType::oftUndef; // no field for frequency, value is 1 by default
+        }
+    }
+    // field-join only - check flags where fields are stored
+    if (JoinDescEx.JoinType == osjtField) {
+        if (JoinVal->IsObjKey("storage_location")) {
+            TStr StoreLocStr = JoinVal->GetObjStr("storage_location");
+            if (StoreLocStr == "memory") {
+                JoinDescEx.FieldStoreLoc = slMemory;
+            } else if (StoreLocStr == "cache") {
+                JoinDescEx.FieldStoreLoc = slDisk;
+            } else {
+                throw TQmExcept::New(TStr::Fmt("Unsupported 'storage_location' flag for join: %s", StoreLocStr.CStr()));
+            }
+        } else {
+            JoinDescEx.FieldStoreLoc = DefaultFieldStoreLoc;
         }
     }
     // done
@@ -270,7 +291,7 @@ TIndexKeyEx TStoreSchema::ParseIndexKeyEx(const PJsonVal& IndexKeyVal) {
     return IndexKeyEx;
 }
 
-TStoreSchema::TStoreSchema(const PJsonVal& StoreVal) : StoreId(0), HasStoreIdP(false) {
+TStoreSchema::TStoreSchema(const TWPt<TBase>& Base, const PJsonVal& StoreVal) : StoreId(0), HasStoreIdP(false), DefaultFieldStoreLoc(slMemory) {
     QmAssertR(StoreVal->IsObj(), "Invalid JSON for store definition.");
     // get store name
     QmAssertR(StoreVal->IsObjKey("name"), "Missing store name.");
@@ -281,6 +302,16 @@ TStoreSchema::TStoreSchema(const PJsonVal& StoreVal) : StoreId(0), HasStoreIdP(f
         PJsonVal options = StoreVal->GetObjKey("options");
         if (options->IsObjKey("type")) {
             StoreType = options->GetObjStr("type");
+        }
+        if (options->IsObjKey("storage_location")) {
+            TStr StoreLocStr = options->GetObjStr("storage_location");
+            if (StoreLocStr == "memory") {
+                DefaultFieldStoreLoc = slMemory;
+            } else if (StoreLocStr == "cache") {
+                DefaultFieldStoreLoc = slDisk;
+            } else {
+                throw TQmExcept::New(TStr::Fmt("Unsupported 'storage_location' flag for store %s: %s", StoreName.CStr(), StoreLocStr.CStr()));
+            }
         }
         // parse block size
         BlockSizeMem = MAX(1, options->GetObjInt("block_size_mem", BlockSizeMem));
@@ -301,7 +332,7 @@ TStoreSchema::TStoreSchema(const PJsonVal& StoreVal) : StoreId(0), HasStoreIdP(f
     for (int FieldN = 0; FieldN < FieldDefs->GetArrVals(); FieldN++) {
         PJsonVal FieldDef = FieldDefs->GetArrVal(FieldN);
         // prase basic field description
-        TFieldDesc FieldDesc = ParseFieldDesc(FieldDef);
+        TFieldDesc FieldDesc = ParseFieldDesc(Base, FieldDef);
         QmAssertR(!FieldH.IsKey(FieldDesc.GetFieldNm()), "Duplicate field name " + FieldDesc.GetFieldNm() + " in store " + StoreName);
         FieldH.AddDat(FieldDesc.GetFieldNm(), FieldDesc);
         // prase extended field description required for serialization
@@ -334,12 +365,12 @@ TStoreSchema::TStoreSchema(const PJsonVal& StoreVal) : StoreId(0), HasStoreIdP(f
                 TStr JoinRecFieldNm = JoinDescEx.JoinName + "Id";
                 TStr JoinFqFieldNm = JoinDescEx.JoinName + "Fq";
                 // prepare join field descriptions
-                FieldH.AddDat(JoinRecFieldNm, TFieldDesc(JoinRecFieldNm, JoinDescEx.RecIdFieldType, false, true, true));
-                FieldExH.AddDat(JoinRecFieldNm, TFieldDescEx(slMemory, false, false));
+                FieldH.AddDat(JoinRecFieldNm, TFieldDesc(Base, JoinRecFieldNm, JoinDescEx.RecIdFieldType, false, true, true));
+                FieldExH.AddDat(JoinRecFieldNm, TFieldDescEx(JoinDescEx.FieldStoreLoc, false, false));
                 // prepare extended field description
                 if (JoinDescEx.FreqFieldType != oftUndef) {
-                    FieldExH.AddDat(JoinFqFieldNm, TFieldDescEx(slMemory, false, false));
-                    FieldH.AddDat(JoinFqFieldNm, TFieldDesc(JoinFqFieldNm, JoinDescEx.FreqFieldType, false, true, true));
+                    FieldExH.AddDat(JoinFqFieldNm, TFieldDescEx(JoinDescEx.FieldStoreLoc, false, false));
+                    FieldH.AddDat(JoinFqFieldNm, TFieldDesc(Base, JoinFqFieldNm, JoinDescEx.FreqFieldType, false, true, true));
                 }
             }
             // remember join
@@ -378,7 +409,7 @@ TStoreSchema::TStoreSchema(const PJsonVal& StoreVal) : StoreId(0), HasStoreIdP(f
             WndDesc.InsertP = false;
         } else {
             // no time field, create one which takes insert-time value
-            TFieldDesc FieldDesc(TStoreWndDesc::SysInsertedAtFieldName, oftTm, false, false, true);
+            TFieldDesc FieldDesc(Base, TStoreWndDesc::SysInsertedAtFieldName, oftTm, false, false, true);
             FieldH.AddDat(FieldDesc.GetFieldNm(), FieldDesc);
 
             TFieldDescEx FieldDescEx;
@@ -393,15 +424,15 @@ TStoreSchema::TStoreSchema(const PJsonVal& StoreVal) : StoreId(0), HasStoreIdP(f
     }
 }
 
-void TStoreSchema::ParseSchema(const PJsonVal& SchemaVal, TStoreSchemaV& SchemaV) {
+void TStoreSchema::ParseSchema(const TWPt<TBase>& Base, const PJsonVal& SchemaVal, TStoreSchemaV& SchemaV) {
 	if (SchemaVal->IsArr()) {
 		for (int SchemaN = 0; SchemaN < SchemaVal->GetArrVals(); SchemaN++) {
-			SchemaV.Add(TStoreSchema(SchemaVal->GetArrVal(SchemaN)));
+			SchemaV.Add(TStoreSchema(Base, SchemaVal->GetArrVal(SchemaN)));
 		}
 	} else if (SchemaVal->IsObjKey("stores")) {
-		ParseSchema(SchemaVal->GetObjKey("stores"), SchemaV);
+		ParseSchema(Base, SchemaVal->GetObjKey("stores"), SchemaV);
 	} else {
-		SchemaV.Add(TStoreSchema(SchemaVal));
+		SchemaV.Add(TStoreSchema(Base, SchemaVal));
 	}
 }
 
@@ -431,7 +462,7 @@ void TStoreSchema::ValidateSchema(const TWPt<TBase>& Base, TStoreSchemaV& Schema
 		while (Schema.FieldH.FNextKeyId(FieldKeyId)) {
 			TStr FieldName = Schema.FieldH[FieldKeyId].GetFieldNm();
 			const TFieldDesc& FieldDesc = Schema.FieldH[FieldKeyId];
-			TValidNm::AssertValidNm(FieldName);
+			Base->AssertValidNm(FieldName);
 			// determine primary field matches constraints
 			if (FieldDesc.IsPrimary()) {
 				// more than one field is marked as "primary"
@@ -1857,14 +1888,17 @@ uchar TRecSerializator::GetFieldByte(const TMemBase& RecMem, const int& FieldId)
 	TThinMIn ThinMIn(RecMem);
 	return GetFieldByte(ThinMIn, FieldId);
 }
+
 int TRecSerializator::GetFieldInt(const TMemBase& RecMem, const int& FieldId) const {
 	TThinMIn ThinMIn(RecMem);
 	return GetFieldInt(ThinMIn, FieldId);
 }
+
 int16 TRecSerializator::GetFieldInt16(const TMemBase& RecMem, const int& FieldId) const {
 	TThinMIn ThinMIn(RecMem);
 	return GetFieldInt16(ThinMIn, FieldId);
 }
+
 int64 TRecSerializator::GetFieldInt64(const TMemBase& RecMem, const int& FieldId) const {
 	TThinMIn ThinMIn(RecMem);
 	return GetFieldInt64(ThinMIn, FieldId);
@@ -4915,7 +4949,7 @@ TVec<TWPt<TStore> > CreateStoresFromSchema(const TWPt<TBase>& Base, const PJsonV
 
     // parse and validate the schema
     InfoLog("Parsing schema");
-    TStoreSchemaV SchemaV; TStoreSchema::ParseSchema(SchemaVal, SchemaV);
+    TStoreSchemaV SchemaV; TStoreSchema::ParseSchema(Base, SchemaVal, SchemaV);
     TStoreSchema::ValidateSchema(Base, SchemaV);
 
     // create stores	
@@ -4975,10 +5009,10 @@ TVec<TWPt<TStore> > CreateStoresFromSchema(const TWPt<TBase>& Base, const PJsonV
                 if (Store->IsFieldNm(JoinDescEx.JoinName + "Fq")) {
                     JoinFqFieldId = Store->GetFieldId(JoinDescEx.JoinName + "Fq");
                 }
-                Store->AddJoinDesc(TJoinDesc(JoinDescEx.JoinName, JoinStore->GetStoreId(), JoinRecFieldId, JoinFqFieldId));
+                Store->AddJoinDesc(TJoinDesc(Base, JoinDescEx.JoinName, JoinStore->GetStoreId(), JoinRecFieldId, JoinFqFieldId));
             } else if (JoinDescEx.JoinType == osjtIndex) {
                 // index join
-                Store->AddJoinDesc(TJoinDesc(JoinDescEx.JoinName,
+                Store->AddJoinDesc(TJoinDesc(Base, JoinDescEx.JoinName,
                     JoinStore->GetStoreId(), Store->GetStoreId(),
                     Base->GetIndexVoc(), JoinDescEx.IsSmall));
             } else {
@@ -5018,12 +5052,12 @@ TVec<TWPt<TStore> > CreateStoresFromSchema(const TWPt<TBase>& Base, const PJsonV
 ///////////////////////////////
 /// Create new base given a schema definition
 TWPt<TBase> NewBase(const TStr& FPath, const PJsonVal& SchemaVal, const uint64& IndexCacheSize,
-    const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH, const bool& InitP,
-    const int& SplitLen, bool UsePaged) {
+    const uint64& DefStoreCacheSize, const bool& StrictNameP, const TStrUInt64H& StoreNmCacheSizeH,
+	const bool& InitP, const int& SplitLen, bool UsePaged) {
 
     // create empty base
     InfoLog("Creating new base from schema");
-    TWPt<TBase> Base = TBase::New(FPath, IndexCacheSize, SplitLen);
+    TWPt<TBase> Base = TBase::New(FPath, IndexCacheSize, SplitLen, StrictNameP);
     // parse and apply the schema
     CreateStoresFromSchema(Base, SchemaVal, DefStoreCacheSize, StoreNmCacheSizeH, UsePaged);
     // finish base initialization if so required (default is true)

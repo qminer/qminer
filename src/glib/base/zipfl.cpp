@@ -24,7 +24,7 @@ TStrStrH TZipIn::FExtToCmdH;
 const int TZipIn::MxBfL=32*1024;
 
 void TZipIn::CreateZipProcess(const TStr& Cmd, const TStr& ZipFNm) {
-  const TStr CmdLine = TStr::Fmt("%s %s", Cmd.CStr(), ZipFNm.CStr());
+  const TStr CmdLine = TStr::Fmt("%s \"%s\"", Cmd.CStr(), ZipFNm.CStr());
   #ifdef GLib_WIN
   PROCESS_INFORMATION piProcInfo;
   STARTUPINFO siStartInfo;
@@ -252,7 +252,7 @@ uint64 TZipIn::GetFLen(const TStr& ZipFNm) {
   // Ensure the read handle to the pipe for STDOUT is not inherited.
   SetHandleInformation(ZipStdoutRd, HANDLE_FLAG_INHERIT, 0);
   //CreateZipProcess(GetCmd(FNm), FNm);
-  { const TStr CmdLine = TStr::Fmt("7z.exe l %s", ZipFNm.CStr());
+  { const TStr CmdLine = TStr::Fmt("7z.exe l \"%s\"", ZipFNm.CStr());
   PROCESS_INFORMATION piProcInfo;
   STARTUPINFO siStartInfo;
   ZeroMemory( &piProcInfo, sizeof(PROCESS_INFORMATION));
