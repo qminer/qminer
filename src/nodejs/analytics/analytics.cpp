@@ -1512,6 +1512,7 @@ void TNodeJsStreamStory::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "update", _update);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "futureStates", _futureStates);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "pastStates", _pastStates);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "predictNextState", _predictNextState);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "probsAtTime", _probsAtTime);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "histStates", _histStates);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "currState", _currState);
@@ -1736,7 +1737,7 @@ void TNodeJsStreamStory::pastStates(const v8::FunctionCallbackInfo<v8::Value>& A
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
 	const double Level = TNodeJsUtil::GetArgFlt(Args, 0);
 	const int StartState = TNodeJsUtil::GetArgInt32(Args, 1);
@@ -1745,10 +1746,10 @@ void TNodeJsStreamStory::pastStates(const v8::FunctionCallbackInfo<v8::Value>& A
 
 	if (Args.Length() > 2 && !Args[2]->IsNull() && !Args[2]->IsUndefined()) {
 		const double Tm = TNodeJsUtil::GetArgFlt(Args, 2);
-		JsMChain->StreamStory->GetPastStateProbV(Level, StartState, Tm, StateIdProbPrV);
+		JsStreamStory->StreamStory->GetPastStateProbV(Level, StartState, Tm, StateIdProbPrV);
 	}
 	else {
-		JsMChain->StreamStory->GetPrevStateProbV(Level, StartState, StateIdProbPrV);
+		JsStreamStory->StreamStory->GetPrevStateProbV(Level, StartState, StateIdProbPrV);
 	}
 
 	v8::Local<v8::Array> StateArr = v8::Array::New(Isolate, StateIdProbPrV.Len());
@@ -1762,6 +1763,46 @@ void TNodeJsStreamStory::pastStates(const v8::FunctionCallbackInfo<v8::Value>& A
 	}
 
 	Args.GetReturnValue().Set(StateArr);
+}
+
+void TNodeJsStreamStory::predictNextState(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+
+	const PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+	const bool UserFtrP = ParamVal->GetObjBool("useFtrV");
+	const int NFutStates = ParamVal->GetObjInt("futureStateN");
+
+	TVec<TPair<TFlt, TIntFltPrV>> HeightStateIdProbPrVPrV;
+	JsStreamStory->StreamStory->PredictNextState(UserFtrP, NFutStates, HeightStateIdProbPrVPrV);
+
+	PJsonVal ResJsonV = TJsonVal::NewArr();
+	for (int HeightN = 0; HeightN < HeightStateIdProbPrVPrV.Len(); HeightN++) {
+		const TPair<TFlt, TIntFltPrV>& HeightStateIdProbPrPr = HeightStateIdProbPrVPrV[HeightN];
+		const TIntFltPrV& StateIdProbPrV = HeightStateIdProbPrPr.Val2;
+
+		PJsonVal HeightJson = TJsonVal::NewObj();
+		PJsonVal StateIdProbJsonV = TJsonVal::NewArr();
+
+		for (int StateN = 0; StateN < StateIdProbPrV.Len(); StateN++) {
+			const TIntFltPr& StateIdProbPr = StateIdProbPrV[StateN];
+
+			PJsonVal StateIdProbJson = TJsonVal::NewObj();
+			StateIdProbJson->AddToObj("id", StateIdProbPr.Val1);
+			StateIdProbJson->AddToObj("prob", StateIdProbPr.Val2);
+
+			StateIdProbJsonV->AddToArr(StateIdProbJson);
+		}
+
+		HeightJson->AddToObj("height", HeightStateIdProbPrPr.Val1);
+		HeightJson->AddToObj("states", StateIdProbJsonV);
+
+		ResJsonV->AddToArr(HeightJson);
+	}
+
+	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, ResJsonV));
 }
 
 void TNodeJsStreamStory::probsAtTime(const v8::FunctionCallbackInfo<v8::Value>& Args) {

@@ -73,6 +73,7 @@ int _daylight = 0;
 #include "wch.cpp"
 #include "xfl.cpp"
 #include "xmath.cpp"
+#include "stat.cpp"
 
 #include "blobbs.cpp"
 #include "pgblob.cpp"

@@ -55,6 +55,7 @@ public:
 	void Save(TSOut& SOut) const;
 
 	void Update(const double& FtrVal);
+	double GetMean() const;
 
 	const TFltV& GetBinStartV() const { return BinStartV; }
 	const TIntV& GetCountV() const { return CountV; }
@@ -137,7 +138,8 @@ public:
 	// returns the number of points in the cluster
 	uint64 GetStateSize(const int& ClustId) const;
 
-	void GetHistogram(const int& FtrId, const TIntV& StateSet, TFltV& BinStartV, TFltV& BinV) const;
+	void GetHistogram(const int& FtrId, const TIntV& StateSet, TFltV& BinStartV, TFltV& BinV,
+			const bool& NormalizeP=true) const;
 	void GetTransitionHistogram(const int& FtrId, const TIntV& SourceStateSet,
 			const TIntV& TargetStateSet, TFltV& BinStartV, TFltV& ProbV) const;
 
@@ -176,7 +178,7 @@ private:
 	void ClearControlFtrVV(const int& Dim);
 
 	void GetHistogram(const TStateFtrHistVV& StateHistVV, const int& FtrN,
-			const TIntV& AggState, TFltV& BinStartV, TFltV& BinV) const;
+			const TIntV& AggState, TFltV& BinStartV, TFltV& BinV, const bool& NormalizeP) const;
 
 	// histograms
 	void InitHistVV(const int& NInst, const TFltVV& FtrVV, TStateFtrHistVV& HistVV,
@@ -489,6 +491,7 @@ private:
     int NLeafs;
 
     TStrV StateNmV;
+    TIntStrPrV StateAutoNmV;
     TStrV StateLabelV;
 
     TIntFltPrSet TargetIdHeightSet;
@@ -509,6 +512,7 @@ public:
 	void Init(const int& CurrLeafId, const TStateIdentifier& StateIdentifier,
 			const TCtmcModeller& MChain);
 	void UpdateHistory(const int& CurrLeafId);
+	void InitAutoNmV(const TStateIdentifier& StateIdentifier);	// TODO move this to private
 
 	const TFltV& GetUniqueHeightV() const { return UniqueHeightV; }
 	const TIntV& GetHierarchV() const { return HierarchV; }
@@ -546,6 +550,7 @@ public:
 	bool IsStateNm(const int& StateId) const;
 	void SetStateNm(const int& StateId, const TStr& StateNm);
 	const TStr& GetStateNm(const int& StateId) const;
+	const TIntStrPr& GetStateAutoNm(const int& StateId) const;
 	const TStr& GetStateLabel(const int& StateId) const;
 
 	// set/remove target states
@@ -750,8 +755,11 @@ private:
     TActivityDetector* ActivityDetector;
     TUiHelper* UiHelper;
 
-    TFltV PrevObsFtrV, PrevContrFtrV;
-    uint64 PrevRecTm;
+    bool FtrVecPredP;
+
+    TFltV LastObsFtrV, LastContrFtrV;
+    int LastStateId;
+    uint64 LastRecTm;
 
     bool Verbose;
 
@@ -816,6 +824,9 @@ public:
 			TIntV& StateIdV, TFltV& ProbV) const;
 
 	void GetHistStateIdV(const double& Height, TStateIdV& StateIdV) const;
+
+	void PredictNextState(const bool& UseFtrVP, const int& FutStateN,
+			TVec<TPair<TFlt, TIntFltPrV>>& HeightStateIdProbPrVPrV) const;
 
 	// histograms
 	void GetHistogram(const int& StateId, const int& FtrId, TFltV& BinStartV, TFltV& ProbV,
@@ -891,7 +902,7 @@ private:
     void CreateFtrV(const TFltV& ObsFtrV, const TFltV& ContrFtrV, const uint64& RecTm,
     		TFltV& FtrV) const;
 
-    void GetStateFtrVV(TStateFtrVV& StateFtrVV) const;
+    void GetStateFtrVV(TStateFtrVV& StateFtrVV, const bool& UseFtrVP) const;
 
     void GetStatsAtHeight(const double& Height, TAggStateV& AggStateV, TStateIdV& StateIdV,
     		TStateFtrVV& StateFtrVV) const;

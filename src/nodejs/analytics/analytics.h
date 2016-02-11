@@ -1651,6 +1651,8 @@ public:
 	 */
 	JsDeclareFunction(pastStates);
 
+	JsDeclareFunction(predictNextState);
+
 	/**
 	 * Returns the probability distribution of past and future states over time.
 	 *

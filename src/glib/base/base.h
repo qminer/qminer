@@ -187,6 +187,7 @@ typedef long long index_t;
 #include "strut.h"
 
 #include "xmath.h"
+#include "stat.h"
 #include "xmlser.h"
 
 #include "unicode.h"
