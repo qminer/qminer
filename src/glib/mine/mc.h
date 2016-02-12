@@ -45,7 +45,7 @@ private:
 	TInt Bins;
 	TInt64 TotalCount;
 	TIntV CountV;
-	TFltV BinStartV;
+	TFltV BinValV;
 
 public:
 	THistogram();
@@ -57,11 +57,16 @@ public:
 	void Update(const double& FtrVal);
 	double GetMean() const;
 
-	const TFltV& GetBinStartV() const { return BinStartV; }
+	const TFltV& GetBinValV() const { return BinValV; }
 	const TIntV& GetCountV() const { return CountV; }
 	const TInt64& GetTotalCount() const { return TotalCount; }
+	double GeNmVal() const { return BinValV[0] - GetBinSize()/2; }
+	double GeMxVal() const { return BinValV.Last() + GetBinSize()/2; }
 
 	bool Empty() const { return TotalCount == 0; }
+
+private:
+	double GetBinSize() const { return BinValV[1] - BinValV[0]; }
 };
 
 //////////////////////////////////////////////////
@@ -90,9 +95,9 @@ private:
   	TStateFtrHistVV ObsHistVV;		// histograms of observation features
   	TStateFtrHistVV ControlHistVV;	// histograms of control features
   	TStateFtrHistVV IgnoredHistVV;	// histograms of the ignored features
-  	THistMat ObsTransHistVV;		// histograms of observation transitions
-  	THistMat ContrTransHistVV;		// histograms of control transitions
-  	THistMat IgnoredTransHistVV;	// histograms of ignored transitions
+//  	THistMat ObsTransHistVV;		// histograms of observation transitions
+//  	THistMat ContrTransHistVV;		// histograms of control transitions
+//  	THistMat IgnoredTransHistVV;	// histograms of ignored transitions
 
   	TVec<TFltV> StateContrFtrValVV;
 
@@ -138,10 +143,8 @@ public:
 	// returns the number of points in the cluster
 	uint64 GetStateSize(const int& ClustId) const;
 
-	void GetHistogram(const int& FtrId, const TIntV& StateSet, TFltV& BinStartV, TFltV& BinV,
+	void GetHistogram(const int& FtrId, const TIntV& StateSet, TFltV& BinValV, TFltV& BinV,
 			const bool& NormalizeP=true) const;
-	void GetTransitionHistogram(const int& FtrId, const TIntV& SourceStateSet,
-			const TIntV& TargetStateSet, TFltV& BinStartV, TFltV& ProbV) const;
 
 	int GetStates() const { return KMeans->GetClusts(); }
 
@@ -181,19 +184,11 @@ private:
 			const TIntV& AggState, TFltV& BinStartV, TFltV& BinV, const bool& NormalizeP) const;
 
 	// histograms
-	void InitHistVV(const int& NInst, const TFltVV& FtrVV, TStateFtrHistVV& HistVV,
-			THistMat& TransHistVV);
+	void InitHistVV(const int& NInst, const TFltVV& FtrVV, TStateFtrHistVV& HistVV);
 	void InitHists(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const TFltVV& IgnoredFtrVV);
-//	void UpdateTransitionHist(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV,
-//			const TIntV& AssignV);
 	static void UpdateHistVV(const TFltVV& FtrVV, const TIntV& AssignV,
 			const int& States, TStateFtrHistVV& StateFtrHistVV);
-	static void UpdateTransHistVV(const TFltVV& FtrVV, const TIntV& AssignV,
-			THistMat& TransHistVV);
 
-	static void GetTransitionHistogram(const int& FtrN, const int& Dim, const int& Bins,
-			const THistMat& HistVV, const TIntV& SourceStateSet, const TIntV& TargetStateSet,
-			TFltV& BinStartV, TFltV& ProbV);
 	static void GetJoinedCentroid(const TIntV& StateIdV,
 			const TFltVV& CentroidVV, const TUInt64V& StateSizeV, TFltV& FtrV);
 };
@@ -829,7 +824,7 @@ public:
 			TVec<TPair<TFlt, TIntFltPrV>>& HeightStateIdProbPrVPrV) const;
 
 	// histograms
-	void GetHistogram(const int& StateId, const int& FtrId, TFltV& BinStartV, TFltV& ProbV,
+	void GetHistogram(const int& StateId, const int& FtrId, TFltV& BinValV, TFltV& ProbV,
 			TFltV& AllProbV) const;
 	void GetTransitionHistogram(const int& SourceId, const int& TargetId,
 			const int& FtrId, TFltV& BinStartV, TFltV& SourceProbV, TFltV& TargetProbV,

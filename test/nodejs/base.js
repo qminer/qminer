@@ -77,10 +77,10 @@ describe('Testing base with strict names ...', function () {
 			            { "name": "Gender", "type": "string", "shortstring": true }
 			        ]
 			    });
-				
 				base1.close();
 				done(new Error('Was able to create a store with an illegal name!'));
 			} catch (e) {
+				base1.close();
 				done();
 			}
 		});

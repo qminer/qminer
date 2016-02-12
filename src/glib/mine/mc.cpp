@@ -14,18 +14,21 @@ THistogram::THistogram():
 		Bins(),
 		TotalCount(),
 		CountV(),
-		BinStartV() {}
+		BinValV() {}
 
 THistogram::THistogram(const int& NBins, const double& MnVal, const double& MxVal):
 		Bins(NBins),
 		TotalCount(),
-		CountV(NBins+2),
-		BinStartV(NBins+1) {
+		CountV(NBins),
+		BinValV(NBins) {
 
 	const double Span = MxVal - MnVal;
 	const double BinSize = Span / NBins;
-	for (int i = 0; i < NBins+1; i++) {
-		BinStartV[i] = MnVal + i*BinSize;
+
+	double CurrVal = MnVal + BinSize/2;
+	for (int BinN = 0; BinN < NBins; BinN++) {
+		BinValV[BinN] = CurrVal;
+		CurrVal += BinSize;
 	}
 }
 
@@ -33,25 +36,35 @@ THistogram::THistogram(TSIn& SIn):
 		Bins(SIn),
 		TotalCount(SIn),
 		CountV(SIn),
-		BinStartV(SIn) {}
+		BinValV(SIn) {
+	// TODO remove
+	if (TotalCount > TLinAlg::SumVec(CountV)) {
+		CountV.Last() += TotalCount - TLinAlg::SumVec(CountV);
+	}
+}
 
 void THistogram::Save(TSOut& SOut) const {
 	Bins.Save(SOut);
 	TotalCount.Save(SOut);
 	CountV.Save(SOut);
-	BinStartV.Save(SOut);
+	BinValV.Save(SOut);
 }
 
 void THistogram::Update(const double& FtrVal) {
-	// determine the bin
-	int BinN = 0;
-	if (FtrVal >= BinStartV[Bins]) { BinN = CountV.Len()-1; }
-	else {
-		while (BinN < BinStartV.Len() && FtrVal >= BinStartV[BinN]) {
-			BinN++;
+	const double BinSize = GetBinSize();
+
+	if (FtrVal <= BinValV[0] + BinSize/2) {
+		CountV[0]++;
+	} else if (FtrVal > BinValV.Last() - BinSize/2) {
+		CountV.Last()++;
+	} else {
+		for (int BinN = 1; BinN < Bins-1; BinN++) {
+			if (BinValV[BinN] - BinSize/2 < FtrVal && FtrVal <= BinValV[BinN] + BinSize/2) {
+				CountV[BinN]++;
+			}
 		}
 	}
-	CountV[BinN]++;
+
 	TotalCount++;
 }
 
@@ -70,9 +83,9 @@ TStateIdentifier::TStateIdentifier(const PClust& _KMeans, const int _NHistBins,
 		ObsHistVV(),
 		ControlHistVV(),
 		IgnoredHistVV(),
-		ObsTransHistVV(),
-		ContrTransHistVV(),
-		IgnoredTransHistVV(),
+//		ObsTransHistVV(),
+//		ContrTransHistVV(),
+//		IgnoredTransHistVV(),
 		StateContrFtrValVV(),
 		Sample(_Sample),
 		Verbose(_Verbose),
@@ -91,9 +104,9 @@ TStateIdentifier::TStateIdentifier(TSIn& SIn):
 	ObsHistVV(SIn),
 	ControlHistVV(SIn),
 	IgnoredHistVV(SIn),
-	ObsTransHistVV(SIn),
-	ContrTransHistVV(SIn),
-	IgnoredTransHistVV(SIn),
+//	ObsTransHistVV(SIn),
+//	ContrTransHistVV(SIn),
+//	IgnoredTransHistVV(SIn),
 	StateContrFtrValVV(SIn),
 	Sample(TFlt(SIn)),
 	Verbose(TBool(SIn)) {
@@ -111,9 +124,9 @@ void TStateIdentifier::Save(TSOut& SOut) const {
 	ObsHistVV.Save(SOut);
 	ControlHistVV.Save(SOut);
 	IgnoredHistVV.Save(SOut);
-	ObsTransHistVV.Save(SOut);
-	ContrTransHistVV.Save(SOut);
-	IgnoredTransHistVV.Save(SOut);
+//	ObsTransHistVV.Save(SOut);
+//	ContrTransHistVV.Save(SOut);
+//	IgnoredTransHistVV.Save(SOut);
 	StateContrFtrValVV.Save(SOut);
 	TFlt(Sample).Save(SOut);
 	TBool(Verbose).Save(SOut);
@@ -168,10 +181,6 @@ void TStateIdentifier::InitHistograms(const TFltVV& ObsFtrVV, const TFltVV& Cont
 	UpdateHistVV(ObsFtrVV, AssignV, NClusts, ObsHistVV);
 	UpdateHistVV(ContrFtrVV, AssignV, NClusts, ControlHistVV);
 	UpdateHistVV(IgnoredFtrVV, AssignV, NClusts, IgnoredHistVV);
-
-	UpdateTransHistVV(ObsFtrVV, AssignV, ObsTransHistVV);
-	UpdateTransHistVV(ContrFtrVV, AssignV, ContrTransHistVV);
-	UpdateTransHistVV(IgnoredFtrVV, AssignV, IgnoredTransHistVV);
 }
 
 int TStateIdentifier::Assign(const TFltV& x) const {
@@ -250,41 +259,17 @@ uint64 TStateIdentifier::GetStateSize(const int& StateId) const {
 }
 
 void TStateIdentifier::GetHistogram(const int& FtrId, const TIntV& AggState,
-		TFltV& BinStartV, TFltV& BinV, const bool& NormalizeP) const {
+		TFltV& BinValV, TFltV& BinV, const bool& NormalizeP) const {
 	EAssertR(0 <= FtrId && FtrId < GetAllDim(), "Invalid feature ID: " + TInt::GetStr(FtrId));
 
 	if (FtrId < GetDim()) {
-		GetHistogram(ObsHistVV, FtrId, AggState, BinStartV, BinV, NormalizeP);
+		GetHistogram(ObsHistVV, FtrId, AggState, BinValV, BinV, NormalizeP);
 	} else if (FtrId < GetDim() + GetControlDim()) {
-		GetHistogram(ControlHistVV, FtrId - GetDim(), AggState, BinStartV, BinV, NormalizeP);
+		GetHistogram(ControlHistVV, FtrId - GetDim(), AggState, BinValV, BinV, NormalizeP);
 	} else {
-		GetHistogram(IgnoredHistVV, FtrId - GetDim() - GetControlDim(), AggState, BinStartV, BinV, NormalizeP);
+		GetHistogram(IgnoredHistVV, FtrId - GetDim() - GetControlDim(), AggState, BinValV, BinV, NormalizeP);
 	}
 }
-
-void TStateIdentifier::GetTransitionHistogram(const int& FtrId, const TIntV& SourceStateSet,
-		const TIntV& TargetStateSet, TFltV& BinStartV, TFltV& ProbV) const {
-	EAssertR(FtrId < GetAllDim(), "Invalid feature ID: " + TInt::GetStr(FtrId));
-
-	if (FtrId < GetDim()) {
-		GetTransitionHistogram(FtrId, GetDim(), NHistBins, ObsTransHistVV, SourceStateSet, TargetStateSet, BinStartV, ProbV);
-	} else if (FtrId < GetDim() + GetControlDim()) {
-		GetTransitionHistogram(FtrId - GetDim(), GetControlDim(), NHistBins, ContrTransHistVV, SourceStateSet, TargetStateSet, BinStartV, ProbV);
-	} else {
-		GetTransitionHistogram(FtrId - GetDim() - GetControlDim(), GetIgnoredDim(), NHistBins, IgnoredTransHistVV, SourceStateSet, TargetStateSet, BinStartV, ProbV);
-	}
-}
-
-//void TStateIdentifier::GetCentroidVV(TVec<TFltV>& ResultVV) const {
-//	const TFltVV& CentroidMat = KMeans->GetCentroidVV();
-//	const int Cols = CentroidMat.GetCols();
-//
-//	ResultVV.Gen(Cols);
-//
-//	for (int ColN = 0; ColN < Cols; ColN++) {
-//		CentroidMat.GetCol(ColN, ResultVV[ColN]);
-//	}
-//}
 
 void TStateIdentifier::GetControlCentroidVV(TStateFtrVV& StateFtrVV) const {
 	const int Cols = ControlCentroidVV.GetCols();
@@ -413,16 +398,16 @@ void TStateIdentifier::ClearControlFtrVV(const int& Dim) {
 
 void TStateIdentifier::GetHistogram(const TStateFtrHistVV& StateHistVV, const int& FtrN,
 		const TIntV& AggState, TFltV& BinStartV, TFltV& BinV, const bool& NormalizeP) const {
-	BinV.Gen(NHistBins+2);
-	BinStartV = StateHistVV[0][FtrN].GetBinStartV();
+	BinV.Gen(NHistBins);
+	BinStartV = StateHistVV[0][FtrN].GetBinValV();
 
-	for (int i = 0; i < AggState.Len(); i++) {
-		const int StateId = AggState[i];
+	for (int StateN = 0; StateN < AggState.Len(); StateN++) {
+		const int StateId = AggState[StateN];
 		const THistogram& Hist = StateHistVV[StateId][FtrN];
 		const TIntV& CountV = Hist.GetCountV();
 
-		for (int j = 0; j < CountV.Len(); j++) {
-			BinV[j] += (double) CountV[j];
+		for (int BinN = 0; BinN < CountV.Len(); BinN++) {
+			BinV[BinN] += (double) CountV[BinN];
 		}
 	}
 
@@ -432,19 +417,15 @@ void TStateIdentifier::GetHistogram(const TStateFtrHistVV& StateHistVV, const in
 }
 
 void TStateIdentifier::InitHistVV(const int& NInst, const TFltVV& FtrVV,
-		TStateFtrHistVV& HistVV, THistMat& TransHistVV) {
+		TStateFtrHistVV& HistVV) {
 	const int States = GetStates();
 	const int Dim = FtrVV.GetRows();
 	const int Bins = NHistBins;
 
 	HistVV.Gen(States);
-	TransHistVV.Gen(States, States);
 
 	for (int State1Id = 0; State1Id < States; State1Id++) {
 		HistVV[State1Id].Gen(FtrVV.GetRows());
-		for (int State2Id = 0; State2Id < States; State2Id++) {
-			TransHistVV(State1Id, State2Id).Gen(Dim);
-		}
 	}
 
 	double MnVal, MxVal;
@@ -461,10 +442,6 @@ void TStateIdentifier::InitHistVV(const int& NInst, const TFltVV& FtrVV,
 		// go through all the histograms and initialize them
 		for (int State1Id = 0; State1Id < States; State1Id++) {
 			HistVV[State1Id].SetVal(FtrN, THistogram(Bins, MnVal, MxVal));
-			for (int State2Id = 0; State2Id < States; State2Id++) {
-				TFtrHistV& HistV = TransHistVV(State1Id, State2Id);
-				HistV.SetVal(FtrN, THistogram(Bins, MnVal, MxVal));
-			}
 		}
 	}
 }
@@ -474,9 +451,9 @@ void TStateIdentifier::InitHists(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrV
 
 	const int NInst = ObsFtrVV.GetCols();
 
-	InitHistVV(NInst, ObsFtrVV, ObsHistVV, ObsTransHistVV);
-	InitHistVV(NInst, ContrFtrVV, ControlHistVV, ContrTransHistVV);
-	InitHistVV(NInst, IgnoredFtrVV, IgnoredHistVV, IgnoredTransHistVV);
+	InitHistVV(NInst, ObsFtrVV, ObsHistVV);
+	InitHistVV(NInst, ContrFtrVV, ControlHistVV);
+	InitHistVV(NInst, IgnoredFtrVV, IgnoredHistVV);
 }
 
 void TStateIdentifier::UpdateHistVV(const TFltVV& FtrVV, const TIntV& AssignV,
@@ -496,68 +473,6 @@ void TStateIdentifier::UpdateHistVV(const TFltVV& FtrVV, const TIntV& AssignV,
 			FtrHistV[FtrN].Update(FtrVV(FtrN, InstN));
 		}
 	}
-}
-
-void TStateIdentifier::UpdateTransHistVV(const TFltVV& FtrVV, const TIntV& AssignV,
-		THistMat& TransHistVV) {
-	const int NInst = AssignV.Len();
-	const int Dim = FtrVV.GetRows();
-
-	EAssertR(NInst > 0, "Cannot fit a model to 0 instances!");
-
-	int CurrState, PrevState = AssignV[0];
-	for (int InstN = 0; InstN < NInst; InstN++) {
-		CurrState = AssignV[InstN];
-
-		if (CurrState != PrevState) {	// we have just jumped
-			// get the features of the previous time step
-			const int JumpInst = InstN-1;
-			TFtrHistV& FtrIdHistV = TransHistVV(PrevState, CurrState);
-
-			for (int FtrN = 0; FtrN < Dim; FtrN++) {
-				FtrIdHistV[FtrN].Update(FtrVV(FtrN, JumpInst));
-			}
-
-			PrevState = CurrState;
-		}
-	}
-}
-
-void TStateIdentifier::GetTransitionHistogram(const int& FtrN, const int& Dim, const int& Bins,
-		const THistMat& HistVV, const TIntV& SourceStateSet, const TIntV& TargetStateSet,
-		TFltV& BinStartV, TFltV& ProbV) {
-
-	EAssertR(FtrN < Dim, "Invalid feature number: " + TInt::GetStr(FtrN));
-
-	ProbV.Gen(Bins+2);
-	BinStartV.Clr();
-
-	for (int SourceN = 0; SourceN < SourceStateSet.Len(); SourceN++) {
-		const int& SourceId = SourceStateSet[SourceN];
-
-		for (int TargetN = 0; TargetN < TargetStateSet.Len(); TargetN++) {
-			const int& TargetId = TargetStateSet[TargetN];
-
-			const TFtrHistV& FtrIdHistV = HistVV(SourceId, TargetId);
-			EAssertR(FtrN < FtrIdHistV.Len(), "Invalid feature number: " + TInt::GetStr(FtrN));
-			const THistogram& Hist = FtrIdHistV[FtrN];
-
-			if (Hist.Empty()) { continue; }
-
-			const TIntV& CountV = Hist.GetCountV();
-			for (int i = 0; i < CountV.Len(); i++) {
-				ProbV[i] += (double) CountV[i];
-			}
-
-			// initialize the bin start vector if not already
-			// try to think of anything better than lazy initialization
-			if (BinStartV.Empty()) {
-				BinStartV = Hist.GetBinStartV();
-			}
-		}
-	}
-
-	TLinAlg::NormalizeL1(ProbV);
 }
 
 void TStateIdentifier::GetJoinedCentroid(const TIntV& StateIdV,
@@ -822,9 +737,6 @@ void TCtMChain::GetStatDistV(const TFltVV& QMat, TFltV& ProbV) {
 			ProbV[StateId] /= EigSum;
 		}
 	}
-
-	// TODO remove
-	printf("Static distribution: %s\n", TStrUtil::GetStr(ProbV, ", ", "%.10f").CStr());
 }
 
 void TCtMChain::GetHoldingTmV(const TFltVV& QMat, TFltV& HoldingTmV) {
@@ -2841,25 +2753,22 @@ void THierarch::InitAutoNmV(const TStateIdentifier& StateIdentifier) {
 	TIntV AllLeafIdV;	GetLeafIdV(AllLeafIdV);
 
 	TVec<TFltV> FtrAllBinV(AllDim, AllDim);
-	TFltV AllMeanV(AllDim, AllDim);
+
+	TVec<TFltV> FtrPercVV(AllDim, AllDim);
 	for (int FtrId = 0; FtrId < AllDim; FtrId++) {
 		TFltV BinStartV;
 		StateIdentifier.GetHistogram(FtrId, AllLeafIdV, BinStartV, FtrAllBinV[FtrId], false);
 
-		const int StartBin = 1;
-		const int TotalBins = FtrAllBinV[FtrId].Len() - 1 - StartBin;
-
 		const double TotalCount = TLinAlg::SumVec(FtrAllBinV[FtrId]);
-
-		double Mean = 0;
-
-		for (int BinN = StartBin; BinN < StartBin + TotalBins; BinN++) {
-			Mean += FtrAllBinV[FtrId][BinN] * (BinStartV[BinN-1] + BinStartV[BinN]) / (2.0 * TotalCount);
+		double ProbSum = 0;
+		for (int BinN = 0; BinN < BinStartV.Len(); BinN++) {
+			const double BinProb = double(FtrAllBinV[FtrId][BinN]) / TotalCount;
+			FtrPercVV[FtrId].Add(ProbSum + BinProb/2);
+			ProbSum += BinProb;
 		}
-		AllMeanV[FtrId] = Mean;
 	}
 
-	TFltV BinStartV, StateBinV;
+	TFltV BinValV, StateBinCountV;
 
 	for (int HeightN = 0; HeightN < HeightV.Len(); HeightN++) {
 		const double Height = HeightV[HeightN];
@@ -2873,50 +2782,109 @@ void THierarch::InitAutoNmV(const TStateIdentifier& StateIdentifier) {
 			const TAggState& AggState = AggStateV[StateN];
 
 			double BestFtrPVal = TFlt::PInf;
+			double BestFtrPerc = TFlt::PInf;
+			double BestLowPerc = TFlt::PInf;
+			double BestHighPerc = TFlt::NInf;
 			int BestFtrId = -1;
+
 
 			for (int FtrId = 0; FtrId < AllDim; FtrId++) {
 				const TFltV& AllBinV = FtrAllBinV[FtrId];
-				StateIdentifier.GetHistogram(FtrId, AggState, BinStartV, StateBinV, false);
+				StateIdentifier.GetHistogram(FtrId, AggState, BinValV, StateBinCountV, false);
 
 				printf("all histogram:\n%s\n", TStrUtil::GetStr(AllBinV, ", ", "%.4f").CStr());
-				printf("histogram:\n%s\n", TStrUtil::GetStr(StateBinV, ", ", "%.4f").CStr());
+				printf("histogram:\n%s\n", TStrUtil::GetStr(StateBinCountV, ", ", "%.4f").CStr());
+				printf("Ftr %d percentiles:\n%s\n", FtrId, TStrUtil::GetStr(FtrPercVV[FtrId], ", ", "%.5f").CStr());
+				printf("Bin values:\n%s\n", TStrUtil::GetStr(BinValV, ", ", "%.5f").CStr());
 
-				TFlt Chi2, PVal;
-				TStatFun::ChiSquare(AllBinV, StateBinV, StateBinV.Len(), Chi2, PVal);
+				// calculate the mean and check into which percentile it falls
+				const double TotalCount = TLinAlg::SumVec(StateBinCountV);
+				const double BinSize = BinValV[1] - BinValV[0];
+				double Mean = 0, LowPerc = TFlt::Mx, HighPerc = TFlt::Mn;
+				double Perc, PVal;
 
-				printf("State %d, ftr: %d, chi2: %.4f, p: %.15f\n", StateId, FtrId, Chi2.Val, PVal.Val);
+				const double LowPercProb = .4;
+				const double HighPercProb = 1 - LowPercProb;
+
+				double ProbSum = 0;
+				for (int BinN = 0; BinN < BinValV.Len(); BinN++) {
+					const double Prob = double(StateBinCountV[BinN]) / TotalCount;
+					const double BinVal = BinValV[BinN];
+
+					if (ProbSum <= LowPercProb && ProbSum + Prob > LowPercProb) {
+						LowPerc = BinVal;
+					}
+					if (ProbSum < HighPercProb && ProbSum + Prob >= HighPercProb) {
+						HighPerc = BinVal;
+					}
+
+					Mean += Prob * BinVal;
+					ProbSum += Prob;
+
+				}
+
+				/*
+				 * TVec<TFltV> FtrPercVV(AllDim, AllDim);
+	for (int FtrId = 0; FtrId < AllDim; FtrId++) {
+		TFltV BinStartV;
+		StateIdentifier.GetHistogram(FtrId, AllLeafIdV, BinStartV, FtrAllBinV[FtrId], false);
+
+		const double TotalCount = TLinAlg::SumVec(FtrAllBinV[FtrId]);
+		double ProbSum = 0;
+		for (int BinN = 0; BinN < BinStartV.Len(); BinN++) {
+			const double BinProb = double(FtrAllBinV[FtrId][BinN]) / TotalCount;
+			FtrPercVV[FtrId].Add(ProbSum + BinProb/2);
+			ProbSum += BinProb;
+		}
+	}
+				 */
+
+				if (Mean <= BinValV[0] - BinSize/2) {
+					Perc = 0;
+				} else if (Mean >= BinValV.Last() + BinSize/2) {
+					Perc = 1;
+				} else {
+					for (int BinN = 0; BinN < BinValV.Len(); BinN++) {
+						const double BinVal = BinValV[BinN];
+						if (BinVal - BinSize/2 < Mean && Mean <= BinVal + BinSize/2) {
+							Perc = FtrPercVV[FtrId][BinN];
+							break;
+						}
+					}
+				}
+
+				PVal = TMath::Mn(Perc, 1 - Perc);
+
+				printf("State %d, ftr: %d, p: %.5f, percentile: %.5f\n", StateId, FtrId, PVal, Perc);
 
 				if (PVal < BestFtrPVal) {
 					BestFtrPVal = PVal;
+					BestFtrPerc = Perc;
+					BestLowPerc = LowPerc;
+					BestHighPerc = HighPerc;
 					BestFtrId = FtrId;
 				}
 			}
 
-			if (BestFtrPVal > .01) {
-				printf("State %d, got name: MEAN\n", StateId);
-				StateAutoNmV[StateId] = TIntStrPr(-1, "MEAN");
-			} else {
-				// calculate the mean of the best feature in the state
-				StateIdentifier.GetHistogram(BestFtrId, AggState, BinStartV, StateBinV, false);
+			const double PercThreshold = .2;
 
-				const int StartBin = 1;
-				const int TotalBins = StateBinV.Len() - 1 - StartBin;
-
-				const double TotalCount = TLinAlg::SumVec(StateBinV);
-				double Mean = 0;
-
-				for (int BinN = StartBin; BinN < StartBin + TotalBins; BinN++) {
-					Mean += StateBinV[BinN] * (BinStartV[BinN-1] + BinStartV[BinN]) / (2.0 * TotalCount);
-				}
-
-				if (Mean > AllMeanV[BestFtrId]) {
+			if (BestFtrPVal > PercThreshold) {
+				if (BestLowPerc < PercThreshold) {
+					printf("State %d, got name:(%d, LOW)\n", StateId, BestFtrId);
+					StateAutoNmV[StateId] = TIntStrPr(BestFtrId, "LOW");
+				} else if (BestHighPerc > 1 - PercThreshold) {
 					printf("State %d, got name:(%d, HIGH)\n", StateId, BestFtrId);
 					StateAutoNmV[StateId] = TIntStrPr(BestFtrId, "HIGH");
 				} else {
-					printf("State %d, got name:(%d, LOW)\n", StateId, BestFtrId);
-					StateAutoNmV[StateId] = TIntStrPr(BestFtrId, "LOW");
+					printf("State %d, got name: MEAN\n", StateId);
+					StateAutoNmV[StateId] = TIntStrPr(-1, "MEAN");
 				}
+			} else if (BestFtrPerc < PercThreshold) {
+				printf("State %d, got name:(%d, LOW)\n", StateId, BestFtrId);
+				StateAutoNmV[StateId] = TIntStrPr(BestFtrId, "LOW");
+			} else {
+				printf("State %d, got name:(%d, HIGH)\n", StateId, BestFtrId);
+				StateAutoNmV[StateId] = TIntStrPr(BestFtrId, "HIGH");
 			}
 		}
 	}
@@ -3041,7 +3009,7 @@ void THierarch::ClrFlds() {
 /////////////////////////////////////////////////////////////////
 // UI helper
 const double TUiHelper::STEP_FACTOR = 1e-2;
-const double TUiHelper::INIT_RADIUS_FACTOR = 1.2;
+const double TUiHelper::INIT_RADIUS_FACTOR = 1.1;
 
 TUiHelper::TUiHelper(const TRnd& _Rnd, const bool& _Verbose):
 		StateCoordV(),
@@ -4151,7 +4119,7 @@ void TStreamStory::PredictNextState(const bool& UseFtrVP, const int& FutStateN,
 	}
 }
 
-void TStreamStory::GetHistogram(const int& StateId, const int& FtrId, TFltV& BinStartV,
+void TStreamStory::GetHistogram(const int& StateId, const int& FtrId, TFltV& BinValV,
 		TFltV& ProbV, TFltV& AllProbV) const {
 	try {
 		TIntV LeafIdV;
@@ -4160,8 +4128,8 @@ void TStreamStory::GetHistogram(const int& StateId, const int& FtrId, TFltV& Bin
 		Hierarch->GetLeafDescendantV(StateId, LeafIdV);
 		Hierarch->GetLeafIdV(AllLeafIdV);
 
-		StateIdentifier->GetHistogram(FtrId, LeafIdV, BinStartV, ProbV);
-		StateIdentifier->GetHistogram(FtrId, AllLeafIdV, BinStartV, AllProbV);
+		StateIdentifier->GetHistogram(FtrId, LeafIdV, BinValV, ProbV);
+		StateIdentifier->GetHistogram(FtrId, AllLeafIdV, BinValV, AllProbV);
 
 		uint64 NDescPts = 0;
 		uint64 NLeafPts = 0;
@@ -4184,7 +4152,7 @@ void TStreamStory::GetHistogram(const int& StateId, const int& FtrId, TFltV& Bin
 }
 
 void TStreamStory::GetTransitionHistogram(const int& SourceId, const int& TargetId,
-		const int& FtrId, TFltV& BinStartV, TFltV& SourceProbV, TFltV& TargetProbV,
+		const int& FtrId, TFltV& BinValV, TFltV& SourceProbV, TFltV& TargetProbV,
 		TFltV& AllProbV) const {
 	try {
 		TIntV SourceLeafIdV;
@@ -4195,9 +4163,9 @@ void TStreamStory::GetTransitionHistogram(const int& SourceId, const int& Target
 		Hierarch->GetLeafDescendantV(TargetId, TargetLeafIdV);
 		Hierarch->GetLeafIdV(AllLeafIdV);
 
-		StateIdentifier->GetHistogram(FtrId, SourceLeafIdV, BinStartV, SourceProbV);
-		StateIdentifier->GetHistogram(FtrId, TargetLeafIdV, BinStartV, TargetProbV);
-		StateIdentifier->GetHistogram(FtrId, AllLeafIdV, BinStartV, AllProbV);
+		StateIdentifier->GetHistogram(FtrId, SourceLeafIdV, BinValV, SourceProbV);
+		StateIdentifier->GetHistogram(FtrId, TargetLeafIdV, BinValV, TargetProbV);
+		StateIdentifier->GetHistogram(FtrId, AllLeafIdV, BinValV, AllProbV);
 
 		uint64 NSourcePts = 0;
 		uint64 NTargetPts = 0;
@@ -4221,8 +4189,6 @@ void TStreamStory::GetTransitionHistogram(const int& SourceId, const int& Target
 			SourceProbV[BinN] *= SourceRatio;
 			TargetProbV[BinN] *= TargetRatio;
 		}
-
-//		StateIdentifier->GetTransitionHistogram(FtrId, SourceLeafV, TargetLeafV, BinStartV, ProbV);
 	} catch (const PExcept& Except) {
 		Notify->OnNotifyFmt(TNotifyType::ntErr, "THierarch::GetTransitionHistogram: Failed to fetch histogram: %s", Except->GetMsgStr().CStr());
 		throw Except;

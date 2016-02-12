@@ -1968,10 +1968,10 @@ void TNodeJsStreamStory::histogram(const v8::FunctionCallbackInfo<v8::Value>& Ar
 	const int FtrId = TNodeJsUtil::GetArgInt32(Args, 0);
 	const int StateId = TNodeJsUtil::IsArgNullOrUndef(Args, 1) ? -1 : TNodeJsUtil::GetArgInt32(Args, 1);
 
-	TFltV BinStartV, ProbV, AllProbV;
-	JsStreamStory->StreamStory->GetHistogram(StateId, FtrId, BinStartV, ProbV, AllProbV);
+	TFltV BinValV, ProbV, AllProbV;
+	JsStreamStory->StreamStory->GetHistogram(StateId, FtrId, BinValV, ProbV, AllProbV);
 
-	v8::Local<v8::Object> Result = WrapHistogram(BinStartV, ProbV, TFltV(), AllProbV);
+	v8::Local<v8::Object> Result = WrapHistogram(BinValV, ProbV, TFltV(), AllProbV);
 	Args.GetReturnValue().Set(Result);
 }
 
@@ -1987,11 +1987,11 @@ void TNodeJsStreamStory::transitionHistogram(const v8::FunctionCallbackInfo<v8::
 	const int TargetId = TNodeJsUtil::GetArgInt32(Args, 1);
 	const int FtrId = TNodeJsUtil::GetArgInt32(Args, 2);
 
-	TFltV BinStartV, SourceProbV, TargetProbV, AllProbV;
+	TFltV BinValV, SourceProbV, TargetProbV, AllProbV;
 
-	JsStreamStory->StreamStory->GetTransitionHistogram(SourceId, TargetId, FtrId, BinStartV, SourceProbV, TargetProbV, AllProbV);
+	JsStreamStory->StreamStory->GetTransitionHistogram(SourceId, TargetId, FtrId, BinValV, SourceProbV, TargetProbV, AllProbV);
 
-	v8::Local<v8::Object> Result = WrapHistogram(BinStartV, SourceProbV, TargetProbV, AllProbV);
+	v8::Local<v8::Object> Result = WrapHistogram(BinValV, SourceProbV, TargetProbV, AllProbV);
 	Args.GetReturnValue().Set(Result);
 }
 
@@ -2673,7 +2673,7 @@ v8::Local<v8::Object> TNodeJsStreamStory::WrapHistogram(const TFltV& BinStartV,
 		TotalProb += SourceProbV[i];
 	}
 
-	Result->Set(v8::String::NewFromUtf8(Isolate, "binStartV"), BinStartJsV);
+	Result->Set(v8::String::NewFromUtf8(Isolate, "binValV"), BinStartJsV);
 	Result->Set(v8::String::NewFromUtf8(Isolate, "probV"), ProbJsV);
 	Result->Set(v8::String::NewFromUtf8(Isolate, "probSum"), v8::Number::New(Isolate, TotalProb));
 
