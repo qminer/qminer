@@ -578,6 +578,9 @@ void THttpRq::ParseHttpRq(const PSIn& SIn){
     if (!Url->IsOk()){
       throw THttpEx(heBadUrl);}
   }
+  if (Url.Empty()) {
+	  throw THttpEx(heBadUrl);
+  }
   // search string
   TStr SearchStr;
   if (Method==hrmGet){
