@@ -1735,6 +1735,8 @@ public:
 
 	JsDeclareFunction(transitionHistogram);
 
+	JsDeclareFunction(timeHistogram);
+
 	/**
 	 * Returns the lower and upper bound of the feature.
 	 *
@@ -1930,7 +1932,7 @@ private:
 	void SetParams(const PJsonVal& ParamVal);
 	void InitCallbacks();
 
-	static v8::Local<v8::Object> WrapHistogram(const TFltV& BinStartV,
+	static v8::Local<v8::Object> WrapHistogram(const TFltV& BinValV,
 			const TFltV& SourceProbV, const TFltV& TargetProbV, const TFltV& AllProbV);
 	static uint64 GetTmUnit(const TStr& TmUnitStr);
 	static TClustering::PDnsKMeans GetClust(const PJsonVal& ParamJson, const TRnd& Rnd);

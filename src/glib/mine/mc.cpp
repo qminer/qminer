@@ -73,7 +73,7 @@ void THistogram::Update(const double& FtrVal) {
 //////////////////////////////////////////////////
 // Abstract clustering
 const int TStateIdentifier::MX_ITER = 10000;
-const int TStateIdentifier::TIME_HIST_BINS = 1000;
+const int TStateIdentifier::TIME_HIST_BINS = 10000;
 
 TStateIdentifier::TStateIdentifier(const PClust& _KMeans, const int _NHistBins,
 			const double& _Sample, const TRnd& _Rnd, const bool& _Verbose):
@@ -84,6 +84,7 @@ TStateIdentifier::TStateIdentifier(const PClust& _KMeans, const int _NHistBins,
 		ObsHistVV(),
 		ControlHistVV(),
 		IgnoredHistVV(),
+		StateTimeHistV(),
 		StateContrFtrValVV(),
 		Sample(_Sample),
 		Verbose(_Verbose),
@@ -102,7 +103,7 @@ TStateIdentifier::TStateIdentifier(TSIn& SIn):
 	ObsHistVV(SIn),
 	ControlHistVV(SIn),
 	IgnoredHistVV(SIn),
-	StateTimeHistV(), // TODO load
+	StateTimeHistV(SIn),
 	StateContrFtrValVV(SIn),
 	Sample(TFlt(SIn)),
 	Verbose(TBool(SIn)) {
@@ -126,7 +127,8 @@ void TStateIdentifier::Save(TSOut& SOut) const {
 	TBool(Verbose).Save(SOut);
 }
 
-void TStateIdentifier::Init(TFltVV& ObsFtrVV, const TFltVV& ControlFtrVV, const TFltVV& IgnoredFtrVV) {
+void TStateIdentifier::Init(const TUInt64V& TmV, TFltVV& ObsFtrVV, const TFltVV& ControlFtrVV,
+		const TFltVV& IgnoredFtrVV) {
 	EAssertR(Sample >= 0, "Cannot sample a negative number of instances!");
 
 	const int NInst = ObsFtrVV.GetCols();
@@ -152,8 +154,6 @@ void TStateIdentifier::Init(TFltVV& ObsFtrVV, const TFltVV& ControlFtrVV, const 
 	}
 
 	InitStatistics(ObsFtrVV);
-
-	TUInt64V TmV;	// TODO
 
 	TIntV AssignV;	Assign(ObsFtrVV, AssignV);
 	InitCentroidVV(AssignV, ControlFtrVV, ControlCentroidVV);
@@ -298,23 +298,30 @@ void TStateIdentifier::GetHistogram(const int& FtrId, const TAggState& AggState,
 }
 
 void TStateIdentifier::GetTimeHistogram(const TAggState& AggState, TUInt64V& TmV, TFltV& BinV,
-		const bool& NormalizeP) {
+		const int NBins, const bool& NormalizeP) const {
 
-	if (BinV.Len() != TIME_HIST_BINS) { BinV.Gen(TIME_HIST_BINS); }
-	if (TmV.Len() != TIME_HIST_BINS) { TmV.Gen(TIME_HIST_BINS); }
+	if (BinV.Len() != NBins) { BinV.Gen(NBins); }
+	if (TmV.Len() != NBins) { TmV.Gen(NBins); }
 
-	const TFltV& TmFltV = StateTimeHistV[0].GetBinValV();
-	for (int BinN = 0; BinN < TIME_HIST_BINS; BinN++) {
-		TmV[BinN] = (TUInt64) TmFltV[BinN];
-	}
-
+	TFltV CountV, ValV;
+	bool TmVInitP = false;
 	for (int StateN = 0; StateN < AggState.Len(); StateN++) {
 		const int& StateId = AggState[StateN];
 		const THistogram& Hist = StateTimeHistV[StateId];
-		const TIntV& CountV = Hist.GetCountV();
+		const TIntV& OrigCountV = Hist.GetCountV();
+		const TFltV& OrigValV = Hist.GetBinValV();
 
-		for (int BinN = 0; BinN < TIME_HIST_BINS; BinN++) {
-			BinV[BinN] += (double) CountV[BinN];
+		ResampleHist(NBins, OrigValV, OrigCountV, ValV, CountV);
+
+		for (int BinN = 0; BinN < NBins; BinN++) {
+			BinV[BinN] += CountV[BinN];
+		}
+
+		if (!TmVInitP) {
+			for (int BinN = 0; BinN < NBins; BinN++) {
+				TmV[BinN] = (TUInt64) ValV[BinN];
+			}
+			TmVInitP = true;
 		}
 	}
 
@@ -557,6 +564,45 @@ void TStateIdentifier::GetJoinedCentroid(const TIntV& StateIdV,
 	for (int FtrN = 0; FtrN < Dim; FtrN++) {
 		FtrV[FtrN] /= TotalSize;
 	}
+}
+
+void TStateIdentifier::ResampleHist(const int& Bins, const TFltV& OrigBinValV,
+		const TIntV& OrigBinV, TFltV& BinValV, TFltV& BinV) {
+	EAssert(Bins > 1);
+	EAssert(Bins < OrigBinV.Len());
+
+	if (BinValV.Len() != Bins) { BinValV.Gen(Bins); }
+	if (BinV.Len() != Bins) { BinV.Gen(Bins); }
+
+	const double OrigBinsPerBin = double(OrigBinV.Len()) / Bins;
+
+	int OrigBinN = 0;
+	double OrigCountedPerc = 0;
+	for (int BinN = 0; BinN < Bins; BinN++) {
+		double BinsCounted = 0;
+		while (BinsCounted + 1 <= OrigBinsPerBin) {
+			BinV[BinN] += OrigBinV[OrigBinN]*(1 - OrigCountedPerc);
+			BinValV[BinN] += OrigBinValV[OrigBinN]*(1 - OrigCountedPerc);
+			OrigBinN++;
+			OrigCountedPerc = 0;
+			BinsCounted += 1;
+		}
+
+		if (BinsCounted < OrigBinsPerBin) {
+			OrigCountedPerc = (OrigBinsPerBin - BinsCounted);
+			BinV[BinN] += OrigCountedPerc * OrigBinV[OrigBinN];
+			BinValV[BinN] += OrigCountedPerc * OrigBinValV[OrigBinN];
+		}
+
+		BinValV[BinN] /= OrigBinsPerBin;
+	}
+
+	//===============================================================
+	// TODO remove this assertion when you know it works!
+	const TFlt OrigCount = (TFlt) TLinAlg::SumVec(BinV);
+	const TFlt NewCount = TLinAlg::SumVec(BinV);
+	EAssert(TFlt::Abs(OrigCount - NewCount) < 1e-2);
+	//===============================================================
 }
 
 /////////////////////////////////////////////
@@ -3974,7 +4020,7 @@ void TStreamStory::Init(TFltVV& ObservFtrVV, const TFltVV& ControlFtrVV,
 	TFltVV FtrVV;	CreateFtrVV(ObservFtrVV, ControlFtrVV, RecTmV, TBoolV(), FtrVV);
 
 	Callback->OnProgress(0, "Clustering ...");
-	TIntV AssignV;	InitClust(ObservFtrVV, FtrVV, IgnoredFtrVV, AssignV);
+	TIntV AssignV;	InitClust(RecTmV, ObservFtrVV, FtrVV, IgnoredFtrVV, AssignV);
 	Callback->OnProgress(30, "Modeling transitions ...");
 	InitMChain(FtrVV, AssignV, RecTmV, false, TBoolV());
 	Callback->OnProgress(50, "Initializing hierarchy ...");
@@ -3991,16 +4037,16 @@ void TStreamStory::InitBatches(TFltVV& ObservFtrVV, const TFltVV& ControlFtrVV, 
 
 	TFltVV FtrVV;	CreateFtrVV(ObservFtrVV, ControlFtrVV, RecTmV, BatchEndV, FtrVV);
 
-	TIntV AssignV;	InitClust(ObservFtrVV, FtrVV, IgnoredFtrVV, AssignV);
+	TIntV AssignV;	InitClust(RecTmV, ObservFtrVV, FtrVV, IgnoredFtrVV, AssignV);
 	InitMChain(FtrVV, AssignV, RecTmV, true, BatchEndV);
 	InitHierarch();
 	InitStateAssist(ObservFtrVV, ControlFtrVV, IgnoredFtrVV, MultiThread);
 	UiHelper->Init(*StateIdentifier, *Hierarch, *MChain);
 }
 
-void TStreamStory::InitClust(TFltVV& ObsFtrVV, const TFltVV& FtrVV, const TFltVV& IgnoredFtrVV,
+void TStreamStory::InitClust(const TUInt64V& TmV, TFltVV& ObsFtrVV, const TFltVV& FtrVV, const TFltVV& IgnoredFtrVV,
 		TIntV& AssignV) {
-	StateIdentifier->Init(ObsFtrVV, FtrVV, IgnoredFtrVV);
+	StateIdentifier->Init(TmV, ObsFtrVV, FtrVV, IgnoredFtrVV);
 	StateIdentifier->Assign(ObsFtrVV, AssignV);
 }
 
@@ -4236,10 +4282,11 @@ void TStreamStory::GetTransitionHistogram(const int& SourceId, const int& Target
 	}
 }
 
-void TStreamStory::GetTimeHistogram(const int& StateId, TUInt64& TmV, TFltV& ProbV) const {
+void TStreamStory::GetTimeHistogram(const int& StateId, TUInt64V& TmV, TFltV& ProbV,
+		const int& NBins) const {
 	TAggState AggState;
 	Hierarch->GetLeafDescendantV(StateId, AggState);
-//	a
+	StateIdentifier->GetTimeHistogram(AggState, TmV, ProbV, NBins, true);
 }
 
 void TStreamStory::GetStateWgtV(const int& StateId, TFltV& WgtV) const {
