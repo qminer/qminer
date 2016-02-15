@@ -2215,6 +2215,20 @@ private:
 
 	static TNodeJsMDS* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
+	class TFitTransformTask: public TNodeTask {
+		TNodeJsMDS* JsMDS;
+		TNodeJsFltVV* JsFltVV;
+		TNodeJsSpMat* JsSpVV;
+		TNodeJsFltVV* JsResult;
+
+	public:
+		TFitTransformTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+		v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+		void Run();
+		v8::Local<v8::Value> WrapResult();
+	};
+
 public:
 	/**
 	* Get the parameters.
@@ -2251,6 +2265,9 @@ public:
 	* @param {(module:la.Matrix | module:la.SparseMatrix)} mat - The multidimensional matrix.
 	* @returns {module:la.Matrix} The matrix of dimensions mat.cols x 2, where the i-th row of the matrix is the 2d representation 
 	* of the i-th column of mat.
+	*
+	* TODO: Erik izpolni - Async version exists
+	*
 	* @example
 	* // import the modules
 	* var analytics = require('qminer').analytics;
@@ -2263,7 +2280,7 @@ public:
 	* var mat2d = mds.fitTransform(mat); 
 	*/
 	//# exports.MDS.prototype.fitTransform = function (mat) { return Object.create(require('qminer').la.Matrix.prototype); }
-	JsDeclareFunction(fitTransform);
+	JsDeclareSyncAsync(fitTransform, fitTransformAsync, TFitTransformTask);
 
 	/**
 	* Save the MDS.

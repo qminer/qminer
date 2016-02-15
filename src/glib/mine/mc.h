@@ -73,7 +73,8 @@ private:
 // State Identifier
 class TStateIdentifier {
 private:
-  	const static int MX_ITER;
+  	static const int MX_ITER;
+  	static const int TIME_HIST_BINS;
 
     typedef TVec<THistogram> TFtrHistV;
     typedef TVec<TFtrHistV> TStateFtrHistVV;
@@ -95,9 +96,7 @@ private:
   	TStateFtrHistVV ObsHistVV;		// histograms of observation features
   	TStateFtrHistVV ControlHistVV;	// histograms of control features
   	TStateFtrHistVV IgnoredHistVV;	// histograms of the ignored features
-//  	THistMat ObsTransHistVV;		// histograms of observation transitions
-//  	THistMat ContrTransHistVV;		// histograms of control transitions
-//  	THistMat IgnoredTransHistVV;	// histograms of ignored transitions
+  	TVec<THistogram> StateTimeHistV;	// TODO save load, ...
 
   	TVec<TFltV> StateContrFtrValVV;
 
@@ -119,6 +118,7 @@ public:
 	void Init(TFltVV& ObsFtrVV, const TFltVV& ControlFtrVV, const TFltVV& IgnoredFtrVV);
 	// initializes histograms for every feature
 	void InitHistograms(const TFltVV& ObsMat, const TFltVV& ControlFtrVV, const TFltVV& IgnoredFtrVV);
+	void InitTimeHistogramV(const TUInt64V& TmV, const TIntV& AssignV, const int& Bins);
 
 	// assign methods
 	// assign instances to centroids
@@ -144,8 +144,9 @@ public:
 	// returns the number of points in the cluster
 	uint64 GetStateSize(const int& ClustId) const;
 
-	void GetHistogram(const int& FtrId, const TIntV& StateSet, TFltV& BinValV, TFltV& BinV,
+	void GetHistogram(const int& FtrId, const TAggState& AggState, TFltV& BinValV, TFltV& BinV,
 			const bool& NormalizeP=true) const;
+	void GetTimeHistogram(const TAggState& AggState, TUInt64V& TmV, TFltV& BinV, const bool& NormalizeP=true);
 
 	int GetStates() const { return KMeans->GetClusts(); }
 
@@ -831,6 +832,7 @@ public:
 	void GetTransitionHistogram(const int& SourceId, const int& TargetId,
 			const int& FtrId, TFltV& BinStartV, TFltV& SourceProbV, TFltV& TargetProbV,
 			TFltV& AllProbV) const;
+	void GetTimeHistogram(const int& StateId, TUInt64& TmV, TFltV& ProbV) const;
 
 	// state explanations
 	void GetStateWgtV(const int& StateId, TFltV& WgtV) const;

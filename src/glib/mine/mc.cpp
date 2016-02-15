@@ -73,6 +73,7 @@ void THistogram::Update(const double& FtrVal) {
 //////////////////////////////////////////////////
 // Abstract clustering
 const int TStateIdentifier::MX_ITER = 10000;
+const int TStateIdentifier::TIME_HIST_BINS = 1000;
 
 TStateIdentifier::TStateIdentifier(const PClust& _KMeans, const int _NHistBins,
 			const double& _Sample, const TRnd& _Rnd, const bool& _Verbose):
@@ -83,9 +84,6 @@ TStateIdentifier::TStateIdentifier(const PClust& _KMeans, const int _NHistBins,
 		ObsHistVV(),
 		ControlHistVV(),
 		IgnoredHistVV(),
-//		ObsTransHistVV(),
-//		ContrTransHistVV(),
-//		IgnoredTransHistVV(),
 		StateContrFtrValVV(),
 		Sample(_Sample),
 		Verbose(_Verbose),
@@ -104,9 +102,7 @@ TStateIdentifier::TStateIdentifier(TSIn& SIn):
 	ObsHistVV(SIn),
 	ControlHistVV(SIn),
 	IgnoredHistVV(SIn),
-//	ObsTransHistVV(SIn),
-//	ContrTransHistVV(SIn),
-//	IgnoredTransHistVV(SIn),
+	StateTimeHistV(), // TODO load
 	StateContrFtrValVV(SIn),
 	Sample(TFlt(SIn)),
 	Verbose(TBool(SIn)) {
@@ -124,9 +120,7 @@ void TStateIdentifier::Save(TSOut& SOut) const {
 	ObsHistVV.Save(SOut);
 	ControlHistVV.Save(SOut);
 	IgnoredHistVV.Save(SOut);
-//	ObsTransHistVV.Save(SOut);
-//	ContrTransHistVV.Save(SOut);
-//	IgnoredTransHistVV.Save(SOut);
+	StateTimeHistV.Save(SOut);
 	StateContrFtrValVV.Save(SOut);
 	TFlt(Sample).Save(SOut);
 	TBool(Verbose).Save(SOut);
@@ -159,10 +153,13 @@ void TStateIdentifier::Init(TFltVV& ObsFtrVV, const TFltVV& ControlFtrVV, const 
 
 	InitStatistics(ObsFtrVV);
 
+	TUInt64V TmV;	// TODO
+
 	TIntV AssignV;	Assign(ObsFtrVV, AssignV);
 	InitCentroidVV(AssignV, ControlFtrVV, ControlCentroidVV);
 	InitCentroidVV(AssignV, IgnoredFtrVV, IgnoredCentroidVV);
 	InitHistograms(ObsFtrVV, ControlFtrVV, IgnoredFtrVV);
+	InitTimeHistogramV(TmV, AssignV, TIME_HIST_BINS);
 	ClearControlFtrVV(ControlFtrVV.GetRows());
 
 	Notify->OnNotify(TNotifyType::ntInfo, "Done.");
@@ -181,6 +178,26 @@ void TStateIdentifier::InitHistograms(const TFltVV& ObsFtrVV, const TFltVV& Cont
 	UpdateHistVV(ObsFtrVV, AssignV, NClusts, ObsHistVV);
 	UpdateHistVV(ContrFtrVV, AssignV, NClusts, ControlHistVV);
 	UpdateHistVV(IgnoredFtrVV, AssignV, NClusts, IgnoredHistVV);
+}
+
+void TStateIdentifier::InitTimeHistogramV(const TUInt64V& TmV, const TIntV& AssignV,
+		const int& Bins) {
+	const int NStates = GetStates();
+	StateTimeHistV.Clr();
+
+	const uint64 StartTm = TmV[0];
+	const uint64 EndTm = TmV.Last();
+
+	for (int StateId = 0; StateId < NStates; StateId++) {
+		StateTimeHistV.Add(THistogram(Bins, (double) StartTm, (double) EndTm));
+	}
+
+	for (int RecN = 0; RecN < AssignV.Len(); RecN++) {
+		const uint64 RecTm = TmV[RecN];
+		const int StateId = AssignV[RecN];
+
+		StateTimeHistV[StateId].Update((double) RecTm);
+	}
 }
 
 int TStateIdentifier::Assign(const TFltV& x) const {
@@ -267,7 +284,7 @@ uint64 TStateIdentifier::GetStateSize(const int& StateId) const {
 	return CentroidDistStatV[StateId].Val1;
 }
 
-void TStateIdentifier::GetHistogram(const int& FtrId, const TIntV& AggState,
+void TStateIdentifier::GetHistogram(const int& FtrId, const TAggState& AggState,
 		TFltV& BinValV, TFltV& BinV, const bool& NormalizeP) const {
 	EAssertR(0 <= FtrId && FtrId < GetAllDim(), "Invalid feature ID: " + TInt::GetStr(FtrId));
 
@@ -277,6 +294,32 @@ void TStateIdentifier::GetHistogram(const int& FtrId, const TIntV& AggState,
 		GetHistogram(ControlHistVV, FtrId - GetDim(), AggState, BinValV, BinV, NormalizeP);
 	} else {
 		GetHistogram(IgnoredHistVV, FtrId - GetDim() - GetControlDim(), AggState, BinValV, BinV, NormalizeP);
+	}
+}
+
+void TStateIdentifier::GetTimeHistogram(const TAggState& AggState, TUInt64V& TmV, TFltV& BinV,
+		const bool& NormalizeP) {
+
+	if (BinV.Len() != TIME_HIST_BINS) { BinV.Gen(TIME_HIST_BINS); }
+	if (TmV.Len() != TIME_HIST_BINS) { TmV.Gen(TIME_HIST_BINS); }
+
+	const TFltV& TmFltV = StateTimeHistV[0].GetBinValV();
+	for (int BinN = 0; BinN < TIME_HIST_BINS; BinN++) {
+		TmV[BinN] = (TUInt64) TmFltV[BinN];
+	}
+
+	for (int StateN = 0; StateN < AggState.Len(); StateN++) {
+		const int& StateId = AggState[StateN];
+		const THistogram& Hist = StateTimeHistV[StateId];
+		const TIntV& CountV = Hist.GetCountV();
+
+		for (int BinN = 0; BinN < TIME_HIST_BINS; BinN++) {
+			BinV[BinN] += (double) CountV[BinN];
+		}
+	}
+
+	if (NormalizeP) {
+		TLinAlg::NormalizeL1(BinV);
 	}
 }
 
@@ -4191,6 +4234,12 @@ void TStreamStory::GetTransitionHistogram(const int& SourceId, const int& Target
 		Notify->OnNotifyFmt(TNotifyType::ntErr, "THierarch::GetTransitionHistogram: Failed to fetch histogram: %s", Except->GetMsgStr().CStr());
 		throw Except;
 	}
+}
+
+void TStreamStory::GetTimeHistogram(const int& StateId, TUInt64& TmV, TFltV& ProbV) const {
+	TAggState AggState;
+	Hierarch->GetLeafDescendantV(StateId, AggState);
+//	a
 }
 
 void TStreamStory::GetStateWgtV(const int& StateId, TFltV& WgtV) const {
