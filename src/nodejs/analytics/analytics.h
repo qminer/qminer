@@ -1722,6 +1722,8 @@ public:
 	 */
 	JsDeclareFunction(fullCoords);
 
+	JsDeclareFunction(getStateCentroids);
+
 	/**
 	 * Returns a histogram of the specified feature in the specified state.
 	 *

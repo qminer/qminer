@@ -135,6 +135,7 @@ public:
 
 	// returns the coordinates of a "joined" centroid
 	void GetJoinedCentroid(const int& FtrSpaceN, const TIntV& StateIdV, TFltV& FtrV) const;
+	void GetAllCentroid(const int& StateId, TFltV& FtrV) const;
 
 	// cluster statistics
 	// returns the means distance of all the points assigned to centroid CentroidIdx
@@ -174,8 +175,9 @@ protected:
 private:
 	void InitCentroidVV(const TIntV& AssignV, const TFltVV& FtrVV, TFltVV& CentroidVV);
 	// returns the coordinates of the centroid with the specified ID
-	void GetCentroid(const int& StateId, TFltV& FtrV) const;
+	void GetObsCentroid(const int& StateId, TFltV& FtrV) const;
 	void GetControlCentroid(const int& StateId, TFltV& FtrV) const;
+	void GetIgnoredCentroid(const int& StateId, TFltV& FtrV) const;
 
 	double GetControlFtr(const int& StateId, const int& FtrId) const;
 	void ClearControlFtrVV(const int& Dim);
@@ -845,6 +847,7 @@ public:
 	int GetCurrStateId(const double& Height) const;
 	// returns the centroid of the given state
 	void GetCentroid(const int& StateId, const int& FtrSpaceN, TFltV& FtrV) const;
+	void GetCentroidVV(const int& StateId, TVec<TFltV>& FtrVV) const;
 	// returns the IDs of all the states on the specified height
 	void GetStateIdVAtHeight(const double& Height, TStateIdV& StateIdV) const;
 	// returns the number of states in the hierarchy

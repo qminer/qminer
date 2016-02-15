@@ -222,6 +222,15 @@ void TStateIdentifier::GetJoinedCentroid(const int& FtrSpaceN, const TIntV& Stat
 	}
 }
 
+void TStateIdentifier::GetAllCentroid(const int& StateId, TFltV& FtrV) const {
+	TFltV TempV;
+	GetObsCentroid(StateId, FtrV);
+	GetControlCentroid(StateId, TempV);
+	FtrV.AddV(TempV);
+	GetIgnoredCentroid(StateId, TempV);
+	FtrV.AddV(TempV);
+}
+
 //void TStateIdentifier::GetJoinedControlCentroid(const TIntV& CentroidIdV, TFltV& Centroid) const {
 //	const int Dim = GetControlDim();
 //
@@ -368,7 +377,7 @@ void TStateIdentifier::InitCentroidVV(const TIntV& AssignV, const TFltVV& FtrVV,
 	}
 }
 
-void TStateIdentifier::GetCentroid(const int& StateId, TFltV& FtrV) const {
+void TStateIdentifier::GetObsCentroid(const int& StateId, TFltV& FtrV) const {
 	EAssert(0 <= StateId && StateId < GetStates());
 	KMeans->GetCentroid(StateId, FtrV);
 }
@@ -376,6 +385,11 @@ void TStateIdentifier::GetCentroid(const int& StateId, TFltV& FtrV) const {
 void TStateIdentifier::GetControlCentroid(const int& StateId, TFltV& FtrV) const {
 	EAssert(0 <= StateId && StateId < ControlCentroidVV.GetCols());
 	ControlCentroidVV.GetCol(StateId, FtrV);
+}
+
+void TStateIdentifier::GetIgnoredCentroid(const int& StateId, TFltV& FtrV) const {
+	EAssert(0 <= StateId && StateId < IgnoredCentroidVV.GetCols());
+	IgnoredCentroidVV.GetCol(StateId, FtrV);
 }
 
 double TStateIdentifier::GetControlFtr(const int& StateId, const int& FtrId) const {
@@ -2377,7 +2391,7 @@ int THierarch::GetAncestorAtHeight(const int& StateId, const double& Height) con
 	return AncestorId;
 }
 
-void THierarch::GetLeafDescendantV(const int& TargetStateId, TIntV& DescendantV) const {
+void THierarch::GetLeafDescendantV(const int& TargetStateId, TAggState& DescendantV) const {
 	if (!DescendantV.Empty()) { DescendantV.Clr(); }
 
 	if (IsLeaf(TargetStateId)) {
@@ -2801,7 +2815,7 @@ void THierarch::InitAutoNmV(const TStateIdentifier& StateIdentifier) {
 				const double TotalCount = TLinAlg::SumVec(StateBinCountV);
 				const double BinSize = BinValV[1] - BinValV[0];
 				double Mean = 0, LowPerc = TFlt::Mx, HighPerc = TFlt::Mn;
-				double Perc, PVal;
+				double Perc = TFlt::PInf, PVal = 1;
 
 				const double LowPercProb = .4;
 				const double HighPercProb = 1 - LowPercProb;
@@ -2822,22 +2836,6 @@ void THierarch::InitAutoNmV(const TStateIdentifier& StateIdentifier) {
 					ProbSum += Prob;
 
 				}
-
-				/*
-				 * TVec<TFltV> FtrPercVV(AllDim, AllDim);
-	for (int FtrId = 0; FtrId < AllDim; FtrId++) {
-		TFltV BinStartV;
-		StateIdentifier.GetHistogram(FtrId, AllLeafIdV, BinStartV, FtrAllBinV[FtrId], false);
-
-		const double TotalCount = TLinAlg::SumVec(FtrAllBinV[FtrId]);
-		double ProbSum = 0;
-		for (int BinN = 0; BinN < BinStartV.Len(); BinN++) {
-			const double BinProb = double(FtrAllBinV[FtrId][BinN]) / TotalCount;
-			FtrPercVV[FtrId].Add(ProbSum + BinProb/2);
-			ProbSum += BinProb;
-		}
-	}
-				 */
 
 				if (Mean <= BinValV[0] - BinSize/2) {
 					Perc = 0;
@@ -4247,6 +4245,22 @@ void TStreamStory::GetCentroid(const int& StateId, const int& FtrSpaceN, TFltV& 
 	TIntV LeafIdV;	Hierarch->GetLeafDescendantV(StateId, LeafIdV);
 
 	StateIdentifier->GetJoinedCentroid(FtrSpaceN, LeafIdV, FtrV);
+}
+
+void TStreamStory::GetCentroidVV(const int& StateId, TVec<TFltV>& FtrVV) const {
+	TAggState AggState;
+
+	if (StateId >= 0) {
+		Hierarch->GetLeafDescendantV(StateId, AggState);
+	} else {
+		Hierarch->GetLeafIdV(AggState);
+	}
+
+	FtrVV.Gen(AggState.Len());
+	for (int StateN = 0; StateN < AggState.Len(); StateN++) {
+		const int LeafStateId = AggState[StateN];
+		StateIdentifier->GetAllCentroid(LeafStateId, FtrVV[StateN]);
+	}
 }
 
 void TStreamStory::GetStateIdVAtHeight(const double& Height, TStateIdV& StateIdV) const {

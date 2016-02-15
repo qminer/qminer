@@ -1517,6 +1517,7 @@ void TNodeJsStreamStory::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "histStates", _histStates);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "currState", _currState);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "fullCoords", _fullCoords);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getStateCentroids", _getStateCentroids);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "histogram", _histogram);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "transitionHistogram", _transitionHistogram);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getFtrBounds", _getFtrBounds);
@@ -1945,11 +1946,11 @@ void TNodeJsStreamStory::fullCoords(const v8::FunctionCallbackInfo<v8::Value>& A
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
 	const int FtrSpaceN = TNodeJsUtil::GetArgInt32(Args, 1);
 
-	TFltV FtrV;	JsMChain->StreamStory->GetCentroid(StateId, FtrSpaceN, FtrV);
+	TFltV FtrV;	JsStreamStory->StreamStory->GetCentroid(StateId, FtrSpaceN, FtrV);
 
 	v8::Local<v8::Array> FtrVJson = v8::Array::New(Isolate, FtrV.Len());
 	for (int i = 0; i < FtrV.Len(); i++) {
@@ -1957,6 +1958,31 @@ void TNodeJsStreamStory::fullCoords(const v8::FunctionCallbackInfo<v8::Value>& A
 	}
 
 	Args.GetReturnValue().Set(FtrVJson);
+}
+
+void TNodeJsStreamStory::getStateCentroids(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0, -1);	// -1 for all the states
+
+	TVec<TFltV> FtrVV;
+	JsStreamStory->StreamStory->GetCentroidVV(StateId, FtrVV);
+
+	v8::Local<v8::Array> FtrVVJson = v8::Array::New(Isolate, FtrVV.Len());
+	for (int CentroidN = 0; CentroidN < FtrVV.Len(); CentroidN++) {
+		const TFltV& FtrV = FtrVV[CentroidN];
+		v8::Local<v8::Array> FtrVJson = v8::Array::New(Isolate, FtrV.Len());
+
+		for (int FtrN = 0; FtrN < FtrV.Len(); FtrN++) {
+			FtrVJson->Set(FtrN, v8::Number::New(Isolate, FtrV[FtrN]));
+		}
+
+		FtrVVJson->Set(CentroidN, FtrVJson);
+	}
+
+	Args.GetReturnValue().Set(FtrVVJson);
 }
 
 void TNodeJsStreamStory::histogram(const v8::FunctionCallbackInfo<v8::Value>& Args) {
