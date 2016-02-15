@@ -189,7 +189,6 @@ private:
     TStr FieldNm;
     TStr JoinPathStr;
     // aggregations
-    TInt Count;
     TUInt64 SlotLen;
     TUInt64H CountsH;
 
