@@ -476,6 +476,10 @@ private:
 // Hierarchy modeler
 class THierarch {
 private:
+	static const double LOW_PVAL_THRESHOLD;
+	static const double LOWEST_PVAL_THRESHOLD;
+	static const double STATE_LOW_PVAL_THRESHOLD;
+
     // a vector which describes the hierarchy. each state has its own index
     // and the value at index i is the index of i-ths parent
     TIntV HierarchV;

@@ -2256,6 +2256,10 @@ void TCtmcModeller::GetFutureProbVV(const TFltVV& QMat, const double& Tm,
 
 /////////////////////////////////////////////////////////////////
 // Agglomerative clustering
+const double THierarch::LOW_PVAL_THRESHOLD = .25;
+const double THierarch::LOWEST_PVAL_THRESHOLD = .125;
+const double THierarch::STATE_LOW_PVAL_THRESHOLD = .4;
+
 THierarch::THierarch(const bool& _HistCacheSize, const bool& _IsTransitionBased,
 			const bool& _Verbose):
 		HierarchV(),
@@ -2857,7 +2861,7 @@ void THierarch::InitAutoNmV(const TStateIdentifier& StateIdentifier) {
 
 	TVec<TFltV> FtrAllBinV(AllDim, AllDim);
 
-	TVec<TFltV> FtrPercVV(AllDim, AllDim);
+	TVec<TFltV> FtrPValVV(AllDim, AllDim);
 	for (int FtrId = 0; FtrId < AllDim; FtrId++) {
 		TFltV BinStartV;
 		StateIdentifier.GetHistogram(FtrId, AllLeafIdV, BinStartV, FtrAllBinV[FtrId], false);
@@ -2866,7 +2870,7 @@ void THierarch::InitAutoNmV(const TStateIdentifier& StateIdentifier) {
 		double ProbSum = 0;
 		for (int BinN = 0; BinN < BinStartV.Len(); BinN++) {
 			const double BinProb = double(FtrAllBinV[FtrId][BinN]) / TotalCount;
-			FtrPercVV[FtrId].Add(ProbSum + BinProb/2);
+			FtrPValVV[FtrId].Add(ProbSum + BinProb/2);
 			ProbSum += BinProb;
 		}
 	}
@@ -2884,94 +2888,81 @@ void THierarch::InitAutoNmV(const TStateIdentifier& StateIdentifier) {
 			const int StateId = StateIdV[StateN];
 			const TAggState& AggState = AggStateV[StateN];
 
-			double BestFtrPVal = TFlt::PInf;
-			double BestFtrPerc = TFlt::PInf;
-			double BestLowPerc = TFlt::PInf;
-			double BestHighPerc = TFlt::NInf;
-			int BestFtrId = -1;
+//			double BestFtrPVal = TFlt::PInf;
+//			double BestFtrPerc = TFlt::PInf;
+//			double BestLowPerc = TFlt::PInf;
+//			double BestHighPerc = TFlt::NInf;
+//			int BestFtrId = -1;
 
+			int BestFtrN = -1;
+			double BestFtrLowPercPVal = TFlt::Mx;
+			double BestFtrHighPercPVal = TFlt::Mx;
+			double BestFtrPVal = TFlt::Mx;
 
-			for (int FtrId = 0; FtrId < AllDim; FtrId++) {
-				const TFltV& AllBinV = FtrAllBinV[FtrId];
-				StateIdentifier.GetHistogram(FtrId, AggState, BinValV, StateBinCountV, false);
+			for (int FtrN = 0; FtrN < AllDim; FtrN++) {
+				const TFltV& AllPValV = FtrPValVV[FtrN];
+				const TFltV& AllBinV = FtrAllBinV[FtrN];
+
+				StateIdentifier.GetHistogram(FtrN, AggState, BinValV, StateBinCountV, false);
 
 				printf("all histogram:\n%s\n", TStrUtil::GetStr(AllBinV, ", ", "%.4f").CStr());
 				printf("histogram:\n%s\n", TStrUtil::GetStr(StateBinCountV, ", ", "%.4f").CStr());
-				printf("Ftr %d percentiles:\n%s\n", FtrId, TStrUtil::GetStr(FtrPercVV[FtrId], ", ", "%.5f").CStr());
-				printf("Bin values:\n%s\n", TStrUtil::GetStr(BinValV, ", ", "%.5f").CStr());
+				printf("Ftr %d percentiles:\n%s\n", FtrN, TStrUtil::GetStr(AllPValV, ", ", "%.5f").CStr());
+//				printf("Bin values:\n%s\n", TStrUtil::GetStr(BinValV, ", ", "%.5f").CStr());
 
 				// calculate the mean and check into which percentile it falls
 				const double TotalCount = TLinAlg::SumVec(StateBinCountV);
-				const double BinSize = BinValV[1] - BinValV[0];
-				double Mean = 0, LowPerc = TFlt::Mx, HighPerc = TFlt::Mn;
-				double Perc = TFlt::PInf, PVal = 1;
 
-				const double LowPercProb = .4;
-				const double HighPercProb = 1 - LowPercProb;
+				int LowPercN, HighPercN;
 
 				double ProbSum = 0;
 				for (int BinN = 0; BinN < BinValV.Len(); BinN++) {
 					const double Prob = double(StateBinCountV[BinN]) / TotalCount;
-					const double BinVal = BinValV[BinN];
 
-					if (ProbSum <= LowPercProb && ProbSum + Prob > LowPercProb) {
-						LowPerc = BinVal;
+					if (ProbSum <= STATE_LOW_PVAL_THRESHOLD && ProbSum + Prob > STATE_LOW_PVAL_THRESHOLD) {
+						LowPercN = BinN;
 					}
-					if (ProbSum < HighPercProb && ProbSum + Prob >= HighPercProb) {
-						HighPerc = BinVal;
+					if (ProbSum < 1 - STATE_LOW_PVAL_THRESHOLD && ProbSum + Prob >= 1 - STATE_LOW_PVAL_THRESHOLD) {
+						HighPercN = BinN;
 					}
 
-					Mean += Prob * BinVal;
 					ProbSum += Prob;
-
 				}
 
-				if (Mean <= BinValV[0] - BinSize/2) {
-					Perc = 0;
-				} else if (Mean >= BinValV.Last() + BinSize/2) {
-					Perc = 1;
-				} else {
-					for (int BinN = 0; BinN < BinValV.Len(); BinN++) {
-						const double BinVal = BinValV[BinN];
-						if (BinVal - BinSize/2 < Mean && Mean <= BinVal + BinSize/2) {
-							Perc = FtrPercVV[FtrId][BinN];
-							break;
-						}
-					}
-				}
+				const double LowPercPVal = AllPValV[LowPercN];
+				const double HighPercPVal = 1 - AllPValV[HighPercN];
 
-				PVal = TMath::Mn(Perc, 1 - Perc);
+				const double PVal = TMath::Mn(LowPercPVal, HighPercPVal);
 
-				printf("State %d, ftr: %d, p: %.5f, percentile: %.5f\n", StateId, FtrId, PVal, Perc);
+				printf("State %d, ftr: %d, p: %.5f\n", StateId, FtrN, PVal);
 
 				if (PVal < BestFtrPVal) {
 					BestFtrPVal = PVal;
-					BestFtrPerc = Perc;
-					BestLowPerc = LowPerc;
-					BestHighPerc = HighPerc;
-					BestFtrId = FtrId;
+					BestFtrLowPercPVal = LowPercPVal;
+					BestFtrHighPercPVal = HighPercPVal;
+					BestFtrN = FtrN;
 				}
 			}
 
-			const double PercThreshold = .2;
-
-			if (BestFtrPVal > PercThreshold) {
-				if (BestLowPerc < PercThreshold) {
-					printf("State %d, got name:(%d, LOW)\n", StateId, BestFtrId);
-					StateAutoNmV[StateId] = TIntStrPr(BestFtrId, "LOW");
-				} else if (BestHighPerc > 1 - PercThreshold) {
-					printf("State %d, got name:(%d, HIGH)\n", StateId, BestFtrId);
-					StateAutoNmV[StateId] = TIntStrPr(BestFtrId, "HIGH");
+			if (BestFtrPVal < LOWEST_PVAL_THRESHOLD) {
+				if (BestFtrLowPercPVal < BestFtrHighPercPVal) {
+					printf("State %d, got name:(%d, LOWEST)\n", StateId, BestFtrN);
+					StateAutoNmV[StateId] = TIntStrPr(BestFtrN, "LOWEST");
 				} else {
-					printf("State %d, got name: MEAN\n", StateId);
-					StateAutoNmV[StateId] = TIntStrPr(-1, "MEAN");
+					printf("State %d, got name:(%d, HIGHEST)\n", StateId, BestFtrN);
+					StateAutoNmV[StateId] = TIntStrPr(BestFtrN, "HIGHEST");
 				}
-			} else if (BestFtrPerc < PercThreshold) {
-				printf("State %d, got name:(%d, LOW)\n", StateId, BestFtrId);
-				StateAutoNmV[StateId] = TIntStrPr(BestFtrId, "LOW");
+			} else if (BestFtrPVal < LOW_PVAL_THRESHOLD) {
+				if (BestFtrLowPercPVal < BestFtrHighPercPVal) {
+					printf("State %d, got name:(%d, LOW)\n", StateId, BestFtrN);
+					StateAutoNmV[StateId] = TIntStrPr(BestFtrN, "LOW");
+				} else {
+					printf("State %d, got name:(%d, HIGH)\n", StateId, BestFtrN);
+					StateAutoNmV[StateId] = TIntStrPr(BestFtrN, "HIGH");
+				}
 			} else {
-				printf("State %d, got name:(%d, HIGH)\n", StateId, BestFtrId);
-				StateAutoNmV[StateId] = TIntStrPr(BestFtrId, "HIGH");
+				printf("State %d, got name: MEAN\n", StateId);
+				StateAutoNmV[StateId] = TIntStrPr(-1, "MEAN");
 			}
 		}
 	}
