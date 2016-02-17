@@ -36,12 +36,7 @@ THistogram::THistogram(TSIn& SIn):
 		Bins(SIn),
 		TotalCount(SIn),
 		CountV(SIn),
-		BinValV(SIn) {
-	// TODO remove
-	if (TotalCount > TLinAlg::SumVec(CountV)) {
-		CountV.Last() += TotalCount - TLinAlg::SumVec(CountV);
-	}
-}
+		BinValV(SIn) {}
 
 void THistogram::Save(TSOut& SOut) const {
 	Bins.Save(SOut);
@@ -55,12 +50,13 @@ void THistogram::Update(const double& FtrVal) {
 
 	if (FtrVal <= BinValV[0] + BinSize/2) {
 		CountV[0]++;
-	} else if (FtrVal > BinValV.Last() - BinSize/2) {
+	} else if (FtrVal >= BinValV.Last() - BinSize/2) {
 		CountV.Last()++;
 	} else {
 		for (int BinN = 1; BinN < Bins-1; BinN++) {
-			if (BinValV[BinN] - BinSize/2 < FtrVal && FtrVal <= BinValV[BinN] + BinSize/2) {
+			if (BinValV[BinN] - BinSize/2 <= FtrVal && FtrVal < BinValV[BinN] + BinSize/2) {
 				CountV[BinN]++;
+				break;
 			}
 		}
 	}
@@ -104,6 +100,10 @@ TStateIdentifier::TStateIdentifier(TSIn& SIn):
 	ControlHistVV(SIn),
 	IgnoredHistVV(SIn),
 	StateTimeHistV(SIn),
+	StateYearHistV(SIn),
+	StateMonthHistV(SIn),
+	StateWeekHistV(SIn),
+	StateDayHistV(SIn),
 	StateContrFtrValVV(SIn),
 	Sample(TFlt(SIn)),
 	Verbose(TBool(SIn)) {
@@ -122,6 +122,10 @@ void TStateIdentifier::Save(TSOut& SOut) const {
 	ControlHistVV.Save(SOut);
 	IgnoredHistVV.Save(SOut);
 	StateTimeHistV.Save(SOut);
+	StateYearHistV.Save(SOut);
+	StateMonthHistV.Save(SOut);
+	StateWeekHistV.Save(SOut);
+	StateDayHistV.Save(SOut);
 	StateContrFtrValVV.Save(SOut);
 	TFlt(Sample).Save(SOut);
 	TBool(Verbose).Save(SOut);
@@ -190,13 +194,30 @@ void TStateIdentifier::InitTimeHistogramV(const TUInt64V& TmV, const TIntV& Assi
 
 	for (int StateId = 0; StateId < NStates; StateId++) {
 		StateTimeHistV.Add(THistogram(Bins, (double) StartTm, (double) EndTm));
+		StateYearHistV.Add(THistogram(12, 1, 13));
+		StateMonthHistV.Add(THistogram(31, 1, 32));
+		StateWeekHistV.Add(THistogram(7, 0, 7));
+		StateDayHistV.Add(THistogram(24, 0, 24));
 	}
 
 	for (int RecN = 0; RecN < AssignV.Len(); RecN++) {
-		const uint64 RecTm = TmV[RecN];
+		const uint64 RecTmMSecs = TmV[RecN];
 		const int StateId = AssignV[RecN];
 
-		StateTimeHistV[StateId].Update((double) RecTm);
+		StateTimeHistV[StateId].Update((double) RecTmMSecs);
+
+		const TTm RecTm = TTm::GetTmFromMSecs(RecTmMSecs);
+		const int Month = RecTm.GetMonth();
+		const int Day = RecTm.GetDay();
+		const int DayOfWeek = RecTm.GetDayOfWeek();
+		const int Hour = RecTm.GetHour();
+
+		printf("parsed time %s month: %d, day: %d, day of week: %d, hour: %d\n", RecTm.GetWebLogDateStr().CStr(), Month, Day, DayOfWeek, Hour);
+
+		StateYearHistV[StateId].Update(Month);
+		StateMonthHistV[StateId].Update(Day);
+		StateWeekHistV[StateId].Update(DayOfWeek);
+		StateDayHistV[StateId].Update(Hour);
 	}
 }
 
@@ -297,7 +318,7 @@ void TStateIdentifier::GetHistogram(const int& FtrId, const TAggState& AggState,
 	}
 }
 
-void TStateIdentifier::GetTimeHistogram(const TAggState& AggState, TUInt64V& TmV, TFltV& BinV,
+void TStateIdentifier::GetGlobalTimeHistogram(const TAggState& AggState, TUInt64V& TmV, TFltV& BinV,
 		const int NBins, const bool& NormalizeP) const {
 
 	if (BinV.Len() != NBins) { BinV.Gen(NBins); }
@@ -327,6 +348,49 @@ void TStateIdentifier::GetTimeHistogram(const TAggState& AggState, TUInt64V& TmV
 
 	if (NormalizeP) {
 		TLinAlg::NormalizeL1(BinV);
+	}
+}
+
+void TStateIdentifier::GetTimeHistogram(const TAggState& AggState, const TTmHistType& HistType,
+		TIntV& BinValV, TFltV& BinV) const {
+
+	for (int StateN = 0; StateN < AggState.Len(); StateN++) {
+		const int& StateId = AggState[StateN];
+
+		const THistogram* Hist;
+		switch (HistType) {
+		case thtYear:
+			Hist = &StateYearHistV[StateId];
+			break;
+		case thtMonth:
+			Hist = &StateMonthHistV[StateId];
+			break;
+		case thtWeek:
+			Hist = &StateWeekHistV[StateId];
+			break;
+		case thtDay:
+			Hist = &StateDayHistV[StateId];
+			break;
+		default:
+			throw TExcept::New("Unknown histogram type: " + TInt::GetStr(HistType));
+		}
+
+		if (BinV.Len() != Hist->GetBins()) { BinV.Gen(Hist->GetBins()); }
+
+		const TIntV& CountV = Hist->GetCountV();
+		const TFltV& ValV = Hist->GetBinValV();
+
+		if (BinV.Empty()) { BinV.Gen(CountV.Len()); }
+		if (BinValV.Empty()) {
+			BinValV.Gen(Hist->GetBins());
+			for (int BinN = 0; BinN < ValV.Len(); BinN++) {
+				BinValV[BinN] = (int) ValV[BinN];
+			}
+		}
+
+		for (int BinN = 0; BinN < CountV.Len(); BinN++) {
+			BinV[BinN] += (double) CountV[BinN];
+		}
 	}
 }
 
@@ -4273,20 +4337,22 @@ void TStreamStory::GetTransitionHistogram(const int& SourceId, const int& Target
 	}
 }
 
-void TStreamStory::GetTimeHistogram(const int& StateId, TUInt64V& TmV, TFltV& ProbV,
+void TStreamStory::GetGlobalTimeHistogram(const int& StateId, TUInt64V& TmV, TFltV& ProbV,
 		const int& NBins) const {
 	TAggState AggState;
 	Hierarch->GetLeafDescendantV(StateId, AggState);
-	StateIdentifier->GetTimeHistogram(AggState, TmV, ProbV, NBins, true);
+	StateIdentifier->GetGlobalTimeHistogram(AggState, TmV, ProbV, NBins, true);
+}
+
+void TStreamStory::GetTimeHistogram(const int& StateId, const TStateIdentifier::TTmHistType& HistType,
+		TIntV& BinV, TFltV& ProbV) const {
+	TAggState AggState;
+	Hierarch->GetLeafDescendantV(StateId, AggState);
+	StateIdentifier->GetTimeHistogram(AggState, HistType, BinV, ProbV);
 }
 
 void TStreamStory::GetStateWgtV(const int& StateId, TFltV& WgtV) const {
-	try {
-		StateAssist->GetFtrWgtV(StateId, WgtV);
-	} catch (const PExcept& Except) {
-		Notify->OnNotifyFmt(TNotifyType::ntErr, "TStreamStory::GetStateWgtV: Failed to fetch weight vector for state %d: %s", StateId, Except->GetMsgStr().CStr());
-		throw Except;
-	}
+	StateAssist->GetFtrWgtV(StateId, WgtV);
 }
 
 PJsonVal TStreamStory::GetStateClassifyTree(const int& StateId) const {

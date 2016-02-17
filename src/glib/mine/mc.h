@@ -62,6 +62,7 @@ public:
 	const TInt64& GetTotalCount() const { return TotalCount; }
 	double GeNmVal() const { return BinValV[0] - GetBinSize()/2; }
 	double GeMxVal() const { return BinValV.Last() + GetBinSize()/2; }
+	int GetBins() const { return Bins; }
 
 	bool Empty() const { return TotalCount == 0; }
 
@@ -92,11 +93,17 @@ private:
   	// assigned to the centroid to the centroid
   	TUInt64FltPrV CentroidDistStatV;
 
-  	int NHistBins;					// the number of bins used in a histogram
-  	TStateFtrHistVV ObsHistVV;		// histograms of observation features
-  	TStateFtrHistVV ControlHistVV;	// histograms of control features
-  	TStateFtrHistVV IgnoredHistVV;	// histograms of the ignored features
-  	TVec<THistogram> StateTimeHistV;	// TODO save load, ...
+  	int NHistBins;						// the number of bins used in a histogram
+  	TStateFtrHistVV ObsHistVV;			// histograms of observation features
+  	TStateFtrHistVV ControlHistVV;		// histograms of control features
+  	TStateFtrHistVV IgnoredHistVV;		// histograms of the ignored features
+  	// time histograms
+  	TVec<THistogram> StateTimeHistV;	// holds the global time histograms
+  	TVec<THistogram> StateYearHistV;	// holds the yearly time histograms
+  	TVec<THistogram> StateMonthHistV;	// holds the monthly time histograms
+  	TVec<THistogram> StateWeekHistV;	// holds the weekly time histograms
+  	TVec<THistogram> StateDayHistV;		// holds the daily time histograms
+
 
   	TVec<TFltV> StateContrFtrValVV;
 
@@ -106,6 +113,13 @@ private:
   	PNotify Notify;
 
 public:
+  	enum TTmHistType {
+  		thtYear,
+		thtMonth,
+		thtWeek,
+		thtDay
+  	};
+
   	TStateIdentifier(const PClust& KMeans, const int NHistBins, const double& Sample,
 			const TRnd& Rnd=TRnd(0), const bool& Verbose=false);
 	TStateIdentifier(TSIn& SIn);
@@ -146,8 +160,10 @@ public:
 
 	void GetHistogram(const int& FtrId, const TAggState& AggState, TFltV& BinValV, TFltV& BinV,
 			const bool& NormalizeP=true) const;
-	void GetTimeHistogram(const TAggState& AggState, TUInt64V& TmV, TFltV& BinV,
+	void GetGlobalTimeHistogram(const TAggState& AggState, TUInt64V& TmV, TFltV& BinV,
 			const int NBins = -1, const bool& NormalizeP=true) const;
+	void GetTimeHistogram(const TAggState& AggState, const TTmHistType& HistType, TIntV& BinValV,
+			TFltV& BinV) const;
 
 	int GetStates() const { return KMeans->GetClusts(); }
 
@@ -839,7 +855,10 @@ public:
 	void GetTransitionHistogram(const int& SourceId, const int& TargetId,
 			const int& FtrId, TFltV& BinStartV, TFltV& SourceProbV, TFltV& TargetProbV,
 			TFltV& AllProbV) const;
-	void GetTimeHistogram(const int& StateId, TUInt64V& TmV, TFltV& ProbV, const int& NBins=-1) const;
+	void GetGlobalTimeHistogram(const int& StateId, TUInt64V& TmV, TFltV& ProbV,
+			const int& NBins=-1) const;
+	void GetTimeHistogram(const int& StateId, const TStateIdentifier::TTmHistType& HistType,
+			TIntV& BinV, TFltV& ProbV) const;
 
 	// state explanations
 	void GetStateWgtV(const int& StateId, TFltV& WgtV) const;

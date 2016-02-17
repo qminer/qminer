@@ -2029,14 +2029,39 @@ void TNodeJsStreamStory::timeHistogram(const v8::FunctionCallbackInfo<v8::Value>
 	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
 	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
-	const int Bins = TNodeJsUtil::GetArgInt32(Args, 1, 100);
+	const TStr HistTypeStr = TNodeJsUtil::GetArgStr(Args, 1);
 
-	TUInt64V TmV; TFltV ProbV;
-	JsStreamStory->StreamStory->GetTimeHistogram(StateId, TmV, ProbV, Bins);
+	TFltV BinValV;
+	TFltV ProbV;
 
-	TFltV BinValV(TmV.Len());
-	for (int BinN = 0; BinN < TmV.Len(); BinN++) {
-		BinValV[BinN] = TNodeJsUtil::GetJsTimestamp(TmV[BinN]);
+	if (HistTypeStr == "global") {
+		const int Bins = TNodeJsUtil::GetArgInt32(Args, 2, 100);
+		TUInt64V TmV;
+		JsStreamStory->StreamStory->GetGlobalTimeHistogram(StateId, TmV, ProbV, Bins);
+
+		BinValV.Gen(TmV.Len());
+		for (int BinN = 0; BinN < TmV.Len(); BinN++) {
+			BinValV[BinN] = TNodeJsUtil::GetJsTimestamp(TmV[BinN]);
+		}
+	} else {
+		TIntV BinValIntV;
+
+		if (HistTypeStr == "year") {
+			JsStreamStory->StreamStory->GetTimeHistogram(StateId, TMc::TStateIdentifier::TTmHistType::thtYear, BinValIntV, ProbV);
+		} else if (HistTypeStr == "month") {
+			JsStreamStory->StreamStory->GetTimeHistogram(StateId, TMc::TStateIdentifier::TTmHistType::thtMonth, BinValIntV, ProbV);
+		} else if (HistTypeStr == "week") {
+			JsStreamStory->StreamStory->GetTimeHistogram(StateId, TMc::TStateIdentifier::TTmHistType::thtWeek, BinValIntV, ProbV);
+		} else if (HistTypeStr == "day") {
+			JsStreamStory->StreamStory->GetTimeHistogram(StateId, TMc::TStateIdentifier::TTmHistType::thtDay, BinValIntV, ProbV);
+		} else {
+			throw TExcept::New("Unknown time histogram type: " + HistTypeStr);
+		}
+
+		BinValV.Gen(BinValIntV.Len());
+		for (int BinN = 0; BinN < BinValIntV.Len(); BinN++) {
+			BinValV[BinN] = BinValIntV[BinN];
+		}
 	}
 
 	v8::Local<v8::Object> Result = WrapHistogram(BinValV, ProbV, TFltV(), TFltV());
