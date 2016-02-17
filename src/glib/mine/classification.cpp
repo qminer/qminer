@@ -840,7 +840,9 @@ PJsonVal TDecisionTree::GetJson() const {
 
 PJsonVal TDecisionTree::ExplainPositive() const {
 	if (!HasRoot()) { return TJsonVal::NewArr(); }
-	return Root->ExplainLabel(1);
+	PJsonVal Result = Root->ExplainLabel(1);
+	if (Result.Empty()) { return TJsonVal::NewArr(); }
+	return Result;
 }
 
 void TDecisionTree::Grow(const TFltVV& FtrVV, const TFltV& ClassV, const PNotify& Notify) {

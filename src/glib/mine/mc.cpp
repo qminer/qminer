@@ -48,17 +48,20 @@ void THistogram::Save(TSOut& SOut) const {
 void THistogram::Update(const double& FtrVal) {
 	const double BinSize = GetBinSize();
 
-	if (FtrVal <= BinValV[0] + BinSize/2) {
+	if (FtrVal < BinValV[0] + BinSize/2) {
 		CountV[0]++;
-	} else if (FtrVal >= BinValV.Last() - BinSize/2) {
+	} else if (BinValV.Last() - BinSize/2 <= FtrVal) {
 		CountV.Last()++;
 	} else {
+		bool Updated = false;
 		for (int BinN = 1; BinN < Bins-1; BinN++) {
 			if (BinValV[BinN] - BinSize/2 <= FtrVal && FtrVal < BinValV[BinN] + BinSize/2) {
+				Updated = true;
 				CountV[BinN]++;
 				break;
 			}
 		}
+		EAssert(Updated);
 	}
 
 	TotalCount++;
@@ -165,6 +168,13 @@ void TStateIdentifier::Init(const TUInt64V& TmV, TFltVV& ObsFtrVV, const TFltVV&
 	InitHistograms(ObsFtrVV, ControlFtrVV, IgnoredFtrVV);
 	InitTimeHistogramV(TmV, AssignV, TIME_HIST_BINS);
 	ClearControlFtrVV(ControlFtrVV.GetRows());
+
+	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Checking correctness ...");
+	TIntSet AssignedStateSet;
+	for (int RecN = 0; RecN < AssignV.Len(); RecN++) {
+		AssignedStateSet.AddKey(AssignV[RecN]);
+	}
+	EAssert(AssignedStateSet.Len() == GetStates());
 
 	Notify->OnNotify(TNotifyType::ntInfo, "Done.");
 }
@@ -2977,7 +2987,7 @@ void THierarch::InitAutoNmV(const TStateIdentifier& StateIdentifier) {
 				// calculate the mean and check into which percentile it falls
 				const double TotalCount = TLinAlg::SumVec(StateBinCountV);
 
-				int LowPercN, HighPercN;
+				int LowPercN = -1, HighPercN = -1;
 
 				double ProbSum = 0;
 				for (int BinN = 0; BinN < BinValV.Len(); BinN++) {
@@ -2992,6 +3002,8 @@ void THierarch::InitAutoNmV(const TStateIdentifier& StateIdentifier) {
 
 					ProbSum += Prob;
 				}
+
+				EAssert(LowPercN >= 0 && HighPercN >= 0);
 
 				const double LowPercPVal = AllPValV[LowPercN];
 				const double HighPercPVal = 1 - AllPValV[HighPercN];
