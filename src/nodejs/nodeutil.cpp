@@ -223,6 +223,15 @@ bool TNodeJsUtil::IsArgBool(const v8::FunctionCallbackInfo<v8::Value>& Args, con
     return Val->IsBoolean();
 }
 
+bool TNodeJsUtil::IsArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	if (Args.Length() < ArgN) { return false; }
+	v8::Handle<v8::Value> Val = Args[ArgN];
+	return Val->IsInt32();
+}
+
 bool TNodeJsUtil::IsArgFlt(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
@@ -321,10 +330,9 @@ int TNodeJsUtil::GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, co
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    EAssertR(Args.Length() > ArgN, TStr::Fmt("TNodeJsUtil::GetArgInt32: Missing argument %d", ArgN));
-    v8::Handle<v8::Value> Val = Args[ArgN];
-    EAssertR(Val->IsInt32(), TStr::Fmt("Argument %d expected to be int", ArgN));
-    return Val->Int32Value();
+	EAssertR(IsArgInt32(Args, ArgN), "Argument " + TInt::GetStr(ArgN) + " is not int32!");
+	v8::Handle<v8::Value> Val = Args[ArgN];
+	return Val->Int32Value();
 }
 
 int TNodeJsUtil::GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const int& DefVal) {

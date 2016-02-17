@@ -11,4 +11,67 @@
 #include "la_structures_nodejs.h"
 #include "la_vector_nodejs.h"
 
+///////////////////////////////
+// NodeJs-Qminer-LinAlg
+/**
+* Linear algebra module.
+* @module la
+* @example
+* // import module, create a random matrix and a vector, multiply. find svd of the matrix
+*/
+class TNodeJsLinAlg : public node::ObjectWrap {
+	friend class TNodeJsUtil;
+public:
+	static void Init(v8::Handle<v8::Object> exports);
+
+private:
+
+	class TSVDTask : public TNodeTask {
+	private:
+		TNodeJsFltVV* JsFltVV;
+		TNodeJsSpMat* JsSpMat;
+		TNodeJsFltVV* U;
+		TNodeJsFltVV* V;
+		TNodeJsFltV* s;
+		int k;
+		int Iters;
+		double Tol;
+
+	public:
+		TSVDTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+		v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+		void Run();
+		v8::Local<v8::Value> WrapResult();
+	};
+
+public:
+	/**
+	* Computes the truncated SVD decomposition.
+	* @param {module:la.Matrix | matrix:la.SparseMatrix} mat - The matrix.
+	* @param {number} k - The number of singular vectors to be computed.
+	* @param {Object} [json] - The JSON object containing the properties iter and tol:
+	* @param {number} [json.iter = 100] - The number of iterations used for the algorithm.
+	* @param {number} [json.tol = 1e-6] - The tolerance number.
+	* @returns {Object} The JSON object svdRes which contains the SVD decomposition U*S*V^T matrices:
+	* <br>svdRes.U - The dense matrix of the decomposition. Type {@link module:la.Matrix}.
+	* <br>svdRes.V - The dense matrix of the decomposition. Type {@link module:la.Matrix}.
+	* <br>svdRes.s - The vector containing the singular values of the decomposition. Type {@link module:la.Vector}.
+	*/
+	//# exports.prototype.svd = function (mat, k, json) { return { U: Object.create(require('qminer').la.Matrix.prototype), V: Object.create(require('qminer').la.Matrix.prototype), s: Object.create(require('qminer').la.Vector.prototype) } }
+	//JsDeclareFunction(svd);
+	JsDeclareSyncAsync(svd, svdAsync, TSVDTask);
+
+	/**
+	* Computes the QR decomposition.
+	* @param {module:la.Matrix} mat - The matrix.
+	* @param {number} [tol = 1e-6] - The tolerance number.
+	* @returns {Object} A JSON object qrRes which contains the decomposition matrices:
+	* <br>qrRes.Q - The orthogonal dense matrix Q of the QR decomposition. Type {@link module:la.Matrix}.
+	* <br>qrRes.R - The upper triangular dense matrix R of the QR decomposition. Type {@link module:la.Matrix}.
+	*/
+	//# exports.prototype.qr = function (mat, tol) { return { Q: Object.create(require('qminer').la.Matrix.prototype), R: Object.create(require('qminer').la.Matrix.prototype) } }
+	JsDeclareFunction(qr);
+};
+
 #endif

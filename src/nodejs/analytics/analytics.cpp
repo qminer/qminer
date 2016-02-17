@@ -2634,7 +2634,7 @@ void TNodeJsStreamStory::OnPrediction(const uint64& RecTm, const int& CurrStateI
 		const int ArgC = 6;
 
 		v8::Handle<v8::Value> ArgV[ArgC] = {
-			v8::Date::New(Isolate, TNodeJsUtil::GetJsTimestamp(RecTm)),
+			v8::Date::New(Isolate, (double) TNodeJsUtil::GetJsTimestamp(RecTm)),
 			v8::Integer::New(Isolate, CurrStateId),
 			v8::Integer::New(Isolate, TargetStateId),
 			v8::Number::New(Isolate, Prob),
@@ -2654,8 +2654,8 @@ void TNodeJsStreamStory::OnActivityDetected(const uint64& StartTm, const uint64&
 
 		const int ArgC = 3;
 		v8::Handle<v8::Value> ArgV[ArgC] = {
-			v8::Date::New(Isolate, TNodeJsUtil::GetJsTimestamp(StartTm)),
-			v8::Date::New(Isolate, TNodeJsUtil::GetJsTimestamp(EndTm)),
+			v8::Date::New(Isolate, (double) TNodeJsUtil::GetJsTimestamp(StartTm)),
+			v8::Date::New(Isolate, (double) TNodeJsUtil::GetJsTimestamp(EndTm)),
 			v8::String::NewFromUtf8(Isolate, ActNm.CStr())
 		};
 
@@ -3252,7 +3252,7 @@ void TNodeJsMDS::TFitTransformTask::Run() {
 			TrainSet = TRefSparseTrainSet::New(Mat, DummyClsV);
 			TVizMapFactory::MakeFlat(TrainSet, DistType, Temp, MxStep, MxSecs, MnDiff, RndStartPos, Noty);
 		} else {
-			SetExcept(TExcept::New("Input not set!"));
+			throw TExcept::New("MDS.fitTransform: expects dense or sparse matrix!");
 		}
 
 		TFltVV& Result = JsResult->Mat;
