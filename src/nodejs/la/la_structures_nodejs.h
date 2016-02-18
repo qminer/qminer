@@ -920,6 +920,21 @@ public:
 	//# exports.SparseMatrix.prototype.transpose = function () { return Object.create(require('qminer').la.SparseMatrix.prototype); }
 	JsDeclareFunction(transpose);
 
+    /**
+    * Returns a submatrix containing only selected columns.
+    * Columns are identified by a vector of ids.
+	* @param {module:la.IntVector} columnIdVec - Integer vector containing selected column ids.
+    * @returns {module:la.SparseMatrix}
+    */
+	//# exports.SparseMatrix.prototype.submat = function (columnIdVec) { return Object.create(require('qminer').la.SparseMatrix.prototype); }
+    JsDeclareFunction(submat);
+
+    /**
+    * Clear content of the matrix and sets its row dimension to -1.
+    */
+    //# exports.SparseMatrix.prototype.clear = function () { }
+    JsDeclareFunction(clear);
+
 	/**
 	* Returns the vector of column norms of sparse matrix.
 	* @returns {module:la.Vector} Vector of column norms. Ihe i-th value of the return vector is the norm of i-th column of sparse matrix.

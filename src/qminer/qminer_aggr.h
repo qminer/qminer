@@ -22,7 +22,7 @@ namespace TQm {
 namespace TAggrs {
     
 ///////////////////////////////
-// QMiner-Aggregator-Piechart
+// QMiner-Aggregator-Count
 class TCount : public TAggr {
 private:
 	//meta-data
@@ -179,6 +179,35 @@ public:
     
     // aggregator type name 
     static TStr GetType() { return "timeline"; }
+};
+
+///////////////////////////////
+// QMiner-Aggregator-TimeSpan
+class TTimeSpan : public TAggr {
+private:
+    //meta-data
+    TStr FieldNm;
+    TStr JoinPathStr;
+    // aggregations
+    TUInt64 SlotLen;
+    TUInt64H CountsH;
+
+    PJsonVal GetJsonList(const TUInt64H& DataH) const;
+
+    TTimeSpan(const TWPt<TBase>& Base, const TStr& AggrNm,
+        const PRecSet& RecSet, const PFtrExt& FtrExt, const uint64 _SlotLen);
+public:
+    static PAggr New(const TWPt<TBase>& Base, const TStr& AggrNm,
+        const PRecSet& RecSet, const PFtrExt& FtrExt, const uint64 _SlotLen) {
+        return new TTimeSpan(Base, AggrNm, RecSet, FtrExt, _SlotLen);
+    }
+    static PAggr New(const TWPt<TBase>& Base, const TStr& AggrNm,
+        const PRecSet& RecSet, const PJsonVal& JsonVal);
+
+    PJsonVal SaveJson() const;
+
+    // aggregator type name 
+    static TStr GetType() { return "timespan"; }
 };
 
 } // TAggrs namespace

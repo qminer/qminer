@@ -1,5 +1,24 @@
 # QMiner Change Log
 
+### 12 Feb 2016
+
+**New version: 4.6.0**
+
+**Non-breaking with new features**
+
+New features:
+- Added new query aggregate that performs simple counting of records over some datetime column with provided granularity.
+- Added move constructor and assignment operator to `TKeyDat`
+- Added move assignment operator to `THashKeyDat`
+
+Bug fixes:
+- Removed clang compile warnings for MDS and TTimeSpan
+- documentation generation: jsdoc-baseline version fixed
+
+Other:
+- Faster and more focused CI testing
+- new branch for releases (ci_matrix) that tests and publishes the full version
+
 ### 5 Feb 2016
 
 **New version: 4.5.0**

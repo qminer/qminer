@@ -3147,7 +3147,7 @@ PJsonVal TNodeJsMDS::GetParams() const {
 	case vdtSqrtCos:
 		ParamVal->AddToObj("distType", "SqrtCos"); break;
 	default:
-		throw TExcept::New("MDS.GetParams: unsupported distance type " + (int)DistType);
+		throw TExcept::New("MDS.GetParams: unsupported distance type " + TInt::GetStr((int)DistType));
 	}
 	return ParamVal;
 }
