@@ -53,7 +53,7 @@ public:
 	* @param {Object} [json] - The JSON object containing the properties iter and tol:
 	* @param {number} [json.iter = 100] - The number of iterations used for the algorithm.
 	* @param {number} [json.tol = 1e-6] - The tolerance number.
-	* @param {function} [callback] - The callback function, that takes the parameters err (error) and res (result). 
+	* @param {function} [callback] - The callback function, that takes the error parameters (err) and the result parameter (res). 
 	* <i>Only for the asynchronous function.</i>
 	* @returns {Object} The JSON object svdRes which contains the SVD decomposition U*S*V^T matrices:
 	* <br>svdRes.U - The dense matrix of the decomposition. Type {@link module:la.Matrix}.
