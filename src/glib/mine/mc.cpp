@@ -222,8 +222,6 @@ void TStateIdentifier::InitTimeHistogramV(const TUInt64V& TmV, const TIntV& Assi
 		const int DayOfWeek = RecTm.GetDayOfWeek();
 		const int Hour = RecTm.GetHour();
 
-		printf("parsed time %s month: %d, day: %d, day of week: %d, hour: %d\n", RecTm.GetWebLogDateStr().CStr(), Month, Day, DayOfWeek, Hour);
-
 		StateYearHistV[StateId].Update(Month);
 		StateMonthHistV[StateId].Update(Day);
 		StateWeekHistV[StateId].Update(DayOfWeek);
