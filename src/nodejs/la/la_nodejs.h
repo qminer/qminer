@@ -29,7 +29,7 @@ private:
 	class TSVDTask : public TNodeTask {
 	private:
 		TNodeJsFltVV* JsFltVV;
-		TNodeJsSpMat* JsSpMat;
+		TNodeJsSpMat* JsSpVV;
 		TNodeJsFltVV* U;
 		TNodeJsFltVV* V;
 		TNodeJsFltV* s;
@@ -53,10 +53,42 @@ public:
 	* @param {Object} [json] - The JSON object containing the properties iter and tol:
 	* @param {number} [json.iter = 100] - The number of iterations used for the algorithm.
 	* @param {number} [json.tol = 1e-6] - The tolerance number.
+	* @param {function} [callback] - The callback function, that takes the parameters err (error) and res (result). 
+	* <i>Only for the asynchronous function.</i>
 	* @returns {Object} The JSON object svdRes which contains the SVD decomposition U*S*V^T matrices:
 	* <br>svdRes.U - The dense matrix of the decomposition. Type {@link module:la.Matrix}.
 	* <br>svdRes.V - The dense matrix of the decomposition. Type {@link module:la.Matrix}.
 	* <br>svdRes.s - The vector containing the singular values of the decomposition. Type {@link module:la.Vector}.
+	* @example <caption>Asynchronous calculation</caption>
+	* // import the modules
+	* var la = require('qminer').la;
+	* // create a random matrix
+	* var A = new la.Matrix({ rows: 10, cols: 5, random: true });
+	* // set the parameters for the calculation
+	* var k = 2; // number of singular vectors 
+	* var param = { iter: 1000, tol: 1e-4 };
+	* // calculate the svd
+	* la.svd(A, k, param, function (err, result) {
+	*    if (err) { console.log(err); }
+	*    // successful calculation
+	*    var U = result.U;
+	*    var V = result.V;
+	*    var s = result.s;
+	* });
+	* @example <caption>Synchronous calculation</caption>
+	* // import the modules
+	* var la = require('qminer').la;
+	* // create a random matrix
+	* var A = new la.Matrix({ rows: 10, cols: 5, random: true });
+	* // set the parameters for the calculation
+	* var k = 2; // number of singular vectors
+	* var param = { iter: 1000, tol: 1e-4 };
+	* // calculate the svd
+	* var result = la.svd(A, k, param);
+	* // successful calculation
+	* var U = result.U;
+	* var V = result.V;
+	* var s = result.s;
 	*/
 	//# exports.prototype.svd = function (mat, k, json) { return { U: Object.create(require('qminer').la.Matrix.prototype), V: Object.create(require('qminer').la.Matrix.prototype), s: Object.create(require('qminer').la.Vector.prototype) } }
 	//JsDeclareFunction(svd);
