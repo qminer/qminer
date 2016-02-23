@@ -170,7 +170,7 @@ private:
 	* // create a new vector
 	* var vec = new la.Vector([1, -1]);
 	* //multiply mat and vec
-	* var vec2 = mat.multiplyT(vec); // returns vector [2, 7]
+	* var vec2 = mat.multiplyT(vec); // returns vector [2, -3]
 	*/
 	//# exports.Matrix.prototype.multiplyT = function(arg) { return (arg instanceof require('qminer').la.Vector | arg instanceof require('qminer').la.SparseVector) ? Object.create(require('qminer').la.Vector.prototype) : Object.create(require('qminer').la.Matrix.prototype); }
 	JsDeclareFunction(multiplyT);
@@ -278,6 +278,7 @@ private:
 	/**
 	* Normalizes each column of matrix.
 	* @returns {module:la.Matrix} Self. The columns of the matrix are normalized. 
+	* @example
 	* // import la module
 	* var la = require('qminer').la;
 	* // create a new matrix
