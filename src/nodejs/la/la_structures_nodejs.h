@@ -682,6 +682,14 @@ public:
 	/**
 	* Returns the number of nonzero values.
 	* @returns {number} Number of nonzero values.
+	* @example
+	* // import la module
+	* var la = require('qminer').la;
+	* // create a new sparse matrix
+	* var mat = new la.SparseMatrix([[[0, 2]], [[0, 1], [2, 3]]]);
+	* // check the number of nonzero values in sparse matrix
+	* var nonz = mat.nnz();
+	* // returns 3
 	*/
 	//# exports.SparseVector.prototype.nnz = 0;
 	JsDeclareProperty(nnz);
@@ -977,6 +985,17 @@ public:
 	/**
 	* Returns the dense representation of sparse matrix.
 	* @returns {module:la.Matrix} Dense representation of sparse matrix.
+	* @example
+	* // import la module
+	* var la = require('qminer').la;
+	* // create a new sparse matrix
+	* var mat = new la.SparseMatrix([[[0, 2]], [[0, 1], [2, 3]]]);
+	* // create a dense representation of sparse matrix
+	* mat.full();
+	* // returns
+	* // 2  1
+	* // 0  0
+	* // 0  3
 	*/
 	//# exports.SparseMatrix.prototype.full = function () { return Object.create(require('qminer').la.Matrix.prototype); }
 	JsDeclareFunction(full);
@@ -984,6 +1003,13 @@ public:
 	/**
 	* Returns the frobenious norm of sparse matrix.
 	* @returns {number} Frobenious norm of sparse matrix.
+	* @example
+	* // import la module
+	* var la = require('qminer').la;
+	* // create a new sparse matrix
+	* var mat = new la.SparseMatrix([[[0, 1], [1, 3]], [[0, 2], [1, 4]]]);
+	* // get the frobenious norm of sparse matrix
+	* var norm = mat.frob(); // returns sqrt(30)
 	*/
 	//# exports.SparseMatrix.prototype.frob = function () { return 0; }
 	JsDeclareFunction(frob);
@@ -991,6 +1017,13 @@ public:
 	/**
 	* Gives the number of rows of sparse matrix.
 	* @returns {number} Number of rows of sparse matrix.
+	* @example
+	* // import la module
+	* var la = require('qminer').la;
+	* // create a new sparse matrix
+	* var mat = new la.SparseMatrix([[[0, 2]], [[0, 1], [2, 3]]]);
+	* // check the number of rows in sparse matrix
+	* mat.rows;
 	*/
 	//# exports.SparseMatrix.prototype.rows = 0; 
 	JsDeclareProperty(rows);
@@ -998,6 +1031,13 @@ public:
 	/**
 	* Gives the number of columns of sparse matrix.
 	* @returns {number} Number of columns of sparse matrix.
+	* @example
+	* // import la module
+	* var la = require('qminer').la;
+	* // create a new sparse matrix
+	* var mat = new la.SparseMatrix([[[0, 2]], [[0, 1], [2, 3]]]);
+	* // check the number of columns in sparse matrix
+	* mat.cols;
 	*/
 	//# exports.SparseMatrix.prototype.cols = 0; 
 	JsDeclareProperty(cols);
