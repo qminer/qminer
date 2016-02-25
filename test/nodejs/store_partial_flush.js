@@ -26,12 +26,9 @@ describe('Partial-flush tests', function () {
                 { "name": "Name", "type": "string", "primary": true }
             ],
             "joins": [
-                //{ "name": "ActedIn", "type": "index", "store": tab2_name, "inverse": "Actor" },
                 { "name": "Directed", "type": "index", "store": tab2_name }
             ],
             "keys": [
-                //{ "field": "Name", "type": "text" },
-                //{ "field": "Desc", "type": "value" }
             ],
             "options": {
                 "storage_location": "cache"
@@ -44,9 +41,6 @@ describe('Partial-flush tests', function () {
                 { "name": "Age", "type": "byte" }
             ],
             "joins": [
-                //{ "name": "Actor", "type": "index", "store": tab1_name, "inverse": "ActedIn" },
-
-                //{ "name": "Director", "type": "field", "store": tab1_name }
                 { "name": "Director", "type": "index", "store": tab1_name, "inverse": "Directed" }
             ],
             "keys": [
@@ -60,11 +54,9 @@ describe('Partial-flush tests', function () {
         
         for (var i = 0; i < rec_cnt; i++) {
             var director = {  Name: "Name " + i };
-            //var actors = [];
             base.store(tab2_name).push({ 
                 Name: "Another name " + i, 
                 Age: (i * 17 + 13) % 97,
-                //Director: director
                 Director: [director]
             });
             if (i % 10000 == 0) {
