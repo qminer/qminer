@@ -284,24 +284,27 @@ class TFIn: public TSIn{
 private:
   static const int MxBfL;
   TFileId FileId;
-  char* Bf;
-  int BfC, BfL;
-private:
-  void SetFPos(const int& FPos) const;
-  int GetFPos() const;
-  int GetFLen() const;
-  void FillBf();
-  int FindEol(int& BfN, bool& CrEnd);
-private:
+  char* Bf; //< buffer that was read from the disk and is (partially) usable for future GetBf calls
+  int BfC;  //< index to the next data in Bf that we can use (0 <= BfC <= BfL)	
+  int BfL;  //< the length of the buffer Bf (0 <= BfL <= MxBfL)
+
   TFIn();
   TFIn(const TFIn&);
   TFIn& operator=(const TFIn&);
+
+  void SetFPos(const int& FPos) const;
+  void FillBf();
+  int FindEol(int& BfN, bool& CrEnd);
+  
 public:
   TFIn(const TStr& FNm);
-  TFIn(const TStr& FNm, bool& OpenedP);
+  TFIn(const TStr& FNm, bool& OpenedP, const bool IgnoreBOMIfExistsP = false);
   static PSIn New(const TStr& FNm);
-  static PSIn New(const TStr& FNm, bool& OpenedP);
+  static PSIn New(const TStr& FNm, bool& OpenedP, const bool IgnoreBOMIfExistsP = false);
   ~TFIn();
+
+  int GetFPos() const;
+  int GetFLen() const;
 
   bool Eof(){
     if ((BfC==BfL)&&(BfL==MxBfL)){FillBf();}
@@ -459,6 +462,8 @@ public:
   bool IsEolnLn() const;
   TStr GetEolnLn(const bool& DoAddEoln, const bool& DoCutBf);
   void MkEolnLn();
+  void Seek(const int& ChN) {
+	  IAssert((0 <= ChN) && (ChN < BfL)); BfL = ChN; };
 };
 
 /////////////////////////////////////////////////
@@ -580,6 +585,8 @@ public:
   static void Copy(const TStr& SrcFNm, const TStr& DstFNm, 
     const bool& ThrowExceptP=true, const bool& FailIfExistsP=false);
   static bool Del(const TStr& FNm, const bool& ThrowExceptP=true);
+  static bool Move(const TStr& SrcFNm, const TStr& DstFNm,
+	const bool& ThrowExceptP = true, const bool& FailIfExistsP = false);
   static void DelWc(const TStr& WcStr, const bool& RecurseDirP=false);
   static void Rename(const TStr& SrcFNm, const TStr& DstFNm);
   static TStr GetUniqueFNm(const TStr& FNm);

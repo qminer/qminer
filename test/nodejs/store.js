@@ -1,14 +1,15 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
- 
-console.log(__filename)
+
+// console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js');     //adds assert.run function
 var qm = require('qminer');
+var fs = qm.fs;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Empty Store
@@ -32,7 +33,6 @@ function EmptyStore() {
 
 
 describe('Empty Store Tests', function () {
-
     var table = undefined;
     beforeEach(function () {
         table = new EmptyStore();
@@ -151,7 +151,7 @@ describe('Empty Store Tests', function () {
 // Small Store
 
 function Store() {
-    this.base = qm.create('qm.conf', "", true);
+    this.base = new qm.Base({ mode: 'createClean' });
     this.base.createStore({
         "name": "People",
         "fields": [
@@ -168,7 +168,6 @@ function Store() {
 };
 
 describe('Store Tests', function () {
-
     var table = undefined;
     beforeEach(function () {
         table = new Store();
@@ -341,8 +340,8 @@ describe('Store Tests', function () {
 // Two Stores
 
 function TStore() {
-    this.base = qm.create('qm.conf', "", true);
-    this.base.createStore([{
+    this.base = new qm.Base({ mode: 'createClean' });
+	this.base.createStore([{
         "name": "People",
         "fields": [
             { "name": "Name", "type": "string", "primary": true },
@@ -411,7 +410,6 @@ function TStore() {
 };
 
 describe("Two Store Tests", function () {
-
     var table = undefined;
     beforeEach(function () {
         table = new TStore();
@@ -511,7 +509,7 @@ describe("Two Store Tests", function () {
 
     describe('Movies Fields Test', function () {
         it('should return the number of fields', function () {
-            var arr = table.base.store("Movies").fields;            
+            var arr = table.base.store("Movies").fields;
             // it also returns internal fields that are created for index joins (2 additional fields)
             assert.equal(arr.length, 7);
         })
@@ -635,7 +633,7 @@ describe("Two Store Tests", function () {
     describe('Importing Test', function () {
         it('should import the movies in the movies_data.txt', function () {
             var filename = "./sandbox/movies/movies_data.txt"
-            assert.equal(qm.load.jsonFile(table.base.store("Movies"), filename), 167);
+            assert.equal(table.base.store("Movies").loadJson(filename), 167);
         })
     })
 
@@ -769,10 +767,57 @@ describe("Two Store Tests", function () {
 });
 
 ///////////////////////////////////////////////////////////////////////////////
+// Many Stores
+
+describe('Many Stores Test', function () {
+    this.timeout(30000);
+
+    var base = undefined;
+    beforeEach(function () {
+        base = new qm.Base({ mode: 'createClean' });
+    });
+    afterEach(function () {
+        base.close();
+    });
+
+    describe('Creating 254 Stores Test', function () {
+        it('should create 254 stores', function () {
+            var numOfStores = 254
+
+            for (i = 0; i < numOfStores; i++) {
+                var storeDef = {
+                    "name": "TestStore_" + i,
+                    "fields": [{ "name": "Test", "type": "float" }]
+                }
+                base.createStore(storeDef);
+            }
+
+            assert.equal(254, base.getStoreList().length);
+        })
+    });
+    
+    // takes to long
+    //describe('Creating 1000 Stores Test', function () {
+    //    it('should create 1000 stores', function () {
+    //        var numOfStores = 1000
+
+    //        for (i = 0; i < numOfStores; i++) {
+    //            var storeDef = {
+    //                "name": "TestStore_" + i,
+    //                "fields": [{ "name": "Test", "type": "float" }]
+    //            }
+    //            base.createStore(storeDef);
+    //        }
+
+    //        assert.equal(1000, base.getStoreList().length);
+    //    })
+    //});
+})
+
+///////////////////////////////////////////////////////////////////////////////
 // AddTrigger
 
 describe('AddTrigger Tests', function () {
-
     var table = undefined;
     beforeEach(function () {
         table = new TStore();
@@ -844,7 +889,6 @@ describe('AddTrigger Tests', function () {
 // Query
 
 describe('Query Tests', function () {
-
     var table = undefined;
     beforeEach(function () {
         table = new TStore();
@@ -862,4 +906,178 @@ describe('Query Tests', function () {
             assert.equal(query.Name, "john");
         })
     })
+})
+
+//////////////////////////////////////////////////////////////////////////////
+// CSV
+//describe('Load CSV tests', function () {
+//	var fout = null;
+//	var base = null;
+//
+//	beforeEach(function () {
+//		base = new qm.Base({ mode: 'createClean' });
+//    });
+//    afterEach(function () {
+//    	base.close();
+//    });
+//
+//	describe('Creating load CSV test ...', function () {
+//		it('should create a full store with correct types', function () {
+//			// generate a CSV file
+//			var headers = ['A', 'B', 'C', 'D'];
+//			var types = ['string', 'float', 'float', 'string'];
+//
+//			var table = [];
+//
+//			var n = 100;
+//
+//			fout = new fs.FOut('test.csv', false);
+//			fout.writeLine(headers.join(','));
+//			for (var i = 0; i < n; i++) {
+//				var lineStr = '';
+//				var row = [];
+//				for (var j = 0; j < headers.length; j++) {
+//					if (types[j] == 'string') {
+//						row.push(Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5));	// random string
+//					} else {
+//						row.push(i);
+//					}
+//				}
+//
+//				table.push(row);
+//				fout.write(row.join(','));
+//
+//				if (i < n - 1)
+//					fout.write('\n');
+//			}
+//
+//			fout.flush();
+//			fout.close();
+//
+//			// read the CSV file into a store
+//
+//			base.loadCSV({file: 'test.csv', store: 'test'}, function (err, store) {
+//				if (err != null) {
+//					assert.fail(0, 0, 'Exception while loading CSV file! ' + err, ',');
+//				} else {
+//					assert(store != null, 'Store is not defined!');
+//
+//					// check if the fields are correct
+//					var fields = store.fields;
+//
+//					assert.equal(fields.length, headers.length, 'Invalid number of fields generated!');
+//
+//					for (var i = 0; i < fields.length; i++) {
+//						var field = fields[i];
+//
+//						assert.equal(field.name, headers[i], 'Invalid name of field!');
+//						assert.equal(field.type, types[i], 'Invalid type of field!');
+//					}
+//
+//					// check if the values are correct
+//					for (var i = 0; i < store.length; i++) {
+//						var rec = store[i];
+//						for (var j = 0; j < headers.length; j++) {
+//							var val = rec[headers[j]];
+//
+//							assert.equal(val, table[i][j], 'Value mismatch!');
+//						}
+//					}
+//				}
+//
+//				fs.del('test.csv');
+//				assert(!fs.exists('test.csv'), 'The test CSV file could not be deleted!');
+//			});
+//		});
+//	})
+//});
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Schema Time WIndow Test#
+
+describe('Schema Time Window Test', function () {
+
+    describe('Testing window (size: 3)', function () { 
+        // generate store with window 3
+        base = new qm.Base({ mode: 'createClean' });
+        base.createStore({
+            "name": "TestStore",
+            "fields": [
+                { "name": "DateTime", "type": "datetime" },
+                { "name": "Measurement", "type": "float" }
+            ],
+            window: 3,
+        });
+
+        // push 5 records into created store
+        for (var i = 0; i < 5; i++) {
+            var rec = {
+                "DateTime": new Date().toISOString(),
+                "Measurement": i
+            };
+            base.store("TestStore").push(rec);
+        }
+
+        // clean base with garbage collector
+        var before = base.store("TestStore").allRecords.length;
+        base.garbageCollect();
+        var after =  base.store("TestStore").allRecords.length;
+
+        // test number of records in store before garbage cleanup
+        it('store should contain 5 records before .garbageCollect()', function () {
+            assert.equal(5, before);
+        });
+
+        // test number of records in store after garbage cleanup
+        it('store should contain 3 records after .garbageCollect()', function () {
+            assert.equal(3, after);
+        });
+
+        base.close();
+    });
+
+    describe('Testing timeWindow (size: 2h)', function () { 
+                // generate store with window 3
+        base = new qm.Base({ mode: 'createClean' });
+        base.createStore({
+            "name": "TestStore",
+            "fields": [
+                { "name": "DateTime", "type": "datetime" },
+                { "name": "Measurement", "type": "float" }
+            ],
+            timeWindow: {
+                duration: 2,
+                unit: "hour",
+                field: "DateTime"
+            }
+        });
+
+        // push 5 records into created store
+        for (var i = 0; i < 5; i++) {
+            var rec = {
+                "DateTime": new Date(new Date().getTime() + i * 60 * 60 * 1001).toISOString(),
+                "Measurement": i
+            };
+            base.store("TestStore").push(rec);
+        }
+
+        // clean base with garbage collector
+        var before = base.store("TestStore").allRecords.length;
+        base.garbageCollect();
+        var after =  base.store("TestStore").allRecords.length;
+
+        // test number of records in store before garbage cleanup
+        it('store should contain 5 records before .garbageCollect()', function () {
+            assert.equal(5, before);
+        });
+
+        // test number of records in store after garbage cleanup
+        it('store should contain 2 records after .garbageCollect()', function () {
+            assert.equal(2, after);
+        });
+
+        base.close();
+    });
+
 })

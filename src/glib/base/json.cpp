@@ -44,6 +44,22 @@ void TJsonVal::AddToObj(const PJsonVal& Val) {
 	}
 }
 
+void TJsonVal::AddToObj(const TStr& KeyNm, const PJsonVal& Val) {
+	EAssert(JsonValType == jvtObj);
+	EAssert(KeyNm != "");
+	KeyValH.AddDat(KeyNm, Val);
+}
+
+// extend/update the object with values from Val
+// this and Val should be an Object and not an array or something else
+void TJsonVal::MergeObj(const PJsonVal& Val) {
+	EAssert(Val->IsObj() && IsObj());
+	for (int N = 0; N < Val->GetObjKeys(); N++) {
+		const TStr Key = Val->GetObjKey(N);
+		AddToObj(Key, Val->GetObjKey(Key));
+	}
+}
+
 PJsonVal TJsonVal::NewArr(const TJsonValV& ValV) {
 	PJsonVal Val = TJsonVal::NewArr();
 	for (int ValN = 0; ValN < ValV.Len(); ValN++) {
@@ -53,6 +69,14 @@ PJsonVal TJsonVal::NewArr(const TJsonValV& ValV) {
 }
 
 PJsonVal TJsonVal::NewArr(const TIntV& IntV) {
+	PJsonVal Val = TJsonVal::NewArr();
+	for (int IntN = 0; IntN < IntV.Len(); IntN++) {
+		Val->AddToArr(TJsonVal::NewNum((double)IntV[IntN]));
+	}
+	return Val;
+}
+
+PJsonVal TJsonVal::NewArr(const TUInt64V& IntV) {
 	PJsonVal Val = TJsonVal::NewArr();
 	for (int IntN = 0; IntN < IntV.Len(); IntN++) {
 		Val->AddToArr(TJsonVal::NewNum((double)IntV[IntN]));
@@ -88,6 +112,26 @@ PJsonVal TJsonVal::NewArr(const TFltPr& FltPr) {
   Val->AddToArr(TJsonVal::NewNum(FltPr.Val1));
   Val->AddToArr(TJsonVal::NewNum(FltPr.Val2));
   return Val;
+}
+
+bool TJsonVal::IsTm() const {
+  try {
+    GetTm();
+    return true;
+  } catch (...) {
+    return false;
+  }
+}
+
+TTm TJsonVal::GetTm() const {
+  EAssert(IsStr() || IsNum());
+
+  if (IsStr()) {
+    const TStr& TmStr = GetStr();
+    return TTm::GetTmFromWebLogDateTimeStr(TmStr, '-', ':', '.', 'T');
+  } else {
+    return TTm::GetTmFromMSecs(TTm::GetWinMSecsFromUnixMSecs(GetInt64()));
+  }
 }
 
 void TJsonVal::GetArrNumV(TFltV& FltV) const {
@@ -172,10 +216,36 @@ int TJsonVal::GetObjInt(const char *Key, const int& DefInt) const {
   return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetInt() : DefInt;
 }
 
+int64 TJsonVal::GetObjInt64(const TStr& Key, const int64& DefInt) const {
+	EAssert(IsObj());
+	return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetInt64() : DefInt;
+}
+
+int64 TJsonVal::GetObjInt64(const char *Key, const int64& DefInt) const {
+	EAssert(IsObj());
+	return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetInt64() : DefInt;
+}
+
+uint64 TJsonVal::GetObjUInt64(const TStr& Key, const uint64& DefInt) const {
+  EAssert(IsObj());
+  return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetUInt64() : DefInt;
+} 
+
+uint64 TJsonVal::GetObjUInt64(const char *Key, const uint64& DefInt) const {
+  EAssert(IsObj());
+  return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetUInt64() : DefInt;
+}
+
 void TJsonVal::GetObjIntV(const TStr& Key, TIntV& IntV) const {
     EAssert(IsObj());
     EAssert(IsObjKey(Key));
     GetObjKey(Key)->GetArrIntV(IntV);
+}
+
+void TJsonVal::GetObjFltV(const TStr& Key, TFltV& FltV) const {
+    EAssert(IsObj());
+    EAssert(IsObjKey(Key));
+    GetObjKey(Key)->GetArrNumV(FltV);
 }
 
 const TStr& TJsonVal::GetObjStr(const TStr& Key, const TStr& DefStr) const { 
@@ -254,7 +324,7 @@ PJsonVal TJsonVal::GetValFromSIn(const PSIn& SIn, bool& Ok, TStr& MsgStr){
     Val=GetValFromLx(Lx);
 	Ok=true; MsgStr="Ok";
   }
-  catch (PExcept Except){
+  catch (const PExcept& Except){
     Val=TJsonVal::New();
     Ok=false; MsgStr=Except->GetMsgStr();
   }
@@ -347,7 +417,7 @@ void TJsonVal::GetChAFromVal(const PJsonVal& Val, TChA& ChA){
     	if (TFlt::IsNan(Val->GetNum())) {
     		ChA += "null";
     	} else {
-    		ChA+=TStr::Fmt("%f", Val->GetNum());
+    		ChA += TStr::Fmt("%.16g", Val->GetNum());
     	}
     	break;
     case jvtStr:
@@ -362,7 +432,7 @@ void TJsonVal::GetChAFromVal(const PJsonVal& Val, TChA& ChA){
       break;
     case jvtObj:
       ChA+="{";
-      for (int ObjKeyN=0; ObjKeyN<Val->GetObjKeys(); ObjKeyN++){
+	  for (int ObjKeyN = Val->KeyValH.FFirstKeyId(); Val->KeyValH.FNextKeyId(ObjKeyN);) {
         if (ObjKeyN>0){ChA+=", ";}
         TStr ObjKey; PJsonVal ObjVal; Val->GetObjKeyVal(ObjKeyN, ObjKey, ObjVal);
         AddQChAFromStr(ObjKey, ChA);

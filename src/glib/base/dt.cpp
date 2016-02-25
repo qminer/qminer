@@ -229,18 +229,70 @@ void TRnd::SaveTxt(TOLx& Lx) const {
 }
 
 /////////////////////////////////////////////////
+/// Thin Input-Memory
+TThinMIn::TThinMIn(const TMemBase& Mem) :
+TSBase("Thin input memory"), TSIn("Thin input memory"), Bf(NULL), BfC(0), BfL(0) {
+
+	Bf = (uchar*)Mem.GetBf();
+	BfL = Mem.Len();
+}
+
+TThinMIn::TThinMIn(const void* _Bf, const int& _BfL) :
+TSBase("Thin input memory"), TSIn("Thin input memory"),
+Bf(NULL), BfC(0), BfL(_BfL) {
+
+	Bf = (uchar*)_Bf;
+}
+
+TThinMIn::TThinMIn(const TThinMIn& min) :
+TSBase("Thin input memory"), TSIn("Thin input memory") {
+	Bf = min.Bf;
+	BfL = min.BfL;
+	BfC = min.BfC;
+}
+
+char TThinMIn::GetCh() {
+	IAssertR(BfC<BfL, "Reading beyond the end of stream.");
+	return Bf[BfC++];
+}
+
+char TThinMIn::PeekCh() {
+	IAssertR(BfC<BfL, "Reading beyond the end of stream.");
+	return Bf[BfC];
+}
+
+int TThinMIn::GetBf(const void* LBf, const TSize& LBfL) {
+	IAssert(TSize(BfC + LBfL) <= TSize(BfL));
+	int LBfS = 0;
+	for (TSize LBfC = 0; LBfC<LBfL; LBfC++) {
+		LBfS += (((char*)LBf)[LBfC] = Bf[BfC++]);
+	}
+	return LBfS;
+}
+
+void TThinMIn::MoveTo(int Offset) {
+	IAssertR(Offset<BfL, "Reading beyond the end of stream.");
+	BfC = Offset;
+}
+
+bool TThinMIn::GetNextLnBf(TChA& LnChA) {
+	return GetNextLn(LnChA);
+}
+
+/////////////////////////////////////////////////
 // Memory
 void TMem::Resize(const int& _MxBfL){
   if (_MxBfL<=MxBfL){return;}
   else {if (MxBfL*2<_MxBfL){MxBfL=_MxBfL;} else {MxBfL*=2;}}
   char* NewBf=new char[MxBfL]; IAssert(NewBf!=NULL);
   if (BfL>0){memcpy(NewBf, Bf, BfL);}
-  if (Bf!=NULL){delete[] Bf;}
+  if (Bf!=NULL && Owner){delete[] Bf;}
+  Owner = true;
   Bf=NewBf;
 }
 
-TMem::TMem(const TStr& Str):
-  MxBfL(Str.Len()), BfL(MxBfL), Bf(NULL){
+TMem::TMem(const TStr& Str) : TMemBase() {
+	MxBfL = Str.Len(); BfL = MxBfL; Bf = NULL; Owner = true;
   if (MxBfL>0){
     Bf=new char[MxBfL];
     if (BfL>0){memcpy(Bf, Str.CStr(), BfL);}
@@ -339,6 +391,97 @@ TMem TMem::GetFromHex(const TStr& Str) {
 		ChA += Ch;
 	}
 	return TMem(ChA.CStr(), ChA.Len());
+}
+
+///////////////////////////////////////////////////////////////
+// Base64 encoding
+// Code skeleton taken from http://www.adp-gmbh.ch/cpp/common/base64.html
+// on 5.12.2015 and re-arranged to fit into glib.
+
+const TStr TStr::base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+TStr TStr::Base64Encode(const void* Bf, const int BfL) {
+	TStr ret;
+	int i = 0;
+	int j = 0;
+	unsigned char char_array_3[3];
+	unsigned char char_array_4[4];
+	int BfLTmp = BfL;
+	const uchar* BfTmp = (uchar*)Bf;
+	while (BfLTmp--) {
+		char_array_3[i++] = *(BfTmp++);
+		if (i == 3) {
+			char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+			char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+			char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+			char_array_4[3] = char_array_3[2] & 0x3f;
+
+			for (i = 0; (i <4); i++)
+				ret += base64_chars[char_array_4[i]];
+			i = 0;
+		}
+	}
+
+	if (i) {
+		for (j = i; j < 3; j++) {
+			char_array_3[j] = '\0';
+		}
+		char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+		char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+		char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+		char_array_4[3] = char_array_3[2] & 0x3f;
+
+		for (j = 0; (j < i + 1); j++) {
+			ret += base64_chars[char_array_4[j]];
+		}
+		while ((i++ < 3)) {
+			ret += '=';
+		}
+	}
+	return ret;
+}
+
+void TStr::Base64Decode(const TStr& In, TMem& Mem) {
+	int in_len = In.Len();
+	int i = 0;
+	int j = 0;
+	int in_ = 0;
+	unsigned char char_array_4[4], char_array_3[3];
+	Mem.Reserve(In.Len());
+	while (in_len-- && (In[in_] != '=') && is_base64(In[in_])) {
+		char_array_4[i++] = In[in_]; 
+		in_++;
+		if (i == 4) {
+			for (i = 0; i < 4; i++) {
+				char_array_4[i] = (uchar)base64_chars.SearchCh(char_array_4[i]);
+			}
+			char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
+			char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
+			char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
+
+			Mem.AddBf(&char_array_3, 3);
+			//for (i = 0; (i < 3); i++) {
+			//	Mem.AddBf(&char_array_3[i], 1);
+			//}
+			i = 0;
+		}
+	}
+
+	if (i) {
+		for (j = i; j < 4; j++) {
+			char_array_4[j] = 0;
+		}
+		for (j = 0; j < 4; j++) {
+			char_array_4[j] = (uchar)base64_chars.SearchCh(char_array_4[j]);
+		}
+		char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
+		char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
+		char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
+
+		for (j = 0; (j < i - 1); j++) {
+			Mem.AddBf(&char_array_3[j], 1);
+		}
+	}
 }
 
 /////////////////////////////////////////////////
@@ -1067,21 +1210,47 @@ TStr TStr::GetFromHex() const {
 
 TStr TStr::GetSubStr(const int& BChN, const int& EChN) const {
 	int StrLen = Len();
-	EAssertR(0 <= BChN && BChN <= EChN && EChN < StrLen, "TStr::GetSubStr index out of bounds");    
-    int Chs=EChN-BChN+1;
-    // initialize accordingly
-    char* Bf = nullptr;
-    if (Chs <= 0) { 
-        // create empty string
-		return TStr();		
-    } else if (Chs==StrLen){
-        // keep copy of everything
+	EAssertR(0 <= BChN && BChN <= EChN && EChN < StrLen, "TStr::GetSubStr index out of bounds");
+	int Chs = EChN - BChN + 1;
+	// initialize accordingly
+	char* Bf = nullptr;
+	if (Chs <= 0) {
+		// create empty string
+		return TStr();
+	}
+	else if (Chs == StrLen) {
+		// keep copy of everything
 		Bf = CloneCStr();//
-    } else {
-        // get copy of a substring
-        Bf = new char[Chs+1]; strncpy(Bf, CStr()+BChN, Chs); Bf[Chs]=0;
-    }
-    return WrapCStr(Bf);
+	}
+	else {
+		// get copy of a substring
+		Bf = new char[Chs + 1]; strncpy(Bf, CStr() + BChN, Chs); Bf[Chs] = 0;
+	}
+	return WrapCStr(Bf);
+}
+
+// safe version of GetSubStr(). 
+// Fixes BChN and EChN values that are outside of string's range
+// supports also negative indices (python like): 
+// GetSubStrSafe(0,-1) will return all but last char
+TStr TStr::GetSubStrSafe(const int& BChN, const int& EChN) const {
+	int StrLen = Len();
+	int StartN;
+	if (BChN <= -StrLen)
+		StartN = 0;
+	else if (BChN < 0)
+		StartN = StrLen + BChN;
+	else
+		StartN = BChN;
+	int EndN;
+	if (EChN < 0)
+		EndN = StrLen + EChN - 1;
+	else
+		EndN = EChN >= StrLen ? StrLen - 1 : EChN;
+
+	if (!(0 <= StartN && StartN <= EndN && EndN < StrLen))
+		return TStr();
+	return GetSubStr(StartN, EndN);
 }
 
 void TStr::InsStr(const int& BChN, const TStr& Str) {
@@ -1869,9 +2038,9 @@ TStr TStr::GetNrFExt(const TStr& FExt){
   else {return TStr(".")+FExt;}
 }
 
-TStr TStr::GetNrNumFExt(const int& FExtN){
+TStr TStr::GetNrNumFExt(const int& FExtN, const int& MinLen){
   TStr FExtNStr=TInt::GetStr(FExtN);
-  while (FExtNStr.Len()<3){
+  while (FExtNStr.Len()<MinLen){
     FExtNStr=TStr("0")+FExtNStr;}
   return FExtNStr;
 }
@@ -2031,6 +2200,31 @@ TStr operator+(const TStr& LStr, const char* RCStr) {
 
 TStr operator+(const TStr& LStr, const TStr& RStr) {
 	return operator+(LStr, RStr.CStr());
+}
+
+TStr operator+(const TStr& LStr, const char Ch) {
+	const size_t LeftLen = LStr.Len();
+	const size_t RightLen = 1;
+
+	// check if any of the strings are empty
+	if (LeftLen == 0) { return TStr(Ch); } 
+	else if (RightLen == 0) { return LStr; } 
+	else {
+		const char* LCStr = LStr.CStr();
+
+		// allocate memory
+		char* ConcatStr = new char[LeftLen + RightLen + 1];
+
+		// copy the two strings into the new memory
+		memcpy(ConcatStr, LCStr, LeftLen);
+		memcpy(ConcatStr + LeftLen, &Ch, RightLen);
+
+		// finish the new string
+		ConcatStr[LeftLen + RightLen] = 0;
+
+		// return
+		return TStr::WrapCStr(ConcatStr);
+	}
 }
 
 bool TStr::IsUInt(TChRet& Ch, const bool& Check, const uint& MnVal, const uint& MxVal, uint& Val) {
@@ -2346,6 +2540,18 @@ void TUCh::SaveXml(TSOut& SOut, const TStr& Nm) const {
 }
 
 /////////////////////////////////////////////////
+// Integer16
+
+const int16 TSInt::Mn = SHRT_MIN;
+const int16 TSInt::Mx = SHRT_MAX;
+
+/////////////////////////////////////////////////
+// Usigned Integer16
+
+const uint16 TUSInt::Mn = 0;
+const uint16 TUSInt::Mx = USHRT_MAX;
+
+/////////////////////////////////////////////////
 // Integer
 const int TInt::Mn=INT_MIN;
 const int TInt::Mx=INT_MAX;
@@ -2568,18 +2774,29 @@ bool TUInt::IsIpv6Str(const TStr& IpStr, const char& SplitCh) {
 	return true;
 }
 
+
+/////////////////////////////////////////////////
+// Signed-Integer-64Bit
+
+//#if defined (GLib_WIN)
+const int64 TInt64::Mn(INT64_MIN);
+const int64 TInt64::Mx(INT64_MAX);
+//#else
+
+//#endif
+
 /////////////////////////////////////////////////
 // Unsigned-Integer-64Bit
 
 #if defined (GLib_WIN)
-const TUInt64 TUInt64::Mn(uint64(0x0000000000000000i64));
-const TUInt64 TUInt64::Mx(uint64(0xFFFFFFFFFFFFFFFFi64));
+const uint64 TUInt64::Mn(uint64(0x0000000000000000i64));
+const uint64 TUInt64::Mx(uint64(0xFFFFFFFFFFFFFFFFi64));
 #elif defined (GLib_BCB)
-const TUInt64 TUInt64::Mn(0x0000000000000000i64);
-const TUInt64 TUInt64::Mx(0xFFFFFFFFFFFFFFFFi64);
+const uint64 TUInt64::Mn(0x0000000000000000i64);
+const uint64 TUInt64::Mx(0xFFFFFFFFFFFFFFFFi64);
 #else
-const TUInt64 TUInt64::Mn((uint64)0x0000000000000000LL);
-const TUInt64 TUInt64::Mx(0xFFFFFFFFFFFFFFFFLL);
+const uint64 TUInt64::Mn((uint64)0x0000000000000000LL);
+const uint64 TUInt64::Mx(0xFFFFFFFFFFFFFFFFLL);
 #endif
 
 void TUInt64::LoadXml(const PXmlTok& XmlTok, const TStr& Nm){

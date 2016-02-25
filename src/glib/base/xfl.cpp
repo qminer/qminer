@@ -259,8 +259,76 @@ bool TDir::GenDir(const TStr& FPathFNm){
   return CreateDirectory(FPathFNm.CStr(), NULL)!=0;
 }
 
+// create one or several directories specified in the FPathFNm
+// compared to the GenDir() that requires that all but the last folder are
+// existing, GenDirs() can generate several directories at once
+bool TDir::GenDirs(const TStr& FPathFNm) {
+	TStrV PartV; TDir::SplitPath(FPathFNm, PartV);
+	bool Ret = true;
+	TStr Path = "";
+	for (int N = 0; N < PartV.Len() && Ret == true; N++) {
+		Path += (N > 0) ? "/" : "";
+		Path += PartV[N];
+		if (!TDir::Exists(Path))
+			Ret = GenDir(Path);
+	}
+	return Ret;
+}
+
 bool TDir::DelDir(const TStr& FPathFNm){
   return RemoveDirectory(FPathFNm.CStr())!=0;
+}
+
+bool TDir::DelNonEmptyDir(const TStr& FPathFNm) {
+	TStrV FileV;
+	TFFile::GetFNmV(FPathFNm, TStrV(), false, FileV);
+	bool Ok = true;
+	for (int N = 0; N < FileV.Len(); N++) {
+		// if this is a file delete it
+		if (TFile::Exists(FileV[N]))
+			Ok = Ok && TFile::Del(FileV[N], false);
+		// if this is a folder, delete it recursively
+		else
+			Ok = Ok && DelNonEmptyDir(FileV[N]);
+	}
+	// remove the (hopefully) empty directory
+	Ok = Ok && TDir::DelDir(FPathFNm);
+	return Ok;
+}
+
+TStr TDir::GetLastDirPart(const TStr& FPathFNm) {
+	return TDir::GetFileName(FPathFNm);
+}
+
+// copy (nonempty) directory SourceDir to DestDir
+void TDir::CopyDir(const TStr& SourceDir, const TStr& DestDir, const bool& OverwriteIfExists) {
+	TDir::GenDir(DestDir);
+	// get all files in source dir
+	TStrV FileV;
+	TFFile::GetFNmV(SourceDir, TStrV(), false, FileV);
+	for (int N = 0; N < FileV.Len(); N++) {
+		TStrV PartV; TDir::SplitPath(FileV[N], PartV);
+		const TStr FName = PartV[PartV.Len() - 1];
+		// if this is a file copy it
+		if (TFile::Exists(FileV[N])) {
+			TFile::Copy(FileV[N], DestDir + "/" + FName, false, !OverwriteIfExists);
+		}
+		// if this is a folder, copy it recursively
+		else {
+			TDir::CopyDir(FileV[N], DestDir + "/" + FName, OverwriteIfExists);
+		}
+	}
+}
+
+void TDir::SplitPath(const TStr& FPathFNm, TStrV& PartV) {
+    FPathFNm.SplitOnAllAnyCh("\\/", PartV);
+}
+
+TStr TDir::GetFileName(const TStr& FileWithDir) {
+    TStrV PartsV; TDir::SplitPath(FileWithDir, PartsV);
+    if (PartsV.Len() > 0)
+        return PartsV[PartsV.Len() - 1];
+    return "";
 }
 
 #ifdef GLib_WIN
@@ -295,6 +363,42 @@ void TDir::ListFiles(const TStr& DirNm, TStrV& FNmV) {
 #else
 	throw TExcept::New("TDir::ListFiles: Not implemented on Windows, please implement!");
 #endif
+}
+
+//////////////////////////////////////
+// TPath
+
+// create a full path by combining a directory name and a file or directory
+TStr TPath::Combine(const TStr& DirNm_, const TStr& _FileOrDirNm)
+{
+	const TStr DirNm = DirNm_.TrimRight("/").TrimRight("\\");
+	const TStr FileOrDirNm = _FileOrDirNm.TrimLeft("/").TrimLeft("\\");
+	return DirNm + "/" + FileOrDirNm;
+}
+
+// create a full path by combining several directory names 
+// by separating them using /
+TStr TPath::Combine(const TStrV& DirNmV)
+{
+	return TStr::GetStr(DirNmV, "/");
+}
+
+// return the directory part of the FileWithDir
+TStr TPath::GetDirName(const TStr& FileWithDir)
+{
+	TStrV PartV;
+	FileWithDir.SplitOnAllAnyCh("\\/", PartV, false);
+	TDir::SplitPath(FileWithDir, PartV);
+	if (PartV.Len() == 0)
+		return "";
+	PartV.DelLast();
+	return TStr::GetStr(PartV, "/");
+}
+
+// return the filename part of the FileWithDir
+TStr TPath::GetFileName(const TStr& FileWithDir)
+{
+	return TDir::GetFileName(FileWithDir);
 }
 
 //////////////////////////////////////
@@ -333,6 +437,73 @@ void TFPathNotify::OnStatus(const TStr& MsgStr) {
   LogSOut->PutStrLn(MsgStr); 
   // we flush for each line when in debug mode
   if (FlushP) { LogSOut->Flush(); }
+}
+
+
+//////////////////////////////////////
+// File-Notify
+TFileNotify::TFileNotify(const TStr& _FileName, const bool& _AddTimeStamp, const bool& _SeparateFilesForEachDay, const bool& _FlushEachWrite)
+	: FileName(_FileName), AddTimeStamp(_AddTimeStamp), SeparateFilesForEachDay(_SeparateFilesForEachDay), FlushEachWrite(_FlushEachWrite) {
+	if (!SeparateFilesForEachDay)
+		File = TFOut::New(_FileName, true);
+	LastLogDate = "";
+}
+
+void TFileNotify::OpenNewFileForDate() {
+	LastLogDate = TTm::GetCurLocTm().GetWebLogDateStr();
+	FileName.ChangeChAll('\\', '/');
+	TStr Path, FName; FileName.SplitOnLastCh(Path, '/', FName);
+	File = TFOut::New(Path + "/" + LastLogDate + " " + FName, true);
+}
+
+void TFileNotify::OnStatus(const TStr& MsgStr) {
+	if (SeparateFilesForEachDay && TTm::GetCurLocTm().GetWebLogDateStr() != LastLogDate)
+		OpenNewFileForDate();
+	if (AddTimeStamp) {
+		TTm NowTm = TTm::GetCurLocTm();
+		if (SeparateFilesForEachDay) {
+			File->PutStrFmt("[%s] ", NowTm.GetHMSTColonDotStr(true, false).CStr());
+			File->PutStrLn(MsgStr);
+		}
+		else {
+			File->PutStrFmt("[%s %s] ",
+				NowTm.GetYMDDashStr().CStr(),
+				NowTm.GetHMSTColonDotStr(true, false).CStr());
+			File->PutStrLn(MsgStr);
+		}
+	}
+	else
+		File->PutStrLn(MsgStr);
+	File->Flush();
+}
+
+void TFileNotify::OnNotify(const TNotifyType& Type, const TStr& MsgStr) {
+	if (SeparateFilesForEachDay && TTm::GetCurLocTm().GetWebLogDateStr() != LastLogDate)
+		OpenNewFileForDate();
+	TStr TypeStr = "";
+	if (Type == ntInfo) TypeStr = "INFO";
+	else if (Type == ntErr) TypeStr = "ERROR";
+	else if (Type == ntWarn) TypeStr = "WARNING";
+	else if (Type == ntStat) TypeStr = "STAT";
+
+	if (AddTimeStamp) {
+		TTm NowTm = TTm::GetCurLocTm();
+		if (SeparateFilesForEachDay)
+			File->PutStrFmt("[%s] %s: %s\n",
+				NowTm.GetHMSTColonDotStr(true, false).CStr(),
+				TypeStr.CStr(),
+				MsgStr.CStr());
+		else
+			File->PutStrFmt("[%s %s] %s: %s\n",
+				NowTm.GetYMDDashStr().CStr(),
+				NowTm.GetHMSTColonDotStr(true, false).CStr(),
+				TypeStr.CStr(),
+				MsgStr.CStr());
+	}
+	else
+		File->PutStrFmt("%s: %s\n", TypeStr.CStr(), MsgStr.CStr());
+	if (FlushEachWrite)
+		File->Flush();
 }
 
 /////////////////////////////////////////////////

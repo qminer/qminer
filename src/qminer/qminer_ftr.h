@@ -97,6 +97,9 @@ public:
 	/// at the given offset. Increases the offset by its dimension
 	virtual void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const = 0;
 
+    // deprecated, to be removed
+	virtual double __GetVal(const double& InVal) const { printf("__GetVal is DEPRECATED\n"); throw TQmExcept::New("TFtrExt::GetVal not implemented"); };
+
 	// for more strait-forward feature extraction (i.e. used by basic aggregators)
 	// attaches values to the given vector, keeps what is in there already
 	virtual void ExtractStrV(const TRec& Rec, TStrV& StrV) const;
@@ -140,11 +143,14 @@ private:
 	TFtrSpace(const TWPt<TBase>& _Base, const PFtrExt& FtrExt);
 	TFtrSpace(const TWPt<TBase>& _Base, const TFtrExtV& _FtrExtV);
     TFtrSpace(const TWPt<TBase>& _Base, TSIn& SIn);
+	TFtrSpace(const TWPt<TBase>& _Base, const PJsonVal& ParamVal);
 public:
     /// Create feature space with one feature extractor
 	static TPt<TFtrSpace> New(const TWPt<TBase>& Base, const PFtrExt& FtrExt); 
     /// Create feature space with multiple feature extractors
     static TPt<TFtrSpace> New(const TWPt<TBase>& Base, const TFtrExtV& FtrExtV);
+	/// Create feature space from JSON (array of feature extractor parameter JSONs)
+	static TPt<TFtrSpace> New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
     /// Load existing feature space from stream
     static TPt<TFtrSpace> Load(const TWPt<TBase>& Base, TSIn& SIn);
     /// Save feature space to stream
@@ -162,19 +168,23 @@ public:
 	/// Update feature extractors given a set of records
 	bool Update(const PRecSet& RecSet);
     /// Extract sparse feature vector from a record
-	void GetSpV(const TRec& Rec, TIntFltKdV& SpV) const;
+	void GetSpV(const TRec& Rec, TIntFltKdV& SpV, const int& FtrExtN = -1) const;
     /// Extract full feature vector from a record
-    void GetFullV(const TRec& Rec, TFltV& FullV) const;
+    void GetFullV(const TRec& Rec, TFltV& FullV, const int& FtrExtN = -1) const;
 	/// Extracting sparse feature vectors from a record set
-	void GetSpVV(const PRecSet& RecSet, TVec<TIntFltKdV>& SpVV) const;
+	void GetSpVV(const PRecSet& RecSet, TVec<TIntFltKdV>& SpVV, const int& FtrExtN = -1) const;
 	/// Extracting full feature vectors from a record set
-	void GetFullVV(const PRecSet& RecSet, TVec<TFltV>& FullVV) const;
+	void GetFullVV(const PRecSet& RecSet, TVec<TFltV>& FullVV, const int& FtrExtN = -1) const;
 	/// Extracting full feature vectors (columns) from a record set
-	void GetFullVV(const PRecSet& RecSet, TFltVV& FullVV) const;
+	void GetFullVV(const PRecSet& RecSet, TFltVV& FullVV, const int& FtrExtN = -1) const;
 	/// Compute sparse centroid of a given record set
 	void GetCentroidSpV(const PRecSet& RecSet, TIntFltKdV& CentroidSpV, const bool& NormalizeP = true) const;
 	/// Compute full centroid of a given record set
 	void GetCentroidV(const PRecSet& RecSet, TFltV& CentroidV, const bool& NormalizeP = true) const;
+
+	/// extracts a single feature (deprecated)
+	double GetSingleFtr(const int& FtrExtN, const double& Val) const;
+
 	/// Returns the inverse operation on the feature vector
 	void InvertFullV(const TFltV& FullV, TFltV& InvertV) const;
 	/// returns the inverse operation on a single feature
@@ -197,6 +207,8 @@ public:
     int GetMnFtrN(const int& FtrExtN) const;
     /// End dimension +1 for the FtrExtN-th feature extractor
     int GetMxFtrN(const int& FtrExtN) const;
+	/// Check if the given store is one of the allowed start stores
+	bool IsStartStore(const uint& StoreId) const;
 
 	/// Prepares an empty bow and registers all the features
 	PBowDocBs MakeBowDocBs(const PRecSet& FtrRecSet);
@@ -291,11 +303,11 @@ private:
 	TInt FieldId;
     /// Field description
     TFieldDesc FieldDesc;
+    /// Reader
+    TFieldReader Reader;
 
-    /// Get value from a given record
-	double _GetVal(const TRec& Rec) const; 
-    /// Check if there is join, and forward to _GetVal
-	double GetVal(const TRec& Rec) const; 
+    /// Check if there is join, and forward to reader
+	double GetVal(const TRec& Rec) const;
 
 	TNumeric(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, 
         const int& _FieldId, const bool& _NormalizeP);
@@ -313,7 +325,7 @@ public:
     static PFtrExt Load(const TWPt<TBase>& Base, TSIn& SIn);
     void Save(TSOut& SOut) const;   
     
-	TStr GetNm() const { return "Numeric[" + GetFtrStore()->GetFieldNm(FieldId) + "]"; };
+	TStr GetNm() const;
 	int GetDim() const { return 1; }
 	TStr GetFtr(const int& FtrN) const { return GetNm(); }
 
@@ -324,6 +336,7 @@ public:
 	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
 
 	void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
+	double __GetVal(const double& InVal) const { return FtrGen.GetFtr(InVal); }
 
 	// flat feature extraction
 	void ExtractFltV(const TRec& Rec, TFltV& FltV) const;
@@ -331,6 +344,57 @@ public:
     // feature extractor type name 
     static TStr GetType() { return "numeric"; }   
 };
+
+///////////////////////////////////////////////
+/// Sparse Vector Feature Extractor
+class TNumSpV : public TFtrExt {
+private:
+    /// Dimensionality
+    TInt Dim;
+    /// Normalize input vector
+    TBool NormalizeP;
+	/// Field Id
+	TInt FieldId;
+    /// Field description
+    TFieldDesc FieldDesc;
+    /// Reader
+    TFieldReader Reader;
+
+    /// Check if there is join, and forward to reader
+	void GetVal(const TRec& Rec, TIntFltKdV& NumSpV) const;
+
+	TNumSpV(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV,
+        const int& _FieldId, const int& _Dim, const bool& _NormalizeP);
+    TNumSpV(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+    TNumSpV(const TWPt<TBase>& Base, TSIn& SIn);
+public:
+	static PFtrExt New(const TWPt<TBase>& Base, const TWPt<TStore>& Store, 
+        const int& FieldId, const int& Dim = 0, const bool& NormalizeP = true);
+	static PFtrExt New(const TWPt<TBase>& Base, const TJoinSeq& JoinSeq, 
+        const int& FieldId, const int& Dim = 0, const bool& NormalizeP = true);
+	static PFtrExt New(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, 
+        const int& FieldId, const int& Dim = 0, const bool& NormalizeP = true);
+	static PFtrExt New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+
+    static PFtrExt Load(const TWPt<TBase>& Base, TSIn& SIn);
+    void Save(TSOut& SOut) const;   
+    
+	TStr GetNm() const;
+	int GetDim() const { return Dim; }
+	TStr GetFtr(const int& FtrN) const;
+
+	void Clr() { Dim = 0; }
+	// sparse vector extraction
+	bool Update(const TRec& Rec);
+	void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
+	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
+
+	void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
+
+    // feature extractor type name 
+    static TStr GetType() { return "num_sp_v"; }   
+};
+
 
 ///////////////////////////////////////////////
 /// Categorical Feature Extractor.
@@ -346,9 +410,10 @@ private:
 	TInt FieldId;
     /// Field description
     TFieldDesc FieldDesc;
+    /// Reader
+    TFieldReader Reader;
 
-	TStr _GetVal(const TRec& FtrRec) const; 
-	TStr GetVal(const TRec& Rec) const; 
+	TStr GetVal(const TRec& Rec) const;
 
 	TCategorical(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, const int& _FieldId);
     TCategorical(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
@@ -391,21 +456,36 @@ public:
 /// [http://en.wikipedia.org/wiki/Multinomial_distribution]
 class TMultinomial : public TFtrExt {
 private:
-	// multinomial feature generator
+	/// Multinomial feature generator
 	TFtrGen::TMultinomial FtrGen;
-	// field Id
+
+    /// Field Id
 	TIntV FieldIdV;
-    // field description
+    /// Field description
     TFieldDescV FieldDescV;
-    
-	void ParseDate(const TTm& Tm, TStrV& StrV) const;
-	void _GetVal(const PRecSet& FtrRecSet, TStrV& StrV) const; 
-	void _GetVal(const TRec& FtrRec, TStrV& StrV) const; 
-	void GetVal(const TRec& Rec, TStrV& StrV) const; 
+    /// Reader
+    TFieldReader Reader;
+
+	/// Value field Id
+	TIntV ValFieldIdV;
+    /// Value field description
+    TFieldDescV ValFieldDescV;
+    /// Reader
+    TFieldReader ValReader;
+
+	void GetVal(const TRec& Rec, TStrV& StrV, TFltV& FltV) const;
         
+    /// Add field to the list of ID providers
     void AddField(const int& FieldId);
+    /// Add field to the list of ID providers
     void AddField(const TStr& FieldNm);
-    
+    /// Add field to the list of value providers
+    void AddValField(const int& ValFieldId);
+    /// Add field to the list of value providers
+    void AddValField(const TStr& ValFieldNm);
+    /// Tell if we have any value fields
+    bool HasValFields() const { return !ValFieldIdV.Empty(); }
+
 	TMultinomial(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, const int& _FieldId);
     TMultinomial(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
     TMultinomial(const TWPt<TBase>& Base, TSIn& SIn);
@@ -433,6 +513,7 @@ public:
 
 	// flat feature extraction
 	void ExtractStrV(const TRec& Rec, TStrV& StrV) const;
+    void ExtractFltV(const TRec& Rec, TFltV& FltV) const;
 	void ExtractTmV(const TRec& Rec, TTmV& TmV) const;
     
     // feature extractor type name 
@@ -452,6 +533,8 @@ private:
 	TIntV FieldIdV;
     /// Field description
     TFieldDescV FieldDescV;
+    /// Reader
+    TFieldReader Reader;
 
  	/// How to deal with multiple instances
 	TBagOfWordsMode Mode;
@@ -463,17 +546,13 @@ private:
     /// Forgetting factor
     TFlt ForgetFactor;            
 
-    /// n-grams Start
-    int NStart;
-    /// n-grams End
-    int NEnd;
+	void GetVal(const TRec& Rec, TStrV& StrV) const;
 
-	void _GetVal(const PRecSet& FtrRecSet, TStrV& StrV) const; 
-	void _GetVal(const TRec& FtrRec, TStrV& StrV) const; 
-	void GetVal(const TRec& Rec, TStrV& StrV) const; 
-    
+    /// Add field to the list of ID providers
     void AddField(const int& FieldId);
+    /// Add field to the list of ID providers
     void AddField(const TStr& FieldNm);
+
 
 protected:
     // time window callback
@@ -523,8 +602,6 @@ public:
 
     // feature extractor type name 
     static TStr GetType() { return "text"; }   
-    
-    static PStemmer ParseStemmer(const PJsonVal& ParamVal, const bool& RealWordP = false);
 };
 
 ///////////////////////////////////////////////
@@ -635,6 +712,8 @@ private:
 	TInt FieldId;
     /// Field description
     TFieldDesc FieldDesc;
+    /// Reader
+    TFieldReader Reader;
 
     /// Get value from a given record
 	uint64 _GetVal(const TRec& Rec) const; 

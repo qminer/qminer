@@ -6,13 +6,15 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+#include "signalproc.h"
+
 namespace TFtrGen {
 
 ///////////////////////////////////////
 /// Numeric feature generator
 class TNumeric {
 private:
-    typedef enum { ntNone, ntNormalize, ntMnMxVal } TNumericType;
+	typedef enum { ntNone, ntNormalize, ntNormalizeVar, ntMnMxVal } TNumericType;
     
 private:
     /// Feature generator type
@@ -20,14 +22,15 @@ private:
     /// Minimal value for normalization
     TFlt MnVal;
     /// Maximal value for normalization
-    TFlt MxVal;   
-
+    TFlt MxVal;
+	/// Object for calculation of variance
+	TSignalProc::TVarSimple Var;
 public:
-    TNumeric(const bool& NormalizeP = true):
-		Type(NormalizeP ? ntNormalize : ntNone), MnVal(TFlt::Mx), MxVal(TFlt::Mn) { }
+	TNumeric(const bool& NormalizeP = true, const bool& NormalizeVar = false) :
+		Type(NormalizeP ? (NormalizeVar ? ntNormalizeVar : ntNormalize) : ntNone), MnVal(TFlt::Mx), MxVal(TFlt::Mn) {}
     TNumeric(const double& _MnVal, const double& _MxVal):
         Type(ntMnMxVal), MnVal(_MnVal), MxVal(_MxVal) { }
-    TNumeric(TSIn& SIn): Type(LoadEnum<TNumericType>(SIn)), MnVal(SIn), MxVal(SIn) {  }
+    TNumeric(TSIn& SIn): Type(LoadEnum<TNumericType>(SIn)), MnVal(SIn), MxVal(SIn), Var(SIn) {  }
     void Save(TSOut& SOut) const;
 
     void Clr();
@@ -84,7 +87,6 @@ private:
     /// Feature generation handled by categorical feature generator
     TCategorical FtrGen;
 
-    
 public:
 	TMultinomial(const bool& NormalizeP = true) : Type(NormalizeP ? mtNormalize : mtNone), FtrGen() { }
 	TMultinomial(const bool& NormalizeP, const TStrV& ValV) : Type(NormalizeP ? mtNormalize : mtNone), FtrGen(ValV) { }
@@ -97,9 +99,9 @@ public:
     bool Update(const TStrV& StrV);
     void AddFtr(const TStr& Str, TIntFltKdV& SpV, int& Offset) const;
     void AddFtr(const TStr& Str, TFltV& FullV, int& Offset) const;
-    void AddFtr(const TStrV& StrV, TIntFltKdV& SpV) const;
-    void AddFtr(const TStrV& StrV, TIntFltKdV& SpV, int& Offset) const;
-    void AddFtr(const TStrV& StrV, TFltV& FullV, int& Offset) const;
+    void AddFtr(const TStrV& StrV, const TFltV& FltV, TIntFltKdV& SpV) const;
+    void AddFtr(const TStrV& StrV, const TFltV& FltV, TIntFltKdV& SpV, int& Offset) const;
+    void AddFtr(const TStrV& StrV, const TFltV& FltV, TFltV& FullV, int& Offset) const;
 
     int GetDim() const { return FtrGen.GetDim(); }
     TStr GetVal(const int& ValN) const { return FtrGen.GetVal(ValN); }
@@ -117,7 +119,8 @@ private:
         btTf = (1 << 0),
         btIdf = (1 << 1),
         btNormalize = (1 << 2),
-        btHashing = (1 << 3)
+        btHashing = (1 << 3),
+        btStoreHashWords = (1 << 4)
     } TBagOfWordsType;
     
 private:
@@ -133,8 +136,6 @@ private:
     TStrSet TokenSet;
     /// Hashing dimension
     TInt HashDim;
-    /// Keep Hash Table (can be used only when hashing for debuging)
-    TBool KeepHashTable;
 
     /// Ngrams Range Start
     TInt NStart;
@@ -154,13 +155,15 @@ private:
     TFltV OldDocFqV;
 
     /// Set of tokens that hash into specific dimension
-    TVec<TStrSet> HashTable;
+    TVec<TStrSet> HashWordV;
+    /// default return in case sets are empty
+    TStrSet EmptySet;
 
 public:
     TBagOfWords() { }
     TBagOfWords(const bool& TfP, const bool& IdfP, const bool& NormalizeP,
-        PTokenizer _Tokenizer = NULL, const int& _HashDim = -1, const bool& KHT = false,
-        const int& NStart = 1, const int& NEnd = 1);
+        PTokenizer _Tokenizer = NULL, const int& _HashDim = -1,
+        const bool& StoreHashWordsP = false, const int& NStart = 1, const int& NEnd = 1);
     TBagOfWords(TSIn& SIn);
     void Save(TSOut& SOut) const;
 
@@ -169,7 +172,7 @@ public:
     bool IsIdf() const { return ((Type & btIdf) != 0); }
     bool IsNormalize() const { return ((Type & btNormalize) != 0); }
     bool IsHashing() const { return ((Type & btHashing) != 0); }
-    bool IsKeepingHashTable() const { return KeepHashTable; }
+    bool IsStoreHashWords() const { return ((Type & btStoreHashWords) != 0); }
     
     void Clr();
     void GetFtr(const TStr& Str, TStrV& TokenStrV) const;
@@ -188,8 +191,8 @@ public:
     /// Hashing Related Functions
     int GetDim() const { return IsHashing() ? HashDim.Val : TokenSet.Len(); }
     TStr GetVal(const int& ValN) const { return IsHashing() ? TInt::GetStr(ValN) : TokenSet.GetKey(ValN); }
-    TVec<TStrSet> GetHashTable() const { return KeepHashTable ? HashTable : TVec<TStrSet>(); }
-    TStrSet GetHashVals(TInt hash) const { return KeepHashTable ? HashTable.GetVal(hash) : TStrSet(); }
+    const TVec<TStrSet>& GetHashWordH() const { return HashWordV; }
+    TStrSet GetHashVals(const int& Hash) const { return IsStoreHashWords() ? HashWordV.GetVal(Hash) : EmptySet; }
     
     PSwSet GetSwSet() const { return SwSet; }
     PStemmer GetStemmer() const { return Stemmer; }
@@ -251,7 +254,8 @@ public:
     int GetFtr(const TTm& Val) const;
     void AddFtr(const TTm& Val, TIntFltKdV& SpV, int& Offset) const;
     void AddFtr(const TTm& Val, TFltV& FullV, int& Offset) const;
-    
+
+    bool IsInit() const { return InitP; }
     int GetDim() const { return EndUnit - StartUnit + WndSize; }
 };
 

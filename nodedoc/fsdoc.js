@@ -104,6 +104,15 @@
 	*/
  exports.listFile = function(dirName, fileExtension, recursive) { return ['']; }
 /**
+     * Reads a buffer line by line and calls a callback for each line.
+     *
+     * @param {String|FIn|Buffer} buffer - name of the file, input stream of a Node.js buffer
+     * @param {function} onLine - a callback that gets called on each line (for example: function (line) {})
+     * @param {function} onEnd - a callback that gets returned after all the lines have been read
+     * @param {function} onError - a callback that gets called if an error occurs
+     */
+ exports.readLines = function (buffer, onLine, onEnd, onError) {}
+/**
 	* Input file stream.
 	* @classdesc Used for reading files.
 	* @class
@@ -133,6 +142,11 @@
 	*/
  exports.FIn.prototype.readLine = function() { return ''; }
 /**
+	* Reads a string that was serialized using `fs.FOut.writeBinary`.
+	* @returns {string} String
+	*/
+ exports.FIn.prototype.readString = function() { return ''; }
+/**
 	* @property {boolean} eof - True if end of file is detected.
 	*/
  exports.FIn.prototype.eof = false;
@@ -145,6 +159,14 @@
 	* @returns {string} Content of the file.
 	*/
  exports.FIn.prototype.readAll = function() { return ''; }
+/**
+	* Closes the input stream.
+	*/
+ exports.FIn.prototype.close = function() { return ''; }
+/**
+	* Checks if the input stream is closed.
+	*/
+ exports.FIn.prototype.isClosed = function() { return ''; }
 /**
 	* Output file stream.
 	* @classdesc Used for writing files.
@@ -163,11 +185,17 @@
 	*/
  exports.FOut = function(fileName, append) {}	
 /**
-	* Writes a string
-	* @param {String} str - String to write
+	* Writes a string or number or a JSON object in human readable form
+	* @param {(String | Number | Object)} arg - Argument to write
 	* @returns {module:fs.FOut} Self.
 	*/
- exports.FOut.prototype.write = function(str) { return this; }
+ exports.FOut.prototype.write = function(arg) { return this; }
+/**
+	* Writes a string or number or a JSON object in binary form
+	* @param {(String | Number | Object)} str - Argument to write
+	* @returns {module:fs.FOut} Self.
+	*/
+ exports.FOut.prototype.writeBinary = function(arg) { return this; }
 /**
 	* Writes a string and adds a new line
 	* @param {String} str - String to write

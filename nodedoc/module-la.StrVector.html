@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <meta name="generator" content="JSDoc 3.3.0-beta2">
+  <meta name="generator" content="JSDoc 3">
   <meta charset="utf-8">
   <title>Class: StrVector</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-la.html">la</a>.<wbr></small><span class="symbol-name">StrVector</span></h1>
-            <p class="source-link">Source: <a href="ladoc.js.html#source-line-1241">ladoc.<wbr>js:1241</a></p>
+            <p class="source-link">Source: <a href="ladoc.js.html#source-line-1694">ladoc.<wbr>js:1694</a></p>
             <div class="symbol-classdesc">
               <p>Wraps a C++ array.</p>
             </div>
@@ -69,13 +69,13 @@
                     <dt><a href="module-la.StrVector.html#pushV">pushV(vec)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-la.StrVector.html#put">put(idx, val)</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-la.StrVector.html#put">put(idx, val)</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-la.StrVector.html#save">save(fout)</a></dt>
                     <dd>
                     </dd>
@@ -83,12 +83,6 @@
                     <dd>
                     </dd>
                     <dt><a href="module-la.StrVector.html#shuffle">shuffle()</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="module-la.StrVector.html#sort">sort([arg])</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="module-la.StrVector.html#sortPerm">sortPerm([asc])</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-la.StrVector.html#splice">splice(start, deleteCount[, .<wbr>.<wbr>.<wbr>itemN])</a></dt>
@@ -120,9 +114,7 @@
             <p>Vector - array of strings</p>
             <section>
               <h3>
-
             Example
-
         </h3>
               <div>
                 <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
@@ -221,9 +213,7 @@ var vec2 = new la.StrVector([&#x27;a&#x27;, &#x27;b&#x27;, &#x27;c&#x27;]);</cod
               <p>Loads the vector from input stream (binary deserialization).</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import fs module
@@ -276,9 +266,7 @@ vec.load(fin);</code></pre>
               <p>Loads the vector from input stream (ascii deserialization).</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import fs module
@@ -456,9 +444,7 @@ vec.loadascii(fin);</code></pre>
               <p>Saves the vector as output stream (binary serialization).</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import fs module
@@ -511,9 +497,7 @@ vec.save(fout).close();</code></pre>
               <p>Saves the vector as output stream (ascii serialization).</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import fs module
@@ -570,122 +554,11 @@ vec.saveascii(fout).close();</code></pre>
                   <p><code><a href="module-la.StrVector.html">module:la.StrVector</a></code>&nbsp;Self.</p>
                 </dd>
               </dl>
-              <h3 id="sort"><span class="symbol-name">sort</span><span class="signature"><span class="signature-params">([arg])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.StrVector.html">module:la.StrVector</a></span></span></h3>
-              <p>Sorts the vector (in place operation).</p>
-              <section>
-                <h4>
-
-            Example
-
-        </h4>
-                <div>
-                  <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
-// create a new vector
-var vec = new la.StrVector([&#x27;asd&#x27;, &#x27;z&#x27;, &#x27;kkkk&#x27;]);
-// sort ascending
-vec.sort(); // sorts to: [&#x27;asd&#x27;, &#x27;kkkk&#x27;, &#x27;z&#x27;]
-// sort using callback
-vec.sort(function(arg1, arg2) { return arg1.length - arg2.length; }); // sorts to: [&#x27;z&#x27;, &#x27;asd&#x27;, &#x27;kkkk&#x27;]</code></pre>
-                </div>
-              </section>
-              <section>
-                <h4>Parameter</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>arg</p>
-                      </td>
-                      <td>
-                        <p>(<a href="module-la.html#~strVectorCompareCb">module:la~strVectorCompareCb</a> or boolean)</p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>Sort callback or a boolean ascend flag. Default is boolean and true.</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code><a href="module-la.StrVector.html">module:la.StrVector</a></code>&nbsp;Self.
-                    <br>1. Vector sorted in ascending order, if arg is boolean and true.
-                    <br>
-                    <br>2. Vector sorted in descending order, if arg is boolean and false.
-                    <br>3. Vector sorted by using the comparator callback, if arg is a <a href="module-la.html#~strVectorCompareCb">module:la~strVectorCompareCb</a>.</p>
-                </dd>
-              </dl>
-              <h3 id="sortPerm"><span class="symbol-name">sortPerm</span><span class="signature"><span class="signature-params">([asc])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.html#~SortResult">module:la~SortResult</a></span></span></h3>
-              <p>Sorts the vector and returns the sorted vector as well as the permutation</p>
-              <section>
-                <h4>
-
-            Example
-
-        </h4>
-                <div>
-                  <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
-// create a new vector
-var vec = new la.StrVector([&#x27;asd&#x27;, &#x27;z&#x27;, &#x27;kkkk&#x27;]);
-// sort ascending
-var result = vec.sortPerm(); // result.vec: [&#x27;asd&#x27;, &#x27;kkkk&#x27;, &#x27;z&#x27;]
-result.perm; // permutation index vector</code></pre>
-                </div>
-              </section>
-              <section>
-                <h4>Parameter</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>asc</p>
-                      </td>
-                      <td>
-                        <p>boolean</p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>Sort in ascending order flag. Default is boolean and true.</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code><a href="module-la.html#~SortResult">module:la~SortResult</a></code>&nbsp;Self.</p>
-                </dd>
-              </dl>
               <h3 id="splice"><span class="symbol-name">splice</span><span class="signature"><span class="signature-params">(start, deleteCount[, ...itemN])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.StrVector.html">module:la.StrVector</a></span></span></h3>
               <p>Changes the vector by removing and adding elements.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
@@ -800,9 +673,7 @@ vec.splice(1, 2, &#x27;d&#x27;, &#x27;e&#x27;)// returns vector [&#x27;a&#x27;, 
               <p>Returns the vector as string.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
@@ -822,9 +693,7 @@ vec.toString(); // returns &#x27;a, b, c&#x27;</code></pre>
               <p>Deletes elements with sprecific index or more.</p>
               <section>
                 <h4>
-
             Example
-
         </h4>
                 <div>
                   <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
@@ -917,7 +786,7 @@ vec.trunc(1); // returns vector [&#x27;a&#x27;]</code></pre>
   <footer id="jsdoc-footer" class="jsdoc-footer">
     <div id="jsdoc-footer-container">
       <p>
-        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.3.0-beta2 on June 3, 2015.
+        
       </p>
     </div>
   </footer>

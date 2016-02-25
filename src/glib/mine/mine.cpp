@@ -8,6 +8,10 @@
 
 #include "mine.h"
 
+// index structures
+//#include "sphere.cpp"
+//#include "btree.cpp"
+
 // utilities
 #include "cfyres.cpp"
 
@@ -41,11 +45,18 @@
 #include "kernelmethods.cpp"
 #include "semspace.cpp"
 
-// some ML methods
-#include "ml.cpp"
+// regression methods
+#include "regression.cpp"
+#include "classification.cpp"
 
 // clustering
+#include "clustering.cpp"
+
+// Markov chains
 #include "mc.cpp"
+
+// Anomaly Detection
+#include "anomaly.cpp"
 
 // cross-lingual
 #include "crosslingual.cpp"

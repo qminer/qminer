@@ -10,6 +10,7 @@
 
 
 #include <node.h>
+#include <node_buffer.h>
 #include <node_object_wrap.h>
 #include "base.h"
 #include "../nodeutil.h"
@@ -63,6 +64,34 @@ private:
 public:
     static void Init(v8::Handle<v8::Object> exports);
     
+private:
+	class TReadCsvTask: public TNodeTask {
+	private:
+		PSIn SIn;
+		int Offset;
+		int Limit;
+		int BatchSize;
+		v8::Persistent<v8::Function> OnLine;
+
+	public:
+		TReadCsvTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+		~TReadCsvTask();
+
+		v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+		void Run();
+	};
+
+	struct TReadLinesCallback {
+		TVec<TStrV> CsvLineV;
+		v8::Persistent<v8::Function>* OnLine;
+		TReadLinesCallback(const int& BatchSize, v8::Persistent<v8::Function>* _OnLine):
+			CsvLineV(BatchSize, 0),
+			OnLine(_OnLine) {}
+		static void Run(const TReadLinesCallback& Task);
+	};
+
+public:
+
 	/**
 	* open file in read mode and return file input stream
 	* @param {string} fileName - File name.
@@ -169,6 +198,19 @@ public:
 	*/
 	//# exports.listFile = function(dirName, fileExtension, recursive) { return ['']; }
     JsDeclareFunction(listFile);
+
+    /**
+     * Reads a buffer line by line and calls a callback for each line.
+     *
+     * @param {String|FIn|Buffer} buffer - name of the file, input stream of a Node.js buffer
+     * @param {function} onLine - a callback that gets called on each line (for example: function (line) {})
+     * @param {function} onEnd - a callback that gets returned after all the lines have been read
+     * @param {function} onError - a callback that gets called if an error occurs
+     */
+    //# exports.readLines = function (buffer, onLine, onEnd, onError) {}
+    JsDeclareFunction(readLines);
+
+    JsDeclareAsyncFunction(readCsvAsync, TReadCsvTask);
 };
 
 ///////////////////////////////
@@ -198,6 +240,7 @@ public:
 	PSIn SIn;
 	// C++ constructor
 	TNodeJsFIn(const TStr& FNm) : SIn(TZipIn::NewIfZip(FNm)) { }
+	TNodeJsFIn(const PSIn& _SIn) : SIn(_SIn) { }
 private:	
 	/**
 	* Input file stream.
@@ -236,6 +279,13 @@ public:
 	*/
 	//# exports.FIn.prototype.readLine = function() { return ''; }
 	JsDeclareFunction(readLine);
+    
+	/**
+	* Reads a string that was serialized using `fs.FOut.writeBinary`.
+	* @returns {string} String
+	*/
+    //# exports.FIn.prototype.readString = function() { return ''; }
+    JsDeclareFunction(readString);
 	
 	/**
 	* @property {boolean} eof - True if end of file is detected.
@@ -255,6 +305,18 @@ public:
 	*/
 	//# exports.FIn.prototype.readAll = function() { return ''; }
 	JsDeclareFunction(readAll);
+
+	/**
+	* Closes the input stream.
+	*/
+	//# exports.FIn.prototype.close = function() { return ''; }
+	JsDeclareFunction(close);
+
+	/**
+	* Checks if the input stream is closed.
+	*/
+	//# exports.FIn.prototype.isClosed = function() { return ''; }
+	JsDeclareFunction(isClosed);
 };
 
 
@@ -262,17 +324,19 @@ public:
 // NodeJs-FOut
 class TNodeJsFOut : public node::ObjectWrap {
 	friend class TNodeJsUtil;
-public:
-    PSOut SOut;
 private:
+	static v8::Persistent<v8::Function> Constructor;
+public:
+	static void Init(v8::Handle<v8::Object> exports);
+	static const TStr GetClassId() { return "FOut"; }
+
+	// wrapped C++ object
+	PSOut SOut;
+	// C++ constructor
     TNodeJsFOut(const TStr& FilePath, const bool& AppendP):
         SOut(TFOut::New(FilePath, AppendP)) { }
     TNodeJsFOut(const TStr& FilePath): SOut(TZipOut::NewIfZip(FilePath)) { }
-public:
-    static void Init(v8::Handle<v8::Object> exports);
-    static const TStr GetClassId() { return "FOut"; }
-
-    static v8::Local<v8::Object> New(const TStr& FilePath, const bool& AppendP = false);
+	TNodeJsFOut(const PSOut& _SOut) : SOut(_SOut) { }
 
 	/**
 	* Output file stream.
@@ -291,15 +355,23 @@ public:
 	* fout.close();
 	*/
 	//# exports.FOut = function(fileName, append) {}	
-	JsDeclareFunction(New);
-    
+	static TNodeJsFOut* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+public:
 	/**
-	* Writes a string
-	* @param {String} str - String to write
+	* Writes a string or number or a JSON object in human readable form
+	* @param {(String | Number | Object)} arg - Argument to write
 	* @returns {module:fs.FOut} Self.
 	*/
-	//# exports.FOut.prototype.write = function(str) { return this; }
+	//# exports.FOut.prototype.write = function(arg) { return this; }
 	JsDeclareFunction(write);
+
+	/**
+	* Writes a string or number or a JSON object in binary form
+	* @param {(String | Number | Object)} str - Argument to write
+	* @returns {module:fs.FOut} Self.
+	*/
+	//# exports.FOut.prototype.writeBinary = function(arg) { return this; }
+	JsDeclareFunction(writeBinary);
 
 	/**
 	* Writes a string and adds a new line
@@ -308,7 +380,7 @@ public:
 	*/
 	//# exports.FOut.prototype.writeLine = function(str) { return this; }
     JsDeclareFunction(writeLine);
-
+    
 	/**
 	* Flushes the output stream
 	* @returns {module:fs.FOut} Self.
@@ -321,8 +393,6 @@ public:
 	*/
 	//# exports.FOut.prototype.close = function() {}
     JsDeclareFunction(close);
-private:
-    static v8::Persistent<v8::Function> constructor;
 };
 
 #endif

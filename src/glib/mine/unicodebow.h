@@ -8,9 +8,6 @@
 #ifndef UNICODETEXTTOKENIZER_H
 #define UNICODETEXTTOKENIZER_H
 
-#include "base.h"
-#include "mine.h"
-
 // Unicode vector space model
 namespace TUnicodeVSM {
 

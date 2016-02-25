@@ -1,0 +1,12 @@
+{
+	"description":  "an example of usage of stream aggregates",
+	"scripts": {
+		"start": "node server.js",
+		"test": "mocha"
+	},
+	"dependencies": {
+		"express": "4.13.3",
+		"socket.io":  "1.3.6",
+		"supertest": "^1.1.0"
+	}
+}

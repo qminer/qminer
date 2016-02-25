@@ -77,6 +77,10 @@
  * restart    : 1 if restart desired
  *
  */
+ 
+#ifdef GLib_WIN
+#pragma optimize( "", off )
+#endif
 
 class TPrLoqo {
 private:
@@ -117,6 +121,12 @@ public:
  cmex4 pr_loqo_c.c pr_loqo.o -DMATLAB4 -o pr_loqo_c4
  *
  */
+ 
+  
+#ifdef GLib_WIN
+#pragma optimize( "", on )
+#endif
+ 
 #endif
 
 

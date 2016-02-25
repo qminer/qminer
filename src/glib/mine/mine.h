@@ -10,9 +10,12 @@
 #define mine_h
 
 #include <base.h>
-#include <funrouter.h>
 
-// utilitiesTFun
+// index structures
+#include "sphere.h"
+#include "btree.h"
+
+// utilities
 #include "cfyres.h"
 
 // text processing
@@ -46,15 +49,20 @@
 #include "kernelmethods.h"
 #include "semspace.h"
 
-// some ML methods
-#include "ml.h"
+// regression methods
+#include "regression.h"
+#include "classification.h"
 
 // clustering
 #include "kmpp.h"
 #include "hac.h"
+#include "clustering.h"
 
 // Markov Chains
 #include "mc.h"
+
+// Anomaly Detection
+#include "anomaly.h"
 
 // cross-lingual
 #include "crosslingual.h"

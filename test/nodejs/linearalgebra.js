@@ -1,15 +1,15 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
- 
-console.log(__filename)
-// 
-// Sample unit test using standard assert JS library 
-// 
+
+// console.log(__filename)
+//
+// Sample unit test using standard assert JS library
+//
 var assert = require("../../src/nodejs/scripts/assert.js")
 var la = require('qminer').la;
 
@@ -590,16 +590,6 @@ describe('IntVector Test', function () {
                 vec.intV.push(-1);
                 vec.intV.push(6);
                 assert.equal(vec.intV.length, 4);
-            })
-        });
-
-        // should throw an exception. Currently TODO in la_nodejs.h - the test will be skipped until the TODO is addressed.
-        describe.skip('Push "Float" Test', function () {
-            var vec = new IVector();
-            it('should return an exception when trying to push a floating number, 3.2', function () {
-                assert.throws(function () {
-                    vec.intV.push(3.2);
-                })
             })
         });
 
@@ -1535,6 +1525,22 @@ describe('Matrix Test', function () {
                 })
             })
         });
+
+        describe('Pairwise square euclidean distance Test', function () {
+            it('should return distance matrix [[1, 5, 1], [5, 1, 5]]', function () {
+                var distMat = la.pdist2(new la.Matrix([[1,0],[0,1]]), new la.Matrix([[1,-1,1],[-1,1,-1]]));
+                var controlMat = new la.Matrix([[1, 5, 1], [5, 1, 5]]);
+
+                assert.equal(distMat.cols, 3);
+                assert.equal(distMat.rows, 2);
+
+                for (var i = 0; i < controlMat.rows; i++) {
+                    for (var j = 0; j < controlMat.cols; j++) {
+                        assert.eqtol(distMat.at(i, j), controlMat.at(i, j));
+                    }
+                }
+            })
+        });
     });
 });
 
@@ -1660,15 +1666,15 @@ describe('Sparse Vector', function () {
             })
         });
 
-        describe.skip('Inner Test', function () {
+        describe('Inner Test', function () {
             var vec = new SpVector();
             it('should return the scalar product of spV and [1, 2, 0, 3, 0, 0, 0, 0, 4, 5]', function () {
                 var n = vec.spV.inner(new la.Vector([1, 2, 0, 3, 0, 0, 0, 0, 4, 5]));
                 assert.eqtol(n, 3 + 20 + 0.0003 + 0 - 60);
             })
-            it('should return the scalar product of spVdim and [1, 2, 0, 3, 0, 0, 0, 0, 4, 5]', function () {
-                var n = vec.spVdim.inner(new la.Vector([1, 2, 0, 3, 0, 0, 0, 0, 4, 5])); // throws exception
-                assert.eqtol(n, 3 + 20 + 0.0003 + 0 - 60);
+            it('should return the scalar product of spVdim and [1, 2, 0, 3, 0, 0, 0, 0, 0, 4, 5]', function () {
+                var n = vec.spVdim.inner(new la.Vector([1, 2, 0, 3, 0, 0, 0, 0, 0, 4, 5])); // throws exception
+                assert.eqtol(n, 3 + 20 + 0.0003 + 0 - 48);
             })
         });
 
@@ -1693,10 +1699,10 @@ describe('Sparse Vector', function () {
                     assert.eqtol(spVec.at(i), controlVec.at(i));
                 }
             })
-            it.skip('should multiply all values with 7, spVdim', function () {
+            it('should multiply all values with 7, spVdim', function () {
                 var spVec = vec.spVdim.multiply(7);
 
-                var controlVec = new la.SparseVector([[0, 21], [1, 70], [3, 0.0007], [8, 0], [9, -84]], 10);
+                var controlVec = new la.SparseVector([[0, 21], [1, 70], [3, 0.0007], [8, 0], [9, -84]]);
 
                 assert.deepEqual(spVec, controlVec);    // dim is not same
                 for (var i = 0; i < 10; i++) {
@@ -1804,7 +1810,7 @@ describe('Sparse Vector', function () {
         // not implemented (TODO: low priority)
         //describe('Sort Test', function () {
         //    it('should return the permutation integer vector for sorted spV', function () {
-        //        spV.sort();        
+        //        spV.sort();
 
         //    })
         //});

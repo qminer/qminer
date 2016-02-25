@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -23,84 +23,62 @@ TNodeJsSvmModel::TNodeJsSvmModel(const PJsonVal& ParamVal):
 		MxTime(1000*1),
 		MnDiff(1e-6),
 		Verbose(false),
-		Notify(TNotify::NullNotify),
-		Model(nullptr) {
+		Notify(TNotify::NullNotify) {
 
 	UpdateParams(ParamVal);
 }
 
 TNodeJsSvmModel::TNodeJsSvmModel(TSIn& SIn):
-	Algorithm(SIn),
-	SvmCost(TFlt(SIn)),
-	SvmUnbalance(TFlt(SIn)),
-	SvmEps(TFlt(SIn)),
-	SampleSize(TInt(SIn)),
-	MxIter(TInt(SIn)),
-	MxTime(TInt(SIn)),
-	MnDiff(TFlt(SIn)),
-	Verbose(TBool(SIn)),
-	Notify(TNotify::NullNotify),
-	Model(nullptr) {
-
-	bool IsInit = TBool(SIn);
+        Algorithm(SIn),
+        SvmCost(TFlt(SIn)),
+        SvmUnbalance(TFlt(SIn)),
+        SvmEps(TFlt(SIn)),
+        SampleSize(TInt(SIn)),
+        MxIter(TInt(SIn)),
+        MxTime(TInt(SIn)),
+        MnDiff(TFlt(SIn)),
+        Verbose(TBool(SIn)),
+        Notify(TNotify::NullNotify),
+        Model(SIn) {
 
 	if (Verbose) { Notify = TNotify::StdNotify; }
-	if (IsInit) { Model = new TSvm::TLinModel(SIn); }
 }
 
-TNodeJsSvmModel::~TNodeJsSvmModel() {
-	ClrModel();
-}
-
-v8::Local<v8::Object> TNodeJsSvmModel::WrapInst(v8::Local<v8::Object> Obj, const PJsonVal& ParamVal) {
-	auto Object = new TNodeJsSvmModel(ParamVal);
-	Object->Wrap(Obj);
-	return Obj;
-}
-
-v8::Local<v8::Object> TNodeJsSvmModel::WrapInst(v8::Local<v8::Object> Obj, TSIn& SIn) {
-	auto Object = new TNodeJsSvmModel(SIn);
-	Object->Wrap(Obj);
-	return Obj;
-}
-
-void TNodeJsSvmModel::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+TNodeJsSvmModel* TNodeJsSvmModel::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-	try {
-		QmAssertR(Args.IsConstructCall(), "SVM: not a constructor call!");
-		if (Args.Length() == 0) {
-			Args.GetReturnValue().Set(TNodeJsSvmModel::WrapInst(Args.This(), TJsonVal::NewObj()));
-			return;
-		}
-		else if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFIn::GetClassId())) {
-			// load the model from an input stream
-			TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
-			Args.GetReturnValue().Set(TNodeJsSvmModel::WrapInst(Args.This(), *JsFIn->SIn));
-		}
-		else {
-			PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
-			Args.GetReturnValue().Set(TNodeJsSvmModel::WrapInst(Args.This(), ParamVal));
-		}
+
+	if (Args.Length() == 0) {
+		// create new model with default parameters
+		return new TNodeJsSvmModel(TJsonVal::NewObj());
 	}
-	catch (const PExcept& Except) {
-		Isolate->ThrowException(v8::Exception::TypeError(
-			v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr())));
+	else if (Args.Length() == 1 && TNodeJsUtil::IsArgWrapObj<TNodeJsFIn>(Args, 0)) {
+		// load the model from the input stream
+		TNodeJsFIn* JsFIn = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFIn>(Args, 0);
+		return new TNodeJsSvmModel(*JsFIn->SIn);
+	}
+	else if (Args.Length() == 1 && TNodeJsUtil::IsArgObj(Args, 0)) {
+		// create new model from given parameters
+		PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+		return new TNodeJsSvmModel(ParamVal);
+	}
+	else {
+		throw TExcept::New("new svm: wrong arguments in constructor!");
 	}
 }
-
 
 void TNodeJsSvmModel::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
+	EAssertR(Args.Length() == 0, "svm.getParams: takes 1 argument!");
+
 	try {
-		TNodeJsSvmModel* Model = ObjectWrap::Unwrap<TNodeJsSvmModel>(Args.Holder());
-		if (Model->Model != nullptr) {
-			Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, Model->GetParams()));
-		}
-	} catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), "SVM::getParams");
+		TNodeJsSvmModel* JsModel = ObjectWrap::Unwrap<TNodeJsSvmModel>(Args.Holder());
+		Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, JsModel->GetParams()));
+	}
+	catch (const PExcept& Except) {
+		throw TExcept::New(Except->GetMsgStr(), "SVM::getParams");
 	}
 }
 
@@ -108,18 +86,19 @@ void TNodeJsSvmModel::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args)
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	QmAssertR(Args.Length() == 1, "svm.setParams: takes 1 argument!");
-	QmAssertR(TNodeJsUtil::IsArgJson(Args, 0), "svm.setParams: first argument should je a Javascript object!");
+	EAssertR(Args.Length() == 1, "svm.setParams: takes 1 argument!");
+	EAssertR(TNodeJsUtil::IsArgJson(Args, 0), "svm.setParams: first argument should be a Javascript object!");
 
 	try {
-		TNodeJsSvmModel* Model = ObjectWrap::Unwrap<TNodeJsSvmModel>(Args.Holder());
+		TNodeJsSvmModel* JsModel = ObjectWrap::Unwrap<TNodeJsSvmModel>(Args.Holder());
 		PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
 
-		Model->UpdateParams(ParamVal);
+		JsModel->UpdateParams(ParamVal);
 
 		Args.GetReturnValue().Set(Args.Holder());
-	} catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), "SVM::setParams");
+	}
+	catch (const PExcept& Except) {
+		throw TExcept::New(Except->GetMsgStr(), "SVM::setParams");
 	}
 }
 
@@ -128,15 +107,11 @@ void TNodeJsSvmModel::weights(v8::Local<v8::String> Name, const v8::PropertyCall
 	v8::HandleScope HandleScope(Isolate);
 
 	try {
-		TNodeJsSvmModel* Model = ObjectWrap::Unwrap<TNodeJsSvmModel>(Info.Holder());
-		if (Model->Model != nullptr) {
-			// get feature vector
-			TFltV WgtV; Model->Model->GetWgtV(WgtV);
-
-			Info.GetReturnValue().Set(TNodeJsFltV::New(WgtV));
-		}
-	} catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsSvmModel::weights");
+		TNodeJsSvmModel* JsModel = ObjectWrap::Unwrap<TNodeJsSvmModel>(Info.Holder());
+		Info.GetReturnValue().Set(TNodeJsFltV::New(JsModel->Model.GetWgtV()));
+	}
+	catch (const PExcept& Except) {
+		throw TExcept::New(Except->GetMsgStr(), "TNodeJsSvmModel::weights");
 	}
 }
 
@@ -144,60 +119,108 @@ void TNodeJsSvmModel::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
+	EAssertR(Args.Length() == 1, "Should have 1 argument!");
+
 	try {
-		TNodeJsSvmModel* Model = ObjectWrap::Unwrap<TNodeJsSvmModel>(Args.Holder());
-
-		QmAssertR(Args.Length() == 1, "Should have 1 argument!");
-		PSOut SOut;
-		if (TNodeJsUtil::IsArgStr(Args, 0)) {
-			SOut = TFOut::New(TNodeJsUtil::GetArgStr(Args, 0), false);
-		}
-		else {
-			TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
-			SOut = JsFOut->SOut;
-		}
-
-		Model->Save(*SOut);
-
-		// we return nothing currently, just close the stream if filename was used
-		if (TNodeJsUtil::IsArgStr(Args, 0)) {
-			SOut.Clr();
-		} else {
-			// return output stream for convenience
-			Args.GetReturnValue().Set(Args[0]);
-		}
-	} catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsSvmModel::save");
+		TNodeJsSvmModel* JsModel = ObjectWrap::Unwrap<TNodeJsSvmModel>(Args.Holder());
+		// get output stream from argumetns
+		TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
+		// save model
+		JsModel->Save(*JsFOut->SOut);
+		// return output stream for convenience
+		Args.GetReturnValue().Set(Args[0]);
+	}
+	catch (const PExcept& Except) {
+		throw TExcept::New(Except->GetMsgStr(), "TNodeJsSvmModel::save");
 	}
 }
 
+void TNodeJsSvmModel::decisionFunction(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1, "svm.decisionFunction: expecting 1 argument");
+
+	try {
+		TNodeJsSvmModel* JsModel = ObjectWrap::Unwrap<TNodeJsSvmModel>(Args.Holder());
+
+		if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltV>(Args, 0)) {
+			TNodeJsFltV* Vec = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltV>(Args, 0);
+			const double Res = JsModel->Model.Predict(Vec->Vec);
+			Args.GetReturnValue().Set(v8::Number::New(Isolate, Res));
+		}
+		else if (TNodeJsUtil::IsArgWrapObj<TNodeJsSpVec>(Args, 0)) {
+			TNodeJsSpVec* SpVec = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpVec>(Args, 0);
+			const double Res = JsModel->Model.Predict(SpVec->Vec);
+			Args.GetReturnValue().Set(v8::Number::New(Isolate, Res));
+		}
+		else if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltVV>(Args, 0)) {
+			const TFltVV& Mat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltVV>(Args, 0)->Mat;
+			TFltV ResV(Mat.GetCols(), 0);
+			for (int ColN = 0; ColN < Mat.GetCols(); ColN++) {
+				ResV.Add(JsModel->Model.Predict(Mat, ColN));
+			}
+			Args.GetReturnValue().Set(TNodeJsFltV::New(ResV));
+		}
+		else if (TNodeJsUtil::IsArgWrapObj<TNodeJsSpMat>(Args, 0)) {
+			const TVec<TIntFltKdV>& Mat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpMat>(Args, 0)->Mat;
+			TFltV ResV(Mat.Len(), 0);
+			for (int ColN = 0; ColN < Mat.Len(); ColN++) {
+				ResV.Add(JsModel->Model.Predict(Mat[ColN]));
+			}
+			Args.GetReturnValue().Set(TNodeJsFltV::New(ResV));
+		}
+		else {
+			throw TExcept::New("svm.decisionFunction: unsupported type of the first argument");
+		}
+	}
+	catch (const PExcept& Except) {
+		throw TExcept::New(Except->GetMsgStr(), "TNodeJsSvmModel::decisionFunction");
+	}
+}
+
+// TODO: try to call directly decisionFunction and check response
 void TNodeJsSvmModel::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	QmAssertR(Args.Length() > 0, "svm.predict: missing argument");
+	EAssertR(Args.Length() == 1, "svm.predict: expecting 1 argument");
 
 	try {
-		TNodeJsSvmModel* Model = ObjectWrap::Unwrap<TNodeJsSvmModel>(Args.Holder());
+		TNodeJsSvmModel* JsModel = ObjectWrap::Unwrap<TNodeJsSvmModel>(Args.Holder());
 
-		QmAssertR(Model->Model != nullptr, "svm.predict: SVM not initialized");
-
-		if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::GetClassId())) {
-			TNodeJsVec<TFlt, TAuxFltV>* Vec = ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV>>(Args[0]->ToObject());
-			const double Res = Model->Model->Predict(Vec->Vec);
+		if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltV>(Args, 0)) {
+			TNodeJsFltV* Vec = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltV>(Args, 0);
+			const double Res = (JsModel->Model.Predict(Vec->Vec) > 0.0) ? 1.0 : -1.0;
 			Args.GetReturnValue().Set(v8::Number::New(Isolate, Res));
 		}
-		else if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsSpVec::GetClassId())) {
-			TNodeJsSpVec* SpVec = ObjectWrap::Unwrap<TNodeJsSpVec>(Args[0]->ToObject());
-			const double Res = Model->Model->Predict(SpVec->Vec);
+		else if (TNodeJsUtil::IsArgWrapObj<TNodeJsSpVec>(Args, 0)) {
+			TNodeJsSpVec* SpVec = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpVec>(Args, 0);
+			const double Res = (JsModel->Model.Predict(SpVec->Vec) > 0.0) ? 1.0 : -1.0;
 			Args.GetReturnValue().Set(v8::Number::New(Isolate, Res));
+		}
+		else if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltVV>(Args, 0)) {
+			const TFltVV& Mat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltVV>(Args, 0)->Mat;
+			TFltV ResV(Mat.GetCols(), 0);
+			for (int ColN = 0; ColN < Mat.GetCols(); ColN++) {
+				ResV.Add(JsModel->Model.Predict(Mat, ColN) > 0.0 ? 1.0 : -1.0);
+			}
+			Args.GetReturnValue().Set(TNodeJsFltV::New(ResV));
+		}
+		else if (TNodeJsUtil::IsArgWrapObj<TNodeJsSpMat>(Args, 0)) {
+			const TVec<TIntFltKdV>& Mat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpMat>(Args, 0)->Mat;
+			TFltV ResV(Mat.Len(), 0);
+			for (int ColN = 0; ColN < Mat.Len(); ColN++) {
+				ResV.Add(JsModel->Model.Predict(Mat[ColN]) > 0.0 ? 1.0 : -1.0);
+			}
+			Args.GetReturnValue().Set(TNodeJsFltV::New(ResV));
 		}
 		else {
-			throw TQm::TQmExcept::New("svm.predict: unsupported type of the first argument");
+			throw TExcept::New("svm.predict: unsupported type of the first argument");
 		}
 	}
 	catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsSvmModel::predict");
+		throw TExcept::New(Except->GetMsgStr(), "TNodeJsSvmModel::predict");
 	}
 }
 
@@ -208,7 +231,7 @@ void TNodeJsSvmModel::UpdateParams(const PJsonVal& ParamVal) {
 	if (ParamVal->IsObjKey("eps")) SvmEps = ParamVal->GetObjNum("eps");
 	if (ParamVal->IsObjKey("batchSize")) SampleSize = ParamVal->GetObjInt("batchSize");
 	if (ParamVal->IsObjKey("maxIterations")) MxIter = ParamVal->GetObjInt("maxIterations");
-	if (ParamVal->IsObjKey("maxTime")) MxTime = 1000*ParamVal->GetObjInt("maxTime");
+	if (ParamVal->IsObjKey("maxTime")) MxTime = TFlt::Round(1000.0 * ParamVal->GetObjNum("maxTime"));
 	if (ParamVal->IsObjKey("minDiff")) MnDiff = ParamVal->GetObjNum("minDiff");
 	if (ParamVal->IsObjKey("verbose")) {
 		Verbose = ParamVal->GetObjBool("verbose");
@@ -225,7 +248,7 @@ PJsonVal TNodeJsSvmModel::GetParams() const {
 	ParamVal->AddToObj("eps", SvmEps);
 	ParamVal->AddToObj("batchSize", SampleSize);
 	ParamVal->AddToObj("maxIterations", MxIter);
-	ParamVal->AddToObj("maxTime", MxTime);
+	ParamVal->AddToObj("maxTime", MxTime / 1000); // convert from miliseconds to seconds
 	ParamVal->AddToObj("minDiff", MnDiff);
 	ParamVal->AddToObj("verbose", Verbose);
 
@@ -233,8 +256,6 @@ PJsonVal TNodeJsSvmModel::GetParams() const {
 }
 
 void TNodeJsSvmModel::Save(TSOut& SOut) const {
-	TBool IsInit = Model != nullptr;
-
 	Algorithm.Save(SOut);
 	TFlt(SvmCost).Save(SOut);
 	TFlt(SvmUnbalance).Save(SOut);
@@ -244,26 +265,21 @@ void TNodeJsSvmModel::Save(TSOut& SOut) const {
 	TInt(MxTime).Save(SOut);
 	TFlt(MnDiff).Save(SOut);
 	TBool(Verbose).Save(SOut);
-	IsInit.Save(SOut);
-
-	if (IsInit) { Model->Save(SOut); }
+	Model.Save(SOut);
 }
 
 void TNodeJsSvmModel::ClrModel() {
-	if (Model != nullptr) {
-		delete Model;
-		Model = nullptr;
-	}
+	Model = TSvm::TLinModel();
 }
 
-
-v8::Persistent<v8::Function> TNodeJsSVC::constructor;
+///////////////////////////////
+// QMiner-JavaScript-Support-Vector-Classification
 
 void TNodeJsSVC::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
+	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsSvmModel>);
 	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "SVC"));
 	// ObjectWrap uses the first internal field to store the wrapped pointer.
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
@@ -272,76 +288,89 @@ void TNodeJsSVC::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _setParams);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "decisionFunction", _decisionFunction);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);	
+	NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);
 
 	// properties
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weights"), _weights);
 
-	constructor.Reset(Isolate, tpl->GetFunction());
-#ifndef MODULE_INCLUDE_ANALYTICS	
 	exports->Set(v8::String::NewFromUtf8(Isolate, "SVC"), tpl->GetFunction());
-#endif
 }
 
 void TNodeJsSVC::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	QmAssertR(Args[0]->IsObject(), "first argument expected to be object");
-	QmAssertR(Args[1]->IsObject(), "SCV.fit: second argument expected to be object");
+	EAssertR(Args.Length() == 2, "SVC.fit: expecting 2 arguments!");
 
 	try {
-		TNodeJsSvmModel* Model = ObjectWrap::Unwrap<TNodeJsSvmModel>(Args.Holder());
+		TNodeJsSvmModel* JsModel = ObjectWrap::Unwrap<TNodeJsSvmModel>(Args.Holder());
 
-		Model->ClrModel();
+		// check target vector is actually a vector
+		EAssertR(TNodeJsUtil::IsArgWrapObj<TNodeJsFltV>(Args, 1), "SVC.fit: second argument expected to be la.Vector!");
+		TFltV& ClsV = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltV>(Args, 1)->Vec;
 
-		TFltV& ClsV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[1]->ToObject())->Vec;
-		if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsSpMat::GetClassId())) {
+		if (TNodeJsUtil::IsArgWrapObj<TNodeJsSpMat>(Args, 0)) {
 			TVec<TIntFltKdV>& VecV = ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject())->Mat;
-			if (Model->Algorithm == "SGD") {
-				Model->Model = new TSvm::TLinModel(TSvm::SolveClassify<TVec<TIntFltKdV>>(VecV, TLAMisc::GetMaxDimIdx(VecV) + 1,
-					VecV.Len(), ClsV, Model->SvmCost, Model->SvmUnbalance, Model->MxTime,
-					Model->MxIter, Model->MnDiff, Model->SampleSize, Model->Notify));
+			if (JsModel->Algorithm == "SGD") {
+				JsModel->Model = TSvm::SolveClassify<TVec<TIntFltKdV>>(VecV, TLAMisc::GetMaxDimIdx(VecV) + 1,
+					VecV.Len(), ClsV, JsModel->SvmCost, JsModel->SvmUnbalance, JsModel->MxTime,
+					JsModel->MxIter, JsModel->MnDiff, JsModel->SampleSize, JsModel->Notify);
 			}
-			else if (Model->Algorithm == "PR_LOQO") {
+			else if (JsModel->Algorithm == "PR_LOQO") {
 				PSVMTrainSet TrainSet = TRefSparseTrainSet::New(VecV, ClsV);
-				PSVMModel SvmModel = TSVMModel::NewClsLinear(TrainSet, Model->SvmCost, Model->SvmUnbalance,
-					TIntV(), TSVMLearnParam::Lin(Model->MxTime, Model->Verbose ? 2 : 0));
-
-				Model->Model = new TSvm::TLinModel(SvmModel->GetWgtV(), SvmModel->GetThresh());
+				PSVMModel SvmModel = TSVMModel::NewClsLinear(TrainSet, JsModel->SvmCost, JsModel->SvmUnbalance,
+					TIntV(), TSVMLearnParam::Lin(JsModel->MxTime, JsModel->Verbose ? 2 : 0));
+				JsModel->Model = TSvm::TLinModel(SvmModel->GetWgtV(), SvmModel->GetThresh());
+			}
+			else if (JsModel->Algorithm == "LIBSVM") {
+				JsModel->Model = TSvm::LibSvmSolveClassify(VecV, ClsV, JsModel->SvmCost,
+					TQm::TEnv::Debug, TQm::TEnv::Error);
+			}
+			else {
+				throw TExcept::New("SVC.fit: unknown algorithm " + JsModel->Algorithm);
 			}
 		}
-		else if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltVV::GetClassId())) {
+		else if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltVV>(Args, 0)) {
 			TFltVV& VecV = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject())->Mat;
-			if (Model->Algorithm == "SGD") {
-				Model->Model = new TSvm::TLinModel(TSvm::SolveClassify<TFltVV>(VecV, VecV.GetRows(),
-					VecV.GetCols(), ClsV, Model->SvmCost, Model->SvmUnbalance, Model->MxTime,
-					Model->MxIter, Model->MnDiff, Model->SampleSize, Model->Notify));
+			if (JsModel->Algorithm == "SGD") {
+				JsModel->Model = TSvm::SolveClassify<TFltVV>(VecV, VecV.GetRows(),
+					VecV.GetCols(), ClsV, JsModel->SvmCost, JsModel->SvmUnbalance, JsModel->MxTime,
+					JsModel->MxIter, JsModel->MnDiff, JsModel->SampleSize, JsModel->Notify);
 			}
-			else if (Model->Algorithm == "PR_LOQO") {
+			else if (JsModel->Algorithm == "PR_LOQO") {
 				PSVMTrainSet TrainSet = TRefDenseTrainSet::New(VecV, ClsV);
-				PSVMModel SvmModel = TSVMModel::NewClsLinear(TrainSet, Model->SvmCost, Model->SvmUnbalance,
-					TIntV(), TSVMLearnParam::Lin(Model->MxTime, Model->Verbose ? 2 : 0));
-
-
-				Model->Model = new TSvm::TLinModel(SvmModel->GetWgtV(), SvmModel->GetThresh());
+				PSVMModel SvmModel = TSVMModel::NewClsLinear(TrainSet, JsModel->SvmCost, JsModel->SvmUnbalance,
+					TIntV(), TSVMLearnParam::Lin(JsModel->MxTime, JsModel->Verbose ? 2 : 0));
+				JsModel->Model = TSvm::TLinModel(SvmModel->GetWgtV(), SvmModel->GetThresh());
 			}
+			else if (JsModel->Algorithm == "LIBSVM") {
+				JsModel->Model = TSvm::LibSvmSolveClassify(VecV, ClsV, JsModel->SvmCost,
+					TQm::TEnv::Debug, TQm::TEnv::Error);
+			}
+			else {
+				throw TExcept::New("SVC.fit: unknown algorithm " + JsModel->Algorithm);
+			}
+		}
+		else {
+			throw TExcept::New("SVC.fit: Unsupported first argument");
 		}
 		Args.GetReturnValue().Set(Args.Holder());
 	}
 	catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), "SVC.fit");
+		throw TExcept::New(Except->GetMsgStr(), "SVC.fit");
 	}
 }
 
-v8::Persistent<v8::Function> TNodeJsSVR::constructor;
+///////////////////////////////
+// QMiner-JavaScript-Support-Vector-Regression
 
 void TNodeJsSVR::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
+	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsSvmModel>);
 	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "SVR"));
 	// ObjectWrap uses the first internal field to store the wrapped pointer.
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
@@ -350,68 +379,606 @@ void TNodeJsSVR::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _setParams);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);	
+	NODE_SET_PROTOTYPE_METHOD(tpl, "decisionFunction", _decisionFunction);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _decisionFunction);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);
 
 	// properties
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weights"), _weights);
 
-	constructor.Reset(Isolate, tpl->GetFunction());
-#ifndef MODULE_INCLUDE_ANALYTICS
 	exports->Set(v8::String::NewFromUtf8(Isolate, "SVR"), tpl->GetFunction());
-#endif
 }
 
 void TNodeJsSVR::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	QmAssertR(Args[0]->IsObject(), "first argument expected to be object");
-	QmAssertR(Args[1]->IsObject(), "SVR.fit: second argument expected to be object");
+	EAssertR(Args.Length() == 2, "SVR.fit: expecting 2 arguments!");
 
 	try {
-		TNodeJsSvmModel* Model = ObjectWrap::Unwrap<TNodeJsSvmModel>(Args.Holder());
+		TNodeJsSvmModel* JsModel = ObjectWrap::Unwrap<TNodeJsSvmModel>(Args.Holder());
 
-		Model->ClrModel();
+		// check target vector is actually a vector
+		EAssertR(TNodeJsUtil::IsArgWrapObj<TNodeJsFltV>(Args, 1), "SVR.fit: second argument expected to be la.Vector!");
+		TFltV& ClsV = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltV>(Args, 1)->Vec;
 
-		TFltV& ValV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[1]->ToObject())->Vec;
-		if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsSpMat::GetClassId())) {
+
+		if (TNodeJsUtil::IsArgWrapObj<TNodeJsSpMat>(Args, 0)) {
 			TVec<TIntFltKdV>& VecV = ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject())->Mat;
-			if (Model->Algorithm == "SGD") {
-				Model->Model = new TSvm::TLinModel(TSvm::SolveRegression<TVec<TIntFltKdV>>(VecV, TLAMisc::GetMaxDimIdx(VecV) + 1,
-					VecV.Len(), ValV, Model->SvmCost, Model->SvmEps, Model->MxTime,
-					Model->MxIter, Model->MnDiff, Model->SampleSize, Model->Notify));
+			if (JsModel->Algorithm == "SGD") {
+				JsModel->Model = TSvm::SolveRegression<TVec<TIntFltKdV>>(VecV, TLAMisc::GetMaxDimIdx(VecV) + 1,
+					VecV.Len(), ClsV, JsModel->SvmCost, JsModel->SvmEps, JsModel->MxTime,
+					JsModel->MxIter, JsModel->MnDiff, JsModel->SampleSize, JsModel->Notify);
 			}
-			else if (Model->Algorithm == "PR_LOQO") {
-				PSVMTrainSet TrainSet = TRefSparseTrainSet::New(VecV, ValV);
-				PSVMModel SvmModel = TSVMModel::NewRegLinear(TrainSet, Model->SvmEps, Model->SvmCost,
-					TIntV(), TSVMLearnParam::Lin(Model->MxTime, Model->Verbose ? 2 : 0));
-
-				Model->Model = new TSvm::TLinModel(SvmModel->GetWgtV(), SvmModel->GetThresh());
+			else if (JsModel->Algorithm == "PR_LOQO") {
+				PSVMTrainSet TrainSet = TRefSparseTrainSet::New(VecV, ClsV);
+				PSVMModel SvmModel = TSVMModel::NewRegLinear(TrainSet, JsModel->SvmEps, JsModel->SvmCost,
+					TIntV(), TSVMLearnParam::Lin(JsModel->MxTime, JsModel->Verbose ? 2 : 0));
+				JsModel->Model = TSvm::TLinModel(SvmModel->GetWgtV(), SvmModel->GetThresh());
+			}
+			else if (JsModel->Algorithm == "LIBSVM") {
+				JsModel->Model = TSvm::LibSvmSolveRegression(VecV, ClsV, JsModel->SvmEps, JsModel->SvmCost,
+					TQm::TEnv::Debug, TQm::TEnv::Error);
+			}
+			else {
+				throw TExcept::New("SVR.fit: unknown algorithm " + JsModel->Algorithm);
 			}
 		}
-		else if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltVV::GetClassId())) {
+		else if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltVV>(Args, 0)) {
 			TFltVV& VecV = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject())->Mat;
-			if (Model->Algorithm == "SGD") {
-				Model->Model = new TSvm::TLinModel(TSvm::SolveRegression<TFltVV>(VecV, VecV.GetRows(),
-					VecV.GetCols(), ValV, Model->SvmCost, Model->SvmEps, Model->MxTime,
-					Model->MxIter, Model->MnDiff, Model->SampleSize, Model->Notify));
+			if (JsModel->Algorithm == "SGD") {
+				JsModel->Model = TSvm::SolveRegression<TFltVV>(VecV, VecV.GetRows(),
+					VecV.GetCols(), ClsV, JsModel->SvmCost, JsModel->SvmEps, JsModel->MxTime,
+					JsModel->MxIter, JsModel->MnDiff, JsModel->SampleSize, JsModel->Notify);
 			}
-			else if (Model->Algorithm == "PR_LOQO") {
-				PSVMTrainSet TrainSet = TRefDenseTrainSet::New(VecV, ValV);
-				PSVMModel SvmModel = TSVMModel::NewClsLinear(TrainSet, Model->SvmEps, Model->SvmCost,
-					TIntV(), TSVMLearnParam::Lin(Model->MxTime, Model->Verbose ? 2 : 0));
-
-
-				Model->Model = new TSvm::TLinModel(SvmModel->GetWgtV(), SvmModel->GetThresh());
+			else if (JsModel->Algorithm == "PR_LOQO") {
+				PSVMTrainSet TrainSet = TRefDenseTrainSet::New(VecV, ClsV);
+				PSVMModel SvmModel = TSVMModel::NewRegLinear(TrainSet, JsModel->SvmEps, JsModel->SvmCost,
+					TIntV(), TSVMLearnParam::Lin(JsModel->MxTime, JsModel->Verbose ? 2 : 0));
+				JsModel->Model = TSvm::TLinModel(SvmModel->GetWgtV(), SvmModel->GetThresh());
 			}
+			else if (JsModel->Algorithm == "LIBSVM") {
+				JsModel->Model = TSvm::LibSvmSolveRegression(VecV, ClsV, JsModel->SvmEps, JsModel->SvmCost,
+					TQm::TEnv::Debug, TQm::TEnv::Error);
+			}
+			else {
+				throw TExcept::New("SVR.fit: unknown algorithm " + JsModel->Algorithm);
+			}
+		}
+		else {
+			throw TExcept::New("SVR.fit: Unsupported first argument");
 		}
 		Args.GetReturnValue().Set(Args.Holder());
 	}
 	catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), "SVR.fit");
+		throw TExcept::New(Except->GetMsgStr(), "SVR.fit");
 	}
 }
+
+/////////////////////////////////////////////
+// Ridge Regression
+void TNodeJsRidgeReg::Init(v8::Handle<v8::Object> exports) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsRidgeReg>);
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
+	// ObjectWrap uses the first internal field to store the wrapped pointer.
+	tpl->InstanceTemplate()->SetInternalFieldCount(1);
+
+	// Add all methods, getters and setters here.
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _setParams);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "decisionFunction", _predict);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
+
+	// properties
+	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weights"), _weights);
+	exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
+}
+
+TNodeJsRidgeReg* TNodeJsRidgeReg::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	if (Args.Length() == 0) {
+		return new TNodeJsRidgeReg(TRegression::TRidgeReg(0));
+	}
+	else if (Args.Length() > 0 && TNodeJsUtil::IsArgWrapObj<TNodeJsFIn>(Args, 0)) {
+		// load the model from the input stream
+		TNodeJsFIn* JsFIn = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFIn>(Args, 0);
+		return new TNodeJsRidgeReg(*JsFIn->SIn);
+	}
+	else if (Args.Length() == 1 && TNodeJsUtil::IsArgObj(Args, 0)) {
+		PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+		const double Gamma = ParamVal->GetObjNum("gamma", 0.0);
+		return new TNodeJsRidgeReg(TRegression::TRidgeReg(Gamma));
+	}
+	else if (Args.Length() == 1 && TNodeJsUtil::IsArgFlt(Args, 0)) {
+		printf("DEPRECATED: consider using Json object as argument!\n");
+		// create new model from given gamma parameter
+		const double Gamma = TNodeJsUtil::GetArgFlt(Args, 0, 0.0);
+		return new TNodeJsRidgeReg(TRegression::TRidgeReg(Gamma));
+	}
+	else {
+		throw TExcept::New("new RidgeReg: wrong arguments in constructor!");
+	}
+}
+
+void TNodeJsRidgeReg::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 0, "RidgeReg.getParams: expects none arguments!");
+
+	TNodeJsRidgeReg* JsModel = ObjectWrap::Unwrap<TNodeJsRidgeReg>(Args.Holder());
+	// get the parameters
+	PJsonVal ParamVal = TJsonVal::NewObj();
+	ParamVal->AddToObj("gamma", JsModel->Model.GetGamma());
+	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, ParamVal));
+}
+
+void TNodeJsRidgeReg::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1, "RidgeReg.setParams: Expects one argument!");
+
+	if (TNodeJsUtil::IsArgJson(Args, 0)) {
+		TNodeJsRidgeReg* JsModel = ObjectWrap::Unwrap<TNodeJsRidgeReg>(Args.Holder());
+		// set the parameters
+		PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+		const double Gamma = ParamVal->GetObjNum("gamma");
+		JsModel->Model.SetGamma(Gamma);
+
+		Args.GetReturnValue().Set(Args.Holder());
+	}
+	else {
+		throw TExcept::New("RidgeReg.setParams: expecting Json object!");
+	}
+}
+
+void TNodeJsRidgeReg::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() >= 2, "RidgeReg.fit: expects at least 2 arguments!");
+
+	TNodeJsRidgeReg* JsModel = ObjectWrap::Unwrap<TNodeJsRidgeReg>(Args.Holder());
+
+	// get the arguments
+	TNodeJsFltVV* InstanceMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
+	TNodeJsFltV* ResponseJsV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[1]->ToObject());
+	// fit model
+	JsModel->Model.Fit(InstanceMat->Mat, ResponseJsV->Vec);
+	// return self
+	Args.GetReturnValue().Set(Args.Holder());
+}
+
+void TNodeJsRidgeReg::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1, "RidgeReg.predict: expects 1 argument!");
+
+	TNodeJsRidgeReg* JsModel = ObjectWrap::Unwrap<TNodeJsRidgeReg>(Args.Holder());
+
+	// get the arguments
+	TNodeJsFltV* JsFtrV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[0]->ToObject());
+	const double Result = JsModel->Model.Predict(JsFtrV->Vec);
+
+	Args.GetReturnValue().Set(v8::Number::New(Isolate, Result));
+}
+
+void TNodeJsRidgeReg::weights(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsRidgeReg* JsModel = ObjectWrap::Unwrap<TNodeJsRidgeReg>(Info.Holder());
+
+	Info.GetReturnValue().Set(TNodeJsFltV::New(JsModel->Model.GetWgtV()));
+}
+
+void TNodeJsRidgeReg::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1 && TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFOut::GetClassId()),
+		"RidgeReg.save: expects 1 argument of type qminer.fs.FOut!");
+
+	TNodeJsRidgeReg* JsModel = ObjectWrap::Unwrap<TNodeJsRidgeReg>(Args.Holder());
+	TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+
+	JsModel->Model.Save(*JsFOut->SOut);
+
+	Args.GetReturnValue().Set(Args[0]);
+}
+
+
+/////////////////////////////////////////////
+// Sigmoid
+void TNodeJsSigmoid::Init(v8::Handle<v8::Object> exports) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsSigmoid>);
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
+	// ObjectWrap uses the first internal field to store the wrapped pointer.
+	tpl->InstanceTemplate()->SetInternalFieldCount(1);
+
+	// Add all methods, getters and setters here.
+	NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _setParams);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getModel", _getModel);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "decisionFunction", _predict);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
+
+	// properties
+	exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
+}
+
+TNodeJsSigmoid* TNodeJsSigmoid::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	if (Args.Length() > 0 && TNodeJsUtil::IsArgWrapObj<TNodeJsFIn>(Args, 0)) {
+		// load the model from the input stream
+		TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
+		return new TNodeJsSigmoid(*JsFIn->SIn);
+	}
+	else {
+		return new TNodeJsSigmoid();
+	}
+}
+
+void TNodeJsSigmoid::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 0, "Sigmoid.getParams: expects 0 arguments!");
+
+	// get the parameters
+	PJsonVal ParamVal = TJsonVal::NewObj();
+	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, ParamVal));
+}
+
+void TNodeJsSigmoid::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1, "Sigmoid.setParams: expects only 1 argument!");
+
+	if (TNodeJsUtil::IsArgJson(Args, 0)) {
+		Args.GetReturnValue().Set(Args.Holder());
+	}
+	else {
+		throw TExcept::New("Sigmoid.setParams: expecting Json object!");
+	}
+}
+
+void TNodeJsSigmoid::getModel(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 0, "Sigmoid.getParams: expects 0 arguments!");
+	TNodeJsSigmoid* JsModel = ObjectWrap::Unwrap<TNodeJsSigmoid>(Args.Holder());
+
+	PJsonVal ParamVal = TJsonVal::NewObj();
+	double A, B; JsModel->Sigmoid.GetSigmoidAB(A, B);
+
+	ParamVal->AddToObj("A", A);
+	ParamVal->AddToObj("B", B);
+
+	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, ParamVal));
+}
+
+void TNodeJsSigmoid::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() >= 2, "Sigmoid.fit: expects at least 2 arguments!");
+
+	TNodeJsSigmoid* JsModel = ObjectWrap::Unwrap<TNodeJsSigmoid>(Args.Holder());
+
+	if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltV>(Args, 0)) {
+		EAssertR(TNodeJsUtil::IsArgWrapObj<TNodeJsFltV>(Args, 1),
+			"Sigmoid.fit: Both parameters need to be of same type (e.g., vector).");
+		// get the arguments
+		const TFltV& PredV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[0]->ToObject())->Vec;
+		const TFltV& TrueV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[1]->ToObject())->Vec;
+		EAssertR(PredV.Len() == TrueV.Len(), "Sigmoid.fit: true and predicted labels have different length.");
+		// load into input for sigmoid
+		TFltIntKdV PredTrueV(PredV.Len(), 0);
+		for (int EltN = 0; EltN < PredV.Len(); EltN++) {
+			PredTrueV.Add(TFltIntKd(PredV[EltN], TFlt::Round(TrueV[EltN])));
+		}
+		// fit!
+		JsModel->Sigmoid = TSigmoid(PredTrueV);
+	}
+	// return self
+	Args.GetReturnValue().Set(Args.Holder());
+}
+
+void TNodeJsSigmoid::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1, "Sigmoid.predict: expects 1 argument!");
+
+	TNodeJsSigmoid* JsModel = ObjectWrap::Unwrap<TNodeJsSigmoid>(Args.Holder());
+	const TSigmoid& Sigmoid = JsModel->Sigmoid;
+
+	// get the arguments
+	if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltV>(Args, 0)) {
+		const TFltV& PredV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[0]->ToObject())->Vec;
+		TFltV ResV(PredV.Len(), 0);
+		for (int EltN = 0; EltN < PredV.Len(); EltN++) {
+			ResV.Add(Sigmoid.GetVal(PredV[EltN]));
+		}
+		Args.GetReturnValue().Set(TNodeJsFltV::New(ResV));
+	}
+	else if (TNodeJsUtil::IsArgFlt(Args, 0)) {
+		const double PredVal = TNodeJsUtil::GetArgFlt(Args, 0);
+		const double Result = Sigmoid.GetVal(PredVal);
+		Args.GetReturnValue().Set(v8::Number::New(Isolate, Result));
+	}
+	else {
+		throw TExcept::New("Sigmoid.predict: invalid argument type");
+	}
+}
+
+void TNodeJsSigmoid::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1 && TNodeJsUtil::IsArgWrapObj<TNodeJsFOut>(Args, 0),
+		"Sigmoid.save: expects 1 argument of type qminer.fs.FOut!");
+
+	TNodeJsSigmoid* JsModel = ObjectWrap::Unwrap<TNodeJsSigmoid>(Args.Holder());
+	TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+
+	JsModel->Sigmoid.Save(*JsFOut->SOut);
+
+	Args.GetReturnValue().Set(Args[0]);
+}
+
+
+/////////////////////////////////////////////
+// Nearest Neighbor Annomaly Detection
+void TNodeJsNNAnomalies::Init(v8::Handle<v8::Object> exports) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsNNAnomalies>);
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
+	// ObjectWrap uses the first internal field to store the wrapped pointer.
+	tpl->InstanceTemplate()->SetInternalFieldCount(1);
+
+	// Add all methods, getters and setters here.
+	NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _setParams);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getModel", _getModel);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "partialFit", _partialFit);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "decisionFunction", _decisionFunction);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);	
+	NODE_SET_PROTOTYPE_METHOD(tpl, "explain", _explain);
+	
+	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "init"), _init);
+
+	exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
+}
+
+TNodeJsNNAnomalies::TNodeJsNNAnomalies(const PJsonVal& ParamVal) {
+    SetParams(ParamVal);
+}
+
+TNodeJsNNAnomalies* TNodeJsNNAnomalies::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	if (Args.Length() > 0 && TNodeJsUtil::IsArgWrapObj<TNodeJsFIn>(Args, 0)) {
+		// load the model from the input stream
+		TNodeJsFIn* JsFIn = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFIn>(Args, 0);
+		return new TNodeJsNNAnomalies(*JsFIn->SIn);
+	}
+	else {
+		// create new model from given gamma parameter
+		PJsonVal JsonVal = (Args.Length() > 0) ? TNodeJsUtil::GetArgJson(Args, 0) : TJsonVal::NewObj();
+		return new TNodeJsNNAnomalies(JsonVal);
+	}
+}
+
+void TNodeJsNNAnomalies::SetParams(const PJsonVal& ParamVal) {
+    // parse rate parameter(s)
+    TFltV RateV;
+    if (ParamVal->IsObjKey("rate")) {
+        // check if we get single number or array of numbers
+        if (ParamVal->GetObjKey("rate")->IsNum()) {
+            // we have a number
+            RateV.Add(ParamVal->GetObjNum("rate"));
+        } else {
+            // must be an array
+            ParamVal->GetObjFltV("rate", RateV);
+        }
+    }
+    // if empty, use 0.05
+    if (RateV.Empty()) { RateV.Add(0.05); }
+    // create model
+	Model = TAnomalyDetection::TNearestNeighbor(RateV, ParamVal->GetObjInt("windowSize", 100));
+}
+
+PJsonVal TNodeJsNNAnomalies::GetParams() const {
+	PJsonVal ParamVal = TJsonVal::NewObj();
+	ParamVal->AddToObj("rate", TJsonVal::NewArr(Model.GetRateV()));
+	ParamVal->AddToObj("windowSize", Model.GetWindowSize());
+	return ParamVal;
+}
+
+PJsonVal TNodeJsNNAnomalies::GetModel() const {
+	PJsonVal ParamVal = TJsonVal::NewObj();
+	ParamVal->AddToObj("threshold", Model.GetThreshold(0));
+	return ParamVal;
+}
+
+void TNodeJsNNAnomalies::Save(TSOut& SOut) {
+	Model.Save(SOut);
+}
+
+void TNodeJsNNAnomalies::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	// unwrap
+	TNodeJsNNAnomalies* JsModel = ObjectWrap::Unwrap<TNodeJsNNAnomalies>(Args.Holder());
+	// check arguments
+	EAssertR(Args.Length() == 1, "NearestNeighborAD.setParams: expects 1 argument!");
+	// get the arguments
+	PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+	JsModel->SetParams(ParamVal);
+	// return self
+	Args.GetReturnValue().Set(Args.Holder());
+}
+
+void TNodeJsNNAnomalies::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	// unwrap
+	TNodeJsNNAnomalies* JsModel = ObjectWrap::Unwrap<TNodeJsNNAnomalies>(Args.Holder());
+	// prepare parameters
+	PJsonVal ParamVal = JsModel->GetParams();
+	// return self
+	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, ParamVal));
+}
+
+void TNodeJsNNAnomalies::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	// unwrap
+	TNodeJsNNAnomalies* JsModel = ObjectWrap::Unwrap<TNodeJsNNAnomalies>(Args.Holder());
+	// check arguments
+	EAssertR(Args.Length() == 1, "NearestNeighborAD.save: expects 1 argument!");
+	// get the arguments
+	TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
+	// save model
+	JsModel->Save(*JsFOut->SOut);
+	// return fout
+	Args.GetReturnValue().Set(Args[0]);
+}
+
+void TNodeJsNNAnomalies::getModel(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	// unwrap
+	TNodeJsNNAnomalies* JsModel = ObjectWrap::Unwrap<TNodeJsNNAnomalies>(Args.Holder());
+	// prepare parameters
+	PJsonVal ParamVal = JsModel->GetModel();
+	// return self
+	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, ParamVal));
+}
+
+void TNodeJsNNAnomalies::partialFit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	// unwrap
+	TNodeJsNNAnomalies* JsModel = ObjectWrap::Unwrap<TNodeJsNNAnomalies>(Args.Holder());
+	// check arguments
+	EAssertR(Args.Length() <= 2, "NearestNeighborAD.partialFit: expects at 1 or 2 arguments!");
+	// get the arguments
+	TNodeJsSpVec* SpVec = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpVec>(Args, 0);
+	
+	int RecId = TNodeJsUtil::GetArgInt32(Args, 1, -1);
+	JsModel->Model.PartialFit(SpVec->Vec, RecId);
+	
+	// return self
+	Args.GetReturnValue().Set(Args.Holder());
+}
+
+void TNodeJsNNAnomalies::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	// unwrap
+	TNodeJsNNAnomalies* JsModel = ObjectWrap::Unwrap<TNodeJsNNAnomalies>(Args.Holder());
+	// check arguments
+	EAssertR(Args.Length() == 1
+		|| ((Args.Length() == 2) && (TNodeJsUtil::IsArgWrapObj<TNodeJsIntV>(Args, 1))),
+		"NearestNeighborAD.fit: expects 1 or 2 arguments, the second optional argument must be of type IntVector from la submodule!");
+	
+	// get the arguments
+	TNodeJsSpMat* SpMat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpMat>(Args, 0);
+	// fit model
+
+	if (Args.Length() == 2) {
+		TNodeJsIntV* IntVec = TNodeJsUtil::GetArgUnwrapObj<TNodeJsIntV>(Args, 1);
+		EAssertR(SpMat->Mat.Len() == IntVec->Vec.Len(), "NearestNeighborAD.fit: number of columns of args[0] must match the number of elements of args[1]");
+		for (int elN = 0; elN < SpMat->Mat.Len(); elN++) {
+			JsModel->Model.PartialFit(SpMat->Mat[elN], IntVec->Vec[elN]);
+		}
+	} else {
+		for (int elN = 0; elN < SpMat->Mat.Len(); elN++) {
+			JsModel->Model.PartialFit(SpMat->Mat[elN]);
+		}
+	}
+
+	// return self
+	Args.GetReturnValue().Set(Args.Holder());
+}
+
+void TNodeJsNNAnomalies::decisionFunction(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	// unwrap
+	TNodeJsNNAnomalies* JsModel = ObjectWrap::Unwrap<TNodeJsNNAnomalies>(Args.Holder());
+	// check arguments
+	EAssertR(Args.Length() == 1, "NearestNeighborAD.predict: expects 1 argument!");
+	// get the arguments
+	TNodeJsSpVec* SpVec = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpVec>(Args, 0);
+	const double Result = JsModel->Model.DecisionFunction(SpVec->Vec);
+	// return result
+	Args.GetReturnValue().Set(v8::Number::New(Isolate, Result));
+}
+
+void TNodeJsNNAnomalies::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	// unwrap
+	TNodeJsNNAnomalies* JsModel = ObjectWrap::Unwrap<TNodeJsNNAnomalies>(Args.Holder());
+	// check arguments
+	EAssertR(Args.Length() == 1, "NearestNeighborAD.predict: expects 1 argument!");
+	// get the arguments
+	TNodeJsSpVec* SpVec = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpVec>(Args, 0);
+	const int Result = JsModel->Model.Predict(SpVec->Vec);
+	// return result
+	Args.GetReturnValue().Set(v8::Number::New(Isolate, Result));
+}
+
+void TNodeJsNNAnomalies::explain(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	// unwrap
+	TNodeJsNNAnomalies* JsModel = ObjectWrap::Unwrap<TNodeJsNNAnomalies>(Args.Holder());
+	// check arguments
+	EAssertR(Args.Length() == 1, "NearestNeighborAD.predict: expects 1 argument!");
+	// get the arguments
+	TNodeJsSpVec* SpVec = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpVec>(Args, 0);
+	PJsonVal Explanation = JsModel->Model.Explain(SpVec->Vec);
+	// return result
+	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, Explanation));
+}
+
+void TNodeJsNNAnomalies::init(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	// unwrap
+	TNodeJsNNAnomalies* JsModel = ObjectWrap::Unwrap<TNodeJsNNAnomalies>(Info.Holder());	
+	Info.GetReturnValue().Set(v8::Boolean::New(Isolate, JsModel->Model.IsInit()));
+}
+
 
 ////////////////////////////////////////////////
 // QMiner-NodeJS-Recursive-Linear-Regression
@@ -430,8 +997,10 @@ void TNodeJsRecLinReg::Init(v8::Handle<v8::Object> exports) {
 
 	// Add all methods, getters and setters here.
 	NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "partialFit", _partialFit);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _setParams);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
 	// properties
@@ -439,16 +1008,16 @@ void TNodeJsRecLinReg::Init(v8::Handle<v8::Object> exports) {
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "dim"), _dim);
 
 	exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()),
-			   tpl->GetFunction());
+		tpl->GetFunction());
 }
 
 TNodeJsRecLinReg* TNodeJsRecLinReg::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	QmAssertR(Args.Length() == 1, "Constructor expects 1 argument!");
+	EAssertR(Args.Length() == 1, "Constructor expects 1 argument!");
 
-	if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFIn::GetClassId())) {
+	if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFIn::GetClassId())) {
 		TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
 		return new TNodeJsRecLinReg(TSignalProc::TRecLinReg::Load(*JsFIn->SIn));
 	}
@@ -467,22 +1036,55 @@ void TNodeJsRecLinReg::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
+	// get feature matrix
+	EAssertR(TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltVV::GetClassId()),
+		"RecLinRegModel.fit: The first argument must be a JsTFltVV (js linalg full matrix)");
+	EAssertR(TNodeJsUtil::IsArgWrapObj(Args, 1, TNodeJsFltV::GetClassId()), "Argument 1 should be a full vector!");
+
+	TNodeJsRecLinReg* Model = ObjectWrap::Unwrap<TNodeJsRecLinReg>(Args.Holder());
+	TNodeJsFltVV* JsFeatMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
+	TNodeJsFltV* TargetVec = ObjectWrap::Unwrap<TNodeJsFltV>(Args[1]->ToObject());
+
+	// make sure dimensions of matrix and vector math
+	EAssertR(JsFeatMat->Mat.GetCols() == TargetVec->Vec.Len(),
+		"RecLinRegModel.fit: passed matrix dimension != passed argument dimension");
+
+	// make sure dimensions match
+	EAssertR(Model->Model->GetDim() == JsFeatMat->Mat.GetRows(),
+		"RecLinRegModel.fit: model dimension != passed argument dimension");
+
+	// learn
+	TFltV Col;
+	for (int i = 0; i < JsFeatMat->Mat.GetRows(); i++) {
+		JsFeatMat->Mat.GetCol(i, Col);
+		Model->Model->Learn(Col, TargetVec->Vec[i]);
+	}
+
+	EAssertR(!Model->Model->HasNaN(), "RecLinRegModel.fit: NaN detected!");
+
+	Args.GetReturnValue().Set(Args.Holder());
+}
+
+void TNodeJsRecLinReg::partialFit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
 	// get feature vector
-	QmAssertR(TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::GetClassId()),
-		"RecLinRegModel.learn: The first argument must be a JsTFltV (js linalg full vector)");
-	QmAssertR(TNodeJsUtil::IsArgFlt(Args, 1), "Argument 1 should be float!");
+	EAssertR(TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltV::GetClassId()),
+		"RecLinRegModel.partialFit: The first argument must be a JsTFltV (js linalg full vector)");
+	EAssertR(TNodeJsUtil::IsArgFlt(Args, 1), "Argument 1 should be float!");
 
 	TNodeJsRecLinReg* Model = ObjectWrap::Unwrap<TNodeJsRecLinReg>(Args.Holder());
 	TNodeJsFltV* JsFeatVec = ObjectWrap::Unwrap<TNodeJsFltV>(Args[0]->ToObject());
 	const double Target = TNodeJsUtil::GetArgFlt(Args, 1);
 
 	// make sure dimensions match
-	QmAssertR(Model->Model->GetDim() == JsFeatVec->Vec.Len(),
-		"RecLinRegModel.learn: model dimension != passed argument dimension");
+	EAssertR(Model->Model->GetDim() == JsFeatVec->Vec.Len(),
+		"RecLinRegModel.partialFit: model dimension != passed argument dimension");
 
 	// learn
 	Model->Model->Learn(JsFeatVec->Vec, Target);
-	QmAssertR(!Model->Model->HasNaN(), "RecLinRegModel.learn: NaN detected!");
+	EAssertR(!Model->Model->HasNaN(), "RecLinRegModel.partialFit: NaN detected!");
 
 	Args.GetReturnValue().Set(Args.Holder());
 }
@@ -492,13 +1094,13 @@ void TNodeJsRecLinReg::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) 
 	v8::HandleScope HandleScope(Isolate);
 
 	// get feature vector
-	QmAssertR(TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::GetClassId()),
+	EAssertR(TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltV::GetClassId()),
 		"RecLinRegModel.learn: The first argument must be a JsTFltV (js linalg full vector)");
 
 	TNodeJsRecLinReg* Model = ObjectWrap::Unwrap<TNodeJsRecLinReg>(Args.Holder());
 	TNodeJsFltV* JsFeatVec = ObjectWrap::Unwrap<TNodeJsFltV>(Args[0]->ToObject());
 
-	QmAssertR(Model->Model->GetDim() == JsFeatVec->Vec.Len(),
+	EAssertR(Model->Model->GetDim() == JsFeatVec->Vec.Len(),
 		"RecLinRegModel.learn: model dimension != sample dimension");
 
 	Args.GetReturnValue().Set(v8::Number::New(Isolate, Model->Model->Predict(JsFeatVec->Vec)));
@@ -510,6 +1112,28 @@ void TNodeJsRecLinReg::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args
 
 	TNodeJsRecLinReg* Model = ObjectWrap::Unwrap<TNodeJsRecLinReg>(Args.Holder());
 	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, Model->GetParams()));
+}
+
+void TNodeJsRecLinReg::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1, "Constructor expects 1 argument!");
+	EAssertR(TNodeJsUtil::IsArgJson(Args, 0), "RecLinReg.setParams: first argument should be a Javascript object!");
+	PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+
+	TNodeJsRecLinReg* Model = ObjectWrap::Unwrap<TNodeJsRecLinReg>(Args.Holder());
+
+	const int Dim = ParamVal->GetObjInt("dim", Model->Model->GetDim());
+	const double RegFact = ParamVal->GetObjNum("regFact", Model->Model->GetRegFact());
+	const double ForgetFact = ParamVal->GetObjNum("forgetFact", Model->Model->GetForgetFact());
+
+	// copy the values
+	Model->Model->setForgetFact(ForgetFact);
+	Model->Model->setRegFact(RegFact);
+	Model->Model->setDim(Dim);
+
+	Args.GetReturnValue().Set(Args.Holder());
 }
 
 void TNodeJsRecLinReg::weights(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
@@ -538,7 +1162,7 @@ void TNodeJsRecLinReg::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 	TNodeJsRecLinReg* Model = ObjectWrap::Unwrap<TNodeJsRecLinReg>(Args.Holder());
 
-	QmAssertR(Args.Length() == 1, "Should have 1 argument!");
+	EAssertR(Args.Length() == 1, "Should have 1 argument!");
 	PSOut SOut;
 	if (TNodeJsUtil::IsArgStr(Args, 0)) {
 		SOut = TFOut::New(TNodeJsUtil::GetArgStr(Args, 0), false);
@@ -548,7 +1172,7 @@ void TNodeJsRecLinReg::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		SOut = JsFOut->SOut;
 	}
 
-	Model->Model.Save(*SOut);
+	Model->Model->Save(*SOut);
 
 	// we return nothing currently, just close the stream if filename was used
 	if (TNodeJsUtil::IsArgStr(Args, 0)) {
@@ -570,6 +1194,10 @@ PJsonVal TNodeJsRecLinReg::GetParams() const {
 	return ParamVal;
 }
 
+///////////////////////////////
+////// code below not yet ported or verified for scikit
+///////////////////////////////
+
 ////////////////////////////////////////////////////////
 // Logistic regression model
 void TNodeJsLogReg::Init(v8::Handle<v8::Object> exports) {
@@ -582,6 +1210,8 @@ void TNodeJsLogReg::Init(v8::Handle<v8::Object> exports) {
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
 	// Add all methods, getters and setters here.
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _setParams);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
@@ -589,34 +1219,69 @@ void TNodeJsLogReg::Init(v8::Handle<v8::Object> exports) {
 	// properties
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weights"), _weights);
 	exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()),
-			   tpl->GetFunction());
+		tpl->GetFunction());
 }
 
 TNodeJsLogReg* TNodeJsLogReg::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
+	EAssertR(Args.Length() < 2, "new LogReg: expecting 0 or 1 parameter!");
+
 	try {
-		if (Args.Length() > 0 && TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFIn::GetClassId())) {
+		if (Args.Length() > 0 && TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFIn::GetClassId())) {
 			// load the model from the input stream
 			TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
 			return new TNodeJsLogReg(*JsFIn->SIn);
-		} else {
+		}
+		else if ((Args.Length() == 1 && TNodeJsUtil::IsArgObj(Args, 0)) || Args.Length() == 0)  {
 			// parse the argumentts
 			PJsonVal ArgJson = Args.Length() > 0 ? TNodeJsUtil::GetArgJson(Args, 0) : TJsonVal::NewObj();
 
 			const double Lambda = ArgJson->IsObjKey("lambda") ? ArgJson->GetObjNum("lambda") : 1;
 			const bool IncludeIntercept = ArgJson->IsObjKey("intercept") ? ArgJson->GetObjBool("intercept") : false;
 
-			return new TNodeJsLogReg(TMl::TLogReg(Lambda, IncludeIntercept));
+			return new TNodeJsLogReg(TClassification::TLogReg(Lambda, IncludeIntercept));
 		}
-	} catch (const PExcept& Except) {
+		else {
+			throw TExcept::New("new LogReg: wrong arguments in constructor!");
+		}
+	}
+	catch (const PExcept& Except) {
 		Isolate->ThrowException(v8::Exception::TypeError(
-					v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr())));
+			v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr())));
 		return nullptr;
 	}
 }
 
+void TNodeJsLogReg::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsLogReg* JsModel = ObjectWrap::Unwrap<TNodeJsLogReg>(Args.Holder());
+	PJsonVal ParamVal = TJsonVal::NewObj();
+
+	ParamVal->AddToObj("lambda", JsModel->LogReg.GetLambda());
+	ParamVal->AddToObj("intercept", JsModel->LogReg.GetIntercept());
+
+	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, ParamVal));
+}
+
+void TNodeJsLogReg::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1, "Constructor expects 1 argument!");
+	EAssertR(TNodeJsUtil::IsArgJson(Args, 0), "LogReg.setParams: first argument should be a Javascript object!");
+
+	PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+	TNodeJsLogReg* JsModel = ObjectWrap::Unwrap<TNodeJsLogReg>(Args.Holder());
+
+	if (ParamVal->IsObjKey("lambda")) { JsModel->LogReg.SetLambda(ParamVal->GetObjNum("lambda")); }
+	if (ParamVal->IsObjKey("intercept")) { JsModel->LogReg.SetIntercept(ParamVal->GetObjBool("intercept")); }
+
+	Args.GetReturnValue().Set(Args.Holder());
+}
 
 void TNodeJsLogReg::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -633,7 +1298,8 @@ void TNodeJsLogReg::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	if (Args.Length() > 2) {
 		const double ConvergEps = TNodeJsUtil::GetArgFlt(Args, 2);
 		JsModel->LogReg.Fit(InstanceMat->Mat, ResponseJsV->Vec, ConvergEps);
-	} else {
+	}
+	else {
 		JsModel->LogReg.Fit(InstanceMat->Mat, ResponseJsV->Vec);
 	}
 
@@ -665,8 +1331,9 @@ void TNodeJsLogReg::weights(v8::Local<v8::String> Name, const v8::PropertyCallba
 			TFltV WgtV;	JsLogReg->LogReg.GetWgtV(WgtV);
 			Info.GetReturnValue().Set(TNodeJsFltV::New(WgtV));
 		}
-	} catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsSvmModel::weights");
+	}
+	catch (const PExcept& Except) {
+		throw TExcept::New(Except->GetMsgStr(), "TNodeJsSvmModel::weights");
 	}
 }
 
@@ -681,11 +1348,11 @@ void TNodeJsLogReg::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 	JsModel->LogReg.Save(*JsFOut->SOut);
 
-	Args.GetReturnValue().Set(v8::Undefined(Isolate));
+	Args.GetReturnValue().Set(Args[0]);
 }
 
 ////////////////////////////////////////////////////////
-// Exponential Regression
+// Proportional Hazards Model
 void TNodeJsPropHaz::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
@@ -696,6 +1363,8 @@ void TNodeJsPropHaz::Init(v8::Handle<v8::Object> exports) {
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
 	// Add all methods, getters and setters here.
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _setParams);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
@@ -703,31 +1372,54 @@ void TNodeJsPropHaz::Init(v8::Handle<v8::Object> exports) {
 	// properties
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weights"), _weights);
 	exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()),
-			   tpl->GetFunction());
+		tpl->GetFunction());
 }
 
 TNodeJsPropHaz* TNodeJsPropHaz::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	try {
-		if (Args.Length() > 0 && TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFIn::GetClassId())) {
-			// load the model from the input stream
-			TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
-			return new TNodeJsPropHaz(TMl::TPropHazards(*JsFIn->SIn));
-		} else {
-			// parse the arguments
-			PJsonVal ArgJson = Args.Length() > 0 ? TNodeJsUtil::GetArgJson(Args, 0) : TJsonVal::NewObj();
-
-			const double Lambda = ArgJson->IsObjKey("lambda") ? ArgJson->GetObjNum("lambda") : 0;
-
-			return new TNodeJsPropHaz(TMl::TPropHazards(Lambda));
-		}
-	} catch (const PExcept& Except) {
-		Isolate->ThrowException(v8::Exception::TypeError(
-					v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr())));
-		return nullptr;
+	if (Args.Length() > 0 && TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFIn::GetClassId())) {
+		// load the model from the input stream
+		TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
+		return new TNodeJsPropHaz(TRegression::TPropHazards(*JsFIn->SIn));
 	}
+	else if (Args.Length() == 0 || TNodeJsUtil::IsArgObj(Args, 0)) {
+		// parse the arguments
+		PJsonVal ArgJson = Args.Length() > 0 ? TNodeJsUtil::GetArgJson(Args, 0) : TJsonVal::NewObj();
+		const double Lambda = ArgJson->IsObjKey("lambda") ? ArgJson->GetObjNum("lambda") : 0;
+		return new TNodeJsPropHaz(TRegression::TPropHazards(Lambda));
+	}
+	else {
+		throw TExcept::New("new PropHazards: wrong arguments in constructor!");
+	}
+}
+
+void TNodeJsPropHaz::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsPropHaz* JsModel = ObjectWrap::Unwrap<TNodeJsPropHaz>(Args.Holder());
+	PJsonVal ParamVal = TJsonVal::NewObj();
+
+	ParamVal->AddToObj("lambda", JsModel->Model.GetLambda());
+
+	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, ParamVal));
+}
+
+void TNodeJsPropHaz::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1, "Constructor expects 1 argument!");
+	EAssertR(TNodeJsUtil::IsArgJson(Args, 0), "PropHaz.setParams: first argument should be a Javascript object!");
+
+	PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+	TNodeJsPropHaz* JsModel = ObjectWrap::Unwrap<TNodeJsPropHaz>(Args.Holder());
+
+	if (ParamVal->IsObjKey("lambda")) { JsModel->Model.SetLambda(ParamVal->GetObjNum("lambda")); }
+
+	Args.GetReturnValue().Set(Args.Holder());
 }
 
 void TNodeJsPropHaz::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -745,7 +1437,8 @@ void TNodeJsPropHaz::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	if (Args.Length() > 2) {
 		const double ConvergEps = TNodeJsUtil::GetArgFlt(Args, 2);
 		JsModel->Model.Fit(InstanceMat->Mat, ResponseJsV->Vec, ConvergEps);
-	} else {
+	}
+	else {
 		JsModel->Model.Fit(InstanceMat->Mat, ResponseJsV->Vec);
 	}
 
@@ -779,8 +1472,9 @@ void TNodeJsPropHaz::weights(v8::Local<v8::String> Name, const v8::PropertyCallb
 			TFltV WgtV;	JsExpReg->Model.GetWgtV(WgtV);
 			Info.GetReturnValue().Set(TNodeJsFltV::New(WgtV));
 		}
-	} catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsSvmModel::weights");
+	}
+	catch (const PExcept& Except) {
+		throw TExcept::New(Except->GetMsgStr(), "TNodeJsSvmModel::weights");
 	}
 }
 
@@ -795,108 +1489,13 @@ void TNodeJsPropHaz::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 	JsModel->Model.Save(*JsFOut->SOut);
 
-	Args.GetReturnValue().Set(v8::Undefined(Isolate));
-}
-
-void TNodeJsRidgeReg::Init(v8::Handle<v8::Object> exports) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsRidgeReg>);
-	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
-	// ObjectWrap uses the first internal field to store the wrapped pointer.
-	tpl->InstanceTemplate()->SetInternalFieldCount(1);
-
-	// Add all methods, getters and setters here.
-	NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
-
-	// properties
-	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weights"), _weights);
-	exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()),
-		tpl->GetFunction());
-}
-
-TNodeJsRidgeReg* TNodeJsRidgeReg::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	if (Args.Length() > 0 && TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFIn::GetClassId())) {
-		// load the model from the input stream
-		TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
-		TFlt _Gamma(*JsFIn->SIn); TFltV _Weights(*JsFIn->SIn);
-
-		return new TNodeJsRidgeReg(_Gamma, _Weights);
-	}
-	else {
-		TFlt _Gamma = TNodeJsUtil::GetArgFlt(Args, 0, 0);
-		TFltV _Weights = TFltV();
-		return new TNodeJsRidgeReg(_Gamma, _Weights);
-	}
-
-
-}
-
-void TNodeJsRidgeReg::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	EAssertR(Args.Length() >= 2, "RidgeReg.fit: expects at least 2 arguments!");
-
-	TNodeJsRidgeReg* JsModel = ObjectWrap::Unwrap<TNodeJsRidgeReg>(Args.Holder());
-
-	// get the arguments
-	TNodeJsFltVV* InstanceMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
-	TNodeJsFltV* ResponseJsV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[1]->ToObject());
-
-	TNumericalStuff::LeastSquares(InstanceMat->Mat, ResponseJsV->Vec, JsModel->Gamma, JsModel->Weights);
-	Args.GetReturnValue().Set(Args.Holder());
-}
-
-void TNodeJsRidgeReg::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	EAssertR(Args.Length() == 1, "RidgeReg.predict: expects 1 argument!");
-
-	TNodeJsRidgeReg* JsModel = ObjectWrap::Unwrap<TNodeJsRidgeReg>(Args.Holder());
-
-	// get the arguments
-	TNodeJsFltV* JsFtrV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[0]->ToObject());
-	EAssertR(JsFtrV->Vec.Len() == JsModel->Weights.Len(), "RidgeReg.predict: model and data dimension mismatch");
-	const double Result = TLinAlg::DotProduct(JsFtrV->Vec, JsModel->Weights);
-
-	Args.GetReturnValue().Set(v8::Number::New(Isolate, Result));
-}
-
-void TNodeJsRidgeReg::weights(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	TNodeJsRidgeReg* JsModel = ObjectWrap::Unwrap<TNodeJsRidgeReg>(Info.Holder());
-
-	Info.GetReturnValue().Set(TNodeJsFltV::New(JsModel->Weights));
-}
-
-void TNodeJsRidgeReg::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	EAssertR(Args.Length() == 1 && TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFOut::GetClassId()), "RidgeReg.save: expects 1 argument of type qminer.fs.FOut!");
-
-	TNodeJsRidgeReg* JsModel = ObjectWrap::Unwrap<TNodeJsRidgeReg>(Args.Holder());
-	TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
-
-	JsModel->Gamma.Save(*JsFOut->SOut);
-	JsModel->Weights.Save(*JsFOut->SOut);
-
 	Args.GetReturnValue().Set(Args[0]);
 }
 
+
 ////////////////////////////////////////////////////////
 // Hierarchical Markov Chain model
-const double TNodeJsStreamStory::DEFAULT_DELTA_TM = 1e-3;
+const double TNodeJsStreamStory::DEFAULT_DELTA_TM = 1e-6;
 
 void TNodeJsStreamStory::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -909,38 +1508,52 @@ void TNodeJsStreamStory::Init(v8::Handle<v8::Object> exports) {
 
 	// Add all methods, getters and setters here.
 	NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "fitAsync", _fitAsync);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "update", _update);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "futureStates", _futureStates);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "pastStates", _pastStates);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "probsOverTime", _probsOverTime);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "probsAtTime", _probsAtTime);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "histStates", _histStates);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "currState", _currState);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "fullCoords", _fullCoords);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "histogram", _histogram);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "transitionHistogram", _transitionHistogram);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getFtrBounds", _getFtrBounds);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "stateIds", _stateIds);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStateWgtV", _getStateWgtV);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getClassifyTree", _getClassifyTree);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "explainState", _explainState);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "toJSON", _toJSON);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getSubModelJson", _getSubModelJson);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getTransitionModel", _getTransitionModel);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "onStateChanged", _onStateChanged);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "onAnomaly", _onAnomaly);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "onOutlier", _onOutlier);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "onProgress", _onProgress);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "onPrediction", _onPrediction);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "rebuildHierarchy", _rebuildHierarchy);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "rebuildHistograms", _rebuildHistograms);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getStateLabel", _getStateLabel);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStateName", _getStateName);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "setStateName", _setStateName);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "setStateCoords", _setStateCoords);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "clearStateName", _clearStateName);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "isTarget", _isTarget);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "setTarget", _setTarget);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "setControlFactor", _setControlFactor);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "isLeaf", _isLeaf);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getTimeUnit", _getTimeUnit);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "setControlVal", _setControlVal);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "resetControlVal", _resetControlVal);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "isAnyControlFtrSet", _isAnyControlFtrSet);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _setParams);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getParam", _getParam);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
 	exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()),
-			   tpl->GetFunction());
+		tpl->GetFunction());
 }
 
-TNodeJsStreamStory::TNodeJsStreamStory(const TMc::PStreamStory& _StreamStory):
+TNodeJsStreamStory::TNodeJsStreamStory(TMc::TStreamStory* _StreamStory):
 		StreamStory(_StreamStory) {
 	InitCallbacks();
 }
@@ -954,113 +1567,115 @@ TNodeJsStreamStory::~TNodeJsStreamStory() {
 	StateChangedCallback.Reset();
 	AnomalyCallback.Reset();
 	OutlierCallback.Reset();
+	ProgressCallback.Reset();
 	PredictionCallback.Reset();
+	delete StreamStory;
 }
 
 TNodeJsStreamStory* TNodeJsStreamStory::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	QmAssertR(Args.Length() == 1, "Constructor expects 1 argument!");
+	EAssertR(Args.Length() == 1, "Constructor expects 1 argument!");
 
-	if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFIn::GetClassId())) {
+	if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFIn::GetClassId())) {
 		// load from file
 		PSIn SIn = TNodeJsUtil::IsArgStr(Args, 0) ?
 				TFIn::New(TNodeJsUtil::GetArgStr(Args, 0)) :
-				TNodeJsUtil::GetArgObj<TNodeJsFIn>(Args, 0)->SIn;
+				TNodeJsUtil::GetArgUnwrapObj<TNodeJsFIn>(Args, 0)->SIn;
 
 		return new TNodeJsStreamStory(SIn);
 	} else {
 		const PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
 
+		const int RndSeed = ParamVal->GetObjInt("rndseed", 0);
+		const TRnd Rnd(RndSeed);
+
 		const int NPastStates = ParamVal->IsObjKey("pastStates") ? ParamVal->GetObjInt("pastStates") : 0;
 		const bool Verbose = ParamVal->IsObjKey("verbose") ? ParamVal->GetObjBool("verbose") : true;
 
-		const PJsonVal TransitionJson = ParamVal->GetObjKey("transitions");
 		const PJsonVal ClustJson = ParamVal->GetObjKey("clustering");
-
-		// transition modelling
-		const TStr TimeUnitStr = TransitionJson->GetObjStr("timeUnit");
-		const double DeltaTm = TransitionJson->IsObjKey("deltaTime") ?
-				TransitionJson->GetObjNum("deltaTime") : DEFAULT_DELTA_TM;
-
-		uint64 TimeUnit;
-		if (TimeUnitStr == "second") {
-			TimeUnit = TMc::TCtMChain::TU_SECOND;
-		} else if (TimeUnitStr == "minute") {
-			TimeUnit = TMc::TCtMChain::TU_MINUTE;
-		} else if (TimeUnitStr == "hour") {
-			TimeUnit = TMc::TCtMChain::TU_HOUR;
-		} else if (TimeUnitStr == "day") {
-			TimeUnit = TMc::TCtMChain::TU_DAY;
-		} else if (TimeUnitStr == "month") {
-			TimeUnit = TMc::TCtMChain::TU_MONTH;
-		} else {
-			throw TExcept::New("Invalid time unit: " + TimeUnitStr, "TJsHierCtmc::TJsHierCtmc");
-		}
-
-		TMc::PMChain MChain = new TMc::TCtMChain(TimeUnit, DeltaTm, Verbose);
+		const PJsonVal TransitionJson = ParamVal->GetObjKey("transitions");
+		const PJsonVal HierarchJson = ParamVal->GetObjKey("hierarchy");
 
 		// clustering
-		TMc::PStateIdentifier Clust = NULL;
-
-		const TStr ClustAlg = ClustJson->GetObjStr("type");
 		const double Sample = ClustJson->IsObjKey("sample") ? ClustJson->GetObjNum("sample") : 1;
 		const int NHistBins = ClustJson->IsObjKey("histogramBins") ? ClustJson->GetObjInt("histogramBins") : 20;
 
-		if (ClustAlg == "dpmeans") {
-			const double Lambda = ClustJson->GetObjNum("lambda");
-			const int MinClusts = ClustJson->IsObjKey("minClusts") ? ClustJson->GetObjInt("minClusts") : 1;
-			const int MxClusts = ClustJson->IsObjKey("maxClusts") ? ClustJson->GetObjInt("maxClusts") : TInt::Mx;
-			const int RndSeed = ClustJson->IsObjKey("rndseed") ? ClustJson->GetObjInt("rndseed") : 0;
-			Clust = new TMc::TDpMeans(NHistBins, Sample, Lambda, MinClusts, MxClusts, TRnd(RndSeed), Verbose);
-		} else if (ClustAlg == "kmeans") {
-			const int K = ClustJson->GetObjInt("k");
-			const int RndSeed = ClustJson->IsObjKey("rndseed") ? ClustJson->GetObjInt("rndseed") : 0;
-			Clust = new TMc::TFullKMeans(NHistBins, Sample, K, TRnd(RndSeed), Verbose);
-		} else {
-			throw TExcept::New("Invalivalid clustering type: " + ClustAlg, "TJsHierCtmc::TJsHierCtmc");
-		}
+		// transition modelling
+		const uint64 TimeUnit = GetTmUnit(TransitionJson->GetObjStr("timeUnit"));
+		const double DeltaTm = TransitionJson->IsObjKey("deltaTime") ?
+				TransitionJson->GetObjNum("deltaTime") : DEFAULT_DELTA_TM;
 
-		// create the model
-		TMc::PHierarch Hierarch = new TMc::THierarch(NPastStates + 1, Verbose);
+		// hierarchy
+		const bool IsTransitionBased = HierarchJson->GetObjBool("isTransitionBased");
+
+		TMc::TStateIdentifier* StateIdentifier = new TMc::TStateIdentifier(GetClust(ClustJson, Rnd), NHistBins, Sample, Rnd, Verbose);
+		TMc::TCtmcModeller* MChain = new TMc::TCtmcModeller(TimeUnit, DeltaTm, Verbose);
+		TMc::THierarch* Hierarch = new TMc::THierarch(NPastStates + 1, IsTransitionBased, Verbose);
 
 		// finish
-		TMc::PStreamStory StreamStory = new TMc::TStreamStory(Clust, MChain, Hierarch, Verbose);
-
-		return new TNodeJsStreamStory(StreamStory);
+		return new TNodeJsStreamStory(new TMc::TStreamStory(StateIdentifier, MChain, Hierarch, Rnd, Verbose));
 	}
 }
 
-void TNodeJsStreamStory::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+TNodeJsStreamStory::TFitTask::TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args):
+		TNodeTask(Args),
+		JsStreamStory(nullptr),
+		JsObservFtrs(nullptr),
+		JsControlFtrs(nullptr),
+		JsRecTmV(nullptr),
+		JsBatchEndJsV(nullptr) {
+
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	EAssertR(Args.Length() == 1, "hmc.fit expects 1 argument!");
+	EAssertR(Args.Length() == 2, "hmc.fit expects 2 arguments!");
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 	v8::Local<v8::Object> ArgObj = Args[0]->ToObject();
 
 	EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "observations", TNodeJsFltVV::GetClassId()), "Missing field observations or invalid class!");
 	EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "controls", TNodeJsFltVV::GetClassId()), "Missing field controls or invalid class!");
 	EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "times", TNodeJsFltV::GetClassId()), "Missing field times or invalid class!");
 
-	TNodeJsFltVV* JsObservFtrs = TNodeJsUtil::GetObjFld<TNodeJsFltVV>(ArgObj, "observations");
-	TNodeJsFltVV* JsControlFtrs = TNodeJsUtil::GetObjFld<TNodeJsFltVV>(ArgObj, "controls");
-	TNodeJsFltV* JsRecTmV = TNodeJsUtil::GetObjFld<TNodeJsFltV>(ArgObj, "times");
-
-	TUInt64V RecTmV(JsRecTmV->Vec.Len(), 0);
-	for (int i = 0; i < JsRecTmV->Vec.Len(); i++) {
-		RecTmV.Add(TNodeJsUtil::GetCppTimestamp((uint64)JsRecTmV->Vec[i]));
-	}
+	JsObservFtrs = TNodeJsUtil::GetUnwrapFld<TNodeJsFltVV>(ArgObj, "observations");
+	JsControlFtrs = TNodeJsUtil::GetUnwrapFld<TNodeJsFltVV>(ArgObj, "controls");
+	JsRecTmV = TNodeJsUtil::GetUnwrapFld<TNodeJsFltV>(ArgObj, "times");
 
 	if (!TNodeJsUtil::IsFldNull(ArgObj, "batchV")) {
 		EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "batchV", TNodeJsBoolV::GetClassId()), "Invalid class of field batchV!");
-		const TNodeJsBoolV* BatchEndJsV = TNodeJsUtil::GetObjFld<TNodeJsBoolV>(ArgObj, "batchV");
-		const TBoolV& BatchEndV = BatchEndJsV->Vec;
-		JsMChain->StreamStory->InitBatches(JsObservFtrs->Mat, JsControlFtrs->Mat, RecTmV, BatchEndV);
-	} else {
-		JsMChain->StreamStory->Init(JsObservFtrs->Mat, JsControlFtrs->Mat, RecTmV);
+		JsBatchEndJsV = TNodeJsUtil::GetUnwrapFld<TNodeJsBoolV>(ArgObj, "batchV");
 	}
+}
 
-	Args.GetReturnValue().Set(v8::Undefined(Isolate));
+v8::Handle<v8::Function> TNodeJsStreamStory::TFitTask::GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	return TNodeJsUtil::GetArgFun(Args, 1);
+}
+
+void TNodeJsStreamStory::TFitTask::Run() {
+	try {
+		TUInt64V RecTmV;	TNodeJsUtil::GetCppTmMSecsV(JsRecTmV->Vec, RecTmV);
+
+		if (JsBatchEndJsV != nullptr) {
+			const TBoolV& BatchEndV = JsBatchEndJsV->Vec;
+			JsStreamStory->StreamStory->InitBatches(JsObservFtrs->Mat, JsControlFtrs->Mat, RecTmV, BatchEndV);
+		} else {
+			JsStreamStory->StreamStory->Init(JsObservFtrs->Mat, JsControlFtrs->Mat, RecTmV);
+		}
+	} catch (const PExcept& _Except) {
+		SetExcept(_Except);
+	}
+}
+
+void TNodeJsStreamStory::TProgressTask::Run(const TProgressTask& Task) {
+	if (!Task.ProgressCallback->IsEmpty()) {
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope HandleScope(Isolate);
+
+		v8::Local<v8::Integer> JsPerc = v8::Integer::New(Isolate, Task.Perc);
+		v8::Local<v8::String> JsMsg = v8::String::NewFromUtf8(Isolate, Task.Msg.CStr());
+
+		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, *Task.ProgressCallback);
+		TNodeJsUtil::ExecuteVoid(Callback, JsPerc->ToObject(), JsMsg->ToObject());
+	}
 }
 
 void TNodeJsStreamStory::update(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -1072,15 +1687,7 @@ void TNodeJsStreamStory::update(const v8::FunctionCallbackInfo<v8::Value>& Args)
 	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 	TNodeJsFltV* JsObsFtrV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[0]->ToObject());
 	TNodeJsFltV* JsContrFtrV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[1]->ToObject());
-
-	uint64 RecTm;
-	if (Args[2]->IsDate()) {
-		// TODO
-		RecTm = 0;
-	} else {
-		// Args[1] is a timestamp (UNIX timestamp)
-		RecTm = TTm::GetWinMSecsFromUnixMSecs((uint64)TNodeJsUtil::GetArgFlt(Args, 2));
-	}
+	const uint64 RecTm = TNodeJsUtil::GetArgTmMSecs(Args, 2);//GetTmMSecs(Args[2]);
 
 	JsMChain->StreamStory->OnAddRec(RecTm, JsObsFtrV->Vec, JsContrFtrV->Vec);
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
@@ -1150,72 +1757,31 @@ void TNodeJsStreamStory::pastStates(const v8::FunctionCallbackInfo<v8::Value>& A
 	Args.GetReturnValue().Set(StateArr);
 }
 
-void TNodeJsStreamStory::probsOverTime(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsStreamStory::probsAtTime(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
-	const double Level = TNodeJsUtil::GetArgFlt(Args, 0);
-	const int StartState = TNodeJsUtil::GetArgInt32(Args, 1);
-	const double StartTm = TNodeJsUtil::GetArgFlt(Args, 2);
-	const double EndTm = TNodeJsUtil::GetArgFlt(Args, 3);
-	const double DeltaTm = TNodeJsUtil::GetArgFlt(Args, 4);
+	const int StartStateId = TNodeJsUtil::GetArgInt32(Args, 0);
+	const double Level = TNodeJsUtil::GetArgFlt(Args, 1);
+	const double Time = TNodeJsUtil::GetArgFlt(Args, 2);
 
-	TVec<TFltV> FutProbV, PastProbV;
-	TIntV StateIdV;
-	JsMChain->StreamStory->GetProbVOverTm(Level, StartState, StartTm, EndTm, DeltaTm, StateIdV, FutProbV, PastProbV);
+	TIntV StateIdV; TFltV ProbV;
+	JsStreamStory->StreamStory->GetProbVAtTime(StartStateId, Level, Time, StateIdV, ProbV);
 
-	v8::Local<v8::Array> TimeArr = v8::Array::New(Isolate, FutProbV.Len() + PastProbV.Len());
-
-	double Tm = -DeltaTm*PastProbV.Len();
-	for (int i = 0; i < PastProbV.Len(); i++) {
-		const TFltV& ProbV = PastProbV[PastProbV.Len()-1-i];
+	v8::Local<v8::Array> Result = v8::Array::New(Isolate, StateIdV.Len());
+	for (int i = 0; i < StateIdV.Len(); i++) {
+		const int& StateId = StateIdV[i];
+		const double Prob = ProbV[i];
 
 		v8::Local<v8::Object> StateObj = v8::Object::New(Isolate);
-		v8::Local<v8::Array> ProbArr = v8::Array::New(Isolate, FutProbV[0].Len());
-
-		for (int j = 0; j < ProbV.Len(); j++) {
-			v8::Local<v8::Object> ProbObj = v8::Object::New(Isolate);
-
-			ProbObj->Set(v8::String::NewFromUtf8(Isolate, "stateId"), v8::Integer::New(Isolate, StateIdV[j]));
-			ProbObj->Set(v8::String::NewFromUtf8(Isolate, "prob"), v8::Number::New(Isolate, ProbV[j]));
-
-			ProbArr->Set(j, ProbObj);
-		}
-
-		StateObj->Set(v8::String::NewFromUtf8(Isolate, "time"), v8::Number::New(Isolate, Tm));
-		StateObj->Set(v8::String::NewFromUtf8(Isolate, "probs"), ProbArr);
-
-		TimeArr->Set(i, StateObj);
-
-		Tm += DeltaTm;
+		StateObj->Set(v8::String::NewFromUtf8(Isolate, "stateId"), v8::Integer::New(Isolate, StateId));
+		StateObj->Set(v8::String::NewFromUtf8(Isolate, "prob"), v8::Number::New(Isolate, Prob));
+		Result->Set(i, StateObj);
 	}
 
-	for (int i = 0; i < FutProbV.Len(); i++) {
-		const TFltV& ProbV = FutProbV[i];
-
-		v8::Local<v8::Object> StateObj = v8::Object::New(Isolate);
-		v8::Local<v8::Array> ProbArr = v8::Array::New(Isolate, FutProbV[0].Len());
-
-		for (int j = 0; j < ProbV.Len(); j++) {
-			v8::Local<v8::Object> ProbObj = v8::Object::New(Isolate);
-
-			ProbObj->Set(v8::String::NewFromUtf8(Isolate, "stateId"), v8::Integer::New(Isolate, StateIdV[j]));
-			ProbObj->Set(v8::String::NewFromUtf8(Isolate, "prob"), v8::Number::New(Isolate, ProbV[j]));
-
-			ProbArr->Set(j, ProbObj);
-		}
-
-		StateObj->Set(v8::String::NewFromUtf8(Isolate, "time"), v8::Number::New(Isolate, Tm));
-		StateObj->Set(v8::String::NewFromUtf8(Isolate, "probs"), ProbArr);
-
-		TimeArr->Set(PastProbV.Len() + i, StateObj);
-
-		Tm += DeltaTm;
-	}
-
-	Args.GetReturnValue().Set(TimeArr);
+	Args.GetReturnValue().Set(Result);
 }
 
 void TNodeJsStreamStory::histStates(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -1240,8 +1806,20 @@ void TNodeJsStreamStory::toJSON(const v8::FunctionCallbackInfo<v8::Value>& Args)
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
-	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, JsMChain->StreamStory->GetJson()));
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, JsStreamStory->StreamStory->GetJson()));
+}
+
+void TNodeJsStreamStory::getSubModelJson(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+
+	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
+	const PJsonVal ModelJson = JsStreamStory->StreamStory->GetSubModelJson(StateId);
+
+	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, ModelJson));
 }
 
 void TNodeJsStreamStory::getTransitionModel(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -1323,28 +1901,48 @@ void TNodeJsStreamStory::histogram(const v8::FunctionCallbackInfo<v8::Value>& Ar
 
 	EAssertR(Args.Length() == 2, "hmc.histogram: expects 2 arguments!");
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
 	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
 	const int FtrId = TNodeJsUtil::GetArgInt32(Args, 1);
 
 	TFltV BinStartV, ProbV;
-	JsMChain->StreamStory->GetHistogram(StateId, FtrId, BinStartV, ProbV);
+	JsStreamStory->StreamStory->GetHistogram(StateId, FtrId, BinStartV, ProbV);
+	WrapHistogram(Args, BinStartV, ProbV);
+}
+
+void TNodeJsStreamStory::transitionHistogram(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 3, "ss.transitionHistogram: expects 3 arguments!");
+
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+
+	const int SourceId = TNodeJsUtil::GetArgInt32(Args, 0);
+	const int TargetId = TNodeJsUtil::GetArgInt32(Args, 1);
+	const int FtrId = TNodeJsUtil::GetArgInt32(Args, 2);
+
+	TFltV BinStartV, ProbV;
+
+	JsStreamStory->StreamStory->GetTransitionHistogram(SourceId, TargetId, FtrId, BinStartV, ProbV);
+	WrapHistogram(Args, BinStartV, ProbV);
+}
+
+void TNodeJsStreamStory::getFtrBounds(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1, "hmc.getFtrBounds: expects 1 argument!");
+
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+
+	const int FtrId = TNodeJsUtil::GetArgInt32(Args, 0);
+	const TFltPr FtrBounds = JsStreamStory->StreamStory->GetFtrBounds(FtrId);
 
 	v8::Local<v8::Object> Result = v8::Object::New(Isolate);
-	v8::Local<v8::Array> BinStartJsV = v8::Array::New(Isolate, BinStartV.Len());
-	v8::Local<v8::Array> ProbJsV = v8::Array::New(Isolate, ProbV.Len());
-
-	for (int i = 0; i < BinStartV.Len(); i++) {
-		BinStartJsV->Set(i, v8::Number::New(Isolate, BinStartV[i]));
-	}
-
-	for (int i = 0; i < ProbV.Len(); i++) {
-		ProbJsV->Set(i, v8::Number::New(Isolate, ProbV[i]));
-	}
-
-	Result->Set(v8::String::NewFromUtf8(Isolate, "binStartV"), BinStartJsV);
-	Result->Set(v8::String::NewFromUtf8(Isolate, "probs"), ProbJsV);
+	Result->Set(v8::String::NewFromUtf8(Isolate, "min"), v8::Number::New(Isolate, FtrBounds.Val1.Val));
+	Result->Set(v8::String::NewFromUtf8(Isolate, "max"), v8::Number::New(Isolate, FtrBounds.Val2.Val));
 
 	Args.GetReturnValue().Set(Result);
 }
@@ -1383,7 +1981,6 @@ void TNodeJsStreamStory::getStateWgtV(const v8::FunctionCallbackInfo<v8::Value>&
 	TFltV WgtV;
 	JsMChain->StreamStory->GetStateWgtV(StateId, WgtV);
 
-
 	v8::Local<v8::Array> JsWgtV = v8::Array::New(Isolate, WgtV.Len());
 	for (int i = 0; i < WgtV.Len(); i++) {
 		JsWgtV->Set(i, v8::Number::New(Isolate, WgtV[i]));
@@ -1392,16 +1989,43 @@ void TNodeJsStreamStory::getStateWgtV(const v8::FunctionCallbackInfo<v8::Value>&
 	Args.GetReturnValue().Set(JsWgtV);
 }
 
+void TNodeJsStreamStory::getClassifyTree(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+
+	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
+	const PJsonVal TreeJson = JsStreamStory->StreamStory->GetStateClassifyTree(StateId);
+
+	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, TreeJson));
+}
+
+void TNodeJsStreamStory::explainState(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+
+	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
+	const PJsonVal ExplainJson = JsStreamStory->StreamStory->GetStateExplain(StateId);
+
+	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, ExplainJson));
+}
+
 void TNodeJsStreamStory::onStateChanged(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	QmAssertR(Args.Length() > 0 && Args[0]->IsFunction(), "hmc.onStateChanged: First argument expected to be a function!");
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
-	v8::Handle<v8::Function> Callback = v8::Handle<v8::Function>::Cast(Args[0]);
-
-	JsMChain->StateChangedCallback.Reset(Isolate, Callback);
+	if (TNodeJsUtil::IsArgNullOrUndef(Args, 0)) {
+		JsStreamStory->StateChangedCallback.Reset();
+	} else {
+		EAssertR(Args.Length() > 0 && Args[0]->IsFunction(), "hmc.onStateChanged: First argument expected to be a function!");
+		v8::Handle<v8::Function> Callback = v8::Handle<v8::Function>::Cast(Args[0]);
+		JsStreamStory->StateChangedCallback.Reset(Isolate, Callback);
+	}
 
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
@@ -1410,12 +2034,15 @@ void TNodeJsStreamStory::onAnomaly(const v8::FunctionCallbackInfo<v8::Value>& Ar
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	QmAssertR(Args.Length() > 0 && Args[0]->IsFunction(), "hmc.onAnomaly: First argument expected to be a function!");
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
-	v8::Handle<v8::Function> Callback = v8::Handle<v8::Function>::Cast(Args[0]);
-
-	JsMChain->AnomalyCallback.Reset(Isolate, Callback);
+	if (TNodeJsUtil::IsArgNullOrUndef(Args, 0)) {
+		JsStreamStory->AnomalyCallback.Reset();
+	} else {
+		EAssertR(Args.Length() > 0 && Args[0]->IsFunction(), "hmc.onAnomaly: First argument expected to be a function!");
+		v8::Handle<v8::Function> Callback = v8::Handle<v8::Function>::Cast(Args[0]);
+		JsStreamStory->AnomalyCallback.Reset(Isolate, Callback);
+	}
 
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
@@ -1424,12 +2051,32 @@ void TNodeJsStreamStory::onOutlier(const v8::FunctionCallbackInfo<v8::Value>& Ar
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	QmAssertR(Args.Length() > 0 && Args[0]->IsFunction(), "hmc.onOutlier: First argument expected to be a function!");
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
-	v8::Handle<v8::Function> Callback = v8::Handle<v8::Function>::Cast(Args[0]);
+	if (TNodeJsUtil::IsArgNullOrUndef(Args, 0)) {
+		JsStreamStory->OutlierCallback.Reset();
+	} else {
+		EAssertR(Args.Length() > 0 && Args[0]->IsFunction(), "hmc.onOutlier: First argument expected to be a function!");
+		v8::Handle<v8::Function> Callback = v8::Handle<v8::Function>::Cast(Args[0]);
+		JsStreamStory->OutlierCallback.Reset(Isolate, Callback);
+	}
 
-	JsMChain->OutlierCallback.Reset(Isolate, Callback);
+	Args.GetReturnValue().Set(v8::Undefined(Isolate));
+}
+
+void TNodeJsStreamStory::onProgress(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+
+	if (TNodeJsUtil::IsArgNullOrUndef(Args, 0)) {
+		JsStreamStory->ProgressCallback.Reset();
+	} else {
+		EAssertR(Args.Length() > 0 && Args[0]->IsFunction(), "hmc.onProgress: First argument expected to be a function!");
+		v8::Handle<v8::Function> Callback = v8::Handle<v8::Function>::Cast(Args[0]);
+		JsStreamStory->ProgressCallback.Reset(Isolate, Callback);
+	}
 
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
@@ -1438,12 +2085,15 @@ void TNodeJsStreamStory::onPrediction(const v8::FunctionCallbackInfo<v8::Value>&
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	QmAssertR(Args.Length() > 0 && Args[0]->IsFunction(), "hmc.onPrediction: First argument expected to be a function!");
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
-	v8::Handle<v8::Function> Callback = v8::Handle<v8::Function>::Cast(Args[0]);
-
-	JsMChain->PredictionCallback.Reset(Isolate, Callback);
+	if (TNodeJsUtil::IsArgNullOrUndef(Args, 0)) {
+		JsStreamStory->PredictionCallback.Reset();
+	} else {
+		EAssertR(Args.Length() > 0 && Args[0]->IsFunction(), "hmc.onPrediction: First argument expected to be a function!");
+		v8::Handle<v8::Function> Callback = v8::Handle<v8::Function>::Cast(Args[0]);
+		JsStreamStory->PredictionCallback.Reset(Isolate, Callback);
+	}
 
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
@@ -1452,9 +2102,8 @@ void TNodeJsStreamStory::rebuildHierarchy(const v8::FunctionCallbackInfo<v8::Val
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
-
-	JsMChain->StreamStory->InitHierarch();
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	JsStreamStory->StreamStory->InitHierarch();
 
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
@@ -1465,16 +2114,16 @@ void TNodeJsStreamStory::rebuildHistograms(const v8::FunctionCallbackInfo<v8::Va
 
 	EAssertR(Args.Length() == 1, "hmc.rebuildHistograms: expects 1 argument!");
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 	v8::Local<v8::Object> ArgObj = Args[0]->ToObject();
 
 	EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "observations", TNodeJsFltVV::GetClassId()), "Missing field observations!");
 	EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "controls", TNodeJsFltVV::GetClassId()), "Missing field controls!");
 	EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "times", TNodeJsFltV::GetClassId()), "Missing field times!");
 
-	TNodeJsFltVV* JsObsFtrVV = TNodeJsUtil::GetObjFld<TNodeJsFltVV>(ArgObj, "observations");
-	TNodeJsFltVV* JsControlFtrVV = TNodeJsUtil::GetObjFld<TNodeJsFltVV>(ArgObj, "controls");
-	TNodeJsFltV* JsRecTmV = TNodeJsUtil::GetObjFld<TNodeJsFltV>(ArgObj, "times");
+	TNodeJsFltVV* JsObsFtrVV = TNodeJsUtil::GetUnwrapFld<TNodeJsFltVV>(ArgObj, "observations");
+	TNodeJsFltVV* JsControlFtrVV = TNodeJsUtil::GetUnwrapFld<TNodeJsFltVV>(ArgObj, "controls");
+	TNodeJsFltV* JsRecTmV = TNodeJsUtil::GetUnwrapFld<TNodeJsFltV>(ArgObj, "times");
 
 	TUInt64V RecTmV(JsRecTmV->Vec.Len(), 0);
 	for (int i = 0; i < JsRecTmV->Vec.Len(); i++) {
@@ -1483,26 +2132,40 @@ void TNodeJsStreamStory::rebuildHistograms(const v8::FunctionCallbackInfo<v8::Va
 
 	if (TNodeJsUtil::IsObjFld(ArgObj, "batchV")) {
 		EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "batchV", TNodeJsBoolV::GetClassId()), "Invalid class of field batchV!");
-		const TNodeJsBoolV* BatchEndJsV = TNodeJsUtil::GetObjFld<TNodeJsBoolV>(ArgObj, "batchV");
+		const TNodeJsBoolV* BatchEndJsV = TNodeJsUtil::GetUnwrapFld<TNodeJsBoolV>(ArgObj, "batchV");
 		const TBoolV& BatchEndV = BatchEndJsV->Vec;
-		JsMChain->StreamStory->InitHistograms(JsObsFtrVV->Mat, JsControlFtrVV->Mat, RecTmV, BatchEndV);
+		JsStreamStory->StreamStory->InitHistograms(JsObsFtrVV->Mat, JsControlFtrVV->Mat, RecTmV, BatchEndV);
 	} else {
-		JsMChain->StreamStory->InitHistograms(JsObsFtrVV->Mat, JsControlFtrVV->Mat, RecTmV, TBoolV());
+		JsStreamStory->StreamStory->InitHistograms(JsObsFtrVV->Mat, JsControlFtrVV->Mat, RecTmV, TBoolV());
 	}
 
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
+}
+
+void TNodeJsStreamStory::getStateLabel(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1, "ss.getStateName: expects 1 argument!");
+
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+
+	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
+	const TStr& StateNm = JsStreamStory->StreamStory->GetStateLabel(StateId);
+
+	Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, StateNm.CStr()));
 }
 
 void TNodeJsStreamStory::getStateName(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	EAssertR(Args.Length() == 1, "hmc.getStateName: expects 1 argument!");
+	EAssertR(Args.Length() == 1, "ss.getStateName: expects 1 argument!");
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
 	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
-	const TStr& StateNm = JsMChain->StreamStory->GetStateNm(StateId);
+	const TStr& StateNm = JsStreamStory->StreamStory->GetStateNm(StateId);
 
 	Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, StateNm.CStr()));
 }
@@ -1511,7 +2174,7 @@ void TNodeJsStreamStory::setStateName(const v8::FunctionCallbackInfo<v8::Value>&
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	EAssertR(Args.Length() == 2, "hmc.setStateName: expects 2 arguments!");
+	EAssertR(Args.Length() == 2, "ss.setStateName: expects 2 arguments!");
 
 	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
@@ -1523,18 +2186,53 @@ void TNodeJsStreamStory::setStateName(const v8::FunctionCallbackInfo<v8::Value>&
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 
+void TNodeJsStreamStory::setStateCoords(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+
+	const PJsonVal PosJsonArr = TNodeJsUtil::GetArgJson(Args, 0);
+
+	TFltPrV PosV(JsStreamStory->StreamStory->GetStates());
+	for (int i = 0; i < PosJsonArr->GetArrVals(); i++) {
+		const PJsonVal StateJson = PosJsonArr->GetArrVal(i);
+		const PJsonVal PosJson = StateJson->GetObjKey("position");
+
+		const int StateId = StateJson->GetObjInt("id");
+		const double x = PosJson->GetObjNum("x");
+		const double y = PosJson->GetObjNum("y");
+
+		PosV[StateId] = TFltPr(x, y);
+	}
+
+	JsStreamStory->StreamStory->SetStatePosV(PosV);
+	Args.GetReturnValue().Set(v8::Undefined(Isolate));
+}
+
+void TNodeJsStreamStory::clearStateName(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1, "ss.clearStateName: expects 1 argument!");
+
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+
+	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
+	JsStreamStory->StreamStory->SetStateNm(StateId, "");
+
+	Args.GetReturnValue().Set(v8::Undefined(Isolate));
+}
+
 void TNodeJsStreamStory::isTarget(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	EAssertR(Args.Length() == 2, "hmc.setStateName: expects 2 arguments!");
-
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
 	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
-	const double Height = TNodeJsUtil::GetArgFlt(Args, 1);
 
-	bool Result = JsMChain->StreamStory->IsTargetState(StateId, Height);
+	bool Result = JsStreamStory->StreamStory->IsTargetState(StateId);
 	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, Result));
 }
 
@@ -1542,40 +2240,110 @@ void TNodeJsStreamStory::setTarget(const v8::FunctionCallbackInfo<v8::Value>& Ar
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	EAssertR(Args.Length() == 3, "hmc.setStateName: expects 2 arguments!");
-
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
 	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
-	const double Height = TNodeJsUtil::GetArgFlt(Args, 1);
-	const bool IsTarget = TNodeJsUtil::GetArgBool(Args, 2);
+	const bool IsTarget = TNodeJsUtil::GetArgBool(Args, 1);
 
-	JsMChain->StreamStory->SetTargetState(StateId, Height, IsTarget);
+	JsStreamStory->StreamStory->SetTargetState(StateId, IsTarget);
 
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 
-void TNodeJsStreamStory::setControlFactor(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsStreamStory::isLeaf(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	EAssertR(Args.Length() == 2, "hmc.setControlFactor: expects 2 arguments!");
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
 
-	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, JsStreamStory->StreamStory->IsLeaf(StateId)));
+}
 
-	const int FtrIdx = TNodeJsUtil::GetArgInt32(Args, 0);
-	const double Factor = TNodeJsUtil::GetArgFlt(Args, 1);
+void TNodeJsStreamStory::getTimeUnit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
 
-	JsMChain->StreamStory->SetControlFtrFactor(FtrIdx, Factor);
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+
+	const uint64 TimeUnit = JsStreamStory->StreamStory->GetTimeUnit();
+
+	if (TimeUnit == TMc::TCtmcModeller::TU_SECOND) {
+		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "second"));
+	} else if (TimeUnit == TMc::TCtmcModeller::TU_MINUTE) {
+		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "minute"));
+	} else if (TimeUnit == TMc::TCtmcModeller::TU_HOUR) {
+		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "hour"));
+	} else if (TimeUnit == TMc::TCtmcModeller::TU_DAY) {
+		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "day"));
+	} else if (TimeUnit == TMc::TCtmcModeller::TU_MONTH) {
+		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "month"));
+	} else {
+		throw TExcept::New("Invalid time unit!", "TNodeJsStreamStory::getTimeUnit");
+	}
+}
+
+
+
+void TNodeJsStreamStory::setControlVal(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1, "TNodeJsStreamStory::setControlVal: expecting 1 argument!");
+
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	v8::Local<v8::Object> ArgsObj = Args[0]->ToObject();
+
+	const int FtrId = TNodeJsUtil::GetFldInt(ArgsObj, "ftrId");
+	const double Val = TNodeJsUtil::GetFldFlt(ArgsObj, "val");
+
+	if (TNodeJsUtil::IsFldInt(ArgsObj, "stateId")) {
+		const int StateId = TNodeJsUtil::GetFldInt(ArgsObj, "stateId");
+		JsStreamStory->StreamStory->SetControlFtrVal(StateId, FtrId, Val);
+	} else {
+		JsStreamStory->StreamStory->SetControlFtrsVal(FtrId, Val);
+	}
 
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
+}
+
+void TNodeJsStreamStory::resetControlVal(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1, "TNodeJsStreamStory::setControlVal: expecting 1 argument!");
+
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	v8::Local<v8::Object> ArgsObj = Args[0]->ToObject();
+
+	if (TNodeJsUtil::IsFldInt(ArgsObj, "stateId")) {
+		const int StateId = TNodeJsUtil::GetFldInt(ArgsObj, "stateId");
+		if (TNodeJsUtil::IsFldInt(ArgsObj, "ftrId")) {
+			const int FtrId = TNodeJsUtil::GetFldInt(ArgsObj, "ftrId");
+			JsStreamStory->StreamStory->ResetControlFtrVal(StateId, FtrId);
+		} else {
+			JsStreamStory->StreamStory->ResetControlFtrVals(StateId);
+		}
+	} else {
+		JsStreamStory->StreamStory->ResetControlFtrVals();
+	}
+
+	Args.GetReturnValue().Set(v8::Undefined(Isolate));
+}
+
+void TNodeJsStreamStory::isAnyControlFtrSet(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, JsStreamStory->StreamStory->IsAnyControlFtrSet()));
 }
 
 void TNodeJsStreamStory::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	QmAssertR(Args.Length() > 0, "hmc.setParams: Expects one argument!");
+	EAssertR(Args.Length() > 0, "hmc.setParams: Expects one argument!");
 
 	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 	PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
@@ -1589,7 +2357,7 @@ void TNodeJsStreamStory::getParam(const v8::FunctionCallbackInfo<v8::Value>& Arg
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	QmAssertR(Args.Length() == 1, "hmc.getParam: Expects one argument!");
+	EAssertR(Args.Length() == 1, "hmc.getParam: Expects one argument!");
 
 	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 	const TStr ParamNm = TNodeJsUtil::GetArgStr(Args, 0);
@@ -1613,7 +2381,7 @@ void TNodeJsStreamStory::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	QmAssertR(Args.Length() == 1, "Should have 1 argument!");
+	EAssertR(Args.Length() == 1, "Should have 1 argument!");
 
 	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
@@ -1621,7 +2389,7 @@ void TNodeJsStreamStory::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	if (TNodeJsUtil::IsArgStr(Args, 0)) {
 		SOut = TFOut::New(TNodeJsUtil::GetArgStr(Args, 0), false);
 	} else {
-		TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgObj<TNodeJsFOut>(Args, 0);
+		TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
 		SOut = JsFOut->SOut;
 	}
 
@@ -1678,15 +2446,15 @@ void TNodeJsStreamStory::OnOutlier(const TFltV& FtrV) {
 	}
 }
 
-void TNodeJsStreamStory::OnPrediction(const int& CurrStateId, const int& TargetStateId,
+void TNodeJsStreamStory::OnProgress(const int& Perc, const TStr& Msg) {
+	TNodeJsAsyncUtil::ExecuteOnMainAndWait(new TProgressTask(Perc, Msg, &ProgressCallback), true);
+}
+
+void TNodeJsStreamStory::OnPrediction(const uint64& RecTm, const int& CurrStateId, const int& TargetStateId,
 		const double& Prob, const TFltV& ProbV, const TFltV& TmV) {
 	if (!PredictionCallback.IsEmpty()) {
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::HandleScope HandleScope(Isolate);
-
-		const int ArgC = 5;
-
-		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, PredictionCallback);
 
 		v8::Local<v8::Array> JsProbV = v8::Array::New(Isolate, ProbV.Len());
 		v8::Local<v8::Array> JsTmV = v8::Array::New(Isolate, TmV.Len());
@@ -1698,7 +2466,10 @@ void TNodeJsStreamStory::OnPrediction(const int& CurrStateId, const int& TargetS
 			JsTmV->Set(i, v8::Number::New(Isolate, TmV[i]));
 		}
 
+		const int ArgC = 6;
+
 		v8::Handle<v8::Value> ArgV[ArgC] = {
+			v8::Date::New(Isolate, (double)TTm::GetUnixMSecsFromWinMSecs(RecTm)),
 			v8::Integer::New(Isolate, CurrStateId),
 			v8::Integer::New(Isolate, TargetStateId),
 			v8::Number::New(Isolate, Prob),
@@ -1706,6 +2477,7 @@ void TNodeJsStreamStory::OnPrediction(const int& CurrStateId, const int& TargetS
 			JsTmV
 		};
 
+		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, PredictionCallback);
 		TNodeJsUtil::ExecuteVoid(Callback, ArgC, ArgV);
 	}
 }
@@ -1725,11 +2497,67 @@ void TNodeJsStreamStory::InitCallbacks() {
 	StreamStory->SetCallback(this);
 }
 
+void TNodeJsStreamStory::WrapHistogram(const v8::FunctionCallbackInfo<v8::Value>& Args,
+		const TFltV& BinStartV, const TFltV& ProbV) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	v8::Local<v8::Object> Result = v8::Object::New(Isolate);
+	v8::Local<v8::Array> BinStartJsV = v8::Array::New(Isolate, BinStartV.Len());
+	v8::Local<v8::Array> ProbJsV = v8::Array::New(Isolate, ProbV.Len());
+
+	for (int i = 0; i < BinStartV.Len(); i++) {
+		BinStartJsV->Set(i, v8::Number::New(Isolate, BinStartV[i]));
+	}
+
+	for (int i = 0; i < ProbV.Len(); i++) {
+		ProbJsV->Set(i, v8::Number::New(Isolate, ProbV[i]));
+	}
+
+	Result->Set(v8::String::NewFromUtf8(Isolate, "binStartV"), BinStartJsV);
+	Result->Set(v8::String::NewFromUtf8(Isolate, "probs"), ProbJsV);
+
+	Args.GetReturnValue().Set(Result);
+}
+
+uint64 TNodeJsStreamStory::GetTmUnit(const TStr& TimeUnitStr) {
+	if (TimeUnitStr == "second") {
+		return TMc::TCtmcModeller::TU_SECOND;
+	} else if (TimeUnitStr == "minute") {
+		return TMc::TCtmcModeller::TU_MINUTE;
+	} else if (TimeUnitStr == "hour") {
+		return TMc::TCtmcModeller::TU_HOUR;
+	} else if (TimeUnitStr == "day") {
+		return TMc::TCtmcModeller::TU_DAY;
+	} else if (TimeUnitStr == "month") {
+		return TMc::TCtmcModeller::TU_MONTH;
+	} else {
+		throw TExcept::New("Invalid time unit: " + TimeUnitStr, "TNodeJsStreamStory::GetTmUnit");
+	}
+}
+
+TClustering::PDnsKMeans TNodeJsStreamStory::GetClust(const PJsonVal& ParamJson,
+		const TRnd& Rnd) {
+	const TStr& ClustAlg = ParamJson->GetObjStr("type");
+	if (ClustAlg == "dpmeans") {
+		const double Lambda = ParamJson->GetObjNum("lambda");
+		const int MinClusts = ParamJson->IsObjKey("minClusts") ? ParamJson->GetObjInt("minClusts") : 1;
+		const int MxClusts = ParamJson->IsObjKey("maxClusts") ? ParamJson->GetObjInt("maxClusts") : TInt::Mx;
+
+		return new TClustering::TDpMeans(Lambda, MinClusts, MxClusts, Rnd);
+	} else if (ClustAlg == "kmeans") {
+		const int K = ParamJson->GetObjInt("k");
+		return new TClustering::TDnsKMeans(K, Rnd);
+	} else {
+		throw TExcept::New("Invalivalid clustering type: " + ClustAlg, "TJsHierCtmc::TJsHierCtmc");
+	}
+}
+
 
 ////////////////////////////////////////////////////////
 // Neural Network model
 TNodeJsNNet::TNodeJsNNet(const PJsonVal& ParamVal) {
-	TIntV LayoutV; // kako naj initiram tuki nek placeholder Vector?
+	TIntV LayoutV;
 	double LearnRate;
 	double Momentum;
 	TSignalProc::TTFunc TFuncHiddenL;
@@ -1751,8 +2579,9 @@ TNodeJsNNet::TNodeJsNNet(const PJsonVal& ParamVal) {
 
 	try {
 		Model = TSignalProc::TNNet::New(LayoutV, LearnRate, Momentum, TFuncHiddenL, TFuncOutL);
-	} catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), Except->GetLocStr());
+	}
+	catch (const PExcept& Except) {
+		throw TExcept::New(Except->GetMsgStr(), Except->GetLocStr());
 	}
 
 }
@@ -1760,8 +2589,9 @@ TNodeJsNNet::TNodeJsNNet(const PJsonVal& ParamVal) {
 TNodeJsNNet::TNodeJsNNet(TSIn& SIn) {
 	try {
 		Model = TSignalProc::TNNet::Load(SIn);
-	} catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), Except->GetLocStr());
+	}
+	catch (const PExcept& Except) {
+		throw TExcept::New(Except->GetMsgStr(), Except->GetLocStr());
 	}
 
 }
@@ -1775,11 +2605,11 @@ void TNodeJsNNet::Init(v8::Handle<v8::Object> exports) {
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
 	// Add all methods, getters and setters here.
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _setParams);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "setLearnRate", _setLearnRate);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
-	//NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
 	// properties
 	//tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weights"), _weights);
@@ -1796,17 +2626,20 @@ TNodeJsNNet* TNodeJsNNet::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>&
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	EAssertR(Args.Length() == 1, "Expected one argument.");
+	EAssertR(Args.Length() <= 1, "Expected at most one argument.");
 
-	if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFIn::GetClassId())) {
+	if (Args.Length() == 1 && TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFIn::GetClassId())) {
 		// load the model from an input stream
 		// currently not used, will be implemented
 		TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
 		return new TNodeJsNNet(*JsFIn->SIn);
 	}
-	else { // got JSON
-		PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+	else if (Args.Length() == 0 || TNodeJsUtil::IsArgObj(Args, 0)) { // got JSON
+		PJsonVal ParamVal = (Args.Length() > 0) ? TNodeJsUtil::GetArgJson(Args, 0) : TJsonVal::NewObj();
 		return new TNodeJsNNet(ParamVal);
+	}
+	else {
+		throw TExcept::New("new NNet: wrong arguments in constructor!");
 	}
 }
 
@@ -1814,48 +2647,50 @@ void TNodeJsNNet::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	QmAssertR(Args.Length() == 2, "NNet.fit: missing argument");
+	EAssertR(Args.Length() == 2, "NNet.fit: missing argument");
 
 	try {
 		TNodeJsNNet* Model = ObjectWrap::Unwrap<TNodeJsNNet>(Args.Holder());
-		if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::GetClassId())) {
+		if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltV::GetClassId())) {
 
 			TNodeJsFltV* JsVecIn = ObjectWrap::Unwrap<TNodeJsFltV>(Args[0]->ToObject());
 			TNodeJsFltV* JsVecTarget = ObjectWrap::Unwrap<TNodeJsFltV>(Args[1]->ToObject());
 
-			// TODO: do some checking of dimensions etc..
-	        // first get output values
+			// first get output values
 			Model->Model->FeedFwd(JsVecIn->Vec);
 
-	        // then check how we performed and learn
-	        Model->Model->BackProp(JsVecTarget->Vec);
+			// then check how we performed and learn
+			Model->Model->BackProp(JsVecTarget->Vec);
 		}
-	    else if(TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltVV::GetClassId())){
+		else if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltVV::GetClassId())){
 			TNodeJsFltVV* JsVVecIn = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
 			TNodeJsFltVV* JsVVecTarget = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[1]->ToObject());
-	        for(int Row = 0; Row < JsVVecIn->Mat.GetRows(); Row++){
-	            TFltV InFltV;
-	            JsVVecIn->Mat.GetRow(Row, InFltV);
-	            Model->Model->FeedFwd(InFltV);
-	            // then check how we performed and learn
-	            TFltV TargFltV;
-	            JsVVecTarget->Mat.GetRow(Row, TargFltV);
-	            if(Row == JsVVecIn->Mat.GetRows() - 1){
-	                Model->Model->BackProp(TargFltV);
-	            }
-	            else {
-	                Model->Model->BackProp(TargFltV, false);
-	            }
-	        }
-	    }
-	    else {
-	    	// TODO: throw an error
-	        printf("NeuralNetwork.learn: The arguments must be a JsTFltV or JsTFltVV (js linalg full vector or matrix)");
-	    }
+
+			EAssertR(JsVVecIn->Mat.GetCols() == JsVVecTarget->Mat.GetCols(), "NNet.fit: Column dimension not equal!");
+
+			for (int ColN = 0; ColN < JsVVecIn->Mat.GetCols(); ColN++){
+				TFltV InFltV;
+				JsVVecIn->Mat.GetCol(ColN, InFltV);
+				Model->Model->FeedFwd(InFltV);
+				// then check how we performed and learn
+				TFltV TargFltV;
+				JsVVecTarget->Mat.GetCol(ColN, TargFltV);
+				if (ColN == JsVVecIn->Mat.GetCols() - 1){
+					Model->Model->BackProp(TargFltV);
+				}
+				else {
+					Model->Model->BackProp(TargFltV, false);
+				}
+			}
+		}
+		else {
+			// TODO: throw an error
+			printf("NeuralNetwork.fit: The arguments must be a JsTFltV or JsTFltVV (js linalg full vector or matrix)");
+		}
 		Args.GetReturnValue().Set(Args.Holder());
 	}
 	catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), Except->GetLocStr());
+		throw TExcept::New(Except->GetMsgStr(), Except->GetLocStr());
 	}
 }
 
@@ -1863,37 +2698,85 @@ void TNodeJsNNet::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	QmAssertR(Args.Length() > 0, "NNet.predict: missing argument");
+	EAssertR(Args.Length() > 0, "NNet.predict: missing argument");
 
 	try {
 		TNodeJsNNet* Model = ObjectWrap::Unwrap<TNodeJsNNet>(Args.Holder());
 
-		QmAssertR(TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::GetClassId()),
-				"NNet.predict: The first argument must be a JsTFltV (js linalg full vector)");
+		EAssertR(TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltV::GetClassId()),
+			"NNet.predict: The first argument must be a JsTFltV (js linalg full vector)");
 		TNodeJsFltV* JsVec = ObjectWrap::Unwrap<TNodeJsFltV>(Args[0]->ToObject());
 
 		Model->Model->FeedFwd(JsVec->Vec);
 
 		TFltV FltV;
-	    Model->Model->GetResults(FltV);
+		Model->Model->GetResults(FltV);
 
-	    Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(FltV));
+		Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(FltV));
 
-	} catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), Except->GetLocStr());
+	}
+	catch (const PExcept& Except) {
+		throw TExcept::New(Except->GetMsgStr(), Except->GetLocStr());
 	}
 }
 
-void TNodeJsNNet::setLearnRate(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsNNet::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
+	EAssertR(Args.Length() == 0, "NNet.getParams: Expects no arguments!");
+
+	TNodeJsNNet* JsModel = ObjectWrap::Unwrap<TNodeJsNNet>(Args.Holder());
+	PJsonVal ParamVal = TJsonVal::NewObj();
+
+	PJsonVal LayoutArr = TJsonVal::NewArr();
+	TIntV LayoutV; JsModel->Model->GetLayout(LayoutV);
+	for (int i = 0; i < LayoutV.Len(); i++) {
+		LayoutArr->AddToArr(LayoutV[i]);
+	}
+
+	ParamVal->AddToObj("layout", LayoutArr);
+	ParamVal->AddToObj("learnRate", JsModel->Model->GetLearnRate());
+	ParamVal->AddToObj("momentum", JsModel->Model->GetMomentum());
+	ParamVal->AddToObj("tFuncHidden", JsModel->Model->GetTFuncHidden());
+	ParamVal->AddToObj("tFuncOut", JsModel->Model->GetTFuncOut());
+
+	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, ParamVal));
+}
+
+void TNodeJsNNet::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1, "NNet.setParams: Expects one argument!");
+
 	TNodeJsNNet* Model = ObjectWrap::Unwrap<TNodeJsNNet>(Args.Holder());
-	TFlt NewLearnRate = TNodeJsUtil::GetArgFlt(Args, 0);
+	const PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
 
-	Model->Model->SetLearnRate(NewLearnRate);
+	TIntV LayoutV;
+	TSignalProc::TTFunc TFuncHiddenL;
+	TSignalProc::TTFunc TFuncOutL;
 
-	//printf("&&Set learnrate to: %f \n", (double)NewLearnRate);
+	if (ParamVal->IsObjKey("learnRate")) {
+		Model->Model->SetLearnRate(ParamVal->GetObjNum("learnRate"));
+	}
+	if (ParamVal->IsObjKey("momentum")) {
+		Model->Model->SetMomentum(ParamVal->GetObjNum("momentum"));
+	}
+	if (ParamVal->IsObjKey("layout")) {
+		ParamVal->GetObjIntV("layout", LayoutV);
+	}
+	else {
+		Model->Model->GetLayout(LayoutV);
+	}
+	TFuncHiddenL = Model->ExtractFuncFromString(ParamVal->GetObjStr("tFuncHidden", Model->Model->GetTFuncHidden()));
+	TFuncOutL = Model->ExtractFuncFromString(ParamVal->GetObjStr("tFuncOut", Model->Model->GetTFuncOut()));
+
+	if (ParamVal->IsObjKey("layout") || ParamVal->IsObjKey("tFuncHidden") || ParamVal->IsObjKey("TFuncOut")) {
+		Model->Model = TSignalProc::TNNet::New(LayoutV, Model->Model->GetLearnRate(), Model->Model->GetMomentum(),
+			TFuncHiddenL, TFuncOutL);
+	}
+
 	Args.GetReturnValue().Set(Args.Holder());
 }
 
@@ -1904,7 +2787,7 @@ void TNodeJsNNet::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	try {
 		TNodeJsNNet* Model = ObjectWrap::Unwrap<TNodeJsNNet>(Args.Holder());
 
-		QmAssertR(Args.Length() == 1, "Should have 1 argument!");
+		EAssertR(Args.Length() == 1, "Should have 1 argument!");
 		TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
 
 		PSOut SOut = JsFOut->SOut;
@@ -1912,8 +2795,9 @@ void TNodeJsNNet::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		Model->Model->Save(*SOut);
 
 		Args.GetReturnValue().Set(Args[0]);
-	} catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsNNet::save");
+	}
+	catch (const PExcept& Except) {
+		throw TExcept::New(Except->GetMsgStr(), "TNodeJsNNet::save");
 	}
 }
 
@@ -1923,19 +2807,25 @@ TSignalProc::TTFunc TNodeJsNNet::ExtractFuncFromString(const TStr& FuncString) {
 
 	if (FuncString == "tanHyper") {
 		TFunc = TSignalProc::TTFunc::tanHyper;
-    } else if (FuncString == "sigmoid") {
-    	TFunc = TSignalProc::TTFunc::sigmoid;
-    } else if (FuncString == "fastTanh") {
-    	TFunc = TSignalProc::TTFunc::fastTanh;
-    } else if (FuncString == "softPlus") {
-    	TFunc = TSignalProc::TTFunc::softPlus;
-    } else if (FuncString == "fastSigmoid") {
-    	TFunc = TSignalProc::TTFunc::fastSigmoid;
-    } else if (FuncString == "linear") {
-    	TFunc = TSignalProc::TTFunc::linear;
-    } else {
-        throw TExcept::New("Unknown transfer function type " + FuncString);
-    }
+	}
+	else if (FuncString == "sigmoid") {
+		TFunc = TSignalProc::TTFunc::sigmoid;
+	}
+	else if (FuncString == "fastTanh") {
+		TFunc = TSignalProc::TTFunc::fastTanh;
+	}
+	else if (FuncString == "softPlus") {
+		TFunc = TSignalProc::TTFunc::softPlus;
+	}
+	else if (FuncString == "fastSigmoid") {
+		TFunc = TSignalProc::TTFunc::fastSigmoid;
+	}
+	else if (FuncString == "linear") {
+		TFunc = TSignalProc::TTFunc::linear;
+	}
+	else {
+		throw TExcept::New("Unknown transfer function type " + FuncString);
+	}
 
 	return TFunc;
 }
@@ -1954,19 +2844,19 @@ void TNodeJsTokenizer::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getTokens", _getTokens);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getSentences", _getSentences);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getParagraphs", _getParagraphs);
-	
+
 	exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
 }
 
 TNodeJsTokenizer* TNodeJsTokenizer::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	// parse arguments
 	PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
-	QmAssertR(ParamVal->IsObjKey("type"),
+	EAssertR(ParamVal->IsObjKey("type"),
 		"Missing tokenizer type " + ParamVal->SaveStr());
 	const TStr& TypeNm = ParamVal->GetObjStr("type");
 	// create
 	PTokenizer Tokenizer = TTokenizer::New(TypeNm, ParamVal);
-	return new TNodeJsTokenizer(Tokenizer);	
+	return new TNodeJsTokenizer(Tokenizer);
 }
 
 void TNodeJsTokenizer::getTokens(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -2001,4 +2891,205 @@ void TNodeJsTokenizer::getParagraphs(const v8::FunctionCallbackInfo<v8::Value>& 
 	TStrV ParagraphV; TTokenizerUtil::Sentencize(TextStr, ParagraphV);
 
 	Args.GetReturnValue().Set(TNodeJsUtil::GetStrArr(ParagraphV));
+}
+
+/////////////////////////////////////////////
+// Multidimensional Scaling
+
+TNodeJsMDS::TNodeJsMDS(const PJsonVal& ParamVal) :
+MxStep(5000),
+MxSecs(500),
+MnDiff(1e-4),
+DistType(TVizDistType::vdtEucl) {
+	UpdateParams(ParamVal);
+}
+
+TNodeJsMDS::TNodeJsMDS(TSIn& SIn) :
+MxStep(TInt(SIn)),
+MxSecs(TInt(SIn)),
+MnDiff(TFlt(SIn)),
+DistType(LoadEnum<TVizDistType>(SIn)) {}
+
+void TNodeJsMDS::UpdateParams(const PJsonVal& ParamVal) {
+	if (ParamVal->IsObjKey("maxStep")) MxStep = (int) ParamVal->GetObjNum("maxStep");
+	if (ParamVal->IsObjKey("maxSecs")) MxSecs = (int) ParamVal->GetObjNum("maxSecs");
+	if (ParamVal->IsObjKey("minDiff")) MnDiff = ParamVal->GetObjNum("minDiff");
+	if (ParamVal->IsObjKey("distType")) { 
+		TStr Type = ParamVal->GetObjStr("distType"); 
+		if (Type == "Euclid") {
+			DistType = TVizDistType::vdtEucl;
+		} else if (Type == "Cos") {
+			DistType = TVizDistType::vdtCos;
+		} else if (Type == "SqrtCos") {
+			DistType = TVizDistType::vdtSqrtCos;
+		} else {
+			throw TExcept::New("MDS: unsupported distance type!");
+		}
+	}
+}
+
+PJsonVal TNodeJsMDS::GetParams() const {
+	PJsonVal ParamVal = TJsonVal::NewObj();
+
+	ParamVal->AddToObj("maxStep", MxStep);
+	ParamVal->AddToObj("maxSecs", MxSecs);
+	ParamVal->AddToObj("minDiff", MnDiff);
+	switch (DistType) {
+	case vdtEucl:
+		ParamVal->AddToObj("distType", "Euclid"); break;
+	case vdtCos:
+		ParamVal->AddToObj("distType", "Cos"); break;
+	case vdtSqrtCos:
+		ParamVal->AddToObj("distType", "SqrtCos"); break;
+	default:
+		throw TExcept::New("MDS.GetParams: unsupported distance type " + TInt::GetStr((int)DistType));
+	}
+	return ParamVal;
+}
+
+void TNodeJsMDS::Save(TSOut& SOut) const {
+	TInt(MxStep).Save(SOut);
+	TInt(MxSecs).Save(SOut);
+	TFlt(MnDiff).Save(SOut);
+	SaveEnum<TVizDistType>(SOut, DistType);
+}
+
+void TNodeJsMDS::Init(v8::Handle<v8::Object> exports) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsMDS>);
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
+	// ObjectWrap uses the first internal field to store the wrapped pointer.
+	tpl->InstanceTemplate()->SetInternalFieldCount(1);
+
+	// Add all methods, getters and setters here.
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _setParams);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "fitTransform", _fitTransform);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
+
+	// properties
+	exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
+}
+
+TNodeJsMDS* TNodeJsMDS::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	if (Args.Length() == 0) {
+		// create new model with default parameters
+		return new TNodeJsMDS(TJsonVal::NewObj());
+	}
+	else if (Args.Length() == 1 && TNodeJsUtil::IsArgWrapObj<TNodeJsFIn>(Args, 0)) {
+		// load the model from the input stream
+		TNodeJsFIn* JsFIn = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFIn>(Args, 0);
+		return new TNodeJsMDS(*JsFIn->SIn);
+	}
+	else if (Args.Length() == 1 && TNodeJsUtil::IsArgObj(Args, 0)) {
+		// create new model from given parameters
+		PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+		return new TNodeJsMDS(ParamVal);
+	}
+	else {
+		throw TExcept::New("new MDS: wrong arguments in constructor!");
+	}
+}
+
+void TNodeJsMDS::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 0, "MDS.getParams: takes 0 argument!");
+
+	try {
+		TNodeJsMDS* JsMDS = TNodeJsMDS::Unwrap<TNodeJsMDS>(Args.Holder());
+		Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, JsMDS->GetParams()));
+	}
+	catch (const PExcept& Except) {
+		throw TExcept::New(Except->GetMsgStr(), "MDS::getParams");
+	}
+}
+
+void TNodeJsMDS::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1, "MDS.setParams: takes 1 argument!");
+	EAssertR(TNodeJsUtil::IsArgJson(Args, 0), "MDS.setParams: first argument should be a Javascript object!");
+
+	try {
+		TNodeJsMDS* JsMDS = ObjectWrap::Unwrap<TNodeJsMDS>(Args.Holder());
+		PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+
+		JsMDS->UpdateParams(ParamVal);
+
+		Args.GetReturnValue().Set(Args.Holder());
+	}
+	catch (const PExcept& Except) {
+		throw TExcept::New(Except->GetMsgStr(), "MDS::setParams");
+	}
+}
+
+void TNodeJsMDS::fitTransform(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1, "MDS.fitTransform: expecting 1 argument!");
+	TNodeJsMDS* JsMDS = ObjectWrap::Unwrap<TNodeJsMDS>(Args.Holder());
+
+	TVec<TFltV> Temp;
+	TFltV DummyClsV;
+	PSVMTrainSet TrainSet;
+	// algorithm parameters
+	int MxStep = JsMDS->MxStep;
+	int MxSecs = JsMDS->MxSecs;
+	double MnDiff = JsMDS->MnDiff;
+	TVizDistType DistType = JsMDS->DistType;
+	bool RndStartPos = true;
+	PNotify Noty = TQm::TEnv::Logger;
+
+	if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltVV>(Args, 0)) {
+		const TFltVV& Mat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltVV>(Args, 0)->Mat;
+		DummyClsV.Gen(Mat.GetCols());
+		TrainSet = TRefDenseTrainSet::New(Mat, DummyClsV);
+		TVizMapFactory::MakeFlat(TrainSet, DistType, Temp, MxStep, MxSecs, MnDiff, RndStartPos, Noty);
+	}
+	else if (TNodeJsUtil::IsArgWrapObj<TNodeJsSpMat>(Args, 0)) {
+		const TVec<TIntFltKdV>& Mat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpMat>(Args, 0)->Mat;
+		DummyClsV.Gen(Mat.Len());
+		TrainSet = TRefSparseTrainSet::New(Mat, DummyClsV);
+		TVizMapFactory::MakeFlat(TrainSet, DistType, Temp, MxStep, MxSecs, MnDiff, RndStartPos, Noty);
+	}
+	else {
+		throw TExcept::New("MDS.fitTransform: argument not a sparse or dense matrix!");
+	}
+	
+	TFltVV Result(Temp.Len(), Temp[0].Len());
+	for (int RowN = 0; RowN < Temp.Len(); RowN++) {
+		for (int ColN = 0; ColN < Temp[0].Len(); ColN++) {
+			Result(RowN, ColN) = Temp[RowN][ColN];
+		}
+	}
+	Args.GetReturnValue().Set(TNodeJsFltVV::New(Result));
+}
+
+void TNodeJsMDS::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1, "MDS.save: Should have 1 argument!");
+
+	try {
+		TNodeJsMDS* JsMDS = ObjectWrap::Unwrap<TNodeJsMDS>(Args.Holder());
+		// get output stream from argumetns
+		TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
+		// save model
+		JsMDS->Save(*JsFOut->SOut);
+		// return output stream for convenience
+		Args.GetReturnValue().Set(Args[0]);
+	}
+	catch (const PExcept& Except) {
+		throw TExcept::New(Except->GetMsgStr(), "MDS::save");
+	}
 }

@@ -68,7 +68,7 @@ public:
   TB8Set GetFSet(const int& FSetN);
 
   static TBlobPt Load(const PFRnd& FRnd){
-    uchar Seg=FRnd->GetUCh(); uint Addr=FRnd->GetUInt();
+	uchar Seg=FRnd->GetUCh(); uint Addr=FRnd->GetUInt();
     TB8Set B8Set1(FRnd->GetUCh()); TB8Set B8Set2(FRnd->GetUCh());
     TB8Set B8Set3(FRnd->GetUCh());
     return TBlobPt(Seg, Addr, B8Set1, B8Set2, B8Set3);}
@@ -295,7 +295,7 @@ private:
   int MxSegLen;
   TStr NrFPath, NrFMid;
   TBlobBsV SegV;
-  int CurSegN;
+  uint CurSegN;
   static void GetNrFPathFMid(const TStr& BlobBsFNm, TStr& NrFPath, TStr& NrFMid);
   static TStr GetMainFNm(const TStr& NrFPath, const TStr& NrFMid);
   static TStr GetSegFNm(const TStr& NrFPath, const TStr& NrFMid, const int& SegN);

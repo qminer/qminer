@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-/////////////////////////////////////////////////
+////////////////////////////////////////////////
 // Notifications
 void TNotify::OnNotifyFmt(const TNotifyType& Type, const char *FmtStr, ...) {
   char Bf[10*1024];
@@ -70,12 +70,16 @@ void TNotify::DfOnNotify(const TNotifyType& Type, const TStr& MsgStr){
 }
 
 const PNotify TNotify::NullNotify=TNullNotify::New();
-const PNotify TNotify::StdNotify=TStdNotify::New();
-const PNotify TNotify::StdErrNotify=TStdErrNotify::New();
+PNotify TNotify::StdNotify=TStdNotify::New();
+PNotify TNotify::StdErrNotify=TStdErrNotify::New();
 
 /////////////////////////////////////////////////
 // Standard-Notifier
 void TStdNotify::OnNotify(const TNotifyType& Type, const TStr& MsgStr){
+  if (AddTimeStamp) {
+    TTm NowTm = TTm::GetCurLocTm();
+	printf("[%s] ", NowTm.GetHMSTColonDotStr(true, false).CStr());
+  }
   if (Type==ntInfo){
     printf("%s\n", MsgStr.CStr());
   } else {
@@ -85,6 +89,10 @@ void TStdNotify::OnNotify(const TNotifyType& Type, const TStr& MsgStr){
 }
 
 void TStdNotify::OnStatus(const TStr& MsgStr){
+  if (AddTimeStamp) {
+    TTm NowTm = TTm::GetCurLocTm();
+	printf("[%s] ", NowTm.GetHMSTColonDotStr(true, false).CStr());
+  }
   printf("%s", MsgStr.CStr());
   // print '\n' if message not overlayed
   if ((!MsgStr.Empty())&&(MsgStr.LastCh()!='\r')){
@@ -94,6 +102,10 @@ void TStdNotify::OnStatus(const TStr& MsgStr){
 /////////////////////////////////////////////////
 // Standard-Error-Notifier
 void TStdErrNotify::OnNotify(const TNotifyType& Type, const TStr& MsgStr){
+  if (AddTimeStamp) {
+    TTm NowTm = TTm::GetCurLocTm();
+	fprintf(stderr, "[%s] ", NowTm.GetHMSTColonDotStr(true, false).CStr());
+  }
   if (Type==ntInfo){
     fprintf(stderr, "%s\n", MsgStr.CStr());
   } else {
@@ -103,6 +115,10 @@ void TStdErrNotify::OnNotify(const TNotifyType& Type, const TStr& MsgStr){
 }
 
 void TStdErrNotify::OnStatus(const TStr& MsgStr){
+  if (AddTimeStamp) {
+    TTm NowTm = TTm::GetCurLocTm();
+	fprintf(stderr, "[%s] ", NowTm.GetHMSTColonDotStr(true, false).CStr());
+  }
   fprintf(stderr, "%s", MsgStr.CStr());
   // print '\n' if message not overlayed
   if ((!MsgStr.Empty())&&(MsgStr.LastCh()!='\r')){
@@ -119,6 +135,138 @@ void TLogNotify::OnStatus(const TStr& MsgStr) {
 		MsgStr.CStr()));
 }
 
+//////////////////////////////////////
+// Str-Notify
+void TStrNotify::OnNotify(const TNotifyType& Type, const TStr& MsgStr)
+{
+	if (Type == ntInfo) {
+		Log += MsgStr + "\n";
+	}
+	else {
+		TStr TypeStr = TNotify::GetTypeStr(Type, false);
+		Log += TypeStr + " " + MsgStr + "\n";
+	}
+}
+
+void TStrNotify::OnStatus(const TStr& MsgStr)
+{
+	Log += MsgStr;
+	// print '\n' if message not overlayed
+	if ((!MsgStr.Empty()) && (MsgStr.LastCh() != '\r'))
+		Log += "\n";
+}
+
 /////////////////////////////////////////////////
 // Exception
 TExcept::TOnExceptF TExcept::OnExceptF=NULL;
+
+PExcept TExcept::New(const TStr& MsgStr, const TStr& LocStr) {
+	TChA Stack = LocStr;
+	  
+#ifdef GLib_WIN
+	if (Stack.Len() > 0) { Stack += "\n"; }
+	Stack += "Stack trace:\n";
+	Stack += TBufferStackWalker::GetStackTrace();
+#endif
+	  
+	return PExcept(new TExcept(MsgStr, Stack));
+}
+
+PExcept TExcept::New(const int& ErrorCode, const TStr& MsgStr, const TStr& LocStr) {
+	TChA Stack = LocStr;
+
+#ifdef GLib_WIN
+	if (Stack.Len() > 0) { Stack += "\n"; }
+	Stack += "Stack trace:\n";
+	Stack += TBufferStackWalker::GetStackTrace();
+#endif
+
+	return PExcept(new TExcept(ErrorCode, MsgStr, Stack));
+}
+
+#ifdef GLib_WIN
+/////////////////////////////////////////////////
+// Stack-trace output for Windows
+void TFileStackWalker::OnOutput(LPCSTR szText) {
+    //printf(szText); StackWalker::OnOutput(szText);
+    if (FOut == NULL) { return; }
+    
+    // LPCSTR can be a char or a wchar, depending on the compiler character settings
+    // use the appropriate strcopy method to copy to a string buffer
+    if (sizeof(TCHAR) == sizeof(char)) {
+        fputs((char*) szText, FOut);
+    }
+    else {
+        fputws((wchar_t*) szText, FOut);
+    }
+}
+
+TFileStackWalker::TFileStackWalker() : StackWalker() {
+    int MxFNmLen = 1000;
+    char* FNm = new char[MxFNmLen]; if (FNm == NULL) { return; }
+    int FNmLen = GetModuleFileName(NULL, FNm, MxFNmLen); if (FNmLen == 0) { return; }
+    TStr FileName = TStr(FNm);
+    delete[] FNm;
+    
+    FileName += ".ErrTrace";
+    FOut = fopen(FileName.CStr(), "a+b");
+    
+    time_t Time = time(NULL);
+    fprintf(FOut, "\r\n--------\r\n%s --------\r\n", ctime(&Time));
+}
+
+void TFileStackWalker::CloseOutputFile() {
+    if (FOut != NULL)
+        fclose(FOut);
+    FOut = NULL;
+}
+
+TFileStackWalker::~TFileStackWalker() {
+    CloseOutputFile();
+}
+
+void TFileStackWalker::WriteStackTrace() {
+    TFileStackWalker Walker;
+    Walker.ShowCallstack();
+    Walker.CloseOutputFile();
+}
+
+void TBufferStackWalker::OnOutput(LPCSTR szText) {
+    // LPCSTR can be a char or a wchar, depending on the compiler character settings
+    // use the appropriate strcopy method to copy to a string buffer
+    TStr Text;
+    if (sizeof(TCHAR) == sizeof(char)) {
+        size_t size = strlen(szText);
+        char * pCopy = new char[size + 1];
+        strcpy(pCopy, szText);
+        Text = szText;
+        delete pCopy;
+        
+    }
+    else {
+        size_t size = wcstombs(NULL, (wchar_t*) szText, 0);
+        char * pCopy = new char[size + 1];
+        wcstombs(pCopy, (wchar_t*) szText, size + 1);
+        Text = pCopy;
+        delete pCopy;
+    }
+    // ignore highest stack items that consist of stack walker and TExcept
+    if (Text.SearchStr("StackWalker::") == -1 && Text.SearchStr("TExcept::") == -1)
+        Output += Text;
+}
+
+TBufferStackWalker::TBufferStackWalker() : StackWalker() {  }
+
+TChA TBufferStackWalker::GetOutput() { return Output; }
+
+// we create a global instance of the stalk walker. The first time it will be used
+// it will load the modules. This is a slow process so we want to call it only once.
+TBufferStackWalker GlobalStackWalker;
+
+// static method that generates stack trace and returns it
+TChA TBufferStackWalker::GetStackTrace() {
+	GlobalStackWalker.ClearOutput();
+	GlobalStackWalker.ShowCallstack();
+    return GlobalStackWalker.GetOutput();
+}
+#endif

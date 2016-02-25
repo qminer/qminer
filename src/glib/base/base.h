@@ -14,6 +14,7 @@ typedef int index_t;
 #else
 typedef long long index_t;
 #endif
+
 /////////////////////////////////////////////////
 // Environment defines
 #if defined (_WIN32)
@@ -56,9 +57,14 @@ typedef long long index_t;
   #endif
 #endif
 
+// if you need to compile with older compiler (C++98 standard)
+// comment the bottom define
+#define GLib_CPP11
+
 // includes
 #if defined (GLib_WIN)
   #define WIN32_LEAN_AND_MEAN
+  #define NOMINMAX
   #include <windows.h>
   #include <oleauto.h>
   #include <shellapi.h>
@@ -130,6 +136,8 @@ typedef long long index_t;
 
 #if defined(GLib_MACOSX)
   // On OS X Maverics there is no default support for OpenMP
+#elif defined(__clang__)
+  // Default clang on Linux also does not support OpenMP
 #else
   #define GLib_OPENMP
 #endif
@@ -158,7 +166,7 @@ typedef long long index_t;
 
 // for backtrace dump in G++, change SW_TRACE to 1
 #if defined(GLib_UNIX)
-#define SW_TRACE 1
+  #define SW_TRACE 1
 #endif
 
 // for Snap.py, switch 'no abort' is defined and NDEBUG is turned off
@@ -203,9 +211,10 @@ typedef long long index_t;
 #include "ss.h"
 #include "linalg.h"
 #include "tensor.h"
-#include "opt.h"
 #include "json.h"
 #include "zipfl.h"
+#include "pgblob.h"
+#include "funrouter.h"
 
 void BaseTralala();
 

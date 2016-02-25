@@ -139,7 +139,7 @@ class TNm{
 class TNm; \
 typedef TPt<TNm> PNm; \
 class TNm{ \
-private: \
+protected: \
   TCRef CRef; \
 public: \
   friend class TPt<TNm>;
@@ -152,8 +152,6 @@ typedef TPt<TNm> PNm;
 class TNm; \
 typedef TPt<TNm> PNm; \
 class TNm: public ENm{ \
-private: \
-  TCRef CRef; \
 public: \
   friend class TPt<TNm>;
 
@@ -161,8 +159,6 @@ public: \
 class TNm; \
 typedef TPt<TNm> PNm; \
 class TNm: public ENm1, public ENm2{ \
-private: \
-  TCRef CRef; \
 public: \
   friend class TPt<TNm>;
 
@@ -176,7 +172,7 @@ class TNm; \
 typedef TPt<TNm> PNm; \
 typedef TVec<PNm> TNmV; \
 class TNm{ \
-private: \
+protected: \
   TCRef CRef; \
 public: \
   friend class TPt<TNm>;
@@ -193,7 +189,7 @@ typedef TVec<PNm> TNmV; \
 typedef TLst<PNm> TNmL; \
 typedef TLstNd<PNm>* TNmLN; \
 class TNm{ \
-private: \
+protected: \
   TCRef CRef; \
 public: \
   friend class TPt<TNm>;
@@ -203,6 +199,7 @@ public: \
 class TSIn;
 class TSOut;
 class TStr;
+class TChA;
 class TXmlObjSer;
 class TXmlObjSerTagNm;
 template <class TRec> class TPt;
@@ -234,8 +231,9 @@ private: \
 /////////////////////////////////////////////////
 // Assertions
 class TOnExeStop{
-private:
+public:
   typedef bool (*TOnExeStopF)(char* MsgCStr);
+private:
   static TOnExeStopF OnExeStopF;
 public:
   static bool IsOnExeStopF(){return OnExeStopF!=NULL;}
@@ -310,7 +308,7 @@ void ExeStop(
 
 #define ESAssert(Cond) \
   ((Cond) ? static_cast<void>(0) : TExcept::Throw(TSysStr::GetLastMsgCStr(), \
-  TStr(__FILE__) + " line " + TInt::GetStr(__LINE__) +": "+ TStr(#Cond)))
+    TStr(__FILE__) + TStr(" line ") + TInt::GetStr(__LINE__) + TStr(": ")+ TStr(#Cond) ))
 
 // compile time assert
 // #define STATIC_ASSERT(x) { const char temp[ (((x) == 0) ? 0 : 1) ] = {'\0'}; }
@@ -478,7 +476,6 @@ template <class TRec> class TWPt;
 
 /////////////////////////////////////////////////
 // Smart-Pointer-With-Reference-Count
-
 template <class TRec>
 class TPt{
 public:
@@ -565,7 +562,7 @@ public:
 
   bool Empty() const {return Addr==NULL;}
   void Clr(){Addr=NULL;}
-  void Del(){delete Addr;}
+  void Del(){delete Addr; Addr=NULL;}
 
   int GetPrimHashCd() const {return Addr->GetPrimHashCd();}
   int GetSecHashCd() const { return Addr->GetSecHashCd(); }

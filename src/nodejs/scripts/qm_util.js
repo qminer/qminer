@@ -8,6 +8,10 @@
 //////////////////////////////////////////
 //#- `utilities = require('utilities.js')` -- imports utilities library to variable `utilities`
 //#- `bool = utilities.isObject(arg)` -- is parameter an object?
+
+var fs = require('fs');
+var readline = require('readline');
+
 exports.isObject = function (arg) {
     if (arg) {
         if ((typeof arg) == "object") {
@@ -111,7 +115,7 @@ exports.clsStopwatch = function () {
         if (typeof msg == "undefined") {
             msg = "";
         }
-        console.say(msg + ": elapsed " + this.formatTime(this.time()));
+        console.log(msg + ": elapsed " + this.formatTime(this.time()));
     };
     //#- `sw.tic()` -- resets and starts the stop watch
     this.tic = function () {
@@ -155,4 +159,8 @@ exports.arraysIdentical = function(a, b) {
 //#- `string = utilities.numberWithCommas(number)` -- format number 1234 to 1,234
 exports.numberWithCommas = function (x) {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+exports.stringEndsWith = function (string, suffix) {
+	return string.indexOf(suffix, string.length - suffix.length) !== -1;
 }

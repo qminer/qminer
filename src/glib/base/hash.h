@@ -39,6 +39,12 @@ public:
       Next=HashKeyDat.Next; HashCd=HashKeyDat.HashCd;
       Key=HashKeyDat.Key; Dat=HashKeyDat.Dat;}
     return *this;}
+  THashKeyDat& operator=(THashKeyDat&& HashKeyDat){
+    if (this!=&HashKeyDat){
+      Next=HashKeyDat.Next; HashCd=HashKeyDat.HashCd;
+      Key=std::move(HashKeyDat.Key); Dat=std::move(HashKeyDat.Dat);}
+    return *this;}
+
   uint64 GetMemUsed() const {
 	  return uint64(2 * sizeof(TInt)) + Key.GetMemUsed() + Dat.GetMemUsed();
   }
@@ -145,6 +151,7 @@ public:
     PortV(Hash.PortV), KeyDatV(Hash.KeyDatV), AutoSizeP(Hash.AutoSizeP),
     FFreeKeyId(Hash.FFreeKeyId), FreeKeys(Hash.FreeKeys){}
   explicit THash(const int& ExpectVals, const bool& _AutoSizeP=false);
+  explicit THash(const TVec<TKeyDat<TKey, TDat> >& KeyDatV);
   explicit THash(TSIn& SIn):
     PortV(SIn), KeyDatV(SIn),
     AutoSizeP(SIn), FFreeKeyId(SIn), FreeKeys(SIn){
@@ -254,6 +261,9 @@ public:
   bool IsKeyGetDat(const TKey& Key, TDat& Dat) const {int KeyId;
     if (IsKey(Key, KeyId)){Dat=GetHashKeyDat(KeyId).Dat; return true;}
     else {return false;}}
+  TDat GetDatOrDef(const TKey& Key, const TDat& DefVal) const {
+	  if (IsKey(Key)) { return GetDat(Key); }
+	  return DefVal;}
 
   int FFirstKeyId() const {return 0-1;}
   bool FNextKeyId(int& KeyId) const;
@@ -324,6 +334,14 @@ THash<TKey, TDat, THashFunc>::THash(const int& ExpectVals, const bool& _AutoSize
   PortV(GetNextPrime(ExpectVals/2)), KeyDatV(ExpectVals, 0),
   AutoSizeP(_AutoSizeP), FFreeKeyId(-1), FreeKeys(0){
   PortV.PutAll(TInt(-1));
+}
+
+template<class TKey, class TDat, class THashFunc>
+THash<TKey, TDat, THashFunc>::THash(const TVec<TKeyDat<TKey, TDat> >& KeyDatV):
+  PortV(), KeyDatV(), AutoSizeP(true), FFreeKeyId(-1), FreeKeys(0) 
+{
+  for (int N = 0; N < KeyDatV.Len(); N++)
+    AddDat(KeyDatV[N].Key, KeyDatV[N].Dat);
 }
 
 template<class TKey, class TDat, class THashFunc>
@@ -841,6 +859,11 @@ public:
   void GetDatKeyPrV(TVec<TPair<TDat, TStr> >& DatKeyPrV) const;
 
   void Pack(){KeyDatV.Pack();}
+  uint64 GetMemUsed() const {
+      return PortV.GetMemUsed() + KeyDatV.GetMemUsedDeep() +
+          AutoSizeP.GetMemUsed() + FFreeKeyId.GetMemUsed() +
+          FreeKeys.GetMemUsed() + Pool->GetMemUsed();
+  }
 };
 
 template <class TDat, class TStringPool, class THashFunc>
@@ -1133,17 +1156,22 @@ void TCache<TKey, TDat, THashFunc>::Del(const TKey& Key, const bool& DoEventCall
 
 template <class TKey, class TDat, class THashFunc>
 void TCache<TKey, TDat, THashFunc>::Flush(){
-  printf("Flush: 0/%d\r", KeyDatH.Len());
+  if (MxMemUsed > (int64)TInt::Giga) { printf("Flush: 0/%d\r", KeyDatH.Len()); }
   int KeyId=KeyDatH.FFirstKeyId(); int Done = 0;
   while (KeyDatH.FNextKeyId(KeyId)){
-    if (Done%10000==0){printf("Flush: %d/%d\r", Done, KeyDatH.Len());}
+    if (Done%10000==0){
+		double Perc = Done / (0.01 * (double) KeyDatH.Len());
+		if (MxMemUsed > (int64)TInt::Giga) {
+            printf("Flush: %d/%d (%.1f%%)\r", Done, KeyDatH.Len(), Perc);
+        }
+	}
     const TKey& Key=KeyDatH.GetKey(KeyId);
     TKeyLNDatPr& KeyLNDatPr=KeyDatH[KeyId];
     TDat Dat=KeyLNDatPr.Val2;
     Dat->OnDelFromCache(Key, RefToBs);
     Done++;
   }
-  printf("Flush: %d/%d\r", KeyDatH.Len(), KeyDatH.Len());
+  if (MxMemUsed > (int64)TInt::Giga) { printf("Flush: %d/%d\r", KeyDatH.Len(), KeyDatH.Len()); }
 }
 
 template <class TKey, class TDat, class THashFunc>

@@ -67,13 +67,16 @@ void InitAnalytics(Handle<Object> Exports, const TStr& NsNm) {
 	// QMiner package
 	TNodeJsSVC::Init(NsObj);
 	TNodeJsSVR::Init(NsObj);
+    TNodeJsRidgeReg::Init(NsObj);
+    TNodeJsSigmoid::Init(NsObj);
+    TNodeJsNNAnomalies::Init(NsObj);
 	TNodeJsRecLinReg::Init(NsObj);
 	TNodeJsLogReg::Init(NsObj);
 	TNodeJsPropHaz::Init(NsObj);
-	TNodeJsRidgeReg::Init(NsObj);
 	TNodeJsStreamStory::Init(NsObj);
 	TNodeJsNNet::Init(NsObj);
 	TNodeJsTokenizer::Init(NsObj);
+	TNodeJsMDS::Init(NsObj);
 
 	Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
 }
@@ -110,12 +113,17 @@ void InitSnap(Handle<Object> Exports, const TStr& NsNm) {
 }
 
 void InitQm(Handle<Object> Exports) {
+	#ifdef WIN32
+    _setmaxstdio(2048); 
+	#endif
+
 	// QMiner package
 	TNodeJsQm::Init(Exports);
 	TNodeJsBase::Init(Exports);
-	TNodeJsSA::Init(Exports);
+	TNodeJsStreamAggr::Init(Exports);
 	TNodeJsStore::Init(Exports);
 	// the record templates are initiated elsewhere: qm.open, qm.create, base.createStore
+	TNodeJsRecByValV::Init(Exports);
 	TNodeJsRecSet::Init(Exports);
 	TNodeJsStoreIter::Init(Exports);
 	TNodeJsIndexKey::Init(Exports);

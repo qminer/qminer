@@ -154,7 +154,7 @@ public:
 * // create a new vector
 * var vec2 = new la.<% className %>(<% example1 %>);
 */
-//# exports.<% className %> = function() {}
+//# exports.<% className %> = function() { return Object.create(require('qminer').la.<% className %>.prototype); }
 template <class TVal = TFlt, class TAux = TAuxFltV>
 class TNodeJsVec : public node::ObjectWrap {
 	friend class TNodeJsFltVV;
@@ -300,6 +300,7 @@ private:
 	* @param {boolean} [asc] - Sort in ascending order flag. Default is boolean and true.
 	* @returns {module:la~SortResult} Self.
 	* @example
+	* // import la module
 	* var la = require('qminer').la;
 	* // create a new vector
 	* var vec = new la.<% className %>(<% exampleSort %>);
@@ -332,7 +333,7 @@ private:
 	JsDeclareFunction(trunc);
 	
 	/**
-	* Creates a dense matrix A by multiplying two vectors x and y: A = x * y^T.
+	* Creates a dense matrix A by multiplying two vectors x and y: A = x y^T.
 	* @param {module:la.<% className %>} vec - Second vector.
 	* @returns {module:la.Matrix} Matrix obtained by the outer product of the instance and second vector.
 	* @example
@@ -341,7 +342,7 @@ private:
 	* var x = new la.<% className %>([1, 2, 3]);
 	* var y = new la.<% className %>([4, 5]);
 	* // create the outer product of these vectors
-	* var A = vec.outer(vec2); // creates the dense matrix [[4, 5], [8, 10], [12, 15]]
+	* var A = x.outer(y); // creates the dense matrix [[4, 5], [8, 10], [12, 15]]
 	*/
 	//# <% skipOuter %>exports.<% className %>.prototype.outer = function (vec) { return Object.create(require('qminer').la.Matrix.prototype);}
 	JsDeclareSpecializedFunction(outer);
@@ -966,7 +967,8 @@ inline void TNodeJsVec<TFlt, TAuxFltV>::spDiag(const v8::FunctionCallbackInfo<v8
 	// computation
 	TLAMisc::Diag(JsVec->Vec, Result);
 
-	Args.GetReturnValue().Set(TNodeJsSpMat::New(Result, JsVec->Vec.Len()));
+	Args.GetReturnValue().Set(
+		TNodeJsUtil::NewInstance<TNodeJsSpMat>(new TNodeJsSpMat(Result, JsVec->Vec.Len())));
 }
 
 template<>
@@ -987,12 +989,13 @@ inline void TNodeJsVec<TFlt, TAuxFltV>::sparse(const v8::FunctionCallbackInfo<v8
 
 	TNodeJsVec<TFlt, TAuxFltV>* JsVec =
 		ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args.This());
-
-	TIntFltKdV Res;
+	
+	int Dim = TNodeJsUtil::GetArgInt32(Args, 0, JsVec->Vec.Len());
+    TIntFltKdV Res;
 	TLAMisc::ToSpVec(JsVec->Vec, Res);
 
 	Args.GetReturnValue().Set(
-		TNodeJsUtil::NewInstance<TNodeJsSpVec>(new TNodeJsSpVec(Res, JsVec->Vec.Len())));
+		TNodeJsUtil::NewInstance<TNodeJsSpVec>(new TNodeJsSpVec(Res, Dim)));
 }
 
 template<>
@@ -1031,25 +1034,25 @@ void TNodeJsVec<TVal, TAux>::New(const v8::FunctionCallbackInfo<v8::Value>& Args
 			for (int ElN = 0; ElN < Len; ++ElN) { JsVec->Vec.Add(TAux::CastVal(Arr->Get(ElN))); }
 		}
 		else if (Args[0]->IsObject()) {
-			if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::GetClassId())) {
+			if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltV>(Args, 0)) {
 				//printf("vector construct call, class = %s, input TFltV\n", TAux::ClassId.CStr());
 				TNodeJsVec<TFlt, TAuxFltV>* JsVecArg = ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
 				Args.GetReturnValue().Set(New(JsVecArg->Vec));
 				return;
 			}
-			else if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsIntV::GetClassId())) {
+			else if (TNodeJsUtil::IsArgWrapObj<TNodeJsIntV>(Args, 0)) {
 				//printf("vector construct call, class = %s, input TIntV\n", TAux::ClassId.CStr());
 				TNodeJsVec<TInt, TAuxIntV>* JsVecArg = ObjectWrap::Unwrap<TNodeJsVec<TInt, TAuxIntV> >(Args[0]->ToObject());
 				Args.GetReturnValue().Set(New(JsVecArg->Vec));
 				return;
 			}
-			else if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsStrV::GetClassId())) {
+			else if (TNodeJsUtil::IsArgWrapObj<TNodeJsStrV>(Args, 0)) {
 				//printf("vector construct call, class = %s, input TStrV\n", TAux::ClassId.CStr());
 				TNodeJsVec<TStr, TAuxStrV>* JsVecArg = ObjectWrap::Unwrap<TNodeJsVec<TStr, TAuxStrV> >(Args[0]->ToObject());
 				Args.GetReturnValue().Set(New(JsVecArg->Vec));
 				return;
 			}
-			else if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsBoolV::GetClassId())) {
+			else if (TNodeJsUtil::IsArgWrapObj<TNodeJsBoolV>(Args, 0)) {
 				TNodeJsBoolV* JsBoolV = ObjectWrap::Unwrap<TNodeJsBoolV>(Args[0]->ToObject());
 				Args.GetReturnValue().Set(New(JsBoolV->Vec));
 				return;
@@ -1122,7 +1125,7 @@ void TNodeJsVec<TVal, TAux>::subVec(const v8::FunctionCallbackInfo<v8::Value>& A
 			Args.GetReturnValue().Set(TNodeJsVec<TVal, TAux>::New(ResultVec));
 			return;
 		}
-		else if (Args[0]->IsObject() && TNodeJsUtil::IsArgClass(Args, 0, TNodeJsIntV::GetClassId().CStr())) {
+		else if (TNodeJsUtil::IsArgWrapObj<TNodeJsIntV>(Args, 0)) {
 			TNodeJsVec<TInt, TAuxIntV>* IdxV = ObjectWrap::Unwrap<TNodeJsVec<TInt, TAuxIntV> >(Args[0]->ToObject());
 			const int Len = IdxV->Vec.Len();
 			TVec<TVal> ResultVec(Len);
@@ -1216,11 +1219,11 @@ void TNodeJsVec<TVal, TAux>::push(const v8::FunctionCallbackInfo<v8::Value>& Arg
 			v8::String::NewFromUtf8(Isolate, "Expected 1 argument, 0 given.")));
 	}
 	else if (!Args[0]->IsNumber() && !Args[0]->IsString() && !Args[0]->IsBoolean()) {
-		// TODO: int vector should not silently pass and truncate non-integer values!
 		Isolate->ThrowException(v8::Exception::TypeError(
 			v8::String::NewFromUtf8(Isolate, "Expected number, string or boolean")));
 	}
 	else {
+		
 		JsVec->Vec.Add(TAux::CastVal(Args[0]));
 		Args.GetReturnValue().Set(v8::Number::New(Isolate, JsVec->Vec.Len()));
 	}

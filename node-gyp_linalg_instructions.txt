@@ -1,3 +1,23 @@
+#WINDOWS
+
+compiling OPENBLAS not recommended
+http://sourceforge.net/projects/openblas/files/v0.2.14/
+easiest: win64 with 32bit matrix indexing
+extract, close visual studio, add openblas/bin to path!
+if node-gyp is not found: "npm install -g node-gyp"
+
+download: http://sourceforge.net/projects/openblas/files/v0.2.14/mingw64_dll.zip/download
+Add to openblas/bin:
+ libgcc_s_seh-1.dll, libgfortran-3.dll, libquadmath-0.dll
+
+call node-gyp clean
+call node-gyp configure --nodedir="D:/work/code/cpp/node-v0.12.0" -- -DLIN_ALG_BLAS=BLAS -DLIN_ALG_LAPACKE=LAPACKE -DLIN_ALG_INCLUDE="D:/work/code/cpp/openblas/include" -DLIN_ALG_LIB="D:/work/code/cpp/openblas/lib/libopenblas.dll.a"
+call node-gyp build
+call node -e "var la = require('./index.js').la;var A = new la.Matrix({ rows: 1000, cols: 1000, random: true });var B = new la.Matrix({ rows: 1000, cols: 1000, random: true });console.time('Multiply'); var C = A.multiply(B); console.timeEnd('Multiply');"
+
+
+#OLD INSTRUCTIONS (COVERS LINUX)
+
 export PATH=$PATH:/usr/local/bin
 #OPENBLAS
 

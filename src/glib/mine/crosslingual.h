@@ -8,9 +8,6 @@
 #ifndef CROSSLINGUAL_H
 #define CROSSLINGUAL_H
 
-#include "base.h"
-#include "mine.h"
-
 namespace TCrossLingual {
 
 ///////////////////////////////

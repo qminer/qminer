@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -82,36 +82,130 @@ public:
 };
 
 /////////////////////////////////////////////////
-// Memory
-ClassTP(TMem, PMem)//{
+// Memory chunk - simple buffer, non-resizable
+class TMemBase {
+protected:
+	int MxBfL, BfL;
+	char* Bf;
+	bool Owner;
+public:
+	TMemBase() : MxBfL(0), BfL(0), Bf(NULL), Owner(false) {}
+	TMemBase(const int& _BfL) : MxBfL(_BfL), BfL(_BfL), Bf(NULL), Owner(true) {
+		IAssert(BfL >= 0);
+		Bf = new char[BfL];
+	}
+	TMemBase(const void* _Bf, const int& _BfL, const bool& _Owner = true) :
+		MxBfL(_BfL), BfL(_BfL), Bf(NULL), Owner(_Owner) {
+		IAssert(BfL >= 0);
+		if (BfL > 0) {
+			if (Owner) {
+				Bf = new char[BfL]; IAssert(Bf != NULL); memcpy(Bf, _Bf, BfL);
+			} else {
+				Bf = (char*)_Bf;
+			}
+		}
+	}
+	TMemBase(TMemBase&& Src) {
+		MxBfL = Src.MxBfL; BfL = Src.BfL; Bf = Src.Bf; Owner = Src.Owner;
+		Src.MxBfL = Src.BfL = 0; Src.Bf = NULL;  Src.Owner = false;
+	}
+	virtual ~TMemBase() {
+		if (Owner && Bf != NULL) {
+			delete[] Bf; } }
+	int Len() const { return BfL; }
+	bool Empty() const { return BfL == 0; }
+	char* GetBf() const { return Bf; }
+	void Copy(const TMemBase& Mem) {
+		if (this != &Mem) {
+			if (Owner && Bf != NULL) { delete[] Bf; }
+			MxBfL = Mem.MxBfL; BfL = Mem.BfL; Bf = NULL; Owner = (MxBfL > 0);
+			if (MxBfL>0) { Bf = new char[MxBfL]; memcpy(Bf, Mem.Bf, BfL); }
+		}
+	}
+	TMemBase& operator=(TMemBase&& Src) {
+		if (this != &Src) {
+			if (Owner && Bf != NULL) { delete[] Bf; }
+			MxBfL = Src.MxBfL; BfL = Src.BfL; Bf = Src.Bf; Owner = Src.Owner;
+			Src.MxBfL = Src.BfL = 0; Src.Bf = NULL;  Src.Owner = false;
+		}
+		return *this;
+	}
+	TMemBase& operator=(const TMemBase& Mem) {
+		Copy(Mem); return *this;
+	}
+};
+
+/////////////////////////////////////////////////
+/// Thin Input-Memory. Used to present existing TMem as TSIn.
+/// It doesn't allocate or release any memory.
+class TThinMIn : public TSIn {
+protected:
+	uchar* Bf;
+	int BfC, BfL;
+public:
+	TThinMIn(const TMemBase& Mem);
+	TThinMIn(const void* _Bf, const int& _BfL);
+	TThinMIn(const TThinMIn& min);
+
+	bool Eof() { return BfC == BfL; }
+	int Len() const { return BfL - BfC; }
+	char GetCh();
+	char PeekCh();
+	int GetBf(const void* LBf, const TSize& LBfL);
+	void Reset() { Cs = TCs(); BfC = 0; }
+	uchar* GetBfAddr() { return Bf; }
+	char* GetBfAddrChar() { return (char*)Bf; }
+	void MoveTo(int Offset);
+	bool GetNextLnBf(TChA& LnChA);
+	TMemBase GetMemBase() { return TMemBase(GetBfAddr(), Len(), false); }
+};
+
+/////////////////////////////////////////////////////////////////////
+// Memory chunk - advanced memory buffer, supports resizing etc.
+// There are no additional data members.
+class TMem;
+typedef TPt<TMem> PMem;
+
+/// Memory chunk - advanced memory buffer
+class TMem : public TMemBase {
 private:
-  int MxBfL, BfL;
-  char* Bf;
+	TCRef CRef;
+public:
+	friend class TPt<TMem>;
+protected:
   void Resize(const int& _MxBfL);
   bool DoFitLen(const int& LBfL) const {return BfL+LBfL<=MxBfL;}
 public:
-  TMem(const int& _MxBfL=0):
-    MxBfL(_MxBfL), BfL(0), Bf(NULL){ IAssert(BfL>=0);
+  TMem(const int& _MxBfL=0) : TMemBase() {
+	  IAssert(BfL >= 0); MxBfL = _MxBfL; BfL = 0; Bf = NULL; Owner = true;
     if (MxBfL>0){Bf=new char[MxBfL]; IAssert(Bf!=NULL);}}
   static PMem New(const int& MxBfL=0){return new TMem(MxBfL);}
-  TMem(const void* _Bf, const int& _BfL):
-    MxBfL(_BfL), BfL(_BfL), Bf(NULL){ IAssert(BfL>=0);
-    if (BfL>0){Bf=new char[BfL]; IAssert(Bf!=NULL); memcpy(Bf, _Bf, BfL);}}
+  TMem(const void* _Bf, const int& _BfL) : TMemBase() {
+	  IAssert(BfL >= 0); MxBfL = _BfL; BfL = _BfL; Bf = NULL; Owner = true;
+	  if (BfL > 0) { Bf = new char[BfL]; IAssert(Bf != NULL); memcpy(Bf, _Bf, BfL); } }
   static PMem New(const void* Bf, const int& BfL){return new TMem(Bf, BfL);}
-  TMem(const TMem& Mem):
-    MxBfL(Mem.MxBfL), BfL(Mem.BfL), Bf(NULL){
+  TMem(const TMem& Mem) : TMemBase() {
+	  MxBfL = Mem.MxBfL; BfL = Mem.BfL; Bf = NULL; Owner = true;
     if (MxBfL>0){Bf=new char[MxBfL]; memcpy(Bf, Mem.Bf, BfL);}}
   static PMem New(const TMem& Mem){return new TMem(Mem);}
   static PMem New(const PMem& Mem){return new TMem(*Mem);}
   TMem(const TStr& Str);
+  TMem(TMem&& Src) : TMemBase() {
+	  MxBfL = Src.MxBfL; BfL = Src.BfL; Bf = Src.Bf; Owner = Src.Owner;
+	  Src.MxBfL = Src.BfL = 0; Src.Bf = NULL;  Src.Owner = false;
+  }
   static PMem New(const TStr& Str){return new TMem(Str);}
-  ~TMem(){if (Bf!=NULL){delete[] Bf;}}
+  ~TMem() { if (Owner && Bf != NULL) { delete[] Bf; }; Owner = false; Bf = NULL; }
   explicit TMem(TSIn& SIn) {
 	  SIn.Load(MxBfL); SIn.Load(BfL);
-	  Bf = new char[MxBfL = BfL]; SIn.LoadBf(Bf, BfL); }
+	  Bf = new char[MxBfL = BfL]; SIn.LoadBf(Bf, BfL); Owner = true; }
   void Load(PSIn& SIn) {
 	  Clr(); SIn->Load(MxBfL); SIn->Load(BfL);
-	  Bf = new char[MxBfL = BfL]; SIn->LoadBf(Bf, BfL); }
+	  Bf = new char[MxBfL = BfL]; SIn->LoadBf(Bf, BfL); Owner = true; }
+  void Load(TSIn& SIn) {
+	  Clr(); SIn.Load(MxBfL); SIn.Load(BfL);
+	  Bf = new char[MxBfL = BfL]; SIn.LoadBf(Bf, BfL); Owner = true; }
+
   void Save(TSOut& SOut) const {
     SOut.Save(MxBfL); SOut.Save(BfL); SOut.SaveBf(Bf, BfL);}
   void LoadXml(const PXmlTok& XmlTok, const TStr& Nm);
@@ -119,10 +213,18 @@ public:
 
   TMem& operator=(const TMem& Mem){
     if (this!=&Mem){
-      if (Bf!=NULL){delete[] Bf;}
-      MxBfL=Mem.MxBfL; BfL=Mem.BfL; Bf=NULL;
+		if (Owner && Bf != NULL) { delete[] Bf; }
+		MxBfL = Mem.MxBfL; BfL = Mem.BfL; Bf = NULL; Owner = true;
       if (MxBfL>0){Bf=new char[MxBfL]; memcpy(Bf, Mem.Bf, BfL);}}
     return *this;}
+  TMem& operator=(TMem&& Src) {
+	  if (this != &Src) {
+		  if (Owner && Bf != NULL) { delete[] Bf; }
+		  MxBfL = Src.MxBfL; BfL = Src.BfL; Bf = Src.Bf; Owner = Src.Owner;
+		  Src.MxBfL = Src.BfL = 0; Src.Bf = NULL;  Src.Owner = false;
+	  }
+	  return *this;
+  }
   char* operator()() const {return Bf;}
   TMem& operator+=(const char& Ch);
   TMem& operator+=(const TMem& Mem);
@@ -141,10 +243,8 @@ public:
     if (DoClr){ Clr(); } Resize(_MxBfL);}
   void Del(const int& BChN, const int& EChN);
   void Clr(const bool& DoDel=true){
-    if (DoDel){if (Bf!=NULL){delete[] Bf;} MxBfL=0; BfL=0; Bf=NULL;}
+    if (DoDel){if (Bf!=NULL && Owner){delete[] Bf;} MxBfL=0; BfL=0; Bf=NULL;}
     else {BfL=0;}}
-  int Len() const {return BfL;}
-  bool Empty() const {return BfL==0;}
   void Trunc(const int& _BfL){
     if ((0<=_BfL)&&(_BfL<=BfL)){BfL=_BfL;}}
   void Push(const char& Ch){operator+=(Ch);}
@@ -153,7 +253,6 @@ public:
   bool DoFitStr(const TStr& Str) const;
   //int AddStr(const TStr& Str);
   void AddBf(const void* Bf, const int& BfL);
-  char* GetBf() const {return Bf;}
   TStr GetAsStr(const char& NewNullCh='\0') const;
   // returns a hexadecimal representation of the byte array
   TStr GetHexStr() const;
@@ -345,10 +444,6 @@ public:
 
   static void LoadTxt(const PSIn& SIn, TChA& ChA);
   void SaveTxt(const PSOut& SOut) const;
-  
-  //friend TChA operator+(const TChA& LStr, const TChA& RStr);
-  //friend TChA operator+(const TChA& LStr, const TStr& RStr);
-  //friend TChA operator+(const TChA& LStr, const char* RCStr);
 };
 
 /////////////////////////////////////////////////
@@ -409,11 +504,11 @@ private:
   const static char EmptyStr;
   /// String
   char* Inner;
-  
-  /// Wraps the char pointer with a new string. The char pointer is NOT 
+
+  /// Wraps the char pointer with a new string. The char pointer is NOT
   /// copied and the new string becomes responsible for deleting it.
-  static TStr WrapCStr(char* CStr); 
-  
+  static TStr WrapCStr(char* CStr);
+
 public:
   /// Empty String Constructor
   TStr(): Inner(nullptr) {}
@@ -433,7 +528,7 @@ public:
   TStr(const TSStr& SStr); // KILL
   /// Stream (file) reading constructor
   explicit TStr(const PSIn& SIn);
-  
+
   /// We only delete when not empty
   ~TStr() { Clr(); }
 
@@ -455,7 +550,7 @@ public:
   void Load(TSIn& SIn, const bool& IsSmall = false);
   /// Serialize TStr to stream, when IsSmall, the string is saved as CStr,
   /// otherwise the format is first the length and then the data including last \0
-  void Save(TSOut& SOut, const bool& IsSmall = false) const;  
+  void Save(TSOut& SOut, const bool& IsSmall = false) const;
    /// Deserialize from XML File
   void LoadXml(const PXmlTok& XmlTok, const TStr& Nm);
   /// Serialize to XML File
@@ -474,6 +569,8 @@ public:
   TStr& operator+=(const TStr& Str) { *this = (*this + Str); return *this; } ;
   /// Concatenates and assigns (not thread safe)
   TStr& operator+=(const char* _CStr) { *this = (*this + _CStr); return *this; } ;
+  /// Concatenates and assigns (not thread safe)
+  TStr& operator+=(const char Ch) { *this = (*this + Ch); return *this; };
 
   /// Boolean comparison TStr == char*
   bool operator==(const char* _CStr) const;
@@ -485,7 +582,7 @@ public:
   bool operator!=(const char* CStr) const { return !operator==(CStr); }
   /// < (is less than comparison) TStr < TStr
   bool operator<(const TStr& Str) const;
-  
+
   /// Indexing operator, returns character at position ChN
   char operator[](const int& ChN) const { return GetCh(ChN); }
   /// Indexing operator, returns character at position ChN by reference
@@ -511,7 +608,7 @@ public:
   const TStr& GetStr() const { return *this; }
   /// Memory used by this String object
   int GetMemUsed() const;
-  
+
   /// Case insensitive comparison
   static int CmpI(const char* p, const char* r);
   /// Case insensitive comparison
@@ -534,7 +631,7 @@ public:
   TStr& ToCap();
   /// Returns string as capitalized (first char is uppercase, rest lowercase)
   TStr GetCap() const;
-  
+
   /// Replaces string with truncated (remove whitespace at start and end) (not thread safe)
   TStr& ToTrunc();
   /// Returns truncated string (remove whitespace at start and end)
@@ -552,6 +649,10 @@ public:
   TStr GetSubStr(const int& BChN, const int& EChN) const;
   /// Get substring from BchN to the end of the string
   TStr GetSubStr(const int& BChN) const { return GetSubStr(BChN, Len()-1); }
+  /// safe version for getting substring from BchN to EchN
+  TStr GetSubStrSafe(const int& BChN, const int& EChN) const;
+  /// safe version for getting substring from BchN to EchN
+  TStr GetSubStrSafe(const int& BChN) const { return GetSubStrSafe(BChN, Len() - 1); }
   /// Insert a string Str into this string starting position BchN (not thread safe)
   void InsStr(const int& BChN, const TStr& Str);
   /// Delete all the occurrences of char Ch (not thread safe)
@@ -571,8 +672,12 @@ public:
   TStr RightOf(const char& SplitCh) const;
   /// Get substring from the character after last occurrence of SplitCh till the end
   TStr RightOfLast(const char& SplitCh) const;
+  /// Remove the StartStr if it occurs at the beginning of the string
+  TStr TrimLeft(const TStr& StartStr) const { return StartsWith(StartStr) ? GetSubStrSafe(StartStr.Len()) : TStr(*this); }
+  /// Remove the EndStr if it occurs at the end of the string
+  TStr TrimRight(const TStr& EndStr) const { return EndsWith(EndStr) ? GetSubStrSafe(0, Len() - EndStr.Len() - 1) : TStr(*this); }
 
-  /// Puts the contents to the left of LeftOfChN (exclusive) into LStr and the 
+  /// Puts the contents to the left of LeftOfChN (exclusive) into LStr and the
   /// contents on the right of RightOfChN into RStr (exclusive)
   void SplitLeftOfRightOf(TStr& LStr, const int& LeftOfChN, const int& RightOfChN, TStr& RStr) const;
   /// Split on the index, return Pair of Left/Right strings, omits the target index
@@ -733,7 +838,7 @@ public:
   static TStr GetNrFPath(const TStr& FPath);
   static TStr GetNrFMid(const TStr& FMid);
   static TStr GetNrFExt(const TStr& FExt);
-  static TStr GetNrNumFExt(const int& FExtN);
+  static TStr GetNrNumFExt(const int& FExtN, const int& MinLen = 3);
   static TStr GetNrFNm(const TStr& FNm);
   static TStr GetNrAbsFPath(const TStr& FPath, const TStr& BaseFPath=TStr());
   static bool IsAbsFPath(const TStr& FPath);
@@ -770,8 +875,27 @@ public:
   friend TStr operator+(const TStr& LStr, const char* RCStr);
   /// Concatenates the two strings
   friend TStr operator+(const TStr& LStr, const TStr& RStr);
+  /// Concatenates the first string parameter with single char
+  friend TStr operator+(const TStr& LStr, const char Ch);
+
+
+
+  /// Base64-encode given buffer and return resulting string
+  static TStr Base64Encode(const void* Bf, const int BfL);
+  /// Base64-encode given buffer and return resulting string
+  static TStr Base64Encode(const TMemBase& Mem) { return Base64Encode(Mem.GetBf(), Mem.Len()); }
+  /// Base64-decode given string and fill this TMem object
+  static void Base64Decode(const TStr& In, TMem& Mem);
 
 private:
+
+  /// Static mapping utility for base64 characters
+  static const TStr base64_chars;
+
+  /// This method checks if given character belongs to base64 range
+  static inline bool is_base64(unsigned char c) { return (isalnum(c) || (c == '+') || (c == '/')); };
+
+
   /// internal method used to check if the string stored in TChRet is an unsigned integer
   /// IMPORTANT: TChRet must be initialized (GetCh() must be called at least once)
   static bool IsUInt(TChRet& Ch, const bool& Check, const uint& MnVal, const uint& MxVal, uint& Val);
@@ -838,30 +962,6 @@ public:
 };
 
 /////////////////////////////////////////////////
-// Simple-String-Pool
-//ClassTP(TSStrPool, PSStrPool)//{
-//private:
-//  TMem Bf;
-//public:
-//  TSStrPool(const int& MxLen=0): Bf(MxLen){}
-//  TSStrPool(TSStrPool& StrPool): Bf(StrPool.Bf){}
-//  TSStrPool(TSIn& SIn): Bf(SIn){}
-//  void Save(TSOut& SOut) const {Bf.Save(SOut);}
-//
-//  TSStrPool& operator=(const TSStrPool& StrPool){
-//    Bf=StrPool.Bf; return *this;}
-//
-//  int Len() const {return Bf.Len();}
-//  void Clr(){Bf.Clr();}
-//  int AddStr(const TStr& Str){
-//    if (Str.Empty()){return -1;}
-//    else {int StrId=Bf.Len(); Bf+=Str; Bf+=char(0); return StrId;}}
-//  TStr GetStr(const int& StrId) const {
-//    if (StrId==-1){return "";}
-//    else {return TStr(Bf()+StrId);}}
-//};
-
-/////////////////////////////////////////////////
 // String-Pool
 ClassTP(TStrPool, PStrPool)//{
 private:
@@ -910,6 +1010,7 @@ public:
     if (Offset != 0) return GetPrimHashCd(Bf + Offset); else return GetPrimHashCd(""); }
   int GetSecHashCd(const uint& Offset) { Assert(Offset < BfL);
     if (Offset != 0) return GetSecHashCd(Bf + Offset); else return GetSecHashCd(""); }
+  int GetMemUsed() const { return (int) MxBfL + 3*sizeof(uint); }
 };
 
 /////////////////////////////////////////////////
@@ -927,9 +1028,9 @@ public:
   ~TStrPool64() { Clr(true); }
   void Save(TSOut& SOut) const;
 
-  static PStrPool64 New(::TSize MxBfL = 0, ::TSize GrowBy = 16*1024*1024) { 
+  static PStrPool64 New(::TSize MxBfL = 0, ::TSize GrowBy = 16*1024*1024) {
       return PStrPool64(new TStrPool64(MxBfL, GrowBy)); }
-  static PStrPool64 Load(TSIn& SIn, bool LoadCompact = true) { 
+  static PStrPool64 Load(TSIn& SIn, bool LoadCompact = true) {
       return PStrPool64(new TStrPool64(SIn, LoadCompact)); }
 
   TStrPool64& operator=(const TStrPool64& StrPool);
@@ -947,6 +1048,8 @@ public:
   TStr GetStr(const uint64& StrId) const;
 };
 
+/////////////////////////////////////////////////
+// Number Base Template
 template <class Base> class TNum{
 public:
 	Base Val;
@@ -964,16 +1067,13 @@ public:
 	TNum operator++(Base){ TNum oldVal = Val; Val++; return oldVal; } // postfix
 	TNum operator--(Base){ TNum oldVal = Val; Val--; return oldVal; } // postfix
 	Base& operator()() { return Val; }
-	/*
-	T& operator~(){ Val = ~Val; return *this; }
-	T& operator&=(const T& Other){ Val &= Other.Val; return *this; }
-	T& operator|=(const T& Other){ Val |= Other.Val; return *this; }
-	T& operator^=(const T& Other){ Val ^= Other.Val; return *this; }
-	*/
+
 	int GetMemUsed() const { return sizeof(TNum); }
 };
-//Complex double
-template<> 
+
+/////////////////////////////////////////////////
+// Complex double
+template<>
 class TNum<std::complex<double>>{
 public:
 	std::complex<double> Val;
@@ -993,7 +1093,9 @@ public:
 	std::complex<double>& operator()() { return Val; }
 	int GetMemUsed() const { return sizeof(TNum); }
 };
-//Complex float
+
+/////////////////////////////////////////////////
+// Complex float
 template<>
 class TNum<std::complex<float>>{
 public:
@@ -1170,6 +1272,8 @@ public:
   TUCh& operator=(const TUCh& UCh){Val=UCh.Val; return *this;}
   bool operator==(const TUCh& UCh) const {return Val==UCh.Val;}
   bool operator<(const TUCh& UCh) const {return Val<UCh.Val;}
+  TUCh& operator+=(const TUCh& UCh) { Val += UCh.Val; return *this; }
+  TUCh& operator-=(const TUCh& UCh) { Val -= UCh.Val; return *this; }
   uchar operator()() const {return Val;}
   int GetMemUsed() const {return sizeof(TUCh);}
 
@@ -1181,6 +1285,8 @@ public:
 // Short-Integer
 class TSInt{
 public:
+  static const int16 Mn;
+  static const int16 Mx;
   int16 Val;
 public:
   TSInt(): Val(0){}
@@ -1204,11 +1310,14 @@ public:
   TSInt& operator++() { ++Val; return *this; } // prefix
   TSInt& operator--() { --Val; return *this; } // prefix
 };
+typedef TSInt TInt16;
 
 /////////////////////////////////////////////////
 // Unsigned Short-Integer
 class TUSInt {
 public:
+	static const uint16 Mn;
+	static const uint16 Mx;
 	uint16 Val;
 public:
 	TUSInt() : Val(0) {}
@@ -1232,10 +1341,10 @@ public:
 	TUSInt& operator++() { ++Val; return *this; } // prefix
 	TUSInt& operator--() { --Val; return *this; } // prefix
 };
+typedef TUSInt TUInt16;
 
 /////////////////////////////////////////////////
 // Integer
-// TInt{
 typedef TNum<int> TInt;
 template<>
 class TNum<int>{
@@ -1272,7 +1381,8 @@ public:
   TNum& operator--(){ --Val; return *this; } // prefix
   TNum operator++(int){ TNum oldVal = Val; Val++; return oldVal; } // postfix
   TNum operator--(int){ TNum oldVal = Val; Val--; return oldVal; } // postfix
-int GetMemUsed() const {return sizeof(TNum);}
+
+  int GetMemUsed() const {return sizeof(TNum);}
 
   int GetPrimHashCd() const {return Val;}
   int GetSecHashCd() const {return Val/0x10;}
@@ -1305,7 +1415,7 @@ int GetMemUsed() const {return sizeof(TNum);}
     IAssert(Mn<=Mx); return Val<Mn?Mn:(Val>Mx?Mx:Val);}
 
   TStr GetStr() const { return TNum::GetStr(Val); }
-  
+
   static TStr GetStr(const int& Val){ return TStr::Fmt("%d", Val); }
   static TStr GetStr(const TNum& Int){ return GetStr(Int.Val); }
   static TStr GetStr(const int& Val, const char* FmtStr);
@@ -1371,10 +1481,8 @@ public:
   TNum& operator--(){ --Val; return *this; } // prefix
   TNum operator++(int){ TNum oldVal = Val; Val++; return oldVal; } // postfix
   TNum operator--(int){ TNum oldVal = Val; Val--; return oldVal; } // postfix
-  //bool operator==(const T& UInt) const {return Val==UInt.Val;}
-  //bool operator==(const uint& UInt) const {return Val==UInt;}
-  //bool operator!=(const uint& UInt) const {return Val!=UInt;}
-  //bool operator<(const TUInt& UInt) const {return Val<UInt.Val;}
+  TNum& operator+=(const uint& Int){ Val += Int; return *this; }
+  TNum& operator-=(const uint& Int){ Val -= Int; return *this; }
   uint operator()() const {return Val;}
   uint& operator()() {return Val;}
   TNum& operator~(){ Val = ~Val; return *this; }
@@ -1390,7 +1498,7 @@ int GetMemUsed() const {return sizeof(TNum);}
 
   static uint GetRnd(const uint& Range=0){return Rnd.GetUniDevUInt(Range);}
 
-TStr GetStr() const {return TNum::GetStr(Val);}
+  TStr GetStr() const {return TNum::GetStr(Val);}
   static TStr GetStr(const uint& Val){
     char Bf[255]; sprintf(Bf, "%u", Val); return TStr(Bf);}
   static TStr GetStr(const TNum& UInt){
@@ -1422,6 +1530,16 @@ TStr GetStr() const {return TNum::GetStr(Val);}
   static uint GetUIntFromIpStr(const TStr& IpStr, const char& SplitCh = '.');
   static TStr GetStrFromIpUInt(const uint& Ip);
   static bool IsIpv6Str(const TStr& IpStr, const char& SplitCh = ':');
+
+  static uint GetFromBufSafe(const char * Bf) {
+#ifdef ARM
+	  uint Val;
+	  memcpy(&Val, Bf, sizeof(uint)); //we cannot use a cast on ARM (needs 8byte memory aligned doubles)
+	  return Val;
+#else
+	  return *((uint*)Bf);
+#endif
+  }
 };
 
 /////////////////////////////////////////////////
@@ -1432,22 +1550,16 @@ class TNum<int64>{
 public:
 	int64 Val;
 public:
-	static const TNum Mn;
-	static const TNum Mx;
+	static const int64 Mn;
+	static const int64 Mx;
 
 	TNum() : Val(0){}
 	TNum(const TNum& Int) : Val(Int.Val){}
 	TNum(const int64& Int) : Val(Int){}
-	/*explicit T(void* Pt) : Val(0){
-		TConv_Pt64Ints32 Conv(Pt); Val = Conv.GetUInt64();
-	}*/
 	operator int64() const { return Val; }
 	explicit TNum(TSIn& SIn){ SIn.Load(Val); }
 	void Load(TSIn& SIn){ SIn.Load(Val); }
 	void Save(TSOut& SOut) const { SOut.Save(Val); }
-	/*void LoadXml(const PXmlTok& XmlTok, const TStr& Nm);
-	void SaveXml(TSOut& SOut, const TStr& Nm) const;
-	*/
 	TNum& operator=(const TNum& Int){ Val = Int.Val; return *this; }
 	TNum& operator+=(const TNum& Int){ Val += Int.Val; return *this; }
 	TNum& operator-=(const TNum& Int){ Val -= Int.Val; return *this; }
@@ -1455,11 +1567,8 @@ public:
 	TNum& operator--(){ --Val; return *this; } // prefix
 	TNum operator++(int){ TNum oldVal = Val; Val++; return oldVal; } // postfix
 	TNum operator--(int){ TNum oldVal = Val; Val--; return oldVal; } // postfix
-int GetMemUsed() const { return sizeof(TNum); }
+    int GetMemUsed() const { return sizeof(TNum); }
 
-	//TStr GetStr() const {return TStr::Fmt("%Lu", Val);}
-	//static TStr GetStr(const T& Int){return TStr::Fmt("%Lu", Int.Val);}
-	//static TStr GetHexStr(const T& Int){return TStr::Fmt("%LX", Int.Val);}
 #ifdef GLib_WIN
 	TStr GetStr() const { return TStr::Fmt("%I64", Val); }
 	static TStr GetStr(const TNum& Int){ return TStr::Fmt("%I64", Int.Val); }
@@ -1487,9 +1596,17 @@ int GetMemUsed() const { return sizeof(TNum); }
 	else if (Val>1000000000){
 	return GetStr(Val/1000000000)+"."+GetStr((Val%1000000000)/100000000)+"G";}
 	else {return GetMegaStr(Val);}}*/
+	
+	static int64 GetFromBufSafe(const char * Bf) {
+#ifdef ARM
+		int64 Val;
+		memcpy(&Val, Bf, sizeof(int64)); //we cannot use a cast on ARM (needs 8byte memory aligned doubles)
+		return Val;
+#else
+		return *((int64*)Bf);
+#endif
+	}
 };
-
-
 
 /////////////////////////////////////////////////
 // Unsigned-Integer-64Bit
@@ -1499,8 +1616,8 @@ class TNum<uint64>{
 public:
   uint64 Val;
 public:
-  static const TNum Mn;
-  static const TNum Mx;
+  static const uint64 Mn;
+  static const uint64 Mx;
 
   TNum() : Val(0){}
   TNum(const TNum& Int) : Val(Int.Val){}
@@ -1558,6 +1675,16 @@ static TStr GetHexStr(const TNum& Int){return TStr::Fmt("%llX", Int.Val);}
     else if (Val>1000000000){
       return GetStr(Val/1000000000)+"."+GetStr((Val%1000000000)/100000000)+"G";}
     else {return GetMegaStr(Val);}}*/
+
+  static uint64 GetFromBufSafe(const char * Bf) {
+    #ifdef ARM
+    uint64 Val;
+    memcpy(&Val, Bf, sizeof(uint64)); //we cannot use a cast on ARM (needs 8byte memory aligned doubles)
+    return Val;
+    #else
+    return *((uint64*)Bf);
+    #endif
+  }
 };
 
 /////////////////////////////////////////////////
@@ -1639,12 +1766,12 @@ public:
   static bool IsNum(const double& Val){
     return (Mn<=Val)&&(Val<=Mx);}
   static bool IsNan(const double& Val){
-    return _isnan(Val) != 0;}
+    return (_isnan(Val) != 0);}
 
   bool IsNum() const { return IsNum(Val); }
   bool IsNan() const { return IsNan(Val); }
 
-TStr GetStr() const {return TNum::GetStr(Val);}
+  TStr GetStr() const {return TNum::GetStr(Val);}
   static TStr GetStr(const double& Val, const int& Width=-1, const int& Prec=-1);
   static TStr GetStr(const TNum& Flt, const int& Width=-1, const int& Prec=-1){
     return GetStr(Flt.Val, Width, Prec);}
@@ -1666,6 +1793,15 @@ TStr GetStr() const {return TNum::GetStr(Val);}
     if (fabs(Val)>100*1000000000.0){return TStr::Fmt("%.0fG", Val/1000000000.0);}
     else if (fabs(Val)>1000000000.0){return TStr::Fmt("%.1fG", Val/1000000000.0);}
     else {return GetMegaStr(Val);}}
+  static double GetFromBufSafe(const char * Bf) {
+    #ifdef ARM
+    double Val;
+    memcpy(&Val, Bf, sizeof(double)); //we cannot use a cast on ARM (needs 8byte memory aligned doubles)
+    return Val;
+    #else
+    return *((double*)Bf);
+    #endif
+  }
 };
 
 /////////////////////////////////////////////////
@@ -1713,10 +1849,29 @@ public:
   TSFlt operator--(int){TSFlt oldVal = Val; Val--; return oldVal;} // postfix
   int GetMemUsed() const {return sizeof(TSFlt);}
 
+  static bool IsNum(const float& Val) {
+	  return (Mn <= Val) && (Val <= Mx);
+  }
+  static bool IsNan(const float& Val) {
+	  return (_isnan(Val) != 0);
+  }
+
+  bool IsNum() const { return IsNum(Val); }
+  bool IsNan() const { return IsNan(Val); }
+
   int GetPrimHashCd() const {
     int Expn; return int((frexp(Val, &Expn)-0.5)*double(TInt::Mx));}
   int GetSecHashCd() const {
     int Expn; frexp(Val, &Expn); return Expn;}
+  static float GetFromBufSafe(const char * Bf) {
+#ifdef ARM
+	  float Val;
+	  memcpy(&Val, Bf, sizeof(float)); //we cannot use a cast on ARM (needs 8byte memory aligned doubles)
+	  return Val;
+#else
+	  return *((float*)Bf);
+#endif
+  }
 };
 
 /////////////////////////////////////////////////

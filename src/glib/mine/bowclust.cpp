@@ -1462,6 +1462,26 @@ PBowDocPart TBowClust::GetHKMeansPart(
   return DocPart;
 }
 
+void TBowClust::GetHKMeansLeafClustV(const PBowDocPart& HKMeansPart, TVec<PBowDocPartClust>& LeafClustV)
+{
+	int ClustCount = HKMeansPart->GetClusts();
+	for (int ClustN=0; ClustN < ClustCount; ClustN++)
+	{
+		PBowDocPartClust Clust = HKMeansPart->GetClust(ClustN);
+		bool IsSubPart = Clust->IsSubPart();
+		if (IsSubPart)
+		{
+			PBowDocPart Part = Clust->GetSubPart();
+			if (Part->GetClusts() > 1)
+				GetHKMeansLeafClustV(Part, LeafClustV);
+			else
+				LeafClustV.Add(Clust);
+		}
+		else
+			LeafClustV.Add(Clust);
+	}
+}
+
 PBowDocPart TBowClust::GetHPart(
  const PNotify& Notify,
  const PBowDocBs& BowDocBs, const PBowSim& BowSim, TRnd& Rnd,
@@ -1660,7 +1680,9 @@ void TBowClust::GetInitialClustIdV(const PNotify& Notify, const PBowDocWgtBs& Bo
 
 			// for each data point x compute S(x), the similarity between x and the nearest center
 			// that has already been chosen until InitParam centers have been found
-			while (CentroidIdV.Len() < InitParam) {
+			while (CentroidIdV.Len() < InitParam && CentroidIdV.Len() < AllDIdV.Len()) {
+				printf("Selecting a new centroid ...\n");
+
 				const int RemDocs = AllDIdV.Len();
 				DWgtV.Gen(RemDocs, 0);
 
@@ -1690,6 +1712,8 @@ void TBowClust::GetInitialClustIdV(const PNotify& Notify, const PBowDocWgtBs& Bo
 				// probability distribution where a point x is chosen with probability
 				// proportional to S(x)^2
 
+				printf("Computing norm ...\n");
+
 				// normalize the weights
 				double NormL1 = TLinAlg::NormL1(DWgtV);
 				if (NormL1 == 0) {
@@ -1706,30 +1730,41 @@ void TBowClust::GetInitialClustIdV(const PNotify& Notify, const PBowDocWgtBs& Bo
 					continue;
 				}
 
+				printf("Normalizing ...\n");
+
 				// everything is OK => go on
 				TLinAlg::NormalizeL1(DWgtV);
 
 				double RndVal = (double) rand() / RAND_MAX;
 
-				int DIdx = -1;
+				int DIdN = -1;
 				double WgtSum = 0;
 
 				// pick the new centroid
 				do {
-					WgtSum += DWgtV[++DIdx];
+					DIdN++;
+
+					if (DIdN >= DWgtV.Len()) { break; }
+
+					WgtSum += DWgtV[DIdN];
 				} while (WgtSum <= RndVal);
 
+				printf("Adding a new centroid to the centroid ID vector ...");
+
 				// create a new centroid
-				const int NewCentIdx = DIdx;
+				const int NewCentIdx = DIdN;
 				const int NewCentId = AllDIdV[NewCentIdx];
 				CentroidIdV.Add(NewCentId);	AllDIdV.Del(NewCentIdx);
 			}
 
+			printf("Constructing results ...\n");
+
 			// place the results into DIdVV
-			for (int i = 0; i < InitParam; i++) {
+			for (int i = 0; i < CentroidIdV.Len(); i++) {
 				TIntV DIdV;	DIdV.Add(CentroidIdV[i]);
 				DIdVV.Add(DIdV);
 			}
+
 			break;
 		}
 		default: {

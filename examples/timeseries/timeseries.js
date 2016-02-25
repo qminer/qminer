@@ -1,5 +1,6 @@
 // Import main modules
-var qm = require('../../');
+var qm = require('qminer');
+var loader = require('qminer-data-loader');
 var fs = qm.fs;
 var analytics = qm.analytics;
 
@@ -82,27 +83,11 @@ Resampled.addTrigger({
         // Get the id of the record from a minute ago.
         var trainRecId = Resampled.getStreamAggr("delay").val.oldest.$id;
         //// Update the model, once we have at leats 1 minute worth of data
-        if (trainRecId > 0) { linreg.fit(ftrSpace.extractVector(Resampled[trainRecId]), val.Value); }
+	if (trainRecId > 0) { linreg.partialFit(ftrSpace.extractVector(Resampled[trainRecId]), val.Value); }
         // Get the current value and compare against prediction for a minute ago
         var diff = val.Value - Resampled[trainRecId].Prediction;
         console.log("Diff: " + diff + ", Value: " + val.Value + ", Prediction: " + Resampled[trainRecId].Prediction);
     }
 });
 
-// Load training data from CSV file.
-var fin = fs.openRead("./sandbox/timeseries/series.csv");
-var header = fin.readLine(); var lines = 0;
-while (!fin.eof) {
-    lines = lines + 1;
-    if (lines % 1000 == 0) { console.log("Loaded: " + lines); }
-    var line = fin.readLine();
-    if (line == "") { continue; }
-    try {
-        var vals = line.split(',');
-        var rec = { "Time": vals[1], "Value": parseFloat(vals[0]) };
-        Raw.push(rec);
-    } catch (err) { 
-        console.log("Raw", err);
-    }
-}
-
+loader.loadForexDataset(Raw);

@@ -1,17 +1,15 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
-// typical use case: pathPrefix = 'Release' or pathPrefix = 'Debug'. Empty argument is supported as well (the first binary that the bindings finds will be used)
-module.exports = exports = function (pathPrefix) {
-    pathPrefix = pathPrefix || '';
-//    exports = require('bindings')(pathPrefix + '/la.node');
-    exports = require('bindings')(pathPrefix + '/qm.node').la;
 
-    
+module.exports = exports = function (pathQmBinary) {
+    var qm = require(pathQmBinary); // This loads only c++ functions of qm
+    exports = qm.la;
+
     var assert = require('assert');
 
     //!STARTJSDOC
@@ -24,11 +22,12 @@ module.exports = exports = function (pathPrefix) {
         return Math.pow(this.frob(), 2);
     }
 
-
     /**
     * Returns a string displaying rows, columns and number of non-zero elements of sparse matrix.
     * @returns {string} String displaying row, columns and number of non-zero elements.
-    * @example 
+    * @example
+    * // import la module
+    * var la = require('qminer').la;
     * // create a new sparse matrix
     * var mat = new la.SparseMatrix([[[0, 1]], [[0, 2], [1, 8]]]);
     * // create the string
@@ -51,6 +50,8 @@ module.exports = exports = function (pathPrefix) {
     /**
 	* Prints the sparse vector on-screen.
 	* @example
+    * // import la module
+    * var la = require('qminer').la;
 	* // create a new sparse vector
 	* var spVec = new la.SparseVector([[0, 1], [2, 3]]);
 	* // print sparse vector
@@ -59,8 +60,10 @@ module.exports = exports = function (pathPrefix) {
     exports.SparseVector.prototype.print = function () { console.log(this.toString()); }
 
     /**
-	* Prints the matrix on-screen. 
+	* Prints the matrix on-screen.
 	* @example
+    * // import la module
+    * var la = require('qminer').la;
 	* // create a new matrix
 	* var mat = new la.Matrix([[1, 2], [3, 4]]);
 	* // print the matrix
@@ -72,14 +75,16 @@ module.exports = exports = function (pathPrefix) {
     exports.Matrix.prototype.print = function () { console.log(this.toString()); }
 
 	/**
-	* Returns a copy of the matrix. 
+	* Returns a copy of the matrix.
 	* @returns {module:la.Matrix} Copy
 	*/
 	exports.Matrix.prototype.toMat = function () { return new exports.Matrix(this); }
-    
+
 	/**
     * Prints the vector on-screen.
     * @example
+    * // import la module
+    * var la = require('qminer').la;
     * // create a new vector
     * var vec = new la.Vector([1, 2, 3]);
     * // print the vector
@@ -88,32 +93,72 @@ module.exports = exports = function (pathPrefix) {
     * vec.print();
     */
 	exports.Vector.prototype.print = function () { console.log(this.toString()); }
-	
+
+	/**
+    * Copies the vector into a JavaScript array of numbers.
+    * @returns {Array<number>} A JavaScript array of numbers.
+    * @example
+    * // import la module
+    * var la = require('qminer').la;
+    * // create a new vector
+    * var vec = new la.Vector([1, 2, 3]);
+    * // create a JavaScript array out of vec
+    * var arr = vec.toArray(); // returns an array [1, 2, 3]
+    */
+    exports.Vector.prototype.toArray = function () {
+        var len = this.length;
+        var arr = [];
+        for (var elN = 0; elN < len; elN++) {
+            arr[elN] = this[elN];
+        }
+        return arr;
+	}
+
+	/**
+    * Copies the matrix into a JavaScript array of arrays of numbers.
+    * @returns {Array<Array<number>>} A JavaScript array of arrays of numbers.
+    * @example
+    * // import la module
+    * var la = require('qminer').la;
+    * // create a new matrix
+    * var mat = new la.Matrix([[1, 2], [3, 4]]);
+    * // create a JavaScript array out of matrix
+    * var arr = mat.toArray(); // returns an array [[1, 2], [3, 4]]
+    */
+    exports.Matrix.prototype.toArray = function () {
+        var rows = this.rows;
+		var cols = this.cols;
+        var arr = [];
+        for (var i = 0; i < rows; i++) {
+			var arr_row = [];
+			for (var j = 0; j < cols; j++) {
+				arr_row.push(this.at(i, j));
+			}
+            arr.push(arr_row);
+        }
+        return arr;
+	}
+
     /**
     * Copies the vector into a JavaScript array of numbers.
     * @param {module:la.Vector} vec - Copied vector.
     * @returns {Array<number>} A JavaScript array of numbers.
     * @example
+    * // import la module
+    * var la = require('qminer').la;
     * // create a new vector
     * var vec = new la.Vector([1, 2, 3]);
     * // create a JavaScript array out of vec
     * var arr = la.copyVecToArray(vec); // returns an array [1, 2, 3]
     */
-    exports.copyVecToArray = function (vec) {
-        var len = vec.length;
-        var arr = [];
-        for (var elN = 0; elN < len; elN++) {
-            arr[elN] = vec[elN];
-        }
-        return arr;
-    };
+    exports.copyVecToArray = function (vec) { return vec.toArray(); };
 
     function isInt(value) {
         return !isNaN(value) &&
                parseInt(Number(value)) == value &&
                !isNaN(parseInt(value, 10));
     }
-    
+
     ///////// RANDOM GENERATORS
 
     /**
@@ -143,8 +188,8 @@ module.exports = exports = function (pathPrefix) {
             var vec = new exports.Vector({ "vals": dim });
             for (var elN = 0; elN < dim; elN++) {
                 vec.put(elN, exports.randn());
-            }            
-            return vec;       
+            }
+            return vec;
         } else if (len === 2) {
             var rows = arguments[0];
             var cols = arguments[1];
@@ -163,7 +208,10 @@ module.exports = exports = function (pathPrefix) {
     /**
     * Returns a randomly selected integer from an array..
     * @param {number} num - The upper bound of the array. Must be an integer.
-    * @returns {number} Randomly selected integer from the array [0, ..., num-1].
+    * @param {number} [len] - The number of integers. Must be an integer.
+    * @returns {(number | la.IntVector)}
+    * <br>1. Randomly selected integer from the array [0, ..., num-1], if no parameters are given.
+    * <br>2. {@link module:la.Vector}, if parameter len is given. The vector contains random integers from the array [0, ..., num-1] (with repetition)
     */
     exports.randi = function () {
         var len = arguments.length;
@@ -171,6 +219,16 @@ module.exports = exports = function (pathPrefix) {
             var n = arguments[0];
             assert(isInt(n), "one integer argument expected");
             return Math.floor((Math.random() * n));
+        } else if (len == 2) {
+            var n = arguments[0];
+            var size = arguments[1];
+            assert(isInt(n), "integer argument[0] expected");
+            assert(isInt(size), "integer argument[1] expected");
+            var result = new exports.IntVector({ "vals": size });
+            for (var i = 0; i < size; i++) {
+                result[i] = Math.floor((Math.random() * n));
+            }
+            return result;
         } else {
             throw new Error("one integer argument expected");
         }
@@ -192,7 +250,6 @@ module.exports = exports = function (pathPrefix) {
         return idx;
     };
 
-    //!- `arr = la.randPerm(k)` -- returns a permutation of `k` elements. `arr` is a javascript array of integers
     /**
     * Returns a permutation of elements.
     * @param {number} k - Number of elements to permutate.
@@ -206,89 +263,81 @@ module.exports = exports = function (pathPrefix) {
         return res.perm;
     };
 
-
-    exports.Vector.prototype.print = function () {
-        console.log(this.toString());
-    }
-    
     ///////// COMMON MATRICES
-/////// VECTOR, MATRIX GENERATION
-// generate identity matrix
-    //!- `mat = la.eye(dim)` -- `mat` is a `dim`-by-`dim` identity matrix
+
     /**
     * Returns an dense identity matrix
     * @param {number} dim - The dimension of the identity matrix. Must be a positive integer.
     * @returns {module:la.Matrix} A dim-by-dim identity matrix.
     */
-exports.eye = function(dim) {
-    var identity = new exports.Matrix({ "rows": dim, "cols": dim });
-    for (var rowN = 0; rowN < identity.rows; rowN++) {
-        identity.put(rowN, rowN, 1.0);
-    }
-    return identity;
-};
+    exports.eye = function(dim) {
+        var identity = new exports.Matrix({ "rows": dim, "cols": dim });
+        for (var rowN = 0; rowN < identity.rows; rowN++) {
+            identity.put(rowN, rowN, 1.0);
+        }
+        return identity;
+    };
 
-    //!- `spMat = la.speye(dim)` -- `spMat` is a `dim`-by-`dim` sparse identity matrix
     /**
     * Returns a sparse identity matrix
     * @param {number} dim - The dimension of the identity matrix. Must be a positive integer.
     * @returns {module:la.SparseMatrix} A dim-by-dim identity matrix.
     */
-exports.speye = function (dim) {
-    var vec = exports.ones(dim);
-    return vec.spDiag();
-};
+    exports.speye = function (dim) {
+        var vec = exports.ones(dim);
+        return vec.spDiag();
+    };
 
-    //!- `spMat = la.sparse(rows, cols)` -- `spMat` is a `rows`-by-`cols` sparse zero matrix
     /**
     * Returns a sparse zero matrix.
     * @param {number} rows - Number of rows of the sparse matrix.
     * @param {number} cols - Number of columns of the sparse matrix.
     * @returns {module:la.SparseMatrix} A rows-by-cols sparse zero matrix.
     */
-exports.sparse = function (rows, cols) {
-    cols = typeof cols == 'undefined' ? rows : cols;
-    var spmat = new exports.SparseMatrix({ "rows": rows, "cols": cols });
-    return spmat;
-};
+    exports.sparse = function (rows, cols) {
+        cols = typeof cols == 'undefined' ? rows : cols;
+        var spmat = new exports.SparseMatrix({ "rows": rows, "cols": cols });
+        return spmat;
+    };
 
-    //!- `mat = la.zeros(rows, cols)` -- `mat` is a `rows`-by-`cols` sparse zero matrix
     /**
     * Returns a dense zero matrix.
     * @param {number} rows - Number of rows of the matrix.
     * @param {number} cols - Number of columns of the matrix.
     * @returns {module:la.Matrix} A rows-by-cols dense zero matrix.
     */
-exports.zeros = function (rows, cols) {
-    cols = typeof cols == 'undefined' ? rows : cols;
-    var mat = new exports.Matrix({ "rows": rows, "cols": cols });
-    return mat;
-};
+    exports.zeros = function (rows, cols) {
+        cols = typeof cols == 'undefined' ? rows : cols;
+        var mat = new exports.Matrix({ "rows": rows, "cols": cols });
+        return mat;
+    };
 
-// generate a C++ vector of ones
-    //!- `vec = la.ones(k)` -- `vec` is a `k`-dimensional vector whose entries are set to `1.0`.
     /**
     * Returns a vector with all entries set to 1.0.
     * @param {number} dim - Dimension of the vector.
     * @returns {module:la.Vector} A dim-dimensional vector whose entries are set to 1.0.
     * @example
+    * // import la module
+    * var la = require('qminer').la;
     * // create a 3-dimensional vector with all entries set to 1.0
     * var vec = la.ones(3);
     */
-exports.ones = function(k) {
-    var ones_k = new exports.Vector({ "vals": k });
-    for (var i = 0; i < k; i++) {
-        ones_k.put(i, 1.0);
-    }
-    return ones_k;
-};
-        
+    exports.ones = function(k) {
+        var ones_k = new exports.Vector({ "vals": k });
+        for (var i = 0; i < k; i++) {
+            ones_k.put(i, 1.0);
+        }
+        return ones_k;
+    };
+
     /**
     * Constructs a matrix by concatenating a doubly-nested array of matrices.
     * @param {Array<Array<module:la.Matrix>> } matrixDoubleArr - An array of block rows, where each block row is an array of matrices.
-    * For example: [[m11, m12], [m21, m22]] is used to construct a matrix where the (i,j)-th block submatrix is mij. 
+    * For example: [[m11, m12], [m21, m22]] is used to construct a matrix where the (i,j)-th block submatrix is mij.
     * @returns {module:la.Matrix} Concatenated matrix
     * @example
+    * // import la module
+    * var la = require('qminer').la;
     * // create four matrices and concatenate (2 block columns, 2 block rows)
     * var la = require('qminer').la;
     * var A = new la.Matrix([[1,2], [3,4]]);
@@ -302,72 +351,140 @@ exports.ones = function(k) {
     * // 9  10 13 14
     * // 11 12 15 16
     */
-    //# exports.cat = function(matrixDoubleArr) {}	
-exports.cat = function (nestedArrMat) {
-    var dimx = []; //cell row dimensions
-    var dimy = []; //cell col dimensions
-    var cdimx = []; //cumulative row dims
-    var cdimy = []; //cumulative coldims
-    var rows = nestedArrMat.length;
-    var cols = nestedArrMat[0].length;
-    for (var row = 0; row < rows; row++) {
-        for (var col = 0; col < cols; col++) {
-            if (col > 0) {
-                assert(dimx[row] == nestedArrMat[row][col].rows, 'inconsistent row dimensions!');
-            } else {
-                dimx[row] = nestedArrMat[row][col].rows;
+    //# exports.cat = function(matrixDoubleArr) {}
+    exports.cat = function (nestedArrMat) {
+        var dimx = []; //cell row dimensions
+        var dimy = []; //cell col dimensions
+        var cdimx = []; //cumulative row dims
+        var cdimy = []; //cumulative coldims
+        var rows = nestedArrMat.length;
+        var cols = nestedArrMat[0].length;
+        for (var row = 0; row < rows; row++) {
+            for (var col = 0; col < cols; col++) {
+                if (col > 0) {
+                    assert(dimx[row] == nestedArrMat[row][col].rows, 'inconsistent row dimensions!');
+                } else {
+                    dimx[row] = nestedArrMat[row][col].rows;
+                }
+                if (row > 0) {
+                    assert(dimy[col] == nestedArrMat[row][col].cols, 'inconsistent column dimensions!');
+                } else {
+                    dimy[col] = nestedArrMat[row][col].cols;
+                }
             }
-            if (row > 0) {
-                assert(dimy[col] == nestedArrMat[row][col].cols, 'inconsistent column dimensions!');
-            } else {
-                dimy[col] = nestedArrMat[row][col].cols;
-            }            
         }
-    }
-    cdimx[0] = 0;
-    cdimy[0] = 0;
-    for (var row = 1; row < rows; row++) {
-        cdimx[row] = cdimx[row - 1] + dimx[row - 1];
-    }
-    for (var col = 1; col < cols; col++) {
-        cdimy[col] = cdimy[col - 1] + dimy[col - 1];
+        cdimx[0] = 0;
+        cdimy[0] = 0;
+        for (var row = 1; row < rows; row++) {
+            cdimx[row] = cdimx[row - 1] + dimx[row - 1];
+        }
+        for (var col = 1; col < cols; col++) {
+            cdimy[col] = cdimy[col - 1] + dimy[col - 1];
+        }
+
+        var res = new exports.Matrix({ rows: (cdimx[rows - 1] + dimx[rows - 1]), cols: (cdimy[cols - 1] + dimy[cols - 1]) });
+        // copy submatrices
+        for (var row = 0; row < rows; row++) {
+            for (var col = 0; col < cols; col++) {
+                res.put(cdimx[row], cdimy[col], nestedArrMat[row][col]);
+            }
+        }
+        return res;
     }
 
-    var res = new exports.Matrix({ rows: (cdimx[rows - 1] + dimx[rows - 1]), cols: (cdimy[cols - 1] + dimy[cols - 1]) });
-    // copy submatrices
-    for (var row = 0; row < rows; row++) {
-        for (var col = 0; col < cols; col++) {
-            res.put(cdimx[row], cdimy[col], nestedArrMat[row][col]);
+    /**
+    * Generates an integer vector given range
+    * @param {number} min - Start value (should be an integer)
+    * @param {number} max - End value (should be an integer)
+    * @returns {module:la.IntVector} Integer range vector
+    * @example
+    * // import la module
+    * var la = require('qminer').la;
+    * var vec = la.rangeVec(1, 3);
+    * // returns the vector:
+    * // 1  2  3
+    */
+    //# exports.rangeVec = function(min, max) {}
+    exports.rangeVec = function (min, max) {
+        var len = max - min + 1;
+        var rangeV = new exports.IntVector({ "vals": len });
+        for (var elN = 0; elN < len; elN++) {
+            rangeV[elN] = elN + min;
         }
-    }
-    return res;
-}
+        return rangeV;
+    };
+
 	//////// METHODS
 
-exports.square = function(x) {
-    if (typeof x.length == "undefined") {
-        return x * x;
-    }
-    var res = new exports.Vector(x);
-    for (var i = 0; i < x.length; i++) {
-        res[i] = x[i] * x[i];
-    }
-    return res;
-};
+    exports.square = function(x) {
+        if (typeof x.length == "undefined") {
+            return x * x;
+        }
+        var res = new exports.Vector(x);
+        for (var i = 0; i < x.length; i++) {
+            res[i] = x[i] * x[i];
+        }
+        return res;
+    };
 
-//#- `mat3 = la.pdist2(mat, mat2)` -- computes the pairwise squared euclidean distances between columns of `mat` and `mat2`. mat3[i,j] = ||mat(:,i) - mat2(:,j)||^2
-exports.pdist2 = function (mat, mat2) {
-    var snorm1 = exports.square(mat.colNorms());
-    var snorm2 = exports.square(mat2.colNorms());
-    var ones_1 = exports.ones(mat.cols);
-    var ones_2 = exports.ones(mat2.cols);
-    var D = (mat.multiplyT(mat2).multiply(-2)).plus(snorm1.outer(ones_2)).plus(ones_1.outer(snorm2));
-    return D;
-}
+    /**
+    * returns a JS array of indices `idxArray` that correspond to the max elements in each column of dense matrix. The resulting array has one element for vector input.
+    * @param {(la.Matrix | la.Vector)} X - A matrix or a vector
+    * @returns {Array<number>} Array of indexes where maximum is found, one for each column
+    * @example
+    * // import la module
+    * var la = require('qminer').la;
+    * // create a dense matrix
+    * var mat = new la.Matrix([[1, 2], [2, 0]]);
+    * la.findMaxIdx(mat)
+    * // returns the array:
+    * // [1, 0]
+    */
+    //# exports.findMaxIdx = function(X) {}
+    exports.findMaxIdx = function (X) {
+        var idxv = new Array();
+        // X is a dense matrix
+        if (typeof X.cols !== "undefined") {
+            var cols = X.cols;
+            for (var colN = 0; colN < cols; colN++) {
+                idxv.push(X.colMaxIdx(colN));
+            }
+        }
+        // X is a dense vector
+        if (typeof X.length !== "undefined") {
+            idxv.push(X.getMaxIdx());
+        }
+        return idxv;
+    };
+
+    /**
+    * computes and returns the pairwise squared euclidean distances between columns of `X1` and `X2` (`mat3[i,j] = ||mat(:,i) - mat2(:,j)||^2`).
+    * @param {la.Matrix} X1 - First matrix
+    * @param {la.Matrix} X2 - Second matrix
+    * @returns {la.Matrix} Matrix with `X1.cols` rows and `X2.cols` columns containing squared euclidiean distances.
+    * @example
+    * // import la module
+    * var la = require('qminer').la;
+    * // construct two input matrices
+    * var X1 = new la.Matrix([[1,2], [2,0]]);
+    * var X2 = new la.Matrix([[1,0.5,0],[0,-0.5,-1]]);
+    * la.pdist2(X1, X2)
+    * // returns the matrix:
+    * // 4 6.5 10
+    * // 1 2.5 5
+    */
+    // exports.pdist2 = function (X1, X2) {}
+    exports.pdist2 = function (X1, X2) {
+        var snorm1 = exports.square(X1.colNorms());
+        var snorm2 = exports.square(X2.colNorms());
+        var ones_1 = exports.ones(X1.cols);
+        var ones_2 = exports.ones(X2.cols);
+        var D = (X1.multiplyT(X2).multiply(-2)).plus(snorm1.outer(ones_2)).plus(ones_1.outer(snorm2));
+        return D;
+    }
 
     ///////// ALGORITHMS
 
-    //!- `la.inverseSVD(mat)` -- calculates inverse matrix with SVD, where `mat` is a dense matrix
     /**
     * Calculates the inverse matrix with SVD.
     * @param {module:la.Matrix} mat - The matrix we want to inverse.
@@ -411,7 +528,7 @@ exports.pdist2 = function (mat, mat2) {
     * @param {(module:la.Matrix | module:la.SparseMatrix)} A - The matrix on the left-hand side of the system.
     * @param {module:la.Vector} b - The vector on the right-hand side of the system.
     * @param {module:la.Vector} [x] - Current solution. Default is a vector of zeros.
-    * @returns {module:la.Vector} Solution to the system. 
+    * @returns {module:la.Vector} Solution to the system.
     */
     exports.conjgrad = function (A, b, x) {
     	x = x || new exports.Vector({vals: A.cols});
@@ -433,9 +550,8 @@ exports.pdist2 = function (mat, mat2) {
         }
         return x;
     }
-    
+
     //!ENDJSDOC
 
     return exports;
 }
-

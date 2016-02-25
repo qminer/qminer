@@ -13,6 +13,7 @@ namespace TFtrGen {
 void TNumeric::Save(TSOut& SOut) const { 
     SaveEnum<TNumericType>(SOut, Type); 
     MnVal.Save(SOut); MxVal.Save(SOut); 
+	Var.Save(SOut);
 }
     
 void TNumeric::Clr() {
@@ -20,7 +21,9 @@ void TNumeric::Clr() {
         MnVal = 0.0; MxVal = 0.0;
     } else if (Type == ntNormalize) {
         MnVal = TFlt::Mx; MxVal = TFlt::Mn;
-    } else if (Type == ntMnMxVal) {
+	} else if (Type == ntNormalizeVar) {
+		Var.Clr();
+	} else if (Type == ntMnMxVal) {
         // nothing to do
     }
 }
@@ -29,12 +32,19 @@ bool TNumeric::Update(const double& Val) {
 	if (Type == ntNormalize) {
         MnVal = TFlt::GetMn(MnVal, Val); 
         MxVal = TFlt::GetMx(MxVal, Val);         
-    }   
+	} else if (Type == ntNormalizeVar) {
+		Var.Update(Val);
+	}
     return false;
 }
 
 double TNumeric::GetFtr(const double& Val) const {
-	if ((Type != ntNone) && (MnVal < MxVal)) {
+	if (Type == ntNormalizeVar) {
+		double Res = Val - Var.GetMean();
+		double M2 = Var.GetStDev();
+		if (M2 > 0) Res /= M2;
+		return Res;
+	} else if ((Type != ntNone) && (MnVal < MxVal)) {
 		if (Val > MxVal) { 
 			return 1; 
 		} else if (Val < MnVal) { 
@@ -56,11 +66,13 @@ void TNumeric::AddFtr(const double& Val, TFltV& FullV, int& Offset) const {
 
 double TNumeric::InvFtr(const TFltV& FullV, int& Offset) const {
 	double Val = FullV[Offset++];
-
-	if (Type != ntNone && MnVal < MxVal) {
+	if (Type == ntNormalizeVar) {
+		double M2 = Var.GetVar();
+		if (M2 > 0) Val *= M2;
+		Val += Var.GetMean();
+	} else if (Type != ntNone && MnVal < MxVal) {
 		Val =  Val*(MxVal - MnVal) + MnVal;
 	}
-
 	return Val;
 }
 
@@ -153,14 +165,17 @@ void TMultinomial::AddFtr(const TStr& Str, TFltV& FullV, int& Offset) const {
     Offset += GetDim();    
 }
 
-void TMultinomial::AddFtr(const TStrV& StrV, TIntFltKdV& SpV) const {
+void TMultinomial::AddFtr(const TStrV& StrV, const TFltV& FltV, TIntFltKdV& SpV) const {
+    // make sure we either do not have explicit values, or their dimension matches with string keys
+    EAssertR(FltV.Empty() || (StrV.Len() == FltV.Len()), "TMultinomial::AddFtr:: String and double values not aligned");
     // generate internal feature vector
     SpV.Gen(StrV.Len(), 0);
     for (int StrN = 0; StrN < StrV.Len(); StrN++) {
         const int FtrId = FtrGen.GetFtr(StrV[StrN]);
         // only use features we've seen during updates
         if (FtrId != -1) {
-            SpV.Add(TIntFltKd(FtrId, 1.0));
+            const double Val = FltV.Empty() ? 1.0 : FltV[StrN].Val;
+            if (Val > 1e-16) { SpV.Add(TIntFltKd(FtrId, Val)); }
         }
     }
     SpV.Sort();
@@ -183,9 +198,9 @@ void TMultinomial::AddFtr(const TStrV& StrV, TIntFltKdV& SpV) const {
     if (Type == mtNormalize) { TLinAlg::Normalize(SpV); }    
 }
 
-void TMultinomial::AddFtr(const TStrV& StrV, TIntFltKdV& SpV, int& Offset) const {
+void TMultinomial::AddFtr(const TStrV& StrV, const TFltV& FltV, TIntFltKdV& SpV, int& Offset) const {
     // generate feature 
-    TIntFltKdV ValSpV; AddFtr(StrV, ValSpV);    
+    TIntFltKdV ValSpV; AddFtr(StrV, FltV, ValSpV);
     // add to the full feature vector and increase offset count
     for (int ValSpN = 0; ValSpN < ValSpV.Len(); ValSpN++) {
         const TIntFltKd& ValSp = ValSpV[ValSpN];
@@ -195,9 +210,9 @@ void TMultinomial::AddFtr(const TStrV& StrV, TIntFltKdV& SpV, int& Offset) const
     Offset += GetDim();
 }
 
-void TMultinomial::AddFtr(const TStrV& StrV, TFltV& FullV, int& Offset) const {
+void TMultinomial::AddFtr(const TStrV& StrV, const TFltV& FltV, TFltV& FullV, int& Offset) const {
     // generate feature 
-    TIntFltKdV ValSpV; AddFtr(StrV, ValSpV);    
+    TIntFltKdV ValSpV; AddFtr(StrV, FltV, ValSpV);
     // add to the full feature vector and increase offset count
     for (int ValSpN = 0; ValSpN < ValSpV.Len(); ValSpN++) {
         const TIntFltKd& ValSp = ValSpV[ValSpN];
@@ -210,7 +225,7 @@ void TMultinomial::AddFtr(const TStrV& StrV, TFltV& FullV, int& Offset) const {
 ///////////////////////////////////////
 // Tokenizable-Feature-Generator
 TBagOfWords::TBagOfWords(const bool& TfP, const bool& IdfP, const bool& NormalizeP, 
-        PTokenizer _Tokenizer, const int& _HashDim, const bool& KHT,
+        PTokenizer _Tokenizer, const int& _HashDim, const bool& StoreHashWordsP,
         const int& _NStart, const int& _NEnd): Tokenizer(_Tokenizer) {
 
     // get settings flags
@@ -224,9 +239,10 @@ TBagOfWords::TBagOfWords(const bool& TfP, const bool& IdfP, const bool& Normaliz
         Type.Val |= btHashing;
         // .. and the dimension
         HashDim = _HashDim;
-        // keep hash table?initialize it if true
-        KeepHashTable = KHT;
-        if(KeepHashTable) { HashTable.Gen(HashDim); }
+        // keep hash table?
+        if (StoreHashWordsP) { Type.Val |= btStoreHashWords; }
+        // initialize it if true
+        if (IsStoreHashWords()) { HashWordV.Gen(HashDim); }
         // initialize DF counts for hashes
         DocFqV.Gen(HashDim); DocFqV.PutAll(0);
         OldDocFqV.Gen(HashDim); OldDocFqV.PutAll(0.0);
@@ -236,16 +252,14 @@ TBagOfWords::TBagOfWords(const bool& TfP, const bool& IdfP, const bool& Normaliz
 }
 
 TBagOfWords::TBagOfWords(TSIn& SIn): Type(SIn),
-    Tokenizer(TTokenizer::Load(SIn)), TokenSet(SIn), HashDim(SIn), KeepHashTable(SIn),
-    NStart(SIn),NEnd(SIn), Docs(SIn), DocFqV(SIn), ForgetP(SIn), OldDocs(SIn),
-    OldDocFqV(SIn), HashTable(SIn) { }
+    Tokenizer(TTokenizer::Load(SIn)), TokenSet(SIn), HashDim(SIn), NStart(SIn), NEnd(SIn),
+    Docs(SIn), DocFqV(SIn), ForgetP(SIn), OldDocs(SIn), OldDocFqV(SIn), HashWordV(SIn) { }
 
 void TBagOfWords::Save(TSOut& SOut) const {
     Type.Save(SOut);
     Tokenizer->Save(SOut);
     TokenSet.Save(SOut);
     HashDim.Save(SOut);
-    KeepHashTable.Save(SOut);
     NStart.Save(SOut);
     NEnd.Save(SOut);
     Docs.Save(SOut);
@@ -253,7 +267,7 @@ void TBagOfWords::Save(TSOut& SOut) const {
     ForgetP.Save(SOut);
     OldDocs.Save(SOut);
     OldDocFqV.Save(SOut);
-    HashTable.Save(SOut);
+    HashWordV.Save(SOut);
 }
 
 void TBagOfWords::Clr() {
@@ -262,6 +276,7 @@ void TBagOfWords::Clr() {
         // if hashing, allocate the document counts and set to zero
         DocFqV.Gen(HashDim); DocFqV.PutAll(0);
         OldDocFqV.Gen(HashDim); OldDocFqV.PutAll(0.0);
+        if (IsStoreHashWords()) { HashWordV.Clr(); }
     } else {
         // if normal vector space, just forget the existing tokens and document counts
         TokenSet.Clr(); DocFqV.Clr(); OldDocFqV.Clr();
@@ -315,7 +330,7 @@ bool TBagOfWords::Update(const TStrV& TokenStrV) {
             const TStr& TokenStr = NgramStrV[TokenStrN];
             TInt TokenId = TokenStr.GetHashTrick() % HashDim;
             TokenIdH.AddKey(TokenId);
-            if(KeepHashTable) { HashTable[TokenId].AddKey(TokenStr); }
+            if (IsStoreHashWords()) { HashWordV[TokenId].AddKey(TokenStr); }
         }
         // update document counts
         int KeyId = TokenIdH.FFirstKeyId();

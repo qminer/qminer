@@ -16,6 +16,16 @@ TStr TStrUtil::GetStr(const TIntV& IntV, const TStr& DelimiterStr) {
   }
   return ResChA;
 }
+
+TStr TStrUtil::GetStr(const TUInt64V& UInt64V, const TStr& DelimiterStr) {
+	TChA ResChA;
+	for (int N = 0; N < UInt64V.Len(); N++) {
+		if (!ResChA.Empty()) { ResChA += DelimiterStr; }
+		ResChA += UInt64V[N].GetStr();
+	}
+	return ResChA;
+}
+
 //Explicit 64 bit indexing
 TStr TStrUtil::GetStr(const TVec<TNum<int64>, int64>& IntV, const TStr& DelimiterStr) {
 	TChA ResChA;
@@ -48,6 +58,18 @@ TStr TStrUtil::GetStr(const TStrIntPrV& StrIntPrV,
     ResChA+=StrIntPrV[EltN].Val2.GetStr();
   }
   return ResChA;
+}
+
+TStr TStrUtil::GetStr(const TIntFltPrV& IntFltPrV, const TStr& FieldDelimiterStr,
+		const TStr& DelimiterStr, const TStr& FmtStr) {
+	TChA ResChA;
+	for (int i = 0; i < IntFltPrV.Len(); i++) {
+		if (!ResChA.Empty()) { ResChA += DelimiterStr; }
+		ResChA += IntFltPrV[i].Val1.GetStr();
+		ResChA += FieldDelimiterStr;
+		ResChA += TFlt::GetStr(IntFltPrV[i].Val2, FmtStr);
+	}
+	return ResChA;
 }
 
 TStr TStrUtil::GetStr(const TFltV& FltV, const TStr& DelimiterStr, const TStr& FmtStr) {

@@ -74,6 +74,7 @@ int _daylight = 0;
 #include "xmath.cpp"
 
 #include "blobbs.cpp"
+#include "pgblob.cpp"
 #include "lx.cpp"
 #include "url.cpp"
 #include "http.cpp"
@@ -83,8 +84,10 @@ int _daylight = 0;
 #include "ss.cpp"
 #include "xml.cpp"
 #include "linalg.cpp"
-#include "opt.cpp"
 #include "json.cpp"
 
 #include "zipfl.cpp"
 
+#ifdef GLib_WIN
+#include "StackWalker.cpp"
+#endif
