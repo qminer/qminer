@@ -3,8 +3,8 @@ node makedoc.js ../src/nodejs/ht/ht_nodejs.h ../src/nodejs/scripts/ht.js ../node
 node makedoc.js ../src/nodejs/fs/fs_nodejs.h "" ../nodedoc/fsdoc.js
 node makedoc.js ../src/nodejs/analytics/analytics.h ../src/nodejs/scripts/analytics.js ../nodedoc/analyticsdoc.js
 
-node makedoc.js ../src/nodejs/la/la_structures_nodejs.h ../src/nodejs/scripts/la.js ../nodedoc/ladoc_structures.js
-
+node makedoc.js ../src/nodejs/la/la_nodejs.h "" ../nodedoc/ladoc_module.js 
+node makedoc.js ../src/nodejs/la/la_structures_nodejs.h ../src/nodejs/scripts/la.js ../nodedoc/ladoc_structures.js ../nodedoc/ladoc_module.js 
 node makedoc.js ../src/nodejs/la/la_vector_nodejs.h "" ../nodedoc/ladoc.js ../nodedoc/ladoc_structures.js ../src/nodejs/la/VectorDocData.js ../src/nodejs/la/StrVectorDocData.js ../src/nodejs/la/IntVectorDocData.js ../src/nodejs/la/BoolVectorDocData.js
 
 node makedoc.js ../src/nodejs/qm/qm_nodejs.h ../src/nodejs/scripts/qm.js ../nodedoc/qminerdoc.js
