@@ -505,7 +505,7 @@ void TDecisionTree::TNode::Fit(const TFltVV& FtrVV, const TFltV& ClassV, const T
 
 		for (int i = 0; i < NExamples; i++) {
 			AssertR(0 <= InstNV[i] && InstNV[i] < FtrVV.GetCols(), "Invalid instance index: " + TInt::GetStr(InstNV[i]) + "!");
-			TotalPos += ClassV[InstNV[i]];
+			TotalPos += (int) ClassV[InstNV[i]];
 		}
 
 		ClassHist[0] = 1 - double(TotalPos) / NExamples;
@@ -524,7 +524,7 @@ void TDecisionTree::TNode::Fit(const TFltVV& FtrVV, const TFltV& ClassV, const T
 				AssertR(0 <= InstN && InstN < FtrVV.GetCols(), "Invalid instance index: " + TInt::GetStr(InstN) + "!");
 
 				ValClassPrV[i].Val1 = FtrVV(FtrN, InstN);
-				ValClassPrV[i].Val2 = ClassV[InstN];
+				ValClassPrV[i].Val2 = (int) ClassV[InstN];
 				FtrSum += FtrVV(FtrN, InstN);
 			}
 
@@ -840,7 +840,9 @@ PJsonVal TDecisionTree::GetJson() const {
 
 PJsonVal TDecisionTree::ExplainPositive() const {
 	if (!HasRoot()) { return TJsonVal::NewArr(); }
-	return Root->ExplainLabel(1);
+	PJsonVal Result = Root->ExplainLabel(1);
+	if (Result.Empty()) { return TJsonVal::NewArr(); }
+	return Result;
 }
 
 void TDecisionTree::Grow(const TFltVV& FtrVV, const TFltV& ClassV, const PNotify& Notify) {

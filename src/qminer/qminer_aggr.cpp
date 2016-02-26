@@ -646,7 +646,9 @@ void TEma::OnStep() {
 }
 
 
-TEma::TEma(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal), Ema(ParamVal) {
+TEma::TEma(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
+		TStreamAggr(Base, ParamVal),
+		Ema(ParamVal) {
     // parse out input aggregate
     TStr InStoreNm = ParamVal->GetObjStr("store", "");
 	TStr InAggrNm = ParamVal->GetObjStr("inAggr");	
@@ -673,6 +675,64 @@ PJsonVal TEma::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
 	Val->AddToObj("Val", Ema.GetValue());
 	Val->AddToObj("Time", TTm::GetTmFromMSecs(Ema.GetTmMSecs()).GetWebLogDateTimeStr(true, "T"));
+	return Val;
+}
+
+///////////////////////////////
+// Threshold aggregate
+TThresholdAggr::TThresholdAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
+		TStreamAggr(Base, ParamVal),
+		Threshold(),
+		IsAboveP(),
+		TmMSecs() {
+
+	TStr InStoreNm = ParamVal->GetObjStr("store", "");
+	TStr InAggrNm = ParamVal->GetObjStr("inAggr");
+
+	PStreamAggr _InAggr = Base->GetStreamAggr(InStoreNm, InAggrNm);
+	InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
+	QmAssertR(!InAggr.Empty(), "TThresholdAggr::TThresholdAggr: Stream aggregate does not exist: " + InAggrNm);
+	InAggrVal = dynamic_cast<TStreamAggrOut::IFltTm*>(_InAggr());
+	QmAssertR(!InAggrVal.Empty(), "TThresholdAggr::TThresholdAggr: Stream aggregate does not implement IFltTm interface: " + InAggrNm);
+
+	EAssertR(ParamVal->IsObjKey("threshold"), "Threshold is not defined!");
+	Threshold = ParamVal->GetObjNum("threshold");
+
+	Reset();
+}
+
+void TThresholdAggr::OnAddRec(const TRec& Rec) {
+	if (InAggr->IsInit()) {
+		IsAboveP = InAggrVal->GetFlt() > Threshold ? 1.0 : 0.0;
+		TmMSecs = InAggrVal->GetTmMSecs();
+	}
+}
+
+PStreamAggr TThresholdAggr::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+	return new TThresholdAggr(Base, ParamVal);
+}
+
+void TThresholdAggr::LoadState(TSIn& SIn) {
+	Threshold.Load(SIn);
+	IsAboveP.Load(SIn);
+	TmMSecs.Load(SIn);
+}
+
+void TThresholdAggr::SaveState(TSOut& SOut) const {
+	Threshold.Save(SOut);
+	IsAboveP.Save(SOut);
+	TmMSecs.Save(SOut);
+}
+
+void TThresholdAggr::Reset() {
+	IsAboveP = 0;
+	TmMSecs = TUInt64::Mx;
+}
+
+PJsonVal TThresholdAggr::SaveJson(const int& Limit) const {
+	PJsonVal Val = TJsonVal::NewObj();
+	Val->AddToObj("Val", IsAboveP);
+	Val->AddToObj("Time", TTm::GetTmFromMSecs(TmMSecs).GetWebLogDateTimeStr(true, "T"));
 	return Val;
 }
 

@@ -78,9 +78,9 @@ public:
 
 protected:
 	// can still optimize
-	void UpdateCentroids(const TFltVV& FtrVV, const TIntV& AssignIdxV, const TFltV& OnesN,
+	void UpdateCentroids(const TFltVV& FtrVV, TIntV& AssignV, const TFltV& OnesN,
 			const TIntV& RangeN, TFltV& TempK, TFltVV& TempDxKV,
-			TVec<TIntFltKdV>& TempKxKSpVV);
+			TVec<TIntFltKdV>& TempKxKSpVV, const TFltV& NormX2, TFltV& NormC2);
 	void SelectInitCentroids(const TFltVV& FtrVV, const int& K);
 
 	void Assign(const TFltVV& FtrVV, const TFltV& NormX2, const TFltV& NormC2,

@@ -1010,7 +1010,7 @@ public:
     if (Offset != 0) return GetPrimHashCd(Bf + Offset); else return GetPrimHashCd(""); }
   int GetSecHashCd(const uint& Offset) { Assert(Offset < BfL);
     if (Offset != 0) return GetSecHashCd(Bf + Offset); else return GetSecHashCd(""); }
-  int GetMemUsed() const { return (int) MxBfL + 3*sizeof(uint); }
+  int GetMemUsed() const { return (int) (MxBfL + 3*sizeof(uint)); }
 };
 
 /////////////////////////////////////////////////
@@ -1305,8 +1305,10 @@ public:
   bool operator<(const TSInt& Int) const { return Val<Int.Val; }
   bool operator<(const int16& Int) const { return Val<Int; }
   int operator()() const { return Val; }
+
   TSInt& operator+=(const int16& Int) { Val += Int; return *this; }
   TSInt& operator-=(const int16& Int) { Val -= Int; return *this; }
+
   TSInt& operator++() { ++Val; return *this; } // prefix
   TSInt& operator--() { --Val; return *this; } // prefix
 };

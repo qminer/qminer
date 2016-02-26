@@ -449,7 +449,7 @@ bool TSsParser::Next() { // split on SplitCh
 void TSsParser::ToLc() {
   for (int f = 0; f < FldV.Len(); f++) {
     for (char *c = FldV[f]; *c; c++) {
-      *c = tolower(*c); }
+      *c = (char) tolower(*c); }
   }
 }
 

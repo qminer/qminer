@@ -123,7 +123,7 @@ namespace THoeffding {
    // Simple-Lexical-Analyzer
    class TLexer {
    public:
-      TLexer(const TStr& FileNm)
+      TLexer(const TStr& FileNm)	// FIXME CurrCh should be initialized. To 0 perhaps???
          : LineN(1), BackP(false) { SIn = TFIn::New(FileNm); }
       TLexer(TLexer& Lexer)
          : CrrCh(Lexer.CrrCh), LineN(Lexer.LineN), LastTok(Lexer.LastTok),
@@ -140,7 +140,7 @@ namespace THoeffding {
    private:
       void EatWs(); // Eats whitespace 
       void SkipLn(); // Skip line 
-      int CrrCh; // Current character 
+      int CrrCh; // Current character 	// XXX should this be changed to char???
       int LineN; // Current line number 
       TToken LastTok;
       bool BackP;

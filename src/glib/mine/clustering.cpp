@@ -117,36 +117,60 @@ void TAbsKMeans::GetDistVV(const TFltVV& FtrVV, TFltVV& DistVV) const {
 	const int Cols = DistVV.GetCols();
 
 	// compute the square root of each element
+	double Dist;
 	for (int RowN = 0; RowN < Rows; RowN++) {
 		for (int ColN = 0; ColN < Cols; ColN++) {
-			DistVV.PutXY(RowN, ColN, TMath::Sqrt(DistVV(RowN, ColN)));
+			Dist = DistVV(RowN, ColN);
+
+			AssertR(Dist > -1e-8, "Distance lower than numerical error threshold!");
+			if (Dist < 0) { Dist = 0; }
+
+			DistVV.PutXY(RowN, ColN, TMath::Sqrt(Dist));
 		}
 	}
 }
 
-void TAbsKMeans::UpdateCentroids(const TFltVV& FtrVV, const TIntV& AssignIdxV,
+void TAbsKMeans::UpdateCentroids(const TFltVV& FtrVV, TIntV& AssignV,
 		const TFltV& OnesN, const TIntV& RangeN, TFltV& TempK, TFltVV& TempDxKV,
-		TVec<TIntFltKdV>& TempKxKSpVV) {
+		TVec<TIntFltKdV>& TempKxKSpVV, const TFltV& NormX2, TFltV& NormC2) {
 	const int NInst = FtrVV.GetCols();
 	const int K = CentroidVV.GetCols();
 
 	// I. create a sparse matrix (coordinate representation) that encodes the closest centroids
-	TSparseColMatrix AssignIdxMat(NInst, K);
-	TSparseOps<TInt,TFlt>::CoordinateCreateSparseColMatrix(RangeN, AssignIdxV, OnesN, AssignIdxMat.ColSpVV, K);
+	TSparseColMatrix AssignMat(NInst, K);
 
-	// II. compute the number of points that belong to each centroid, invert
-	AssignIdxMat.MultiplyT(OnesN, TempK);
-	// invert
-	for (int i = 0; i < K; i++) {
-		TempK[i] = 1.0 / (TempK[i] + 1.0);
-	}
+	bool AllClustsFull;
+	do {
+		AllClustsFull = true;
+
+		TSparseOps<TInt,TFlt>::CoordinateCreateSparseColMatrix(RangeN, AssignV, OnesN, AssignMat.ColSpVV, K);
+
+		// II. compute the number of points that belong to each centroid, invert
+		AssignMat.MultiplyT(OnesN, TempK);
+
+		// invert
+		for (int ClustN = 0; ClustN < K; ClustN++) {
+			if (TempK[ClustN] == 0.0) {	// don't allow empty clusters
+				// select a random point and create a new centroid from it
+				const int RndRecN = Rnd.GetUniDevInt(FtrVV.GetCols());
+				TFltV RndRecFtrV;	FtrVV.GetCol(RndRecN, RndRecFtrV);
+				CentroidVV.SetCol(ClustN, RndRecFtrV);
+				TLinAlg::GetColNorm2V(CentroidVV, NormC2);
+				Assign(FtrVV, NormX2, NormC2, AssignV);
+				AllClustsFull = false;
+				break;
+			}
+			TempK[ClustN] = 1.0 / (TempK[ClustN] + 1.0);
+		}
+	} while (!AllClustsFull);
+
 
 	// III. compute the centroids
 	// compute: CentroidMat = ((FtrVV * AssignIdxMat) + CentroidMat) * ColSumDiag;
 	TLAMisc::Diag(TempK, TempKxKSpVV);
 
 	// 1) FtrVV * AssignIdxMat
-	TLinAlg::Multiply(FtrVV, AssignIdxMat.ColSpVV, TempDxKV);
+	TLinAlg::Multiply(FtrVV, AssignMat.ColSpVV, TempDxKV);
 	// 2) (FtrVV * AssignIdxMat) + CentroidMat
 	TLinAlg::LinComb(1, TempDxKV, 1, CentroidVV, TempDxKV);
 	// 3) ((FtrVV * AssignIdxMat) + CentroidMat) * ColSumDiag
@@ -232,6 +256,7 @@ void TDnsKMeans::Apply(const TFltVV& FtrVV, const int& MaxIter, const PNotify& N
 
 	// reused variables
 	TFltVV ClustDistVV(K, NInst);		// (dimension k x n)
+	TFltV NormC2(K);
 	TFltV TempK(K);						// (dimension k)
 	TFltVV TempDxK(Dim, K);				// (dimension d x k)
 	TVec<TIntFltKdV> TempKxKSpVV(K);	// (dimension k x k)
@@ -245,8 +270,8 @@ void TDnsKMeans::Apply(const TFltVV& FtrVV, const int& MaxIter, const PNotify& N
 
 		// get the distance of each of the points to each of the centroids
 		// and assign the instances
-		TLinAlg::GetColNorm2V(CentroidVV, TempK);
-		GetDistMat2(FtrVV, NormX2, TempK, ClustDistVV);
+		TLinAlg::GetColNorm2V(CentroidVV, NormC2);
+		GetDistMat2(FtrVV, NormX2, NormC2, ClustDistVV);
 		TLinAlg::GetColMinIdxV(ClustDistVV, *AssignIdxVPtr);
 
 		// if the assignment hasn't changed then terminate the loop
@@ -256,7 +281,7 @@ void TDnsKMeans::Apply(const TFltVV& FtrVV, const int& MaxIter, const PNotify& N
 		}
 
 		// recompute the means
-		UpdateCentroids(FtrVV, *AssignIdxVPtr, OnesN, RangeN, TempK, TempDxK, TempKxKSpVV);
+		UpdateCentroids(FtrVV, *AssignIdxVPtr, OnesN, RangeN, TempK, TempDxK, TempKxKSpVV, NormX2, NormC2);
 
 		// swap the old and new assign vectors
 		Temp = AssignIdxVPtr;
@@ -323,6 +348,7 @@ void TDpMeans::Apply(const TFltVV& FtrVV, const int& MaxIter, const PNotify& Not
 	TFltV FtrV;							// (dimension d)
 	TFltV MinClustDistV;				// (dimension n)
 	TFltVV ClustDistVV(K, NInst);		// (dimension k x n)
+	TFltV NormC2(K);
 	TFltV TempK(K);						// (dimension k)
 	TFltVV TempDxK(Dim, K);				// (dimension d x k)
 	TVec<TIntFltKdV> TempKxKSpVV(K);	// (dimension k x k)
@@ -332,8 +358,8 @@ void TDpMeans::Apply(const TFltVV& FtrVV, const int& MaxIter, const PNotify& Not
 		if (i % 100 == 0) { Notify->OnNotifyFmt(TNotifyType::ntInfo, "%d", i); }
 
 		// compute the distance matrix to all the centroids and assignments
-		TLinAlg::GetColNorm2V(CentroidVV, TempK);
-		GetDistMat2(FtrVV, NormX2, TempK, ClustDistVV);
+		TLinAlg::GetColNorm2V(CentroidVV, NormC2);
+		GetDistMat2(FtrVV, NormX2, NormC2, ClustDistVV);
 		TLinAlg::GetColMinIdxV(ClustDistVV, *AssignIdxVPtr);
 
 		// check if we need to increase the number of centroids
@@ -349,6 +375,7 @@ void TDpMeans::Apply(const TFltVV& FtrVV, const int& MaxIter, const PNotify& Not
 				CentroidVV.AddCol(FtrV);
 				ClustDistVV.AddXDim();
 				TempK.Add(0);
+				NormC2.Add(0);
 				TempDxK.AddYDim();
 				TempKxKSpVV.Gen(K);
 				(*AssignIdxVPtr)[NewCentrIdx] = K-1;
@@ -363,7 +390,7 @@ void TDpMeans::Apply(const TFltVV& FtrVV, const int& MaxIter, const PNotify& Not
 		}
 
 		// recompute the centroids
-		UpdateCentroids(FtrVV, *AssignIdxVPtr, OnesN, RangeN, TempK, TempDxK, TempKxKSpVV);
+		UpdateCentroids(FtrVV, *AssignIdxVPtr, OnesN, RangeN, TempK, TempDxK, TempKxKSpVV, NormX2, NormC2);
 
 		// swap old and new assign vectors
 		Temp = AssignIdxVPtr;

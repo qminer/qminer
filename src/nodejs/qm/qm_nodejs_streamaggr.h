@@ -510,8 +510,7 @@
 *    type: 'timeSeriesTick',
 *    store: 'Heat',
 *    timestamp: 'Time',
-*    value: 'Celcius',
-*    winsize: 3600000
+*    value: 'Celcius'
 * };
 * var timeSeries = base.store("Heat").addStreamAggr(timeser);
 *
@@ -527,6 +526,59 @@
 *    initWindow: 2000
 * };
 * var expoMovingAverage = base.store("Heat").addStreamAggr(ema);
+* base.close();
+*/
+
+/**
+* @typedef {module:qmStreamAggr} StreamAggregateThreshold
+* This stream aggregator represents a threshold indicator. It outputs 1 if the current value in the data streams is
+* above the threshold and 0 otherwise.
+*
+* <br>{@link module:qm.StreamAggr#getFloat} returns the exponentional average of the values in it's buffer window.
+* <br>{@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the newest record in it's buffer window.
+* @property {string} StreamAggregateThreshold.name - The given name for the stream aggregator.
+* @property {string} StreamAggregateThreshold.type - The type of the stream aggregator. It must be equal to <b>'ema'</b>.
+* @property {string} StreamAggregateThreshold.store - The name of the store from which it takes the data.
+* @property {string} StreamAggregateThreshold.inAggr - The name of the stream aggregator to which it connects and gets data.
+* It <b>cannot</b> connect to the {@link module:qm~StreamAggr_TimeSeriesWindow}.
+* @property {string} StreamAggregateEMA.threshold - The threshold mentioned above.
+* @example
+* // import the qm module
+* var qm = require('qminer');
+* // create a base with a simple store
+* var base = new qm.Base({
+*    mode: "createClean",
+*    schema: [
+*    {
+*        name: "Heat",
+*        fields: [
+*            { name: "Celcius", type: "float" },
+*            { name: "Time", type: "datetime" }
+*        ]
+*    }]
+* });
+*
+* // create a new time series tick stream aggregator for the 'Heat' store, that takes the values from the 'Celcius' field
+* // and the timestamp from the 'Time' field. The size of the window should be 1 hour.
+* var timeser = {
+*    name: 'TimeSeriesTickAggr',
+*	 type: 'timeSeriesTick',
+*    store: 'Heat',
+*    timestamp: 'Time',
+*    value: 'Celcius'
+* };
+* var timeSeries = base.store("Heat").addStreamAggr(timeser);
+*
+* // add an exponentional moving average aggregator, that is connected with the 'TimeSeriesAggr' aggregator.
+* // It should interpolate with the previous value, the decay should be 3 seconds and the initWindow should be 2 seconds.
+* var thresholdAggr = {
+*    name: 'thresholdAggr1',
+*    type: 'threshold',
+*    store: 'Heat',
+*    inAggr: 'TimeSeriesTickAggr',
+*    threshold: 3
+* };
+* var expoMovingAverage = base.store("Heat").addStreamAggr(thresholdAggr);
 * base.close();
 */
 
