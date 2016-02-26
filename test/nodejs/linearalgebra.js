@@ -4271,7 +4271,7 @@ describe('Rectangle Sparse Matrix Tests', function () {
             var mat = new RSparseMatrix();
             it('should get a submatrix', function () {
                 var fullMat = new la.SparseMatrix([[[0, 1]], [[1, 2]], [[2, 3]], [[3, 4]]]);
-                var subMat = fullMat.submat(new la.IntVector([1, 2]));
+                var subMat = fullMat.getColSubmatrix(new la.IntVector([1, 2]));
 
                 assert.equal(subMat.cols, 2);
                 assert.equal(subMat.rows, -1);
@@ -4282,7 +4282,7 @@ describe('Rectangle Sparse Matrix Tests', function () {
             it('should throw exception for column id out of range', function () {
                 var fullMat = new la.SparseMatrix([[[0, 1]], [[1, 2]], [[2, 3]], [[3, 4]]]);
                 assert.throws(function () {
-                    fullMat.submat(new la.IntVector([1, 2, 4]))
+                    fullMat.getColSubmatrix(new la.IntVector([1, 2, 4]))
                 });
             })
         })
@@ -4300,12 +4300,6 @@ describe('Rectangle Sparse Matrix Tests', function () {
                 fullMat2.clear();
                 assert.equal(fullMat2.cols, 0);
                 assert.equal(fullMat2.rows, -1);
-            })
-            it('should throw exception for column id out of range', function () {
-                var fullMat = new la.SparseMatrix([[[0, 1]], [[1, 2]], [[2, 3]], [[3, 4]]]);
-                assert.throws(function () {
-                    fullMat.submat(new la.IntVector([1, 2, 4]))
-                });
             })
         })
 
