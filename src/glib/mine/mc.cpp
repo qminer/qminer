@@ -46,22 +46,25 @@ void THistogram::Save(TSOut& SOut) const {
 }
 
 void THistogram::Update(const double& FtrVal) {
-	const double BinSize = GetBinSize();
+	const double HalfBinSize = GetBinSize()/2;
+	const double Eps = 1e-14;
 
-	if (FtrVal < BinValV[0] + BinSize/2) {
+	if (FtrVal < BinValV[0] + HalfBinSize) {
 		CountV[0]++;
-	} else if (BinValV.Last() - BinSize/2 <= FtrVal) {
+	} else if (FtrVal >= BinValV.Last() - HalfBinSize) {
 		CountV.Last()++;
 	} else {
 		bool Updated = false;
 		for (int BinN = 1; BinN < Bins-1; BinN++) {
-			if (BinValV[BinN] - BinSize/2 <= FtrVal && FtrVal < BinValV[BinN] + BinSize/2) {
+			const double LowerEdge = BinValV[BinN] - HalfBinSize - Eps;
+			const double UpperEdge = BinValV[BinN] + HalfBinSize + Eps;
+			if (LowerEdge <= FtrVal && FtrVal < UpperEdge) {
 				Updated = true;
 				CountV[BinN]++;
 				break;
 			}
 		}
-		EAssert(Updated);
+		EAssertR(Updated, "Histogram not updated! Value: " + TFlt::GetStr(FtrVal) + ", bin vals:\n" + TStrUtil::GetStr(BinValV, ", ", "%.3f"));
 	}
 
 	TotalCount++;
@@ -70,7 +73,7 @@ void THistogram::Update(const double& FtrVal) {
 
 
 //////////////////////////////////////////////////
-// Abstract clustering
+// State identifier
 const int TStateIdentifier::MX_ITER = 10000;
 const int TStateIdentifier::TIME_HIST_BINS = 10000;
 
@@ -276,33 +279,6 @@ void TStateIdentifier::GetAllCentroid(const int& StateId, TFltV& FtrV) const {
 	GetIgnoredCentroid(StateId, TempV);
 	FtrV.AddV(TempV);
 }
-
-//void TStateIdentifier::GetJoinedControlCentroid(const TIntV& CentroidIdV, TFltV& Centroid) const {
-//	const int Dim = GetControlDim();
-//
-//	if (Centroid.Empty()) { Centroid.Gen(Dim); }
-//	EAssert(Centroid.Len() == Dim);
-//
-//	TFltV FtrV;
-//
-//	double TotalSize = 0;
-//	for (int i = 0; i < CentroidIdV.Len(); i++) {
-//		const int CentroidIdx = CentroidIdV[i];
-//		const double CentroidSize = (double) GetClustSize(CentroidIdx);
-//
-//		GetControlCentroid(CentroidIdx, FtrV);
-//
-//		for (int FtrN = 0; FtrN < Dim; FtrN++) {
-//			Centroid[FtrN] += FtrV[FtrN] * CentroidSize;
-//		}
-//
-//		TotalSize += CentroidSize;
-//	}
-//
-//	for (int i = 0; i < Dim; i++) {
-//		Centroid[i] /= TotalSize;
-//	}
-//}
 
 double TStateIdentifier::GetMeanPtCentDist(const int& CentroidIdx) const {
 	EAssertR(CentroidIdx < GetStates(), TStr::Fmt("TFullKMeans::GetMeanPtCentDist: Invalid centroid index: %d", CentroidIdx));
@@ -2857,7 +2833,6 @@ void THierarch::InitHierarchyTrans(const TStateIdentifier& StateIdentifier,
 	const int NLeafs = QMat.GetCols();
 	MxHeight = TFlt::NInf;
 
-//	TIntSet TakenIdSet;
 	TIntIntH OldToNewIdH;
 	TIntV NewHierarchV;
 	TFltV NewHeightV;
@@ -2917,8 +2892,6 @@ void THierarch::InitHierarchyTrans(const TStateIdentifier& StateIdentifier,
 	// finish
 	StateHeightV = NewHeightV;
 	HierarchV = NewHierarchV;
-//
-//	MxHeight = StateHeightV.Last();
 }
 
 void THierarch::InitAutoNmV(const TStateIdentifier& StateIdentifier) {
@@ -2960,12 +2933,6 @@ void THierarch::InitAutoNmV(const TStateIdentifier& StateIdentifier) {
 			const int StateId = StateIdV[StateN];
 			const TAggState& AggState = AggStateV[StateN];
 
-//			double BestFtrPVal = TFlt::PInf;
-//			double BestFtrPerc = TFlt::PInf;
-//			double BestLowPerc = TFlt::PInf;
-//			double BestHighPerc = TFlt::NInf;
-//			int BestFtrId = -1;
-
 			int BestFtrN = -1;
 			double BestFtrLowPercPVal = TFlt::Mx;
 			double BestFtrHighPercPVal = TFlt::Mx;
@@ -2973,14 +2940,9 @@ void THierarch::InitAutoNmV(const TStateIdentifier& StateIdentifier) {
 
 			for (int FtrN = 0; FtrN < AllDim; FtrN++) {
 				const TFltV& AllPValV = FtrPValVV[FtrN];
-				const TFltV& AllBinV = FtrAllBinV[FtrN];
+//				const TFltV& AllBinV = FtrAllBinV[FtrN];
 
 				StateIdentifier.GetHistogram(FtrN, AggState, BinValV, StateBinCountV, false);
-
-				printf("all histogram:\n%s\n", TStrUtil::GetStr(AllBinV, ", ", "%.4f").CStr());
-				printf("histogram:\n%s\n", TStrUtil::GetStr(StateBinCountV, ", ", "%.4f").CStr());
-				printf("Ftr %d percentiles:\n%s\n", FtrN, TStrUtil::GetStr(AllPValV, ", ", "%.5f").CStr());
-//				printf("Bin values:\n%s\n", TStrUtil::GetStr(BinValV, ", ", "%.5f").CStr());
 
 				// calculate the mean and check into which percentile it falls
 				const double TotalCount = TLinAlg::SumVec(StateBinCountV);
@@ -3020,22 +2982,17 @@ void THierarch::InitAutoNmV(const TStateIdentifier& StateIdentifier) {
 
 			if (BestFtrPVal < LOWEST_PVAL_THRESHOLD) {
 				if (BestFtrLowPercPVal < BestFtrHighPercPVal) {
-					printf("State %d, got name:(%d, LOWEST)\n", StateId, BestFtrN);
 					StateAutoNmV[StateId] = TIntStrPr(BestFtrN, "LOWEST");
 				} else {
-					printf("State %d, got name:(%d, HIGHEST)\n", StateId, BestFtrN);
 					StateAutoNmV[StateId] = TIntStrPr(BestFtrN, "HIGHEST");
 				}
 			} else if (BestFtrPVal < LOW_PVAL_THRESHOLD) {
 				if (BestFtrLowPercPVal < BestFtrHighPercPVal) {
-					printf("State %d, got name:(%d, LOW)\n", StateId, BestFtrN);
 					StateAutoNmV[StateId] = TIntStrPr(BestFtrN, "LOW");
 				} else {
-					printf("State %d, got name:(%d, HIGH)\n", StateId, BestFtrN);
 					StateAutoNmV[StateId] = TIntStrPr(BestFtrN, "HIGH");
 				}
 			} else {
-				printf("State %d, got name: MEAN\n", StateId);
 				StateAutoNmV[StateId] = TIntStrPr(-1, "MEAN");
 			}
 		}
@@ -3862,8 +3819,6 @@ TStreamStory::TStreamStory(TSIn& SIn):
 		Verbose(TBool(SIn)),
 		Callback(nullptr),
 		Notify() {
-
-	Hierarch->InitAutoNmV(*StateIdentifier);
 
 	Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
 }

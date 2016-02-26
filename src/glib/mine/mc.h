@@ -533,7 +533,6 @@ public:
 	void Init(const int& CurrLeafId, const TStateIdentifier& StateIdentifier,
 			const TCtmcModeller& MChain);
 	void UpdateHistory(const int& CurrLeafId);
-	void InitAutoNmV(const TStateIdentifier& StateIdentifier);	// TODO move this to private
 
 	const TFltV& GetUniqueHeightV() const { return UniqueHeightV; }
 	const TIntV& GetHierarchV() const { return HierarchV; }
@@ -590,6 +589,7 @@ private:
 	void InitHierarchyDist(const TStateIdentifier& StateIdentifier);
 	void InitHierarchyTrans(const TStateIdentifier& StateIdentifier,
 			const TCtmcModeller& MChain);
+	void InitAutoNmV(const TStateIdentifier& StateIdentifier);
 
 	// returns the ID of the parent state
 	int GetParentId(const int& StateId) const;
