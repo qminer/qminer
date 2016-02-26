@@ -67,7 +67,7 @@ TStr TBlobPt::GetStr() const {
 /////////////////////////////////////////////////
 // Blob-Base
 const int TBlobBs::MnBlobBfL=16;
-const int TBlobBs::MxBlobFLen=1000000000;
+const int TBlobBs::MxBlobFLen = 2000000000;
 
 void TBlobBs::PutVersionStr(const PFRnd& FBlobBs){
   FBlobBs->PutStr(GetVersionStr());
@@ -260,6 +260,9 @@ TGBlobBs::TGBlobBs(
       PutBlobBsStateStr(FBlobBs, bbsOpened);
     }
     MxSegLen=GetMxSegLen(FBlobBs);
+	// temp fix to resize also existing files to max size: 
+	MxSegLen = MxBlobFLen;
+
     GetBlockLenV(FBlobBs, BlockLenV);
     GetFFreeBlobPtV(FBlobBs, FFreeBlobPtV);
   }
@@ -481,6 +484,8 @@ void TMBlobBs::LoadMain(int& Segs){
   TILx Lx(SIn, TFSet()|oloFrcEoln|oloSigNum|oloCsSens);
   EAssert(Lx.GetVarStr("Version")==GetVersionStr());
   MxSegLen=Lx.GetVarInt("MxSegLen");
+  // temp fix to resize also existing files to max size: 
+  MxSegLen = MxBlobFLen;
   Segs=Lx.GetVarInt("Segments");
 }
 
