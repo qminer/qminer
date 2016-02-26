@@ -1158,7 +1158,7 @@ void TNodeJsSpMat::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "plus", _plus);
     NODE_SET_PROTOTYPE_METHOD(tpl, "minus", _minus);
     NODE_SET_PROTOTYPE_METHOD(tpl, "transpose", _transpose);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "submat", _submat);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "getColSubmatrix", _getColSubmatrix);
     NODE_SET_PROTOTYPE_METHOD(tpl, "clear", _clear);
     NODE_SET_PROTOTYPE_METHOD(tpl, "colNorms", _colNorms);
     NODE_SET_PROTOTYPE_METHOD(tpl, "normalizeCols", _normalizeCols);
@@ -1657,7 +1657,7 @@ void TNodeJsSpMat::transpose(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsSpMat>(new TNodeJsSpMat(Result)));
 }
 
-void TNodeJsSpMat::submat(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsSpMat::getColSubmatrix(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -1665,7 +1665,7 @@ void TNodeJsSpMat::submat(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     const TVec<TIntFltKdV>& Mat = JsSpMat->Mat;
 
     // get int vector with col ids
-    EAssertR(Args.Length() == 1, "SparseMatrix.submat expects one parameter");
+    EAssertR(Args.Length() == 1, "SparseMatrix.getColSubmatrix expects one parameter");
     TNodeJsVec<TInt, TAuxIntV>* ColIdJsVec = TNodeJsUtil::GetArgUnwrapObj<TNodeJsVec<TInt, TAuxIntV> >(Args, 0);
     const TIntV& ColIdV = ColIdJsVec->Vec;
 
@@ -1676,7 +1676,7 @@ void TNodeJsSpMat::submat(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     // load selected columns
     SubMat.Gen(ColIdV.Len(), 0);
     for (const int ColId : ColIdV) {
-        EAssertR(0 <= ColId && ColId < Mat.Len(), "SparseMatrix.submat column id out of range");
+        EAssertR(0 <= ColId && ColId < Mat.Len(), "SparseMatrix.getColSubmatrix column id out of range");
         SubMat.Add(Mat[ColId]);
     }
 

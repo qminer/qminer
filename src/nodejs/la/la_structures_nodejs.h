@@ -974,8 +974,8 @@ public:
 	* @param {module:la.IntVector} columnIdVec - Integer vector containing selected column ids.
     * @returns {module:la.SparseMatrix}
     */
-	//# exports.SparseMatrix.prototype.submat = function (columnIdVec) { return Object.create(require('qminer').la.SparseMatrix.prototype); }
-    JsDeclareFunction(submat);
+	//# exports.SparseMatrix.prototype.getColSubmatrix = function (columnIdVec) { return Object.create(require('qminer').la.SparseMatrix.prototype); }
+    JsDeclareFunction(getColSubmatrix);
 
     /**
     * Clear content of the matrix and sets its row dimension to -1.
