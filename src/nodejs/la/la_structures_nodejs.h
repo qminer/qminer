@@ -685,11 +685,11 @@ public:
 	* @example
 	* // import la module
 	* var la = require('qminer').la;
-	* // create a new sparse matrix
-	* var mat = new la.SparseMatrix([[[0, 2]], [[0, 1], [2, 3]]]);
-	* // check the number of nonzero values in sparse matrix
-	* var nonz = mat.nnz();
-	* // returns 3
+	* // create a new sparse vector
+	* var vec = new la.SparseVector([[0,2], [3,1], [7, 5], [11,4]]);
+	* // check the number of nonzero values in sparse vector
+	* var nonz = vec.nnz;
+	* // returns 4
 	*/
 	//# exports.SparseVector.prototype.nnz = 0;
 	JsDeclareProperty(nnz);
@@ -978,6 +978,17 @@ public:
 	/**
 	* Normalizes columns of sparse matrix.
 	* @returns {module:la.SparseMatrix} Self. The columns of the sparse matrix are normalized.
+	* @example
+	* // import la module
+	* var la = require('qminer').la;
+	* // create a new sparse matrix
+	* var mat = new la.SparseMatrix([[[0, 2]], [[0, 1], [2, 3]]]);
+	* // normalize matrix columns
+	* mat.normalizeCols();
+	* // The new matrix elements are:
+	* // 1  0.316227
+	* // 0  0
+	* // 0  0.948683
 	*/
 	//# exports.SparseMatrix.prototype.normalizeCols = function () { return Object.create(require('qminer').la.SparseMatrix.prototype); }
 	JsDeclareFunction(normalizeCols);
