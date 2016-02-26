@@ -646,7 +646,9 @@ void TEma::OnStep() {
 }
 
 
-TEma::TEma(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal), Ema(ParamVal) {
+TEma::TEma(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
+		TStreamAggr(Base, ParamVal),
+		Ema(ParamVal) {
     // parse out input aggregate
     TStr InStoreNm = ParamVal->GetObjStr("store", "");
 	TStr InAggrNm = ParamVal->GetObjStr("inAggr");	

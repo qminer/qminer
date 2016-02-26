@@ -1,5 +1,27 @@
 # QMiner Change Log
 
+### 26 Feb 2016
+
+**New version: 4.7.0**
+
+**Non-breaking with new features**
+
+New features:
+- `TStrUtil` can transform `THashSet` to string
+- Async version of `analytics.MDS`
+- New stream aggregate `threshold`, that returns 1 if input number above threshold, 0 otherwise.
+- Added `getColSubmatrix` function to `SparseMatrix` that gets `IntVector` of column ids and returns sparse matrix constructed from selected columns.
+- Added `clear` function to `SparseMatrix` that clears its content and sets rows to -1.
+
+Bub fixes:
+- `TClust::TAbsKMeans` no longer returns empty clusters
+- `Numeric::InvFtr` wrongly de-normalized numbers
+- TVec Move constructor: no need to delete ValT
+- TVec Move assignment: Delete internal ValT pointer only if you own it.
+
+Other:
+- Added examples to `qm.la` module
+
 ### 12 Feb 2016
 
 **New version: 4.6.0**

@@ -62,6 +62,7 @@ public:
 	const TInt64& GetTotalCount() const { return TotalCount; }
 	double GeNmVal() const { return BinValV[0] - GetBinSize()/2; }
 	double GeMxVal() const { return BinValV.Last() + GetBinSize()/2; }
+	int GetBins() const { return Bins; }
 
 	bool Empty() const { return TotalCount == 0; }
 
@@ -92,11 +93,17 @@ private:
   	// assigned to the centroid to the centroid
   	TUInt64FltPrV CentroidDistStatV;
 
-  	int NHistBins;					// the number of bins used in a histogram
-  	TStateFtrHistVV ObsHistVV;		// histograms of observation features
-  	TStateFtrHistVV ControlHistVV;	// histograms of control features
-  	TStateFtrHistVV IgnoredHistVV;	// histograms of the ignored features
-  	TVec<THistogram> StateTimeHistV;	// TODO save load, ...
+  	int NHistBins;						// the number of bins used in a histogram
+  	TStateFtrHistVV ObsHistVV;			// histograms of observation features
+  	TStateFtrHistVV ControlHistVV;		// histograms of control features
+  	TStateFtrHistVV IgnoredHistVV;		// histograms of the ignored features
+  	// time histograms
+  	TVec<THistogram> StateTimeHistV;	// holds the global time histograms
+  	TVec<THistogram> StateYearHistV;	// holds the yearly time histograms
+  	TVec<THistogram> StateMonthHistV;	// holds the monthly time histograms
+  	TVec<THistogram> StateWeekHistV;	// holds the weekly time histograms
+  	TVec<THistogram> StateDayHistV;		// holds the daily time histograms
+
 
   	TVec<TFltV> StateContrFtrValVV;
 
@@ -106,6 +113,13 @@ private:
   	PNotify Notify;
 
 public:
+  	enum TTmHistType {
+  		thtYear,
+		thtMonth,
+		thtWeek,
+		thtDay
+  	};
+
   	TStateIdentifier(const PClust& KMeans, const int NHistBins, const double& Sample,
 			const TRnd& Rnd=TRnd(0), const bool& Verbose=false);
 	TStateIdentifier(TSIn& SIn);
@@ -115,7 +129,7 @@ public:
 	void Save(TSOut& SOut) const;
 
 	// performs the clustering
-	void Init(TFltVV& ObsFtrVV, const TFltVV& ControlFtrVV, const TFltVV& IgnoredFtrVV);
+	void Init(const TUInt64V& TmV, TFltVV& ObsFtrVV, const TFltVV& ControlFtrVV, const TFltVV& IgnoredFtrVV);
 	// initializes histograms for every feature
 	void InitHistograms(const TFltVV& ObsMat, const TFltVV& ControlFtrVV, const TFltVV& IgnoredFtrVV);
 	void InitTimeHistogramV(const TUInt64V& TmV, const TIntV& AssignV, const int& Bins);
@@ -146,7 +160,10 @@ public:
 
 	void GetHistogram(const int& FtrId, const TAggState& AggState, TFltV& BinValV, TFltV& BinV,
 			const bool& NormalizeP=true) const;
-	void GetTimeHistogram(const TAggState& AggState, TUInt64V& TmV, TFltV& BinV, const bool& NormalizeP=true);
+	void GetGlobalTimeHistogram(const TAggState& AggState, TUInt64V& TmV, TFltV& BinV,
+			const int NBins = -1, const bool& NormalizeP=true) const;
+	void GetTimeHistogram(const TAggState& AggState, const TTmHistType& HistType, TIntV& BinValV,
+			TFltV& BinV) const;
 
 	int GetStates() const { return KMeans->GetClusts(); }
 
@@ -189,11 +206,13 @@ private:
 	// histograms
 	void InitHistVV(const int& NInst, const TFltVV& FtrVV, TStateFtrHistVV& HistVV);
 	void InitHists(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const TFltVV& IgnoredFtrVV);
+
 	static void UpdateHistVV(const TFltVV& FtrVV, const TIntV& AssignV,
 			const int& States, TStateFtrHistVV& StateFtrHistVV);
-
 	static void GetJoinedCentroid(const TIntV& StateIdV,
 			const TFltVV& CentroidVV, const TUInt64V& StateSizeV, TFltV& FtrV);
+	static void ResampleHist(const int& Bins, const TFltV& OrigBinValV, const TIntV& OrigBinV, TFltV& BinValV,
+				TFltV& BinV);
 };
 
 class TEuclMds {
@@ -473,6 +492,10 @@ private:
 // Hierarchy modeler
 class THierarch {
 private:
+	static const double LOW_PVAL_THRESHOLD;
+	static const double LOWEST_PVAL_THRESHOLD;
+	static const double STATE_LOW_PVAL_THRESHOLD;
+
     // a vector which describes the hierarchy. each state has its own index
     // and the value at index i is the index of i-ths parent
     TIntV HierarchV;
@@ -790,7 +813,7 @@ public:
 	void InitBatches(TFltVV& ObservFtrVV, const TFltVV& ControlFtrVV, const TFltVV& IgnoredFtrVV,
 			const TUInt64V& RecTmV, const TBoolV& BatchEndV,
 			const bool& MultiThread=true);
-	void InitClust(TFltVV& ObsFtrVV, const TFltVV& FtrVV, const TFltVV& IgnoredFtrVV,
+	void InitClust(const TUInt64V& TmV, TFltVV& ObsFtrVV, const TFltVV& FtrVV, const TFltVV& IgnoredFtrVV,
 			TIntV& AssignV);	// TODO add const
 	void InitMChain(const TFltVV& FtrVV, const TIntV& AssignV, const TUInt64V& RecTmV,
 			const bool IsBatchData, const TBoolV& EndBatchV);
@@ -832,7 +855,10 @@ public:
 	void GetTransitionHistogram(const int& SourceId, const int& TargetId,
 			const int& FtrId, TFltV& BinStartV, TFltV& SourceProbV, TFltV& TargetProbV,
 			TFltV& AllProbV) const;
-	void GetTimeHistogram(const int& StateId, TUInt64& TmV, TFltV& ProbV) const;
+	void GetGlobalTimeHistogram(const int& StateId, TUInt64V& TmV, TFltV& ProbV,
+			const int& NBins=-1) const;
+	void GetTimeHistogram(const int& StateId, const TStateIdentifier::TTmHistType& HistType,
+			TIntV& BinV, TFltV& ProbV) const;
 
 	// state explanations
 	void GetStateWgtV(const int& StateId, TFltV& WgtV) const;

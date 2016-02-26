@@ -1520,6 +1520,7 @@ void TNodeJsStreamStory::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStateCentroids", _getStateCentroids);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "histogram", _histogram);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "transitionHistogram", _transitionHistogram);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "timeHistogram", _timeHistogram);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getFtrBounds", _getFtrBounds);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "stateIds", _stateIds);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStateWgtV", _getStateWgtV);
@@ -2018,6 +2019,52 @@ void TNodeJsStreamStory::transitionHistogram(const v8::FunctionCallbackInfo<v8::
 	JsStreamStory->StreamStory->GetTransitionHistogram(SourceId, TargetId, FtrId, BinValV, SourceProbV, TargetProbV, AllProbV);
 
 	v8::Local<v8::Object> Result = WrapHistogram(BinValV, SourceProbV, TargetProbV, AllProbV);
+	Args.GetReturnValue().Set(Result);
+}
+
+void TNodeJsStreamStory::timeHistogram(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+
+	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
+	const TStr HistTypeStr = TNodeJsUtil::GetArgStr(Args, 1);
+
+	TFltV BinValV;
+	TFltV ProbV;
+
+	if (HistTypeStr == "global") {
+		const int Bins = TNodeJsUtil::GetArgInt32(Args, 2, 100);
+		TUInt64V TmV;
+		JsStreamStory->StreamStory->GetGlobalTimeHistogram(StateId, TmV, ProbV, Bins);
+
+		BinValV.Gen(TmV.Len());
+		for (int BinN = 0; BinN < TmV.Len(); BinN++) {
+			BinValV[BinN] = TNodeJsUtil::GetJsTimestamp(TmV[BinN]);
+		}
+	} else {
+		TIntV BinValIntV;
+
+		if (HistTypeStr == "year") {
+			JsStreamStory->StreamStory->GetTimeHistogram(StateId, TMc::TStateIdentifier::TTmHistType::thtYear, BinValIntV, ProbV);
+		} else if (HistTypeStr == "month") {
+			JsStreamStory->StreamStory->GetTimeHistogram(StateId, TMc::TStateIdentifier::TTmHistType::thtMonth, BinValIntV, ProbV);
+		} else if (HistTypeStr == "week") {
+			JsStreamStory->StreamStory->GetTimeHistogram(StateId, TMc::TStateIdentifier::TTmHistType::thtWeek, BinValIntV, ProbV);
+		} else if (HistTypeStr == "day") {
+			JsStreamStory->StreamStory->GetTimeHistogram(StateId, TMc::TStateIdentifier::TTmHistType::thtDay, BinValIntV, ProbV);
+		} else {
+			throw TExcept::New("Unknown time histogram type: " + HistTypeStr);
+		}
+
+		BinValV.Gen(BinValIntV.Len());
+		for (int BinN = 0; BinN < BinValIntV.Len(); BinN++) {
+			BinValV[BinN] = BinValIntV[BinN];
+		}
+	}
+
+	v8::Local<v8::Object> Result = WrapHistogram(BinValV, ProbV, TFltV(), TFltV());
 	Args.GetReturnValue().Set(Result);
 }
 
@@ -2679,19 +2726,19 @@ void TNodeJsStreamStory::InitCallbacks() {
 	StreamStory->SetCallback(this);
 }
 
-v8::Local<v8::Object> TNodeJsStreamStory::WrapHistogram(const TFltV& BinStartV,
+v8::Local<v8::Object> TNodeJsStreamStory::WrapHistogram(const TFltV& BinValV,
 		const TFltV& SourceProbV, const TFltV& TargetProbV, const TFltV& AllProbV) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::EscapableHandleScope HandleScope(Isolate);
 
 	v8::Local<v8::Object> Result = v8::Object::New(Isolate);
-	v8::Local<v8::Array> BinStartJsV = v8::Array::New(Isolate, BinStartV.Len());
+	v8::Local<v8::Array> BinStartJsV = v8::Array::New(Isolate, BinValV.Len());
 	v8::Local<v8::Array> ProbJsV = v8::Array::New(Isolate, SourceProbV.Len());
 
 	double TotalProb = 0;
 
-	for (int i = 0; i < BinStartV.Len(); i++) {
-		BinStartJsV->Set(i, v8::Number::New(Isolate, BinStartV[i]));
+	for (int i = 0; i < BinValV.Len(); i++) {
+		BinStartJsV->Set(i, v8::Number::New(Isolate, BinValV[i]));
 	}
 
 	for (int i = 0; i < SourceProbV.Len(); i++) {
