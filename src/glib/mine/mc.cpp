@@ -4034,6 +4034,15 @@ PJsonVal TStreamStory::GetLikelyPathTreeJson(const int& StateId, const double& H
 	return Result;
 }
 
+PJsonVal TStreamStory::GetAutoNmJson(const TIntStrPr& FtrIdRngPr) {
+	PJsonVal Result = TJsonVal::NewObj();
+
+	Result->AddToObj("ftrId", FtrIdRngPr.Val1);
+	Result->AddToObj("range", FtrIdRngPr.Val2);
+
+	return Result;
+}
+
 void TStreamStory::Init(TFltVV& ObservFtrVV, const TFltVV& ControlFtrVV,
 		const TFltVV& IgnoredFtrVV, const TUInt64V& RecTmV, const bool& MultiThread) {
 	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Creating a model on %d instances ...", ObservFtrVV.GetCols());
@@ -4516,6 +4525,10 @@ const TStr& TStreamStory::GetStateLabel(const int& StateId) const {
 	}
 }
 
+const TIntStrPr& TStreamStory::GetStateAutoNm(const int& StateId) const {
+	return Hierarch->GetStateAutoNm(StateId);
+}
+
 const TStr& TStreamStory::GetStateNm(const int& StateId) const {
 	try {
 		return Hierarch->GetStateNm(StateId);
@@ -4563,11 +4576,7 @@ PJsonVal TStreamStory::GetLevelJson(const double& Height, const TStateIdV& State
 		StateJson->AddToObj("label", Hierarch->GetStateLabel(StateId));
 
 		const TIntStrPr& AutoNmPr = Hierarch->GetStateAutoNm(StateId);
-		PJsonVal AutoNmJson = TJsonVal::NewObj();
-		AutoNmJson->AddToObj("ftrId", AutoNmPr.Val1);
-		AutoNmJson->AddToObj("range", AutoNmPr.Val2);
-
-		StateJson->AddToObj("autoName", AutoNmJson);
+		StateJson->AddToObj("autoName", GetAutoNmJson(AutoNmPr));
 
 		if (Hierarch->IsStateNm(StateId)) {
 			StateJson->AddToObj("name", Hierarch->GetStateNm(StateId));

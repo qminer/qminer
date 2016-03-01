@@ -806,6 +806,8 @@ public:
 	PJsonVal GetLikelyPathTreeJson(const int& StateId, const double& Height, const int& Depth,
 			const double& TransThreshold) const;
 
+	static PJsonVal GetAutoNmJson(const TIntStrPr& FtrIdRngPr);
+
 	// update methods
 	// initializes the model
 	void Init(TFltVV& ObservFtrVV, const TFltVV& ControlFtrVV, const TFltVV& IgnoredFtrVV,
@@ -881,6 +883,7 @@ public:
 	// returns the number of states in the hierarchy
     int GetStates() const { return Hierarch->GetStates(); }
     uint64 GetTimeUnit() const;
+    uint64 GetLastRecTm() const { return LastRecTm; }
 
     // target methods
     bool IsTargetState(const int& StateId) const { return Hierarch->IsTarget(StateId); }
@@ -906,6 +909,7 @@ public:
 
     const TFltPr& GetFtrBounds(const int& FtrId) const;
     const TStr& GetStateLabel(const int& StateId) const;
+    const TIntStrPr& GetStateAutoNm(const int& StateId) const;
     const TStr& GetStateNm(const int& StateId) const;
 
     // get/set parameters
