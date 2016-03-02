@@ -703,6 +703,48 @@ public:
 };
 
 ///////////////////////////////
+// Threshold aggregate - outputs 1 if the value is above a threshold, 0 otherwise.
+class TThresholdAggr : public TStreamAggr, public TStreamAggrOut::IFltTm {
+private:
+	// input
+	TWPt<TStreamAggr> InAggr;
+	TWPt<TStreamAggrOut::IFltTm> InAggrVal;
+	// the threshold
+	TFlt Threshold;
+
+	TFlt IsAboveP;
+	TUInt64 TmMSecs;
+
+protected:
+	TThresholdAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+
+	void OnAddRec(const TRec& Rec);
+
+public:
+    static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+
+	/// Load stream aggregate state from stream
+	void LoadState(TSIn& SIn);
+	/// Save state of stream aggregate to stream
+	void SaveState(TSOut& SOut) const;
+
+	// did we finish initialization
+	bool IsInit() const { return TmMSecs != TUInt64::Mn; }
+	/// Resets the aggregate
+	void Reset();
+	// current values
+	double GetFlt() const { return IsAboveP; }
+	uint64 GetTmMSecs() const { return TmMSecs; }
+	void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggr->GetAggrNm());}
+	// serialization to JSon
+	PJsonVal SaveJson(const int& Limit) const;
+
+    // stream aggregator type name
+    static TStr GetType() { return "threshold"; }
+	TStr Type() const { return GetType(); }
+};
+
+///////////////////////////////
 // Exponential Moving Average.
 class TEmaSpVec : public TStreamAggr, public TStreamAggrOut::ISparseVecTm {
 private:

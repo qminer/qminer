@@ -265,7 +265,7 @@ PSVMTrainSet TSparseTrainSet::LoadTxt(PSIn SIn, const bool& Normalize, const int
                         valChA += ch; //reading value
                     } else if (part == 2 && ch == ' ') {
                         //we just read one component, now we save it
-                        int id = strtol(idChA.CStr(), &s, 10);
+                        int id = (int) strtol(idChA.CStr(), &s, 10);
                         double val = strtod(valChA.CStr(), &s);
                         vec.Add(TIntFltKd(id, val));
                         //ids.Add(id); vals.Add(val);
@@ -279,7 +279,7 @@ PSVMTrainSet TSparseTrainSet::LoadTxt(PSIn SIn, const bool& Normalize, const int
                     ch = buffer[n++];
                     if (part == 2 && (ch == '\r' || ch == '\n' || ch == '#')) {
                         //this is the last component in this line
-                        int id = strtol(idChA.CStr(), &s, 10);
+                        int id = (int) strtol(idChA.CStr(), &s, 10);
                         double val = strtod(valChA.CStr(), &s);
                         vec.Add(TIntFltKd(id, val));
                         //ids.Add(id); vals.Add(val);

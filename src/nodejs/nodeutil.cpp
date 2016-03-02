@@ -447,6 +447,34 @@ PJsonVal TNodeJsUtil::GetArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args
 	return GetObjJson(Args[ArgN]->ToObject());
 }
 
+void TNodeJsUtil::GetArgIntVV(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN,
+		TVec<TIntV>& IntVV) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() >= ArgN, "TNodeJsUtil::GetArgIntVV: Invalid number of arguments!");
+	EAssertR(Args[ArgN]->IsArray(), "TNodeJsUtil::GetArgIntVV: argument is not an array!");
+
+	v8::Array* JsIntVV = v8::Array::Cast(*Args[ArgN]);
+
+	const int OuterLen = JsIntVV->Length();
+	IntVV.Gen(OuterLen);
+
+	for (int i = 0; i < OuterLen; i++) {
+		v8::Local<v8::Value> OuterVal = JsIntVV->Get(i);
+		EAssertR(OuterVal->IsArray(), "TNodeJsUtil::GetArgIntVV: value is not an array!");
+		v8::Array* JsIntV = v8::Array::Cast(*OuterVal);
+		const int InnerLen = JsIntV->Length();
+		IntVV[i].Gen(InnerLen);
+
+		for (int j = 0; j < InnerLen; j++) {
+			v8::Local<v8::Value> InnerVal = JsIntV->Get(j);
+			EAssertR(InnerVal->IsNumber() || InnerVal->IsInt32(), "TNodeJsUtil::GetArgIntVV: value is not an integer!");
+			IntVV[i][j] = InnerVal->ToNumber()->NumberValue();
+		}
+	}
+}
+
 bool TNodeJsUtil::IsObjFld(v8::Local<v8::Object> Obj, const TStr& FldNm) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
@@ -608,7 +636,7 @@ void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun, const int& Ar
 }
 
 void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun,
-		const v8::Local<v8::Object>& Arg1, const v8::Local<v8::Object>& Arg2) {
+		const v8::Local<v8::Value>& Arg1, const v8::Local<v8::Value>& Arg2) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 	v8::TryCatch TryCatch;
@@ -751,6 +779,10 @@ uint64 TNodeJsUtil::GetTmMSecs(v8::Handle<v8::Date>& Date) {
 
 //////////////////////////////////////////////////////
 // Async Stuff
+TNodeJsAsyncUtil::TMainData::TMainData(TMainThreadTask* _Task, const bool& _DelTask):
+		Task(_Task),
+		DelTask(_DelTask) {}
+
 TNodeTask::TNodeTask(const v8::FunctionCallbackInfo<v8::Value>& Args):
 		Callback(),
 		ArgPersist(),
@@ -775,15 +807,11 @@ TNodeTask::~TNodeTask() {
 
 v8::Local<v8::Value> TNodeTask::WrapResult() {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-	return v8::Undefined(Isolate);
-}
+	v8::EscapableHandleScope HandleScope(Isolate);
 
-void TNodeTask::ExtractCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
+	v8::Local<v8::Value> Result = v8::Undefined(Isolate);
 
-	Callback.Reset(Isolate, GetCallback(Args));
+	return HandleScope.Escape(Result);
 }
 
 void TNodeTask::AfterRun() {
@@ -793,12 +821,10 @@ void TNodeTask::AfterRun() {
 	EAssertR(!Callback.IsEmpty(), "The callback was not defined!");
 	v8::Local<v8::Function> Fun = v8::Local<v8::Function>::New(Isolate, Callback);
 
-	if (!Except.Empty()) {
+	if (HasExcept()) {
 		TNodeJsUtil::ExecuteErr(Fun, Except);
 	} else {
-		const int ArgC = 2;
-		v8::Handle<v8::Value> ArgV[ArgC] = { v8::Undefined(Isolate), WrapResult() };
-		TNodeJsUtil::ExecuteVoid(Fun, ArgC, ArgV);
+		TNodeJsUtil::ExecuteVoid(Fun, v8::Undefined(Isolate), WrapResult());
 	}
 }
 
@@ -806,7 +832,105 @@ void TNodeTask::AfterRunSync(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	if (!Except.Empty()) { throw Except; }
+	if (HasExcept()) { throw Except; }
 
 	Args.GetReturnValue().Set(WrapResult());
+}
+
+void TNodeTask::ExtractCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	Callback.Reset(Isolate, GetCallback(Args));
+}
+
+//////////////////////////////////////////////////////
+// Node - Asynchronous Utilities
+void TNodeJsAsyncUtil::OnMain(uv_async_t* UvAsync) {
+	TMainData* TaskWrapper = static_cast<TMainData*>(UvAsync->data);
+
+	try {
+		TaskWrapper->Task->Run();
+	} catch (const PExcept& Except) {
+		printf("Exception on main thread: %s!", Except->GetMsgStr().CStr());
+	}
+
+	// clean up
+	uv_close((uv_handle_t*) UvAsync, DelHandle<uv_async_t>);
+	delete TaskWrapper;
+}
+
+void TNodeJsAsyncUtil::OnMainBlock(uv_async_t* UvAsync) {
+	TMainSemaphoreData* Task = static_cast<TMainSemaphoreData*>(UvAsync->data);
+
+	try {
+		Task->Task->Run();
+	} catch (const PExcept& Except) {
+		printf("Exception on main thread: %s!", Except->GetMsgStr().CStr());
+	}
+
+	// clean up
+	uv_close((uv_handle_t*) UvAsync, DelHandle<uv_async_t>);
+
+	uv_sem_post(&Task->Semaphore);
+	uv_sem_destroy(&Task->Semaphore);
+
+	delete Task;
+}
+
+void TNodeJsAsyncUtil::OnWorker(uv_work_t* UvReq) {
+	TWorkerData* Task = static_cast<TWorkerData*>(UvReq->data);
+
+	try {
+		Task->Task->Run();
+	} catch (const PExcept& Except) {
+		printf("Exception on worker thread: %s!", Except->GetMsgStr().CStr());
+	}
+}
+
+void TNodeJsAsyncUtil::AfterOnWorker(uv_work_t* UvReq, int Status) {
+	TWorkerData* Task = static_cast<TWorkerData*>(UvReq->data);
+
+	try {
+		Task->Task->AfterRun();
+	} catch (const PExcept& Except) {
+		printf("Exception when calling callback: %s!", Except->GetMsgStr().CStr());
+	}
+
+	delete Task;
+	delete UvReq;
+}
+
+void TNodeJsAsyncUtil::ExecuteOnMain(TMainThreadTask* Task, const bool& DelTask) {
+	uv_async_t* UvAsync = new uv_async_t;
+	UvAsync->data = new TMainData(Task, DelTask);
+
+	uv_async_init(uv_default_loop(), UvAsync, OnMain);
+	uv_async_send(UvAsync);
+}
+
+void TNodeJsAsyncUtil::ExecuteOnMainAndWait(TMainThreadTask* Task, const bool& DelTask) {
+	uv_async_t* UvAsync = new uv_async_t;
+	TMainSemaphoreData* TaskWrapper = new TMainSemaphoreData(Task, DelTask);
+
+	UvAsync->data = TaskWrapper;
+
+	int Err = uv_sem_init(&TaskWrapper->Semaphore, 0);
+
+	if (Err != 0) {
+		delete UvAsync;
+		delete TaskWrapper;
+		throw TExcept::New("Failed to create a semaphore, code: " + TInt::GetStr(Err) + "!");
+	} else {
+		uv_async_init(uv_default_loop(), UvAsync, OnMainBlock);
+		uv_async_send(UvAsync);
+		uv_sem_wait(&TaskWrapper->Semaphore);
+	}
+}
+
+void TNodeJsAsyncUtil::ExecuteOnWorker(TAsyncTask* Task) {
+	uv_work_t* UvReq = new uv_work_t;
+	UvReq->data = new TWorkerData(Task);
+
+	uv_queue_work(uv_default_loop(), UvReq, OnWorker, AfterOnWorker);
 }

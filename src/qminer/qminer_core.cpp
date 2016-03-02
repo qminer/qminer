@@ -4879,7 +4879,7 @@ void TIndex::TQmGixRmDupMergerSmall::Union(TQmGixItemSmallV& MainV, const TQmGix
 		if (Val1 < Val2) { ResV.Add(TQmGixItemSmall(Val1.Key, 1)); ValN1++; } else if (Val1 > Val2) { ResV.Add(TQmGixItemSmall(Val2.Key, 1)); ValN2++; } else {
 			int fq1 = TInt::GetMn(1, Val1.Dat);
 			int fq2 = TInt::GetMn(1, Val2.Dat);
-			ResV.Add(TQmGixItemSmall(Val1.Key, fq1 + fq2)); ValN1++; ValN2++;
+			ResV.Add(TQmGixItemSmall(Val1.Key, int16(fq1 + fq2))); ValN1++; ValN2++;
 		}
 	}
 	for (int RestValN1 = ValN1; RestValN1 < MainV.Len(); RestValN1++) {
@@ -5890,6 +5890,7 @@ void TStreamAggr::Init() {
 	Register<TStreamAggrs::TWinBufMax>();
 	Register<TStreamAggrs::TMa>();
 	Register<TStreamAggrs::TEma>();
+	Register<TStreamAggrs::TThresholdAggr>();
 	Register<TStreamAggrs::TVar>();
 	Register<TStreamAggrs::TCov>();
 	Register<TStreamAggrs::TCorr>();
@@ -6098,7 +6099,7 @@ TBase::TBase(const TStr& _FPath, const int64& IndexCacheSize, const int& SplitLe
 TBase::TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCacheSize,
 		const int& SplitLen) :
 			InitP(false),
-			NmValidator(false) {
+			NmValidator(true) {
 	IAssertR(TEnv::IsInit(), "QMiner environment (TQm::TEnv) is not initialized");
 	// assert open type and remember location
 	FAccess = _FAccess; FPath = _FPath;
@@ -6113,7 +6114,7 @@ TBase::TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCac
 
 	// open file input streams
 	TFIn IndexVocFIn(FPath + "IndexVoc.dat");
-//	TFIn BasePropsFIn(_FPath + "Base.dat");
+	TFIn BasePropsFIn(_FPath + "Base.dat");
 
 	// load index
 	IndexVoc = TIndexVoc::Load(IndexVocFIn);
@@ -6127,7 +6128,7 @@ TBase::TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCac
 	TempFPathP = false;
 
 	// load the base properties
-//	FldNmValidator = TFldNmValidator(BasePropsFIn);
+	NmValidator = TNmValidator(BasePropsFIn);
 }
 
 TBase::~TBase() {

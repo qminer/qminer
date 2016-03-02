@@ -1158,6 +1158,8 @@ void TNodeJsSpMat::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "plus", _plus);
     NODE_SET_PROTOTYPE_METHOD(tpl, "minus", _minus);
     NODE_SET_PROTOTYPE_METHOD(tpl, "transpose", _transpose);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "getColSubmatrix", _getColSubmatrix);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "clear", _clear);
     NODE_SET_PROTOTYPE_METHOD(tpl, "colNorms", _colNorms);
     NODE_SET_PROTOTYPE_METHOD(tpl, "normalizeCols", _normalizeCols);
     NODE_SET_PROTOTYPE_METHOD(tpl, "full", _full);
@@ -1653,6 +1655,43 @@ void TNodeJsSpMat::transpose(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     TLinAlg::Transpose(JsSpMat->Mat, Result);
 
 	Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsSpMat>(new TNodeJsSpMat(Result)));
+}
+
+void TNodeJsSpMat::getColSubmatrix(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsSpMat* JsSpMat = ObjectWrap::Unwrap<TNodeJsSpMat>(Args.Holder());
+    const TVec<TIntFltKdV>& Mat = JsSpMat->Mat;
+
+    // get int vector with col ids
+    EAssertR(Args.Length() == 1, "SparseMatrix.getColSubmatrix expects one parameter");
+    TNodeJsVec<TInt, TAuxIntV>* ColIdJsVec = TNodeJsUtil::GetArgUnwrapObj<TNodeJsVec<TInt, TAuxIntV> >(Args, 0);
+    const TIntV& ColIdV = ColIdJsVec->Vec;
+
+    // create new matrix
+    TNodeJsSpMat* JsSubMat = new TNodeJsSpMat;
+    TVec<TIntFltKdV>& SubMat = JsSubMat->Mat;
+
+    // load selected columns
+    SubMat.Gen(ColIdV.Len(), 0);
+    for (const int ColId : ColIdV) {
+        EAssertR(0 <= ColId && ColId < Mat.Len(), "SparseMatrix.getColSubmatrix column id out of range");
+        SubMat.Add(Mat[ColId]);
+    }
+
+	Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsSpMat>(JsSubMat));
+}
+
+void TNodeJsSpMat::clear(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsSpMat* JsSpMat = ObjectWrap::Unwrap<TNodeJsSpMat>(Args.Holder());
+    JsSpMat->Mat.Clr();
+    JsSpMat->Rows = -1;
+
+	Args.GetReturnValue().Set(Args.Holder());
 }
 
 void TNodeJsSpMat::colNorms(const v8::FunctionCallbackInfo<v8::Value>& Args) {
