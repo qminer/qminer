@@ -6828,7 +6828,7 @@ void TBase::PrintIndex(const TStr& FNm, const bool& SortP) {
 
 // perform partial flush of data
 int TBase::PartialFlush(int WndInMsec) {
-    int slice = WndInMsec / (GetStores() + 1);
+    int dirty_stores = (GetStores() + 1);
     int saved = 100;
     int res = 0;
     TTmStopWatch sw(true);
@@ -6844,21 +6844,28 @@ int TBase::PartialFlush(int WndInMsec) {
         if (sw.GetMSecInt() > WndInMsec) {
             break; // time is up
         }
+        int slice = WndInMsec / dirty_stores; // time-slice per store
+        dirty_stores = 0;
         saved = 0; // how many saved in this loop
-        int xsaved = 0; // temp variable
+        int xsaved = 0; // how many saved in this loop into last store/index
         for (int i = 0; i < xstores.Len(); i++) {
             if (!xstores[i].Val2)
                 continue; // this store had no dirty data in previous loop
             xsaved = xstores[i].Val1->PartialFlush(slice);
             if (xsaved == 0) {
                 xstores[i].Val2 = false; // ok, this store is clean now
+            } else {
+                dirty_stores++;
+                saved += xsaved;
             }
-            saved += xsaved;
             TQm::TEnv::Debug->OnStatusFmt("Partial flush:     store %s = %d", xstores[i].Val1->GetStoreNm().CStr(), xsaved);
         }
         if (xindex) { // save index
             xsaved = Index->PartialFlush(slice);
             xindex = (xsaved > 0);
+            if (xindex) {
+                dirty_stores++;
+            }
             saved += xsaved;
             TQm::TEnv::Debug->OnStatusFmt("Partial flush:     index = %d", xsaved);
         }
