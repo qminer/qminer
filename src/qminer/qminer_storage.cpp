@@ -657,7 +657,7 @@ void TInMemStorage::SetVal(const uint64& ValId, const TMem& Val) {
 void TInMemStorage::DelVals(int Vals) {
 	if (Vals > 0) {
 		int ValsTrue = 0;
-		for (ValsTrue = 0; ValsTrue < Vals && ValsTrue<ValV.Len(); ValsTrue++) {
+		for (ValsTrue = 0; ValsTrue < Vals && ValsTrue + FirstValOffset<ValV.Len(); ValsTrue++) {
 			ValV[ValsTrue + FirstValOffset].Clr();
 		}
 		int blocks_to_delete = ((int)FirstValOffset + ValsTrue) / BlockSize;
