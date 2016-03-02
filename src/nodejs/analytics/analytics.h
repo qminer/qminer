@@ -1830,6 +1830,7 @@ public:
 	JsDeclareFunction(rebuildHistograms);
 
 	JsDeclareFunction(getStateLabel);
+	JsDeclareFunction(getStateAutoName);
 
 	/**
 	 * Returns the name of a state.

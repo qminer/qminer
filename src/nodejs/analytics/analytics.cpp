@@ -1542,6 +1542,7 @@ void TNodeJsStreamStory::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "rebuildHierarchy", _rebuildHierarchy);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "rebuildHistograms", _rebuildHistograms);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStateLabel", _getStateLabel);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getStateAutoName", _getStateAutoName);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStateName", _getStateName);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "setStateName", _setStateName);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "setStateCoords", _setStateCoords);
@@ -1779,8 +1780,9 @@ void TNodeJsStreamStory::predictNextState(const v8::FunctionCallbackInfo<v8::Val
 
 	TVec<TPair<TFlt, TIntFltPrV>> HeightStateIdProbPrVPrV;
 	JsStreamStory->StreamStory->PredictNextState(UserFtrP, NFutStates, HeightStateIdProbPrVPrV);
+	const uint64 LastRecTm = JsStreamStory->StreamStory->GetLastRecTm();
 
-	PJsonVal ResJsonV = TJsonVal::NewArr();
+	PJsonVal StatesJsonV = TJsonVal::NewArr();
 	for (int HeightN = 0; HeightN < HeightStateIdProbPrVPrV.Len(); HeightN++) {
 		const TPair<TFlt, TIntFltPrV>& HeightStateIdProbPrPr = HeightStateIdProbPrVPrV[HeightN];
 		const TIntFltPrV& StateIdProbPrV = HeightStateIdProbPrPr.Val2;
@@ -1801,10 +1803,14 @@ void TNodeJsStreamStory::predictNextState(const v8::FunctionCallbackInfo<v8::Val
 		HeightJson->AddToObj("height", HeightStateIdProbPrPr.Val1);
 		HeightJson->AddToObj("states", StateIdProbJsonV);
 
-		ResJsonV->AddToArr(HeightJson);
+		StatesJsonV->AddToArr(HeightJson);
 	}
 
-	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, ResJsonV));
+	PJsonVal ResJson = TJsonVal::NewObj();
+	ResJson->AddToObj("timestamp", LastRecTm);
+	ResJson->AddToObj("states", StatesJsonV);
+
+	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, ResJson));
 }
 
 void TNodeJsStreamStory::probsAtTime(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -2041,7 +2047,7 @@ void TNodeJsStreamStory::timeHistogram(const v8::FunctionCallbackInfo<v8::Value>
 
 		BinValV.Gen(TmV.Len());
 		for (int BinN = 0; BinN < TmV.Len(); BinN++) {
-			BinValV[BinN] = TNodeJsUtil::GetJsTimestamp(TmV[BinN]);
+			BinValV[BinN] = (double) TNodeJsUtil::GetJsTimestamp(TmV[BinN]);
 		}
 	} else {
 		TIntV BinValIntV;
@@ -2364,6 +2370,20 @@ void TNodeJsStreamStory::getStateLabel(const v8::FunctionCallbackInfo<v8::Value>
 	const TStr& StateNm = JsStreamStory->StreamStory->GetStateLabel(StateId);
 
 	Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, StateNm.CStr()));
+}
+
+void TNodeJsStreamStory::getStateAutoName(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+
+	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
+	const TIntStrPr& StateAutoNm = JsStreamStory->StreamStory->GetStateAutoNm(StateId);
+
+	const PJsonVal AutoNmJson = TMc::TStreamStory::GetAutoNmJson(StateAutoNm);
+
+	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, AutoNmJson));
 }
 
 void TNodeJsStreamStory::getStateName(const v8::FunctionCallbackInfo<v8::Value>& Args) {
