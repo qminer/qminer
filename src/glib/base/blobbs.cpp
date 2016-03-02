@@ -207,7 +207,7 @@ TBlobState TBlobBs::GetBlobState(const PFRnd& FBlobBs){
 }
 
 void TBlobBs::AssertBlobState(const PFRnd& FBlobBs, const TBlobState& State){
-  EAssert(TBlobState(FBlobBs->GetCh())==State);
+  EAssertR(TBlobState(FBlobBs->GetCh())==State, TStr::Fmt("Expected state %d, received %d", (int)State, (int)FBlobBs->GetCh()));
 }
 
 void TBlobBs::AssertBfCsEqFlCs(const TCs& BfCs, const TCs& FCs){

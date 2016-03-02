@@ -50,6 +50,23 @@ describe('Partial-flush tests', function () {
             "options": {
                 "storage_location": "cache"
             }
+        },
+        {
+            "name": tab2_name + "XX",
+            "fields": [
+                { "name": "Name", "type": "string", "primary": true },
+                { "name": "Age", "type": "byte" }
+            ],
+            "joins": [
+                { "name": "Director", "type": "index", "store": tab1_name }
+            ],
+            "keys": [
+                { "field": "Name", "type": "value" },
+                { "field": "Age", "type": "linear" }
+            ],
+            "options": {
+                "storage_location": "cache"
+            }
         }]);
         
         for (var i = 0; i < rec_cnt; i++) {
