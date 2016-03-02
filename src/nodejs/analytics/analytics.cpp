@@ -2047,7 +2047,7 @@ void TNodeJsStreamStory::timeHistogram(const v8::FunctionCallbackInfo<v8::Value>
 
 		BinValV.Gen(TmV.Len());
 		for (int BinN = 0; BinN < TmV.Len(); BinN++) {
-			BinValV[BinN] = TNodeJsUtil::GetJsTimestamp(TmV[BinN]);
+			BinValV[BinN] = (double) TNodeJsUtil::GetJsTimestamp(TmV[BinN]);
 		}
 	} else {
 		TIntV BinValIntV;

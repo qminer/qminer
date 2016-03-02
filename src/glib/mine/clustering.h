@@ -11,17 +11,34 @@ namespace TDist {
 //////////////////////////////////////////////////////
 // Distance measures - eucledian distance
 class TEuclDist {
+private:
+	TFltV FtrDimV;
+	TFltV CentroidDimV;
+
 public:
+	TEuclDist(): FtrDimV(), CentroidDimV() {}
+
+	void UpdateFtrVV(const TFltVV& FtrVV);
+	void UpdateCentroidVV(const TFltVV& CentroidVV);
+
+	// returns a matrix of (something proportional to) distances from
+	// elements of FtrVV to elements of CentroidVV
+	// for example, when using euclidean distance, the square distances are
+	// returned
+	void GetDistPropVV(const TFltVV& FtrVV, const TFltVV& CentroidVV, TFltVV& DistVV) const;
+
+	static void GetDistV(const TFltVV& CentroidVV, const TFltV& FtrV, TFltV& DistV);
 	// returns a matrix D of distances between elements of X to elements of Y
 	// X and Y are assumed to have column vectors
 	// D_ij is the distance between x_i and y_j
-	static void GetDist(const TFltVV& X, const TFltVV& Y, TFltVV& D);
+	static void GetDistVV(const TFltVV& X, const TFltVV& Y, TFltVV& D);
 	// returns a matrix D of squared distances between elements of X to elements of Y
 	// X and Y are assumed to have column vectors
 	// D_ij is the distance between x_i and y_j
-	static void GetDist2(const TFltVV& X, const TFltVV& Y, TFltVV& D);
+	static void GetDist2VV(const TFltVV& X, const TFltVV& Y, TFltVV& D);
 
-	static void GetDist2(const TFltVV& X, const TFltVV& Y, const TFltV& NormX2,
+private:
+	static void GetDist2VV(const TFltVV& X, const TFltVV& Y, const TFltV& NormX2,
 			const TFltV& NormY2, TFltVV& D);
 };
 
@@ -63,6 +80,7 @@ public:
 	virtual void Apply(const TFltVV& FtrVV, const int& MaxIter=10000,
 			const PNotify& Notify=TNotify::NullNotify) = 0;
 
+	// assign methods
 	void Assign(const TFltVV& FtrVV, TIntV& AssignV) const;
 
 	// distance methods
@@ -80,15 +98,10 @@ protected:
 	// can still optimize
 	void UpdateCentroids(const TFltVV& FtrVV, TIntV& AssignV, const TFltV& OnesN,
 			const TIntV& RangeN, TFltV& TempK, TFltVV& TempDxKV,
-			TVec<TIntFltKdV>& TempKxKSpVV, const TFltV& NormX2, TFltV& NormC2);
+			TVec<TIntFltKdV>& TempKxKSpVV, TDist::TEuclDist& Dist/*, const TFltV& NormX2, TFltV& NormC2*/);
 	void SelectInitCentroids(const TFltVV& FtrVV, const int& K);
 
-	void Assign(const TFltVV& FtrVV, const TFltV& NormX2, const TFltV& NormC2,
-		TIntV& AssignV) const;
-
-	// returns a matrix of squared distances
-	void GetDistMat2(const TFltVV& X, const TFltV& NormX2, const TFltV& NormC2,
-			TFltVV& DistMat) const;
+	void Assign(const TFltVV& FtrV, const TDist::TEuclDist& Dist, TIntV& AssignV) const;
 
 	virtual const TStr GetType() const = 0;
 };
@@ -170,7 +183,7 @@ public:
 
 		Notify->OnNotifyFmt(TNotifyType::ntInfo, "%s\n", TStrUtil::GetStr(X, ", ", "%.3f").CStr());
 
-		TFltVV ClustDistVV;	TDist::GetDist2(X,X, ClustDistVV);
+		TFltVV ClustDistVV;	TDist::GetDist2VV(X,X, ClustDistVV);
 		TIntV ItemCountV;	TLAUtil::Ones(NInst, ItemCountV);//TVector::Ones(NInst);
 
 		for (int k = 0; k < NInst-1; k++) {
