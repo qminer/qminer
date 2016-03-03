@@ -128,11 +128,10 @@ void TAbsKMeans::GetDistVV(const TFltVV& FtrVV, TFltVV& DistVV) const {
 	TEuclDist::GetDistVV(CentroidVV, FtrVV, DistVV);
 }
 
-void TAbsKMeans::UpdateCentroids(const TFltVV& FtrVV, TIntV& AssignV,
+void TAbsKMeans::UpdateCentroids(const TFltVV& FtrVV, const int& NInst, TIntV& AssignV,
 		const TFltV& OnesN, const TIntV& RangeN, TFltV& TempK, TFltVV& TempDxKV,
 		TVec<TIntFltKdV>& TempKxKSpVV, TEuclDist& Dist/*, const TFltV& NormX2, TFltV& NormC2*/) {
 
-	const int NInst = FtrVV.GetCols();
 	const int K = CentroidVV.GetCols();
 
 	// I. create a sparse matrix (coordinate representation) that encodes the closest centroids
@@ -152,7 +151,7 @@ void TAbsKMeans::UpdateCentroids(const TFltVV& FtrVV, TIntV& AssignV,
 			if (TempK[ClustN] == 0.0) {	// don't allow empty clusters
 				// select a random point and create a new centroid from it
 				const int RndRecN = Rnd.GetUniDevInt(FtrVV.GetCols());
-				TFltV RndRecFtrV;	FtrVV.GetCol(RndRecN, RndRecFtrV);
+				TFltV RndRecFtrV;	GetCol(FtrVV, RndRecN, RndRecFtrV);
 				CentroidVV.SetCol(ClustN, RndRecFtrV);
 				Dist.UpdateCentroidVV(CentroidVV);
 				Assign(FtrVV, Dist, AssignV);
@@ -177,8 +176,8 @@ void TAbsKMeans::UpdateCentroids(const TFltVV& FtrVV, TIntV& AssignV,
 }
 
 void TAbsKMeans::SelectInitCentroids(const TFltVV& FtrVV, const int& K) {
-	const int Dim = FtrVV.GetRows();
 	const int NInst = FtrVV.GetCols();
+	const int Dim = FtrVV.GetRows();
 
 	EAssertR(NInst >= K, "TStateIdentifier::SelectInitCentroids: The number of initial centroids should be less than the number of data points!");
 
@@ -229,13 +228,11 @@ void TDnsKMeans::Save(TSOut& SOut) const {
 	K.Save(SOut);
 }
 
-void TDnsKMeans::Apply(const TFltVV& FtrVV, const int& MaxIter, const PNotify& Notify) {
-	EAssertR(K <= FtrVV.GetCols(), "Matrix should have more columns than K!");
+void TDnsKMeans::Apply(const TFltVV& FtrVV, const int& NInst, const int& Dim,
+		const int& MaxIter, const PNotify& Notify) {
+	EAssertR(K <= NInst, "Matrix should have more columns than K!");
 
 	Notify->OnNotify(TNotifyType::ntInfo, "Executing KMeans ...");
-
-	const int NInst = FtrVV.GetCols();
-	const int Dim = FtrVV.GetRows();
 
 	// initialize the distance measure
 	TEuclDist Dist;
@@ -277,7 +274,7 @@ void TDnsKMeans::Apply(const TFltVV& FtrVV, const int& MaxIter, const PNotify& N
 		}
 
 		// recompute the means
-		UpdateCentroids(FtrVV, *AssignIdxVPtr, OnesN, RangeN, TempK, TempDxK, TempKxKSpVV, Dist/*, NormX2, NormC2*/);
+		UpdateCentroids(FtrVV, NInst, *AssignIdxVPtr, OnesN, RangeN, TempK, TempDxK, TempKxKSpVV, Dist/*, NormX2, NormC2*/);
 
 		// swap the old and new assign vectors
 		Temp = AssignIdxVPtr;
@@ -312,15 +309,13 @@ void TDpMeans::Save(TSOut& SOut) const {
 	MxClusts.Save(SOut);
 }
 
-void TDpMeans::Apply(const TFltVV& FtrVV, const int& MaxIter, const PNotify& Notify) {
-	EAssertR(FtrVV.GetRows() > 0, "The input matrix doesn't have any features!");
-	EAssertR(MnClusts <= FtrVV.GetCols(), "Matrix should have more rows then the min number of clusters!");
+void TDpMeans::Apply(const TFltVV& FtrVV, const int& NInst, const int& Dim,
+		const int& MaxIter, const PNotify& Notify) {
+	EAssertR(MnClusts <= NInst, "Matrix should have more rows then the min number of clusters!");
 	EAssertR(MnClusts <= MxClusts, "Minimum number of cluster should be less than the maximum.");
 
 	Notify->OnNotify(TNotifyType::ntInfo, "Executing DPMeans ...");
 
-	const int NInst = FtrVV.GetCols();
-	const int Dim = FtrVV.GetRows();
 	const double LambdaSq = Lambda*Lambda;
 
 	int K = MnClusts;
@@ -388,7 +383,7 @@ void TDpMeans::Apply(const TFltVV& FtrVV, const int& MaxIter, const PNotify& Not
 		}
 
 		// recompute the centroids
-		UpdateCentroids(FtrVV, *AssignIdxVPtr, OnesN, RangeN, TempK, TempDxK, TempKxKSpVV, Dist/*, NormX2, NormC2*/);
+		UpdateCentroids(FtrVV, NInst, *AssignIdxVPtr, OnesN, RangeN, TempK, TempDxK, TempKxKSpVV, Dist/*, NormX2, NormC2*/);
 
 		// swap old and new assign vectors
 		Temp = AssignIdxVPtr;
