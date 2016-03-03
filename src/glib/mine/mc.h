@@ -18,9 +18,6 @@ namespace {
 	typedef TIntV TAggState;
 	typedef TVec<TAggState> TAggStateV;
 	typedef TVec<TFltV> TStateFtrVV;
-
-	typedef TAbsKMeans TClust;
-	typedef PDnsKMeans PClust;
 }
 
 // helper classes
@@ -84,7 +81,7 @@ private:
   	TRnd Rnd;
 
   	// clustering
-  	PClust KMeans;
+  	TAbsKMeans* KMeans;
   	// holds centroids as column vectors
   	TFltVV ControlCentroidVV;
   	TFltVV IgnoredCentroidVV;
@@ -120,11 +117,11 @@ public:
 		thtDay
   	};
 
-  	TStateIdentifier(const PClust& KMeans, const int NHistBins, const double& Sample,
+  	TStateIdentifier(TAbsKMeans* KMeans, const int NHistBins, const double& Sample,
 			const TRnd& Rnd=TRnd(0), const bool& Verbose=false);
 	TStateIdentifier(TSIn& SIn);
 
-	virtual ~TStateIdentifier() {}
+	virtual ~TStateIdentifier();
 	// saves the model to the output stream
 	void Save(TSOut& SOut) const;
 

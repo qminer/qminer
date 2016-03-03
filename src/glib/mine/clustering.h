@@ -48,13 +48,13 @@ namespace TClustering {
 
 ///////////////////////////////////////////
 // Abstract class that has methods needed be KMeans
-class TAbsKMeans;
-typedef TPt<TAbsKMeans> PDnsKMeans;
 class TAbsKMeans {
-private:
-  TCRef CRef;
-public:
-  friend class TPt<TAbsKMeans>;
+//typedef TPt<TAbsKMeans> PDnsKMeans;
+//class TAbsKMeans {
+//private:
+//  TCRef CRef;
+//public:
+//  friend class TPt<TAbsKMeans>;
 protected:
 	TFltVV CentroidVV;
 
@@ -67,7 +67,7 @@ public:
 	virtual ~TAbsKMeans() {}
 
 	virtual void Save(TSOut& SOut) const;
-	static PDnsKMeans Load(TSIn& SIn);
+	static TAbsKMeans* Load(TSIn& SIn);
 
 	int GetClusts() const { return CentroidVV.GetCols(); }
 	int GetDim() const { return CentroidVV.GetRows(); }

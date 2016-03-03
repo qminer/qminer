@@ -94,7 +94,7 @@ void TAbsKMeans::Save(TSOut& SOut) const {
 	Rnd.Save(SOut);
 }
 
-PDnsKMeans TAbsKMeans::Load(TSIn& SIn) {
+TAbsKMeans* TAbsKMeans::Load(TSIn& SIn) {
 	TStr Type(SIn);
 	if (Type == "kmeans") {
 		return new TDnsKMeans(SIn);
