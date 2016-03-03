@@ -413,6 +413,7 @@ class TNodeJsBase : public node::ObjectWrap {
 private:
 	static v8::Persistent<v8::Function> Constructor;
 public:
+	static const int MAX_BASES;
 	static void Init(v8::Handle<v8::Object> Exports);
 	static const TStr GetClassId() { return "Base"; }
 	// wrapped C++ object
@@ -1325,7 +1326,7 @@ private:
 class TNodeJsRec: public node::ObjectWrap {
 	friend class TNodeJsUtil;
 private:
-	// Modified node framework: one record template per each base,storeId combination 
+	// Modified node framework: one record template per each base,storeId combination
 	static TVec<TVec<v8::Persistent<v8::Function> > > BaseStoreIdConstructor;
 public:
 	// Node framework 
