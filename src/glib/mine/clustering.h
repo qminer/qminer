@@ -8,6 +8,11 @@
 
 namespace TDistance {
 
+namespace {
+	typedef TVec<TIntFltKdV> TSpVV;
+	typedef TIntFltKdV TSpV;
+}
+
 //////////////////////////////////////////////////////
 // Distance measures - eucledian distance
 class TDist {
@@ -19,14 +24,17 @@ public:
 
 	// returns the distance between y to each of the columns in X
 	virtual void GetDistV(const TFltVV& X, const TFltV& y, TFltV& DistV) const = 0;
+	virtual void GetDistV(const TSpVV& X, const TSpV& y, TFltV& DistV) const = 0;
 	// returns a matrix D of distances between elements of X to elements of Y
 	// X and Y are assumed to have column vectors
 	// D_ij is the distance between x_i and y_j
 	virtual void GetDistVV(const TFltVV& X, const TFltVV& Y, TFltVV& D) const = 0;
+	virtual void GetDistVV(const TSpVV& X, const TSpVV& Y, TFltVV& D) const = 0;
 	// returns a matrix D of squared distances between elements of X to elements of Y
 	// X and Y are assumed to have column vectors
 	// D_ij is the distance between x_i and y_j
 	virtual void GetDist2VV(const TFltVV& X, const TFltVV& Y, TFltVV& D) const = 0;
+	virtual void GetDist2VV(const TSpVV& X, const TSpVV& Y, TFltVV& D) const = 0;
 
 	// these methods are only used for optimization
 	// if one wishes to reuse a vector of size m and a vector of size n
@@ -34,9 +42,15 @@ public:
 	// otherwise they can be left alone and the procedure will create
 	// temporary variables in each iteration
 	virtual void UpdateNormX2(const TFltVV& FtrVV, TFltV& NormX2) const {}
+	virtual void UpdateNormX2(const TSpVV& FtrVV, TFltV& NormX2) const {}
+
 	virtual void UpdateNormC2(const TFltVV& CentroidVV, TFltV& NormC2) const {}
+	virtual void UpdateNormC2(const TSpVV& CentroidVV, TFltV& NormC2) const {}
+
 	virtual void GetDist2VV(const TFltVV& X, const TFltVV& Y, const TFltV& NormXV,
 			const TFltV& NormCV, TFltVV& D) const { GetDist2VV(X, Y, D); };
+	virtual void GetDist2VV(const TSpVV& X, const TSpVV& Y, const TFltV& NormXV,
+				const TFltV& NormCV, TFltVV& D) const { GetDist2VV(X, Y, D); };
 
 	virtual const TStr& GetType() const = 0;
 };
@@ -45,22 +59,78 @@ class TEuclDist: public TDist {
 public:
 	static const TStr TYPE;
 
-	void GetDistV(const TFltVV& CentroidVV, const TFltV& FtrV, TFltV& DistV) const;
+	void GetDistV(const TFltVV& CentroidVV, const TFltV& FtrV, TFltV& DistV) const { GetDistV<TFltVV, TFltV>(CentroidVV, FtrV, DistV); }
+	void GetDistV(const TSpVV& CentroidVV, const TSpV& FtrV, TFltV& DistV) const { GetDistV<TSpVV, TSpV>(CentroidVV, FtrV, DistV); }
+
+	void GetDistVV(const TFltVV& X, const TFltVV& Y, TFltVV& D) const { GetDistVV<TFltVV>(X, Y, D); }
+	void GetDistVV(const TSpVV& X, const TSpVV& Y, TFltVV& D) const { GetDistVV<TSpVV>(X, Y, D); }
+
+	void GetDist2VV(const TFltVV& X, const TFltVV& Y, TFltVV& D) const { GetDist2VV<TFltVV>(X, Y, D); }
+	void GetDist2VV(const TSpVV& X, const TSpVV& Y, TFltVV& D) const { GetDist2VV<TSpVV>(X, Y, D); }
+
+	void UpdateNormX2(const TFltVV& FtrVV, TFltV& NormX2) const { UpdateNormX2<TFltVV>(FtrVV, NormX2); }
+	void UpdateNormX2(const TSpVV& FtrVV, TFltV& NormX2) const { UpdateNormX2<TSpVV>(FtrVV, NormX2); }
+
+	void UpdateNormC2(const TFltVV& CentroidVV, TFltV& NormC2) const { UpdateNormC2<TFltVV>(CentroidVV, NormC2); }
+	void UpdateNormC2(const TSpVV& CentroidVV, TFltV& NormC2) const { UpdateNormC2<TSpVV>(CentroidVV, NormC2); }
+
+	void GetDist2VV(const TFltVV& X, const TFltVV& Y, const TFltV& NormX2,
+			const TFltV& NormY2, TFltVV& D) const;
+	void GetDist2VV(const TSpVV& X, const TSpVV& Y, const TFltV& NormX2,
+				const TFltV& NormY2, TFltVV& D) const;
+
+	const TStr& GetType() const { return TYPE; }
+
+private:
+	template <class TMatType, class TVecType>
+	void GetDistV(const TMatType& CentroidVV, const TVecType& FtrV, TFltV& DistV) const {
+		// return (CentroidMat.ColNorm2V() - (x*C*2) + TVector::Ones(GetClusts(), false) * NormX2).Sqrt();
+		// 1) squared norm of X
+		const double NormX2 = TLinAlg::Norm2(FtrV);
+
+		// 2) Result <- CentroidMat.ColNorm2V()
+		TLinAlg::GetColNorm2V(CentroidVV, DistV);
+
+		// 3) x*C
+		TFltV xC;	TLinAlg::MultiplyT(CentroidVV, FtrV, xC);
+
+		// 4) <- Result = Result - 2*x*C + ones(clusts, 1)*|x|^2
+		for (int i = 0; i < DistV.Len(); i++) {
+			DistV[i] += NormX2 - 2*xC[i];
+			AssertR(DistV[i] > -1e-8, "Distance lower than numerical error!");
+			if (DistV[i] < 0) { DistV[i] = 0; }
+			DistV[i] = sqrt(DistV[i]);
+		}
+	}
+
 	// returns a matrix D of distances between elements of X to elements of Y
 	// X and Y are assumed to have column vectors
 	// D_ij is the distance between x_i and y_j
-	void GetDistVV(const TFltVV& X, const TFltVV& Y, TFltVV& D) const;
+	template <class TMatType>
+	void GetDistVV(const TMatType& X, const TMatType& Y, TFltVV& D) const {
+		GetDist2VV(X, Y, D);
+		TLAMisc::Sqrt(D);
+	}
 	// returns a matrix D of squared distances between elements of X to elements of Y
 	// X and Y are assumed to have column vectors
 	// D_ij is the distance between x_i and y_j
-	void GetDist2VV(const TFltVV& X, const TFltVV& Y, TFltVV& D) const;
+	template <class TMatType>
+	void GetDist2VV(const TMatType& X, const TMatType& Y, TFltVV& D) const {
+		TFltV NormX2;	TLinAlg::GetColNorm2V(X, NormX2);
+		TFltV NormY2;	TLinAlg::GetColNorm2V(Y, NormY2);
 
-	void UpdateNormX2(const TFltVV& FtrVV, TFltV& NormX2) const;
-	void UpdateNormC2(const TFltVV& CentroidVV, TFltV& NormC2) const;
-	void GetDist2VV(const TFltVV& X, const TFltVV& Y, const TFltV& NormX2,
-			const TFltV& NormY2, TFltVV& D) const;
+		GetDist2VV(X, Y, NormX2, NormY2, D);
+	}
 
-	const TStr& GetType() const { return TYPE; }
+	template <class TMatType>
+	void UpdateNormX2(const TMatType& FtrVV, TFltV& NormX2) const {
+		TLinAlg::GetColNorm2V(FtrVV, NormX2);
+	}
+
+	template <class TMatType>
+	void UpdateNormC2(const TMatType& CentroidVV, TFltV& NormC2) const {
+		TLinAlg::GetColNorm2V(CentroidVV, NormC2);
+	}
 };
 
 class TCosDist: public TDist {
@@ -68,14 +138,17 @@ public:
 	static const TStr TYPE;
 
 	void GetDistV(const TFltVV& CentroidVV, const TFltV& FtrV, TFltV& DistV) const {} // TODO implement me
+	void GetDistV(const TSpVV& CentroidVV, const TSpV& FtrV, TFltV& DistV) const {} // TODO implement me
 	// returns a matrix D of distances between elements of X to elements of Y
 	// X and Y are assumed to have column vectors
 	// D_ij is the distance between x_i and y_j
 	void GetDistVV(const TFltVV& X, const TFltVV& Y, TFltVV& D) const {} // TODO implement me
+	void GetDistVV(const TSpVV& X, const TSpVV& Y, TFltVV& D) const {} // TODO implement me
 	// returns a matrix D of squared distances between elements of X to elements of Y
 	// X and Y are assumed to have column vectors
 	// D_ij is the distance between x_i and y_j
 	void GetDist2VV(const TFltVV& X, const TFltVV& Y, TFltVV& D) const {}	// TODO implement me
+	void GetDist2VV(const TSpVV& X, const TSpVV& Y, TFltVV& D) const {}	// TODO implement me
 
 	const TStr& GetType() const { return TYPE; }
 };

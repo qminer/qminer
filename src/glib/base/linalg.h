@@ -171,9 +171,12 @@ public:
 	static void Std(const TFltVV& Mat, TFltV& Vec, const int& Flag = 0, const TMatDim& Dim = TMatDim::mdCols);
 	// returns the z-score for each element of X such that columns of X are centered to have mean 0 and scaled to have standard deviation 1.
 	static void ZScore(const TFltVV& Mat, TFltVV& Vec, const int& Flag = 0, const TMatDim& Dim = TMatDim::mdCols);
+
+	template <class TMatType>
+	inline static void Sqrt(TMatType& X);
 };
 
-#ifdef SCALAPACK 
+#ifdef SCALAPACK
 template<class TSizeTy>
 void TLAMisc::Sort(TVec<TFlt, TSizeTy> & Vec, TVec<TSizeTy, TSizeTy>& Index, const TBool& DecreseP) {
     if (Index.Empty()) {
@@ -196,6 +199,33 @@ void TLAMisc::FillRangeS(const TTSizeTyTy& Vals, TVec<TVal, TTSizeTyTy>& Vec) {
         Vec[i] = i;
     }
 };
+
+template <>
+inline void TLAMisc::Sqrt(TFltVV& X) {
+	double Val;
+	for (int RowN = 0; RowN < X.GetRows(); RowN++) {
+		for (int ColN = 0; ColN < X.GetCols(); ColN++) {
+			Val = X(RowN, ColN);
+			AssertR(Val > -1e-8, "Distance lower than numerical error!");
+			if (Val < 0) { Val = 0; }
+			X.PutXY(RowN, ColN, TMath::Sqrt(Val));
+		}
+	}
+}
+
+template <>
+inline void TLAMisc::Sqrt(TVec<TIntFltKdV>& X) {
+	double Val;
+	for (int ColN = 0; ColN < X.Len(); ColN++) {
+		TIntFltKdV& ColSpV = X[ColN];
+		for (int RowN = 0; RowN < ColSpV.Len(); RowN++) {
+			Val = ColSpV[RowN].Dat;
+			AssertR(Val > -1e-8, "Distance lower than numerical error!");
+			if (Val < 0) { Val = 0; }
+			ColSpV[RowN].Dat = TMath::Sqrt(Val);
+		}
+	}
+}
 
 //////////////////////////////////////////////////////////////////////
 // Linear Algebra Utilities
@@ -812,6 +842,7 @@ public:
 	inline static void GetColNormV(const TFltVV& X, TFltV& ColNormV);
 	// stores the norm of all the columns into the output vector
 	inline static void GetColNorm2V(const TFltVV& X, TFltV& ColNormV);
+	inline static void GetColNorm2V(const TVec<TIntFltKdV>& SpVV, TFltV& ColNormV);
 
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static int GetRowMaxIdx(const TVVec<TType, TSizeTy, ColMajor>& X, const TSizeTy& RowN);
@@ -1018,6 +1049,7 @@ public:
 	inline static void MultiplyT(const TVec<TIntFltKdV>& A, const TFltVV& B, TFltVV& C);
 	inline static void Multiply(const TVec<TIntFltKdV>& A, const TVec<TIntFltKdV>& B, TFltVV& C, const int RowsA = -1);
 	inline static void MultiplyT(const TVec<TIntFltKdV>& A, const TVec<TIntFltKdV>& B, TFltVV& C);
+	inline static void MultiplyT(const TVec<TIntFltKdV>& A, const TIntFltKdV& b, TFltV& c) { throw TExcept::New("Not implemented!"); }
 	typedef enum { GEMM_NO_T = 0, GEMM_A_T = 1, GEMM_B_T = 2, GEMM_C_T = 4 } TLinAlgGemmTranspose;
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void Gemm(const double& Alpha, const TVVec<TType, TSizeTy, ColMajor>& A, const TVVec<TType, TSizeTy, ColMajor>& B, const double& Beta,
@@ -2005,6 +2037,18 @@ public:
  			ColNormV[ColN] = Norm2(X, ColN);
  		}
  	}
+
+ 	// stores the norm of all the columns into the output vector
+	void TLinAlg::GetColNorm2V(const TVec<TIntFltKdV>& SpVV, TFltV& ColNormV) {
+		const int Cols = SpVV.Len();
+
+		if (ColNormV.Len() != Cols) { ColNormV.Gen(Cols); }
+
+		#pragma omp parallel for
+		for (int ColN = 0; ColN < Cols; ColN++) {
+			ColNormV[ColN] = Norm2(SpVV[ColN]);
+		}
+	}
 
 	// TEST
 	// find the index of maximum elements for a given row of X
