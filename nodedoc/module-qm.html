@@ -291,6 +291,9 @@ var qm = require(&#x27;qminer&#x27;);</code></pre>
                 <dt><a href="module-qm.html#~StreamAggregateSum">StreamAggregateSum</a></dt>
                 <dd>
                 </dd>
+                <dt><a href="module-qm.html#~StreamAggregateThreshold">StreamAggregateThreshold</a></dt>
+                <dd>
+                </dd>
                 <dt><a href="module-qm.html#~StreamAggregateTimeSeriesTick">StreamAggregateTimeSeriesTick</a></dt>
                 <dd>
                 </dd>
@@ -4605,8 +4608,7 @@ var timeser = {
    type: &#x27;timeSeriesTick&#x27;,
    store: &#x27;Heat&#x27;,
    timestamp: &#x27;Time&#x27;,
-   value: &#x27;Celcius&#x27;,
-   winsize: 3600000
+   value: &#x27;Celcius&#x27;
 };
 var timeSeries = base.store(&quot;Heat&quot;).addStreamAggr(timeser);
 
@@ -7351,6 +7353,179 @@ base.close();</code></pre>
         </td>
         <td>
                 <p>The name of the stream aggregator to which it connects and gets data.</p>
+        </td>
+</tr>
+
+        </tbody>
+</table>
+
+    </section>
+
+
+    <dl class="dl-compact">
+        
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+        
+        
+        
+        
+        
+    </dl>
+
+                <h3 id="~StreamAggregateThreshold"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggregateThreshold</span><small class="property-type">
+            &nbsp;module:qmStreamAggr</small></h3>
+        <p>This stream aggregator represents a threshold indicator. It outputs 1 if the current value in the data streams is
+above the threshold and 0 otherwise.</p>
+<p><br><a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a> returns the exponentional average of the values in it's buffer window.
+<br><a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a> returns the timestamp of the newest record in it's buffer window.</p>
+
+        <section>
+        <h4>
+            Example
+        </h4>
+                <div>
+    <pre class="prettyprint"><code>// import the qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a base with a simple store
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [
+   {
+       name: &quot;Heat&quot;,
+       fields: [
+           { name: &quot;Celcius&quot;, type: &quot;float&quot; },
+           { name: &quot;Time&quot;, type: &quot;datetime&quot; }
+       ]
+   }]
+});
+
+// create a new time series tick stream aggregator for the &#x27;Heat&#x27; store, that takes the values from the &#x27;Celcius&#x27; field
+// and the timestamp from the &#x27;Time&#x27; field. The size of the window should be 1 hour.
+var timeser = {
+   name: &#x27;TimeSeriesTickAggr&#x27;,
+	 type: &#x27;timeSeriesTick&#x27;,
+   store: &#x27;Heat&#x27;,
+   timestamp: &#x27;Time&#x27;,
+   value: &#x27;Celcius&#x27;
+};
+var timeSeries = base.store(&quot;Heat&quot;).addStreamAggr(timeser);
+
+// add an exponentional moving average aggregator, that is connected with the &#x27;TimeSeriesAggr&#x27; aggregator.
+// It should interpolate with the previous value, the decay should be 3 seconds and the initWindow should be 2 seconds.
+var thresholdAggr = {
+   name: &#x27;thresholdAggr1&#x27;,
+   type: &#x27;threshold&#x27;,
+   store: &#x27;Heat&#x27;,
+   inAggr: &#x27;TimeSeriesTickAggr&#x27;,
+   threshold: 3
+};
+var expoMovingAverage = base.store(&quot;Heat&quot;).addStreamAggr(thresholdAggr);
+base.close();</code></pre>
+</div>
+
+    </section>
+
+    
+        <section>
+        <h4>Properties</h4>
+            <table class="jsdoc-details-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Optional</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+                <tr>
+        <td>
+            <p>StreamAggregateThreshold.name</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The given name for the stream aggregator.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>StreamAggregateThreshold.type</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The type of the stream aggregator. It must be equal to <b>'ema'</b>.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>StreamAggregateThreshold.store</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The name of the store from which it takes the data.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>StreamAggregateThreshold.inAggr</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The name of the stream aggregator to which it connects and gets data.
+It <b>cannot</b> connect to the module:qm~StreamAggr_TimeSeriesWindow.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>StreamAggregateEMA.threshold</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The threshold mentioned above.</p>
         </td>
 </tr>
 

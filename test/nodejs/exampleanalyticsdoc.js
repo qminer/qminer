@@ -1230,12 +1230,31 @@ it("should make test number 73", function () {
 	 // create the multidimensional matrix
 	 var mat = new la.Matrix({ rows: 50, cols: 10, random: true });
 	 // get the 2d representation of mat 
+	 mds.fitTransformAsync(mat, function (err, res) {
+	    if (err) { console.log(err); }
+	    // successful calculation
+	    var mat2d = result;
+	 }); 
+	
+});
+});
+describe("Get the MDS of the given matrix, number 74", function () {
+it("should make test number 74", function () {
+
+	 // import the modules
+	 var analytics = require('qminer').analytics;
+	 var la = require('qminer').la;
+	 // create a MDS instance
+	 var mds = new analytics.MDS();
+	 // create the multidimensional matrix
+	 var mat = new la.Matrix({ rows: 50, cols: 10, random: true });
+	 // get the 2d representation of mat 
 	 var mat2d = mds.fitTransform(mat); 
 	
 });
 });
-describe("Save the MDS, number 74", function () {
-it("should make test number 74", function () {
+describe("Save the MDS, number 75", function () {
+it("should make test number 75", function () {
 
 	 // import modules
 	 var analytics = require('qminer').analytics;
@@ -1253,8 +1272,8 @@ it("should make test number 74", function () {
 	
 });
 });
-describe("Transforming arrays with labels to vector appropriate for binary classifiers, number 75", function () {
-it("should make test number 75", function () {
+describe("Transforming arrays with labels to vector appropriate for binary classifiers, number 76", function () {
+it("should make test number 76", function () {
 
      // import analytics module
      var analytics = require('qminer').analytics;
@@ -1265,8 +1284,8 @@ it("should make test number 75", function () {
     
 });
 });
-describe("Get the model, number 76", function () {
-it("should make test number 76", function () {
+describe("Get the model, number 77", function () {
+it("should make test number 77", function () {
 
      // import analytics module
      var analytics = require('qminer').analytics;
@@ -1277,8 +1296,8 @@ it("should make test number 76", function () {
 	
 });
 });
-describe("Get the model, number 77", function () {
-it("should make test number 77", function () {
+describe("Get the model, number 78", function () {
+it("should make test number 78", function () {
 
      // import analytics module
      var analytics = require('qminer').analytics;
@@ -1289,8 +1308,8 @@ it("should make test number 77", function () {
 	
 });
 });
-describe("Gets the model, number 78", function () {
-it("should make test number 78", function () {
+describe("Gets the model, number 79", function () {
+it("should make test number 79", function () {
 
      // import analytics module
      var analytics = require('qminer').analytics;
@@ -1301,8 +1320,8 @@ it("should make test number 78", function () {
     
 });
 });
-describe("Gets Recursive Linear Regression mode, number 79", function () {
-it("should make test number 79", function () {
+describe("Gets Recursive Linear Regression mode, number 80", function () {
+it("should make test number 80", function () {
 
      // import analytics module
      var analytics = require('qminer').analytics;
@@ -1313,8 +1332,8 @@ it("should make test number 79", function () {
     
 });
 });
-describe("@classdesc One vs. all model for multiclass prediction. Builds binary mode, number 80", function () {
-it("should make test number 80", function () {
+describe("@classdesc One vs. all model for multiclass prediction. Builds binary mode, number 81", function () {
+it("should make test number 81", function () {
 
      // import analytics module
      var analytics = require('qminer').analytics;
@@ -1323,8 +1342,8 @@ it("should make test number 80", function () {
     
 });
 });
-describe("Gets the parameters, number 81", function () {
-it("should make test number 81", function () {
+describe("Gets the parameters, number 82", function () {
+it("should make test number 82", function () {
 
          // import analytics module
          var analytics = require('qminer').analytics;
@@ -1337,8 +1356,8 @@ it("should make test number 81", function () {
         
 });
 });
-describe("Sets the parameters, number 82", function () {
-it("should make test number 82", function () {
+describe("Sets the parameters, number 83", function () {
+it("should make test number 83", function () {
 
          // import analytics module
          var analytics = require('qminer').analytics;
@@ -1349,8 +1368,8 @@ it("should make test number 82", function () {
         
 });
 });
-describe("Apply all models to the given vector and returns a vector of scores, one for each category, number 83", function () {
-it("should make test number 83", function () {
+describe("Apply all models to the given vector and returns a vector of scores, one for each category, number 84", function () {
+it("should make test number 84", function () {
 
           // import modules
           var analytics = require('qminer').analytics;
@@ -1369,8 +1388,8 @@ it("should make test number 83", function () {
          
 });
 });
-describe("Apply all models to the given vector and returns category with the highest score, number 84", function () {
-it("should make test number 84", function () {
+describe("Apply all models to the given vector and returns category with the highest score, number 85", function () {
+it("should make test number 85", function () {
 
           // import modules
           var analytics = require('qminer').analytics;
@@ -1389,8 +1408,8 @@ it("should make test number 84", function () {
          
 });
 });
-describe("Apply all models to the given vector and returns category with the highest score, number 85", function () {
-it("should make test number 85", function () {
+describe("Apply all models to the given vector and returns category with the highest score, number 86", function () {
+it("should make test number 86", function () {
 
           // import modules
           var analytics = require('qminer').analytics;
@@ -1405,8 +1424,8 @@ it("should make test number 85", function () {
          
 });
 });
-describe("Metric, number 86", function () {
-it("should make test number 86", function () {
+describe("Metric, number 87", function () {
+it("should make test number 87", function () {
 
      // import metrics module
      var analytics = require('qminer').analytics;
@@ -1420,8 +1439,8 @@ it("should make test number 86", function () {
     
 });
 });
-describe("Metric, number 87", function () {
-it("should make test number 87", function () {
+describe("Metric, number 88", function () {
+it("should make test number 88", function () {
 
      // import analytics module
      var analytics = require('qminer').analytics;
@@ -1442,8 +1461,8 @@ it("should make test number 87", function () {
     
 });
 });
-describe("Metric, number 88", function () {
-it("should make test number 88", function () {
+describe("Metric, number 89", function () {
+it("should make test number 89", function () {
 
      // import analytics module
      var analytics = require('qminer').analytics;
@@ -1456,8 +1475,8 @@ it("should make test number 88", function () {
     
 });
 });
-describe("Metric, number 89", function () {
-it("should make test number 89", function () {
+describe("Metric, number 90", function () {
+it("should make test number 90", function () {
 
      // import analytics module
      var analytics = require('qminer').analytics;
@@ -1478,8 +1497,8 @@ it("should make test number 89", function () {
     
 });
 });
-describe("Class implements several prediction curve measures (ROC, AOC, Precision-Recall, ..., number 90", function () {
-it("should make test number 90", function () {
+describe("Class implements several prediction curve measures (ROC, AOC, Precision-Recall, ..., number 91", function () {
+it("should make test number 91", function () {
 
      // import metrics module
      var metrics = require('qminer').analytics.metrics;
@@ -1503,8 +1522,8 @@ it("should make test number 90", function () {
     
 });
 });
-describe("Get ROC parametrization sampled on `sample` point, number 91", function () {
-it("should make test number 91", function () {
+describe("Get ROC parametrization sampled on `sample` point, number 92", function () {
+it("should make test number 92", function () {
 
      // import metrics module
      var metrics = require('qminer').analytics.metrics;
@@ -1518,8 +1537,8 @@ it("should make test number 91", function () {
     
 });
 });
-describe("Get AUC of the current curv, number 92", function () {
-it("should make test number 92", function () {
+describe("Get AUC of the current curv, number 93", function () {
+it("should make test number 93", function () {
 
      // import metrics module
      var metrics = require('qminer').analytics.metrics;
@@ -1533,8 +1552,8 @@ it("should make test number 92", function () {
     
 });
 });
-describe("@classdesc Principal components analysi, number 93", function () {
-it("should make test number 93", function () {
+describe("@classdesc Principal components analysi, number 94", function () {
+it("should make test number 94", function () {
 
      // import analytics module
      var analytics = require('qminer').analytics;
@@ -1543,8 +1562,8 @@ it("should make test number 93", function () {
     
 });
 });
-describe("@classdesc Principal components analysi, number 94", function () {
-it("should make test number 94", function () {
+describe("@classdesc Principal components analysi, number 95", function () {
+it("should make test number 95", function () {
 
      // import analytics module
      var analytics = require('qminer').analytics;
@@ -1553,8 +1572,8 @@ it("should make test number 94", function () {
     
 });
 });
-describe("Returns the mode, number 95", function () {
-it("should make test number 95", function () {
+describe("Returns the mode, number 96", function () {
+it("should make test number 96", function () {
 
          // import analytics module
          var analytics = require('qminer').analytics;
@@ -1569,8 +1588,8 @@ it("should make test number 95", function () {
         
 });
 });
-describe("Saves the model, number 96", function () {
-it("should make test number 96", function () {
+describe("Saves the model, number 97", function () {
+it("should make test number 97", function () {
 
          // import analytics module
          var analytics = require('qminer').analytics;
@@ -1586,8 +1605,8 @@ it("should make test number 96", function () {
         
 });
 });
-describe("Sets parameter, number 97", function () {
-it("should make test number 97", function () {
+describe("Sets parameter, number 98", function () {
+it("should make test number 98", function () {
 
          // import analytics module
          var analytics = require('qminer').analytics;
@@ -1598,8 +1617,8 @@ it("should make test number 97", function () {
         
 });
 });
-describe("Gets parameter, number 98", function () {
-it("should make test number 98", function () {
+describe("Gets parameter, number 99", function () {
+it("should make test number 99", function () {
 
          // import analytics module
          var analytics = require('qminer').analytics;
@@ -1610,8 +1629,8 @@ it("should make test number 98", function () {
         
 });
 });
-describe("Gets parameter, number 99", function () {
-it("should make test number 99", function () {
+describe("Gets parameter, number 100", function () {
+it("should make test number 100", function () {
 
          // import analytics module
          var analytics = require('qminer').analytics;
@@ -1624,8 +1643,8 @@ it("should make test number 99", function () {
         
 });
 });
-describe("Finds the eigenvectors of the variance matrix, number 100", function () {
-it("should make test number 100", function () {
+describe("Finds the eigenvectors of the variance matrix, number 101", function () {
+it("should make test number 101", function () {
 
          // import analytics module
          var analytics = require('qminer').analytics;
@@ -1638,8 +1657,8 @@ it("should make test number 100", function () {
         
 });
 });
-describe("Projects the example(s) and expresses them as coefficients in the eigenvector basis this.P, number 101", function () {
-it("should make test number 101", function () {
+describe("Projects the example(s) and expresses them as coefficients in the eigenvector basis this.P, number 102", function () {
+it("should make test number 102", function () {
 
          // import analytics module
          var analytics = require('qminer').analytics;
@@ -1655,8 +1674,8 @@ it("should make test number 101", function () {
         
 });
 });
-describe("Projects the example(s) and expresses them as coefficients in the eigenvector basis this.P, number 102", function () {
-it("should make test number 102", function () {
+describe("Projects the example(s) and expresses them as coefficients in the eigenvector basis this.P, number 103", function () {
+it("should make test number 103", function () {
 
          // import analytics module
          var analytics = require('qminer').analytics;
@@ -1674,8 +1693,8 @@ it("should make test number 102", function () {
         
 });
 });
-describe("Reconstructs the vector in the original space, reverses centerin, number 103", function () {
-it("should make test number 103", function () {
+describe("Reconstructs the vector in the original space, reverses centerin, number 104", function () {
+it("should make test number 104", function () {
 
          // import analytics module
          var analytics = require('qminer').analytics;
@@ -1691,8 +1710,8 @@ it("should make test number 103", function () {
         
 });
 });
-describe("Reconstructs the vector in the original space, reverses centerin, number 104", function () {
-it("should make test number 104", function () {
+describe("Reconstructs the vector in the original space, reverses centerin, number 105", function () {
+it("should make test number 105", function () {
 
          // import analytics module
          var analytics = require('qminer').analytics;
@@ -1710,8 +1729,8 @@ it("should make test number 104", function () {
         
 });
 });
-describe("@classdesc KMeans clusterin, number 105", function () {
-it("should make test number 105", function () {
+describe("@classdesc KMeans clusterin, number 106", function () {
+it("should make test number 106", function () {
 
      // import analytics and la modules
      var analytics = require('qminer').analytics;
@@ -1725,8 +1744,8 @@ it("should make test number 105", function () {
     
 });
 });
-describe("Returns the mode, number 106", function () {
-it("should make test number 106", function () {
+describe("Returns the mode, number 107", function () {
+it("should make test number 107", function () {
 
          // import modules
          var analytics = require('qminer').analytics;
@@ -1742,8 +1761,8 @@ it("should make test number 106", function () {
         
 });
 });
-describe("Sets the parameters, number 107", function () {
-it("should make test number 107", function () {
+describe("Sets the parameters, number 108", function () {
+it("should make test number 108", function () {
 
          // import analytics module
          var analytics = require('qminer').analytics;
@@ -1754,8 +1773,8 @@ it("should make test number 107", function () {
         
 });
 });
-describe("Returns the parameters, number 108", function () {
-it("should make test number 108", function () {
+describe("Returns the parameters, number 109", function () {
+it("should make test number 109", function () {
 
          // import analytics module
          var analytics = require('qminer').analytics;
@@ -1766,8 +1785,8 @@ it("should make test number 108", function () {
         
 });
 });
-describe("Computes the centroids, number 109", function () {
-it("should make test number 109", function () {
+describe("Computes the centroids, number 110", function () {
+it("should make test number 110", function () {
 
          // import analytics module
          var analytics = require('qminer').analytics;
@@ -1780,8 +1799,8 @@ it("should make test number 109", function () {
         
 });
 });
-describe("Returns an vector of cluster id assignments, number 110", function () {
-it("should make test number 110", function () {
+describe("Returns an vector of cluster id assignments, number 111", function () {
+it("should make test number 111", function () {
 
          // import analytics module
          var analytics = require('qminer').analytics;
@@ -1798,8 +1817,8 @@ it("should make test number 110", function () {
         
 });
 });
-describe("Returns the IDs of the nearest medoid for each example, number 111", function () {
-it("should make test number 111", function () {
+describe("Returns the IDs of the nearest medoid for each example, number 112", function () {
+it("should make test number 112", function () {
 
          // import analytics module
          var analytics = require('qminer').analytics;
@@ -1818,8 +1837,8 @@ it("should make test number 111", function () {
         
 });
 });
-describe("Transforms the points to vectors of squared distances to centroids, number 112", function () {
-it("should make test number 112", function () {
+describe("Transforms the points to vectors of squared distances to centroids, number 113", function () {
+it("should make test number 113", function () {
 
          // import modules
          var analytics = require('qminer').analytics;
