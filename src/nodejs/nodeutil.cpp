@@ -227,7 +227,7 @@ bool TNodeJsUtil::IsArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, co
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	if (Args.Length() < ArgN) { return false; }
+	if (Args.Length() <= ArgN) { return false; }
 	v8::Handle<v8::Value> Val = Args[ArgN];
 	return Val->IsInt32();
 }
