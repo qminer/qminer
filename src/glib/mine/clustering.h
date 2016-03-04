@@ -6,68 +6,109 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-namespace TDist {
+namespace TDistance {
 
 //////////////////////////////////////////////////////
 // Distance measures - eucledian distance
-class TEuclDist {
-private:
-	TFltV FtrDimV;
-	TFltV CentroidDimV;
-
+class TDist {
 public:
-	TEuclDist(): FtrDimV(), CentroidDimV() {}
+	virtual ~TDist() {}
 
-	void UpdateFtrVV(const TFltVV& FtrVV);
-	void UpdateCentroidVV(const TFltVV& CentroidVV);
+	virtual void Save(TSOut& SOut) const { GetType().Save(SOut); }
+	static TDist* Load(TSIn& SIn);
 
-	// returns a matrix of (something proportional to) distances from
-	// elements of FtrVV to elements of CentroidVV
-	// for example, when using euclidean distance, the square distances are
-	// returned
-	void GetDistPropVV(const TFltVV& FtrVV, const TFltVV& CentroidVV, TFltVV& DistVV) const;
-
-	static void GetDistV(const TFltVV& CentroidVV, const TFltV& FtrV, TFltV& DistV);
+	// returns the distance between y to each of the columns in X
+	virtual void GetDistV(const TFltVV& X, const TFltV& y, TFltV& DistV) const = 0;
 	// returns a matrix D of distances between elements of X to elements of Y
 	// X and Y are assumed to have column vectors
 	// D_ij is the distance between x_i and y_j
-	static void GetDistVV(const TFltVV& X, const TFltVV& Y, TFltVV& D);
+	virtual void GetDistVV(const TFltVV& X, const TFltVV& Y, TFltVV& D) const = 0;
 	// returns a matrix D of squared distances between elements of X to elements of Y
 	// X and Y are assumed to have column vectors
 	// D_ij is the distance between x_i and y_j
-	static void GetDist2VV(const TFltVV& X, const TFltVV& Y, TFltVV& D);
+	virtual void GetDist2VV(const TFltVV& X, const TFltVV& Y, TFltVV& D) const = 0;
 
-private:
-	static void GetDist2VV(const TFltVV& X, const TFltVV& Y, const TFltV& NormX2,
-			const TFltV& NormY2, TFltVV& D);
+	// these methods are only used for optimization
+	// if one wishes to reuse a vector of size m and a vector of size n
+	// during their procedure, then they should implement these methods
+	// otherwise they can be left alone and the procedure will create
+	// temporary variables in each iteration
+	virtual void UpdateNormX2(const TFltVV& FtrVV, TFltV& NormX2) const {}
+	virtual void UpdateNormC2(const TFltVV& CentroidVV, TFltV& NormC2) const {}
+	virtual void GetDist2VV(const TFltVV& X, const TFltVV& Y, const TFltV& NormXV,
+			const TFltV& NormCV, TFltVV& D) const { GetDist2VV(X, Y, D); };
+
+	virtual const TStr& GetType() const = 0;
+};
+
+class TEuclDist: public TDist {
+public:
+	static const TStr TYPE;
+
+	void GetDistV(const TFltVV& CentroidVV, const TFltV& FtrV, TFltV& DistV) const;
+	// returns a matrix D of distances between elements of X to elements of Y
+	// X and Y are assumed to have column vectors
+	// D_ij is the distance between x_i and y_j
+	void GetDistVV(const TFltVV& X, const TFltVV& Y, TFltVV& D) const;
+	// returns a matrix D of squared distances between elements of X to elements of Y
+	// X and Y are assumed to have column vectors
+	// D_ij is the distance between x_i and y_j
+	void GetDist2VV(const TFltVV& X, const TFltVV& Y, TFltVV& D) const;
+
+	void UpdateNormX2(const TFltVV& FtrVV, TFltV& NormX2) const;
+	void UpdateNormC2(const TFltVV& CentroidVV, TFltV& NormC2) const;
+	void GetDist2VV(const TFltVV& X, const TFltVV& Y, const TFltV& NormX2,
+			const TFltV& NormY2, TFltVV& D) const;
+
+	const TStr& GetType() const { return TYPE; }
+};
+
+class TCosDist: public TDist {
+public:
+	static const TStr TYPE;
+
+	void GetDistV(const TFltVV& CentroidVV, const TFltV& FtrV, TFltV& DistV) const {} // TODO implement me
+	// returns a matrix D of distances between elements of X to elements of Y
+	// X and Y are assumed to have column vectors
+	// D_ij is the distance between x_i and y_j
+	void GetDistVV(const TFltVV& X, const TFltVV& Y, TFltVV& D) const {} // TODO implement me
+	// returns a matrix D of squared distances between elements of X to elements of Y
+	// X and Y are assumed to have column vectors
+	// D_ij is the distance between x_i and y_j
+	void GetDist2VV(const TFltVV& X, const TFltVV& Y, TFltVV& D) const {}	// TODO implement me
+
+	const TStr& GetType() const { return TYPE; }
 };
 
 }
 
 namespace TClustering {
 
+using namespace TDistance;
+
 ///////////////////////////////////////////
 // Abstract class that has methods needed be KMeans
-class TAbsKMeans;
-typedef TPt<TAbsKMeans> PDnsKMeans;
 class TAbsKMeans {
-private:
-  TCRef CRef;
-public:
-  friend class TPt<TAbsKMeans>;
+//typedef TPt<TAbsKMeans> PDnsKMeans;
+//class TAbsKMeans {
+//private:
+//  TCRef CRef;
+//public:
+//  friend class TPt<TAbsKMeans>;
 protected:
 	TFltVV CentroidVV;
+	TDist* Dist;
 
 	TRnd Rnd;
 
 public:
-	TAbsKMeans(const TRnd& Rnd);
+	TAbsKMeans(const TRnd& Rnd, TDist* Dist=new TEuclDist());
 	TAbsKMeans(TSIn& SIn);
 
-	virtual ~TAbsKMeans() {}
+	virtual ~TAbsKMeans() { delete Dist; }
 
 	virtual void Save(TSOut& SOut) const;
-	static PDnsKMeans Load(TSIn& SIn);
+	static TAbsKMeans* Load(TSIn& SIn);
 
 	int GetClusts() const { return CentroidVV.GetCols(); }
 	int GetDim() const { return CentroidVV.GetRows(); }
@@ -77,8 +118,12 @@ public:
 	// returns the n-th centroid
 	void GetCentroid(const int& ClustN, TFltV& FtrV) const;
 
-	virtual void Apply(const TFltVV& FtrVV, const int& MaxIter=10000,
-			const PNotify& Notify=TNotify::NullNotify) = 0;
+	void Apply(const TFltVV& FtrVV, const int& MaxIter=10000,
+			const PNotify& Notify=TNotify::NullNotify) {
+		const int Dim = GetFtrVDim(FtrVV);
+		EAssertR(Dim > 0, "The input matrix doesn't have any features!");
+		Apply(GetFtrVV(FtrVV), GetFtrVN(FtrVV), Dim, MaxIter, Notify);
+	}
 
 	// assign methods
 	void Assign(const TFltVV& FtrVV, TIntV& AssignV) const;
@@ -95,14 +140,33 @@ public:
 	void GetDistVV(const TFltVV& FtrVV, TFltVV& DistVV) const;
 
 protected:
+	virtual void Apply(const TFltVV& FtrVV, const int& NInst, const int& Dim,
+			const int& MaxIter, const PNotify& Notify) = 0;
+
 	// can still optimize
-	void UpdateCentroids(const TFltVV& FtrVV, TIntV& AssignV, const TFltV& OnesN,
+	void UpdateCentroids(const TFltVV& FtrVV, const int& NInst, TIntV& AssignV, const TFltV& OnesN,
 			const TIntV& RangeN, TFltV& TempK, TFltVV& TempDxKV,
-			TVec<TIntFltKdV>& TempKxKSpVV, TDist::TEuclDist& Dist/*, const TFltV& NormX2, TFltV& NormC2*/);
+			TVec<TIntFltKdV>& TempKxKSpVV, const TFltV& NormX2, TFltV& NormC2);
 	void SelectInitCentroids(const TFltVV& FtrVV, const int& K);
 
-	void Assign(const TFltVV& FtrV, const TDist::TEuclDist& Dist, TIntV& AssignV) const;
+	void Assign(const TFltVV& FtrVV, const TFltV& NormX2, const TFltV& NormC2, TIntV& AssignV) const;
 
+	// specialized methods
+	int GetFtrVN(const TFltVV& FtrVV) const {
+		return FtrVV.GetCols();
+	}
+	int GetFtrVDim(const TFltVV& FtrVV) const {
+		// FIXME enable inputing dimension through arguments for sparse matrices
+		return FtrVV.GetRows();
+	}
+	const TFltVV& GetFtrVV(const TFltVV& FtrVV) const {
+		return FtrVV;
+	}
+	void GetCol(const TFltVV& FtrVV, const int& ColN, TFltV& Col) const {
+		FtrVV.GetCol(ColN, Col);
+	}
+
+	// type
 	virtual const TStr GetType() const = 0;
 };
 
@@ -118,10 +182,10 @@ public:
 	// saves the model to the output stream
 	void Save(TSOut& SOut) const;
 
-	void Apply(const TFltVV& FtrVV, const int& MaxIter=10000,
-			const PNotify& Notify=TNotify::NullNotify);
-
 protected:
+	void Apply(const TFltVV& FtrVV, const int& NInst, const int& Dim,
+			const int& MaxIter, const PNotify& Notify);
+
 	const TStr GetType() const { return "kmeans"; }
 };
 
@@ -140,12 +204,12 @@ public:
 	// saves the model to the output stream
 	void Save(TSOut& SOut) const;
 
+protected:
 	// Applies the algorithm. Instances should be in the columns of X. AssignV contains indexes of the cluster
 	// the point is assigned to
-	void Apply(const TFltVV& FtrVV, const int& MaxIter=10000,
-			const PNotify& Notify=TNotify::NullNotify);
+	void Apply(const TFltVV& FtrVV, const int& NInst, const int& Dim,
+			const int& MaxIter, const PNotify& Notify);
 
-protected:
 	const TStr GetType() const { return "dpmeans"; }
 };
 
@@ -183,7 +247,7 @@ public:
 
 		Notify->OnNotifyFmt(TNotifyType::ntInfo, "%s\n", TStrUtil::GetStr(X, ", ", "%.3f").CStr());
 
-		TFltVV ClustDistVV;	TDist::GetDist2VV(X,X, ClustDistVV);
+		TFltVV ClustDistVV;	TDist().GetDist2VV(X,X, ClustDistVV);
 		TIntV ItemCountV;	TLAUtil::Ones(NInst, ItemCountV);//TVector::Ones(NInst);
 
 		for (int k = 0; k < NInst-1; k++) {
@@ -221,8 +285,8 @@ public:
 	}
 };
 
-typedef TAggClust<TDist::TEuclDist, TAvgLink> TAlAggClust;
-typedef TAggClust<TDist::TEuclDist, TCompleteLink> TClAggClust;
-typedef TAggClust<TDist::TEuclDist, TCompleteLink> TSlAggClust;
+typedef TAggClust<TEuclDist, TAvgLink> TAlAggClust;
+typedef TAggClust<TEuclDist, TCompleteLink> TClAggClust;
+typedef TAggClust<TEuclDist, TCompleteLink> TSlAggClust;
 
 }

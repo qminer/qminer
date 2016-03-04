@@ -2808,7 +2808,7 @@ uint64 TNodeJsStreamStory::GetTmUnit(const TStr& TimeUnitStr) {
 	}
 }
 
-TClustering::PDnsKMeans TNodeJsStreamStory::GetClust(const PJsonVal& ParamJson,
+TClustering::TAbsKMeans* TNodeJsStreamStory::GetClust(const PJsonVal& ParamJson,
 		const TRnd& Rnd) {
 	const TStr& ClustAlg = ParamJson->GetObjStr("type");
 	if (ClustAlg == "dpmeans") {
