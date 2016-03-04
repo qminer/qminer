@@ -578,8 +578,8 @@ PTimeNet TTimeNet::LoadAmazon(const TStr& StlFNm) {
     TStr TmStr = ColV[2]; // time-format: 29JAN02:21:55:23
     int Year = TmStr.GetSubStr(5, 6).GetInt();
     if (Year < 10) { Year += 2000; } else { Year += 1900; }
-    MonthStr[0]=toupper(TmStr[2]);  MonthStr[1]=tolower(TmStr[3]);
-    MonthStr[2]=tolower(TmStr[4]);  MonthStr[3]=0;
+    MonthStr[0] = (char) toupper(TmStr[2]);  MonthStr[1] = (char) tolower(TmStr[3]);
+    MonthStr[2] = (char) tolower(TmStr[4]);  MonthStr[3] = 0;
     const int Month = TTmInfo::GetMonthN(MonthStr, lUs);
     const int Day = TmStr.GetSubStr(0, 1).GetInt();
     const int Hour = TmStr.GetSubStr(8, 9).GetInt();

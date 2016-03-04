@@ -59,7 +59,9 @@ int _daylight = 0;
 #include "fl.cpp"
 #include "dt.cpp"
 #include "ut.cpp"
+#include "bits.cpp"
 #include "hash.cpp"
+#include "xml.cpp"
 #include "strut.cpp"
 
 #include "unicode.cpp"
@@ -67,11 +69,11 @@ int _daylight = 0;
 #include "tm.cpp"
 #include "os.cpp"
 
-#include "bits.cpp"
 #include "env.cpp"
 #include "wch.cpp"
 #include "xfl.cpp"
 #include "xmath.cpp"
+#include "stat.cpp"
 
 #include "blobbs.cpp"
 #include "pgblob.cpp"
@@ -82,7 +84,6 @@ int _daylight = 0;
 #include "md5.cpp"
 #include "guid.cpp"
 #include "ss.cpp"
-#include "xml.cpp"
 #include "linalg.cpp"
 #include "json.cpp"
 

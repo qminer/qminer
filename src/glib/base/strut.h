@@ -17,6 +17,8 @@ public:
 	static TStr GetStr(const TVec<TNum<int64>, int64>& IntV, const TStr& DelimiterStr);
 	static TStr GetStr(const TStrIntPrV& StrIntPrV, const TStr& FieldDelimiterStr = ":",
 		const TStr& DelimiterStr = ",");
+	static TStr GetStr(const TUInt64IntPrV& UInt64IntPrV, const TStr& FieldDelimiterStr = ":",
+			const TStr& DelimiterStr = ",");
 	static TStr GetStr(const TIntFltPrV& IntFltPrV, const TStr& FieldDelimiterStr = ":",
 			const TStr& DelimiterStr = ",", const TStr& FmtStr = "%g");
 	static TStr GetStr(const TFltV& FltV, const TStr& DelimiterStr = ",", const TStr& FmtStr = "%g");	
@@ -26,6 +28,7 @@ public:
 	static TStr GetStr(const TStrH& StrH, const TStr& FieldDelimiterStr = ":", const TStr& DelimiterStr = ",");	
 	static TStr GetStr(const TFltVV& FltVV, const TStr& DelimiterStr = ",", const TStr& FmtStr = "%g");
 	static TStr GetStr(const TIntIntFltTrV& IntIntFltTrV, const TStr& DelimiterStr = ",", const TStr& FmtStr = "%g");
+	static TStr GetStr(const TIntSet& IntSet, const TStr& DelimiterStr = ",");
 
 	template <class TKey, class TDat>
 	static TStr GetStr(const THash<TKey, TDat>& KeyDatH);

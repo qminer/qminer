@@ -1583,6 +1583,7 @@ private:
 	v8::Persistent<v8::Function> OutlierCallback;
 	v8::Persistent<v8::Function> ProgressCallback;
 	v8::Persistent<v8::Function> PredictionCallback;
+	v8::Persistent<v8::Function> ActivityCallback;
 
 	TNodeJsStreamStory(TMc::TStreamStory* McModel);
 	TNodeJsStreamStory(PSIn& SIn);
@@ -1595,8 +1596,9 @@ private:
 	class TFitTask: public TNodeTask {
 	private:
 		TNodeJsStreamStory* JsStreamStory;
-		TNodeJsFltVV* JsObservFtrs;
-		TNodeJsFltVV* JsControlFtrs;
+		TNodeJsFltVV* JsObservFtrVV;
+		TNodeJsFltVV* JsControlFtrVV;
+		TNodeJsFltVV* JsIgnoredFtrVV;
 		TNodeJsFltV* JsRecTmV;
 		TNodeJsBoolV* JsBatchEndJsV;
 
@@ -1607,7 +1609,7 @@ private:
 		void Run();
 	};
 
-	class TProgressTask {
+	class TProgressTask: public TMainThreadTask {
 	private:
 		int Perc;
 		TStr Msg;
@@ -1617,14 +1619,14 @@ private:
 			Perc(_Perc),
 			Msg(_Msg),
 			ProgressCallback(_ProgressCallback) {}
-		static void Run(const TProgressTask& Task);
+		void Run();
 	};
 
 public:
 
 	JsDeclareSyncAsync(fit,fitAsync,TFitTask);
 
-	//!- `hmc.update(ftrVec, recTm)` TODO write documentation
+	//!- `hmc.update(obsFtrV, contrFtrV, recTm)` TODO write documentation
 	JsDeclareFunction(update);
 
 	/**
@@ -1648,6 +1650,8 @@ public:
 	 * @returns {Array} - the probability distribution
 	 */
 	JsDeclareFunction(pastStates);
+
+	JsDeclareFunction(predictNextState);
 
 	/**
 	 * Returns the probability distribution of past and future states over time.
@@ -1683,6 +1687,17 @@ public:
 	JsDeclareFunction(getSubModelJson);
 
 	/**
+	 * Returns an object representation of a subset of this model.
+	 *
+	 * @param {Number} stateId - the starting state id
+	 * @param {Number} height - the height on which the path is requested
+	 * @param {Number} length - the length of the path
+	 * @param {Number} [transTreshold=0.2] - only consider transitions above this threshold
+	 * @returns {Object}
+	 */
+	JsDeclareFunction(getStatePath);
+
+	/**
 	 * Returns the underlying transition model at the lowest level. (for CTMC the matrix of intensities)
 	 *
 	 * @returns {Array} - the transition model
@@ -1702,21 +1717,25 @@ public:
 	 * Returns the centroid of the specified state containing only the observation parameters.
 	 *
 	 * @param {Number} stateId - the ID of the state
-	 * @param {Boolean} [observations=true] - indicates wether to output observation or control coordinates
+	 * @param {Integer} [ftrSpaceN] - indicates wether to output observation or control coordinates
 	 * @returns {Array} - the coordinates of the state
 	 */
 	JsDeclareFunction(fullCoords);
 
+	JsDeclareFunction(getStateCentroids);
+
 	/**
 	 * Returns a histogram of the specified feature in the specified state.
 	 *
-	 * @param {Number} stateId - the ID of the state
 	 * @param {Number} ftrId - the ID of the feature
+	 * @param {Number} [stateId] - the ID of the statem if no state is provided, a histogram for all the states is returned
 	 * @returns {Array} - the histogram
 	 */
 	JsDeclareFunction(histogram);
 
 	JsDeclareFunction(transitionHistogram);
+
+	JsDeclareFunction(timeHistogram);
 
 	/**
 	 * Returns the lower and upper bound of the feature.
@@ -1751,6 +1770,11 @@ public:
 	JsDeclareFunction(getClassifyTree);
 
 	JsDeclareFunction(explainState);
+
+	// activities
+	JsDeclareFunction(setActivity);
+	JsDeclareFunction(removeActivity);
+	JsDeclareFunction(getActivities);
 
 	/**
 	 * Sets a callback function which is fired when the model changes states. An array of current states
@@ -1790,6 +1814,8 @@ public:
 	 */
 	JsDeclareFunction(onPrediction);
 
+	JsDeclareFunction(onActivity);
+
 	/**
 	 * Rebuilds its hierarchy.
 	 */
@@ -1804,6 +1830,7 @@ public:
 	JsDeclareFunction(rebuildHistograms);
 
 	JsDeclareFunction(getStateLabel);
+	JsDeclareFunction(getStateAutoName);
 
 	/**
 	 * Returns the name of a state.
@@ -1894,21 +1921,22 @@ public:
 	JsDeclareFunction(save);
 
 	// TMcCallback - callbacks
-	void OnStateChanged(const TIntFltPrV& StateIdHeightV);
+	void OnStateChanged(const uint64 Tm, const TIntFltPrV& StateIdHeightV);
 	void OnAnomaly(const TStr& AnomalyDesc);
 	void OnOutlier(const TFltV& FtrV);
 	void OnProgress(const int& Perc, const TStr& Msg);
 	void OnPrediction(const uint64& RecTm, const int& CurrStateId, const int& TargetStateId,
 			const double& Prob, const TFltV& ProbV, const TFltV& TmV);
+	void OnActivityDetected(const uint64& StartTm, const uint64& EndTm, const TStr& ActNm);
 
 private:
 	void SetParams(const PJsonVal& ParamVal);
 	void InitCallbacks();
 
-	static void WrapHistogram(const v8::FunctionCallbackInfo<v8::Value>& Args,
-			const TFltV& BinStartV, const TFltV& ProbV);
+	static v8::Local<v8::Object> WrapHistogram(const TFltV& BinValV,
+			const TFltV& SourceProbV, const TFltV& TargetProbV, const TFltV& AllProbV);
 	static uint64 GetTmUnit(const TStr& TmUnitStr);
-	static TClustering::PDnsKMeans GetClust(const PJsonVal& ParamJson, const TRnd& Rnd);
+	static TClustering::TAbsKMeans* GetClust(const PJsonVal& ParamJson, const TRnd& Rnd);
 };
 
 ///////////////////////////////
@@ -2190,6 +2218,20 @@ private:
 
 	static TNodeJsMDS* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
+	class TFitTransformTask: public TNodeTask {
+		TNodeJsMDS* JsMDS;
+		TNodeJsFltVV* JsFltVV;
+		TNodeJsSpMat* JsSpVV;
+		TNodeJsFltVV* JsResult;
+
+	public:
+		TFitTransformTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+		v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+		void Run();
+		v8::Local<v8::Value> WrapResult();
+	};
+
 public:
 	/**
 	* Get the parameters.
@@ -2224,9 +2266,25 @@ public:
 	/**
 	* Get the MDS of the given matrix.
 	* @param {(module:la.Matrix | module:la.SparseMatrix)} mat - The multidimensional matrix.
+	* @param {function} [callback] - The callback function receiving the error parameter (err) and the result parameter (result).
+	* <i>Only for the asynchronous function.</i>
 	* @returns {module:la.Matrix} The matrix of dimensions mat.cols x 2, where the i-th row of the matrix is the 2d representation 
 	* of the i-th column of mat.
-	* @example
+	* @example <caption> Asynchronous function </caption>
+	* // import the modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // create a MDS instance
+	* var mds = new analytics.MDS();
+	* // create the multidimensional matrix
+	* var mat = new la.Matrix({ rows: 50, cols: 10, random: true });
+	* // get the 2d representation of mat 
+	* mds.fitTransformAsync(mat, function (err, res) {
+	*    if (err) { console.log(err); }
+	*    // successful calculation
+	*    var mat2d = result;
+	* }); 
+	* @example <caption> Synchronous function </caption>
 	* // import the modules
 	* var analytics = require('qminer').analytics;
 	* var la = require('qminer').la;
@@ -2238,7 +2296,7 @@ public:
 	* var mat2d = mds.fitTransform(mat); 
 	*/
 	//# exports.MDS.prototype.fitTransform = function (mat) { return Object.create(require('qminer').la.Matrix.prototype); }
-	JsDeclareFunction(fitTransform);
+	JsDeclareSyncAsync(fitTransform, fitTransformAsync, TFitTransformTask);
 
 	/**
 	* Save the MDS.

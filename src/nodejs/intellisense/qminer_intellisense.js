@@ -3038,9 +3038,6 @@ exports.datasets= require('qminer_datasets');
     			if (fieldTypes == null) fieldTypes = {};
 
     			for (var key in data) {
-//    				if (key in ignoreFields)
-//    					continue;
-
     				var val = data[key];
     				if (fieldTypes[key] == null) {
     					if (val.length == 0)
@@ -3062,9 +3059,6 @@ exports.datasets= require('qminer_datasets');
     			if (fieldTypes == null) return false;
 
     			for (var key in fieldTypes) {
-//    				if (key in ignoreFields)
-//    					continue;
-
     				if (fieldTypes[key] == null)
     					return false;
     			}
@@ -3076,9 +3070,6 @@ exports.datasets= require('qminer_datasets');
     			var result = [];
 
     			for (var key in fieldTypes) {
-//    				if (key in ignoreFields)
-//    					continue;
-
     				if (fieldTypes[key] == null)
     					result.push(key);
     			}
@@ -3276,7 +3267,7 @@ exports.datasets= require('qminer_datasets');
     	if (opts.includeHeaders) {
     		var headerLine = '';
     		for (var i = 0; i < nFields; i++) {
-    			headerLine += '"' + fieldDesc[i].name + '"';
+    			headerLine += '"' + fieldDesc[i].name.replace(/"/g, '\\"') + '"';
     			if (i < nFields - 1)
     				headerLine += ',';
     		}

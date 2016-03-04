@@ -4267,6 +4267,42 @@ describe('Rectangle Sparse Matrix Tests', function () {
             })
         })
 
+        describe('Submatrix Test', function () {
+            var mat = new RSparseMatrix();
+            it('should get a submatrix', function () {
+                var fullMat = new la.SparseMatrix([[[0, 1]], [[1, 2]], [[2, 3]], [[3, 4]]]);
+                var subMat = fullMat.getColSubmatrix(new la.IntVector([1, 2]));
+
+                assert.equal(subMat.cols, 2);
+                assert.equal(subMat.rows, -1);
+
+                assert.eqtol(subMat.at(1, 0), 2);
+                assert.eqtol(subMat.at(2, 1), 3);
+            })
+            it('should throw exception for column id out of range', function () {
+                var fullMat = new la.SparseMatrix([[[0, 1]], [[1, 2]], [[2, 3]], [[3, 4]]]);
+                assert.throws(function () {
+                    fullMat.getColSubmatrix(new la.IntVector([1, 2, 4]))
+                });
+            })
+        })
+
+        describe('Clear Test', function () {
+            var mat = new RSparseMatrix();
+            it('should get empty matrix', function () {
+                var fullMat1 = new la.SparseMatrix([[[0, 1]], [[1, 2]], [[2, 3]], [[3, 4]]]);
+                fullMat1.clear();
+                assert.equal(fullMat1.cols, 0);
+                assert.equal(fullMat1.rows, -1);
+
+                var fullMat2 = new la.SparseMatrix([[[0, 1]], [[1, 2]], [[2, 3]], [[3, 4]]]);
+                fullMat2.setRowDim(4);
+                fullMat2.clear();
+                assert.equal(fullMat2.cols, 0);
+                assert.equal(fullMat2.rows, -1);
+            })
+        })
+
         describe('ColNorms Test', function () {
             var mat = new RSparseMatrix();
             it('should return a vector containing the norms of columns in spMat', function () {

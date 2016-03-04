@@ -361,8 +361,13 @@ double TEmaSpVec::GetNi(const double& Alpha, const double& Mi) {
 	throw TExcept::New("Unknown EMA interpolation type");
 }
 
-TEmaSpVec::TEmaSpVec(const TEmaType& _Type, const uint64& _InitMinMSecs, const double& _TmInterval, const double& _Cutoff) :
-	Type(_Type), LastVal(TFlt::Mn), TmInterval(_TmInterval), Cutoff(_Cutoff), InitP(false),
+TEmaSpVec::TEmaSpVec(const TEmaType& _Type, const uint64& _InitMinMSecs,
+		const double& _TmInterval, const double& _Cutoff) :
+	Type(_Type),
+	LastVal(TFlt::Mn),	// XXX conversion from double to int
+	TmInterval(_TmInterval),
+	Cutoff(_Cutoff),
+	InitP(false),
 	InitMinMSecs(_InitMinMSecs) {}
 
 TEmaSpVec::TEmaSpVec(const PJsonVal& ParamVal) : LastVal(), InitP(false) {
@@ -1470,7 +1475,7 @@ void TTDigest::Init(const int& N) {
 	UnmergedSum = 0;
 	TempLast = 0;
 
-	Size = ceil(Nc * TMath::Pi/2);
+	Size = (int) ceil(Nc * TMath::Pi/2);
 	TotalSum = 0;
 	Last = 0;
 
@@ -1501,29 +1506,7 @@ void TChiSquare::Print() const {
 }
 
 void TChiSquare::Update(const TFltV& OutValVX, const TFltV& OutValVY) {
-	Chi2 = 0.0;	
-	EAssertR(OutValVX.Len() == OutValVY.Len(), "TChiSquare: histogram dimensions do not match!");
-	// http://www.itl.nist.gov/div898/software/dataplot/refman1/auxillar/chi2samp.htm
-	double SumR = TLinAlg::SumVec(OutValVX);
-	double SumS = TLinAlg::SumVec(OutValVY);
-	// Do nothing if zero histogram is detected
-	if (SumR <= 0.0 || SumS <= 0.0) { return; }
-	double K1 = TMath::Sqrt(SumS / SumR);
-	double K2 = 1.0 / K1;
-	for (int ValN = 0; ValN < OutValVX.Len(); ValN++) {
-		double Ri = OutValVX[ValN];
-		double Si = OutValVY[ValN];
-		double RpS = Ri + Si;
-		if (RpS > 0) {
-			Chi2 += TMath::Sqr(K1 * Ri - K2 * Si) / RpS;
-		}
-	}
-	if (Chi2 == 0.0) {
-		P = TFlt::PInf;
-	}
-	else {
-		P = TSpecFunc::GammaQ(0.5*(DegreesOfFreedom), 0.5*(Chi2));
-	}
+	TStatFun::ChiSquare(OutValVX, OutValVY, DegreesOfFreedom, Chi2, P);
 }
 
 /// Load from stream

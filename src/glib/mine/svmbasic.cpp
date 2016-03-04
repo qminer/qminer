@@ -15,7 +15,7 @@ void TSVMCache::Reset(const int& memory_size, const int& d) {
     size = 0; dim = numRows = d;
 
     //how much space takes one full vector in cache:
-    int vecsize = (sizeof(TFltType) + sizeof(bool)) * dim;
+    int vecsize = int((sizeof(TFltType) + sizeof(bool)) * dim);
     //caluculates how much memory still aviable for cache
     //here we don't count vecShrink and linked list as we
     //can't "predict" it's size yet (we calculate it later!)

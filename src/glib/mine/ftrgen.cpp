@@ -67,7 +67,7 @@ void TNumeric::AddFtr(const double& Val, TFltV& FullV, int& Offset) const {
 double TNumeric::InvFtr(const TFltV& FullV, int& Offset) const {
 	double Val = FullV[Offset++];
 	if (Type == ntNormalizeVar) {
-		double M2 = Var.GetVar();
+		double M2 = Var.GetStDev();
 		if (M2 > 0) Val *= M2;
 		Val += Var.GetMean();
 	} else if (Type != ntNone && MnVal < MxVal) {

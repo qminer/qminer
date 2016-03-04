@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-la.html">la</a>.<wbr></small><span class="symbol-name">SparseVector</span></h1>
-            <p class="source-link">Source: <a href="ladoc.js.html#source-line-456">ladoc.<wbr>js:456</a></p>
+            <p class="source-link">Source: <a href="ladoc.js.html#source-line-497">ladoc.<wbr>js:497</a></p>
             <div class="symbol-classdesc">
               <p>Represents a sparse vector.</p>
             </div>
@@ -185,6 +185,20 @@ var spVec2 = new la.SparseVector([[0, 1], [2, 3], [3, 6]], 5); // largest index 
               </dl>
               <h3 id="nnz"><span class="symbol-name">nnz</span></h3>
               <p>Returns the number of nonzero values.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import la module
+var la = require(&#x27;qminer&#x27;).la;
+// create a new sparse vector
+var vec = new la.SparseVector([[0,2], [3,1], [7, 5], [11,4]]);
+// check the number of nonzero values in sparse vector
+var nonz = vec.nnz;
+// returns 4</code></pre>
+                </div>
+              </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
