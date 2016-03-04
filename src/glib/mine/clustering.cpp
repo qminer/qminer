@@ -25,53 +25,29 @@ TDist* TDist::Load(TSIn& SIn) {
 
 const TStr TEuclDist::TYPE = "euclidean";
 
-void TEuclDist::GetDistV(const TFltVV& CentroidVV, const TFltV& FtrV, TFltV& DistV) const {
-	// return (CentroidMat.ColNorm2V() - (x*C*2) + TVector::Ones(GetClusts(), false) * NormX2).Sqrt();
-	// 1) squared norm of X
-	const double NormX2 = TLinAlg::Norm2(FtrV);
+//void TEuclDist::GetDistVV(const TFltVV& X, const TFltVV& Y, TFltVV& D) const {
+//	GetDist2VV(X, Y, D);
+//	double Val;
+//	for (int RowN = 0; RowN < D.GetRows(); RowN++) {
+//		for (int ColN = 0; ColN < D.GetCols(); ColN++) {
+//			Val = D(RowN, ColN);
+//			AssertR(Val > -1e-8, "Distance lower than numerical error!");
+//			if (Val < 0) { Val = 0; }
+//			D.PutXY(RowN, ColN, TMath::Sqrt(Val));
+//		}
+//	}
+//}
+//
+//void TEuclDist::GetDist2VV(const TFltVV& X, const TFltVV& Y, TFltVV& D) const {
+//	TFltV NormX2;	TLinAlg::GetColNorm2V(X, NormX2);
+//	TFltV NormY2;	TLinAlg::GetColNorm2V(Y, NormY2);
+//
+//	GetDist2VV(X, Y, NormX2, NormY2, D);
+//}
 
-	// 2) Result <- CentroidMat.ColNorm2V()
-	TLinAlg::GetColNorm2V(CentroidVV, DistV);
-
-	// 3) x*C
-	TFltV xC;	TLinAlg::MultiplyT(CentroidVV, FtrV, xC);
-
-	// 4) <- Result = Result - 2*x*C + ones(clusts, 1)*|x|^2
-	for (int i = 0; i < DistV.Len(); i++) {
-		DistV[i] += NormX2 - 2*xC[i];
-		AssertR(DistV[i] > -1e-8, "Distance lower than numerical error!");
-		if (DistV[i] < 0) { DistV[i] = 0; }
-		DistV[i] = sqrt(DistV[i]);
-	}
-}
-
-void TEuclDist::GetDistVV(const TFltVV& X, const TFltVV& Y, TFltVV& D) const {
-	GetDist2VV(X, Y, D);
-	double Val;
-	for (int RowN = 0; RowN < D.GetRows(); RowN++) {
-		for (int ColN = 0; ColN < D.GetCols(); ColN++) {
-			Val = D(RowN, ColN);
-			AssertR(Val > -1e-8, "Distance lower than numerical error!");
-			if (Val < 0) { Val = 0; }
-			D.PutXY(RowN, ColN, TMath::Sqrt(Val));
-		}
-	}
-}
-
-void TEuclDist::GetDist2VV(const TFltVV& X, const TFltVV& Y, TFltVV& D) const {
-	TFltV NormX2;	TLinAlg::GetColNorm2V(X, NormX2);
-	TFltV NormY2;	TLinAlg::GetColNorm2V(Y, NormY2);
-
-	GetDist2VV(X, Y, NormX2, NormY2, D);
-}
-
-void TEuclDist::UpdateNormX2(const TFltVV& FtrVV, TFltV& NormX2) const {
-	TLinAlg::GetColNorm2V(FtrVV, NormX2);
-}
-
-void TEuclDist::UpdateNormC2(const TFltVV& CentroidVV, TFltV& NormC2) const {
-	TLinAlg::GetColNorm2V(CentroidVV, NormC2);
-}
+//void TEuclDist::UpdateNormC2(const TFltVV& CentroidVV, TFltV& NormC2) const {
+//	TLinAlg::GetColNorm2V(CentroidVV, NormC2);
+//}
 
 void TEuclDist::GetDist2VV(const TFltVV& X, const TFltVV& Y, const TFltV& NormX2,
 		const TFltV& NormY2, TFltVV& D) const {
@@ -87,6 +63,14 @@ void TEuclDist::GetDist2VV(const TFltVV& X, const TFltVV& Y, const TFltV& NormX2
 			D.PutXY(RowN, ColN, NormX2[RowN] - 2*D(RowN, ColN) + NormY2[ColN]);
 		}
 	}
+}
+
+void TEuclDist::GetDist2VV(const TSpVV& X, const TSpVV& Y, const TFltV& NormX2,
+		const TFltV& NormY2, TFltVV& D) const {
+	//	return (NormX2 * OnesY) - (X*2).MulT(Y) + (OnesX * NormY2);
+	// 1) X'Y
+	TLinAlg::MultiplyT(X, Y, D);
+	throw TExcept::New("Implement! Look at the dense example!");
 }
 
 const TStr TCosDist::TYPE = "cos";
