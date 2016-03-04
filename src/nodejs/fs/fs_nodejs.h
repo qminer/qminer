@@ -81,13 +81,16 @@ private:
 		void Run();
 	};
 
-	struct TReadLinesCallback {
-		TVec<TStrV> CsvLineV;
+	class TReadLinesCallback: public TMainThreadTask {
+	private:
 		v8::Persistent<v8::Function>* OnLine;
+	public:
+		TVec<TStrV> CsvLineV;
+
 		TReadLinesCallback(const int& BatchSize, v8::Persistent<v8::Function>* _OnLine):
-			CsvLineV(BatchSize, 0),
-			OnLine(_OnLine) {}
-		static void Run(const TReadLinesCallback& Task);
+			OnLine(_OnLine),
+			CsvLineV(BatchSize, 0) {}
+		void Run();
 	};
 
 public:

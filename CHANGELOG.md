@@ -1,5 +1,45 @@
 # QMiner Change Log
 
+### 4 Mar 2016
+
+**New version: 4.8.0**
+
+**Non-breaking with new features**
+
+New features:
+- `analytics.MDS` now has async version
+- `la.svd` now has async version
+
+Bug fixes:
+- Renamed SparseMatrix.submat to SparseMatrix.getColSubmatrix. Fix #402
+- `TQm::TBase` now again backwards compatible with respect to loading settings. Fix #401
+
+Other:
+- BlobBs file size limit extended from 1GB to 2GB
+- `la.svd` and `la.qr` moved from `la_structures_nodejs.h`
+
+### 26 Feb 2016
+
+**New version: 4.7.0**
+
+**Non-breaking with new features**
+
+New features:
+- `TStrUtil` can transform `THashSet` to string
+- Async version of `analytics.MDS`
+- New stream aggregate `threshold`, that returns 1 if input number above threshold, 0 otherwise.
+- Added `getColSubmatrix` function to `SparseMatrix` that gets `IntVector` of column ids and returns sparse matrix constructed from selected columns.
+- Added `clear` function to `SparseMatrix` that clears its content and sets rows to -1.
+
+Bub fixes:
+- `TClust::TAbsKMeans` no longer returns empty clusters
+- `Numeric::InvFtr` wrongly de-normalized numbers
+- TVec Move constructor: no need to delete ValT
+- TVec Move assignment: Delete internal ValT pointer only if you own it.
+
+Other:
+- Added examples to `qm.la` module
+
 ### 12 Feb 2016
 
 **New version: 4.6.0**

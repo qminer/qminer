@@ -190,6 +190,8 @@ public:
     static bool IsArgObj(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
     /// Check if is argument ArgN of type v8::Bool
     static bool IsArgBool(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
+	/// Check if is argument ArgN is a 32 bit integer
+	static bool IsArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
     /// Check if is argument ArgN of type v8::Number
     static bool IsArgFlt(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
     /// Check if is argument ArgN of type v8::String
@@ -234,6 +236,8 @@ public:
     static TStr GetArgStr(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property, const TStr& DefVal);
     /// Extract argument ArgN as GLib Json (PJsonVal)
     static PJsonVal GetArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
+    /// Extracts TVec<TIntV>
+    static void GetArgIntVV(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, TVec<TIntV>& IntVV);
     /// casts the argument into the appropriate type
     template <class TClass>
     static TClass* GetArgUnwrapObj(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
@@ -276,8 +280,8 @@ public:
 
     static void ExecuteVoid(const v8::Handle<v8::Function>& Fun, const int& ArgC,
     		v8::Handle<v8::Value> ArgV[]);
-    static void ExecuteVoid(const v8::Handle<v8::Function>& Fun, const v8::Local<v8::Object>& Arg1,
-    		const v8::Local<v8::Object>& Arg2);
+    static void ExecuteVoid(const v8::Handle<v8::Function>& Fun, const v8::Local<v8::Value>& Arg1,
+    		const v8::Local<v8::Value>& Arg2);
 
     static void ExecuteVoid(const v8::Handle<v8::Function>& Fun);
     static void ExecuteErr(const v8::Handle<v8::Function>& Fun, const PExcept& Except);
@@ -485,6 +489,13 @@ public:
 	virtual void AfterRun() = 0;
 };
 
+class TMainThreadTask {
+public:
+	virtual ~TMainThreadTask() {}
+	virtual void Run() = 0;
+};
+
+
 class TNodeTask: public TAsyncTask {
 private:
 	v8::Persistent<v8::Function> Callback;
@@ -498,10 +509,10 @@ public:
 	virtual v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) = 0;
 	virtual v8::Local<v8::Value> WrapResult();
 
-	void ExtractCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
-
 	void AfterRun();
 	void AfterRunSync(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+	void ExtractCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
 protected:
 	void SetExcept(const PExcept& _Except) { Except = _Except; }
@@ -513,161 +524,51 @@ protected:
 // Node - Asynchronous Utilities
 class TNodeJsAsyncUtil {
 private:
-	template <class TTask>
 	struct TMainData {
-		TTask* Task;
+		TMainThreadTask* Task;
 		bool DelTask;
 
-		TMainData(TTask* Task, const bool& DelTask);
+		TMainData(TMainThreadTask* Task, const bool& DelTask);
 		~TMainData() { if (DelTask) { delete Task; } }
 	};
 
-	template <class TTask>
 	struct TMainSemaphoreData {
-		TTask* Task;
+		TMainThreadTask* Task;
 		bool DelTask;
 		uv_sem_t Semaphore;
 
-		TMainSemaphoreData(TTask* _Task, const bool& _DelTask):
+		TMainSemaphoreData(TMainThreadTask* _Task, const bool& _DelTask):
 			Task(_Task),
 			DelTask(_DelTask),
 			Semaphore() {}
 		~TMainSemaphoreData() { if (DelTask) { delete Task; } }
 	};
 
-	template <class TTask>
 	struct TWorkerData {
-		TTask* Task;
-		TWorkerData(TTask* Task);
+		TAsyncTask* Task;
+		TWorkerData(TAsyncTask* _Task):
+				Task(_Task) {}
 		~TWorkerData() { delete Task; }
 	};
 
 	template <typename THandle> static void DelHandle(uv_handle_t* Handle);
 
-	template <class TTask> static void OnMain(uv_async_t* UvAsync);
-	template <class TTask> static void OnMainBlock(uv_async_t* UvAsync);
+	static void OnMain(uv_async_t* UvAsync);
+	static void OnMainBlock(uv_async_t* UvAsync);
 
-	template <class TTask> static void OnWorker(uv_work_t* UvReq);
-	template <class TTask> static void AfterOnWorker(uv_work_t* UvReq, int Status);
+	static void OnWorker(uv_work_t* UvReq);
+	static void AfterOnWorker(uv_work_t* UvReq, int Status);
 
 public:
-	template <class TTask> static void ExecuteOnMain(TTask* Task, const bool& DelData=true);
-	template <class TTask> static void ExecuteOnMainAndWait(TTask* Task, const bool& DelData=true);
-	template <class TTask> static void ExecuteOnWorker(TTask* Task);
+	static void ExecuteOnMain(TMainThreadTask* Task, const bool& DelData=true);
+	static void ExecuteOnMainAndWait(TMainThreadTask* Task, const bool& DelData=true);
+	static void ExecuteOnWorker(TAsyncTask* Task);
 };
 
 template <typename THandle>
 void TNodeJsAsyncUtil::DelHandle(uv_handle_t* Handle) {
 	THandle* Async = (THandle*) Handle;
 	delete Async;
-}
-
-template <class TTask>
-TNodeJsAsyncUtil::TMainData<TTask>::TMainData(TTask* _Task, const bool& _DelTask):
-		Task(_Task),
-		DelTask(_DelTask) {}
-
-template <class TTask>
-TNodeJsAsyncUtil::TWorkerData<TTask>::TWorkerData(TTask* _Task):
-		Task(_Task) {}
-
-template <class TTask>
-void TNodeJsAsyncUtil::OnMain(uv_async_t* UvAsync) {
-	TMainData<TTask>* Task = static_cast<TMainData<TTask>*>(UvAsync->data);
-
-	try {
-		TTask::Run(*Task->Task);
-	} catch (const PExcept& Except) {
-		printf("Exception on main thread: %s!", Except->GetMsgStr().CStr());
-	}
-
-	// clean up
-	uv_close((uv_handle_t*) UvAsync, DelHandle<uv_async_t>);
-	delete Task;
-}
-
-template <class TTask>
-void TNodeJsAsyncUtil::OnMainBlock(uv_async_t* UvAsync) {
-	TMainSemaphoreData<TTask>* Task = static_cast<TMainSemaphoreData<TTask>*>(UvAsync->data);
-
-	try {
-		TTask::Run(*Task->Task);
-	} catch (const PExcept& Except) {
-		printf("Exception on main thread: %s!", Except->GetMsgStr().CStr());
-	}
-
-	// clean up
-	uv_close((uv_handle_t*) UvAsync, DelHandle<uv_async_t>);
-
-	uv_sem_post(&Task->Semaphore);
-	uv_sem_destroy(&Task->Semaphore);
-
-	delete Task;
-}
-
-template <class TTask>
-void TNodeJsAsyncUtil::OnWorker(uv_work_t* UvReq) {
-	TWorkerData<TTask>* Task = static_cast<TWorkerData<TTask>*>(UvReq->data);
-
-	try {
-		Task->Task->Run();
-//		TTask::Run(*Task->Task);
-	} catch (const PExcept& Except) {
-		printf("Exception on worker thread: %s!", Except->GetMsgStr().CStr());
-	}
-}
-
-template <class TTask>
-void TNodeJsAsyncUtil::AfterOnWorker(uv_work_t* UvReq, int Status) {
-	TWorkerData<TTask>* Task = static_cast<TWorkerData<TTask>*>(UvReq->data);
-
-	try {
-		Task->Task->AfterRun();
-//		TTask::AfterRun(*Task->Task);
-	} catch (const PExcept& Except) {
-		printf("Exception on worker thread: %s!", Except->GetMsgStr().CStr());
-	}
-
-	delete Task;
-	delete UvReq;
-}
-
-
-template <class TTask>
-void TNodeJsAsyncUtil::ExecuteOnMain(TTask* Task, const bool& DelTask) {
-	uv_async_t* UvAsync = new uv_async_t;
-	UvAsync->data = new TMainData<TTask>(Task, DelTask);
-
-	uv_async_init(uv_default_loop(), UvAsync, OnMain<TTask>);
-	uv_async_send(UvAsync);
-}
-
-template <class TTask>
-void TNodeJsAsyncUtil::ExecuteOnMainAndWait(TTask* Task, const bool& DelTask) {
-	uv_async_t* UvAsync = new uv_async_t;
-	TMainSemaphoreData<TTask>* TaskWrapper = new TMainSemaphoreData<TTask>(Task, DelTask);
-
-	UvAsync->data = TaskWrapper;
-
-	int Err = uv_sem_init(&TaskWrapper->Semaphore, 0);
-
-	if (Err != 0) {
-		delete UvAsync;
-		delete TaskWrapper;
-		throw TExcept::New("Failed to create a semaphore, code: " + TInt::GetStr(Err) + "!");
-	} else {
-		uv_async_init(uv_default_loop(), UvAsync, OnMainBlock<TTask>);
-		uv_async_send(UvAsync);
-		uv_sem_wait(&TaskWrapper->Semaphore);
-	}
-}
-
-template <class TTask>
-void TNodeJsAsyncUtil::ExecuteOnWorker(TTask* Task) {
-	uv_work_t* UvReq = new uv_work_t;
-	UvReq->data = new TWorkerData<TTask>(Task);
-
-	uv_queue_work(uv_default_loop(), UvReq, OnWorker<TTask>, AfterOnWorker<TTask>);
 }
 
 #endif

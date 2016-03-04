@@ -122,6 +122,7 @@ nodetempdoc
 /test/nodejs/g.html
 db1
 db2
+/test/nodejs/db-strict
 binding-1.gyp
 /test/nodejs/.tmpclfile
 /test/nodejs/tmpclfile

@@ -60,6 +60,18 @@ TStr TStrUtil::GetStr(const TStrIntPrV& StrIntPrV,
   return ResChA;
 }
 
+TStr TStrUtil::GetStr(const TUInt64IntPrV& UInt64IntPrV, const TStr& FieldDelimiterStr,
+		const TStr& DelimiterStr) {
+	TChA ResChA;
+	for (int i = 0; i < UInt64IntPrV.Len(); i++) {
+		if (!ResChA.Empty()) { ResChA += DelimiterStr; }
+		ResChA += UInt64IntPrV[i].Val1.GetStr();
+		ResChA += FieldDelimiterStr;
+		ResChA += UInt64IntPrV[i].Val2.GetStr();
+	}
+	return ResChA;
+}
+
 TStr TStrUtil::GetStr(const TIntFltPrV& IntFltPrV, const TStr& FieldDelimiterStr,
 		const TStr& DelimiterStr, const TStr& FmtStr) {
 	TChA ResChA;
@@ -106,6 +118,19 @@ TStr TStrUtil::GetStr(const TIntIntFltTrV& IntIntFltTrV, const TStr& DelimiterSt
 		if (i < IntIntFltTrV.Len()-1) {
 			ResChA += DelimiterStr;
 		}
+	}
+
+	return ResChA;
+}
+
+TStr TStrUtil::GetStr(const TIntSet& IntSet, const TStr& DelimiterStr) {
+	TChA ResChA;
+
+	int KeyId = IntSet.FFirstKeyId();
+	while (IntSet.FNextKeyId(KeyId)) {
+		if (!ResChA.Empty()) { ResChA+=DelimiterStr; }
+		const TInt& Val = IntSet[KeyId];
+		ResChA += Val.GetStr();
 	}
 
 	return ResChA;

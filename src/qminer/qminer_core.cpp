@@ -4879,7 +4879,7 @@ void TIndex::TQmGixRmDupMergerSmall::Union(TQmGixItemSmallV& MainV, const TQmGix
 		if (Val1 < Val2) { ResV.Add(TQmGixItemSmall(Val1.Key, 1)); ValN1++; } else if (Val1 > Val2) { ResV.Add(TQmGixItemSmall(Val2.Key, 1)); ValN2++; } else {
 			int fq1 = TInt::GetMn(1, Val1.Dat);
 			int fq2 = TInt::GetMn(1, Val2.Dat);
-			ResV.Add(TQmGixItemSmall(Val1.Key, fq1 + fq2)); ValN1++; ValN2++;
+			ResV.Add(TQmGixItemSmall(Val1.Key, int16(fq1 + fq2))); ValN1++; ValN2++;
 		}
 	}
 	for (int RestValN1 = ValN1; RestValN1 < MainV.Len(); RestValN1++) {
@@ -5895,6 +5895,7 @@ void TStreamAggr::Init() {
 	Register<TStreamAggrs::TWinBufMax>();
 	Register<TStreamAggrs::TMa>();
 	Register<TStreamAggrs::TEma>();
+	Register<TStreamAggrs::TThresholdAggr>();
 	Register<TStreamAggrs::TVar>();
 	Register<TStreamAggrs::TCov>();
 	Register<TStreamAggrs::TCorr>();
@@ -6103,7 +6104,7 @@ TBase::TBase(const TStr& _FPath, const int64& IndexCacheSize, const int& SplitLe
 TBase::TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCacheSize,
 		const int& SplitLen) :
 			InitP(false),
-			NmValidator(false) {
+			NmValidator(true) {
 	IAssertR(TEnv::IsInit(), "QMiner environment (TQm::TEnv) is not initialized");
 	// assert open type and remember location
 	FAccess = _FAccess; FPath = _FPath;
@@ -6118,7 +6119,6 @@ TBase::TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCac
 
 	// open file input streams
 	TFIn IndexVocFIn(FPath + "IndexVoc.dat");
-//	TFIn BasePropsFIn(_FPath + "Base.dat");
 
 	// load index
 	IndexVoc = TIndexVoc::Load(IndexVocFIn);
@@ -6132,7 +6132,7 @@ TBase::TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCac
 	TempFPathP = false;
 
 	// load the base properties
-//	FldNmValidator = TFldNmValidator(BasePropsFIn);
+	LoadBaseConf(_FPath);
 }
 
 TBase::~TBase() {
@@ -6140,10 +6140,9 @@ TBase::~TBase() {
 		TEnv::Logger->OnStatus("Saving index vocabulary ... ");
 
 		TFOut IndexVocFOut(FPath + "IndexVoc.dat");
-		TFOut BasePropsFOut(FPath + "Base.dat");
-
 		IndexVoc->Save(IndexVocFOut);
-		NmValidator.Save(BasePropsFOut);
+
+		SaveBaseConf(FPath);
 	} else {
 		TEnv::Logger->OnStatus("No saving of qminer base neccessary!");
 	}
@@ -6890,6 +6889,31 @@ PJsonVal TBase::GetStats() {
 	res->AddToObj("gix_blob", BlobBsStatsToJson(gix_blob_stats));
 	res->AddToObj("access", GetFAccess());
 	return res;
+}
+
+void TBase::LoadBaseConf(const TStr& FPath) {
+	const TStr BaseConfFNm = GetConfFNm(FPath);
+	PJsonVal BaseConfJson = nullptr;
+
+	if (!TFile::Exists(BaseConfFNm)) {
+		BaseConfJson = TJsonVal::NewObj();
+	} else {
+		PSIn BasePropsFIn = TFIn::New(BaseConfFNm);
+		BaseConfJson = TJsonVal::GetValFromSIn(BasePropsFIn);
+	}
+
+	NmValidator.SetStrictNmP(BaseConfJson->GetObjBool("strictNames", true));
+}
+
+void TBase::SaveBaseConf(const TStr& FPath) const {
+	PJsonVal BaseConfJson = TJsonVal::NewObj();
+
+	BaseConfJson->AddToObj("strictNames", NmValidator.IsStrictNmP());
+
+	const TStr BaseConfStr = TJsonVal::GetStrFromVal(BaseConfJson);
+	TFOut BasePropsFOut(GetConfFNm(FPath));
+	BasePropsFOut.PutStr(BaseConfStr);
+	BasePropsFOut.Flush();
 }
 
 ////////////////////////////////////////////////////////////////////////////////

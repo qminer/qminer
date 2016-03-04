@@ -268,6 +268,7 @@ void TNodeJsQm::flags(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo
 ///////////////////////////////
 // NodeJs QMiner Base
 v8::Persistent<v8::Function> TNodeJsBase::Constructor;
+const int TNodeJsBase::MAX_BASES = 128;
 
 void TNodeJsBase::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -776,7 +777,7 @@ v8::Local<v8::Value> TNodeJsStore::Field(const TQm::TRec& Rec, const int FieldId
 	} 
 	else if (Desc.IsInt64()) {
 		const int64 Val = Rec.GetFieldInt64(FieldId);
-		return HandleScope.Escape(v8::Number::New(Isolate, Val));
+		return HandleScope.Escape(v8::Number::New(Isolate, double(Val)));
 	} 
 	else if (Desc.IsByte()) {
 		const uchar Val = Rec.GetFieldByte(FieldId);
@@ -1345,7 +1346,7 @@ void TNodeJsStore::getVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 			TQm::PStoreIter Iter = Store->ForwardIter(); Iter->Next();
 			for (int RecN = 0; RecN < Recs; RecN++) {
-				ColV[RecN] = JsStore->Store->GetFieldInt64(Iter->GetRecId(), FieldId);
+				ColV[RecN] = (double) JsStore->Store->GetFieldInt64(Iter->GetRecId(), FieldId);
 				Iter->Next();
 			}
 
@@ -1903,7 +1904,7 @@ void TNodeJsRec::Init(const TWPt<TQm::TStore>& Store) {
 	uint BaseId = TNodeJsQm::BaseFPathToId.GetDat(Store->GetBase()->GetFPath());
 	if (BaseStoreIdConstructor.Empty()) {
 		// support 16 bases opened!
-		BaseStoreIdConstructor.Gen(16);
+		BaseStoreIdConstructor.Gen(TNodeJsBase::MAX_BASES);
 	}
 	if (BaseStoreIdConstructor[BaseId].Empty()) {
 		// reserve space for maximal number of stores
@@ -2746,10 +2747,10 @@ void TNodeJsRecSet::filterByField(const v8::FunctionCallbackInfo<v8::Value>& Arg
         int16 MnVal = TInt16::Mn;
         int16 MxVal = TInt16::Mx;
         if (!TNodeJsUtil::IsArgNull(Args, 1) && TNodeJsUtil::IsArgFlt(Args, 1)) {
-            MnVal = TNodeJsUtil::GetArgInt32(Args, 1);
+            MnVal = (int16) TNodeJsUtil::GetArgInt32(Args, 1);
         }
         if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
-            MxVal = TNodeJsUtil::GetArgInt32(Args, 2);
+            MxVal = (int16) TNodeJsUtil::GetArgInt32(Args, 2);
         }
         JsRecSet->RecSet->FilterByFieldInt16(FieldId, MnVal, MxVal);
     } else if (Desc.IsInt64()) {

@@ -67,7 +67,7 @@ TStr TBlobPt::GetStr() const {
 /////////////////////////////////////////////////
 // Blob-Base
 const int TBlobBs::MnBlobBfL=16;
-const int TBlobBs::MxBlobFLen=1000000000;
+const int TBlobBs::MxBlobFLen=2000000000;
 
 void TBlobBs::PutVersionStr(const PFRnd& FBlobBs){
   FBlobBs->PutStr(GetVersionStr());

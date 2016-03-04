@@ -515,7 +515,7 @@ private:
     //copy constructor and some operators we don't want to use
     UndefDefaultCopyAssign(TSVMQP);
 public:
-    TSVMQP(const int& nn, const int& mm = 1, const double& ll = 0.0);
+    TSVMQP(const int& nn, const int& mm = 1, const double& ll = 0.0);	// FIXME Q is not initialized in this constructor
     ~TSVMQP();
 
     /** Solves given problem
@@ -800,7 +800,7 @@ public:
       const int& _h = 10, const int& _minNumElts = 10):
         verbosity(verb),
         epsilon_ter(eps_ter), is_linear(lin), nonlin_kernel(ker),
-        shrinking(_shrinking), h(_h), minNumElts(_minNumElts), cache(verbosity) {};
+        shrinking(_shrinking), h(_h), minNumElts(_minNumElts), cache(verbosity) {};	// FIXME NSV is not initialized in this constructor
 
     /** Finds minimum for given problem
         alphas -- vector to which calculated alphas will be stored

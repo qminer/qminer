@@ -16,45 +16,6 @@
 #include "../fs/fs_nodejs.h"
 
 ///////////////////////////////
-// NodeJs-Qminer-LinAlg
-/**
-* Linear algebra module.
-* @module la
-* @example
-* // import module, create a random matrix and a vector, multiply. find svd of the matrix
-*/
-
-
-class TNodeJsLinAlg : public node::ObjectWrap {
-public:
-	static void Init(v8::Handle<v8::Object> exports);
-	/**
-	* Computes the truncated SVD decomposition.
-	* @param {module:la.Matrix | matrix:la.SparseMatrix} mat - The matrix.
-	* @param {number} k - The number of singular vectors to be computed.
-	* @param {Object} [json] - The JSON object containing the properties iter and tol:
-	* @param {number} [json.iter = 100] - The number of iterations used for the algorithm.
-	* @param {number} [json.tol = 1e-6] - The tolerance number.
-	* @returns {Object} The JSON object svdRes which contains the SVD decomposition U*S*V^T matrices:
-	* <br>svdRes.U - The dense matrix of the decomposition. Type {@link module:la.Matrix}.
-	* <br>svdRes.V - The dense matrix of the decomposition. Type {@link module:la.Matrix}.
-	* <br>svdRes.s - The vector containing the singular values of the decomposition. Type {@link module:la.Vector}.
-	*/
-	//# exports.prototype.svd = function (mat, k, json) { return { U: Object.create(require('qminer').la.Matrix.prototype), V: Object.create(require('qminer').la.Matrix.prototype), s: Object.create(require('qminer').la.Vector.prototype) } }
-	JsDeclareFunction(svd);
-	/**
-	* Computes the QR decomposition.
-	* @param {module:la.Matrix} mat - The matrix.
-	* @param {number} [tol = 1e-6] - The tolerance number.
-	* @returns {Object} A JSON object qrRes which contains the decomposition matrices:
-	* <br>qrRes.Q - The orthogonal dense matrix Q of the QR decomposition. Type {@link module:la.Matrix}.
-	* <br>qrRes.R - The upper triangular dense matrix R of the QR decomposition. Type {@link module:la.Matrix}.
-	*/
-	//# exports.prototype.qr = function (mat, tol) { return { Q: Object.create(require('qminer').la.Matrix.prototype), R: Object.create(require('qminer').la.Matrix.prototype) } }
-	JsDeclareFunction(qr);
-};
-
-///////////////////////////////
 // NodeJs-Linalg-FltVV
 
 /**
@@ -170,7 +131,7 @@ private:
 	* // create a new vector
 	* var vec = new la.Vector([1, -1]);
 	* //multiply mat and vec
-	* var vec2 = mat.multiplyT(vec); // returns vector [2, 7]
+	* var vec2 = mat.multiplyT(vec); // returns vector [2, -3]
 	*/
 	//# exports.Matrix.prototype.multiplyT = function(arg) { return (arg instanceof require('qminer').la.Vector | arg instanceof require('qminer').la.SparseVector) ? Object.create(require('qminer').la.Vector.prototype) : Object.create(require('qminer').la.Matrix.prototype); }
 	JsDeclareFunction(multiplyT);
@@ -278,6 +239,7 @@ private:
 	/**
 	* Normalizes each column of matrix.
 	* @returns {module:la.Matrix} Self. The columns of the matrix are normalized. 
+	* @example
 	* // import la module
 	* var la = require('qminer').la;
 	* // create a new matrix
@@ -681,6 +643,14 @@ public:
 	/**
 	* Returns the number of nonzero values.
 	* @returns {number} Number of nonzero values.
+	* @example
+	* // import la module
+	* var la = require('qminer').la;
+	* // create a new sparse vector
+	* var vec = new la.SparseVector([[0,2], [3,1], [7, 5], [11,4]]);
+	* // check the number of nonzero values in sparse vector
+	* var nonz = vec.nnz;
+	* // returns 4
 	*/
 	//# exports.SparseVector.prototype.nnz = 0;
 	JsDeclareProperty(nnz);
@@ -959,6 +929,21 @@ public:
 	//# exports.SparseMatrix.prototype.transpose = function () { return Object.create(require('qminer').la.SparseMatrix.prototype); }
 	JsDeclareFunction(transpose);
 
+    /**
+    * Returns a submatrix containing only selected columns.
+    * Columns are identified by a vector of ids.
+	* @param {module:la.IntVector} columnIdVec - Integer vector containing selected column ids.
+    * @returns {module:la.SparseMatrix}
+    */
+	//# exports.SparseMatrix.prototype.getColSubmatrix = function (columnIdVec) { return Object.create(require('qminer').la.SparseMatrix.prototype); }
+    JsDeclareFunction(getColSubmatrix);
+
+    /**
+    * Clear content of the matrix and sets its row dimension to -1.
+    */
+    //# exports.SparseMatrix.prototype.clear = function () { }
+    JsDeclareFunction(clear);
+
 	/**
 	* Returns the vector of column norms of sparse matrix.
 	* @returns {module:la.Vector} Vector of column norms. Ihe i-th value of the return vector is the norm of i-th column of sparse matrix.
@@ -969,6 +954,17 @@ public:
 	/**
 	* Normalizes columns of sparse matrix.
 	* @returns {module:la.SparseMatrix} Self. The columns of the sparse matrix are normalized.
+	* @example
+	* // import la module
+	* var la = require('qminer').la;
+	* // create a new sparse matrix
+	* var mat = new la.SparseMatrix([[[0, 2]], [[0, 1], [2, 3]]]);
+	* // normalize matrix columns
+	* mat.normalizeCols();
+	* // The new matrix elements are:
+	* // 1  0.316227
+	* // 0  0
+	* // 0  0.948683
 	*/
 	//# exports.SparseMatrix.prototype.normalizeCols = function () { return Object.create(require('qminer').la.SparseMatrix.prototype); }
 	JsDeclareFunction(normalizeCols);
@@ -976,6 +972,17 @@ public:
 	/**
 	* Returns the dense representation of sparse matrix.
 	* @returns {module:la.Matrix} Dense representation of sparse matrix.
+	* @example
+	* // import la module
+	* var la = require('qminer').la;
+	* // create a new sparse matrix
+	* var mat = new la.SparseMatrix([[[0, 2]], [[0, 1], [2, 3]]]);
+	* // create a dense representation of sparse matrix
+	* mat.full();
+	* // returns
+	* // 2  1
+	* // 0  0
+	* // 0  3
 	*/
 	//# exports.SparseMatrix.prototype.full = function () { return Object.create(require('qminer').la.Matrix.prototype); }
 	JsDeclareFunction(full);
@@ -983,6 +990,13 @@ public:
 	/**
 	* Returns the frobenious norm of sparse matrix.
 	* @returns {number} Frobenious norm of sparse matrix.
+	* @example
+	* // import la module
+	* var la = require('qminer').la;
+	* // create a new sparse matrix
+	* var mat = new la.SparseMatrix([[[0, 1], [1, 3]], [[0, 2], [1, 4]]]);
+	* // get the frobenious norm of sparse matrix
+	* var norm = mat.frob(); // returns sqrt(30)
 	*/
 	//# exports.SparseMatrix.prototype.frob = function () { return 0; }
 	JsDeclareFunction(frob);
@@ -990,6 +1004,13 @@ public:
 	/**
 	* Gives the number of rows of sparse matrix.
 	* @returns {number} Number of rows of sparse matrix.
+	* @example
+	* // import la module
+	* var la = require('qminer').la;
+	* // create a new sparse matrix
+	* var mat = new la.SparseMatrix([[[0, 2]], [[0, 1], [2, 3]]]);
+	* // check the number of rows in sparse matrix
+	* mat.rows;
 	*/
 	//# exports.SparseMatrix.prototype.rows = 0; 
 	JsDeclareProperty(rows);
@@ -997,6 +1018,13 @@ public:
 	/**
 	* Gives the number of columns of sparse matrix.
 	* @returns {number} Number of columns of sparse matrix.
+	* @example
+	* // import la module
+	* var la = require('qminer').la;
+	* // create a new sparse matrix
+	* var mat = new la.SparseMatrix([[[0, 2]], [[0, 1], [2, 3]]]);
+	* // check the number of columns in sparse matrix
+	* mat.cols;
 	*/
 	//# exports.SparseMatrix.prototype.cols = 0; 
 	JsDeclareProperty(cols);
