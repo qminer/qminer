@@ -9,7 +9,7 @@
 namespace TMc {
 
 using namespace TClassification;
-using namespace TDist;
+using namespace TDistance;
 using namespace TClustering;
 
 namespace {

@@ -7,29 +7,23 @@
  */
 
 using namespace TClustering;
-using namespace TDist;
+using namespace TDistance;
 
 //////////////////////////////////////////////////////
 // Distance measures
-//void TEuclDist::UpdateFtrVV(const TFltVV& FtrVV) {
-//	TLinAlg::GetColNorm2V(FtrVV, FtrDimV);
-//}
-//
-//void TEuclDist::UpdateCentroidVV(const TFltVV& CentroidVV) {
-//	TLinAlg::GetColNorm2V(CentroidVV, CentroidDimV);
-//}
-//
-//void TEuclDist::GetDistPropVV(const TFltVV& FtrVV, const TFltVV& CentroidVV, TFltVV& DistVV) const {
-//	GetDist2VV(CentroidVV, FtrVV, CentroidDimV, FtrDimV, DistVV);
-//}
+TDist* TDist::Load(TSIn& SIn) {
+	const TStr Type(SIn);
 
-void TEuclDist::UpdateNormX2(const TFltVV& FtrVV, TFltV& NormX2) const {
-	TLinAlg::GetColNorm2V(FtrVV, NormX2);
+	if (Type == TEuclDist::TYPE) {
+		return new TEuclDist;
+	} else if (Type == TCosDist::TYPE) {
+		return new TCosDist;
+	} else {
+		throw TExcept::New("Unknown distance type when loading: " + Type);
+	}
 }
 
-void TEuclDist::UpdateNormC2(const TFltVV& CentroidVV, TFltV& NormC2) const {
-	TLinAlg::GetColNorm2V(CentroidVV, NormC2);
-}
+const TStr TEuclDist::TYPE = "euclidean";
 
 void TEuclDist::GetDistV(const TFltVV& CentroidVV, const TFltV& FtrV, TFltV& DistV) const {
 	// return (CentroidMat.ColNorm2V() - (x*C*2) + TVector::Ones(GetClusts(), false) * NormX2).Sqrt();
@@ -64,17 +58,23 @@ void TEuclDist::GetDistVV(const TFltVV& X, const TFltVV& Y, TFltVV& D) const {
 	}
 }
 
-void TEuclDist::StaticGetDist2VV(const TFltVV& X, const TFltVV& Y, TFltVV& D) {
+void TEuclDist::GetDist2VV(const TFltVV& X, const TFltVV& Y, TFltVV& D) const {
 	TFltV NormX2;	TLinAlg::GetColNorm2V(X, NormX2);
 	TFltV NormY2;	TLinAlg::GetColNorm2V(Y, NormY2);
 
-	StaticGetDist2VV(X, Y, NormX2, NormY2, D);
+	GetDist2VV(X, Y, NormX2, NormY2, D);
 }
 
+void TEuclDist::UpdateNormX2(const TFltVV& FtrVV, TFltV& NormX2) const {
+	TLinAlg::GetColNorm2V(FtrVV, NormX2);
+}
 
+void TEuclDist::UpdateNormC2(const TFltVV& CentroidVV, TFltV& NormC2) const {
+	TLinAlg::GetColNorm2V(CentroidVV, NormC2);
+}
 
-void TEuclDist::StaticGetDist2VV(const TFltVV& X, const TFltVV& Y, const TFltV& NormX2,
-		const TFltV& NormY2, TFltVV& D) {
+void TEuclDist::GetDist2VV(const TFltVV& X, const TFltVV& Y, const TFltV& NormX2,
+		const TFltV& NormY2, TFltVV& D) const {
 	//	return (NormX2 * OnesY) - (X*2).MulT(Y) + (OnesX * NormY2);
 	// 1) X'Y
 	TLinAlg::MultiplyT(X, Y, D);
@@ -89,22 +89,24 @@ void TEuclDist::StaticGetDist2VV(const TFltVV& X, const TFltVV& Y, const TFltV& 
 	}
 }
 
+const TStr TCosDist::TYPE = "cos";
+
 ///////////////////////////////////////////
 // TAbsKMeans
-TAbsKMeans::TAbsKMeans(const TRnd& _Rnd, TDist::TDist* _Dist):
+TAbsKMeans::TAbsKMeans(const TRnd& _Rnd, TDist* _Dist):
 		CentroidVV(),
 		Dist(_Dist),
 		Rnd(_Rnd) {}
 
 TAbsKMeans::TAbsKMeans(TSIn& SIn):
 		CentroidVV(SIn),
-		// TODO Dist
+		Dist(TDist::Load(SIn)),
 		Rnd(SIn) {}
 
 void TAbsKMeans::Save(TSOut& SOut) const {
 	GetType().Save(SOut);
 	CentroidVV.Save(SOut);
-	// TODO Dist
+	Dist->Save(SOut);
 	Rnd.Save(SOut);
 }
 
