@@ -1830,6 +1830,7 @@ public:
 	JsDeclareFunction(rebuildHistograms);
 
 	JsDeclareFunction(getStateLabel);
+	JsDeclareFunction(getStateAutoName);
 
 	/**
 	 * Returns the name of a state.
@@ -1935,7 +1936,7 @@ private:
 	static v8::Local<v8::Object> WrapHistogram(const TFltV& BinValV,
 			const TFltV& SourceProbV, const TFltV& TargetProbV, const TFltV& AllProbV);
 	static uint64 GetTmUnit(const TStr& TmUnitStr);
-	static TClustering::PDnsKMeans GetClust(const PJsonVal& ParamJson, const TRnd& Rnd);
+	static TClustering::TAbsKMeans* GetClust(const PJsonVal& ParamJson, const TRnd& Rnd);
 };
 
 ///////////////////////////////

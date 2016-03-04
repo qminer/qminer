@@ -3571,7 +3571,8 @@ public:
 	/// any alphanumerical or ValidCh character (e.g. '_ThisIsValid_123_Name').
 	void AssertValidNm(const TStr& NmStr) const;
 	/// when set to false, all field names will be allowed
-	void SetStrictNmP(const bool& AllValid);
+	void SetStrictNmP(const bool& StrictNmP);
+	bool IsStrictNmP() const { return StrictNmP; }
 
 private:
 	static bool IsValidJsFirstCharacter(const TStr& NmStr);
@@ -3746,6 +3747,12 @@ public:
 	void AssertValidNm(const TStr& FldNm) const { NmValidator.AssertValidNm(FldNm); }
 	/// when set to true, all field names except an empty string will be valid
 	void SetStrictNmP(const bool& StrictNmP) { NmValidator.SetStrictNmP(StrictNmP); }
+
+private:
+	static TStr GetConfFNm(const TStr& FPath) { return FPath + "Base.json"; }
+
+	void LoadBaseConf(const TStr& FPath);
+	void SaveBaseConf(const TStr& FPath) const;
 };
 
 ////////////////////////////////////////////////////////////////////////////

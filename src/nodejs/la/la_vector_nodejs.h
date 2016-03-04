@@ -713,7 +713,7 @@ template <typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
-	TStr Name = TAux::ClassId;	
+	TStr Name = TAux::ClassId;
 
 	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, _New);
 	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, Name.CStr()));
