@@ -81,7 +81,7 @@ private:
   	TRnd Rnd;
 
   	// clustering
-  	TAbsKMeans* KMeans;
+  	TAbsKMeans<TFltVV>* KMeans;
   	// holds centroids as column vectors
   	TFltVV ControlCentroidVV;
   	TFltVV IgnoredCentroidVV;
@@ -117,7 +117,7 @@ public:
 		thtDay
   	};
 
-  	TStateIdentifier(TAbsKMeans* KMeans, const int NHistBins, const double& Sample,
+  	TStateIdentifier(TAbsKMeans<TFltVV>* KMeans, const int NHistBins, const double& Sample,
 			const TRnd& Rnd=TRnd(0), const bool& Verbose=false);
 	TStateIdentifier(TSIn& SIn);
 

@@ -1936,7 +1936,7 @@ private:
 	static v8::Local<v8::Object> WrapHistogram(const TFltV& BinValV,
 			const TFltV& SourceProbV, const TFltV& TargetProbV, const TFltV& AllProbV);
 	static uint64 GetTmUnit(const TStr& TmUnitStr);
-	static TClustering::TAbsKMeans* GetClust(const PJsonVal& ParamJson, const TRnd& Rnd);
+	static TClustering::TAbsKMeans<TFltVV>* GetClust(const PJsonVal& ParamJson, const TRnd& Rnd);
 };
 
 ///////////////////////////////
@@ -2182,6 +2182,9 @@ public:
 	
 };
 
+/////////////////////////////////////////////
+// QMiner-JavaScript-Multidimensional Scaling
+
 /**
 * @typedef {Object} MDSParam
 * @property {number} [maxSecs=500] - The maximum time period to compute MDS of a matrix.
@@ -2324,6 +2327,20 @@ private:
 	void UpdateParams(const PJsonVal& ParamVal);
 	PJsonVal GetParams() const;
 	void Save(TSOut& SOut) const;
+};
+
+
+/////////////////////////////////////////////
+// QMiner-JavaScript-KMeans
+
+class TNodeJsKMeans : public node::ObjectWrap {
+    friend class TNodeJsUtil;
+public:
+    static void Init(v8::Handle<v8::Object> exports);
+    static const TStr GetClassId() { return "MDS"; }
+
+private:
+
 };
 
 

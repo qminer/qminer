@@ -2808,7 +2808,7 @@ uint64 TNodeJsStreamStory::GetTmUnit(const TStr& TimeUnitStr) {
 	}
 }
 
-TClustering::TAbsKMeans* TNodeJsStreamStory::GetClust(const PJsonVal& ParamJson,
+TClustering::TAbsKMeans<TFltVV>* TNodeJsStreamStory::GetClust(const PJsonVal& ParamJson,
 		const TRnd& Rnd) {
 	const TStr& ClustAlg = ParamJson->GetObjStr("type");
 	if (ClustAlg == "dpmeans") {
@@ -2816,10 +2816,10 @@ TClustering::TAbsKMeans* TNodeJsStreamStory::GetClust(const PJsonVal& ParamJson,
 		const int MinClusts = ParamJson->IsObjKey("minClusts") ? ParamJson->GetObjInt("minClusts") : 1;
 		const int MxClusts = ParamJson->IsObjKey("maxClusts") ? ParamJson->GetObjInt("maxClusts") : TInt::Mx;
 
-		return new TClustering::TDpMeans(Lambda, MinClusts, MxClusts, Rnd);
+		return new TClustering::TDpMeans<TFltVV>(Lambda, MinClusts, MxClusts, Rnd);
 	} else if (ClustAlg == "kmeans") {
 		const int K = ParamJson->GetObjInt("k");
-		return new TClustering::TDnsKMeans(K, Rnd);
+		return new TClustering::TDnsKMeans<TFltVV>(K, Rnd);
 	} else {
 		throw TExcept::New("Invalivalid clustering type: " + ClustAlg, "TJsHierCtmc::TJsHierCtmc");
 	}

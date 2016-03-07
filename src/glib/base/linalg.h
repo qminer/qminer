@@ -705,6 +705,8 @@ public:
 	inline static void LinComb(const double& p, const TFltVV& X, int DimId,
 		const double& q, const TFltV& y, TFltV& z, int Dim);
 	inline static void LinComb(const double& p, const TFltVV& X, const double& q, const TFltVV& Y, TFltVV& Z);
+    inline static void LinComb(const double& p, const TVec<TIntFltKdV>& X, const double& q, const TVec<TIntFltKdV>& Y, TVec<TIntFltKdV>& Z);
+    inline static void LinComb(const double& p, const TFltVV& X, const double& q, const TVec<TIntFltKdV>& Y, TFltVV& Z);
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void ConvexComb(const double& p, const TVec<TType, TSizeTy>& x, const TVec<TType, TSizeTy>& y, TVec<TType, TSizeTy>& z);
 	//this will fail if TType != TFlt, Specialization should be used
@@ -740,6 +742,8 @@ public:
 	// Result = ||x-y||^2 (Euclidian);
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static double EuclDist2(const TVec<TType, TSizeTy>& x, const TVec<TType, TSizeTy>& y);
+    template <class TSizeTy = int, bool ColMajor = false>
+    inline static double EuclDist2(const TVec<TIntFltKd, TSizeTy>& x, const TVec<TIntFltKd, TSizeTy>& y);
 	// Result = ||x-y||^2 (Euclidian);
 	inline static double EuclDist2(const TFltPr& x, const TFltPr& y);
 	template <class TType, class TSizeTy = int>
@@ -1048,6 +1052,7 @@ public:
 	inline static void Multiply(const TVec<TIntFltKdV>& A, const TFltVV& B, TFltVV& C, const int RowsA = -1);
 	inline static void MultiplyT(const TVec<TIntFltKdV>& A, const TFltVV& B, TFltVV& C);
 	inline static void Multiply(const TVec<TIntFltKdV>& A, const TVec<TIntFltKdV>& B, TFltVV& C, const int RowsA = -1);
+    inline static void Multiply(const TVec<TIntFltKdV>& A, const TVec<TIntFltKdV>& B, TVec<TIntFltKdV>& C, const int RowsA = -1);
 	inline static void MultiplyT(const TVec<TIntFltKdV>& A, const TVec<TIntFltKdV>& B, TFltVV& C);
 	inline static void MultiplyT(const TVec<TIntFltKdV>& A, const TIntFltKdV& b, TFltV& c) { throw TExcept::New("Not implemented!"); }
 	typedef enum { GEMM_NO_T = 0, GEMM_A_T = 1, GEMM_B_T = 2, GEMM_C_T = 4 } TLinAlgGemmTranspose;
@@ -1308,6 +1313,31 @@ public:
 		}
 	}
 
+    void TLinAlg::LinComb(const double& p, const TVec<TIntFltKdV>& X, const double& q, const TVec<TIntFltKdV>& Y, TVec<TIntFltKdV>& Z) {
+        if (Z.Empty()) { Z.Gen(X.Len()); }
+        EAssert(X.Len() == Y.Len() && Y.Len() == Z.Len());
+        int Cols = X.Len();
+        for (int ColN = 0; ColN < Cols; ColN++) {
+            TLinAlg::LinComb(p, X[ColN], q, Y[ColN], Z[ColN]);
+        }
+    }
+
+    void TLinAlg::LinComb(const double& p, const TFltVV& X, const double& q, const TVec<TIntFltKdV>& Y, TFltVV& Z) {
+        if (Z.Empty()) { Z.Gen(X.GetRows(), X.GetCols()); }
+        EAssert(X.GetRows() >= TLAMisc::GetMaxDimIdx(Y) && X.GetCols() == Y.Len() && X.GetRows() == Z.GetRows() && X.GetCols() == Z.GetCols());
+        int Rows = X.GetRows();
+        int Cols = X.GetCols();
+        for (int ColN = 0; ColN < Cols; ColN++) {
+            int KeyN = 0;
+            for (int RowN = 0; RowN < Rows; RowN++) {
+                Z.At(RowN, ColN) = p*X.At(RowN, ColN);
+                if (Y[ColN][KeyN].Key == RowN) { 
+                    Z.At(RowN, ColN) += q*Y[ColN][KeyN].Dat; KeyN++;
+                }
+            }
+        }
+    }
+
 	// TEST
 	// z := p * x + (1 - p) * y
 	template <class TType, class TSizeTy, bool ColMajor>
@@ -1489,6 +1519,12 @@ public:
 		}
 		return Res;
 	}
+
+    template <class TSizeTy, bool ColMajor>
+    double TLinAlg::EuclDist2(const TVec<TIntFltKd, TSizeTy>& x, const TVec<TIntFltKd, TSizeTy>& y) {
+        double Res = TLinAlg::Norm2(x) - 2 * TLinAlg::DotProduct(x, y) + TLinAlg::Norm2(y);
+        return Res;
+    }
 
 	// Result = ||x-y||^2 (Euclidian)
 	double TLinAlg::EuclDist2(const TFltPr& x, const TFltPr& y) {
@@ -2976,6 +3012,37 @@ public:
 			}
 		}
 	}
+
+    void TLinAlg::Multiply(const TVec<TIntFltKdV>& A, const TVec<TIntFltKdV>& B, TVec<TIntFltKdV>& C, const int RowsA) {
+        //// A,B = sparse column matrix
+        //EAssert(A.Len() == B.GetRows());
+        int Rows = RowsA;
+        int ColsB = B.Len();
+        if (RowsA == -1) {
+            Rows = TLAMisc::GetMaxDimIdx(A) + 1;
+        }
+        else {
+            EAssert(TLAMisc::GetMaxDimIdx(A) + 1 <= RowsA);
+        }
+        if (C.Len() == 0) {
+            C.Gen(ColsB);
+        }
+        EAssert(TLAMisc::GetMaxDimIdx(B) + 1 <= A.Len());
+        
+        for (int ColN = 0; ColN < ColsB; ColN++) {
+            int ElsB = B[ColN].Len();
+            for (int ElBN = 0; ElBN < ElsB; ElBN++) {
+                int IdxB = B[ColN][ElBN].Key;
+                double ValB = B[ColN][ElBN].Dat;
+                int ElsA = A[IdxB].Len();
+                for (int ElAN = 0; ElAN < ElsA; ElAN++) {
+                    int IdxA = A[IdxB][ElAN].Key;
+                    double ValA = A[IdxB][ElAN].Dat;
+                    C[ColN].Add(TIntFltKd(IdxA, ValA * ValB));
+                }
+            }
+        }
+    }
 
 	// C:= A' * B
 	//Andrej Urgent
