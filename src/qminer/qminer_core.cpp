@@ -6114,7 +6114,6 @@ TBase::TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCac
 
 	// open file input streams
 	TFIn IndexVocFIn(FPath + "IndexVoc.dat");
-	TFIn BasePropsFIn(_FPath + "Base.dat");
 
 	// load index
 	IndexVoc = TIndexVoc::Load(IndexVocFIn);
@@ -6128,7 +6127,7 @@ TBase::TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCac
 	TempFPathP = false;
 
 	// load the base properties
-	NmValidator = TNmValidator(BasePropsFIn);
+	LoadBaseConf(_FPath);
 }
 
 TBase::~TBase() {
@@ -6136,10 +6135,9 @@ TBase::~TBase() {
 		TEnv::Logger->OnStatus("Saving index vocabulary ... ");
 
 		TFOut IndexVocFOut(FPath + "IndexVoc.dat");
-		TFOut BasePropsFOut(FPath + "Base.dat");
-
 		IndexVoc->Save(IndexVocFOut);
-		NmValidator.Save(BasePropsFOut);
+
+		SaveBaseConf(FPath);
 	} else {
 		TEnv::Logger->OnStatus("No saving of qminer base neccessary!");
 	}
@@ -6893,6 +6891,31 @@ PJsonVal TBase::GetStats() {
 	res->AddToObj("gix_blob", BlobBsStatsToJson(gix_blob_stats));
 	res->AddToObj("access", GetFAccess());
 	return res;
+}
+
+void TBase::LoadBaseConf(const TStr& FPath) {
+	const TStr BaseConfFNm = GetConfFNm(FPath);
+	PJsonVal BaseConfJson = nullptr;
+
+	if (!TFile::Exists(BaseConfFNm)) {
+		BaseConfJson = TJsonVal::NewObj();
+	} else {
+		PSIn BasePropsFIn = TFIn::New(BaseConfFNm);
+		BaseConfJson = TJsonVal::GetValFromSIn(BasePropsFIn);
+	}
+
+	NmValidator.SetStrictNmP(BaseConfJson->GetObjBool("strictNames", true));
+}
+
+void TBase::SaveBaseConf(const TStr& FPath) const {
+	PJsonVal BaseConfJson = TJsonVal::NewObj();
+
+	BaseConfJson->AddToObj("strictNames", NmValidator.IsStrictNmP());
+
+	const TStr BaseConfStr = TJsonVal::GetStrFromVal(BaseConfJson);
+	TFOut BasePropsFOut(GetConfFNm(FPath));
+	BasePropsFOut.PutStr(BaseConfStr);
+	BasePropsFOut.Flush();
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -190,6 +190,8 @@ public:
     static bool IsArgObj(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
     /// Check if is argument ArgN of type v8::Bool
     static bool IsArgBool(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
+	/// Check if is argument ArgN is a 32 bit integer
+	static bool IsArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
     /// Check if is argument ArgN of type v8::Number
     static bool IsArgFlt(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
     /// Check if is argument ArgN of type v8::String

@@ -18,9 +18,6 @@ namespace {
 	typedef TIntV TAggState;
 	typedef TVec<TAggState> TAggStateV;
 	typedef TVec<TFltV> TStateFtrVV;
-
-	typedef TAbsKMeans TClust;
-	typedef PDnsKMeans PClust;
 }
 
 // helper classes
@@ -84,7 +81,7 @@ private:
   	TRnd Rnd;
 
   	// clustering
-  	PClust KMeans;
+  	TAbsKMeans* KMeans;
   	// holds centroids as column vectors
   	TFltVV ControlCentroidVV;
   	TFltVV IgnoredCentroidVV;
@@ -120,11 +117,11 @@ public:
 		thtDay
   	};
 
-  	TStateIdentifier(const PClust& KMeans, const int NHistBins, const double& Sample,
+  	TStateIdentifier(TAbsKMeans* KMeans, const int NHistBins, const double& Sample,
 			const TRnd& Rnd=TRnd(0), const bool& Verbose=false);
 	TStateIdentifier(TSIn& SIn);
 
-	virtual ~TStateIdentifier() {}
+	virtual ~TStateIdentifier();
 	// saves the model to the output stream
 	void Save(TSOut& SOut) const;
 
@@ -533,7 +530,6 @@ public:
 	void Init(const int& CurrLeafId, const TStateIdentifier& StateIdentifier,
 			const TCtmcModeller& MChain);
 	void UpdateHistory(const int& CurrLeafId);
-	void InitAutoNmV(const TStateIdentifier& StateIdentifier);	// TODO move this to private
 
 	const TFltV& GetUniqueHeightV() const { return UniqueHeightV; }
 	const TIntV& GetHierarchV() const { return HierarchV; }
@@ -590,6 +586,7 @@ private:
 	void InitHierarchyDist(const TStateIdentifier& StateIdentifier);
 	void InitHierarchyTrans(const TStateIdentifier& StateIdentifier,
 			const TCtmcModeller& MChain);
+	void InitAutoNmV(const TStateIdentifier& StateIdentifier);
 
 	// returns the ID of the parent state
 	int GetParentId(const int& StateId) const;
@@ -806,6 +803,8 @@ public:
 	PJsonVal GetLikelyPathTreeJson(const int& StateId, const double& Height, const int& Depth,
 			const double& TransThreshold) const;
 
+	static PJsonVal GetAutoNmJson(const TIntStrPr& FtrIdRngPr);
+
 	// update methods
 	// initializes the model
 	void Init(TFltVV& ObservFtrVV, const TFltVV& ControlFtrVV, const TFltVV& IgnoredFtrVV,
@@ -881,6 +880,7 @@ public:
 	// returns the number of states in the hierarchy
     int GetStates() const { return Hierarch->GetStates(); }
     uint64 GetTimeUnit() const;
+    uint64 GetLastRecTm() const { return LastRecTm; }
 
     // target methods
     bool IsTargetState(const int& StateId) const { return Hierarch->IsTarget(StateId); }
@@ -906,6 +906,7 @@ public:
 
     const TFltPr& GetFtrBounds(const int& FtrId) const;
     const TStr& GetStateLabel(const int& StateId) const;
+    const TIntStrPr& GetStateAutoNm(const int& StateId) const;
     const TStr& GetStateNm(const int& StateId) const;
 
     // get/set parameters

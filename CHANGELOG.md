@@ -1,5 +1,23 @@
 # QMiner Change Log
 
+### 4 Mar 2016
+
+**New version: 4.8.0**
+
+**Non-breaking with new features**
+
+New features:
+- `analytics.MDS` now has async version
+- `la.svd` now has async version
+
+Bug fixes:
+- Renamed SparseMatrix.submat to SparseMatrix.getColSubmatrix. Fix #402
+- `TQm::TBase` now again backwards compatible with respect to loading settings. Fix #401
+
+Other:
+- BlobBs file size limit extended from 1GB to 2GB
+- `la.svd` and `la.qr` moved from `la_structures_nodejs.h`
+
 ### 26 Feb 2016
 
 **New version: 4.7.0**
