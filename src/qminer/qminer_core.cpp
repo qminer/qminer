@@ -447,8 +447,8 @@ void TStore::AddJoinRec(const uint64& RecId, const PJsonVal& RecVal) {
                 PJsonVal JoinRecVal = RecVal->GetObjKey(JoinDesc.GetJoinNm());
                 // make sure it's an object and not array
                 if (!JoinRecVal->IsObj()) {
-                    ErrorLog("[TStoreImpl::AddJoinRec] Expected object for join " + JoinDesc.GetJoinNm());
-                    if (JoinRecVal->IsArr()) { ErrorLog("[TStoreImpl::AddJoinRec] Got array instead"); }
+                    ErrorLog("[TStore::AddJoinRec] Expected object for join " + JoinDesc.GetJoinNm());
+                    if (JoinRecVal->IsArr()) { ErrorLog("[TStore::AddJoinRec] Got array instead"); }
                     continue;
                 }
                 // first make an empty join
@@ -462,7 +462,7 @@ void TStore::AddJoinRec(const uint64& RecId, const PJsonVal& RecVal) {
                 int JoinFq = JoinRecVal->GetObjInt("$fq", 1);
                 // make sure weight is from valid range
                 if (JoinFq < 1) {
-                    ErrorLog("[TStoreImpl::AddJoinRec] Join frequency must be positive");
+                    ErrorLog("[TStore::AddJoinRec] Join frequency must be positive");
                     JoinFq = 1;
                 }
                 // mark the join
@@ -471,7 +471,7 @@ void TStore::AddJoinRec(const uint64& RecId, const PJsonVal& RecVal) {
                 // index joins must be in an array
                 PJsonVal JoinArrVal = RecVal->GetObjKey(JoinDesc.GetJoinNm());
                 if (!JoinArrVal->IsArr()) {
-                    ErrorLog("[TStoreImpl::AddJoinRec] Expected array for join " + JoinDesc.GetJoinNm());
+                    ErrorLog("[TStore::AddJoinRec] Expected array for join " + JoinDesc.GetJoinNm());
                     continue;
                 }
                 // add join records and remember their record ids and weights
@@ -485,7 +485,7 @@ void TStore::AddJoinRec(const uint64& RecId, const PJsonVal& RecVal) {
                     int JoinFq = JoinRecVal->GetObjInt("$fq", 1);
                     // make sure weight is from valid range
                     if (JoinFq < 1) {
-                        ErrorLog("[TStoreImpl::AddJoinRec] Join frequency must be positive");
+                        ErrorLog("[TStore::AddJoinRec] Join frequency must be positive");
                         JoinFq = 1;
                     }
                     // index the join
