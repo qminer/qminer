@@ -9,8 +9,8 @@
 namespace TDistance {
 
 namespace {
-	typedef TVec<TIntFltKdV> TSpVV;
 	typedef TIntFltKdV TSpV;
+	typedef TVec<TSpV> TSpVV;
 }
 
 //////////////////////////////////////////////////////

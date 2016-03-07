@@ -129,7 +129,7 @@ void TAbsKMeans::GetDistVV(const TFltVV& FtrVV, TFltVV& DistVV) const {
 }
 
 void TAbsKMeans::UpdateCentroids(const TFltVV& FtrVV, const int& NInst, TIntV& AssignV,
-		const TFltV& OnesN, const TIntV& RangeN, TFltV& TempK, TFltVV& TempDxKV,
+		const TFltV& OnesN, const TIntV& RangeN, TFltV& TempK, TFltVV& TempDxKVV,
 		TVec<TIntFltKdV>& TempKxKSpVV, const TFltV& NormX2, TFltV& NormC2) {
 
 	const int K = CentroidVV.GetCols();
@@ -168,11 +168,11 @@ void TAbsKMeans::UpdateCentroids(const TFltVV& FtrVV, const int& NInst, TIntV& A
 	TLAMisc::Diag(TempK, TempKxKSpVV);
 
 	// 1) FtrVV * AssignIdxMat
-	TLinAlg::Multiply(FtrVV, AssignMat.ColSpVV, TempDxKV);
+	TLinAlg::Multiply(FtrVV, AssignMat.ColSpVV, TempDxKVV);	// TempDxKVV has at column i the sum of all data points that are assigned to cluster i
 	// 2) (FtrVV * AssignIdxMat) + CentroidMat
-	TLinAlg::LinComb(1, TempDxKV, 1, CentroidVV, TempDxKV);
+	TLinAlg::LinComb(1, TempDxKVV, 1, CentroidVV, TempDxKVV);	// TempDxKVV has at column i the sum of all data points that are assigned to cluster i plus the centroid
 	// 3) ((FtrVV * AssignIdxMat) + CentroidMat) * ColSumDiag
-	TLinAlg::Multiply(TempDxKV, TempKxKSpVV, CentroidVV);
+	TLinAlg::Multiply(TempDxKVV, TempKxKSpVV, CentroidVV);
 }
 
 void TAbsKMeans::SelectInitCentroids(const TFltVV& FtrVV, const int& K) {
