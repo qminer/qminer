@@ -3005,64 +3005,130 @@ typedef TSStack<TInt> TIntS;
 typedef TSStack<TBoolChPr> TBoolChS;
 
 /////////////////////////////////////////////////
-// Queue
+/// Queue
 template <class TVal>
 class TQQueue{
+  //   Circular buffer implementation.
+  //   If Last == Next, then the queue is Empty, which means
+  //   that the queue can store ValV.Len() - 1 elements
 private:
-  TInt MxLast, MxLen;
-  TInt First, Last;
-  TVec<TVal> ValV;
+  TInt MxLast; ///< deprecated, used for binary backward compatibility
+  TInt MxLen; ///< the queue will resize if set to -1, otherwise each push will trigger a pop once the queue is full
+  TInt Last; ///< Last = 1 + index of the newest element (Back())
+  TInt Next; ///< Next = the index of the oldest element (Front())
+  TVec<TVal> ValV; ///< Queue values and reserved space
 public:
+  ///Constructor. _MxLast (ignored), MxLen sets the fixed size or autoresize if set to -1
   TQQueue(const int& _MxLast=64, const int& _MxLen=-1):
-    MxLast(_MxLast), MxLen(_MxLen), First(0), Last(0), ValV(){
-    Assert(int(MxLast)>0); Assert((MxLen==-1)||(int(MxLen)>0));}
+    MxLast(_MxLast), MxLen(_MxLen), Last(0), Next(0), ValV(){
+    Assert(int(MxLast)>0); Assert((MxLen==-1)||(int(MxLen)>0));
+    if (MxLen > 0) {
+      ValV.Gen(MxLen);
+    }
+  }
+  /// Copy constructor
   TQQueue(const TQQueue& Queue):
     MxLast(Queue.MxLast), MxLen(Queue.MxLen),
-    First(Queue.First), Last(Queue.Last), ValV(Queue.ValV){}
+    Last(Queue.Last), Next(Queue.Next), ValV(Queue.ValV){}
+  /// Deserialize constructor
   explicit TQQueue(TSIn& SIn):
-    MxLast(SIn), MxLen(SIn), First(SIn), Last(SIn), ValV(SIn){}
+    MxLast(SIn), MxLen(SIn), Last(SIn), Next(SIn), ValV(SIn){}
+  /// Serialize
   void Save(TSOut& SOut) const {
     MxLast.Save(SOut); MxLen.Save(SOut);
-    First.Save(SOut); Last.Save(SOut); ValV.Save(SOut);}
+    Last.Save(SOut); Next.Save(SOut); ValV.Save(SOut);}
+  /// Deserialize
   void Load(TSIn& SIn){
     MxLast.Load(SIn); MxLen.Load(SIn);
-    First.Load(SIn); Last.Load(SIn); ValV.Load(SIn);}
+    Last.Load(SIn); Next.Load(SIn); ValV.Load(SIn);}
 
+  /// Copy
   TQQueue& operator=(const TQQueue& Queue){
     if (this!=&Queue){MxLast=Queue.MxLast; MxLen=Queue.MxLen;
-      First=Queue.First; Last=Queue.Last; ValV=Queue.ValV;}
-    return *this;}
-  const TVal& operator[](const int& ValN) const {Assert((0<=ValN)&&(ValN<Len()));
-    return ValV[Last+ValN];}
+      Last=Queue.Last; Next=Queue.Next; ValV=Queue.ValV;}
+      return *this;}
+  
+  /// Index operator. Queue[0] corresponds to Back() and Queue[Queue.Len()-1] corresponts to Front()
+  const TVal& operator[](const int& ValN) const {
+	Assert((0<=ValN)&&(ValN<Len()));
+    int Index = (Next + ValN) % ValV.Len();  
+    return ValV[Index];}
 
-  void Clr(const bool& DoDel=true){ValV.Clr(DoDel); First=Last=0;}
+  /// Deletes the queue
+  void Clr(const bool& DoDel=true){ValV.Clr(DoDel); Last=Next=0;}
+  /// Initialize the queue. _MxLast is ignored, _MxLen determines the size with autoresize if set to -1.
   void Gen(const int& _MxLast=64, const int& _MxLen=-1){
-    MxLast=_MxLast; MxLen=_MxLen; First=0; Last=0; ValV.Clr();}
+    MxLast=_MxLast; MxLen=_MxLen; Last=0; Next=0; ValV.Clr();}
+
+  /// Copy a subvector given start and end index
   void GetSubValV(const int& _BValN, const int& _EValN, TVec<TVal>& SubValV) const {
+    // compensate for incorrect index?    
     int BValN=TInt::GetMx(0, _BValN);
     int EValN=TInt::GetMn(Len()-1, _EValN);
     SubValV.Gen(EValN-BValN+1);
+    int Vals = ValV.Len();
     for (int ValN=BValN; ValN<=EValN; ValN++){
-      SubValV[ValN-BValN]=ValV[Last+ValN];}
+      SubValV[ValN-BValN]=ValV[(Next+ValN) % Vals];}
   }
 
-  bool Empty() const {return First==Last;}
-  int Len() const {return First-Last;}
+  /// Is the queue empty?
+  bool Empty() const {return Last==Next;}
+
+  /// Number of elements in the queue
+  int Len() const {
+    return Last >= Next ? Last - Next : ValV.Len() - (Next - Last);    
+  }
+
+  /// Most recently added element, last one to go out
+  const TVal& Back() const {
+    Assert(!Empty()); return ValV[(Last - 1) % ValV.Len()];
+  }
+
+  /// The oldest element, first one to go out
+  const TVal& Front() const {
+    Assert(!Empty()); return ValV[Next];
+  }
+
+  /// The oldest element, first one to go out
   const TVal& Top() const {
-    Assert(First!=Last); return ValV[Last];}
-  void Pop(){
-    IAssert(First!=Last); Last++;
-    if (First==Last){ValV.Clr(); First=Last=0;}}
-  void Push(const TVal& Val){
-    if (Last>MxLast){ValV.Del(0, Last-1); First-=Last; Last=0;}
-    if ((MxLen!=-1)&&(MxLen==Len())){Pop();}
-    First++; ValV.Add(Val);}
-  // add all items from the vector to the queue
-  void PushV(const TVec<TVal>& ValV) {
-	  for (int N = 0; N < ValV.Len(); N++) {
-		  Push(ValV[N]); }
+    return Front();
   }
 
+  /// Remove the element at the front (dequeue)
+  void Pop(){
+    Assert(!Empty());
+    Next = (Next + 1) % ValV.Len();
+  }
+  /// Insert the element at the back (enqueue)
+  void Push(const TVal& Val){
+    int Vals = ValV.Len();
+    if ((MxLen != -1) && (MxLen == Len())){ Pop(); }
+    // check if we have enough space to add an element
+    if (Vals > Len() + 1) {
+      ValV[Last] = Val;
+      Last++;
+      Last = Last % Vals;
+    } else {
+      int OldLen = Len();
+      // resize!
+      int NewVals = Vals < 16 ? 16 : 2 * Vals;
+      TVec<TVal> Vec; Vec.Gen(NewVals);
+      for (int N = Next; N < Next + OldLen; N++) {
+        Vec[N - Next] = ValV[N % Vals];
+      }
+      Vec[OldLen] = Val;
+      // copy back
+      ValV = Vec;
+      Next = 0;
+      Last = OldLen + 1;
+    }
+  }
+  /// add all items from the vector to the queue
+  void PushV(const TVec<TVal>& ValV) {
+    for (int ValN = 0; ValN < ValV.Len(); ValN++) {
+      Push(ValV[ValN]); }
+  }
+  /// Permute the elements of the queue
   void Shuffle(TRnd& Rnd){
     TVec<TVal> ValV(Len(), 0); while (!Empty()){ValV.Add(Top()); Pop();}
     ValV.Shuffle(Rnd); Clr();
