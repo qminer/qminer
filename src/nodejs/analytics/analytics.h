@@ -2223,6 +2223,7 @@ private:
 		TNodeJsFltVV* JsFltVV;
 		TNodeJsSpMat* JsSpVV;
 		TNodeJsFltVV* JsResult;
+		PNotify Notify;
 
 	public:
 		TFitTransformTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
