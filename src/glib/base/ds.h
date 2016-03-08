@@ -3061,10 +3061,9 @@ public:
     MxLast=_MxLast; MxLen=_MxLen; Last=0; Next=0; ValV.Clr();}
 
   /// Copy a subvector given start and end index
-  void GetSubValV(const int& _BValN, const int& _EValN, TVec<TVal>& SubValV) const {
-    // compensate for incorrect index?    
-    int BValN=TInt::GetMx(0, _BValN);
-    int EValN=TInt::GetMn(Len()-1, _EValN);
+  void GetSubValVec(const int& BValN, const int& EValN, TVec<TVal>& SubValV) const {
+    // compensate for incorrect index?
+	EAssert((BValN >= 0) && (EValN <= Len() - 1));
     SubValV.Gen(EValN-BValN+1);
     int Vals = ValV.Len();
     for (int ValN=BValN; ValN<=EValN; ValN++){

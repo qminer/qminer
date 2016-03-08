@@ -81,8 +81,8 @@ void TNGramBs::GetNGramIdV(
               // if queue full
               if (WIdQ.Len()==NGramLen+1){
                 // create sequence
-                TIntV WIdV; WIdQ.GetSubValV(0, WIdQ.Len()-1, WIdV);
-                TIntPrV BEChXPrV; BEChXPrQ.GetSubValV(0, BEChXPrQ.Len()-1, BEChXPrV);
+                TIntV WIdV; WIdQ.GetSubValVec(0, WIdQ.Len()-1, WIdV);
+                TIntPrV BEChXPrV; BEChXPrQ.GetSubValVec(0, BEChXPrQ.Len()-1, BEChXPrV);
                 // add ngram-id or reset queues
                 int WIdVP;
                 if (WIdVToFqH.IsKey(WIdV, WIdVP)){ // if sequence is frequent
@@ -143,21 +143,21 @@ void TNGramBs::AddWordToCand(const int& WId){
   } else { // higher passes
     if ((1<CandWIdQLen)&&(CandWIdQLen<PassN)){
       // get subsequence
-      TIntV SubWIdV; CandWIdQ.GetSubValV(0, CandWIdQ.Len()-1, SubWIdV);
+      TIntV SubWIdV; CandWIdQ.GetSubValVec(0, CandWIdQ.Len()-1, SubWIdV);
       // get subsequence-id & break queue if subsequence unknown
       int SubWIdVId=WIdVToFqH.GetKeyId(SubWIdV);
       if (SubWIdVId==-1){BreakNGram();}
     } else {
       Assert(CandWIdQLen==PassN);
       // get subsequence
-      TIntV SubWIdV; CandWIdQ.GetSubValV(1, CandWIdQ.Len()-1, SubWIdV);
+      TIntV SubWIdV; CandWIdQ.GetSubValVec(1, CandWIdQ.Len()-1, SubWIdV);
       // get subsequence-id
       int SubWIdVId=WIdVToFqH.GetKeyId(SubWIdV);
       if (SubWIdVId==-1){
         BreakNGram(); // break queue if subsequence unknown
       } else {
         // create candidate sequence
-        TIntV WIdV; CandWIdQ.GetSubValV(0, CandWIdQ.Len()-1, WIdV);
+        TIntV WIdV; CandWIdQ.GetSubValVec(0, CandWIdQ.Len()-1, WIdV);
         // add candidate sequence and increment its frequence
         CandWIdVToFqH.AddDat(WIdV)++;
       }

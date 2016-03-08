@@ -51,7 +51,7 @@ TEST(TQQueueTest, Unlimited) {
 		ASSERT_EQ(Q.Front(), 1);
 		ASSERT_EQ(Q.Back(), 3);
 		ASSERT_EQ(Q.Len(), 3);
-		TIntV Vec2; Q.GetSubValV(0, 2, Vec2);
+		TIntV Vec2; Q.GetSubValVec(0, 2, Vec2);
 		ASSERT_EQ(Vec.Len(), Vec2.Len());
 		for (int i = 0; i < 3; i++) {
 			ASSERT_EQ(Vec[i], Vec2[i]);
@@ -77,7 +77,7 @@ TEST(TQQueueTest, Unlimited2) {
 		ASSERT_EQ(Q.Front(), 1);
 		ASSERT_EQ(Q.Back(), 3);
 		ASSERT_EQ(Q.Len(), 3);
-		TIntV Vec2; Q.GetSubValV(0, 2, Vec2);
+		TIntV Vec2; Q.GetSubValVec(0, 2, Vec2);
 		ASSERT_EQ(Vec.Len(), Vec2.Len());
 		for (int i = 0; i < 3; i++) {
 			ASSERT_EQ(Vec[i], Vec2[i]);
@@ -101,7 +101,7 @@ TEST(TQQueueTest, Unlimited3) {
 		ASSERT_EQ(Q.Front(), 0);
 		ASSERT_EQ(Q.Back(), 99);
 		ASSERT_EQ(Q.Len(), 100);
-		TIntV Vec2; Q.GetSubValV(10, 20, Vec2);
+		TIntV Vec2; Q.GetSubValVec(10, 20, Vec2);
 		ASSERT_EQ(Vec2.Len(), 11);
 		for (int i = 0; i < Vec2.Len(); i++) {
 			ASSERT_EQ(Vec[i+10], Vec2[i]);
@@ -228,7 +228,7 @@ TEST(TQQueueTest, Shuffle) {
 		}
 		TRnd Rnd;
 		Q.Shuffle(Rnd);
-		TIntV QVec; Q.GetSubValV(0, 199, QVec);
+		TIntV QVec; Q.GetSubValVec(0, 199, QVec);
 		QVec.Sort(true);
 		ASSERT_EQ(QVec.Len(), 200);
 		for (int i = 0; i < 200; i++) {
