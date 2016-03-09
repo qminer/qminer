@@ -5890,6 +5890,7 @@ void TStreamAggr::Init() {
 	Register<TStreamAggrs::TWinBufFlt>();
 	Register<TStreamAggrs::TWinBufFtrSpVec>();
 	// these attach to TWinBufFlt
+	Register<TStreamAggrs::TWinBufFltV>();
 	Register<TStreamAggrs::TWinBufSum>();
 	Register<TStreamAggrs::TWinBufMin>();
 	Register<TStreamAggrs::TWinBufMax>();
@@ -5906,6 +5907,7 @@ void TStreamAggr::Init() {
 	Register<TStreamAggrs::TChiSquare>();
 	Register<TStreamAggrs::TOnlineSlottedHistogram>();
 	Register<TStreamAggrs::TVecDiff>();
+	Register<TStreamAggrs::TSimpleLinReg>();	
 
 	// these attach to ISparseVecTm
 	Register<TStreamAggrs::TEmaSpVec>();

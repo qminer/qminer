@@ -3306,7 +3306,7 @@ void TNodeJsMDS::TFitTransformTask::Run() {
 		int MxSecs = JsMDS->MxSecs;
 		double MnDiff = JsMDS->MnDiff;
 		TVizDistType DistType = JsMDS->DistType;
-		bool RndStartPos = true;		
+		bool RndStartPos = true;
 
 		if (JsFltVV != nullptr) {
 			const TFltVV& Mat = JsFltVV->Mat;
