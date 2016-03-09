@@ -1202,7 +1202,7 @@ describe('Simple linear regression test', function () {
     });
 
     describe('GetFloatVector Tests', function () {
-        it.only('should return the float vector of values in the buffer', function () {
+        it('should return the float vector of values in the buffer', function () {
             var winX = store.addStreamAggr({
                 type: 'timeSeriesWinBuf',
                 timestamp: 'Time',
