@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 /////////////////////////////////////////////////
@@ -179,20 +168,19 @@ void TUrl::GetAbs(const TStr& AbsUrlStr){
     const char *DbSlashStr="//";
     Str+=Lx.GetStr(DbSlashStr);
     Str+=Lx.GetHostPort(HostNm, PortStr, PortN);
-    if (PortN==-1){PortN=THttp::DfPortN; PortStr.Clr();}
-    else if (PortN==THttp::DfPortN){PortStr.Clr();}
-    //**if (!PortStr.Empty()){Str+=':'; Str+=PortStr;}
+    if (PortN==-1){PortN=THttp::DfPortN; PortStr = TStr();}
+    else if (PortN==THttp::DfPortN){PortStr = TStr();}
     if (Lx.PeekCh()=='/'){
-      PathStr=Lx.GetCh('/'); PathStr+=Lx.GetHPath(PathSegV); Str+=PathStr;}
+      PathStr=TStr(Lx.GetCh('/')); PathStr+=Lx.GetHPath(PathSegV); Str+=PathStr;}
     if (PathStr.Empty()){PathStr="/"; Str+=PathStr;}
     if (Lx.PeekCh()=='?'){
-      SearchStr=Lx.GetCh('?'); SearchStr+=Lx.GetSearch(); Str+=SearchStr;}
+      SearchStr=TStr(Lx.GetCh('?')); SearchStr+=Lx.GetSearch(); Str+=SearchStr;}
   } else {
     Scheme=usOther; Str+=Lx.GetToCh();
   }
   while (Lx.PeekCh()==' '){Lx.GetCh();}
   if (Lx.PeekCh()=='#'){
-    FragIdStr=Lx.GetCh('#'); FragIdStr+=Lx.GetToCh();
+    FragIdStr=TStr(Lx.GetCh('#')); FragIdStr+=Lx.GetToCh();
   }
   EAssertR(Lx.Eof(), "");
   UrlStr=Str;
@@ -204,7 +192,7 @@ void TUrl::GetAbsFromBase(const TStr& RelUrlStr, const TStr& BaseUrlStr){
   EAssertR(IsAbs(BaseUrlStr), "");
   TStr AbsUrlStr=BaseUrlStr;
   TStr NrRelUrlStr=RelUrlStr;
-  if (NrRelUrlStr.GetLc().IsPrefix(UrlHttpPrefixStr)){
+  if (NrRelUrlStr.GetLc().StartsWith(UrlHttpPrefixStr)){
     NrRelUrlStr.DelSubStr(0, UrlHttpPrefixStr.Len()-1);}
   if (NrRelUrlStr.Len()>0){
     if (NrRelUrlStr[0]=='/'){
@@ -213,7 +201,7 @@ void TUrl::GetAbsFromBase(const TStr& RelUrlStr, const TStr& BaseUrlStr){
         SlashChN++; SlashStr+="/";}
       int ChN=0; bool Found=false;
       while ((!Found)&&((ChN=AbsUrlStr.SearchStr(SlashStr, ChN))!=-1)){
-        TStr Str=AbsUrlStr.GetSubStr(ChN-1, ChN+SlashStr.Len()-1+1);
+        TStr Str=AbsUrlStr.GetSubStr(ChN-1, MIN(AbsUrlStr.Len()-1, ChN+SlashStr.Len()-1+1));
         Found=((ChN==0)||(Str[0]!='/'))&&
          ((ChN+SlashStr.Len()-1==AbsUrlStr.Len()-1)||(Str[Str.Len()-1]!='/'));
         if (!Found){ChN++;}
@@ -239,7 +227,14 @@ void TUrl::GetAbsFromBase(const TStr& RelUrlStr, const TStr& BaseUrlStr){
   }}
 
   const char *CurDirStr="/.";
-  while (AbsUrlStr.DelStr(CurDirStr)){}
+  
+  int OldLen;
+  int NewLen;
+  do {
+	  OldLen = AbsUrlStr.Len();
+	  AbsUrlStr.DelStr(CurDirStr);
+	  NewLen = AbsUrlStr.Len();
+  } while (OldLen != NewLen);
 
   GetAbs(AbsUrlStr);
 }
@@ -253,7 +248,7 @@ TUrl::TUrl(const TStr& _RelUrlStr, const TStr& _BaseUrlStr):
   IpNum(),
   FinalUrlStr(), FinalHostNm(),
   HttpRqStr(){
-  RelUrlStr.ToTrunc();
+  RelUrlStr = RelUrlStr.GetTrunc();
   RelUrlStr.ChangeStrAll(" ", "%20");
   try {
     if (IsAbs(RelUrlStr)){
@@ -283,6 +278,53 @@ TUrl::TUrl(const TStr& _RelUrlStr, const TStr& _BaseUrlStr):
   }
   catch (PExcept&){Scheme=usUndef;}
   */
+}
+
+TUrl::TUrl(TSIn& SIn) : 
+  Scheme(usUndef),
+  UrlStr(),
+  SchemeNm(), HostNm(),
+  PortStr(), PathStr(), SearchStr(), FragIdStr(),
+  PortN(-1), PathSegV(),
+  IpNum(),
+  FinalUrlStr(), FinalHostNm(),
+  HttpRqStr()
+{
+	RelUrlStr = TStr(SIn);
+	BaseUrlStr = TStr(SIn);
+	// we have already serialized the properly formatted content so no need to do it again
+	//RelUrlStr.ToTrunc();
+	//RelUrlStr.ChangeStrAll(" ", "%20");
+	try {
+		if (IsAbs(RelUrlStr)) {
+			GetAbs(RelUrlStr);
+		}
+		else
+			if (IsAbs(BaseUrlStr)) {
+			GetAbsFromBase(RelUrlStr, BaseUrlStr);
+			}
+			else {
+				Scheme = usUndef;
+			}
+	}
+	catch (PExcept&) { Scheme = usUndef; }
+
+	bool IsHttpRq = TBool(SIn);
+	if (IsHttpRq) {
+		HttpRqStr = TStr(SIn);
+	}
+}
+
+void TUrl::Save(TSOut& SOut)
+{
+	RelUrlStr.Save(SOut);
+	BaseUrlStr.Save(SOut);
+
+	TBool IsHttpRq = IsHttpRqStr();
+	IsHttpRq.Save(SOut);
+	
+	if (IsHttpRq)
+		HttpRqStr.Save(SOut);
 }
 
 TStr TUrl::GetDmNm(const int& MxDmSegs) const {
@@ -322,9 +364,10 @@ void TUrl::ToLcPath(){
   // test if the conversion is needed
   if (!PathStr.IsLc()){
     // convert path strings to lower-case
-    PathStr.ToLc();
+	PathStr = PathStr.GetLc();
     for (int PathSegN=0; PathSegN<PathSegV.Len(); PathSegN++){
-      PathSegV[PathSegN].ToLc();}
+		PathSegV[PathSegN] = PathSegV[PathSegN].GetLc();
+	}
     // recompose url
     TChA UrlChA;
     UrlChA+=SchemeNm; UrlChA+="://";
@@ -336,13 +379,15 @@ void TUrl::ToLcPath(){
     UrlStr=UrlChA;
     // recompose final-url
     if (IsDefFinalUrl()){
-      FinalUrlStr.Clr(); DefFinalUrl(FinalHostNm);}
+      FinalUrlStr = TStr();
+      DefFinalUrl(FinalHostNm);
+    }
   }
 }
 
 bool TUrl::IsAbs(const TStr& UrlStr){
-  if (UrlStr.GetLc().IsPrefix(UrlHttpPrefixStr)){
-    return UrlStr.GetLc().IsPrefix(UrlHttpAbsPrefixStr);
+  if (UrlStr.GetLc().StartsWith(UrlHttpPrefixStr)){
+    return UrlStr.GetLc().StartsWith(UrlHttpAbsPrefixStr);
   } else {
     int ColonChN=UrlStr.SearchCh(':'); int SlashChN=UrlStr.SearchCh('/');
     return (ColonChN!=-1)&&((SlashChN==-1)||((SlashChN!=-1)&&(ColonChN<SlashChN)));
@@ -391,7 +436,7 @@ TStr TUrl::GetUrlSearchStr(const TStr& Str){
     if (Ch==' '){
       OutChA+='+';
     } else
-    if ((' '<Ch)&&(Ch<='~')&&(Ch!='+')&&(Ch!='&')&&(Ch!='%')){
+    if ((' '<Ch)&&(Ch<='~')&&(Ch!='+')&&(Ch!='&')&&(Ch!='%')&&(Ch!='#')&&(Ch!='/')){
       OutChA+=Ch;
     } else {
       OutChA+='%';
@@ -487,3 +532,15 @@ PUrlEnv TUrlEnv::MkClone(const PUrlEnv& UrlEnv){
   return CloneUrlEnv;
 }
 
+void TUrlEnv::GetKeyValPrV(TStrKdV& FldNmValPrV) const {
+	FldNmValPrV.Clr();
+	const int Keys = GetKeys();
+	for (int KeyN = 0; KeyN < Keys; KeyN++) {
+		TStr KeyNm = GetKeyNm(KeyN);
+		const int Vals = GetVals(KeyN);
+		for (int ValN = 0; ValN < Vals; ValN++) {
+			TStr Val = GetVal(KeyN, ValN);
+			FldNmValPrV.Add(TStrKd(KeyNm, Val));
+		}
+	}
+}

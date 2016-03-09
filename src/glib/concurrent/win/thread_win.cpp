@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 /*
@@ -51,9 +40,7 @@ bool TMutex::Release() {
 
 ////////////////////////////////////////////
 // Critical Section
-TCriticalSection::TCriticalSection(const TCriticalSectionType& _Type) {
-	//TODO: add support for other types
-	Assert(_Type == TCriticalSectionType::cstFast);
+TCriticalSection::TCriticalSection() {
 	InitializeCriticalSection(&Cs);
 }
 TCriticalSection::~TCriticalSection() {
@@ -157,4 +144,34 @@ int TThread::GetCoreCount() {
 	GetSystemInfo( &sysinfo );
 	NumCpu = sysinfo.dwNumberOfProcessors;
 	return NumCpu;
+}
+
+////////////////////////////////////////////
+// Conditional variable lock
+TCondVarLock::TCondVarLock():
+	Mutex(TMutexType::mtRecursive) {}
+
+TCondVarLock::~TCondVarLock() {
+	// pthread_cond_destroy should be called to free a condition variable that is no longer needed
+//	pthread_cond_destroy(&CondVar);
+}
+
+void TCondVarLock::Lock() {
+	Mutex.GetLock();
+}
+
+bool TCondVarLock::Release() {
+	return Mutex.Release();
+}
+
+void TCondVarLock::WaitForSignal() {
+//	pthread_cond_wait(&CondVar, &Mutex.MutexHandle);
+}
+
+void TCondVarLock::Signal() {
+//	pthread_cond_signal(&CondVar);
+}
+
+void TCondVarLock::Broadcast() {
+//	pthread_cond_broadcast(&CondVar);
 }

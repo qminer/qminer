@@ -1,21 +1,12 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
+
+#include "signalproc.h"
 
 namespace TFtrGen {
 
@@ -23,7 +14,7 @@ namespace TFtrGen {
 /// Numeric feature generator
 class TNumeric {
 private:
-    typedef enum { ntNone, ntNormalize, ntMnMxVal } TNumericType;
+	typedef enum { ntNone, ntNormalize, ntNormalizeVar, ntMnMxVal } TNumericType;
     
 private:
     /// Feature generator type
@@ -31,14 +22,15 @@ private:
     /// Minimal value for normalization
     TFlt MnVal;
     /// Maximal value for normalization
-    TFlt MxVal;   
-
+    TFlt MxVal;
+	/// Object for calculation of variance
+	TSignalProc::TVarSimple Var;
 public:
-    TNumeric(const bool& NormalizeP = true):
-		Type(NormalizeP ? ntNormalize : ntNone), MnVal(TFlt::Mx), MxVal(TFlt::Mn) { }
+	TNumeric(const bool& NormalizeP = true, const bool& NormalizeVar = false) :
+		Type(NormalizeP ? (NormalizeVar ? ntNormalizeVar : ntNormalize) : ntNone), MnVal(TFlt::Mx), MxVal(TFlt::Mn) {}
     TNumeric(const double& _MnVal, const double& _MxVal):
         Type(ntMnMxVal), MnVal(_MnVal), MxVal(_MxVal) { }
-    TNumeric(TSIn& SIn): Type(LoadEnum<TNumericType>(SIn)), MnVal(SIn), MxVal(SIn) {  }
+    TNumeric(TSIn& SIn): Type(LoadEnum<TNumericType>(SIn)), MnVal(SIn), MxVal(SIn), Var(SIn) {  }
     void Save(TSOut& SOut) const;
 
     void Clr();
@@ -47,6 +39,8 @@ public:
     void AddFtr(const double& Val, TIntFltKdV& SpV, int& Offset) const;
     void AddFtr(const double& Val, TFltV& FullV, int& Offset) const;
     
+    double InvFtr(const TFltV& FullV, int& Offset) const;
+
     int GetDim() const { return 1; }
 };
 
@@ -93,11 +87,10 @@ private:
     /// Feature generation handled by categorical feature generator
     TCategorical FtrGen;
 
-    
 public:
-    TMultinomial(const bool& NormalizeP = true): FtrGen() { }
-    TMultinomial(const bool& NormalizeP, const TStrV& ValV): FtrGen(ValV) { }
-    TMultinomial(const bool& NormalizeP, const int& HashDim): FtrGen(HashDim) { }
+	TMultinomial(const bool& NormalizeP = true) : Type(NormalizeP ? mtNormalize : mtNone), FtrGen() { }
+	TMultinomial(const bool& NormalizeP, const TStrV& ValV) : Type(NormalizeP ? mtNormalize : mtNone), FtrGen(ValV) { }
+	TMultinomial(const bool& NormalizeP, const int& HashDim) : Type(NormalizeP ? mtNormalize : mtNone), FtrGen(HashDim) { }
     TMultinomial(TSIn& SIn): Type(LoadEnum<TMultinomialType>(SIn)), FtrGen(SIn) { }
     void Save(TSOut& SOut) const;
 
@@ -106,9 +99,9 @@ public:
     bool Update(const TStrV& StrV);
     void AddFtr(const TStr& Str, TIntFltKdV& SpV, int& Offset) const;
     void AddFtr(const TStr& Str, TFltV& FullV, int& Offset) const;
-    void AddFtr(const TStrV& StrV, TIntFltKdV& SpV) const;
-    void AddFtr(const TStrV& StrV, TIntFltKdV& SpV, int& Offset) const;
-    void AddFtr(const TStrV& StrV, TFltV& FullV, int& Offset) const;
+    void AddFtr(const TStrV& StrV, const TFltV& FltV, TIntFltKdV& SpV) const;
+    void AddFtr(const TStrV& StrV, const TFltV& FltV, TIntFltKdV& SpV, int& Offset) const;
+    void AddFtr(const TStrV& StrV, const TFltV& FltV, TFltV& FullV, int& Offset) const;
 
     int GetDim() const { return FtrGen.GetDim(); }
     TStr GetVal(const int& ValN) const { return FtrGen.GetVal(ValN); }
@@ -126,7 +119,8 @@ private:
         btTf = (1 << 0),
         btIdf = (1 << 1),
         btNormalize = (1 << 2),
-        btHashing = (1 << 3)
+        btHashing = (1 << 3),
+        btStoreHashWords = (1 << 4)
     } TBagOfWordsType;
     
 private:
@@ -138,10 +132,15 @@ private:
     PSwSet SwSet;
     /// Stemmer
     PStemmer Stemmer;
-    /// Vocabulary (not use in case of hashing)
+    /// Vocabulary (not used when hashing)
     TStrSet TokenSet;
     /// Hashing dimension
     TInt HashDim;
+
+    /// Ngrams Range Start
+    TInt NStart;
+    /// Ngrams Range End
+    TInt NEnd;
     
     /// Number of documents processed so far
     TInt Docs;
@@ -155,10 +154,16 @@ private:
     /// Document frequency counts before last forget
     TFltV OldDocFqV;
 
+    /// Set of tokens that hash into specific dimension
+    TVec<TStrSet> HashWordV;
+    /// default return in case sets are empty
+    TStrSet EmptySet;
+
 public:
     TBagOfWords() { }
-    TBagOfWords(const bool& TfP, const bool& IdfP, const bool& NormalizeP, 
-        PTokenizer _Tokenizer = NULL, const int& _HashDim = -1);
+    TBagOfWords(const bool& TfP, const bool& IdfP, const bool& NormalizeP,
+        PTokenizer _Tokenizer = NULL, const int& _HashDim = -1,
+        const bool& StoreHashWordsP = false, const int& NStart = 1, const int& NEnd = 1);
     TBagOfWords(TSIn& SIn);
     void Save(TSOut& SOut) const;
 
@@ -166,7 +171,8 @@ public:
     bool IsTf() const { return ((Type & btTf) != 0); }
     bool IsIdf() const { return ((Type & btIdf) != 0); }
     bool IsNormalize() const { return ((Type & btNormalize) != 0); }
-    bool IsHashing() const { return ((Type & btHashing) != 0); }    
+    bool IsHashing() const { return ((Type & btHashing) != 0); }
+    bool IsStoreHashWords() const { return ((Type & btStoreHashWords) != 0); }
     
     void Clr();
     void GetFtr(const TStr& Str, TStrV& TokenStrV) const;
@@ -182,11 +188,17 @@ public:
     /// Forgetting, assumes calling on equally spaced time interval.
     void Forget(const double& Factor);
 
+    /// Hashing Related Functions
     int GetDim() const { return IsHashing() ? HashDim.Val : TokenSet.Len(); }
-    TStr GetVal(const int& ValN) const { return IsHashing() ? "hash" : TokenSet.GetKey(ValN); }
+    TStr GetVal(const int& ValN) const { return IsHashing() ? TInt::GetStr(ValN) : TokenSet.GetKey(ValN); }
+    const TVec<TStrSet>& GetHashWordH() const { return HashWordV; }
+    TStrSet GetHashVals(const int& Hash) const { return IsStoreHashWords() ? HashWordV.GetVal(Hash) : EmptySet; }
     
     PSwSet GetSwSet() const { return SwSet; }
     PStemmer GetStemmer() const { return Stemmer; }
+
+    /// Generate Ngrams
+    void GenerateNgrams(const TStrV& TokenStrV, TStrV& NgramStrV) const;
 }; 
 
 ///////////////////////////////////////
@@ -205,6 +217,46 @@ public:
     void AddFtr(const TIntFltKdV& InSpV, TIntFltKdV& SpV, int& Offset) const;
 
     int GetVals() const { return MxId + 1; }
+};
+
+///////////////////////////////////////
+/// Date window feature generator
+class TDateWnd {
+private:
+    TBool InitP;
+    /// Start date
+    TUInt StartUnit;
+    /// End date
+    TUInt EndUnit;
+    /// Window size
+    TInt WndSize;
+    /// Time unit
+    TTmUnit TmUnit;
+    /// Normalize output to 1
+    TBool NormalizeP;
+    /// Weight used in the feature vectors
+    TFlt Wgt;
+    
+    // initialize the weight based on parameters
+    void InitWgt();
+
+public:
+    TDateWnd(): InitP(false), TmUnit(tmuUndef) { }
+    TDateWnd(const int& _WndSize, const TTmUnit& _TmUnit, const bool& _NormalizeP = true);
+    TDateWnd(const TTm& StartTm, const TTm& EndTm, const int& _WndSize, 
+        const TTmUnit& _TmUnit, const bool& _NormalizeP = true);
+    TDateWnd(TSIn& SIn): InitP(SIn), StartUnit(SIn), EndUnit(SIn), WndSize(SIn),
+        TmUnit(LoadEnum<TTmUnit>(SIn)), NormalizeP(SIn) { InitWgt(); }
+    void Save(TSOut& SOut) const;
+
+    void Clr() { InitP = false; }
+    bool Update(const TTm& Val);
+    int GetFtr(const TTm& Val) const;
+    void AddFtr(const TTm& Val, TIntFltKdV& SpV, int& Offset) const;
+    void AddFtr(const TTm& Val, TFltV& FullV, int& Offset) const;
+
+    bool IsInit() const { return InitP; }
+    int GetDim() const { return EndUnit - StartUnit + WndSize; }
 };
 
 }

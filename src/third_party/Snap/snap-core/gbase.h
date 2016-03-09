@@ -6,7 +6,7 @@
 
 //#//////////////////////////////////////////////
 /// Graph Flags, used for quick testing of graph types. ##TGraphFlag
-typedef enum {
+typedef enum TGraphFlag_ {
   gfUndef=0,    ///< default value, no flags
   gfDirected,   ///< directed graph (TNGraph, TNEGraph), else graph is undirected TUNGraph
   gfMultiGraph, ///< have explicit edges (multigraph): TNEGraph, TNodeEdgeNet
@@ -41,6 +41,9 @@ template <class TGraph> struct IsBipart     { enum { Val = 0 }; };
   (Flag)==gfSources ? TSnap::IsSources<TGraph::TNet>::Val : \
   (Flag)==gfBipart ? TSnap::IsBipart<TGraph::TNet>::Val : 0)
 
+#if 0
+// RS 2013/08/19, commented out IsDerivedFrom, it is not called anywhere
+//  swig throws an error
 /// Tests (at compile time) whether TDerivClass is derived from TBaseClass
 template<class TDerivClass, class TBaseClass>
 class IsDerivedFrom {
@@ -52,6 +55,7 @@ private:
 public:
   enum { Val = sizeof(Test(static_cast<TDerivClass*>(0))) == sizeof(Yes) ? 1 : 0 };
 };
+#endif
 
 /////////////////////////////////////////////////
 // Graph Base
@@ -66,6 +70,11 @@ template <class PGraph> void PrintInfo(const PGraph& Graph, const TStr& Desc="",
 
 // Forward declaration, definition in triad.h
 template <class PGraph> int64 GetTriads(const PGraph& Graph, int64& ClosedTriads, int64& OpenTriads, int SampleNodes=-1);
+template <class PGraph> double GetBfsEffDiam(const PGraph& Graph, const int& NTestNodes, const bool& IsDir, double& EffDiam, int& FullDiam);
+template <class PGraph> double GetMxWccSz(const PGraph& Graph);
+template <class PGraph> double GetMxSccSz(const PGraph& Graph);
+template<class PGraph> int GetKCoreNodes(const PGraph& Graph, TIntPrV& CoreIdSzV);
+template<class PGraph> int GetKCoreEdges(const PGraph& Graph, TIntPrV& CoreIdSzV);
 
 template <class PGraph>
 void PrintInfo(const PGraph& Graph, const TStr& Desc, const TStr& OutFNm, const bool& Fast) {
@@ -97,7 +106,15 @@ void PrintInfo(const PGraph& Graph, const TStr& Desc, const TStr& OutFNm, const 
     }
   }
   int64 Closed=0, Open=0;
-  if (! Fast) { TSnap::GetTriads(Graph, Closed, Open); }
+  double WccSz=0, SccSz=0;
+  double EffDiam=0;
+  int FullDiam=0;
+  if (! Fast) {
+    TSnap::GetTriads(Graph, Closed, Open);
+    WccSz = TSnap::GetMxWccSz(Graph);
+    SccSz = TSnap::GetMxSccSz(Graph);
+    TSnap::GetBfsEffDiam(Graph, 100, false, EffDiam, FullDiam);
+  }
   // print info
   fprintf(F, "\n");
   fprintf(F, "  Nodes:                    %d\n", Graph->GetNodes());
@@ -111,9 +128,17 @@ void PrintInfo(const PGraph& Graph, const TStr& Desc, const TStr& OutFNm, const 
     fprintf(F, "  Unique undirected edges:  %d\n", UniqUnDirE.Len());
     fprintf(F, "  Self Edges:               %d\n", SelfEdges);
     fprintf(F, "  BiDir Edges:              %d\n", BiDirEdges);
-    fprintf(F, "  Closed triangles          %s\n", TUInt64::GetStr(Closed).CStr());
-    fprintf(F, "  Open triangles            %s\n", TUInt64::GetStr(Open).CStr());
-    fprintf(F, "  Frac. of closed triads    %f\n", Closed/double(Closed+Open));
+    fprintf(F, "  Closed triangles:         %s\n", TUInt64::GetStr(Closed).CStr());
+    fprintf(F, "  Open triangles:           %s\n", TUInt64::GetStr(Open).CStr());
+    fprintf(F, "  Frac. of closed triads:   %f\n", Closed/double(Closed+Open));
+    fprintf(F, "  Connected component size: %f\n", WccSz);
+    fprintf(F, "  Strong conn. comp. size:  %f\n", SccSz);
+    fprintf(F, "  Approx. full diameter:    %d\n", FullDiam);
+    fprintf(F, "  90%% effective diameter:  %f\n", EffDiam);
+    //fprintf(F, "  Core\tNodes\tEdges\n");
+    //for (int i  = 0; i < CNodesV.Len(); i++) {
+    //  printf("  %d\t%d\t%d\n", CNodesV[i].Val1(), CNodesV[i].Val2(), CEdgesV[i].Val2());
+    //}
   }
   if (! OutFNm.Empty()) { fclose(F); }
 }
@@ -213,97 +238,4 @@ public:
   /// Prints out the structure to standard output.
   void Dump();
 };
-
-//#//////////////////////////////////////////////
-/// Simple heap data structure. ##THeap
-template <class TVal, class TCmp = TLss<TVal> >
-class THeap {
-private:
-  TCmp Cmp;
-  TVec<TVal> HeapV;
-private:
-  void PushHeap(const int& First, int HoleIdx, const int& Top, TVal Val);
-  void AdjustHeap(const int& First, int HoleIdx, const int& Len, TVal Val);
-  void MakeHeap(const int& First, const int& Len);
-public:
-  THeap() : HeapV() { }
-  THeap(const int& MxVals) : Cmp(), HeapV(0, MxVals) { }
-  THeap(const TCmp& _Cmp) : Cmp(_Cmp), HeapV() { }
-  THeap(const TVec<TVal>& Vec) : Cmp(), HeapV(Vec) { MakeHeap(); }
-  THeap(const TVec<TVal>& Vec, const TCmp& _Cmp) : Cmp(_Cmp), HeapV(Vec) { MakeHeap(); }
-  THeap(const THeap& Heap) : Cmp(Heap.Cmp), HeapV(Heap.HeapV) { }
-  THeap& operator = (const THeap& H) { Cmp=H.Cmp; HeapV=H.HeapV; return *this; }
-
-  /// Returns a reference to the element at the top of the heap (the largest element of the heap).
-  const TVal& TopHeap() const { return HeapV[0]; }
-  /// Pushes an element \c Val to the heap.
-  void PushHeap(const TVal& Val);
-  /// Removes the top element from the heap.
-  TVal PopHeap();
-  /// Returns the number of elements in the heap.
-  int Len() const { return HeapV.Len(); }
-  /// Tests whether the heap is empty.
-  bool Empty() const { return HeapV.Empty(); }
-  /// Returns a reference to the vector containing the elements of the heap.
-  const TVec<TVal>& operator()() const { return HeapV; }
-  /// Returns a reference to the vector containing the elements of the heap.
-  TVec<TVal>& operator()() { return HeapV; }
-  /// Adds an element to the data structure. Heap property is not maintained by \c Add() and thus after all the elements are added \c MakeHeap() needs to be called.
-  void Add(const TVal& Val) { HeapV.Add(Val); }
-  /// Builds a heap from a set of elements.
-  void MakeHeap() { MakeHeap(0, Len()); }
-};
-
-template <class TVal, class TCmp>
-void THeap<TVal, TCmp>::PushHeap(const TVal& Val) {
-  HeapV.Add(Val);
-  PushHeap(0, HeapV.Len()-1, 0, Val);
-}
-
-template <class TVal, class TCmp>
-TVal THeap<TVal, TCmp>::PopHeap() {
-  IAssert(! HeapV.Empty());
-  const TVal Top = HeapV[0];
-  HeapV[0] = HeapV.Last();
-  HeapV.DelLast();
-  if (! HeapV.Empty()) {
-    AdjustHeap(0, 0, HeapV.Len(), HeapV[0]);
-  }
-  return Top;
-}
-
-template <class TVal, class TCmp>
-void THeap<TVal, TCmp>::PushHeap(const int& First, int HoleIdx, const int& Top, TVal Val) {
-  int Parent = (HoleIdx-1)/2;
-  while (HoleIdx > Top && Cmp(HeapV[First+Parent], Val)) {
-    HeapV[First+HoleIdx] = HeapV[First+Parent];
-    HoleIdx = Parent;  Parent = (HoleIdx-1)/2;
-  }
-  HeapV[First+HoleIdx] = Val;
-}
-
-template <class TVal, class TCmp>
-void THeap<TVal, TCmp>::AdjustHeap(const int& First, int HoleIdx, const int& Len, TVal Val) {
-  const int Top = HoleIdx;
-  int Right = 2*HoleIdx+2;
-  while (Right < Len) {
-    if (Cmp(HeapV[First+Right], HeapV[First+Right-1])) { Right--; }
-    HeapV[First+HoleIdx] = HeapV[First+Right];
-    HoleIdx = Right;  Right = 2*(Right+1); }
-  if (Right == Len) {
-    HeapV[First+HoleIdx] = HeapV[First+Right-1];
-    HoleIdx = Right-1; }
-  PushHeap(First, HoleIdx, Top, Val);
-}
-
-template <class TVal, class TCmp>
-void THeap<TVal, TCmp>::MakeHeap(const int& First, const int& Len) {
-  if (Len < 2) { return; }
-  int Parent = (Len-2)/2;
-  while (true) {
-    AdjustHeap(First, Parent, Len, HeapV[First+Parent]);
-    if (Parent == 0) { return; }
-    Parent--;
-  }
-}
 

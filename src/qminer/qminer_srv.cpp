@@ -1,23 +1,9 @@
 /**
- * QMiner - Open Source Analytics Platform
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Quintelligence d.o.o.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
- * Contact: 
- *   Blaz Fortuna <blaz@blazfortuna.com>
- *
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 #include "qminer_srv.h"
@@ -33,6 +19,7 @@ void TSrvFun::RegDefFun(const TWPt<TBase>& Base, TSAppSrvFunV& SrvFunV) {
 	SrvFunV.Add(TSfStores::New(Base));
 	SrvFunV.Add(TSfWordVoc::New(Base));
 	SrvFunV.Add(TSfStoreRec::New(Base));
+	SrvFunV.Add(TSfPartialFlush::New(Base));
 }
 
 ///////////////////////////////////////////
@@ -100,7 +87,7 @@ void TSfWordVoc::GetWordVoc(const TStrKdV& FldNmValPrV, TStrIntPrV& WordStrFqV) 
 			const int Words = WordStrFqV.Len();
 			for (int WordN = 0; WordN < Words; WordN++) {
 				const TStr& WordStr = WordStrFqV[WordN].Val1;
-				if (WordStr.IsPrefix(PrefixStr)) {
+				if (WordStr.StartsWith(PrefixStr)) {
 					const int WordFq = WordStrFqV[WordN].Val2;
 					WordFqStrV.Add(TIntStrPr(WordFq, WordStr));
 				}
@@ -215,4 +202,15 @@ TStr TSfDebug::ExecJSon(const TStrKdV& FldNmValPrV, const PSAppSrvRqEnv& RqEnv) 
 	return TJsonVal::GetStrFromVal(TJsonVal::NewObj("Debug", "Done"));
 }
 
+///////////////////////////////////////////
+// QMiner-Server-Function-Debug
+TStr TSfPartialFlush::ExecJSon(const TStrKdV& FldNmValPrV, const PSAppSrvRqEnv& RqEnv) {
+	int wnd_in_msec = 500;
+	if (IsFldNm(FldNmValPrV, "wnd_in_msec")) {
+		wnd_in_msec = GetFldVal(FldNmValPrV, "wnd_in_msec").GetInt();
+	}
+	int res = Base->PartialFlush(wnd_in_msec);
+	// report done
+	return TJsonVal::GetStrFromVal(TJsonVal::NewObj("SavedToDisk", res));
+}
 }

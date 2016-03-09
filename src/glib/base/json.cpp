@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 /////////////////////////////////////////////////
@@ -55,6 +44,22 @@ void TJsonVal::AddToObj(const PJsonVal& Val) {
 	}
 }
 
+void TJsonVal::AddToObj(const TStr& KeyNm, const PJsonVal& Val) {
+	EAssert(JsonValType == jvtObj);
+	EAssert(KeyNm != "");
+	KeyValH.AddDat(KeyNm, Val);
+}
+
+// extend/update the object with values from Val
+// this and Val should be an Object and not an array or something else
+void TJsonVal::MergeObj(const PJsonVal& Val) {
+	EAssert(Val->IsObj() && IsObj());
+	for (int N = 0; N < Val->GetObjKeys(); N++) {
+		const TStr Key = Val->GetObjKey(N);
+		AddToObj(Key, Val->GetObjKey(Key));
+	}
+}
+
 PJsonVal TJsonVal::NewArr(const TJsonValV& ValV) {
 	PJsonVal Val = TJsonVal::NewArr();
 	for (int ValN = 0; ValN < ValV.Len(); ValN++) {
@@ -64,6 +69,14 @@ PJsonVal TJsonVal::NewArr(const TJsonValV& ValV) {
 }
 
 PJsonVal TJsonVal::NewArr(const TIntV& IntV) {
+	PJsonVal Val = TJsonVal::NewArr();
+	for (int IntN = 0; IntN < IntV.Len(); IntN++) {
+		Val->AddToArr(TJsonVal::NewNum((double)IntV[IntN]));
+	}
+	return Val;
+}
+
+PJsonVal TJsonVal::NewArr(const TUInt64V& IntV) {
 	PJsonVal Val = TJsonVal::NewArr();
 	for (int IntN = 0; IntN < IntV.Len(); IntN++) {
 		Val->AddToArr(TJsonVal::NewNum((double)IntV[IntN]));
@@ -101,6 +114,26 @@ PJsonVal TJsonVal::NewArr(const TFltPr& FltPr) {
   return Val;
 }
 
+bool TJsonVal::IsTm() const {
+  try {
+    GetTm();
+    return true;
+  } catch (...) {
+    return false;
+  }
+}
+
+TTm TJsonVal::GetTm() const {
+  EAssert(IsStr() || IsNum());
+
+  if (IsStr()) {
+    const TStr& TmStr = GetStr();
+    return TTm::GetTmFromWebLogDateTimeStr(TmStr, '-', ':', '.', 'T');
+  } else {
+    return TTm::GetTmFromMSecs(TTm::GetWinMSecsFromUnixMSecs(GetInt64()));
+  }
+}
+
 void TJsonVal::GetArrNumV(TFltV& FltV) const {
     EAssert(IsArr());
     for (int FltN = 0; FltN < GetArrVals(); FltN++) {
@@ -108,6 +141,19 @@ void TJsonVal::GetArrNumV(TFltV& FltV) const {
         EAssert(ArrVal->IsNum());
         FltV.Add(ArrVal->GetNum());
     }
+}
+
+void TJsonVal::GetArrNumSpV(TIntFltKdV& NumSpV) const {
+	EAssert(IsArr());
+	for (int ElN = 0; ElN < GetArrVals(); ElN++) {
+		PJsonVal ArrVal = GetArrVal(ElN);
+		EAssert(ArrVal->IsArr());
+		EAssert(ArrVal->GetArrVals() ==  2);
+		int Idx = ArrVal->GetArrVal(0)->GetInt();
+		double Val = ArrVal->GetArrVal(1)->GetNum();
+		NumSpV.Add(TIntFltKd(Idx, Val));
+	}
+	NumSpV.Sort();
 }
 
 void TJsonVal::GetArrIntV(TIntV& IntV) const {
@@ -170,18 +216,44 @@ int TJsonVal::GetObjInt(const char *Key, const int& DefInt) const {
   return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetInt() : DefInt;
 }
 
+int64 TJsonVal::GetObjInt64(const TStr& Key, const int64& DefInt) const {
+	EAssert(IsObj());
+	return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetInt64() : DefInt;
+}
+
+int64 TJsonVal::GetObjInt64(const char *Key, const int64& DefInt) const {
+	EAssert(IsObj());
+	return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetInt64() : DefInt;
+}
+
+uint64 TJsonVal::GetObjUInt64(const TStr& Key, const uint64& DefInt) const {
+  EAssert(IsObj());
+  return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetUInt64() : DefInt;
+} 
+
+uint64 TJsonVal::GetObjUInt64(const char *Key, const uint64& DefInt) const {
+  EAssert(IsObj());
+  return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetUInt64() : DefInt;
+}
+
 void TJsonVal::GetObjIntV(const TStr& Key, TIntV& IntV) const {
     EAssert(IsObj());
     EAssert(IsObjKey(Key));
     GetObjKey(Key)->GetArrIntV(IntV);
 }
 
-TStr TJsonVal::GetObjStr(const TStr& Key, const TStr& DefStr) const { 
+void TJsonVal::GetObjFltV(const TStr& Key, TFltV& FltV) const {
+    EAssert(IsObj());
+    EAssert(IsObjKey(Key));
+    GetObjKey(Key)->GetArrNumV(FltV);
+}
+
+const TStr& TJsonVal::GetObjStr(const TStr& Key, const TStr& DefStr) const { 
   EAssert(IsObj());
   return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetStr() : DefStr;
 }
 
-TStr TJsonVal::GetObjStr(const char *Key, const TStr& DefStr) const { 
+const TStr& TJsonVal::GetObjStr(const char *Key, const TStr& DefStr) const { 
   EAssert(IsObj());
   return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetStr() : DefStr;
 }
@@ -212,7 +284,7 @@ PJsonVal TJsonVal::GetValFromLx(TILx& Lx){
   } else if (Lx.Sym==syQStr){
     Val->PutStr(Lx.Str); Lx.GetSym();
   } else if (Lx.Sym==syLBracket){
-    Val->PutArr(); Lx.GetSym(ValExpect); // added ValExpect to correctyl parse arrays of floats
+    Val->PutArr(); Lx.GetSym(ValExpect); // added ValExpect to correctly parse arrays of floats
     if (Lx.Sym!=syRBracket){
       forever{
         PJsonVal SubVal=TJsonVal::GetValFromLx(Lx);
@@ -250,9 +322,9 @@ PJsonVal TJsonVal::GetValFromSIn(const PSIn& SIn, bool& Ok, TStr& MsgStr){
   try {
     Lx.GetSym(TFSet()|syLBracket|syLBrace);
     Val=GetValFromLx(Lx);
-	Ok=true; TStr MsgStr="Ok";
+	Ok=true; MsgStr="Ok";
   }
-  catch (PExcept Except){
+  catch (const PExcept& Except){
     Val=TJsonVal::New();
     Ok=false; MsgStr=Except->GetMsgStr();
   }
@@ -260,17 +332,17 @@ PJsonVal TJsonVal::GetValFromSIn(const PSIn& SIn, bool& Ok, TStr& MsgStr){
 }
 
 PJsonVal TJsonVal::GetValFromSIn(const PSIn& SIn){
-  bool Ok = true; TStr MsgStr = "";
+  bool Ok = true; TStr MsgStr;
   return GetValFromSIn(SIn, Ok, MsgStr);
 }
 
 PJsonVal TJsonVal::GetValFromStr(const TStr& JsonStr, bool& Ok, TStr& MsgStr){
-  PSIn SIn=TStrIn::New(JsonStr);
+  PSIn SIn=TStrIn::New(JsonStr, false);
   return GetValFromSIn(SIn, Ok, MsgStr);
 }
 
 PJsonVal TJsonVal::GetValFromStr(const TStr& JsonStr){
-  PSIn SIn=TStrIn::New(JsonStr);
+  PSIn SIn=TStrIn::New(JsonStr, false);
   return GetValFromSIn(SIn);
 }
 
@@ -320,7 +392,7 @@ void TJsonVal::AddEscapeChAFromStr(const TStr& Str, TChA& ChA){
 					default : ChA.AddCh(Ch);
 				}
 			} else {
-                printf("Warning: no TUnicodeDef, possible erros when enscaping unicode characters!");                        
+                printf("Warning: no TUnicodeDef, possible errors when escaping unicode characters!");                        
 				// escape
 				ChA += "\\u";
 				ChA += TStr::Fmt("%02x", (int)Ch);
@@ -341,8 +413,13 @@ void TJsonVal::GetChAFromVal(const PJsonVal& Val, TChA& ChA){
       ChA+="null"; break;
     case jvtBool:
       if (Val->GetBool()){ChA+="true";} else {ChA+="false";} break;
-    case jvtNum: 
-      ChA+=TStr::Fmt("%f", Val->GetNum()); break;
+    case jvtNum:
+    	if (TFlt::IsNan(Val->GetNum())) {
+    		ChA += "null";
+    	} else {
+    		ChA += TStr::Fmt("%.16g", Val->GetNum());
+    	}
+    	break;
     case jvtStr:
       AddQChAFromStr(Val->GetStr(), ChA); break;
     case jvtArr:
@@ -355,7 +432,7 @@ void TJsonVal::GetChAFromVal(const PJsonVal& Val, TChA& ChA){
       break;
     case jvtObj:
       ChA+="{";
-      for (int ObjKeyN=0; ObjKeyN<Val->GetObjKeys(); ObjKeyN++){
+	  for (int ObjKeyN = Val->KeyValH.FFirstKeyId(); Val->KeyValH.FNextKeyId(ObjKeyN);) {
         if (ObjKeyN>0){ChA+=", ";}
         TStr ObjKey; PJsonVal ObjVal; Val->GetObjKeyVal(ObjKeyN, ObjKey, ObjVal);
         AddQChAFromStr(ObjKey, ChA);

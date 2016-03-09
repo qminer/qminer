@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 /////////////////////////////////////////////////
@@ -162,7 +151,7 @@ TStr TTmInfo::GetTmUnitStr(const TTmUnit& TmUnit) {
     case tmuEdges : return "Edges";
     default: Fail;
   }
-  return TStr::GetNullStr();
+  return TStr();
 }
 
 TStr TTmInfo::GetTmZoneDiffStr(const TStr& TmZoneStr){
@@ -817,7 +806,8 @@ TSecTm TSecTm::GetDtTmFromDmyStr(const TStr& DmyStr){
   int MonthN=MonthStr.GetInt(-1);
   int YearN=YearStr.GetInt(-1);
   if (MonthN == -1){
-    MonthN = TTmInfo::GetMonthN(MonthStr.ToCap()); }
+	  MonthN = TTmInfo::GetMonthN(MonthStr = MonthStr.GetCap());
+  }
   if ((DayN==-1)||(MonthN==-1)||(YearN==-1)){
     return TSecTm();
   } else {
@@ -1019,7 +1009,7 @@ TStr TTm::GetHMSTColonDotStr(const bool& FullP, const bool& MSecP) const {
   if (FullP||((Sec!=0)||(MSec!=0))){
     ChA+=':'; ChA+=TInt::GetStr(Sec, "%02d");
     if ((MSecP)&&(FullP||(MSec!=0))){
-      ChA+='.'; ChA+=TInt::GetStr(MSec, "%d");
+      ChA+='.'; ChA+=TInt::GetStr(MSec, "%03d");
     }
   }
   return ChA;
@@ -1177,6 +1167,13 @@ TTm TTm::GetTmFromWebLogTimeStr(const TStr& TimeStr,
   while (ChN<TimeStrLen){
     ChA+=TimeStr[ChN]; ChN++;}
   TStr MSecStr=ChA;
+  if (MSecStr.Len() > 3) {
+	  MSecStr = MSecStr.GetSubStr(0, 2); 
+  } else if (MSecStr.Len() == 1) {
+	  MSecStr += "00";
+  } else if (MSecStr.Len() == 2) {
+	  MSecStr += "0";
+  }
   // transform to numbers
   int HourN=HourStr.GetInt(0);
   int MinN=MinStr.GetInt(0);
@@ -1227,6 +1224,14 @@ TTm TTm::GetTmFromWebLogDateTimeStr(const TStr& DateTimeStr,
   while (ChN<DateTimeStrLen){
     ChA+=DateTimeStr[ChN]; ChN++;}
   TStr MSecStr=ChA;
+  if (MSecStr.Len() > 3) {
+	  MSecStr = MSecStr.GetSubStr(0, 2); 
+  } else if (MSecStr.Len() == 1) {
+	 MSecStr += "00"; 
+  } else if (MSecStr.Len() == 2) {
+	 MSecStr += "0";
+  }
+
   // transform to numbers
   int YearN=YearStr.GetInt(-1);
   int MonthN=MonthStr.GetInt(-1);
@@ -1365,7 +1370,7 @@ void TTmProfiler::PrintReport(const TStr& ProfileNm) const {
 	while (GetTimerIdFNext(TimerId)) {
         // get timer name
         TStr TimerNm = GetTimerNm(TimerId);
-        TimerNm = TStr::GetSpaceStr(TimerNm.Len() - MxNmLen) + TimerNm;
+        TimerNm = TStr::GetSpaceStr(TInt::GetMx(0, TimerNm.Len() - MxNmLen)) + TimerNm;
         // get timer time and precentage
         if (TimerSumSec > 0.0) {
             const double TimerSec = GetTimerSec(TimerId);
@@ -1386,7 +1391,7 @@ void TTmProfiler::PrintReport(const PNotify& Notify, const TStr& ProfileNm) cons
 	while (GetTimerIdFNext(TimerId)) {
 		// get timer name
 		TStr TimerNm = GetTimerNm(TimerId);
-		TimerNm = TStr::GetSpaceStr(TimerNm.Len() - MxNmLen) + TimerNm;
+		TimerNm = TStr::GetSpaceStr(TInt::GetMx(0, TimerNm.Len() - MxNmLen)) + TimerNm;
 		// get timer time and precentage
 		if (TimerSumSec > 0.0) {
 			const double TimerSec = GetTimerSec(TimerId);

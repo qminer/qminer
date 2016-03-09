@@ -1,27 +1,20 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 #ifdef GLib_LINUX
 extern "C" {
 	#include <sys/mman.h>
 }
-
+#include <sys/sendfile.h>  // sendfile
+#include <fcntl.h>         // open
+#include <unistd.h>        // close
+#include <sys/stat.h>      // fstat
+#include <sys/types.h>     // fstat
 #endif
 
 /////////////////////////////////////////////////
@@ -297,21 +290,34 @@ TFIn::TFIn(const TStr& FNm):
   Bf=new char[MxBfL]; BfC=BfL=-1; FillBf();
 }
 
-TFIn::TFIn(const TStr& FNm, bool& OpenedP):
+TFIn::TFIn(const TStr& FNm, bool& OpenedP, const bool IgnoreBOMIfExistsP):
   TSBase(FNm.CStr()), TSIn(FNm), FileId(NULL), Bf(NULL), BfC(0), BfL(0){
   EAssertR(!FNm.Empty(), "Empty file-name.");
   FileId=fopen(FNm.CStr(), "rb");
   OpenedP=(FileId!=NULL);
   if (OpenedP){
-    Bf=new char[MxBfL]; BfC=BfL=-1; FillBf();}
+    Bf=new char[MxBfL]; BfC=BfL=-1; FillBf();
+    if (IgnoreBOMIfExistsP && BfL >= 3) {
+      // https://en.wikipedia.org/wiki/Byte_order_mark
+      if (Bf[0] == (char)0xEF && Bf[1] == (char)0xBB && Bf[2] == (char)0xBF)
+        BfC = 3;
+    }
+  }
 }
 
 PSIn TFIn::New(const TStr& FNm){
+  try {
+    return PSIn(new TFIn(FNm));
+  } catch (PExcept& Except) {
+    printf("*** Exception: %s\n", Except->GetMsgStr().CStr());
+    EFailR(Except->GetMsgStr());
+  }
+
   return PSIn(new TFIn(FNm));
 }
 
-PSIn TFIn::New(const TStr& FNm, bool& OpenedP){
-  return PSIn(new TFIn(FNm, OpenedP));
+PSIn TFIn::New(const TStr& FNm, bool& OpenedP, const bool IgnoreBOMIfExistsP){
+  return PSIn(new TFIn(FNm, OpenedP, IgnoreBOMIfExistsP));
 }
 
 TFIn::~TFIn(){
@@ -320,11 +326,17 @@ TFIn::~TFIn(){
   if (Bf!=NULL){delete[] Bf;}
 }
 
+// reads LBfL bytes into LBf
 int TFIn::GetBf(const void* LBf, const TSize& LBfL){
   int LBfS=0;
   if (TSize(BfC+LBfL)>TSize(BfL)){
     for (TSize LBfC=0; LBfC<LBfL; LBfC++){
-      if (BfC==BfL){FillBf();}
+      if (BfC==BfL){
+        FillBf();
+        // we tried to fill a buffer (that is used in the next statement).
+        // the available buffer BfL therefore has to be non-empty
+        EAssertR(BfL > 0, "Unable to fill a buffer from " + GetSNm() + "'.");
+      }
       LBfS+=((char*)LBf)[LBfC]=Bf[BfC++];}
   } else {
     for (TSize LBfC=0; LBfC<LBfL; LBfC++){
@@ -611,6 +623,12 @@ int TMIn::GetBf(const void* LBf, const TSize& LBfL){
   return LBfS;
 }
 
+void TMIn::GetBfMemCpy(void* LBf, const TSize& LBfL) {
+	EAssertR(TSize(BfC + LBfL) <= TSize(BfL), "Reading beyond the end of stream.");
+	memcpy(LBf, Bf, LBfL);
+	BfC += (int)LBfL;
+}
+
 bool TMIn::GetNextLnBf(TChA& LnChA){
   // not implemented
   FailR(TStr::Fmt("TMIn::GetNextLnBf: not implemented").CStr());
@@ -794,7 +812,7 @@ TFRnd::TFRnd(const TStr& _FNm, const TFAccess& FAccess,
 }
 
 TFRnd::~TFRnd(){
-  EAssertR(fclose(FileId)==0, "Can not close file '"+TStr(FNm)+"'.");
+  EAssertR(fclose(FileId)==0, "Can not close file '"+TStr(FNm.CStr())+"'.");
 }
 
 TStr TFRnd::GetFNm() const {
@@ -973,6 +991,11 @@ void TFile::Copy(const TStr& SrcFNm, const TStr& DstFNm,
   }
 }
 
+bool TFile::Move(const TStr& SrcFNm, const TStr& DstFNm,
+  const bool& ThrowExceptP, const bool& FailIfExistsP) {
+	return MoveFileEx(SrcFNm.CStr(), DstFNm.CStr(), FailIfExistsP ? 0 : MOVEFILE_REPLACE_EXISTING) != 0;
+}
+
 #elif defined(GLib_LINUX)
 
 void TFile::Copy(const TStr& SrcFNm, const TStr& DstFNm,
@@ -1006,8 +1029,7 @@ void TFile::Copy(const TStr& SrcFNm, const TStr& DstFNm,
 
 
 	filesize = lseek(input, 0, SEEK_END);
-	lseek(output, filesize - 1, SEEK_SET);
-	write(output, '\0', 1);
+	posix_fallocate(output, 0, filesize);
 
 	if((source = mmap(0, filesize, PROT_READ, MAP_SHARED, input, 0)) == (void *) -1) {
 		close(input);
@@ -1041,15 +1063,26 @@ void TFile::Copy(const TStr& SrcFNm, const TStr& DstFNm,
 
 	close(input);
 	close(output);
+}
 
+bool TFile::Move(const TStr& SrcFNm, const TStr& DstFNm,
+  const bool& ThrowExceptP, const bool& FailIfExistsP) {
+	TFile::Copy(SrcFNm, DstFNm, ThrowExceptP, FailIfExistsP);
+	return TFile::Del(SrcFNm, ThrowExceptP);
 }
 
 #elif defined(GLib_MACOSX)
 
 void TFile::Copy(const TStr& SrcFNm, const TStr& DstFNm,
-                 const bool& ThrowExceptP, const bool& FailIfExistsP) {
+  const bool& ThrowExceptP, const bool& FailIfExistsP) {
     
     FailR("Feature not implemented");
+}
+
+bool TFile::Move(const TStr& SrcFNm, const TStr& DstFNm,
+  const bool& ThrowExceptP, const bool& FailIfExistsP) {
+	TFile::Copy(SrcFNm, DstFNm, ThrowExceptP, FailIfExistsP);
+	return TFile::Del(SrcFNm, ThrowExceptP);
 }
 
 #endif
@@ -1091,7 +1124,7 @@ TStr TFile::GetUniqueFNm(const TStr& FNm){
   }
   forever{
     NewFNm=TmpFNm;
-    NewFNm.ChangeStr("#", TStr::Fmt("%03d", Cnt)); Cnt++;
+	NewFNm.ChangeStr("#", TStr::Fmt("%03d", Cnt)); Cnt++;
     if (!TFile::Exists(NewFNm)){break;}
   }
   return NewFNm;

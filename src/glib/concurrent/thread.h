@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 #ifndef THREAD_H
@@ -22,9 +11,9 @@
 
 #include <base.h>
 
-enum TCriticalSectionType {
-	cstFast,
-	cstRecursive
+enum TMutexType {
+	mtFast,
+	mtRecursive
 };
 
 #if defined(GLib_WIN)
@@ -56,15 +45,73 @@ public:
 
 ////////////////////////////////////////////
 // Lock 
-//   Wrapper around criticla section, which automatically enters 
+//   Wrapper around critical section, which automatically enters
 //   on construct, and leaves on scope unwinding (destruct)
 class TLock {
+	friend class TCondVarLock;
 private:
 	TCriticalSection& CriticalSection;
 public:
 	TLock(TCriticalSection& _CriticalSection):
 		CriticalSection(_CriticalSection) { CriticalSection.Enter(); }
 	~TLock() { CriticalSection.Leave(); }
+};
+
+////////////////////////////////////////////
+// Thread executor
+//   contains a pool of threads which can execute a TRunnable object
+class TThreadExecutor {
+public:
+	class TRunnable;
+		typedef TPt<TRunnable> PRunnable;
+	class TRunnable {
+	private:
+		TCRef CRef;
+	public:
+		friend class TPt<TRunnable>;
+	public:
+		TRunnable() {}
+		virtual ~TRunnable() {}
+
+		virtual void Run() = 0;
+		bool operator ==(const TRunnable& Other) const { return this == &Other; }
+	};
+private:
+	class TExecutorThread: public TThread {
+	private:
+		TThreadExecutor* Executor;
+		PRunnable Runnable;
+		PNotify Notify;
+	public:
+		TExecutorThread();
+		TExecutorThread(TThreadExecutor* Executor, const PNotify& Notify);
+
+		void Run();
+		void SetRunnable(const PRunnable& _Runnable) { Runnable = _Runnable; };
+	};
+
+private:
+	typedef TThreadV<TExecutorThread> TExecThreadV;
+	typedef TLinkedQueue<PRunnable> TTaskQueue;
+
+	TExecThreadV ThreadV;
+	TTaskQueue TaskQ;
+
+	TCondVarLock Lock;
+
+	PNotify Notify;
+
+	volatile bool IsFinished;
+
+public:
+	TThreadExecutor(const TInt& PoolSize=1, const PNotify& Notify=TNullNotify::New());
+
+	~TThreadExecutor();
+
+	void Execute(const PRunnable& Runnable);
+
+private:
+	PRunnable WaitForTask();
 };
 
 #endif

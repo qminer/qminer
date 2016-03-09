@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 #include "bd.h"
@@ -39,7 +28,7 @@ public:
       free(DemangleTypeCStr);
       return DemangleTypeStr;
     #else
-      if (TypeNm.IsPrefix("class ")){ return TypeNm.GetSubStr(6, TypeNm.Len()-1);}
+      if (TypeNm.StartsWith("class ")){ return TypeNm.GetSubStr(6, TypeNm.Len()-1);}
       else {return TypeNm;}
     #endif    
   }
@@ -60,7 +49,7 @@ inline void WarnNotify(const TStr& MsgStr){WarnNotify(MsgStr.CStr());}
 inline void ErrNotify(const TStr& MsgStr){ErrNotify(MsgStr.CStr());}
 inline void StatNotify(const TStr& MsgStr){StatNotify(MsgStr.CStr());}
 
-typedef enum {ntInfo, ntWarn, ntErr, ntStat} TNotifyType;
+typedef enum TNotifyType_ {ntInfo, ntWarn, ntErr, ntStat} TNotifyType;
 
 ClassTP(TNotify, PNotify)//{
 private:
@@ -95,8 +84,8 @@ public:
   static void DfOnNotify(const TNotifyType& Type, const TStr& MsgStr);
 
   static const PNotify NullNotify;
-  static const PNotify StdNotify;
-  static const PNotify StdErrNotify;
+  static PNotify StdNotify;
+  static PNotify StdErrNotify;
 };
 
 /////////////////////////////////////////////////
@@ -159,17 +148,14 @@ public:
 /////////////////////////////////////////////////
 // Standard-Notifier
 class TStdNotify: public TNotify{
-public:
-/////////////////////////////////////////////////
-// System-Messages
-class TSysMsg{
-public:
-  static void Loop();
-  static void Quit();
-};
-
-  TStdNotify(){}
-  static PNotify New(){return PNotify(new TStdNotify());}
+public: 
+  bool AddTimeStamp;
+  TStdNotify(const bool& _AddTimeStamp = false) { 
+    AddTimeStamp = _AddTimeStamp; 
+  }
+  static PNotify New(const bool& AddTimeStamp = false){
+	  return PNotify(new TStdNotify(AddTimeStamp));
+  }
 
   void OnNotify(const TNotifyType& Type, const TStr& MsgStr);
   void OnStatus(const TStr& MsgStr);
@@ -179,8 +165,13 @@ public:
 // Standard-Error-Notifier
 class TStdErrNotify: public TNotify{
 public:
-  TStdErrNotify(){}
-  static PNotify New(){return PNotify(new TStdErrNotify());}
+  bool AddTimeStamp;
+  TStdErrNotify(const bool& _AddTimeStamp = false) { 
+    AddTimeStamp = _AddTimeStamp; 
+  }
+  static PNotify New(const bool& AddTimeStamp = false){
+	  return PNotify(new TStdErrNotify(AddTimeStamp));
+  }
 
   void OnNotify(const TNotifyType& Type, const TStr& MsgStr);
   void OnStatus(const TStr& MsgStr);
@@ -200,17 +191,32 @@ public:
 };
 
 /////////////////////////////////////////////////
+// String-Notifier
+class TStrNotify : public TNotify {
+public:
+	TChA Log;
+	TStrNotify(){}
+	static PNotify New(){ return new TStrNotify(); }
+
+	void OnNotify(const TNotifyType& Type, const TStr& MsgStr);
+	void OnStatus(const TStr& MsgStr);
+};
+
+/////////////////////////////////////////////////
 // Exception
 ClassTP(TExcept, PExcept)//{
 private:
   TStr MsgStr;
   TStr LocStr;
+  TInt ErrorCode;
   UndefDefaultCopyAssign(TExcept);
 public:
   TExcept(const TStr& _MsgStr): MsgStr(_MsgStr), LocStr(){}
   TExcept(const TStr& _MsgStr, const TStr& _LocStr): MsgStr(_MsgStr), LocStr(_LocStr){}
-  static PExcept New(const TStr& MsgStr, const TStr& LocStr = TStr()) {
-	  return PExcept(new TExcept(MsgStr, LocStr)); }
+  TExcept(const int& _ErrorCode, const TStr& _MsgStr, const TStr& _LocStr) : 
+	  MsgStr(_MsgStr), LocStr(_LocStr), ErrorCode(_ErrorCode) {}
+  static PExcept New(const TStr& MsgStr, const TStr& LocStr = TStr());
+  static PExcept New(const int& ErrorCode, const TStr& MsgStr, const TStr& LocStr = TStr());
   virtual ~TExcept(){}
 
   TStr GetMsgStr() const {return MsgStr;}
@@ -218,6 +224,7 @@ public:
   TStr GetStr() const {
     if (LocStr.Empty()){return GetMsgStr();}
     else {return GetLocStr()+": "+GetMsgStr();}}
+  int GetErrorCode() { return ErrorCode; }
 
   // replacement exception handler
   typedef void (*TOnExceptF)(const TStr& MsgStr);
@@ -242,3 +249,44 @@ public:
     if (IsOnExceptF()){(*OnExceptF)(MsgStr);}
     else {throw TExcept::New(MsgStr, LocStr);}}
 };
+
+// Needed for SNAP examples (otherwise please avoid using these)
+#define Try try {
+#define Catch } catch (PExcept Except){ErrNotify(Except->GetMsgStr());}
+#define CatchFull } catch (PExcept Except){ErrNotify(Except->GetStr());}
+#define CatchAll } catch (...){}
+
+#ifdef GLib_WIN
+#include <StackWalker.h>
+/////////////////////////////////////////////////
+// Stack-trace output for Windows
+class TFileStackWalker : public StackWalker {
+protected:
+    FILE* FOut;
+    
+    void OnOutput(LPCSTR szText);
+public:
+    TFileStackWalker();
+    void CloseOutputFile();
+    ~TFileStackWalker();
+    
+    static void WriteStackTrace();
+};
+
+class TBufferStackWalker : public StackWalker {
+protected:
+    TChA Output;
+    
+    void OnOutput(LPCSTR szText);
+public:
+	TBufferStackWalker();
+	TChA GetOutput();
+	void ClearOutput() { Output = ""; }
+
+	// static method that generates stack trace and returns it
+	static TChA GetStackTrace();
+};
+
+extern TBufferStackWalker GlobalStackWalker;
+
+#endif

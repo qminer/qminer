@@ -1,29 +1,30 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 /////////////////////////////////////////////////
 // ZIP Input-File
+
+#if defined(GLib_WIN)
+  TStr TZipIn::SevenZipPath = "C:\\7Zip";
+#elif defined(GLib_CYGWIN)
+  TStr TZipIn::SevenZipPath = "/usr/bin";
+#elif defined(GLib_MACOSX) 
+  TStr TZipIn::SevenZipPath = "/opt/local/bin";
+#else 
+  TStr TZipIn::SevenZipPath = "/usr/bin";
+#endif
+
+
 TStrStrH TZipIn::FExtToCmdH;
 const int TZipIn::MxBfL=32*1024;
 
 void TZipIn::CreateZipProcess(const TStr& Cmd, const TStr& ZipFNm) {
-  const TStr CmdLine = TStr::Fmt("%s %s", Cmd.CStr(), ZipFNm.CStr());
+  const TStr CmdLine = TStr::Fmt("%s \"%s\"", Cmd.CStr(), ZipFNm.CStr());
   #ifdef GLib_WIN
   PROCESS_INFORMATION piProcInfo;
   STARTUPINFO siStartInfo;
@@ -48,6 +49,9 @@ void TZipIn::CreateZipProcess(const TStr& Cmd, const TStr& ZipFNm) {
   CloseHandle(piProcInfo.hThread);
   #else
   ZipStdoutRd = popen(CmdLine.CStr(), "r");
+  if (ZipStdoutRd == 0) { // try using SevenZipPath
+    ZipStdoutRd = popen((TZipIn::SevenZipPath+"/"+CmdLine).CStr(), "r");
+  }
   EAssertR(ZipStdoutRd != NULL,  TStr::Fmt("Can not execute '%s'", CmdLine.CStr()).CStr());
   #endif
 }
@@ -73,7 +77,15 @@ TZipIn::TZipIn(const TStr& FNm) : TSBase(FNm.CStr()), TSIn(FNm), ZipStdoutRd(NUL
   FLen(0), CurFPos(0), Bf(NULL), BfC(0), BfL(0) {
   EAssertR(! FNm.Empty(), "Empty file-name.");
   EAssertR(TFile::Exists(FNm), TStr::Fmt("File %s does not exist", FNm.CStr()).CStr());
+  FLen = 0;
+  // non-zip files not supported, need uncompressed file length information
+  // TODO: find the correct set of supported extensions
+  //if (FNm.GetFExt() != ".zip" && FNm.GetFExt() != ".gz") {
+  //  printf("*** Error: file %s, compression format %s not supported\n", FNm.CStr(), FNm.GetFExt().CStr());
+  //  EFailR(TStr::Fmt("File %s: compression format %s not supported", FNm.CStr(), FNm.GetFExt().CStr()).CStr());
+  //}
   FLen = TZipIn::GetFLen(FNm);
+  // return for malformed files
   if (FLen == 0) { return; } // empty file
   #ifdef GLib_WIN
   // create pipes
@@ -155,32 +167,21 @@ int TZipIn::GetBf(const void* LBf, const TSize& LBfL){
 // Gets the next line to LnChA.
 // Returns true, if LnChA contains a valid line.
 // Returns false, if LnChA is empty, such as end of file was encountered.
-
 bool TZipIn::GetNextLnBf(TChA& LnChA) {
   int Status;
   int BfN;        // new pointer to the end of line
   int BfP;        // previous pointer to the line start
-
   LnChA.Clr();
-
   do {
-    if (BfC >= BfL) {
-      // reset the current pointer, FindEol() will read a new buffer
-      BfP = 0;
-    } else {
-      BfP = BfC;
-    }
+    if (BfC >= BfL) { BfP = 0; } // reset the current pointer, FindEol() will read a new buffer
+    else { BfP = BfC; }
     Status = FindEol(BfN);
     if (Status >= 0) {
       LnChA.AddBf(&Bf[BfP],BfN-BfP);
-      if (Status == 1) {
-        // got a complete line
-        return true;
-      }
+      if (Status == 1) { return true; } // got a complete line
     }
     // get more data, if the line is incomplete
   } while (Status == 0);
-
   // eof or the last line has no newline
   return !LnChA.Empty();
 }
@@ -190,32 +191,19 @@ bool TZipIn::GetNextLnBf(TChA& LnChA) {
 // Returns 0, when an end of line was not found and more data is required,
 //    BfN is end of buffer.
 // Returns -1, when an end of file was found, BfN is not defined.
-
 int TZipIn::FindEol(int& BfN) {
   char Ch;
-
-  if (BfC >= BfL) {
-    // check for eof, read more data
-    if (Eof()) {
-      return -1;
-    }
+  if (BfC >= BfL) { // check for eof, read more data
+    if (Eof()) { return -1; }
     FillBf();
   }
-
   while (BfC < BfL) {
     Ch = Bf[BfC++];
-    if (Ch=='\n') {
-      BfN = BfC-1;
-      return 1;
-    }
+    if (Ch=='\n') { BfN = BfC-1; return 1; }
     if (Ch=='\r' && Bf[BfC+1]=='\n') {
-      BfC++;
-      BfN = BfC-2;
-      return 1;
-    }
+      BfC++;  BfN = BfC-2;  return 1; }
   }
   BfN = BfC;
-
   return 0;
 }
 
@@ -264,7 +252,7 @@ uint64 TZipIn::GetFLen(const TStr& ZipFNm) {
   // Ensure the read handle to the pipe for STDOUT is not inherited.
   SetHandleInformation(ZipStdoutRd, HANDLE_FLAG_INHERIT, 0);
   //CreateZipProcess(GetCmd(FNm), FNm);
-  { const TStr CmdLine = TStr::Fmt("7z.exe l %s", ZipFNm.CStr());
+  { const TStr CmdLine = TStr::Fmt("7z.exe l \"%s\"", ZipFNm.CStr());
   PROCESS_INFORMATION piProcInfo;
   STARTUPINFO siStartInfo;
   ZeroMemory( &piProcInfo, sizeof(PROCESS_INFORMATION));
@@ -281,6 +269,9 @@ uint64 TZipIn::GetFLen(const TStr& ZipFNm) {
   #else
   const TStr CmdLine = TStr::Fmt("7za l %s", ZipFNm.CStr());
   FILE* ZipStdoutRd = popen(CmdLine.CStr(), "r");
+  if (ZipStdoutRd == NULL) { // try using SevenZipPath
+    ZipStdoutRd = popen((TZipIn::SevenZipPath+"/"+CmdLine).CStr(), "r");
+  }
   EAssertR(ZipStdoutRd != NULL, TStr::Fmt("Can not execute '%s'", CmdLine.CStr()).CStr());
   #endif
   // Read output from the child process
@@ -302,7 +293,7 @@ uint64 TZipIn::GetFLen(const TStr& ZipFNm) {
   TStr Str(Bf);  delete [] Bf;
   TStrV StrV; Str.SplitOnWs(StrV);
   int n = StrV.Len()-1;
-  while (n > 0 && ! StrV[n].IsPrefix("-----")) { n--; }
+  while (n > 0 && ! StrV[n].StartsWith("-----")) { n--; }
   if (n-7 <= 0) {
     WrNotify(TStr::Fmt("Corrupt file %s: MESSAGE:\n", ZipFNm.CStr()).CStr(), Str.CStr());
     SaveToErrLog(TStr::Fmt("Corrupt file %s. Message:\n:%s\n", ZipFNm.CStr(), Str.CStr()).CStr());
@@ -353,6 +344,9 @@ void TZipOut::CreateZipProcess(const TStr& Cmd, const TStr& ZipFNm) {
   CloseHandle(piProcInfo.hThread);
   #else
   ZipStdinWr = popen(CmdLine.CStr(),"w");
+  if (ZipStdinWr == NULL) { // try using SevenZipPath
+    ZipStdinWr = popen((TZipIn::SevenZipPath+"/"+CmdLine).CStr(), "r");
+  }
   EAssertR(ZipStdinWr != NULL,  TStr::Fmt("Can not execute '%s'", CmdLine.CStr()).CStr());
   #endif
 }

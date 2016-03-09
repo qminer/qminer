@@ -1,28 +1,14 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
-#ifndef NDEBUG
-#define SW_TRACE
-#endif
-
-#if defined(SW_TRACE) && defined(GLib_UNIX)
+#if defined(SW_TRACE)
 #include <execinfo.h>
+#include <signal.h>
 #endif
 
 /////////////////////////////////////////////////
@@ -83,7 +69,7 @@ void SaveToErrLog(const char* MsgCStr){
   delete[] FNm;
 }
 
-#if defined(SW_TRACE) && defined(GLib_UNIX)
+#if defined(SW_TRACE)
 void PrintBacktrace() {
   // stack dump, works for g++
   void *array[20];
@@ -92,9 +78,42 @@ void PrintBacktrace() {
   // flush stdout
   fflush(0);
 
-  // get the trace and print it to stdout
-  size = backtrace(array, 20);
-  backtrace_symbols_fd(array, size, 1);
+	// get the trace and print it to stdout
+  size = backtrace(array, sizeof(array)/sizeof(array[0]));
+  backtrace_symbols_fd(array, size, STDERR_FILENO);
+}
+
+void signalHandler(int sig) {
+  fprintf(stderr, "Error: signal %d\n", sig);
+  PrintBacktrace();
+  abort();
+}
+
+void terminateHandler()
+{
+  std::exception_ptr exptr = std::current_exception();
+  if (exptr != 0) {
+    // the only useful feature of exception_ptr is that it can be rethrown...
+    try {
+      std::rethrow_exception(exptr);
+    }
+    catch (std::exception &ex) {
+      fprintf(stderr, "Terminated due to exception: %s\n", ex.what());
+    }
+    catch (...) {
+      fprintf(stderr, "Terminated due to unknown exception\n");
+    }
+  }
+  else {
+    fprintf(stderr, "Terminated due to unknown reason\n");
+  }
+  PrintBacktrace();
+  abort();
+}
+void Crash() {
+  char *p;
+  p = (char *) 0;
+  *p = 123;
 }
 #endif
 
@@ -107,8 +126,12 @@ void ExeStop(
  const char* CondCStr, const char* FNm, const int& LnN){
   char ReasonMsgCStr[1000];
 
-#if defined(SW_TRACE) && defined(GLib_UNIX)
+#if defined(SW_TRACE)
   PrintBacktrace();
+  //Crash();
+#endif
+#ifdef GLib_WIN
+  TFileStackWalker::WriteStackTrace();
 #endif
 
   // construct reason message
@@ -133,6 +156,11 @@ void ExeStop(
   }
   // report full message to log file
   SaveToErrLog(FullMsgCStr);
+
+#if defined(SW_NOABORT)
+  throw TExcept::New(FullMsgCStr);
+#endif
+
   // report to screen & stop execution
   bool Continue=false;
   // call handler

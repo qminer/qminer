@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 //#//////////////////////////////////////////////
@@ -37,10 +26,10 @@ TStr TSs::GetVal(const int& X, const int& Y) const {
     if ((0<=X)&&(X<CellStrVV[Y]->Len())){
       return CellStrVV[Y]->V[X];
     } else {
-      return TStr::GetNullStr();
+      return TStr();
     }
   } else {
-    return TStr::GetNullStr();
+    return TStr();
   }
 }
 
@@ -180,7 +169,7 @@ PSs TSs::LoadTxt(
       }
       // add value to spreadsheet
       if (AllowedColNV.Empty()||AllowedColNV.IsIn(X)){
-        Ss->CellStrVV[Y]->V.Add(ChA); 
+        Ss->CellStrVV[Y]->V.Add(ChA);
       }
       // process delimiters
       if (SIn->Eof()){
@@ -390,6 +379,11 @@ TSsParser::TSsParser(const TStr& FNm, const char& Separator, const bool& _SkipLe
   SplitCh = Separator;
 }
 
+TSsParser::TSsParser(PSIn& SIn, const char& Separator, const bool& _SkipLeadBlanks, const bool& _SkipCmt, const bool& _SkipEmptyFld) : SsFmt(ssfSpaceSep),
+ SkipLeadBlanks(_SkipLeadBlanks), SkipCmt(_SkipCmt), SkipEmptyFld(_SkipEmptyFld), LineCnt(0), /*Bf(NULL),*/ SplitCh('\t'), LineStr(), FldV(), FInPt(SIn) {
+  SplitCh = Separator;
+}
+
 TSsParser::~TSsParser() {
   //if (Bf != NULL) { delete [] Bf; }
 }
@@ -455,7 +449,7 @@ bool TSsParser::Next() { // split on SplitCh
 void TSsParser::ToLc() {
   for (int f = 0; f < FldV.Len(); f++) {
     for (char *c = FldV[f]; *c; c++) {
-      *c = tolower(*c); }
+      *c = (char) tolower(*c); }
   }
 }
 

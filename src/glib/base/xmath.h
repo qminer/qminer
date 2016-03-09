@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 #include "bd.h"
@@ -134,6 +123,7 @@ public:
 public:
   static double Entropy(const TIntV& ValV);
   static double Entropy(const TFltV& ValV);
+  static double Entropy(const double& Prob);
   static void EntropyFracDim(const TIntV& ValV, TFltV& EntropyV);
   static void EntropyFracDim(const TFltV& ValV, TFltV& EntropyV);
 public:
@@ -141,6 +131,14 @@ public:
   //MLE of the power-law coefficient
   static double GetPowerCoef(const TFltV& XValV, double MinX=-1.0); // values (sampled from the distribution)
   static double GetPowerCoef(const TFltPrV& XValCntV, double MinX=-1.0); // (value, count) pairs
+
+  // returns the value of the cumulative distribution function of the value specified be Val
+  // with Df degrees of freedom
+  static double StudentCdf(const double& Val, const int& Df);
+  // returns the value of the cumulative distribution function for a value 'Val' sampled from
+  // the normal distribution N(Mean, Std) with Df degrees of freedom
+  static double StudentCdf(const double& Val, const double& Mean,
+	  const double& Std, const int& Df);
 };
 
 /////////////////////////////////////////////////
@@ -156,6 +154,7 @@ private:
   TFlt Mn, Mx;
   TFlt Mean, Vari, SDev, SErr;
   TFlt Median, Quart1, Quart3;
+  TFlt Mode;
   TFltV DecileV; // 0=min 1=1.decile, ..., 9=9.decile, 10=max
   TFltV PercentileV; // 0=min 1=1.percentile, ..., 9=9.percentile, 10=max
 public:
@@ -165,7 +164,7 @@ public:
     UsableP(false), UnusableVal(-1),
     Mn(), Mx(),
     Mean(), Vari(), SDev(), SErr(),
-    Median(), Quart1(), Quart3(),
+    Median(), Quart1(), Quart3(), Mode(),
     DecileV(), PercentileV(){}
   TMom(const TMom& Mom):
     DefP(Mom.DefP), ValWgtV(Mom.ValWgtV),
@@ -173,7 +172,7 @@ public:
     UsableP(Mom.UsableP), UnusableVal(Mom.UnusableVal),
     Mn(Mom.Mn), Mx(Mom.Mx),
     Mean(Mom.Mean), Vari(Mom.Vari), SDev(Mom.SDev), SErr(Mom.SErr),
-    Median(Mom.Median), Quart1(Mom.Quart1), Quart3(Mom.Quart3),
+    Median(Mom.Median), Quart1(Mom.Quart1), Quart3(Mom.Quart3), Mode(Mom.Mode),
     DecileV(Mom.DecileV), PercentileV(Mom.PercentileV){}
   static PMom New(){return PMom(new TMom());}
   static void NewV(TMomV& MomV, const int& Moms){
@@ -193,7 +192,7 @@ public:
     UsableP(SIn), UnusableVal(SIn),
     Mn(SIn), Mx(SIn),
     Mean(SIn), Vari(SIn), SDev(SIn), SErr(SIn),
-    Median(SIn), Quart1(SIn), Quart3(SIn),
+    Median(SIn), Quart1(SIn), Quart3(SIn), Mode(SIn),
     DecileV(SIn), PercentileV(SIn){}
   static PMom Load(TSIn& SIn){return new TMom(SIn);}
   void Save(TSOut& SOut) const {
@@ -203,7 +202,7 @@ public:
     UsableP.Save(SOut); UnusableVal.Save(SOut);
     Mn.Save(SOut); Mx.Save(SOut);
     Mean.Save(SOut); Vari.Save(SOut); SDev.Save(SOut); SErr.Save(SOut);
-    Median.Save(SOut); Quart1.Save(SOut); Quart3.Save(SOut);
+    Median.Save(SOut); Quart1.Save(SOut); Quart3.Save(SOut); Mode.Save(SOut);
     DecileV.Save(SOut); PercentileV.Save(SOut);}
 
   TMom& operator=(const TMom& Mom){
@@ -213,7 +212,7 @@ public:
     UsableP=Mom.UsableP; UnusableVal=Mom.UnusableVal;
     Mn=Mom.Mn; Mx=Mom.Mx;
     Mean=Mom.Mean; Vari=Mom.Vari; SDev=Mom.SDev; SErr=Mom.SErr;
-    Median=Mom.Median; Quart1=Mom.Quart1; Quart3=Mom.Quart3;
+    Median=Mom.Median; Quart1=Mom.Quart1; Quart3=Mom.Quart3; Mode=Mom.Mode;
     DecileV=Mom.DecileV; PercentileV=Mom.PercentileV;
     return *this;}
   bool operator==(const TMom& Mom) const {
@@ -262,6 +261,7 @@ public:
   double GetMedian() const {Assert(DefP&&UsableP); return Median;}
   double GetQuart1() const {Assert(DefP&&UsableP); return Quart1;}
   double GetQuart3() const {Assert(DefP&&UsableP); return Quart3;}
+  double GetMode() const {Assert(DefP&&UsableP); return Mode;}
   double GetDecile(const int& DecileN) const {
     Assert(DefP&&UsableP); return DecileV[DecileN];}
   double GetPercentile(const int& PercentileN) const {
@@ -481,7 +481,7 @@ public:
     THist() { }
     THist(const double& _MnVal, const double& _MxVal, const int& Buckets):
       MnVal(_MnVal), MxVal(_MxVal), BucketV(Buckets) {
-	    BucketSize = (MxVal == MnVal) ? 1.0 : (1.01 * double(MxVal - MnVal) / double(Buckets)); }
+      BucketSize = (MxVal == MnVal) ? 1.0 : (1.01 * double(MxVal - MnVal) / double(Buckets)); }
 
     void Add(const double& Val, const bool& OnlyInP);
 

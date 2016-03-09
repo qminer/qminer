@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 /////////////////////////////////////////////////
@@ -641,7 +630,7 @@ void TDMozBs::SaveLnDocTxt(const PDMozBs& DMozBs, const TStr& RootCatNm,
   int Cats=DMozBs->GetCats(); int SavedCats=0;
   for (int CatId=0; CatId<Cats; CatId++){
     TStr CatNm=DMozBs->GetCatNm(CatId);
-    if ((!RootCatNm.Empty())&&(!CatNm.IsPrefix(RootCatNm))){continue;}
+    if ((!RootCatNm.Empty())&&(!CatNm.StartsWith(RootCatNm))){continue;}
     SavedCats++;
     if (SavedCats%1000==0){printf("  Saved Categories %d\r", SavedCats);}
     // external-urls
@@ -673,7 +662,7 @@ void TDMozBs::SaveTxt(const PDMozBs& DMozBs, const TStr& RootCatNm,
   fprintf(fOut, "#Categories: %d\n", Cats);
   for (int CatId=0; CatId<Cats; CatId++){
     TStr CatNm=DMozBs->GetCatNm(CatId);
-    if ((!RootCatNm.Empty())&&(!CatNm.IsPrefix(RootCatNm))){continue;}
+    if ((!RootCatNm.Empty())&&(!CatNm.StartsWith(RootCatNm))){continue;}
     SavedCats++;
     if (SavedCats%1000==0){printf("  Saved Categories %d\r", SavedCats);}
     fprintf(fOut, "cat: '%s'\n", CatNm.CStr());
@@ -871,37 +860,33 @@ TDMozCfy::TDMozCfy(PBowDocBs _BowDocBs, PBowDocPart _BowDocPart, const TStr& Cat
     while (!ClustS.Empty()) {
         PBowDocPartClust Clust = ClustS.Top(); ClustS.Pop();
 		TStr ClustNm = Clust->GetNm();
-		if (!PrefixV.Empty() || !CatNmH.Empty()) {
-			// check if prefix and level ok
-			bool AddedP = false;
-			for (int PrefixN = 0; PrefixN < PrefixV.Len(); PrefixN++) {
-				const TStr& Prefix = PrefixV[PrefixN].Val1;
-				const int MxLevel = PrefixV[PrefixN].Val2;
-				if (ClustNm.IsPrefix(Prefix) && ClustNm.CountCh('/') <= MxLevel) {
-					BowDocPart->AddClust(TBowDocPartClust::New(_BowDocBs, ClustNm, 
-					   Clust->GetQual(), TIntV(), Clust->GetConceptSpV(), NULL));
-					AddedP = true; GoodClusts++; break;
-				}
-			}
-			// otherwise check if category approved
-			if (CatNmH.IsKey(ClustNm) && !AddedP) {
-				BowDocPart->AddClust(TBowDocPartClust::New(_BowDocBs, Clust->GetNm(), 
-					Clust->GetQual(), TIntV(), Clust->GetConceptSpV(), NULL));
-				GoodClusts++;
-			}
-		} else {
+
 			// we have a black list
 			bool IgnoreP = false;
 			for (int IgnoreN = 0; IgnoreN < IgnoreV.Len(); IgnoreN++) {
 				const TStr& Ignore = IgnoreV[IgnoreN];
-				if (ClustNm.IsPrefix(Ignore)) {	IgnoreP = true; break; }
+				if (ClustNm.StartsWith(Ignore)) { IgnoreP = true; break; }
 			}
-			if (!IgnoreP) {
-				BowDocPart->AddClust(TBowDocPartClust::New(_BowDocBs, Clust->GetNm(), 
+		// if category is black-listed then skip it and all it's children
+		if (IgnoreP)
+			continue;
+
+		bool AddP = true;
+		if (!PrefixV.Empty() || !CatNmH.Empty()) {
+			for (int PrefixN = 0; PrefixN < PrefixV.Len(); PrefixN++) {
+				const TStr& Prefix = PrefixV[PrefixN].Val1;
+				const int MxLevel = PrefixV[PrefixN].Val2;
+				if (ClustNm.StartsWith(Prefix) && ClustNm.CountCh('/') > MxLevel)
+					AddP = false;
+			}
+		}
+
+		if (AddP) {
+			BowDocPart->AddClust(TBowDocPartClust::New(_BowDocBs, ClustNm,
 					Clust->GetQual(), TIntV(), Clust->GetConceptSpV(), NULL));
 				GoodClusts++;
 			}
-		}
+
 		// check children
         if (Clust->IsSubPart()) {
             PBowDocPart SubPart = Clust->GetSubPart();
@@ -956,15 +941,20 @@ void TDMozCfy::Classify(const TStr& HtmlStr, TStrFltKdV& CatNmWgtV,
 
 PDMozCfy TDMozCfy::LoadFPath(const TStr& DMozFPath, const int& MnClustDocs) {
     if (TFile::Exists(DMozFPath + "DMoz.dat")) {
+		printf("Reading DMoz.dat. Note: DMoz.txt will be ignored. Delete the .dat file to rebuild using settings in DMoz.txt.\n");
         return TDMozCfy::LoadBin(DMozFPath + "DMoz.dat");
-    } else {
+    } 
+	else if (TFile::Exists(DMozFPath + "Top.Bow") && TFile::Exists(DMozFPath + "Top.BowPart"))  {
 		printf("Preparing DMoz.dat ...\n");
 		PBowDocBs BowDocBs = TBowDocBs::LoadBin(DMozFPath + "Top.Bow");
     	PBowDocPart BowDocPart = TBowDocPart::LoadBin(DMozFPath + "Top.BowPart");
+		printf("Checking DMoz.txt for valid categories ...\n");
 		PDMozCfy DMoz = TFile::Exists(DMozFPath + "DMoz.txt") ?
 			TDMozCfy::New(BowDocBs, BowDocPart, DMozFPath + "DMoz.txt") :
 			TDMozCfy::New(BowDocBs, BowDocPart);
         DMoz->SaveBin(DMozFPath + "DMoz.dat");
 		return DMoz;
     }
+	else 
+		return NULL;
 }

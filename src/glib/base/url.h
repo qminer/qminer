@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 #include "bd.h"
@@ -44,9 +33,9 @@ public:
   static PUrl New(const TStr& RelUrlStr, const TStr& BaseUrlStr=TStr()){
     return PUrl(new TUrl(RelUrlStr, BaseUrlStr));}
   ~TUrl(){}
-  TUrl(TSIn&){Fail;}
-  static PUrl Load(TSIn&){Fail; return NULL;}
-  void Save(TSOut&){Fail;}
+  TUrl(TSIn& SIn);
+  static PUrl Load(TSIn& SIn){ return new TUrl(SIn);}
+  void Save(TSOut& SOut);
 
   bool IsOk(const TUrlScheme _Scheme=usUndef) const {
     if (_Scheme==usUndef){return Scheme!=usUndef;}
@@ -92,12 +81,13 @@ public:
   TStr GetHttpRqStr() const {return HttpRqStr;}
   bool IsHttpRqStr() const {return !HttpRqStr.Empty();}
   void ChangeHttpRqStr(const TStr& SrcStr, const TStr& DstStr){
-    HttpRqStr.ChangeStr(SrcStr, DstStr);}
+	  HttpRqStr.ChangeStr(SrcStr, DstStr);
+  }
 
   bool IsInHost(const TStr& _HostNm) const {
-    EAssert(IsOk()); return HostNm.GetUc().IsSuffix(_HostNm.GetUc());}
+    EAssert(IsOk()); return HostNm.GetUc().EndsWith(_HostNm.GetUc());}
   bool IsInPath(const TStr& _PathStr) const {
-    EAssert(IsOk()); return PathStr.GetUc().IsPrefix(_PathStr.GetUc());}
+    EAssert(IsOk()); return PathStr.GetUc().StartsWith(_PathStr.GetUc());}
   void ToLcPath();
 
   static bool IsAbs(const TStr& UrlStr);
@@ -114,7 +104,7 @@ public:
    const TStr& UrlStr, const int& MxLen=-1, const bool& HostOnlyP=false);
 };
 typedef TPair<TInt, PUrl> TIdUrlPr;
-typedef TQQueue<TIdUrlPr> TIdUrlPrQ;
+typedef TLst<TIdUrlPr> TIdUrlPrL;
 typedef THash<TInt, PUrl> TIdToUrlH;
 
 /////////////////////////////////////////////////
@@ -185,6 +175,7 @@ public:
 
   // full-url-string
   TStr GetFullUrlStr() const;
+  void GetKeyValPrV(TStrKdV& FldNmValPrV) const;
 
   static PUrlEnv MkClone(const PUrlEnv& UrlEnv);
 };

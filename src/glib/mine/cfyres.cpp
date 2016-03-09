@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 //////////////////////////////////////////////////////////////////////////
@@ -234,8 +223,8 @@ void TCountCfyRes::Roc(TFltPrV& RocV) {
     int TP = 0, FP = 0, TN = FPos + TNeg, FN = TPos + FNeg;
     for (int i = 0; i < Len; i++) {
         if (ResultV[i].Dat > 0.0) { FN--; TP++; } else { TN--; FP++; }
-        const double FPR = double(FP) / double(FP + TN);
-		const double TPR = double(TP) / double(TP + FN);
+		const double FPR = (FP + TN > 0) ? double(FP) / double(FP + TN) : -1;
+		const double TPR = (TP + FN > 0) ? (double(TP) / double(TP + FN)) : -1;
         RocV.Add(TFltPr(FPR, TPR));
     }
 }

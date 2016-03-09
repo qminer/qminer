@@ -12,6 +12,18 @@
 *.la
 *.a
 
+# project files folder
+project
+
+# Autoconf
+config.log
+
+# NPM
+npm-debug.log
+/node_modules/*
+!/node_modules/qminer.js
+
+
 # project files from Eclipse
 .project
 .cproject
@@ -26,6 +38,7 @@ doc
 Doxyfile-tmp
 log-doxygen.txt
 temp
+cppdoc
 
 qm.conf
 db
@@ -83,3 +96,41 @@ timeseries - Copy (2)
 old
 
 /examples/graphextract/cobisg.txt
+
+bug
+
+quax
+elycite
+
+symphony
+
+symphony-code
+
+out
+/test/cpp/run-all-tests
+/test/cpp/test1.txt
+/test/cpp/test.txt
+cha
+
+.DC_Store
+autom4te.cache
+autom4te.cache
+nodetempdoc
+/x64
+
+/test/nodejs/*.bin
+/test/nodejs/g.html
+db1
+db2
+/test/nodejs/db-strict
+binding-1.gyp
+/test/nodejs/.tmpclfile
+/test/nodejs/tmpclfile
+/test/nodejs/tmpclfile2
+/test/nodejs/recordset_plain.js
+/test/nodejs/file.txt
+/test/my/
+/examples/streamaggregate/node_modules
+*.opendb
+/test/nodejs/store_and_index.js
+/test/nodejs/jointest.dbg.js

@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 #include "bd.h"
@@ -96,8 +85,30 @@ public:
   static TStr GetCurDir();
   static TStr GetExeDir();
   static bool GenDir(const TStr& FPathFNm);
+  static bool GenDirs(const TStr& FPathFNm);
   static bool DelDir(const TStr& FPathFNm);
+  static bool DelNonEmptyDir(const TStr& FPathFNm);
   static bool Exists(const TStr& FPathFNm);
+
+  static void ListFiles(const TStr& DirNm, TStrV& FNmV);
+  
+  static TStr GetLastDirPart(const TStr& FPathFNm);
+  static void CopyDir(const TStr& SourceDir, const TStr& DestDir, const bool& OverwriteIfExists = true);
+
+  static void SplitPath(const TStr& FPathFNm, TStrV& PartV);
+  static TStr GetFileName(const TStr& FileWithDir);
+};
+
+/////////////////////////////////////////////////
+// TPath
+// methods related to disk paths
+class TPath {
+public:
+	static TStr Combine(const TStr& DirNm, const TStr& FileOrDirNm);
+	static TStr Combine(const TStrV& DirNmV);
+	
+	static TStr GetDirName(const TStr& FileWithDir);
+	static TStr GetFileName(const TStr& FileWithDir);
 };
 
 /////////////////////////////////////////////////
@@ -128,6 +139,29 @@ public:
 
 	void OnStatus(const TStr& MsgStr);
 };
+
+
+/////////////////////////////////////////////////
+// File-Notifier
+class TFileNotify : public TNotify {
+private:
+	TStr FileName;
+	PSOut File;
+	bool AddTimeStamp;
+
+	bool SeparateFilesForEachDay;
+	bool FlushEachWrite;
+	TStr LastLogDate;
+public:
+	TFileNotify(const TStr& _FileName, const bool& _AddTimeStamp = true, const bool& _SeparateFilesForEachDay = false, const bool& _FlushEachWrite = false);
+	static PNotify New(const TStr& FileName, const bool& AddTimeStamp = true, const bool& SeparateFilesForEachDay = false, const bool& FlushEachWrite = false) {
+		return PNotify(new TFileNotify(FileName, AddTimeStamp, SeparateFilesForEachDay, FlushEachWrite));
+	}
+	void OpenNewFileForDate();
+	void OnNotify(const TNotifyType& Type, const TStr& MsgStr);
+	void OnStatus(const TStr& MsgStr);
+};
+
 
 /////////////////////////////////////////////////
 // File-Lock

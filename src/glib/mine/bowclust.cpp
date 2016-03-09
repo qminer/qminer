@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 /////////////////////////////////////////////////
@@ -1140,6 +1129,207 @@ PBowDocPart TBowClust::GetKMeansPartForDocWgtBs(
   return BestPart;
 }
 
+PBowDocPart TBowClust::GetDPMeansPartForDocWgtBs(const PNotify& Notify, const PBowDocWgtBs& BowDocWgtBs,
+		const PBowDocBs& BowDocBs, const PBowSim& BowSim, TRnd& Rnd, const double& Lambda,
+		const int& MinDocsPerClust, const int& MaxClusts, const double& ConvergEps, const TInt& MaxIter,
+		const TBowClustInitScheme& InitType, const int& InitParam, const TIntFltPrV& DocIdWgtPrV) {
+
+	// parameter Lambda represents the minimum similarity of a
+	// document to each of the current clusters upon which a document
+	// is assigned an existing cluster
+	const int Docs = BowDocWgtBs->GetDocs();
+	const int Words = BowDocWgtBs->GetWords();
+
+	TNotify::OnNotify(Notify, ntInfo, "-----------------------");
+	TNotify::OnNotify(Notify, ntInfo, TInt::GetStr(Docs, "Docs: %d"));
+	TNotify::OnNotify(Notify, ntInfo, TInt::GetStr(Words, "Words: %d"));
+
+	// create initial partition
+	PBowDocPart Part = TBowDocPart::New();
+
+	TBowSpVV ConceptSpVV;
+	TVec<TIntV> DIdVV; // vector of cluster doc-id vectors
+	TIntV BestClustIdxV(Docs, Docs);
+	TFltV ClustQualV; // cluster quality vector
+
+	// get the initial clusters
+	TBowClust::GetInitialClustIdV(Notify, BowDocWgtBs, BowSim, Rnd, DIdVV, InitType, InitParam);
+	for (int ClustIdx = 0; ClustIdx < DIdVV.Len(); ClustIdx++) {
+		ConceptSpVV.Add(TBowClust::GetConceptSpV(BowDocWgtBs, BowSim, DIdVV[ClustIdx], 1, DocIdWgtPrV));
+	}
+
+	const int MinClusts = ConceptSpVV.Len();
+	int NClusts = DIdVV.Len();
+
+	// to prevent outliars construct the initial Voronoi cells and recompute the
+	// means
+	for (int DIdN = 0; DIdN < Docs; DIdN++) {
+		const int DId = BowDocWgtBs->GetDId(DIdN);
+		PBowSpV DocSpV = BowDocWgtBs->GetSpV(DId);
+
+		// compute the similarity of this document to each of the clusters
+		double BestSim = TFlt::NInf;
+		int BestSimIdx = -1;
+		for (int ClustIdx = 0; ClustIdx < NClusts; ClustIdx++) {
+			double Sim = BowSim->GetSim(ConceptSpVV[ClustIdx], DocSpV);
+
+  			if (Sim > BestSim) {
+				BestSim = Sim;
+				BestSimIdx = ClustIdx;
+			}
+		}
+		BestClustIdxV[DIdN] = BestSimIdx;
+
+		DIdVV.Gen(NClusts);
+		for (int DId = 0; DId < Docs; DId++) {
+			const int ClustIdx = BestClustIdxV[DId];
+			DIdVV[ClustIdx].Add(DId);
+		}
+
+		// for each cluster recompute the mean
+		for (int ClustN = 0; ClustN < NClusts; ClustN++){
+			ConceptSpVV[ClustN] = TBowClust::GetConceptSpV(BowDocWgtBs, BowSim, DIdVV[ClustN], 1, DocIdWgtPrV);
+		}
+	}
+
+	double PartQual = 0;
+	double PrevPartQual;
+
+	int Iter = 0;
+	int k = 0;
+
+	do {
+		bool EmptyClustP;
+
+		do {
+			Iter++;
+			EmptyClustP = false;
+
+			for (int DIdN = 0; DIdN < Docs; DIdN++) {
+				const int DId = BowDocWgtBs->GetDId(DIdN);
+				PBowSpV DocSpV = BowDocWgtBs->GetSpV(DId);
+
+				// compute the similarity of this document to each of the clusters
+				double BestSim = TFlt::NInf;
+				int BestSimIdx = -1;
+				for (int ClustIdx = 0; ClustIdx < NClusts; ClustIdx++) {
+					double Sim = BowSim->GetSim(ConceptSpVV[ClustIdx], DocSpV);
+
+  					if (Sim > BestSim) {
+						BestSim = Sim;
+						BestSimIdx = ClustIdx;
+					}
+				}
+
+				// check if a new cluster is needed
+				if (BestSim < Lambda && NClusts < MaxClusts) {
+					BestClustIdxV[DIdN] = NClusts++;
+					ConceptSpVV.Add(DocSpV);
+				} else {
+					BestClustIdxV[DIdN] = BestSimIdx;
+				}
+			}
+
+			// generate clusters based on BestClustIdxV
+			DIdVV.Gen(NClusts);
+			for (int DId = 0; DId < Docs; DId++) {
+				const int ClustIdx = BestClustIdxV[DId];
+				DIdVV[ClustIdx].Add(DId);
+			}
+
+			// for each cluster recompute the mean
+			for (int ClustN = 0; ClustN < NClusts; ClustN++) {
+				const TIntV& DIdV = DIdVV[ClustN];
+
+				// if no document was assigned => remove the centroid
+				if (DIdV.Empty() && NClusts > MinClusts) {
+					DIdVV.Del(ClustN--);
+					NClusts--;
+				}
+				else if (DIdV.Empty() || (MinDocsPerClust != -1 && DIdV.Len() < MinDocsPerClust)){
+					// cluster has less documents than allowed
+					// assign random document to concept vector
+					int DId = BowDocWgtBs->GetDId(Rnd.GetUniDevInt(Docs));
+					ConceptSpVV[ClustN] = BowDocWgtBs->GetSpV(DId);
+					PrevPartQual = 0;
+					PartQual = 0;
+					EmptyClustP=true;
+
+					break;
+				} else {
+					ConceptSpVV[ClustN] = TBowClust::GetConceptSpV(BowDocWgtBs, BowSim, DIdVV[ClustN], 1, DocIdWgtPrV);
+				}
+			}
+		} while (EmptyClustP && Iter < MaxIter);
+
+		PrevPartQual = PartQual;
+		GetPartQual(BowDocWgtBs, DIdVV, ConceptSpVV, BowSim, PartQual, ClustQualV);
+
+		if (++k % 10 == 0) {
+			TNotify::OnNotify(Notify, ntInfo, TFlt::GetStr(PartQual, " [Quality: %g]"));
+		}
+	} while (fabs(PartQual - PrevPartQual) > ConvergEps && Iter < MaxIter);
+
+	// create clusters
+	for (int ClustIdx = 0; ClustIdx < NClusts; ClustIdx++) {
+		PBowDocPartClust Clust=TBowDocPartClust::New(BowDocBs,
+			 "", ClustQualV[ClustIdx], DIdVV[ClustIdx], ConceptSpVV[ClustIdx], NULL);
+
+		Part->AddClust(Clust);
+		// add document to centroid similarities
+		{
+			TIntV& DIdV=DIdVV[ClustIdx];
+			int Docs=DIdV.Len();
+			TFltV DCSimV(Docs, 0);
+			for (int DIdN=0; DIdN < Docs; DIdN++){
+				PBowSpV DocSpV=BowDocWgtBs->GetSpV(DIdV[DIdN]);
+				double Sim=BowSim->GetSim(ConceptSpVV[ClustIdx], DocSpV);
+				DCSimV.Add(Sim);
+			}
+			Clust->AddDCSimV(DCSimV);
+		}
+		// add document to document similarities
+		{
+			TIntV& DIdV=DIdVV[ClustIdx];
+			int Docs=DIdV.Len();
+			if (Docs<=200) {
+				TFltVV DDSimVV(Docs, Docs);
+				for (int DIdN1 = 0; DIdN1 < Docs; DIdN1++) {
+					PBowSpV DocSpV1 = BowDocWgtBs->GetSpV(DIdV[DIdN1]);
+					for (int DIdN2 = 0; DIdN2 < Docs; DIdN2++) {
+						PBowSpV DocSpV2 = BowDocWgtBs->GetSpV(DIdV[DIdN2]);
+						double Sim = BowSim->GetSim(DocSpV1, DocSpV2);
+						DDSimVV.At(DIdN1, DIdN2) = Sim;
+					}
+				}
+				Clust->AddDDSimVV(DDSimVV);
+			}
+		}
+	}
+
+	// calculate inter-cluster similarity
+	TFltVV ClustSimVV(NClusts, NClusts);
+	for (int ClustN1 = 0; ClustN1 < NClusts; ClustN1++) {
+		ClustSimVV.At(ClustN1, ClustN1) = BowSim->GetSim(ConceptSpVV[ClustN1],
+			ConceptSpVV[ClustN1]);
+
+		for (int ClustN2=ClustN1+1; ClustN2 < NClusts; ClustN2++){
+			double Sim=BowSim->GetSim(ConceptSpVV[ClustN1], ConceptSpVV[ClustN2]);
+			ClustSimVV.At(ClustN1, ClustN2)=Sim;
+			ClustSimVV.At(ClustN2, ClustN1)=Sim;
+		}
+	}
+	Part->PutClustSim(ClustSimVV);
+
+	// return result
+	TStr MsgStr=
+	   TInt::GetStr(NClusts, "  Clusters %d:")+
+       TFlt::GetStr(PartQual, " [Quality: %g]");
+	TNotify::OnNotify(Notify, ntInfo, MsgStr);
+
+	return Part;
+}
+
 PBowDocPart TBowClust::GetHPartForDocWgtBs(
  const PNotify& Notify,
  const PBowDocWgtBs& BowDocWgtBs,
@@ -1272,6 +1462,26 @@ PBowDocPart TBowClust::GetHKMeansPart(
   return DocPart;
 }
 
+void TBowClust::GetHKMeansLeafClustV(const PBowDocPart& HKMeansPart, TVec<PBowDocPartClust>& LeafClustV)
+{
+	int ClustCount = HKMeansPart->GetClusts();
+	for (int ClustN=0; ClustN < ClustCount; ClustN++)
+	{
+		PBowDocPartClust Clust = HKMeansPart->GetClust(ClustN);
+		bool IsSubPart = Clust->IsSubPart();
+		if (IsSubPart)
+		{
+			PBowDocPart Part = Clust->GetSubPart();
+			if (Part->GetClusts() > 1)
+				GetHKMeansLeafClustV(Part, LeafClustV);
+			else
+				LeafClustV.Add(Clust);
+		}
+		else
+			LeafClustV.Add(Clust);
+	}
+}
+
 PBowDocPart TBowClust::GetHPart(
  const PNotify& Notify,
  const PBowDocBs& BowDocBs, const PBowSim& BowSim, TRnd& Rnd,
@@ -1388,3 +1598,178 @@ double TBowClust::GetClustCfAcc(
   return CfAcc;
 }
 
+void TBowClust::GetInitialClustIdV(const PNotify& Notify, const PBowDocWgtBs& BowDocWgtBs, const PBowSim& BowSim,
+								   TRnd& Rnd, TVec<TIntV>& DIdVV,
+								   const TBowClustInitScheme& InitType, const int& InitParam) {
+
+	// compute the initial centroids
+	const int Docs = BowDocWgtBs->GetDocs();
+
+	switch (InitType) {
+		case TBowClustInitScheme::tbcMean: {
+			// the first centroid is the global mean
+			TIntV AllDIdV(Docs, 0);  BowDocWgtBs->GetDIdV(AllDIdV);
+			DIdVV.Add(AllDIdV);
+			break;
+		}
+		case TBowClustInitScheme::tbcRnd: {
+			// pick initial clusters randomly. The number of initial clusters is stored in InitParam
+			for (int ClustIdx = 0; ClustIdx < InitParam; ClustIdx++) {
+				const int DId = BowDocWgtBs->GetDId(Rnd.GetUniDevInt(Docs));
+
+				TIntV DIdV;	DIdV.Add(DId);
+
+				DIdVV.Add(DIdV);
+			}
+
+			break;
+		}
+		case TBowClustInitScheme::tbcDiam: {
+			// pick the documents whick form the diameter
+			double MinSim = TFlt::PInf;
+			TIntPr DiagDIdPr;
+
+			for (int Doc1Idx = 0; Doc1Idx < Docs - 1; Doc1Idx++) {
+				const int Doc1Id = BowDocWgtBs->GetDId(Doc1Idx);
+				const PBowSpV& Doc1SpV = BowDocWgtBs->GetSpV(Doc1Id);
+
+				for (int Doc2Idx = Doc1Idx + 1; Doc2Idx < Docs; Doc2Idx++) {
+					const int Doc2Id = BowDocWgtBs->GetDId(Doc2Idx);
+					const PBowSpV& Doc2SpV = BowDocWgtBs->GetSpV(Doc2Id);
+
+					// compute the similarity between documents
+					const double& Sim = BowSim->GetSim(Doc1SpV, Doc2SpV);
+
+					if (Sim < MinSim) {
+						MinSim = Sim;
+						DiagDIdPr.Val1 = Doc1Id;	DiagDIdPr.Val2 = Doc2Id;
+					}
+				}
+			}
+			TIntV DIdV1;	DIdV1.Add(DiagDIdPr.Val1);
+			TIntV DIdV2;	DIdV2.Add(DiagDIdPr.Val2);
+
+			DIdVV.Add(DIdV1);	DIdVV.Add(DIdV2);
+
+			break;
+		}
+		case TBowClustInitScheme::tbcKMeansPP: {
+			if (InitParam <= 1) {
+				TNotify::OnNotify(Notify, TNotifyType::ntWarn, "The initialization parameter must be greater then 1 to perform KMeans++");
+				throw TExcept::New("The initialization parameter must be greater then 1 to perform KMeans++");
+			}
+
+			// collect all the IDs into a single list
+			TIntV CentroidIdV;
+
+			TIntV AllDIdV;	BowDocWgtBs->GetDIdV(AllDIdV);
+			TFltV DWgtV;
+
+			// create a PBowSpVV
+			THash<TInt, PBowSpV> DocIdBowSpVH;
+			for (int DocIdx = 0; DocIdx < Docs; DocIdx++) {
+				const int DocId = AllDIdV[DocIdx];
+				DocIdBowSpVH.AddDat(DocId, BowDocWgtBs->GetSpV(DocId));
+			}
+
+			// choose the center uniformly at random
+			const int Cent1IdIdx = Rnd.GetUniDevInt(Docs);
+			const int Cent1Id = AllDIdV[Cent1IdIdx];	AllDIdV.Del(Cent1IdIdx);
+
+			CentroidIdV.Add(Cent1Id);
+
+			// for each data point x compute S(x), the similarity between x and the nearest center
+			// that has already been chosen until InitParam centers have been found
+			while (CentroidIdV.Len() < InitParam && CentroidIdV.Len() < AllDIdV.Len()) {
+				printf("Selecting a new centroid ...\n");
+
+				const int RemDocs = AllDIdV.Len();
+				DWgtV.Gen(RemDocs, 0);
+
+				// for each data point x
+				for (int DocIdx = 0; DocIdx < RemDocs; DocIdx++) {
+					const int DocId = AllDIdV[DocIdx];
+					const PBowSpV& DocSpV = DocIdBowSpVH.GetDat(DocId);
+
+					// compute S(x), the similarity between x and the most similar center already chosen
+					double MaxSim = TFlt::NInf;
+
+					const int k = CentroidIdV.Len();
+					for (int CentIdx = 0; CentIdx < k; CentIdx++) {
+						const int CentDocId = CentroidIdV[CentIdx];
+						const PBowSpV& CentSpV = DocIdBowSpVH.GetDat(CentDocId);
+
+						const double Sim = BowSim->GetSim(DocSpV, CentSpV);
+						if (Sim > MaxSim) MaxSim = Sim;
+					}
+
+					// dist = (1-sim)
+					const double MinDist = 1 - MaxSim;
+					DWgtV.Add(MinDist*MinDist);
+				}
+
+				// choose a new data point at random as the new center using a weighted
+				// probability distribution where a point x is chosen with probability
+				// proportional to S(x)^2
+
+				printf("Computing norm ...\n");
+
+				// normalize the weights
+				double NormL1 = TLinAlg::NormL1(DWgtV);
+				if (NormL1 == 0) {
+					// the initial cluster's similarity to all documents is 0
+					// replace the initial cluster
+					const int NewCentIdx = Rnd.GetUniDevInt(AllDIdV.Len());
+
+					const int OldCentId = CentroidIdV[0];
+					const int NewCentId = AllDIdV[NewCentIdx];
+
+					CentroidIdV[0] = NewCentId;
+					AllDIdV[NewCentIdx] = OldCentId;
+
+					continue;
+				}
+
+				printf("Normalizing ...\n");
+
+				// everything is OK => go on
+				TLinAlg::NormalizeL1(DWgtV);
+
+				double RndVal = (double) rand() / RAND_MAX;
+
+				int DIdN = -1;
+				double WgtSum = 0;
+
+				// pick the new centroid
+				do {
+					DIdN++;
+
+					if (DIdN >= DWgtV.Len()) { break; }
+
+					WgtSum += DWgtV[DIdN];
+				} while (WgtSum <= RndVal);
+
+				printf("Adding a new centroid to the centroid ID vector ...");
+
+				// create a new centroid
+				const int NewCentIdx = DIdN;
+				const int NewCentId = AllDIdV[NewCentIdx];
+				CentroidIdV.Add(NewCentId);	AllDIdV.Del(NewCentIdx);
+			}
+
+			printf("Constructing results ...\n");
+
+			// place the results into DIdVV
+			for (int i = 0; i < CentroidIdV.Len(); i++) {
+				TIntV DIdV;	DIdV.Add(CentroidIdV[i]);
+				DIdVV.Add(DIdV);
+			}
+
+			break;
+		}
+		default: {
+			TNotify::OnNotify(Notify, ntWarn, "WTF!? invalid initialization type!");
+			throw TExcept::New("Invalid initialization type!");
+		}
+	}
+}

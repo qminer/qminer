@@ -35,7 +35,7 @@ TStr GVizGetLayoutStr(const TGVizLayout& Layout) {
     case gvlCirco: return "circo";
     default: Fail;
   }
-  return TStr::GetNullStr();
+  return TStr();
 }
 
 } // namespace TSnapDetail

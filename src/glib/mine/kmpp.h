@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 /*
@@ -35,6 +24,10 @@
  * If using a custom vector/matrix type that is not available in LinAlg,
  * Make sure it implements the TMatrix interface and LA:AddVec and LA:DotProduct.
  */
+
+#ifndef __KMPP_H
+#define __KMPP_H
+
 template<class V, class LA, class M>
 class TKMeans {
 protected:
@@ -80,14 +73,13 @@ public:
 	int GetDim() const;
 	const TFltV& GetCentroid(int ClusterId) const;
 	const TIntV& GetAssignment() const;
+	double GetDocClusterSim(const int& ClusterId, const int& DocId);
     double GetClusterCompactness(const TFltV & Cluster) const;
     double GetClusteringCompactness() const;
     double GetClusteringQualityBySize(const TIntV & ClusterSizes) const;
     void GetClustersQualityByDCSim(TFltV& ClusterDCQ) const;
     double GetClusteringQualityByDCSim() const;
     double GetClusteringSSE() const;
-
-
 };
 
 class TDefaultMatrixAccess {
@@ -100,7 +92,7 @@ public:
 	}
 	static const PBowSpV& GetDoc(const TBowMatrix *DocVV, int DocId) {
 		return DocVV->ColSpVV[DocId];
-	}	
+	}
 };
 
 template class TKMeans<TIntFltKdV, TLinAlg, TSparseColMatrix>;
@@ -338,7 +330,6 @@ template<class V, class LA, class M>
 void TKMeans<V, LA, M>::MakeCentroids(TVec<TIntV> & ClusterDocs,
 		TIntV & CentroidSize) {
 	// sum centroids
-#pragma omp parallel for
 	for (int CId = 0; CId < k; CId++) {
 		const TIntV & DocIdV = ClusterDocs[CId];
 		TFltV & Cen = Centroid(CId);
@@ -356,6 +347,15 @@ const TIntV& TKMeans<V, LA, M>::GetAssignment() const {
 	return Assignment;
 }
 
+// return similarity of the document to the given cluster
+template<class V, class LA, class M>
+double TKMeans<V, LA, M>::GetDocClusterSim(const int& ClusterId, const int& DocId)
+{
+	AssertR(ClusterId < k, "Requested info about non-existent cluster");
+	AssertR(DocId < GetDocs(), "Requested info about non-existend document");
+	return DCSim[ClusterId][DocId];
+}
+
 template<class V, class LA, class M>
 void TKMeans<V, LA, M>::Apply() {
 	bool stable = false;
@@ -365,25 +365,11 @@ void TKMeans<V, LA, M>::Apply() {
 	for (int Iter = 0; (Iter < maxItr) && !stable; Iter++) {
 		stable = true;
 		// calculate
-#pragma omp parallel for
 		for (int CId = 0; CId < k; CId++) {
 			DocVV->MultiplyT(GetCentroid(CId), DCSim[CId]);
 		}
-		//DocVV.MultiplyT()
-		/*#pragma omp parallel for
-		 for (int d = 0; d < GetDocs(); d++) {
-		 const TIntFltKdV& Doc = GetDoc(d);
-		 for (int c = 0; c < k; c++) {
-		 const TFltV& Cluster = GetCentroid(c);
-		 double Sim = TLinAlg::DotProduct(Cluster, Doc);
-		 //printf("%2.4f\t", Sim);
-		 DCSims(d,c) = Sim;
-		 }
-		 //printf("\n");
-		 }*/
-
+		
 		// reassign
-#pragma omp parallel for
 		for (int DId = 0; DId < GetDocs(); DId++) {
 			double BestSim = 0.0;
 			int BestClust = 0;
@@ -568,3 +554,6 @@ int TKMeans<V, LA, M>::SelectCentroidCenter(double potential,
 	// i is the lucky winner
 	return i;
 }
+
+
+#endif

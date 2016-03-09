@@ -1,0 +1,10 @@
+{
+  "name": "qminer-movies-example",
+  "version": "1.0.0",
+  "description": "Qminer movies example that demonstrates the storage API",
+  "scripts": { "start" : "node movies.js"}, 
+  "license": "ISC",
+  "dependencies": {
+    "qminer-data-loader": "^1.3.0"
+  }
+}

@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 #include "bd.h"
@@ -363,6 +352,9 @@ public:
   static uint GetDateTimeIntFromTm(const TTm& Tm);   
   static TTm GetTmFromDateTimeInt(const uint& DateTimeInt);
   static TSecTm GetSecTmFromDateTimeInt(const uint& DateTimeInt);
+
+  static uint64 GetWinMSecsFromUnixMSecs(const int64& UnixMSecs) { return uint64(UnixMSecs + 11644473600000LL); }
+  static int64 GetUnixMSecsFromWinMSecs(const uint64& WinMSecs) { return int64(WinMSecs) - 11644473600000LL; }
 };
 typedef TVec<TTm> TTmV;
 typedef TPair<TTm, TStr> TTmStrPr;
@@ -391,7 +383,7 @@ public:
     if (GetSecs() < 60) { sprintf(TmStr, "%.2fs", GetSecs()); }
     else if (GetSecs() < 3600) { sprintf(TmStr, "%02dm%02ds", int(GetSecs())/60, int(GetSecs())%60); }
     else { sprintf(TmStr, "%02dh%02dm", int(GetSecs())/3600, (int(GetSecs())%3600)/60); }  return TmStr; }
-  static char* GetCurTm(){ static TStr TmStr; TmStr=TSecTm::GetCurTm().GetTmStr(); return TmStr.CStr(); }
+  static const char* GetCurTm(){ static TStr TmStr; TmStr=TSecTm::GetCurTm().GetTmStr(); return TmStr.CStr(); }
 };
 
 /////////////////////////////////////////////////
@@ -409,7 +401,7 @@ public:
 	void Stop(const TStr& PrintMessage) { Stop(); DispTime(PrintMessage); }
     void Reset(const bool& Start) { TmSoFar = 0; RunningP = Start; ExeTm.Tick(); }
 
-	void DispTime(const TStr& PrintMessage) { printf(":%s :%f\n", PrintMessage.CStr(), GetSec()); }
+	void DispTime(const TStr& PrintMessage) { printf("%s: %f\n", PrintMessage.CStr(), GetSec()); }
     int GetTime() const { return TmSoFar + (RunningP ? ExeTm.GetTime() : 0); }
     double GetSec() const { return double(GetTime()) / double(CLOCKS_PER_SEC); }
     int GetSecInt() const { return TFlt::Round(GetSec()); }

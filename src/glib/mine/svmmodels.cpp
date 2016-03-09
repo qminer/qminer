@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 //////////////////////////////////////////////////////////////////////////
@@ -276,7 +265,7 @@ PSVMTrainSet TSparseTrainSet::LoadTxt(PSIn SIn, const bool& Normalize, const int
                         valChA += ch; //reading value
                     } else if (part == 2 && ch == ' ') {
                         //we just read one component, now we save it
-                        int id = strtol(idChA.CStr(), &s, 10);
+                        int id = (int) strtol(idChA.CStr(), &s, 10);
                         double val = strtod(valChA.CStr(), &s);
                         vec.Add(TIntFltKd(id, val));
                         //ids.Add(id); vals.Add(val);
@@ -290,7 +279,7 @@ PSVMTrainSet TSparseTrainSet::LoadTxt(PSIn SIn, const bool& Normalize, const int
                     ch = buffer[n++];
                     if (part == 2 && (ch == '\r' || ch == '\n' || ch == '#')) {
                         //this is the last component in this line
-                        int id = strtol(idChA.CStr(), &s, 10);
+                        int id = (int) strtol(idChA.CStr(), &s, 10);
                         double val = strtod(valChA.CStr(), &s);
                         vec.Add(TIntFltKd(id, val));
                         //ids.Add(id); vals.Add(val);
@@ -930,70 +919,58 @@ PSVMModel TSVMModel::MakeModel(const bool& Linear,
     Model->Linear = Linear;
 	
     TIntV DIdV; int Len;
-	if (Linear && ModelParam.ModelType == smtClassifier && false) {
-		Model->Thresh = 0;
-		const int MxIter = 1000000;
-		if (SubSet.Len() != 0) {
-			TSVMLargeScale::Solve(TSVMTrainSubSet::New(TrainSet, SubSet), ModelParam.C, 
-				LearnParam.Time, MxIter, LearnParam.SubSize, Model->WgtV);
-		} else {
-			TSVMLargeScale::Solve(TrainSet, ModelParam.C, 
-				LearnParam.Time, MxIter, LearnParam.SubSize, Model->WgtV);
-		}
-	} else {
-		if (SubSet.Len() != 0) {
-			TSVMFactory::train(Model->AlphaV, Model->Thresh.Val, Linear, ker, 
-				TSVMTrainSubSet::New(TrainSet(), SubSet), ModelParam, LearnParam);
-			DIdV = SubSet; Len = SubSet.Len();
-		} else {
-			TSVMFactory::train(Model->AlphaV, Model->Thresh.Val, 
-				Linear, ker, TrainSet(), ModelParam, LearnParam);
+    if (SubSet.Len() != 0) {
+        TSVMFactory::train(Model->AlphaV, Model->Thresh.Val, Linear, ker, 
+            TSVMTrainSubSet::New(TrainSet(), SubSet), ModelParam, LearnParam);
+        DIdV = SubSet; Len = SubSet.Len();
+    } else {
+        TSVMFactory::train(Model->AlphaV, Model->Thresh.Val, 
+            Linear, ker, TrainSet(), ModelParam, LearnParam);
 
-			Len = TrainSet->Len(); DIdV.Gen(Len);
-			for (int i = 0; i < Len; i++) { DIdV[i] = i; }
-		}
+        Len = TrainSet->Len(); DIdV.Gen(Len);
+        for (int i = 0; i < Len; i++) { DIdV[i] = i; }
+    }
 
-		if (ModelParam.ModelType == smtClassifier) {
-			for (int i = 0; i < Len; i++) {
-				Model->AlphaV[i] = TrainSet->GetVecParam(DIdV[i]) * Model->AlphaV[i];
-			}
-		} else if (ModelParam.ModelType == smtRegression) {
-			// rearranges alphas for case of regression
-			IAssert(Model->AlphaV.Len() == 2*Len);
-			for (int i = 0; i < Len; i++) {
-				Model->AlphaV[i] = Model->AlphaV[i+Len] - Model->AlphaV[i];
-			}
-			Model->AlphaV.Trunc(Len);
-			// and invert the threshold
-			Model->Thresh = -1.0 * Model->Thresh;
-		}
+    if (ModelParam.ModelType == smtClassifier) {
+        for (int i = 0; i < Len; i++) {
+            Model->AlphaV[i] = TrainSet->GetVecParam(DIdV[i]) * Model->AlphaV[i];
+        }
+    } else if (ModelParam.ModelType == smtRegression) {
+        // rearranges alphas for case of regression
+        IAssert(Model->AlphaV.Len() == 2*Len);
+        for (int i = 0; i < Len; i++) {
+            Model->AlphaV[i] = Model->AlphaV[i+Len] - Model->AlphaV[i];
+        }
+        Model->AlphaV.Trunc(Len);
+        // and invert the threshold
+        Model->Thresh = -1.0 * Model->Thresh;
+    }
 
-		if (Linear) {
-			TrainSet->LinComb(DIdV, Model->AlphaV, Model->WgtV);
-		} else {
-			if (TrainSet->Type() != ststSimMatrix) {
-				TFltV NewAlphaV; TIntV VecIdV;
-				for (int VecN = 0; VecN < Len; VecN++) {
-					if (TFlt::Abs(Model->AlphaV[VecN]) > EPSILON) {
-						NewAlphaV.Add(Model->AlphaV[VecN]);
-						VecIdV.Add(DIdV[VecN]);
-					}
-				}
-				Model->AlphaV = NewAlphaV; // support vectors alphas
-				Model->SupVecs = TrainSet->Clone(VecIdV);
-			} else {
-				TFltV NewAlphaV(TrainSet->Len()); NewAlphaV.PutAll(0.0);
-				for (int VecN = 0; VecN < Len; VecN++) {
-					NewAlphaV[DIdV[VecN]] = Model->AlphaV[VecN];
-				}
-				Model->AlphaV = NewAlphaV; // alphas for all vectors in the trainset
-				Model->SupVecs = TrainSet;
-			}
-			Model->Kernel = ker;
-		}
+    if (Linear) {
+        TrainSet->LinComb(DIdV, Model->AlphaV, Model->WgtV);
+    } else {
+        if (TrainSet->Type() != ststSimMatrix) {
+            TFltV NewAlphaV; TIntV VecIdV;
+            for (int VecN = 0; VecN < Len; VecN++) {
+                if (TFlt::Abs(Model->AlphaV[VecN]) > EPSILON) {
+                    NewAlphaV.Add(Model->AlphaV[VecN]);
+                    VecIdV.Add(DIdV[VecN]);
+                }
+            }
+            Model->AlphaV = NewAlphaV; // support vectors alphas
+            Model->SupVecs = TrainSet->Clone(VecIdV);
+        } else {
+            TFltV NewAlphaV(TrainSet->Len()); NewAlphaV.PutAll(0.0);
+            for (int VecN = 0; VecN < Len; VecN++) {
+                NewAlphaV[DIdV[VecN]] = Model->AlphaV[VecN];
+            }
+            Model->AlphaV = NewAlphaV; // alphas for all vectors in the trainset
+            Model->SupVecs = TrainSet;
+        }
+        Model->Kernel = ker;
+    }
 
-		Model->AlphaV.Pack();
-	}
+    Model->AlphaV.Pack();
     return Model;
 }
 

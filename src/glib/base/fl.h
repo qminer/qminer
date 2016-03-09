@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 #include "bd.h"
@@ -295,24 +284,27 @@ class TFIn: public TSIn{
 private:
   static const int MxBfL;
   TFileId FileId;
-  char* Bf;
-  int BfC, BfL;
-private:
-  void SetFPos(const int& FPos) const;
-  int GetFPos() const;
-  int GetFLen() const;
-  void FillBf();
-  int FindEol(int& BfN, bool& CrEnd);
-private:
+  char* Bf; //< buffer that was read from the disk and is (partially) usable for future GetBf calls
+  int BfC;  //< index to the next data in Bf that we can use (0 <= BfC <= BfL)	
+  int BfL;  //< the length of the buffer Bf (0 <= BfL <= MxBfL)
+
   TFIn();
   TFIn(const TFIn&);
   TFIn& operator=(const TFIn&);
+
+  void SetFPos(const int& FPos) const;
+  void FillBf();
+  int FindEol(int& BfN, bool& CrEnd);
+  
 public:
   TFIn(const TStr& FNm);
-  TFIn(const TStr& FNm, bool& OpenedP);
+  TFIn(const TStr& FNm, bool& OpenedP, const bool IgnoreBOMIfExistsP = false);
   static PSIn New(const TStr& FNm);
-  static PSIn New(const TStr& FNm, bool& OpenedP);
+  static PSIn New(const TStr& FNm, bool& OpenedP, const bool IgnoreBOMIfExistsP = false);
   ~TFIn();
+
+  int GetFPos() const;
+  int GetFLen() const;
 
   bool Eof(){
     if ((BfC==BfL)&&(BfL==MxBfL)){FillBf();}
@@ -425,6 +417,7 @@ public:
   char GetCh();
   char PeekCh();
   int GetBf(const void* LBf, const TSize& LBfL);
+  void GetBfMemCpy(void* LBf, const TSize& LBfL);
   void Reset(){Cs=TCs(); BfC=0;}
   bool GetNextLnBf(TChA& LnChA);
 
@@ -469,6 +462,8 @@ public:
   bool IsEolnLn() const;
   TStr GetEolnLn(const bool& DoAddEoln, const bool& DoCutBf);
   void MkEolnLn();
+  void Seek(const int& ChN) {
+	  IAssert((0 <= ChN) && (ChN < BfL)); BfL = ChN; };
 };
 
 /////////////////////////////////////////////////
@@ -590,6 +585,8 @@ public:
   static void Copy(const TStr& SrcFNm, const TStr& DstFNm, 
     const bool& ThrowExceptP=true, const bool& FailIfExistsP=false);
   static bool Del(const TStr& FNm, const bool& ThrowExceptP=true);
+  static bool Move(const TStr& SrcFNm, const TStr& DstFNm,
+	const bool& ThrowExceptP = true, const bool& FailIfExistsP = false);
   static void DelWc(const TStr& WcStr, const bool& RecurseDirP=false);
   static void Rename(const TStr& SrcFNm, const TStr& DstFNm);
   static TStr GetUniqueFNm(const TStr& FNm);

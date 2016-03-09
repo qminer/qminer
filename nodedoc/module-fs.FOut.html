@@ -1,0 +1,283 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="generator" content="JSDoc 3">
+  <meta charset="utf-8">
+  <title>Class: FOut</title>
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
+  <link href="css/baseline.css" rel="stylesheet">
+</head>
+
+<body onload="prettyPrint()">
+  <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
+    <div id="jsdoc-navbar-container">
+      <div id="jsdoc-navbar-content">
+        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+      </div>
+    </div>
+  </nav>
+  <div id="jsdoc-body-container">
+    <div id="jsdoc-content">
+      <div id="jsdoc-content-container">
+        <div id="jsdoc-main" role="main">
+          <header class="page-header">
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-fs.html">fs</a>.<wbr></small><span class="symbol-name">FOut</span></h1>
+            <p class="source-link">Source: <a href="fsdoc.js.html#source-line-186">fsdoc.<wbr>js:186</a></p>
+            <div class="symbol-classdesc">
+              <p>Used for writing files.</p>
+            </div>
+            <dl class="dl-compact">
+            </dl>
+          </header>
+          <section id="summary">
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Methods</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-fs.FOut.html#close">close()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-fs.FOut.html#flush">flush()</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-fs.FOut.html#write">write(arg)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-fs.FOut.html#writeBinary">writeBinary(str)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-fs.FOut.html#writeLine">writeLine(str)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section>
+            <h2 id="FOut">new&nbsp;<span class="symbol-name">FOut</span><span class="signature"><span class="signature-params">(fileName[, append])</span></span></h2>
+            <p>Output file stream.</p>
+            <section>
+              <h3>
+            Example
+        </h3>
+              <div>
+                <pre class="prettyprint"><code>// import module
+var fs = require(&#x27;qminer&#x27;).fs;
+// open file in write mode
+var fout = new fs.FOut(&#x27;file.txt&#x27;);
+// write a line
+fout.writeLine(&#x27;example text&#x27;);
+// close
+fout.close();</code></pre>
+              </div>
+            </section>
+            <section>
+              <h3>Parameters</h3>
+              <table class="jsdoc-details-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Optional</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <p>fileName</p>
+                    </td>
+                    <td>
+                      <p>String</p>
+                    </td>
+                    <td>
+                      <p>&nbsp;</p>
+                    </td>
+                    <td>
+                      <p>File name</p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p>append</p>
+                    </td>
+                    <td>
+                      <p>boolean</p>
+                    </td>
+                    <td>
+                      <p>Yes</p>
+                    </td>
+                    <td>
+                      <p>Append flag</p>
+                      <p>Defaults to <code>false</code>.</p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
+            <dl class="dl-compact">
+            </dl>
+          </section>
+          <section>
+            <h2>Methods</h2>
+            <section>
+              <h3 id="close"><span class="symbol-name">close</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Closes the output stream</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="flush"><span class="symbol-name">flush</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
+              <p>Flushes the output stream</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;Self.</p>
+                </dd>
+              </dl>
+              <h3 id="write"><span class="symbol-name">write</span><span class="signature"><span class="signature-params">(arg)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
+              <p>Writes a string or number or a JSON object in human readable form</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>arg</p>
+                      </td>
+                      <td>
+                        <p>(String, Number, or Object)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Argument to write</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;Self.</p>
+                </dd>
+              </dl>
+              <h3 id="writeBinary"><span class="symbol-name">writeBinary</span><span class="signature"><span class="signature-params">(str)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
+              <p>Writes a string or number or a JSON object in binary form</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>str</p>
+                      </td>
+                      <td>
+                        <p>(String, Number, or Object)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Argument to write</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;Self.</p>
+                </dd>
+              </dl>
+              <h3 id="writeLine"><span class="symbol-name">writeLine</span><span class="signature"><span class="signature-params">(str)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
+              <p>Writes a string and adds a new line</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>str</p>
+                      </td>
+                      <td>
+                        <p>String</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>String to write</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;Self.</p>
+                </dd>
+              </dl>
+            </section>
+          </section>
+        </div>
+      </div>
+      <nav id="jsdoc-toc-nav" role="navigation"></nav>
+    </div>
+  </div>
+  <footer id="jsdoc-footer" class="jsdoc-footer">
+    <div id="jsdoc-footer-container">
+      <p>
+        
+      </p>
+    </div>
+  </footer>
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/jquery.cookie.js"></script>
+  <script src="scripts/tree.jquery.js"></script>
+  <script src="scripts/prettify.js"></script>
+  <script src="scripts/jsdoc-toc.js"></script>
+  <script src="scripts/linenumber.js"></script>
+  <script src="scripts/scrollanchor.js"></script>
+</body>
+
+</html>

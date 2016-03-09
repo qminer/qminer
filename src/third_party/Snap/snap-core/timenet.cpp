@@ -105,7 +105,7 @@ PGStatVec TTimeNet::TimeGrowth(const TTmUnit& TmUnit, const TFSet& TakeStat, con
 
 void TTimeNet::PlotEffDiam(const TStr& FNmPref, const TStr& Desc, const TTmUnit& TmUnit,
                            const TSecTm& StartTm, const int& NDiamRuns, const bool& OnlyWcc, const bool& AlsoRewire) const {
-  const TStr WccStr = OnlyWcc ? "WCC " : TStr::GetNullStr();
+  const TStr WccStr = OnlyWcc ? "WCC " : TStr();
   TTmBucketV TmBucketV;
   GetTmBuckets(TmUnit, TmBucketV);
   TIntV NodeIdV;
@@ -391,7 +391,7 @@ PTimeNet TTimeNet::LoadArxiv(const TStr& PaperFNm, const TStr& CiteFNm) {
   int N = 0, DuplicateNode = 0;
   while (! feof(PprF)) {
     Line[0] = 0;
-    fgets(Line, 1024, PprF);
+	EAssert(fgets(Line, 1024, PprF) != NULL);
     if (strlen(Line) == 0 || Line[0] == '#') continue;
     Line[strlen(Line)-1] = 0; // delete trailing '\n'
     TStr(Line).SplitOnWs(StrV);  IAssert(StrV.Len() == 2);
@@ -417,7 +417,7 @@ PTimeNet TTimeNet::LoadArxiv(const TStr& PaperFNm, const TStr& CiteFNm) {
   THash<TInt, TSecTm> NIdToTimeH;
   while (! feof(CiteF)) {
     Line[0] = 0;
-    fgets(Line, 1024, CiteF);
+	EAssert(fgets(Line, 1024, CiteF) != NULL);
     if (strlen(Line) == 0 || Line[0] == '#') continue;
     Line[strlen(Line)-1] = 0; // delete trailing '\n'
     TStr(Line).SplitOnWs(StrV);  IAssert(StrV.Len() == 2);
@@ -488,10 +488,10 @@ PTimeNet TTimeNet::LoadPatents(const TStr& PatentFNm, const TStr& CiteFNm) {
   TStrV ColV;
   char Line [1024];
   FILE *PatF = fopen(PatentFNm.CStr(), "rt");
-  fgets(Line, 1024, PatF); // skip 1st line
+  EAssert(fgets(Line, 1024, PatF) != NULL); // skip 1st line
   while (! feof(PatF)) {
     Line[0] = 0;
-    fgets(Line, 1024, PatF);
+	EAssert(fgets(Line, 1024, PatF) != NULL);
     if (strlen(Line) == 0) break;
     TStr(Line).SplitOnAllCh(',', ColV, false);
     IAssert(ColV.Len() == 23);
@@ -509,10 +509,10 @@ PTimeNet TTimeNet::LoadPatents(const TStr& PatentFNm, const TStr& CiteFNm) {
   N = 0;  ExeTm.Tick();
   TStr SrcId, DstId;
   FILE *CiteF = fopen(CiteFNm.CStr(), "rt");
-  fgets(Line, 1024, CiteF); // skip 1st line
+  EAssert(fgets(Line, 1024, CiteF) != NULL); // skip 1st line
   while (! feof(CiteF)) {
     Line[0] = 0;
-    fgets(Line, 1024, CiteF);
+	EAssert(fgets(Line, 1024, CiteF) != NULL);
     if (strlen(Line) == 0) break;
     Line[strlen(Line)-1] = 0; // delete trailing '\n'
     TStr(Line).SplitOnCh(SrcId, ',', DstId);
@@ -569,7 +569,7 @@ PTimeNet TTimeNet::LoadAmazon(const TStr& StlFNm) {
   FILE *F = fopen(StlFNm.CStr(), "rt");
   while (! feof(F)) {
     memset(line, 0, 2024);
-    fgets(line, 2024, F);
+	EAssert(fgets(line, 2024, F) != NULL);
     if (strlen(line) == 0) break;
     TStr(line).SplitOnAllCh(',', ColV);
     const int SrcNId = ColV[0].GetInt();
@@ -578,8 +578,8 @@ PTimeNet TTimeNet::LoadAmazon(const TStr& StlFNm) {
     TStr TmStr = ColV[2]; // time-format: 29JAN02:21:55:23
     int Year = TmStr.GetSubStr(5, 6).GetInt();
     if (Year < 10) { Year += 2000; } else { Year += 1900; }
-    MonthStr[0]=toupper(TmStr[2]);  MonthStr[1]=tolower(TmStr[3]);
-    MonthStr[2]=tolower(TmStr[4]);  MonthStr[3]=0;
+    MonthStr[0] = (char) toupper(TmStr[2]);  MonthStr[1] = (char) tolower(TmStr[3]);
+    MonthStr[2] = (char) tolower(TmStr[4]);  MonthStr[3] = 0;
     const int Month = TTmInfo::GetMonthN(MonthStr, lUs);
     const int Day = TmStr.GetSubStr(0, 1).GetInt();
     const int Hour = TmStr.GetSubStr(8, 9).GetInt();
@@ -956,7 +956,7 @@ void TTimeNENet::PlotEffDiam(const TStr& FNmPref, const TStr& Desc, const TTmUni
     NdsDiamV.Add(TFltTr(PreGraph->GetNodes(), Mom.GetMean(), Mom.GetSDev()));
     NdsDiamV.Sort();
     printf("  [%s]          \n", ExeTm.GetTmStr());
-    const TStr WccStr = OnlyWcc ? "WCC " : TStr::GetNullStr();
+    const TStr WccStr = OnlyWcc ? "WCC " : TStr();
     { TGnuPlot GnuPlot("diamEff1."+FNmPref, TStr::Fmt("%s. G(%d, %d). %d RUNS.", Desc.CStr(), GetNodes(), GetEdges(), NDiamRuns));
     GnuPlot.SetXYLabel(TStr::Fmt("TIME [%s]", TTmInfo::GetTmUnitStr(TmUnit).CStr()), "AVERAGE "+WccStr+"Effective Diameter");
     GnuPlot.AddErrBar(TmDiamV, "", "");

@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 #ifndef zipfl_h
@@ -25,10 +14,15 @@
 /// This is eachieved by running external 7ZIP program which uncompresses to standard output, which is then piped to TZipFl.
 /// The class requires 7ZIP to be installed on the machine. Go to http://www.7-zip.org to install the software.
 /// 7z (7z.exe) is an executable and can decompress the following formats: .gz, .7z, .rar, .zip, .cab, .arj. bzip2.
-/// The class TZIpIn expects that '7z' ('7z.exe') is in the working path. Make sure you can execute '7z e -y -bd -so <FILENAME>'
-/// Note: You can only load .gz files of uncompressed size <2GB. If you load some other format (like .bz2 or rar) there is no such limitation.
-/// Note2: For 7z to work properly you need both the 7z executable and the directory 'Codecs'.
+/// The class TZipIn expects that '7z' ('7z.exe') is in the working path. Make sure you can execute '7z e -y -bd -so <FILENAME>'
+/// For 7z to work properly you need both the 7z executable and the directory 'Codecs'.
+/// Use TZipIn::SevenZipPath to set the path to 7z executable.
+///
+/// NOTE: Current implementation of TZipIn supports only .zip format, other compression formats are not supported.
+// Obsolete note (RS 2014/01/29): You can only load .gz files of uncompressed size <2GB. If you load some other format (like .bz2 or rar) there is no such limitation.
 class TZipIn : public TSIn {
+public:
+  static TStr SevenZipPath;
 private:
   static TStrStrH FExtToCmdH;
   static const int MxBfL;
@@ -84,6 +78,7 @@ public:
 /// 7z (7z.exe) is an executable and can decompress the following formats: .gz, .7z, .rar, .zip, .cab, .arj. bzip2.
 /// The class TZIpOut expects that '7z' ('7z.exe') is in the working path.
 /// Note2: For 7z to work properly you need both the 7z executable and the directory 'Codecs'.
+/// Note3: Use TZipIn::SevenZipPath to set the path to 7z executable.
 class TZipOut : public TSOut{
 private:
   static const TSize MxBfL;

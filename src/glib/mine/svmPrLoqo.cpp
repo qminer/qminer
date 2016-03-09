@@ -21,6 +21,11 @@
 #define PREDICTOR 1
 #define CORRECTOR 2
 
+ 
+#ifdef GLib_WIN
+#pragma optimize( "", off )
+#endif
+ 
 /*****************************************************************
 replace this by any other function that will exit gracefully
 in a larger system
@@ -277,7 +282,7 @@ int TPrLoqo::pr_loqo(int n, int m, double c[], double h_x[], double a[], double 
     double sigfig;
     double primal_obj, dual_obj;
     double mu;
-    double alfa;//, step;
+    double alfa = -1;//, step;
     int counter = 0;
 
     int status = STILL_RUNNING;
@@ -602,3 +607,6 @@ int TPrLoqo::pr_loqo(int n, int m, double c[], double h_x[], double a[], double 
     return status;
 }
 
+#ifdef GLib_WIN
+#pragma optimize( "", on )
+#endif

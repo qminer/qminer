@@ -1,8 +1,16 @@
+##
+## Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+## All rights reserved.
+## 
+## This source code is licensed under the FreeBSD license found in the
+## LICENSE file in the root directory of this source tree.
+##
+
 #
 # GLib makefile
 #
 
-include ../../Makefile.config
+include Makefile.config
 
 # library headers include
 LIBUV = ../third_party/libuv/include
@@ -10,7 +18,7 @@ BASE = ./base/
 MINE = ./mine/
 MISC = ./misc/
 # main object files
-MAINOBJS = base.o net.o mine.o thread.o
+MAINOBJS = base.o net.o mine.o thread.o sole.o
 
 #entry point
 all: libuv glib
@@ -44,6 +52,9 @@ mine.o: ./mine/*.h ./mine/*.cpp
 
 thread.o: ./concurrent/*.h ./concurrent/*.cpp ./concurrent/posix/*.h ./concurrent/posix/*.cpp
 	$(CC) -c $(CXXFLAGS) ./concurrent/thread.cpp -I$(BASE) $(LIBS)
+
+sole.o: $(SOLE_DIR)/sole.cpp $(SOLE_DIR)/sole.hpp
+	$(CC) -c $(CXXFLAGS) $(SOLE_DIR)/sole.cpp -I$(SOLE_DIR)
 
 clean:
 	rm -f *.o *.gch *.a

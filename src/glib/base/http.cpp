@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 /////////////////////////////////////////////////
@@ -487,7 +476,7 @@ public:
 /////////////////////////////////////////////////
 // Http-Request
 void THttpRq::ParseSearch(const TStr& SearchStr){
-  PSIn SIn=TStrIn::New(SearchStr);
+  PSIn SIn=TStrIn::New(SearchStr, false);
   THttpChRet ChRet(SIn, heBadSearchStr);
   try {
   // check empty search string
@@ -592,15 +581,33 @@ void THttpRq::ParseHttpRq(const PSIn& SIn){
   // search string
   TStr SearchStr;
   if (Method==hrmGet){
-    SearchStr=Url->GetSearchStr();
-  } else
-  if ((Method==hrmPost)&&(
-   (!IsFldNm(THttp::ContTypeFldNm))||
-   (GetFldVal(THttp::ContTypeFldNm)==THttp::TextHtmlFldVal)||
-   (GetFldVal(THttp::ContTypeFldNm)==THttp::AppW3FormFldVal))){
-    SearchStr=TStr("?")+BodyMem.GetAsStr();
+	  ParseSearch(Url->GetSearchStr());
+  } 
+  else if ((Method == hrmPost) && (
+	  (!IsFldNm(THttp::ContTypeFldNm)) ||
+	  (GetFldVal(THttp::ContTypeFldNm).SearchStr(THttp::TextHtmlFldVal) >= 0) ||		// content-type can also contain "charset=utf-8"
+	  (GetFldVal(THttp::ContTypeFldNm).SearchStr(THttp::AppW3FormFldVal) >= 0))) {
+	  ParseSearch(TStr("?") + BodyMem.GetAsStr());
   }
-  ParseSearch(SearchStr);
+  // if json object then parse the object values
+  else if (Method == hrmPost && GetFldVal(THttp::ContTypeFldNm).SearchStr(THttp::AppJSonFldVal) >= 0) {
+	  bool Ok; TStr MsgStr;
+	  PJsonVal Json = TJsonVal::GetValFromStr(BodyMem.GetAsStr(), Ok, MsgStr);
+	  if (Ok && Json->IsObj()) {
+		  for (int N = 0; N < Json->GetObjKeys(); N++) {
+			  const TStr Key = Json->GetObjKey(N);
+			  PJsonVal ValJson = Json->GetObjKey(Key);
+			  if (ValJson->IsStr()) UrlEnv->AddToKeyVal(Key, ValJson->GetStr());	  // don't put strings into additional ""
+			  else if (ValJson->IsArr()) {
+				  for (int K = 0; K < ValJson->GetArrVals(); K++) {
+					  if (ValJson->GetArrVal(K)->IsStr()) UrlEnv->AddToKeyVal(Key, ValJson->GetArrVal(K)->GetStr());	  // don't put strings into additional ""
+					  else	UrlEnv->AddToKeyVal(Key, ValJson->GetArrVal(K)->SaveStr());
+				  }
+			  }
+			  else	UrlEnv->AddToKeyVal(Key, ValJson->SaveStr());
+		  }
+	  }
+  }
   // at this point ok=true
   Ok=true;
 }
@@ -798,7 +805,8 @@ void THttpResp::ParseHttpResp(const PSIn& SIn){
   if (Lx.Eof()){
     // no content
     MajorVerN=0; MinorVerN=9; StatusCd=204;
-    HdStr.Clr(); BodyMem.Clr();
+    HdStr = TStr();
+    BodyMem = TStr();
   } else {
     if (Lx.IsRespStatusLn()){
       // status-line
@@ -825,7 +833,7 @@ void THttpResp::ParseHttpResp(const PSIn& SIn){
     } else {
       // old fashion format
       MajorVerN=0; MinorVerN=9; StatusCd=200;
-      HdStr.Clr();
+      HdStr = TStr();
       Lx.ClrMemSf();
       Lx.GetRest();
       BodyMem=Lx.GetMemSf();
@@ -910,7 +918,7 @@ bool THttpResp::IsFldVal(const TStr& FldNm, const TStr& FldVal) const {
 void THttpResp::AddFldVal(const TStr& FldNm, const TStr& FldVal){
   TStr NrFldNm=THttpLx::GetNrStr(FldNm);
   FldNmToValVH.AddDat(NrFldNm).Add(FldVal);
-  if (HdStr.IsSuffix("\r\n\r\n")){
+  if (HdStr.EndsWith("\r\n\r\n")){
     TChA HdChA=HdStr;
     HdChA.Pop(); HdChA.Pop(); 
     HdChA+=NrFldNm; HdChA+=": "; HdChA+=FldVal;
@@ -932,7 +940,7 @@ void THttpResp::GetCookieKeyValDmPathQuV(TStrQuV& CookieKeyValDmPathQuV){
       TStr KeyNm; TStr ValStr; 
       if (KeyValStr.IsChIn('=')){
         KeyValStrV[KeyValStrN].SplitOnCh(KeyNm, '=', ValStr);
-        KeyNm.ToTrunc(); ValStr.ToTrunc();
+		KeyNm = KeyNm.GetTrunc(); ValStr = ValStr.GetTrunc();
       } else {
         KeyNm=KeyValStr.GetTrunc();
       }

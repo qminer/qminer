@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 ///////////////////////////////
@@ -41,7 +30,7 @@ PTokenizer TTokenizer::Load(TSIn& SIn) {
 }
 
 void TTokenizer::GetTokens(const TStr& Text, TStrV& TokenV) const {
-	PSIn SIn = TStrIn::New(Text);
+	PSIn SIn = TStrIn::New(Text, false);
 	GetTokens(SIn, TokenV);
 }
 
@@ -89,7 +78,7 @@ void TSimple::GetTokens(const PSIn& SIn, TStrV& TokenV) const {
 			if (SwSet.Empty() || (!SwSet->IsIn(UcStr))) {
 				TStr TokenStr = ToUcP ? UcStr : WordStr;
 				if (!Stemmer.Empty()) {	
-					TokenStr = Stemmer->GetStem(TokenStr); }
+					TokenStr = Stemmer->GetStem(TokenStr,ToUcP); }
 				TokenV.Add(TokenStr);
 			}
 		}
@@ -145,7 +134,7 @@ void THtml::GetTokens(const PSIn& SIn, TStrV& TokenV) const {
 THtmlUnicode::THtmlUnicode(const PSwSet& _SwSet, const PStemmer& _Stemmer, 
         const bool& _ToUcP): THtml(_SwSet, _Stemmer, _ToUcP) {
         
-    EAssertR(TUnicodeDef::IsDef(), "Unicode not initilaized!"); 
+    EAssertR(TUnicodeDef::IsDef(), "Unicode not initialized!");
 }
 
 PTokenizer THtmlUnicode::New(const PJsonVal& ParamVal) {
@@ -170,7 +159,7 @@ void THtmlUnicode::GetTokens(const PSIn& SIn, TStrV& TokenV) const {
 	TStr LineStr; TStrV WordStrV;    
 	while (SIn->GetNextLn(LineStr)) {
         TStr SimpleText = TUStr(LineStr).GetStarterLowerCaseStr();
-        THtml::GetTokens(TStrIn::New(SimpleText), TokenV);
+        THtml::GetTokens(TStrIn::New(SimpleText, false), TokenV);
 	}
 }
 
@@ -200,7 +189,6 @@ void TTokenizerUtil::Sentencize(const PSIn& SIn, TStrV& Sentences, const bool& S
 			case '\t': {
 				if (SentenceBuf.Len() > 2) {
 					Sentences.Add(SentenceBuf);
-					printf("%s\n", SentenceBuf.CStr());
 					SentenceBuf.Clr();
 				}
 				break;
@@ -216,7 +204,7 @@ void TTokenizerUtil::Sentencize(const PSIn& SIn, TStrV& Sentences, const bool& S
 }
 
 void TTokenizerUtil::Sentencize(const TStr& Text, TStrV& Sentences, const bool& SplitNewLineP) {
-	PSIn StrIn = TStrIn::New(Text);
+	PSIn StrIn = TStrIn::New(Text, false);
 	Sentencize(StrIn, Sentences, SplitNewLineP);
 }
 
@@ -245,7 +233,7 @@ void TTokenizerUtil::Paragraphize(const PSIn& SIn, TStrV& Paragraphs) {
 }
 
 void TTokenizerUtil::Paragraphize(const TStr& Text, TStrV& Paragraphs) {
-	PSIn StrIn = TStrIn::New(Text);
+	PSIn StrIn = TStrIn::New(Text, false);
 	Paragraphize(StrIn, Paragraphs);
 }
 

@@ -1,0 +1,443 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="generator" content="JSDoc 3">
+  <meta charset="utf-8">
+  <title>Class: LogReg</title>
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
+  <link href="css/baseline.css" rel="stylesheet">
+</head>
+
+<body onload="prettyPrint()">
+  <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
+    <div id="jsdoc-navbar-container">
+      <div id="jsdoc-navbar-content">
+        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+      </div>
+    </div>
+  </nav>
+  <div id="jsdoc-body-container">
+    <div id="jsdoc-content">
+      <div id="jsdoc-content-container">
+        <div id="jsdoc-main" role="main">
+          <header class="page-header">
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">LogReg</span></h1>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1013">analyticsdoc.<wbr>js:1013</a></p>
+            <dl class="dl-compact">
+            </dl>
+          </header>
+          <section id="summary">
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Property</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.LogReg.html#weights">weights</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                </div>
+                <div class="summary-column">
+                </div>
+              </div>
+            </div>
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Methods</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.LogReg.html#fit">fit(X, y[, eps])</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.LogReg.html#getParams">getParams()</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.LogReg.html#predict">predict(x)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.LogReg.html#save">save(fout)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.LogReg.html#setParams">setParams(param)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section>
+            <h2 id="LogReg">new&nbsp;<span class="symbol-name">LogReg</span><span class="signature"><span class="signature-params">([opts])</span></span></h2>
+            <p>Logistic regression model. Uses Newtons method to compute the weights.
+              <b>Before use: include BLAS library.</b></p>
+            <section>
+              <h3>
+            Example
+        </h3>
+              <div>
+                <pre class="prettyprint"><code>// import analytics module
+var analytics = require(&#x27;qminer&#x27;).analytics;
+// create the Logistic Regression model
+var logreg = new analytics.LogReg({ lambda: 2 });</code></pre>
+              </div>
+            </section>
+            <section>
+              <h3>Parameter</h3>
+              <table class="jsdoc-details-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Optional</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <p>opts</p>
+                    </td>
+                    <td>
+                      <p>(<a href="module-analytics.html#~logisticRegParam">module:analytics~logisticRegParam</a> or <a href="module-fs.FIn.html">module:fs.FIn</a>)</p>
+                    </td>
+                    <td>
+                      <p>Yes</p>
+                    </td>
+                    <td>
+                      <p>The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.</p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
+            <dl class="dl-compact">
+            </dl>
+          </section>
+          <section>
+            <h2>Property</h2>
+            <section>
+              <h3 id="weights"><span class="symbol-name">weights</span></h3>
+              <p>Gives the weights of the model.</p>
+              <dl class="dl-compact">
+              </dl>
+            </section>
+            <h2>Methods</h2>
+            <section>
+              <h3 id="fit"><span class="symbol-name">fit</span><span class="signature"><span class="signature-params">(X, y[, eps])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.LogReg.html">module:analytics.LogReg</a></span></span></h3>
+              <p>Fits a column matrix of feature vectors X onto the response variable y.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import modules
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
+// create the logistic regression model
+var logreg = new analytics.LogReg();
+// create the input matrix and vector for fitting the model
+var mat = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+var vec = new la.Vector([1, 0, -1, -2]);
+// if openblas is used, fit the model
+if (require(&#x27;qminer&#x27;).flags.blas) {
+    logreg.fit(mat, vec);
+}</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>X</p>
+                      </td>
+                      <td>
+                        <p><a href="module-la.Matrix.html">module:la.Matrix</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>the column matrix which stores the feature vectors.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>y</p>
+                      </td>
+                      <td>
+                        <p><a href="module-la.Vector.html">module:la.Vector</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>the response variable.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>eps</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>the epsilon used for convergence.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-analytics.LogReg.html">module:analytics.LogReg</a></code>&nbsp;Self.</p>
+                </dd>
+              </dl>
+              <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.html#~logisticRegParam">module:analytics~logisticRegParam</a></span></span></h3>
+              <p>Gets the parameters.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import analytics module
+var analytics = require(&#x27;qminer&#x27;).analytics;
+// create the Logistic Regression model
+var logreg = new analytics.LogReg({ lambda: 10 });
+// get the parameters of the model
+var param = logreg.getParams(); // returns { lambda: 10, intercept: false }</code></pre>
+                </div>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-analytics.html#~logisticRegParam">module:analytics~logisticRegParam</a></code>&nbsp;The parameters of the model.</p>
+                </dd>
+              </dl>
+              <h3 id="predict"><span class="symbol-name">predict</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <p>Returns the expected response for the provided feature vector.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import modules
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
+// create the logistic regression model
+var logreg = new analytics.LogReg();
+// create the input matrix and vector for fitting the model
+var mat = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+var vec = new la.Vector([1, 0, -1, -2]);
+// if openblas is used
+if (require(&#x27;qminer&#x27;).flags.blas) {
+    // fit the model
+    logreg.fit(mat, vec);
+    // create the vector for the prediction
+    var test = new la.Vector([1, 1]);
+    // get the prediction
+    var prediction = logreg.predict(test);
+};</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>x</p>
+                      </td>
+                      <td>
+                        <p><a href="module-la.Vector.html">module:la.Vector</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>the feature vector.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>number</code>&nbsp;the expected response.</p>
+                </dd>
+              </dl>
+              <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
+              <p>Saves the model into the output stream.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import modules
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
+var fs = require(&#x27;qminer&#x27;).fs;
+// create the logistic regression model
+var logreg = new analytics.LogReg();
+// create the input matrix and vector for fitting the model
+var mat = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+var vec = new la.Vector([1, 0, -1, -2]);
+// if openblas is used, fit the model
+if (require(&#x27;qminer&#x27;).flags.blas) {
+    logreg.fit(mat, vec);
+};
+// create an output stream object and save the model
+var fout = fs.openWrite(&#x27;logreg_example.bin&#x27;);
+logreg.save(fout);
+fout.close();
+// create input stream
+var fin = fs.openRead(&#x27;logreg_example.bin&#x27;);
+// create a Logistic Regression object that loads the model and parameters from input stream
+var logreg2 = new analytics.LogReg(fin);</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>fout</p>
+                      </td>
+                      <td>
+                        <p><a href="module-fs.FOut.html">module:fs.FOut</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>the output stream.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;The output stream fout.</p>
+                </dd>
+              </dl>
+              <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(param)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.LogReg.html">module:analytics.LogReg</a></span></span></h3>
+              <p>Set the parameters.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import analytics module
+var analytics = require(&#x27;qminer&#x27;).analytics;
+// create a logistic regression model
+var logreg = new analytics.LogReg({ lambda: 10 });
+// set the parameters of the model
+logreg.setParams({ lambda: 1 });</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>param</p>
+                      </td>
+                      <td>
+                        <p><a href="module-analytics.html#~logisticRegParam">module:analytics~logisticRegParam</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The new parameters.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-analytics.LogReg.html">module:analytics.LogReg</a></code>&nbsp;Self. The parameters are updated.</p>
+                </dd>
+              </dl>
+            </section>
+          </section>
+        </div>
+      </div>
+      <nav id="jsdoc-toc-nav" role="navigation"></nav>
+    </div>
+  </div>
+  <footer id="jsdoc-footer" class="jsdoc-footer">
+    <div id="jsdoc-footer-container">
+      <p>
+        
+      </p>
+    </div>
+  </footer>
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/jquery.cookie.js"></script>
+  <script src="scripts/tree.jquery.js"></script>
+  <script src="scripts/prettify.js"></script>
+  <script src="scripts/jsdoc-toc.js"></script>
+  <script src="scripts/linenumber.js"></script>
+  <script src="scripts/scrollanchor.js"></script>
+</body>
+
+</html>

@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 //////////////////////////////////////////////////////////////////////////
@@ -526,7 +515,7 @@ private:
     //copy constructor and some operators we don't want to use
     UndefDefaultCopyAssign(TSVMQP);
 public:
-    TSVMQP(const int& nn, const int& mm = 1, const double& ll = 0.0);
+    TSVMQP(const int& nn, const int& mm = 1, const double& ll = 0.0);	// FIXME Q is not initialized in this constructor
     ~TSVMQP();
 
     /** Solves given problem
@@ -811,7 +800,7 @@ public:
       const int& _h = 10, const int& _minNumElts = 10):
         verbosity(verb),
         epsilon_ter(eps_ter), is_linear(lin), nonlin_kernel(ker),
-        shrinking(_shrinking), h(_h), minNumElts(_minNumElts), cache(verbosity) {};
+        shrinking(_shrinking), h(_h), minNumElts(_minNumElts), cache(verbosity) {};	// FIXME NSV is not initialized in this constructor
 
     /** Finds minimum for given problem
         alphas -- vector to which calculated alphas will be stored
@@ -829,15 +818,6 @@ public:
             const TFltV& _pV, const TFltV& _yV, const double& _D,
             const TFltV& _CV, const int& sub_size, const int& memory_size,
             const int& time);
-};
-
-//////////////////////////////////////////////////////////////////////////
-// Linear-Large-Scale-SVM
-class TSVMLargeScale {
-public:
-    static void Solve(PSVMTrainSet TrainSet, const double& SvmCost,
-        const int& MxTime, const int& MxIter, const int& _SampleSize, 
-		TFltV& WgtV, const PNotify& Notify = TStdNotify::New());
 };
 
 //////////////////////////////////////////////////////////////////////////

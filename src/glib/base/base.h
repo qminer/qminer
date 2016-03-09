@@ -1,24 +1,19 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 #ifndef base_h
 #define base_h
+
+#ifndef INDEX_64
+typedef int index_t;
+#else
+typedef long long index_t;
+#endif
 
 /////////////////////////////////////////////////
 // Environment defines
@@ -34,7 +29,6 @@
 #elif defined(__sun__)
   #define GLib_UNIX
   #define GLib_SOLARIS __sun__
-  // !bn: defined in ctype_iso.h but apears as a parameter in GLib
   #undef _C
 #elif defined(__FreeBSD__)
   #define GLib_UNIX
@@ -57,16 +51,20 @@
 #endif
 #if defined (__GNUC__)
   #define GLib_GCC __GNUC__
-// !bn: to bo not samo dokler ne ugotovim kje so primerjave problematicne
   #ifdef FLTWARN
     #undef _CMPWARN
     #define _CMPWARN __attribute__ ((deprecated))
   #endif
 #endif
 
+// if you need to compile with older compiler (C++98 standard)
+// comment the bottom define
+#define GLib_CPP11
+
 // includes
 #if defined (GLib_WIN)
   #define WIN32_LEAN_AND_MEAN
+  #define NOMINMAX
   #include <windows.h>
   #include <oleauto.h>
   #include <shellapi.h>
@@ -137,13 +135,16 @@
 #endif
 
 #if defined(GLib_MACOSX)
-  // On OS X Maverics there is not default support for OpenMP
+  // On OS X Maverics there is no default support for OpenMP
+#elif defined(__clang__)
+  // Default clang on Linux also does not support OpenMP
 #else
   #define GLib_OPENMP
 #endif
 
 #include <ctype.h>
 #include <float.h>
+#include <complex>
 #include <limits.h>
 #include <math.h>
 #include <stdio.h>
@@ -157,6 +158,23 @@
   #define timezone _timezone
 #endif
 
+// for Snapworld, switch is defined to include util.h:WriteN()
+//#if (defined(GLib_UNIX) && !defined(SWIG)) || (defined(SWIG_SW))
+#if defined(SWIG_SW)
+  #define SW_WRITEN
+#endif
+
+// for backtrace dump in G++, change SW_TRACE to 1
+#if defined(GLib_UNIX)
+  #define SW_TRACE 1
+#endif
+
+// for Snap.py, switch 'no abort' is defined and NDEBUG is turned off
+#if defined(SW_SNAPPY)
+  #define SW_NOABORT
+  #undef NDEBUG
+#endif
+
 #include "bd.h"
 #include "fl.h"
 #include "dt.h"
@@ -164,16 +182,17 @@
 #include "ds.h"
 #include "bits.h"
 #include "hash.h"
-#include "strut.h"
 #include "xml.h"
+#include "shash.h"
+#include "strut.h"
 
 #include "xmath.h"
+#include "stat.h"
 #include "xmlser.h"
 
 #include "unicode.h"
 #include "unicodestring.h"
 #include "tm.h"
-#include "shash.h"
 #include "os.h"
 
 #include "env.h"
@@ -195,6 +214,8 @@
 #include "tensor.h"
 #include "json.h"
 #include "zipfl.h"
+#include "pgblob.h"
+#include "funrouter.h"
 
 void BaseTralala();
 

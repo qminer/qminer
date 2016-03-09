@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 /////////////////////////////////////////////////
@@ -55,6 +44,7 @@ public:
 public:
   TPair(): Val1(), Val2(){}
   TPair(const TPair& Pair): Val1(Pair.Val1), Val2(Pair.Val2){}
+  TPair(const TPair&& Pair): Val1(std::move(Pair.Val1)), Val2(std::move(Pair.Val2)) {}
   TPair(const TVal1& _Val1, const TVal2& _Val2): Val1(_Val1), Val2(_Val2){}
   explicit TPair(TSIn& SIn): Val1(SIn), Val2(SIn){}
   void Save(TSOut& SOut) const {
@@ -65,19 +55,22 @@ public:
 
   TPair& operator=(const TPair& Pair){
     if (this!=&Pair){Val1=Pair.Val1; Val2=Pair.Val2;} return *this;}
+  TPair& operator=(TPair&& Pair) {
+	  if (this != &Pair) {std::swap(Val1, Pair.Val1); std::swap(Val2, Pair.Val2);} return *this;}
   bool operator==(const TPair& Pair) const {
     return (Val1==Pair.Val1)&&(Val2==Pair.Val2);}
   bool operator<(const TPair& Pair) const {
     return (Val1<Pair.Val1)||((Val1==Pair.Val1)&&(Val2<Pair.Val2));}
 
-  int GetMemUsed() const {return Val1.GetMemUsed()+Val2.GetMemUsed();}
+  uint64 GetMemUsed() const {return Val1.GetMemUsed()+Val2.GetMemUsed();}
 
   int GetPrimHashCd() const {return TPairHashImpl::GetHashCd(Val1.GetPrimHashCd(), Val2.GetPrimHashCd()); }
   int GetSecHashCd() const {return TPairHashImpl::GetHashCd(Val2.GetSecHashCd(), Val1.GetSecHashCd()); }
 
   void GetVal(TVal1& _Val1, TVal2& _Val2) const {_Val1=Val1; _Val2=Val2;}
-  TStr GetStr() const {
-    return TStr("Pair(")+Val1.GetStr()+", "+Val2.GetStr()+")";}
+  const TVal1& GetVal1() const { return Val1;}
+  const TVal2& GetVal2() const { return Val2;}
+  TStr GetStr() const {return TStr("Pair(")+Val1.GetStr()+", "+Val2.GetStr()+")";}
 };
 
 template <class TVal1, class TVal2, class TSizeTy>
@@ -90,24 +83,29 @@ void GetSwitchedPrV(const TVec<TPair<TVal1, TVal2>, TSizeTy>& SrcPrV, TVec<TPair
   }
 }
 
+typedef TPair<TBool, TBool> TBoolPr;
 typedef TPair<TBool, TCh> TBoolChPr;
 typedef TPair<TBool, TFlt> TBoolFltPr;
+typedef TPair<TUCh, TUCh> TUChPr;
 typedef TPair<TUCh, TInt> TUChIntPr;
 typedef TPair<TUCh, TUInt64> TUChUInt64Pr;
 typedef TPair<TUCh, TStr> TUChStrPr;
 typedef TPair<TInt, TBool> TIntBoolPr;
 typedef TPair<TInt, TCh> TIntChPr;
-typedef TPair<TInt, TInt> TIntPr;	
+typedef TPair<TInt, TInt> TIntPr;
 typedef TPair<TInt, TUInt64> TIntUInt64Pr;
 typedef TPair<TInt, TIntPr> TIntIntPrPr;
 typedef TPair<TInt, TVec<TInt, int> > TIntIntVPr;
 typedef TPair<TInt, TFlt> TIntFltPr;
 typedef TPair<TInt, TStr> TIntStrPr;
 typedef TPair<TInt, TStrV> TIntStrVPr;
+typedef TPair<TInt16, TInt16> TInt16Pr;
+typedef TPair<TInt64, TInt64> TInt64Pr;
 typedef TPair<TIntPr, TInt> TIntPrIntPr;
 typedef TPair<TUInt, TUInt> TUIntUIntPr;
 typedef TPair<TUInt, TInt> TUIntIntPr;
 typedef TPair<TUInt, TStr> TUIntStrPr;
+typedef TPair<TUInt16, TUInt16> TUInt16Pr;
 typedef TPair<TUInt64, TInt> TUInt64IntPr;
 typedef TPair<TUInt64, TUInt64> TUInt64Pr;
 typedef TPair<TUInt64, TFlt> TUInt64FltPr;
@@ -116,6 +114,7 @@ typedef TPair<TFlt, TInt> TFltIntPr;
 typedef TPair<TFlt, TUInt64> TFltUInt64Pr;
 typedef TPair<TFlt, TFlt> TFltPr;
 typedef TPair<TFlt, TStr> TFltStrPr;
+typedef TPair<TSFlt, TSFlt> TSFltPr;
 typedef TPair<TAscFlt, TInt> TAscFltIntPr;
 typedef TPair<TAscFlt, TAscFlt> TAscFltPr;
 typedef TPair<TFlt, TStr> TFltStrPr;
@@ -153,6 +152,8 @@ public:
   TTriple(): Val1(), Val2(), Val3(){}
   TTriple(const TTriple& Triple):
     Val1(Triple.Val1), Val2(Triple.Val2), Val3(Triple.Val3){}
+  TTriple(TTriple&& Triple):
+  	Val1(std::move(Triple.Val1)), Val2(std::move(Triple.Val2)), Val3(std::move(Triple.Val3)) {}
   TTriple(const TVal1& _Val1, const TVal2& _Val2, const TVal3& _Val3):
     Val1(_Val1), Val2(_Val2), Val3(_Val3){}
   explicit TTriple(TSIn& SIn): Val1(SIn), Val2(SIn), Val3(SIn){}
@@ -165,6 +166,14 @@ public:
   TTriple& operator=(const TTriple& Triple){
     if (this!=&Triple){Val1=Triple.Val1; Val2=Triple.Val2; Val3=Triple.Val3;}
     return *this;}
+  TTriple& operator=(TTriple&& Triple) {
+	  if (this != &Triple) {
+		std::swap(Val1, Triple.Val1);
+		std::swap(Val2, Triple.Val2);
+		std::swap(Val3, Triple.Val3);
+	  }
+	  return *this;
+  }
   bool operator==(const TTriple& Triple) const {
     return (Val1==Triple.Val1)&&(Val2==Triple.Val2)&&(Val3==Triple.Val3);}
   bool operator<(const TTriple& Triple) const {
@@ -177,6 +186,8 @@ public:
 
   void GetVal(TVal1& _Val1, TVal2& _Val2, TVal3& _Val3) const {
     _Val1=Val1; _Val2=Val2; _Val3=Val3;}
+  TStr GetStr() const {
+    return TStr("Triple(")+Val1.GetStr()+", "+Val2.GetStr()+", "+Val3.GetStr()+")";}
 };
 
 typedef TTriple<TCh, TCh, TCh> TChTr;
@@ -189,6 +200,7 @@ typedef TTriple<TInt, TInt, TStr> TIntIntStrTr;
 typedef TTriple<TInt, TInt, TFlt> TIntIntFltTr;
 typedef TTriple<TInt, TFlt, TInt> TIntFltIntTr;
 typedef TTriple<TInt, TFlt, TFlt> TIntFltFltTr;
+typedef TTriple<TFlt, TInt, TFlt> TFltIntFltTr;
 typedef TTriple<TInt, TVec<TInt, int>, TInt> TIntIntVIntTr;
 typedef TTriple<TInt, TInt, TVec<TInt, int> > TIntIntIntVTr;
 typedef TTriple<TFlt, TFlt, TFlt> TFltTr;
@@ -265,6 +277,8 @@ public:
 
   void GetVal(TVal1& _Val1, TVal2& _Val2, TVal3& _Val3, TVal4& _Val4) const {
     _Val1=Val1; _Val2=Val2; _Val3=Val3; _Val4=Val4;}
+  TStr GetStr() const {
+    return TStr("Quad(")+Val1.GetStr()+", "+Val2.GetStr()+", "+Val3.GetStr()+", "+Val4.GetStr()+")";}
 };
 
 typedef TQuad<TStr, TStr, TInt, TInt> TStrStrIntIntQu;
@@ -359,6 +373,7 @@ public:
 public:
   TKeyDat(): Key(), Dat(){}
   TKeyDat(const TKeyDat& KeyDat): Key(KeyDat.Key), Dat(KeyDat.Dat){}
+  TKeyDat(TKeyDat&& KeyDat): Key(std::move(KeyDat.Key)), Dat(std::move(KeyDat.Dat)){}
   explicit TKeyDat(const TKey& _Key): Key(_Key), Dat(){}
   TKeyDat(const TKey& _Key, const TDat& _Dat): Key(_Key), Dat(_Dat){}
   explicit TKeyDat(TSIn& SIn): Key(SIn), Dat(SIn){}
@@ -367,12 +382,15 @@ public:
   void SaveXml(TSOut& SOut, const TStr& Nm) const;
 
   TKeyDat& operator=(const TKeyDat& KeyDat){
-  if (this!=&KeyDat){Key=KeyDat.Key; Dat=KeyDat.Dat;} return *this;}
+    if (this!=&KeyDat){Key=KeyDat.Key; Dat=KeyDat.Dat;} return *this;}
+  TKeyDat& operator=(TKeyDat&& KeyDat){
+    if (this!=&KeyDat){Key=std::move(KeyDat.Key); Dat=std::move(KeyDat.Dat);} return *this;}
   bool operator==(const TKeyDat& KeyDat) const {return Key==KeyDat.Key;}
   bool operator<(const TKeyDat& KeyDat) const {return Key<KeyDat.Key;}
 
   int GetPrimHashCd() const {return Key.GetPrimHashCd();}
   int GetSecHashCd() const {return Key.GetSecHashCd();}
+  uint64 GetMemUsed() const { return Key.GetMemUsed() + Dat.GetMemUsed(); }
 };
 
 template <class TKey, class TDat>
@@ -461,34 +479,45 @@ protected:
 public:
   TVec(): MxVals(0), Vals(0), ValT(NULL){}
   TVec(const TVec<TVal, TSizeTy>& Vec);
+#ifdef GLib_CPP11
   // Move constructor
   TVec(TVec<TVal, TSizeTy>&& Vec);
-  // Move assignment
-  TVec<TVal, TSizeTy>& operator=(TVec<TVal, TSizeTy>&& Vec);
+#endif
+
   /// Constructs a vector (an array) of length \c _Vals.
   explicit TVec(const TSizeTy& _Vals){
     IAssert(0<=_Vals); MxVals=Vals=_Vals;
     if (_Vals==0){ValT=NULL;} else {ValT=new TVal[_Vals];}}
   /// Constructs a vector (an array) of length \c _Vals, while reserving enough memory to store \c _MxVals elements.
   TVec(const TSizeTy& _MxVals, const TSizeTy& _Vals){
-	  IAssert((0 <= _Vals) && (_Vals <= _MxVals)); MxVals = _MxVals; Vals = _Vals;
-	  if (_MxVals == 0){ ValT = NULL; } else { ValT = new TVal[_MxVals]; }}
+    IAssert((0 <= _Vals) && (_Vals <= _MxVals)); MxVals = _MxVals; Vals = _Vals;
+    if (_MxVals == 0){ ValT = NULL; } else { ValT = new TVal[_MxVals]; }}
   /// Constructs a vector of \c _Vals elements of memory array \c _ValT. ##TVec::TVec
   explicit TVec(TVal *_ValT, const TSizeTy& _Vals):
     MxVals(-1), Vals(_Vals), ValT(_ValT){}
   ~TVec(){if ((ValT!=NULL) && (MxVals!=-1)){delete[] ValT;}}
   explicit TVec(TSIn& SIn): MxVals(0), Vals(0), ValT(NULL){Load(SIn);}
+  // For fast deserialization
+  explicit TVec(TMIn& MemIn) : MxVals(0), Vals(0), ValT(NULL) { LoadMemCpy(MemIn); }
+
   void Load(TSIn& SIn);
-  void Save(TSOut& SOut) const;
+  // optimized deserialization from stream, uses memcpy
+  void LoadMemCpy(TMIn& SIn);
+  void Save(TSOut& SOut) const;  
+  // optimized serialization to stream, uses memcpy
+  void SaveMemCpy(TMOut& SOut) const;
+
   /// Sends the vector contents via a socket \c fd.
   int Send(int sd);
   /// Writes \c nbytes bytes starting at \c ptr to a file/socket descriptor \c fd.
   int WriteN(int fd, char *ptr, int nbytes);
   void LoadXml(const PXmlTok& XmlTok, const TStr& Nm="");
   void SaveXml(TSOut& SOut, const TStr& Nm) const;
-  
+
   /// Assigns new contents to the vector, replacing its current content.
   TVec<TVal, TSizeTy>& operator=(const TVec<TVal, TSizeTy>& Vec);
+  // Move assignment
+  TVec<TVal, TSizeTy>& operator=(TVec<TVal, TSizeTy>&& Vec);
   /// Appends value \c Val to the vector.
   TVec<TVal, TSizeTy>& operator+(const TVal& Val){Add(Val); return *this;}
   /// Checks that the two vectors have the same contents.
@@ -504,11 +533,23 @@ public:
     AssertR((0<=ValN)&&(ValN<Vals), GetXOutOfBoundsErrMsg(ValN));
     return ValT[ValN];}
   /// Returns the memory footprint (the number of bytes) of the vector.
-  TSizeTy GetMemUsed() const {
-    return TSizeTy(2*sizeof(TSizeTy)+sizeof(TVal*)+MxVals*sizeof(TVal));}
+  uint64 GetMemUsed() const {
+	  return TSizeTy(2 * sizeof(TSizeTy) + sizeof(TVal*) + sizeof(TVal)*(MxVals != -1 ? MxVals : 0));
+  }
+  /// Returns the memory footprint (the number of bytes) of the vector.
+  uint64 GetMemUsedDeep() const {
+	  uint64 MemSize = 2 * sizeof(TSizeTy) + sizeof(TVal*);
+	  if (ValT != NULL && MxVals != -1){
+		  for (TSizeTy i = 0; i < MxVals; i++){
+			  MemSize += ValT[i].GetMemUsed();
+		  }
+	  }
+	  return MemSize;
+  }
   /// Returns the memory size (the number of bytes) of a binary representation.
-  TSizeTy GetMemSize() const {
-    return TSizeTy(2*sizeof(TVal)+sizeof(TSizeTy)*Vals);}
+  TSizeTy GetMemSize(bool flat = true) const {
+	  return TSizeTy(2 * sizeof(TVal) + sizeof(TVal)*Vals);
+  }
   
   /// Returns primary hash code of the vector. Used by \c THash.
   int GetPrimHashCd() const;
@@ -573,16 +614,20 @@ public:
   TIter GetI(const TSizeTy& ValN) const {return ValT+ValN;}
   
   /// Adds a new element at the end of the vector, after its current last element. ##TVec::Add
-  TSizeTy Add(){ AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+  TSizeTy Add(){ AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
     if (Vals==MxVals){Resize();} return Vals++;}
   /// Adds a new element at the end of the vector, after its current last element. ##TVec::Add1
-  TSizeTy Add(const TVal& Val){ AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+  TSizeTy Add(const TVal& Val){ AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
+    if (Vals==MxVals){Resize();} ValT[Vals]=Val; return Vals++;}
+  TSizeTy Add(TVal& Val){ AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
     if (Vals==MxVals){Resize();} ValT[Vals]=Val; return Vals++;}
   /// Adds element \c Val at the end of the vector. #TVec::Add2
-  TSizeTy Add(const TVal& Val, const TSizeTy& ResizeLen){ AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+  TSizeTy Add(const TVal& Val, const TSizeTy& ResizeLen){ AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
     if (Vals==MxVals){Resize(MxVals+ResizeLen);} ValT[Vals]=Val; return Vals++;}
   /// Adds the elements of the vector \c ValV to the to end of the vector.
   TSizeTy AddV(const TVec<TVal, TSizeTy>& ValV);
+  /// Adds the elements of the vector \c ValV to the to end of the vector using memcpy.
+  TSizeTy AddVMemCpy(const TVec<TVal, TSizeTy>& ValV);
   /// Adds element \c Val to a sorted vector. ##TVec::AddSorted
   TSizeTy AddSorted(const TVal& Val, const bool& Asc=true, const TSizeTy& _MxVals=-1);
   /// Adds element \c Val to a sorted vector. ##TVec::AddBackSorted
@@ -597,14 +642,23 @@ public:
   const TVal& GetVal(const TSizeTy& ValN) const {return operator[](ValN);}
   /// Returns a reference to the element at position \c ValN in the vector.
   TVal& GetVal(const TSizeTy& ValN){return operator[](ValN);}
-  /// Returns a vector on elements at positions <tt>BValN...EValN</tt>.
+  /// Sets the value of element at position \c ValN to \c Val.
+  void SetVal(const TSizeTy& ValN, const TVal& Val){AssertR((0<=ValN)&&(ValN<Vals), GetXOutOfBoundsErrMsg(ValN)); ValT[ValN] = Val;}
+  /// Returns a vector on elements at positions <tt>BValN...EValN</tt> (inclusive).
   void GetSubValV(const TSizeTy& BValN, const TSizeTy& EValN, TVec<TVal, TSizeTy>& ValV) const;
+  /// Returns a vector on elements at positions <tt>BValN...EValN</tt> using memcpy.
+  void GetSubValVMemCpy(const TSizeTy& _BValN, const TSizeTy& _EValN, TVec<TVal, TSizeTy>& SubValV) const;
+
   /// Inserts new element \c Val before the element at position \c ValN.
   void Ins(const TSizeTy& ValN, const TVal& Val);
   /// Removes the element at position \c ValN.
   void Del(const TSizeTy& ValN);
+  /// Removes the element at position \c ValN using memcpy
+  void DelMemCpy(const TSizeTy& ValN);
   /// Removes the elements at positions <tt>MnValN...MxValN</tt>.
   void Del(const TSizeTy& MnValN, const TSizeTy& MxValN);
+  /// Removes the elements at positions <tt>MnValN...MxValN</tt> using memcpy
+  void DelMemCpy(const TSizeTy& MnValN, const TSizeTy& MxValN);
   /// Removes the last element of the vector.
   void DelLast(){Del(Len()-1);}
   /// Removes the first occurrence of element \c Val.
@@ -614,8 +668,14 @@ public:
   /// Sets all elements of the vector to value \c Val.
   void PutAll(const TVal& Val);
   
+  /// Move element from position \c ValN1 to \c ValN2
+  void Move(const TSizeTy& FromValN, const TSizeTy& ToValN){
+    ValT[ToValN] = std::move(ValT[FromValN]); } // C++11
+    //ValT[ValN2] = ValT[ValN1]; } // C++98
   /// Swaps elements at positions \c ValN1 and \c ValN2.
-  void Swap(const TSizeTy& ValN1, const TSizeTy& ValN2){ const TVal Val=ValT[ValN1]; ValT[ValN1]=ValT[ValN2]; ValT[ValN2]=Val;}
+  void Swap(const TSizeTy& ValN1, const TSizeTy& ValN2){ 
+    Assert(0 <= ValN1 && ValN1 < Len() && 0 <= ValN2 && ValN2 < Len());	std::swap(ValT[ValN1], ValT[ValN2]); } // C++11
+    // const TVal Val=ValT[ValN1]; ValT[ValN1]=ValT[ValN2]; ValT[ValN2]=Val;} // C++98
   /// Swaps the elements that iterators \c LVal and \c RVal point to.
   static void SwapI(TIter LVal, TIter RVal){ const TVal Val=*LVal; *LVal=*RVal; *RVal=Val;}
   
@@ -626,17 +686,18 @@ public:
   
   // Sorting functions
   /// Picks three random elements at positions <tt>LValN...RValN</tt> and returns the middle one.
-  TSizeTy GetPivotValN(const TSizeTy& LValN, const TSizeTy& RValN) const;
+  TSizeTy GetPivotValN(const TSizeTy& LValN, const TSizeTy& RValN, TRnd& Rnd) const;
   /// Bubble sorts the values between positions <tt>MnLValN...MxLValN</tt>. ##TVec::BSort
   void BSort(const TSizeTy& MnLValN, const TSizeTy& MxRValN, const bool& Asc);
   /// Insertion sorts the values between positions <tt>MnLValN...MxLValN</tt>. ##TVec::ISort
   void ISort(const TSizeTy& MnLValN, const TSizeTy& MxRValN, const bool& Asc);
   /// Partitions the values between positions <tt>MnLValN...MxLValN</tt>. ##TVec::Partition
-  TSizeTy Partition(const TSizeTy& MnLValN, const TSizeTy& MxRValN, const bool& Asc);
+  TSizeTy Partition(const TSizeTy& MnLValN, const TSizeTy& MxRValN, const bool& Asc, TRnd& Rnd);
   /// Quick sorts the values between positions <tt>MnLValN...MxLValN</tt>. ##TVec::QSort
-  void QSort(const TSizeTy& MnLValN, const TSizeTy& MxRValN, const bool& Asc);
+  void QSort(const TSizeTy& MnLValN, const TSizeTy& MxRValN, const bool& Asc, TRnd& Rnd);
   /// Sorts the elements of the vector. ##TVec::Sort
-  void Sort(const bool& Asc=true);
+  void Sort(TRnd& Rnd, const bool& Asc=true);
+  void Sort(const bool& Asc=true) { TRnd Rnd; Sort(Rnd, Asc); }
   /// Sorts the elements of the vector in a new copy and returns the permutation. ##TVec::SortGetPerm
   static void SortGetPerm(const TVec<TVal, TSizeTy>& Vec, TVec<TVal, TSizeTy>& SortedVec, TVec<TInt, TSizeTy>& PermV, bool Asc = true);
   /// Checks whether the vector is sorted in ascending (if \c Asc=true) or descending (if \c Asc=false) order.
@@ -650,6 +711,8 @@ public:
   /// Sorts the vector and only keeps a single element of each value.
   void Merge();
 
+  TStr GetStr() const { return TStr("<Vector>");}
+  
   /// Picks three random elements at positions <tt>BI...EI</tt> and returns the middle one under the comparator \c Cmp.
   template <class TCmp>
   static TIter GetPivotValNCmp(const TIter& BI, const TIter& EI, const TCmp& Cmp) {
@@ -715,7 +778,9 @@ public:
   void Diff(const TVec<TVal, TSizeTy>& ValV, TVec<TVal, TSizeTy>& DstValV) const;
   /// Returns the size of the intersection of vectors \c this and \c ValV. ##TVec::IntrsLen
   TSizeTy IntrsLen(const TVec<TVal, TSizeTy>& ValV) const;
-  
+  /// Returns the size of the union of vectors \c this and \c ValV. ##TVec::UnionLen
+  TSizeTy UnionLen(const TVec<TVal, TSizeTy>& ValV) const;
+
   /// Counts the number of occurrences of \c Val in the vector.
   TSizeTy Count(const TVal& Val) const;
   /// Returns the position of an element with value \c Val. ##TVec::SearchBin
@@ -728,6 +793,11 @@ public:
   TSizeTy SearchBack(const TVal& Val) const;
   /// Returns the starting position of vector \c ValV. ##TVec::SearchVForw
   TSizeTy SearchVForw(const TVec<TVal, TSizeTy>& ValV, const TSizeTy& BValN=0) const;
+  /// Returns the indexes of all the occurences of the element
+  void FindAll(const TVal& Val, TVec<TInt, TSizeTy>& IdxV) const;
+  /// Returns the indexes of all the elements that match the criteria
+  template <typename TFun>
+  void FindAllSatisfy(const TFun& Fun, TVec<TInt, TSizeTy>& IdxV) const;
 
   /// Checks whether element \c Val is a member of the vector.
   bool IsIn(const TVal& Val) const {return SearchForw(Val)!=-1;}
@@ -738,7 +808,7 @@ public:
   /// Returns reference to the first occurrence of element \c Val.
   const TVal& GetDat(const TVal& Val) const { return GetVal(SearchForw(Val));}
   /// Returns reference to the first occurrence of element \c Val. ##TVec::GetAddDat
-  TVal& GetAddDat(const TVal& Val){ AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+  TVal& GetAddDat(const TVal& Val){ AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
     const TSizeTy ValN=SearchForw(Val); if (ValN==-1){Add(Val); return Last();} else {return GetVal(ValN);}}
   /// Returns the position of the largest element in the vector.
   TSizeTy GetMxValN() const;
@@ -774,28 +844,98 @@ public:
     TVec<TVal, TSizeTy> V(9, 0); V.Add(Val1); V.Add(Val2); V.Add(Val3); V.Add(Val4); V.Add(Val5); V.Add(Val6); V.Add(Val7); V.Add(Val8); V.Add(Val9); return V;}
 };
 
+//#//////////////////////////////////////////////
+/// TSIter is a stride iterator. ##TVec
+template <class TVal, class TSizeTy = int>
+class TSIter{
+protected:
+	TVec<TVal, TSizeTy>* Vector;
+	TSizeTy start;
+	TSizeTy stride;
+public:
+	TSIter<TVal, TSizeTy>(){
+		Vector = NULL;
+		start = 0;
+		stride = 1;
+	}
+	TSIter<TVal, TSizeTy>(TVec<TVal, TSizeTy>* Vec, TSizeTy _start = 0, TSizeTy _stride = 1){
+		Vector = Vec;
+		start = _start;
+		stride = _stride;
+	}
+	const TVal& operator[](const TSizeTy& El) const {
+		TSizeTy index = start + El*stride;
+		AssertR((0 <= index) && (index < Vector->Vals), GetXOutOfBoundsErrMsg(index));
+		return (*Vector)[index];
+	}
+	TVal& operator[](const TSizeTy& El){
+		TSizeTy index = start + El*stride;
+		AssertR((0 <= index) && (index < Vector->Vals), GetXOutOfBoundsErrMsg(index));
+		return (*Vector)[index];
+	}
+};
+
+// add new vector of data to current vector, use memcpy for performance
+template <class TVal, class TSizeTy>
+TSizeTy TVec<TVal, TSizeTy>::AddVMemCpy(const TVec<TVal, TSizeTy>& ValV) {
+	if (ValV.Len() == 0)
+		return 0;
+	Resize(Vals + ValV.Len());
+	memcpy(ValT + Vals, ValV.ValT, ValV.Len() * sizeof(TVal));
+	Vals += ValV.Len();
+	return ValV.Len();
+}
+
+// optimized deserialization from stream, uses memcpy
+template <class TVal, class TSizeTy>
+void TVec<TVal, TSizeTy>::LoadMemCpy(TMIn& SIn) {
+	if ((ValT != NULL) && (MxVals != -1)) { delete[] ValT; }
+	SIn.Load(MxVals);
+	SIn.Load(Vals);
+	MxVals = Vals;
+	if (MxVals == 0) {
+		ValT = NULL;
+	} else {
+		ValT = new TVal[MxVals];
+		SIn.GetBfMemCpy(ValT, Vals*sizeof(TVal));
+	}
+}
+// optimized serialization from stream, uses memcpy
+template <class TVal, class TSizeTy>
+void TVec<TVal, TSizeTy>::SaveMemCpy(TMOut& SOut) const {
+	SOut.Save(MxVals);
+	SOut.Save(Vals);
+	if (MxVals > 0)
+		SOut.AppendBf(ValT, Vals*sizeof(TVal));
+}
+
 template <class TVal, class TSizeTy>
 void TVec<TVal, TSizeTy>::Resize(const TSizeTy& _MxVals){
   IAssertR(MxVals!=-1, TStr::Fmt("Can not increase the capacity of the vector. %s. [Program failed to allocate more memory. Solution: Get a bigger machine and a 64-bit compiler.]", GetTypeNm(*this).CStr()).CStr());
+  IAssertR(MxVals!=(TInt::Mx-1024), TStr::Fmt("Buffer size at maximum. %s. [Program refuses to allocate more memory. Solution-1: Send your test case to developers.]", GetTypeNm(*this).CStr()).CStr());
   if (_MxVals==-1){
     if (Vals==0){MxVals=16;} else {MxVals*=2;}
   } else {
     if (_MxVals<=MxVals){return;} else {MxVals=_MxVals;}
   }
+  if (MxVals < 0) {
+    MxVals = TInt::Mx-1024;
+  }
   if (ValT==NULL){
     try {ValT=new TVal[MxVals];}
-    catch (std::exception Ex){
+    catch (std::exception& Ex){
       FailR(TStr::Fmt("TVec::Resize: %s, Length:%s, Capacity:%s, New capacity:%s, Type:%s [Program failed to allocate more memory. Solution: Get a bigger machine and a 64-bit compiler.]",
         Ex.what(), TInt::GetStr(Vals).CStr(), TInt::GetStr(MxVals).CStr(), TInt::GetStr(_MxVals).CStr(), GetTypeNm(*this).CStr()).CStr());}
   } else {
     TVal* NewValT = NULL;
     try {
       NewValT=new TVal[MxVals];}
-    catch (std::exception Ex){
+    catch (std::exception& Ex){
       FailR(TStr::Fmt("TVec::Resize: %s, Length:%s, Capacity:%s, New capacity:%s, Type:%s [Program failed to allocate more memory. Solution: Get a bigger machine and a 64-bit compiler.]",
         Ex.what(), TInt::GetStr(Vals).CStr(), TInt::GetStr(MxVals).CStr(), TInt::GetStr(_MxVals).CStr(), GetTypeNm(*this).CStr()).CStr());}
     IAssert(NewValT!=NULL);
-    for (TSizeTy ValN=0; ValN<Vals; ValN++){NewValT[ValN]=ValT[ValN];}
+    for (TSizeTy ValN=0; ValN<Vals; ValN++){NewValT[ValN]=std::move(ValT[ValN]);} //C++11
+    //for (TSizeTy ValN=0; ValN<Vals; ValN++){NewValT[ValN]=ValT[ValN];} // C++98
     delete[] ValT; ValT=NewValT;
   }
 }
@@ -816,6 +956,7 @@ TVec<TVal, TSizeTy>::TVec(const TVec<TVal, TSizeTy>& Vec){
   for (TSizeTy ValN=0; ValN<Vec.Vals; ValN++){ValT[ValN]=Vec.ValT[ValN];}
 }
 
+#ifdef GLib_CPP11
 template <class TVal, class TSizeTy>
 TVec<TVal, TSizeTy>::TVec(TVec<TVal, TSizeTy>&& Vec) : MxVals(0), Vals(0), ValT() {
 	//TSizeTy MxVals; //!< Vector capacity. Capacity is the size of allocated storage. If <tt>MxVals==-1</tt>, then \c ValT is not owned by the vector, and it won't free it at destruction.
@@ -828,19 +969,7 @@ TVec<TVal, TSizeTy>::TVec(TVec<TVal, TSizeTy>&& Vec) : MxVals(0), Vals(0), ValT(
 	Vec.Vals = 0;
 	Vec.ValT = NULL;
 }
-
-template <class TVal, class TSizeTy>
-TVec<TVal, TSizeTy>& TVec<TVal, TSizeTy>::operator=(TVec<TVal, TSizeTy>&& Vec) {
-	if (this != &Vec) {
-		MxVals = std::move(Vec.MxVals);
-		Vals = std::move(Vec.Vals);
-		ValT = Vec.ValT;
-		Vec.MxVals = 0;
-		Vec.Vals = 0;
-		Vec.ValT = NULL;
-	}
-	return *this;
-}
+#endif 
 
 template <class TVal, class TSizeTy>
 void TVec<TVal, TSizeTy>::Load(TSIn& SIn){
@@ -858,53 +987,37 @@ void TVec<TVal, TSizeTy>::Save(TSOut& SOut) const {
 }
 
 template <class TVal, class TSizeTy>
-int TVec<TVal, TSizeTy>::WriteN(int fd, char *ptr, int nbytes) {
-  int nleft;
-  int nwritten;
-
-  nleft = nbytes;
-  while (nleft > 0) {
-    nwritten = write(fd, ptr, nleft);
-    if (nwritten <= 0) {
-      return nwritten;
-    }
-    nleft -= nwritten;
-    ptr += nwritten;
-  }
-  return (nbytes-nleft);
-}
-
-template <class TVal, class TSizeTy>
-int TVec<TVal, TSizeTy>::Send(int sd) {
-  int l;
-  int n;
-  l = 0;
-  if (MxVals!=-1) {
-    l += WriteN(sd, (char *) &MxVals, (int) sizeof(TSizeTy));
-  } else {
-    l += WriteN(sd, (char *) &Vals, (int) sizeof(TSizeTy));
-  }
-  l += WriteN(sd, (char *) &Vals, (int) sizeof(TSizeTy));
-  for (TSizeTy ValN=0; ValN<Vals; ValN += 100000){
-    n = 100000;
-    if ((Vals - ValN) < 100000) {
-      n = Vals - ValN;
-    }
-    l += WriteN(sd, (char *) &ValT[ValN], (int) (n*sizeof(TVal)));
-  }
-
-  return l;
-}
-
-template <class TVal, class TSizeTy>
 TVec<TVal, TSizeTy>& TVec<TVal, TSizeTy>::operator=(const TVec<TVal, TSizeTy>& Vec){
-  if (this!=&Vec){
-    if ((ValT!=NULL)&&(MxVals!=-1)){delete[] ValT;}
-    MxVals=Vals=Vec.Vals;
-    if (MxVals==0){ValT=NULL;} else {ValT=new TVal[MxVals];}
-    for (TSizeTy ValN=0; ValN<Vec.Vals; ValN++){ValT[ValN]=Vec.ValT[ValN];}
-  }
-  return *this;
+	if (this != &Vec) {
+		// check if we have enough space and we are not in a vector pool
+		if ((MxVals > 0) && (Vec.Vals <= MxVals)) {
+			// only need to copy the new number of elements
+			Vals = Vec.Vals;			
+		} else {
+			// delete old buffer if we have it and own it
+			if ((ValT != NULL) && (MxVals != -1)) { delete[] ValT; }			
+			MxVals = Vals = Vec.Vals;
+			// create the buffer if we have any values
+			if (MxVals == 0) { ValT = NULL; } else { ValT = new TVal[MxVals]; }			
+		}
+		// copy values
+		for (TSizeTy ValN = 0; ValN < Vec.Vals; ValN++) { ValT[ValN] = Vec.ValT[ValN]; }
+	}
+	return *this;
+}
+
+template <class TVal, class TSizeTy>
+TVec<TVal, TSizeTy>& TVec<TVal, TSizeTy>::operator=(TVec<TVal, TSizeTy>&& Vec) {
+	if (this != &Vec) {
+		if(MxVals != -1) delete[] ValT;
+		MxVals = std::move(Vec.MxVals);
+		Vals = std::move(Vec.Vals);		
+		ValT = Vec.ValT;
+		Vec.MxVals = 0;
+		Vec.Vals = 0;
+		Vec.ValT = NULL;
+	}
+	return *this;
 }
 
 template <class TVal, class TSizeTy>
@@ -931,20 +1044,30 @@ bool TVec<TVal, TSizeTy>::operator<(const TVec<TVal, TSizeTy>& Vec) const {
   }
 }
 
+// Improved hashing of vectors (Jure Apr 20 2013)
+// This change makes binary representation of vectors incompatible with previous code.
+// Previous hash functions are available for compatibility in class TVecHashF_OldGLib
 template <class TVal, class TSizeTy>
 int TVec<TVal, TSizeTy>::GetPrimHashCd() const {
-  int HashCd=0;
-  for (TSizeTy ValN=0; ValN<Vals; ValN++){
-    HashCd+=ValT[ValN].GetPrimHashCd();}  //J: BAD way of combining HASH CODES!!!
-  return abs(HashCd);
+  int hc = 0;
+  for (TSizeTy i=0; i<Vals; i++){
+    hc = TPairHashImpl::GetHashCd(hc, ValT[i].GetPrimHashCd());
+  }
+  return hc;
 }
 
+// Improved hashing of vectors (Jure Apr 20 2013)
+// This change makes binary representation of vectors incompatible with previous code.
+// Previous hash functions are available for compatibility in class TVecHashF_OldGLib
 template <class TVal, class TSizeTy>
 int TVec<TVal, TSizeTy>::GetSecHashCd() const {
-  int HashCd=0;
-  for (TSizeTy ValN=0; ValN<Vals; ValN++){
-    HashCd+=ValT[ValN].GetSecHashCd();}  //J: BAD way of combining HASH CODES!!!
-  return abs(HashCd);
+  int hc = 0;
+  for (TSizeTy i=0; i<Vals; i++){
+    hc = TPairHashImpl::GetHashCd(hc, ValT[i].GetSecHashCd());
+  }
+  if (Vals > 0) {
+    hc = TPairHashImpl::GetHashCd(hc, ValT[0].GetSecHashCd()); }
+  return hc;
 }
 
 template <class TVal, class TSizeTy>
@@ -953,14 +1076,14 @@ void TVec<TVal, TSizeTy>::Clr(const bool& DoDel, const TSizeTy& NoDelLim){
     if ((ValT!=NULL)&&(MxVals!=-1)){delete[] ValT;}
     MxVals=Vals=0; ValT=NULL;
   } else {
-    IAssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!"); 
+    IAssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!"); 
     Vals=0;
   }
 }
 
 template <class TVal, class TSizeTy>
 void TVec<TVal, TSizeTy>::Trunc(const TSizeTy& _Vals){
-  IAssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+  IAssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
   IAssert((_Vals==-1)||(_Vals>=0));
   if ((_Vals!=-1)&&(_Vals>=Vals)){
     return;
@@ -976,14 +1099,15 @@ void TVec<TVal, TSizeTy>::Trunc(const TSizeTy& _Vals){
       }
       TVal* NewValT=new TVal[MxVals];
       IAssert(NewValT!=NULL);
-      for (TSizeTy ValN=0; ValN<Vals; ValN++){NewValT[ValN]=ValT[ValN];}
+      for (TSizeTy ValN=0; ValN<Vals; ValN++){NewValT[ValN]=std::move(ValT[ValN]);} //C++11
+      // for (TSizeTy ValN=0; ValN<Vals; ValN++){NewValT[ValN]=ValT[ValN];} // C++98
       delete[] ValT; ValT=NewValT;
     }
 }
 
 template <class TVal, class TSizeTy>
 void TVec<TVal, TSizeTy>::Pack(){
-  IAssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+  IAssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
   if (Vals==0){
     if (ValT!=NULL){delete[] ValT;} ValT=NULL;
   } else
@@ -991,7 +1115,8 @@ void TVec<TVal, TSizeTy>::Pack(){
       MxVals=Vals;
       TVal* NewValT=new TVal[MxVals];
       IAssert(NewValT!=NULL);
-      for (TSizeTy ValN=0; ValN<Vals; ValN++){NewValT[ValN]=ValT[ValN];}
+      for (TSizeTy ValN=0; ValN<Vals; ValN++){NewValT[ValN]=std::move(ValT[ValN]);} //C++11
+      // for (TSizeTy ValN=0; ValN<Vals; ValN++){NewValT[ValN]=ValT[ValN];} // C++98
       delete[] ValT; ValT=NewValT;
     }
 }
@@ -1016,14 +1141,20 @@ void TVec<TVal, TSizeTy>::Swap(TVec<TVal, TSizeTy>& Vec){
 
 template <class TVal, class TSizeTy>
 TSizeTy TVec<TVal, TSizeTy>::AddV(const TVec<TVal, TSizeTy>& ValV){
-  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
   for (TSizeTy ValN=0; ValN<ValV.Vals; ValN++){Add(ValV[ValN]);}
   return Len();
 }
 
 template <class TVal, class TSizeTy>
 TSizeTy TVec<TVal, TSizeTy>::AddSorted(const TVal& Val, const bool& Asc, const TSizeTy& _MxVals){
-  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
+  // if we have the max items to store and the new val is not relevant (the current worse is still better
+  // then the new val) then we can return without adding and deleting the item
+  if (_MxVals != -1 && Len() == _MxVals) {
+    if (Asc && ValT[Len()-1] < Val) return Len()-1;
+    else if (!Asc && ValT[Len()-1] > Val) return Len()-1;
+  }
   TSizeTy ValN=Add(Val);
   if (Asc){
     while ((ValN>0)&&(ValT[ValN]<ValT[ValN-1])){
@@ -1038,18 +1169,19 @@ TSizeTy TVec<TVal, TSizeTy>::AddSorted(const TVal& Val, const bool& Asc, const T
 
 template <class TVal, class TSizeTy>
 TSizeTy TVec<TVal, TSizeTy>::AddBackSorted(const TVal& Val, const bool& Asc){
-  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
   Add();
   TSizeTy ValN=Vals-2;
   while ((ValN>=0)&&((Asc&&(Val<ValT[ValN]))||(!Asc&&(Val>ValT[ValN])))){
-    ValT[ValN+1]=ValT[ValN]; ValN--;}
+    Move(ValN, ValN+1); }
+    //ValT[ValN+1]=ValT[ValN]; ValN--;}
   ValT[ValN+1]=Val;
   return ValN+1;
 }
 
 template <class TVal, class TSizeTy>
 TSizeTy TVec<TVal, TSizeTy>::AddMerged(const TVal& Val){
-  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
   TSizeTy ValN=SearchBin(Val);
   if (ValN==-1){return AddSorted(Val);}
   else {GetVal(ValN)=Val; return -1;}
@@ -1057,14 +1189,14 @@ TSizeTy TVec<TVal, TSizeTy>::AddMerged(const TVal& Val){
 
 template <class TVal, class TSizeTy>
 TSizeTy TVec<TVal, TSizeTy>::AddVMerged(const TVec<TVal, TSizeTy>& ValV){
-  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
   for (TSizeTy ValN=0; ValN<ValV.Vals; ValN++){AddMerged(ValV[ValN]);}
   return Len();
 }
 
 template <class TVal, class TSizeTy>
 TSizeTy TVec<TVal, TSizeTy>::AddUnique(const TVal& Val){
-  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
   TSizeTy ValN=SearchForw(Val);
   if (ValN==-1){return Add(Val);}
   else {GetVal(ValN)=Val; return -1;}
@@ -1072,6 +1204,8 @@ TSizeTy TVec<TVal, TSizeTy>::AddUnique(const TVal& Val){
 
 template <class TVal, class TSizeTy>
 void TVec<TVal, TSizeTy>::GetSubValV(const TSizeTy& _BValN, const TSizeTy& _EValN, TVec<TVal, TSizeTy>& SubValV) const {
+  SubValV.Clr();
+  if (Len() == 0 || _BValN >= Len() || _BValN > _EValN) { return; }
   const TSizeTy BValN=TInt::GetInRng(_BValN, 0, Len()-1);
   const TSizeTy EValN=TInt::GetInRng(_EValN, 0, Len()-1);
   const TSizeTy SubVals=TInt::GetMx(0, EValN-BValN+1);
@@ -1081,37 +1215,72 @@ void TVec<TVal, TSizeTy>::GetSubValV(const TSizeTy& _BValN, const TSizeTy& _EVal
 }
 
 template <class TVal, class TSizeTy>
+void TVec<TVal, TSizeTy>::GetSubValVMemCpy(const TSizeTy& _BValN, const TSizeTy& _EValN, TVec<TVal, TSizeTy>& SubValV) const {
+    SubValV.Clr();
+	if (Len() == 0 || _BValN >= Len() || _BValN > _EValN) { return; }
+	const TSizeTy BValN = TInt::GetInRng(_BValN, 0, Len() - 1);
+	const TSizeTy EValN = TInt::GetInRng(_EValN, 0, Len() - 1);
+	const TSizeTy SubVals = TInt::GetMx(0, EValN - BValN + 1);
+	SubValV.Gen(SubVals, 0);
+	memcpy(SubValV.ValT, ValT + BValN, SubVals * sizeof(TVal));
+	SubValV.Vals += SubVals;
+}
+
+template <class TVal, class TSizeTy>
 void TVec<TVal, TSizeTy>::Ins(const TSizeTy& ValN, const TVal& Val){
-  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
   Add();  Assert((0<=ValN)&&(ValN<Vals));
-  for (TSizeTy MValN=Vals-2; MValN>=ValN; MValN--){ValT[MValN+1]=ValT[MValN];}
+  for (TSizeTy MValN=Vals-2; MValN>=ValN; MValN--){Move(MValN, MValN+1);}
+  //for (TSizeTy MValN=Vals-2; MValN>=ValN; MValN--){ValT[MValN+1]=ValT[MValN];}
   ValT[ValN]=Val;
 }
 
 template <class TVal, class TSizeTy>
 void TVec<TVal, TSizeTy>::Del(const TSizeTy& ValN){
-  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
   Assert((0<=ValN)&&(ValN<Vals));
-  for (TSizeTy MValN=ValN+1; MValN<Vals; MValN++){
-    ValT[MValN-1]=ValT[MValN];}
+  for (TSizeTy MValN=ValN+1; MValN<Vals; MValN++){Move(MValN, MValN-1);}
+  //for (TSizeTy MValN=ValN+1; MValN<Vals; MValN++){ValT[MValN-1]=ValT[MValN];}
   ValT[--Vals]=TVal();
 }
 
 template <class TVal, class TSizeTy>
+void TVec<TVal, TSizeTy>::DelMemCpy(const TSizeTy& ValN) {
+	AssertR(MxVals != -1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+	Assert((0 <= ValN) && (ValN<Vals));
+	if (ValN < Vals - 1) {
+		memmove(ValT + ValN, ValT + ValN + 1, sizeof(TVal) * (Vals - ValN - 1)); // overlapping buffers, use memmove instead of memcpy
+	}
+	ValT[--Vals] = TVal();
+}
+
+template <class TVal, class TSizeTy>
 void TVec<TVal, TSizeTy>::Del(const TSizeTy& MnValN, const TSizeTy& MxValN){
-  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
   Assert((0<=MnValN)&&(MnValN<Vals)&&(0<=MxValN)&&(MxValN<Vals));
   Assert(MnValN<=MxValN);
   for (TSizeTy ValN=MxValN+1; ValN<Vals; ValN++){
-    ValT[MnValN+ValN-MxValN-1]=ValT[ValN];}
+    Move(ValN, MnValN+ValN-MxValN-1);}
+    //ValT[MnValN+ValN-MxValN-1]=ValT[ValN];}
   for (TSizeTy ValN=Vals-MxValN+MnValN-1; ValN<Vals; ValN++){
     ValT[ValN]=TVal();}
   Vals-=MxValN-MnValN+1;
 }
 
 template <class TVal, class TSizeTy>
+void TVec<TVal, TSizeTy>::DelMemCpy(const TSizeTy& MnValN, const TSizeTy& MxValN) {
+	AssertR(MxVals != -1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+	Assert((0 <= MnValN) && (MnValN<Vals) && (0 <= MxValN) && (MxValN<Vals));
+	Assert(MnValN <= MxValN);
+	if (MxValN < Vals - 1) {
+		memmove(ValT + MnValN, ValT + MxValN + 1, sizeof(TVal) * (Vals - MxValN - 1)); // overlapping buffers, use memmove instead of memcpy	
+	}
+	Vals -= MxValN - MnValN + 1;
+}
+
+template <class TVal, class TSizeTy>
 bool TVec<TVal, TSizeTy>::DelIfIn(const TVal& Val){
-  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
   TSizeTy ValN=SearchForw(Val);
   if (ValN!=-1){Del(ValN); return true;}
   else {return false;}
@@ -1119,7 +1288,7 @@ bool TVec<TVal, TSizeTy>::DelIfIn(const TVal& Val){
 
 template <class TVal, class TSizeTy>
 void TVec<TVal, TSizeTy>::DelAll(const TVal& Val){
-  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
   TSizeTy ValN;
   while ((ValN=SearchForw(Val))!=-1){Del(ValN);}
 }
@@ -1149,10 +1318,12 @@ void TVec<TVal, TSizeTy>::ISort(const TSizeTy& MnLValN, const TSizeTy& MxRValN, 
       TVal Val=ValT[ValN1]; TSizeTy ValN2=ValN1;
       if (Asc){
         while ((ValN2>MnLValN)&&(ValT[ValN2-1]>Val)){
-          ValT[ValN2]=ValT[ValN2-1]; ValN2--;}
+          Move(ValN2-1, ValN2); ValN2--;}
+          //ValT[ValN2]=ValT[ValN2-1]; ValN2--;}
       } else {
         while ((ValN2>MnLValN)&&(ValT[ValN2-1]<Val)){
-          ValT[ValN2]=ValT[ValN2-1]; ValN2--;}
+          Move(ValN2-1, ValN2); ValN2--;}
+          //ValT[ValN2]=ValT[ValN2-1]; ValN2--;}
       }
       ValT[ValN2]=Val;
     }
@@ -1160,12 +1331,12 @@ void TVec<TVal, TSizeTy>::ISort(const TSizeTy& MnLValN, const TSizeTy& MxRValN, 
 }
 
 template <class TVal, class TSizeTy>
-TSizeTy TVec<TVal, TSizeTy>::GetPivotValN(const TSizeTy& LValN, const TSizeTy& RValN) const {
+TSizeTy TVec<TVal, TSizeTy>::GetPivotValN(const TSizeTy& LValN, const TSizeTy& RValN, TRnd& Rnd) const {
   TSizeTy SubVals=RValN-LValN+1;
   if (SubVals > TInt::Mx-1) { SubVals = TInt::Mx-1; }
-  const TSizeTy ValN1=LValN+TInt::GetRnd(int(SubVals));
-  const TSizeTy ValN2=LValN+TInt::GetRnd(int(SubVals));
-  const TSizeTy ValN3=LValN+TInt::GetRnd(int(SubVals));
+  const TSizeTy ValN1=LValN+Rnd.GetUniDevInt(int(SubVals));
+  const TSizeTy ValN2=LValN+Rnd.GetUniDevInt(int(SubVals));
+  const TSizeTy ValN3=LValN+Rnd.GetUniDevInt(int(SubVals));
   const TVal& Val1=ValT[ValN1];
   const TVal& Val2=ValT[ValN2];
   const TVal& Val3=ValT[ValN3];
@@ -1181,8 +1352,9 @@ TSizeTy TVec<TVal, TSizeTy>::GetPivotValN(const TSizeTy& LValN, const TSizeTy& R
 }
 
 template <class TVal, class TSizeTy>
-TSizeTy TVec<TVal, TSizeTy>::Partition(const TSizeTy& MnLValN, const TSizeTy& MxRValN, const bool& Asc){
-  TSizeTy PivotValN=GetPivotValN(MnLValN, MxRValN);
+TSizeTy TVec<TVal, TSizeTy>::Partition(const TSizeTy& MnLValN, const TSizeTy& MxRValN, const bool& Asc, TRnd& Rnd){
+  TSizeTy PivotValN=GetPivotValN(MnLValN, MxRValN, Rnd);
+  Assert(MnLValN <= PivotValN && PivotValN <= MxRValN);
   Swap(PivotValN, MnLValN);
   TVal PivotVal=ValT[MnLValN];
   TSizeTy LValN=MnLValN-1;  TSizeTy RValN=MxRValN+1;
@@ -1200,21 +1372,21 @@ TSizeTy TVec<TVal, TSizeTy>::Partition(const TSizeTy& MnLValN, const TSizeTy& Mx
 }
 
 template <class TVal, class TSizeTy>
-void TVec<TVal, TSizeTy>::QSort(const TSizeTy& MnLValN, const TSizeTy& MxRValN, const bool& Asc){
+void TVec<TVal, TSizeTy>::QSort(const TSizeTy& MnLValN, const TSizeTy& MxRValN, const bool& Asc, TRnd& Rnd){
   if (MnLValN<MxRValN){
     if (MxRValN-MnLValN<20){
       ISort(MnLValN, MxRValN, Asc);
     } else {
-      TSizeTy SplitValN=Partition(MnLValN, MxRValN, Asc);
-      QSort(MnLValN, SplitValN, Asc);
-      QSort(SplitValN+1, MxRValN, Asc);
+      TSizeTy SplitValN=Partition(MnLValN, MxRValN, Asc, Rnd);
+      QSort(MnLValN, SplitValN, Asc, Rnd);
+      QSort(SplitValN+1, MxRValN, Asc, Rnd);
     }
   }
 }
 
 template <class TVal, class TSizeTy>
-void TVec<TVal, TSizeTy>::Sort(const bool& Asc){
-  QSort(0, Len()-1, Asc);
+void TVec<TVal, TSizeTy>::Sort(TRnd& Rnd, const bool& Asc){
+  QSort(0, Len()-1, Asc, Rnd);
 }
 
 template <class TVal, class TSizeTy>
@@ -1268,7 +1440,7 @@ void TVec<TVal, TSizeTy>::Reverse(){
 
 template <class TVal, class TSizeTy>
 void TVec<TVal, TSizeTy>::Merge(){
-  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+  AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such a vector cannot change its size!");
   TVec<TVal, TSizeTy> SortedVec(*this); SortedVec.Sort();
   Clr();
   for (TSizeTy ValN=0; ValN<SortedVec.Len(); ValN++){
@@ -1403,6 +1575,24 @@ TSizeTy TVec<TVal, TSizeTy>::IntrsLen(const TVec<TVal, TSizeTy>& ValV) const {
 }
 
 template <class TVal, class TSizeTy>
+TSizeTy TVec<TVal, TSizeTy>::UnionLen(const TVec<TVal, TSizeTy>& ValV) const {
+  TSizeTy Cnt = 0, ValN1 = 0, ValN2 = 0;
+  while ((ValN1 < Len()) && (ValN2 < ValV.Len())) {
+    const TVal& Val1 = GetVal(ValN1);
+    const TVal& Val2 = ValV.GetVal(ValN2);
+    if (Val1 < Val2) {
+      Cnt++; ValN1++;
+    } else if (Val1 > Val2) {
+      Cnt++; ValN2++;
+    } else {
+      Cnt++; ValN1++; ValN2++;
+    }
+  }
+  Cnt += (Len() - ValN1) + (ValV.Len() - ValN2);
+  return Cnt;
+}
+
+template <class TVal, class TSizeTy>
 TSizeTy TVec<TVal, TSizeTy>::Count(const TVal& Val) const {
   TSizeTy Count = 0;
   for (TSizeTy i = 0; i < Len(); i++){
@@ -1460,6 +1650,33 @@ TSizeTy TVec<TVal, TSizeTy>::SearchVForw(const TVec<TVal, TSizeTy>& ValV, const 
 }
 
 template <class TVal, class TSizeTy>
+void TVec<TVal, TSizeTy>::FindAll(const TVal& Val, TVec<TInt, TSizeTy>& IdxV) const {
+  const int Dim = Len();
+  TSizeTy Count = 0;
+  for (TSizeTy ValN = 0; ValN < Dim; ValN++) {
+    if (ValT[ValN] == Val) { Count++; }
+  }
+  IdxV.Gen(Count, 0);
+  for (TSizeTy ValN = 0; ValN < Dim; ValN++) {
+    if (ValT[ValN] == Val) { IdxV.Add(ValT[ValN]); }
+  }
+}
+
+template <class TVal, class TSizeTy>
+template <typename TFun>
+void TVec<TVal, TSizeTy>::FindAllSatisfy(const TFun& Fun, TVec<TInt, TSizeTy>& IdxV) const {
+  const int Dim = Len();
+  TSizeTy Count = 0;
+  for (TSizeTy ValN = 0; ValN < Dim; ValN++) {
+	if (Fun(ValT[ValN])) { Count++; }
+  }
+  IdxV.Gen(Count, 0);
+  for (TSizeTy ValN = 0; ValN < Dim; ValN++) {
+	if (Fun(ValT[ValN])) { IdxV.Add(ValT[ValN]); }
+  }
+}
+
+template <class TVal, class TSizeTy>
 TSizeTy TVec<TVal, TSizeTy>::GetMxValN() const {
   if (Vals==0){return -1;}
   TSizeTy MxValN=0;
@@ -1480,7 +1697,7 @@ typedef TVec<TUInt64> TUInt64V;
 typedef TVec<TFlt> TFltV;
 typedef TVec<TSFlt> TSFltV;
 typedef TVec<TAscFlt> TAscFltV;
-typedef TVec<TStr> TStrV;
+//typedef TVec<TStr> TStrV; // defined in dt.h
 typedef TVec<TChA> TChAV;
 typedef TVec<TIntPr> TIntPrV;
 typedef TVec<TIntTr> TIntTrV;
@@ -1502,6 +1719,8 @@ typedef TVec<TIntStrPr> TIntStrPrV;
 typedef TVec<TIntIntStrTr> TIntIntStrTrV;
 typedef TVec<TIntIntFltTr> TIntIntFltTrV;
 typedef TVec<TIntFltIntTr> TIntFltIntTrV;
+typedef TVec<TIntFltFltTr> TIntFltFltTrV;
+typedef TVec<TFltIntFltTr> TFltIntFltTrV;
 typedef TVec<TIntStrIntTr> TIntStrIntTrV;
 typedef TVec<TIntKd> TIntKdV;
 typedef TVec<TUIntIntKd> TUIntIntKdV;
@@ -1618,7 +1837,8 @@ public:
   /// Deletes all elements of value \c DelVal from all vectors. ##TVecPool::CompactPool
   void CompactPool(const TVal& DelVal);
   /// Shuffles the order of all elements in the pool. ##TVecPool::ShuffleAll
-  void ShuffleAll(TRnd& Rnd=TInt::Rnd);
+  void ShuffleAll(TRnd& Rnd);
+  void ShuffleAll() { TRnd Rnd; ShuffleAll(Rnd); }
   
   /// Clears the contents of the pool. ##TVecPool::Clr
   void Clr(bool DoDel = true) {
@@ -1636,7 +1856,7 @@ void TVecPool<TVal, TSizeTy>::Resize(const TSize& _MxVals){
   if (_MxVals <= MxVals){ return; } else { MxVals = _MxVals; }
   if (ValBf == NULL) {
     try { ValBf = new TVal [MxVals]; }
-    catch (std::exception Ex) {
+    catch (std::exception& Ex) {
       FailR(TStr::Fmt("TVecPool::Resize 1: %s, MxVals: %s. [Program failed to allocate more memory. Solution: Get a bigger machine and a 64-bit compiler.]", Ex.what(), TInt::GetStr(uint64(_MxVals)).CStr()).CStr()); }
     IAssert(ValBf != NULL);
     if (EmptyVal != TVal()) { PutAll(EmptyVal); }
@@ -1644,7 +1864,7 @@ void TVecPool<TVal, TSizeTy>::Resize(const TSize& _MxVals){
     // printf("*** Resize vector pool: %llu -> %llu\n", uint64(Vals), uint64(MxVals));
     TVal* NewValBf = NULL;
     try { NewValBf = new TVal [MxVals]; }
-    catch (std::exception Ex) {
+    catch (std::exception& Ex) {
       FailR(TStr::Fmt("TVecPool::Resize 1: %s, MxVals: %s. [Program failed to allocate more memory. Solution: Get a bigger machine and a 64-bit compiler.]", Ex.what(), TInt::GetStr(uint64(_MxVals)).CStr()).CStr()); }
     IAssert(NewValBf != NULL);
     if (FastCopy) {
@@ -1789,6 +2009,129 @@ void TVecPool<TVal, TSizeTy>::ShuffleAll(TRnd& Rnd) {
   }
 }
 
+///////////////////////////////
+// Linked queue
+template <class TVal, class TSizeTy = TUInt64>
+class TLinkedQueue {
+private:
+	class TNode {
+	public:
+		TNode* Next;
+		TVal Val;
+
+		TNode(TNode* Next, const TVal& Val);
+	};
+
+	TNode* First;
+	TNode* Last;
+	TSizeTy Size;
+
+public:
+	TLinkedQueue();
+	TLinkedQueue(TSIn& SIn);
+	~TLinkedQueue();
+
+	void Save(TSOut& SOut) const;
+
+	void Push(const TVal& Val);
+	TVal Pop();
+	TVal& Peek();
+	void DelFirst();
+
+	bool Empty() const { return Len() == 0; };
+	TSizeTy Len() const { return Size; };
+};
+
+template <class TVal, class TSizeTy>
+TLinkedQueue<TVal, TSizeTy>::TNode::TNode(TNode* _Next, const TVal& _Val):
+		Next(_Next),
+		Val(_Val) {}
+
+template <class TVal, class TSizeTy>
+TLinkedQueue<TVal, TSizeTy>::TLinkedQueue():
+		First(nullptr),
+		Last(nullptr),
+		Size() {
+	Size = 0;	// explicitly set the size in case the default constructor does nothing
+}
+
+template <class TVal, class TSizeTy>
+TLinkedQueue<TVal, TSizeTy>::TLinkedQueue(TSIn& SIn):
+		First(nullptr),
+		Last(nullptr),
+		Size() {
+	Size = 0;	// explicitly set the size in case the default constructor does nothing
+
+	const TSizeTy FinalSize(SIn);
+	for (TSizeTy i = 0; i < FinalSize; i++) {
+		Push(TVal(SIn));
+	}
+}
+
+template <class TVal, class TSizeTy>
+TLinkedQueue<TVal, TSizeTy>::~TLinkedQueue() {
+	while (!Empty()) { DelFirst(); }
+}
+
+template <class TVal, class TSizeTy>
+void TLinkedQueue<TVal, TSizeTy>::Save(TSOut& SOut) const {
+	Size.Save(SOut);
+
+	TNode* Curr = First;
+	while (Curr != nullptr) {
+		Curr->Val.Save(SOut);
+		Curr = Curr->Next;
+	}
+}
+
+template <class TVal, class TSizeTy>
+void TLinkedQueue<TVal, TSizeTy>::Push(const TVal& Val) {
+	TNode* Node = new TNode(nullptr, Val);
+
+	if (Size++ == 0) {
+		First = Node;
+	} else {
+		Last->Next = Node;
+	}
+
+	Last = Node;
+}
+
+template <class TVal, class TSizeTy>
+TVal TLinkedQueue<TVal, TSizeTy>::Pop() {
+	TVal Result = Peek();
+	DelFirst();
+	return Result;
+}
+
+template <class TVal, class TSizeTy>
+TVal& TLinkedQueue<TVal, TSizeTy>::Peek() {
+	IAssertR(!Empty(), "Cannot peek when the queue is empty!");
+	return First->Val;
+}
+
+template <class TVal, class TSizeTy>
+void TLinkedQueue<TVal, TSizeTy>::DelFirst() {
+	IAssertR(!Empty(), "Cannot delete elements from empty buffer!");
+
+	TNode* Temp = First;
+
+	if (--Size == 0) {
+		First = nullptr;
+		Last = nullptr;
+	} else {
+		First = First->Next;
+	}
+
+	delete Temp;
+}
+
+/////////////////////////////////////////////////
+// Below are old 32-bit implementations of TVec and other classes.
+// Old TVec takes at most 2G elements.
+// The new vector class supports 64-bits for the number of elements,
+// but also allows 32-bits for backward compatibility.
+// by Jure (Jan 2013)
 namespace TGLib_OLD {
 /////////////////////////////////////////////////
 // Vector Pool
@@ -1849,7 +2192,8 @@ public:
     }
   }
   void CompactPool(const TVal& DelVal); // delete all elements of value DelVal from all vectors
-  void ShuffleAll(TRnd& Rnd=TInt::Rnd); // shuffles all the order of elements in the Pool (does not respect vector boundaries)
+  void ShuffleAll(TRnd& Rnd); // shuffles all the order of elements in the Pool (does not respect vector boundaries)
+  void ShuffleAll() { TRnd Rnd; ShuffleAll(Rnd); }
 
   //bool HasIdMap() const { return ! IdToOffV.Empty(); }
   //void ClrIdMap() { IdToOffV.Clr(true); }
@@ -2076,42 +2420,75 @@ typedef TPt<TStrVP> PStrV;
 
 /////////////////////////////////////////////////
 // 2D-Vector
-template <class TVal, class TSizeTy = int>
+template <class TVal, class TSizeTy = int, bool colmajor = false>
 class TVVec{
-private:
-  TSizeTy XDim, YDim;
-  TVec<TVal, TSizeTy> ValV;
+protected:
+	TSizeTy XDim, YDim;
+	TVec<TVal, TSizeTy> ValV;
+	TBool ColMajor;
+	//TSizeTy XStride, YStride;
 public:
-  TVVec(): XDim(), YDim(), ValV(){}
-  TVVec(const TVVec& Vec):
-    XDim(Vec.XDim), YDim(Vec.YDim), ValV(Vec.ValV){}
-  TVVec(const TVVec&& Vec):
-    XDim(std::move(Vec.XDim)), YDim(std::move(Vec.YDim)), ValV(std::move(Vec.ValV)) { }
-  TVVec(const TSizeTy& _XDim, const TSizeTy& _YDim):
-    XDim(), YDim(), ValV(){Gen(_XDim, _YDim);}
-  explicit TVVec(const TVec<TVal, TSizeTy>& _ValV, const TSizeTy& _XDim, const TSizeTy& _YDim):
-    XDim(_XDim), YDim(_YDim), ValV(_ValV){ IAssert(ValV.Len()==XDim*YDim); }
-  explicit TVVec(TSIn& SIn) {Load(SIn);}
-  void Load(TSIn& SIn){	  
-	  SIn.Load(XDim);
-	  SIn.Load(YDim);
-	  ValV.Load(SIn);
-  }
-  void Save(TSOut& SOut) const {
-	  SOut.Save(XDim);
-	  SOut.Save(YDim);
-	  ValV.Save(SOut);
-  }
+	TVVec() : XDim(), YDim(), ValV(), ColMajor(){}
+	TVVec(const TVVec& Vec) :
+		XDim(Vec.XDim), YDim(Vec.YDim), ValV(Vec.ValV), ColMajor(Vec.ColMajor){}
+	TVVec(const TVec<TVal, TSizeTy>& Vec) :
+		XDim(colmajor ? Vec.Len() : 1), YDim(colmajor ? 1 : Vec.Len()), ValV(Vec), ColMajor(colmajor){}
+	TVVec(const TVec<TVal, TSizeTy> && Vec) :
+		XDim(colmajor ? Vec.Len() : 1), YDim(colmajor ? 1 : Vec.Len()), ValV(std::move(Vec)), ColMajor(colmajor){}
+	//-------------------------------------------------------------------------------------------
+#ifdef GLib_CPP11
+	TVVec(const TVVec&& Vec) :
+		XDim(std::move(Vec.XDim)), YDim(std::move(Vec.YDim)), ValV(std::move(Vec.ValV)), ColMajor(std::move(Vec.ColMajor)){ }
+#endif
+	TVVec(const TSizeTy& _XDim, const TSizeTy& _YDim, const TBool& _ColMajor = false) :
+		XDim(), YDim(), ValV(), ColMajor(_ColMajor){
+		Gen(_XDim, _YDim);
+	}
+	explicit TVVec(const TVec<TVal, TSizeTy>& _ValV, const TSizeTy& _XDim, const TSizeTy& _YDim, const TBool& _ColMajor = false) :
+		XDim(_XDim), YDim(_YDim), ValV(_ValV), ColMajor(_ColMajor){
+		IAssert(ValV.Len() == XDim*YDim);
+	}
+	//Andrej beta specialize this only for row major, works only for row major
+	void GetExtRows(TVVec& VVec, const TSizeTy& RowStart, const TSizeTy& RowEnd){
+		//VVec.ValV.MxVals = -1;//I will not be resonsible for this memory!
+		VVec.ValV.GenExt(&ValV[RowStart*YDim], (RowEnd - RowStart + 1)*YDim);
+		VVec.XDim = (RowEnd - RowStart + 1);
+		VVec.YDim = YDim;
+	}
+	explicit TVVec(TSIn& SIn) { Load(SIn); }
+	void Load(TSIn& SIn){
+		SIn.Load(XDim);
+		SIn.Load(YDim);
+		ValV.Load(SIn);
+		if (colmajor){
+			ColMajor.Load(SIn);
+		}
+		else{
+			ColMajor = false;
+		}
+	}
+	void Save(TSOut& SOut) const {
+		SOut.Save(XDim);
+		SOut.Save(YDim);
+		ValV.Save(SOut);
+		/*Added by Andrej*/
+		if (colmajor){
+			ColMajor.Save(SOut);
+		}
+	}
   TVVec<TVal, TSizeTy>& operator=(const TVVec<TVal, TSizeTy>& Vec){
-    if (this!=&Vec){XDim=Vec.XDim; YDim=Vec.YDim; ValV=Vec.ValV;} return *this;}
+	  if (this != &Vec){ XDim = Vec.XDim; YDim = Vec.YDim;  ValV = Vec.ValV; ColMajor = Vec.ColMajor; } return *this;
+  }
   bool operator==(const TVVec& Vec) const {
-    return (XDim==Vec.XDim)&&(YDim==Vec.YDim)&&(ValV==Vec.ValV);}
+	  return (XDim == Vec.XDim) && (YDim == Vec.YDim) && (ValV == Vec.ValV) && (ColMajor == Vec.ColMajor);
+  }
 
   bool Empty() const {return ValV.Len()==0;}
   void Clr(){XDim=0; YDim=0; ValV.Clr();}
   void Gen(const TSizeTy& _XDim, const TSizeTy& _YDim){
-    Assert((_XDim>=0)&&(_YDim>=0));
-    XDim=_XDim; YDim=_YDim; ValV.Gen(XDim*YDim);}
+	  EAssert((_XDim >= 0) && (_YDim >= 0));
+	  XDim = _XDim; YDim = _YDim;  ValV.Gen(XDim*YDim); ColMajor = colmajor;
+  }
   TSizeTy GetXDim() const {return XDim;}
   TSizeTy GetYDim() const {return YDim;}
   TSizeTy GetRows() const {return XDim;}
@@ -2119,11 +2496,13 @@ public:
   TVec<TVal, TSizeTy>& Get1DVec(){return ValV;}
 
   const TVal& At(const TSizeTy& X, const TSizeTy& Y) const {
-    Assert((0<=X)&&(X<TSizeTy(XDim))&&(0<=Y)&&(Y<TSizeTy(YDim)));
-    return ValV[X*YDim+Y];}
+	  Assert((0 <= X) && (X<TSizeTy(XDim)) && (0 <= Y) && (Y<TSizeTy(YDim)));
+	  return colmajor ? ValV[Y*XDim + X] : ValV[X*YDim + Y];
+  }
   TVal& At(const TSizeTy& X, const TSizeTy& Y){
-    Assert((0<=X)&&(X<TSizeTy(XDim))&&(0<=Y)&&(Y<TSizeTy(YDim)));
-    return ValV[X*YDim+Y];}
+	  Assert((0 <= X) && (X<TSizeTy(XDim)) && (0 <= Y) && (Y<TSizeTy(YDim)));
+	  return colmajor ? ValV[Y*XDim + X] : ValV[X*YDim + Y];
+  }
   TVal& operator()(const TSizeTy& X, const TSizeTy& Y){
     return At(X, Y);}
   const TVal& operator()(const TSizeTy& X, const TSizeTy& Y) const {
@@ -2136,69 +2515,99 @@ public:
   void PutY(const TSizeTy& Y, const TVal& Val){
     for (TSizeTy X=0; X<TSizeTy(XDim); X++){At(X, Y)=Val;}}
   TVal GetXY(const TSizeTy& X, const TSizeTy& Y) const {
-    Assert((0<=X)&&(X<TSizeTy(XDim))&&(0<=Y)&&(Y<TSizeTy(YDim)));
-    return ValV[X*YDim+Y];}
+	  Assert((0 <= X) && (X<TSizeTy(XDim)) && (0 <= Y) && (Y<TSizeTy(YDim)));
+	  return colmajor ? ValV[Y*XDim + X] : ValV[X*YDim + Y];
+  }
   void GetRow(const TSizeTy& RowN, TVec<TVal, TSizeTy>& Vec) const;
-  // Get a pointer to the row (no copying involved)
+  // Get a pointer to the row (no copying in case of row major format)
   void GetRowPtr(const TSizeTy& RowN, TVec<TVal, TSizeTy>& Vec);
+  void GetRowsPtr(const TSizeTy& RowStart, const TSizeTy& RowEnd, TVVec<TVal, TSizeTy>& Vec);
+  void GetRowSIter(const TSizeTy& RowN, TSIter<TVal, TSizeTy>& SIter);
   void GetCol(const TSizeTy& ColN, TVec<TVal, TSizeTy>& Vec) const;
+  void GetColPtr(const TSizeTy& ColN, TVec<TVal, TSizeTy>& Vec);
+  void GetColSIter(const TSizeTy& ColN, TSIter<TVal, TSizeTy>& Vec);
 
   void SetRow(const TSizeTy& RowN, const TVec<TVal, TSizeTy>& Vec);
   void SetCol(const TSizeTy& ColN, const TVec<TVal, TSizeTy>& Vec);
 
+  void AddCol(const TVec<TVal, TSizeTy>& Col) { AddYDim();	SetCol(GetCols()-1, Col); }
+
   void SwapX(const TSizeTy& X1, const TSizeTy& X2);
   void SwapY(const TSizeTy& Y1, const TSizeTy& Y2);
-  void Swap(TVVec<TVal, TSizeTy>& Vec);
+  void Swap(TVVec<TVal, TSizeTy, colmajor>& VVec);
 
   void ShuffleX(TRnd& Rnd);
   void ShuffleY(TRnd& Rnd);
   void GetMxValXY(TSizeTy& X, TSizeTy& Y) const;
 
-  void CopyFrom(const TVVec<TVal, TSizeTy>& VVec);
+  void CopyFrom(const  TVVec<TVal, TSizeTy, colmajor>& VVec);
   void AddXDim();
-  void AddYDim();
+  void AddYDim(const TSizeTy& NDims=1);
   void DelX(const TSizeTy& X);
   void DelY(const TSizeTy& Y);
-
-	void Transpose() {
-		TVec<TVal, TSizeTy> ValV2 = ValV;
-		int Counter = 0;
-		for (int Y = 0; Y < YDim; Y++) {
-			for (int X = 0; X < XDim; X++) {			
-				ValV2[Counter] = ValV[X*YDim + Y];
-				Counter++;				
-			}
-		}
-		std::swap(ValV, ValV2);
-		TSizeTy temp2 = XDim;
-		XDim = YDim;
-		YDim = temp2;
-	}
+#ifndef INTEL_TRANSPOSE
+  void Transpose() {
+	  TVec<TVal, TSizeTy> ValV2 = ValV;
+	  int Counter = 0;
+	  for (int Y = 0; Y < YDim; Y++) {
+		  for (int X = 0; X < XDim; X++) {
+			  ValV2[Counter] = colmajor ? ValV[Y*XDim + Y] : ValV[X*YDim + Y];
+			  Counter++;
+		  }
+	  }
+	  std::swap(ValV, ValV2);
+	  TSizeTy temp2 = XDim;
+	  XDim = YDim;
+	  YDim = temp2;
+  }
+  void SwitchDim() {
+	  TSizeTy temp2 = XDim;
+	  XDim = YDim;
+	  YDim = temp2;
+  }
+#else
+  //INTEL MKL in place transpose needs to be fixed to support both row and column major format
+  void Transpose() {
+	  //void mkl_dimatcopy(const char ordering, const char trans, size_t rows, size_t cols, const double alpha, double * AB, size_t lda, size_t ldb);
+	  char Format = colmajor ? 'C' : 'T';
+	  mkl_dimatcopy(Format, 'T', XDim, YDim, 1.0, &ValV[0].Val, YDim, XDim);
+	  TSizeTy temp2 = XDim;
+	  XDim = YDim;
+	  YDim = temp2;
+  }
+  void SwitchDim() {
+	  TSizeTy temp2 = XDim;
+	  XDim = YDim;
+	  YDim = temp2;
+  }
+#endif
 };
 
-template <class TVal, class TSizeTy>
-void TVVec<TVal, TSizeTy>::SwapX(const TSizeTy& X1, const TSizeTy& X2){
+
+template <class TVal, class TSizeTy, bool colmajor>
+void TVVec<TVal, TSizeTy, colmajor>::SwapX(const TSizeTy& X1, const TSizeTy& X2){
   for (TSizeTy Y=0; Y<TSizeTy(YDim); Y++){
     TVal Val=At(X1, Y); At(X1, Y)=At(X2, Y); At(X2, Y)=Val;}
 }
 
-template <class TVal, class TSizeTy>
-void TVVec<TVal, TSizeTy>::SwapY(const TSizeTy& Y1, const TSizeTy& Y2){
+
+template <class TVal, class TSizeTy, bool colmajor>
+void TVVec<TVal, TSizeTy, colmajor>::SwapY(const TSizeTy& Y1, const TSizeTy& Y2){
   for (TSizeTy X=0; X<TSizeTy(XDim); X++){
     TVal Val=At(X, Y1); At(X, Y1)=At(X, Y2); At(X, Y2)=Val;}
 }
 
-template <class TVal, class TSizeTy>
-void TVVec<TVal, TSizeTy>::Swap(TVVec<TVal, TSizeTy>& Vec){  //J:
-  if (this!=&Vec){
-    ::Swap(XDim, Vec.XDim);
-    ::Swap(YDim, Vec.YDim);
-    ValV.Swap(Vec.ValV);
-  }
+template <class TVal, class TSizeTy, bool colmajor>
+void TVVec<TVal, TSizeTy, colmajor>::Swap(TVVec<TVal, TSizeTy, colmajor>& Vec){  //J:
+	if (this != &Vec){
+		::Swap(XDim, Vec.XDim);
+		::Swap(YDim, Vec.YDim);
+		ValV.Swap(Vec.ValV);
+	}
 }
 
-template <class TVal, class TSizeTy>
-void TVVec<TVal, TSizeTy>::ShuffleX(TRnd& Rnd){
+template <class TVal, class TSizeTy, bool colmajor>
+void TVVec<TVal, TSizeTy, colmajor>::ShuffleX(TRnd& Rnd){
   if (GetXDim() < TInt::Mx) {
     for (TSizeTy X=0; X<XDim-1; X++){SwapX(X, X+Rnd.GetUniDevInt(XDim-X));}
   } else {
@@ -2206,8 +2615,8 @@ void TVVec<TVal, TSizeTy>::ShuffleX(TRnd& Rnd){
   }
 }
 
-template <class TVal, class TSizeTy>
-void TVVec<TVal, TSizeTy>::ShuffleY(TRnd& Rnd){
+template <class TVal, class TSizeTy, bool colmajor>
+void TVVec<TVal, TSizeTy, colmajor>::ShuffleY(TRnd& Rnd){
   if (GetYDim() < TInt::Mx) {
     for (TSizeTy Y=0; Y<YDim-1; Y++){SwapY(Y, Y+Rnd.GetUniDevInt(YDim-Y));}
   } else {
@@ -2215,94 +2624,169 @@ void TVVec<TVal, TSizeTy>::ShuffleY(TRnd& Rnd){
   }
 }
 
-template <class TVal, class TSizeTy>
-void TVVec<TVal, TSizeTy>::GetMxValXY(TSizeTy& X, TSizeTy& Y) const {
+template <class TVal, class TSizeTy, bool colmajor>
+void TVVec<TVal, TSizeTy, colmajor>::GetMxValXY(TSizeTy& X, TSizeTy& Y) const {
   TSizeTy MxValN=ValV.GetMxValN();
-  Y=MxValN%YDim;
-  X=MxValN/YDim;
-}
-
-template <class TVal, class TSizeTy>
-void TVVec<TVal, TSizeTy>::CopyFrom(const TVVec<TVal, TSizeTy>& VVec){	
-  TSizeTy CopyXDim= MIN(GetXDim(), VVec.GetXDim());
-  TSizeTy CopyYDim= MIN(GetYDim(), VVec.GetYDim());
-  for (TSizeTy X=0; X<CopyXDim; X++){
-    for (TSizeTy Y=0; Y<CopyYDim; Y++){
-      At(X, Y)=VVec.At(X, Y);
-    }
+  if (colmajor){
+	  Y = MxValN%YDim;
+	  X = MxValN / YDim;
+  }
+  else{
+	  Y = MxValN%XDim;
+	  X = MxValN / XDim;
   }
 }
 
-template <class TVal, class TSizeTy>
-void TVVec<TVal, TSizeTy>::AddXDim(){
-  TVVec<TVal, TSizeTy> NewVVec(XDim+1, YDim);
-  NewVVec.CopyFrom(*this);
-  *this=NewVVec;
+template <class TVal, class TSizeTy, bool colmajor>
+void  TVVec<TVal, TSizeTy, colmajor>::CopyFrom(const  TVVec<TVal, TSizeTy, colmajor>& VVec){
+	TSizeTy CopyXDim = MIN(GetXDim(), VVec.GetXDim());
+	TSizeTy CopyYDim = MIN(GetYDim(), VVec.GetYDim());
+	for (TSizeTy X = 0; X<CopyXDim; X++){
+		for (TSizeTy Y = 0; Y<CopyYDim; Y++){
+			At(X, Y) = VVec.At(X, Y);
+		}
+	}
 }
 
-template <class TVal, class TSizeTy>
-void TVVec<TVal, TSizeTy>::AddYDim(){
-  TVVec<TVal, TSizeTy> NewVVec(XDim, YDim+1);
-  NewVVec.CopyFrom(*this);
-  *this=NewVVec;
+
+template <class TVal, class TSizeTy, bool colmajor>
+void  TVVec<TVal, TSizeTy, colmajor>::AddXDim(){
+	TVVec<TVal, TSizeTy, colmajor> NewVVec(XDim + 1, YDim);
+	NewVVec.CopyFrom(*this);
+	*this = NewVVec;
 }
 
-template <class TVal, class TSizeTy>
-void TVVec<TVal, TSizeTy>::DelX(const TSizeTy& X){
-  TVVec<TVal, TSizeTy> NewVVec(XDim-1, YDim);
-  for (TSizeTy Y=0; Y<YDim; Y++){
-    for (TSizeTy LX=0; LX<X; LX++){
-      NewVVec.At(LX, Y)=At(LX, Y);}
-    for (TSizeTy RX=X+1; RX<XDim; RX++){
-      NewVVec.At(RX-1, Y)=At(RX, Y);}
-  }
-  *this=NewVVec;
+template <class TVal, class TSizeTy, bool colmajor>
+void  TVVec<TVal, TSizeTy, colmajor>::AddYDim(const TSizeTy& NDims){
+	TVVec<TVal, TSizeTy, colmajor> NewVVec(XDim, YDim + NDims);
+	NewVVec.CopyFrom(*this);
+	*this = NewVVec;
 }
 
-template <class TVal, class TSizeTy>
-void TVVec<TVal, TSizeTy>::DelY(const TSizeTy& Y){
-  TVVec<TVal, TSizeTy> NewVVec(XDim, YDim-1);
-  for (TSizeTy X=0; X<XDim; X++){
-    for (TSizeTy LY=0; LY<Y; LY++){
-      NewVVec.At(X, LY)=At(X, LY);}
-    for (TSizeTy RY=Y+1; RY<YDim; RY++){
-      NewVVec.At(X, RY-1)=At(X, RY);}
-  }
-  *this=NewVVec;
+template <class TVal, class TSizeTy, bool colmajor>
+void  TVVec<TVal, TSizeTy, colmajor>::DelX(const TSizeTy& X){
+	TVVec<TVal, TSizeTy, colmajor> NewVVec(XDim - 1, YDim);
+	for (TSizeTy Y = 0; Y<YDim; Y++){
+		for (TSizeTy LX = 0; LX<X; LX++){
+			NewVVec.At(LX, Y) = At(LX, Y);
+		}
+		for (TSizeTy RX = X + 1; RX<XDim; RX++){
+			NewVVec.At(RX - 1, Y) = At(RX, Y);
+		}
+	}
+	*this = NewVVec;
 }
 
-template <class TVal, class TSizeTy>
-void TVVec<TVal, TSizeTy>::GetRow(const TSizeTy& RowN, TVec<TVal, TSizeTy>& Vec) const {
-	Vec.Gen(GetCols(), 0);
+template <class TVal, class TSizeTy, bool colmajor>
+void  TVVec<TVal, TSizeTy, colmajor>::DelY(const TSizeTy& Y){
+	TVVec<TVal, TSizeTy, colmajor> NewVVec(XDim, YDim - 1);
+	for (TSizeTy X = 0; X<XDim; X++){
+		for (TSizeTy LY = 0; LY<Y; LY++){
+			NewVVec.At(X, LY) = At(X, LY);
+		}
+		for (TSizeTy RY = Y + 1; RY<YDim; RY++){
+			NewVVec.At(X, RY - 1) = At(X, RY);
+		}
+	}
+	*this = NewVVec;
+}
+
+template <class TVal, class TSizeTy, bool colmajor>
+void TVVec<TVal, TSizeTy, colmajor>::GetRow(const TSizeTy& RowN, TVec<TVal, TSizeTy>& Vec) const {
+	EAssert((0 <= RowN) && (RowN<TSizeTy(XDim)));
+	if (Vec.Len() != GetCols()) { Vec.Gen(GetCols()); }
 	for (TSizeTy ColN = 0; ColN < YDim; ColN++) {
-		Vec.Add(At(RowN, ColN));
+		Vec[ColN] = At(RowN, ColN);
 	}
 }
 
-template <class TVal, class TSizeTy>
-void TVVec<TVal, TSizeTy>::GetRowPtr(const TSizeTy& RowN, TVec<TVal, TSizeTy>& Vec) {
-	Assert((0<=RowN)&&(RowN<TSizeTy(XDim)));	
-	Vec.GenExt(&ValV[RowN*YDim], YDim);	
+template <class TVal, class TSizeTy, bool colmajor>
+void  TVVec<TVal, TSizeTy, colmajor>::GetRowPtr(const TSizeTy& RowN, TVec<TVal, TSizeTy>& Vec){
+	EAssert((0<=RowN)&&(RowN<TSizeTy(XDim)));	
+	if (!colmajor){
+		Vec.GenExt(&ValV[RowN*YDim], YDim);
+	}
+	else{
+		GetRow(RowN, Vec);
+	}
 }
 
-template <class TVal, class TSizeTy>
-void TVVec<TVal, TSizeTy>::GetCol(const TSizeTy& ColN, TVec<TVal, TSizeTy>& Vec) const {
-	Vec.Gen(GetRows(), 0);
+template <class TVal, class TSizeTy, bool colmajor>
+void  TVVec<TVal, TSizeTy, colmajor>::GetRowsPtr(const TSizeTy& RowStart, const TSizeTy& RowEnd, TVVec<TVal, TSizeTy>& VVec){
+	EAssert((0 <= RowStart) && (RowStart<TSizeTy(XDim)));
+	EAssert((0 <= RowStart) && (RowEnd<TSizeTy(XDim)));
+	if (!colmajor){
+		this->GetExtRows(VVec, RowStart, RowEnd);
+	}
+	else{
+		//Allocate
+		VVec.Gen((RowEnd - RowStart + 1), YDim);
+		for (TSizeTy c = 0; c < YDim; c++){
+			for (TSizeTy r = RowStart; r <= RowEnd; r++){
+				VVec.ValV.Add(At(c, r));
+			}
+		}
+	}
+}
+
+template <class TVal, class TSizeTy, bool colmajor>
+void  TVVec<TVal, TSizeTy, colmajor>::GetRowSIter(const TSizeTy& RowN, TSIter<TVal, TSizeTy>& SIter) {
+	Assert((0 <= RowN) && (RowN<TSizeTy(XDim)));
+	if (!colmajor){
+		SIter = TSIter<TVal, TSizeTy>(&this->Get1DVec(), RowN*YDim, 1);
+	}
+	else{
+		SIter = TSIter<TVal, TSizeTy>(&this->Get1DVec(), RowN, YDim);
+	}
+}
+
+
+template <class TVal, class TSizeTy, bool colmajor>
+void  TVVec<TVal, TSizeTy, colmajor>::GetCol(const TSizeTy& ColN, TVec<TVal, TSizeTy>& Vec) const {
+	EAssert((0 <= ColN) && (ColN<TSizeTy(YDim)));
+	if (Vec.Len() != GetRows()) { Vec.Gen(GetRows()); }
 	for (TSizeTy RowN = 0; RowN < XDim; RowN++) {
-		Vec.Add(At(RowN, ColN));
+		Vec[RowN] = At(RowN, ColN);
 	}
 }
-template <class TVal, class TSizeTy>
-void TVVec<TVal, TSizeTy>::SetRow(const TSizeTy& RowN, const TVec<TVal, TSizeTy>& Vec) {
-	Assert((0<=RowN)&&(RowN<TSizeTy(XDim))&&(Vec.Len()==TSizeTy(YDim)));
+
+template <class TVal, class TSizeTy, bool colmajor>
+void  TVVec<TVal, TSizeTy, colmajor>::GetColPtr(const TSizeTy& ColN, TVec<TVal, TSizeTy>& Vec){
+	Assert((0 <= ColN) && (ColN<TSizeTy(YDim)));
+	if (colmajor){
+		Vec.GenExt(&ValV[ColN*XDim], XDim);
+	}
+	else
+	{
+		GetCol(ColN, Vec);
+	}
+}
+
+
+
+template <class TVal, class TSizeTy, bool colmajor>
+void  TVVec<TVal, TSizeTy, colmajor>::GetColSIter(const TSizeTy& ColN, TSIter<TVal, TSizeTy>& SIter){
+	Assert((0 <= ColN) && (ColN<TSizeTy(YDim)));
+	if (!colmajor){
+		SIter = TSIter<TVal, TSizeTy>(&this->Get1DVec(), ColN, XDim);
+	}
+	else{
+		SIter = TSIter<TVal, TSizeTy>(&this->Get1DVec(), ColN*XDim, 1);
+	}
+}
+
+template <class TVal, class TSizeTy, bool colmajor>
+void  TVVec<TVal, TSizeTy, colmajor>::SetRow(const TSizeTy& RowN, const TVec<TVal, TSizeTy>& Vec) {
+	EAssert((0<=RowN)&&(RowN<TSizeTy(XDim))&&(Vec.Len()==TSizeTy(YDim)));
 	for (TSizeTy ColN = 0; ColN < YDim; ColN++) {
 		At(RowN, ColN) = Vec[ColN];
 	}
 }
 
-template <class TVal, class TSizeTy>
-void TVVec<TVal, TSizeTy>::SetCol(const TSizeTy& ColN, const TVec<TVal, TSizeTy>& Vec) {
-	Assert((0<=ColN)&&(ColN<TSizeTy(YDim))&&(Vec.Len()==TSizeTy(XDim)));
+
+template <class TVal, class TSizeTy, bool colmajor>
+void  TVVec<TVal, TSizeTy, colmajor>::SetCol(const TSizeTy& ColN, const TVec<TVal, TSizeTy>& Vec) {
+	EAssert((0 <= ColN) && (ColN<TSizeTy(YDim)) && (Vec.Len() == TSizeTy(XDim)));
 	for (TSizeTy RowN = 0; RowN < XDim; RowN++) {
 		At(RowN, ColN) = Vec[RowN];
 	}
@@ -2317,6 +2801,7 @@ typedef TVVec<TSFlt> TSFltVV;
 typedef TVVec<TFlt> TFltVV;
 typedef TVVec<TStr> TStrVV;
 typedef TVVec<TIntPr> TIntPrVV;
+typedef TVVec<TUInt64> TUInt64VV;
 
 /////////////////////////////////////////////////
 // 3D-Vector
@@ -2539,6 +3024,9 @@ public:
   void Save(TSOut& SOut) const {
     MxLast.Save(SOut); MxLen.Save(SOut);
     First.Save(SOut); Last.Save(SOut); ValV.Save(SOut);}
+  void Load(TSIn& SIn){
+    MxLast.Load(SIn); MxLen.Load(SIn);
+    First.Load(SIn); Last.Load(SIn); ValV.Load(SIn);}
 
   TQQueue& operator=(const TQQueue& Queue){
     if (this!=&Queue){MxLast=Queue.MxLast; MxLen=Queue.MxLen;
@@ -2569,6 +3057,11 @@ public:
     if (Last>MxLast){ValV.Del(0, Last-1); First-=Last; Last=0;}
     if ((MxLen!=-1)&&(MxLen==Len())){Pop();}
     First++; ValV.Add(Val);}
+  // add all items from the vector to the queue
+  void PushV(const TVec<TVal>& ValV) {
+	  for (int N = 0; N < ValV.Len(); N++) {
+		  Push(ValV[N]); }
+  }
 
   void Shuffle(TRnd& Rnd){
     TVec<TVal> ValV(Len(), 0); while (!Empty()){ValV.Add(Top()); Pop();}
@@ -2624,11 +3117,10 @@ private:
 public:
   TLst(): Nds(0), FirstNd(NULL), LastNd(NULL){}
   TLst(const TLst&);
+  TLst<TVal>& operator=(const TLst<TVal>& Val);
   ~TLst(){Clr();}
   explicit TLst(TSIn& SIn);
   void Save(TSOut& SOut) const;
-
-  TLst& operator=(const TLst&);
 
   void Clr(){
     PLstNd Nd=FirstNd;
@@ -2656,7 +3148,9 @@ public:
 
   PLstNd SearchForw(const TVal& Val);
   PLstNd SearchBack(const TVal& Val);
-
+  uint64 GetMemUsed() const {
+	  return uint64(sizeof(int) + 2 * sizeof(PLstNd) + Nds * sizeof(TLstNd<TVal>));
+  }
   friend class TLstNd<TVal>;
 };
 
@@ -2666,6 +3160,19 @@ TLst<TVal>::TLst(TSIn& SIn):
   int CheckNds=0; SIn.Load(CheckNds);
   for (int NdN=0; NdN<CheckNds; NdN++){AddBack(TVal(SIn));}
   Assert(Nds==CheckNds);
+}
+
+template <class TVal>
+TLst<TVal>& TLst<TVal>::operator=(const TLst<TVal>& Val){
+	if (this != &Val) {
+		Clr();
+		PLstNd Nd = Val.First();
+		while (Nd != NULL) { 
+			AddBack(TVal(Nd->Val));
+			Nd = Nd->NextNd; 
+		}
+	}
+	return *this;
 }
 
 template <class TVal>
@@ -2699,9 +3206,9 @@ TLstNd<TVal>* TLst<TVal>::AddFrontSorted(const TVal& Val, const bool& Asc){
   if (Nd==NULL){
     return Ins(Nd, Val);
   } else {
-    while ((Nd!=NULL)&&((Asc&&(Val>Nd()))||(!Asc&&(Val<Nd())))){
+    while ((Nd!=NULL)&&((Asc&&(Val>Nd->Val))||(!Asc&&(Val<Nd->Val)))){
       Nd=Nd->Next();}
-    if (Nd==NULL){return Ins(Nd->Last(), Val);}
+    if (Nd==NULL){return Ins(Last(), Val);}
     else {return Ins(Nd->Prev(), Val);}
   }
 }
@@ -2748,8 +3255,8 @@ TLstNd<TVal>* TLst<TVal>::Ins(const PLstNd& Nd, const TVal& Val){
   else if (Nd->NextNd==NULL){return AddBack(Val);}
   else {
     PLstNd NewNd=new TLstNd<TVal>(Nd, Nd->NextNd, Val);
-    Nd->NextNd=NewNd; NewNd->NextNd->PrevNd=Nd;
-    Nds++; return Nd;
+    Nd->NextNd=NewNd; NewNd->NextNd->PrevNd=NewNd;
+    Nds++; return NewNd;
   }
 }
 
@@ -2791,12 +3298,18 @@ TLstNd<TVal>* TLst<TVal>::SearchBack(const TVal& Val){
 
 /////////////////////////////////////////////////
 // Common-List-Types
-typedef TLst<TInt> TIntL; typedef TLstNd<TInt>* PIntLN;
-typedef TLst<TIntKd> TIntKdL; typedef TLstNd<TIntKd>* PIntKdLN;
-typedef TLst<TFlt> TFltL; typedef TLstNd<TFlt>* PFltLN;
-typedef TLst<TFltIntKd> TFltIntKdL; typedef TLstNd<TFltIntKd>* PFltIntKdLN;
-typedef TLst<TAscFltIntKd> TAscFltIntKdL; typedef TLstNd<TAscFltIntKd>* PAscFltIntKdLN;
-typedef TLst<TStr> TStrL; typedef TLstNd<TStr>* PStrLN;
+typedef TLst<TInt> TIntL;
+typedef TLstNd<TInt>* PIntLN;
+typedef TLst<TIntKd> TIntKdL;
+typedef TLstNd<TIntKd>* PIntKdLN;
+typedef TLst<TFlt> TFltL;
+typedef TLstNd<TFlt>* PFltLN;
+typedef TLst<TFltIntKd> TFltIntKdL;
+typedef TLstNd<TFltIntKd>* PFltIntKdLN;
+typedef TLst<TAscFltIntKd> TAscFltIntKdL;
+typedef TLstNd<TAscFltIntKd>* PAscFltIntKdLN;
+typedef TLst<TStr> TStrL;
+typedef TLstNd<TStr>* PStrLN;
 
 /////////////////////////////////////////////////
 // Record-File
@@ -2842,3 +3355,97 @@ public:
     Fail; return false;}
   TFuncPt operator()() const {return FuncPt;}
 };
+
+//#//////////////////////////////////////////////
+/// Simple heap data structure. ##THeap
+template <class TVal, class TCmp = TLss<TVal> >
+class THeap {
+private:
+  TCmp Cmp;
+  TVec<TVal> HeapV;
+private:
+  void PushHeap(const int& First, int HoleIdx, const int& Top, TVal Val);
+  void AdjustHeap(const int& First, int HoleIdx, const int& Len, TVal Val);
+  void MakeHeap(const int& First, const int& Len);
+public:
+  THeap() : HeapV() { }
+  THeap(const int& MxVals) : Cmp(), HeapV(MxVals, 0) { }
+  THeap(const TCmp& _Cmp) : Cmp(_Cmp), HeapV() { }
+  THeap(const TVec<TVal>& Vec) : Cmp(), HeapV(Vec) { MakeHeap(); }
+  THeap(const TVec<TVal>& Vec, const TCmp& _Cmp) : Cmp(_Cmp), HeapV(Vec) { MakeHeap(); }
+  THeap(const THeap& Heap) : Cmp(Heap.Cmp), HeapV(Heap.HeapV) { }
+  THeap& operator = (const THeap& H) { Cmp=H.Cmp; HeapV=H.HeapV; return *this; }
+
+  /// Returns a reference to the element at the top of the heap (the largest element of the heap).
+  const TVal& TopHeap() const { return HeapV[0]; }
+  /// Pushes an element \c Val to the heap.
+  void PushHeap(const TVal& Val);
+  /// Removes the top element from the heap.
+  TVal PopHeap();
+  /// Returns the number of elements in the heap.
+  int Len() const { return HeapV.Len(); }
+  /// Tests whether the heap is empty.
+  bool Empty() const { return HeapV.Empty(); }
+  /// Returns a reference to the vector containing the elements of the heap.
+  const TVec<TVal>& operator()() const { return HeapV; }
+  /// Returns a reference to the vector containing the elements of the heap.
+  TVec<TVal>& operator()() { return HeapV; }
+  /// Adds an element to the data structure. Heap property is not maintained by \c Add() and thus after all the elements are added \c MakeHeap() needs to be called.
+  void Add(const TVal& Val) { HeapV.Add(Val); }
+  /// Builds a heap from a set of elements.
+  void MakeHeap() { MakeHeap(0, Len()); }
+};
+
+template <class TVal, class TCmp>
+void THeap<TVal, TCmp>::PushHeap(const TVal& Val) {
+  HeapV.Add(Val);
+  PushHeap(0, HeapV.Len()-1, 0, Val);
+}
+
+template <class TVal, class TCmp>
+TVal THeap<TVal, TCmp>::PopHeap() {
+  IAssert(! HeapV.Empty());
+  const TVal Top = HeapV[0];
+  HeapV[0] = HeapV.Last();
+  HeapV.DelLast();
+  if (! HeapV.Empty()) {
+    AdjustHeap(0, 0, HeapV.Len(), HeapV[0]);
+  }
+  return Top;
+}
+
+template <class TVal, class TCmp>
+void THeap<TVal, TCmp>::PushHeap(const int& First, int HoleIdx, const int& Top, TVal Val) {
+  int Parent = (HoleIdx-1)/2;
+  while (HoleIdx > Top && Cmp(HeapV[First+Parent], Val)) {
+    HeapV[First+HoleIdx] = HeapV[First+Parent];
+    HoleIdx = Parent;  Parent = (HoleIdx-1)/2;
+  }
+  HeapV[First+HoleIdx] = Val;
+}
+
+template <class TVal, class TCmp>
+void THeap<TVal, TCmp>::AdjustHeap(const int& First, int HoleIdx, const int& Len, TVal Val) {
+  const int Top = HoleIdx;
+  int Right = 2*HoleIdx+2;
+  while (Right < Len) {
+    if (Cmp(HeapV[First+Right], HeapV[First+Right-1])) { Right--; }
+    HeapV[First+HoleIdx] = HeapV[First+Right];
+    HoleIdx = Right;  Right = 2*(Right+1); }
+  if (Right == Len) {
+    HeapV[First+HoleIdx] = HeapV[First+Right-1];
+    HoleIdx = Right-1; }
+  PushHeap(First, HoleIdx, Top, Val);
+}
+
+template <class TVal, class TCmp>
+void THeap<TVal, TCmp>::MakeHeap(const int& First, const int& Len) {
+  if (Len < 2) { return; }
+  int Parent = (Len-2)/2;
+  while (true) {
+    AdjustHeap(First, Parent, Len, HeapV[First+Parent]);
+    if (Parent == 0) { return; }
+    Parent--;
+  }
+}
+

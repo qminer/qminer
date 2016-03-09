@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 // Unicode.cpp : Defines the entry point for the console application.
@@ -769,7 +758,7 @@ void TUniChDb::TestComposition(const TStr& basePath)
 	{
 		nLines += 1;
 		if (fields.Len() == 1) {
-			IAssert(fields[0].IsPrefix("@Part"));
+			IAssert(fields[0].StartsWith("@Part"));
 			inPart1 = (fields[0] == "@Part1"); continue; }
 		IAssert(fields.Len() == 6);
 		IAssert(fields[5].Len() == 0);
@@ -958,7 +947,7 @@ void TUniChDb::LoadTxt_ProcessDecomposition(TUniChInfo& ci, TStr s)
 	if (s[0] == '<') {
 		int i = s.SearchCh('>'); IAssert(i > 0);
 		ci.flags |= ucfCompatibilityDecomposition;
-		s = s.GetSubStr(i + 1, s.Len() - 1); s.ToTrunc(); }
+		s = s.GetSubStr(i + 1, s.Len() - 1); s =  s.GetTrunc(); }
 	TIntV dec; TUcdFileReader::ParseCodePointList(s, dec);
 	IAssert(dec.Len() > 0);
 	ci.decompOffset = decompositions.Len();
@@ -1251,7 +1240,7 @@ void TUniChDb::InitSpecialCasing(const TStr& basePath)
 		// Skip conditional mappings -- they will be hardcoded in the GetCaseConverted method.
 		TStr conditions = "";
 		if (fields.Len() == 6) conditions = fields[4];
-		conditions.ToTrunc(); if (! conditions.Empty()) continue;
+		conditions = conditions.GetTrunc(); if (!conditions.Empty()) continue;
 		// Keep the other mappings.
 		const int cp = reader.ParseCodePoint(fields[0]);
 		TIntV v; reader.ParseCodePointList(fields[1], v);

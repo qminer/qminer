@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 #include "bd.h"
@@ -101,6 +90,7 @@ public:
   TSsParser(const TStr& FNm, const TSsFmt _SsFmt=ssfTabSep, const bool& _SkipLeadBlanks=false, const bool& _SkipCmt=true, const bool& _SkipEmptyFld=false);
   /// Constructor. ##TSsParser::TSsParser2
   TSsParser(const TStr& FNm, const char& Separator, const bool& _SkipLeadBlanks=false, const bool& _SkipCmt=true, const bool& _SkipEmptyFld=false);
+  TSsParser(PSIn& SIn, const char& Separator, const bool& _SkipLeadBlanks=false, const bool& _SkipCmt=true, const bool& _SkipEmptyFld=false);
   ~TSsParser();
   static PSsParser New(const TStr& FNm, const TSsFmt SsFmt) { return new TSsParser(FNm, SsFmt); }
 
@@ -119,7 +109,7 @@ public:
   /// Checks for end of file.
   bool Eof() const { return FInPt->Eof(); }
   /// Returns the current line
-  const TChA& GetLnStr() const { return LineStr; }
+  TChA GetLnStr() const { TChA LnOut; for (int i = 0; i < Len(); i++) { LnOut+=GetFld(i); LnOut+=' '; }  return LnOut; }
   /// Transforms the current line to lower case.
   void ToLc();
 

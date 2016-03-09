@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 #include "bd.h"
@@ -60,7 +49,7 @@ public:
     return (Seg==Pt.Seg)&&(Addr==Pt.Addr);}
   bool operator<(const TBlobPt& Pt) const {
     return (Seg<Pt.Seg)||((Seg==Pt.Seg)&&(Addr<Pt.Addr));}
-  int GetMemUsed() const {return sizeof(TBlobPt);}
+  uint64 GetMemUsed() const {return sizeof(TBlobPt);}
 
   int GetPrimHashCd() const {return abs(int(Addr));}
   int GetSecHashCd() const {return (abs(int(Addr))+int(Seg)*0x10);}
@@ -79,7 +68,7 @@ public:
   TB8Set GetFSet(const int& FSetN);
 
   static TBlobPt Load(const PFRnd& FRnd){
-    uchar Seg=FRnd->GetUCh(); uint Addr=FRnd->GetUInt();
+	uchar Seg=FRnd->GetUCh(); uint Addr=FRnd->GetUInt();
     TB8Set B8Set1(FRnd->GetUCh()); TB8Set B8Set2(FRnd->GetUCh());
     TB8Set B8Set3(FRnd->GetUCh());
     return TBlobPt(Seg, Addr, B8Set1, B8Set2, B8Set3);}
@@ -100,6 +89,89 @@ public:
 };
 
 /////////////////////////////////////////////////
+// Statistics for TBlobBs
+class TBlobBsStats {
+public:
+	uint64 Puts;
+	uint64 PutsNew;
+	uint64 Gets;
+	uint64 Dels;
+	uint64 SizeChngs;
+	double AvgGetLen;
+	double AvgPutLen;
+	double AvgPutNewLen;
+	uint64 AllocUsedSize;
+	uint64 AllocUnusedSize;
+	uint64 AllocSize;
+	uint64 AllocCount;
+	uint64 ReleasedCount;
+	uint64 ReleasedSize;
+
+	/// Simple constructor
+	TBlobBsStats() { Reset(); }
+	/// Resets data in this object
+	void Reset() {
+		AvgPutNewLen = AvgGetLen = AvgPutLen = 0;
+		Dels = Puts = PutsNew = Gets = SizeChngs = 0;
+		AllocUsedSize = AllocUnusedSize = AllocSize = AllocCount = ReleasedCount = ReleasedSize = 0;
+	}
+	/// Creates a clone - copies all data
+	TBlobBsStats Clone() const {
+		TBlobBsStats res;
+		res.AvgGetLen = this->AvgGetLen;
+		res.AvgPutLen = this->AvgPutLen;
+		res.AvgPutNewLen = this->AvgPutNewLen;
+		res.Dels = this->Dels;
+		res.Gets = this->Gets;
+		res.Puts = this->Puts;
+		res.PutsNew = this->PutsNew;
+		res.SizeChngs = this->SizeChngs;
+		res.AllocUsedSize = this->AllocUsedSize;
+		res.AllocUnusedSize = this->AllocUnusedSize;
+		res.AllocSize = this->AllocSize;
+		res.AllocCount = this->AllocCount;
+		res.ReleasedCount = this->ReleasedCount;
+		res.ReleasedSize = this->ReleasedSize;
+		return res;
+	}
+	/// Correctly add data from another object into this one
+	void Add(const TBlobBsStats& Othr) {
+		Puts += Othr.Puts;
+		PutsNew += Othr.PutsNew;
+		Gets += Othr.Gets;
+		SizeChngs += Othr.SizeChngs;
+		Dels += Othr.Dels;
+		AllocUsedSize += Othr.AllocUsedSize;
+		AllocUnusedSize += Othr.AllocUnusedSize;
+		AllocSize += Othr.AllocSize;
+		AllocCount += Othr.AllocCount;
+		ReleasedCount += Othr.ReleasedCount;
+		ReleasedSize += Othr.ReleasedSize;
+
+		AvgPutNewLen = 0;
+		AvgPutLen = 0;
+		AvgGetLen = 0;
+
+		if (PutsNew + Othr.PutsNew > 0) {
+			AvgPutNewLen = (AvgPutNewLen*PutsNew + Othr.AvgPutNewLen*Othr.PutsNew) / (PutsNew + Othr.PutsNew);
+		}
+		if (Gets + Othr.Gets) {
+			AvgGetLen = (AvgGetLen*Gets + Othr.AvgGetLen*Othr.Gets) / (Gets + Othr.Gets);
+		}
+		if (Puts + Othr.Puts > 0) {
+			AvgPutLen = (AvgPutLen*Puts + Othr.AvgPutLen*Othr.Puts) / (Puts + Othr.Puts);
+		}
+	}
+	/// Add two instances together and return combined result.
+	static TBlobBsStats Add(const TBlobBsStats& Stat1, const TBlobBsStats& Stat2) {
+		TBlobBsStats res = Stat1.Clone();
+		res.Add(Stat2);
+		return res;
+	}
+};
+
+
+/////////////////////////////////////////////////
 // Blob-Base
 typedef enum {bbsUndef, bbsOpened, bbsClosed} TBlobBsState;
 typedef enum {btUndef, btBegin, btEnd} TBlobTag;
@@ -109,7 +181,7 @@ ClassTPV(TBlobBs, PBlobBs, TBlobBsV)//{
 public:
   static const int MnBlobBfL;
   static const int MxBlobFLen;
-  UndefCopyAssign(TBlobBs);
+  UndefCopyAssign(TBlobBs);  
 public:
   TBlobBs(){}
   virtual ~TBlobBs(){}
@@ -166,19 +238,29 @@ public:
   virtual bool FNextBlobPt(TBlobPt& TrvBlobPt, TBlobPt& BlobPt, PSIn& BlobSIn)=0;
   bool FNextBlobPt(TBlobPt& TrvBlobPt, PSIn& BlobSIn){
     TBlobPt BlobPt; return FNextBlobPt(TrvBlobPt, BlobPt, BlobSIn);}
+
+  virtual const TBlobBsStats& GetStats()=0;
+  virtual void ResetStats() = 0;
 };
 
 /////////////////////////////////////////////////
 // General-Blob-Base
 class TGBlobBs: public TBlobBs{
 private:
+  /// Random-access file - BLOB storage
   PFRnd FBlobBs;
+  /// access mode for file
   TFAccess Access;
+  /// maximal length of segment - of BLOB file
   int MxSegLen;
+  /// list of precomputed block lengths - each BLOB falls into one of them, 
+  /// so that allocations happen in just several possible chuncks
   TIntV BlockLenV;
+  /// list of free blob pointers (their content was deleted, so blobs are free)
   TBlobPtV FFreeBlobPtV;
   TBlobPt FirstBlobPt;
   static TStr GetNrBlobBsFNm(const TStr& BlobBsFNm);
+  TBlobBsStats Stats;
 public:
   TGBlobBs(const TStr& BlobBsFNm, const TFAccess& _Access=faRdOnly,
    const int& _MxSegLen=-1);
@@ -200,6 +282,9 @@ public:
   bool FNextBlobPt(TBlobPt& TrvBlobPt, TBlobPt& BlobPt, PSIn& BlobSIn);
 
   static bool Exists(const TStr& BlobBsFNm);
+
+  const TBlobBsStats& GetStats() { return Stats; }
+  void ResetStats() { Stats.Reset(); }
 };
 
 /////////////////////////////////////////////////
@@ -210,12 +295,13 @@ private:
   int MxSegLen;
   TStr NrFPath, NrFMid;
   TBlobBsV SegV;
-  int CurSegN;
+  uint CurSegN;
   static void GetNrFPathFMid(const TStr& BlobBsFNm, TStr& NrFPath, TStr& NrFMid);
   static TStr GetMainFNm(const TStr& NrFPath, const TStr& NrFMid);
   static TStr GetSegFNm(const TStr& NrFPath, const TStr& NrFMid, const int& SegN);
   void LoadMain(int& Segs);
   void SaveMain() const;
+  TBlobBsStats Stats;
 public:
   TMBlobBs(const TStr& BlobBsFNm, const TFAccess& _Access=faRdOnly,
    const int& _MxSegLen=-1);
@@ -238,5 +324,8 @@ public:
   bool FNextBlobPt(TBlobPt& TrvBlobPt, TBlobPt& BlobPt, PSIn& BlobSIn);
 
   static bool Exists(const TStr& BlobBsFNm);
+
+  const TBlobBsStats& GetStats();
+  void ResetStats();
 };
 

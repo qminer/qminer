@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 /////////////////////////////////////////////////
@@ -47,6 +36,11 @@ public:
   TSwSet(const TStr& SwListNm, const int& _MnWordLen=0); // NEW API
   TSwSet(const TStrV& SwListNmV, const int& _MnWordLen=0);
   static PSwSet New(const TStr& SwListNm){return PSwSet(new TSwSet(SwListNm));}
+  static PSwSet NewFromWords(const TStr& WordList){ 
+	  PSwSet Set = PSwSet(new TSwSet());
+	  Set->MultiAdd(WordList);
+	  return Set;
+  }
   void AddByName(const TStr& _SwListNm);
   static bool IsValidList(const TStr SwListNm);
   // Old New() API
@@ -62,9 +56,10 @@ public:
   TSwSetType GetSwSetType() const {
     return TSwSetType(int(SwSetType));}
   bool IsIn(const TStr& WordStr, const bool& UcWordStrP=true) const;
+  bool IsStop(const TStr& WordStr){return IsIn(WordStr, true);}
   bool IsEmpty(){ return (SwSetType == swstNone) || (SwStrH.Empty()); }
   void AddWord(const TStr& WordStr);
-  void LoadFromFile(const TStr& FNm);
+ void LoadFromFile(const TStr& FNm, const TBool& ClearStopWords = false);
   // New Load File API
   /// loads a snowball stopword file into the TSwSet Hasmap (StopWordFiles)
   static void LoadSwFile(const TStr& FNm);

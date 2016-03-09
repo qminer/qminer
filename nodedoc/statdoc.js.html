@@ -1,0 +1,110 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="generator" content="JSDoc 3">
+  <meta charset="utf-8">
+  <title>Source: statdoc.js</title>
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
+  <link href="css/baseline.css" rel="stylesheet">
+</head>
+
+<body onload="prettyPrint()">
+  <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
+    <div id="jsdoc-navbar-container">
+      <div id="jsdoc-navbar-content">
+        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+      </div>
+    </div>
+  </nav>
+  <div id="jsdoc-body-container">
+    <div id="jsdoc-content">
+      <div id="jsdoc-content-container">
+        <div id="jsdoc-banner" role="banner">
+        </div>
+        <div id="jsdoc-main" role="main">
+          <header class="page-header">
+            <h1>Source: statdoc.js</h1>
+          </header>
+          <article>
+            <pre class="prettyprint linenums"><code>/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+/**
+* Statistics module.
+* @module statistics
+* @example
+* // TODO
+*/
+/**
+	* returns mean of vector.
+	* @param {(module:la.Vector | module:la.Matrix)} input - input can be vector or a matrix.
+	* @returns {(number | module:la.Vector)}
+	* &amp;lt;br&gt;1. Number, if input parameters is {@link module:la.Vector}.
+    * &amp;lt;br&gt;2. {@link module:la.Vector}, if parameter is {@link module:la.Matrix}.
+	*/
+ exports.mean = function (input) { return input instanceof Object.create(require(&#x27;qminer&#x27;).la.Vector) ? 0.0 : Object.create(require(&#x27;qminer&#x27;).la.Vector); }
+/**
+	* returns vector containing the standard deviation of each column from input matrix.
+	* @param {(module:la.Vector | module:la.Matrix)} input - input can be vector or a matrix.
+	* @param {number} [flag=0] - Set &#x60;flag&#x60; to 0 to normalize Y by n-1; set flag to 1 to normalize by n.
+	* @param {number} [dim=1] - Computes the standard deviations along the dimension of &#x60;mat&#x60; specified by parameter &#x60;dim&#x60;. 1 is col std, 2 is row std.
+	* @returns {(number | module:la.Vector)}
+	* &amp;lt;br&gt;1. Number, if input parameters is {@link module:la.Vector}.
+    * &amp;lt;br&gt;2. {@link module:la.Vector}, if parameter is {@link module:la.Matrix}.
+	*/
+ exports.std = function (input, flag, dim) { return input instanceof Object.create(require(&#x27;qminer&#x27;).la.Vector) ? 0.0 : Object.create(require(&#x27;qminer&#x27;).la.Vector); }
+/**
+	* returns &#x60;zscoreResult&#x60; containing the standard deviation &#x60;zscoreResult.sigma&#x60; of each column from matrix &#x60;mat&#x60;, mean vector &#x60;zscoreResult.mu&#x60; and z-score matrix &#x60;zscoreResult.Z&#x60;.
+	* @param {module:la.Matrix} input - Matrix
+	* @param {number} [flag=0] - Set &#x60;flag&#x60; to 0 to normalize Y by n-1; set flag to 1 to normalize by n.
+	* @param {number} [dim=1] - Computes the standard deviations along the dimension of &#x60;mat&#x60; specified by parameter &#x60;dim&#x60;. 1 is col std, 2 is row std.
+	* @returns {zscoreResult}
+	* &amp;lt;br&gt;zscoreResult.sigma - Standard deviation of input used to compute the z-scores.
+	* &amp;lt;br&gt;zscoreResult.mu - Mean of input used to compute the z-scores.
+	* &amp;lt;br&gt;zscoreResult.Z - A vector of z-scores has mean 0 and variance 1.
+	*/
+ exports.zscoreResult = function (mat, flag, dim) { return {sigma:&#x27;&#x27;, mu:&#x27;&#x27;, Z:&#x27;&#x27;}; }
+/**
+	* function studentCdf calculates Student&#x27;s t cumulative distribution function (PDF integral from -inf to t)
+	* function studentCdf returns &#x27;Alpha&#x27; as in the p-value of a Student t-test
+	* If you already have a t-value than the studentCdf function has 2 inputs: t-value and degrees of freedom
+	* @param {number} TVal - The t-value value of the sample you want to calculate the p-value for
+	* @param {number} Df - Degrees of freedom for the sample (if your sample is big n than degrees of freedom in n-1)
+	* If you don&#x27;t have the t-value than studentCdf function has 4 inputs: Value, Mean, Standard deviation and degrees of freedom
+	* @param {number} Val - The average value of the sample you want to calculate the p-value for
+	* @param {number} Mean - The mean value of the sample you want to calculate the p-value for
+	* @param {number} Std - The sample standard deviation of the sample you want to calculate the p-value for
+	* @param {number} Df - Degrees of freedom for the sample (if your sample is n big then degrees of freedom is n-1)
+	* @returns {Alpha}
+	*/
+</code></pre>
+          </article>
+        </div>
+      </div>
+      <nav id="jsdoc-toc-nav" role="navigation"></nav>
+    </div>
+  </div>
+  <footer id="jsdoc-footer" class="jsdoc-footer">
+    <div id="jsdoc-footer-container">
+      <p>
+        
+      </p>
+    </div>
+  </footer>
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/jquery.cookie.js"></script>
+  <script src="scripts/tree.jquery.js"></script>
+  <script src="scripts/prettify.js"></script>
+  <script src="scripts/jsdoc-toc.js"></script>
+  <script src="scripts/linenumber.js"></script>
+  <script src="scripts/scrollanchor.js"></script>
+</body>
+
+</html>

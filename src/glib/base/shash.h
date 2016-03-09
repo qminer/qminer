@@ -1,20 +1,9 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 #ifndef shash_h
@@ -1026,8 +1015,9 @@ public:
 // Set-Hash-Key-Iterator
 template <class TKey>
 class THashSetKeyI{
-private:
+public:
   typedef THashSetKey<TKey> TSetKey;
+private:
   TSetKey* KeyI;
   TSetKey* EndI;
 public:
@@ -1049,6 +1039,12 @@ public:
   const TKey& operator*() const { return KeyI->Key; }
   const TKey& operator()() const { return KeyI->Key; }
   const TKey* operator->() const { return KeyI->Key; }
+  THashSetKeyI& Next() { operator++(1); return *this; }
+
+  /// Tests whether the iterator has been initialized.
+  bool IsEmpty() const { return KeyI == NULL; }
+  /// Tests whether the iterator is pointing to the past-end element.
+  bool IsEnd() const { return EndI == KeyI; }
 
   const TKey& GetKey() const {Assert((KeyI!=NULL)&&(KeyI->HashCd!=-1)); return KeyI->Key; }
 };
@@ -1399,6 +1395,7 @@ typedef THashSet<TStr> TStrSet;
 typedef THashSet<TUChIntPr> TUChIntPrSet;
 typedef THashSet<TUChUInt64Pr> TUChUInt64PrSet;
 typedef THashSet<TIntPr> TIntPrSet;
+typedef THashSet<TIntFltPr> TIntFltPrSet;
 
 /////////////////////////////////////////////////
 // Packed Vec

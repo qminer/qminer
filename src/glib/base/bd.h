@@ -1,24 +1,14 @@
 /**
- * GLib - General C++ Library
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
  * 
- * Copyright (C) 2014 Jozef Stefan Institute
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License, version 3,
- * as published by the Free Software Foundation.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
  */
-
 #ifndef bd_h
 #define bd_h
+
+#include <cstdint>
 
 /////////////////////////////////////////////////
 // Basic-Macro-Definitions
@@ -39,43 +29,46 @@ typedef char int8;
 typedef short int16;
 typedef int int32;
 #ifdef GLib_WIN
-typedef __int64 int64;
+  typedef __int64 int64;
 #elif defined(GLib_GLIBC)
-typedef int64_t int64;
+  typedef int64_t int64;
 #else
-typedef long long int64;
+  typedef long long int64;
 #endif
 
 typedef unsigned char uint8;
 typedef unsigned short uint16;
 typedef unsigned int uint32;
 #ifdef GLib_WIN
-typedef unsigned __int64 uint64;
+  typedef unsigned __int64 uint64;
 #elif defined(GLib_GLIBC)
-typedef u_int64_t uint64;
+  typedef u_int64_t uint64;
 #else
 typedef unsigned long long uint64;
 #endif
 
 #if (!defined(__ssize_t_defined) && !defined(GLib_MACOSX))
-typedef ptrdiff_t ssize_t;
+  typedef ptrdiff_t ssize_t;
 #endif
 
-#if defined(GLib_UNIX)
-#define _isnan(x) isnan(x)
 #if defined(GLib_MACOSX)
+  #define _isnan(x) std::isnan(x)
   #define _finite(x) isfinite(x)
-#else
+#elif defined(GLib_UNIX)
+  #define _isnan(x) isnan(x)
   #define _finite(x) finite(x)
-#endif
 #endif
 
 #if defined(GLib_WIN)
-#define _vsnprintf vsnprintf
+  #define _vsnprintf vsnprintf
 #endif
 
 typedef size_t TSize;
-#define TSizeMx SIZE_MAX
+# ifdef GLib_64Bit
+  #define TSizeMx (18446744073709551615UL)
+# else
+  #define TSizeMx (4294967295U)
+# endif
 
 /////////////////////////////////////////////////
 // Localization
@@ -146,7 +139,7 @@ class TNm{
 class TNm; \
 typedef TPt<TNm> PNm; \
 class TNm{ \
-private: \
+protected: \
   TCRef CRef; \
 public: \
   friend class TPt<TNm>;
@@ -159,8 +152,6 @@ typedef TPt<TNm> PNm;
 class TNm; \
 typedef TPt<TNm> PNm; \
 class TNm: public ENm{ \
-private: \
-  TCRef CRef; \
 public: \
   friend class TPt<TNm>;
 
@@ -168,8 +159,6 @@ public: \
 class TNm; \
 typedef TPt<TNm> PNm; \
 class TNm: public ENm1, public ENm2{ \
-private: \
-  TCRef CRef; \
 public: \
   friend class TPt<TNm>;
 
@@ -183,7 +172,7 @@ class TNm; \
 typedef TPt<TNm> PNm; \
 typedef TVec<PNm> TNmV; \
 class TNm{ \
-private: \
+protected: \
   TCRef CRef; \
 public: \
   friend class TPt<TNm>;
@@ -200,7 +189,7 @@ typedef TVec<PNm> TNmV; \
 typedef TLst<PNm> TNmL; \
 typedef TLstNd<PNm>* TNmLN; \
 class TNm{ \
-private: \
+protected: \
   TCRef CRef; \
 public: \
   friend class TPt<TNm>;
@@ -210,6 +199,7 @@ public: \
 class TSIn;
 class TSOut;
 class TStr;
+class TChA;
 class TXmlObjSer;
 class TXmlObjSerTagNm;
 template <class TRec> class TPt;
@@ -241,8 +231,9 @@ private: \
 /////////////////////////////////////////////////
 // Assertions
 class TOnExeStop{
-private:
+public:
   typedef bool (*TOnExeStopF)(char* MsgCStr);
+private:
   static TOnExeStopF OnExeStopF;
 public:
   static bool IsOnExeStopF(){return OnExeStopF!=NULL;}
@@ -317,7 +308,7 @@ void ExeStop(
 
 #define ESAssert(Cond) \
   ((Cond) ? static_cast<void>(0) : TExcept::Throw(TSysStr::GetLastMsgCStr(), \
-  TStr(__FILE__) + " line " + TInt::GetStr(__LINE__) +": "+ TStr(#Cond)))
+    TStr(__FILE__) + TStr(" line ") + TInt::GetStr(__LINE__) + TStr(": ")+ TStr(#Cond) ))
 
 // compile time assert
 // #define STATIC_ASSERT(x) { const char temp[ (((x) == 0) ? 0 : 1) ] = {'\0'}; }
@@ -326,7 +317,7 @@ template <> struct TStaticAssert<true> { enum { value = 1 }; };
 template<int IntVal> struct TStaticAssertTest{};
 
 #define CAssert(Cond) \
-  { typedef TStaticAssertTest<sizeof(TStaticAssert<(Cond)==0?false:true>)> TestStaticAssert; }
+  /* { typedef TStaticAssertTest<sizeof(TStaticAssert<(Cond)==0?false:true>)> TestStaticAssert; } */
 
 /////////////////////////////////////////////////
 // Xml-Object-Serialization
@@ -485,7 +476,6 @@ template <class TRec> class TWPt;
 
 /////////////////////////////////////////////////
 // Smart-Pointer-With-Reference-Count
-
 template <class TRec>
 class TPt{
 public:
@@ -537,6 +527,7 @@ public:
 
   int GetPrimHashCd() const {return Addr->GetPrimHashCd();}
   int GetSecHashCd() const {return Addr->GetSecHashCd();}
+  uint64 GetMemUsed() const { return (Empty() ? 0 : Addr->GetMemUsed()) + sizeof(TPt); }
 
   TPt<TRec> Clone(){return MkClone(*this);}
 };
@@ -571,10 +562,11 @@ public:
 
   bool Empty() const {return Addr==NULL;}
   void Clr(){Addr=NULL;}
-  void Del(){delete Addr;}
+  void Del(){delete Addr; Addr=NULL;}
 
   int GetPrimHashCd() const {return Addr->GetPrimHashCd();}
-  int GetSecHashCd() const {return Addr->GetSecHashCd();}
+  int GetSecHashCd() const { return Addr->GetSecHashCd(); }
+  //uint64 GetMemUsed() const { return (Empty() ? 0 : Addr->GetMemUsed()) + sizeof(TPt); }
 };
 
 /////////////////////////////////////////////////
@@ -634,7 +626,8 @@ public:
 // Swap
 template <class TRec>
 void Swap(TRec& Rec1, TRec& Rec2){
-  TRec Rec=Rec1; Rec1=Rec2; Rec2=Rec;
+    std::swap(Rec1, Rec2); // C++11
+  //TRec Rec=Rec1; Rec1=Rec2; Rec2=Rec; // C++98
 }
 
 /////////////////////////////////////////////////
@@ -662,7 +655,7 @@ public:
     return (RQ == 0x7fffffffU) ? 0 : (int) RQ; }
 };
 
-// Depending on the platform and compiler settings choose the faster implementation
+// Depending on the platform and compiler settings choose the faster implementation (of the same hash function)
 #if (defined(GLib_64Bit)) && ! (defined(DEBUG) || defined(_DEBUG))
   typedef TPairHashImpl1 TPairHashImpl;
 #else

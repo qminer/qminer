@@ -1,0 +1,495 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="generator" content="JSDoc 3">
+  <meta charset="utf-8">
+  <title>Class: Sigmoid</title>
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
+  <link href="css/baseline.css" rel="stylesheet">
+</head>
+
+<body onload="prettyPrint()">
+  <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
+    <div id="jsdoc-navbar-container">
+      <div id="jsdoc-navbar-content">
+        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+      </div>
+    </div>
+  </nav>
+  <div id="jsdoc-body-container">
+    <div id="jsdoc-content">
+      <div id="jsdoc-content-container">
+        <div id="jsdoc-main" role="main">
+          <header class="page-header">
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">Sigmoid</span></h1>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-521">analyticsdoc.<wbr>js:521</a></p>
+            <dl class="dl-compact">
+            </dl>
+          </header>
+          <section id="summary">
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Methods</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.Sigmoid.html#decisionFunction">decisionFunction(x)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.Sigmoid.html#fit">fit(x, y)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.Sigmoid.html#getModel">getModel()</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.Sigmoid.html#getParams">getParams()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.Sigmoid.html#predict">predict(x)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.Sigmoid.html#save">save(fout)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.Sigmoid.html#setParams">setParams(arg)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section>
+            <h2 id="Sigmoid">new&nbsp;<span class="symbol-name">Sigmoid</span><span class="signature"><span class="signature-params">([arg])</span></span></h2>
+            <p>Sigmoid function (y = 1/[1 + exp[-A*x + B]]) fitted on decision function to mimic.</p>
+            <section>
+              <h3>
+            Example
+        </h3>
+              <div>
+                <pre class="prettyprint"><code>// import modules
+la = require(&#x27;qminer&#x27;).la;
+analytics = require(&#x27;qminer&#x27;).analytics;
+// create a new model
+var sigmoid = new analytics.Sigmoid();
+// generate a random predictions
+var x = new la.Vector([0.5, 2.3, -0.1, 0.5, -7.3, 1.2]);
+// generate a random labels
+var y = new la.Vector([1, 1, -1, 1, -1, -1]);
+// fit model
+sigmoid.fit(x, y);
+// get predictions
+var pred1 = sigmoid.predict(1.2);
+var pred2 = sigmoid.predict(-1.2);</code></pre>
+              </div>
+            </section>
+            <section>
+              <h3>Parameter</h3>
+              <table class="jsdoc-details-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Optional</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <p>arg</p>
+                    </td>
+                    <td>
+                      <p>(null or <a href="module-fs.FIn.html">module:fs.FIn</a>)</p>
+                    </td>
+                    <td>
+                      <p>Yes</p>
+                    </td>
+                    <td>
+                      <p>Loads a model from input stream, or creates a new model.</p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
+            <dl class="dl-compact">
+            </dl>
+          </section>
+          <section>
+            <h2>Methods</h2>
+            <section>
+              <h3 id="decisionFunction"><span class="symbol-name">decisionFunction</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> (number or <a href="module-la.Vector.html">module:la.Vector</a>)</span></span></h3>
+              <p>Returns the expected response for the provided feature vector.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import modules
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
+// create the Sigmoid model
+var s = new analytics.Sigmoid();
+// create the predicted values and the binary labels
+var X = new la.Vector([-3, -2, -1, 1, 2, 3]);
+var y = new la.Vector([-1, -1, -1, 1, 1, 1]);
+// fit the model
+s.fit(X, y);
+// predict the probability of the value 0 on this model
+// returns 0.5
+var prediction = s.decisionFunction(0.5);</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>x</p>
+                      </td>
+                      <td>
+                        <p>(number or <a href="module-la.Vector.html">module:la.Vector</a>)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Prediction score (or vector of them).</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>(number or <a href="module-la.Vector.html">module:la.Vector</a>)</code>&nbsp;Normalized prediction score (or vector of them).</p>
+                </dd>
+              </dl>
+              <h3 id="fit"><span class="symbol-name">fit</span><span class="signature"><span class="signature-params">(x, y)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.Sigmoid.html">module:analytics.Sigmoid</a></span></span></h3>
+              <p>Fits a column matrix of feature vectors X onto the response variable y.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import modules
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
+// create the Sigmoid model
+var s = new analytics.Sigmoid();
+// create the predicted values and the binary labels
+var X = new la.Vector([-3, -2, -1, 1, 2, 3]);
+var y = new la.Vector([-1, -1, -1, 1, 1, 1]);
+// fit the model
+// changes the internal A and B values of the model 
+// (these values can be obtained with the getModel method)
+s.fit(X, y);</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>x</p>
+                      </td>
+                      <td>
+                        <p><a href="module-la.Vector.html">module:la.Vector</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Predicted values (e.g., using analytics.SVR)</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>y</p>
+                      </td>
+                      <td>
+                        <p><a href="module-la.Vector.html">module:la.Vector</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Actual binary labels: 1 or -1.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-analytics.Sigmoid.html">module:analytics.Sigmoid</a></code>&nbsp;Self.</p>
+                </dd>
+              </dl>
+              <h3 id="getModel"><span class="symbol-name">getModel</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
+              <p>Gets the model.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import analytics module
+var analytics = require(&#x27;qminer&#x27;).analytics;
+// create the Sigmoid model
+var s = new analytics.Sigmoid();
+// get the model parameters
+// returns a Json object { A: 0, B: 0 }
+var model = s.getModel();</code></pre>
+                </div>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Object</code>&nbsp;The Json object containing the A and B values of the Sigmoid.</p>
+                </dd>
+              </dl>
+              <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
+              <p>Get the parameters. It doesn't do anything, it's only for consistency for constructing pipeline.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import analytics module
+var analytics = require(&#x27;qminer&#x27;).analytics;
+// create the Sigmoid model
+var s = new analytics.Sigmoid();
+// get the parameters
+// returns an empty Json object
+var param = s.getParams();</code></pre>
+                </div>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Object</code>&nbsp;The Json object containing parameters.</p>
+                </dd>
+              </dl>
+              <h3 id="predict"><span class="symbol-name">predict</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> (number or <a href="module-la.Vector.html">module:la.Vector</a>)</span></span></h3>
+              <p>Returns the expected response for the provided feature vector.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import modules
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
+// create the Sigmoid model
+var s = new analytics.Sigmoid();
+// create the predicted values and the binary labels
+var X = new la.Vector([-3, -2, -1, 1, 2, 3]);
+var y = new la.Vector([-1, -1, -1, 1, 1, 1]);
+// fit the model
+s.fit(X, y);
+// predict the probability of the value 0 on this model
+// returns 0.5
+var prediction = s.predict(0.5);</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>x</p>
+                      </td>
+                      <td>
+                        <p>(number or <a href="module-la.Vector.html">module:la.Vector</a>)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Prediction score (or vector of them).</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>(number or <a href="module-la.Vector.html">module:la.Vector</a>)</code>&nbsp;Normalized prediction score (or vector of them).</p>
+                </dd>
+              </dl>
+              <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
+              <p>Saves the model into the output stream.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import modules
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
+var fs = require(&#x27;qminer&#x27;).fs;
+// create the Sigmoid model
+var s = new analytics.Sigmoid();
+// create the predicted values and the binary labels
+var X = new la.Vector([-3, -2, -1, 1, 2, 3]);
+var y = new la.Vector([-1, -1, -1, 1, 1, 1]);
+// fit the model
+s.fit(X, y);
+// create an output stream object and save the model
+var fout = fs.openWrite(&#x27;sigmoid_example.bin&#x27;);
+s.save(fout);
+fout.close();
+// create a new Sigmoid model by loading the model
+var fin = fs.openRead(&#x27;sigmoid_example.bin&#x27;);
+var s2 = new analytics.Sigmoid(fin);</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>fout</p>
+                      </td>
+                      <td>
+                        <p><a href="module-fs.FOut.html">module:fs.FOut</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Output stream.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;The output stream fout.</p>
+                </dd>
+              </dl>
+              <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(arg)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.Sigmoid.html">module:analytics.Sigmoid</a></span></span></h3>
+              <p>Sets the parameters. It doesn't do anything, it's only for consistency for constructing pipeline.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import analytics module
+var analytics = require(&#x27;qminer&#x27;).analytics;
+// create the Sigmoid model
+var s = new analytics.Sigmoid();
+// set the parameters 
+// doesn&#x27;t change the model
+s.setParams({});</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>arg</p>
+                      </td>
+                      <td>
+                        <p>Object</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Json object.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-analytics.Sigmoid.html">module:analytics.Sigmoid</a></code>&nbsp;Self.</p>
+                </dd>
+              </dl>
+            </section>
+          </section>
+        </div>
+      </div>
+      <nav id="jsdoc-toc-nav" role="navigation"></nav>
+    </div>
+  </div>
+  <footer id="jsdoc-footer" class="jsdoc-footer">
+    <div id="jsdoc-footer-container">
+      <p>
+        
+      </p>
+    </div>
+  </footer>
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/jquery.cookie.js"></script>
+  <script src="scripts/tree.jquery.js"></script>
+  <script src="scripts/prettify.js"></script>
+  <script src="scripts/jsdoc-toc.js"></script>
+  <script src="scripts/linenumber.js"></script>
+  <script src="scripts/scrollanchor.js"></script>
+</body>
+
+</html>
