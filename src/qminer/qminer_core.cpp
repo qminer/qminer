@@ -447,8 +447,8 @@ void TStore::AddJoinRec(const uint64& RecId, const PJsonVal& RecVal) {
                 PJsonVal JoinRecVal = RecVal->GetObjKey(JoinDesc.GetJoinNm());
                 // make sure it's an object and not array
                 if (!JoinRecVal->IsObj()) {
-                    ErrorLog("[TStoreImpl::AddJoinRec] Expected object for join " + JoinDesc.GetJoinNm());
-                    if (JoinRecVal->IsArr()) { ErrorLog("[TStoreImpl::AddJoinRec] Got array instead"); }
+                    ErrorLog("[TStore::AddJoinRec] Expected object for join " + JoinDesc.GetJoinNm());
+                    if (JoinRecVal->IsArr()) { ErrorLog("[TStore::AddJoinRec] Got array instead"); }
                     continue;
                 }
                 // first make an empty join
@@ -462,7 +462,7 @@ void TStore::AddJoinRec(const uint64& RecId, const PJsonVal& RecVal) {
                 int JoinFq = JoinRecVal->GetObjInt("$fq", 1);
                 // make sure weight is from valid range
                 if (JoinFq < 1) {
-                    ErrorLog("[TStoreImpl::AddJoinRec] Join frequency must be positive");
+                    ErrorLog("[TStore::AddJoinRec] Join frequency must be positive");
                     JoinFq = 1;
                 }
                 // mark the join
@@ -471,7 +471,7 @@ void TStore::AddJoinRec(const uint64& RecId, const PJsonVal& RecVal) {
                 // index joins must be in an array
                 PJsonVal JoinArrVal = RecVal->GetObjKey(JoinDesc.GetJoinNm());
                 if (!JoinArrVal->IsArr()) {
-                    ErrorLog("[TStoreImpl::AddJoinRec] Expected array for join " + JoinDesc.GetJoinNm());
+                    ErrorLog("[TStore::AddJoinRec] Expected array for join " + JoinDesc.GetJoinNm());
                     continue;
                 }
                 // add join records and remember their record ids and weights
@@ -485,7 +485,7 @@ void TStore::AddJoinRec(const uint64& RecId, const PJsonVal& RecVal) {
                     int JoinFq = JoinRecVal->GetObjInt("$fq", 1);
                     // make sure weight is from valid range
                     if (JoinFq < 1) {
-                        ErrorLog("[TStoreImpl::AddJoinRec] Join frequency must be positive");
+                        ErrorLog("[TStore::AddJoinRec] Join frequency must be positive");
                         JoinFq = 1;
                     }
                     // index the join
@@ -5846,16 +5846,11 @@ TGixStats TIndex::GetGixStats(const bool& RefreshP) const {
 }
 
 int TIndex::PartialFlush(const int& WndInMsec) {
-	int WndInMsecHalf = WndInMsec / 2;
-	int Res = 0; int LastRes = 0;
-	TTmStopWatch sw(true);
-	while (sw.GetMSecInt() <= WndInMsec) {
-		Res += Gix->PartialFlush(WndInMsecHalf);
-		Res += GixSmall->PartialFlush(WndInMsecHalf);
-		if (Res == LastRes) break;
-		LastRes = Res;
-	}
-	return Res;
+    int WndInMsecHalf = WndInMsec / 2;
+    int Res = 0;
+    Res += Gix->PartialFlush(WndInMsecHalf);
+    Res += GixSmall->PartialFlush(WndInMsecHalf);
+    return Res;
 }
 
 ///////////////////////////////
@@ -6831,47 +6826,54 @@ void TBase::PrintIndex(const TStr& FNm, const bool& SortP) {
 
 // perform partial flush of data
 int TBase::PartialFlush(int WndInMsec) {
-	int slice = WndInMsec / (GetStores() + 1);
-	int saved = 100;
-	int res = 0;
-	TTmStopWatch sw(true);
+    int dirty_stores = (GetStores() + 1);
+    int saved = 100;
+    int res = 0;
+    TTmStopWatch sw(true);
 
-	TVec<TPair<TWPt<TStore>, bool>> xstores;
-	bool xindex = true;
+    TVec<TPair<TWPt<TStore>, bool>> xstores;
+    bool xindex = true;
 
-	for (int i = 0; i < GetStores(); i++) {
-		xstores.Add(TPair<TWPt<TStore>, bool>(GetStoreByStoreN(i), true));
-	}
+    for (int i = 0; i < GetStores(); i++) {
+        xstores.Add(TPair<TWPt<TStore>, bool>(GetStoreByStoreN(i), true));
+    }
 
-	while (saved > 0) {
-		if (sw.GetMSecInt() > WndInMsec) {
-			break; // time is up
-		}
-		saved = 0; // how many saved in this loop
-		int xsaved = 0; // temp variable
-		for (int i = 0; i < xstores.Len(); i++) {
-			if (!xstores[i].Val2)
-				continue; // this store had no dirty data in previous loop
-			xsaved = xstores[i].Val1->PartialFlush(slice);
-			if (xsaved == 0) {
-				xstores[i].Val2 = false; // ok, this store is clean now
-			}
-			saved += xsaved;
-			TQm::TEnv::Debug->OnStatusFmt("Partial flush:     store %s = %d", xstores[i].Val1->GetStoreNm().CStr(), xsaved);
-		}
-		if (xindex) { // save index
-			xsaved = Index->PartialFlush(slice);
-			xindex = (xsaved > 0);
-			saved += xsaved;
-			TQm::TEnv::Debug->OnStatusFmt("Partial flush:     index = %d", xsaved);
-		}
-		res += saved;
+    while (saved > 0) {
+        if (sw.GetMSecInt() > WndInMsec) {
+            break; // time is up
+        }
+        int slice = WndInMsec / dirty_stores; // time-slice per store
+        dirty_stores = 0;
+        saved = 0; // how many saved in this loop
+        int xsaved = 0; // how many saved in this loop into last store/index
+        for (int i = 0; i < xstores.Len(); i++) {
+            if (!xstores[i].Val2)
+                continue; // this store had no dirty data in previous loop
+            xsaved = xstores[i].Val1->PartialFlush(slice);
+            if (xsaved == 0) {
+                xstores[i].Val2 = false; // ok, this store is clean now
+            } else {
+                dirty_stores++;
+                saved += xsaved;
+            }
+            TQm::TEnv::Debug->OnStatusFmt("Partial flush:     store %s = %d", xstores[i].Val1->GetStoreNm().CStr(), xsaved);
+        }
+        if (xindex) { // save index
+            xsaved = Index->PartialFlush(slice);
+            xindex = (xsaved > 0);
+            if (xindex) {
+                dirty_stores++;
+            }
+            saved += xsaved;
+            TQm::TEnv::Debug->OnStatusFmt("Partial flush:     index = %d", xsaved);
+        }
+        res += saved;
         TQm::TEnv::Debug->OnStatusFmt("Partial flush: this loop = %d", saved);
-	}
-	sw.Stop();
+    }
+    sw.Stop();
     TQm::TEnv::Debug->OnStatusFmt("Partial flush: %d msec, res = %d", sw.GetMSecInt(), res);
 
-	return res;
+    return res;
 }
 
 /// get performance statistics in JSON form

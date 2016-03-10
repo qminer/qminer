@@ -1282,20 +1282,22 @@ void TNodeJsStore::toJSON(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 }
 
 void TNodeJsStore::clear(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
 
-	try {
-		TNodeJsStore* JsStore = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsStore>(Args.Holder());
-		const int DelRecs = TNodeJsUtil::GetArgInt32(Args, 0, (int)JsStore->Store->GetRecs());
-
-		JsStore->Store->DeleteFirstRecs(DelRecs);
-		Args.GetReturnValue().Set(v8::Integer::New(Isolate, (int)JsStore->Store->GetRecs()));
-		return;
-	}
-	catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New("[except] " + Except->GetMsgStr());
-	}
+    try {
+        TNodeJsStore* JsStore = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsStore>(Args.Holder());
+        if (TNodeJsUtil::IsArg(Args, 0)) {
+            const int DelRecs = TNodeJsUtil::GetArgInt32(Args, 0, (int)JsStore->Store->GetRecs());
+            JsStore->Store->DeleteFirstRecs(DelRecs);
+        } else {
+            JsStore->Store->DeleteAllRecs();
+        }
+        Args.GetReturnValue().Set(v8::Integer::New(Isolate, (int)JsStore->Store->GetRecs()));
+        return;
+    } catch (const PExcept& Except) {
+        throw TQm::TQmExcept::New("[except] " + Except->GetMsgStr());
+    }
 }
 
 void TNodeJsStore::getVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
