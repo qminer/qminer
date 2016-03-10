@@ -109,6 +109,9 @@ public:
   static void LinearFit( // Y = A + B*X
    const TVec<TFltPr>& XY, double& A, double& B,
    double& SigA, double& SigB, double& Chi2, double& R2);
+  /// Y = A + B*X, uses basic linear algebra operations
+  static void LinearFit( // Y = A + B*X
+	  const TFltV& X, const TFltV& Y, double& A, double& B);
   static void PowerFit( // Y = A * X^B
    const TVec<TFltPr>& XY, double& A, double& B,
    double& SigA, double& SigB, double& Chi2, double& R2);

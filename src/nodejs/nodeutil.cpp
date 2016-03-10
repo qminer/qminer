@@ -799,12 +799,13 @@ TNodeTask::TNodeTask(const v8::FunctionCallbackInfo<v8::Value>& Args):
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	if (Args.Length() == 0) { return; }
-
-	v8::Local<v8::Array> ArgsArr = v8::Array::New(Isolate, Args.Length());
+	v8::Local<v8::Array> ArgsArr = v8::Array::New(Isolate, Args.Length() + 1);	
+	
 	for (int ArgN = 0; ArgN < Args.Length(); ArgN++) {
 		ArgsArr->Set(ArgN, Args[ArgN]);
 	}
+	ArgsArr->Set(Args.Length(), Args.Holder());
+	
 	ArgPersist.Reset(Isolate, ArgsArr);
 }
 
