@@ -1302,7 +1302,7 @@
 *     }]
 * });
 *
-* store = base.store('Function');
+* var store = base.store('Function');
 *
 * // 1 second buffer for X values
 * var winX = store.addStreamAggr({
