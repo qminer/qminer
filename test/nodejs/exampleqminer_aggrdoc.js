@@ -69,20 +69,20 @@ it("should make test number 3", function () {
     {
         name: "Heat",
         fields: [
-            { name: "Celcius", type: "float" },
+            { name: "Celsius", type: "float" },
             { name: "Time", type: "datetime" }
         ]
     }]
  });
 
- // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celcius' field
+ // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celsius' field
  // and the timestamp from the 'Time' field. The size of the window is 2 seconds (2000ms).
  var aggr = {
     name: 'TimeSeriesAggr',
     type: 'timeSeriesWinBuf',
     store: 'Heat',
     timestamp: 'Time',
-    value: 'Celcius',
+    value: 'Celsius',
     winsize: 2000
  };
  base.store("Heat").addStreamAggr(aggr); 
@@ -90,8 +90,51 @@ it("should make test number 3", function () {
 
 });
 });
-describe("@typedef {module:qm.StreamAggr} StreamAggregateRecordBuffe, number 4", function () {
+describe("@typedef {module:qm.StreamAggr} StreamAggregateTimeSeriesWindowVecto, number 4", function () {
 it("should make test number 4", function () {
+
+ // import the qm module
+ var qm = require('qminer');
+ // create a base with a simple store
+ var base = new qm.Base({
+    mode: "createClean",
+    schema: [{
+        name: "Heat",
+        fields: [
+            { name: "Celsius", type: "float" },
+            { name: "Time", type: "datetime" }
+        ]
+    }]
+ });
+ 
+ var store = base.store("Heat");
+ var winbuf = store.addStreamAggr({
+     type: 'timeSeriesWinBuf',
+     timestamp: 'Time',
+     value: 'Celsius',
+     winsize: 2000
+ });
+ 
+ var winbufvec = store.addStreamAggr({
+     type: 'timeSeriesWinBufVector',
+     inAggr: winbuf.name
+ });
+ 
+ store.push({ Time: '2015-06-10T14:13:32.0', Celsius: 1 });
+ winbuf.getFloatVector().print(); // prints 1
+ store.push({ Time: '2015-06-10T14:33:30.0', Celsius: 2 });
+ winbuf.getFloatVector().print(); // prints 2
+ store.push({ Time: '2015-06-10T14:33:31.0', Celsius: 3 });
+ winbuf.getFloatVector().print(); // prints 2,3
+ store.push({ Time: '2015-06-10T14:33:32.0', Celsius: 4 });
+ winbuf.getFloatVector().print(); // prints 2,3,4
+ 
+ base.close();
+
+});
+});
+describe("@typedef {module:qm.StreamAggr} StreamAggregateRecordBuffe, number 5", function () {
+it("should make test number 5", function () {
 
  // import the qm module
  var qm = require('qminer');
@@ -102,7 +145,7 @@ it("should make test number 4", function () {
     {
         name: "Heat",
         fields: [
-            { name: "Celcius", type: "float" },
+            { name: "Celsius", type: "float" },
             { name: "Time", type: "datetime" }
         ]
     }]
@@ -119,8 +162,8 @@ it("should make test number 4", function () {
 
 });
 });
-describe("@typedef {module:qm.StreamAggr} StreamAggregateSu, number 5", function () {
-it("should make test number 5", function () {
+describe("@typedef {module:qm.StreamAggr} StreamAggregateSu, number 6", function () {
+it("should make test number 6", function () {
 
  // import the qm module
  var qm = require('qminer');
@@ -161,8 +204,8 @@ it("should make test number 5", function () {
 
 });
 });
-describe("@typedef {module:qm.StreamAggr} StreamAggregateMi, number 6", function () {
-it("should make test number 6", function () {
+describe("@typedef {module:qm.StreamAggr} StreamAggregateMi, number 7", function () {
+it("should make test number 7", function () {
 
  // import the qm module
  var qm = require('qminer');
@@ -173,20 +216,20 @@ it("should make test number 6", function () {
     {
         name: "Heat",
         fields: [
-            { name: "Celcius", type: "float" },
+            { name: "Celsius", type: "float" },
             { name: "Time", type: "datetime" }
         ]
     }]
  });
 
- // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celcius' field
+ // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celsius' field
  // and the timestamp from the 'Time' field. The size of the window is 1 day.
  var timeser = {
     name: 'TimeSeriesAggr',
     type: 'timeSeriesWinBuf',
     store: 'Heat',
     timestamp: 'Time',
-    value: 'Celcius',
+    value: 'Celsius',
     winsize: 86400000 // 1 day in miliseconds
  };
  var timeSeries = base.store("Heat").addStreamAggr(timeser);
@@ -203,8 +246,8 @@ it("should make test number 6", function () {
 
 });
 });
-describe("@typedef {module:qm.StreamAggr} StreamAggregateMa, number 7", function () {
-it("should make test number 7", function () {
+describe("@typedef {module:qm.StreamAggr} StreamAggregateMa, number 8", function () {
+it("should make test number 8", function () {
 
  // import the qm module
  var qm = require('qminer');
@@ -215,20 +258,20 @@ it("should make test number 7", function () {
     {
         name: "Heat",
         fields: [
-            { name: "Celcius", type: "float" },
+            { name: "Celsius", type: "float" },
             { name: "Time", type: "datetime" }
         ]
     }]
  });
 
- // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celcius' field
+ // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celsius' field
  // and the timestamp from the 'Time' field. The size of the window is 1 day.
  var timeser = {
     name: 'TimeSeriesAggr',
     type: 'timeSeriesWinBuf',
     store: 'Heat',
     timestamp: 'Time',
-    value: 'Celcius',
+    value: 'Celsius',
     winsize: 86400000 // one day in miliseconds
  };
  var timeSeries = base.store("Heat").addStreamAggr(timeser);
@@ -245,8 +288,8 @@ it("should make test number 7", function () {
 
 });
 });
-describe("@typedef {module:qm.StreamAggr} StreamAggregateSparseVecSu, number 8", function () {
-it("should make test number 8", function () {
+describe("@typedef {module:qm.StreamAggr} StreamAggregateSparseVecSu, number 9", function () {
+it("should make test number 9", function () {
 
  var qm = require('qminer');
  var base = new qm.Base({
@@ -296,8 +339,8 @@ it("should make test number 8", function () {
 
 });
 });
-describe("@typedef {module:qm.StreamAggr} StreamAggregateTimeSeriesTic, number 9", function () {
-it("should make test number 9", function () {
+describe("@typedef {module:qm.StreamAggr} StreamAggregateTimeSeriesTic, number 10", function () {
+it("should make test number 10", function () {
 
  // import the qm module
  var qm = require('qminer');
@@ -328,8 +371,8 @@ it("should make test number 9", function () {
 
 });
 });
-describe("@typedef {module:qmStreamAggr} StreamAggregateMovingAverag, number 10", function () {
-it("should make test number 10", function () {
+describe("@typedef {module:qmStreamAggr} StreamAggregateMovingAverag, number 11", function () {
+it("should make test number 11", function () {
 
  // import the qm module
  var qm = require('qminer');
@@ -340,20 +383,20 @@ it("should make test number 10", function () {
     {
         name: "Heat",
         fields: [
-            { name: "Celcius", type: "float" },
+            { name: "Celsius", type: "float" },
             { name: "Time", type: "datetime" }
         ]
     }]
  });
 
- // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celcius' field
+ // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celsius' field
  // and the timestamp from the 'Time' field. The size of the window should be 1 day.
  var timeser = {
     name: 'TimeSeriesAggr',
     type: 'timeSeriesWinBuf',
     store: 'Heat',
     timestamp: 'Time',
-    value: 'Celcius',
+    value: 'Celsius',
     winsize: 86400000
  };
  var timeSeries = base.store("Heat").addStreamAggr(timeser);
@@ -370,8 +413,8 @@ it("should make test number 10", function () {
 
 });
 });
-describe("@typedef {module:qmStreamAggr} StreamAggregateEM, number 11", function () {
-it("should make test number 11", function () {
+describe("@typedef {module:qmStreamAggr} StreamAggregateEM, number 12", function () {
+it("should make test number 12", function () {
 
  // import the qm module
  var qm = require('qminer');
@@ -382,20 +425,20 @@ it("should make test number 11", function () {
     {
         name: "Heat",
         fields: [
-            { name: "Celcius", type: "float" },
+            { name: "Celsius", type: "float" },
             { name: "Time", type: "datetime" }
         ]
     }]
  });
 
- // create a new time series tick stream aggregator for the 'Heat' store, that takes the values from the 'Celcius' field
+ // create a new time series tick stream aggregator for the 'Heat' store, that takes the values from the 'Celsius' field
  // and the timestamp from the 'Time' field. The size of the window should be 1 hour.
  var timeser = {
     name: 'TimeSeriesAggr',
     type: 'timeSeriesTick',
     store: 'Heat',
     timestamp: 'Time',
-    value: 'Celcius'
+    value: 'Celsius'
  };
  var timeSeries = base.store("Heat").addStreamAggr(timeser);
 
@@ -415,8 +458,8 @@ it("should make test number 11", function () {
 
 });
 });
-describe("@typedef {module:qmStreamAggr} StreamAggregateThreshol, number 12", function () {
-it("should make test number 12", function () {
+describe("@typedef {module:qmStreamAggr} StreamAggregateThreshol, number 13", function () {
+it("should make test number 13", function () {
 
  // import the qm module
  var qm = require('qminer');
@@ -427,20 +470,20 @@ it("should make test number 12", function () {
     {
         name: "Heat",
         fields: [
-            { name: "Celcius", type: "float" },
+            { name: "Celsius", type: "float" },
             { name: "Time", type: "datetime" }
         ]
     }]
  });
 
- // create a new time series tick stream aggregator for the 'Heat' store, that takes the values from the 'Celcius' field
+ // create a new time series tick stream aggregator for the 'Heat' store, that takes the values from the 'Celsius' field
  // and the timestamp from the 'Time' field. The size of the window should be 1 hour.
  var timeser = {
     name: 'TimeSeriesTickAggr',
 	 type: 'timeSeriesTick',
     store: 'Heat',
     timestamp: 'Time',
-    value: 'Celcius'
+    value: 'Celsius'
  };
  var timeSeries = base.store("Heat").addStreamAggr(timeser);
 
@@ -458,8 +501,8 @@ it("should make test number 12", function () {
 
 });
 });
-describe("@typedef {module:qmStreamAggr} StreamAggregateEMASpVe, number 13", function () {
-it("should make test number 13", function () {
+describe("@typedef {module:qmStreamAggr} StreamAggregateEMASpVe, number 14", function () {
+it("should make test number 14", function () {
 
  // import the qm module
  var qm = require('qminer');
@@ -519,8 +562,8 @@ it("should make test number 13", function () {
 
 });
 });
-describe("@typedef {module:qm.StreamAggr} StreamAggregateMovingVarianc, number 14", function () {
-it("should make test number 14", function () {
+describe("@typedef {module:qm.StreamAggr} StreamAggregateMovingVarianc, number 15", function () {
+it("should make test number 15", function () {
 
  // import the qm module
  var qm = require('qminer');
@@ -531,20 +574,20 @@ it("should make test number 14", function () {
     {
         name: "Heat",
         fields: [
-            { name: "Celcius", type: "float" },
+            { name: "Celsius", type: "float" },
             { name: "Time", type: "datetime" }
         ]
     }]
  });
 
- // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celcius' field
+ // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celsius' field
  // and the timestamp from the 'Time' field. The size of the window is 1 day.
  var timeser = {
     name: 'TimeSeriesAggr',
     type: 'timeSeriesWinBuf',
     store: 'Heat',
     timestamp: 'Time',
-    value: 'Celcius',
+    value: 'Celsius',
     winsize: 86400000
  };
  var timeSeries = base.store("Heat").addStreamAggr(timeser);
@@ -561,61 +604,7 @@ it("should make test number 14", function () {
 
 });
 });
-describe("@typedef {module:qm.StreamAggr} StreamAggregateMovingCovarianc, number 15", function () {
-it("should make test number 15", function () {
-
- // import the qm module
- var qm = require('qminer');
- // create a base with a simple store
- var base = new qm.Base({
-    mode: "createClean",
-    schema: [
-    {
-        name: "Heat",
-        fields: [
-            { name: "Celcius", type: "float" },
-            { name: "WaterConsumption", type: "float" },
-            { name: "Time", type: "datetime" }
-        ]
-    }]
- });
-
- // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celcius' field
- // and the timestamp from the 'Time' field. The size of the window is 1 day.
- var celcius = {
-    name: 'CelciusAggr',
-    type: 'timeSeriesWinBuf',
-    store: 'Heat',
-    timestamp: 'Time',
-    value: 'Celcius',
-    winsize: 86400000
- }; base.store("Heat").addStreamAggr(celcius);
-
- // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'WaterConsumption' field
- // and the timestamp from the 'Time' field. The size of the window is 1 day.
- var water = {
-    name: 'WaterAggr',
-    type: 'timeSeriesWinBuf',
-    store: 'Heat',
-    timestamp: 'Time',
-    value: 'WaterConsumption',
-    winsize: 86400000
- }; base.store("Heat").addStreamAggr(water);
-
- // add a covariance aggregator, that is connected with the 'CelciusAggr' and 'WaterAggr' stream aggregators
- var covariance = {
-    name: 'covAggr',
-    type: 'covariance',
-    store: 'Heat',
-    inAggrX: 'CelciusAggr',
-    inAggrY: 'WaterAggr'
- };
- var covarianceAggr = base.store("Heat").addStreamAggr(covariance);
- base.close();
-
-});
-});
-describe("@typedef {module:qm.StreamAggr} StreamAggregateMovingCorrelatio, number 16", function () {
+describe("@typedef {module:qm.StreamAggr} StreamAggregateMovingCovarianc, number 16", function () {
 it("should make test number 16", function () {
 
  // import the qm module
@@ -627,23 +616,23 @@ it("should make test number 16", function () {
     {
         name: "Heat",
         fields: [
-            { name: "Celcius", type: "float" },
+            { name: "Celsius", type: "float" },
             { name: "WaterConsumption", type: "float" },
             { name: "Time", type: "datetime" }
         ]
     }]
  });
 
- // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celcius' field
+ // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celsius' field
  // and the timestamp from the 'Time' field. The size of the window is 1 day.
- var celcius = {
-    name: 'CelciusAggr',
+ var Celsius = {
+    name: 'CelsiusAggr',
     type: 'timeSeriesWinBuf',
     store: 'Heat',
     timestamp: 'Time',
-    value: 'Celcius',
+    value: 'Celsius',
     winsize: 86400000
- }; base.store("Heat").addStreamAggr(celcius);
+ }; base.store("Heat").addStreamAggr(Celsius);
 
  // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'WaterConsumption' field
  // and the timestamp from the 'Time' field. The size of the window is 1 day.
@@ -656,45 +645,20 @@ it("should make test number 16", function () {
     winsize: 86400000
  }; base.store("Heat").addStreamAggr(water);
 
- // add a covariance aggregator, that is connected with the 'CelciusAggr' and 'WaterAggr' aggregators
+ // add a covariance aggregator, that is connected with the 'CelsiusAggr' and 'WaterAggr' stream aggregators
  var covariance = {
-    name: 'covarianceAggr',
+    name: 'covAggr',
     type: 'covariance',
     store: 'Heat',
-    inAggrX: 'CelciusAggr',
+    inAggrX: 'CelsiusAggr',
     inAggrY: 'WaterAggr'
- }; base.store("Heat").addStreamAggr(covariance);
-
- // add the two variance aggregators, that take from the 'Celcius' and 'WaterConsumption' fields, respectively.
- var celVar = {
-    name: 'celciusVarAggr',
-    type: 'variance',
-    store: 'Heat',
-    inAggr: 'CelciusAggr'
- }; base.store("Heat").addStreamAggr(celVar);
-
- var waterVar = {
-    name: 'waterVarAggr',
-    type: 'variance',
-    store: 'Heat',
-    inAggr: 'WaterAggr'
- }; base.store("Heat").addStreamAggr(waterVar);
-
- // add a correlation aggregator, that is connected to 'CovarianceAggr', 'CelciusVarAggr' and 'WaterValAggr' aggregators
- var corr = {
-    name: 'corrAggr',
-    type: 'correlation',
-    store: 'Heat',
-    inAggrCov: 'covarianceAggr',
-    inAggrVarX: 'celciusVarAggr',
-    inAggrVarY: 'waterVarAggr'
  };
- var correlation = base.store("Heat").addStreamAggr(corr);
+ var covarianceAggr = base.store("Heat").addStreamAggr(covariance);
  base.close();
 
 });
 });
-describe("@typedef {module:qm.StreamAggr} StreamAggregateResample, number 17", function () {
+describe("@typedef {module:qm.StreamAggr} StreamAggregateMovingCorrelatio, number 17", function () {
 it("should make test number 17", function () {
 
  // import the qm module
@@ -706,7 +670,86 @@ it("should make test number 17", function () {
     {
         name: "Heat",
         fields: [
-            { name: "Celcius", type: "float" },
+            { name: "Celsius", type: "float" },
+            { name: "WaterConsumption", type: "float" },
+            { name: "Time", type: "datetime" }
+        ]
+    }]
+ });
+
+ // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celsius' field
+ // and the timestamp from the 'Time' field. The size of the window is 1 day.
+ var Celsius = {
+    name: 'CelsiusAggr',
+    type: 'timeSeriesWinBuf',
+    store: 'Heat',
+    timestamp: 'Time',
+    value: 'Celsius',
+    winsize: 86400000
+ }; base.store("Heat").addStreamAggr(Celsius);
+
+ // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'WaterConsumption' field
+ // and the timestamp from the 'Time' field. The size of the window is 1 day.
+ var water = {
+    name: 'WaterAggr',
+    type: 'timeSeriesWinBuf',
+    store: 'Heat',
+    timestamp: 'Time',
+    value: 'WaterConsumption',
+    winsize: 86400000
+ }; base.store("Heat").addStreamAggr(water);
+
+ // add a covariance aggregator, that is connected with the 'CelsiusAggr' and 'WaterAggr' aggregators
+ var covariance = {
+    name: 'covarianceAggr',
+    type: 'covariance',
+    store: 'Heat',
+    inAggrX: 'CelsiusAggr',
+    inAggrY: 'WaterAggr'
+ }; base.store("Heat").addStreamAggr(covariance);
+
+ // add the two variance aggregators, that take from the 'Celsius' and 'WaterConsumption' fields, respectively.
+ var celVar = {
+    name: 'CelsiusVarAggr',
+    type: 'variance',
+    store: 'Heat',
+    inAggr: 'CelsiusAggr'
+ }; base.store("Heat").addStreamAggr(celVar);
+
+ var waterVar = {
+    name: 'waterVarAggr',
+    type: 'variance',
+    store: 'Heat',
+    inAggr: 'WaterAggr'
+ }; base.store("Heat").addStreamAggr(waterVar);
+
+ // add a correlation aggregator, that is connected to 'CovarianceAggr', 'CelsiusVarAggr' and 'WaterValAggr' aggregators
+ var corr = {
+    name: 'corrAggr',
+    type: 'correlation',
+    store: 'Heat',
+    inAggrCov: 'covarianceAggr',
+    inAggrVarX: 'CelsiusVarAggr',
+    inAggrVarY: 'waterVarAggr'
+ };
+ var correlation = base.store("Heat").addStreamAggr(corr);
+ base.close();
+
+});
+});
+describe("@typedef {module:qm.StreamAggr} StreamAggregateResample, number 18", function () {
+it("should make test number 18", function () {
+
+ // import the qm module
+ var qm = require('qminer');
+ // create a base with a simple store
+ var base = new qm.Base({
+    mode: "createClean",
+    schema: [
+    {
+        name: "Heat",
+        fields: [
+            { name: "Celsius", type: "float" },
             { name: "Time", type: "datetime" }
         ]
     },
@@ -718,7 +761,7 @@ it("should make test number 17", function () {
         ]
     }]
  });
- // create a new resampler stream aggregator for the 'Heat' store, that takes the values from the 'Celcius' field
+ // create a new resampler stream aggregator for the 'Heat' store, that takes the values from the 'Celsius' field
  // and the timestamp from the 'Time' field. The interpolated values are stored in the 'interpolatedValues' store.
  // The interpolation should be linear and the interval should be 2 seconds.
  var res = {
@@ -728,7 +771,7 @@ it("should make test number 17", function () {
     outStore: 'interpolatedValues',
     timestamp: 'Time',
     fields: [{
-        name: 'Celcius',
+        name: 'Celsius',
         interpolator: 'linear'
     }],
     createStore: false,
@@ -739,8 +782,8 @@ it("should make test number 17", function () {
 
 });
 });
-describe("@typedef {module:qm.StreamAggr} StreamAggregateMerge, number 18", function () {
-it("should make test number 18", function () {
+describe("@typedef {module:qm.StreamAggr} StreamAggregateMerge, number 19", function () {
+it("should make test number 19", function () {
 
  // import the qm module
  var qm = require('qminer');
@@ -758,7 +801,7 @@ it("should make test number 18", function () {
     {
         name: "Temperature",
         fields: [
-            { name: "Celcius", type: "float" },
+            { name: "Celsius", type: "float" },
             { name: "Time", type: "datetime" }
         ]
     },
@@ -766,7 +809,7 @@ it("should make test number 18", function () {
         name: "Merged",
         fields: [
             { name: "NumberOfCars", type: "float" },
-            { name: "Celcius", type: "float" },
+            { name: "Celsius", type: "float" },
             { name: "Time", type: "datetime" }
         ]
     }]
@@ -781,7 +824,7 @@ it("should make test number 18", function () {
     timestamp: 'Time',
     fields: [
         { source: 'Cars', inField: 'NumberOfCars', outField: 'NumberOfCars', interpolation: 'linear', timestamp: 'Time' },
-        { source: 'Temperature', inField: 'Celcius', outField: 'Celcius', interpolation: 'linear', timestamp: 'Time' }
+        { source: 'Temperature', inField: 'Celsius', outField: 'Celsius', interpolation: 'linear', timestamp: 'Time' }
     ]
  };
  var merger = new qm.StreamAggr(base, mer);
@@ -789,8 +832,8 @@ it("should make test number 18", function () {
 
 });
 });
-describe("@typedef {module:qm.StreamAggr} StreamAggregateHistogra, number 19", function () {
-it("should make test number 19", function () {
+describe("@typedef {module:qm.StreamAggr} StreamAggregateHistogra, number 20", function () {
+it("should make test number 20", function () {
 
  // import the qm module
  var qm = require('qminer');
@@ -801,20 +844,20 @@ it("should make test number 19", function () {
     {
         name: "Heat",
         fields: [
-            { name: "Celcius", type: "float" },
+            { name: "Celsius", type: "float" },
             { name: "Time", type: "datetime" }
         ]
     }]
  });
 
- // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celcius' field
+ // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celsius' field
  // and the timestamp from the 'Time' field. The size of the window is 1 day.
  var timeser = {
     name: 'TimeSeriesBuffer',
     type: 'timeSeriesWinBuf',
     store: 'Heat',
     timestamp: 'Time',
-    value: 'Celcius',
+    value: 'Celsius',
     winsize: 86400000 // one day in miliseconds
  };
  var timeSeries = base.store("Heat").addStreamAggr(timeser);
@@ -836,8 +879,8 @@ it("should make test number 19", function () {
 
 });
 });
-describe("@typedef {module:qm.StreamAggr} StreamAggregateSlottedHistogra, number 20", function () {
-it("should make test number 20", function () {
+describe("@typedef {module:qm.StreamAggr} StreamAggregateSlottedHistogra, number 21", function () {
+it("should make test number 21", function () {
 
  // import the qm module
  var qm = require('qminer');
@@ -848,20 +891,20 @@ it("should make test number 20", function () {
     {
         name: "Heat",
         fields: [
-            { name: "Celcius", type: "float" },
+            { name: "Celsius", type: "float" },
             { name: "Time", type: "datetime" }
         ]
     }]
  });
 
- // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celcius' field
+ // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celsius' field
  // and the timestamp from the 'Time' field. The size of the window is 4 weeks.
  var timeser = {
     name: 'TimeSeriesBuffer',
     type: 'timeSeriesWinBuf',
     store: 'Heat',
     timestamp: 'Time',
-    value: 'Celcius',
+    value: 'Celsius',
     winsize: 2419200000 // 4 weeks
  };
  var timeSeries = base.store("Heat").addStreamAggr(timeser);
@@ -883,8 +926,8 @@ it("should make test number 20", function () {
 
 });
 });
-describe("@typedef {module:qm.StreamAggr} StreamAggregateVecDif, number 21", function () {
-it("should make test number 21", function () {
+describe("@typedef {module:qm.StreamAggr} StreamAggregateVecDif, number 22", function () {
+it("should make test number 22", function () {
 
  // import the qm module
  var qm = require('qminer');
@@ -970,8 +1013,70 @@ it("should make test number 21", function () {
 
 });
 });
-describe("Returns the value of the specific stream aggregator. For return values see {@link module:qm~StreamAggregators}, number 22", function () {
-it("should make test number 22", function () {
+describe("@typedef {module:qm.StreamAggr} StreamAggregateSimpleLinearRegressio, number 23", function () {
+it("should make test number 23", function () {
+
+ // import the qm module
+ var qm = require('qminer');
+ // create a base with X,Y measurements
+ var base = new qm.Base({
+     mode: 'createClean',
+     schema: [{
+         name: 'Function',
+         fields: [
+             { name: 'Time', type: 'datetime' },
+             { name: 'X', type: 'float' },
+             { name: 'Y', type: 'float' }
+         ]
+     }]
+ });
+
+ var store = base.store('Function');
+
+ // 1 second buffer for X values
+ var winX = store.addStreamAggr({
+     type: 'timeSeriesWinBuf',
+     timestamp: 'Time',
+     value: 'X',
+     winsize: 1000
+ });
+ // 1 second buffer for Y values
+ var winY = store.addStreamAggr({
+     type: 'timeSeriesWinBuf',
+     timestamp: 'Time',
+     value: 'Y',
+     winsize: 1000
+ });
+
+ // the will find regression line, as well as two parallel quartile lines
+ var linReg = store.addStreamAggr({
+     type: 'simpleLinearRegression',
+     inAggrX: winX.name,
+     inAggrY: winY.name,
+     storeX: "Function",
+     storeY: "Function",
+     quantiles: [0.25, 0.75]
+ });
+
+ store.push({ Time: '2015-06-10T14:13:32.001', X: 0, Y: -2 });
+ store.push({ Time: '2015-06-10T14:13:32.002', X: 0, Y: -1 });
+ store.push({ Time: '2015-06-10T14:13:32.003', X: 0, Y: 1 });
+ store.push({ Time: '2015-06-10T14:13:32.004', X: 0, Y: 2 });
+ store.push({ Time: '2015-06-10T14:13:32.005', X: 1, Y: -1 });
+ store.push({ Time: '2015-06-10T14:13:32.006', X: 1, Y: -0 });
+ store.push({ Time: '2015-06-10T14:13:32.007', X: 1, Y: 2 });
+ store.push({ Time: '2015-06-10T14:13:32.008', X: 1, Y: 3 });
+
+ var res = linReg.saveJson();
+ res.bands[0] // -1.5
+ res.bands[1] // 1.5
+
+ base.close();
+
+});
+});
+describe("Returns the value of the specific stream aggregator. For return values see {@link module:qm~StreamAggregators}, number 24", function () {
+it("should make test number 24", function () {
 
 	 // import qm module
 	 var qm = require('qminer');
@@ -1017,8 +1122,8 @@ it("should make test number 22", function () {
 	
 });
 });
-describe("Returns the timestamp value of the newest record in buffer, number 23", function () {
-it("should make test number 23", function () {
+describe("Returns the timestamp value of the newest record in buffer, number 25", function () {
+it("should make test number 25", function () {
 
 	 // import qm module
 	 var qm = require('qminer');
@@ -1063,8 +1168,8 @@ it("should make test number 23", function () {
 	
 });
 });
-describe("Gets the length of the vector containing the values of the stream aggregator, number 24", function () {
-it("should make test number 24", function () {
+describe("Gets the length of the vector containing the values of the stream aggregator, number 26", function () {
+it("should make test number 26", function () {
 
 	 // import qm module
 	 var qm = require('qminer');
@@ -1101,8 +1206,8 @@ it("should make test number 24", function () {
 	
 });
 });
-describe("Returns the value of the vector containing the values of the stream aggregator at a specific index, number 25", function () {
-it("should make test number 25", function () {
+describe("Returns the value of the vector containing the values of the stream aggregator at a specific index, number 27", function () {
+it("should make test number 27", function () {
  
 	 // import qm module
 	 var qm = require('qminer');
@@ -1139,8 +1244,8 @@ it("should make test number 25", function () {
 	
 });
 });
-describe("Gets the whole vector of values of the stream aggregator, number 26", function () {
-it("should make test number 26", function () {
+describe("Gets the whole vector of values of the stream aggregator, number 28", function () {
+it("should make test number 28", function () {
 
 	 // import qm module
 	 var qm = require('qminer');
@@ -1177,8 +1282,8 @@ it("should make test number 26", function () {
 	
 });
 });
-describe("Gets the length of the timestamp vector of the stream aggregator, number 27", function () {
-it("should make test number 27", function () {
+describe("Gets the length of the timestamp vector of the stream aggregator, number 29", function () {
+it("should make test number 29", function () {
 
 	 // import qm module
 	 var qm = require('qminer');
@@ -1218,8 +1323,8 @@ it("should make test number 27", function () {
 	
 });
 });
-describe("Gets the timestamp from the timestamp vector of the stream aggregator at the specific index, number 28", function () {
-it("should make test number 28", function () {
+describe("Gets the timestamp from the timestamp vector of the stream aggregator at the specific index, number 30", function () {
+it("should make test number 30", function () {
 
 	 // import qm module
 	 var qm = require('qminer');
@@ -1257,8 +1362,8 @@ it("should make test number 28", function () {
 	
 });
 });
-describe("Gets the vector containing the timestamps of the stream aggregator, number 29", function () {
-it("should make test number 29", function () {
+describe("Gets the vector containing the timestamps of the stream aggregator, number 31", function () {
+it("should make test number 31", function () {
 
 	 // import qm module
 	 var qm = require('qminer');
@@ -1294,8 +1399,8 @@ it("should make test number 29", function () {
 	
 });
 });
-describe("Gets the value of the newest record added to the stream aggregator, number 30", function () {
-it("should make test number 30", function () {
+describe("Gets the value of the newest record added to the stream aggregator, number 32", function () {
+it("should make test number 32", function () {
 
 	 // import qm module
 	 var qm = require('qminer');
@@ -1332,8 +1437,8 @@ it("should make test number 30", function () {
 	
 });
 });
-describe("Gets the timestamp of the newest record added to the stream aggregator, number 31", function () {
-it("should make test number 31", function () {
+describe("Gets the timestamp of the newest record added to the stream aggregator, number 33", function () {
+it("should make test number 33", function () {
 
 	 // import qm module
 	 var qm = require('qminer');
@@ -1370,22 +1475,22 @@ it("should make test number 31", function () {
 	
 });
 });
-describe("Gets a vector containing the values that are entering the stream aggregator, number 32", function () {
-it("should make test number 32", function () {
-
-	 // TODO + add unit test!
-	
-});
-});
-describe("Gets a vector containing the timestamps that are entering the stream aggregator, number 33", function () {
-it("should make test number 33", function () {
-
-	 // TODO + add unit test!
-	
-});
-});
-describe("Gets a vector containing the values that are leaving the stream aggregator, number 34", function () {
+describe("Gets a vector containing the values that are entering the stream aggregator, number 34", function () {
 it("should make test number 34", function () {
+
+	 // TODO + add unit test!
+	
+});
+});
+describe("Gets a vector containing the timestamps that are entering the stream aggregator, number 35", function () {
+it("should make test number 35", function () {
+
+	 // TODO + add unit test!
+	
+});
+});
+describe("Gets a vector containing the values that are leaving the stream aggregator, number 36", function () {
+it("should make test number 36", function () {
 
 	 // import qm module
 	 var qm = require('qminer');
@@ -1424,8 +1529,8 @@ it("should make test number 34", function () {
 	
 });
 });
-describe("Gets a vector containing the timestamps that are leaving the stream aggregator, number 35", function () {
-it("should make test number 35", function () {
+describe("Gets a vector containing the timestamps that are leaving the stream aggregator, number 37", function () {
+it("should make test number 37", function () {
 
 	 // import qm module
 	 var qm = require('qminer');
@@ -1465,8 +1570,8 @@ it("should make test number 35", function () {
 	
 });
 });
-describe("Gets the number of records in the stream aggregator, number 36", function () {
-it("should make test number 36", function () {
+describe("Gets the number of records in the stream aggregator, number 38", function () {
+it("should make test number 38", function () {
 
 	 // import qm module
 	 var qm = require('qminer');
@@ -1503,8 +1608,8 @@ it("should make test number 36", function () {
 	
 });
 });
-describe("Gets the vector of 'just-in' values (values that have just entered the buffer). Values can be floats or sparse vectors, number 37", function () {
-it("should make test number 37", function () {
+describe("Gets the vector of 'just-in' values (values that have just entered the buffer). Values can be floats or sparse vectors, number 39", function () {
+it("should make test number 39", function () {
 
 	 // import qm module
 	 var qm = require('qminer');
@@ -1563,15 +1668,15 @@ it("should make test number 37", function () {
 	
 });
 });
-describe("Gets the vector of 'just-out values (values that have just fallen out of the buffer). Values can be floats or sparse vectors, number 38", function () {
-it("should make test number 38", function () {
+describe("Gets the vector of 'just-out values (values that have just fallen out of the buffer). Values can be floats or sparse vectors, number 40", function () {
+it("should make test number 40", function () {
 
 	 // look at the example for getInValueVector
 	
 });
 });
-describe("Gets the vector of values in the buffer. Values can be floats or sparse vectors, number 39", function () {
-it("should make test number 39", function () {
+describe("Gets the vector of values in the buffer. Values can be floats or sparse vectors, number 41", function () {
+it("should make test number 41", function () {
 
 	 // look at the example for getInValueVector
 	

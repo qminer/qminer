@@ -381,7 +381,7 @@ typedef struct IMAGEHLP_MODULE64_V2 {
     CHAR     ModuleName[32];         // module name
     CHAR     ImageName[256];         // image name
     CHAR     LoadedImageName[256];   // symbol file name
-};
+} IMAGEHLP_MODULE64_V2Declarator;
 
 
   // SymCleanup()

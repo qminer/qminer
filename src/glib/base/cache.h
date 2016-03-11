@@ -319,21 +319,21 @@ int TBlockCache<TVal>::AddBlock() {
 
 template <class TVal>
 int TBlockCache<TVal>::GetLastBlock(PBlockDat& BlockDat) {
-	// ID of the last block in the queue
-	const int LastBlockId = BlockBlobPtV.Len()-1;
-	// retrieve block
-	GetBlock(LastBlockId, BlockDat);
-	// if full, make a new one
-	if (BlockDat->IsFull(BlockSize)) {
-		//creat new block
-		const int NewBlockId = AddBlock();
-		// return its reference
-		GetBlock(NewBlockId, BlockDat);
-		// and new block id
-		return NewBlockId;
-	}
-	// just return existing last block id
-	return LastBlockId;
+    // ID of the last block in the queue
+    const int LastBlockId = BlockBlobPtV.Len() - 1;
+    // retrieve block
+    GetBlock(LastBlockId, BlockDat);
+    // if full, make a new one
+    if (BlockDat->IsFull(BlockSize)) {
+        //create new block
+        const int NewBlockId = AddBlock();
+        // return its reference
+        GetBlock(NewBlockId, BlockDat);
+        // and new block id
+        return NewBlockId;
+    }
+    // just return existing last block id
+    return LastBlockId;
 }
 
 template <class TVal>
@@ -389,9 +389,9 @@ TBlockCache<TVal>::~TBlockCache() {
         BlockCache.Flush();
         // save the rest to FNmPrefix + ".Dat"
         TFOut FOut(FNmPrefix + ".Dat");
-		Vals.Save(FOut);
-		BlockSize.Save(FOut);
-		BlockBlobPtV.Save(FOut);
+        Vals.Save(FOut);
+        BlockSize.Save(FOut);
+        BlockBlobPtV.Save(FOut);
     }
 }
 

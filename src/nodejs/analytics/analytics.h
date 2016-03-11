@@ -2223,6 +2223,7 @@ private:
 		TNodeJsFltVV* JsFltVV;
 		TNodeJsSpMat* JsSpVV;
 		TNodeJsFltVV* JsResult;
+		PNotify Notify;
 
 	public:
 		TFitTransformTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
@@ -2280,9 +2281,9 @@ public:
 	* var mat = new la.Matrix({ rows: 50, cols: 10, random: true });
 	* // get the 2d representation of mat 
 	* mds.fitTransformAsync(mat, function (err, res) {
-	*    if (err) { console.log(err); }
+	*    if (err) { console.log(err); return }
 	*    // successful calculation
-	*    var mat2d = result;
+	*    var mat2d = res;
 	* }); 
 	* @example <caption> Synchronous function </caption>
 	* // import the modules

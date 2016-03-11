@@ -1231,9 +1231,9 @@ it("should make test number 73", function () {
 	 var mat = new la.Matrix({ rows: 50, cols: 10, random: true });
 	 // get the 2d representation of mat 
 	 mds.fitTransformAsync(mat, function (err, res) {
-	    if (err) { console.log(err); }
+	    if (err) { console.log(err); return }
 	    // successful calculation
-	    var mat2d = result;
+	    var mat2d = res;
 	 }); 
 	
 });

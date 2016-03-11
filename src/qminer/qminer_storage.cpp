@@ -657,7 +657,7 @@ void TInMemStorage::SetVal(const uint64& ValId, const TMem& Val) {
 void TInMemStorage::DelVals(int Vals) {
 	if (Vals > 0) {
 		int ValsTrue = 0;
-		for (ValsTrue = 0; ValsTrue < Vals && ValsTrue<ValV.Len(); ValsTrue++) {
+		for (ValsTrue = 0; ValsTrue < Vals && ValsTrue + (int64)FirstValOffset.Val<ValV.Len(); ValsTrue++) {
 			ValV[ValsTrue + FirstValOffset].Clr();
 		}
 		int blocks_to_delete = ((int)FirstValOffset + ValsTrue) / BlockSize;
@@ -3296,7 +3296,9 @@ void TStoreImpl::DeleteAllRecs() {
 	// if no records, nothing to do here
 	if (Empty()) { return; }
 	TEnv::Logger->OnStatusFmt("Deleting all (%d) records in %s", GetRecs(), GetStoreNm().CStr());
-	
+
+    // NOTE: if you change the logic bellow, be sure to also change the DeleteRecs() method
+
 	// delete records from index
 	for (uint64 DelRecId = GetFirstRecId(); DelRecId <= GetLastRecId(); DelRecId++) {
 		// executed triggers before deletion
@@ -3361,59 +3363,72 @@ void TStoreImpl::DeleteFirstRecs(const int& DelRecs)  {
 }
 
 void TStoreImpl::DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK) {
-	if (AssertOK) {
-		// assert that DelRecIdV is valid, without gaps and that deleting will not create gaps
-		PStoreIter Iter = GetIter();
-		int Counter = 0;
-		QmAssertR((uint64)DelRecIdV.Len() <= GetRecs(), "TStoreImpl::DeleteRecs: "
+    if (AssertOK) {
+        // assert that DelRecIdV is valid, without gaps and that deleting will not create gaps
+        PStoreIter Iter = GetIter();
+        int Counter = 0;
+        QmAssertR((uint64)DelRecIdV.Len() <= GetRecs(), "TStoreImpl::DeleteRecs: "
             "incorrect record id sequence. The length is greater than the total number of records.");
-		while (Iter->Next()) {
-			QmAssertR(DelRecIdV[Counter] == Iter->GetRecId(), "TStoreImpl::DeleteRecs: "
+        while (Iter->Next()) {
+            QmAssertR(DelRecIdV[Counter] == Iter->GetRecId(), "TStoreImpl::DeleteRecs: "
                 "incorrect record id sequence. The sequence should start at the first store "
                 "records, should contain only record ids and should not contain gaps");
-			Counter++;
-		}
-	}
-	// delete records from index
-	for (int DelRecN = 0; DelRecN < DelRecIdV.Len(); DelRecN++) {
-		// report progress
-		if (DelRecN % 1000 == 0) { TEnv::Logger->OnStatusFmt("    %d\r", DelRecN); }
-		// what are we deleting now
-		const uint64 DelRecId = DelRecIdV[DelRecN];
-		// executed triggers before deletion
-		OnDelete(DelRecId);
-		// delete record from name-id map
-		if (IsPrimaryField()) { DelPrimaryField(DelRecId); }
-		// delete record from indexes
-		if (DataCacheP) {
-			TMem CacheRecMem; DataCache.GetVal(DelRecId, CacheRecMem);
-			RecIndexer.DeindexRec(CacheRecMem, DelRecId, *SerializatorCache);
-		}
-		if (DataMemP) {
-			TMem MemRecMem; DataMem.GetVal(DelRecId, MemRecMem);
-			RecIndexer.DeindexRec(MemRecMem, DelRecId, *SerializatorMem);
-		}
-		// delete record from joins
-		TRec Rec(this, DelRecId);
-		for (int JoinN = 0; JoinN < GetJoins(); JoinN++) {
-			TJoinDesc JoinDesc = GetJoinDesc(JoinN);
-			// execute the join
-			PRecSet JoinRecSet = Rec.DoJoin(GetBase(), JoinDesc.GetJoinId());
-			for (int JoinRecN = 0; JoinRecN < JoinRecSet->GetRecs(); JoinRecN++) {
-				// remove joins with all matched records, one by one
-				const uint64 JoinRecId = JoinRecSet->GetRecId(JoinRecN);
-				const int JoinFq = JoinRecSet->GetRecFq(JoinRecN);
-				DelJoin(JoinDesc.GetJoinId(), DelRecId, JoinRecId, JoinFq);
-			}
-		}
-	}
-	// delete records from disk
-	if (DataCacheP) { DataCache.DelVals(DelRecIdV.Len()); }
-	// delete records from in-memory store
-	if (DataMemP) { DataMem.DelVals(DelRecIdV.Len()); }
+            Counter++;
+        }
+    }
 
-	// report success :-)
-	TEnv::Logger->OnStatusFmt("  %s records at end", TUInt64::GetStr(GetRecs()).CStr());
+    // NOTE: if you change the logic bellow, be sure to also change the DeleteAllRecs() method
+
+    // delete records from index
+    for (int DelRecN = 0; DelRecN < DelRecIdV.Len(); DelRecN++) {
+        // report progress
+        if (DelRecN % 1000 == 0) {
+            TEnv::Logger->OnStatusFmt("    %d\r", DelRecN);
+        }
+        // what are we deleting now
+        const uint64 DelRecId = DelRecIdV[DelRecN];
+        // executed triggers before deletion
+        OnDelete(DelRecId);
+        // delete record from name-id map
+        if (IsPrimaryField()) {
+            DelPrimaryField(DelRecId);
+        }
+        // delete record from indexes
+        if (DataCacheP) {
+            TMem CacheRecMem;
+            DataCache.GetVal(DelRecId, CacheRecMem);
+            RecIndexer.DeindexRec(CacheRecMem, DelRecId, *SerializatorCache);
+        }
+        if (DataMemP) {
+            TMem MemRecMem;
+            DataMem.GetVal(DelRecId, MemRecMem);
+            RecIndexer.DeindexRec(MemRecMem, DelRecId, *SerializatorMem);
+        }
+        // delete record from joins
+        TRec Rec(this, DelRecId);
+        for (int JoinN = 0; JoinN < GetJoins(); JoinN++) {
+            TJoinDesc JoinDesc = GetJoinDesc(JoinN);
+            // execute the join
+            PRecSet JoinRecSet = Rec.DoJoin(GetBase(), JoinDesc.GetJoinId());
+            for (int JoinRecN = 0; JoinRecN < JoinRecSet->GetRecs(); JoinRecN++) {
+                // remove joins with all matched records, one by one
+                const uint64 JoinRecId = JoinRecSet->GetRecId(JoinRecN);
+                const int JoinFq = JoinRecSet->GetRecFq(JoinRecN);
+                DelJoin(JoinDesc.GetJoinId(), DelRecId, JoinRecId, JoinFq);
+            }
+        }
+    }
+    // delete records from disk
+    if (DataCacheP) {
+        DataCache.DelVals(DelRecIdV.Len());
+    }
+    // delete records from in-memory store
+    if (DataMemP) {
+        DataMem.DelVals(DelRecIdV.Len());
+    }
+
+    // report success :-)
+    TEnv::Logger->OnStatusFmt("  %s records at end", TUInt64::GetStr(GetRecs()).CStr());
 }
 
 bool TStoreImpl::IsFieldNull(const uint64& RecId, const int& FieldId) const {
@@ -3779,20 +3794,20 @@ PJsonVal TStoreImpl::GetStoreJson(const TWPt<TBase>& Base) const {
 
 /// Save part of the data, given time-window
 int TStoreImpl::PartialFlush(int WndInMsec) {
-	int slice = WndInMsec / 2;
-	TTmStopWatch sw(true);
-	int res = DataMem.PartialFlush(slice);
-	res += DataCache.PartialFlush(slice);
-	return res;
+    int slice = WndInMsec / 2;
+    TTmStopWatch sw(true);
+    int res = DataMem.PartialFlush(slice);
+    int res2 = DataCache.PartialFlush(slice);
+    return res + res2;
 }
 
 /// Retrieve performance statistics for this store
 PJsonVal TStoreImpl::GetStats() {
-	PJsonVal res = TJsonVal::NewObj();
-	res->AddToObj("name", GetStoreNm());
-	res->AddToObj("blob_storage_memory", BlobBsStatsToJson(DataMem.GetBlobBsStats()));
-	res->AddToObj("blob_storage_cache", BlobBsStatsToJson(DataCache.GetBlobBsStats()));
-	return res;
+    PJsonVal res = TJsonVal::NewObj();
+    res->AddToObj("name", GetStoreNm());
+    res->AddToObj("blob_storage_memory", BlobBsStatsToJson(DataMem.GetBlobBsStats()));
+    res->AddToObj("blob_storage_cache", BlobBsStatsToJson(DataCache.GetBlobBsStats()));
+    return res;
 }
 
 /// Add new record
