@@ -198,6 +198,25 @@ void TSpecFunc::LinearFit(
   if (_isnan(B) || ! _finite(B)) B = 0.0;
 }
 
+void TSpecFunc::LinearFit(const TFltV& X, const TFltV& Y, double& A, double& B) {
+	int N = X.Len();	
+	EAssertR(Y.Len() == N, "Simple linear regression: dimension missmatch");
+	if (N == 0) { A = 0; B = 0; return; }	
+	double EX = TLinAlg::SumVec(X) / N;
+	double EY = TLinAlg::SumVec(Y) / N;
+	double EXX = TLinAlg::DotProduct(X, X) / N;
+	double EXY = TLinAlg::DotProduct(X, Y) / N;
+	double VarX = EXX - EX * EX;
+	if (VarX < 1e-300) {
+		B = 0;
+	}
+	else {
+		double CovXY = EXY - EX * EY;
+		B = CovXY / VarX;
+	}
+	A = EY - B * EX;
+}
+
 void TSpecFunc::PowerFit(const TVec<TFltPr>& XY, double& A, double& B,
  double& SigA, double& SigB, double& Chi2, double& R2) {
   // y = a x^b :: SigA (SigB): A's uncertainty; Chi2: std dev on all points

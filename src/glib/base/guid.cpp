@@ -12,7 +12,7 @@
 // GUID
 
 TStr TGuid::GenGuid() {
-	return sole::uuid1().str().c_str();
+	return sole::uuid4().str().c_str();
 }
 
 TStr TGuid::GenSafeGuid() { 
