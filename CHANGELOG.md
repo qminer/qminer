@@ -1,5 +1,29 @@
 # QMiner Change Log
 
+### 9 Mar 2016
+
+**New version: 4.9.0**
+
+**Non-breaking with new features**
+
+New features:
+- New aggregates:
+  - `TWinBufFltV` (type: `timeSeriesWinBufVector`), connects to `timeSeriesWinBuf`, implements `IFltV` (holds a vector of buffer values in memory)
+  - `TSimpleLinReg` (type: `simpleLinearRegression`), connects to two `IFltV` aggregates, computes a linear fit and (optionally) quantile bands
+
+Bug fixes:
+- `TGix::PartialFlush` had a bug when saved item set got assigned a new `TBlobPt`. Fixed #386
+- `TInMemStorage::DelVals` did wrong accounting when deleting bigger chunks of records
+- SVR using libsvm unallocated memory fix
+- VS2015 warning fix (`StackWalker`)
+- Queue made more efficient, added standard API (`Front()`, `Back()`), refactored variable names to be more meaningful and added unit tests.
+- Removed IOB error compensation in `TQQueue::GetSubValV` (now throws an exception) and renamed the method to `TQQueue::GetSubValVec`, so it doesn't compile (behaviour change). Any users should rename `GetSubValV` to `GetSubValVec` and check the correctness of indices when calling.
+- async MDS segfault fix
+- GUID method changed (can generate more than 10M IDs per second)
+
+Other:
+- Unit tests, documentation, examples: `timeSeriesWinBufVector`, `simpleLinearRegression`
+
 ### 4 Mar 2016
 
 **New version: 4.8.0**
