@@ -285,7 +285,9 @@ public:
   int GetMonth() const {return Month;}
   TStr GetMonthNm() const {return TTmInfo::GetMonthNm(Month);}
   int GetDay() const {return Day;}
+  /// returns the day of week: 0 - Sunday, 1 - Monday, 2 - Tuesday, 3 - Wednesday, ...
   int GetDayOfWeek() const {return DayOfWeek;}
+  int GetDaysSinceMonday() const;
   TStr GetDayOfWeekNm() const {return TTmInfo::GetDayOfWeekNm(DayOfWeek);}
   int GetHour() const {return Hour;}
   int GetMin() const {return Min;}

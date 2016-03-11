@@ -980,6 +980,12 @@ void TSecTm::SaveTxt(TOLx& Lx) const {
 
 /////////////////////////////////////////////////
 // Date-Time
+int TTm::GetDaysSinceMonday() const {
+	const int Days = GetDayOfWeek() - 1;
+	if (Days < 0) { return 6; }	// Sunday
+	return Days;
+}
+
 TStr TTm::GetStr(const bool& MSecP) const {
   TChA ChA;
   ChA+=TInt::GetStr(Year, "%04d"); ChA+='-';

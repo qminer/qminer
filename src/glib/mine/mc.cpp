@@ -227,7 +227,7 @@ void TStateIdentifier::InitTimeHistogramV(const TUInt64V& TmV, const TIntV& Assi
 		const TTm RecTm = TTm::GetTmFromMSecs(RecTmMSecs);
 		const int Month = RecTm.GetMonth();
 		const int Day = RecTm.GetDay();
-		const int DayOfWeek = RecTm.GetDayOfWeek();
+		const int DayOfWeek = RecTm.GetDaysSinceMonday();
 		const int Hour = RecTm.GetHour();
 
 		StateYearHistV[StateId].Update(Month);
