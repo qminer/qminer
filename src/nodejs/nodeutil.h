@@ -446,8 +446,8 @@ void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun, const v8::Loc
 	v8::Handle<v8::Value> Argv[1] = { Arg };
 	Fun->Call(Isolate->GetCurrentContext()->Global(), 1, Argv);
 	if (TryCatch.HasCaught()) {
-		TryCatch.ReThrow();
-		return;
+		v8::String::Utf8Value Msg(TryCatch.Message()->Get());
+		throw TExcept::New("Javascript exception from callback triggered in TJsRecPairFilter::operator() :" + TStr(*Msg));
 	}
 }
 
