@@ -1,4 +1,12 @@
-var assert = require("assert");
+/**
+ * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
+ * All rights reserved.
+ *
+ * This source code is licensed under the FreeBSD license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+var assert = require('../../src/nodejs/scripts/assert.js');
 
 describe("test histogram, slotted-histogram and histogram_diff aggregates", function () {
 	it("histogram", function () {
@@ -1166,4 +1174,78 @@ describe('Time Series  - EMA for sparse vectors', function () {
             0.238651,
             0.393469])).norm() < 0.000001);
     });    
+});
+
+
+
+describe('Simple linear regression test', function () {
+    var qm = require('qminer');
+
+    var base = undefined;
+    var store = undefined;
+    beforeEach(function () {
+        base = new qm.Base({
+            mode: 'createClean',
+            schema: [{
+                name: 'Function',
+                fields: [
+                    { name: 'Time', type: 'datetime' },
+                    { name: 'X', type: 'float' },
+                    { name: 'Y', type: 'float' }
+                ]
+            }]
+        });
+        store = base.store('Function');
+    });
+    afterEach(function () {
+        base.close();
+    });
+
+    describe('GetFloatVector Tests', function () {
+        it('should return the float vector of values in the buffer', function () {
+            var winX = store.addStreamAggr({
+                type: 'timeSeriesWinBuf',
+                timestamp: 'Time',
+                value: 'X',
+                winsize: 1000
+            });
+            var winXv = store.addStreamAggr({
+                type: 'timeSeriesWinBufVector',
+                inAggr: winX.name
+            });
+            var winY = store.addStreamAggr({
+                type: 'timeSeriesWinBuf',
+                timestamp: 'Time',
+                value: 'Y',
+                winsize: 1000
+            });
+            var winYv = store.addStreamAggr({
+                type: 'timeSeriesWinBufVector',
+                inAggr: winY.name
+            });
+
+            var linReg = store.addStreamAggr({
+                type: 'simpleLinearRegression',
+                inAggrX: winXv.name,
+                inAggrY: winYv.name,
+                storeX: "Function",
+                storeY: "Function",
+                quantiles: [0.25, 0.75]
+            });
+
+            store.push({ Time: '2015-06-10T14:13:32.001', X: 0, Y: -2 });
+            store.push({ Time: '2015-06-10T14:13:32.002', X: 0, Y: -1 });
+            store.push({ Time: '2015-06-10T14:13:32.003', X: 0, Y: 1 });
+            store.push({ Time: '2015-06-10T14:13:32.004', X: 0, Y: 2 });
+            store.push({ Time: '2015-06-10T14:13:32.005', X: 1, Y: -1 });
+            store.push({ Time: '2015-06-10T14:13:32.006', X: 1, Y: -0 });
+            store.push({ Time: '2015-06-10T14:13:32.007', X: 1, Y: 2 });
+            store.push({ Time: '2015-06-10T14:13:32.008', X: 1, Y: 3 });
+
+            var res = linReg.saveJson();
+            assert.eqtol(res.bands.length, res.quantiles.length);
+            assert.eqtol(res.bands[0], -1.5);
+            assert.eqtol(res.bands[1], 1.5);
+        })
+    });
 });

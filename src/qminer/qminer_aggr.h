@@ -489,6 +489,53 @@ public:
 };
 
 ///////////////////////////////////////
+// Buffer values vector (variable length circular buffer implementation)
+//    Reads from TWinBuf and stores the buffer values in memory as a circular buffer, which can be resized if needed.
+//    
+
+class TWinBufFltV : public TStreamAggr, public TStreamAggrOut::IFltVec {
+private:
+	// input
+	TWPt<TStreamAggr> InAggr;
+	TWPt<TStreamAggrOut::IFltTmIO> InAggrVal;
+	TQQueue<TFlt> Queue;
+
+protected:
+	void OnAddRec(const TRec& Rec);
+	void OnTime(const uint64& TmMsec) { TRec Rec; OnAddRec(Rec); }
+	void OnStep() {	TRec Rec; OnAddRec(Rec); }
+
+	TWinBufFltV(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+public:
+	// json constructor 
+	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+		return new TWinBufFltV(Base, ParamVal);
+	}
+
+	// Load stream aggregate state from stream
+	void LoadState(TSIn& SIn) { Queue.Load(SIn); }
+	// Save state of stream aggregate to stream
+	void SaveState(TSOut& SOut) const { Queue.Save(SOut); }
+
+	// did we finished initialization
+	bool IsInit() const { return InAggr->IsInit(); }
+	/// Resets the aggregate
+	void Reset() { Queue.Clr(true); }
+	
+	// current values
+	int GetVals() const { return Queue.Len(); }
+	void GetVal(const TInt& ElN, TFlt& Val) const { Val = Queue[ElN]; }
+	void GetValV(TVec<TFlt>& ValV) const { Queue.GetSubValVec(0, Queue.Len() - 1, ValV); }
+
+	// serialization to JSon
+	PJsonVal SaveJson(const int& Limit) const;
+
+	// stream aggregator type name 
+	static TStr GetType() { return "timeSeriesWinBufVector"; }
+	TStr Type() const { return GetType(); }
+};
+
+///////////////////////////////////////
 // Windowed Stream aggregates (readers from TWinBuf) 
 template <class TSignalType>
 class TWinAggr : public TStreamAggr, public TStreamAggrOut::IFltTm {
@@ -1464,6 +1511,57 @@ public:
 	TStr Type() const { return GetType(); }
 };
 
+///////////////////////////////
+/// Simple linear regression stream aggregate.
+/// Takes a vector X (variates) and a vector Y (covariates) and
+/// fits a linear model Y = A + B * X. The results can be accessed
+/// through SaveJson. The aggregate can also compute bands if
+/// a vector of quantiles is provided. For example, given a vector [0.05, 0.95]
+/// the aggregate will compute A,B and A_0 and A_1, so that 5% of Y will be below A_0 + B*X
+/// and 95% of Y will be below A_1 + B*X.
+///
+/// Given the example above, the JSON output:
+/// { "intercept" : A, "slope" : B, "quantiles" : [0.05, 0.95], "bands" : [A_0, A_1] }
+/// 
+/// The input vectors are represented by two stream aggregates who implement
+/// TStreamAggrOut::IFltVec.
+class TSimpleLinReg : public TStreamAggr {
+private:
+	// Two ways to cast inputs (for convenience)
+	TWPt<TStreamAggr> InAggrX, InAggrY; ///< Two inputs cast as TStreamAggr
+	TWPt<TStreamAggrOut::IFltVec> InAggrValX, InAggrValY; ///< Two inputs cast as IFltVec
+	PJsonVal Result; ///< Example: { "intercept" : 2.0, "slope" : 1.1, "quantiles" : [0.05, 0.95], "bands" : [1.0, 3.0] }
+	TFltV Quantiles;
+	
+protected:
+	/// Calls on step
+	void OnAddRec(const TRec& Rec) { OnStep(); }
+	/// Calls on step
+	void OnTime(const uint64& TmMsec) { OnStep(); }
+	/// Fits the linear regression and computes the bands (if configured to do so)
+	void OnStep();
+
+	/// JSON based constructor.
+	/// \param ParamVal Holds the store names and aggregate names and an optional key "quantiles" with a number array of numbers between 0 and 1 : {"storeX" : "storeNameX", "inAggrX" : "inAggrNameX", "storeY" : "storeNameY", "inAggrY" : "inAggrNameY", "quantiles" : [0.05, 0.95]}
+	TSimpleLinReg(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+public:
+	/// Smart pointer constructor
+	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) { return new TSimpleLinReg(Base, ParamVal); }
+	/// Is the aggregate initialized? 
+	bool IsInit() const { return InAggrX->IsInit() && InAggrY->IsInit(); }
+	/// Resets the aggregate
+	void Reset();
+	/// Loads state which corresponds to the Result JSON
+	void LoadState(TSIn& SIn) { Result = TJsonVal::Load(SIn); }
+	/// Saves state which corresponds to the Result JSON
+	void SaveState(TSOut& SOut) const { Result.Save(SOut); }	
+	/// JSON serialization
+	PJsonVal SaveJson(const int& Limit) const { return Result; }
+	/// Stream aggregator type name 
+	static TStr GetType() { return "simpleLinearRegression"; }
+	/// Stream aggregator type name 
+	TStr Type() const { return GetType(); }
+};
 
 //////////////// IMPLEMENTATIONS
 

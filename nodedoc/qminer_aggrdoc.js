@@ -71,6 +71,7 @@
 * @typedef {module:qm.StreamAggr} StreamAggregators
 * Stream aggregator types.
 * @property {module:qm~StreamAggregateTimeSeriesWindow} timeSeries - The time series type.
+* @property {module:qm~StreamAggregateTimeSeriesWindowVector} timeSeriesBufferVector - The time series buffer vector type.
 * @property {module:qm~StreamAggregateRecordBuffer} recordBuffer - The record buffer type.
 * @property {module:qm~StreamAggregateSum} sum - The sum type.
 * @property {module:qm~StreamAggregateMin} min - The minimal type.
@@ -88,6 +89,7 @@
 * @property {module:qm~StreamAggregateHistogram} hist - The online histogram type.
 * @property {module:qm~StreamAggregateSlottedHistogram} slotted-hist - The online slotted-histogram type.
 * @property {module:qm~StreamAggregateVecDiff} vec-diff - The difference of two vectors (e.g. online histograms) type.
+* @property {module:qm~StreamAggregateSimpleLinearRegression} linReg - The linear regressor type.
 */
 /**
 * @typedef {module:qm.StreamAggr} StreamAggregateTimeSeriesWindow
@@ -110,23 +112,70 @@
 *    {
 *        name: "Heat",
 *        fields: [
-*            { name: "Celcius", type: "float" },
+*            { name: "Celsius", type: "float" },
 *            { name: "Time", type: "datetime" }
 *        ]
 *    }]
 * });
 *
-* // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celcius' field
+* // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celsius' field
 * // and the timestamp from the 'Time' field. The size of the window is 2 seconds (2000ms).
 * var aggr = {
 *    name: 'TimeSeriesAggr',
 *    type: 'timeSeriesWinBuf',
 *    store: 'Heat',
 *    timestamp: 'Time',
-*    value: 'Celcius',
+*    value: 'Celsius',
 *    winsize: 2000
 * };
 * base.store("Heat").addStreamAggr(aggr); 
+* base.close();
+*/
+/**
+* @typedef {module:qm.StreamAggr} StreamAggregateTimeSeriesWindowVector
+* This stream aggregator represents the values read from a time series window buffer.
+* It implements {@link module:qm.StreamAggr#getFloatVector}, {@link module:qm.StreamAggr#getFloatAt}, {@link module:qm.StreamAggr#getFloatLength}.
+* @property {string} StreamAggregateTimeSeriesWindowVector.name - The given name of the stream aggregator.
+* @property {string} StreamAggregateTimeSeriesWindowVector.type - The type of the stream aggregator. It must be equal to <b>'timeSeriesWinBuf'</b>.
+* @property {string} StreamAggregateTimeSeriesWindowVector.store - The name of the store from which to takes the data.
+* @property {string} StreamAggregateTimeSeriesWindowVector.inAggr - The name of the window buffer aggregate that represents the input
+* @example
+* // import the qm module
+* var qm = require('qminer');
+* // create a base with a simple store
+* var base = new qm.Base({
+*    mode: "createClean",
+*    schema: [{
+*        name: "Heat",
+*        fields: [
+*            { name: "Celsius", type: "float" },
+*            { name: "Time", type: "datetime" }
+*        ]
+*    }]
+* });
+* 
+* var store = base.store("Heat");
+* var winbuf = store.addStreamAggr({
+*     type: 'timeSeriesWinBuf',
+*     timestamp: 'Time',
+*     value: 'Celsius',
+*     winsize: 2000
+* });
+* 
+* var winbufvec = store.addStreamAggr({
+*     type: 'timeSeriesWinBufVector',
+*     inAggr: winbuf.name
+* });
+* 
+* store.push({ Time: '2015-06-10T14:13:32.0', Celsius: 1 });
+* winbuf.getFloatVector().print(); // prints 1
+* store.push({ Time: '2015-06-10T14:33:30.0', Celsius: 2 });
+* winbuf.getFloatVector().print(); // prints 2
+* store.push({ Time: '2015-06-10T14:33:31.0', Celsius: 3 });
+* winbuf.getFloatVector().print(); // prints 2,3
+* store.push({ Time: '2015-06-10T14:33:32.0', Celsius: 4 });
+* winbuf.getFloatVector().print(); // prints 2,3,4
+* 
 * base.close();
 */
 /**
@@ -146,7 +195,7 @@
 *    {
 *        name: "Heat",
 *        fields: [
-*            { name: "Celcius", type: "float" },
+*            { name: "Celsius", type: "float" },
 *            { name: "Time", type: "datetime" }
 *        ]
 *    }]
@@ -229,20 +278,20 @@
 *    {
 *        name: "Heat",
 *        fields: [
-*            { name: "Celcius", type: "float" },
+*            { name: "Celsius", type: "float" },
 *            { name: "Time", type: "datetime" }
 *        ]
 *    }]
 * });
 *
-* // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celcius' field
+* // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celsius' field
 * // and the timestamp from the 'Time' field. The size of the window is 1 day.
 * var timeser = {
 *    name: 'TimeSeriesAggr',
 *    type: 'timeSeriesWinBuf',
 *    store: 'Heat',
 *    timestamp: 'Time',
-*    value: 'Celcius',
+*    value: 'Celsius',
 *    winsize: 86400000 // 1 day in miliseconds
 * };
 * var timeSeries = base.store("Heat").addStreamAggr(timeser);
@@ -277,20 +326,20 @@
 *    {
 *        name: "Heat",
 *        fields: [
-*            { name: "Celcius", type: "float" },
+*            { name: "Celsius", type: "float" },
 *            { name: "Time", type: "datetime" }
 *        ]
 *    }]
 * });
 *
-* // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celcius' field
+* // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celsius' field
 * // and the timestamp from the 'Time' field. The size of the window is 1 day.
 * var timeser = {
 *    name: 'TimeSeriesAggr',
 *    type: 'timeSeriesWinBuf',
 *    store: 'Heat',
 *    timestamp: 'Time',
-*    value: 'Celcius',
+*    value: 'Celsius',
 *    winsize: 86400000 // one day in miliseconds
 * };
 * var timeSeries = base.store("Heat").addStreamAggr(timeser);
@@ -421,20 +470,20 @@
 *    {
 *        name: "Heat",
 *        fields: [
-*            { name: "Celcius", type: "float" },
+*            { name: "Celsius", type: "float" },
 *            { name: "Time", type: "datetime" }
 *        ]
 *    }]
 * });
 *
-* // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celcius' field
+* // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celsius' field
 * // and the timestamp from the 'Time' field. The size of the window should be 1 day.
 * var timeser = {
 *    name: 'TimeSeriesAggr',
 *    type: 'timeSeriesWinBuf',
 *    store: 'Heat',
 *    timestamp: 'Time',
-*    value: 'Celcius',
+*    value: 'Celsius',
 *    winsize: 86400000
 * };
 * var timeSeries = base.store("Heat").addStreamAggr(timeser);
@@ -476,20 +525,20 @@
 *    {
 *        name: "Heat",
 *        fields: [
-*            { name: "Celcius", type: "float" },
+*            { name: "Celsius", type: "float" },
 *            { name: "Time", type: "datetime" }
 *        ]
 *    }]
 * });
 *
-* // create a new time series tick stream aggregator for the 'Heat' store, that takes the values from the 'Celcius' field
+* // create a new time series tick stream aggregator for the 'Heat' store, that takes the values from the 'Celsius' field
 * // and the timestamp from the 'Time' field. The size of the window should be 1 hour.
 * var timeser = {
 *    name: 'TimeSeriesAggr',
 *    type: 'timeSeriesTick',
 *    store: 'Heat',
 *    timestamp: 'Time',
-*    value: 'Celcius'
+*    value: 'Celsius'
 * };
 * var timeSeries = base.store("Heat").addStreamAggr(timeser);
 *
@@ -530,20 +579,20 @@
 *    {
 *        name: "Heat",
 *        fields: [
-*            { name: "Celcius", type: "float" },
+*            { name: "Celsius", type: "float" },
 *            { name: "Time", type: "datetime" }
 *        ]
 *    }]
 * });
 *
-* // create a new time series tick stream aggregator for the 'Heat' store, that takes the values from the 'Celcius' field
+* // create a new time series tick stream aggregator for the 'Heat' store, that takes the values from the 'Celsius' field
 * // and the timestamp from the 'Time' field. The size of the window should be 1 hour.
 * var timeser = {
 *    name: 'TimeSeriesTickAggr',
 *	 type: 'timeSeriesTick',
 *    store: 'Heat',
 *    timestamp: 'Time',
-*    value: 'Celcius'
+*    value: 'Celsius'
 * };
 * var timeSeries = base.store("Heat").addStreamAggr(timeser);
 *
@@ -654,20 +703,20 @@
 *    {
 *        name: "Heat",
 *        fields: [
-*            { name: "Celcius", type: "float" },
+*            { name: "Celsius", type: "float" },
 *            { name: "Time", type: "datetime" }
 *        ]
 *    }]
 * });
 *
-* // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celcius' field
+* // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celsius' field
 * // and the timestamp from the 'Time' field. The size of the window is 1 day.
 * var timeser = {
 *    name: 'TimeSeriesAggr',
 *    type: 'timeSeriesWinBuf',
 *    store: 'Heat',
 *    timestamp: 'Time',
-*    value: 'Celcius',
+*    value: 'Celsius',
 *    winsize: 86400000
 * };
 * var timeSeries = base.store("Heat").addStreamAggr(timeser);
@@ -703,23 +752,23 @@
 *    {
 *        name: "Heat",
 *        fields: [
-*            { name: "Celcius", type: "float" },
+*            { name: "Celsius", type: "float" },
 *            { name: "WaterConsumption", type: "float" },
 *            { name: "Time", type: "datetime" }
 *        ]
 *    }]
 * });
 *
-* // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celcius' field
+* // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celsius' field
 * // and the timestamp from the 'Time' field. The size of the window is 1 day.
-* var celcius = {
-*    name: 'CelciusAggr',
+* var Celsius = {
+*    name: 'CelsiusAggr',
 *    type: 'timeSeriesWinBuf',
 *    store: 'Heat',
 *    timestamp: 'Time',
-*    value: 'Celcius',
+*    value: 'Celsius',
 *    winsize: 86400000
-* }; base.store("Heat").addStreamAggr(celcius);
+* }; base.store("Heat").addStreamAggr(Celsius);
 *
 * // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'WaterConsumption' field
 * // and the timestamp from the 'Time' field. The size of the window is 1 day.
@@ -732,12 +781,12 @@
 *    winsize: 86400000
 * }; base.store("Heat").addStreamAggr(water);
 *
-* // add a covariance aggregator, that is connected with the 'CelciusAggr' and 'WaterAggr' stream aggregators
+* // add a covariance aggregator, that is connected with the 'CelsiusAggr' and 'WaterAggr' stream aggregators
 * var covariance = {
 *    name: 'covAggr',
 *    type: 'covariance',
 *    store: 'Heat',
-*    inAggrX: 'CelciusAggr',
+*    inAggrX: 'CelsiusAggr',
 *    inAggrY: 'WaterAggr'
 * };
 * var covarianceAggr = base.store("Heat").addStreamAggr(covariance);
@@ -765,23 +814,23 @@
 *    {
 *        name: "Heat",
 *        fields: [
-*            { name: "Celcius", type: "float" },
+*            { name: "Celsius", type: "float" },
 *            { name: "WaterConsumption", type: "float" },
 *            { name: "Time", type: "datetime" }
 *        ]
 *    }]
 * });
 *
-* // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celcius' field
+* // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celsius' field
 * // and the timestamp from the 'Time' field. The size of the window is 1 day.
-* var celcius = {
-*    name: 'CelciusAggr',
+* var Celsius = {
+*    name: 'CelsiusAggr',
 *    type: 'timeSeriesWinBuf',
 *    store: 'Heat',
 *    timestamp: 'Time',
-*    value: 'Celcius',
+*    value: 'Celsius',
 *    winsize: 86400000
-* }; base.store("Heat").addStreamAggr(celcius);
+* }; base.store("Heat").addStreamAggr(Celsius);
 *
 * // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'WaterConsumption' field
 * // and the timestamp from the 'Time' field. The size of the window is 1 day.
@@ -794,21 +843,21 @@
 *    winsize: 86400000
 * }; base.store("Heat").addStreamAggr(water);
 *
-* // add a covariance aggregator, that is connected with the 'CelciusAggr' and 'WaterAggr' aggregators
+* // add a covariance aggregator, that is connected with the 'CelsiusAggr' and 'WaterAggr' aggregators
 * var covariance = {
 *    name: 'covarianceAggr',
 *    type: 'covariance',
 *    store: 'Heat',
-*    inAggrX: 'CelciusAggr',
+*    inAggrX: 'CelsiusAggr',
 *    inAggrY: 'WaterAggr'
 * }; base.store("Heat").addStreamAggr(covariance);
 *
-* // add the two variance aggregators, that take from the 'Celcius' and 'WaterConsumption' fields, respectively.
+* // add the two variance aggregators, that take from the 'Celsius' and 'WaterConsumption' fields, respectively.
 * var celVar = {
-*    name: 'celciusVarAggr',
+*    name: 'CelsiusVarAggr',
 *    type: 'variance',
 *    store: 'Heat',
-*    inAggr: 'CelciusAggr'
+*    inAggr: 'CelsiusAggr'
 * }; base.store("Heat").addStreamAggr(celVar);
 *
 * var waterVar = {
@@ -818,13 +867,13 @@
 *    inAggr: 'WaterAggr'
 * }; base.store("Heat").addStreamAggr(waterVar);
 *
-* // add a correlation aggregator, that is connected to 'CovarianceAggr', 'CelciusVarAggr' and 'WaterValAggr' aggregators
+* // add a correlation aggregator, that is connected to 'CovarianceAggr', 'CelsiusVarAggr' and 'WaterValAggr' aggregators
 * var corr = {
 *    name: 'corrAggr',
 *    type: 'correlation',
 *    store: 'Heat',
 *    inAggrCov: 'covarianceAggr',
-*    inAggrVarX: 'celciusVarAggr',
+*    inAggrVarX: 'CelsiusVarAggr',
 *    inAggrVarY: 'waterVarAggr'
 * };
 * var correlation = base.store("Heat").addStreamAggr(corr);
@@ -855,7 +904,7 @@
 *    {
 *        name: "Heat",
 *        fields: [
-*            { name: "Celcius", type: "float" },
+*            { name: "Celsius", type: "float" },
 *            { name: "Time", type: "datetime" }
 *        ]
 *    },
@@ -867,7 +916,7 @@
 *        ]
 *    }]
 * });
-* // create a new resampler stream aggregator for the 'Heat' store, that takes the values from the 'Celcius' field
+* // create a new resampler stream aggregator for the 'Heat' store, that takes the values from the 'Celsius' field
 * // and the timestamp from the 'Time' field. The interpolated values are stored in the 'interpolatedValues' store.
 * // The interpolation should be linear and the interval should be 2 seconds.
 * var res = {
@@ -877,7 +926,7 @@
 *    outStore: 'interpolatedValues',
 *    timestamp: 'Time',
 *    fields: [{
-*        name: 'Celcius',
+*        name: 'Celsius',
 *        interpolator: 'linear'
 *    }],
 *    createStore: false,
@@ -919,7 +968,7 @@
 *    {
 *        name: "Temperature",
 *        fields: [
-*            { name: "Celcius", type: "float" },
+*            { name: "Celsius", type: "float" },
 *            { name: "Time", type: "datetime" }
 *        ]
 *    },
@@ -927,7 +976,7 @@
 *        name: "Merged",
 *        fields: [
 *            { name: "NumberOfCars", type: "float" },
-*            { name: "Celcius", type: "float" },
+*            { name: "Celsius", type: "float" },
 *            { name: "Time", type: "datetime" }
 *        ]
 *    }]
@@ -942,7 +991,7 @@
 *    timestamp: 'Time',
 *    fields: [
 *        { source: 'Cars', inField: 'NumberOfCars', outField: 'NumberOfCars', interpolation: 'linear', timestamp: 'Time' },
-*        { source: 'Temperature', inField: 'Celcius', outField: 'Celcius', interpolation: 'linear', timestamp: 'Time' }
+*        { source: 'Temperature', inField: 'Celsius', outField: 'Celsius', interpolation: 'linear', timestamp: 'Time' }
 *    ]
 * };
 * var merger = new qm.StreamAggr(base, mer);
@@ -981,20 +1030,20 @@
 *    {
 *        name: "Heat",
 *        fields: [
-*            { name: "Celcius", type: "float" },
+*            { name: "Celsius", type: "float" },
 *            { name: "Time", type: "datetime" }
 *        ]
 *    }]
 * });
 *
-* // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celcius' field
+* // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celsius' field
 * // and the timestamp from the 'Time' field. The size of the window is 1 day.
 * var timeser = {
 *    name: 'TimeSeriesBuffer',
 *    type: 'timeSeriesWinBuf',
 *    store: 'Heat',
 *    timestamp: 'Time',
-*    value: 'Celcius',
+*    value: 'Celsius',
 *    winsize: 86400000 // one day in miliseconds
 * };
 * var timeSeries = base.store("Heat").addStreamAggr(timeser);
@@ -1046,20 +1095,20 @@
 *    {
 *        name: "Heat",
 *        fields: [
-*            { name: "Celcius", type: "float" },
+*            { name: "Celsius", type: "float" },
 *            { name: "Time", type: "datetime" }
 *        ]
 *    }]
 * });
 *
-* // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celcius' field
+* // create a new time series stream aggregator for the 'Heat' store, that takes the values from the 'Celsius' field
 * // and the timestamp from the 'Time' field. The size of the window is 4 weeks.
 * var timeser = {
 *    name: 'TimeSeriesBuffer',
 *    type: 'timeSeriesWinBuf',
 *    store: 'Heat',
 *    timestamp: 'Time',
-*    value: 'Celcius',
+*    value: 'Celsius',
 *    winsize: 2419200000 // 4 weeks
 * };
 * var timeSeries = base.store("Heat").addStreamAggr(timeser);
@@ -1175,6 +1224,91 @@
 * 	inAggrY: 'Histogram1'
 * }
 * var diff = store.addStreamAggr(aggrJson3);
+* base.close();
+*/
+/**
+* @typedef {Object} StreamAggregateSimpleLinearRegressionResult
+* Simple linear regression result JSON
+* @property {number} StreamAggregateSimpleLinearRegressionResult.intercept - Regressor intercept.
+* @property {number} StreamAggregateSimpleLinearRegressionResult.slope - Regressor slope.
+* @property {Array<number>} [StreamAggregateSimpleLinearRegressionResult.quantiles] - Quantiles for which bands will be computed.
+* @property {Array<number>} [StreamAggregateSimpleLinearRegressionResult.bands] - Computed band intercepts.
+*/
+/**
+* @typedef {module:qm.StreamAggr} StreamAggregateSimpleLinearRegression
+* This stream aggregator computes a simple linear regression given two stream aggregates 
+* that support the getFloatVector methods and represent variates (input) and covariates (output).
+* Optionally the aggregate computes quantile bands: for each quantile q a parallel line to the fitted
+* line is found, so that q fraction of (x,y) datapoints fall below the line. For example, under Gaussian noise,
+* if Y = a + k X + N(0,sig) then the 0.95 quantile band will equal a + 2 sig. This means that 95% of (x,y) pairs
+* lie below the line Y = a + 2 sig + k X.
+*
+* The results are returned as a JSON by calling saveJson and are of type {@link module:qm~StreamAggregateSimpleLinearRegressionResult}.
+* 
+*
+* @property {string} name - The given name of the stream aggregator.
+* @property {string} type - The type for the stream aggregator. It must be equal to <b>'onlineVecDiff'</b>.
+* @property {string} storeX - The name of the store from which it takes the data for the first vector.
+* @property {string} storeY - The name of the store from which it takes the data for the second vector.
+* @property {string} inAggrX - The name of the first stream aggregator to which it connects and gets data.
+* @property {string} inAggrY - The name of the second stream aggregator to which it connects and gets data.
+* @property {string} quantiles - An array of numbers between 0 and 1 for which the quantile bands will be computed.
+* @example
+* // import the qm module
+* var qm = require('qminer');
+* // create a base with X,Y measurements
+* var base = new qm.Base({
+*     mode: 'createClean',
+*     schema: [{
+*         name: 'Function',
+*         fields: [
+*             { name: 'Time', type: 'datetime' },
+*             { name: 'X', type: 'float' },
+*             { name: 'Y', type: 'float' }
+*         ]
+*     }]
+* });
+*
+* var store = base.store('Function');
+*
+* // 1 second buffer for X values
+* var winX = store.addStreamAggr({
+*     type: 'timeSeriesWinBuf',
+*     timestamp: 'Time',
+*     value: 'X',
+*     winsize: 1000
+* });
+* // 1 second buffer for Y values
+* var winY = store.addStreamAggr({
+*     type: 'timeSeriesWinBuf',
+*     timestamp: 'Time',
+*     value: 'Y',
+*     winsize: 1000
+* });
+*
+* // the will find regression line, as well as two parallel quartile lines
+* var linReg = store.addStreamAggr({
+*     type: 'simpleLinearRegression',
+*     inAggrX: winX.name,
+*     inAggrY: winY.name,
+*     storeX: "Function",
+*     storeY: "Function",
+*     quantiles: [0.25, 0.75]
+* });
+*
+* store.push({ Time: '2015-06-10T14:13:32.001', X: 0, Y: -2 });
+* store.push({ Time: '2015-06-10T14:13:32.002', X: 0, Y: -1 });
+* store.push({ Time: '2015-06-10T14:13:32.003', X: 0, Y: 1 });
+* store.push({ Time: '2015-06-10T14:13:32.004', X: 0, Y: 2 });
+* store.push({ Time: '2015-06-10T14:13:32.005', X: 1, Y: -1 });
+* store.push({ Time: '2015-06-10T14:13:32.006', X: 1, Y: -0 });
+* store.push({ Time: '2015-06-10T14:13:32.007', X: 1, Y: 2 });
+* store.push({ Time: '2015-06-10T14:13:32.008', X: 1, Y: 3 });
+*
+* var res = linReg.saveJson();
+* res.bands[0] // -1.5
+* res.bands[1] // 1.5
+*
 * base.close();
 */
 /**
