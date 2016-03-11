@@ -998,7 +998,7 @@ describe('Query Tests', function () {
 
 describe('Schema Time Window Test', function () {
 
-    describe('Testing window (size: 3)', function () { 
+    describe('Testing window (size: 3)', function () {
         // generate store with window 3
         base = new qm.Base({ mode: 'createClean' });
         base.createStore({
@@ -1037,7 +1037,7 @@ describe('Schema Time Window Test', function () {
         base.close();
     });
 
-    describe('Testing timeWindow (size: 2h)', function () { 
+    describe('Testing timeWindow (size: 2h)', function () {
                 // generate store with window 3
         base = new qm.Base({ mode: 'createClean' });
         base.createStore({
@@ -1078,6 +1078,145 @@ describe('Schema Time Window Test', function () {
         });
 
         base.close();
+    });
+
+    describe('Primary key test', function () {
+        var base;
+        beforeEach(function () {
+            base = new qm.Base({ mode: 'createClean' });
+        });
+        afterEach(function () {
+            base.close();
+        });
+
+        describe('String', function () {
+            it('should pass', function () {
+                base.createStore({
+                    "name": "People",
+                    "fields": [
+                        { "name": "Name", "type": "string", "primary": true },
+                        { "name": "Age", "type": "int" }
+                    ]
+                });
+                var store = base.store("People");
+
+                // Add recores and make sure name does not repeate
+                store.push({ Name: "John", Age: 12 });
+                assert.equal(store.length, 1);
+                store.push({ Name: "Mary", Age: 13 });
+                assert.equal(store.length, 2);
+                store.push({ Name: "John", Age: 14 });
+                assert.equal(store.length, 2);
+                store.push({ Name: "Steve", Age: 15 });
+                assert.equal(store.length, 3);
+                // check they have correct IDs
+                assert.equal(store.recordByName("John").$id, 0);
+                assert.equal(store.recordByName("Mary").$id, 1);
+                assert.equal(store.recordByName("Steve").$id, 2);
+                // if we rename the ID should still hold
+                store[2].Name = "Martin";
+                assert.equal(store.recordByName("Steve"), null);
+                assert.equal(store.recordByName("Martin").$id, 2);
+                // should work
+                store[1].Name = "Jane"
+                // should crash
+                assert.throws(function () { store[2].Name = "John"; })
+                // should work again
+                store[0] = "Johnny";
+                store[2] = "John";
+            })
+        });
+
+        describe('Int', function () {
+            it('should pass', function () {
+                base.createStore({
+                    "name": "People",
+                    "fields": [
+                        { "name": "Name", "type": "string" },
+                        { "name": "Age", "type": "int", "primary": true }
+                    ]
+                });
+                var store = base.store("People");
+
+                // Add recores and make sure name does not repeate
+                store.push({ Name: "John", Age: 12 });
+                assert.equal(store.length, 1);
+                store.push({ Name: "Mary", Age: 13 });
+                assert.equal(store.length, 2);
+                store.push({ Name: "Martin", Age: 12 });
+                assert.equal(store.length, 2);
+                store.push({ Name: "Steve", Age: 15 });
+                assert.equal(store.length, 3);
+                // should work
+                store[1] = 16;
+                // should crash
+                assert.throws(function () { store[2].Age = 12; })
+                // should work again
+                store[0] = 11;
+                store[2] = 12;
+            })
+        });
+
+        describe('Float', function () {
+            it('should pass', function () {
+                base.createStore({
+                    "name": "People",
+                    "fields": [
+                        { "name": "Name", "type": "string" },
+                        { "name": "Age", "type": "float", "primary": true }
+                    ]
+                });
+                var store = base.store("People");
+
+                // Add recores and make sure name does not repeate
+                store.push({ Name: "John", Age: 12.1 });
+                assert.equal(store.length, 1);
+                store.push({ Name: "Mary", Age: 13.1 });
+                assert.equal(store.length, 2);
+                store.push({ Name: "Martin", Age: 12.1 });
+                assert.equal(store.length, 2);
+                store.push({ Name: "Steve", Age: 15.1 });
+                assert.equal(store.length, 3);
+                // should work
+                store[1] = 16.1;
+                // should crash
+                assert.throws(function () { store[2].Age = 12.1; })
+                // should work again
+                store[0] = 11.1;
+                store[2] = 12.1;
+            })
+        });
+
+        describe('UInt64', function () {
+            it('should pass', function () {
+                base.createStore({
+                    "name": "People",
+                    "fields": [
+                        { "name": "Name", "type": "string" },
+                        { "name": "Age", "type": "uint64", "primary": true }
+                    ]
+                });
+                var store = base.store("People");
+
+                // Add recores and make sure name does not repeate
+                store.push({ Name: "John", Age: 12 });
+                assert.equal(store.length, 1);
+                store.push({ Name: "Mary", Age: 13 });
+                assert.equal(store.length, 2);
+                store.push({ Name: "Martin", Age: 12 });
+                assert.equal(store.length, 2);
+                store.push({ Name: "Steve", Age: 15 });
+                assert.equal(store.length, 3);
+                // should work
+                store[1] = 16;
+                // should crash
+                assert.throws(function () { store[2].Age = 12; })
+                // should work again
+                store[0] = 11;
+                store[2] = 12;
+            })
+        });
+
     });
 
 })
