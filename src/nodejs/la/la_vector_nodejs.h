@@ -168,6 +168,7 @@ public: // So we can register the class
 	static v8::Local<v8::Object> New(const TIntV& IntV);
 	static v8::Local<v8::Object> New(const TStrV& StrV);
 	static v8::Local<v8::Object> New(const TBoolV& BoolV);
+
 	//static v8::Local<v8::Object> New(v8::Local<v8::Array> Arr);
 public:
 	TNodeJsVec() : Vec() { }

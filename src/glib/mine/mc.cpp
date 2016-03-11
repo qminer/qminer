@@ -47,17 +47,20 @@ void THistogram::Save(TSOut& SOut) const {
 
 void THistogram::Update(const double& FtrVal) {
 	const double HalfBinSize = GetBinSize()/2;
-	const double Eps = 1e-14;
+	const double Eps = 1e-12;
 
-	if (FtrVal < BinValV[0] + HalfBinSize) {
+	const double FirstBinEdge = BinValV[0] + HalfBinSize;
+	const double LastBinEdge = BinValV.Last() - HalfBinSize - Eps;
+
+	if (FtrVal < FirstBinEdge) {
 		CountV[0]++;
-	} else if (FtrVal >= BinValV.Last() - HalfBinSize) {
+	} else if (LastBinEdge <= FtrVal) {
 		CountV.Last()++;
 	} else {
 		bool Updated = false;
 		for (int BinN = 1; BinN < Bins-1; BinN++) {
 			const double LowerEdge = BinValV[BinN] - HalfBinSize - Eps;
-			const double UpperEdge = BinValV[BinN] + HalfBinSize + Eps;
+			const double UpperEdge = BinValV[BinN] + HalfBinSize;
 			if (LowerEdge <= FtrVal && FtrVal < UpperEdge) {
 				Updated = true;
 				CountV[BinN]++;
@@ -172,7 +175,7 @@ void TStateIdentifier::Init(const TUInt64V& TmV, TFltVV& ObsFtrVV, const TFltVV&
 	TIntV AssignV;	Assign(ObsFtrVV, AssignV);
 	InitCentroidVV(AssignV, ControlFtrVV, ControlCentroidVV);
 	InitCentroidVV(AssignV, IgnoredFtrVV, IgnoredCentroidVV);
-	InitHistograms(ObsFtrVV, ControlFtrVV, IgnoredFtrVV);
+	InitHistograms(ObsFtrVV, ControlFtrVV, IgnoredFtrVV, AssignV);
 	InitTimeHistogramV(TmV, AssignV, TIME_HIST_BINS);
 	ClearControlFtrVV(ControlFtrVV.GetRows());
 
@@ -187,12 +190,10 @@ void TStateIdentifier::Init(const TUInt64V& TmV, TFltVV& ObsFtrVV, const TFltVV&
 }
 
 void TStateIdentifier::InitHistograms(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV,
-		const TFltVV& IgnoredFtrVV) {
+		const TFltVV& IgnoredFtrVV, const TIntV& AssignV) {
 	Notify->OnNotify(TNotifyType::ntInfo, "Computing histograms ...");
 
 	const int NClusts = GetStates();
-
-	TIntV AssignV;	Assign(ObsFtrVV, AssignV);
 
 	InitHists(ObsFtrVV, ContrFtrVV, IgnoredFtrVV);
 
@@ -2241,7 +2242,7 @@ void TCtmcModeller::GetNextStateProbV(const TFltVV& QMat, const TStateIdV& State
 
 	const int Dim = QMat.GetRows();
 
-	const int NFStates = TMath::Mn(NFutStates, Dim-1);
+	const int NFStates = NFutStates == -1 ? Dim-1 : TMath::Mn(NFutStates, Dim-1);
 	const int StateIdx = StateIdV.SearchForw(StateId);
 
 	EAssertR(StateIdx >= 0, "TCtMChain::GetNextStateProbV: Could not find target state!");
@@ -2944,7 +2945,6 @@ void THierarch::InitAutoNmV(const TStateIdentifier& StateIdentifier) {
 
 			for (int FtrN = 0; FtrN < AllDim; FtrN++) {
 				const TFltV& AllPValV = FtrPValVV[FtrN];
-//				const TFltV& AllBinV = FtrAllBinV[FtrN];
 
 				StateIdentifier.GetHistogram(FtrN, AggState, BinValV, StateBinCountV, false);
 
@@ -4095,7 +4095,8 @@ void TStreamStory::InitHierarch() {
 void TStreamStory::InitHistograms(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV,
 		const TFltVV& IgnoredFtrVV, const TUInt64V& RecTmV, const TBoolV& BatchEndV) {
 	TFltVV FtrVV;	CreateFtrVV(ObsFtrVV, ContrFtrVV, RecTmV, BatchEndV, FtrVV);
-	StateIdentifier->InitHistograms(ObsFtrVV, FtrVV, IgnoredFtrVV);
+	TIntV AssignV;	StateIdentifier->Assign(ObsFtrVV, AssignV);
+	StateIdentifier->InitHistograms(ObsFtrVV, FtrVV, IgnoredFtrVV, AssignV);
 }
 
 void TStreamStory::InitStateAssist(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV,
@@ -4630,8 +4631,6 @@ void TStreamStory::GetStateFtrVV(TStateFtrVV& StateFtrVV, const bool& UseFtrVP) 
 	StateIdentifier->GetControlCentroidVV(StateFtrVV);
 
 	if (UseFtrVP && LastStateId != -1) {
-		Notify->OnNotify(TNotifyType::ntInfo, "Constructing state feature vectors based on current control ftrs ...");
-
 		TFltV& LastStateFtrV = StateFtrVV[LastStateId];
 		for (int FtrN = 0; FtrN < LastContrFtrV.Len(); FtrN++) {
 			LastStateFtrV[FtrN] = LastContrFtrV[FtrN];

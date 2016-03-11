@@ -1778,9 +1778,22 @@ void TNodeJsStreamStory::predictNextState(const v8::FunctionCallbackInfo<v8::Val
 	const bool UserFtrP = ParamVal->GetObjBool("useFtrV");
 	const int NFutStates = ParamVal->GetObjInt("futureStateN");
 
-	TVec<TPair<TFlt, TIntFltPrV>> HeightStateIdProbPrVPrV;
-	JsStreamStory->StreamStory->PredictNextState(UserFtrP, NFutStates, HeightStateIdProbPrVPrV);
 	const uint64 LastRecTm = JsStreamStory->StreamStory->GetLastRecTm();
+	TVec<TPair<TFlt, TIntFltPrV>> HeightStateIdProbPrVPrV;
+	TIntFltPrV CurrStateIdHeightPrV;
+	JsStreamStory->StreamStory->GetCurrStateAncestry(CurrStateIdHeightPrV);
+	JsStreamStory->StreamStory->PredictNextState(UserFtrP, NFutStates, HeightStateIdProbPrVPrV);
+
+	PJsonVal CurrStatesJsonV = TJsonVal::NewArr();
+	for (int HeightN = 0; HeightN < CurrStateIdHeightPrV.Len(); HeightN++) {
+		const TIntFltPr& StateIdHeightPr = CurrStateIdHeightPrV[HeightN];
+
+		PJsonVal StateJson = TJsonVal::NewObj();
+		StateJson->AddToObj("id", StateIdHeightPr.Val1);
+		StateJson->AddToObj("height", StateIdHeightPr.Val2);
+
+		CurrStatesJsonV->AddToArr(StateJson);
+	}
 
 	PJsonVal StatesJsonV = TJsonVal::NewArr();
 	for (int HeightN = 0; HeightN < HeightStateIdProbPrVPrV.Len(); HeightN++) {
@@ -1807,8 +1820,9 @@ void TNodeJsStreamStory::predictNextState(const v8::FunctionCallbackInfo<v8::Val
 	}
 
 	PJsonVal ResJson = TJsonVal::NewObj();
-	ResJson->AddToObj("timestamp", LastRecTm);
-	ResJson->AddToObj("states", StatesJsonV);
+	ResJson->AddToObj("timestamp", TUInt64(TNodeJsUtil::GetJsTimestamp(LastRecTm)));
+	ResJson->AddToObj("current", CurrStatesJsonV);
+	ResJson->AddToObj("prediction", StatesJsonV);
 
 	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, ResJson));
 }

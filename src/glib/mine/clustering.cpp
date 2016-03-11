@@ -146,7 +146,7 @@ void TAbsKMeans::UpdateCentroids(const TFltVV& FtrVV, const int& NInst, TIntV& A
 		// II. compute the number of points that belong to each centroid, invert
 		AssignMat.MultiplyT(OnesN, TempK);
 
-		// invert
+		// check if all the clusters are full and invert
 		for (int ClustN = 0; ClustN < K; ClustN++) {
 			if (TempK[ClustN] == 0.0) {	// don't allow empty clusters
 				// select a random point and create a new centroid from it

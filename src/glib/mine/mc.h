@@ -128,7 +128,8 @@ public:
 	// performs the clustering
 	void Init(const TUInt64V& TmV, TFltVV& ObsFtrVV, const TFltVV& ControlFtrVV, const TFltVV& IgnoredFtrVV);
 	// initializes histograms for every feature
-	void InitHistograms(const TFltVV& ObsMat, const TFltVV& ControlFtrVV, const TFltVV& IgnoredFtrVV);
+	void InitHistograms(const TFltVV& ObsMat, const TFltVV& ControlFtrVV,
+			const TFltVV& IgnoredFtrVV, const TIntV& AssignV);
 	void InitTimeHistogramV(const TUInt64V& TmV, const TIntV& AssignV, const int& Bins);
 
 	// assign methods
