@@ -373,6 +373,7 @@ public:
 public:
   TKeyDat(): Key(), Dat(){}
   TKeyDat(const TKeyDat& KeyDat): Key(KeyDat.Key), Dat(KeyDat.Dat){}
+  TKeyDat(TKeyDat&& KeyDat): Key(std::move(KeyDat.Key)), Dat(std::move(KeyDat.Dat)){}
   explicit TKeyDat(const TKey& _Key): Key(_Key), Dat(){}
   TKeyDat(const TKey& _Key, const TDat& _Dat): Key(_Key), Dat(_Dat){}
   explicit TKeyDat(TSIn& SIn): Key(SIn), Dat(SIn){}
@@ -381,7 +382,9 @@ public:
   void SaveXml(TSOut& SOut, const TStr& Nm) const;
 
   TKeyDat& operator=(const TKeyDat& KeyDat){
-  if (this!=&KeyDat){Key=KeyDat.Key; Dat=KeyDat.Dat;} return *this;}
+    if (this!=&KeyDat){Key=KeyDat.Key; Dat=KeyDat.Dat;} return *this;}
+  TKeyDat& operator=(TKeyDat&& KeyDat){
+    if (this!=&KeyDat){Key=std::move(KeyDat.Key); Dat=std::move(KeyDat.Dat);} return *this;}
   bool operator==(const TKeyDat& KeyDat) const {return Key==KeyDat.Key;}
   bool operator<(const TKeyDat& KeyDat) const {return Key<KeyDat.Key;}
 
@@ -959,7 +962,6 @@ TVec<TVal, TSizeTy>::TVec(TVec<TVal, TSizeTy>&& Vec) : MxVals(0), Vals(0), ValT(
 	//TSizeTy MxVals; //!< Vector capacity. Capacity is the size of allocated storage. If <tt>MxVals==-1</tt>, then \c ValT is not owned by the vector, and it won't free it at destruction.
 	//TSizeTy Vals;   //!< Vector length. Length is the number of elements stored in the vector.
     //TVal* ValT;     //!< Pointer to the memory where the elements of the vector are stored.
-	delete[] ValT;
 	MxVals = std::move(Vec.MxVals);
 	Vals = std::move(Vec.Vals);
 	ValT = Vec.ValT;
@@ -1007,7 +1009,7 @@ TVec<TVal, TSizeTy>& TVec<TVal, TSizeTy>::operator=(const TVec<TVal, TSizeTy>& V
 template <class TVal, class TSizeTy>
 TVec<TVal, TSizeTy>& TVec<TVal, TSizeTy>::operator=(TVec<TVal, TSizeTy>&& Vec) {
 	if (this != &Vec) {
-		delete[] ValT;
+		if(MxVals != -1) delete[] ValT;
 		MxVals = std::move(Vec.MxVals);
 		Vals = std::move(Vec.Vals);		
 		ValT = Vec.ValT;

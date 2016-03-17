@@ -80,7 +80,7 @@ void THistogram::Update(const double& FtrVal) {
 const int TStateIdentifier::MX_ITER = 10000;
 const int TStateIdentifier::TIME_HIST_BINS = 10000;
 
-TStateIdentifier::TStateIdentifier(TAbsKMeans* _KMeans, const int _NHistBins,
+TStateIdentifier::TStateIdentifier(const PDenseKMeans& _KMeans, const int _NHistBins,
 			const double& _Sample, const TRnd& _Rnd, const bool& _Verbose):
 		Rnd(_Rnd),
 		KMeans(_KMeans),
@@ -100,7 +100,7 @@ TStateIdentifier::TStateIdentifier(TAbsKMeans* _KMeans, const int _NHistBins,
 
 TStateIdentifier::TStateIdentifier(TSIn& SIn):
 	Rnd(SIn),
-	KMeans(TAbsKMeans::Load(SIn)),
+	KMeans(TAbsKMeans<TFltVV>::Load(SIn)),
 	ControlCentroidVV(SIn),
 	IgnoredCentroidVV(SIn),
 	CentroidDistStatV(SIn),
@@ -120,9 +120,7 @@ TStateIdentifier::TStateIdentifier(TSIn& SIn):
 	Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
 }
 
-TStateIdentifier::~TStateIdentifier() {
-	delete KMeans;
-}
+TStateIdentifier::~TStateIdentifier() {}
 
 void TStateIdentifier::Save(TSOut& SOut) const {
 	Rnd.Save(SOut);

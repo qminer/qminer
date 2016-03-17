@@ -2715,7 +2715,7 @@ void TNodeJsStreamStory::OnPrediction(const uint64& RecTm, const int& CurrStateI
 		const int ArgC = 6;
 
 		v8::Handle<v8::Value> ArgV[ArgC] = {
-			v8::Date::New(Isolate, TNodeJsUtil::GetJsTimestamp(RecTm)),
+			v8::Date::New(Isolate, (double) TNodeJsUtil::GetJsTimestamp(RecTm)),
 			v8::Integer::New(Isolate, CurrStateId),
 			v8::Integer::New(Isolate, TargetStateId),
 			v8::Number::New(Isolate, Prob),
@@ -2735,8 +2735,8 @@ void TNodeJsStreamStory::OnActivityDetected(const uint64& StartTm, const uint64&
 
 		const int ArgC = 3;
 		v8::Handle<v8::Value> ArgV[ArgC] = {
-			v8::Date::New(Isolate, TNodeJsUtil::GetJsTimestamp(StartTm)),
-			v8::Date::New(Isolate, TNodeJsUtil::GetJsTimestamp(EndTm)),
+			v8::Date::New(Isolate, (double) TNodeJsUtil::GetJsTimestamp(StartTm)),
+			v8::Date::New(Isolate, (double) TNodeJsUtil::GetJsTimestamp(EndTm)),
 			v8::String::NewFromUtf8(Isolate, ActNm.CStr())
 		};
 
@@ -2822,7 +2822,7 @@ uint64 TNodeJsStreamStory::GetTmUnit(const TStr& TimeUnitStr) {
 	}
 }
 
-TClustering::TAbsKMeans* TNodeJsStreamStory::GetClust(const PJsonVal& ParamJson,
+TClustering::TAbsKMeans<TFltVV>* TNodeJsStreamStory::GetClust(const PJsonVal& ParamJson,
 		const TRnd& Rnd) {
 	const TStr& ClustAlg = ParamJson->GetObjStr("type");
 	if (ClustAlg == "dpmeans") {
@@ -2830,10 +2830,10 @@ TClustering::TAbsKMeans* TNodeJsStreamStory::GetClust(const PJsonVal& ParamJson,
 		const int MinClusts = ParamJson->IsObjKey("minClusts") ? ParamJson->GetObjInt("minClusts") : 1;
 		const int MxClusts = ParamJson->IsObjKey("maxClusts") ? ParamJson->GetObjInt("maxClusts") : TInt::Mx;
 
-		return new TClustering::TDpMeans(Lambda, MinClusts, MxClusts, Rnd);
+		return new TClustering::TDpMeans<TFltVV>(Lambda, MinClusts, MxClusts, Rnd);
 	} else if (ClustAlg == "kmeans") {
 		const int K = ParamJson->GetObjInt("k");
-		return new TClustering::TDnsKMeans(K, Rnd);
+		return new TClustering::TDnsKMeans<TFltVV>(K, Rnd);
 	} else {
 		throw TExcept::New("Invalivalid clustering type: " + ClustAlg, "TJsHierCtmc::TJsHierCtmc");
 	}
@@ -3228,7 +3228,7 @@ PJsonVal TNodeJsMDS::GetParams() const {
 	case vdtSqrtCos:
 		ParamVal->AddToObj("distType", "SqrtCos"); break;
 	default:
-		throw TExcept::New("MDS.GetParams: unsupported distance type " + (int)DistType);
+		throw TExcept::New("MDS.GetParams: unsupported distance type " + TInt::GetStr((int)DistType));
 	}
 	return ParamVal;
 }
@@ -3333,7 +3333,7 @@ void TNodeJsMDS::TFitTransformTask::Run() {
 			TrainSet = TRefSparseTrainSet::New(Mat, DummyClsV);
 			TVizMapFactory::MakeFlat(TrainSet, DistType, Temp, MxStep, MxSecs, MnDiff, RndStartPos, Noty);
 		} else {
-			SetExcept(TExcept::New("Input not set!"));
+			throw TExcept::New("MDS.fitTransform: expects dense or sparse matrix!");
 		}
 
 		TFltVV& Result = JsResult->Mat;

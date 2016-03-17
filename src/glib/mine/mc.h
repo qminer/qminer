@@ -9,7 +9,6 @@
 namespace TMc {
 
 using namespace TClassification;
-using namespace TDistance;
 using namespace TClustering;
 
 namespace {
@@ -81,7 +80,7 @@ private:
   	TRnd Rnd;
 
   	// clustering
-  	TAbsKMeans* KMeans;
+  	PDenseKMeans KMeans;
   	// holds centroids as column vectors
   	TFltVV ControlCentroidVV;
   	TFltVV IgnoredCentroidVV;
@@ -117,7 +116,7 @@ public:
 		thtDay
   	};
 
-  	TStateIdentifier(TAbsKMeans* KMeans, const int NHistBins, const double& Sample,
+  	TStateIdentifier(const PDenseKMeans& KMeans, const int NHistBins, const double& Sample,
 			const TRnd& Rnd=TRnd(0), const bool& Verbose=false);
 	TStateIdentifier(TSIn& SIn);
 

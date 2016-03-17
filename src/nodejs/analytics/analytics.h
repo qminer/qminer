@@ -1936,7 +1936,7 @@ private:
 	static v8::Local<v8::Object> WrapHistogram(const TFltV& BinValV,
 			const TFltV& SourceProbV, const TFltV& TargetProbV, const TFltV& AllProbV);
 	static uint64 GetTmUnit(const TStr& TmUnitStr);
-	static TClustering::TAbsKMeans* GetClust(const PJsonVal& ParamJson, const TRnd& Rnd);
+	static TClustering::TAbsKMeans<TFltVV>* GetClust(const PJsonVal& ParamJson, const TRnd& Rnd);
 };
 
 ///////////////////////////////
@@ -2182,6 +2182,9 @@ public:
 	
 };
 
+/////////////////////////////////////////////
+// QMiner-JavaScript-Multidimensional Scaling
+
 /**
 * @typedef {Object} MDSParam
 * @property {number} [maxSecs=500] - The maximum time period to compute MDS of a matrix.
@@ -2266,12 +2269,25 @@ public:
 	/**
 	* Get the MDS of the given matrix.
 	* @param {(module:la.Matrix | module:la.SparseMatrix)} mat - The multidimensional matrix.
+	* @param {function} [callback] - The callback function receiving the error parameter (err) and the result parameter (result).
+	* <i>Only for the asynchronous function.</i>
 	* @returns {module:la.Matrix} The matrix of dimensions mat.cols x 2, where the i-th row of the matrix is the 2d representation 
 	* of the i-th column of mat.
-	*
-	* TODO: Erik izpolni - Async version exists
-	*
-	* @example
+	* @example <caption> Asynchronous function </caption>
+	* // import the modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // create a MDS instance
+	* var mds = new analytics.MDS();
+	* // create the multidimensional matrix
+	* var mat = new la.Matrix({ rows: 50, cols: 10, random: true });
+	* // get the 2d representation of mat 
+	* mds.fitTransformAsync(mat, function (err, res) {
+	*    if (err) { console.log(err); }
+	*    // successful calculation
+	*    var mat2d = result;
+	* }); 
+	* @example <caption> Synchronous function </caption>
 	* // import the modules
 	* var analytics = require('qminer').analytics;
 	* var la = require('qminer').la;
@@ -2311,6 +2327,20 @@ private:
 	void UpdateParams(const PJsonVal& ParamVal);
 	PJsonVal GetParams() const;
 	void Save(TSOut& SOut) const;
+};
+
+
+/////////////////////////////////////////////
+// QMiner-JavaScript-KMeans
+
+class TNodeJsKMeans : public node::ObjectWrap {
+    friend class TNodeJsUtil;
+public:
+    static void Init(v8::Handle<v8::Object> exports);
+    static const TStr GetClassId() { return "MDS"; }
+
+private:
+
 };
 
 
