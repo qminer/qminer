@@ -658,6 +658,10 @@ private:
 	void RefineStateCoordV(const TStateIdentifier& StateIdentifier,
 			const THierarch& Hierarch, const TCtmcModeller& MChain);
 
+	void InitStateExplain(const TStateIdentifier& StateIdentifier, const THierarch& Hierarch);
+	bool HasMxPeaks(const int& MxPeakCount, const double& PeakMassThreshold, const TFltV& PdfHist,
+			 TIntPrV& PeakBorderV, double& PeakMass, int& PeakBinCount) const;
+
 	static double GetStateRaduis(const double& Prob);
 	static bool NodesOverlap(const int& StartId, const int& EndId, const TFltPrV& CoordV,
 			const TFltV& RaduisV);

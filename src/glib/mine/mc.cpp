@@ -3148,7 +3148,7 @@ void TUiHelper::Init(const TStateIdentifier& StateIdentifier, const THierarch& H
 	Notify->OnNotify(TNotifyType::ntInfo, "Initializing UI helper ...");
 	InitStateCoordV(StateIdentifier, Hierarch);
 	RefineStateCoordV(StateIdentifier, Hierarch, MChain);
-//	TransformToUnit();
+	InitStateExplain(StateIdentifier, Hierarch);
 }
 
 const TFltPr& TUiHelper::GetStateCoords(const int& StateId) const {
@@ -3305,6 +3305,107 @@ void TUiHelper::RefineStateCoordV(const TStateIdentifier& StateIdentifier,
 	} while (Change);
 
 	Notify->OnNotify(TNotifyType::ntInfo, "Done!");
+}
+
+void TUiHelper::InitStateExplain(const TStateIdentifier& StateIdentifier, const THierarch& Hierarch) {
+	const TIntV& StateIdV = Hierarch.GetHierarchV();
+
+	const int MxPeaks = 1;
+	const double MnSupport = .7;
+
+	TIntPrV PeakStartEndV;
+	double PeakMass;
+	int PeakBinCount;
+
+	for (int StateN = 0; StateN < StateIdV.Len() - 1; StateN++) {
+		const int& StateId = StateIdV[StateN];
+
+		TIntV LeafV;	Hierarch.GetLeafDescendantV(StateId, LeafV);
+
+		TIntV YearBinValV;
+		TIntV MonthBinValV;
+		TIntV WeekBinValV;
+		TIntV DayBinValV;
+
+		TFltV YearBinV;
+		TFltV MonthBinV;
+		TFltV WeekBinV;
+		TFltV DayBinV;
+
+		StateIdentifier.GetTimeHistogram(LeafV, TStateIdentifier::TTmHistType::thtYear, YearBinValV, YearBinV);
+		StateIdentifier.GetTimeHistogram(LeafV, TStateIdentifier::TTmHistType::thtMonth, MonthBinValV, MonthBinV);
+		StateIdentifier.GetTimeHistogram(LeafV, TStateIdentifier::TTmHistType::thtWeek, WeekBinValV, WeekBinV);
+		StateIdentifier.GetTimeHistogram(LeafV, TStateIdentifier::TTmHistType::thtDay, DayBinValV, DayBinV);
+
+		if (HasMxPeaks(MxPeaks, MnSupport, YearBinV, PeakStartEndV, PeakMass, PeakBinCount)) {
+			Notify->OnNotifyFmt(TNotifyType::ntInfo, "State %d has yearly peaks!", StateId);
+			Notify->OnNotifyFmt(TNotifyType::ntInfo, TStrUtil::GetStr(YearBinV, ", ", "%.5f").CStr());
+			// TODO
+		}
+		if (HasMxPeaks(MxPeaks, MnSupport, MonthBinV, PeakStartEndV, PeakMass, PeakBinCount)) {
+			Notify->OnNotifyFmt(TNotifyType::ntInfo, "State %d has monthly peaks!", StateId);
+			Notify->OnNotifyFmt(TNotifyType::ntInfo, TStrUtil::GetStr(MonthBinV, ", ", "%.5f").CStr());
+			// TODO
+		}
+		if (HasMxPeaks(MxPeaks, MnSupport, WeekBinV, PeakStartEndV, PeakMass, PeakBinCount)) {
+			Notify->OnNotifyFmt(TNotifyType::ntInfo, "State %d has weekly peaks!", StateId);
+			Notify->OnNotifyFmt(TNotifyType::ntInfo, TStrUtil::GetStr(WeekBinV, ", ", "%.5f").CStr());
+			// TODO
+		}
+		if (HasMxPeaks(MxPeaks, MnSupport, DayBinV, PeakStartEndV, PeakMass, PeakBinCount)) {
+			Notify->OnNotifyFmt(TNotifyType::ntInfo, "State %d has daily peaks!", StateId);
+			Notify->OnNotifyFmt(TNotifyType::ntInfo, TStrUtil::GetStr(DayBinV, ", ", "%.5f").CStr());
+			// TODO
+		}
+	}
+}
+
+bool TUiHelper::HasMxPeaks(const int& MxPeakCount, const double& PeakMassThreshold,
+		const TFltV& PdfHist, TIntPrV& PeakBorderV, double& PeakMass, int& PeakBinCount) const {
+	const int NBins = PdfHist.Len();
+	const double TotalMass = TLinAlg::SumVec(PdfHist);
+	const double MeanBinMass = TotalMass / NBins;
+
+	EAssert(NBins > 0);
+	PeakBorderV.Clr();
+
+	PeakMass = 0;
+	PeakBinCount = 0;
+
+	int PeakCount = 0;
+	bool IsInPeak = false;
+	for (int BinN = 0; BinN < NBins; BinN++) {
+		const double& BinVal = PdfHist[BinN];
+
+		const bool BinInPeak = BinVal > MeanBinMass;
+
+		if (BinInPeak != IsInPeak) {
+			if (IsInPeak) {
+				IsInPeak = false;
+				PeakCount++;
+				EAssertR(!PeakBorderV.Empty(), "Tried to end a peak, but no peak started!");
+				PeakBorderV.Last().Val2 = BinN;
+			} else {
+				IsInPeak = true;
+				PeakBorderV.Add(TIntPr(BinN, -1));
+			}
+		}
+
+		if (IsInPeak) {
+			PeakMass += BinVal;
+			PeakBinCount++;
+		}
+	}
+
+	// check if the peak is circular
+	if (IsInPeak && PdfHist[0] > MeanBinMass) {
+		PeakCount--;
+		EAssertR(PeakBorderV.Len() >= 2, "Not enough peaks in distribution when joining circularly!");
+		PeakBorderV[0].Val1 = PeakBorderV.Last().Val1;
+		PeakBorderV.DelLast();
+	}
+
+	return PeakCount <= MxPeakCount && PeakMass / TotalMass >= PeakMassThreshold;
 }
 
 double TUiHelper::GetStateRaduis(const double& Prob) {
