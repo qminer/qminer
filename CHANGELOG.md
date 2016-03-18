@@ -1,6 +1,15 @@
 # QMiner Change Log
 
-### 9 Mar 2016
+### 18 Mar 2016
+
+**New vesion 4.9.1**
+
+**Non-breaking with a big fix**
+
+Bug fix:
+- Primary keys could be set to existing values belonging to other records. Now we throw exception in such cases. Added corresponding tests.
+
+### 11 Mar 2016
 
 **New version: 4.9.0**
 
