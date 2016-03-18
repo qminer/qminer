@@ -3547,16 +3547,22 @@ void TStoreImpl::SetFieldNull(const uint64& RecId, const int& FieldId) {
 void TStoreImpl::SetFieldByte(const uint64& RecId, const int& FieldId, const uchar& Byte) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
 	TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
- //   if (FieldId == PrimaryFieldId) {
-	//	DelPrimaryFieldInt(RecId, FieldSerializator->GetFieldInt(InRecMem, FieldId));
-	//}
-	TMem OutRecMem; 
+	TMem OutRecMem;
 	FieldSerializator->SetFieldByte(InRecMem, OutRecMem, FieldId, Byte);
 	RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, *FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
-    //if (FieldId == PrimaryFieldId) { SetPrimaryFieldInt(RecId, Int); }
 }
+
 void TStoreImpl::SetFieldInt(const uint64& RecId, const int& FieldId, const int& Int) {
+    // special case if field is primary field
+    if (FieldId == PrimaryFieldId) {
+        // it is, make sure new value does not exist yet
+        if (PrimaryIntIdH.IsKey(Int) && PrimaryIntIdH.GetDat(Int) != RecId) {
+            throw TQmExcept::New("[TStoreImpl::SetFieldInt] Primary key '" + TInt::GetStr(Int) +
+                "' being set to field '" + GetFieldNm(FieldId) + "' already taken.");
+        }
+    }
+    // replace the field value
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
 	TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
 	if (FieldId == PrimaryFieldId) {
@@ -3568,29 +3574,23 @@ void TStoreImpl::SetFieldInt(const uint64& RecId, const int& FieldId, const int&
 	PutRecMem(RecId, FieldId, OutRecMem);
 	if (FieldId == PrimaryFieldId) { SetPrimaryFieldInt(RecId, Int); }
 }
+
 void TStoreImpl::SetFieldInt16(const uint64& RecId, const int& FieldId, const int16& Int16) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
 	TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
-	//if (FieldId == PrimaryFieldId) {
-	//	DelPrimaryFieldInt(RecId, FieldSerializator->GetFieldInt(InRecMem, FieldId));
-	//}
 	TMem OutRecMem;
 	FieldSerializator->SetFieldInt16(InRecMem, OutRecMem, FieldId, Int16);
 	RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, *FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
-	//if (FieldId == PrimaryFieldId) { SetPrimaryFieldInt(RecId, Int); }
 }
+
 void TStoreImpl::SetFieldInt64(const uint64& RecId, const int& FieldId, const int64& Int64) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
 	TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
-	//if (FieldId == PrimaryFieldId) {
-	//	DelPrimaryFieldInt(RecId, FieldSerializator->GetFieldInt(InRecMem, FieldId));
-	//}
 	TMem OutRecMem;
 	FieldSerializator->SetFieldInt64(InRecMem, OutRecMem, FieldId, Int64);
 	RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, *FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
-	//if (FieldId == PrimaryFieldId) { SetPrimaryFieldInt(RecId, Int); }
 }
 
 void TStoreImpl::SetFieldIntV(const uint64& RecId, const int& FieldId, const TIntV& IntV) {
@@ -3605,28 +3605,31 @@ void TStoreImpl::SetFieldIntV(const uint64& RecId, const int& FieldId, const TIn
 void TStoreImpl::SetFieldUInt(const uint64& RecId, const int& FieldId, const uint& UInt) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
 	TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
- //   if (FieldId == PrimaryFieldId) {
-	//	DelPrimaryFieldUInt64(RecId, FieldSerializator->GetFieldUInt64(InRecMem, FieldId));
-	//}
 	TMem OutRecMem;
 	FieldSerializator->SetFieldUInt(InRecMem, OutRecMem, FieldId, UInt);
 	RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, *FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
-    //if (FieldId == PrimaryFieldId) { SetPrimaryFieldUInt64(RecId, UInt64); }
 }
+
 void TStoreImpl::SetFieldUInt16(const uint64& RecId, const int& FieldId, const uint16& UInt16) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
 	TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
-	//if (FieldId == PrimaryFieldId) {
-	//	DelPrimaryFieldUInt64(RecId, FieldSerializator->GetFieldUInt64(InRecMem, FieldId));
-	//}
 	TMem OutRecMem;
 	FieldSerializator->SetFieldUInt16(InRecMem, OutRecMem, FieldId, UInt16);
 	RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, *FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
-	//if (FieldId == PrimaryFieldId) { SetPrimaryFieldUInt64(RecId, UInt64); }
 }
+
 void TStoreImpl::SetFieldUInt64(const uint64& RecId, const int& FieldId, const uint64& UInt64) {
+    // special case if field is primary field
+    if (FieldId == PrimaryFieldId) {
+        // it is, make sure new value does not exist yet
+        if (PrimaryUInt64IdH.IsKey(UInt64) && PrimaryUInt64IdH.GetDat(UInt64) != RecId) {
+            throw TQmExcept::New("[TStoreImpl::SetFieldUInt64] Primary key '" + TUInt64::GetStr(UInt64) +
+                "' being set to field '" + GetFieldNm(FieldId) + "' already taken.");
+        }
+    }
+    // replace the field value
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
 	TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
 	if (FieldId == PrimaryFieldId) {
@@ -3640,6 +3643,15 @@ void TStoreImpl::SetFieldUInt64(const uint64& RecId, const int& FieldId, const u
 }
 
 void TStoreImpl::SetFieldStr(const uint64& RecId, const int& FieldId, const TStr& Str) {
+    // special case if field is primary field
+    if (FieldId == PrimaryFieldId) {
+        // it is, make sure new value does not exist yet
+        if (PrimaryStrIdH.IsKey(Str) && PrimaryStrIdH.GetDat(Str) != RecId) {
+            throw TQmExcept::New("[TStoreImpl::SetFieldStr] Primary key '" + Str +
+                "' being set to field '" + GetFieldNm(FieldId) + "' already taken.");
+        }
+    }
+    // replace the field value
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
 	TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
     if (FieldId == PrimaryFieldId) {
@@ -3671,6 +3683,15 @@ void TStoreImpl::SetFieldBool(const uint64& RecId, const int& FieldId, const boo
 }
 
 void TStoreImpl::SetFieldFlt(const uint64& RecId, const int& FieldId, const double& Flt) {
+    // special case if field is primary field
+    if (FieldId == PrimaryFieldId) {
+        // it is, make sure new value does not exist yet
+        if (PrimaryFltIdH.IsKey(Flt) && PrimaryFltIdH.GetDat(Flt) != RecId) {
+            throw TQmExcept::New("[TStoreImpl::SetFieldFlt] Primary key '" + TFlt::GetStr(Flt) +
+                "' being set to field '" + GetFieldNm(FieldId) + "' already taken.");
+        }
+    }
+    // replace the field value
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
 	TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
     if (FieldId == PrimaryFieldId) {
@@ -3685,14 +3706,10 @@ void TStoreImpl::SetFieldFlt(const uint64& RecId, const int& FieldId, const doub
 void TStoreImpl::SetFieldSFlt(const uint64& RecId, const int& FieldId, const float& SFlt) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
 	TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
-	//if (FieldId == PrimaryFieldId) {
-	//	DelPrimaryFieldFlt(RecId, FieldSerializator->GetFieldFlt(InRecMem, FieldId));
-	//}
 	TMem OutRecMem;
 	FieldSerializator->SetFieldSFlt(InRecMem, OutRecMem, FieldId, SFlt);
 	RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, *FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
-	//if (FieldId == PrimaryFieldId) { SetPrimaryFieldFlt(RecId, Flt); }
 }
 
 void TStoreImpl::SetFieldFltPr(const uint64& RecId, const int& FieldId, const TFltPr& FltPr) {
@@ -3723,6 +3740,15 @@ void TStoreImpl::SetFieldTm(const uint64& RecId, const int& FieldId, const TTm& 
 }
 
 void TStoreImpl::SetFieldTmMSecs(const uint64& RecId, const int& FieldId, const uint64& TmMSecs) {
+    // special case if field is primary field
+    if (FieldId == PrimaryFieldId) {
+        // it is, make sure new value does not exist yet
+        if (PrimaryTmMSecsIdH.IsKey(TmMSecs) && PrimaryTmMSecsIdH.GetDat(TmMSecs) != RecId) {
+            throw TQmExcept::New("[TStoreImpl::SetFieldTmMSecs] Primary key '" + TUInt64::GetStr(TmMSecs) +
+                "' being set to field '" + GetFieldNm(FieldId) + "' already taken.");
+        }
+    }
+    // replace the field value
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
 	TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
     if (FieldId == PrimaryFieldId) {
@@ -3771,8 +3797,6 @@ void TStoreImpl::SetFieldJsonVal(const uint64& RecId, const int& FieldId, const 
 	PutRecMem(RecId, FieldId, OutRecMem);
 }
 
-
-
 PJsonVal TStoreImpl::GetStoreJson(const TWPt<TBase>& Base) const {
 	PJsonVal Result = TStore::GetStoreJson(Base);
 
@@ -3792,7 +3816,6 @@ PJsonVal TStoreImpl::GetStoreJson(const TWPt<TBase>& Base) const {
 	return Result;
 }
 
-/// Save part of the data, given time-window
 int TStoreImpl::PartialFlush(int WndInMsec) {
     int slice = WndInMsec / 2;
     TTmStopWatch sw(true);
@@ -3801,7 +3824,6 @@ int TStoreImpl::PartialFlush(int WndInMsec) {
     return res + res2;
 }
 
-/// Retrieve performance statistics for this store
 PJsonVal TStoreImpl::GetStats() {
     PJsonVal res = TJsonVal::NewObj();
     res->AddToObj("name", GetStoreNm());
@@ -3810,7 +3832,9 @@ PJsonVal TStoreImpl::GetStats() {
     return res;
 }
 
-/// Add new record
+///////////////////////////////
+/// TStorePbBlob
+
 uint64 TStorePbBlob::AddRec(const PJsonVal& RecVal, const bool& TriggerEvents) {// check if we are given reference to existing record
     try {
         // parse out record id, if referred directly
