@@ -4151,6 +4151,8 @@ void TStreamStory::Init(TFltVV& ObservFtrVV, const TFltVV& ControlFtrVV,
 	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Creating a model on %d instances ...", ObservFtrVV.GetCols());
 	TFltVV FtrVV;	CreateFtrVV(ObservFtrVV, ControlFtrVV, RecTmV, TBoolV(), FtrVV);
 
+	EAssertR(!TLAUtil::ContainsNan(ObservFtrVV), "Nans in the data!");
+
 	Callback->OnProgress(0, "Clustering ...");
 	TIntV AssignV;	InitClust(RecTmV, ObservFtrVV, FtrVV, IgnoredFtrVV, AssignV);
 	Callback->OnProgress(30, "Modeling transitions ...");

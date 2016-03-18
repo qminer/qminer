@@ -381,6 +381,21 @@ public:
 			}
 		}
 	}
+
+	static bool ContainsNan(const TFltVV& FltVV) {
+		const int Rows = FltVV.GetRows();
+		const int Cols = FltVV.GetCols();
+
+		for (int RowN = 0; RowN < Rows; RowN++) {
+			for (int ColN = 0; ColN < Cols; ColN++) {
+				if (TFlt::IsNan(FltVV(RowN, ColN))) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -2225,6 +2240,7 @@ public:
 				MinIdx = RowN;
 			}
 		}
+		EAssertR(MinIdx >= 0, "Mininum index not set!");
 		return MinIdx;
 	}
 
