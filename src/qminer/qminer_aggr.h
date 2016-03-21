@@ -1610,10 +1610,14 @@ void TWinBuf<TVal>::OnStep() {
 template <class TVal>
 TWinBuf<TVal>::TWinBuf(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal) {
 	// parse out input and output fields
+	ParamVal->AssertObjKeyStr("store", __FUNCTION__);
 	TStr StoreNm = ParamVal->GetObjStr("store");
-	Store = Base->GetStoreByStoreNm(StoreNm);
+	Store = Base->GetStoreByStoreNm(StoreNm);	
+	// validate object has key, key is string. input: name
+	ParamVal->AssertObjKeyStr("timestamp", __FUNCTION__);	
 	TStr TimeFieldNm = ParamVal->GetObjStr("timestamp");
 	TimeFieldId = Store->GetFieldId(TimeFieldNm);
+	ParamVal->AssertObjKeyNum("winsize", __FUNCTION__);
 	WinSizeMSecs = ParamVal->GetObjUInt64("winsize");
 	DelayMSecs = ParamVal->GetObjUInt64("delay", 0);
 	// make sure parameters make sense
