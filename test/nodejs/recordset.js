@@ -462,7 +462,7 @@ describe('Record Set Tests', function () {
             assert.equal(recSet.length, 1);
             assert.equal(recSet[0].Title, "Every Day");
         });
-        it.only('Throw an exception', function () {
+        it('Throw an exception', function () {
         	debugger
             assert.throws(function () {
             	//Javascript exception from callback triggered:Uncaught err
