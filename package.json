@@ -106,7 +106,7 @@
   },
   "scripts": {
     "install": "node-pre-gyp install --fallback-to-build",
-    "test": "./test/nodejs/test.sh"
+    "test": "cd test & cd nodejs & mocha *.js --timeout 30000"
   },
   "binary": {
     "module_name": "qm",
