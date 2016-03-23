@@ -1512,6 +1512,30 @@ public:
 };
 
 ///////////////////////////////
+/// TOnAddSubsampler
+/// Given a parameter Skip, is a record filter that tracks the number of potential calls to OnAdd
+/// but only alows processing on every (Skip+1)-th record. Example: Skip = 1 will result in processing
+/// only half of records.
+class TOnAddSubsampler : public TStreamAggrOnAddFilter {
+private:
+	TInt NumUpdates; ///< Counter of updates
+	TInt Skip; ///< Number of samples skipped for each call to OnAdd
+public:
+	/// constructor
+	TOnAddSubsampler(const int& Skip_ = 0) : NumUpdates(0), Skip(Skip_) {}
+	/// JSON contructor
+	TOnAddSubsampler(const PJsonVal& ParamVal) { Skip = ParamVal->GetObjInt("skip", 0);	}
+	/// Smart pointer constructor
+	static PStreamAggrOnAddFilter New(const PJsonVal& ParamVal) { return new TOnAddSubsampler(ParamVal); }
+	/// Process every (Skip+1)-th record
+	bool CallOnAdd(const TRec& Rec) { return NumUpdates++ % (Skip + 1) == 0; }
+	/// filter type name 
+	static TStr GetType() { return "subsamplingFilter"; }
+	/// filter type name 
+	TStr Type() const { return GetType(); }
+};
+
+///////////////////////////////
 /// Simple linear regression stream aggregate.
 /// Takes a vector X (variates) and a vector Y (covariates) and
 /// fits a linear model Y = A + B * X. The results can be accessed
@@ -1531,11 +1555,12 @@ private:
 	TWPt<TStreamAggr> InAggrX, InAggrY; ///< Two inputs cast as TStreamAggr
 	TWPt<TStreamAggrOut::IFltVec> InAggrValX, InAggrValY; ///< Two inputs cast as IFltVec
 	PJsonVal Result; ///< Example: { "intercept" : 2.0, "slope" : 1.1, "quantiles" : [0.05, 0.95], "bands" : [1.0, 3.0] }
-	TFltV Quantiles;
+	TFltV Quantiles; ///< quantiles that specify the band interecepts
 	
+	PStreamAggrOnAddFilter Filter; ///< decides if a record should be processed (useful on a stream to improve performance)
 protected:
 	/// Calls on step
-	void OnAddRec(const TRec& Rec) { OnStep(); }
+	void OnAddRec(const TRec& Rec) { if (Filter->CallOnAdd(Rec)) { OnStep(); } }
 	/// Calls on step
 	void OnTime(const uint64& TmMsec) { OnStep(); }
 	/// Fits the linear regression and computes the bands (if configured to do so)
