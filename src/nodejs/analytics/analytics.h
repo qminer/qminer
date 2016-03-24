@@ -2441,8 +2441,22 @@ public:
      * Computes the centroids.
      * @param {(module:la.Matrix | module:la.SparseMatrix)} X - Matrix whose columns correspond to examples.
      * @returns {module:analytics.KMeans} Self. It stores the info about the new model.
-     * @example
+     * @example <caption> Asynchronous function </caption>
      * // import analytics module
+     * var analytics = require('qminer').analytics;
+     * // create a new KMeans object
+     * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+     * // create a matrix to be fitted
+     * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+     * // create the model with the matrix X
+     * KMeans.fitAsync(X, function (err) {
+     *     if (err) {
+     *         console.log(err);
+     *     }
+     *     // successful calculation
+     * });
+     *
+     * @example <caption> Synchronous function </caption>
      * var analytics = require('qminer').analytics;
      * // create a new KMeans object
      * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
@@ -2453,7 +2467,6 @@ public:
      */
     //# exports.KMeans.prototype.fit = function (X) { return Object.create(require('qminer').analytics.KMeans.prototype); }
     JsDeclareSyncAsync(fit, fitAsync, TFitTask);
-    //JsDeclareFunction(fit);
 
     /**
      * Returns an vector of cluster id assignments.
@@ -2502,6 +2515,26 @@ public:
     //# exports.KMeans.prototype.transform = function (A) { return Object.create(require('qminer').la.Matrix.prototype); }
     JsDeclareFunction(transform);
 
+    /**
+     * Permutates the clusters, and with it {@link module:analytics.KMeans#centroids}, {@link module:analytics.KMeans#medoids} and {@link module:analytics.KMeans#idxv}.
+     * @param {module:la.IntVector} mapping - The mapping, where mapping[4] = 2 means "map cluster 4 into cluster 2".
+     * @returns {module:analytics.KMeans} Self with permutated clusters.
+     * @example 
+     * // import the modules
+     * var analytics = require('qminer').analytics;
+     * var la = require('qminer').la;
+     * // create a new KMeans object
+     * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+     * // create a matrix to be fitted
+     * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+     * // create the model with the matrix X
+     * KMeans.fit(X);
+     * create the mapping vector
+     * var Mapping = new la.IntVector([1, 0, 2]);
+     * permutate the clusters.
+     * KMeans.permuteCentroids(Mapping);
+     */
+    //# exports.KMeans.prototype.permuteCentroids = function (mapping) { return Object.create(require('qminer').analytics.KMeans.prototype); }
     JsDeclareFunction(permuteCentroids);
 
     /**
@@ -2521,7 +2554,7 @@ public:
     /**
     * The medoids created with the fit method.
     */
-    //# exports.KMeans.prototype.centroids = Object.create(require('qminer').la.Matrix.prototype);
+    //# exports.KMeans.prototype.medoids = Object.create(require('qminer').la.IntVector.prototype);
     JsDeclareProperty(medoids);
 
     /**
