@@ -930,10 +930,7 @@ void TNodeJsStore::each(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			};
 			
 			Callback->Call(Isolate->GetCurrentContext()->Global(), Argc, ArgV);
-			if (TryCatch.HasCaught()) {
-				TryCatch.ReThrow();
-				return;				
-			}
+			TNodeJsUtil::CheckJSExcept(TryCatch);
 		} while (Iter->Next());
 	}
 }
@@ -976,10 +973,7 @@ void TNodeJsStore::map(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			};
 			
 			v8::Local<v8::Value> ReturnVal = Callback->Call(GlobalContext, Argc, ArgV);
-			if (TryCatch.HasCaught()) {
-				TryCatch.ReThrow();
-				return;
-			}
+			TNodeJsUtil::CheckJSExcept(TryCatch);
 			ResultV->Set(Count, ReturnVal);
 			Count++;
 		} while (Iter->Next());
@@ -2971,10 +2965,7 @@ void TNodeJsRecSet::each(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			};
 			
 			Callback->Call(GlobalContext, Argc, ArgV);
-			if (TryCatch.HasCaught()) {
-				TryCatch.ReThrow();
-				return;
-			}
+			TNodeJsUtil::CheckJSExcept(TryCatch);
 		}
 	}
 	Args.GetReturnValue().Set(Args.Holder());
@@ -3012,10 +3003,7 @@ void TNodeJsRecSet::map(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 				v8::Local<v8::Number>::New(Isolate, v8::Integer::NewFromUnsigned(Isolate, RecIdN))
 			};
 			v8::Handle<v8::Value> Result = Callback->Call(GlobalContext, Argc, ArgV);
-			if (TryCatch.HasCaught()) {
-				TryCatch.ReThrow();
-				return;
-			}
+			TNodeJsUtil::CheckJSExcept(TryCatch);
 			ResultV->Set(RecIdN, Result);
 		}
 	}
@@ -3470,10 +3458,7 @@ bool TJsRecFilter::operator()(const TUInt64IntKd& RecIdWgt) const {
 	const unsigned Argc = 1;
 	v8::Local<v8::Value> ArgV[Argc] = { JsRec };
 	v8::Local<v8::Value> ReturnVal = Callbck->Call(GlobalContext, Argc, ArgV);
-	if (TryCatch.HasCaught()) {
-		TryCatch.ReThrow();
-		return false;
-	}
+	TNodeJsUtil::CheckJSExcept(TryCatch);
 	QmAssertR(ReturnVal->IsBoolean(), "Filter callback must return a boolean!");
 	return ReturnVal->BooleanValue();
 }
@@ -3622,10 +3607,7 @@ void TNodeJsFuncFtrExt::ExecuteFuncVec(const TQm::TRec& FtrRec, TFltV& Vec) cons
     v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, Fun);
     v8::Handle<v8::Value> Argv[1] = { TNodeJsRec::NewInstance(new TNodeJsRec(TNodeJsBaseWatcher::New(), FtrRec)) };
     v8::Handle<v8::Value> RetVal = Callback->Call(Isolate->GetCurrentContext()->Global(), 1, Argv);
-	if (TryCatch.HasCaught()) {
-		TryCatch.ReThrow();
-		return;
-	}
+	TNodeJsUtil::CheckJSExcept(TryCatch);
     // Cast as FltV and copy result
     v8::Handle<v8::Object> RetValObj = v8::Handle<v8::Object>::Cast(RetVal);
 

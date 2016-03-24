@@ -1966,6 +1966,13 @@ void TSimpleLinReg::OnStep() {
 }
 
 TSimpleLinReg::TSimpleLinReg(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal) {
+	// filter
+	if (ParamVal->IsObjKey("filter")) {
+		PJsonVal Val = ParamVal->GetObjKey("filter");
+		Filter = TStreamAggrOnAddFilter::New(Val->GetObjStr("type"), Val);
+	} else {
+		Filter = TStreamAggrOnAddFilter::New();
+	}
 	// parse out input aggregate
 	TStr InStoreNmX = ParamVal->GetObjStr("storeX");
 	TStr InStoreNmY = ParamVal->GetObjStr("storeY");

@@ -364,9 +364,9 @@ public:
 
 	// IValTmIO
 	/// most recent values. Only makes sense if delay = 0!
-	TVal GetInVal() const { EAssertR(IsInit(), "WinBuf not initialized yet!"); EAssertR(B < D, "WinBuf is empty - GetInVal() isn't valid! You need to reimplement OnAdd of the aggregate that is connected to WinBuf to use GetInValV instead of GetInVal!"); return GetRecVal(D - 1); }
+	TVal GetInVal() const;
 	/// most recent timestamps. Only makes sense if delay = 0!
-	uint64 GetInTmMSecs() const { EAssertR(IsInit(), "WinBuf not initialized yet!"); EAssertR(B < D, "WinBuf is empty - GetInTmMSecs() isn't valid! You need to reimplement OnAdd of the aggregate that is connected to WinBuf to use GetInTmMSecsV instead of GetInTmMSecs!"); return Time(D - 1); }
+	uint64 GetInTmMSecs() const;
     /// Is the window delayed ?
 	bool DelayedP() const { return DelayMSecs > 0; }
 
@@ -1512,6 +1512,30 @@ public:
 };
 
 ///////////////////////////////
+/// TOnAddSubsampler
+/// Given a parameter Skip, is a record filter that tracks the number of potential calls to OnAdd
+/// but only alows processing on every (Skip+1)-th record. Example: Skip = 1 will result in processing
+/// only half of records.
+class TOnAddSubsampler : public TStreamAggrOnAddFilter {
+private:
+	TInt NumUpdates; ///< Counter of updates
+	TInt Skip; ///< Number of samples skipped for each call to OnAdd
+public:
+	/// constructor
+	TOnAddSubsampler(const int& Skip_ = 0) : NumUpdates(0), Skip(Skip_) {}
+	/// JSON contructor
+	TOnAddSubsampler(const PJsonVal& ParamVal) { Skip = ParamVal->GetObjInt("skip", 0);	}
+	/// Smart pointer constructor
+	static PStreamAggrOnAddFilter New(const PJsonVal& ParamVal) { return new TOnAddSubsampler(ParamVal); }
+	/// Process every (Skip+1)-th record
+	bool CallOnAdd(const TRec& Rec) { return NumUpdates++ % (Skip + 1) == 0; }
+	/// filter type name 
+	static TStr GetType() { return "subsamplingFilter"; }
+	/// filter type name 
+	TStr Type() const { return GetType(); }
+};
+
+///////////////////////////////
 /// Simple linear regression stream aggregate.
 /// Takes a vector X (variates) and a vector Y (covariates) and
 /// fits a linear model Y = A + B * X. The results can be accessed
@@ -1531,11 +1555,12 @@ private:
 	TWPt<TStreamAggr> InAggrX, InAggrY; ///< Two inputs cast as TStreamAggr
 	TWPt<TStreamAggrOut::IFltVec> InAggrValX, InAggrValY; ///< Two inputs cast as IFltVec
 	PJsonVal Result; ///< Example: { "intercept" : 2.0, "slope" : 1.1, "quantiles" : [0.05, 0.95], "bands" : [1.0, 3.0] }
-	TFltV Quantiles;
+	TFltV Quantiles; ///< quantiles that specify the band interecepts
 	
+	PStreamAggrOnAddFilter Filter; ///< decides if a record should be processed (useful on a stream to improve performance)
 protected:
 	/// Calls on step
-	void OnAddRec(const TRec& Rec) { OnStep(); }
+	void OnAddRec(const TRec& Rec) { if (Filter->CallOnAdd(Rec)) { OnStep(); } }
 	/// Calls on step
 	void OnTime(const uint64& TmMsec) { OnStep(); }
 	/// Fits the linear regression and computes the bands (if configured to do so)
@@ -1572,26 +1597,8 @@ template <class TVal>
 void TWinBuf<TVal>::OnAddRec(const TRec& Rec) {
 	InitP = true;
 
-	Timestamp = Rec.GetFieldTmMSecs(TimeFieldId);
-
-	A = B;
-	// B = first record ID in the buffer, or first record ID after the buffer (indicates an empty buffer)
-	while (BeforeBuffer(B, Timestamp)) {
-		B++;
-	}
-
-	C = D;
-	// D = the first record ID after the buffer
-	while (!AfterBuffer(D, Timestamp)) {
-		D++;
-	}
-
-	// Call update on all incomming records, which includes records that skipped the buffer (both incomming and outgoing at the same time)
-	// C + Skip, D - 1
-	for (uint64 RecId = C; RecId < D; RecId++) {
-		RecUpdate(RecId);
-	}
-	//Print(true);
+	uint64 Timestamp_ = Rec.GetFieldTmMSecs(TimeFieldId);
+	OnTime(Timestamp_);
 }
 
 template <class TVal>
@@ -1628,10 +1635,14 @@ void TWinBuf<TVal>::OnStep() {
 template <class TVal>
 TWinBuf<TVal>::TWinBuf(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal) {
 	// parse out input and output fields
+	ParamVal->AssertObjKeyStr("store", __FUNCTION__);
 	TStr StoreNm = ParamVal->GetObjStr("store");
-	Store = Base->GetStoreByStoreNm(StoreNm);
+	Store = Base->GetStoreByStoreNm(StoreNm);	
+	// validate object has key, key is string. input: name
+	ParamVal->AssertObjKeyStr("timestamp", __FUNCTION__);	
 	TStr TimeFieldNm = ParamVal->GetObjStr("timestamp");
 	TimeFieldId = Store->GetFieldId(TimeFieldNm);
+	ParamVal->AssertObjKeyNum("winsize", __FUNCTION__);
 	WinSizeMSecs = ParamVal->GetObjUInt64("winsize");
 	DelayMSecs = ParamVal->GetObjUInt64("delay", 0);
 	// make sure parameters make sense
@@ -1669,6 +1680,27 @@ void TWinBuf<TVal>::Reset() {
 	Timestamp = 0;
 }
 
+template <class TVal>
+TVal TWinBuf<TVal>::GetInVal() const {
+	EAssertR(IsInit(), "WinBuf not initialized yet!"); 
+	EAssertR(B < D, "WinBuf is empty - GetInVal() isn't valid! You need to reimplement OnAdd "
+		"of the aggregate that is connected to WinBuf to use GetInValV instead of GetInVal!"); 
+	EAssertR(Store->IsRecId(D - 1), "WinBuf::GetInVal record not in store! Possible reason: store is "
+		"windowed and window is too small and it does not fully contain the buffer"); 
+	return GetRecVal(D - 1);
+}
+
+template <class TVal>
+uint64 TWinBuf<TVal>::GetInTmMSecs() const {
+	EAssertR(IsInit(), "WinBuf not initialized yet!");
+	EAssertR(B < D, "WinBuf is empty - GetInTmMSecs() isn't valid! "
+		"You need to reimplement OnAdd of the aggregate that is connected to WinBuf to use "
+		"GetInTmMSecsV instead of GetInTmMSecs!");
+	EAssertR(Store->IsRecId(D - 1), "WinBuf::GetInTmMSecs record not in store! Possible reason: "
+		"store is windowed and window is too small and it does not fully contain the buffer");
+	return Time(D - 1);
+}
+
 
 template <class TVal>
 void TWinBuf<TVal>::GetInValV(TVec<TVal>& ValV) const {
@@ -1677,6 +1709,11 @@ void TWinBuf<TVal>::GetInValV(TVec<TVal>& ValV) const {
 	int UpdateRecords = int(D - C) - Skip;
 	if (ValV.Len() != UpdateRecords) { ValV.Gen(UpdateRecords); }
 	// iterate
+	if (UpdateRecords > 0) {
+		EAssertR(Store->IsRecId(C + Skip) && Store->IsRecId(C + Skip + UpdateRecords - 1), 
+			"WinBuf::GetInValV record not in store! Possible reason: store is windowed and window is too "
+			"small and it does not fully contain the buffer");
+	}
 	for (int RecN = 0; RecN < UpdateRecords; RecN++) {
 		ValV[RecN] = GetRecVal(C + Skip + RecN);
 	}
@@ -1689,6 +1726,11 @@ void TWinBuf<TVal>::GetInTmMSecsV(TUInt64V& MSecsV) const {
 	int UpdateRecords = int(D - C) - Skip;
 	if (MSecsV.Len() != UpdateRecords) { MSecsV.Gen(UpdateRecords); }
 	// iterate
+	if (UpdateRecords > 0) {
+		EAssertR(Store->IsRecId(C + Skip) && Store->IsRecId(C + Skip + UpdateRecords - 1),
+			"WinBuf::GetInTmMSecsV record not in store! Possible reason: store is windowed and window is too "
+			"small and it does not fully contain the buffer");
+	}
 	for (int RecN = 0; RecN < UpdateRecords; RecN++) {
 		MSecsV[RecN] = Time(C + Skip + RecN);
 	}
@@ -1701,6 +1743,11 @@ void TWinBuf<TVal>::GetOutValV(TVec<TVal>& ValV) const {
 	int DropRecords = int(B - A) - Skip;
 	if (ValV.Len() != DropRecords) { ValV.Gen(DropRecords); }
 	// iterate
+	if (DropRecords > 0) {
+		EAssertR(Store->IsRecId(A) && Store->IsRecId(A + DropRecords - 1),
+			"WinBuf::GetOutValV record not in store! Possible reason: store is windowed and window is too "
+			"small and it does not fully contain the buffer");
+	}
 	for (int RecN = 0; RecN < DropRecords; RecN++) {
 		ValV[RecN] = GetRecVal(A + RecN);
 	}
@@ -1713,6 +1760,11 @@ void TWinBuf<TVal>::GetOutTmMSecsV(TUInt64V& MSecsV) const {
 	int DropRecords = int(B - A) - Skip;
 	if (MSecsV.Len() != DropRecords) { MSecsV.Gen(DropRecords); }
 	// iterate
+	if (DropRecords > 0) {
+		EAssertR(Store->IsRecId(A) && Store->IsRecId(A + DropRecords - 1),
+			"WinBuf::GetOutTmMSecsV record not in store! Possible reason: store is windowed and window is too "
+			"small and it does not fully contain the buffer");
+	}
 	for (int RecN = 0; RecN < DropRecords; RecN++) {
 		MSecsV[RecN] = Time(A + RecN);
 	}
@@ -1724,6 +1776,11 @@ void TWinBuf<TVal>::GetValV(TVec<TVal>& ValV) const {
 	int Len = GetVals();
 	if (ValV.Empty()) { ValV.Gen(Len); }
 	// iterate
+	if (Len > 0) {
+		EAssertR(Store->IsRecId(B) && Store->IsRecId(B + Len - 1),
+			"WinBuf::GetValV record not in store! Possible reason: store is windowed and window is too "
+			"small and it does not fully contain the buffer");
+	}
 	for (int RecN = 0; RecN < Len; RecN++) {
 		GetVal(RecN, ValV[RecN]);
 	}
@@ -1735,6 +1792,11 @@ void TWinBuf<TVal>::GetTmV(TUInt64V& MSecsV) const {
 	int Len = GetVals();
 	MSecsV.Gen(Len);
 	// iterate
+	if (Len > 0) {
+		EAssertR(Store->IsRecId(B) && Store->IsRecId(B + Len - 1),
+			"WinBuf::GetTmV record not in store! Possible reason: store is windowed and window is too "
+			"small and it does not fully contain the buffer");
+	}
 	for (int RecN = 0; RecN < Len; RecN++) {
 		MSecsV[RecN] = GetTm(RecN);
 	}
