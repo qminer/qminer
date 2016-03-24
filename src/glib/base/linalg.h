@@ -159,6 +159,8 @@ public:
 	static int GetMaxDimIdx(const TIntFltKdV& SpVec);
 	// gets the maximal row index of a sparse column matrix
 	static int GetMaxDimIdx(const TVec<TIntFltKdV>& SpMat);
+    // gets the maximal index of an integer vector
+    static int GetMaxVal(const TIntV& Vec);
 	// returns the index of the minimum element
 	static int GetMinIdx(const TFltV& Vec);
 	// returns a vector with a sequence starting at Min and ending at Max
@@ -1083,7 +1085,7 @@ public:
 	inline static void MultiplyT(const TVVec<TType, TSizeTy, ColMajor>& A, const TVec<TVec<TKeyDat<IndexType, TType>, TSizeTy>, TSizeTy>& B, TVVec<TType, TSizeTy, ColMajor>& C);
 	inline static void Multiply(const TVec<TIntFltKdV>& A, const TFltVV& B, TFltVV& C, const int RowsA = -1);
 	inline static void MultiplyT(const TVec<TIntFltKdV>& A, const TFltVV& B, TFltVV& C);
-    inline static void Multiply(const TFltVV& A, const TVec<TIntFltKdV>& B, TVec<TIntFltKdV>& C) { throw TExcept::New("Not implemented yet!"); }
+    inline static void Multiply(const TFltVV& A, const TVec<TIntFltKdV>& B, TVec<TIntFltKdV>& C);
 	inline static void Multiply(const TVec<TIntFltKdV>& A, const TVec<TIntFltKdV>& B, TFltVV& C, const int RowsA = -1);
     inline static void Multiply(const TVec<TIntFltKdV>& A, const TVec<TIntFltKdV>& B, TVec<TIntFltKdV>& C, const int RowsA = -1);
 	inline static void MultiplyT(const TVec<TIntFltKdV>& A, const TVec<TIntFltKdV>& B, TFltVV& C);
@@ -2933,7 +2935,7 @@ public:
 		else {
 			EAssert(A.GetRows() == C.GetRows() && B.Len() == C.GetCols());
 		}
-		EAssert(TLAMisc::GetMaxDimIdx(B) < A.GetCols());
+		EAssert(TLAMisc::GetMaxDimIdx(B) + 1 <= A.GetCols());
 		int Cols = B.Len();
 		int Rows = A.GetRows();
 		C.PutAll(0.0);
@@ -2971,7 +2973,7 @@ public:
 		else {
 			EAssert(A.GetCols() == C.GetRows() && B.Len() == C.GetCols());
 		}
-		EAssert(TLAMisc::GetMaxDimIdx(B) < A.GetRows());
+		EAssert(TLAMisc::GetMaxDimIdx(B) + 1 <= A.GetRows());
 		int Cols = B.Len();
 		int Rows = A.GetCols();
 		C.PutAll(0.0);
@@ -3042,6 +3044,24 @@ public:
 		}
 	}
 
+    void TLinAlg::Multiply(const TFltVV& A, const TVec<TIntFltKdV>& B, TVec<TIntFltKdV>& C) {
+        EAssert(A.GetCols() >= TLAMisc::GetMaxDimIdx(B) + 1);
+        int Rows = A.GetRows();
+        int Cols = B.Len();
+
+        C.Gen(Cols);
+        for (int ColN = 0; ColN < Cols; ColN++) {
+            for (int RowN = 0; RowN < Rows; RowN++) {
+                TFlt val(0.0);
+                int Els = B[ColN].Len();
+                for (int ElN = 0; ElN < Els; ElN++) {
+                    val += A(RowN, B[ColN][ElN].Key) * B[ColN][ElN].Dat;
+                }
+                C[ColN].Add(TIntFltKd(RowN, val));
+            }
+        }
+    }
+
 	// SPARSECOLMAT-SPARSECOLMAT
 	// C := A * B
 	//Andrej Urgent
@@ -3089,7 +3109,7 @@ public:
         if (RowsA == -1) { Rows = TLAMisc::GetMaxDimIdx(A) + 1; }
         EAssert(TLAMisc::GetMaxDimIdx(A) + 1 <= Rows);
 
-        if (C.Empty()) { C.Gen(ColsB); }
+        C.Gen(ColsB);
         EAssert(TLAMisc::GetMaxDimIdx(B) + 1 <= A.Len());
         
         for (int ColN = 0; ColN < ColsB; ColN++) {
@@ -3158,7 +3178,7 @@ public:
             EAssert(ColsA == c.Len());
         }
         c.PutAll(0.0);
-        for (TType ColN = 0; ColN < ColsA; ColN++) {
+        for (TSizeTy ColN = 0; ColN < ColsA; ColN++) {
             int Els = b.Len();
             for (int ElN = 0; ElN < Els; ElN++) {
                 c[ColN] += b[ElN].Dat * A.At(b[ElN].Key, ColN);

@@ -363,14 +363,12 @@ describe("Kmeans test", function () {
             var Vec = new la.IntVector([1, 0]);
             KMeans.permuteCentroids(Vec);
             var Cent2 = KMeans.getModel().C;
-            assert.equal(Cent1.At(0, 0), Cent2.At(0, 1));
-            assert.equal(Cent1.At(0, 1), Cent2.At(0, 0));
-            assert.equal(Cent1.At(1, 0), Cent2.At(1, 1));
-            assert.equal(Cent1.At(1, 1), Cent2.At(1, 0));
-            assert.equal(Cent1.At(2, 0), Cent2.At(2, 1));
-            assert.equal(Cent1.At(2, 1), Cent2.At(2, 0));
+            assert.equal(Cent1.at(0, 0), Cent2.at(0, 1));
+            assert.equal(Cent1.at(0, 1), Cent2.at(0, 0));
+            assert.equal(Cent1.at(1, 0), Cent2.at(1, 1));
+            assert.equal(Cent1.at(1, 1), Cent2.at(1, 0));
         })
-        it('should permute the centroids, dense centroids', function () {
+        it('should permute the centroids, sparse centroids', function () {
             var KMeans = new analytics.KMeans({ k: 2, centroidType: "Sparse" });
             var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
             KMeans.fit(X);
@@ -378,12 +376,10 @@ describe("Kmeans test", function () {
             var Vec = new la.IntVector([1, 0]);
             KMeans.permuteCentroids(Vec);
             var Cent2 = KMeans.getModel().C;
-            assert.equal(Cent1.At(0, 0), Cent2.At(0, 1));
-            assert.equal(Cent1.At(0, 1), Cent2.At(0, 0));
-            assert.equal(Cent1.At(1, 0), Cent2.At(1, 1));
-            assert.equal(Cent1.At(1, 1), Cent2.At(1, 0));
-            assert.equal(Cent1.At(2, 0), Cent2.At(2, 1));
-            assert.equal(Cent1.At(2, 1), Cent2.At(2, 0));
+            assert.equal(Cent1.at(0, 0), Cent2.at(0, 1));
+            assert.equal(Cent1.at(0, 1), Cent2.at(0, 0));
+            assert.equal(Cent1.at(1, 0), Cent2.at(1, 1));
+            assert.equal(Cent1.at(1, 1), Cent2.at(1, 0));
         })
         it('should throw an exception if the mapping vector is too short, dense centroids', function () {
             var KMeans = new analytics.KMeans({ k: 2 });

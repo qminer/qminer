@@ -1755,6 +1755,17 @@ int TLAMisc::GetMaxDimIdx(const TVec<TIntFltKdV>& SpMat) {
 	return MaxDim;
 }
 
+int TLAMisc::GetMaxVal(const TIntV& Vec) {
+    const int Len = Vec.Len();
+    int MaxVal = Vec[0];
+    for (int i = 1; i < Len; i++) {
+        if (Vec[i] > MaxVal) {
+            MaxVal = Vec[i];
+        }
+    }
+    return MaxVal;
+}
+
 int TLAMisc::GetMinIdx(const TFltV& Vec) {
 	const int Len = Vec.Len();
 

@@ -97,13 +97,9 @@ public:
     void GetDist2VV(const TFltVV& X, const TVec<TIntFltKdV>& Y, const TFltV& NormX2,
         const TFltV& NormY2, TFltVV& D) const { GetDist2VV<TFltVV, TVec<TIntFltKdV>>(X, Y, NormX2, NormY2, D); }
     void GetDist2VV(const TVec<TIntFltKdV>& X, const TFltVV& Y, const TFltV& NormX2,
-        const TFltV& NormY2, TFltVV& D) const {
-        GetDist2VV<TVec<TIntFltKdV>, TFltVV>(X, Y, NormX2, NormY2, D);
-    }
+        const TFltV& NormY2, TFltVV& D) const { GetDist2VV<TVec<TIntFltKdV>, TFltVV>(X, Y, NormX2, NormY2, D); }
     void GetDist2VV(const TVec<TIntFltKdV>& X, const TVec<TIntFltKdV>& Y, const TFltV& NormX2,
-        const TFltV& NormY2, TFltVV& D) const {
-        GetDist2VV<TVec<TIntFltKdV>, TVec<TIntFltKdV>>(X, Y, NormX2, NormY2, D);
-    }
+        const TFltV& NormY2, TFltVV& D) const { GetDist2VV<TVec<TIntFltKdV>, TVec<TIntFltKdV>>(X, Y, NormX2, NormY2, D); }
 
 	const TStr& GetType() const { return TYPE; }
 
@@ -341,6 +337,7 @@ public:
 	virtual ~TAbsKMeans() {}
 
 	virtual void Save(TSOut& SOut) const;
+    static TAbsKMeans<TCentroidType>* LoadPtr(TSIn& SIn);
 	static TPt<TAbsKMeans<TCentroidType>> Load(TSIn& SIn);
 
 	int GetClusts() const { return GetDataCount(CentroidVV); }
@@ -348,6 +345,8 @@ public:
 
 	// returns the centroid (column) matrix
     const TCentroidType& GetCentroidVV() const { return CentroidVV; }
+    // permutates the centroid matrix
+    inline void PermutateCentroids(const TIntV& Mapping);
 	// returns the n-th centroid
     template<class TVectorType>
     void GetCentroid(const int& ClustN, TVectorType& FtrV) const;
@@ -430,9 +429,9 @@ public:
 
     static TPt<TAbsKMeans<TCentroidType>> New(const int& K, const TRnd& Rnd=TRnd(),
     		TDist* Dist=new TEuclDist);
-    static TPt<TAbsKMeans<TCentroidType>> New(TSIn& SIn)
+/*    static TPt<TAbsKMeans<TCentroidType>> New(TSIn& SIn)
     		{ return new TDnsKMeans<TCentroidType>(SIn); }
-
+            */
 	// saves the model to the output stream
 	void Save(TSOut& SOut) const;
 
@@ -517,11 +516,11 @@ void TAbsKMeans<TCentroidType>::Save(TSOut& SOut) const {
 }
 
 template<class TCentroidType>
-TPt<TAbsKMeans<TCentroidType>> TAbsKMeans<TCentroidType>::Load(TSIn& SIn) {
+TAbsKMeans<TCentroidType>* TAbsKMeans<TCentroidType>::LoadPtr(TSIn& SIn) {
     TStr Type(SIn);
 
     if (Type == "kmeans") {
-    	return TDnsKMeans<TCentroidType>::New(SIn);
+    	return new TDnsKMeans<TCentroidType>(SIn);
     }
     else if (Type == "dpmeans") {
         return new TDpMeans<TCentroidType>(SIn);
@@ -529,6 +528,33 @@ TPt<TAbsKMeans<TCentroidType>> TAbsKMeans<TCentroidType>::Load(TSIn& SIn) {
     else {
         throw TExcept::New("Invalid clustering type: " + Type);
     }
+}
+
+template<class TCentroidType>
+TPt<TAbsKMeans<TCentroidType>> TAbsKMeans<TCentroidType>::Load(TSIn& SIn) {
+    return LoadPtr(SIn);
+}
+
+template<>
+inline void TAbsKMeans<TFltVV>::PermutateCentroids(const TIntV& Mapping) {
+    EAssert(Mapping.Len() == CentroidVV.GetCols());
+    TFltVV CentroidsTemp = CentroidVV;
+    TVec<TIntFltKdV> Perm; Perm.Gen(CentroidVV.GetCols());
+    for (int ColN = 0; ColN < CentroidVV.GetCols(); ColN++) {
+        Perm[Mapping[ColN]].Add(TIntFltKd(ColN, 1));
+    }
+    TLinAlg::Multiply(CentroidsTemp, Perm, CentroidVV);
+}
+
+template<>
+inline void TAbsKMeans<TVec<TIntFltKdV>>::PermutateCentroids(const TIntV& Mapping) {
+    EAssert(Mapping.Len() == CentroidVV.Len());
+    TVec<TIntFltKdV> CentroidsTemp = CentroidVV;
+    TVec<TIntFltKdV> Perm; Perm.Gen(CentroidVV.Len());
+    for (int ColN = 0; ColN < CentroidVV.Len(); ColN++) {
+        Perm[Mapping[ColN]].Add(TIntFltKd(ColN, 1));
+    }
+    TLinAlg::Multiply(CentroidsTemp, Perm, CentroidVV);
 }
 
 template<class TCentroidType>
@@ -725,7 +751,7 @@ int TAbsKMeans<TCentroidType>::GetDataDim(const TFltVV& X) {
 template<class TCentroidType>
 int TAbsKMeans<TCentroidType>::GetDataDim(const TVec<TIntFltKdV>& FtrVV) {
 	// TODO enable inputing dimension through arguments for sparse matrices
-	return TLAMisc::GetMaxDimIdx(FtrVV);
+	return TLAMisc::GetMaxDimIdx(FtrVV) + 1;
 }
 
 template <class TCentroidType>
