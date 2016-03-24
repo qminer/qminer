@@ -31,10 +31,10 @@ for (var i = 0; i < JSFiles.length; i++) {
     }
 
     // write the describe of the file (to know in which file the test throws the error)
-    fout.write("require('qminer').la.Vector.prototype.print = function () { };");
-    fout.write("require('qminer').la.SparseVector.prototype.print = function () { };");
-    fout.write("require('qminer').la.SparseMatrix.prototype.print = function () { };");
-    fout.write("require('qminer').la.Matrix.prototype.print = function () { };");
+    fout.write("require('qminer').la.Vector.prototype.print = function () { };\n");
+    fout.write("require('qminer').la.SparseVector.prototype.print = function () { };\n");
+    fout.write("require('qminer').la.SparseMatrix.prototype.print = function () { };\n");
+    fout.write("require('qminer').la.Matrix.prototype.print = function () { };\n");
     fout.write("describe('example tests for the " + JSFiles[i] + " file', function () {\n");
 
     var hstr = fs.readFileSync(hfile + JSFiles[i], 'ascii');
