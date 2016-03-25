@@ -3119,6 +3119,7 @@ void THierarch::ClrFlds() {
 
 /////////////////////////////////////////////////////////////////
 // UI helper
+const double TUiHelper::RADIUS_FACTOR = 1.8;
 const double TUiHelper::STEP_FACTOR = 1e-2;
 const double TUiHelper::INIT_RADIUS_FACTOR = 1.1;
 
@@ -3409,7 +3410,7 @@ bool TUiHelper::HasMxPeaks(const int& MxPeakCount, const double& PeakMassThresho
 double TUiHelper::GetStateRaduis(const double& Prob) {
 	// the probability is proportional to the area, so the raduis should
 	// be proportional to the square root of the probability
-	return TMath::Sqrt(Prob / TMath::Pi);
+	return RADIUS_FACTOR * TMath::Sqrt(Prob / TMath::Pi);
 }
 
 bool TUiHelper::NodesOverlap(const int& StartId, const int& EndId, const TFltPrV& CoordV, const TFltV& RaduisV) {
