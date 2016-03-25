@@ -1011,6 +1011,16 @@ exports = {}; require.modules.qminer_la = exports;
     */
 	exports.Vector.prototype.print = function () { console.log(this.toString()); }
 
+
+    function vec2arr(vec) {
+    	var len = vec.length;
+        var arr = [];
+        for (var elN = 0; elN < len; elN++) {
+            arr[elN] = vec[elN];
+        }
+        return arr;
+    }
+
 	/**
     * Copies the vector into a JavaScript array of numbers.
     * @returns {Array<number>} A JavaScript array of numbers.
@@ -1023,12 +1033,25 @@ exports = {}; require.modules.qminer_la = exports;
     * var arr = vec.toArray(); // returns an array [1, 2, 3]
     */
     exports.Vector.prototype.toArray = function () {
-        var len = this.length;
-        var arr = [];
-        for (var elN = 0; elN < len; elN++) {
-            arr[elN] = this[elN];
-        }
-        return arr;
+        return vec2arr(this);
+	}
+	/**
+    * Copies the vector into a JavaScript array
+    */
+	exports.IntVector.prototype.toArray = function () {
+        return vec2arr(this);
+	}
+	/**
+    * Copies the vector into a JavaScript array
+    */
+	exports.StrVector.prototype.toArray = function () {
+        return vec2arr(this);
+	}
+	/**
+    * Copies the vector into a JavaScript array
+    */
+	exports.BoolVector.prototype.toArray = function () {
+        return vec2arr(this);
 	}
 
 	/**

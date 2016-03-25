@@ -37,6 +37,8 @@ void TEnv::Init() {
 	TAggr::Init();
 	// initialize stream aggregators constructor router
 	TStreamAggr::Init();
+	// initialize stream aggregators on add filter constructor router
+	TStreamAggrOnAddFilter::Init();
 	// initialize feature extractors constructor router
 	TFtrExt::Init();
 	// tell we finished initialization
@@ -5934,6 +5936,15 @@ void TStreamAggr::LoadState(TSIn& SIn) {
 void TStreamAggr::SaveState(TSOut& SOut) const {
     throw TQmExcept::New("TStreamAggr::_Save not implemented:" + GetAggrNm());
 };
+
+///////////////////////////////
+// QMiner-Stream-Aggregator-OnAdd-Filter
+TFunRouter<PStreamAggrOnAddFilter, TStreamAggrOnAddFilter::TNewF> TStreamAggrOnAddFilter::NewRouter;
+
+void TStreamAggrOnAddFilter::Init() {
+	Register<TStreamAggrs::TOnAddSubsampler>();
+}
+
 
 ///////////////////////////////
 // QMiner-Stream-Aggregator-Base

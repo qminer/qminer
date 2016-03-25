@@ -25,6 +25,7 @@ class TIndex; typedef TPt<TIndex> PIndex;
 class TAggr; typedef TPt<TAggr> PAggr;
 class TStreamAggr; typedef TPt<TStreamAggr> PStreamAggr;
 class TStreamAggrBase; typedef TPt<TStreamAggrBase> PStreamAggrBase;
+class TStreamAggrOnAddFilter; typedef TPt<TStreamAggrOnAddFilter> PStreamAggrOnAddFilter;
 class TFtrExt; typedef TPt<TFtrExt> PFtrExt;
 class TFtrSpace; typedef TPt<TFtrSpace> PFtrSpace;
 
@@ -3367,6 +3368,39 @@ public:
 	const TStr& GetGuid() const { return Guid; }  
 
 	virtual TStr Type() const = 0;
+};
+
+///////////////////////////////
+// QMiner-Stream-Aggregator-OnAdd-Filter
+class TStreamAggrOnAddFilter {
+private:
+	// smart-pointer
+	TCRef CRef;
+	friend class TPt<TStreamAggrOnAddFilter>;
+private:
+	/// New constructor delegate
+	typedef PStreamAggrOnAddFilter(*TNewF)(const PJsonVal& ParamVal);
+	/// Filter New constructor router
+	static TFunRouter<PStreamAggrOnAddFilter, TNewF> NewRouter;
+public:
+	/// Create a default filter that doesn't filter anything
+	static PStreamAggrOnAddFilter New() { 
+		return new TStreamAggrOnAddFilter; }
+	/// Create new stream aggregate filter.
+	static PStreamAggrOnAddFilter New(const TStr& TypeNm, const PJsonVal& ParamVal) {
+		return NewRouter.Fun(TypeNm)(ParamVal);	}
+	/// Destructor
+	virtual ~TStreamAggrOnAddFilter() { }
+
+	/// Register new stream aggregate
+	template <class TObj> static void Register() {
+		NewRouter.Register(TObj::GetType(), TObj::New);
+	}
+	/// Register default stream aggregates
+	static void Init();
+public:
+	/// The record will trigger OnAdd if the function returns true.
+	virtual bool CallOnAdd(const TRec& Rec) { return true; }
 };
 
 ///////////////////////////////
