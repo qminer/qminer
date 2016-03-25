@@ -831,6 +831,7 @@ TCategorical::TCategorical(const TWPt<TBase>& Base, const PJsonVal& ParamVal): T
         FtrGen = TFtrGen::TCategorical();
     }
     // get input parameters (field, stuff, etc.)
+	ParamVal->AssertObjKeyStr("field", __FUNCTION__);
     TStr FieldNm = ParamVal->GetObjStr("field");
     FieldId = GetFtrStore()->GetFieldId(FieldNm);
     FieldDesc = GetFtrStore()->GetFieldDesc(FieldId);
