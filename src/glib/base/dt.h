@@ -1804,6 +1804,15 @@ public:
     return *((double*)Bf);
     #endif
   }
+  
+  // TODO test!
+  static void SetBufSafe(const double& Val, char * Bf) {
+    #ifdef ARM
+	  memcpy(Bf, &Val, sizeof(double)); //we cannot use a cast on ARM (needs 8byte memory aligned doubles)
+    #else
+	  *((double*)Bf) = Val;
+    #endif
+  }
 };
 
 /////////////////////////////////////////////////
