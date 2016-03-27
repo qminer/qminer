@@ -462,7 +462,7 @@ char* TPgBlob::LoadPage(const TPgBlobPgPt& Pt, const bool& LoadData) {
 		LastExtentCnt++;
 		if (LastExtentCnt >= PG_EXTENT_PCOUNT) {
 			Extents.Add();
-			Extents.Last() = std::move(TMemBase(PG_EXTENT_SIZE));
+			Extents.Last() = TMemBase(PG_EXTENT_SIZE);
 			LastExtentCnt = 0;
 		}
 		Pg = LoadedPages.Add();
