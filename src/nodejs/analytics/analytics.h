@@ -2533,9 +2533,9 @@ public:
      * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
      * // create the model with the matrix X
      * KMeans.fit(X);
-     * create the mapping vector
+     * // create the mapping vector
      * var Mapping = new la.IntVector([1, 0, 2]);
-     * permutate the clusters.
+     * // permutate the clusters.
      * KMeans.permuteCentroids(Mapping);
      */
     //# exports.KMeans.prototype.permuteCentroids = function (mapping) { return Object.create(require('qminer').analytics.KMeans.prototype); }
