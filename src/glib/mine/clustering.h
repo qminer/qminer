@@ -377,9 +377,10 @@ public:
 protected:
 	// can still optimize
     template<class TDataType>
-    void UpdateCentroids(const TDataType& FtrVV, const int& NInst, TIntV& AssignV, const TFltV& OnesN,
-        const TIntV& RangeN, TFltV& TempK, TCentroidType& TempDxKV,
-        TVec<TIntFltKdV>& TempKxKSpVV, const TFltV& NormX2, TFltV& NormC2, const bool& AllowEmptyP = true);
+    void UpdateCentroids(const TDataType& FtrVV, const int& NInst, TIntV& AssignV,
+    		const TFltV& OnesN, const TIntV& RangeN, TFltV& TempK, TCentroidType& TempDxKV,
+			TVec<TIntFltKdV>& TempKxKSpVV, const TFltV& NormX2, TFltV& NormC2,
+			const bool& AllowEmptyP=true);
 
     template<class TDataType>
     void SelectInitCentroids(const TDataType& FtrVV, const int& K, const int& NInst);
@@ -847,6 +848,8 @@ void TDnsKMeans<TCentroidType>::Apply(const TDataType& FtrVV, const int& NInst, 
     const int& MaxIter, const PNotify& Notify) {
     EAssertR(K <= NInst, "Matrix should have more columns than K!");
 
+    const bool AllowEmptyP = true;	// TODO move this outside
+
     Notify->OnNotify(TNotifyType::ntInfo, "Executing KMeans ...");
 
     // assignment vectors
@@ -887,7 +890,7 @@ void TDnsKMeans<TCentroidType>::Apply(const TDataType& FtrVV, const int& NInst, 
         }
 
         // recompute the means
-        TAbsKMeans<TCentroidType>::UpdateCentroids(FtrVV, NInst, *AssignIdxVPtr, OnesN, RangeN, TempK, TempDxK, TempKxKSpVV, NormX2, NormC2);
+        TAbsKMeans<TCentroidType>::UpdateCentroids(FtrVV, NInst, *AssignIdxVPtr, OnesN, RangeN, TempK, TempDxK, TempKxKSpVV, NormX2, NormC2, AllowEmptyP);
 
         // swap the old and new assign vectors
         Temp = AssignIdxVPtr;
