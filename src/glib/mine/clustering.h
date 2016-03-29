@@ -871,8 +871,8 @@ void TDnsKMeans<TCentroidType>::Apply(const TDataType& FtrVV, const int& NInst, 
     TAbsKMeans<TCentroidType>::SelectInitCentroids(FtrVV, K, NInst);
 
     // do the work
-    for (int i = 0; i < MaxIter; i++) {
-        if (i % 100 == 0) { Notify->OnNotifyFmt(TNotifyType::ntInfo, "%d", i); }
+    for (int IterN = 0; IterN < MaxIter; IterN++) {
+        if (IterN % 100 == 0) { Notify->OnNotifyFmt(TNotifyType::ntInfo, "%d", IterN); }
 
         // get the distance of each of the points to each of the centroids
         // and assign the instances
@@ -882,7 +882,7 @@ void TDnsKMeans<TCentroidType>::Apply(const TDataType& FtrVV, const int& NInst, 
 
         // if the assignment hasn't changed then terminate the loop
         if (*AssignIdxVPtr == *OldAssignIdxVPtr) {
-            Notify->OnNotifyFmt(TNotifyType::ntInfo, "Converged at iteration: %d", i);
+            Notify->OnNotifyFmt(TNotifyType::ntInfo, "Converged at iteration: %d", IterN);
             break;
         }
 
