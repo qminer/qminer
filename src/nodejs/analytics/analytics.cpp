@@ -3416,8 +3416,8 @@ TNodeJsKMeans::TNodeJsKMeans(const PJsonVal& ParamVal) :
         K(2),
         AssignV(),
         DistType(TDistanceType::dtEuclid),
+		Dist(nullptr),
         CentType(TCentroidType::ctDense),
-        Dist(nullptr),
         Model(nullptr),
         Verbose(false) {
     UpdateParams(ParamVal);
@@ -3432,7 +3432,7 @@ TNodeJsKMeans::TNodeJsKMeans(TSIn& SIn) :
         Verbose(TBool(SIn)) {
     if (DistType == TDistanceType::dtEuclid) {
         Dist = new TClustering::TEuclDist;
-    } else if (DistType = TDistanceType::dtCos) {
+    } else if (DistType == TDistanceType::dtCos) {
         Dist = new TClustering::TCosDist;
     } else {
         throw TExcept::New("KMeans load constructor: distance type not valid!");
@@ -3654,10 +3654,11 @@ TNodeJsKMeans::TFitTask::TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Arg
             JsIntV = TNodeJsUtil::GetArgUnwrapObj<TNodeJsIntV>(Args, 1);
         }
         else if (Args[1]->IsArray()) {
-            JsArr = new TNodeJsIntV();
-            v8::Handle<v8::Array> Arr = v8::Handle<v8::Array>::Cast(Args[1]);
-            const int Len = Arr->Length();
-            for (int ElN = 0; ElN < Len; ElN++) { JsArr->Vec.Add(Arr->Get(ElN)->ToInt32()->Value()); }
+        	v8::Handle<v8::Array> Arr = v8::Handle<v8::Array>::Cast(Args[1]);
+        	const int Len = Arr->Length();
+        	JsArr = new TNodeJsIntV(Len);
+
+            for (int ElN = 0; ElN < Len; ElN++) { JsArr->Vec[ElN] = Arr->Get(ElN)->ToInt32()->Value(); }
         }
         else {
             throw TExcept::New("KMeans.fit: second argument expected to be an IntVector or Array!");
@@ -3681,21 +3682,23 @@ void TNodeJsKMeans::TFitTask::Run() {
 
        // create a new model
        if (JsKMeans->CentType == TCentroidType::ctDense) {
-           JsKMeans->Model = new TClustering::TDenseKMeans(JsKMeans->K, TRnd(0), JsKMeans->Dist);
+    	   TClustering::TDenseKMeans* KMeans = new TClustering::TDenseKMeans(JsKMeans->K, TRnd(0), JsKMeans->Dist);
+           JsKMeans->Model = (void*) KMeans;
+
            // input dense matrix
            if (JsFltVV != nullptr) {
-               ((TClustering::TDenseKMeans*)JsKMeans->Model)->Apply(JsFltVV->Mat, JsKMeans->Iter, JsKMeans->Notify);
-               ((TClustering::TDenseKMeans*)JsKMeans->Model)->Assign(JsFltVV->Mat, JsKMeans->AssignV);
+               KMeans->Apply(JsFltVV->Mat, JsKMeans->Iter, JsKMeans->Notify);
+               KMeans->Assign(JsFltVV->Mat, JsKMeans->AssignV);
 
                TFltVV D;
-               JsKMeans->Dist->GetDist2VV(JsFltVV->Mat, ((TClustering::TDenseKMeans*)JsKMeans->Model)->GetCentroidVV(), D);
+               JsKMeans->Dist->GetDist2VV(JsFltVV->Mat, KMeans->GetCentroidVV(), D);
                TLinAlg::MultiplyScalar(-1, D, D);
                TLinAlg::GetColMaxIdxV(D, JsKMeans->Medoids);
 
                if (JsIntV != nullptr) {
                    EAssertR(JsIntV->Vec.Len() == JsFltVV->Mat.GetCols(), "KMeans.fit: IntVector RecordIds.length must be equal to number of columns of X!");
                    
-                   TIntV ColIdV = JsKMeans->Medoids;
+                   const TIntV& ColIdV = JsKMeans->Medoids;
                    for (int MedN = 0; MedN < ColIdV.Len(); MedN++) {
                        JsKMeans->Medoids[MedN] = JsIntV->Vec[ColIdV[MedN]];
                    }
@@ -3703,7 +3706,7 @@ void TNodeJsKMeans::TFitTask::Run() {
                else if (JsArr != nullptr) {
                    EAssertR(JsArr->Vec.Len() == JsFltVV->Mat.GetCols(), "KMeans.fit: Array RecordIds.length must be equal to number of columns of X!");
 
-                   TIntV ColIdV = JsKMeans->Medoids;
+                   const TIntV& ColIdV = JsKMeans->Medoids;
                    for (int MedN = 0; MedN < ColIdV.Len(); MedN++) {
                        JsKMeans->Medoids[MedN] = JsArr->Vec[ColIdV[MedN]];
                    }
@@ -3711,18 +3714,18 @@ void TNodeJsKMeans::TFitTask::Run() {
            }
            // input sparse matrix
            else if (JsSpVV != nullptr) {
-               ((TClustering::TDenseKMeans*)JsKMeans->Model)->Apply(JsSpVV->Mat, JsKMeans->Iter, JsKMeans->Notify);
-               ((TClustering::TDenseKMeans*)JsKMeans->Model)->Assign(JsSpVV->Mat, JsKMeans->AssignV);
+               KMeans->Apply(JsSpVV->Mat, JsKMeans->Iter, JsKMeans->Notify);
+               KMeans->Assign(JsSpVV->Mat, JsKMeans->AssignV);
                
                TFltVV D;
-               JsKMeans->Dist->GetDist2VV(JsSpVV->Mat, ((TClustering::TDenseKMeans*)JsKMeans->Model)->GetCentroidVV(), D);
+               JsKMeans->Dist->GetDist2VV(JsSpVV->Mat, KMeans->GetCentroidVV(), D);
                TLinAlg::MultiplyScalar(-1, D, D);
                TLinAlg::GetColMaxIdxV(D, JsKMeans->Medoids);
 
                if (JsIntV != nullptr) {
                    EAssertR(JsIntV->Vec.Len() == JsSpVV->Mat.Len(), "KMeans.fit: IntVector RecordIds.length must be equal to number of columns of X!");
 
-                   TIntV ColIdV = JsKMeans->Medoids;
+                   const TIntV& ColIdV = JsKMeans->Medoids;
                    for (int MedN = 0; MedN < ColIdV.Len(); MedN++) {
                        JsKMeans->Medoids[MedN] = JsIntV->Vec[ColIdV[MedN]];
                    }
@@ -3730,7 +3733,7 @@ void TNodeJsKMeans::TFitTask::Run() {
                else if (JsArr != nullptr) {
                    EAssertR(JsArr->Vec.Len() == JsSpVV->Mat.Len(), "KMeans.fit: Array RecordIds.length must be equal to number of columns of X!");
 
-                   TIntV ColIdV = JsKMeans->Medoids;
+                   const TIntV& ColIdV = JsKMeans->Medoids;
                    for (int MedN = 0; MedN < ColIdV.Len(); MedN++) {
                        JsKMeans->Medoids[MedN] = JsArr->Vec[ColIdV[MedN]];
                    }
@@ -3741,21 +3744,22 @@ void TNodeJsKMeans::TFitTask::Run() {
            }
        }
        else if (JsKMeans->CentType == TCentroidType::ctSparse) {
-           JsKMeans->Model = new TClustering::TSparseKMeans(JsKMeans->K, TRnd(0), JsKMeans->Dist);
+    	   TClustering::TSparseKMeans* KMeans = new TClustering::TSparseKMeans(JsKMeans->K, TRnd(0), JsKMeans->Dist);
+           JsKMeans->Model = (void*) KMeans;
            // input dense matrix
            if (JsFltVV != nullptr) {
-               ((TClustering::TSparseKMeans*)JsKMeans->Model)->Apply(JsFltVV->Mat, JsKMeans->Iter, JsKMeans->Notify);
-               ((TClustering::TSparseKMeans*)JsKMeans->Model)->Assign(JsFltVV->Mat, JsKMeans->AssignV);
+               KMeans->Apply(JsFltVV->Mat, JsKMeans->Iter, JsKMeans->Notify);
+               KMeans->Assign(JsFltVV->Mat, JsKMeans->AssignV);
 
                TFltVV D;
-               JsKMeans->Dist->GetDist2VV(JsFltVV->Mat, ((TClustering::TSparseKMeans*)JsKMeans->Model)->GetCentroidVV(), D);
+               JsKMeans->Dist->GetDist2VV(JsFltVV->Mat, KMeans->GetCentroidVV(), D);
                TLinAlg::MultiplyScalar(-1, D, D);
                TLinAlg::GetColMaxIdxV(D, JsKMeans->Medoids);
 
                if (JsIntV != nullptr) {
                    EAssertR(JsIntV->Vec.Len() == JsFltVV->Mat.GetCols(), "KMeans.fit: IntVector RecordIds.length must be equal to number of columns of X!");
 
-                   TIntV ColIdV = JsKMeans->Medoids;
+                   const TIntV& ColIdV = JsKMeans->Medoids;
                    for (int MedN = 0; MedN < ColIdV.Len(); MedN++) {
                        JsKMeans->Medoids[MedN] = JsIntV->Vec[ColIdV[MedN]];
                    }
@@ -3763,7 +3767,7 @@ void TNodeJsKMeans::TFitTask::Run() {
                else if (JsArr != nullptr) {
                    EAssertR(JsArr->Vec.Len() == JsFltVV->Mat.GetCols(), "KMeans.fit: Array RecordIds.length must be equal to number of columns of X!");
 
-                   TIntV ColIdV = JsKMeans->Medoids;
+                   const TIntV& ColIdV = JsKMeans->Medoids;
                    for (int MedN = 0; MedN < ColIdV.Len(); MedN++) {
                        JsKMeans->Medoids[MedN] = JsArr->Vec[ColIdV[MedN]];
                    }
@@ -3771,18 +3775,18 @@ void TNodeJsKMeans::TFitTask::Run() {
            }
            // input sparse matrix
            else if (JsSpVV != nullptr) {
-               ((TClustering::TSparseKMeans*)JsKMeans->Model)->Apply(JsSpVV->Mat, JsKMeans->Iter, JsKMeans->Notify);
-               ((TClustering::TSparseKMeans*)JsKMeans->Model)->Assign(JsSpVV->Mat, JsKMeans->AssignV);
+        	   KMeans->Apply(JsSpVV->Mat, JsKMeans->Iter, JsKMeans->Notify);
+        	   KMeans->Assign(JsSpVV->Mat, JsKMeans->AssignV);
 
                TFltVV D;
-               JsKMeans->Dist->GetDist2VV(JsSpVV->Mat, ((TClustering::TSparseKMeans*)JsKMeans->Model)->GetCentroidVV(), D);
+               JsKMeans->Dist->GetDist2VV(JsSpVV->Mat, KMeans->GetCentroidVV(), D);
                TLinAlg::MultiplyScalar(-1, D, D);
                TLinAlg::GetColMaxIdxV(D, JsKMeans->Medoids);
 
                if (JsIntV != nullptr) {
                    EAssertR(JsIntV->Vec.Len() == JsSpVV->Mat.Len(), "KMeans.fit: IntVector RecordIds.length must be equal to number of columns of X!");
 
-                   TIntV ColIdV = JsKMeans->Medoids;
+                   const TIntV& ColIdV = JsKMeans->Medoids;
                    for (int MedN = 0; MedN < ColIdV.Len(); MedN++) {
                        JsKMeans->Medoids[MedN] = JsIntV->Vec[ColIdV[MedN]];
                    }
@@ -3790,7 +3794,7 @@ void TNodeJsKMeans::TFitTask::Run() {
                else if (JsArr != nullptr) {
                    EAssertR(JsArr->Vec.Len() == JsSpVV->Mat.Len(), "KMeans.fit: Array RecordIds.length must be equal to number of columns of X!");
 
-                   TIntV ColIdV = JsKMeans->Medoids;
+                   const TIntV& ColIdV = JsKMeans->Medoids;
                    for (int MedN = 0; MedN < ColIdV.Len(); MedN++) {
                        JsKMeans->Medoids[MedN] = JsArr->Vec[ColIdV[MedN]];
                    }

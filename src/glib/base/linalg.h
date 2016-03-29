@@ -2238,9 +2238,10 @@ public:
 	int TLinAlg::GetColMinIdx(const TFltVV& X, const int& ColN) {
 		const int Rows = X.GetRows();
 		double MinVal = TFlt::Mx;
+		double Val;
 		int MinIdx = -1;
 		for (int RowN = 0; RowN < Rows; RowN++) {
-			double Val = X(RowN, ColN);
+			Val = X(RowN, ColN);
 			if (Val < MinVal) {
 				MinVal = Val;
 				MinIdx = RowN;
@@ -2257,7 +2258,6 @@ public:
 		if (IdxV.Empty()) { IdxV.Gen(Cols); }
 		EAssert(IdxV.Len() == Cols);
 
-		#pragma omp parallel for
 		for (int ColN = 0; ColN < Cols; ColN++) {
 			IdxV[ColN] = GetColMinIdx(X, ColN);
 		}

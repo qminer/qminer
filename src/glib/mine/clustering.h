@@ -149,7 +149,7 @@ void TEuclDist::GetDistV(const TMatType& X, const TVectorType& v, TFltV& DistV) 
         DistV[i] += NormX2 - 2 * xC[i];
         AssertR(DistV[i] > -1e-8, "Distance lower than numerical error!");
         if (DistV[i] < 0) { DistV[i] = 0; }
-        DistV[i] = sqrt(DistV[i]);
+        DistV[i] = TMath::Sqrt(DistV[i]);
     }
 }
 
@@ -382,7 +382,7 @@ protected:
         TVec<TIntFltKdV>& TempKxKSpVV, const TFltV& NormX2, TFltV& NormC2, const bool& AllowEmptyP = true);
 
     template<class TDataType>
-    void SelectInitCentroids(const TDataType& FtrVV, const int& K);
+    void SelectInitCentroids(const TDataType& FtrVV, const int& K, const int& NInst);
 
     template<class TDataType>
     inline void Assign(const TDataType& FtrVV, const TFltV& NormX2, const TFltV& NormC2, TIntV& AssignV) const;
@@ -611,13 +611,14 @@ inline void TAbsKMeans<TCentroidType>::UpdateCentroids(const TDataType& FtrVV, c
     TVec<TIntFltKdV>& TempKxKSpVV, const TFltV& NormX2, TFltV& NormC2, const bool& AllowEmptyP) {
 
     const int K = GetDataCount(CentroidVV);
-    int NumOfLoops = 0;
+
     // I. create a sparse matrix (coordinate representation) that encodes the closest centroids
     TSparseColMatrix AssignMat(NInst, K);
 
-    bool AllClustsFull;
+    bool ExistsEmpty;
+    int LoopN = 0;
     do {
-        AllClustsFull = true;
+    	ExistsEmpty = false;
 
         TSparseOps<TInt, TFlt>::CoordinateCreateSparseColMatrix(RangeN, AssignV, OnesN, AssignMat.ColSpVV, K);
 
@@ -628,18 +629,17 @@ inline void TAbsKMeans<TCentroidType>::UpdateCentroids(const TDataType& FtrVV, c
         for (int ClustN = 0; ClustN < K; ClustN++) {
         	// check if the cluster is empty, if we don't allow empty clusters, select a
         	// random point as the centroid
-            if (TempK[ClustN] == 0.0) {	// don't allow empty clusters
+            if (TempK[ClustN] == 0.0 && !AllowEmptyP) {	// don't allow empty clusters
                 // select a random point and create a new centroid from it
                 SelectRndCentroid(FtrVV, ClustN);
                 Dist->UpdateNormC2(CentroidVV, NormC2);
                 Assign(FtrVV, NormX2, NormC2, AssignV);
-                AllClustsFull = false;
+                ExistsEmpty = true;
                 break;
             }
             TempK[ClustN] = 1.0 / (TempK[ClustN] + 1.0);
         }
-        if (AllowEmptyP) { break; }
-    } while (!AllClustsFull || ++NumOfLoops < 10);
+    } while (ExistsEmpty && ++LoopN < 10);
 
 
     // III. compute the centroids
@@ -705,8 +705,8 @@ void TAbsKMeans<TCentroidType>::InitCentroids(TVec<TIntFltKdV>& CentroidVV, cons
 
 template<class TCentroidType>
 template<class TDataType>
-inline void TAbsKMeans<TCentroidType>::SelectInitCentroids(const TDataType& FtrVV, const int& K) {
-    const int NInst = GetDataCount(FtrVV);
+inline void TAbsKMeans<TCentroidType>::SelectInitCentroids(const TDataType& FtrVV,
+		const int& K, const int& NInst) {
 
     EAssertR(NInst >= K, "TStateIdentifier::SelectInitCentroids: The number of initial centroids should be less than the number of data points!");
 
@@ -850,7 +850,7 @@ void TDnsKMeans<TCentroidType>::Apply(const TDataType& FtrVV, const int& NInst, 
     Notify->OnNotify(TNotifyType::ntInfo, "Executing KMeans ...");
 
     // assignment vectors
-    TIntV AssignIdxV, OldAssignIdxV;
+    TIntV AssignIdxV(NInst), OldAssignIdxV(NInst);
     TIntV* AssignIdxVPtr = &AssignIdxV;
     TIntV* OldAssignIdxVPtr = &OldAssignIdxV;
     TIntV* Temp;
@@ -868,7 +868,7 @@ void TDnsKMeans<TCentroidType>::Apply(const TDataType& FtrVV, const int& NInst, 
     TVec<TIntFltKdV> TempKxKSpVV(K);	// (dimension k x k)
 
     // select initial centroids
-    TAbsKMeans<TCentroidType>::SelectInitCentroids(FtrVV, K);
+    TAbsKMeans<TCentroidType>::SelectInitCentroids(FtrVV, K, NInst);
 
     // do the work
     for (int i = 0; i < MaxIter; i++) {
@@ -957,7 +957,7 @@ inline void TDpMeans<TCentroidType>::Apply(const TDataType& FtrVV, const int& NI
     TIntV* Temp;
 
     // select initial centroids
-    TAbsKMeans<TCentroidType>::SelectInitCentroids(FtrVV, MnClusts);
+    TAbsKMeans<TCentroidType>::SelectInitCentroids(FtrVV, MnClusts, NInst);
 
     // const variables, reused throughtout the procedure
     TFltV OnesN;			TLAUtil::Ones(NInst, OnesN);
