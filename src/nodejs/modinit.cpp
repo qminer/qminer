@@ -77,6 +77,7 @@ void InitAnalytics(Handle<Object> Exports, const TStr& NsNm) {
 	TNodeJsNNet::Init(NsObj);
 	TNodeJsTokenizer::Init(NsObj);
 	TNodeJsMDS::Init(NsObj);
+    TNodeJsKMeans::Init(NsObj);
 
 	Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
 }

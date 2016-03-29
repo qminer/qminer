@@ -126,10 +126,7 @@ public:
 		v8::Local<v8::Value> ArgV[Argc] = { Arg1, Arg2 };
 		v8::TryCatch TryCatch;
 		v8::Local<v8::Value> ReturnVal = Callbck->Call(GlobalContext, Argc, ArgV);
-		if (TryCatch.HasCaught()) {
-			TryCatch.ReThrow();
-			return false;
-		}
+		TNodeJsUtil::CheckJSExcept(TryCatch);
 
 		EAssertR(ReturnVal->IsBoolean() || ReturnVal->IsNumber(), "Comparator callback must return a boolean or a number!");
 		return ReturnVal->IsBoolean() ? ReturnVal->BooleanValue() : ReturnVal->NumberValue() < 0;

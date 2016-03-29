@@ -3058,9 +3058,6 @@
     			if (fieldTypes == null) fieldTypes = {};
 
     			for (var key in data) {
-//    				if (key in ignoreFields)
-//    					continue;
-
     				var val = data[key];
     				if (fieldTypes[key] == null) {
     					if (val.length == 0)
@@ -3082,9 +3079,6 @@
     			if (fieldTypes == null) return false;
 
     			for (var key in fieldTypes) {
-//    				if (key in ignoreFields)
-//    					continue;
-
     				if (fieldTypes[key] == null)
     					return false;
     			}
@@ -3096,9 +3090,6 @@
     			var result = [];
 
     			for (var key in fieldTypes) {
-//    				if (key in ignoreFields)
-//    					continue;
-
     				if (fieldTypes[key] == null)
     					result.push(key);
     			}
@@ -3296,7 +3287,7 @@
     	if (opts.includeHeaders) {
     		var headerLine = &#x27;&#x27;;
     		for (var i = 0; i &amp;lt; nFields; i++) {
-    			headerLine += &#x27;&quot;&#x27; + fieldDesc[i].name + &#x27;&quot;&#x27;;
+    			headerLine += &#x27;&quot;&#x27; + fieldDesc[i].name.replace(/&quot;/g, &#x27;\\&quot;&#x27;) + &#x27;&quot;&#x27;;
     			if (i &amp;lt; nFields - 1)
     				headerLine += &#x27;,&#x27;;
     		}

@@ -153,6 +153,8 @@
 // Node - Utilities
 class TNodeJsUtil {
 public:
+	/// Checks if TryCatch caught an error, extracts the message and throws a PExcept
+	static void CheckJSExcept(const v8::TryCatch& TryCatch);
     /// Convert v8 Json to GLib Json (PJsonVal). Is parameter IgnoreFunc is set to true the method will
 	/// ignore functions otherwise an exception will be thrown when a function is encountered
     static PJsonVal GetObjJson(const v8::Local<v8::Value>& Obj, const bool IgnoreFunc=false);
@@ -447,10 +449,7 @@ void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun, const v8::Loc
 
 	v8::Handle<v8::Value> Argv[1] = { Arg };
 	Fun->Call(Isolate->GetCurrentContext()->Global(), 1, Argv);
-	if (TryCatch.HasCaught()) {
-		v8::String::Utf8Value Msg(TryCatch.Message()->Get());
-		throw TExcept::New("Javascript exception from callback triggered in TNodeJsUtil::ExecuteVoid() :" + TStr(*Msg));
-	}
+	TNodeJsUtil::CheckJSExcept(TryCatch);
 }
 
 template <class TVal>
@@ -461,11 +460,7 @@ bool TNodeJsUtil::ExecuteBool(const v8::Handle<v8::Function>& Fun, const v8::Loc
 
 	v8::Handle<v8::Value> Argv[1] = { Arg };
 	v8::Local<v8::Value> RetVal = Fun->Call(Isolate->GetCurrentContext()->Global(), 1, Argv);
-
-	if (TryCatch.HasCaught()) {
-		TryCatch.ReThrow();
-		throw TExcept::New("Exception while executing bool!", "TNodeJsUtil::ExecuteBool");
-	}
+	TNodeJsUtil::CheckJSExcept(TryCatch);
 
 	EAssertR(RetVal->IsBoolean(), "The return value is not a boolean!");
 	return RetVal->BooleanValue();

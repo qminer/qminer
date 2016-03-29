@@ -962,10 +962,7 @@ void TNodeJsFuncStreamAggr::OnUpdateRec(const TQm::TRec& Rec) {
 		v8::Local<v8::Value> ArgV[Argc] = { TNodeJsRec::NewInstance(new TNodeJsRec(TNodeJsBaseWatcher::New(), Rec)) };
 		v8::TryCatch TryCatch;
 		Callback->Call(GlobalContext, Argc, ArgV);
-		if (TryCatch.HasCaught()) {
-			TryCatch.ReThrow();
-			return;
-		}
+		TNodeJsUtil::CheckJSExcept(TryCatch);
 	}
 }
 
@@ -980,10 +977,7 @@ void TNodeJsFuncStreamAggr::OnDeleteRec(const TQm::TRec& Rec) {
 		v8::Local<v8::Value> ArgV[Argc] = { TNodeJsRec::NewInstance(new TNodeJsRec(TNodeJsBaseWatcher::New(), Rec)) };
 		v8::TryCatch TryCatch;
 		Callback->Call(GlobalContext, Argc, ArgV);
-		if (TryCatch.HasCaught()) {
-			TryCatch.ReThrow();
-			return;
-		}
+		TNodeJsUtil::CheckJSExcept(TryCatch);
 	}
 }
 
@@ -1094,10 +1088,7 @@ int TNodeJsFuncStreamAggr::GetInt() const {
 
 		v8::TryCatch TryCatch;
 		v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
-		if (TryCatch.HasCaught()) {
-			TryCatch.ReThrow();
-			return 0;
-		}
+		TNodeJsUtil::CheckJSExcept(TryCatch);
 		QmAssertR(RetVal->IsInt32(), "TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", getInt(): Return type expected to be int32");
 		return RetVal->Int32Value();
 	}
@@ -1116,10 +1107,7 @@ double TNodeJsFuncStreamAggr::GetFlt() const {
 
 		v8::TryCatch TryCatch;
 		v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
-		if (TryCatch.HasCaught()) {
-			TryCatch.ReThrow();
-			return 0.0;
-		}
+		TNodeJsUtil::CheckJSExcept(TryCatch);
 		QmAssertR(RetVal->IsNumber(), "TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", getFlt(): Return type expected to be int32");
 		return RetVal->NumberValue();
 	}
@@ -1138,10 +1126,7 @@ uint64 TNodeJsFuncStreamAggr::GetTmMSecs() const {
 
 		v8::TryCatch TryCatch;
 		v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
-		if (TryCatch.HasCaught()) {
-			TryCatch.ReThrow();
-			return 0;
-		}
+		TNodeJsUtil::CheckJSExcept(TryCatch);
 		QmAssertR(RetVal->IsNumber(), "TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", getTm(): Return type expected to be number");
 		return (uint64)RetVal->NumberValue();
 	}

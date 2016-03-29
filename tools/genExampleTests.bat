@@ -6,6 +6,6 @@ node makedoc.js ../src/nodejs/la/la_vector_nodejs.h "" ../nodedoc/ladoc.js ../no
 node makedoc.js ../src/nodejs/qm/qm_nodejs.h ../src/nodejs/scripts/qm.js ../nodedoc/qminerdoc.js
 node makedoc.js ../src/nodejs/qm/qm_nodejs_streamaggr.h "" ../nodedoc/qminer_aggrdoc.js
 node makedoc.js ../src/nodejs/statistics/stat_nodejs.h "" ../nodedoc/statdoc.js
-node makedoc.js "" ../src/nodejs/datasets/datasets.js ../nodedoc/datasetsdoc.js
+echo node makedoc.js "" ../src/nodejs/datasets/datasets.js ../nodedoc/datasetsdoc.js
 
 node createExampleTests.js ../nodedoc/ ../test/nodejs/

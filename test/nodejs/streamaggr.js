@@ -1094,6 +1094,53 @@ describe('Time Series Window Buffer Tests', function () {
 
 });
 
+describe('Time Series Window Buffer Vector Tests', function () {
+    var base = undefined;
+    var store = undefined;
+    beforeEach(function () {
+        base = new qm.Base({
+            mode: 'createClean',
+            schema: [{
+                name: 'Function',
+                fields: [
+                    { name: 'Time', type: 'datetime' },
+                    { name: 'Value', type: 'float' }
+                ]
+            }]
+        });
+        store = base.store('Function');
+    });
+    afterEach(function () {
+        base.close();
+    });
+
+    describe('Simple test', function () {
+        it('winbufvec.getFloatVector should equal to winbuf.getFloatVector', function () {
+            var winbuf = store.addStreamAggr({                
+                type: 'timeSeriesWinBuf',                
+                timestamp: 'Time',
+                value: 'Value',
+                winsize: 2000
+            });
+            var winbufvec = store.addStreamAggr({                
+                type: 'timeSeriesWinBufVector',                
+                inAggr: winbuf.name
+            });
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+			store.push({ Time: '2015-06-10T14:33:30.0', Value: 2 });
+			store.push({ Time: '2015-06-10T14:33:31.0', Value: 3 });
+			store.push({ Time: '2015-06-10T14:33:32.0', Value: 4 });
+            
+            assert.equal(winbuf.getFloatLength(), winbufvec.getFloatLength());
+            var vec = winbuf.getFloatVector();
+            var vec2 = winbufvec.getFloatVector();
+            for (var i = 0; i < winbuf.getFloatLength(); i++) {
+                assert.equal(vec[i], vec2[i]);
+            }
+        })
+    });
+});
+
 describe('MovingWindowBufferSum Tests', function () {
     var base = undefined;
     var store = undefined;

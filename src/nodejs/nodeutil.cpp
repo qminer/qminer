@@ -10,6 +10,13 @@
 /////////////////////////////////////////
 // Node - Utilities
 
+void TNodeJsUtil::CheckJSExcept(const v8::TryCatch& TryCatch) {
+	if (TryCatch.HasCaught()) {
+		v8::String::Utf8Value Msg(TryCatch.Message()->Get());
+		throw TExcept::New("Javascript exception from callback triggered:" + TStr(*Msg));
+	}
+}
+
 PJsonVal TNodeJsUtil::GetObjJson(const v8::Local<v8::Value>& Val, const bool IgnoreFunc) {
 	AssertR(!Val->IsExternal(), "TNodeJsUtil::GetObjJson: Cannot parse v8::External!");
 
@@ -607,10 +614,7 @@ double TNodeJsUtil::ExecuteFlt(const v8::Handle<v8::Function>& Fun, const v8::Lo
 	v8::Handle<v8::Value> Argv[1] = { Arg };
 	v8::TryCatch TryCatch;
 	v8::Handle<v8::Value> RetVal = Fun->Call(Isolate->GetCurrentContext()->Global(), 1, Argv);
-	if (TryCatch.HasCaught()) {
-		TryCatch.ReThrow();
-		return 0;
-	}
+	TNodeJsUtil::CheckJSExcept(TryCatch);
 	EAssertR(RetVal->IsNumber(), "Return type expected to be number");
 
 	return RetVal->NumberValue();
@@ -637,10 +641,7 @@ void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun, const int& Ar
 	v8::HandleScope HandleScope(Isolate);
 	v8::TryCatch TryCatch;
 	Fun->Call(Isolate->GetCurrentContext()->Global(), ArgC, ArgV);
-	if (TryCatch.HasCaught()) {
-		TryCatch.ReThrow();
-		return;
-	}
+	TNodeJsUtil::CheckJSExcept(TryCatch);
 }
 
 void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun,
@@ -799,12 +800,13 @@ TNodeTask::TNodeTask(const v8::FunctionCallbackInfo<v8::Value>& Args):
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	if (Args.Length() == 0) { return; }
-
-	v8::Local<v8::Array> ArgsArr = v8::Array::New(Isolate, Args.Length());
+	v8::Local<v8::Array> ArgsArr = v8::Array::New(Isolate, Args.Length() + 1);	
+	
 	for (int ArgN = 0; ArgN < Args.Length(); ArgN++) {
 		ArgsArr->Set(ArgN, Args[ArgN]);
 	}
+	ArgsArr->Set(Args.Length(), Args.Holder());
+	
 	ArgPersist.Reset(Isolate, ArgsArr);
 }
 

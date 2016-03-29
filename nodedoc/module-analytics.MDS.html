@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">MDS</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1629">analyticsdoc.<wbr>js:1629</a></p>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1638">analyticsdoc.<wbr>js:1638</a></p>
             <div class="symbol-classdesc">
               <p>Multidimensional scaling</p>
             </div>
@@ -38,7 +38,7 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.MDS.html#fitTransform">fitTransform(mat)</a></dt>
+                    <dt><a href="module-analytics.MDS.html#fitTransform">fitTransform(mat[, callback])</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-analytics.MDS.html#getParams">getParams()</a></dt>
@@ -109,13 +109,30 @@ var mds = new analytics.MDS({ maxStep: 300, distType: &#x27;Cos&#x27; });</code>
           <section>
             <h2>Methods</h2>
             <section>
-              <h3 id="fitTransform"><span class="symbol-name">fitTransform</span><span class="signature"><span class="signature-params">(mat)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
+              <h3 id="fitTransform"><span class="symbol-name">fitTransform</span><span class="signature"><span class="signature-params">(mat[, callback])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
               <p>Get the MDS of the given matrix.</p>
               <section>
                 <h4>
-            Example
+            Examples
         </h4>
                 <div>
+                  <p> Asynchronous function </p>
+                  <pre class="prettyprint"><code>// import the modules
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
+// create a MDS instance
+var mds = new analytics.MDS();
+// create the multidimensional matrix
+var mat = new la.Matrix({ rows: 50, cols: 10, random: true });
+// get the 2d representation of mat 
+mds.fitTransformAsync(mat, function (err, res) {
+   if (err) { console.log(err); return }
+   // successful calculation
+   var mat2d = res;
+}); </code></pre>
+                </div>
+                <div>
+                  <p> Synchronous function </p>
                   <pre class="prettyprint"><code>// import the modules
 var analytics = require(&#x27;qminer&#x27;).analytics;
 var la = require(&#x27;qminer&#x27;).la;
@@ -128,7 +145,7 @@ var mat2d = mds.fitTransform(mat); </code></pre>
                 </div>
               </section>
               <section>
-                <h4>Parameter</h4>
+                <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
                   <thead>
                     <tr>
@@ -151,6 +168,21 @@ var mat2d = mds.fitTransform(mat); </code></pre>
                       </td>
                       <td>
                         <p>The multidimensional matrix.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>callback</p>
+                      </td>
+                      <td>
+                        <p>function()</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The callback function receiving the error parameter (err) and the result parameter (result).
+                          <i>Only for the asynchronous function.</i></p>
                       </td>
                     </tr>
                   </tbody>
