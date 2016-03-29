@@ -75,7 +75,9 @@ inline TLinModel LibSvmSolveRegression(const TVec<TIntFltKdV>& VecV, const TFltV
     svm_problem_t svm_problem;
     svm_problem.l = VecV.Len();
     svm_problem.y = (double *)malloc(VecV.Len() * sizeof(double));
-
+	// reserve space for training vectors
+	svm_problem.x = (svm_node_t **)malloc(VecV.Len() * sizeof(svm_node_t *));
+	
     // compute number of nonzero elements and get dimensionalit
     int NonZero = 0, Dim = 0;
     for (int VecN = 0; VecN < VecV.Len(); ++VecN) {

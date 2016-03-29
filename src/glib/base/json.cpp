@@ -269,7 +269,19 @@ void TJsonVal::GetObjStrV(const char *Key, TStrV& StrV) const {
     EAssert(IsObjKey(Key));
     GetObjKey(Key)->GetArrStrV(StrV);
 }
-  
+
+void TJsonVal::AssertObjKeyStr(const TStr& Key, const TStr& Fun) {
+	// missing key or key not string
+	if (!IsObjKey(Key)) { throw TExcept::New("Exception in function `" + Fun + "`: missing JSON property:`" + Key + "`."); }
+	if (!GetObjKey(Key)->IsStr()) { throw TExcept::New("Exception in function `" + Fun + "`: JSON property:`" + Key + "` is not a string."); }
+}
+
+void TJsonVal::AssertObjKeyNum(const TStr& Key, const TStr& Fun) {
+	// missing key or key not string
+	if (!IsObjKey(Key)) { throw TExcept::New("Exception in function `" + Fun + "`: missing JSON property:`" + Key + "`."); }
+	if (!GetObjKey(Key)->IsNum()) { throw TExcept::New("Exception in function `" + Fun + "`: JSON property:`" + Key + "` is not a number."); }
+}
+
 PJsonVal TJsonVal::GetValFromLx(TILx& Lx){
   static TFSet ValExpect=TFSet()|syIdStr|syFlt|syQStr|syLBracket|syLBrace|syRBracket;
   PJsonVal Val=TJsonVal::New();

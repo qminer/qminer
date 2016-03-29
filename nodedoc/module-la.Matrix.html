@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-la.html">la</a>.<wbr></small><span class="symbol-name">Matrix</span></h1>
-            <p class="source-link">Source: <a href="ladoc.js.html#source-line-59">ladoc.<wbr>js:59</a></p>
+            <p class="source-link">Source: <a href="ladoc.js.html#source-line-99">ladoc.<wbr>js:99</a></p>
             <div class="symbol-classdesc">
               <p>Represents a dense matrix (2d array), wraps a C++ object implemented in glib/base/ds.h.</p>
             </div>
@@ -823,7 +823,7 @@ var mat = new la.Matrix([[1, 2], [-1, 5]]);
 // create a new vector
 var vec = new la.Vector([1, -1]);
 //multiply mat and vec
-var vec2 = mat.multiplyT(vec); // returns vector [2, 7]</code></pre>
+var vec2 = mat.multiplyT(vec); // returns vector [2, -3]</code></pre>
                 </div>
               </section>
               <section>
@@ -865,12 +865,26 @@ var vec2 = mat.multiplyT(vec); // returns vector [2, 7]</code></pre>
               </dl>
               <h3 id="normalizeCols"><span class="symbol-name">normalizeCols</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
               <p>Normalizes each column of matrix.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import la module
+var la = require(&#x27;qminer&#x27;).la;
+// create a new matrix
+var mat = new la.Matrix([[3, 4], [4, 15/2]]);
+// normalize the columns of the matrix
+// the matrix is going to be of the form:
+// 3/5     8/17
+// 4/5    15/17
+mat.normalizeCols();</code></pre>
+                </div>
+              </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>&nbsp;Self. The columns of the matrix are normalized. // import la module var la = require('qminer').la; // create a new matrix var mat = new la.Matrix([[3, 4], [4, 15/2]]);
-                    // normalize the columns of the matrix // the matrix is going to be of the form: // 3/5 8/17 // 4/5 15/17 mat.normalizeCols();
-                  </p>
+                  <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>&nbsp;Self. The columns of the matrix are normalized.</p>
                 </dd>
               </dl>
               <h3 id="plus"><span class="symbol-name">plus</span><span class="signature"><span class="signature-params">(mat)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>

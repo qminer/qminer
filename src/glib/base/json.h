@@ -176,6 +176,10 @@ public:
   void DelObjKey(const char *Key) { EAssert(IsObj()); KeyValH.DelIfKey(Key); /*KeyValH.Defrag();*/ }
   void DelArrVal(const int& ValN) { EAssert(IsArr()); ValV.Del(ValN); }
 
+  // validation
+  void AssertObjKeyStr(const TStr& Key, const TStr& Fun);
+  void AssertObjKeyNum(const TStr& Key, const TStr& Fun);
+
   // (de)serialization
   static PJsonVal GetValFromLx(TILx& Lx);
   static PJsonVal GetValFromSIn(const PSIn& SIn, bool& Ok, TStr& MsgStr);

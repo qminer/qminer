@@ -3288,7 +3288,8 @@ TNodeJsMDS::TFitTransformTask::TFitTransformTask(const v8::FunctionCallbackInfo<
 		JsMDS(nullptr),
 		JsFltVV(nullptr),
 		JsSpVV(nullptr),
-		JsResult(nullptr) {
+		JsResult(nullptr),
+		Notify(TQm::TEnv::Logger) {
 
 	JsMDS = ObjectWrap::Unwrap<TNodeJsMDS>(Args.Holder());
 
@@ -3320,18 +3321,17 @@ void TNodeJsMDS::TFitTransformTask::Run() {
 		double MnDiff = JsMDS->MnDiff;
 		TVizDistType DistType = JsMDS->DistType;
 		bool RndStartPos = true;
-		PNotify& Noty = TQm::TEnv::Logger;
 
 		if (JsFltVV != nullptr) {
 			const TFltVV& Mat = JsFltVV->Mat;
 			DummyClsV.Gen(Mat.GetCols());
 			TrainSet = TRefDenseTrainSet::New(Mat, DummyClsV);
-			TVizMapFactory::MakeFlat(TrainSet, DistType, Temp, MxStep, MxSecs, MnDiff, RndStartPos, Noty);
+			TVizMapFactory::MakeFlat(TrainSet, DistType, Temp, MxStep, MxSecs, MnDiff, RndStartPos, Notify);
 		} else if (JsSpVV != nullptr) {
 			const TVec<TIntFltKdV>& Mat = JsSpVV->Mat;
 			DummyClsV.Gen(Mat.Len());
 			TrainSet = TRefSparseTrainSet::New(Mat, DummyClsV);
-			TVizMapFactory::MakeFlat(TrainSet, DistType, Temp, MxStep, MxSecs, MnDiff, RndStartPos, Noty);
+			TVizMapFactory::MakeFlat(TrainSet, DistType, Temp, MxStep, MxSecs, MnDiff, RndStartPos, Notify);
 		} else {
 			throw TExcept::New("MDS.fitTransform: expects dense or sparse matrix!");
 		}

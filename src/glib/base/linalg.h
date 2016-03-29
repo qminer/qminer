@@ -1247,8 +1247,12 @@ public:
 	template <class TType, class TSizeTy, bool ColMajor>
 	void TLinAlg::LinComb(const double& p, const TVec<TType, TSizeTy>& x,
 		const double& q, const TVec<TType, TSizeTy>& y, TVec<TType, TSizeTy>& z) {
-
-		EAssert(x.Len() == y.Len() && y.Len() == z.Len());
+		if (z.Len() == 0) {
+			EAssert(x.Len() == y.Len());
+			z.Gen(x.Len());
+		} else {
+			EAssert(x.Len() == y.Len() && y.Len() == z.Len());
+		}
 		const TSizeTy Len = x.Len();
 		for (TSizeTy i = 0; i < Len; i++) {
 			z[i] = p * x[i] + q * y[i];

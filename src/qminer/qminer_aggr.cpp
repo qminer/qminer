@@ -630,6 +630,43 @@ PJsonVal TTimeSeriesTick::SaveJson(const int& Limit) const {
 }
 
 ///////////////////////////////
+// Buffer values vector
+
+void TWinBufFltV::OnAddRec(const TRec& Rec) {
+	TFltV OutValV; InAggrVal->GetOutValV(OutValV);
+	if (InAggr->IsInit()) {
+		for (int ElN = 0; ElN < OutValV.Len(); ElN++) {
+			Queue.Pop();
+		}
+		if (!InAggrVal->DelayedP()) {
+			Queue.Push(InAggrVal->GetInVal());
+		} else {
+			TFltV InValV; InAggrVal->GetInValV(InValV);
+			for (int ElN = 0; ElN < InValV.Len(); ElN++) {
+				Queue.PushV(InValV);
+			}
+		}
+	}
+}
+
+TWinBufFltV::TWinBufFltV(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal) {
+	// parse out input aggregate
+	TStr InStoreNm = ParamVal->GetObjStr("store");
+	TStr InAggrNm = ParamVal->GetObjStr("inAggr");
+	PStreamAggr _InAggr = Base->GetStreamAggr(InStoreNm, InAggrNm);
+	InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
+	QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
+	InAggrVal = dynamic_cast<TStreamAggrOut::IFltTmIO*>(_InAggr());
+	QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTmIO interface: " + InAggrNm);
+}
+
+// serialization to JSon
+PJsonVal TWinBufFltV::SaveJson(const int& Limit) const {
+	TFltV Vec; Queue.GetSubValVec(0, Queue.Len() - 1, Vec);
+	return TJsonVal::NewArr(Vec);
+}
+
+///////////////////////////////
 // Exponential Moving Average.
 void TEma::OnAddRec(const TRec& Rec) {
 	OnStep();
@@ -1894,6 +1931,80 @@ PJsonVal TVecDiff::SaveJson(const int& Limit) const {
 	Res->AddToObj("diff", CountsArr);
 	return Res;
 }
+
+///////////////////////////////
+// Simple linear regression stream aggregate.
+
+void TSimpleLinReg::OnStep() {
+	TFltV X; InAggrValX->GetValV(X);
+	TFltV Y; InAggrValY->GetValV(Y);
+	double A;
+	double B;	
+
+    TSpecFunc::LinearFit(X, Y, A, B);	
+
+	Result->AddToObj("intercept", A);
+	Result->AddToObj("slope", B);
+
+	if (Quantiles.Len() > 0) {
+		int N = X.Len();
+		TFltV Projected(N);
+		TFltV Bands(Quantiles.Len());		
+		if (N > 0) { // empty vectors -> all bands are set to 0
+			TLinAlg::LinComb(1.0, Y, -B, X, Projected);
+			Projected.Sort(true);
+			for (int QuantN = 0; QuantN < Quantiles.Len(); QuantN++) {
+				EAssertR((Quantiles[QuantN] >= 0) && (Quantiles[QuantN] <= 1), "Each quantile should be a number between 0 and 1");
+				int Index = (int)floor(Quantiles[QuantN] * N);
+				Index = MIN(Index, N - 1);
+				int Index2 = MAX(Index - 1, 0);
+				Bands[QuantN] = 0.5*(Projected[Index] + Projected[Index2]);
+			}
+		}
+		Result->AddToObj("bands", TJsonVal::NewArr(Bands));
+	}
+}
+
+TSimpleLinReg::TSimpleLinReg(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal) {
+	// filter
+	if (ParamVal->IsObjKey("filter")) {
+		PJsonVal Val = ParamVal->GetObjKey("filter");
+		Filter = TStreamAggrOnAddFilter::New(Val->GetObjStr("type"), Val);
+	} else {
+		Filter = TStreamAggrOnAddFilter::New();
+	}
+	// parse out input aggregate
+	TStr InStoreNmX = ParamVal->GetObjStr("storeX");
+	TStr InStoreNmY = ParamVal->GetObjStr("storeY");
+	TStr InAggrNmX = ParamVal->GetObjStr("inAggrX");
+	TStr InAggrNmY = ParamVal->GetObjStr("inAggrY");
+	PStreamAggr _InAggrX = Base->GetStreamAggr(InStoreNmX, InAggrNmX);
+	PStreamAggr _InAggrY = Base->GetStreamAggr(InStoreNmY, InAggrNmY);
+
+	InAggrX = dynamic_cast<TStreamAggr*>(_InAggrX());
+	QmAssertR(!InAggrX.Empty(), "Stream aggregate does not exist: " + InAggrNmX);
+	InAggrValX = dynamic_cast<TStreamAggrOut::IFltVec*>(_InAggrX());
+	QmAssertR(!InAggrValX.Empty(), "Stream aggregate does not implement IFltVec interface: " + InAggrNmX);
+
+	InAggrY = dynamic_cast<TStreamAggr*>(_InAggrY());
+	QmAssertR(!InAggrY.Empty(), "Stream aggregate does not exist: " + InAggrNmY);
+	InAggrValY = dynamic_cast<TStreamAggrOut::IFltVec*>(_InAggrY());
+	QmAssertR(!InAggrValY.Empty(), "Stream aggregate does not implement IFltVec interface: " + InAggrNmY);
+
+	if (ParamVal->IsObjKey("quantiles")) {
+		ParamVal->GetObjFltV("quantiles", Quantiles);
+	}
+	Reset();
+}
+
+void TSimpleLinReg::Reset() {
+	Result = TJsonVal::NewObj();
+	if (Quantiles.Len() > 0) {
+		Result->AddToObj("quantiles", TJsonVal::NewArr(Quantiles));
+	}
+}
+
+
 
 } // TStreamAggrs namespace
 } // TQm namespace

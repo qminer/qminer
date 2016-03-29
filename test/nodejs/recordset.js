@@ -461,26 +461,33 @@ describe('Record Set Tests', function () {
             recSet.filter(function (rec) { return rec.Rating == 5.6; });
             assert.equal(recSet.length, 1);
             assert.equal(recSet[0].Title, "Every Day");
-        })
+        });
+        it('Throw an exception', function () {
+        	debugger
+            assert.throws(function () {
+            	//Javascript exception from callback triggered:Uncaught err
+                 recSet.filter(function (rec) { throw "err" });
+            }, /Uncaught err/);
+        });
         it('should filter the all with known gender people', function () {
             recSet2.filter(function (rec) { return rec.Gender == 'Male' || rec.Gender == 'Female' });
             assert.equal(recSet2.length, 61);
             assert.equal(recSet2[0].Name, "Carolina Fortuna");
-        })
+        });
         it('should throw an exception, if no parameter is given', function () {
             assert.throws(function () {
                 recSet2.filter();
-            })
-        })
+            });
+        });
         it('should throw an exception, if the callback function is incomplete', function () {
             assert.throws(function () {
                 recSet2.filter(function (rec) { });
-            })
-        })
+            });
+        });
         it('should descard all of the records', function () {
             recSet2.filter(function () { return 0 == 1; });
             assert.equal(recSet2.length, 0);
-        })
+        });
     });
 
     describe('Split Tests', function () {

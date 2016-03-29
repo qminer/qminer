@@ -67,7 +67,7 @@ TStr TBlobPt::GetStr() const {
 /////////////////////////////////////////////////
 // Blob-Base
 const int TBlobBs::MnBlobBfL=16;
-const int TBlobBs::MxBlobFLen=1000000000;
+const int TBlobBs::MxBlobFLen=2000000000;
 
 void TBlobBs::PutVersionStr(const PFRnd& FBlobBs){
   FBlobBs->PutStr(GetVersionStr());
@@ -207,7 +207,7 @@ TBlobState TBlobBs::GetBlobState(const PFRnd& FBlobBs){
 }
 
 void TBlobBs::AssertBlobState(const PFRnd& FBlobBs, const TBlobState& State){
-  EAssert(TBlobState(FBlobBs->GetCh())==State);
+  EAssertR(TBlobState(FBlobBs->GetCh())==State, TStr::Fmt("Expected state %d, received %d", (int)State, (int)FBlobBs->GetCh()));
 }
 
 void TBlobBs::AssertBfCsEqFlCs(const TCs& BfCs, const TCs& FCs){
