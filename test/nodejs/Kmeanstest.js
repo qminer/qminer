@@ -267,7 +267,7 @@ describe("Kmeans test", function () {
     });
 
 
-    describe.skip("Explain Tests", function () {
+    describe("Explain Tests", function () {
         it("should not throw an exception", function () {
             var KMeans = new analytics.KMeans({ k: 3 });
             var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);

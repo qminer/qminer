@@ -379,7 +379,7 @@ protected:
     template<class TDataType>
     void UpdateCentroids(const TDataType& FtrVV, const int& NInst, TIntV& AssignV, const TFltV& OnesN,
         const TIntV& RangeN, TFltV& TempK, TCentroidType& TempDxKV,
-        TVec<TIntFltKdV>& TempKxKSpVV, const TFltV& NormX2, TFltV& NormC2);
+        TVec<TIntFltKdV>& TempKxKSpVV, const TFltV& NormX2, TFltV& NormC2, const bool& AllowEmptyP = true);
 
     template<class TDataType>
     void SelectInitCentroids(const TDataType& FtrVV, const int& K);
@@ -608,10 +608,10 @@ template<class TCentroidType>
 template<class TDataType>
 inline void TAbsKMeans<TCentroidType>::UpdateCentroids(const TDataType& FtrVV, const int& NInst, TIntV& AssignV,
     const TFltV& OnesN, const TIntV& RangeN, TFltV& TempK, TCentroidType& TempDxKV,
-    TVec<TIntFltKdV>& TempKxKSpVV, const TFltV& NormX2, TFltV& NormC2) {
+    TVec<TIntFltKdV>& TempKxKSpVV, const TFltV& NormX2, TFltV& NormC2, const bool& AllowEmptyP) {
 
     const int K = GetDataCount(CentroidVV);
-
+    int NumOfLoops = 0;
     // I. create a sparse matrix (coordinate representation) that encodes the closest centroids
     TSparseColMatrix AssignMat(NInst, K);
 
@@ -636,7 +636,8 @@ inline void TAbsKMeans<TCentroidType>::UpdateCentroids(const TDataType& FtrVV, c
             }
             TempK[ClustN] = 1.0 / (TempK[ClustN] + 1.0);
         }
-    } while (!AllClustsFull);
+        if (AllowEmptyP) { break; }
+    } while (!AllClustsFull || ++NumOfLoops < 10);
 
 
     // III. compute the centroids

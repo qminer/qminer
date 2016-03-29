@@ -2368,8 +2368,8 @@ public:
     static const TStr GetClassId() { return "KMeans"; }
 
 private:
-    enum DistanceType { Euclid, Cos };
-    enum CentroidType { Dense, Sparse };
+    enum TDistanceType { dtEuclid, dtCos };
+    enum TCentroidType { ctDense, ctSparse };
 
     int Iter;
     int K;
@@ -2377,10 +2377,10 @@ private:
     TIntV AssignV;
     TIntV Medoids;
 
-    DistanceType DistType;
+    TDistanceType DistType;
     TClustering::PDist Dist;
 
-    CentroidType CentType;
+    TCentroidType CentType;
     void* Model;
 
     bool Verbose;
@@ -2395,9 +2395,12 @@ private:
 private:
     class TFitTask : public TNodeTask {
         TNodeJsKMeans* JsKMeans;
+        // first argument
         TNodeJsFltVV*  JsFltVV;
         TNodeJsSpMat*  JsSpVV;
+        // second argument
         TNodeJsIntV*   JsIntV;
+        TNodeJsIntV*   JsArr;
 
     public:
         TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
