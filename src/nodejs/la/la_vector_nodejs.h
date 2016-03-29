@@ -173,6 +173,7 @@ public: // So we can register the class
 	//static v8::Local<v8::Object> New(v8::Local<v8::Array> Arr);
 public:
 	TNodeJsVec() : Vec() { }
+	TNodeJsVec(const int& Size) : Vec(Size) {}
 	TNodeJsVec(const TVec<TVal>& ValV) : Vec(ValV) { }
 public:
 	JsDeclareFunction(New);

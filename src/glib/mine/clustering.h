@@ -600,6 +600,8 @@ inline void TAbsKMeans<TCentroidType>::UpdateCentroids(const TDataType& FtrVV, c
 
         // invert
         for (int ClustN = 0; ClustN < K; ClustN++) {
+        	// check if the cluster is empty, if we don't allow empty clusters, select a
+        	// random point as the centroid
             if (TempK[ClustN] == 0.0) {	// don't allow empty clusters
                 // select a random point and create a new centroid from it
                 SelectRndCentroid(FtrVV, ClustN);
@@ -681,21 +683,37 @@ inline void TAbsKMeans<TCentroidType>::SelectInitCentroids(const TDataType& FtrV
 
     EAssertR(NInst >= K, "TStateIdentifier::SelectInitCentroids: The number of initial centroids should be less than the number of data points!");
 
-    // generate k random elements
-    TFltV PermV(NInst);	TLAUtil::Range(NInst, PermV);
     TIntV CentroidNV(K);
 
-    double Temp;
-    for (int i = 0; i < K; i++) {
-        const int SwapIdx = Rnd.GetUniDevInt(i, NInst - 1);
+    // generate k random elements
+    if (K < NInst / 2) {
+    	TIntSet TakenSet(K);
 
-        // swap
-        Temp = PermV[SwapIdx];
-        PermV[SwapIdx] = PermV[i];
-        PermV[i] = Temp;
+    	int RecN;
+    	for (int ClustN = 0; ClustN < K; ClustN++) {
+    		do {	// expecting max 2 iterations before we get a hit
+    			RecN = Rnd.GetUniDevInt(NInst);
+    		} while (TakenSet.IsKey(RecN));
 
-        CentroidNV[i] = (int)PermV[i];
+    		TakenSet.AddKey(RecN);
+    		CentroidNV[ClustN] = RecN;
+    	}
+    } else {
+		TIntV PermV(NInst);	TLAUtil::Range(NInst, PermV);
+
+		TInt Temp;
+		for (int i = 0; i < K; i++) {
+			const int SwapIdx = Rnd.GetUniDevInt(i, NInst - 1);
+
+			// swap
+			Temp = PermV[SwapIdx];
+			PermV[SwapIdx] = PermV[i];
+			PermV[i] = Temp;
+
+			CentroidNV[i] = PermV[i];
+		}
     }
+
     InitCentroids(CentroidVV, FtrVV, CentroidNV, K);
 }
 
