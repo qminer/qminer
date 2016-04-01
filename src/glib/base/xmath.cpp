@@ -138,9 +138,9 @@ double TSpecFunc::BetaCf(const double& a, const double& b, const double& x){
     h *= del;
     if (fabs(del-1.0) < EPS) break;
   }
-  if (m > MAXIT){
+  if (m > MAXIT){	// a or b too big, or MAXIT too small in betacf
 	  throw TExcept::New("Failed to calculate BetaCf for a=" + TFlt::GetStr(a) + ", b=" + TFlt::GetStr(b) + ", x=" + TFlt::GetStr(x));
-  }// a or b too big, or MAXIT too small in betacf
+  }
   return h;
 }
 
