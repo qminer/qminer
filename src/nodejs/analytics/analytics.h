@@ -2339,6 +2339,7 @@ private:
 * @typedef {Object} KMeansParameters
 * @property {number} [iter=10000] - The maximum number of iterations.
 * @property {number} [k=2] - The number of centroids.
+* @property {boolean} [allowEmpty=true] - wether to allow empty clusters to be generated
 * @property {string} [centroidType="Dense"] - The type of centroids. Options: "Dense" or "Sparse".
 * @property {string} [distanceType="Euclid"] - The distance type used at the calculations. Options: "Euclid" or "Cos".
 * @property {boolean} [verbose=false] - If false, the console output is supressed.
@@ -2374,6 +2375,7 @@ private:
 
     int Iter;
     int K;
+    TBool AllowEmptyP;
 
     TIntV AssignV;
     TIntV Medoids;

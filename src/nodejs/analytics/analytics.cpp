@@ -3414,6 +3414,7 @@ void TNodeJsMDS::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 TNodeJsKMeans::TNodeJsKMeans(const PJsonVal& ParamVal) :
         Iter(10000),
         K(2),
+		AllowEmptyP(true),
         AssignV(),
         DistType(TDistanceType::dtEuclid),
 		Dist(nullptr),
@@ -3426,6 +3427,7 @@ TNodeJsKMeans::TNodeJsKMeans(const PJsonVal& ParamVal) :
 TNodeJsKMeans::TNodeJsKMeans(TSIn& SIn) :
         Iter(TInt(SIn)),
         K(TInt(SIn)),
+		AllowEmptyP(SIn),
         AssignV(SIn),
         DistType(LoadEnum<TDistanceType>(SIn)),
         CentType(LoadEnum<TCentroidType>(SIn)),
@@ -3456,6 +3458,7 @@ TNodeJsKMeans::~TNodeJsKMeans() {
 void TNodeJsKMeans::UpdateParams(const PJsonVal& ParamVal) {
     if (ParamVal->IsObjKey("iter")) { Iter = ParamVal->GetObjInt("iter"); }
     if (ParamVal->IsObjKey("k")) { K = ParamVal->GetObjInt("k"); }
+    if (ParamVal->IsObjKey("allowEmpty")) { AllowEmptyP = ParamVal->GetObjBool("allowEmpty"); }
     if (ParamVal->IsObjKey("distanceType")) { 
         TStr dist = ParamVal->GetObjStr("distanceType"); 
         if (dist == "Euclid") {
@@ -3519,6 +3522,7 @@ PJsonVal TNodeJsKMeans::GetParams() const {
 void TNodeJsKMeans::Save(TSOut& SOut) const {
     TInt(Iter).Save(SOut);
     TInt(K).Save(SOut);
+    AllowEmptyP.Save(SOut);
     AssignV.Save(SOut);
     SaveEnum<TDistanceType>(SOut, DistType);
     SaveEnum<TCentroidType>(SOut, CentType);
@@ -3687,7 +3691,7 @@ void TNodeJsKMeans::TFitTask::Run() {
 
            // input dense matrix
            if (JsFltVV != nullptr) {
-               KMeans->Apply(JsFltVV->Mat, JsKMeans->Iter, JsKMeans->Notify);
+               KMeans->Apply(JsFltVV->Mat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
                KMeans->Assign(JsFltVV->Mat, JsKMeans->AssignV);
 
                TFltVV D;
@@ -3714,7 +3718,7 @@ void TNodeJsKMeans::TFitTask::Run() {
            }
            // input sparse matrix
            else if (JsSpVV != nullptr) {
-               KMeans->Apply(JsSpVV->Mat, JsKMeans->Iter, JsKMeans->Notify);
+               KMeans->Apply(JsSpVV->Mat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
                KMeans->Assign(JsSpVV->Mat, JsKMeans->AssignV);
                
                TFltVV D;
@@ -3748,7 +3752,7 @@ void TNodeJsKMeans::TFitTask::Run() {
            JsKMeans->Model = (void*) KMeans;
            // input dense matrix
            if (JsFltVV != nullptr) {
-               KMeans->Apply(JsFltVV->Mat, JsKMeans->Iter, JsKMeans->Notify);
+               KMeans->Apply(JsFltVV->Mat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
                KMeans->Assign(JsFltVV->Mat, JsKMeans->AssignV);
 
                TFltVV D;
@@ -3775,7 +3779,7 @@ void TNodeJsKMeans::TFitTask::Run() {
            }
            // input sparse matrix
            else if (JsSpVV != nullptr) {
-        	   KMeans->Apply(JsSpVV->Mat, JsKMeans->Iter, JsKMeans->Notify);
+        	   KMeans->Apply(JsSpVV->Mat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
         	   KMeans->Assign(JsSpVV->Mat, JsKMeans->AssignV);
 
                TFltVV D;
