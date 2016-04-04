@@ -25,8 +25,8 @@ if (foundBinary) {
     exports.snap = require('./src/nodejs/scripts/snap.js')(pathQmBinary);
     exports.statistics = require('./src/nodejs/scripts/statistics.js')(pathQmBinary);
     exports.datasets = require('./src/nodejs/datasets/datasets.js')(pathQmBinary);
+    exports.deprecated = require('./src/nodejs/scripts/deprecated.js')(pathQmBinary);
     exports.qm_util = require('./src/nodejs/scripts/qm_util.js');
-    exports.statistics = require('./src/nodejs/scripts/deprecated.js')(pathQmBinary);
 
 } else {
     throw new Error('qminer binary not found!');
