@@ -109,11 +109,11 @@ private:
   	PNotify Notify;
 
 public:
-  	enum TTmHistType {
-  		thtYear,
-		thtMonth,
-		thtWeek,
-		thtDay
+  	enum TTmHistType: uchar {
+  		thtYear = 0,
+		thtMonth = 1,
+		thtWeek = 2,
+		thtDay = 3
   	};
 
   	TStateIdentifier(const PDenseKMeans& KMeans, const int NHistBins, const double& Sample,
@@ -626,10 +626,20 @@ private:
 // UI helper
 class TUiHelper {
 private:
+	typedef TTriple<TUCh, TInt, TInt> TTmDesc;
+	typedef TVec<TTmDesc> TTmDescV;
+
 	static const double RADIUS_FACTOR;
 	static const double STEP_FACTOR;
 	static const double INIT_RADIUS_FACTOR;
+
+	static const TStr MONTHS[12];
+	static const TStr DAYS_IN_MONTH[31];
+	static const TStr DAYS_IN_WEEK[7];
+	static const TStr HOURS_IN_DAY[24];
+
 	TFltPrV StateCoordV;
+	TVec<TTmDescV> StateIdOccTmDescV;
 
 	TRnd Rnd;
 
@@ -649,6 +659,9 @@ public:
 	void SetStateCoords(const TFltPrV& CoordV);
 	void GetStateRadiusV(const TFltV& ProbV, TFltV& SizeV) const;
 
+	// time descriptions
+	void GetTmDesc(const int& StateId, TStrPrV& DescIntervalV) const;
+
 private:
 	TFltPr& GetModStateCoords(const int& StateId);
 
@@ -658,10 +671,14 @@ private:
 	void RefineStateCoordV(const TStateIdentifier& StateIdentifier,
 			const THierarch& Hierarch, const TCtmcModeller& MChain);
 
-	void InitStateExplain(const TStateIdentifier& StateIdentifier, const THierarch& Hierarch);
+	void InitStateExplain(const TStateIdentifier& StateIdentifier, const THierarch& Hierarch,
+			const TCtmcModeller& TransModeler);
 	bool HasMxPeaks(const int& MxPeakCount, const double& PeakMassThreshold, const TFltV& PdfHist,
 			 TIntPrV& PeakBorderV, double& PeakMass, int& PeakBinCount) const;
 
+	void GetTmDesc(const int& StateId, TTmDescV& DescV) const;
+
+	static void GetTimeDescStr(const TTmDesc& Desc, TStrPr& StrDesc);
 	static double GetStateRaduis(const double& Prob);
 	static bool NodesOverlap(const int& StartId, const int& EndId, const TFltPrV& CoordV,
 			const TFltV& RaduisV);
@@ -912,6 +929,7 @@ public:
     const TFltPr& GetFtrBounds(const int& FtrId) const;
     const TStr& GetStateLabel(const int& StateId) const;
     const TIntStrPr& GetStateAutoNm(const int& StateId) const;
+    void GetStateTmDesc(const int& StateId, TStrPrV& StateIntervalV) const;
     const TStr& GetStateNm(const int& StateId) const;
 
     // get/set parameters

@@ -1543,6 +1543,7 @@ void TNodeJsStreamStory::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "rebuildHistograms", _rebuildHistograms);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStateLabel", _getStateLabel);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStateAutoName", _getStateAutoName);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getStateTypTimes", _getStateTypTimes);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStateName", _getStateName);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "setStateName", _setStateName);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "setStateCoords", _setStateCoords);
@@ -2398,6 +2399,31 @@ void TNodeJsStreamStory::getStateAutoName(const v8::FunctionCallbackInfo<v8::Val
 	const PJsonVal AutoNmJson = TMc::TStreamStory::GetAutoNmJson(StateAutoNm);
 
 	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, AutoNmJson));
+}
+
+void TNodeJsStreamStory::getStateTypTimes(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+
+	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
+
+	TStrPrV StateTimeV;
+	JsStreamStory->StreamStory->GetStateTmDesc(StateId, StateTimeV);
+
+	PJsonVal TimeJsonV = TJsonVal::NewArr();
+	for (int i = 0; i < StateTimeV.Len(); i++) {
+		const TStrPr& StartEndStrPr = StateTimeV[i];
+
+		PJsonVal IntervalJson = TJsonVal::NewObj();
+		IntervalJson->AddToObj("start", StartEndStrPr.Val1);
+		IntervalJson->AddToObj("end", StartEndStrPr.Val2);
+
+		TimeJsonV->AddToArr(IntervalJson);
+	}
+
+	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, TimeJsonV));
 }
 
 void TNodeJsStreamStory::getStateName(const v8::FunctionCallbackInfo<v8::Value>& Args) {

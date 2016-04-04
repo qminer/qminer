@@ -3123,14 +3123,102 @@ const double TUiHelper::RADIUS_FACTOR = 1.8;
 const double TUiHelper::STEP_FACTOR = 1e-2;
 const double TUiHelper::INIT_RADIUS_FACTOR = 1.1;
 
+const TStr TUiHelper::MONTHS[] = {
+		"January",
+		"February",
+		"March",
+		"April",
+		"May",
+		"June",
+		"July",
+		"August",
+		"September",
+		"October",
+		"November",
+		"December"
+};
+
+const TStr TUiHelper::DAYS_IN_MONTH[] = {
+		"1st",
+		"2nd",
+		"3rd",
+		"4th",
+		"5th",
+		"6th",
+		"7th",
+		"8th",
+		"9th",
+		"10th",
+		"11th",
+		"12th",
+		"13th",
+		"14th",
+		"15th",
+		"16th",
+		"17th",
+		"18th",
+		"19th",
+		"20th",
+		"21th",
+		"22th",
+		"23th",
+		"24th",
+		"25th",
+		"26th",
+		"27th",
+		"28th",
+		"29th",
+		"30th",
+		"31th"
+};
+
+const TStr TUiHelper::HOURS_IN_DAY[] = {
+		"Midnight",
+		"1AM",
+		"2AM",
+		"3AM",
+		"4AM",
+		"5AM",
+		"6AM",
+		"7AM",
+		"8AM",
+		"9AM",
+		"10AM",
+		"11AM",
+		"Noon",
+		"1PM",
+		"2PM",
+		"3PM",
+		"4PM",
+		"5PM",
+		"6PM",
+		"7PM",
+		"8PM",
+		"9PM",
+		"10PM",
+		"11PM"
+};
+
+const TStr TUiHelper::DAYS_IN_WEEK[] = {
+		"Monday",
+		"Tuesday",
+		"Wednesday",
+		"Thursday",
+		"Friday",
+		"Saturday",
+		"Sunday"
+};
+
 TUiHelper::TUiHelper(const TRnd& _Rnd, const bool& _Verbose):
 		StateCoordV(),
+		StateIdOccTmDescV(),
 		Rnd(_Rnd),
 		Verbose(_Verbose),
 		Notify(_Verbose ? TNotify::StdNotify : TNotify::NullNotify) {}
 
 TUiHelper::TUiHelper(TSIn& SIn):
 		StateCoordV(SIn),
+		StateIdOccTmDescV(SIn),
 		Rnd(SIn),
 		Verbose(TBool(SIn)) {
 	Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
@@ -3138,6 +3226,7 @@ TUiHelper::TUiHelper(TSIn& SIn):
 
 void TUiHelper::Save(TSOut& SOut) const {
 	StateCoordV.Save(SOut);
+	StateIdOccTmDescV.Save(SOut);
 	Rnd.Save(SOut);
 	TBool(Verbose).Save(SOut);
 }
@@ -3147,7 +3236,7 @@ void TUiHelper::Init(const TStateIdentifier& StateIdentifier, const THierarch& H
 	Notify->OnNotify(TNotifyType::ntInfo, "Initializing UI helper ...");
 	InitStateCoordV(StateIdentifier, Hierarch);
 	RefineStateCoordV(StateIdentifier, Hierarch, MChain);
-	InitStateExplain(StateIdentifier, Hierarch);
+	InitStateExplain(StateIdentifier, Hierarch, MChain);
 }
 
 const TFltPr& TUiHelper::GetStateCoords(const int& StateId) const {
@@ -3171,6 +3260,18 @@ void TUiHelper::GetStateRadiusV(const TFltV& ProbV, TFltV& RadiusV) const {
 	RadiusV.Gen(ProbV.Len());
 	for (int i = 0; i < ProbV.Len(); i++) {
 		RadiusV[i] = GetStateRaduis(ProbV[i]);// / (Height + .1);
+	}
+}
+
+void TUiHelper::GetTmDesc(const int& StateId, TStrPrV& DescIntervalV) const {
+	TTmDescV TmDescV;	GetTmDesc(StateId, TmDescV);
+
+	DescIntervalV.Gen(TmDescV.Len());
+
+	for (int DescN = 0; DescN < TmDescV.Len(); DescN++) {
+		const TTmDesc& Desc = TmDescV[DescN];
+
+		GetTimeDescStr(Desc, DescIntervalV[DescN]);
 	}
 }
 
@@ -3306,8 +3407,15 @@ void TUiHelper::RefineStateCoordV(const TStateIdentifier& StateIdentifier,
 	Notify->OnNotify(TNotifyType::ntInfo, "Done!");
 }
 
-void TUiHelper::InitStateExplain(const TStateIdentifier& StateIdentifier, const THierarch& Hierarch) {
-	const TIntV& StateIdV = Hierarch.GetHierarchV();
+void TUiHelper::InitStateExplain(const TStateIdentifier& StateIdentifier, const THierarch& Hierarch,
+		const TCtmcModeller& TransModeler) {
+
+	TIntFltPrV StateIdHeightPrV;	Hierarch.GetStateIdHeightPrV(StateIdHeightPrV);
+	StateIdOccTmDescV.Gen(Hierarch.GetStates());
+
+//	printf("Hierarchy:\n%s\n", TStrUtil::GetStr(StateIdV).CStr());
+
+	const uint64 TmUnit = TransModeler.GetTimeUnit();
 
 	const int MxPeaks = 1;
 	const double MnSupport = .7;
@@ -3316,8 +3424,14 @@ void TUiHelper::InitStateExplain(const TStateIdentifier& StateIdentifier, const 
 	double PeakMass;
 	int PeakBinCount;
 
-	for (int StateN = 0; StateN < StateIdV.Len() - 1; StateN++) {
-		const int& StateId = StateIdV[StateN];
+	TIntSet UsedStateIdSet;
+
+	for (int StateN = 0; StateN < StateIdHeightPrV.Len(); StateN++) {
+		const int& StateId = StateIdHeightPrV[StateN].Val1;
+
+		// TODO remove this
+		EAssertR(!UsedStateIdSet.IsKey(StateId), "State ID already used!");
+		UsedStateIdSet.AddKey(StateId);
 
 		TIntV LeafV;	Hierarch.GetLeafDescendantV(StateId, LeafV);
 
@@ -3336,26 +3450,34 @@ void TUiHelper::InitStateExplain(const TStateIdentifier& StateIdentifier, const 
 		StateIdentifier.GetTimeHistogram(LeafV, TStateIdentifier::TTmHistType::thtWeek, WeekBinValV, WeekBinV);
 		StateIdentifier.GetTimeHistogram(LeafV, TStateIdentifier::TTmHistType::thtDay, DayBinValV, DayBinV);
 
+		TTmDescV& StateTmDescV = StateIdOccTmDescV[StateId];
+
+		if (TmUnit <= TCtmcModeller::TU_DAY && HasMxPeaks(MxPeaks, MnSupport, DayBinV, PeakStartEndV, PeakMass, PeakBinCount)) {
+			Notify->OnNotifyFmt(ntInfo, "State %d has daily peaks!", StateId);
+			Notify->OnNotifyFmt(ntInfo, TStrUtil::GetStr(DayBinV, ", ", "%.5f").CStr());
+
+			StateTmDescV.Add(TTmDesc(TStateIdentifier::TTmHistType::thtDay, PeakStartEndV[0].Val1, PeakStartEndV[0].Val2));
+		}
+		if (TmUnit < TCtmcModeller::TU_MONTH && HasMxPeaks(MxPeaks, MnSupport, WeekBinV, PeakStartEndV, PeakMass, PeakBinCount)) {
+			Notify->OnNotifyFmt(ntInfo, "State %d has weekly peaks!", StateId);
+			Notify->OnNotifyFmt(ntInfo, TStrUtil::GetStr(WeekBinV, ", ", "%.5f").CStr());
+
+			StateTmDescV.Add(TTmDesc(TStateIdentifier::TTmHistType::thtWeek, PeakStartEndV[0].Val1, PeakStartEndV[0].Val2));
+		}
+		if (TmUnit < TCtmcModeller::TU_MONTH && HasMxPeaks(MxPeaks, MnSupport, MonthBinV, PeakStartEndV, PeakMass, PeakBinCount)) {
+			Notify->OnNotifyFmt(ntInfo, "State %d has monthly peaks!", StateId);
+			Notify->OnNotifyFmt(ntInfo, TStrUtil::GetStr(MonthBinV, ", ", "%.5f").CStr());
+
+			StateTmDescV.Add(TTmDesc(TStateIdentifier::TTmHistType::thtMonth, PeakStartEndV[0].Val1, PeakStartEndV[0].Val2));
+		}
 		if (HasMxPeaks(MxPeaks, MnSupport, YearBinV, PeakStartEndV, PeakMass, PeakBinCount)) {
-			Notify->OnNotifyFmt(TNotifyType::ntInfo, "State %d has yearly peaks!", StateId);
-			Notify->OnNotifyFmt(TNotifyType::ntInfo, TStrUtil::GetStr(YearBinV, ", ", "%.5f").CStr());
-			// TODO
+			Notify->OnNotifyFmt(ntInfo, "State %d has yearly peaks!", StateId);
+			Notify->OnNotifyFmt(ntInfo, TStrUtil::GetStr(YearBinV, ", ", "%.5f").CStr());
+
+			StateTmDescV.Add(TTmDesc(TStateIdentifier::TTmHistType::thtYear, PeakStartEndV[0].Val1, PeakStartEndV[0].Val2));
 		}
-		if (HasMxPeaks(MxPeaks, MnSupport, MonthBinV, PeakStartEndV, PeakMass, PeakBinCount)) {
-			Notify->OnNotifyFmt(TNotifyType::ntInfo, "State %d has monthly peaks!", StateId);
-			Notify->OnNotifyFmt(TNotifyType::ntInfo, TStrUtil::GetStr(MonthBinV, ", ", "%.5f").CStr());
-			// TODO
-		}
-		if (HasMxPeaks(MxPeaks, MnSupport, WeekBinV, PeakStartEndV, PeakMass, PeakBinCount)) {
-			Notify->OnNotifyFmt(TNotifyType::ntInfo, "State %d has weekly peaks!", StateId);
-			Notify->OnNotifyFmt(TNotifyType::ntInfo, TStrUtil::GetStr(WeekBinV, ", ", "%.5f").CStr());
-			// TODO
-		}
-		if (HasMxPeaks(MxPeaks, MnSupport, DayBinV, PeakStartEndV, PeakMass, PeakBinCount)) {
-			Notify->OnNotifyFmt(TNotifyType::ntInfo, "State %d has daily peaks!", StateId);
-			Notify->OnNotifyFmt(TNotifyType::ntInfo, TStrUtil::GetStr(DayBinV, ", ", "%.5f").CStr());
-			// TODO
-		}
+
+		Notify->OnNotifyFmt(ntInfo, "Got %d explanations for state %d!", StateTmDescV.Len(), StateId);
 	}
 }
 
@@ -3364,6 +3486,9 @@ bool TUiHelper::HasMxPeaks(const int& MxPeakCount, const double& PeakMassThresho
 	const int NBins = PdfHist.Len();
 	const double TotalMass = TLinAlg::SumVec(PdfHist);
 	const double MeanBinMass = TotalMass / NBins;
+
+	// TODO remove
+	printf("PDF:\n%s\n", TStrUtil::GetStr(PdfHist, ",", "%.5f").CStr());
 
 	EAssert(NBins > 0);
 	PeakBorderV.Clr();
@@ -3383,7 +3508,7 @@ bool TUiHelper::HasMxPeaks(const int& MxPeakCount, const double& PeakMassThresho
 				IsInPeak = false;
 				PeakCount++;
 				EAssertR(!PeakBorderV.Empty(), "Tried to end a peak, but no peak started!");
-				PeakBorderV.Last().Val2 = BinN;
+				PeakBorderV.Last().Val2 = BinN-1;
 			} else {
 				IsInPeak = true;
 				PeakBorderV.Add(TIntPr(BinN, -1));
@@ -3405,6 +3530,68 @@ bool TUiHelper::HasMxPeaks(const int& MxPeakCount, const double& PeakMassThresho
 	}
 
 	return PeakCount <= MxPeakCount && PeakMass / TotalMass >= PeakMassThreshold;
+}
+
+void TUiHelper::GetTmDesc(const int& StateId, TTmDescV& DescV) const {
+	DescV = StateIdOccTmDescV[StateId];
+}
+
+void TUiHelper::GetTimeDescStr(const TTmDesc& Desc, TStrPr& StrDesc) {
+	const TStateIdentifier::TTmHistType HistTmScale = (TStateIdentifier::TTmHistType) ((uchar) Desc.Val1);
+
+	switch (HistTmScale) {
+	case TStateIdentifier::TTmHistType::thtYear: {
+		const int& StartMonth = Desc.Val2;
+		const int& EndMonth = Desc.Val3;
+
+		EAssert(0 <= StartMonth && StartMonth < 12);
+		EAssert(0 <= EndMonth && EndMonth < 12);
+
+		StrDesc.Val1 = MONTHS[StartMonth];
+		StrDesc.Val2 = MONTHS[EndMonth];
+
+		break;
+	}
+	case TStateIdentifier::TTmHistType::thtMonth: {
+		const int& StartDay = Desc.Val2;
+		const int& EndDay = Desc.Val3;
+
+		EAssert(0 <= StartDay && StartDay < 31);
+		EAssert(0 <= EndDay && EndDay < 31);
+
+		StrDesc.Val1 = DAYS_IN_MONTH[StartDay];
+		StrDesc.Val2 = DAYS_IN_MONTH[EndDay];
+
+		break;
+	}
+	case TStateIdentifier::TTmHistType::thtWeek: {
+		const int& StartDay = Desc.Val2;
+		const int& EndDay = Desc.Val3;
+
+		EAssert(0 <= StartDay && StartDay < 7);
+		EAssert(0 <= EndDay && EndDay < 7);
+
+		StrDesc.Val1 = DAYS_IN_WEEK[StartDay];
+		StrDesc.Val2 = DAYS_IN_WEEK[EndDay];
+
+		break;
+	}
+	case TStateIdentifier::TTmHistType::thtDay: {
+		const int& StartHour = Desc.Val2;
+		const int& EndHour = Desc.Val3;
+
+		EAssert(0 <= StartHour && StartHour < 24);
+		EAssert(0 <= EndHour && EndHour < 24);
+
+		StrDesc.Val1 = HOURS_IN_DAY[StartHour];
+		StrDesc.Val2 = HOURS_IN_DAY[EndHour];
+
+		break;
+	}
+	default: {
+		throw TExcept::New("Unknows time histogram type: " + TUCh(HistTmScale));
+	}
+	}
 }
 
 double TUiHelper::GetStateRaduis(const double& Prob) {
@@ -4634,6 +4821,10 @@ const TStr& TStreamStory::GetStateLabel(const int& StateId) const {
 
 const TIntStrPr& TStreamStory::GetStateAutoNm(const int& StateId) const {
 	return Hierarch->GetStateAutoNm(StateId);
+}
+
+void TStreamStory::GetStateTmDesc(const int& StateId, TStrPrV& StateIntervalV) const {
+	UiHelper->GetTmDesc(StateId, StateIntervalV);
 }
 
 const TStr& TStreamStory::GetStateNm(const int& StateId) const {
