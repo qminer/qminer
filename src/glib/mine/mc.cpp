@@ -151,7 +151,7 @@ void TStateIdentifier::Init(const TUInt64V& TmV, TFltVV& ObsFtrVV, const TFltVV&
 	Notify->OnNotify(TNotifyType::ntInfo, "Clustering ...");
 
 	if (Sample == 1) {
-		KMeans->Apply(ObsFtrVV, MX_ITER, Notify);
+		KMeans->Apply(ObsFtrVV, false, MX_ITER, Notify);
 	} else {
 		const int NSamples = Sample < 1 ? (int)ceil(NInst*Sample) : TMath::Mn(NInst, int(Sample));
 
@@ -165,7 +165,7 @@ void TStateIdentifier::Init(const TUInt64V& TmV, TFltVV& ObsFtrVV, const TFltVV&
 		SampleV.Shuffle(Rnd);
 		SampleV.Trunc(NSamples);
 
-		KMeans->Apply(TFullMatrix(ObsFtrVV, true)(TVector::Range(ObsFtrVV.GetRows()), SampleV).GetMat(), MX_ITER, Notify);	// TODO remove TFullMatrix
+		KMeans->Apply(TFullMatrix(ObsFtrVV, true)(TVector::Range(ObsFtrVV.GetRows()), SampleV).GetMat(), false, MX_ITER, Notify);	// TODO remove TFullMatrix
 	}
 
 	InitStatistics(ObsFtrVV);

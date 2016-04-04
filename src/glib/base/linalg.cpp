@@ -2722,7 +2722,9 @@ void TFullMatrix::Load(TSIn& SIn) {
 //Tolerance ignored!
 int TLinAlg::ComputeThinSVD(const TMatrix& XYt, const int& k, TFltVV& U, TFltV& s, TFltVV& V, const int Iters, const double Tol){
 	//TStructuredCovarianceMatrix XYt(rows, cols, SampleN, MeanX, MeanY, X, Y);
-	 const int its = Iters != -1 ? Iters : 2;
+	EAssert(k <= XYt.GetRows() && k <= XYt.GetCols());
+
+	const int its = Iters != -1 ? Iters : 2;
 	 const int m = XYt.GetRows();
 	 const int n = XYt.GetCols();
 	 int l = (int)((11 / 10.0) * k);

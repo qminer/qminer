@@ -351,10 +351,10 @@ public:
     template<class TVectorType>
     void GetCentroid(const int& ClustN, TVectorType& FtrV) const;
 
-    virtual void Apply(const TFltVV& FtrVV, const int& MaxIter = 10000,
-        const PNotify& Notify = TNotify::NullNotify) = 0;
-    virtual void Apply(const TVec<TIntFltKdV>& FtrVV, const int& MaxIter = 10000,
-        const PNotify& Notify = TNotify::NullNotify) = 0;
+    virtual void Apply(const TFltVV& FtrVV, const bool& AllowEmptyP=true,
+    		const int& MaxIter=10000, const PNotify& Notify=TNotify::NullNotify) = 0;
+    virtual void Apply(const TVec<TIntFltKdV>& FtrVV, const bool& AllowEmptyP=true,
+    		const int& MaxIter=10000, const PNotify& Notify = TNotify::NullNotify) = 0;
 
 	// assign methods
     template<class TDataType>
@@ -380,7 +380,7 @@ protected:
     void UpdateCentroids(const TDataType& FtrVV, const int& NInst, TIntV& AssignV,
     		const TFltV& OnesN, const TIntV& RangeN, TFltV& TempK, TCentroidType& TempDxKV,
 			TVec<TIntFltKdV>& TempKxKSpVV, const TFltV& NormX2, TFltV& NormC2,
-			const bool& AllowEmptyP=true);
+			const bool& AllowEmptyP);
 
     template<class TDataType>
     void SelectInitCentroids(const TDataType& FtrVV, const int& K, const int& NInst);
@@ -436,14 +436,15 @@ public:
 	// saves the model to the output stream
 	void Save(TSOut& SOut) const;
 
-    void Apply(const TFltVV& FtrVV, const int& MaxIter=10000, const PNotify& Notify=TNotify::NullNotify);
-    void Apply(const TVec<TIntFltKdV>& FtrVV, const int& MaxIter=10000,
-        const PNotify& Notify=TNotify::NullNotify);
+    void Apply(const TFltVV& FtrVV, const bool& AllowEmptyP=true, const int& MaxIter=10000,
+    		const PNotify& Notify=TNotify::NullNotify);
+    void Apply(const TVec<TIntFltKdV>& FtrVV, const bool& AllowEmptyP=true,
+    		const int& MaxIter=10000, const PNotify& Notify=TNotify::NullNotify);
 
 protected:
     template<class TDataType>
     void Apply(const TDataType& FtrVV, const int& NInst, const int& Dim,
-			const int& MaxIter, const PNotify& Notify);
+    		const bool& AllowEmptyP, const int& MaxIter, const PNotify& Notify);
 
 	const TStr GetType() const { return "kmeans"; }
 };
@@ -464,9 +465,9 @@ public:
 	// saves the model to the output stream
 	void Save(TSOut& SOut) const;
 
-    void Apply(const TFltVV& FtrVV, const int& MaxIter=10000,
+    void Apply(const TFltVV& FtrVV, const bool& AllowEmptyP=true, const int& MaxIter=10000,
         const PNotify& Notify=TNotify::NullNotify);
-    void Apply(const TVec<TIntFltKdV>& FtrVV, const int& MaxIter=10000,
+    void Apply(const TVec<TIntFltKdV>& FtrVV, const bool& AllowEmptyP=true, const int& MaxIter=10000,
         const PNotify& Notify=TNotify::NullNotify);
 
 protected:
@@ -477,7 +478,8 @@ private:
 	// the point is assigned to
     template <class TDataType>
     void Apply(const TDataType& FtrVV, const int& NInst, const int& Dim,
-			const int& MaxIter, const PNotify& Notify);
+    		const bool& AllowEmptyP=true, const int& MaxIter=10000,
+			const PNotify& Notify=TNotify::NullNotify);
 
     template <class TDataType>
     inline void AddCentroid(const TDataType& FtrVV, TFltVV& ClustDistVV, TFltV& NormC2,
@@ -829,26 +831,26 @@ void TDnsKMeans<TCentroidType>::Save(TSOut& SOut) const {
 }
 
 template <class TCentroidType>
-void TDnsKMeans<TCentroidType>::Apply(const TFltVV& FtrVV, const int& MaxIter, const PNotify& Notify) {
+void TDnsKMeans<TCentroidType>::Apply(const TFltVV& FtrVV, const bool& AllowEmptyP,
+		const int& MaxIter, const PNotify& Notify) {
 	const int Dim = TAbsKMeans<TCentroidType>::GetDataDim(FtrVV);
 	EAssertR(Dim > 0, "The input matrix doesn't have any features!");
-	Apply(FtrVV, TAbsKMeans<TCentroidType>::GetDataCount(FtrVV), Dim, MaxIter, Notify);
+	Apply(FtrVV, TAbsKMeans<TCentroidType>::GetDataCount(FtrVV), Dim, AllowEmptyP, MaxIter, Notify);
 }
 
 template <class TCentroidType>
-void TDnsKMeans<TCentroidType>::Apply(const TVec<TIntFltKdV>& FtrVV, const int& MaxIter, const PNotify& Notify) {
+void TDnsKMeans<TCentroidType>::Apply(const TVec<TIntFltKdV>& FtrVV, const bool& AllowEmptyP,
+		const int& MaxIter, const PNotify& Notify) {
 	const int Dim = TAbsKMeans<TCentroidType>::GetDataDim(FtrVV);
 	EAssertR(Dim > 0, "The input matrix doesn't have any features!");
-	Apply(FtrVV, TAbsKMeans<TCentroidType>::GetDataCount(FtrVV), Dim, MaxIter, Notify);
+	Apply(FtrVV, TAbsKMeans<TCentroidType>::GetDataCount(FtrVV), Dim, AllowEmptyP, MaxIter, Notify);
 }
 
 template<class TCentroidType>
 template<class TDataType>
 void TDnsKMeans<TCentroidType>::Apply(const TDataType& FtrVV, const int& NInst, const int& Dim,
-    const int& MaxIter, const PNotify& Notify) {
+    const bool& AllowEmptyP, const int& MaxIter, const PNotify& Notify) {
     EAssertR(K <= NInst, "Matrix should have more columns than K!");
-
-    const bool AllowEmptyP = true;	// TODO move this outside
 
     Notify->OnNotify(TNotifyType::ntInfo, "Executing KMeans ...");
 
@@ -927,23 +929,26 @@ void TDpMeans<TCentroidType>::Save(TSOut& SOut) const {
 }
 
 template<class TCentroidType>
-void TDpMeans<TCentroidType>::Apply(const TFltVV& FtrVV, const int& MaxIter, const PNotify& Notify) {
+void TDpMeans<TCentroidType>::Apply(const TFltVV& FtrVV, const bool& AllowEmptyP,
+		const int& MaxIter, const PNotify& Notify) {
 	const int Dim = TAbsKMeans<TCentroidType>::GetDataDim(FtrVV);
 	EAssertR(Dim > 0, "The input matrix doesn't have any features!");
-	Apply(FtrVV, TAbsKMeans<TCentroidType>::GetDataCount(FtrVV), Dim, MaxIter, Notify);
+	Apply(FtrVV, TAbsKMeans<TCentroidType>::GetDataCount(FtrVV), Dim, AllowEmptyP, MaxIter, Notify);
 }
 
 template<class TCentroidType>
-void TDpMeans<TCentroidType>::Apply(const TVec<TIntFltKdV>& FtrVV, const int& MaxIter, const PNotify& Notify) {
+void TDpMeans<TCentroidType>::Apply(const TVec<TIntFltKdV>& FtrVV, const bool& AllowEmptyP,
+		const int& MaxIter, const PNotify& Notify) {
 	const int Dim = TAbsKMeans<TCentroidType>::GetDataDim(FtrVV);
 	EAssertR(Dim > 0, "The input matrix doesn't have any features!");
-	Apply(FtrVV, TAbsKMeans<TCentroidType>::GetDataCount(FtrVV), Dim, MaxIter, Notify);
+	Apply(FtrVV, TAbsKMeans<TCentroidType>::GetDataCount(FtrVV), Dim, AllowEmptyP, MaxIter, Notify);
 }
 
 template<class TCentroidType>
 template<class TDataType>
-inline void TDpMeans<TCentroidType>::Apply(const TDataType& FtrVV, const int& NInst, const int& Dim,
-    const int& MaxIter, const PNotify& Notify) {
+inline void TDpMeans<TCentroidType>::Apply(const TDataType& FtrVV, const int& NInst,
+		const int& Dim, const bool& AllowEmptyP, const int& MaxIter,
+		const PNotify& Notify) {
     EAssertR(MnClusts <= NInst, "Matrix should have more rows then the min number of clusters!");
     EAssertR(MnClusts <= MxClusts, "Minimum number of cluster should be less than the maximum.");
 
@@ -977,9 +982,9 @@ inline void TDpMeans<TCentroidType>::Apply(const TDataType& FtrVV, const int& NI
     TCentroidType TempDxK;				// (dimension d x k)
     TVec<TIntFltKdV> TempKxKSpVV(K);	// (dimension k x k)
 
-    int i = 0;
-    while (i++ < MaxIter) {
-        if (i % 100 == 0) { Notify->OnNotifyFmt(TNotifyType::ntInfo, "%d", i); }
+    int IterN = 0;
+    while (IterN++ < MaxIter) {
+        if (IterN % 100 == 0) { Notify->OnNotifyFmt(TNotifyType::ntInfo, "%d", IterN); }
 
         // compute the distance matrix to all the centroids and assignments
         TAbsKMeans<TCentroidType>::Dist->UpdateNormC2(TAbsKMeans<TCentroidType>::CentroidVV, NormC2);
@@ -1004,12 +1009,12 @@ inline void TDpMeans<TCentroidType>::Apply(const TDataType& FtrVV, const int& NI
 
         // check if converged
         if (*AssignIdxVPtr == *OldAssignIdxVPtr) {
-            Notify->OnNotifyFmt(TNotifyType::ntInfo, "Converged at iteration: %d", i);
+            Notify->OnNotifyFmt(TNotifyType::ntInfo, "Converged at iteration: %d", IterN);
             break;
         }
 
         // recompute the centroids
-        TAbsKMeans<TCentroidType>::UpdateCentroids(FtrVV, NInst, *AssignIdxVPtr, OnesN, RangeN, TempK, TempDxK, TempKxKSpVV, NormX2, NormC2);
+        TAbsKMeans<TCentroidType>::UpdateCentroids(FtrVV, NInst, *AssignIdxVPtr, OnesN, RangeN, TempK, TempDxK, TempKxKSpVV, NormX2, NormC2, AllowEmptyP);
 
         // swap old and new assign vectors
         Temp = AssignIdxVPtr;
