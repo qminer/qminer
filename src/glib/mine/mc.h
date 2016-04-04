@@ -626,6 +626,7 @@ private:
 // UI helper
 class TUiHelper {
 private:
+	static const double RADIUS_FACTOR;
 	static const double STEP_FACTOR;
 	static const double INIT_RADIUS_FACTOR;
 	TFltPrV StateCoordV;

@@ -356,6 +356,8 @@ TStr TSs::GetSsFmtNmVStr(){
 
 //#//////////////////////////////////////////////
 // Fast-Spread-Sheet-Parser
+const char TSsParser::QUOTE_CH = '"';
+
 TSsParser::TSsParser(const TStr& FNm, const TSsFmt _SsFmt, const bool& _SkipLeadBlanks, const bool& _SkipCmt, const bool& _SkipEmptyFld) : SsFmt(_SsFmt), 
  SkipLeadBlanks(_SkipLeadBlanks), SkipCmt(_SkipCmt), SkipEmptyFld(_SkipEmptyFld), LineCnt(0), /*Bf(NULL),*/ SplitCh('\t'), LineStr(), FldV(), FInPt(NULL) {
   if (TZipIn::IsZipExt(FNm.GetFExt())) { FInPt = TZipIn::New(FNm); }
@@ -372,7 +374,7 @@ TSsParser::TSsParser(const TStr& FNm, const TSsFmt _SsFmt, const bool& _SkipLead
   }
 }
 
-TSsParser::TSsParser(const TStr& FNm, const char& Separator, const bool& _SkipLeadBlanks, const bool& _SkipCmt, const bool& _SkipEmptyFld) : SsFmt(ssfSpaceSep), 
+TSsParser::TSsParser(const TStr& FNm, const char& Separator, const bool& _SkipLeadBlanks, const bool& _SkipCmt, const bool& _SkipEmptyFld) : SsFmt(ssfSpaceSep),
  SkipLeadBlanks(_SkipLeadBlanks), SkipCmt(_SkipCmt), SkipEmptyFld(_SkipEmptyFld), LineCnt(0), /*Bf(NULL),*/ SplitCh('\t'), LineStr(), FldV(), FInPt(NULL) {
   if (TZipIn::IsZipExt(FNm.GetFExt())) { FInPt = TZipIn::New(FNm); }
   else { FInPt = TFIn::New(FNm); }
@@ -407,7 +409,21 @@ bool TSsParser::NextSlow() { // split on SplitCh
   char *last = cur;
   while (*cur) {
     if (SsFmt == ssfWhiteSep) { while (*cur && ! TCh::IsWs(*cur)) { cur++; } } 
-    else { while (*cur && *cur!=SplitCh) { cur++; } }
+    else {
+    	while (*cur) {
+			if (*cur == QUOTE_CH) {
+				cur++;
+				while (*cur && *cur!=QUOTE_CH) {
+					if (*cur == '\\') { cur++; }		// XXX: not complete
+					if (*cur) { cur++; }
+				}
+				if (*cur) { cur++; }
+			}
+			else if (*cur == SplitCh) { break; }
+			else { cur++; }
+		}
+//    	while (*cur && *cur!=SplitCh) { cur++; }
+    }
     if (*cur == 0) { break; }
     *cur = 0;  cur++;
     FldV.Add(last);  last = cur;
@@ -435,7 +451,21 @@ bool TSsParser::Next() { // split on SplitCh
   char *last = cur;
   while (*cur) {
     if (SsFmt == ssfWhiteSep) { while (*cur && ! TCh::IsWs(*cur)) { cur++; } } 
-    else { while (*cur && *cur!=SplitCh) { cur++; } }
+    else {
+    	while (*cur) {
+			if (*cur == QUOTE_CH) {
+				cur++;
+				while (*cur && *cur!=QUOTE_CH) {
+					if (*cur == '\\') { cur++; }		// XXX: not complete
+					if (*cur) { cur++; }
+				}
+				if (*cur) { cur++; }
+			}
+			else if (*cur == SplitCh) { break; }
+			else { cur++; }
+		}
+//    	while (*cur && *cur!=SplitCh) { cur++; }
+    }
     if (*cur == 0) { break; }
     *cur = 0;  cur++;
     FldV.Add(last);  last = cur;

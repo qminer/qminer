@@ -383,6 +383,21 @@ public:
 			}
 		}
 	}
+
+	static bool ContainsNan(const TFltVV& FltVV) {
+		const int Rows = FltVV.GetRows();
+		const int Cols = FltVV.GetCols();
+
+		for (int RowN = 0; RowN < Rows; RowN++) {
+			for (int ColN = 0; ColN < Cols; ColN++) {
+				if (TFlt::IsNan(FltVV(RowN, ColN))) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -2223,14 +2238,16 @@ public:
 	int TLinAlg::GetColMinIdx(const TFltVV& X, const int& ColN) {
 		const int Rows = X.GetRows();
 		double MinVal = TFlt::Mx;
+		double Val;
 		int MinIdx = -1;
 		for (int RowN = 0; RowN < Rows; RowN++) {
-			double Val = X(RowN, ColN);
+			Val = X(RowN, ColN);
 			if (Val < MinVal) {
 				MinVal = Val;
 				MinIdx = RowN;
 			}
 		}
+		EAssertR(MinIdx >= 0, "Mininum index not set!");
 		return MinIdx;
 	}
 
@@ -2241,7 +2258,6 @@ public:
 		if (IdxV.Empty()) { IdxV.Gen(Cols); }
 		EAssert(IdxV.Len() == Cols);
 
-		#pragma omp parallel for
 		for (int ColN = 0; ColN < Cols; ColN++) {
 			IdxV[ColN] = GetColMinIdx(X, ColN);
 		}
