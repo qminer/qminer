@@ -6090,72 +6090,6 @@ bool TNmValidator::IsValidJsCharacter(const char& Ch) {
 
 ///////////////////////////////
 // QMiner-Base
-TBase::TBase(const TStr& _FPath, const int64& IndexCacheSize, const int& SplitLen, const bool& StrictNmP) :
-        InitP(false),
-        NmValidator(StrictNmP) {
-    IAssertR(TEnv::IsInit(), "QMiner environment (TQm::TEnv) is not initialized");
-    // open as create
-    FAccess = faCreate; FPath = _FPath;
-    TEnv::Logger->OnStatus("Opening in create mode");
-    // prepare index
-    IndexVoc = TIndexVoc::New();
-    Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize, IndexCacheSize, SplitLen);
-    // initialize with empty stores
-    StoreV.Gen(TEnv::GetMxStores()); StoreV.PutAll(NULL);
-    // initialize empty stream aggregate bases for each store
-    StreamAggrBaseV.Gen(TEnv::GetMxStores()); StreamAggrBaseV.PutAll(NULL);
-    StreamAggrDefaultBase = TStreamAggrBase::New();
-    // by default no temporary folder
-    TempFPathP = false;
-}
-
-TBase::TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCacheSize,
-        const int& SplitLen) :
-            InitP(false),
-            NmValidator(true) {
-    IAssertR(TEnv::IsInit(), "QMiner environment (TQm::TEnv) is not initialized");
-    // assert open type and remember location
-    FAccess = _FAccess; FPath = _FPath;
-    EAssert(FAccess == faRdOnly || FAccess == faUpdate || FAccess == faRestore);
-    if (FAccess == faRdOnly) {
-        TEnv::Logger->OnStatus("Opening in read-only mode");
-    } else if (FAccess == faUpdate) {
-        TEnv::Logger->OnStatus("Opening in update mode");
-    } else if (FAccess == faRestore) {
-        TEnv::Logger->OnStatus("Opening in restore mode");
-    }
-
-    // open file input streams
-    TFIn IndexVocFIn(FPath + "IndexVoc.dat");
-
-    // load index
-    IndexVoc = TIndexVoc::Load(IndexVocFIn);
-    Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize, IndexCacheSize, SplitLen);
-    // initialize with empty stores
-    StoreV.Gen(TEnv::GetMxStores()); StoreV.PutAll(NULL);
-    // initialize empty stream aggregate bases for each store
-    StreamAggrBaseV.Gen(TEnv::GetMxStores()); StreamAggrBaseV.PutAll(NULL);
-    StreamAggrDefaultBase = TStreamAggrBase::New();
-    // by default no temporary folder
-    TempFPathP = false;
-
-    // load the base properties
-    LoadBaseConf(_FPath);
-}
-
-TBase::~TBase() {
-    if (FAccess != faRdOnly) {
-        TEnv::Logger->OnStatus("Saving index vocabulary ... ");
-
-        TFOut IndexVocFOut(FPath + "IndexVoc.dat");
-        IndexVoc->Save(IndexVocFOut);
-
-        SaveBaseConf(FPath);
-    } else {
-        TEnv::Logger->OnStatus("No saving of qminer base neccessary!");
-    }
-}
-
 PRecSet TBase::Invert(const PRecSet& RecSet, const TIndex::PQmGixExpMerger& Merger) {
     // prepare sorted list of all records from the store
     TIndex::TQmGixItemV AllResIdV;
@@ -6379,6 +6313,71 @@ TPair<TBool, PRecSet> TBase::Search(const TQueryItem& QueryItem, const TIndex::P
     // we should never have come to here
     throw TQmExcept::New("Unsupported query item type");
     return TPair<TBool, PRecSet>(false, NULL);
+}
+
+TBase::TBase(const TStr& _FPath, const int64& IndexCacheSize, const int& SplitLen,
+        const bool& StrictNmP): InitP(false), NmValidator(StrictNmP) {
+
+    IAssertR(TEnv::IsInit(), "QMiner environment (TQm::TEnv) is not initialized");
+    // open as create
+    FAccess = faCreate; FPath = _FPath;
+    TEnv::Logger->OnStatus("Opening in create mode");
+    // prepare index
+    IndexVoc = TIndexVoc::New();
+    Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize, IndexCacheSize, SplitLen);
+    // initialize store blob base
+    StoreBlobBs = TMBlobBs::New(FPath + "StoreBlob", FAccess);
+    // initialize with empty stores
+    StoreV.Gen(TEnv::GetMxStores()); StoreV.PutAll(NULL);
+    // initialize empty stream aggregate bases for each store
+    StreamAggrBaseV.Gen(TEnv::GetMxStores()); StreamAggrBaseV.PutAll(NULL);
+    StreamAggrDefaultBase = TStreamAggrBase::New();
+}
+
+TBase::TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCacheSize,
+        const int& SplitLen): InitP(false), NmValidator(true) {
+
+    IAssertR(TEnv::IsInit(), "QMiner environment (TQm::TEnv) is not initialized");
+    // assert open type and remember location
+    FAccess = _FAccess; FPath = _FPath;
+    EAssert(FAccess == faRdOnly || FAccess == faUpdate || FAccess == faRestore);
+    if (FAccess == faRdOnly) {
+        TEnv::Logger->OnStatus("Opening in read-only mode");
+    } else if (FAccess == faUpdate) {
+        TEnv::Logger->OnStatus("Opening in update mode");
+    } else if (FAccess == faRestore) {
+        TEnv::Logger->OnStatus("Opening in restore mode");
+    }
+
+    // open file input streams
+    TFIn IndexVocFIn(FPath + "IndexVoc.dat");
+
+    // load index
+    IndexVoc = TIndexVoc::Load(IndexVocFIn);
+    Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize, IndexCacheSize, SplitLen);
+    // load shared store blob base
+    StoreBlobBs = TMBlobBs::New(FPath + "StoreBlob", FAccess);
+    // initialize with empty stores
+    StoreV.Gen(TEnv::GetMxStores()); StoreV.PutAll(NULL);
+    // initialize empty stream aggregate bases for each store
+    StreamAggrBaseV.Gen(TEnv::GetMxStores()); StreamAggrBaseV.PutAll(NULL);
+    StreamAggrDefaultBase = TStreamAggrBase::New();
+
+    // load the base properties
+    LoadBaseConf(_FPath);
+}
+
+TBase::~TBase() {
+    if (FAccess != faRdOnly) {
+        TEnv::Logger->OnStatus("Saving index vocabulary ... ");
+
+        TFOut IndexVocFOut(FPath + "IndexVoc.dat");
+        IndexVoc->Save(IndexVocFOut);
+
+        SaveBaseConf(FPath);
+    } else {
+        TEnv::Logger->OnStatus("No saving of qminer base neccessary!");
+    }
 }
 
 bool TBase::Exists(const TStr& FPath) {

@@ -573,8 +573,10 @@ private:
     }
     
 public:
-    TWndBlockCache(const TStr& _FNmPrefix, const int64& MxCacheMem, const int& _BlockSize);
-    TWndBlockCache(const TStr& _FNmPrefix, const TFAccess& _Access, const int64& MxCacheMem);
+    TWndBlockCache(const TStr& _FNmPrefix, const PBlobBs& _BlockBlobBs,
+        const int64& MxCacheMem, const int& _BlockSize);
+    TWndBlockCache(const TStr& _FNmPrefix, const PBlobBs& _BlockBlobBs,
+        const TFAccess& _Access, const int64& MxCacheMem);
     ~TWndBlockCache();
 
     // properties
@@ -703,7 +705,7 @@ void TWndBlockCache<TVal>::DelBlock() {
 }
 
 template <class TVal>
-TWndBlockCache<TVal>::TWndBlockCache(const TStr& _FNmPrefix, const int64& MxCacheMem, 
+TWndBlockCache<TVal>::TWndBlockCache(const TStr& _FNmPrefix, const PBlobBs& _BlockBlobBs, const int64& MxCacheMem, 
         const int& _BlockSize): BlockSize(_BlockSize), BlockCache(MxCacheMem, 1000000, GetVoidThis()) {
 
     // initialize storage parameters
@@ -713,20 +715,13 @@ TWndBlockCache<TVal>::TWndBlockCache(const TStr& _FNmPrefix, const int64& MxCach
     CacheResetThreshold = MAX(int64(0.1 * double(MxCacheMem)), int64(10*1024*1024));
     NewCacheSizeInc = 0;
     // initialize value disk store
-    try {
-        BlockBlobBs = TMBlobBs::New(FNmPrefix + "BlobBs", Access);
-    } catch (...) { 
-        // try with restore
-        TMBlobBs::New(FNmPrefix + "BlobBs", faRestore);
-        // open it then in a normal fashion
-        BlockBlobBs = TMBlobBs::New(FNmPrefix + "BlobBs", Access);
-    }
+    BlockBlobBs = _BlockBlobBs;
     // create first block
     EAssertR(AddBlock() == 0, "Error creating first cache block");
 }
 
 template <class TVal>
-TWndBlockCache<TVal>::TWndBlockCache(const TStr& _FNmPrefix, const TFAccess& _Access,
+TWndBlockCache<TVal>::TWndBlockCache(const TStr& _FNmPrefix, const PBlobBs& _BlockBlobBs, const TFAccess& _Access,
         const int64& MxCacheMem): BlockCache(MxCacheMem, 1000000, GetVoidThis()) {
 
     // initialize storage parameters
@@ -736,7 +731,7 @@ TWndBlockCache<TVal>::TWndBlockCache(const TStr& _FNmPrefix, const TFAccess& _Ac
     CacheResetThreshold = MAX(int64(0.1 * double(MxCacheMem)), int64(10*1024*1024));
     NewCacheSizeInc = 0;
     // initialize value disk store
-    BlockBlobBs = TMBlobBs::New(FNmPrefix + "BlobBs", Access);
+    BlockBlobBs = _BlockBlobBs;
     // make sure we are not trying to create
     EAssertR(Access != faCreate, "First call create constructor!");
     // load BlockId map and BlockSize

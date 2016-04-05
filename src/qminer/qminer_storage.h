@@ -253,8 +253,10 @@ private:
     int SaveRec(int RecN);
 
 public:
-    TInMemStorage(const TStr& _FNm, const int& _BlockSize = 1000);
-    TInMemStorage(const TStr& _FNm, const TFAccess& _Access, const bool& _Lazy = false);
+    TInMemStorage(const TStr& _FNm, const PBlobBs& _BlobStorage,
+        const int& _BlockSize = 1000);
+    TInMemStorage(const TStr& _FNm, const PBlobBs& _BlobStorage,
+        const TFAccess& _FAccess, const bool& LazyP = false);
     ~TInMemStorage();
 
     // asserts if we are allowed to change stuff
@@ -920,7 +922,7 @@ public:
         const TStr& StoreName, const TStoreSchema& StoreSchema,
         const TStr& _StoreFNm, const int64& _MxCacheSize, const int& BlockSize);
     TStoreImpl(const TWPt<TBase>& _Base, const TStr& _StoreFNm,
-        const TFAccess& _FAccess, const int64& _MxCacheSize, const bool& _Lazy = false);
+        const int64& _MxCacheSize, const bool& _Lazy = false);
     // need to override destructor, to clear cache
     ~TStoreImpl();
 
@@ -1332,41 +1334,10 @@ public:
     virtual void DelToastVal(const TPgBlobPt& Pt);
 };
 
-///////////////////////////////
-/// Create new stores from a schema and add them to an existing base
-TVec<TWPt<TStore> > CreateStoresFromSchema(const TWPt<TBase>& Base, const PJsonVal& SchemaVal,
-    const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH = TStrUInt64H(),
-    bool UsePaged = true);
-
-///////////////////////////////
-/// Create new base given a schema definition
-TWPt<TBase> NewBase(const TStr& FPath, const PJsonVal& SchemaVal, const uint64& IndexCacheSize,
-    const uint64& DefStoreCacheSize, const bool& StrictNameP, const TStrUInt64H& StoreNmCacheSizeH = TStrUInt64H(),
-    const bool& InitP = true, const int& SplitLen = 1024, bool UsePaged = true);
-
-///////////////////////////////
-/// Load base created from a schema definition
-TWPt<TBase> LoadBase(const TStr& FPath, const TFAccess& FAccess, const uint64& IndexCacheSize,
-    const uint64& StoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH = TStrUInt64H(),
-    const bool& InitP = true, const int& SplitLen = 1024);
-
-///////////////////////////////
-/// Save base created from a schema definition
-void SaveBase(const TWPt<TBase>& Base);
-
-
 /////////////////////////////////////////////////////////////////////////////////////////////
-/// Base class for derived stores, it implements all abstract method with an implementation
-/// that just throws an exception.
-
+/// Base class for derived stores.
+/// It implements all abstract method with an implementation that just throws an exception.
 class TStoreNotImpl : public TStore {
-private:
-    
-public:
-    
-
-private:
-    
 public:
     /// Create new store with given ID and name
     TStoreNotImpl(const TWPt<TBase>& _Base, uint _StoreId, const TStr& _StoreNm);
@@ -1466,8 +1437,27 @@ public:
     void SetFieldJsonVal(const uint64& RecId, const int& FieldId, const PJsonVal& Json);
 };
 
+///////////////////////////////
+/// Create new stores from a schema and add them to an existing base
+TVec<TWPt<TStore> > CreateStoresFromSchema(const TWPt<TBase>& Base, const PJsonVal& SchemaVal,
+    const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH = TStrUInt64H(),
+    bool UsePaged = true);
 
-    
+///////////////////////////////
+/// Create new base given a schema definition
+TWPt<TBase> NewBase(const TStr& FPath, const PJsonVal& SchemaVal, const uint64& IndexCacheSize,
+    const uint64& DefStoreCacheSize, const bool& StrictNameP, const TStrUInt64H& StoreNmCacheSizeH = TStrUInt64H(),
+    const bool& InitP = true, const int& SplitLen = 1024, bool UsePaged = true);
+
+///////////////////////////////
+/// Load base created from a schema definition
+TWPt<TBase> LoadBase(const TStr& FPath, const TFAccess& FAccess, const uint64& IndexCacheSize,
+    const uint64& StoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH = TStrUInt64H(),
+    const bool& InitP = true, const int& SplitLen = 1024);
+
+///////////////////////////////
+/// Save base created from a schema definition
+void SaveBase(const TWPt<TBase>& Base);
 
 } // TStorage name space
 

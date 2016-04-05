@@ -3617,118 +3617,159 @@ private:
 // QMiner-Base
 class TBase {
 private: 
-    // smart-pointer
+    /// Smart pointer reference counter
     TCRef CRef;
+    /// We are friends with smart pointer so it can access referenc coutner
     friend class TPt<TBase>;
     
-    // is store initialized
+    /// True after the base is initialized
     TBool InitP;
 
-    // location
+    /// Location of base on the disk
     TStr FPath;
-    // access type
+    /// Access type to currently opened base
     TFAccess FAccess;
-    // is temporary folder defined
-    TBool TempFPathP;
-    // default temporary directory
-    TStr TempFPath;
 
-    // index
+    /// Index vocabilary
     PIndexVoc IndexVoc;
+    /// Index structures (gix, linear, geo)
     PIndex Index;
-    // stores
+    /// Shared stora stoarge layer
+
+    PBlobBs StoreBlobBs;
+    /// List of open stores
     TVec<PStore> StoreV;
+    /// Map from store name to store
     THash<TStr, PStore> StoreH;
-    // stream aggregate base for each store
+
+    /// Stream aggregate base for each store
     TVec<PStreamAggrBase> StreamAggrBaseV;
-    // default stream aggregate base (store independent)
+    /// Default stream aggregate base (store independent)
     PStreamAggrBase StreamAggrDefaultBase;
-    // validates names of fields
+    
+    /// Name validates used for validating field, join and key names
     TNmValidator NmValidator;
-private:
-    TBase(const TStr& _FPath, const int64& IndexCacheSize, const int& SplitLen,
-            const bool& StrictNmP);
-    TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCacheSize,
-            const int& SplitLen);
+    
+    /// Invert given record set (replace with all the records from the store that are not in it)
+    PRecSet Invert(const PRecSet& RecSet, const TIndex::PQmGixExpMerger& Merger);
+    /// Execute search query. Returns results and a flag indicating if the results should be inverted.
+    TPair<TBool, PRecSet> Search(const TQueryItem& QueryItem, const TIndex::PQmGixExpMerger& Merger,
+        const TIndex::PQmGixExpMergerSmall& MergerSmall, const TQueryGixUsedType& ParentGixFlag);
+
+    /// Get config name for base located on a given path
+    static TStr GetConfFNm(const TStr& FPath) { return FPath + "Base.json"; }
+    /// Load base config
+    void LoadBaseConf(const TStr& FPath);
+    /// Save base config
+    void SaveBaseConf(const TStr& FPath) const;
+    
+    /// Create new base on the given folder
+    TBase(const TStr& _FPath, const int64& IndexCacheSize, const int& SplitLen, const bool& StrictNmP);
+    /// Open existing base from the given folder
+    TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCacheSize, const int& SplitLen);
+
 public:
     ~TBase();
-private:    
-    // searching
-    PRecSet Invert(const PRecSet& RecSet, const TIndex::PQmGixExpMerger& Merger);
-    TPair<TBool, PRecSet> Search(const TQueryItem& QueryItem, const TIndex::PQmGixExpMerger& Merger, const TIndex::PQmGixExpMergerSmall& MergerSmall, const TQueryGixUsedType& ParentGixFlag);
 
-public:
-    static TWPt<TBase> New(const TStr& FPath, const int64& IndexCacheSize, const int& SplitLen,
-            const bool& StrictNmP) {
+    /// Create new base on the given folder
+    static TWPt<TBase> New(const TStr& FPath, const int64& IndexCacheSize, const int& SplitLen, const bool& StrictNmP) {
         return new TBase(FPath, IndexCacheSize, SplitLen, StrictNmP);
     }
+    /// Open existing base from the given folder
     static TWPt<TBase> Load(const TStr& FPath, const TFAccess& FAccess, const int64& IndexCacheSize, const int& SplitLen) {
         return new TBase(FPath, FAccess, IndexCacheSize, SplitLen);
     }
 
-    // check if base already exists
+    /// Check if base already exists at a given folder
     static bool Exists(const TStr& FPath);
 
-    // initializing base
+    /// Check if base is initialized
     bool IsInit() const { return InitP; }
+    /// Initialize base
     void Init();
-    void Init(const TStr& TempFPath) { PutTempFPath(TempFPath); Init(); }
 
-    // base disk location and access type
+    /// Get folder where base is located
     const TStr& GetFPath() const { return FPath; }
+    /// Check if base is open in read only mode
     bool IsRdOnly() const { return FAccess == faRdOnly; }
+    /// Get mode in which the base is opened
     const TFAccess& GetFAccess() const { return FAccess; }
 
-    // index
+    /// Get index vocabulary
     TWPt<TIndexVoc> GetIndexVoc() const { return IndexVoc; }
+    /// Get index
     TWPt<TIndex> GetIndex() const;
 
-    // stores
+    /// Add new store
     void AddStore(const PStore& NewStore);
+    /// Get number of stores
     int GetStores() const { return StoreH.Len(); }
+    /// Check if store with given number exists
     bool IsStoreN(const uint& StoreN) const { return StoreN < (uint)StoreH.Len(); }
+    /// Get store with the given number
     const TWPt<TStore> GetStoreByStoreN(const int& StoreN) const;
+    /// Check if store with the given ID exists
     bool IsStoreId(const uint& StoreId) const { return !StoreV[StoreId].Empty(); }
+    /// Get store with the given ID
     const TWPt<TStore> GetStoreByStoreId(const uint& StoreId) const;
+    /// Check if store with the given name exists
     bool IsStoreNm(const TStr& StoreNm) const { return StoreH.IsKey(StoreNm); }
+    /// Get store with the given name
     const TWPt<TStore> GetStoreByStoreNm(const TStr& StoreNm) const;
     /// Helper function for returning JSon definition of store
     PJsonVal GetStoreJson(const TWPt<TStore>& Store);
+    /// Get store blob base
+    const PBlobBs& GetStoreBlobBs() { return StoreBlobBs; }
 
-    // stream aggregates
+    /// Get stream aggregates for the given store
     const PStreamAggrBase& GetStreamAggrBase(const uint& StoreId) const;
+    /// Get base-level stream aggregates
     const PStreamAggrBase& GetStreamAggrBase() const;
+    /// Check if store has stream aggregate with the given name
     bool IsStreamAggr(const uint& StoreId, const TStr& StreamAggrNm) const;
+    /// Check if base has stream aggregate with the given name
     bool IsStreamAggr(const TStr& StreamAggrNm) const;
+    /// Get stream aggregate with the given name from the given store ID
     const PStreamAggr& GetStreamAggr(const uint& StoreId, const TStr& StreamAggrNm) const;
+    /// Get stream aggregate with the given name from the given store name
     const PStreamAggr& GetStreamAggr(const TStr& StoreNm, const TStr& StreamAggrNm) const;
+    /// Get stream aggregate with the given name from base
     const PStreamAggr& GetStreamAggr(const TStr& StreamAggrNm) const;
+    /// Add stream aggregate to the given store
     void AddStreamAggr(const uint& StoreId, const PStreamAggr& StreamAggr);
+    /// Add stream aggreagate to the given list of stores
     void AddStreamAggr(const TUIntV& StoreIdV, const PStreamAggr& StreamAggr);
+    /// Add stream aggregate to the given store
     void AddStreamAggr(const TStr& StoreNm, const PStreamAggr& StreamAggr);
+    /// Add stream aggreagate to the given list of stores
     void AddStreamAggr(const TStrV& StoreNmV, const PStreamAggr& StreamAggr);
+    /// Add stream aggregate to the base
     void AddStreamAggr(const PStreamAggr& StreamAggr);
-    // aggregate records
+    /// Aggregate given recordset and add aggregates to the record set
     void Aggr(PRecSet& RecSet, const TQueryAggrV& QueryAggrV);
 
-    // create new word vocabulary and returns its id
+    /// Create new word vocabulary and returns its id
     int NewIndexWordVoc(const TIndexKeyType& Type, const TStr& WordVocNm = TStr());
-    // creates index key, without linking it to a filed, returns the id of created key
+    /// Create index key, without linking it to a filed, returns the id of created key
     int NewIndexKey(const TWPt<TStore>& Store, const TStr& KeyNm, const TIndexKeyType& Type = oiktValue,
         const TIndexKeySortType& SortType = oikstUndef);
-    // creates index key, without linking it to a field using specified vocabulary,
-    // returns the id of created key
+    /// Create index key, without linking it to a field using specified vocabulary,
+    /// returns the id of created key
     int NewIndexKey(const TWPt<TStore>& Store, const TStr& KeyNm, const int& WordVocId,
         const TIndexKeyType& Type = oiktValue, const TIndexKeySortType& SortType = oikstUndef);
-    // create index key for a specified (store, field) pair, returns the id of created key
+    /// Create index key for a specified (store, field) pair, returns the id of created key
     int NewFieldIndexKey(const TWPt<TStore>& Store, const TStr& KeyNm, const int& FieldId,
         const TIndexKeyType& Type = oiktValue, const TIndexKeySortType& SortType = oikstUndef);
+    /// Create index key for a specified (store, field) pair, returns the id of created key.
+    /// Uses provided custom key name.
     int NewFieldIndexKey(const TWPt<TStore>& Store, const int& FieldId, 
         const TIndexKeyType& Type = oiktValue, const TIndexKeySortType& SortType = oikstUndef);
-    // create index key for a specified (store, field) pair using specified vocabulary,
+    // Create index key for a specified (store, field) pair using specified vocabulary,
     // returns the id of created key
     int NewFieldIndexKey(const TWPt<TStore>& Store, const int& FieldId, const int& WordVocId, 
         const TIndexKeyType& Type = oiktValue, const TIndexKeySortType& SortType = oikstUndef);
+    // Create index key for a specified (store, field) pair using specified vocabulary,
+    // returns the id of created key. Uses provided custom key name.
     int NewFieldIndexKey(const TWPt<TStore>& Store, const TStr& KeyNm, const int& FieldId, 
         const int& WordVocId, const TIndexKeyType& Type = oiktValue, 
         const TIndexKeySortType& SortType = oikstUndef);
@@ -3740,53 +3781,45 @@ public:
     /// Add new record to a give store
     uint64 AddRec(const uint& StoreId, const PJsonVal& RecVal);
     
-    // searching records (default search interface)
+    /// Searching records (default search interface)
     PRecSet Search(const PQuery& Query);
+    /// Searching records (default search interface)
     PRecSet Search(const TQueryItem& QueryItem);
+    /// Searching records (default search interface)
     PRecSet Search(const TStr& QueryStr);
+    /// Searching records (default search interface)
     PRecSet Search(const PJsonVal& QueryVal);
     
     /// Execute garbage collection on all stores
     void GarbageCollect();
-
-    // is temporary folder defined
-    bool IsTempFPath() const { return TempFPathP; }
-    // get temporary folder
-    TStr GetTempFPath() const { return TempFPath; }
-    // set temporary folder
-    void PutTempFPath(const TStr& _TempFPath) { TempFPathP = true; TempFPath = _TempFPath; }
-
-    // JSON dump and load
-    bool SaveJSonDump(const TStr& DumpDir);
-    bool RestoreJSonDump(const TStr& DumpDir);
-    
-    // statistics
-    void PrintStores(const TStr& FNm, const bool& FullP = false);
-    void PrintIndexVoc(const TStr& FNm);
-    void PrintIndex(const TStr& FNm, const bool& SortP);
-        
-    /// get gix-blob stats
-    const TBlobBsStats GetGixBlobStats() { return Index->GetBlobStats(); }
-    /// get gix stats
-    const TGixStats GetGixStats(bool do_refresh = true) { return Index->GetGixStats(do_refresh); }
-    /// reset gix-blob stats
-    void ResetGixStats() { Index->ResetStats(); }
-    /// get performance statistics in JSON form
-    PJsonVal GetStats();
-
-    // perform partial flush of data
+    /// Perform partial flush of data
     int PartialFlush(int WndInMsec = 500);
 
     /// asserts if a field name is valid
     void AssertValidNm(const TStr& FldNm) const { NmValidator.AssertValidNm(FldNm); }
     /// when set to true, all field names except an empty string will be valid
-    void SetStrictNmP(const bool& StrictNmP) { NmValidator.SetStrictNmP(StrictNmP); }
+    void SetStrictNmP(const bool& StrictNmP) { NmValidator.SetStrictNmP(StrictNmP); }    
 
-private:
-    static TStr GetConfFNm(const TStr& FPath) { return FPath + "Base.json"; }
-
-    void LoadBaseConf(const TStr& FPath);
-    void SaveBaseConf(const TStr& FPath) const;
+    /// Dump complete base to json
+    bool SaveJSonDump(const TStr& DumpDir);
+    /// Restore complete base from json
+    bool RestoreJSonDump(const TStr& DumpDir);
+    
+    /// Write store statistics to file
+    void PrintStores(const TStr& FNm, const bool& FullP = false);
+    /// Write index vocabulary statistics to file
+    void PrintIndexVoc(const TStr& FNm);
+    /// Write index statistics to file
+    void PrintIndex(const TStr& FNm, const bool& SortP);
+        
+    /// Get gix-blob stats
+    const TBlobBsStats GetGixBlobStats() { return Index->GetBlobStats(); }
+    /// Get gix stats
+    const TGixStats GetGixStats(bool do_refresh = true) { return Index->GetGixStats(do_refresh); }
+    /// Reset gix-blob stats
+    void ResetGixStats() { Index->ResetStats(); }
+    /// Get performance statistics in JSON form
+    PJsonVal GetStats();
 };
 
 ////////////////////////////////////////////////////////////////////////////
