@@ -2306,11 +2306,7 @@ void TCtmcModeller::GetFutureProbVV(const TFltVV& QMat, const double& Tm,
 }
 
 /////////////////////////////////////////////////////////////////
-// Agglomerative clustering
-const double THierarch::LOW_PVAL_THRESHOLD = .25;
-const double THierarch::LOWEST_PVAL_THRESHOLD = .125;
-const double THierarch::STATE_LOW_PVAL_THRESHOLD = .4;
-
+// Hierarchy modeler
 THierarch::THierarch(const bool& _HistCacheSize, const bool& _IsTransitionBased,
 			const bool& _Verbose):
 		HierarchV(),
@@ -2320,7 +2316,6 @@ THierarch::THierarch(const bool& _HistCacheSize, const bool& _IsTransitionBased,
 		PastStateIdV(),
 		NLeafs(0),
 		StateNmV(),
-		StateAutoNmV(),
 		StateLabelV(),
 		IsTransitionBased(_IsTransitionBased),
 		Verbose(_Verbose),
@@ -2338,7 +2333,6 @@ THierarch::THierarch(TSIn& SIn):
 		PastStateIdV(SIn),
 		NLeafs(TInt(SIn)),
 		StateNmV(SIn),
-		StateAutoNmV(SIn),
 		StateLabelV(SIn),
 		TargetIdHeightSet(SIn),
 		IsTransitionBased(TBool(SIn)),
@@ -2359,7 +2353,6 @@ void THierarch::Save(TSOut& SOut) const {
 	PastStateIdV.Save(SOut);
 	TInt(NLeafs).Save(SOut);
 	StateNmV.Save(SOut);
-	StateAutoNmV.Save(SOut);
 	StateLabelV.Save(SOut);
 	TargetIdHeightSet.Save(SOut);
 	TBool(IsTransitionBased).Save(SOut);
@@ -2413,8 +2406,6 @@ void THierarch::Init(const int& CurrLeafId, const TStateIdentifier& StateIdentif
 
 		StateLabelV[StateId] = TInt::GetStr(Level) + "." + TInt::GetStr((StateN % PerLevel) + 1);
 	}
-
-	InitAutoNmV(StateIdentifier);
 }
 
 void THierarch::UpdateHistory(const int& CurrLeafId) {
@@ -2724,11 +2715,6 @@ const TStr& THierarch::GetStateNm(const int& StateId) const {
 	return StateNmV[StateId];
 }
 
-const TIntStrPr& THierarch::GetStateAutoNm(const int& StateId) const {
-	EAssertR(0 <= StateId && StateId < StateAutoNmV.Len(), "THierarch::GetStateAutoNm: Invalid state ID!");
-	return StateAutoNmV[StateId];
-}
-
 const TStr& THierarch::GetStateLabel(const int& StateId) const {
 	EAssertR(0 <= StateId && StateId < StateLabelV.Len(), "THierarch::GetStateLabel: Invalid state ID!");
 	return StateLabelV[StateId];
@@ -2897,112 +2883,6 @@ void THierarch::InitHierarchyTrans(const TStateIdentifier& StateIdentifier,
 	HierarchV = NewHierarchV;
 }
 
-void THierarch::InitAutoNmV(const TStateIdentifier& StateIdentifier) {
-	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Generating automatic names ...");
-
-	StateAutoNmV.Gen(GetStates());
-
-	const TFltV& HeightV = GetUniqueHeightV();
-	const int AllDim = StateIdentifier.GetAllDim();
-
-	TIntV AllLeafIdV;	GetLeafIdV(AllLeafIdV);
-
-	TVec<TFltV> FtrAllBinV(AllDim, AllDim);
-
-	TVec<TFltV> FtrPValVV(AllDim, AllDim);
-	for (int FtrId = 0; FtrId < AllDim; FtrId++) {
-		TFltV BinStartV;
-		StateIdentifier.GetHistogram(FtrId, AllLeafIdV, BinStartV, FtrAllBinV[FtrId], false);
-
-		const double TotalCount = TLinAlg::SumVec(FtrAllBinV[FtrId]);
-		double ProbSum = 0;
-		for (int BinN = 0; BinN < BinStartV.Len(); BinN++) {
-			const double BinProb = double(FtrAllBinV[FtrId][BinN]) / TotalCount;
-			FtrPValVV[FtrId].Add(ProbSum + BinProb/2);
-			ProbSum += BinProb;
-		}
-	}
-
-	TFltV BinValV, StateBinCountV;
-
-	for (int HeightN = 0; HeightN < HeightV.Len(); HeightN++) {
-		const double Height = HeightV[HeightN];
-
-		TIntV StateIdV;
-		TAggStateV AggStateV;
-		GetStateSetsAtHeight(Height, StateIdV, AggStateV);
-
-		for (int StateN = 0; StateN < StateIdV.Len(); StateN++) {
-			const int StateId = StateIdV[StateN];
-			const TAggState& AggState = AggStateV[StateN];
-
-			int BestFtrN = -1;
-			double BestFtrLowPercPVal = TFlt::Mx;
-			double BestFtrHighPercPVal = TFlt::Mx;
-			double BestFtrPVal = TFlt::Mx;
-
-			for (int FtrN = 0; FtrN < AllDim; FtrN++) {
-				const TFltV& AllPValV = FtrPValVV[FtrN];
-
-				StateIdentifier.GetHistogram(FtrN, AggState, BinValV, StateBinCountV, false);
-
-				// calculate the mean and check into which percentile it falls
-				const double TotalCount = TLinAlg::SumVec(StateBinCountV);
-
-				int LowPercN = -1, HighPercN = -1;
-
-				double ProbSum = 0;
-				for (int BinN = 0; BinN < BinValV.Len(); BinN++) {
-					const double Prob = double(StateBinCountV[BinN]) / TotalCount;
-
-					if (ProbSum <= STATE_LOW_PVAL_THRESHOLD && ProbSum + Prob > STATE_LOW_PVAL_THRESHOLD) {
-						LowPercN = BinN;
-					}
-					if (ProbSum < 1 - STATE_LOW_PVAL_THRESHOLD && ProbSum + Prob >= 1 - STATE_LOW_PVAL_THRESHOLD) {
-						HighPercN = BinN;
-					}
-
-					ProbSum += Prob;
-				}
-
-				EAssert(LowPercN >= 0 && HighPercN >= 0);
-
-				const double LowPercPVal = AllPValV[LowPercN];
-				const double HighPercPVal = 1 - AllPValV[HighPercN];
-
-				const double PVal = TMath::Mn(LowPercPVal, HighPercPVal);
-
-				printf("State %d, ftr: %d, p: %.5f\n", StateId, FtrN, PVal);
-
-				if (PVal < BestFtrPVal) {
-					BestFtrPVal = PVal;
-					BestFtrLowPercPVal = LowPercPVal;
-					BestFtrHighPercPVal = HighPercPVal;
-					BestFtrN = FtrN;
-				}
-			}
-
-			if (BestFtrPVal < LOWEST_PVAL_THRESHOLD) {
-				if (BestFtrLowPercPVal < BestFtrHighPercPVal) {
-					StateAutoNmV[StateId] = TIntStrPr(BestFtrN, "LOWEST");
-				} else {
-					StateAutoNmV[StateId] = TIntStrPr(BestFtrN, "HIGHEST");
-				}
-			} else if (BestFtrPVal < LOW_PVAL_THRESHOLD) {
-				if (BestFtrLowPercPVal < BestFtrHighPercPVal) {
-					StateAutoNmV[StateId] = TIntStrPr(BestFtrN, "LOW");
-				} else {
-					StateAutoNmV[StateId] = TIntStrPr(BestFtrN, "HIGH");
-				}
-			} else {
-				StateAutoNmV[StateId] = TIntStrPr(-1, "MEAN");
-			}
-		}
-	}
-
-	Notify->OnNotify(TNotifyType::ntInfo, "Auto names generated!");
-}
-
 int THierarch::GetParentId(const int& StateId) const {
 	return GetParentId(StateId, HierarchV);
 }
@@ -3123,6 +3003,10 @@ const double TUiHelper::RADIUS_FACTOR = 1.8;
 const double TUiHelper::STEP_FACTOR = 1e-2;
 const double TUiHelper::INIT_RADIUS_FACTOR = 1.1;
 
+const double TUiHelper::LOW_PVAL_THRESHOLD = .25;
+const double TUiHelper::LOWEST_PVAL_THRESHOLD = .125;
+const double TUiHelper::STATE_LOW_PVAL_THRESHOLD = .4;
+
 const TStr TUiHelper::MONTHS[] = {
 		"January",
 		"February",
@@ -3211,6 +3095,8 @@ const TStr TUiHelper::DAYS_IN_WEEK[] = {
 
 TUiHelper::TUiHelper(const TRnd& _Rnd, const bool& _Verbose):
 		StateCoordV(),
+		StateAutoNmV(),
+		StateIdAutoNmDescVV(),
 		StateIdOccTmDescV(),
 		Rnd(_Rnd),
 		Verbose(_Verbose),
@@ -3218,6 +3104,8 @@ TUiHelper::TUiHelper(const TRnd& _Rnd, const bool& _Verbose):
 
 TUiHelper::TUiHelper(TSIn& SIn):
 		StateCoordV(SIn),
+		StateAutoNmV(SIn),
+		StateIdAutoNmDescVV(SIn),
 		StateIdOccTmDescV(SIn),
 		Rnd(SIn),
 		Verbose(TBool(SIn)) {
@@ -3226,6 +3114,8 @@ TUiHelper::TUiHelper(TSIn& SIn):
 
 void TUiHelper::Save(TSOut& SOut) const {
 	StateCoordV.Save(SOut);
+	StateAutoNmV.Save(SOut);
+	StateIdAutoNmDescVV.Save(SOut);
 	StateIdOccTmDescV.Save(SOut);
 	Rnd.Save(SOut);
 	TBool(Verbose).Save(SOut);
@@ -3236,6 +3126,7 @@ void TUiHelper::Init(const TStateIdentifier& StateIdentifier, const THierarch& H
 	Notify->OnNotify(TNotifyType::ntInfo, "Initializing UI helper ...");
 	InitStateCoordV(StateIdentifier, Hierarch);
 	RefineStateCoordV(StateIdentifier, Hierarch, MChain);
+	InitAutoNmV(StateIdentifier, Hierarch);
 	InitStateExplain(StateIdentifier, Hierarch, MChain);
 }
 
@@ -3263,6 +3154,26 @@ void TUiHelper::GetStateRadiusV(const TFltV& ProbV, TFltV& RadiusV) const {
 	}
 }
 
+const TIntUChPr& TUiHelper::GetStateAutoNm(const int& StateId) const {
+	EAssertR(0 <= StateId && StateId < StateAutoNmV.Len(), "THierarch::GetStateAutoNm: Invalid state ID!");
+	return StateAutoNmV[StateId];
+}
+
+void TUiHelper::GetAutoNmPValDesc(const int& StateId, TAutoNmDescV& DescV) const {
+	EAssert(0 <= StateId && StateId < StateIdAutoNmDescVV.Len());
+	if (!DescV.Empty()) { DescV.Clr(); }
+
+	const TAutoNmDescV& AutoNmDescV = StateIdAutoNmDescVV[StateId];
+
+	for (int DescN = 0; DescN < AutoNmDescV.Len(); DescN++) {
+		const TAutoNmDesc& Desc = AutoNmDescV[DescN];
+
+		if (Desc.Val3 == TUCh(TAutoNmLevel::anlMeduim)) { break; }
+
+		DescV.Add(Desc);
+	}
+}
+
 void TUiHelper::GetTmDesc(const int& StateId, TStrPrV& DescIntervalV) const {
 	TTmDescV TmDescV;	GetTmDesc(StateId, TmDescV);
 
@@ -3272,6 +3183,18 @@ void TUiHelper::GetTmDesc(const int& StateId, TStrPrV& DescIntervalV) const {
 		const TTmDesc& Desc = TmDescV[DescN];
 
 		GetTimeDescStr(Desc, DescIntervalV[DescN]);
+	}
+}
+
+TStr TUiHelper::GetAutoNmLowHighDesc(const TAutoNmLevel& Level) {
+	if (Level == TAutoNmLevel::anlHigh || Level == TAutoNmLevel::anlHighest) {
+		return "high";
+	} else if (Level == TAutoNmLevel::anlLow || Level == TAutoNmLevel::anlLowest) {
+		return "low";
+	} else if (Level == TAutoNmLevel::anlMeduim) {
+		return "mean";
+	} else {
+		throw TExcept::New("Unknown level: " + TUCh(Level));
 	}
 }
 
@@ -3407,6 +3330,185 @@ void TUiHelper::RefineStateCoordV(const TStateIdentifier& StateIdentifier,
 	Notify->OnNotify(TNotifyType::ntInfo, "Done!");
 }
 
+void TUiHelper::InitAutoNmV(const TStateIdentifier& StateIdentifier, const THierarch& Hierarch) {
+	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Generating automatic names ...");
+
+	const int States = Hierarch.GetStates();
+
+	StateAutoNmV.Gen(States);
+	StateIdAutoNmDescVV.Gen(States);
+
+//	const TFltV& HeightV = Hierarch.GetUniqueHeightV();
+	const int AllDim = StateIdentifier.GetAllDim();
+
+	TIntV AllLeafIdV;	Hierarch.GetLeafIdV(AllLeafIdV);
+
+	TVec<TFltV> FtrAllBinV(AllDim, AllDim);
+
+	TVec<TFltV> FtrPValVV(AllDim, AllDim);
+	for (int FtrId = 0; FtrId < AllDim; FtrId++) {
+		TFltV BinStartV;
+		StateIdentifier.GetHistogram(FtrId, AllLeafIdV, BinStartV, FtrAllBinV[FtrId], false);
+
+		const double TotalCount = TLinAlg::SumVec(FtrAllBinV[FtrId]);
+		double ProbSum = 0;
+		for (int BinN = 0; BinN < BinStartV.Len(); BinN++) {
+			const double BinProb = double(FtrAllBinV[FtrId][BinN]) / TotalCount;
+			FtrPValVV[FtrId].Add(ProbSum + BinProb/2);
+			ProbSum += BinProb;
+		}
+	}
+
+	TFltV BinValV, StateBinCountV;
+
+	// TODO remove
+	TIntSet UsedStateIdSet;
+
+	for (int StateId = 0; StateId < States; StateId++) {
+//		const double Height = Hierarch.GetStateHeight(StateId);
+
+		TAggState AggState;	Hierarch.GetLeafDescendantV(StateId, AggState);
+
+		TAutoNmDescV& StateAutoNmDescV = StateIdAutoNmDescVV[StateId];
+
+		// TODO remove
+		EAssert(!UsedStateIdSet.IsKey(StateId));
+		UsedStateIdSet.AddKey(StateId);
+
+		int BestFtrN = -1;
+		double BestFtrLowPercPVal = TFlt::Mx;
+		double BestFtrHighPercPVal = TFlt::Mx;
+		double BestFtrPVal = TFlt::Mx;
+
+		for (int FtrN = 0; FtrN < AllDim; FtrN++) {
+			const TFltV& AllPValV = FtrPValVV[FtrN];
+
+			StateIdentifier.GetHistogram(FtrN, AggState, BinValV, StateBinCountV, false);
+
+			// calculate the mean and check into which percentile it falls
+			const double TotalCount = TLinAlg::SumVec(StateBinCountV);
+
+			int LowPercN = -1, HighPercN = -1;
+
+			double ProbSum = 0;
+			for (int BinN = 0; BinN < BinValV.Len(); BinN++) {
+				const double Prob = double(StateBinCountV[BinN]) / TotalCount;
+
+				if (ProbSum <= STATE_LOW_PVAL_THRESHOLD && ProbSum + Prob > STATE_LOW_PVAL_THRESHOLD) {
+					LowPercN = BinN;
+				}
+				if (ProbSum < 1 - STATE_LOW_PVAL_THRESHOLD && ProbSum + Prob >= 1 - STATE_LOW_PVAL_THRESHOLD) {
+					HighPercN = BinN;
+				}
+
+				ProbSum += Prob;
+			}
+
+			EAssert(LowPercN >= 0 && HighPercN >= 0);
+
+			const double LowPercPVal = AllPValV[LowPercN];
+			const double HighPercPVal = 1 - AllPValV[HighPercN];
+
+			const double PVal = TMath::Mn(LowPercPVal, HighPercPVal);
+
+			printf("State %d, ftr: %d, p: %.5f\n", StateId, FtrN, PVal);
+
+			if (PVal < BestFtrPVal) {
+				BestFtrPVal = PVal;
+				BestFtrLowPercPVal = LowPercPVal;
+				BestFtrHighPercPVal = HighPercPVal;
+				BestFtrN = FtrN;
+			}
+
+			const TAutoNmLevel Level = GetAutoNmLevel(PVal, LowPercPVal, HighPercPVal);
+			StateAutoNmDescV.Add(TAutoNmDesc(PVal, FtrN, (uchar) Level));
+		}
+
+		const TAutoNmLevel BestFtrLevel = GetAutoNmLevel(BestFtrPVal, BestFtrLowPercPVal, BestFtrHighPercPVal);
+		StateAutoNmV[StateId] = TIntUChPr(BestFtrN, (uchar) BestFtrLevel);
+
+		StateAutoNmDescV.Sort(true);
+	}
+
+//	// TODO remove
+//	TIntSet UsedStateIdSet;
+//
+//	for (int HeightN = 0; HeightN < HeightV.Len(); HeightN++) {
+//		const double Height = HeightV[HeightN];
+//
+//		TIntV StateIdV;
+//		TAggStateV AggStateV;
+//		Hierarch.GetStateSetsAtHeight(Height, StateIdV, AggStateV);
+//
+//		for (int StateN = 0; StateN < StateIdV.Len(); StateN++) {
+//			const int StateId = StateIdV[StateN];
+//			const TAggState& AggState = AggStateV[StateN];
+//
+//			TAutoNmDescV& StateAutoNmDescV = StateIdAutoNmDescVV[StateId];
+//
+//			// TODO remove
+//			EAssert(!UsedStateIdSet.IsKey(StateId));
+//			UsedStateIdSet.AddKey(StateId);
+//
+//			int BestFtrN = -1;
+//			double BestFtrLowPercPVal = TFlt::Mx;
+//			double BestFtrHighPercPVal = TFlt::Mx;
+//			double BestFtrPVal = TFlt::Mx;
+//
+//			for (int FtrN = 0; FtrN < AllDim; FtrN++) {
+//				const TFltV& AllPValV = FtrPValVV[FtrN];
+//
+//				StateIdentifier.GetHistogram(FtrN, AggState, BinValV, StateBinCountV, false);
+//
+//				// calculate the mean and check into which percentile it falls
+//				const double TotalCount = TLinAlg::SumVec(StateBinCountV);
+//
+//				int LowPercN = -1, HighPercN = -1;
+//
+//				double ProbSum = 0;
+//				for (int BinN = 0; BinN < BinValV.Len(); BinN++) {
+//					const double Prob = double(StateBinCountV[BinN]) / TotalCount;
+//
+//					if (ProbSum <= STATE_LOW_PVAL_THRESHOLD && ProbSum + Prob > STATE_LOW_PVAL_THRESHOLD) {
+//						LowPercN = BinN;
+//					}
+//					if (ProbSum < 1 - STATE_LOW_PVAL_THRESHOLD && ProbSum + Prob >= 1 - STATE_LOW_PVAL_THRESHOLD) {
+//						HighPercN = BinN;
+//					}
+//
+//					ProbSum += Prob;
+//				}
+//
+//				EAssert(LowPercN >= 0 && HighPercN >= 0);
+//
+//				const double LowPercPVal = AllPValV[LowPercN];
+//				const double HighPercPVal = 1 - AllPValV[HighPercN];
+//
+//				const double PVal = TMath::Mn(LowPercPVal, HighPercPVal);
+//
+//				printf("State %d, ftr: %d, p: %.5f\n", StateId, FtrN, PVal);
+//
+//				if (PVal < BestFtrPVal) {
+//					BestFtrPVal = PVal;
+//					BestFtrLowPercPVal = LowPercPVal;
+//					BestFtrHighPercPVal = HighPercPVal;
+//					BestFtrN = FtrN;
+//				}
+//
+//				const TAutoNmLevel Level = GetAutoNmLevel(PVal, LowPercPVal, HighPercPVal);
+//				StateAutoNmDescV.Add(TAutoNmDesc(PVal, FtrN, (uchar) Level));
+//			}
+//
+//			const TAutoNmLevel BestFtrLevel = GetAutoNmLevel(BestFtrPVal, BestFtrLowPercPVal, BestFtrHighPercPVal);
+//			StateAutoNmV[StateId] = TIntUChPr(BestFtrN, (uchar) BestFtrLevel);
+//
+//			StateAutoNmDescV.Sort(true);
+//		}
+//	}
+
+	Notify->OnNotify(TNotifyType::ntInfo, "Auto names generated!");
+}
+
 void TUiHelper::InitStateExplain(const TStateIdentifier& StateIdentifier, const THierarch& Hierarch,
 		const TCtmcModeller& TransModeler) {
 
@@ -3424,14 +3526,8 @@ void TUiHelper::InitStateExplain(const TStateIdentifier& StateIdentifier, const 
 	double PeakMass;
 	int PeakBinCount;
 
-	TIntSet UsedStateIdSet;
-
 	for (int StateN = 0; StateN < StateIdHeightPrV.Len(); StateN++) {
 		const int& StateId = StateIdHeightPrV[StateN].Val1;
-
-		// TODO remove this
-		EAssertR(!UsedStateIdSet.IsKey(StateId), "State ID already used!");
-		UsedStateIdSet.AddKey(StateId);
 
 		TIntV LeafV;	Hierarch.GetLeafDescendantV(StateId, LeafV);
 
@@ -3634,6 +3730,19 @@ void TUiHelper::GetMoveDir(const TFltPr& Pos1, const TFltPr& Pos2, TFltPr& Dir) 
 	const double Norm = TLinAlg::EuclDist(Pos1, Pos2);
 	Dir.Val1 = (Pos1.Val1 - Pos2.Val1) / Norm;
 	Dir.Val2 = (Pos1.Val2 - Pos2.Val2) / Norm;
+}
+
+TUiHelper::TAutoNmLevel TUiHelper::GetAutoNmLevel(const double& PVal, const double& LowPercPVal,
+		const double& HighPercPVal) {
+	if (PVal < LOWEST_PVAL_THRESHOLD) {
+		return LowPercPVal < HighPercPVal ? TAutoNmLevel::anlLowest : TAutoNmLevel::anlHighest;
+	}
+	else if (PVal < LOW_PVAL_THRESHOLD) {
+		return LowPercPVal < HighPercPVal ? TAutoNmLevel::anlLow : TAutoNmLevel::anlHigh;
+	}
+	else {
+		return TAutoNmLevel::anlMeduim;
+	}
 }
 
 ////////////////////////////////////////////////
@@ -4325,11 +4434,37 @@ PJsonVal TStreamStory::GetLikelyPathTreeJson(const int& StateId, const double& H
 	return Result;
 }
 
-PJsonVal TStreamStory::GetAutoNmJson(const TIntStrPr& FtrIdRngPr) {
+PJsonVal TStreamStory::GetAutoNmJson(const TIntUChPr& FtrIdRngPr) {
 	PJsonVal Result = TJsonVal::NewObj();
 
+	TUiHelper::TAutoNmLevel Level = (TUiHelper::TAutoNmLevel) ((uchar) FtrIdRngPr.Val2);
+
 	Result->AddToObj("ftrId", FtrIdRngPr.Val1);
-	Result->AddToObj("range", FtrIdRngPr.Val2);
+
+	switch (Level) {
+	case TUiHelper::TAutoNmLevel::anlLowest: {
+		Result->AddToObj("range", "LOWEST");
+		break;
+	}
+	case TUiHelper::TAutoNmLevel::anlLow: {
+		Result->AddToObj("range", "LOW");
+		break;
+	}
+	case TUiHelper::TAutoNmLevel::anlMeduim: {
+		// nothing
+		break;
+	}
+	case TUiHelper::TAutoNmLevel::anlHigh: {
+		Result->AddToObj("range", "HIGH");
+		break;
+	}
+	case TUiHelper::TAutoNmLevel::anlHighest: {
+		Result->AddToObj("range", "HIGHEST");
+		break;
+	}
+	default:
+		throw TExcept::New("Unknown level " + TUCh(Level));
+	}
 
 	return Result;
 }
@@ -4819,8 +4954,12 @@ const TStr& TStreamStory::GetStateLabel(const int& StateId) const {
 	}
 }
 
-const TIntStrPr& TStreamStory::GetStateAutoNm(const int& StateId) const {
-	return Hierarch->GetStateAutoNm(StateId);
+const TIntUChPr& TStreamStory::GetStateAutoNm(const int& StateId) const {
+	return UiHelper->GetStateAutoNm(StateId);
+}
+
+void TStreamStory::GetStateFtrPValDesc(const int& StateId, TVec<TTriple<TFlt, TInt, TUCh>>& Desc) const {
+	UiHelper->GetAutoNmPValDesc(StateId, Desc);
 }
 
 void TStreamStory::GetStateTmDesc(const int& StateId, TStrPrV& StateIntervalV) const {
@@ -4873,7 +5012,7 @@ PJsonVal TStreamStory::GetLevelJson(const double& Height, const TStateIdV& State
 		StateJson->AddToObj("isTarget", Hierarch->IsTarget(StateId));
 		StateJson->AddToObj("label", Hierarch->GetStateLabel(StateId));
 
-		const TIntStrPr& AutoNmPr = Hierarch->GetStateAutoNm(StateId);
+		const TIntUChPr& AutoNmPr = UiHelper->GetStateAutoNm(StateId);
 		StateJson->AddToObj("autoName", GetAutoNmJson(AutoNmPr));
 
 		if (Hierarch->IsStateNm(StateId)) {

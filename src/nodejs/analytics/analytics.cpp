@@ -1543,6 +1543,7 @@ void TNodeJsStreamStory::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "rebuildHistograms", _rebuildHistograms);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStateLabel", _getStateLabel);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStateAutoName", _getStateAutoName);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "narrateState", _narrateState);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStateTypTimes", _getStateTypTimes);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStateName", _getStateName);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "setStateName", _setStateName);
@@ -2394,11 +2395,36 @@ void TNodeJsStreamStory::getStateAutoName(const v8::FunctionCallbackInfo<v8::Val
 	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
 	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
-	const TIntStrPr& StateAutoNm = JsStreamStory->StreamStory->GetStateAutoNm(StateId);
-
+	const TIntUChPr& StateAutoNm = JsStreamStory->StreamStory->GetStateAutoNm(StateId);
 	const PJsonVal AutoNmJson = TMc::TStreamStory::GetAutoNmJson(StateAutoNm);
 
 	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, AutoNmJson));
+}
+
+void TNodeJsStreamStory::narrateState(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+
+	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
+
+	TVec<TTriple<TFlt, TInt, TUCh>> StateFtrDescV;
+	JsStreamStory->StreamStory->GetStateFtrPValDesc(StateId, StateFtrDescV);
+
+	PJsonVal Result = TJsonVal::NewArr();
+	for (int DescN = 0; DescN < StateFtrDescV.Len(); DescN++) {
+		const TTriple<TFlt, TInt, TUCh>& FtrDesc = StateFtrDescV[DescN];
+
+		PJsonVal DescJson = TJsonVal::NewObj();
+		DescJson->AddToObj("p", FtrDesc.Val1);
+		DescJson->AddToObj("ftrId", FtrDesc.Val2);
+		DescJson->AddToObj("ftrDesc", TMc::TUiHelper::GetAutoNmLowHighDesc((TMc::TUiHelper::TAutoNmLevel) ((uchar) FtrDesc.Val3)));
+
+		Result->AddToArr(DescJson);
+	}
+
+	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, Result));
 }
 
 void TNodeJsStreamStory::getStateTypTimes(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -2466,8 +2492,8 @@ void TNodeJsStreamStory::setStateCoords(const v8::FunctionCallbackInfo<v8::Value
 
 	TFltPrV PosV(JsStreamStory->StreamStory->GetStates());
 	for (int i = 0; i < PosJsonArr->GetArrVals(); i++) {
-		const PJsonVal StateJson = PosJsonArr->GetArrVal(i);
-		const PJsonVal PosJson = StateJson->GetObjKey("position");
+		const PJsonVal& StateJson = PosJsonArr->GetArrVal(i);
+		const PJsonVal& PosJson = StateJson->GetObjKey("position");
 
 		const int StateId = StateJson->GetObjInt("id");
 		const double x = PosJson->GetObjNum("x");

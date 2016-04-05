@@ -1831,6 +1831,7 @@ public:
 
 	JsDeclareFunction(getStateLabel);
 	JsDeclareFunction(getStateAutoName);
+	JsDeclareFunction(narrateState);
 	JsDeclareFunction(getStateTypTimes);
 
 	/**
