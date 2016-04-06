@@ -3480,6 +3480,7 @@ namespace TStreamAggrOut {
     };
 
     template <class TVal>
+
     class IValIO : public IValVec<TVal> , public virtual IBuffer {
     public:
         // valid only when not using delay
