@@ -529,7 +529,7 @@ TInMemStorage::TInMemStorage(const TStr& _FNm, const PBlobBs& _BlobStorage, cons
     FNm(_FNm), Access(faCreate), BlobStorage(_BlobStorage), BlockSize(_BlockSize) { }
 
 TInMemStorage::TInMemStorage(const TStr& _FNm, const PBlobBs& _BlobStorage, const TFAccess& _FAccess,
-        const bool& LazyP): FNm(_FNm), Access(_FAccess),BlobStorage(_BlobStorage) {
+        const bool& LazyP): FNm(_FNm), Access(_FAccess), BlobStorage(_BlobStorage) {
     
     // load data
     TFIn FIn(FNm); 
@@ -555,7 +555,7 @@ TInMemStorage::~TInMemStorage() {
         // store dirty vectors
         for (int i = 0; i < ValV.Len(); i++) {
             SaveRec(i);
-        }       
+        }
         // save vector
         TFOut FOut(FNm); 
         BlobPtV.Save(FOut);
@@ -2952,7 +2952,7 @@ TStoreImpl::TStoreImpl(const TWPt<TBase>& Base, const TStr& _StoreFNm,
     const int64& _MxCacheSize, const bool& _Lazy): TStore(Base, _StoreFNm + ".BaseStore"), 
         StoreFNm(_StoreFNm), FAccess(Base->GetFAccess()), PrimaryFieldType(oftUndef),
         DataCache(_StoreFNm + ".Cache", Base->GetStoreBlobBs(), Base->GetFAccess(), _MxCacheSize), 
-        DataMem(_StoreFNm + "MemCache", Base->GetStoreBlobBs(), _Lazy) {
+        DataMem(_StoreFNm + ".MemCache", Base->GetStoreBlobBs(), Base->GetFAccess(), _Lazy) {
 
     SetStoreType("TStoreImpl");
     // load members
@@ -2993,7 +2993,7 @@ TStoreImpl::TStoreImpl(const TWPt<TBase>& Base, const TStr& _StoreFNm,
     RecIndexer = TRecIndexer(GetIndex(), this);
     
     // initialize data storage flags
-    InitDataFlags();    
+    InitDataFlags();
 }
 
 TStoreImpl::~TStoreImpl() {

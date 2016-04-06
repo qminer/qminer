@@ -223,8 +223,6 @@ class TInMemStorage {
 private:
     /// Storage filename
     TStr FNm;
-    /// Storage filename for Blob storage
-    TStr BlobFNm;
     /// Access type with which the storage is opened
     TFAccess Access;
     /// Physical offset of the first non-deleted record

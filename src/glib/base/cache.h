@@ -523,7 +523,7 @@ private:
 
 private:
     // remember access mode
-    TStr FNmPrefix;
+    TStr FNm;
     TFAccess Access;
     // max memory to be used by cache
     int64 CacheResetThreshold;
@@ -547,7 +547,7 @@ private:
 private:
     // asserts if we are allowed to change stuff
     void AssertReadOnly() const {
-        EAssertR(((Access==faCreate)||(Access==faUpdate)), FNmPrefix + " opened in Read-Only mode!"); 
+        EAssertR(((Access==faCreate)||(Access==faUpdate)), FNm + " opened in Read-Only mode!"); 
     }
 
     // for callbacks from cache, to store blocks before drop from cache
@@ -573,9 +573,9 @@ private:
     }
     
 public:
-    TWndBlockCache(const TStr& _FNmPrefix, const PBlobBs& _BlockBlobBs,
+    TWndBlockCache(const TStr& _FNm, const PBlobBs& _BlockBlobBs,
         const int64& MxCacheMem, const int& _BlockSize);
-    TWndBlockCache(const TStr& _FNmPrefix, const PBlobBs& _BlockBlobBs,
+    TWndBlockCache(const TStr& _FNm, const PBlobBs& _BlockBlobBs,
         const TFAccess& _Access, const int64& MxCacheMem);
     ~TWndBlockCache();
 
@@ -705,11 +705,11 @@ void TWndBlockCache<TVal>::DelBlock() {
 }
 
 template <class TVal>
-TWndBlockCache<TVal>::TWndBlockCache(const TStr& _FNmPrefix, const PBlobBs& _BlockBlobBs, const int64& MxCacheMem, 
+TWndBlockCache<TVal>::TWndBlockCache(const TStr& _FNm, const PBlobBs& _BlockBlobBs, const int64& MxCacheMem, 
         const int& _BlockSize): BlockSize(_BlockSize), BlockCache(MxCacheMem, 1000000, GetVoidThis()) {
 
     // initialize storage parameters
-    FNmPrefix = _FNmPrefix;
+    FNm = _FNm;
     Access = faCreate;
     // initialize cache parameters
     CacheResetThreshold = MAX(int64(0.1 * double(MxCacheMem)), int64(10*1024*1024));
@@ -721,11 +721,11 @@ TWndBlockCache<TVal>::TWndBlockCache(const TStr& _FNmPrefix, const PBlobBs& _Blo
 }
 
 template <class TVal>
-TWndBlockCache<TVal>::TWndBlockCache(const TStr& _FNmPrefix, const PBlobBs& _BlockBlobBs, const TFAccess& _Access,
+TWndBlockCache<TVal>::TWndBlockCache(const TStr& _FNm, const PBlobBs& _BlockBlobBs, const TFAccess& _Access,
         const int64& MxCacheMem): BlockCache(MxCacheMem, 1000000, GetVoidThis()) {
 
     // initialize storage parameters
-    FNmPrefix = _FNmPrefix;
+    FNm = _FNm;
     Access = _Access;
     // initialize cache parameters
     CacheResetThreshold = MAX(int64(0.1 * double(MxCacheMem)), int64(10*1024*1024));
@@ -735,7 +735,7 @@ TWndBlockCache<TVal>::TWndBlockCache(const TStr& _FNmPrefix, const PBlobBs& _Blo
     // make sure we are not trying to create
     EAssertR(Access != faCreate, "First call create constructor!");
     // load BlockId map and BlockSize
-    TFIn FIn(FNmPrefix + ".Dat");
+    TFIn FIn(FNm);
     Vals.Load(FIn);
     BlockSize.Load(FIn);
     BlockBlobPtV.Load(FIn);     
@@ -748,8 +748,8 @@ TWndBlockCache<TVal>::~TWndBlockCache() {
     if ((Access == faCreate) || (Access == faUpdate)) {
         // flush all the latest changes in cache to the disk        
         BlockCache.Flush();
-        // save the rest to FNmPrefix + ".Dat"
-        TFOut FOut(FNmPrefix + ".Dat");
+        // save the rest to FNm
+        TFOut FOut(FNm);
         Vals.Save(FOut);
         BlockSize.Save(FOut);
         BlockBlobPtV.Save(FOut);
