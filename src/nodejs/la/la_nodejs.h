@@ -48,7 +48,7 @@ private:
 public:
 	/**
 	* Computes the truncated SVD decomposition.
-	* @param {module:la.Matrix | matrix:la.SparseMatrix} mat - The matrix.
+	* @param {module:la.Matrix | module:la.SparseMatrix} mat - The matrix.
 	* @param {number} k - The number of singular vectors to be computed.
 	* @param {Object} [json] - The JSON object containing the properties iter and tol:
 	* @param {number} [json.iter = 100] - The number of iterations used for the algorithm.
