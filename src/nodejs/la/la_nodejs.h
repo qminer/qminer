@@ -50,7 +50,7 @@ public:
 	* Computes the truncated SVD decomposition.
 	* @param {module:la.Matrix | module:la.SparseMatrix} mat - The matrix.
 	* @param {number} k - The number of singular vectors to be computed.
-	* @param {Object} [json] - The JSON object containing the properties iter and tol:
+	* @param {Object} [json] - The JSON object.
 	* @param {number} [json.iter = 100] - The number of iterations used for the algorithm.
 	* @param {number} [json.tol = 1e-6] - The tolerance number.
 	* @param {function} [callback] - The callback function, that takes the error parameters (err) and the result parameter (res). 
