@@ -8,46 +8,6 @@
 
 /////////////////////////////////////////////////
 // Blob-Pointer
-const int TBlobPt::Flags=24;
-
-void TBlobPt::PutFlag(const int& FlagN, const bool& Val){
-  EAssert((0<=FlagN)&&(FlagN<Flags));
-  switch (FlagN/8){
-    case 0: FSet1.SetBit(7-FlagN%8, Val); break;
-    case 1: FSet2.SetBit(7-FlagN%8, Val); break;
-    case 2: FSet3.SetBit(7-FlagN%8, Val); break;
-    default: Fail;
-  }
-}
-
-bool TBlobPt::IsFlag(const int& FlagN) const {
-  EAssert((0<=FlagN)&&(FlagN<Flags));
-  switch (FlagN/8){
-    case 0: return FSet1.GetBit(7-FlagN%8);
-    case 1: return FSet2.GetBit(7-FlagN%8);
-    case 2: return FSet3.GetBit(7-FlagN%8);
-    default: Fail; return false;
-  }
-}
-
-void TBlobPt::PutFSet(const int& FSetN, const TB8Set& FSet){
-  switch (FSetN){
-    case 1: FSet1=FSet; break;
-    case 2: FSet2=FSet; break;
-    case 3: FSet3=FSet; break;
-    default: Fail;
-  }
-}
-
-TB8Set TBlobPt::GetFSet(const int& FSetN){
-  switch (FSetN){
-    case 1: return FSet1;
-    case 2: return FSet2;
-    case 3: return FSet3;
-    default: Fail; return TB8Set();
-  }
-}
-
 TStr TBlobPt::GetStr() const {
   TChA ChA;
   ChA+='[';
@@ -55,10 +15,6 @@ TStr TBlobPt::GetStr() const {
     ChA+="Null";
   } else {
     ChA+=TUInt::GetStr(uint(Seg)); ChA+=':'; ChA+=TUInt::GetStr(Addr);
-    for (int FlagN=0; FlagN<Flags; FlagN++){
-      if (IsFlag(FlagN)){
-        ChA+='{'; ChA+=TInt::GetStr(FlagN); ChA+='}';}
-    }
   }
   ChA+=']';
   return ChA;
@@ -473,7 +429,7 @@ TStr TMBlobBs::GetMainFNm(
 
 TStr TMBlobBs::GetSegFNm(
  const TStr& NrFPath, const TStr& NrFMid, const int& SegN){
-  return NrFPath+NrFMid+".mbb"+""+TStr::GetNrNumFExt(SegN);
+    return NrFPath+NrFMid+".mbb"+""+TStr::GetNrNumFExt(SegN, 5);
 }
 
 void TMBlobBs::LoadMain(int& Segs){
@@ -556,7 +512,7 @@ TBlobPt TMBlobBs::PutBlob(const PSIn& SIn){
   EAssert((Access==faCreate)||(Access==faUpdate)||(Access==faRestore));
   TBlobPt BlobPt=SegV[CurSegN]->PutBlob(SIn);
   if (BlobPt.Empty()){
-    for (uchar SegN=0; SegN<SegV.Len(); SegN++){
+    for (uint16 SegN=0; SegN<SegV.Len(); SegN++){
       BlobPt=SegV[CurSegN=SegN]->PutBlob(SIn);
       if (!BlobPt.Empty()){break;}
     }
@@ -564,12 +520,12 @@ TBlobPt TMBlobBs::PutBlob(const PSIn& SIn){
       TStr SegFNm=GetSegFNm(NrFPath, NrFMid, SegV.Len());
       PBlobBs Seg=TGBlobBs::New(SegFNm, faCreate, MxSegLen);
       CurSegN=SegV.Add(Seg); 
-	  EAssert(CurSegN <= 255);
+      EAssert(CurSegN <= TUSInt::Mx);
       BlobPt=SegV[CurSegN]->PutBlob(SIn);
     }
   }
   if (!BlobPt.Empty()){
-    BlobPt.PutSeg(uchar(CurSegN));}
+    BlobPt.PutSeg(uint16(CurSegN));}
   return BlobPt;
 }
 
@@ -604,7 +560,7 @@ TBlobPt TMBlobBs::FFirstBlobPt(){
 }
 
 bool TMBlobBs::FNextBlobPt(TBlobPt& TrvBlobPt, TBlobPt& BlobPt, PSIn& BlobSIn){
-  uchar SegN=TrvBlobPt.GetSeg();
+  uint16 SegN=TrvBlobPt.GetSeg();
   if (SegV[SegN]->FNextBlobPt(TrvBlobPt, BlobPt, BlobSIn)){
     TrvBlobPt.PutSeg(SegN);
     BlobPt.PutSeg(SegN);

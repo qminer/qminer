@@ -1936,7 +1936,7 @@ private:
 	static v8::Local<v8::Object> WrapHistogram(const TFltV& BinValV,
 			const TFltV& SourceProbV, const TFltV& TargetProbV, const TFltV& AllProbV);
 	static uint64 GetTmUnit(const TStr& TmUnitStr);
-	static TClustering::TAbsKMeans* GetClust(const PJsonVal& ParamJson, const TRnd& Rnd);
+	static TClustering::TAbsKMeans<TFltVV>* GetClust(const PJsonVal& ParamJson, const TRnd& Rnd);
 };
 
 ///////////////////////////////
@@ -2182,6 +2182,9 @@ public:
 	
 };
 
+/////////////////////////////////////////////
+// QMiner-JavaScript-Multidimensional Scaling
+
 /**
 * @typedef {Object} MDSParam
 * @property {number} [maxSecs=500] - The maximum time period to compute MDS of a matrix.
@@ -2218,6 +2221,7 @@ private:
 
 	static TNodeJsMDS* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
+private:
 	class TFitTransformTask: public TNodeTask {
 		TNodeJsMDS* JsMDS;
 		TNodeJsFltVV* JsFltVV;
@@ -2325,6 +2329,251 @@ private:
 	void UpdateParams(const PJsonVal& ParamVal);
 	PJsonVal GetParams() const;
 	void Save(TSOut& SOut) const;
+};
+
+
+/////////////////////////////////////////////
+// QMiner-JavaScript-KMeans
+
+/**
+* @typedef {Object} KMeansParameters
+* @property {number} [iter=10000] - The maximum number of iterations.
+* @property {number} [k=2] - The number of centroids.
+* @property {boolean} [allowEmpty=true] - wether to allow empty clusters to be generated
+* @property {string} [centroidType="Dense"] - The type of centroids. Options: "Dense" or "Sparse".
+* @property {string} [distanceType="Euclid"] - The distance type used at the calculations. Options: "Euclid" or "Cos".
+* @property {boolean} [verbose=false] - If false, the console output is supressed.
+*/
+
+
+/** 
+ * @classdesc KMeans clustering
+ * @class
+ * @param {(module:analytics~KMeansParameters |  module:fs.FIn)} [params] - The parameters for the construction.
+ 
+ * @example
+ * // import analytics and la modules
+ * var analytics = require('qminer').analytics;
+ * var la = require('qminer').la;
+ * // create a KMeans object
+ * var KMeans = new analytics.KMeans();
+ * // create the matrix to be fitted
+ * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+ * // create the model
+ * KMeans.fit(X);
+ */
+//# exports.KMeans = function (params) { return Object.create(require('qminer').analytics.KMeans.prototype); }
+class TNodeJsKMeans : public node::ObjectWrap {
+    friend class TNodeJsUtil;
+public:
+    static void Init(v8::Handle<v8::Object> exports);
+    static const TStr GetClassId() { return "KMeans"; }
+
+private:
+    enum TDistanceType { dtEuclid, dtCos };
+    enum TCentroidType { ctDense, ctSparse };
+
+    int Iter;
+    int K;
+    TBool AllowEmptyP;
+
+    TIntV AssignV;
+    TIntV Medoids;
+
+    TDistanceType DistType;
+    TClustering::PDist Dist;
+
+    TCentroidType CentType;
+    void* Model;
+
+    bool Verbose;
+    PNotify Notify;
+
+    TNodeJsKMeans(const PJsonVal& ParamVal);
+    TNodeJsKMeans(TSIn& SIn);
+    ~TNodeJsKMeans();
+
+    static TNodeJsKMeans* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+private:
+    class TFitTask : public TNodeTask {
+        TNodeJsKMeans* JsKMeans;
+        // first argument
+        TNodeJsFltVV*  JsFltVV;
+        TNodeJsSpMat*  JsSpVV;
+        // second argument
+        TNodeJsIntV*   JsIntV;
+        TNodeJsIntV*   JsArr;
+
+    public:
+        TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+        v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+        void Run();
+    };
+
+public:
+
+    /**
+    * Returns the parameters.
+    * @returns {module:analytics~KMeansParameters} The construction parameters.
+    * @example
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // create a new KMeans object
+    * var KMeans = new analytics.KMeans({ iter: 1000, k: 5 });
+    * // get the parameters
+    * var json = KMeans.getParams();
+    */
+    //# exports.KMeans.prototype.getParams = function () { return { iter: 10000, k: 2, distanceType: "Euclid", centroidType: "Dense", verbose: false }; }
+    JsDeclareFunction(getParams);
+    
+    /**
+     * Sets the parameters.
+     * @param {module:analytics~KMeansParameters} params - The construction parameters.
+     * @returns {module:analytics.KMeans} Self.
+     * @example
+     * // import analytics module
+     * var analytics = require('qminer').analytics;
+     * // create a new KMeans object
+     * var KMeans = new analytics.KMeans();
+     * // change the parameters of the KMeans object
+     * KMeans.setParams({ iter: 1000, k: 5 });
+     */
+    //# exports.KMeans.prototype.setParams = function (params) { return Object.create(require('qminer').analytics.KMeans.prototype); }
+    JsDeclareFunction(setParams);
+
+    /**
+     * Computes the centroids.
+     * @param {(module:la.Matrix | module:la.SparseMatrix)} X - Matrix whose columns correspond to examples.
+     * @returns {module:analytics.KMeans} Self. It stores the info about the new model.
+     * @example <caption> Asynchronous function </caption>
+     * // import analytics module
+     * var analytics = require('qminer').analytics;
+     * // create a new KMeans object
+     * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+     * // create a matrix to be fitted
+     * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+     * // create the model with the matrix X
+     * KMeans.fitAsync(X, function (err) {
+     *     if (err) {
+     *         console.log(err);
+     *     }
+     *     // successful calculation
+     * });
+     *
+     * @example <caption> Synchronous function </caption>
+     * var analytics = require('qminer').analytics;
+     * // create a new KMeans object
+     * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+     * // create a matrix to be fitted
+     * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+     * // create the model with the matrix X
+     * KMeans.fit(X);
+     */
+    //# exports.KMeans.prototype.fit = function (X) { return Object.create(require('qminer').analytics.KMeans.prototype); }
+    JsDeclareSyncAsync(fit, fitAsync, TFitTask);
+
+    /**
+     * Returns an vector of cluster id assignments.
+     * @param {(module:la.Matrix | module:la.SparseMatrix)} A - Matrix whose columns correspond to examples.
+     * @returns {module:la.IntVector} Vector of cluster assignments.
+     * @example
+     * // import analytics module
+     * var analytics = require('qminer').analytics;
+     * // create a new KMeans object
+     * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+     * // create a matrix to be fitted
+     * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+     * // create the model with the matrix X
+     * KMeans.fit(X);
+     * // create the matrix of the prediction vectors
+     * var pred = new la.Matrix([[2, -1, 1], [1, 0, -3]]);
+     * // predict the values
+     * var prediction = KMeans.predict(pred);
+     */
+    //# exports.KMeans.prototype.predict = function (A) { return Object.create(require('qminer').la.IntVector.prototype); }
+    JsDeclareFunction(predict);
+
+    /**
+     * Transforms the points to vectors of squared distances to centroids.
+     * @param {(module:la.Matrix | module:la.SparseMatrix)} A - Matrix whose columns correspond to examples.
+     * @returns {module:la.Matrix} Matrix where each column represents the squared distances to the centroid vectors.
+     * @example
+     * // import modules
+     * var analytics = require('qminer').analytics;
+     * var la = require('qminer').la;
+     * // create a new KMeans object
+     * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+     * // create a matrix to be fitted
+     * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+     * // create the model with the matrix X
+     * KMeans.fit(X);
+     * // create the matrix of the transform vectors
+     * var matrix = new la.Matrix([[-2, 0], [0, -3]]);
+     * // get the transform values of matrix
+     * // returns the matrix
+     * //  10    17
+     * //   1    20
+     * //  10     1
+     * KMeans.transform(matrix);
+     */
+    //# exports.KMeans.prototype.transform = function (A) { return Object.create(require('qminer').la.Matrix.prototype); }
+    JsDeclareFunction(transform);
+
+    /**
+     * Permutates the clusters, and with it {@link module:analytics.KMeans#centroids}, {@link module:analytics.KMeans#medoids} and {@link module:analytics.KMeans#idxv}.
+     * @param {module:la.IntVector} mapping - The mapping, where mapping[4] = 2 means "map cluster 4 into cluster 2".
+     * @returns {module:analytics.KMeans} Self with permutated clusters.
+     * @example 
+     * // import the modules
+     * var analytics = require('qminer').analytics;
+     * var la = require('qminer').la;
+     * // create a new KMeans object
+     * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+     * // create a matrix to be fitted
+     * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+     * // create the model with the matrix X
+     * KMeans.fit(X);
+     * // create the mapping vector
+     * var Mapping = new la.IntVector([1, 0, 2]);
+     * // permutate the clusters.
+     * KMeans.permuteCentroids(Mapping);
+     */
+    //# exports.KMeans.prototype.permuteCentroids = function (mapping) { return Object.create(require('qminer').analytics.KMeans.prototype); }
+    JsDeclareFunction(permuteCentroids);
+
+    /**
+     * Saves KMeans internal state into (binary) file.
+     * @param {module:fs.FOut} Out - The output stream.
+     * @returns {module:fs.FOut} The output stream fout.
+     */
+    //# exports.KMeans.prototype.save = function (Out) { return Object.create(require('qminer').fs.FOut.prototype); }
+    JsDeclareFunction(save);
+
+    /**
+     * The centroids created with the fit method.
+     */
+    //# exports.KMeans.prototype.centroids = Object.create(require('qminer').la.Matrix.prototype);
+    JsDeclareProperty(centroids);
+
+    /**
+    * The medoids created with the fit method.
+    */
+    //# exports.KMeans.prototype.medoids = Object.create(require('qminer').la.IntVector.prototype);
+    JsDeclareProperty(medoids);
+
+    /**
+    * The integer vector containing the cluster ids of the training set created with the fit method.
+    */
+    //# exports.KMeans.prototype.idxv = Object.create(require('qminer').la.IntVector.prototype);
+    JsDeclareProperty(idxv);
+
+private:
+    void UpdateParams(const PJsonVal& ParamVal);
+    PJsonVal GetParams() const;
+    void Save(TSOut& SOut) const;
+    void CleanUp();
 };
 
 

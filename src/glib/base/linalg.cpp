@@ -1635,6 +1635,16 @@ void TLAMisc::FillRnd(const int& Len, TFltV& Vec, TRnd& Rnd) {
     }    
 }
 
+void TLAMisc::Fill(TFltVV& A, const double& val) {
+	const int Rows = A.GetRows();
+	const int Cols = A.GetCols();
+	for (int RowN = 0; RowN < Rows; RowN++) {
+		for (int ColN = 0; ColN < Cols; ColN++) {
+			A.PutXY(RowN, ColN, val);
+		}
+	}
+}
+
 void TLAMisc::Fill(TFltV& V, const double& val){
 	const int n = V.Len();
 	for (int i = 0; i < n; i++){
@@ -1753,6 +1763,17 @@ int TLAMisc::GetMaxDimIdx(const TVec<TIntFltKdV>& SpMat) {
 		}
 	}
 	return MaxDim;
+}
+
+int TLAMisc::GetMaxVal(const TIntV& Vec) {
+    const int Len = Vec.Len();
+    int MaxVal = Vec[0];
+    for (int i = 1; i < Len; i++) {
+        if (Vec[i] > MaxVal) {
+            MaxVal = Vec[i];
+        }
+    }
+    return MaxVal;
 }
 
 int TLAMisc::GetMinIdx(const TFltV& Vec) {
@@ -1884,6 +1905,25 @@ void TLAMisc::ZScore(const TFltVV& Mat, TFltVV& Res, const int& Flag, const TMat
 
 }
 
+double TLAMisc::Trace(const TFltVV& Mat) {
+	EAssert(Mat.GetRows() == Mat.GetCols());
+	double sum = 0.0;
+	for (int i = 0; i < Mat.GetRows(); i++) {
+		sum += Mat.At(i, i);
+	}
+	return sum;
+}
+
+bool TLAMisc::IsZero(const TFltV& Vec, const double& Eps) {
+	bool IsZero = true;
+	for (int i = 0; i < Vec.Len(); i++) {
+		if (!TMath::IsInEps((double)Vec[i], Eps)) {
+			IsZero = false;
+			break;
+		}
+	}
+	return IsZero;
+}
 
 ///////////////////////////////////////////////////////////////////////
 // TVector
@@ -2711,7 +2751,9 @@ void TFullMatrix::Load(TSIn& SIn) {
 //Tolerance ignored!
 int TLinAlg::ComputeThinSVD(const TMatrix& XYt, const int& k, TFltVV& U, TFltV& s, TFltVV& V, const int Iters, const double Tol){
 	//TStructuredCovarianceMatrix XYt(rows, cols, SampleN, MeanX, MeanY, X, Y);
-	 const int its = Iters != -1 ? Iters : 2;
+	EAssert(k <= XYt.GetRows() && k <= XYt.GetCols());
+
+	const int its = Iters != -1 ? Iters : 2;
 	 const int m = XYt.GetRows();
 	 const int n = XYt.GetCols();
 	 int l = (int)((11 / 10.0) * k);

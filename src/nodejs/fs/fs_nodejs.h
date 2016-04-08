@@ -65,6 +65,21 @@ public:
     static void Init(v8::Handle<v8::Object> exports);
     
 private:
+    class TReadLinesCallback: public TMainThreadTask {
+	private:
+		v8::Persistent<v8::Function>* OnLine;
+		PExcept Except;
+	public:
+		TVec<TStrV> CsvLineV;
+
+		TReadLinesCallback(const int& BatchSize, v8::Persistent<v8::Function>* _OnLine):
+			OnLine(_OnLine),
+			Except(),
+			CsvLineV(BatchSize, 0) {}
+		void Run();
+		PExcept GetExcept() const { return Except; }
+	};
+
 	class TReadCsvTask: public TNodeTask {
 	private:
 		PSIn SIn;
@@ -72,6 +87,7 @@ private:
 		int Limit;
 		int BatchSize;
 		v8::Persistent<v8::Function> OnLine;
+		TReadLinesCallback* LinesCallback;
 
 	public:
 		TReadCsvTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
@@ -79,18 +95,9 @@ private:
 
 		v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
 		void Run();
-	};
 
-	class TReadLinesCallback: public TMainThreadTask {
 	private:
-		v8::Persistent<v8::Function>* OnLine;
-	public:
-		TVec<TStrV> CsvLineV;
-
-		TReadLinesCallback(const int& BatchSize, v8::Persistent<v8::Function>* _OnLine):
-			OnLine(_OnLine),
-			CsvLineV(BatchSize, 0) {}
-		void Run();
+		void CallCallback();
 	};
 
 public:

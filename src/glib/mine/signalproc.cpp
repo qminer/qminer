@@ -368,7 +368,7 @@ TEmaSpVec::TEmaSpVec(const TEmaType& _Type, const uint64& _InitMinMSecs,
 	TmInterval(_TmInterval),
 	Cutoff(_Cutoff),
 	InitP(false),
-	InitMinMSecs(_InitMinMSecs) {}
+	InitMinMSecs((double)_InitMinMSecs) {}
 
 TEmaSpVec::TEmaSpVec(const PJsonVal& ParamVal) : LastVal(), InitP(false) {
 	// type

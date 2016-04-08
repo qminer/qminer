@@ -152,7 +152,7 @@ private:
     if (IsList){putchar(Ch);}
     return Ch;
   }
-  char GetChX(){char Ch=GetChX(); printf("%c", Ch); return Ch;}
+  //char GetChX(){char Ch=GetChX(); printf("%c", Ch); return Ch;}
 public: // symbol state
   TLxSym Sym;
   TChA Str, UcStr, CmtStr;
