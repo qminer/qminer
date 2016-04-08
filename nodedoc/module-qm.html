@@ -7767,8 +7767,8 @@ var timeser = {
 };
 var timeSeries = base.store(&quot;Heat&quot;).addStreamAggr(timeser);
 
-// add an exponentional moving average aggregator, that is connected with the &#x27;TimeSeriesAggr&#x27; aggregator.
-// It should interpolate with the previous value, the decay should be 3 seconds and the initWindow should be 2 seconds.
+// a threshold aggregator, that is connected wit hthe &#x27;TimeSeriesAggr&#x27; aggregator.
+// It should output 1 when the temperature is over 3 degrees Celsius and 0 otherwise
 var thresholdAggr = {
    name: &#x27;thresholdAggr1&#x27;,
    type: &#x27;threshold&#x27;,
