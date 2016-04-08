@@ -1635,6 +1635,16 @@ void TLAMisc::FillRnd(const int& Len, TFltV& Vec, TRnd& Rnd) {
     }    
 }
 
+void TLAMisc::Fill(TFltVV& A, const double& val) {
+	const int Rows = A.GetRows();
+	const int Cols = A.GetCols();
+	for (int RowN = 0; RowN < Rows; RowN++) {
+		for (int ColN = 0; ColN < Cols; ColN++) {
+			A.PutXY(RowN, ColN, val);
+		}
+	}
+}
+
 void TLAMisc::Fill(TFltV& V, const double& val){
 	const int n = V.Len();
 	for (int i = 0; i < n; i++){
@@ -1895,6 +1905,25 @@ void TLAMisc::ZScore(const TFltVV& Mat, TFltVV& Res, const int& Flag, const TMat
 
 }
 
+double TLAMisc::Trace(const TFltVV& Mat) {
+	EAssert(Mat.GetRows() == Mat.GetCols());
+	double sum = 0.0;
+	for (int i = 0; i < Mat.GetRows(); i++) {
+		sum += Mat.At(i, i);
+	}
+	return sum;
+}
+
+bool TLAMisc::IsZero(const TFltV& Vec, const double& Eps) {
+	bool IsZero = true;
+	for (int i = 0; i < Vec.Len(); i++) {
+		if (!TMath::IsInEps((double)Vec[i], Eps)) {
+			IsZero = false;
+			break;
+		}
+	}
+	return IsZero;
+}
 
 ///////////////////////////////////////////////////////////////////////
 // TVector

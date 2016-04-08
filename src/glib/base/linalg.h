@@ -173,6 +173,10 @@ public:
 	static void Std(const TFltVV& Mat, TFltV& Vec, const int& Flag = 0, const TMatDim& Dim = TMatDim::mdCols);
 	// returns the z-score for each element of X such that columns of X are centered to have mean 0 and scaled to have standard deviation 1.
 	static void ZScore(const TFltVV& Mat, TFltVV& Vec, const int& Flag = 0, const TMatDim& Dim = TMatDim::mdCols);
+	// returns the sum of diagonal elements of matrix
+	static double Trace(const TFltVV& Mat);
+	// returns true, if the vector is a zero vector
+	static bool IsZero(const TFltV& Vec, const double& Eps = 1e-6);
 
 	template <class TMatType>
 	inline static void Sqrt(TMatType& X);
