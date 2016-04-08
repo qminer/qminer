@@ -9,7 +9,6 @@
 namespace TMc {
 
 using namespace TClassification;
-using namespace TDist;
 using namespace TClustering;
 
 namespace {
@@ -81,7 +80,7 @@ private:
   	TRnd Rnd;
 
   	// clustering
-  	TAbsKMeans* KMeans;
+  	PDenseKMeans KMeans;
   	// holds centroids as column vectors
   	TFltVV ControlCentroidVV;
   	TFltVV IgnoredCentroidVV;
@@ -117,7 +116,7 @@ public:
 		thtDay
   	};
 
-  	TStateIdentifier(TAbsKMeans* KMeans, const int NHistBins, const double& Sample,
+  	TStateIdentifier(const PDenseKMeans& KMeans, const int NHistBins, const double& Sample,
 			const TRnd& Rnd=TRnd(0), const bool& Verbose=false);
 	TStateIdentifier(TSIn& SIn);
 
@@ -128,7 +127,8 @@ public:
 	// performs the clustering
 	void Init(const TUInt64V& TmV, TFltVV& ObsFtrVV, const TFltVV& ControlFtrVV, const TFltVV& IgnoredFtrVV);
 	// initializes histograms for every feature
-	void InitHistograms(const TFltVV& ObsMat, const TFltVV& ControlFtrVV, const TFltVV& IgnoredFtrVV);
+	void InitHistograms(const TFltVV& ObsMat, const TFltVV& ControlFtrVV,
+			const TFltVV& IgnoredFtrVV, const TIntV& AssignV);
 	void InitTimeHistogramV(const TUInt64V& TmV, const TIntV& AssignV, const int& Bins);
 
 	// assign methods
@@ -626,6 +626,7 @@ private:
 // UI helper
 class TUiHelper {
 private:
+	static const double RADIUS_FACTOR;
 	static const double STEP_FACTOR;
 	static const double INIT_RADIUS_FACTOR;
 	TFltPrV StateCoordV;
@@ -656,6 +657,10 @@ private:
 			const THierarch& Hierarch);
 	void RefineStateCoordV(const TStateIdentifier& StateIdentifier,
 			const THierarch& Hierarch, const TCtmcModeller& MChain);
+
+	void InitStateExplain(const TStateIdentifier& StateIdentifier, const THierarch& Hierarch);
+	bool HasMxPeaks(const int& MxPeakCount, const double& PeakMassThreshold, const TFltV& PdfHist,
+			 TIntPrV& PeakBorderV, double& PeakMass, int& PeakBinCount) const;
 
 	static double GetStateRaduis(const double& Prob);
 	static bool NodesOverlap(const int& StartId, const int& EndId, const TFltPrV& CoordV,

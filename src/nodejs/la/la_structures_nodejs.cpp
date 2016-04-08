@@ -1187,6 +1187,10 @@ TNodeJsSpMat* TNodeJsSpMat::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value
 	return new TNodeJsSpMat(Mat, Rows);
 }
 
+v8::Local<v8::Object> TNodeJsSpMat::New(const TVec<TIntFltKdV>& _Mat, const int& _Rows) {
+    return TNodeJsUtil::NewInstance(new TNodeJsSpMat(_Mat, _Rows));
+}
+
 void TNodeJsSpMat::at(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);

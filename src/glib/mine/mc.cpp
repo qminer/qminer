@@ -47,17 +47,20 @@ void THistogram::Save(TSOut& SOut) const {
 
 void THistogram::Update(const double& FtrVal) {
 	const double HalfBinSize = GetBinSize()/2;
-	const double Eps = 1e-14;
+	const double Eps = 1e-12;
 
-	if (FtrVal < BinValV[0] + HalfBinSize) {
+	const double FirstBinEdge = BinValV[0] + HalfBinSize;
+	const double LastBinEdge = BinValV.Last() - HalfBinSize - Eps;
+
+	if (FtrVal < FirstBinEdge) {
 		CountV[0]++;
-	} else if (FtrVal >= BinValV.Last() - HalfBinSize) {
+	} else if (LastBinEdge <= FtrVal) {
 		CountV.Last()++;
 	} else {
 		bool Updated = false;
 		for (int BinN = 1; BinN < Bins-1; BinN++) {
 			const double LowerEdge = BinValV[BinN] - HalfBinSize - Eps;
-			const double UpperEdge = BinValV[BinN] + HalfBinSize + Eps;
+			const double UpperEdge = BinValV[BinN] + HalfBinSize;
 			if (LowerEdge <= FtrVal && FtrVal < UpperEdge) {
 				Updated = true;
 				CountV[BinN]++;
@@ -77,7 +80,7 @@ void THistogram::Update(const double& FtrVal) {
 const int TStateIdentifier::MX_ITER = 10000;
 const int TStateIdentifier::TIME_HIST_BINS = 10000;
 
-TStateIdentifier::TStateIdentifier(TAbsKMeans* _KMeans, const int _NHistBins,
+TStateIdentifier::TStateIdentifier(const PDenseKMeans& _KMeans, const int _NHistBins,
 			const double& _Sample, const TRnd& _Rnd, const bool& _Verbose):
 		Rnd(_Rnd),
 		KMeans(_KMeans),
@@ -97,7 +100,7 @@ TStateIdentifier::TStateIdentifier(TAbsKMeans* _KMeans, const int _NHistBins,
 
 TStateIdentifier::TStateIdentifier(TSIn& SIn):
 	Rnd(SIn),
-	KMeans(TAbsKMeans::Load(SIn)),
+	KMeans(TAbsKMeans<TFltVV>::Load(SIn)),
 	ControlCentroidVV(SIn),
 	IgnoredCentroidVV(SIn),
 	CentroidDistStatV(SIn),
@@ -117,9 +120,7 @@ TStateIdentifier::TStateIdentifier(TSIn& SIn):
 	Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
 }
 
-TStateIdentifier::~TStateIdentifier() {
-	delete KMeans;
-}
+TStateIdentifier::~TStateIdentifier() {}
 
 void TStateIdentifier::Save(TSOut& SOut) const {
 	Rnd.Save(SOut);
@@ -150,7 +151,7 @@ void TStateIdentifier::Init(const TUInt64V& TmV, TFltVV& ObsFtrVV, const TFltVV&
 	Notify->OnNotify(TNotifyType::ntInfo, "Clustering ...");
 
 	if (Sample == 1) {
-		KMeans->Apply(ObsFtrVV, MX_ITER, Notify);
+		KMeans->Apply(ObsFtrVV, false, MX_ITER, Notify);
 	} else {
 		const int NSamples = Sample < 1 ? (int)ceil(NInst*Sample) : TMath::Mn(NInst, int(Sample));
 
@@ -164,7 +165,7 @@ void TStateIdentifier::Init(const TUInt64V& TmV, TFltVV& ObsFtrVV, const TFltVV&
 		SampleV.Shuffle(Rnd);
 		SampleV.Trunc(NSamples);
 
-		KMeans->Apply(TFullMatrix(ObsFtrVV, true)(TVector::Range(ObsFtrVV.GetRows()), SampleV).GetMat(), MX_ITER, Notify);	// TODO remove TFullMatrix
+		KMeans->Apply(TFullMatrix(ObsFtrVV, true)(TVector::Range(ObsFtrVV.GetRows()), SampleV).GetMat(), false, MX_ITER, Notify);	// TODO remove TFullMatrix
 	}
 
 	InitStatistics(ObsFtrVV);
@@ -172,7 +173,7 @@ void TStateIdentifier::Init(const TUInt64V& TmV, TFltVV& ObsFtrVV, const TFltVV&
 	TIntV AssignV;	Assign(ObsFtrVV, AssignV);
 	InitCentroidVV(AssignV, ControlFtrVV, ControlCentroidVV);
 	InitCentroidVV(AssignV, IgnoredFtrVV, IgnoredCentroidVV);
-	InitHistograms(ObsFtrVV, ControlFtrVV, IgnoredFtrVV);
+	InitHistograms(ObsFtrVV, ControlFtrVV, IgnoredFtrVV, AssignV);
 	InitTimeHistogramV(TmV, AssignV, TIME_HIST_BINS);
 	ClearControlFtrVV(ControlFtrVV.GetRows());
 
@@ -187,12 +188,10 @@ void TStateIdentifier::Init(const TUInt64V& TmV, TFltVV& ObsFtrVV, const TFltVV&
 }
 
 void TStateIdentifier::InitHistograms(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV,
-		const TFltVV& IgnoredFtrVV) {
+		const TFltVV& IgnoredFtrVV, const TIntV& AssignV) {
 	Notify->OnNotify(TNotifyType::ntInfo, "Computing histograms ...");
 
 	const int NClusts = GetStates();
-
-	TIntV AssignV;	Assign(ObsFtrVV, AssignV);
 
 	InitHists(ObsFtrVV, ContrFtrVV, IgnoredFtrVV);
 
@@ -226,7 +225,7 @@ void TStateIdentifier::InitTimeHistogramV(const TUInt64V& TmV, const TIntV& Assi
 		const TTm RecTm = TTm::GetTmFromMSecs(RecTmMSecs);
 		const int Month = RecTm.GetMonth();
 		const int Day = RecTm.GetDay();
-		const int DayOfWeek = RecTm.GetDayOfWeek();
+		const int DayOfWeek = RecTm.GetDaysSinceMonday();
 		const int Hour = RecTm.GetHour();
 
 		StateYearHistV[StateId].Update(Month);
@@ -2241,7 +2240,7 @@ void TCtmcModeller::GetNextStateProbV(const TFltVV& QMat, const TStateIdV& State
 
 	const int Dim = QMat.GetRows();
 
-	const int NFStates = TMath::Mn(NFutStates, Dim-1);
+	const int NFStates = NFutStates == -1 ? Dim-1 : TMath::Mn(NFutStates, Dim-1);
 	const int StateIdx = StateIdV.SearchForw(StateId);
 
 	EAssertR(StateIdx >= 0, "TCtMChain::GetNextStateProbV: Could not find target state!");
@@ -2944,7 +2943,6 @@ void THierarch::InitAutoNmV(const TStateIdentifier& StateIdentifier) {
 
 			for (int FtrN = 0; FtrN < AllDim; FtrN++) {
 				const TFltV& AllPValV = FtrPValVV[FtrN];
-//				const TFltV& AllBinV = FtrAllBinV[FtrN];
 
 				StateIdentifier.GetHistogram(FtrN, AggState, BinValV, StateBinCountV, false);
 
@@ -3121,6 +3119,7 @@ void THierarch::ClrFlds() {
 
 /////////////////////////////////////////////////////////////////
 // UI helper
+const double TUiHelper::RADIUS_FACTOR = 1.8;
 const double TUiHelper::STEP_FACTOR = 1e-2;
 const double TUiHelper::INIT_RADIUS_FACTOR = 1.1;
 
@@ -3148,7 +3147,7 @@ void TUiHelper::Init(const TStateIdentifier& StateIdentifier, const THierarch& H
 	Notify->OnNotify(TNotifyType::ntInfo, "Initializing UI helper ...");
 	InitStateCoordV(StateIdentifier, Hierarch);
 	RefineStateCoordV(StateIdentifier, Hierarch, MChain);
-//	TransformToUnit();
+	InitStateExplain(StateIdentifier, Hierarch);
 }
 
 const TFltPr& TUiHelper::GetStateCoords(const int& StateId) const {
@@ -3307,10 +3306,111 @@ void TUiHelper::RefineStateCoordV(const TStateIdentifier& StateIdentifier,
 	Notify->OnNotify(TNotifyType::ntInfo, "Done!");
 }
 
+void TUiHelper::InitStateExplain(const TStateIdentifier& StateIdentifier, const THierarch& Hierarch) {
+	const TIntV& StateIdV = Hierarch.GetHierarchV();
+
+	const int MxPeaks = 1;
+	const double MnSupport = .7;
+
+	TIntPrV PeakStartEndV;
+	double PeakMass;
+	int PeakBinCount;
+
+	for (int StateN = 0; StateN < StateIdV.Len() - 1; StateN++) {
+		const int& StateId = StateIdV[StateN];
+
+		TIntV LeafV;	Hierarch.GetLeafDescendantV(StateId, LeafV);
+
+		TIntV YearBinValV;
+		TIntV MonthBinValV;
+		TIntV WeekBinValV;
+		TIntV DayBinValV;
+
+		TFltV YearBinV;
+		TFltV MonthBinV;
+		TFltV WeekBinV;
+		TFltV DayBinV;
+
+		StateIdentifier.GetTimeHistogram(LeafV, TStateIdentifier::TTmHistType::thtYear, YearBinValV, YearBinV);
+		StateIdentifier.GetTimeHistogram(LeafV, TStateIdentifier::TTmHistType::thtMonth, MonthBinValV, MonthBinV);
+		StateIdentifier.GetTimeHistogram(LeafV, TStateIdentifier::TTmHistType::thtWeek, WeekBinValV, WeekBinV);
+		StateIdentifier.GetTimeHistogram(LeafV, TStateIdentifier::TTmHistType::thtDay, DayBinValV, DayBinV);
+
+		if (HasMxPeaks(MxPeaks, MnSupport, YearBinV, PeakStartEndV, PeakMass, PeakBinCount)) {
+			Notify->OnNotifyFmt(TNotifyType::ntInfo, "State %d has yearly peaks!", StateId);
+			Notify->OnNotifyFmt(TNotifyType::ntInfo, TStrUtil::GetStr(YearBinV, ", ", "%.5f").CStr());
+			// TODO
+		}
+		if (HasMxPeaks(MxPeaks, MnSupport, MonthBinV, PeakStartEndV, PeakMass, PeakBinCount)) {
+			Notify->OnNotifyFmt(TNotifyType::ntInfo, "State %d has monthly peaks!", StateId);
+			Notify->OnNotifyFmt(TNotifyType::ntInfo, TStrUtil::GetStr(MonthBinV, ", ", "%.5f").CStr());
+			// TODO
+		}
+		if (HasMxPeaks(MxPeaks, MnSupport, WeekBinV, PeakStartEndV, PeakMass, PeakBinCount)) {
+			Notify->OnNotifyFmt(TNotifyType::ntInfo, "State %d has weekly peaks!", StateId);
+			Notify->OnNotifyFmt(TNotifyType::ntInfo, TStrUtil::GetStr(WeekBinV, ", ", "%.5f").CStr());
+			// TODO
+		}
+		if (HasMxPeaks(MxPeaks, MnSupport, DayBinV, PeakStartEndV, PeakMass, PeakBinCount)) {
+			Notify->OnNotifyFmt(TNotifyType::ntInfo, "State %d has daily peaks!", StateId);
+			Notify->OnNotifyFmt(TNotifyType::ntInfo, TStrUtil::GetStr(DayBinV, ", ", "%.5f").CStr());
+			// TODO
+		}
+	}
+}
+
+bool TUiHelper::HasMxPeaks(const int& MxPeakCount, const double& PeakMassThreshold,
+		const TFltV& PdfHist, TIntPrV& PeakBorderV, double& PeakMass, int& PeakBinCount) const {
+	const int NBins = PdfHist.Len();
+	const double TotalMass = TLinAlg::SumVec(PdfHist);
+	const double MeanBinMass = TotalMass / NBins;
+
+	EAssert(NBins > 0);
+	PeakBorderV.Clr();
+
+	PeakMass = 0;
+	PeakBinCount = 0;
+
+	int PeakCount = 0;
+	bool IsInPeak = false;
+	for (int BinN = 0; BinN < NBins; BinN++) {
+		const double& BinVal = PdfHist[BinN];
+
+		const bool BinInPeak = BinVal > MeanBinMass;
+
+		if (BinInPeak != IsInPeak) {
+			if (IsInPeak) {
+				IsInPeak = false;
+				PeakCount++;
+				EAssertR(!PeakBorderV.Empty(), "Tried to end a peak, but no peak started!");
+				PeakBorderV.Last().Val2 = BinN;
+			} else {
+				IsInPeak = true;
+				PeakBorderV.Add(TIntPr(BinN, -1));
+			}
+		}
+
+		if (IsInPeak) {
+			PeakMass += BinVal;
+			PeakBinCount++;
+		}
+	}
+
+	// check if the peak is circular
+	if (IsInPeak && PdfHist[0] > MeanBinMass) {
+		PeakCount--;
+		EAssertR(PeakBorderV.Len() >= 2, "Not enough peaks in distribution when joining circularly!");
+		PeakBorderV[0].Val1 = PeakBorderV.Last().Val1;
+		PeakBorderV.DelLast();
+	}
+
+	return PeakCount <= MxPeakCount && PeakMass / TotalMass >= PeakMassThreshold;
+}
+
 double TUiHelper::GetStateRaduis(const double& Prob) {
 	// the probability is proportional to the area, so the raduis should
 	// be proportional to the square root of the probability
-	return TMath::Sqrt(Prob / TMath::Pi);
+	return RADIUS_FACTOR * TMath::Sqrt(Prob / TMath::Pi);
 }
 
 bool TUiHelper::NodesOverlap(const int& StartId, const int& EndId, const TFltPrV& CoordV, const TFltV& RaduisV) {
@@ -4052,6 +4152,8 @@ void TStreamStory::Init(TFltVV& ObservFtrVV, const TFltVV& ControlFtrVV,
 	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Creating a model on %d instances ...", ObservFtrVV.GetCols());
 	TFltVV FtrVV;	CreateFtrVV(ObservFtrVV, ControlFtrVV, RecTmV, TBoolV(), FtrVV);
 
+	EAssertR(!TLAUtil::ContainsNan(ObservFtrVV), "Nans in the data!");
+
 	Callback->OnProgress(0, "Clustering ...");
 	TIntV AssignV;	InitClust(RecTmV, ObservFtrVV, FtrVV, IgnoredFtrVV, AssignV);
 	Callback->OnProgress(30, "Modeling transitions ...");
@@ -4095,7 +4197,8 @@ void TStreamStory::InitHierarch() {
 void TStreamStory::InitHistograms(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV,
 		const TFltVV& IgnoredFtrVV, const TUInt64V& RecTmV, const TBoolV& BatchEndV) {
 	TFltVV FtrVV;	CreateFtrVV(ObsFtrVV, ContrFtrVV, RecTmV, BatchEndV, FtrVV);
-	StateIdentifier->InitHistograms(ObsFtrVV, FtrVV, IgnoredFtrVV);
+	TIntV AssignV;	StateIdentifier->Assign(ObsFtrVV, AssignV);
+	StateIdentifier->InitHistograms(ObsFtrVV, FtrVV, IgnoredFtrVV, AssignV);
 }
 
 void TStreamStory::InitStateAssist(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV,
@@ -4630,8 +4733,6 @@ void TStreamStory::GetStateFtrVV(TStateFtrVV& StateFtrVV, const bool& UseFtrVP) 
 	StateIdentifier->GetControlCentroidVV(StateFtrVV);
 
 	if (UseFtrVP && LastStateId != -1) {
-		Notify->OnNotify(TNotifyType::ntInfo, "Constructing state feature vectors based on current control ftrs ...");
-
 		TFltV& LastStateFtrV = StateFtrVV[LastStateId];
 		for (int FtrN = 0; FtrN < LastContrFtrV.Len(); FtrN++) {
 			LastStateFtrV[FtrN] = LastContrFtrV[FtrN];
