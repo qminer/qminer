@@ -10,6 +10,49 @@
 //////////////////////////////////////////////////////
 // NodeJS - analytics
 
+void TNodeJsAnalytics::Init(v8::Handle<v8::Object> exports) {
+	NODE_SET_METHOD(exports, "nmf", _nmf);
+}
+
+void TNodeJsAnalytics::nmf(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() >= 2, "Analytics.nmf: takes at least 2 parameters!");
+	// function parameters
+	int k = TNodeJsUtil::GetArgInt32(Args, 1);
+	int Iter = 10000;
+	double Tol = 1e-6;
+	PNotify Notify = TNotify::NullNotify;
+
+	if (Args.Length() >= 3) {
+		PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 2);
+		Iter = ParamVal->GetObjInt("iter", 10000);
+		Tol =  ParamVal->GetObjNum("tol", 1e-6);
+		bool verbose = ParamVal->GetObjBool("verbose", false);
+		Notify = verbose ? TNotify::StdNotify : TNotify::NullNotify;
+	}
+
+	v8::Handle<v8::Object> JsObj = v8::Object::New(Isolate); // Result 
+	
+	TFltVV U;
+	TFltVV V;
+	if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltVV>(Args, 0)) {
+		TNodeJsFltVV* JsMat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltVV>(Args, 0);
+		TNmf::RankOneResidueIter(JsMat->Mat, k, U, V, Iter, Tol, Notify);
+	}
+	else if (TNodeJsUtil::IsArgWrapObj<TNodeJsSpMat>(Args, 0)) {
+		TNodeJsSpMat* JsMat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpMat>(Args, 0);
+		TNmf::RankOneResidueIter(JsMat->Mat, k, U, V, Iter, Tol, Notify);
+	}
+	else {
+		throw TExcept::New("Analytics.nmf: first parameter must be a dense or sparse matrix!");
+	}
+	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "U")), TNodeJsFltVV::New(U));
+	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "V")), TNodeJsFltVV::New(V));
+	Args.GetReturnValue().Set(JsObj);
+}
+
 ////////////////////////////////////////////////////////
 // Support Vector Machine
 
@@ -3448,7 +3491,7 @@ TNodeJsKMeans::TNodeJsKMeans(TSIn& SIn) :
         throw TExcept::New("KMeans load constructor: loading invalid KMeans model!");
     }
 
-    Notify = Verbose ? TQm::TEnv::Logger : TNotify::NullNotify;
+	Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
 }
 
 TNodeJsKMeans::~TNodeJsKMeans() {
@@ -3490,7 +3533,7 @@ void TNodeJsKMeans::UpdateParams(const PJsonVal& ParamVal) {
 
     if (ParamVal->IsObjKey("verbose")) { Verbose = ParamVal->GetObjBool("verbose"); }
 
-    Notify = Verbose ? TQm::TEnv::Logger : TNotify::NullNotify;
+	Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
 }
 
 PJsonVal TNodeJsKMeans::GetParams() const {

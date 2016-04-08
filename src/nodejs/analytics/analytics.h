@@ -22,6 +22,25 @@
  * @example
  * // import module, load dataset, create model, evaluate model
  */
+class TNodeJsAnalytics : public node::ObjectWrap {
+	friend class TNodeJsUtil;
+public:
+	static void Init(v8::Handle<v8::Object> exports);
+
+	/**
+	* Computes the non-negative matrix factorization.
+	* @param {(module:la.Matrix | module:la.SparseMatrix)} mat - The non-negative matrix.
+	* @param {number} k - The reduced rank, e.g. number of columns in matrix U and number of rows in matrix V.
+	* @param {Object} [json] - The json object containing the properties.
+	* @param {number} [json.iter = 10000] - The number of iterations used for the algorithm.
+	* @param {number} [json.tol = 1e-6] - The tolerance.
+	* @param {boolean} [json.verbose = false] - If false, the console output is supressed.
+	* @returns {Object} The json object containing the non-negative matrices U and V.
+	*/
+	//# exports.prototype.nmf = function (mat, k, json) { return { "U": Object.create(require('qminer').la.Matrix.prototype), "V": Object.create(require('qminer').la.Matrix.prototype) }; }
+	JsDeclareFunction(nmf);
+};
+
 
 ///////////////////////////////
 // QMiner-JavaScript-Support-Vector-Machine-Model
@@ -2350,7 +2369,6 @@ private:
  * @classdesc KMeans clustering
  * @class
  * @param {(module:analytics~KMeansParameters |  module:fs.FIn)} [params] - The parameters for the construction.
- 
  * @example
  * // import analytics and la modules
  * var analytics = require('qminer').analytics;
@@ -2575,7 +2593,6 @@ private:
     void Save(TSOut& SOut) const;
     void CleanUp();
 };
-
 
 #endif /* ANALYTICS_H_ */
 

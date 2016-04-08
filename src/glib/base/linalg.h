@@ -178,9 +178,10 @@ public:
 	// returns true, if the vector is a zero vector
 	static bool IsZero(const TFltV& Vec, const double& Eps = 1e-6);
 
+	// changes the elements x of matrix X to sqrt(x)
 	template <class TMatType>
 	inline static void Sqrt(TMatType& X);
-
+	// changes the elements x of matrix X to x^2
     template <class TMatType>
     inline static void Sqr(TMatType& X);
 };
@@ -936,6 +937,7 @@ public:
 	inline static void Multiply(const TVVec<TType, TSizeTy, ColMajor>& A, const TVVec<TType, TSizeTy, ColMajor>& B, int ColId, TVec<TType, TSizeTy>& y);
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void Multiply(const TVVec<TType, TSizeTy, ColMajor>& A, const TVVec<TType, TSizeTy, ColMajor>& B, int ColIdB, TVVec<TType, TSizeTy, ColMajor>& C, int ColIdC);
+	static void Multiply(const TVec<TIntFltKdV>& A, const TFltV& x, TFltV& y);
 	//LAPACKE stuff
 #ifdef LAPACKE
 	// Tested in other function
@@ -1251,6 +1253,7 @@ public:
 	void TLinAlg::OuterProduct(const TVec<TType, TSizeTy>& x,
 		const TVec<TType, TSizeTy>& y, TVVec<TType, TSizeTy, ColMajor>& Z) {
 
+		if (Z.Empty()) { Z.Gen(x.Len(), y.Len()); }
 		EAssert(Z.GetRows() == x.Len() && Z.GetCols() == y.Len());
 		const TSizeTy XLen = x.Len();
 		const TSizeTy YLen = y.Len();
@@ -2370,7 +2373,6 @@ public:
 				C(i, ColIdC) += A(i, j) * B(j, ColIdB);
 		}
 	}
-
 
 	//LAPACKE stuff
 #ifdef LAPACKE

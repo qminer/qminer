@@ -264,6 +264,19 @@ void TStructuredCovarianceMatrix::PMultiplyT(const TFltV& Vec, TFltV& Result) co
 //// Basic Linear Algebra Operations
 /// Everything moved to linalg.h
 
+void TLinAlg::Multiply(const TVec<TIntFltKdV>& A, const TFltV& x, TFltV& y) {
+	int Cols = A.Len();
+	int Rows = TLAMisc::GetMaxDimIdx(A) + 1;
+	if (y.Empty()) { y.Gen(Rows); }
+	EAssert(x.Len() == Cols && y.Len() >= Rows);
+	for (int ColN = 0; ColN < Cols; ColN++) {
+		const TIntFltKdV& ColV = A[ColN]; int Els = ColV.Len();
+		for (int ElN = 0; ElN < Els; ElN++) {
+			y[ColV[ElN].Key] += ColV[ElN].Dat * x[ColN];
+		}
+	}
+}
+
 ///////////////////////////////////////////////////////////////////////
 // Numerical Linear Algebra
 double TNumericalStuff::sqr(double a) {

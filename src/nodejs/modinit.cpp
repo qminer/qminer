@@ -65,6 +65,7 @@ void InitAnalytics(Handle<Object> Exports, const TStr& NsNm) {
 	Handle<Object> NsObj = Object::New(Isolate);
 
 	// QMiner package
+	TNodeJsAnalytics::Init(NsObj);
 	TNodeJsSVC::Init(NsObj);
 	TNodeJsSVR::Init(NsObj);
     TNodeJsRidgeReg::Init(NsObj);
