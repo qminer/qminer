@@ -129,7 +129,7 @@ void TNodeJsGraph<TNEGraph>::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "eachEdge", _eachEdge);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "adjMat", _adjMat);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "dump", _dump);
-        NODE_SET_PROTOTYPE_METHOD(tpl, "clusteringCoefficient", _clusteringCoefficient);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "clusteringCoefficient", _clusteringCoefficient);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "components", _components);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "renumber", _renumber);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "degreeCentrality", _degreeCentrality);

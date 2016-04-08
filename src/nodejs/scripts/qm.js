@@ -287,12 +287,16 @@ module.exports = exports = function (pathQmBinary) {
      * @property {String} opts.fname - name of the output file
      * @property {Boolean} [opts.includeHeaders] - indicates wether to include the header in the first line
      * @property {String} [opts.timestampType] - If set to 'ISO', datetime fields will be printed as ISO dates, otherwise as timestamps. Defaults to 'timestamp'.
+     * @property {String} [opts.escapeChar] - character which escapes quotes
      */
     exports.RecSet.prototype.saveCsv = function (opts) {
     	if (opts == null || opts.fname == null) throw new Error('Missing parameter fname!');
     	if (opts.includeHeaders == null) opts.includeHeaders = true;
     	if (opts.timestampType == null) opts.timestampType = 'timestamp';
+    	if (opts.escapeChar == null) opts.escapeChar = '\\';
 
+    	var escapeStr = opts.escapeChar + '"';
+    	
     	// read field descriptions
     	var fields = this.store.fields;
     	var fieldDesc = [];
@@ -317,7 +321,7 @@ module.exports = exports = function (pathQmBinary) {
     	if (opts.includeHeaders) {
     		var headerLine = '';
     		for (var i = 0; i < nFields; i++) {
-    			headerLine += '"' + fieldDesc[i].name.replace(/"/g, '\\"') + '"';
+    			headerLine += '"' + fieldDesc[i].name.replace(/"/g, escapeStr) + '"';
     			if (i < nFields - 1)
     				headerLine += ',';
     		}
@@ -339,7 +343,7 @@ module.exports = exports = function (pathQmBinary) {
 	    			} else if (type == 'datetime') {
 	    				line += useTimestamp ? fldVal.getTime() : fldVal.toISOString();
 	    			} else if (type == 'string') {
-	    				line += '"' + fldVal + '"';
+	    				line += '"' + fldVal.replace(/"/g, escapeStr) + '"';
 	    			} else {
 	    				throw new Error('Invalid type of field: ' + type);
 	    			}

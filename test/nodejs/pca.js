@@ -72,15 +72,15 @@ describe("PCA test", function () {
         it("should throw an exception because k is bigger than matrix dimensions", function () {
             var pca = new analytics.PCA({ k: 5 });
             var matrix = new la.Matrix([[1, -1], [0, 0]]);
-            if (require('qminer').flags.blas) {
+            /*if (require('qminer').flags.blas) {	// XXX WTF!? why is this here, the same logic is tested for different behaviour
                 assert.doesNotThrow(function () {
                     pca.fit(matrix);
                 });
-            } else {
+            } else {*/
                 assert.throws(function () {
                     pca.fit(matrix);
                 });
-            }
+//            }
         });
         it("should return the model parameters after using fit", function () {
             var pca = new analytics.PCA();
