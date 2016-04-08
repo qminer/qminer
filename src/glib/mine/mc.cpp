@@ -327,7 +327,7 @@ void TStateIdentifier::GetGlobalTimeHistogram(const TAggState& AggState, TUInt64
 
 		if (!TmVInitP) {
 			for (int BinN = 0; BinN < NBins; BinN++) {
-				TmV[BinN] = (TUInt64) ValV[BinN];
+				TmV[BinN] = (uint64) ValV[BinN];
 			}
 			TmVInitP = true;
 		}
