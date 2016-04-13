@@ -893,11 +893,11 @@ public:
 			TVec<TPair<TFlt, TIntFltPrV>>& HeightStateIdProbPrVPrV) const;
 
 	// histograms
-	void GetHistogram(const int& StateId, const int& FtrId, TFltV& BinValV, TFltV& ProbV,
-			TFltV& AllProbV) const;
+	void GetHistogram(const int& StateId, const int& FtrId, TFltV& BinValV, TFltV& CountV,
+			TFltV& AllCountV) const;
 	void GetTransitionHistogram(const int& SourceId, const int& TargetId,
-			const int& FtrId, TFltV& BinStartV, TFltV& SourceProbV, TFltV& TargetProbV,
-			TFltV& AllProbV) const;
+			const int& FtrId, TFltV& BinStartV, TFltV& SourceCountV, TFltV& TargetCountV,
+			TFltV& AllCountV) const;
 	void GetGlobalTimeHistogram(const int& StateId, TUInt64V& TmV, TFltV& ProbV,
 			const int& NBins=-1) const;
 	void GetTimeHistogram(const int& StateId, const TStateIdentifier::TTmHistType& HistType,

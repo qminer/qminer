@@ -157,15 +157,25 @@ void TStateIdentifier::Init(const TUInt64V& TmV, TFltVV& ObsFtrVV, const TFltVV&
 
 		Notify->OnNotifyFmt(TNotifyType::ntInfo, "Sampling %d instances...", NSamples);
 
-		TIntV SampleV(NInst, 0);
-		for (int i = 0; i < NInst; i++) {
-			SampleV.Add(i);
-		}
+		TIntV SampleV;	TLAUtil::Range(NInst, SampleV);
+//		TIntV SampleV(NInst, 0);
+//		for (int i = 0; i < NInst; i++) {
+//			SampleV.Add(i);
+//		}
 
 		SampleV.Shuffle(Rnd);
 		SampleV.Trunc(NSamples);
 
-		KMeans->Apply(TFullMatrix(ObsFtrVV, true)(TVector::Range(ObsFtrVV.GetRows()), SampleV).GetMat(), false, MX_ITER, Notify);	// TODO remove TFullMatrix
+		TFltVV ObsSampleVV(ObsFtrVV.GetRows(), NSamples);
+		TFltV FtrV;
+		for (int SampleN = 0; SampleN < NSamples; SampleN++) {
+			const int& RecN = SampleV[SampleN];
+
+			ObsFtrVV.GetCol(RecN, FtrV);
+			ObsSampleVV.SetCol(SampleN, FtrV);
+		}
+
+		KMeans->Apply(ObsSampleVV, false, MX_ITER, Notify);
 	}
 
 	InitStatistics(ObsFtrVV);
@@ -448,12 +458,20 @@ void TStateIdentifier::InitStatistics(const TFltVV& X) {
 	TFltVV DistMat;	KMeans->GetDistVV(X, DistMat);
 
 	CentroidDistStatV.Gen(K,K);
-	for (int ClustN = 0; ClustN < K; ClustN++) {
-		TIntV VCellIdxV;	AssignV.FindAll(ClustN, VCellIdxV);
-		TVector Di = TFullMatrix(DistMat, true)(ClustN, VCellIdxV);	// TODO remove TFullMatrix
 
-		CentroidDistStatV[ClustN].Val1 = VCellIdxV.Len();
-		CentroidDistStatV[ClustN].Val2 = Di.Sum();
+	TUInt64V ClustSizeV(K);
+	TFltV ClustDistSumV(K);
+
+	for (int RecN = 0; RecN < AssignV.Len(); RecN++) {
+		const int& ClustN = AssignV[RecN];
+
+		ClustSizeV[ClustN]++;
+		ClustDistSumV[ClustN] += DistMat(ClustN, RecN);
+	}
+
+	for (int ClustN = 0; ClustN < K; ClustN++) {
+		CentroidDistStatV[ClustN].Val1 = ClustSizeV[ClustN];
+		CentroidDistStatV[ClustN].Val2 = ClustDistSumV[ClustN];
 	}
 }
 
@@ -670,7 +688,7 @@ void TEuclMds::Project(const TFltVV& FtrVV, TFltVV& ProjVV, const int& d) {
 	// eigenvectors: B_d = V_d * L_d * V_d'
 	// the coordinates of X can then be recovered by: X_d = V_d*L_d^(.5)
 
-	// se can use SVD do find the eigenvectors V_d and eigenvalues L_d
+	// we can use SVD do find the eigenvectors V_d and eigenvalues L_d
 	// X = U*S*V', where:
 	// S is a diagonal matrix where {s_i^2} are the eigenvalues of X'X=B and X*X'
 	// U holds the eigenvectors of X*X'
@@ -4580,7 +4598,7 @@ void TStreamStory::PredictNextState(const bool& UseFtrVP, const int& FutStateN,
 }
 
 void TStreamStory::GetHistogram(const int& StateId, const int& FtrId, TFltV& BinValV,
-		TFltV& ProbV, TFltV& AllProbV) const {
+		TFltV& CountV, TFltV& AllCountV) const {
 	try {
 		TIntV LeafIdV;
 		TIntV AllLeafIdV;
@@ -4588,23 +4606,8 @@ void TStreamStory::GetHistogram(const int& StateId, const int& FtrId, TFltV& Bin
 		Hierarch->GetLeafDescendantV(StateId, LeafIdV);
 		Hierarch->GetLeafIdV(AllLeafIdV);
 
-		StateIdentifier->GetHistogram(FtrId, LeafIdV, BinValV, ProbV);
-		StateIdentifier->GetHistogram(FtrId, AllLeafIdV, BinValV, AllProbV);
-
-		uint64 NDescPts = 0;
-		uint64 NLeafPts = 0;
-		for (int StateN = 0; StateN < LeafIdV.Len(); StateN++) {
-			NDescPts += StateIdentifier->GetStateSize(LeafIdV[StateN]);
-		}
-		for (int StateN = 0; StateN < AllLeafIdV.Len(); StateN++) {
-			NLeafPts += StateIdentifier->GetStateSize(AllLeafIdV[StateN]);
-		}
-
-		const double Ratio = NLeafPts != 0 ? double(NDescPts) / NLeafPts : 0;
-
-		for (int BinN = 0; BinN < ProbV.Len(); BinN++) {
-			ProbV[BinN] *= Ratio;
-		}
+		StateIdentifier->GetHistogram(FtrId, LeafIdV, BinValV, CountV, false);
+		StateIdentifier->GetHistogram(FtrId, AllLeafIdV, BinValV, AllCountV, false);
 	} catch (const PExcept& Except) {
 		Notify->OnNotifyFmt(TNotifyType::ntErr, "THierarch::GetHistogram: Failed to fetch histogram: %s", Except->GetMsgStr().CStr());
 		throw Except;
@@ -4623,32 +4626,9 @@ void TStreamStory::GetTransitionHistogram(const int& SourceId, const int& Target
 		Hierarch->GetLeafDescendantV(TargetId, TargetLeafIdV);
 		Hierarch->GetLeafIdV(AllLeafIdV);
 
-		StateIdentifier->GetHistogram(FtrId, SourceLeafIdV, BinValV, SourceProbV);
-		StateIdentifier->GetHistogram(FtrId, TargetLeafIdV, BinValV, TargetProbV);
-		StateIdentifier->GetHistogram(FtrId, AllLeafIdV, BinValV, AllProbV);
-
-		uint64 NSourcePts = 0;
-		uint64 NTargetPts = 0;
-		uint64 NAllPts = 0;
-		for (int StateN = 0; StateN < SourceLeafIdV.Len(); StateN++) {
-			NSourcePts += StateIdentifier->GetStateSize(SourceLeafIdV[StateN]);
-		}
-		for (int StateN = 0; StateN < TargetLeafIdV.Len(); StateN++) {
-			NTargetPts += StateIdentifier->GetStateSize(TargetLeafIdV[StateN]);
-		}
-		for (int StateN = 0; StateN < AllLeafIdV.Len(); StateN++) {
-			NAllPts += StateIdentifier->GetStateSize(AllLeafIdV[StateN]);
-		}
-
-		const double SourceRatio = NAllPts == 0 ? 0.0 : double(NSourcePts) / NAllPts;
-		const double TargetRatio = NAllPts == 0 ? 0.0 : double(NTargetPts) / NAllPts;
-
-		EAssert(SourceProbV.Len() == TargetProbV.Len());
-
-		for (int BinN = 0; BinN < SourceProbV.Len(); BinN++) {
-			SourceProbV[BinN] *= SourceRatio;
-			TargetProbV[BinN] *= TargetRatio;
-		}
+		StateIdentifier->GetHistogram(FtrId, SourceLeafIdV, BinValV, SourceProbV, false);
+		StateIdentifier->GetHistogram(FtrId, TargetLeafIdV, BinValV, TargetProbV, false);
+		StateIdentifier->GetHistogram(FtrId, AllLeafIdV, BinValV, AllProbV, false);
 	} catch (const PExcept& Except) {
 		Notify->OnNotifyFmt(TNotifyType::ntErr, "THierarch::GetTransitionHistogram: Failed to fetch histogram: %s", Except->GetMsgStr().CStr());
 		throw Except;
@@ -4659,7 +4639,7 @@ void TStreamStory::GetGlobalTimeHistogram(const int& StateId, TUInt64V& TmV, TFl
 		const int& NBins) const {
 	TAggState AggState;
 	Hierarch->GetLeafDescendantV(StateId, AggState);
-	StateIdentifier->GetGlobalTimeHistogram(AggState, TmV, ProbV, NBins, true);
+	StateIdentifier->GetGlobalTimeHistogram(AggState, TmV, ProbV, NBins, false);
 }
 
 void TStreamStory::GetTimeHistogram(const int& StateId, const TStateIdentifier::TTmHistType& HistType,
