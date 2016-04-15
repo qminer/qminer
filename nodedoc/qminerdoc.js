@@ -3233,7 +3233,7 @@
     	if (opts == null || opts.fname == null) throw new Error('Missing parameter fname!');
     	if (opts.includeHeaders == null) opts.includeHeaders = true;
     	if (opts.timestampType == null) opts.timestampType = 'timestamp';
-    	if (opts.escapeChar == null) opts.escapeChar = '\\';
+    	if (opts.escapeChar == null) opts.escapeChar = '"';
 
     	var escapeStr = opts.escapeChar + '"';
     	
