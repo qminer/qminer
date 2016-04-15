@@ -1,5 +1,21 @@
 # QMiner Change Log
 
+### 15 Apr 2016
+
+**Version: 5.1.0**
+
+**Non-breaking with new features**
+
+New features:
+- `TStoreImpl` can tell integer ID for codebook strings. `TFieldDesc` can tell if field is encoded using codebook.
+
+Bug fixes:
+- Issue 400: `RecSet.saveCsv` should escape `”` using `””` and not `\”`
+
+Other:
+- `TStr::Empty()` uses `Assert` instead of `IAssert` to confirm Inner is either `NULL` or points to nonemtpy string.
+
+
 ### 8 Apr 2016
 
 **New version 5.0.0**

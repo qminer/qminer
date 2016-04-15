@@ -1099,7 +1099,9 @@ bool TFile::Del(const TStr& FNm, const bool& ThrowExceptP){
 void TFile::DelWc(const TStr& WcStr, const bool& RecurseDirP){
   // collect file-names
   TStrV FNmV;
-  TFFile FFile(WcStr, RecurseDirP); TStr FNm;
+  TFFile FFile(WcStr, RecurseDirP);
+
+  TStr FNm;
   while (FFile.Next(FNm)){
     FNmV.Add(FNm);}
   // delete files

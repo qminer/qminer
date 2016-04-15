@@ -717,6 +717,9 @@ public:
     void SetFieldTMem(const TMemBase& InRecMem, TMem& OutRecMem, const int& FieldId, const TMem& Mem);
     /// Field setter
     void SetFieldJsonVal(const TMemBase& InRecMem, TMem& OutRecMem, const int& FieldId, const PJsonVal& Json);
+
+    /// Get codebook id
+    int GetCodebookId(const int& FieldId, const TStr& Str) const;
 };
 
 ///////////////////////////////
@@ -1069,6 +1072,9 @@ public:
 
     /// Helper function for returning JSon definition of store
     PJsonVal GetStoreJson(const TWPt<TBase>& Base) const;
+
+    /// Get codebook mappings for given string field
+    int GetCodebookId(const int& FieldId, const TStr& Str) const;
 
     /// Save part of the data, given time-window
     int PartialFlush(int WndInMsec = 500);
