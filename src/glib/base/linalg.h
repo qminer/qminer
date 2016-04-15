@@ -2142,7 +2142,7 @@ public:
  		}
  	}
 
-    // stores the squared norm of all the columns into the output vector
+ 	// stores the norm of all the columns into the output vector
     void TLinAlg::GetColNormV(const TVec<TIntFltKdV>& X, TFltV& ColNormV) {
         const int Cols = X.Len();
         GetColNorm2V(X, ColNormV);
@@ -2151,13 +2151,12 @@ public:
         }
     }
 
- 	// stores the norm of all the columns into the output vector
+    // stores the squared norm of all the columns into the output vector
  	void TLinAlg::GetColNorm2V(const TFltVV& X, TFltV& ColNormV) {
  		const int Cols = X.GetCols();
 
  		if (ColNormV.Len() != Cols) { ColNormV.Gen(Cols); }
 
-		#pragma omp parallel for
  		for (int ColN = 0; ColN < Cols; ColN++) {
  			ColNormV[ColN] = Norm2(X, ColN);
  		}
@@ -2169,7 +2168,6 @@ public:
 
 		if (ColNormV.Len() != Cols) { ColNormV.Gen(Cols); }
 
-		#pragma omp parallel for
 		for (int ColN = 0; ColN < Cols; ColN++) {
 			ColNormV[ColN] = Norm2(SpVV[ColN]);
 		}
