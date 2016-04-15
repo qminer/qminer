@@ -52,7 +52,7 @@
                 },
                 # GCC flags
                 'cflags_cc!': [ '-fno-rtti', '-fno-exceptions' ],
-                'cflags_cc': [ '-std=c++0x', '-frtti', '-fexceptions', '-fno-omit-frame-pointer' ],
+                'cflags_cc': [ '-std=c++0x', '-frtti', '-fexceptions' ],
                 'cflags': [ '-Wno-deprecated-declarations', '-fopenmp' ],
                 # additional flags for ARM
                 'conditions': [
