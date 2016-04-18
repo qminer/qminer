@@ -1621,7 +1621,7 @@ TNodeJsStreamStory* TNodeJsStreamStory::NewFromArgs(const v8::FunctionCallbackIn
 
 		TMc::TStateIdentifier* StateIdentifier = new TMc::TStateIdentifier(GetClust(ClustJson, Rnd), NHistBins, Sample, Rnd, Verbose);
 		TMc::TCtmcModeller* MChain = new TMc::TCtmcModeller(TimeUnit, DeltaTm, Verbose);
-		TMc::THierarch* Hierarch = new TMc::THierarch(NPastStates + 1, IsTransitionBased, Verbose);
+		TMc::THierarch* Hierarch = new TMc::THierarch(NPastStates + 1, IsTransitionBased, Rnd, Verbose);
 
 		// finish
 		return new TNodeJsStreamStory(new TMc::TStreamStory(StateIdentifier, MChain, Hierarch, Rnd, Verbose));

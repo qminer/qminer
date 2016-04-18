@@ -2324,11 +2324,66 @@ void TCtmcModeller::GetFutureProbVV(const TFltVV& QMat, const double& Tm,
 }
 
 /////////////////////////////////////////////////////////////////
+// Scale helper
+void TScaleHelper::CalcNaturalScales(const TScaleDescV& ScaleQMatPrV,
+	const TRnd& Rnd, TFltV& ScaleV) const {
+	Notify->OnNotify(ntInfo, "Calculating natural scales ...");
+
+	const int NScales = ScaleQMatPrV.Len() / 2;
+
+	TFltVV FtrVV(GetFtrVDim(), ScaleQMatPrV.Len());
+
+	for (int HeightN = 0; HeightN < ScaleQMatPrV.Len(); HeightN++) {
+		const TFltVV& QMat = ScaleQMatPrV[HeightN].Val2;
+		TFltV FtrV;	GetScaleFtrV(QMat, FtrV);
+		FtrVV.SetCol(HeightN, FtrV);
+	}
+
+	printf("\n%s\n", TStrUtil::GetStr(FtrVV, ", ", "%.5f").CStr());
+
+	TClustering::TDenseKMeans KMeans(NScales, Rnd, TCosDist::New());
+	KMeans.Apply(FtrVV, false, 1000, Notify);
+	TFltVV ClustDistVV;	KMeans.GetDistVV(FtrVV, ClustDistVV);
+
+	TIntV MedoidIdV;	TLinAlg::GetRowMinIdxV(ClustDistVV, MedoidIdV);
+
+	printf("\n%s\n", TStrUtil::GetStr(MedoidIdV).CStr());
+
+	ScaleV.Gen(NScales);
+	for (int MedoidN = 0; MedoidN < NScales; MedoidN++) {
+		ScaleV.Add(ScaleQMatPrV[MedoidIdV[MedoidN]].Val1);
+	}
+
+	Notify->OnNotify(ntInfo, "Scales calculated!");
+}
+
+/////////////////////////////////////////////////////////////////
+// Scale helper - based on eigenvalues
+const int TEigValScaleHelper::FTRV_DIM = 3;
+
+void TEigValScaleHelper::GetScaleFtrV(const TFltVV& QMat, TFltV& FtrV) const {
+	const int Dim = GetFtrVDim();
+
+	// in the first version the feature vector will contain singular values
+	TFltVV U, Vt;
+	TFltV Sing;
+	TLinAlg::SVDFactorization(QMat, U, Sing, Vt);
+
+	if (FtrV.Len() != Dim) { FtrV.Gen(Dim); }
+
+	for (int SingN = 0; SingN < Dim; SingN++) {
+		FtrV[SingN] = SingN < Sing.Len() ? TMath::Sqrt(Sing[SingN]) : 0;
+	}
+}
+
+/////////////////////////////////////////////////////////////////
 // Hierarchy modeler
 THierarch::THierarch(const bool& _HistCacheSize, const bool& _IsTransitionBased,
-			const bool& _Verbose):
+			const TRnd& _Rnd, const bool& _Verbose):
 		HierarchV(),
 		StateHeightV(),
+		UniqueHeightV(),
+		NaturalScaleV(),
 		MxHeight(TFlt::Mn),
 		HistCacheSize(_HistCacheSize),
 		PastStateIdV(),
@@ -2336,6 +2391,7 @@ THierarch::THierarch(const bool& _HistCacheSize, const bool& _IsTransitionBased,
 		StateNmV(),
 		StateLabelV(),
 		IsTransitionBased(_IsTransitionBased),
+		Rnd(_Rnd),
 		Verbose(_Verbose),
 		Notify(_Verbose ? TNotify::StdNotify : TNotify::NullNotify) {
 
@@ -2346,6 +2402,7 @@ THierarch::THierarch(TSIn& SIn):
 		HierarchV(SIn),
 		StateHeightV(SIn),
 		UniqueHeightV(SIn),
+		NaturalScaleV(SIn),
 		MxHeight(SIn),
 		HistCacheSize(TInt(SIn)),
 		PastStateIdV(SIn),
@@ -2354,6 +2411,7 @@ THierarch::THierarch(TSIn& SIn):
 		StateLabelV(SIn),
 		TargetIdHeightSet(SIn),
 		IsTransitionBased(TBool(SIn)),
+		Rnd(SIn),
 		Verbose(TBool(SIn)),
 		Notify(nullptr) {
 
@@ -2366,6 +2424,7 @@ void THierarch::Save(TSOut& SOut) const {
 	HierarchV.Save(SOut);
 	StateHeightV.Save(SOut);
 	UniqueHeightV.Save(SOut);
+	NaturalScaleV.Save(SOut);
 	MxHeight.Save(SOut);
 	TInt(HistCacheSize).Save(SOut);
 	PastStateIdV.Save(SOut);
@@ -2374,6 +2433,7 @@ void THierarch::Save(TSOut& SOut) const {
 	StateLabelV.Save(SOut);
 	TargetIdHeightSet.Save(SOut);
 	TBool(IsTransitionBased).Save(SOut);
+	Rnd.Save(SOut);
 	TBool(Verbose).Save(SOut);
 }
 
@@ -2424,6 +2484,8 @@ void THierarch::Init(const int& CurrLeafId, const TStateIdentifier& StateIdentif
 
 		StateLabelV[StateId] = TInt::GetStr(Level) + "." + TInt::GetStr((StateN % PerLevel) + 1);
 	}
+
+	CalcNaturalScales(StateIdentifier, MChain, Rnd, NaturalScaleV);
 }
 
 void THierarch::UpdateHistory(const int& CurrLeafId) {
@@ -2986,6 +3048,32 @@ int THierarch::GetOldestAncestIdx(const int& StateIdx) const {
 	return AncestIdx;
 }
 
+void THierarch::CalcNaturalScales(const TStateIdentifier& StateIdentifier,
+		const TCtmcModeller& MChain, const TRnd& Rnd, TFltV& ScaleV) const {
+
+	const TFltV& HeightV = UniqueHeightV;
+	const int TotalScales = HeightV.Len()-1;
+
+	TStateFtrVV StateFtrVV;	StateIdentifier.GetControlCentroidVV(StateFtrVV);
+
+	TVec<TPair<TFlt,TFltVV>> ScaleQMatPrV(TotalScales);
+
+	for (int HeightN = 0; HeightN < TotalScales; HeightN++) {
+		const double& Height = HeightV[HeightN];
+		// get the intensity matrix on this height
+		TIntV StateIdV; TAggStateV AggStateV;
+		GetStateSetsAtHeight(Height, StateIdV, AggStateV);
+
+		ScaleQMatPrV[HeightN].Val1 = Height;
+		MChain.GetQMatrix(AggStateV, StateFtrVV, ScaleQMatPrV[HeightN].Val2);
+	}
+
+	TEigValScaleHelper ScaleHelper(Notify);
+	ScaleHelper.CalcNaturalScales(ScaleQMatPrV, Rnd, ScaleV);
+
+	ScaleV.Sort(true);
+}
+
 bool THierarch::IsRoot(const int& StateId, const TIntV& HierarchV) {
 	return GetParentId(StateId, HierarchV) == StateId;
 }
@@ -3009,7 +3097,6 @@ void THierarch::ClrFlds() {
 	MxHeight = TFlt::Mn;
 	HistCacheSize = 1;
 	PastStateIdV.Clr();
-//	StateCoordV.Clr();
 	NLeafs = 0;
 	StateNmV.Clr();
 	TargetIdHeightSet.Clr();
@@ -3061,9 +3148,9 @@ const TStr TUiHelper::DAYS_IN_MONTH[] = {
 		"18th",
 		"19th",
 		"20th",
-		"21th",
-		"22th",
-		"23th",
+		"21st",
+		"22nd",
+		"23rd",
 		"24th",
 		"25th",
 		"26th",
@@ -4195,7 +4282,8 @@ PJsonVal TStreamStory::GetJson() const {
 	TStateIdV StateIdV;
 	TIntFltPrV StateIdProbPrV;
 
-	const TFltV& UniqueHeightV = Hierarch->GetUniqueHeightV();
+//	const TFltV& UniqueHeightV = Hierarch->GetUniqueHeightV();
+	const TFltV& UniqueHeightV = Hierarch->GetUiHeightV();
 	TStateFtrVV StateFtrVV;	GetStateFtrVV(StateFtrVV, false);
 
 	// go through all the heights except the last one, which is not interesting
@@ -4213,7 +4301,7 @@ PJsonVal TStreamStory::GetJson() const {
 		// ok, now that I have all the states I need their expected staying times
 		// and transition probabilities
 		// iterate over all the parent states and get the joint staying times of their
-		// chindren
+		// children
 		TFltVV TransitionVV;	MChain->GetJumpVV(StateSetV, StateFtrVV, TransitionVV);
 		TFltV HoldingTimeV;		MChain->GetHoldingTmV(StateSetV, StateFtrVV, HoldingTimeV);
 		TFltV ProbV;			MChain->GetStatDist(StateSetV, StateFtrVV, ProbV);

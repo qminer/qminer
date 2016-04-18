@@ -409,12 +409,12 @@ public:
 	void GetJumpVV(const TAggStateV& StateSetV, const TStateFtrVV& StateFtrVV, TFltVV& JumpVV) const;
 
 	// Q-Matrix
-	void GetQMatrix(const TAggStateV& StateSetV, const TStateFtrVV& StateFtrVV,
+	void GetQMatrix(const TAggStateV& AggStateV, const TStateFtrVV& StateFtrVV,
 			TFltVV& QMat) const;
-	void GetSubQMatrix(const TAggStateV& StateSetV, const TStateFtrVV& StateFtrVV,
+	void GetSubQMatrix(const TAggStateV& AggStateV, const TStateFtrVV& StateFtrVV,
 			const TAggState& TargetState, TFltVV& SubQMat);
 
-	void GetHoldingTmV(const TAggStateV& StateSetV, const TStateFtrVV& StateFtrVV,
+	void GetHoldingTmV(const TAggStateV& AggStateV, const TStateFtrVV& StateFtrVV,
 			TFltV& HoldingTmV) const;
 
 	// returns true if the jump from OldStateId to NewStateId has a low enough probability
@@ -446,7 +446,7 @@ protected:
 	void AbsOnAddRec(const int& StateId, const uint64& RecTm, const bool EndsBatch);
 
 	// get future state probabilities for all the states for a fixed time in the future
-	void GetFutureProbVV(const TAggStateV& StateSetV, const TStateFtrVV& StateFtrVV,
+	void GetFutureProbVV(const TAggStateV& AggStateV, const TStateFtrVV& StateFtrVV,
 			const double& Tm, TFltVV& ProbVV) const;
 	void GetPastProbVV(const TAggStateV& StateSetV, const TStateFtrVV& StateFtrVV,
 			const double& Tm, TFltVV& ProbVV) const;
@@ -485,6 +485,81 @@ private:
 			const double& DeltaTm, TFltVV& ProbVV, const bool HasHiddenState=false);
 };
 
+/*/////////////////////////////////////////////////////////////////
+/// Scale helper
+/// the algorithm is based on:
+/// A Randomized Linear-Time Algorithm to Find Minimum Spanning Trees
+/// authors: Karger, Klein and Tarjan
+class TRandomizedMst {
+	typedef TIntIntFltTr TEdge;
+	typedef TPair<TIntSet, TIntIntFltTrV> TGraph;
+public:
+	static void Apply(const TGraph& Graph, TIntIntFltTrV& MstEdgeV) {
+
+	}
+
+private:
+	static void BoruvkaStep(const TIntV& NodeIdV, const TIntPrV& EdgeV) {
+		// TODO
+	}
+	static void FindMst(const TGraph& Graph, TGraph& Mst, TRnd Rnd=TRnd()) {
+		const TIntSet& NodeV = Graph.Val1;
+		const TIntIntFltTrV& EdgeV = Graph.Val2;
+
+		if (NodeV.Len() <= 2) {
+
+		} else {
+			// create a graph H by randomly sampling the edges
+			TGraph H;
+			for (int EdgeN = 0; EdgeN < EdgeV.Len(); EdgeN++) {
+				if (Rnd.GetUniDev() < .5) {
+					const TEdge& Edge = EdgeV[EdgeN];
+					H.Val1.AddKey(Edge.Val1);
+					H.Val1.AddKey(Edge.Val2);
+					H.Val2.Add(Edge);
+				}
+			}
+
+			// call the algorithm recursively, to obtain the MST on H
+			TGraph MstH;	FindMst(H, MstH, Rnd);
+
+			// remove all the F-heavy edges from MstH
+			// an edge is F-heavy if its weight w is larger than
+			// the weight of any edge in F
+		}
+	}
+};*/
+
+/////////////////////////////////////////////////////////////////
+// Scale helper
+class TScaleHelper {
+	typedef TVec<TPair<TFlt,TFltVV>> TScaleDescV;
+protected:
+	PNotify Notify;
+public:
+	TScaleHelper(const PNotify _Notify): Notify(_Notify) {}
+	virtual ~TScaleHelper() {}
+
+	void CalcNaturalScales(const TScaleDescV& ScaleQMatPrV,
+		const TRnd& Rnd, TFltV& ScaleV) const;
+
+protected:
+	virtual void GetScaleFtrV(const TFltVV& QMat, TFltV& FtrV) const = 0;
+	virtual int GetFtrVDim() const = 0;
+};
+
+/////////////////////////////////////////////////////////////////
+// Scale helper - based on singular values of the Q-matrix
+class TEigValScaleHelper: public TScaleHelper {
+private:
+	static const int FTRV_DIM;
+public:
+	TEigValScaleHelper(const PNotify& Notify): TScaleHelper(Notify) {}
+protected:
+	void GetScaleFtrV(const TFltVV& QMat, TFltV& FtrV) const;
+	int GetFtrVDim() const { return FTRV_DIM; }
+};
+
 ////////////////////////////////////////////
 // Hierarchy modeler
 class THierarch {
@@ -495,6 +570,7 @@ private:
 
     // state heights in the hierarchy
     TFltV StateHeightV, UniqueHeightV;
+    TFltV NaturalScaleV;
     TFlt MxHeight;
 
     // past states
@@ -510,11 +586,14 @@ private:
     TIntFltPrSet TargetIdHeightSet;
     bool IsTransitionBased;
 
+    TRnd Rnd;
+
     bool Verbose;
     PNotify Notify;
 
 public:
-    THierarch(const bool& HistCacheSize, const bool& IsTransitionBased, const bool& Verbose=false);
+    THierarch(const bool& HistCacheSize, const bool& IsTransitionBased,
+    		const TRnd& Rnd, const bool& Verbose=false);
     THierarch(TSIn& SIn);
 
 	// saves the model to the output stream
@@ -527,6 +606,7 @@ public:
 	void UpdateHistory(const int& CurrLeafId);
 
 	const TFltV& GetUniqueHeightV() const { return UniqueHeightV; }
+	const TFltV& GetUiHeightV() const { return NaturalScaleV; }
 	const TIntV& GetHierarchV() const { return HierarchV; }
 
 	double GetStateHeight(const int& StateId) const { return StateHeightV[StateId]; }
@@ -601,6 +681,10 @@ private:
 	// returns the index of the oldest ancestor of the state
 	// this method is only used when initially building the hierarchy
 	int GetOldestAncestIdx(const int& StateIdx) const;
+
+	// methods for calculating the natural scales in the model
+	void CalcNaturalScales(const TStateIdentifier& StateIdentifier, const TCtmcModeller& MChain,
+			const TRnd& Rnd, TFltV& ScaleV) const;
 
 	// static functions
 	static TInt& GetParentId(const int& StateId, TIntV& HierarchV) { return HierarchV[StateId]; }

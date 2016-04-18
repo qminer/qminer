@@ -901,15 +901,27 @@ public:
 	inline static void GetColNorm2V(const TFltVV& X, TFltV& ColNormV);
 	inline static void GetColNorm2V(const TVec<TIntFltKdV>& SpVV, TFltV& ColNormV);
 
+	// TEST
+	/// find the index of maximum elements for a given row of X
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static int GetRowMaxIdx(const TVVec<TType, TSizeTy, ColMajor>& X, const TSizeTy& RowN);
+	/// find the index of the smallest element in the row
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static int GetRowMinIdx(const TVVec<TType, TSizeTy, ColMajor>& X, const TSizeTy& RowN);
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static int GetColMaxIdx(const TVVec<TType, TSizeTy, ColMajor>& X, const int& ColN);
+
+	// TEST
+	/// find the index of maximum elements for each row of X
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void GetRowMaxIdxV(const TVVec<TType, TSizeTy, ColMajor>& X, TVec<TInt, TSizeTy>& IdxV);
+	/// find the index of minimum elements for each row of X
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void GetRowMinIdxV(const TVVec<TType, TSizeTy, ColMajor>& X, TVec<TInt, TSizeTy>& IdxV);
 	// find the index of maximum elements for each col of X
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void GetColMaxIdxV(const TVVec<TType, TSizeTy, ColMajor>& X, TVec<TInt, TSizeTy>& IdxV);
+
 	template <class TType, class TSizeTy = int>
 	inline static void MultiplyScalar(const double& k, TVec<TType, TSizeTy>& x);
 	// find the index of maximum elements for a given each col of X
@@ -2173,17 +2185,30 @@ public:
 		}
 	}
 
-	// TEST
-	// find the index of maximum elements for a given row of X
 	template <class TType, class TSizeTy, bool ColMajor>
 	int TLinAlg::GetRowMaxIdx(const TVVec<TType, TSizeTy, ColMajor>& X, const TSizeTy& RowN) {
 		TSizeTy Idx = -1;
 		TSizeTy Cols = X.GetCols();
 		double MaxVal = TFlt::Mn;
 		for (TSizeTy ColN = 0; ColN < Cols; ColN++) {
-			double Val = X.At(RowN, ColN);
+			const double Val = X.At(RowN, ColN);
 			if (MaxVal < Val) {
 				MaxVal = Val;
+				Idx = ColN;
+			}
+		}
+		return Idx;
+	}
+
+	template <class TType, class TSizeTy, bool ColMajor>
+	int TLinAlg::GetRowMinIdx(const TVVec<TType, TSizeTy, ColMajor>& X, const TSizeTy& RowN) {
+		TSizeTy Idx = -1;
+		TSizeTy Cols = X.GetCols();
+		double MnVal = TFlt::Mx;
+		for (TSizeTy ColN = 0; ColN < Cols; ColN++) {
+			const double Val = X.At(RowN, ColN);
+			if (Val < MnVal) {
+				MnVal = Val;
 				Idx = ColN;
 			}
 		}
@@ -2207,8 +2232,6 @@ public:
 		return Idx;
 	}
 
-	// TEST
-	// find the index of maximum elements for each row of X
 	template <class TType, class TSizeTy, bool ColMajor>
 	void TLinAlg::GetRowMaxIdxV(const TVVec<TType, TSizeTy, ColMajor>& X, TVec<TInt, TSizeTy>& IdxV) {
 		IdxV.Gen(X.GetRows());
@@ -2217,8 +2240,19 @@ public:
 			IdxV[RowN] = TLinAlg::GetRowMaxIdx(X, RowN);
 		}
 	}
-	// find the index of maximum elements for each col of X
 
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::GetRowMinIdxV(const TVVec<TType, TSizeTy, ColMajor>& X, TVec<TInt, TSizeTy>& IdxV) {
+		const TSizeTy Rows = X.GetRows();
+
+		if (IdxV.Len() != Rows) { IdxV.Gen(Rows); }
+
+		for (TSizeTy RowN = 0; RowN < Rows; RowN++) {
+			IdxV[RowN] = TLinAlg::GetRowMinIdx(X, RowN);
+		}
+	}
+
+	// find the index of maximum elements for each col of X
 	template <class TType, class TSizeTy, bool ColMajor>
 	void TLinAlg::GetColMaxIdxV(const TVVec<TType, TSizeTy, ColMajor>& X, TVec<TInt, TSizeTy>& IdxV) {
 		IdxV.Gen(X.GetCols());
