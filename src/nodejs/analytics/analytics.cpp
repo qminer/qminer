@@ -1661,6 +1661,8 @@ void TNodeJsStreamStory::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "rebuildHistograms", _rebuildHistograms);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStateLabel", _getStateLabel);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStateAutoName", _getStateAutoName);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "narrateState", _narrateState);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getStateTypTimes", _getStateTypTimes);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStateName", _getStateName);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "setStateName", _setStateName);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "setStateCoords", _setStateCoords);
@@ -2133,10 +2135,11 @@ void TNodeJsStreamStory::histogram(const v8::FunctionCallbackInfo<v8::Value>& Ar
 	const int FtrId = TNodeJsUtil::GetArgInt32(Args, 0);
 	const int StateId = TNodeJsUtil::IsArgNullOrUndef(Args, 1) ? -1 : TNodeJsUtil::GetArgInt32(Args, 1);
 
-	TFltV BinValV, ProbV, AllProbV;
-	JsStreamStory->StreamStory->GetHistogram(StateId, FtrId, BinValV, ProbV, AllProbV);
+	TFltV BinValV;
+	TFltV CountV, AllCountV;
+	JsStreamStory->StreamStory->GetHistogram(StateId, FtrId, BinValV, CountV, AllCountV);
 
-	v8::Local<v8::Object> Result = WrapHistogram(BinValV, ProbV, TFltV(), AllProbV);
+	v8::Local<v8::Object> Result = WrapHistogram(BinValV, CountV, TFltV(), AllCountV);
 	Args.GetReturnValue().Set(Result);
 }
 
@@ -2511,11 +2514,61 @@ void TNodeJsStreamStory::getStateAutoName(const v8::FunctionCallbackInfo<v8::Val
 	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
 	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
-	const TIntStrPr& StateAutoNm = JsStreamStory->StreamStory->GetStateAutoNm(StateId);
-
+	const TIntUChPr& StateAutoNm = JsStreamStory->StreamStory->GetStateAutoNm(StateId);
 	const PJsonVal AutoNmJson = TMc::TStreamStory::GetAutoNmJson(StateAutoNm);
 
 	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, AutoNmJson));
+}
+
+void TNodeJsStreamStory::narrateState(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+
+	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
+
+	TVec<TTriple<TFlt, TInt, TUCh>> StateFtrDescV;
+	JsStreamStory->StreamStory->GetStateFtrPValDesc(StateId, StateFtrDescV);
+
+	PJsonVal Result = TJsonVal::NewArr();
+	for (int DescN = 0; DescN < StateFtrDescV.Len(); DescN++) {
+		const TTriple<TFlt, TInt, TUCh>& FtrDesc = StateFtrDescV[DescN];
+
+		PJsonVal DescJson = TJsonVal::NewObj();
+		DescJson->AddToObj("p", FtrDesc.Val1);
+		DescJson->AddToObj("ftrId", FtrDesc.Val2);
+		DescJson->AddToObj("ftrDesc", TMc::TUiHelper::GetAutoNmLowHighDesc((TMc::TUiHelper::TAutoNmLevel) ((uchar) FtrDesc.Val3)));
+
+		Result->AddToArr(DescJson);
+	}
+
+	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, Result));
+}
+
+void TNodeJsStreamStory::getStateTypTimes(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+
+	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
+
+	TStrPrV StateTimeV;
+	JsStreamStory->StreamStory->GetStateTmDesc(StateId, StateTimeV);
+
+	PJsonVal TimeJsonV = TJsonVal::NewArr();
+	for (int i = 0; i < StateTimeV.Len(); i++) {
+		const TStrPr& StartEndStrPr = StateTimeV[i];
+
+		PJsonVal IntervalJson = TJsonVal::NewObj();
+		IntervalJson->AddToObj("start", StartEndStrPr.Val1);
+		IntervalJson->AddToObj("end", StartEndStrPr.Val2);
+
+		TimeJsonV->AddToArr(IntervalJson);
+	}
+
+	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, TimeJsonV));
 }
 
 void TNodeJsStreamStory::getStateName(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -2558,8 +2611,8 @@ void TNodeJsStreamStory::setStateCoords(const v8::FunctionCallbackInfo<v8::Value
 
 	TFltPrV PosV(JsStreamStory->StreamStory->GetStates());
 	for (int i = 0; i < PosJsonArr->GetArrVals(); i++) {
-		const PJsonVal StateJson = PosJsonArr->GetArrVal(i);
-		const PJsonVal PosJson = StateJson->GetObjKey("position");
+		const PJsonVal& StateJson = PosJsonArr->GetArrVal(i);
+		const PJsonVal& PosJson = StateJson->GetObjKey("position");
 
 		const int StateId = StateJson->GetObjInt("id");
 		const double x = PosJson->GetObjNum("x");
@@ -2887,7 +2940,7 @@ v8::Local<v8::Object> TNodeJsStreamStory::WrapHistogram(const TFltV& BinValV,
 	v8::Local<v8::Array> BinStartJsV = v8::Array::New(Isolate, BinValV.Len());
 	v8::Local<v8::Array> ProbJsV = v8::Array::New(Isolate, SourceProbV.Len());
 
-	double TotalProb = 0;
+	double TotalCount = 0;
 
 	for (int i = 0; i < BinValV.Len(); i++) {
 		BinStartJsV->Set(i, v8::Number::New(Isolate, BinValV[i]));
@@ -2895,12 +2948,12 @@ v8::Local<v8::Object> TNodeJsStreamStory::WrapHistogram(const TFltV& BinValV,
 
 	for (int i = 0; i < SourceProbV.Len(); i++) {
 		ProbJsV->Set(i, v8::Number::New(Isolate, SourceProbV[i]));
-		TotalProb += SourceProbV[i];
+		TotalCount += SourceProbV[i];
 	}
 
 	Result->Set(v8::String::NewFromUtf8(Isolate, "binValV"), BinStartJsV);
-	Result->Set(v8::String::NewFromUtf8(Isolate, "probV"), ProbJsV);
-	Result->Set(v8::String::NewFromUtf8(Isolate, "probSum"), v8::Number::New(Isolate, TotalProb));
+	Result->Set(v8::String::NewFromUtf8(Isolate, "countV"), ProbJsV);
+	Result->Set(v8::String::NewFromUtf8(Isolate, "totalCount"), v8::Number::New(Isolate, TotalCount));
 
 	if (!TargetProbV.Empty()) {
 		v8::Local<v8::Array> TargetProbJsV = v8::Array::New(Isolate, TargetProbV.Len());
@@ -2909,8 +2962,8 @@ v8::Local<v8::Object> TNodeJsStreamStory::WrapHistogram(const TFltV& BinValV,
 			TargetProbJsV->Set(i, v8::Number::New(Isolate, TargetProbV[i]));
 			TargetProbSum += TargetProbV[i];
 		}
-		Result->Set(v8::String::NewFromUtf8(Isolate, "targetProbV"), TargetProbJsV);
-		Result->Set(v8::String::NewFromUtf8(Isolate, "targetProbSum"), v8::Number::New(Isolate, TargetProbSum));
+		Result->Set(v8::String::NewFromUtf8(Isolate, "targetCountV"), TargetProbJsV);
+		Result->Set(v8::String::NewFromUtf8(Isolate, "targetTotalCount"), v8::Number::New(Isolate, TargetProbSum));
 	}
 
 	if (!AllProbV.Empty()) {
@@ -2918,7 +2971,7 @@ v8::Local<v8::Object> TNodeJsStreamStory::WrapHistogram(const TFltV& BinValV,
 		for (int i = 0; i < AllProbV.Len(); i++) {
 			AllProbJsV->Set(i, v8::Number::New(Isolate, AllProbV[i]));
 		}
-		Result->Set(v8::String::NewFromUtf8(Isolate, "allProbV"), AllProbJsV);
+		Result->Set(v8::String::NewFromUtf8(Isolate, "allCountV"), AllProbJsV);
 	}
 
 	return HandleScope.Escape(Result);
@@ -2953,7 +3006,7 @@ TClustering::TAbsKMeans<TFltVV>* TNodeJsStreamStory::GetClust(const PJsonVal& Pa
 		const int K = ParamJson->GetObjInt("k");
 		return new TClustering::TDnsKMeans<TFltVV>(K, Rnd);
 	} else {
-		throw TExcept::New("Invalivalid clustering type: " + ClustAlg, "TJsHierCtmc::TJsHierCtmc");
+		throw TExcept::New("Invalid clustering type: " + ClustAlg, "TJsHierCtmc::TJsHierCtmc");
 	}
 }
 

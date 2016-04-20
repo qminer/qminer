@@ -1078,6 +1078,11 @@ char* TStr::CloneCStr() const {
 	return Bf;
 }
 
+bool TStr::Empty() const {
+	 AssertR(Inner == nullptr || Inner[0] != 0, "TStr::Empty string is not nullptr. Fix immediately!");
+	 return  Inner == nullptr;
+}
+
 void TStr::Clr() {
 	if (Inner != nullptr) {
 		delete[] Inner;
