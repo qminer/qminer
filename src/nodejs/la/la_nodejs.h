@@ -59,7 +59,7 @@ public:
 	* <br>svdRes.U - The dense matrix of the decomposition. Type {@link module:la.Matrix}.
 	* <br>svdRes.V - The dense matrix of the decomposition. Type {@link module:la.Matrix}.
 	* <br>svdRes.s - The vector containing the singular values of the decomposition. Type {@link module:la.Vector}.
-	* @example <caption>Asynchronous calculation</caption>
+	* @example <caption>Asynchronous function</caption>
 	* // import the modules
 	* var la = require('qminer').la;
 	* // create a random matrix
@@ -75,7 +75,7 @@ public:
 	*    var V = result.V;
 	*    var s = result.s;
 	* });
-	* @example <caption>Synchronous calculation</caption>
+	* @example <caption>Synchronous function</caption>
 	* // import the modules
 	* var la = require('qminer').la;
 	* // create a random matrix

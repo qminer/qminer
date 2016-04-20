@@ -19,23 +19,54 @@
 class TNmf {
 
 public:
-	// calculates the NMF using Rank-one Residue Iteration
+	enum TGradType { gtNormal, gtRecSys };
+	// calculates the NMF using Gradient Projection with first order approximation (Coordinate search)
 	template <class TMatType>
-	static void RankOneResidueIter(const TMatType& A, const int& R, TFltVV& U, TFltVV& V, const int& MaxIter = 10000,
-		const double& Eps = 1e-3, const PNotify& Notify = TNotify::NullNotify);
+	static void CFO(const TMatType& A, const int& R, TFltVV& U, TFltVV& V, const int& MaxIter = 10000, 
+		const double& Eps = 1e-3, const PNotify& TNotify = TNotify::NullNotify, const TGradType& GradType = TGradType::gtNormal);
+
+	// calculates the NMF using Gradient Projection when the values A are not all known (used for Collaborate Filtering)
+	template <class TMatType>
+	static void EM(const TMatType& A, const int& R, TFltVV& U, TFltVV& V, const int& MaxIter = 10000,
+		const double& Eps = 1e-3, const PNotify& TNotify = TNotify::NullNotify, const TGradType& GradType = TGradType::gtNormal);
+	
 
 private:
+	template <class TMatType>
+	static void InitializationUV(const TMatType& A, const int& Rows, const int& Cols, const int& R, const TGradType& GradType, TFltVV& U, TFltVV& V);
+
 	// scaling initial matrices
 	template <class TMatType>
 	static void InitScaling(const TMatType& A, TFltVV& U, TFltVV& V);
 
 	// calculates the starting condition
 	template <class TMatType>
-	static double StoppingCondition(const TMatType& A, const int& R, const TFltVV& U, const TFltVV& V, const double& Eps);
+	static double StoppingCondition(const TMatType& A, const int& R, const TFltVV& U, const TFltVV& V, const TGradType& GradType, const double& Eps);
 
 	// calculates the condition value
 	template <class TMatType>
-	static double ProjectedGradientNorm(const TMatType& A, const int& R, const TFltVV& U, const TFltVV& V);
+	static double ProjectedGradientNorm(const TMatType& A, const int& R, const TFltVV& U, const TFltVV& V, const TGradType& GradType);
+
+	// update scaling for better stability of matrices
+	static void UpdateScaling(TFltVV& U, TFltVV& V);
+
+	// updates the dense matrix A in the EM algorithm
+	template <class TMatType>
+	static void UpdateA(const TMatType& A, const TFltVV& U, const TFltVV& V, TFltVV& DenseA);
+
+	// update U
+	template <class TMatType>
+	static void UpdateU(const TMatType& A, TFltVV& U, const TFltVV& V, const TGradType& GradType, double& L1, const double& beta, const double& FrobA);
+	// update V
+	template <class TMatType>
+	static void UpdateV(const TMatType& A, const TFltVV& U, TFltVV& V, const TGradType& GradType, double& L2, const double& beta, const double& FrobA);
+
+	// get gradient by U
+	template <class TMatType>
+	static void GetGradientU(const TMatType& A, const TFltVV& U, const TFltVV& V, const TGradType& GradType, TFltVV& GradU);
+	// get gradient by V
+	template <class TMatType>
+	static void GetGradientV(const TMatType& A, const TFltVV& U, const TFltVV& V, const TGradType& GradType, TFltVV& GradV);
 
 	// gets number of rows
 	static int NumOfRows(const TFltVV& Mat);
@@ -44,6 +75,14 @@ private:
 	// gets number of columns
 	static int NumOfCols(const TFltVV& Mat);
 	static int NumOfCols(const TVec<TIntFltKdV>& Mat);
+
+	// gets the value of the matrix
+	static double GetMatVal(const TFltVV& Mat, const int& RowId, const int& ColId);
+	static double GetMatVal(const TVec<TIntFltKdV>& Mat, const int& RowId, const int& ColId);
+
+	// get column of the matrix
+	static void GetMatCol(const TFltVV& Mat, const int& ColId, TFltV& Vec);
+	static void GetMatCol(const TVec<TIntFltKdV>& Mat, const int& ColId, TFltV& Vec);
 };
 
 //============================================================
@@ -51,8 +90,8 @@ private:
 //============================================================
 
 template <class TMatType>
-void TNmf::RankOneResidueIter(const TMatType& A, const int& R, TFltVV& U, TFltVV& V, const int& MaxIter,
-	const double& Eps, const PNotify& Notify) {
+void TNmf::CFO(const TMatType& A, const int& R, TFltVV& U, TFltVV& V, const int& MaxIter, 
+	const double& Eps, const PNotify& Notify, const TGradType& GradType) {
 
 	int Rows = NumOfRows(A);
 	int Cols = NumOfCols(A);
@@ -61,83 +100,110 @@ void TNmf::RankOneResidueIter(const TMatType& A, const int& R, TFltVV& U, TFltVV
 	Notify->OnNotify(TNotifyType::ntInfo, "Executing NMF ...");
 
 	// initialize the matrices U and V
-	U.Gen(Rows, R); TLAMisc::FillRnd(U);
-	V.Gen(R, Cols); TLAMisc::FillRnd(V);
+	InitializationUV(A, Rows, Cols, R, GradType, U, V);
 
 	// scale the matrices U and V for a better starting point:
 	InitScaling(A, U, V);
-	// calculate the stopping condition
-	double StopCond = StoppingCondition(A, R, U, V, Eps);
-	int IterN = 0;
+	// calculate the stopping condition limit
+	double StopCond = StoppingCondition(A, R, U, V, GradType, Eps);
+	
+	int IterN = 0; 
+	double L1 = 1.0, L2 = 1.0, beta = 1.2;
+	double Frob2A = TLinAlg::Frob2(A);
 
 	do {
 		if (IterN % 100 == 0) { Notify->OnNotifyFmt(TNotifyType::ntInfo, "%d", IterN); }
-		// update every column of U and every row of V
-		for (int t = 0; t < R; t++) {
-			// update U(:, t)
-			TFltV Ut; U.GetCol(t, Ut);
-			TFltV NewVt; NewVt.Gen(Cols);
-			// update V(t, :)
-			TFltV Vt; V.GetRow(t, Vt);
-			TFltV NewUt; NewUt.Gen(Rows);
-			for (int i = 0; i < R; i++) {
-				if (i != t) {
-					TFltV Ui; U.GetCol(i, Ui);
-					TFltV Vi; V.GetRow(i, Vi);
-					double UiUt = TLinAlg::DotProduct(Ui, Ut);
-					double ViVt = TLinAlg::DotProduct(Vi, Vt);
-					TLinAlg::LinComb(1, NewVt, UiUt, Vi, NewVt);
-					TLinAlg::LinComb(1, NewUt, ViVt, Ui, NewUt);
-				}
-			}
-			// R = A - UV
-			TFltV Au; TLinAlg::MultiplyT(A, Ut, Au);
-			TFltV Av; TLinAlg::Multiply(A, Vt, Av);
-			TLinAlg::LinComb(1, Au, -1, NewVt, NewVt);
-			TLinAlg::LinComb(1, Av, -1, NewUt, NewUt);
-
-			bool IsRuZero = TLAMisc::IsZero(NewVt);
-			// Replace V(t, :) with a zero  vector
-			if (IsRuZero) {
-				TFltV NewV; NewV.Gen(Cols);
-				V.SetRow(t, NewV);
-			}
-			// V(t, :) = 1/Norm(U(:, t))^2 * NewVt
-			else {
-				double NormU = TLinAlg::Norm2(Ut);
-				TLinAlg::MultiplyScalar(1 / NormU, NewVt);
-				V.SetRow(t, NewVt);
-			}
-
-			bool IsRvZero = TLAMisc::IsZero(NewUt);
-			// replace U(:, t) with a zero vector
-			if (IsRvZero) {
-				TFltV NewU; NewU.Gen(Rows);
-				U.SetCol(t, NewU);
-			}
-			// replace U(:, t) = 1/Norm(V(t, :))^2 * NewUt
-			else {
-				double NormV = TLinAlg::Norm2(Vt);
-				TLinAlg::MultiplyScalar(1 / NormV, NewUt);
-				U.SetCol(t, NewUt);
-			}
-		}
+		// updating U
+		UpdateU(A, U, V, GradType, L1, beta, Frob2A);
+		// updating V
+		UpdateV(A, U, V, GradType, L2, beta, Frob2A);
+		// scaling the matrices
+		UpdateScaling(U, V);
 		// check for stopping condition
-		double Condition = ProjectedGradientNorm(A, R, U, V);
-		if (Condition < StopCond) {
+		double Condition = ProjectedGradientNorm(A, R, U, V, GradType);
+		if (Condition <= StopCond) {
 			Notify->OnNotifyFmt(TNotifyType::ntInfo, "Converged at iteration: %d", IterN);
 			break;
 		}
+		// prepare the step size for the next iteration
+		L1 = L1 / beta;
+		L2 = L2 / beta;
 	} while (++IterN < MaxIter);
 }
 
 template <class TMatType>
+void TNmf::EM(const TMatType& A, const int& R, TFltVV& U, TFltVV& V, const int& MaxIter,
+	const double& Eps, const PNotify& Notify, const TGradType& GradType) {
+
+	int Rows = NumOfRows(A);
+	int Cols = NumOfCols(A);
+
+	EAssert(0 < R && R <= Rows && R <= Cols);
+	Notify->OnNotify(TNotifyType::ntInfo, "Executing EM ...");
+
+	TFltVV DenseA(Rows, Cols);
+	for (int ColN = 0; ColN < Cols; ColN++) {
+		TFltV Col; GetMatCol(A, ColN, Col);
+		DenseA.SetCol(ColN, Col);
+	}
+	TFltV Means; TLAMisc::Mean(DenseA, Means, TMatDim::mdRows);
+	for (int ColN = 0; ColN < Cols; ColN++) {
+		for (int RowN = 0; RowN < Rows; RowN++) {
+			if (DenseA(RowN, ColN) == 0.0) {
+				DenseA(RowN, ColN) = Means[RowN];
+			}
+		}
+	}
+
+	// initialize the matrices U and V
+	InitializationUV(DenseA, Rows, Cols, R, GradType, U, V);
+
+	// scale the matrices U and V for a better starting point:
+	InitScaling(DenseA, U, V);
+	// calculate the stopping condition limit
+	double StopCond = StoppingCondition(DenseA, R, U, V, GradType, Eps);
+
+	int IterN = 0;
+	double L1 = 1.0, L2 = 1.0, beta = 1.2;
+	double Frob2A = TLinAlg::Frob2(A);
+
+	do {
+		if (IterN % 100 == 0) { Notify->OnNotifyFmt(TNotifyType::ntInfo, "%d", IterN); }
+		// updating U
+		UpdateU(DenseA, U, V, GradType, L1, beta, Frob2A);
+		// updating V
+		UpdateV(DenseA, U, V, GradType, L2, beta, Frob2A);
+		// scaling the matrices
+		UpdateScaling(U, V);
+		// check for stopping condition
+		double Condition = ProjectedGradientNorm(DenseA, R, U, V, GradType);
+		if (Condition <= StopCond) {
+			Notify->OnNotifyFmt(TNotifyType::ntInfo, "Converged at iteration: %d", IterN);
+			break;
+		}
+		// prepare the step size for the next iteration
+		L1 = L1 / beta;
+		L2 = L2 / beta;
+		UpdateA(A, U, V, DenseA);
+	} while (++IterN < MaxIter);
+}
+
+template <class TMatType>
+void TNmf::InitializationUV(const TMatType& A, const int& Rows, const int& Cols, const int& R, const TGradType& GradType, TFltVV& U, TFltVV& V) {
+	if (GradType == TGradType::gtNormal) {
+		U.Gen(Rows, R); TLAMisc::FillRnd(U);
+		V.Gen(R, Cols); TLAMisc::FillRnd(V);
+	}
+	else if (GradType == TGradType::gtRecSys) {
+		EM(A, R, U, V, 10);
+	}
+}
+
+template <class TMatType>
 void TNmf::InitScaling(const TMatType& A, TFltVV& U, TFltVV& V) {
-	// alpha = trace(A'*U*V') / trace(V*U'*U*V')
-	TFltVV UV;   TLinAlg::Multiply(U, V, UV);
-	TFltVV AUV;  TLinAlg::MultiplyT(A, UV, AUV);
-	TFltVV UVUV; TLinAlg::MultiplyT(UV, UV, UVUV);
-	double alpha = TLAMisc::Trace(AUV) / TLAMisc::Trace(UVUV);
+	// alpha = <A, U*V> / <U*V, U*V>
+	TFltVV UV;  TLinAlg::Multiply(U, V, UV);
+	double alpha = TLinAlg::DotProduct(A, UV) / TLinAlg::DotProduct(UV, UV);
 	// U = sqrt(alpha) * U
 	TLinAlg::MultiplyScalar(TMath::Sqrt(alpha), U, U);
 	// V = sqrt(alpha) * V
@@ -145,73 +211,189 @@ void TNmf::InitScaling(const TMatType& A, TFltVV& U, TFltVV& V) {
 }
 
 template <class TMatType>
-static double TNmf::StoppingCondition(const TMatType& A, const int& R, const TFltVV& U, const TFltVV& V, const double& Eps) {
-	const int Rows = NumOfRows(A);
-	const int Cols = NumOfCols(A);
-
-	// NablaU = U*(V*V') - A*V' 
-	TFltVV NablaU, VT, VV, UVV, AV;
-
-	TLinAlg::Transpose(V, VT);
-	TLinAlg::Multiply(V, VT, VV);
-	TLinAlg::Multiply(U, VV, UVV);
-	TLinAlg::Multiply(A, VT, AV);
-	TLinAlg::LinComb(1, UVV, -1, AV, NablaU);
-
-	// NablaV = V'*(U'*U) - A'*U
-	TFltVV NablaV, AU, UU, VUU;
-	TLinAlg::MultiplyT(U, U, UU);
-	TLinAlg::MultiplyT(V, UU, VUU);
-	TLinAlg::MultiplyT(A, U, AU);
-	TLinAlg::LinComb(1, VUU, -1, AU, NablaV);
-
-	double NormNablaU = TLinAlg::Frob(NablaU);
-	double NormNablaV = TLinAlg::Frob(NablaV);
-
-	return Eps * (NormNablaU + NormNablaV);
-}
-
-template <class TMatType>
-static double TNmf::ProjectedGradientNorm(const TMatType& A, const int& R, const TFltVV& U, const TFltVV& V) {
+double TNmf::StoppingCondition(const TMatType& A, const int& R, const TFltVV& U, const TFltVV& V, const TGradType& GradType, const double& Eps) {
 	const int Rows = NumOfRows(A);
 	const int Cols = NumOfCols(A);
 
 	// NablaU = U*(V*V') - A*V'  
-	TFltVV NablaU, VT, VV, UVV, AV;
+	TFltVV GradU; GetGradientU(A, U, V, GradType, GradU);
+	// NablaV = V'*(U'*U) - A'*U
+	TFltVV GradV; GetGradientV(A, U, V, GradType, GradV);
 
-	TLinAlg::Transpose(V, VT);
-	TLinAlg::Multiply(V, VT, VV);
-	TLinAlg::Multiply(U, VV, UVV);
-	TLinAlg::Multiply(A, VT, AV);
-	TLinAlg::LinComb(1, UVV, -1, AV, NablaU);
+	double NormGradU = TLinAlg::Frob(GradU);
+	double NormGradV = TLinAlg::Frob(GradV);
 
-	// NablaV = (U'*U)*V - U'*A
-	TFltVV NablaV, UA, UU, UUV;
+	return Eps * (NormGradU + NormGradV);
+}
 
-	TLinAlg::MultiplyT(U, U, UU);
-	TLinAlg::Multiply(UU, V, UUV);
-	TLinAlg::MultiplyT(U, A, UA);
-	TLinAlg::LinComb(1, UUV, -1, UA, NablaV);
+template <class TMatType>
+double TNmf::ProjectedGradientNorm(const TMatType& A, const int& R, const TFltVV& U, const TFltVV& V, const TGradType& GradType) {
+	const int Rows = NumOfRows(A);
+	const int Cols = NumOfCols(A);
+
+	// GradU = U*(V*V') - A*V'  
+	TFltVV GradU; GetGradientU(A, U, V, GradType, GradU);
+
+	// NablaV = V'*(U'*U) - A'*U
+	TFltVV GradV; GetGradientV(A, U, V, GradType, GradV);
+
 	// projected gradient for matrix U and V 
 	TFltVV ProjU(Rows, R), ProjV(R, Cols);
 
 	for (int j = 0; j < R; j++) {
 		// construct the projected gradient for matrix U
 		for (int i = 0; i < Rows; i++) {
-			double ProjU_ij = U.At(i, j) > 0 ? NablaU.At(i, j) : TMath::Mn(0.0, (double)NablaU.At(i, j));
+			double ProjU_ij = (double)U.At(i, j) > 0.0 ? GradU.At(i, j) : TMath::Mn(0.0, (double)GradU.At(i, j));
 			ProjU.PutXY(i, j, ProjU_ij);
 		}
 		// construct the projected gradient for matrix V
 		for (int i = 0; i < Cols; i++) {
-			double ProjV_ji = V.At(j, i) > 0 ? NablaV.At(j, i) : TMath::Mn(0.0, (double)NablaV.At(j, i));
-			ProjV.PutXY(j, i, ProjV_ji);
+			double ProjV_ij = (double)V.At(j, i) > 0.0 ? GradV.At(j, i) : TMath::Mn(0.0, (double)GradV.At(j, i));
+			ProjV.PutXY(j, i, ProjV_ij);
+		}
+	}
+	double NormProjU = TLinAlg::Frob(ProjU);
+	double NormProjV = TLinAlg::Frob(ProjV);
+	return NormProjU + NormProjV;
+}
+
+template <class TMatType>
+void TNmf::UpdateA(const TMatType& A, const TFltVV& U, const TFltVV& V, TFltVV& DenseA) {
+	const int& Rows = NumOfRows(A);
+	const int& Cols = NumOfCols(A);
+
+	TFltVV UV; TLinAlg::Multiply(U, V, UV);
+	for (int RowN = 0; RowN < Rows; RowN++) {
+		for (int ColN = 0; ColN < Cols; ColN++) {
+			double Val = GetMatVal(A, RowN, ColN);
+			if (Val == 0.0) {
+				DenseA(RowN, ColN) = UV(RowN, ColN);
+			}
 		}
 	}
 
-	double NormProjU = TLinAlg::Frob(ProjU);
-	double NormProjV = TLinAlg::Frob(ProjV);
+}
 
-	return NormProjU + NormProjV;
+template <class TMatType>
+void TNmf::UpdateU(const TMatType& A, TFltVV& U, const TFltVV& V, const TGradType& GradType, double& L1, const double& beta, const double& FrobA) {
+	// NormFX = || A - U*V ||_{F}^{2}
+	TFltVV FX;  TLinAlg::Multiply(U, V, FX);
+	TLinAlg::LinComb(-1, FX, 1, A, FX);
+	double NormFX = TLinAlg::Frob2(FX);
+	
+	// GradU = U*V*V' - A*V';
+	TFltVV GradU; GetGradientU(A, U, V, GradType, GradU);
+
+	// update matrix U = [U - 1/L1 * GradU]+
+	const TFltVV OldU = U; 
+	TLinAlg::LinComb(1, OldU, -1 / L1, GradU, U);
+	TLAMisc::NonNegProj(U);
+
+	// prepare the condition variables
+	TFltVV UU; TLinAlg::MultiplyT(U, U, UU);
+	TFltVV UOldU; TLinAlg::LinComb(1, U, -1, OldU, UOldU);
+
+	TFltVV VT; TLinAlg::Transpose(V, VT);
+	TFltVV VV; TLinAlg::Multiply(V, VT, VV);
+	TFltVV AV; TLinAlg::Multiply(A, VT, AV);
+
+	// 1/2 * (Frob(A)^2 - 2 * <U, A*V'> + <U'*U, V*V'> - NormFX) > (<GradU, U - OldU> + L1 / 2 * Frob(U - OldU)^2)
+	while (1.0 / 2 * (FrobA - 2.0 * TLinAlg::DotProduct(U, AV) + TLinAlg::DotProduct(UU, VV) - NormFX) > TLinAlg::DotProduct(GradU, UOldU) + L1 / 2.0 * TLinAlg::Frob2(UOldU)) {
+		// update the matrix U
+		L1 = L1 * beta;
+		TLinAlg::LinComb(1, OldU, -1 / L1, GradU, U);
+		TLAMisc::NonNegProj(U);
+
+		// update the matrices for the condition
+		TLinAlg::MultiplyT(U, U, UU);
+		TLinAlg::LinComb(1, U, -1, OldU, UOldU);
+	}
+}
+
+template <class TMatType>
+void TNmf::UpdateV(const TMatType& A, const TFltVV& U, TFltVV& V, const TGradType& GradType, double& L2, const double& beta, const double& FrobA) {
+	// NormFY = || A - U*V ||_{F}^{2}
+	TFltVV FY; TLinAlg::Multiply(U, V, FY);
+	TLinAlg::LinComb(-1, FY, 1, A, FY);
+	double NormFY = TLinAlg::Frob2(FY);
+
+	// GradV = U'*U*V - U'*A
+	TFltVV GradV; GetGradientV(A, U, V, GradType, GradV);
+
+	// update matrix V = [V - 1/L2 * GradV]+
+	const TFltVV OldV = V;
+	TLinAlg::LinComb(1, OldV, -1 / L2, GradV, V);
+	TLAMisc::NonNegProj(V);
+
+	// prepare the condition variables
+	TFltVV VT; TLinAlg::Transpose(V, VT);
+	TFltVV VV; TLinAlg::Multiply(V, VT, VV);
+
+	TFltVV UA; TLinAlg::MultiplyT(U, A, UA);
+	TFltVV UU; TLinAlg::MultiplyT(U, U, UU);
+
+	TFltVV VoldV; TLinAlg::LinComb(1, V, -1, OldV, VoldV);
+	// 1/2 * (Frob(A)^2 - 2 * <U'*A, V> + <V*V', U'*U> - NormFY) > <GradV, V - OldV> + L2 / 2 * Frob(V - OldV)^2
+	while (1.0 / 2 * (FrobA - 2.0 * TLinAlg::DotProduct(UA, V) + TLinAlg::DotProduct(VV, UU) - NormFY) > TLinAlg::DotProduct(GradV, VoldV) + L2 / 2.0 * TLinAlg::Frob2(VoldV)) {
+		// update the matrix V
+		L2 = L2 * beta;
+		TLinAlg::LinComb(1, OldV, -1 / L2, GradV, V);
+		TLAMisc::NonNegProj(V);
+
+		// update the matrices for the condition
+		TLinAlg::Transpose(V, VT);
+		TLinAlg::Multiply(V, VT, VV);
+		TLinAlg::LinComb(1, V, -1, OldV, VoldV);
+	}
+}
+
+
+template <class TMatType>
+void TNmf::GetGradientU(const TMatType& A, const TFltVV& U, const TFltVV& V, const TGradType& GradType, TFltVV& GradU) {
+	TFltVV VT;  TLinAlg::Transpose(V, VT);
+	// GradU = U*V*V' - A*V';
+	if (GradType == TGradType::gtNormal) {
+		TFltVV VV;  TLinAlg::Multiply(V, VT, VV);
+		TFltVV UVV; TLinAlg::Multiply(U, VV, UVV);
+		TFltVV AV;  TLinAlg::Multiply(A, VT, AV);
+		TLinAlg::LinComb(1, UVV, -1, AV, GradU);
+	}
+	// GradU = (W o (U*V))*V' - A*V', W(i, j) = A(i, j) > 0 ? 1 : 0
+	else if (GradType == TGradType::gtRecSys) {
+		TFltVV UV; TLinAlg::Multiply(U, V, UV);
+		// W o (U*V)
+		TLinAlg::HadamardProd(A, UV, UV, true);
+		TFltVV UVV; TLinAlg::Multiply(UV, VT, UVV);
+		TFltVV AV; TLinAlg::Multiply(A, VT, AV);
+		TLinAlg::LinComb(1, UVV, -1, AV, GradU);
+		TLinAlg::LinComb(1, GradU, 0.001, U, GradU);
+	}
+	else {
+		throw TExcept::New("GradType not recognized!");
+	}
+}
+
+template <class TMatType>
+void TNmf::GetGradientV(const TMatType& A, const TFltVV& U, const TFltVV& V, const TGradType& GradType, TFltVV& GradV) {
+	// GradV = U'*U*V - U'*A
+	if (GradType == TGradType::gtNormal) {
+		TFltVV UU;  TLinAlg::MultiplyT(U, U, UU);
+		TFltVV UUV; TLinAlg::Multiply(UU, V, UUV);
+		TFltVV UA;  TLinAlg::MultiplyT(U, A, UA);
+		TLinAlg::LinComb(1, UUV, -1, UA, GradV);
+	}
+	// GradV = U'*(W o U*V) - U'*A, , W(i, j) = A(i, j) > 0 ? 1 : 0
+	else if (GradType == TGradType::gtRecSys) {
+		TFltVV UV; TLinAlg::Multiply(U, V, UV);
+		TLinAlg::HadamardProd(A, UV, UV, true);
+		TFltVV UUV; TLinAlg::MultiplyT(U, UV, UUV);
+		TFltVV UA; TLinAlg::MultiplyT(U, A, UA);
+		TLinAlg::LinComb(1, UUV, -1, UA, GradV);
+		TLinAlg::LinComb(1, GradV, 0.001, V, GradV);
+	}
+	else {
+		throw TExcept::New("GradType not recognized!");
+	}
 }
 
 #endif

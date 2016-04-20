@@ -264,17 +264,29 @@ void TStructuredCovarianceMatrix::PMultiplyT(const TFltV& Vec, TFltV& Result) co
 //// Basic Linear Algebra Operations
 /// Everything moved to linalg.h
 
-void TLinAlg::Multiply(const TVec<TIntFltKdV>& A, const TFltV& x, TFltV& y) {
-	int Cols = A.Len();
-	int Rows = TLAMisc::GetMaxDimIdx(A) + 1;
-	if (y.Empty()) { y.Gen(Rows); }
-	EAssert(x.Len() == Cols && y.Len() >= Rows);
-	for (int ColN = 0; ColN < Cols; ColN++) {
-		const TIntFltKdV& ColV = A[ColN]; int Els = ColV.Len();
+double TLinAlg::Frob(const TVec<TIntFltKdV> &A) {
+	double Sum = 0.0;
+	for (int ColN = 0; ColN < A.Len(); ColN++) {
+		TIntFltKdV ColA = A[ColN]; int Els = ColA.Len();
 		for (int ElN = 0; ElN < Els; ElN++) {
-			y[ColV[ElN].Key] += ColV[ElN].Dat * x[ColN];
+			Sum += ColA[ElN].Dat * ColA[ElN].Dat;
 		}
 	}
+	return sqrt(Sum);
+}
+double TLinAlg::Frob2(const TVec<TIntFltKdV> &A) {
+	double Sum = 0.0;
+	for (int ColN = 0; ColN < A.Len(); ColN++) {
+		TIntFltKdV ColA = A[ColN]; int Els = ColA.Len();
+		for (int ElN = 0; ElN < Els; ElN++) {
+			Sum += ColA[ElN].Dat * ColA[ElN].Dat;
+		}
+	}
+	return Sum;
+}
+
+double TLinAlg::FrobNorm2(const TVec<TIntFltKdV>& X) {
+	return Frob2(X);
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -1936,6 +1948,38 @@ bool TLAMisc::IsZero(const TFltV& Vec, const double& Eps) {
 		}
 	}
 	return IsZero;
+}
+
+bool TLAMisc::IsZero(const TFltVV& Mat, const double& Eps) {
+	bool IsZero = true;
+	int Rows = Mat.GetRows();
+	int Cols = Mat.GetCols();
+	for (int RowN = 0; RowN < Rows; RowN++) {
+		for (int ColN = 0; ColN < Cols; ColN++) {
+			if (!TMath::IsInEps((double)Mat(RowN, ColN), Eps)) {
+				IsZero = false;
+				break;
+			}
+		}
+		if (!IsZero) { break; }
+	}
+	return IsZero;
+}
+
+void TLAMisc::NonNegProj(TFltV& Vec) {
+	for (int i = 0; i < Vec.Len(); i++) {
+		Vec[i] = TMath::Mx(0.0, (double)Vec[i]);
+	}
+}
+
+void TLAMisc::NonNegProj(TFltVV& Mat) {
+	int Rows = Mat.GetRows();
+	int Cols = Mat.GetCols();
+	for (int RowN = 0; RowN < Rows; RowN++) {
+		for (int ColN = 0; ColN < Cols; ColN++) {
+			Mat(RowN, ColN) = TMath::Mx(0.0, (double)Mat(RowN, ColN));
+		}
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////

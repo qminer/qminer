@@ -177,7 +177,12 @@ public:
 	static double Trace(const TFltVV& Mat);
 	// returns true, if the vector is a zero vector
 	static bool IsZero(const TFltV& Vec, const double& Eps = 1e-6);
-
+	// returns true, if the matrix is a zero matrix
+	static bool IsZero(const TFltVV& Mat, const double& Eps = 1e-6);
+	// makes a projection on the non-negative vector space
+	static void NonNegProj(TFltV& Vec);
+	// makes a projection on the non-negative matrix space
+	static void NonNegProj(TFltVV& Mat);
 	// changes the elements x of matrix X to sqrt(x)
 	template <class TMatType>
 	inline static void Sqrt(TMatType& X);
@@ -736,6 +741,17 @@ public:
     /// Result = <X(:,ColId), y>
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static double DotProduct(const TVVec<TType, TSizeTy, ColMajor>& X, int ColId, const TIntFltKdV& y);
+	/// Result = <X, Y>
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static double DotProduct(const TVVec<TType, TSizeTy, ColMajor>& X, const TVVec<TType, TSizeTy, ColMajor>& Y);
+	template <class TType, class TSizeTy, bool ColMajor>
+	inline static double DotProduct(const TVec<TIntFltKdV>& X, const TVVec<TType, TSizeTy, ColMajor>& Y);
+
+	/// Hadamard product
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void HadamardProd(const TVVec<TType, TSizeTy, ColMajor>& X, const TVVec<TType, TSizeTy, ColMajor>& Y, TVVec<TType, TSizeTy, ColMajor>& Z, const bool& FilterExist = false);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void HadamardProd(const TVec<TIntFltKdV>& X, const TVVec<TType, TSizeTy, ColMajor>& Y, TVVec<TType, TSizeTy, ColMajor>& Z, const bool& FilterExist = false);
 
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void OuterProduct(const TVec<TType, TSizeTy>& x,
@@ -806,6 +822,12 @@ public:
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static TType Frob(const TVVec<TNum<TType>, TSizeTy, ColMajor> &A);
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static TType Frob2(const TVVec<TNum<TType>, TSizeTy, ColMajor> &A);
+
+	static double Frob(const TVec<TIntFltKdV> &A);
+	static double Frob2(const TVec<TIntFltKdV> &A);
+
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static double FrobDist2(const TVVec<TType, TSizeTy, ColMajor>& A, const TVVec<TType, TSizeTy, ColMajor>& B);
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static double FrobDist2(const TVec<TType, TSizeTy>& A, const TVec<TType, TSizeTy>& B);
@@ -859,6 +881,7 @@ public:
 	inline static double FrobNorm2(const TVVec<TType, TSizeTy, ColMajor>& X);
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static double FrobNorm(const TVVec<TType, TSizeTy, ColMajor>& X);
+	static double FrobNorm2(const TVec<TIntFltKdV>& X);
 	// ||x||^2 (Euclidian), x is sparse
 	template<class TSizeTy = int>
 	inline static double Norm2(const TVec<TIntFltKdV, TSizeTy>& x);
@@ -913,9 +936,9 @@ public:
 	inline static void GetColMaxIdxV(const TVVec<TType, TSizeTy, ColMajor>& X, TVec<TInt, TSizeTy>& IdxV);
 	template <class TType, class TSizeTy = int>
 	inline static void MultiplyScalar(const double& k, TVec<TType, TSizeTy>& x);
-	// find the index of maximum elements for a given each col of X
+	// find the index of minimum elements for a given each col of X
 	inline static int GetColMinIdx(const TFltVV& X, const int& ColN);
-	// find the index of maximum elements for each col of X
+	// find the index of minimum elements for each col of X
 	inline static void GetColMinIdxV(const TFltVV& X, TIntV& IdxV);
 	template <class TVal> inline static TVal GetColMin(const TVVec<TVal>& X, const int& ColN);
 	template <class TVal> inline static void GetColMinV(const TVVec<TVal>& X, TVec<TVal>& ValV);
@@ -937,7 +960,17 @@ public:
 	inline static void Multiply(const TVVec<TType, TSizeTy, ColMajor>& A, const TVVec<TType, TSizeTy, ColMajor>& B, int ColId, TVec<TType, TSizeTy>& y);
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void Multiply(const TVVec<TType, TSizeTy, ColMajor>& A, const TVVec<TType, TSizeTy, ColMajor>& B, int ColIdB, TVVec<TType, TSizeTy, ColMajor>& C, int ColIdC);
-	static void Multiply(const TVec<TIntFltKdV>& A, const TFltV& x, TFltV& y);
+	
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void Multiply(const TVec<TIntFltKdV>& A, const TVVec<TType, TSizeTy, ColMajor>& B, int ColId, TVec<TType, TSizeTy>& y);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void Multiply(const TVec<TIntFltKdV>& A, const TVec<TType, TSizeTy>& x, TVec<TType, TSizeTy>& y);
+
+	// y:= A' * x
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void MultiplyT(const TVVec<TType, TSizeTy, ColMajor>& A, const TVVec<TType, TSizeTy, ColMajor>& B, int ColId, TVec<TType, TSizeTy>& y);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void MultiplyT(const TVec<TIntFltKdV>& A, const TVVec<TType, TSizeTy, ColMajor>& B, int ColId, TVec<TType, TSizeTy>& y);
 	//LAPACKE stuff
 #ifdef LAPACKE
 	// Tested in other function
@@ -1245,6 +1278,78 @@ public:
 			if (key < n) Res += y[i].Dat * X(key, ColId);
 		}
 		return Res;
+	}
+
+	// <X,Y> Both matrices are dense
+	template <class TType, class TSizeTy, bool ColMajor>
+	double TLinAlg::DotProduct(const TVVec<TType, TSizeTy, ColMajor>& X, const TVVec<TType, TSizeTy, ColMajor>& Y) {
+		EAssert(X.GetRows() == Y.GetRows() && X.GetCols() == Y.GetCols());
+		TType Res = 0; 
+		const TSizeTy Rows = X.GetRows();
+		const TSizeTy Cols = X.GetCols();
+		for (TSizeTy RowN = 0; RowN < Rows; RowN++) {
+			for (TSizeTy ColN = 0; ColN < Cols; ColN++) {
+				Res += X(RowN, ColN)*Y(RowN, ColN);
+			}
+		}
+		return Res;
+	}
+
+	// <X,Y> X sparse, Y dense
+	template <class TType, class TSizeTy, bool ColMajor>
+	double TLinAlg::DotProduct(const TVec<TIntFltKdV>& X, const TVVec<TType, TSizeTy, ColMajor>& Y) {
+		int Rows = TLAMisc::GetMaxDimIdx(X);
+		EAssert(Rows <= Y.GetRows() && X.Len() == Y.GetCols());
+		TType Res = 0;
+		const int Cols = X.Len();
+		for (TSizeTy ColN = 0; ColN < Cols; ColN++) {
+			const TIntFltKdV& ColX = X[ColN]; const int Els = ColX.Len();
+			for (int ElN = 0; ElN < Els; ElN++) {
+				Res += ColX[ElN].Dat * Y(ColX[ElN].Key, ColN);
+			}
+		}
+		return Res;
+	}
+	// the Hadamard product of X and Y. If FilterExist = true: Z(i, j) = Y(i, j) if X(i, j) > 0, otherwise Z(i, j) = 0
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::HadamardProd(const TVVec<TType, TSizeTy, ColMajor>& X, const TVVec<TType, TSizeTy, ColMajor>& Y, 
+		TVVec<TType, TSizeTy, ColMajor>& Z, const bool& FilterExist) {
+		if (Z.Empty()) { Z.Gen(X.GetRows(), X.GetCols()); }
+		EAssert(X.GetRows() == Y.GetRows() && X.GetCols() == Y.GetCols() && X.GetRows() == Z.GetRows() && X.GetCols() == Z.GetCols());
+		const TSizeTy& Rows = X.GetRows();
+		const TSizeTy& Cols = X.GetCols();
+		for (TSizeTy RowN = 0; RowN < Rows; RowN++) {
+			for (TSizeTy ColN = 0; ColN < Cols; ColN++) {
+				if (FilterExist) {
+					Z(RowN, ColN) = X(RowN, ColN) > 0 ? Y(RowN, ColN) : 0;
+				}
+				else {
+					Z(RowN, ColN) = X(RowN, ColN) * Y(RowN, ColN);
+				}
+			}
+		}
+	}
+
+	// the Hadamard product of X and Y. If FilterExist = true: Z(i, j) = Y(i, j) if X(i, j) > 0, otherwise Z(i, j) = 0
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::HadamardProd(const TVec<TIntFltKdV>& X, const TVVec<TType, TSizeTy, ColMajor>& Y, 
+		TVVec<TType, TSizeTy, ColMajor>& Z, const bool& FilterExist) {
+		if (Z.Empty()) { Z.Gen(Y.GetRows(), Y.GetCols()); }
+		int XRows = TLAMisc::GetMaxDimIdx(X);
+		EAssert(XRows <= Y.GetRows() && X.Len() == Y.GetCols() && Y.GetRows() == Z.GetRows() && Y.GetCols() == Z.GetCols());
+		const int& Cols = X.Len();
+		TLAMisc::FillZero(Z);
+		for (int ColN = 0; ColN < Cols; ColN++) {
+			const TIntFltKdV& ColX = X[ColN]; int Els = ColX.Len();
+			for (int ElN = 0; ElN < Els; ElN++) {
+				if (FilterExist) {
+					Z(ColX[ElN].Key, ColN) = ColX[ElN].Dat > 0 ? Y(ColX[ElN].Key, ColN) : 0;
+				}
+				else {
+					Z(ColX[ElN].Key, ColN) = ColX[ElN].Dat * Y(ColX[ElN].Key, ColN);
+				}
+			}
+		}
 	}
 
 	// TEST
@@ -1629,13 +1734,24 @@ public:
 	// Result = ||A||_F (Frobenious)
 	template <class TType, class TSizeTy, bool ColMajor>
 	TType TLinAlg::Frob(const TVVec<TNum<TType>, TSizeTy, ColMajor> &A) {
-		TType frob = 0;
+		TType frob = 0.0;
 		for (int RowN = 0; RowN < A.GetRows(); RowN++) {
 			for (int ColN = 0; ColN < A.GetCols(); ColN++) {
-				frob += A.At(RowN, ColN)*A.At(RowN, ColN);
+				frob += A.At(RowN, ColN) * A.At(RowN, ColN);
 			}
 		}
 		return sqrt(frob);
+	}
+	// Result = ||A||_{F}^{2} (Frobenious)
+	template <class TType, class TSizeTy, bool ColMajor>
+	TType TLinAlg::Frob2(const TVVec<TNum<TType>, TSizeTy, ColMajor> &A) {
+		TType frob = 0.0;
+		for (int RowN = 0; RowN < A.GetRows(); RowN++) {
+			for (int ColN = 0; ColN < A.GetCols(); ColN++) {
+				frob += A.At(RowN, ColN) * A.At(RowN, ColN);
+			}
+		}
+		return frob;
 	}
 	// TEST
 	// Result = ||A - B||_F (Frobenious)
@@ -2352,12 +2468,42 @@ public:
 	// y := A * B(:, ColId)
 	template <class TType, class TSizeTy, bool ColMajor>
 	void TLinAlg::Multiply(const TVVec<TType, TSizeTy, ColMajor>& A, const TVVec<TType, TSizeTy, ColMajor>& B, int ColId, TVec<TType, TSizeTy>& y)  {
+		if (y.Empty()) { y.Gen(A.GetRows()); }
 		EAssert(A.GetCols() == B.GetRows() && A.GetRows() == y.Len());
 		TSizeTy n = A.GetRows(), m = A.GetCols();
 		for (TSizeTy i = 0; i < n; i++) {
 			y[i] = 0.0;
 			for (TSizeTy j = 0; j < m; j++)
 				y[i] += A(i, j) * B(j, ColId);
+		}
+	}
+
+	// y := A' * B(:, ColId)
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::MultiplyT(const TVVec<TType, TSizeTy, ColMajor>& A, const TVVec<TType, TSizeTy, ColMajor>& B, int ColId, TVec<TType, TSizeTy>& y) {
+		if (y.Empty()) { y.Gen(A.GetCols()); }
+		EAssert(A.GetRows() == B.GetRows() && A.GetCols() == y.Len());
+		TSizeTy n = A.GetCols(), m = A.GetRows();
+		for (TSizeTy i = 0; i < n; i++) {
+			y[i] = 0.0;
+			for (TSizeTy j = 0; j < m; j++)
+				y[i] += A(j, i) * B(j, ColId);
+		}
+	}
+
+	// y := A' * B(:, ColId)
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::MultiplyT(const TVec<TIntFltKdV>& A, const TVVec<TType, TSizeTy, ColMajor>& B, int ColId, TVec<TType, TSizeTy>& y) {
+		int Rows = TLAMisc::GetMaxDimIdx(A) + 1;
+		int Cols = A.Len();
+		if (y.Empty()) { y.Gen(Cols); }
+		EAssert(Rows <= B.GetRows() && y.Len() >= A.Len());
+		for (int i = 0; i < Cols; i++) {
+			y[i] = 0.0;
+			const TIntFltKdV& ColV = A[i]; int Els = ColV.Len();
+			for (int ElN = 0; ElN < Els; ElN++) {
+				y[ColV[ElN].Key] += ColV[ElN].Dat * B(ColV[ElN].Key, ColId);
+			}
 		}
 	}
 
@@ -2371,6 +2517,36 @@ public:
 			C(i, ColIdC) = 0.0;
 			for (TSizeTy j = 0; j < m; j++)
 				C(i, ColIdC) += A(i, j) * B(j, ColIdB);
+		}
+	}
+
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::Multiply(const TVec<TIntFltKdV>& A, const TVVec<TType, TSizeTy, ColMajor>& B, int ColId, TVec<TType, TSizeTy>& y) {
+		int Cols = A.Len();
+		int Rows = TLAMisc::GetMaxDimIdx(A) + 1;
+		if (y.Empty()) { y.Gen(Rows); }
+		EAssert(B.GetRows() == Cols && y.Len() >= Rows);
+		TLAMisc::FillZero(y);
+		for (TSizeTy ColN = 0; ColN < Cols; ColN++) {
+			const TIntFltKdV& ColV = A[ColN]; int Els = ColV.Len();
+			for (int ElN = 0; ElN < Els; ElN++) {
+				y[ColV[ElN].Key] += ColV[ElN].Dat * B(ColN, ColId);
+			}
+
+		}
+	}
+
+	template <class TType, class TSizeTy, bool ColMajor>
+	void TLinAlg::Multiply(const TVec<TIntFltKdV>& A, const TVec<TType, TSizeTy>& x, TVec<TType, TSizeTy>& y) {
+		int Cols = A.Len();
+		int Rows = TLAMisc::GetMaxDimIdx(A) + 1;
+		if (y.Empty()) { y.Gen(Rows); }
+		EAssert(x.Len() == Cols && y.Len() >= Rows);
+		for (int ColN = 0; ColN < Cols; ColN++) {
+			const TIntFltKdV& ColV = A[ColN]; int Els = ColV.Len();
+			for (int ElN = 0; ElN < Els; ElN++) {
+				y[ColV[ElN].Key] += ColV[ElN].Dat * x[ColN];
+			}
 		}
 	}
 
