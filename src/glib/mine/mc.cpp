@@ -54,14 +54,12 @@ TStr TFtrInfo::GetTypeStr() const {
 }
 
 int TFtrInfo::GetCategoricalFtrVal(const TFltV& FtrV) const {
-	int Val = -1;
 	for (int FtrN = Offset; FtrN < Offset + Length; FtrN++) {
 		if (FtrV[FtrN] > 0) {
-			Val = FtrN;
+			return FtrN - Offset;
 		}
 	}
-	EAssertR(Val != -1, "Could not find the value of a nominal feature!");
-	return Val;
+	throw TExcept::New("Could not find the value of a nominal feature!");
 }
 
 double TFtrInfo::GetNumericFtrVal(const TFltV& FtrV) const {
@@ -229,10 +227,6 @@ void TStateIdentifier::Init(const TStreamStory& StreamStory, const TUInt64V& TmV
 		Notify->OnNotifyFmt(TNotifyType::ntInfo, "Sampling %d instances...", NSamples);
 
 		TIntV SampleV;	TLAUtil::Range(NInst, SampleV);
-//		TIntV SampleV(NInst, 0);
-//		for (int i = 0; i < NInst; i++) {
-//			SampleV.Add(i);
-//		}
 
 		SampleV.Shuffle(Rnd);
 		SampleV.Trunc(NSamples);
