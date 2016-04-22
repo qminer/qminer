@@ -39,7 +39,10 @@ public:
     void AddFtr(const double& Val, TIntFltKdV& SpV, int& Offset) const;
     void AddFtr(const double& Val, TFltV& FullV, int& Offset) const;
     
-    double InvFtr(const TFltV& FullV, int& Offset) const;
+    double InvFtr(const double& Val) const;
+
+    const TFlt& GetMn() const { return MnVal; }
+    const TFlt& GetMx() const { return MxVal; }
 
     int GetDim() const { return 1; }
 };

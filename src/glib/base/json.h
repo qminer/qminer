@@ -52,6 +52,8 @@ public:
   void PutArr(){JsonValType=jvtArr;}
   void AddToArr(const PJsonVal& Val){
     EAssert(JsonValType==jvtArr); ValV.Add(Val);}
+  void SetArrVal(const int& ValN, const PJsonVal& Val){
+	  EAssert(JsonValType==jvtArr&&ValN < GetArrVals()); ValV[ValN] = Val;}
   void AddToArr(const int& Val){ AddToArr(NewNum((double)Val)); }
   void AddToArr(const uint& Val){ AddToArr(NewNum((double)Val)); }
   void AddToArr(const double& Val){ AddToArr(NewNum(Val)); }

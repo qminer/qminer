@@ -3441,6 +3441,7 @@ public:
 	*/
 	//# exports.FeatureSpace.prototype.getFeatureExtractor = function (idx) { return ''; };
 	JsDeclareFunction(getFeatureExtractor);
+	JsDeclareFunction(getFeatureExtractorType);
 
 	/**
 	* Gives the name of the feature at the given position.
@@ -3562,6 +3563,8 @@ public:
 	*/
 	//# exports.FeatureSpace.prototype.invertFeature = function (idx, val) {};
 	JsDeclareFunction(invertFeature);
+
+	JsDeclareFunction(getFeatureRange);
 
 	/**
 	* Filters the vector to keep only the elements from the feature extractor.

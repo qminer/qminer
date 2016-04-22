@@ -78,6 +78,7 @@ public:
    
     /// Name of the feature (e.g. field name, store name)
     virtual TStr GetNm() const { return "[undefined]"; };
+    virtual TStr GetFtrType() const { throw TExcept::New("TFtrExt::GetType: not implemented!"); }
     /// Dimensionality of the feature space
     virtual int GetDim() const = 0;
     // string representation of the FtrN-th feature
@@ -93,10 +94,6 @@ public:
     /// Attaches features to a given full feature vectors with a given offset
     virtual void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
 
-    /// Inverts features from the given feature vector. The features must start
-    /// at the given offset. Increases the offset by its dimension
-    virtual void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const = 0;
-
     // deprecated, to be removed
     virtual double __GetVal(const double& InVal) const { printf("__GetVal is DEPRECATED\n"); throw TQmExcept::New("TFtrExt::GetVal not implemented"); };
 
@@ -105,6 +102,13 @@ public:
     virtual void ExtractStrV(const TRec& Rec, TStrV& StrV) const;
     virtual void ExtractFltV(const TRec& Rec, TFltV& FltV) const;
     virtual void ExtractTmV(const TRec& Rec, TTmV& TmV) const;
+
+    virtual PJsonVal InvertFullV(const TFltV& FtrV, const int& Offset) const;
+    /// Inverts features from the given feature vector. The features must start
+    /// at the given offset. Increases the offset by its dimension
+    virtual PJsonVal InvertFtr(const PJsonVal& FtrVal) const;
+    /// returns all the values that this feature can assume (doesn't apply for all feature extractors)
+    virtual PJsonVal GetFtrRange() const;
 
     /// Check if the given store is one of the allowed start stores
     bool IsStartStore(const uint& StoreId) const { return JoinSeqH.IsKey(StoreId); }
@@ -185,10 +189,12 @@ public:
     /// extracts a single feature (deprecated)
     double GetSingleFtr(const int& FtrExtN, const double& Val) const;
 
-    /// Returns the inverse operation on the feature vector
-    void InvertFullV(const TFltV& FullV, TFltV& InvertV) const;
-    /// returns the inverse operation on a single feature
-    double InvertFtr(const int& FtrExtN, const TFlt& FtrVal) const;
+    /// Returns the inverse operation on the feature vector (does not apply for all feature extractors)
+    PJsonVal InvertFullV(const TFltV& FullV) const;
+    /// returns the inverse operation on a single feature (does not apply for all feature extractors)
+    PJsonVal InvertFtr(const int& FtrExtN, const PJsonVal& FtrVal) const;
+    /// returns all the values the given feature can assume (does not apply for all feature extractors)
+    PJsonVal GetFtrRange(const int& FtrExtN) const;
     
     /// String vector for a record transformed by a feature extractor
     void ExtractStrV(const int& DimN, const PJsonVal& RecVal, TStrV &StrV) const;
@@ -246,8 +252,6 @@ public:
     void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
     void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
 
-    void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
-
     // flat feature extraction
     void ExtractFltV(const TRec& FtrRec, TFltV& FltV) const;
     
@@ -283,8 +287,6 @@ public:
     bool Update(const TRec& Rec) { return false; }
     void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
     void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
-
-    void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
 
     // flat feature extraction
     void ExtractFltV(const TRec& FtrRec, TFltV& FltV) const;
@@ -326,6 +328,7 @@ public:
     void Save(TSOut& SOut) const;   
     
     TStr GetNm() const;
+    TStr GetFtrType() const { return GetType(); }
     int GetDim() const { return 1; }
     TStr GetFtr(const int& FtrN) const { return GetNm(); }
 
@@ -335,7 +338,10 @@ public:
     void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
     void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
 
-    void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
+    PJsonVal InvertFullV(const TFltV& FtrV, const int& Offset) const;
+    PJsonVal InvertFtr(const PJsonVal& FtrVal) const;
+    PJsonVal GetFtrRange() const;
+
     double __GetVal(const double& InVal) const { return FtrGen.GetFtr(InVal); }
 
     // flat feature extraction
@@ -389,8 +395,6 @@ public:
     void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
     void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
 
-    void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
-
     // feature extractor type name 
     static TStr GetType() { return "num_sp_v"; }   
 };
@@ -429,6 +433,7 @@ public:
     void Save(TSOut& SOut) const;   
     
     TStr GetNm() const { return "Categorical[" + GetFtrStore()->GetFieldNm(FieldId) + "]"; };
+    TStr GetFtrType() const { return GetType(); }
     int GetDim() const { return FtrGen.GetDim(); }
     TStr GetFtr(const int& FtrN) const { return FtrGen.GetVal(FtrN); }
 
@@ -438,7 +443,9 @@ public:
     void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
     void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
 
-    void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
+    PJsonVal InvertFullV(const TFltV& FtrV, const int& Offset) const;
+    PJsonVal InvertFtr(const PJsonVal& FtrVal) const;
+    PJsonVal GetFtrRange() const;
 
     // flat feature extraction
     void ExtractStrV(const TRec& Rec, TStrV& StrV) const;
@@ -508,8 +515,6 @@ public:
     bool Update(const TRec& Rec);
     void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
     void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
-
-    void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
 
     // flat feature extraction
     void ExtractStrV(const TRec& Rec, TStrV& StrV) const;
@@ -595,8 +600,6 @@ public:
     void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
     void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
 
-    void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
-
     // flat feature extraction
     void ExtractStrV(const TRec& Rec, TStrV& StrV) const;
 
@@ -640,8 +643,6 @@ public:
     // sparse vector extraction
     void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
     //void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
-
-    void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
 
     // flat feature extraction
     void ExtractStrV(const TRec& Rec, TStrV& StrV) const;
@@ -692,8 +693,6 @@ public:
     bool Update(const TRec& FtrRec);
     void AddSpV(const TRec& FtrRec, TIntFltKdV& SpV, int& Offset) const;
     //void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
-
-    void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
 
     // flat feature extraction
     void ExtractStrV(const TRec& FtrRec, TStrV& StrV) const;
@@ -749,8 +748,6 @@ public:
     bool Update(const TRec& Rec);
     void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
     void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
-
-    void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
 
     // feature extractor type name 
     static TStr GetType() { return "dateWindow"; }

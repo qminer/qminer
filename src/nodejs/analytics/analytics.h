@@ -1602,6 +1602,10 @@ private:
 		TNodeJsFltV* JsRecTmV;
 		TNodeJsBoolV* JsBatchEndJsV;
 
+		TMc::TFtrInfoV ObsFtrInfo;
+		TMc::TFtrInfoV ContrFtrInfo;
+		TMc::TFtrInfoV IgnFtrInfo;
+
 	public:
 		TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
@@ -1615,10 +1619,8 @@ private:
 		TStr Msg;
 		v8::Persistent<v8::Function>* ProgressCallback;
 	public:
-		TProgressTask(const int& _Perc, const TStr& _Msg, v8::Persistent<v8::Function>* _ProgressCallback):
-			Perc(_Perc),
-			Msg(_Msg),
-			ProgressCallback(_ProgressCallback) {}
+		TProgressTask(const int& Perc, const TStr& Msg,
+				v8::Persistent<v8::Function>* ProgressCallback);
 		void Run();
 	};
 
@@ -1939,6 +1941,11 @@ private:
 			const TFltV& SourceProbV, const TFltV& TargetProbV, const TFltV& AllProbV);
 	static uint64 GetTmUnit(const TStr& TmUnitStr);
 	static TClustering::TAbsKMeans<TFltVV>* GetClust(const PJsonVal& ParamJson, const TRnd& Rnd);
+
+	// feature information
+	static void ParseFtrInfo(const PJsonVal& InfoJson, TMc::TFtrInfoV& ObsFtrInfoV,
+			TMc::TFtrInfoV& ContrFtrInfoV, TMc::TFtrInfoV& IgnFtrInfo);
+	static void ParseFtrInfo(const PJsonVal& InfoJson, TMc::TFtrInfoV& FtrInfoV);
 };
 
 ///////////////////////////////
