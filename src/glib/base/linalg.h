@@ -159,6 +159,8 @@ public:
 	static int GetMaxDimIdx(const TIntFltKdV& SpVec);
 	// gets the maximal row index of a sparse column matrix
 	static int GetMaxDimIdx(const TVec<TIntFltKdV>& SpMat);
+    // gets the maximal index of an integer vector
+    static int GetMaxVal(const TIntV& Vec);
 	// returns the index of the minimum element
 	static int GetMinIdx(const TFltV& Vec);
 	// returns a vector with a sequence starting at Min and ending at Max
@@ -171,9 +173,19 @@ public:
 	static void Std(const TFltVV& Mat, TFltV& Vec, const int& Flag = 0, const TMatDim& Dim = TMatDim::mdCols);
 	// returns the z-score for each element of X such that columns of X are centered to have mean 0 and scaled to have standard deviation 1.
 	static void ZScore(const TFltVV& Mat, TFltVV& Vec, const int& Flag = 0, const TMatDim& Dim = TMatDim::mdCols);
+	// returns the sum of diagonal elements of matrix
+	static double Trace(const TFltVV& Mat);
+	// returns true, if the vector is a zero vector
+	static bool IsZero(const TFltV& Vec, const double& Eps = 1e-6);
+
+	template <class TMatType>
+	inline static void Sqrt(TMatType& X);
+
+    template <class TMatType>
+    inline static void Sqr(TMatType& X);
 };
 
-#ifdef SCALAPACK 
+#ifdef SCALAPACK
 template<class TSizeTy>
 void TLAMisc::Sort(TVec<TFlt, TSizeTy> & Vec, TVec<TSizeTy, TSizeTy>& Index, const TBool& DecreseP) {
     if (Index.Empty()) {
@@ -196,6 +208,60 @@ void TLAMisc::FillRangeS(const TTSizeTyTy& Vals, TVec<TVal, TTSizeTyTy>& Vec) {
         Vec[i] = i;
     }
 };
+
+template <>
+inline void TLAMisc::Sqrt(TFltVV& X) {
+	double Val;
+	for (int RowN = 0; RowN < X.GetRows(); RowN++) {
+		for (int ColN = 0; ColN < X.GetCols(); ColN++) {
+			Val = X(RowN, ColN);
+			AssertR(Val > -1e-8, "Distance lower than numerical error!");
+			if (Val < 0) { Val = 0; }
+			X.PutXY(RowN, ColN, TMath::Sqrt(Val));
+		}
+	}
+}
+
+template <>
+inline void TLAMisc::Sqrt(TVec<TIntFltKdV>& X) {
+	double Val;
+	for (int ColN = 0; ColN < X.Len(); ColN++) {
+		TIntFltKdV& ColSpV = X[ColN];
+		for (int RowN = 0; RowN < ColSpV.Len(); RowN++) {
+			Val = ColSpV[RowN].Dat;
+			AssertR(Val > -1e-8, "Distance lower than numerical error!");
+			if (Val < 0) { Val = 0; }
+			ColSpV[RowN].Dat = TMath::Sqrt(Val);
+		}
+	}
+}
+
+template <>
+inline void TLAMisc::Sqr(TFltVV& X) {
+    double Val;
+    for (int RowN = 0; RowN < X.GetRows(); RowN++) {
+        for (int ColN = 0; ColN < X.GetCols(); ColN++) {
+            Val = X(RowN, ColN);
+            AssertR(Val > -1e-8, "Distance lower than numerical error!");
+            if (Val < 0) { Val = 0; }
+            X.PutXY(RowN, ColN, TMath::Sqr(Val));
+        }
+    }
+}
+
+template <>
+inline void TLAMisc::Sqr(TVec<TIntFltKdV>& X) {
+    double Val;
+    for (int ColN = 0; ColN < X.Len(); ColN++) {
+        TIntFltKdV& ColSpV = X[ColN];
+        for (int RowN = 0; RowN < ColSpV.Len(); RowN++) {
+            Val = ColSpV[RowN].Dat;
+            AssertR(Val > -1e-8, "Distance lower than numerical error!");
+            if (Val < 0) { Val = 0; }
+            ColSpV[RowN].Dat = TMath::Sqr(Val);
+        }
+    }
+}
 
 //////////////////////////////////////////////////////////////////////
 // Linear Algebra Utilities
@@ -320,6 +386,21 @@ public:
 				X(RowIdx, ColIdx) -= RowMean;
 			}
 		}
+	}
+
+	static bool ContainsNan(const TFltVV& FltVV) {
+		const int Rows = FltVV.GetRows();
+		const int Cols = FltVV.GetCols();
+
+		for (int RowN = 0; RowN < Rows; RowN++) {
+			for (int ColN = 0; ColN < Cols; ColN++) {
+				if (TFlt::IsNan(FltVV(RowN, ColN))) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 };
 
@@ -675,6 +756,9 @@ public:
 	inline static void LinComb(const double& p, const TFltVV& X, int DimId,
 		const double& q, const TFltV& y, TFltV& z, int Dim);
 	inline static void LinComb(const double& p, const TFltVV& X, const double& q, const TFltVV& Y, TFltVV& Z);
+    inline static void LinComb(const double& p, const TVec<TIntFltKdV>& X, const double& q, const TVec<TIntFltKdV>& Y, TVec<TIntFltKdV>& Z);
+    inline static void LinComb(const double& p, const TFltVV& X, const double& q, const TVec<TIntFltKdV>& Y, TFltVV& Z);
+    inline static void LinComb(const double& p, const TVec<TIntFltKdV>& X, const double& q, TFltVV const& Y, TVec<TIntFltKdV>& Z);
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void ConvexComb(const double& p, const TVec<TType, TSizeTy>& x, const TVec<TType, TSizeTy>& y, TVec<TType, TSizeTy>& z);
 	//this will fail if TType != TFlt, Specialization should be used
@@ -710,6 +794,8 @@ public:
 	// Result = ||x-y||^2 (Euclidian);
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static double EuclDist2(const TVec<TType, TSizeTy>& x, const TVec<TType, TSizeTy>& y);
+    template <class TSizeTy = int, bool ColMajor = false>
+    inline static double EuclDist2(const TVec<TIntFltKd, TSizeTy>& x, const TVec<TIntFltKd, TSizeTy>& y);
 	// Result = ||x-y||^2 (Euclidian);
 	inline static double EuclDist2(const TFltPr& x, const TFltPr& y);
 	template <class TType, class TSizeTy = int>
@@ -810,8 +896,10 @@ public:
 	inline static void NormalizeLinf(TIntFltKdV& x);
 
 	inline static void GetColNormV(const TFltVV& X, TFltV& ColNormV);
+    inline static void GetColNormV(const TVec<TIntFltKdV>& X, TFltV& ColNormV);
 	// stores the norm of all the columns into the output vector
 	inline static void GetColNorm2V(const TFltVV& X, TFltV& ColNormV);
+	inline static void GetColNorm2V(const TVec<TIntFltKdV>& SpVV, TFltV& ColNormV);
 
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static int GetRowMaxIdx(const TVVec<TType, TSizeTy, ColMajor>& X, const TSizeTy& RowN);
@@ -1016,8 +1104,15 @@ public:
 	inline static void MultiplyT(const TVVec<TType, TSizeTy, ColMajor>& A, const TVec<TVec<TKeyDat<IndexType, TType>, TSizeTy>, TSizeTy>& B, TVVec<TType, TSizeTy, ColMajor>& C);
 	inline static void Multiply(const TVec<TIntFltKdV>& A, const TFltVV& B, TFltVV& C, const int RowsA = -1);
 	inline static void MultiplyT(const TVec<TIntFltKdV>& A, const TFltVV& B, TFltVV& C);
+    inline static void Multiply(const TFltVV& A, const TVec<TIntFltKdV>& B, TVec<TIntFltKdV>& C);
 	inline static void Multiply(const TVec<TIntFltKdV>& A, const TVec<TIntFltKdV>& B, TFltVV& C, const int RowsA = -1);
+    inline static void Multiply(const TVec<TIntFltKdV>& A, const TVec<TIntFltKdV>& B, TVec<TIntFltKdV>& C, const int RowsA = -1);
 	inline static void MultiplyT(const TVec<TIntFltKdV>& A, const TVec<TIntFltKdV>& B, TFltVV& C);
+    inline static void MultiplyT(const TVec<TIntFltKdV>& A, const TIntFltKdV& b, TFltV& c);
+    template <class IndexType = TInt, class TType, class TSizeTy = int, bool ColMajor = false>
+    inline static void MultiplyT(const TVVec<TType, TSizeTy, ColMajor>& A, const TIntFltKdV& b, TFltV& c);
+    template <class IndexType = TInt, class TType, class TSizeTy = int, bool ColMajor = false>
+    inline static void MultiplyT(const TVec<TIntFltKdV>& A, const TVec<TType, TSizeTy>& b, TFltV& c);
 	typedef enum { GEMM_NO_T = 0, GEMM_A_T = 1, GEMM_B_T = 2, GEMM_C_T = 4 } TLinAlgGemmTranspose;
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void Gemm(const double& Alpha, const TVVec<TType, TSizeTy, ColMajor>& A, const TVVec<TType, TSizeTy, ColMajor>& B, const double& Beta,
@@ -1280,6 +1375,49 @@ public:
 		}
 	}
 
+    void TLinAlg::LinComb(const double& p, const TVec<TIntFltKdV>& X, const double& q, const TVec<TIntFltKdV>& Y, TVec<TIntFltKdV>& Z) {
+        if (Z.Empty()) { Z.Gen(X.Len()); }
+        EAssert(X.Len() == Y.Len() && Y.Len() == Z.Len());
+        int Cols = X.Len();
+        for (int ColN = 0; ColN < Cols; ColN++) {
+            TLinAlg::LinComb(p, X[ColN], q, Y[ColN], Z[ColN]);
+        }
+    }
+
+    void TLinAlg::LinComb(const double& p, const TFltVV& X, const double& q, const TVec<TIntFltKdV>& Y, TFltVV& Z) {
+        if (Z.Empty()) { Z.Gen(X.GetRows(), X.GetCols()); }
+        EAssert(X.GetRows() >= TLAMisc::GetMaxDimIdx(Y) && X.GetCols() == Y.Len() && X.GetRows() == Z.GetRows() && X.GetCols() == Z.GetCols());
+        int Rows = X.GetRows();
+        int Cols = X.GetCols();
+        for (int ColN = 0; ColN < Cols; ColN++) {
+            int KeyN = 0;
+            for (int RowN = 0; RowN < Rows; RowN++) {
+                Z.At(RowN, ColN) = p*X.At(RowN, ColN);
+                if (Y[ColN][KeyN].Key == RowN) { 
+                    Z.At(RowN, ColN) += q*Y[ColN][KeyN].Dat; KeyN++;
+                }
+            }
+        }
+    }
+
+    void TLinAlg::LinComb(const double& p, const TVec<TIntFltKdV>& X, const double& q, TFltVV const& Y, TVec<TIntFltKdV>& Z) {
+        if (Z.Empty()) { Z.Gen(Y.GetCols()); }
+        EAssert(TLAMisc::GetMaxDimIdx(X) <= Y.GetRows() && X.Len() == Y.GetCols() && Y.GetCols() == Z.Len());
+        int Rows = Y.GetRows();
+        int Cols = Y.GetCols();
+        for (int ColN = 0; ColN < Cols; ColN++) {
+            int KeyN = 0;
+            for (int RowN = 0; RowN < Rows; RowN++) {
+                if (X[ColN][KeyN].Key == RowN) {
+                    Z[ColN].Add(TIntFltKd(RowN, p*X[ColN][KeyN].Dat + q*Y.At(RowN, ColN))); KeyN++;
+                }
+                else {
+                    Z[ColN].Add(TIntFltKd(RowN, q*Y.At(RowN, ColN)));
+                }
+            }
+        }
+    }
+
 	// TEST
 	// z := p * x + (1 - p) * y
 	template <class TType, class TSizeTy, bool ColMajor>
@@ -1461,6 +1599,12 @@ public:
 		}
 		return Res;
 	}
+
+    template <class TSizeTy, bool ColMajor>
+    double TLinAlg::EuclDist2(const TVec<TIntFltKd, TSizeTy>& x, const TVec<TIntFltKd, TSizeTy>& y) {
+        double Res = TLinAlg::Norm2(x) - 2 * TLinAlg::DotProduct(x, y) + TLinAlg::Norm2(y);
+        return Res;
+    }
 
 	// Result = ||x-y||^2 (Euclidian)
 	double TLinAlg::EuclDist2(const TFltPr& x, const TFltPr& y) {
@@ -1999,16 +2143,35 @@ public:
  	}
 
  	// stores the norm of all the columns into the output vector
+    void TLinAlg::GetColNormV(const TVec<TIntFltKdV>& X, TFltV& ColNormV) {
+        const int Cols = X.Len();
+        GetColNorm2V(X, ColNormV);
+        for (int i = 0; i < Cols; i++) {
+            ColNormV[i] = sqrt(ColNormV[i]);
+        }
+    }
+
+    // stores the squared norm of all the columns into the output vector
  	void TLinAlg::GetColNorm2V(const TFltVV& X, TFltV& ColNormV) {
  		const int Cols = X.GetCols();
 
  		if (ColNormV.Len() != Cols) { ColNormV.Gen(Cols); }
 
-		#pragma omp parallel for
  		for (int ColN = 0; ColN < Cols; ColN++) {
  			ColNormV[ColN] = Norm2(X, ColN);
  		}
  	}
+
+ 	// stores the norm of all the columns into the output vector
+	void TLinAlg::GetColNorm2V(const TVec<TIntFltKdV>& SpVV, TFltV& ColNormV) {
+		const int Cols = SpVV.Len();
+
+		if (ColNormV.Len() != Cols) { ColNormV.Gen(Cols); }
+
+		for (int ColN = 0; ColN < Cols; ColN++) {
+			ColNormV[ColN] = Norm2(SpVV[ColN]);
+		}
+	}
 
 	// TEST
 	// find the index of maximum elements for a given row of X
@@ -2077,14 +2240,16 @@ public:
 	int TLinAlg::GetColMinIdx(const TFltVV& X, const int& ColN) {
 		const int Rows = X.GetRows();
 		double MinVal = TFlt::Mx;
+		double Val;
 		int MinIdx = -1;
 		for (int RowN = 0; RowN < Rows; RowN++) {
-			double Val = X(RowN, ColN);
+			Val = X(RowN, ColN);
 			if (Val < MinVal) {
 				MinVal = Val;
 				MinIdx = RowN;
 			}
 		}
+		EAssertR(MinIdx >= 0, "Mininum index not set!");
 		return MinIdx;
 	}
 
@@ -2095,7 +2260,6 @@ public:
 		if (IdxV.Empty()) { IdxV.Gen(Cols); }
 		EAssert(IdxV.Len() == Cols);
 
-		#pragma omp parallel for
 		for (int ColN = 0; ColN < Cols; ColN++) {
 			IdxV[ColN] = GetColMinIdx(X, ColN);
 		}
@@ -2627,7 +2791,9 @@ public:
 	// C = A * B
 	template <class TType, class TSizeTy, bool ColMajor>
 	void TLinAlg::Multiply(const TVVec<TType, TSizeTy, ColMajor>& A, const TVVec<TType, TSizeTy, ColMajor>& B, TVVec<TType, TSizeTy, ColMajor>& C) {
-		EAssert(A.GetRows() == C.GetRows() && B.GetCols() == C.GetCols() && A.GetCols() == B.GetRows());
+        if (C.Empty()) { C.Gen(A.GetRows(), B.GetCols()); }
+        
+        EAssert(A.GetRows() == C.GetRows() && B.GetCols() == C.GetCols() && A.GetCols() == B.GetRows());
 #ifdef BLAS
 		TLinAlg::Multiply(A, B, C, TLinAlgBlasTranspose::NOTRANS, TLinAlgBlasTranspose::NOTRANS);
 #else
@@ -2791,7 +2957,7 @@ public:
 		else {
 			EAssert(A.GetRows() == C.GetRows() && B.Len() == C.GetCols());
 		}
-		EAssert(TLAMisc::GetMaxDimIdx(B) < A.GetCols());
+		EAssert(TLAMisc::GetMaxDimIdx(B) + 1 <= A.GetCols());
 		int Cols = B.Len();
 		int Rows = A.GetRows();
 		C.PutAll(0.0);
@@ -2829,7 +2995,7 @@ public:
 		else {
 			EAssert(A.GetCols() == C.GetRows() && B.Len() == C.GetCols());
 		}
-		EAssert(TLAMisc::GetMaxDimIdx(B) < A.GetRows());
+		EAssert(TLAMisc::GetMaxDimIdx(B) + 1 <= A.GetRows());
 		int Cols = B.Len();
 		int Rows = A.GetCols();
 		C.PutAll(0.0);
@@ -2900,6 +3066,24 @@ public:
 		}
 	}
 
+    void TLinAlg::Multiply(const TFltVV& A, const TVec<TIntFltKdV>& B, TVec<TIntFltKdV>& C) {
+        EAssert(A.GetCols() >= TLAMisc::GetMaxDimIdx(B) + 1);
+        int Rows = A.GetRows();
+        int Cols = B.Len();
+
+        C.Gen(Cols);
+        for (int ColN = 0; ColN < Cols; ColN++) {
+            for (int RowN = 0; RowN < Rows; RowN++) {
+                TFlt val(0.0);
+                int Els = B[ColN].Len();
+                for (int ElN = 0; ElN < Els; ElN++) {
+                    val += A(RowN, B[ColN][ElN].Key) * B[ColN][ElN].Dat;
+                }
+                C[ColN].Add(TIntFltKd(RowN, val));
+            }
+        }
+    }
+
 	// SPARSECOLMAT-SPARSECOLMAT
 	// C := A * B
 	//Andrej Urgent
@@ -2937,6 +3121,34 @@ public:
 		}
 	}
 
+    void TLinAlg::Multiply(const TVec<TIntFltKdV>& A, const TVec<TIntFltKdV>& B, TVec<TIntFltKdV>& C,
+    		const int RowsA) {
+        //// A,B = sparse column matrix
+        //EAssert(A.Len() == B.GetRows());
+        int Rows = RowsA;
+        int ColsB = B.Len();
+
+        if (RowsA == -1) { Rows = TLAMisc::GetMaxDimIdx(A) + 1; }
+        EAssert(TLAMisc::GetMaxDimIdx(A) + 1 <= Rows);
+
+        C.Gen(ColsB);
+        EAssert(TLAMisc::GetMaxDimIdx(B) + 1 <= A.Len());
+        
+        for (int ColN = 0; ColN < ColsB; ColN++) {
+            int ElsB = B[ColN].Len();
+            for (int ElBN = 0; ElBN < ElsB; ElBN++) {
+                int IdxB = B[ColN][ElBN].Key;
+                double ValB = B[ColN][ElBN].Dat;
+                int ElsA = A[IdxB].Len();
+                for (int ElAN = 0; ElAN < ElsA; ElAN++) {
+                    int IdxA = A[IdxB][ElAN].Key;
+                    double ValA = A[IdxB][ElAN].Dat;
+                    C[ColN].Add(TIntFltKd(IdxA, ValA * ValB));
+                }
+            }
+        }
+    }
+
 	// C:= A' * B
 	//Andrej Urgent
 	//TODO template --- indextype TIntFltKdV ... TInt64
@@ -2956,6 +3168,68 @@ public:
 			}
 		}
 	}
+
+    // c := A' * b
+    void TLinAlg::MultiplyT(const TVec<TIntFltKdV>& A, const TIntFltKdV& b, TFltV& c) {
+        //// A = sparse column matrix, b = sparse vector
+        int ColsA = A.Len();
+
+        if (c.Empty()) {
+            c.Gen(ColsA);
+        }
+        else {
+            EAssert(ColsA == c.Len());
+        }
+        for (int RowN = 0; RowN < ColsA; RowN++) {
+            c[RowN] = TLinAlg::DotProduct(A[RowN], b);
+        }
+    }
+
+    // c := A' * b
+    template <class IndexType, class TType, class TSizeTy, bool ColMajor>
+    void TLinAlg::MultiplyT(const TVVec<TType, TSizeTy, ColMajor>& A, const TIntFltKdV& b, TFltV& c) {
+        //// A = dense matrix, b = sparse vector
+        int ColsA = A.GetCols();
+        // check if the maximum index of the sparse vector is lesser than number of matrix rows
+        EAssert(TLAMisc::GetMaxDimIdx(b) <= A.GetRows());
+
+        if (c.Empty()) {
+            c.Gen(ColsA);
+        }
+        else {
+            EAssert(ColsA == c.Len());
+        }
+        c.PutAll(0.0);
+        for (TSizeTy ColN = 0; ColN < ColsA; ColN++) {
+            int Els = b.Len();
+            for (int ElN = 0; ElN < Els; ElN++) {
+                c[ColN] += b[ElN].Dat * A.At(b[ElN].Key, ColN);
+            }
+        }
+    }
+
+    // c := A' * b
+    template <class IndexType, class TType, class TSizeTy, bool ColMajor>
+    void TLinAlg::MultiplyT(const TVec<TIntFltKdV>& A, const TVec<TType, TSizeTy>& b, TFltV& c) {
+        //// A = sparse column matrix, b = dense vector
+        int ColsA = A.Len();
+        // check if the maximum index of the sparse matrix is lesser than length of vector b
+        EAssert(TLAMisc::GetMaxDimIdx(A) <= b.Len());
+
+        if (c.Empty()) {
+            c.Gen(ColsA);
+        }
+        else {
+            EAssert(ColsA == c.Len());
+        }
+        c.PutAll(0.0);
+        for (int ColN = 0; ColN < ColsA; ColN++) {
+            int Els = A[ColN].Len();
+            for (int ElN = 0; ElN < Els; ElN++) {
+                c[ColN] += A[ColN][ElN].Dat * b[A[ColN][ElN].Key];
+            }
+        }
+    }
 
 	//#ifdef INTEL
 	//	void TLinAlg::Multiply(const TFltVV & ProjMat, const TPair<TIntV, TFltV> & Doc, TFltV & Result);

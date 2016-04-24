@@ -601,7 +601,7 @@ public:
   /// Get String Length (null terminator not included)
   int Len() const { return Empty() ? 0 : (int)strlen(Inner); }
   /// Check if this is an empty string
-  bool Empty() const { IAssertR(Inner == nullptr || Inner[0] != 0, "TStr::Empty string is not nullptr. Fix immediately!");  return  Inner == nullptr; }
+  bool Empty() const;
   /// Deletes the char pointer if it is not nullptr. (not thread safe)
   void Clr();
   /// returns a reference to this string
