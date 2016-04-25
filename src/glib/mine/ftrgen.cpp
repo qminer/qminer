@@ -129,6 +129,10 @@ void TCategorical::AddFtr(const TStr& Val, TFltV& FullV, int& Offset) const {
     Offset += GetDim();
 }
 
+TStr TCategorical::GetVal(const int& ValN) const {
+	return (Type == ctHash) ? TInt::GetStr(ValN) : ValSet.GetKey(ValN);
+}
+
 ///////////////////////////////////////
 // Multi-Feature-Generator
 void TMultinomial::Save(TSOut& SOut) const { 

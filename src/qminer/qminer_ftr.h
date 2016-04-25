@@ -103,6 +103,8 @@ public:
     virtual void ExtractFltV(const TRec& Rec, TFltV& FltV) const;
     virtual void ExtractTmV(const TRec& Rec, TTmV& TmV) const;
 
+    /// inverts a value extracted from a feature vector, the value is
+    /// extracted from position 'Offset'
     virtual PJsonVal InvertFullV(const TFltV& FtrV, const int& Offset) const;
     /// Inverts features from the given feature vector. The features must start
     /// at the given offset. Increases the offset by its dimension

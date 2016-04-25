@@ -75,7 +75,7 @@ public:
     void AddFtr(const TStr& Val, TFltV& FullV, int& Offset) const;
 
     int GetDim() const { return (Type == ctHash) ? HashDim.Val : ValSet.Len(); }
-    TStr GetVal(const int& ValN) const { return (Type == ctHash) ? "hash" : ValSet.GetKey(ValN); }
+    TStr GetVal(const int& ValN) const;
 };
 
 ///////////////////////////////////////
