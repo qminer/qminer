@@ -1523,7 +1523,7 @@ void TNodeJsStreamStory::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "timeHistogram", _timeHistogram);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getFtrBounds", _getFtrBounds);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "stateIds", _stateIds);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "getStateWgtV", _getStateWgtV);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getWeights", _getWeights);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getClassifyTree", _getClassifyTree);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "explainState", _explainState);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "setActivity", _setActivity);
@@ -2130,8 +2130,6 @@ void TNodeJsStreamStory::stateIds(const v8::FunctionCallbackInfo<v8::Value>& Arg
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	EAssertR(Args.Length() == 1, "hmc.stateIds: expects 1 argument!");
-
 	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
 	const double Height = TNodeJsUtil::GetArgFlt(Args, 0);
@@ -2147,25 +2145,16 @@ void TNodeJsStreamStory::stateIds(const v8::FunctionCallbackInfo<v8::Value>& Arg
 	Args.GetReturnValue().Set(StateIdJsV);
 }
 
-void TNodeJsStreamStory::getStateWgtV(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsStreamStory::getWeights(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-
-	EAssertR(Args.Length() == 1, "hmc.getStateWgtV: expects 1 argument!");
 
 	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
 	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
+	const PJsonVal WgtJson = JsMChain->StreamStory->GetStateWgtV(StateId);
 
-	TFltV WgtV;
-	JsMChain->StreamStory->GetStateWgtV(StateId, WgtV);
-
-	v8::Local<v8::Array> JsWgtV = v8::Array::New(Isolate, WgtV.Len());
-	for (int i = 0; i < WgtV.Len(); i++) {
-		JsWgtV->Set(i, v8::Number::New(Isolate, WgtV[i]));
-	}
-
-	Args.GetReturnValue().Set(JsWgtV);
+	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, WgtJson));
 }
 
 void TNodeJsStreamStory::getClassifyTree(const v8::FunctionCallbackInfo<v8::Value>& Args) {

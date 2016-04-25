@@ -4288,11 +4288,20 @@ const TFltPr& TStateAssist::GetFtrBounds(const int& FtrId) const {
 	return FtrBoundV[FtrId];
 }
 
-void TStateAssist::GetFtrWgtV(const int& StateId, TFltV& WgtV) const {
+void TStateAssist::GetFtrWgtV(const int& StateId, const int& Offset, const int& Length,
+		TFltV& WgtV) const {
 	EAssertR(0 <= StateId && StateId < ClassifyV.Len(), "Invalid state ID!");
 
+	if (WgtV.Len() != Length) { WgtV.Gen(Length); }
+
 	const TLogReg& Classify = ClassifyV[StateId];
-	Classify.GetWgtV(WgtV);
+	TFltV AllWgtV;	Classify.GetWgtV(AllWgtV);
+
+	EAssert(0 <= Offset && Offset + Length <= AllWgtV.Len());
+
+	for (int FtrN = 0; FtrN < Length; FtrN++) {
+		WgtV[FtrN] = AllWgtV[Offset + FtrN];
+	}
 }
 
 PJsonVal TStateAssist::GetStateClassifyTree(const int& StateId) const {
@@ -5105,8 +5114,33 @@ void TStreamStory::GetTimeHistogram(const int& StateId, const TStateIdentifier::
 	StateIdentifier->GetTimeHistogram(AggState, HistType, BinV, ProbV);
 }
 
-void TStreamStory::GetStateWgtV(const int& StateId, TFltV& WgtV) const {
-	StateAssist->GetFtrWgtV(StateId, WgtV);
+PJsonVal TStreamStory::GetStateWgtV(const int& StateId) const {
+	PJsonVal Result = TJsonVal::NewArr();
+
+	for (int FtrId = 0; FtrId < GetAllDim(); FtrId++) {
+		const TFtrInfo& FtrInfo = GetFtrInfo(FtrId);
+		const int& Offset = FtrInfo.GetOffset();
+		const int& Length = FtrInfo.GetLength();
+
+		TFltV WgtV;	StateAssist->GetFtrWgtV(StateId, Offset, Length, WgtV);
+
+		PJsonVal FtrJson = TJsonVal::NewObj();
+		FtrJson->AddToObj("type", FtrInfo.GetTypeStr());
+
+		if (Length == 0) {
+			FtrJson->AddToObj("value", WgtV[0]);
+		} else {
+			PJsonVal WgtJsonV = TJsonVal::NewArr();
+			for (int BinN = 0; BinN < Length; BinN++) {
+				WgtJsonV->AddToArr(WgtV[BinN]);
+			}
+			FtrJson->AddToObj("value", WgtJsonV);
+		}
+
+		Result->AddToArr(FtrJson);
+	}
+
+	return Result;
 }
 
 PJsonVal TStreamStory::GetStateClassifyTree(const int& StateId) const {

@@ -927,7 +927,8 @@ public:
 	void InitFtrBounds(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const TFltVV& IgnoredFtrVV);
 
 	const TFltPr& GetFtrBounds(const int& FtrId) const;
-	void GetFtrWgtV(const int& StateId, TFltV& WgtV) const;
+	void GetFtrWgtV(const int& StateId, const int& Offset, const int& Length,
+			TFltV& WgtV) const;
 	PJsonVal GetStateClassifyTree(const int& StateId) const;
 	PJsonVal GetStateExplain(const int& StateId) const;
 
@@ -1102,7 +1103,7 @@ public:
 			TIntV& BinV, TFltV& ProbV) const;
 
 	// state explanations
-	void GetStateWgtV(const int& StateId, TFltV& WgtV) const;
+	PJsonVal GetStateWgtV(const int& StateId) const;
 	PJsonVal GetStateClassifyTree(const int& StateId) const;
 	PJsonVal GetStateExplain(const int& StateId) const;
 

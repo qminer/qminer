@@ -1760,7 +1760,7 @@ public:
 	 * @param {Number} stateId - The Id of the state.
 	 * @returns {Array} - An array of weights.
 	 */
-	JsDeclareFunction(getStateWgtV);
+	JsDeclareFunction(getWeights);
 
 	/**
 	 * Returns a JSON representation of a decision tree, which classifies
