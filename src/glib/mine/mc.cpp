@@ -3610,7 +3610,7 @@ void TUiHelper::GetAutoNmPValDesc(const int& StateId, PAutoNmDescV& DescV) const
 
 		if (Desc->GetFtrType() == ftNumeric) {
 			const TNumAutoNmDesc* NumDesc = (TNumAutoNmDesc*) Desc();
-			if (NumDesc->GetLevel() == TNumAutoNmLevel::nanlMeduim) { break; }
+			if (NumDesc->GetLevel() == TNumAutoNmLevel::nanlMeduim) { continue; }
 
 			DescV.Add(Desc);
 		}

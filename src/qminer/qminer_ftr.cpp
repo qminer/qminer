@@ -916,18 +916,19 @@ PJsonVal TCategorical::InvertFullV(const TFltV& FtrV, const int& Offset) const {
 	return InvertFtr(FtrJson);
 }
 
-PJsonVal TCategorical::InvertFtr(const PJsonVal& FtrValJson) const {
-	EAssert(FtrValJson->IsArr() && FtrValJson->GetArrVals()	== GetDim());
+PJsonVal TCategorical::InvertFtr(const PJsonVal& FtrValJsonV) const {
+	EAssert(FtrValJsonV->IsArr() && FtrValJsonV->GetArrVals()	== GetDim());
 
 	PJsonVal Result = TJsonVal::NewObj();
-	for (int FtrN = 0; FtrN < FtrValJson->GetArrVals(); FtrN++) {
-		PJsonVal FtrVal = FtrValJson->GetArrVal(FtrN);
+	for (int FtrN = 0; FtrN < FtrValJsonV->GetArrVals(); FtrN++) {
+		const PJsonVal FtrValJson = FtrValJsonV->GetArrVal(FtrN);
 
-		EAssert(FtrVal->IsNum());
+		EAssert(FtrValJson->IsNum());
 
 		const TStr& FtrNm = FtrGen.GetVal(FtrN);
+		const double& FtrVal = FtrValJson->GetNum();
 
-		Result->AddToObj(FtrNm, FtrVal->GetNum());
+		Result->AddToObj(FtrNm, FtrVal);
 	}
 
 	return Result;
