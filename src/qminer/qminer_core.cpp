@@ -237,7 +237,7 @@ TStr TJoinSeq::GetJoinPathStr(const TWPt<TBase>& Base, const TStr& SepStr) const
 ///////////////////////////////
 // QMiner-Field-Description
 TFieldDesc::TFieldDesc(const TWPt<TBase>& Base, const TStr& _FieldNm, TFieldType _FieldType,
-    const bool& PrimaryP, const bool& NullP, const bool& InternalP) :
+    const bool& PrimaryP, const bool& NullP, const bool& InternalP, const bool& CodebookP):
     FieldId(-1), FieldNm(_FieldNm), FieldType(_FieldType) {
 
     Base->AssertValidNm(FieldNm);
@@ -245,6 +245,7 @@ TFieldDesc::TFieldDesc(const TWPt<TBase>& Base, const TStr& _FieldNm, TFieldType
     if (PrimaryP) { Flags.Val |= ofdfPrimary; }
     if (NullP) { Flags.Val |= ofdfNull; }
     if (InternalP) { Flags.Val |= ofdfInternal; }
+    if (CodebookP) { Flags.Val |= ofdfCodebook; }
 }
 
 TFieldDesc::TFieldDesc(TSIn& SIn) {
@@ -3051,7 +3052,7 @@ void TRecSet::FilterByFieldBool(const int& FieldId, const bool& Val) {
 void TRecSet::FilterByFieldInt(const int& FieldId, const int& MinVal, const int& MaxVal) {
     // get store and field type
     const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
-    QmAssertR(Desc.IsInt(), "Wrong field type, integer expected");
+    QmAssertR(Desc.IsInt() || (Desc.IsStr() && Desc.IsCodebook()), "Wrong field type, integer or codebook string expected");
     // apply the filter
     FilterBy(TRecFilterByFieldInt(Store, FieldId, MinVal, MaxVal));
 }
