@@ -879,11 +879,12 @@ void TNodeJsAsyncUtil::OnMainBlock(uv_async_t* UvAsync) {
 		printf("Exception on main thread: %s!", Except->GetMsgStr().CStr());
 	}
 
-	// clean up
-	uv_close((uv_handle_t*) UvAsync, DelHandle<uv_async_t>);
-
+	// post and destroy the semaphore before cleaning up
 	uv_sem_post(&Task->Semaphore);
 	uv_sem_destroy(&Task->Semaphore);
+
+	// clean up
+	uv_close((uv_handle_t*) UvAsync, DelHandle<uv_async_t>);
 
 	delete Task;
 }
