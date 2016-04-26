@@ -3780,7 +3780,7 @@ void TNodeJsKMeans::TFitTask::Run() {
                TFltVV D;
                JsKMeans->Dist->GetDist2VV(JsFltVV->Mat, KMeans->GetCentroidVV(), D);
                TLinAlg::MultiplyScalar(-1, D, D);
-               TLinAlg::GetColMaxIdxV(D, JsKMeans->Medoids);
+               TLinAlgSearch::GetColMaxIdxV(D, JsKMeans->Medoids);
 
                if (JsIntV != nullptr) {
                    EAssertR(JsIntV->Vec.Len() == JsFltVV->Mat.GetCols(), "KMeans.fit: IntVector RecordIds.length must be equal to number of columns of X!");
@@ -3807,7 +3807,7 @@ void TNodeJsKMeans::TFitTask::Run() {
                TFltVV D;
                JsKMeans->Dist->GetDist2VV(JsSpVV->Mat, KMeans->GetCentroidVV(), D);
                TLinAlg::MultiplyScalar(-1, D, D);
-               TLinAlg::GetColMaxIdxV(D, JsKMeans->Medoids);
+               TLinAlgSearch::GetColMaxIdxV(D, JsKMeans->Medoids);
 
                if (JsIntV != nullptr) {
                    EAssertR(JsIntV->Vec.Len() == JsSpVV->Mat.Len(), "KMeans.fit: IntVector RecordIds.length must be equal to number of columns of X!");
@@ -3841,7 +3841,7 @@ void TNodeJsKMeans::TFitTask::Run() {
                TFltVV D;
                JsKMeans->Dist->GetDist2VV(JsFltVV->Mat, KMeans->GetCentroidVV(), D);
                TLinAlg::MultiplyScalar(-1, D, D);
-               TLinAlg::GetColMaxIdxV(D, JsKMeans->Medoids);
+               TLinAlgSearch::GetColMaxIdxV(D, JsKMeans->Medoids);
 
                if (JsIntV != nullptr) {
                    EAssertR(JsIntV->Vec.Len() == JsFltVV->Mat.GetCols(), "KMeans.fit: IntVector RecordIds.length must be equal to number of columns of X!");
@@ -3868,7 +3868,7 @@ void TNodeJsKMeans::TFitTask::Run() {
                TFltVV D;
                JsKMeans->Dist->GetDist2VV(JsSpVV->Mat, KMeans->GetCentroidVV(), D);
                TLinAlg::MultiplyScalar(-1, D, D);
-               TLinAlg::GetColMaxIdxV(D, JsKMeans->Medoids);
+               TLinAlgSearch::GetColMaxIdxV(D, JsKMeans->Medoids);
 
                if (JsIntV != nullptr) {
                    EAssertR(JsIntV->Vec.Len() == JsSpVV->Mat.Len(), "KMeans.fit: IntVector RecordIds.length must be equal to number of columns of X!");

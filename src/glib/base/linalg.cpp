@@ -556,6 +556,33 @@ int TLinAlgSearch::GetMaxDimIdx(const TVec<TIntFltKdV>& SpMat) {
 	return MaxDim;
 }
 
+int TLinAlgSearch::GetColMinIdx(const TFltVV& X, const int& ColN) {
+	const int Rows = X.GetRows();
+	double MinVal = TFlt::Mx;
+	double Val;
+	int MinIdx = -1;
+	for (int RowN = 0; RowN < Rows; RowN++) {
+		Val = X(RowN, ColN);
+		if (Val < MinVal) {
+			MinVal = Val;
+			MinIdx = RowN;
+		}
+	}
+	EAssertR(MinIdx >= 0, "Mininum index not set!");
+	return MinIdx;
+}
+
+void TLinAlgSearch::GetColMinIdxV(const TFltVV& X, TIntV& IdxV) {
+	int Cols = X.GetCols();
+
+	if (IdxV.Empty()) { IdxV.Gen(Cols); }
+	EAssert(IdxV.Len() == Cols);
+
+	for (int ColN = 0; ColN < Cols; ColN++) {
+		IdxV[ColN] = GetColMinIdx(X, ColN);
+	}
+}
+
 ///////////////////////////////////////////////////////////////////////
 // Sparse-Column-Matrix
 void TSparseColMatrix::PMultiply(const TFltVV& B, int ColId, TFltV& Result) const {
@@ -1076,21 +1103,13 @@ void  TLinAlg::Sign(const TVec<TIntFltKdV>& Mat, TVec<TIntFltKdV>& Mat2) {
 	}
 }
 
-// find the index of maximum elements for a given each col of X
-int TLinAlg::GetColMinIdx(const TFltVV& X, const int& ColN) {
-	const int Rows = X.GetRows();
-	double MinVal = TFlt::Mx;
-	double Val;
-	int MinIdx = -1;
-	for (int RowN = 0; RowN < Rows; RowN++) {
-		Val = X(RowN, ColN);
-		if (Val < MinVal) {
-			MinVal = Val;
-			MinIdx = RowN;
-		}
+void TLinAlg::MultiplyScalar(const double& k, const TIntFltKdV& x, TIntFltKdV& y) {
+	EAssert(x.Len() == y.Len());
+	int Len = x.Len();
+	for (int i = 0; i < Len; i++) {
+		y[i].Key = x[i].Key;
+		y[i].Dat = k * x[i].Dat;
 	}
-	EAssertR(MinIdx >= 0, "Mininum index not set!");
-	return MinIdx;
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -2997,17 +3016,17 @@ TVector TFullMatrix::RowSumV() const {
 }
 
 TVector TFullMatrix::GetColMinV() const {
-	TVector Result;	TLinAlg::GetColMinV(*Mat, Result.Vec);
+	TVector Result;	TLinAlgSearch::GetColMinV(*Mat, Result.Vec);
 	return Result;
 }
 
 TVector TFullMatrix::GetColMaxIdxV() const {
-	TIntV IdxV;	TLinAlg::GetColMaxIdxV(*Mat, IdxV);
+	TIntV IdxV;	TLinAlgSearch::GetColMaxIdxV(*Mat, IdxV);
 	return TVector(IdxV, false);
 }
 
 TVector TFullMatrix::GetColMinIdxV() const {
-	TIntV IdxV;	TLinAlg::GetColMinIdxV(*Mat, IdxV);
+	TIntV IdxV;	TLinAlgSearch::GetColMinIdxV(*Mat, IdxV);
 	return TVector(IdxV, false);
 }
 

@@ -32,6 +32,16 @@
 #endif
 #include "base.h"
 
+// define macros
+#define TEMPLATE_TDnsV template <class TType, class TSizeTy = int> inline
+#define TEMPLATE_TDnsVV template <class TType, class TSizeTy = int, bool ColMajor = false> inline
+#define TEMPLATE_TSpV template <class TSizeTy = int> inline
+
+#define TDnsV TVec<TType, TSizeTy>
+#define TDnsVV TVVec<TType, TSizeTy, ColMajor>
+#define TSpV TVec<TIntFltKd, TSizeTy>
+#define TSpVV TVec<TIntFltKdV, TSizeTy>
+
 namespace TypeCheck {
 	template<typename T1>
 	struct is_float { static const bool value = false; };
@@ -264,8 +274,8 @@ public:
 /// Search elements of matrices and vectors
 class TLinAlgSearch {
 public:
-	template <class TVal, class TSizeTy>
-	static TSizeTy GetMaxIdx(const TVec<TVal, TSizeTy>& Vec);
+	TEMPLATE_TDnsV
+	static TSizeTy GetMaxIdx(const TDnsV& Vec);
 	// returns the index of the minimum element
 	static int GetMinIdx(const TFltV& Vec);
 
@@ -277,6 +287,34 @@ public:
 	// gets the maximal row index of a sparse column matrix
 	static int GetMaxDimIdx(const TVec<TIntFltKdV>& SpMat);
 
+	// TEST
+	/// find the index of maximum elements for a given row of X
+	TEMPLATE_TDnsVV
+	static int GetRowMaxIdx(const TDnsVV& X, const TSizeTy& RowN);
+	/// find the index of the smallest element in the row
+	TEMPLATE_TDnsVV
+	static int GetRowMinIdx(const TDnsVV& X, const TSizeTy& RowN);
+	TEMPLATE_TDnsVV
+	static int GetColMaxIdx(const TDnsVV& X, const int& ColN);
+
+	// TEST
+	/// find the index of maximum elements for each row of X
+	TEMPLATE_TDnsVV
+	static void GetRowMaxIdxV(const TDnsVV& X, TVec<TInt, TSizeTy>& IdxV);
+	/// find the index of minimum elements for each row of X
+	TEMPLATE_TDnsVV
+	static void GetRowMinIdxV(const TDnsVV& X, TVec<TInt, TSizeTy>& IdxV);
+	// find the index of maximum elements for each col of X
+	TEMPLATE_TDnsVV
+	static void GetColMaxIdxV(const TDnsVV& X, TVec<TInt, TSizeTy>& IdxV);
+	// find the index of maximum elements for a given each col of X
+	static int GetColMinIdx(const TFltVV& X, const int& ColN);
+	// find the index of maximum elements for each col of X
+	static void GetColMinIdxV(const TFltVV& X, TIntV& IdxV);
+	TEMPLATE_TDnsVV
+	static TType GetColMin(const TDnsVV& X, const int& ColN);
+	TEMPLATE_TDnsVV
+	static void GetColMinV(const TDnsVV& X, TDnsV& ValV);
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -550,15 +588,6 @@ public:
 
 ///////////////////////////////////////////////////////////////////////
 // Basic Linear Algebra operations
-#define TEMPLATE_TDnsV template <class TType, class TSizeTy = int> inline
-#define TEMPLATE_TDnsVV template <class TType, class TSizeTy = int, bool ColMajor = false> inline
-#define TEMPLATE_TSpV template <class TSizeTy = int> inline
-
-#define TDnsV TVec<TType, TSizeTy>
-#define TDnsVV TVVec<TType, TSizeTy, ColMajor>
-#define TSpV TVec<TIntFltKd, TSizeTy>
-#define TSpVV TVec<TIntFltKdV, TSizeTy>
-
 class TLinAlg {
 public:
 	//===========================================================
@@ -705,8 +734,7 @@ public:
 	static double Normalize(TDnsV& x);
 	// Normalize X(:,ColId)
 	TEMPLATE_TDnsVV
-	static void NormalizeColumn(TDnsVV& X,
-			const TSizeTy& ColId);
+	static void NormalizeColumn(TDnsVV& X, const TSizeTy& ColId);
 	// Normalize the columns of X
 	TEMPLATE_TDnsVV
 	static void NormalizeColumns(TDnsVV& X);
@@ -790,75 +818,51 @@ public:
 	// Sign
 	static void Sign(const TVec<TIntFltKdV>& Mat, TVec<TIntFltKdV>& Mat2);
 
-
-	// TEST
-	/// find the index of maximum elements for a given row of X
-	TEMPLATE_TDnsVV
-	static int GetRowMaxIdx(const TDnsVV& X, const TSizeTy& RowN);
-	/// find the index of the smallest element in the row
-	TEMPLATE_TDnsVV
-	static int GetRowMinIdx(const TDnsVV& X, const TSizeTy& RowN);
-	TEMPLATE_TDnsVV
-	static int GetColMaxIdx(const TDnsVV& X, const int& ColN);
-
-	// TEST
-	/// find the index of maximum elements for each row of X
-	TEMPLATE_TDnsVV
-	static void GetRowMaxIdxV(const TDnsVV& X, TVec<TInt, TSizeTy>& IdxV);
-	/// find the index of minimum elements for each row of X
-	TEMPLATE_TDnsVV
-	static void GetRowMinIdxV(const TDnsVV& X, TVec<TInt, TSizeTy>& IdxV);
-	// find the index of maximum elements for each col of X
-	TEMPLATE_TDnsVV
-	static void GetColMaxIdxV(const TDnsVV& X, TVec<TInt, TSizeTy>& IdxV);
-
 	TEMPLATE_TDnsV
 	static void MultiplyScalar(const double& k, TDnsV& x);
-	// find the index of maximum elements for a given each col of X
-	static int GetColMinIdx(const TFltVV& X, const int& ColN);
-	// find the index of maximum elements for each col of X
-	inline static void GetColMinIdxV(const TFltVV& X, TIntV& IdxV);
-	TEMPLATE_TDnsVV
-	static TType GetColMin(const TDnsVV& X, const int& ColN);
-	TEMPLATE_TDnsVV
-	static void GetColMinV(const TDnsVV& X, TDnsV& ValV);
-	template <class TType, class TSizeTy = int>
-	inline static void MultiplyScalar(const double& k, const TVec<TType, TSizeTy>& x, TVec<TType, TSizeTy>& y);
+
 	// y := k * x
-	inline static void MultiplyScalar(const double& k, const TIntFltKdV& x, TIntFltKdV& y);
-	template <class TType, class TSizeTy = int, bool ColMajor = false>
-	inline static void MultiplyScalar(const double& k, const TVVec<TType, TSizeTy, ColMajor>& X, TVVec<TType, TSizeTy, ColMajor>& Y);
+	TEMPLATE_TDnsV
+	static void MultiplyScalar(const double& k, const TDnsV& x, TDnsV& y);
+	// y := k * x
+	static void MultiplyScalar(const double& k, const TIntFltKdV& x, TIntFltKdV& y);
 	// Y := k * X
-	template <class TSizeTy = int>
-	inline static void MultiplyScalar(const double& k, const TVec<TIntFltKdV, TSizeTy>& X, TVec<TIntFltKdV, TSizeTy>& Y);
+	TEMPLATE_TDnsVV
+	static void MultiplyScalar(const double& k, const TDnsVV& X, TDnsVV& Y);
+	// Y := k * X
+	TEMPLATE_TSpV
+	static void MultiplyScalar(const double& k, const TSpVV& X, TSpVV& Y);
 	// y := A * x
 	TEMPLATE_TDnsVV
 	static void Multiply(const TDnsVV& A, const TDnsV& x, TDnsV& y);
-	template <class TType, class TSizeTy = int, bool ColMajor = false>
-	inline static void Multiply(const TVVec<TType, TSizeTy, ColMajor>& A, const TVec<TType, TSizeTy>& x, TVVec<TType, TSizeTy, ColMajor>& C, TSizeTy ColId);
-	template <class TType, class TSizeTy = int, bool ColMajor = false>
-	inline static void Multiply(const TVVec<TType, TSizeTy, ColMajor>& A, const TVVec<TType, TSizeTy, ColMajor>& B, int ColId, TVec<TType, TSizeTy>& y);
-	template <class TType, class TSizeTy = int, bool ColMajor = false>
-	inline static void Multiply(const TVVec<TType, TSizeTy, ColMajor>& A, const TVVec<TType, TSizeTy, ColMajor>& B, int ColIdB, TVVec<TType, TSizeTy, ColMajor>& C, int ColIdC);
+	// C(:, ColId) := A * x
+	TEMPLATE_TDnsVV
+	static void Multiply(const TDnsVV& A, const TDnsV& x, TDnsVV& C, TSizeTy ColId);
+	// y := A * B(:, ColId)
+	TEMPLATE_TDnsVV
+	static void Multiply(const TDnsVV& A, const TDnsVV& B, int ColId, TDnsV& y);
+	// C(:, ColIdC) := A * B(:, ColIdB)
+	TEMPLATE_TDnsVV
+	static void Multiply(const TDnsVV& A, const TDnsVV& B, int ColIdB, TDnsVV& C, int ColIdC);
 	//LAPACKE stuff
 #ifdef LAPACKE
 	// Tested in other function
 	//A is rewritten in place with orthogonal matrix Q
-	template <class TType, class TSizeTy = int, bool ColMajor = false>
-	inline static void QRbasis(TVVec<TType, TSizeTy, ColMajor>& A);
-	template <class TType, class TSizeTy, bool ColMajor>
-	inline static void QRbasis(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor>& Q);
+	TEMPLATE_TDnsVV
+	static void QRbasis(TDnsVV& A);
+	TEMPLATE_TDnsVV
+	static void QRbasis(const TDnsVV& A, TDnsVV& Q);
 	// Tested in other function
-	//A is rewritten in place with orthogonal matrix Q (column pivoting to improve stability);
-	template <class TType, class TSizeTy = int, bool ColMajor = false>
-	inline static void QRcolpbasis(TVVec<TType, TSizeTy, ColMajor>& A);
+	// A is rewritten in place with orthogonal matrix Q (column pivoting to improve stability);
+	TEMPLATE_TDnsVV
+	static void QRcolpbasis(TDnsVV& A);
 	// TEST
-	template <class TType, class TSizeTy = int, bool ColMajor = false>
-	inline static void QRcolpbasis(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor>& Q);
+	TEMPLATE_TDnsVV
+	static void QRcolpbasis(const TDnsVV& A, TDnsVV& Q);
 	// TEST
 	//S S option ensures that A is not modified
-	template <class TType, class TSizeTy = int, bool ColMajor = false>
-	inline static void thinSVD(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor>& U, TVec<TType, TSizeTy>& S, TVVec<TType, TSizeTy, ColMajor>& VT);
+	TEMPLATE_TDnsVV
+	static void thinSVD(const TDnsVV& A, TDnsVV& U, TDnsV& S, TDnsVV& VT);
 
 
 #endif

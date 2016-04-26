@@ -2531,7 +2531,7 @@ void TScaleHelper::CalcNaturalScales(const TScaleDescV& ScaleQMatPrV,
 	KMeans.Apply(FtrVV, false, 1000, Notify);
 	TFltVV ClustDistVV;	KMeans.GetDistVV(FtrVV, ClustDistVV);
 
-	TIntV MedoidIdV;	TLinAlg::GetRowMinIdxV(ClustDistVV, MedoidIdV);
+	TIntV MedoidIdV;	TLinAlgSearch::GetRowMinIdxV(ClustDistVV, MedoidIdV);
 
 	printf("\n%s\n", TStrUtil::GetStr(MedoidIdV).CStr());
 

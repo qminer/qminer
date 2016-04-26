@@ -477,7 +477,7 @@ void TNodeJsFltVV::rowMaxIdx(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     EAssertR(0 <= RowN && RowN < JsMat->Mat.GetRows(),
         "Index out of bounds.");
 
-    const int MxIdx = TLinAlg::GetRowMaxIdx(JsMat->Mat, RowN);
+    const int MxIdx = TLinAlgSearch::GetRowMaxIdx(JsMat->Mat, RowN);
 
     Args.GetReturnValue().Set(v8::Integer::New(Isolate, MxIdx));
 }
@@ -495,7 +495,7 @@ void TNodeJsFltVV::colMaxIdx(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     EAssertR(0 <= ColN && ColN < JsMat->Mat.GetCols(),
         TStr::Fmt("Index out of bounds: %d / %d.", ColN, JsMat->Mat.GetCols()));
 
-    const int MxIdx = TLinAlg::GetColMaxIdx(JsMat->Mat, ColN);
+    const int MxIdx = TLinAlgSearch::GetColMaxIdx(JsMat->Mat, ColN);
 
     Args.GetReturnValue().Set(v8::Integer::New(Isolate, MxIdx));
 }

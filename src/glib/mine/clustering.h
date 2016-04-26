@@ -571,7 +571,7 @@ template <class TCentroidType>
 template <class TMatType>
 void TAbsKMeans<TCentroidType>::Assign(const TMatType& FtrVV, TIntV& AssignV) const {
     TFltVV DistVV;	Dist->GetDist2VV(CentroidVV, FtrVV, DistVV);
-    TLinAlg::GetColMinIdxV(DistVV, AssignV);
+    TLinAlgSearch::GetColMinIdxV(DistVV, AssignV);
 }
 
 template<class TCentroidType>
@@ -752,7 +752,7 @@ template<class TDataType>
 inline void TAbsKMeans<TCentroidType>::Assign(const TDataType& FtrVV, const TFltV& NormX2, const TFltV& NormC2,
     TIntV& AssignV) const {
     TFltVV DistVV;	Dist->GetDist2VV(CentroidVV, FtrVV, NormC2, NormX2, DistVV);
-    TLinAlg::GetColMinIdxV(DistVV, AssignV);
+    TLinAlgSearch::GetColMinIdxV(DistVV, AssignV);
 }
 
 template<class TCentroidType>
@@ -883,7 +883,7 @@ void TDnsKMeans<TCentroidType>::Apply(const TDataType& FtrVV, const int& NInst, 
         // and assign the instances
         TAbsKMeans<TCentroidType>::Dist->UpdateNormC2(TAbsKMeans<TCentroidType>::CentroidVV, NormC2);
         TAbsKMeans<TCentroidType>::Dist->GetDist2VV(TAbsKMeans<TCentroidType>::CentroidVV, FtrVV, NormC2, NormX2, ClustDistVV);
-        TLinAlg::GetColMinIdxV(ClustDistVV, *AssignIdxVPtr);
+        TLinAlgSearch::GetColMinIdxV(ClustDistVV, *AssignIdxVPtr);
 
         // if the assignment hasn't changed then terminate the loop
         if (*AssignIdxVPtr == *OldAssignIdxVPtr) {
@@ -989,11 +989,11 @@ inline void TDpMeans<TCentroidType>::Apply(const TDataType& FtrVV, const int& NI
         // compute the distance matrix to all the centroids and assignments
         TAbsKMeans<TCentroidType>::Dist->UpdateNormC2(TAbsKMeans<TCentroidType>::CentroidVV, NormC2);
         TAbsKMeans<TCentroidType>::Dist->GetDist2VV(TAbsKMeans<TCentroidType>::CentroidVV, FtrVV, NormC2, NormX2, ClustDistVV);
-        TLinAlg::GetColMinIdxV(ClustDistVV, *AssignIdxVPtr);
+        TLinAlgSearch::GetColMinIdxV(ClustDistVV, *AssignIdxVPtr);
 
         // check if we need to increase the number of centroids
         if (K < MxClusts) {
-            TLinAlg::GetColMinV(ClustDistVV, MinClustDistV);
+            TLinAlgSearch::GetColMinV(ClustDistVV, MinClustDistV);
 
             const int NewCentrIdx = TLinAlgSearch::GetMaxIdx(MinClustDistV);
             const double MaxDist = MinClustDistV[NewCentrIdx];

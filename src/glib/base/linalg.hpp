@@ -252,6 +252,109 @@ TSizeTy TLinAlgSearch::GetMaxIdx(const TVec<TVal, TSizeTy>& Vec) {
 	return MxIdx;
 }
 
+template <class TType, class TSizeTy, bool ColMajor>
+int TLinAlgSearch::GetRowMaxIdx(const TVVec<TType, TSizeTy, ColMajor>& X, const TSizeTy& RowN) {
+	TSizeTy Idx = -1;
+	TSizeTy Cols = X.GetCols();
+	double MaxVal = TFlt::Mn;
+	for (TSizeTy ColN = 0; ColN < Cols; ColN++) {
+		const double Val = X.At(RowN, ColN);
+		if (MaxVal < Val) {
+			MaxVal = Val;
+			Idx = ColN;
+		}
+	}
+	return Idx;
+}
+
+template <class TType, class TSizeTy, bool ColMajor>
+int TLinAlgSearch::GetRowMinIdx(const TVVec<TType, TSizeTy, ColMajor>& X, const TSizeTy& RowN) {
+	TSizeTy Idx = -1;
+	TSizeTy Cols = X.GetCols();
+	double MnVal = TFlt::Mx;
+	for (TSizeTy ColN = 0; ColN < Cols; ColN++) {
+		const double Val = X.At(RowN, ColN);
+		if (Val < MnVal) {
+			MnVal = Val;
+			Idx = ColN;
+		}
+	}
+	return Idx;
+}
+
+// TEST
+// find the index of maximum elements for a given each col of X
+template <class TType, class TSizeTy, bool ColMajor>
+int TLinAlgSearch::GetColMaxIdx(const TVVec<TType, TSizeTy, ColMajor>& X, const int& ColN) {
+	TSizeTy Idx = -1;
+	TSizeTy Rows = X.GetRows();
+	double MaxVal = TFlt::Mn;
+	for (TSizeTy RowN = 0; RowN < Rows; RowN++) {
+		double Val = X.At(RowN, ColN);
+		if (MaxVal < Val) {
+			MaxVal = Val;
+			Idx = RowN;
+		}
+	}
+	return Idx;
+}
+
+template <class TType, class TSizeTy, bool ColMajor>
+void TLinAlgSearch::GetRowMaxIdxV(const TVVec<TType, TSizeTy, ColMajor>& X, TVec<TInt, TSizeTy>& IdxV) {
+	IdxV.Gen(X.GetRows());
+	TSizeTy Rows = X.GetRows();
+	for (TSizeTy RowN = 0; RowN < Rows; RowN++) {
+		IdxV[RowN] = TLinAlgSearch::GetRowMaxIdx(X, RowN);
+	}
+}
+
+template <class TType, class TSizeTy, bool ColMajor>
+void TLinAlgSearch::GetRowMinIdxV(const TVVec<TType, TSizeTy, ColMajor>& X, TVec<TInt, TSizeTy>& IdxV) {
+	const TSizeTy Rows = X.GetRows();
+
+	if (IdxV.Len() != Rows) { IdxV.Gen(Rows); }
+
+	for (TSizeTy RowN = 0; RowN < Rows; RowN++) {
+		IdxV[RowN] = TLinAlgSearch::GetRowMinIdx(X, RowN);
+	}
+}
+
+// find the index of maximum elements for each col of X
+template <class TType, class TSizeTy, bool ColMajor>
+void TLinAlgSearch::GetColMaxIdxV(const TVVec<TType, TSizeTy, ColMajor>& X, TVec<TInt, TSizeTy>& IdxV) {
+	IdxV.Gen(X.GetCols());
+	TSizeTy Cols = X.GetCols();
+	for (TSizeTy ColN = 0; ColN < Cols; ColN++) {
+		IdxV[ColN] = TLinAlgSearch::GetColMaxIdx(X, ColN);
+	}
+}
+
+template <class TType, class TSizeTy, bool ColMajor>
+TType TLinAlgSearch::GetColMin(const TVVec<TType, TSizeTy, ColMajor>& X, const int& ColN) {
+	const TSizeTy Rows = X.GetRows();
+	EAssertR(Rows > 0, "Input matrix should have at least one row!");
+
+	TType MinVal = X(0, ColN);
+	for (int RowN = 1; RowN < Rows; RowN++) {
+		TType Val = X(RowN, ColN);
+		if (Val < MinVal) {
+			MinVal = Val;
+		}
+	}
+
+	return MinVal;
+}
+
+template <class TType, class TSizeTy, bool ColMajor>
+void TLinAlgSearch::GetColMinV(const TVVec<TType, TSizeTy, ColMajor>& X, TVec<TType, TSizeTy>& ValV) {
+	const TSizeTy Cols = X.GetCols();
+
+	ValV.Gen(Cols);
+	for (int ColN = 0; ColN < Cols; ColN++) {
+		ValV[ColN] = GetColMin(X, ColN);
+	}
+}
+
 
 //////////////////////////////////////////////////////////////////////
 // Template-ised Sparse Operations
@@ -903,82 +1006,7 @@ void TLinAlg::Transpose(const TTriple<TVec<IndexType, TSizeTy>, TVec<IndexType, 
 	}
 }
 
-template <class TType, class TSizeTy, bool ColMajor>
-int TLinAlg::GetRowMaxIdx(const TVVec<TType, TSizeTy, ColMajor>& X, const TSizeTy& RowN) {
-	TSizeTy Idx = -1;
-	TSizeTy Cols = X.GetCols();
-	double MaxVal = TFlt::Mn;
-	for (TSizeTy ColN = 0; ColN < Cols; ColN++) {
-		const double Val = X.At(RowN, ColN);
-		if (MaxVal < Val) {
-			MaxVal = Val;
-			Idx = ColN;
-		}
-	}
-	return Idx;
-}
 
-template <class TType, class TSizeTy, bool ColMajor>
-int TLinAlg::GetRowMinIdx(const TVVec<TType, TSizeTy, ColMajor>& X, const TSizeTy& RowN) {
-	TSizeTy Idx = -1;
-	TSizeTy Cols = X.GetCols();
-	double MnVal = TFlt::Mx;
-	for (TSizeTy ColN = 0; ColN < Cols; ColN++) {
-		const double Val = X.At(RowN, ColN);
-		if (Val < MnVal) {
-			MnVal = Val;
-			Idx = ColN;
-		}
-	}
-	return Idx;
-}
-
-// TEST
-// find the index of maximum elements for a given each col of X
-template <class TType, class TSizeTy, bool ColMajor>
-int TLinAlg::GetColMaxIdx(const TVVec<TType, TSizeTy, ColMajor>& X, const int& ColN) {
-	TSizeTy Idx = -1;
-	TSizeTy Rows = X.GetRows();
-	double MaxVal = TFlt::Mn;
-	for (TSizeTy RowN = 0; RowN < Rows; RowN++) {
-		double Val = X.At(RowN, ColN);
-		if (MaxVal < Val) {
-			MaxVal = Val;
-			Idx = RowN;
-		}
-	}
-	return Idx;
-}
-
-template <class TType, class TSizeTy, bool ColMajor>
-void TLinAlg::GetRowMaxIdxV(const TVVec<TType, TSizeTy, ColMajor>& X, TVec<TInt, TSizeTy>& IdxV) {
-	IdxV.Gen(X.GetRows());
-	TSizeTy Rows = X.GetRows();
-	for (TSizeTy RowN = 0; RowN < Rows; RowN++) {
-		IdxV[RowN] = TLinAlg::GetRowMaxIdx(X, RowN);
-	}
-}
-
-template <class TType, class TSizeTy, bool ColMajor>
-void TLinAlg::GetRowMinIdxV(const TVVec<TType, TSizeTy, ColMajor>& X, TVec<TInt, TSizeTy>& IdxV) {
-	const TSizeTy Rows = X.GetRows();
-
-	if (IdxV.Len() != Rows) { IdxV.Gen(Rows); }
-
-	for (TSizeTy RowN = 0; RowN < Rows; RowN++) {
-		IdxV[RowN] = TLinAlg::GetRowMinIdx(X, RowN);
-	}
-}
-
-// find the index of maximum elements for each col of X
-template <class TType, class TSizeTy, bool ColMajor>
-void TLinAlg::GetColMaxIdxV(const TVVec<TType, TSizeTy, ColMajor>& X, TVec<TInt, TSizeTy>& IdxV) {
-	IdxV.Gen(X.GetCols());
-	TSizeTy Cols = X.GetCols();
-	for (TSizeTy ColN = 0; ColN < Cols; ColN++) {
-		IdxV[ColN] = TLinAlg::GetColMaxIdx(X, ColN);
-	}
-}
 //x := k * x
 // TEST
 //x := k * x
@@ -989,40 +1017,18 @@ void TLinAlg::MultiplyScalar(const double& k, TVec<TType, TSizeTy>& x) {
 		x[i] = k * x[i];
 }
 
-// find the index of maximum elements for each col of X
-void TLinAlg::GetColMinIdxV(const TFltVV& X, TIntV& IdxV) {
-	int Cols = X.GetCols();
-
-	if (IdxV.Empty()) { IdxV.Gen(Cols); }
-	EAssert(IdxV.Len() == Cols);
-
-	for (int ColN = 0; ColN < Cols; ColN++) {
-		IdxV[ColN] = GetColMinIdx(X, ColN);
-	}
-}
-
 //template <class TVal> TVal TLinAlg::GetColMin(const TVVec<TVal>& X, const int& ColN);
 //template <class TVal> void TLinAlg::GetColMinV(const TVVec<TVal>& X, TVec<TVal>& ValV);
 // TEST
-// y := k * x
 template <class TType, class TSizeTy>
-void TLinAlg::MultiplyScalar(const double& k, const TVec<TType, TSizeTy>& x, TVec<TType, TSizeTy>& y) {
+void TLinAlg::MultiplyScalar(const double& k, const TVec<TType, TSizeTy>& x,
+		TVec<TType, TSizeTy>& y) {
 	EAssert(x.Len() == y.Len());
 	TSizeTy Len = x.Len();
 	for (TSizeTy i = 0; i < Len; i++)
 		y[i] = k * x[i];
 }
-// y := k * x
-void TLinAlg::MultiplyScalar(const double& k, const TIntFltKdV& x, TIntFltKdV& y) {
-	EAssert(x.Len() == y.Len());
-	int Len = x.Len();
-	for (int i = 0; i < Len; i++) {
-		y[i].Key = x[i].Key;
-		y[i].Dat = k * x[i].Dat;
-	}
-}
-// TEST
-// Y := k * X
+
 template <class TType, class TSizeTy, bool ColMajor>
 void TLinAlg::MultiplyScalar(const double& k, const TVVec<TType, TSizeTy, ColMajor>& X, TVVec<TType, TSizeTy, ColMajor>& Y) {
 	EAssert(X.GetRows() == Y.GetRows() && X.GetCols() == Y.GetCols());
@@ -1067,7 +1073,6 @@ void TLinAlg::Multiply(const TVVec<TType, TSizeTy, ColMajor>& A, const TVec<TTyp
 }
 
 // TEST
-// C(:, ColId) := A * x
 template <class TType, class TSizeTy, bool ColMajor>
 void TLinAlg::Multiply(const TVVec<TType, TSizeTy, ColMajor>& A, const TVec<TType, TSizeTy>& x, TVVec<TType, TSizeTy, ColMajor>& C, TSizeTy ColId) {
 	EAssert(A.GetCols() == x.Len() && A.GetRows() == C.GetRows());
@@ -1080,7 +1085,6 @@ void TLinAlg::Multiply(const TVVec<TType, TSizeTy, ColMajor>& A, const TVec<TTyp
 }
 
 // TEST
-// y := A * B(:, ColId)
 template <class TType, class TSizeTy, bool ColMajor>
 void TLinAlg::Multiply(const TVVec<TType, TSizeTy, ColMajor>& A, const TVVec<TType, TSizeTy, ColMajor>& B, int ColId, TVec<TType, TSizeTy>& y)  {
 	EAssert(A.GetCols() == B.GetRows() && A.GetRows() == y.Len());
@@ -1093,7 +1097,6 @@ void TLinAlg::Multiply(const TVVec<TType, TSizeTy, ColMajor>& A, const TVVec<TTy
 }
 
 // TEST
-// C(:, ColIdC) := A * B(:, ColIdB)
 template <class TType, class TSizeTy, bool ColMajor>
 void TLinAlg::Multiply(const TVVec<TType, TSizeTy, ColMajor>& A, const TVVec<TType, TSizeTy, ColMajor>& B, int ColIdB, TVVec<TType, TSizeTy, ColMajor>& C, int ColIdC) {
 	EAssert(A.GetCols() == B.GetRows() && A.GetRows() == C.GetRows());
@@ -2231,33 +2234,6 @@ void TLinAlg::Rotate(const double& OldX, const double& OldY, const double& Angle
 	NewY = OldX*sin(Angle) + OldY*cos(Angle);
 }
 //};
-
-
-template <class TType, class TSizeTy, bool ColMajor>
-TType TLinAlg::GetColMin(const TVVec<TType, TSizeTy, ColMajor>& X, const int& ColN) {
-	const TSizeTy Rows = X.GetRows();
-	EAssertR(Rows > 0, "Input matrix should have at least one row!");
-
-	TType MinVal = X(0, ColN);
-	for (int RowN = 1; RowN < Rows; RowN++) {
-		TType Val = X(RowN, ColN);
-		if (Val < MinVal) {
-			MinVal = Val;
-		}
-	}
-
-	return MinVal;
-}
-
-template <class TType, class TSizeTy, bool ColMajor>
-void TLinAlg::GetColMinV(const TVVec<TType, TSizeTy, ColMajor>& X, TVec<TType, TSizeTy>& ValV) {
-	const TSizeTy Cols = X.GetCols();
-
-	ValV.Gen(Cols);
-	for (int ColN = 0; ColN < Cols; ColN++) {
-		ValV[ColN] = GetColMin(X, ColN);
-	}
-}
 
 
 template <class TType, class TSizeTy, bool ColMajor>
