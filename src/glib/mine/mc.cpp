@@ -226,7 +226,7 @@ void TStateIdentifier::Init(const TStreamStory& StreamStory, const TUInt64V& TmV
 
 		Notify->OnNotifyFmt(TNotifyType::ntInfo, "Sampling %d instances...", NSamples);
 
-		TIntV SampleV;	TLAUtil::Range(NInst, SampleV);
+		TIntV SampleV;	TLinAlgTransform::RangeV(NInst, SampleV);
 
 		SampleV.Shuffle(Rnd);
 		SampleV.Trunc(NSamples);
@@ -312,7 +312,7 @@ void TStateIdentifier::InitTimeHistogramV(const TUInt64V& TmV, const TIntV& Assi
 
 int TStateIdentifier::Assign(const TFltV& x) const {
 	TFltV DistV;	GetCentroidDistV(x, DistV);
-	return TLAMisc::GetMinIdx(DistV);
+	return TLinAlgSearch::GetMinIdx(DistV);
 }
 
 void TStateIdentifier::Assign(const TFltVV& FtrVV, TIntV& AssignV) const {
@@ -863,7 +863,7 @@ void TStateIdentifier::ResampleHist(const int& Bins, const TFltV& OrigBinValV,
 // MDS
 void TEuclMds::Project(const TFltVV& FtrVV, TFltVV& ProjVV, const int& d) {
 	// first center the rows of matrix X
-	TFullMatrix X1(FtrVV);	TLAUtil::CenterRows(X1.GetMat());
+	TFullMatrix X1(FtrVV);	TLinAlgTransform::CenterRows(X1.GetMat());
 
 	// Let B = X'X, then we can decompose B into its spectral decomposition
 	// B = V*L*V' where L is a diagonal matrix of eigenvalues, and A holds the
@@ -1381,7 +1381,7 @@ void TCtMChain::BiPartition(const TFltVV& QMat, const TFltV& ProbV, TIntV& PartV
 	}
 
 	// solve the following generalized eigenvalue problem: Qs*v = l2*Pi*v
-	TFltVV Pi;	TLAUtil::Diag(ProbV, Pi);
+	TFltVV Pi;	TLinAlgTransform::Diag(ProbV, Pi);
 //
 	printf("Q:\n%s\n", TStrUtil::GetStr(QMat, ",", "%.15f").CStr());
 	printf("QSim:\n%s\n", TStrUtil::GetStr(QSim, ",", "%.15f").CStr());
@@ -1981,7 +1981,7 @@ void TCtmcModeller::GetFutureProbV(const TAggStateV& StateSetV, const TStateFtrV
 	EAssertR(StateIdx >= 0, "TMChain::GetFutureProbV: Could not find target state!");
 
 	TFltVV ProbVV;	GetFutureProbVV(StateSetV, StateFtrVV, Tm, ProbVV);
-	TFltV ProbV;	TLAUtil::GetRow(ProbVV, StateIdx, ProbV);
+	TFltV ProbV;	ProbVV.GetRow(StateIdx, ProbV);//TLAUtil::GetRow(ProbVV, StateIdx, ProbV);
 
 	for (int i = 0; i < StateIdV.Len(); i++) {
 		StateIdProbV.Add(TIntFltPr(StateIdV[i], ProbV[i]));
@@ -1997,7 +1997,7 @@ void TCtmcModeller::GetPastProbV(const TAggStateV& StateSetV, const TStateFtrVV&
 	EAssertR(StateIdx >= 0, "TMChain::GetFutureProbV: Could not find target state!");
 
 	TFltVV ProbVV;	GetPastProbVV(StateSetV, StateFtrVV, Tm, ProbVV);
-	TFltV ProbV;	TLAUtil::GetRow(ProbVV, StateIdx, ProbV);
+	TFltV ProbV;	ProbVV.GetRow(StateIdx, ProbV);//TLAUtil::GetRow(ProbVV, StateIdx, ProbV);
 
 	for (int i = 0; i < StateIdV.Len(); i++) {
 		StateIdProbV.Add(TIntFltPr(StateIdV[i], ProbV[i]));
@@ -2123,7 +2123,7 @@ void TCtmcModeller::GetJumpVV(const TAggStateV& StateSetV, const TStateFtrVV& St
 	if (HasHiddenState) {
 		// take the jump matrix and remove the last row and column
 		// don't normalize the rows, so the person can see which are the end states
-		TFltVV SubJumpVV;	TLAUtil::SubMat(JumpVV, 0, JumpVV.GetRows()-1, 0, JumpVV.GetCols()-1, SubJumpVV);
+		TFltVV SubJumpVV;	TLinAlg::SubMat(JumpVV, 0, JumpVV.GetRows()-1, 0, JumpVV.GetCols()-1, SubJumpVV);
 		JumpVV = SubJumpVV;
 	}
 }
@@ -2282,7 +2282,7 @@ void TCtmcModeller::InitIntensities(const TFltVV& FtrVV, const TUInt64V& TmV,
 			const TJumpFtrMat& JumpFtrVV = JumpFtrMatVV(State1Id, State2Id);
 			const TLabelV& LabelV = LabelVMat[State1Id][State2Id];
 
-			if (LabelV.Empty() || TLinAlg::IsZero(LabelV)) {
+			if (LabelV.Empty() || TLinAlgCheck::IsZeroOrig(LabelV)) {
 				continue;
 			}
 
@@ -2480,7 +2480,7 @@ void TCtmcModeller::GetFutureProbVV(const TFltVV& QMat, const double& Tm,
 	const int Dim = QMat.GetRows();
 
 	if (Tm == 0) {
-		TLAUtil::Identity(Dim, ProbVV);
+		TLinAlgTransform::Identity(Dim, ProbVV);
 		return;
 	}
 
@@ -2497,7 +2497,7 @@ void TCtmcModeller::GetFutureProbVV(const TFltVV& QMat, const double& Tm,
 
 		const int Dim = ProbMat.GetRows()-1;
 
-		TLAUtil::SubMat(ProbMat, 0, Dim, 0, Dim, CurrProbMat);
+		TLinAlg::SubMat(ProbMat, 0, Dim, 0, Dim, CurrProbMat);
 		for (int RowIdx = 0; RowIdx < Dim; RowIdx++) {
 			const double HiddenProb = ProbMat(RowIdx, Dim);
 			CurrProbMat(RowIdx, RowIdx) += HiddenProb;
@@ -2553,8 +2553,9 @@ void TEigValScaleHelper::GetScaleFtrV(const TFltVV& QMat, TFltV& FtrV) const {
 	// in the first version the feature vector will contain singular values
 	TFltVV U, Vt;
 	TFltV Sing;
+#ifdef LAPACKE	// FIXME
 	TLinAlg::SVDFactorization(QMat, U, Sing, Vt);
-
+#endif
 	if (FtrV.Len() != Dim) { FtrV.Gen(Dim); }
 
 	for (int SingN = 0; SingN < Dim; SingN++) {
@@ -4852,7 +4853,7 @@ void TStreamStory::Init(const TFtrInfoV& _ObsFtrInfoV, const TFtrInfoV& _ContrFt
 
 	TFltVV FtrVV;	CreateFtrVV(ObservFtrVV, ControlFtrVV, RecTmV, TBoolV(), FtrVV);
 
-	EAssertR(!TLAUtil::ContainsNan(ObservFtrVV), "Nans in the data!");
+	EAssertR(!TLinAlgCheck::ContainsNan(ObservFtrVV), "Nans in the data!");
 
 	Callback->OnProgress(0, "Clustering ...");
 	TIntV AssignV;	InitClust(RecTmV, ObservFtrVV, FtrVV, IgnoredFtrVV, AssignV);

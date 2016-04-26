@@ -314,7 +314,7 @@ void TNodeJsSVC::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		if (TNodeJsUtil::IsArgWrapObj<TNodeJsSpMat>(Args, 0)) {
 			TVec<TIntFltKdV>& VecV = ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject())->Mat;
 			if (JsModel->Algorithm == "SGD") {
-				JsModel->Model = TSvm::SolveClassify<TVec<TIntFltKdV>>(VecV, TLAMisc::GetMaxDimIdx(VecV) + 1,
+				JsModel->Model = TSvm::SolveClassify<TVec<TIntFltKdV>>(VecV, TLinAlgSearch::GetMaxDimIdx(VecV) + 1,
 					VecV.Len(), ClsV, JsModel->SvmCost, JsModel->SvmUnbalance, JsModel->MxTime,
 					JsModel->MxIter, JsModel->MnDiff, JsModel->SampleSize, JsModel->Notify);
 			}
@@ -406,7 +406,7 @@ void TNodeJsSVR::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		if (TNodeJsUtil::IsArgWrapObj<TNodeJsSpMat>(Args, 0)) {
 			TVec<TIntFltKdV>& VecV = ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject())->Mat;
 			if (JsModel->Algorithm == "SGD") {
-				JsModel->Model = TSvm::SolveRegression<TVec<TIntFltKdV>>(VecV, TLAMisc::GetMaxDimIdx(VecV) + 1,
+				JsModel->Model = TSvm::SolveRegression<TVec<TIntFltKdV>>(VecV, TLinAlgSearch::GetMaxDimIdx(VecV) + 1,
 					VecV.Len(), ClsV, JsModel->SvmCost, JsModel->SvmEps, JsModel->MxTime,
 					JsModel->MxIter, JsModel->MnDiff, JsModel->SampleSize, JsModel->Notify);
 			}
@@ -4008,7 +4008,7 @@ void TNodeJsKMeans::permuteCentroids(const v8::FunctionCallbackInfo<v8::Value>& 
         
         TIntV& Mapping = TNodeJsUtil::GetArgUnwrapObj<TNodeJsIntV>(Args, 0)->Vec;
         EAssertR(Mapping.Len() == JsKMeans->K, "KMeans.permuteCentroids: Length of parameter must be equal to K!");
-        EAssertR(TLAMisc::GetMaxVal(Mapping) + 1 == JsKMeans->K, "KMeans.permuteCentroids: maximum index of parameter must be equal to number of centroids!");
+        EAssertR(TLinAlgSearch::GetMaxVal(Mapping) + 1 == JsKMeans->K, "KMeans.permuteCentroids: maximum index of parameter must be equal to number of centroids!");
 
         if (JsKMeans->CentType == TCentroidType::ctDense) {
             ((TClustering::TDnsKMeans<TFltVV>*)JsKMeans->Model)->PermutateCentroids(Mapping);

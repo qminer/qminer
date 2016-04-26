@@ -156,7 +156,7 @@ void TEuclDist::GetDistV(const TMatType& X, const TVectorType& v, TFltV& DistV) 
 template <class TXMatType, class TYMatType>
 void TEuclDist::GetDistVV(const TXMatType& X, const TYMatType& Y, TFltVV& D) const {
     GetDist2VV(X, Y, D);
-    TLAMisc::Sqrt(D);
+    TLinAlgTransform::Sqrt(D);
 }
 
 template <class TXMatType, class TYMatType>
@@ -310,7 +310,7 @@ void TCosDist::UpdateNormC2(const TMatType& CentroidVV, TFltV& NormC2) const {
 template <class TXMatType, class TYMatType>
 void TCosDist::GetDist2VV(const TXMatType& X, const TYMatType& Y, TFltVV& D) const {
     GetDistVV(X, Y, D);
-    TLAMisc::Sqr(D);
+    TLinAlgTransform::Sqr(D);
 }
 
 //============================================================
@@ -647,7 +647,7 @@ inline void TAbsKMeans<TCentroidType>::UpdateCentroids(const TDataType& FtrVV, c
 
     // III. compute the centroids
     // compute: CentroidMat = ((FtrVV * AssignIdxMat) + CentroidMat) * ColSumDiag;
-    TLAMisc::Diag(TempK, TempKxKSpVV);
+    TLinAlgTransform::Diag(TempK, TempKxKSpVV);
 
     // 1) FtrVV * AssignIdxMat
     TLinAlg::Multiply(FtrVV, AssignMat.ColSpVV, TempDxKV);
@@ -729,7 +729,7 @@ inline void TAbsKMeans<TCentroidType>::SelectInitCentroids(const TDataType& FtrV
     		CentroidNV[ClustN] = RecN;
     	}
     } else {
-		TIntV PermV(NInst);	TLAUtil::Range(NInst, PermV);
+		TIntV PermV(NInst);	TLinAlgTransform::RangeV(NInst, PermV);
 
 		TInt Temp;
 		for (int i = 0; i < K; i++) {
@@ -773,7 +773,7 @@ int TAbsKMeans<TCentroidType>::GetDataDim(const TFltVV& X) {
 template<class TCentroidType>
 int TAbsKMeans<TCentroidType>::GetDataDim(const TVec<TIntFltKdV>& FtrVV) {
 	// TODO enable inputing dimension through arguments for sparse matrices
-	return TLAMisc::GetMaxDimIdx(FtrVV) + 1;
+	return TLinAlgSearch::GetMaxDimIdx(FtrVV) + 1;
 }
 
 template <class TCentroidType>
@@ -783,7 +783,7 @@ void TAbsKMeans<TCentroidType>::SetCol(TFltVV& FtrVV, const int& ColN, const TFl
 
 template <class TCentroidType>
 void TAbsKMeans<TCentroidType>::SetCol(TFltVV& FtrVV, const int& ColN, const TIntFltKdV& Col) {
-    TFltV TempCol; TLAMisc::ToVec(Col, TempCol, FtrVV.GetRows());
+    TFltV TempCol; TLinAlgTransform::ToVec(Col, TempCol, FtrVV.GetRows());
     FtrVV.SetCol(ColN, TempCol);
 }
 
@@ -794,7 +794,7 @@ void TAbsKMeans<TCentroidType>::SetCol(TVec<TIntFltKdV>& FtrVV, const int& ColN,
 
 template <class TCentroidType>
 void TAbsKMeans<TCentroidType>::SetCol(TVec<TIntFltKdV>& FtrVV, const int& ColN, const TFltV& Col) {
-    TIntFltKdV TempCol; TLAMisc::ToSpVec(Col, TempCol);
+    TIntFltKdV TempCol; TLinAlgTransform::ToSpVec(Col, TempCol);
     FtrVV[ColN] = TempCol;
 }
 
@@ -861,9 +861,9 @@ void TDnsKMeans<TCentroidType>::Apply(const TDataType& FtrVV, const int& NInst, 
     TIntV* Temp;
 
     // constant reused variables
-    TFltV OnesN;			TLAUtil::Ones(NInst, OnesN);
+    TFltV OnesN;			TLinAlgTransform::OnesV(NInst, OnesN);
     TFltV NormX2;			TAbsKMeans<TCentroidType>::Dist->UpdateNormX2(FtrVV, NormX2);
-    TIntV RangeN(NInst);	TLAUtil::Range(NInst, RangeN);
+    TIntV RangeN(NInst);	TLinAlgTransform::RangeV(NInst, RangeN);
 
     // reused variables
     TFltVV ClustDistVV(K, NInst);		// (dimension k x n)
@@ -968,9 +968,9 @@ inline void TDpMeans<TCentroidType>::Apply(const TDataType& FtrVV, const int& NI
     TAbsKMeans<TCentroidType>::SelectInitCentroids(FtrVV, MnClusts, NInst);
 
     // const variables, reused throughtout the procedure
-    TFltV OnesN;			TLAUtil::Ones(NInst, OnesN);
+    TFltV OnesN;			TLinAlgTransform::OnesV(NInst, OnesN);
     TFltV NormX2;			TAbsKMeans<TCentroidType>::Dist->UpdateNormX2(FtrVV, NormX2);
-    TIntV RangeN(NInst);	TLAUtil::Range(NInst, RangeN);
+    TIntV RangeN(NInst);	TLinAlgTransform::RangeV(NInst, RangeN);
 
 
     // temporary reused variables
@@ -995,7 +995,7 @@ inline void TDpMeans<TCentroidType>::Apply(const TDataType& FtrVV, const int& NI
         if (K < MxClusts) {
             TLinAlg::GetColMinV(ClustDistVV, MinClustDistV);
 
-            const int NewCentrIdx = TLAUtil::GetMaxIdx(MinClustDistV);
+            const int NewCentrIdx = TLinAlgSearch::GetMaxIdx(MinClustDistV);
             const double MaxDist = MinClustDistV[NewCentrIdx];
 
             if (MaxDist > LambdaSq) {
@@ -1040,7 +1040,7 @@ template<>
 inline void TDpMeans<TFltVV>::AddCentroid(const TVec<TIntFltKdV>& FtrVV, TFltVV& ClustDistVV, TFltV& NormC2,
     TFltV& TempK, TFltVV& TempDxK, const int& InstN) {
     TIntFltKdV FtrV; GetCol(FtrVV, InstN, FtrV);
-    TFltV DenseFtrV; TLAMisc::ToVec(FtrV, DenseFtrV, GetDataDim(FtrVV));
+    TFltV DenseFtrV; TLinAlgTransform::ToVec(FtrV, DenseFtrV, GetDataDim(FtrVV));
     CentroidVV.AddCol(DenseFtrV);
     ClustDistVV.AddXDim();
     NormC2.Add(0);
@@ -1053,7 +1053,7 @@ template<>
 inline void TDpMeans<TVec<TIntFltKdV>>::AddCentroid(const TFltVV& FtrVV, TFltVV& ClustDistVV, TFltV& NormC2,
     TFltV& TempK, TVec<TIntFltKdV>& TempDxK, const int& InstN) {
     TFltV FtrV; FtrVV.GetCol(InstN, FtrV);
-    TIntFltKdV SparseFtrV; TLAMisc::ToSpVec(FtrV, SparseFtrV);
+    TIntFltKdV SparseFtrV; TLinAlgTransform::ToSpVec(FtrV, SparseFtrV);
     CentroidVV.Add(SparseFtrV);
     ClustDistVV.AddXDim();
     NormC2.Add(0);
@@ -1112,7 +1112,7 @@ public:
 		Notify->OnNotifyFmt(TNotifyType::ntInfo, "%s\n", TStrUtil::GetStr(X, ", ", "%.3f").CStr());
 
 		TFltVV ClustDistVV;	TDist().GetDist2VV(X,X, ClustDistVV);
-		TIntV ItemCountV;	TLAUtil::Ones(NInst, ItemCountV);//TVector::Ones(NInst);
+		TIntV ItemCountV;	TLinAlgTransform::OnesV(NInst, ItemCountV);//TVector::Ones(NInst);
 
 		for (int k = 0; k < NInst-1; k++) {
 			// find active <i,j> with minimum distance

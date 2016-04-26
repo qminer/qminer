@@ -192,7 +192,7 @@ public:
         const bool& NormP, TFltV& ProjV) const;
 
     void GetVec(const int& VecN, TFltV& Vec) const {
-        TLAMisc::ToVec(BasisV[VecN], Vec, VecDim); }
+    	TLinAlgTransform::ToVec(BasisV[VecN], Vec, VecDim); }
     int GetVecs() const { return BasisV.Len(); }
     int GetVecLen() const;
 };
