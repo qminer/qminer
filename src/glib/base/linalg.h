@@ -35,12 +35,12 @@
 // define macros
 #define TEMPLATE_TDnsV template <class TType, class TSizeTy = int> inline
 #define TEMPLATE_TDnsVV template <class TType, class TSizeTy = int, bool ColMajor = false> inline
-#define TEMPLATE_TSpV template <class TSizeTy = int> inline
+#define TEMPLATE_TSpV template <class TType, class TSizeTy = int> inline
 
 #define TDnsV TVec<TType, TSizeTy>
 #define TDnsVV TVVec<TType, TSizeTy, ColMajor>
-#define TSpV TVec<TIntFltKd, TSizeTy>
-#define TSpVV TVec<TIntFltKdV, TSizeTy>
+#define TSpV TVec<TKeyDat<TNum<TSizeTy>, TType>, TSizeTy>
+#define TSpVV TVec<TSpV, TSizeTy>
 
 namespace TypeCheck {
 	template<typename T1>
@@ -789,8 +789,8 @@ public:
 	TEMPLATE_TSpV
 	static double Norm(const TSpVV& x, const int& ColId);
 	// x := x / ||x||, x is sparse
-	template<class TSizeTy = int, TSizeTy>
-	inline static void Normalize(TVec<TIntFltKdV>& x);
+	TEMPLATE_TSpV
+	static void Normalize(TSpVV& x);
 	// ||X(:,ColId)||^2 (Euclidian);
 	TEMPLATE_TDnsVV
 	static double Norm2(const TDnsVV& X, const TSizeTy& ColId);
@@ -809,7 +809,8 @@ public:
 	TEMPLATE_TDnsV
 	static void NormalizeL1(TDnsV& x);
 	// x := x / ||x||_1
-	inline static void NormalizeL1(TIntFltKdV& x);
+	static void NormalizeL1(TIntFltKdV& x);
+	// Linf norm of x (Max{|xi|, i = 1..n})
 	TEMPLATE_TDnsV
 	static double NormLinf(const TDnsV& x);
 	// Linf norm of x (Max{|xi|, i = 1..n});
@@ -970,20 +971,28 @@ public:
 		TVVec<TType, TSizeTy, ColMajor>& C);
 	inline static void Multiply(const TFltVV& A, const TVec<TIntFltKdV>& B, TFltVV& C);
 	// C:= A' * B
-	template <class IndexType = TInt, class TType, class TSizeTy = int, bool ColMajor = false>
-	inline static void MultiplyT(const TVVec<TType, TSizeTy, ColMajor>& A, const TVec<TVec<TKeyDat<IndexType, TType>, TSizeTy>, TSizeTy>& B, TVVec<TType, TSizeTy, ColMajor>& C);
-	inline static void Multiply(const TVec<TIntFltKdV>& A, const TFltVV& B, TFltVV& C, const int RowsA = -1);
-	inline static void MultiplyT(const TVec<TIntFltKdV>& A, const TFltVV& B, TFltVV& C);
-    inline static void Multiply(const TFltVV& A, const TVec<TIntFltKdV>& B, TVec<TIntFltKdV>& C);
-	inline static void Multiply(const TVec<TIntFltKdV>& A, const TVec<TIntFltKdV>& B, TFltVV& C, const int RowsA = -1);
-    inline static void Multiply(const TVec<TIntFltKdV>& A, const TVec<TIntFltKdV>& B, TVec<TIntFltKdV>& C, const int RowsA = -1);
-	inline static void MultiplyT(const TVec<TIntFltKdV>& A, const TVec<TIntFltKdV>& B, TFltVV& C);
-    inline static void MultiplyT(const TVec<TIntFltKdV>& A, const TIntFltKdV& b, TFltV& c);
-    template <class IndexType = TInt, class TType, class TSizeTy = int, bool ColMajor = false>
-    inline static void MultiplyT(const TVVec<TType, TSizeTy, ColMajor>& A, const TIntFltKdV& b, TFltV& c);
-    template <class IndexType = TInt, class TType, class TSizeTy = int, bool ColMajor = false>
-    inline static void MultiplyT(const TVec<TIntFltKdV>& A, const TVec<TType, TSizeTy>& b, TFltV& c);
-	typedef enum { GEMM_NO_T = 0, GEMM_A_T = 1, GEMM_B_T = 2, GEMM_C_T = 4 } TLinAlgGemmTranspose;
+	TEMPLATE_TDnsVV
+	static void MultiplyT(const TDnsVV& A, const TSpVV& B, TDnsVV& C);
+	// C := A * B
+	static void Multiply(const TVec<TIntFltKdV>& A, const TFltVV& B, TFltVV& C, const int RowsA = -1);
+	// C:= A' * B
+	static void MultiplyT(const TVec<TIntFltKdV>& A, const TFltVV& B, TFltVV& C);
+    static void Multiply(const TFltVV& A, const TVec<TIntFltKdV>& B, TVec<TIntFltKdV>& C);
+    // C := A * B
+    static void Multiply(const TVec<TIntFltKdV>& A, const TVec<TIntFltKdV>& B, TFltVV& C, const int RowsA = -1);
+    static void Multiply(const TVec<TIntFltKdV>& A, const TVec<TIntFltKdV>& B, TVec<TIntFltKdV>& C, const int RowsA = -1);
+    // C:= A' * B
+    static void MultiplyT(const TVec<TIntFltKdV>& A, const TVec<TIntFltKdV>& B, TFltVV& C);
+	// c := A' * b
+	static void MultiplyT(const TVec<TIntFltKdV>& A, const TIntFltKdV& b, TFltV& c);
+    // c := A' * b
+    TEMPLATE_TDnsVV
+    static void MultiplyT(const TDnsVV& A, const TSpV& b, TDnsV& c);
+    // c := A' * b
+    TEMPLATE_TDnsV
+    static void MultiplyT(const TSpVV& A, const TDnsV& b, TDnsV& c);
+
+    typedef enum { GEMM_NO_T = 0, GEMM_A_T = 1, GEMM_B_T = 2, GEMM_C_T = 4 } TLinAlgGemmTranspose;
 
 	// D = alpha * A(') * B(') + beta * C(')
 	TEMPLATE_TDnsVV
@@ -1001,9 +1010,10 @@ public:
 	// Modified Gram-Schmidt on columns of matrix Q
 	inline static void MGS(TFltVV& Q);
 	// QR based on Modified Gram-Schmidt decomposition.
-	inline static void QR(const TFltVV& X, TFltVV& Q, TFltVV& R, const TFlt& Tol);
+	static void QR(const TFltVV& X, TFltVV& Q, TFltVV& R, const TFlt& Tol);
 	// rotates vector (OldX,OldY) for angle Angle (in radians!);
-	inline static void Rotate(const double& OldX, const double& OldY, const double& Angle, double& NewX, double& NewY);
+	static void Rotate(const double& OldX, const double& OldY, const double& Angle,
+			double& NewX, double& NewY);
 
 	// returns the k-th power of the given matrix
 	// negative values of k are allowed
