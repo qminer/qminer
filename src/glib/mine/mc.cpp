@@ -2553,9 +2553,8 @@ void TEigValScaleHelper::GetScaleFtrV(const TFltVV& QMat, TFltV& FtrV) const {
 	// in the first version the feature vector will contain singular values
 	TFltVV U, Vt;
 	TFltV Sing;
-#ifdef LAPACKE	// FIXME
-	TLinAlg::SVDFactorization(QMat, U, Sing, Vt);
-#endif
+	TLinAlg::ComputeSVD(QMat, U, Sing, Vt);
+
 	if (FtrV.Len() != Dim) { FtrV.Gen(Dim); }
 
 	for (int SingN = 0; SingN < Dim; SingN++) {

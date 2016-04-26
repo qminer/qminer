@@ -250,6 +250,14 @@ public:
 	}
 	/// returns true if the matrix contains at least one nan value
 	static bool ContainsNan(const TFltVV& FltVV);
+
+	// checks if set of vectors is ortogonal
+	template <class TSizeTy = int>
+	inline static void AssertOrtogonality(const TVec<TVec<TFlt, TSizeTy>, TSizeTy>& Vecs, const double& Threshold);
+	//ColMajor oriented data for optimal result
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void AssertOrtogonality(const TVVec<TType, TSizeTy, ColMajor>& Vecs, const double& Threshold);
+	inline static bool IsOrthonormal(const TFltVV& Vecs, const double& Threshold);
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -542,13 +550,16 @@ public:
 
 ///////////////////////////////////////////////////////////////////////
 // Basic Linear Algebra operations
+#define TEMPLATE_TDnsV template <class TType, class TSizeTy = int> inline
+#define TEMPLATE_TDnsVV template <class TType, class TSizeTy = int, bool ColMajor = false> inline
+#define TEMPLATE_TSpV template <class TSizeTy = int> inline
+
+#define TDnsV TVec<TType, TSizeTy>
+#define TDnsVV TVVec<TType, TSizeTy, ColMajor>
+#define TSpV TVec<TIntFltKd, TSizeTy>
+#define TSpVV TVec<TIntFltKdV, TSizeTy>
+
 class TLinAlg {
-	#define TEMPLATE_TDnsV template <class TType, class TSizeTy = int> inline
-	#define TEMPLATE_TDnsVV template <class TType, class TSizeTy = int, bool ColMajor = false> inline
-
-	#define TDnsV TVec<TType, TSizeTy>
-	#define TDnsVV TVVec<TType, TSizeTy, ColMajor>
-
 public:
 	//===========================================================
 	// PRODUCTS
@@ -675,8 +686,9 @@ public:
 	// Result = ||x-y||^2 (Euclidian);
 	TEMPLATE_TDnsV
 	static double EuclDist2(const TDnsV& x, const TDnsV& y);
-    template <class TSizeTy = int, bool ColMajor = false>
-    inline static double EuclDist2(const TVec<TIntFltKd, TSizeTy>& x, const TVec<TIntFltKd, TSizeTy>& y);
+
+    TEMPLATE_TSpV
+    static double EuclDist2(const TSpV& x, const TSpV& y);
 	// Result = ||x-y||^2 (Euclidian);
     static double EuclDist2(const TFltPr& x, const TFltPr& y);
 	// Result = ||x-y|| (Euclidian)
@@ -720,37 +732,34 @@ public:
 	static void NormalizeColumns(TDnsVV& X);
 	TEMPLATE_TDnsVV
 	static void NormalizeRows(TDnsVV& X);
-#ifdef INTEL
-	// TEST
-	template <class TType, class TSizeTy = int, bool ColMajor = false>
-	inline static void NormalizeColumns(TVVec<TType, TSizeTy, ColMajor>& X, TBool ColumnMajor);
-#endif
+	TEMPLATE_TDnsVV
+	static void NormalizeColumns(TDnsVV& X, TBool ColumnMajor);
 	template <class TType, class TSizeTy = int, bool ColMajor = false, class IndexType = TInt>
 	inline static void NormalizeColumns(TTriple<TVec<IndexType, TSizeTy>, TVec<IndexType, TSizeTy>, TVec<TType, TSizeTy>>& X);
 	// Normalize the columns of X
-	template<class TSizeTy = int>
-	inline static void NormalizeColumns(TVec<TIntFltKdV, TSizeTy>& X);
-	
+	TEMPLATE_TSpV
+	static void NormalizeColumns(TSpVV& X);
 	TEMPLATE_TDnsVV
 	static double FrobNorm2(const TDnsVV& X);
 	TEMPLATE_TDnsVV
 	static double FrobNorm(const TDnsVV& X);
 	static double FrobNorm2(const TVec<TIntFltKdV>& X);
 	// ||x||^2 (Euclidian), x is sparse
-	template<class TSizeTy = int>
-	inline static double Norm2(const TVec<TIntFltKdV, TSizeTy>& x);
+	TEMPLATE_TSpV
+	static double Norm2(const TSpVV& x);
 	// ||x|| (Euclidian), x is sparse
-	template<class TSizeTy = int>
-	inline static double Norm(const TVec<TIntFltKdV, TSizeTy>& x);
+	TEMPLATE_TSpV
+	static double Norm(const TSpVV& x);
 	// ||X(:, ColId)|| (Euclidian), x is sparse
-	template<class TSizeTy = int>
-	inline static double Norm(const TVec<TIntFltKdV, TSizeTy>& x, const int& ColId);
+	TEMPLATE_TSpV
+	static double Norm(const TSpVV& x, const int& ColId);
 	// x := x / ||x||, x is sparse
 	template<class TSizeTy = int, TSizeTy>
 	inline static void Normalize(TVec<TIntFltKdV>& x);
 	// ||X(:,ColId)||^2 (Euclidian);
 	TEMPLATE_TDnsVV
 	static double Norm2(const TDnsVV& X, const TSizeTy& ColId);
+	// ||X(:,ColId)|| (Euclidian)
 	TEMPLATE_TDnsVV
 	static double Norm(const TDnsVV& X, int ColId);
 	// L1 norm of x (Sum[|xi|, i = 1..n]);
@@ -761,8 +770,9 @@ public:
 	static double NormL1(double k, const TDnsV& x, const TDnsV& y);
 	// L1 norm of x (Sum[|xi|, i = 1..n]);
 	static double NormL1(const TIntFltKdV& x);
-	template <class TType, class TSizeTy = int>
-	inline static void NormalizeL1(TVec<TType, TSizeTy>& x);
+	// x := x / ||x||_1
+	TEMPLATE_TDnsV
+	static void NormalizeL1(TDnsV& x);
 	// x := x / ||x||_1
 	inline static void NormalizeL1(TIntFltKdV& x);
 	TEMPLATE_TDnsV
@@ -772,13 +782,16 @@ public:
 	TEMPLATE_TDnsV
 	static void NormalizeLinf(TDnsV& x);
 	// x := x / ||x||_inf, , x is sparse
-	inline static void NormalizeLinf(TIntFltKdV& x);
+	static void NormalizeLinf(TIntFltKdV& x);
 
-	inline static void GetColNormV(const TFltVV& X, TFltV& ColNormV);
-    inline static void GetColNormV(const TVec<TIntFltKdV>& X, TFltV& ColNormV);
+	// stores the squared norm of all the columns into the output vector
+	static void GetColNormV(const TFltVV& X, TFltV& ColNormV);
 	// stores the norm of all the columns into the output vector
-	inline static void GetColNorm2V(const TFltVV& X, TFltV& ColNormV);
-	inline static void GetColNorm2V(const TVec<TIntFltKdV>& SpVV, TFltV& ColNormV);
+    static void GetColNormV(const TVec<TIntFltKdV>& X, TFltV& ColNormV);
+	// stores the norm of all the columns into the output vector
+	static void GetColNorm2V(const TFltVV& X, TFltV& ColNormV);
+	// stores the norm of all the columns into the output vector
+	static void GetColNorm2V(const TVec<TIntFltKdV>& SpVV, TFltV& ColNormV);
 
 	TEMPLATE_TDnsVV
 	static void Sum(const TDnsVV& X, TDnsV& y, const int Dimension = 1);
@@ -857,9 +870,7 @@ public:
 	inline static void MultiplyT(const TVVec<TType, TSizeTy, ColMajor>& A, const TVVec<TType, TSizeTy, ColMajor>& B, int ColId, TVec<TType, TSizeTy>& y);
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void MultiplyT(const TVec<TIntFltKdV>& A, const TVVec<TType, TSizeTy, ColMajor>& B, int ColId, TVec<TType, TSizeTy>& y);
-	//LAPACKE stuff
-#ifdef LAPACKE
-	// Tested in other function
+
 	//A is rewritten in place with orthogonal matrix Q
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void QRbasis(TVVec<TType, TSizeTy, ColMajor>& A);
@@ -877,98 +888,26 @@ public:
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void thinSVD(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor>& U, TVec<TType, TSizeTy>& S, TVVec<TType, TSizeTy, ColMajor>& VT);
 
-	static void SVDFactorization(const TFltVV& A, TFltVV& U, TFltV& Sing, TFltVV& VT) {
-		// data used for factorization
-		int NumOfRows_Matrix = A.GetRows();
-		int NumOfCols_Matrix = A.GetCols();
-
-		// handle edge cases where the factorization is trivial. Double and float only!
-		if (NumOfRows_Matrix == 1) {
-			U.Gen(1, 1);
-			U(0, 0) = 1;
-			VT = A;
-			Sing.Gen(1);			
-			// normalize VT and set Sing[0] = oldnorm(VT)
-			TFltV& RawV = VT.Get1DVec();
-			Sing[0] = TLinAlg::Normalize(RawV);			
-			return;
-		} else if (NumOfCols_Matrix == 1) {
-			VT.Gen(1, 1);
-			VT(0, 0) = 1;
-			U = A;
-			Sing.Gen(1);
-			// normalize U and set Sing[0] = oldnorm(U)
-			TFltV& RawV = U.Get1DVec();
-			Sing[0] = TLinAlg::Normalize(RawV);
-			return;
-		}
-
-		int LeadingDimension_Matrix = NumOfCols_Matrix;
-		int Matrix_Layout = LAPACK_ROW_MAJOR;
-
-		// preperation for factorization
-		Sing.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix));
-		TFltV UpDiag, TauQ, TauP;
-		UpDiag.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix) - 1);
-		TauQ.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix));
-		TauP.Gen(MIN(NumOfRows_Matrix, NumOfCols_Matrix));
-
-		// bidiagonalization of Matrix
-		TFltVV M = A;
-		LAPACKE_dgebrd(Matrix_Layout, NumOfRows_Matrix, NumOfCols_Matrix, &M(0, 0).Val, LeadingDimension_Matrix,
-			&Sing[0].Val, &UpDiag[0].Val, &TauQ[0].Val, &TauP[0].Val);
-
-		// matrix U used in the SVD factorization
-		U = M;
-		LAPACKE_dorgbr(Matrix_Layout, 'Q', NumOfRows_Matrix, MIN(NumOfRows_Matrix, NumOfCols_Matrix), NumOfCols_Matrix,
-			&U(0, 0).Val, LeadingDimension_Matrix, &TauQ[0].Val);
-
-		// matrix VT used in the SVD factorization
-		VT = M;
-		LAPACKE_dorgbr(Matrix_Layout, 'P', MIN(NumOfRows_Matrix, NumOfCols_Matrix), NumOfCols_Matrix, NumOfRows_Matrix,
-			&VT(0, 0).Val, LeadingDimension_Matrix, &TauP[0].Val);
-
-		// factorization
-		TFltVV C(U.GetCols(), 1);
-		char UpperLower = NumOfRows_Matrix >= NumOfCols_Matrix ? 'U' : 'L';
-		int LeadingDimension_VT = VT.GetCols();
-		int LeadingDimension_U = U.GetCols();
-		LAPACKE_dbdsqr(Matrix_Layout, UpperLower, Sing.Len(), VT.GetCols(), U.GetRows(), 0, &Sing[0].Val, &UpDiag[0].Val,
-			&VT(0, 0).Val, LeadingDimension_VT, &U(0, 0).Val, LeadingDimension_U, &C(0, 0).Val, 1);
-	}
-
-	static void SVDSolve(const TFltVV& A, TFltV& x, const TFltV& b,
-			const double& EpsSing) {
-		Assert(A.GetRows() == b.Len());
-
-		// data used for solution
-		int NumOfRows_Matrix = A.GetRows();
-		int NumOfCols_Matrix = A.GetCols();
-
-		// generating the SVD factorization
-		TFltVV U, VT, M = A;
-		TFltV Sing;
-		SVDFactorization(M, U, Sing, VT);
-
-		// generating temporary solution
-		x.Gen(NumOfCols_Matrix);
-		TLinAlgTransform::FillZero(x);
-		TFltV ui; ui.Gen(U.GetRows());
-		TFltV vi; vi.Gen(VT.GetCols());
-
-		double Scalar;
-		int i = 0;
-		while (i < MIN(NumOfRows_Matrix, NumOfCols_Matrix) && Sing[i].Val > EpsSing*Sing[0]) {
-			U.GetCol(i, ui);
-			VT.GetRow(i, vi);
-			Scalar = TLinAlg::DotProduct(ui, b) / Sing[i].Val;
-			TLinAlg::AddVec(Scalar, vi, x);
-			i++;
-		}
-	}
-#endif
-
+	// A * x = b
+	static void SVDSolve(const TFltVV& A, TFltV& x, const TFltV& b, const double& EpsSing);
+	// A = U * diag(Sing) * VT
+	static void ComputeSVD(const TFltVV& A, TFltVV& U, TFltV& Sing, TFltVV& VT);
+	// A = U * diag(Sing) * V'
 	static int ComputeThinSVD(const TMatrix& X, const int& k, TFltVV& U, TFltV& s, TFltVV& V, const int Iters = 2, const double Tol = 1e-6);
+
+	typedef enum { DECOMP_SVD } TLinAlgInverseType;
+
+	// TEST (works only for RowMajor, TSvd uses only TFltVV matrices)
+	// B = A^(-1)
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void Inverse(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor >& B, const TLinAlgInverseType& DecompType);
+	// subtypes of finding an inverse (works only for TFltVV, cuz of TSvd);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void InverseSVD(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor>& B, const double& tol);
+	// subtypes of finding an inverse (works only for TFltVV, cuz of TSvd);
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void InverseSVD(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor>& B);
+
 
 	// generalized eigenvalue decomposition A * V(:,j) = lambda(j) * B * V(:,j)
 	template <class TType, class TSizeTy, bool ColMajor>
@@ -976,14 +915,13 @@ public:
 			const TVVec<TNum<TType>, TSizeTy, ColMajor>& B, TVec<TNum<TType>, TSizeTy>& EigValV,
 			TVVec<TNum<TType>, TSizeTy, ColMajor>& V);
 
-#ifdef INTEL
 	template <class TType, class TSizeTy, bool ColMajor = false>
 	inline static void MultiplySF(const TTriple<TVec<TNum<TSizeTy>, TSizeTy>, TVec<TNum<TSizeTy>, TSizeTy>, TVec<TType, TSizeTy>>& A, const TVVec<TType, TSizeTy, false>& B,
 		TVVec<TType, TSizeTy, ColMajor>& C, const TStr& transa = TStr("N"), const int& format = 0);
 	template <class IndexType = TInt, class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void MultiplyFS(TVVec<TType, TSizeTy, ColMajor>& B, const TTriple<TVec<IndexType, TSizeTy>, TVec<IndexType, TSizeTy>, TVec<TType, TSizeTy>>& A,
 		TVVec<TType, TSizeTy, ColMajor>& C);
-#endif
+
 	// y := A * x
 	template <class IndexType = TInt, class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void Multiply(const TVVec<TType, TSizeTy, ColMajor>& A, const TPair<TVec<IndexType, TSizeTy>, TVec<TType, TSizeTy>>& x, TVec<TType, TSizeTy>& y);
@@ -993,23 +931,31 @@ public:
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void MultiplyT(const TVVec<TNum<TType>, TSizeTy, ColMajor>& A,
 			const TVec<TNum<TType>, TSizeTy>& x, TVec<TNum<TType>, TSizeTy>& y);
-#ifdef BLAS
+
 	typedef enum { NOTRANS = 0, TRANS = 1 } TLinAlgBlasTranspose;
+
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
-		inline static void Multiply(const TVVec<TNum<TType>, TSizeTy, ColMajor>& A, const TVVec<TNum<TType>, TSizeTy, ColMajor>& B, TVVec<TNum<TType>, TSizeTy, ColMajor>& C,
+	inline static void Multiply(const TVVec<TNum<TType>, TSizeTy, ColMajor>& A, const TVVec<TNum<TType>, TSizeTy, ColMajor>& B, TVVec<TNum<TType>, TSizeTy, ColMajor>& C,
 		const int& BlasTransposeFlagA, const int& BlasTransposeFlagB);
-#endif
-#ifdef BLAS
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
-	inline static void Multiply(const TVVec<TNum<TType>, TSizeTy, ColMajor>& A, const TVec<TNum<TType>, TSizeTy>& x, TVec<TNum<TType>, TSizeTy>& y, const int& BlasTransposeFlagA, TType alpha = 1.0, TType beta = 0.0);
-#endif
-	template <class TType, class TSizeTy = int, bool ColMajor = false>
-	inline static void Multiply(const TVVec<TType, TSizeTy, ColMajor>& A, const TVVec<TType, TSizeTy, ColMajor>& B, TVVec<TType, TSizeTy, ColMajor>& C);
-	template <class TType, class TSizeTy = int, bool ColMajor = false>
-	inline static void MultiplyT(const TVVec<TType, TSizeTy, ColMajor>& A, const TVVec<TType, TSizeTy, ColMajor>& B, TVVec<TType, TSizeTy, ColMajor>& C);
+	inline static void Multiply(const TVVec<TNum<TType>, TSizeTy, ColMajor>& A, const TVec<TNum<TType>,
+			TSizeTy>& x, TVec<TNum<TType>, TSizeTy>& y, const int& BlasTransposeFlagA,
+			TType alpha = 1.0, TType beta = 0.0);
+	// C = A * B
+	TEMPLATE_TDnsVV
+	static void Multiply(const TDnsVV& A, const TDnsVV& B, TDnsVV& C);
+	// C = A' * B
+	TEMPLATE_TDnsVV
+	static void MultiplyT(const TDnsVV& A, const TDnsVV& B, TDnsVV& C);
+
+	//////////////////
+	//  DENSE-SPARSE, SPARSE-DENSE
+
+	// C := A * B
 	template <class IndexType = TInt, class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void Multiply(const TVVec<TType, TSizeTy, ColMajor>& A, const TTriple<TVec<IndexType, TSizeTy>, TVec<IndexType, TSizeTy>, TVec<TType, TSizeTy>>& B,
 		TVVec<TType, TSizeTy, ColMajor>& C);
+	// C:= A' * B
 	template <class IndexType = TInt, class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void MultiplyT(const TVVec<TType, TSizeTy, ColMajor>& A, const TTriple<TVec<IndexType, TSizeTy>, TVec<IndexType, TSizeTy>, TVec<TType, TSizeTy>>& B,
 		TVVec<TType, TSizeTy, ColMajor>& C);
@@ -1017,6 +963,7 @@ public:
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void Multiply(const TTriple<TVec<TNum<TSizeTy>, TSizeTy>, TVec<TNum<TSizeTy>, TSizeTy>, TVec<TType, TSizeTy>>& A, const TVVec<TType, TSizeTy, ColMajor>& B,
 		TVVec<TType, TSizeTy, ColMajor>& C);
+	// C:= A' * B
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void MultiplyT(const TTriple<TVec<TNum<TSizeTy>, TSizeTy>, TVec<TNum<TSizeTy>, TSizeTy>, TVec<TType, TSizeTy>>& A, const TVVec<TType, TSizeTy, ColMajor>& B,
 		TVVec<TType, TSizeTy, ColMajor>& C);
@@ -1039,80 +986,39 @@ public:
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void Gemm(const double& Alpha, const TVVec<TType, TSizeTy, ColMajor>& A, const TVVec<TType, TSizeTy, ColMajor>& B, const double& Beta,
 		const TVVec<TType, TSizeTy, ColMajor>& C, TVVec<TType, TSizeTy, ColMajor>& D, const int& TransposeFlags);
-	typedef enum { DECOMP_SVD } TLinAlgInverseType;
-	template <class TType, class TSizeTy = int, bool ColMajor = false>
-	inline static void Inverse(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor >& B, const TLinAlgInverseType& DecompType);
-	// subtypes of finding an inverse (works only for TFltVV, cuz of TSvd);
-	template <class TType, class TSizeTy = int, bool ColMajor = false>
-	inline static void InverseSVD(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor>& B, const double& tol);
-	// subtypes of finding an inverse (works only for TFltVV, cuz of TSvd);
-	template <class TType, class TSizeTy = int, bool ColMajor = false>
-	inline static void InverseSVD(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor>& B);
+
 	// transpose matrix - B = A'
-	template <class TType, class TSizeTy = int, bool ColMajor = false>
-	inline static void Transpose(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor>& B);
+	TEMPLATE_TDnsVV
+	static void Transpose(const TDnsVV& A, TDnsVV& B);
 	// performes Gram-Schmidt ortogonalization on elements of Q
 	template <class TSizeTy = int>
 	inline static void GS(TVec<TVec<TFlt, TSizeTy>, TSizeTy>& Q);
-	template <class TType, class TSizeTy = int, bool ColMajor = false>
-	inline static void GS(TVVec<TType, TSizeTy, ColMajor>& Q);
+	TEMPLATE_TDnsVV
+	static void GS(TDnsVV& Q);
 	// Modified Gram-Schmidt on columns of matrix Q
 	inline static void MGS(TFltVV& Q);
 	// QR based on Modified Gram-Schmidt decomposition.
 	inline static void QR(const TFltVV& X, TFltVV& Q, TFltVV& R, const TFlt& Tol);
 	// rotates vector (OldX,OldY) for angle Angle (in radians!);
 	inline static void Rotate(const double& OldX, const double& OldY, const double& Angle, double& NewX, double& NewY);
-	// checks if set of vectors is ortogonal
-	template <class TSizeTy = int>
-	inline static void AssertOrtogonality(const TVec<TVec<TFlt, TSizeTy>, TSizeTy>& Vecs, const double& Threshold);
-	//ColMajor oriented data for optimal result
-	template <class TType, class TSizeTy = int, bool ColMajor = false>
-	inline static void AssertOrtogonality(const TVVec<TType, TSizeTy, ColMajor>& Vecs, const double& Threshold);
-	inline static bool IsOrthonormal(const TFltVV& Vecs, const double& Threshold);
 
 	// returns the k-th power of the given matrix
 	// negative values of k are allowed
-	template <class TType, class TSizeTy = int, bool ColMajor = false>
-	inline static void Pow(const TVVec<TType, TSizeTy, ColMajor>& Mat, const int& k,
-			TVVec<TType, TSizeTy, ColMajor>& PowVV);
+	TEMPLATE_TDnsVV
+	static void Pow(const TDnsVV& Mat, const int& k, TDnsVV& PowVV);
 
 	// returns a sub matrix of the input matrix in range [StartRow, EndRow) x [StartCol, EndCol)
-	template <class TType, class TSizeTy, bool ColMajor>
-	static void SubMat(const TVVec<TType, TSizeTy, ColMajor>& Mat, const TSizeTy& StartRow,
-			const TSizeTy& EndRow, const TSizeTy& StartCol, const TSizeTy& EndCol,
-			TVVec<TType, TSizeTy, ColMajor>& SubMat) {
-		EAssert(StartRow >= 0 && StartCol >= 0);
-		EAssert(EndRow < Mat.GetRows() && EndCol < Mat.GetCols());
-
-		if (SubMat.GetRows() != EndRow - StartRow || SubMat.GetCols() != EndCol - StartCol) {
-			SubMat.Gen(EndRow - StartRow, EndCol - StartCol);
-		}
-
-		for (TSizeTy i = StartRow; i < EndRow; i++) {
-			for (TSizeTy j = StartCol; j < EndCol; j++) {
-				SubMat.PutXY(i - StartRow, j - StartCol, Mat(i,j));
-			}
-		}
-	}
+	TEMPLATE_TDnsVV
+	static void SubMat(const TDnsVV& Mat, const TSizeTy& StartRow, const TSizeTy& EndRow,
+			const TSizeTy& StartCol, const TSizeTy& EndCol, TDnsVV& SubMat);
 
 	template <class TType, class TVecVal, class TSizeTy, bool ColMajor>
 	static void SubMat(const TVVec<TType, TSizeTy, ColMajor>& Mat, const TVec<TVecVal, TSizeTy>& ColIdxV,
-			TVVec<TType, TSizeTy, ColMajor>& SubMat) {
-
-		if (SubMat.Empty()) { SubMat.Gen(Mat.GetRows(), ColIdxV.Len()); }
-		EAssert(SubMat.GetRows() == Mat.GetRows() && SubMat.GetCols() == ColIdxV.Len());
-
-		TVec<TType, TSizeTy> ColV;
-		for (TSizeTy i = 0; i < ColIdxV.Len(); i++) {
-			const TSizeTy& ColN = ColIdxV[i];
-			EAssert(0 <= ColN && ColN < Mat.GetCols());
-			Mat.GetCol(ColN, ColV);
-			SubMat.SetCol(i, ColV);
-		}
-	}
+			TVVec<TType, TSizeTy, ColMajor>& SubMat);
 
 	// returns the sum of diagonal elements of matrix
-	static double Trace(const TFltVV& Mat);
+	TEMPLATE_TDnsVV
+	static TType Trace(const TDnsVV& Mat);
 
 	//===========================================================
 	// PROJECTIONS
@@ -1120,10 +1026,16 @@ public:
 
 	static void NonNegProj(TFltV& Vec);
 	static void NonNegProj(TFltVV& Mat);
-
-	
-
 };
+
+#undef TEMPLATE_TDnsV
+#undef TEMPLATE_TDnsVV
+#undef TEMPLATE_TSpV
+
+#undef TDnsV
+#undef TDnsVV
+#undef TSpV
+#undef TSpVV
 
 #ifdef LAPACKE
 #include "MKLfunctions.h"
