@@ -760,32 +760,6 @@ bool TLinAlgCheck::ContainsNan(const TFltVV& FltVV) {
 
 //////////////////////////////////////////////////////////////////////
 /// Search elements of matrices and vectors
-int TLinAlgSearch::GetMinIdx(const TFltV& Vec) {
-	const int Len = Vec.Len();
-
-	int MinIdx = 0;
-	double MinVal = Vec[MinIdx];
-	for (int i = 1; i < Len; i++) {
-		if (Vec[i] < MinVal) {
-			MinVal = Vec[i];
-			MinIdx = i;
-		}
-	}
-
-	return MinIdx;
-}
-
-int TLinAlgSearch::GetMaxVal(const TIntV& Vec) {
-    const int Len = Vec.Len();
-    int MaxVal = Vec[0];
-    for (int i = 1; i < Len; i++) {
-        if (Vec[i] > MaxVal) {
-            MaxVal = Vec[i];
-        }
-    }
-    return MaxVal;
-}
-
 int TLinAlgSearch::GetMaxDimIdx(const TIntFltKdV& SpVec) {
 	return SpVec.Len() > 0 ? SpVec.Last().Key.Val : 0;
 }
@@ -798,22 +772,6 @@ int TLinAlgSearch::GetMaxDimIdx(const TVec<TIntFltKdV>& SpMat) {
 		}
 	}
 	return MaxDim;
-}
-
-int TLinAlgSearch::GetColMinIdx(const TFltVV& X, const int& ColN) {
-	const int Rows = X.GetRows();
-	double MinVal = TFlt::Mx;
-	double Val;
-	int MinIdx = -1;
-	for (int RowN = 0; RowN < Rows; RowN++) {
-		Val = X(RowN, ColN);
-		if (Val < MinVal) {
-			MinVal = Val;
-			MinIdx = RowN;
-		}
-	}
-	EAssertR(MinIdx >= 0, "Mininum index not set!");
-	return MinIdx;
 }
 
 void TLinAlgSearch::GetColMinIdxV(const TFltVV& X, TIntV& IdxV) {

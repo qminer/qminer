@@ -543,13 +543,16 @@ public:
 /// Search elements of matrices and vectors
 class TLinAlgSearch {
 public:
+	// returns the index of the maximum element
 	TEMPLATE_TDnsV
 	static TSizeTy GetMaxIdx(const TDnsV& Vec);
 	// returns the index of the minimum element
-	static int GetMinIdx(const TFltV& Vec);
+	TEMPLATE_TDnsV
+	static TSizeTy GetMinIdx(const TDnsV& Vec);
 
-	// gets the maximal index of an integer vector
-	static int GetMaxVal(const TIntV& Vec);
+	// returns the maximal value in the array
+	TEMPLATE_TDnsV
+	static TType GetMaxVal(const TDnsV& Vec);
 
 	// gets the maximal index of a sparse vector
 	static int GetMaxDimIdx(const TIntFltKdV& SpVec);
@@ -563,8 +566,9 @@ public:
 	/// find the index of the smallest element in the row
 	TEMPLATE_TDnsVV
 	static int GetRowMinIdx(const TDnsVV& X, const TSizeTy& RowN);
+	// find the index of maximum elements for a given each col of X
 	TEMPLATE_TDnsVV
-	static int GetColMaxIdx(const TDnsVV& X, const int& ColN);
+	static int GetColMaxIdx(const TDnsVV& X, const TSizeTy& ColN);
 
 	// TEST
 	/// find the index of maximum elements for each row of X
@@ -577,7 +581,8 @@ public:
 	TEMPLATE_TDnsVV
 	static void GetColMaxIdxV(const TDnsVV& X, TVec<TInt, TSizeTy>& IdxV);
 	// find the index of maximum elements for a given each col of X
-	static int GetColMinIdx(const TFltVV& X, const int& ColN);
+	TEMPLATE_TDnsVV
+	static TSizeTy GetColMinIdx(const TDnsVV& X, const TSizeTy& ColN);
 	// find the index of maximum elements for each col of X
 	static void GetColMinIdxV(const TFltVV& X, TIntV& IdxV);
 	TEMPLATE_TDnsVV
@@ -913,9 +918,11 @@ public:
 #ifdef BLAS
 	typedef enum { NOTRANS = 0, TRANS = 1 } TLinAlgBlasTranspose;
 
+	// C = op(A) * op(B)
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void Multiply(const TVVec<TNum<TType>, TSizeTy, ColMajor>& A, const TVVec<TNum<TType>, TSizeTy, ColMajor>& B, TVVec<TNum<TType>, TSizeTy, ColMajor>& C,
 		const int& BlasTransposeFlagA, const int& BlasTransposeFlagB);
+	// y := alpha*op(A)*x + beta*y, where op(A) = A -- N, op(A) = A' -- T, op(A) = conj(A') -- C (only for complex)
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void Multiply(const TVVec<TNum<TType>, TSizeTy, ColMajor>& A, const TVec<TNum<TType>,
 			TSizeTy>& x, TVec<TNum<TType>, TSizeTy>& y, const int& BlasTransposeFlagA,

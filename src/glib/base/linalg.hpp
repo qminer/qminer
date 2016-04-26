@@ -318,6 +318,34 @@ TSizeTy TLinAlgSearch::GetMaxIdx(const TVec<TVal, TSizeTy>& Vec) {
 	return MxIdx;
 }
 
+template <class TVal, class TSizeTy>
+TSizeTy TLinAlgSearch::GetMinIdx(const TVec<TVal, TSizeTy>& Vec) {
+	const TSizeTy Len = Vec.Len();
+
+	TSizeTy MinIdx = 0;
+	TVal MinVal = Vec[MinIdx];
+	for (TSizeTy i = 1; i < Len; i++) {
+		if (Vec[i] < MinVal) {
+			MinVal = Vec[i];
+			MinIdx = i;
+		}
+	}
+
+	return MinIdx;
+}
+
+template <class TVal, class TSizeTy>
+TVal TLinAlgSearch::GetMaxVal(const TVec<TVal, TSizeTy>& Vec) {
+    const TSizeTy Len = Vec.Len();
+    TVal MaxVal = Vec[0];
+    for (int i = 1; i < Len; i++) {
+        if (Vec[i] > MaxVal) {
+            MaxVal = Vec[i];
+        }
+    }
+    return MaxVal;
+}
+
 template <class TType, class TSizeTy, bool ColMajor>
 int TLinAlgSearch::GetRowMaxIdx(const TVVec<TType, TSizeTy, ColMajor>& X, const TSizeTy& RowN) {
 	TSizeTy Idx = -1;
@@ -349,9 +377,8 @@ int TLinAlgSearch::GetRowMinIdx(const TVVec<TType, TSizeTy, ColMajor>& X, const 
 }
 
 // TEST
-// find the index of maximum elements for a given each col of X
 template <class TType, class TSizeTy, bool ColMajor>
-int TLinAlgSearch::GetColMaxIdx(const TVVec<TType, TSizeTy, ColMajor>& X, const int& ColN) {
+int TLinAlgSearch::GetColMaxIdx(const TVVec<TType, TSizeTy, ColMajor>& X, const TSizeTy& ColN) {
 	TSizeTy Idx = -1;
 	TSizeTy Rows = X.GetRows();
 	double MaxVal = TFlt::Mn;
@@ -393,6 +420,22 @@ void TLinAlgSearch::GetColMaxIdxV(const TVVec<TType, TSizeTy, ColMajor>& X, TVec
 	for (TSizeTy ColN = 0; ColN < Cols; ColN++) {
 		IdxV[ColN] = TLinAlgSearch::GetColMaxIdx(X, ColN);
 	}
+}
+
+template <class TType, class TSizeTy, bool ColMajor>
+TSizeTy TLinAlgSearch::GetColMinIdx(const TVVec<TType, TSizeTy, ColMajor>& X, const TSizeTy& ColN) {
+	const TSizeTy Rows = X.GetRows();
+	TType MinVal = TFlt::Mx;
+	TSizeTy MinIdx = -1;
+	for (TSizeTy RowN = 0; RowN < Rows; RowN++) {
+		const TType& Val = X(RowN, ColN);
+		if (Val < MinVal) {
+			MinVal = Val;
+			MinIdx = RowN;
+		}
+	}
+	EAssertR(MinIdx >= 0, "Mininum index not set!");
+	return MinIdx;
 }
 
 template <class TType, class TSizeTy, bool ColMajor>
@@ -1497,7 +1540,6 @@ void TLinAlg::MultiplyT(const TVVec<TNum<TType>, TSizeTy, ColMajor>& A, const TV
 typedef enum { NOTRANS = 0, TRANS = 1 } TLinAlgBlasTranspose;
 
 // TEST
-// C = op(A) * op(B)
 template <class TType, class TSizeTy, bool ColMajor>
 inline void TLinAlg::Multiply(const TVVec<TNum<TType>, TSizeTy, ColMajor>& A,
 		const TVVec<TNum<TType>, TSizeTy, ColMajor>& B, TVVec<TNum<TType>,
@@ -1581,7 +1623,6 @@ inline void TLinAlg::Multiply(const TVVec<TNum<TType>, TSizeTy, ColMajor>& A,
 
 #ifdef BLAS
 // TEST
-// y := alpha*op(A)*x + beta*y, where op(A) = A -- N, op(A) = A' -- T, op(A) = conj(A') -- C (only for complex)
 //Andrej ToDo In the future replace TType with TNum<type> and change double to type
 template <class TType, class TSizeTy, bool ColMajor>
 void TLinAlg::Multiply(const TVVec<TNum<TType>, TSizeTy, ColMajor>& A, const TVec<TNum<TType>, TSizeTy>& x, TVec<TNum<TType>, TSizeTy>& y, const int& BlasTransposeFlagA, TType alpha, TType beta) {
