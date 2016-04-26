@@ -131,9 +131,23 @@ void TCategorical::AddFtr(const TStr& Val, TFltV& FullV, int& Offset) const {
 
 ///////////////////////////////////////
 // Multi-Feature-Generator
+void TMultinomial::Init(const bool& NormalizeP, const bool& BinaryP) {
+    if (NormalizeP) { Flags.Val |= mtNormalize; }
+    if (BinaryP) { Flags.Val |= mtBinary; }
+}
+
+TMultinomial::TMultinomial(const bool& NormalizeP, const bool& BinaryP):
+    Flags(0), FtrGen() { Init(NormalizeP, BinaryP); }
+
+TMultinomial::TMultinomial(const bool& NormalizeP, const bool& BinaryP, const TStrV& ValV):
+    Flags(0), FtrGen(ValV) {Init(NormalizeP, BinaryP); }
+
+TMultinomial::TMultinomial(const bool& NormalizeP, const bool& BinaryP, const int& HashDim):
+    Flags(0), FtrGen(HashDim) { Init(NormalizeP, BinaryP); }
+
 void TMultinomial::Save(TSOut& SOut) const { 
-    SaveEnum<TMultinomialType>(SOut, Type); 
-    FtrGen.Save(SOut); 
+    Flags.Save(SOut);
+    FtrGen.Save(SOut);
 }
 
 bool TMultinomial::Update(const TStr& Str) {
@@ -194,8 +208,10 @@ void TMultinomial::AddFtr(const TStrV& StrV, const TFltV& FltV, TIntFltKdV& SpV)
     }
     // truncate the vector
     SpV.Trunc(GoodSpN + 1);
+    // replace values with 1 if needed
+    if (IsBinary()) { for (TIntFltKd& Sp : SpV) { Sp.Dat = 1.0; } }
     // final normalization, if needed
-    if (Type == mtNormalize) { TLinAlg::Normalize(SpV); }    
+    if (IsNormalize()) { TLinAlg::Normalize(SpV); }    
 }
 
 void TMultinomial::AddFtr(const TStrV& StrV, const TFltV& FltV, TIntFltKdV& SpV, int& Offset) const {
