@@ -754,6 +754,7 @@ public:
 	TNodeJsSpMat() : Rows(-1) { }
 	TNodeJsSpMat(const TVec<TIntFltKdV>& _Mat, const int& _Rows = -1)
 		: Mat(_Mat), Rows(_Rows) { }
+    static v8::Local<v8::Object> New(const TVec<TIntFltKdV>& _Mat, const int& _Rows = -1);
 
 public:
 	static TNodeJsSpMat* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);

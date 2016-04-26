@@ -77,6 +77,7 @@ void InitAnalytics(Handle<Object> Exports, const TStr& NsNm) {
 	TNodeJsNNet::Init(NsObj);
 	TNodeJsTokenizer::Init(NsObj);
 	TNodeJsMDS::Init(NsObj);
+    TNodeJsKMeans::Init(NsObj);
 
 	Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
 }
@@ -112,6 +113,17 @@ void InitSnap(Handle<Object> Exports, const TStr& NsNm) {
 	Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
 }
 
+void InitDeprecated(Handle<Object> Exports, const TStr& NsNm) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	Handle<Object> NsObj = Object::New(Isolate);
+
+	// init methods go here
+
+	Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
+}
+
 void InitQm(Handle<Object> Exports) {
 	#ifdef WIN32
     _setmaxstdio(2048); 
@@ -139,6 +151,7 @@ void Init(Handle<Object> Exports) {
 	InitAnalytics(Exports, "analytics");
 	InitStat(Exports, "statistics");
 	InitSnap(Exports, "snap");
+	InitDeprecated(Exports, "deprecated");
 	InitQm(Exports);
 }
 
