@@ -749,9 +749,9 @@ public:
 
 	/// Hadamard product
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
-	inline static void HadamardProd(const TVVec<TType, TSizeTy, ColMajor>& X, const TVVec<TType, TSizeTy, ColMajor>& Y, TVVec<TType, TSizeTy, ColMajor>& Z, const bool& FilterExist = false);
+	inline static void HadamardProd(const TVVec<TType, TSizeTy, ColMajor>& X, const TVVec<TType, TSizeTy, ColMajor>& Y, TVVec<TType, TSizeTy, ColMajor>& Z);
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
-	inline static void HadamardProd(const TVec<TIntFltKdV>& X, const TVVec<TType, TSizeTy, ColMajor>& Y, TVVec<TType, TSizeTy, ColMajor>& Z, const bool& FilterExist = false);
+	inline static void HadamardProd(const TVec<TIntFltKdV>& X, const TVVec<TType, TSizeTy, ColMajor>& Y, TVVec<TType, TSizeTy, ColMajor>& Z);
 
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void OuterProduct(const TVec<TType, TSizeTy>& x,
@@ -1303,37 +1303,33 @@ public:
 		TType Res = 0;
 		const int Cols = X.Len();
 		for (TSizeTy ColN = 0; ColN < Cols; ColN++) {
-			const TIntFltKdV& ColX = X[ColN]; const int Els = ColX.Len();
+			const TIntFltKdV& ColX = X[ColN]; 
+			const int Els = ColX.Len();
 			for (int ElN = 0; ElN < Els; ElN++) {
 				Res += ColX[ElN].Dat * Y(ColX[ElN].Key, ColN);
 			}
 		}
 		return Res;
 	}
-	// the Hadamard product of X and Y. If FilterExist = true: Z(i, j) = Y(i, j) if X(i, j) > 0, otherwise Z(i, j) = 0
+	// the Hadamard product of X and Y. X, Y are dense.
 	template <class TType, class TSizeTy, bool ColMajor>
 	void TLinAlg::HadamardProd(const TVVec<TType, TSizeTy, ColMajor>& X, const TVVec<TType, TSizeTy, ColMajor>& Y, 
-		TVVec<TType, TSizeTy, ColMajor>& Z, const bool& FilterExist) {
+		TVVec<TType, TSizeTy, ColMajor>& Z) {
 		if (Z.Empty()) { Z.Gen(X.GetRows(), X.GetCols()); }
 		EAssert(X.GetRows() == Y.GetRows() && X.GetCols() == Y.GetCols() && X.GetRows() == Z.GetRows() && X.GetCols() == Z.GetCols());
 		const TSizeTy& Rows = X.GetRows();
 		const TSizeTy& Cols = X.GetCols();
 		for (TSizeTy RowN = 0; RowN < Rows; RowN++) {
 			for (TSizeTy ColN = 0; ColN < Cols; ColN++) {
-				if (FilterExist) {
-					Z(RowN, ColN) = X(RowN, ColN) > 0 ? Y(RowN, ColN) : 0;
-				}
-				else {
-					Z(RowN, ColN) = X(RowN, ColN) * Y(RowN, ColN);
-				}
+				Z(RowN, ColN) = X(RowN, ColN) * Y(RowN, ColN);
 			}
 		}
 	}
 
-	// the Hadamard product of X and Y. If FilterExist = true: Z(i, j) = Y(i, j) if X(i, j) > 0, otherwise Z(i, j) = 0
+	// the Hadamard product of X and Y. X is sparse, Y is dense.
 	template <class TType, class TSizeTy, bool ColMajor>
 	void TLinAlg::HadamardProd(const TVec<TIntFltKdV>& X, const TVVec<TType, TSizeTy, ColMajor>& Y, 
-		TVVec<TType, TSizeTy, ColMajor>& Z, const bool& FilterExist) {
+		TVVec<TType, TSizeTy, ColMajor>& Z) {
 		if (Z.Empty()) { Z.Gen(Y.GetRows(), Y.GetCols()); }
 		int XRows = TLAMisc::GetMaxDimIdx(X);
 		EAssert(XRows <= Y.GetRows() && X.Len() == Y.GetCols() && Y.GetRows() == Z.GetRows() && Y.GetCols() == Z.GetCols());
@@ -1342,12 +1338,7 @@ public:
 		for (int ColN = 0; ColN < Cols; ColN++) {
 			const TIntFltKdV& ColX = X[ColN]; int Els = ColX.Len();
 			for (int ElN = 0; ElN < Els; ElN++) {
-				if (FilterExist) {
-					Z(ColX[ElN].Key, ColN) = ColX[ElN].Dat > 0 ? Y(ColX[ElN].Key, ColN) : 0;
-				}
-				else {
-					Z(ColX[ElN].Key, ColN) = ColX[ElN].Dat * Y(ColX[ElN].Key, ColN);
-				}
+				Z(ColX[ElN].Key, ColN) = ColX[ElN].Dat * Y(ColX[ElN].Key, ColN);
 			}
 		}
 	}

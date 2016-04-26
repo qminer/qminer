@@ -63,10 +63,10 @@ void TNodeJsAnalytics::TNMFTask::Run() {
 		TFltVV& URef = U->Mat;
 		TFltVV& VRef = V->Mat;
 		if (JsFltVV != nullptr) {
-			TNmf::CFO(JsFltVV->Mat, k, URef, VRef, Iter, Tol, Notify, TNmf::TGradType::gtNormal);
+			TNmf::CFO(JsFltVV->Mat, k, URef, VRef, Iter, Tol, Notify);
 		}
 		else if (JsSpVV != nullptr) {
-			TNmf::CFO(JsSpVV->Mat, k, URef, VRef, Iter, Tol, Notify, TNmf::TGradType::gtNormal);
+			TNmf::CFO(JsSpVV->Mat, k, URef, VRef, Iter, Tol, Notify);
 		}
 		else {
 			throw TExcept::New("nmf: expects dense or sparse matrix!");
@@ -4368,13 +4368,13 @@ void TNodeJsRecommenderSys::TFitTask::Run() {
 	try {
 		// if argument is a dense matrix
 		if (JsFltVV != nullptr) {
-			TNmf::CFO(JsFltVV->Mat, JsRecSys->K, JsRecSys->U, JsRecSys->V, JsRecSys->Iter, JsRecSys->Tol, 
-				JsRecSys->Notify, TNmf::TGradType::gtRecSys);
+			TNmf::WeightedCFO(JsFltVV->Mat, JsRecSys->K, JsRecSys->U, JsRecSys->V, JsRecSys->Iter, JsRecSys->Tol, 
+				JsRecSys->Notify);
 		}
 		// if argument is a sparse matrix
 		else if (JsSpVV != nullptr) {
-			TNmf::CFO(JsSpVV->Mat, JsRecSys->K, JsRecSys->U, JsRecSys->V, JsRecSys->Iter, JsRecSys->Tol,
-				JsRecSys->Notify, TNmf::TGradType::gtRecSys);
+			TNmf::WeightedCFO(JsSpVV->Mat, JsRecSys->K, JsRecSys->U, JsRecSys->V, JsRecSys->Iter, JsRecSys->Tol,
+				JsRecSys->Notify);
 		}
 		else {
 			throw TExcept::New("RecommenderSys.fit: argument not a sparse or dense matrix");

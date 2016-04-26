@@ -9,6 +9,30 @@
 ///////////////////////////////////////////
 // Non-negative matrix factorization
 
+
+void TNmf::InitWeights(const TFltVV& A, TFltVV& W) {
+	int Rows = A.GetRows();
+	int Cols = A.GetCols();
+	W.Gen(Rows, Cols);
+	for (int RowN = 0; RowN < Rows; RowN++) {
+		for (int ColN = 0; ColN < Cols; ColN++) {
+			W(RowN, ColN) = A(RowN, ColN) > 0.0 ? 1.0 : 0.0;
+		}
+	}
+}
+
+void TNmf::InitWeights(const TVec<TIntFltKdV>& A, TVec<TIntFltKdV>& W) {
+	int Cols = A.Len(); W.Gen(Cols);
+	for (int ColN = 0; ColN < Cols; ColN++) {
+		const TIntFltKdV& ColA = A[ColN]; const int& Els = ColA.Len();
+		for (int ElN = 0; ElN < Els; ElN++) {
+			if (ColA[ElN].Dat > 0.0) {
+				W[ColN].Add(TIntFltKd(ColA[ElN].Key, ColA[ElN].Dat));
+			}
+		}
+	}
+}
+
 void TNmf::UpdateScaling(TFltVV& U, TFltVV& V) {
 	int R = U.GetCols();
 	for (int i = 0; i < R; i++) {
@@ -28,29 +52,3 @@ int TNmf::NumOfRows(const TVec<TIntFltKdV>& Mat) { return TLAMisc::GetMaxDimIdx(
 
 int TNmf::NumOfCols(const TFltVV& Mat) { return Mat.GetCols(); }
 int TNmf::NumOfCols(const TVec<TIntFltKdV>& Mat) { return Mat.Len(); }
-
-double TNmf::GetMatVal(const TFltVV& Mat, const int& RowId, const int& ColId) {
-	return Mat(RowId, ColId);
-}
-double TNmf::GetMatVal(const TVec<TIntFltKdV>& Mat, const int& RowId, const int& ColId) {
-	const TIntFltKdV& ColV = Mat[ColId]; 
-	const int& Els = ColV.Len();
-	
-	double Val = 0.0;
-	for (int ElN = 0; ElN < Els; ElN++) {
-		if (ColV[ElN].Key == RowId) {
-			Val = ColV[ElN].Dat;
-			break;
-		}
-	}
-	return Val;
-}
-
-void TNmf::GetMatCol(const TFltVV& Mat, const int& ColId, TFltV& Vec) {
-	Mat.GetCol(ColId, Vec);
-}
-void TNmf::GetMatCol(const TVec<TIntFltKdV>& Mat, const int& ColId, TFltV& Vec) {
-	const TIntFltKdV& SparseVec = Mat[ColId];
-	const int Rows = NumOfRows(Mat);
-	TLAMisc::ToVec(SparseVec, Vec, Rows);
-}
