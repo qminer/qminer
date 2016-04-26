@@ -100,7 +100,6 @@ void TLinAlgTransform::RangeV(const TSizeTy& Min, const TSizeTy& Max, TVec<TVal,
 
 	if (Res.Len() != Len) { Res.Gen(Len); }
 
-	Res.Gen(Len, 0);
 	for (TSizeTy i = Min; i <= Max; i++) {
 		Res[i - Min] = TVal(i);
 	}
