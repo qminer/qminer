@@ -9,6 +9,72 @@
 #ifndef LINALG_HPP
 #define LINALG_HPP
 
+
+//////////////////////////////////////////////////////////////////////
+// Template-ised Sparse Operations
+template <class TKey, class TDat>
+void TSparseOps<TKey, TDat>::CoordinateCreateSparseColMatrix(const TVec<TKey>& RowIdxV, const TVec<TKey>& ColIdxV,
+        const TVec<TDat>& ValV, TVec<TVec<TKeyDat<TKey, TDat> > >& ColMatrix, const TKey& Cols) {
+
+    ColMatrix.Gen(Cols);
+    EAssert(RowIdxV.Len() == ColIdxV.Len() && RowIdxV.Len() == ValV.Len());
+    TKey Els = RowIdxV.Len();
+    for (TKey ElN = 0; ElN < Els; ElN++) {
+        ColMatrix[ColIdxV[ElN]].Add(TKeyDat<TKey, TDat>(RowIdxV[ElN], ValV[ElN]));
+    }
+    for (TKey ColN = 0; ColN < Cols; ColN++) {
+        ColMatrix[ColN].Sort();
+    }
+}
+
+template <class TKey, class TDat>
+void TSparseOps<TKey, TDat>::SparseMerge(const TVec<TKeyDat<TKey, TDat> >& SrcV1,
+        const TVec<TKeyDat<TKey, TDat> >& SrcV2, TVec<TKeyDat<TKey, TDat> >& DstV) {
+
+    DstV.Clr();
+    const int Src1Len = SrcV1.Len();
+    const int Src2Len = SrcV2.Len();
+    int Src1N = 0, Src2N = 0;
+    while (Src1N < Src1Len && Src2N < Src2Len) {
+        if (SrcV1[Src1N].Key < SrcV2[Src2N].Key) {
+            DstV.Add(SrcV1[Src1N]); Src1N++;
+        }
+        else if (SrcV1[Src1N].Key > SrcV2[Src2N].Key) {
+            DstV.Add(SrcV2[Src2N]); Src2N++;
+        }
+        else {
+            DstV.Add(TKeyDat<TKey, TDat>(SrcV1[Src1N].Key, SrcV1[Src1N].Dat + SrcV2[Src2N].Dat));
+            Src1N++;  Src2N++;
+        }
+    }
+    while (Src1N < Src1Len) { DstV.Add(SrcV1[Src1N]); Src1N++; }
+    while (Src2N < Src2Len) { DstV.Add(SrcV2[Src2N]); Src2N++; }
+}
+
+template <class TKey, class TDat>
+void TSparseOps<TKey, TDat>::SparseLinComb(const double& p, const TVec<TKeyDat<TKey, TDat> >& SrcV1,
+        const double& q, const TVec<TKeyDat<TKey, TDat> >& SrcV2, TVec<TKeyDat<TKey, TDat> >& DstV) {
+
+    DstV.Clr();
+    const int Src1Len = SrcV1.Len();
+    const int Src2Len = SrcV2.Len();
+    int Src1N = 0, Src2N = 0;
+    while (Src1N < Src1Len && Src2N < Src2Len) {
+        if (SrcV1[Src1N].Key < SrcV2[Src2N].Key) {
+            DstV.Add(TKeyDat<TKey, TDat>(SrcV1[Src1N].Key, p * SrcV1[Src1N].Dat)); Src1N++;
+        }
+        else if (SrcV1[Src1N].Key > SrcV2[Src2N].Key) {
+            DstV.Add(TKeyDat<TKey, TDat>(SrcV2[Src2N].Key, q * SrcV2[Src2N].Dat)); Src2N++;
+        }
+        else {
+            DstV.Add(TKeyDat<TKey, TDat>(SrcV1[Src1N].Key, p * SrcV1[Src1N].Dat + q * SrcV2[Src2N].Dat));
+            Src1N++;  Src2N++;
+        }
+    }
+    while (Src1N < Src1Len) { DstV.Add(TKeyDat<TKey, TDat>(SrcV1[Src1N].Key, p * SrcV1[Src1N].Dat)); Src1N++; }
+    while (Src2N < Src2Len) { DstV.Add(TKeyDat<TKey, TDat>(SrcV2[Src2N].Key, q * SrcV2[Src2N].Dat)); Src2N++; }
+}
+
 //////////////////////////////////////////////////////////////////////
 /// Transformations of linear algebra structures
 template <class TVal, class TSizeTy>
@@ -353,72 +419,6 @@ void TLinAlgSearch::GetColMinV(const TVVec<TType, TSizeTy, ColMajor>& X, TVec<TT
 	for (int ColN = 0; ColN < Cols; ColN++) {
 		ValV[ColN] = GetColMin(X, ColN);
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////
-// Template-ised Sparse Operations
-template <class TKey, class TDat>
-void TSparseOps<TKey, TDat>::CoordinateCreateSparseColMatrix(const TVec<TKey>& RowIdxV, const TVec<TKey>& ColIdxV,
-        const TVec<TDat>& ValV, TVec<TVec<TKeyDat<TKey, TDat> > >& ColMatrix, const TKey& Cols) {
-
-    ColMatrix.Gen(Cols);
-    EAssert(RowIdxV.Len() == ColIdxV.Len() && RowIdxV.Len() == ValV.Len());
-    TKey Els = RowIdxV.Len();
-    for (TKey ElN = 0; ElN < Els; ElN++) {
-        ColMatrix[ColIdxV[ElN]].Add(TKeyDat<TKey, TDat>(RowIdxV[ElN], ValV[ElN]));
-    }
-    for (TKey ColN = 0; ColN < Cols; ColN++) {
-        ColMatrix[ColN].Sort();
-    }
-}
-
-template <class TKey, class TDat>
-void TSparseOps<TKey, TDat>::SparseMerge(const TVec<TKeyDat<TKey, TDat> >& SrcV1,
-        const TVec<TKeyDat<TKey, TDat> >& SrcV2, TVec<TKeyDat<TKey, TDat> >& DstV) {
-
-    DstV.Clr();
-    const int Src1Len = SrcV1.Len();
-    const int Src2Len = SrcV2.Len();
-    int Src1N = 0, Src2N = 0;
-    while (Src1N < Src1Len && Src2N < Src2Len) {
-        if (SrcV1[Src1N].Key < SrcV2[Src2N].Key) {
-            DstV.Add(SrcV1[Src1N]); Src1N++;
-        }
-        else if (SrcV1[Src1N].Key > SrcV2[Src2N].Key) {
-            DstV.Add(SrcV2[Src2N]); Src2N++;
-        }
-        else {
-            DstV.Add(TKeyDat<TKey, TDat>(SrcV1[Src1N].Key, SrcV1[Src1N].Dat + SrcV2[Src2N].Dat));
-            Src1N++;  Src2N++;
-        }
-    }
-    while (Src1N < Src1Len) { DstV.Add(SrcV1[Src1N]); Src1N++; }
-    while (Src2N < Src2Len) { DstV.Add(SrcV2[Src2N]); Src2N++; }
-}
-
-template <class TKey, class TDat>
-void TSparseOps<TKey, TDat>::SparseLinComb(const double& p, const TVec<TKeyDat<TKey, TDat> >& SrcV1,
-        const double& q, const TVec<TKeyDat<TKey, TDat> >& SrcV2, TVec<TKeyDat<TKey, TDat> >& DstV) {
-
-    DstV.Clr();
-    const int Src1Len = SrcV1.Len();
-    const int Src2Len = SrcV2.Len();
-    int Src1N = 0, Src2N = 0;
-    while (Src1N < Src1Len && Src2N < Src2Len) {
-        if (SrcV1[Src1N].Key < SrcV2[Src2N].Key) {
-            DstV.Add(TKeyDat<TKey, TDat>(SrcV1[Src1N].Key, p * SrcV1[Src1N].Dat)); Src1N++;
-        }
-        else if (SrcV1[Src1N].Key > SrcV2[Src2N].Key) {
-            DstV.Add(TKeyDat<TKey, TDat>(SrcV2[Src2N].Key, q * SrcV2[Src2N].Dat)); Src2N++;
-        }
-        else {
-            DstV.Add(TKeyDat<TKey, TDat>(SrcV1[Src1N].Key, p * SrcV1[Src1N].Dat + q * SrcV2[Src2N].Dat));
-            Src1N++;  Src2N++;
-        }
-    }
-    while (Src1N < Src1Len) { DstV.Add(TKeyDat<TKey, TDat>(SrcV1[Src1N].Key, p * SrcV1[Src1N].Dat)); Src1N++; }
-    while (Src2N < Src2Len) { DstV.Add(TKeyDat<TKey, TDat>(SrcV2[Src2N].Key, q * SrcV2[Src2N].Dat)); Src2N++; }
 }
 
 
@@ -2080,7 +2080,6 @@ void TLinAlg::MultiplyT(const TVec<TIntFltKdV>& A, const TVec<TType, TSizeTy>& b
 //#endif
 
 // TEST
-// D = alpha * A(') * B(') + beta * C(')
 typedef enum { GEMM_NO_T = 0, GEMM_A_T = 1, GEMM_B_T = 2, GEMM_C_T = 4 } TLinAlgGemmTranspose;
 template <class TType, class TSizeTy, bool ColMajor>
 void TLinAlg::Gemm(const double& Alpha, const TVVec<TType, TSizeTy, ColMajor>& A, const TVVec<TType, TSizeTy, ColMajor>& B, const double& Beta,

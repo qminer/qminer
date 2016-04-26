@@ -16,6 +16,250 @@
 #include <Eigen/Sparse>
 #endif
 
+///////////////////////////////////////////////////////////////////////
+// Sparse-Column-Matrix
+void TSparseColMatrix::PMultiply(const TFltVV& B, int ColId, TFltV& Result) const {
+    EAssert(B.GetRows() >= ColN && Result.Len() >= RowN);
+    int i, j; TFlt *ResV = Result.BegI();
+    for (i = 0; i < RowN; i++) ResV[i] = 0.0;
+    for (j = 0; j < ColN; j++) {
+        const TIntFltKdV& ColV = ColSpVV[j]; int len = ColV.Len();
+        for (i = 0; i < len; i++) {
+            ResV[ColV[i].Key] += ColV[i].Dat * B(j,ColId);
+        }
+    }
+}
+
+void TSparseColMatrix::PMultiply(const TFltV& Vec, TFltV& Result) const {
+    EAssert(Vec.Len() >= ColN && Result.Len() >= RowN);
+    int i, j; TFlt *ResV = Result.BegI();
+    for (i = 0; i < RowN; i++) ResV[i] = 0.0;
+    for (j = 0; j < ColN; j++) {
+        const TIntFltKdV& ColV = ColSpVV[j]; int len = ColV.Len();
+        for (i = 0; i < len; i++) {
+            ResV[ColV[i].Key] += ColV[i].Dat * Vec[j];
+        }
+    }
+}
+
+void TSparseColMatrix::PMultiplyT(const TFltVV& B, int ColId, TFltV& Result) const {
+    EAssert(B.GetRows() >= RowN && Result.Len() >= ColN);
+    int i, j, len; TFlt *ResV = Result.BegI();
+    for (j = 0; j < ColN; j++) {
+        const TIntFltKdV& ColV = ColSpVV[j];
+        len = ColV.Len(); ResV[j] = 0.0;
+        for (i = 0; i < len; i++) {
+            ResV[j] += ColV[i].Dat * B(ColV[i].Key, ColId);
+        }
+    }
+}
+
+void TSparseColMatrix::PMultiplyT(const TFltV& Vec, TFltV& Result) const {
+    EAssert(Vec.Len() >= RowN && Result.Len() >= ColN);
+    int i, j, len; TFlt *VecV = Vec.BegI(), *ResV = Result.BegI();
+    for (j = 0; j < ColN; j++) {
+        const TIntFltKdV& ColV = ColSpVV[j];
+        len = ColV.Len(); ResV[j] = 0.0;
+        for (i = 0; i < len; i++) {
+            ResV[j] += ColV[i].Dat * VecV[ColV[i].Key];
+        }
+    }
+}
+
+void TSparseColMatrix::PMultiply(const TFltVV& B, TFltVV& Result) const {
+	TLinAlg::Multiply(ColSpVV, B, Result, RowN);
+}
+
+void TSparseColMatrix::PMultiplyT(const TFltVV& B, TFltVV& Result) const {
+	TLinAlg::MultiplyT(ColSpVV, B, Result);
+}
+
+void TSparseColMatrix::Init() {
+    ColN = ColSpVV.Len();
+    for (int Col = 0; Col < ColN; Col++) {
+        if (ColSpVV[Col].Empty()) { continue; }
+        if (ColSpVV[Col].Last().Key >= RowN) {
+            RowN = ColSpVV[Col].Last().Key + 1;
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////
+// Sparse-Row-Matrix
+TSparseRowMatrix::TSparseRowMatrix(const TStr& MatlabMatrixFNm) {
+   FILE *F = fopen(MatlabMatrixFNm.CStr(), "rt");  EAssert(F != NULL);
+   TVec<TTriple<TInt, TInt, TSFlt> > MtxV;
+   RowN = 0;  ColN = 0;
+   while (! feof(F)) {
+     int row=-1, col=-1; float val;
+     if (fscanf(F, "%d %d %f\n", &row, &col, &val) == 3) {
+       EAssert(row > 0 && col > 0);
+       MtxV.Add(TTriple<TInt, TInt, TSFlt>(row, col, val));
+       RowN = TMath::Mx(RowN.Val, row);
+       ColN = TMath::Mx(ColN.Val, col);
+     }
+   }
+   fclose(F);
+   // create matrix
+   MtxV.Sort();
+   RowSpVV.Gen(RowN);
+   int cnt = 0;
+   for (int row = 1; row <= RowN; row++) {
+     while (cnt < MtxV.Len() && MtxV[cnt].Val1 == row) {
+       RowSpVV[row-1].Add(TIntFltKd(MtxV[cnt].Val2-1, MtxV[cnt].Val3()));
+       cnt++;
+     }
+   }
+}
+
+void TSparseRowMatrix::PMultiplyT(const TFltVV& B, int ColId, TFltV& Result) const {
+    EAssert(B.GetRows() >= RowN && Result.Len() >= ColN);
+    for (int i = 0; i < ColN; i++) Result[i] = 0.0;
+    for (int j = 0; j < RowN; j++) {
+        const TIntFltKdV& RowV = RowSpVV[j]; int len = RowV.Len();
+        for (int i = 0; i < len; i++) {
+            Result[RowV[i].Key] += RowV[i].Dat * B(j,ColId);
+        }
+    }
+}
+
+void TSparseRowMatrix::PMultiplyT(const TFltV& Vec, TFltV& Result) const {
+    EAssert(Vec.Len() >= RowN && Result.Len() >= ColN);
+    for (int i = 0; i < ColN; i++) Result[i] = 0.0;
+    for (int j = 0; j < RowN; j++) {
+        const TIntFltKdV& RowV = RowSpVV[j]; int len = RowV.Len();
+        for (int i = 0; i < len; i++) {
+            Result[RowV[i].Key] += RowV[i].Dat * Vec[j];
+        }
+    }
+}
+
+void TSparseRowMatrix::PMultiply(const TFltVV& B, int ColId, TFltV& Result) const {
+    EAssert(B.GetRows() >= ColN && Result.Len() >= RowN);
+    for (int j = 0; j < RowN; j++) {
+        const TIntFltKdV& RowV = RowSpVV[j];
+        int len = RowV.Len(); Result[j] = 0.0;
+        for (int i = 0; i < len; i++) {
+            Result[j] += RowV[i].Dat * B(RowV[i].Key, ColId);
+        }
+    }
+}
+
+void TSparseRowMatrix::PMultiply(const TFltV& Vec, TFltV& Result) const {
+    EAssert(Vec.Len() >= ColN && Result.Len() >= RowN);
+    for (int j = 0; j < RowN; j++) {
+        const TIntFltKdV& RowV = RowSpVV[j];
+        int len = RowV.Len(); Result[j] = 0.0;
+        for (int i = 0; i < len; i++) {
+            Result[j] += RowV[i].Dat * Vec[RowV[i].Key];
+        }
+    }
+}
+
+void TSparseRowMatrix::Init() {
+    RowN = RowSpVV.Len();
+    for (int Row = 0; Row < RowN; Row++) {
+        if (RowSpVV[Row].Empty()) { continue; }
+        if (RowSpVV[Row].Last().Key >= ColN) {
+            ColN = RowSpVV[Row].Last().Key + 1;
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////
+// Full-Col-Matrix
+TFullColMatrix::TFullColMatrix(const TStr& MatlabMatrixFNm): TMatrix() {
+    TLinAlgIO::LoadMatlabTFltVV(MatlabMatrixFNm, ColV);
+    RowN=ColV[0].Len(); ColN=ColV.Len();
+    for (int i = 0; i < ColN; i++) {
+        EAssertR(ColV[i].Len() == RowN, TStr::Fmt("%d != %d", ColV[i].Len(), RowN));
+    }
+}
+
+TFullColMatrix::TFullColMatrix(TVec<TFltV>& FullM): TMatrix(), ColV(FullM) {
+	 RowN=FullM.Len(); ColN=FullM[0].Len();
+}
+
+void TFullColMatrix::PMultiplyT(const TFltVV& B, int ColId, TFltV& Result) const {
+    EAssert(B.GetRows() >= RowN && Result.Len() >= ColN);
+    for (int i = 0; i < ColN; i++) {
+        Result[i] = TLinAlg::DotProduct(B, ColId, ColV[i]);
+    }
+}
+
+void TFullColMatrix::PMultiplyT(const TFltV& Vec, TFltV& Result) const {
+    EAssert(Vec.Len() >= RowN && Result.Len() >= ColN);
+    for (int i = 0; i < ColN; i++) {
+        Result[i] = TLinAlg::DotProduct(Vec, ColV[i]);
+    }
+}
+
+void TFullColMatrix::PMultiply(const TFltVV& B, int ColId, TFltV& Result) const {
+    EAssert(B.GetRows() >= ColN && Result.Len() >= RowN);
+    for (int i = 0; i < RowN; i++) { Result[i] = 0.0; }
+    for (int i = 0; i < ColN; i++) {
+        TLinAlg::AddVec(B(i, ColId), ColV[i], Result, Result);
+    }
+}
+
+void TFullColMatrix::PMultiply(const TFltV& Vec, TFltV& Result) const {
+    EAssert(Vec.Len() >= ColN && Result.Len() >= RowN);
+    for (int i = 0; i < RowN; i++) { Result[i] = 0.0; }
+    for (int i = 0; i < ColN; i++) {
+        TLinAlg::AddVec(Vec[i], ColV[i], Result, Result);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////
+// Structured-Covariance-Matrix
+void TStructuredCovarianceMatrix::PMultiply(const TFltVV& B, int ColId, TFltV& Result) const {FailR("Not implemented yet");} // TODO
+
+void TStructuredCovarianceMatrix::PMultiply(const TFltVV& B, TFltVV& Result) const {
+	// 1/Samples * (X - MeanX*ones(1,Samples)) (Y - MeanY*(ones(1,Samples))' B
+	// 1/ Samples X (Y' B) - MeanX (MeanY' B)
+	EAssert(Result.GetRows() == XRows && Result.GetCols() == B.GetCols());
+	int BCols = B.GetCols();
+	TFltVV YtB(Samples, BCols);;
+	TLinAlg::MultiplyT(Y, B, YtB);
+	TLinAlg::Multiply(X, YtB, Result); YtB.Clr();
+
+	TFltV MeanYtB(BCols); // MeanY' B the same TFltV as  B' MeanY	
+	TLinAlg::MultiplyT(B, MeanY, MeanYtB);
+	// Result := 1/SampleN Result - MeanX MeanY' B	
+	for (int RowN = 0; RowN < XRows; RowN++) {
+		for (int ColN = 0; ColN < BCols; ColN++) {
+			Result.At(RowN, ColN) = 1.0/Samples * Result.At(RowN, ColN) - MeanX[RowN]*MeanYtB[ColN];
+		}
+	}
+}; 
+
+void TStructuredCovarianceMatrix::PMultiply(const TFltV& Vec, TFltV& Result) const {FailR("Not implemented yet");} // TODO
+
+void TStructuredCovarianceMatrix::PMultiplyT(const TFltVV& B, int ColId, TFltV& Result) const {FailR("Not implemented yet");} // TODO
+
+void TStructuredCovarianceMatrix::PMultiplyT(const TFltVV& B, TFltVV& Result) const {
+	// 1/Samples * (Y - MeanY*ones(1,Samples)) (X - MeanX*(ones(1,Samples))' B
+	// 1/ Samples Y (X' B) - MeanY (MeanX' B)
+	EAssert(Result.GetRows() == YRows && Result.GetCols() == B.GetCols());
+	int BCols = B.GetCols();
+	TFltVV XtB(Samples, BCols);
+	TLinAlg::MultiplyT(X, B, XtB);
+	TLinAlg::Multiply(Y, XtB, Result); XtB.Clr();
+
+	TFltV MeanXtB(BCols); // MeanX' B the same TFltV as  B' MeanX
+	TLinAlg::MultiplyT(B, MeanX, MeanXtB);
+	// Result := 1/SampleN Result - MeanY MeanX' B	
+	for (int RowN = 0; RowN < YRows; RowN++) {
+		for (int ColN = 0; ColN < BCols; ColN++) {
+			Result.At(RowN, ColN) = 1.0/Samples * Result.At(RowN, ColN) - MeanY[RowN]*MeanXtB[ColN];
+		}
+	}
+};
+
+void TStructuredCovarianceMatrix::PMultiplyT(const TFltV& Vec, TFltV& Result) const {
+    FailR("Not implemented yet"); // TODO
+}
+
 //////////////////////////////////////////////////////////////////////
 // Linear algebra input/output operations
 void TLinAlgIO::SaveCsvTFltV(const TFltV& Vec, TSOut& SOut) {
@@ -582,250 +826,6 @@ void TLinAlgSearch::GetColMinIdxV(const TFltVV& X, TIntV& IdxV) {
 		IdxV[ColN] = GetColMinIdx(X, ColN);
 	}
 }
-
-///////////////////////////////////////////////////////////////////////
-// Sparse-Column-Matrix
-void TSparseColMatrix::PMultiply(const TFltVV& B, int ColId, TFltV& Result) const {
-    EAssert(B.GetRows() >= ColN && Result.Len() >= RowN);
-    int i, j; TFlt *ResV = Result.BegI();
-    for (i = 0; i < RowN; i++) ResV[i] = 0.0;
-    for (j = 0; j < ColN; j++) {
-        const TIntFltKdV& ColV = ColSpVV[j]; int len = ColV.Len();
-        for (i = 0; i < len; i++) {
-            ResV[ColV[i].Key] += ColV[i].Dat * B(j,ColId);
-        }
-    }
-}
-
-void TSparseColMatrix::PMultiply(const TFltV& Vec, TFltV& Result) const {
-    EAssert(Vec.Len() >= ColN && Result.Len() >= RowN);
-    int i, j; TFlt *ResV = Result.BegI();
-    for (i = 0; i < RowN; i++) ResV[i] = 0.0;
-    for (j = 0; j < ColN; j++) {
-        const TIntFltKdV& ColV = ColSpVV[j]; int len = ColV.Len();
-        for (i = 0; i < len; i++) {
-            ResV[ColV[i].Key] += ColV[i].Dat * Vec[j];
-        }
-    }
-}
-
-void TSparseColMatrix::PMultiplyT(const TFltVV& B, int ColId, TFltV& Result) const {
-    EAssert(B.GetRows() >= RowN && Result.Len() >= ColN);
-    int i, j, len; TFlt *ResV = Result.BegI();
-    for (j = 0; j < ColN; j++) {
-        const TIntFltKdV& ColV = ColSpVV[j];
-        len = ColV.Len(); ResV[j] = 0.0;
-        for (i = 0; i < len; i++) {
-            ResV[j] += ColV[i].Dat * B(ColV[i].Key, ColId);
-        }
-    }
-}
-
-void TSparseColMatrix::PMultiplyT(const TFltV& Vec, TFltV& Result) const {
-    EAssert(Vec.Len() >= RowN && Result.Len() >= ColN);
-    int i, j, len; TFlt *VecV = Vec.BegI(), *ResV = Result.BegI();
-    for (j = 0; j < ColN; j++) {
-        const TIntFltKdV& ColV = ColSpVV[j];
-        len = ColV.Len(); ResV[j] = 0.0;
-        for (i = 0; i < len; i++) {
-            ResV[j] += ColV[i].Dat * VecV[ColV[i].Key];
-        }
-    }
-}
-
-void TSparseColMatrix::PMultiply(const TFltVV& B, TFltVV& Result) const {
-	TLinAlg::Multiply(ColSpVV, B, Result, RowN);
-}
-
-void TSparseColMatrix::PMultiplyT(const TFltVV& B, TFltVV& Result) const {
-	TLinAlg::MultiplyT(ColSpVV, B, Result);
-}
-
-void TSparseColMatrix::Init() {
-    ColN = ColSpVV.Len();
-    for (int Col = 0; Col < ColN; Col++) {
-        if (ColSpVV[Col].Empty()) { continue; }
-        if (ColSpVV[Col].Last().Key >= RowN) {
-            RowN = ColSpVV[Col].Last().Key + 1;
-        }
-    }
-}
-
-///////////////////////////////////////////////////////////////////////
-// Sparse-Row-Matrix
-TSparseRowMatrix::TSparseRowMatrix(const TStr& MatlabMatrixFNm) {
-   FILE *F = fopen(MatlabMatrixFNm.CStr(), "rt");  EAssert(F != NULL);
-   TVec<TTriple<TInt, TInt, TSFlt> > MtxV;
-   RowN = 0;  ColN = 0;
-   while (! feof(F)) {
-     int row=-1, col=-1; float val;
-     if (fscanf(F, "%d %d %f\n", &row, &col, &val) == 3) {
-       EAssert(row > 0 && col > 0);
-       MtxV.Add(TTriple<TInt, TInt, TSFlt>(row, col, val));
-       RowN = TMath::Mx(RowN.Val, row);
-       ColN = TMath::Mx(ColN.Val, col);
-     }
-   }
-   fclose(F);
-   // create matrix
-   MtxV.Sort();
-   RowSpVV.Gen(RowN);
-   int cnt = 0;
-   for (int row = 1; row <= RowN; row++) {
-     while (cnt < MtxV.Len() && MtxV[cnt].Val1 == row) {
-       RowSpVV[row-1].Add(TIntFltKd(MtxV[cnt].Val2-1, MtxV[cnt].Val3()));
-       cnt++;
-     }
-   }
-}
-
-void TSparseRowMatrix::PMultiplyT(const TFltVV& B, int ColId, TFltV& Result) const {
-    EAssert(B.GetRows() >= RowN && Result.Len() >= ColN);
-    for (int i = 0; i < ColN; i++) Result[i] = 0.0;
-    for (int j = 0; j < RowN; j++) {
-        const TIntFltKdV& RowV = RowSpVV[j]; int len = RowV.Len();
-        for (int i = 0; i < len; i++) {
-            Result[RowV[i].Key] += RowV[i].Dat * B(j,ColId);
-        }
-    }
-}
-
-void TSparseRowMatrix::PMultiplyT(const TFltV& Vec, TFltV& Result) const {
-    EAssert(Vec.Len() >= RowN && Result.Len() >= ColN);
-    for (int i = 0; i < ColN; i++) Result[i] = 0.0;
-    for (int j = 0; j < RowN; j++) {
-        const TIntFltKdV& RowV = RowSpVV[j]; int len = RowV.Len();
-        for (int i = 0; i < len; i++) {
-            Result[RowV[i].Key] += RowV[i].Dat * Vec[j];
-        }
-    }
-}
-
-void TSparseRowMatrix::PMultiply(const TFltVV& B, int ColId, TFltV& Result) const {
-    EAssert(B.GetRows() >= ColN && Result.Len() >= RowN);
-    for (int j = 0; j < RowN; j++) {
-        const TIntFltKdV& RowV = RowSpVV[j];
-        int len = RowV.Len(); Result[j] = 0.0;
-        for (int i = 0; i < len; i++) {
-            Result[j] += RowV[i].Dat * B(RowV[i].Key, ColId);
-        }
-    }
-}
-
-void TSparseRowMatrix::PMultiply(const TFltV& Vec, TFltV& Result) const {
-    EAssert(Vec.Len() >= ColN && Result.Len() >= RowN);
-    for (int j = 0; j < RowN; j++) {
-        const TIntFltKdV& RowV = RowSpVV[j];
-        int len = RowV.Len(); Result[j] = 0.0;
-        for (int i = 0; i < len; i++) {
-            Result[j] += RowV[i].Dat * Vec[RowV[i].Key];
-        }
-    }
-}
-
-void TSparseRowMatrix::Init() {
-    RowN = RowSpVV.Len();
-    for (int Row = 0; Row < RowN; Row++) {
-        if (RowSpVV[Row].Empty()) { continue; }
-        if (RowSpVV[Row].Last().Key >= ColN) {
-            ColN = RowSpVV[Row].Last().Key + 1;
-        }
-    }
-}
-
-///////////////////////////////////////////////////////////////////////
-// Full-Col-Matrix
-TFullColMatrix::TFullColMatrix(const TStr& MatlabMatrixFNm): TMatrix() {
-    TLinAlgIO::LoadMatlabTFltVV(MatlabMatrixFNm, ColV);
-    RowN=ColV[0].Len(); ColN=ColV.Len();
-    for (int i = 0; i < ColN; i++) {
-        EAssertR(ColV[i].Len() == RowN, TStr::Fmt("%d != %d", ColV[i].Len(), RowN));
-    }
-}
-
-TFullColMatrix::TFullColMatrix(TVec<TFltV>& FullM): TMatrix(), ColV(FullM) {
-	 RowN=FullM.Len(); ColN=FullM[0].Len();
-}
-
-void TFullColMatrix::PMultiplyT(const TFltVV& B, int ColId, TFltV& Result) const {
-    EAssert(B.GetRows() >= RowN && Result.Len() >= ColN);
-    for (int i = 0; i < ColN; i++) {
-        Result[i] = TLinAlg::DotProduct(B, ColId, ColV[i]);
-    }
-}
-
-void TFullColMatrix::PMultiplyT(const TFltV& Vec, TFltV& Result) const {
-    EAssert(Vec.Len() >= RowN && Result.Len() >= ColN);
-    for (int i = 0; i < ColN; i++) {
-        Result[i] = TLinAlg::DotProduct(Vec, ColV[i]);
-    }
-}
-
-void TFullColMatrix::PMultiply(const TFltVV& B, int ColId, TFltV& Result) const {
-    EAssert(B.GetRows() >= ColN && Result.Len() >= RowN);
-    for (int i = 0; i < RowN; i++) { Result[i] = 0.0; }
-    for (int i = 0; i < ColN; i++) {
-        TLinAlg::AddVec(B(i, ColId), ColV[i], Result, Result);
-    }
-}
-
-void TFullColMatrix::PMultiply(const TFltV& Vec, TFltV& Result) const {
-    EAssert(Vec.Len() >= ColN && Result.Len() >= RowN);
-    for (int i = 0; i < RowN; i++) { Result[i] = 0.0; }
-    for (int i = 0; i < ColN; i++) {
-        TLinAlg::AddVec(Vec[i], ColV[i], Result, Result);
-    }
-}
-
-///////////////////////////////////////////////////////////////////////
-// Structured-Covariance-Matrix
-void TStructuredCovarianceMatrix::PMultiply(const TFltVV& B, int ColId, TFltV& Result) const {FailR("Not implemented yet");} // TODO
-
-void TStructuredCovarianceMatrix::PMultiply(const TFltVV& B, TFltVV& Result) const {
-	// 1/Samples * (X - MeanX*ones(1,Samples)) (Y - MeanY*(ones(1,Samples))' B
-	// 1/ Samples X (Y' B) - MeanX (MeanY' B)
-	EAssert(Result.GetRows() == XRows && Result.GetCols() == B.GetCols());
-	int BCols = B.GetCols();
-	TFltVV YtB(Samples, BCols);;
-	TLinAlg::MultiplyT(Y, B, YtB);
-	TLinAlg::Multiply(X, YtB, Result); YtB.Clr();
-
-	TFltV MeanYtB(BCols); // MeanY' B the same TFltV as  B' MeanY	
-	TLinAlg::MultiplyT(B, MeanY, MeanYtB);
-	// Result := 1/SampleN Result - MeanX MeanY' B	
-	for (int RowN = 0; RowN < XRows; RowN++) {
-		for (int ColN = 0; ColN < BCols; ColN++) {
-			Result.At(RowN, ColN) = 1.0/Samples * Result.At(RowN, ColN) - MeanX[RowN]*MeanYtB[ColN];
-		}
-	}
-}; 
-
-void TStructuredCovarianceMatrix::PMultiply(const TFltV& Vec, TFltV& Result) const {FailR("Not implemented yet");} // TODO
-
-void TStructuredCovarianceMatrix::PMultiplyT(const TFltVV& B, int ColId, TFltV& Result) const {FailR("Not implemented yet");} // TODO
-
-void TStructuredCovarianceMatrix::PMultiplyT(const TFltVV& B, TFltVV& Result) const {
-	// 1/Samples * (Y - MeanY*ones(1,Samples)) (X - MeanX*(ones(1,Samples))' B
-	// 1/ Samples Y (X' B) - MeanY (MeanX' B)
-	EAssert(Result.GetRows() == YRows && Result.GetCols() == B.GetCols());
-	int BCols = B.GetCols();
-	TFltVV XtB(Samples, BCols);
-	TLinAlg::MultiplyT(X, B, XtB);
-	TLinAlg::Multiply(Y, XtB, Result); XtB.Clr();
-
-	TFltV MeanXtB(BCols); // MeanX' B the same TFltV as  B' MeanX
-	TLinAlg::MultiplyT(B, MeanX, MeanXtB);
-	// Result := 1/SampleN Result - MeanY MeanX' B	
-	for (int RowN = 0; RowN < YRows; RowN++) {
-		for (int ColN = 0; ColN < BCols; ColN++) {
-			Result.At(RowN, ColN) = 1.0/Samples * Result.At(RowN, ColN) - MeanY[RowN]*MeanXtB[ColN];
-		}
-	}
-};
-
-void TStructuredCovarianceMatrix::PMultiplyT(const TFltV& Vec, TFltV& Result) const {
-    FailR("Not implemented yet"); // TODO
-} 
 
 ////////////////////////////////////////////////////////////////////////
 //// Basic Linear Algebra Operations

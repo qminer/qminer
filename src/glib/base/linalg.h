@@ -80,244 +80,6 @@ enum TMatDim {
 };
 
 //////////////////////////////////////////////////////////////////////
-/// Linear algebra input/output operations
-class TLinAlgIO {
-public:
-	// Dumps vector to file so Excel can read it
-	static void SaveCsvTFltV(const TFltV& Vec, TSOut& SOut);
-	// Dumps sparse vector to file so Matlab can read it
-	static void SaveMatlabTFltIntKdV(const TIntFltKdV& SpV, const int& ColN, TSOut& SOut);
-	/// Dumps sparse matrix to file so Matlab can read it
-	static void SaveMatlabSpMat(const TVec<TIntFltKdV>& SpMat, TSOut& SOut);
-	/// Dumps sparse matrix to file so Matlab can read it
-	static void SaveMatlabSpMat(const TTriple<TIntV, TIntV, TFltV>& SpMat, TSOut& SOut);
-	// Dumps vector to file so Matlab can read it
-	static void SaveMatlabTFltV(const TFltV& m, const TStr& FName);
-	// Dumps vector to file so Matlab can read it
-	static void SaveMatlabTIntV(const TIntV& m, const TStr& FName);
-	// Dumps column ColId from m to file so Matlab can read it
-	static void SaveMatlabTFltVVCol(const TFltVV& m, int ColId, const TStr& FName);
-	// Dumps matrix to file so Matlab can read it
-	static void SaveMatlabTFltVV(const TFltVV& m, const TStr& FName);
-	// Dumps matrix to the output stream so Matlab can read it
-	static void SaveMatlabTFltVV(const TFltVV& m, TSOut& SOut);
-	// Dumps main minor rowN x colN to file so Matlab can read it
-	static void SaveMatlabTFltVVMjrSubMtrx(const TFltVV& m, int rowN, int colN, const TStr& FName);
-
-	// loads matlab full matrix
-	static void LoadMatlabTFltVV(const TStr& FNm, TVec<TFltV>& ColV);
-	// loads matlab full matrix
-	static void LoadMatlabTFltVV(const TStr& FNm, TFltVV& MatrixVV);
-	// loads matlab full matrix
-	static void LoadMatlabTFltVV(TVec<TFltV>& ColV, TSIn& SIn);
-	// loads matlab full matrix
-	static void LoadMatlabTFltVV(TFltVV& MatrixVV, TSIn& SIn);
-
-	// prints vector to screen
-	static void PrintTFltV(const TFltV& Vec, const TStr& VecNm);
-	// print matrix to string
-	static void PrintTFltVVToStr(const TFltVV& A, TStr& Out);
-	// print matrixt to screen
-	static void PrintTFltVV(const TFltVV& A, const TStr& MatrixNm);
-	// print sparse matrix to screen
-	static void PrintSpMat(const TTriple<TIntV, TIntV, TFltV>& A, const TStr& MatrixNm);
-	// print sparse matrix to screen
-	static void PrintSpMat(const TVec<TIntFltKdV>& A, const TStr& MatrixNm);
-	// prints vector to screen
-	static void PrintTIntV(const TIntV& Vec, const TStr& VecNm);
-};
-
-//////////////////////////////////////////////////////////////////////
-/// Statistics on linear algebra structures
-class TLinAlgStat {
-public:
-	// returns the mean value of Vec.
-	static double Mean(const TFltV& Vec);
-	// returns the mean value along the dimension (Dim) of Mat. See Matlab documentation - mean().
-	static void Mean(const TFltVV& Mat, TFltV& Vec, const TMatDim& Dim = TMatDim::mdCols);
-	// returns standard deviation. See Matlab documentation - std().
-	static void Std(const TFltVV& Mat, TFltV& Vec, const int& Flag = 0, const TMatDim& Dim = TMatDim::mdCols);
-	// returns the z-score for each element of X such that columns of X are centered to have mean 0 and scaled to have standard deviation 1.
-	static void ZScore(const TFltVV& Mat, TFltVV& Vec, const int& Flag = 0, const TMatDim& Dim = TMatDim::mdCols);
-};
-
-//////////////////////////////////////////////////////////////////////
-/// Transformations of linear algebra structures
-class TLinAlgTransform {
-public:
-
-	//=======================================================
-	// FILL VECTORS / MATRICES
-	//=======================================================
-
-	// set all components
-	static void Fill(TFltVV& M, const double& Val);
-	static void Fill(TFltV& M, const double& Val);
-	// sets all compnents to zero
-	static void FillZero(TFltV& Vec) { Vec.PutAll(0.0); }
-	static void FillZero(TFltVV& M) { Fill(M, 0.0); }
-
-	// fills vector with random numbers
-	static void FillRnd(TFltV& Vec) { TRnd Rnd(0); FillRnd(Vec.Len(), Vec, Rnd); }
-	static void FillRnd(TFltV& Vec, TRnd& Rnd) { FillRnd(Vec.Len(), Vec, Rnd); }
-	static void FillRnd(TFltVV& Mat) { TRnd Rnd(0); FillRnd(Mat, Rnd); }
-	static void FillRnd(TFltVV& Mat, TRnd& Rnd) { FillRnd(Mat.Get1DVec(), Rnd); }
-	static void FillRnd(const int& Len, TFltV& Vec, TRnd& Rnd);
-
-	// set matrix to identity
-	static void FillIdentity(TFltVV& M);
-	static void FillIdentity(TFltVV& M, const double& Elt);
-
-	//=======================================================
-	// INITIALIZE VECTORS / MATRICES
-	//=======================================================
-
-	// generates a vector of ones with dimension dim
-	template <class TVal, class TSizeTy>
-	static void OnesV(const int& Dim, TVec<TVal, TSizeTy>& OnesV);
-
-	// set vector to range
-	/// generates a vector with i on index i
-	template <class TVal, class TSizeTy>
-	static void RangeV(const TSizeTy& Dim, TVec<TVal, TSizeTy>& RangeV);
-	// returns a vector with a sequence starting at Min and ending at Max, both inclusive
-	template <class TVal, class TSizeTy>
-	static void RangeV(const TSizeTy& Min, const TSizeTy& Max, TVec<TVal, TSizeTy>& Res);
-
-	// creates a diagonal matrix
-	template <class TType, class TSizeTy, bool ColMajor>
-	static void Diag(const TVec<TType, TSizeTy>& DiagV, TVVec<TType, TSizeTy, ColMajor>& D);
-	// creates a diagonal matrix
-	static void Diag(const TFltV& Vec, TVec<TIntFltKdV>& Mat);
-
-	/// create an identity matrix with the given dimension
-	template <class TType, class TSizeTy, bool ColMajor>
-	static void Identity(const TSizeTy& Dim, TVVec<TType, TSizeTy, ColMajor>& X);
-
-	//=======================================================
-	// ELEMENT-WISE TRANSFORMATIONS
-	//=======================================================
-
-	/// square root of each individual element
-	template <class TMatType>
-	inline static void Sqrt(TMatType& X);
-
-	/// square each individual element
-    template <class TMatType>
-    inline static void Sqr(TMatType& X);
-
-	//=======================================================
-	// ROW / COLUMN TRANSFORMATIONS
-	//=======================================================
-
-    /// centers all the rows around the mean value
-	template <class TType, class TSizeTy, bool ColMajor>
-	static void CenterRows(TVVec<TType, TSizeTy, ColMajor>& X);
-
-	//=======================================================
-	// TYPE TRANSFORMATIONS
-	//=======================================================
-
-	// converts full vector to sparse
-	static void ToSpVec(const TFltV& Vec, TIntFltKdV& SpVec,
-		const double& CutWordWgtSumPrc = 0.0);
-	// converts sparse vector to full
-	static void ToVec(const TIntFltKdV& SpVec, TFltV& Vec, const int& VecLen);
-
-	template <class TType, class TSizeTy = int, bool ColMajor = false, class IndexType = TInt>
-	inline static void Sparse(const TVVec<TType, TSizeTy, ColMajor>& A,
-			TTriple<TVec<IndexType, TSizeTy>, TVec<IndexType, TSizeTy>,
-			TVec<TType, TSizeTy>>& B);
-	template <class TType, class TSizeTy = int, bool ColMajor = false, class IndexType = TInt>
-	inline static void Sparse(const TVVec<TType, TSizeTy, ColMajor>& A, TVec<TIntFltKdV>& B);
-	template <class TType, class TSizeTy = int, bool ColMajor = false, class IndexType = TInt>
-	inline static void Full(const TTriple<TVec<IndexType, TSizeTy>, TVec<IndexType, TSizeTy>,
-			TVec<TType, TSizeTy>>& A, TVVec<TType, TSizeTy, ColMajor>& B, const int Rows,
-			const int Cols);
-	// Sparse to dense transform
-	template <class TType, class TSizeTy = int, bool ColMajor = false, class IndexType = TInt>
-	inline static void Full(const TVec<TIntFltKdV, TSizeTy>& A,
-			TVVec<TType, TSizeTy, ColMajor>& B, TSizeTy Rows);
-
-	// Vector of sparse vectors to sparse matrix (coordinate representation)
-	static void Convert(const TVec<TPair<TIntV, TFltV>>& A, TTriple<TIntV, TIntV, TFltV>& B);
-	// Vector of sparse vectors to sparse matrix (coordinate representation)
-	static void Convert(const TVec<TIntFltKdV>& A, TTriple<TIntV, TIntV, TFltV>&B);
-};
-
-//////////////////////////////////////////////////////////////////////
-/// Contains methods to check the properties of linear algebra structures
-class TLinAlgCheck {
-public:
-	/// returns true, if the vector is a zero vector
-	static bool IsZero(const TFltV& Vec, const double& Eps = 1e-6);
-	static bool IsZeroOrig(const TFltV& Vec) {
-		int Len = Vec.Len();
-		for (int i = 0; i < Len; i++) {
-			if (Vec[i] != 0.0) { return false; }
-		}
-		return true;
-	}
-	/// returns true if the matrix contains at least one nan value
-	static bool ContainsNan(const TFltVV& FltVV);
-
-	// checks if set of vectors is ortogonal
-	template <class TSizeTy = int>
-	inline static void AssertOrtogonality(const TVec<TVec<TFlt, TSizeTy>, TSizeTy>& Vecs, const double& Threshold);
-	//ColMajor oriented data for optimal result
-	template <class TType, class TSizeTy = int, bool ColMajor = false>
-	inline static void AssertOrtogonality(const TVVec<TType, TSizeTy, ColMajor>& Vecs, const double& Threshold);
-	inline static bool IsOrthonormal(const TFltVV& Vecs, const double& Threshold);
-};
-
-//////////////////////////////////////////////////////////////////////
-/// Search elements of matrices and vectors
-class TLinAlgSearch {
-public:
-	TEMPLATE_TDnsV
-	static TSizeTy GetMaxIdx(const TDnsV& Vec);
-	// returns the index of the minimum element
-	static int GetMinIdx(const TFltV& Vec);
-
-	// gets the maximal index of an integer vector
-	static int GetMaxVal(const TIntV& Vec);
-
-	// gets the maximal index of a sparse vector
-	static int GetMaxDimIdx(const TIntFltKdV& SpVec);
-	// gets the maximal row index of a sparse column matrix
-	static int GetMaxDimIdx(const TVec<TIntFltKdV>& SpMat);
-
-	// TEST
-	/// find the index of maximum elements for a given row of X
-	TEMPLATE_TDnsVV
-	static int GetRowMaxIdx(const TDnsVV& X, const TSizeTy& RowN);
-	/// find the index of the smallest element in the row
-	TEMPLATE_TDnsVV
-	static int GetRowMinIdx(const TDnsVV& X, const TSizeTy& RowN);
-	TEMPLATE_TDnsVV
-	static int GetColMaxIdx(const TDnsVV& X, const int& ColN);
-
-	// TEST
-	/// find the index of maximum elements for each row of X
-	TEMPLATE_TDnsVV
-	static void GetRowMaxIdxV(const TDnsVV& X, TVec<TInt, TSizeTy>& IdxV);
-	/// find the index of minimum elements for each row of X
-	TEMPLATE_TDnsVV
-	static void GetRowMinIdxV(const TDnsVV& X, TVec<TInt, TSizeTy>& IdxV);
-	// find the index of maximum elements for each col of X
-	TEMPLATE_TDnsVV
-	static void GetColMaxIdxV(const TDnsVV& X, TVec<TInt, TSizeTy>& IdxV);
-	// find the index of maximum elements for a given each col of X
-	static int GetColMinIdx(const TFltVV& X, const int& ColN);
-	// find the index of maximum elements for each col of X
-	static void GetColMinIdxV(const TFltVV& X, TIntV& IdxV);
-	TEMPLATE_TDnsVV
-	static TType GetColMin(const TDnsVV& X, const int& ColN);
-	TEMPLATE_TDnsVV
-	static void GetColMinV(const TDnsVV& X, TDnsV& ValV);
-};
-
-//////////////////////////////////////////////////////////////////////
 // Miscellaneous linear algebra functions
 class TLAMisc {
 public:
@@ -584,6 +346,244 @@ public:
 	TStructuredCovarianceMatrix(const int XRowN_, const int YRowN_, const int SampleN_, const TFltV& MeanX_, const TFltV& MeanY_, const TTriple<TIntV, TIntV, TFltV>& X_, const TTriple<TIntV, TIntV, TFltV>& Y_) : TMatrix(), XRows(XRowN_), YRows(YRowN_), Samples(SampleN_), MeanX(MeanX_), MeanY(MeanY_), X(X_), Y(Y_) {};
 	void Save(TSOut& SOut) { SOut.Save(XRows); SOut.Save(YRows); SOut.Save(Samples); MeanX.Save(SOut); MeanY.Save(SOut); X.Save(SOut); Y.Save(SOut); }
 	void Load(TSIn& SIn) { SIn.Load(XRows); SIn.Load(YRows); SIn.Load(Samples); MeanX.Load(SIn); MeanY.Load(SIn); X.Load(SIn); Y.Load(SIn); }
+};
+
+//////////////////////////////////////////////////////////////////////
+/// Linear algebra input/output operations
+class TLinAlgIO {
+public:
+	// Dumps vector to file so Excel can read it
+	static void SaveCsvTFltV(const TFltV& Vec, TSOut& SOut);
+	// Dumps sparse vector to file so Matlab can read it
+	static void SaveMatlabTFltIntKdV(const TIntFltKdV& SpV, const int& ColN, TSOut& SOut);
+	/// Dumps sparse matrix to file so Matlab can read it
+	static void SaveMatlabSpMat(const TVec<TIntFltKdV>& SpMat, TSOut& SOut);
+	/// Dumps sparse matrix to file so Matlab can read it
+	static void SaveMatlabSpMat(const TTriple<TIntV, TIntV, TFltV>& SpMat, TSOut& SOut);
+	// Dumps vector to file so Matlab can read it
+	static void SaveMatlabTFltV(const TFltV& m, const TStr& FName);
+	// Dumps vector to file so Matlab can read it
+	static void SaveMatlabTIntV(const TIntV& m, const TStr& FName);
+	// Dumps column ColId from m to file so Matlab can read it
+	static void SaveMatlabTFltVVCol(const TFltVV& m, int ColId, const TStr& FName);
+	// Dumps matrix to file so Matlab can read it
+	static void SaveMatlabTFltVV(const TFltVV& m, const TStr& FName);
+	// Dumps matrix to the output stream so Matlab can read it
+	static void SaveMatlabTFltVV(const TFltVV& m, TSOut& SOut);
+	// Dumps main minor rowN x colN to file so Matlab can read it
+	static void SaveMatlabTFltVVMjrSubMtrx(const TFltVV& m, int rowN, int colN, const TStr& FName);
+
+	// loads matlab full matrix
+	static void LoadMatlabTFltVV(const TStr& FNm, TVec<TFltV>& ColV);
+	// loads matlab full matrix
+	static void LoadMatlabTFltVV(const TStr& FNm, TFltVV& MatrixVV);
+	// loads matlab full matrix
+	static void LoadMatlabTFltVV(TVec<TFltV>& ColV, TSIn& SIn);
+	// loads matlab full matrix
+	static void LoadMatlabTFltVV(TFltVV& MatrixVV, TSIn& SIn);
+
+	// prints vector to screen
+	static void PrintTFltV(const TFltV& Vec, const TStr& VecNm);
+	// print matrix to string
+	static void PrintTFltVVToStr(const TFltVV& A, TStr& Out);
+	// print matrixt to screen
+	static void PrintTFltVV(const TFltVV& A, const TStr& MatrixNm);
+	// print sparse matrix to screen
+	static void PrintSpMat(const TTriple<TIntV, TIntV, TFltV>& A, const TStr& MatrixNm);
+	// print sparse matrix to screen
+	static void PrintSpMat(const TVec<TIntFltKdV>& A, const TStr& MatrixNm);
+	// prints vector to screen
+	static void PrintTIntV(const TIntV& Vec, const TStr& VecNm);
+};
+
+//////////////////////////////////////////////////////////////////////
+/// Statistics on linear algebra structures
+class TLinAlgStat {
+public:
+	// returns the mean value of Vec.
+	static double Mean(const TFltV& Vec);
+	// returns the mean value along the dimension (Dim) of Mat. See Matlab documentation - mean().
+	static void Mean(const TFltVV& Mat, TFltV& Vec, const TMatDim& Dim = TMatDim::mdCols);
+	// returns standard deviation. See Matlab documentation - std().
+	static void Std(const TFltVV& Mat, TFltV& Vec, const int& Flag = 0, const TMatDim& Dim = TMatDim::mdCols);
+	// returns the z-score for each element of X such that columns of X are centered to have mean 0 and scaled to have standard deviation 1.
+	static void ZScore(const TFltVV& Mat, TFltVV& Vec, const int& Flag = 0, const TMatDim& Dim = TMatDim::mdCols);
+};
+
+//////////////////////////////////////////////////////////////////////
+/// Transformations of linear algebra structures
+class TLinAlgTransform {
+public:
+
+	//=======================================================
+	// FILL VECTORS / MATRICES
+	//=======================================================
+
+	// set all components
+	static void Fill(TFltVV& M, const double& Val);
+	static void Fill(TFltV& M, const double& Val);
+	// sets all compnents to zero
+	static void FillZero(TFltV& Vec) { Vec.PutAll(0.0); }
+	static void FillZero(TFltVV& M) { Fill(M, 0.0); }
+
+	// fills vector with random numbers
+	static void FillRnd(TFltV& Vec) { TRnd Rnd(0); FillRnd(Vec.Len(), Vec, Rnd); }
+	static void FillRnd(TFltV& Vec, TRnd& Rnd) { FillRnd(Vec.Len(), Vec, Rnd); }
+	static void FillRnd(TFltVV& Mat) { TRnd Rnd(0); FillRnd(Mat, Rnd); }
+	static void FillRnd(TFltVV& Mat, TRnd& Rnd) { FillRnd(Mat.Get1DVec(), Rnd); }
+	static void FillRnd(const int& Len, TFltV& Vec, TRnd& Rnd);
+
+	// set matrix to identity
+	static void FillIdentity(TFltVV& M);
+	static void FillIdentity(TFltVV& M, const double& Elt);
+
+	//=======================================================
+	// INITIALIZE VECTORS / MATRICES
+	//=======================================================
+
+	// generates a vector of ones with dimension dim
+	template <class TVal, class TSizeTy>
+	static void OnesV(const int& Dim, TVec<TVal, TSizeTy>& OnesV);
+
+	// set vector to range
+	/// generates a vector with i on index i
+	template <class TVal, class TSizeTy>
+	static void RangeV(const TSizeTy& Dim, TVec<TVal, TSizeTy>& RangeV);
+	// returns a vector with a sequence starting at Min and ending at Max, both inclusive
+	template <class TVal, class TSizeTy>
+	static void RangeV(const TSizeTy& Min, const TSizeTy& Max, TVec<TVal, TSizeTy>& Res);
+
+	// creates a diagonal matrix
+	template <class TType, class TSizeTy, bool ColMajor>
+	static void Diag(const TVec<TType, TSizeTy>& DiagV, TVVec<TType, TSizeTy, ColMajor>& D);
+	// creates a diagonal matrix
+	static void Diag(const TFltV& Vec, TVec<TIntFltKdV>& Mat);
+
+	/// create an identity matrix with the given dimension
+	template <class TType, class TSizeTy, bool ColMajor>
+	static void Identity(const TSizeTy& Dim, TVVec<TType, TSizeTy, ColMajor>& X);
+
+	//=======================================================
+	// ELEMENT-WISE TRANSFORMATIONS
+	//=======================================================
+
+	/// square root of each individual element
+	template <class TMatType>
+	inline static void Sqrt(TMatType& X);
+
+	/// square each individual element
+    template <class TMatType>
+    inline static void Sqr(TMatType& X);
+
+	//=======================================================
+	// ROW / COLUMN TRANSFORMATIONS
+	//=======================================================
+
+    /// centers all the rows around the mean value
+	template <class TType, class TSizeTy, bool ColMajor>
+	static void CenterRows(TVVec<TType, TSizeTy, ColMajor>& X);
+
+	//=======================================================
+	// TYPE TRANSFORMATIONS
+	//=======================================================
+
+	// converts full vector to sparse
+	static void ToSpVec(const TFltV& Vec, TIntFltKdV& SpVec,
+		const double& CutWordWgtSumPrc = 0.0);
+	// converts sparse vector to full
+	static void ToVec(const TIntFltKdV& SpVec, TFltV& Vec, const int& VecLen);
+
+	template <class TType, class TSizeTy = int, bool ColMajor = false, class IndexType = TInt>
+	inline static void Sparse(const TVVec<TType, TSizeTy, ColMajor>& A,
+			TTriple<TVec<IndexType, TSizeTy>, TVec<IndexType, TSizeTy>,
+			TVec<TType, TSizeTy>>& B);
+	template <class TType, class TSizeTy = int, bool ColMajor = false, class IndexType = TInt>
+	inline static void Sparse(const TVVec<TType, TSizeTy, ColMajor>& A, TVec<TIntFltKdV>& B);
+	template <class TType, class TSizeTy = int, bool ColMajor = false, class IndexType = TInt>
+	inline static void Full(const TTriple<TVec<IndexType, TSizeTy>, TVec<IndexType, TSizeTy>,
+			TVec<TType, TSizeTy>>& A, TVVec<TType, TSizeTy, ColMajor>& B, const int Rows,
+			const int Cols);
+	// Sparse to dense transform
+	template <class TType, class TSizeTy = int, bool ColMajor = false, class IndexType = TInt>
+	inline static void Full(const TVec<TIntFltKdV, TSizeTy>& A,
+			TVVec<TType, TSizeTy, ColMajor>& B, TSizeTy Rows);
+
+	// Vector of sparse vectors to sparse matrix (coordinate representation)
+	static void Convert(const TVec<TPair<TIntV, TFltV>>& A, TTriple<TIntV, TIntV, TFltV>& B);
+	// Vector of sparse vectors to sparse matrix (coordinate representation)
+	static void Convert(const TVec<TIntFltKdV>& A, TTriple<TIntV, TIntV, TFltV>&B);
+};
+
+//////////////////////////////////////////////////////////////////////
+/// Contains methods to check the properties of linear algebra structures
+class TLinAlgCheck {
+public:
+	/// returns true, if the vector is a zero vector
+	static bool IsZero(const TFltV& Vec, const double& Eps = 1e-6);
+	static bool IsZeroOrig(const TFltV& Vec) {
+		int Len = Vec.Len();
+		for (int i = 0; i < Len; i++) {
+			if (Vec[i] != 0.0) { return false; }
+		}
+		return true;
+	}
+	/// returns true if the matrix contains at least one nan value
+	static bool ContainsNan(const TFltVV& FltVV);
+
+	// checks if set of vectors is ortogonal
+	template <class TSizeTy = int>
+	inline static void AssertOrtogonality(const TVec<TVec<TFlt, TSizeTy>, TSizeTy>& Vecs, const double& Threshold);
+	//ColMajor oriented data for optimal result
+	template <class TType, class TSizeTy = int, bool ColMajor = false>
+	inline static void AssertOrtogonality(const TVVec<TType, TSizeTy, ColMajor>& Vecs, const double& Threshold);
+	inline static bool IsOrthonormal(const TFltVV& Vecs, const double& Threshold);
+};
+
+//////////////////////////////////////////////////////////////////////
+/// Search elements of matrices and vectors
+class TLinAlgSearch {
+public:
+	TEMPLATE_TDnsV
+	static TSizeTy GetMaxIdx(const TDnsV& Vec);
+	// returns the index of the minimum element
+	static int GetMinIdx(const TFltV& Vec);
+
+	// gets the maximal index of an integer vector
+	static int GetMaxVal(const TIntV& Vec);
+
+	// gets the maximal index of a sparse vector
+	static int GetMaxDimIdx(const TIntFltKdV& SpVec);
+	// gets the maximal row index of a sparse column matrix
+	static int GetMaxDimIdx(const TVec<TIntFltKdV>& SpMat);
+
+	// TEST
+	/// find the index of maximum elements for a given row of X
+	TEMPLATE_TDnsVV
+	static int GetRowMaxIdx(const TDnsVV& X, const TSizeTy& RowN);
+	/// find the index of the smallest element in the row
+	TEMPLATE_TDnsVV
+	static int GetRowMinIdx(const TDnsVV& X, const TSizeTy& RowN);
+	TEMPLATE_TDnsVV
+	static int GetColMaxIdx(const TDnsVV& X, const int& ColN);
+
+	// TEST
+	/// find the index of maximum elements for each row of X
+	TEMPLATE_TDnsVV
+	static void GetRowMaxIdxV(const TDnsVV& X, TVec<TInt, TSizeTy>& IdxV);
+	/// find the index of minimum elements for each row of X
+	TEMPLATE_TDnsVV
+	static void GetRowMinIdxV(const TDnsVV& X, TVec<TInt, TSizeTy>& IdxV);
+	// find the index of maximum elements for each col of X
+	TEMPLATE_TDnsVV
+	static void GetColMaxIdxV(const TDnsVV& X, TVec<TInt, TSizeTy>& IdxV);
+	// find the index of maximum elements for a given each col of X
+	static int GetColMinIdx(const TFltVV& X, const int& ColN);
+	// find the index of maximum elements for each col of X
+	static void GetColMinIdxV(const TFltVV& X, TIntV& IdxV);
+	TEMPLATE_TDnsVV
+	static TType GetColMin(const TDnsVV& X, const int& ColN);
+	TEMPLATE_TDnsVV
+	static void GetColMinV(const TDnsVV& X, TDnsV& ValV);
 };
 
 ///////////////////////////////////////////////////////////////////////
@@ -877,14 +877,14 @@ public:
 
 	// TEST (works only for RowMajor, TSvd uses only TFltVV matrices)
 	// B = A^(-1)
-	template <class TType, class TSizeTy = int, bool ColMajor = false>
-	inline static void Inverse(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor >& B, const TLinAlgInverseType& DecompType);
+	TEMPLATE_TDnsVV
+	static void Inverse(const TDnsVV& A, TDnsVV& B, const TLinAlgInverseType& DecompType);
 	// subtypes of finding an inverse (works only for TFltVV, cuz of TSvd);
-	template <class TType, class TSizeTy = int, bool ColMajor = false>
-	inline static void InverseSVD(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor>& B, const double& tol);
+	TEMPLATE_TDnsVV
+	static void InverseSVD(const TDnsVV& A, TDnsVV& B, const double& tol);
 	// subtypes of finding an inverse (works only for TFltVV, cuz of TSvd);
-	template <class TType, class TSizeTy = int, bool ColMajor = false>
-	inline static void InverseSVD(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor>& B);
+	TEMPLATE_TDnsVV
+	static void InverseSVD(const TDnsVV& A, TDnsVV& B);
 
 
 	// generalized eigenvalue decomposition A * V(:,j) = lambda(j) * B * V(:,j)
@@ -963,9 +963,11 @@ public:
     template <class IndexType = TInt, class TType, class TSizeTy = int, bool ColMajor = false>
     inline static void MultiplyT(const TVec<TIntFltKdV>& A, const TVec<TType, TSizeTy>& b, TFltV& c);
 	typedef enum { GEMM_NO_T = 0, GEMM_A_T = 1, GEMM_B_T = 2, GEMM_C_T = 4 } TLinAlgGemmTranspose;
-	template <class TType, class TSizeTy = int, bool ColMajor = false>
-	inline static void Gemm(const double& Alpha, const TVVec<TType, TSizeTy, ColMajor>& A, const TVVec<TType, TSizeTy, ColMajor>& B, const double& Beta,
-		const TVVec<TType, TSizeTy, ColMajor>& C, TVVec<TType, TSizeTy, ColMajor>& D, const int& TransposeFlags);
+
+	// D = alpha * A(') * B(') + beta * C(')
+	TEMPLATE_TDnsVV
+	static void Gemm(const double& Alpha, const TDnsVV& A, const TDnsVV& B, const double& Beta,
+		const TDnsVV& C, TDnsVV& D, const int& TransposeFlags);
 
 	// transpose matrix - B = A'
 	TEMPLATE_TDnsVV
@@ -1000,15 +1002,6 @@ public:
 	TEMPLATE_TDnsVV
 	static TType Trace(const TDnsVV& Mat);
 };
-
-#undef TEMPLATE_TDnsV
-#undef TEMPLATE_TDnsVV
-#undef TEMPLATE_TSpV
-
-#undef TDnsV
-#undef TDnsVV
-#undef TSpV
-#undef TSpVV
 
 #ifdef LAPACKE
 #include "MKLfunctions.h"
@@ -1600,5 +1593,15 @@ public:
 };
 
 #include "linalg.hpp"
+
+// undefine templates and types
+#undef TEMPLATE_TDnsV
+#undef TEMPLATE_TDnsVV
+#undef TEMPLATE_TSpV
+
+#undef TDnsV
+#undef TDnsVV
+#undef TSpV
+#undef TSpVV
 
 #endif
