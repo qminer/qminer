@@ -442,26 +442,26 @@ public:
 	//=======================================================
 
 	// generates a vector of ones with dimension dim
-	template <class TVal, class TSizeTy>
-	static void OnesV(const int& Dim, TVec<TVal, TSizeTy>& OnesV);
+	TEMPLATE_TDnsV
+	static void OnesV(const TSizeTy& Dim, TDnsV& OnesV);
 
 	// set vector to range
 	/// generates a vector with i on index i
-	template <class TVal, class TSizeTy>
-	static void RangeV(const TSizeTy& Dim, TVec<TVal, TSizeTy>& RangeV);
+	TEMPLATE_TDnsV
+	static void RangeV(const TSizeTy& Dim, TDnsV& RangeV);
 	// returns a vector with a sequence starting at Min and ending at Max, both inclusive
-	template <class TVal, class TSizeTy>
-	static void RangeV(const TSizeTy& Min, const TSizeTy& Max, TVec<TVal, TSizeTy>& Res);
+	TEMPLATE_TDnsV
+	static void RangeV(const TSizeTy& Min, const TSizeTy& Max, TDnsV& Res);
 
 	// creates a diagonal matrix
-	template <class TType, class TSizeTy, bool ColMajor>
-	static void Diag(const TVec<TType, TSizeTy>& DiagV, TVVec<TType, TSizeTy, ColMajor>& D);
+	TEMPLATE_TDnsVV
+	static void Diag(const TDnsV& DiagV, TDnsVV& D);
 	// creates a diagonal matrix
 	static void Diag(const TFltV& Vec, TVec<TIntFltKdV>& Mat);
 
 	/// create an identity matrix with the given dimension
-	template <class TType, class TSizeTy, bool ColMajor>
-	static void Identity(const TSizeTy& Dim, TVVec<TType, TSizeTy, ColMajor>& X);
+	TEMPLATE_TDnsVV
+	static void Identity(const TSizeTy& Dim, TDnsVV& X);
 
 	//=======================================================
 	// ELEMENT-WISE TRANSFORMATIONS
@@ -480,8 +480,8 @@ public:
 	//=======================================================
 
     /// centers all the rows around the mean value
-	template <class TType, class TSizeTy, bool ColMajor>
-	static void CenterRows(TVVec<TType, TSizeTy, ColMajor>& X);
+	TEMPLATE_TDnsVV
+	static void CenterRows(TDnsVV& X);
 
 	//=======================================================
 	// TYPE TRANSFORMATIONS
@@ -497,16 +497,17 @@ public:
 	inline static void Sparse(const TVVec<TType, TSizeTy, ColMajor>& A,
 			TTriple<TVec<IndexType, TSizeTy>, TVec<IndexType, TSizeTy>,
 			TVec<TType, TSizeTy>>& B);
-	template <class TType, class TSizeTy = int, bool ColMajor = false, class IndexType = TInt>
-	inline static void Sparse(const TVVec<TType, TSizeTy, ColMajor>& A, TVec<TIntFltKdV>& B);
+	// Dense to sparse transform
+	TEMPLATE_TDnsVV
+	static void Sparse(const TDnsVV& A, TVec<TIntFltKdV>& B);
+	// Sparse to dense transform
 	template <class TType, class TSizeTy = int, bool ColMajor = false, class IndexType = TInt>
 	inline static void Full(const TTriple<TVec<IndexType, TSizeTy>, TVec<IndexType, TSizeTy>,
 			TVec<TType, TSizeTy>>& A, TVVec<TType, TSizeTy, ColMajor>& B, const int Rows,
 			const int Cols);
 	// Sparse to dense transform
-	template <class TType, class TSizeTy = int, bool ColMajor = false, class IndexType = TInt>
-	inline static void Full(const TVec<TIntFltKdV, TSizeTy>& A,
-			TVVec<TType, TSizeTy, ColMajor>& B, TSizeTy Rows);
+	TEMPLATE_TDnsVV
+	static void Full(const TSpVV& A, TDnsVV& B, TSizeTy Rows);
 
 	// Vector of sparse vectors to sparse matrix (coordinate representation)
 	static void Convert(const TVec<TPair<TIntV, TFltV>>& A, TTriple<TIntV, TIntV, TFltV>& B);
@@ -519,14 +520,11 @@ public:
 class TLinAlgCheck {
 public:
 	/// returns true, if the vector is a zero vector
-	static bool IsZero(const TFltV& Vec, const double& Eps = 1e-6);
-	static bool IsZeroOrig(const TFltV& Vec) {
-		int Len = Vec.Len();
-		for (int i = 0; i < Len; i++) {
-			if (Vec[i] != 0.0) { return false; }
-		}
-		return true;
-	}
+	static bool IsZeroTol(const TFltV& Vec, const double& Eps = 1e-6);
+	/// checks if the vector is all zero
+	TEMPLATE_TDnsV
+	static bool IsZero(const TDnsV& Vec);
+
 	/// returns true if the matrix contains at least one nan value
 	static bool ContainsNan(const TFltVV& FltVV);
 
@@ -534,9 +532,9 @@ public:
 	template <class TSizeTy = int>
 	inline static void AssertOrtogonality(const TVec<TVec<TFlt, TSizeTy>, TSizeTy>& Vecs, const double& Threshold);
 	//ColMajor oriented data for optimal result
-	template <class TType, class TSizeTy = int, bool ColMajor = false>
-	inline static void AssertOrtogonality(const TVVec<TType, TSizeTy, ColMajor>& Vecs, const double& Threshold);
-	inline static bool IsOrthonormal(const TFltVV& Vecs, const double& Threshold);
+	TEMPLATE_TDnsVV
+	static void AssertOrtogonality(const TDnsVV& Vecs, const TType& Threshold);
+	static bool IsOrthonormal(const TFltVV& Vecs, const double& Threshold);
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -562,33 +560,34 @@ public:
 	// TEST
 	/// find the index of maximum elements for a given row of X
 	TEMPLATE_TDnsVV
-	static int GetRowMaxIdx(const TDnsVV& X, const TSizeTy& RowN);
+	static TSizeTy GetRowMaxIdx(const TDnsVV& X, const TSizeTy& RowN);
 	/// find the index of the smallest element in the row
 	TEMPLATE_TDnsVV
-	static int GetRowMinIdx(const TDnsVV& X, const TSizeTy& RowN);
+	static TSizeTy GetRowMinIdx(const TDnsVV& X, const TSizeTy& RowN);
 	// find the index of maximum elements for a given each col of X
 	TEMPLATE_TDnsVV
-	static int GetColMaxIdx(const TDnsVV& X, const TSizeTy& ColN);
-
-	// TEST
-	/// find the index of maximum elements for each row of X
-	TEMPLATE_TDnsVV
-	static void GetRowMaxIdxV(const TDnsVV& X, TVec<TInt, TSizeTy>& IdxV);
-	/// find the index of minimum elements for each row of X
-	TEMPLATE_TDnsVV
-	static void GetRowMinIdxV(const TDnsVV& X, TVec<TInt, TSizeTy>& IdxV);
-	// find the index of maximum elements for each col of X
-	TEMPLATE_TDnsVV
-	static void GetColMaxIdxV(const TDnsVV& X, TVec<TInt, TSizeTy>& IdxV);
+	static TSizeTy GetColMaxIdx(const TDnsVV& X, const TSizeTy& ColN);
 	// find the index of maximum elements for a given each col of X
 	TEMPLATE_TDnsVV
 	static TSizeTy GetColMinIdx(const TDnsVV& X, const TSizeTy& ColN);
-	// find the index of maximum elements for each col of X
-	static void GetColMinIdxV(const TFltVV& X, TIntV& IdxV);
+
 	TEMPLATE_TDnsVV
-	static TType GetColMin(const TDnsVV& X, const int& ColN);
+	static TType GetColMin(const TDnsVV& X, const TSizeTy& ColN);
 	TEMPLATE_TDnsVV
 	static void GetColMinV(const TDnsVV& X, TDnsV& ValV);
+
+	/// find the index of maximum elements for each row of X
+	TEMPLATE_TDnsVV
+	static void GetRowMaxIdxV(const TDnsVV& X, TVec<TNum<TSizeTy>, TSizeTy>& IdxV);
+	/// find the index of minimum elements for each row of X
+	TEMPLATE_TDnsVV
+	static void GetRowMinIdxV(const TDnsVV& X, TVec<TNum<TSizeTy>, TSizeTy>& IdxV);
+	// find the index of maximum elements for each col of X
+	TEMPLATE_TDnsVV
+	static void GetColMaxIdxV(const TDnsVV& X, TVec<TNum<TSizeTy>, TSizeTy>& IdxV);
+	// find the index of maximum elements for each col of X
+	TEMPLATE_TDnsVV
+	static void GetColMinIdxV(const TDnsVV& X, TVec<TNum<TSizeTy>, TSizeTy>& IdxV);
 };
 
 ///////////////////////////////////////////////////////////////////////
@@ -601,17 +600,17 @@ public:
 
     /// Result = <x, y>
 	TEMPLATE_TDnsV
-	static double DotProduct(const TDnsV& x, const TDnsV& y);
+	static TType DotProduct(const TDnsV& x, const TDnsV& y);
     /// Result = <X(:,ColId), y>
 	static double DotProduct(const TVec<TFltV>& X, int ColId, const TFltV& y);
     /// Result = <X[ColId], y>
 	static double DotProduct(const TVec<TIntFltKdV>& X, int ColId, const TFltV& y);
     /// Result = <X(:,ColId), Y(:,ColId)>
 	TEMPLATE_TDnsVV
-	static double DotProduct(const TDnsVV& X, int ColIdX, const TDnsVV& Y, int ColIdY);
+	static TType DotProduct(const TDnsVV& X, int ColIdX, const TDnsVV& Y, int ColIdY);
     /// Result = <X(:,ColId), y>
 	TEMPLATE_TDnsVV
-	static double DotProduct(const TDnsVV& X, int ColId, const TDnsV& y);
+	static TType DotProduct(const TDnsVV& X, int ColId, const TDnsV& y);
 
 	// sparse dot products:
 	// <x,y> where x AND y are sparse

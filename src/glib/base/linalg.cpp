@@ -732,7 +732,7 @@ void TLinAlgTransform::Convert(const TVec<TIntFltKdV>& A, TTriple<TIntV, TIntV, 
 
 //////////////////////////////////////////////////////////////////////
 /// Contains methods to check the properties of linear algebra structures
-bool TLinAlgCheck::IsZero(const TFltV& Vec, const double& Eps) {
+bool TLinAlgCheck::IsZeroTol(const TFltV& Vec, const double& Eps) {
 	bool IsZero = true;
 	for (int i = 0; i < Vec.Len(); i++) {
 		if (!TMath::IsInEps((double)Vec[i], Eps)) {
@@ -758,6 +758,14 @@ bool TLinAlgCheck::ContainsNan(const TFltVV& FltVV) {
 	return false;
 }
 
+bool TLinAlgCheck::IsOrthonormal(const TFltVV& Vecs, const double& Threshold) {
+	int m = Vecs.GetCols();
+	TFltVV R(m, m);
+	TLinAlg::MultiplyT(Vecs, Vecs, R);
+	for (int i = 0; i < m; i++) { R(i, i) -= 1; }
+	return TLinAlg::Frob(R) < Threshold;
+}
+
 //////////////////////////////////////////////////////////////////////
 /// Search elements of matrices and vectors
 int TLinAlgSearch::GetMaxDimIdx(const TIntFltKdV& SpVec) {
@@ -772,17 +780,6 @@ int TLinAlgSearch::GetMaxDimIdx(const TVec<TIntFltKdV>& SpMat) {
 		}
 	}
 	return MaxDim;
-}
-
-void TLinAlgSearch::GetColMinIdxV(const TFltVV& X, TIntV& IdxV) {
-	int Cols = X.GetCols();
-
-	if (IdxV.Empty()) { IdxV.Gen(Cols); }
-	EAssert(IdxV.Len() == Cols);
-
-	for (int ColN = 0; ColN < Cols; ColN++) {
-		IdxV[ColN] = GetColMinIdx(X, ColN);
-	}
 }
 
 ////////////////////////////////////////////////////////////////////////

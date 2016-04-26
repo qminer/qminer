@@ -78,10 +78,10 @@ void TSparseOps<TKey, TDat>::SparseLinComb(const double& p, const TVec<TKeyDat<T
 //////////////////////////////////////////////////////////////////////
 /// Transformations of linear algebra structures
 template <class TVal, class TSizeTy>
-void TLinAlgTransform::OnesV(const int& Dim, TVec<TVal, TSizeTy>& OnesV) {
+void TLinAlgTransform::OnesV(const TSizeTy& Dim, TVec<TVal, TSizeTy>& OnesV) {
 	if (OnesV.Len() != Dim) { OnesV.Gen(Dim); }
 
-	for (int i = 0; i < Dim; i++) {
+	for (TSizeTy i = 0; i < Dim; i++) {
 		OnesV[i] = 1;
 	}
 }
@@ -216,9 +216,9 @@ void TLinAlgTransform::Sparse(const TVVec<TType, TSizeTy, ColMajor>& A, TTriple<
 	}
 }
 
-// Dense to sparse transform
+
 //TODO fix TVec<TIntFltKdV> indexing and type
-template <class TType, class TSizeTy, bool ColMajor, class IndexType>
+template <class TType, class TSizeTy, bool ColMajor>
 void TLinAlgTransform::Sparse(const TVVec<TType, TSizeTy, ColMajor>& A, TVec<TIntFltKdV>& B){
 	TSizeTy Cols = A.GetCols();
 	TSizeTy Rows = A.GetRows();
@@ -233,8 +233,6 @@ void TLinAlgTransform::Sparse(const TVVec<TType, TSizeTy, ColMajor>& A, TVec<TIn
 	}
 }
 
-// TEST
-// Sparse to dense transform
 template <class TType, class TSizeTy, bool ColMajor, class IndexType>
 void TLinAlgTransform::Full(const TTriple<TVec<IndexType, TSizeTy>, TVec<IndexType, TSizeTy>, TVec<TType, TSizeTy>>& A, TVVec<TType, TSizeTy, ColMajor>& B, const int Rows, const int Cols) {
 	B.Gen(Rows, Cols);
@@ -246,7 +244,7 @@ void TLinAlgTransform::Full(const TTriple<TVec<IndexType, TSizeTy>, TVec<IndexTy
 }
 
 // Sparse to dense transform
-template <class TType, class TSizeTy, bool ColMajor, class IndexType>
+template <class TType, class TSizeTy, bool ColMajor>
 void TLinAlgTransform::Full(const TVec<TIntFltKdV, TSizeTy>& A, TVVec<TType, TSizeTy, ColMajor>& B, TSizeTy Rows){
 	TSizeTy Cols = A.Len();
 	B.Gen(Rows, Cols);
@@ -261,6 +259,15 @@ void TLinAlgTransform::Full(const TVec<TIntFltKdV, TSizeTy>& A, TVVec<TType, TSi
 
 //////////////////////////////////////////////////////////////////////
 /// TLinAlgCheck
+template <class TType, class TSizeTy>
+bool TLinAlgCheck::IsZero(const TVec<TType, TSizeTy>& Vec) {
+	const TSizeTy& Len = Vec.Len();
+	for (TSizeTy i = 0; i < Len; i++) {
+		if (Vec[i] != 0.0) { return false; }
+	}
+	return true;
+}
+
 template <class TSizeTy>
 void TLinAlgCheck::AssertOrtogonality(const TVec<TVec<TFlt, TSizeTy>, TSizeTy>& Vecs, const double& Threshold) {
 	TSizeTy m = Vecs.Len();
@@ -277,7 +284,7 @@ void TLinAlgCheck::AssertOrtogonality(const TVec<TVec<TFlt, TSizeTy>, TSizeTy>& 
 }
 
 template <class TType, class TSizeTy, bool ColMajor>
-void TLinAlgCheck::AssertOrtogonality(const TVVec<TType, TSizeTy, ColMajor>& Vecs, const double& Threshold) {
+void TLinAlgCheck::AssertOrtogonality(const TVVec<TType, TSizeTy, ColMajor>& Vecs, const TType& Threshold) {
 	TSizeTy m = Vecs.GetCols();
 	for (TSizeTy i = 0; i < m; i++) {
 		for (TSizeTy j = 0; j < i; j++) {
@@ -290,14 +297,6 @@ void TLinAlgCheck::AssertOrtogonality(const TVVec<TType, TSizeTy, ColMajor>& Vec
 			printf("||%d|| = %.5f", i, norm);
 	}
 	printf("\n");
-}
-
-bool TLinAlgCheck::IsOrthonormal(const TFltVV& Vecs, const double& Threshold) {
-	int m = Vecs.GetCols();
-	TFltVV R(m, m);
-	TLinAlg::MultiplyT(Vecs, Vecs, R);
-	for (int i = 0; i < m; i++) { R(i, i) -= 1; }
-	return TLinAlg::Frob(R) < Threshold;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -347,7 +346,7 @@ TVal TLinAlgSearch::GetMaxVal(const TVec<TVal, TSizeTy>& Vec) {
 }
 
 template <class TType, class TSizeTy, bool ColMajor>
-int TLinAlgSearch::GetRowMaxIdx(const TVVec<TType, TSizeTy, ColMajor>& X, const TSizeTy& RowN) {
+TSizeTy TLinAlgSearch::GetRowMaxIdx(const TVVec<TType, TSizeTy, ColMajor>& X, const TSizeTy& RowN) {
 	TSizeTy Idx = -1;
 	TSizeTy Cols = X.GetCols();
 	double MaxVal = TFlt::Mn;
@@ -362,12 +361,12 @@ int TLinAlgSearch::GetRowMaxIdx(const TVVec<TType, TSizeTy, ColMajor>& X, const 
 }
 
 template <class TType, class TSizeTy, bool ColMajor>
-int TLinAlgSearch::GetRowMinIdx(const TVVec<TType, TSizeTy, ColMajor>& X, const TSizeTy& RowN) {
+TSizeTy TLinAlgSearch::GetRowMinIdx(const TVVec<TType, TSizeTy, ColMajor>& X, const TSizeTy& RowN) {
 	TSizeTy Idx = -1;
 	TSizeTy Cols = X.GetCols();
-	double MnVal = TFlt::Mx;
+	TType MnVal = TType::Mx;
 	for (TSizeTy ColN = 0; ColN < Cols; ColN++) {
-		const double Val = X.At(RowN, ColN);
+		const TType& Val = X.At(RowN, ColN);
 		if (Val < MnVal) {
 			MnVal = Val;
 			Idx = ColN;
@@ -378,48 +377,18 @@ int TLinAlgSearch::GetRowMinIdx(const TVVec<TType, TSizeTy, ColMajor>& X, const 
 
 // TEST
 template <class TType, class TSizeTy, bool ColMajor>
-int TLinAlgSearch::GetColMaxIdx(const TVVec<TType, TSizeTy, ColMajor>& X, const TSizeTy& ColN) {
+TSizeTy TLinAlgSearch::GetColMaxIdx(const TVVec<TType, TSizeTy, ColMajor>& X, const TSizeTy& ColN) {
 	TSizeTy Idx = -1;
 	TSizeTy Rows = X.GetRows();
-	double MaxVal = TFlt::Mn;
+	TType MaxVal = TType::Mn;
 	for (TSizeTy RowN = 0; RowN < Rows; RowN++) {
-		double Val = X.At(RowN, ColN);
+		const TType& Val = X.At(RowN, ColN);
 		if (MaxVal < Val) {
 			MaxVal = Val;
 			Idx = RowN;
 		}
 	}
 	return Idx;
-}
-
-template <class TType, class TSizeTy, bool ColMajor>
-void TLinAlgSearch::GetRowMaxIdxV(const TVVec<TType, TSizeTy, ColMajor>& X, TVec<TInt, TSizeTy>& IdxV) {
-	IdxV.Gen(X.GetRows());
-	TSizeTy Rows = X.GetRows();
-	for (TSizeTy RowN = 0; RowN < Rows; RowN++) {
-		IdxV[RowN] = TLinAlgSearch::GetRowMaxIdx(X, RowN);
-	}
-}
-
-template <class TType, class TSizeTy, bool ColMajor>
-void TLinAlgSearch::GetRowMinIdxV(const TVVec<TType, TSizeTy, ColMajor>& X, TVec<TInt, TSizeTy>& IdxV) {
-	const TSizeTy Rows = X.GetRows();
-
-	if (IdxV.Len() != Rows) { IdxV.Gen(Rows); }
-
-	for (TSizeTy RowN = 0; RowN < Rows; RowN++) {
-		IdxV[RowN] = TLinAlgSearch::GetRowMinIdx(X, RowN);
-	}
-}
-
-// find the index of maximum elements for each col of X
-template <class TType, class TSizeTy, bool ColMajor>
-void TLinAlgSearch::GetColMaxIdxV(const TVVec<TType, TSizeTy, ColMajor>& X, TVec<TInt, TSizeTy>& IdxV) {
-	IdxV.Gen(X.GetCols());
-	TSizeTy Cols = X.GetCols();
-	for (TSizeTy ColN = 0; ColN < Cols; ColN++) {
-		IdxV[ColN] = TLinAlgSearch::GetColMaxIdx(X, ColN);
-	}
 }
 
 template <class TType, class TSizeTy, bool ColMajor>
@@ -439,7 +408,7 @@ TSizeTy TLinAlgSearch::GetColMinIdx(const TVVec<TType, TSizeTy, ColMajor>& X, co
 }
 
 template <class TType, class TSizeTy, bool ColMajor>
-TType TLinAlgSearch::GetColMin(const TVVec<TType, TSizeTy, ColMajor>& X, const int& ColN) {
+TType TLinAlgSearch::GetColMin(const TVVec<TType, TSizeTy, ColMajor>& X, const TSizeTy& ColN) {
 	const TSizeTy Rows = X.GetRows();
 	EAssertR(Rows > 0, "Input matrix should have at least one row!");
 
@@ -464,11 +433,54 @@ void TLinAlgSearch::GetColMinV(const TVVec<TType, TSizeTy, ColMajor>& X, TVec<TT
 	}
 }
 
+template <class TType, class TSizeTy, bool ColMajor>
+void TLinAlgSearch::GetRowMaxIdxV(const TVVec<TType, TSizeTy, ColMajor>& X, TVec<TNum<TSizeTy>, TSizeTy>& IdxV) {
+	IdxV.Gen(X.GetRows());
+	TSizeTy Rows = X.GetRows();
+	for (TSizeTy RowN = 0; RowN < Rows; RowN++) {
+		IdxV[RowN] = TLinAlgSearch::GetRowMaxIdx(X, RowN);
+	}
+}
+
+template <class TType, class TSizeTy, bool ColMajor>
+void TLinAlgSearch::GetRowMinIdxV(const TVVec<TType, TSizeTy, ColMajor>& X, TVec<TNum<TSizeTy>, TSizeTy>& IdxV) {
+	const TSizeTy Rows = X.GetRows();
+
+	if (IdxV.Len() != Rows) { IdxV.Gen(Rows); }
+
+	for (TSizeTy RowN = 0; RowN < Rows; RowN++) {
+		IdxV[RowN] = TLinAlgSearch::GetRowMinIdx(X, RowN);
+	}
+}
+
+// find the index of maximum elements for each col of X
+template <class TType, class TSizeTy, bool ColMajor>
+void TLinAlgSearch::GetColMaxIdxV(const TVVec<TType, TSizeTy, ColMajor>& X, TVec<TNum<TSizeTy>, TSizeTy>& IdxV) {
+	IdxV.Gen(X.GetCols());
+	TSizeTy Cols = X.GetCols();
+	for (TSizeTy ColN = 0; ColN < Cols; ColN++) {
+		IdxV[ColN] = TLinAlgSearch::GetColMaxIdx(X, ColN);
+	}
+}
+
+template <class TType, class TSizeTy, bool ColMajor>
+void TLinAlgSearch::GetColMinIdxV(const TVVec<TType, TSizeTy, ColMajor>& X,
+		TVec<TNum<TSizeTy>, TSizeTy>& IdxV) {
+	const TSizeTy& Cols = X.GetCols();
+
+	if (IdxV.Empty()) { IdxV.Gen(Cols); }
+	EAssert(IdxV.Len() == Cols);
+
+	for (TSizeTy ColN = 0; ColN < Cols; ColN++) {
+		IdxV[ColN] = GetColMinIdx(X, ColN);
+	}
+}
+
 
 ///////////////////////////////////////////////////////////////////////
 // Basic Linear Algebra operations
 template <class TType, class TSizeTy>
-double TLinAlg::DotProduct(const TVec<TType, TSizeTy>& x, const TVec<TType, TSizeTy>& y) {
+TType TLinAlg::DotProduct(const TVec<TType, TSizeTy>& x, const TVec<TType, TSizeTy>& y) {
 	EAssertR(x.Len() == y.Len(), TStr::Fmt("%d != %d", x.Len(), y.Len()));
 	TType result = 0.0; const  TSizeTy Len = x.Len();
 	for (TSizeTy i = 0; i < Len; i++)
@@ -477,7 +489,7 @@ double TLinAlg::DotProduct(const TVec<TType, TSizeTy>& x, const TVec<TType, TSiz
 }
 
 template <class TType, class TSizeTy, bool ColMajor>
-double TLinAlg::DotProduct(const TVVec<TType, TSizeTy, ColMajor>& X,
+TType TLinAlg::DotProduct(const TVVec<TType, TSizeTy, ColMajor>& X,
 	int ColIdX, const TVVec<TType, TSizeTy, ColMajor>& Y, int ColIdY) {
 	EAssert(X.GetRows() == Y.GetRows());
 	TType result = 0.0; const TSizeTy len = X.GetRows();
@@ -487,7 +499,7 @@ double TLinAlg::DotProduct(const TVVec<TType, TSizeTy, ColMajor>& X,
 }
 
 template <class TType, class TSizeTy, bool ColMajor>
-double TLinAlg::DotProduct(const TVVec<TType, TSizeTy, ColMajor>& X,
+TType TLinAlg::DotProduct(const TVVec<TType, TSizeTy, ColMajor>& X,
 	int ColId, const TVec<TType, TSizeTy>& Vec) {
 
 	EAssert(X.GetRows() == Vec.Len());

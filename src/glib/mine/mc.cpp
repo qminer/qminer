@@ -2282,7 +2282,7 @@ void TCtmcModeller::InitIntensities(const TFltVV& FtrVV, const TUInt64V& TmV,
 			const TJumpFtrMat& JumpFtrVV = JumpFtrMatVV(State1Id, State2Id);
 			const TLabelV& LabelV = LabelVMat[State1Id][State2Id];
 
-			if (LabelV.Empty() || TLinAlgCheck::IsZeroOrig(LabelV)) {
+			if (LabelV.Empty() || TLinAlgCheck::IsZero(LabelV)) {
 				continue;
 			}
 
