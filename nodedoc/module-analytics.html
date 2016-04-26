@@ -46,7 +46,7 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.KMeans.html">KMeans()</a></dt>
+                    <dt><a href="module-analytics.KMeans.html">KMeans([params])</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-analytics.LogReg.html">LogReg([opts])</a></dt>
@@ -135,19 +135,25 @@
                     <dt><a href="module-analytics.html#~KMeansExplanation">KMeansExplanation</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-analytics.html#~KMeansModel">KMeansModel</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.html#~KMeansParameters">KMeansParameters</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-analytics.html#~logisticRegParam">logisticRegParam</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-analytics.html#~MDSParam">MDSParam</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.html#~NearestNeighborADExplain">NearestNeighborADExplain</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.html#~NearestNeighborADExplain">NearestNeighborADExplain</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-analytics.html#~NearestNeighborADFeatureContribution">NearestNeighborADFeatureContribution</a></dt>
                     <dd>
                     </dd>
@@ -357,6 +363,176 @@
                       </td>
                       <td>
                         <p>Weights of each feature contribution (sum to 1.0)</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~KMeansModel"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">KMeansModel</span><small class="property-type">
+            &nbsp;Object</small></h3>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>C</p>
+                      </td>
+                      <td>
+                        <p>(<a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Matrix containing the centroids.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>module:la.IntVector}</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>medoids - The cluster medoids of the training data.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>idxv</p>
+                      </td>
+                      <td>
+                        <p><a href="module-la.IntVector.html">module:la.IntVector</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The cluster ids of the training data.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~KMeansParameters"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">KMeansParameters</span><small class="property-type">
+            &nbsp;Object</small></h3>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>iter</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The maximum number of iterations.</p>
+                        <p>Defaults to <code>10000</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>k</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The number of centroids.</p>
+                        <p>Defaults to <code>2</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>allowEmpty</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>wether to allow empty clusters to be generated</p>
+                        <p>Defaults to <code>true</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>centroidType</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The type of centroids. Options: &quot;Dense&quot; or &quot;Sparse&quot;.</p>
+                        <p>Defaults to <code>"Dense"</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>distanceType</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The distance type used at the calculations. Options: &quot;Euclid&quot; or &quot;Cos&quot;.</p>
+                        <p>Defaults to <code>"Euclid"</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>verbose</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>If false, the console output is supressed.</p>
+                        <p>Defaults to <code>false</code>.</p>
                       </td>
                     </tr>
                   </tbody>

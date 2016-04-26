@@ -109,11 +109,11 @@ private:
   	PNotify Notify;
 
 public:
-  	enum TTmHistType {
-  		thtYear,
-		thtMonth,
-		thtWeek,
-		thtDay
+  	enum TTmHistType: uchar {
+  		thtYear = 0,
+		thtMonth = 1,
+		thtWeek = 2,
+		thtDay = 3
   	};
 
   	TStateIdentifier(const PDenseKMeans& KMeans, const int NHistBins, const double& Sample,
@@ -489,10 +489,6 @@ private:
 // Hierarchy modeler
 class THierarch {
 private:
-	static const double LOW_PVAL_THRESHOLD;
-	static const double LOWEST_PVAL_THRESHOLD;
-	static const double STATE_LOW_PVAL_THRESHOLD;
-
     // a vector which describes the hierarchy. each state has its own index
     // and the value at index i is the index of i-ths parent
     TIntV HierarchV;
@@ -509,7 +505,6 @@ private:
     int NLeafs;
 
     TStrV StateNmV;
-    TIntStrPrV StateAutoNmV;
     TStrV StateLabelV;
 
     TIntFltPrSet TargetIdHeightSet;
@@ -567,7 +562,6 @@ public:
 	bool IsStateNm(const int& StateId) const;
 	void SetStateNm(const int& StateId, const TStr& StateNm);
 	const TStr& GetStateNm(const int& StateId) const;
-	const TIntStrPr& GetStateAutoNm(const int& StateId) const;
 	const TStr& GetStateLabel(const int& StateId) const;
 
 	// set/remove target states
@@ -586,7 +580,6 @@ private:
 	void InitHierarchyDist(const TStateIdentifier& StateIdentifier);
 	void InitHierarchyTrans(const TStateIdentifier& StateIdentifier,
 			const TCtmcModeller& MChain);
-	void InitAutoNmV(const TStateIdentifier& StateIdentifier);
 
 	// returns the ID of the parent state
 	int GetParentId(const int& StateId) const;
@@ -625,11 +618,43 @@ private:
 /////////////////////////////////////////////////////////////////
 // UI helper
 class TUiHelper {
+public:
+	enum TAutoNmLevel: uchar {
+		anlLowest = 0xF0,
+		anlLow = 0xF1,
+		anlMeduim = 0xF2,
+		anlHigh = 0xF3,
+		anlHighest = 0xF4
+	};
+
 private:
+	typedef TTriple<TUCh, TInt, TInt> TTmDesc;
+	typedef TVec<TTmDesc> TTmDescV;
+
+	typedef TTriple<TFlt, TInt, TUCh> TAutoNmDesc;
+	typedef TVec<TAutoNmDesc> TAutoNmDescV;
+	typedef TVec<TAutoNmDescV> TAutoNmDescVV;
+
+	// state sizes and coordinates
 	static const double RADIUS_FACTOR;
 	static const double STEP_FACTOR;
 	static const double INIT_RADIUS_FACTOR;
+
+	// automatic labels
+	static const double LOW_PVAL_THRESHOLD;
+	static const double LOWEST_PVAL_THRESHOLD;
+	static const double STATE_LOW_PVAL_THRESHOLD;
+
+	// time descriptions
+	static const TStr MONTHS[12];
+	static const TStr DAYS_IN_MONTH[31];
+	static const TStr DAYS_IN_WEEK[7];
+	static const TStr HOURS_IN_DAY[24];
+
 	TFltPrV StateCoordV;
+	TIntUChPrV StateAutoNmV;
+	TAutoNmDescVV StateIdAutoNmDescVV;
+	TVec<TTmDescV> StateIdOccTmDescV;
 
 	TRnd Rnd;
 
@@ -649,6 +674,13 @@ public:
 	void SetStateCoords(const TFltPrV& CoordV);
 	void GetStateRadiusV(const TFltV& ProbV, TFltV& SizeV) const;
 
+	// time descriptions
+	const TIntUChPr& GetStateAutoNm(const int& StateId) const;
+	void GetAutoNmPValDesc(const int& StateId, TAutoNmDescV& Desc) const;
+	void GetTmDesc(const int& StateId, TStrPrV& DescIntervalV) const;
+
+	static TStr GetAutoNmLowHighDesc(const TAutoNmLevel& Level);
+
 private:
 	TFltPr& GetModStateCoords(const int& StateId);
 
@@ -658,10 +690,15 @@ private:
 	void RefineStateCoordV(const TStateIdentifier& StateIdentifier,
 			const THierarch& Hierarch, const TCtmcModeller& MChain);
 
-	void InitStateExplain(const TStateIdentifier& StateIdentifier, const THierarch& Hierarch);
+	void InitAutoNmV(const TStateIdentifier& StateIdentifier, const THierarch& Hierarch);
+	void InitStateExplain(const TStateIdentifier& StateIdentifier, const THierarch& Hierarch,
+			const TCtmcModeller& TransModeler);
 	bool HasMxPeaks(const int& MxPeakCount, const double& PeakMassThreshold, const TFltV& PdfHist,
 			 TIntPrV& PeakBorderV, double& PeakMass, int& PeakBinCount) const;
 
+	void GetTmDesc(const int& StateId, TTmDescV& DescV) const;
+
+	static void GetTimeDescStr(const TTmDesc& Desc, TStrPr& StrDesc);
 	static double GetStateRaduis(const double& Prob);
 	static bool NodesOverlap(const int& StartId, const int& EndId, const TFltPrV& CoordV,
 			const TFltV& RaduisV);
@@ -670,6 +707,8 @@ private:
 	static double GetOverlap(const TFltPr& Pos1, const TFltPr& Pos2,
 			const double& Raduis1, const double& Raduis2);
 	static void GetMoveDir(const TFltPr& Pos1, const TFltPr& Pos2, TFltPr& Dir);
+	static TAutoNmLevel GetAutoNmLevel(const double& PVal, const double& LowPercPVal,
+			const double& HighPercPVal);
 };
 
 ////////////////////////////////////////////////
@@ -808,7 +847,7 @@ public:
 	PJsonVal GetLikelyPathTreeJson(const int& StateId, const double& Height, const int& Depth,
 			const double& TransThreshold) const;
 
-	static PJsonVal GetAutoNmJson(const TIntStrPr& FtrIdRngPr);
+	static PJsonVal GetAutoNmJson(const TIntUChPr& FtrIdRngPr);
 
 	// update methods
 	// initializes the model
@@ -854,11 +893,11 @@ public:
 			TVec<TPair<TFlt, TIntFltPrV>>& HeightStateIdProbPrVPrV) const;
 
 	// histograms
-	void GetHistogram(const int& StateId, const int& FtrId, TFltV& BinValV, TFltV& ProbV,
-			TFltV& AllProbV) const;
+	void GetHistogram(const int& StateId, const int& FtrId, TFltV& BinValV, TFltV& CountV,
+			TFltV& AllCountV) const;
 	void GetTransitionHistogram(const int& SourceId, const int& TargetId,
-			const int& FtrId, TFltV& BinStartV, TFltV& SourceProbV, TFltV& TargetProbV,
-			TFltV& AllProbV) const;
+			const int& FtrId, TFltV& BinStartV, TFltV& SourceCountV, TFltV& TargetCountV,
+			TFltV& AllCountV) const;
 	void GetGlobalTimeHistogram(const int& StateId, TUInt64V& TmV, TFltV& ProbV,
 			const int& NBins=-1) const;
 	void GetTimeHistogram(const int& StateId, const TStateIdentifier::TTmHistType& HistType,
@@ -911,7 +950,9 @@ public:
 
     const TFltPr& GetFtrBounds(const int& FtrId) const;
     const TStr& GetStateLabel(const int& StateId) const;
-    const TIntStrPr& GetStateAutoNm(const int& StateId) const;
+    const TIntUChPr& GetStateAutoNm(const int& StateId) const;
+    void GetStateFtrPValDesc(const int& StateId, TVec<TTriple<TFlt, TInt, TUCh>>& Desc) const;
+    void GetStateTmDesc(const int& StateId, TStrPrV& StateIntervalV) const;
     const TStr& GetStateNm(const int& StateId) const;
 
     // get/set parameters

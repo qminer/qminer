@@ -3257,12 +3257,16 @@
      * @property {String} opts.fname - name of the output file
      * @property {Boolean} [opts.includeHeaders] - indicates wether to include the header in the first line
      * @property {String} [opts.timestampType] - If set to &#x27;ISO&#x27;, datetime fields will be printed as ISO dates, otherwise as timestamps. Defaults to &#x27;timestamp&#x27;.
+     * @property {String} [opts.escapeChar] - character which escapes quotes
      */
     exports.RecSet.prototype.saveCsv = function (opts) {
     	if (opts == null || opts.fname == null) throw new Error(&#x27;Missing parameter fname!&#x27;);
     	if (opts.includeHeaders == null) opts.includeHeaders = true;
     	if (opts.timestampType == null) opts.timestampType = &#x27;timestamp&#x27;;
+    	if (opts.escapeChar == null) opts.escapeChar = &#x27;&quot;&#x27;;
 
+    	var escapeStr = opts.escapeChar + &#x27;&quot;&#x27;;
+    	
     	// read field descriptions
     	var fields = this.store.fields;
     	var fieldDesc = [];
@@ -3287,7 +3291,7 @@
     	if (opts.includeHeaders) {
     		var headerLine = &#x27;&#x27;;
     		for (var i = 0; i &amp;lt; nFields; i++) {
-    			headerLine += &#x27;&quot;&#x27; + fieldDesc[i].name.replace(/&quot;/g, &#x27;\\&quot;&#x27;) + &#x27;&quot;&#x27;;
+    			headerLine += &#x27;&quot;&#x27; + fieldDesc[i].name.replace(/&quot;/g, escapeStr) + &#x27;&quot;&#x27;;
     			if (i &amp;lt; nFields - 1)
     				headerLine += &#x27;,&#x27;;
     		}
@@ -3309,7 +3313,7 @@
 	    			} else if (type == &#x27;datetime&#x27;) {
 	    				line += useTimestamp ? fldVal.getTime() : fldVal.toISOString();
 	    			} else if (type == &#x27;string&#x27;) {
-	    				line += &#x27;&quot;&#x27; + fldVal + &#x27;&quot;&#x27;;
+	    				line += &#x27;&quot;&#x27; + fldVal.replace(/&quot;/g, escapeStr) + &#x27;&quot;&#x27;;
 	    			} else {
 	    				throw new Error(&#x27;Invalid type of field: &#x27; + type);
 	    			}
