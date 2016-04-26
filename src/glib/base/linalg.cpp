@@ -873,7 +873,7 @@ void TLinAlg::LinComb(const double& p, const TFltVV& X, const double& q, const T
         int KeyN = 0;
         for (int RowN = 0; RowN < Rows; RowN++) {
             Z.At(RowN, ColN) = p*X.At(RowN, ColN);
-            if (Y[ColN][KeyN].Key == RowN) {
+            if (KeyN < Y[ColN].Len() && Y[ColN][KeyN].Key == RowN) {
                 Z.At(RowN, ColN) += q*Y[ColN][KeyN].Dat; KeyN++;
             }
         }
