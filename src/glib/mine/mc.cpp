@@ -3366,7 +3366,7 @@ PJsonVal TUiHelper::TNumAutoNmDesc::GetJson() const {
 		break;
 	}
 	default:
-		throw TExcept::New("Unknown level " + TUCh(GetLevel()));
+		throw TExcept::New("Unknown level " + TInt(GetLevel()).GetStr());
 	}
 
 	return Result;

@@ -843,17 +843,6 @@ void TLinAlg::LinComb(const double& p, const TFltVV& X, int DimId,
 		}
 	}
 }
-void TLinAlg::LinComb(const double& p, const TFltVV& X, const double& q, const TFltVV& Y, TFltVV& Z) {
-	if (Z.Empty()) Z.Gen(X.GetRows(), X.GetCols());
-	EAssert(X.GetRows() == Y.GetRows() && X.GetCols() == Y.GetCols() && X.GetRows() == Z.GetRows() && X.GetCols() == Z.GetCols());
-	int Rows = X.GetRows();
-	int Cols = X.GetCols();
-	for (int RowN = 0; RowN < Rows; RowN++) {
-		for (int ColN = 0; ColN < Cols; ColN++) {
-			Z.At(RowN, ColN) = p*X.At(RowN, ColN) + q*Y.At(RowN, ColN);
-		}
-	}
-}
 
 void TLinAlg::LinComb(const double& p, const TVec<TIntFltKdV>& X, const double& q, const TVec<TIntFltKdV>& Y, TVec<TIntFltKdV>& Z) {
     if (Z.Empty()) { Z.Gen(X.Len()); }

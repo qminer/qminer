@@ -614,23 +614,6 @@ void TLinAlg::HadamardProd(const TVec<TIntFltKdV>& X, const TVVec<TType, TSizeTy
 	}
 }
 
-// z := p * x + q * y
-//TODO should double be TType?
-template <class TType, class TSizeTy>
-void TLinAlg::LinComb(const double& p, const TVec<TType, TSizeTy>& x,
-	const double& q, const TVec<TType, TSizeTy>& y, TVec<TType, TSizeTy>& z) {
-	if (z.Len() == 0) {
-		EAssert(x.Len() == y.Len());
-		z.Gen(x.Len());
-	} else {
-		EAssert(x.Len() == y.Len() && y.Len() == z.Len());
-	}
-	const TSizeTy Len = x.Len();
-	for (TSizeTy i = 0; i < Len; i++) {
-		z[i] = p * x[i] + q * y[i];
-	}
-}
-
 //TODO this will work only for glib type TFlt
 template <class TType, class TSizeTy, bool ColMajor>
 void TLinAlg::LinCombInPlace(const TType& alpha, const TVec<TNum<TType>, TSizeTy>& x,
@@ -662,9 +645,22 @@ void TLinAlg::LinCombInPlace(const TType& alpha, const TVec<TNum<TType>, TSizeTy
 	LinComb(alpha, x, beta, y, y);
 #endif
 }
-// TEST
-// Z := p * X + q * Y
-//TODO double or type?
+
+template <class TType, class TSizeTy>
+void TLinAlg::LinComb(const double& p, const TVec<TType, TSizeTy>& x,
+	const double& q, const TVec<TType, TSizeTy>& y, TVec<TType, TSizeTy>& z) {
+	if (z.Len() == 0) {
+		EAssert(x.Len() == y.Len());
+		z.Gen(x.Len());
+	} else {
+		EAssert(x.Len() == y.Len() && y.Len() == z.Len());
+	}
+	const TSizeTy Len = x.Len();
+	for (TSizeTy i = 0; i < Len; i++) {
+		z[i] = p * x[i] + q * y[i];
+	}
+}
+
 template <class TType, class TSizeTy, bool ColMajor>
 void TLinAlg::LinComb(const double& p, const TVVec<TType, TSizeTy, ColMajor>& X,
 	const double& q, const TVVec<TType, TSizeTy, ColMajor>& Y, TVVec<TType, TSizeTy, ColMajor>& Z) {

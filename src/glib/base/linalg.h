@@ -647,14 +647,18 @@ public:
 	// SUMS AND LINEAR COMBINATIONS
 	//===========================================================
 
-	TEMPLATE_TDnsV
-	static void LinComb(const double& p, const TDnsV& x, const double& q, const TDnsV& y,
-			TDnsV& z);
 	//TODO this will work only for glib type TFlt
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void LinCombInPlace(const TType& alpha, const TVec<TNum<TType>, TSizeTy>& x,
 		const TType& beta, TVec<TNum<TType>, TSizeTy>& y);
 
+	//TODO should double be TType?
+	// z := p * x + q * y
+	TEMPLATE_TDnsV
+	static void LinComb(const double& p, const TDnsV& x, const double& q, const TDnsV& y,
+			TDnsV& z);
+
+	// Z := p * X + q * Y
 	TEMPLATE_TDnsVV
 	static void LinComb(const double& p, const TDnsVV& X, const double& q, const TDnsVV& Y,
 			TDnsVV& Z);
@@ -664,7 +668,6 @@ public:
 		const double& q, const TFltV& y, TFltV& z);
 	static void LinComb(const double& p, const TFltVV& X, int DimId,
 		const double& q, const TFltV& y, TFltV& z, int Dim);
-	static void LinComb(const double& p, const TFltVV& X, const double& q, const TFltVV& Y, TFltVV& Z);
 	static void LinComb(const double& p, const TVec<TIntFltKdV>& X, const double& q, const TVec<TIntFltKdV>& Y, TVec<TIntFltKdV>& Z);
     static void LinComb(const double& p, const TFltVV& X, const double& q, const TVec<TIntFltKdV>& Y, TFltVV& Z);
     static void LinComb(const double& p, const TVec<TIntFltKdV>& X, const double& q, TFltVV const& Y, TVec<TIntFltKdV>& Z);
