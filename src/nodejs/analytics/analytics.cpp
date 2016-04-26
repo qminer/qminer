@@ -432,7 +432,7 @@ void TNodeJsSVC::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		if (TNodeJsUtil::IsArgWrapObj<TNodeJsSpMat>(Args, 0)) {
 			TVec<TIntFltKdV>& VecV = ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject())->Mat;
 			if (JsModel->Algorithm == "SGD") {
-				JsModel->Model = TSvm::SolveClassify<TVec<TIntFltKdV>>(VecV, TLAMisc::GetMaxDimIdx(VecV) + 1,
+				JsModel->Model = TSvm::SolveClassify<TVec<TIntFltKdV>>(VecV, TLinAlgSearch::GetMaxDimIdx(VecV) + 1,
 					VecV.Len(), ClsV, JsModel->SvmCost, JsModel->SvmUnbalance, JsModel->MxTime,
 					JsModel->MxIter, JsModel->MnDiff, JsModel->SampleSize, JsModel->Notify);
 			}
@@ -524,7 +524,7 @@ void TNodeJsSVR::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		if (TNodeJsUtil::IsArgWrapObj<TNodeJsSpMat>(Args, 0)) {
 			TVec<TIntFltKdV>& VecV = ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject())->Mat;
 			if (JsModel->Algorithm == "SGD") {
-				JsModel->Model = TSvm::SolveRegression<TVec<TIntFltKdV>>(VecV, TLAMisc::GetMaxDimIdx(VecV) + 1,
+				JsModel->Model = TSvm::SolveRegression<TVec<TIntFltKdV>>(VecV, TLinAlgSearch::GetMaxDimIdx(VecV) + 1,
 					VecV.Len(), ClsV, JsModel->SvmCost, JsModel->SvmEps, JsModel->MxTime,
 					JsModel->MxIter, JsModel->MnDiff, JsModel->SampleSize, JsModel->Notify);
 			}
@@ -1641,7 +1641,7 @@ void TNodeJsStreamStory::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "timeHistogram", _timeHistogram);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getFtrBounds", _getFtrBounds);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "stateIds", _stateIds);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "getStateWgtV", _getStateWgtV);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getWeights", _getWeights);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getClassifyTree", _getClassifyTree);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "explainState", _explainState);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "setActivity", _setActivity);
@@ -1739,10 +1739,18 @@ TNodeJsStreamStory* TNodeJsStreamStory::NewFromArgs(const v8::FunctionCallbackIn
 
 		TMc::TStateIdentifier* StateIdentifier = new TMc::TStateIdentifier(GetClust(ClustJson, Rnd), NHistBins, Sample, Rnd, Verbose);
 		TMc::TCtmcModeller* MChain = new TMc::TCtmcModeller(TimeUnit, DeltaTm, Verbose);
-		TMc::THierarch* Hierarch = new TMc::THierarch(NPastStates + 1, IsTransitionBased, Verbose);
+		TMc::THierarch* Hierarch = new TMc::THierarch(NPastStates + 1, IsTransitionBased, Rnd, Verbose);
+
+		TMc::TStreamStory* StreamStory = new TMc::TStreamStory(
+				StateIdentifier,
+				MChain,
+				Hierarch,
+				Rnd,
+				Verbose
+		);
 
 		// finish
-		return new TNodeJsStreamStory(new TMc::TStreamStory(StateIdentifier, MChain, Hierarch, Rnd, Verbose));
+		return new TNodeJsStreamStory(StreamStory);
 	}
 }
 
@@ -1758,7 +1766,7 @@ TNodeJsStreamStory::TFitTask::TFitTask(const v8::FunctionCallbackInfo<v8::Value>
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	EAssertR(Args.Length() == 2, "hmc.fit expects 2 arguments!");
+	EAssertR(Args.Length() > 0, "ss.fitAsync expects at least one argument!");
 
 	JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 	v8::Local<v8::Object> ArgObj = Args[0]->ToObject();
@@ -1771,6 +1779,9 @@ TNodeJsStreamStory::TFitTask::TFitTask(const v8::FunctionCallbackInfo<v8::Value>
 	JsControlFtrVV = TNodeJsUtil::GetUnwrapFld<TNodeJsFltVV>(ArgObj, "controls");
 	JsIgnoredFtrVV = TNodeJsUtil::GetUnwrapFld<TNodeJsFltVV>(ArgObj, "ignored");
 	JsRecTmV = TNodeJsUtil::GetUnwrapFld<TNodeJsFltV>(ArgObj, "times");
+
+	// parse the attribute types
+	ParseFtrInfo(TNodeJsUtil::GetFldJson(ArgObj, "ftrInfo"), ObsFtrInfo, ContrFtrInfo, IgnFtrInfo);
 
 	if (!TNodeJsUtil::IsFldNull(ArgObj, "batchV")) {
 		EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "batchV", TNodeJsBoolV::GetClassId()), "Invalid class of field batchV!");
@@ -1788,14 +1799,20 @@ void TNodeJsStreamStory::TFitTask::Run() {
 
 		if (JsBatchEndJsV != nullptr) {
 			const TBoolV& BatchEndV = JsBatchEndJsV->Vec;
-			JsStreamStory->StreamStory->InitBatches(JsObservFtrVV->Mat, JsControlFtrVV->Mat, JsIgnoredFtrVV->Mat, RecTmV, BatchEndV);
+			JsStreamStory->StreamStory->InitBatches(ObsFtrInfo, ContrFtrInfo, IgnFtrInfo, JsObservFtrVV->Mat, JsControlFtrVV->Mat, JsIgnoredFtrVV->Mat, RecTmV, BatchEndV);
 		} else {
-			JsStreamStory->StreamStory->Init(JsObservFtrVV->Mat, JsControlFtrVV->Mat, JsIgnoredFtrVV->Mat, RecTmV);
+			JsStreamStory->StreamStory->Init(ObsFtrInfo, ContrFtrInfo, IgnFtrInfo, JsObservFtrVV->Mat, JsControlFtrVV->Mat, JsIgnoredFtrVV->Mat, RecTmV);
 		}
 	} catch (const PExcept& _Except) {
 		SetExcept(_Except);
 	}
 }
+
+TNodeJsStreamStory::TProgressTask::TProgressTask(const int& _Perc, const TStr& _Msg,
+		v8::Persistent<v8::Function>* _ProgressCallback):
+	Perc(_Perc),
+	Msg(_Msg),
+	ProgressCallback(_ProgressCallback) {}
 
 void TNodeJsStreamStory::TProgressTask::Run() {
 	if (!ProgressCallback->IsEmpty()) {
@@ -2231,8 +2248,6 @@ void TNodeJsStreamStory::stateIds(const v8::FunctionCallbackInfo<v8::Value>& Arg
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	EAssertR(Args.Length() == 1, "hmc.stateIds: expects 1 argument!");
-
 	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
 	const double Height = TNodeJsUtil::GetArgFlt(Args, 0);
@@ -2248,25 +2263,16 @@ void TNodeJsStreamStory::stateIds(const v8::FunctionCallbackInfo<v8::Value>& Arg
 	Args.GetReturnValue().Set(StateIdJsV);
 }
 
-void TNodeJsStreamStory::getStateWgtV(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsStreamStory::getWeights(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-
-	EAssertR(Args.Length() == 1, "hmc.getStateWgtV: expects 1 argument!");
 
 	TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
 	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
+	const PJsonVal WgtJson = JsMChain->StreamStory->GetStateWgtV(StateId);
 
-	TFltV WgtV;
-	JsMChain->StreamStory->GetStateWgtV(StateId, WgtV);
-
-	v8::Local<v8::Array> JsWgtV = v8::Array::New(Isolate, WgtV.Len());
-	for (int i = 0; i < WgtV.Len(); i++) {
-		JsWgtV->Set(i, v8::Number::New(Isolate, WgtV[i]));
-	}
-
-	Args.GetReturnValue().Set(JsWgtV);
+	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, WgtJson));
 }
 
 void TNodeJsStreamStory::getClassifyTree(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -2514,8 +2520,8 @@ void TNodeJsStreamStory::getStateAutoName(const v8::FunctionCallbackInfo<v8::Val
 	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
 	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
-	const TIntUChPr& StateAutoNm = JsStreamStory->StreamStory->GetStateAutoNm(StateId);
-	const PJsonVal AutoNmJson = TMc::TStreamStory::GetAutoNmJson(StateAutoNm);
+	const TMc::TUiHelper::PAutoNmDesc& StateAutoNm = JsStreamStory->StreamStory->GetStateAutoNm(StateId);
+	const PJsonVal AutoNmJson = StateAutoNm->GetJson();
 
 	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, AutoNmJson));
 }
@@ -2528,19 +2534,13 @@ void TNodeJsStreamStory::narrateState(const v8::FunctionCallbackInfo<v8::Value>&
 
 	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
 
-	TVec<TTriple<TFlt, TInt, TUCh>> StateFtrDescV;
+	TVec<TMc::TUiHelper::PAutoNmDesc> StateFtrDescV;
 	JsStreamStory->StreamStory->GetStateFtrPValDesc(StateId, StateFtrDescV);
 
 	PJsonVal Result = TJsonVal::NewArr();
 	for (int DescN = 0; DescN < StateFtrDescV.Len(); DescN++) {
-		const TTriple<TFlt, TInt, TUCh>& FtrDesc = StateFtrDescV[DescN];
-
-		PJsonVal DescJson = TJsonVal::NewObj();
-		DescJson->AddToObj("p", FtrDesc.Val1);
-		DescJson->AddToObj("ftrId", FtrDesc.Val2);
-		DescJson->AddToObj("ftrDesc", TMc::TUiHelper::GetAutoNmLowHighDesc((TMc::TUiHelper::TAutoNmLevel) ((uchar) FtrDesc.Val3)));
-
-		Result->AddToArr(DescJson);
+		const TMc::TUiHelper::PAutoNmDesc& FtrDesc = StateFtrDescV[DescN];
+		Result->AddToArr(FtrDesc->GetNarrateJson());
 	}
 
 	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, Result));
@@ -3007,6 +3007,36 @@ TClustering::TAbsKMeans<TFltVV>* TNodeJsStreamStory::GetClust(const PJsonVal& Pa
 		return new TClustering::TDnsKMeans<TFltVV>(K, Rnd);
 	} else {
 		throw TExcept::New("Invalid clustering type: " + ClustAlg, "TJsHierCtmc::TJsHierCtmc");
+	}
+}
+
+void TNodeJsStreamStory::ParseFtrInfo(const PJsonVal& InfoJson, TMc::TFtrInfoV& ObsFtrInfoV,
+		TMc::TFtrInfoV& ContrFtrInfoV, TMc::TFtrInfoV& IgnFtrInfo) {
+	PJsonVal ObsAttrInfoJson = InfoJson->GetObjKey("observation");
+	PJsonVal ContrAttrInfoJson = InfoJson->GetObjKey("control");
+	PJsonVal IgnAttrInfoJson = InfoJson->GetObjKey("ignored");
+
+	ParseFtrInfo(ObsAttrInfoJson, ObsFtrInfoV);
+	ParseFtrInfo(ContrAttrInfoJson, ContrFtrInfoV);
+	ParseFtrInfo(IgnAttrInfoJson, IgnFtrInfo);
+}
+
+void TNodeJsStreamStory::ParseFtrInfo(const PJsonVal& InfoJsonV, TMc::TFtrInfoV& FtrInfoV) {
+	EAssertR(InfoJsonV->IsArr(), "Attribute info is not an array!");
+
+	for (int FtrN = 0; FtrN < InfoJsonV->GetArrVals(); FtrN++) {
+		const PJsonVal& InfoJson = InfoJsonV->GetArrVal(FtrN);
+		const TStr& Type = InfoJson->GetObjStr("type");
+
+		if (Type == "numeric") {
+			FtrInfoV.Add(TMc::TFtrInfo(TMc::ftNumeric, InfoJson->GetObjInt("offset"), InfoJson->GetObjInt("length")));
+		}
+		else if (Type == "nominal") {
+			FtrInfoV.Add(TMc::TFtrInfo(TMc::ftCategorical, InfoJson->GetObjInt("offset"), InfoJson->GetObjInt("length")));
+		}
+		else {
+			throw TExcept::New("Only numeric features currently supported!");
+		}
 	}
 }
 
@@ -4097,7 +4127,7 @@ void TNodeJsKMeans::permuteCentroids(const v8::FunctionCallbackInfo<v8::Value>& 
         
         TIntV& Mapping = TNodeJsUtil::GetArgUnwrapObj<TNodeJsIntV>(Args, 0)->Vec;
         EAssertR(Mapping.Len() == JsKMeans->K, "KMeans.permuteCentroids: Length of parameter must be equal to K!");
-        EAssertR(TLAMisc::GetMaxVal(Mapping) + 1 == JsKMeans->K, "KMeans.permuteCentroids: maximum index of parameter must be equal to number of centroids!");
+        EAssertR(TLinAlgSearch::GetMaxVal(Mapping) + 1 == JsKMeans->K, "KMeans.permuteCentroids: maximum index of parameter must be equal to number of centroids!");
 
         if (JsKMeans->CentType == TCentroidType::ctDense) {
             ((TClustering::TDnsKMeans<TFltVV>*)JsKMeans->Model)->PermutateCentroids(Mapping);

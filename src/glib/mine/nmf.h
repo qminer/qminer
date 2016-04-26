@@ -35,7 +35,6 @@ private:
 	// types of gradient calculations
 	enum TGradType { gtNormal, gtWeighted };
 
-	template <class TMatType>
 	static void InitializationUV(const int& Rows, const int& Cols, const int& R, TFltVV& U, TFltVV& V);
 
 	// weight initializations
@@ -202,12 +201,6 @@ void TNmf::WeightedCFO(const TMatType& A, const int& R, TFltVV& U, TFltVV& V, co
 }
 
 template <class TMatType>
-void TNmf::InitializationUV(const int& Rows, const int& Cols, const int& R, TFltVV& U, TFltVV& V) {
-	U.Gen(Rows, R); TLAMisc::FillRnd(U);
-	V.Gen(R, Cols); TLAMisc::FillRnd(V);
-}
-
-template <class TMatType>
 double TNmf::StoppingCondition(const TMatType& A, const TFltVV& U, const TFltVV& V, const double& Eps,
 	const TGradType& GradType) {
 	const int Rows = NumOfRows(A);
@@ -311,7 +304,7 @@ void TNmf::UpdateU(const TMatType& A, TFltVV& U, const TFltVV& V, double& L1, co
 	// update matrix U = [U - 1/L1 * GradU]+
 	const TFltVV OldU = U; 
 	TLinAlg::LinComb(1, OldU, -1 / L1, GradU, U);
-	TLAMisc::NonNegProj(U);
+	TLinAlg::NonNegProj(U);
 
 	// prepare the condition variables
 	TFltVV UU; TLinAlg::MultiplyT(U, U, UU);
@@ -327,7 +320,7 @@ void TNmf::UpdateU(const TMatType& A, TFltVV& U, const TFltVV& V, double& L1, co
 		// update the matrix U
 		L1 = L1 * beta;
 		TLinAlg::LinComb(1, OldU, -1 / L1, GradU, U);
-		TLAMisc::NonNegProj(U);
+		TLinAlg::NonNegProj(U);
 
 		// update the matrices for the condition
 		TLinAlg::MultiplyT(U, U, UU);
@@ -350,7 +343,7 @@ void TNmf::UpdateWeightedU(const TMatType& A,  TFltVV& U, const TFltVV& V, const
 	// update matrix U = [U - 1/L1 * GradU]+
 	const TFltVV OldU = U;
 	TLinAlg::LinComb(1, OldU, -1 / L1, GradU, U);
-	TLAMisc::NonNegProj(U);
+	TLinAlg::NonNegProj(U);
 
 	// prepare the condition variables
 	TFltVV UOldU; TLinAlg::LinComb(1, U, -1, OldU, UOldU);
@@ -362,7 +355,7 @@ void TNmf::UpdateWeightedU(const TMatType& A,  TFltVV& U, const TFltVV& V, const
 		// update the matrix U
 		L1 = L1 * beta;
 		TLinAlg::LinComb(1, OldU, -1 / L1, GradU, U);
-		TLAMisc::NonNegProj(U);
+		TLinAlg::NonNegProj(U);
 
 		// update the matrices for the condition
 		TLinAlg::Multiply(U, V, UV);
@@ -384,7 +377,7 @@ void TNmf::UpdateV(const TMatType& A, const TFltVV& U, TFltVV& V, double& L2, co
 	// update matrix V = [V - 1/L2 * GradV]+
 	const TFltVV OldV = V;
 	TLinAlg::LinComb(1, OldV, -1 / L2, GradV, V);
-	TLAMisc::NonNegProj(V);
+	TLinAlg::NonNegProj(V);
 
 	// prepare the condition variables
 	TFltVV VT; TLinAlg::Transpose(V, VT);
@@ -400,7 +393,7 @@ void TNmf::UpdateV(const TMatType& A, const TFltVV& U, TFltVV& V, double& L2, co
 		// update the matrix V
 		L2 = L2 * beta;
 		TLinAlg::LinComb(1, OldV, -1 / L2, GradV, V);
-		TLAMisc::NonNegProj(V);
+		TLinAlg::NonNegProj(V);
 
 		// update the matrices for the condition
 		TLinAlg::Transpose(V, VT);
@@ -424,7 +417,7 @@ void TNmf::UpdateWeightedV(const TMatType& A, const TFltVV& U, TFltVV& V, const 
 	// update matrix V = [V - 1/L2 * GradV]+
 	const TFltVV OldV = V;
 	TLinAlg::LinComb(1, OldV, -1 / L2, GradV, V);
-	TLAMisc::NonNegProj(V);
+	TLinAlg::NonNegProj(V);
 
 	// prepare the condition variables
 	TFltVV WUV; TLinAlg::HadamardProd(W, UV, WUV);
@@ -436,7 +429,7 @@ void TNmf::UpdateWeightedV(const TMatType& A, const TFltVV& U, TFltVV& V, const 
 		// update the matrix V
 		L2 = L2 * beta;
 		TLinAlg::LinComb(1, OldV, -1 / L2, GradV, V);
-		TLAMisc::NonNegProj(V);
+		TLinAlg::NonNegProj(V);
 
 		// update the matrices for the condition
 		TLinAlg::Multiply(U, V, UV);

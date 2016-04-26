@@ -64,16 +64,16 @@ void TNumeric::AddFtr(const double& Val, TFltV& FullV, int& Offset) const {
     FullV[Offset] = GetFtr(Val); Offset++;
 }
 
-double TNumeric::InvFtr(const TFltV& FullV, int& Offset) const {
-	double Val = FullV[Offset++];
+double TNumeric::InvFtr(const double& FtrVal) const {
+	double InvVal = FtrVal;
 	if (Type == ntNormalizeVar) {
 		double M2 = Var.GetStDev();
-		if (M2 > 0) Val *= M2;
-		Val += Var.GetMean();
+		if (M2 > 0) InvVal *= M2;
+		InvVal += Var.GetMean();
 	} else if (Type != ntNone && MnVal < MxVal) {
-		Val =  Val*(MxVal - MnVal) + MnVal;
+		InvVal =  InvVal*(MxVal - MnVal) + MnVal;
 	}
-	return Val;
+	return InvVal;
 }
 
 ///////////////////////////////////////
@@ -127,6 +127,10 @@ void TCategorical::AddFtr(const TStr& Val, TFltV& FullV, int& Offset) const {
     if (Dim != -1) { FullV[Offset + Dim] = 1.0; }
     // update offset
     Offset += GetDim();
+}
+
+TStr TCategorical::GetVal(const int& ValN) const {
+	return (Type == ctHash) ? TInt::GetStr(ValN) : ValSet.GetKey(ValN);
 }
 
 ///////////////////////////////////////

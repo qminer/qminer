@@ -9,6 +9,10 @@
 ///////////////////////////////////////////
 // Non-negative matrix factorization
 
+void TNmf::InitializationUV(const int& Rows, const int& Cols, const int& R, TFltVV& U, TFltVV& V) {
+	U.Gen(Rows, R); TLinAlgTransform::FillRnd(U);
+	V.Gen(R, Cols); TLinAlgTransform::FillRnd(V);
+}
 
 void TNmf::InitWeights(const TFltVV& A, TFltVV& W) {
 	int Rows = A.GetRows();
@@ -48,7 +52,7 @@ void TNmf::UpdateScaling(TFltVV& U, TFltVV& V) {
 }
 
 int TNmf::NumOfRows(const TFltVV& Mat) { return Mat.GetRows(); }
-int TNmf::NumOfRows(const TVec<TIntFltKdV>& Mat) { return TLAMisc::GetMaxDimIdx(Mat) + 1; }
+int TNmf::NumOfRows(const TVec<TIntFltKdV>& Mat) { return TLinAlgSearch::GetMaxDimIdx(Mat) + 1; }
 
 int TNmf::NumOfCols(const TFltVV& Mat) { return Mat.GetCols(); }
 int TNmf::NumOfCols(const TVec<TIntFltKdV>& Mat) { return Mat.Len(); }

@@ -394,7 +394,7 @@ TLinModel SolveClassify(const TVecV& VecV, const int& Dims, const int& Vecs,
     TRnd Rnd(1); 
     const double Lambda = 1.0 / (double(Vecs) * Cost);
     // we start with random normal vector
-    TFltV WgtV(Dims); TLAMisc::FillRnd(WgtV, Rnd); TLinAlg::Normalize(WgtV);
+    TFltV WgtV(Dims); TLinAlgTransform::FillRnd(WgtV, Rnd); TLinAlg::Normalize(WgtV);
     // make it of appropriate length
     TLinAlg::MultiplyScalar(1.0 / (2.0 * TMath::Sqrt(Lambda)), WgtV, WgtV);
     // allocate space for updates
@@ -524,7 +524,7 @@ inline TLinModel SolveRegression(const TVecV& VecV, const int& Dims, const int& 
 	TRnd Rnd(1);
 	const double Lambda = 1.0 / (double(Vecs) * Cost);
 	// we start with random normal vector
-	TFltV WgtV(Dims); TLAMisc::FillRnd(WgtV, Rnd); TLinAlg::Normalize(WgtV);
+	TFltV WgtV(Dims); TLinAlgTransform::FillRnd(WgtV, Rnd); TLinAlg::Normalize(WgtV);
 	// Scale it to appropriate norm
 	TLinAlg::MultiplyScalar(1.0 / (2.0 * TMath::Sqrt(Lambda)), WgtV, WgtV);
 

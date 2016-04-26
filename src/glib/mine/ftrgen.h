@@ -39,7 +39,10 @@ public:
     void AddFtr(const double& Val, TIntFltKdV& SpV, int& Offset) const;
     void AddFtr(const double& Val, TFltV& FullV, int& Offset) const;
     
-    double InvFtr(const TFltV& FullV, int& Offset) const;
+    double InvFtr(const double& Val) const;
+
+    const TFlt& GetMn() const { return MnVal; }
+    const TFlt& GetMx() const { return MxVal; }
 
     int GetDim() const { return 1; }
 };
@@ -72,7 +75,7 @@ public:
     void AddFtr(const TStr& Val, TFltV& FullV, int& Offset) const;
 
     int GetDim() const { return (Type == ctHash) ? HashDim.Val : ValSet.Len(); }
-    TStr GetVal(const int& ValN) const { return (Type == ctHash) ? "hash" : ValSet.GetKey(ValN); }
+    TStr GetVal(const int& ValN) const;
 };
 
 ///////////////////////////////////////

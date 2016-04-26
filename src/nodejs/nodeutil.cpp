@@ -419,6 +419,24 @@ double TNodeJsUtil::GetArgFlt(const v8::FunctionCallbackInfo<v8::Value>& Args, c
     return DefVal;
 }
 
+void TNodeJsUtil::GetArgFltV(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, TFltV& FltV) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    EAssert(Args.Length() > ArgN);
+	EAssertR(Args[ArgN]->IsArray(), "TNodeJsUtil::GetArgFltV: Argument is not an array!");
+	v8::Array* Arr = v8::Array::Cast(*Args[ArgN]);
+
+	const int Len = Arr->Length();
+
+	FltV.Gen(Len);
+	for (int i = 0; i < Len; i++) {
+		v8::Local<v8::Value> ArrVal = Arr->Get(i);
+		EAssertR(ArrVal->IsNumber(), "TNodeJsUtil::GetArgFltV: Value is not a number!");
+		FltV[i] = ArrVal->NumberValue();
+	}
+}
+
 /// Extract argument ArgN as TStr
 TStr TNodeJsUtil::GetArgStr(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -458,7 +476,7 @@ TStr TNodeJsUtil::GetArgStr(const v8::FunctionCallbackInfo<v8::Value>& Args, con
 
 PJsonVal TNodeJsUtil::GetArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
     EAssertR(Args.Length() >= ArgN, "TNodeJsUtil::GetArgJson: Invalid number of arguments!");
-    EAssertR(Args[ArgN]->IsObject(), "TNodeJsUtil::GetArgJson: Argument is not an object!");
+    EAssertR(Args[ArgN]->IsObject(), "TNodeJsUtil::GetArgJson: Argument is not an object, number or boolean!");
 	return GetObjJson(Args[ArgN]->ToObject());
 }
 
@@ -560,26 +578,26 @@ PJsonVal TNodeJsUtil::GetFldJson(v8::Local<v8::Object> Obj, const TStr& FldNm) {
 
 v8::Local<v8::Object> TNodeJsUtil::GetFldObj(v8::Local<v8::Object> Obj, const TStr& FldNm) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
+	v8::EscapableHandleScope HandleScope(Isolate);
 
 	EAssertR(IsObjFld(Obj, FldNm), "TNodeJsUtil::GetUnwrapFld: Key " + FldNm + " is missing!");
 	v8::Handle<v8::Value> FldVal = Obj->Get(v8::String::NewFromUtf8(Isolate, FldNm.CStr()));
 	EAssertR(FldVal->IsObject(), "TNodeJsUtil::GetUnwrapFld: Key " + FldNm + " is not an object");
-	v8::Handle<v8::Object> FldObj = v8::Handle<v8::Object>::Cast(FldVal);
+	v8::Local<v8::Object> FldObj = v8::Handle<v8::Object>::Cast(FldVal);
 
-	return FldObj;
+	return HandleScope.Escape(FldObj);
 }
 
 v8::Local<v8::Function> TNodeJsUtil::GetFldFun(v8::Local<v8::Object> Obj, const TStr& FldNm) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
+	v8::EscapableHandleScope HandleScope(Isolate);
 
 	EAssertR(IsFldFun(Obj, FldNm), "The field is not a function!");
 
 	v8::Local<v8::Value> FldVal = Obj->Get(v8::String::NewFromUtf8(Isolate, FldNm.CStr()));
 	v8::Local<v8::Function> RetFun = v8::Handle<v8::Function>::Cast(FldVal);
 
-	return RetFun;
+	return HandleScope.Escape(RetFun);
 }
 
 int TNodeJsUtil::GetFldInt(v8::Local<v8::Object> Obj, const TStr& FldNm) {

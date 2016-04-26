@@ -1156,7 +1156,7 @@ static void SVDSolve(const TVVec<Type, Size, ColMajor>& A, TVec<Type, Size>& x,
 		MKLfunctions::SVDFactorization(M, U, Sing, VT);
 
 		// generating temporary solution
-		x.Gen(NumOfCols_Matrix); TLAMisc::Fill(x, 0);
+		x.Gen(NumOfCols_Matrix); TLinAlgTransform::Fill(x, 0);
 		TVec<Type, Size> ui; ui.Gen(U.GetRows());
 		TVec<Type, Size> vi; vi.Gen(VT.GetCols());
 
