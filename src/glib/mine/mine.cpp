@@ -75,3 +75,6 @@
 
 // hoeffding trees 
 #include "hoeffding.cpp"
+
+// non-negative matrix factorization
+#include "nmf.cpp"

@@ -82,4 +82,7 @@
 // hoeffding trees 
 #include "hoeffding.h"
 
+// non-negative matrix factorization
+#include "nmf.h"
+
 #endif

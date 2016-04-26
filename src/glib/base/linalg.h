@@ -623,14 +623,26 @@ public:
     /// Result = <x, y>
 	TEMPLATE_TDnsV
 	static double DotProduct(const TDnsV& x, const TVec<TIntFltKd>& y);
-    /// Result = <X(:,ColId), y>
+    
+	/// Result = <X(:,ColId), y>
 	TEMPLATE_TDnsVV
 	static double DotProduct(const TDnsVV& X, int ColId, const TIntFltKdV& y);
+
+	/// Result = <X, Y>
+	TEMPLATE_TDnsVV
+	static double DotProduct(const TDnsVV& X, const TDnsVV& Y);
+	TEMPLATE_TDnsVV
+	static double DotProduct(const TVec<TIntFltKdV>& X, const TDnsVV& Y);
 
 	// z = x * y'
 	TEMPLATE_TDnsVV
 	static void OuterProduct(const TDnsV& x, const TDnsV& y, TDnsVV& Z);
 
+	// Hadamard product
+	TEMPLATE_TDnsVV
+    static void HadamardProd(const TDnsVV& X, const TDnsVV& Y, TDnsVV& Z);
+	TEMPLATE_TDnsVV
+	static void HadamardProd(const TVec<TIntFltKdV>& X, const TDnsVV& Y, TDnsVV& Z);
 
 	//===========================================================
 	// SUMS AND LINEAR COMBINATIONS
@@ -718,9 +730,17 @@ public:
 	static double EuclDist(const TDnsV& x, const TDnsV& y);
 	// Result = ||x-y|| (Euclidian)
 	static double EuclDist(const TFltPr& x, const TFltPr& y);
-	// Result = ||A||_F (Frobenious);
+	// Result = ||A||_F (Frobenious) - A dense matrix
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static TType Frob(const TVVec<TNum<TType>, TSizeTy, ColMajor> &A);
+
+	// Result = ||A||_F^2 (Squared Frobenious) - A dense matrix
+	TEMPLATE_TDnsVV
+	static TType Frob2(const TDnsVV &A);
+	// Result = ||A||_F (Frobenious) - A sparse matrix
+	static double Frob(const TVec<TIntFltKdV> &A);
+	// Result = ||A||_F^2 (Squared Frobenious) - A sparse matrix
+	static double Frob2(const TVec<TIntFltKdV> &A);
 	// Result = ||A - B||_F (Frobenious)
 	TEMPLATE_TDnsVV
 	static double FrobDist2(const TDnsVV& A, const TDnsVV& B);
@@ -745,11 +765,8 @@ public:
 	static void NormalizeColumns(TDnsVV& X);
 	TEMPLATE_TDnsVV
 	static void NormalizeRows(TDnsVV& X);
-#ifdef INTEL
-	// TEST
-	template <class TType, class TSizeTy = int, bool ColMajor = false>
-	inline static void NormalizeColumns(TVVec<TType, TSizeTy, ColMajor>& X, TBool ColumnMajor);
-#endif
+	TEMPLATE_TDnsVV
+	static void NormalizeColumns(TDnsVV& X, TBool ColumnMajor);
 	template <class TType, class TSizeTy = int, bool ColMajor = false, class IndexType = TInt>
 	inline static void NormalizeColumns(TTriple<TVec<IndexType, TSizeTy>, TVec<IndexType, TSizeTy>, TVec<TType, TSizeTy>>& X);
 	// Normalize the columns of X
@@ -759,6 +776,7 @@ public:
 	static double FrobNorm2(const TDnsVV& X);
 	TEMPLATE_TDnsVV
 	static double FrobNorm(const TDnsVV& X);
+	static double FrobNorm2(const TVec<TIntFltKdV>& X);
 	// ||x||^2 (Euclidian), x is sparse
 	TEMPLATE_TSpV
 	static double Norm2(const TSpVV& x);
@@ -849,9 +867,7 @@ public:
 	// C(:, ColIdC) := A * B(:, ColIdB)
 	TEMPLATE_TDnsVV
 	static void Multiply(const TDnsVV& A, const TDnsVV& B, int ColIdB, TDnsVV& C, int ColIdC);
-	//LAPACKE stuff
-#ifdef LAPACKE
-	// Tested in other function
+
 	//A is rewritten in place with orthogonal matrix Q
 	TEMPLATE_TDnsVV
 	static void QRbasis(TDnsVV& A);
@@ -869,8 +885,6 @@ public:
 	TEMPLATE_TDnsVV
 	static void thinSVD(const TDnsVV& A, TDnsVV& U, TDnsV& S, TDnsVV& VT);
 
-
-#endif
 	// A * x = b
 	static void SVDSolve(const TFltVV& A, TFltV& x, const TFltV& b, const double& EpsSing);
 	// A = U * diag(Sing) * VT
@@ -898,14 +912,13 @@ public:
 			const TVVec<TNum<TType>, TSizeTy, ColMajor>& B, TVec<TNum<TType>, TSizeTy>& EigValV,
 			TVVec<TNum<TType>, TSizeTy, ColMajor>& V);
 
-#ifdef INTEL
 	template <class TType, class TSizeTy, bool ColMajor = false>
 	inline static void MultiplySF(const TTriple<TVec<TNum<TSizeTy>, TSizeTy>, TVec<TNum<TSizeTy>, TSizeTy>, TVec<TType, TSizeTy>>& A, const TVVec<TType, TSizeTy, false>& B,
 		TVVec<TType, TSizeTy, ColMajor>& C, const TStr& transa = TStr("N"), const int& format = 0);
 	template <class IndexType = TInt, class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void MultiplyFS(TVVec<TType, TSizeTy, ColMajor>& B, const TTriple<TVec<IndexType, TSizeTy>, TVec<IndexType, TSizeTy>, TVec<TType, TSizeTy>>& A,
 		TVVec<TType, TSizeTy, ColMajor>& C);
-#endif
+
 	// y := A * x
 	template <class IndexType = TInt, class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void Multiply(const TVVec<TType, TSizeTy, ColMajor>& A, const TPair<TVec<IndexType, TSizeTy>, TVec<TType, TSizeTy>>& x, TVec<TType, TSizeTy>& y);
@@ -915,7 +928,7 @@ public:
 	template <class TType, class TSizeTy = int, bool ColMajor = false>
 	inline static void MultiplyT(const TVVec<TNum<TType>, TSizeTy, ColMajor>& A,
 			const TVec<TNum<TType>, TSizeTy>& x, TVec<TNum<TType>, TSizeTy>& y);
-#ifdef BLAS
+
 	typedef enum { NOTRANS = 0, TRANS = 1 } TLinAlgBlasTranspose;
 
 	// C = op(A) * op(B)
@@ -927,7 +940,6 @@ public:
 	inline static void Multiply(const TVVec<TNum<TType>, TSizeTy, ColMajor>& A, const TVec<TNum<TType>,
 			TSizeTy>& x, TVec<TNum<TType>, TSizeTy>& y, const int& BlasTransposeFlagA,
 			TType alpha = 1.0, TType beta = 0.0);
-#endif
 	// C = A * B
 	TEMPLATE_TDnsVV
 	static void Multiply(const TDnsVV& A, const TDnsVV& B, TDnsVV& C);
@@ -1008,6 +1020,13 @@ public:
 	// returns the sum of diagonal elements of matrix
 	TEMPLATE_TDnsVV
 	static TType Trace(const TDnsVV& Mat);
+
+	//===========================================================
+	// PROJECTIONS
+	//===========================================================
+
+	static void NonNegProj(TFltV& Vec);
+	static void NonNegProj(TFltVV& Mat);
 };
 
 #ifdef LAPACKE
@@ -1601,7 +1620,6 @@ public:
 
 #include "linalg.hpp"
 
-// undefine templates and types
 #undef TEMPLATE_TDnsV
 #undef TEMPLATE_TDnsVV
 #undef TEMPLATE_TSpV

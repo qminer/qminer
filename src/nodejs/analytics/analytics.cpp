@@ -10,6 +10,124 @@
 //////////////////////////////////////////////////////
 // NodeJS - analytics
 
+void TNodeJsAnalytics::Init(v8::Handle<v8::Object> exports) {
+	NODE_SET_METHOD(exports, "nmf", _nmf);
+	NODE_SET_METHOD(exports, "nmfAsync", _nmfAsync);
+}
+
+TNodeJsAnalytics::TNMFTask::TNMFTask(const v8::FunctionCallbackInfo<v8::Value>& Args) :
+		TNodeTask(Args),
+		JsFltVV(nullptr),
+		JsSpVV(nullptr),
+		U(nullptr),
+		V(nullptr),
+		Iter(10000),
+		Tol(1e-6),
+		Notify(TNotify::NullNotify) {
+
+	if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltVV>(Args, 0)) {
+		JsFltVV = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltVV>(Args, 0);
+	}
+	else if (TNodeJsUtil::IsArgWrapObj<TNodeJsSpMat>(Args, 0)) {
+		JsSpVV = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpMat>(Args, 0);
+	}
+	else {
+		throw TExcept::New("MDS.fitTransform: argument not a sparse or dense matrix!");
+	}
+
+	k = TNodeJsUtil::GetArgInt32(Args, 1);
+
+	if (Args.Length() >= 3 && !TNodeJsUtil::IsArgFun(Args, 2)) {
+		PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 2);
+		Iter = ParamVal->GetObjInt("iter", 100);
+		Tol = ParamVal->GetObjNum("tol", 1e-3);
+		bool verbose = ParamVal->GetObjBool("verbose", false);
+		Notify = verbose ? TNotify::StdNotify : TNotify::NullNotify;
+	}
+
+	U = new TNodeJsFltVV();
+	V = new TNodeJsFltVV();
+}
+
+v8::Handle<v8::Function> TNodeJsAnalytics::TNMFTask::GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	if (TNodeJsUtil::IsArgFun(Args, 2)) {
+		return TNodeJsUtil::GetArgFun(Args, 2);
+	}
+	else {
+		return TNodeJsUtil::GetArgFun(Args, 3);
+	}
+}
+
+void TNodeJsAnalytics::TNMFTask::Run() {
+	try {
+		TFltVV& URef = U->Mat;
+		TFltVV& VRef = V->Mat;
+		if (JsFltVV != nullptr) {
+			TNmf::CFO(JsFltVV->Mat, k, URef, VRef, Iter, Tol, Notify);
+		}
+		else if (JsSpVV != nullptr) {
+			TNmf::CFO(JsSpVV->Mat, k, URef, VRef, Iter, Tol, Notify);
+		}
+		else {
+			throw TExcept::New("nmf: expects dense or sparse matrix!");
+		}
+	}
+	catch (const PExcept& Except) {
+		delete U;
+		delete V;
+		SetExcept(Except);
+	}
+}
+
+v8::Local<v8::Value> TNodeJsAnalytics::TNMFTask::WrapResult() {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::EscapableHandleScope HandleScope(Isolate);
+
+	v8::Local<v8::Object> JsObj = v8::Object::New(Isolate); // Result 
+	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "U")), TNodeJsUtil::NewInstance(U));
+	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "V")), TNodeJsUtil::NewInstance(V));
+	return HandleScope.Escape(JsObj);
+}
+
+//void TNodeJsAnalytics::nmf(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+//	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+//	v8::HandleScope HandleScope(Isolate);
+//
+//	EAssertR(Args.Length() >= 2, "Analytics.nmf: takes at least 2 parameters!");
+//	// function parameters
+//	int k = TNodeJsUtil::GetArgInt32(Args, 1);
+//	int Iter = 10000;
+//	double Tol = 1e-6;
+//	PNotify Notify = TNotify::NullNotify;
+//
+//	if (Args.Length() >= 3) {
+//		PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 2);
+//		Iter = ParamVal->GetObjInt("iter", 10000);
+//		Tol =  ParamVal->GetObjNum("tol", 1e-6);
+//		bool verbose = ParamVal->GetObjBool("verbose", false);
+//		Notify = verbose ? TNotify::StdNotify : TNotify::NullNotify;
+//	}
+//
+//	v8::Handle<v8::Object> JsObj = v8::Object::New(Isolate); // Result 
+//	
+//	TFltVV U;
+//	TFltVV V;
+//	if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltVV>(Args, 0)) {
+//		TNodeJsFltVV* JsMat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltVV>(Args, 0);
+//		TNmf::RankOneResidueIter(JsMat->Mat, k, U, V, Iter, Tol, Notify);
+//	}
+//	else if (TNodeJsUtil::IsArgWrapObj<TNodeJsSpMat>(Args, 0)) {
+//		TNodeJsSpMat* JsMat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpMat>(Args, 0);
+//		TNmf::RankOneResidueIter(JsMat->Mat, k, U, V, Iter, Tol, Notify);
+//	}
+//	else {
+//		throw TExcept::New("Analytics.nmf: first parameter must be a dense or sparse matrix!");
+//	}
+//	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "U")), TNodeJsFltVV::New(U));
+//	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "V")), TNodeJsFltVV::New(V));
+//	Args.GetReturnValue().Set(JsObj);
+//}
+
 ////////////////////////////////////////////////////////
 // Support Vector Machine
 
@@ -3531,7 +3649,7 @@ TNodeJsKMeans::TNodeJsKMeans(TSIn& SIn) :
         throw TExcept::New("KMeans load constructor: loading invalid KMeans model!");
     }
 
-    Notify = Verbose ? TQm::TEnv::Logger : TNotify::NullNotify;
+	Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
 }
 
 TNodeJsKMeans::~TNodeJsKMeans() {
@@ -3573,7 +3691,7 @@ void TNodeJsKMeans::UpdateParams(const PJsonVal& ParamVal) {
 
     if (ParamVal->IsObjKey("verbose")) { Verbose = ParamVal->GetObjBool("verbose"); }
 
-    Notify = Verbose ? TQm::TEnv::Logger : TNotify::NullNotify;
+	Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
 }
 
 PJsonVal TNodeJsKMeans::GetParams() const {
@@ -3582,6 +3700,7 @@ PJsonVal TNodeJsKMeans::GetParams() const {
     ParamVal->AddToObj("iter", Iter);
     ParamVal->AddToObj("k", K);
     ParamVal->AddToObj("verbose", Verbose);
+	ParamVal->AddToObj("allowEmpty", AllowEmptyP);
     switch (DistType) {
         case dtEuclid:
             ParamVal->AddToObj("distanceType", "Euclid"); break;
@@ -4101,4 +4220,217 @@ void TNodeJsKMeans::idxv(v8::Local<v8::String> Name, const v8::PropertyCallbackI
     else {
         Info.GetReturnValue().Set(TNodeJsIntV::New(JsKMeans->AssignV));
     }
+}
+
+
+/////////////////////////////////////////////
+// Recommender System
+
+TNodeJsRecommenderSys::TNodeJsRecommenderSys(const PJsonVal& ParamVal) :
+	Iter(10000),
+	K(2),
+	Tol(1e-3),
+	Verbose(false),
+	Notify(TNotify::NullNotify) {
+	UpdateParams(ParamVal);
+}
+
+TNodeJsRecommenderSys::TNodeJsRecommenderSys(TSIn& SIn) :
+	Iter(TInt(SIn)),
+	K(TInt(SIn)),
+	Tol(TFlt(SIn)),
+	Verbose(TBool(SIn)),
+	U(SIn),
+	V(SIn) {
+	Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
+}
+
+void TNodeJsRecommenderSys::UpdateParams(const PJsonVal& ParamVal) {
+	if (ParamVal->IsObjKey("iter")) { Iter = ParamVal->GetObjInt("iter"); }
+	if (ParamVal->IsObjKey("k")) { K = ParamVal->GetObjInt("k"); }
+	if (ParamVal->IsObjKey("tol")) { Tol = ParamVal->GetObjNum("tol"); }
+	if (ParamVal->IsObjKey("verbose")) { Verbose = ParamVal->GetObjBool("verbose"); }
+
+	Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
+}
+
+PJsonVal TNodeJsRecommenderSys::GetParams() const {
+	PJsonVal ParamVal = TJsonVal::NewObj();
+	ParamVal->AddToObj("iter", Iter);
+	ParamVal->AddToObj("k", K);
+	ParamVal->AddToObj("tol", Tol);
+	ParamVal->AddToObj("verbose", Verbose);
+	
+	return ParamVal;
+}
+
+void TNodeJsRecommenderSys::Save(TSOut& SOut) const {
+	TInt(Iter).Save(SOut);
+	TInt(K).Save(SOut);
+	TFlt(Tol).Save(SOut);
+	TBool(Verbose).Save(SOut);
+	U.Save(SOut);
+	V.Save(SOut);
+}
+
+void TNodeJsRecommenderSys::Init(v8::Handle<v8::Object> exports) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsRecommenderSys>);
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
+	// ObjectWrap uses the first internal field to store the wrapped pointer.
+	tpl->InstanceTemplate()->SetInternalFieldCount(1);
+
+	// Add all methods, getters and setters here.
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _setParams);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getModel", _getModel);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "fitAsync", _fitAsync);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
+
+	// properties
+	exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
+}
+
+TNodeJsRecommenderSys* TNodeJsRecommenderSys::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	if (Args.Length() == 0) {
+		// create new model with default parameters
+		return new TNodeJsRecommenderSys(TJsonVal::NewObj());
+	}
+	else if (Args.Length() == 1 && TNodeJsUtil::IsArgWrapObj<TNodeJsFIn>(Args, 0)) {
+		// load the model from the input stream
+		TNodeJsFIn* JsFIn = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFIn>(Args, 0);
+		return new TNodeJsRecommenderSys(*JsFIn->SIn);
+	}
+	else if (Args.Length() == 1 && TNodeJsUtil::IsArgObj(Args, 0)) {
+		// create new model from given parameters
+		PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+		return new TNodeJsRecommenderSys(ParamVal);
+	}
+	else {
+		throw TExcept::New("new RecommenderSys: wrong arguments in constructor!");
+	}
+}
+
+void TNodeJsRecommenderSys::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 0, "RecommenderSys.getParams: takes 0 argument!");
+
+	try {
+		TNodeJsRecommenderSys* JsRecSys = TNodeJsRecommenderSys::Unwrap<TNodeJsRecommenderSys>(Args.Holder());
+		Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, JsRecSys->GetParams()));
+	}
+	catch (const PExcept& Except) {
+		throw TExcept::New(Except->GetMsgStr(), "RecommenderSys::getParams");
+	}
+}
+
+void TNodeJsRecommenderSys::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1, "RecommenderSys.setParams: takes 1 argument!");
+	EAssertR(TNodeJsUtil::IsArgJson(Args, 0), "RecommenderSys.setParams: first argument should be a Javascript object!");
+
+	try {
+		TNodeJsRecommenderSys* JsRecSys = ObjectWrap::Unwrap<TNodeJsRecommenderSys>(Args.Holder());
+		PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+
+		JsRecSys->UpdateParams(ParamVal);
+
+		Args.GetReturnValue().Set(Args.Holder());
+	}
+	catch (const PExcept& Except) {
+		throw TExcept::New(Except->GetMsgStr(), "RecommenderSys::setParams");
+	}
+}
+
+void TNodeJsRecommenderSys::getModel(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 0, "RecommenderSys.setParams: takes 0 arguments!");
+
+	TNodeJsRecommenderSys* JsRecSys = ObjectWrap::Unwrap<TNodeJsRecommenderSys>(Args.Holder());
+
+	v8::Local<v8::Object> JsObj = v8::Object::New(Isolate); // Result 
+	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "U")), TNodeJsFltVV::New(JsRecSys->U));
+	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "V")), TNodeJsFltVV::New(JsRecSys->V));
+	Args.GetReturnValue().Set(JsObj);
+}
+
+TNodeJsRecommenderSys::TFitTask::TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args) :
+	TNodeTask(Args),
+	JsRecSys(nullptr),
+	JsFltVV(nullptr),
+	JsSpVV(nullptr) {
+
+	JsRecSys = ObjectWrap::Unwrap<TNodeJsRecommenderSys>(Args.Holder());
+
+	if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltVV>(Args, 0)) {
+		JsFltVV = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltVV>(Args, 0);
+	}
+	else if (TNodeJsUtil::IsArgWrapObj<TNodeJsSpMat>(Args, 0)) {
+		JsSpVV = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpMat>(Args, 0);
+	}
+	else {
+		throw TExcept::New("RecommenderSys.fit: argument not a sparse or dense matrix!");
+	}
+}
+
+v8::Handle<v8::Function> TNodeJsRecommenderSys::TFitTask::GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	if (TNodeJsUtil::IsArgFun(Args, 1)) {
+		return TNodeJsUtil::GetArgFun(Args, 1);
+	}
+	else {
+		return TNodeJsUtil::GetArgFun(Args, 2);
+	}
+}
+
+void TNodeJsRecommenderSys::TFitTask::Run() {
+	try {
+		// if argument is a dense matrix
+		if (JsFltVV != nullptr) {
+			TNmf::WeightedCFO(JsFltVV->Mat, JsRecSys->K, JsRecSys->U, JsRecSys->V, JsRecSys->Iter, JsRecSys->Tol, 
+				JsRecSys->Notify);
+		}
+		// if argument is a sparse matrix
+		else if (JsSpVV != nullptr) {
+			TNmf::WeightedCFO(JsSpVV->Mat, JsRecSys->K, JsRecSys->U, JsRecSys->V, JsRecSys->Iter, JsRecSys->Tol,
+				JsRecSys->Notify);
+		}
+		else {
+			throw TExcept::New("RecommenderSys.fit: argument not a sparse or dense matrix");
+		}
+	}
+	catch (const PExcept& Except) {
+		SetExcept(Except);
+	}
+}
+
+void TNodeJsRecommenderSys::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1, "RecommenderSys.save: Should have 1 argument!");
+
+	try {
+		TNodeJsRecommenderSys* JsRecSys = ObjectWrap::Unwrap<TNodeJsRecommenderSys>(Args.Holder());
+		// get output stream from arguments
+		TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
+		// save model
+		JsRecSys->Save(*JsFOut->SOut);
+		// return output stream for convenience
+		Args.GetReturnValue().Set(Args[0]);
+	}
+	catch (const PExcept& Except) {
+		throw TExcept::New(Except->GetMsgStr(), "RecommenderSys::save");
+	}
 }

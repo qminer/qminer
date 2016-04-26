@@ -964,6 +964,23 @@ double TLinAlg::EuclDist(const TFltPr& x, const TFltPr& y) {
 	return sqrt(TLinAlg::EuclDist2(x, y));
 }
 
+double TLinAlg::Frob(const TVec<TIntFltKdV> &A) {
+	return sqrt(Frob2(A));
+}
+
+double TLinAlg::Frob2(const TVec<TIntFltKdV> &A) {
+	double Cols = A.Len();
+	double Res = 0.0; 
+	for (int ColN = 0; ColN < Cols; ColN++) {
+		const TIntFltKdV& ColX = A[ColN];
+		const int Els = ColX.Len();
+		for (int ElN = 0; ElN < Els; ElN++) {
+			Res += ColX[ElN].Dat * ColX[ElN].Dat;
+		}
+	}
+	return Res;
+}
+
 double TLinAlg::NormL1(const TIntFltKdV& x) {
 	double norm = 0.0; const int Len = x.Len();
 	for (int i = 0; i < Len; i++)
@@ -980,7 +997,6 @@ double TLinAlg::NormLinf(const TIntFltKdV& x) {
 }
 
 // x := x / ||x||_inf, , x is sparse
-
 void TLinAlg::NormalizeLinf(TIntFltKdV& x) {
 	const double xNormLInf = TLinAlg::NormLinf(x);
 	if (xNormLInf > 0.0) { TLinAlg::MultiplyScalar(1.0 / xNormLInf, x, x); }
@@ -1067,6 +1083,22 @@ void TLinAlg::MultiplyScalar(const double& k, const TIntFltKdV& x, TIntFltKdV& y
 	for (int i = 0; i < Len; i++) {
 		y[i].Key = x[i].Key;
 		y[i].Dat = k * x[i].Dat;
+	}
+}
+
+void TLinAlg::NonNegProj(TFltV& Vec) {
+	for (int i = 0; i < Vec.Len(); i++) {
+		Vec[i] = TMath::Mx(0.0, (double)Vec[i]);
+	}
+}
+
+void TLinAlg::NonNegProj(TFltVV& Mat) {
+	int Rows = Mat.GetRows();
+	int Cols = Mat.GetCols();
+	for (int RowN = 0; RowN < Rows; RowN++) {
+		for (int ColN = 0; ColN < Cols; ColN++) {
+			Mat(RowN, ColN) = TMath::Mx(0.0, (double)Mat(RowN, ColN));
+		}
 	}
 }
 
@@ -3250,7 +3282,7 @@ void TLinAlg::ComputeSVD(const TFltVV& A, TFltVV& U, TFltV& Sing,
 }
 
 
-int TLinAlg::ComputeThinSVD(const TMatrix& X, const int& k, TFltVV& U, TFltV& s, TFltVV& V, const int Iters, const double Tol){
+int TLinAlg::ComputeThinSVD(const TMatrix& XYt, const int& k, TFltVV& U, TFltV& s, TFltVV& V, const int Iters, const double Tol){
 #if defined(LAPACKE) && defined(EIGEN)
 	//no need to reserve memory for the matrices, all will be done internaly
 	//Set k to 500
@@ -3279,8 +3311,9 @@ int TLinAlg::ComputeThinSVD(const TMatrix& X, const int& k, TFltVV& U, TFltV& s,
 	 else{
 		 TTmStopWatch Time;
 		 if (m >= n){
-			 //H is used for intermediate result and should be of the size n times l!
-			 TFltVV H(n,l); TLAMisc::FillRnd(H);
+
+			 //H is used for intermediate result and should be of the size n times l!			 
+			 TFltVV H(n,l); TLinAlgTransform::FillRnd(H);
 			 //TFltVV RSample; RSample.GenRandom(n, l);
 			 TFltVV F, F0, F1, F2; F0.Gen(m, l); F1.Gen(m, l); F2.Gen(m, l);
 			 //Time.Start();
@@ -3335,7 +3368,7 @@ int TLinAlg::ComputeThinSVD(const TMatrix& X, const int& k, TFltVV& U, TFltV& s,
 		 }
 		 else{
 			 //H is used for intermediate result and should be of the size m times l!
-			 TFltVV H(m,l); TLAMisc::FillRnd(H);
+			 TFltVV H(m,l); TLinAlgTransform::FillRnd(H);
 			 //TFltVV RSample; RSample.GenRandom(n, l);
 			 TFltVV F, F0, F1, F2; F0.Gen(n, l); F1.Gen(n, l); F2.Gen(n, l);
 			 //printf("Star Multiplying with XYt'*XYt\n");
@@ -3352,7 +3385,7 @@ int TLinAlg::ComputeThinSVD(const TMatrix& X, const int& k, TFltVV& U, TFltV& s,
 			 //Free the memory
 			 H.Clr();
 			 typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> Mat;
-			 F.Gen(n, (its + 1) * l); TLAMisc::FillRnd(F);//its+1
+			 F.Gen(n, (its + 1) * l); TLinAlgTransform::FillRnd(F);//its+1
 
 			 typedef Eigen::Map<Mat> MatW;
 			 MatW FWrapped(&F(0, 0).Val, n, (its + 1) * l); MatW F0Wrapped(&F0(0, 0).Val, n, l); MatW F1Wrapped(&F1(0, 0).Val, n, l); MatW F2Wrapped(&F2(0, 0).Val, n, l);
@@ -3397,7 +3430,7 @@ int TLinAlg::ComputeThinSVD(const TMatrix& X, const int& k, TFltVV& U, TFltV& s,
 	 s = ss;
 	 return kk;
 #else
-	TSparseSVD::OrtoIterSVD(X, k, s, U, V, Iters, Tol);
+	TSparseSVD::OrtoIterSVD(XYt, k, s, U, V, Iters, Tol);
 	return k;
 #endif
 }

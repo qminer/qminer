@@ -65,6 +65,7 @@ void InitAnalytics(Handle<Object> Exports, const TStr& NsNm) {
 	Handle<Object> NsObj = Object::New(Isolate);
 
 	// QMiner package
+	TNodeJsAnalytics::Init(NsObj);
 	TNodeJsSVC::Init(NsObj);
 	TNodeJsSVR::Init(NsObj);
     TNodeJsRidgeReg::Init(NsObj);
@@ -78,6 +79,7 @@ void InitAnalytics(Handle<Object> Exports, const TStr& NsNm) {
 	TNodeJsTokenizer::Init(NsObj);
 	TNodeJsMDS::Init(NsObj);
     TNodeJsKMeans::Init(NsObj);
+	TNodeJsRecommenderSys::Init(NsObj);
 
 	Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
 }
