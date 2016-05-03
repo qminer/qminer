@@ -529,8 +529,9 @@ public:
 	static bool ContainsNan(const TFltVV& FltVV);
 
 	// checks if set of vectors is ortogonal
-	template <class TSizeTy = int>
-	inline static void AssertOrtogonality(const TVec<TVec<TFlt, TSizeTy>, TSizeTy>& Vecs, const double& Threshold);
+	TEMPLATE_TDnsVV
+	static void AssertOrtogonality(const TVec<TVec<TType, TSizeTy>, TSizeTy>& Vecs,
+			const double& Threshold);
 	//ColMajor oriented data for optimal result
 	TEMPLATE_TDnsVV
 	static void AssertOrtogonality(const TDnsVV& Vecs, const TType& Threshold);
@@ -886,7 +887,7 @@ public:
 	// TEST
 	//S S option ensures that A is not modified
 	TEMPLATE_TDnsVV
-	static void thinSVD(const TDnsVV& A, TDnsVV& U, TDnsV& S, TDnsVV& VT);
+	static void ThinSVD(const TDnsVV& A, TDnsVV& U, TDnsV& S, TDnsVV& VT);
 
 	// A * x = b
 	static void SVDSolve(const TFltVV& A, TFltV& x, const TFltV& b, const double& EpsSing);

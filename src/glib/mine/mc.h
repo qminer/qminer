@@ -95,7 +95,6 @@ public:
 	void Save(TSOut& SOut) const;
 
 	void Update(const double& FtrVal);
-	double GetMean() const;
 
 	const TFltV& GetBinValV() const { return BinValV; }
 	const TIntV& GetCountV() const { return CountV; }
@@ -105,6 +104,11 @@ public:
 	int GetBins() const { return Bins; }
 
 	bool Empty() const { return TotalCount == 0; }
+
+	/// generate n samples from a discrete probability distribution with histogram
+	/// defined in BinCountV
+	static void GenSamples(const TFltV& CountV, const int& NTrials, TFltV& SimBinV,
+			TRnd& Rnd);
 
 private:
 	double GetBinSize() const { return BinValV[1] - BinValV[0]; }

@@ -142,6 +142,31 @@ void THistogram::Update(const double& FtrVal) {
 	TotalCount++;
 }
 
+void THistogram::GenSamples(const TFltV& CountV, const int& NTrials, TFltV& SimBinV, TRnd& Rnd) {
+	const double Sum = TLinAlg::SumVec(CountV);
+
+	TFltV ThresholdV(CountV.Len());
+	SimBinV.Gen(CountV.Len());
+
+	// calculate the thresholds
+	double TotalProb = 0;
+	for (int BinN = 0; BinN < CountV.Len(); BinN++) {
+		const double& BinCount = CountV[BinN];
+		const double BinProb = BinCount / Sum;
+		ThresholdV[BinN] = TotalProb + BinProb;
+		TotalProb += BinProb;
+	}
+	// generate the samples
+	for (int TrialN = 0; TrialN < NTrials; TrialN++) {
+		const double Val = Rnd.GetUniDev();
+		int BinN = 0;
+		while (Val > ThresholdV[BinN]) {
+			BinN++;
+		}
+		SimBinV[BinN]++;
+	}
+}
+
 
 
 //////////////////////////////////////////////////
@@ -3812,6 +3837,7 @@ void TUiHelper::InitAutoNmV(const TStreamStory& StreamStory) {
 
 		int BestFtrN = -1;
 		double BestFtrPVal = TFlt::Mx;
+		int BestFtrSampleSize = 0;
 
 		for (int FtrN = 0; FtrN < AllDim; FtrN++) {
 			const TFltV& AllPValV = FtrPValVV[FtrN];
@@ -3820,6 +3846,9 @@ void TUiHelper::InitAutoNmV(const TStreamStory& StreamStory) {
 			StateIdentifier.GetHistogram(StreamStory, FtrN, AggState, BinValV, StateBinCountV, false);
 
 			const double TotalCount = TLinAlg::SumVec(StateBinCountV);
+
+			double PVal;
+			int SampleSize;
 
 			switch (FtrInfo.GetType()) {
 			case ftUndefined: {
@@ -3830,9 +3859,11 @@ void TUiHelper::InitAutoNmV(const TStreamStory& StreamStory) {
 				// calculate the mean and check into which percentile it falls
 				int LowPercN = -1, HighPercN = -1;
 
+				SampleSize = 0;
 				double ProbSum = 0;
 				for (int BinN = 0; BinN < BinValV.Len(); BinN++) {
-					const double Prob = double(StateBinCountV[BinN]) / TotalCount;
+					const int& BinSize = StateBinCountV[BinN];
+					const double Prob = double(BinSize) / TotalCount;
 
 					if (ProbSum <= STATE_LOW_PVAL_THRESHOLD && ProbSum + Prob > STATE_LOW_PVAL_THRESHOLD) {
 						LowPercN = BinN;
@@ -3842,6 +3873,7 @@ void TUiHelper::InitAutoNmV(const TStreamStory& StreamStory) {
 					}
 
 					ProbSum += Prob;
+					SampleSize += BinSize;
 				}
 
 				EAssert(LowPercN >= 0 && HighPercN >= 0);
@@ -3849,46 +3881,66 @@ void TUiHelper::InitAutoNmV(const TStreamStory& StreamStory) {
 				const double LowPercPVal = AllPValV[LowPercN];
 				const double HighPercPVal = 1 - AllPValV[HighPercN];
 
-				const double PVal = TMath::Mn(LowPercPVal, HighPercPVal);
-
-				if (PVal < BestFtrPVal) {
-					BestFtrPVal = PVal;
-					BestFtrN = FtrN;
-				}
+				double PVal = TMath::Mn(LowPercPVal, HighPercPVal);
 
 				const TNumAutoNmLevel Level = TNumAutoNmDesc::GetAutoNmLevel(PVal, LowPercPVal, HighPercPVal);
 				StateAutoNmDescV.Add(new TNumAutoNmDesc(PVal, FtrN, Level));
 				break;
 			}
 			case ftCategorical: {
-				// check if at least 80% of the values are in a single bin
-				int TargetBinN = -1;
-				double PVal = 1;
-				for (int BinN = 0; BinN < BinValV.Len(); BinN++) {
-					const double Prob = double(StateBinCountV[BinN]) / TotalCount;
+				const TFltV& AllBinCountV = FtrAllBinV[FtrN];
 
-					if (Prob > .8) {	// TODO hardcoded
+				// TODO remove
+				printf("global histogram:\n%s\n", TStrUtil::GetStr(AllBinCountV, ", ", "%.3f").CStr());
+				printf("state histogram:\n%s\n", TStrUtil::GetStr(StateBinCountV, ", ", "%.3f").CStr());
+
+				// find the bin with most of the mass
+				int TargetBinN = -1;
+				double BestBinProb = -1;
+				SampleSize = 0;
+				for (int BinN = 0; BinN < BinValV.Len(); BinN++) {
+					const int& BinSize = StateBinCountV[BinN];
+					const double Prob = double(BinSize) / TotalCount;
+
+					if (Prob > BestBinProb) {
+						BestBinProb = Prob;
 						TargetBinN = BinN;
-						PVal = .1;		// TODO calculate the p-value
+					}
+
+					SampleSize += BinSize;
+				}
+
+				EAssert(TargetBinN >= 0);
+
+				// calculate the p-value for the found bin
+				const int NTrials = 10000;
+
+				int SuccTrials = 0;
+				for (int TrialN = 0; TrialN < NTrials; TrialN++) {
+					TFltV SimCountV;	THistogram::GenSamples(AllBinCountV, SampleSize, SimCountV, Rnd);
+
+					const double SimTargetBinProb = double(SimCountV[TargetBinN]) / SampleSize;
+					if (SimTargetBinProb >= BestBinProb) {
+						SuccTrials++;
 					}
 				}
 
-				if (PVal < BestFtrPVal) {
-					BestFtrPVal = PVal;
-					BestFtrN = FtrN;
-				}
+				PVal = double(SuccTrials) / NTrials;
 
-				if (TargetBinN != -1) {
-					StateAutoNmDescV.Add(new TCatAutoNmDesc(FtrN, PVal, TargetBinN));
-				}
-				else {
-					// FIXME
-					StateAutoNmDescV.Add(new TCatAutoNmDesc(FtrN, 1, 0));
-				}
+				printf("p-value: %.4f\n", PVal);
+
+				// add to the structure and update the best p-value
+				StateAutoNmDescV.Add(new TCatAutoNmDesc(FtrN, PVal, TargetBinN));
 				break;
 			}
 			default:
 				throw TExcept::New("Unknown feature type: " + TInt::GetStr(FtrInfo.GetType()));
+			}
+
+			if (PVal < BestFtrPVal || (PVal == BestFtrPVal && SampleSize > BestFtrSampleSize)) {
+				BestFtrPVal = PVal;
+				BestFtrN = FtrN;
+				BestFtrSampleSize = SampleSize;
 			}
 		}
 

@@ -267,8 +267,8 @@ bool TLinAlgCheck::IsZero(const TVec<TType, TSizeTy>& Vec) {
 	return true;
 }
 
-template <class TSizeTy>
-void TLinAlgCheck::AssertOrtogonality(const TVec<TVec<TFlt, TSizeTy>, TSizeTy>& Vecs, const double& Threshold) {
+template <class TType, class TSizeTy, bool ColMajor>
+void TLinAlgCheck::AssertOrtogonality(const TVec<TVec<TType, TSizeTy>, TSizeTy>& Vecs, const double& Threshold) {
 	TSizeTy m = Vecs.Len();
 	for (TSizeTy i = 0; i < m; i++) {
 		for (TSizeTy j = 0; j < i; j++) {
@@ -1280,7 +1280,7 @@ void TLinAlg::QRcolpbasis(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType,
 
 //S S option ensures that A is not modified
 template <class TType, class TSizeTy, bool ColMajor>
-void TLinAlg::thinSVD(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor>& U, TVec<TType, TSizeTy>& S, TVVec<TType, TSizeTy, ColMajor>& VT) {
+void TLinAlg::ThinSVD(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor>& U, TVec<TType, TSizeTy>& S, TVVec<TType, TSizeTy, ColMajor>& VT) {
 
 	TSizeTy m = A.GetRows(); TSizeTy n = A.GetCols();
 	TSizeTy thin_dim = MIN(m, n);
@@ -1325,7 +1325,7 @@ void TLinAlg::QRcolpbasis(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType,
 }
 
 template <class TType, class TSizeTy, bool ColMajor>
-void TLinAlg::thinSVD(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor>& U, TVec<TType, TSizeTy>& S, TVVec<TType, TSizeTy, ColMajor>& VT) {
+void TLinAlg::ThinSVD(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor>& U, TVec<TType, TSizeTy>& S, TVVec<TType, TSizeTy, ColMajor>& VT) {
 	throw TExcept::New("TLinAlg::thinSVD(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor>& U, TVec<TType, TSizeTy>& S, TVVec<TType, TSizeTy, ColMajor>& VT) not implemented yet!");
 }
 
@@ -2133,7 +2133,6 @@ void TLinAlg::Gemm(const double& Alpha, const TVVec<TType, TSizeTy, ColMajor>& A
 
 }
 
-// transpose matrix - B = A'
 template <class TType, class TSizeTy, bool ColMajor>
 void TLinAlg::Transpose(const TVVec<TType, TSizeTy, ColMajor>& A, TVVec<TType, TSizeTy, ColMajor>& B) {
 	if (B.Empty()) { B.Gen(A.GetCols(), A.GetRows()); }
