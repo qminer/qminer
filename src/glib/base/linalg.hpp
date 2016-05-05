@@ -573,7 +573,8 @@ void TLinAlg::OuterProduct(const TVec<TType, TSizeTy>& x,
 }
 
 template <class TType, class TSizeTy, bool ColMajor>
-void TLinAlg::HadamardProd(const TVVec<TType, TSizeTy, ColMajor>& X, const TVVec<TType, TSizeTy, ColMajor>& Y,
+void TLinAlg::HadamardProd(const TVVec<TType, TSizeTy, ColMajor>& X,
+		const TVVec<TType, TSizeTy, ColMajor>& Y,
 	TVVec<TType, TSizeTy, ColMajor>& Z) {
 	
 	EAssert(X.GetRows() == Y.GetRows() && X.GetCols() == Y.GetCols());
@@ -664,7 +665,8 @@ void TLinAlg::LinComb(const double& p, const TVec<TType, TSizeTy>& x,
 template <class TType, class TSizeTy, bool ColMajor>
 void TLinAlg::LinComb(const double& p, const TVVec<TType, TSizeTy, ColMajor>& X,
 	const double& q, const TVVec<TType, TSizeTy, ColMajor>& Y, TVVec<TType, TSizeTy, ColMajor>& Z) {
-	EAssert(X.GetRows() == Y.GetRows() && X.GetCols() == Y.GetCols() && X.GetRows() == Z.GetRows() && X.GetCols() == Z.GetCols());
+	EAssert(X.GetRows() == Y.GetRows() && X.GetCols() == Y.GetCols() &&
+			X.GetRows() == Z.GetRows() && X.GetCols() == Z.GetCols());
 	TSizeTy Rows = X.GetRows();
 	TSizeTy Cols = X.GetCols();
 	for (TSizeTy RowN = 0; RowN < Rows; RowN++) {
@@ -1825,10 +1827,12 @@ void TLinAlg::Multiply(const TVVec<TNum<TType>, TSizeTy, ColMajor>& A, const TVe
 #endif
 
 template <class TType, class TSizeTy, bool ColMajor>
-void TLinAlg::Multiply(const TVVec<TType, TSizeTy, ColMajor>& A, const TVVec<TType, TSizeTy, ColMajor>& B, TVVec<TType, TSizeTy, ColMajor>& C) {
+void TLinAlg::Multiply(const TVVec<TType, TSizeTy, ColMajor>& A,
+		const TVVec<TType, TSizeTy, ColMajor>& B, TVVec<TType, TSizeTy, ColMajor>& C) {
     if (C.Empty()) { C.Gen(A.GetRows(), B.GetCols()); }
 
-    EAssert(A.GetRows() == C.GetRows() && B.GetCols() == C.GetCols() && A.GetCols() == B.GetRows());
+    EAssert(A.GetRows() == C.GetRows() && B.GetCols() == C.GetCols() &&
+    		A.GetCols() == B.GetRows());
 #ifdef BLAS
 	TLinAlg::Multiply(A, B, C, TLinAlgBlasTranspose::NOTRANS, TLinAlgBlasTranspose::NOTRANS);
 #else
