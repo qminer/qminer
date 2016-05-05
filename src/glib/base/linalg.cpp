@@ -3515,7 +3515,7 @@ int TLinAlg::ComputeThinSVD(const TMatrix& XYt, const int& k, TFltVV& U, TFltV& 
 		 IdentityWrapped.setIdentity(n, n);
 		 XYt.Multiply(Identity, XYtfull);
 		 TFltVV VT;
-		 TLinAlg::thinSVD(XYtfull, U, s, VT);
+		 TLinAlg::ThinSVD(XYtfull, U, s, VT);
 		 V.Gen(VT.GetCols(), VT.GetRows());
 		 TLinAlg::Transpose(VT, V);
 	 }
@@ -3567,7 +3567,7 @@ int TLinAlg::ComputeThinSVD(const TMatrix& XYt, const int& k, TFltVV& U, TFltV& 
 			 //Time.Start();
 			 TFltVV FFT; FFT.Gen((its + 1) * l, n);
 			 TLinAlg::Transpose(FF, FFT);
-			 TLinAlg::thinSVD(FFT, UU, s, VT);
+			 TLinAlg::ThinSVD(FFT, UU, s, VT);
 			 //Time.Stop("Computation of thin SVD took:");
 			 //printf("UU (%d, %d)\n", UU.GetRows(), UU.GetCols());
 			 //Copy and save U
@@ -3613,7 +3613,7 @@ int TLinAlg::ComputeThinSVD(const TMatrix& XYt, const int& k, TFltVV& U, TFltV& 
 			 XYt.Multiply(F, FF);
 			 TFltVV VV, VVT;
 			 //printf("Size of matrix FF: %d\n", FF.GetCols());
-			 TLinAlg::thinSVD(FF, U, s, VVT);
+			 TLinAlg::ThinSVD(FF, U, s, VVT);
 			 VV.Gen(VVT.GetCols(), VVT.GetRows());
 			 TLinAlg::Transpose(VVT, VV);
 			 V.Gen(n, (its + 1)*l);
