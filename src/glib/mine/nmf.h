@@ -19,7 +19,10 @@
 class TNmf {
 
 public:
-	
+	//============================================================
+	// ALGORITHM FUNCTIONS
+	//============================================================
+
 	// calculates the NMF using Gradient Projection with first order approximation (Coordinate search)
 	template <class TMatType>
 	static void CFO(const TMatType& A, const int& R, TFltVV& U, TFltVV& V, const int& MaxIter = 10000, 
@@ -32,43 +35,46 @@ public:
 		const double& Eps = 1e-3, const PNotify& TNotify = TNotify::NullNotify);
 
 private:
+	//============================================================
+	// HELPER FUNCTIONS
+	//============================================================
+
 	// types of gradient calculations
 	enum TGradType { gtNormal, gtWeighted };
 
-	static void InitializationUV(const int& Rows, const int& Cols, const int& R, TFltVV& U, TFltVV& V);
+	static void InitializeUV(const int& Rows, const int& Cols, const int& R, TFltVV& U, TFltVV& V);
 
 	// weight initializations
-	static void InitWeights(const TFltVV& A, TFltVV& W);
-	static void InitWeights(const TVec<TIntFltKdV>& A, TVec<TIntFltKdV>& W);
+	static void InitializeWeights(const TFltVV& A, TFltVV& W);
+	static void InitializeWeights(const TVec<TIntFltKdV>& A, TVec<TIntFltKdV>& W);
 
-	// calculates the starting condition
+	// calculates the upper bound of the stopping condition
 	template <class TMatType>
-	static double StoppingCondition(const TMatType& A, const TFltVV& U, const TFltVV& V, const double& Eps,
-		const TGradType& GradType);
+	static double StoppingCondition(const TMatType& A, const TFltVV& U, const TFltVV& V, 
+		const double& Eps, const TGradType& GradType);
 
 	// calculates the condition value
 	template <class TMatType>
 	static double ProjectedGradientNorm(const TMatType& A, const int& R, const TFltVV& U, const TFltVV& V);
 	template <class TMatType>
-	static double WeightedProjectedGradientNorm(const TMatType& A, const int& R, const TMatType& W, const TFltVV& U, const TFltVV& V);
+	static double WeightedProjectedGradientNorm(const TMatType& A, const int& R, 
+		const TMatType& W, const TFltVV& U, const TFltVV& V);
 
 	// update scaling for better stability of matrices
-	static void UpdateScaling(TFltVV& U, TFltVV& V);
-
-	// updates the dense matrix A in the EM algorithm
-	template <class TMatType>
-	static void UpdateA(const TMatType& A, const TFltVV& U, const TFltVV& V, TFltVV& DenseA);
+	static void UpdateScale(TFltVV& U, TFltVV& V);
 
 	// update U
 	template <class TMatType>
-	static void UpdateU(const TMatType& A, TFltVV& U, const TFltVV& V, double& L1, const double& beta, const double& FrobA);
+	static void UpdateU(const TMatType& A, TFltVV& U, const TFltVV& V, double& L1, 
+		const double& beta, const double& FrobA);
 	template <class TMatType>
 	static void UpdateWeightedU(const TMatType& A, TFltVV& U, const TFltVV& V, const TMatType& W,
 		double& L1, const double& beta, const double& FrobA);
 
 	// update V
 	template <class TMatType>
-	static void UpdateV(const TMatType& A, const TFltVV& U, TFltVV& V, double& L2, const double& beta, const double& FrobA);
+	static void UpdateV(const TMatType& A, const TFltVV& U, TFltVV& V, double& L2, 
+		const double& beta, const double& FrobA);
 	template <class TMatType>
 	static void UpdateWeightedV(const TMatType& A, const TFltVV& U, TFltVV& V, const TMatType& W,
 		double& L2, const double& beta, const double& FrobA);
@@ -77,13 +83,15 @@ private:
 	template <class TMatType>
 	static void GetGradientU(const TMatType& A, const TFltVV& U, const TFltVV& V, TFltVV& GradU);
 	template <class TMatType>
-	static void GetWeightedGradientU(const TMatType& A, const TMatType& W, const TFltVV& U, const TFltVV& V, TFltVV& GradU);
+	static void GetWeightedGradientU(const TMatType& A, const TMatType& W, 
+		const TFltVV& U, const TFltVV& V, TFltVV& GradU);
 
 	// get gradient by V
 	template <class TMatType>
 	static void GetGradientV(const TMatType& A, const TFltVV& U, const TFltVV& V, TFltVV& GradV);
 	template <class TMatType>
-	static void GetWeightedGradientV(const TMatType& A, const TMatType& W, const TFltVV& U, const TFltVV& V, TFltVV& GradV);
+	static void GetWeightedGradientV(const TMatType& A, const TMatType& W, 
+		const TFltVV& U, const TFltVV& V, TFltVV& GradV);
 
 	// gets number of rows
 	static int NumOfRows(const TFltVV& Mat);
@@ -109,7 +117,7 @@ void TNmf::CFO(const TMatType& A, const int& R, TFltVV& U, TFltVV& V, const int&
 	Notify->OnNotify(TNotifyType::ntInfo, "Executing NMF ...");
 
 	// initialize the matrices U and V
-	InitializationUV(Rows, Cols, R, U, V);
+	InitializeUV(Rows, Cols, R, U, V);
 
 	// scale the matrices U and V for a better starting point
 	// alpha = <A, U*V> / <U*V, U*V>
@@ -134,7 +142,7 @@ void TNmf::CFO(const TMatType& A, const int& R, TFltVV& U, TFltVV& V, const int&
 		// updating V
 		UpdateV(A, U, V, L2, beta, Frob2A);
 		// scaling the matrices
-		UpdateScaling(U, V);
+		UpdateScale(U, V);
 		// check for stopping condition
 		double Condition = ProjectedGradientNorm(A, R, U, V);
 		if (Condition <= StopCond) {
@@ -158,10 +166,9 @@ void TNmf::WeightedCFO(const TMatType& A, const int& R, TFltVV& U, TFltVV& V, co
 	Notify->OnNotify(TNotifyType::ntInfo, "Executing NMF ...");
 
 	// the weight matrix
-	TMatType W; InitWeights(A, W);
-
+	TMatType W; InitializeWeights(A, W);
 	// initalize the matrices U and V
-	InitializationUV(Rows, Cols, R, U, V);
+	InitializeUV(Rows, Cols, R, U, V);
 
 	// scale the matrices U and V for a better starting point
 	// alpha = <W o A, U*V> / <W o U*V, U*V>
@@ -187,7 +194,7 @@ void TNmf::WeightedCFO(const TMatType& A, const int& R, TFltVV& U, TFltVV& V, co
 		// updating V
 		UpdateWeightedV(A, U, V, W, L2, beta, Frob2A);
 		// scaling the matrices
-		UpdateScaling(U, V);
+		UpdateScale(U, V);
 		// check for stopping condition
 		double Condition = WeightedProjectedGradientNorm(A, R, W, U, V);
 		if (Condition <= StopCond) {
@@ -214,7 +221,7 @@ double TNmf::StoppingCondition(const TMatType& A, const TFltVV& U, const TFltVV&
 		GetGradientV(A, U, V, GradV);
 	}
 	else if (GradType == TGradType::gtWeighted) {
-		TMatType W; InitWeights(A, W);
+		TMatType W; InitializeWeights(A, W);
 		// GradU = (W o U*V)*V' - A*V'
 		GetWeightedGradientU(A, W, U, V, GradU);
 		// GradV = U'*(W o U*V) - U'*A
@@ -260,7 +267,8 @@ double TNmf::ProjectedGradientNorm(const TMatType& A, const int& R, const TFltVV
 }
 
 template <class TMatType>
-double TNmf::WeightedProjectedGradientNorm(const TMatType& A, const int& R, const TMatType& W, const TFltVV& U, const TFltVV& V) {
+double TNmf::WeightedProjectedGradientNorm(const TMatType& A, const int& R, 
+	const TMatType& W, const TFltVV& U, const TFltVV& V) {
 	const int Rows = NumOfRows(A);
 	const int Cols = NumOfCols(A);
 
@@ -443,15 +451,15 @@ void TNmf::GetGradientU(const TMatType& A, const TFltVV& U, const TFltVV& V, TFl
 	TFltVV UVV; TLinAlg::Multiply(U, VV, UVV);
 	TFltVV AV;  TLinAlg::Multiply(A, VT, AV);
 	TLinAlg::LinComb(1, UVV, -1, AV, GradU);
-	
 }
 
 template <class TMatType>
-void TNmf::GetWeightedGradientU(const TMatType& A, const TMatType& W, const TFltVV& U, const TFltVV& V, TFltVV& GradU) {
+void TNmf::GetWeightedGradientU(const TMatType& A, const TMatType& W, 
+	const TFltVV& U, const TFltVV& V, TFltVV& GradU) {
 	// GradU = (W o U*V)*V' - A*V';
 	TFltVV VT; TLinAlg::Transpose(V, VT);
 	TFltVV UV; TLinAlg::Multiply(U, V, UV);
-	TLinAlg::HadamardProd(W, UV, UV);
+	TFltVV WUV; TLinAlg::HadamardProd(W, UV, WUV);
 	TFltVV UVV; TLinAlg::Multiply(UV, VT, UVV);
 	TFltVV AV; TLinAlg::Multiply(A, VT, AV);
 	TLinAlg::LinComb(1, UVV, -1, AV, GradU);
@@ -465,15 +473,15 @@ void TNmf::GetGradientV(const TMatType& A, const TFltVV& U, const TFltVV& V, TFl
 	TFltVV UUV; TLinAlg::Multiply(UU, V, UUV);
 	TFltVV UA;  TLinAlg::MultiplyT(U, A, UA);
 	TLinAlg::LinComb(1, UUV, -1, UA, GradV);
-	
 }
 
 template <class TMatType>
-void TNmf::GetWeightedGradientV(const TMatType& A, const TMatType& W, const TFltVV& U, const TFltVV& V, TFltVV& GradV) {
+void TNmf::GetWeightedGradientV(const TMatType& A, const TMatType& W, 
+	const TFltVV& U, const TFltVV& V, TFltVV& GradV) {
 	// GradV = U'*(W o U*V) - U'*A
 	TFltVV UV; TLinAlg::Multiply(U, V, UV);
-	TLinAlg::HadamardProd(W, UV, UV);
-	TFltVV UUV; TLinAlg::MultiplyT(U, UV, UUV);
+	TFltVV WUV; TLinAlg::HadamardProd(W, UV, WUV);
+	TFltVV UUV; TLinAlg::MultiplyT(U, WUV, UUV);
 	TFltVV UA; TLinAlg::MultiplyT(U, A, UA);
 	TLinAlg::LinComb(1, UUV, -1, UA, GradV);
 	TLinAlg::LinComb(1, GradV, 0.01, V, GradV);

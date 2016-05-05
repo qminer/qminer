@@ -1248,4 +1248,61 @@ describe('Simple linear regression test', function () {
             assert.eqtol(res.bands[1], 1.5);
         })
     });
+    	
+    describe('GetFloatVector Tests', function () {
+        it('should return the float vector of values in the buffer', function () {
+            var winX = store.addStreamAggr({
+                type: 'timeSeriesWinBuf',
+                timestamp: 'Time',
+                value: 'X',
+                winsize: 1000
+            });
+            var winXv = store.addStreamAggr({
+                type: 'timeSeriesWinBufVector',
+                inAggr: winX.name
+            });
+            var winY = store.addStreamAggr({
+                type: 'timeSeriesWinBuf',
+                timestamp: 'Time',
+                value: 'Y',
+                winsize: 1000
+            });
+            var winYv = store.addStreamAggr({
+                type: 'timeSeriesWinBufVector',
+                inAggr: winY.name
+            });
+
+            var linReg = store.addStreamAggr({
+                type: 'simpleLinearRegression',
+                inAggrX: winXv.name,
+                inAggrY: winYv.name,
+                storeX: "Function",
+                storeY: "Function",
+                quantiles: [0.25, 0.75]
+            });
+
+            store.push({ Time: '2015-06-10T14:13:32.001', X: 0, Y: -2 });
+            store.push({ Time: '2015-06-10T14:13:32.002', X: 0, Y: -1 });
+            store.push({ Time: '2015-06-10T14:13:32.003', X: 0, Y: 1 });
+            store.push({ Time: '2015-06-10T14:13:32.004', X: 0, Y: 2 });
+            store.push({ Time: '2015-06-10T14:13:32.005', X: 1, Y: -1 });
+            store.push({ Time: '2015-06-10T14:13:32.006', X: 1, Y: -0 });
+            store.push({ Time: '2015-06-10T14:13:32.007', X: 1, Y: 2 });
+            store.push({ Time: '2015-06-10T14:13:32.008', X: 1, Y: 3 });
+            
+            var fout = qm.fs.openWrite("linreg.tmp");
+            var res = linReg.saveJson();
+            linReg.save(fout);
+            fout.close();
+
+			store.resetStreamAggregates();
+				
+			var fin = qm.fs.openRead("linreg.tmp");
+			linReg.load(fin);
+			fin.close();
+			var res2 = linReg.saveJson();
+			assert.equal(JSON.stringify(res), JSON.stringify(res2));
+            
+        })
+    });
 });

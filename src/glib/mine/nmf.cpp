@@ -9,12 +9,12 @@
 ///////////////////////////////////////////
 // Non-negative matrix factorization
 
-void TNmf::InitializationUV(const int& Rows, const int& Cols, const int& R, TFltVV& U, TFltVV& V) {
+void TNmf::InitializeUV(const int& Rows, const int& Cols, const int& R, TFltVV& U, TFltVV& V) {
 	U.Gen(Rows, R); TLinAlgTransform::FillRnd(U);
 	V.Gen(R, Cols); TLinAlgTransform::FillRnd(V);
 }
 
-void TNmf::InitWeights(const TFltVV& A, TFltVV& W) {
+void TNmf::InitializeWeights(const TFltVV& A, TFltVV& W) {
 	int Rows = A.GetRows();
 	int Cols = A.GetCols();
 	W.Gen(Rows, Cols);
@@ -25,19 +25,20 @@ void TNmf::InitWeights(const TFltVV& A, TFltVV& W) {
 	}
 }
 
-void TNmf::InitWeights(const TVec<TIntFltKdV>& A, TVec<TIntFltKdV>& W) {
+void TNmf::InitializeWeights(const TVec<TIntFltKdV>& A, TVec<TIntFltKdV>& W) {
 	int Cols = A.Len(); W.Gen(Cols);
 	for (int ColN = 0; ColN < Cols; ColN++) {
-		const TIntFltKdV& ColA = A[ColN]; const int& Els = ColA.Len();
+		const TIntFltKdV& ColA = A[ColN]; 
+		const int Els = ColA.Len();
 		for (int ElN = 0; ElN < Els; ElN++) {
 			if (ColA[ElN].Dat > 0.0) {
-				W[ColN].Add(TIntFltKd(ColA[ElN].Key, ColA[ElN].Dat));
+				W[ColN].Add(TIntFltKd(ColA[ElN].Key, 1));
 			}
 		}
 	}
 }
 
-void TNmf::UpdateScaling(TFltVV& U, TFltVV& V) {
+void TNmf::UpdateScale(TFltVV& U, TFltVV& V) {
 	int R = U.GetCols();
 	for (int i = 0; i < R; i++) {
 		TFltV Vi; V.GetRow(i, Vi);
