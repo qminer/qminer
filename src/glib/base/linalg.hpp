@@ -664,7 +664,12 @@ void TLinAlg::LinComb(const double& p, const TVec<TType, TSizeTy>& x,
 template <class TType, class TSizeTy, bool ColMajor>
 void TLinAlg::LinComb(const double& p, const TVVec<TType, TSizeTy, ColMajor>& X,
 	const double& q, const TVVec<TType, TSizeTy, ColMajor>& Y, TVVec<TType, TSizeTy, ColMajor>& Z) {
-	EAssert(X.GetRows() == Y.GetRows() && X.GetCols() == Y.GetCols() && X.GetRows() == Z.GetRows() && X.GetCols() == Z.GetCols());
+	EAssert(X.GetRows() == Y.GetRows() && X.GetCols() == Y.GetCols());
+	if (Z.Empty()) {
+		Z.Gen(X.GetRows(), X.GetCols());
+	} else {
+		EAssert(X.GetRows() == Z.GetRows() && X.GetCols() == Z.GetCols());
+	}
 	TSizeTy Rows = X.GetRows();
 	TSizeTy Cols = X.GetCols();
 	for (TSizeTy RowN = 0; RowN < Rows; RowN++) {
