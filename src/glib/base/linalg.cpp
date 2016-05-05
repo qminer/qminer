@@ -732,7 +732,7 @@ void TLinAlgTransform::Convert(const TVec<TIntFltKdV>& A, TTriple<TIntV, TIntV, 
 
 //////////////////////////////////////////////////////////////////////
 /// Contains methods to check the properties of linear algebra structures
-bool TLinAlgCheck::IsZero(const TFltV& Vec, const double& Eps) {
+bool TLinAlgCheck::IsZeroTol(const TFltV& Vec, const double& Eps) {
 	bool IsZero = true;
 	for (int i = 0; i < Vec.Len(); i++) {
 		if (!TMath::IsInEps((double)Vec[i], Eps)) {
@@ -758,6 +758,14 @@ bool TLinAlgCheck::ContainsNan(const TFltVV& FltVV) {
 	return false;
 }
 
+bool TLinAlgCheck::IsOrthonormal(const TFltVV& Vecs, const double& Threshold) {
+	int m = Vecs.GetCols();
+	TFltVV R(m, m);
+	TLinAlg::MultiplyT(Vecs, Vecs, R);
+	for (int i = 0; i < m; i++) { R(i, i) -= 1; }
+	return TLinAlg::Frob(R) < Threshold;
+}
+
 //////////////////////////////////////////////////////////////////////
 /// Search elements of matrices and vectors
 int TLinAlgSearch::GetMaxDimIdx(const TIntFltKdV& SpVec) {
@@ -772,17 +780,6 @@ int TLinAlgSearch::GetMaxDimIdx(const TVec<TIntFltKdV>& SpMat) {
 		}
 	}
 	return MaxDim;
-}
-
-void TLinAlgSearch::GetColMinIdxV(const TFltVV& X, TIntV& IdxV) {
-	int Cols = X.GetCols();
-
-	if (IdxV.Empty()) { IdxV.Gen(Cols); }
-	EAssert(IdxV.Len() == Cols);
-
-	for (int ColN = 0; ColN < Cols; ColN++) {
-		IdxV[ColN] = GetColMinIdx(X, ColN);
-	}
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -846,17 +843,6 @@ void TLinAlg::LinComb(const double& p, const TFltVV& X, int DimId,
 		}
 	}
 }
-void TLinAlg::LinComb(const double& p, const TFltVV& X, const double& q, const TFltVV& Y, TFltVV& Z) {
-	if (Z.Empty()) Z.Gen(X.GetRows(), X.GetCols());
-	EAssert(X.GetRows() == Y.GetRows() && X.GetCols() == Y.GetCols() && X.GetRows() == Z.GetRows() && X.GetCols() == Z.GetCols());
-	int Rows = X.GetRows();
-	int Cols = X.GetCols();
-	for (int RowN = 0; RowN < Rows; RowN++) {
-		for (int ColN = 0; ColN < Cols; ColN++) {
-			Z.At(RowN, ColN) = p*X.At(RowN, ColN) + q*Y.At(RowN, ColN);
-		}
-	}
-}
 
 void TLinAlg::LinComb(const double& p, const TVec<TIntFltKdV>& X, const double& q, const TVec<TIntFltKdV>& Y, TVec<TIntFltKdV>& Z) {
     if (Z.Empty()) { Z.Gen(X.Len()); }
@@ -876,7 +862,7 @@ void TLinAlg::LinComb(const double& p, const TFltVV& X, const double& q, const T
         int KeyN = 0;
         for (int RowN = 0; RowN < Rows; RowN++) {
             Z.At(RowN, ColN) = p*X.At(RowN, ColN);
-            if (Y[ColN][KeyN].Key == RowN) {
+            if (KeyN < Y[ColN].Len() && Y[ColN][KeyN].Key == RowN) {
                 Z.At(RowN, ColN) += q*Y[ColN][KeyN].Dat; KeyN++;
             }
         }
@@ -988,6 +974,11 @@ double TLinAlg::NormL1(const TIntFltKdV& x) {
 	return norm;
 }
 
+void TLinAlg::NormalizeL1(TIntFltKdV& x) {
+	const double xNorm = TLinAlg::NormL1(x);
+	if (xNorm > 0.0) { TLinAlg::MultiplyScalar(1 / xNorm, x, x); }
+}
+
 // Linf norm of x (Max{|xi|, i = 1..n})
 double TLinAlg::NormLinf(const TIntFltKdV& x) {
 	double norm = 0.0; const int Len = x.Len();
@@ -1084,6 +1075,226 @@ void TLinAlg::MultiplyScalar(const double& k, const TIntFltKdV& x, TIntFltKdV& y
 		y[i].Key = x[i].Key;
 		y[i].Dat = k * x[i].Dat;
 	}
+}
+
+//Andrej Urgent
+//TODO template --- indextype TIntFltKdV ... TInt64
+void TLinAlg::Multiply(const TVec<TIntFltKdV>& A, const TFltVV& B, TFltVV& C, const int RowsA) {
+	// A = sparse column matrix
+	EAssert(A.Len() == B.GetRows());
+	int Rows = RowsA;
+	int ColsB = B.GetCols();
+	if (RowsA == -1) {
+		Rows = TLinAlgSearch::GetMaxDimIdx(A) + 1;
+	}
+	else {
+		EAssert(TLinAlgSearch::GetMaxDimIdx(A) + 1 <= RowsA);
+	}
+	if (C.Empty()) {
+		C.Gen(Rows, ColsB);
+	}
+	int RowsB = B.GetRows();
+	C.PutAll(0.0);
+	for (int ColN = 0; ColN < ColsB; ColN++) {
+		for (int RowN = 0; RowN < RowsB; RowN++) {
+			int Els = A[RowN].Len();
+			for (int ElN = 0; ElN < Els; ElN++) {
+				C.At(A[RowN][ElN].Key, ColN) += A[RowN][ElN].Dat * B.At(RowN, ColN);
+			}
+		}
+	}
+}
+
+
+//Andrej Urgent
+//TODO template --- indextype TIntFltKdV ... TInt64 TFlt
+void TLinAlg::MultiplyT(const TVec<TIntFltKdV>& A, const TFltVV& B, TFltVV& C) {
+	// A = sparse column matrix
+	EAssert(TLinAlgSearch::GetMaxDimIdx(A) + 1 <= B.GetRows());
+	int ColsB = B.GetCols();
+	//int RowsB = B.GetRows();
+	int ColsA = A.Len();
+	if (C.Empty()) {
+		C.Gen(ColsA, ColsB);
+	}
+	else {
+		EAssert(C.GetRows() == ColsA && C.GetCols() == ColsB);
+	}
+	C.PutAll(0.0);
+	for (int RowN = 0; RowN < ColsA; RowN++) {
+		for (int ColN = 0; ColN < ColsB; ColN++) {
+			int Els = A[RowN].Len();
+			for (int ElN = 0; ElN < Els; ElN++) {
+				C.At(RowN, ColN) += A[RowN][ElN].Dat * B.At(A[RowN][ElN].Key, ColN);
+			}
+		}
+	}
+}
+
+void TLinAlg::Multiply(const TFltVV& A, const TVec<TIntFltKdV>& B, TVec<TIntFltKdV>& C) {
+    EAssert(A.GetCols() >= TLinAlgSearch::GetMaxDimIdx(B) + 1);
+    int Rows = A.GetRows();
+    int Cols = B.Len();
+
+    C.Gen(Cols);
+    for (int ColN = 0; ColN < Cols; ColN++) {
+        for (int RowN = 0; RowN < Rows; RowN++) {
+            TFlt val(0.0);
+            int Els = B[ColN].Len();
+            for (int ElN = 0; ElN < Els; ElN++) {
+                val += A(RowN, B[ColN][ElN].Key) * B[ColN][ElN].Dat;
+            }
+            C[ColN].Add(TIntFltKd(RowN, val));
+        }
+    }
+}
+
+// SPARSECOLMAT-SPARSECOLMAT
+
+//Andrej Urgent
+//TODO template --- indextype TIntFltKdV ... TInt64
+//TLAMisc
+//GetMaxDimIdx
+void TLinAlg::Multiply(const TVec<TIntFltKdV>& A, const TVec<TIntFltKdV>& B, TFltVV& C, const int RowsA) {
+	//// A,B = sparse column matrix
+	//EAssert(A.Len() == B.GetRows());
+	int Rows = RowsA;
+	int ColsB = B.Len();
+	if (RowsA == -1) {
+		Rows = TLinAlgSearch::GetMaxDimIdx(A) + 1;
+	}
+	else {
+		EAssert(TLinAlgSearch::GetMaxDimIdx(A) + 1 <= RowsA);
+	}
+	if (C.Empty()) {
+		C.Gen(Rows, ColsB);
+	}
+	EAssert(TLinAlgSearch::GetMaxDimIdx(B) + 1 <= A.Len());
+	C.PutAll(0.0);
+	for (int ColN = 0; ColN < ColsB; ColN++) {
+		int ElsB = B[ColN].Len();
+		for (int ElBN = 0; ElBN < ElsB; ElBN++) {
+			int IdxB = B[ColN][ElBN].Key;
+			double ValB = B[ColN][ElBN].Dat;
+			int ElsA = A[IdxB].Len();
+			for (int ElAN = 0; ElAN < ElsA; ElAN++) {
+				int IdxA = A[IdxB][ElAN].Key;
+				double ValA = A[IdxB][ElAN].Dat;
+				C.At(IdxA, ColN) += ValA * ValB;
+			}
+		}
+	}
+}
+
+void TLinAlg::Multiply(const TVec<TIntFltKdV>& A, const TVec<TIntFltKdV>& B, TVec<TIntFltKdV>& C,
+		const int RowsA) {
+    //// A,B = sparse column matrix
+    //EAssert(A.Len() == B.GetRows());
+    int Rows = RowsA;
+    int ColsB = B.Len();
+
+    if (RowsA == -1) { Rows = TLinAlgSearch::GetMaxDimIdx(A) + 1; }
+    EAssert(TLinAlgSearch::GetMaxDimIdx(A) + 1 <= Rows);
+
+    C.Gen(ColsB);
+    EAssert(TLinAlgSearch::GetMaxDimIdx(B) + 1 <= A.Len());
+
+    for (int ColN = 0; ColN < ColsB; ColN++) {
+        int ElsB = B[ColN].Len();
+        for (int ElBN = 0; ElBN < ElsB; ElBN++) {
+            int IdxB = B[ColN][ElBN].Key;
+            double ValB = B[ColN][ElBN].Dat;
+            int ElsA = A[IdxB].Len();
+            for (int ElAN = 0; ElAN < ElsA; ElAN++) {
+                int IdxA = A[IdxB][ElAN].Key;
+                double ValA = A[IdxB][ElAN].Dat;
+                C[ColN].Add(TIntFltKd(IdxA, ValA * ValB));
+            }
+        }
+    }
+}
+
+
+//Andrej Urgent
+//TODO template --- indextype TIntFltKdV ... TInt64
+void TLinAlg::MultiplyT(const TVec<TIntFltKdV>& A, const TVec<TIntFltKdV>& B, TFltVV& C) {
+	//// A, B = sparse column matrix
+	int ColsA = A.Len();
+	int ColsB = B.Len();
+	if (C.Empty()) {
+		C.Gen(ColsA, ColsB);
+	}
+	else {
+		EAssert(ColsA == C.GetRows() && ColsB == C.GetCols());
+	}
+	for (int RowN = 0; RowN < ColsA; RowN++) {
+		for (int ColN = 0; ColN < ColsB; ColN++) {
+			C.At(RowN, ColN) = TLinAlg::DotProduct(A[RowN], B[ColN]);
+		}
+	}
+}
+
+
+void TLinAlg::MultiplyT(const TVec<TIntFltKdV>& A, const TIntFltKdV& b, TFltV& c) {
+    //// A = sparse column matrix, b = sparse vector
+    int ColsA = A.Len();
+
+    if (c.Empty()) {
+        c.Gen(ColsA);
+    }
+    else {
+        EAssert(ColsA == c.Len());
+    }
+    for (int RowN = 0; RowN < ColsA; RowN++) {
+        c[RowN] = TLinAlg::DotProduct(A[RowN], b);
+    }
+}
+
+void TLinAlg::QR(const TFltVV& X, TFltVV& Q, TFltVV& R, const TFlt& Tol) {
+	int Rows = X.GetRows();
+	int Cols = X.GetCols();
+	int d = MIN(Rows, Cols);
+
+	// make a copy of X
+	TFltVV A(X);
+	if (Q.GetRows() != Rows || Q.GetCols() != d) { Q.Gen(Rows, d); }
+	if (R.GetRows() != d || R.GetCols() != Cols) { R.Gen(d, Cols); }
+	TRnd Random;
+	for (int k = 0; k < d; k++) {
+		R(k, k) = TLinAlg::Norm(A, k);
+		// if the remainders norm is too small we construct a random vector (handles rank deficient)
+		if (R(k, k) < Tol) {
+			// random Q(:,k)
+			for (int RowN = 0; RowN < Rows; RowN++) {
+				Q(RowN, k) = Random.GetNrmDev();
+			}
+			// make it orthonormal on others
+			for (int j = 0; j < k; j++) {
+				TLinAlg::AddVec(-TLinAlg::DotProduct(Q, j, Q, k), Q, j, Q, k);
+			}
+			TLinAlg::NormalizeColumn(Q, k);
+			R(k, k) = 0;
+		}
+		else {
+			// normalize
+			for (int RowN = 0; RowN < Rows; RowN++) {
+				Q(RowN, k) = A(RowN, k) / R(k, k);
+			}
+		}
+
+		// make the rest of the columns of A orthogonal to the current basis Q
+		for (int j = k + 1; j < Cols; j++) {
+			R(k, j) = TLinAlg::DotProduct(Q, k, A, j);
+			TLinAlg::AddVec(-R(k, j), Q, k, A, j);
+		}
+	}
+}
+
+// rotates vector (OldX,OldY) for angle Angle (in radians!)
+void TLinAlg::Rotate(const double& OldX, const double& OldY, const double& Angle,
+		double& NewX, double& NewY) {
+	NewX = OldX*cos(Angle) - OldY*sin(Angle);
+	NewY = OldX*sin(Angle) + OldY*cos(Angle);
 }
 
 void TLinAlg::NonNegProj(TFltV& Vec) {
