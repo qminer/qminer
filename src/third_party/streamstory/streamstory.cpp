@@ -3883,7 +3883,7 @@ void TUiHelper::InitAutoNmV(const TStreamStory& StreamStory) {
 				const double LowPercPVal = AllPValV[LowPercN];
 				const double HighPercPVal = 1 - AllPValV[HighPercN];
 
-				double PVal = TMath::Mn(LowPercPVal, HighPercPVal);
+				PVal = TMath::Mn(LowPercPVal, HighPercPVal);
 
 				const TNumAutoNmLevel Level = TNumAutoNmDesc::GetAutoNmLevel(PVal, LowPercPVal, HighPercPVal);
 				StateAutoNmDescV.Add(new TNumAutoNmDesc(PVal, FtrN, Level));

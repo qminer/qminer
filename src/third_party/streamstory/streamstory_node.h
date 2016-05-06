@@ -8,8 +8,6 @@
 #ifndef STREAMSTORY_NODE_H_
 #define STREAMSTORY_NODE_H_
 
-//#include <node.h>
-//#include <node_object_wrap.h>
 #include "../nodeutil.h"
 #include "la_nodejs.h"
 
