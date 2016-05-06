@@ -2280,7 +2280,7 @@ private:
 * // create a Recommender System object
 * var recSys = new analytics.RecommenderSys({ tol: 1e-3, iter: 10000, k: 2, verbose: false });
 * // create the matrix to be fitted
-* var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+* var X = new la.Matrix([[1, 2, 1], [1, 1, 3]]);
 * // create the model
 * recSys.fit(X);
 */
