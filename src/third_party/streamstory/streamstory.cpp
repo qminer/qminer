@@ -3352,7 +3352,7 @@ void TUiHelper::TAutoNmDesc::Save(TSOut& SOut) const {
 }
 
 TUiHelper::TNumAutoNmDesc::TNumAutoNmDesc(const int& FtrN, const double& PVal,
-		const TNumAutoNmLevel& _Level):
+			const TNumAutoNmLevel& _Level):
 		TAutoNmDesc(FtrN, PVal),
 		Level(_Level) {}
 
@@ -3886,7 +3886,7 @@ void TUiHelper::InitAutoNmV(const TStreamStory& StreamStory) {
 				PVal = TMath::Mn(LowPercPVal, HighPercPVal);
 
 				const TNumAutoNmLevel Level = TNumAutoNmDesc::GetAutoNmLevel(PVal, LowPercPVal, HighPercPVal);
-				StateAutoNmDescV.Add(new TNumAutoNmDesc(PVal, FtrN, Level));
+				StateAutoNmDescV.Add(new TNumAutoNmDesc(FtrN, PVal, Level));
 				break;
 			}
 			case ftCategorical: {

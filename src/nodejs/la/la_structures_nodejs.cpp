@@ -877,7 +877,7 @@ void TNodeJsSpVec::sum(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     EAssertR(JsSpVec->Vec.Len() > 0, "Summing vector of length zero");
 
     const double Result =
-        JsSpVec->Vec.Len() > 0 ? TLinAlg::SumVec(JsSpVec->Vec) : 0.0;
+        JsSpVec->Vec.Len() > 0 ? TLinAlg::SumVec(JsSpVec->Vec).Val : 0.0;
 
     Args.GetReturnValue().Set(v8::Number::New(Isolate, Result));
 }

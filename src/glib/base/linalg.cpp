@@ -764,41 +764,6 @@ void TLinAlg::LinComb(const double& p, const TIntFltKdV& x, const double& q, con
 	TSparseOpsIntFlt::SparseLinComb(p, x, q, y, z);
 }
 
-void TLinAlg::LinComb(const double& p, const TFltVV& X, int ColId,
-	const double& q, const TFltV& y, TFltV& z) {
-
-	if (z.Empty()) z.Gen(X.GetRows());
-	EAssert(X.GetRows() == y.Len() && y.Len() == z.Len());
-
-	const int len = z.Len();
-	for (int i = 0; i < len; i++) {
-		z[i] = p * X(i, ColId) + q * y[i];
-	}
-}
-void TLinAlg::LinComb(const double& p, const TFltVV& X, int DimId,
-	const double& q, const TFltV& y, TFltV& z, int Dim) {
-
-	EAssertR(Dim == 1 || Dim == 2, "TLinAlg::LinComb: Invalid value of argument Dim.");
-	if (Dim == 1) {
-		if (z.Empty()) z.Gen(X.GetRows());
-		EAssert(X.GetRows() == y.Len() && y.Len() == z.Len());
-
-		const int len = z.Len();
-		for (int i = 0; i < len; i++) {
-			z[i] = p * X(i, DimId) + q * y[i];
-		}
-	}
-	else if (Dim == 2) {
-		if (z.Empty()) z.Gen(X.GetCols());
-		EAssert(X.GetCols() == y.Len() && y.Len() == z.Len());
-
-		const int len = z.Len();
-		for (int i = 0; i < len; i++) {
-			z[i] = p * X(DimId, i) + q * y[i];
-		}
-	}
-}
-
 void TLinAlg::LinComb(const double& p, const TVec<TIntFltKdV>& X, const double& q, const TVec<TIntFltKdV>& Y, TVec<TIntFltKdV>& Z) {
     if (Z.Empty()) { Z.Gen(X.Len()); }
     EAssert(X.Len() == Y.Len() && Y.Len() == Z.Len());
@@ -888,15 +853,6 @@ void TLinAlg::AddVec(const TIntFltKdV& x, const TIntFltKdV& y, TIntFltKdV& z) {
 	TSparseOpsIntFlt::SparseMerge(x, y, z);
 }
 
-double TLinAlg::SumVec(const TIntFltKdV& x) {
-	const int len = x.Len();
-	double Res = 0.0;
-	for (int i = 0; i < len; i++) {
-		Res += x[i].Dat;
-	}
-	return Res;
-}
-
 double TLinAlg::EuclDist2(const TFltPr& x, const TFltPr& y) {
 	return TMath::Sqr(x.Val1 - y.Val1) + TMath::Sqr(x.Val2 - y.Val2);
 }
@@ -920,43 +876,6 @@ double TLinAlg::Frob2(const TVec<TIntFltKdV> &A) {
 		}
 	}
 	return Res;
-}
-
-void TLinAlg::GetColNormV(const TFltVV& X, TFltV& ColNormV) {
-	const int Cols = X.GetCols();
-	GetColNorm2V(X, ColNormV);
-	for (int i = 0; i < Cols; i++) {
-		ColNormV[i] = sqrt(ColNormV[i]);
-	}
-}
-
-void TLinAlg::GetColNormV(const TVec<TIntFltKdV>& X, TFltV& ColNormV) {
-    const int Cols = X.Len();
-    GetColNorm2V(X, ColNormV);
-    for (int i = 0; i < Cols; i++) {
-        ColNormV[i] = sqrt(ColNormV[i]);
-    }
-}
-
-// stores the squared norm of all the columns into the output vector
-void TLinAlg::GetColNorm2V(const TFltVV& X, TFltV& ColNormV) {
-	const int Cols = X.GetCols();
-
-	if (ColNormV.Len() != Cols) { ColNormV.Gen(Cols); }
-
-	for (int ColN = 0; ColN < Cols; ColN++) {
-		ColNormV[ColN] = Norm2(X, ColN);
-	}
-}
-
-void TLinAlg::GetColNorm2V(const TVec<TIntFltKdV>& SpVV, TFltV& ColNormV) {
-	const int Cols = SpVV.Len();
-
-	if (ColNormV.Len() != Cols) { ColNormV.Gen(Cols); }
-
-	for (int ColN = 0; ColN < Cols; ColN++) {
-		ColNormV[ColN] = Norm2(SpVV[ColN]);
-	}
 }
 
 void TLinAlg::Transpose(const TVec<TIntFltKdV>& A, TVec<TIntFltKdV>& At, int Rows){

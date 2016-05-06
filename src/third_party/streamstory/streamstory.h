@@ -761,7 +761,7 @@ private:
 // UI helper
 class TUiHelper {
 public:
-	enum TNumAutoNmLevel: uchar {
+	enum TNumAutoNmLevel: uchar {	// TODO change to 0x8
 		nanlLowest = 0xF0,
 		nanlLow = 0xF1,
 		nanlMeduim = 0xF2,

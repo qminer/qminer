@@ -731,6 +731,45 @@ void TLinAlg::LinComb(const double& p, const TVVec<TType, TSizeTy, ColMajor>& X,
 	}
 }
 
+template <class TType, class TSizeTy, bool ColMajor>
+void TLinAlg::LinComb(const double& p, const TVVec<TType, TSizeTy, ColMajor>& X, TSizeTy ColId,
+	const double& q, const TVec<TType, TSizeTy>& y, TVec<TType, TSizeTy>& z) {
+
+	if (z.Empty()) z.Gen(X.GetRows());
+	EAssert(X.GetRows() == y.Len() && y.Len() == z.Len());
+
+	const TSizeTy len = z.Len();
+	for (TSizeTy i = 0; i < len; i++) {
+		z[i] = p * X(i, ColId) + q * y[i];
+	}
+}
+
+template <class TType, class TSizeTy, bool ColMajor>
+void TLinAlg::LinComb(const double& p, const TVVec<TType, TSizeTy, ColMajor>& X,
+		TSizeTy DimId, const double& q, const TVec<TType, TSizeTy>& y, TVec<TType, TSizeTy>& z,
+		int Dim) {
+
+	EAssertR(Dim == 1 || Dim == 2, "TLinAlg::LinComb: Invalid value of argument Dim.");
+	if (Dim == 1) {
+		if (z.Empty()) z.Gen(X.GetRows());
+		EAssert(X.GetRows() == y.Len() && y.Len() == z.Len());
+
+		const TSizeTy len = z.Len();
+		for (TSizeTy i = 0; i < len; i++) {
+			z[i] = p * X(i, DimId) + q * y[i];
+		}
+	}
+	else if (Dim == 2) {
+		if (z.Empty()) z.Gen(X.GetCols());
+		EAssert(X.GetCols() == y.Len() && y.Len() == z.Len());
+
+		const TSizeTy len = z.Len();
+		for (TSizeTy i = 0; i < len; i++) {
+			z[i] = p * X(DimId, i) + q * y[i];
+		}
+	}
+}
+
 // TEST
 // z := p * x + (1 - p) * y
 template <class TType, class TSizeTy, bool ColMajor>
@@ -820,7 +859,7 @@ void TLinAlg::AddVec(double k, const TVVec<TType, TSizeTy, ColMajor>& X, int Col
 }
 
 template <class TType, class TSizeTy, bool ColMajor>
-double TLinAlg::SumVec(const TVec<TType, TSizeTy>& x) {
+TType TLinAlg::SumVec(const TVec<TType, TSizeTy>& x) {
 	const TSizeTy len = x.Len();
 	double Res = 0.0;
 	for (int i = 0; i < len; i++) {
@@ -830,7 +869,17 @@ double TLinAlg::SumVec(const TVec<TType, TSizeTy>& x) {
 }
 
 template <class TType, class TSizeTy, bool ColMajor>
-double TLinAlg::SumVec(double k, const TVec<TType, TSizeTy>& x, const TVec<TType, TSizeTy>& y) {
+TType TLinAlg::SumVec(const TVec<TKeyDat<TNum<TSizeTy>, TType>, TSizeTy>& x) {
+	const TSizeTy len = x.Len();
+	TType Res = 0.0;
+	for (TSizeTy i = 0; i < len; i++) {
+		Res += x[i].Dat;
+	}
+	return Res;
+}
+
+template <class TType, class TSizeTy, bool ColMajor>
+TType TLinAlg::SumVec(double k, const TVec<TType, TSizeTy>& x, const TVec<TType, TSizeTy>& y) {
 	EAssert(x.Len() == y.Len());
 	const TSizeTy len = x.Len();
 	double Res = 0.0;
@@ -1139,6 +1188,48 @@ template <class TType, class TSizeTy, bool ColMajor>
 void TLinAlg::NormalizeLinf(TVec<TKeyDat<TNum<TSizeTy>, TType>, TSizeTy>& x) {
 	const TType xNormLInf = TLinAlg::NormLinf(x);
 	if (xNormLInf > 0.0) { TLinAlg::MultiplyScalar(1.0 / xNormLInf, x, x); }
+}
+
+template <class TType, class TSizeTy, bool ColMajor>
+void TLinAlg::GetColNormV(const TVVec<TType, TSizeTy, ColMajor>& X, TVec<TType, TSizeTy>& ColNormV) {
+	const TSizeTy Cols = X.GetCols();
+	GetColNorm2V(X, ColNormV);
+	for (TSizeTy i = 0; i < Cols; i++) {
+		ColNormV[i] = TMath::Sqrt(ColNormV[i]);
+	}
+}
+
+template <class TType, class TSizeTy, bool ColMajor>
+void TLinAlg::GetColNormV(const TVec<TVec<TKeyDat<TNum<TSizeTy>, TType>, TSizeTy>, TSizeTy>& X,
+		TVec<TType, TSizeTy>& ColNormV) {
+    const TSizeTy Cols = X.Len();
+    GetColNorm2V(X, ColNormV);
+    for (TSizeTy i = 0; i < Cols; i++) {
+        ColNormV[i] = TMath::Sqrt(ColNormV[i]);
+    }
+}
+
+template <class TType, class TSizeTy, bool ColMajor>
+void TLinAlg::GetColNorm2V(const TVVec<TType, TSizeTy, ColMajor>& X, TVec<TType, TSizeTy>& ColNormV) {
+	const TSizeTy Cols = X.GetCols();
+
+	if (ColNormV.Len() != Cols) { ColNormV.Gen(Cols); }
+
+	for (TSizeTy ColN = 0; ColN < Cols; ColN++) {
+		ColNormV[ColN] = Norm2(X, ColN);
+	}
+}
+
+template <class TType, class TSizeTy, bool ColMajor>
+void TLinAlg::GetColNorm2V(const TVec<TVec<TKeyDat<TNum<TSizeTy>, TType>, TSizeTy>, TSizeTy>& SpVV,
+		TVec<TType, TSizeTy>& ColNormV) {
+	const TSizeTy Cols = SpVV.Len();
+
+	if (ColNormV.Len() != Cols) { ColNormV.Gen(Cols); }
+
+	for (TSizeTy ColN = 0; ColN < Cols; ColN++) {
+		ColNormV[ColN] = Norm2(SpVV[ColN]);
+	}
 }
 
 // TEST

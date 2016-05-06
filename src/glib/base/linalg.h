@@ -520,7 +520,7 @@ public:
 	static bool ContainsNan(const TFltVV& FltVV);
 
 	// checks if set of vectors is ortogonal
-	TEMP_LA	static void AssertOrtogonality(const TVec<TVec<TType, TSizeTy>, TSizeTy>& Vecs,
+	TEMP_LA	static void AssertOrtogonality(const TVec<TDnsV, TSizeTy>& Vecs,
 			const double& Threshold);
 	//ColMajor oriented data for optimal result
 	TEMP_LA	static void AssertOrtogonality(const TDnsVV& Vecs, const TType& Threshold);
@@ -627,10 +627,10 @@ public:
 			TDnsVV& Z);
 	// z = p * x + q * y
 	static void LinComb(const double& p, const TIntFltKdV& x, const double& q, const TIntFltKdV& y, TIntFltKdV& z);
-	static void LinComb(const double& p, const TFltVV& X, int ColId,
-		const double& q, const TFltV& y, TFltV& z);
-	static void LinComb(const double& p, const TFltVV& X, int DimId,
-		const double& q, const TFltV& y, TFltV& z, int Dim);
+	TEMP_LA static void LinComb(const double& p, const TDnsVV& X, TSizeTy ColId, const double& q,
+			const TDnsV& y, TDnsV& z);
+	TEMP_LA static void LinComb(const double& p, const TDnsVV& X, TSizeTy DimId,
+		const double& q, const TDnsV& y, TDnsV& z, int Dim);
 	static void LinComb(const double& p, const TVec<TIntFltKdV>& X, const double& q, const TVec<TIntFltKdV>& Y, TVec<TIntFltKdV>& Z);
     static void LinComb(const double& p, const TFltVV& X, const double& q, const TVec<TIntFltKdV>& Y, TFltVV& Z);
     static void LinComb(const double& p, const TVec<TIntFltKdV>& X, const double& q, TFltVV const& Y, TVec<TIntFltKdV>& Z);
@@ -664,11 +664,11 @@ public:
 	static void AddVec(const TIntFltKdV& x, const TIntFltKdV& y, TIntFltKdV& z);
 
 	// Result = SUM(x)
-	TEMP_LA	static double SumVec(const TDnsV& x);
+	TEMP_LA	static TType SumVec(const TDnsV& x);
 	// Result = SUM(x)
-	static double SumVec(const TIntFltKdV& x);
+	TEMP_LA static TType SumVec(const TSpV& x);
 	// Result = SUM(k*x + y)
-	TEMP_LA	static double SumVec(double k, const TDnsV& x, const TDnsV& y);
+	TEMP_LA	static TType SumVec(double k, const TDnsV& x, const TDnsV& y);
 
 	//===========================================================
 	// DISTANCES AND NORMS
@@ -749,13 +749,13 @@ public:
 	TEMP_LA static void NormalizeLinf(TSpV& x);
 
 	// stores the squared norm of all the columns into the output vector
-	static void GetColNormV(const TFltVV& X, TFltV& ColNormV);
+	TEMP_LA static void GetColNormV(const TDnsVV& X, TDnsV& ColNormV);
 	// stores the norm of all the columns into the output vector
-    static void GetColNormV(const TVec<TIntFltKdV>& X, TFltV& ColNormV);
+    TEMP_LA static void GetColNormV(const TSpVV& X, TDnsV& ColNormV);
 	// stores the norm of all the columns into the output vector
-	static void GetColNorm2V(const TFltVV& X, TFltV& ColNormV);
+	TEMP_LA static void GetColNorm2V(const TDnsVV& X, TDnsV& ColNormV);
 	// stores the norm of all the columns into the output vector
-	static void GetColNorm2V(const TVec<TIntFltKdV>& SpVV, TFltV& ColNormV);
+	TEMP_LA static void GetColNorm2V(const TSpVV& SpVV, TDnsV& ColNormV);
 
 	TEMP_LA	static void Sum(const TDnsVV& X, TDnsV& y, const int Dimension = 1);
 	TEMP_LA	static double SumRow(const TDnsVV& X, const int& RowN);
