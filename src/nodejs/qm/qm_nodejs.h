@@ -2726,7 +2726,7 @@ public:
 * });
 * // create a feature space containing the categorical extractor, where the it's values
 * // are taken from the field "StudyGroup": "A", "B", "C" and "D"
-* var ftr = new qm.FeatureSpace(base, { type: "categorical", source: "Class", field: "StudyGroup", values: ["A", "B", "C", "D"] });
+* var ftr = new qm.FeatureSpace(base, { type: "categorical", source: "Class", field: "StudyGroup" });
 * base.close();
 */
 
