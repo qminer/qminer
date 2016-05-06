@@ -52,9 +52,6 @@
 // clustering
 #include "clustering.cpp"
 
-// Markov chains
-#include "mc.cpp"
-
 // Anomaly Detection
 #include "anomaly.cpp"
 

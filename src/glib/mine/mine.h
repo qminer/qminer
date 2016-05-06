@@ -58,9 +58,6 @@
 #include "hac.h"
 #include "clustering.h"
 
-// Markov Chains
-#include "mc.h"
-
 // Anomaly Detection
 #include "anomaly.h"
 

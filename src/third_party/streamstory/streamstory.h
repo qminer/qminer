@@ -6,6 +6,12 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+#ifndef STREAMSTORY_H_
+#define STREAMSTORY_H_
+
+#include "base.h"
+#include "mine.h"
+
 namespace TMc {
 
 using namespace TClassification;
@@ -1221,3 +1227,5 @@ private:
 };
 
 }
+
+#endif

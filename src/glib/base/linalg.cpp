@@ -760,11 +760,6 @@ bool TLinAlgCheck::IsOrthonormal(const TFltVV& Vecs, const double& Threshold) {
 
 ////////////////////////////////////////////////////////////////////////
 //// Basic Linear Algebra Operations
-double TLinAlg::DotProduct(const TVec<TFltV>& X, int ColId, const TFltV& y) {
-	EAssert(0 <= ColId && ColId < X.Len());
-	return DotProduct(X[ColId], y);
-}
-
 void TLinAlg::LinComb(const double& p, const TIntFltKdV& x, const double& q, const TIntFltKdV& y, TIntFltKdV& z) {
 	TSparseOpsIntFlt::SparseLinComb(p, x, q, y, z);
 }
