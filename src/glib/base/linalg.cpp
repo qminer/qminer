@@ -658,14 +658,6 @@ void TLinAlgTransform::FillRange(const int& Vals, TIntV& Vec) {
 //	}
 //}
 
-void TLinAlgTransform::Diag(const TFltV& Vec, TVec<TIntFltKdV>& Mat) {
-	int Len = Vec.Len();
-	Mat.Gen(Len);
-	for (int ColN = 0; ColN < Len; ColN++) {
-		Mat[ColN].Add(TIntFltKd(ColN, Vec[ColN]));
-	}
-}
-
 void TLinAlgTransform::ToSpVec(const TFltV& Vec, TIntFltKdV& SpVec,
         const double& CutSumPrc) {
 
@@ -766,43 +758,11 @@ bool TLinAlgCheck::IsOrthonormal(const TFltVV& Vecs, const double& Threshold) {
 	return TLinAlg::Frob(R) < Threshold;
 }
 
-//////////////////////////////////////////////////////////////////////
-/// Search elements of matrices and vectors
-int TLinAlgSearch::GetMaxDimIdx(const TIntFltKdV& SpVec) {
-	return SpVec.Len() > 0 ? SpVec.Last().Key.Val : 0;
-}
-
-int TLinAlgSearch::GetMaxDimIdx(const TVec<TIntFltKdV>& SpMat) {
-	int MaxDim = 0;
-	for (int ColN = 0; ColN < SpMat.Len(); ColN++) {
-		if (!SpMat[ColN].Empty()) {
-			MaxDim = MAX(MaxDim, SpMat[ColN].Last().Key.Val);
-		}
-	}
-	return MaxDim;
-}
-
 ////////////////////////////////////////////////////////////////////////
 //// Basic Linear Algebra Operations
 double TLinAlg::DotProduct(const TVec<TFltV>& X, int ColId, const TFltV& y) {
 	EAssert(0 <= ColId && ColId < X.Len());
 	return DotProduct(X[ColId], y);
-}
-
-double TLinAlg::DotProduct(const TVec<TIntFltKdV>& X, int ColId, const TFltV& y) {
-	EAssert(0 <= ColId && ColId < X.Len());
-	return DotProduct(y, X[ColId]);
-}
-
-double TLinAlg::DotProduct(const TIntFltKdV& x, const TIntFltKdV& y) {
-	const int xLen = x.Len(), yLen = y.Len();
-	double Res = 0.0; int i1 = 0, i2 = 0;
-	while (i1 < xLen && i2 < yLen) {
-		if (x[i1].Key < y[i2].Key) i1++;
-		else if (x[i1].Key > y[i2].Key) i2++;
-		else { Res += x[i1].Dat * y[i2].Dat;  i1++;  i2++; }
-	}
-	return Res;
 }
 
 void TLinAlg::LinComb(const double& p, const TIntFltKdV& x, const double& q, const TIntFltKdV& y, TIntFltKdV& z) {
@@ -967,32 +927,6 @@ double TLinAlg::Frob2(const TVec<TIntFltKdV> &A) {
 	return Res;
 }
 
-double TLinAlg::NormL1(const TIntFltKdV& x) {
-	double norm = 0.0; const int Len = x.Len();
-	for (int i = 0; i < Len; i++)
-		norm += TFlt::Abs(x[i].Dat);
-	return norm;
-}
-
-void TLinAlg::NormalizeL1(TIntFltKdV& x) {
-	const double xNorm = TLinAlg::NormL1(x);
-	if (xNorm > 0.0) { TLinAlg::MultiplyScalar(1 / xNorm, x, x); }
-}
-
-// Linf norm of x (Max{|xi|, i = 1..n})
-double TLinAlg::NormLinf(const TIntFltKdV& x) {
-	double norm = 0.0; const int Len = x.Len();
-	for (int i = 0; i < Len; i++)
-		norm = TFlt::GetMx(TFlt::Abs(x[i].Dat), norm);
-	return norm;
-}
-
-// x := x / ||x||_inf, , x is sparse
-void TLinAlg::NormalizeLinf(TIntFltKdV& x) {
-	const double xNormLInf = TLinAlg::NormLinf(x);
-	if (xNormLInf > 0.0) { TLinAlg::MultiplyScalar(1.0 / xNormLInf, x, x); }
-}
-
 void TLinAlg::GetColNormV(const TFltVV& X, TFltV& ColNormV) {
 	const int Cols = X.GetCols();
 	GetColNorm2V(X, ColNormV);
@@ -1065,15 +999,6 @@ void  TLinAlg::Sign(const TVec<TIntFltKdV>& Mat, TVec<TIntFltKdV>& Mat2) {
 		for (int ElN = 0; ElN < Els; ElN++) {
 			Mat2[ColN][ElN].Dat = TMath::Sign(Mat2[ColN][ElN].Dat);
 		}
-	}
-}
-
-void TLinAlg::MultiplyScalar(const double& k, const TIntFltKdV& x, TIntFltKdV& y) {
-	EAssert(x.Len() == y.Len());
-	int Len = x.Len();
-	for (int i = 0; i < Len; i++) {
-		y[i].Key = x[i].Key;
-		y[i].Dat = k * x[i].Dat;
 	}
 }
 
