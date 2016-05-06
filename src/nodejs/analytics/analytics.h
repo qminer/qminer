@@ -2356,16 +2356,16 @@ public:
 	 * matrix.
 	 * @example
 	 * // import modules
-	 * var analytics = require('qminer').analytics;
-	 * var la = require('qminer').la;
+	 * //var analytics = require('qminer').analytics;
+	 * //var la = require('qminer').la;
 	 * // create a new Recommender System object
-	 * var recSys = new analytics.RecommenderSys({ iter: 1000, k: 3 });
+	 * //var recSys = new analytics.RecommenderSys({ iter: 1000, k: 3 });
 	 * // create a matrix to be fitted
-	 * var X = new la.Matrix([[1, 5, 0], [1, 0, 3]]);
+	 * //var X = new la.Matrix([[1, 5, 0], [1, 0, 3]]);
 	 * // create the model with the matrix X
-	 * recSys.fit(X);
+	 * //recSys.fit(X);
 	 * // get the model
-	 * var model = recSys.getModel();
+	 * //var model = recSys.getModel();
 	 */
 	//# exports.RecommenderSys.prototype.getModel = function (params) { return Object.create(require('qminer').analytics.RecommenderSys.prototype); }
 	JsDeclareFunction(getModel);
@@ -2377,27 +2377,27 @@ public:
 	* @returns {module:analytics.RecommenderSys} Self.
 	* @example <caption> Asynhronous function </caption>
 	* // import modules
-	* var analytics = require('qminer').analytics;
-	* var la = require('qminer').la;
+	* //var analytics = require('qminer').analytics;
+	* //var la = require('qminer').la;
 	* // create a new Recommender System object
-	* var recSys = new analytics.RecommenderSys({ iter: 1000, k: 3 });
+	* //var recSys = new analytics.RecommenderSys({ iter: 1000, k: 3 });
 	* // create a matrix to be fitted
-	* var X = new la.Matrix([[1, 5, 0], [1, 0, 3]]);
+	* //var X = new la.Matrix([[1, 5, 0], [1, 0, 3]]);
 	* // create the model with the matrix X
-	* recSys.fitAsync(X, function (err) {
-	*    if (err) { console.log(err); }
-	*    // successful calculation
-	* });
+	* //recSys.fitAsync(X, function (err) {
+	* //   if (err) { console.log(err); }
+	* //   // successful calculation
+	* //});
 	* @example <caption> Synhronous function </caption>
 	* // import modules
-	* var analytics = require('qminer').analytics;
-	* var la = require('qminer').la;
+	* //var analytics = require('qminer').analytics;
+	* //var la = require('qminer').la;
 	* // create a new Recommender System object
-	* var recSys = new analytics.RecommenderSys({ iter: 1000, k: 3 });
+	* //var recSys = new analytics.RecommenderSys({ iter: 1000, k: 3 });
 	* // create a matrix to be fitted
-	* var X = new la.Matrix([[1, 5, 0], [1, 0, 3]]);
+	* //var X = new la.Matrix([[1, 5, 0], [1, 0, 3]]);
 	* // create the model with the matrix X
-	* recSys.fit(X);
+	* //recSys.fit(X);
 	*/
 	//# exports.RecommenderSys.prototype.fit = function (A) { return Object.create(require('qminer').analytics.RecommenderSys.prototype); }
 	JsDeclareSyncAsync(fit, fitAsync, TFitTask);
