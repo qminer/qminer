@@ -939,20 +939,21 @@ TMultinomial::TMultinomial(const TWPt<TBase>& Base, const PJsonVal& ParamVal): T
     }
     // prase out feature generator parameters
     const bool NormalizeP = ParamVal->GetObjBool("normalize", false);
+    const bool BinaryP = ParamVal->GetObjBool("binary", false);
     if (ParamVal->IsObjKey("values")) {
         // we have fixed values
         TStrV ValV; ParamVal->GetObjStrV("values", ValV);
-        FtrGen = TFtrGen::TMultinomial(NormalizeP, ValV);        
+        FtrGen = TFtrGen::TMultinomial(NormalizeP, BinaryP, ValV);        
     } else if (ParamVal->IsObjKey("hashDimension")) {
         // we have hashed values into fixed dimensionality
         const int HashDim = ParamVal->GetObjInt("hashDimension");
-        FtrGen = TFtrGen::TMultinomial(NormalizeP, HashDim);
+        FtrGen = TFtrGen::TMultinomial(NormalizeP, BinaryP, HashDim);
     } else if (ParamVal->GetObjBool("datetime", false)) {
         // initialize feature generator with all possible date extracts
-        FtrGen = TFtrGen::TMultinomial(NormalizeP, TFieldReader::GetDateRange());
+        FtrGen = TFtrGen::TMultinomial(NormalizeP, BinaryP, TFieldReader::GetDateRange());
     } else {
         // we have open value set
-        FtrGen = TFtrGen::TMultinomial(NormalizeP);
+        FtrGen = TFtrGen::TMultinomial(NormalizeP, BinaryP);
     }
     // parse out field(s)
     PJsonVal FieldVal = ParamVal->GetObjKey("field");

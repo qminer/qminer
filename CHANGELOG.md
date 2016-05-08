@@ -1,5 +1,18 @@
 # QMiner Change Log
 
+### 6 May 2016
+
+**Version: 5.2.0**
+
+**Non-breaking with new feature**
+
+New features:
+ - Added binary option to multinomial feature extractor: check only for presenc of value and does not weight by count
+
+Bugfix: 
+ - `TSimpleLinReg::SaveState` failed as it saved object and loaded smart-pointer.
+
+
 ### 15 Apr 2016
 
 **Version: 5.1.0**
