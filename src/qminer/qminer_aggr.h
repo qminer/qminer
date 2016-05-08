@@ -1579,7 +1579,7 @@ public:
     /// Loads state which corresponds to the Result JSON
     void LoadState(TSIn& SIn) { Result = TJsonVal::Load(SIn); }
     /// Saves state which corresponds to the Result JSON
-    void SaveState(TSOut& SOut) const { Result.Save(SOut); }    
+    void SaveState(TSOut& SOut) const { Result->Save(SOut); }    
     /// JSON serialization
     PJsonVal SaveJson(const int& Limit) const { return Result; }
     /// Stream aggregator type name 
