@@ -866,8 +866,8 @@ void TNodeJsAsyncUtil::OnMain(uv_async_t* UvAsync) {
 	}
 
 	// clean up
-	uv_close((uv_handle_t*) UvAsync, DelHandle<uv_async_t>);
 	delete TaskWrapper;
+	uv_close((uv_handle_t*) UvAsync, DelHandle<uv_async_t>);
 }
 
 void TNodeJsAsyncUtil::OnMainBlock(uv_async_t* UvAsync) {
@@ -916,8 +916,8 @@ void TNodeJsAsyncUtil::ExecuteOnMain(TMainThreadTask* Task, const bool& DelTask)
 	uv_async_t* UvAsync = new uv_async_t;
 	UvAsync->data = new TMainData(Task, DelTask);
 
-	uv_async_init(uv_default_loop(), UvAsync, OnMain);
-	uv_async_send(UvAsync);
+	EAssertR(uv_async_init(uv_default_loop(), UvAsync, OnMain) == 0, "Failed to initialize UV handle!");
+	AssertR(uv_async_send(UvAsync) == 0, "Failed to call uv_async_send!");
 }
 
 void TNodeJsAsyncUtil::ExecuteOnMainAndWait(TMainThreadTask* Task, const bool& DelTask) {
