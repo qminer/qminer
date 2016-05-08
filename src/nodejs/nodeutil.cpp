@@ -856,6 +856,8 @@ void TNodeTask::ExtractCallback(const v8::FunctionCallbackInfo<v8::Value>& Args)
 
 //////////////////////////////////////////////////////
 // Node - Asynchronous Utilities
+TCriticalSection TNodeJsAsyncUtil::UvSection;
+
 void TNodeJsAsyncUtil::OnMain(uv_async_t* UvAsync) {
 	TMainData* TaskWrapper = static_cast<TMainData*>(UvAsync->data);
 
@@ -867,7 +869,10 @@ void TNodeJsAsyncUtil::OnMain(uv_async_t* UvAsync) {
 
 	// clean up
 	delete TaskWrapper;
-	uv_close((uv_handle_t*) UvAsync, DelHandle<uv_async_t>);
+	{
+		TLock Lock(UvSection);
+		uv_close((uv_handle_t*) UvAsync, DelHandle<uv_async_t>);
+	}
 }
 
 void TNodeJsAsyncUtil::OnMainBlock(uv_async_t* UvAsync) {
@@ -884,9 +889,12 @@ void TNodeJsAsyncUtil::OnMainBlock(uv_async_t* UvAsync) {
 	uv_sem_destroy(&Task->Semaphore);
 
 	// clean up
-	uv_close((uv_handle_t*) UvAsync, DelHandle<uv_async_t>);
-
 	delete Task;
+
+	{
+		TLock Lock(UvSection);
+		uv_close((uv_handle_t*) UvAsync, DelHandle<uv_async_t>);
+	}
 }
 
 void TNodeJsAsyncUtil::OnWorker(uv_work_t* UvReq) {
@@ -916,8 +924,11 @@ void TNodeJsAsyncUtil::ExecuteOnMain(TMainThreadTask* Task, const bool& DelTask)
 	uv_async_t* UvAsync = new uv_async_t;
 	UvAsync->data = new TMainData(Task, DelTask);
 
-	EAssertR(uv_async_init(uv_default_loop(), UvAsync, OnMain) == 0, "Failed to initialize UV handle!");
-	AssertR(uv_async_send(UvAsync) == 0, "Failed to call uv_async_send!");
+	{
+		TLock Lock(UvSection);
+		EAssertR(uv_async_init(uv_default_loop(), UvAsync, OnMain) == 0, "Failed to initialize UV handle!");
+		uv_async_send(UvAsync);
+	}
 }
 
 void TNodeJsAsyncUtil::ExecuteOnMainAndWait(TMainThreadTask* Task, const bool& DelTask) {
@@ -933,6 +944,7 @@ void TNodeJsAsyncUtil::ExecuteOnMainAndWait(TMainThreadTask* Task, const bool& D
 		delete TaskWrapper;
 		throw TExcept::New("Failed to create a semaphore, code: " + TInt::GetStr(Err) + "!");
 	} else {
+		TLock Lock(UvSection);
 		uv_async_init(uv_default_loop(), UvAsync, OnMainBlock);
 		uv_async_send(UvAsync);
 		uv_sem_wait(&TaskWrapper->Semaphore);
@@ -943,5 +955,8 @@ void TNodeJsAsyncUtil::ExecuteOnWorker(TAsyncTask* Task) {
 	uv_work_t* UvReq = new uv_work_t;
 	UvReq->data = new TWorkerData(Task);
 
-	uv_queue_work(uv_default_loop(), UvReq, OnWorker, AfterOnWorker);
+	{
+		TLock Lock(UvSection);
+		uv_queue_work(uv_default_loop(), UvReq, OnWorker, AfterOnWorker);
+	}
 }

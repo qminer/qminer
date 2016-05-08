@@ -546,6 +546,8 @@ private:
 		~TWorkerData() { delete Task; }
 	};
 
+	static TCriticalSection UvSection;
+
 	template <typename THandle> static void DelHandle(uv_handle_t* Handle);
 
 	static void OnMain(uv_async_t* UvAsync);
@@ -555,6 +557,7 @@ private:
 	static void AfterOnWorker(uv_work_t* UvReq, int Status);
 
 public:
+
 	static void ExecuteOnMain(TMainThreadTask* Task, const bool& DelData=true);
 	static void ExecuteOnMainAndWait(TMainThreadTask* Task, const bool& DelData=true);
 	static void ExecuteOnWorker(TAsyncTask* Task);
