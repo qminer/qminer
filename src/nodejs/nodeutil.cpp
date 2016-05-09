@@ -882,13 +882,18 @@ void TNodeTask::ExtractCallback(const v8::FunctionCallbackInfo<v8::Value>& Args)
 TCriticalSection TNodeJsAsyncUtil::UvSection;
 
 TNodeJsAsyncUtil::TAsyncHandleType TNodeJsAsyncUtil::GetHandleType(const uv_async_t* UvAsync) {
-	TLock Lock(UvSection);	// XXX do I need to lock here???
+	TLock Lock(UvSection);
+
+	printf("Fetching handle type\n");
+
 	TAsyncHandleConfig* Config = static_cast<TAsyncHandleConfig*>(UvAsync->data);
 	return Config->HandleType;
 }
 
-void TNodeJsAsyncUtil::SetAsyncData(TMainThreadHandle* UvAsync, TMainTaskWrapper* Data) {
+void TNodeJsAsyncUtil::SetAsyncData(TMainThreadHandle* UvAsync, TMainTaskWrapper* TaskWrapper) {
 	TLock Lock(UvSection);
+
+	printf("Setting async data\n");
 
 	TAsyncHandleConfig* Config = static_cast<TAsyncHandleConfig*>(UvAsync->data);
 
@@ -899,27 +904,35 @@ void TNodeJsAsyncUtil::SetAsyncData(TMainThreadHandle* UvAsync, TMainTaskWrapper
 		Config->TaskData = nullptr;
 	}
 
-	Config->TaskData = Data;
+	Config->TaskData = TaskWrapper;
 
 	AssertR(Config->TaskData != nullptr, "Task wrapper is a null pointer!");
 	AssertR(Config->TaskData->Task != nullptr, "Task data is a null pointer!");
+
+	printf("Async data set\n");
 }
 
 TNodeJsAsyncUtil::TMainTaskWrapper* TNodeJsAsyncUtil::ExtractAndClearData(TMainThreadHandle* UvAsync) {
 	TLock Lock(UvSection);
+
+	printf("Extracting task wrapper\n");
 
 	TAsyncHandleConfig* Config = static_cast<TAsyncHandleConfig*>(UvAsync->data);
 	TMainTaskWrapper* Result = Config->TaskData;
 	Config->TaskData = nullptr;
 
 	AssertR(Result != nullptr, "Task wrapper is a null pointer!");
+
+	printf("Wrapper extracted!\n");
 	return Result;
 }
 
 void TNodeJsAsyncUtil::OnMain(TMainThreadHandle* UvAsync) {
+	printf("Entered OnMain\n");
 	TMainTaskWrapper* TaskWrapper = nullptr;
 
 	try {
+		printf("In OnMain before wrapper extraction\n");
 		TaskWrapper = ExtractAndClearData(UvAsync);
 		TMainThreadTask* Task = TaskWrapper->Task;
 		Task->Run();
@@ -1002,10 +1015,14 @@ void TNodeJsAsyncUtil::DelHandle(TMainThreadHandle* UvAsync) {
 }
 
 void TNodeJsAsyncUtil::ExecuteOnMain(TMainThreadTask* Task, uv_async_t* UvAsync, const bool& DelTask) {
+	printf("Entered ExecuteOnMain\n");
+
 	TAsyncHandleType HandleType = GetHandleType(UvAsync);
 	switch (HandleType) {
 	case ahtAsync: {
+		printf("In ExecuteOnMain, calling SetAsyncData\n");
 		SetAsyncData(UvAsync, new TMainTaskWrapper(Task, DelTask));
+		printf("Calling send\n");
 		// uv_async_send is thread safe
 		uv_async_send(UvAsync);
 		break;
