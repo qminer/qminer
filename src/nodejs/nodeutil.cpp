@@ -812,7 +812,7 @@ TNodeJsAsyncUtil::TMainTaskWrapper::TMainTaskWrapper(TMainThreadTask* _Task, con
 
 TNodeJsAsyncUtil::TMainBlockTaskWrapper::TMainBlockTaskWrapper(TMainThreadTask* Task,
 			const bool& DelTask):
-		TMainData(Task, DelTask),
+		TMainTaskWrapper(Task, DelTask),
 		Semaphore() {}
 
 TNodeTask::TNodeTask(const v8::FunctionCallbackInfo<v8::Value>& Args):
