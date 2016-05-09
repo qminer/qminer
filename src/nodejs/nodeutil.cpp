@@ -926,6 +926,7 @@ void TNodeJsAsyncUtil::ExecuteOnMain(TMainThreadTask* Task, const bool& DelTask)
 
 	{
 		TLock Lock(UvSection);
+		// Important! uv_async_init is not thread safe!
 		EAssertR(uv_async_init(uv_default_loop(), UvAsync, OnMain) == 0, "Failed to initialize UV handle!");
 		uv_async_send(UvAsync);
 	}
