@@ -60,7 +60,9 @@ public:
     TVec<TNodeJsFPath> AllowedFPathV;
 private:
     TNodeJsFs(const TVec<TNodeJsFPath>& AllowedDirV_ = TVec<TNodeJsFPath>()):
-        AllowedFPathV(AllowedDirV_) { }
+        AllowedFPathV(AllowedDirV_) {}
+    ~TNodeJsFs() {}
+
 public:
     static void Init(v8::Handle<v8::Object> exports);
     
@@ -88,6 +90,7 @@ private:
 		int BatchSize;
 		v8::Persistent<v8::Function> OnLine;
 		TReadLinesCallback* LinesCallback;
+		TMainThreadHandle* LinesHandle;
 
 	public:
 		TReadCsvTask(const v8::FunctionCallbackInfo<v8::Value>& Args);

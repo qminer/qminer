@@ -79,12 +79,18 @@ void TNodeJsStreamStory::Init(v8::Handle<v8::Object> exports) {
 }
 
 TNodeJsStreamStory::TNodeJsStreamStory(TMc::TStreamStory* _StreamStory):
-		StreamStory(_StreamStory) {
+		StreamStory(_StreamStory),
+		UvHandle(TNodeJsAsyncUtil::NewHandle()),
+		ProgressSection(),
+		ProgressQ() {
 	InitCallbacks();
 }
 
 TNodeJsStreamStory::TNodeJsStreamStory(PSIn& SIn):
-		StreamStory(new TMc::TStreamStory(*SIn)) {
+		StreamStory(new TMc::TStreamStory(*SIn)),
+		UvHandle(TNodeJsAsyncUtil::NewHandle()),
+		ProgressSection(),
+		ProgressQ() {
 	InitCallbacks();
 }
 
@@ -95,6 +101,9 @@ TNodeJsStreamStory::~TNodeJsStreamStory() {
 	ProgressCallback.Reset();
 	PredictionCallback.Reset();
 	ActivityCallback.Reset();
+
+	TNodeJsAsyncUtil::DelHandle(UvHandle);
+
 	delete StreamStory;
 }
 
@@ -204,23 +213,11 @@ void TNodeJsStreamStory::TFitTask::Run() {
 	}
 }
 
-TNodeJsStreamStory::TProgressTask::TProgressTask(const int& _Perc, const TStr& _Msg,
-		v8::Persistent<v8::Function>* _ProgressCallback):
-	Perc(_Perc),
-	Msg(_Msg),
-	ProgressCallback(_ProgressCallback) {}
+TNodeJsStreamStory::TProgressTask::TProgressTask(TNodeJsStreamStory* _JsStreamStory):
+		JsStreamStory(_JsStreamStory) {}
 
 void TNodeJsStreamStory::TProgressTask::Run() {
-	if (!ProgressCallback->IsEmpty()) {
-		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-		v8::HandleScope HandleScope(Isolate);
-
-		v8::Local<v8::Integer> JsPerc = v8::Integer::New(Isolate, Perc);
-		v8::Local<v8::String> JsMsg = v8::String::NewFromUtf8(Isolate, Msg.CStr());
-
-		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, *ProgressCallback);
-		TNodeJsUtil::ExecuteVoid(Callback, JsPerc->ToObject(), JsMsg->ToObject());
-	}
+	JsStreamStory->ProcessProgressQ();
 }
 
 void TNodeJsStreamStory::update(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -1260,7 +1257,12 @@ void TNodeJsStreamStory::OnOutlier(const TFltV& FtrV) {
 }
 
 void TNodeJsStreamStory::OnProgress(const int& Perc, const TStr& Msg) {
-	TNodeJsAsyncUtil::ExecuteOnMain(new TProgressTask(Perc, Msg, &ProgressCallback), true);
+	{
+		TLock Lock(ProgressSection);
+		ProgressQ.Add(TIntStrPr(Perc, Msg));
+	}
+
+	TNodeJsAsyncUtil::ExecuteOnMain(new TProgressTask(this), UvHandle, true);
 }
 
 void TNodeJsStreamStory::OnPrediction(const uint64& RecTm, const int& CurrStateId, const int& TargetStateId,
@@ -1309,6 +1311,33 @@ void TNodeJsStreamStory::OnActivityDetected(const uint64& StartTm, const uint64&
 
 		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, ActivityCallback);
 		TNodeJsUtil::ExecuteVoid(Callback, ArgC, ArgV);
+	}
+}
+
+void TNodeJsStreamStory::ProcessProgressQ() {
+	TIntStrPrV TempProgressQ;
+
+	{
+		TLock Lock(ProgressSection);
+
+		TempProgressQ = ProgressQ;
+		ProgressQ.Clr();
+	}
+
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	if (ProgressCallback.IsEmpty() || TempProgressQ.Empty()) { return; }
+
+	v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, ProgressCallback);
+
+	for (int ProgressN = 0; ProgressN < TempProgressQ.Len(); ProgressN++) {
+		const TIntStrPr& PercMsgPr = TempProgressQ[ProgressN];
+
+		v8::Local<v8::Integer> JsPerc = v8::Integer::New(Isolate, PercMsgPr.Val1.Val);
+		v8::Local<v8::String> JsMsg = v8::String::NewFromUtf8(Isolate, PercMsgPr.Val2.CStr());
+
+		TNodeJsUtil::ExecuteVoid(Callback, JsPerc->ToObject(), JsMsg->ToObject());
 	}
 }
 
