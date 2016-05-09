@@ -983,9 +983,9 @@ TMainThreadHandle* TNodeJsAsyncUtil::NewHandle() {
 }
 
 void TNodeJsAsyncUtil::DelHandle(TMainThreadHandle* UvAsync) {
-	TAsyncHandleConfig* Data = static_cast<TAsyncHandleConfig*>(UvAsync->data);
+	TAsyncHandleConfig* Config = static_cast<TAsyncHandleConfig*>(UvAsync->data);
 	uv_close((uv_handle_t*) UvAsync, InternalDelHandle<TMainThreadHandle>);
-	delete Data;
+	delete Config;
 }
 
 void TNodeJsAsyncUtil::ExecuteOnMain(TMainThreadTask* Task, uv_async_t* UvAsync, const bool& DelTask) {
