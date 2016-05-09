@@ -530,6 +530,7 @@ typedef uv_work_t TWorkerThreadHandle;
 class TNodeJsAsyncUtil {
 private:
 	static uint64 CurrWrapperId;	// TODO this is here only for debugging
+	static uint64 CurrHandleId;
 
 	struct TMainTaskWrapper {
 		TMainThreadTask* Task;
@@ -563,10 +564,12 @@ private:
 	struct TAsyncHandleConfig {
 		TAsyncHandleType HandleType;
 		TMainTaskWrapper* TaskWrapper;
+		uint64 HandleId;
 
 		TAsyncHandleConfig(const TAsyncHandleType& _HandleType):
 			HandleType(_HandleType),
-			TaskWrapper(nullptr) {}
+			TaskWrapper(nullptr),
+			HandleId(CurrHandleId++) {}
 	};
 
 	static TCriticalSection UvSection;

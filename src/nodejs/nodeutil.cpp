@@ -881,6 +881,7 @@ void TNodeTask::ExtractCallback(const v8::FunctionCallbackInfo<v8::Value>& Args)
 //////////////////////////////////////////////////////
 // Node - Asynchronous Utilities
 uint64 TNodeJsAsyncUtil::CurrWrapperId = 0;
+uint64 TNodeJsAsyncUtil::CurrHandleId = 0;
 TCriticalSection TNodeJsAsyncUtil::UvSection;
 
 TNodeJsAsyncUtil::TAsyncHandleType TNodeJsAsyncUtil::GetHandleType(const uv_async_t* UvAsync) {
@@ -902,13 +903,13 @@ void TNodeJsAsyncUtil::SetAsyncData(TMainThreadHandle* UvAsync, TMainTaskWrapper
 	if (Config->TaskWrapper != nullptr) {
 		printf("WARNING: Tried to replace an existing task in async handle! Will delete existing task and data and replace with new values!\n");
 		Config->TaskWrapper->DelTask = true;
-		printf("Deleting wrapper id %llu\n", Config->TaskWrapper->WrapperId);
+		printf("Deleting wrapper id %llu, handle id: %llu\n", Config->TaskWrapper->WrapperId, Config->HandleId);
 		delete Config->TaskWrapper;
 		Config->TaskWrapper = nullptr;
 	}
 
 	Config->TaskWrapper = TaskWrapper;
-	printf("Set wrapper id %llu\n", Config->TaskWrapper->WrapperId);
+	printf("Set wrapper id %llu, handle id: %llu\n", Config->TaskWrapper->WrapperId, Config->HandleId);
 
 	AssertR(Config->TaskWrapper != nullptr, "Task wrapper is a null pointer!");
 	AssertR(Config->TaskWrapper->Task != nullptr, "Task data is a null pointer!");
@@ -927,7 +928,7 @@ TNodeJsAsyncUtil::TMainTaskWrapper* TNodeJsAsyncUtil::ExtractAndClearData(TMainT
 
 	AssertR(Result != nullptr, "Task wrapper is a null pointer!");
 
-	printf("Wrapper extracted, ID: %llu!\n", Result->WrapperId);
+	printf("Wrapper extracted, ID: %llu, handle id: %llu!\n", Result->WrapperId, Config->HandleId);
 	return Result;
 }
 
