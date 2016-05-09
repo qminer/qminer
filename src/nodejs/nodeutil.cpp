@@ -1021,6 +1021,7 @@ void TNodeJsAsyncUtil::DelHandle(TMainThreadHandle* UvAsync) {
 }
 
 void TNodeJsAsyncUtil::ExecuteOnMain(TMainThreadTask* Task, uv_async_t* UvAsync, const bool& DelTask) {
+	TLock Lock(UvSection);
 	printf("Entered ExecuteOnMain\n");
 
 	TAsyncHandleType HandleType = GetHandleType(UvAsync);
