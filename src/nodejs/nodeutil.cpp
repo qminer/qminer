@@ -888,57 +888,65 @@ TNodeJsAsyncUtil::TAsyncHandleType TNodeJsAsyncUtil::GetHandleType(const uv_asyn
 
 void TNodeJsAsyncUtil::SetAsyncData(TMainThreadHandle* UvAsync, TMainData* Data) {
 	TLock Lock(UvSection);
+
 	TAsyncHandleConfig* Config = static_cast<TAsyncHandleConfig*>(UvAsync->data);
-	if (Config->TaskData != nullptr) {	// XXX what to do in this case???
+
+	if (Config->TaskData != nullptr) {
 		printf("WARNING: Tried to replace an existing task in async handle! Will delete existing task and data and replace with new values!\n");
 		Config->TaskData->DelTask = true;
 		delete Config->TaskData;
 		Config->TaskData = nullptr;
 	}
+
 	Config->TaskData = Data;
 }
 
 TNodeJsAsyncUtil::TMainData* TNodeJsAsyncUtil::ExtractAndClearData(TMainThreadHandle* UvAsync) {
 	TLock Lock(UvSection);
+
 	TAsyncHandleConfig* Config = static_cast<TAsyncHandleConfig*>(UvAsync->data);
 	TMainData* Result = Config->TaskData;
 	Config->TaskData = nullptr;
+
+	AssertR(Result != nullptr, "Task data is a null pointer!");
 	return Result;
 }
 
 void TNodeJsAsyncUtil::OnMain(TMainThreadHandle* UvAsync) {
-	TMainData* Task = nullptr;
+	TMainData* TaskWrapper = nullptr;
 
 	try {
-		Task = ExtractAndClearData(UvAsync);
-		Task->Task->Run();
+		TaskWrapper = ExtractAndClearData(UvAsync);
+		TMainThreadTask* Task = TaskWrapper->Task;
+		Task->Run();
 	} catch (const PExcept& Except) {
 		printf("Exception on main thread: %s!", Except->GetMsgStr().CStr());
 	}
 
 	// clean up
-	if (Task != nullptr) {
-		delete Task;
+	if (TaskWrapper != nullptr) {
+		delete TaskWrapper;
 	}
 }
 
 void TNodeJsAsyncUtil::OnMainBlock(TMainThreadHandle* UvAsync) {
-	TMainBlockData* Task = nullptr;
+	TMainBlockData* TaskWrapper = nullptr;
 
 	try {
-		Task = (TMainBlockData*) ExtractAndClearData(UvAsync);
-		Task->Task->Run();
+		TaskWrapper = (TMainBlockData*) ExtractAndClearData(UvAsync);
+		TMainThreadTask* Task = TaskWrapper->Task;
+		Task->Run();
 	} catch (const PExcept& Except) {
 		printf("Exception on main thread: %s!", Except->GetMsgStr().CStr());
 	}
 
 	// release the semaphore
-	uv_sem_post(&Task->Semaphore);
-	uv_sem_destroy(&Task->Semaphore);
+	uv_sem_post(&TaskWrapper->Semaphore);
+	uv_sem_destroy(&TaskWrapper->Semaphore);
 
 	// clean up
-	if (Task != nullptr) {
-		delete Task;
+	if (TaskWrapper != nullptr) {
+		delete TaskWrapper;
 	}
 }
 
