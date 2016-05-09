@@ -529,20 +529,20 @@ typedef uv_work_t TWorkerThreadHandle;
 // Node - Asynchronous Utilities
 class TNodeJsAsyncUtil {
 private:
-	struct TMainData {
+	struct TMainTaskWrapper {
 		TMainThreadTask* Task;
 		bool DelTask;
 
-		TMainData(TMainThreadTask* Task, const bool& DelTask);
-		virtual ~TMainData() { if (DelTask) { delete Task; } }
+		TMainTaskWrapper(TMainThreadTask* Task, const bool& DelTask);
+		virtual ~TMainTaskWrapper() { if (DelTask) { delete Task; } }
 	};
 
 
-	struct TMainBlockData: public TMainData {
+	struct TMainBlockTaskWrapper: public TMainData {
 		uv_sem_t Semaphore;
 
-		TMainBlockData(TMainThreadTask* Task, const bool& DelTask);
-		~TMainBlockData() {}
+		TMainBlockTaskWrapper(TMainThreadTask* Task, const bool& DelTask);
+		~TMainBlockTaskWrapper() {}
 	};
 
 	struct TWorkerData {
@@ -559,7 +559,7 @@ private:
 
 	struct TAsyncHandleConfig {
 		TAsyncHandleType HandleType;
-		TMainData* TaskData;
+		TMainTaskWrapper* TaskData;
 
 		TAsyncHandleConfig(const TAsyncHandleType& _HandleType):
 			HandleType(_HandleType),
@@ -570,8 +570,8 @@ private:
 
 	static TAsyncHandleType GetHandleType(const TMainThreadHandle* UvAsync);
 
-	static void SetAsyncData(TMainThreadHandle* UvAsync, TMainData* Data);
-	static TMainData* ExtractAndClearData(TMainThreadHandle* UvAsync);
+	static void SetAsyncData(TMainThreadHandle* UvAsync, TMainTaskWrapper* Data);
+	static TMainTaskWrapper* ExtractAndClearData(TMainThreadHandle* UvAsync);
 
 	template <typename THandle> static void InternalDelHandle(uv_handle_t* Handle);
 

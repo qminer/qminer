@@ -806,11 +806,12 @@ uint64 TNodeJsUtil::GetTmMSecs(v8::Handle<v8::Date>& Date) {
 
 //////////////////////////////////////////////////////
 // Async Stuff
-TNodeJsAsyncUtil::TMainData::TMainData(TMainThreadTask* _Task, const bool& _DelTask):
+TNodeJsAsyncUtil::TMainTaskWrapper::TMainTaskWrapper(TMainThreadTask* _Task, const bool& _DelTask):
 		Task(_Task),
 		DelTask(_DelTask) {}
 
-TNodeJsAsyncUtil::TMainBlockData::TMainBlockData(TMainThreadTask* Task, const bool& DelTask):
+TNodeJsAsyncUtil::TMainBlockTaskWrapper::TMainBlockTaskWrapper(TMainThreadTask* Task,
+			const bool& DelTask):
 		TMainData(Task, DelTask),
 		Semaphore() {}
 
@@ -886,7 +887,7 @@ TNodeJsAsyncUtil::TAsyncHandleType TNodeJsAsyncUtil::GetHandleType(const uv_asyn
 	return Config->HandleType;
 }
 
-void TNodeJsAsyncUtil::SetAsyncData(TMainThreadHandle* UvAsync, TMainData* Data) {
+void TNodeJsAsyncUtil::SetAsyncData(TMainThreadHandle* UvAsync, TMainTaskWrapper* Data) {
 	TLock Lock(UvSection);
 
 	TAsyncHandleConfig* Config = static_cast<TAsyncHandleConfig*>(UvAsync->data);
@@ -899,21 +900,24 @@ void TNodeJsAsyncUtil::SetAsyncData(TMainThreadHandle* UvAsync, TMainData* Data)
 	}
 
 	Config->TaskData = Data;
+
+	AssertR(Config->TaskData != nullptr, "Task wrapper is a null pointer!");
+	AssertR(Config->TaskData->Task != nullptr, "Task data is a null pointer!");
 }
 
-TNodeJsAsyncUtil::TMainData* TNodeJsAsyncUtil::ExtractAndClearData(TMainThreadHandle* UvAsync) {
+TNodeJsAsyncUtil::TMainTaskWrapper* TNodeJsAsyncUtil::ExtractAndClearData(TMainThreadHandle* UvAsync) {
 	TLock Lock(UvSection);
 
 	TAsyncHandleConfig* Config = static_cast<TAsyncHandleConfig*>(UvAsync->data);
-	TMainData* Result = Config->TaskData;
+	TMainTaskWrapper* Result = Config->TaskData;
 	Config->TaskData = nullptr;
 
-	AssertR(Result != nullptr, "Task data is a null pointer!");
+	AssertR(Result != nullptr, "Task wrapper is a null pointer!");
 	return Result;
 }
 
 void TNodeJsAsyncUtil::OnMain(TMainThreadHandle* UvAsync) {
-	TMainData* TaskWrapper = nullptr;
+	TMainTaskWrapper* TaskWrapper = nullptr;
 
 	try {
 		TaskWrapper = ExtractAndClearData(UvAsync);
@@ -930,10 +934,10 @@ void TNodeJsAsyncUtil::OnMain(TMainThreadHandle* UvAsync) {
 }
 
 void TNodeJsAsyncUtil::OnMainBlock(TMainThreadHandle* UvAsync) {
-	TMainBlockData* TaskWrapper = nullptr;
+	TMainBlockTaskWrapper* TaskWrapper = nullptr;
 
 	try {
-		TaskWrapper = (TMainBlockData*) ExtractAndClearData(UvAsync);
+		TaskWrapper = (TMainBlockTaskWrapper*) ExtractAndClearData(UvAsync);
 		TMainThreadTask* Task = TaskWrapper->Task;
 		Task->Run();
 	} catch (const PExcept& Except) {
@@ -1001,13 +1005,13 @@ void TNodeJsAsyncUtil::ExecuteOnMain(TMainThreadTask* Task, uv_async_t* UvAsync,
 	TAsyncHandleType HandleType = GetHandleType(UvAsync);
 	switch (HandleType) {
 	case ahtAsync: {
-		SetAsyncData(UvAsync, new TMainData(Task, DelTask));
+		SetAsyncData(UvAsync, new TMainTaskWrapper(Task, DelTask));
 		// uv_async_send is thread safe
 		uv_async_send(UvAsync);
 		break;
 	}
 	case ahtBlocking: {
-		TMainBlockData* TaskWrapper = new TMainBlockData(Task, DelTask);
+		TMainBlockTaskWrapper* TaskWrapper = new TMainBlockTaskWrapper(Task, DelTask);
 		SetAsyncData(UvAsync, TaskWrapper);
 		// initialize the semaphore
 		int Err = uv_sem_init(&TaskWrapper->Semaphore, 0);
