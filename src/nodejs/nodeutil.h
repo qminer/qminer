@@ -538,7 +538,7 @@ private:
 	};
 
 
-	struct TMainBlockTaskWrapper: public TMainData {
+	struct TMainBlockTaskWrapper: public TMainTaskWrapper {
 		uv_sem_t Semaphore;
 
 		TMainBlockTaskWrapper(TMainThreadTask* Task, const bool& DelTask);
