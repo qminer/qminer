@@ -596,6 +596,10 @@ public:
 	static void DelHandle(TMainThreadHandle* UvAsync);
 
 	/// executes the task on the main thread
+	/// Note: when using a non-blocking handle, not every call to this
+	/// method will yield an execution. For example, when ExecuteOnMain is
+	/// called 5 times before a task is executed, the task will be executed only once
+	/// all the other tasks will be deleted
 	static void ExecuteOnMain(TMainThreadTask* Task, TMainThreadHandle* UvAsync,
 			const bool& DelData);
 	/// executes the task on a worker thread
