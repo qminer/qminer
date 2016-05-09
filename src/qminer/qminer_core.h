@@ -237,7 +237,8 @@ private:
     typedef enum {
         ofdfNull = (1 << 0),
         ofdfInternal = (1 << 1),
-        ofdfPrimary = (1 << 2)
+        ofdfPrimary = (1 << 2),
+        ofdfCodebook = (1 << 3)
     } TFieldDescFlags;
 
 private:
@@ -260,7 +261,7 @@ public:
     /// @param NullP Can field be empty for some records
     /// @param InternalP Filed was created is and being used internally by QMiner (E.g. for field joins)
     TFieldDesc(const TWPt<TBase>& Base, const TStr& _FieldNm, TFieldType _FieldType, const bool& Primary,
-        const bool& NullP, const bool& InternalP);
+        const bool& NullP, const bool& InternalP, const bool& CodebookP);
     
     TFieldDesc(TSIn& SIn);
     void Save(TSOut& SOut) const;
@@ -298,6 +299,7 @@ public:
     bool IsNullable() const { return ((Flags & ofdfNull) != 0); }
     bool IsInternal() const { return ((Flags & ofdfInternal) != 0); }
     bool IsPrimary() const { return ((Flags & ofdfPrimary) != 0); }
+    bool IsCodebook() const { return ((Flags & ofdfCodebook) != 0); }
 
     /// Link index key with ID `KeyId` to this field
     void AddKey(const int& KeyId) { KeyIdV.AddUnique(KeyId); }

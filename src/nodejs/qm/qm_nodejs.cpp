@@ -1020,7 +1020,6 @@ void TNodeJsStore::newRecord(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		Args.GetReturnValue().Set(
 			TNodeJsRec::NewInstance(new TNodeJsRec(JsStore->Watcher, Rec))
 		);
-
 	}
 	catch (const PExcept& Except) {
 		throw TQm::TQmExcept::New("[except] " + Except->GetMsgStr());
@@ -3724,10 +3723,12 @@ void TNodeJsFtrSpace::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "extractFeature", _extractFeature);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "invertFeatureVector", _invertFeatureVector);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "invertFeature", _invertFeature);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getFeatureRange", _getFeatureRange);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "extractSparseMatrix", _extractSparseMatrix);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "extractMatrix", _extractMatrix);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "extractMatrixAsync", _extractMatrixAsync);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getFeatureExtractor", _getFeatureExtractor);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getFeatureExtractorType", _getFeatureExtractorType);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getFeature", _getFeature);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "filter", _filter);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "extractStrings", _extractStrings);
@@ -4255,6 +4256,20 @@ void TNodeJsFtrSpace::getFeatureExtractor(const v8::FunctionCallbackInfo<v8::Val
     Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, FtrExtNm.CStr()));
 }
 
+void TNodeJsFtrSpace::getFeatureExtractorType(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	QmAssertR(Args.Length() == 1, "Should have 1 argument!");
+
+    TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
+
+    const int FtrExtN = TNodeJsUtil::GetArgInt32(Args, 0);
+    const TStr FtrExtNm = JsFtrSpace->FtrSpace->GetFtrExt(FtrExtN)->GetFtrType();
+
+    Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, FtrExtNm.CStr()));
+}
+
 void TNodeJsFtrSpace::getFeature(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
@@ -4282,10 +4297,12 @@ void TNodeJsFtrSpace::invertFeatureVector(const v8::FunctionCallbackInfo<v8::Val
     TFltV InvertV;
 
     if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltV::GetClassId())) {
-        TFltV& FtrV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[0]->ToObject())->Vec;
-        JsFtrSpace->FtrSpace->InvertFullV(FtrV, InvertV);
+        const TFltV& FtrV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[0]->ToObject())->Vec;
+        const PJsonVal Result = JsFtrSpace->FtrSpace->InvertFullV(FtrV);
+        Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, Result));
     }
     else {
+    	EAssert(Args[0]->IsArray());
         v8::Array* Arr = v8::Array::Cast(*Args[0]);
         TFltV FtrV(Arr->Length(), 0);
 
@@ -4293,27 +4310,43 @@ void TNodeJsFtrSpace::invertFeatureVector(const v8::FunctionCallbackInfo<v8::Val
             FtrV.Add(Arr->Get(i)->NumberValue());
         }
 
-        JsFtrSpace->FtrSpace->InvertFullV(FtrV, InvertV);
+        const PJsonVal Result = JsFtrSpace->FtrSpace->InvertFullV(FtrV);
+        Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, Result));
     }
-
-    Args.GetReturnValue().Set(TNodeJsFltV::New(InvertV));
 }
 
 void TNodeJsFtrSpace::invertFeature(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	QmAssertR(Args.Length() == 2, "ftrSpace.invertFeature: Should have 2 arguments!");
-	QmAssertR(TNodeJsUtil::IsArgFlt(Args, 1), "ftrSpace.invertFeature: The argument should be a float!");
+    TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
+
+    const int FtrExtN = TNodeJsUtil::GetArgInt32(Args, 0);
+
+    PJsonVal FtrVal;
+    if (TNodeJsUtil::IsArgJson(Args, 1)) {
+    	FtrVal = TNodeJsUtil::GetArgJson(Args, 1);
+    } else if (TNodeJsUtil::IsArgFlt(Args, 1)) {
+    	FtrVal = TJsonVal::NewNum(TNodeJsUtil::GetArgFlt(Args, 1));
+    } else {
+    	throw TExcept::New("TNodeJsFtrSpace::invertFeature: Unsupported argument type!");
+    }
+
+    const PJsonVal Result = JsFtrSpace->FtrSpace->InvertFtr(FtrExtN, FtrVal);
+
+    Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, Result));
+}
+
+void TNodeJsFtrSpace::getFeatureRange(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
 
     TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
 
-    int FtrExtN = TNodeJsUtil::GetArgInt32(Args, 0);
-    double Val = TNodeJsUtil::GetArgFlt(Args, 1);
+    const int FtrExtN = TNodeJsUtil::GetArgInt32(Args, 0);
+    const PJsonVal Result = JsFtrSpace->FtrSpace->GetFtrRange(FtrExtN);
 
-    double InvVal = JsFtrSpace->FtrSpace->InvertFtr(FtrExtN, Val);
-
-    Args.GetReturnValue().Set(v8::Number::New(Isolate, InvVal));
+    Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, Result));
 }
 
 void TNodeJsFtrSpace::filter(const v8::FunctionCallbackInfo<v8::Value>& Args) {

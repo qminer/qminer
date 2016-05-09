@@ -1,5 +1,78 @@
 # QMiner Change Log
 
+### 15 Apr 2016
+
+**Version: 5.1.0**
+
+**Non-breaking with new features**
+
+New features:
+- `TStoreImpl` can tell integer ID for codebook strings. `TFieldDesc` can tell if field is encoded using codebook.
+
+Bug fixes:
+- Issue 400: `RecSet.saveCsv` should escape `”` using `””` and not `\”`
+
+Other:
+- `TStr::Empty()` uses `Assert` instead of `IAssert` to confirm Inner is either `NULL` or points to nonemtpy string.
+
+
+### 8 Apr 2016
+
+**New version 5.0.0**
+
+**Breaking with new features**
+
+New features:
+- Stores from same `TBase` share same `PBlobBs`. Speed improvements for 1000 empty stores:
+  - create: 0.5s vs 21s
+  - save: 0.6s vs 5s
+  - load: 0.06s vs 4s
+- Removed unused flags from blob pointer, freeing 37.5% space per `TBlobPt`
+- Changed `TBlobPt` segment parameter from `uchar` to `uint16`, increasing max blob base size to **128TB**
+- KMeans reimplemented in C++: Templated and wrapped Stopar's KMeans, which is implemented ```clustering.h``` and ```clustering.cpp```. The javascript wrapper contains the same functions as before.
+
+Constructor parameters are:
+
+name             | type    | description
+-----------------|---------|---------------
+**iter**         | number  | Number of iterations
+**k**            | number  | Number of centroids
+**verbose**      | boolean | If false, the console output is supressed
+**centroidType** | string  | Type of the centroids. Options: "Dense" or "Sparse"
+**distanceType** | string  | Distance type used at the calculation. Options: "Euclid" or "Cos"
+
+**Properties**
+```centroids```, ```medoids```, ```idxv```.
+
+**Methods**
+```getParams```, ```setParams```, ```getModel```, ```fit```, ```fitAsync```, ```predict```, ```transform```, ```permuteCentroids```, ```explain```, ```save```
+
+The ```fit``` method can be used asynchronously (```fitAsync```).
+```javascript
+var qm = require('qminer');
+var params = { iter: 10000, k: 2, verbose: false, distanceType: 'Euclid', centroidType: 'Dense' };
+var kmeans = new qm.analytics.KMeans(params);
+// create the matrix
+var mat = new qm.la.Matrix({ rows: 1000, cols: 300, random: true });
+
+//- Synchronous use of fit
+kmeans.fit(mat);
+
+//- Asynchronous use of fit
+kmeans.fitAsync(mat, function (err) {
+    if (err) { console.log(err); }
+    // successful fitting
+}); 
+
+```
+
+Bug fixes:
+- fixed clang warnings
+- changed tabs to four spaces on qminer source files
+- Fixed issue 398 — move `stat.h` stuff to `xmath.h`
+- Fixed issue 399 - stream aggregate example description
+
+
 ### 25 Mar 2016
 
 **New version 4.10.0**

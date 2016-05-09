@@ -13,13 +13,12 @@
 ClassTVQ(TBlobPt, TBlobPtV, TBlobPtQ)//{
 public:
   static const int MnBlobBfL;
-  static const int Flags;
-  uchar Seg;
+  uint16 Seg;
   uint Addr;
 public:
   TBlobPt(): Seg(0), Addr(TUInt::Mx){}
   TBlobPt(const TBlobPt& Pt): Seg(Pt.Seg), Addr(Pt.Addr) {}
-  TBlobPt(const uchar& _Seg, const uint& _Addr): Seg(_Seg), Addr(_Addr) {}
+  TBlobPt(const uint16& _Seg, const uint& _Addr): Seg(_Seg), Addr(_Addr) {}
   TBlobPt(const uint& _Addr): Seg(0), Addr(_Addr) {}
   TBlobPt(const int& _Addr): Seg(0), Addr(uint(_Addr)) {IAssert(_Addr>=0);}
   ~TBlobPt(){}
@@ -40,16 +39,16 @@ public:
 
   bool Empty() const {return Addr==TUInt::Mx;}
   void Clr(){Seg=0; Addr=TUInt::Mx;}
-  void PutSeg(const uchar& _Seg){Seg=_Seg;}
-  uchar GetSeg() const {return Seg;}
+  void PutSeg(const uint16& _Seg){Seg=_Seg;}
+  uint16 GetSeg() const {return Seg;}
   void PutAddr(const uint& _Addr){Addr=_Addr;}
   uint GetAddr() const {return Addr;}
 
   static TBlobPt Load(const PFRnd& FRnd){
-	uchar Seg=FRnd->GetUCh(); uint Addr=FRnd->GetUInt();
+	uint16 Seg=FRnd->GetUCh(); uint Addr=FRnd->GetUInt();
     return TBlobPt(Seg, Addr);}
   void Save(const PFRnd& FRnd) const {FRnd->PutUCh(Seg); FRnd->PutUInt(Addr);}
-  static TBlobPt LoadAddr(const PFRnd& FRnd, const uchar& Seg=0){
+  static TBlobPt LoadAddr(const PFRnd& FRnd, const uint16& Seg=0){
     return TBlobPt(Seg, FRnd->GetUInt());}
   void SaveAddr(const PFRnd& FRnd) const {FRnd->PutUInt(Addr);}
 

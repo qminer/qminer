@@ -76,13 +76,14 @@ TFieldDesc TStoreSchema::ParseFieldDesc(const TWPt<TBase>& Base, const PJsonVal&
     TStr FieldTypeStr = FieldVal->GetObjKey("type")->GetStr();
     const bool NullableP = FieldVal->GetObjBool("null", false);
     const bool PrimaryP = FieldVal->GetObjBool("primary", false);
+    const bool CodebookP = FieldVal->GetObjBool("codebook", false);
     // validate
     Base->AssertValidNm(FieldName);
     QmAssertR(Maps.FieldTypeMap.IsKey(FieldTypeStr), "Unsupported field type " + FieldTypeStr);
     // map field type to enum
     TFieldType FieldType = (TFieldType)Maps.FieldTypeMap.GetDat(FieldTypeStr).Val;
     // done
-    return TFieldDesc(Base, FieldName, FieldType,  PrimaryP, NullableP, false);
+    return TFieldDesc(Base, FieldName, FieldType,  PrimaryP, NullableP, false, CodebookP);
 }
 
 TFieldDescEx TStoreSchema::ParseFieldDescEx(const PJsonVal& FieldVal) {
@@ -365,12 +366,12 @@ TStoreSchema::TStoreSchema(const TWPt<TBase>& Base, const PJsonVal& StoreVal) : 
                 TStr JoinRecFieldNm = JoinDescEx.JoinName + "Id";
                 TStr JoinFqFieldNm = JoinDescEx.JoinName + "Fq";
                 // prepare join field descriptions
-                FieldH.AddDat(JoinRecFieldNm, TFieldDesc(Base, JoinRecFieldNm, JoinDescEx.RecIdFieldType, false, true, true));
+                FieldH.AddDat(JoinRecFieldNm, TFieldDesc(Base, JoinRecFieldNm, JoinDescEx.RecIdFieldType, false, true, true, false));
                 FieldExH.AddDat(JoinRecFieldNm, TFieldDescEx(JoinDescEx.FieldStoreLoc, false, false));
                 // prepare extended field description
                 if (JoinDescEx.FreqFieldType != oftUndef) {
                     FieldExH.AddDat(JoinFqFieldNm, TFieldDescEx(JoinDescEx.FieldStoreLoc, false, false));
-                    FieldH.AddDat(JoinFqFieldNm, TFieldDesc(Base, JoinFqFieldNm, JoinDescEx.FreqFieldType, false, true, true));
+                    FieldH.AddDat(JoinFqFieldNm, TFieldDesc(Base, JoinFqFieldNm, JoinDescEx.FreqFieldType, false, true, true, false));
                 }
             }
             // remember join
@@ -409,7 +410,7 @@ TStoreSchema::TStoreSchema(const TWPt<TBase>& Base, const PJsonVal& StoreVal) : 
             WndDesc.InsertP = false;
         } else {
             // no time field, create one which takes insert-time value
-            TFieldDesc FieldDesc(Base, TStoreWndDesc::SysInsertedAtFieldName, oftTm, false, false, true);
+            TFieldDesc FieldDesc(Base, TStoreWndDesc::SysInsertedAtFieldName, oftTm, false, false, true, false);
             FieldH.AddDat(FieldDesc.GetFieldNm(), FieldDesc);
 
             TFieldDescEx FieldDescEx;
@@ -2372,6 +2373,14 @@ void TRecSerializator::SetFieldJsonVal(const TMemBase& InRecMem,
     Merge(FixedMem, VarSOut, OutRecMem);
 }
 
+int TRecSerializator::GetCodebookId(const int& FieldId, const TStr& Str) const {
+    const TFieldSerialDesc& FieldSerialDesc = GetFieldSerialDesc(FieldId);
+    // make sure we are in the codebook park
+    QmAssertR(FieldSerialDesc.FixedPartP, TStr::Fmt("[TRecSerializator::GetCodebookId]: Field %d not in codebook", FieldId));
+    // return string from codebook
+    return CodebookH.GetKeyId(Str);
+}
+
 ///////////////////////////////
 /// Field indexer
 void TRecIndexer::IndexKey(const TFieldIndexKey& Key, const TMemBase& RecMem,
@@ -3475,10 +3484,12 @@ uint TStoreImpl::GetFieldUInt(const uint64& RecId, const int& FieldId) const {
     TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
     return GetFieldSerializator(FieldId)->GetFieldUInt(RecMem, FieldId);
 }
+
 uint16 TStoreImpl::GetFieldUInt16(const uint64& RecId, const int& FieldId) const {
     TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
     return GetFieldSerializator(FieldId)->GetFieldUInt16(RecMem, FieldId);
 }
+
 uint64 TStoreImpl::GetFieldUInt64(const uint64& RecId, const int& FieldId) const {
     TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
     return GetFieldSerializator(FieldId)->GetFieldUInt64(RecMem, FieldId);
@@ -3807,6 +3818,11 @@ PJsonVal TStoreImpl::GetStoreJson(const TWPt<TBase>& Base) const {
     }
 
     return Result;
+}
+
+int TStoreImpl::GetCodebookId(const int& FieldId, const TStr& Str) const {
+    const TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
+    return FieldSerializator->GetCodebookId(FieldId, Str);
 }
 
 int TStoreImpl::PartialFlush(int WndInMsec) {
