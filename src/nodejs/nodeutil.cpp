@@ -920,9 +920,10 @@ void TNodeJsAsyncUtil::SetAsyncData(TMainThreadHandle* UvAsync, TMainTaskWrapper
 TNodeJsAsyncUtil::TMainTaskWrapper* TNodeJsAsyncUtil::ExtractAndClearData(TMainThreadHandle* UvAsync) {
 	TLock Lock(UvSection);
 
-	printf("Extracting task wrapper\n");
-
 	TAsyncHandleConfig* Config = static_cast<TAsyncHandleConfig*>(UvAsync->data);
+
+	printf("Extracting task wrapper, handle id: %llu\n", Config->HandleId);
+
 	TMainTaskWrapper* Result = Config->TaskWrapper;
 	Config->TaskWrapper = nullptr;
 
