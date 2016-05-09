@@ -901,7 +901,6 @@ void TNodeJsAsyncUtil::SetAsyncData(TMainThreadHandle* UvAsync, TMainTaskWrapper
 	TAsyncHandleConfig* Config = static_cast<TAsyncHandleConfig*>(UvAsync->data);
 
 	if (Config->TaskWrapper != nullptr) {
-		printf("WARNING: Tried to replace an existing task in async handle! Will delete existing task and data and replace with new values!\n");
 		Config->TaskWrapper->DelTask = true;
 		printf("Deleting wrapper id %llu, handle id: %llu\n", Config->TaskWrapper->WrapperId, Config->HandleId);
 		delete Config->TaskWrapper;
@@ -927,9 +926,15 @@ TNodeJsAsyncUtil::TMainTaskWrapper* TNodeJsAsyncUtil::ExtractAndClearData(TMainT
 	TMainTaskWrapper* Result = Config->TaskWrapper;
 	Config->TaskWrapper = nullptr;
 
-	AssertR(Result != nullptr, "Task wrapper is a null pointer!");
+//	AssertR(Result != nullptr, "Task wrapper is a null pointer!");
 
-	printf("Wrapper extracted, ID: %llu, handle id: %llu!\n", Result->WrapperId, Config->HandleId);
+	if (Result != nullptr) {
+		printf("Wrapper extracted, ID: %llu, handle id: %llu!\n", Result->WrapperId, Config->HandleId);
+	}
+	else {
+		printf("Handle %llu extracted a NULL task!\n");
+	}
+
 	return Result;
 }
 
@@ -940,6 +945,11 @@ void TNodeJsAsyncUtil::OnMain(TMainThreadHandle* UvAsync) {
 	try {
 		printf("In OnMain before wrapper extraction\n");
 		TaskWrapper = ExtractAndClearData(UvAsync);
+
+		// libuv does not always merge the tasks, so it might be
+		// that this task was already processed by the previous request
+		if (TaskWrapper == nullptr) { return; }
+
 		TMainThreadTask* Task = TaskWrapper->Task;
 		Task->Run();
 	} catch (const PExcept& Except) {
