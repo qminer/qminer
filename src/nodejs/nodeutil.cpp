@@ -880,6 +880,7 @@ void TNodeTask::ExtractCallback(const v8::FunctionCallbackInfo<v8::Value>& Args)
 
 //////////////////////////////////////////////////////
 // Node - Asynchronous Utilities
+uint64 TNodeJsAsyncUtil::CurrWrapperId = 0;
 TCriticalSection TNodeJsAsyncUtil::UvSection;
 
 TNodeJsAsyncUtil::TAsyncHandleType TNodeJsAsyncUtil::GetHandleType(const uv_async_t* UvAsync) {
