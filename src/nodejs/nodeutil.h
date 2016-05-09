@@ -529,9 +529,12 @@ typedef uv_work_t TWorkerThreadHandle;
 // Node - Asynchronous Utilities
 class TNodeJsAsyncUtil {
 private:
+	static constexpr uint64 CurrWrapperId = 0;	// TODO this is here only for debugging
+
 	struct TMainTaskWrapper {
 		TMainThreadTask* Task;
 		bool DelTask;
+		uint64 WrapperId;
 
 		TMainTaskWrapper(TMainThreadTask* Task, const bool& DelTask);
 		virtual ~TMainTaskWrapper() { if (DelTask) { delete Task; } }
