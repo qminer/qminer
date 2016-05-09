@@ -893,6 +893,7 @@ void TNodeJsAsyncUtil::SetAsyncData(TMainThreadHandle* UvAsync, TMainData* Data)
 		printf("WARNING: Tried to replace an existing task in async handle! Will delete existing task and data and replace with new values!\n");
 		Config->TaskData->DelTask = true;
 		delete Config->TaskData;
+		Config->TaskData = nullptr;
 	}
 	Config->TaskData = Data;
 }
