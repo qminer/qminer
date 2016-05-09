@@ -559,11 +559,11 @@ private:
 
 	struct TAsyncHandleConfig {
 		TAsyncHandleType HandleType;
-		TMainTaskWrapper* TaskData;
+		TMainTaskWrapper* TaskWrapper;
 
 		TAsyncHandleConfig(const TAsyncHandleType& _HandleType):
 			HandleType(_HandleType),
-			TaskData(nullptr) {}
+			TaskWrapper(nullptr) {}
 	};
 
 	static TCriticalSection UvSection;
