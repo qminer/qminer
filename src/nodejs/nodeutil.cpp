@@ -890,7 +890,7 @@ void TNodeJsAsyncUtil::SetAsyncData(TMainThreadHandle* UvAsync, TMainData* Data)
 	TLock Lock(UvSection);
 	TAsyncHandleConfig* Config = static_cast<TAsyncHandleConfig*>(UvAsync->data);
 	if (Config->TaskData != nullptr) {	// XXX what to do in this case???
-		printf("WARNING: Tried to replace an existing task in async handle! Will delete existing task and data and replace with new values!");
+		printf("WARNING: Tried to replace an existing task in async handle! Will delete existing task and data and replace with new values!\n");
 		Config->TaskData->DelTask = true;
 		delete Config->TaskData;
 	}
