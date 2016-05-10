@@ -529,20 +529,24 @@ typedef uv_work_t TWorkerThreadHandle;
 // Node - Asynchronous Utilities
 class TNodeJsAsyncUtil {
 private:
-	struct TMainData {
+	static uint64 CurrWrapperId;	// TODO this is here only for debugging
+	static uint64 CurrHandleId;
+
+	struct TMainTaskWrapper {
 		TMainThreadTask* Task;
 		bool DelTask;
+		uint64 WrapperId;
 
-		TMainData(TMainThreadTask* Task, const bool& DelTask);
-		virtual ~TMainData() { if (DelTask) { delete Task; } }
+		TMainTaskWrapper(TMainThreadTask* Task, const bool& DelTask);
+		virtual ~TMainTaskWrapper() { if (DelTask) { delete Task; } }
 	};
 
 
-	struct TMainBlockData: public TMainData {
+	struct TMainBlockTaskWrapper: public TMainTaskWrapper {
 		uv_sem_t Semaphore;
 
-		TMainBlockData(TMainThreadTask* Task, const bool& DelTask);
-		~TMainBlockData() {}
+		TMainBlockTaskWrapper(TMainThreadTask* Task, const bool& DelTask);
+		~TMainBlockTaskWrapper() {}
 	};
 
 	struct TWorkerData {
@@ -559,19 +563,21 @@ private:
 
 	struct TAsyncHandleConfig {
 		TAsyncHandleType HandleType;
-		TMainData* TaskData;
+		TMainTaskWrapper* TaskWrapper;
+		uint64 HandleId;
 
 		TAsyncHandleConfig(const TAsyncHandleType& _HandleType):
 			HandleType(_HandleType),
-			TaskData(nullptr) {}
+			TaskWrapper(nullptr),
+			HandleId(CurrHandleId++) {}
 	};
 
 	static TCriticalSection UvSection;
 
 	static TAsyncHandleType GetHandleType(const TMainThreadHandle* UvAsync);
 
-	static void SetAsyncData(TMainThreadHandle* UvAsync, TMainData* Data);
-	static TMainData* ExtractAndClearData(TMainThreadHandle* UvAsync);
+	static void SetAsyncData(TMainThreadHandle* UvAsync, TMainTaskWrapper* Data);
+	static TMainTaskWrapper* ExtractAndClearData(TMainThreadHandle* UvAsync);
 
 	template <typename THandle> static void InternalDelHandle(uv_handle_t* Handle);
 
@@ -596,6 +602,10 @@ public:
 	static void DelHandle(TMainThreadHandle* UvAsync);
 
 	/// executes the task on the main thread
+	/// Note: when using a non-blocking handle, not every call to this
+	/// method will yield an execution. For example, when ExecuteOnMain is
+	/// called 5 times before a task is executed, the task will be executed only once
+	/// all the other tasks will be deleted
 	static void ExecuteOnMain(TMainThreadTask* Task, TMainThreadHandle* UvAsync,
 			const bool& DelData);
 	/// executes the task on a worker thread
