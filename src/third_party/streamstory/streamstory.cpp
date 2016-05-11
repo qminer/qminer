@@ -3009,6 +3009,10 @@ bool THierarch::IsTarget(const int& StateId) const {
 	return TargetIdHeightSet.IsKey(TIntFltPr(StateId, StateHeight));
 }
 
+bool THierarch::HasTargetStates() const {
+	return !TargetIdHeightSet.Empty();
+}
+
 void THierarch::SetTarget(const int& StateId) {
 	EAssert(IsStateId(StateId));
 	double StateHeight = GetStateHeight(StateId);
@@ -4579,6 +4583,10 @@ void TActivityDetector::GetActivities(TStrV& ActNmV, TIntV& NumStepsV) const {
 	}
 }
 
+bool TActivityDetector::IsEmpty() const {
+	return ActivityH.Empty();
+}
+
 void TActivityDetector::SetCallback(TStreamStoryCallback* _Callback) {
 	Callback = _Callback;
 }
@@ -5476,6 +5484,14 @@ const TFtrInfo& TStreamStory::GetFtrInfo(const int& FtrId) const {
 	else {
 		return IgnFtrInfoV[FtrId - GetObsDim() - GetContrDim()];
 	}
+}
+
+bool TStreamStory::IsDetectingActivities() const {
+	return !ActivityDetector->IsEmpty();
+}
+
+bool TStreamStory::IsPredictingStates() const {
+	return Hierarch->HasTargetStates();
 }
 
 PJsonVal TStreamStory::GetLevelJson(const double& Height, const TStateIdV& StateIdV, const TFltVV& TransitionVV,

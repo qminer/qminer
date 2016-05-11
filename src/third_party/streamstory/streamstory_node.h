@@ -365,6 +365,9 @@ public:
 	 */
 	JsDeclareFunction(isAnyControlFtrSet);
 
+	JsDeclareFunction(isActivityDetector);
+	JsDeclareFunction(isPredictor);
+
 	// parameters
 	//!- `hmc = hmc.getParams(params)` -- sets one or more parameters given
 	//!- in the input argument `params` returns this

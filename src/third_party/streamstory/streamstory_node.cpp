@@ -70,6 +70,8 @@ void TNodeJsStreamStory::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "setControlVal", _setControlVal);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "resetControlVal", _resetControlVal);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "isAnyControlFtrSet", _isAnyControlFtrSet);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "isActivityDetector", _isActivityDetector);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "isPredictor", _isPredictor);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _setParams);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getParam", _getParam);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
@@ -1145,6 +1147,22 @@ void TNodeJsStreamStory::isAnyControlFtrSet(const v8::FunctionCallbackInfo<v8::V
 
 	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, JsStreamStory->StreamStory->IsAnyControlFtrSet()));
+}
+
+void TNodeJsStreamStory::isActivityDetector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, JsStreamStory->StreamStory->IsDetectingActivities()));
+}
+
+void TNodeJsStreamStory::isPredictor(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, JsStreamStory->StreamStory->IsPredictingStates()));
 }
 
 void TNodeJsStreamStory::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {

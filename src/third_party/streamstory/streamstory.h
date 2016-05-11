@@ -706,6 +706,7 @@ public:
 
 	// set/remove target states
 	bool IsTarget(const int& StateId) const;
+	bool HasTargetStates() const;
 	void SetTarget(const int& StateId);
 	void RemoveTarget(const int& StateId);
 
@@ -1004,6 +1005,8 @@ public:
 	void RemoveActivity(const TStr& ActNm);
 	void GetActivities(TStrV& ActNmV, TIntV& NumStepsV) const;
 
+	bool IsEmpty() const;
+
 	void SetCallback(TStreamStoryCallback* Callback);
 	void SetVerbose(const bool& Verbose);
 };
@@ -1195,6 +1198,9 @@ public:
     const TStateIdentifier& GetStateIdentifier() const { EAssert(StateIdentifier != nullptr); return *StateIdentifier; }
     const THierarch& GetHierarch() const { EAssert(Hierarch != nullptr); return *Hierarch; }
     const TCtmcModeller& GetTransitionModeler() const { EAssert(MChain != nullptr); return *MChain; }
+
+    bool IsDetectingActivities() const;
+    bool IsPredictingStates() const;
 
 private:
     PJsonVal GetLevelJson(const double& Height, const TStateIdV& StateIdV, const TFltVV& TransitionVV,

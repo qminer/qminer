@@ -887,8 +887,6 @@ TCriticalSection TNodeJsAsyncUtil::UvSection;
 TNodeJsAsyncUtil::TAsyncHandleType TNodeJsAsyncUtil::GetHandleType(const uv_async_t* UvAsync) {
 	TLock Lock(UvSection);
 
-	printf("Fetching handle type\n");
-
 	TAsyncHandleConfig* Config = static_cast<TAsyncHandleConfig*>(UvAsync->data);
 	return Config->HandleType;
 }
@@ -896,24 +894,18 @@ TNodeJsAsyncUtil::TAsyncHandleType TNodeJsAsyncUtil::GetHandleType(const uv_asyn
 void TNodeJsAsyncUtil::SetAsyncData(TMainThreadHandle* UvAsync, TMainTaskWrapper* TaskWrapper) {
 	TLock Lock(UvSection);
 
-	printf("Setting async data\n");
-
 	TAsyncHandleConfig* Config = static_cast<TAsyncHandleConfig*>(UvAsync->data);
 
 	if (Config->TaskWrapper != nullptr) {
 		Config->TaskWrapper->DelTask = true;
-		printf("Deleting wrapper id %llu, handle id: %llu\n", Config->TaskWrapper->WrapperId, Config->HandleId);
 		delete Config->TaskWrapper;
 		Config->TaskWrapper = nullptr;
 	}
 
 	Config->TaskWrapper = TaskWrapper;
-	printf("Set wrapper id %llu, handle id: %llu\n", Config->TaskWrapper->WrapperId, Config->HandleId);
 
 	AssertR(Config->TaskWrapper != nullptr, "Task wrapper is a null pointer!");
 	AssertR(Config->TaskWrapper->Task != nullptr, "Task data is a null pointer!");
-
-	printf("Async data set\n");
 }
 
 TNodeJsAsyncUtil::TMainTaskWrapper* TNodeJsAsyncUtil::ExtractAndClearData(TMainThreadHandle* UvAsync) {
@@ -921,29 +913,16 @@ TNodeJsAsyncUtil::TMainTaskWrapper* TNodeJsAsyncUtil::ExtractAndClearData(TMainT
 
 	TAsyncHandleConfig* Config = static_cast<TAsyncHandleConfig*>(UvAsync->data);
 
-	printf("Extracting task wrapper, handle id: %llu\n", Config->HandleId);
-
 	TMainTaskWrapper* Result = Config->TaskWrapper;
 	Config->TaskWrapper = nullptr;
-
-//	AssertR(Result != nullptr, "Task wrapper is a null pointer!");
-
-	if (Result != nullptr) {
-		printf("Wrapper extracted, ID: %llu, handle id: %llu!\n", Result->WrapperId, Config->HandleId);
-	}
-	else {
-		printf("Handle %llu extracted a NULL task!\n");
-	}
 
 	return Result;
 }
 
 void TNodeJsAsyncUtil::OnMain(TMainThreadHandle* UvAsync) {
-	printf("Entered OnMain\n");
 	TMainTaskWrapper* TaskWrapper = nullptr;
 
 	try {
-		printf("In OnMain before wrapper extraction\n");
 		TaskWrapper = ExtractAndClearData(UvAsync);
 
 		// libuv does not always merge the tasks, so it might be
@@ -1032,14 +1011,14 @@ void TNodeJsAsyncUtil::DelHandle(TMainThreadHandle* UvAsync) {
 
 
 void TNodeJsAsyncUtil::ExecuteOnMain(TMainThreadTask* Task, uv_async_t* UvAsync, const bool& DelTask) {
-	printf("Entered ExecuteOnMain\n");
-
 	TAsyncHandleType HandleType = GetHandleType(UvAsync);
 	switch (HandleType) {
 	case ahtAsync: {
-		printf("In ExecuteOnMain, calling SetAsyncData\n");
+		if (!DelTask) {
+			delete Task;
+			EAssertR(false, "Non-blocking tasks must be automatically deleted!");
+		}
 		SetAsyncData(UvAsync, new TMainTaskWrapper(Task, DelTask));
-		printf("Calling send\n");
 		// uv_async_send is thread safe
 		uv_async_send(UvAsync);
 		break;
