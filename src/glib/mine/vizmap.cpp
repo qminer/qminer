@@ -1052,7 +1052,7 @@ void TVizMapFactory::MakeFlat(const PSVMTrainSet& Set,
     TFltV x(Len), y(Len), dxdy(Len + Len);
     if (RndStartPos) {
         TRnd Rnd1(1), Rnd2(2);
-        TLAMisc::FillRnd(x, Rnd1); TLAMisc::FillRnd(y, Rnd2);
+        TLinAlgTransform::FillRnd(x, Rnd1); TLinAlgTransform::FillRnd(y, Rnd2);
     } else {
         EAssertR(DocPointV.Len() == Len, TStr::Fmt("%d == %d", DocPointV.Len(), Len));        
         for (int PntN = 0; PntN < Len; PntN++) {

@@ -785,7 +785,7 @@ void TNodeJsGraph<T>::components(const v8::FunctionCallbackInfo<v8::Value>& Args
 	}
 
 	Args.GetReturnValue().Set(
-		TNodeJsUtil::NewInstance<TNodeJsSpMat>(new TNodeJsSpMat(Mat, TLAMisc::GetMaxDimIdx(Mat) + 1)));
+		TNodeJsUtil::NewInstance<TNodeJsSpMat>(new TNodeJsSpMat(Mat, TLinAlgSearch::GetMaxDimIdx(Mat) + 1)));
 }
 
 template <class T>

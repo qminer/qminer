@@ -147,7 +147,10 @@
 	JsDeclareAsyncFunction(AsyncFun, Task);
 
 
-
+// forward declarations
+class TAuxFltV;
+template <class TValType, class TAuxType> class TNodeJsVec;
+typedef TNodeJsVec<TFlt, TAuxFltV> TNodeJsFltV;
 
 //////////////////////////////////////////////////////
 // Node - Utilities
@@ -229,6 +232,9 @@ public:
     static double GetArgFlt(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const double& DefVal);
     /// Extract argument ArgN property as int
     static double GetArgFlt(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property, const double& DefVal);
+
+    /// Extract argument ArgN as a double vector, the argument can be of type Array or TNodeJsFltVV
+    static void GetArgFltV(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, TFltV& FltV);
 
     /// Extract argument ArgN as TStr
     static TStr GetArgStr(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
@@ -509,8 +515,9 @@ public:
 
 	void ExtractCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
-protected:
 	void SetExcept(const PExcept& _Except) { Except = _Except; }
+
+protected:
 	bool HasExcept() const { return !Except.Empty(); }
 };
 
