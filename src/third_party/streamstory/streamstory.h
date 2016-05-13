@@ -117,7 +117,7 @@ public:
 			TRnd& Rnd);
 
 private:
-	double GetBinSize() const { return BinValV[1] - BinValV[0]; }
+	double GetBinSize() const { return BinValV.Len() >= 2 ? BinValV[1] - BinValV[0] : 0; }
 };
 
 //////////////////////////////////////////////////
