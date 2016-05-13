@@ -529,13 +529,10 @@ typedef uv_work_t TWorkerThreadHandle;
 // Node - Asynchronous Utilities
 class TNodeJsAsyncUtil {
 private:
-	static uint64 CurrWrapperId;	// TODO this is here only for debugging
-	static uint64 CurrHandleId;
 
 	struct TMainTaskWrapper {
 		TMainThreadTask* Task;
 		bool DelTask;
-		uint64 WrapperId;
 
 		TMainTaskWrapper(TMainThreadTask* Task, const bool& DelTask);
 		virtual ~TMainTaskWrapper() { if (DelTask) { delete Task; } }
@@ -564,12 +561,10 @@ private:
 	struct TAsyncHandleConfig {
 		TAsyncHandleType HandleType;
 		TMainTaskWrapper* TaskWrapper;
-		uint64 HandleId;
 
 		TAsyncHandleConfig(const TAsyncHandleType& _HandleType):
 			HandleType(_HandleType),
-			TaskWrapper(nullptr),
-			HandleId(CurrHandleId++) {}
+			TaskWrapper(nullptr) {}
 	};
 
 	static TCriticalSection UvSection;

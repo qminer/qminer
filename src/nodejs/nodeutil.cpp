@@ -808,8 +808,7 @@ uint64 TNodeJsUtil::GetTmMSecs(v8::Handle<v8::Date>& Date) {
 // Async Stuff
 TNodeJsAsyncUtil::TMainTaskWrapper::TMainTaskWrapper(TMainThreadTask* _Task, const bool& _DelTask):
 		Task(_Task),
-		DelTask(_DelTask),
-		WrapperId(CurrWrapperId++) {}
+		DelTask(_DelTask) {}
 
 TNodeJsAsyncUtil::TMainBlockTaskWrapper::TMainBlockTaskWrapper(TMainThreadTask* Task,
 			const bool& DelTask):
@@ -880,8 +879,6 @@ void TNodeTask::ExtractCallback(const v8::FunctionCallbackInfo<v8::Value>& Args)
 
 //////////////////////////////////////////////////////
 // Node - Asynchronous Utilities
-uint64 TNodeJsAsyncUtil::CurrWrapperId = 0;
-uint64 TNodeJsAsyncUtil::CurrHandleId = 0;
 TCriticalSection TNodeJsAsyncUtil::UvSection;
 
 TNodeJsAsyncUtil::TAsyncHandleType TNodeJsAsyncUtil::GetHandleType(const uv_async_t* UvAsync) {
