@@ -852,6 +852,22 @@ void TLinAlg::AddVec(const TVec<TNum<TType>, TSizeTy>& x,
 }
 
 template <class TType, class TSizeTy, bool ColMajor>
+void TLinAlg::AddVec(const TType& k,
+		const TVec<TKeyDat<TNum<TSizeTy>, TNum<TType>>, TSizeTy>& x,
+		const TVec<TNum<TType>, TSizeTy>& y, TVec<TNum<TType>, TSizeTy>& z) {
+	EAssert(y.Len() == z.Len());
+	z = y; // first we set z to be y
+	// and than we add x to z (==y)
+	const TSizeTy xLen = x.Len(), yLen = y.Len();
+	for (TSizeTy i = 0; i < xLen; i++) {
+		const TSizeTy ii = x[i].Key;
+		if (ii < yLen) {
+			z[ii] = k * x[i].Dat + y[ii];
+		}
+	}
+}
+
+template <class TType, class TSizeTy, bool ColMajor>
 void TLinAlg::AddVec(double k, const TVVec<TNum<TType>, TSizeTy, ColMajor>& X,
 		TSizeTy ColIdX, TVVec<TNum<TType>, TSizeTy, ColMajor>& Y, TSizeTy ColIdY) {
 	EAssert(X.GetRows() == Y.GetRows());
@@ -958,6 +974,25 @@ TType TLinAlg::Frob2(const TVVec<TNum<TType>, TSizeTy, ColMajor> &A) {
 		}
 	}
 	return frob;
+}
+
+template <class TType, class TSizeTy, bool ColMajor>
+TType TLinAlg::Frob(const TVec<TVec<TKeyDat<TNum<TSizeTy>, TNum<TType>>, TSizeTy>, TSizeTy> &A) {
+	return TMath::Sqrt(Frob2(A));
+}
+
+template <class TType, class TSizeTy, bool ColMajor>
+TType TLinAlg::Frob2(const TVec<TVec<TKeyDat<TNum<TSizeTy>, TNum<TType>>, TSizeTy>, TSizeTy> &A) {
+	const TSizeTy& Cols = A.Len();
+	TType Res = 0.0;
+	for (TSizeTy ColN = 0; ColN < Cols; ColN++) {
+		const TVec<TKeyDat<TNum<TSizeTy>, TNum<TType>>, TSizeTy>& ColX = A[ColN];
+		const TSizeTy& Els = ColX.Len();
+		for (TSizeTy ElN = 0; ElN < Els; ElN++) {
+			Res += ColX[ElN].Dat * ColX[ElN].Dat;
+		}
+	}
+	return Res;
 }
 
 template <class TType, class TSizeTy, bool ColMajor>
@@ -1342,6 +1377,19 @@ void TLinAlg::Transpose(const TTriple<TVec<IndexType, TSizeTy>, TVec<IndexType, 
 		//At.Val1.Add(A.Val2[ElN]);
 		At.Val2.Add(A.Val1[index[ElN]]);
 		At.Val3.Add(A.Val3[index[ElN]]);
+	}
+}
+
+template <class TType, class TSizeTy, bool ColMajor>
+void TLinAlg::Sign(const TVec<TVec<TKeyDat<TNum<TSizeTy>, TNum<TType>>, TSizeTy>, TSizeTy>& Mat,
+		TVec<TVec<TKeyDat<TNum<TSizeTy>, TNum<TType>>, TSizeTy>, TSizeTy>& Mat2) {
+	Mat2 = Mat;
+	TSizeTy Cols = Mat2.Len();
+	for (TSizeTy ColN = 0; ColN < Cols; ColN++) {
+		TSizeTy Els = Mat2[ColN].Len();
+		for (TSizeTy ElN = 0; ElN < Els; ElN++) {
+			Mat2[ColN][ElN].Dat = TMath::Sign(Mat2[ColN][ElN].Dat);
+		}
 	}
 }
 
@@ -2278,6 +2326,93 @@ void TLinAlg::MultiplyT(const TVVec<TNum<TType>, TSizeTy, ColMajor>& A,
 		}
 	}
 #endif
+}
+
+template <class TType, class TSizeTy, bool ColMajor>
+void TLinAlg::MultiplyT(const TVec<TVec<TKeyDat<TNum<TSizeTy>, TNum<TType>>, TSizeTy>, TSizeTy>& A,
+		const TVVec<TNum<TType>, TSizeTy, ColMajor>& B,
+		TVVec<TNum<TType>, TSizeTy, ColMajor>& C) {
+	// A = sparse column matrix
+	EAssert(TLinAlgSearch::GetMaxDimIdx(A) + 1 <= B.GetRows());
+	TSizeTy ColsB = B.GetCols();
+	//int RowsB = B.GetRows();
+	TSizeTy ColsA = A.Len();
+	if (C.Empty()) {
+		C.Gen(ColsA, ColsB);
+	}
+	else {
+		EAssert(C.GetRows() == ColsA && C.GetCols() == ColsB);
+	}
+	C.PutAll(0.0);
+	for (TSizeTy RowN = 0; RowN < ColsA; RowN++) {
+		for (TSizeTy ColN = 0; ColN < ColsB; ColN++) {
+			TSizeTy Els = A[RowN].Len();
+			for (TSizeTy ElN = 0; ElN < Els; ElN++) {
+				C.At(RowN, ColN) += A[RowN][ElN].Dat * B.At(A[RowN][ElN].Key, ColN);
+			}
+		}
+	}
+}
+
+template <class TType, class TSizeTy, bool ColMajor>
+void TLinAlg::Multiply(const TVVec<TNum<TType>, TSizeTy, ColMajor>& A,
+		const TVec<TVec<TKeyDat<TNum<TSizeTy>, TNum<TType>>, TSizeTy>, TSizeTy>& B,
+		TVec<TVec<TKeyDat<TNum<TSizeTy>, TNum<TType>>, TSizeTy>, TSizeTy>& C) {
+
+	EAssert(A.GetCols() >= TLinAlgSearch::GetMaxDimIdx(B) + 1);
+    TSizeTy Rows = A.GetRows();
+    TSizeTy Cols = B.Len();
+
+    C.Gen(Cols);
+    for (TSizeTy ColN = 0; ColN < Cols; ColN++) {
+        for (TSizeTy RowN = 0; RowN < Rows; RowN++) {
+            TType Val = 0.0;
+            TSizeTy Els = B[ColN].Len();
+            for (TSizeTy ElN = 0; ElN < Els; ElN++) {
+                Val += A(RowN, B[ColN][ElN].Key) * B[ColN][ElN].Dat;
+            }
+            C[ColN].Add(TKeyDat<TNum<TSizeTy>, TNum<TType>>(RowN, Val));
+        }
+    }
+}
+
+
+template <class TType, class TSizeTy, bool ColMajor>
+void TLinAlg::MultiplyT(const TVec<TVec<TKeyDat<TNum<TSizeTy>, TNum<TType>>, TSizeTy>, TSizeTy>& A,
+		const TVec<TVec<TKeyDat<TNum<TSizeTy>, TNum<TType>>, TSizeTy>, TSizeTy>& B,
+		TVVec<TNum<TType>, TSizeTy, ColMajor>& C) {
+	//// A, B = sparse column matrix
+	TSizeTy ColsA = A.Len();
+	TSizeTy ColsB = B.Len();
+	if (C.Empty()) {
+		C.Gen(ColsA, ColsB);
+	}
+	else {
+		EAssert(ColsA == C.GetRows() && ColsB == C.GetCols());
+	}
+	for (TSizeTy RowN = 0; RowN < ColsA; RowN++) {
+		for (TSizeTy ColN = 0; ColN < ColsB; ColN++) {
+			C.At(RowN, ColN) = TLinAlg::DotProduct(A[RowN], B[ColN]);
+		}
+	}
+}
+
+template <class TType, class TSizeTy, bool ColMajor>
+void TLinAlg::MultiplyT(const TVec<TVec<TKeyDat<TNum<TSizeTy>, TNum<TType>>, TSizeTy>, TSizeTy>& A,
+		const TVec<TKeyDat<TNum<TSizeTy>, TNum<TType>>, TSizeTy>& b,
+		TVec<TNum<TType>, TSizeTy>& c) {
+    //// A = sparse column matrix, b = sparse vector
+	TSizeTy ColsA = A.Len();
+
+    if (c.Empty()) {
+        c.Gen(ColsA);
+    }
+    else {
+        EAssert(ColsA == c.Len());
+    }
+    for (TSizeTy RowN = 0; RowN < ColsA; RowN++) {
+        c[RowN] = TLinAlg::DotProduct(A[RowN], b);
+    }
 }
 
 template <class TType, class TSizeTy, bool ColMajor>

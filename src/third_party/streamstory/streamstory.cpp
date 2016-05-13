@@ -61,7 +61,15 @@ int TFtrInfo::GetCategoricalFtrVal(const TFltV& FtrV) const {
 			return FtrN - Offset;
 		}
 	}
-	throw TExcept::New("Could not find the value of a nominal feature!");
+
+	TFltV SingleFtrV;
+	for (int FtrN = Offset; FtrN < Offset + Length; FtrN++) {
+		SingleFtrV.Add(FtrV[FtrN]);
+	}
+
+	printf("Feature:\n%s\n", TStrUtil::GetStr(SingleFtrV, ", ", "%.2f").CStr());
+
+	throw TExcept::New("Could not find the value of a categorical feature!");
 }
 
 double TFtrInfo::GetNumericFtrVal(const TFltV& FtrV) const {
