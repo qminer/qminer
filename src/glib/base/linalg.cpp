@@ -821,19 +821,6 @@ void TLinAlg::AddVec(const double& k, const TFltVV& X, int ColId, const TFltV& y
 	}
 }
 
-void TLinAlg::AddVec(const double& k, const TIntFltKdV& x, const TFltV& y, TFltV& z) {
-	EAssert(y.Len() == z.Len());
-	z = y; // first we set z to be y
-	// and than we add x to z (==y)
-	const int xLen = x.Len(), yLen = y.Len();
-	for (int i = 0; i < xLen; i++) {
-		const int ii = x[i].Key;
-		if (ii < yLen) {
-			z[ii] = k * x[i].Dat + y[ii];
-		}
-	}
-}
-
 void TLinAlg::AddVec(const double& k, const TVec<TIntFltKdV>& X, int ColId, const TFltV& y, TFltV& z) {
 	EAssert(0 <= ColId && ColId < X.Len());
 	AddVec(k, X[ColId], y, z);
@@ -861,23 +848,6 @@ double TLinAlg::EuclDist(const TFltPr& x, const TFltPr& y) {
 	return sqrt(TLinAlg::EuclDist2(x, y));
 }
 
-double TLinAlg::Frob(const TVec<TIntFltKdV> &A) {
-	return sqrt(Frob2(A));
-}
-
-double TLinAlg::Frob2(const TVec<TIntFltKdV> &A) {
-	double Cols = A.Len();
-	double Res = 0.0; 
-	for (int ColN = 0; ColN < Cols; ColN++) {
-		const TIntFltKdV& ColX = A[ColN];
-		const int Els = ColX.Len();
-		for (int ElN = 0; ElN < Els; ElN++) {
-			Res += ColX[ElN].Dat * ColX[ElN].Dat;
-		}
-	}
-	return Res;
-}
-
 void TLinAlg::Transpose(const TVec<TIntFltKdV>& A, TVec<TIntFltKdV>& At, int Rows){
 	// A is a sparse col matrix:
 	int Cols = A.Len();
@@ -902,17 +872,6 @@ void TLinAlg::Transpose(const TVec<TIntFltKdV>& A, TVec<TIntFltKdV>& At, int Row
 	// sort
 	for (int ColN = 0; ColN < Rows; ColN++) {
 		At[ColN].Sort();
-	}
-}
-
-void  TLinAlg::Sign(const TVec<TIntFltKdV>& Mat, TVec<TIntFltKdV>& Mat2) {
-	Mat2 = Mat;
-	int Cols = Mat2.Len();
-	for (int ColN = 0; ColN < Cols; ColN++) {
-		int Els = Mat2[ColN].Len();
-		for (int ElN = 0; ElN < Els; ElN++) {
-			Mat2[ColN][ElN].Dat = TMath::Sign(Mat2[ColN][ElN].Dat);
-		}
 	}
 }
 
@@ -943,51 +902,6 @@ void TLinAlg::Multiply(const TVec<TIntFltKdV>& A, const TFltVV& B, TFltVV& C, co
 		}
 	}
 }
-
-
-//Andrej Urgent
-//TODO template --- indextype TIntFltKdV ... TInt64 TFlt
-void TLinAlg::MultiplyT(const TVec<TIntFltKdV>& A, const TFltVV& B, TFltVV& C) {
-	// A = sparse column matrix
-	EAssert(TLinAlgSearch::GetMaxDimIdx(A) + 1 <= B.GetRows());
-	int ColsB = B.GetCols();
-	//int RowsB = B.GetRows();
-	int ColsA = A.Len();
-	if (C.Empty()) {
-		C.Gen(ColsA, ColsB);
-	}
-	else {
-		EAssert(C.GetRows() == ColsA && C.GetCols() == ColsB);
-	}
-	C.PutAll(0.0);
-	for (int RowN = 0; RowN < ColsA; RowN++) {
-		for (int ColN = 0; ColN < ColsB; ColN++) {
-			int Els = A[RowN].Len();
-			for (int ElN = 0; ElN < Els; ElN++) {
-				C.At(RowN, ColN) += A[RowN][ElN].Dat * B.At(A[RowN][ElN].Key, ColN);
-			}
-		}
-	}
-}
-
-void TLinAlg::Multiply(const TFltVV& A, const TVec<TIntFltKdV>& B, TVec<TIntFltKdV>& C) {
-    EAssert(A.GetCols() >= TLinAlgSearch::GetMaxDimIdx(B) + 1);
-    int Rows = A.GetRows();
-    int Cols = B.Len();
-
-    C.Gen(Cols);
-    for (int ColN = 0; ColN < Cols; ColN++) {
-        for (int RowN = 0; RowN < Rows; RowN++) {
-            TFlt val(0.0);
-            int Els = B[ColN].Len();
-            for (int ElN = 0; ElN < Els; ElN++) {
-                val += A(RowN, B[ColN][ElN].Key) * B[ColN][ElN].Dat;
-            }
-            C[ColN].Add(TIntFltKd(RowN, val));
-        }
-    }
-}
-
 // SPARSECOLMAT-SPARSECOLMAT
 
 //Andrej Urgent
@@ -1050,42 +964,6 @@ void TLinAlg::Multiply(const TVec<TIntFltKdV>& A, const TVec<TIntFltKdV>& B, TVe
                 C[ColN].Add(TIntFltKd(IdxA, ValA * ValB));
             }
         }
-    }
-}
-
-
-//Andrej Urgent
-//TODO template --- indextype TIntFltKdV ... TInt64
-void TLinAlg::MultiplyT(const TVec<TIntFltKdV>& A, const TVec<TIntFltKdV>& B, TFltVV& C) {
-	//// A, B = sparse column matrix
-	int ColsA = A.Len();
-	int ColsB = B.Len();
-	if (C.Empty()) {
-		C.Gen(ColsA, ColsB);
-	}
-	else {
-		EAssert(ColsA == C.GetRows() && ColsB == C.GetCols());
-	}
-	for (int RowN = 0; RowN < ColsA; RowN++) {
-		for (int ColN = 0; ColN < ColsB; ColN++) {
-			C.At(RowN, ColN) = TLinAlg::DotProduct(A[RowN], B[ColN]);
-		}
-	}
-}
-
-
-void TLinAlg::MultiplyT(const TVec<TIntFltKdV>& A, const TIntFltKdV& b, TFltV& c) {
-    //// A = sparse column matrix, b = sparse vector
-    int ColsA = A.Len();
-
-    if (c.Empty()) {
-        c.Gen(ColsA);
-    }
-    else {
-        EAssert(ColsA == c.Len());
-    }
-    for (int RowN = 0; RowN < ColsA; RowN++) {
-        c[RowN] = TLinAlg::DotProduct(A[RowN], b);
     }
 }
 

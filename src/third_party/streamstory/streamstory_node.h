@@ -31,12 +31,17 @@ private:
 
 	TMc::TStreamStory* StreamStory;
 
+	TMainThreadHandle* UvHandle;
+
 	v8::Persistent<v8::Function> StateChangedCallback;
 	v8::Persistent<v8::Function> AnomalyCallback;
 	v8::Persistent<v8::Function> OutlierCallback;
 	v8::Persistent<v8::Function> ProgressCallback;
 	v8::Persistent<v8::Function> PredictionCallback;
 	v8::Persistent<v8::Function> ActivityCallback;
+
+	TCriticalSection ProgressSection;
+	TVec<TIntStrPr> ProgressQ;
 
 	TNodeJsStreamStory(TMc::TStreamStory* McModel);
 	TNodeJsStreamStory(PSIn& SIn);
@@ -68,12 +73,9 @@ private:
 
 	class TProgressTask: public TMainThreadTask {
 	private:
-		int Perc;
-		TStr Msg;
-		v8::Persistent<v8::Function>* ProgressCallback;
+		TNodeJsStreamStory* JsStreamStory;
 	public:
-		TProgressTask(const int& Perc, const TStr& Msg,
-				v8::Persistent<v8::Function>* ProgressCallback);
+		TProgressTask(TNodeJsStreamStory* JsStreamStory);
 		void Run();
 	};
 
@@ -363,6 +365,9 @@ public:
 	 */
 	JsDeclareFunction(isAnyControlFtrSet);
 
+	JsDeclareFunction(isActivityDetector);
+	JsDeclareFunction(isPredictor);
+
 	// parameters
 	//!- `hmc = hmc.getParams(params)` -- sets one or more parameters given
 	//!- in the input argument `params` returns this
@@ -387,6 +392,8 @@ public:
 	void OnActivityDetected(const uint64& StartTm, const uint64& EndTm, const TStr& ActNm);
 
 private:
+	void ProcessProgressQ();
+
 	void SetParams(const PJsonVal& ParamVal);
 	void InitCallbacks();
 
