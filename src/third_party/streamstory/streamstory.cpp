@@ -195,6 +195,7 @@ TStateIdentifier::TStateIdentifier(const PDenseKMeans& _KMeans, const int _NHist
 		IgnoredHistVV(),
 		StateTimeHistV(),
 		StateContrFtrValVV(),
+		TmUnit(0),
 		Sample(_Sample),
 		Verbose(_Verbose),
 		Notify(Verbose ? TNotify::StdNotify : TNotify::NullNotify) {
@@ -218,6 +219,7 @@ TStateIdentifier::TStateIdentifier(TSIn& SIn):
 	StateWeekHistV(SIn),
 	StateDayHistV(SIn),
 	StateContrFtrValVV(SIn),
+	TmUnit(TUInt64(SIn)),
 	Sample(TFlt(SIn)),
 	Verbose(TBool(SIn)) {
 
@@ -242,6 +244,7 @@ void TStateIdentifier::Save(TSOut& SOut) const {
 	StateWeekHistV.Save(SOut);
 	StateDayHistV.Save(SOut);
 	StateContrFtrValVV.Save(SOut);
+	TUInt64(TmUnit).Save(SOut);
 	TFlt(Sample).Save(SOut);
 	TBool(Verbose).Save(SOut);
 }
@@ -254,8 +257,11 @@ void TStateIdentifier::Init(const TStreamStory& StreamStory, const TUInt64V& TmV
 
 	Notify->OnNotify(TNotifyType::ntInfo, "Clustering ...");
 
+	TmUnit = StreamStory.GetTransitionModeler().GetTimeUnit();
+
 	if (Sample == 1) {
-		KMeans->Apply(ObsFtrVV, false, MX_ITER, Notify);
+		TFltVV ClustFtrVV;	GenClustFtrVV(TmV, ObsFtrVV, ClustFtrVV);
+		KMeans->Apply(ClustFtrVV, false, MX_ITER, Notify);
 	} else {
 		const int NSamples = Sample < 1 ? (int)ceil(NInst*Sample) : TMath::Mn(NInst, int(Sample));
 
@@ -268,19 +274,23 @@ void TStateIdentifier::Init(const TStreamStory& StreamStory, const TUInt64V& TmV
 
 		TFltVV ObsSampleVV(ObsFtrVV.GetRows(), NSamples);
 		TFltV FtrV;
+		TUInt64V SampleTmV;
 		for (int SampleN = 0; SampleN < NSamples; SampleN++) {
 			const int& RecN = SampleV[SampleN];
 
 			ObsFtrVV.GetCol(RecN, FtrV);
 			ObsSampleVV.SetCol(SampleN, FtrV);
+			SampleTmV.Add(TmV[RecN]);
 		}
 
-		KMeans->Apply(ObsSampleVV, false, MX_ITER, Notify);
+		TFltVV ClustFtrVV;	GenClustFtrVV(SampleTmV, ObsSampleVV, ClustFtrVV);
+		KMeans->Apply(ClustFtrVV, false, MX_ITER, Notify);
 	}
 
-	InitStatistics(ObsFtrVV);
+	TIntV AssignV;	Assign(TmV, ObsFtrVV, AssignV);
 
-	TIntV AssignV;	Assign(ObsFtrVV, AssignV);
+	InitStatistics(TmV, ObsFtrVV, AssignV);
+
 	InitCentroidVV(AssignV, ControlFtrVV, ControlCentroidVV);
 	InitCentroidVV(AssignV, IgnoredFtrVV, IgnoredCentroidVV);
 	InitHistograms(StreamStory, ObsFtrVV, ControlFtrVV, IgnoredFtrVV, AssignV);
@@ -345,22 +355,31 @@ void TStateIdentifier::InitTimeHistogramV(const TUInt64V& TmV, const TIntV& Assi
 	}
 }
 
-int TStateIdentifier::Assign(const TFltV& x) const {
-	TFltV DistV;	GetCentroidDistV(x, DistV);
+int TStateIdentifier::Assign(const uint64& RecTm, const TFltV& FtrV) const {
+	TFltV TransFtrV;	GenClustFtrV(RecTm, FtrV, TransFtrV);
+	TFltV DistV;	GetCentroidDistV(RecTm, TransFtrV, DistV);
 	return TLinAlgSearch::GetMinIdx(DistV);
 }
 
-void TStateIdentifier::Assign(const TFltVV& FtrVV, TIntV& AssignV) const {
+void TStateIdentifier::Assign(const TUInt64V& RecTmV, const TFltVV& FtrVV, TIntV& AssignV) const {
 	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Assigning %d instances ...", FtrVV.GetCols());
-	KMeans->Assign(FtrVV, AssignV);
+	TFltVV TransFtrVV;	GenClustFtrVV(RecTmV, FtrVV, TransFtrVV);
+	KMeans->Assign(TransFtrVV, AssignV);
 }
 
-void TStateIdentifier::GetCentroidDistV(const TFltV& FtrVV, TFltV& DistV) const {
-	KMeans->GetCentroidDistV(FtrVV, DistV);
+void TStateIdentifier::GetCentroidDistV(const uint64& RecTm, const TFltV& FtrV, TFltV& DistV) const {
+	TFltV TransFtrV;	GenClustFtrV(RecTm, FtrV, TransFtrV);
+	KMeans->GetCentroidDistV(TransFtrV, DistV);
 }
 
-double TStateIdentifier::GetDist(const int& StateId, const TFltV& FtrV) const {
-	return KMeans->GetDist(StateId, FtrV);
+void TStateIdentifier::GetCentroidDistVV(const TUInt64V& RecTmV, const TFltVV& FtrVV, TFltVV& DistVV) const {
+	TFltVV TransFtrVV;	GenClustFtrVV(RecTmV, FtrVV, TransFtrVV);
+	TFltVV DistMat;	KMeans->GetDistVV(TransFtrVV, DistVV);
+}
+
+double TStateIdentifier::GetDist(const uint64& RecTm, const int& StateId, const TFltV& FtrV) const {
+	TFltV TransFtrV;	GenClustFtrV(RecTm, FtrV, TransFtrV);
+	return KMeans->GetDist(StateId, TransFtrV);
 }
 
 void TStateIdentifier::GetJoinedCentroid(const int& FtrSpaceN, const TIntV& StateIdV, TFltV& FtrV) const {
@@ -609,11 +628,11 @@ void TStateIdentifier::SetVerbose(const bool& _Verbose) {
 	}
 }
 
-void TStateIdentifier::InitStatistics(const TFltVV& X) {
-	TIntV AssignV;	KMeans->Assign(X, AssignV);
-
+void TStateIdentifier::InitStatistics(const TUInt64V& RecTmV, const TFltVV& FtrVV,
+		const TIntV& AssignV) {
 	const int K = GetStates();
-	TFltVV DistMat;	KMeans->GetDistVV(X, DistMat);
+
+	TFltVV DistVV;	GetCentroidDistVV(RecTmV, FtrVV, DistVV);
 
 	CentroidDistStatV.Gen(K,K);
 
@@ -624,7 +643,7 @@ void TStateIdentifier::InitStatistics(const TFltVV& X) {
 		const int& ClustN = AssignV[RecN];
 
 		ClustSizeV[ClustN]++;
-		ClustDistSumV[ClustN] += DistMat(ClustN, RecN);
+		ClustDistSumV[ClustN] += DistVV(ClustN, RecN);
 	}
 
 	for (int ClustN = 0; ClustN < K; ClustN++) {
@@ -789,6 +808,67 @@ void TStateIdentifier::InitHists(const TStreamStory& StreamStory, const TFltVV& 
 	InitHistVV(StreamStory.GetIgnFtrInfoV(), NInst, IgnoredFtrVV, IgnoredHistVV);
 }
 
+void TStateIdentifier::GenClustFtrVV(const TUInt64V& TmV, const TFltVV& ObsFtrVV, TFltVV& FtrVV) const {
+	EAssert(TmV.Len() > 1);
+	EAssert(TmV.Len() == ObsFtrVV.GetCols());
+
+	const int NInst = TmV.Len();
+	const int ObsFtrVDim = ObsFtrVV.GetRows();
+	const int TmFtrDim = GetTmFtrDim(TmUnit);
+
+	FtrVV.Gen(TmFtrDim + ObsFtrVDim, NInst);
+
+	TFltV FtrV;
+	for (int RecN = 0; RecN < TmV.Len(); RecN++) {
+		const uint64& RecTm = TmV[RecN];
+
+		GenTmFtrV(RecTm, FtrV);
+		for (int FtrN = 0; FtrN < TmFtrDim; FtrN++) {
+			FtrVV(FtrN, RecN) = FtrV[FtrN];
+		}
+		for (int FtrN = 0; FtrN < ObsFtrVDim; FtrN++) {
+			FtrVV(TmFtrDim + FtrN, RecN) = ObsFtrVV(FtrN, RecN);
+		}
+	}
+}
+
+void TStateIdentifier::GenTmFtrV(const uint64& RecTm, TFltV& FtrV) const {
+	const int TmFtrDim = GetTmFtrDim(TmUnit);
+
+	FtrV.Gen(TmFtrDim);
+
+	if (TmUnit == TCtmcModeller::TU_SECOND) {
+		const TTm Tm = TTm::GetTmFromMSecs(RecTm);
+		const int Second = Tm.GetSec();
+		const int FtrVal = Second / 10;
+		FtrV[FtrVal] = 1;
+	}
+	else if (TmUnit == TCtmcModeller::TU_MINUTE) {
+		const TTm Tm = TTm::GetTmFromMSecs(RecTm);
+		const int Minute = Tm.GetMin();
+		const int FtrVal = Minute / 10;
+		FtrV[FtrVal] = 1;
+	}
+	else if (TmUnit == TCtmcModeller::TU_HOUR) {
+		const TTm Tm = TTm::GetTmFromMSecs(RecTm);
+		const int Hour = Tm.GetHour();
+		FtrV[Hour] = 1;
+	}
+	else if (TmUnit == TCtmcModeller::TU_DAY) {
+		const TTm Tm = TTm::GetTmFromMSecs(RecTm);
+		const int DayN = Tm.GetDaysSinceMonday();
+		FtrV[DayN] = 1;
+	}
+	else if (TmUnit == TCtmcModeller::TU_MONTH) {
+		const TTm Tm = TTm::GetTmFromMSecs(RecTm);
+		const int MonthN = Tm.GetMonth() - 1;
+		FtrV[MonthN] = 1;
+	}
+	else {
+		throw TExcept::New("Invalid time unit: " + TUInt64::GetStr(TmUnit));
+	}
+}
+
 void TStateIdentifier::UpdateHistVV(const TFtrInfoV& FtrInfoV, const TFltVV& FtrVV,
 		const TIntV& AssignV, const int& States, TStateFtrHistVV& StateFtrHistVV) {
 
@@ -884,6 +964,27 @@ void TStateIdentifier::ResampleHist(const int& Bins, const TFltV& OrigBinValV,
 		}
 
 		BinValV[BinN] /= OrigBinsPerBin;
+	}
+}
+
+int TStateIdentifier::GetTmFtrDim(const uint64& TmUnit) {
+	if (TmUnit == TCtmcModeller::TU_SECOND) {
+		return 6;
+	}
+	else if (TmUnit == TCtmcModeller::TU_MINUTE) {
+		return 6;
+	}
+	else if (TmUnit == TCtmcModeller::TU_HOUR) {
+		return 24;
+	}
+	else if (TmUnit == TCtmcModeller::TU_DAY) {
+		return 7;
+	}
+	else if (TmUnit == TCtmcModeller::TU_MONTH) {
+		return 12;
+	}
+	else {
+		throw TExcept::New("Invalid time unit: " + TUInt64::GetStr(TmUnit));
 	}
 }
 
@@ -4197,8 +4298,8 @@ void TStateAssist::Save(TSOut& SOut) const {
 	TBool(Verbose).Save(SOut);
 }
 
-void TStateAssist::Init(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const TFltVV& IgnFtrVV,
-		const TStateIdentifier& Clust, const THierarch& Hierarch,
+void TStateAssist::Init(const TUInt64V& RecTmV, const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV,
+		const TFltVV& IgnFtrVV, const TStateIdentifier& Clust, const THierarch& Hierarch,
 		TStreamStoryCallback* Callback, const bool& MultiThread) {
 
 	Notify->OnNotify(TNotifyType::ntInfo, "Computing state assist ...");
@@ -4228,7 +4329,7 @@ void TStateAssist::Init(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const 
 
 	// get all the heights from the hierarchy
 	TIntFltPrV StateIdHeightPrV;	Hierarch.GetStateIdHeightPrV(StateIdHeightPrV);
-	TIntV AssignV;	Clust.Assign(ObsFtrVV, AssignV);
+	TIntV AssignV;	Clust.Assign(RecTmV, ObsFtrVV, AssignV);
 
 	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Computing state assist, total states %d ...", StateIdHeightPrV.Len());
 
@@ -4909,7 +5010,7 @@ void TStreamStory::Init(const TFtrInfoV& _ObsFtrInfoV, const TFtrInfoV& _ContrFt
 	Callback->OnProgress(50, "Initializing hierarchy ...");
 	InitHierarch();
 	Callback->OnProgress(60, "Initializing states ...");
-	InitStateAssist(ObservFtrVV, ControlFtrVV, IgnoredFtrVV, MultiThread);
+	InitStateAssist(RecTmV, ObservFtrVV, ControlFtrVV, IgnoredFtrVV, MultiThread);
 	Callback->OnProgress(90, "Computing positions ...");
 	UiHelper->Init(*this);
 }
@@ -4932,7 +5033,7 @@ void TStreamStory::InitBatches(const TFtrInfoV& _ObsFtrInfoV, const TFtrInfoV& _
 	TIntV AssignV;	InitClust(RecTmV, ObservFtrVV, FtrVV, IgnoredFtrVV, AssignV);
 	InitMChain(FtrVV, AssignV, RecTmV, true, BatchEndV);
 	InitHierarch();
-	InitStateAssist(ObservFtrVV, ControlFtrVV, IgnoredFtrVV, MultiThread);
+	InitStateAssist(RecTmV, ObservFtrVV, ControlFtrVV, IgnoredFtrVV, MultiThread);
 	UiHelper->Init(*this);
 }
 
@@ -4950,7 +5051,7 @@ void TStreamStory::InitFtrNToIdV() {
 void TStreamStory::InitClust(const TUInt64V& TmV, const TFltVV& ObsFtrVV, const TFltVV& FtrVV,
 		const TFltVV& IgnoredFtrVV, TIntV& AssignV) {
 	StateIdentifier->Init(*this, TmV, ObsFtrVV, FtrVV, IgnoredFtrVV);
-	StateIdentifier->Assign(ObsFtrVV, AssignV);
+	StateIdentifier->Assign(TmV, ObsFtrVV, AssignV);
 }
 
 void TStreamStory::InitMChain(const TFltVV& FtrVV, const TIntV& AssignV,
@@ -4965,13 +5066,13 @@ void TStreamStory::InitHierarch() {
 void TStreamStory::InitHistograms(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV,
 		const TFltVV& IgnoredFtrVV, const TUInt64V& RecTmV, const TBoolV& BatchEndV) {
 	TFltVV FtrVV;	CreateFtrVV(ObsFtrVV, ContrFtrVV, RecTmV, BatchEndV, FtrVV);
-	TIntV AssignV;	StateIdentifier->Assign(ObsFtrVV, AssignV);
+	TIntV AssignV;	StateIdentifier->Assign(RecTmV, ObsFtrVV, AssignV);
 	StateIdentifier->InitHistograms(*this, ObsFtrVV, FtrVV, IgnoredFtrVV, AssignV);
 }
 
-void TStreamStory::InitStateAssist(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV,
+void TStreamStory::InitStateAssist(const TUInt64V& RecTmV, const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV,
 		const TFltVV& IgnFtrVV, const bool& MultiThread) {
-	StateAssist->Init(ObsFtrVV, ContrFtrVV, IgnFtrVV, *StateIdentifier, *Hierarch, Callback, MultiThread);
+	StateAssist->Init(RecTmV, ObsFtrVV, ContrFtrVV, IgnFtrVV, *StateIdentifier, *Hierarch, Callback, MultiThread);
 }
 
 void TStreamStory::OnAddRec(const uint64& RecTm, const TFltV& ObsFtrV,
@@ -4980,7 +5081,7 @@ void TStreamStory::OnAddRec(const uint64& RecTm, const TFltV& ObsFtrV,
 	TFltV FtrV;	CreateFtrV(ObsFtrV, ContrFtrV, RecTm, FtrV);
 
 	const int OldStateId = MChain->GetCurrStateId();
-	const int NewStateId = StateIdentifier->Assign(ObsFtrV);
+	const int NewStateId = StateIdentifier->Assign(RecTm, ObsFtrV);
 
 	DetectAnomalies(OldStateId, NewStateId, ObsFtrV, FtrV);
 

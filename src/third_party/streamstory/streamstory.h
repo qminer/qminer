@@ -157,6 +157,7 @@ private:
 
   	TVec<TFltV> StateContrFtrValVV;
 
+  	uint64 TmUnit;
   	double Sample;
 
   	bool Verbose;
@@ -186,18 +187,20 @@ public:
 			const TFltVV& IgnoredFtrVV, const TIntV& AssignV);
 	void InitTimeHistogramV(const TUInt64V& TmV, const TIntV& AssignV, const int& Bins);
 
+	// TODO assign not handled yet
 	// assign methods
 	// assign instances to centroids
-	int Assign(const TFltV& Inst) const;
+	int Assign(const uint64& RecTm, const TFltV& FtrV) const;
 	// assign instances to centroids, instances should be in the columns of the matrix
-	void Assign(const TFltVV& InstMat, TIntV& AssignV) const;
+	void Assign(const TUInt64V& RecTmV, const TFltVV& FtrVV, TIntV& AssignV) const;
 
 	// distance methods
 	// Returns a vector y containing the distance to all the
 	// centroids. The input vector x should be a column vector
-	void GetCentroidDistV(const TFltV& x, TFltV& DistV) const;
+	void GetCentroidDistV(const uint64& RecTm, const TFltV& FtrV, TFltV& DistV) const;
+	void GetCentroidDistVV(const TUInt64V& RecTmV, const TFltVV& FtrVV, TFltVV& DistVV) const;
 	// returns the distance from the cluster centroid to the point
-	double GetDist(const int& CentroidId, const TFltV& Pt) const;
+	double GetDist(const uint64& RecTm, const int& CentroidId, const TFltV& Pt) const;
 
 	// returns the coordinates of a "joined" centroid
 	void GetJoinedCentroid(const int& FtrSpaceN, const TIntV& StateIdV, TFltV& FtrV) const;
@@ -241,7 +244,7 @@ public:
 
 protected:
 	// used during initialization
-	void InitStatistics(const TFltVV& X);
+	void InitStatistics(const TUInt64V& RecTmV, const TFltVV& FtrVV, const TIntV& AssignV);
 
 private:
 	void InitCentroidVV(const TIntV& AssignV, const TFltVV& FtrVV, TFltVV& CentroidVV);
@@ -265,12 +268,17 @@ private:
 	void InitHists(const TStreamStory& StreamStory, const TFltVV& ObsFtrVV,
 			const TFltVV& ContrFtrVV, const TFltVV& IgnoredFtrVV);
 
+	void GenClustFtrVV(const TUInt64V& TmV, const TFltVV& ObsFtrVV, TFltVV& FtrVV) const;
+	void GenClustFtrV(const uint64& RecTm, const TFltV& FtrV, TFltV& ClustFtrV) const;
+	void GenTmFtrV(const uint64& RecTm, TFltV& FtrV) const;
+
 	static void UpdateHistVV(const TFtrInfoV& FtrInfoV, const TFltVV& FtrVV,
 			const TIntV& AssignV, const int& States, TStateFtrHistVV& StateFtrHistVV);
 	static void GetJoinedCentroid(const TIntV& StateIdV,
 			const TFltVV& CentroidVV, const TUInt64V& StateSizeV, TFltV& FtrV);
 	static void ResampleHist(const int& Bins, const TFltV& OrigBinValV, const TIntV& OrigBinV, TFltV& BinValV,
 				TFltV& BinV);
+	static int GetTmFtrDim(const uint64& TmUnit);
 };
 
 class TEuclMds {
@@ -545,51 +553,6 @@ private:
 	static void GetFutureProbVV(const TFltVV& QMat, const double& Tm,
 			const double& DeltaTm, TFltVV& ProbVV, const bool HasHiddenState=false);
 };
-
-/*/////////////////////////////////////////////////////////////////
-/// Scale helper
-/// the algorithm is based on:
-/// A Randomized Linear-Time Algorithm to Find Minimum Spanning Trees
-/// authors: Karger, Klein and Tarjan
-class TRandomizedMst {
-	typedef TIntIntFltTr TEdge;
-	typedef TPair<TIntSet, TIntIntFltTrV> TGraph;
-public:
-	static void Apply(const TGraph& Graph, TIntIntFltTrV& MstEdgeV) {
-
-	}
-
-private:
-	static void BoruvkaStep(const TIntV& NodeIdV, const TIntPrV& EdgeV) {
-		// TODO
-	}
-	static void FindMst(const TGraph& Graph, TGraph& Mst, TRnd Rnd=TRnd()) {
-		const TIntSet& NodeV = Graph.Val1;
-		const TIntIntFltTrV& EdgeV = Graph.Val2;
-
-		if (NodeV.Len() <= 2) {
-
-		} else {
-			// create a graph H by randomly sampling the edges
-			TGraph H;
-			for (int EdgeN = 0; EdgeN < EdgeV.Len(); EdgeN++) {
-				if (Rnd.GetUniDev() < .5) {
-					const TEdge& Edge = EdgeV[EdgeN];
-					H.Val1.AddKey(Edge.Val1);
-					H.Val1.AddKey(Edge.Val2);
-					H.Val2.Add(Edge);
-				}
-			}
-
-			// call the algorithm recursively, to obtain the MST on H
-			TGraph MstH;	FindMst(H, MstH, Rnd);
-
-			// remove all the F-heavy edges from MstH
-			// an edge is F-heavy if its weight w is larger than
-			// the weight of any edge in F
-		}
-	}
-};*/
 
 /////////////////////////////////////////////////////////////////
 // Scale helper
@@ -932,9 +895,9 @@ public:
 
 	void Save(TSOut& SOut) const;
 
-	void Init(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const TFltVV& IgnFtrVV,
-			const TStateIdentifier& Clust, const THierarch& Hierarch, TStreamStoryCallback* Callback,
-			const bool& MultiThread=true);
+	void Init(const TUInt64V& RecTmV, const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV,
+			const TFltVV& IgnFtrVV, const TStateIdentifier& Clust, const THierarch& Hierarch,
+			TStreamStoryCallback* Callback, const bool& MultiThread=true);
 	void InitFtrBounds(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const TFltVV& IgnoredFtrVV);
 
 	const TFltPr& GetFtrBounds(const int& FtrId) const;
@@ -1075,8 +1038,8 @@ public:
 	void InitHierarch();
 	void InitHistograms(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const TFltVV& IgnoredFtrVV,
 			const TUInt64V& RecTmV, const TBoolV& BatchEndV);
-	void InitStateAssist(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV,
-			const TFltVV& IgnFtrVV, const bool& MultiThread);
+	void InitStateAssist(const TUInt64V& RecTmV, const TFltVV& ObsFtrVV,
+			const TFltVV& ContrFtrVV, const TFltVV& IgnFtrVV, const bool& MultiThread);
 
 	void OnAddRec(const uint64& RecTm, const TFltV& ObsFtrV, const TFltV& ContrFtrV);
 
