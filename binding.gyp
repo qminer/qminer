@@ -142,6 +142,9 @@
                 # statistics
                 'src/nodejs/statistics/stat_nodejs.h',
                 'src/nodejs/statistics/stat_nodejs.cpp',
+                # StreamStory
+                'src/third_party/streamstory/streamstory_node.h',
+                'src/third_party/streamstory/streamstory_node.cpp',
                 # addon utilities
                 'src/nodejs/nodeutil.h',
                 'src/nodejs/nodeutil.cpp',
@@ -157,11 +160,15 @@
                 'src/nodejs/snap',
                 'src/nodejs/ht',
                 'src/nodejs/statistics',
+                # StreamStory
+                'src/third_party/streamstory/',
+                'src/third_party/streamstory/',
                 'src/nodejs/',
                 'src/qminer/',
                 'src/glib/base/',
                 'src/glib/mine/',
                 'src/glib/misc/',
+                'src/glib/concurrent/',
                 'src/third_party/sole/',
                 'src/third_party/Snap/snap-core',
                 'src/third_party/Snap/snap-adv',
@@ -188,7 +195,10 @@
                 'src/qminer/qminer_ftr.h',
                 'src/qminer/qminer_ftr.cpp',
                 'src/qminer/qminer_aggr.h',
-                'src/qminer/qminer_aggr.cpp'
+                'src/qminer/qminer_aggr.cpp',
+                # StreamStory
+                'src/third_party/streamstory/streamstory.h',
+                'src/third_party/streamstory/streamstory.cpp'
             ],
             'include_dirs': [
                 'src/qminer',
@@ -227,6 +237,8 @@
                 'src/glib/base/base.cpp',
                 'src/glib/mine/mine.h',
                 'src/glib/mine/mine.cpp',
+                'src/glib/concurrent/thread.h',
+                'src/glib/concurrent/thread.cpp',
                 'src/third_party/sole/sole.cpp',
                 'src/third_party/libsvm/svm.h',
                 'src/third_party/libsvm/svm.cpp'
@@ -235,6 +247,7 @@
                 'src/glib/base/',
                 'src/glib/mine/',
                 'src/glib/misc/',
+                'src/glib/concurrent/',
                 'src/third_party/sole/',
                 'src/third_party/libsvm/',
                 '<(LIN_ALG_INCLUDE)',

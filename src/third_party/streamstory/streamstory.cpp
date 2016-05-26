@@ -6,6 +6,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+#include "streamstory.h"
+
 using namespace TMc;
 
 ///////////////////////////////////////////////
@@ -59,7 +61,15 @@ int TFtrInfo::GetCategoricalFtrVal(const TFltV& FtrV) const {
 			return FtrN - Offset;
 		}
 	}
-	throw TExcept::New("Could not find the value of a nominal feature!");
+
+	TFltV SingleFtrV;
+	for (int FtrN = Offset; FtrN < Offset + Length; FtrN++) {
+		SingleFtrV.Add(FtrV[FtrN]);
+	}
+
+	printf("Feature:\n%s\n", TStrUtil::GetStr(SingleFtrV, ", ", "%.2f").CStr());
+
+	throw TExcept::New("Could not find the value of a categorical feature!");
 }
 
 double TFtrInfo::GetNumericFtrVal(const TFltV& FtrV) const {
@@ -875,13 +885,6 @@ void TStateIdentifier::ResampleHist(const int& Bins, const TFltV& OrigBinValV,
 
 		BinValV[BinN] /= OrigBinsPerBin;
 	}
-
-	//===============================================================
-	// TODO remove this assertion when you know it works!
-	const TFlt OrigCount = (TFlt) TLinAlg::SumVec(BinV);
-	const TFlt NewCount = TLinAlg::SumVec(BinV);
-	EAssert(TFlt::Abs(OrigCount - NewCount) < 1e-2);
-	//===============================================================
 }
 
 /////////////////////////////////////////////
@@ -2788,10 +2791,6 @@ double THierarch::GetNextLevel(const TIntV& CurrLevelIdV, TIntV& NextLevelIdV) c
 		}
 	}
 
-	// TODO remove
-	printf("Curr level: %s\n", TStrUtil::GetStr(CurrLevelIdV).CStr());
-	printf("Next level: %s\n", TStrUtil::GetStr(NextLevelIdV).CStr());
-
 	return NextHeight;
 }
 
@@ -3016,6 +3015,10 @@ bool THierarch::IsTarget(const int& StateId) const {
 	EAssert(IsStateId(StateId));
 	double StateHeight = GetStateHeight(StateId);
 	return TargetIdHeightSet.IsKey(TIntFltPr(StateId, StateHeight));
+}
+
+bool THierarch::HasTargetStates() const {
+	return !TargetIdHeightSet.Empty();
 }
 
 void THierarch::SetTarget(const int& StateId) {
@@ -3350,7 +3353,7 @@ void TUiHelper::TAutoNmDesc::Save(TSOut& SOut) const {
 }
 
 TUiHelper::TNumAutoNmDesc::TNumAutoNmDesc(const int& FtrN, const double& PVal,
-		const TNumAutoNmLevel& _Level):
+			const TNumAutoNmLevel& _Level):
 		TAutoNmDesc(FtrN, PVal),
 		Level(_Level) {}
 
@@ -3414,7 +3417,7 @@ TStr TUiHelper::TNumAutoNmDesc::GetAutoNmLowHighDesc() const {
 	} else if (Level == TNumAutoNmLevel::nanlMeduim) {
 		return "mean";
 	} else {
-		throw TExcept::New("Unknown level: " + TUCh(Level));
+		throw TExcept::New("Unknown level: " + TStr(Level));
 	}
 }
 
@@ -3881,18 +3884,14 @@ void TUiHelper::InitAutoNmV(const TStreamStory& StreamStory) {
 				const double LowPercPVal = AllPValV[LowPercN];
 				const double HighPercPVal = 1 - AllPValV[HighPercN];
 
-				double PVal = TMath::Mn(LowPercPVal, HighPercPVal);
+				PVal = TMath::Mn(LowPercPVal, HighPercPVal);
 
 				const TNumAutoNmLevel Level = TNumAutoNmDesc::GetAutoNmLevel(PVal, LowPercPVal, HighPercPVal);
-				StateAutoNmDescV.Add(new TNumAutoNmDesc(PVal, FtrN, Level));
+				StateAutoNmDescV.Add(new TNumAutoNmDesc(FtrN, PVal, Level));
 				break;
 			}
 			case ftCategorical: {
 				const TFltV& AllBinCountV = FtrAllBinV[FtrN];
-
-				// TODO remove
-				printf("global histogram:\n%s\n", TStrUtil::GetStr(AllBinCountV, ", ", "%.3f").CStr());
-				printf("state histogram:\n%s\n", TStrUtil::GetStr(StateBinCountV, ", ", "%.3f").CStr());
 
 				// find the bin with most of the mass
 				int TargetBinN = -1;
@@ -3927,8 +3926,6 @@ void TUiHelper::InitAutoNmV(const TStreamStory& StreamStory) {
 
 				PVal = double(SuccTrials) / NTrials;
 
-				printf("p-value: %.4f\n", PVal);
-
 				// add to the structure and update the best p-value
 				StateAutoNmDescV.Add(new TCatAutoNmDesc(FtrN, PVal, TargetBinN));
 				break;
@@ -3959,8 +3956,6 @@ void TUiHelper::InitStateExplain(const TStreamStory& StreamStory) {
 
 	TIntFltPrV StateIdHeightPrV;	Hierarch.GetStateIdHeightPrV(StateIdHeightPrV);
 	StateIdOccTmDescV.Gen(Hierarch.GetStates());
-
-//	printf("Hierarchy:\n%s\n", TStrUtil::GetStr(StateIdV).CStr());
 
 	const uint64 TmUnit = MChain.GetTimeUnit();
 
@@ -4027,9 +4022,6 @@ bool TUiHelper::HasMxPeaks(const int& MxPeakCount, const double& PeakMassThresho
 	const int NBins = PdfHist.Len();
 	const double TotalMass = TLinAlg::SumVec(PdfHist);
 	const double MeanBinMass = TotalMass / NBins;
-
-	// TODO remove
-	printf("PDF:\n%s\n", TStrUtil::GetStr(PdfHist, ",", "%.5f").CStr());
 
 	EAssert(NBins > 0);
 	PeakBorderV.Clr();
@@ -4130,7 +4122,7 @@ void TUiHelper::GetTimeDescStr(const TTmDesc& Desc, TStrPr& StrDesc) {
 		break;
 	}
 	default: {
-		throw TExcept::New("Unknows time histogram type: " + TUCh(HistTmScale));
+		throw TExcept::New("Unknown time histogram type: " + TStr(HistTmScale));
 	}
 	}
 }
@@ -4597,6 +4589,10 @@ void TActivityDetector::GetActivities(TStrV& ActNmV, TIntV& NumStepsV) const {
 		ActNmV.Add(ActivityH.GetKey(KeyId));
 		NumStepsV.Add(Activity.GetNumSteps());
 	}
+}
+
+bool TActivityDetector::IsEmpty() const {
+	return ActivityH.Empty();
 }
 
 void TActivityDetector::SetCallback(TStreamStoryCallback* _Callback) {
@@ -5496,6 +5492,14 @@ const TFtrInfo& TStreamStory::GetFtrInfo(const int& FtrId) const {
 	else {
 		return IgnFtrInfoV[FtrId - GetObsDim() - GetContrDim()];
 	}
+}
+
+bool TStreamStory::IsDetectingActivities() const {
+	return !ActivityDetector->IsEmpty();
+}
+
+bool TStreamStory::IsPredictingStates() const {
+	return Hierarch->HasTargetStates();
 }
 
 PJsonVal TStreamStory::GetLevelJson(const double& Height, const TStateIdV& StateIdV, const TFltVV& TransitionVV,

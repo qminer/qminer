@@ -6,6 +6,12 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+#ifndef STREAMSTORY_H_
+#define STREAMSTORY_H_
+
+#include "base.h"
+#include "mine.h"
+
 namespace TMc {
 
 using namespace TClassification;
@@ -111,7 +117,7 @@ public:
 			TRnd& Rnd);
 
 private:
-	double GetBinSize() const { return BinValV[1] - BinValV[0]; }
+	double GetBinSize() const { return BinValV.Len() >= 2 ? BinValV[1] - BinValV[0] : 0; }
 };
 
 //////////////////////////////////////////////////
@@ -700,6 +706,7 @@ public:
 
 	// set/remove target states
 	bool IsTarget(const int& StateId) const;
+	bool HasTargetStates() const;
 	void SetTarget(const int& StateId);
 	void RemoveTarget(const int& StateId);
 
@@ -755,7 +762,7 @@ private:
 // UI helper
 class TUiHelper {
 public:
-	enum TNumAutoNmLevel: uchar {
+	enum TNumAutoNmLevel: uchar {	// TODO change to 0x8
 		nanlLowest = 0xF0,
 		nanlLow = 0xF1,
 		nanlMeduim = 0xF2,
@@ -998,6 +1005,8 @@ public:
 	void RemoveActivity(const TStr& ActNm);
 	void GetActivities(TStrV& ActNmV, TIntV& NumStepsV) const;
 
+	bool IsEmpty() const;
+
 	void SetCallback(TStreamStoryCallback* Callback);
 	void SetVerbose(const bool& Verbose);
 };
@@ -1190,6 +1199,9 @@ public:
     const THierarch& GetHierarch() const { EAssert(Hierarch != nullptr); return *Hierarch; }
     const TCtmcModeller& GetTransitionModeler() const { EAssert(MChain != nullptr); return *MChain; }
 
+    bool IsDetectingActivities() const;
+    bool IsPredictingStates() const;
+
 private:
     PJsonVal GetLevelJson(const double& Height, const TStateIdV& StateIdV, const TFltVV& TransitionVV,
     		const TFltV& HoldingTimeV, const TFltV& ProbV, const TFltV& RadiusV) const;
@@ -1221,3 +1233,5 @@ private:
 };
 
 }
+
+#endif

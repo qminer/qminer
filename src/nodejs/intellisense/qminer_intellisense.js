@@ -2835,7 +2835,7 @@ exports.statistics= require('qminer_stat');
 /**
 	* Performs the inverse operation of ftrVec. Works only for numeric feature extractors.
 	* @param {(module:la.Vector | Array.<Object>)} ftr - The feature vector or an array with feature values.
-	* @returns {module:la.Vector} The inverse of ftr as vector.
+	* @returns {Array} The inverse of ftr as an Array.
 	* @example
 	* // import qm module
 	* var qm = require('qminer');

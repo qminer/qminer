@@ -17,6 +17,7 @@
 #include <node_buffer.h>
 #include <uv.h>
 #include "base.h"
+#include "thread.h"
 
 #define JsDeclareProperty(Function) \
     static void Function(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info); \
@@ -521,29 +522,28 @@ protected:
 	bool HasExcept() const { return !Except.Empty(); }
 };
 
+typedef uv_async_t TMainThreadHandle;
+typedef uv_work_t TWorkerThreadHandle;
 
 //////////////////////////////////////////////////////
 // Node - Asynchronous Utilities
 class TNodeJsAsyncUtil {
 private:
-	struct TMainData {
+
+	struct TMainTaskWrapper {
 		TMainThreadTask* Task;
 		bool DelTask;
 
-		TMainData(TMainThreadTask* Task, const bool& DelTask);
-		~TMainData() { if (DelTask) { delete Task; } }
+		TMainTaskWrapper(TMainThreadTask* Task, const bool& DelTask);
+		virtual ~TMainTaskWrapper() { if (DelTask) { delete Task; } }
 	};
 
-	struct TMainSemaphoreData {
-		TMainThreadTask* Task;
-		bool DelTask;
+
+	struct TMainBlockTaskWrapper: public TMainTaskWrapper {
 		uv_sem_t Semaphore;
 
-		TMainSemaphoreData(TMainThreadTask* _Task, const bool& _DelTask):
-			Task(_Task),
-			DelTask(_DelTask),
-			Semaphore() {}
-		~TMainSemaphoreData() { if (DelTask) { delete Task; } }
+		TMainBlockTaskWrapper(TMainThreadTask* Task, const bool& DelTask);
+		~TMainBlockTaskWrapper() {}
 	};
 
 	struct TWorkerData {
@@ -553,22 +553,62 @@ private:
 		~TWorkerData() { delete Task; }
 	};
 
-	template <typename THandle> static void DelHandle(uv_handle_t* Handle);
+	enum TAsyncHandleType {
+		ahtBlocking,
+		ahtAsync
+	};
 
-	static void OnMain(uv_async_t* UvAsync);
-	static void OnMainBlock(uv_async_t* UvAsync);
+	struct TAsyncHandleConfig {
+		TAsyncHandleType HandleType;
+		TMainTaskWrapper* TaskWrapper;
 
-	static void OnWorker(uv_work_t* UvReq);
-	static void AfterOnWorker(uv_work_t* UvReq, int Status);
+		TAsyncHandleConfig(const TAsyncHandleType& _HandleType):
+			HandleType(_HandleType),
+			TaskWrapper(nullptr) {}
+	};
+
+	static TCriticalSection UvSection;
+
+	static TAsyncHandleType GetHandleType(const TMainThreadHandle* UvAsync);
+
+	static void SetAsyncData(TMainThreadHandle* UvAsync, TMainTaskWrapper* Data);
+	static TMainTaskWrapper* ExtractAndClearData(TMainThreadHandle* UvAsync);
+
+	template <typename THandle> static void InternalDelHandle(uv_handle_t* Handle);
+
+	static void OnMain(TMainThreadHandle* UvAsync);
+	static void OnMainBlock(TMainThreadHandle* UvAsync);
+
+	static void OnWorker(TWorkerThreadHandle* UvReq);
+	static void AfterOnWorker(TWorkerThreadHandle* UvReq, int Status);
 
 public:
-	static void ExecuteOnMain(TMainThreadTask* Task, const bool& DelData=true);
-	static void ExecuteOnMainAndWait(TMainThreadTask* Task, const bool& DelData=true);
+	/// Creates a new UV async handle which is used to execute code from
+	/// a worker thread on the main thread. The worker thread will wait
+	/// for the task on the main thread to finish before continuing execution.
+	/// This mehtod should only be called from the main thread!
+	static TMainThreadHandle* NewBlockingHandle();
+	/// Creates a new UV async handle which is used to execute code from a
+	/// worker thread on the main thread.
+	/// This mehtod should only be called from the main thread!
+	static TMainThreadHandle* NewHandle();
+	/// Closes a UV async handle and releases the memory.
+	/// This mehtod should only be called from the main thread!
+	static void DelHandle(TMainThreadHandle* UvAsync);
+
+	/// executes the task on the main thread
+	/// Note: when using a non-blocking handle, not every call to this
+	/// method will yield an execution. For example, when ExecuteOnMain is
+	/// called 5 times before a task is executed, the task will be executed only once
+	/// all the other tasks will be deleted (freed)
+	static void ExecuteOnMain(TMainThreadTask* Task, TMainThreadHandle* UvAsync,
+			const bool& DelData);
+	/// executes the task on a worker thread
 	static void ExecuteOnWorker(TAsyncTask* Task);
 };
 
 template <typename THandle>
-void TNodeJsAsyncUtil::DelHandle(uv_handle_t* Handle) {
+void TNodeJsAsyncUtil::InternalDelHandle(uv_handle_t* Handle) {
 	THandle* Async = (THandle*) Handle;
 	delete Async;
 }

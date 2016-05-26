@@ -32,7 +32,8 @@ bool TNumeric::Update(const double& Val) {
 	if (Type == ntNormalize) {
         MnVal = TFlt::GetMn(MnVal, Val); 
         MxVal = TFlt::GetMx(MxVal, Val);         
-	} else if (Type == ntNormalizeVar) {
+	}
+	else if (Type == ntNormalizeVar) {
 		Var.Update(Val);
 	}
     return false;
