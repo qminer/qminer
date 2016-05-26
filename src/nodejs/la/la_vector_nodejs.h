@@ -950,7 +950,7 @@ inline void TNodeJsVec<TFlt, TAuxFltV>::diag(const v8::FunctionCallbackInfo<v8::
 
 	TFltVV Result;
 	// computation
-	TLAMisc::Diag(JsVec->Vec, Result);
+	TLinAlgTransform::Diag(JsVec->Vec, Result);
 
 	Args.GetReturnValue().Set(TNodeJsFltVV::New(Result));
 }
@@ -965,7 +965,7 @@ inline void TNodeJsVec<TFlt, TAuxFltV>::spDiag(const v8::FunctionCallbackInfo<v8
 
 	TVec<TIntFltKdV> Result;
 	// computation
-	TLAMisc::Diag(JsVec->Vec, Result);
+	TLinAlgTransform::Diag(JsVec->Vec, Result);
 
 	Args.GetReturnValue().Set(
 		TNodeJsUtil::NewInstance<TNodeJsSpMat>(new TNodeJsSpMat(Result, JsVec->Vec.Len())));
@@ -992,7 +992,7 @@ inline void TNodeJsVec<TFlt, TAuxFltV>::sparse(const v8::FunctionCallbackInfo<v8
 	
 	int Dim = TNodeJsUtil::GetArgInt32(Args, 0, JsVec->Vec.Len());
     TIntFltKdV Res;
-	TLAMisc::ToSpVec(JsVec->Vec, Res);
+    TLinAlgTransform::ToSpVec(JsVec->Vec, Res);
 
 	Args.GetReturnValue().Set(
 		TNodeJsUtil::NewInstance<TNodeJsSpVec>(new TNodeJsSpVec(Res, Dim)));

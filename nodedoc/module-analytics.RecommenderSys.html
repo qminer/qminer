@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3">
   <meta charset="utf-8">
-  <title>Class: MDS</title>
+  <title>Class: RecommenderSys</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -24,10 +24,10 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">MDS</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1476">analyticsdoc.<wbr>js:1476</a></p>
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">RecommenderSys</span></h1>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1738">analyticsdoc.<wbr>js:1738</a></p>
             <div class="symbol-classdesc">
-              <p>Multidimensional scaling</p>
+              <p>Recommender System</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -38,40 +38,50 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.MDS.html#fitTransform">fitTransform(mat[, callback])</a></dt>
+                    <dt><a href="module-analytics.RecommenderSys.html#fit">fit(A)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.MDS.html#getParams">getParams()</a></dt>
+                    <dt><a href="module-analytics.RecommenderSys.html#getModel">getModel()</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.MDS.html#save">save(fout)</a></dt>
+                    <dt><a href="module-analytics.RecommenderSys.html#getParams">getParams()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.MDS.html#setParams">setParams(params)</a></dt>
+                    <dt><a href="module-analytics.RecommenderSys.html#save">save(Out)</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.RecommenderSys.html#setParams">setParams(params)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
                 </div>
               </div>
             </div>
           </section>
           <section>
-            <h2 id="MDS">new&nbsp;<span class="symbol-name">MDS</span><span class="signature"><span class="signature-params">([params])</span></span></h2>
+            <h2 id="RecommenderSys">new&nbsp;<span class="symbol-name">RecommenderSys</span><span class="signature"><span class="signature-params">([params])</span></span></h2>
             <section>
               <h3>
             Example
         </h3>
               <div>
-                <pre class="prettyprint"><code>// import analytics module
+                <pre class="prettyprint"><code>// import analytics and la modules
 var analytics = require(&#x27;qminer&#x27;).analytics;
-// construct a MDS instance
-var mds = new analytics.MDS({ maxStep: 300, distType: &#x27;Cos&#x27; });</code></pre>
+var la = require(&#x27;qminer&#x27;).la;
+// create a Recommender System object
+var recSys = new analytics.RecommenderSys({ tol: 1e-3, iter: 10000, k: 2, verbose: false });
+// create the matrix to be fitted
+var X = new la.Matrix([[1, 2, 1], [1, 1, 3]]);
+// create the model
+recSys.fit(X);</code></pre>
               </div>
             </section>
             <section>
@@ -91,7 +101,7 @@ var mds = new analytics.MDS({ maxStep: 300, distType: &#x27;Cos&#x27; });</code>
                       <p>params</p>
                     </td>
                     <td>
-                      <p>(<a href="module-analytics.html#~MDSParam">module:analytics~MDSParam</a> or <a href="module-fs.FIn.html">module:fs.FIn</a>)</p>
+                      <p>(<a href="module-analytics.html#~RecSysParams">module:analytics~RecSysParams</a> or <a href="module-fs.FIn.html">module:fs.FIn</a>)</p>
                     </td>
                     <td>
                       <p>Yes</p>
@@ -109,133 +119,38 @@ var mds = new analytics.MDS({ maxStep: 300, distType: &#x27;Cos&#x27; });</code>
           <section>
             <h2>Methods</h2>
             <section>
-              <h3 id="fitTransform"><span class="symbol-name">fitTransform</span><span class="signature"><span class="signature-params">(mat[, callback])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
-              <p>Get the MDS of the given matrix.</p>
+              <h3 id="fit"><span class="symbol-name">fit</span><span class="signature"><span class="signature-params">(A)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.RecommenderSys.html">module:analytics.RecommenderSys</a></span></span></h3>
+              <p>Fits the input matrix to the recommender model.</p>
               <section>
                 <h4>
             Examples
         </h4>
                 <div>
-                  <p>Asynchronous function</p>
-                  <pre class="prettyprint"><code>// import the modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
-// create a MDS instance
-var mds = new analytics.MDS();
-// create the multidimensional matrix
-var mat = new la.Matrix({ rows: 50, cols: 10, random: true });
-// get the 2d representation of mat 
-mds.fitTransformAsync(mat, function (err, res) {
-   if (err) { console.log(err); return }
-   // successful calculation
-   var mat2d = res;
-}); </code></pre>
-                </div>
-                <div>
-                  <p>Synchronous function</p>
-                  <pre class="prettyprint"><code>// import the modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
-// create a MDS instance
-var mds = new analytics.MDS();
-// create the multidimensional matrix
-var mat = new la.Matrix({ rows: 50, cols: 10, random: true });
-// get the 2d representation of mat 
-var mat2d = mds.fitTransform(mat); </code></pre>
-                </div>
-              </section>
-              <section>
-                <h4>Parameters</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>mat</p>
-                      </td>
-                      <td>
-                        <p>(<a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>The multidimensional matrix.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>callback</p>
-                      </td>
-                      <td>
-                        <p>function()</p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>The callback function receiving the error parameter (err) and the result parameter (result).
-                          <i>Only for the asynchronous function.</i></p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>&nbsp;The matrix of dimensions mat.cols x 2, where the i-th row of the matrix is the 2d representation of the i-th column of mat.</p>
-                </dd>
-              </dl>
-              <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.html#~MDSParam">module:analytics~MDSParam</a></span></span></h3>
-              <p>Get the parameters.</p>
-              <section>
-                <h4>
-            Example
-        </h4>
-                <div>
-                  <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
-// create a MDS instance
-var mds = new analytics.MDS();
-// get the (default) parameters of the instance
-// returns { maxStep: 5000, maxSecs: 300, minDiff: 1e-4, distType: &quot;Euclid&quot; }
-var params = mds.getParams();</code></pre>
-                </div>
-              </section>
-              <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code><a href="module-analytics.html#~MDSParam">module:analytics~MDSParam</a></code>&nbsp;The json object containing the parameters of the instance.</p>
-                </dd>
-              </dl>
-              <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
-              <p>Save the MDS.</p>
-              <section>
-                <h4>
-            Example
-        </h4>
-                <div>
+                  <p> Asynhronous function </p>
                   <pre class="prettyprint"><code>// import modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var fs = require(&#x27;qminer&#x27;).fs;
-// create a MDS instance
-var mds = new analytics.MDS({ iter: 200, MaxStep: 10 });
-// create the file output stream
-var fout = new fs.openWrite(&#x27;MDS.bin&#x27;);
-// save the MDS instance
-mds.save(fout);
-fout.close();
-// load the MDS instance
-var fin = fs.openRead(&#x27;MDS.bin&#x27;);
-var mds2 = new analytics.MDS(fin);</code></pre>
+//var analytics = require(&#x27;qminer&#x27;).analytics;
+//var la = require(&#x27;qminer&#x27;).la;
+// create a new Recommender System object
+//var recSys = new analytics.RecommenderSys({ iter: 1000, k: 3 });
+// create a matrix to be fitted
+//var X = new la.Matrix([[1, 5, 0], [1, 0, 3]]);
+// create the model with the matrix X
+//recSys.fitAsync(X, function (err) {
+//   if (err) { console.log(err); }
+//   // successful calculation
+//});</code></pre>
+                </div>
+                <div>
+                  <p> Synhronous function </p>
+                  <pre class="prettyprint"><code>// import modules
+//var analytics = require(&#x27;qminer&#x27;).analytics;
+//var la = require(&#x27;qminer&#x27;).la;
+// create a new Recommender System object
+//var recSys = new analytics.RecommenderSys({ iter: 1000, k: 3 });
+// create a matrix to be fitted
+//var X = new la.Matrix([[1, 5, 0], [1, 0, 3]]);
+// create the model with the matrix X
+//recSys.fit(X);</code></pre>
                 </div>
               </section>
               <section>
@@ -252,7 +167,92 @@ var mds2 = new analytics.MDS(fin);</code></pre>
                   <tbody>
                     <tr>
                       <td>
-                        <p>fout</p>
+                        <p>A</p>
+                      </td>
+                      <td>
+                        <p>(<a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Matrix with the ratings, where it A_ij element is the rating that the i-th person gave to the j-th item. If A_ij = 0, the data doesn't exist.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-analytics.RecommenderSys.html">module:analytics.RecommenderSys</a></code>&nbsp;Self.</p>
+                </dd>
+              </dl>
+              <h3 id="getModel"><span class="symbol-name">getModel</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
+              <p>Gets the model.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import modules
+//var analytics = require(&#x27;qminer&#x27;).analytics;
+//var la = require(&#x27;qminer&#x27;).la;
+// create a new Recommender System object
+//var recSys = new analytics.RecommenderSys({ iter: 1000, k: 3 });
+// create a matrix to be fitted
+//var X = new la.Matrix([[1, 5, 0], [1, 0, 3]]);
+// create the model with the matrix X
+//recSys.fit(X);
+// get the model
+//var model = recSys.getModel();</code></pre>
+                </div>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Object</code>&nbsp;An object <b>json</b> containing the matrices json.U and json.V, for which the product gives the approximation of the fitted matrix.
+                  </p>
+                </dd>
+              </dl>
+              <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.html#~RecSysParams">module:analytics~RecSysParams</a></span></span></h3>
+              <p>Returns the parameters.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import analytics module
+var analytics = require(&#x27;qminer&#x27;).analytics;
+// create a new KMeans object
+var recSys = new analytics.RecommenderSys({ iter: 1000, k: 5 });
+// get the parameters
+var json = recSys.getParams();</code></pre>
+                </div>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-analytics.html#~RecSysParams">module:analytics~RecSysParams</a></code>&nbsp;The construction parameters.</p>
+                </dd>
+              </dl>
+              <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(Out)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
+              <p>Saves RecommenderSys internal state into (binary) file.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>Out</p>
                       </td>
                       <td>
                         <p><a href="module-fs.FOut.html">module:fs.FOut</a></p>
@@ -270,11 +270,11 @@ var mds2 = new analytics.MDS(fin);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;The output stram fout.</p>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;The output stream fout.</p>
                 </dd>
               </dl>
-              <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(params)</span></span></h3>
-              <p>Set the parameters.</p>
+              <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(params)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.RecommenderSys.html">module:analytics.RecommenderSys</a></span></span></h3>
+              <p>Sets the parameters.</p>
               <section>
                 <h4>
             Example
@@ -282,11 +282,10 @@ var mds2 = new analytics.MDS(fin);</code></pre>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
 var analytics = require(&#x27;qminer&#x27;).analytics;
-// create a MDS instance
-var mds = new analytics.MDS();
-// get the (default) parameters of the instance
-// returns { maxStep: 5000, maxSecs: 300, minDiff: 1e-4, distType: &quot;Euclid&quot; }
-var params = mds.getParams();</code></pre>
+// create a new Recommender System object
+var recSys = new analytics.RecommenderSys();
+// change the parameters of the Recommender System object
+recSys.setParams({ iter: 1000, k: 5 });</code></pre>
                 </div>
               </section>
               <section>
@@ -306,19 +305,23 @@ var params = mds.getParams();</code></pre>
                         <p>params</p>
                       </td>
                       <td>
-                        <p><a href="module-analytics.html#~MDSParam">module:analytics~MDSParam</a></p>
+                        <p><a href="module-analytics.html#~RecSysParams">module:analytics~RecSysParams</a></p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>The json object containing the parameters for the instance.</p>
+                        <p>The construction parameters.</p>
                       </td>
                     </tr>
                   </tbody>
                 </table>
               </section>
               <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-analytics.RecommenderSys.html">module:analytics.RecommenderSys</a></code>&nbsp;Self.</p>
+                </dd>
               </dl>
             </section>
           </section>

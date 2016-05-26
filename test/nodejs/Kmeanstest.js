@@ -18,7 +18,7 @@ describe("Kmeans test", function () {
         it("should return empty parameter values", function () {
             var KMeans = new analytics.KMeans();
             var params = KMeans.getParams();
-            assert.equal(Object.keys(params).length, 5);
+            assert.equal(Object.keys(params).length, 6);
         });
         it("should return parameter values", function () {
             var KMeans = new analytics.KMeans({ iter: 100, k: 2, verbose: false });
