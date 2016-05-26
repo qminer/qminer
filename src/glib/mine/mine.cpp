@@ -52,9 +52,6 @@
 // clustering
 #include "clustering.cpp"
 
-// Markov chains
-#include "mc.cpp"
-
 // Anomaly Detection
 #include "anomaly.cpp"
 
@@ -75,3 +72,6 @@
 
 // hoeffding trees 
 #include "hoeffding.cpp"
+
+// non-negative matrix factorization
+#include "nmf.cpp"

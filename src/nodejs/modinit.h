@@ -19,5 +19,6 @@
 #include "stat_nodejs.h"
 #include "snap_nodejs.h"
 #include "qm_nodejs.h"
+#include "streamstory_node.h"
 
 #endif

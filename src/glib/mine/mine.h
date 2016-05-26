@@ -58,9 +58,6 @@
 #include "hac.h"
 #include "clustering.h"
 
-// Markov Chains
-#include "mc.h"
-
 // Anomaly Detection
 #include "anomaly.h"
 
@@ -81,5 +78,8 @@
 
 // hoeffding trees 
 #include "hoeffding.h"
+
+// non-negative matrix factorization
+#include "nmf.h"
 
 #endif

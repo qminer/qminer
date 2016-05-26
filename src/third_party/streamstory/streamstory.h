@@ -6,6 +6,12 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+#ifndef STREAMSTORY_H_
+#define STREAMSTORY_H_
+
+#include "base.h"
+#include "mine.h"
+
 namespace TMc {
 
 using namespace TClassification;
@@ -18,6 +24,8 @@ namespace {
 	typedef TVec<TAggState> TAggStateV;
 	typedef TVec<TFltV> TStateFtrVV;
 }
+
+class TStreamStory;
 
 // helper classes
 class TStreamStoryCallback {
@@ -33,6 +41,48 @@ public:
 			const TFltV& TmV) = 0;
 	virtual void OnActivityDetected(const uint64& StartTm, const uint64& EndTm, const TStr& ActNm) = 0;
 };
+
+//================================================================
+// TODO move this somewhere
+enum TFtrType {
+	ftUndefined,
+	ftNumeric,
+	ftCategorical
+};
+
+///////////////////////////////////////////////
+/// Feature information - stores the type and position of a feature
+class TFtrInfo {
+private:
+	TFtrType Type;
+	int Offset;
+	int Length;
+
+public:
+	TFtrInfo();
+	TFtrInfo(const TFtrType& Type, const int& Offset, const int& Length);
+	TFtrInfo(TSIn& SIn);
+
+	void Save(TSOut& SOut) const;
+
+	TFtrInfo& operator =(const TFtrInfo& Info);
+
+	const TFtrType& GetType() const { return Type; }
+	TStr GetTypeStr() const;
+	const int& GetOffset() const { return Offset; }
+	const int& GetLength() const { return Length; }
+	int GetRange() const { return IsNumeric() ? TInt::Mx : Length-1; }
+
+	bool IsNumeric() const { return GetType() == ftNumeric; }
+	bool IsCategorical() const { return GetType() == ftCategorical; }
+
+	int GetCategoricalFtrVal(const TFltV& FtrV) const;
+	double GetNumericFtrVal(const TFltV& FtrV) const;
+	double GetFtrVal(const TFltV& FtrV) const;
+};
+
+typedef TVec<TFtrInfo> TFtrInfoV;
+//================================================================
 
 //////////////////////////////////////////////////
 // Histogram class
@@ -51,7 +101,6 @@ public:
 	void Save(TSOut& SOut) const;
 
 	void Update(const double& FtrVal);
-	double GetMean() const;
 
 	const TFltV& GetBinValV() const { return BinValV; }
 	const TIntV& GetCountV() const { return CountV; }
@@ -62,8 +111,13 @@ public:
 
 	bool Empty() const { return TotalCount == 0; }
 
+	/// generate n samples from a discrete probability distribution with histogram
+	/// defined in BinCountV
+	static void GenSamples(const TFltV& CountV, const int& NTrials, TFltV& SimBinV,
+			TRnd& Rnd);
+
 private:
-	double GetBinSize() const { return BinValV[1] - BinValV[0]; }
+	double GetBinSize() const { return BinValV.Len() >= 2 ? BinValV[1] - BinValV[0] : 0; }
 };
 
 //////////////////////////////////////////////////
@@ -125,9 +179,10 @@ public:
 	void Save(TSOut& SOut) const;
 
 	// performs the clustering
-	void Init(const TUInt64V& TmV, TFltVV& ObsFtrVV, const TFltVV& ControlFtrVV, const TFltVV& IgnoredFtrVV);
+	void Init(const TStreamStory& StreamStory, const TUInt64V& TmV, const TFltVV& ObsFtrVV,
+			const TFltVV& ControlFtrVV, const TFltVV& IgnoredFtrVV);
 	// initializes histograms for every feature
-	void InitHistograms(const TFltVV& ObsMat, const TFltVV& ControlFtrVV,
+	void InitHistograms(const TStreamStory& StreamStory, const TFltVV& ObsMat, const TFltVV& ControlFtrVV,
 			const TFltVV& IgnoredFtrVV, const TIntV& AssignV);
 	void InitTimeHistogramV(const TUInt64V& TmV, const TIntV& AssignV, const int& Bins);
 
@@ -155,8 +210,8 @@ public:
 	// returns the number of points in the cluster
 	uint64 GetStateSize(const int& ClustId) const;
 
-	void GetHistogram(const int& FtrId, const TAggState& AggState, TFltV& BinValV, TFltV& BinV,
-			const bool& NormalizeP=true) const;
+	void GetHistogram(const TStreamStory& StreamStory, const int& FtrId,
+			const TAggState& AggState, TFltV& BinValV, TFltV& BinV, const bool& NormalizeP=true) const;
 	void GetGlobalTimeHistogram(const TAggState& AggState, TUInt64V& TmV, TFltV& BinV,
 			const int NBins = -1, const bool& NormalizeP=true) const;
 	void GetTimeHistogram(const TAggState& AggState, const TTmHistType& HistType, TIntV& BinValV,
@@ -164,21 +219,22 @@ public:
 
 	int GetStates() const { return KMeans->GetClusts(); }
 
-	int GetDim() const { return KMeans->GetDim(); }
-	int GetControlDim() const { return ControlCentroidVV.GetRows(); }
-	int GetIgnoredDim() const { return IgnoredCentroidVV.GetRows(); }
-	int GetAllDim() const { return GetDim() + GetControlDim() + GetIgnoredDim(); }
+//	int GetDim() const { return KMeans->GetDim(); }
+	int GetControlFtrVDim() const { return ControlCentroidVV.GetRows(); }
+//	int GetIgnoredDim() const { return IgnoredCentroidVV.GetRows(); }
+//	int GetAllDim() const { return GetDim() + GetControlDim() + GetIgnoredDim(); }
 
 	const TFltVV& GetCentroidMat() const { return KMeans->GetCentroidVV(); }
-	void GetControlCentroidVV(TStateFtrVV& StateFtrVV) const;
+	void GetControlCentroidVV(const TStreamStory& StreamStory, TStateFtrVV& StateFtrVV) const;
 
 	// manual setting of control features
-	double GetControlFtr(const int& StateId, const int& FtrId, const double& DefaultVal) const;
-	void SetControlFtr(const int& StateId, const int& FtrId, const double& Val);
-	void ClearControlFtr(const int& StateId, const int& FtrId);
+	double GetControlFtr(const int& StateId, const TFtrInfo& FtrInfo, const double& DefaultVal) const;
+	void SetControlFtr(const int& StateId, const TFtrInfo& FtrInfo,
+			const double& Val);
+	void ClearControlFtr(const int& StateId, const TFtrInfo& FtrInfo);
 	void ClearControlFtrVV();
-	bool IsControlFtrSet(const int& StateId, const int& FtrId) const;
-	bool IsAnyControlFtrSet() const;
+	bool IsControlFtrSet(const int& StateId, const TFtrInfo& FtrInfo) const;
+	bool IsAnyControlFtrSet(const TFtrInfoV& FtrInfoV) const;
 
 	// sets the log to verbose or none
 	void SetVerbose(const bool& Verbose);
@@ -194,18 +250,23 @@ private:
 	void GetControlCentroid(const int& StateId, TFltV& FtrV) const;
 	void GetIgnoredCentroid(const int& StateId, TFltV& FtrV) const;
 
-	double GetControlFtr(const int& StateId, const int& FtrId) const;
+	double GetControlFtr(const int& StateId, const TFtrInfo& FtrInfo) const;
+	void GetControlFtrV(const int& StateId, const TFtrInfo& FtrInfo, TFltV& FtrV) const;
+
 	void ClearControlFtrVV(const int& Dim);
 
 	void GetHistogram(const TStateFtrHistVV& StateHistVV, const int& FtrN,
-			const TIntV& AggState, TFltV& BinStartV, TFltV& BinV, const bool& NormalizeP) const;
+			const TFtrInfo& FtrInfo, const TIntV& AggState, TFltV& BinStartV, TFltV& BinV,
+			const bool& NormalizeP) const;
 
 	// histograms
-	void InitHistVV(const int& NInst, const TFltVV& FtrVV, TStateFtrHistVV& HistVV);
-	void InitHists(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const TFltVV& IgnoredFtrVV);
+	void InitHistVV(const TFtrInfoV& FtrInfoV, const int& NInst, const TFltVV& FtrVV,
+			TStateFtrHistVV& HistVV);
+	void InitHists(const TStreamStory& StreamStory, const TFltVV& ObsFtrVV,
+			const TFltVV& ContrFtrVV, const TFltVV& IgnoredFtrVV);
 
-	static void UpdateHistVV(const TFltVV& FtrVV, const TIntV& AssignV,
-			const int& States, TStateFtrHistVV& StateFtrHistVV);
+	static void UpdateHistVV(const TFtrInfoV& FtrInfoV, const TFltVV& FtrVV,
+			const TIntV& AssignV, const int& States, TStateFtrHistVV& StateFtrHistVV);
 	static void GetJoinedCentroid(const TIntV& StateIdV,
 			const TFltVV& CentroidVV, const TUInt64V& StateSizeV, TFltV& FtrV);
 	static void ResampleHist(const int& Bins, const TFltV& OrigBinValV, const TIntV& OrigBinV, TFltV& BinValV,
@@ -409,12 +470,12 @@ public:
 	void GetJumpVV(const TAggStateV& StateSetV, const TStateFtrVV& StateFtrVV, TFltVV& JumpVV) const;
 
 	// Q-Matrix
-	void GetQMatrix(const TAggStateV& StateSetV, const TStateFtrVV& StateFtrVV,
+	void GetQMatrix(const TAggStateV& AggStateV, const TStateFtrVV& StateFtrVV,
 			TFltVV& QMat) const;
-	void GetSubQMatrix(const TAggStateV& StateSetV, const TStateFtrVV& StateFtrVV,
+	void GetSubQMatrix(const TAggStateV& AggStateV, const TStateFtrVV& StateFtrVV,
 			const TAggState& TargetState, TFltVV& SubQMat);
 
-	void GetHoldingTmV(const TAggStateV& StateSetV, const TStateFtrVV& StateFtrVV,
+	void GetHoldingTmV(const TAggStateV& AggStateV, const TStateFtrVV& StateFtrVV,
 			TFltV& HoldingTmV) const;
 
 	// returns true if the jump from OldStateId to NewStateId has a low enough probability
@@ -446,7 +507,7 @@ protected:
 	void AbsOnAddRec(const int& StateId, const uint64& RecTm, const bool EndsBatch);
 
 	// get future state probabilities for all the states for a fixed time in the future
-	void GetFutureProbVV(const TAggStateV& StateSetV, const TStateFtrVV& StateFtrVV,
+	void GetFutureProbVV(const TAggStateV& AggStateV, const TStateFtrVV& StateFtrVV,
 			const double& Tm, TFltVV& ProbVV) const;
 	void GetPastProbVV(const TAggStateV& StateSetV, const TStateFtrVV& StateFtrVV,
 			const double& Tm, TFltVV& ProbVV) const;
@@ -485,6 +546,81 @@ private:
 			const double& DeltaTm, TFltVV& ProbVV, const bool HasHiddenState=false);
 };
 
+/*/////////////////////////////////////////////////////////////////
+/// Scale helper
+/// the algorithm is based on:
+/// A Randomized Linear-Time Algorithm to Find Minimum Spanning Trees
+/// authors: Karger, Klein and Tarjan
+class TRandomizedMst {
+	typedef TIntIntFltTr TEdge;
+	typedef TPair<TIntSet, TIntIntFltTrV> TGraph;
+public:
+	static void Apply(const TGraph& Graph, TIntIntFltTrV& MstEdgeV) {
+
+	}
+
+private:
+	static void BoruvkaStep(const TIntV& NodeIdV, const TIntPrV& EdgeV) {
+		// TODO
+	}
+	static void FindMst(const TGraph& Graph, TGraph& Mst, TRnd Rnd=TRnd()) {
+		const TIntSet& NodeV = Graph.Val1;
+		const TIntIntFltTrV& EdgeV = Graph.Val2;
+
+		if (NodeV.Len() <= 2) {
+
+		} else {
+			// create a graph H by randomly sampling the edges
+			TGraph H;
+			for (int EdgeN = 0; EdgeN < EdgeV.Len(); EdgeN++) {
+				if (Rnd.GetUniDev() < .5) {
+					const TEdge& Edge = EdgeV[EdgeN];
+					H.Val1.AddKey(Edge.Val1);
+					H.Val1.AddKey(Edge.Val2);
+					H.Val2.Add(Edge);
+				}
+			}
+
+			// call the algorithm recursively, to obtain the MST on H
+			TGraph MstH;	FindMst(H, MstH, Rnd);
+
+			// remove all the F-heavy edges from MstH
+			// an edge is F-heavy if its weight w is larger than
+			// the weight of any edge in F
+		}
+	}
+};*/
+
+/////////////////////////////////////////////////////////////////
+// Scale helper
+class TScaleHelper {
+	typedef TVec<TPair<TFlt,TFltVV>> TScaleDescV;
+protected:
+	PNotify Notify;
+public:
+	TScaleHelper(const PNotify _Notify): Notify(_Notify) {}
+	virtual ~TScaleHelper() {}
+
+	void CalcNaturalScales(const TScaleDescV& ScaleQMatPrV,
+		const TRnd& Rnd, TFltV& ScaleV) const;
+
+protected:
+	virtual void GetScaleFtrV(const TFltVV& QMat, TFltV& FtrV) const = 0;
+	virtual int GetFtrVDim() const = 0;
+};
+
+/////////////////////////////////////////////////////////////////
+// Scale helper - based on singular values of the Q-matrix
+class TEigValScaleHelper: public TScaleHelper {
+private:
+	static const int FTRV_DIM;
+public:
+	TEigValScaleHelper(const PNotify& Notify): TScaleHelper(Notify) {}
+protected:
+	void GetScaleFtrV(const TFltVV& QMat, TFltV& FtrV) const;
+	int GetFtrVDim() const { return FTRV_DIM; }
+};
+
 ////////////////////////////////////////////
 // Hierarchy modeler
 class THierarch {
@@ -495,6 +631,7 @@ private:
 
     // state heights in the hierarchy
     TFltV StateHeightV, UniqueHeightV;
+    TFltV NaturalScaleV;
     TFlt MxHeight;
 
     // past states
@@ -510,11 +647,14 @@ private:
     TIntFltPrSet TargetIdHeightSet;
     bool IsTransitionBased;
 
+    TRnd Rnd;
+
     bool Verbose;
     PNotify Notify;
 
 public:
-    THierarch(const bool& HistCacheSize, const bool& IsTransitionBased, const bool& Verbose=false);
+    THierarch(const bool& HistCacheSize, const bool& IsTransitionBased,
+    		const TRnd& Rnd, const bool& Verbose=false);
     THierarch(TSIn& SIn);
 
 	// saves the model to the output stream
@@ -522,11 +662,11 @@ public:
 	// loads the model from the output stream
 	static THierarch* Load(TSIn& SIn);
 
-	void Init(const int& CurrLeafId, const TStateIdentifier& StateIdentifier,
-			const TCtmcModeller& MChain);
+	void Init(const int& CurrLeafId, const TStreamStory& StreamStory);
 	void UpdateHistory(const int& CurrLeafId);
 
 	const TFltV& GetUniqueHeightV() const { return UniqueHeightV; }
+	const TFltV& GetUiHeightV() const { return NaturalScaleV; }
 	const TIntV& GetHierarchV() const { return HierarchV; }
 
 	double GetStateHeight(const int& StateId) const { return StateHeightV[StateId]; }
@@ -566,6 +706,7 @@ public:
 
 	// set/remove target states
 	bool IsTarget(const int& StateId) const;
+	bool HasTargetStates() const;
 	void SetTarget(const int& StateId);
 	void RemoveTarget(const int& StateId);
 
@@ -578,8 +719,7 @@ public:
 
 private:
 	void InitHierarchyDist(const TStateIdentifier& StateIdentifier);
-	void InitHierarchyTrans(const TStateIdentifier& StateIdentifier,
-			const TCtmcModeller& MChain);
+	void InitHierarchyTrans(const TStreamStory& StreamStory);
 
 	// returns the ID of the parent state
 	int GetParentId(const int& StateId) const;
@@ -602,6 +742,9 @@ private:
 	// this method is only used when initially building the hierarchy
 	int GetOldestAncestIdx(const int& StateIdx) const;
 
+	// methods for calculating the natural scales in the model
+	void CalcNaturalScales(const TStreamStory& StreamStory, const TRnd& Rnd, TFltV& ScaleV) const;
+
 	// static functions
 	static TInt& GetParentId(const int& StateId, TIntV& HierarchV) { return HierarchV[StateId]; }
 	static int GetParentId(const int& StateId, const TIntV& HierarchV) { return HierarchV[StateId]; }
@@ -619,21 +762,88 @@ private:
 // UI helper
 class TUiHelper {
 public:
-	enum TAutoNmLevel: uchar {
-		anlLowest = 0xF0,
-		anlLow = 0xF1,
-		anlMeduim = 0xF2,
-		anlHigh = 0xF3,
-		anlHighest = 0xF4
+	enum TNumAutoNmLevel: uchar {	// TODO change to 0x8
+		nanlLowest = 0xF0,
+		nanlLow = 0xF1,
+		nanlMeduim = 0xF2,
+		nanlHigh = 0xF3,
+		nanlHighest = 0xF4
 	};
 
+	class TAutoNmDesc;
+	typedef TPt<TAutoNmDesc> PAutoNmDesc;
+	class TAutoNmDesc {
+	protected:
+		TCRef CRef;
+	public:
+		friend class TPt<TAutoNmDesc>;
+	protected:
+		int FtrN;
+		double PVal;
+
+	public:
+		TAutoNmDesc(const int& FtrN, const double& PVal);
+		TAutoNmDesc(TSIn& SIn);
+		virtual ~TAutoNmDesc() {}
+
+		static PAutoNmDesc Load(TSIn& SIn);
+		virtual void Save(TSOut& SOut) const;
+
+		bool operator <(const TAutoNmDesc& Othr) { return GetPVal() < Othr.GetPVal(); }
+
+		int GetFtrId() const { return FtrN; }
+		double GetPVal() const { return PVal; }
+
+		virtual TFtrType GetFtrType() const = 0;
+		virtual PJsonVal GetJson() const = 0;
+		virtual PJsonVal GetNarrateJson() const = 0;
+	};
+
+	class TNumAutoNmDesc: public TAutoNmDesc {
+	private:
+		TNumAutoNmLevel Level;
+
+	public:
+		TNumAutoNmDesc(const int& FtrN, const double& PVal, const TNumAutoNmLevel& Level);
+		TNumAutoNmDesc(TSIn& SIn);
+
+		void Save(TSOut& SOut) const;
+
+		TFtrType GetFtrType() const { return ftNumeric; }
+		PJsonVal GetJson() const;
+		PJsonVal GetNarrateJson() const;
+
+		const TNumAutoNmLevel& GetLevel() const { return Level; }
+		TStr GetAutoNmLowHighDesc() const;
+
+		static TNumAutoNmLevel GetAutoNmLevel(const double& PVal, const double& LowPercPVal,
+				const double& HighPercPVal);
+	};
+
+	class TCatAutoNmDesc: public TAutoNmDesc {
+	private:
+		int BinN;
+
+	public:
+		TCatAutoNmDesc(const int& FtrN, const double& PVal, const int& BinN);
+		TCatAutoNmDesc(TSIn& SIn);
+
+		void Save(TSOut& SOut) const;
+
+		TFtrType GetFtrType() const { return ftCategorical; }
+		PJsonVal GetJson() const;
+		PJsonVal GetNarrateJson() const;
+
+		const int& GetBin() const { return BinN; }
+	};
+
+	typedef TVec<PAutoNmDesc> PAutoNmDescV;
+	typedef TVec<PAutoNmDescV> PAutoNmDescVV;
+
 private:
+
 	typedef TTriple<TUCh, TInt, TInt> TTmDesc;
 	typedef TVec<TTmDesc> TTmDescV;
-
-	typedef TTriple<TFlt, TInt, TUCh> TAutoNmDesc;
-	typedef TVec<TAutoNmDesc> TAutoNmDescV;
-	typedef TVec<TAutoNmDescV> TAutoNmDescVV;
 
 	// state sizes and coordinates
 	static const double RADIUS_FACTOR;
@@ -652,8 +862,8 @@ private:
 	static const TStr HOURS_IN_DAY[24];
 
 	TFltPrV StateCoordV;
-	TIntUChPrV StateAutoNmV;
-	TAutoNmDescVV StateIdAutoNmDescVV;
+	PAutoNmDescV StateAutoNmV;
+	PAutoNmDescVV StateIdAutoNmDescVV;
 	TVec<TTmDescV> StateIdOccTmDescV;
 
 	TRnd Rnd;
@@ -666,8 +876,7 @@ public:
 
 	void Save(TSOut& SOut) const;
 
-	void Init(const TStateIdentifier& StateIdentifier, const THierarch& Hierarch,
-			const TCtmcModeller& MChain);
+	void Init(const TStreamStory& StreamStory);
 
 	const TFltPr& GetStateCoords(const int& StateId) const;
 	void SetStateCoords(const int& StateId, const double& x, const double& y);
@@ -675,24 +884,19 @@ public:
 	void GetStateRadiusV(const TFltV& ProbV, TFltV& SizeV) const;
 
 	// time descriptions
-	const TIntUChPr& GetStateAutoNm(const int& StateId) const;
-	void GetAutoNmPValDesc(const int& StateId, TAutoNmDescV& Desc) const;
+	const TUiHelper::PAutoNmDesc& GetStateAutoNm(const int& StateId) const;
+	void GetAutoNmPValDesc(const int& StateId, PAutoNmDescV& Desc) const;
 	void GetTmDesc(const int& StateId, TStrPrV& DescIntervalV) const;
-
-	static TStr GetAutoNmLowHighDesc(const TAutoNmLevel& Level);
 
 private:
 	TFltPr& GetModStateCoords(const int& StateId);
 
 	// computes the coordinates (in 2D) of each state
-	void InitStateCoordV(const TStateIdentifier& StateIdentifier,
-			const THierarch& Hierarch);
-	void RefineStateCoordV(const TStateIdentifier& StateIdentifier,
-			const THierarch& Hierarch, const TCtmcModeller& MChain);
+	void InitStateCoordV(const TStreamStory& StreamStory);
+	void RefineStateCoordV(const TStreamStory& StreamStory);
+	void InitAutoNmV(const TStreamStory& StreamStory);
+	void InitStateExplain(const TStreamStory& StreamStory);
 
-	void InitAutoNmV(const TStateIdentifier& StateIdentifier, const THierarch& Hierarch);
-	void InitStateExplain(const TStateIdentifier& StateIdentifier, const THierarch& Hierarch,
-			const TCtmcModeller& TransModeler);
 	bool HasMxPeaks(const int& MxPeakCount, const double& PeakMassThreshold, const TFltV& PdfHist,
 			 TIntPrV& PeakBorderV, double& PeakMass, int& PeakBinCount) const;
 
@@ -707,8 +911,6 @@ private:
 	static double GetOverlap(const TFltPr& Pos1, const TFltPr& Pos2,
 			const double& Raduis1, const double& Raduis2);
 	static void GetMoveDir(const TFltPr& Pos1, const TFltPr& Pos2, TFltPr& Dir);
-	static TAutoNmLevel GetAutoNmLevel(const double& PVal, const double& LowPercPVal,
-			const double& HighPercPVal);
 };
 
 ////////////////////////////////////////////////
@@ -736,7 +938,8 @@ public:
 	void InitFtrBounds(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const TFltVV& IgnoredFtrVV);
 
 	const TFltPr& GetFtrBounds(const int& FtrId) const;
-	void GetFtrWgtV(const int& StateId, TFltV& WgtV) const;
+	void GetFtrWgtV(const int& StateId, const int& Offset, const int& Length,
+			TFltV& WgtV) const;
 	PJsonVal GetStateClassifyTree(const int& StateId) const;
 	PJsonVal GetStateExplain(const int& StateId) const;
 
@@ -802,6 +1005,8 @@ public:
 	void RemoveActivity(const TStr& ActNm);
 	void GetActivities(TStrV& ActNmV, TIntV& NumStepsV) const;
 
+	bool IsEmpty() const;
+
 	void SetCallback(TStreamStoryCallback* Callback);
 	void SetVerbose(const bool& Verbose);
 };
@@ -816,6 +1021,11 @@ private:
     TStateAssist* StateAssist;
     TActivityDetector* ActivityDetector;
     TUiHelper* UiHelper;
+
+    TIntV FtrNToIdV;
+    TFtrInfoV ObsFtrInfoV;
+    TFtrInfoV ContrFtrInfoV;
+    TFtrInfoV IgnFtrInfoV;
 
     bool FtrVecPredP;
 
@@ -841,23 +1051,25 @@ public:
     // saves the model to the output stream
 	void Save(TSOut& SOut) const;
 
-	// saves this models as JSON
+	// saves this model as JSON
 	PJsonVal GetJson() const;
 	PJsonVal GetSubModelJson(const int& StateId) const;
 	PJsonVal GetLikelyPathTreeJson(const int& StateId, const double& Height, const int& Depth,
 			const double& TransThreshold) const;
 
-	static PJsonVal GetAutoNmJson(const TIntUChPr& FtrIdRngPr);
-
 	// update methods
 	// initializes the model
-	void Init(TFltVV& ObservFtrVV, const TFltVV& ControlFtrVV, const TFltVV& IgnoredFtrVV,
-			const TUInt64V& RecTmV, const bool& MultiThread=true);
-	void InitBatches(TFltVV& ObservFtrVV, const TFltVV& ControlFtrVV, const TFltVV& IgnoredFtrVV,
-			const TUInt64V& RecTmV, const TBoolV& BatchEndV,
+	void Init(const TFtrInfoV& ObsFtrInfoV, const TFtrInfoV& ContrFtrInfoV,
+			const TFtrInfoV& IgnFtrInfoV, const TFltVV& ObservFtrVV,
+			const TFltVV& ControlFtrVV, const TFltVV& IgnoredFtrVV, const TUInt64V& RecTmV,
 			const bool& MultiThread=true);
-	void InitClust(const TUInt64V& TmV, TFltVV& ObsFtrVV, const TFltVV& FtrVV, const TFltVV& IgnoredFtrVV,
-			TIntV& AssignV);	// TODO add const
+	void InitBatches(const TFtrInfoV& ObsFtrInfoV, const TFtrInfoV& ContrFtrInfoV,
+			const TFtrInfoV& IgnFtrInfoV, const TFltVV& ObservFtrVV, const TFltVV& ControlFtrVV,
+			const TFltVV& IgnoredFtrVV, const TUInt64V& RecTmV, const TBoolV& BatchEndV,
+			const bool& MultiThread=true);
+	void InitFtrNToIdV();
+	void InitClust(const TUInt64V& TmV, const TFltVV& ObsFtrVV, const TFltVV& FtrVV,
+			const TFltVV& IgnoredFtrVV, TIntV& AssignV);
 	void InitMChain(const TFltVV& FtrVV, const TIntV& AssignV, const TUInt64V& RecTmV,
 			const bool IsBatchData, const TBoolV& EndBatchV);
 	void InitHierarch();
@@ -904,7 +1116,7 @@ public:
 			TIntV& BinV, TFltV& ProbV) const;
 
 	// state explanations
-	void GetStateWgtV(const int& StateId, TFltV& WgtV) const;
+	PJsonVal GetStateWgtV(const int& StateId) const;
 	PJsonVal GetStateClassifyTree(const int& StateId) const;
 	PJsonVal GetStateExplain(const int& StateId) const;
 
@@ -950,8 +1162,8 @@ public:
 
     const TFltPr& GetFtrBounds(const int& FtrId) const;
     const TStr& GetStateLabel(const int& StateId) const;
-    const TIntUChPr& GetStateAutoNm(const int& StateId) const;
-    void GetStateFtrPValDesc(const int& StateId, TVec<TTriple<TFlt, TInt, TUCh>>& Desc) const;
+    const TUiHelper::PAutoNmDesc& GetStateAutoNm(const int& StateId) const;
+    void GetStateFtrPValDesc(const int& StateId, TUiHelper::PAutoNmDescV& DescV) const;
     void GetStateTmDesc(const int& StateId, TStrPrV& StateIntervalV) const;
     const TStr& GetStateNm(const int& StateId) const;
 
@@ -965,6 +1177,30 @@ public:
     bool IsVerbose() const { return Verbose; }
     void SetVerbose(const bool& Verbose);
     void SetCallback(TStreamStoryCallback* Callback);
+
+    // feature info
+    const TFtrInfoV& GetObsFtrInfoV() const { return ObsFtrInfoV; }
+    const TFtrInfoV& GetContrFtrInfoV() const { return ContrFtrInfoV; }
+    const TFtrInfoV& GetIgnFtrInfoV() const { return IgnFtrInfoV; }
+
+    int GetObsDim() const { return ObsFtrInfoV.Len(); }
+    int GetContrDim() const { return ContrFtrInfoV.Len(); }
+    int GetIgnDim() const { return IgnFtrInfoV.Len(); }
+    int GetAllDim() const { return GetObsDim() + GetContrDim() + GetIgnDim(); }
+
+    int GetFtrId(const int& FtrN) const;
+    const TFtrInfo& GetFtrInfo(const int& FtrId) const;
+
+    bool IsObsFtrId(const int& FtrId) const { return FtrId < GetObsDim(); }
+    bool IsContrFtrId(const int& FtrId) const { return GetObsDim() <= FtrId && FtrId < GetObsDim() + GetContrDim(); }
+    bool IsIgnFtrId(const int& FtrId) const { return GetObsDim() + GetContrDim() <= FtrId; }
+
+    const TStateIdentifier& GetStateIdentifier() const { EAssert(StateIdentifier != nullptr); return *StateIdentifier; }
+    const THierarch& GetHierarch() const { EAssert(Hierarch != nullptr); return *Hierarch; }
+    const TCtmcModeller& GetTransitionModeler() const { EAssert(MChain != nullptr); return *MChain; }
+
+    bool IsDetectingActivities() const;
+    bool IsPredictingStates() const;
 
 private:
     PJsonVal GetLevelJson(const double& Height, const TStateIdV& StateIdV, const TFltVV& TransitionVV,
@@ -992,6 +1228,10 @@ private:
     		const int& RootN, TFltV& WidthV) const;
     void CalcTreePosV(const TFltVV& PMat, const int& RootN, const TFltV& RadiusV, const TFltV& WidthV,
     		const double& RootX, const double& RootY, TFltPrV& PosV) const;
+
+    void TransformExplainTree(PJsonVal& TreeJson) const;
 };
 
 }
+
+#endif
