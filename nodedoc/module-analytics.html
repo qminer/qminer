@@ -77,13 +77,16 @@
                     <dt><a href="module-analytics.RecLinReg.html">RecLinReg(param)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.RidgeReg.html">RidgeReg([arg])</a></dt>
+                    <dt><a href="module-analytics.RecommenderSys.html">RecommenderSys([params])</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.RidgeReg.html">RidgeReg([arg])</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-analytics.Sigmoid.html">Sigmoid([arg])</a></dt>
                     <dd>
                     </dd>
@@ -116,6 +119,22 @@
                     <dd>
                     </dd>
                   </dl>
+                </div>
+                <div class="summary-column">
+                </div>
+              </div>
+            </div>
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Method</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.html#nmf">nmf(mat, k[, json])</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
                 </div>
                 <div class="summary-column">
                 </div>
@@ -176,6 +195,9 @@
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.html#~RecSysParams">RecSysParams</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-analytics.html#~ridgeRegModel">ridgeRegModel</a></dt>
                     <dd>
                     </dd>
@@ -211,6 +233,7 @@
               <h3><a href="module-analytics.PCA.html">PCA</a></h3>
               <h3><a href="module-analytics.PropHazards.html">PropHazards</a></h3>
               <h3><a href="module-analytics.RecLinReg.html">RecLinReg</a></h3>
+              <h3><a href="module-analytics.RecommenderSys.html">RecommenderSys</a></h3>
               <h3><a href="module-analytics.RidgeReg.html">RidgeReg</a></h3>
               <h3><a href="module-analytics.Sigmoid.html">Sigmoid</a></h3>
               <h3><a href="module-analytics.SVC.html">SVC</a></h3>
@@ -221,6 +244,164 @@
             <section id='members-links'>
               <h3><a href="module-analytics-metrics.html">metrics</a></h3>
               <h3><a href="module-analytics-preprocessing.html">preprocessing</a></h3>
+            </section>
+            <h2>Method</h2>
+            <section>
+              <h3 id="nmf"><span class="symbol-name">nmf</span><span class="signature"><span class="signature-params">(mat, k[, json])</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
+              <p>Computes the non-negative matrix factorization.</p>
+              <section>
+                <h4>
+            Examples
+        </h4>
+                <div>
+                  <p>Asynchronous function</p>
+                  <pre class="prettyprint"><code>// import modules
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
+// create a matrix
+var mat = new la.Matrix({ rows: 10, cols: 5, random: true });
+// compute the non-negative matrix factorization
+analytics.nmfAsync(mat, 3, { iter: 100, tol: 1e-4 }, function (err, result) {
+   if (err) { console.log(err); }
+   // calculation successful
+   var U = result.U;
+   var V = result.V;
+});</code></pre>
+                </div>
+                <div>
+                  <p>Synchronous function</p>
+                  <pre class="prettyprint"><code>// import modules
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
+// create a matrix
+var mat = new la.Matrix({ rows: 10, cols: 5, random: true });
+// compute the non-negative matrix factorization
+var result = analytics.nmf(mat, 3, { iter: 100, tol: 1e-4 });
+var U = result.U;
+var V = result.V;</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>mat</p>
+                      </td>
+                      <td>
+                        <p>(<a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The non-negative matrix.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>k</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The reduced rank, e.g. number of columns in matrix U and number of rows in matrix V. Must be between 0 and min(mat.rows, mat.cols).</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>json</p>
+                      </td>
+                      <td>
+                        <p>Object</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Calculation options.</p>
+                        <p>Values in <code>json</code> have the following properties:</p>
+                        <table class="jsdoc-details-table">
+                          <thead>
+                            <tr>
+                              <th>Name</th>
+                              <th>Type</th>
+                              <th>Optional</th>
+                              <th>Description</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td>
+                                <p>iter</p>
+                              </td>
+                              <td>
+                                <p>number</p>
+                              </td>
+                              <td>
+                                <p>Yes</p>
+                              </td>
+                              <td>
+                                <p>The number of iterations used for the algorithm.</p>
+                                <p>Defaults to <code>100</code>.</p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <p>tol</p>
+                              </td>
+                              <td>
+                                <p>number</p>
+                              </td>
+                              <td>
+                                <p>Yes</p>
+                              </td>
+                              <td>
+                                <p>The tolerance.</p>
+                                <p>Defaults to <code>1e-3</code>.</p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <p>verbose</p>
+                              </td>
+                              <td>
+                                <p>boolean</p>
+                              </td>
+                              <td>
+                                <p>Yes</p>
+                              </td>
+                              <td>
+                                <p>If false, the console output is supressed.</p>
+                                <p>Defaults to <code>false</code>.</p>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Object</code>&nbsp;The json object containing the non-negative matrices U and V.</p>
+                </dd>
+              </dl>
             </section>
             <h2>Abstract types</h2>
             <section>
@@ -1144,6 +1325,85 @@
                       </td>
                       <td>
                         <p>Recursive Linear Regression model vector.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~RecSysParams"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">RecSysParams</span><small class="property-type">
+            &nbsp;Object</small></h3>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>iter</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The maximum number of iterations.</p>
+                        <p>Defaults to <code>10000</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>k</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The number of centroids.</p>
+                        <p>Defaults to <code>2</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>tol</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The tolerance.</p>
+                        <p>Defaults to <code>1e-3</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>verbose</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>If false, the console output is supressed.</p>
+                        <p>Defaults to <code>false</code>.</p>
                       </td>
                     </tr>
                   </tbody>

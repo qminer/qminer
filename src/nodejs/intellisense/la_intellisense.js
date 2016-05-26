@@ -16,9 +16,9 @@ exports = {}; require.modules.qminer_la = exports;
 */
 /**
 	* Computes the truncated SVD decomposition.
-	* @param {module:la.Matrix | matrix:la.SparseMatrix} mat - The matrix.
+	* @param {module:la.Matrix | module:la.SparseMatrix} mat - The matrix.
 	* @param {number} k - The number of singular vectors to be computed.
-	* @param {Object} [json] - The JSON object containing the properties iter and tol:
+	* @param {Object} [json] - The JSON object.
 	* @param {number} [json.iter = 100] - The number of iterations used for the algorithm.
 	* @param {number} [json.tol = 1e-6] - The tolerance number.
 	* @param {function} [callback] - The callback function, that takes the error parameters (err) and the result parameter (res). 
@@ -27,7 +27,7 @@ exports = {}; require.modules.qminer_la = exports;
 	* <br>svdRes.U - The dense matrix of the decomposition. Type {@link module:la.Matrix}.
 	* <br>svdRes.V - The dense matrix of the decomposition. Type {@link module:la.Matrix}.
 	* <br>svdRes.s - The vector containing the singular values of the decomposition. Type {@link module:la.Vector}.
-	* @example <caption>Asynchronous calculation</caption>
+	* @example <caption>Asynchronous function</caption>
 	* // import the modules
 	* var la = require('qminer').la;
 	* // create a random matrix
@@ -43,7 +43,7 @@ exports = {}; require.modules.qminer_la = exports;
 	*    var V = result.V;
 	*    var s = result.s;
 	* });
-	* @example <caption>Synchronous calculation</caption>
+	* @example <caption>Synchronous function</caption>
 	* // import the modules
 	* var la = require('qminer').la;
 	* // create a random matrix
