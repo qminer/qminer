@@ -356,8 +356,7 @@ void TStateIdentifier::InitTimeHistogramV(const TUInt64V& TmV, const TIntV& Assi
 }
 
 int TStateIdentifier::Assign(const uint64& RecTm, const TFltV& FtrV) const {
-	TFltV TransFtrV;	GenClustFtrV(RecTm, FtrV, TransFtrV);
-	TFltV DistV;	GetCentroidDistV(RecTm, TransFtrV, DistV);
+	TFltV DistV;	GetCentroidDistV(RecTm, FtrV, DistV);
 	return TLinAlgSearch::GetMinIdx(DistV);
 }
 
@@ -829,6 +828,22 @@ void TStateIdentifier::GenClustFtrVV(const TUInt64V& TmV, const TFltVV& ObsFtrVV
 		for (int FtrN = 0; FtrN < ObsFtrVDim; FtrN++) {
 			FtrVV(TmFtrDim + FtrN, RecN) = ObsFtrVV(FtrN, RecN);
 		}
+	}
+}
+
+void TStateIdentifier::GenClustFtrV(const uint64& RecTm, const TFltV& FtrV, TFltV& ClustFtrV) const {
+
+	const int ObsFtrVDim = FtrV.Len();
+	const int TmFtrDim = GetTmFtrDim(TmUnit);
+
+	ClustFtrV.Gen(TmFtrDim + ObsFtrVDim);
+
+	TFltV TmFtrV;	GenTmFtrV(RecTm, TmFtrV);
+	for (int FtrN = 0; FtrN < TmFtrDim; FtrN++) {
+		ClustFtrV[FtrN] = TmFtrV[FtrN];
+	}
+	for (int FtrN = 0; FtrN < ObsFtrVDim; FtrN++) {
+		ClustFtrV[TmFtrDim + FtrN] = FtrV[FtrN];
 	}
 }
 
