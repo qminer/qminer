@@ -1451,7 +1451,7 @@ private:
 	/**
 	* Returns the store the record belongs to.
 	*/
-	//# exports.Record.prototype.store = Object.create('qminer').Store.prototype;
+	//# exports.Record.prototype.$store = Object.create('qminer').Store.prototype;
 	JsDeclareFunction(store);
 
 	JsDeclareSetProperty(getField, setField);

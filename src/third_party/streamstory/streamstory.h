@@ -157,6 +157,7 @@ private:
 
   	TVec<TFltV> StateContrFtrValVV;
 
+  	bool IncludeTmFtrV;
   	uint64 TmUnit;
   	double Sample;
 
@@ -172,7 +173,7 @@ public:
   	};
 
   	TStateIdentifier(const PDenseKMeans& KMeans, const int NHistBins, const double& Sample,
-			const TRnd& Rnd=TRnd(0), const bool& Verbose=false);
+  			const bool IncludeTmFtrV, const TRnd& Rnd=TRnd(0), const bool& Verbose=false);
 	TStateIdentifier(TSIn& SIn);
 
 	virtual ~TStateIdentifier();
@@ -187,7 +188,6 @@ public:
 			const TFltVV& IgnoredFtrVV, const TIntV& AssignV);
 	void InitTimeHistogramV(const TUInt64V& TmV, const TIntV& AssignV, const int& Bins);
 
-	// TODO assign not handled yet
 	// assign methods
 	// assign instances to centroids
 	int Assign(const uint64& RecTm, const TFltV& FtrV) const;

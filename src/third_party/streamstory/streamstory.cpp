@@ -185,7 +185,8 @@ const int TStateIdentifier::MX_ITER = 10000;
 const int TStateIdentifier::TIME_HIST_BINS = 10000;
 
 TStateIdentifier::TStateIdentifier(const PDenseKMeans& _KMeans, const int _NHistBins,
-			const double& _Sample, const TRnd& _Rnd, const bool& _Verbose):
+			const double& _Sample, const bool _IncludeTmFtrV, const TRnd& _Rnd,
+			const bool& _Verbose):
 		Rnd(_Rnd),
 		KMeans(_KMeans),
 		CentroidDistStatV(),
@@ -195,6 +196,7 @@ TStateIdentifier::TStateIdentifier(const PDenseKMeans& _KMeans, const int _NHist
 		IgnoredHistVV(),
 		StateTimeHistV(),
 		StateContrFtrValVV(),
+		IncludeTmFtrV(_IncludeTmFtrV),
 		TmUnit(0),
 		Sample(_Sample),
 		Verbose(_Verbose),
@@ -219,6 +221,7 @@ TStateIdentifier::TStateIdentifier(TSIn& SIn):
 	StateWeekHistV(SIn),
 	StateDayHistV(SIn),
 	StateContrFtrValVV(SIn),
+	IncludeTmFtrV(TBool(SIn)),
 	TmUnit(TUInt64(SIn)),
 	Sample(TFlt(SIn)),
 	Verbose(TBool(SIn)) {
@@ -244,6 +247,7 @@ void TStateIdentifier::Save(TSOut& SOut) const {
 	StateWeekHistV.Save(SOut);
 	StateDayHistV.Save(SOut);
 	StateContrFtrValVV.Save(SOut);
+	TBool(IncludeTmFtrV).Save(SOut);
 	TUInt64(TmUnit).Save(SOut);
 	TFlt(Sample).Save(SOut);
 	TBool(Verbose).Save(SOut);
@@ -811,39 +815,48 @@ void TStateIdentifier::GenClustFtrVV(const TUInt64V& TmV, const TFltVV& ObsFtrVV
 	EAssert(TmV.Len() > 1);
 	EAssert(TmV.Len() == ObsFtrVV.GetCols());
 
-	const int NInst = TmV.Len();
-	const int ObsFtrVDim = ObsFtrVV.GetRows();
-	const int TmFtrDim = GetTmFtrDim(TmUnit);
+	if (IncludeTmFtrV) {
+		const int NInst = TmV.Len();
+		const int ObsFtrVDim = ObsFtrVV.GetRows();
+		const int TmFtrDim = GetTmFtrDim(TmUnit);
 
-	FtrVV.Gen(TmFtrDim + ObsFtrVDim, NInst);
+		FtrVV.Gen(TmFtrDim + ObsFtrVDim, NInst);
 
-	TFltV FtrV;
-	for (int RecN = 0; RecN < TmV.Len(); RecN++) {
-		const uint64& RecTm = TmV[RecN];
+		TFltV FtrV;
+		for (int RecN = 0; RecN < TmV.Len(); RecN++) {
+			const uint64& RecTm = TmV[RecN];
 
-		GenTmFtrV(RecTm, FtrV);
-		for (int FtrN = 0; FtrN < TmFtrDim; FtrN++) {
-			FtrVV(FtrN, RecN) = FtrV[FtrN];
+			GenTmFtrV(RecTm, FtrV);
+			for (int FtrN = 0; FtrN < TmFtrDim; FtrN++) {
+				FtrVV(FtrN, RecN) = FtrV[FtrN];
+			}
+			for (int FtrN = 0; FtrN < ObsFtrVDim; FtrN++) {
+				FtrVV(TmFtrDim + FtrN, RecN) = ObsFtrVV(FtrN, RecN);
+			}
 		}
-		for (int FtrN = 0; FtrN < ObsFtrVDim; FtrN++) {
-			FtrVV(TmFtrDim + FtrN, RecN) = ObsFtrVV(FtrN, RecN);
-		}
+	}
+	else {
+		FtrVV = ObsFtrVV;
 	}
 }
 
 void TStateIdentifier::GenClustFtrV(const uint64& RecTm, const TFltV& FtrV, TFltV& ClustFtrV) const {
+	if (IncludeTmFtrV) {
+		const int ObsFtrVDim = FtrV.Len();
+		const int TmFtrDim = GetTmFtrDim(TmUnit);
 
-	const int ObsFtrVDim = FtrV.Len();
-	const int TmFtrDim = GetTmFtrDim(TmUnit);
+		ClustFtrV.Gen(TmFtrDim + ObsFtrVDim);
 
-	ClustFtrV.Gen(TmFtrDim + ObsFtrVDim);
-
-	TFltV TmFtrV;	GenTmFtrV(RecTm, TmFtrV);
-	for (int FtrN = 0; FtrN < TmFtrDim; FtrN++) {
-		ClustFtrV[FtrN] = TmFtrV[FtrN];
+		TFltV TmFtrV;	GenTmFtrV(RecTm, TmFtrV);
+		for (int FtrN = 0; FtrN < TmFtrDim; FtrN++) {
+			ClustFtrV[FtrN] = TmFtrV[FtrN];
+		}
+		for (int FtrN = 0; FtrN < ObsFtrVDim; FtrN++) {
+			ClustFtrV[TmFtrDim + FtrN] = FtrV[FtrN];
+		}
 	}
-	for (int FtrN = 0; FtrN < ObsFtrVDim; FtrN++) {
-		ClustFtrV[TmFtrDim + FtrN] = FtrV[FtrN];
+	else {
+		ClustFtrV = FtrV;
 	}
 }
 
@@ -2858,15 +2871,15 @@ void THierarch::GetStateSetsAtHeight(const double& Height, TStateIdV& StateIdV,
 	int i = 0;
 	int KeyId = StateSubStateH.FFirstKeyId();
 	while (StateSubStateH.FNextKeyId(KeyId)) {
-		const int StateIdx = StateSubStateH.GetKey(KeyId);
+		const int StateId = StateSubStateH.GetKey(KeyId);
 
 		if (StateSubStateH[KeyId].Empty()) {
-			AggStateV[i].Add(StateIdx);
+			AggStateV[i].Add(StateId);
 		} else {
 			AggStateV[i] = StateSubStateH[KeyId];
 		}
 
-		StateIdV[i] = StateIdx;
+		StateIdV[i] = StateId;
 
 		i++;
 	}

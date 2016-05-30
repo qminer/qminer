@@ -135,6 +135,7 @@ TNodeJsStreamStory* TNodeJsStreamStory::NewFromArgs(const v8::FunctionCallbackIn
 		// clustering
 		const double Sample = ClustJson->IsObjKey("sample") ? ClustJson->GetObjNum("sample") : 1;
 		const int NHistBins = ClustJson->IsObjKey("histogramBins") ? ClustJson->GetObjInt("histogramBins") : 20;
+		const bool IncludeTmFtrV = ClustJson->GetObjBool("includeTimeFeatures");
 
 		// transition modelling
 		const uint64 TimeUnit = GetTmUnit(TransitionJson->GetObjStr("timeUnit"));
@@ -144,7 +145,7 @@ TNodeJsStreamStory* TNodeJsStreamStory::NewFromArgs(const v8::FunctionCallbackIn
 		// hierarchy
 		const bool IsTransitionBased = HierarchJson->GetObjBool("isTransitionBased");
 
-		TMc::TStateIdentifier* StateIdentifier = new TMc::TStateIdentifier(GetClust(ClustJson, Rnd), NHistBins, Sample, Rnd, Verbose);
+		TMc::TStateIdentifier* StateIdentifier = new TMc::TStateIdentifier(GetClust(ClustJson, Rnd), NHistBins, Sample, IncludeTmFtrV, Rnd, Verbose);
 		TMc::TCtmcModeller* MChain = new TMc::TCtmcModeller(TimeUnit, DeltaTm, Verbose);
 		TMc::THierarch* Hierarch = new TMc::THierarch(NPastStates + 1, IsTransitionBased, Rnd, Verbose);
 
