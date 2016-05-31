@@ -222,12 +222,10 @@ public:
 
 	int GetStates() const { return KMeans->GetClusts(); }
 
-//	int GetDim() const { return KMeans->GetDim(); }
 	int GetControlFtrVDim() const { return ControlCentroidVV.GetRows(); }
-//	int GetIgnoredDim() const { return IgnoredCentroidVV.GetRows(); }
-//	int GetAllDim() const { return GetDim() + GetControlDim() + GetIgnoredDim(); }
 
-	const TFltVV& GetCentroidMat() const { return KMeans->GetCentroidVV(); }
+	void GetCentroidVV(TFltVV& CentroidVV) const;
+	const TFltVV& GetRawCentroidVV() const { return KMeans->GetCentroidVV(); }
 	void GetControlCentroidVV(const TStreamStory& StreamStory, TStateFtrVV& StateFtrVV) const;
 
 	// manual setting of control features

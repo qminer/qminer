@@ -385,22 +385,27 @@ double TStateIdentifier::GetDist(const uint64& RecTm, const int& StateId, const 
 	return KMeans->GetDist(StateId, TransFtrV);
 }
 
-void TStateIdentifier::GetJoinedCentroid(const int& FtrSpaceN, const TIntV& StateIdV, TFltV& FtrV) const {
+void TStateIdentifier::GetJoinedCentroid(const int& FtrSpaceN, const TIntV& StateIdV,
+		TFltV& FtrV) const {
 	TUInt64V StateSizeV(StateIdV.Len());
 	for (int StateN = 0; StateN < StateIdV.Len(); StateN++) {
 		StateSizeV[StateN] = GetStateSize(StateIdV[StateN]);
 	}
 
 	switch (FtrSpaceN) {
-	case 0:
-		GetJoinedCentroid(StateIdV, KMeans->GetCentroidVV(), StateSizeV, FtrV);
+	case 0: {
+		TFltVV AllCentroidVV;	GetCentroidVV(AllCentroidVV);
+		GetJoinedCentroid(StateIdV, AllCentroidVV, StateSizeV, FtrV);
 		break;
-	case 1:
+	}
+	case 1: {
 		GetJoinedCentroid(StateIdV, ControlCentroidVV, StateSizeV, FtrV);
 		break;
-	case 2:
+	}
+	case 2: {
 		GetJoinedCentroid(StateIdV, IgnoredCentroidVV, StateSizeV, FtrV);
 		break;
+	}
 	default:
 		throw TExcept::New("Invalid feature space number: " + TInt::GetStr(FtrSpaceN));
 	}
@@ -515,6 +520,24 @@ void TStateIdentifier::GetTimeHistogram(const TAggState& AggState, const TTmHist
 		for (int BinN = 0; BinN < CountV.Len(); BinN++) {
 			BinV[BinN] += (double) CountV[BinN];
 		}
+	}
+}
+
+void TStateIdentifier::GetCentroidVV(TFltVV& CentroidVV) const {
+	const TFltVV& OrigCentroidVV = GetRawCentroidVV();
+
+	if (IncludeTmFtrV) {
+		TLinAlg::SubMat(
+			OrigCentroidVV,
+			GetTmFtrDim(TmUnit),		// start row
+			OrigCentroidVV.GetRows(),	// end row
+			0,							// start col
+			OrigCentroidVV.GetCols(),	// end col
+			CentroidVV
+		);
+	}
+	else {
+		CentroidVV = OrigCentroidVV;
 	}
 }
 
@@ -678,7 +701,8 @@ void TStateIdentifier::InitCentroidVV(const TIntV& AssignV, const TFltVV& FtrVV,
 
 void TStateIdentifier::GetObsCentroid(const int& StateId, TFltV& FtrV) const {
 	EAssert(0 <= StateId && StateId < GetStates());
-	KMeans->GetCentroid(StateId, FtrV);
+	TFltVV CentroidVV;	GetCentroidVV(CentroidVV);
+	CentroidVV.GetCol(StateId, FtrV);
 }
 
 void TStateIdentifier::GetControlCentroid(const int& StateId, TFltV& FtrV) const {
@@ -2787,11 +2811,11 @@ THierarch* THierarch::Load(TSIn& SIn) {
 void THierarch::Init(const int& CurrLeafId, const TStreamStory& StreamStory) {
 	const TStateIdentifier& StateIdentifier = StreamStory.GetStateIdentifier();
 
-	const TFltVV& CentroidMat = StateIdentifier.GetCentroidMat();
+	TFltVV CentroidVV;	StateIdentifier.GetCentroidVV(CentroidVV);
 
 	ClrFlds();
 
-	NLeafs = CentroidMat.GetCols();
+	NLeafs = CentroidVV.GetCols();
 
 	if (IsTransitionBased) {
 		InitHierarchyTrans(StreamStory);
@@ -3188,10 +3212,10 @@ void THierarch::PrintHierarch() const {
 }
 
 void THierarch::InitHierarchyDist(const TStateIdentifier& StateIdentifier) {
-	const TFltVV& CentroidMat = StateIdentifier.GetCentroidMat();
+	const TFltVV& CentroidVV = StateIdentifier.GetRawCentroidVV();
 
 	// create a hierarchy
-	TIntIntFltTrV MergeV;	TAlAggClust::MakeDendro(CentroidMat, MergeV, Notify);
+	TIntIntFltTrV MergeV;	TAlAggClust::MakeDendro(CentroidVV, MergeV, Notify);
 
 	Notify->OnNotify(TNotifyType::ntInfo, TStrUtil::GetStr(MergeV, ", "));
 
@@ -3806,7 +3830,7 @@ void TUiHelper::InitStateCoordV(const TStreamStory& StreamStory) {
 
 	const int NStates = Hierarch.GetStates();
 	const int NLeafs = Hierarch.GetLeafs();
-	const TFltVV& CentroidVV = StateIdentifier.GetCentroidMat();
+	TFltVV CentroidVV;	StateIdentifier.GetCentroidVV(CentroidVV);
 
 	StateCoordV.Gen(NStates, NStates);
 

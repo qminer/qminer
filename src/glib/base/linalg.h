@@ -922,8 +922,9 @@ public:
 	TEMP_LA	static void Pow(const TDenseVV& Mat, const int& k, TDenseVV& PowVV);
 
 	// returns a sub matrix of the input matrix in range [StartRow, EndRow) x [StartCol, EndCol)
-	TEMP_LA	static void SubMat(const TDenseVV& Mat, const TSizeTy& StartRow, const TSizeTy& EndRow,
-			const TSizeTy& StartCol, const TSizeTy& EndCol, TDenseVV& SubMat);
+	TEMP_LA	static void SubMat(const TDenseVV& Mat, const TSizeTy& StartRow,
+			const TSizeTy& EndRow, const TSizeTy& StartCol, const TSizeTy& EndCol,
+			TDenseVV& SubVV);
 
 	template <class TType, class TVecVal, class TSizeTy, bool ColMajor>
 	static void SubMat(const TVVec<TType, TSizeTy, ColMajor>& Mat, const TVec<TVecVal, TSizeTy>& ColIdxV,
