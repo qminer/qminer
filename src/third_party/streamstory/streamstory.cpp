@@ -2718,7 +2718,7 @@ void TScaleHelper::CalcNaturalScales(const TScaleDescV& ScaleQMatPrV,
 
 	ScaleV.Gen(NScales);
 	for (int MedoidN = 0; MedoidN < NScales; MedoidN++) {
-		ScaleV.Add(ScaleQMatPrV[MedoidIdV[MedoidN]].Val1);
+		ScaleV[MedoidN] = ScaleQMatPrV[MedoidIdV[MedoidN]].Val1;
 	}
 
 	Notify->OnNotify(ntInfo, "Scales calculated!");
@@ -3447,6 +3447,7 @@ void THierarch::CalcNaturalScales(const TStreamStory& StreamStory, const TRnd& R
 
 	for (int HeightN = 0; HeightN < TotalScales; HeightN++) {
 		const double& Height = HeightV[HeightN];
+		printf("Unique height: %.5f\n", Height);
 		// get the intensity matrix on this height
 		TIntV StateIdV; TAggStateV AggStateV;
 		GetStateSetsAtHeight(Height, StateIdV, AggStateV);
