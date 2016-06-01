@@ -650,6 +650,8 @@ public:
 	void GetDescendantsAtHeight(const double& Height, const TIntV& StateIdV, TAggStateV& AggStateV);
 
 	void GetCurrStateIdHeightPrV(TIntFltPrV& StateIdHeightPrV) const;
+	void GetUiCurrStateIdHeightPrV(TIntFltPrV& StateIdHeightPrV) const;
+	void GetCurrStateIdHeightPrV(const TFltV& HeightV, TIntFltPrV& StateIdHeightPrV) const;
 	void GetHistStateIdV(const double& Height, TStateIdV& StateIdV) const;
 
 	// for each state returns the number of leafs it's subtree has

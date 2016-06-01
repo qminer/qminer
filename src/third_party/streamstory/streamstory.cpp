@@ -3106,6 +3106,22 @@ void THierarch::GetCurrStateIdHeightPrV(TIntFltPrV& StateIdHeightPrV) const {
 	}
 }
 
+void THierarch::GetUiCurrStateIdHeightPrV(TIntFltPrV& StateIdHeightPrV) const {
+	const TFltV& HeightV = GetUiHeightV();
+	const TIntV CurrLeafHistoryIdV = PastStateIdV[0];
+
+	EAssertR(!CurrLeafHistoryIdV.Empty(), "Past state cache empty!");
+
+	const int& CurrLeafId = CurrLeafHistoryIdV[0];
+
+	for (int HeightN = 0; HeightN < HeightV.Len(); HeightN++) {
+		const double& Height = HeightV[HeightN];
+		const int StateId = GetAncestorAtHeight(CurrLeafId, Height);
+
+		StateIdHeightPrV.Add(TIntFltPr(StateId, Height));
+	}
+}
+
 void THierarch::GetHistStateIdV(const double& Height, TStateIdV& StateIdV) const {
 	const int NearestHeightIdx = GetNearestHeightIdx(Height);
 	const TIntV& HistV = PastStateIdV[NearestHeightIdx];
@@ -5247,7 +5263,7 @@ void TStreamStory::PredictNextState(const bool& UseFtrVP, const int& FutStateN,
 	TStateFtrVV StateFtrVV;
 	GetStateFtrVV(StateFtrVV, UseFtrVP);
 
-	const TFltV& HeightV = Hierarch->GetUniqueHeightV();
+	const TFltV& HeightV = Hierarch->GetUiHeightV();
 	for (int HeightN = 0; HeightN < HeightV.Len()-1; HeightN++) {
 		const double& Height = HeightV[HeightN];
 
@@ -5425,7 +5441,7 @@ void TStreamStory::GetStateAncestry(const int& StateId, TIntFltPrV& StateIdHeigh
 }
 
 void TStreamStory::GetCurrStateAncestry(TIntFltPrV& StateIdHeightPrV) const {
-	Hierarch->GetCurrStateIdHeightPrV(StateIdHeightPrV);
+	Hierarch->GetUiCurrStateIdHeightPrV(StateIdHeightPrV);
 }
 
 int TStreamStory::GetCurrStateId(const double& Height) const {
