@@ -2782,12 +2782,6 @@ THierarch::THierarch(TSIn& SIn):
 		Verbose(TBool(SIn)),
 		Notify(nullptr) {
 
-	for (int i = 1; i < NaturalScaleV.Len(); i++) {
-		while (i < NaturalScaleV.Len() && NaturalScaleV[i] == NaturalScaleV[i-1]) {
-			NaturalScaleV.Del(i);
-		}
-	}
-
 	Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
 }
 
