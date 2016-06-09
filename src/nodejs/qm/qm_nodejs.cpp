@@ -687,19 +687,11 @@ void TNodeJsBase::getStreamAggrNames(const v8::FunctionCallbackInfo<v8::Value>& 
     TNodeJsBase* JsBase = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsBase>(Args.Holder());
     TWPt<TQm::TBase> Base = JsBase->Base;
 
-    TQm::PStreamAggrBase SABase = JsBase->Base->GetStreamAggrBase();
-    int AggrId = SABase->GetFirstStreamAggrId();
-    v8::Local<v8::Array> Arr = v8::Array::New(Isolate);
-    uint32 Counter = 0;
-    while (SABase->GetNextStreamAggrId(AggrId)) {
-        v8::Local<v8::String> AggrNm = v8::String::NewFromUtf8(
-            Isolate, SABase->GetStreamAggr(AggrId)->GetAggrNm().CStr());
-        Arr->Set(Counter, AggrNm);
-        Counter++;
-    }
-    Args.GetReturnValue().Set(Arr);
+    // get list of names
+    TStrV StreamAggrNmV = Base->GetStreamAggrSet()->GetStreamAggrNmV();
+    // set list as return value
+    Args.GetReturnValue().Set(TNodeJsUtil::GetStrArr(StreamAggrNmV));
 }
-
 
 ///////////////////////////////
 // NodeJs QMiner Store
@@ -1226,8 +1218,7 @@ void TNodeJsStore::resetStreamAggregates(const v8::FunctionCallbackInfo<v8::Valu
     TWPt<TQm::TStore>& Store = JsStore->Store;
     const TWPt<TQm::TBase>& Base = JsStore->Store->GetBase();
 
-    TQm::PStreamAggrBase SABase = Base->GetStreamAggrBase(Store->GetStoreId());
-    SABase->Reset();
+    Base->GetStreamAggrSet(Store->GetStoreId())->Reset();
 }
 
 void TNodeJsStore::getStreamAggrNames(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -1236,22 +1227,13 @@ void TNodeJsStore::getStreamAggrNames(const v8::FunctionCallbackInfo<v8::Value>&
 
     try {
         TNodeJsStore* JsStore = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsStore>(Args.Holder());
-
         TWPt<TQm::TStore>& Store = JsStore->Store;
         const TWPt<TQm::TBase>& Base = JsStore->Store->GetBase();
 
-        TQm::PStreamAggrBase SABase = Base->GetStreamAggrBase(Store->GetStoreId());
-        int AggrId = SABase->GetFirstStreamAggrId();
-
-        v8::Local<v8::Array> Arr = v8::Array::New(Isolate);
-        uint32 Counter = 0;
-        while (SABase->GetNextStreamAggrId(AggrId)) {
-            v8::Local<v8::String> AggrNm = v8::String::NewFromUtf8(Isolate,
-                SABase->GetStreamAggr(AggrId)->GetAggrNm().CStr());
-            Arr->Set(Counter, AggrNm);
-            Counter++;
-        }
-        Args.GetReturnValue().Set(Arr);
+        // get list of names
+        TStrV StreamAggrNmV = Base->GetStreamAggrSet(Store->GetStoreId())->GetStreamAggrNmV();
+        // set list as return value
+        Args.GetReturnValue().Set(TNodeJsUtil::GetStrArr(StreamAggrNmV));
     }
     catch (const PExcept& Except) {
         throw TQm::TQmExcept::New("[except] " + Except->GetMsgStr());

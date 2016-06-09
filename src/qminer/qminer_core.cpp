@@ -6022,6 +6022,12 @@ const PStreamAggr& TStreamAggrSet::GetStreamAggr(const TStr& StreamAggrNm) const
     return StreamAggrH.GetDat(StreamAggrNm);
 }
 
+TStrV TStreamAggrSet::GetStreamAggrNmV() const {
+    TStrV StreamAggrNmV;
+    StreamAggrH.GetKeyV(StreamAggrNmV);
+    return StreamAggrNmV;
+}
+
 void TStreamAggrSet::Reset() {
     int KeyId = StreamAggrH.FFirstKeyId();
     while (StreamAggrH.FNextKeyId(KeyId)) {
@@ -6033,6 +6039,13 @@ void TStreamAggrSet::OnStep() {
     int KeyId = StreamAggrH.FFirstKeyId();
     while (StreamAggrH.FNextKeyId(KeyId)) {
         StreamAggrH[KeyId]->OnStep();
+    }
+}
+
+void TStreamAggrSet::OnTime(const uint64& TmMsec) {
+    int KeyId = StreamAggrH.FFirstKeyId();
+    while (StreamAggrH.FNextKeyId(KeyId)) {
+        StreamAggrH[KeyId]->OnTime(TmMsec);
     }
 }
 
@@ -6321,14 +6334,6 @@ TPair<TBool, PRecSet> TBase::Search(const TQueryItem& QueryItem, const TIndex::P
     return TPair<TBool, PRecSet>(false, NULL);
 }
 
-TWPt<TStreamAggrSet> TBase::GetStreamAggrSet(const uint& StoreId) const {
-    return dynamic_cast<TStreamAggrSet*>(StreamAggrSetV[(int)StoreId]());
-}
-
-TWPt<TStreamAggrSet> TBase::GetStreamAggrSet() const {
-    return dynamic_cast<TStreamAggrSet*>(DefStreamAggrSet());
-}
-
 TBase::TBase(const TStr& _FPath, const int64& IndexCacheSize, const int& SplitLen,
         const bool& StrictNmP): InitP(false), NmValidator(StrictNmP) {
 
@@ -6440,6 +6445,14 @@ const TWPt<TStore> TBase::GetStoreByStoreNm(const TStr& StoreNm) const {
 
 PJsonVal TBase::GetStoreJson(const TWPt<TStore>& Store) {
     return Store->GetStoreJson(this);
+}
+
+TWPt<TStreamAggrSet> TBase::GetStreamAggrSet(const uint& StoreId) const {
+    return dynamic_cast<TStreamAggrSet*>(StreamAggrSetV[(int)StoreId]());
+}
+
+TWPt<TStreamAggrSet> TBase::GetStreamAggrSet() const {
+    return dynamic_cast<TStreamAggrSet*>(DefStreamAggrSet());
 }
 
 bool TBase::IsStreamAggr(const uint& StoreId, const TStr& StreamAggrNm) const {

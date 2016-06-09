@@ -3572,6 +3572,8 @@ public:
     void AddStreamAggr(const PStreamAggr& StreamAggr);
     /// Get stream aggregate by name
     const PStreamAggr& GetStreamAggr(const TStr& StreamAggrNm) const;
+    /// Get list of all aggregates
+    TStrV GetStreamAggrNmV() const;
     
     /// Reset all aggregates in the set
     void Reset();
@@ -3668,11 +3670,6 @@ private:
     /// Save base config
     void SaveBaseConf(const TStr& FPath) const;
 
-    /// Get stream aggregate set for the given store
-    TWPt<TStreamAggrSet> GetStreamAggrSet(const uint& StoreId) const;
-    /// Get default stream aggregate set
-    TWPt<TStreamAggrSet> GetStreamAggrSet() const;
-    
     /// Create new base on the given folder
     TBase(const TStr& _FPath, const int64& IndexCacheSize, const int& SplitLen, const bool& StrictNmP);
     /// Open existing base from the given folder
@@ -3731,6 +3728,10 @@ public:
     /// Get store blob base
     const PBlobBs& GetStoreBlobBs() { return StoreBlobBs; }
 
+    /// Get stream aggregate set for the given store
+    TWPt<TStreamAggrSet> GetStreamAggrSet(const uint& StoreId) const;
+    /// Get default stream aggregate set
+    TWPt<TStreamAggrSet> GetStreamAggrSet() const;    
     /// Check if store has stream aggregate with the given name
     bool IsStreamAggr(const uint& StoreId, const TStr& StreamAggrNm) const;
     /// Check if base has stream aggregate with the given name
