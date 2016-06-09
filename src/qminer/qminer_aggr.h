@@ -266,6 +266,7 @@ protected:
     void OnAddRec(const TRec& Rec);
     void OnTime(const uint64& TmMsec);
     void OnStep();
+    
     TTimeSeriesTick(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
@@ -491,8 +492,6 @@ public:
 ///////////////////////////////////////
 // Buffer values vector (variable length circular buffer implementation)
 //    Reads from TWinBuf and stores the buffer values in memory as a circular buffer, which can be resized if needed.
-//    
-
 class TWinBufFltV : public TStreamAggr, public TStreamAggrOut::IFltVec {
 private:
     // input
@@ -540,13 +539,19 @@ public:
 template <class TSignalType>
 class TWinAggr : public TStreamAggr, public TStreamAggrOut::IFltTm {
 private:
-    // input
+    /// input aggregate
     TWPt<TStreamAggr> InAggr;
+    /// casted to access time
+    TWPt<TStreamAggrOut::ITm> InAggrTm;
+    /// casted to access what goes in and out
     TWPt<TStreamAggrOut::IFltTmIO> InAggrVal;
+    
+    /// signal we are maintaining on the stream
     TSignalType Signal;
 
 protected:
-    void OnAddRec(const TRec& Rec) {
+    /// Update signal based on the changes from the input
+    void OnStep() {
         TFltV OutValV; InAggrVal->GetOutValV(OutValV);
         TUInt64V OutTmMSecsV; InAggrVal->GetOutTmMSecsV(OutTmMSecsV);
         if (InAggr->IsInit()) {
@@ -559,48 +564,45 @@ protected:
             }
         };
     }
-    void OnTime(const uint64& TmMsec) {
-        TRec Rec;
-        OnAddRec(Rec);
-    }
-    void OnStep() {
-        TRec Rec;
-        OnAddRec(Rec);
-    }
 
+    /// Initialize aggregate
     TWinAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal) {
-        // parse out input aggregate
+        // get input aggregate
         TStr InStoreNm = ParamVal->GetObjStr("store");
         TStr InAggrNm = ParamVal->GetObjStr("inAggr");
         PStreamAggr _InAggr = Base->GetStreamAggr(InStoreNm, InAggrNm);
+        /// cast it to appropriate interfaces
         InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
         QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
+        InAggrTm = dynamic_cast<TStreamAggrOut::ITm*>(_InAggr());
+        QmAssertR(!InAggrTm.Empty(), "Stream aggregate does not implement ITmIO interface: " + InAggrNm);        
         InAggrVal = dynamic_cast<TStreamAggrOut::IFltTmIO*>(_InAggr());
         QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTmIO interface: " + InAggrNm);
     }
 
 public:
-
-    // json constructor 
+    /// json constructor 
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
         return new TWinAggr<TSignalType>(Base, ParamVal);
     }
 
-    // Load stream aggregate state from stream
+    /// Load stream aggregate state from stream
     void LoadState(TSIn& SIn) { Signal.Load(SIn); }
-    // Save state of stream aggregate to stream
+    /// Save state of stream aggregate to stream
     void SaveState(TSOut& SOut) const { Signal.Save(SOut); }
 
-    // did we finished initialization
+    /// Did we finished initialization
     bool IsInit() const { return Signal.IsInit(); }
     /// Resets the aggregate
     void Reset() { Signal.Reset(); }
-    // current values
+    /// Get current signal value
     double GetFlt() const { return Signal.GetValue(); }
-    uint64 GetTmMSecs() const { return TStreamAggrOut::ITm::GetTmMSecsCast(InAggr); }
+    /// Get latest time stamp
+    uint64 GetTmMSecs() const { return InAggrTm->GetTmMSecs(); }
+    /// Get list of input aggregates
     void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggr->GetAggrNm()); }
 
-    // serialization to JSon
+    /// Serialization to json
     PJsonVal SaveJson(const int& Limit) const {
         PJsonVal Val = TJsonVal::NewObj();
         Val->AddToObj("Val", Signal.GetValue());
@@ -608,7 +610,7 @@ public:
         return Val;
     }
 
-    // stream aggregator type name 
+    /// Stream aggregator type name 
     static TStr GetType();
     TStr Type() const { return GetType(); }
 };
@@ -628,16 +630,12 @@ class TWinAggrSpVec : public TStreamAggr,
 private:
     // input
     TWPt<TStreamAggr> InAggr;
+    TWPt<TStreamAggrOut::ITm> InAggrTm;
     TWPt<TStreamAggrOut::IValTmIO<TIntFltKdV>> InAggrVal;
     TSignalType Signal;
 
 protected:
-    void OnAddRec(const TRec& Rec) {
-        OnStep();
-    }
-    void OnTime(const uint64& TmMsec) {
-        OnStep();
-    }
+    /// Update strema aggregate
     void OnStep() {
         TVec<TIntFltKdV> OutValV;
         InAggrVal->GetOutValV(OutValV);
@@ -655,6 +653,8 @@ protected:
             }
         };
     }
+
+    /// Create from json
     TWinAggrSpVec(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal) {
         // parse out input aggregate
         TStr InStoreNm = ParamVal->GetObjStr("store");
@@ -662,35 +662,35 @@ protected:
         PStreamAggr _InAggr = Base->GetStreamAggr(InStoreNm, InAggrNm);
         InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
         QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
+        InAggrTm = dynamic_cast<TStreamAggrOut::ITm*>(_InAggr());
+        QmAssertR(!InAggrTm.Empty(), "Stream aggregate does not implement ITmIO interface: " + InAggrNm);
         InAggrVal = dynamic_cast<TStreamAggrOut::IValTmIO<TIntFltKdV>*>(_InAggr());
         QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IValTmIO<TVal> interface: " + InAggrNm);
     }
 
 public:
-
-    // json constructor 
+    /// json constructor 
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
         return new TWinAggrSpVec<TSignalType>(Base, ParamVal);
     }
 
-    // Load stream aggregate state from stream
+    /// Load stream aggregate state from stream
     void LoadState(TSIn& SIn) { Signal.Load(SIn); }
-    // Save state of stream aggregate to stream
+    /// Save state of stream aggregate to stream
     void SaveState(TSOut& SOut) const { Signal.Save(SOut); }
 
-    // did we finished initialization
+    /// did we finished initialization
     bool IsInit() const { return Signal.IsInit(); }
     /// Resets the aggregate
     void Reset() { Signal.Reset(); }
-    // current values
-    //const TIntFltKdV& GetSparseVec() const { return Signal.GetValue(); }
+    /// current values
     int GetVals() const { return Signal.GetValue().Len(); }
     void GetVal(const TInt& ElN, TIntFltKd& Val) const { Val = Signal.GetValue()[0]; }
     void GetValV(TVec<TIntFltKd>& ValV) const { ValV = Signal.GetValue(); }
-    uint64 GetTmMSecs() const { return TStreamAggrOut::ITm::GetTmMSecsCast(InAggr); }
+    uint64 GetTmMSecs() const { return InAggrTm->GetTmMSecs(); }
     void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggr->GetAggrNm()); }
 
-    // serialization to JSon
+    /// serialization to JSon
     PJsonVal SaveJson(const int& Limit) const {
         PJsonVal Val = TJsonVal::NewObj();
         Val->AddToObj("Val", Signal.GetJson());
@@ -698,7 +698,7 @@ public:
         return Val;
     }
 
-    // stream aggregator type name 
+    /// stream aggregator type name 
     static TStr GetType();
     TStr Type() const { return GetType(); }
 };
@@ -720,8 +720,6 @@ private:
     TSignalProc::TEma Ema;
 
 protected:
-    void OnAddRec(const TRec& Rec);
-    void OnTime(const uint64& TmMsec);
     void OnStep();
     
     TEma(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
@@ -802,8 +800,6 @@ private:
     TSignalProc::TEmaSpVec Ema;
 
 protected:
-    void OnAddRec(const TRec& Rec);
-    void OnTime(const uint64& TmMsec);
     void OnStep();
 
     TEmaSpVec(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
@@ -845,8 +841,6 @@ private:
     TSignalProc::TCov Cov;
 
 protected:
-    void OnAddRec(const TRec& Rec);
-    void OnTime(const uint64& TmMsec);
     void OnStep();
 
     TCov(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
@@ -874,39 +868,50 @@ public:
 // Moving Correlation.
 class TCorr : public TStreamAggr, public TStreamAggrOut::IFltTm {
 private:    
-    // input
-    TWPt<TStreamAggr> InAggrCov, InAggrVarX, InAggrVarY;
-    TWPt<TStreamAggrOut::IFltTm> InAggrValCov, InAggrValVarX, InAggrValVarY;     
-    //the value
+    /// Input covariance aggregate
+    TWPt<TStreamAggr> InAggrCov;
+    TWPt<TStreamAggrOut::IFltTm> InAggrValCov;
+    /// Input X variance aggregate
+    TWPt<TStreamAggr> InAggrVarX;
+    TWPt<TStreamAggrOut::IFltTm> InAggrValVarX;
+    /// Input Y variance aggregate
+    TWPt<TStreamAggr> InAggrVarY;
+    TWPt<TStreamAggrOut::IFltTm> InAggrValVarY;     
+    /// Current correlation value
     TFlt Corr;
-    //the time stamp 
+    /// Current timestamp
     TUInt64 TmMSecs;
 
-    void InitInAggr(const TWPt<TStreamAggrBase> SABase, const TStr& InAggrNmCov,
+    /// Initialize input aggregates
+    void InitInAggr(const uint& StoreId, const TStr& InAggrNmCov,
         const TStr& InAggrNmVarX, const TStr& InAggrNmVarY);
     
 protected:
-    void OnAddRec(const TRec& Rec);
-    void OnTime(const uint64& TmMsec);
+    /// Update current correlation values
     void OnStep();
+
+    /// Initialize from json
     TCorr(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:
+    /// Initialize from json
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 
-    // did we finish initialization
-    bool IsInit() const { return  InAggrVarX->IsInit() && InAggrVarY->IsInit() && InAggrCov->IsInit(); }
+    /// Did we finish initialization
+    bool IsInit() const;
     /// Resets the aggregate
     void Reset() { TmMSecs = 0;  Corr = 0; }
-    // current values
+    /// Return current correlation value
     double GetFlt() const { return Corr; }
+    /// Return current timestamp
     uint64 GetTmMSecs() const { return 0; }
-    void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggrCov->GetAggrNm()); 
-        InAggrNmV.Add(InAggrVarX->GetAggrNm()); InAggrNmV.Add(InAggrVarY->GetAggrNm());}
-    // serialization to JSon
+    /// List input aggregates
+    void GetInAggrNmV(TStrV& InAggrNmV) const;
+    /// Serialization to JSon
     PJsonVal SaveJson(const int& Limit) const;
     
-    // stream aggregator type name 
+    /// Stream aggregator type name 
     static TStr GetType() { return "correlation"; }
+    /// Stream aggregator type name 
     TStr Type() const { return GetType(); }
 };
 
@@ -1146,9 +1151,7 @@ private:
     TStreamAggrOut::IFltTmIO* InAggrValBuffer; // can be NULL if the input is a time series aggregate (IFltTm)
     TBool BufferedP; ///< is InAggrValBuffer not NULL?
 protected:
-    /// Triggered when a record is added
-    void OnAddRec(const TRec& Rec);
-    void OnTime(const uint64& TmMsec);
+    /// Update histogram
     void OnStep();
     /// JSON constructor
     TOnlineHistogram(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
@@ -1197,9 +1200,8 @@ private:
     TSignalProc::TTDigest Model;
     TFltV QuantilesVals;
 protected:
-    void OnAddRec(const TRec& Rec);
-    void OnTime(const uint64& TmMsec);
     void OnStep();
+    
     TTDigest(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
     TTDigest(const TFltV& Quantiles);
     TTDigest(const TInt& N);
@@ -1249,8 +1251,6 @@ private:
     TSignalProc::TChiSquare ChiSquare;
 
 protected:
-    void OnAddRec(const TRec& Rec);
-    void OnTime(const uint64& TmMsec);
     void OnStep();
     TChiSquare(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:    
@@ -1293,7 +1293,7 @@ inline TStr TWinAggr<TSignalProc::TMax>::GetType() { return "winBufMax"; }
 /////////////////////////////
 // Moving Average
 template <>
-inline void TWinAggr<TSignalProc::TMa>::OnAddRec(const TRec& Rec) {
+inline void TWinAggr<TSignalProc::TMa>::OnStep() {
     TFltV OutValV; InAggrVal->GetOutValV(OutValV);
     TUInt64V OutTmMSecsV; InAggrVal->GetOutTmMSecsV(OutTmMSecsV);
     if (InAggr->IsInit()) {
@@ -1314,38 +1314,6 @@ inline TStr TWinAggr<TSignalProc::TMa>::GetType() { return "ma"; }
 /////////////////////////////
 // Moving Variance
 template <>
-inline void TWinAggr<TSignalProc::TVar>::OnAddRec(const TRec& Rec) {
-    TFltV OutValV; InAggrVal->GetOutValV(OutValV);
-    TUInt64V OutTmMSecsV; InAggrVal->GetOutTmMSecsV(OutTmMSecsV);
-    if (InAggr->IsInit()) {
-        if (!InAggrVal->DelayedP()) {
-            Signal.Update(InAggrVal->GetInVal(), InAggrVal->GetInTmMSecs(),
-                OutValV, OutTmMSecsV, InAggrVal->GetVals());
-        } else {
-            TFltV InValV; InAggrVal->GetInValV(InValV);
-            TUInt64V InTmMSecsV; InAggrVal->GetInTmMSecsV(InTmMSecsV);
-            Signal.Update(InValV, InTmMSecsV, OutValV, OutTmMSecsV, InAggrVal->GetVals());
-        }
-    }
-}
-
-template <>
-inline void TWinAggr<TSignalProc::TVar>::OnTime(const uint64& TmMsec) {
-    TFltV OutValV; InAggrVal->GetOutValV(OutValV);
-    TUInt64V OutTmMSecsV; InAggrVal->GetOutTmMSecsV(OutTmMSecsV);
-    if (InAggr->IsInit()) {
-        if (!InAggrVal->DelayedP()) {
-            Signal.Update(InAggrVal->GetInVal(), InAggrVal->GetInTmMSecs(),
-                OutValV, OutTmMSecsV, InAggrVal->GetVals());
-        } else {
-            TFltV InValV; InAggrVal->GetInValV(InValV);
-            TUInt64V InTmMSecsV; InAggrVal->GetInTmMSecsV(InTmMSecsV);
-            Signal.Update(InValV, InTmMSecsV, OutValV, OutTmMSecsV, InAggrVal->GetVals());
-        }
-    }
-}
-
-template <>
 inline void TWinAggr<TSignalProc::TVar>::OnStep() {
     TFltV OutValV; InAggrVal->GetOutValV(OutValV);
     TUInt64V OutTmMSecsV; InAggrVal->GetOutTmMSecsV(OutTmMSecsV);
@@ -1363,8 +1331,6 @@ inline void TWinAggr<TSignalProc::TVar>::OnStep() {
 
 template <>
 inline TStr TWinAggr<TSignalProc::TVar>::GetType() { return "variance"; }
-
-
 
 // forward declarations
 class TSlottedHistogram;
@@ -1438,10 +1404,9 @@ private:
     TUInt64 WndLen;
 
 protected:
-    /// Triggered when a record is added
-    void OnAddRec(const TRec& Rec);
-    void OnTime(const uint64& TmMsec);
+    /// Update stream aggregate
     void OnStep();
+    
     /// JSON constructor
     TOnlineSlottedHistogram(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:
@@ -1483,10 +1448,12 @@ private:
     TWPt<TStreamAggr> InAggrX, InAggrY;
     TWPt<TStreamAggrOut::IFltVec> InAggrValX, InAggrValY;
 
+    /// Current value
+    TFltV ValV;
+    
 protected:
-    void OnAddRec(const TRec& Rec);
-    void OnTime(const uint64& TmMsec);
     void OnStep();
+    
     TVecDiff(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
@@ -1494,15 +1461,17 @@ public:
     bool IsInit() const { return InAggrX->IsInit() && InAggrY->IsInit(); }
     /// resets the aggregate
     void Reset() { }
-    void LoadState(TSIn& SIn) { /* do nothing, there is not state */ }
-    void SaveState(TSOut& SOut) const { /* do nothing, there is not state */ }
+    /// Load aggregate state
+    void LoadState(TSIn& SIn) { ValV.Load(SIn); }
+    /// Save aggregate state
+    void SaveState(TSOut& SOut) const { ValV.Save(SOut); }
     
     /// returns the number of bins 
     int GetVals() const { return InAggrValX->GetVals(); }
     /// returns frequencies in a given bin
-    void GetVal(const TInt& ElN, TFlt& Val) const { TFlt Flt1, Flt2; InAggrValX->GetVal(ElN, Flt1); InAggrValY->GetVal(ElN, Flt2); Val = Flt1 - Flt2; }
+    void GetVal(const TInt& ElN, TFlt& Val) const { Val = ValV[ElN]; }
     /// returns the vector of frequencies
-    void GetValV(TFltV& ValV) const;
+    void GetValV(TFltV& _ValV) const { _ValV = ValV; }
     /// serialization to JSon
     PJsonVal SaveJson(const int& Limit) const;
     /// stream aggregator type name 

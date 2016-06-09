@@ -668,14 +668,6 @@ PJsonVal TWinBufFltV::SaveJson(const int& Limit) const {
 
 ///////////////////////////////
 // Exponential Moving Average.
-void TEma::OnAddRec(const TRec& Rec) {
-    OnStep();
-}
-
-void TEma::OnTime(const uint64& TmMsec) {
-    OnStep();
-}
-
 void TEma::OnStep() {
     if (InAggr->IsInit()) {
         Ema.Update(InAggrVal->GetFlt(), InAggrVal->GetTmMSecs());
@@ -775,14 +767,6 @@ PJsonVal TThresholdAggr::SaveJson(const int& Limit) const {
 
 ///////////////////////////////
 // Exponential Moving Average for sparse vectors
-void TEmaSpVec::OnAddRec(const TRec& Rec) {
-    OnStep();
-}
-
-void TEmaSpVec::OnTime(const uint64& TmMsec) {
-    OnStep();
-}
-
 void TEmaSpVec::OnStep() {
     if (InAggr->IsInit()) {
         TIntFltKdV Vals;
@@ -822,14 +806,6 @@ PJsonVal TEmaSpVec::SaveJson(const int& Limit) const {
 
 ///////////////////////////////
 // Moving Covariance
-void TCov::OnAddRec(const TRec& Rec) {
-    OnStep();
-}
-
-void TCov::OnTime(const uint64& TmMsec) {
-    OnStep();
-}
-
 void TCov::OnStep() {
     TFltV ValVX; InAggrValX->GetOutValV(ValVX);
     TUInt64V TmMSecsV; InAggrValX->GetOutTmMSecsV(TmMSecsV);
@@ -872,32 +848,22 @@ PJsonVal TCov::SaveJson(const int& Limit) const {
 
 ///////////////////////////////
 // Moving Correlation
-void TCorr::InitInAggr(const TWPt<TStreamAggrBase> SABase, 
-        const TStr& InAggrNmCov, const TStr& InAggrNmVarX, const TStr& InAggrNmVarY) {
-
-    // load and cast three input stream aggregators with IFltTm interfaces            
-    InAggrCov = dynamic_cast<TStreamAggr*>(SABase->GetStreamAggr(InAggrNmCov)());
+void TCorr::InitInAggr(const uint& StoreId, const TStr& InAggrNmCov, const TStr& InAggrNmVarX, const TStr& InAggrNmVarY) {
+    // covariance cast
+    InAggrCov = dynamic_cast<TStreamAggr*>(Base->GetStreamAggr(StoreId, InAggrNmCov)());
     QmAssertR(!InAggrCov.Empty(), "Stream aggregate does not exist: " + InAggrNmCov);
-    InAggrValCov = dynamic_cast<TStreamAggrOut::IFltTm*>(SABase->GetStreamAggr(InAggrNmCov)());
+    InAggrValCov = dynamic_cast<TStreamAggrOut::IFltTm*>(InAggrCov());
     QmAssertR(!InAggrValCov.Empty(), "Stream aggregate does not implement IFltTm interface: " + InAggrNmCov);
-
-    InAggrVarX = dynamic_cast<TStreamAggr*>(SABase->GetStreamAggr(InAggrNmVarX)());
+    // X variance cast
+    InAggrVarX = dynamic_cast<TStreamAggr*>(Base->GetStreamAggr(StoreId, InAggrNmVarX)());
     QmAssertR(!InAggrVarX.Empty(), "Stream aggregate does not exist: " + InAggrNmVarX);
-    InAggrValVarX = dynamic_cast<TStreamAggrOut::IFltTm*>(SABase->GetStreamAggr(InAggrNmVarX)());
+    InAggrValVarX = dynamic_cast<TStreamAggrOut::IFltTm*>(InAggrVarX());
     QmAssertR(!InAggrValVarX.Empty(), "Stream aggregate does not implement IFltTm interface: " + InAggrNmVarX);
-    
-    InAggrVarY = dynamic_cast<TStreamAggr*>(SABase->GetStreamAggr(InAggrNmVarY)());
+    // Y variance cast
+    InAggrVarY = dynamic_cast<TStreamAggr*>(Base->GetStreamAggr(StoreId, InAggrNmVarY)());
     QmAssertR(!InAggrVarY.Empty(), "Stream aggregate does not exist: " + InAggrNmVarY);
-    InAggrValVarY = dynamic_cast<TStreamAggrOut::IFltTm*>(SABase->GetStreamAggr(InAggrNmVarY)());
+    InAggrValVarY = dynamic_cast<TStreamAggrOut::IFltTm*>(InAggrVarY());
     QmAssertR(!InAggrValVarY.Empty(), "Stream aggregate does not implement IFltTm interface: " + InAggrNmVarY);        
-}
-
-void TCorr::OnAddRec(const TRec& Rec) {
-    OnStep();
-}
-
-void TCorr::OnTime(const uint64& TmMsec) {
-    OnStep();
 }
 
 void TCorr::OnStep() {
@@ -921,13 +887,22 @@ TCorr::TCorr(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Bas
     TStr InAggrNmVarY = ParamVal->GetObjStr("inAggrVarY");
     // get store's stream aggregate base
     TWPt<TStore> Store = Base->GetStoreByStoreNm(InStoreNm);   
-    TWPt<TStreamAggrBase> SABase = Base->GetStreamAggrBase(Store->GetStoreId()); 
     // get references to input aggregates
-    InitInAggr(SABase, InAggrNmCov, InAggrNmVarX, InAggrNmVarY);
+    InitInAggr(Store->GetStoreId(), InAggrNmCov, InAggrNmVarX, InAggrNmVarY);
 }
 
 PStreamAggr TCorr::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
     return new TCorr(Base, ParamVal);
+}
+
+bool TCorr::IsInit() const {
+    return InAggrVarX->IsInit() && InAggrVarY->IsInit() && InAggrCov->IsInit();
+}
+
+void TCorr::GetInAggrNmV(TStrV& InAggrNmV) const {
+    InAggrNmV.Add(InAggrCov->GetAggrNm()); 
+    InAggrNmV.Add(InAggrVarX->GetAggrNm());
+    InAggrNmV.Add(InAggrVarY->GetAggrNm());
 }
 
 PJsonVal TCorr::SaveJson(const int& Limit) const {
@@ -1518,15 +1493,6 @@ PJsonVal TFtrExtAggr::SaveJson(const int& Limit) const {
 
 ///////////////////////////////
 /// Histogram stream aggregate
-void TOnlineHistogram::OnAddRec(const TRec& Rec) {
-    OnStep();
-}
-
-void TOnlineHistogram::OnTime(const uint64& TmMsec) {
-    OnStep();
-}
-
-
 void TOnlineHistogram::OnStep() {
     if (BufferedP) {
         TFltV UpdateV;
@@ -1543,7 +1509,6 @@ void TOnlineHistogram::OnStep() {
         Model.Increment(InAggrVal->GetFlt());
     }
 }
-
 
 TOnlineHistogram::TOnlineHistogram(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
         TStreamAggr(Base, ParamVal), Model(ParamVal) {
@@ -1599,14 +1564,6 @@ PStreamAggr TTDigest::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
     return new TTDigest(Base, ParamVal);
 }
 
-void TTDigest::OnAddRec(const TRec& Rec) {
-    OnStep();
-}
-
-void TTDigest::OnTime(const uint64& TmMsec) {
-    OnStep();
-}
-
 void TTDigest::OnStep() {
     TFlt Val = InAggrVal->GetFlt();
     if (InAggr->IsInit()) {
@@ -1638,14 +1595,6 @@ void TTDigest::SaveState(TSOut& SOut) const {
 
 ///////////////////////////////
 /// Chi square stream aggregate
-void TChiSquare::OnAddRec(const TRec& Rec) {
-    OnStep();
-}
-
-void TChiSquare::OnTime(const uint64& TmMsec) {
-    OnStep();
-}
-
 void TChiSquare::OnStep() {
     TFltV ValVX; InAggrValX->GetValV(ValVX);
     TFltV ValVY; InAggrValY->GetValV(ValVY);
@@ -1765,16 +1714,6 @@ void TSlottedHistogram::GetStats(const uint64 TsMin, const uint64 TsMax, TFltV& 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // TOnlineSlottedHistogram
-
-/// Triggered when a record is added
-void TOnlineSlottedHistogram::OnAddRec(const TRec& Rec) {
-    OnStep();
-}
-
-void TOnlineSlottedHistogram::OnTime(const uint64& TmMsec) {
-    OnStep();
-}
-
 void TOnlineSlottedHistogram::OnStep() {
     if (BufferedP) {
         LastTm = InAggrValBuffer->GetInTmMSecs();
@@ -1895,21 +1834,17 @@ PStreamAggr TVecDiff::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
     return new TVecDiff(Base, ParamVal);
 }
 
-void TVecDiff::OnAddRec(const TRec& Rec) {
-    OnStep();
-}
-
-void TVecDiff::OnTime(const uint64& TmMsec) {
-    OnStep();
-}
-
-void TVecDiff::OnStep() { } // do nothing
-
-/// returns the vector of frequencies
-void TVecDiff::GetValV(TFltV& ValV) const {
+void TVecDiff::OnStep() {
+    // Get input vectors
     TFltV ValV1, ValV2;
     InAggrValX->GetValV(ValV1);
     InAggrValY->GetValV(ValV2);
+    // check sizes are ok
+    QmAssertR(ValV1.Len() == ValV2.Len(), "[TVecDiff]: Dimensions of input vectors do not match");
+    // reserve place for the diff
+    const int Vals = ValV1.Len();
+    ValV.Gen(Vals, 0);
+    // get the diff
     for (int i = 0; i < ValV1.Len(); i++) {
         ValV.Add(ValV1[i] - ValV2[i]);
     }
@@ -1922,8 +1857,6 @@ PJsonVal TVecDiff::SaveJson(const int& Limit) const {
     Res->AddToObj("aggr1", InAggrX->SaveJson(Limit));
     Res->AddToObj("aggr2", InAggrY->SaveJson(Limit));
 
-    TFltV ValV;
-    GetValV(ValV);
     PJsonVal CountsArr = TJsonVal::NewArr();
     for (int ElN = 0; ElN < ValV.Len(); ElN++) {
         CountsArr->AddToArr(ValV[ElN]);
