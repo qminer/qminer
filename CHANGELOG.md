@@ -1,5 +1,41 @@
 # QMiner Change Log
 
+### 26 May 2016
+
+**Version: 5.3.0**
+
+**Non-breaking with new features**
+
+New features:
+ - Non-negative matrix factorization: *qm.analytics.nmf(mat, k, json)*
+ - Recommender System (using nmf): *new qm.analytics.RecommenderSys(params)*
+ - added TFtrExt::GetFtrRange() which returns the range of the feature
+ - added method TJsonVal::SetArrVal
+
+Bugfix: 
+ - fixed concurrency bug when executing code from worker thread on the main thread
+ - fixed TNodeJsUtil::GetFldObj and TNodeJsUtil::GetFldFun
+
+Other:
+ - testing non-implemented stuff removed
+ - new API for inverting feature vectors
+ - moved StreamStory to third_party
+ - started cleaning TLinAlg: added some new classes, removed most ifdefs
+ - added macros for TLinAlg templates
+
+### 6 May 2016
+
+**Version: 5.2.0**
+
+**Non-breaking with new feature**
+
+New features:
+ - Added binary option to multinomial feature extractor: check only for presenc of value and does not weight by count
+
+Bugfix: 
+ - `TSimpleLinReg::SaveState` failed as it saved object and loaded smart-pointer.
+
+
 ### 15 Apr 2016
 
 **Version: 5.1.0**

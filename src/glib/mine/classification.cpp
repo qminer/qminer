@@ -849,7 +849,7 @@ void TDecisionTree::Grow(const TFltVV& FtrVV, const TFltV& ClassV, const PNotify
 	CleanUp();
 	const int NInst = FtrVV.GetCols();
 
-	TIntV RangeV(NInst);	TLAUtil::Range(NInst, RangeV);
+	TIntV RangeV(NInst);	TLinAlgTransform::RangeV(NInst, RangeV);
 
 	Root = new TNode(this);
 	Root->Fit(FtrVV, ClassV, RangeV);

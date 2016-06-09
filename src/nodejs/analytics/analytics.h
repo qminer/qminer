@@ -22,6 +22,68 @@
  * @example
  * // import module, load dataset, create model, evaluate model
  */
+class TNodeJsAnalytics : public node::ObjectWrap {
+	friend class TNodeJsUtil;
+public:
+	static void Init(v8::Handle<v8::Object> exports);
+
+private:
+	class TNMFTask : public TNodeTask {
+	private:
+		TNodeJsFltVV* JsFltVV;
+		TNodeJsSpMat* JsSpVV;
+		TNodeJsFltVV* U;
+		TNodeJsFltVV* V;
+		int k;
+		int Iter;
+		double Tol;
+		PNotify Notify;
+
+	public:
+		TNMFTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+		v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+		void Run();
+		v8::Local<v8::Value> WrapResult();
+	};
+public:
+	/**
+	* Computes the non-negative matrix factorization.
+	* @param {(module:la.Matrix | module:la.SparseMatrix)} mat - The non-negative matrix.
+	* @param {number} k - The reduced rank, e.g. number of columns in matrix U and number of rows in matrix V. Must be between 0 and min(mat.rows, mat.cols).
+	* @param {Object} [json] - Calculation options.
+	* @param {number} [json.iter = 100] - The number of iterations used for the algorithm.
+	* @param {number} [json.tol = 1e-3] - The tolerance.
+	* @param {boolean} [json.verbose = false] - If false, the console output is supressed.
+	* @returns {Object} The json object containing the non-negative matrices U and V.
+	* @example <caption>Asynchronous function</caption>
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // create a matrix
+	* var mat = new la.Matrix({ rows: 10, cols: 5, random: true });
+	* // compute the non-negative matrix factorization
+	* analytics.nmfAsync(mat, 3, { iter: 100, tol: 1e-4 }, function (err, result) {
+	*    if (err) { console.log(err); }
+	*    // calculation successful
+	*    var U = result.U;
+	*    var V = result.V;
+	* });
+	* @example <caption>Synchronous function</caption>
+	* // import modules
+	* var analytics = require('qminer').analytics;
+	* var la = require('qminer').la;
+	* // create a matrix
+	* var mat = new la.Matrix({ rows: 10, cols: 5, random: true });
+	* // compute the non-negative matrix factorization
+	* var result = analytics.nmf(mat, 3, { iter: 100, tol: 1e-4 });
+	* var U = result.U;
+	* var V = result.V;
+	*/
+	//# exports.prototype.nmf = function (mat, k, json) { return { "U": Object.create(require('qminer').la.Matrix.prototype), "V": Object.create(require('qminer').la.Matrix.prototype) }; }
+	JsDeclareSyncAsync(nmf, nmfAsync, TNMFTask);
+};
+
 
 ///////////////////////////////
 // QMiner-JavaScript-Support-Vector-Machine-Model
@@ -1560,387 +1622,6 @@ public:
 };
 
 
-////////////////////////////////////////////////////////
-// Hierarchical Markov Chain model
-//!
-//! **Constructor:**
-//!
-//!- `hmc = new analytics.HMC(params)` -- Creates a new model using `params` JSON. TODO param description.
-//!- `hmc = new analytics.HMC(fin)` -- Loads the model from input stream `fin`.
-class TNodeJsStreamStory : public node::ObjectWrap, public TMc::TStreamStoryCallback {
-	friend class TNodeJsUtil;
-public:
-	static void Init(v8::Handle<v8::Object> exports);
-	static const TStr GetClassId() { return "_StreamStory"; }
-
-private:
-	const static double DEFAULT_DELTA_TM;
-
-	TMc::TStreamStory* StreamStory;
-
-	v8::Persistent<v8::Function> StateChangedCallback;
-	v8::Persistent<v8::Function> AnomalyCallback;
-	v8::Persistent<v8::Function> OutlierCallback;
-	v8::Persistent<v8::Function> ProgressCallback;
-	v8::Persistent<v8::Function> PredictionCallback;
-	v8::Persistent<v8::Function> ActivityCallback;
-
-	TNodeJsStreamStory(TMc::TStreamStory* McModel);
-	TNodeJsStreamStory(PSIn& SIn);
-
-	~TNodeJsStreamStory();
-
-	static TNodeJsStreamStory* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
-
-private:
-	class TFitTask: public TNodeTask {
-	private:
-		TNodeJsStreamStory* JsStreamStory;
-		TNodeJsFltVV* JsObservFtrVV;
-		TNodeJsFltVV* JsControlFtrVV;
-		TNodeJsFltVV* JsIgnoredFtrVV;
-		TNodeJsFltV* JsRecTmV;
-		TNodeJsBoolV* JsBatchEndJsV;
-
-	public:
-		TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
-
-		v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
-		void Run();
-	};
-
-	class TProgressTask: public TMainThreadTask {
-	private:
-		int Perc;
-		TStr Msg;
-		v8::Persistent<v8::Function>* ProgressCallback;
-	public:
-		TProgressTask(const int& _Perc, const TStr& _Msg, v8::Persistent<v8::Function>* _ProgressCallback):
-			Perc(_Perc),
-			Msg(_Msg),
-			ProgressCallback(_ProgressCallback) {}
-		void Run();
-	};
-
-public:
-
-	JsDeclareSyncAsync(fit,fitAsync,TFitTask);
-
-	//!- `hmc.update(obsFtrV, contrFtrV, recTm)` TODO write documentation
-	JsDeclareFunction(update);
-
-	/**
-	 * Returns the probability distribution over the future states given that the current state is the one in
-	 * the parameter.
-	 *
-	 * @param {Number} level - the level on which we want the future states
-	 * @param {Number} startState - the ID of the current state (the state we are starting from)
-	 * @param {Number} [time] - optional parameter, if not specified the distribution of the next state will be returned
-	 * @returns {Array} - the probability distribution
-	 */
-	JsDeclareFunction(futureStates);
-
-	/**
-	 * Returns the probability distribution over the past states given that the current state is the one in
-	 * the parameter.
-	 *
-	 * @param {Number} level - the level on which we want the past states
-	 * @param {Number} startState - the ID of the current state (the state we are starting from)
-	 * @param {Number} [time] - optional parameter, if not specified the distribution of the previous state will be returned
-	 * @returns {Array} - the probability distribution
-	 */
-	JsDeclareFunction(pastStates);
-
-	JsDeclareFunction(predictNextState);
-
-	/**
-	 * Returns the probability distribution of past and future states over time.
-	 *
-	 * @param {Number} stateId - ID if the starting state
-	 * @param {Number} height - the hieght
-	 * @param {Number} time - the time at which we want the probabilities
-	 * @returns {Array} - array of state ids and their probabilities
-	 */
-	JsDeclareFunction(probsAtTime);
-
-	/**
-	 * Returns information about previous states.
-	 *
-	 * @param {Number} level - the level on which we want the past states
-	 * @retuns {Array} - information about the past states
-	 */
-	JsDeclareFunction(histStates);
-
-	/**
-	 * Returns an object representation of this model.
-	 *
-	 * @returns {Object}
-	 */
-	JsDeclareFunction(toJSON);
-
-	/**
-	 * Returns an object representation of a subset of this model.
-	 *
-	 * @param {Number} stateId - state to zoom into
-	 * @returns {Object}
-	 */
-	JsDeclareFunction(getSubModelJson);
-
-	/**
-	 * Returns an object representation of a subset of this model.
-	 *
-	 * @param {Number} stateId - the starting state id
-	 * @param {Number} height - the height on which the path is requested
-	 * @param {Number} length - the length of the path
-	 * @param {Number} [transTreshold=0.2] - only consider transitions above this threshold
-	 * @returns {Object}
-	 */
-	JsDeclareFunction(getStatePath);
-
-	/**
-	 * Returns the underlying transition model at the lowest level. (for CTMC the matrix of intensities)
-	 *
-	 * @returns {Array} - the transition model
-	 */
-	JsDeclareFunction(getTransitionModel);
-
-	/**
-	 * Returns the current state throughout the hierarchy. If the level is specified it
-	 * will return the current state only on that level.
-	 *
-	 * @param {Number} [level] - optional level parameter
-	 * @returns {Array|Number} - if the level is specified it returns info about the current state on that level, otherwise it return info about the current state on each level on the hierarchy
-	 */
-	JsDeclareFunction(currState);
-
-	/**
-	 * Returns the centroid of the specified state containing only the observation parameters.
-	 *
-	 * @param {Number} stateId - the ID of the state
-	 * @param {Integer} [ftrSpaceN] - indicates wether to output observation or control coordinates
-	 * @returns {Array} - the coordinates of the state
-	 */
-	JsDeclareFunction(fullCoords);
-
-	JsDeclareFunction(getStateCentroids);
-
-	/**
-	 * Returns a histogram of the specified feature in the specified state.
-	 *
-	 * @param {Number} ftrId - the ID of the feature
-	 * @param {Number} [stateId] - the ID of the statem if no state is provided, a histogram for all the states is returned
-	 * @returns {Array} - the histogram
-	 */
-	JsDeclareFunction(histogram);
-
-	JsDeclareFunction(transitionHistogram);
-
-	JsDeclareFunction(timeHistogram);
-
-	/**
-	 * Returns the lower and upper bound of the feature.
-	 *
-	 * @param {Integer} ftrId - id of the feature
-	 */
-	JsDeclareFunction(getFtrBounds);
-
-	/**
-	 * Returns an array of IDs of all the states on the specified height.
-	 *
-	 * @param {Number} height - the height
-	 * @returns {Array} - the array of IDs
-	 */
-	JsDeclareFunction(stateIds);
-
-	/**
-	 * Returns the weights of features in this state.
-	 *
-	 * @param {Number} stateId - The Id of the state.
-	 * @returns {Array} - An array of weights.
-	 */
-	JsDeclareFunction(getStateWgtV);
-
-	/**
-	 * Returns a JSON representation of a decision tree, which classifies
-	 * this state against other states
-	 *
-	 * @param {Number} stateId
-	 * @returns {Object}
-	 */
-	JsDeclareFunction(getClassifyTree);
-
-	JsDeclareFunction(explainState);
-
-	// activities
-	JsDeclareFunction(setActivity);
-	JsDeclareFunction(removeActivity);
-	JsDeclareFunction(getActivities);
-
-	/**
-	 * Sets a callback function which is fired when the model changes states. An array of current states
-	 * throughout the hierarchy is passed to the callback.
-	 *
-	 * @param {function} callback - the funciton which is called
-	 */
-	JsDeclareFunction(onStateChanged);
-
-	/**
-	 * Sets a callback function which is fired when the model detects an anomaly. A string description is
-	 * passed to the callback.
-	 *
-	 * @param {function} callback - the funciton which is called
-	 */
-	JsDeclareFunction(onAnomaly);
-
-	/**
-	 * Sets a callback function which is fired when the model detects an outlier. A string description is
-	 * passed to the callback.
-	 *
-	 * @param {function} callback - the funciton which is called
-	 */
-	JsDeclareFunction(onOutlier);
-
-	JsDeclareFunction(onProgress);
-
-	/**
-	 * Sets a callback function which is fired when a prediction is made. 4 paramters are passed
-	 * to the callback:
-	 * - Id of the target state
-	 * - probability of occurring
-	 * - vector of probabilities
-	 * - vector of times corresponding to those probabilities
-	 *
-	 * @param {function} callback - the funciton which is called
-	 */
-	JsDeclareFunction(onPrediction);
-
-	JsDeclareFunction(onActivity);
-
-	/**
-	 * Rebuilds its hierarchy.
-	 */
-	JsDeclareFunction(rebuildHierarchy);
-
-	/**
-	 * Rebuilds the histograms using the instances stored in the columns of X.
-	 *
-	 * @param {Matrix} obsMat - the column matrix containing observation data instances
-	 * @param {Matrix} controlMat - the column matrix containing control data instances
-	 */
-	JsDeclareFunction(rebuildHistograms);
-
-	JsDeclareFunction(getStateLabel);
-	JsDeclareFunction(getStateAutoName);
-	JsDeclareFunction(narrateState);
-	JsDeclareFunction(getStateTypTimes);
-
-	/**
-	 * Returns the name of a state.
-	 *
-	 * @param {Number} stateId - ID of the state
-	 * @returns {String} - the name of the state
-	 */
-	JsDeclareFunction(getStateName);
-
-	/**
-	 * Sets the name of the state.
-	 *
-	 * @param {Number} stateId - ID of the state
-	 * @param {String} name - name of the state
-	 */
-	JsDeclareFunction(setStateName);
-
-	JsDeclareFunction(setStateCoords);
-
-	/**
-	 * Sets the name of the state.
-	 *
-	 * @param {Number} stateId - ID of the state
-	 */
-	JsDeclareFunction(clearStateName);
-
-	/**
-	 * Returns true if the state is a target on the specified height.
-	 *
-	 * @param {Number} stateId - Id of the state
-	 * @returns {Boolean}
-	 */
-	JsDeclareFunction(isTarget);
-
-	/**
-	 * Sets whether the specified state is a target state or not.
-	 *
-	 * @param {Number} stateId - ID of the state
-	 * @param {Boolean} isTarget - set target on/off
-	 */
-	JsDeclareFunction(setTarget);
-
-	/**
-	 * Returns true if the state defined by the ID is at the bottom of the hierarchy.
-	 *
-	 * @param {Number} stateId - ID of the state
-	 */
-	JsDeclareFunction(isLeaf);
-
-	/**
-	 * Returns the time unit used by this model.
-	 *
-	 * @returns {String} timeUnit
-	 */
-	JsDeclareFunction(getTimeUnit);
-
-	/**
-	 * Sets the factor of the specified control:
-	 *
-	 * @param {Object} params - the parameters
-	 * @property {Number} [params.stateId] - id of the state, if not present, all the states will be set
-	 * @property {Number} params.ftrId - the index of the control feature
-	 * @property {Number} params.val - the value of the featuere
-	 */
-	JsDeclareFunction(setControlVal);
-
-	JsDeclareFunction(resetControlVal);
-
-	/**
-	 * Returns true is any of the control parameters have been set in any of the states.
-	 *
-	 * @returns {Boolean}
-	 */
-	JsDeclareFunction(isAnyControlFtrSet);
-
-	// parameters
-	//!- `hmc = hmc.getParams(params)` -- sets one or more parameters given
-	//!- in the input argument `params` returns this
-	JsDeclareFunction(setParams);
-
-	JsDeclareFunction(getParam);
-
-	/**
-	 * Saves the model to the output stream.
-	 *
-	 * @param {FOut} fout - the output stream
-	 */
-	JsDeclareFunction(save);
-
-	// TMcCallback - callbacks
-	void OnStateChanged(const uint64 Tm, const TIntFltPrV& StateIdHeightV);
-	void OnAnomaly(const TStr& AnomalyDesc);
-	void OnOutlier(const TFltV& FtrV);
-	void OnProgress(const int& Perc, const TStr& Msg);
-	void OnPrediction(const uint64& RecTm, const int& CurrStateId, const int& TargetStateId,
-			const double& Prob, const TFltV& ProbV, const TFltV& TmV);
-	void OnActivityDetected(const uint64& StartTm, const uint64& EndTm, const TStr& ActNm);
-
-private:
-	void SetParams(const PJsonVal& ParamVal);
-	void InitCallbacks();
-
-	static v8::Local<v8::Object> WrapHistogram(const TFltV& BinValV,
-			const TFltV& SourceProbV, const TFltV& TargetProbV, const TFltV& AllProbV);
-	static uint64 GetTmUnit(const TStr& TmUnitStr);
-	static TClustering::TAbsKMeans<TFltVV>* GetClust(const PJsonVal& ParamJson, const TRnd& Rnd);
-};
-
 ///////////////////////////////
 // QMiner-JavaScript-Neural-Networks
 
@@ -2277,7 +1958,7 @@ public:
 	* <i>Only for the asynchronous function.</i>
 	* @returns {module:la.Matrix} The matrix of dimensions mat.cols x 2, where the i-th row of the matrix is the 2d representation 
 	* of the i-th column of mat.
-	* @example <caption> Asynchronous function </caption>
+	* @example <caption>Asynchronous function</caption>
 	* // import the modules
 	* var analytics = require('qminer').analytics;
 	* var la = require('qminer').la;
@@ -2291,7 +1972,7 @@ public:
 	*    // successful calculation
 	*    var mat2d = res;
 	* }); 
-	* @example <caption> Synchronous function </caption>
+	* @example <caption>Synchronous function</caption>
 	* // import the modules
 	* var analytics = require('qminer').analytics;
 	* var la = require('qminer').la;
@@ -2352,7 +2033,6 @@ private:
  * @classdesc KMeans clustering
  * @class
  * @param {(module:analytics~KMeansParameters |  module:fs.FIn)} [params] - The parameters for the construction.
- 
  * @example
  * // import analytics and la modules
  * var analytics = require('qminer').analytics;
@@ -2578,6 +2258,163 @@ private:
     void CleanUp();
 };
 
+/////////////////////////////////////////////
+// QMiner-JavaScript-Recommender System
+
+/**
+* @typedef {Object} RecSysParams
+* @property {number} [iter=10000] - The maximum number of iterations.
+* @property {number} [k=2] - The number of centroids.
+* @property {number} [tol=1e-3] - The tolerance.
+* @property {boolean} [verbose=false] - If false, the console output is supressed.
+*/
+
+/**
+* @classdesc Recommender System
+* @class
+* @param {(module:analytics~RecSysParams |  module:fs.FIn)} [params] - The parameters for the construction.
+* @example
+* // import analytics and la modules
+* var analytics = require('qminer').analytics;
+* var la = require('qminer').la;
+* // create a Recommender System object
+* var recSys = new analytics.RecommenderSys({ tol: 1e-3, iter: 10000, k: 2, verbose: false });
+* // create the matrix to be fitted
+* var X = new la.Matrix([[1, 2, 1], [1, 1, 3]]);
+* // create the model
+* recSys.fit(X);
+*/
+//# exports.RecommenderSys = function (params) { return Object.create(require('qminer').analytics.RecommenderSys.prototype); }
+class TNodeJsRecommenderSys : public node::ObjectWrap {
+	friend class TNodeJsUtil;
+public:
+	static void Init(v8::Handle<v8::Object> exports);
+	static const TStr GetClassId() { return "RecommenderSys"; }
+
+private:
+	int Iter;
+	int K;
+	double Tol;
+	bool Verbose;
+	PNotify Notify;
+
+	TFltVV U;
+	TFltVV V;
+	
+	TNodeJsRecommenderSys(const PJsonVal& ParamVal);
+	TNodeJsRecommenderSys(TSIn& SIn);
+
+	static TNodeJsRecommenderSys* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+private:
+	class TFitTask : public TNodeTask {
+		TNodeJsRecommenderSys* JsRecSys;
+		TNodeJsFltVV*  JsFltVV;
+		TNodeJsSpMat*  JsSpVV;
+
+	public:
+		TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+		v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+		void Run();
+	};
+
+public:
+
+	/**
+	* Returns the parameters.
+	* @returns {module:analytics~RecSysParams} The construction parameters.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a new KMeans object
+	* var recSys = new analytics.RecommenderSys({ iter: 1000, k: 5 });
+	* // get the parameters
+	* var json = recSys.getParams();
+	*/
+	//# exports.RecommenderSys.prototype.getParams = function () { return { iter: 10000, k: 2, tol: 1e-3, verbose: false }; }
+	JsDeclareFunction(getParams);
+
+	/**
+	* Sets the parameters.
+	* @param {module:analytics~RecSysParams} params - The construction parameters.
+	* @returns {module:analytics.RecommenderSys} Self.
+	* @example
+	* // import analytics module
+	* var analytics = require('qminer').analytics;
+	* // create a new Recommender System object
+	* var recSys = new analytics.RecommenderSys();
+	* // change the parameters of the Recommender System object
+	* recSys.setParams({ iter: 1000, k: 5 });
+	*/
+	//# exports.RecommenderSys.prototype.setParams = function (params) { return Object.create(require('qminer').analytics.RecommenderSys.prototype); }
+	JsDeclareFunction(setParams);
+
+	/**
+	 * Gets the model.
+	 * @returns {Object} An object <b>json</b> containing the matrices json.U and json.V, for which the product gives the approximation of the fitted 
+	 * matrix.
+	 * @example
+	 * // import modules
+	 * //var analytics = require('qminer').analytics;
+	 * //var la = require('qminer').la;
+	 * // create a new Recommender System object
+	 * //var recSys = new analytics.RecommenderSys({ iter: 1000, k: 3 });
+	 * // create a matrix to be fitted
+	 * //var X = new la.Matrix([[1, 5, 0], [1, 0, 3]]);
+	 * // create the model with the matrix X
+	 * //recSys.fit(X);
+	 * // get the model
+	 * //var model = recSys.getModel();
+	 */
+	//# exports.RecommenderSys.prototype.getModel = function (params) { return Object.create(require('qminer').analytics.RecommenderSys.prototype); }
+	JsDeclareFunction(getModel);
+
+	/**
+	* Fits the input matrix to the recommender model.
+	* @param {(module:la.Matrix | module:la.SparseMatrix)} A - Matrix with the ratings, where it A_ij element is the rating that the i-th person
+	* gave to the j-th item. If A_ij = 0, the data doesn't exist.
+	* @returns {module:analytics.RecommenderSys} Self.
+	* @example <caption> Asynhronous function </caption>
+	* // import modules
+	* //var analytics = require('qminer').analytics;
+	* //var la = require('qminer').la;
+	* // create a new Recommender System object
+	* //var recSys = new analytics.RecommenderSys({ iter: 1000, k: 3 });
+	* // create a matrix to be fitted
+	* //var X = new la.Matrix([[1, 5, 0], [1, 0, 3]]);
+	* // create the model with the matrix X
+	* //recSys.fitAsync(X, function (err) {
+	* //   if (err) { console.log(err); }
+	* //   // successful calculation
+	* //});
+	* @example <caption> Synhronous function </caption>
+	* // import modules
+	* //var analytics = require('qminer').analytics;
+	* //var la = require('qminer').la;
+	* // create a new Recommender System object
+	* //var recSys = new analytics.RecommenderSys({ iter: 1000, k: 3 });
+	* // create a matrix to be fitted
+	* //var X = new la.Matrix([[1, 5, 0], [1, 0, 3]]);
+	* // create the model with the matrix X
+	* //recSys.fit(X);
+	*/
+	//# exports.RecommenderSys.prototype.fit = function (A) { return Object.create(require('qminer').analytics.RecommenderSys.prototype); }
+	JsDeclareSyncAsync(fit, fitAsync, TFitTask);
+
+	/**
+	* Saves RecommenderSys internal state into (binary) file.
+	* @param {module:fs.FOut} Out - The output stream.
+	* @returns {module:fs.FOut} The output stream fout.
+	*/
+	//# exports.RecommenderSys.prototype.save = function (Out) { return Object.create(require('qminer').fs.FOut.prototype); }
+	JsDeclareFunction(save);
+
+private:
+	void UpdateParams(const PJsonVal& ParamVal);
+	PJsonVal GetParams() const;
+	void Save(TSOut& SOut) const;
+};
 
 #endif /* ANALYTICS_H_ */
 

@@ -419,6 +419,24 @@ double TNodeJsUtil::GetArgFlt(const v8::FunctionCallbackInfo<v8::Value>& Args, c
     return DefVal;
 }
 
+void TNodeJsUtil::GetArgFltV(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, TFltV& FltV) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    EAssert(Args.Length() > ArgN);
+	EAssertR(Args[ArgN]->IsArray(), "TNodeJsUtil::GetArgFltV: Argument is not an array!");
+	v8::Array* Arr = v8::Array::Cast(*Args[ArgN]);
+
+	const int Len = Arr->Length();
+
+	FltV.Gen(Len);
+	for (int i = 0; i < Len; i++) {
+		v8::Local<v8::Value> ArrVal = Arr->Get(i);
+		EAssertR(ArrVal->IsNumber(), "TNodeJsUtil::GetArgFltV: Value is not a number!");
+		FltV[i] = ArrVal->NumberValue();
+	}
+}
+
 /// Extract argument ArgN as TStr
 TStr TNodeJsUtil::GetArgStr(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -458,7 +476,7 @@ TStr TNodeJsUtil::GetArgStr(const v8::FunctionCallbackInfo<v8::Value>& Args, con
 
 PJsonVal TNodeJsUtil::GetArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
     EAssertR(Args.Length() >= ArgN, "TNodeJsUtil::GetArgJson: Invalid number of arguments!");
-    EAssertR(Args[ArgN]->IsObject(), "TNodeJsUtil::GetArgJson: Argument is not an object!");
+    EAssertR(Args[ArgN]->IsObject(), "TNodeJsUtil::GetArgJson: Argument is not an object, number or boolean!");
 	return GetObjJson(Args[ArgN]->ToObject());
 }
 
@@ -560,26 +578,26 @@ PJsonVal TNodeJsUtil::GetFldJson(v8::Local<v8::Object> Obj, const TStr& FldNm) {
 
 v8::Local<v8::Object> TNodeJsUtil::GetFldObj(v8::Local<v8::Object> Obj, const TStr& FldNm) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
+	v8::EscapableHandleScope HandleScope(Isolate);
 
 	EAssertR(IsObjFld(Obj, FldNm), "TNodeJsUtil::GetUnwrapFld: Key " + FldNm + " is missing!");
 	v8::Handle<v8::Value> FldVal = Obj->Get(v8::String::NewFromUtf8(Isolate, FldNm.CStr()));
 	EAssertR(FldVal->IsObject(), "TNodeJsUtil::GetUnwrapFld: Key " + FldNm + " is not an object");
-	v8::Handle<v8::Object> FldObj = v8::Handle<v8::Object>::Cast(FldVal);
+	v8::Local<v8::Object> FldObj = v8::Handle<v8::Object>::Cast(FldVal);
 
-	return FldObj;
+	return HandleScope.Escape(FldObj);
 }
 
 v8::Local<v8::Function> TNodeJsUtil::GetFldFun(v8::Local<v8::Object> Obj, const TStr& FldNm) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
+	v8::EscapableHandleScope HandleScope(Isolate);
 
 	EAssertR(IsFldFun(Obj, FldNm), "The field is not a function!");
 
 	v8::Local<v8::Value> FldVal = Obj->Get(v8::String::NewFromUtf8(Isolate, FldNm.CStr()));
 	v8::Local<v8::Function> RetFun = v8::Handle<v8::Function>::Cast(FldVal);
 
-	return RetFun;
+	return HandleScope.Escape(RetFun);
 }
 
 int TNodeJsUtil::GetFldInt(v8::Local<v8::Object> Obj, const TStr& FldNm) {
@@ -788,9 +806,14 @@ uint64 TNodeJsUtil::GetTmMSecs(v8::Handle<v8::Date>& Date) {
 
 //////////////////////////////////////////////////////
 // Async Stuff
-TNodeJsAsyncUtil::TMainData::TMainData(TMainThreadTask* _Task, const bool& _DelTask):
+TNodeJsAsyncUtil::TMainTaskWrapper::TMainTaskWrapper(TMainThreadTask* _Task, const bool& _DelTask):
 		Task(_Task),
 		DelTask(_DelTask) {}
+
+TNodeJsAsyncUtil::TMainBlockTaskWrapper::TMainBlockTaskWrapper(TMainThreadTask* Task,
+			const bool& DelTask):
+		TMainTaskWrapper(Task, DelTask),
+		Semaphore() {}
 
 TNodeTask::TNodeTask(const v8::FunctionCallbackInfo<v8::Value>& Args):
 		Callback(),
@@ -856,39 +879,87 @@ void TNodeTask::ExtractCallback(const v8::FunctionCallbackInfo<v8::Value>& Args)
 
 //////////////////////////////////////////////////////
 // Node - Asynchronous Utilities
-void TNodeJsAsyncUtil::OnMain(uv_async_t* UvAsync) {
-	TMainData* TaskWrapper = static_cast<TMainData*>(UvAsync->data);
+TCriticalSection TNodeJsAsyncUtil::UvSection;
+
+TNodeJsAsyncUtil::TAsyncHandleType TNodeJsAsyncUtil::GetHandleType(const uv_async_t* UvAsync) {
+	TLock Lock(UvSection);
+
+	TAsyncHandleConfig* Config = static_cast<TAsyncHandleConfig*>(UvAsync->data);
+	return Config->HandleType;
+}
+
+void TNodeJsAsyncUtil::SetAsyncData(TMainThreadHandle* UvAsync, TMainTaskWrapper* TaskWrapper) {
+	TLock Lock(UvSection);
+
+	TAsyncHandleConfig* Config = static_cast<TAsyncHandleConfig*>(UvAsync->data);
+
+	if (Config->TaskWrapper != nullptr) {
+		Config->TaskWrapper->DelTask = true;
+		delete Config->TaskWrapper;
+		Config->TaskWrapper = nullptr;
+	}
+
+	Config->TaskWrapper = TaskWrapper;
+
+	AssertR(Config->TaskWrapper != nullptr, "Task wrapper is a null pointer!");
+	AssertR(Config->TaskWrapper->Task != nullptr, "Task data is a null pointer!");
+}
+
+TNodeJsAsyncUtil::TMainTaskWrapper* TNodeJsAsyncUtil::ExtractAndClearData(TMainThreadHandle* UvAsync) {
+	TLock Lock(UvSection);
+
+	TAsyncHandleConfig* Config = static_cast<TAsyncHandleConfig*>(UvAsync->data);
+
+	TMainTaskWrapper* Result = Config->TaskWrapper;
+	Config->TaskWrapper = nullptr;
+
+	return Result;
+}
+
+void TNodeJsAsyncUtil::OnMain(TMainThreadHandle* UvAsync) {
+	TMainTaskWrapper* TaskWrapper = nullptr;
 
 	try {
-		TaskWrapper->Task->Run();
+		TaskWrapper = ExtractAndClearData(UvAsync);
+
+		// libuv does not always merge the tasks, so it might be
+		// that this task was already processed by the previous request
+		if (TaskWrapper == nullptr) { return; }
+
+		TMainThreadTask* Task = TaskWrapper->Task;
+		Task->Run();
 	} catch (const PExcept& Except) {
 		printf("Exception on main thread: %s!", Except->GetMsgStr().CStr());
 	}
 
 	// clean up
-	uv_close((uv_handle_t*) UvAsync, DelHandle<uv_async_t>);
-	delete TaskWrapper;
+	if (TaskWrapper != nullptr) {
+		delete TaskWrapper;
+	}
 }
 
-void TNodeJsAsyncUtil::OnMainBlock(uv_async_t* UvAsync) {
-	TMainSemaphoreData* Task = static_cast<TMainSemaphoreData*>(UvAsync->data);
+void TNodeJsAsyncUtil::OnMainBlock(TMainThreadHandle* UvAsync) {
+	TMainBlockTaskWrapper* TaskWrapper = nullptr;
 
 	try {
-		Task->Task->Run();
+		TaskWrapper = (TMainBlockTaskWrapper*) ExtractAndClearData(UvAsync);
+		TMainThreadTask* Task = TaskWrapper->Task;
+		Task->Run();
 	} catch (const PExcept& Except) {
 		printf("Exception on main thread: %s!", Except->GetMsgStr().CStr());
 	}
 
+	// release the semaphore
+	uv_sem_post(&TaskWrapper->Semaphore);
+	uv_sem_destroy(&TaskWrapper->Semaphore);
+
 	// clean up
-	uv_close((uv_handle_t*) UvAsync, DelHandle<uv_async_t>);
-
-	uv_sem_post(&Task->Semaphore);
-	uv_sem_destroy(&Task->Semaphore);
-
-	delete Task;
+	if (TaskWrapper != nullptr) {
+		delete TaskWrapper;
+	}
 }
 
-void TNodeJsAsyncUtil::OnWorker(uv_work_t* UvReq) {
+void TNodeJsAsyncUtil::OnWorker(TWorkerThreadHandle* UvReq) {
 	TWorkerData* Task = static_cast<TWorkerData*>(UvReq->data);
 
 	try {
@@ -898,7 +969,7 @@ void TNodeJsAsyncUtil::OnWorker(uv_work_t* UvReq) {
 	}
 }
 
-void TNodeJsAsyncUtil::AfterOnWorker(uv_work_t* UvReq, int Status) {
+void TNodeJsAsyncUtil::AfterOnWorker(TWorkerThreadHandle* UvReq, int Status) {
 	TWorkerData* Task = static_cast<TWorkerData*>(UvReq->data);
 
 	try {
@@ -911,30 +982,64 @@ void TNodeJsAsyncUtil::AfterOnWorker(uv_work_t* UvReq, int Status) {
 	delete UvReq;
 }
 
-void TNodeJsAsyncUtil::ExecuteOnMain(TMainThreadTask* Task, const bool& DelTask) {
-	uv_async_t* UvAsync = new uv_async_t;
-	UvAsync->data = new TMainData(Task, DelTask);
+TMainThreadHandle* TNodeJsAsyncUtil::NewBlockingHandle() {
+	TMainThreadHandle* UvAsync = new TMainThreadHandle;
 
-	uv_async_init(uv_default_loop(), UvAsync, OnMain);
-	uv_async_send(UvAsync);
+	UvAsync->data = new TAsyncHandleConfig(ahtBlocking);
+
+	EAssertR(uv_async_init(uv_default_loop(), UvAsync, OnMainBlock) == 0, "Failed to initialize async handle!");
+	return UvAsync;
 }
 
-void TNodeJsAsyncUtil::ExecuteOnMainAndWait(TMainThreadTask* Task, const bool& DelTask) {
-	uv_async_t* UvAsync = new uv_async_t;
-	TMainSemaphoreData* TaskWrapper = new TMainSemaphoreData(Task, DelTask);
+TMainThreadHandle* TNodeJsAsyncUtil::NewHandle() {
+	TMainThreadHandle* UvAsync = new TMainThreadHandle;
 
-	UvAsync->data = TaskWrapper;
+	UvAsync->data = new TAsyncHandleConfig(ahtAsync);
 
-	int Err = uv_sem_init(&TaskWrapper->Semaphore, 0);
+	EAssertR(uv_async_init(uv_default_loop(), UvAsync, OnMain) == 0, "Failed to initialize async handle!");
+	return UvAsync;
+}
 
-	if (Err != 0) {
-		delete UvAsync;
-		delete TaskWrapper;
-		throw TExcept::New("Failed to create a semaphore, code: " + TInt::GetStr(Err) + "!");
-	} else {
-		uv_async_init(uv_default_loop(), UvAsync, OnMainBlock);
+void TNodeJsAsyncUtil::DelHandle(TMainThreadHandle* UvAsync) {
+	TAsyncHandleConfig* Config = static_cast<TAsyncHandleConfig*>(UvAsync->data);
+	uv_close((uv_handle_t*) UvAsync, InternalDelHandle<TMainThreadHandle>);
+	delete Config;
+}
+
+
+void TNodeJsAsyncUtil::ExecuteOnMain(TMainThreadTask* Task, uv_async_t* UvAsync, const bool& DelTask) {
+	TAsyncHandleType HandleType = GetHandleType(UvAsync);
+	switch (HandleType) {
+	case ahtAsync: {
+		if (!DelTask) {
+			delete Task;
+			EAssertR(false, "Non-blocking tasks must be automatically deleted!");
+		}
+		SetAsyncData(UvAsync, new TMainTaskWrapper(Task, DelTask));
+		// uv_async_send is thread safe
 		uv_async_send(UvAsync);
-		uv_sem_wait(&TaskWrapper->Semaphore);
+		break;
+	}
+	case ahtBlocking: {
+		TMainBlockTaskWrapper* TaskWrapper = new TMainBlockTaskWrapper(Task, DelTask);
+		SetAsyncData(UvAsync, TaskWrapper);
+		// initialize the semaphore
+		int Err = uv_sem_init(&TaskWrapper->Semaphore, 0);
+
+		if (Err != 0) {	// check if we succeeded initializing the semaphore
+			delete Task;
+			throw TExcept::New("Failed to create a semaphore, code: " + TInt::GetStr(Err) + "!");
+		} else {
+			// uv_async_send is thread safe
+			uv_async_send(UvAsync);
+			uv_sem_wait(&TaskWrapper->Semaphore);
+		}
+
+		break;
+	}
+	default: {
+		throw TExcept::New("Unknown handle type: " + TInt::GetStr(HandleType));
+	}
 	}
 }
 

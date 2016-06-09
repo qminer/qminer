@@ -3441,6 +3441,7 @@ public:
 	*/
 	//# exports.FeatureSpace.prototype.getFeatureExtractor = function (idx) { return ''; };
 	JsDeclareFunction(getFeatureExtractor);
+	JsDeclareFunction(getFeatureExtractorType);
 
 	/**
 	* Gives the name of the feature at the given position.
@@ -3481,10 +3482,10 @@ public:
 	//# exports.FeatureSpace.prototype.getFeature = function (idx) { return ''; };
 	JsDeclareFunction(getFeature);
 
-    	/**
+    /**
 	* Performs the inverse operation of ftrVec. Works only for numeric feature extractors.
 	* @param {(module:la.Vector | Array.<Object>)} ftr - The feature vector or an array with feature values.
-	* @returns {module:la.Vector} The inverse of ftr as vector.
+	* @returns {Array} The inverse of ftr as an Array.
 	* @example
 	* // import qm module
 	* var qm = require('qminer');
@@ -3562,6 +3563,8 @@ public:
 	*/
 	//# exports.FeatureSpace.prototype.invertFeature = function (idx, val) {};
 	JsDeclareFunction(invertFeature);
+
+	JsDeclareFunction(getFeatureRange);
 
 	/**
 	* Filters the vector to keep only the elements from the feature extractor.
