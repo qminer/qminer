@@ -3664,9 +3664,12 @@ PJsonVal TUiHelper::TCatAutoNmDesc::GetNarrateJson() const {
 	return Result;
 }
 
+/////////////////////////////////////////////////////////////////
+// UI helper
 const double TUiHelper::RADIUS_FACTOR = 1.8;
 const double TUiHelper::STEP_FACTOR = 1e-2;
 const double TUiHelper::INIT_RADIUS_FACTOR = 1.1;
+const double TUiHelper::STATE_OCCUPANCY_PERC = .5;	// too much, but let's see
 
 const double TUiHelper::LOW_PVAL_THRESHOLD = .25;
 const double TUiHelper::LOWEST_PVAL_THRESHOLD = .125;
@@ -3870,6 +3873,7 @@ void TUiHelper::InitStateCoordV(const TStreamStory& StreamStory) {
 
 	const TStateIdentifier& StateIdentifier = StreamStory.GetStateIdentifier();
 	const THierarch& Hierarch = StreamStory.GetHierarch();
+	const TCtmcModeller& MChain = StreamStory.GetTransitionModeler();
 
 	const int NStates = Hierarch.GetStates();
 	const int NLeafs = Hierarch.GetLeafs();
@@ -3878,9 +3882,60 @@ void TUiHelper::InitStateCoordV(const TStreamStory& StreamStory) {
 	StateCoordV.Gen(NStates, NStates);
 
 	TFltVV CoordMat;	TEuclMds::Project(CentroidVV, CoordMat, 2);
-	for (int ColIdx = 0; ColIdx < CoordMat.GetCols(); ColIdx++) {
-		StateCoordV[ColIdx].Val1 = CoordMat(0, ColIdx);
-		StateCoordV[ColIdx].Val2 = CoordMat(1, ColIdx);
+	for (int ColN = 0; ColN < CoordMat.GetCols(); ColN++) {
+		StateCoordV[ColN].Val1 = CoordMat(0, ColN);
+		StateCoordV[ColN].Val2 = CoordMat(1, ColN);
+	}
+
+	// scale the state positions so that the states occupy 20% of the screen
+	// construct state sets
+	TAggStateV StateSetV; TIntV StateIdV;
+	Hierarch.GetStateSetsAtHeight(Hierarch.GetMinHeight(), StateIdV, StateSetV);
+
+	TStateFtrVV StateFtrVV;	StateIdentifier.GetControlCentroidVV(StreamStory, StateFtrVV);
+	TFltV ProbV;	MChain.GetStatDist(StateSetV, StateFtrVV, ProbV);
+	TFltV RadiusV;	GetStateRadiusV(ProbV, RadiusV);
+
+	for (int StateN = 0; StateN < NLeafs; StateN++) {
+		RadiusV[StateN] *= INIT_RADIUS_FACTOR;
+	}
+
+	double MnX = TFlt::Mx;
+	double MxX = TFlt::Mn;
+	double MnY = TFlt::Mx;
+	double MxY = TFlt::Mn;
+
+	double TotalStateArea = 0;
+
+	for (int StateN = 0; StateN < NLeafs; StateN++) {
+		const TFltPr& StatePos = StateCoordV[StateN];
+		const double& Radius = RadiusV[StateN];
+
+		if (StatePos.Val1 + Radius > MxX) { MxX = StatePos.Val1 + Radius; }
+		if (StatePos.Val1 - Radius < MnX) { MnX = StatePos.Val1 - Radius; }
+		if (StatePos.Val2 + Radius > MxY) { MxY = StatePos.Val2 + Radius; }
+		if (StatePos.Val2 - Radius < MnY) { MnY = StatePos.Val2 - Radius; }
+
+		TotalStateArea += TMath::Pi*Radius*Radius;
+	}
+
+	const double ScreenArea = (MxX - MnX) * (MxY - MnY);
+	const double DesiredArea = TotalStateArea / STATE_OCCUPANCY_PERC;
+	// instead of shrinking the screen, disperse the states
+	const double ScaleFactor = DesiredArea / ScreenArea;
+	const double ScaleFactorX = TMath::Sqrt(ScaleFactor);
+	const double ScaleFactorY = ScaleFactorX * (MxX - MnX) / (MxY - MnY);
+
+	Notify->OnNotifyFmt(ntInfo, "Scaling state positions by %.4f", ScaleFactor);
+
+	const double CenterX = (MxX - MnX) / 2;
+	const double CenterY = (MxY - MnY) / 2;
+
+	for (int StateN = 0; StateN < NLeafs; StateN++) {
+		TFltPr& StatePos = StateCoordV[StateN];
+
+		StatePos.Val1 = CenterX + (StatePos.Val1 - CenterX) * ScaleFactorX;
+		StatePos.Val2 = CenterY + (StatePos.Val2 - CenterY) * ScaleFactorY;
 	}
 
 	// first find out how many ancestors each state has, so you can weight
@@ -4326,7 +4381,7 @@ void TUiHelper::GetTimeDescStr(const TTmDesc& Desc, TStrPr& StrDesc) {
 double TUiHelper::GetStateRaduis(const double& Prob) {
 	// the probability is proportional to the area, so the raduis should
 	// be proportional to the square root of the probability
-	return RADIUS_FACTOR * TMath::Sqrt(Prob / TMath::Pi);
+	return /*RADIUS_FACTOR */TMath::Sqrt(Prob / TMath::Pi);
 }
 
 bool TUiHelper::NodesOverlap(const int& StartId, const int& EndId, const TFltPrV& CoordV, const TFltV& RaduisV) {

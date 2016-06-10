@@ -630,6 +630,9 @@ public:
 	const TFltV& GetUiHeightV() const { return NaturalScaleV; }
 	const TIntV& GetHierarchV() const { return HierarchV; }
 
+	double GetMinHeight() const { return UniqueHeightV[0]; }
+	double GetUiMinHeight() const { return NaturalScaleV[0]; }
+
 	double GetStateHeight(const int& StateId) const { return StateHeightV[StateId]; }
 	// return a list of state IDs and their heights
 	void GetStateIdHeightPrV(TIntFltPrV& StateIdHeightPrV) const;
@@ -821,6 +824,7 @@ private:
 	static const double RADIUS_FACTOR;
 	static const double STEP_FACTOR;
 	static const double INIT_RADIUS_FACTOR;
+	static const double STATE_OCCUPANCY_PERC;
 
 	// automatic labels
 	static const double LOW_PVAL_THRESHOLD;
