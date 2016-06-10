@@ -24,7 +24,6 @@ class TIndexVoc; typedef TPt<TIndexVoc> PIndexVoc;
 class TIndex; typedef TPt<TIndex> PIndex;
 class TAggr; typedef TPt<TAggr> PAggr;
 class TStreamAggr; typedef TPt<TStreamAggr> PStreamAggr;
-class TStreamAggrBase; typedef TPt<TStreamAggrBase> PStreamAggrBase;
 class TStreamAggrOnAddFilter; typedef TPt<TStreamAggrOnAddFilter> PStreamAggrOnAddFilter;
 class TFtrExt; typedef TPt<TFtrExt> PFtrExt;
 class TFtrSpace; typedef TPt<TFtrSpace> PFtrSpace;
@@ -93,6 +92,40 @@ public:
 
 #define QmAssertR(Cond, MsgStr) \
   ((Cond) ? static_cast<void>(0) : throw TQm::TQmExcept::New(MsgStr, TStr(__FILE__) + " line " + TInt::GetStr(__LINE__) + ": " + TStr(#Cond)))
+
+///////////////////////////////
+/// QMiner Valid Name Enforcer.
+class TNmValidator {
+private:
+    /// Valid non-alpha-numeric first character of store/field/join/key name
+    static TChA ValidFirstCh;
+    /// Valid non-alpha-numeric non-first character of store/field/join/key name
+    static TChA ValidCh;
+    /// is set to true, all field names will be valid
+    TBool StrictNmP;
+
+    /// Check if given char is valid and safe begining for JS variable
+    static bool IsValidJsFirstCharacter(const TStr& NmStr);
+    /// Check if given char is valid and safe for JS variable
+    static bool IsValidJsCharacter(const char& Ch);
+public:
+    /// When StrictNmP = false, then all names go, else only one that play well in JavaScript
+    TNmValidator(const bool& _StrictNmP): StrictNmP(_StrictNmP) {}
+    /// Load from stream
+    TNmValidator(TSIn& SIn): StrictNmP(SIn) {}
+
+    /// Save to stream
+    void Save(TSOut& SOut) const;
+
+    /// Validate if given string is a valid store/field/join/key name.
+    /// Valid names begin with alphabetical or ValidFirstCh and continues with
+    /// any alphanumerical or ValidCh character (e.g. '_ThisIsValid_123_Name').
+    void AssertValidNm(const TStr& NmStr) const;
+    /// when set to false, all field names will be allowed
+    void SetStrictNmP(const bool& _StrictNmP);
+    /// check if we enforce strict names
+    bool IsStrictNmP() const { return StrictNmP; }
+};
 
 ///////////////////////////////
 /// Join Types
@@ -3351,7 +3384,7 @@ public:
     virtual void OnStep() { }
     /// Update state of the aggregate at time
     virtual void OnTime(const uint64& TmMsec) { OnStep(); }
-    /// Add new record to aggregate
+    /// Add new record to the aggregate
     virtual void OnAddRec(const TRec& Rec) { OnStep(); }
     /// Recored already added to the aggregate is being updated
     virtual void OnUpdateRec(const TRec& Rec) { }
@@ -3406,52 +3439,31 @@ public:
 };
 
 ///////////////////////////////
-// QMiner-Stream-Aggregator-Data-Interfaces
+/// Stream aggregate output interfaces.
 namespace TStreamAggrOut {
-
-#define TStreamAggrOutHelper(Interface) \
-    static Interface* Cast ## Interface(const TWPt<TStreamAggr>& Aggr) { \
-        Interface* CastAggr = dynamic_cast<Interface*>(Aggr()); \
-        if (CastAggr != NULL) { \
-            return CastAggr; \
-        } else { \
-            throw TExcept::New("Dynamic cast failed for aggregate, " + Aggr->GetAggrNm()); \
-        } \
-    };
-
     class IInt {
     public:
-        // retrieving value from the aggregate
         virtual int GetInt() const = 0;
     };
 
     class IFlt {
     public:
-        // retrieving value from the aggregate
         virtual double GetFlt() const = 0;
     };
 
-    //class ISparseVec {
-    //public:
-    //  // retrieving value from the aggregate
-    //  virtual const TIntFltKdV& GetSparseVec() const = 0;
-    //};
-    
     class ITm {
     public:
-        TStreamAggrOutHelper(ITm);
-        // retrieving value from the aggregate
         virtual uint64 GetTmMSecs() const = 0;
-        static uint64 GetTmMSecsCast(const TWPt<TStreamAggr>& Aggr) { return CastITm(Aggr)->GetTmMSecs(); }
     };
     
-    // combination of numeric value and timestamp
-    class IFltTm: public IFlt, public ITm { };
+    class IFltTm:
+        public IFlt,
+        public ITm { };
 
+    /// vector of values
     template <class TVal>
     class IValVec {
     public:
-        // retrieving vector of values from the aggregate
         virtual int GetVals() const = 0;
         virtual void GetVal(const TInt& ElN, TVal& Val) const = 0;
         virtual void GetValV(TVec<TVal>& ValV) const = 0;
@@ -3459,12 +3471,15 @@ namespace TStreamAggrOut {
     typedef IValVec<TFlt> IFltVec;
     typedef IValVec<TIntFltKdV> ISparseVVec;
     typedef IValVec<TIntFltKd> ISparseVec;
-    // combination of sparse-vector and timestamp
-    class ISparseVecTm : public ISparseVec, public ITm {};
 
+    /// vector of values and a timestamp
+    class ISparseVecTm :
+        public ISparseVec,
+        public ITm {};
+
+    /// vector of timestamps
     class ITmVec {
     public:
-        // retrieving vector of timestamps from the aggregate
         virtual int GetTmLen() const = 0;
         virtual uint64 GetTm(const TInt& ElN) const = 0;
         virtual void GetTmV(TUInt64V& MSecsV) const = 0;
@@ -3473,7 +3488,6 @@ namespace TStreamAggrOut {
     template <class TVal>
     class IValVecTm : public IValVec<TVal>, public ITm {};  
     typedef IValVecTm<TFlt> IFltVecTm;  
-    //class IFltVecTm : public IFltVec, public ITm { };
 
     // interfaces used by window buffer
     class IBuffer {
@@ -3482,7 +3496,6 @@ namespace TStreamAggrOut {
     };
 
     template <class TVal>
-
     class IValIO : public IValVec<TVal> , public virtual IBuffer {
     public:
         // valid only when not using delay
@@ -3504,7 +3517,7 @@ namespace TStreamAggrOut {
     };
     
     template <class TVal>
-    class IValTmIO : public IValIO<TVal>, public ITmIO {};
+    class IValTmIO : public IValIO<TVal>, public ITmIO { };
     typedef IValTmIO<TFlt> IFltTmIO;
     typedef IValTmIO<TIntFltKdV> ISparseVecTmIO;
 
@@ -3531,89 +3544,80 @@ namespace TStreamAggrOut {
     };
 }
 ///////////////////////////////
-// QMiner-Stream-Aggregator-Base
-class TStreamAggrBase {
-private: 
-    // smart-pointer
-    TCRef CRef;
-    friend class TPt<TStreamAggrBase>;
-
-    // stream aggregates
+/// Stream aggregator set.
+/// Holds a set of stream aggregates and triggers them all on call.
+/// Aggregates are triggered in the same order as they are added to the set.
+class TStreamAggrSet : public TStreamAggr {
+protected:
+    /// List of aggregates triggered in step
     THash<TStr, PStreamAggr> StreamAggrH;
-
-    // create empty base
-    TStreamAggrBase() { }
-public:
-    static PStreamAggrBase New();
-
-    // managament
-    bool Empty() const;
-    int Len() const;
-    bool IsStreamAggr(const TStr& StreamAggrNm) const;  
-    const PStreamAggr& GetStreamAggr(const TStr& StreamAggrNm) const;
-    const PStreamAggr& GetStreamAggr(const int& StreamAggrId) const;
-    void AddStreamAggr(const PStreamAggr& StreamAggr);
-    int GetFirstStreamAggrId() const;
-    bool GetNextStreamAggrId(int& AggrId) const;
     
-    /// reset all aggregates
+    /// Create empty aggregate base
+    TStreamAggrSet(const TWPt<TBase>& _Base);
+    /// Create empty aggregate base from json
+    TStreamAggrSet(const TWPt<TBase>& _Base, const PJsonVal& ParamVal);
+public:
+    /// Create empty aggregate base
+    static PStreamAggr New(const TWPt<TBase>& _Base);
+    /// Create empty aggregate base
+    static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+
+    /// Is the aggregate set empty
+    bool Empty() const;
+    /// Number of aggregates in the set
+    int Len() const;
+    /// Do we have aggregate with the given name
+    bool IsStreamAggr(const TStr& StreamAggrNm) const;
+    /// Add new aggregate to the name
+    void AddStreamAggr(const PStreamAggr& StreamAggr);
+    /// Get stream aggregate by name
+    const PStreamAggr& GetStreamAggr(const TStr& StreamAggrNm) const;
+    /// Get list of all aggregates
+    TStrV GetStreamAggrNmV() const;
+    
+    /// Reset all aggregates in the set
     void Reset();
 
-    // forward the calls to stream aggregates
+    /// Update state of the aggregates
     void OnStep();
+    /// Update state of the aggregates at time
+    void OnTime(const uint64& TmMsec);
+    /// Add new record to the aggregates
     void OnAddRec(const TRec& Rec);
+    /// Recored already added to the aggregates is being updated
     void OnUpdateRec(const TRec& Rec);
+    /// Recored already added to the aggregates is being deleted from the store 
     void OnDeleteRec(const TRec& Rec);
-    
-    // serialize the base into json
+
+    /// Print latest statistics to logger
+    void PrintStat() const;
+    /// Serialization current status to JSon
     PJsonVal SaveJson(const int& Limit) const;
+
+    // stream aggregator type name 
+    static TStr GetType() { return "streamAggregateSet"; }
+    TStr Type() const { return GetType(); }    
 };
 
 ///////////////////////////////
-// QMiner-Stream-Aggregator-Trigger
+/// Store trigger that pushes updates to stream aggregates
 class TStreamAggrTrigger : public TStoreTrigger {
 private:
-    PStreamAggrBase StreamAggrBase;
-    
-    TStreamAggrTrigger(const PStreamAggrBase& _StreamAggrBase);
-public:
-    static PStoreTrigger New(const PStreamAggrBase& StreamAggrBase);
+    /// Pointer to stream aggregate we forward records to
+    TWPt<TStreamAggr> StreamAggr;
 
-    // forward the calls to stream aggregate base
+    /// Create new trigger for given stream aggregate
+    TStreamAggrTrigger(const TWPt<TStreamAggr>& StreamAggr);
+public:
+    /// Create new trigger for given stream aggregate
+    static PStoreTrigger New(const TWPt<TStreamAggr>& StreamAggr);
+
+    /// new record added to the store, call stream aggregate OnAddRec
     void OnAdd(const TRec& Rec);
+    /// record is updated in the store, call stream aggregate OnUpdateRec
     void OnUpdate(const TRec& Rec);
+    /// record is deleted from the store, call stream aggregate OnDeleteRec
     void OnDelete(const TRec& Rec);
-};
-
-///////////////////////////////
-/// QMiner Valid Name Enforcer.
-class TNmValidator {
-private:
-    /// Valid non-alpha-numeric first character of store/field/join/key name
-    static TChA ValidFirstCh;
-    /// Valid non-alpha-numeric non-first character of store/field/join/key name
-    static TChA ValidCh;
-    /// is set to true, all field names will be valid
-    TBool StrictNmP;
-public:
-    TNmValidator(const bool& _StrictNmP):
-        StrictNmP(_StrictNmP) {}
-    TNmValidator(TSIn& SIn):
-        StrictNmP(SIn) {}
-
-    void Save(TSOut& SOut) const;
-
-    /// Validate if given string is a valid store/field/join/key name.
-    /// Valid names begin with alphabetical or ValidFirstCh and continues with
-    /// any alphanumerical or ValidCh character (e.g. '_ThisIsValid_123_Name').
-    void AssertValidNm(const TStr& NmStr) const;
-    /// when set to false, all field names will be allowed
-    void SetStrictNmP(const bool& StrictNmP);
-    bool IsStrictNmP() const { return StrictNmP; }
-
-private:
-    static bool IsValidJsFirstCharacter(const TStr& NmStr);
-    static bool IsValidJsCharacter(const char& Ch);
 };
 
 ///////////////////////////////
@@ -3637,22 +3641,22 @@ private:
     PIndexVoc IndexVoc;
     /// Index structures (gix, linear, geo)
     PIndex Index;
-    /// Shared stora stoarge layer
-
+    /// Shared stora storage layer
     PBlobBs StoreBlobBs;
     /// List of open stores
     TVec<PStore> StoreV;
     /// Map from store name to store
     THash<TStr, PStore> StoreH;
 
-    /// Stream aggregate base for each store
-    TVec<PStreamAggrBase> StreamAggrBaseV;
+    /// Stream aggregate sets for each store
+    TVec<PStreamAggr> StreamAggrSetV;
     /// Default stream aggregate base (store independent)
-    PStreamAggrBase StreamAggrDefaultBase;
+    PStreamAggr DefStreamAggrSet;
     
     /// Name validates used for validating field, join and key names
     TNmValidator NmValidator;
-    
+
+private:
     /// Invert given record set (replace with all the records from the store that are not in it)
     PRecSet Invert(const PRecSet& RecSet, const TIndex::PQmGixExpMerger& Merger);
     /// Execute search query. Returns results and a flag indicating if the results should be inverted.
@@ -3665,7 +3669,7 @@ private:
     void LoadBaseConf(const TStr& FPath);
     /// Save base config
     void SaveBaseConf(const TStr& FPath) const;
-    
+
     /// Create new base on the given folder
     TBase(const TStr& _FPath, const int64& IndexCacheSize, const int& SplitLen, const bool& StrictNmP);
     /// Open existing base from the given folder
@@ -3724,10 +3728,10 @@ public:
     /// Get store blob base
     const PBlobBs& GetStoreBlobBs() { return StoreBlobBs; }
 
-    /// Get stream aggregates for the given store
-    const PStreamAggrBase& GetStreamAggrBase(const uint& StoreId) const;
-    /// Get base-level stream aggregates
-    const PStreamAggrBase& GetStreamAggrBase() const;
+    /// Get stream aggregate set for the given store
+    TWPt<TStreamAggrSet> GetStreamAggrSet(const uint& StoreId) const;
+    /// Get default stream aggregate set
+    TWPt<TStreamAggrSet> GetStreamAggrSet() const;    
     /// Check if store has stream aggregate with the given name
     bool IsStreamAggr(const uint& StoreId, const TStr& StreamAggrNm) const;
     /// Check if base has stream aggregate with the given name
@@ -3748,6 +3752,7 @@ public:
     void AddStreamAggr(const TStrV& StoreNmV, const PStreamAggr& StreamAggr);
     /// Add stream aggregate to the base
     void AddStreamAggr(const PStreamAggr& StreamAggr);
+
     /// Aggregate given recordset and add aggregates to the record set
     void Aggr(PRecSet& RecSet, const TQueryAggrV& QueryAggrV);
 

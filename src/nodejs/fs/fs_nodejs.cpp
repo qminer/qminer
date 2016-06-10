@@ -109,6 +109,8 @@ TNodeJsFs::TReadCsvTask::TReadCsvTask(const v8::FunctionCallbackInfo<v8::Value>&
 	EAssertR(Args.Length() == 4, "TNodeJsFs::readCsvLinesAsync: Invalid number of arguments!");
 	EAssertR(!TNodeJsUtil::IsArgNull(Args, 0), "TNodeJsFs::readCsvLinesAsync: Buffer is null or undefined!");
 
+	LinesHandle = TNodeJsAsyncUtil::NewBlockingHandle();
+
 	if (TNodeJsUtil::IsArgStr(Args, 0)) {	// Read from file
 		const TStr FNm = TNodeJsUtil::GetArgStr(Args, 0);
 		SIn = TFIn::New(FNm);
@@ -133,6 +135,7 @@ TNodeJsFs::TReadCsvTask::TReadCsvTask(const v8::FunctionCallbackInfo<v8::Value>&
 
 TNodeJsFs::TReadCsvTask::~TReadCsvTask() {
 	OnLine.Reset();
+	TNodeJsAsyncUtil::DelHandle(LinesHandle);
 }
 
 v8::Handle<v8::Function> TNodeJsFs::TReadCsvTask::GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -176,7 +179,7 @@ void TNodeJsFs::TReadCsvTask::Run() {
 }
 
 void TNodeJsFs::TReadCsvTask::CallCallback() {
-	TNodeJsAsyncUtil::ExecuteOnMainAndWait(LinesCallback, false);
+	TNodeJsAsyncUtil::ExecuteOnMain(LinesCallback, LinesHandle, false);
 	const PExcept Except = LinesCallback->GetExcept();
 
 	delete LinesCallback;

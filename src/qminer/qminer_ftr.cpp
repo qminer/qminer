@@ -127,6 +127,18 @@ void TFtrExt::ExtractTmV(const TRec& FtrRec, TTmV& TmV) const {
     throw TQmExcept::New("ExtractTmV not implemented!"); 
 }
 
+PJsonVal TFtrExt::InvertFullV(const TFltV& FtrV, const int& Offset) const {
+    throw TExcept::New("TFtrExt::InvertFullV: not implemented for " + GetNm());
+}
+
+PJsonVal TFtrExt::InvertFtr(const PJsonVal& FtrVal) const {
+    throw TExcept::New("TFtrExt::InvertFtr: not implemented for " + GetNm());
+}
+
+PJsonVal TFtrExt::GetFtrRange() const {
+    throw TExcept::New("TFtrExt::GetFtrRange: not implemented for " + GetNm());
+}
+
 ///////////////////////////////////////////////
 // QMiner-Feature-Space
 void TFtrSpace::Init() {
@@ -353,26 +365,29 @@ double TFtrSpace::GetSingleFtr(const int& FtrExtN, const double& Val) const {
     return FtrExt->__GetVal(Val);
 }
 
-void TFtrSpace::InvertFullV(const TFltV& FullV, TFltV& InvertV) const {
+PJsonVal TFtrSpace::InvertFullV(const TFltV& FullV) const {
+    PJsonVal Result = TJsonVal::NewArr();
+
     int Offset = 0;
     for (int FtrExtN = 0; FtrExtN < FtrExtV.Len(); FtrExtN++) {
         const PFtrExt& FtrExt = FtrExtV[FtrExtN];
 
-        TFltV InvV; FtrExt->InvFullV(FullV, Offset, InvV);
-        InvertV.AddV(InvV);
+        const PJsonVal InvVal = FtrExt->InvertFullV(FullV, Offset);
+        Result->AddToArr(InvVal);
+
+        Offset += FtrExt->GetDim();
     }
+
+    return Result;
 }
 
-double TFtrSpace::InvertFtr(const int& FtrExtN, const TFlt& FtrVal) const {
-    const PFtrExt FtrExt = FtrExtV[FtrExtN];
+PJsonVal TFtrSpace::InvertFtr(const int& FtrExtN, const PJsonVal& FtrVal) const {
+    const PFtrExt& FtrExt = FtrExtV[FtrExtN];
+    return FtrExt->InvertFtr(FtrVal);
+}
 
-    TFltV FtrV, InvV;
-    FtrV.Add(FtrVal);
-
-    int Offset = 0;
-    FtrExt->InvFullV(FtrV, Offset, InvV);
-
-    return InvV[0];
+PJsonVal TFtrSpace::GetFtrRange(const int& FtrExtN) const {
+    return FtrExtV[FtrExtN]->GetFtrRange();
 }
 
 void TFtrSpace::ExtractStrV(const int& DimN, const PJsonVal& RecVal, TStrV &StrV) const {
@@ -395,7 +410,7 @@ TStr TFtrSpace::GetFtr(const int& FtrN) const {
             return FtrExtV[DimN]->GetFtr(LocalFtrN);
         }
     }
-    throw TQmExcept::New("Feature number out of bounds!");
+    throw TQmExcept::New("Feature number out of bounds: " + TInt::GetStr(FtrN) + "!");
     return TStr();
 }
 
@@ -404,8 +419,8 @@ int TFtrSpace::GetFtrExts() const {
 }
 
 PFtrExt TFtrSpace::GetFtrExt(const int& FtrExtN) const {
-    QmAssert(0 <= FtrExtN && FtrExtN < FtrExtV.Len());
-    return FtrExtV[FtrExtN];    
+    QmAssertR(0 <= FtrExtN && FtrExtN < FtrExtV.Len(), "Invalid feature extractor index: " + TInt::GetStr(FtrExtN));
+    return FtrExtV[FtrExtN];
 }
 
 int TFtrSpace::GetFtrExtDim(const int& FtrExtN) const {
@@ -487,11 +502,6 @@ void TConstant::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
     FullV[Offset] = Constant.Val; Offset++;
 }
 
-void TConstant::InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
-    InvV.Add(Constant.Val);
-    Offset++;
-}
-
 void TConstant::ExtractFltV(const TRec& FtrRec, TFltV& FltV) const {
     FltV.Add(Constant.Val);
 }
@@ -539,10 +549,6 @@ void TRandom::AddSpV(const TRec& FtrRec, TIntFltKdV& SpV, int& Offset) const {
 
 void TRandom::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
     FullV[Offset] = Rnd.GetUniDev(); Offset++;
-}
-
-void TRandom::InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
-    throw TExcept::New("Not implemented yet!", "TRandom::InvFullV");
 }
 
 void TRandom::ExtractFltV(const TRec& FtrRec, TFltV& FltV) const {
@@ -670,12 +676,28 @@ void TNumeric::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
     FtrGen.AddFtr(GetVal(Rec), FullV, Offset);
 }
 
-void TNumeric::InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
-    InvV.Add(FtrGen.InvFtr(FullV, Offset));
-}
-
 void TNumeric::ExtractFltV(const TRec& Rec, TFltV& FltV) const {
     FltV.Add(FtrGen.GetFtr(GetVal(Rec)));   
+}
+
+PJsonVal TNumeric::InvertFullV(const TFltV& FtrV, const int& Offset) const {
+    return TJsonVal::NewNum(FtrGen.InvFtr(FtrV[Offset]));
+}
+
+PJsonVal TNumeric::InvertFtr(const PJsonVal& FtrValJson) const {
+    EAssert(FtrValJson->IsNum());
+    const double& FtrVal = FtrValJson->GetNum();
+    const double InvVal = FtrGen.InvFtr(FtrVal);
+    return TJsonVal::NewNum(InvVal);
+}
+
+PJsonVal TNumeric::GetFtrRange() const {
+    PJsonVal Result = TJsonVal::NewObj();
+
+    Result->AddToObj("min", FtrGen.GetMn());
+    Result->AddToObj("max", FtrGen.GetMx());
+
+    return Result;
 }
 
 ///////////////////////////////////////////////
@@ -790,10 +812,6 @@ void TNumSpV::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
     Offset += GetDim();
 }
 
-void TNumSpV::InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
-    throw TExcept::New("Not implemented yet!", "TCategorical::InvFullV");
-}
-
 ///////////////////////////////////////////////
 // Categorical Feature Extractor
 TStr TCategorical::GetVal(const TRec& Rec) const {
@@ -883,12 +901,48 @@ void TCategorical::AddFullV(const TRec& Rec, TFltV& FtrV, int& Offset) const {
     FtrGen.AddFtr(GetVal(Rec), FtrV, Offset);
 }
 
-void TCategorical::InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
-    throw TExcept::New("Not implemented yet!", "TCategorical::InvFullV");
-}
-
 void TCategorical::ExtractStrV(const TRec& Rec, TStrV& StrV) const {
     StrV.Add(GetVal(Rec));
+}
+
+PJsonVal TCategorical::InvertFullV(const TFltV& FtrV, const int& Offset) const {
+    const int& Dim = GetDim();
+
+    PJsonVal FtrJson = TJsonVal::NewArr();
+    for (int ValN = 0; ValN < Dim; ValN++) {
+        FtrJson->AddToArr(FtrV[Offset + ValN]);
+    }
+
+    return InvertFtr(FtrJson);
+}
+
+PJsonVal TCategorical::InvertFtr(const PJsonVal& FtrValJsonV) const {
+    EAssert(FtrValJsonV->IsArr() && FtrValJsonV->GetArrVals()   == GetDim());
+
+    PJsonVal Result = TJsonVal::NewObj();
+    for (int FtrN = 0; FtrN < FtrValJsonV->GetArrVals(); FtrN++) {
+        const PJsonVal FtrValJson = FtrValJsonV->GetArrVal(FtrN);
+
+        EAssert(FtrValJson->IsNum());
+
+        const TStr& FtrNm = FtrGen.GetVal(FtrN);
+        const double& FtrVal = FtrValJson->GetNum();
+
+        Result->AddToObj(FtrNm, FtrVal);
+    }
+
+    return Result;
+}
+
+PJsonVal TCategorical::GetFtrRange() const {
+    const int& Dim = FtrGen.GetDim();
+
+    PJsonVal Result = TJsonVal::NewArr();
+    for (int ValN = 0; ValN < Dim; ValN++) {
+        Result->AddToArr(FtrGen.GetVal(ValN));
+    }
+
+    return Result;
 }
 
 ///////////////////////////////////////////////
@@ -939,20 +993,21 @@ TMultinomial::TMultinomial(const TWPt<TBase>& Base, const PJsonVal& ParamVal): T
     }
     // prase out feature generator parameters
     const bool NormalizeP = ParamVal->GetObjBool("normalize", false);
+    const bool BinaryP = ParamVal->GetObjBool("binary", false);
     if (ParamVal->IsObjKey("values")) {
         // we have fixed values
         TStrV ValV; ParamVal->GetObjStrV("values", ValV);
-        FtrGen = TFtrGen::TMultinomial(NormalizeP, ValV);        
+        FtrGen = TFtrGen::TMultinomial(NormalizeP, BinaryP, ValV);        
     } else if (ParamVal->IsObjKey("hashDimension")) {
         // we have hashed values into fixed dimensionality
         const int HashDim = ParamVal->GetObjInt("hashDimension");
-        FtrGen = TFtrGen::TMultinomial(NormalizeP, HashDim);
+        FtrGen = TFtrGen::TMultinomial(NormalizeP, BinaryP, HashDim);
     } else if (ParamVal->GetObjBool("datetime", false)) {
         // initialize feature generator with all possible date extracts
-        FtrGen = TFtrGen::TMultinomial(NormalizeP, TFieldReader::GetDateRange());
+        FtrGen = TFtrGen::TMultinomial(NormalizeP, BinaryP, TFieldReader::GetDateRange());
     } else {
         // we have open value set
-        FtrGen = TFtrGen::TMultinomial(NormalizeP);
+        FtrGen = TFtrGen::TMultinomial(NormalizeP, BinaryP);
     }
     // parse out field(s)
     PJsonVal FieldVal = ParamVal->GetObjKey("field");
@@ -1043,10 +1098,6 @@ void TMultinomial::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
     for(int SpN = 0; SpN < SpV.Len(); SpN++ ){
         FullV[SpV[SpN].Key] = SpV[SpN].Dat;
     }
-}
-
-void TMultinomial::InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
-    throw TExcept::New("Not implemented yet!", "TMultinomial::InvFullV");
 }
 
 void TMultinomial::ExtractStrV(const TRec& Rec, TStrV& StrV) const {
@@ -1409,10 +1460,6 @@ void TBagOfWords::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
     }
 }
 
-void TBagOfWords::InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
-    throw TExcept::New("Not implemented yet!", "TBagOfWords::InvFullV");
-}
-
 void TBagOfWords::ExtractStrV(const TRec& Rec, TStrV& StrV) const {
     TStrV RecStrV; GetVal(Rec, RecStrV);
     for (int RecStrN = 0; RecStrN < RecStrV.Len(); RecStrN++) { 
@@ -1510,10 +1557,6 @@ void TJoin::AddSpV(const TRec& FtrRec, TIntFltKdV& SpV, int& Offset) const {
     }
     // and attach to the provided vector
     Offset += Dim;
-}
-
-void TJoin::InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
-    throw TExcept::New("Not implemented yet!", "TJoin::InvFullV");
 }
 
 void TJoin::ExtractStrV(const TRec& FtrRec, TStrV& StrV) const {
@@ -1686,10 +1729,6 @@ void TPair::AddSpV(const TRec& FtrRec, TIntFltKdV& SpV, int& Offset) const {
     Offset += GetDim();
 }
 
-void TPair::InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
-    throw TExcept::New("Not implemented yet!", "TPair::InvFullV");
-}
-
 void TPair::ExtractStrV(const TRec& _FtrRec, TStrV& StrV) const {
     // do the joins
     Assert(IsStartStore(_FtrRec.GetStoreId()));
@@ -1850,10 +1889,6 @@ void TDateWnd::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
     if (FtrGen.IsInit()) {
         FtrGen.AddFtr(TTm::GetTmFromMSecs(GetVal(Rec)), FullV, Offset);
     }
-}
-
-void TDateWnd::InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
-    throw TExcept::New("Not implemented yet!", "TPair::InvFullV");
 }
 
 }

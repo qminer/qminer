@@ -100,6 +100,43 @@ PExcept TQmExcept::New(const TStr& MsgStr, const TStr& LocStr) {
 }
 
 ///////////////////////////////
+// QMiner-Valid-Name-Enforcer
+TChA TNmValidator::ValidFirstCh = "_";
+TChA TNmValidator::ValidCh = "_$";
+
+bool TNmValidator::IsValidJsFirstCharacter(const TStr& NmStr) {
+    const char FirstCh = NmStr[0];
+    return (('A' <= FirstCh) && (FirstCh <= 'Z')) || (('a' <= FirstCh) && (FirstCh <= 'z')) || ValidFirstCh.IsChIn(FirstCh);
+}
+
+bool TNmValidator::IsValidJsCharacter(const char& Ch) {
+    return (('A' <= Ch) && (Ch <= 'Z')) || (('a' <= Ch) && (Ch <= 'z')) || (('0' <= Ch) && (Ch <= '9')) || ValidCh.IsChIn(Ch);
+}
+
+void TNmValidator::Save(TSOut& SOut) const {
+    StrictNmP.Save(SOut);
+}
+
+void TNmValidator::AssertValidNm(const TStr& NmStr) const {
+    // must be non-empty
+    QmAssertR(!NmStr.Empty(), "Name: cannot be empty");
+    if (!StrictNmP) { return; }
+
+    // check first character
+    QmAssertR(IsValidJsFirstCharacter(NmStr), "Name: invalid first character in '" + NmStr + "'");
+
+    // check rest
+    for (int ChN = 1; ChN < NmStr.Len(); ChN++) {
+        const char Ch = NmStr[ChN];
+        QmAssertR(IsValidJsCharacter(Ch), TStr::Fmt("Name: invalid %d character in '%s'", ChN, NmStr.CStr()));
+    }
+}
+
+void TNmValidator::SetStrictNmP(const bool& _StrictNmP) {
+    StrictNmP = _StrictNmP;
+}
+
+///////////////////////////////
 // QMiner-Join-Description
 TJoinDesc::TJoinDesc(const TWPt<TBase>& Base, const TStr& _JoinNm, const uint& _JoinStoreId,
     const uint& StoreId, const TWPt<TIndexVoc>& IndexVoc, const bool& IsSmall) :
@@ -5882,12 +5919,11 @@ PAggr TAggr::New(const TWPt<TBase>& Base, const PRecSet& RecSet, const TQueryAgg
 TFunRouter<PStreamAggr, TStreamAggr::TNewF> TStreamAggr::NewRouter;
 
 void TStreamAggr::Init() {
+    Register<TStreamAggrSet>();
     Register<TStreamAggrs::TRecBuffer>();
     Register<TStreamAggrs::TTimeSeriesTick>();
-    // two types of window buffers (different interfaces)
     Register<TStreamAggrs::TWinBufFlt>();
     Register<TStreamAggrs::TWinBufFtrSpVec>();
-    // these attach to TWinBufFlt
     Register<TStreamAggrs::TWinBufFltV>();
     Register<TStreamAggrs::TWinBufSum>();
     Register<TStreamAggrs::TWinBufMin>();
@@ -5914,15 +5950,15 @@ void TStreamAggr::Init() {
     Register<TStreamAggrs::TWinBufSpVecSum>();
 }
 
-TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm) :
-        Base(_Base),
-        AggrNm(_AggrNm),
-        Guid(TGuid::GenGuid()) {
+TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm):
+        Base(_Base), AggrNm(_AggrNm), Guid(TGuid::GenGuid()) {
+    
     Base->AssertValidNm(AggrNm);
 }
 
-TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const PJsonVal& ParamVal) :
+TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const PJsonVal& ParamVal):
         Base(_Base), AggrNm(ParamVal->GetObjStr("name", TGuid::GenSafeGuid())), Guid(TGuid::GenGuid()) {
+    
     Base->AssertValidNm(AggrNm);
 }
 
@@ -5948,81 +5984,100 @@ void TStreamAggrOnAddFilter::Init() {
 
 
 ///////////////////////////////
-// QMiner-Stream-Aggregator-Base
-PStreamAggrBase TStreamAggrBase::New() {
-    return new TStreamAggrBase;
+// QMiner-Stream-Aggregator-Set
+TStreamAggrSet::TStreamAggrSet(const TWPt<TBase>& _Base):
+    TStreamAggr(_Base, TGuid::GenSafeGuid()) { }
+
+TStreamAggrSet::TStreamAggrSet(const TWPt<TBase>& _Base, const PJsonVal& ParamVal):
+    TStreamAggr(_Base, ParamVal) { }
+
+PStreamAggr TStreamAggrSet::New(const TWPt<TBase>& Base) {
+    return new TStreamAggrSet(Base);
 }
 
-bool TStreamAggrBase::Empty() const {
+PStreamAggr TStreamAggrSet::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+    return new TStreamAggrSet(Base, ParamVal);
+}
+
+bool TStreamAggrSet::Empty() const {
     return StreamAggrH.Empty();
 }
 
-int TStreamAggrBase::Len() const {
+int TStreamAggrSet::Len() const {
     return StreamAggrH.Len();
 }
 
-bool TStreamAggrBase::IsStreamAggr(const TStr& StreamAggrNm) const {
+bool TStreamAggrSet::IsStreamAggr(const TStr& StreamAggrNm) const {
     return StreamAggrH.IsKey(StreamAggrNm);
 }
 
-const PStreamAggr& TStreamAggrBase::GetStreamAggr(const TStr& StreamAggrNm) const {
+void TStreamAggrSet::AddStreamAggr(const PStreamAggr& StreamAggr) {
+    QmAssertR(!IsStreamAggr(StreamAggr->GetAggrNm()),
+        TStr::Fmt("Aggregate with this name already exists: %s", StreamAggr->GetAggrNm().CStr()));
+    StreamAggrH.AddDat(StreamAggr->GetAggrNm(), StreamAggr);
+}
+
+const PStreamAggr& TStreamAggrSet::GetStreamAggr(const TStr& StreamAggrNm) const {
     QmAssertR(IsStreamAggr(StreamAggrNm), TStr::Fmt("Aggregate not found: %s", StreamAggrNm.CStr()));
     return StreamAggrH.GetDat(StreamAggrNm);
 }
 
-const PStreamAggr& TStreamAggrBase::GetStreamAggr(const int& StreamAggrId) const {
-    return StreamAggrH[StreamAggrId];
+TStrV TStreamAggrSet::GetStreamAggrNmV() const {
+    TStrV StreamAggrNmV;
+    StreamAggrH.GetKeyV(StreamAggrNmV);
+    return StreamAggrNmV;
 }
 
-void TStreamAggrBase::AddStreamAggr(const PStreamAggr& StreamAggr) {
-    QmAssertR(!IsStreamAggr(StreamAggr->GetAggrNm()), TStr::Fmt("Aggregate with this name already exists: %s", StreamAggr->GetAggrNm().CStr()));
-    StreamAggrH.AddDat(StreamAggr->GetAggrNm(), StreamAggr);
-}
-
-int TStreamAggrBase::GetFirstStreamAggrId() const {
-    return StreamAggrH.FFirstKeyId();
-}
-
-bool TStreamAggrBase::GetNextStreamAggrId(int& AggrId) const {
-    return StreamAggrH.FNextKeyId(AggrId);
-}
-
-void TStreamAggrBase::Reset() {
-    int AggrId = GetFirstStreamAggrId();
-    while (GetNextStreamAggrId(AggrId)) {
-        GetStreamAggr(AggrId)->Reset();
+void TStreamAggrSet::Reset() {
+    int KeyId = StreamAggrH.FFirstKeyId();
+    while (StreamAggrH.FNextKeyId(KeyId)) {
+        StreamAggrH[KeyId]->Reset();
     }
 }
 
-void TStreamAggrBase::OnStep() {
+void TStreamAggrSet::OnStep() {
     int KeyId = StreamAggrH.FFirstKeyId();
     while (StreamAggrH.FNextKeyId(KeyId)) {
         StreamAggrH[KeyId]->OnStep();
     }
 }
 
-void TStreamAggrBase::OnAddRec(const TRec& Rec) {
+void TStreamAggrSet::OnTime(const uint64& TmMsec) {
+    int KeyId = StreamAggrH.FFirstKeyId();
+    while (StreamAggrH.FNextKeyId(KeyId)) {
+        StreamAggrH[KeyId]->OnTime(TmMsec);
+    }
+}
+
+void TStreamAggrSet::OnAddRec(const TRec& Rec) {
     int KeyId = StreamAggrH.FFirstKeyId();
     while (StreamAggrH.FNextKeyId(KeyId)) {
         StreamAggrH[KeyId]->OnAddRec(Rec);
     }
 }
 
-void TStreamAggrBase::OnUpdateRec(const TRec& Rec) {
+void TStreamAggrSet::OnUpdateRec(const TRec& Rec) {
     int KeyId = StreamAggrH.FFirstKeyId();
     while (StreamAggrH.FNextKeyId(KeyId)) {
         StreamAggrH[KeyId]->OnUpdateRec(Rec);
     }
 }
 
-void TStreamAggrBase::OnDeleteRec(const TRec& Rec) {
+void TStreamAggrSet::OnDeleteRec(const TRec& Rec) {
     int KeyId = StreamAggrH.FFirstKeyId();
     while (StreamAggrH.FNextKeyId(KeyId)) {
         StreamAggrH[KeyId]->OnDeleteRec(Rec);
     }
 }
 
-PJsonVal TStreamAggrBase::SaveJson(const int& Limit) const {
+void TStreamAggrSet::PrintStat() const {
+    int KeyId = StreamAggrH.FFirstKeyId();
+    while (StreamAggrH.FNextKeyId(KeyId)) {
+        StreamAggrH[KeyId]->PrintStat();
+    }
+}
+
+PJsonVal TStreamAggrSet::SaveJson(const int& Limit) const {
     PJsonVal ResVal = TJsonVal::NewArr();
     int KeyId = StreamAggrH.FFirstKeyId();
     while (StreamAggrH.FNextKeyId(KeyId)) {
@@ -6033,60 +6088,23 @@ PJsonVal TStreamAggrBase::SaveJson(const int& Limit) const {
 
 ///////////////////////////////
 // QMiner-Stream-Aggregator-Trigger
-TStreamAggrTrigger::TStreamAggrTrigger(const PStreamAggrBase& _StreamAggrBase) :
-    StreamAggrBase(_StreamAggrBase) {}
+TStreamAggrTrigger::TStreamAggrTrigger(const TWPt<TStreamAggr>& _StreamAggr):
+    StreamAggr(_StreamAggr) {}
 
-PStoreTrigger TStreamAggrTrigger::New(const PStreamAggrBase& StreamAggrBase) {
-    return new TStreamAggrTrigger(StreamAggrBase);
+PStoreTrigger TStreamAggrTrigger::New(const TWPt<TStreamAggr>& StreamAggr) {
+    return new TStreamAggrTrigger(StreamAggr);
 }
 
 void TStreamAggrTrigger::OnAdd(const TRec& Rec) {
-    StreamAggrBase->OnAddRec(Rec);
+    StreamAggr->OnAddRec(Rec);
 }
 
 void TStreamAggrTrigger::OnUpdate(const TRec& Rec) {
-    StreamAggrBase->OnUpdateRec(Rec);
+    StreamAggr->OnUpdateRec(Rec);
 }
 
 void TStreamAggrTrigger::OnDelete(const TRec& Rec) {
-    StreamAggrBase->OnDeleteRec(Rec);
-}
-
-///////////////////////////////
-// QMiner-Valid-Name-Enforcer
-TChA TNmValidator::ValidFirstCh = "_";
-TChA TNmValidator::ValidCh = "_$";
-
-void TNmValidator::Save(TSOut& SOut) const {
-    StrictNmP.Save(SOut);
-}
-
-void TNmValidator::AssertValidNm(const TStr& NmStr) const {
-    // must be non-empty
-    QmAssertR(!NmStr.Empty(), "Name: cannot be empty");
-    if (!StrictNmP) { return; }
-
-    // check first character
-    QmAssertR(IsValidJsFirstCharacter(NmStr), "Name: invalid first character in '" + NmStr + "'");
-
-    // check rest
-    for (int ChN = 1; ChN < NmStr.Len(); ChN++) {
-        const char Ch = NmStr[ChN];
-        QmAssertR(IsValidJsCharacter(Ch), TStr::Fmt("Name: invalid %d character in '%s'", ChN, NmStr.CStr()));
-    }
-}
-
-void TNmValidator::SetStrictNmP(const bool& _StrictNmP) {
-    StrictNmP = _StrictNmP;
-}
-
-bool TNmValidator::IsValidJsFirstCharacter(const TStr& NmStr) {
-    const char FirstCh = NmStr[0];
-    return (('A' <= FirstCh) && (FirstCh <= 'Z')) || (('a' <= FirstCh) && (FirstCh <= 'z')) || ValidFirstCh.IsChIn(FirstCh);
-}
-
-bool TNmValidator::IsValidJsCharacter(const char& Ch) {
-    return (('A' <= Ch) && (Ch <= 'Z')) || (('a' <= Ch) && (Ch <= 'z')) || (('0' <= Ch) && (Ch <= '9')) || ValidCh.IsChIn(Ch);
+    StreamAggr->OnDeleteRec(Rec);
 }
 
 ///////////////////////////////
@@ -6331,8 +6349,8 @@ TBase::TBase(const TStr& _FPath, const int64& IndexCacheSize, const int& SplitLe
     // initialize with empty stores
     StoreV.Gen(TEnv::GetMxStores()); StoreV.PutAll(NULL);
     // initialize empty stream aggregate bases for each store
-    StreamAggrBaseV.Gen(TEnv::GetMxStores()); StreamAggrBaseV.PutAll(NULL);
-    StreamAggrDefaultBase = TStreamAggrBase::New();
+    StreamAggrSetV.Gen(TEnv::GetMxStores()); StreamAggrSetV.PutAll(NULL);
+    DefStreamAggrSet = TStreamAggrSet::New(this);
 }
 
 TBase::TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCacheSize,
@@ -6361,8 +6379,8 @@ TBase::TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCac
     // initialize with empty stores
     StoreV.Gen(TEnv::GetMxStores()); StoreV.PutAll(NULL);
     // initialize empty stream aggregate bases for each store
-    StreamAggrBaseV.Gen(TEnv::GetMxStores()); StreamAggrBaseV.PutAll(NULL);
-    StreamAggrDefaultBase = TStreamAggrBase::New();
+    StreamAggrSetV.Gen(TEnv::GetMxStores()); StreamAggrSetV.PutAll(NULL);
+    DefStreamAggrSet = TStreamAggrSet::New(this);
 
     // load the base properties
     LoadBaseConf(_FPath);
@@ -6403,11 +6421,11 @@ void TBase::AddStore(const PStore& NewStore) {
     // fast map from store name to store
     StoreH.AddDat(NewStore->GetStoreNm(), NewStore);
     // create stream aggregate base for the store
-    PStreamAggrBase StreamAggrBase = TStreamAggrBase::New();
+    PStreamAggr StreamAggrSet = TStreamAggrSet::New(this);
     // create trigger for the aggregate base
-    NewStore->AddTrigger(TStreamAggrTrigger::New(StreamAggrBase));
+    NewStore->AddTrigger(TStreamAggrTrigger::New(StreamAggrSet));
     // remember the aggregate base for the store
-    StreamAggrBaseV[StoreId] = StreamAggrBase;
+    StreamAggrSetV[StoreId] = StreamAggrSet;
 }
 
 const TWPt<TStore> TBase::GetStoreByStoreN(const int& StoreN) const {
@@ -6429,24 +6447,24 @@ PJsonVal TBase::GetStoreJson(const TWPt<TStore>& Store) {
     return Store->GetStoreJson(this);
 }
 
-const PStreamAggrBase& TBase::GetStreamAggrBase(const uint& StoreId) const {
-    return StreamAggrBaseV[(int)StoreId];
+TWPt<TStreamAggrSet> TBase::GetStreamAggrSet(const uint& StoreId) const {
+    return dynamic_cast<TStreamAggrSet*>(StreamAggrSetV[(int)StoreId]());
 }
 
-const PStreamAggrBase& TBase::GetStreamAggrBase() const {
-    return StreamAggrDefaultBase;
+TWPt<TStreamAggrSet> TBase::GetStreamAggrSet() const {
+    return dynamic_cast<TStreamAggrSet*>(DefStreamAggrSet());
 }
 
 bool TBase::IsStreamAggr(const uint& StoreId, const TStr& StreamAggrNm) const {
-    return GetStreamAggrBase(StoreId)->IsStreamAggr(StreamAggrNm);
+    return GetStreamAggrSet(StoreId)->IsStreamAggr(StreamAggrNm);
 }
 
 bool TBase::IsStreamAggr(const TStr& StreamAggrNm) const {
-    return StreamAggrDefaultBase->IsStreamAggr(StreamAggrNm);
+    return GetStreamAggrSet()->IsStreamAggr(StreamAggrNm);
 }
 
 const PStreamAggr& TBase::GetStreamAggr(const uint& StoreId, const TStr& StreamAggrNm) const {
-    return GetStreamAggrBase(StoreId)->GetStreamAggr(StreamAggrNm);
+    return GetStreamAggrSet(StoreId)->GetStreamAggr(StreamAggrNm);
 }
 
 const PStreamAggr& TBase::GetStreamAggr(const TStr& StoreNm, const TStr& StreamAggrNm) const {
@@ -6454,18 +6472,17 @@ const PStreamAggr& TBase::GetStreamAggr(const TStr& StoreNm, const TStr& StreamA
         return GetStreamAggr(StreamAggrNm);
     } else {
         TWPt<TStore> Store = GetStoreByStoreNm(StoreNm);
-        PStreamAggrBase SABase = GetStreamAggrBase(Store->GetStoreId());
-        return SABase->GetStreamAggr(StreamAggrNm);
+        return GetStreamAggrSet(Store->GetStoreId())->GetStreamAggr(StreamAggrNm);
     }
 }
 
 const PStreamAggr& TBase::GetStreamAggr(const TStr& StreamAggrNm) const {
-    return StreamAggrDefaultBase->GetStreamAggr(StreamAggrNm);
+    return GetStreamAggrSet()->GetStreamAggr(StreamAggrNm);
 }
 
 void TBase::AddStreamAggr(const uint& StoreId, const PStreamAggr& StreamAggr) {
     // add new aggregate to the stream aggregate base
-    GetStreamAggrBase(StoreId)->AddStreamAggr(StreamAggr);
+    GetStreamAggrSet(StoreId)->AddStreamAggr(StreamAggr);
 }
 
 void TBase::AddStreamAggr(const TUIntV& StoreIdV, const PStreamAggr& StreamAggr) {
@@ -6485,7 +6502,7 @@ void TBase::AddStreamAggr(const TStrV& StoreNmV, const PStreamAggr& StreamAggr) 
 }
 
 void TBase::AddStreamAggr(const PStreamAggr& StreamAggr) {
-    StreamAggrDefaultBase->AddStreamAggr(StreamAggr);
+    GetStreamAggrSet()->AddStreamAggr(StreamAggr);
 }
 
 void TBase::Aggr(PRecSet& RecSet, const TQueryAggrV& QueryAggrV) {
