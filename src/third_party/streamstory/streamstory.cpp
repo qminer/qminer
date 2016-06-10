@@ -2945,6 +2945,34 @@ double THierarch::GetNextLevel(const TIntV& CurrLevelIdV, TIntV& NextLevelIdV) c
 	return NextHeight;
 }
 
+double THierarch::GetNextUiLevel(const TIntV& CurrLevelIdV, TIntV& NextLevelIdV) const {
+	double CurrHeight = 0;
+	for (int StateN = 0; StateN < CurrLevelIdV.Len(); StateN++) {
+		const int& StateId = CurrLevelIdV[StateN];
+		const double& StateHeight = GetStateHeight(StateId);
+		if (StateHeight > CurrHeight) {
+			CurrHeight = StateHeight;
+		}
+	}
+	const double NextHeight = GetNextUiHeight(CurrHeight);
+
+	TIntSet TakenParentIdSet;
+	for (int StateN = 0; StateN < CurrLevelIdV.Len(); StateN++) {
+		const int StateId = CurrLevelIdV[StateN];
+		const int ParentId = GetAncestorAtHeight(StateId, NextHeight);
+
+		if (!TakenParentIdSet.IsKey(ParentId)) {
+			TakenParentIdSet.AddKey(ParentId);
+			NextLevelIdV.Add(ParentId);
+		}
+		else {
+			NextLevelIdV.Add(StateId);
+		}
+	}
+
+	return NextHeight;
+}
+
 void THierarch::GetAncestorV(const int& StateId, TIntFltPrV& StateIdHeightPrV) const {
 	StateIdHeightPrV.Add(TIntFltPr(StateId, GetStateHeight(StateId)));
 
@@ -3121,7 +3149,7 @@ void THierarch::GetUiCurrStateIdHeightPrV(TIntFltPrV& StateIdHeightPrV) const {
 }
 
 void THierarch::GetHistStateIdV(const double& Height, TStateIdV& StateIdV) const {
-	const int NearestHeightIdx = GetNearestHeightIdx(Height);
+	const int NearestHeightIdx = GetNearestHeightN(Height);
 	const TIntV& HistV = PastStateIdV[NearestHeightIdx];
 	for (int i = 1; i < HistV.Len(); i++) {
 		StateIdV.Add(HistV[i]);
@@ -3351,7 +3379,7 @@ int THierarch::GetParentId(const int& StateId) const {
 	return GetParentId(StateId, HierarchV);
 }
 
-int THierarch::GetNearestHeightIdx(const double& Height) const {
+int THierarch::GetNearestHeightN(const double& Height) const {
 	// TODO optimize:
 	// 1) use binary search to find the nearest height
 	const TFltV& HeightV = GetUniqueHeightV();
@@ -3364,7 +3392,7 @@ int THierarch::GetNearestHeightIdx(const double& Height) const {
 }
 
 double THierarch::GetNearestHeight(const double& InHeight) const {
-	return UniqueHeightV[GetNearestHeightIdx(InHeight)];
+	return UniqueHeightV[GetNearestHeightN(InHeight)];
 }
 
 bool THierarch::IsRoot(const int& StateId) const {
@@ -4889,6 +4917,7 @@ PJsonVal TStreamStory::GetJson() const {
 	// since it is only one state
 	for (int HeightN = 0; HeightN < UniqueHeightV.Len()-1; HeightN++) {
 		const double CurrHeight = UniqueHeightV[HeightN];
+		const double NextHeight = UniqueHeightV[HeightN+1];
 
 		StateIdV.Clr();
 		StateSetV.Clr();
@@ -4906,7 +4935,7 @@ PJsonVal TStreamStory::GetJson() const {
 		TFltV ProbV;			MChain->GetStatDist(StateSetV, StateFtrVV, ProbV);
 		TFltV RadiusV;			UiHelper->GetStateRadiusV(ProbV, RadiusV);
 
-		PJsonVal LevelJsonVal = GetLevelJson(CurrHeight, StateIdV, TransitionVV, HoldingTimeV, ProbV, RadiusV);
+		PJsonVal LevelJsonVal = GetLevelJson(CurrHeight, NextHeight, StateIdV, TransitionVV, HoldingTimeV, ProbV, RadiusV);
 		Result->AddToArr(LevelJsonVal);
 	}
 
@@ -4945,6 +4974,7 @@ PJsonVal TStreamStory::GetSubModelJson(const int& StateId) const {
 	TIntV NewDescIdV;
 	while (CurrHeight < MxHeight) {
 		PJsonVal LevelJsonVal = TJsonVal::NewObj();
+		const double NextHeight = Hierarch->GetNextUiLevel(DescendantIdV, NewDescIdV);
 
 		// prepare the structures
 		AncAggStateV.Clr();
@@ -4986,11 +5016,11 @@ PJsonVal TStreamStory::GetSubModelJson(const int& StateId) const {
 			}
 		}
 
-		PJsonVal LevelJsonV = GetLevelJson(CurrHeight, LevelAggTargetState, JumpVV, HoldingTmV, ProbV, RadiusV);
+		PJsonVal LevelJsonV = GetLevelJson(CurrHeight, NextHeight, LevelAggTargetState, JumpVV, HoldingTmV, ProbV, RadiusV);
 		Result->AddToArr(LevelJsonV);
 
 		// move the the next level
-		CurrHeight = Hierarch->GetNextLevel(DescendantIdV, NewDescIdV);
+		CurrHeight = NextHeight;
 		DescendantIdV = NewDescIdV;
 		NewDescIdV.Clr();
 	}
@@ -5002,8 +5032,10 @@ PJsonVal TStreamStory::GetSubModelJson(const int& StateId) const {
 
 PJsonVal TStreamStory::GetLikelyPathTreeJson(const int& StateId, const double& Height,
 		const int& MxDepth, const double& TransThreshold) const {
-	TIntV StateIdV;	TAggStateV AggStateV;
+	TIntV StateIdV;	TAggStateV AggStateV;	TIntV NextLevelIdV;
 	Hierarch->GetStateSetsAtHeight(Height, StateIdV, AggStateV);
+
+	const double NextHeight =Hierarch->GetNextUiLevel(StateIdV, NextLevelIdV);
 
 	TStateFtrVV StateFtrVV;	GetStateFtrVV(StateFtrVV, false);
 
@@ -5037,7 +5069,7 @@ PJsonVal TStreamStory::GetLikelyPathTreeJson(const int& StateId, const double& H
 
 	TFltPrV StatePosV;	TreeLayout(PMat, StateIdV, RadiusV, StatePosV);
 
-	PJsonVal LevelJson = GetLevelJson(Height, PMatStateIdV, PMat, HoldingTmV, ProbV, RadiusV);
+	PJsonVal LevelJson = GetLevelJson(Height, NextHeight, PMatStateIdV, PMat, HoldingTmV, ProbV, RadiusV);
 
 	// state ids repeat, so transform them for the UI
 	PJsonVal StatesJson = LevelJson->GetObjKey("states");
@@ -5670,18 +5702,21 @@ bool TStreamStory::IsPredictingStates() const {
 	return Hierarch->HasTargetStates();
 }
 
-PJsonVal TStreamStory::GetLevelJson(const double& Height, const TStateIdV& StateIdV, const TFltVV& TransitionVV,
-		const TFltV& HoldingTimeV, const TFltV& ProbV, const TFltV& RadiusV) const {
+PJsonVal TStreamStory::GetLevelJson(const double& Height, const double& NextHeight,
+		const TStateIdV& StateIdV, const TFltVV& TransitionVV, const TFltV& HoldingTimeV,
+		const TFltV& ProbV, const TFltV& RadiusV) const {
 
 	PJsonVal Result = TJsonVal::NewObj();
 
 	PJsonVal StateJsonV = TJsonVal::NewArr();
 	for (int StateN = 0; StateN < StateIdV.Len(); StateN++) {
 		const int StateId = StateIdV[StateN];
+		const int ParentId = Hierarch->GetAncestorAtHeight(StateId, NextHeight);
 		const TFltPr& StateCoords = UiHelper->GetStateCoords(StateId);
 
 		PJsonVal StateJson = TJsonVal::NewObj();
 		StateJson->AddToObj("id", StateId);
+		StateJson->AddToObj("parentId", ParentId);
 		StateJson->AddToObj("x", StateCoords.Val1);
 		StateJson->AddToObj("y", StateCoords.Val2);
 		StateJson->AddToObj("radius", RadiusV[StateN]);

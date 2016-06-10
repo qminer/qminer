@@ -640,6 +640,7 @@ public:
 	void GetStatesAtHeight(const double& Height, TIntSet& StateIdV) const;
 	// returns the next level of the level passed as the argument along with it's height
 	double GetNextLevel(const TIntV& CurrLevelIdV, TIntV& NextLevelIdV) const;
+	double GetNextUiLevel(const TIntV& CurrLevelIdV, TIntV& NextLevelIdV) const;
 	// fills the vector with IDs of the ancestors of the given state along with their heights
 	void GetAncestorV(const int& StateId, TIntFltPrV& StateIdHeightPrV) const;
 	// returns the ID of the ancestor of the given leaf at the specified height
@@ -686,7 +687,7 @@ private:
 	// returns the ID of the parent state
 	int GetParentId(const int& StateId) const;
 	// returns the height of the state
-	int GetNearestHeightIdx(const double& Height) const;
+	int GetNearestHeightN(const double& Height) const;
 	double GetNearestHeight(const double& InHeight) const;
 
 	bool IsRoot(const int& StateId) const;
@@ -706,6 +707,15 @@ private:
 
 	// methods for calculating the natural scales in the model
 	void CalcNaturalScales(const TStreamStory& StreamStory, const TRnd& Rnd, TFltV& ScaleV) const;
+
+	double GetNextUiHeight(const double& Height) const {
+		const TFltV& UiHeightV = GetUiHeightV();
+		int HeightN = 0;
+		while (HeightN < UiHeightV.Len() && UiHeightV[HeightN] <= Height) {
+			HeightN++;
+		}
+		return UiHeightV[HeightN];
+	}
 
 	// static functions
 	static TInt& GetParentId(const int& StateId, TIntV& HierarchV) { return HierarchV[StateId]; }
@@ -1165,8 +1175,9 @@ public:
     bool IsPredictingStates() const;
 
 private:
-    PJsonVal GetLevelJson(const double& Height, const TStateIdV& StateIdV, const TFltVV& TransitionVV,
-    		const TFltV& HoldingTimeV, const TFltV& ProbV, const TFltV& RadiusV) const;
+    PJsonVal GetLevelJson(const double& Height, const double& NextHeight, const TStateIdV& StateIdV,
+    		const TFltVV& TransitionVV, const TFltV& HoldingTimeV, const TFltV& ProbV,
+			const TFltV& RadiusV) const;
 
     void CreateFtrVV(const TFltVV& ObservFtrMat, const TFltVV& ControlFtrMat,
     		const TUInt64V& RecTmV, const TBoolV& EndsBatchV, TFltVV& FtrMat) const;

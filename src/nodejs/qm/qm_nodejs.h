@@ -477,6 +477,40 @@ private:
 	JsDeclareFunction(store);
 
 	/**
+	 * Returns the store with the specified name.
+	 * @param {string} name - Name of the store.
+	 * @returns {module:qm.Store} The store.
+	 * @example
+	 * // import qm module
+	 * var qm = require('qminer');
+	 * // create a base with two stores
+	 * var base = new qm.Base({
+	 *    mode: "createClean",
+	 *    schema: [
+	 *    {
+	 *        name: "KwikEMart",
+	 *        fields: [
+	 *            { name: "Worker", type: "string" },
+	 *            { name: "Groceries", type: "string_v" }
+	 *        ]
+	 *    },
+	 *    {
+	 *        name: "NuclearPowerplant",
+	 *        fields: [
+	 *            { name: "Owner", type: "string" },
+	 *            { name: "NumberOfAccidents", type: "int" },
+	 *            { name: "Workers", type: "string_v" }
+	 *        ]
+	 *    }]
+	 * });
+	 * // get the "KwikEMart" store
+	 * var exists = base.isStore("KwikEMart");	// true
+	 * base.close();
+	 */
+	//# exports.Base.prototype.isStore = function (name) { return false; }
+	JsDeclareFunction(isStore);
+
+	/**
 	 * Returns a list of store descriptors.
 	 * @returns {Object[]} The list of store descriptors.
 	 */
