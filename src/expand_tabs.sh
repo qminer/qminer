@@ -25,3 +25,6 @@ e nodejs/qm/qm_nodejs_streamaggr.h
 e nodejs/qm/qm_nodejs_store.cpp
 e nodejs/qm/qm_param.h
 e nodejs/qm/qm_nodejs_store.h
+
+e nodejs/nodeutil.cpp
+e nodejs/nodeutil.h
