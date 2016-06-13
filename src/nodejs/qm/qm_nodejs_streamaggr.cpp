@@ -1225,10 +1225,6 @@ double TNodeJsFuncStreamAggr::GetNmInt(const TStr& Nm) const {
 void TNodeJsFuncStreamAggr::GetNmIntV(TStrIntPrV& NmIntV) const {
     throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetNmIntV not implemented");
 }
-// ISparseVec
-//const TIntFltKdV& TNodeJsFuncStreamAggr::GetSparseVec() const {
-//  throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetSparseVec not implemented");
-//}
 
 void TNodeJsFuncStreamAggr::GetVal(const TInt& ElN, TIntFltKd& Val) const {
     throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetVal not implemented");

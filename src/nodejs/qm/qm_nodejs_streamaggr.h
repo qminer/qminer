@@ -2224,7 +2224,6 @@ public:
     double GetNmInt(const TStr& Nm) const;
     void GetNmIntV(TStrIntPrV& NmIntV) const;
     // ISparseVec
-    //int GetVals() const; - this one is "shared" with IFltVec
     void GetVal(const TInt& ElN, TIntFltKd& Val) const; // GetFltAtFun
     void GetValV(TIntFltKdV& ValV) const;
 };
