@@ -913,7 +913,7 @@ PJsonVal TCorr::SaveJson(const int& Limit) const {
 }
 
 //////////////////////////////////////////////
-// StMerger
+// Merger
 TMerger::TMerger(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal):
         TStreamAggr(Base, ParamVal) {
     

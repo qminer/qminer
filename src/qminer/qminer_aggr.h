@@ -1000,7 +1000,7 @@ public:
     /// Save state of stream aggregate to stream
     void SaveState(TSOut& SOut) const;
 
-    static TStr GetType() { return "stmerger"; }
+    static TStr GetType() { return "merger"; }
     TStr Type() const { return GetType(); }
 
 private:

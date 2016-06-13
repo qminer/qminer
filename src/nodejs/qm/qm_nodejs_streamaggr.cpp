@@ -92,7 +92,7 @@ TNodeJsStreamAggr* TNodeJsStreamAggr::NewFromArgs(const v8::FunctionCallbackInfo
 
     // get aggregate type
     TStr TypeNm = TNodeJsUtil::GetArgStr(Args, 1, "type", "javaScript");
-
+    // call constructor appropriate to the type
     if (TypeNm == "javaScript") {
         // we have a javascript stream aggregate
         TStr AggrName = TNodeJsUtil::GetArgStr(Args, 1, "name", "");
@@ -109,7 +109,7 @@ TNodeJsStreamAggr* TNodeJsStreamAggr::NewFromArgs(const v8::FunctionCallbackInfo
         // TODO
         //TQm::PFtrSpace FtrSpace = TJsFtrSpace::GetArgFtrSpace(Args[1]->ToObject()->Get(v8::String::NewFromUtf8(Isolate, "featureSpace")));
         //StreamAggr = TStreamAggrs::TFtrExtAggr::New(JsBase->Base, AggrName, FtrSpace);
-    } else if (TypeNm == "stmerger") {
+    } else if (TypeNm == "merger") {
         // create new aggregate
         PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 1);
         StreamAggr = TQm::TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);

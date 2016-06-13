@@ -3474,7 +3474,7 @@ describe('Merger Tests', function () {
         it('should create a new merger aggregator', function () {
             var aggr = {
                 name: 'MergerAggr',
-                type: 'stmerger',
+                type: 'merger',
                 outStore: 'Merged',
                 createStore: false,
                 timestamp: 'Time',
@@ -3489,7 +3489,7 @@ describe('Merger Tests', function () {
         it('should throw an exception if a key-value is not given', function () {
             var aggr = {
                 name: 'MergerAggr',
-                type: 'stmerger',
+                type: 'merger',
                 outStore: 'Merged',
                 createStore: false,
                 fields: [
@@ -3506,7 +3506,7 @@ describe('Merger Tests', function () {
         it('should be an empty "Merged" store at the construction', function () {
             var aggr = {
                 name: 'MergerAggr',
-                type: 'stmerger',
+                type: 'merger',
                 outStore: 'Merged',
                 createStore: false,
                 timestamp: 'Time',
@@ -3522,7 +3522,7 @@ describe('Merger Tests', function () {
         it('should return empty "Merged" store for the first added record in Merged store', function () {
             var aggr = {
                 name: 'MergerAggr',
-                type: 'stmerger',
+                type: 'merger',
                 outStore: 'Merged',
                 createStore: false,
                 timestamp: 'Time',
@@ -3539,7 +3539,7 @@ describe('Merger Tests', function () {
         it('should still return an empty "Merged" store if there is only one record in each of the stores', function () {
             var aggr = {
                 name: 'MergerAggr',
-                type: 'stmerger',
+                type: 'merger',
                 outStore: 'Merged',
                 createStore: false,
                 timestamp: 'Time',
@@ -3557,7 +3557,7 @@ describe('Merger Tests', function () {
         it('should put one record in the "Merged" store', function () {
             var aggr = {
                 name: 'MergerAggr',
-                type: 'stmerger',
+                type: 'merger',
                 outStore: 'Merged',
                 createStore: false,
                 timestamp: 'Time',
@@ -3579,7 +3579,7 @@ describe('Merger Tests', function () {
         it('should put two records in the "Merged" store', function () {
             var aggr = {
                 name: 'MergerAggr',
-                type: 'stmerger',
+                type: 'merger',
                 outStore: 'Merged',
                 createStore: false,
                 timestamp: 'Time',
@@ -3608,7 +3608,7 @@ describe('Merger Tests', function () {
         it('should put three records in the "Merged" store', function () {
             var aggr = {
                 name: 'MergerAggr',
-                type: 'stmerger',
+                type: 'merger',
                 outStore: 'Merged',
                 createStore: false,
                 timestamp: 'Time',
@@ -3640,7 +3640,7 @@ describe('Merger Tests', function () {
         it('should throw an exception if try to merge past events', function () {
             var aggr = {
                 name: 'MergerAggr',
-                type: 'stmerger',
+                type: 'merger',
                 outStore: 'Merged',
                 createStore: false,
                 timestamp: 'Time',

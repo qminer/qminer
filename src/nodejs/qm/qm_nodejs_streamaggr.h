@@ -969,7 +969,7 @@
 * depending on the timestamp. No methods are implemented for this aggregator.
 * <image src="pictures/merger.gif" alt="Merger Animation">
 * @property {string} StreamAggregateMerger.name - The given name for the stream aggregator.
-* @property {string} StreamAggregateMerger.type - The type of the stream aggregator. It must be equal to <b>'stmerger'</b>.
+* @property {string} StreamAggregateMerger.type - The type of the stream aggregator. It must be equal to <b>'merger'</b>.
 * @property {string} StreamAggregateMerger.outStore - The name of the store where it saves the merged records.
 * @property {boolean} StreamAggregateMerger.createStore - If the outStore must be created.
 * @property {string} StreamAggregateMerger.timestamp - The store field of outStore, where the timestamp is saved.
@@ -1013,7 +1013,7 @@
 * // The records are interpolated linearly and stored in the 'Merged' store.
 * var mer = {
 *    name: 'MergerAggr',
-*    type: 'stmerger',
+*    type: 'merger',
 *    outStore: 'Merged',
 *    createStore: false,
 *    timestamp: 'Time',
