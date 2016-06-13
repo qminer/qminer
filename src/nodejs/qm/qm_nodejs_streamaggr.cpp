@@ -86,50 +86,36 @@ TNodeJsStreamAggr* TNodeJsStreamAggr::NewFromArgs(const v8::FunctionCallbackInfo
     QmAssertR(Args.Length() <= 3 && Args.Length() >= 2, "stream aggregator constructor expects at least two parameters");
     QmAssertR(Args[0]->IsObject() && Args[1]->IsObject(), "stream aggregator constructor expects first two arguments as objects");
 
-    TQm::PStreamAggr StreamAggr;
-
+    // unwrap the base
     TNodeJsBase* JsBase = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsBase>(Args[0]->ToObject());
 
+    // placeholder for the new stream aggregate
+    TQm::PStreamAggr StreamAggr;
+    // to which stores should we attach the new aggregate
+    TStrV StoreNmV;
     // get aggregate type
     TStr TypeNm = TNodeJsUtil::GetArgStr(Args, 1, "type", "javaScript");
     // call constructor appropriate to the type
     if (TypeNm == "javaScript") {
-        // we have a javascript stream aggregate
-        TStr AggrName = TNodeJsUtil::GetArgStr(Args, 1, "name", "");
-        // we need a name, if not give just generate one
-        if (AggrName.Empty()) { AggrName = TGuid::GenSafeGuid(); }
+        // we have a javascript stream aggregate, first get its name if we have one
+        TStr AggrName = TNodeJsUtil::GetArgStr(Args, 1, "name", TGuid::GenSafeGuid());
         // create aggregate
         StreamAggr = TNodeJsFuncStreamAggr::New(JsBase->Base, AggrName, Args[1]->ToObject());
-    } else if (TypeNm == "ftrext") {
-        TStr AggrName = TNodeJsUtil::GetArgStr(Args, 1, "name", "");
-        QmAssertR(Args[1]->ToObject()->Has(v8::String::NewFromUtf8(Isolate, "featureSpace")), "addStreamAggr: featureSpace property missing!");
-        // we need a name, if not give just generate one
-        if (AggrName.Empty()) { AggrName = TGuid::GenSafeGuid(); }
-        throw TQm::TQmExcept::New("ftrext stream aggr not implemented yet! (needs feature space implementation)");
-        // TODO
-        //TQm::PFtrSpace FtrSpace = TJsFtrSpace::GetArgFtrSpace(Args[1]->ToObject()->Get(v8::String::NewFromUtf8(Isolate, "featureSpace")));
-        //StreamAggr = TStreamAggrs::TFtrExtAggr::New(JsBase->Base, AggrName, FtrSpace);
+    } else if (TypeNm == "featureSpace") {
+        // we have feature extractor aggregate, first get its name if we have one
+        TStr AggrName = TNodeJsUtil::GetArgStr(Args, 1, "name", TGuid::GenSafeGuid());
+        // unwrap the feature space object
+        TNodeJsFtrSpace* JsFtrSpace = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFtrSpace>(Args, 1, "featureSpace");
+        StreamAggr = TQm::TStreamAggrs::TFtrExtAggr::New(JsBase->Base, AggrName, JsFtrSpace->FtrSpace);
     } else if (TypeNm == "merger") {
-        // create new aggregate
+        // we have merger, get its parameters
         PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 1);
-        StreamAggr = TQm::TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
-        PJsonVal FieldArrVal = ParamVal->GetObjKey("fields");
-        TStrV InterpNmV;
-        QmAssertR(ParamVal->IsObjKey("fields"), "Missing argument 'fields'!");
-        // automatically register the aggregate for addRec callbacks
-        for (int FieldN = 0; FieldN < FieldArrVal->GetArrVals(); FieldN++) {
-            PJsonVal FieldVal = FieldArrVal->GetArrVal(FieldN);
-            PJsonVal SourceVal = FieldVal->GetObjKey("source");
-            TStr StoreNm = "";
-            if (SourceVal->IsStr()) {
-                // we have just store name
-                StoreNm = SourceVal->GetStr();
-            } else if (SourceVal->IsObj()) {
-                // get store
-                StoreNm = SourceVal->GetObjStr("store");
-            }
-            JsBase->Base->AddStreamAggr(JsBase->Base->GetStoreByStoreNm(StoreNm)->GetStoreId(), StreamAggr);
-        }
+        // create new merger aggregate
+        StreamAggr = TQm::TStreamAggrs::TMerger::New(JsBase->Base, ParamVal);
+        // automatically attach merger to all listed stores
+        TStrV StoreNmV = TQm::TStreamAggrs::TMerger::GetStoreNm(ParamVal);
+    } else if (TypeNm == "set") {
+        // 
     } else {
         // we have a GLib stream aggregate, translate parameters to PJsonVal
         PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 1);
@@ -139,25 +125,32 @@ TNodeJsStreamAggr* TNodeJsStreamAggr::NewFromArgs(const v8::FunctionCallbackInfo
         // create new aggregate
         StreamAggr = TQm::TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
     }
-
-    // handle special case when we have more then one store to attach to (e.g. merger)
+    // check if we have any more stores names passed to attached to
     if (Args.Length() > 2) {
-        TStrV Stores(0);
         if (Args[2]->IsString()) {
-            Stores.Add(TNodeJsUtil::GetArgStr(Args, 2));
+            StoreNmV.Add(TNodeJsUtil::GetArgStr(Args, 2));
         } else if (Args[2]->IsArray()) {
             PJsonVal StoresJson = TNodeJsUtil::GetArgJson(Args, 2);
-            QmAssertR(StoresJson->IsDef(), "stream aggr constructor : Args[2] should be a string (store name) or a string array (store names)");
-            StoresJson->GetArrStrV(Stores);
+            QmAssertR(StoresJson->IsDef(), "[StreamAggr] Args[2] should be a string (store name) or a string array (store names)");
+            TStrV _StoreNmV; StoresJson->GetArrStrV(_StoreNmV);
+            StoreNmV.AddV(_StoreNmV);
         }
-        for (int StoreN = 0; StoreN < Stores.Len(); StoreN++) {
-            QmAssertR(JsBase->Base->IsStoreNm(Stores[StoreN]), "stream aggr constructor : Args[2] : store does not exist!");
-            JsBase->Base->AddStreamAggr(Stores[StoreN], StreamAggr);
-        }
-    } else {
-        JsBase->Base->AddStreamAggr(StreamAggr);
     }
 
+    // register stream aggregate
+    JsBase->Base->AddStreamAggr(StreamAggr);
+    // attach to listed stores
+    if (!StoreNmV.Empty()) {
+        for (const TStr& StoreNm : StoreNmV) {
+            // make sure it exists
+            QmAssertR(JsBase->Base->IsStoreNm(StoreNm), "[StreamAggr] Unknown store " + StoreNm);
+            const uint StoreId = JsBase->Base->GetStoreByStoreNm(StoreNm)->GetStoreId();
+            // attech the stream aggregate to the store
+            JsBase->Base->GetStreamAggrSet(StoreId)->AddStreamAggr(StreamAggr);
+        }        
+    }
+
+    // we are good
     return new TNodeJsStreamAggr(StreamAggr);
 }
 
