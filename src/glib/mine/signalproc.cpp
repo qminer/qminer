@@ -361,15 +361,6 @@ double TEmaSpVec::GetNi(const double& Alpha, const double& Mi) {
 	throw TExcept::New("Unknown EMA interpolation type");
 }
 
-TEmaSpVec::TEmaSpVec(const TEmaType& _Type, const uint64& _InitMinMSecs,
-		const double& _TmInterval, const double& _Cutoff) :
-	Type(_Type),
-	LastVal(TFlt::Mn),	// XXX conversion from double to int
-	TmInterval(_TmInterval),
-	Cutoff(_Cutoff),
-	InitP(false),
-	InitMinMSecs((double)_InitMinMSecs) {}
-
 TEmaSpVec::TEmaSpVec(const PJsonVal& ParamVal) : LastVal(), InitP(false) {
 	// type
 	TStr TypeStr = ParamVal->GetObjStr("emaType");

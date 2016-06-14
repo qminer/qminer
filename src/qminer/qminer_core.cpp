@@ -38,7 +38,7 @@ void TEnv::Init() {
     // initialize stream aggregators constructor router
     TStreamAggr::Init();
     // initialize stream aggregators on add filter constructor router
-    TStreamAggrOnAddFilter::Init();
+    TRecordFilter::Init();
     // initialize feature extractors constructor router
     TFtrExt::Init();
     // tell we finished initialization
@@ -2300,17 +2300,14 @@ PJsonVal TRec::GetJson(const TWPt<TBase>& Base, const bool& FieldsP,
 
 ///////////////////////////////////////////////////////////////////////////////////
 // TRecFilterByIndexJoin
-
-/// Constructor
 TRecFilterByIndexJoin::TRecFilterByIndexJoin(const TWPt<TStore>& _Store, const int& _JoinId, const uint64& _MinVal, const uint64& _MaxVal) :
     Store(_Store), Index(Store->GetBase()->GetIndex()), JoinId(_JoinId), MinVal(_MinVal), MaxVal(_MaxVal) {
     JoinKeyId = Store->GetJoinDesc(JoinId).GetJoinKeyId();
 }
 
-/// Main operator
-bool TRecFilterByIndexJoin::operator()(const TUInt64IntKd& RecIdFq) const {
+bool TRecFilterByIndexJoin::operator()(const TRec& Rec) const {
     TUInt64IntKdV Res;
-    Index->GetJoinRecIdFqV(JoinKeyId, RecIdFq.Key, Res); // perform join lookup
+    Index->GetJoinRecIdFqV(JoinKeyId, Rec.GetRecId(), Res); // perform join lookup
     for (int i = 0; i < Res.Len(); i++) {
         uint64 Val = Res[i].Key;
         if ((MinVal <= Val) && (Val <= MaxVal)) {
@@ -3083,7 +3080,7 @@ void TRecSet::FilterByFieldBool(const int& FieldId, const bool& Val) {
     const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
     QmAssertR(Desc.IsBool(), "Wrong field type, boolean expected");
     // apply the filter
-    FilterBy(TRecFilterByFieldBool(Store, FieldId, Val));
+    FilterBy(TRecFilterByFieldBool(FieldId, Val));
 }
 
 void TRecSet::FilterByFieldInt(const int& FieldId, const int& MinVal, const int& MaxVal) {
@@ -3091,7 +3088,7 @@ void TRecSet::FilterByFieldInt(const int& FieldId, const int& MinVal, const int&
     const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
     QmAssertR(Desc.IsInt() || (Desc.IsStr() && Desc.IsCodebook()), "Wrong field type, integer or codebook string expected");
     // apply the filter
-    FilterBy(TRecFilterByFieldInt(Store, FieldId, MinVal, MaxVal));
+    FilterBy(TRecFilterByFieldInt(FieldId, MinVal, MaxVal));
 }
 
 void TRecSet::FilterByFieldInt16(const int& FieldId, const int16& MinVal, const int16& MaxVal) {
@@ -3099,7 +3096,7 @@ void TRecSet::FilterByFieldInt16(const int& FieldId, const int16& MinVal, const 
     const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
     QmAssertR(Desc.IsInt16(), "Wrong field type, integer expected");
     // apply the filter
-    FilterBy(TRecFilterByFieldInt16(Store, FieldId, MinVal, MaxVal));
+    FilterBy(TRecFilterByFieldInt16(FieldId, MinVal, MaxVal));
 }
 
 void TRecSet::FilterByFieldInt64(const int& FieldId, const int64& MinVal, const int64& MaxVal) {
@@ -3107,7 +3104,7 @@ void TRecSet::FilterByFieldInt64(const int& FieldId, const int64& MinVal, const 
     const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
     QmAssertR(Desc.IsInt64(), "Wrong field type, integer expected");
     // apply the filter
-    FilterBy(TRecFilterByFieldInt64(Store, FieldId, MinVal, MaxVal));
+    FilterBy(TRecFilterByFieldInt64(FieldId, MinVal, MaxVal));
 }
 
 void TRecSet::FilterByFieldByte(const int& FieldId, const uchar& MinVal, const uchar& MaxVal) {
@@ -3115,7 +3112,7 @@ void TRecSet::FilterByFieldByte(const int& FieldId, const uchar& MinVal, const u
     const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
     QmAssertR(Desc.IsByte(), "Wrong field type, integer expected");
     // apply the filter
-    FilterBy(TRecFilterByFieldUCh(Store, FieldId, MinVal, MaxVal));
+    FilterBy(TRecFilterByFieldUCh(FieldId, MinVal, MaxVal));
 }
 
 void TRecSet::FilterByFieldUInt(const int& FieldId, const uint& MinVal, const uint& MaxVal) {
@@ -3123,7 +3120,7 @@ void TRecSet::FilterByFieldUInt(const int& FieldId, const uint& MinVal, const ui
     const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
     QmAssertR(Desc.IsUInt(), "Wrong field type, integer expected");
     // apply the filter
-    FilterBy(TRecFilterByFieldUInt(Store, FieldId, MinVal, MaxVal));
+    FilterBy(TRecFilterByFieldUInt(FieldId, MinVal, MaxVal));
 }
 
 void TRecSet::FilterByFieldUInt16(const int& FieldId, const uint16& MinVal, const uint16& MaxVal) {
@@ -3131,7 +3128,7 @@ void TRecSet::FilterByFieldUInt16(const int& FieldId, const uint16& MinVal, cons
     const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
     QmAssertR(Desc.IsUInt16(), "Wrong field type, integer expected");
     // apply the filter
-    FilterBy(TRecFilterByFieldUInt16(Store, FieldId, MinVal, MaxVal));
+    FilterBy(TRecFilterByFieldUInt16(FieldId, MinVal, MaxVal));
 }
 
 void TRecSet::FilterByFieldFlt(const int& FieldId, const double& MinVal, const double& MaxVal) {
@@ -3139,7 +3136,7 @@ void TRecSet::FilterByFieldFlt(const int& FieldId, const double& MinVal, const d
     const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
     QmAssertR(Desc.IsFlt(), "Wrong field type, numeric expected");
     // apply the filter
-    FilterBy(TRecFilterByFieldFlt(Store, FieldId, MinVal, MaxVal));
+    FilterBy(TRecFilterByFieldFlt(FieldId, MinVal, MaxVal));
 }
 
 void TRecSet::FilterByFieldSFlt(const int& FieldId, const float& MinVal, const float& MaxVal) {
@@ -3147,7 +3144,7 @@ void TRecSet::FilterByFieldSFlt(const int& FieldId, const float& MinVal, const f
     const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
     QmAssertR(Desc.IsFlt(), "Wrong field type, numeric expected");
     // apply the filter
-    FilterBy(TRecFilterByFieldSFlt(Store, FieldId, MinVal, MaxVal));
+    FilterBy(TRecFilterByFieldSFlt(FieldId, MinVal, MaxVal));
 }
 
 void TRecSet::FilterByFieldUInt64(const int& FieldId, const uint64& MinVal, const uint64& MaxVal) {
@@ -3155,7 +3152,7 @@ void TRecSet::FilterByFieldUInt64(const int& FieldId, const uint64& MinVal, cons
     const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
     QmAssertR(Desc.IsUInt64(), "Wrong field type, integer expected");
     // apply the filter
-    FilterBy(TRecFilterByFieldUInt64(Store, FieldId, MinVal, MaxVal));
+    FilterBy(TRecFilterByFieldUInt64(FieldId, MinVal, MaxVal));
 }
 
 void TRecSet::FilterByFieldStr(const int& FieldId, const TStr& FldVal) {
@@ -3163,7 +3160,7 @@ void TRecSet::FilterByFieldStr(const int& FieldId, const TStr& FldVal) {
     const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
     QmAssertR(Desc.IsStr(), "Wrong field type, string expected");
     // apply the filter
-    FilterBy(TRecFilterByFieldStr(Store, FieldId, FldVal));
+    FilterBy(TRecFilterByFieldStr(FieldId, FldVal));
 }
 
 void TRecSet::FilterByFieldStrMinMax(const int& FieldId, const TStr& FldVal, const TStr& FldValMax) {
@@ -3171,7 +3168,7 @@ void TRecSet::FilterByFieldStrMinMax(const int& FieldId, const TStr& FldVal, con
     const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
     QmAssertR(Desc.IsStr(), "Wrong field type, string expected");
     // apply the filter
-    FilterBy(TRecFilterByFieldStrMinMax(Store, FieldId, FldVal, FldValMax));
+    FilterBy(TRecFilterByFieldStrMinMax(FieldId, FldVal, FldValMax));
 }
 
 void TRecSet::FilterByFieldStrSet(const int& FieldId, const TStrSet& ValSet) {
@@ -3179,7 +3176,7 @@ void TRecSet::FilterByFieldStrSet(const int& FieldId, const TStrSet& ValSet) {
     const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
     QmAssertR(Desc.IsStr(), "Wrong field type, string expected");
     // apply the filter
-    FilterBy(TRecFilterByFieldStrSet(Store, FieldId, ValSet));
+    FilterBy(TRecFilterByFieldStrSet(FieldId, ValSet));
 }
 
 void TRecSet::FilterByFieldTm(const int& FieldId, const uint64& MinVal, const uint64& MaxVal) {
@@ -3187,7 +3184,7 @@ void TRecSet::FilterByFieldTm(const int& FieldId, const uint64& MinVal, const ui
     const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
     QmAssertR(Desc.IsTm() || Desc.IsUInt64(), "Wrong field type, time expected");
     // apply the filter
-    FilterBy(TRecFilterByFieldTm(Store, FieldId, MinVal, MaxVal));
+    FilterBy(TRecFilterByFieldTm(FieldId, MinVal, MaxVal));
 }
 
 void TRecSet::FilterByFieldTm(const int& FieldId, const TTm& MinVal, const TTm& MaxVal) {
@@ -3203,7 +3200,7 @@ void TRecSet::FilterByFieldSafe(const int& FieldId, const uint64& MinVal, const 
     const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
     QmAssertR(Desc.IsTm() || Desc.IsUInt64() || Desc.IsInt64() || Desc.IsUInt() || Desc.IsInt() || Desc.IsUInt16() || Desc.IsInt16() || Desc.IsByte(), "Wrong field type, numeric field expected");
     // apply the filter
-    FilterBy(TRecFilterByFieldSafe(Store, FieldId, MinVal, MaxVal));
+    FilterBy(TRecFilterByFieldSafe(FieldId, MinVal, MaxVal));
 }
 
 void TRecSet::FilterByIndexJoin(const TWPt<TBase>& Base, const int& JoinId, const uint64& MinVal, const uint64& MaxVal) {
@@ -5975,11 +5972,29 @@ void TStreamAggr::SaveState(TSOut& SOut) const {
 };
 
 ///////////////////////////////
-// QMiner-Stream-Aggregator-OnAdd-Filter
-TFunRouter<PStreamAggrOnAddFilter, TStreamAggrOnAddFilter::TNewF> TStreamAggrOnAddFilter::NewRouter;
+// QMiner-Record-Filter
+TFunRouter<PRecordFilter, TRecordFilter::TNewF> TRecordFilter::NewRouter;
 
-void TStreamAggrOnAddFilter::Init() {
-    Register<TStreamAggrs::TOnAddSubsampler>();
+void TRecordFilter::Init() {
+    Register<TQm::TRecFilterSubsampler>();
+    Register<TQm::TRecFilterByRecId>();
+    Register<TQm::TRecFilterByRecIdSet>();
+    Register<TQm::TRecFilterByRecFq>();
+    Register<TQm::TRecFilterByFieldBool>();
+    Register<TQm::TRecFilterByFieldInt>();
+    Register<TQm::TRecFilterByFieldInt16>();
+    Register<TQm::TRecFilterByFieldInt64>();
+    Register<TQm::TRecFilterByFieldUCh>();
+    Register<TQm::TRecFilterByFieldUInt>();
+    Register<TQm::TRecFilterByFieldUInt16>();
+    Register<TQm::TRecFilterByFieldFlt>();
+    Register<TQm::TRecFilterByFieldSFlt>();
+    Register<TQm::TRecFilterByFieldUInt64>();
+    Register<TQm::TRecFilterByFieldStr>();
+    Register<TQm::TRecFilterByFieldStrMinMax>();
+    Register<TQm::TRecFilterByFieldStrSet>();
+    Register<TQm::TRecFilterByFieldTm>();
+    Register<TQm::TRecFilterByFieldSafe>();
 }
 
 

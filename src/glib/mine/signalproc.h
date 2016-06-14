@@ -242,7 +242,6 @@ private:
 
 	double GetNi(const double& Alpha, const double& Mi);
 public:
-	TEmaSpVec(const TEmaType& _Type, const uint64& _InitMinMSecs, const double& _TmInterval, const double& _Cutoff);
 	TEmaSpVec(const PJsonVal& ParamVal);
 	TEmaSpVec(TSIn& SIn);
 

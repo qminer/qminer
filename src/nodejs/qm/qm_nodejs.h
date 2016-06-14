@@ -2472,14 +2472,15 @@ public:
     ~TJsRecFilter(){
         Callback.Reset();
     }
+    /// Constructor
     TJsRecFilter(TWPt<TQm::TStore> _Store, v8::Handle<v8::Function> _Callback) : Store(_Store) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::HandleScope HandleScope(Isolate);
         // set persistent object
         Callback.Reset(Isolate, _Callback);
     }
-    
-    bool operator()(const TUInt64IntKd& RecIdWgt) const;
+    /// Filter function
+    bool operator()(const TQm::TRec& Rec) const;
 };
 
 ///////////////////////////////

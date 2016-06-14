@@ -165,6 +165,15 @@ void TJsonVal::GetArrIntV(TIntV& IntV) const {
     }
 }
 
+void TJsonVal::GetArrUInt64V(TUInt64V& UInt64V) const {
+    EAssert(IsArr());
+    for (int IntN = 0; IntN < GetArrVals(); IntN++) {
+        PJsonVal ArrVal = GetArrVal(IntN);
+        EAssert(ArrVal->IsNum());
+        UInt64V.Add(ArrVal->GetUInt64());
+    }
+}
+
 void TJsonVal::GetArrStrV(TStrV& StrV) const {
     EAssert(IsArr());
     for (int StrN = 0; StrN < GetArrVals(); StrN++) {
@@ -240,6 +249,12 @@ void TJsonVal::GetObjIntV(const TStr& Key, TIntV& IntV) const {
     EAssert(IsObj());
     EAssert(IsObjKey(Key));
     GetObjKey(Key)->GetArrIntV(IntV);
+}
+
+void TJsonVal::GetObjUInt64V(const TStr& Key, TUInt64V& UInt64V) const {
+    EAssert(IsObj());
+    EAssert(IsObjKey(Key));
+    GetObjKey(Key)->GetArrUInt64V(UInt64V);
 }
 
 void TJsonVal::GetObjFltV(const TStr& Key, TFltV& FltV) const {

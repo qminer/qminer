@@ -2719,7 +2719,9 @@ void TNodeJsRecSet::filterByField(const v8::FunctionCallbackInfo<v8::Value>& Arg
         if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
             MxVal = TNodeJsUtil::GetArgInt32(Args, 2);
         }
+        
         JsRecSet->RecSet->FilterByFieldInt(FieldId, MnVal, MxVal);
+
     } else if (Desc.IsInt16()) {
         int16 MnVal = TInt16::Mn;
         int16 MxVal = TInt16::Mx;
@@ -3425,14 +3427,14 @@ void TNodeJsStoreIter::record(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 ///////////////////////////////
 // NodeJs QMiner Record Filter
-bool TJsRecFilter::operator()(const TUInt64IntKd& RecIdWgt) const {
+bool TJsRecFilter::operator()(const TQm::TRec& Rec) const {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
     v8::TryCatch TryCatch;
 
     // prepare record objects - since they are local, they are safe from GC
     v8::Local<v8::Object> JsRec = TNodeJsRec::NewInstance(
-        new TNodeJsRec(TNodeJsBaseWatcher::New(), TQm::TRec(Store, RecIdWgt.Key), RecIdWgt.Dat));
+        new TNodeJsRec(TNodeJsBaseWatcher::New(), Rec, Rec.GetRecFq()));
 
     v8::Local<v8::Function> Callbck = v8::Local<v8::Function>::New(Isolate, Callback);
     v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();

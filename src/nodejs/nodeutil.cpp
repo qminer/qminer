@@ -503,7 +503,7 @@ void TNodeJsUtil::GetArgIntVV(const v8::FunctionCallbackInfo<v8::Value>& Args, c
 		for (int j = 0; j < InnerLen; j++) {
 			v8::Local<v8::Value> InnerVal = JsIntV->Get(j);
 			EAssertR(InnerVal->IsNumber() || InnerVal->IsInt32(), "TNodeJsUtil::GetArgIntVV: value is not an integer!");
-			IntVV[i][j] = InnerVal->ToNumber()->NumberValue();
+			IntVV[i][j] = (int)InnerVal->NumberValue();
 		}
 	}
 }
@@ -790,7 +790,7 @@ PMem TNodeJsUtil::GetArgMem(const v8::FunctionCallbackInfo<v8::Value>& Args, con
 	v8::Local<v8::Object> Obj = Args[0]->ToObject();
 #if NODE_MODULE_VERSION >= 46 /* Node.js >= v4.0.0 */
 	if (!Obj->IsUint8Array()) return TMem::New();
-	return TMem::New(node::Buffer::Data(Obj), node::Buffer::Length(Obj));
+	return TMem::New(node::Buffer::Data(Obj), (int) node::Buffer::Length(Obj));
 #else
 	v8::ExternalArrayType ExternalType = Obj->GetIndexedPropertiesExternalArrayDataType();
 	if (ExternalType != v8::ExternalArrayType::kExternalUint8Array) return TMem::New();

@@ -24,7 +24,7 @@ class TIndexVoc; typedef TPt<TIndexVoc> PIndexVoc;
 class TIndex; typedef TPt<TIndex> PIndex;
 class TAggr; typedef TPt<TAggr> PAggr;
 class TStreamAggr; typedef TPt<TStreamAggr> PStreamAggr;
-class TStreamAggrOnAddFilter; typedef TPt<TStreamAggrOnAddFilter> PStreamAggrOnAddFilter;
+class TRecordFilter; typedef TPt<TRecordFilter> PRecordFilter;
 class TFtrExt; typedef TPt<TFtrExt> PFtrExt;
 class TFtrSpace; typedef TPt<TFtrSpace> PFtrSpace;
 
@@ -1220,96 +1220,193 @@ public:
 };
 
 ///////////////////////////////
+// QMiner-Record-Filter
+class TRecordFilter {
+private:
+    // smart-pointer
+    TCRef CRef;
+    friend class TPt<TRecordFilter>;
+private:
+    /// New constructor delegate
+    typedef PRecordFilter(*TNewF)(const PJsonVal& ParamVal);
+    /// Filter New constructor router
+    static TFunRouter<PRecordFilter, TNewF> NewRouter;
+public:
+    /// Create a default filter that doesn't filter anything
+    static PRecordFilter New() {
+        return new TRecordFilter;
+    }
+    /// Create new record filter.
+    static PRecordFilter New(const TStr& TypeNm, const PJsonVal& ParamVal) {
+        return NewRouter.Fun(TypeNm)(ParamVal);
+    }
+    /// Destructor
+    virtual ~TRecordFilter() { }
+
+    /// Register new record filter
+    template <class TObj> static void Register() {
+        NewRouter.Register(TObj::GetType(), TObj::New);
+    }
+    /// Register default record filters
+    static void Init();
+public:
+    /// Calls the filter
+    virtual bool operator()(const TRec& Rec) { return true; }
+};
+
+///////////////////////////////
+/// TRecFilterSubsampler
+/// Given a parameter Skip, is a record filter that tracks the number of potential calls to OnAdd
+/// but only alows processing on every (Skip+1)-th record. Example: Skip = 1 will result in processing
+/// only half of records.
+class TRecFilterSubsampler : public TRecordFilter {
+private:
+    TInt NumUpdates; ///< Counter of updates
+    TInt Skip; ///< Number of samples skipped for each call to OnAdd
+public:
+    /// Constructor
+    TRecFilterSubsampler(const int& Skip_ = 0) : NumUpdates(0), Skip(Skip_) {}
+    /// JSON contructor
+    TRecFilterSubsampler(const PJsonVal& ParamVal) { Skip = ParamVal->GetObjInt("skip", 0); }
+    /// Smart pointer constructor
+    static PRecordFilter New(const PJsonVal& ParamVal) { return new TRecFilterSubsampler(ParamVal); }
+    /// Process every (Skip+1)-th record
+    bool operator()(const TRec& Rec) { return NumUpdates++ % (Skip + 1) == 0; }
+    /// Filter type name 
+    static TStr GetType() { return "subsamplingFilter"; }
+    /// Filter type name 
+    TStr Type() const { return GetType(); }
+};
+
+///////////////////////////////
 /// Record Filter by Record Exists. 
 class TRecFilterByExists {
 private:
     /// Store from which we are sorting the records 
     TWPt<TStore> Store;
 public:
+    /// Constructor
     TRecFilterByExists(const TWPt<TStore>& _Store) : Store(_Store) {}
-
-    bool operator()(const TUInt64IntKd& RecIdFq) const {
-        return Store->IsRecId(RecIdFq.Key);
+    /// Filter function
+    bool operator()(const TRec& Rec) const {
+        return Store->IsRecId(Rec.GetRecId());        
     }
 };
 
 ///////////////////////////////
 /// Record Filter by Record Id. 
-class TRecFilterByRecId {
+class TRecFilterByRecId : public TQm::TRecordFilter {
 private:
-    /// Minimal value
+    /// Minimal id
     TUInt64 MinRecId;
-    /// Maximal value
+    /// Maximal id
     TUInt64 MaxRecId;
 public:
+    /// Constructor
     TRecFilterByRecId(const uint64& _MinRecId, const uint64& _MaxRecId) :
         MinRecId(_MinRecId), MaxRecId(_MaxRecId) {}
-
-    bool operator()(const TUInt64IntKd& RecIdFq) const {
-        return (MinRecId <= RecIdFq.Key) && (RecIdFq.Key <= MaxRecId);
+    /// JSON constructor
+    TRecFilterByRecId(const PJsonVal& ParamVal) :
+        MinRecId(ParamVal->GetObjUInt64("minRecId", 0)), MaxRecId(ParamVal->GetObjUInt64("maxRecId", TUInt64::Mx)) {}
+    /// Smart pointer constructor
+    static PRecordFilter New(const PJsonVal& ParamVal) { return new TRecFilterByRecId(ParamVal); }
+    /// Filter function
+    bool operator()(const TRec& Rec) const {
+        return (MinRecId <= Rec.GetRecId()) && (Rec.GetRecId() <= MaxRecId);
     }
+    /// Filter type name 
+    static TStr GetType() { return "filterByRecId"; }
+    /// Filter type name 
+    TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
 /// Record Filter by Record Id Set. 
-class TRecFilterByRecIdSet {
+class TRecFilterByRecIdSet : public TQm::TRecordFilter {
 private:
     /// Store from which we are sorting the records 
-    const TUInt64Set& RecIdSet;
+    TUInt64Set RecIdSet;
     /// Check for in our out
     TBool InP;
 public:
+    /// Constructor
     TRecFilterByRecIdSet(const TUInt64Set& _RecIdSet, const bool _InP) :
         RecIdSet(_RecIdSet), InP(_InP) {}
-
-    bool operator()(const TUInt64IntKd& RecIdFq) const {
-        return InP ? RecIdSet.IsKey(RecIdFq.Key) : !RecIdSet.IsKey(RecIdFq.Key);
+    /// JSON constructor
+    TRecFilterByRecIdSet(const PJsonVal& ParamVal) {
+        InP = ParamVal->GetObjBool("inP", true);
+        TUInt64V RecIdSetV; ParamVal->GetObjUInt64V("recIdSet", RecIdSetV);
+        RecIdSet = TUInt64Set(RecIdSetV);
     }
+    /// Smart pointer constructor
+    static PRecordFilter New(const PJsonVal& ParamVal) { return new TRecFilterByRecIdSet(ParamVal); }
+    /// Filter function
+    bool operator()(const TRec& Rec) const {
+        return InP ? RecIdSet.IsKey(Rec.GetRecId()) : !RecIdSet.IsKey(Rec.GetRecId());
+    }
+    /// Filter type name 
+    static TStr GetType() { return "filterByRecIdSet"; }
+    /// Filter type name 
+    TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
-/// Record Filter by Record Id. 
-class TRecFilterByRecFq {
+/// Record Filter by Record Fq. 
+class TRecFilterByRecFq : public TQm::TRecordFilter {
 private:
-    /// Minimal value
+    /// Minimal fq
     TInt MinFq;
-    /// Maximal value
+    /// Maximal fq
     TInt MaxFq;
 public:
+    /// Constructor
     TRecFilterByRecFq(const int& _MinFq, const int& _MaxFq) :
         MinFq(_MinFq), MaxFq(_MaxFq) {}
-
-    bool operator()(const TUInt64IntKd& RecIdFq) const {
-        return (MinFq <= RecIdFq.Dat) && (RecIdFq.Dat <= MaxFq);
+    /// JSON constructor
+    TRecFilterByRecFq(const PJsonVal& ParamVal) :
+        MinFq(ParamVal->GetObjInt("minFq", 0)), MaxFq(ParamVal->GetObjInt("maxFq", TInt::Mx)) {}
+    /// Smart pointer constructor
+    static PRecordFilter New(const PJsonVal& ParamVal) { return new TRecFilterByRecFq(ParamVal); }
+    /// Filter function
+    bool operator()(const TRec& Rec) const {
+        return (MinFq <= Rec.GetRecFq()) && (Rec.GetRecFq() <= MaxFq);
     }
+    /// Filter type name 
+    static TStr GetType() { return "filterByRecFq"; }
+    /// Filter type name 
+    TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
 /// Record Filter by Bool Field. 
-class TRecFilterByFieldBool {
+class TRecFilterByFieldBool : public TQm::TRecordFilter {
 private:
-    /// Store from which we are sorting the records 
-    TWPt<TStore> Store;
     /// Field according to which we are sorting
     TInt FieldId;
     /// Value
     TBool Val;
 public:
-    TRecFilterByFieldBool(const TWPt<TStore>& _Store, const int& _FieldId, const bool& _Val) : Store(_Store), FieldId(_FieldId), Val(_Val) {}
-
-    bool operator()(const TUInt64IntKd& RecIdFq) const {
-        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
-        const bool RecVal = Store->GetFieldBool(RecIdFq.Key, FieldId);
+    /// Constructor
+    TRecFilterByFieldBool(const int& _FieldId, const bool& _Val) : FieldId(_FieldId), Val(_Val) {}
+    /// JSON contructor
+    TRecFilterByFieldBool(const PJsonVal& ParamVal) : FieldId(ParamVal->GetObjInt("fieldId")), Val(ParamVal->GetObjBool("val", false)) {}
+    /// Smart pointer constructor
+    static PRecordFilter New(const PJsonVal& ParamVal) { return new TRecFilterByFieldBool(ParamVal); }
+    /// Filter function
+    bool operator()(const TRec& Rec) const {
+        const bool RecVal = Rec.GetFieldBool(FieldId);
         return RecVal == Val;
     }
+    /// Filter type name 
+    static TStr GetType() { return "filterByFieldBool"; }
+    /// Filter type name 
+    TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
 /// Record Filter by Integer Field. 
-class TRecFilterByFieldInt {
+class TRecFilterByFieldInt : public TQm::TRecordFilter {
 private:
-    /// Store from which we are sorting the records 
-    TWPt<TStore> Store;
     /// Field according to which we are sorting
     TInt FieldId;
     /// Minimal value
@@ -1317,22 +1414,28 @@ private:
     /// Maximal value
     TInt MaxVal;
 public:
-    TRecFilterByFieldInt(const TWPt<TStore>& _Store, const int& _FieldId, const int& _MinVal,
-        const int& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
-
-    bool operator()(const TUInt64IntKd& RecIdFq) const {
-        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
-        const int RecVal = Store->GetFieldInt(RecIdFq.Key, FieldId);
+    /// Constructor
+    TRecFilterByFieldInt(const int& _FieldId, const int& _MinVal,
+        const int& _MaxVal) : FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
+    /// JSON contructor
+    TRecFilterByFieldInt(const PJsonVal& ParamVal) : FieldId(ParamVal->GetObjInt("fieldId")), MinVal(ParamVal->GetObjInt("minVal", TInt::Mn)), MaxVal(ParamVal->GetObjInt("maxVal", TInt::Mx)) {}
+    /// Smart pointer constructor
+    static PRecordFilter New(const PJsonVal& ParamVal) { return new TRecFilterByFieldInt(ParamVal); }
+    /// Filter function
+    bool operator()(const TRec& Rec) const {        
+        const int RecVal = Rec.GetFieldInt(FieldId);
         return (MinVal <= RecVal) && (RecVal <= MaxVal);
     }
+    /// Filter type name 
+    static TStr GetType() { return "filterByFieldInt"; }
+    /// Filter type name 
+    TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
 /// Record Filter by Integer Field. 
-class TRecFilterByFieldInt16 {
+class TRecFilterByFieldInt16 : public TQm::TRecordFilter {
 private:
-    /// Store from which we are sorting the records 
-    TWPt<TStore> Store;
     /// Field according to which we are sorting
     TInt FieldId;
     /// Minimal value
@@ -1340,22 +1443,29 @@ private:
     /// Maximal value
     TInt16 MaxVal;
 public:
-    TRecFilterByFieldInt16(const TWPt<TStore>& _Store, const int& _FieldId, const int16& _MinVal,
-        const int16& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
-
-    bool operator()(const TUInt64IntKd& RecIdFq) const {
-        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
-        const int16 RecVal = Store->GetFieldInt16(RecIdFq.Key, FieldId);
+    /// Constructor
+    TRecFilterByFieldInt16(const int& _FieldId, const int16& _MinVal,
+        const int16& _MaxVal) : FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
+    /// JSON contructor
+    TRecFilterByFieldInt16(const PJsonVal& ParamVal) : FieldId(ParamVal->GetObjInt("fieldId")), 
+        MinVal(ParamVal->GetObjInt("minVal", TInt16::Mn)), MaxVal(ParamVal->GetObjInt("maxVal", TInt16::Mx)) {}
+    /// Smart pointer constructor
+    static PRecordFilter New(const PJsonVal& ParamVal) { return new TRecFilterByFieldInt16(ParamVal); }
+    /// Filter function
+    bool operator()(const TRec& Rec) const {
+        const int16 RecVal = Rec.GetFieldInt16(FieldId);
         return (MinVal <= RecVal) && (RecVal <= MaxVal);
     }
+    /// Filter type name 
+    static TStr GetType() { return "filterByFieldInt16"; }
+    /// Filter type name 
+    TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
 /// Record Filter by Integer Field. 
-class TRecFilterByFieldInt64 {
-private:
-    /// Store from which we are sorting the records 
-    TWPt<TStore> Store;
+class TRecFilterByFieldInt64 : public TQm::TRecordFilter {
+private:    
     /// Field according to which we are sorting
     TInt FieldId;
     /// Minimal value
@@ -1363,22 +1473,29 @@ private:
     /// Maximal value
     TInt64 MaxVal;
 public:
-    TRecFilterByFieldInt64(const TWPt<TStore>& _Store, const int& _FieldId, const int64& _MinVal,
-        const int64& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
-
-    bool operator()(const TUInt64IntKd& RecIdFq) const {
-        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
-        const int64 RecVal = Store->GetFieldInt64(RecIdFq.Key, FieldId);
+    /// Constructor
+    TRecFilterByFieldInt64(const int& _FieldId, const int64& _MinVal,
+        const int64& _MaxVal) : FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
+    /// JSON contructor
+    TRecFilterByFieldInt64(const PJsonVal& ParamVal) : FieldId(ParamVal->GetObjInt("fieldId")),
+        MinVal(ParamVal->GetObjInt64("minVal", TInt64::Mn)), MaxVal(ParamVal->GetObjInt64("maxVal", TInt64::Mx)) {}
+    /// Smart pointer constructor
+    static PRecordFilter New(const PJsonVal& ParamVal) { return new TRecFilterByFieldInt64(ParamVal); }
+    /// Filter function
+    bool operator()(const TRec& Rec) const {
+        const int64 RecVal = Rec.GetFieldInt64(FieldId);
         return (MinVal <= RecVal) && (RecVal <= MaxVal);
     }
+    /// Filter type name 
+    static TStr GetType() { return "filterByFieldInt64"; }
+    /// Filter type name 
+    TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
 /// Record Filter by Integer Field. 
-class TRecFilterByFieldUCh {
+class TRecFilterByFieldUCh : public TQm::TRecordFilter {
 private:
-    /// Store from which we are sorting the records 
-    TWPt<TStore> Store;
     /// Field according to which we are sorting
     TInt FieldId;
     /// Minimal value
@@ -1386,22 +1503,29 @@ private:
     /// Maximal value
     TUCh MaxVal;
 public:
-    TRecFilterByFieldUCh(const TWPt<TStore>& _Store, const int& _FieldId, const uchar& _MinVal,
-        const uchar& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
-
-    bool operator()(const TUInt64IntKd& RecIdFq) const {
-        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
-        const uchar RecVal = Store->GetFieldByte(RecIdFq.Key, FieldId);
+    /// Constructor
+    TRecFilterByFieldUCh(const int& _FieldId, const uchar& _MinVal,
+        const uchar& _MaxVal) : FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
+    /// JSON contructor
+    TRecFilterByFieldUCh(const PJsonVal& ParamVal) : FieldId(ParamVal->GetObjInt("fieldId")),
+        MinVal((unsigned)(char)ParamVal->GetObjInt("minVal", TUCh::Mn)), MaxVal((unsigned)(char)ParamVal->GetObjInt("maxVal", TUCh::Mx)) {}
+    /// Smart pointer constructor
+    static PRecordFilter New(const PJsonVal& ParamVal) { return new TRecFilterByFieldUCh(ParamVal); }
+    /// Filter function
+    bool operator()(const TRec& Rec) const {
+        const uchar RecVal = Rec.GetFieldByte(FieldId);
         return (MinVal <= RecVal) && (RecVal <= MaxVal);
     }
+    /// Filter type name 
+    static TStr GetType() { return "filterByFieldUCh"; }
+    /// Filter type name 
+    TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
 /// Record Filter by Integer Field. 
-class TRecFilterByFieldUInt {
+class TRecFilterByFieldUInt : public TQm::TRecordFilter {
 private:
-    /// Store from which we are sorting the records 
-    TWPt<TStore> Store;
     /// Field according to which we are sorting
     TInt FieldId;
     /// Minimal value
@@ -1409,22 +1533,29 @@ private:
     /// Maximal value
     TUInt MaxVal;
 public:
-    TRecFilterByFieldUInt(const TWPt<TStore>& _Store, const int& _FieldId, const uint& _MinVal,
-        const uint& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
-
-    bool operator()(const TUInt64IntKd& RecIdFq) const {
-        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
-        const uint RecVal = Store->GetFieldUInt(RecIdFq.Key, FieldId);
+    /// Constructor
+    TRecFilterByFieldUInt(const int& _FieldId, const uint& _MinVal,
+        const uint& _MaxVal) : FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
+    /// JSON contructor
+    TRecFilterByFieldUInt(const PJsonVal& ParamVal) : FieldId(ParamVal->GetObjInt("fieldId")),
+        MinVal((uint)ParamVal->GetObjUInt64("minVal", TUInt::Mn)), MaxVal((uint)ParamVal->GetObjUInt64("maxVal", TUInt::Mx)) {}
+    /// Smart pointer constructor
+    static PRecordFilter New(const PJsonVal& ParamVal) { return new TRecFilterByFieldUInt(ParamVal); }
+    /// Filter function
+    bool operator()(const TRec& Rec) const {
+        const uint RecVal = Rec.GetFieldUInt(FieldId);
         return (MinVal <= RecVal) && (RecVal <= MaxVal);
     }
+    /// Filter type name 
+    static TStr GetType() { return "filterByFieldUInt"; }
+    /// Filter type name 
+    TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
 /// Record Filter by Integer Field. 
-class TRecFilterByFieldUInt16 {
+class TRecFilterByFieldUInt16 : public TQm::TRecordFilter {
 private:
-    /// Store from which we are sorting the records 
-    TWPt<TStore> Store;
     /// Field according to which we are sorting
     TInt FieldId;
     /// Minimal value
@@ -1432,22 +1563,29 @@ private:
     /// Maximal value
     TUInt16 MaxVal;
 public:
-    TRecFilterByFieldUInt16(const TWPt<TStore>& _Store, const int& _FieldId, const uint16& _MinVal,
-        const uint16& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
-
-    bool operator()(const TUInt64IntKd& RecIdFq) const {
-        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
-        const uint16 RecVal = Store->GetFieldUInt16(RecIdFq.Key, FieldId);
+    /// Constructor
+    TRecFilterByFieldUInt16(const int& _FieldId, const uint16& _MinVal,
+        const uint16& _MaxVal) : FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
+    /// JSON contructor
+    TRecFilterByFieldUInt16(const PJsonVal& ParamVal) : FieldId(ParamVal->GetObjInt("fieldId")),
+        MinVal((uint16)ParamVal->GetObjUInt64("minVal", TUInt16::Mn)), MaxVal((uint16)ParamVal->GetObjUInt64("maxVal", TUInt16::Mx)) {}
+    /// Smart pointer constructor
+    static PRecordFilter New(const PJsonVal& ParamVal) { return new TRecFilterByFieldUInt16(ParamVal); }
+    /// Filter function
+    bool operator()(const TRec& Rec) const {
+        const uint16 RecVal = Rec.GetFieldUInt16(FieldId);
         return (MinVal <= RecVal) && (RecVal <= MaxVal);
     }
+    /// Filter type name 
+    static TStr GetType() { return "filterByFieldUInt16"; }
+    /// Filter type name 
+    TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
 /// Record Filter by Numeric Field. 
-class TRecFilterByFieldFlt {
+class TRecFilterByFieldFlt : public TQm::TRecordFilter {
 private:
-    /// Store from which we are sorting the records 
-    TWPt<TStore> Store;
     /// Field according to which we are sorting
     TInt FieldId;
     /// Minimal value
@@ -1455,22 +1593,29 @@ private:
     /// Maximal value
     TFlt MaxVal;
 public:
-    TRecFilterByFieldFlt(const TWPt<TStore>& _Store, const int& _FieldId, const double& _MinVal,
-        const double& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
-
-    bool operator()(const TUInt64IntKd& RecIdFq) const {
-        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
-        const double RecVal = Store->GetFieldFlt(RecIdFq.Key, FieldId);
+    /// Constructor
+    TRecFilterByFieldFlt(const int& _FieldId, const double& _MinVal,
+        const double& _MaxVal) : FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
+    /// JSON contructor
+    TRecFilterByFieldFlt(const PJsonVal& ParamVal) : FieldId(ParamVal->GetObjInt("fieldId")),
+        MinVal((double)ParamVal->GetObjNum("minVal", TFlt::Mn)), MaxVal((uint)ParamVal->GetObjNum("maxVal", TFlt::Mx)) {}
+    /// Smart pointer constructor
+    static PRecordFilter New(const PJsonVal& ParamVal) { return new TRecFilterByFieldFlt(ParamVal); }
+    /// Filter function
+    bool operator()(const TRec& Rec) const {
+        const double RecVal = Rec.GetFieldFlt(FieldId);
         return (MinVal <= RecVal) && (RecVal <= MaxVal);
     }
+    /// Filter type name 
+    static TStr GetType() { return "filterByFieldFlt"; }
+    /// Filter type name 
+    TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
 /// Record Filter by Numeric Field. 
-class TRecFilterByFieldSFlt {
+class TRecFilterByFieldSFlt : public TQm::TRecordFilter {
 private:
-    /// Store from which we are sorting the records 
-    TWPt<TStore> Store;
     /// Field according to which we are sorting
     TInt FieldId;
     /// Minimal value
@@ -1478,142 +1623,30 @@ private:
     /// Maximal value
     TSFlt MaxVal;
 public:
-    TRecFilterByFieldSFlt(const TWPt<TStore>& _Store, const int& _FieldId, const float& _MinVal,
-        const float& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
-
-    bool operator()(const TUInt64IntKd& RecIdFq) const {
-        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
-        const float RecVal = Store->GetFieldSFlt(RecIdFq.Key, FieldId);
+    /// Constructor
+    TRecFilterByFieldSFlt(const int& _FieldId, const float& _MinVal,
+        const float& _MaxVal) : FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
+    /// JSON contructor
+    TRecFilterByFieldSFlt(const PJsonVal& ParamVal) : FieldId(ParamVal->GetObjInt("fieldId")),
+        MinVal((float)ParamVal->GetObjNum("minVal", TSFlt::Mn)), MaxVal((float)ParamVal->GetObjNum("maxVal", TSFlt::Mx)) {}
+    /// Smart pointer constructor
+    static PRecordFilter New(const PJsonVal& ParamVal) { return new TRecFilterByFieldSFlt(ParamVal); }
+    /// Filter function
+    bool operator()(const TRec& Rec) const {
+        const float RecVal = Rec.GetFieldSFlt(FieldId);
         return (MinVal <= RecVal) && (RecVal <= MaxVal);
     }
+    /// Filter type name 
+    static TStr GetType() { return "filterByFieldSFlt"; }
+    /// Filter type name 
+    TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
 
 /// Record Filter by UInt64 Field. 
-class TRecFilterByFieldUInt64 {
+class TRecFilterByFieldUInt64 : public TQm::TRecordFilter {
 private:
-    /// Store from which we are sorting the records 
-    TWPt<TStore> Store;
-    /// Field according to which we are sorting
-    TInt FieldId;
-    /// Minimal value
-    TUInt64 MinVal;
-    /// Maximal value
-    TUInt64 MaxVal;
-public:
-    TRecFilterByFieldUInt64(const TWPt<TStore>& _Store, const int& _FieldId, const uint64& _MinVal,
-        const uint64& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) { 
-    }
-
-    bool operator()(const TUInt64IntKd& RecIdWgt) const {
-        const uint64 RecVal = Store->GetFieldUInt64(RecIdWgt.Key, FieldId);
-        return (MinVal <= RecVal) && (RecVal <= MaxVal);
-    }
-};
-
-///////////////////////////////
-/// Record Filter by String Field. 
-class TRecFilterByFieldStr {
-private:
-    /// Store from which we are sorting the records 
-    TWPt<TStore> Store;
-    /// Field according to which we are sorting
-    TInt FieldId;
-    /// String value
-    const TStr& StrVal;
-public:
-    TRecFilterByFieldStr(const TWPt<TStore>& _Store, const int& _FieldId,
-        const TStr& _StrVal) :
-        Store(_Store), FieldId(_FieldId), StrVal(_StrVal) {}
-
-    bool operator()(const TUInt64IntKd& RecIdFq) const {
-        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
-        const TStr RecVal = Store->GetFieldStr(RecIdFq.Key, FieldId);
-        return StrVal == RecVal;
-    }
-};
-
-///////////////////////////////
-/// Record Filter by String Field Range.
-class TRecFilterByFieldStrMinMax {
-private:
-    /// Store from which we are sorting the records 
-    TWPt<TStore> Store;
-    /// Field according to which we are sorting
-    TInt FieldId;
-    /// String value - min
-    const TStr& StrValMin;
-    /// String value - max
-    const TStr& StrValMax;
-public:
-    TRecFilterByFieldStrMinMax(const TWPt<TStore>& _Store, const int& _FieldId,
-        const TStr& _StrVal, const TStr& _StrValMax) :
-        Store(_Store), FieldId(_FieldId), StrValMin(_StrVal), StrValMax(_StrValMax) {}
-
-    bool operator()(const TUInt64IntKd& RecIdFq) const {
-        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
-        const TStr RecVal = Store->GetFieldStr(RecIdFq.Key, FieldId);
-        return (StrValMin <= RecVal) && (RecVal <= StrValMax);
-    }
-};
-
-///////////////////////////////
-/// Record Filter by String Field Set. 
-class TRecFilterByFieldStrSet {
-private:
-    /// Store from which we are sorting the records 
-    TWPt<TStore> Store;
-    /// Field according to which we are sorting
-    TInt FieldId;
-    /// String values
-    const TStrSet& StrSet;
-public:
-    TRecFilterByFieldStrSet(const TWPt<TStore>& _Store, const int& _FieldId,
-        const TStrSet& _StrSet) : Store(_Store), FieldId(_FieldId), StrSet(_StrSet) {}
-
-    bool operator()(const TUInt64IntKd& RecIdFq) const {
-        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
-        const TStr RecVal = Store->GetFieldStr(RecIdFq.Key, FieldId);
-        return StrSet.IsKey(RecVal);
-    }
-};
-
-
-///////////////////////////////
-/// Record Filter by Time Field. 
-class TRecFilterByFieldTm {
-private:
-    /// Store from which we are sorting the records 
-    TWPt<TStore> Store;
-    /// Field according to which we are sorting
-    TInt FieldId;
-    /// Minimal value
-    TUInt64 MinVal;
-    /// Maximal value
-    TUInt64 MaxVal;
-public:
-    TRecFilterByFieldTm(const TWPt<TStore>& _Store, const int& _FieldId, const uint64& _MinVal,
-        const uint64& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
-    TRecFilterByFieldTm(const TWPt<TStore>& _Store, const int& _FieldId,
-        const TTm& _MinVal, const TTm& _MaxVal) : Store(_Store), FieldId(_FieldId),
-        MinVal(_MinVal.IsDef() ? TTm::GetMSecsFromTm(_MinVal) : (uint64)TUInt64::Mn),
-        MaxVal(_MaxVal.IsDef() ? TTm::GetMSecsFromTm(_MaxVal) : (uint64)TUInt64::Mx) {}
-
-    bool operator()(const TUInt64IntKd& RecIdFq) const {
-        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
-        const uint64 RecVal = Store->GetFieldTmMSecs(RecIdFq.Key, FieldId);
-        return (MinVal <= RecVal) && (RecVal <= MaxVal);
-    }
-};
-
-
-///////////////////////////////
-/// Record Filter by numeric Field. 
-class TRecFilterByFieldSafe {
-private:
-    /// Store from which we are sorting the records 
-    TWPt<TStore> Store;
     /// Field according to which we are sorting
     TInt FieldId;
     /// Minimal value
@@ -1622,16 +1655,178 @@ private:
     TUInt64 MaxVal;
 public:
     /// Constructor
-    TRecFilterByFieldSafe(const TWPt<TStore>& _Store, const int& _FieldId, const uint64& _MinVal,
-        const uint64& _MaxVal) : Store(_Store), FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
-    /// Main operator
-    bool operator()(const TUInt64IntKd& RecIdFq) const {
-        if (Store->IsFieldNull(RecIdFq.Key, FieldId)) { return false; }
-        const uint64 RecVal = Store->GetFieldUInt64Safe(RecIdFq.Key, FieldId);
+    TRecFilterByFieldUInt64(const int& _FieldId, const uint64& _MinVal,
+        const uint64& _MaxVal) : FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) { }
+    /// JSON contructor
+    TRecFilterByFieldUInt64(const PJsonVal& ParamVal) : FieldId(ParamVal->GetObjInt("fieldId")),
+        MinVal(ParamVal->GetObjUInt64("minVal", TUInt64::Mn)), MaxVal(ParamVal->GetObjUInt64("maxVal", TUInt64::Mx)) {}
+    /// Smart pointer constructor
+    static PRecordFilter New(const PJsonVal& ParamVal) { return new TRecFilterByFieldUInt64(ParamVal); }
+    /// Filter function
+    bool operator()(const TRec& Rec) const {
+        const uint64 RecVal = Rec.GetFieldUInt64(FieldId);
         return (MinVal <= RecVal) && (RecVal <= MaxVal);
     }
+    /// Filter type name 
+    static TStr GetType() { return "filterByFieldUInt64"; }
+    /// Filter type name 
+    TStr Type() const { return GetType(); }
 };
 
+///////////////////////////////
+/// Record Filter by String Field. 
+class TRecFilterByFieldStr : public TQm::TRecordFilter {
+private:
+    /// Field according to which we are sorting
+    TInt FieldId;
+    /// String value
+    const TStr& StrVal;
+public:
+    /// Constructor
+    TRecFilterByFieldStr(const int& _FieldId,
+        const TStr& _StrVal) :
+        FieldId(_FieldId), StrVal(_StrVal) {}
+    /// JSON contructor
+    TRecFilterByFieldStr(const PJsonVal& ParamVal) : FieldId(ParamVal->GetObjInt("fieldId")),
+        StrVal(ParamVal->GetObjStr("val")) {}
+    /// Smart pointer constructor
+    static PRecordFilter New(const PJsonVal& ParamVal) { return new TRecFilterByFieldStr(ParamVal); }
+    /// Filter function
+    bool operator()(const TRec& Rec) const {
+        const TStr RecVal = Rec.GetFieldStr(FieldId);
+        return StrVal == RecVal;
+    }
+    /// Filter type name 
+    static TStr GetType() { return "filterByFieldStr"; }
+    /// Filter type name 
+    TStr Type() const { return GetType(); }
+};
+
+///////////////////////////////
+/// Record Filter by String Field Range.
+class TRecFilterByFieldStrMinMax : public TQm::TRecordFilter {
+private:
+    /// Field according to which we are sorting
+    TInt FieldId;
+    /// String value - min
+    const TStr& StrValMin;
+    /// String value - max
+    const TStr& StrValMax;
+public:
+    /// Constructor
+    TRecFilterByFieldStrMinMax(const int& _FieldId,
+        const TStr& _StrVal, const TStr& _StrValMax) :
+        FieldId(_FieldId), StrValMin(_StrVal), StrValMax(_StrValMax) {}
+    /// JSON contructor
+    TRecFilterByFieldStrMinMax(const PJsonVal& ParamVal) : FieldId(ParamVal->GetObjInt("fieldId")),
+        StrValMin(ParamVal->GetObjStr("minVal")), StrValMax(ParamVal->GetObjStr("maxVal")) {}
+    /// Smart pointer constructor
+    static PRecordFilter New(const PJsonVal& ParamVal) { return new TRecFilterByFieldStrMinMax(ParamVal); }
+    /// Filter function
+    bool operator()(const TRec& Rec) const {
+        const TStr RecVal = Rec.GetFieldStr(FieldId);
+        return (StrValMin <= RecVal) && (RecVal <= StrValMax);
+    }
+    /// Filter type name 
+    static TStr GetType() { return "filterByFieldStrMinMax"; }
+    /// Filter type name 
+    TStr Type() const { return GetType(); }
+};
+
+///////////////////////////////
+/// Record Filter by String Field Set. 
+class TRecFilterByFieldStrSet : public TQm::TRecordFilter {
+private:
+    /// Field according to which we are sorting
+    TInt FieldId;
+    /// String values
+    TStrSet StrSet;
+public:
+    /// Constructor
+    TRecFilterByFieldStrSet(const int& _FieldId,
+        const TStrSet& _StrSet) : FieldId(_FieldId), StrSet(_StrSet) {}
+    /// JSON contructor
+    TRecFilterByFieldStrSet(const PJsonVal& ParamVal) : FieldId(ParamVal->GetObjInt("fieldId")) {        
+        TStrV StrV; ParamVal->GetObjStrV("strSet", StrV);
+        StrSet = TStrSet(StrV);
+    }
+        
+    /// Smart pointer constructor
+    static PRecordFilter New(const PJsonVal& ParamVal) { return new TRecFilterByFieldStrSet(ParamVal); }
+    /// Filter function
+    bool operator()(const TRec& Rec) const {
+        const TStr RecVal = Rec.GetFieldStr(FieldId);
+        return StrSet.IsKey(RecVal);
+    }
+    /// Filter type name 
+    static TStr GetType() { return "filterByFieldStrSet"; }
+    /// Filter type name 
+    TStr Type() const { return GetType(); }
+};
+
+///////////////////////////////
+/// Record Filter by Time Field. 
+class TRecFilterByFieldTm : public TQm::TRecordFilter {
+private:
+    /// Field according to which we are sorting
+    TInt FieldId;
+    /// Minimal value
+    TUInt64 MinVal;
+    /// Maximal value
+    TUInt64 MaxVal;
+public:
+    /// Constructor
+    TRecFilterByFieldTm(const int& _FieldId, const uint64& _MinVal,
+        const uint64& _MaxVal) : FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
+    TRecFilterByFieldTm(const TWPt<TStore>& _Store, const int& _FieldId,
+        const TTm& _MinVal, const TTm& _MaxVal) : FieldId(_FieldId),
+        MinVal(_MinVal.IsDef() ? TTm::GetMSecsFromTm(_MinVal) : (uint64)TUInt64::Mn),
+        MaxVal(_MaxVal.IsDef() ? TTm::GetMSecsFromTm(_MaxVal) : (uint64)TUInt64::Mx) {}
+    /// JSON contructor
+    TRecFilterByFieldTm(const PJsonVal& ParamVal) : FieldId(ParamVal->GetObjInt("fieldId")),
+        MinVal(ParamVal->GetObjUInt64("minVal", TUInt64::Mn)), MaxVal(ParamVal->GetObjUInt64("maxVal", TUInt64::Mx)) {}
+    /// Smart pointer constructor
+    static PRecordFilter New(const PJsonVal& ParamVal) { return new TRecFilterByFieldTm(ParamVal); }
+    /// Filter function
+    bool operator()(const TRec& Rec) const {
+        const uint64 RecVal = Rec.GetFieldTmMSecs(FieldId);
+        return (MinVal <= RecVal) && (RecVal <= MaxVal);
+    }
+    /// Filter type name 
+    static TStr GetType() { return "filterByFieldTm"; }
+    /// Filter type name 
+    TStr Type() const { return GetType(); }
+};
+
+///////////////////////////////
+/// Record Filter by numeric Field. 
+class TRecFilterByFieldSafe : public TQm::TRecordFilter {
+private:
+    /// Field according to which we are sorting
+    TInt FieldId;
+    /// Minimal value
+    TUInt64 MinVal;
+    /// Maximal value
+    TUInt64 MaxVal;
+public:
+    /// Constructor
+    TRecFilterByFieldSafe(const int& _FieldId, const uint64& _MinVal,
+        const uint64& _MaxVal) : FieldId(_FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
+    /// JSON contructor
+    TRecFilterByFieldSafe(const PJsonVal& ParamVal) : FieldId(ParamVal->GetObjInt("fieldId")),
+        MinVal(ParamVal->GetObjUInt64("minVal", TUInt64::Mn)), MaxVal(ParamVal->GetObjUInt64("maxVal", TUInt64::Mx)) {}
+    /// Smart pointer constructor
+    static PRecordFilter New(const PJsonVal& ParamVal) { return new TRecFilterByFieldSafe(ParamVal); }
+    /// Filter function
+    bool operator()(const TRec& Rec) const {
+        const uint64 RecVal = Rec.GetFieldUInt64Safe(FieldId);
+        return (MinVal <= RecVal) && (RecVal <= MaxVal);
+    }
+    /// Filter type name 
+    static TStr GetType() { return "filterByFieldUInt64Safe"; }
+    /// Filter type name 
+    TStr Type() const { return GetType(); }
+};
 
 ///////////////////////////////
 /// Record Filter by index-join. 
@@ -1652,8 +1847,8 @@ private:
 public:
     /// Constructor
     TRecFilterByIndexJoin(const TWPt<TStore>& _Store, const int& _JoinId, const uint64& _MinVal, const uint64& _MaxVal);
-    /// Main operator
-    bool operator()(const TUInt64IntKd& RecIdFq) const;
+    /// Filter function
+    bool operator()(const TRec& Rec) const;
 };
 
 ///////////////////////////////
@@ -1989,18 +2184,19 @@ public:
 typedef TVec<PRecSet> TRecSetV;
 
 // implementation of template functions
-template <class TFilter> 
+template <class TFilter>
 void TRecSet::FilterBy(const TFilter& Filter) {
     // prepare an empty key-dat vector for storing records that pass the filter
     const int Recs = GetRecs();
     TUInt64IntKdV NewRecIdFqV(Recs, 0);
     for (int RecN = 0; RecN < Recs; RecN++) {
         const TUInt64IntKd& RecIdFq = RecIdFqV[RecN];
+        const TRec Rec = GetRec(RecN);
         // check the filter
-        if (Filter(RecIdFq)) { NewRecIdFqV.Add(RecIdFq); }
+        if (Filter(Rec)) { NewRecIdFqV.Add(RecIdFq); }
     }
     // overwrite old result vector with filtered list
-    RecIdFqV = NewRecIdFqV;    
+    RecIdFqV = NewRecIdFqV;
 }
 
 template <class TSplitter> 
@@ -3403,39 +3599,6 @@ public:
     const TStr& GetGuid() const { return Guid; }  
 
     virtual TStr Type() const = 0;
-};
-
-///////////////////////////////
-// QMiner-Stream-Aggregator-OnAdd-Filter
-class TStreamAggrOnAddFilter {
-private:
-    // smart-pointer
-    TCRef CRef;
-    friend class TPt<TStreamAggrOnAddFilter>;
-private:
-    /// New constructor delegate
-    typedef PStreamAggrOnAddFilter(*TNewF)(const PJsonVal& ParamVal);
-    /// Filter New constructor router
-    static TFunRouter<PStreamAggrOnAddFilter, TNewF> NewRouter;
-public:
-    /// Create a default filter that doesn't filter anything
-    static PStreamAggrOnAddFilter New() { 
-        return new TStreamAggrOnAddFilter; }
-    /// Create new stream aggregate filter.
-    static PStreamAggrOnAddFilter New(const TStr& TypeNm, const PJsonVal& ParamVal) {
-        return NewRouter.Fun(TypeNm)(ParamVal); }
-    /// Destructor
-    virtual ~TStreamAggrOnAddFilter() { }
-
-    /// Register new stream aggregate
-    template <class TObj> static void Register() {
-        NewRouter.Register(TObj::GetType(), TObj::New);
-    }
-    /// Register default stream aggregates
-    static void Init();
-public:
-    /// The record will trigger OnAdd if the function returns true.
-    virtual bool CallOnAdd(const TRec& Rec) { return true; }
 };
 
 ///////////////////////////////

@@ -130,6 +130,7 @@ public:
   void GetArrNumV(TFltV& FltV) const;
   void GetArrNumSpV(TIntFltKdV& NumSpV) const;
   void GetArrIntV(TIntV& IntV) const;
+  void GetArrUInt64V(TUInt64V& IntV) const;
   void GetArrStrV(TStrV& StrV) const;
   int GetObjKeys() const {EAssert(IsObj()); return KeyValH.Len();}
   void GetObjKeyVal(const int& KeyValN, TStr& Key, PJsonVal& Val) const {
@@ -167,6 +168,7 @@ public:
   uint64 GetObjUInt64(const TStr& Key, const uint64& DefNum) const;
   uint64 GetObjUInt64(const char *Key, const uint64& DefNum) const;
   void GetObjIntV(const TStr& Key, TIntV& IntV) const;
+  void GetObjUInt64V(const TStr& Key, TUInt64V& UInt64V) const;
   void GetObjFltV(const TStr& Key, TFltV& FltV) const;
   const TStr& GetObjStr(const TStr& Key, const TStr& DefStr) const;
   const TStr& GetObjStr(const char *Key, const TStr& DefStr) const;

@@ -922,7 +922,7 @@ void TNodeJsFuncStreamAggr::OnTime(const uint64& Time) {
         v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
 
         const unsigned Argc = 1;
-        v8::Local<v8::Value> ArgV[Argc] = { v8::Number::New(Isolate, Time) };
+        v8::Local<v8::Value> ArgV[Argc] = { v8::Number::New(Isolate, (double)Time) };
         v8::TryCatch TryCatch;
         Callback->Call(GlobalContext, Argc, ArgV);
 

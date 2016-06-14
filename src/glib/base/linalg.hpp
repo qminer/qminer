@@ -557,8 +557,9 @@ TType TLinAlg::DotProduct(const TVVec<TNum<TType>, TSizeTy, ColMajor>& X,
 template <class TType, class TSizeTy, bool ColMajor>
 TType TLinAlg::DotProduct(const TVec<TKeyDat<TNum<TSizeTy>, TNum<TType>>, TSizeTy>& x,
 		const TVec<TKeyDat<TNum<TSizeTy>, TNum<TType>>, TSizeTy>& y) {
-	const TType xLen = x.Len(), yLen = y.Len();
-	TType Res = 0.0; TType i1 = 0, i2 = 0;
+	const TSizeTy xLen = x.Len(), yLen = y.Len();
+	TType Res = 0.0; 
+    TSizeTy i1 = 0, i2 = 0;
 	while (i1 < xLen && i2 < yLen) {
 		if (x[i1].Key < y[i2].Key) i1++;
 		else if (x[i1].Key > y[i2].Key) i2++;
