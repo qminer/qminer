@@ -3557,6 +3557,9 @@ protected:
 
     /// Get pointer to QMiner base
     const TWPt<TBase>& GetBase() const { return Base; }
+
+    /// Parse stream aggregate from json
+    TWPt<TStreamAggr> ParseAggr(const PJsonVal& ParamVal, const TStr& AggrKeyNm);
 public:
     /// Create new stream aggregate based on provided JSon parameters
     static PStreamAggr New(const TWPt<TBase>& Base, const TStr& TypeNm, const PJsonVal& ParamVal);
@@ -3597,8 +3600,17 @@ public:
     
     /// Unique ID of the stream aggregate
     const TStr& GetGuid() const { return Guid; }  
-
+    /// Unique ID of the stream aggregate
     virtual TStr Type() const = 0;
+
+protected:
+    /// Cast stream aggregate to interface
+    template <class IInterface>
+    static TWPt<IInterface> Cast(const TWPt<TStreamAggr>& Aggr, const bool& CheckP = true) {
+        TWPt<IInterface> CastAggr = dynamic_cast<IInterface*>(Aggr());
+        QmAssertR(!CastAggr.Empty() || !CheckP, "[TStreamAggr] error casting " + Aggr->GetAggrNm());
+        return CastAggr;
+    }    
 };
 
 ///////////////////////////////
@@ -3628,7 +3640,7 @@ namespace TStreamAggrOut {
     class IValVec {
     public:
         virtual int GetVals() const = 0;
-        virtual void GetVal(const TInt& ElN, TVal& Val) const = 0;
+        virtual void GetVal(const int& ElN, TVal& Val) const = 0;
         virtual void GetValV(TVec<TVal>& ValV) const = 0;
     };
     typedef IValVec<TFlt> IFltVec;
@@ -3644,7 +3656,7 @@ namespace TStreamAggrOut {
     class ITmVec {
     public:
         virtual int GetTmLen() const = 0;
-        virtual uint64 GetTm(const TInt& ElN) const = 0;
+        virtual uint64 GetTm(const int& ElN) const = 0;
         virtual void GetTmV(TUInt64V& MSecsV) const = 0;
     };
 
@@ -3713,15 +3725,17 @@ namespace TStreamAggrOut {
 class TStreamAggrSet : public TStreamAggr {
 protected:
     /// List of aggregates triggered in step
-    THash<TStr, PStreamAggr> StreamAggrH;
+    TVec<TWPt<TStreamAggr>> StreamAggrV;
     
     /// Create empty aggregate base
-    TStreamAggrSet(const TWPt<TBase>& _Base);
+    TStreamAggrSet(const TWPt<TBase>& _Base, const TStr& _AggrNm);
     /// Create empty aggregate base from json
     TStreamAggrSet(const TWPt<TBase>& _Base, const PJsonVal& ParamVal);
 public:
     /// Create empty aggregate base
-    static PStreamAggr New(const TWPt<TBase>& _Base);
+    static PStreamAggr New(const TWPt<TBase>& Base);
+    /// Create empty aggregate base
+    static PStreamAggr New(const TWPt<TBase>& Base, const TStr& AggrNm);
     /// Create empty aggregate base
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 
@@ -3729,12 +3743,10 @@ public:
     bool Empty() const;
     /// Number of aggregates in the set
     int Len() const;
-    /// Do we have aggregate with the given name
-    bool IsStreamAggr(const TStr& StreamAggrNm) const;
     /// Add new aggregate to the name
     void AddStreamAggr(const PStreamAggr& StreamAggr);
     /// Get stream aggregate by name
-    const PStreamAggr& GetStreamAggr(const TStr& StreamAggrNm) const;
+    const TWPt<TStreamAggr>& GetStreamAggr(const int& StreamAggrN) const;
     /// Get list of all aggregates
     TStrV GetStreamAggrNmV() const;
     
@@ -3758,7 +3770,7 @@ public:
     PJsonVal SaveJson(const int& Limit) const;
 
     // stream aggregator type name 
-    static TStr GetType() { return "streamAggregateSet"; }
+    static TStr GetType() { return "set"; }
     TStr Type() const { return GetType(); }    
 };
 
@@ -3811,10 +3823,10 @@ private:
     /// Map from store name to store
     THash<TStr, PStore> StoreH;
 
+    /// List of all registered stream aggregates
+    THash<TStr, PStreamAggr> StreamAggrH;
     /// Stream aggregate sets for each store
-    TVec<PStreamAggr> StreamAggrSetV;
-    /// Default stream aggregate base (store independent)
-    PStreamAggr DefStreamAggrSet;
+    TVec<TWPt<TStreamAggrSet>> StreamAggrSetV;
     
     /// Name validates used for validating field, join and key names
     TNmValidator NmValidator;
@@ -3891,30 +3903,16 @@ public:
     /// Get store blob base
     const PBlobBs& GetStoreBlobBs() { return StoreBlobBs; }
 
-    /// Get stream aggregate set for the given store
-    TWPt<TStreamAggrSet> GetStreamAggrSet(const uint& StoreId) const;
-    /// Get default stream aggregate set
-    TWPt<TStreamAggrSet> GetStreamAggrSet() const;    
-    /// Check if store has stream aggregate with the given name
-    bool IsStreamAggr(const uint& StoreId, const TStr& StreamAggrNm) const;
     /// Check if base has stream aggregate with the given name
     bool IsStreamAggr(const TStr& StreamAggrNm) const;
-    /// Get stream aggregate with the given name from the given store ID
-    const PStreamAggr& GetStreamAggr(const uint& StoreId, const TStr& StreamAggrNm) const;
-    /// Get stream aggregate with the given name from the given store name
-    const PStreamAggr& GetStreamAggr(const TStr& StoreNm, const TStr& StreamAggrNm) const;
-    /// Get stream aggregate with the given name from base
-    const PStreamAggr& GetStreamAggr(const TStr& StreamAggrNm) const;
-    /// Add stream aggregate to the given store
-    void AddStreamAggr(const uint& StoreId, const PStreamAggr& StreamAggr);
-    /// Add stream aggreagate to the given list of stores
-    void AddStreamAggr(const TUIntV& StoreIdV, const PStreamAggr& StreamAggr);
-    /// Add stream aggregate to the given store
-    void AddStreamAggr(const TStr& StoreNm, const PStreamAggr& StreamAggr);
-    /// Add stream aggreagate to the given list of stores
-    void AddStreamAggr(const TStrV& StoreNmV, const PStreamAggr& StreamAggr);
-    /// Add stream aggregate to the base
+    /// Register new stream aggregate to the base
     void AddStreamAggr(const PStreamAggr& StreamAggr);
+    /// Get stream aggregate with the given name from base
+    TWPt<TStreamAggr> GetStreamAggr(const TStr& StreamAggrNm) const;
+    /// Get list of all stream aggregates
+    TStrV GetStreamAggrNmV() const { TStrV NmV; StreamAggrH.GetKeyV(NmV); return NmV; }
+    /// Get stream aggregate set for the given store
+    TWPt<TStreamAggrSet> GetStreamAggrSet(const uint& StoreId) const;
 
     /// Aggregate given recordset and add aggregates to the record set
     void Aggr(PRecSet& RecSet, const TQueryAggrV& QueryAggrV);

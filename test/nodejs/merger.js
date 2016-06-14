@@ -93,7 +93,7 @@ describe('Merger test, old', function () {
             ]);
 
             new qm.StreamAggr(base, {
-                type: 'stmerger',
+                type: 'merger',
                 name: 'blabla',
                 outStore: 'joined',
                 createStore: false,
@@ -233,7 +233,7 @@ describe('Merger test, old', function () {
             ]);
 
             new qm.StreamAggr(base, {
-                type: 'stmerger',
+                type: 'merger',
                 name: 'blabla1',
                 outStore: 'joined1',
                 createStore: false,
@@ -342,7 +342,7 @@ describe('Merger test, old', function () {
             ]);
 
             new qm.StreamAggr(base, {
-                type: 'stmerger',
+                type: 'merger',
                 name: 'blabla2',
                 outStore: 'joined11',
                 createStore: false,

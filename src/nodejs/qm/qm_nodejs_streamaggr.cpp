@@ -83,53 +83,62 @@ TNodeJsStreamAggr* TNodeJsStreamAggr::NewFromArgs(const v8::FunctionCallbackInfo
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    QmAssertR(Args.Length() <= 3 && Args.Length() >= 2, "stream aggregator constructor expects at least two parameters");
-    QmAssertR(Args[0]->IsObject() && Args[1]->IsObject(), "stream aggregator constructor expects first two arguments as objects");
-
-    TQm::PStreamAggr StreamAggr;
-
+    // make sure we have enough parameters and not to many
+    QmAssertR(Args.Length() == 2 || Args.Length() == 3,
+              "stream aggregator constructor expects two or three parameters");
+    // make sure we get what we expect
+    QmAssertR(Args[0]->IsObject() && Args[1]->IsObject(),
+              "stream aggregator constructor expects first two arguments as objects");
+    // unwrap the base
     TNodeJsBase* JsBase = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsBase>(Args[0]->ToObject());
 
+    // placeholder for the new stream aggregate
+    TQm::PStreamAggr StreamAggr;
+    // to which stores should we attach the new aggregate
+    TStrV StoreNmV;
     // get aggregate type
     TStr TypeNm = TNodeJsUtil::GetArgStr(Args, 1, "type", "javaScript");
-
+    // call constructor appropriate to the type
     if (TypeNm == "javaScript") {
-        // we have a javascript stream aggregate
-        TStr AggrName = TNodeJsUtil::GetArgStr(Args, 1, "name", "");
-        // we need a name, if not give just generate one
-        if (AggrName.Empty()) { AggrName = TGuid::GenSafeGuid(); }
+        // we have a javascript stream aggregate, first get its name if we have one
+        TStr AggrName = TNodeJsUtil::GetArgStr(Args, 1, "name", TGuid::GenSafeGuid());
         // create aggregate
         StreamAggr = TNodeJsFuncStreamAggr::New(JsBase->Base, AggrName, Args[1]->ToObject());
-    } else if (TypeNm == "ftrext") {
-        TStr AggrName = TNodeJsUtil::GetArgStr(Args, 1, "name", "");
-        QmAssertR(Args[1]->ToObject()->Has(v8::String::NewFromUtf8(Isolate, "featureSpace")), "addStreamAggr: featureSpace property missing!");
-        // we need a name, if not give just generate one
-        if (AggrName.Empty()) { AggrName = TGuid::GenSafeGuid(); }
-        throw TQm::TQmExcept::New("ftrext stream aggr not implemented yet! (needs feature space implementation)");
-        // TODO
-        //TQm::PFtrSpace FtrSpace = TJsFtrSpace::GetArgFtrSpace(Args[1]->ToObject()->Get(v8::String::NewFromUtf8(Isolate, "featureSpace")));
-        //StreamAggr = TStreamAggrs::TFtrExtAggr::New(JsBase->Base, AggrName, FtrSpace);
-    } else if (TypeNm == "stmerger") {
-        // create new aggregate
+    } else if (TypeNm == "featureSpace") {
+        // we have feature extractor aggregate, first get its name if we have one
+        TStr AggrName = TNodeJsUtil::GetArgStr(Args, 1, "name", TGuid::GenSafeGuid());
+        // unwrap the feature space object
+        TNodeJsFtrSpace* JsFtrSpace = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFtrSpace>(Args, 1, "featureSpace");
+        StreamAggr = TQm::TStreamAggrs::TFtrExtAggr::New(JsBase->Base, AggrName, JsFtrSpace->FtrSpace);
+    } else if (TypeNm == "merger") {
+        // we have merger, get its parameters
         PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 1);
-        StreamAggr = TQm::TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
-        PJsonVal FieldArrVal = ParamVal->GetObjKey("fields");
-        TStrV InterpNmV;
-        QmAssertR(ParamVal->IsObjKey("fields"), "Missing argument 'fields'!");
-        // automatically register the aggregate for addRec callbacks
-        for (int FieldN = 0; FieldN < FieldArrVal->GetArrVals(); FieldN++) {
-            PJsonVal FieldVal = FieldArrVal->GetArrVal(FieldN);
-            PJsonVal SourceVal = FieldVal->GetObjKey("source");
-            TStr StoreNm = "";
-            if (SourceVal->IsStr()) {
-                // we have just store name
-                StoreNm = SourceVal->GetStr();
-            } else if (SourceVal->IsObj()) {
-                // get store
-                StoreNm = SourceVal->GetObjStr("store");
-            }
-            JsBase->Base->AddStreamAggr(JsBase->Base->GetStoreByStoreNm(StoreNm)->GetStoreId(), StreamAggr);
-        }
+        // create new merger aggregate
+        StreamAggr = TQm::TStreamAggrs::TMerger::New(JsBase->Base, ParamVal);
+        // automatically attach merger to all listed stores
+        TStrV _StoreNmV = TQm::TStreamAggrs::TMerger::GetStoreNm(ParamVal);
+        StoreNmV.AddV(_StoreNmV);        
+    } else if (TypeNm == "set") {
+        // we have feature extractor aggregate, first get its name if we have one
+        TStr AggrName = TNodeJsUtil::GetArgStr(Args, 1, "name", TGuid::GenSafeGuid());
+        // we have aggregate set, get its members
+        StreamAggr = TQm::TStreamAggrSet::New(JsBase->Base, AggrName);
+        // cast it so we can call extra methods
+        TWPt<TQm::TStreamAggrSet> StreamAggrSet = dynamic_cast<TQm::TStreamAggrSet*>(StreamAggr());
+        // check if we got an array of stream aggregate to add to the set
+        v8::Local<v8::Object> _SubStreamAggrV = TNodeJsUtil::GetFldObj(Args[1]->ToObject(), "aggregates");
+        QmAssertR(_SubStreamAggrV->IsArray(), "Unsupported argument for stream aggregate set");
+        // we did, go over the array
+        v8::Array* SubStreamAggrV = v8::Array::Cast(*_SubStreamAggrV);
+        for (uint SubStreamAggrN = 0; SubStreamAggrN < SubStreamAggrV->Length(); SubStreamAggrN++) {
+            // and extract stream aggregate
+            v8::Local<v8::Object> _SubStreamAggr = SubStreamAggrV->Get(SubStreamAggrN)->ToObject();
+            QmAssertR(TNodeJsUtil::IsClass<TNodeJsStreamAggr>(_SubStreamAggr),
+                      "stream aggregate set expects stream aggregates in \"aggregates\" array");
+            TNodeJsStreamAggr* SubStreamAggr = TNodeJsUtil::Unwrap<TNodeJsStreamAggr>(_SubStreamAggr);
+            // and add it to the stream aggregate set
+            StreamAggrSet->AddStreamAggr(SubStreamAggr->SA);                
+        }            
     } else {
         // we have a GLib stream aggregate, translate parameters to PJsonVal
         PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 1);
@@ -139,25 +148,32 @@ TNodeJsStreamAggr* TNodeJsStreamAggr::NewFromArgs(const v8::FunctionCallbackInfo
         // create new aggregate
         StreamAggr = TQm::TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
     }
-
-    // handle special case when we have more then one store to attach to (e.g. merger)
+    // check if we have any more stores names passed to attached to
     if (Args.Length() > 2) {
-        TStrV Stores(0);
         if (Args[2]->IsString()) {
-            Stores.Add(TNodeJsUtil::GetArgStr(Args, 2));
+            StoreNmV.Add(TNodeJsUtil::GetArgStr(Args, 2));
         } else if (Args[2]->IsArray()) {
             PJsonVal StoresJson = TNodeJsUtil::GetArgJson(Args, 2);
-            QmAssertR(StoresJson->IsDef(), "stream aggr constructor : Args[2] should be a string (store name) or a string array (store names)");
-            StoresJson->GetArrStrV(Stores);
+            QmAssertR(StoresJson->IsDef(), "[StreamAggr] Args[2] should be a string (store name) or a string array (store names)");
+            TStrV _StoreNmV; StoresJson->GetArrStrV(_StoreNmV);
+            StoreNmV.AddV(_StoreNmV);
         }
-        for (int StoreN = 0; StoreN < Stores.Len(); StoreN++) {
-            QmAssertR(JsBase->Base->IsStoreNm(Stores[StoreN]), "stream aggr constructor : Args[2] : store does not exist!");
-            JsBase->Base->AddStreamAggr(Stores[StoreN], StreamAggr);
-        }
-    } else {
-        JsBase->Base->AddStreamAggr(StreamAggr);
     }
 
+    // register stream aggregate
+    JsBase->Base->AddStreamAggr(StreamAggr);
+    // attach to listed stores
+    if (!StoreNmV.Empty()) {
+        for (const TStr& StoreNm : StoreNmV) {
+            // make sure it exists
+            QmAssertR(JsBase->Base->IsStoreNm(StoreNm), "[StreamAggr] Unknown store " + StoreNm);
+            const uint StoreId = JsBase->Base->GetStoreByStoreNm(StoreNm)->GetStoreId();
+            // attech the stream aggregate to the store
+            JsBase->Base->GetStreamAggrSet(StoreId)->AddStreamAggr(StreamAggr);
+        }        
+    }
+
+    // we are good
     return new TNodeJsStreamAggr(StreamAggr);
 }
 
@@ -1168,7 +1184,7 @@ int TNodeJsFuncStreamAggr::GetVals() const {
     // this method can be called via IFltVec or via ISparseVec
     throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetVals not implemented");
 }
-void TNodeJsFuncStreamAggr::GetVal(const TInt& ElN, TFlt& Val) const {
+void TNodeJsFuncStreamAggr::GetVal(const int& ElN, TFlt& Val) const {
     throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetVal not implemented");
 } // GetFltAtFun
 
@@ -1199,7 +1215,7 @@ void TNodeJsFuncStreamAggr::GetValV(TFltV& ValV) const {
 int TNodeJsFuncStreamAggr::GetTmLen() const {
     throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetTmLen not implemented");
 }
-uint64 TNodeJsFuncStreamAggr::GetTm(const TInt& ElN) const {
+uint64 TNodeJsFuncStreamAggr::GetTm(const int& ElN) const {
     throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetTm not implemented");
 } // GetTmAtFun
 void TNodeJsFuncStreamAggr::GetTmV(TUInt64V& TmMSecsV) const {
@@ -1225,12 +1241,8 @@ double TNodeJsFuncStreamAggr::GetNmInt(const TStr& Nm) const {
 void TNodeJsFuncStreamAggr::GetNmIntV(TStrIntPrV& NmIntV) const {
     throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetNmIntV not implemented");
 }
-// ISparseVec
-//const TIntFltKdV& TNodeJsFuncStreamAggr::GetSparseVec() const {
-//  throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetSparseVec not implemented");
-//}
 
-void TNodeJsFuncStreamAggr::GetVal(const TInt& ElN, TIntFltKd& Val) const {
+void TNodeJsFuncStreamAggr::GetVal(const int& ElN, TIntFltKd& Val) const {
     throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetVal not implemented");
 }
 void TNodeJsFuncStreamAggr::GetValV(TIntFltKdV& ValV) const {

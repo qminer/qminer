@@ -272,7 +272,7 @@ public:
     uint64 GetLastValId() const;
 
     int PartialFlush(int WndInMsec = 500);
-    inline void LoadAll();
+    void LoadAll();
 
     TBlobBsStats GetBlobBsStats() { return BlobStorage->GetStats(); }
 
@@ -1014,7 +1014,6 @@ public:
     void GetFieldTMem(const uint64& RecId, const int& FieldId, TMem& Mem) const;
     /// Get field value using field id (default implementation throws exception)
     PJsonVal GetFieldJsonVal(const uint64& RecId, const int& FieldId) const;
-
 
     /// Get field value using field id safely (default implementation throws exception)
     uint64 GetFieldUInt64Safe(const uint64& RecId, const int& FieldId) const;

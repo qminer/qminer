@@ -1041,29 +1041,11 @@ private:
     //# exports.Store.prototype.key = function (keyName) { return { fq: {}, vocabulary: {}, name:'', store: {} }; };
     JsDeclareFunction(key);
 
-    ////!- `store.addTrigger(trigger)` -- add `trigger` to the store triggers. Trigger is a JS object with three properties `onAdd`, `onUpdate`, `onDelete` whose values are callbacks
-    //JsDeclareFunction(addTrigger); Deprecated - use new qm.sa(...) instead
-
-    /**
-    * Returns the stream aggregate with the given name.
-    * @param {string} saName - The name of the stream aggregate.
-    * @returns {module:qm.StreamAggr} The stream aggregate with the saName.
-    */
-    //# exports.Store.prototype.getStreamAggr = function (saName) { return Object.create(require('qminer').StreamAggr.prototype); }
-    JsDeclareFunction(getStreamAggr);
-
     /**
     * Resets all stream aggregates.
     */
     //# exports.Store.prototype.resetStreamAggregates = function () { }
     JsDeclareFunction(resetStreamAggregates);
-
-    /**
-    * Returns an array of the stream aggregates names connected to the store.
-    * @returns {Array.<string>} An array of stream aggregates names.
-    */
-    //# exports.Store.prototype.getStreamAggrNames = function () { return [""]; }
-    JsDeclareFunction(getStreamAggrNames);
 
     /**
     * Returns the store as a JSON.
