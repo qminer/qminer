@@ -1184,7 +1184,7 @@ int TNodeJsFuncStreamAggr::GetVals() const {
     // this method can be called via IFltVec or via ISparseVec
     throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetVals not implemented");
 }
-void TNodeJsFuncStreamAggr::GetVal(const TInt& ElN, TFlt& Val) const {
+void TNodeJsFuncStreamAggr::GetVal(const int& ElN, TFlt& Val) const {
     throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetVal not implemented");
 } // GetFltAtFun
 
@@ -1215,7 +1215,7 @@ void TNodeJsFuncStreamAggr::GetValV(TFltV& ValV) const {
 int TNodeJsFuncStreamAggr::GetTmLen() const {
     throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetTmLen not implemented");
 }
-uint64 TNodeJsFuncStreamAggr::GetTm(const TInt& ElN) const {
+uint64 TNodeJsFuncStreamAggr::GetTm(const int& ElN) const {
     throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetTm not implemented");
 } // GetTmAtFun
 void TNodeJsFuncStreamAggr::GetTmV(TUInt64V& TmMSecsV) const {
@@ -1242,7 +1242,7 @@ void TNodeJsFuncStreamAggr::GetNmIntV(TStrIntPrV& NmIntV) const {
     throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetNmIntV not implemented");
 }
 
-void TNodeJsFuncStreamAggr::GetVal(const TInt& ElN, TIntFltKd& Val) const {
+void TNodeJsFuncStreamAggr::GetVal(const int& ElN, TIntFltKd& Val) const {
     throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetVal not implemented");
 }
 void TNodeJsFuncStreamAggr::GetValV(TIntFltKdV& ValV) const {

@@ -3477,7 +3477,7 @@ namespace TStreamAggrOut {
     class IValVec {
     public:
         virtual int GetVals() const = 0;
-        virtual void GetVal(const TInt& ElN, TVal& Val) const = 0;
+        virtual void GetVal(const int& ElN, TVal& Val) const = 0;
         virtual void GetValV(TVec<TVal>& ValV) const = 0;
     };
     typedef IValVec<TFlt> IFltVec;
@@ -3493,7 +3493,7 @@ namespace TStreamAggrOut {
     class ITmVec {
     public:
         virtual int GetTmLen() const = 0;
-        virtual uint64 GetTm(const TInt& ElN) const = 0;
+        virtual uint64 GetTm(const int& ElN) const = 0;
         virtual void GetTmV(TUInt64V& MSecsV) const = 0;
     };
 

@@ -2209,11 +2209,11 @@ public:
 
     // IFltVec
     int GetVals() const;
-    void GetVal(const TInt& ElN, TFlt& Val) const; // GetFltAtFun
+    void GetVal(const int& ElN, TFlt& Val) const; // GetFltAtFun
     void GetValV(TFltV& ValV) const;
     // ITmVec
     int GetTmLen() const;
-    uint64 GetTm(const TInt& ElN) const; // GetTmAtFun
+    uint64 GetTm(const int& ElN) const; // GetTmAtFun
     void GetTmV(TUInt64V& TmMSecsV) const;
     // INmFlt 
     bool IsNmFlt(const TStr& Nm) const;
@@ -2224,7 +2224,7 @@ public:
     double GetNmInt(const TStr& Nm) const;
     void GetNmIntV(TStrIntPrV& NmIntV) const;
     // ISparseVec
-    void GetVal(const TInt& ElN, TIntFltKd& Val) const; // GetFltAtFun
+    void GetVal(const int& ElN, TIntFltKd& Val) const; // GetFltAtFun
     void GetValV(TIntFltKdV& ValV) const;
 };
 
