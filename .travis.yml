@@ -16,12 +16,21 @@ node_js:
 
 env: 
   - CXXFLAGS=-std=c++0x CC=gcc-4.8 CXX=g++-4.8
+  global:
+    - LLVM_VERSION=3.7.0
+    - LLVM_ARCHIVE_PATH=$HOME/clang+llvm.tar.xz
 
 matrix:
   include:
     - node_js: 0.12
       env: CXXFLAGS=-std=c++0x CXX=clang++-3.6 CC=clang NPMOPT=--clang=1 QMDEBUG=--debug
 
+before_install:
+  - wget http://llvm.org/releases/$LLVM_VERSION/clang+llvm-$LLVM_VERSION-x86_64-linux-gnu-ubuntu-14.04.tar.xz -O $LLVM_ARCHIVE_PATH
+  - mkdir $HOME/clang+llvm
+  - tar xf $LLVM_ARCHIVE_PATH -C $HOME/clang+llvm --strip-components 1
+  - export PATH=$HOME/clang+llvm/bin:$PATH
+  
 install:
   - npm install --build-from-source $NPMOPT $QMDEBUG
 
