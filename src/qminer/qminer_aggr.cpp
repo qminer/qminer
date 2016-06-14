@@ -541,10 +541,6 @@ void TRecBuffer::OnAddRec(const TRec& Rec) {
     Buffer.Update(Rec.GetRecId());
 }
 
-void TRecBuffer::OnTime(const uint64& TmMsec) { }
-
-void TRecBuffer::OnStep() { }
-
 TRecBuffer::TRecBuffer(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
     TStreamAggr(Base, ParamVal), Buffer(ParamVal->GetObjInt("size")),
     Store(Base->GetStoreByStoreNm(ParamVal->GetObjStr("store"))) { }
@@ -584,11 +580,10 @@ void TTimeSeriesTick::OnAddRec(const TRec& Rec) {
 
 void TTimeSeriesTick::OnTime(const uint64& Time) {
     TmMSecs = Time;
-    InitP = true;
 }
 
 void TTimeSeriesTick::OnStep() {
-    QmAssertR(false, "This should have not been executed.");
+    throw TExcept::New("[TTimeSeriesTick] OnStep should have not been executed.");
 }
 
 TTimeSeriesTick::TTimeSeriesTick(const TWPt<TBase>& Base, const PJsonVal& ParamVal): 
@@ -634,9 +629,60 @@ PJsonVal TTimeSeriesTick::SaveJson(const int& Limit) const {
 }
 
 ///////////////////////////////
-// Buffer values vector
+/// Time series window buffer with dense vector per record.
+TFlt TWinBufFlt::GetRecVal(const uint64& RecId) const {
+    return ValReader.GetFlt(TRec(Store, RecId));
+}
 
-void TWinBufFltV::OnAddRec(const TRec& Rec) {
+TWinBufFlt::TWinBufFlt(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TWinBuf<TFlt>(Base, ParamVal) { 
+    // parse out input and output fields
+    TStr ValFieldNm = ParamVal->GetObjStr("value");
+    int ValFieldId = Store->GetFieldId(ValFieldNm);
+    ValReader = TFieldReader(Store->GetStoreId(), ValFieldId, Store->GetFieldDesc(ValFieldId));
+    // make sure parameters make sense
+    QmAssertR(ValReader.IsFlt(), "[Window buffer] field " + ValFieldNm + " cannot be casted to 'double'");
+}
+
+PJsonVal TWinBufFlt::SaveJson(const int& Limit) const {
+    // TODO change the returned object so that it reflects state
+    PJsonVal Val = TJsonVal::NewObj();
+    Val->AddToObj("Val", GetInVal());
+    Val->AddToObj("Time", TTm::GetTmFromMSecs(GetInTmMSecs()).GetWebLogDateTimeStr(true, "T"));
+    return Val;
+}
+
+///////////////////////////////
+/// Time series window buffer with sparse vector per record.
+TIntFltKdV TWinBufFtrSpVec::GetRecVal(const uint64& RecId) const {
+    TIntFltKdV Result;
+    FtrSpace->GetSpV(TRec(Store, RecId), Result);
+    return Result;
+}
+
+void TWinBufFtrSpVec::RecUpdate(const uint64& RecId) const {
+    FtrSpace->Update(TRec(Store, RecId));
+}
+
+TWinBufFtrSpVec::TWinBufFtrSpVec(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
+        TWinBuf<TIntFltKdV>(Base, ParamVal) {
+    
+    PJsonVal FtrSpaceParam = ParamVal->GetObjKey("featureSpace");
+    FtrSpace = TFtrSpace::New(Store->GetBase(), FtrSpaceParam);
+}
+
+void TWinBufFtrSpVec::LoadState(TSIn& SIn) {
+    TWinBuf<TIntFltKdV>::LoadState(SIn);
+    FtrSpace->Load(Store->GetBase(), SIn);
+}
+
+void TWinBufFtrSpVec::SaveState(TSOut& SOut) const {
+    TWinBuf<TIntFltKdV>::SaveState(SOut);
+    FtrSpace->Save(SOut);
+}
+
+///////////////////////////////
+// Numberic circular buffer
+void TWinBufFltV::OnStep() {
     TFltV OutValV; InAggrVal->GetOutValV(OutValV);
     if (InAggr->IsInit()) {
         for (int ElN = 0; ElN < OutValV.Len(); ElN++) {
@@ -654,13 +700,8 @@ void TWinBufFltV::OnAddRec(const TRec& Rec) {
 }
 
 TWinBufFltV::TWinBufFltV(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal) {
-    // get input aggregate
-    TStr InAggrNm = ParamVal->GetObjStr("inAggr");
-    QmAssertR(Base->IsStreamAggr(InAggrNm), "[TWinBufFltV] Stream aggregate does not exist: " + InAggrNm);
-    InAggr = Base->GetStreamAggr(InAggrNm);
-    // cast it to get timeseries data
-    InAggrVal = dynamic_cast<TStreamAggrOut::IFltTmIO*>(InAggr());
-    QmAssertR(!InAggrVal.Empty(), "[TWinBufFltV] Stream aggregate does not implement IFltTmIO interface: " + InAggrNm);
+    InAggr = ParseAggr(ParamVal, "inAggr");
+    InAggrVal = Cast<TStreamAggrOut::IFltTmIO>(InAggr);
 }
 
 // serialization to JSon
@@ -677,17 +718,11 @@ void TEma::OnStep() {
     }
 }
 
-
 TEma::TEma(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
         TStreamAggr(Base, ParamVal), Ema(ParamVal) {
-    
-    // get input aggregate
-    TStr InAggrNm = ParamVal->GetObjStr("inAggr");
-    QmAssertR(Base->IsStreamAggr(InAggrNm), "[TEma] Stream aggregate does not exist: " + InAggrNm);
-    InAggr = Base->GetStreamAggr(InAggrNm);
-    // cast it to get timeseries data
-    InAggrVal = dynamic_cast<TStreamAggrOut::IFltTm*>(InAggr());
-    QmAssertR(!InAggrVal.Empty(), "[TEma] Stream aggregate does not implement IFltTm interface: " + InAggrNm);
+
+    InAggr = ParseAggr(ParamVal, "inAggr");
+    InAggrVal = Cast<TStreamAggrOut::IFltTm>(InAggr);
 }
 
 PStreamAggr TEma::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
@@ -710,27 +745,56 @@ PJsonVal TEma::SaveJson(const int& Limit) const {
 }
 
 ///////////////////////////////
-// Threshold aggregate
-TThresholdAggr::TThresholdAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal) {
-    // get input aggregate
-    TStr InAggrNm = ParamVal->GetObjStr("inAggr");
-    QmAssertR(Base->IsStreamAggr(InAggrNm), "[TThresholdAggr] Stream aggregate does not exist: " + InAggrNm);
-    InAggr = Base->GetStreamAggr(InAggrNm);
-    // cast it to get timeseries data
-    InAggrVal = dynamic_cast<TStreamAggrOut::IFltTm*>(InAggr());
-    QmAssertR(!InAggrVal.Empty(), "[TThresholdAggr] Stream aggregate does not implement IFltTm interface: " + InAggrNm);
-    // parse model parameters
-    QmAssertR(ParamVal->IsObjKey("threshold"), "Threshold is not defined!");
-    Threshold = ParamVal->GetObjNum("threshold");
-    // initialize with reset
-    Reset();
+// Exponential Moving Average for sparse vectors
+void TEmaSpVec::OnStep() {
+    if (InAggr->IsInit()) {
+        TIntFltKdV Vals;
+        InAggrVal->GetValV(Vals);
+        Ema.Update(Vals, InAggrVal->GetTmMSecs());
+    }
+}
+TEmaSpVec::TEmaSpVec(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal), Ema(ParamVal) {
+    InAggr = ParseAggr(ParamVal, "inAggr");
+    InAggrVal = Cast<TStreamAggrOut::ISparseVecTm>(InAggr);
 }
 
+PStreamAggr TEmaSpVec::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+    return new TEmaSpVec(Base, ParamVal);
+}
+
+void TEmaSpVec::LoadState(TSIn& SIn) {
+    Ema.Load(SIn);
+}
+
+void TEmaSpVec::SaveState(TSOut& SOut) const {
+    Ema.Save(SOut);
+}
+
+PJsonVal TEmaSpVec::SaveJson(const int& Limit) const {
+    PJsonVal Val = TJsonVal::NewObj();
+    Val->AddToObj("Val", Ema.GetJson());
+    Val->AddToObj("Time", TTm::GetTmFromMSecs(Ema.GetTmMSecs()).GetWebLogDateTimeStr(true, "T"));
+    return Val;
+}
+
+///////////////////////////////
+// Threshold aggregate
 void TThresholdAggr::OnStep() {
     if (InAggr->IsInit()) {
         IsAboveP = InAggrVal->GetFlt() > Threshold ? 1.0 : 0.0;
         TmMSecs = InAggrVal->GetTmMSecs();
     }
+}
+
+TThresholdAggr::TThresholdAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal) {
+    // parse input aggregate
+    InAggr = ParseAggr(ParamVal, "inAggr");
+    InAggrVal = Cast<TStreamAggrOut::IFltTm>(InAggr);
+    // parse model parameters
+    QmAssertR(ParamVal->IsObjKey("threshold"), "Threshold is not defined!");
+    Threshold = ParamVal->GetObjNum("threshold");
+    // initialize with reset
+    Reset();
 }
 
 PStreamAggr TThresholdAggr::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
@@ -762,49 +826,11 @@ PJsonVal TThresholdAggr::SaveJson(const int& Limit) const {
 }
 
 ///////////////////////////////
-// Exponential Moving Average for sparse vectors
-void TEmaSpVec::OnStep() {
-    if (InAggr->IsInit()) {
-        TIntFltKdV Vals;
-        InAggrVal->GetValV(Vals);
-        Ema.Update(Vals, InAggrVal->GetTmMSecs());
-    }
-}
-TEmaSpVec::TEmaSpVec(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal), Ema(ParamVal) {
-    // get input aggregate
-    TStr InAggrNm = ParamVal->GetObjStr("inAggr");
-    QmAssertR(Base->IsStreamAggr(InAggrNm), "[TEmaSpVec] Stream aggregate does not exist: " + InAggrNm);
-    InAggr = Base->GetStreamAggr(InAggrNm);
-    // cast it to get timeseries sparse vectors
-    InAggrVal = dynamic_cast<TStreamAggrOut::ISparseVecTm*>(InAggr());
-    QmAssertR(!InAggrVal.Empty(), "[TEmaSpVec] Stream aggregate does not implement ISparseVecTm interface: " + InAggrNm);
-}
-
-PStreamAggr TEmaSpVec::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
-    return new TEmaSpVec(Base, ParamVal);
-}
-
-void TEmaSpVec::LoadState(TSIn& SIn) {
-    Ema.Load(SIn);
-}
-
-void TEmaSpVec::SaveState(TSOut& SOut) const {
-    Ema.Save(SOut);
-}
-
-PJsonVal TEmaSpVec::SaveJson(const int& Limit) const {
-    PJsonVal Val = TJsonVal::NewObj();
-    Val->AddToObj("Val", Ema.GetJson());
-    Val->AddToObj("Time", TTm::GetTmFromMSecs(Ema.GetTmMSecs()).GetWebLogDateTimeStr(true, "T"));
-    return Val;
-}
-
-///////////////////////////////
 // Moving Covariance
 void TCov::OnStep() {
     TFltV ValVX; InAggrValX->GetOutValV(ValVX);
-    TUInt64V TmMSecsV; InAggrValX->GetOutTmMSecsV(TmMSecsV);
     TFltV ValVY; InAggrValY->GetOutValV(ValVY);
+    TUInt64V TmMSecsV; InAggrValX->GetOutTmMSecsV(TmMSecsV);
     if (InAggrX->IsInit() && InAggrY->IsInit()) {
         Cov.Update(InAggrValX->GetInVal(), InAggrValY->GetInVal(),
             InAggrValX->GetInTmMSecs(), ValVX, ValVY, TmMSecsV, InAggrValX->GetVals());
@@ -812,25 +838,19 @@ void TCov::OnStep() {
 }
 
 TCov::TCov(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal), Cov(ParamVal) {
-    // get input aggregate
-    TStr InAggrNmX = ParamVal->GetObjStr("inAggrX");
-    QmAssertR(Base->IsStreamAggr(InAggrNmX), "[TCov] Stream aggregate does not exist: " + InAggrNmX);
-    InAggrX = Base->GetStreamAggr(InAggrNmX);
-    // cast it to get timeseries sparse vectors
-    InAggrValX = dynamic_cast<TStreamAggrOut::IFltTmIO*>(InAggrX());
-    QmAssertR(!InAggrValX.Empty(), "[TCov] Stream aggregate does not implement IFltTm interface: " + InAggrNmX);
-    
-    // get input aggregate
-    TStr InAggrNmY = ParamVal->GetObjStr("inAggrY");
-    QmAssertR(Base->IsStreamAggr(InAggrNmY), "[TCov] Stream aggregate does not exist: " + InAggrNmY);
-    InAggrY = Base->GetStreamAggr(InAggrNmY);
-    // cast it to get timeseries sparse vectors
-    InAggrValY = dynamic_cast<TStreamAggrOut::IFltTmIO*>(InAggrY());
-    QmAssertR(!InAggrValY.Empty(), "[TCov] Stream aggregate does not implement IFltTm interface: " + InAggrNmY);
+    InAggrX = ParseAggr(ParamVal, "inAggrX");
+    InAggrValX = Cast<TStreamAggrOut::IFltTmIO>(InAggrX);
+    InAggrY = ParseAggr(ParamVal, "inAggrY");
+    InAggrValY = Cast<TStreamAggrOut::IFltTmIO>(InAggrY);
 }
 
 PStreamAggr TCov::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
     return new TCov(Base, ParamVal);
+}
+
+void TCov::GetInAggrNmV(TStrV& InAggrNmV) const {
+    InAggrNmV.Add(InAggrX->GetAggrNm()); 
+    InAggrNmV.Add(InAggrY->GetAggrNm());
 }
 
 PJsonVal TCov::SaveJson(const int& Limit) const {
@@ -842,29 +862,10 @@ PJsonVal TCov::SaveJson(const int& Limit) const {
 
 ///////////////////////////////
 // Moving Correlation
-void TCorr::InitInAggr(const TStr& InAggrNmCov, const TStr& InAggrNmVarX, const TStr& InAggrNmVarY) {
-    // covariance cast
-    QmAssertR(Base->IsStreamAggr(InAggrNmCov), "[TCorr] Stream aggregate does not exist: " + InAggrNmCov);
-    InAggrCov = Base->GetStreamAggr(InAggrNmCov);
-    InAggrValCov = dynamic_cast<TStreamAggrOut::IFltTm*>(InAggrCov());
-    QmAssertR(!InAggrValCov.Empty(), "Stream aggregate does not implement IFltTm interface: " + InAggrNmCov);
-    // X variance cast
-    QmAssertR(Base->IsStreamAggr(InAggrNmVarX), "[TCorr] Stream aggregate does not exist: " + InAggrNmVarX);
-    InAggrVarX = Base->GetStreamAggr(InAggrNmVarX);
-    InAggrValVarX = dynamic_cast<TStreamAggrOut::IFltTm*>(InAggrVarX());
-    QmAssertR(!InAggrValVarX.Empty(), "Stream aggregate does not implement IFltTm interface: " + InAggrNmVarX);
-    // Y variance cast
-    QmAssertR(Base->IsStreamAggr(InAggrNmVarY), "[TCorr] Stream aggregate does not exist: " + InAggrNmVarY);
-    InAggrVarY = Base->GetStreamAggr(InAggrNmVarY);
-    InAggrValVarY = dynamic_cast<TStreamAggrOut::IFltTm*>(InAggrVarY());
-    QmAssertR(!InAggrValVarY.Empty(), "Stream aggregate does not implement IFltTm interface: " + InAggrNmVarY);        
-}
-
 void TCorr::OnStep() {
-    //Corr = InAggrValCov->GetFlt() / ( sqrt(InAggrValVarX->GetFlt()) * sqrt(InAggrValVarY->GetFlt()));
-    TFlt Cov = InAggrValCov->GetFlt();
-    TFlt Var1 = InAggrValVarX->GetFlt();
-    TFlt Var2 = InAggrValVarY->GetFlt();
+    const double Cov = InAggrValCov->GetFlt();
+    const double Var1 = InAggrValVarX->GetFlt();
+    const double Var2 = InAggrValVarY->GetFlt();
     if ((Var1 == 0.0) || (Var2 == 0.0)) {
         Corr = 1;
     } else {
@@ -874,12 +875,15 @@ void TCorr::OnStep() {
 }
 
 TCorr::TCorr(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal) {
-    // parse out input aggregate
-    TStr InAggrNmCov = ParamVal->GetObjStr("inAggrCov");
-    TStr InAggrNmVarX = ParamVal->GetObjStr("inAggrVarX");
-    TStr InAggrNmVarY = ParamVal->GetObjStr("inAggrVarY");
-    // get references to input aggregates
-    InitInAggr(InAggrNmCov, InAggrNmVarX, InAggrNmVarY);
+    // covariance cast
+    InAggrCov = ParseAggr(ParamVal, "inAggrCov");
+    InAggrValCov = Cast<TStreamAggrOut::IFltTm>(InAggrCov);
+    // X variance cast
+    InAggrVarX = ParseAggr(ParamVal, "inAggrVarX");
+    InAggrValVarX = Cast<TStreamAggrOut::IFltTm>(InAggrVarX);
+    // Y variance cast
+    InAggrVarY = ParseAggr(ParamVal, "inAggrVarY");
+    InAggrValVarY = Cast<TStreamAggrOut::IFltTm>(InAggrVarY);
 }
 
 PStreamAggr TCorr::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
@@ -902,9 +906,30 @@ PJsonVal TCorr::SaveJson(const int& Limit) const {
     Val->AddToObj("Time", TTm::GetTmFromMSecs(TmMSecs).GetWebLogDateTimeStr(true, "T"));
     return Val;
 }
+ 
+///////////////////////////////
+/// Merger
 
-//////////////////////////////////////////////
-// Merger
+TMerger::TMergerFieldMap::TMergerFieldMap(const int& _InFldId, const TJoinSeq& _InFldJoinSeq,
+    const int& _TmFldId, const int& _OutFldId): InFldId(_InFldId), InFldJoinSeq(_InFldJoinSeq),
+    TmFldId(_TmFldId), OutFldId(_OutFldId) {} 
+
+TMerger::TMergerFieldMap::TMergerFieldMap(TSIn& SIn) { Load(SIn); }
+ 
+void TMerger::TMergerFieldMap::Save(TSOut& SOut) const {
+    InFldId.Save(SOut);
+    InFldJoinSeq.Save(SOut);
+    TmFldId.Save(SOut);
+    OutFldId.Save(SOut);
+}
+ 
+void TMerger::TMergerFieldMap::Load(TSIn& SIn) {
+    InFldId.Load(SIn);
+    InFldJoinSeq.Load(SIn);
+    TmFldId.Load(SIn);
+    OutFldId.Load(SIn);
+}
+ 
 TMerger::TMerger(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal):
         TStreamAggr(Base, ParamVal) {
     
@@ -956,7 +981,8 @@ TMerger::TMerger(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal):
             TInt OutFieldId = OutStore->GetFieldId(OutFieldNm);
             // get joins if any given
             if (SourceVal->IsObjKey("join")) {
-                JoinSeq = TJoinSeq(Base, Base->GetStoreByStoreNm(inStoreNm)->GetStoreId(), SourceVal->GetObjKey("join"));               
+                JoinSeq = TJoinSeq(Base, Base->GetStoreByStoreNm(inStoreNm)->GetStoreId(),
+                                   SourceVal->GetObjKey("join"));               
                 TWPt<TStore> EndStore = JoinSeq.GetEndStore(Base);
                 TInt InFieldId = EndStore->GetFieldId(InFieldNm);
 
@@ -975,17 +1001,24 @@ TMerger::TMerger(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal):
         TWPt<TStore> EndStore = JoinSeq.GetEndStore(Base);
 
         // check if timestamp field exsists in in store
-        QmAssertR(StartStore->IsFieldNm(TimeFieldNm), "Field " + InFieldNm + " does not exist in store: " + StartStore->GetStoreNm() + "!");
+        QmAssertR(StartStore->IsFieldNm(TimeFieldNm),
+                  "Field " + InFieldNm + " does not exist in store: " + StartStore->GetStoreNm() + "!");
         // check if the input field exists
-        QmAssertR(EndStore->IsFieldNm(InFieldNm), "Field " + InFieldNm + " does not exist in store: " + EndStore->GetStoreNm() + "!");
+        QmAssertR(EndStore->IsFieldNm(InFieldNm),
+                  "Field " + InFieldNm + " does not exist in store: " + EndStore->GetStoreNm() + "!");
         // check if the output field exists in the out store
-        QmAssertR(OutStore->IsFieldNm(OutFieldNm), "Field " + OutFieldNm + " does not exist in the output store!");
+        QmAssertR(OutStore->IsFieldNm(OutFieldNm),
+                  "Field " + OutFieldNm + " does not exist in the output store!");
         // check if the output field is of correct type
-        QmAssertR(OutStore->GetFieldDesc(OutStore->GetFieldId(OutFieldNm)).GetFieldType() == TFieldType::oftFlt, "Field " + OutFieldNm + " is of incorrect type!");
-
+        QmAssertR(OutStore->GetFieldDesc(OutStore->GetFieldId(OutFieldNm)).GetFieldType() == TFieldType::oftFlt,
+                  "Field " + OutFieldNm + " is of incorrect type!");
     }
-
+    /// we are almost done
     InitMerger(Base, OutStoreNm, TimeFieldNm, CreateStoreP, Past, InterpNmV);
+}
+
+PStreamAggr TMerger::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+    return new TMerger(Base, ParamVal);
 }
 
 void TMerger::CreateStore(const TStr& NewStoreNm, const TStr& NewTimeFieldNm){
@@ -1011,10 +1044,6 @@ void TMerger::CreateStore(const TStr& NewStoreNm, const TStr& NewTimeFieldNm){
     JsonStore->AddToObj("fields", FieldsVal);
     // create new store
     TStorage::CreateStoresFromSchema(TStreamAggr::GetBase(), JsonStore, 1024);
-}
-
-PStreamAggr TMerger::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
-    return new TMerger(Base, ParamVal);
 }
 
 void TMerger::LoadState(TSIn& SIn) {
@@ -1125,7 +1154,7 @@ void TMerger::OnAddRec(const TQm::TRec& Rec) {
     // iterate through the input fields and call the other OnAddRecMethod
     int KeyId = FieldMapIdxSet.FFirstKeyId();
     while (FieldMapIdxSet.FNextKeyId(KeyId)) {
-        const TInt& FieldMapIdx = FieldMapIdxSet.GetKey(KeyId);
+        const int& FieldMapIdx = FieldMapIdxSet.GetKey(KeyId);
         OnAddRec(Rec, FieldMapIdx);
     }
 }
@@ -1138,7 +1167,7 @@ void TMerger::OnStep() {
     QmAssertR(false, "Merger::OnStep() should not be executed.");
 }
 
-void TMerger::OnAddRec(const TQm::TRec& Rec, const TInt& FieldMapIdx) {
+void TMerger::OnAddRec(const TQm::TRec& Rec, const int& FieldMapIdx) {
     const int InterpIdx = FieldMapIdx; //StoreIdFldIdPrBuffIdxH.GetDat(StoreIdInFldIdPr);
     
     // get record time and value
@@ -1470,27 +1499,11 @@ void TFtrExtAggr::OnAddRec(const TRec& Rec) {
     FtrSpace->GetFullV(Rec, Vec);
 }
 
-void TFtrExtAggr::OnTime(const uint64& TmMsec) { }
-
-void TFtrExtAggr::OnStep() { }
-
-TFtrExtAggr::TFtrExtAggr(const TWPt<TBase>& Base, const TStr& AggrNm, const TWPt<TFtrSpace>& _FtrSpace) :
-    TStreamAggr(Base, AggrNm) {
-
-    FtrSpace = _FtrSpace;
-}
+TFtrExtAggr::TFtrExtAggr(const TWPt<TBase>& Base, const TStr& AggrNm, const TWPt<TFtrSpace>& _FtrSpace):
+    TStreamAggr(Base, AggrNm), FtrSpace(_FtrSpace) { }
 
 PStreamAggr TFtrExtAggr::New(const TWPt<TBase>& Base, const TStr& AggrNm, const TWPt<TFtrSpace>& _FtrSpace) {
     return new TFtrExtAggr(Base, AggrNm, _FtrSpace);
-}
-
-void TFtrExtAggr::GetVal(const TInt& ElN, TFlt& Val) const {
-    QmAssertR(Vec.Len() > ElN, "TFtrExtAggr : GetFlt : index out of bounds");
-    Val = Vec[ElN];
-}
-
-void TFtrExtAggr::Save(TSOut& SOut) const {
-    throw TQmExcept::New("FTrExtAggr::Save not implemented:" + GetAggrNm());
 }
 
 void TFtrExtAggr::LoadState(TSIn& SIn) {
@@ -1499,6 +1512,11 @@ void TFtrExtAggr::LoadState(TSIn& SIn) {
 
 void TFtrExtAggr::SaveState(TSOut& SOut) const {
     Vec.Save(SOut);
+}
+
+void TFtrExtAggr::GetVal(const int& ElN, TFlt& Val) const {
+    QmAssertR(Vec.Len() > ElN, "TFtrExtAggr : GetFlt : index out of bounds");
+    Val = Vec[ElN];
 }
 
 PJsonVal TFtrExtAggr::SaveJson(const int& Limit) const {
@@ -1510,13 +1528,11 @@ PJsonVal TFtrExtAggr::SaveJson(const int& Limit) const {
 /// Histogram stream aggregate
 void TOnlineHistogram::OnStep() {
     if (BufferedP) {
-        TFltV UpdateV;
-        InAggrValBuffer->GetInValV(UpdateV);
+        TFltV UpdateV; InAggrValBuffer->GetInValV(UpdateV);
         for (int ElN = 0; ElN < UpdateV.Len(); ElN++) {
             Model.Increment(UpdateV[ElN]);
         }
-        TFltV ForgetV;
-        InAggrValBuffer->GetOutValV(ForgetV);
+        TFltV ForgetV; InAggrValBuffer->GetOutValV(ForgetV);
         for (int ElN = 0; ElN < ForgetV.Len(); ElN++) {
             Model.Decrement(ForgetV[ElN]);
         }
@@ -1527,19 +1543,15 @@ void TOnlineHistogram::OnStep() {
 
 TOnlineHistogram::TOnlineHistogram(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
         TStreamAggr(Base, ParamVal), Model(ParamVal) {
-
-    // Get input aggregate aggregate name
-    TStr InAggrNm = ParamVal->GetObjStr("inAggr");
-    QmAssertR(Base->IsStreamAggr(InAggrNm), "[TOnlineHistogram] Stream aggregate does not exist: " + InAggrNm);
-    InAggr = Base->GetStreamAggr(InAggrNm);
-    // Cast the input as a time series stream aggregate
-    InAggrVal = dynamic_cast<TStreamAggrOut::IFltTm*>(InAggr());
-    // Cast the input as a time series stream aggregate as a time series buffer
-    InAggrValBuffer = dynamic_cast<TStreamAggrOut::IFltTmIO*>(InAggr());
-    // Check if at least one is OK
+    
+    /// parse input aggregate
+    InAggr = ParseAggr(ParamVal, "inAggr");
+    InAggrVal = Cast<TStreamAggrOut::IFltTm>(InAggr, false);
+    InAggrValBuffer = Cast<TStreamAggrOut::IFltTmIO>(InAggr, false);   
+    /// Check if at least one cast is OK
     QmAssertR(!InAggrVal.Empty() || !InAggrValBuffer.Empty(),
-              "Stream aggregate does not implement IFltTm interface: " + InAggrNm);
-
+        "Stream aggregate does not implement IFltTm interface: " + InAggr->GetAggrNm());
+    /// Remember which one
     BufferedP = !InAggrValBuffer.Empty();
 }
 
@@ -1555,22 +1567,6 @@ void TOnlineHistogram::SaveState(TSOut& SOut) const {
 
 ///////////////////////////////
 /// TDigest stream aggregate
-TTDigest::TTDigest(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal), Model(ParamVal) {
-    // Get input aggregate aggregate name
-    TStr InAggrNm = ParamVal->GetObjStr("inAggr");
-    QmAssertR(Base->IsStreamAggr(InAggrNm), "[TDigest] Stream aggregate does not exist: " + InAggrNm);
-    InAggr = Base->GetStreamAggr(InAggrNm);
-    // Cast the input as a time series stream aggregate    
-    InAggrVal = dynamic_cast<TStreamAggrOut::IFltTm*>(InAggr());
-    QmAssertR(!InAggrVal.Empty(), "[TTDigest] Stream aggregate does not implement IFltTm interface: " + InAggrNm);
-    // prase model parameters
-    ParamVal->GetObjFltV("quantiles", QuantilesVals);
-}
-
-PStreamAggr TTDigest::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
-    return new TTDigest(Base, ParamVal);
-}
-
 void TTDigest::OnStep() {
     TFlt Val = InAggrVal->GetFlt();
     if (InAggr->IsInit()) {
@@ -1584,20 +1580,48 @@ void TTDigest::Add(const TFlt& Val) {
     }
 }
 
-PJsonVal TTDigest::SaveJson(const int& Limit) const {
-    PJsonVal Val = TJsonVal::NewObj();
-    //Val->AddToObj("Centroids", Model.GetQuantile(0.9));
-    return Val;
+TTDigest::TTDigest(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
+        TStreamAggr(Base, ParamVal), Model(ParamVal) {
+
+    InAggr = ParseAggr(ParamVal, "inAggr");
+    InAggrVal = Cast<TStreamAggrOut::IFltTm>(InAggr);
+    // prase model parameters
+    ParamVal->GetObjFltV("quantiles", QuantileV);
 }
 
-/// Load from stream
+PStreamAggr TTDigest::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+    return new TTDigest(Base, ParamVal);
+}
+
 void TTDigest::LoadState(TSIn& SIn) {
     Model.LoadState(SIn);
 }
 
-/// Store state into stream
 void TTDigest::SaveState(TSOut& SOut) const {
     Model.SaveState(SOut);
+}
+
+void TTDigest::GetVal(const int& ElN, TFlt& Val) const {
+    Val = Model.GetQuantile(QuantileV[ElN]);
+}
+
+void TTDigest::GetValV(TFltV& ValV) const {
+    for (int ElN = 0; ElN < QuantileV.Len(); ElN++) {
+        ValV.Add(Model.GetQuantile(QuantileV[ElN]));
+    }
+}
+
+PJsonVal TTDigest::SaveJson(const int& Limit) const {
+    PJsonVal Val = TJsonVal::NewObj();
+    PJsonVal QuantilesVal = TJsonVal::NewArr();
+    for (int ElN = 0; ElN < QuantileV.Len(); ElN++) {
+        PJsonVal QuantileVal = TJsonVal::NewObj();
+        QuantileVal->AddToObj("quantile", QuantileV[ElN]);
+        QuantileVal->AddToObj("value", Model.GetQuantile(QuantileV[ElN]));
+        QuantilesVal->AddToArr(QuantileVal);
+    }
+    Val->AddToObj("quantiles", QuantilesVal);
+    return Val;
 }
 
 ///////////////////////////////
@@ -1615,16 +1639,20 @@ TChiSquare::TChiSquare(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
   
     InAggrX = ParseAggr(ParamVal, "inAggrX");
     InAggrValX = Cast<TStreamAggrOut::IFltVec>(InAggrX);
-    
-    TStr InAggrNmY = ParamVal->GetObjStr("inAggrY");
-    QmAssertR(Base->IsStreamAggr(InAggrNmY), "[TChiSquare] Stream aggregate does not exist: " + InAggrNmY);
-    InAggrY = Base->GetStreamAggr(InAggrNmY);
-    InAggrValY = dynamic_cast<TStreamAggrOut::IFltVec*>(InAggrY());
-    QmAssertR(!InAggrValY.Empty(), "Stream aggregate does not implement IFltVec interface: " + InAggrNmY);
+    InAggrY = ParseAggr(ParamVal, "inAggrY");
+    InAggrValY = Cast<TStreamAggrOut::IFltVec>(InAggrY);
 }
 
 PStreamAggr TChiSquare::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
     return new TChiSquare(Base, ParamVal);
+}
+
+void TChiSquare::LoadState(TSIn& SIn) {
+    ChiSquare.LoadState(SIn);
+}
+
+void TChiSquare::SaveState(TSOut& SOut) const {
+    ChiSquare.SaveState(SOut);
 }
 
 PJsonVal TChiSquare::SaveJson(const int& Limit) const {
@@ -1634,106 +1662,28 @@ PJsonVal TChiSquare::SaveJson(const int& Limit) const {
     return Val;
 }
 
-/// Load from stream
-void TChiSquare::LoadState(TSIn& SIn) {
-    ChiSquare.LoadState(SIn);
-}
-
-/// Store state into stream
-void TChiSquare::SaveState(TSOut& SOut) const {
-    ChiSquare.SaveState(SOut);
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////
-
-/// Constructor, reserves appropriate internal storage
-TSlottedHistogram::TSlottedHistogram(const uint64 _Period, const uint64 _Slot, const int _Bins) {
-    PeriodLen = _Period;
-    SlotGran = _Slot;
-    Bins = _Bins;
-    uint64 Slots = PeriodLen / SlotGran;
-    Dat.Gen((int)Slots);
-    for (int i = 0; i < Dat.Len(); i++) {
-        Dat[i] = TSignalProc::TOnlineHistogram(0, Bins, Bins, false, false);
-    }
-}
-
-void TSlottedHistogram::Reset() {
-    for (int HistN = 0; HistN < Dat.Len(); HistN++) {
-        Dat[HistN].Reset();
-    }   
-}
-
-/// Load stream aggregate state from stream
-void TSlottedHistogram::LoadState(TSIn& SIn) {
-    PeriodLen.Load(SIn);
-    SlotGran.Load(SIn);
-    Bins.Load(SIn);
-    Dat.Load(SIn);
-}
-
-/// Save state of stream aggregate to stream
-void TSlottedHistogram::SaveState(TSOut& SOut) const {
-    PeriodLen.Save(SOut);
-    SlotGran.Save(SOut);
-    Bins.Save(SOut);
-    Dat.Save(SOut);
-}
-
-/// Add new data to statistics
-void TSlottedHistogram::Add(const uint64& Ts, const TInt& Val) {
-    int Idx = GetIdx(Ts);
-    Dat[Idx].Increment(Val);
-}
-
-/// Remove data from statistics
-void TSlottedHistogram::Remove(const uint64& Ts, const TInt& Val) {
-    int Idx = GetIdx(Ts);
-    Dat[Idx].Decrement(Val);
-}
-
-/// Provide statistics
-void TSlottedHistogram::GetStats(const uint64 TsMin, const uint64 TsMax, TFltV& Dest) {
-    EAssertR(TsMax > TsMin, "Invalid period query in TSlottedHistogram. TsMax <= TsMin");
-    EAssertR(TsMax - PeriodLen < TsMin, "Invalid period query in TSlottedHistogram. TsMax - period >= TsMin");
-    Dest.Clr();
-    uint64 TsMin2 = (TsMin / SlotGran) * SlotGran;
-    uint64 TsMax2 = (TsMax / SlotGran) * SlotGran;
-    for (uint64 i = TsMin2; i <= TsMax2; i += SlotGran) {
-        int Idx = GetIdx(i);
-        TFltV Tmp;
-        Dat[Idx].GetCountV(Tmp);
-        if (Dest.Len() < Tmp.Len()) {
-            Dest.Gen(Tmp.Len());
-        }
-        for (int j = 0; j < Tmp.Len(); j++) {
-            Dest[j] += Tmp[j];
-        }
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////
 // TOnlineSlottedHistogram
 void TOnlineSlottedHistogram::OnStep() {
     if (BufferedP) {
         LastTm = InAggrValBuffer->GetInTmMSecs();
-        Model->Add(InAggrValBuffer->GetInTmMSecs(), (int)InAggrValBuffer->GetInVal());
+        Model.Add(InAggrValBuffer->GetInTmMSecs(), (int)InAggrValBuffer->GetInVal());
         TFltV ForgetV;
         TUInt64V ForgetTmV;
         InAggrValBuffer->GetOutValV(ForgetV);
         InAggrValBuffer->GetOutTmMSecsV(ForgetTmV);
         for (int ElN = 0; ElN < ForgetV.Len(); ElN++) {
-            Model->Remove(ForgetTmV[ElN], (int)ForgetV[ElN]);
+            Model.Remove(ForgetTmV[ElN], (int)ForgetV[ElN]);
         }
     } else {
         LastTm = InAggrVal->GetTmMSecs();
-        Model->Add(InAggrVal->GetTmMSecs(), (int)InAggrVal->GetFlt());
+        Model.Add(InAggrVal->GetTmMSecs(), (int)InAggrVal->GetFlt());
     }
+    Model.GetStats(LastTm - WndLen, LastTm, ValV);
 }
 
-/// JSON constructor
 TOnlineSlottedHistogram::TOnlineSlottedHistogram(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : 
-        TStreamAggr(Base, ParamVal) {
+    TStreamAggr(Base, ParamVal) {
 
     // Cast the input as a stream aggregate
     InAggr = ParseAggr(ParamVal, "inAggr");
@@ -1748,62 +1698,37 @@ TOnlineSlottedHistogram::TOnlineSlottedHistogram(const TWPt<TBase>& Base, const 
     // check if we have buffered input
     BufferedP = !InAggrValBuffer.Empty();
 
-    // assert we have rest of parameters
-    EAssert(ParamVal->IsObj());
-    EAssert(ParamVal->IsObjKey("period"));
-    EAssert(ParamVal->IsObjKey("window"));
-    EAssert(ParamVal->IsObjKey("bins"));
-    EAssert(ParamVal->IsObjKey("granularity"));
-
-    // parse parameters
-    uint64 PeriodLen = ParamVal->GetObjUInt64("period");
+    // parse model parameters
+    const uint64 PeriodLen = ParamVal->GetObjUInt64("period");
+    const int Bins = ParamVal->GetObjInt("bins");
+    const uint64 SlotGran = ParamVal->GetObjUInt64("granularity");
+    Model = TSignalProc::TSlottedHistogram(PeriodLen, SlotGran, Bins);
+    // get window size
     WndLen = ParamVal->GetObjUInt64("window");
-    TInt Bins = ParamVal->GetObjInt("bins");
-    uint64 SlotGran = ParamVal->GetObjUInt64("granularity");
-    LastTm = 0;
-    Model = TSlottedHistogram::New(PeriodLen, SlotGran, Bins);
 }
 
-/// serilization to JSon
+void TOnlineSlottedHistogram::LoadState(TSIn& SIn) {
+    LastTm.Load(SIn);
+    WndLen.Load(SIn);
+    Model.LoadState(SIn);
+};
+
+void TOnlineSlottedHistogram::SaveState(TSOut& SOut) const {
+    LastTm.Save(SOut);
+    WndLen.Save(SOut);
+    Model.SaveState(SOut);
+};
+
 PJsonVal TOnlineSlottedHistogram::SaveJson(const int& Limit) const {
-    TFltV ValV;
-    GetValV(ValV);
-    
     PJsonVal Counts = TJsonVal::NewArr();
     for (int i = 0; i < ValV.Len(); i++) {
         Counts->AddToArr(ValV[i]);
     }
-
-    PJsonVal Res = TJsonVal::NewObj();
-    Res->AddToObj("counts", Counts);
-    return Res;
+    return TJsonVal::NewObj("counts", Counts);
 }
-
-/// returns frequencies in a given bin
-void TOnlineSlottedHistogram::GetVal(const TInt& ElN, TFlt& Val) const {
-    TFltV Tmp;
-    GetValV(Tmp);
-    Val = Tmp[ElN];
-}
-
-/// Load saved state
-void TOnlineSlottedHistogram::LoadState(TSIn& SIn) {
-    LastTm.Load(SIn);
-    WndLen.Load(SIn);
-    Model->LoadState(SIn);
-};
-
-/// Persist state
-void TOnlineSlottedHistogram::SaveState(TSOut& SOut) const {
-    LastTm.Save(SOut);
-    WndLen.Save(SOut);
-    Model->SaveState(SOut);
-};
 
 ///////////////////////////////
-/// Vector-difference stream aggregate
-
-/// constructor
+/// Vector difference stream aggregate
 TVecDiff::TVecDiff(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal) {
     // parse out input aggregate
     InAggrX = ParseAggr(ParamVal, "inAggrX");
@@ -1812,7 +1737,6 @@ TVecDiff::TVecDiff(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamA
     InAggrValY = Cast<TStreamAggrOut::IFltVec>(InAggrY);
 }
 
-/// factory method
 PStreamAggr TVecDiff::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
     return new TVecDiff(Base, ParamVal);
 }
@@ -1833,7 +1757,6 @@ void TVecDiff::OnStep() {
     }
 }
 
-/// serialization to JSon
 PJsonVal TVecDiff::SaveJson(const int& Limit) const {
     PJsonVal Res = TJsonVal::NewObj();
     Res->AddToObj("name", GetAggrNm());
@@ -1850,20 +1773,18 @@ PJsonVal TVecDiff::SaveJson(const int& Limit) const {
 
 ///////////////////////////////
 // Simple linear regression stream aggregate.
-
 void TSimpleLinReg::OnStep() {
+    // Get input vectors
     TFltV X; InAggrValX->GetValV(X);
     TFltV Y; InAggrValY->GetValV(Y);
-    double A;
-    double B;   
-
-    TSpecFunc::LinearFit(X, Y, A, B);   
-
+    // Fit linear model
+    double A, B; TSpecFunc::LinearFit(X, Y, A, B);   
+    // Save model for export
     Result->AddToObj("intercept", A);
     Result->AddToObj("slope", B);
-
+    // check if we should search for quantiles
     if (Quantiles.Len() > 0) {
-        int N = X.Len();
+        const int N = X.Len();
         TFltV Projected(N);
         TFltV Bands(Quantiles.Len());       
         if (N > 0) { // empty vectors -> all bands are set to 0
@@ -1894,10 +1815,11 @@ TSimpleLinReg::TSimpleLinReg(const TWPt<TBase>& Base, const PJsonVal& ParamVal) 
     InAggrValX = Cast<TStreamAggrOut::IFltVec>(InAggrX);
     InAggrY = ParseAggr(ParamVal, "inAggrY");
     InAggrValY = Cast<TStreamAggrOut::IFltVec>(InAggrY);
-
+    // parse parameters
     if (ParamVal->IsObjKey("quantiles")) {
         ParamVal->GetObjFltV("quantiles", Quantiles);
     }
+    // initialize with reset
     Reset();
 }
 

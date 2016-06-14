@@ -982,6 +982,47 @@ public:
 	void SaveState(TSOut& SOut) const;
 };
 
+///////////////////////////////
+/// Slotted histogram.
+/// Maintains distribution statistics in time-slots.
+class TSlottedHistogram {
+protected:
+    /// Period length in miliseconds
+    TUInt64 PeriodLen;
+    /// Slot granularity in miliseconds
+    TUInt64 SlotGran;
+    /// Number of bins
+    TInt Bins;
+    /// Data storage, index is truncated timestamp, data is histogram
+    TVec<TOnlineHistogram> Dat;
+
+    /// Given timestamp calculate index
+    int GetIdx(const uint64 Ts) { return (int)((Ts % PeriodLen) / SlotGran); };
+public:
+    /// Empty constructor
+    TSlottedHistogram() { }
+    /// Constructor, reserves appropriate internal storage
+    TSlottedHistogram(const uint64 _Period, const uint64 _Slot, const int _Bins);
+
+    /// Resets the counts to 0
+    void Reset();
+
+    /// Load stream aggregate state from stream
+    void LoadState(TSIn& SIn);
+    /// Save state of stream aggregate to stream
+    void SaveState(TSOut& SOut) const;
+
+    /// Add new data to statistics
+    void Add(const uint64& Ts, const int& Val);
+    /// Remove data from statistics
+    void Remove(const uint64& Ts, const int& Val);
+
+    /// Provide statistics
+    void GetStats(const uint64 TsMin, const uint64 TsMax, TFltV& Dest);
+    /// Gets number of bins
+    int GetBins() const { return Dat.Len(); }
+};
+
 }
 
 #endif
