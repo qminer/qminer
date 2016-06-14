@@ -1807,7 +1807,7 @@ TSimpleLinReg::TSimpleLinReg(const TWPt<TBase>& Base, const PJsonVal& ParamVal) 
     if (ParamVal->IsObjKey("filter")) {
         PJsonVal Val = ParamVal->GetObjKey("filter");
         Filter = TRecordFilter::New(Val->GetObjStr("type"), Val);
-    } else {
+    } else {        
         Filter = TRecordFilter::New();
     }
     // parse out input aggregate
@@ -1828,6 +1828,18 @@ void TSimpleLinReg::Reset() {
     if (Quantiles.Len() > 0) {
         Result->AddToObj("quantiles", TJsonVal::NewArr(Quantiles));
     }
+}
+
+TRecFilterAggr::TRecFilterAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal) {
+    // filter
+    if (ParamVal->IsObjKey("filter")) {
+        PJsonVal Val = ParamVal->GetObjKey("filter");
+        Filter = TRecordFilter::New(Val->GetObjStr("type"), Val);
+    } else {
+        Filter = TRecordFilter::New();
+    }
+    // parse out input aggregate
+    Aggr = ParseAggr(ParamVal, "aggr");    
 }
 
 } // TStreamAggrs namespace

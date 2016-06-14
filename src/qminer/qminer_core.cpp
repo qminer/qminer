@@ -5938,7 +5938,8 @@ void TStreamAggr::Init() {
     Register<TStreamAggrs::TChiSquare>();
     Register<TStreamAggrs::TOnlineSlottedHistogram>();
     Register<TStreamAggrs::TVecDiff>();
-    Register<TStreamAggrs::TSimpleLinReg>();    
+    Register<TStreamAggrs::TSimpleLinReg>();   
+    Register<TStreamAggrs::TRecFilterAggr>();    
 
     // these attach to ISparseVecTm
     Register<TStreamAggrs::TEmaSpVec>();

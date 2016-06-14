@@ -195,6 +195,7 @@
                 'src/qminer/qminer_ftr.h',
                 'src/qminer/qminer_ftr.cpp',
                 'src/qminer/qminer_aggr.h',
+                'src/qminer/qminer_aggr.hpp',
                 'src/qminer/qminer_aggr.cpp',
                 # StreamStory
                 'src/third_party/streamstory/streamstory.h',

@@ -1529,6 +1529,46 @@ public:
 };
 
 ///////////////////////////////
+/// Record filter stream aggregate
+class TRecFilterAggr : public TStreamAggr {
+private:
+    /// Aggregate that will be called if the record passes the filter
+    TWPt<TStreamAggr> Aggr;
+    /// Decides if a record should be processed (useful on a stream to improve performance)
+    PRecordFilter Filter;
+    
+protected:
+    /// Passes the record to Aggr
+    void OnAddRec(const TRec& Rec) { if (Filter->operator()(Rec)) { Aggr->OnAddRec(Rec); } }
+    /// Passes the call to Aggr
+    void OnTime(const uint64& TmMsec) { Aggr->OnTime(TmMsec); }
+    /// Passes the call to Aggr
+    void OnStep() { Aggr->OnStep(); }
+
+    /// JSON based constructor.
+    TRecFilterAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+public:
+    /// Smart pointer constructor
+    static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) { return new TRecFilterAggr(Base, ParamVal); }
+
+    /// No sate to load
+    void LoadState(TSIn& SIn) { }
+    /// No state to save
+    void SaveState(TSOut& SOut) const { }
+
+    /// Is the aggregate initialized? 
+    bool IsInit() const { return true; }
+    /// Resets the aggregate
+    void Reset() { }
+    /// JSON serialization
+    PJsonVal SaveJson(const int& Limit) const { return TJsonVal::NewObj(); }
+    /// Stream aggregator type name 
+    static TStr GetType() { return "recordFilterAggr"; }
+    /// Stream aggregator type name 
+    TStr Type() const { return GetType(); }
+};
+
+///////////////////////////////
 /// Template class implementation 
 #include "qminer_aggr.hpp"
 

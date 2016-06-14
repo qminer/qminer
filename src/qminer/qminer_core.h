@@ -1251,7 +1251,7 @@ public:
     static void Init();
 public:
     /// Calls the filter
-    virtual bool operator()(const TRec& Rec) { return true; }
+    virtual bool operator()(const TRec& Rec) const { return true; }
 };
 
 ///////////////////////////////
@@ -1422,7 +1422,7 @@ public:
     /// Smart pointer constructor
     static PRecordFilter New(const PJsonVal& ParamVal) { return new TRecFilterByFieldInt(ParamVal); }
     /// Filter function
-    bool operator()(const TRec& Rec) const {        
+    bool operator()(const TRec& Rec) const {
         const int RecVal = Rec.GetFieldInt(FieldId);
         return (MinVal <= RecVal) && (RecVal <= MaxVal);
     }
