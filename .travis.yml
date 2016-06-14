@@ -5,7 +5,6 @@ git:
 
 language: node_js
 
-
 addons:
   apt:
     sources: [ 'ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.6' ]
@@ -16,9 +15,8 @@ node_js:
 
 env: 
   - CXXFLAGS=-std=c++0x CC=gcc-4.8 CXX=g++-4.8
-  global:
-    - LLVM_VERSION=3.7.0
-    - LLVM_ARCHIVE_PATH=$HOME/clang+llvm.tar.xz
+  - LLVM_VERSION=3.7.0
+  - LLVM_ARCHIVE_PATH=$HOME/clang+llvm.tar.xz
 
 matrix:
   include:
