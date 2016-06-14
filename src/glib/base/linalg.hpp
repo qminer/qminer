@@ -2645,7 +2645,7 @@ void TLinAlg::SubMat(const TVVec<TNum<TType>, TSizeTy, ColMajor>& Mat,
 		const TSizeTy& EndCol,
 		TVVec<TNum<TType>, TSizeTy, ColMajor>& SubMat) {
 	EAssert(StartRow >= 0 && StartCol >= 0);
-	EAssert(EndRow < Mat.GetRows() && EndCol < Mat.GetCols());
+	EAssert(EndRow <= Mat.GetRows() && EndCol <= Mat.GetCols());
 
 	if (SubMat.GetRows() != EndRow - StartRow || SubMat.GetCols() != EndCol - StartCol) {
 		SubMat.Gen(EndRow - StartRow, EndCol - StartCol);
