@@ -165,7 +165,6 @@ public:
     static PJsonVal GetObjProps(const v8::Local<v8::Object>& Obj) { return GetObjJson(Obj, true); }
     /// Convert GLib Json (PJsonVal) to v8 Json
     static v8::Local<v8::Value> ParseJson(v8::Isolate* Isolate, const PJsonVal& JsonVal);
-
     /// Transform V8 string to TStr
     static TStr GetStr(const v8::Local<v8::String>& V8Str);
 
@@ -175,10 +174,12 @@ public:
 
     /// Check if argument ArgN exists
     static bool IsArg(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) { return (Args.Length() > ArgN); }
-
     /// Checks if the class name of the underlying glib object matches the
     /// given string. the name is stored in an hidden variable "class"
     static bool IsClass(const v8::Handle<v8::Object> Obj, const TStr& ClassNm);
+    /// Checks if the class name of the underlying glib object matches the
+    /// given string. the name is stored in an hidden variable "class"
+    template <class TClass> static bool IsClass(const v8::Handle<v8::Object> Obj);
     /// Check if argument ArgN belongs to a given class
     static bool IsArgWrapObj(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& ClassNm);
     /// Check if argument ArgN belongs to a given class
@@ -206,7 +207,6 @@ public:
     static bool IsArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
     /// Check whether Args[ArgN] is a buffer
     static bool IsArgBuffer(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
-
     // Check whether Object is a buffer
     static bool IsBuffer(const v8::Local<v8::Object>& Object);
 
@@ -226,17 +226,14 @@ public:
     static int GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property);
     /// Extract argument ArgN property as int
     static int GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property, const int& DefVal);
-
     /// Extract argument ArgN as double
     static double GetArgFlt(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
     /// Extract argument ArgN as int, and use DefVal in case when not present
     static double GetArgFlt(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const double& DefVal);
     /// Extract argument ArgN property as int
     static double GetArgFlt(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property, const double& DefVal);
-
     /// Extract argument ArgN as a double vector, the argument can be of type Array or TNodeJsFltVV
     static void GetArgFltV(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, TFltV& FltV);
-
     /// Extract argument ArgN as TStr
     static TStr GetArgStr(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
     /// Extract argument ArgN as TStr, and use DefVal in case when not present
@@ -258,9 +255,11 @@ public:
     static bool IsObjFld(v8::Local<v8::Object> Obj, const TStr& FldNm);
     /// returns true is the field is not defined or is null
     static bool IsFldNull(v8::Local<v8::Object> Obj, const TStr& FldNm);
-    /// returns true if the object contains a field with the specified name and
-    /// that field has the provided ClassId
+    /// returns true if the object contains a field with class of given class id 
     static bool IsFldClass(v8::Local<v8::Object> Obj, const TStr& FldNm, const TStr& ClassId);
+    /// returns true if the object contains a field with of given class
+    template <class TClass>
+    static bool IsFldClass(v8::Local<v8::Object> Obj, const TStr& FldNm);
     /// returns true if the field is a function
     static bool IsFldFun(v8::Local<v8::Object> Obj, const TStr& FldNm);
     /// returns true if the field is an integer
@@ -347,15 +346,22 @@ public:
     static TClass* UnwrapCheckWatcher(v8::Handle<v8::Object> Arg);
 
     template <class TClass>
-    static TClass* Unwrap(v8::Handle<v8::Object> Arg) { return node::ObjectWrap::Unwrap<TClass>(Arg); }
+    static TClass* Unwrap(v8::Handle<v8::Object> Arg) {
+        QmAssert(IsClass<TClass>(Arg));
+        return node::ObjectWrap::Unwrap<TClass>(Arg);
+    }
 
 private:
-    /// returns the internal C++ windows timestamp from a double representation
-    /// of a UNIX timestamp
+    /// returns the internal C++ windows timestamp from a double representation of a UNIX timestamp
     static uint64 GetTmMSecs(const double& UnixMSecs);
     /// returns the internal C++ windows timestamp from a v8 date
     static uint64 GetTmMSecs(v8::Handle<v8::Date>& Date);
 };
+
+template <class TClass>
+bool TNodeJsUtil::IsClass(const v8::Handle<v8::Object> Obj) {
+    return IsClass(Obj, TClass::GetClassId());
+}
 
 template <class TClass>
 bool TNodeJsUtil::IsArgWrapObj(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
@@ -371,13 +377,24 @@ TClass* TNodeJsUtil::GetArgUnwrapObj(const v8::FunctionCallbackInfo<v8::Value>& 
 
 template <class TClass>
 TClass* TNodeJsUtil::GetArgUnwrapObj(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent(); 
     v8::HandleScope HandleScope(Isolate);
     // check we have the argument
     EAssertR(ArgN < Args.Length(), "GetArgUnwrapObj: Not enough arguments!");
     EAssertR(Args[ArgN]->IsObject(), "GetArgUnwrapObj: Argument not an object!");
     // unwrap and return
     return TNodeJsUtil::GetUnwrapFld<TClass>(Args[ArgN]->ToObject(), Property);
+}
+
+template <class TClass>
+bool TNodeJsUtil::IsFldClass(v8::Local<v8::Object> Obj, const TStr& FldNm) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent(); 
+    v8::HandleScope HandleScope(Isolate);
+    if (!IsObjFld(Obj, FldNm)) { return false; }
+    v8::Handle<v8::Value> ValFld = Obj->Get(v8::String::NewFromUtf8(Isolate, FldNm.CStr()));
+    if (!ValFld->IsObject()) { return false; }
+    v8::Handle<v8::Object> ObjFld = ValFld->ToObject();
+    return IsClass(ObjFld, TClass::GetClassId());
 }
 
 template <class TClass>

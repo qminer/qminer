@@ -83,9 +83,12 @@ TNodeJsStreamAggr* TNodeJsStreamAggr::NewFromArgs(const v8::FunctionCallbackInfo
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    QmAssertR(Args.Length() <= 3 && Args.Length() >= 2, "stream aggregator constructor expects at least two parameters");
-    QmAssertR(Args[0]->IsObject() && Args[1]->IsObject(), "stream aggregator constructor expects first two arguments as objects");
-
+    // make sure we have enough parameters and not to many
+    QmAssertR(Args.Length() == 2 || Args.Length() == 3,
+              "stream aggregator constructor expects two or three parameters");
+    // make sure we get what we expect
+    QmAssertR(Args[0]->IsObject() && Args[1]->IsObject(),
+              "stream aggregator constructor expects first two arguments as objects");
     // unwrap the base
     TNodeJsBase* JsBase = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsBase>(Args[0]->ToObject());
 
@@ -113,9 +116,29 @@ TNodeJsStreamAggr* TNodeJsStreamAggr::NewFromArgs(const v8::FunctionCallbackInfo
         // create new merger aggregate
         StreamAggr = TQm::TStreamAggrs::TMerger::New(JsBase->Base, ParamVal);
         // automatically attach merger to all listed stores
-        TStrV StoreNmV = TQm::TStreamAggrs::TMerger::GetStoreNm(ParamVal);
+        TStrV _StoreNmV = TQm::TStreamAggrs::TMerger::GetStoreNm(ParamVal);
+        StoreNmV.AddV(_StoreNmV);        
     } else if (TypeNm == "set") {
-        // 
+        // we have feature extractor aggregate, first get its name if we have one
+        TStr AggrName = TNodeJsUtil::GetArgStr(Args, 1, "name", TGuid::GenSafeGuid());
+        // we have aggregate set, get its members
+        StreamAggr = TQm::TStreamAggrSet::New(JsBase->Base, AggrName);
+        // cast it so we can call extra methods
+        TWPt<TQm::TStreamAggrSet> StreamAggrSet = dynamic_cast<TQm::TStreamAggrSet*>(StreamAggr());
+        // check if we got an array of stream aggregate to add to the set
+        v8::Local<v8::Object> _SubStreamAggrV = TNodeJsUtil::GetFldObj(Args[1]->ToObject(), "aggregates");
+        QmAssertR(_SubStreamAggrV->IsArray(), "Unsupported argument for stream aggregate set");
+        // we did, go over the array
+        v8::Array* SubStreamAggrV = v8::Array::Cast(*_SubStreamAggrV);
+        for (uint SubStreamAggrN = 0; SubStreamAggrN < SubStreamAggrV->Length(); SubStreamAggrN++) {
+            // and extract stream aggregate
+            v8::Local<v8::Object> _SubStreamAggr = SubStreamAggrV->Get(SubStreamAggrN)->ToObject();
+            QmAssertR(TNodeJsUtil::IsClass<TNodeJsStreamAggr>(_SubStreamAggr),
+                      "stream aggregate set expects stream aggregates in \"aggregates\" array");
+            TNodeJsStreamAggr* SubStreamAggr = TNodeJsUtil::Unwrap<TNodeJsStreamAggr>(_SubStreamAggr);
+            // and add it to the stream aggregate set
+            StreamAggrSet->AddStreamAggr(SubStreamAggr->SA);                
+        }            
     } else {
         // we have a GLib stream aggregate, translate parameters to PJsonVal
         PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 1);

@@ -5994,14 +5994,18 @@ void TStreamAggrOnAddFilter::Init() {
 
 ///////////////////////////////
 // QMiner-Stream-Aggregator-Set
-TStreamAggrSet::TStreamAggrSet(const TWPt<TBase>& _Base):
-    TStreamAggr(_Base, TGuid::GenSafeGuid()) { }
+TStreamAggrSet::TStreamAggrSet(const TWPt<TBase>& _Base, const TStr& _AggrNm):
+    TStreamAggr(_Base, _AggrNm) { }
 
 TStreamAggrSet::TStreamAggrSet(const TWPt<TBase>& _Base, const PJsonVal& ParamVal):
     TStreamAggr(_Base, ParamVal) { }
 
 PStreamAggr TStreamAggrSet::New(const TWPt<TBase>& Base) {
-    return new TStreamAggrSet(Base);
+    return new TStreamAggrSet(Base, TGuid::GenSafeGuid());
+}
+
+PStreamAggr TStreamAggrSet::New(const TWPt<TBase>& Base, const TStr& AggrNm) {
+    return new TStreamAggrSet(Base, AggrNm);
 }
 
 PStreamAggr TStreamAggrSet::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {

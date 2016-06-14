@@ -1738,12 +1738,12 @@ TOnlineSlottedHistogram::TOnlineSlottedHistogram(const TWPt<TBase>& Base, const 
     // Cast the input as a stream aggregate
     InAggr = ParseAggr(ParamVal, "inAggr");
     // Cast the input as a time series stream aggregate
-    InAggrVal = Cast<TStreamAggrOut::IFltTm>(InAggr, true);
+    InAggrVal = Cast<TStreamAggrOut::IFltTm>(InAggr, false);
     // Cast the input as a time series stream aggregate as a time series buffer
-    InAggrValBuffer = Cast<TStreamAggrOut::IFltTmIO>(InAggr, true);
-    
+    InAggrValBuffer = Cast<TStreamAggrOut::IFltTmIO>(InAggr, false);
+
     // Check if at least one is OK
-    QmAssertR(!InAggrVal.Empty() || InAggrValBuffer.Empty(),
+    QmAssertR(!InAggrVal.Empty() || !InAggrValBuffer.Empty(),
         "Stream aggregate does not implement IFltTm interface: " + InAggr->GetAggrNm());
     // check if we have buffered input
     BufferedP = !InAggrValBuffer.Empty();

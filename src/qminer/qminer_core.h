@@ -3410,9 +3410,9 @@ public:
 protected:
     /// Cast stream aggregate to interface
     template <class IInterface>
-    static TWPt<IInterface> Cast(const TWPt<TStreamAggr>& Aggr, const bool& NoCheckP = false) {
+    static TWPt<IInterface> Cast(const TWPt<TStreamAggr>& Aggr, const bool& CheckP = true) {
         TWPt<IInterface> CastAggr = dynamic_cast<IInterface*>(Aggr());
-        QmAssertR(!CastAggr.Empty() || NoCheckP, "[TStreamAggr] error casting " + Aggr->GetAggrNm());
+        QmAssertR(!CastAggr.Empty() || !CheckP, "[TStreamAggr] error casting " + Aggr->GetAggrNm());
         return CastAggr;
     }    
 };
@@ -3565,12 +3565,14 @@ protected:
     TVec<TWPt<TStreamAggr>> StreamAggrV;
     
     /// Create empty aggregate base
-    TStreamAggrSet(const TWPt<TBase>& _Base);
+    TStreamAggrSet(const TWPt<TBase>& _Base, const TStr& _AggrNm);
     /// Create empty aggregate base from json
     TStreamAggrSet(const TWPt<TBase>& _Base, const PJsonVal& ParamVal);
 public:
     /// Create empty aggregate base
-    static PStreamAggr New(const TWPt<TBase>& _Base);
+    static PStreamAggr New(const TWPt<TBase>& Base);
+    /// Create empty aggregate base
+    static PStreamAggr New(const TWPt<TBase>& Base, const TStr& AggrNm);
     /// Create empty aggregate base
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 
