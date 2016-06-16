@@ -38,7 +38,7 @@ void TEnv::Init() {
     // initialize stream aggregators constructor router
     TStreamAggr::Init();
     // initialize stream aggregators on add filter constructor router
-    TRecordFilter::Init();
+    TRecFilter::Init();
     // initialize feature extractors constructor router
     TFtrExt::Init();
     // tell we finished initialization
@@ -2298,7 +2298,194 @@ PJsonVal TRec::GetJson(const TWPt<TBase>& Base, const bool& FieldsP,
     return RecVal;
 }
 
-///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////
+/// Record Comparator by Frequency
+bool TRecCmpByFq::operator()(const TUInt64IntKd& RecIdFq1, const TUInt64IntKd& RecIdFq2) const {
+    if (Asc) {
+        return (RecIdFq1.Dat == RecIdFq2.Dat) ?
+            (RecIdFq1.Key < RecIdFq2.Key) : (RecIdFq1.Dat < RecIdFq2.Dat);
+    } else {
+        return (RecIdFq2.Dat == RecIdFq1.Dat) ?
+            (RecIdFq2.Key < RecIdFq1.Key) : (RecIdFq2.Dat < RecIdFq1.Dat);
+    }
+}
+
+///////////////////////////////
+/// Record Comparator by Integer Field.
+bool TRecCmpByFieldInt::operator()(const TUInt64IntKd& RecIdFq1, const TUInt64IntKd& RecIdFq2) const {
+    if (Store->IsFieldNull(RecIdFq1.Key, FieldId)) { return false; }
+    if (Store->IsFieldNull(RecIdFq2.Key, FieldId)) { return false; }
+    const int RecVal1 = Store->GetFieldInt(RecIdFq1.Key, FieldId);
+    const int RecVal2 = Store->GetFieldInt(RecIdFq2.Key, FieldId);
+    if (Asc) { return RecVal1 < RecVal2; } else { return RecVal2 < RecVal1; }
+}
+
+///////////////////////////////
+/// Record Comparator by Numeric Field. 
+bool TRecCmpByFieldFlt::operator()(const TUInt64IntKd& RecIdFq1, const TUInt64IntKd& RecIdFq2) const {
+    if (Store->IsFieldNull(RecIdFq1.Key, FieldId)) { return false; }
+    if (Store->IsFieldNull(RecIdFq2.Key, FieldId)) { return false; }
+    const double RecVal1 = Store->GetFieldFlt(RecIdFq1.Key, FieldId);
+    const double RecVal2 = Store->GetFieldFlt(RecIdFq2.Key, FieldId);
+    if (Asc) { return RecVal1 < RecVal2; } else { return RecVal2 < RecVal1; }
+}
+
+///////////////////////////////
+/// Record Comparator by String Field. 
+bool TRecCmpByFieldStr::operator()(const TUInt64IntKd& RecIdFq1, const TUInt64IntKd& RecIdFq2) const {
+    if (Store->IsFieldNull(RecIdFq1.Key, FieldId)) { return false; }
+    if (Store->IsFieldNull(RecIdFq2.Key, FieldId)) { return false; }
+    const TStr RecVal1 = Store->GetFieldStr(RecIdFq1.Key, FieldId);
+    const TStr RecVal2 = Store->GetFieldStr(RecIdFq2.Key, FieldId);
+    if (Asc) { return RecVal1 < RecVal2; } else { return RecVal2 < RecVal1; }
+}
+
+///////////////////////////////
+/// Record Comparator by Time Field. 
+bool TRecCmpByFieldTm::operator()(const TUInt64IntKd& RecIdFq1, const TUInt64IntKd& RecIdFq2) const {
+    if (Store->IsFieldNull(RecIdFq1.Key, FieldId)) { return false; }
+    if (Store->IsFieldNull(RecIdFq2.Key, FieldId)) { return false; }
+    const uint64 RecVal1 = Store->GetFieldTmMSecs(RecIdFq1.Key, FieldId);
+    const uint64 RecVal2 = Store->GetFieldTmMSecs(RecIdFq2.Key, FieldId);
+    if (Asc) { return RecVal1 < RecVal2; } else { return RecVal2 < RecVal1; }
+}
+
+///////////////////////////////
+/// Record filter
+TFunRouter<PRecFilter, TRecFilter::TNewF> TRecFilter::NewRouter;
+
+void TRecFilter::Init() {
+    Register<TQm::TRecFilterSubsampler>();
+    Register<TQm::TRecFilterByRecId>();
+    Register<TQm::TRecFilterByRecIdSet>();
+    Register<TQm::TRecFilterByRecFq>();
+    Register<TQm::TRecFilterByFieldBool>();
+    Register<TQm::TRecFilterByFieldInt>();
+    Register<TQm::TRecFilterByFieldInt16>();
+    Register<TQm::TRecFilterByFieldInt64>();
+    Register<TQm::TRecFilterByFieldUCh>();
+    Register<TQm::TRecFilterByFieldUInt>();
+    Register<TQm::TRecFilterByFieldUInt16>();
+    Register<TQm::TRecFilterByFieldFlt>();
+    Register<TQm::TRecFilterByFieldSFlt>();
+    Register<TQm::TRecFilterByFieldUInt64>();
+    Register<TQm::TRecFilterByFieldStr>();
+    Register<TQm::TRecFilterByFieldStrMinMax>();
+    Register<TQm::TRecFilterByFieldStrSet>();
+    Register<TQm::TRecFilterByFieldTm>();
+    Register<TQm::TRecFilterByFieldSafe>();
+}
+
+PRecFilter TRecFilter::New(const TWPt<TBase>& Base, const TStr& TypeNm, const PJsonVal& ParamVal) {
+    return NewRouter.Fun(TypeNm)(Base, ParamVal);
+}
+
+///////////////////////////////
+/// Record Filter by subsampling
+TRecFilterSubsampler::TRecFilterSubsampler(const TWPt<TBase>& _Base, const int& _Skip):
+    TRecFilter(_Base), Skip(_Skip) { }
+
+PRecFilter TRecFilterSubsampler::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+    return new TRecFilterSubsampler(Base, ParamVal->GetObjInt("skip", 0));
+}
+
+bool TRecFilterSubsampler::Filter(const TRec& Rec) const {
+    return NumUpdates++ % (Skip + 1) == 0;
+}
+
+///////////////////////////////
+/// Record Filter by Record Exists. 
+TRecFilterByExists::TRecFilterByExists(const TWPt<TBase>& Base, const TWPt<TStore>& _Store):
+    TRecFilter(_Base), Store(_Store) { }
+
+static PRecFilter TRecFilterByExists::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+    // parse parameters
+    TStr StoreNm = ParamVal->GetObjStr("store", "");
+    QmAssertR(GetBase()->IsStoreNm(StoreNm), "[TRecFilterByExists] Unknown store '" + StoreNm + "'");
+    const TWPt<TStore>& Store = GetBase()->GetStoreByStoreNm(StoreNm);
+    // create filter
+    return new TRecFilterByExists(Base, Store);
+}
+
+bool TRecFilterByExists::Filter(const TRec& Rec) const {
+    return Store->IsRecId(Rec.GetRecId());
+}
+
+///////////////////////////////
+/// Record Filter by Record Id. 
+TRecFilterByRecId::TRecFilterByRecId(const TWPt<TBase>& _Base, const uint64& _MinRecId, const uint64& _MaxRecId):
+    TRecFilter(_Base), Type(rfRange), MinRecId(_MinRecId), MaxRecId(_MaxRecId) { }
+
+TRecFilterByRecId::TRecFilterByRecId(const TWPt<TBase>& _Base, const TUInt64Set& _RecIdSet, const bool _InP):
+    TRecFilter(_Base), Type(rfSet), RecIdSet(_RecIdSet), InP(_InP) { }
+
+PRecFilter TRecFilterByRecId::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+    if (ParamVal->IsObjKey("minRecId") || ParamVal->IsObjKey("maxRecId")) {
+        const uint64 MinRecId = ParamVal->GetObjUInt64("minRecId", 0);
+        const uint64 MaxRecId = ParamVal->GetObjUInt64("maxRecId", TUInt64::Mx);
+        return new TRecFilterByRecId(Base, MinRecId, MaxRecId);
+    } else if (ParamVal->IsObjKey("recIdSet")) {
+        TUInt64V RecIdSetV; ParamVal->GetObjUInt64V("recIdSet", RecIdSetV);
+        const bool InP = ParamVal->GetObjBool("inP", true);
+        return new TRecFilterByRecId(Base, TUInt64Set(RecIdSetV), InP);
+    }
+    throw TQmExcept("[TRecFilterByRecId] missing parameters in " + ParamVal->SaveStr());
+}
+
+bool TRecFilterByRecId::Filter(const TRec& Rec) const {
+    if (Type == rfRange) {
+        return (MinRecId <= Rec.GetRecId()) && (Rec.GetRecId() <= MaxRecId);
+    } else {
+        return InP ? RecIdSet.IsKey(Rec.GetRecId()) : !RecIdSet.IsKey(Rec.GetRecId());
+    }
+}
+
+///////////////////////////////
+/// Record Filter by Record Fq. 
+TRecFilterByRecFq::TRecFilterByRecFq(const TWPt<TBase>& _Base, const int& _MinFq, const int& _MaxFq):
+    TRecFilter(_Base), MinFq(_MinFq), MaxFq(_MaxFq) { }
+
+PRecFilter TRecFilterByRecFq::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+    const int MinFq = ParamVal->GetObjInt("minFq", 0);
+    const int MaxFq = ParamVal->GetObjInt("maxFq", TInt::Mx);
+    return new TRecFilterByRecFq(Base, MinFq, MaxFq);
+}
+
+bool TRecFilterByRecFq::Filter(const TRec& Rec) const {
+    return (MinFq <= Rec.GetRecFq()) && (Rec.GetRecFq() <= MaxFq);
+}
+
+///////////////////////////////
+/// Record Filter by Field.
+TRecFilterByField::TRecFilterByField(const TWPt<TBase>& _Base, const int& _FieldId):
+    TRecFilter(_Base), FieldId(_FieldId) { }
+
+PRecFilter TRecFilterByField::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+    // get store
+    TStr StoreNm = ParamVal->GetObjStr("store", "");
+    QmAssertR(GetBase()->IsStoreNm(StoreNm), "[TRecFilterByExists] Unknown store '" + StoreNm + "'");
+    const TWPt<TStore>& Store = GetBase()->GetStoreByStoreNm(StoreNm);
+    // get field and its type
+    TStr FieldNm = ParamVal->GetObjStr("field", "");
+    const int FieldId = Store->GetFieldId(FieldNm);
+    // get value
+    const bool Val = ParamVal->GetObjBool("val", false);
+    return 
+}
+
+///////////////////////////////
+/// Record Filter by Bool Field. 
+TRecFilterByFieldBool::TRecFilterByFieldBool(const TWPt<TBase>& _Base, const int& _FieldId, const bool& _Val):
+    TRecFilter(_Base, _FieldId), Val(_Val) { }
+
+    /// Filter function
+    bool Filter(const TRec& Rec) const {
+        const bool RecVal = Rec.GetFieldBool(FieldId);
+        return RecVal == Val;
+    }
+
+
+///////////////////////////////
 // TRecFilterByIndexJoin
 TRecFilterByIndexJoin::TRecFilterByIndexJoin(const TWPt<TStore>& _Store, const int& _JoinId, const uint64& _MinVal, const uint64& _MaxVal) :
     Store(_Store), Index(Store->GetBase()->GetIndex()), JoinId(_JoinId), MinVal(_MinVal), MaxVal(_MaxVal) {
@@ -2317,7 +2504,8 @@ bool TRecFilterByIndexJoin::operator()(const TRec& Rec) const {
     return false;
 }
 
-///////////////////////////////////////////////
+
+///////////////////////////////
 /// Record value reader.
 void TFieldReader::ParseDate(const TTm& Tm, TStrV& StrV) const {
     TSecTm SecTm = Tm.GetSecTm();
@@ -5980,33 +6168,6 @@ void TStreamAggr::LoadState(TSIn& SIn) {
 void TStreamAggr::SaveState(TSOut& SOut) const {
     throw TQmExcept::New("TStreamAggr::_Save not implemented:" + GetAggrNm());
 };
-
-///////////////////////////////
-// QMiner-Record-Filter
-TFunRouter<PRecordFilter, TRecordFilter::TNewF> TRecordFilter::NewRouter;
-
-void TRecordFilter::Init() {
-    Register<TQm::TRecFilterSubsampler>();
-    Register<TQm::TRecFilterByRecId>();
-    Register<TQm::TRecFilterByRecIdSet>();
-    Register<TQm::TRecFilterByRecFq>();
-    Register<TQm::TRecFilterByFieldBool>();
-    Register<TQm::TRecFilterByFieldInt>();
-    Register<TQm::TRecFilterByFieldInt16>();
-    Register<TQm::TRecFilterByFieldInt64>();
-    Register<TQm::TRecFilterByFieldUCh>();
-    Register<TQm::TRecFilterByFieldUInt>();
-    Register<TQm::TRecFilterByFieldUInt16>();
-    Register<TQm::TRecFilterByFieldFlt>();
-    Register<TQm::TRecFilterByFieldSFlt>();
-    Register<TQm::TRecFilterByFieldUInt64>();
-    Register<TQm::TRecFilterByFieldStr>();
-    Register<TQm::TRecFilterByFieldStrMinMax>();
-    Register<TQm::TRecFilterByFieldStrSet>();
-    Register<TQm::TRecFilterByFieldTm>();
-    Register<TQm::TRecFilterByFieldSafe>();
-}
-
 
 ///////////////////////////////
 // QMiner-Stream-Aggregator-Set
