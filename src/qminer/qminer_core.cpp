@@ -2355,25 +2355,27 @@ bool TRecCmpByFieldTm::operator()(const TUInt64IntKd& RecIdFq1, const TUInt64Int
 TFunRouter<PRecFilter, TRecFilter::TNewF> TRecFilter::NewRouter;
 
 void TRecFilter::Init() {
-    Register<TQm::TRecFilterSubsampler>();
-    Register<TQm::TRecFilterByRecId>();
-    Register<TQm::TRecFilterByRecIdSet>();
-    Register<TQm::TRecFilterByRecFq>();
-    Register<TQm::TRecFilterByFieldBool>();
-    Register<TQm::TRecFilterByFieldInt>();
-    Register<TQm::TRecFilterByFieldInt16>();
-    Register<TQm::TRecFilterByFieldInt64>();
-    Register<TQm::TRecFilterByFieldUCh>();
-    Register<TQm::TRecFilterByFieldUInt>();
-    Register<TQm::TRecFilterByFieldUInt16>();
-    Register<TQm::TRecFilterByFieldFlt>();
-    Register<TQm::TRecFilterByFieldSFlt>();
-    Register<TQm::TRecFilterByFieldUInt64>();
-    Register<TQm::TRecFilterByFieldStr>();
-    Register<TQm::TRecFilterByFieldStrMinMax>();
-    Register<TQm::TRecFilterByFieldStrSet>();
-    Register<TQm::TRecFilterByFieldTm>();
-    Register<TQm::TRecFilterByFieldSafe>();
+    Register<TRecFilterSubsampler>();
+    Register<TRecFilterByExists>();
+    Register<TRecFilterByRecId>();
+    Register<TRecFilterByRecFq>();
+    Register<TRecFilterByField>();
+
+    Register<TRecFilterByFieldBool>();
+    Register<TRecFilterByFieldInt>();
+    Register<TRecFilterByFieldInt16>();
+    Register<TRecFilterByFieldInt64>();
+    Register<TRecFilterByFieldUCh>();
+    Register<TRecFilterByFieldUInt>();
+    Register<TRecFilterByFieldUInt16>();
+    Register<TRecFilterByFieldFlt>();
+    Register<TRecFilterByFieldSFlt>();
+    Register<TRecFilterByFieldUInt64>();
+    Register<TRecFilterByFieldStr>();
+    Register<TRecFilterByFieldStrMinMax>();
+    Register<TRecFilterByFieldStrSet>();
+    Register<TRecFilterByFieldTm>();
+    Register<TRecFilterByFieldSafe>();
 }
 
 PRecFilter TRecFilter::New(const TWPt<TBase>& Base, const TStr& TypeNm, const PJsonVal& ParamVal) {
@@ -2401,7 +2403,6 @@ TRecFilterByExists::TRecFilterByExists(const TWPt<TBase>& Base, const TWPt<TStor
 static PRecFilter TRecFilterByExists::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
     // parse parameters
     TStr StoreNm = ParamVal->GetObjStr("store", "");
-    QmAssertR(GetBase()->IsStoreNm(StoreNm), "[TRecFilterByExists] Unknown store '" + StoreNm + "'");
     const TWPt<TStore>& Store = GetBase()->GetStoreByStoreNm(StoreNm);
     // create filter
     return new TRecFilterByExists(Base, Store);
@@ -2463,14 +2464,22 @@ TRecFilterByField::TRecFilterByField(const TWPt<TBase>& _Base, const int& _Field
 PRecFilter TRecFilterByField::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
     // get store
     TStr StoreNm = ParamVal->GetObjStr("store", "");
-    QmAssertR(GetBase()->IsStoreNm(StoreNm), "[TRecFilterByExists] Unknown store '" + StoreNm + "'");
     const TWPt<TStore>& Store = GetBase()->GetStoreByStoreNm(StoreNm);
     // get field and its type
     TStr FieldNm = ParamVal->GetObjStr("field", "");
     const int FieldId = Store->GetFieldId(FieldNm);
-    // get value
-    const bool Val = ParamVal->GetObjBool("val", false);
-    return 
+    const TFieldDesc& FieldDesc = Store->GetFieldDesc(FieldId);
+    // get filter type
+    TRecFilterByFieldType Type;
+    if (ParamVal->IsObjKey("value")) {
+      Type = 
+    // check what type is the field
+    if (FieldDesc.IsBool()) {
+      const bool Val = ParamVal->GetObjBool("value", false);
+      return new TRecFilterByFieldBool(Base, FieldId, Val);
+    }
+    // if not supported, throw exception
+    throw TQmExcept::New("[TRecFilterByField] Unsupported field type: " + FieldDesc.GetFieldTypeStr());
 }
 
 ///////////////////////////////

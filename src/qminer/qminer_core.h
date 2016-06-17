@@ -1336,6 +1336,10 @@ public:
 /// Does not implement any logic, but contains JSON constructor which looks at the field
 /// and given parameters and returns appropriate specialization 
 class TRecFilterByField : public TRecFilter {
+private:
+    /// Types of filtering over record ids
+    typedef enum { rfValue, rfRange, rfSet } TRecFilterByFieldType;
+  
 protected:
     /// Field according to which we are filtering
     TInt FieldId;
