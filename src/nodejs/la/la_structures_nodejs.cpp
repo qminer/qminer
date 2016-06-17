@@ -548,13 +548,13 @@ void TNodeJsFltVV::getSubmatrix(const v8::FunctionCallbackInfo<v8::Value>& Args)
 	const int MinCols = TNodeJsUtil::GetArgInt32(Args, 2, 0);
 	const int MaxCols = TNodeJsUtil::GetArgInt32(Args, 3, JsMat->Mat.GetCols());
 
-	EAssertR(0 <= MinRows && MinRows < JsMat->Mat.GetRows(), "Matrix.getSubmatrix: minRow is not valid!");
-	EAssertR(0 <= MaxRows && MaxRows < JsMat->Mat.GetRows(), "Matrix.getSubmatrix: maxRow is not valid!");
-	EAssertR(0 <= MinCols && MinCols < JsMat->Mat.GetCols(), "Matrix.getSubmatrix: minCol is not valid!");
-	EAssertR(0 <= MaxCols && MaxCols < JsMat->Mat.GetCols(), "Matrix.getSubmatrix: maxCol is not valid!");
+	EAssertR(0 <= MinRows && MinRows <= JsMat->Mat.GetRows(), "Matrix.getSubmatrix: minRow is not valid!");
+	EAssertR(0 <= MaxRows && MaxRows <= JsMat->Mat.GetRows(), "Matrix.getSubmatrix: maxRow is not valid!");
+	EAssertR(0 <= MinCols && MinCols <= JsMat->Mat.GetCols(), "Matrix.getSubmatrix: minCol is not valid!");
+	EAssertR(0 <= MaxCols && MaxCols <= JsMat->Mat.GetCols(), "Matrix.getSubmatrix: maxCol is not valid!");
 
 	TFltVV Result;
-	TLinAlg::SubMat(JsMat->Mat, MinRows, MaxRows+1, MinCols, MaxCols+1, Result);
+	TLinAlg::SubMat(JsMat->Mat, MinRows, MaxRows, MinCols, MaxCols, Result);
 
 	Args.GetReturnValue().Set(TNodeJsFltVV::New(Result));
 }
