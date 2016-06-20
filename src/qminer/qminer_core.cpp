@@ -2451,7 +2451,9 @@ TRecFilterByField::TRecFilterByField(const TWPt<TBase>& _Base, const int& _Field
 
 PRecFilter TRecFilterByField::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
     // get store
-    TStr StoreNm = ParamVal->GetObjStr("store", "");
+    QmAssertR(ParamVal->IsObjKey("store"), "[TRecFilterByField] Missing store name");
+    TStr StoreNm = ParamVal->GetObjStr("store");
+    QmAssertR(Base->IsStoreNm(StoreNm), "[TRecFilterByField] Unknown store '" + StoreNm + "'");
     const TWPt<TStore>& Store = Base->GetStoreByStoreNm(StoreNm);
     // get field and its type
     QmAssertR(ParamVal->IsObjKey("field"), "[TRecFilterByField] Missing field name");
