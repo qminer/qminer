@@ -38,11 +38,11 @@ before_install:
       llvm-$LLVM_VERSION/bin/llvm-config --version;
       export LLVM_CONFIG="llvm-$LLVM_VERSION/bin/llvm-config";
     fi
-- |
+  -
     if [[ "${LLVM_VERSION}" != "" ]]; then
-      CLANG_URL="http://llvm.org/releases/${LLVM_VERSION}/clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-14.04.tar.xz"
-      mkdir clang && travis_retry wget --quiet -O - ${CLANG_URL} | tar --strip-components=1 -xJ -C clang
-      export PATH="${DEPS_DIR}/clang/bin:${PATH}"
+      CLANG_URL="http://llvm.org/releases/${LLVM_VERSION}/clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-14.04.tar.xz";
+      mkdir clang && travis_retry wget --quiet -O - ${CLANG_URL} | tar --strip-components=1 -xJ -C clang;
+      export PATH="${DEPS_DIR}/clang/bin:${PATH}";
     fi
 
 install:
