@@ -2362,6 +2362,10 @@ void TRecFilter::Init() {
     Register<TRecFilterByField>();
 }
 
+PRecFilter TRecFilter::New(const TWPt<TBase>& Base) {
+    return new TRecFilter(Base);
+}
+
 PRecFilter TRecFilter::New(const TWPt<TBase>& Base, const TStr& TypeNm, const PJsonVal& ParamVal) {
     return NewRouter.Fun(TypeNm)(Base, ParamVal);
 }
@@ -2450,7 +2454,9 @@ PRecFilter TRecFilterByField::New(const TWPt<TBase>& Base, const PJsonVal& Param
     TStr StoreNm = ParamVal->GetObjStr("store", "");
     const TWPt<TStore>& Store = Base->GetStoreByStoreNm(StoreNm);
     // get field and its type
-    TStr FieldNm = ParamVal->GetObjStr("field", "");
+    QmAssertR(ParamVal->IsObjKey("field"), "[TRecFilterByField] Missing field name");
+    TStr FieldNm = ParamVal->GetObjStr("field");
+    QmAssertR(Store->IsFieldNm(FieldNm), "[TRecFilterByField] Unknown field '" + FieldNm + "'");
     const int FieldId = Store->GetFieldId(FieldNm);
     const TFieldDesc& FieldDesc = Store->GetFieldDesc(FieldId);
     // get filter type
@@ -2469,54 +2475,54 @@ PRecFilter TRecFilterByField::New(const TWPt<TBase>& Base, const PJsonVal& Param
         const bool Val = ParamVal->GetObjBool("value", false);
         return new TRecFilterByFieldBool(Base, FieldId, Val);
     } else if (FieldDesc.IsInt() && Type == rfRange) {
-        const int MinVal = ParamVal->GetObjInt("minVal", TInt::Mn);
-        const int MaxVal = ParamVal->GetObjInt("maxVal", TInt::Mx);
+        const int MinVal = ParamVal->GetObjInt("minValue", TInt::Mn);
+        const int MaxVal = ParamVal->GetObjInt("maxValue", TInt::Mx);
         return new TRecFilterByFieldInt(Base, FieldId, MinVal, MaxVal);
     } else if (FieldDesc.IsInt16() && Type == rfRange) {
-        const int16 MinVal = (int16)ParamVal->GetObjInt("minVal", TInt16::Mn);
-        const int16 MaxVal = (int16)ParamVal->GetObjInt("maxVal", TInt16::Mx);
+        const int16 MinVal = (int16)ParamVal->GetObjInt("minValue", TInt16::Mn);
+        const int16 MaxVal = (int16)ParamVal->GetObjInt("maxValue", TInt16::Mx);
         return new TRecFilterByFieldInt16(Base, FieldId, MinVal, MaxVal);
     } else if (FieldDesc.IsInt64() && Type == rfRange) {
-        const int64 MinVal = ParamVal->GetObjInt64("minVal", TInt64::Mn);
-        const int64 MaxVal = ParamVal->GetObjInt64("maxVal", TInt64::Mx);
+        const int64 MinVal = ParamVal->GetObjInt64("minValue", TInt64::Mn);
+        const int64 MaxVal = ParamVal->GetObjInt64("maxValue", TInt64::Mx);
         return new TRecFilterByFieldInt64(Base, FieldId, MinVal, MaxVal);
     } else if (FieldDesc.IsByte() && Type == rfRange) {
-        const uchar MinVal = (unsigned)(char)ParamVal->GetObjInt("minVal", TUCh::Mn);
-        const uchar MaxVal = (unsigned)(char)ParamVal->GetObjInt("maxVal", TUCh::Mx);
+        const uchar MinVal = (unsigned)(char)ParamVal->GetObjInt("minValue", TUCh::Mn);
+        const uchar MaxVal = (unsigned)(char)ParamVal->GetObjInt("maxValue", TUCh::Mx);
         return new TRecFilterByFieldByte(Base, FieldId, MinVal, MaxVal);
     } else if (FieldDesc.IsUInt() && Type == rfRange) {
-        const uint MinVal = (unsigned)(int)ParamVal->GetObjUInt64("minVal", TUInt::Mn);
-        const uint MaxVal = (unsigned)(int)ParamVal->GetObjUInt64("maxVal", TUInt::Mx);
+        const uint MinVal = (unsigned)(int)ParamVal->GetObjUInt64("minValue", TUInt::Mn);
+        const uint MaxVal = (unsigned)(int)ParamVal->GetObjUInt64("maxValue", TUInt::Mx);
         return new TRecFilterByFieldUInt(Base, FieldId, MinVal, MaxVal);
     } else if (FieldDesc.IsUInt16() && Type == rfRange) {
-        const uint16 MinVal = (uint16)ParamVal->GetObjUInt64("minVal", TUInt16::Mn);
-        const uint16 MaxVal = (uint16)ParamVal->GetObjUInt64("maxVal", TUInt16::Mx);
+        const uint16 MinVal = (uint16)ParamVal->GetObjUInt64("minValue", TUInt16::Mn);
+        const uint16 MaxVal = (uint16)ParamVal->GetObjUInt64("maxValue", TUInt16::Mx);
         return new TRecFilterByFieldUInt16(Base, FieldId, MinVal, MaxVal);
     } else if (FieldDesc.IsUInt64() && Type == rfRange) {
-        const uint64 MinVal = ParamVal->GetObjUInt64("minVal", TUInt64::Mn);
-        const uint64 MaxVal = ParamVal->GetObjUInt64("maxVal", TUInt64::Mx);
+        const uint64 MinVal = ParamVal->GetObjUInt64("minValue", TUInt64::Mn);
+        const uint64 MaxVal = ParamVal->GetObjUInt64("maxValue", TUInt64::Mx);
         return new TRecFilterByFieldUInt64(Base, FieldId, MinVal, MaxVal);
     } else if (FieldDesc.IsFlt() && Type == rfRange) {
-        const double MinVal = ParamVal->GetObjNum("minVal", TFlt::Mn);
-        const double MaxVal = ParamVal->GetObjNum("maxVal", TFlt::Mx);
+        const double MinVal = ParamVal->GetObjNum("minValue", TFlt::Mn);
+        const double MaxVal = ParamVal->GetObjNum("maxValue", TFlt::Mx);
         return new TRecFilterByFieldFlt(Base, FieldId, MinVal, MaxVal);
     } else if (FieldDesc.IsSFlt() && Type == rfRange) {
-        const float MinVal = (float)ParamVal->GetObjNum("minVal", TSFlt::Mn);
-        const float MaxVal = (float)ParamVal->GetObjNum("maxVal", TSFlt::Mx);
+        const float MinVal = (float)ParamVal->GetObjNum("minValue", TSFlt::Mn);
+        const float MaxVal = (float)ParamVal->GetObjNum("maxValue", TSFlt::Mx);
         return new TRecFilterByFieldSFlt(Base, FieldId, MinVal, MaxVal);
     } else if (FieldDesc.IsStr() && Type == rfValue) {
         const TStr Val = ParamVal->GetObjStr("value");
         return new TRecFilterByFieldStr(Base, FieldId, Val);
     } else if (FieldDesc.IsStr() && Type == rfRange) {
-        const TStr MinVal = ParamVal->GetObjStr("minVal");
-        const TStr MaxVal = ParamVal->GetObjStr("maxVal");
+        const TStr MinVal = ParamVal->GetObjStr("minValue");
+        const TStr MaxVal = ParamVal->GetObjStr("maxValue");
         return new TRecFilterByFieldStrRange(Base, FieldId, MinVal, MaxVal);
     } else if (FieldDesc.IsStr() && Type == rfSet) {
         TStrV StrV; ParamVal->GetObjStrV("set", StrV);
         return new TRecFilterByFieldStrSet(Base, FieldId, TStrSet(StrV));
     } else if (FieldDesc.IsTm() && Type == rfRange) {
-        const uint64 MinVal = ParamVal->GetObjUInt64("minVal", TUInt64::Mn);
-        const uint64 MaxVal = ParamVal->GetObjUInt64("maxVal", TUInt64::Mx);
+        const uint64 MinVal = ParamVal->GetObjUInt64("minValue", TUInt64::Mn);
+        const uint64 MaxVal = ParamVal->GetObjUInt64("maxValue", TUInt64::Mx);
         return new TRecFilterByFieldTm(Base, FieldId, MinVal, MaxVal);        
     }
     // if not supported, throw exception

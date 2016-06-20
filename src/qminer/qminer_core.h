@@ -1213,6 +1213,8 @@ protected:
     const TWPt<TBase>& GetBase() const { return Base; }
 
 public:
+    /// Create trivial record filter
+    static PRecFilter New(const TWPt<TBase>& Base);
     /// Create new record filter.
     static PRecFilter New(const TWPt<TBase>& Base, const TStr& TypeNm, const PJsonVal& ParamVal);
     /// Destructor
@@ -1220,6 +1222,9 @@ public:
 
     /// Calls the filter, default keeps all records
     virtual bool Filter(const TRec& Rec) const { return true; }
+
+    /// Filter type name 
+    virtual TStr Type() const { return "trivial"; }    
 };
 
 ///////////////////////////////
@@ -1352,7 +1357,7 @@ public:
     static PRecFilter New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
     
     /// Filter type name 
-    static TStr GetType() { return "filterByField"; }
+    static TStr GetType() { return "field"; }
     /// Filter type name 
     TStr Type() const { return GetType(); }    
 };

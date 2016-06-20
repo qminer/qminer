@@ -2443,46 +2443,36 @@ public:
 };
 
 ///////////////////////////////
-// NodeJs QMiner Record Filter
-class TJsRecFilter {
+// NodeJs QMiner record filter with JavaScript callback
+class TJsRecFilter: public TQm::TRecFilter {
 private:
+    /// Store we are filtering
     TWPt<TQm::TStore> Store;
-    // Callbacks
+    /// JS Callback
     v8::Persistent<v8::Function> Callback;
 
 public:
-    ~TJsRecFilter(){
-        Callback.Reset();
-    }
-    /// Constructor
-    TJsRecFilter(TWPt<TQm::TStore> _Store, v8::Handle<v8::Function> _Callback) : Store(_Store) {
-        v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-        v8::HandleScope HandleScope(Isolate);
-        // set persistent object
-        Callback.Reset(Isolate, _Callback);
-    }
+    TJsRecFilter(TWPt<TQm::TStore> _Store, v8::Handle<v8::Function> _Callback);
+    /// We need to clean reference to callback
+    ~TJsRecFilter() { Callback.Reset(); }
     /// Filter function
-    bool operator()(const TQm::TRec& Rec) const;
+    bool Filter(const TQm::TRec& Rec) const;
 };
 
 ///////////////////////////////
-// NodeJs QMiner Record Filter (record splitter, record comparator)
+// NodeJs QMiner record splitter or comparator with JavaScript callback
 class TJsRecPairFilter {
 private:
+    /// Store we are comparing
     TWPt<TQm::TStore> Store;
-    // Callbacks
+    /// JS Callback
     v8::Persistent<v8::Function> Callback;
+    
 public:
-    ~TJsRecPairFilter(){
-        Callback.Reset();
-    }
-    TJsRecPairFilter(TWPt<TQm::TStore> _Store, v8::Handle<v8::Function> _Callback) : Store(_Store) {
-        v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-        v8::HandleScope HandleScope(Isolate);
-        // set persistent object
-        Callback.Reset(Isolate, _Callback);
-    }
-
+    TJsRecPairFilter(TWPt<TQm::TStore> _Store, v8::Handle<v8::Function> _Callback);
+    /// We need to clean reference to callback
+    ~TJsRecPairFilter() { Callback.Reset(); }
+    /// Comparator
     bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const;
 };
 
