@@ -8,7 +8,7 @@ language: node_js
 addons:
   apt:
     sources: [ 'ubuntu-toolchain-r-test' ]
-    packages: [ 'clang-3.6', 'gcc-4.8', 'g++-4.8', 'gcc-4.8-multilib', 'g++-4.8-multilib', 'libc6-dev-i386', 'linux-libc-dev:i386' ]
+    packages: [ 'gcc-4.8', 'g++-4.8', 'gcc-4.8-multilib', 'g++-4.8-multilib', 'libc6-dev-i386', 'linux-libc-dev:i386' ]
 
 node_js:
   - 5
@@ -26,6 +26,8 @@ cache:
     - llvm-3.6.0
 
 before_install:
+  - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
+  - mkdir ${DEPS_DIR} && cd ${DEPS_DIR}
   -
     if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
       if [ -z "$(ls -A llvm-$LLVM_VERSION)" ]; then
@@ -35,6 +37,12 @@ before_install:
       fi;
       llvm-$LLVM_VERSION/bin/llvm-config --version;
       export LLVM_CONFIG="llvm-$LLVM_VERSION/bin/llvm-config";
+    fi
+- |
+    if [[ "${LLVM_VERSION}" != "" ]]; then
+      CLANG_URL="http://llvm.org/releases/${LLVM_VERSION}/clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-14.04.tar.xz"
+      mkdir clang && travis_retry wget --quiet -O - ${CLANG_URL} | tar --strip-components=1 -xJ -C clang
+      export PATH="${DEPS_DIR}/clang/bin:${PATH}"
     fi
 
 install:
