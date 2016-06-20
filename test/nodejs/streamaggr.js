@@ -3474,7 +3474,7 @@ describe('Merger Tests', function () {
         it('should create a new merger aggregator', function () {
             var aggr = {
                 name: 'MergerAggr',
-                type: 'stmerger',
+                type: 'merger',
                 outStore: 'Merged',
                 createStore: false,
                 timestamp: 'Time',
@@ -3489,7 +3489,7 @@ describe('Merger Tests', function () {
         it('should throw an exception if a key-value is not given', function () {
             var aggr = {
                 name: 'MergerAggr',
-                type: 'stmerger',
+                type: 'merger',
                 outStore: 'Merged',
                 createStore: false,
                 fields: [
@@ -3506,7 +3506,7 @@ describe('Merger Tests', function () {
         it('should be an empty "Merged" store at the construction', function () {
             var aggr = {
                 name: 'MergerAggr',
-                type: 'stmerger',
+                type: 'merger',
                 outStore: 'Merged',
                 createStore: false,
                 timestamp: 'Time',
@@ -3522,7 +3522,7 @@ describe('Merger Tests', function () {
         it('should return empty "Merged" store for the first added record in Merged store', function () {
             var aggr = {
                 name: 'MergerAggr',
-                type: 'stmerger',
+                type: 'merger',
                 outStore: 'Merged',
                 createStore: false,
                 timestamp: 'Time',
@@ -3539,7 +3539,7 @@ describe('Merger Tests', function () {
         it('should still return an empty "Merged" store if there is only one record in each of the stores', function () {
             var aggr = {
                 name: 'MergerAggr',
-                type: 'stmerger',
+                type: 'merger',
                 outStore: 'Merged',
                 createStore: false,
                 timestamp: 'Time',
@@ -3557,7 +3557,7 @@ describe('Merger Tests', function () {
         it('should put one record in the "Merged" store', function () {
             var aggr = {
                 name: 'MergerAggr',
-                type: 'stmerger',
+                type: 'merger',
                 outStore: 'Merged',
                 createStore: false,
                 timestamp: 'Time',
@@ -3579,7 +3579,7 @@ describe('Merger Tests', function () {
         it('should put two records in the "Merged" store', function () {
             var aggr = {
                 name: 'MergerAggr',
-                type: 'stmerger',
+                type: 'merger',
                 outStore: 'Merged',
                 createStore: false,
                 timestamp: 'Time',
@@ -3608,7 +3608,7 @@ describe('Merger Tests', function () {
         it('should put three records in the "Merged" store', function () {
             var aggr = {
                 name: 'MergerAggr',
-                type: 'stmerger',
+                type: 'merger',
                 outStore: 'Merged',
                 createStore: false,
                 timestamp: 'Time',
@@ -3640,7 +3640,7 @@ describe('Merger Tests', function () {
         it('should throw an exception if try to merge past events', function () {
             var aggr = {
                 name: 'MergerAggr',
-                type: 'stmerger',
+                type: 'merger',
                 outStore: 'Merged',
                 createStore: false,
                 timestamp: 'Time',
@@ -4478,4 +4478,46 @@ describe('ChiSquare Tests - sfloat', function () {
 
     });
 
+});
+
+describe('Stream aggregate set tests', function () {
+    var base = undefined;
+    var store = undefined;
+    
+    beforeEach(function () {
+        // create a base with a simple store
+        base = new qm.Base({
+            mode: "createClean",
+            schema: [
+            {
+                name: "Test",
+                fields: [
+                    { "name": "Value", "type": "float" },
+                    { "name": "Date", "type": "datetime" }        
+                ]
+            }]
+        });
+        store = base.store('Test');
+    });
+    afterEach(function () {
+        base.close();
+    });
+
+    it('Creating simple MA pipeline', function () {
+        var tick = new qm.StreamAggr(base, { type: "timeSeriesWinBuf", store: "Test", timestamp: "Date", value: "Value", winsize: 5000 });
+        var ma = new qm.StreamAggr(base, { type: "ma", inAggr: tick.name });
+        var set = store.addStreamAggr({ type: "set", aggregates: [tick.name, ma.name] });
+        
+        assert.throws(function () { store.addStreamAggr({ type: "set", aggregates: [ { a: 1 } ] }); });
+        assert.throws(function () { store.addStreamAggr({ type: "set", aggregates: [ store ] }); });
+
+        var time = new Date('2015-06-10T14:13:45.0').getTime();
+        store.push({ Value: 1, Date: new Date(time + 1000).toISOString() });
+        assert.equal(ma.getFloat(), 1);
+        store.push({ Value: 2, Date: new Date(time + 2000).toISOString() });
+        assert.equal(ma.getFloat(), 1.5);
+        store.push({ Value: 3, Date: new Date(time + 3000).toISOString() });
+        assert.equal(ma.getFloat(), 2);
+    });
+    
 });

@@ -45,9 +45,9 @@ public:
   uint GetAddr() const {return Addr;}
 
   static TBlobPt Load(const PFRnd& FRnd){
-	uint16 Seg=FRnd->GetUCh(); uint Addr=FRnd->GetUInt();
+	uint16 Seg=FRnd->GetUInt16(); uint Addr=FRnd->GetUInt();
     return TBlobPt(Seg, Addr);}
-  void Save(const PFRnd& FRnd) const {FRnd->PutUCh(Seg); FRnd->PutUInt(Addr);}
+  void Save(const PFRnd& FRnd) const {FRnd->PutUInt16(Seg); FRnd->PutUInt(Addr);}
   static TBlobPt LoadAddr(const PFRnd& FRnd, const uint16& Seg=0){
     return TBlobPt(Seg, FRnd->GetUInt());}
   void SaveAddr(const PFRnd& FRnd) const {FRnd->PutUInt(Addr);}

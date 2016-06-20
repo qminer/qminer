@@ -361,15 +361,6 @@ double TEmaSpVec::GetNi(const double& Alpha, const double& Mi) {
 	throw TExcept::New("Unknown EMA interpolation type");
 }
 
-TEmaSpVec::TEmaSpVec(const TEmaType& _Type, const uint64& _InitMinMSecs,
-		const double& _TmInterval, const double& _Cutoff) :
-	Type(_Type),
-	LastVal(TFlt::Mn),	// XXX conversion from double to int
-	TmInterval(_TmInterval),
-	Cutoff(_Cutoff),
-	InitP(false),
-	InitMinMSecs((double)_InitMinMSecs) {}
-
 TEmaSpVec::TEmaSpVec(const PJsonVal& ParamVal) : LastVal(), InitP(false) {
 	// type
 	TStr TypeStr = ParamVal->GetObjStr("emaType");
@@ -1509,16 +1500,76 @@ void TChiSquare::Update(const TFltV& OutValVX, const TFltV& OutValVY) {
 	TStatFun::ChiSquare(OutValVX, OutValVY, DegreesOfFreedom, Chi2, P);
 }
 
-/// Load from stream
 void TChiSquare::LoadState(TSIn& SIn) {
 	Chi2.Load(SIn);
 	P.Load(SIn);	
 }
 
-/// Store state into stream
 void TChiSquare::SaveState(TSOut& SOut) const {
 	Chi2.Save(SOut);
 	P.Save(SOut);
+}
+
+///////////////////////////////
+/// Slotted histogram
+TSlottedHistogram::TSlottedHistogram(const uint64 _Period, const uint64 _Slot, const int _Bins) {
+    PeriodLen = _Period;
+    SlotGran = _Slot;
+    Bins = _Bins;
+    uint64 Slots = PeriodLen / SlotGran;
+    Dat.Gen((int)Slots);
+    for (int i = 0; i < Dat.Len(); i++) {
+        Dat[i] = TSignalProc::TOnlineHistogram(0, Bins, Bins, false, false);
+    }
+}
+
+void TSlottedHistogram::Reset() {
+    for (int HistN = 0; HistN < Dat.Len(); HistN++) {
+        Dat[HistN].Reset();
+    }   
+}
+
+void TSlottedHistogram::LoadState(TSIn& SIn) {
+    PeriodLen.Load(SIn);
+    SlotGran.Load(SIn);
+    Bins.Load(SIn);
+    Dat.Load(SIn);
+}
+
+void TSlottedHistogram::SaveState(TSOut& SOut) const {
+    PeriodLen.Save(SOut);
+    SlotGran.Save(SOut);
+    Bins.Save(SOut);
+    Dat.Save(SOut);
+}
+
+void TSlottedHistogram::Add(const uint64& Ts, const int& Val) {
+    int Idx = GetIdx(Ts);
+    Dat[Idx].Increment(Val);
+}
+
+void TSlottedHistogram::Remove(const uint64& Ts, const int& Val) {
+    int Idx = GetIdx(Ts);
+    Dat[Idx].Decrement(Val);
+}
+
+void TSlottedHistogram::GetStats(const uint64 TsMin, const uint64 TsMax, TFltV& Dest) {
+    EAssertR(TsMax > TsMin, "Invalid period query in TSlottedHistogram. TsMax <= TsMin");
+    EAssertR(TsMax - PeriodLen < TsMin, "Invalid period query in TSlottedHistogram. TsMax - period >= TsMin");
+    Dest.Clr();
+    uint64 TsMin2 = (TsMin / SlotGran) * SlotGran;
+    uint64 TsMax2 = (TsMax / SlotGran) * SlotGran;
+    for (uint64 i = TsMin2; i <= TsMax2; i += SlotGran) {
+        int Idx = GetIdx(i);
+        TFltV Tmp;
+        Dat[Idx].GetCountV(Tmp);
+        if (Dest.Len() < Tmp.Len()) {
+            Dest.Gen(Tmp.Len());
+        }
+        for (int j = 0; j < Tmp.Len(); j++) {
+            Dest[j] += Tmp[j];
+        }
+    }
 }
 
 }

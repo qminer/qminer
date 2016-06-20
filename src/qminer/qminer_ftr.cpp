@@ -128,15 +128,15 @@ void TFtrExt::ExtractTmV(const TRec& FtrRec, TTmV& TmV) const {
 }
 
 PJsonVal TFtrExt::InvertFullV(const TFltV& FtrV, const int& Offset) const {
-	throw TExcept::New("TFtrExt::InvertFullV: not implemented for " + GetNm());
+    throw TExcept::New("TFtrExt::InvertFullV: not implemented for " + GetNm());
 }
 
 PJsonVal TFtrExt::InvertFtr(const PJsonVal& FtrVal) const {
-	throw TExcept::New("TFtrExt::InvertFtr: not implemented for " + GetNm());
+    throw TExcept::New("TFtrExt::InvertFtr: not implemented for " + GetNm());
 }
 
 PJsonVal TFtrExt::GetFtrRange() const {
-	throw TExcept::New("TFtrExt::GetFtrRange: not implemented for " + GetNm());
+    throw TExcept::New("TFtrExt::GetFtrRange: not implemented for " + GetNm());
 }
 
 ///////////////////////////////////////////////
@@ -366,7 +366,7 @@ double TFtrSpace::GetSingleFtr(const int& FtrExtN, const double& Val) const {
 }
 
 PJsonVal TFtrSpace::InvertFullV(const TFltV& FullV) const {
-	PJsonVal Result = TJsonVal::NewArr();
+    PJsonVal Result = TJsonVal::NewArr();
 
     int Offset = 0;
     for (int FtrExtN = 0; FtrExtN < FtrExtV.Len(); FtrExtN++) {
@@ -387,7 +387,7 @@ PJsonVal TFtrSpace::InvertFtr(const int& FtrExtN, const PJsonVal& FtrVal) const 
 }
 
 PJsonVal TFtrSpace::GetFtrRange(const int& FtrExtN) const {
-	return FtrExtV[FtrExtN]->GetFtrRange();
+    return FtrExtV[FtrExtN]->GetFtrRange();
 }
 
 void TFtrSpace::ExtractStrV(const int& DimN, const PJsonVal& RecVal, TStrV &StrV) const {
@@ -681,23 +681,23 @@ void TNumeric::ExtractFltV(const TRec& Rec, TFltV& FltV) const {
 }
 
 PJsonVal TNumeric::InvertFullV(const TFltV& FtrV, const int& Offset) const {
-	return TJsonVal::NewNum(FtrGen.InvFtr(FtrV[Offset]));
+    return TJsonVal::NewNum(FtrGen.InvFtr(FtrV[Offset]));
 }
 
 PJsonVal TNumeric::InvertFtr(const PJsonVal& FtrValJson) const {
-	EAssert(FtrValJson->IsNum());
-	const double& FtrVal = FtrValJson->GetNum();
-	const double InvVal = FtrGen.InvFtr(FtrVal);
-	return TJsonVal::NewNum(InvVal);
+    EAssert(FtrValJson->IsNum());
+    const double& FtrVal = FtrValJson->GetNum();
+    const double InvVal = FtrGen.InvFtr(FtrVal);
+    return TJsonVal::NewNum(InvVal);
 }
 
 PJsonVal TNumeric::GetFtrRange() const {
-	PJsonVal Result = TJsonVal::NewObj();
+    PJsonVal Result = TJsonVal::NewObj();
 
-	Result->AddToObj("min", FtrGen.GetMn());
-	Result->AddToObj("max", FtrGen.GetMx());
+    Result->AddToObj("min", FtrGen.GetMn());
+    Result->AddToObj("max", FtrGen.GetMx());
 
-	return Result;
+    return Result;
 }
 
 ///////////////////////////////////////////////
@@ -906,43 +906,43 @@ void TCategorical::ExtractStrV(const TRec& Rec, TStrV& StrV) const {
 }
 
 PJsonVal TCategorical::InvertFullV(const TFltV& FtrV, const int& Offset) const {
-	const int& Dim = GetDim();
+    const int& Dim = GetDim();
 
-	PJsonVal FtrJson = TJsonVal::NewArr();
-	for (int ValN = 0; ValN < Dim; ValN++) {
-		FtrJson->AddToArr(FtrV[Offset + ValN]);
-	}
+    PJsonVal FtrJson = TJsonVal::NewArr();
+    for (int ValN = 0; ValN < Dim; ValN++) {
+        FtrJson->AddToArr(FtrV[Offset + ValN]);
+    }
 
-	return InvertFtr(FtrJson);
+    return InvertFtr(FtrJson);
 }
 
 PJsonVal TCategorical::InvertFtr(const PJsonVal& FtrValJsonV) const {
-	EAssert(FtrValJsonV->IsArr() && FtrValJsonV->GetArrVals()	== GetDim());
+    EAssert(FtrValJsonV->IsArr() && FtrValJsonV->GetArrVals()   == GetDim());
 
-	PJsonVal Result = TJsonVal::NewObj();
-	for (int FtrN = 0; FtrN < FtrValJsonV->GetArrVals(); FtrN++) {
-		const PJsonVal FtrValJson = FtrValJsonV->GetArrVal(FtrN);
+    PJsonVal Result = TJsonVal::NewObj();
+    for (int FtrN = 0; FtrN < FtrValJsonV->GetArrVals(); FtrN++) {
+        const PJsonVal FtrValJson = FtrValJsonV->GetArrVal(FtrN);
 
-		EAssert(FtrValJson->IsNum());
+        EAssert(FtrValJson->IsNum());
 
-		const TStr& FtrNm = FtrGen.GetVal(FtrN);
-		const double& FtrVal = FtrValJson->GetNum();
+        const TStr& FtrNm = FtrGen.GetVal(FtrN);
+        const double& FtrVal = FtrValJson->GetNum();
 
-		Result->AddToObj(FtrNm, FtrVal);
-	}
+        Result->AddToObj(FtrNm, FtrVal);
+    }
 
-	return Result;
+    return Result;
 }
 
 PJsonVal TCategorical::GetFtrRange() const {
-	const int& Dim = FtrGen.GetDim();
+    const int& Dim = FtrGen.GetDim();
 
-	PJsonVal Result = TJsonVal::NewArr();
-	for (int ValN = 0; ValN < Dim; ValN++) {
-		Result->AddToArr(FtrGen.GetVal(ValN));
-	}
+    PJsonVal Result = TJsonVal::NewArr();
+    for (int ValN = 0; ValN < Dim; ValN++) {
+        Result->AddToArr(FtrGen.GetVal(ValN));
+    }
 
-	return Result;
+    return Result;
 }
 
 ///////////////////////////////////////////////
