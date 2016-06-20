@@ -55,6 +55,9 @@ PJsonVal TNodeJsUtil::GetObjJson(const v8::Local<v8::Value>& Val, const bool Ign
             PJsonVal JsonVal = TJsonVal::NewObj();
             v8::Local<v8::Object> Obj = Val->ToObject();
 
+            TStr ClassNm = GetClass(Obj);
+            EAssertR(ClassNm.Empty(), "TNodeJsUtil::GetObjJson: Cannot convert '" + ClassNm + "' to json!");
+            
             v8::Local<v8::Array> FldNmV = Obj->GetOwnPropertyNames();
             for (uint i = 0; i < FldNmV->Length(); i++) {
                 const TStr FldNm(*v8::String::Utf8Value(FldNmV->Get(i)->ToString()));

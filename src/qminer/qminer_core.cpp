@@ -2451,7 +2451,7 @@ TRecFilterByField::TRecFilterByField(const TWPt<TBase>& _Base, const int& _Field
 
 PRecFilter TRecFilterByField::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
     // get store
-    TStr StoreNm = ParamVal->GetObjStr("store", "");
+    TStr StoreNm = ParamVal->GetObjStr("store");
     const TWPt<TStore>& Store = Base->GetStoreByStoreNm(StoreNm);
     // get field and its type
     QmAssertR(ParamVal->IsObjKey("field"), "[TRecFilterByField] Missing field name");
@@ -6335,22 +6335,16 @@ void TStreamAggr::Init() {
     Register<TStreamAggrs::TVecDiff>();
     Register<TStreamAggrs::TSimpleLinReg>();   
     Register<TStreamAggrs::TRecFilterAggr>();    
-
-    // these attach to ISparseVecTm
     Register<TStreamAggrs::TEmaSpVec>();
-
-    // these attach to TWinBufFtrSpVec
     Register<TStreamAggrs::TWinBufSpVecSum>();
 }
 
-TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm):
-        Base(_Base), AggrNm(_AggrNm), Guid(TGuid::GenGuid()) {
-    
+TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm): Base(_Base), AggrNm(_AggrNm) {
     Base->AssertValidNm(AggrNm);
 }
 
 TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const PJsonVal& ParamVal):
-        Base(_Base), AggrNm(ParamVal->GetObjStr("name", TGuid::GenSafeGuid())), Guid(TGuid::GenGuid()) {
+        Base(_Base), AggrNm(ParamVal->GetObjStr("name", TGuid::GenSafeGuid())) {
     
     Base->AssertValidNm(AggrNm);
 }
@@ -6382,7 +6376,24 @@ TStreamAggrSet::TStreamAggrSet(const TWPt<TBase>& _Base, const TStr& _AggrNm):
     TStreamAggr(_Base, _AggrNm) { }
 
 TStreamAggrSet::TStreamAggrSet(const TWPt<TBase>& _Base, const PJsonVal& ParamVal):
-    TStreamAggr(_Base, ParamVal) { }
+        TStreamAggr(_Base, ParamVal) {
+
+    // get list of arrays
+    QmAssertR(ParamVal->IsObjKey("aggregates"), "[TStreamAggrSet] Expecting array of aggregates");
+    PJsonVal AggrVals = ParamVal->GetObjKey("aggregates");
+    QmAssertR(AggrVals->IsArr(), "[TStreamAggrSet] Key 'aggregates' expected to be array");
+    // go over the array
+    for (int AggrValN = 0; AggrValN < AggrVals->GetArrVals(); AggrValN++) {
+        PJsonVal AggrVal = AggrVals->GetArrVal(AggrValN);
+        // read aggregate name
+        QmAssertR(AggrVal->IsStr(), "[TStreamAggrSet] 'aggregates' values expected to be strings");
+        const TStr& SubAggrNm = AggrVal->GetStr();
+        // make sure it exists
+        QmAssertR(Base->IsStreamAggr(SubAggrNm), "[TStreamAggrSet] Unknonw stream aggregate '" + SubAggrNm + "'");
+        // get it and add it to the set
+        AddStreamAggr(Base->GetStreamAggr(SubAggrNm));
+    }
+}
 
 PStreamAggr TStreamAggrSet::New(const TWPt<TBase>& Base) {
     return new TStreamAggrSet(Base, TGuid::GenSafeGuid());
@@ -6826,7 +6837,7 @@ const TWPt<TStore> TBase::GetStoreByStoreId(const uint& StoreId) const {
 }
 
 const TWPt<TStore> TBase::GetStoreByStoreNm(const TStr& StoreNm) const {
-    AssertR(IsStoreNm(StoreNm), TStr("Unknown store name ") + StoreNm);
+    QmAssertR(IsStoreNm(StoreNm), "Unknown store name " + StoreNm);
     return StoreH.GetDat(StoreNm);
 }
 
@@ -6840,11 +6851,12 @@ bool TBase::IsStreamAggr(const TStr& StreamAggrNm) const {
 
 void TBase::AddStreamAggr(const PStreamAggr& StreamAggr) {
     QmAssertR(!IsStreamAggr(StreamAggr->GetAggrNm()),
-        TStr::Fmt("Aggregate with this name already exists: %s", StreamAggr->GetAggrNm().CStr()));
+        "Aggregate with this name already exists: " + StreamAggr->GetAggrNm());
     StreamAggrH.AddDat(StreamAggr->GetAggrNm(), StreamAggr);
 }
 
 TWPt<TStreamAggr> TBase::GetStreamAggr(const TStr& StreamAggrNm) const {
+    QmAssertR(IsStreamAggr(StreamAggrNm), "Unknown stream aggregate: " + StreamAggrNm);
     return dynamic_cast<TStreamAggr*>(StreamAggrH.GetDat(StreamAggrNm)());
 }
 

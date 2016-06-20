@@ -57,12 +57,24 @@ describe('Stream aggregate filter', function () {
             assert.throws(function () {
                 store.addStreamAggr({
                     type: "recordFilterAggr", aggr: aggr.name,
-                    filter: { type: "field", field: "value" }
+                    filter: { type: "field", field: "Int" }
+                });
+            });
+            assert.throws(function () {
+                store.addStreamAggr({
+                    type: "recordFilterAggr", aggr: aggr.name,
+                    filter: { type: "field", store: "RecordTest" }
+                });
+            });
+            assert.throws(function () {
+                store.addStreamAggr({
+                    type: "recordFilterAggr", aggr: aggr.name,
+                    filter: { type: "field", store: "RecordTest", field: "Int" }
                 });
             });
         });
         
-        it('should test filter', function () {
+        it('should filter integer fields outside 5 and 6', function () {
             var aggr = new qm.StreamAggr(base, {
                 type: "timeSeriesTick",
                 store: "RecordTest",
@@ -74,9 +86,10 @@ describe('Stream aggregate filter', function () {
                 aggr: aggr.name,
                 filter: {
                     type: "field",
-                    field: "value",
-                    minVal: 5,
-                    maxVal: 6
+                    store: "RecordTest",
+                    field: "Int",
+                    minValue: 5,
+                    maxValue: 6
                 }
             });
 
@@ -88,8 +101,64 @@ describe('Stream aggregate filter', function () {
             assert.equal(aggr.getFloat(), 6);
             store.push({ Int: 1 }); // no update
             assert.equal(aggr.getFloat(), 6);
+        });
 
-        })
+        it('should filter integer fields below 5', function () {
+            var aggr = new qm.StreamAggr(base, {
+                type: "timeSeriesTick",
+                store: "RecordTest",
+                timestamp: "Tm",
+                value: "Int"
+            });
+            var filt = store.addStreamAggr({
+                type: 'recordFilterAggr',
+                aggr: aggr.name,
+                filter: {
+                    type: "field",
+                    store: "RecordTest",
+                    field: "Int",
+                    minValue: 5,
+                }
+            });
+
+            store.push({ Int: 5 });
+            assert.equal(aggr.getFloat(), 5);
+            store.push({ Int: 6 });
+            assert.equal(aggr.getFloat(), 6);
+            store.push({ Int: 7 });
+            assert.equal(aggr.getFloat(), 7);
+            store.push({ Int: 1 }); // no update
+            assert.equal(aggr.getFloat(), 7);
+        });
+
+        it('should filter integer fields above 6', function () {
+            var aggr = new qm.StreamAggr(base, {
+                type: "timeSeriesTick",
+                store: "RecordTest",
+                timestamp: "Tm",
+                value: "Int"
+            });
+            var filt = store.addStreamAggr({
+                type: 'recordFilterAggr',
+                aggr: aggr.name,
+                filter: {
+                    type: "field",
+                    store: "RecordTest",
+                    field: "Int",
+                    maxValue: 6,
+                }
+            });
+
+            store.push({ Int: 5 });
+            assert.equal(aggr.getFloat(), 5);
+            store.push({ Int: 6 });
+            assert.equal(aggr.getFloat(), 6);
+            store.push({ Int: 7 }); // no update
+            assert.equal(aggr.getFloat(), 6);
+            store.push({ Int: 1 }); 
+            assert.equal(aggr.getFloat(), 1);
+        });
+        
     });
 
 });
