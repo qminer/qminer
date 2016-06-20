@@ -3305,7 +3305,7 @@ public:
     /// Register default stream aggregates
     static void Init();
     /// Register new stream aggregate
-    template <class TObj> static void Register() { 
+    template <class TObj> static void Register() {
         NewRouter.Register(TObj::GetType(), TObj::New); }
     
 protected:
@@ -3314,8 +3314,6 @@ protected:
     /// Stream aggreagte name
     const TStr AggrNm;
 
-    /// Each stream aggregate has a unique internal ID
-    TStr Guid;
 protected:
     /// Create new stream aggregate from JSon parameters
     TStreamAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm);
@@ -3366,8 +3364,6 @@ public:
     /// Serialization current status to JSon
     virtual PJsonVal SaveJson(const int& Limit) const = 0;
     
-    /// Unique ID of the stream aggregate
-    const TStr& GetGuid() const { return Guid; }  
     /// Unique ID of the stream aggregate
     virtual TStr Type() const = 0;
 
