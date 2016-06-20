@@ -79,8 +79,8 @@ describe('Time series test, old', function() {
 				assert.exists(val, "onAdd: val");
 				assert.exists(val.Time, "onAdd: val.Time");
 				assert.exists(val.Value, "onAdd: val.Value");
-				assert.exists(TimeSeries.getStreamAggr("tick").val, 'TimeSeries.getStreamAggr("tick").val');
-				assert.exists(TimeSeries.getStreamAggr("emaTick").val, 'TimeSeries.getStreamAggr("emaTick").val');
+				assert.exists(base.getStreamAggr("tick").val, 'base.getStreamAggr("tick").val');
+				assert.exists(base.getStreamAggr("emaTick").val, 'base.getStreamAggr("emaTick").val');
 				TimeSeriesAdd = TimeSeriesAdd + 1;
 			}
 		});
@@ -91,11 +91,11 @@ describe('Time series test, old', function() {
 				assert.exists(val, "onAdd: val");
 				assert.exists(val.Time, "onAdd: val.Time");
 				assert.exists(val.Value, "onAdd: val.Value");
-				assert.exists(Resampled.getStreamAggr("tick").val, 'Resampled.getStreamAggr("tick").val');
-				assert.exists(Resampled.getStreamAggr("emaTick").val, 'Resampled.getStreamAggr("emaTick").val');
+				assert.exists(base.getStreamAggr("tick2").val, 'base.getStreamAggr("tick").val');
+				assert.exists(base.getStreamAggr("emaTick2").val, 'base.getStreamAggr("emaTick").val');
 				Resampled.push({
 					$id: val.$id,
-					Ema: Resampled.getStreamAggr("emaTick").val.Val
+					Ema: base.getStreamAggr("emaTick2").val.Val
 				});
 				//1: val.Ema = Resampled.getStreamAggr("emaTick").val.Val;
 				//2: val.Ema = Resampled.streamAggr.emaTick.val.Val;
@@ -133,15 +133,15 @@ describe('Time series test, old', function() {
 		});
 		// insert Resampled store aggregates
 		Resampled.addStreamAggr({
-			name: "tick",
+			name: "tick2",
 			type: "timeSeriesTick",
 			timestamp: "Time",
 			value: "Value"
 		});
 		Resampled.addStreamAggr({
-			name: "emaTick",
+			name: "emaTick2",
 			type: "ema",
-			inAggr: "tick",
+			inAggr: "tick2",
 			emaType: "previous",
 			interval: 60 * 1000,
 			initWindow: 10 * 1000

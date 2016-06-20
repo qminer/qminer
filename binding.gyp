@@ -67,7 +67,7 @@
                 ]
             }],
             ['OS == "win"', {
-                'msbuild_toolset': 'v120',
+                # 'msbuild_toolset': 'v120', # works with v120 (--msvs_version=2013) and v140 (--msvs_version=2015)
                 'msvs_settings': {
                     'VCCLCompilerTool': {
                         #'RuntimeTypeInfo': 'true',      # /GR  : this should work but doesn't get picked up
@@ -195,6 +195,7 @@
                 'src/qminer/qminer_ftr.h',
                 'src/qminer/qminer_ftr.cpp',
                 'src/qminer/qminer_aggr.h',
+                'src/qminer/qminer_aggr.hpp',
                 'src/qminer/qminer_aggr.cpp',
                 # StreamStory
                 'src/third_party/streamstory/streamstory.h',
