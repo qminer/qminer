@@ -7,8 +7,8 @@ language: node_js
 
 addons:
   apt:
-    sources: [ 'ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.6' ]
-    packages: [ 'clang-3.6', 'gcc-4.8', 'g++-4.8', 'gcc-4.8-multilib', 'g++-4.8-multilib', 'libc6-dev-i386', 'linux-libc-dev:i386' ]
+    sources: [ 'ubuntu-toolchain-r-test' ]
+    packages: [ 'gcc-4.8', 'g++-4.8', 'gcc-4.8-multilib', 'g++-4.8-multilib', 'libc6-dev-i386', 'linux-libc-dev:i386' ]
 
 node_js:
   - 5
@@ -19,7 +19,23 @@ env:
 matrix:
   include:
     - node_js: 0.12
-      env: CXXFLAGS=-std=c++0x CXX=clang++-3.6 CC=clang NPMOPT=--clang=1 QMDEBUG=--debug
+      env: LLVM_VERSION=3.6.0 CXXFLAGS=-std=c++0x CXX=clang++-3.6 CC=clang NPMOPT=--clang=1 QMDEBUG=--debug
+
+cache:
+  directories:
+    - llvm-3.6.0
+
+before_install:
+  -
+    if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
+      if [ -z "$(ls -A llvm-$LLVM_VERSION)" ]; then
+        wget -O llvm-$LLVM_VERSION.tar.xz http://llvm.org/releases/$LLVM_VERSION/clang+llvm-$LLVM_VERSION-x86_64-linux-gnu-ubuntu-14.04.tar.xz;
+        mkdir llvm-$LLVM_VERSION;
+        xzcat llvm-$LLVM_VERSION.tar.xz | tar -xvf - --strip 1 -C llvm-$LLVM_VERSION;
+      fi;
+      llvm-$LLVM_VERSION/bin/llvm-config --version;
+      export LLVM_CONFIG="llvm-$LLVM_VERSION/bin/llvm-config";
+    fi
 
 install:
   - npm install --build-from-source $NPMOPT $QMDEBUG
