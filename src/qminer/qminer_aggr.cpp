@@ -597,7 +597,7 @@ TTimeSeriesTick::TTimeSeriesTick(const TWPt<TBase>& Base, const PJsonVal& ParamV
     TimeFieldId = Store->GetFieldId(TimeFieldNm);
     // get numeric field
     TStr TickValFieldNm = ParamVal->GetObjStr("value");
-    TickValFieldId = Store->GetFieldId(TickValFieldNm);
+    const int TickValFieldId = Store->GetFieldId(TickValFieldNm);
     // initialize reader for getting numeric value
     ValReader = TFieldReader(Store->GetStoreId(), TickValFieldId, Store->GetFieldDesc(TickValFieldId));
     // make sure parameters make sense

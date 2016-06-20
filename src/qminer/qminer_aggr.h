@@ -260,10 +260,9 @@ class TTimeSeriesTick : public TStreamAggr, public TStreamAggrOut::IFltTm {
 private:
     /// ID of the field from which we collect time points
     TInt TimeFieldId;
-    /// ID of the field from which we collect values
-    TInt TickValFieldId;
     /// Reader for extracting numeric values from records
     TFieldReader ValReader;
+    
     /// We are not initialized until we read the first value
     TBool InitP;
     /// Time of last extracted value
@@ -310,6 +309,49 @@ public:
 };
 
 ///////////////////////////////
+// Time series window buffer with memory.
+class TWinBufMem : public TStreamAggr, public TStreamAggrOut::IValTmIO<TVal>, public TStreamAggrOut::ITm {
+protected:
+    /// Value getter
+    virtual TVal GetRecVal(const uint64& RecId) const = 0;
+
+private:
+    /// field ID of the timestamp field in the store (used for efficiency)
+    TInt TimeFieldId; 
+
+    /// window size in milliseconds
+    TUInt64 WinSizeMSecs;
+    /// delay in milliseconds
+    TUInt64 DelayMSecs;
+
+    /// Has the aggregate been updated at least once?
+    TBool InitP;
+    
+    
+protected:
+    /// Stream aggregate update function called when a record is added
+    void OnAddRec(const TRec& Rec);
+    /// Stream aggregate that forgets records when time is updated
+    void OnTime(const uint64& TmMsec);
+    /// Just a expection-throwing placeholder
+    void OnStep() { throw TExcept::New("Should not be executed."); }
+    
+    /// JSON based constructor
+    TWinBuf(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+public:
+    /// Load stream aggregate state from stream
+    void LoadState(TSIn& SIn);
+    /// Save state of stream aggregate to stream
+    void SaveState(TSOut& SOut) const;
+
+    /// did we finish initialization
+    bool IsInit() const { return InitP; }
+    /// Resets the model state
+    void Reset();
+    
+}
+
+///////////////////////////////
 // Time series window buffer.
 // Wrapper for exposing a window in a time series to signal processing aggregates 
 // Supports two parameters: window size (in milliseconds) and delay (in milliseconds)
@@ -336,6 +378,7 @@ protected:
     // STORAGE ACCESS
     /// value getter
     virtual TVal GetRecVal(const uint64& RecId) const = 0;
+    /// 
     virtual void RecUpdate(const uint64& RecId) const { }
     /// needed to access records through IDs
     TWPt<TStore> Store; 

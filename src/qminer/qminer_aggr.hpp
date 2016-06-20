@@ -1,4 +1,90 @@
 ///////////////////////////////
+// Time series window buffer with memory.
+///////////////////////////////
+// Time series window buffer.
+template <class TVal>
+void TWinBuf<TVal>::OnAddRec(const TRec& Rec) {
+    // just forward to OnTime
+    uint64 Timestamp_ = Rec.GetFieldTmMSecs(TimeFieldId);
+    OnTime(Timestamp_);
+}
+
+template <class TVal>
+void TWinBuf<TVal>::OnTime(const uint64& TmMsec) {
+    InitP = true;
+
+    Timestamp = TmMsec;
+
+    A = B;
+    // B = first record ID in the buffer, or first record ID after the buffer (indicates an empty buffer)
+    while (BeforeBuffer(B, Timestamp)) {
+        B++;
+    }
+
+    C = D;
+    // D = the first record ID after the buffer
+    while (!AfterBuffer(D, Timestamp)) {
+        D++;
+    }
+
+    // Call update on all incomming records, which includes records that skipped the buffer
+    // (both incomming and outgoing at the same time)
+    // C + Skip, D - 1
+    for (uint64 RecId = C; RecId < D; RecId++) {
+        RecUpdate(RecId);
+    }
+    //Print(true);
+}
+
+template <class TVal>
+TWinBuf<TVal>::TWinBuf(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal) {
+    // parse out input and output fields
+    ParamVal->AssertObjKeyStr("store", __FUNCTION__);
+    TStr StoreNm = ParamVal->GetObjStr("store");
+    Store = Base->GetStoreByStoreNm(StoreNm);   
+    // validate object has key, key is string. input: name
+    ParamVal->AssertObjKeyStr("timestamp", __FUNCTION__);   
+    TStr TimeFieldNm = ParamVal->GetObjStr("timestamp");
+    TimeFieldId = Store->GetFieldId(TimeFieldNm);
+    ParamVal->AssertObjKeyNum("winsize", __FUNCTION__);
+    WinSizeMSecs = ParamVal->GetObjUInt64("winsize");
+    DelayMSecs = ParamVal->GetObjUInt64("delay", 0);
+    // make sure parameters make sense
+    QmAssertR(Store->GetFieldDesc(TimeFieldId).IsTm(), "[Window buffer] field " + TimeFieldNm + " not of type 'datetime'");
+}
+
+template <class TVal>
+void TWinBuf<TVal>::LoadState(TSIn& SIn) {
+    InitP.Load(SIn);
+    A.Load(SIn);
+    B.Load(SIn);
+    C.Load(SIn);
+    D.Load(SIn);
+    Timestamp.Load(SIn);
+    TestValid(); // checks if the buffer exists in store
+}
+
+template <class TVal>
+void TWinBuf<TVal>::SaveState(TSOut& SOut) const {
+    InitP.Save(SOut);
+    A.Save(SOut);
+    B.Save(SOut);
+    C.Save(SOut);
+    D.Save(SOut);
+    Timestamp.Save(SOut);
+}
+
+template <class TVal>
+void TWinBuf<TVal>::Reset() {
+    InitP = false;
+    A = Store->GetRecs() == 0 ? 0 : Store->GetLastRecId() + 1;
+    B = Store->GetRecs() == 0 ? 0 : Store->GetLastRecId() + 1;
+    C = Store->GetRecs() == 0 ? 0 : Store->GetLastRecId() + 1;
+    D = Store->GetRecs() == 0 ? 0 : Store->GetLastRecId() + 1;
+    Timestamp = 0;
+}
+
+///////////////////////////////
 // Time series window buffer.
 template <class TVal>
 void TWinBuf<TVal>::OnAddRec(const TRec& Rec) {
@@ -26,7 +112,8 @@ void TWinBuf<TVal>::OnTime(const uint64& TmMsec) {
         D++;
     }
 
-    // Call update on all incomming records, which includes records that skipped the buffer (both incomming and outgoing at the same time)
+    // Call update on all incomming records, which includes records that skipped the buffer
+    // (both incomming and outgoing at the same time)
     // C + Skip, D - 1
     for (uint64 RecId = C; RecId < D; RecId++) {
         RecUpdate(RecId);
