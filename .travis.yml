@@ -24,6 +24,7 @@ matrix:
 cache:
   directories:
     - llvm-3.6.0
+    - clang
 
 before_install:
   - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
@@ -44,6 +45,7 @@ before_install:
       mkdir clang && travis_retry wget --quiet -O - ${CLANG_URL} | tar --strip-components=1 -xJ -C clang;
       export PATH="${DEPS_DIR}/clang/bin:${PATH}";
     fi
+  - cd ~
 
 install:
   - npm install --build-from-source $NPMOPT $QMDEBUG
