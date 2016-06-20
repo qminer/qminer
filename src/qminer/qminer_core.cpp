@@ -2451,9 +2451,7 @@ TRecFilterByField::TRecFilterByField(const TWPt<TBase>& _Base, const int& _Field
 
 PRecFilter TRecFilterByField::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
     // get store
-    QmAssertR(ParamVal->IsObjKey("store"), "[TRecFilterByField] Missing store name");
     TStr StoreNm = ParamVal->GetObjStr("store");
-    QmAssertR(Base->IsStoreNm(StoreNm), "[TRecFilterByField] Unknown store '" + StoreNm + "'");
     const TWPt<TStore>& Store = Base->GetStoreByStoreNm(StoreNm);
     // get field and its type
     QmAssertR(ParamVal->IsObjKey("field"), "[TRecFilterByField] Missing field name");
@@ -6839,7 +6837,7 @@ const TWPt<TStore> TBase::GetStoreByStoreId(const uint& StoreId) const {
 }
 
 const TWPt<TStore> TBase::GetStoreByStoreNm(const TStr& StoreNm) const {
-    AssertR(IsStoreNm(StoreNm), TStr("Unknown store name ") + StoreNm);
+    QmAssertR(IsStoreNm(StoreNm), "Unknown store name " + StoreNm);
     return StoreH.GetDat(StoreNm);
 }
 
@@ -6853,11 +6851,12 @@ bool TBase::IsStreamAggr(const TStr& StreamAggrNm) const {
 
 void TBase::AddStreamAggr(const PStreamAggr& StreamAggr) {
     QmAssertR(!IsStreamAggr(StreamAggr->GetAggrNm()),
-        TStr::Fmt("Aggregate with this name already exists: %s", StreamAggr->GetAggrNm().CStr()));
+        "Aggregate with this name already exists: " + StreamAggr->GetAggrNm());
     StreamAggrH.AddDat(StreamAggr->GetAggrNm(), StreamAggr);
 }
 
 TWPt<TStreamAggr> TBase::GetStreamAggr(const TStr& StreamAggrNm) const {
+    QmAssertR(IsStreamAggr(StreamAggrNm), "Unknown stream aggregate: " + StreamAggrNm);
     return dynamic_cast<TStreamAggr*>(StreamAggrH.GetDat(StreamAggrNm)());
 }
 
