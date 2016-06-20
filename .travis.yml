@@ -45,7 +45,7 @@ before_install:
       mkdir clang && travis_retry wget --quiet -O - ${CLANG_URL} | tar --strip-components=1 -xJ -C clang;
       export PATH="${DEPS_DIR}/clang/bin:${PATH}";
     fi
-  - cd ~
+  - cd ${TRAVIS_BUILD_DIR}
 
 install:
   - npm install --build-from-source $NPMOPT $QMDEBUG
