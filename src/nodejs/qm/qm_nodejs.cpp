@@ -2672,9 +2672,7 @@ void TNodeJsRecSet::filterByField(const v8::FunctionCallbackInfo<v8::Value>& Arg
         if (Args.Length() >= 3 && !TNodeJsUtil::IsArgNull(Args, 2) && TNodeJsUtil::IsArgFlt(Args, 2)) {
             MxVal = TNodeJsUtil::GetArgInt32(Args, 2);
         }
-        
         JsRecSet->RecSet->FilterByFieldInt(FieldId, MnVal, MxVal);
-
     } else if (Desc.IsInt16()) {
         int16 MnVal = TInt16::Mn;
         int16 MxVal = TInt16::Mx;
@@ -2712,7 +2710,7 @@ void TNodeJsRecSet::filterByField(const v8::FunctionCallbackInfo<v8::Value>& Arg
         } else {
             TStr StrValMin = TNodeJsUtil::GetArgStr(Args, 1);
             TStr StrValMax = TNodeJsUtil::GetArgStr(Args, 2);
-            JsRecSet->RecSet->FilterByFieldStrMinMax(FieldId, StrValMin, StrValMax);
+            JsRecSet->RecSet->FilterByFieldStr(FieldId, StrValMin, StrValMax);
         }
     } else if (Desc.IsFlt()) {
         double MnVal = TFlt::Mn;
@@ -2824,9 +2822,8 @@ void TNodeJsRecSet::split(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     // prepare result array
     v8::Local<v8::Array> JsRecSetV = v8::Array::New(Isolate, RecSetV.Len());
     for (int RecSetN = 0; RecSetN < RecSetV.Len(); RecSetN++) {
-        JsRecSetV->Set(RecSetN,
-            TNodeJsUtil::NewInstance<TNodeJsRecSet>(new TNodeJsRecSet(RecSetV[RecSetN], JsRecSet->Watcher)));
-
+        JsRecSetV->Set(RecSetN, TNodeJsUtil::NewInstance<TNodeJsRecSet>(
+            new TNodeJsRecSet(RecSetV[RecSetN], JsRecSet->Watcher)));
     }
     Args.GetReturnValue().Set(JsRecSetV);
 }
@@ -2955,17 +2952,19 @@ void TNodeJsRecSet::setIntersect(const v8::FunctionCallbackInfo<v8::Value>& Args
         "rs.setIntersect: first argument expected to be an record set");
     TNodeJsRecSet* ArgJsRecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args[0]->ToObject());
     TQm::PRecSet RecSet1 = ArgJsRecSet->RecSet;
-
     QmAssertR(JsRecSet->RecSet->GetStore()->GetStoreId() == RecSet1->GetStoreId(),
         "recset.setIntersect: the record sets do not point to the same store!");
-    // Coputation: clone RecSet, get RecIdSet of RecSet1 and filter by it's complement
+
+    // coputation: clone RecSet, get RecIdSet of RecSet1 and filter by it's complement
     TQm::PRecSet RecSet2 = JsRecSet->RecSet->Clone();
-    TUInt64Set RecIdSet;
-    RecSet1->GetRecIdSet(RecIdSet);
-    //second parameter in filter is false -> keep only records in RecIdSet
-    TQm::TRecFilterByRecIdSet Filter(RecIdSet, true);
-    RecSet2->FilterBy(Filter);
-    Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsRecSet>(new TNodeJsRecSet(RecSet2, JsRecSet->Watcher)));
+    TUInt64Set RecIdSet; RecSet1->GetRecIdSet(RecIdSet);
+    // second parameter in filter is false -> keep only records in RecIdSet
+    const TWPt<TQm::TBase>& Base = RecSet1->GetStore()->GetBase();
+    RecSet2->FilterBy<TQm::TRecFilterByRecId>(TQm::TRecFilterByRecId(Base, RecIdSet, true));
+    
+    // construct and return new record set from what remains
+    Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsRecSet>(
+        new TNodeJsRecSet(RecSet2, JsRecSet->Watcher)));
 }
 
 void TNodeJsRecSet::setUnion(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -3001,10 +3000,10 @@ void TNodeJsRecSet::setDiff(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         "recset.setDiff: the record sets do not point to the same store!");
     // Computation: clone RecSet, get RecIdSet of RecSet1 and filter by it's complement
     TQm::PRecSet RecSet2 = JsRecSet->RecSet->Clone();
-    TUInt64Set RecIdSet;
-    RecSet1->GetRecIdSet(RecIdSet);
+    TUInt64Set RecIdSet; RecSet1->GetRecIdSet(RecIdSet);
     //second parameter in filter is false -> keep only records NOT in RecIdSet
-    RecSet2->FilterBy(TQm::TRecFilterByRecIdSet(RecIdSet, false));
+    const TWPt<TQm::TBase>& Base = RecSet1->GetStore()->GetBase();
+    RecSet2->FilterBy<TQm::TRecFilterByRecId>(TQm::TRecFilterByRecId(Base, RecIdSet, false));
     Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsRecSet>(new TNodeJsRecSet(RecSet2, JsRecSet->Watcher)));
 }
 
@@ -3380,7 +3379,16 @@ void TNodeJsStoreIter::record(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 ///////////////////////////////
 // NodeJs QMiner Record Filter
-bool TJsRecFilter::operator()(const TQm::TRec& Rec) const {
+TJsRecFilter::TJsRecFilter(TWPt<TQm::TStore> _Store, v8::Handle<v8::Function> _Callback):
+        TRecFilter(_Store->GetBase()), Store(_Store) {
+    
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    // set persistent object
+    Callback.Reset(Isolate, _Callback);
+}
+
+bool TJsRecFilter::Filter(const TQm::TRec& Rec) const {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
     v8::TryCatch TryCatch;
@@ -3400,7 +3408,14 @@ bool TJsRecFilter::operator()(const TQm::TRec& Rec) const {
 }
 
 ///////////////////////////////
-// NodeJs QMiner Record Filter
+// NodeJs QMiner Record Pair
+TJsRecPairFilter::TJsRecPairFilter(TWPt<TQm::TStore> _Store, v8::Handle<v8::Function> _Callback): Store(_Store) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    // set persistent object
+    Callback.Reset(Isolate, _Callback);
+}
+
 bool TJsRecPairFilter::operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::TryCatch TryCatch;

@@ -372,6 +372,7 @@ protected:
     void OnTime(const uint64& TmMsec);
     /// Just a expection-throwing placeholder
     void OnStep() { throw TExcept::New("Should not be executed."); }
+    
     /// JSON based constructor
     TWinBuf(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:
@@ -1484,7 +1485,7 @@ private:
     TWPt<TStreamAggrOut::IFltVec> InAggrValY;       
 
     /// Decides if a record should be processed (useful on a stream to improve performance)
-    PRecordFilter Filter;
+    PRecFilter Filter;
     /// Quantiles that specify the band interecepts
     TFltV Quantiles;
 
@@ -1494,7 +1495,7 @@ private:
 
 protected:
     /// Calls on step
-    void OnAddRec(const TRec& Rec) { if (Filter->operator()(Rec)) { OnStep(); } }
+    void OnAddRec(const TRec& Rec) { if (Filter->Filter(Rec)) { OnStep(); } }
     /// Calls on step
     void OnTime(const uint64& TmMsec) { OnStep(); }
     /// Fits the linear regression and computes the bands (if configured to do so)
@@ -1535,11 +1536,11 @@ private:
     /// Aggregate that will be called if the record passes the filter
     TWPt<TStreamAggr> Aggr;
     /// Decides if a record should be processed (useful on a stream to improve performance)
-    PRecordFilter Filter;
+    PRecFilter Filter;
     
 protected:
     /// Passes the record to Aggr
-    void OnAddRec(const TRec& Rec) { if (Filter->operator()(Rec)) { Aggr->OnAddRec(Rec); } }
+    void OnAddRec(const TRec& Rec) { if (Filter->Filter(Rec)) { Aggr->OnAddRec(Rec); } }
     /// Passes the call to Aggr
     void OnTime(const uint64& TmMsec) { Aggr->OnTime(TmMsec); }
     /// Passes the call to Aggr

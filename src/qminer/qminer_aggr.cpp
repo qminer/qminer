@@ -1806,9 +1806,9 @@ TSimpleLinReg::TSimpleLinReg(const TWPt<TBase>& Base, const PJsonVal& ParamVal) 
     // filter
     if (ParamVal->IsObjKey("filter")) {
         PJsonVal Val = ParamVal->GetObjKey("filter");
-        Filter = TRecordFilter::New(Val->GetObjStr("type"), Val);
+        Filter = TRecFilter::New(Base, Val->GetObjStr("type"), Val);
     } else {        
-        Filter = TRecordFilter::New();
+        Filter = TRecFilter::New(Base);
     }
     // parse out input aggregate
     InAggrX = ParseAggr(ParamVal, "inAggrX");
@@ -1834,9 +1834,9 @@ TRecFilterAggr::TRecFilterAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal
     // filter
     if (ParamVal->IsObjKey("filter")) {
         PJsonVal Val = ParamVal->GetObjKey("filter");
-        Filter = TRecordFilter::New(Val->GetObjStr("type"), Val);
+        Filter = TRecFilter::New(Base, Val->GetObjStr("type"), Val);
     } else {
-        Filter = TRecordFilter::New();
+        Filter = TRecFilter::New(Base);
     }
     // parse out input aggregate
     Aggr = ParseAggr(ParamVal, "aggr");    

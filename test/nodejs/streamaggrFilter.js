@@ -9,7 +9,7 @@
 var assert = require('../../src/nodejs/scripts/assert.js');
 var qm = require('qminer');
 
-describe('Simple linear regression test', function () {
+describe('Stream aggregate filter', function () {
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -39,8 +39,30 @@ describe('Simple linear regression test', function () {
         base.close();
     });
 
-    describe('Int filter test', function () {
-        it('should test int filter creation', function () {
+    describe('Filter for integer field', function () {
+
+        it('should should throw exception', function () {
+            var aggr = new qm.StreamAggr(base, {
+                type: "timeSeriesTick",
+                store: "RecordTest",
+                timestamp: "Tm",
+                value: "Int"
+            });
+            assert.throws(function () {
+                store.addStreamAggr({
+                    type: "recordFilterAggr", aggr: aggr.name,
+                    filter: { type: 'tralala' }
+                });
+            });
+            assert.throws(function () {
+                store.addStreamAggr({
+                    type: "recordFilterAggr", aggr: aggr.name,
+                    filter: { type: "field", field: "value" }
+                });
+            });
+        });
+        
+        it('should test filter', function () {
             var aggr = new qm.StreamAggr(base, {
                 type: "timeSeriesTick",
                 store: "RecordTest",
@@ -51,8 +73,8 @@ describe('Simple linear regression test', function () {
                 type: 'recordFilterAggr',
                 aggr: aggr.name,
                 filter: {
-                    type: 'filterByFieldInt',
-                    fieldId: store.fields.find(function (x) { return x.name === 'Int'; }).id,
+                    type: "field",
+                    field: "value",
                     minVal: 5,
                     maxVal: 6
                 }
