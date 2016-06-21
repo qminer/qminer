@@ -3390,14 +3390,22 @@ namespace TStreamAggrOut {
         virtual double GetFlt() const = 0;
     };
 
+    template <class TVal>
+    class IVal {
+    public:
+        virtual TVal GetVal() const = 0;
+    };
+        
     class ITm {
     public:
         virtual uint64 GetTmMSecs() const = 0;
     };
     
-    class IFltTm:
-        public IFlt,
-        public ITm { };
+    class IFltTm: public IFlt, public ITm { };
+
+    template <class TVal>
+    class IValTm: public IVal<TVal>, public ITm { };
+
 
     /// vector of values
     template <class TVal>

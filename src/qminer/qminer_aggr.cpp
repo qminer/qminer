@@ -629,6 +629,22 @@ PJsonVal TTimeSeriesTick::SaveJson(const int& Limit) const {
 }
 
 ///////////////////////////////
+// Numberic circular buffer
+TWinBufFltV::TWinBufFltV(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TWinBufMem<TFlt>(Base, ParamVal) {
+    InAggrVal = Cast<TStreamAggrOut::IFlt>(GetInAggr());
+}
+
+PStreamAggr TWinBufFltV::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+    return new TWinBufFltV(Base, ParamVal);
+}
+
+// serialization to JSon
+PJsonVal TWinBufFltV::SaveJson(const int& Limit) const {
+    TFltV FltV; GetValV(FltV);
+    return TJsonVal::NewArr(FltV);
+}
+
+///////////////////////////////
 /// Time series window buffer with dense vector per record.
 TFlt TWinBufFlt::GetRecVal(const uint64& RecId) const {
     return ValReader.GetFlt(TRec(Store, RecId));
@@ -684,32 +700,6 @@ void TWinBufFtrSpVec::LoadState(TSIn& SIn) {
 void TWinBufFtrSpVec::SaveState(TSOut& SOut) const {
     TWinBuf<TIntFltKdV>::SaveState(SOut);
     FtrSpace->Save(SOut);
-}
-
-///////////////////////////////
-// Numberic circular buffer
-void TWinBufFltV::OnStep() {
-    TFltV OutValV; InAggrVal->GetOutValV(OutValV);
-    if (InAggr->IsInit()) {
-        for (int ElN = 0; ElN < OutValV.Len(); ElN++) {
-            Queue.Pop();
-        }
-        TFltV InValV; InAggrVal->GetInValV(InValV);
-        for (int ElN = 0; ElN < InValV.Len(); ElN++) {
-            Queue.PushV(InValV);
-        }
-    }
-}
-
-TWinBufFltV::TWinBufFltV(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal) {
-    InAggr = ParseAggr(ParamVal, "inAggr");
-    InAggrVal = Cast<TStreamAggrOut::IFltTmIO>(InAggr);
-}
-
-// serialization to JSon
-PJsonVal TWinBufFltV::SaveJson(const int& Limit) const {
-    TFltV Vec; Queue.GetSubValVec(0, Queue.Len() - 1, Vec);
-    return TJsonVal::NewArr(Vec);
 }
 
 ///////////////////////////////

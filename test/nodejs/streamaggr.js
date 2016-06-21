@@ -1062,9 +1062,15 @@ describe('Time Series Window Buffer Vector Tests', function () {
                 value: 'Value',
                 winsize: 2000
             });
+            var tick = store.addStreamAggr({                
+                type: 'timeSeriesTick',                
+                timestamp: 'Time',
+                value: 'Value'
+            });
             var winbufvec = store.addStreamAggr({                
                 type: 'timeSeriesWinBufVector',                
-                inAggr: winbuf.name
+                inAggr: tick.name,
+                winsize: 2000
             });
             store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
 			store.push({ Time: '2015-06-10T14:33:30.0', Value: 2 });

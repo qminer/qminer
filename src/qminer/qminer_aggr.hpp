@@ -1,23 +1,139 @@
 ///////////////////////////////
 // Time series window buffer with memory.
-// template <class TVal>
-// TWinBufMem<TVal>::TWinBufMem(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal) {
-//     // parse out input and output fields
-//     ParamVal->AssertObjKeyStr("store", __FUNCTION__);
-//     TStr StoreNm = ParamVal->GetObjStr("store");
-//     Store = Base->GetStoreByStoreNm(StoreNm);   
-//     // validate object has key, key is string. input: name
-//     ParamVal->AssertObjKeyStr("timestamp", __FUNCTION__);   
-//     TStr TimeFieldNm = ParamVal->GetObjStr("timestamp");
-//     TimeFieldId = Store->GetFieldId(TimeFieldNm);
-//     ParamVal->AssertObjKeyNum("winsize", __FUNCTION__);
-//     WinSizeMSecs = ParamVal->GetObjUInt64("winsize");
-//     DelayMSecs = ParamVal->GetObjUInt64("delay", 0);
-//     // make sure parameters make sense
-//     QmAssertR(Store->GetFieldDesc(TimeFieldId).IsTm(), "[Window buffer] field " + TimeFieldNm + " not of type 'datetime'");
-// }
+template <class TVal>
+void TWinBufMem<TVal>::UpdateVal() {
+    // get new value
+    DelayQ.Push(TPair<TUInt64, TVal>(InAggrTm->GetTmMSecs(), GetVal()));
+    // once we read one input we are initialized
+    InitP = true;
+}
 
+template <class TVal>
+void TWinBufMem<TVal>::UpdateTime() {
+    // first we clear existing in/out placeholders
+    InValV.Clr(); InTmMSecsV.Clr();
+    OutValV.Clr(); OutTmMSecsV.Clr();
+    // update the current timestamps
+    TmMSecs = InAggrTm->GetTmMSecs();
+    // first we move things from delay to window
+    const uint64 StartDelayMSecs = TmMSecs - DelayMSecs;
+    while (!DelayQ.Empty() && DelayQ.Front().Val1 <= StartDelayMSecs) {
+        // copy element from the front of the delay to the back of the window queue
+        WindowQ.Push(DelayQ.Front());
+        // add to the list of new elements in the window
+        InValV.Add(DelayQ.Front().Val2);
+        InTmMSecsV.Add(DelayQ.Front().Val1);
+        // remove the front element from the delay queue
+        DelayQ.Pop();
+    }
+    // then we remove old stuff from window
+    const uint64 StartWinMSecs = TmMSecs - DelayMSecs - WinSizeMSecs;
+    while (!WindowQ.Empty() && WindowQ.Front().Val1 < StartWinMSecs) {
+        // add to the list of elements being removed from the window
+        OutValV.Add(WindowQ.Front().Val2);
+        OutTmMSecsV.Add(WindowQ.Front().Val1);
+        // remove from the window
+        WindowQ.Pop();
+    }
+}
 
+template <class TVal>
+void TWinBufMem<TVal>::OnAddRec(const TRec& Rec) {
+    // Always read new value
+    UpdateVal();
+    // Update the time buffers
+    UpdateTime();
+}
+
+template <class TVal>
+void TWinBufMem<TVal>::OnTime(const uint64& TmMsec) {
+    // Update value only when set to always update
+    if (UpdateType == wbmuAlways) { UpdateVal(); }
+    // Update the time buffers
+    UpdateTime();
+}
+
+template <class TVal>
+void TWinBufMem<TVal>::OnStep() {
+    // Update value only when set to always update
+    if (UpdateType == wbmuAlways) { UpdateVal(); }
+    // Update the time buffers
+    UpdateTime();
+}
+
+template <class TVal>
+TWinBufMem<TVal>::TWinBufMem(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal) {
+    // parse out input aggregate
+    InAggr = ParseAggr(ParamVal, "inAggr");
+    InAggrTm = Cast<TStreamAggrOut::ITm>(InAggr);    
+    // when should we pump in new values?
+    TStr UpdateTypeStr = ParamVal->GetObjStr("update", "onNewRecord");
+    UpdateType = (UpdateTypeStr == "onNewRecord") ? wbmuOnAddRec : wbmuAlways;
+    // parse out window parameters
+    ParamVal->AssertObjKeyNum("winsize", __FUNCTION__);
+    WinSizeMSecs = ParamVal->GetObjUInt64("winsize");
+    DelayMSecs = ParamVal->GetObjUInt64("delay", 0);
+}
+
+template <class TVal>
+void TWinBufMem<TVal>::LoadState(TSIn& SIn) {
+    UpdateType = LoadEnum<TWinBufMemUpdate>(SIn);
+    WinSizeMSecs.Load(SIn); DelayMSecs.Load(SIn);
+    InitP.Load(SIn); TmMSecs.Load(SIn);
+    WindowQ.Load(SIn); DelayQ.Load(SIn);
+    InValV.Load(SIn); InTmMSecsV.Load(SIn);
+    OutValV.Load(SIn); OutTmMSecsV.Load(SIn);
+}
+
+template <class TVal>
+void TWinBufMem<TVal>::SaveState(TSOut& SOut) const {
+    SaveEnum<TWinBufMemUpdate>(SOut, UpdateType);
+    WinSizeMSecs.Save(SOut); DelayMSecs.Save(SOut);
+    InitP.Save(SOut); TmMSecs.Save(SOut);
+    WindowQ.Save(SOut); DelayQ.Save(SOut);
+    InValV.Save(SOut); InTmMSecsV.Save(SOut);
+    OutValV.Save(SOut); OutTmMSecsV.Save(SOut);
+}
+
+template <class TVal>
+void TWinBufMem<TVal>::Reset() {
+    // no longer initialized
+    InitP = false;
+    // reset current timestamp
+    TmMSecs = 0;
+    // reset buffers
+    WindowQ.Clr(); DelayQ.Clr();
+    InValV.Clr(); InTmMSecsV.Clr();
+    OutValV.Clr(); OutTmMSecsV.Clr();
+}
+
+template <class TVal>
+void TWinBufMem<TVal>::GetValV(TVec<TVal>& ValV) const {
+    ValV.Gen(WindowQ.Len(), 0);
+    for (int ElN = 0; ElN < WindowQ.Len(); ElN++) {
+        ValV.Add(WindowQ[ElN].Val2);
+    }
+}
+
+template <class TVal>
+void TWinBufMem<TVal>::GetTmV(TUInt64V& ValV) const {
+    ValV.Gen(WindowQ.Len(), 0);
+    for (int ElN = 0; ElN < WindowQ.Len(); ElN++) {
+        ValV.Add(WindowQ[ElN].Val1);
+    }
+}
+
+template <class TVal>
+PJsonVal TWinBufMem<TVal>::SaveJson(const int& Limit) const {
+    PJsonVal Val = TJsonVal::NewObj();
+    Val->AddToObj("init", InitP);
+    Val->AddToObj("timestamp", TTm::GetTmFromMSecs(TmMSecs).GetWebLogDateTimeStr(true, "T"));
+    Val->AddToObj("delay", DelayQ.Len());
+    Val->AddToObj("window", WindowQ.Len());
+    Val->AddToObj("inBuffer", InValV.Len());
+    Val->AddToObj("outBuffer", OutValV.Len());
+    return Val;
+}
 
 ///////////////////////////////
 // Time series window buffer.

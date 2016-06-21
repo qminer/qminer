@@ -310,51 +310,138 @@ public:
 
 ///////////////////////////////
 // Time series window buffer with memory.
-// template <class TVal>
-// class TWinBufMem : public TStreamAggr, public TStreamAggrOut::IValTmIO<TVal>, public TStreamAggrOut::ITm {
-// protected:
-//     /// Value getter
-//     virtual TVal GetRecVal(const uint64& RecId) const = 0;
+template <class TVal>
+class TWinBufMem : public TStreamAggr, public TStreamAggrOut::IValTmIO<TVal>, public TStreamAggrOut::ITm {
+private:
+    typedef enum { wbmuOnAddRec, wbmuAlways } TWinBufMemUpdate;
+    
+private:
+    /// Input aggregate
+    TWPt<TStreamAggr> InAggr;
+    /// Input timestamp interface
+    TWPt<TStreamAggrOut::ITm> InAggrTm;
 
-// private:
-//     /// window size in milliseconds
-//     TUInt64 WinSizeMSecs;
-//     /// delay in milliseconds
-//     TUInt64 DelayMSecs;
+    /// When should we read values from incoming aggregate
+    TWinBufMemUpdate UpdateType;
+    /// window size in milliseconds
+    TUInt64 WinSizeMSecs;
+    /// delay in milliseconds
+    TUInt64 DelayMSecs;
 
-//     /// Has the aggregate been updated at least once?
-//     TBool InitP;
-//     /// Current timestamp
-//     TUInt64 TmMSecs;
-//     /// Current window buffer
-//     TQQueue<TPair<TUInt64, TVal> > BufferQ;
+    /// Has the aggregate been updated at least once?
+    TBool InitP;
+    /// Current timestamp
+    TUInt64 TmMSecs;
+    /// Current window buffer
+    TQQueue<TPair<TUInt64, TVal> > WindowQ;
+    /// Current delay buffer
+    TQQueue<TPair<TUInt64, TVal> > DelayQ;
     
-//     /// In values
-//     T
-//     /// Out values
-    
-// protected:
-//     /// Stream aggregate update function called when a record is added
-//     void OnAddRec(const TRec& Rec);
-//     /// Stream aggregate that forgets records when time is updated
-//     void OnTime(const uint64& TmMsec);
-//     /// Just a expection-throwing placeholder
-//     void OnStep() { throw TExcept::New("Should not be executed."); }
-    
-//     /// JSON based constructor
-//     TWinBufMem(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
-// public:
-//     /// Load stream aggregate state from stream
-//     void LoadState(TSIn& SIn);
-//     /// Save state of stream aggregate to stream
-//     void SaveState(TSOut& SOut) const;
+    /// New values from last trigger
+    TVec<TVal> InValV;
+    /// Timestamps for new values
+    TUInt64V InTmMSecsV;
+    /// Forgoten values from last trigger
+    TVec<TVal> OutValV;
+    /// Timestamps for forgoten values
+    TUInt64V OutTmMSecsV;
 
-//     /// did we finish initialization
-//     bool IsInit() const { return InitP; }
-//     /// Resets the model state
-//     void Reset();
+protected:
+    /// Value getter, must be overridden
+    virtual TVal GetVal() const = 0;
     
-// }
+private:
+    /// Read new value from the input aggregate and adds it to the delay
+    void UpdateVal();
+     /// Read new timestamp from the input aggregate and move aggregates accordingly
+    void UpdateTime();
+   
+protected:
+    /// Get input aggregate
+    const TWPt<TStreamAggr>& GetInAggr() const { return InAggr; }
+    
+    /// Stream aggregate update function called when a record is added
+    void OnAddRec(const TRec& Rec);
+    /// Stream aggregate that forgets records when time is updated
+    void OnTime(const uint64& TmMsec);
+    /// Just a expection-throwing placeholder
+    void OnStep();
+    
+    /// JSON based constructor
+    TWinBufMem(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+public:
+    /// Load stream aggregate state from stream
+    void LoadState(TSIn& SIn);
+    /// Save state of stream aggregate to stream
+    void SaveState(TSOut& SOut) const;
+
+    /// did we finish initialization
+    bool IsInit() const { return InitP; }
+    /// Resets the model state
+    void Reset();
+
+    // ITm
+    /// time stamp of the last record
+    uint64 GetTmMSecs() const { return TmMSecs; }
+
+    // IValTmIO
+    /// Is the window delayed ?
+    bool DelayedP() const { return DelayMSecs > 0; }
+    /// new values that just entered the buffer (needed if delay is nonzero)
+    void GetInValV(TVec<TVal>& ValV) const { ValV = InValV; }
+    /// new timestamps that just entered the buffer (needed if delay is nonzero)
+    void GetInTmMSecsV(TUInt64V& MSecsV) const { MSecsV = InTmMSecsV; }
+    /// old values that fall out of the buffer
+    void GetOutValV(TVec<TVal>& ValV) const { ValV = OutValV; }
+    /// old timestamps that fall out of the buffer
+    void GetOutTmMSecsV(TUInt64V& MSecsV) const { MSecsV = OutTmMSecsV; }
+    
+    // IValV
+    /// get buffer length
+    int GetVals() const { EAssertR(IsInit(), "WinBuf not initialized yet!"); return WindowQ.Len(); }
+    /// get value at
+    void GetVal(const int& ElN, TVal& Val) const { Val = WindowQ[ElN].Val2; }
+    /// get float vector of all values in the buffer (IFltVec interface)
+    void GetValV(TVec<TVal>& ValV) const;
+
+    // ITmV
+    /// get buffer length
+    int GetTmLen() const { return GetVals(); }
+    /// get timestamp at
+    uint64 GetTm(const int& ElN) const { return WindowQ[ElN].Val1; }
+    /// get timestamp vector of all timestamps in the buffer (ITmVec interface)
+    void GetTmV(TUInt64V& MSecsV) const;
+
+    /// serialization to JSon
+    PJsonVal SaveJson(const int& Limit) const;    
+};
+
+///////////////////////////////
+/// Numberic circular buffer.
+/// Reads from TWinBuf and stores the buffer values in memory as a circular buffer,
+/// which can be resized if needed.
+class TWinBufFltV : public TWinBufMem<TFlt> {
+private:
+    /// Input time series aggregate
+    TWPt<TStreamAggrOut::IFlt> InAggrVal;
+
+protected:
+    /// Value getter, we read float from input aggregate
+    TFlt GetVal() const { return InAggrVal->GetFlt(); }
+    /// Json constructor
+    TWinBufFltV(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+    
+public:
+    /// Json constructor 
+    static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+    /// Serialization to JSon
+    PJsonVal SaveJson(const int& Limit) const;
+
+    /// Stream aggregator type name
+    static TStr GetType() { return "timeSeriesWinBufVector"; }
+    /// Stream aggregator type name
+    TStr Type() const { return GetType(); }
+};
 
 ///////////////////////////////
 // Time series window buffer.
@@ -554,56 +641,6 @@ public:
 
     /// Get feature space used by the aggregate
     PFtrSpace GetFtrSpace() const { return FtrSpace; }
-};
-
-///////////////////////////////
-/// Numberic circular buffer.
-/// Reads from TWinBuf and stores the buffer values in memory as a circular buffer,
-/// which can be resized if needed.
-class TWinBufFltV : public TStreamAggr, public TStreamAggrOut::IFltVec {
-private:
-    /// Input aggregate
-    TWPt<TStreamAggr> InAggr;
-    /// Input time series aggregate
-    TWPt<TStreamAggrOut::IFltTmIO> InAggrVal;
-    /// Queue with current buffer values
-    TQQueue<TFlt> Queue;
-
-protected:
-    /// Update buffer
-    void OnStep();
-
-    /// Json constructor
-    TWinBufFltV(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
-public:
-    /// Json constructor 
-    static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
-        return new TWinBufFltV(Base, ParamVal); }
-
-    /// Load stream aggregate state from stream
-    void LoadState(TSIn& SIn) { Queue.Load(SIn); }
-    /// Save state of stream aggregate to stream
-    void SaveState(TSOut& SOut) const { Queue.Save(SOut); }
-
-    /// Did we finished initialization
-    bool IsInit() const { return InAggr->IsInit(); }
-    /// Resets the aggregate
-    void Reset() { Queue.Clr(true); }
-    
-    /// Get current number of values in the buffer
-    int GetVals() const { return Queue.Len(); }
-    /// Get ElN-th value
-    void GetVal(const int& ElN, TFlt& Val) const { Val = Queue[ElN]; }
-    /// Get vector of all current value
-    void GetValV(TVec<TFlt>& ValV) const { Queue.GetSubValVec(0, Queue.Len() - 1, ValV); }
-
-    /// Serialization to JSon
-    PJsonVal SaveJson(const int& Limit) const;
-
-    /// Stream aggregator type name
-    static TStr GetType() { return "timeSeriesWinBufVector"; }
-    /// Stream aggregator type name
-    TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
