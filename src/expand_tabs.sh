@@ -6,6 +6,9 @@ function e {
     mv $1_temp $1
 }
 
+e glib/mine/signalproc.cpp
+e glib/mine/signalproc.h
+
 e qminer/qminer.h
 e qminer/qminer_aggr.cpp
 e qminer/qminer_aggr.h
