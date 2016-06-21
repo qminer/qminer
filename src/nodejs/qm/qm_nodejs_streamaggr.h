@@ -2135,8 +2135,6 @@ private:
     // ITm 
     v8::Persistent<v8::Function> GetTmMSecsFun;
     // IFltTmIO 
-    v8::Persistent<v8::Function> GetInFltFun;
-    v8::Persistent<v8::Function> GetInTmMSecsFun;
     v8::Persistent<v8::Function> GetInFltVFun;
     v8::Persistent<v8::Function> GetInTmMSecsVFun;
     v8::Persistent<v8::Function> GetOutFltVFun;
@@ -2195,8 +2193,6 @@ public:
     uint64 GetTmMSecs() const;
     
     // IFltTmIO 
-    TFlt GetInVal() const;
-    uint64 GetInTmMSecs() const;
     bool DelayedP() const;
     // incomming
     void GetInValV(TFltV& ValV) const;

@@ -310,46 +310,51 @@ public:
 
 ///////////////////////////////
 // Time series window buffer with memory.
-class TWinBufMem : public TStreamAggr, public TStreamAggrOut::IValTmIO<TVal>, public TStreamAggrOut::ITm {
-protected:
-    /// Value getter
-    virtual TVal GetRecVal(const uint64& RecId) const = 0;
+// template <class TVal>
+// class TWinBufMem : public TStreamAggr, public TStreamAggrOut::IValTmIO<TVal>, public TStreamAggrOut::ITm {
+// protected:
+//     /// Value getter
+//     virtual TVal GetRecVal(const uint64& RecId) const = 0;
 
-private:
-    /// field ID of the timestamp field in the store (used for efficiency)
-    TInt TimeFieldId; 
+// private:
+//     /// window size in milliseconds
+//     TUInt64 WinSizeMSecs;
+//     /// delay in milliseconds
+//     TUInt64 DelayMSecs;
 
-    /// window size in milliseconds
-    TUInt64 WinSizeMSecs;
-    /// delay in milliseconds
-    TUInt64 DelayMSecs;
+//     /// Has the aggregate been updated at least once?
+//     TBool InitP;
+//     /// Current timestamp
+//     TUInt64 TmMSecs;
+//     /// Current window buffer
+//     TQQueue<TPair<TUInt64, TVal> > BufferQ;
+    
+//     /// In values
+//     T
+//     /// Out values
+    
+// protected:
+//     /// Stream aggregate update function called when a record is added
+//     void OnAddRec(const TRec& Rec);
+//     /// Stream aggregate that forgets records when time is updated
+//     void OnTime(const uint64& TmMsec);
+//     /// Just a expection-throwing placeholder
+//     void OnStep() { throw TExcept::New("Should not be executed."); }
+    
+//     /// JSON based constructor
+//     TWinBufMem(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+// public:
+//     /// Load stream aggregate state from stream
+//     void LoadState(TSIn& SIn);
+//     /// Save state of stream aggregate to stream
+//     void SaveState(TSOut& SOut) const;
 
-    /// Has the aggregate been updated at least once?
-    TBool InitP;
+//     /// did we finish initialization
+//     bool IsInit() const { return InitP; }
+//     /// Resets the model state
+//     void Reset();
     
-    
-protected:
-    /// Stream aggregate update function called when a record is added
-    void OnAddRec(const TRec& Rec);
-    /// Stream aggregate that forgets records when time is updated
-    void OnTime(const uint64& TmMsec);
-    /// Just a expection-throwing placeholder
-    void OnStep() { throw TExcept::New("Should not be executed."); }
-    
-    /// JSON based constructor
-    TWinBuf(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
-public:
-    /// Load stream aggregate state from stream
-    void LoadState(TSIn& SIn);
-    /// Save state of stream aggregate to stream
-    void SaveState(TSOut& SOut) const;
-
-    /// did we finish initialization
-    bool IsInit() const { return InitP; }
-    /// Resets the model state
-    void Reset();
-    
-}
+// }
 
 ///////////////////////////////
 // Time series window buffer.
@@ -436,13 +441,8 @@ public:
     uint64 GetTmMSecs() const { return Timestamp; }
 
     // IValTmIO
-    /// most recent values. Only makes sense if delay = 0!
-    TVal GetInVal() const;
-    /// most recent timestamps. Only makes sense if delay = 0!
-    uint64 GetInTmMSecs() const;
     /// Is the window delayed ?
     bool DelayedP() const { return DelayMSecs > 0; }
-
     /// new values that just entered the buffer (needed if delay is nonzero)
     void GetInValV(TVec<TVal>& ValV) const;
     /// new timestamps that just entered the buffer (needed if delay is nonzero)
@@ -490,7 +490,7 @@ private:
     /// Check if record id older than current buffer window
     bool BeforeBuffer(const uint64& RecId, const uint64& LastRecTmMSecs) const {
         return  BeforeStore(RecId) || (InStore(RecId) && (Time(RecId) < LastRecTmMSecs - DelayMSecs - WinSizeMSecs)); }
-    /// Check if record id newwer then the current buffer window
+    /// Check if record id newer then the current buffer window
     bool AfterBuffer(const uint64& RecId, const uint64& LastRecTmMSecs) const {
         return AfterStore(RecId) || (InStore(RecId) && (Time(RecId) > LastRecTmMSecs - DelayMSecs)); }
     /// Debug printout
@@ -919,6 +919,11 @@ public:
     /// Json constructor
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 
+    /// Load stream aggregate state from stream
+    void LoadState(TSIn& SIn);
+    /// Save state of stream aggregate to stream
+    void SaveState(TSOut& SOut) const;    
+
     /// Did we finish initialization
     bool IsInit() const { return InAggrX->IsInit() && InAggrY->IsInit(); }
     /// Resets the aggregate
@@ -973,6 +978,11 @@ public:
     /// Initialize from json
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 
+    /// Load stream aggregate state from stream
+    void LoadState(TSIn& SIn);
+    /// Save state of stream aggregate to stream
+    void SaveState(TSOut& SOut) const;    
+    
     /// Did we finish initialization
     bool IsInit() const;
     /// Resets the aggregate
