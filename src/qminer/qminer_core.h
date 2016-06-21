@@ -1617,8 +1617,15 @@ private:
 public:
     /// Constructor
     TRecFilterByIndexJoin(const TWPt<TStore>& Store, const int& JoinId, const uint64& _MinVal, const uint64& _MaxVal);
+    /// JSON constructor
+    static PRecFilter New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
     /// Filter function
     bool Filter(const TRec& Rec) const;
+    /// Filter type name
+    static TStr GetType() { return "indexJoin"; }
+    /// Filter type name
+    TStr Type() const { return GetType(); }
+
 };
 
 ///////////////////////////////

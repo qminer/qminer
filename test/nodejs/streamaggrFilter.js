@@ -53,7 +53,7 @@ describe('Stream aggregate filter', function () {
               { "name": "Str", "type": "string", "null": true },
               { "name": "Tm", "type": "datetime", "null": true }
             ],
-            "joins": [],
+            "joins": [{ name: "joinTest", type: "index", store: "RecordTest" }],
             "keys": []
         });
         store = base.store('RecordTest');
@@ -249,6 +249,186 @@ describe('Stream aggregate filter', function () {
         });
     });
 
+    describe('Record subsampling filter', function () {
+        it('should filter every second record', function (done) {
+            var aggr = new qm.StreamAggr(base, new JsAggr);
+
+            var filt = store.addStreamAggr({
+                type: 'recordFilterAggr',
+                aggr: aggr.name,
+                filter: {
+                    type: "subsampling",
+                    store: "RecordTest",
+                    skip: 1
+                }
+            });
+            assertUpdateSequence("Str", ["a", "b", "c", "d", "e", "f"], [1, 1, 2, 2, 3, 3], store, aggr);
+            done();
+        });
+    });
+
+    describe('Record exists filter', function () {
+        it('should filter records that are not in store', function (done) {
+            var aggr = new qm.StreamAggr(base, new JsAggr);
+
+            var filt = store.addStreamAggr({
+                type: 'recordFilterAggr',
+                aggr: aggr.name,
+                filter: {
+                    type: "recordExists",
+                    store: "RecordTest"
+                }
+            });
+            assertUpdateSequence("Str", ["a", "b", "c"], [1, 2, 3], store, aggr);
+            var rec = store.newRecord({ Str: "test" }); //not pushed to store
+            filt.onAdd(rec); // should not pass
+            assert.equal(aggr.saveJson().val, 3);
+            filt.onAdd(store[0]); // should pass
+            assert.equal(aggr.saveJson().val, 4);
+            done();
+        });
+    });
+
+    describe('Record id range filter', function () {
+        it('should filter records outside id range', function (done) {
+            var aggr = new qm.StreamAggr(base, new JsAggr);
+
+            var filt = store.addStreamAggr({
+                type: 'recordFilterAggr',
+                aggr: aggr.name,
+                filter: {
+                    type: "recordId",
+                    store: "RecordTest",
+                    minRecId: 2,
+                    maxRecId: 3
+                }
+            });
+            assertUpdateSequence("Str", ["a", "b", "c", "d", "e"], [0, 0, 1, 2, 2], store, aggr);
+            done();
+        });
+    });
+
+    describe('Record id set', function () {
+        it('should filter records excluded from an id set', function (done) {
+            var aggr = new qm.StreamAggr(base, new JsAggr);
+
+            var filt = store.addStreamAggr({
+                type: 'recordFilterAggr',
+                aggr: aggr.name,
+                filter: {
+                    type: "recordId",
+                    store: "RecordTest",
+                    recIdSet: [2,3]
+                }
+            });
+            assertUpdateSequence("Str", ["a", "b", "c", "d", "e"], [0, 0, 1, 2, 2], store, aggr);
+            done();
+        });
+        it('should filter records contained in an id set', function (done) {
+            var aggr = new qm.StreamAggr(base, new JsAggr);
+
+            var filt = store.addStreamAggr({
+                type: 'recordFilterAggr',
+                aggr: aggr.name,
+                filter: {
+                    type: "recordId",
+                    store: "RecordTest",
+                    recIdSet: [2, 3],
+                    inP: false
+                }
+            });
+            assertUpdateSequence("Str", ["a", "b", "c", "d", "e"], [1, 2, 2, 2, 3], store, aggr);
+            done();
+        });
+    });
+
+    describe('Record fq range filter', function () {
+        it.skip('should filter records with fqs out of range', function (done) {
+            var aggr = new qm.StreamAggr(base, new JsAggr);
+
+            var filt = store.addStreamAggr({
+                type: 'recordFilterAggr',
+                aggr: aggr.name,
+                filter: {
+                    type: "recordFq",
+                    store: "RecordTest",
+                    minFq: 5,
+                    maxFq: 6
+                }
+            });
+
+            store.push({ Str: "a" });
+            store.push({ Str: "b" });
+            store.push({ Str: "c" });
+            store.push({ Str: "d" });
+            store.push({ Str: "e" });
+            store[0].$addJoin("joinTest", 1, 5);
+            store[0].$addJoin("joinTest", 2, 6);
+            store[0].$addJoin("joinTest", 3, 7);
+            store[0].$addJoin("joinTest", 4, 1);
+
+            assert.equal(aggr.saveJson().val, 0);
+            filt.onAdd(store[0].joinTest[0]);
+            assert.equal(aggr.saveJson().val, 1);
+            filt.onAdd(store[0].joinTest[1]);
+            assert.equal(aggr.saveJson().val, 2);
+            filt.onAdd(store[0].joinTest[2]);
+            assert.equal(aggr.saveJson().val, 2);
+            filt.onAdd(store[0].joinTest[3]);
+            assert.equal(aggr.saveJson().val, 2);
+            done();
+        });
+    });
+
+    describe('Record index join record id range filter', function () {
+        it('should filter records by joined records id range', function (done) {
+            var aggr = new qm.StreamAggr(base, new JsAggr);
+            // at least one record in index join must have Id between minVal and maxVal
+            var filt = store.addStreamAggr({
+                type: 'recordFilterAggr',
+                aggr: aggr.name,
+                filter: {
+                    type: "indexJoin",
+                    store: "RecordTest",
+                    join: "joinTest",
+                    minRecId: 2,
+                    maxRecId: 3
+                }
+            });
+
+            store.push({ Str: "a" }, false);
+            store.push({ Str: "b" }, false);
+            store.push({ Str: "c" }, false);
+            store.push({ Str: "d" }, false);
+            store.push({ Str: "e" }, false);
+            // store[0] OK
+            store[0].$addJoin("joinTest", 1);
+            store[0].$addJoin("joinTest", 2);
+            store[0].$addJoin("joinTest", 3);
+            store[0].$addJoin("joinTest", 4);
+            // store[1] NOT OK
+            store[1].$addJoin("joinTest", 0);
+            store[1].$addJoin("joinTest", 1);
+            // store[2] OK
+            store[2].$addJoin("joinTest", 3);
+            // store[3] NOT OK
+            store[3].$addJoin("joinTest", 4);
+
+            assert.equal(aggr.saveJson().val, 0);
+            filt.onAdd(store[0]);
+            assert.equal(aggr.saveJson().val, 1);
+            filt.onAdd(store[1]);
+            assert.equal(aggr.saveJson().val, 1);
+            filt.onAdd(store[2]);
+            assert.equal(aggr.saveJson().val, 2);
+            filt.onAdd(store[3]);
+            assert.equal(aggr.saveJson().val, 2);
+            filt.onAdd(store[4]);
+            assert.equal(aggr.saveJson().val, 2);
+
+            done();
+        });
+    });
 
 
 });
