@@ -1544,7 +1544,7 @@ public:
 class TRecFilterByFieldStr : public TRecFilterByField {
 private:
     /// String value
-    const TStr& StrVal;
+    const TStr StrVal;
     
 public:
     /// Constructor

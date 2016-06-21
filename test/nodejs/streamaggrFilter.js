@@ -110,13 +110,8 @@ describe('Stream aggregate filter', function () {
         });
     });
 
-
-    function fufi(arrVal) {
-        console.log(arrVal);
-    }
-
     var fields = ["UCh", "Int", "Int16", "Int64", "UInt", "UInt16", "UInt64", "Flt", "SFlt", "Tm"];
-    describe('Field range filters', function () {
+    describe('Numeric field range filters', function () {
         async.each(fields, function (field, callback) {
             it('should filter ' + field + ' fields outside 5 and 6', function (done) {
                 var aggr = new qm.StreamAggr(base, new JsAggr);
@@ -176,4 +171,45 @@ describe('Stream aggregate filter', function () {
             callback();
         });
     });
+
+    describe('Bool field filter', function () {
+        it('should filter Bool fields that are true', function (done) {
+            var aggr = new qm.StreamAggr(base, new JsAggr);
+
+            var filt = store.addStreamAggr({
+                type: 'recordFilterAggr',
+                aggr: aggr.name,
+                filter: {
+                    type: "field",
+                    store: "RecordTest",
+                    field: "Bool",
+                    value: true
+                }
+            });
+            assertUpdateSequence("Bool", [true, true, false, false], [1, 2, 2, 2], store, aggr);
+            done();
+        });
+    });
+
+    describe('String field filter', function () {
+        it('should filter string fields by value', function (done) {
+            var aggr = new qm.StreamAggr(base, new JsAggr);
+
+            var filt = store.addStreamAggr({
+                type: 'recordFilterAggr',
+                aggr: aggr.name,
+                filter: {
+                    type: "field",
+                    store: "RecordTest",
+                    field: "Str",
+                    value: "tesi"
+                }
+            });
+            assertUpdateSequence("Str", ["tesi", "tesi", "notTesi", "TESI"], [1, 2, 2, 2], store, aggr);
+            done();
+        });
+    });
+
+
+
 });
