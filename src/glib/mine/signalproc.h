@@ -142,6 +142,11 @@ private:
     TVec<TIntFltKd> Sum;
     /// Timestamp of current MA
     TUInt64 TmMSecs;
+
+    /// Add new value to the sum
+    void AddVal(const TIntFltKdV& SpV);
+    /// Delete old value from the sum
+    void DelVal(const TIntFltKdV& SpV);
     
 public:
     /// Simple constructor
@@ -154,7 +159,7 @@ public:
     /// Loading from binary stream
     void Load(TSIn& SIn);
     /// Saving to binary stream
-    void Save(TSOut& SOut) const; 
+    void Save(TSOut& SOut) const;
 
     /// Checks if this sum received any data yet
     bool IsInit() const { return (TmMSecs > 0); } 

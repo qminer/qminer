@@ -52,8 +52,6 @@ void TNodeJsStreamAggr::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "getTimestampLength", _getTimestampLength);
     NODE_SET_PROTOTYPE_METHOD(tpl, "getTimestampAt", _getTimestampAt);
     NODE_SET_PROTOTYPE_METHOD(tpl, "getTimestampVector", _getTimestampVector);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "getInFloat", _getInFloat);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "getInTimestamp", _getInTimestamp); // multiple interfaces
     NODE_SET_PROTOTYPE_METHOD(tpl, "getInFloatVector", _getInFloatVector);
     NODE_SET_PROTOTYPE_METHOD(tpl, "getInTimestampVector", _getInTimestampVector); // multiple interfaces
     NODE_SET_PROTOTYPE_METHOD(tpl, "getOutFloatVector", _getOutFloatVector);

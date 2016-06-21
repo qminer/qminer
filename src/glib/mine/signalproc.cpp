@@ -132,6 +132,18 @@ void TSum::Update(const TFltV& InValV, const TUInt64V& InTmMSecsV, const TFltV& 
 
 /////////////////////////////////////////////////
 // Online Sum of sparse vectors
+void TSumSpVec::AddVal(const TIntFltKdV& SpV) {
+    TIntFltKdV NewSum;
+    TLinAlg::LinComb(1, Sum, 1, SpV, NewSum);
+    Sum = NewSum;    
+}
+
+void TSumSpVec::DelVal(const TIntFltKdV& SpV) {
+    TIntFltKdV NewSum;
+    TLinAlg::LinComb(1, Sum, -1, SpV, NewSum);
+    Sum = NewSum;        
+}
+
 void TSumSpVec::Load(TSIn& SIn) {
     *this = TSumSpVec(SIn);
 }
@@ -145,20 +157,28 @@ void TSumSpVec::Update(const TVec<TIntFltKd>& InVal, const uint64& InTmMSecs,
         const TVec<TIntFltKdV>& OutValV, const TUInt64V& OutTmMSecsV) {
 
     // remove old values from the sum
-    TIntFltKdV Tmp;
-    for (int i = 0; i < OutValV.Len(); i++) {
-        TLinAlg::LinComb(1, Sum, -1, OutValV[i], Tmp);
-        Sum = Tmp;
+    for (const TIntFltKdV& OutSpV: OutValV) {
+        DelVal(OutSpV);
     }
-    TLinAlg::LinComb(1, Sum, 1, InVal, Tmp);
-    Sum = Tmp;
+    // add new values to the sum
+    AddVal(InVal);
+    // update timestamp
     TmMSecs = InTmMSecs;
 }
 
 void TSumSpVec::Update(const TVec<TIntFltKdV>& InValV, const TUInt64V& InTmMSecsV,
         const TVec<TIntFltKdV>& OutValV, const TUInt64V& OutTmMSecs) {
-    
-    throw  TExcept::New("TSignalProc::TSumSpVec, delayed Update not implemented");
+
+    // remove old values from the sum
+    for (const TIntFltKdV& OutSpV: OutValV) {
+        DelVal(OutSpV);
+    }
+    // add new values to the sum
+    for (const TIntFltKdV& InSpV: InValV) {
+        AddVal(InSpV);
+    }
+    // update timestamp
+    TmMSecs = InTmMSecsV.Last();
 }
 
 PJsonVal TSumSpVec::GetJson() const {
