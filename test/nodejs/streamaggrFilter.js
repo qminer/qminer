@@ -8,6 +8,29 @@
 
 var assert = require('../../src/nodejs/scripts/assert.js');
 var qm = require('qminer');
+var async = require('async');
+
+function assertUpdateSequence(recField, recValArr, updatesArr, store, aggr) {
+    var recJsonArr = [];
+    for (var i in recValArr) {
+        var recJson = {};
+        recJson[recField] = recValArr[i];
+        recJsonArr.push(recJson);
+    }
+    assert.equal(aggr.saveJson().val, 0); // should be 0 at start!
+    for (var i in recJsonArr) {
+        store.push(recJsonArr[i]);
+        assert.equal(aggr.saveJson().val, updatesArr[i]);
+    }    
+}
+
+function JsAggr() {
+    var updates = 0;
+    this.name = 'simple';
+    this.onAdd = function (rec) { updates++; }
+    this.saveJson = function (limit) { return { val: updates }; }
+}
+
 
 describe('Stream aggregate filter', function () {
     var base = undefined;
@@ -39,126 +62,118 @@ describe('Stream aggregate filter', function () {
         base.close();
     });
 
-    describe('Filter for integer field', function () {
-
+    describe('Constructor test', function () {
         it('should should throw exception', function () {
-            var aggr = new qm.StreamAggr(base, {
-                type: "timeSeriesTick",
-                store: "RecordTest",
-                timestamp: "Tm",
-                value: "Int"
-            });
-            assert.throws(function () {
-                store.addStreamAggr({
-                    type: "recordFilterAggr", aggr: aggr.name,
-                    filter: { type: 'tralala' }
-                });
-            });
-            assert.throws(function () {
-                store.addStreamAggr({
-                    type: "recordFilterAggr", aggr: aggr.name,
-                    filter: { type: "field", field: "Int" }
-                });
-            });
-            assert.throws(function () {
-                store.addStreamAggr({
-                    type: "recordFilterAggr", aggr: aggr.name,
-                    filter: { type: "field", store: "RecordTest" }
-                });
-            });
-            assert.throws(function () {
-                store.addStreamAggr({
-                    type: "recordFilterAggr", aggr: aggr.name,
-                    filter: { type: "field", store: "RecordTest", field: "Int" }
-                });
-            });
-        });
-        
-        it('should filter integer fields outside 5 and 6', function () {
-            var aggr = new qm.StreamAggr(base, {
-                type: "timeSeriesTick",
-                store: "RecordTest",
-                timestamp: "Tm",
-                value: "Int"
-            });
-            var filt = store.addStreamAggr({
-                type: 'recordFilterAggr',
-                aggr: aggr.name,
-                filter: {
-                    type: "field",
-                    store: "RecordTest",
-                    field: "Int",
-                    minValue: 5,
-                    maxValue: 6
+            var aggr = new qm.StreamAggr(base, new function () {
+                var updates = 0;
+                this.name = 'simple';
+                this.onAdd = function (rec) {
+                    updates++;
                 }
-            });
-
-            store.push({ Int: 5 });
-            assert.equal(aggr.getFloat(), 5);
-            store.push({ Int: 6 });
-            assert.equal(aggr.getFloat(), 6);
-            store.push({ Int: 7 }); // no update
-            assert.equal(aggr.getFloat(), 6);
-            store.push({ Int: 1 }); // no update
-            assert.equal(aggr.getFloat(), 6);
-        });
-
-        it('should filter integer fields below 5', function () {
-            var aggr = new qm.StreamAggr(base, {
-                type: "timeSeriesTick",
-                store: "RecordTest",
-                timestamp: "Tm",
-                value: "Int"
-            });
-            var filt = store.addStreamAggr({
-                type: 'recordFilterAggr',
-                aggr: aggr.name,
-                filter: {
-                    type: "field",
-                    store: "RecordTest",
-                    field: "Int",
-                    minValue: 5,
+                this.saveJson = function (limit) {
+                    return { val: updates };
                 }
-            });
+            });  
 
-            store.push({ Int: 5 });
-            assert.equal(aggr.getFloat(), 5);
-            store.push({ Int: 6 });
-            assert.equal(aggr.getFloat(), 6);
-            store.push({ Int: 7 });
-            assert.equal(aggr.getFloat(), 7);
-            store.push({ Int: 1 }); // no update
-            assert.equal(aggr.getFloat(), 7);
+            var OKInput = [{ type: "recordFilterAggr", aggr: aggr.name, filter: { type: "trivial" } }];
+            OKInput.push({ type: "recordFilterAggr", aggr: aggr.name, filter: { type: "field", store: "RecordTest", field: "Int", minValue: 5 } });
+            // missing fields
+            var BADInput = [{ type: "recordFilterAggr", filter: { type: "field", store: "RecordTest", field: "Int", minValue: 5 } }];
+            BADInput.push({ type: "recordFilterAggr", aggr: aggr.name });
+            BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filter: { store: "RecordTest", field: "Int", minValue: 5 } });
+            BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filter: { type: "field", field: "Int", minValue: 5 } });
+            BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filter: { type: "field", store: "RecordTest", minValue: 5 } });
+            BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filter: { type: "field", store: "RecordTest", field: "Int" } });
+            // bad fields
+            BADInput.push({ type: "recordFilterAggr", aggr: "lala", filter: { type: "field", store: "RecordTest", field: "Int", minValue: 5 } });
+            BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filter: { type: "lala", store: "RecordTest", field: "Int", minValue: 5 } });
+            BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filter: { type: "field", store: "lala", field: "Int", minValue: 5 } });
+            BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filter: { type: "field", store: "RecordTest", field: "lala", minValue: 5 } });
+            BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filter: { type: "field", store: "RecordTest", field: "Int", minValue: "lala" } });
+            // null fields
+            BADInput.push({ type: "recordFilterAggr", aggr: null, filter: { type: "field", store: "RecordTest", field: "Int", minValue: 5 } });
+            BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filter: { type: null, store: "RecordTest", field: "Int", minValue: 5 } });
+            BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filter: { type: "field", store: null, field: "Int", minValue: 5 } });
+            BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filter: { type: "field", store: "RecordTest", field: null, minValue: 5 } });
+            BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filter: { type: "field", store: "RecordTest", field: "Int", minValue: null } });
+            
+            for (key in OKInput) {
+                assert.doesNotThrow(function () {
+                    store.addStreamAggr(OKInput[key]);
+                });
+            }
+            for (key in BADInput) {
+                assert.throws(function () {
+                    store.addStreamAggr(BADInput[key]);
+                });
+            }
         });
-
-        it('should filter integer fields above 6', function () {
-            var aggr = new qm.StreamAggr(base, {
-                type: "timeSeriesTick",
-                store: "RecordTest",
-                timestamp: "Tm",
-                value: "Int"
-            });
-            var filt = store.addStreamAggr({
-                type: 'recordFilterAggr',
-                aggr: aggr.name,
-                filter: {
-                    type: "field",
-                    store: "RecordTest",
-                    field: "Int",
-                    maxValue: 6,
-                }
-            });
-
-            store.push({ Int: 5 });
-            assert.equal(aggr.getFloat(), 5);
-            store.push({ Int: 6 });
-            assert.equal(aggr.getFloat(), 6);
-            store.push({ Int: 7 }); // no update
-            assert.equal(aggr.getFloat(), 6);
-            store.push({ Int: 1 }); 
-            assert.equal(aggr.getFloat(), 1);
-        });
-        
     });
 
+
+    function fufi(arrVal) {
+        console.log(arrVal);
+    }
+
+    var fields = ["UCh", "Int", "Int16", "Int64", "UInt", "UInt16", "UInt64", "Flt", "SFlt", "Tm"];
+    describe('Field range filters', function () {
+        async.each(fields, function (field, callback) {
+            it('should filter ' + field + ' fields outside 5 and 6', function (done) {
+                var aggr = new qm.StreamAggr(base, new JsAggr);
+
+                var filt = store.addStreamAggr({
+                    type: 'recordFilterAggr',
+                    aggr: aggr.name,
+                    filter: {
+                        type: "field",
+                        store: "RecordTest",
+                        field: field,
+                        minValue: 5,
+                        maxValue: 6
+                    }
+                });
+                assertUpdateSequence(field, [5, 6, 7, 1], [1, 2, 2, 2], store, aggr);
+                done();
+            });
+            callback();
+        });
+        async.each(fields, function (field, callback) {
+            it('should filter ' + field + ' fields below 5', function (done) {
+                var aggr = new qm.StreamAggr(base, new JsAggr);
+
+                var filt = store.addStreamAggr({
+                    type: 'recordFilterAggr',
+                    aggr: aggr.name,
+                    filter: {
+                        type: "field",
+                        store: "RecordTest",
+                        field: field,
+                        minValue: 5
+                    }
+                });
+                assertUpdateSequence(field, [5, 6, 7, 1], [1, 2, 3, 3], store, aggr);
+                done();
+            });
+            callback();
+        });
+        async.each(fields, function (field, callback) {
+            it('should filter ' + field + ' fields above 6', function (done) {
+                var aggr = new qm.StreamAggr(base, new JsAggr);
+
+                var filt = store.addStreamAggr({
+                    type: 'recordFilterAggr',
+                    aggr: aggr.name,
+                    filter: {
+                        type: "field",
+                        store: "RecordTest",
+                        field: field,
+                        maxValue: 6
+                    }
+                });
+                assertUpdateSequence(field, [5, 6, 7, 1], [1, 2, 2, 3], store, aggr);
+                done();
+            });
+            callback();
+        });
+    });
 });

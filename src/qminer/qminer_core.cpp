@@ -2355,6 +2355,7 @@ bool TRecCmpByFieldTm::operator()(const TUInt64IntKd& RecIdFq1, const TUInt64Int
 TFunRouter<PRecFilter, TRecFilter::TNewF> TRecFilter::NewRouter;
 
 void TRecFilter::Init() {
+    Register<TRecFilter>();
     Register<TRecFilterSubsampler>();
     Register<TRecFilterByExists>();
     Register<TRecFilterByRecId>();
@@ -2521,8 +2522,8 @@ PRecFilter TRecFilterByField::New(const TWPt<TBase>& Base, const PJsonVal& Param
         TStrV StrV; ParamVal->GetObjStrV("set", StrV);
         return new TRecFilterByFieldStrSet(Base, FieldId, TStrSet(StrV));
     } else if (FieldDesc.IsTm() && Type == rfRange) {
-        const uint64 MinVal = ParamVal->GetObjUInt64("minValue", TUInt64::Mn);
-        const uint64 MaxVal = ParamVal->GetObjUInt64("maxValue", TUInt64::Mx);
+        const uint64 MinVal = TTm::GetWinMSecsFromUnixMSecs(ParamVal->GetObjUInt64("minValue", TUInt64::Mn));
+        const uint64 MaxVal = TTm::GetWinMSecsFromUnixMSecs(ParamVal->GetObjUInt64("maxValue", uint64(TUInt64::Mx - 11644473600000LL)));
         return new TRecFilterByFieldTm(Base, FieldId, MinVal, MaxVal);        
     }
     // if not supported, throw exception

@@ -285,15 +285,20 @@ void TJsonVal::GetObjStrV(const char *Key, TStrV& StrV) const {
     GetObjKey(Key)->GetArrStrV(StrV);
 }
 
+void TJsonVal::AssertObjKey(const TStr& Key, const TStr& Fun) {
+    // missing key or key not string
+    if (!IsObjKey(Key)) { throw TExcept::New("Exception in function `" + Fun + "`: missing JSON property:`" + Key + "`."); }
+}
+
 void TJsonVal::AssertObjKeyStr(const TStr& Key, const TStr& Fun) {
 	// missing key or key not string
-	if (!IsObjKey(Key)) { throw TExcept::New("Exception in function `" + Fun + "`: missing JSON property:`" + Key + "`."); }
+    AssertObjKey(Key, Fun);
 	if (!GetObjKey(Key)->IsStr()) { throw TExcept::New("Exception in function `" + Fun + "`: JSON property:`" + Key + "` is not a string."); }
 }
 
 void TJsonVal::AssertObjKeyNum(const TStr& Key, const TStr& Fun) {
 	// missing key or key not string
-	if (!IsObjKey(Key)) { throw TExcept::New("Exception in function `" + Fun + "`: missing JSON property:`" + Key + "`."); }
+    AssertObjKey(Key, Fun);
 	if (!GetObjKey(Key)->IsNum()) { throw TExcept::New("Exception in function `" + Fun + "`: JSON property:`" + Key + "` is not a number."); }
 }
 

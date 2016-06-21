@@ -1187,13 +1187,13 @@ private:
     // smart-pointer
     TCRef CRef;
     friend class TPt<TRecFilter>;
-    
+
 private:
     /// New constructor delegate
     typedef PRecFilter(*TNewF)(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
     /// Filter New constructor router
     static TFunRouter<PRecFilter, TNewF> NewRouter;
-    
+
 public:
     /// Register default record filters
     static void Init();
@@ -1217,14 +1217,17 @@ public:
     static PRecFilter New(const TWPt<TBase>& Base);
     /// Create new record filter.
     static PRecFilter New(const TWPt<TBase>& Base, const TStr& TypeNm, const PJsonVal& ParamVal);
+    static PRecFilter New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) { return new TRecFilter(Base); }
     /// Destructor
     virtual ~TRecFilter() { }
 
     /// Calls the filter, default keeps all records
     virtual bool Filter(const TRec& Rec) const { return true; }
 
+    /// Filter type name
+    static TStr GetType() { return "trivial"; }
     /// Filter type name 
-    virtual TStr Type() const { return "trivial"; }    
+    virtual TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
