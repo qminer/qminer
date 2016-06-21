@@ -210,6 +210,45 @@ describe('Stream aggregate filter', function () {
         });
     });
 
+    describe('String range filter', function () {
+        it('should filter string fields by range', function (done) {
+            var aggr = new qm.StreamAggr(base, new JsAggr);
+
+            var filt = store.addStreamAggr({
+                type: 'recordFilterAggr',
+                aggr: aggr.name,
+                filter: {
+                    type: "field",
+                    store: "RecordTest",
+                    field: "Str",
+                    minValue: "tesia",
+                    maxValue: "tesic"
+                }
+            });
+            assertUpdateSequence("Str", ["tesia", "tesib", "tesid", "tesi"], [1, 2, 2, 2], store, aggr);
+            done();
+        });
+    });
+
+    describe('String set filter', function () {
+        it('should filter string fields by using a set', function (done) {
+            var aggr = new qm.StreamAggr(base, new JsAggr);
+
+            var filt = store.addStreamAggr({
+                type: 'recordFilterAggr',
+                aggr: aggr.name,
+                filter: {
+                    type: "field",
+                    store: "RecordTest",
+                    field: "Str",
+                    set: ["tesi", "test"]
+                }
+            });
+            assertUpdateSequence("Str", ["tesi", "test", "tesid", "tesii"], [1, 2, 2, 2], store, aggr);
+            done();
+        });
+    });
+
 
 
 });

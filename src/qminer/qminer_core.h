@@ -1558,9 +1558,9 @@ public:
 class TRecFilterByFieldStrRange : public TRecFilterByField {
 private:
     /// String value - min
-    const TStr& StrValMin;
+    const TStr StrValMin;
     /// String value - max
-    const TStr& StrValMax;
+    const TStr StrValMax;
     
 public:
     /// Constructor
