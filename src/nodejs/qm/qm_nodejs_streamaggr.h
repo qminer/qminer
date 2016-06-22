@@ -169,16 +169,16 @@
 * });
 * 
 * var store = base.store("Heat");
-* var winbuf = store.addStreamAggr({
-*     type: 'timeSeriesWinBuf',
+* var tick = store.addStreamAggr({
+*     type: 'timeSeriesTick',
 *     timestamp: 'Time',
-*     value: 'Celsius',
-*     winsize: 2000
+*     value: 'Celsius'
 * });
 * 
 * var winbufvec = store.addStreamAggr({
 *     type: 'timeSeriesWinBufVector',
-*     inAggr: winbuf.name
+*     inAggr: tick.name,
+*     winsize: 2000
 * });
 * 
 * store.push({ Time: '2015-06-10T14:13:32.0', Celsius: 1 });
