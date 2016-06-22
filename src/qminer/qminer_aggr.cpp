@@ -1851,11 +1851,25 @@ void TSimpleLinReg::Reset() {
     }
 }
 
+void TRecFilterAggr::OnAddRec(const TRec& Rec) {
+    // the record should pass all filter tests
+    for (const PRecFilter& Filter : FilterV) {
+        if (!Filter->Filter(Rec)) { return; }
+    }
+    Aggr->OnAddRec(Rec);
+}
+
+
 TRecFilterAggr::TRecFilterAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal) {
-    // filter
-    ParamVal->AssertObjKey("filter", __FUNCTION__);
-    PJsonVal Val = ParamVal->GetObjKey("filter");
-    Filter = TRecFilter::New(Base, Val->GetObjStr("type"), Val);
+    // single filter
+    ParamVal->AssertObjKey("filters", __FUNCTION__);
+    PJsonVal Arr = ParamVal->GetObjKey("filters");
+    QmAssertR(Arr->IsArr(), "TRecFilterAggr expects an array of filter parameters for key `filters`");
+    FilterV.Gen(Arr->GetArrVals(), 0);
+    for (int FiltN = 0; FiltN < Arr->GetArrVals(); FiltN++) {
+        PJsonVal Val = Arr->GetArrVal(FiltN);
+        FilterV.Add(TRecFilter::New(Base, Val->GetObjStr("type"), Val));
+    }    
     // parse out input aggregate
     Aggr = ParseAggr(ParamVal, "aggr");
 }

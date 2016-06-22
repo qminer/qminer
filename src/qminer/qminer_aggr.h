@@ -1626,11 +1626,11 @@ private:
     /// Aggregate that will be called if the record passes the filter
     TWPt<TStreamAggr> Aggr;
     /// Decides if a record should be processed (useful on a stream to improve performance)
-    PRecFilter Filter;
+    TVec<PRecFilter> FilterV;
     
 protected:
     /// Passes the record to Aggr
-    void OnAddRec(const TRec& Rec) { if (Filter->Filter(Rec)) { Aggr->OnAddRec(Rec); } }
+    void OnAddRec(const TRec& Rec);
     /// Passes the call to Aggr
     void OnTime(const uint64& TmMsec) { Aggr->OnTime(TmMsec); }
     /// Passes the call to Aggr
