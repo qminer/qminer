@@ -169,26 +169,26 @@
 * });
 * 
 * var store = base.store("Heat");
-* var winbuf = store.addStreamAggr({
-*     type: 'timeSeriesWinBuf',
+* var tick = store.addStreamAggr({
+*     type: 'timeSeriesTick',
 *     timestamp: 'Time',
-*     value: 'Celsius',
-*     winsize: 2000
+*     value: 'Celsius'
 * });
 * 
 * var winbufvec = store.addStreamAggr({
 *     type: 'timeSeriesWinBufVector',
-*     inAggr: winbuf.name
+*     inAggr: tick.name,
+*     winsize: 2000
 * });
 * 
 * store.push({ Time: '2015-06-10T14:13:32.0', Celsius: 1 });
-* winbuf.getFloatVector().print(); // prints 1
+* winbufvec.getFloatVector().print(); // prints 1
 * store.push({ Time: '2015-06-10T14:33:30.0', Celsius: 2 });
-* winbuf.getFloatVector().print(); // prints 2
+* winbufvec.getFloatVector().print(); // prints 2
 * store.push({ Time: '2015-06-10T14:33:31.0', Celsius: 3 });
-* winbuf.getFloatVector().print(); // prints 2,3
+* winbufvec.getFloatVector().print(); // prints 2,3
 * store.push({ Time: '2015-06-10T14:33:32.0', Celsius: 4 });
-* winbuf.getFloatVector().print(); // prints 2,3,4
+* winbufvec.getFloatVector().print(); // prints 2,3,4
 * 
 * base.close();
 */
@@ -1777,86 +1777,6 @@ public:
     JsDeclareFunction(getTimestampVector);
     
     /**
-    * Gets the value of the newest record added to the stream aggregator.
-    * @returns {number} The value of the newest record in the buffer.
-    * @example
-    * // import qm module
-    * var qm = require('qminer');
-    * // create a simple base containing one store
-    * var base = new qm.Base({
-    *    mode: 'createClean',
-    *    schema: [{
-    *        name: 'Marathon',
-    *        fields: [
-    *            { name: 'Runner', type: 'string' },
-    *            { name: 'Speed', type: 'float' },
-    *            { name: 'Time', type: 'datetime' }
-    *        ]
-    *    }]
-    * });
-    * // create a time series stream aggregator that gets the values from the 'Speed' field
-    * // and the timestamp from the 'Time' field. The window size should be 10 minutes.
-    * var ts = {
-    *    name: 'Sensor',
-    *    type: 'timeSeriesWinBuf',
-    *    store: 'Marathon',
-    *    timestamp: 'Time',
-    *    value: 'Speed',
-    *    winsize: 600000
-    * };
-    * var sensor = base.store('Marathon').addStreamAggr(ts);
-    * // add some records to the store
-    * base.store('Marathon').push({ Runner: 'Marko Primozic', Speed: 13.4, Time: '2015-07-21T20:23:13.0' });
-    * base.store('Marathon').push({ Runner: 'Leonard Cohen', Speed: 14.1, Time: '2015-07-21T20:24:01.0' });
-    * base.store('Marathon').push({ Runner: 'Coco Chanelle', Speed: 13.7, Time: '2015-07-21T20:24:27.0' });
-    * // get the last value that got in the buffer
-    * var last = sensor.getInFloat(); // returns 13.7
-    * base.close();
-    */
-    //# exports.StreamAggr.prototype.getInFloat = function () { return 0; };
-    JsDeclareFunction(getInFloat);
-
-    /**
-    * Gets the timestamp of the newest record added to the stream aggregator.
-    * @returns {number} The timestamp given as the number of miliseconds since 01.01.1601, time: 00:00:00.0.
-    * @example
-    * // import qm module
-    * var qm = require('qminer');
-    * // create a simple base containing one store
-    * var base = new qm.Base({
-    *    mode: 'createClean',
-    *    schema: [{
-    *        name: 'F1',
-    *        fields: [
-    *            { name: 'Driver', type: 'string' },
-    *            { name: 'Speed', type: 'float' },
-    *            { name: 'Time', type: 'datetime' }
-    *        ]
-    *    }]
-    * });
-    * // create a time series stream aggregator that gets the values from the 'Speed' field
-    * // and the timestamp from the 'Time' field. The window size should be 5 minutes.
-    * var ts = {
-    *    name: 'Sensor',
-    *    type: 'timeSeriesWinBuf',
-    *    store: 'F1',
-    *    timestamp: 'Time',
-    *    value: 'Speed',
-    *    winsize: 300000
-    * };
-    * var sensor = base.store('F1').addStreamAggr(ts);
-    * // add some records to the store
-    * base.store('F1').push({ Driver: 'Sebastian Vettel', Speed: 203.4, Time: '2015-07-19T09:32:01.0' });
-    * base.store('F1').push({ Driver: 'Thomas "Tommy" Angelo', Speed: 152.8, Time: '2015-07-19T09:35:23.0' });
-    * base.store('F1').push({ Driver: 'Mark Ham', Speed: 189.5, Time: '2015-07-19T09:38:43.0' });
-    * // get the last timestamp that was added in the window buffer
-    * var time = sensor.getInTimestamp(); // returns 13081772323000
-    * base.close();
-    */
-    //# exports.StreamAggr.prototype.getInTimestamp = function () { return 0; };
-    JsDeclareFunction(getInTimestamp);
-
-    /**
     * Gets a vector containing the values that are entering the stream aggregator.
     * @returns {module:la.Vector} The vector containing the values that are entering the buffer.
     * @example
@@ -2135,8 +2055,6 @@ private:
     // ITm 
     v8::Persistent<v8::Function> GetTmMSecsFun;
     // IFltTmIO 
-    v8::Persistent<v8::Function> GetInFltFun;
-    v8::Persistent<v8::Function> GetInTmMSecsFun;
     v8::Persistent<v8::Function> GetInFltVFun;
     v8::Persistent<v8::Function> GetInTmMSecsVFun;
     v8::Persistent<v8::Function> GetOutFltVFun;
@@ -2195,8 +2113,6 @@ public:
     uint64 GetTmMSecs() const;
     
     // IFltTmIO 
-    TFlt GetInVal() const;
-    uint64 GetInTmMSecs() const;
     bool DelayedP() const;
     // incomming
     void GetInValV(TFltV& ValV) const;

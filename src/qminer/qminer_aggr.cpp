@@ -597,7 +597,7 @@ TTimeSeriesTick::TTimeSeriesTick(const TWPt<TBase>& Base, const PJsonVal& ParamV
     TimeFieldId = Store->GetFieldId(TimeFieldNm);
     // get numeric field
     TStr TickValFieldNm = ParamVal->GetObjStr("value");
-    TickValFieldId = Store->GetFieldId(TickValFieldNm);
+    const int TickValFieldId = Store->GetFieldId(TickValFieldNm);
     // initialize reader for getting numeric value
     ValReader = TFieldReader(Store->GetStoreId(), TickValFieldId, Store->GetFieldDesc(TickValFieldId));
     // make sure parameters make sense
@@ -629,6 +629,22 @@ PJsonVal TTimeSeriesTick::SaveJson(const int& Limit) const {
 }
 
 ///////////////////////////////
+// Numberic circular buffer
+TWinBufFltV::TWinBufFltV(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TWinBufMem<TFlt>(Base, ParamVal) {
+    InAggrVal = Cast<TStreamAggrOut::IFlt>(GetInAggr());
+}
+
+PStreamAggr TWinBufFltV::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+    return new TWinBufFltV(Base, ParamVal);
+}
+
+// serialization to JSon
+PJsonVal TWinBufFltV::SaveJson(const int& Limit) const {
+    TFltV FltV; GetValV(FltV);
+    return TJsonVal::NewArr(FltV);
+}
+
+///////////////////////////////
 /// Time series window buffer with dense vector per record.
 TFlt TWinBufFlt::GetRecVal(const uint64& RecId) const {
     return ValReader.GetFlt(TRec(Store, RecId));
@@ -644,11 +660,17 @@ TWinBufFlt::TWinBufFlt(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TWin
 }
 
 PJsonVal TWinBufFlt::SaveJson(const int& Limit) const {
-    // TODO change the returned object so that it reflects state
-    PJsonVal Val = TJsonVal::NewObj();
-    Val->AddToObj("Val", GetInVal());
-    Val->AddToObj("Time", TTm::GetTmFromMSecs(GetInTmMSecs()).GetWebLogDateTimeStr(true, "T"));
-    return Val;
+    PJsonVal JsonVal = TJsonVal::NewObj();
+    const int Vals = GetVals();
+    if (GetVals() > 0) {
+        // read last value
+        TFlt Flt; GetVal(Vals - 1, Flt);
+        const uint64 TmMSecs = GetTm(Vals - 1);
+        // save last value
+        JsonVal->AddToObj("Val", Flt);
+        JsonVal->AddToObj("Time", TTm::GetTmFromMSecs(TmMSecs).GetWebLogDateTimeStr(true, "T"));
+    }
+    return JsonVal;
 }
 
 ///////////////////////////////
@@ -678,36 +700,6 @@ void TWinBufFtrSpVec::LoadState(TSIn& SIn) {
 void TWinBufFtrSpVec::SaveState(TSOut& SOut) const {
     TWinBuf<TIntFltKdV>::SaveState(SOut);
     FtrSpace->Save(SOut);
-}
-
-///////////////////////////////
-// Numberic circular buffer
-void TWinBufFltV::OnStep() {
-    TFltV OutValV; InAggrVal->GetOutValV(OutValV);
-    if (InAggr->IsInit()) {
-        for (int ElN = 0; ElN < OutValV.Len(); ElN++) {
-            Queue.Pop();
-        }
-        if (!InAggrVal->DelayedP()) {
-            Queue.Push(InAggrVal->GetInVal());
-        } else {
-            TFltV InValV; InAggrVal->GetInValV(InValV);
-            for (int ElN = 0; ElN < InValV.Len(); ElN++) {
-                Queue.PushV(InValV);
-            }
-        }
-    }
-}
-
-TWinBufFltV::TWinBufFltV(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal) {
-    InAggr = ParseAggr(ParamVal, "inAggr");
-    InAggrVal = Cast<TStreamAggrOut::IFltTmIO>(InAggr);
-}
-
-// serialization to JSon
-PJsonVal TWinBufFltV::SaveJson(const int& Limit) const {
-    TFltV Vec; Queue.GetSubValVec(0, Queue.Len() - 1, Vec);
-    return TJsonVal::NewArr(Vec);
 }
 
 ///////////////////////////////
@@ -828,20 +820,32 @@ PJsonVal TThresholdAggr::SaveJson(const int& Limit) const {
 ///////////////////////////////
 // Moving Covariance
 void TCov::OnStep() {
-    TFltV ValVX; InAggrValX->GetOutValV(ValVX);
-    TFltV ValVY; InAggrValY->GetOutValV(ValVY);
-    TUInt64V TmMSecsV; InAggrValX->GetOutTmMSecsV(TmMSecsV);
     if (InAggrX->IsInit() && InAggrY->IsInit()) {
-        Cov.Update(InAggrValX->GetInVal(), InAggrValY->GetInVal(),
-            InAggrValX->GetInTmMSecs(), ValVX, ValVY, TmMSecsV, InAggrValX->GetVals());
+        // new series
+        TFltV InValVX; InAggrValX->GetInValV(InValVX);
+        TFltV InValVY; InAggrValY->GetInValV(InValVY);
+        TUInt64V InTmMSecsV; InAggrValX->GetInTmMSecsV(InTmMSecsV);
+        // delete series
+        TFltV OutValVX; InAggrValX->GetOutValV(OutValVX);
+        TFltV OutValVY; InAggrValY->GetOutValV(OutValVY);
+        TUInt64V OutTmMSecsV; InAggrValX->GetOutTmMSecsV(OutTmMSecsV);
+        Cov.Update(InValVX, InValVY, InTmMSecsV, OutValVX, OutValVY, OutTmMSecsV);
     }
 }
 
-TCov::TCov(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal), Cov(ParamVal) {
+TCov::TCov(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal) {
     InAggrX = ParseAggr(ParamVal, "inAggrX");
     InAggrValX = Cast<TStreamAggrOut::IFltTmIO>(InAggrX);
     InAggrY = ParseAggr(ParamVal, "inAggrY");
     InAggrValY = Cast<TStreamAggrOut::IFltTmIO>(InAggrY);
+}
+
+void TCov::LoadState(TSIn& SIn) {
+    Cov.Load(SIn);
+}
+
+void TCov::SaveState(TSOut& SOut) const {
+    Cov.Save(SOut);
 }
 
 PStreamAggr TCov::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
@@ -888,6 +892,16 @@ TCorr::TCorr(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Bas
 
 PStreamAggr TCorr::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
     return new TCorr(Base, ParamVal);
+}
+
+void TCorr::LoadState(TSIn& SIn) {
+    Corr.Load(SIn);
+    TmMSecs.Load(SIn);
+}
+
+void TCorr::SaveState(TSOut& SOut) const {
+    Corr.Save(SOut);
+    TmMSecs.Save(SOut);
 }
 
 bool TCorr::IsInit() const {
@@ -1666,19 +1680,26 @@ PJsonVal TChiSquare::SaveJson(const int& Limit) const {
 // TOnlineSlottedHistogram
 void TOnlineSlottedHistogram::OnStep() {
     if (BufferedP) {
-        LastTm = InAggrValBuffer->GetInTmMSecs();
-        Model.Add(InAggrValBuffer->GetInTmMSecs(), (int)InAggrValBuffer->GetInVal());
-        TFltV ForgetV;
-        TUInt64V ForgetTmV;
-        InAggrValBuffer->GetOutValV(ForgetV);
-        InAggrValBuffer->GetOutTmMSecsV(ForgetTmV);
-        for (int ElN = 0; ElN < ForgetV.Len(); ElN++) {
-            Model.Remove(ForgetTmV[ElN], (int)ForgetV[ElN]);
+        // add new values
+        TFltV InValV; InAggrValBuffer->GetInValV(InValV);
+        TUInt64V InTmMSecsV; InAggrValBuffer->GetInTmMSecsV(InTmMSecsV);
+        for (int ElN = 0; ElN < InValV.Len(); ElN++) {
+            Model.Add(InTmMSecsV[ElN], (int)InValV[ElN]);
+        }
+        // update time stamp
+        if (!InTmMSecsV.Empty()) { LastTm = InTmMSecsV.Last(); }
+        // remove old values
+        TFltV OutValV; InAggrValBuffer->GetOutValV(OutValV);
+        TUInt64V OutTmMSecsV; InAggrValBuffer->GetOutTmMSecsV(OutTmMSecsV);
+        for (int ElN = 0; ElN < OutValV.Len(); ElN++) {
+            Model.Remove(OutTmMSecsV[ElN], (int)OutValV[ElN]);
         }
     } else {
+        // just add new values to the aggregate
         LastTm = InAggrVal->GetTmMSecs();
         Model.Add(InAggrVal->GetTmMSecs(), (int)InAggrVal->GetFlt());
     }
+    // get current stats from the model
     Model.GetStats(LastTm - WndLen, LastTm, ValV);
 }
 
@@ -1691,7 +1712,7 @@ TOnlineSlottedHistogram::TOnlineSlottedHistogram(const TWPt<TBase>& Base, const 
     InAggrVal = Cast<TStreamAggrOut::IFltTm>(InAggr, false);
     // Cast the input as a time series stream aggregate as a time series buffer
     InAggrValBuffer = Cast<TStreamAggrOut::IFltTmIO>(InAggr, false);
-
+    
     // Check if at least one is OK
     QmAssertR(!InAggrVal.Empty() || !InAggrValBuffer.Empty(),
         "Stream aggregate does not implement IFltTm interface: " + InAggr->GetAggrNm());

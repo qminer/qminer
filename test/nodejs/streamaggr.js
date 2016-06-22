@@ -711,66 +711,6 @@ describe('Time Series Window Buffer Tests', function () {
             });
         })
     })
-    describe('GetInFloat Tests', function () {
-        it('should return the newest float in the buffer', function () {
-            var aggr = {
-                name: 'TimeSeriesWindowAggr',
-                type: 'timeSeriesWinBuf',
-                store: 'Function',
-                timestamp: 'Time',
-                value: 'Value',
-                winsize: 2000
-            };
-            var sa = store.addStreamAggr(aggr);
-            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
-            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
-            assert.equal(sa.getInFloat(), 2);
-        })
-        it('should throw', function () {
-            var aggr = {
-                name: 'TimeSeriesWindowAggr',
-                type: 'timeSeriesWinBuf',
-                store: 'Function',
-                timestamp: 'Time',
-                value: 'Value',
-                winsize: 2000
-            };
-            var sa = store.addStreamAggr(aggr);
-            assert.throws(function () {
-                var res = sa.getInFloat();
-            });
-        })
-    });
-    describe('GetInTimestamp Tests', function () {
-        it('should return the newest timestamp in the buffer', function () {
-            var aggr = {
-                name: 'TimeSeriesWindowAggr',
-                type: 'timeSeriesWinBuf',
-                store: 'Function',
-                timestamp: 'Time',
-                value: 'Value',
-                winsize: 2000
-            };
-            var sa = store.addStreamAggr(aggr);
-            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
-            store.push({ Time: '2015-06-10T14:13:33.0', Value: 2 });
-            assert.equal(sa.getInTimestamp() - 11644473600000, new Date('2015-06-10T14:13:33.0').getTime());
-        })
-        it('should throw an exception for an empty buffer', function () {
-            var aggr = {
-                name: 'TimeSeriesWindowAggr',
-                type: 'timeSeriesWinBuf',
-                store: 'Function',
-                timestamp: 'Time',
-                value: 'Value',
-                winsize: 2000
-            };
-            var sa = store.addStreamAggr(aggr);
-            assert.throws(function () {
-                var res = sa.getInTimestamp();
-            });
-        })
-    });
     describe('GetOutFloatVector Tests', function () {
         it('should return the vector of the leaving values in buffer', function () {
             var aggr = {
@@ -1122,9 +1062,15 @@ describe('Time Series Window Buffer Vector Tests', function () {
                 value: 'Value',
                 winsize: 2000
             });
+            var tick = store.addStreamAggr({                
+                type: 'timeSeriesTick',                
+                timestamp: 'Time',
+                value: 'Value'
+            });
             var winbufvec = store.addStreamAggr({                
                 type: 'timeSeriesWinBufVector',                
-                inAggr: winbuf.name
+                inAggr: tick.name,
+                winsize: 2000
             });
             store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
 			store.push({ Time: '2015-06-10T14:33:30.0', Value: 2 });

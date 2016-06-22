@@ -3400,14 +3400,22 @@ namespace TStreamAggrOut {
         virtual double GetFlt() const = 0;
     };
 
+    template <class TVal>
+    class IVal {
+    public:
+        virtual TVal GetVal() const = 0;
+    };
+        
     class ITm {
     public:
         virtual uint64 GetTmMSecs() const = 0;
     };
     
-    class IFltTm:
-        public IFlt,
-        public ITm { };
+    class IFltTm: public IFlt, public ITm { };
+
+    template <class TVal>
+    class IValTm: public IVal<TVal>, public ITm { };
+
 
     /// vector of values
     template <class TVal>
@@ -3447,8 +3455,6 @@ namespace TStreamAggrOut {
     template <class TVal>
     class IValIO : public IValVec<TVal> , public virtual IBuffer {
     public:
-        // valid only when not using delay
-        virtual TVal GetInVal() const = 0;
         // incomming
         virtual void GetInValV(TVec<TVal>& ValV) const = 0;
         // outgoing
@@ -3457,8 +3463,6 @@ namespace TStreamAggrOut {
 
     class ITmIO : public ITmVec, public virtual IBuffer {
     public:
-        // valid only when not using delay
-        virtual uint64 GetInTmMSecs() const = 0;
         // incomming
         virtual void GetInTmMSecsV(TUInt64V& MSecsV) const = 0;
         // outgoing
