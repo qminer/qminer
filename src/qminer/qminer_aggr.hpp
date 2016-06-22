@@ -1,4 +1,141 @@
 ///////////////////////////////
+// Time series window buffer with memory.
+template <class TVal>
+void TWinBufMem<TVal>::UpdateVal() {
+    // get new value
+    DelayQ.Push(TPair<TUInt64, TVal>(InAggrTm->GetTmMSecs(), GetVal()));
+    // once we read one input we are initialized
+    InitP = true;
+}
+
+template <class TVal>
+void TWinBufMem<TVal>::UpdateTime() {
+    // first we clear existing in/out placeholders
+    InValV.Clr(); InTmMSecsV.Clr();
+    OutValV.Clr(); OutTmMSecsV.Clr();
+    // update the current timestamps
+    TmMSecs = InAggrTm->GetTmMSecs();
+    // first we move things from delay to window
+    const uint64 StartDelayMSecs = TmMSecs - DelayMSecs;
+    while (!DelayQ.Empty() && DelayQ.Front().Val1 <= StartDelayMSecs) {
+        // copy element from the front of the delay to the back of the window queue
+        WindowQ.Push(DelayQ.Front());
+        // add to the list of new elements in the window
+        InValV.Add(DelayQ.Front().Val2);
+        InTmMSecsV.Add(DelayQ.Front().Val1);
+        // remove the front element from the delay queue
+        DelayQ.Pop();
+    }
+    // then we remove old stuff from window
+    const uint64 StartWinMSecs = TmMSecs - DelayMSecs - WinSizeMSecs;
+    while (!WindowQ.Empty() && WindowQ.Front().Val1 < StartWinMSecs) {
+        // add to the list of elements being removed from the window
+        OutValV.Add(WindowQ.Front().Val2);
+        OutTmMSecsV.Add(WindowQ.Front().Val1);
+        // remove from the window
+        WindowQ.Pop();
+    }
+}
+
+template <class TVal>
+void TWinBufMem<TVal>::OnAddRec(const TRec& Rec) {
+    // Always read new value
+    UpdateVal();
+    // Update the time buffers
+    UpdateTime();
+}
+
+template <class TVal>
+void TWinBufMem<TVal>::OnTime(const uint64& TmMsec) {
+    // Update value only when set to always update
+    if (UpdateType == wbmuAlways) { UpdateVal(); }
+    // Update the time buffers
+    UpdateTime();
+}
+
+template <class TVal>
+void TWinBufMem<TVal>::OnStep() {
+    // Update value only when set to always update
+    if (UpdateType == wbmuAlways) { UpdateVal(); }
+    // Update the time buffers
+    UpdateTime();
+}
+
+template <class TVal>
+TWinBufMem<TVal>::TWinBufMem(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal) {
+    // parse out input aggregate
+    InAggr = ParseAggr(ParamVal, "inAggr");
+    InAggrTm = Cast<TStreamAggrOut::ITm>(InAggr);    
+    // when should we pump in new values?
+    TStr UpdateTypeStr = ParamVal->GetObjStr("update", "onNewRecord");
+    UpdateType = (UpdateTypeStr == "onNewRecord") ? wbmuOnAddRec : wbmuAlways;
+    // parse out window parameters
+    ParamVal->AssertObjKeyNum("winsize", __FUNCTION__);
+    WinSizeMSecs = ParamVal->GetObjUInt64("winsize");
+    DelayMSecs = ParamVal->GetObjUInt64("delay", 0);
+}
+
+template <class TVal>
+void TWinBufMem<TVal>::LoadState(TSIn& SIn) {
+    UpdateType = LoadEnum<TWinBufMemUpdate>(SIn);
+    WinSizeMSecs.Load(SIn); DelayMSecs.Load(SIn);
+    InitP.Load(SIn); TmMSecs.Load(SIn);
+    WindowQ.Load(SIn); DelayQ.Load(SIn);
+    InValV.Load(SIn); InTmMSecsV.Load(SIn);
+    OutValV.Load(SIn); OutTmMSecsV.Load(SIn);
+}
+
+template <class TVal>
+void TWinBufMem<TVal>::SaveState(TSOut& SOut) const {
+    SaveEnum<TWinBufMemUpdate>(SOut, UpdateType);
+    WinSizeMSecs.Save(SOut); DelayMSecs.Save(SOut);
+    InitP.Save(SOut); TmMSecs.Save(SOut);
+    WindowQ.Save(SOut); DelayQ.Save(SOut);
+    InValV.Save(SOut); InTmMSecsV.Save(SOut);
+    OutValV.Save(SOut); OutTmMSecsV.Save(SOut);
+}
+
+template <class TVal>
+void TWinBufMem<TVal>::Reset() {
+    // no longer initialized
+    InitP = false;
+    // reset current timestamp
+    TmMSecs = 0;
+    // reset buffers
+    WindowQ.Clr(); DelayQ.Clr();
+    InValV.Clr(); InTmMSecsV.Clr();
+    OutValV.Clr(); OutTmMSecsV.Clr();
+}
+
+template <class TVal>
+void TWinBufMem<TVal>::GetValV(TVec<TVal>& ValV) const {
+    ValV.Gen(WindowQ.Len(), 0);
+    for (int ElN = 0; ElN < WindowQ.Len(); ElN++) {
+        ValV.Add(WindowQ[ElN].Val2);
+    }
+}
+
+template <class TVal>
+void TWinBufMem<TVal>::GetTmV(TUInt64V& ValV) const {
+    ValV.Gen(WindowQ.Len(), 0);
+    for (int ElN = 0; ElN < WindowQ.Len(); ElN++) {
+        ValV.Add(WindowQ[ElN].Val1);
+    }
+}
+
+template <class TVal>
+PJsonVal TWinBufMem<TVal>::SaveJson(const int& Limit) const {
+    PJsonVal Val = TJsonVal::NewObj();
+    Val->AddToObj("init", InitP);
+    Val->AddToObj("timestamp", TTm::GetTmFromMSecs(TmMSecs).GetWebLogDateTimeStr(true, "T"));
+    Val->AddToObj("delay", DelayQ.Len());
+    Val->AddToObj("window", WindowQ.Len());
+    Val->AddToObj("inBuffer", InValV.Len());
+    Val->AddToObj("outBuffer", OutValV.Len());
+    return Val;
+}
+
+///////////////////////////////
 // Time series window buffer.
 template <class TVal>
 void TWinBuf<TVal>::OnAddRec(const TRec& Rec) {
@@ -26,7 +163,8 @@ void TWinBuf<TVal>::OnTime(const uint64& TmMsec) {
         D++;
     }
 
-    // Call update on all incomming records, which includes records that skipped the buffer (both incomming and outgoing at the same time)
+    // Call update on all incomming records, which includes records that skipped the buffer
+    // (both incomming and outgoing at the same time)
     // C + Skip, D - 1
     for (uint64 RecId = C; RecId < D; RecId++) {
         RecUpdate(RecId);
@@ -81,28 +219,6 @@ void TWinBuf<TVal>::Reset() {
     D = Store->GetRecs() == 0 ? 0 : Store->GetLastRecId() + 1;
     Timestamp = 0;
 }
-
-template <class TVal>
-TVal TWinBuf<TVal>::GetInVal() const {
-    EAssertR(IsInit(), "WinBuf not initialized yet!"); 
-    EAssertR(B < D, "WinBuf is empty - GetInVal() isn't valid! You need to reimplement OnAdd "
-        "of the aggregate that is connected to WinBuf to use GetInValV instead of GetInVal!"); 
-    EAssertR(Store->IsRecId(D - 1), "WinBuf::GetInVal record not in store! Possible reason: store is "
-        "windowed and window is too small and it does not fully contain the buffer"); 
-    return GetRecVal(D - 1);
-}
-
-template <class TVal>
-uint64 TWinBuf<TVal>::GetInTmMSecs() const {
-    EAssertR(IsInit(), "WinBuf not initialized yet!");
-    EAssertR(B < D, "WinBuf is empty - GetInTmMSecs() isn't valid! "
-        "You need to reimplement OnAdd of the aggregate that is connected to WinBuf to use "
-        "GetInTmMSecsV instead of GetInTmMSecs!");
-    EAssertR(Store->IsRecId(D - 1), "WinBuf::GetInTmMSecs record not in store! Possible reason: "
-        "store is windowed and window is too small and it does not fully contain the buffer");
-    return Time(D - 1);
-}
-
 
 template <class TVal>
 void TWinBuf<TVal>::GetInValV(TVec<TVal>& ValV) const {
@@ -278,17 +394,13 @@ void TWinBuf<TVal>::PrintInterval(const uint64& StartId, const uint64& EndId, co
 // Windowed Stream aggregates
 template <class TSignalType>
 void TWinAggr<TSignalType>::OnStep() {
-    TFltV OutValV; InAggrVal->GetOutValV(OutValV);
-    TUInt64V OutTmMSecsV; InAggrVal->GetOutTmMSecsV(OutTmMSecsV);
     if (InAggr->IsInit()) {
-        if (!InAggrVal->DelayedP()) {
-            Signal.Update(InAggrVal->GetInVal(), InAggrVal->GetInTmMSecs(), OutValV, OutTmMSecsV);
-        } else {
-            TFltV InValV; InAggrVal->GetInValV(InValV);
-            TUInt64V InTmMSecsV; InAggrVal->GetInTmMSecsV(InTmMSecsV);
-            Signal.Update(InValV, InTmMSecsV, OutValV, OutTmMSecsV);
-        }
-    };
+        TFltV InValV; InAggrVal->GetInValV(InValV);
+        TUInt64V InTmMSecsV; InAggrVal->GetInTmMSecsV(InTmMSecsV);
+        TFltV OutValV; InAggrVal->GetOutValV(OutValV);
+        TUInt64V OutTmMSecsV; InAggrVal->GetOutTmMSecsV(OutTmMSecsV);
+        Signal.Update(InValV, InTmMSecsV, OutValV, OutTmMSecsV);
+    }
 }
 
 template <class TSignalType>
@@ -309,57 +421,15 @@ PJsonVal TWinAggr<TSignalType>::SaveJson(const int& Limit) const {
 }
 
 ///////////////////////////////
-// Window moving average on numeric time series
-template <>
-inline void TWinAggr<TSignalProc::TMa>::OnStep() {
-    TFltV OutValV; InAggrVal->GetOutValV(OutValV);
-    TUInt64V OutTmMSecsV; InAggrVal->GetOutTmMSecsV(OutTmMSecsV);
-    if (InAggr->IsInit()) {
-        if (!InAggrVal->DelayedP()) {
-            Signal.Update(InAggrVal->GetInVal(), InAggrVal->GetInTmMSecs(),
-                OutValV, OutTmMSecsV, InAggrVal->GetVals());
-        } else {
-            TFltV InValV; InAggrVal->GetInValV(InValV);
-            TUInt64V InTmMSecsV; InAggrVal->GetInTmMSecsV(InTmMSecsV);
-            Signal.Update(InValV, InTmMSecsV, OutValV, OutTmMSecsV, InAggrVal->GetVals());
-        }
-    }
-}
-
-///////////////////////////////
-// Window variance on numeric time series
-template <>
-inline void TWinAggr<TSignalProc::TVar>::OnStep() {
-    TFltV OutValV; InAggrVal->GetOutValV(OutValV);
-    TUInt64V OutTmMSecsV; InAggrVal->GetOutTmMSecsV(OutTmMSecsV);
-    if (InAggr->IsInit()) {
-        if (!InAggrVal->DelayedP()) {
-            Signal.Update(InAggrVal->GetInVal(), InAggrVal->GetInTmMSecs(),
-                OutValV, OutTmMSecsV, InAggrVal->GetVals());
-        } else {
-            TFltV InValV; InAggrVal->GetInValV(InValV);
-            TUInt64V InTmMSecsV; InAggrVal->GetInTmMSecsV(InTmMSecsV);
-            Signal.Update(InValV, InTmMSecsV, OutValV, OutTmMSecsV, InAggrVal->GetVals());
-        }
-    }
-}
-
-///////////////////////////////
 /// Windowed stream aggregates
 template <class TSignalType>
 void TWinAggrSpVec<TSignalType>::OnStep() {
-    TVec<TIntFltKdV> OutValV;
-    InAggrVal->GetOutValV(OutValV);
-    TUInt64V OutTmMSecsV;
-    InAggrVal->GetOutTmMSecsV(OutTmMSecsV);
     if (InAggr->IsInit()) {
-        if (!InAggrVal->DelayedP()) {
-            Signal.Update(InAggrVal->GetInVal(), InAggrVal->GetInTmMSecs(), OutValV, OutTmMSecsV);
-        } else {
-            TVec<TIntFltKdV> InValV; InAggrVal->GetInValV(InValV);
-            TUInt64V InTmMSecsV; InAggrVal->GetInTmMSecsV(InTmMSecsV);
-            Signal.Update(InValV, InTmMSecsV, OutValV, OutTmMSecsV);
-        }
+        TVec<TIntFltKdV> InValV; InAggrVal->GetInValV(InValV);
+        TUInt64V InTmMSecsV; InAggrVal->GetInTmMSecsV(InTmMSecsV);
+        TVec<TIntFltKdV> OutValV; InAggrVal->GetOutValV(OutValV);
+        TUInt64V OutTmMSecsV; InAggrVal->GetOutTmMSecsV(OutTmMSecsV);
+        Signal.Update(InValV, InTmMSecsV, OutValV, OutTmMSecsV);
     };
 }
 
