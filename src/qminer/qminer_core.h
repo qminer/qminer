@@ -1187,13 +1187,13 @@ private:
     // smart-pointer
     TCRef CRef;
     friend class TPt<TRecFilter>;
-    
+
 private:
     /// New constructor delegate
     typedef PRecFilter(*TNewF)(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
     /// Filter New constructor router
     static TFunRouter<PRecFilter, TNewF> NewRouter;
-    
+
 public:
     /// Register default record filters
     static void Init();
@@ -1217,14 +1217,17 @@ public:
     static PRecFilter New(const TWPt<TBase>& Base);
     /// Create new record filter.
     static PRecFilter New(const TWPt<TBase>& Base, const TStr& TypeNm, const PJsonVal& ParamVal);
+    static PRecFilter New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) { return new TRecFilter(Base); }
     /// Destructor
     virtual ~TRecFilter() { }
 
     /// Calls the filter, default keeps all records
     virtual bool Filter(const TRec& Rec) const { return true; }
 
+    /// Filter type name
+    static TStr GetType() { return "trivial"; }
     /// Filter type name 
-    virtual TStr Type() const { return "trivial"; }    
+    virtual TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
@@ -1541,7 +1544,7 @@ public:
 class TRecFilterByFieldStr : public TRecFilterByField {
 private:
     /// String value
-    const TStr& StrVal;
+    const TStr StrVal;
     
 public:
     /// Constructor
@@ -1555,9 +1558,9 @@ public:
 class TRecFilterByFieldStrRange : public TRecFilterByField {
 private:
     /// String value - min
-    const TStr& StrValMin;
+    const TStr StrValMin;
     /// String value - max
-    const TStr& StrValMax;
+    const TStr StrValMax;
     
 public:
     /// Constructor
@@ -1614,8 +1617,15 @@ private:
 public:
     /// Constructor
     TRecFilterByIndexJoin(const TWPt<TStore>& Store, const int& JoinId, const uint64& _MinVal, const uint64& _MaxVal);
+    /// JSON constructor
+    static PRecFilter New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
     /// Filter function
     bool Filter(const TRec& Rec) const;
+    /// Filter type name
+    static TStr GetType() { return "indexJoin"; }
+    /// Filter type name
+    TStr Type() const { return GetType(); }
+
 };
 
 ///////////////////////////////

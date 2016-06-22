@@ -181,6 +181,7 @@ public:
   void DelArrVal(const int& ValN) { EAssert(IsArr()); ValV.Del(ValN); }
 
   // validation
+  void AssertObjKey(const TStr& Key, const TStr& Fun);
   void AssertObjKeyStr(const TStr& Key, const TStr& Fun);
   void AssertObjKeyNum(const TStr& Key, const TStr& Fun);
 

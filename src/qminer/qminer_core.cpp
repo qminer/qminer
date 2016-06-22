@@ -2355,11 +2355,13 @@ bool TRecCmpByFieldTm::operator()(const TUInt64IntKd& RecIdFq1, const TUInt64Int
 TFunRouter<PRecFilter, TRecFilter::TNewF> TRecFilter::NewRouter;
 
 void TRecFilter::Init() {
+    Register<TRecFilter>();
     Register<TRecFilterSubsampler>();
     Register<TRecFilterByExists>();
     Register<TRecFilterByRecId>();
     Register<TRecFilterByRecFq>();
     Register<TRecFilterByField>();
+    Register<TRecFilterByIndexJoin>();
 }
 
 PRecFilter TRecFilter::New(const TWPt<TBase>& Base) {
@@ -2521,8 +2523,8 @@ PRecFilter TRecFilterByField::New(const TWPt<TBase>& Base, const PJsonVal& Param
         TStrV StrV; ParamVal->GetObjStrV("set", StrV);
         return new TRecFilterByFieldStrSet(Base, FieldId, TStrSet(StrV));
     } else if (FieldDesc.IsTm() && Type == rfRange) {
-        const uint64 MinVal = ParamVal->GetObjUInt64("minValue", TUInt64::Mn);
-        const uint64 MaxVal = ParamVal->GetObjUInt64("maxValue", TUInt64::Mx);
+        const uint64 MinVal = TTm::GetWinMSecsFromUnixMSecs(ParamVal->GetObjUInt64("minValue", TUInt64::Mn));
+        const uint64 MaxVal = TTm::GetWinMSecsFromUnixMSecs(ParamVal->GetObjUInt64("maxValue", uint64(TUInt64::Mx - 11644473600000LL)));
         return new TRecFilterByFieldTm(Base, FieldId, MinVal, MaxVal);        
     }
     // if not supported, throw exception
@@ -2695,6 +2697,19 @@ bool TRecFilterByFieldTm::Filter(const TRec& Rec) const {
 TRecFilterByIndexJoin::TRecFilterByIndexJoin(const TWPt<TStore>& Store, const int& JoinId, const uint64& _MinVal,
     const uint64& _MaxVal): TRecFilter(Store->GetBase()), Index(Store->GetBase()->GetIndex()),
     JoinKeyId(Store->GetJoinDesc(JoinId).GetJoinKeyId()), MinVal(_MinVal), MaxVal(_MaxVal) { }
+
+PRecFilter TRecFilterByIndexJoin::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+    uint64 MinVal = ParamVal->GetObjUInt64("minRecId", 0);
+    uint64 MaxVal = ParamVal->GetObjUInt64("maxRecId", TUInt64::Mx);
+    if (ParamVal->IsObjKey("store") && ParamVal->IsObjKey("join")) {
+        TStr StoreNm = ParamVal->GetObjStr("store");
+        const TWPt<TStore>& Store = Base->GetStoreByStoreNm(StoreNm);
+        TStr JoinNm = ParamVal->GetObjStr("join");
+        int JoinId = Store->GetJoinId(JoinNm);
+        return new TRecFilterByIndexJoin(Store, JoinId, MinVal, MaxVal);
+    }
+    throw TQmExcept::New("[TRecFilterByIndexJoin] missing parameters in " + ParamVal->SaveStr());
+}
 
 bool TRecFilterByIndexJoin::Filter(const TRec& Rec) const {
     // perform join lookup

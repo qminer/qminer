@@ -1853,14 +1853,11 @@ void TSimpleLinReg::Reset() {
 
 TRecFilterAggr::TRecFilterAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal) {
     // filter
-    if (ParamVal->IsObjKey("filter")) {
-        PJsonVal Val = ParamVal->GetObjKey("filter");
-        Filter = TRecFilter::New(Base, Val->GetObjStr("type"), Val);
-    } else {
-        Filter = TRecFilter::New(Base);
-    }
+    ParamVal->AssertObjKey("filter", __FUNCTION__);
+    PJsonVal Val = ParamVal->GetObjKey("filter");
+    Filter = TRecFilter::New(Base, Val->GetObjStr("type"), Val);
     // parse out input aggregate
-    Aggr = ParseAggr(ParamVal, "aggr");    
+    Aggr = ParseAggr(ParamVal, "aggr");
 }
 
 } // TStreamAggrs namespace
