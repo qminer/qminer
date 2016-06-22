@@ -170,6 +170,53 @@ describe('Stream aggregate filter', function () {
             });
             callback();
         });
+
+        async.each(fields, function (field, callback) {
+            it('should filter out null ' + field + ' fields', function (done) {
+                var aggr = new qm.StreamAggr(base, new JsAggr);
+
+                var filt = store.addStreamAggr({
+                    type: 'recordFilterAggr',
+                    aggr: aggr.name,
+                    filter: {
+                        type: "field",
+                        store: "RecordTest",
+                        field: field,
+                        minValue: 5,
+                        maxValue: 6,
+                        filterNull: true
+                    }
+                });
+                assertUpdateSequence(field, [5, 6, null, 7, null, 5, 1], [1, 2, 2, 2, 2, 3, 3], store, aggr);
+                done();
+            });
+            callback();
+        });
+
+        async.each(fields, function (field, callback) {
+            it('should let null ' + field + ' fields through', function (done) {
+                var aggr = new qm.StreamAggr(base, new JsAggr);
+
+                var filt = store.addStreamAggr({
+                    type: 'recordFilterAggr',
+                    aggr: aggr.name,
+                    filter: {
+                        type: "field",
+                        store: "RecordTest",
+                        field: field,
+                        minValue: 5,
+                        maxValue: 6,
+                        filterNull: false
+                    }
+                });
+                assertUpdateSequence(field, [5, 6, null, 7, null, 5, 1], [1, 2, 3, 3, 4, 5, 5], store, aggr);
+                done();
+            });
+            callback();
+        });
+
+
+
     });
 
     describe('Bool field filter', function () {
@@ -426,6 +473,43 @@ describe('Stream aggregate filter', function () {
             filt.onAdd(store[4]);
             assert.equal(aggr.saveJson().val, 2);
 
+            done();
+        });
+    });
+
+    describe('Null field tests', function () {
+        it('should filter out null fields', function (done) {
+            var aggr = new qm.StreamAggr(base, new JsAggr);
+
+            var filt = store.addStreamAggr({
+                type: 'recordFilterAggr',
+                aggr: aggr.name,
+                filter: {
+                    type: "field",
+                    store: "RecordTest",
+                    field: "Str",
+                    value: "tesi",
+                    filterNull: true
+                }
+            });
+            assertUpdateSequence("Str", ["tesi", "tesi", null, "tesii", null, "tesi", "TESI"], [1, 2, 2, 2, 2, 3, 3], store, aggr);
+            done();
+        });
+        it('should let null fields through', function (done) {
+            var aggr = new qm.StreamAggr(base, new JsAggr);
+
+            var filt = store.addStreamAggr({
+                type: 'recordFilterAggr',
+                aggr: aggr.name,
+                filter: {
+                    type: "field",
+                    store: "RecordTest",
+                    field: "Str",
+                    value: "tesi",
+                    filterNull: false
+                }
+            });
+            assertUpdateSequence("Str", ["tesi", "tesi", null, "tesii", null, "tesi", "TESI"], [1, 2, 3, 3, 4, 5, 5], store, aggr);
             done();
         });
     });
