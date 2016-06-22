@@ -12,7 +12,7 @@ CODES[0]=$?
 
 EXAMPLES_PATH=./../../examples/streamaggregate
 cd $EXAMPLES_PATH
-npm install
+npm install --silent
 npm test
 CODES[1]=$?
 
