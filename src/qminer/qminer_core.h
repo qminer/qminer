@@ -1351,9 +1351,10 @@ private:
 protected:
     /// Field according to which we are filtering
     TInt FieldId;
-
+    /// If true (default), null fields are filtered out (Filter returns false)
+    TBool FilterNullP;
     /// Internal constructor
-    TRecFilterByField(const TWPt<TBase>& _Base, const int& _FieldId);
+    TRecFilterByField(const TWPt<TBase>& _Base, const int& _FieldId, const bool& _FilterNullP);
     
 public:
     /// JSON constructor
@@ -1374,7 +1375,7 @@ private:
     
 public:
     /// Constructor
-    TRecFilterByFieldBool(const TWPt<TBase>& _Base, const int& _FieldId, const bool& _Val);
+    TRecFilterByFieldBool(const TWPt<TBase>& _Base, const int& _FieldId, const bool& _Val, const bool& _FilterNullP = true);
     /// Filter function
     bool Filter(const TRec& Rec) const;
 };
@@ -1390,7 +1391,7 @@ private:
 
 public:
     /// Constructor
-    TRecFilterByFieldInt(const TWPt<TBase>& _Base, const int& _FieldId, const int& _MinVal, const int& _MaxVal);
+    TRecFilterByFieldInt(const TWPt<TBase>& _Base, const int& _FieldId, const int& _MinVal, const int& _MaxVal, const bool& _FilterNullP = true);
     /// Filter function
     bool Filter(const TRec& Rec) const;
 };
@@ -1406,7 +1407,7 @@ private:
 
 public:
     /// Constructor
-    TRecFilterByFieldInt16(const TWPt<TBase>& _Base, const int& _FieldId, const int16& _MinVal, const int16& _MaxVal);
+    TRecFilterByFieldInt16(const TWPt<TBase>& _Base, const int& _FieldId, const int16& _MinVal, const int16& _MaxVal, const bool& _FilterNullP = true);
     /// Filter function
     bool Filter(const TRec& Rec) const;
 };
@@ -1422,7 +1423,7 @@ private:
 
 public:
     /// Constructor
-    TRecFilterByFieldInt64(const TWPt<TBase>& _Base, const int& _FieldId, const int64& _MinVal, const int64& _MaxVal);
+    TRecFilterByFieldInt64(const TWPt<TBase>& _Base, const int& _FieldId, const int64& _MinVal, const int64& _MaxVal, const bool& _FilterNullP = true);
     /// Filter function
     bool Filter(const TRec& Rec) const;
 };
@@ -1438,7 +1439,7 @@ private:
     
 public:
     /// Constructor
-    TRecFilterByFieldByte(const TWPt<TBase>& _Base, const int& _FieldId, const uchar& _MinVal, const uchar& _MaxVal);
+    TRecFilterByFieldByte(const TWPt<TBase>& _Base, const int& _FieldId, const uchar& _MinVal, const uchar& _MaxVal, const bool& _FilterNullP = true);
     /// Filter function
     bool Filter(const TRec& Rec) const;
 };
@@ -1454,7 +1455,7 @@ private:
     
 public:
     /// Constructor
-    TRecFilterByFieldUInt(const TWPt<TBase>& _Base, const int& _FieldId, const uint& _MinVal, const uint& _MaxVal);
+    TRecFilterByFieldUInt(const TWPt<TBase>& _Base, const int& _FieldId, const uint& _MinVal, const uint& _MaxVal, const bool& _FilterNullP = true);
     /// Filter function
     bool Filter(const TRec& Rec) const;
 };
@@ -1470,7 +1471,7 @@ private:
     
 public:
     /// Constructor
-    TRecFilterByFieldUInt16(const TWPt<TBase>& _Base, const int& _FieldId, const uint16& _MinVal, const uint16& _MaxVal);
+    TRecFilterByFieldUInt16(const TWPt<TBase>& _Base, const int& _FieldId, const uint16& _MinVal, const uint16& _MaxVal, const bool& _FilterNullP = true);
     /// Filter function
     bool Filter(const TRec& Rec) const;
 };
@@ -1486,7 +1487,7 @@ private:
     
 public:
     /// Constructor
-    TRecFilterByFieldUInt64(const TWPt<TBase>& _Base, const int& _FieldId, const uint64& _MinVal, const uint64& _MaxVal);                                                        
+    TRecFilterByFieldUInt64(const TWPt<TBase>& _Base, const int& _FieldId, const uint64& _MinVal, const uint64& _MaxVal, const bool& _FilterNullP = true);
     /// Filter function
     bool Filter(const TRec& Rec) const;
 };
@@ -1502,7 +1503,7 @@ private:
     
 public:
     /// Constructor
-    TRecFilterByFieldIntSafe(const TWPt<TBase>& _Base, const int& _FieldId, const uint64& _MinVal, const uint64& _MaxVal);
+    TRecFilterByFieldIntSafe(const TWPt<TBase>& _Base, const int& _FieldId, const uint64& _MinVal, const uint64& _MaxVal, const bool& _FilterNullP = true);
     /// Filter function
     bool Filter(const TRec& Rec) const;
 };
@@ -1518,7 +1519,7 @@ private:
     
 public:
     /// Constructor
-    TRecFilterByFieldFlt(const TWPt<TBase>& _Base, const int& _FieldId, const double& _MinVal, const double& _MaxVal);
+    TRecFilterByFieldFlt(const TWPt<TBase>& _Base, const int& _FieldId, const double& _MinVal, const double& _MaxVal, const bool& _FilterNullP = true);
     /// Filter function
     bool Filter(const TRec& Rec) const;
 };
@@ -1534,7 +1535,7 @@ private:
     
 public:
     /// Constructor
-    TRecFilterByFieldSFlt(const TWPt<TBase>& _Base, const int& _FieldId, const float& _MinVal, const float& _MaxVal);
+    TRecFilterByFieldSFlt(const TWPt<TBase>& _Base, const int& _FieldId, const float& _MinVal, const float& _MaxVal, const bool& _FilterNullP = true);
     /// Filter function
     bool Filter(const TRec& Rec) const;
 };
@@ -1548,7 +1549,7 @@ private:
     
 public:
     /// Constructor
-    TRecFilterByFieldStr(const TWPt<TBase>& _Base, const int& _FieldId, const TStr& _StrVal);
+    TRecFilterByFieldStr(const TWPt<TBase>& _Base, const int& _FieldId, const TStr& _StrVal, const bool& _FilterNullP = true);
     /// Filter function
     bool Filter(const TRec& Rec) const;
 };
@@ -1564,7 +1565,7 @@ private:
     
 public:
     /// Constructor
-    TRecFilterByFieldStrRange(const TWPt<TBase>& _Base, const int& _FieldId, const TStr& _StrVal, const TStr& _StrValMax);
+    TRecFilterByFieldStrRange(const TWPt<TBase>& _Base, const int& _FieldId, const TStr& _StrVal, const TStr& _StrValMax, const bool& _FilterNullP = true);
     /// Filter function
     bool Filter(const TRec& Rec) const;
 };
@@ -1578,7 +1579,7 @@ private:
     
 public:
     /// Constructor
-    TRecFilterByFieldStrSet(const TWPt<TBase>& _Base, const int& _FieldId, const TStrSet& _StrSet);
+    TRecFilterByFieldStrSet(const TWPt<TBase>& _Base, const int& _FieldId, const TStrSet& _StrSet, const bool& _FilterNullP = true);
     /// Filter function
     bool Filter(const TRec& Rec) const;
 };
@@ -1594,9 +1595,9 @@ private:
     
 public:
     /// Constructor from miliseconds
-    TRecFilterByFieldTm(const TWPt<TBase>& _Base, const int& _FieldId, const uint64& _MinVal, const uint64& _MaxVal);
+    TRecFilterByFieldTm(const TWPt<TBase>& _Base, const int& _FieldId, const uint64& _MinVal, const uint64& _MaxVal, const bool& _FilterNullP = true);
     /// Constructor from TTm time object
-    TRecFilterByFieldTm(const TWPt<TBase>& _Base, const int& _FieldId, const TTm& _MinVal, const TTm& _MaxVal);
+    TRecFilterByFieldTm(const TWPt<TBase>& _Base, const int& _FieldId, const TTm& _MinVal, const TTm& _MaxVal, const bool& _FilterNullP = true);
     /// Filter function
     bool Filter(const TRec& Rec) const;
 };

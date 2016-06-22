@@ -430,5 +430,42 @@ describe('Stream aggregate filter', function () {
         });
     });
 
+    describe('Null field tests', function () {
+        it('should filter out null fields', function (done) {
+            var aggr = new qm.StreamAggr(base, new JsAggr);
+
+            var filt = store.addStreamAggr({
+                type: 'recordFilterAggr',
+                aggr: aggr.name,
+                filter: {
+                    type: "field",
+                    store: "RecordTest",
+                    field: "Str",
+                    value: "tesi",
+                    filterNull: true
+                }
+            });
+            assertUpdateSequence("Str", ["tesi", "tesi", null, "tesii", null, "tesi", "TESI"], [1, 2, 2, 2, 2, 3, 3], store, aggr);
+            done();
+        });
+        it('should let null fields through', function (done) {
+            var aggr = new qm.StreamAggr(base, new JsAggr);
+
+            var filt = store.addStreamAggr({
+                type: 'recordFilterAggr',
+                aggr: aggr.name,
+                filter: {
+                    type: "field",
+                    store: "RecordTest",
+                    field: "Str",
+                    value: "tesi",
+                    filterNull: false
+                }
+            });
+            assertUpdateSequence("Str", ["tesi", "tesi", null, "tesii", null, "tesi", "TESI"], [1, 2, 3, 3, 4, 5, 5], store, aggr);
+            done();
+        });
+    });
+
 
 });

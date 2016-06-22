@@ -2448,12 +2448,14 @@ bool TRecFilterByRecFq::Filter(const TRec& Rec) const {
 
 ///////////////////////////////
 /// Record Filter by Field.
-TRecFilterByField::TRecFilterByField(const TWPt<TBase>& _Base, const int& _FieldId):
-    TRecFilter(_Base), FieldId(_FieldId) { }
+TRecFilterByField::TRecFilterByField(const TWPt<TBase>& _Base, const int& _FieldId, const bool& _FilterNullP):
+    TRecFilter(_Base), FieldId(_FieldId), FilterNullP(_FilterNullP) { }
 
 PRecFilter TRecFilterByField::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
     // get store
     TStr StoreNm = ParamVal->GetObjStr("store");
+    // filter out null?
+    bool FilterNullP = ParamVal->GetObjBool("filterNull", true);
     const TWPt<TStore>& Store = Base->GetStoreByStoreNm(StoreNm);
     // get field and its type
     QmAssertR(ParamVal->IsObjKey("field"), "[TRecFilterByField] Missing field name");
@@ -2475,57 +2477,57 @@ PRecFilter TRecFilterByField::New(const TWPt<TBase>& Base, const PJsonVal& Param
     // instantiate appropriate filter
     if (FieldDesc.IsBool() && Type == rfValue) {
         const bool Val = ParamVal->GetObjBool("value", false);
-        return new TRecFilterByFieldBool(Base, FieldId, Val);
+        return new TRecFilterByFieldBool(Base, FieldId, Val, FilterNullP);
     } else if (FieldDesc.IsInt() && Type == rfRange) {
         const int MinVal = ParamVal->GetObjInt("minValue", TInt::Mn);
         const int MaxVal = ParamVal->GetObjInt("maxValue", TInt::Mx);
-        return new TRecFilterByFieldInt(Base, FieldId, MinVal, MaxVal);
+        return new TRecFilterByFieldInt(Base, FieldId, MinVal, MaxVal, FilterNullP);
     } else if (FieldDesc.IsInt16() && Type == rfRange) {
         const int16 MinVal = (int16)ParamVal->GetObjInt("minValue", TInt16::Mn);
         const int16 MaxVal = (int16)ParamVal->GetObjInt("maxValue", TInt16::Mx);
-        return new TRecFilterByFieldInt16(Base, FieldId, MinVal, MaxVal);
+        return new TRecFilterByFieldInt16(Base, FieldId, MinVal, MaxVal, FilterNullP);
     } else if (FieldDesc.IsInt64() && Type == rfRange) {
         const int64 MinVal = ParamVal->GetObjInt64("minValue", TInt64::Mn);
         const int64 MaxVal = ParamVal->GetObjInt64("maxValue", TInt64::Mx);
-        return new TRecFilterByFieldInt64(Base, FieldId, MinVal, MaxVal);
+        return new TRecFilterByFieldInt64(Base, FieldId, MinVal, MaxVal, FilterNullP);
     } else if (FieldDesc.IsByte() && Type == rfRange) {
         const uchar MinVal = (unsigned)(char)ParamVal->GetObjInt("minValue", TUCh::Mn);
         const uchar MaxVal = (unsigned)(char)ParamVal->GetObjInt("maxValue", TUCh::Mx);
-        return new TRecFilterByFieldByte(Base, FieldId, MinVal, MaxVal);
+        return new TRecFilterByFieldByte(Base, FieldId, MinVal, MaxVal, FilterNullP);
     } else if (FieldDesc.IsUInt() && Type == rfRange) {
         const uint MinVal = (unsigned)(int)ParamVal->GetObjUInt64("minValue", TUInt::Mn);
         const uint MaxVal = (unsigned)(int)ParamVal->GetObjUInt64("maxValue", TUInt::Mx);
-        return new TRecFilterByFieldUInt(Base, FieldId, MinVal, MaxVal);
+        return new TRecFilterByFieldUInt(Base, FieldId, MinVal, MaxVal, FilterNullP);
     } else if (FieldDesc.IsUInt16() && Type == rfRange) {
         const uint16 MinVal = (uint16)ParamVal->GetObjUInt64("minValue", TUInt16::Mn);
         const uint16 MaxVal = (uint16)ParamVal->GetObjUInt64("maxValue", TUInt16::Mx);
-        return new TRecFilterByFieldUInt16(Base, FieldId, MinVal, MaxVal);
+        return new TRecFilterByFieldUInt16(Base, FieldId, MinVal, MaxVal, FilterNullP);
     } else if (FieldDesc.IsUInt64() && Type == rfRange) {
         const uint64 MinVal = ParamVal->GetObjUInt64("minValue", TUInt64::Mn);
         const uint64 MaxVal = ParamVal->GetObjUInt64("maxValue", TUInt64::Mx);
-        return new TRecFilterByFieldUInt64(Base, FieldId, MinVal, MaxVal);
+        return new TRecFilterByFieldUInt64(Base, FieldId, MinVal, MaxVal, FilterNullP);
     } else if (FieldDesc.IsFlt() && Type == rfRange) {
         const double MinVal = ParamVal->GetObjNum("minValue", TFlt::Mn);
         const double MaxVal = ParamVal->GetObjNum("maxValue", TFlt::Mx);
-        return new TRecFilterByFieldFlt(Base, FieldId, MinVal, MaxVal);
+        return new TRecFilterByFieldFlt(Base, FieldId, MinVal, MaxVal, FilterNullP);
     } else if (FieldDesc.IsSFlt() && Type == rfRange) {
         const float MinVal = (float)ParamVal->GetObjNum("minValue", TSFlt::Mn);
         const float MaxVal = (float)ParamVal->GetObjNum("maxValue", TSFlt::Mx);
-        return new TRecFilterByFieldSFlt(Base, FieldId, MinVal, MaxVal);
+        return new TRecFilterByFieldSFlt(Base, FieldId, MinVal, MaxVal, FilterNullP);
     } else if (FieldDesc.IsStr() && Type == rfValue) {
         const TStr Val = ParamVal->GetObjStr("value");
-        return new TRecFilterByFieldStr(Base, FieldId, Val);
+        return new TRecFilterByFieldStr(Base, FieldId, Val, FilterNullP);
     } else if (FieldDesc.IsStr() && Type == rfRange) {
         const TStr MinVal = ParamVal->GetObjStr("minValue");
         const TStr MaxVal = ParamVal->GetObjStr("maxValue");
-        return new TRecFilterByFieldStrRange(Base, FieldId, MinVal, MaxVal);
+        return new TRecFilterByFieldStrRange(Base, FieldId, MinVal, MaxVal, FilterNullP);
     } else if (FieldDesc.IsStr() && Type == rfSet) {
         TStrV StrV; ParamVal->GetObjStrV("set", StrV);
-        return new TRecFilterByFieldStrSet(Base, FieldId, TStrSet(StrV));
+        return new TRecFilterByFieldStrSet(Base, FieldId, TStrSet(StrV), FilterNullP);
     } else if (FieldDesc.IsTm() && Type == rfRange) {
         const uint64 MinVal = TTm::GetWinMSecsFromUnixMSecs(ParamVal->GetObjUInt64("minValue", TUInt64::Mn));
         const uint64 MaxVal = TTm::GetWinMSecsFromUnixMSecs(ParamVal->GetObjUInt64("maxValue", uint64(TUInt64::Mx - 11644473600000LL)));
-        return new TRecFilterByFieldTm(Base, FieldId, MinVal, MaxVal);        
+        return new TRecFilterByFieldTm(Base, FieldId, MinVal, MaxVal, FilterNullP);
     }
     // if not supported, throw exception
     throw TQmExcept::New("[TRecFilterByField] Unsupported field type: " + FieldDesc.GetFieldTypeStr());
@@ -2533,10 +2535,12 @@ PRecFilter TRecFilterByField::New(const TWPt<TBase>& Base, const PJsonVal& Param
 
 ///////////////////////////////
 /// Record Filter by Bool Field. 
-TRecFilterByFieldBool::TRecFilterByFieldBool(const TWPt<TBase>& _Base, const int& _FieldId, const bool& _Val):
-    TRecFilterByField(_Base, _FieldId), Val(_Val) { }
+TRecFilterByFieldBool::TRecFilterByFieldBool(const TWPt<TBase>& _Base, const int& _FieldId, const bool& _Val, const bool& _FilterNullP):
+    TRecFilterByField(_Base, _FieldId, _FilterNullP), Val(_Val) { }
 
 bool TRecFilterByFieldBool::Filter(const TRec& Rec) const {
+    bool RecNull = Rec.IsFieldNull(FieldId);
+    if (RecNull) { return !FilterNullP; }
     const bool RecVal = Rec.GetFieldBool(FieldId);
     return RecVal == Val;
 }
@@ -2544,9 +2548,11 @@ bool TRecFilterByFieldBool::Filter(const TRec& Rec) const {
 ///////////////////////////////
 /// Record Filter by Integer Field. 
 TRecFilterByFieldInt::TRecFilterByFieldInt(const TWPt<TBase>& _Base, const int& _FieldId, const int& _MinVal,
-    const int& _MaxVal): TRecFilterByField(_Base, _FieldId), MinVal(_MinVal), MaxVal(_MaxVal) { }
+    const int& _MaxVal, const bool& _FilterNullP): TRecFilterByField(_Base, _FieldId, _FilterNullP), MinVal(_MinVal), MaxVal(_MaxVal) { }
 
 bool TRecFilterByFieldInt::Filter(const TRec& Rec) const {
+    bool RecNull = Rec.IsFieldNull(FieldId);
+    if (RecNull) { return !FilterNullP; }
     const int RecVal = Rec.GetFieldInt(FieldId);
     return (MinVal <= RecVal) && (RecVal <= MaxVal);
 }
@@ -2554,9 +2560,11 @@ bool TRecFilterByFieldInt::Filter(const TRec& Rec) const {
 ///////////////////////////////
 /// Record Filter by Integer Field. 
 TRecFilterByFieldInt16::TRecFilterByFieldInt16(const TWPt<TBase>& _Base, const int& _FieldId, const int16& _MinVal,
-    const int16& _MaxVal): TRecFilterByField(_Base, _FieldId), MinVal(_MinVal), MaxVal(_MaxVal) { }
+    const int16& _MaxVal, const bool& _FilterNullP): TRecFilterByField(_Base, _FieldId, _FilterNullP), MinVal(_MinVal), MaxVal(_MaxVal) { }
 
 bool TRecFilterByFieldInt16::Filter(const TRec& Rec) const {
+    bool RecNull = Rec.IsFieldNull(FieldId);
+    if (RecNull) { return !FilterNullP; }
     const int16 RecVal = Rec.GetFieldInt16(FieldId);
     return (MinVal <= RecVal) && (RecVal <= MaxVal);
 }
@@ -2564,10 +2572,12 @@ bool TRecFilterByFieldInt16::Filter(const TRec& Rec) const {
 ///////////////////////////////
 /// Record Filter by Integer Field. 
 TRecFilterByFieldInt64::TRecFilterByFieldInt64(const TWPt<TBase>& _Base, const int& _FieldId, const int64& _MinVal,
-    const int64& _MaxVal): TRecFilterByField(_Base, _FieldId), MinVal(_MinVal), MaxVal(_MaxVal) { }
+    const int64& _MaxVal, const bool& _FilterNullP): TRecFilterByField(_Base, _FieldId, _FilterNullP), MinVal(_MinVal), MaxVal(_MaxVal) { }
 
 /// Filter function
 bool TRecFilterByFieldInt64::Filter(const TRec& Rec) const {
+    bool RecNull = Rec.IsFieldNull(FieldId);
+    if (RecNull) { return !FilterNullP; }
     const int64 RecVal = Rec.GetFieldInt64(FieldId);
     return (MinVal <= RecVal) && (RecVal <= MaxVal);
 }
@@ -2575,9 +2585,11 @@ bool TRecFilterByFieldInt64::Filter(const TRec& Rec) const {
 ///////////////////////////////
 /// Record Filter by Integer Field. 
 TRecFilterByFieldByte::TRecFilterByFieldByte(const TWPt<TBase>& _Base, const int& _FieldId, const uchar& _MinVal,
-    const uchar& _MaxVal): TRecFilterByField(_Base, _FieldId), MinVal(_MinVal), MaxVal(_MaxVal) { }
+    const uchar& _MaxVal, const bool& _FilterNullP): TRecFilterByField(_Base, _FieldId, _FilterNullP), MinVal(_MinVal), MaxVal(_MaxVal) { }
                                                      
 bool TRecFilterByFieldByte::Filter(const TRec& Rec) const {
+    bool RecNull = Rec.IsFieldNull(FieldId);
+    if (RecNull) { return !FilterNullP; }
     const uchar RecVal = Rec.GetFieldByte(FieldId);
     return (MinVal <= RecVal) && (RecVal <= MaxVal);
 }
@@ -2585,9 +2597,11 @@ bool TRecFilterByFieldByte::Filter(const TRec& Rec) const {
 ///////////////////////////////
 /// Record Filter by Integer Field. 
 TRecFilterByFieldUInt::TRecFilterByFieldUInt(const TWPt<TBase>& _Base, const int& _FieldId, const uint& _MinVal,
-    const uint& _MaxVal): TRecFilterByField(_Base, _FieldId), MinVal(_MinVal), MaxVal(_MaxVal) { }
+    const uint& _MaxVal, const bool& _FilterNullP): TRecFilterByField(_Base, _FieldId, _FilterNullP), MinVal(_MinVal), MaxVal(_MaxVal) { }
 
 bool TRecFilterByFieldUInt::Filter(const TRec& Rec) const {
+    bool RecNull = Rec.IsFieldNull(FieldId);
+    if (RecNull) { return !FilterNullP; }
     const uint RecVal = Rec.GetFieldUInt(FieldId);
     return (MinVal <= RecVal) && (RecVal <= MaxVal);
 }
@@ -2595,10 +2609,12 @@ bool TRecFilterByFieldUInt::Filter(const TRec& Rec) const {
 ///////////////////////////////
 /// Record Filter by Integer Field. 
 TRecFilterByFieldUInt16::TRecFilterByFieldUInt16(const TWPt<TBase>& _Base, const int& _FieldId, const uint16& _MinVal,
-    const uint16& _MaxVal): TRecFilterByField(_Base, _FieldId), MinVal(_MinVal), MaxVal(_MaxVal) { }
+    const uint16& _MaxVal, const bool& _FilterNullP): TRecFilterByField(_Base, _FieldId, _FilterNullP), MinVal(_MinVal), MaxVal(_MaxVal) { }
 
 /// Filter function
 bool TRecFilterByFieldUInt16::Filter(const TRec& Rec) const {
+    bool RecNull = Rec.IsFieldNull(FieldId);
+    if (RecNull) { return !FilterNullP; }
     const uint16 RecVal = Rec.GetFieldUInt16(FieldId);
     return (MinVal <= RecVal) && (RecVal <= MaxVal);
 }
@@ -2606,9 +2622,11 @@ bool TRecFilterByFieldUInt16::Filter(const TRec& Rec) const {
 ///////////////////////////////
 /// Record Filter by UInt64 Field. 
 TRecFilterByFieldUInt64::TRecFilterByFieldUInt64(const TWPt<TBase>& _Base, const int& _FieldId, const uint64& _MinVal,
-    const uint64& _MaxVal): TRecFilterByField(_Base, _FieldId), MinVal(_MinVal), MaxVal(_MaxVal) { }
+    const uint64& _MaxVal, const bool& _FilterNullP): TRecFilterByField(_Base, _FieldId, _FilterNullP), MinVal(_MinVal), MaxVal(_MaxVal) { }
                                                         
 bool TRecFilterByFieldUInt64::Filter(const TRec& Rec) const {
+    bool RecNull = Rec.IsFieldNull(FieldId);
+    if (RecNull) { return !FilterNullP; }
     const uint64 RecVal = Rec.GetFieldUInt64(FieldId);
     return (MinVal <= RecVal) && (RecVal <= MaxVal);
 }
@@ -2616,9 +2634,11 @@ bool TRecFilterByFieldUInt64::Filter(const TRec& Rec) const {
 ///////////////////////////////
 /// Record Filter by Integer Field. 
 TRecFilterByFieldIntSafe::TRecFilterByFieldIntSafe(const TWPt<TBase>& _Base, const int& _FieldId, const uint64& _MinVal,
-    const uint64& _MaxVal): TRecFilterByField(_Base, _FieldId), MinVal(_MinVal), MaxVal(_MaxVal) { }
+    const uint64& _MaxVal, const bool& _FilterNullP): TRecFilterByField(_Base, _FieldId, _FilterNullP), MinVal(_MinVal), MaxVal(_MaxVal) { }
                                                       
 bool TRecFilterByFieldIntSafe::Filter(const TRec& Rec) const {
+    bool RecNull = Rec.IsFieldNull(FieldId);
+    if (RecNull) { return !FilterNullP; }
     const uint64 RecVal = Rec.GetFieldUInt64Safe(FieldId);
     return (MinVal <= RecVal) && (RecVal <= MaxVal);
 }
@@ -2626,9 +2646,11 @@ bool TRecFilterByFieldIntSafe::Filter(const TRec& Rec) const {
 ///////////////////////////////
 /// Record Filter by Numeric Field. 
 TRecFilterByFieldFlt::TRecFilterByFieldFlt(const TWPt<TBase>& _Base, const int& _FieldId, const double& _MinVal,
-        const double& _MaxVal): TRecFilterByField(_Base, _FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
+        const double& _MaxVal, const bool& _FilterNullP): TRecFilterByField(_Base, _FieldId, _FilterNullP), MinVal(_MinVal), MaxVal(_MaxVal) {}
 
 bool TRecFilterByFieldFlt::Filter(const TRec& Rec) const {
+    bool RecNull = Rec.IsFieldNull(FieldId);
+    if (RecNull) { return !FilterNullP; }
     const double RecVal = Rec.GetFieldFlt(FieldId);
     return (MinVal <= RecVal) && (RecVal <= MaxVal);
 }
@@ -2636,19 +2658,23 @@ bool TRecFilterByFieldFlt::Filter(const TRec& Rec) const {
 ///////////////////////////////
 /// Record Filter by Numeric Field. 
 TRecFilterByFieldSFlt::TRecFilterByFieldSFlt(const TWPt<TBase>& _Base, const int& _FieldId, const float& _MinVal,
-    const float& _MaxVal): TRecFilterByField(_Base, _FieldId), MinVal(_MinVal), MaxVal(_MaxVal) {}
+    const float& _MaxVal, const bool& _FilterNullP): TRecFilterByField(_Base, _FieldId, _FilterNullP), MinVal(_MinVal), MaxVal(_MaxVal) {}
 
 bool TRecFilterByFieldSFlt::Filter(const TRec& Rec) const {
+    bool RecNull = Rec.IsFieldNull(FieldId);
+    if (RecNull) { return !FilterNullP; }
     const float RecVal = Rec.GetFieldSFlt(FieldId);
     return (MinVal <= RecVal) && (RecVal <= MaxVal);
 }
 
 ///////////////////////////////
 /// Record Filter by String Field. 
-TRecFilterByFieldStr::TRecFilterByFieldStr(const TWPt<TBase>& _Base, const int& _FieldId, const TStr& _StrVal):
-    TRecFilterByField(_Base, _FieldId), StrVal(_StrVal) {}
+TRecFilterByFieldStr::TRecFilterByFieldStr(const TWPt<TBase>& _Base, const int& _FieldId, const TStr& _StrVal, const bool& _FilterNullP):
+    TRecFilterByField(_Base, _FieldId, _FilterNullP), StrVal(_StrVal) {}
                                                      
 bool TRecFilterByFieldStr::Filter(const TRec& Rec) const {
+    bool RecNull = Rec.IsFieldNull(FieldId);
+    if (RecNull) { return !FilterNullP; }
     const TStr RecVal = Rec.GetFieldStr(FieldId);
     return StrVal == RecVal;
 }
@@ -2656,22 +2682,26 @@ bool TRecFilterByFieldStr::Filter(const TRec& Rec) const {
 ///////////////////////////////
 /// Record Filter by String Field Range.
 TRecFilterByFieldStrRange::TRecFilterByFieldStrRange(const TWPt<TBase>& _Base, const int& _FieldId,
-    const TStr& _StrVal, const TStr& _StrValMax): TRecFilterByField(_Base, _FieldId), StrValMin(_StrVal),
+    const TStr& _StrVal, const TStr& _StrValMax, const bool& _FilterNullP): TRecFilterByField(_Base, _FieldId, _FilterNullP), StrValMin(_StrVal),
     StrValMax(_StrValMax) { }
                                                            
 /// Filter function
 bool TRecFilterByFieldStrRange::Filter(const TRec& Rec) const {
+    bool RecNull = Rec.IsFieldNull(FieldId);
+    if (RecNull) { return !FilterNullP; }
     const TStr RecVal = Rec.GetFieldStr(FieldId);
     return (StrValMin <= RecVal) && (RecVal <= StrValMax);
 }
 
 ///////////////////////////////
 /// Record Filter by String Field Set. 
-TRecFilterByFieldStrSet::TRecFilterByFieldStrSet(const TWPt<TBase>& _Base, const int& _FieldId,  const TStrSet& _StrSet):
-    TRecFilterByField(_Base, _FieldId), StrSet(_StrSet) { }
+TRecFilterByFieldStrSet::TRecFilterByFieldStrSet(const TWPt<TBase>& _Base, const int& _FieldId,  const TStrSet& _StrSet, const bool& _FilterNullP):
+    TRecFilterByField(_Base, _FieldId, _FilterNullP), StrSet(_StrSet) { }
 
 /// Filter function
 bool TRecFilterByFieldStrSet::Filter(const TRec& Rec) const {
+    bool RecNull = Rec.IsFieldNull(FieldId);
+    if (RecNull) { return !FilterNullP; }
     const TStr RecVal = Rec.GetFieldStr(FieldId);
     return StrSet.IsKey(RecVal);
 }
@@ -2679,15 +2709,17 @@ bool TRecFilterByFieldStrSet::Filter(const TRec& Rec) const {
 ///////////////////////////////
 /// Record Filter by Time Field. 
 TRecFilterByFieldTm::TRecFilterByFieldTm(const TWPt<TBase>& _Base, const int& _FieldId, const uint64& _MinVal,
-    const uint64& _MaxVal): TRecFilterByField(_Base, _FieldId), MinVal(_MinVal), MaxVal(_MaxVal) { }
+    const uint64& _MaxVal, const bool& _FilterNullP): TRecFilterByField(_Base, _FieldId, _FilterNullP), MinVal(_MinVal), MaxVal(_MaxVal) { }
 
 TRecFilterByFieldTm::TRecFilterByFieldTm(const TWPt<TBase>& _Base, const int& _FieldId, const TTm& _MinVal,
-        const TTm& _MaxVal): TRecFilterByField(_Base, _FieldId),
+        const TTm& _MaxVal, const bool& _FilterNullP): TRecFilterByField(_Base, _FieldId, _FilterNullP),
         MinVal(_MinVal.IsDef() ? TTm::GetMSecsFromTm(_MinVal) : (uint64)TUInt64::Mn),
         MaxVal(_MaxVal.IsDef() ? TTm::GetMSecsFromTm(_MaxVal) : (uint64)TUInt64::Mx) { }
 
 /// Filter function
 bool TRecFilterByFieldTm::Filter(const TRec& Rec) const {
+    bool RecNull = Rec.IsFieldNull(FieldId);
+    if (RecNull) { return !FilterNullP; }
     const uint64 RecVal = Rec.GetFieldTmMSecs(FieldId);
     return (MinVal <= RecVal) && (RecVal <= MaxVal);
 }
