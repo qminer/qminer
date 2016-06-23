@@ -379,6 +379,8 @@ public:
     /// returns the class used to calculate distances
     const PDist& GetDistMetric() const { return Dist; }
 
+    inline void RemoveCentroids(const TIntV& CentroidIdV);
+
 protected:
 	/// can still optimize
     template<class TDataType>
@@ -580,15 +582,15 @@ void TAbsKMeans<TCentroidType>::Assign(const TMatType& FtrVV, TIntV& AssignV) co
 }
 
 template<class TCentroidType>
-template<class TFeatureType>
-double TAbsKMeans<TCentroidType>::GetDist(const int& ClustN, const TFeatureType& Pt) const {
+template<class TDataType>
+double TAbsKMeans<TCentroidType>::GetDist(const int& ClustN, const TDataType& Pt) const {
     TFltV Centroid;	GetCol(CentroidVV, ClustN, Centroid);
     return TLinAlg::EuclDist(Centroid, Pt);
 }
 
 template<class TCentroidType>
-template<class TFeatureType>
-void TAbsKMeans<TCentroidType>::GetCentroidDistV(const TFeatureType& FtrV, TFltV& DistV) const {
+template<class TDataType>
+void TAbsKMeans<TCentroidType>::GetCentroidDistV(const TDataType& FtrV, TFltV& DistV) const {
     Dist->GetDistV(CentroidVV, FtrV, DistV);
 }
 
@@ -596,6 +598,21 @@ template<class TCentroidType>
 template<class TDataType>
 void TAbsKMeans<TCentroidType>::GetDistVV(const TDataType& FtrVV, TFltVV& DistVV) const {
     Dist->GetDistVV(CentroidVV, FtrVV, DistVV);
+}
+
+template <class TCentroidType>
+inline void TAbsKMeans<TCentroidType>::RemoveCentroids(const TIntV& CentroidIdV) {
+	EAssertR(false, "TAbsKMeans<TCentroidType>::RemoveCentroids: Not implemented for this type of KMeans!");
+}
+
+template <>
+inline void TAbsKMeans<TFltVV>::RemoveCentroids(const TIntV& CentroidIdV) {
+	CentroidVV.DelCols(CentroidIdV);
+}
+
+template <>
+inline void TAbsKMeans<TVec<TIntFltKdV>>::RemoveCentroids(const TIntV& CentroidIdV) {
+	CentroidVV.Del(CentroidIdV);
 }
 
 template<class TCentroidType>

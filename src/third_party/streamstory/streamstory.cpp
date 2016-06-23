@@ -293,6 +293,27 @@ void TStateIdentifier::Init(const TStreamStory& StreamStory, const TUInt64V& TmV
 
 	TIntV AssignV;	Assign(TmV, ObsFtrVV, AssignV);
 
+	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Checking correctness ...");
+	TIntSet AssignedStateSet;
+	for (int RecN = 0; RecN < AssignV.Len(); RecN++) {
+		AssignedStateSet.AddKey(AssignV[RecN]);
+	}
+	if (AssignedStateSet.Len() != GetStates()) {
+		Notify->OnNotify(ntInfo, "Some of the states are empty! Removing them ...");
+		TIntV RemoveStateIdV;
+		for (int StateId = 0; StateId < GetStates(); StateId++) {
+			if (!AssignedStateSet.IsKey(StateId)) {
+				Notify->OnNotifyFmt(ntInfo, "Removing state %d ...", StateId);
+				RemoveStateIdV.Add(StateId);
+			}
+		}
+		KMeans->RemoveCentroids(RemoveStateIdV);
+
+		AssignV.Clr();
+		Assign(TmV, ObsFtrVV, AssignV);
+	}
+	EAssert(AssignedStateSet.Len() == GetStates());
+
 	InitStatistics(TmV, ObsFtrVV, AssignV);
 
 	InitCentroidVV(AssignV, ControlFtrVV, ControlCentroidVV);
@@ -300,13 +321,6 @@ void TStateIdentifier::Init(const TStreamStory& StreamStory, const TUInt64V& TmV
 	InitHistograms(StreamStory, ObsFtrVV, ControlFtrVV, IgnoredFtrVV, AssignV);
 	InitTimeHistogramV(TmV, AssignV, TIME_HIST_BINS);
 	ClearControlFtrVV(ControlFtrVV.GetRows());
-
-	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Checking correctness ...");
-	TIntSet AssignedStateSet;
-	for (int RecN = 0; RecN < AssignV.Len(); RecN++) {
-		AssignedStateSet.AddKey(AssignV[RecN]);
-	}
-	EAssert(AssignedStateSet.Len() == GetStates());
 
 	Notify->OnNotify(TNotifyType::ntInfo, "Done.");
 }
@@ -4672,12 +4686,12 @@ void TStateAssist::FitAssistModels(const TFltVV& FtrVV, const TFltV& LabelV, TLo
 TActivityDetector::TActivity::TActivity():
 		ActivitySeq(),
 		UniqueStepV(),
-		StepTmStepIdV() {}
+		StepStartEndTmIdV() {}
 
 TActivityDetector::TActivity::TActivity(const TActivityStepV& StepV):
 		ActivitySeq(),
 		UniqueStepV(),
-		StepTmStepIdV() {
+		StepStartEndTmIdV() {
 
 	// construct unique steps
 	for (int StepN = 0; StepN < StepV.Len(); StepN++) {
@@ -4698,26 +4712,29 @@ TActivityDetector::TActivity::TActivity(const TActivityStepV& StepV):
 
 TActivityDetector::TActivity::TActivity(TSIn& SIn):
 		ActivitySeq(SIn),
-		UniqueStepV(SIn),
-		StepTmStepIdV(SIn) {}
+		UniqueStepV(SIn)/*,
+		StepStartEndTmIdV(SIn)*/ {}
 
 void TActivityDetector::TActivity::Save(TSOut& SOut) const {
 	ActivitySeq.Save(SOut);
 	UniqueStepV.Save(SOut);
-	StepTmStepIdV.Save(SOut);
+//	StepStartEndTmIdV.Save(SOut);
 }
 
 bool TActivityDetector::TActivity::Update(const uint64& Tm, const int& StateId,
 		const PNotify& Notify) {
 	const int StepId = GetStepId(StateId);
-	if (StepTmStepIdV.Empty() || StepTmStepIdV.Last().Val2 != StepId) {
-		StepTmStepIdV.Add(TUInt64IntPr(Tm, StepId));
+	if (StepStartEndTmIdV.Empty() || StepStartEndTmIdV.Last().Val3 != StepId) {
+		if (!StepStartEndTmIdV.Empty()) {
+			StepStartEndTmIdV.Last().Val2 = Tm;
+		}
+		StepStartEndTmIdV.Add(TUInt64UInt64IntTr(Tm, TUInt64::Mx, StepId));
 
-		while (StepTmStepIdV.Len() > ActivitySeq.Len() + 1) {
-			StepTmStepIdV.Del(0);
+		while (StepStartEndTmIdV.Len() > ActivitySeq.Len() + 1) {
+			StepStartEndTmIdV.Del(0);
 		}
 
-		Notify->OnNotifyFmt(TNotifyType::ntInfo, "Updated history: %s", TStrUtil::GetStr(StepTmStepIdV).CStr());
+		Notify->OnNotifyFmt(TNotifyType::ntInfo, "Updated history: %s", TStrUtil::GetStr(StepStartEndTmIdV).CStr());
 		return true;
 	}
 
@@ -4725,14 +4742,14 @@ bool TActivityDetector::TActivity::Update(const uint64& Tm, const int& StateId,
 }
 
 bool TActivityDetector::TActivity::Detect(uint64& StartTm, uint64& EndTm, const PNotify& Notify) {
-	if (StepTmStepIdV.Len() != ActivitySeq.Len() + 1) {
+	if (StepStartEndTmIdV.Len() != ActivitySeq.Len() + 1) {
 		Notify->OnNotify(TNotifyType::ntInfo, "Won't detect activities, not enough history ...");
 		return false;
 	}
 
 	for (int StepN = 0; StepN < ActivitySeq.Len(); StepN++) {
 		const int& TemplateStepId = ActivitySeq[StepN];
-		const int& RealStepId = StepTmStepIdV[StepN].Val2;
+		const int& RealStepId = StepStartEndTmIdV[StepN].Val3;
 
 		Notify->OnNotifyFmt(TNotifyType::ntInfo, "Matching steps, template: %d, real: %d", TemplateStepId, RealStepId);
 
@@ -4742,12 +4759,15 @@ bool TActivityDetector::TActivity::Detect(uint64& StartTm, uint64& EndTm, const 
 	}
 
 	// set the start/end times
-	StartTm = StepTmStepIdV[0].Val1;
-	EndTm = StepTmStepIdV.Last().Val1;
+	StartTm = StepStartEndTmIdV[0].Val1;
+	EndTm = StepStartEndTmIdV[ActivitySeq.Len()-1].Val2;
+
+	Notify->OnNotifyFmt(ntInfo, "Detected activity lasting %.2f minutes!", double(EndTm - StartTm) / (1000*60));
+
+	EAssert(EndTm != TUInt64::Mx);
 
 	// remove the history, so we don't detect the activity again
-	const int DelVals = ActivitySeq.Len()-1;
-	StepTmStepIdV.Del(0, DelVals-1);
+	StepStartEndTmIdV.Del(0);
 
 	return true;
 }

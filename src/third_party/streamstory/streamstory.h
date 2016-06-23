@@ -938,7 +938,9 @@ private:
 	private:
 		TIntV ActivitySeq;
 		TActivityStepV UniqueStepV;
-		TUInt64IntPrV StepTmStepIdV;		// represents the history
+//		TUInt64IntPrV StepTmStepIdV;		// represents the history
+		TUInt64UInt64IntTrV StepStartEndTmIdV;	// represents the history, is not serialized with the rest of the variables
+
 	public:
 		TActivity();
 		TActivity(const TActivityStepV& StepV);
