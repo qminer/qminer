@@ -75,27 +75,27 @@ describe('Stream aggregate filter', function () {
                 }
             });  
 
-            var OKInput = [{ type: "recordFilterAggr", aggr: aggr.name, filter: { type: "trivial" } }];
-            OKInput.push({ type: "recordFilterAggr", aggr: aggr.name, filter: { type: "field", store: "RecordTest", field: "Int", minValue: 5 } });
+            var OKInput = [{ type: "recordFilterAggr", aggr: aggr.name, filters: [{ type: "trivial" }] }];
+            OKInput.push({ type: "recordFilterAggr", aggr: aggr.name, filters: [{ type: "field", store: "RecordTest", field: "Int", minValue: 5 }] });
             // missing fields
-            var BADInput = [{ type: "recordFilterAggr", filter: { type: "field", store: "RecordTest", field: "Int", minValue: 5 } }];
+            var BADInput = [{ type: "recordFilterAggr", filters: [{ type: "field", store: "RecordTest", field: "Int", minValue: 5 }] }];
             BADInput.push({ type: "recordFilterAggr", aggr: aggr.name });
-            BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filter: { store: "RecordTest", field: "Int", minValue: 5 } });
-            BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filter: { type: "field", field: "Int", minValue: 5 } });
-            BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filter: { type: "field", store: "RecordTest", minValue: 5 } });
-            BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filter: { type: "field", store: "RecordTest", field: "Int" } });
+            BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filters: [{ store: "RecordTest", field: "Int", minValue: 5 }] });
+            BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filters: [{ type: "field", field: "Int", minValue: 5 }] });
+            BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filters: [{ type: "field", store: "RecordTest", minValue: 5 }] });
+            BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filters: [{ type: "field", store: "RecordTest", field: "Int" }] });
             // bad fields
-            BADInput.push({ type: "recordFilterAggr", aggr: "lala", filter: { type: "field", store: "RecordTest", field: "Int", minValue: 5 } });
-            BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filter: { type: "lala", store: "RecordTest", field: "Int", minValue: 5 } });
-            BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filter: { type: "field", store: "lala", field: "Int", minValue: 5 } });
-            BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filter: { type: "field", store: "RecordTest", field: "lala", minValue: 5 } });
-            BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filter: { type: "field", store: "RecordTest", field: "Int", minValue: "lala" } });
+            BADInput.push({ type: "recordFilterAggr", aggr: "lala", filters: [{ type: "field", store: "RecordTest", field: "Int", minValue: 5 }] });
+            BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filters: [{ type: "lala", store: "RecordTest", field: "Int", minValue: 5 }] });
+            BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filters: [{ type: "field", store: "lala", field: "Int", minValue: 5 }] });
+            BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filters: [{ type: "field", store: "RecordTest", field: "lala", minValue: 5 }] });
+            BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filters: [{ type: "field", store: "RecordTest", field: "Int", minValue: "lala" }] });
             // null fields
-            BADInput.push({ type: "recordFilterAggr", aggr: null, filter: { type: "field", store: "RecordTest", field: "Int", minValue: 5 } });
-            BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filter: { type: null, store: "RecordTest", field: "Int", minValue: 5 } });
-            BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filter: { type: "field", store: null, field: "Int", minValue: 5 } });
-            BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filter: { type: "field", store: "RecordTest", field: null, minValue: 5 } });
-            BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filter: { type: "field", store: "RecordTest", field: "Int", minValue: null } });
+            BADInput.push({ type: "recordFilterAggr", aggr: null, filters: [{ type: "field", store: "RecordTest", field: "Int", minValue: 5 }] });
+            BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filters: [{ type: null, store: "RecordTest", field: "Int", minValue: 5 }] });
+            BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filters: [{ type: "field", store: null, field: "Int", minValue: 5 }] });
+            BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filters: [{ type: "field", store: "RecordTest", field: null, minValue: 5 }] });
+            BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filters: [{ type: "field", store: "RecordTest", field: "Int", minValue: null }] });
             
             for (key in OKInput) {
                 assert.doesNotThrow(function () {
@@ -119,13 +119,13 @@ describe('Stream aggregate filter', function () {
                 var filt = store.addStreamAggr({
                     type: 'recordFilterAggr',
                     aggr: aggr.name,
-                    filter: {
+                    filters: [{
                         type: "field",
                         store: "RecordTest",
                         field: field,
                         minValue: 5,
                         maxValue: 6
-                    }
+                    }]
                 });
                 assertUpdateSequence(field, [5, 6, 7, 1], [1, 2, 2, 2], store, aggr);
                 done();
@@ -139,12 +139,12 @@ describe('Stream aggregate filter', function () {
                 var filt = store.addStreamAggr({
                     type: 'recordFilterAggr',
                     aggr: aggr.name,
-                    filter: {
+                    filters: [{
                         type: "field",
                         store: "RecordTest",
                         field: field,
                         minValue: 5
-                    }
+                    }]
                 });
                 assertUpdateSequence(field, [5, 6, 7, 1], [1, 2, 3, 3], store, aggr);
                 done();
@@ -158,12 +158,12 @@ describe('Stream aggregate filter', function () {
                 var filt = store.addStreamAggr({
                     type: 'recordFilterAggr',
                     aggr: aggr.name,
-                    filter: {
+                    filters: [{
                         type: "field",
                         store: "RecordTest",
                         field: field,
                         maxValue: 6
-                    }
+                    }]
                 });
                 assertUpdateSequence(field, [5, 6, 7, 1], [1, 2, 2, 3], store, aggr);
                 done();
@@ -178,14 +178,14 @@ describe('Stream aggregate filter', function () {
                 var filt = store.addStreamAggr({
                     type: 'recordFilterAggr',
                     aggr: aggr.name,
-                    filter: {
+                    filters: [{
                         type: "field",
                         store: "RecordTest",
                         field: field,
                         minValue: 5,
                         maxValue: 6,
                         filterNull: true
-                    }
+                    }]
                 });
                 assertUpdateSequence(field, [5, 6, null, 7, null, 5, 1], [1, 2, 2, 2, 2, 3, 3], store, aggr);
                 done();
@@ -200,14 +200,14 @@ describe('Stream aggregate filter', function () {
                 var filt = store.addStreamAggr({
                     type: 'recordFilterAggr',
                     aggr: aggr.name,
-                    filter: {
+                    filters: [{
                         type: "field",
                         store: "RecordTest",
                         field: field,
                         minValue: 5,
                         maxValue: 6,
                         filterNull: false
-                    }
+                    }]
                 });
                 assertUpdateSequence(field, [5, 6, null, 7, null, 5, 1], [1, 2, 3, 3, 4, 5, 5], store, aggr);
                 done();
@@ -226,12 +226,12 @@ describe('Stream aggregate filter', function () {
             var filt = store.addStreamAggr({
                 type: 'recordFilterAggr',
                 aggr: aggr.name,
-                filter: {
+                filters: [{
                     type: "field",
                     store: "RecordTest",
                     field: "Bool",
                     value: true
-                }
+                }]
             });
             assertUpdateSequence("Bool", [true, true, false, false], [1, 2, 2, 2], store, aggr);
             done();
@@ -245,12 +245,12 @@ describe('Stream aggregate filter', function () {
             var filt = store.addStreamAggr({
                 type: 'recordFilterAggr',
                 aggr: aggr.name,
-                filter: {
+                filters: [{
                     type: "field",
                     store: "RecordTest",
                     field: "Str",
                     value: "tesi"
-                }
+                }]
             });
             assertUpdateSequence("Str", ["tesi", "tesi", "notTesi", "TESI"], [1, 2, 2, 2], store, aggr);
             done();
@@ -264,13 +264,13 @@ describe('Stream aggregate filter', function () {
             var filt = store.addStreamAggr({
                 type: 'recordFilterAggr',
                 aggr: aggr.name,
-                filter: {
+                filters: [{
                     type: "field",
                     store: "RecordTest",
                     field: "Str",
                     minValue: "tesia",
                     maxValue: "tesic"
-                }
+                }]
             });
             assertUpdateSequence("Str", ["tesia", "tesib", "tesid", "tesi"], [1, 2, 2, 2], store, aggr);
             done();
@@ -284,12 +284,12 @@ describe('Stream aggregate filter', function () {
             var filt = store.addStreamAggr({
                 type: 'recordFilterAggr',
                 aggr: aggr.name,
-                filter: {
+                filters: [{
                     type: "field",
                     store: "RecordTest",
                     field: "Str",
                     set: ["tesi", "test"]
-                }
+                }]
             });
             assertUpdateSequence("Str", ["tesi", "test", "tesid", "tesii"], [1, 2, 2, 2], store, aggr);
             done();
@@ -303,11 +303,11 @@ describe('Stream aggregate filter', function () {
             var filt = store.addStreamAggr({
                 type: 'recordFilterAggr',
                 aggr: aggr.name,
-                filter: {
+                filters: [{
                     type: "subsampling",
                     store: "RecordTest",
                     skip: 1
-                }
+                }]
             });
             assertUpdateSequence("Str", ["a", "b", "c", "d", "e", "f"], [1, 1, 2, 2, 3, 3], store, aggr);
             done();
@@ -321,10 +321,10 @@ describe('Stream aggregate filter', function () {
             var filt = store.addStreamAggr({
                 type: 'recordFilterAggr',
                 aggr: aggr.name,
-                filter: {
+                filters: [{
                     type: "recordExists",
                     store: "RecordTest"
-                }
+                }]
             });
             assertUpdateSequence("Str", ["a", "b", "c"], [1, 2, 3], store, aggr);
             var rec = store.newRecord({ Str: "test" }); //not pushed to store
@@ -343,12 +343,12 @@ describe('Stream aggregate filter', function () {
             var filt = store.addStreamAggr({
                 type: 'recordFilterAggr',
                 aggr: aggr.name,
-                filter: {
+                filters: [{
                     type: "recordId",
                     store: "RecordTest",
                     minRecId: 2,
                     maxRecId: 3
-                }
+                }]
             });
             assertUpdateSequence("Str", ["a", "b", "c", "d", "e"], [0, 0, 1, 2, 2], store, aggr);
             done();
@@ -362,11 +362,11 @@ describe('Stream aggregate filter', function () {
             var filt = store.addStreamAggr({
                 type: 'recordFilterAggr',
                 aggr: aggr.name,
-                filter: {
+                filters: [{
                     type: "recordId",
                     store: "RecordTest",
                     recIdSet: [2,3]
-                }
+                }]
             });
             assertUpdateSequence("Str", ["a", "b", "c", "d", "e"], [0, 0, 1, 2, 2], store, aggr);
             done();
@@ -377,12 +377,12 @@ describe('Stream aggregate filter', function () {
             var filt = store.addStreamAggr({
                 type: 'recordFilterAggr',
                 aggr: aggr.name,
-                filter: {
+                filters: [{
                     type: "recordId",
                     store: "RecordTest",
                     recIdSet: [2, 3],
                     inP: false
-                }
+                }]
             });
             assertUpdateSequence("Str", ["a", "b", "c", "d", "e"], [1, 2, 2, 2, 3], store, aggr);
             done();
@@ -396,12 +396,12 @@ describe('Stream aggregate filter', function () {
             var filt = store.addStreamAggr({
                 type: 'recordFilterAggr',
                 aggr: aggr.name,
-                filter: {
+                filters: [{
                     type: "recordFq",
                     store: "RecordTest",
                     minFq: 5,
                     maxFq: 6
-                }
+                }]
             });
 
             store.push({ Str: "a" });
@@ -434,13 +434,13 @@ describe('Stream aggregate filter', function () {
             var filt = store.addStreamAggr({
                 type: 'recordFilterAggr',
                 aggr: aggr.name,
-                filter: {
+                filters: [{
                     type: "indexJoin",
                     store: "RecordTest",
                     join: "joinTest",
                     minRecId: 2,
                     maxRecId: 3
-                }
+                }]
             });
 
             store.push({ Str: "a" }, false);
@@ -484,13 +484,13 @@ describe('Stream aggregate filter', function () {
             var filt = store.addStreamAggr({
                 type: 'recordFilterAggr',
                 aggr: aggr.name,
-                filter: {
+                filters: [{
                     type: "field",
                     store: "RecordTest",
                     field: "Str",
                     value: "tesi",
                     filterNull: true
-                }
+                }]
             });
             assertUpdateSequence("Str", ["tesi", "tesi", null, "tesii", null, "tesi", "TESI"], [1, 2, 2, 2, 2, 3, 3], store, aggr);
             done();
@@ -501,18 +501,43 @@ describe('Stream aggregate filter', function () {
             var filt = store.addStreamAggr({
                 type: 'recordFilterAggr',
                 aggr: aggr.name,
-                filter: {
+                filters: [{
                     type: "field",
                     store: "RecordTest",
                     field: "Str",
                     value: "tesi",
                     filterNull: false
-                }
+                }]
             });
             assertUpdateSequence("Str", ["tesi", "tesi", null, "tesii", null, "tesi", "TESI"], [1, 2, 3, 3, 4, 5, 5], store, aggr);
             done();
         });
     });
 
+    describe('Multiple filters test', function () {
+        it('should pass records when they pass both filter tests', function (done) {
+            var aggr = new qm.StreamAggr(base, new JsAggr);
+
+            var filt = store.addStreamAggr({
+                type: 'recordFilterAggr',
+                aggr: aggr.name,
+                filters: [{
+                    type: "field",
+                    store: "RecordTest",
+                    field: "Str",
+                    minValue: "a",
+                    maxValue: "c"
+                }, {
+                    type: "field",
+                    store: "RecordTest",
+                    field: "Str",
+                    minValue: "b",
+                    maxValue: "d"
+                }]
+            });
+            assertUpdateSequence("Str", ["a", "b", "c", "d"], [0, 1, 2, 2], store, aggr);
+            done();
+        });
+    });
 
 });
