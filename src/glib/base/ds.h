@@ -3065,7 +3065,7 @@ public:
   /// Copy a subvector given start and end index
   void GetSubValVec(const int& BValN, const int& EValN, TVec<TVal>& SubValV) const {
     // compensate for incorrect index?
-	EAssert((BValN >= 0) && (EValN <= Len() - 1));
+    EAssert((BValN >= 0) && (EValN <= Len() - 1));
     SubValV.Gen(EValN-BValN+1);
     int Vals = ValV.Len();
     for (int ValN=BValN; ValN<=EValN; ValN++){

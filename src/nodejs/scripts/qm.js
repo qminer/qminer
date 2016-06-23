@@ -242,8 +242,7 @@ module.exports = exports = function (pathQmBinary) {
     }
 
     exports.Store.prototype.addStreamAggr = function (params) {
-        var newParams = params; newParams.store = this.name;
-        return new exports.StreamAggr(this.base, newParams, this.name);
+        return new exports.StreamAggr(this.base, params, this.name);
     }
 
     exports.Store.prototype.inspect = function (depth) {
