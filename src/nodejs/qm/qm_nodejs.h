@@ -1048,6 +1048,13 @@ private:
     JsDeclareFunction(resetStreamAggregates);
 
     /**
+    * Returns an array of the stream aggregates names connected to the store.		
+    * @returns {Array.<string>} An array of stream aggregates names.		
+    */		
+    //# exports.Store.prototype.getStreamAggrNames = function () { return [""]; }		
+    JsDeclareFunction(getStreamAggrNames);		
+		
+   /**
     * Returns the store as a JSON.
     * @returns {Object} The store as a JSON.
     * @example
