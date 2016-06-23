@@ -727,6 +727,7 @@ void TNodeJsStore::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "isDate", _isDate);
     NODE_SET_PROTOTYPE_METHOD(tpl, "key", _key);
     NODE_SET_PROTOTYPE_METHOD(tpl, "resetStreamAggregates", _resetStreamAggregates);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "getStreamAggrNames", _getStreamAggrNames);
     NODE_SET_PROTOTYPE_METHOD(tpl, "toJSON", _toJSON);
     NODE_SET_PROTOTYPE_METHOD(tpl, "clear", _clear);
     NODE_SET_PROTOTYPE_METHOD(tpl, "getVector", _getVector);
@@ -1200,6 +1201,25 @@ void TNodeJsStore::resetStreamAggregates(const v8::FunctionCallbackInfo<v8::Valu
 
     Base->GetStreamAggrSet(Store->GetStoreId())->Reset();
 }
+
+void TNodeJsStore::getStreamAggrNames(const v8::FunctionCallbackInfo<v8::Value>& Args) {		
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();		
+    v8::HandleScope HandleScope(Isolate);		
+		
+    try {		
+        TNodeJsStore* JsStore = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsStore>(Args.Holder());		
+        TWPt<TQm::TStore>& Store = JsStore->Store;		
+        const TWPt<TQm::TBase>& Base = JsStore->Store->GetBase();		
+		
+        // get list of names		
+        TStrV StreamAggrNmV = Base->GetStreamAggrSet(Store->GetStoreId())->GetStreamAggrNmV();		
+        // set list as return value		
+        Args.GetReturnValue().Set(TNodeJsUtil::GetStrArr(StreamAggrNmV));		
+    }		
+    catch (const PExcept& Except) {		
+        throw TQm::TQmExcept::New("[except] " + Except->GetMsgStr());		
+    }		
+}		
 
 void TNodeJsStore::toJSON(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
