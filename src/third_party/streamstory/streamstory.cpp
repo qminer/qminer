@@ -4130,7 +4130,7 @@ void TUiHelper::InitAutoNmV(const TStreamStory& StreamStory) {
 				SampleSize = 0;
 				double ProbSum = 0;
 				for (int BinN = 0; BinN < BinValV.Len(); BinN++) {
-					const int& BinSize = StateBinCountV[BinN];
+					const int BinSize = (int) StateBinCountV[BinN];
 					const double Prob = double(BinSize) / TotalCount;
 
 					if (ProbSum <= STATE_LOW_PVAL_THRESHOLD && ProbSum + Prob > STATE_LOW_PVAL_THRESHOLD) {
@@ -4163,7 +4163,7 @@ void TUiHelper::InitAutoNmV(const TStreamStory& StreamStory) {
 				double BestBinProb = -1;
 				SampleSize = 0;
 				for (int BinN = 0; BinN < BinValV.Len(); BinN++) {
-					const int& BinSize = StateBinCountV[BinN];
+					const int BinSize = (int) StateBinCountV[BinN];
 					const double Prob = double(BinSize) / TotalCount;
 
 					if (Prob > BestBinProb) {
