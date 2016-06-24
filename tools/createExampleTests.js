@@ -1,9 +1,9 @@
 // creates the tests out of the examples in the documentation
 
-hfile = process.argv[2]; // the path to the files (e.g. ./qminer/nodedoc/)
-outfile = process.argv[3]; // the the folder where the tests will be saved (e.g. ./qminer/test/nodejs/)
+var hfile = process.argv[2]; // the path to the files (e.g. ./qminer/nodedoc/)
+var outfile = process.argv[3]; // the the folder where the tests will be saved (e.g. ./qminer/test/nodejs/)
 
-fs = require('fs');
+var fs = require('fs');
 
 // get the .js files from the file array
 if (hfile != 0) {
@@ -21,10 +21,12 @@ var exampleTemplate = fs.readFileSync('templates/example.js').toString();
 
 // constructs the it('should something', function () { ... }) test
 var constructExample = function (describe, str, i) {   
-	return exampleTemplate.replace('${number}', i)
+	return exampleTemplate.replace(/\$\{number\}/g, i)
 						  .replace('${describe}', describe)
 						  .replace('${content}', str.replace(/\n/g, '\n\t\t\t\t\t'));
 }
+
+console.log('Using example template:\n' + exampleTemplate);
 
 var fout = null;
 
@@ -91,9 +93,4 @@ for (var i = 0; i < JSFiles.length; i++) {
     
     var exampleFileStr = examplesTemplate.replace('${examples}', examplesContent);
     fout.write(exampleFileStr);
-//    fout.write("],\nfunction (e) { if (e != null) { console.error(e); process.exit(1); } });")
-//    fout.write("describe('example tests for the " + JSFiles[i] + " file', function () {\n");
-
-    
-//    fout.write("\n});\n");
 }
