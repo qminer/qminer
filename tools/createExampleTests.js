@@ -26,8 +26,6 @@ var constructExample = function (describe, str, i) {
 						  .replace('${content}', str.replace(/\n/g, '\n\t\t\t\t\t'));
 }
 
-console.log('Using example template:\n' + exampleTemplate);
-
 var fout = null;
 
 // for each .js file extract the examples
