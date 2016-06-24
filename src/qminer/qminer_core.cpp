@@ -2417,7 +2417,7 @@ PRecFilter TRecFilterByRecId::New(const TWPt<TBase>& Base, const PJsonVal& Param
         return new TRecFilterByRecId(Base, MinRecId, MaxRecId);
     } else if (ParamVal->IsObjKey("recIdSet")) {
         TUInt64V RecIdSetV; ParamVal->GetObjUInt64V("recIdSet", RecIdSetV);
-        const bool InP = ParamVal->GetObjBool("inP", true);
+        const bool InP = ParamVal->GetObjBool("isComplement", true);
         return new TRecFilterByRecId(Base, TUInt64Set(RecIdSetV), InP);
     }
     throw TQmExcept::New("[TRecFilterByRecId] missing parameters in " + ParamVal->SaveStr());
@@ -2455,7 +2455,7 @@ PRecFilter TRecFilterByField::New(const TWPt<TBase>& Base, const PJsonVal& Param
     // get store
     TStr StoreNm = ParamVal->GetObjStr("store");
     // filter out null?
-    bool FilterNullP = ParamVal->GetObjBool("filterNull", true);
+    bool FilterNullP = !ParamVal->GetObjBool("letNullThrough", false);
     const TWPt<TStore>& Store = Base->GetStoreByStoreNm(StoreNm);
     // get field and its type
     QmAssertR(ParamVal->IsObjKey("field"), "[TRecFilterByField] Missing field name");
