@@ -8,13 +8,6 @@
 #ifndef QMINER_QM_NODEJS_STREAMAGGR
 #define QMINER_QM_NODEJS_STREAMAGGR
 
-#include <node.h>
-#include <node_object_wrap.h>
-#include <qminer.h>
-#include "../la/la_nodejs.h"
-#include "../fs/fs_nodejs.h"
-#include "../nodeutil.h"
-
 /**
 * Qminer module.
 * @module qm
