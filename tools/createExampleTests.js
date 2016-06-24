@@ -20,7 +20,7 @@ var examplesTemplate = fs.readFileSync('templates/examples.js').toString();
 var exampleTemplate = fs.readFileSync('templates/example.js').toString();
 
 // constructs the it('should something', function () { ... }) test
-var constructIt = function (describe, str, i) {   
+var constructExample = function (describe, str, i) {   
 	return exampleTemplate.replace('${number}', i)
 						  .replace('${describe}', describe)
 						  .replace('${content}', str.replace(/\n/g, '\n\t\t\t\t\t'));
@@ -36,14 +36,6 @@ for (var i = 0; i < JSFiles.length; i++) {
     }
 
     // write the describe of the file (to know in which file the test throws the error)
-//    fout.write("require('qminer').la.Vector.prototype.print = function () { };\n");
-//    fout.write("require('qminer').la.SparseVector.prototype.print = function () { };\n");
-//    fout.write("require('qminer').la.SparseMatrix.prototype.print = function () { };\n");
-//    fout.write("require('qminer').la.Matrix.prototype.print = function () { };\n");
-//    
-//    fout.write("var async = require('async');\n");
-//    fout.write("async.series([\n");
-    
     var examplesContent = '';
     
     var hstr = fs.readFileSync(hfile + JSFiles[i], 'ascii');
@@ -92,13 +84,8 @@ for (var i = 0; i < JSFiles.length; i++) {
 				if (example.indexOf('*/') != -1) { example = example.slice(0, example.length - 2);}
 				else { example = example.slice(0, example.length - 1); }
 				
-				examplesContent += constructIt(describe, example, count);
-//				fout.write();
+				examplesContent += constructExample(describe, example, count);
 			}
-            // str = str.slice(exampleIdx);
-            // str = str.replace(/(\*)/g, '');
-            // str = str.slice(8, str.length - 2);
-            // fout.write(constructIt(str, count));
         }
     }
     
