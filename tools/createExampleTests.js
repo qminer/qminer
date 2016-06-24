@@ -16,12 +16,17 @@ for (var i = 0; i < fileNames.length; i++) {
     }
 }
 
+var examplesTemplate = fs.readFileSync('templates/examples.js').toString();
+var exampleTemplate = fs.readFileSync('templates/example.js').toString();
+
 // constructs the it('should something', function () { ... }) test
-var constructIt = function (describe, str, i) {
-    var test = 'describe("'+ describe + ', number ' + i +'", function () {\nit("should make test number ' + i + '", function () {\n';
-    test += str + "\n});\n});\n";
-    return test;
+var constructIt = function (describe, str, i) {   
+	return exampleTemplate.replace('${number}', i)
+						  .replace('${describe}', describe)
+						  .replace('${content}', str.replace(/\n/g, '\n\t\t\t\t\t'));
 }
+
+var fout = null;
 
 // for each .js file extract the examples
 for (var i = 0; i < JSFiles.length; i++) {
@@ -31,12 +36,16 @@ for (var i = 0; i < JSFiles.length; i++) {
     }
 
     // write the describe of the file (to know in which file the test throws the error)
-    fout.write("require('qminer').la.Vector.prototype.print = function () { };\n");
-    fout.write("require('qminer').la.SparseVector.prototype.print = function () { };\n");
-    fout.write("require('qminer').la.SparseMatrix.prototype.print = function () { };\n");
-    fout.write("require('qminer').la.Matrix.prototype.print = function () { };\n");
-    fout.write("describe('example tests for the " + JSFiles[i] + " file', function () {\n");
-
+//    fout.write("require('qminer').la.Vector.prototype.print = function () { };\n");
+//    fout.write("require('qminer').la.SparseVector.prototype.print = function () { };\n");
+//    fout.write("require('qminer').la.SparseMatrix.prototype.print = function () { };\n");
+//    fout.write("require('qminer').la.Matrix.prototype.print = function () { };\n");
+//    
+//    fout.write("var async = require('async');\n");
+//    fout.write("async.series([\n");
+    
+    var examplesContent = '';
+    
     var hstr = fs.readFileSync(hfile + JSFiles[i], 'ascii');
     // get the rows between * @example and @example or */ - getting the example code
     var regex = /(\/\*\*([\s\S]*?)\*\/)/g;
@@ -53,7 +62,7 @@ for (var i = 0; i < JSFiles.length; i++) {
         title = str.slice(3);
         title = title.slice(title.indexOf('*') + 1);
         // get the description of the function
-        describe = title.slice(1, title.indexOf('*') - 1);
+        var describe = title.slice(1, title.indexOf('*') - 1);
         lastTab = describe.lastIndexOf("\t");
         if (lastTab != -1) {
             describe = describe.substring(0, lastTab);
@@ -82,7 +91,9 @@ for (var i = 0; i < JSFiles.length; i++) {
 				example = example.replace(/(\n\s*)\*/g, '$1');
 				if (example.indexOf('*/') != -1) { example = example.slice(0, example.length - 2);}
 				else { example = example.slice(0, example.length - 1); }
-				fout.write(constructIt(describe, example, count));
+				
+				examplesContent += constructIt(describe, example, count);
+//				fout.write();
 			}
             // str = str.slice(exampleIdx);
             // str = str.replace(/(\*)/g, '');
@@ -90,5 +101,12 @@ for (var i = 0; i < JSFiles.length; i++) {
             // fout.write(constructIt(str, count));
         }
     }
-    fout.write("\n});\n");
+    
+    var exampleFileStr = examplesTemplate.replace('${examples}', examplesContent);
+    fout.write(exampleFileStr);
+//    fout.write("],\nfunction (e) { if (e != null) { console.error(e); process.exit(1); } });")
+//    fout.write("describe('example tests for the " + JSFiles[i] + " file', function () {\n");
+
+    
+//    fout.write("\n});\n");
 }

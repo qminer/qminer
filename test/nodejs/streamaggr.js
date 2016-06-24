@@ -4467,16 +4467,11 @@ describe('Stream aggregate set tests', function () {
     });
     
     it('Creating simple MA pipeline (by reference)', function () {
-    	console.log('Creating tick ...');
         var tick = new qm.StreamAggr(base, { type: "timeSeriesWinBuf", store: "Test", timestamp: "Date", value: "Value", winsize: 5000 });
-        console.log('Creating MA ...');
         var ma = new qm.StreamAggr(base, { type: "ma", inAggr: tick });
-        console.log('Creating set ...');
         var set = store.addStreamAggr({ type: "set", aggregates: [tick, ma] });
         
-        console.log('Assertion 1');
         assert.throws(function () { store.addStreamAggr({ type: "set", aggregates: [ { a: 1 } ] }); });
-        console.log('Assertion 2');
         assert.throws(function () { store.addStreamAggr({ type: "set", aggregates: [ store ] }); });
 
         var time = new Date('2015-06-10T14:13:45.0').getTime();
