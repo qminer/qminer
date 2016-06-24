@@ -5,11 +5,6 @@
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
-#include "qm_nodejs.h"
-#include "qm_param.h"
-#include "../la/la_nodejs.h"
-
-#include <node_buffer.h>
 
 ///////////////////////////////
 // NodeJs QMiner
@@ -291,6 +286,7 @@ void TNodeJsBase::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "close", _close);
     NODE_SET_PROTOTYPE_METHOD(tpl, "isClosed", _isClosed);
     NODE_SET_PROTOTYPE_METHOD(tpl, "store", _store);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "isStore", _isStore);
     NODE_SET_PROTOTYPE_METHOD(tpl, "getStoreList", _getStoreList);
     NODE_SET_PROTOTYPE_METHOD(tpl, "createStore", _createStore);
     NODE_SET_PROTOTYPE_METHOD(tpl, "createJsStore", _createJsStore);
@@ -498,6 +494,18 @@ void TNodeJsBase::store(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         Args.GetReturnValue().Set(v8::Null(Isolate));
         return;
     }
+}
+
+void TNodeJsBase::isStore(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	// unwrap
+	TNodeJsBase* JsBase = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsBase>(Args.Holder());
+
+	const TStr StoreNm = TNodeJsUtil::GetArgStr(Args, 0);
+
+	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, JsBase->Base->IsStoreNm(StoreNm)));
 }
 
 void TNodeJsBase::getStoreList(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -718,7 +726,8 @@ void TNodeJsStore::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "isString", _isString);
     NODE_SET_PROTOTYPE_METHOD(tpl, "isDate", _isDate);
     NODE_SET_PROTOTYPE_METHOD(tpl, "key", _key);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "resetStreamAggregates", _resetStreamAggregates);    
+    NODE_SET_PROTOTYPE_METHOD(tpl, "resetStreamAggregates", _resetStreamAggregates);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "getStreamAggrNames", _getStreamAggrNames);
     NODE_SET_PROTOTYPE_METHOD(tpl, "toJSON", _toJSON);
     NODE_SET_PROTOTYPE_METHOD(tpl, "clear", _clear);
     NODE_SET_PROTOTYPE_METHOD(tpl, "getVector", _getVector);
@@ -1192,6 +1201,25 @@ void TNodeJsStore::resetStreamAggregates(const v8::FunctionCallbackInfo<v8::Valu
 
     Base->GetStreamAggrSet(Store->GetStoreId())->Reset();
 }
+
+void TNodeJsStore::getStreamAggrNames(const v8::FunctionCallbackInfo<v8::Value>& Args) {		
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();		
+    v8::HandleScope HandleScope(Isolate);		
+		
+    try {		
+        TNodeJsStore* JsStore = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsStore>(Args.Holder());		
+        TWPt<TQm::TStore>& Store = JsStore->Store;		
+        const TWPt<TQm::TBase>& Base = JsStore->Store->GetBase();		
+		
+        // get list of names		
+        TStrV StreamAggrNmV = Base->GetStreamAggrSet(Store->GetStoreId())->GetStreamAggrNmV();		
+        // set list as return value		
+        Args.GetReturnValue().Set(TNodeJsUtil::GetStrArr(StreamAggrNmV));		
+    }		
+    catch (const PExcept& Except) {		
+        throw TQm::TQmExcept::New("[except] " + Except->GetMsgStr());		
+    }		
+}		
 
 void TNodeJsStore::toJSON(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();

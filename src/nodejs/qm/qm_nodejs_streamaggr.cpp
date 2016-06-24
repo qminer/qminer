@@ -110,7 +110,7 @@ TNodeJsStreamAggr* TNodeJsStreamAggr::NewFromArgs(const v8::FunctionCallbackInfo
         StreamAggr = TQm::TStreamAggrs::TFtrExtAggr::New(JsBase->Base, AggrName, JsFtrSpace->FtrSpace);
     } else if (TypeNm == "merger") {
         // we have merger, get its parameters
-        PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 1);
+        PJsonVal ParamVal = TNodeJsUtil::GetArgToNmJson(Args, 1);
         // create new merger aggregate
         StreamAggr = TQm::TStreamAggrs::TMerger::New(JsBase->Base, ParamVal);
         // automatically attach merger to all listed stores
@@ -118,7 +118,7 @@ TNodeJsStreamAggr* TNodeJsStreamAggr::NewFromArgs(const v8::FunctionCallbackInfo
         StoreNmV.AddV(_StoreNmV);        
     } else {
         // we have a GLib stream aggregate, translate parameters to PJsonVal
-        PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 1);
+        PJsonVal ParamVal = TNodeJsUtil::GetArgToNmJson(Args, 1);
         if (Args.Length() >= 3 && Args[2]->IsString()) {
             ParamVal->AddToObj("store", TNodeJsUtil::GetArgStr(Args, 2));
         }
