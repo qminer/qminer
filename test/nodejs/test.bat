@@ -14,7 +14,7 @@ if errorlevel 1 (
 SET EXAMPLES_PATH=.\..\..\examples\streamaggregate
 cd %EXAMPLES_PATH%
 
-call npm install
+call npm install --silent > npm_install.log
 call npm test
 if errorlevel 1 (
    echo Failure Reason Given is %errorlevel%

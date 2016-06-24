@@ -184,7 +184,7 @@ describe('Stream aggregate filter', function () {
                         field: field,
                         minValue: 5,
                         maxValue: 6,
-                        filterNull: true
+                        letNullThrough: false
                     }]
                 });
                 assertUpdateSequence(field, [5, 6, null, 7, null, 5, 1], [1, 2, 2, 2, 2, 3, 3], store, aggr);
@@ -206,7 +206,7 @@ describe('Stream aggregate filter', function () {
                         field: field,
                         minValue: 5,
                         maxValue: 6,
-                        filterNull: false
+                        letNullThrough: true
                     }]
                 });
                 assertUpdateSequence(field, [5, 6, null, 7, null, 5, 1], [1, 2, 3, 3, 4, 5, 5], store, aggr);
@@ -381,7 +381,7 @@ describe('Stream aggregate filter', function () {
                     type: "recordId",
                     store: "RecordTest",
                     recIdSet: [2, 3],
-                    inP: false
+                    isComplement: false
                 }]
             });
             assertUpdateSequence("Str", ["a", "b", "c", "d", "e"], [1, 2, 2, 2, 3], store, aggr);
@@ -489,7 +489,7 @@ describe('Stream aggregate filter', function () {
                     store: "RecordTest",
                     field: "Str",
                     value: "tesi",
-                    filterNull: true
+                    letNullThrough: false
                 }]
             });
             assertUpdateSequence("Str", ["tesi", "tesi", null, "tesii", null, "tesi", "TESI"], [1, 2, 2, 2, 2, 3, 3], store, aggr);
@@ -506,7 +506,7 @@ describe('Stream aggregate filter', function () {
                     store: "RecordTest",
                     field: "Str",
                     value: "tesi",
-                    filterNull: false
+                    letNullThrough: true
                 }]
             });
             assertUpdateSequence("Str", ["tesi", "tesi", null, "tesii", null, "tesi", "TESI"], [1, 2, 3, 3, 4, 5, 5], store, aggr);
