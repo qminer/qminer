@@ -560,7 +560,9 @@ public:
   void PutInt(const int& Int){PutBf(&Int, sizeof(Int));}
   int GetInt(){int Int; GetBf(&Int, sizeof(Int)); return Int;}
   void PutUInt(const uint& UInt){PutBf(&UInt, sizeof(UInt));}
+  void PutUInt16(const uint16& UInt16) { PutBf(&UInt16, sizeof(UInt16)); }
   uint GetUInt(){uint UInt; GetBf(&UInt, sizeof(UInt)); return UInt;}
+  uint16 GetUInt16() { uint16 UInt16;  GetBf(&UInt16, sizeof(UInt16)); return UInt16; }
   void PutStr(const TStr& Str);
   TStr GetStr(const int& StrLen);
   TStr GetStr(const int& MxStrLen, bool& IsOk);

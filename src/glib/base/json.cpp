@@ -165,6 +165,15 @@ void TJsonVal::GetArrIntV(TIntV& IntV) const {
     }
 }
 
+void TJsonVal::GetArrUInt64V(TUInt64V& UInt64V) const {
+    EAssert(IsArr());
+    for (int IntN = 0; IntN < GetArrVals(); IntN++) {
+        PJsonVal ArrVal = GetArrVal(IntN);
+        EAssert(ArrVal->IsNum());
+        UInt64V.Add(ArrVal->GetUInt64());
+    }
+}
+
 void TJsonVal::GetArrStrV(TStrV& StrV) const {
     EAssert(IsArr());
     for (int StrN = 0; StrN < GetArrVals(); StrN++) {
@@ -242,6 +251,12 @@ void TJsonVal::GetObjIntV(const TStr& Key, TIntV& IntV) const {
     GetObjKey(Key)->GetArrIntV(IntV);
 }
 
+void TJsonVal::GetObjUInt64V(const TStr& Key, TUInt64V& UInt64V) const {
+    EAssert(IsObj());
+    EAssert(IsObjKey(Key));
+    GetObjKey(Key)->GetArrUInt64V(UInt64V);
+}
+
 void TJsonVal::GetObjFltV(const TStr& Key, TFltV& FltV) const {
     EAssert(IsObj());
     EAssert(IsObjKey(Key));
@@ -270,15 +285,20 @@ void TJsonVal::GetObjStrV(const char *Key, TStrV& StrV) const {
     GetObjKey(Key)->GetArrStrV(StrV);
 }
 
+void TJsonVal::AssertObjKey(const TStr& Key, const TStr& Fun) {
+    // missing key or key not string
+    if (!IsObjKey(Key)) { throw TExcept::New("Exception in function `" + Fun + "`: missing JSON property:`" + Key + "`."); }
+}
+
 void TJsonVal::AssertObjKeyStr(const TStr& Key, const TStr& Fun) {
 	// missing key or key not string
-	if (!IsObjKey(Key)) { throw TExcept::New("Exception in function `" + Fun + "`: missing JSON property:`" + Key + "`."); }
+    AssertObjKey(Key, Fun);
 	if (!GetObjKey(Key)->IsStr()) { throw TExcept::New("Exception in function `" + Fun + "`: JSON property:`" + Key + "` is not a string."); }
 }
 
 void TJsonVal::AssertObjKeyNum(const TStr& Key, const TStr& Fun) {
 	// missing key or key not string
-	if (!IsObjKey(Key)) { throw TExcept::New("Exception in function `" + Fun + "`: missing JSON property:`" + Key + "`."); }
+    AssertObjKey(Key, Fun);
 	if (!GetObjKey(Key)->IsNum()) { throw TExcept::New("Exception in function `" + Fun + "`: JSON property:`" + Key + "` is not a number."); }
 }
 

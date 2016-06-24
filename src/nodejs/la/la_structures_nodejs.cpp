@@ -57,8 +57,8 @@ void TNodeJsFltVV::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(Tpl, "colMaxIdx", _colMaxIdx);
     NODE_SET_PROTOTYPE_METHOD(Tpl, "getCol", _getCol);
     NODE_SET_PROTOTYPE_METHOD(Tpl, "setCol", _setCol);
-	NODE_SET_PROTOTYPE_METHOD(Tpl, "getSubmatrix", _getSubmatrix);
-	NODE_SET_PROTOTYPE_METHOD(Tpl, "getColSubmatrix", _getColSubmatrix);
+    NODE_SET_PROTOTYPE_METHOD(Tpl, "getSubmatrix", _getSubmatrix);
+    NODE_SET_PROTOTYPE_METHOD(Tpl, "getColSubmatrix", _getColSubmatrix);
     NODE_SET_PROTOTYPE_METHOD(Tpl, "getRow", _getRow);
     NODE_SET_PROTOTYPE_METHOD(Tpl, "setRow", _setRow);
     NODE_SET_PROTOTYPE_METHOD(Tpl, "diag", _diag);
@@ -554,7 +554,7 @@ void TNodeJsFltVV::getSubmatrix(const v8::FunctionCallbackInfo<v8::Value>& Args)
 	EAssertR(0 <= MaxCols && MaxCols < JsMat->Mat.GetCols(), "Matrix.getSubmatrix: maxCol is not valid!");
 
 	TFltVV Result;
-	TLinAlg::SubMat(JsMat->Mat, MinRows, MaxRows, MinCols, MaxCols, Result);
+	TLinAlg::SubMat(JsMat->Mat, MinRows, MaxRows+1, MinCols, MaxCols+1, Result);
 
 	Args.GetReturnValue().Set(TNodeJsFltVV::New(Result));
 }

@@ -1203,31 +1203,31 @@ describe('Simple linear regression test', function () {
 
     describe('GetFloatVector Tests', function () {
         it('should return the float vector of values in the buffer', function () {
-            var winX = store.addStreamAggr({
-                type: 'timeSeriesWinBuf',
+            var tickX = store.addStreamAggr({
+                type: 'timeSeriesTick',
                 timestamp: 'Time',
-                value: 'X',
+                value: 'X'
+            });
+            var winX = store.addStreamAggr({
+                type: 'timeSeriesWinBufVector',
+                inAggr: tickX.name,
                 winsize: 1000
             });
-            var winXv = store.addStreamAggr({
-                type: 'timeSeriesWinBufVector',
-                inAggr: winX.name
+            var tickY = store.addStreamAggr({
+                type: 'timeSeriesTick',
+                timestamp: 'Time',
+                value: 'Y'
             });
             var winY = store.addStreamAggr({
-                type: 'timeSeriesWinBuf',
-                timestamp: 'Time',
-                value: 'Y',
-                winsize: 1000
-            });
-            var winYv = store.addStreamAggr({
                 type: 'timeSeriesWinBufVector',
-                inAggr: winY.name
+                inAggr: tickY.name,
+                winsize: 1000
             });
 
             var linReg = store.addStreamAggr({
                 type: 'simpleLinearRegression',
-                inAggrX: winXv.name,
-                inAggrY: winYv.name,
+                inAggrX: winX.name,
+                inAggrY: winY.name,
                 storeX: "Function",
                 storeY: "Function",
                 quantiles: [0.25, 0.75]
@@ -1251,31 +1251,31 @@ describe('Simple linear regression test', function () {
     	
     describe('GetFloatVector Tests', function () {
         it('should return the float vector of values in the buffer', function () {
-            var winX = store.addStreamAggr({
-                type: 'timeSeriesWinBuf',
+            var tickX = store.addStreamAggr({
+                type: 'timeSeriesTick',
                 timestamp: 'Time',
-                value: 'X',
+                value: 'X'
+            });
+            var winX = store.addStreamAggr({
+                type: 'timeSeriesWinBufVector',
+                inAggr: tickX.name,
                 winsize: 1000
             });
-            var winXv = store.addStreamAggr({
-                type: 'timeSeriesWinBufVector',
-                inAggr: winX.name
+            var tickY = store.addStreamAggr({
+                type: 'timeSeriesTick',
+                timestamp: 'Time',
+                value: 'Y'
             });
             var winY = store.addStreamAggr({
-                type: 'timeSeriesWinBuf',
-                timestamp: 'Time',
-                value: 'Y',
-                winsize: 1000
-            });
-            var winYv = store.addStreamAggr({
                 type: 'timeSeriesWinBufVector',
-                inAggr: winY.name
+                inAggr: tickY.name,
+                winsize: 1000
             });
 
             var linReg = store.addStreamAggr({
                 type: 'simpleLinearRegression',
-                inAggrX: winXv.name,
-                inAggrY: winYv.name,
+                inAggrX: winX.name,
+                inAggrY: winY.name,
                 storeX: "Function",
                 storeY: "Function",
                 quantiles: [0.25, 0.75]
@@ -1295,13 +1295,13 @@ describe('Simple linear regression test', function () {
             linReg.save(fout);
             fout.close();
 
-			store.resetStreamAggregates();
+	    store.resetStreamAggregates();
 				
-			var fin = qm.fs.openRead("linreg.tmp");
-			linReg.load(fin);
-			fin.close();
-			var res2 = linReg.saveJson();
-			assert.equal(JSON.stringify(res), JSON.stringify(res2));
+	    var fin = qm.fs.openRead("linreg.tmp");
+	    linReg.load(fin);
+	    fin.close();
+	    var res2 = linReg.saveJson();
+	    assert.equal(JSON.stringify(res), JSON.stringify(res2));
             
         })
     });
