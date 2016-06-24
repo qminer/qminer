@@ -12,6 +12,7 @@ New Features:
 - Introduced new record filters which now all derive from `TRecFilter` and most have JSON constructors.
 - Added `TStreamAggrFilter` which calls given stream aggregate only when record passes given record filter.
 - Added window buffer stream aggregate that keeps values in memory.
+- References to store and stream aggregate can be passed as parameters in jsons as object when creating new stream aggregates.
 
 Bugfix:
 - Fixed clang warnings in `printf` for `uint64`
@@ -23,7 +24,7 @@ Other:
 - Normalized few more files replacing all leading tabs to 4 spaces
 - Added script for noramlizing tabs to spaces
 - Cleaned output of example tests
-
+- Examples from documentation are executed using `async` to avoid base colisions
 
 ### 26 May 2016
 
