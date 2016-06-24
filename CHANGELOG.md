@@ -17,6 +17,7 @@ New Features:
 Bugfix:
 - Fixed clang warnings in `printf` for `uint64`
 - (__breaking__) Fixed stream aggregates that worked on window buffer to correctly work in case on `OnTime` and `OnStep` triggers.
+- `getSubmatrix` can not get the last row and column of a matrix
 
 Other:
 - Added `fs.js` to documentation generation
