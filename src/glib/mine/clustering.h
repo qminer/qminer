@@ -340,14 +340,16 @@ public:
     static TAbsKMeans<TCentroidType>* LoadPtr(TSIn& SIn);
 	static TPt<TAbsKMeans<TCentroidType>> Load(TSIn& SIn);
 
+	/// returns the number of clusters
 	int GetClusts() const { return GetDataCount(CentroidVV); }
+	/// returns the dimension of the data
 	int GetDim() const { return GetDataDim(CentroidVV); }
 
-	// returns the centroid (column) matrix
+	/// returns the centroid (column) matrix
     const TCentroidType& GetCentroidVV() const { return CentroidVV; }
-    // permutates the centroid matrix
+    /// permutates the centroid matrix
     inline void PermutateCentroids(const TIntV& Mapping);
-	// returns the n-th centroid
+	/// returns the n-th centroid
     template<class TVectorType>
     void GetCentroid(const int& ClustN, TVectorType& FtrV) const;
 
@@ -356,26 +358,31 @@ public:
     virtual void Apply(const TVec<TIntFltKdV>& FtrVV, const bool& AllowEmptyP=true,
     		const int& MaxIter=10000, const PNotify& Notify = TNotify::NullNotify) = 0;
 
-	// assign methods
+	/// assign methods
     template<class TDataType>
     void Assign(const TDataType& FtrVV, TIntV& AssignV) const;
 
-	// distance methods
-	// returns the distance to the specified centroid
+	/// distance methods
+	/// returns the distance to the specified centroid
     template<class TDataType>
     double GetDist(const int& ClustN, const TDataType& FtrV) const;
-	// returns the distance to all the centroids
+	/// returns the distance to all the centroids
     template<class TDataType>
     void GetCentroidDistV(const TDataType& FtrV, TFltV& DistV) const;
 
-	// returns a matrix D with the distance to all the centroids
-	// D_ij is the distance between centroid i and instance j
-	// points should be represented as columns of X
+	/// returns a matrix D with the distance to all the centroids
+	/// D_ij is the distance between centroid i and instance j
+	/// points should be represented as columns of X
     template<class TDataType>
     void GetDistVV(const TDataType& FtrVV, TFltVV& DistVV) const;
 
+    /// returns the class used to calculate distances
+    const PDist& GetDistMetric() const { return Dist; }
+
+    inline void RemoveCentroids(const TIntV& CentroidIdV);
+
 protected:
-	// can still optimize
+	/// can still optimize
     template<class TDataType>
     void UpdateCentroids(const TDataType& FtrVV, const int& NInst, TIntV& AssignV,
     		const TFltV& OnesN, const TIntV& RangeN, TFltV& TempK, TCentroidType& TempDxKV,
@@ -388,18 +395,18 @@ protected:
     template<class TDataType>
     inline void Assign(const TDataType& FtrVV, const TFltV& NormX2, const TFltV& NormC2, TIntV& AssignV) const;
 
-	// methods that return the number of examples in the input data
+	/// methods that return the number of examples in the input data
 	static int GetDataCount(const TFltVV& X);
     static int GetDataCount(const TVec<TIntFltKdV>& FtrVV);
-    // methods that return the dimension of the data
+    /// methods that return the dimension of the data
 	static int GetDataDim(const TFltVV& X);
 	static int GetDataDim(const TVec<TIntFltKdV>& FtrVV);
-    // set column of the matrix
+    /// set column of the matrix
     static void SetCol(TFltVV& FtrVV, const int& ColN, const TFltV& Col);
     static void SetCol(TFltVV& FtrVV, const int& ColN, const TIntFltKdV& Col);
     static void SetCol(TVec<TIntFltKdV>& FtrVV, const int& ColN, const TIntFltKdV& Col);
     static void SetCol(TVec<TIntFltKdV>& FtrVV, const int& ColN, const TFltV& Col);
-    // get column/cluster of the matrix
+    /// get column/cluster of the matrix
     static void GetCol(const TFltVV& FtrVV, const int& ColN, TFltV& Col);
     static void GetCol(const TVec<TIntFltKdV>& FtrVV, const int& ColN, TIntFltKdV& Col);
     
@@ -413,7 +420,7 @@ private:
     void InitCentroids(TVec<TIntFltKdV>& CentroidVV, const TVec<TIntFltKdV>& FtrVV, const TIntV& CentroidNV, const int& K);
 
 protected:
-	// type
+	/// type
 	virtual const TStr GetType() const = 0;
 };
 
@@ -575,15 +582,15 @@ void TAbsKMeans<TCentroidType>::Assign(const TMatType& FtrVV, TIntV& AssignV) co
 }
 
 template<class TCentroidType>
-template<class TFeatureType>
-double TAbsKMeans<TCentroidType>::GetDist(const int& ClustN, const TFeatureType& Pt) const {
+template<class TDataType>
+double TAbsKMeans<TCentroidType>::GetDist(const int& ClustN, const TDataType& Pt) const {
     TFltV Centroid;	GetCol(CentroidVV, ClustN, Centroid);
     return TLinAlg::EuclDist(Centroid, Pt);
 }
 
 template<class TCentroidType>
-template<class TFeatureType>
-void TAbsKMeans<TCentroidType>::GetCentroidDistV(const TFeatureType& FtrV, TFltV& DistV) const {
+template<class TDataType>
+void TAbsKMeans<TCentroidType>::GetCentroidDistV(const TDataType& FtrV, TFltV& DistV) const {
     Dist->GetDistV(CentroidVV, FtrV, DistV);
 }
 
@@ -591,6 +598,21 @@ template<class TCentroidType>
 template<class TDataType>
 void TAbsKMeans<TCentroidType>::GetDistVV(const TDataType& FtrVV, TFltVV& DistVV) const {
     Dist->GetDistVV(CentroidVV, FtrVV, DistVV);
+}
+
+template <class TCentroidType>
+inline void TAbsKMeans<TCentroidType>::RemoveCentroids(const TIntV& CentroidIdV) {
+	EAssertR(false, "TAbsKMeans<TCentroidType>::RemoveCentroids: Not implemented for this type of KMeans!");
+}
+
+template <>
+inline void TAbsKMeans<TFltVV>::RemoveCentroids(const TIntV& CentroidIdV) {
+	CentroidVV.DelCols(CentroidIdV);
+}
+
+template <>
+inline void TAbsKMeans<TVec<TIntFltKdV>>::RemoveCentroids(const TIntV& CentroidIdV) {
+	CentroidVV.Del(CentroidIdV);
 }
 
 template<class TCentroidType>

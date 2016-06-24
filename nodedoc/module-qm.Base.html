@@ -63,13 +63,16 @@
                     <dt><a href="module-qm.Base.html#getStreamAggrNames">getStreamAggrNames()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.Base.html#loadCSV">loadCSV(opts[, callback])</a></dt>
+                    <dt><a href="module-qm.Base.html#isStore">isStore(name)</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.Base.html#loadCSV">loadCSV(opts[, callback])</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.Base.html#partialFlush">partialFlush(window)</a></dt>
                     <dd>
                     </dd>
@@ -375,6 +378,75 @@ base.close();</code></pre>
                   <p><code>Array of string</code>&nbsp;The array containing the stream aggregat names.</p>
                 </dd>
               </dl>
+              <h3 id="isStore"><span class="symbol-name">isStore</span><span class="signature"><span class="signature-params">(name)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.Store.html">module:qm.Store</a></span></span></h3>
+              <p>Returns the store with the specified name.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a base with two stores
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [
+   {
+       name: &quot;KwikEMart&quot;,
+       fields: [
+           { name: &quot;Worker&quot;, type: &quot;string&quot; },
+           { name: &quot;Groceries&quot;, type: &quot;string_v&quot; }
+       ]
+   },
+   {
+       name: &quot;NuclearPowerplant&quot;,
+       fields: [
+           { name: &quot;Owner&quot;, type: &quot;string&quot; },
+           { name: &quot;NumberOfAccidents&quot;, type: &quot;int&quot; },
+           { name: &quot;Workers&quot;, type: &quot;string_v&quot; }
+       ]
+   }]
+});
+// get the &quot;KwikEMart&quot; store
+var exists = base.isStore(&quot;KwikEMart&quot;);	// true
+base.close();</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>name</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Name of the store.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.Store.html">module:qm.Store</a></code>&nbsp;The store.</p>
+                </dd>
+              </dl>
               <h3 id="loadCSV"><span class="symbol-name">loadCSV</span><span class="signature"><span class="signature-params">(opts[, callback])</span></span></h3>
               <p>Loads the store from a CSV file.</p>
               <section>
@@ -522,7 +594,7 @@ var base = new qm.Base({
    }]
 });
 // get the &quot;KwikEMart&quot; store 
-var store = base.store(&quot;KwikEMart&quot;);	// returns the store with the name &quot;KwikEMart&quot;
+var store = base.store(&quot;KwikEMart&quot;); // returns the store with the name &quot;KwikEMart&quot;
 base.close();</code></pre>
                 </div>
               </section>
