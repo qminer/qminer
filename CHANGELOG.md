@@ -8,15 +8,15 @@
 
 New Features:
 - Removed `TStreamAggrBase` and introduced `TStreamAggrSet` instead.
-- Adjusted rest of the codebase to `TStreamAggrSet` replacing `TStreamAggrBase`.
+- (__breaking__) Adjusted rest of the codebase to `TStreamAggrSet` replacing `TStreamAggrBase`.
 - Introduced new record filters which now all derive from `TRecFilter` and most have JSON constructors.
 - Added `TStreamAggrFilter` which calls given stream aggregate only when record passes given record filter.
-- Added window buffer stream aggregate that keeps values in memory.
+- (__breaking__) Added window buffer stream aggregate that keeps values in memory.
 - References to store and stream aggregate can be passed as parameters in jsons as object when creating new stream aggregates.
 
 Bugfix:
 - Fixed clang warnings in `printf` for `uint64`
-- Fixed stream aggregates that worked on window buffer to correctly work in case on `OnTime` and `OnStep` triggers.
+- (__breaking__) Fixed stream aggregates that worked on window buffer to correctly work in case on `OnTime` and `OnStep` triggers.
 
 Other:
 - Added `fs.js` to documentation generation
