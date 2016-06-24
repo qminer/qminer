@@ -2643,18 +2643,17 @@ inline void TLinAlg::Pow(const TVVec<TNum<TType>, TSizeTy, ColMajor>& Mat,
 template <class TType, class TSizeTy, bool ColMajor>
 void TLinAlg::SubMat(const TVVec<TNum<TType>, TSizeTy, ColMajor>& Mat,
 		const TSizeTy& StartRow, const TSizeTy& EndRow, const TSizeTy& StartCol,
-		const TSizeTy& EndCol,
-		TVVec<TNum<TType>, TSizeTy, ColMajor>& SubMat) {
-	EAssert(StartRow >= 0 && StartCol >= 0);
-	EAssert(EndRow < Mat.GetRows() && EndCol < Mat.GetCols());
+		const TSizeTy& EndCol, TVVec<TNum<TType>, TSizeTy, ColMajor>& SubMat) {
+	EAssert(0 <= StartRow && 0 <= StartCol);
+	EAssert(EndRow <= Mat.GetRows() && EndCol <= Mat.GetCols());
 
 	if (SubMat.GetRows() != EndRow - StartRow || SubMat.GetCols() != EndCol - StartCol) {
 		SubMat.Gen(EndRow - StartRow, EndCol - StartCol);
 	}
 
-	for (TSizeTy i = StartRow; i < EndRow; i++) {
-		for (TSizeTy j = StartCol; j < EndCol; j++) {
-			SubMat.PutXY(i - StartRow, j - StartCol, Mat(i,j));
+	for (TSizeTy RowN = StartRow; RowN < EndRow; RowN++) {
+		for (TSizeTy ColN = StartCol; ColN < EndCol; ColN++) {
+			SubMat.PutXY(RowN - StartRow, ColN - StartCol, Mat(RowN,ColN));
 		}
 	}
 }

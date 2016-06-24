@@ -8,16 +8,6 @@
 #ifndef QMINER_QM_NODEJS
 #define QMINER_QM_NODEJS
 
-#include <node.h>
-#include <node_object_wrap.h>
-#include <qminer.h>
-#include "../la/la_nodejs.h"
-#include "../fs/fs_nodejs.h"
-#include "../nodeutil.h"
-
-#include "qm_nodejs_streamaggr.h"
-#include "qm_nodejs_store.h"
-
 ///////////////////////////////
 // NodeJs QMiner.
 // A factory of base objects
@@ -476,12 +466,46 @@ private:
     //# exports.Base.prototype.store = function (name) { return Object.create(require('qminer').Store.prototype); }
     JsDeclareFunction(store);
 
-    /**
-     * Returns a list of store descriptors.
-     * @returns {Object[]} The list of store descriptors.
-     */
-    //# exports.Base.prototype.getStoreList = function () { return [{storeId:'', storeName:'', storeRecords:'', fields: [], keys: [], joins: []}]; }
-    JsDeclareFunction(getStoreList);
+	/**
+	 * Returns the store with the specified name.
+	 * @param {string} name - Name of the store.
+	 * @returns {module:qm.Store} The store.
+	 * @example
+	 * // import qm module
+	 * var qm = require('qminer');
+	 * // create a base with two stores
+	 * var base = new qm.Base({
+	 *    mode: "createClean",
+	 *    schema: [
+	 *    {
+	 *        name: "KwikEMart",
+	 *        fields: [
+	 *            { name: "Worker", type: "string" },
+	 *            { name: "Groceries", type: "string_v" }
+	 *        ]
+	 *    },
+	 *    {
+	 *        name: "NuclearPowerplant",
+	 *        fields: [
+	 *            { name: "Owner", type: "string" },
+	 *            { name: "NumberOfAccidents", type: "int" },
+	 *            { name: "Workers", type: "string_v" }
+	 *        ]
+	 *    }]
+	 * });
+	 * // get the "KwikEMart" store
+	 * var exists = base.isStore("KwikEMart");	// true
+	 * base.close();
+	 */
+	//# exports.Base.prototype.isStore = function (name) { return false; }
+	JsDeclareFunction(isStore);
+
+	/**
+	 * Returns a list of store descriptors.
+	 * @returns {Object[]} The list of store descriptors.
+	 */
+	//# exports.Base.prototype.getStoreList = function () { return [{storeId:'', storeName:'', storeRecords:'', fields: [], keys: [], joins: []}]; }
+	JsDeclareFunction(getStoreList);
 
     /**
     * Creates a new store.

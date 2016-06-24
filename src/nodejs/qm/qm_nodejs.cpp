@@ -5,11 +5,6 @@
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
-#include "qm_nodejs.h"
-#include "qm_param.h"
-#include "../la/la_nodejs.h"
-
-#include <node_buffer.h>
 
 ///////////////////////////////
 // NodeJs QMiner
@@ -291,6 +286,7 @@ void TNodeJsBase::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "close", _close);
     NODE_SET_PROTOTYPE_METHOD(tpl, "isClosed", _isClosed);
     NODE_SET_PROTOTYPE_METHOD(tpl, "store", _store);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "isStore", _isStore);
     NODE_SET_PROTOTYPE_METHOD(tpl, "getStoreList", _getStoreList);
     NODE_SET_PROTOTYPE_METHOD(tpl, "createStore", _createStore);
     NODE_SET_PROTOTYPE_METHOD(tpl, "createJsStore", _createJsStore);
@@ -498,6 +494,18 @@ void TNodeJsBase::store(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         Args.GetReturnValue().Set(v8::Null(Isolate));
         return;
     }
+}
+
+void TNodeJsBase::isStore(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	// unwrap
+	TNodeJsBase* JsBase = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsBase>(Args.Holder());
+
+	const TStr StoreNm = TNodeJsUtil::GetArgStr(Args, 0);
+
+	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, JsBase->Base->IsStoreNm(StoreNm)));
 }
 
 void TNodeJsBase::getStoreList(const v8::FunctionCallbackInfo<v8::Value>& Args) {

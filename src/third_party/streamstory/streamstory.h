@@ -157,6 +157,8 @@ private:
 
   	TVec<TFltV> StateContrFtrValVV;
 
+  	bool IncludeTmFtrV;
+  	uint64 TmUnit;
   	double Sample;
 
   	bool Verbose;
@@ -171,7 +173,7 @@ public:
   	};
 
   	TStateIdentifier(const PDenseKMeans& KMeans, const int NHistBins, const double& Sample,
-			const TRnd& Rnd=TRnd(0), const bool& Verbose=false);
+  			const bool IncludeTmFtrV, const TRnd& Rnd=TRnd(0), const bool& Verbose=false);
 	TStateIdentifier(TSIn& SIn);
 
 	virtual ~TStateIdentifier();
@@ -188,16 +190,17 @@ public:
 
 	// assign methods
 	// assign instances to centroids
-	int Assign(const TFltV& Inst) const;
+	int Assign(const uint64& RecTm, const TFltV& FtrV) const;
 	// assign instances to centroids, instances should be in the columns of the matrix
-	void Assign(const TFltVV& InstMat, TIntV& AssignV) const;
+	void Assign(const TUInt64V& RecTmV, const TFltVV& FtrVV, TIntV& AssignV) const;
 
 	// distance methods
 	// Returns a vector y containing the distance to all the
 	// centroids. The input vector x should be a column vector
-	void GetCentroidDistV(const TFltV& x, TFltV& DistV) const;
+	void GetCentroidDistV(const uint64& RecTm, const TFltV& FtrV, TFltV& DistV) const;
+	void GetCentroidDistVV(const TUInt64V& RecTmV, const TFltVV& FtrVV, TFltVV& DistVV) const;
 	// returns the distance from the cluster centroid to the point
-	double GetDist(const int& CentroidId, const TFltV& Pt) const;
+	double GetDist(const uint64& RecTm, const int& CentroidId, const TFltV& Pt) const;
 
 	// returns the coordinates of a "joined" centroid
 	void GetJoinedCentroid(const int& FtrSpaceN, const TIntV& StateIdV, TFltV& FtrV) const;
@@ -219,12 +222,10 @@ public:
 
 	int GetStates() const { return KMeans->GetClusts(); }
 
-//	int GetDim() const { return KMeans->GetDim(); }
 	int GetControlFtrVDim() const { return ControlCentroidVV.GetRows(); }
-//	int GetIgnoredDim() const { return IgnoredCentroidVV.GetRows(); }
-//	int GetAllDim() const { return GetDim() + GetControlDim() + GetIgnoredDim(); }
 
-	const TFltVV& GetCentroidMat() const { return KMeans->GetCentroidVV(); }
+	void GetCentroidVV(TFltVV& CentroidVV) const;
+	const TFltVV& GetRawCentroidVV() const { return KMeans->GetCentroidVV(); }
 	void GetControlCentroidVV(const TStreamStory& StreamStory, TStateFtrVV& StateFtrVV) const;
 
 	// manual setting of control features
@@ -241,7 +242,7 @@ public:
 
 protected:
 	// used during initialization
-	void InitStatistics(const TFltVV& X);
+	void InitStatistics(const TUInt64V& RecTmV, const TFltVV& FtrVV, const TIntV& AssignV);
 
 private:
 	void InitCentroidVV(const TIntV& AssignV, const TFltVV& FtrVV, TFltVV& CentroidVV);
@@ -265,12 +266,17 @@ private:
 	void InitHists(const TStreamStory& StreamStory, const TFltVV& ObsFtrVV,
 			const TFltVV& ContrFtrVV, const TFltVV& IgnoredFtrVV);
 
+	void GenClustFtrVV(const TUInt64V& TmV, const TFltVV& ObsFtrVV, TFltVV& FtrVV) const;
+	void GenClustFtrV(const uint64& RecTm, const TFltV& FtrV, TFltV& ClustFtrV) const;
+	void GenTmFtrV(const uint64& RecTm, TFltV& FtrV) const;
+
 	static void UpdateHistVV(const TFtrInfoV& FtrInfoV, const TFltVV& FtrVV,
 			const TIntV& AssignV, const int& States, TStateFtrHistVV& StateFtrHistVV);
 	static void GetJoinedCentroid(const TIntV& StateIdV,
 			const TFltVV& CentroidVV, const TUInt64V& StateSizeV, TFltV& FtrV);
 	static void ResampleHist(const int& Bins, const TFltV& OrigBinValV, const TIntV& OrigBinV, TFltV& BinValV,
 				TFltV& BinV);
+	static int GetTmFtrDim(const uint64& TmUnit);
 };
 
 class TEuclMds {
@@ -546,51 +552,6 @@ private:
 			const double& DeltaTm, TFltVV& ProbVV, const bool HasHiddenState=false);
 };
 
-/*/////////////////////////////////////////////////////////////////
-/// Scale helper
-/// the algorithm is based on:
-/// A Randomized Linear-Time Algorithm to Find Minimum Spanning Trees
-/// authors: Karger, Klein and Tarjan
-class TRandomizedMst {
-	typedef TIntIntFltTr TEdge;
-	typedef TPair<TIntSet, TIntIntFltTrV> TGraph;
-public:
-	static void Apply(const TGraph& Graph, TIntIntFltTrV& MstEdgeV) {
-
-	}
-
-private:
-	static void BoruvkaStep(const TIntV& NodeIdV, const TIntPrV& EdgeV) {
-		// TODO
-	}
-	static void FindMst(const TGraph& Graph, TGraph& Mst, TRnd Rnd=TRnd()) {
-		const TIntSet& NodeV = Graph.Val1;
-		const TIntIntFltTrV& EdgeV = Graph.Val2;
-
-		if (NodeV.Len() <= 2) {
-
-		} else {
-			// create a graph H by randomly sampling the edges
-			TGraph H;
-			for (int EdgeN = 0; EdgeN < EdgeV.Len(); EdgeN++) {
-				if (Rnd.GetUniDev() < .5) {
-					const TEdge& Edge = EdgeV[EdgeN];
-					H.Val1.AddKey(Edge.Val1);
-					H.Val1.AddKey(Edge.Val2);
-					H.Val2.Add(Edge);
-				}
-			}
-
-			// call the algorithm recursively, to obtain the MST on H
-			TGraph MstH;	FindMst(H, MstH, Rnd);
-
-			// remove all the F-heavy edges from MstH
-			// an edge is F-heavy if its weight w is larger than
-			// the weight of any edge in F
-		}
-	}
-};*/
-
 /////////////////////////////////////////////////////////////////
 // Scale helper
 class TScaleHelper {
@@ -669,6 +630,9 @@ public:
 	const TFltV& GetUiHeightV() const { return NaturalScaleV; }
 	const TIntV& GetHierarchV() const { return HierarchV; }
 
+	double GetMinHeight() const { return UniqueHeightV[0]; }
+	double GetUiMinHeight() const { return NaturalScaleV[0]; }
+
 	double GetStateHeight(const int& StateId) const { return StateHeightV[StateId]; }
 	// return a list of state IDs and their heights
 	void GetStateIdHeightPrV(TIntFltPrV& StateIdHeightPrV) const;
@@ -679,6 +643,7 @@ public:
 	void GetStatesAtHeight(const double& Height, TIntSet& StateIdV) const;
 	// returns the next level of the level passed as the argument along with it's height
 	double GetNextLevel(const TIntV& CurrLevelIdV, TIntV& NextLevelIdV) const;
+	double GetNextUiLevel(const TIntV& CurrLevelIdV, TIntV& NextLevelIdV) const;
 	// fills the vector with IDs of the ancestors of the given state along with their heights
 	void GetAncestorV(const int& StateId, TIntFltPrV& StateIdHeightPrV) const;
 	// returns the ID of the ancestor of the given leaf at the specified height
@@ -689,6 +654,7 @@ public:
 	void GetDescendantsAtHeight(const double& Height, const TIntV& StateIdV, TAggStateV& AggStateV);
 
 	void GetCurrStateIdHeightPrV(TIntFltPrV& StateIdHeightPrV) const;
+	void GetUiCurrStateIdHeightPrV(TIntFltPrV& StateIdHeightPrV) const;
 	void GetHistStateIdV(const double& Height, TStateIdV& StateIdV) const;
 
 	// for each state returns the number of leafs it's subtree has
@@ -724,7 +690,7 @@ private:
 	// returns the ID of the parent state
 	int GetParentId(const int& StateId) const;
 	// returns the height of the state
-	int GetNearestHeightIdx(const double& Height) const;
+	int GetNearestHeightN(const double& Height) const;
 	double GetNearestHeight(const double& InHeight) const;
 
 	bool IsRoot(const int& StateId) const;
@@ -744,6 +710,15 @@ private:
 
 	// methods for calculating the natural scales in the model
 	void CalcNaturalScales(const TStreamStory& StreamStory, const TRnd& Rnd, TFltV& ScaleV) const;
+
+	double GetNextUiHeight(const double& Height) const {
+		const TFltV& UiHeightV = GetUiHeightV();
+		int HeightN = 0;
+		while (HeightN < UiHeightV.Len() && UiHeightV[HeightN] <= Height) {
+			HeightN++;
+		}
+		return UiHeightV[HeightN];
+	}
 
 	// static functions
 	static TInt& GetParentId(const int& StateId, TIntV& HierarchV) { return HierarchV[StateId]; }
@@ -849,6 +824,7 @@ private:
 	static const double RADIUS_FACTOR;
 	static const double STEP_FACTOR;
 	static const double INIT_RADIUS_FACTOR;
+	static const double STATE_OCCUPANCY_PERC;
 
 	// automatic labels
 	static const double LOW_PVAL_THRESHOLD;
@@ -932,9 +908,9 @@ public:
 
 	void Save(TSOut& SOut) const;
 
-	void Init(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const TFltVV& IgnFtrVV,
-			const TStateIdentifier& Clust, const THierarch& Hierarch, TStreamStoryCallback* Callback,
-			const bool& MultiThread=true);
+	void Init(const TUInt64V& RecTmV, const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV,
+			const TFltVV& IgnFtrVV, const TStateIdentifier& Clust, const THierarch& Hierarch,
+			TStreamStoryCallback* Callback, const bool& MultiThread=true);
 	void InitFtrBounds(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const TFltVV& IgnoredFtrVV);
 
 	const TFltPr& GetFtrBounds(const int& FtrId) const;
@@ -962,7 +938,9 @@ private:
 	private:
 		TIntV ActivitySeq;
 		TActivityStepV UniqueStepV;
-		TUInt64IntPrV StepTmStepIdV;		// represents the history
+//		TUInt64IntPrV StepTmStepIdV;		// represents the history
+		TUInt64UInt64IntTrV StepStartEndTmIdV;	// represents the history, is not serialized with the rest of the variables
+
 	public:
 		TActivity();
 		TActivity(const TActivityStepV& StepV);
@@ -1075,8 +1053,8 @@ public:
 	void InitHierarch();
 	void InitHistograms(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const TFltVV& IgnoredFtrVV,
 			const TUInt64V& RecTmV, const TBoolV& BatchEndV);
-	void InitStateAssist(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV,
-			const TFltVV& IgnFtrVV, const bool& MultiThread);
+	void InitStateAssist(const TUInt64V& RecTmV, const TFltVV& ObsFtrVV,
+			const TFltVV& ContrFtrVV, const TFltVV& IgnFtrVV, const bool& MultiThread);
 
 	void OnAddRec(const uint64& RecTm, const TFltV& ObsFtrV, const TFltV& ContrFtrV);
 
@@ -1203,8 +1181,9 @@ public:
     bool IsPredictingStates() const;
 
 private:
-    PJsonVal GetLevelJson(const double& Height, const TStateIdV& StateIdV, const TFltVV& TransitionVV,
-    		const TFltV& HoldingTimeV, const TFltV& ProbV, const TFltV& RadiusV) const;
+    PJsonVal GetLevelJson(const double& Height, const double& NextHeight, const TStateIdV& StateIdV,
+    		const TFltVV& TransitionVV, const TFltV& HoldingTimeV, const TFltV& ProbV,
+			const TFltV& RadiusV) const;
 
     void CreateFtrVV(const TFltVV& ObservFtrMat, const TFltVV& ControlFtrMat,
     		const TUInt64V& RecTmV, const TBoolV& EndsBatchV, TFltVV& FtrMat) const;

@@ -186,6 +186,8 @@ typedef long long index_t;
 #include "shash.h"
 #include "strut.h"
 
+#include "ds.hpp"
+
 #include "xmath.h"
 #include "xmlser.h"
 
