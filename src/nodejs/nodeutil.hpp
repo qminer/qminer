@@ -16,22 +16,20 @@ PJsonVal TNodeJsUtil::GetObjToNmJson(const v8::Local<v8::Value>& Val) {
         // we don't allow functions in the JSON configuration
         EAssertR(!Val->IsFunction(), "TNodeJsUtil::GetObjToNmJson: Cannot parse functions!");
 
+        // first check if we encountered an object that needs to be replaced with
+        // its name or ID. Is there a better way to do this??
         const TStr ClassId = TNodeJsUtil::GetClass(Val->ToObject());
 
         if (!ClassId.Empty()) {
             if (ClassId == TNodeJsStreamAggr::GetClassId()) {
                 // convert StreamAggregates to their names
                 const TNodeJsStreamAggr* JsStreamAggr = TNodeJsUtil::Unwrap<TNodeJsStreamAggr>(Val->ToObject());
-                const TStr& AggrNm = JsStreamAggr->SA->GetAggrNm();
-
-                return TJsonVal::NewStr(AggrNm);
+                return TJsonVal::NewStr(JsStreamAggr->SA->GetAggrNm());
             }
             else if (ClassId == TNodeJsStore::GetClassId()) {
                 // convert stores to their names
                 const TNodeJsStore* JsStore = TNodeJsUtil::Unwrap<TNodeJsStore>(Val->ToObject());
-                const TStr& StoreNm = JsStore->Store->GetStoreNm();
-
-                return TJsonVal::NewStr(StoreNm);
+                return TJsonVal::NewStr(JsStore->Store->GetStoreNm());
             }
             else {
                 throw TExcept::New("Invalid class ID when parsing configuration: " + ClassId);
