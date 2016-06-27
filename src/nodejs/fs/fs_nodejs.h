@@ -8,13 +8,6 @@
 #ifndef QMINER_FS_NODEJS_H
 #define QMINER_FS_NODEJS_H
 
-
-#include <node.h>
-#include <node_buffer.h>
-#include <node_object_wrap.h>
-#include "base.h"
-#include "../nodeutil.h"
-
 ///////////////////////////////
 /// JavaScript Directory
 class TNodeJsFPath {

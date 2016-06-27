@@ -645,9 +645,9 @@ public:
   /// Does inverse of GetHex
   TStr GetFromHex() const;
 
-  /// Get substring from BchN to EchN
+  /// Get substring from in interval [BchN, EchN]
   TStr GetSubStr(const int& BChN, const int& EChN) const;
-  /// Get substring from BchN to the end of the string
+  /// Get substring from BchN (includive) to the end of the string
   TStr GetSubStr(const int& BChN) const { return GetSubStr(BChN, Len()-1); }
   /// safe version for getting substring from BchN to EchN
   TStr GetSubStrSafe(const int& BChN, const int& EChN) const;

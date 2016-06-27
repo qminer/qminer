@@ -282,6 +282,7 @@ public:
 
   // get components
   int GetYear() const {return Year;}
+  /// returns the month in range 1 to 12
   int GetMonth() const {return Month;}
   TStr GetMonthNm() const {return TTmInfo::GetMonthNm(Month);}
   int GetDay() const {return Day;}
@@ -289,6 +290,7 @@ public:
   int GetDayOfWeek() const {return DayOfWeek;}
   int GetDaysSinceMonday() const;
   TStr GetDayOfWeekNm() const {return TTmInfo::GetDayOfWeekNm(DayOfWeek);}
+  /// returns the number of hours past midnight, in range 0 to 23
   int GetHour() const {return Hour;}
   int GetMin() const {return Min;}
   int GetSec() const {return Sec;}

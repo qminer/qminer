@@ -1,5 +1,32 @@
 # QMiner Change Log
 
+### 24 June 2016
+
+**Version: 6.0.0**
+
+**Breaking with new features**
+
+New Features:
+- Removed `TStreamAggrBase` and introduced `TStreamAggrSet` instead.
+- (__breaking__) Adjusted rest of the codebase to `TStreamAggrSet` replacing `TStreamAggrBase`.
+- Introduced new record filters which now all derive from `TRecFilter` and most have JSON constructors.
+- Added `TStreamAggrFilter` which calls given stream aggregate only when record passes given record filter.
+- (__breaking__) Added window buffer stream aggregate that keeps values in memory.
+- References to store and stream aggregate can be passed as parameters in jsons as object when creating new stream aggregates.
+
+Bugfix:
+- Fixed clang warnings in `printf` for `uint64`
+- (__breaking__) Fixed stream aggregates that worked on window buffer to correctly work in case on `OnTime` and `OnStep` triggers.
+- `getSubmatrix` can not get the last row and column of a matrix
+
+Other:
+- Added `fs.js` to documentation generation
+- Moved instructions for building OpenBLAS to qminer wiki
+- Normalized few more files replacing all leading tabs to 4 spaces
+- Added script for noramlizing tabs to spaces
+- Cleaned output of example tests
+- Examples from documentation are executed using `async` to avoid base colisions
+
 ### 26 May 2016
 
 **Version: 5.3.0**
