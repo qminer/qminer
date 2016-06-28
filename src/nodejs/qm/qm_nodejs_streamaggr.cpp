@@ -282,11 +282,7 @@ void TNodeJsStreamAggr::getFloat(const v8::FunctionCallbackInfo<v8::Value>& Args
     // try to cast as IFlt
     TWPt<TQm::TStreamAggrOut::IFlt> Aggr = dynamic_cast<TQm::TStreamAggrOut::IFlt*>(JsSA->SA());
     if (Aggr.Empty()) {
-        Aggr = dynamic_cast<TQm::TStreamAggrOut::IFltTm*>(JsSA->SA());
-        if (Aggr.Empty()) {
-            throw TQm::TQmExcept::New("TNodeJsStreamAggr::getFloat : stream aggregate does not implement IFlt: " + JsSA->SA->GetAggrNm());
-        }
-       
+        throw TQm::TQmExcept::New("TNodeJsStreamAggr::getFlt : stream aggregate does not implement IFlt: " + JsSA->SA->GetAggrNm());
     }
     Args.GetReturnValue().Set(v8::Number::New(Isolate, Aggr->GetFlt()));
 }
@@ -300,10 +296,10 @@ void TNodeJsStreamAggr::getTimestamp(const v8::FunctionCallbackInfo<v8::Value>& 
     // try to cast as ITm
     TWPt<TQm::TStreamAggrOut::ITm> Aggr = dynamic_cast<TQm::TStreamAggrOut::ITm*>(JsSA->SA());
     if (Aggr.Empty()) {
-        Aggr = dynamic_cast<TQm::TStreamAggrOut::IFltTm*>(JsSA->SA());
-        if (Aggr.Empty()) {
-            throw TQm::TQmExcept::New("TNodeJsStreamAggr::getTimestamp : stream aggregate does not implement ITm: " + JsSA->SA->GetAggrNm());
-        }
+		Aggr = dynamic_cast<TQm::TStreamAggrOut::IFltTm*>(JsSA->SA());
+		if (Aggr.Empty()) {
+			throw TQm::TQmExcept::New("TNodeJsStreamAggr::getTm : stream aggregate does not implement ITm: " + JsSA->SA->GetAggrNm());
+		}
     }
     Args.GetReturnValue().Set(v8::Number::New(Isolate, (double)Aggr->GetTmMSecs()));
 }
