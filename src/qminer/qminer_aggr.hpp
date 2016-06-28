@@ -395,10 +395,10 @@ void TWinBuf<TVal>::PrintInterval(const uint64& StartId, const uint64& EndId, co
 template <class TSignalType>
 void TWinAggr<TSignalType>::OnStep() {
     if (InAggr->IsInit()) {
-        TFltV InValV; InAggrVal->GetInValV(InValV);
-        TUInt64V InTmMSecsV; InAggrVal->GetInTmMSecsV(InTmMSecsV);
-        TFltV OutValV; InAggrVal->GetOutValV(OutValV);
-        TUInt64V OutTmMSecsV; InAggrVal->GetOutTmMSecsV(OutTmMSecsV);
+        TFltV InValV; InAggrFltIO->GetInValV(InValV);
+        TUInt64V InTmMSecsV; InAggrTmIO->GetInTmMSecsV(InTmMSecsV);
+        TFltV OutValV; InAggrFltIO->GetOutValV(OutValV);
+        TUInt64V OutTmMSecsV; InAggrTmIO->GetOutTmMSecsV(OutTmMSecsV);
         Signal.Update(InValV, InTmMSecsV, OutValV, OutTmMSecsV);
     }
 }
@@ -409,7 +409,8 @@ TWinAggr<TSignalType>::TWinAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVa
     
     InAggr = ParseAggr(ParamVal, "inAggr");
     InAggrTm = Cast<TStreamAggrOut::ITm>(InAggr);
-    InAggrVal = Cast<TStreamAggrOut::IFltTmIO>(InAggr);
+    InAggrTmIO = Cast<TStreamAggrOut::ITmIO>(InAggr);
+    InAggrFltIO = Cast<TStreamAggrOut::IFltIO>(InAggr);
 }
 
 template <class TSignalType>
@@ -425,10 +426,10 @@ PJsonVal TWinAggr<TSignalType>::SaveJson(const int& Limit) const {
 template <class TSignalType>
 void TWinAggrSpVec<TSignalType>::OnStep() {
     if (InAggr->IsInit()) {
-        TVec<TIntFltKdV> InValV; InAggrVal->GetInValV(InValV);
-        TUInt64V InTmMSecsV; InAggrVal->GetInTmMSecsV(InTmMSecsV);
-        TVec<TIntFltKdV> OutValV; InAggrVal->GetOutValV(OutValV);
-        TUInt64V OutTmMSecsV; InAggrVal->GetOutTmMSecsV(OutTmMSecsV);
+        TVec<TIntFltKdV> InValV; InAggrSparseVecIO->GetInValV(InValV);
+        TUInt64V InTmMSecsV; InAggrTmIO->GetInTmMSecsV(InTmMSecsV);
+        TVec<TIntFltKdV> OutValV; InAggrSparseVecIO->GetOutValV(OutValV);
+        TUInt64V OutTmMSecsV; InAggrTmIO->GetOutTmMSecsV(OutTmMSecsV);
         Signal.Update(InValV, InTmMSecsV, OutValV, OutTmMSecsV);
     };
 }
@@ -439,7 +440,8 @@ TWinAggrSpVec<TSignalType>::TWinAggrSpVec(const TWPt<TBase>& Base, const PJsonVa
     
     InAggr = ParseAggr(ParamVal, "inAggr");
     InAggrTm = Cast<TStreamAggrOut::ITm>(InAggr);
-    InAggrVal = Cast<TStreamAggrOut::IValTmIO<TIntFltKdV>>(InAggr);
+    InAggrTmIO = Cast<TStreamAggrOut::ITmIO>(InAggr);
+    InAggrSparseVecIO = Cast<TStreamAggrOut::IValIO<TIntFltKdV>>(InAggr);
 }
 
 template <class TSignalType>

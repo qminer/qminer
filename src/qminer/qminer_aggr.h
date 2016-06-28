@@ -254,9 +254,11 @@ public:
 };
 
 ///////////////////////////////
-// Time series tick.
-// Wrapper for exposing time series to signal processing aggregates 
-class TTimeSeriesTick : public TStreamAggr, public TStreamAggrOut::IFltTm {
+/// Time series tick.
+/// Wrapper for exposing time series to signal processing aggregates 
+class TTimeSeriesTick : public TStreamAggr,
+                        public TStreamAggrOut::ITm,
+                        public TStreamAggrOut::IFlt {
 private:
     /// ID of the field from which we collect time points
     TInt TimeFieldId;
@@ -309,9 +311,14 @@ public:
 };
 
 ///////////////////////////////
-// Time series window buffer with memory.
+/// Time series window buffer with memory.
 template <class TVal>
-class TWinBufMem : public TStreamAggr, public TStreamAggrOut::IValTmIO<TVal>, public TStreamAggrOut::ITm {
+class TWinBufMem : public TStreamAggr,
+                   public TStreamAggrOut::ITm,
+                   public TStreamAggrOut::ITmIO,
+                   public TStreamAggrOut::IValIO<TVal>,
+                   public TStreamAggrOut::ITmVec,
+                   public TStreamAggrOut::IValVec<TVal> {
 private:
     typedef enum { wbmuOnAddRec, wbmuAlways } TWinBufMemUpdate;
     
@@ -384,18 +391,18 @@ public:
     /// time stamp of the last record
     uint64 GetTmMSecs() const { return TmMSecs; }
 
-    // IValTmIO
-    /// Is the window delayed ?
-    bool DelayedP() const { return DelayMSecs > 0; }
+    // IValIO
     /// new values that just entered the buffer (needed if delay is nonzero)
     void GetInValV(TVec<TVal>& ValV) const { ValV = InValV; }
-    /// new timestamps that just entered the buffer (needed if delay is nonzero)
-    void GetInTmMSecsV(TUInt64V& MSecsV) const { MSecsV = InTmMSecsV; }
     /// old values that fall out of the buffer
     void GetOutValV(TVec<TVal>& ValV) const { ValV = OutValV; }
+
+    // ITmIO
+    /// new timestamps that just entered the buffer (needed if delay is nonzero)
+    void GetInTmMSecsV(TUInt64V& MSecsV) const { MSecsV = InTmMSecsV; }
     /// old timestamps that fall out of the buffer
     void GetOutTmMSecsV(TUInt64V& MSecsV) const { MSecsV = OutTmMSecsV; }
-    
+
     // IValV
     /// get buffer length
     int GetVals() const { EAssertR(IsInit(), "WinBuf not initialized yet!"); return WindowQ.Len(); }
@@ -465,7 +472,12 @@ public:
 // with intervals.
 //
 template <class TVal>
-class TWinBuf : public TStreamAggr, public TStreamAggrOut::IValTmIO<TVal>, public TStreamAggrOut::ITm {
+class TWinBuf : public TStreamAggr,
+                public TStreamAggrOut::ITm,
+                public TStreamAggrOut::ITmIO,
+                public TStreamAggrOut::IValIO<TVal>,
+                public TStreamAggrOut::ITmVec,
+                public TStreamAggrOut::IValVec<TVal> {
 protected:
     // STORAGE ACCESS
     /// value getter
@@ -527,17 +539,17 @@ public:
     /// time stamp of the last record
     uint64 GetTmMSecs() const { return Timestamp; }
 
-    // IValTmIO
-    /// Is the window delayed ?
-    bool DelayedP() const { return DelayMSecs > 0; }
-    /// new values that just entered the buffer (needed if delay is nonzero)
-    void GetInValV(TVec<TVal>& ValV) const;
+    // ITmIO
     /// new timestamps that just entered the buffer (needed if delay is nonzero)
     void GetInTmMSecsV(TUInt64V& MSecsV) const;
-    /// old values that fall out of the buffer
-    void GetOutValV(TVec<TVal>& ValV) const;
     /// old timestamps that fall out of the buffer
     void GetOutTmMSecsV(TUInt64V& MSecsV) const;
+
+    // IValIO
+    /// new values that just entered the buffer (needed if delay is nonzero)
+    void GetInValV(TVec<TVal>& ValV) const;
+    /// old values that fall out of the buffer
+    void GetOutValV(TVec<TVal>& ValV) const;
     
     // IValV
     /// get buffer length
@@ -612,7 +624,8 @@ public:
 
 ///////////////////////////////
 /// Time series window buffer with sparse vector per record.
-class TWinBufFtrSpVec : public TWinBuf<TIntFltKdV>, public TStreamAggrOut::IFtrSpace {
+class TWinBufFtrSpVec : public TWinBuf<TIntFltKdV>,
+                        public TStreamAggrOut::IFtrSpace {
 private:
     /// Feature space used to extract vectors from records
     PFtrSpace FtrSpace;
@@ -646,14 +659,18 @@ public:
 ///////////////////////////////
 // Windowed stream aggregates on numeric time steries
 template <class TSignalType>
-class TWinAggr : public TStreamAggr, public TStreamAggrOut::IFltTm {
+class TWinAggr : public TStreamAggr,
+                 public TStreamAggrOut::ITm,
+                 public TStreamAggrOut::IFlt {
 private:
     /// Input aggregate
     TWPt<TStreamAggr> InAggr;
     /// Input latest timestamp
     TWPt<TStreamAggrOut::ITm> InAggrTm;
     /// Input time series
-    TWPt<TStreamAggrOut::IFltTmIO> InAggrVal;
+    TWPt<TStreamAggrOut::ITmIO> InAggrTmIO;
+    /// Input time series
+    TWPt<TStreamAggrOut::IFltIO> InAggrFltIO;
     
     /// signal we are maintaining on the stream
     TSignalType Signal;
@@ -724,14 +741,18 @@ template <> inline TStr TWinAggr<TSignalProc::TVar>::GetType() { return "varianc
 /// Windowed stream aggregates on sparse vector time series.
 /// Results are sparse vectors.
 template <class TSignalType>
-class TWinAggrSpVec : public TStreamAggr, public TStreamAggrOut::ISparseVecTm {
+class TWinAggrSpVec : public TStreamAggr,
+                      public TStreamAggrOut::ITm,
+                      public TStreamAggrOut::ISparseVec {
 private:
     /// Input aggregate
     TWPt<TStreamAggr> InAggr;
     /// Input latest timestamp
     TWPt<TStreamAggrOut::ITm> InAggrTm;
     /// Input time series
-    TWPt<TStreamAggrOut::IValTmIO<TIntFltKdV>> InAggrVal;
+    TWPt<TStreamAggrOut::ITmIO> InAggrTmIO;
+    /// Input time series
+    TWPt<TStreamAggrOut::IValIO<TIntFltKdV>> InAggrSparseVecIO;
 
     /// signal we are maintaining on the stream    
     TSignalType Signal;
@@ -783,12 +804,16 @@ template <> inline TStr TWinAggrSpVec<TSignalProc::TSumSpVec>::GetType() { retur
 
 ///////////////////////////////
 // Exponential Moving Average.
-class TEma : public TStreamAggr, public TStreamAggrOut::IFltTm {
+class TEma : public TStreamAggr,
+             public TStreamAggrOut::ITm,
+             public TStreamAggrOut::IFlt {
 private:
     /// Input aggregate
     TWPt<TStreamAggr> InAggr;
     /// Input aggregate casted to time series
-    TWPt<TStreamAggrOut::IFltTm> InAggrVal;
+    TWPt<TStreamAggrOut::ITm> InAggrTm;
+    /// Input aggregate casted to time series
+    TWPt<TStreamAggrOut::IFlt> InAggrFlt;
     
     /// EMA indicator
     TSignalProc::TEma Ema;
@@ -830,12 +855,16 @@ public:
 
 ///////////////////////////////
 // Exponential Moving Average.
-class TEmaSpVec : public TStreamAggr, public TStreamAggrOut::ISparseVecTm {
+class TEmaSpVec : public TStreamAggr,
+                  public TStreamAggrOut::ITm,
+                  public TStreamAggrOut::ISparseVec {
 private:
     /// Input aggregate
     TWPt<TStreamAggr> InAggr;
     /// Input aggregate casted to time series    
-    TWPt<TStreamAggrOut::ISparseVecTm> InAggrVal;
+    TWPt<TStreamAggrOut::ITm> InAggrTm;
+    /// Input aggregate casted to time series    
+    TWPt<TStreamAggrOut::ISparseVec> InAggrSparseVec;
     
     /// EMA indicator
     TSignalProc::TEmaSpVec Ema;
@@ -881,12 +910,16 @@ public:
 
 ///////////////////////////////
 // Threshold aggregate - outputs 1 if the value is above a threshold, 0 otherwise.
-class TThresholdAggr : public TStreamAggr, public TStreamAggrOut::IFltTm {
+class TThresholdAggr : public TStreamAggr,
+                       public TStreamAggrOut::ITm,
+                       public TStreamAggrOut::IFlt {
 private:
     /// Input aggregate
     TWPt<TStreamAggr> InAggr;
     /// Input aggregate casted to time series    
-    TWPt<TStreamAggrOut::IFltTm> InAggrVal;
+    TWPt<TStreamAggrOut::ITm> InAggrTm;
+    /// Input aggregate casted to time series    
+    TWPt<TStreamAggrOut::IFlt> InAggrFlt;
     
     /// Threshold value
     TFlt Threshold;
@@ -931,17 +964,23 @@ public:
 
 ///////////////////////////////
 // Moving Covariance.
-class TCov : public TStreamAggr, public TStreamAggrOut::IFltTm {
+class TCov : public TStreamAggr,
+             public TStreamAggrOut::ITm,
+             public TStreamAggrOut::IFlt {
 private:
     /// Input X aggregate
     TWPt<TStreamAggr> InAggrX;
     /// Input X timeseries
-    TWPt<TStreamAggrOut::IFltTmIO> InAggrValX;
+    TWPt<TStreamAggrOut::ITmIO> InAggrTmIOX;
+    /// Input X timeseries
+    TWPt<TStreamAggrOut::IFltIO> InAggrFltIOX;
     
     /// Input Y aggregate
     TWPt<TStreamAggr> InAggrY;
     /// Input Y timeseries
-    TWPt<TStreamAggrOut::IFltTmIO> InAggrValY;
+    TWPt<TStreamAggrOut::ITmIO> InAggrTmIOY;
+    /// Input Y timeseries
+    TWPt<TStreamAggrOut::IFltIO> InAggrFltIOY;
     
     /// Covariance 
     TSignalProc::TCov Cov;
@@ -983,22 +1022,26 @@ public:
 
 ///////////////////////////////
 // Moving Correlation.
-class TCorr : public TStreamAggr, public TStreamAggrOut::IFltTm {
+class TCorr : public TStreamAggr,
+              public TStreamAggrOut::ITm,
+              public TStreamAggrOut::IFlt {
 private:    
     /// Input covariance aggregate
     TWPt<TStreamAggr> InAggrCov;
     /// Input covariance timeseries
-    TWPt<TStreamAggrOut::IFltTm> InAggrValCov;
+    TWPt<TStreamAggrOut::ITm> InAggrTmCov;
+    /// Input covariance timeseries
+    TWPt<TStreamAggrOut::IFlt> InAggrFltCov;
     
     /// Input X variance aggregate
     TWPt<TStreamAggr> InAggrVarX;
     /// Input X variance timeseries
-    TWPt<TStreamAggrOut::IFltTm> InAggrValVarX;
+    TWPt<TStreamAggrOut::IFlt> InAggrFltVarX;
     
     /// Input Y variance aggregate
     TWPt<TStreamAggr> InAggrVarY;
     /// Input Y variance timeseries
-    TWPt<TStreamAggrOut::IFltTm> InAggrValVarY;     
+    TWPt<TStreamAggrOut::IFlt> InAggrFltVarY;     
 
     /// Current correlation value
     TFlt Corr;
@@ -1274,10 +1317,11 @@ private:
     /// Input aggregate
     TWPt<TStreamAggr> InAggr;
     /// Input timeseries (can be NULL if the input is a buffered aggregate)
-    TWPt<TStreamAggrOut::IFltTm> InAggrVal;
+    TWPt<TStreamAggrOut::IFlt> InAggrFlt;
     /// Input windowed time series (can be NULL if the input is a timeseries aggregate)
-    TWPt<TStreamAggrOut::IFltTmIO> InAggrValBuffer;
-    /// Is InAggrValBuffer provided?
+    TWPt<TStreamAggrOut::IFltIO> InAggrFltIO;
+
+    /// Is buffered input aggregate provided?
     TBool BufferedP;
 
     // Aggregate state
@@ -1332,7 +1376,7 @@ private:
     /// Input aggregate
     TWPt<TStreamAggr> InAggr;
     /// Input timeseries
-    TWPt<TStreamAggrOut::IFltTm> InAggrVal;
+    TWPt<TStreamAggrOut::IFlt> InAggrFlt;
     
     /// TDigest model
     TSignalProc::TTDigest Model;
@@ -1441,11 +1485,18 @@ private:
     // provide access to different interfaces for convenience
     /// Input aggregate
     TWPt<TStreamAggr> InAggr;
+
     /// Input timeseries (can be NULL if the input is a buffered aggregate)
-    TWPt<TStreamAggrOut::IFltTm> InAggrVal;
+    TWPt<TStreamAggrOut::ITm> InAggrTm;
+    /// Input timeseries (can be NULL if the input is a buffered aggregate)
+    TWPt<TStreamAggrOut::IFlt> InAggrFlt;
+
     /// Input windowed time series (can be NULL if the input is a timeseries aggregate)
-    TWPt<TStreamAggrOut::IFltTmIO> InAggrValBuffer;
-    /// Is InAggrValBuffer provided?
+    TWPt<TStreamAggrOut::ITmIO> InAggrTmIO;
+    /// Input windowed time series (can be NULL if the input is a timeseries aggregate)
+    TWPt<TStreamAggrOut::IFltIO> InAggrFltIO;
+
+    /// Is buffered input aggregate provided?
     TBool BufferedP;
 
     /// Slotted histogram model
