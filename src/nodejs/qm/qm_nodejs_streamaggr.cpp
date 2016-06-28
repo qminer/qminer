@@ -296,9 +296,11 @@ void TNodeJsStreamAggr::getTimestamp(const v8::FunctionCallbackInfo<v8::Value>& 
     // try to cast as ITm
     TWPt<TQm::TStreamAggrOut::ITm> Aggr = dynamic_cast<TQm::TStreamAggrOut::ITm*>(JsSA->SA());
     if (Aggr.Empty()) {
-        throw TQm::TQmExcept::New("TNodeJsStreamAggr::getTm : stream aggregate does not implement ITm: " + JsSA->SA->GetAggrNm());
+		Aggr = dynamic_cast<TQm::TStreamAggrOut::IFltTm*>(JsSA->SA());
+		if (Aggr.Empty()) {
+			throw TQm::TQmExcept::New("TNodeJsStreamAggr::getTm : stream aggregate does not implement ITm: " + JsSA->SA->GetAggrNm());
+		}
     }
-
     Args.GetReturnValue().Set(v8::Number::New(Isolate, (double)Aggr->GetTmMSecs()));
 }
 
@@ -1086,11 +1088,11 @@ uint64 TNodeJsFuncStreamAggr::GetTmMSecs() const {
         v8::TryCatch TryCatch;
         v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
         TNodeJsUtil::CheckJSExcept(TryCatch);
-        QmAssertR(RetVal->IsNumber(), "TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", getTm(): Return type expected to be number");
+        QmAssertR(RetVal->IsNumber(), "TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", getTimestamp(): Return type expected to be number");
         return (uint64)RetVal->NumberValue();
     }
     else {
-        throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", getTm() callback is empty!");
+        throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ",  getTimestamp() callback is empty!");
     }
 }
 // IFltTmIO

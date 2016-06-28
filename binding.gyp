@@ -73,7 +73,7 @@
                         #'RuntimeTypeInfo': 'true',      # /GR  : this should work but doesn't get picked up
                         #'ExceptionHandling': 1,         # /EHsc: this should work but doesn't get picked up
                         'OpenMP': 'true',
-                        "AdditionalOptions": [ "/EHsc /GR" ] # release mode displays D9025 warnings, which is a known issue https://github.com/nodejs/node-gyp/issues/335
+                        "AdditionalOptions": [ "/EHsc /GR /bigobj" ] # release mode displays D9025 warnings, which is a known issue https://github.com/nodejs/node-gyp/issues/335
                     },
                     'VCLinkerTool': {
                         'SubSystem' : 1, # Console
