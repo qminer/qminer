@@ -412,8 +412,8 @@ void TNodeJsStreamAggr::getInFloatVector(const v8::FunctionCallbackInfo<v8::Valu
 
     // unwrap
     TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
-    // try to cast as IFltTmIO
-    TWPt<TQm::TStreamAggrOut::IFltTmIO> Aggr = dynamic_cast<TQm::TStreamAggrOut::IFltTmIO*>(JsSA->SA());
+    // try to cast as IFltIO
+    TWPt<TQm::TStreamAggrOut::IFltIO> Aggr = dynamic_cast<TQm::TStreamAggrOut::IFltIO*>(JsSA->SA());
     if (Aggr.Empty()) {
         throw TQm::TQmExcept::New("TNodeJsStreamAggr::getInFloatVector : stream aggregate does not implement IFltTmIO: " + JsSA->SA->GetAggrNm());
     }
@@ -429,7 +429,7 @@ void TNodeJsStreamAggr::getInTimestampVector(const v8::FunctionCallbackInfo<v8::
 
     // unwrap
     TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
-    // try to cast as IFltTmIO
+    // try to cast as ITmIO
     TWPt<TQm::TStreamAggrOut::ITmIO> Aggr = dynamic_cast<TQm::TStreamAggrOut::ITmIO*>(JsSA->SA());
     if (Aggr.Empty()) {
         throw TQm::TQmExcept::New("TNodeJsStreamAggr::getOutTmV : stream aggregate does not implement ITmIO: " + JsSA->SA->GetAggrNm());
@@ -451,8 +451,8 @@ void TNodeJsStreamAggr::getOutFloatVector(const v8::FunctionCallbackInfo<v8::Val
 
     // unwrap
     TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
-    // try to cast as IFltTmIO
-    TWPt<TQm::TStreamAggrOut::IFltTmIO> Aggr = dynamic_cast<TQm::TStreamAggrOut::IFltTmIO*>(JsSA->SA());
+    // try to cast as IFltIO
+    TWPt<TQm::TStreamAggrOut::IFltIO> Aggr = dynamic_cast<TQm::TStreamAggrOut::IFltIO*>(JsSA->SA());
     if (Aggr.Empty()) {
         throw TQm::TQmExcept::New("TNodeJsStreamAggr::getOutFloatVector : stream aggregate does not implement IFltTmIO: " + JsSA->SA->GetAggrNm());
     }
@@ -468,7 +468,7 @@ void TNodeJsStreamAggr::getOutTimestampVector(const v8::FunctionCallbackInfo<v8:
 
     // unwrap
     TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
-    // try to cast as IFltTmIO
+    // try to cast as ITmIO
     TWPt<TQm::TStreamAggrOut::ITmIO> Aggr = dynamic_cast<TQm::TStreamAggrOut::ITmIO*>(JsSA->SA());
     if (Aggr.Empty()) {
         throw TQm::TQmExcept::New("TNodeJsStreamAggr::getOutTmV : stream aggregate does not implement ITmIO: " + JsSA->SA->GetAggrNm());
@@ -490,7 +490,7 @@ void TNodeJsStreamAggr::getNumberOfRecords(const v8::FunctionCallbackInfo<v8::Va
 
     // unwrap
     TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
-    // try to cast as IFltTmIO
+    // try to cast as ITmIO
     TWPt<TQm::TStreamAggrOut::ITmVec> Aggr = dynamic_cast<TQm::TStreamAggrOut::ITmVec*>(JsSA->SA());
     if (Aggr.Empty()) {
         throw TQm::TQmExcept::New("TNodeJsStreamAggr::getNumberOfRecords : stream aggregate does not implement IValTmIO: " + JsSA->SA->GetAggrNm());
@@ -505,9 +505,9 @@ void TNodeJsStreamAggr::getInValueVector(const v8::FunctionCallbackInfo<v8::Valu
     // unwrap
     TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
 
-    // try to cast as IValTmIO
-    TWPt<TQm::TStreamAggrOut::IValTmIO<TFlt> > AggrFlt = dynamic_cast<TQm::TStreamAggrOut::IValTmIO<TFlt> *>(JsSA->SA());
-    TWPt<TQm::TStreamAggrOut::IValTmIO<TIntFltKdV> > AggrSpV = dynamic_cast<TQm::TStreamAggrOut::IValTmIO<TIntFltKdV> *>(JsSA->SA());
+    // try to cast as IValIO
+    TWPt<TQm::TStreamAggrOut::IValIO<TFlt> > AggrFlt = dynamic_cast<TQm::TStreamAggrOut::IValIO<TFlt> *>(JsSA->SA());
+    TWPt<TQm::TStreamAggrOut::IValIO<TIntFltKdV> > AggrSpV = dynamic_cast<TQm::TStreamAggrOut::IValIO<TIntFltKdV> *>(JsSA->SA());
 
     if (!AggrFlt.Empty()) {
         TFltV Res;
@@ -533,8 +533,8 @@ void TNodeJsStreamAggr::getOutValueVector(const v8::FunctionCallbackInfo<v8::Val
     TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
         
     // try to cast as IValTmIO
-    TWPt<TQm::TStreamAggrOut::IValTmIO<TFlt> > AggrFlt = dynamic_cast<TQm::TStreamAggrOut::IValTmIO<TFlt> *>(JsSA->SA());
-    TWPt<TQm::TStreamAggrOut::IValTmIO<TIntFltKdV> > AggrSpV = dynamic_cast<TQm::TStreamAggrOut::IValTmIO<TIntFltKdV> *>(JsSA->SA());
+    TWPt<TQm::TStreamAggrOut::IValIO<TFlt> > AggrFlt = dynamic_cast<TQm::TStreamAggrOut::IValIO<TFlt> *>(JsSA->SA());
+    TWPt<TQm::TStreamAggrOut::IValIO<TIntFltKdV> > AggrSpV = dynamic_cast<TQm::TStreamAggrOut::IValIO<TIntFltKdV> *>(JsSA->SA());
         
     if (!AggrFlt.Empty()) {
         TFltV Res;
