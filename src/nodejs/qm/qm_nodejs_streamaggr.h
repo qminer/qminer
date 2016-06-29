@@ -2024,12 +2024,13 @@ public:
 class TNodeJsFuncStreamAggr :
     public TQm::TStreamAggr,
     public TQm::TStreamAggrOut::IInt,
-    public TQm::TStreamAggrOut::IFltTmIO,
+    public TQm::TStreamAggrOut::ITm,
+    public TQm::TStreamAggrOut::IFlt,
+    public TQm::TStreamAggrOut::ITmIO,
+    public TQm::TStreamAggrOut::IFltIO,
     public TQm::TStreamAggrOut::INmFlt,
     public TQm::TStreamAggrOut::INmInt,
-    // combinations
-    public TQm::TStreamAggrOut::IFltTm,
-    public TQm::TStreamAggrOut::ISparseVecTm
+    public TQm::TStreamAggrOut::ISparseVec
 {
 private:    
     // callbacks
