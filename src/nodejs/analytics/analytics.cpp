@@ -2185,6 +2185,8 @@ TNodeJsKMeans::TNodeJsKMeans(const PJsonVal& ParamVal) :
         K(2),
 		AllowEmptyP(true),
         AssignV(),
+        Medoids(),
+		FitIdx(),
         DistType(TDistanceType::dtEuclid),
 		Dist(nullptr),
         CentType(TCentroidType::ctDense),
@@ -2198,6 +2200,8 @@ TNodeJsKMeans::TNodeJsKMeans(TSIn& SIn) :
         K(TInt(SIn)),
 		AllowEmptyP(SIn),
         AssignV(SIn),
+		Medoids(SIn),
+		FitIdx(SIn),
         DistType(LoadEnum<TDistanceType>(SIn)),
         CentType(LoadEnum<TCentroidType>(SIn)),
         Verbose(TBool(SIn)) {
@@ -2227,6 +2231,9 @@ TNodeJsKMeans::~TNodeJsKMeans() {
 void TNodeJsKMeans::UpdateParams(const PJsonVal& ParamVal) {
     if (ParamVal->IsObjKey("iter")) { Iter = ParamVal->GetObjInt("iter"); }
     if (ParamVal->IsObjKey("k")) { K = ParamVal->GetObjInt("k"); }
+	if (ParamVal->IsObjKey("fitIdx")) {  
+		ParamVal->GetObjIntV("fitIdx", FitIdx);
+	}
     if (ParamVal->IsObjKey("allowEmpty")) { AllowEmptyP = ParamVal->GetObjBool("allowEmpty"); }
     if (ParamVal->IsObjKey("distanceType")) { 
         TStr dist = ParamVal->GetObjStr("distanceType"); 
@@ -2267,6 +2274,7 @@ PJsonVal TNodeJsKMeans::GetParams() const {
 
     ParamVal->AddToObj("iter", Iter);
     ParamVal->AddToObj("k", K);
+	ParamVal->AddToObj("fitIdx", TJsonVal::NewArr(FitIdx));
     ParamVal->AddToObj("verbose", Verbose);
 	ParamVal->AddToObj("allowEmpty", AllowEmptyP);
     switch (DistType) {
@@ -2294,6 +2302,8 @@ void TNodeJsKMeans::Save(TSOut& SOut) const {
     TInt(K).Save(SOut);
     AllowEmptyP.Save(SOut);
     AssignV.Save(SOut);
+	Medoids.Save(SOut);
+	FitIdx.Save(SOut);
     SaveEnum<TDistanceType>(SOut, DistType);
     SaveEnum<TCentroidType>(SOut, CentType);
     TBool(Verbose).Save(SOut);
@@ -2456,7 +2466,17 @@ void TNodeJsKMeans::TFitTask::Run() {
 
        // create a new model
        if (JsKMeans->CentType == TCentroidType::ctDense) {
-    	   TClustering::TDenseKMeans* KMeans = new TClustering::TDenseKMeans(JsKMeans->K, TRnd(0), JsKMeans->Dist);
+
+           TClustering::TDenseKMeans* KMeans;
+		   TClustering::TDenseKMeans::TInitType InitType;
+		   if (JsKMeans->FitIdx.Len() == 0) {
+			   InitType = TClustering::TDenseKMeans::TInitType::itRandom;
+               KMeans = new TClustering::TDenseKMeans(JsKMeans->K, TRnd(0), InitType, JsKMeans->Dist);
+		   } else {
+			   InitType = TClustering::TDenseKMeans::TInitType::itMatrixColumns;
+               KMeans = new TClustering::TDenseKMeans(JsKMeans->K, TRnd(0), InitType, JsKMeans->Dist, JsKMeans->FitIdx);
+		   }
+
            JsKMeans->Model = (void*) KMeans;
 
            // input dense matrix
@@ -2518,7 +2538,16 @@ void TNodeJsKMeans::TFitTask::Run() {
            }
        }
        else if (JsKMeans->CentType == TCentroidType::ctSparse) {
-    	   TClustering::TSparseKMeans* KMeans = new TClustering::TSparseKMeans(JsKMeans->K, TRnd(0), JsKMeans->Dist);
+           TClustering::TSparseKMeans* KMeans;
+		   TClustering::TSparseKMeans::TInitType InitType;
+		   if (JsKMeans->FitIdx.Len() == 0) {
+			   InitType = TClustering::TSparseKMeans::TInitType::itRandom;
+               KMeans = new TClustering::TSparseKMeans(JsKMeans->K, TRnd(0), InitType, JsKMeans->Dist);
+		   } else {
+			   InitType = TClustering::TSparseKMeans::TInitType::itMatrixColumns;
+               KMeans = new TClustering::TSparseKMeans(JsKMeans->K, TRnd(0), InitType, JsKMeans->Dist, JsKMeans->FitIdx);
+		   }
+
            JsKMeans->Model = (void*) KMeans;
            // input dense matrix
            if (JsFltVV != nullptr) {

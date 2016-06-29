@@ -2722,7 +2722,7 @@ void TScaleHelper::CalcNaturalScales(const TScaleDescV& ScaleQMatPrV,
 
 	printf("\n%s\n", TStrUtil::GetStr(FtrVV, ", ", "%.5f").CStr());
 
-	TClustering::TDenseKMeans KMeans(NScales, Rnd, TCosDist::New());
+	TClustering::TDenseKMeans KMeans(NScales, Rnd, TClustering::TDenseKMeans::TInitType::itRandom, TCosDist::New());
 	KMeans.Apply(FtrVV, false, 1000, Notify);
 	TFltVV ClustDistVV;	KMeans.GetDistVV(FtrVV, ClustDistVV);
 

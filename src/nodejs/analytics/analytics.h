@@ -2018,6 +2018,7 @@ private:
 * @property {string} [centroidType="Dense"] - The type of centroids. Options: "Dense" or "Sparse".
 * @property {string} [distanceType="Euclid"] - The distance type used at the calculations. Options: "Euclid" or "Cos".
 * @property {boolean} [verbose=false] - If false, the console output is supressed.
+* @property {Array.<number>} [fitIdx] - The index array used for the construction of the initial centroids.
 */
 
 
@@ -2053,6 +2054,7 @@ private:
 
     TIntV AssignV;
     TIntV Medoids;
+	TIntV FitIdx;
 
     TDistanceType DistType;
     TClustering::PDist Dist;

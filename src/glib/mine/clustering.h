@@ -322,28 +322,37 @@ void TCosDist::GetDist2VV(const TXMatType& X, const TYMatType& Y, TFltVV& D) con
 template<class TCentroidType>
 class TAbsKMeans {
 	friend class TPt<TAbsKMeans<TCentroidType>>;
+public:
+	enum TInitType {
+		itRandom,
+		itMatrixColumns
+	};
 private:
 	TCRef CRef;
 protected:
+	
     TCentroidType CentroidVV;
 	PDist Dist;
-
-	TRnd Rnd;
+    TIntV InitIdx;
+    TInitType InitType;
+    TRnd Rnd;
 
 public:
-	TAbsKMeans(const TRnd& Rnd, const PDist& Dist=TEuclDist::New());
-	TAbsKMeans(TSIn& SIn);
 
-	virtual ~TAbsKMeans() {}
+    TAbsKMeans(const TRnd& Rnd, const TInitType& InitType = TInitType::itRandom, const PDist& Dist=TEuclDist::New(),
+        const TIntV& InitIdx = TIntV());
+    TAbsKMeans(TSIn& SIn);
 
-	virtual void Save(TSOut& SOut) const;
+    virtual ~TAbsKMeans() {}
+
+    virtual void Save(TSOut& SOut) const;
     static TAbsKMeans<TCentroidType>* LoadPtr(TSIn& SIn);
-	static TPt<TAbsKMeans<TCentroidType>> Load(TSIn& SIn);
+    static TPt<TAbsKMeans<TCentroidType>> Load(TSIn& SIn);
 
 	/// returns the number of clusters
-	int GetClusts() const { return GetDataCount(CentroidVV); }
+    int GetClusts() const { return GetDataCount(CentroidVV); }
 	/// returns the dimension of the data
-	int GetDim() const { return GetDataDim(CentroidVV); }
+    int GetDim() const { return GetDataDim(CentroidVV); }
 
 	/// returns the centroid (column) matrix
     const TCentroidType& GetCentroidVV() const { return CentroidVV; }
@@ -432,11 +441,12 @@ class TDnsKMeans : public TAbsKMeans<TCentroidType> {
 private:
 	const TInt K;
 public:
-    TDnsKMeans(const int& K, const TRnd& Rnd = TRnd(0), const PDist& Dist=TEuclDist::New());
+    TDnsKMeans(const int& K, const TRnd& Rnd = TRnd(0), const TInitType& InitType = TInitType::itRandom, 
+		const PDist& Dist=TEuclDist::New(), const TIntV& InitIdx = TIntV());
 	TDnsKMeans(TSIn& SIn);
 
     static TPt<TAbsKMeans<TCentroidType>> New(const int& K, const TRnd& Rnd=TRnd(),
-    		TDist* Dist=new TEuclDist);
+		const TInitType& InitType = TInitType::itRandom, TDist* Dist=new TEuclDist);
 /*    static TPt<TAbsKMeans<TCentroidType>> New(TSIn& SIn)
     		{ return new TDnsKMeans<TCentroidType>(SIn); }
             */
@@ -465,9 +475,10 @@ private:
 	const TInt MnClusts;
 	const TInt MxClusts;
 public:
-	TDpMeans(const TFlt& Lambda, const TInt& MnClusts=1, const TInt& MxClusts=TInt::Mx,
-			const TRnd& Rnd=TRnd(), const PDist& Dist=TEuclDist::New());
-	TDpMeans(TSIn& SIn);
+    TDpMeans(const TFlt& Lambda, const TInt& MnClusts=1, const TInt& MxClusts=TInt::Mx, const TRnd& Rnd = TRnd(),
+             const TInitType& InitType = TInitType::itRandom, const PDist& Dist=TEuclDist::New(), 
+             const TIntV& InitIdx = TIntV());
+    TDpMeans(TSIn& SIn);
 
 	// saves the model to the output stream
 	void Save(TSOut& SOut) const;
@@ -506,15 +517,19 @@ typedef TPt<TAbsKMeans<TFltVV>> PSparseKMeans;
 
 // implementations
 template<class TCentroidType>
-TAbsKMeans<TCentroidType>::TAbsKMeans(const TRnd& _Rnd, const PDist& _Dist) :
+TAbsKMeans<TCentroidType>::TAbsKMeans(const TRnd& _Rnd, const TInitType& _InitType, const PDist& _Dist, const TIntV& _InitIdx) :
         CentroidVV(),
         Dist(_Dist),
+        InitType(_InitType),
+        InitIdx(_InitIdx),
         Rnd(_Rnd) {}
 
 template<class TCentroidType>
 TAbsKMeans<TCentroidType>::TAbsKMeans(TSIn& SIn) :
         CentroidVV(SIn),
         Dist(TDist::Load(SIn)),
+        InitIdx(SIn),
+        InitType(LoadEnum<TInitType>(SIn)),
         Rnd(SIn) {}
 
 template<class TCentroidType>
@@ -522,6 +537,8 @@ void TAbsKMeans<TCentroidType>::Save(TSOut& SOut) const {
     GetType().Save(SOut);
     CentroidVV.Save(SOut);
     Dist->Save(SOut);
+    InitIdx.Save(SOut);
+    SaveEnum<TInitType>(SOut, InitType);
     Rnd.Save(SOut);
 }
 
@@ -733,40 +750,55 @@ template<class TDataType>
 inline void TAbsKMeans<TCentroidType>::SelectInitCentroids(const TDataType& FtrVV,
 		const int& K, const int& NInst) {
 
-    EAssertR(NInst >= K, "TStateIdentifier::SelectInitCentroids: The number of initial centroids should be less than the number of data points!");
+	EAssertR(NInst >= K, "TStateIdentifier::SelectInitCentroids: The number of initial centroids should be less than the number of data points!");
 
-    TIntV CentroidNV(K);
+    switch (TAbsKMeans<TCentroidType>::InitType) {
+        case TInitType::itRandom: {
 
-    // generate k random elements
-    if (K < NInst / 2) {
-    	TIntSet TakenSet(K);
+        TIntV CentroidNV(K);
 
-    	int RecN;
-    	for (int ClustN = 0; ClustN < K; ClustN++) {
-    		do {	// expecting max 2 iterations before we get a hit
-    			RecN = Rnd.GetUniDevInt(NInst);
-    		} while (TakenSet.IsKey(RecN));
+        // generate k random elements
+        if (K < NInst / 2) {
+            TIntSet TakenSet(K);
 
-    		TakenSet.AddKey(RecN);
-    		CentroidNV[ClustN] = RecN;
-    	}
-    } else {
-		TIntV PermV(NInst);	TLinAlgTransform::RangeV(NInst, PermV);
+            int RecN;
+            for (int ClustN = 0; ClustN < K; ClustN++) {
+    	        do {	// expecting max 2 iterations before we get a hit
+    		        RecN = Rnd.GetUniDevInt(NInst);
+    	        } while (TakenSet.IsKey(RecN));
 
-		TInt Temp;
-		for (int i = 0; i < K; i++) {
-			const int SwapIdx = Rnd.GetUniDevInt(i, NInst - 1);
+    	        TakenSet.AddKey(RecN);
+    	        CentroidNV[ClustN] = RecN;
+            }
+        } else {
+	        TIntV PermV(NInst);	TLinAlgTransform::RangeV(NInst, PermV);
 
-			// swap
-			Temp = PermV[SwapIdx];
-			PermV[SwapIdx] = PermV[i];
-			PermV[i] = Temp;
+	        TInt Temp;
+	        for (int i = 0; i < K; i++) {
+		        const int SwapIdx = Rnd.GetUniDevInt(i, NInst - 1);
 
-			CentroidNV[i] = PermV[i];
-		}
+		        // swap
+		        Temp = PermV[SwapIdx];
+		        PermV[SwapIdx] = PermV[i];
+		        PermV[i] = Temp;
+
+		        CentroidNV[i] = PermV[i];
+	        }
+        }
+
+	    InitCentroids(CentroidVV, FtrVV, CentroidNV, K);
+	    break;
     }
-
-    InitCentroids(CentroidVV, FtrVV, CentroidNV, K);
+        case TInitType::itMatrixColumns: {
+            EAssertR(InitIdx.Len() == K, "TStateIdentifier:SelectInitCentroids: The length of the initialization vector should be equal to K!");
+            EAssertR(InitIdx.GetMxVal() < GetDataCount(FtrVV), "TStateIdentifier:SelectInitCentroids: The maximum index value must not be bigger that the number of columns!");
+            InitCentroids(CentroidVV, FtrVV, InitIdx, K);
+            break;
+        }
+        default: {
+            throw TExcept::New("Initialize type not known!");
+        }
+    }
 }
 
 template<class TCentroidType>
@@ -831,8 +863,8 @@ void TAbsKMeans<TCentroidType>::GetCol(const TVec<TIntFltKdV>& FtrVV, const int&
 }
 
 template<class TCentroidType>
-TDnsKMeans<TCentroidType>::TDnsKMeans(const int& _K, const TRnd& Rnd, const PDist& Dist) :
-        TAbsKMeans<TCentroidType>(Rnd, Dist),
+TDnsKMeans<TCentroidType>::TDnsKMeans(const int& _K, const TRnd& Rnd, const TInitType& InitType, const PDist& Dist, const TIntV& InitIdx) :
+        TAbsKMeans<TCentroidType>(Rnd, InitType, Dist, InitIdx),
         K(_K) {}
 
 template<class TCentroidType>
@@ -842,8 +874,8 @@ TDnsKMeans<TCentroidType>::TDnsKMeans(TSIn& SIn) :
 
 template <class TCentroidType>
 TPt<TAbsKMeans<TCentroidType>> TDnsKMeans<TCentroidType>::New(const int& K, const TRnd& Rnd,
-    		TDist* Dist) {
-	return new TDnsKMeans<TCentroidType>(K, Rnd, Dist);
+	const TInitType& InitType, TDist* Dist) {
+	return new TDnsKMeans<TCentroidType>(K, Rnd, InitType, Dist);
 }
 
 template<class TCentroidType>
@@ -925,8 +957,8 @@ void TDnsKMeans<TCentroidType>::Apply(const TDataType& FtrVV, const int& NInst, 
 
 template<class TCentroidType>
 TDpMeans<TCentroidType>::TDpMeans(const TFlt& _Lambda, const TInt& _MnClusts, const TInt& _MxClusts,
-    const TRnd& Rnd, const PDist& Dist) :
-    TAbsKMeans<TCentroidType>(Rnd, Dist),
+    const TRnd& Rnd, const TInitType& InitType, const PDist& Dist, const TIntV& InitIdx) :
+    TAbsKMeans<TCentroidType>(Rnd, InitType, Dist, InitIdx),
     Lambda(_Lambda),
     MnClusts(_MnClusts),
     MxClusts(_MxClusts) {
