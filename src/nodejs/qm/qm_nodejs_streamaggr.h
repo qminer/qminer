@@ -2028,6 +2028,8 @@ class TNodeJsFuncStreamAggr :
     public TQm::TStreamAggrOut::IFlt,
     public TQm::TStreamAggrOut::ITmIO,
     public TQm::TStreamAggrOut::IFltIO,
+    public TQm::TStreamAggrOut::ITmVec,
+    public TQm::TStreamAggrOut::IFltVec,    
     public TQm::TStreamAggrOut::INmFlt,
     public TQm::TStreamAggrOut::INmInt,
     public TQm::TStreamAggrOut::ISparseVec
@@ -2043,15 +2045,17 @@ private:
     v8::Persistent<v8::Function> SaveJsonFun;
     v8::Persistent<v8::Function> IsInitFun;
 
+    // Int
     v8::Persistent<v8::Function> GetIntFun;
     // IFlt 
     v8::Persistent<v8::Function> GetFltFun;
     // ITm 
     v8::Persistent<v8::Function> GetTmMSecsFun;
-    // IFltTmIO 
+    // IFltIO 
     v8::Persistent<v8::Function> GetInFltVFun;
-    v8::Persistent<v8::Function> GetInTmMSecsVFun;
     v8::Persistent<v8::Function> GetOutFltVFun;
+    // ITmIO 
+    v8::Persistent<v8::Function> GetInTmMSecsVFun;
     v8::Persistent<v8::Function> GetOutTmMSecsVFun;
     v8::Persistent<v8::Function> GetNFun;   
 
@@ -2106,13 +2110,11 @@ public:
     // ITm 
     uint64 GetTmMSecs() const;
     
-    // IFltTmIO 
-    bool DelayedP() const;
-    // incomming
+    // IFltIO 
     void GetInValV(TFltV& ValV) const;
-    void GetInTmMSecsV(TUInt64V& MSecsV) const;
-    // outgoing
     void GetOutValV(TFltV& ValV) const;
+    // ITmIO 
+    void GetInTmMSecsV(TUInt64V& MSecsV) const;
     void GetOutTmMSecsV(TUInt64V& MSecsV) const;
     // in buffer
     int GetN() const;
