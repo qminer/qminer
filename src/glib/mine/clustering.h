@@ -322,37 +322,29 @@ void TCosDist::GetDist2VV(const TXMatType& X, const TYMatType& Y, TFltVV& D) con
 template<class TCentroidType>
 class TAbsKMeans {
 	friend class TPt<TAbsKMeans<TCentroidType>>;
-public:
-	enum TInitType {
-		itRandom,
-		itMatrixColumns
-	};
 private:
 	TCRef CRef;
 protected:
 	
     TCentroidType CentroidVV;
 	PDist Dist;
-    TIntV InitIdx;
-    TInitType InitType;
-    TRnd Rnd;
 
+	TRnd Rnd;
 public:
 
-    TAbsKMeans(const TRnd& Rnd, const TInitType& InitType = TInitType::itRandom, const PDist& Dist=TEuclDist::New(),
-        const TIntV& InitIdx = TIntV());
-    TAbsKMeans(TSIn& SIn);
+	TAbsKMeans(const TRnd& Rnd, const PDist& Dist=TEuclDist::New());
+	TAbsKMeans(TSIn& SIn);
 
-    virtual ~TAbsKMeans() {}
+	virtual ~TAbsKMeans() {}
 
-    virtual void Save(TSOut& SOut) const;
+	virtual void Save(TSOut& SOut) const;
     static TAbsKMeans<TCentroidType>* LoadPtr(TSIn& SIn);
-    static TPt<TAbsKMeans<TCentroidType>> Load(TSIn& SIn);
+	static TPt<TAbsKMeans<TCentroidType>> Load(TSIn& SIn);
 
 	/// returns the number of clusters
-    int GetClusts() const { return GetDataCount(CentroidVV); }
+	int GetClusts() const { return GetDataCount(CentroidVV); }
 	/// returns the dimension of the data
-    int GetDim() const { return GetDataDim(CentroidVV); }
+	int GetDim() const { return GetDataDim(CentroidVV); }
 
 	/// returns the centroid (column) matrix
     const TCentroidType& GetCentroidVV() const { return CentroidVV; }
@@ -400,6 +392,8 @@ protected:
 
     template<class TDataType>
     void SelectInitCentroids(const TDataType& FtrVV, const int& K, const int& NInst);
+    template<class TDataType>
+    void SelectInitCentroids(const TDataType& FtrVV);
 
     template<class TDataType>
     inline void Assign(const TDataType& FtrVV, const TFltV& NormX2, const TFltV& NormC2, TIntV& AssignV) const;
@@ -418,7 +412,7 @@ protected:
     /// get column/cluster of the matrix
     static void GetCol(const TFltVV& FtrVV, const int& ColN, TFltV& Col);
     static void GetCol(const TVec<TIntFltKdV>& FtrVV, const int& ColN, TIntFltKdV& Col);
-    
+
 private:
     inline void SelectRndCentroid(const TFltVV& FtrVV, const int& CentroidN);
     inline void SelectRndCentroid(const TVec<TIntFltKdV>& FtrVV, const int& CentroidN);
@@ -427,6 +421,11 @@ private:
     void InitCentroids(TFltVV& CentroidVV, const TVec<TIntFltKdV>& FtrVV, const TIntV& CentroidNV, const int& K);
     void InitCentroids(TVec<TIntFltKdV>& CentroidVV, const TFltVV& FtrVV, const TIntV& CentroidNV, const int& K);
     void InitCentroids(TVec<TIntFltKdV>& CentroidVV, const TVec<TIntFltKdV>& FtrVV, const TIntV& CentroidNV, const int& K);
+
+    void InitCentroids(TFltVV& CentroidVV, const TFltVV& FtrVV);
+    void InitCentroids(TFltVV& CentroidVV, const TVec<TIntFltKdV>& FtrVV);
+    void InitCentroids(TVec<TIntFltKdV>& CentroidVV, const TFltVV& FtrVV);
+    void InitCentroids(TVec<TIntFltKdV>& CentroidVV, const TVec<TIntFltKdV>& FtrVV);
 
 protected:
 	/// type
@@ -441,12 +440,10 @@ class TDnsKMeans : public TAbsKMeans<TCentroidType> {
 private:
 	const TInt K;
 public:
-    TDnsKMeans(const int& K, const TRnd& Rnd = TRnd(0), const TInitType& InitType = TInitType::itRandom, 
-		const PDist& Dist=TEuclDist::New(), const TIntV& InitIdx = TIntV());
+    TDnsKMeans(const int& K, const TRnd& Rnd = TRnd(0), const PDist& Dist=TEuclDist::New());
 	TDnsKMeans(TSIn& SIn);
 
-    static TPt<TAbsKMeans<TCentroidType>> New(const int& K, const TRnd& Rnd=TRnd(),
-		const TInitType& InitType = TInitType::itRandom, TDist* Dist=new TEuclDist);
+    static TPt<TAbsKMeans<TCentroidType>> New(const int& K, const TRnd& Rnd=TRnd(), TDist* Dist=new TEuclDist);
 /*    static TPt<TAbsKMeans<TCentroidType>> New(TSIn& SIn)
     		{ return new TDnsKMeans<TCentroidType>(SIn); }
             */
@@ -458,10 +455,22 @@ public:
     void Apply(const TVec<TIntFltKdV>& FtrVV, const bool& AllowEmptyP=true,
     		const int& MaxIter=10000, const PNotify& Notify=TNotify::NullNotify);
 
+    template<class TInitCentroidMatType>
+    void Apply(const TFltVV& FtrVV, const TInitCentroidMatType& InitCentroidMat, const bool& AllowEmptyP = true,
+        const int& MaxIter = 10000, const PNotify& Notify = TNotify::NullNotify);
+
+    template<class TInitCentroidMatType>
+    void Apply(const TVec<TIntFltKdV>& FtrVV, const TInitCentroidMatType& InitCentroidMat, 
+        const bool& AllowEmptyP = true, const int& MaxIter = 10000, const PNotify& Notify = TNotify::NullNotify);
+
 protected:
     template<class TDataType>
-    void Apply(const TDataType& FtrVV, const int& NInst, const int& Dim,
+    void Apply(const TDataType& FtrVV, const int& NInst, const int& Dim, 
     		const bool& AllowEmptyP, const int& MaxIter, const PNotify& Notify);
+
+    template<class TDataType, class TInitCentroidType>
+    void Apply(const TDataType& FtrVV, const int& NInst, const int& Dim, const bool& AllowEmptyP,
+        const TInitCentroidType& InitCentroidMat, const int& MaxIter, const PNotify& Notify);
 
 	const TStr GetType() const { return "kmeans"; }
 };
@@ -475,10 +484,9 @@ private:
 	const TInt MnClusts;
 	const TInt MxClusts;
 public:
-    TDpMeans(const TFlt& Lambda, const TInt& MnClusts=1, const TInt& MxClusts=TInt::Mx, const TRnd& Rnd = TRnd(),
-             const TInitType& InitType = TInitType::itRandom, const PDist& Dist=TEuclDist::New(), 
-             const TIntV& InitIdx = TIntV());
-    TDpMeans(TSIn& SIn);
+	TDpMeans(const TFlt& Lambda, const TInt& MnClusts=1, const TInt& MxClusts=TInt::Mx,
+			const TRnd& Rnd=TRnd(), const PDist& Dist=TEuclDist::New());
+	TDpMeans(TSIn& SIn);
 
 	// saves the model to the output stream
 	void Save(TSOut& SOut) const;
@@ -488,6 +496,11 @@ public:
     void Apply(const TVec<TIntFltKdV>& FtrVV, const bool& AllowEmptyP=true, const int& MaxIter=10000,
         const PNotify& Notify=TNotify::NullNotify);
 
+    void Apply(const TFltVV& FtrVV, const TFltVV& InitCentroidMat, const int& MaxIter = 10000,
+        const PNotify& Notify = TNotify::NullNotify);
+    void Apply(const TVec<TIntFltKdV>& FtrVV, const TVec<TIntFltKdV>& InitCentroidMat,
+        const int& MaxIter = 10000, const PNotify& Notify = TNotify::NullNotify);
+
 protected:
 	const TStr GetType() const { return "dpmeans"; }
 
@@ -496,8 +509,7 @@ private:
 	// the point is assigned to
     template <class TDataType>
     void Apply(const TDataType& FtrVV, const int& NInst, const int& Dim,
-    		const bool& AllowEmptyP=true, const int& MaxIter=10000,
-			const PNotify& Notify=TNotify::NullNotify);
+    		const bool& AllowEmptyP, const int& MaxIter, const PNotify& Notify);
 
     template <class TDataType>
     inline void AddCentroid(const TDataType& FtrVV, TFltVV& ClustDistVV, TFltV& NormC2,
@@ -517,19 +529,15 @@ typedef TPt<TAbsKMeans<TFltVV>> PSparseKMeans;
 
 // implementations
 template<class TCentroidType>
-TAbsKMeans<TCentroidType>::TAbsKMeans(const TRnd& _Rnd, const TInitType& _InitType, const PDist& _Dist, const TIntV& _InitIdx) :
+TAbsKMeans<TCentroidType>::TAbsKMeans(const TRnd& _Rnd, const PDist& _Dist) :
         CentroidVV(),
         Dist(_Dist),
-        InitType(_InitType),
-        InitIdx(_InitIdx),
         Rnd(_Rnd) {}
 
 template<class TCentroidType>
 TAbsKMeans<TCentroidType>::TAbsKMeans(TSIn& SIn) :
         CentroidVV(SIn),
         Dist(TDist::Load(SIn)),
-        InitIdx(SIn),
-        InitType(LoadEnum<TInitType>(SIn)),
         Rnd(SIn) {}
 
 template<class TCentroidType>
@@ -537,8 +545,6 @@ void TAbsKMeans<TCentroidType>::Save(TSOut& SOut) const {
     GetType().Save(SOut);
     CentroidVV.Save(SOut);
     Dist->Save(SOut);
-    InitIdx.Save(SOut);
-    SaveEnum<TInitType>(SOut, InitType);
     Rnd.Save(SOut);
 }
 
@@ -746,59 +752,100 @@ void TAbsKMeans<TCentroidType>::InitCentroids(TVec<TIntFltKdV>& CentroidVV, cons
 }
 
 template<class TCentroidType>
+void TAbsKMeans<TCentroidType>::InitCentroids(TFltVV& CentroidVV, const TFltVV& FtrVV) {
+    const int Rows = GetDataDim(FtrVV);
+    const int Cols = GetDataCount(FtrVV);
+    // construct the centroid matrix
+    CentroidVV.Gen(Rows, Cols);
+    for (int ColN = 0; ColN < Cols; ColN++) {
+        for (int RowN = 0; RowN < Rows; RowN++) {
+            CentroidVV.PutXY(RowN, ColN, FtrVV(RowN, ColN));
+        }
+    }
+}
+
+template<class TCentroidType>
+void TAbsKMeans<TCentroidType>::InitCentroids(TFltVV& CentroidVV, const TVec<TIntFltKdV>& FtrVV) {
+    const int Rows = GetDataDim(FtrVV);
+    const int Cols = GetDataCount(FtrVV);
+    // construct the centroid matrix
+    CentroidVV.Gen(Rows, Cols);
+    for (int ColN = 0; ColN < Cols; ColN++) {
+        const int Els = FtrVV[ColN].Len();
+        for (int ElN = 0; ElN < Els; ElN++) {
+            CentroidVV.PutXY(FtrVV[ColN][ElN].Key, ColN, FtrVV[ColN][ElN].Dat);
+        }
+    }
+}
+
+template<class TCentroidType>
+void TAbsKMeans<TCentroidType>::InitCentroids(TVec<TIntFltKdV>& CentroidVV, const TFltVV& FtrVV) {
+    const int Rows = GetDataDim(FtrVV);
+    const int Cols = GetDataCount(FtrVV);
+    // construct the centroid matrix
+    CentroidVV.Gen(Cols);
+    for (int ColN = 0; ColN < Cols; ColN++) {
+        for (int RowN = 0; RowN < Rows; RowN++) {
+            if (FtrVV(RowN, ColN) != 0.0) { CentroidVV[ColN].Add(TIntFltKd(RowN, FtrVV(RowN, ColN))); }
+        }
+    }
+}
+
+template<class TCentroidType>
+void TAbsKMeans<TCentroidType>::InitCentroids(TVec<TIntFltKdV>& CentroidVV, const TVec<TIntFltKdV>& FtrVV) {
+    const int Cols = GetDataCount(FtrVV);
+    // construct the centroid matrix
+    CentroidVV.Gen(Cols);
+    for (int ColN = 0; ColN < Cols; ColN++) {
+        CentroidVV[ColN] = FtrVV[ColN];
+    }
+}
+
+template<class TCentroidType>
 template<class TDataType>
 inline void TAbsKMeans<TCentroidType>::SelectInitCentroids(const TDataType& FtrVV,
 		const int& K, const int& NInst) {
 
 	EAssertR(NInst >= K, "TStateIdentifier::SelectInitCentroids: The number of initial centroids should be less than the number of data points!");
 
-    switch (TAbsKMeans<TCentroidType>::InitType) {
-        case TInitType::itRandom: {
+	TIntV CentroidNV(K);
 
-        TIntV CentroidNV(K);
+	// generate k random elements
+	if (K < NInst / 2) {
+    	TIntSet TakenSet(K);
 
-        // generate k random elements
-        if (K < NInst / 2) {
-            TIntSet TakenSet(K);
+    	int RecN;
+    	for (int ClustN = 0; ClustN < K; ClustN++) {
+    		do {	// expecting max 2 iterations before we get a hit
+    			RecN = Rnd.GetUniDevInt(NInst);
+    		} while (TakenSet.IsKey(RecN));
 
-            int RecN;
-            for (int ClustN = 0; ClustN < K; ClustN++) {
-    	        do {	// expecting max 2 iterations before we get a hit
-    		        RecN = Rnd.GetUniDevInt(NInst);
-    	        } while (TakenSet.IsKey(RecN));
+    		TakenSet.AddKey(RecN);
+    		CentroidNV[ClustN] = RecN;
+    	}
+	} else {
+		TIntV PermV(NInst);	TLinAlgTransform::RangeV(NInst, PermV);
 
-    	        TakenSet.AddKey(RecN);
-    	        CentroidNV[ClustN] = RecN;
-            }
-        } else {
-	        TIntV PermV(NInst);	TLinAlgTransform::RangeV(NInst, PermV);
+		TInt Temp;
+		for (int i = 0; i < K; i++) {
+			const int SwapIdx = Rnd.GetUniDevInt(i, NInst - 1);
 
-	        TInt Temp;
-	        for (int i = 0; i < K; i++) {
-		        const int SwapIdx = Rnd.GetUniDevInt(i, NInst - 1);
+			// swap
+			Temp = PermV[SwapIdx];
+			PermV[SwapIdx] = PermV[i];
+			PermV[i] = Temp;
 
-		        // swap
-		        Temp = PermV[SwapIdx];
-		        PermV[SwapIdx] = PermV[i];
-		        PermV[i] = Temp;
+			CentroidNV[i] = PermV[i];
+		}
+	}
 
-		        CentroidNV[i] = PermV[i];
-	        }
-        }
+	InitCentroids(CentroidVV, FtrVV, CentroidNV, K);
+}
 
-	    InitCentroids(CentroidVV, FtrVV, CentroidNV, K);
-	    break;
-    }
-        case TInitType::itMatrixColumns: {
-            EAssertR(InitIdx.Len() == K, "TStateIdentifier:SelectInitCentroids: The length of the initialization vector should be equal to K!");
-            EAssertR(InitIdx.GetMxVal() < GetDataCount(FtrVV), "TStateIdentifier:SelectInitCentroids: The maximum index value must not be bigger that the number of columns!");
-            InitCentroids(CentroidVV, FtrVV, InitIdx, K);
-            break;
-        }
-        default: {
-            throw TExcept::New("Initialize type not known!");
-        }
-    }
+template<class TCentroidType>
+template<class TDataType>
+inline void TAbsKMeans<TCentroidType>::SelectInitCentroids(const TDataType& FtrVV) {
+    InitCentroids(CentroidVV, FtrVV);
 }
 
 template<class TCentroidType>
@@ -863,8 +910,8 @@ void TAbsKMeans<TCentroidType>::GetCol(const TVec<TIntFltKdV>& FtrVV, const int&
 }
 
 template<class TCentroidType>
-TDnsKMeans<TCentroidType>::TDnsKMeans(const int& _K, const TRnd& Rnd, const TInitType& InitType, const PDist& Dist, const TIntV& InitIdx) :
-        TAbsKMeans<TCentroidType>(Rnd, InitType, Dist, InitIdx),
+TDnsKMeans<TCentroidType>::TDnsKMeans(const int& _K, const TRnd& Rnd, const PDist& Dist) :
+        TAbsKMeans<TCentroidType>(Rnd, Dist),
         K(_K) {}
 
 template<class TCentroidType>
@@ -873,9 +920,8 @@ TDnsKMeans<TCentroidType>::TDnsKMeans(TSIn& SIn) :
         K(SIn) {}
 
 template <class TCentroidType>
-TPt<TAbsKMeans<TCentroidType>> TDnsKMeans<TCentroidType>::New(const int& K, const TRnd& Rnd,
-	const TInitType& InitType, TDist* Dist) {
-	return new TDnsKMeans<TCentroidType>(K, Rnd, InitType, Dist);
+TPt<TAbsKMeans<TCentroidType>> TDnsKMeans<TCentroidType>::New(const int& K, const TRnd& Rnd, TDist* Dist) {
+	return new TDnsKMeans<TCentroidType>(K, Rnd, Dist);
 }
 
 template<class TCentroidType>
@@ -954,11 +1000,83 @@ void TDnsKMeans<TCentroidType>::Apply(const TDataType& FtrVV, const int& NInst, 
         OldAssignIdxVPtr = Temp;
     }
 }
+template <class TCentroidType>
+template<class TInitCentroidMatType>
+void TDnsKMeans<TCentroidType>::Apply(const TFltVV& FtrVV, const TInitCentroidMatType& InitCentroidMat, 
+    const bool& AllowEmptyP, const int& MaxIter, const PNotify& Notify) {
+    const int Dim = TAbsKMeans<TCentroidType>::GetDataDim(FtrVV);
+    EAssertR(Dim > 0, "The input matrix doesn't have any features!");
+    Apply(FtrVV, TAbsKMeans<TCentroidType>::GetDataCount(FtrVV), Dim, AllowEmptyP, InitCentroidMat, MaxIter, Notify);
+}
+
+template <class TCentroidType>
+template <class TInitCentroidMatType>
+void TDnsKMeans<TCentroidType>::Apply(const TVec<TIntFltKdV>& FtrVV, const TInitCentroidMatType& InitCentroidMat,
+    const bool& AllowEmptyP, const int& MaxIter, const PNotify& Notify) {
+    const int Dim = TAbsKMeans<TCentroidType>::GetDataDim(FtrVV);
+    EAssertR(Dim > 0, "The input matrix doesn't have any features!");
+    Apply(FtrVV, TAbsKMeans<TCentroidType>::GetDataCount(FtrVV), Dim, AllowEmptyP, InitCentroidMat, MaxIter, Notify);
+}
+
+template <class TCentroidType>
+template<class TDataType, class TInitCentroidType>
+void TDnsKMeans<TCentroidType>::Apply(const TDataType& FtrVV, const int& NInst, const int& Dim, const bool& AllowEmptyP,
+    const TInitCentroidType& InitCentroidMat, const int& MaxIter, const PNotify& Notify) {
+    EAssertR(K <= NInst, "Matrix should have more columns than K!");
+
+    Notify->OnNotify(TNotifyType::ntInfo, "Executing KMeans ...");
+
+    // assignment vectors
+    TIntV AssignIdxV(NInst), OldAssignIdxV(NInst);
+    TIntV* AssignIdxVPtr = &AssignIdxV;
+    TIntV* OldAssignIdxVPtr = &OldAssignIdxV;
+    TIntV* Temp;
+
+    // constant reused variables
+    TFltV OnesN;			TLinAlgTransform::OnesV(NInst, OnesN);
+    TFltV NormX2;			TAbsKMeans<TCentroidType>::Dist->UpdateNormX2(FtrVV, NormX2);
+    TIntV RangeN(NInst);	TLinAlgTransform::RangeV(NInst, RangeN);
+
+    // reused variables
+    TFltVV ClustDistVV(K, NInst);		// (dimension k x n)
+    TFltV NormC2(K);
+    TFltV TempK(K);						// (dimension k)
+    TCentroidType TempDxK;				// (dimension d x k)
+    TVec<TIntFltKdV> TempKxKSpVV(K);	// (dimension k x k)
+
+    // select initial centroids
+    TAbsKMeans<TCentroidType>::SelectInitCentroids(InitCentroidMat);
+
+    // do the work
+    for (int IterN = 0; IterN < MaxIter; IterN++) {
+        if (IterN % 100 == 0) { Notify->OnNotifyFmt(TNotifyType::ntInfo, "%d", IterN); }
+
+        // get the distance of each of the points to each of the centroids
+        // and assign the instances
+        TAbsKMeans<TCentroidType>::Dist->UpdateNormC2(TAbsKMeans<TCentroidType>::CentroidVV, NormC2);
+        TAbsKMeans<TCentroidType>::Dist->GetDist2VV(TAbsKMeans<TCentroidType>::CentroidVV, FtrVV, NormC2, NormX2, ClustDistVV);
+        TLinAlgSearch::GetColMinIdxV(ClustDistVV, *AssignIdxVPtr);
+
+        // if the assignment hasn't changed then terminate the loop
+        if (*AssignIdxVPtr == *OldAssignIdxVPtr) {
+            Notify->OnNotifyFmt(TNotifyType::ntInfo, "Converged at iteration: %d", IterN);
+            break;
+        }
+
+        // recompute the means
+        TAbsKMeans<TCentroidType>::UpdateCentroids(FtrVV, NInst, *AssignIdxVPtr, OnesN, RangeN, TempK, TempDxK, TempKxKSpVV, NormX2, NormC2, AllowEmptyP);
+
+        // swap the old and new assign vectors
+        Temp = AssignIdxVPtr;
+        AssignIdxVPtr = OldAssignIdxVPtr;
+        OldAssignIdxVPtr = Temp;
+    }
+}
 
 template<class TCentroidType>
 TDpMeans<TCentroidType>::TDpMeans(const TFlt& _Lambda, const TInt& _MnClusts, const TInt& _MxClusts,
-    const TRnd& Rnd, const TInitType& InitType, const PDist& Dist, const TIntV& InitIdx) :
-    TAbsKMeans<TCentroidType>(Rnd, InitType, Dist, InitIdx),
+    const TRnd& Rnd, const PDist& Dist) :
+    TAbsKMeans<TCentroidType>(Rnd, Dist),
     Lambda(_Lambda),
     MnClusts(_MnClusts),
     MxClusts(_MxClusts) {

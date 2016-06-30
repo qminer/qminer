@@ -85,6 +85,14 @@ describe("Kmeans test", function () {
                 KMeans.fit(matrix);
             });
         });
+        it("should create the model for dense centroids with fitStart, dense matrix", function () {
+            var centroids = new la.Matrix({ rows: 2, cols: 2, random: true });
+            var KMeans = new analytics.KMeans({ fitStart: centroids });
+            var matrix = new la.Matrix([[-1, 1], [0, 0]]);
+            assert.doesNotThrow(function () {
+                KMeans.fit(matrix);
+            });
+        });
         it("should create the model for dense centroids, sparse matrix", function () {
             var KMeans = new analytics.KMeans();
             var matrix = new la.SparseMatrix([[[0, 1], [10, 2]], [[2, 3]]]);

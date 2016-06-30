@@ -2187,6 +2187,8 @@ TNodeJsKMeans::TNodeJsKMeans(const PJsonVal& ParamVal) :
         AssignV(),
         Medoids(),
 		FitIdx(),
+        DenseFitMatrix(),
+        SparseFitMatrix(),
         DistType(TDistanceType::dtEuclid),
 		Dist(nullptr),
         CentType(TCentroidType::ctDense),
@@ -2202,6 +2204,8 @@ TNodeJsKMeans::TNodeJsKMeans(TSIn& SIn) :
         AssignV(SIn),
 		Medoids(SIn),
 		FitIdx(SIn),
+        DenseFitMatrix(SIn),
+        SparseFitMatrix(SIn),
         DistType(LoadEnum<TDistanceType>(SIn)),
         CentType(LoadEnum<TCentroidType>(SIn)),
         Verbose(TBool(SIn)) {
@@ -2231,9 +2235,7 @@ TNodeJsKMeans::~TNodeJsKMeans() {
 void TNodeJsKMeans::UpdateParams(const PJsonVal& ParamVal) {
     if (ParamVal->IsObjKey("iter")) { Iter = ParamVal->GetObjInt("iter"); }
     if (ParamVal->IsObjKey("k")) { K = ParamVal->GetObjInt("k"); }
-	if (ParamVal->IsObjKey("fitIdx")) {  
-		ParamVal->GetObjIntV("fitIdx", FitIdx);
-	}
+    if (ParamVal->IsObjKey("fitIdx")) { ParamVal->GetObjIntV("fitIdx", FitIdx); }
     if (ParamVal->IsObjKey("allowEmpty")) { AllowEmptyP = ParamVal->GetObjBool("allowEmpty"); }
     if (ParamVal->IsObjKey("distanceType")) { 
         TStr dist = ParamVal->GetObjStr("distanceType"); 
@@ -2304,6 +2306,8 @@ void TNodeJsKMeans::Save(TSOut& SOut) const {
     AssignV.Save(SOut);
 	Medoids.Save(SOut);
 	FitIdx.Save(SOut);
+    DenseFitMatrix.Save(SOut);
+    SparseFitMatrix.Save(SOut);
     SaveEnum<TDistanceType>(SOut, DistType);
     SaveEnum<TCentroidType>(SOut, CentType);
     TBool(Verbose).Save(SOut);
@@ -2463,25 +2467,43 @@ void TNodeJsKMeans::TFitTask::Run() {
     try {
        // delete the previous model
        JsKMeans->CleanUp();
-
        // create a new model
        if (JsKMeans->CentType == TCentroidType::ctDense) {
-
-           TClustering::TDenseKMeans* KMeans;
-		   TClustering::TDenseKMeans::TInitType InitType;
-		   if (JsKMeans->FitIdx.Len() == 0) {
-			   InitType = TClustering::TDenseKMeans::TInitType::itRandom;
-               KMeans = new TClustering::TDenseKMeans(JsKMeans->K, TRnd(0), InitType, JsKMeans->Dist);
-		   } else {
-			   InitType = TClustering::TDenseKMeans::TInitType::itMatrixColumns;
-               KMeans = new TClustering::TDenseKMeans(JsKMeans->K, TRnd(0), InitType, JsKMeans->Dist, JsKMeans->FitIdx);
-		   }
+           TClustering::TDenseKMeans* KMeans = new TClustering::TDenseKMeans(JsKMeans->K, TRnd(0), JsKMeans->Dist);
 
            JsKMeans->Model = (void*) KMeans;
 
            // input dense matrix
            if (JsFltVV != nullptr) {
-               KMeans->Apply(JsFltVV->Mat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
+               if (!JsKMeans->DenseFitMatrix.Empty()) {
+                   EAssertR(JsKMeans->DenseFitMatrix.GetCols() == JsKMeans->K, "Number of columns must be equal to number of centroids!");
+                   KMeans->Apply(JsFltVV->Mat, JsKMeans->DenseFitMatrix, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
+               }
+               else if (!JsKMeans->SparseFitMatrix.Empty()) {
+                   EAssertR(JsKMeans->SparseFitMatrix.Len() == JsKMeans->K, "Number of columns must be equal to number of centroids!");
+                   KMeans->Apply(JsFltVV->Mat, JsKMeans->SparseFitMatrix, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
+               }
+               else if (!JsKMeans->FitIdx.Empty()) {
+                   EAssertR(JsKMeans->FitIdx.Len() == JsKMeans->K, "Length of fitIdx must be equal to number of centroids!");
+                   EAssertR(JsKMeans->FitIdx.GetMxVal() < JsFltVV->Mat.GetCols(), "Maximum index in fitIdx must not be greater to the number of columns!");
+
+                   TFltVV InitCentroidMat;
+                   int Rows = JsFltVV->Mat.GetRows();
+                   int Cols = JsKMeans->K;
+
+                   InitCentroidMat.Gen(Rows, Cols);
+                   for (int i = 0; i < Cols; i++) {
+                       const int ColN = JsKMeans->FitIdx[i];
+                       for (int RowN = 0; RowN < Rows; RowN++) {
+                           InitCentroidMat.PutXY(RowN, i, JsFltVV->Mat(RowN, ColN));
+                       }
+                   }
+                   KMeans->Apply(JsFltVV->Mat, InitCentroidMat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
+               }
+               else {
+                   KMeans->Apply(JsFltVV->Mat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
+               }
+
                KMeans->Assign(JsFltVV->Mat, JsKMeans->AssignV);
 
                TFltVV D;
@@ -2508,7 +2530,35 @@ void TNodeJsKMeans::TFitTask::Run() {
            }
            // input sparse matrix
            else if (JsSpVV != nullptr) {
-               KMeans->Apply(JsSpVV->Mat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
+               if (!JsKMeans->DenseFitMatrix.Empty()) {
+                   EAssertR(JsKMeans->DenseFitMatrix.GetCols() == JsKMeans->K, "Number of columns must be equal to number of centroids!");
+                   KMeans->Apply(JsSpVV->Mat, JsKMeans->DenseFitMatrix, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
+               }
+               else if (!JsKMeans->SparseFitMatrix.Empty()) {
+                   EAssertR(JsKMeans->SparseFitMatrix.Len() == JsKMeans->K, "Number of columns must be equal to number of centroids!");
+                   KMeans->Apply(JsSpVV->Mat, JsKMeans->SparseFitMatrix, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
+               }
+               else if (!JsKMeans->FitIdx.Empty()) {
+                   EAssertR(JsKMeans->FitIdx.Len() == JsKMeans->K, "Length of fitIdx must be equal to number of centroids!");
+                   EAssertR(JsKMeans->FitIdx.GetMxVal() < JsSpVV->Mat.Len(), "Maximum index in fitIdx must not be greater to the number of columns!");
+
+                   TFltVV InitCentroidMat;
+                   int Rows = TLinAlgSearch::GetMaxDimIdx(JsSpVV->Mat) + 1;
+                   int Cols = JsKMeans->K;
+
+                   InitCentroidMat.Gen(Rows, Cols);
+                   for (int ColN = 0; ColN < Cols; ColN++) {
+                       const int Els = JsSpVV->Mat[ColN].Len();
+                       for (int ElN = 0; ElN < Els; ElN++) {
+                           InitCentroidMat.PutXY(JsSpVV->Mat[ColN][ElN].Key, ColN, JsSpVV->Mat[ColN][ElN].Dat);
+                       }
+                   }
+                   KMeans->Apply(JsSpVV->Mat, InitCentroidMat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
+               }
+               else {
+                   KMeans->Apply(JsSpVV->Mat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
+               }
+
                KMeans->Assign(JsSpVV->Mat, JsKMeans->AssignV);
                
                TFltVV D;
@@ -2538,20 +2588,39 @@ void TNodeJsKMeans::TFitTask::Run() {
            }
        }
        else if (JsKMeans->CentType == TCentroidType::ctSparse) {
-           TClustering::TSparseKMeans* KMeans;
-		   TClustering::TSparseKMeans::TInitType InitType;
-		   if (JsKMeans->FitIdx.Len() == 0) {
-			   InitType = TClustering::TSparseKMeans::TInitType::itRandom;
-               KMeans = new TClustering::TSparseKMeans(JsKMeans->K, TRnd(0), InitType, JsKMeans->Dist);
-		   } else {
-			   InitType = TClustering::TSparseKMeans::TInitType::itMatrixColumns;
-               KMeans = new TClustering::TSparseKMeans(JsKMeans->K, TRnd(0), InitType, JsKMeans->Dist, JsKMeans->FitIdx);
-		   }
-
+           TClustering::TSparseKMeans* KMeans = new TClustering::TSparseKMeans(JsKMeans->K, TRnd(0), JsKMeans->Dist);
            JsKMeans->Model = (void*) KMeans;
+
            // input dense matrix
            if (JsFltVV != nullptr) {
-               KMeans->Apply(JsFltVV->Mat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
+               if (!JsKMeans->SparseFitMatrix.Empty()) {
+                   EAssertR(JsKMeans->SparseFitMatrix.Len() == JsKMeans->K, "Number of columns must be equal to number of centroids!");
+                   KMeans->Apply(JsFltVV->Mat, JsKMeans->SparseFitMatrix, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
+               }
+                else if (!JsKMeans->DenseFitMatrix.Empty()) {
+                   EAssertR(JsKMeans->DenseFitMatrix.GetCols() == JsKMeans->K, "Number of columns must be equal to number of centroids!");
+                   KMeans->Apply(JsFltVV->Mat, JsKMeans->DenseFitMatrix, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
+               }
+               else if (!JsKMeans->FitIdx.Empty()) {
+                   EAssertR(JsKMeans->FitIdx.Len() == JsKMeans->K, "Length of fitIdx must be equal to number of centroids!");
+                   EAssertR(JsKMeans->FitIdx.GetMxVal() < JsFltVV->Mat.GetCols(), "Maximum index in fitIdx must not be greater to the number of columns!");
+
+                   TVec<TIntFltKdV> InitCentroidMat;
+                   int Rows = JsFltVV->Mat.GetRows();
+                   int K = JsKMeans->K;
+                   InitCentroidMat.Gen(K);
+                   for (int i = 0; i < K; i++) {
+                       const int ColN = JsKMeans->FitIdx[i];
+                       for (int RowN = 0; RowN < Rows; RowN++) {
+                           if (JsFltVV->Mat(RowN, ColN) != 0.0) { InitCentroidMat[i].Add(TIntFltKd(RowN, JsFltVV->Mat(RowN, ColN))); }
+                       }
+                   }
+                   KMeans->Apply(JsFltVV->Mat, InitCentroidMat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
+               }
+               else {
+                   KMeans->Apply(JsFltVV->Mat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
+               }
+
                KMeans->Assign(JsFltVV->Mat, JsKMeans->AssignV);
 
                TFltVV D;
@@ -2578,7 +2647,32 @@ void TNodeJsKMeans::TFitTask::Run() {
            }
            // input sparse matrix
            else if (JsSpVV != nullptr) {
-        	   KMeans->Apply(JsSpVV->Mat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
+               if (!JsKMeans->SparseFitMatrix.Empty()) {
+                   EAssertR(JsKMeans->SparseFitMatrix.Len() == JsKMeans->K, "Number of columns must be equal to number of centroids!");
+                   KMeans->Apply(JsSpVV->Mat, JsKMeans->SparseFitMatrix, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
+               }
+               else if (!JsKMeans->DenseFitMatrix.Empty()) {
+                   EAssertR(JsKMeans->DenseFitMatrix.GetCols() == JsKMeans->K, "Number of columns must be equal to number of centroids!");
+                   KMeans->Apply(JsSpVV->Mat, JsKMeans->DenseFitMatrix, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
+               }
+               else if (!JsKMeans->FitIdx.Empty()) {
+                   EAssertR(JsKMeans->FitIdx.Len() == JsKMeans->K, "Length of fitIdx must be equal to number of centroids!");
+                   EAssertR(JsKMeans->FitIdx.GetMxVal() < JsSpVV->Mat.Len(), "Maximum index in fitIdx must not be greater to the number of columns!");
+
+                   TVec<TIntFltKdV> InitCentroidMat;
+                   int Dim = JsKMeans->K;
+
+                   InitCentroidMat.Gen(Dim);
+                   for (int i = 0; i < Dim; i++) {
+                       const int ClustN = JsKMeans->FitIdx[i];
+                       InitCentroidMat[i] = JsSpVV->Mat[ClustN];
+                   }
+                   KMeans->Apply(JsSpVV->Mat, InitCentroidMat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
+               }
+               else {
+                   KMeans->Apply(JsSpVV->Mat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
+               }
+
         	   KMeans->Assign(JsSpVV->Mat, JsKMeans->AssignV);
 
                TFltVV D;

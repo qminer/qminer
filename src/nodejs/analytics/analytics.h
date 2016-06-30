@@ -2054,7 +2054,10 @@ private:
 
     TIntV AssignV;
     TIntV Medoids;
+
 	TIntV FitIdx;
+    TFltVV DenseFitMatrix;
+    TVec<TIntFltKdV> SparseFitMatrix;
 
     TDistanceType DistType;
     TClustering::PDist Dist;
