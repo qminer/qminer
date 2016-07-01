@@ -3904,7 +3904,7 @@ describe('TDigest test', function () {
     	});
     });
     describe('Datalib output test', function () {	
-    	it.only('should test t-digest precision is within 10%', function () {
+    	it('should test t-digest precision is within 10%', function () {
 	    	// add TDigest stream aggregator
 	        var aggr = {
 	            name: 'TDigest',
