@@ -2768,6 +2768,7 @@ THierarch::THierarch(const bool& _HistCacheSize, const bool& _IsTransitionBased,
 		MxHeight(TFlt::Mn),
 		HistCacheSize(_HistCacheSize),
 		PastStateIdV(),
+		HierarchHistoryVV(),
 		NLeafs(0),
 		StateNmV(),
 		StateLabelV(),
@@ -2787,6 +2788,7 @@ THierarch::THierarch(TSIn& SIn):
 		MxHeight(SIn),
 		HistCacheSize(TInt(SIn)),
 		PastStateIdV(SIn),
+		HierarchHistoryVV(SIn),
 		NLeafs(TInt(SIn)),
 		StateNmV(SIn),
 		StateLabelV(SIn),
@@ -2807,6 +2809,7 @@ void THierarch::Save(TSOut& SOut) const {
 	MxHeight.Save(SOut);
 	TInt(HistCacheSize).Save(SOut);
 	PastStateIdV.Save(SOut);
+	HierarchHistoryVV.Save(SOut);
 	TInt(NLeafs).Save(SOut);
 	StateNmV.Save(SOut);
 	StateLabelV.Save(SOut);
@@ -2820,7 +2823,8 @@ THierarch* THierarch::Load(TSIn& SIn) {
 	return new THierarch(SIn);
 }
 
-void THierarch::Init(const int& CurrLeafId, const TStreamStory& StreamStory) {
+void THierarch::Init(const TUInt64V& RecTmV, const TFltVV& ObsFtrVV, const int& CurrLeafId,
+        const TStreamStory& StreamStory) {
 	const TStateIdentifier& StateIdentifier = StreamStory.GetStateIdentifier();
 
 	TFltVV CentroidVV;	StateIdentifier.GetCentroidVV(CentroidVV);
@@ -2866,6 +2870,9 @@ void THierarch::Init(const int& CurrLeafId, const TStreamStory& StreamStory) {
 	}
 
 	CalcNaturalScales(StreamStory, Rnd, NaturalScaleV);
+
+	// init the hierarchy history
+	InitHistHierarch(RecTmV, ObsFtrVV, StateIdentifier);
 }
 
 void THierarch::UpdateHistory(const int& CurrLeafId) {
@@ -3163,11 +3170,28 @@ void THierarch::GetUiCurrStateIdHeightPrV(TIntFltPrV& StateIdHeightPrV) const {
 }
 
 void THierarch::GetHistStateIdV(const double& Height, TStateIdV& StateIdV) const {
-	const int NearestHeightIdx = GetNearestHeightN(Height);
+	const int NearestHeightIdx = GetHeightN(Height);
 	const TIntV& HistV = PastStateIdV[NearestHeightIdx];
 	for (int i = 1; i < HistV.Len(); i++) {
 		StateIdV.Add(HistV[i]);
 	}
+}
+
+void THierarch::GetStateHistory(const double& Scale, TUInt64IntPrV& StateTmStateIdPrV) const {
+    StateTmStateIdPrV = HierarchHistoryVV[GetUiScaleN(Scale)];
+}
+
+void THierarch::GetStateHistory(TVec<TPair<TFlt, TUInt64IntPrV>>& ScaleTmIdPrPrV) const {
+    const TFltV& ScaleV = GetUiHeightV();
+
+    ScaleTmIdPrPrV.Gen(ScaleV.Len());
+
+    for (int ScaleN = 0; ScaleN < ScaleV.Len(); ScaleN++) {
+        const double& Scale = ScaleV[ScaleN];
+
+        ScaleTmIdPrPrV[ScaleN].Val1 = Scale;
+        GetStateHistory(Scale, ScaleTmIdPrPrV[ScaleN].Val2);
+    }
 }
 
 void THierarch::GetLeafSuccesorCountV(TIntV& LeafCountV) const {
@@ -3393,20 +3417,28 @@ int THierarch::GetParentId(const int& StateId) const {
 	return GetParentId(StateId, HierarchV);
 }
 
-int THierarch::GetNearestHeightN(const double& Height) const {
-	// TODO optimize:
-	// 1) use binary search to find the nearest height
-	const TFltV& HeightV = GetUniqueHeightV();
-	for (int i = 0; i < HeightV.Len() - 1; i++) {
-		if (HeightV[i] <= Height && HeightV[i+1] > Height) {
-			return i;
-		}
-	}
-	return HeightV.Len() - 1;
+int THierarch::GetHeightN(const double& Height) const {
+    const TFltV& HeightV = GetUniqueHeightV();
+    return FindScaleNBin(Height, HeightV);
+
+//	// TODO optimize:
+//	// 1) use binary search to find the nearest height
+//
+//	for (int i = 0; i < HeightV.Len() - 1; i++) {
+//		if (HeightV[i] <= Height && HeightV[i+1] > Height) {
+//			return i;
+//		}
+//	}
+//	return HeightV.Len() - 1;
+}
+
+int THierarch::GetUiScaleN(const double& Scale) const {
+    const TFltV& ScaleV = GetUiHeightV();
+    return FindScaleNBin(Scale, ScaleV);
 }
 
 double THierarch::GetNearestHeight(const double& InHeight) const {
-	return UniqueHeightV[GetNearestHeightN(InHeight)];
+	return UniqueHeightV[GetHeightN(InHeight)];
 }
 
 bool THierarch::IsRoot(const int& StateId) const {
@@ -3502,6 +3534,49 @@ void THierarch::CalcNaturalScales(const TStreamStory& StreamStory, const TRnd& R
 	ScaleV.Sort(true);
 }
 
+void THierarch::InitHistHierarch(const TUInt64V& RecTmV, const TFltVV& FtrVV,
+            const TStateIdentifier& StateIdentifier) {
+    const TFltV& ScaleV = GetUiHeightV();
+    TIntV AssignV;  StateIdentifier.Assign(RecTmV, FtrVV, AssignV);
+
+    const int NScales = ScaleV.Len();
+    const int NRecs = RecTmV.Len();
+
+    HierarchHistoryVV.Gen(NScales);
+
+    // fill the first entry in history
+    {
+        EAssertR(!AssignV.Empty(), "No records found when constructing history!");
+        EAssertR(!RecTmV.Empty(), "Time vector empty when constructing history!");
+
+        const int& LeafId = AssignV[0];
+        const uint64 RecTm = RecTmV[0];
+        for (int ScaleN = 0; ScaleN < NScales; ScaleN++) {
+            const double& Scale = ScaleV[ScaleN];
+            const int& AncestorId = GetAncestorAtHeight(LeafId, Scale);
+
+            HierarchHistoryVV[ScaleN].Add(TUInt64IntPr(RecTm, AncestorId));
+        }
+    }
+
+    for (int RecN = 1; RecN < NRecs; RecN++) {
+        const int& LeafId = AssignV[RecN];
+        const uint64& RecTm = RecTmV[RecN];
+
+        for (int ScaleN = 0; ScaleN < NScales; ScaleN++) {
+            const double& Scale = ScaleV[ScaleN];
+            const int& AncestorId = GetAncestorAtHeight(LeafId, Scale);
+
+            const int& CurrHistStateId = HierarchHistoryVV[ScaleN].Last().Val2;
+
+            // check if we need to update the history
+            if (CurrHistStateId == AncestorId) { break; }
+
+            HierarchHistoryVV[ScaleN].Add(TUInt64IntPr(RecTm, AncestorId));
+        }
+    }
+}
+
 bool THierarch::IsRoot(const int& StateId, const TIntV& HierarchV) {
 	return GetParentId(StateId, HierarchV) == StateId;
 }
@@ -3516,6 +3591,30 @@ void THierarch::GenUniqueHeightV(const TFltV& HeightV, TFltV& UniqueHeightV) {
 	}
 
 	UniqueHeightV.Sort(true);	// sort ascending
+}
+
+int THierarch::FindScaleNBin(const double& Scale, const TFltV& ScaleV) {
+    EAssertR(!ScaleV.Empty(), "Cannot search scales in an empty vector!");
+
+    int StartN = 0;
+    int EndN = ScaleV.Len()-1;
+
+    while (StartN < EndN) {
+        const int MiddleN = (StartN + EndN) / 2;
+
+        if (Scale < ScaleV[MiddleN]) {
+            EndN = MiddleN;
+        }
+        else if (ScaleV[MiddleN+1] <= Scale) {    // ScaleV[Middle] <= Scale
+            StartN = MiddleN+1;
+        }
+        else {  // ScaleV[Middle] <= Scale && ScaleV[Middle+1] > Scale
+            return MiddleN;
+        }
+    }
+
+    // StartN == EndN
+    return StartN;
 }
 
 void THierarch::ClrFlds() {
@@ -4990,9 +5089,9 @@ PJsonVal TStreamStory::GetJson() const {
 
 	// go through all the heights except the last one, which is not interesting
 	// since it is only one state
-	for (int HeightN = 0; HeightN < UniqueHeightV.Len()-1; HeightN++) {
+	for (int HeightN = 0; HeightN < UniqueHeightV.Len(); HeightN++) {
 		const double CurrHeight = UniqueHeightV[HeightN];
-		const double NextHeight = UniqueHeightV[HeightN+1];
+		const double NextHeight = HeightN < UniqueHeightV.Len()-1 ? UniqueHeightV[HeightN+1].Val : TFlt::PInf;
 
 		StateIdV.Clr();
 		StateSetV.Clr();
@@ -5182,7 +5281,7 @@ void TStreamStory::Init(const TFtrInfoV& _ObsFtrInfoV, const TFtrInfoV& _ContrFt
 	Callback->OnProgress(30, "Modeling transitions ...");
 	InitMChain(FtrVV, AssignV, RecTmV, false, TBoolV());
 	Callback->OnProgress(50, "Initializing hierarchy ...");
-	InitHierarch();
+	InitHierarch(RecTmV, ObservFtrVV);
 	Callback->OnProgress(60, "Initializing states ...");
 	InitStateAssist(RecTmV, ObservFtrVV, ControlFtrVV, IgnoredFtrVV, MultiThread);
 	Callback->OnProgress(90, "Computing positions ...");
@@ -5206,7 +5305,7 @@ void TStreamStory::InitBatches(const TFtrInfoV& _ObsFtrInfoV, const TFtrInfoV& _
 
 	TIntV AssignV;	InitClust(RecTmV, ObservFtrVV, FtrVV, IgnoredFtrVV, AssignV);
 	InitMChain(FtrVV, AssignV, RecTmV, true, BatchEndV);
-	InitHierarch();
+	InitHierarch(RecTmV, ObservFtrVV);
 	InitStateAssist(RecTmV, ObservFtrVV, ControlFtrVV, IgnoredFtrVV, MultiThread);
 	UiHelper->Init(*this);
 }
@@ -5233,8 +5332,8 @@ void TStreamStory::InitMChain(const TFltVV& FtrVV, const TIntV& AssignV,
 	MChain->Init(FtrVV, StateIdentifier->GetStates(), AssignV, RecTmV, IsBatchData, EndBatchV);
 }
 
-void TStreamStory::InitHierarch() {
-	Hierarch->Init(MChain->GetCurrStateId(), *this);
+void TStreamStory::InitHierarch(const TUInt64V& RecTmV, const TFltVV& ObsFtrVV) {
+	Hierarch->Init(RecTmV, ObsFtrVV, MChain->GetCurrStateId(), *this);
 }
 
 void TStreamStory::InitHistograms(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV,
@@ -5435,6 +5534,15 @@ void TStreamStory::GetTimeHistogram(const int& StateId, const TStateIdentifier::
 	TAggState AggState;
 	Hierarch->GetLeafDescendantV(StateId, AggState);
 	StateIdentifier->GetTimeHistogram(AggState, HistType, BinV, ProbV);
+}
+
+void TStreamStory::GetStateHistory(const double& Scale,
+        TUInt64IntPrV& StateTmStateIdPrV) const {
+    Hierarch->GetStateHistory(Scale, StateTmStateIdPrV);
+}
+
+void TStreamStory::GetStateHistory(TVec<TPair<TFlt, TUInt64IntPrV>>& ScaleTmIdPrPrV) const {
+    Hierarch->GetStateHistory(ScaleTmIdPrPrV);
 }
 
 PJsonVal TStreamStory::GetStateWgtV(const int& StateId) const {
@@ -5786,7 +5894,7 @@ PJsonVal TStreamStory::GetLevelJson(const double& Height, const double& NextHeig
 	PJsonVal StateJsonV = TJsonVal::NewArr();
 	for (int StateN = 0; StateN < StateIdV.Len(); StateN++) {
 		const int StateId = StateIdV[StateN];
-		const int ParentId = Hierarch->GetAncestorAtHeight(StateId, NextHeight);
+		const int ParentId = NextHeight != TFlt::PInf ? Hierarch->GetAncestorAtHeight(StateId, NextHeight) : StateId;
 		const TFltPr& StateCoords = UiHelper->GetStateCoords(StateId);
 
 		PJsonVal StateJson = TJsonVal::NewObj();
