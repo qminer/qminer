@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -27,6 +27,7 @@ const TStr THttp::FetchIdFldNm="FetchId";
 const TStr THttp::LocFldNm="Location";
 const TStr THttp::SetCookieFldNm="Set-Cookie";
 const TStr THttp::CookieFldNm="Cookie";
+const TStr THttp::ResponseTimeNm = "X-Response-Time";
 
 // content-type field-values
 const TStr THttp::TextFldVal="text/";
@@ -585,7 +586,7 @@ void THttpRq::ParseHttpRq(const PSIn& SIn){
   TStr SearchStr;
   if (Method==hrmGet){
 	  ParseSearch(Url->GetSearchStr());
-  } 
+  }
   else if ((Method == hrmPost) && (
 	  (!IsFldNm(THttp::ContTypeFldNm)) ||
 	  (GetFldVal(THttp::ContTypeFldNm).SearchStr(THttp::TextHtmlFldVal) >= 0) ||		// content-type can also contain "charset=utf-8"
@@ -736,11 +737,11 @@ bool THttpRq::IsMobileUsrAgent() const {
 		return false;
 	} else if (UserAgentStr.IsStrIn("Mobile")) {		//this should also cover Android
 		return true;
-	} else if (UserAgentStr.IsStrIn("iPhone") || UserAgentStr.IsStrIn("iPod")) {				
-		return true;			
-	} else if (UserAgentStr.IsStrIn("BlackBerry")) {				
-		return true;			
-	} else if (UserAgentStr.IsStrIn("Symbian")) {				
+	} else if (UserAgentStr.IsStrIn("iPhone") || UserAgentStr.IsStrIn("iPod")) {
+		return true;
+	} else if (UserAgentStr.IsStrIn("BlackBerry")) {
+		return true;
+	} else if (UserAgentStr.IsStrIn("Symbian")) {
 		return true;
 	} else if (UserAgentStr.IsStrIn("Opera Mini")) {
 		return true;
@@ -846,7 +847,7 @@ void THttpResp::ParseHttpResp(const PSIn& SIn){
 }
 
 THttpResp::THttpResp(const int& _StatusCd, const TStr& ContTypeVal,
- const bool& CacheCtrlP, const PSIn& BodySIn, const TStr LocStr):
+ const bool& CacheCtrlP, const PSIn& BodySIn, const TStr LocStr, const int& ResponseTimeMs):
   Ok(true), MajorVerN(1), MinorVerN(0), StatusCd(_StatusCd), ReasonPhrase(),
   FldNmToValVH(20), HdStr(), BodyMem(){
   ReasonPhrase=THttp::GetReasonPhrase(StatusCd);
@@ -874,6 +875,8 @@ THttpResp::THttpResp(const int& _StatusCd, const TStr& ContTypeVal,
     if (!CacheCtrlP){
       AddHdFld(THttp::CacheCtrlFldNm, "no-cache", HdChA);}
   }
+  // add response time header
+  AddHdFld(THttp::ResponseTimeNm, TInt::GetStr(ResponseTimeMs), HdChA);
   // header/body separator
   HdChA+="\r\n";
   // header/body data
@@ -923,7 +926,7 @@ void THttpResp::AddFldVal(const TStr& FldNm, const TStr& FldVal){
   FldNmToValVH.AddDat(NrFldNm).Add(FldVal);
   if (HdStr.EndsWith("\r\n\r\n")){
     TChA HdChA=HdStr;
-    HdChA.Pop(); HdChA.Pop(); 
+    HdChA.Pop(); HdChA.Pop();
     HdChA+=NrFldNm; HdChA+=": "; HdChA+=FldVal;
     HdChA+="\r\n\r\n";
     HdStr=HdChA;
@@ -940,7 +943,7 @@ void THttpResp::GetCookieKeyValDmPathQuV(TStrQuV& CookieKeyValDmPathQuV){
     TStrPrV KeyValPrV; TStr DmNm; TStr PathStr;
     for (int KeyValStrN=0; KeyValStrN<KeyValStrV.Len(); KeyValStrN++){
       TStr KeyValStr=KeyValStrV[KeyValStrN];
-      TStr KeyNm; TStr ValStr; 
+      TStr KeyNm; TStr ValStr;
       if (KeyValStr.IsChIn('=')){
         KeyValStrV[KeyValStrN].SplitOnCh(KeyNm, '=', ValStr);
 		KeyNm = KeyNm.GetTrunc(); ValStr = ValStr.GetTrunc();

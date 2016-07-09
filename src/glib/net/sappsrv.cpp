@@ -1,16 +1,16 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
 
 //////////////////////////////////////
 // Simple-App-Server-Request-Environment
-void TSAppSrvRqEnv::ExecFun(const TStr& FunNm, const TStrKdV& FldNmValPrV) { 
+void TSAppSrvRqEnv::ExecFun(const TStr& FunNm, const TStrKdV& FldNmValPrV) {
 	EAssert(FunNmToFunH.IsKey(FunNm));
-	FunNmToFunH.GetDat(FunNm)->Exec(FldNmValPrV, this); 
+	FunNmToFunH.GetDat(FunNm)->Exec(FldNmValPrV, this);
 }
 
 //////////////////////////////////////
@@ -20,11 +20,11 @@ bool TSAppSrvFun::IsFldNm(const TStrKdV& FldNmValPrV, const TStr& FldNm) {
 	return (ValN != -1);
 }
 
-TStr TSAppSrvFun::GetFldVal(const TStrKdV& FldNmValPrV, 
+TStr TSAppSrvFun::GetFldVal(const TStrKdV& FldNmValPrV,
 		const TStr& FldNm, const TStr& DefFldVal) {
 
 	const int ValN = FldNmValPrV.SearchForw(TStrKd(FldNm, ""));
-	return (ValN == -1) ? DefFldVal : FldNmValPrV[ValN].Dat;	
+	return (ValN == -1) ? DefFldVal : FldNmValPrV[ValN].Dat;
 }
 
 int TSAppSrvFun::GetFldInt(const TStrKdV& FldNmValPrV, const TStr& FldNm) {
@@ -80,7 +80,7 @@ void TSAppSrvFun::GetFldValSet(const TStrKdV& FldNmValPrV, const TStr& FldNm, TS
 	}
 }
 
-bool TSAppSrvFun::IsFldNmVal(const TStrKdV& FldNmValPrV, 
+bool TSAppSrvFun::IsFldNmVal(const TStrKdV& FldNmValPrV,
 		const TStr& FldNm, const TStr& FldVal) {
 
 	int ValN = FldNmValPrV.SearchForw(TStrKd(FldNm, ""));
@@ -120,7 +120,7 @@ void TSAppSrvFun::SetFldNmFlt(TStrKdV& FldNmValPrV, const TStr& FldNm, const dou
 TStr TSAppSrvFun::XmlHdStr = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n";
 
 PXmlDoc TSAppSrvFun::GetErrorXmlRes(const TStr& ErrorStr) {
-	return TXmlDoc::New(TXmlTok::New("error", ErrorStr)); 
+	return TXmlDoc::New(TXmlTok::New("error", ErrorStr));
 }
 
 TStr TSAppSrvFun::GetErrorJsonRes(const TStr& ErrorStr) {
@@ -139,7 +139,7 @@ void TSAppSrvFun::Exec(const TStrKdV& FldNmValPrV, const PSAppSrvRqEnv& RqEnv) {
 		// execute the actual function, according to the type
 		PSIn BodySIn; TStr ContTypeVal;
 		if (GetFunOutType() == saotXml) {
-			PXmlDoc ResXmlDoc = ExecXml(FldNmValPrV, RqEnv);        
+			PXmlDoc ResXmlDoc = ExecXml(FldNmValPrV, RqEnv);
 			TStr ResXmlStr; ResXmlDoc->SaveStr(ResXmlStr);
 			BodySIn = TMIn::New(XmlHdStr + ResXmlStr);
 			ContTypeVal = THttp::TextXmlFldVal;
@@ -156,8 +156,8 @@ void TSAppSrvFun::Exec(const TStrKdV& FldNmValPrV, const PSAppSrvRqEnv& RqEnv) {
 		if (NotifyOnRequest)
 			Notify->OnStatus(TStr::Fmt("RequestFinish %s [request took %d ms]", FunNm.CStr(), StopWatch.GetMSecInt()));
 		// prepare response
-		HttpResp = THttpResp::New(THttp::OkStatusCd, 
-			ContTypeVal, false, BodySIn);
+		HttpResp = THttpResp::New(THttp::OkStatusCd,
+			ContTypeVal, false, BodySIn, TStr(), StopWatch.GetMSecInt());
     } catch (PExcept Except) {
         // known internal error
         Notify->OnStatusFmt("Exception: %s", Except->GetMsgStr().CStr());
@@ -167,7 +167,7 @@ void TSAppSrvFun::Exec(const TStrKdV& FldNmValPrV, const PSAppSrvRqEnv& RqEnv) {
 			PXmlTok TopTok = TXmlTok::New("error");
 			TopTok->AddSubTok(TXmlTok::New("message", Except->GetMsgStr()));
 			TopTok->AddSubTok(TXmlTok::New("location", Except->GetLocStr()));
-			PXmlDoc ErrorXmlDoc = TXmlDoc::New(TopTok); 
+			PXmlDoc ErrorXmlDoc = TXmlDoc::New(TopTok);
 			ResStr = XmlHdStr + ErrorXmlDoc->SaveStr();
             ContTypeVal = THttp::TextXmlFldVal;
 		} else if (GetFunOutType() == saotJSon) {
@@ -178,28 +178,28 @@ void TSAppSrvFun::Exec(const TStrKdV& FldNmValPrV, const PSAppSrvRqEnv& RqEnv) {
             ContTypeVal = THttp::AppJSonFldVal;
 		}
         // prepare response
-        HttpResp = THttpResp::New(THttp::InternalErrStatusCd, 
-            ContTypeVal, false, TMIn::New(ResStr));        
+        HttpResp = THttpResp::New(THttp::InternalErrStatusCd,
+            ContTypeVal, false, TMIn::New(ResStr));
     } catch (...) {
 		// unknown internal error
 		TStr ResStr, ContTypeVal = THttp::TextPlainFldVal;
 		if (GetFunOutType() == saotXml) {
-			PXmlDoc ErrorXmlDoc = TXmlDoc::New(TXmlTok::New("error")); 
+			PXmlDoc ErrorXmlDoc = TXmlDoc::New(TXmlTok::New("error"));
 			ResStr = XmlHdStr + ErrorXmlDoc->SaveStr();
-            ContTypeVal = THttp::TextXmlFldVal;            
+            ContTypeVal = THttp::TextXmlFldVal;
 		} else if (GetFunOutType() == saotJSon) {
 			ResStr = TJsonVal::NewObj("error", "Unknown")->SaveStr();
             ContTypeVal = THttp::AppJSonFldVal;
 		}
 		// prepare response
-        HttpResp = THttpResp::New(THttp::InternalErrStatusCd, 
+        HttpResp = THttpResp::New(THttp::InternalErrStatusCd,
             ContTypeVal, false, TMIn::New(ResStr));
     }
 
 	if (LogRqToFile)
 		LogReqRes(FldNmValPrV, HttpResp);
 	// send response
-	RqEnv->GetWebSrv()->SendHttpResp(RqEnv->GetSockId(), HttpResp); 
+	RqEnv->GetWebSrv()->SendHttpResp(RqEnv->GetSockId(), HttpResp);
 }
 
 void TSAppSrvFun::LogReqRes(const TStrKdV& FldNmValPrV, const PHttpResp& HttpResp)
@@ -263,8 +263,8 @@ PHttpRq THttpReqSerInfo::GetHttpRq()
 // Simple-App-Server
 #include "favicon.cpp"
 
-TSAppSrv::TSAppSrv(const int& PortN, const TSAppSrvFunV& SrvFunV, const PNotify& Notify, 
-		const bool& _ShowParamP, const bool& _ListFunP): TWebSrv(PortN, true, Notify), 
+TSAppSrv::TSAppSrv(const int& PortN, const TSAppSrvFunV& SrvFunV, const PNotify& Notify,
+		const bool& _ShowParamP, const bool& _ListFunP): TWebSrv(PortN, true, Notify),
 		Favicon(Favicon_bf, Favicon_len) {
 
     ShowParamP = _ShowParamP;
@@ -291,9 +291,9 @@ void TSAppSrv::OnHttpRq(const uint64& SockId, const PHttpRq& HttpRq) {
 		if (FunNm == "favicon.ico") {
 			PHttpResp HttpResp = THttpResp::New(THttp::OkStatusCd,
 				THttp::ImageIcoFldVal, false, Favicon.GetSIn());
-			SendHttpResp(SockId, HttpResp); 
+			SendHttpResp(SockId, HttpResp);
 			return;
-		} else if (!FunNm.Empty() && !FunNmToFunH.IsKey(FunNm)) { 
+		} else if (!FunNm.Empty() && !FunNmToFunH.IsKey(FunNm)) {
 			ErrStatusCd = THttp::ErrNotFoundStatusCd;
 			GetNotify()->OnStatusFmt("[AppSrv] Unknown function '%s'!", FunNm.CStr());
 			TExcept::Throw("Unknown function '" + FunNm + "'!");
@@ -301,7 +301,7 @@ void TSAppSrv::OnHttpRq(const uint64& SockId, const PHttpRq& HttpRq) {
         // extract parameters
         PUrlEnv HttpRqUrlEnv = HttpRq->GetUrlEnv();
 		TStrKdV FldNmValPrV; HttpRqUrlEnv->GetKeyValPrV(FldNmValPrV);
-        
+
 		// report call
 		if (ShowParamP) {  GetNotify()->OnStatus(HttpRq->GetUrl()->GetUrlStr()); }
 		// request parsed well, from now on it's internal error
@@ -329,14 +329,14 @@ void TSAppSrv::OnHttpRq(const uint64& SockId, const PHttpRq& HttpRq) {
 			}
             PJsonVal ResVal = TJsonVal::NewObj();
             ResVal->AddToObj("port", GetPortN());
-            ResVal->AddToObj("connections", GetConns());            
+            ResVal->AddToObj("connections", GetConns());
             ResVal->AddToObj("functions", FunArrVal);
 			TStr ResStr = ResVal->SaveStr();
 			// prepare response
-			PHttpResp HttpResp = THttpResp::New(THttp::OkStatusCd, 
+			PHttpResp HttpResp = THttpResp::New(THttp::OkStatusCd,
 				THttp::AppJSonFldVal, false, TMIn::New(ResStr));
 			// send response
-			SendHttpResp(SockId, HttpResp); 
+			SendHttpResp(SockId, HttpResp);
 		}
     } catch (PExcept Except) {
 		// known internal error
@@ -436,7 +436,7 @@ bool TReplaySrv::RemoveLogData(const TStr& LogFNm)
 	return false;
 }
 
-// a http request is received. process it using the standard TSAppSrv method 
+// a http request is received. process it using the standard TSAppSrv method
 // and then optionally also save the request to the log file
 void TReplaySrv::OnHttpRq(const uint64& SockId, const PHttpRq& HttpRq)
 {
@@ -498,7 +498,7 @@ void TReplaySrv::ReplayHttpRq(const PHttpRq& HttpRq)
 
 //////////////////////////////////////
 // File-Download-Function
-PSIn TSASFunFPath::ExecSIn(const TStrKdV& FldNmValPrV, 
+PSIn TSASFunFPath::ExecSIn(const TStrKdV& FldNmValPrV,
         const PSAppSrvRqEnv& RqEnv, TStr& ContTypeStr) {
 
 	// construct file name
@@ -509,7 +509,7 @@ PSIn TSASFunFPath::ExecSIn(const TStrKdV& FldNmValPrV,
         // nothing specified, do the default
         TStr PathSeg = Url->GetPathSeg(0);
         if (PathSeg.LastCh() != '/') { FNm += "/"; }
-        FNm += DefaultFNm; 
+        FNm += DefaultFNm;
     } else {
         // extract file name
         for (int PathSegN = 1; PathSegN < PathSegs; PathSegN++) {
@@ -530,7 +530,7 @@ PSIn TSASFunFPath::ExecSIn(const TStrKdV& FldNmValPrV,
 	else if (FExt == ".gif") { ContTypeStr = THttp::ImageGifFldVal; }
 	else {
 		printf("Unknown MIME type for extension '%s' for file '%s'", FExt.CStr(), FNm.CStr());
-		ContTypeStr = THttp::AppOctetFldVal; 
+		ContTypeStr = THttp::AppOctetFldVal;
 	}
 
     // return stream to the file
@@ -540,7 +540,7 @@ PSIn TSASFunFPath::ExecSIn(const TStrKdV& FldNmValPrV,
 //////////////////////////////////////
 // URL-Redirect-Function
 TSASFunRedirect::TSASFunRedirect(const TStr& FunNm,
-		const TStr& SettingFNm): TSAppSrvFun(FunNm, saotUndef) { 
+		const TStr& SettingFNm): TSAppSrvFun(FunNm, saotUndef) {
 
 	printf("Loading redirects %s\n", FunNm.CStr());
 	TFIn FIn(SettingFNm); TStr LnStr, OrgFunNm;
