@@ -961,6 +961,7 @@ void TDnsKMeans<TCentroidType>::Apply(const TDataType& FtrVV, const int& NInst, 
         TAbsKMeans<TCentroidType>::SelectInitCentroids(FtrVV, K, NInst);
     }
     else {
+        EAssertR(TAbsKMeans<TCentroidType>::GetDataCount(InitCentroidMat) == K, "Number of columns must be equal to K!");
         TAbsKMeans<TCentroidType>::SelectInitCentroids(InitCentroidMat);
     }
     // do the work
