@@ -2069,6 +2069,8 @@ private:
     PNotify Notify;
 
     TNodeJsKMeans(const PJsonVal& ParamVal);
+    TNodeJsKMeans(const PJsonVal& ParamVal, const TFltVV& Mat);
+    TNodeJsKMeans(const PJsonVal& ParamVal, const TVec<TIntFltKdV>& Mat);
     TNodeJsKMeans(TSIn& SIn);
     ~TNodeJsKMeans();
 
@@ -2250,7 +2252,6 @@ public:
 
 private:
     void UpdateParams(const PJsonVal& ParamVal);
-    PJsonVal GetParams() const;
     void Save(TSOut& SOut) const;
     void CleanUp();
 };

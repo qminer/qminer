@@ -2197,6 +2197,40 @@ TNodeJsKMeans::TNodeJsKMeans(const PJsonVal& ParamVal) :
     UpdateParams(ParamVal);
 }
 
+TNodeJsKMeans::TNodeJsKMeans(const PJsonVal& ParamVal, const TFltVV& Mat) :
+        Iter(10000),
+        K(2),
+        AllowEmptyP(true),
+        AssignV(),
+        Medoids(),
+        FitIdx(),
+        DenseFitMatrix(Mat),
+        SparseFitMatrix(),
+        DistType(TDistanceType::dtEuclid),
+        Dist(nullptr),
+        CentType(TCentroidType::ctDense),
+        Model(nullptr),
+        Verbose(false) {
+    UpdateParams(ParamVal);
+}
+
+TNodeJsKMeans::TNodeJsKMeans(const PJsonVal& ParamVal, const TVec<TIntFltKdV>& Mat) :
+        Iter(10000),
+        K(2),
+        AllowEmptyP(true),
+        AssignV(),
+        Medoids(),
+        FitIdx(),
+        DenseFitMatrix(),
+        SparseFitMatrix(Mat),
+        DistType(TDistanceType::dtEuclid),
+        Dist(nullptr),
+        CentType(TCentroidType::ctDense),
+        Model(nullptr),
+        Verbose(false) {
+    UpdateParams(ParamVal);
+}
+
 TNodeJsKMeans::TNodeJsKMeans(TSIn& SIn) :
         Iter(TInt(SIn)),
         K(TInt(SIn)),
@@ -2271,34 +2305,6 @@ void TNodeJsKMeans::UpdateParams(const PJsonVal& ParamVal) {
 	Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
 }
 
-PJsonVal TNodeJsKMeans::GetParams() const {
-    PJsonVal ParamVal = TJsonVal::NewObj();
-
-    ParamVal->AddToObj("iter", Iter);
-    ParamVal->AddToObj("k", K);
-	ParamVal->AddToObj("fitIdx", TJsonVal::NewArr(FitIdx));
-    ParamVal->AddToObj("verbose", Verbose);
-	ParamVal->AddToObj("allowEmpty", AllowEmptyP);
-    switch (DistType) {
-        case dtEuclid:
-            ParamVal->AddToObj("distanceType", "Euclid"); break;
-        case dtCos:
-            ParamVal->AddToObj("distanceType", "Cos"); break;
-        default:
-            throw TExcept::New("KMeans.GetParams: unsupported distance type " + TInt::GetStr((int)DistType));
-    }
-    switch (CentType) {
-        case ctDense:
-            ParamVal->AddToObj("centroidType", "Dense"); break;
-        case ctSparse:
-            ParamVal->AddToObj("centroidType", "Sparse"); break;
-        default:
-            throw TExcept::New("KMeans.GetParams: unsupported centroid type " + TInt::GetStr((int)CentType));
-    }
-
-    return ParamVal;
-}
-
 void TNodeJsKMeans::Save(TSOut& SOut) const {
     TInt(Iter).Save(SOut);
     TInt(K).Save(SOut);
@@ -2362,7 +2368,6 @@ void TNodeJsKMeans::Init(v8::Handle<v8::Object> exports) {
 TNodeJsKMeans* TNodeJsKMeans::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-
     if (Args.Length() == 0) {
         // create new model with default parameters
         return new TNodeJsKMeans(TJsonVal::NewObj());
@@ -2374,8 +2379,30 @@ TNodeJsKMeans* TNodeJsKMeans::NewFromArgs(const v8::FunctionCallbackInfo<v8::Val
     }
     else if (Args.Length() == 1 && TNodeJsUtil::IsArgObj(Args, 0)) {
         // create new model from given parameters
-        PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
-        return new TNodeJsKMeans(ParamVal);
+        if (TNodeJsUtil::IsObjFld(Args[0]->ToObject(), "fitStart")) {
+            PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0, true, true);
+            v8::Local<v8::Object> FitStart = TNodeJsUtil::GetFldObj(Args[0]->ToObject(), "fitStart");
+            if (TNodeJsUtil::IsObjFld(FitStart, "C")) {
+                if (TNodeJsUtil::IsFldClass<TNodeJsFltVV>(FitStart, "C")) {
+                    TFltVV JsMat = TNodeJsUtil::GetUnwrapFld<TNodeJsFltVV>(FitStart, "C")->Mat;
+                    return new TNodeJsKMeans(ParamVal, JsMat);
+                }
+                else if (TNodeJsUtil::IsFldClass<TNodeJsSpMat>(FitStart, "C")) {
+                    TVec<TIntFltKdV> JsMat = TNodeJsUtil::GetUnwrapFld<TNodeJsSpMat>(FitStart, "C")->Mat;
+                    return new TNodeJsKMeans(ParamVal, JsMat);
+                }
+                else {
+                    throw TExcept::New("new KMeans: value at fitStart.C is not a dense or sparse matrix!");
+                }
+            }
+            else {
+                throw TExcept::New("new KMeans: fitStart argument C not specified!");
+            }
+        }
+        else {
+            PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+            return new TNodeJsKMeans(ParamVal);
+        }
     }
     else {
         throw TExcept::New("new KMeans: wrong arguments in constructor!");
@@ -2389,8 +2416,55 @@ void TNodeJsKMeans::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     EAssertR(Args.Length() == 0, "KMeans.getParams: takes 0 argument!");
 
     try {
-        TNodeJsKMeans* JsKmeans = TNodeJsKMeans::Unwrap<TNodeJsKMeans>(Args.Holder());
-        Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, JsKmeans->GetParams()));
+        v8::Local<v8::Object> JsObj = v8::Object::New(Isolate); // Result 
+
+        TNodeJsKMeans* JsKMeans = TNodeJsKMeans::Unwrap<TNodeJsKMeans>(Args.Holder());
+
+        if (!JsKMeans->DenseFitMatrix.Empty() || !JsKMeans->SparseFitMatrix.Empty()) {
+            v8::Local<v8::Object> FitStart = v8::Object::New(Isolate);
+            if (!JsKMeans->DenseFitMatrix.Empty()) {
+                FitStart->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "C")), TNodeJsFltVV::New(JsKMeans->DenseFitMatrix));
+            }
+            else {
+                FitStart->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "C")), TNodeJsSpMat::New(JsKMeans->SparseFitMatrix));
+            }
+            JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "fitStart")), FitStart);
+        }
+        JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "iter")), v8::Integer::New(Isolate, JsKMeans->Iter));
+        JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "k")), v8::Integer::New(Isolate, JsKMeans->K));
+        JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "verbose")), v8::Boolean::New(Isolate, JsKMeans->Verbose));
+        JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "allowEmpty")), v8::Boolean::New(Isolate, JsKMeans->AllowEmptyP));
+
+        if (!JsKMeans->FitIdx.Empty()) {
+            v8::Handle<v8::Array> FitIdx = v8::Array::New(Isolate, JsKMeans->FitIdx.Len());
+            for (int ElN = 0; ElN < JsKMeans->FitIdx.Len(); ElN++) {
+                FitIdx->Set(ElN, v8::Integer::New(Isolate, JsKMeans->FitIdx.GetVal(ElN).Val));
+            }
+            JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "fitIdx")), FitIdx);
+        }
+
+        switch (JsKMeans->DistType) {
+        case dtEuclid:
+            JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "distanceType")), v8::String::NewFromUtf8(Isolate, "Euclid"));
+            break;
+        case dtCos:
+            JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "distanceType")), v8::String::NewFromUtf8(Isolate, "Cos"));
+            break;
+        default:
+            throw TExcept::New("KMeans.GetParams: unsupported distance type " + TInt::GetStr((int)JsKMeans->DistType));
+        }
+        switch (JsKMeans->CentType) {
+        case ctDense:
+            JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "centroidType")), v8::String::NewFromUtf8(Isolate, "Dense"));
+            break;
+        case ctSparse:
+            JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "centroidType")), v8::String::NewFromUtf8(Isolate, "Sparse"));
+            break;
+        default:
+            throw TExcept::New("KMeans.GetParams: unsupported centroid type " + TInt::GetStr((int)JsKMeans->CentType));
+        }
+
+        return Args.GetReturnValue().Set(JsObj);
     }
     catch (const PExcept& Except) {
         throw TExcept::New(Except->GetMsgStr(), "KMeans::getParams");
@@ -2406,10 +2480,35 @@ void TNodeJsKMeans::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     try {
         TNodeJsKMeans* JsKMeans = ObjectWrap::Unwrap<TNodeJsKMeans>(Args.Holder());
-        PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+       
+        // create new model from given parameters
+        if (TNodeJsUtil::IsObjFld(Args[0]->ToObject(), "fitStart")) {
+            PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0, true, true);
 
-        JsKMeans->UpdateParams(ParamVal);
-
+            v8::Local<v8::Object> FitStart = TNodeJsUtil::GetFldObj(Args[0]->ToObject(), "fitStart");
+            if (TNodeJsUtil::IsObjFld(FitStart, "C")) {
+                if (TNodeJsUtil::IsFldClass<TNodeJsFltVV>(FitStart, "C")) {
+                    JsKMeans->SparseFitMatrix.Clr();
+                    JsKMeans->DenseFitMatrix = TNodeJsUtil::GetUnwrapFld<TNodeJsFltVV>(FitStart, "C")->Mat;
+                    JsKMeans->UpdateParams(ParamVal);
+                }
+                else if (TNodeJsUtil::IsFldClass<TNodeJsSpMat>(FitStart, "C")) {
+                    JsKMeans->SparseFitMatrix = TNodeJsUtil::GetUnwrapFld<TNodeJsSpMat>(FitStart, "C")->Mat;
+                    JsKMeans->DenseFitMatrix.Clr();
+                    JsKMeans->UpdateParams(ParamVal);
+                }
+                else {
+                    throw TExcept::New("new KMeans: value at fitStart.C is not a dense or sparse matrix!");
+                }
+            }
+            else {
+                throw TExcept::New("new KMeans: fitStart argument C not specified!");
+            }
+        }
+        else {
+            PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+            JsKMeans->UpdateParams(ParamVal);
+        }
         Args.GetReturnValue().Set(Args.Holder());
     }
     catch (const PExcept& Except) {
