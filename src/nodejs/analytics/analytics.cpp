@@ -2183,10 +2183,10 @@ void TNodeJsMDS::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 TNodeJsKMeans::TNodeJsKMeans(const PJsonVal& ParamVal) :
         Iter(10000),
         K(2),
-		AllowEmptyP(true),
+        AllowEmptyP(true),
         AssignV(),
         Medoids(),
-	    FitIdx(),
+        FitIdx(),
         DenseFitMatrix(),
         SparseFitMatrix(),
         DistType(TDistanceType::dtEuclid),
@@ -2234,10 +2234,10 @@ TNodeJsKMeans::TNodeJsKMeans(const PJsonVal& ParamVal, const TVec<TIntFltKdV>& M
 TNodeJsKMeans::TNodeJsKMeans(TSIn& SIn) :
         Iter(TInt(SIn)),
         K(TInt(SIn)),
-		AllowEmptyP(SIn),
+        AllowEmptyP(SIn),
         AssignV(SIn),
-	    Medoids(SIn),
-	    FitIdx(SIn),
+        Medoids(SIn),
+        FitIdx(SIn),
         DenseFitMatrix(SIn),
         SparseFitMatrix(SIn),
         DistType(LoadEnum<TDistanceType>(SIn)),
@@ -2259,7 +2259,7 @@ TNodeJsKMeans::TNodeJsKMeans(TSIn& SIn) :
         throw TExcept::New("KMeans load constructor: loading invalid KMeans model!");
     }
 
-	Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
+    Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
 }
 
 TNodeJsKMeans::~TNodeJsKMeans() {
@@ -2302,7 +2302,7 @@ void TNodeJsKMeans::UpdateParams(const PJsonVal& ParamVal) {
 
     if (ParamVal->IsObjKey("verbose")) { Verbose = ParamVal->GetObjBool("verbose"); }
 
-	Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
+    Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
 }
 
 void TNodeJsKMeans::Save(TSOut& SOut) const {
@@ -2310,8 +2310,8 @@ void TNodeJsKMeans::Save(TSOut& SOut) const {
     TInt(K).Save(SOut);
     AllowEmptyP.Save(SOut);
     AssignV.Save(SOut);
-	Medoids.Save(SOut);
-	FitIdx.Save(SOut);
+    Medoids.Save(SOut);
+    FitIdx.Save(SOut);
     DenseFitMatrix.Save(SOut);
     SparseFitMatrix.Save(SOut);
     SaveEnum<TDistanceType>(SOut, DistType);
@@ -2541,9 +2541,9 @@ TNodeJsKMeans::TFitTask::TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Arg
             JsIntV = TNodeJsUtil::GetArgUnwrapObj<TNodeJsIntV>(Args, 1);
         }
         else if (Args[1]->IsArray()) {
-        	v8::Handle<v8::Array> Arr = v8::Handle<v8::Array>::Cast(Args[1]);
-        	const int Len = Arr->Length();
-        	JsArr = new TNodeJsIntV(Len);
+            v8::Handle<v8::Array> Arr = v8::Handle<v8::Array>::Cast(Args[1]);
+            const int Len = Arr->Length();
+            JsArr = new TNodeJsIntV(Len);
 
             for (int ElN = 0; ElN < Len; ElN++) { JsArr->Vec[ElN] = Arr->Get(ElN)->ToInt32()->Value(); }
         }
@@ -2763,7 +2763,7 @@ void TNodeJsKMeans::TFitTask::Run() {
                    KMeans->Apply(JsSpVV->Mat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
                }
 
-        	   KMeans->Assign(JsSpVV->Mat, JsKMeans->AssignV);
+               KMeans->Assign(JsSpVV->Mat, JsKMeans->AssignV);
 
                TFltVV D;
                JsKMeans->Dist->GetDist2VV(JsSpVV->Mat, KMeans->GetCentroidVV(), D);
