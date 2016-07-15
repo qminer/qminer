@@ -1401,7 +1401,7 @@ public:
     void SaveState(TSOut& SOut) const;
 
     /// Did we finish initialization
-    bool IsInit() const { return InAggr->IsInit(); }
+    bool IsInit() const { return Model.IsInit(); }
     /// Resets the aggregate
     void Reset() { }    
     /// returns the number of clusters
