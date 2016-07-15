@@ -2186,11 +2186,11 @@ TNodeJsKMeans::TNodeJsKMeans(const PJsonVal& ParamVal) :
 		AllowEmptyP(true),
         AssignV(),
         Medoids(),
-		FitIdx(),
+	    FitIdx(),
         DenseFitMatrix(),
         SparseFitMatrix(),
         DistType(TDistanceType::dtEuclid),
-		Dist(nullptr),
+        Dist(nullptr),
         CentType(TCentroidType::ctDense),
         Model(nullptr),
         Verbose(false) {
@@ -2587,16 +2587,7 @@ void TNodeJsKMeans::TFitTask::Run() {
                    EAssertR(JsKMeans->FitIdx.GetMxVal() < JsFltVV->Mat.GetCols(), "Maximum index in fitIdx must not be greater to the number of columns!");
 
                    TFltVV InitCentroidMat;
-                   int Rows = JsFltVV->Mat.GetRows();
-                   int Cols = JsKMeans->K;
-
-                   InitCentroidMat.Gen(Rows, Cols);
-                   for (int i = 0; i < Cols; i++) {
-                       const int ColN = JsKMeans->FitIdx[i];
-                       for (int RowN = 0; RowN < Rows; RowN++) {
-                           InitCentroidMat.PutXY(RowN, i, JsFltVV->Mat(RowN, ColN));
-                       }
-                   }
+                   TLinAlg::SubMat(JsFltVV->Mat, JsKMeans->FitIdx, InitCentroidMat);
                    KMeans->Apply(JsFltVV->Mat, InitCentroidMat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
                }
                else {
