@@ -753,52 +753,23 @@ void TAbsKMeans<TCentroidType>::InitCentroids(TVec<TIntFltKdV>& CentroidVV, cons
 
 template<class TCentroidType>
 void TAbsKMeans<TCentroidType>::InitCentroids(TFltVV& CentroidVV, const TFltVV& FtrVV) {
-    const int Rows = GetDataDim(FtrVV);
-    const int Cols = GetDataCount(FtrVV);
-    // construct the centroid matrix
-    CentroidVV.Gen(Rows, Cols);
-    for (int ColN = 0; ColN < Cols; ColN++) {
-        for (int RowN = 0; RowN < Rows; RowN++) {
-            CentroidVV.PutXY(RowN, ColN, FtrVV(RowN, ColN));
-        }
-    }
+    CentroidVV = FtrVV;
 }
 
 template<class TCentroidType>
 void TAbsKMeans<TCentroidType>::InitCentroids(TFltVV& CentroidVV, const TVec<TIntFltKdV>& FtrVV) {
     const int Rows = GetDataDim(FtrVV);
-    const int Cols = GetDataCount(FtrVV);
-    // construct the centroid matrix
-    CentroidVV.Gen(Rows, Cols);
-    for (int ColN = 0; ColN < Cols; ColN++) {
-        const int Els = FtrVV[ColN].Len();
-        for (int ElN = 0; ElN < Els; ElN++) {
-            CentroidVV.PutXY(FtrVV[ColN][ElN].Key, ColN, FtrVV[ColN][ElN].Dat);
-        }
-    }
+    TLinAlgTransform::Full(FtrVV, CentroidVV, Rows);
 }
 
 template<class TCentroidType>
 void TAbsKMeans<TCentroidType>::InitCentroids(TVec<TIntFltKdV>& CentroidVV, const TFltVV& FtrVV) {
-    const int Rows = GetDataDim(FtrVV);
-    const int Cols = GetDataCount(FtrVV);
-    // construct the centroid matrix
-    CentroidVV.Gen(Cols);
-    for (int ColN = 0; ColN < Cols; ColN++) {
-        for (int RowN = 0; RowN < Rows; RowN++) {
-            if (FtrVV(RowN, ColN) != 0.0) { CentroidVV[ColN].Add(TIntFltKd(RowN, FtrVV(RowN, ColN))); }
-        }
-    }
+    TLinAlgTransform::Sparse(FtrVV, CentroidVV);
 }
 
 template<class TCentroidType>
 void TAbsKMeans<TCentroidType>::InitCentroids(TVec<TIntFltKdV>& CentroidVV, const TVec<TIntFltKdV>& FtrVV) {
-    const int Cols = GetDataCount(FtrVV);
-    // construct the centroid matrix
-    CentroidVV.Gen(Cols);
-    for (int ColN = 0; ColN < Cols; ColN++) {
-        CentroidVV[ColN] = FtrVV[ColN];
-    }
+    CentroidVV = FtrVV;
 }
 
 template<class TCentroidType>
