@@ -3412,12 +3412,6 @@ namespace TStreamAggrOut {
         virtual uint64 GetTmMSecs() const = 0;
     };
     
-    class IFltTm: public IFlt, public ITm { };
-
-    template <class TVal>
-    class IValTm: public IVal<TVal>, public ITm { };
-
-
     /// vector of values
     template <class TVal>
     class IValVec {
@@ -3430,11 +3424,6 @@ namespace TStreamAggrOut {
     typedef IValVec<TIntFltKdV> ISparseVVec;
     typedef IValVec<TIntFltKd> ISparseVec;
 
-    /// vector of values and a timestamp
-    class ISparseVecTm :
-        public ISparseVec,
-        public ITm {};
-
     /// vector of timestamps
     class ITmVec {
     public:
@@ -3444,25 +3433,16 @@ namespace TStreamAggrOut {
     };
 
     template <class TVal>
-    class IValVecTm : public IValVec<TVal>, public ITm {};  
-    typedef IValVecTm<TFlt> IFltVecTm;  
-
-    // interfaces used by window buffer
-    class IBuffer {
-    public:
-        virtual bool DelayedP() const = 0;
-    };
-
-    template <class TVal>
-    class IValIO : public IValVec<TVal> , public virtual IBuffer {
+    class IValIO {
     public:
         // incomming
         virtual void GetInValV(TVec<TVal>& ValV) const = 0;
         // outgoing
         virtual void GetOutValV(TVec<TVal>& ValV) const = 0;
     };
+    typedef IValIO<TFlt> IFltIO;
 
-    class ITmIO : public ITmVec, public virtual IBuffer {
+    class ITmIO {
     public:
         // incomming
         virtual void GetInTmMSecsV(TUInt64V& MSecsV) const = 0;
@@ -3470,10 +3450,13 @@ namespace TStreamAggrOut {
         virtual void GetOutTmMSecsV(TUInt64V& MSecsV) const = 0;
     };
     
-    template <class TVal>
-    class IValTmIO : public IValIO<TVal>, public ITmIO { };
-    typedef IValTmIO<TFlt> IFltTmIO;
-    typedef IValTmIO<TIntFltKdV> ISparseVecTmIO;
+    class INmInt {
+    public:
+        // retrieving named values
+        virtual bool IsNm(const TStr& Nm) const = 0;
+        virtual double GetNmInt(const TStr& Nm) const = 0;
+        virtual void GetNmIntV(TStrIntPrV& NmIntV) const = 0;
+    };
 
     class INmFlt {
     public:
@@ -3481,14 +3464,6 @@ namespace TStreamAggrOut {
         virtual bool IsNmFlt(const TStr& Nm) const = 0;
         virtual double GetNmFlt(const TStr& Nm) const = 0;
         virtual void GetNmFltV(TStrFltPrV& NmFltV) const = 0;
-    };
-
-    class INmInt {
-    public:
-        // retrieving named values
-        virtual bool IsNm(const TStr& Nm) const = 0;
-        virtual double GetNmInt(const TStr& Nm) const = 0;
-        virtual void GetNmIntV(TStrIntPrV& NmIntV) const = 0;
     };
 
     class IFtrSpace {

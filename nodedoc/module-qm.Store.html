@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">Store</span></h1>
-            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-513">qminerdoc.<wbr>js:513</a></p>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-545">qminerdoc.<wbr>js:545</a></p>
             <dl class="dl-compact">
             </dl>
           </header>
@@ -106,19 +106,16 @@
                     <dt><a href="module-qm.Store.html#getMatrix">getMatrix(fieldName)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.Store.html#getStreamAggr">getStreamAggr(saName)</a></dt>
+                    <dt><a href="module-qm.Store.html#getStreamAggrNames">getStreamAggrNames()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.Store.html#getStreamAggrNames">getStreamAggrNames()</a></dt>
+                    <dt><a href="module-qm.Store.html#getVector">getVector(fieldName)</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.Store.html#getVector">getVector(fieldName)</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="module-qm.Store.html#isDate">isDate(fieldName)</a></dt>
                     <dd>
                     </dd>
@@ -140,13 +137,13 @@
                     <dt><a href="module-qm.Store.html#newRecord">newRecord(json)</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-qm.Store.html#newRecordSet">newRecordSet(idVec)</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.Store.html#newRecordSet">newRecordSet(idVec)</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="module-qm.Store.html#push">push(rec[, triggerEvents])</a></dt>
                     <dd>
                     </dd>
@@ -518,7 +515,7 @@ base.store(&quot;Class&quot;).push({ Name: &quot;Annie&quot;, StudyGroup: &quot;
 base.store(&quot;Class&quot;).push({ Name: &quot;Britta&quot;, StudyGroup: &quot;C&quot; });
 base.store(&quot;Class&quot;).push({ Name: &quot;Jeff&quot;, StudyGroup: &quot;A&quot; });
 // change the StudyGroup of all records of store Class to A
-base.store(&quot;Class&quot;).each(function (rec) { rec.StudyGroup = &quot;A&quot;; });	// all records in Class are now in study group A
+base.store(&quot;Class&quot;).each(function (rec) { rec.StudyGroup = &quot;A&quot;; });   // all records in Class are now in study group A
 base.close();</code></pre>
                 </div>
               </section>
@@ -691,43 +688,6 @@ base.close();</code></pre>
                   <p><code>(<a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</code>&nbsp;The matrix containing the field values.</p>
                 </dd>
               </dl>
-              <h3 id="getStreamAggr"><span class="symbol-name">getStreamAggr</span><span class="signature"><span class="signature-params">(saName)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></span></span></h3>
-              <p>Returns the stream aggregate with the given name.</p>
-              <section>
-                <h4>Parameter</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>saName</p>
-                      </td>
-                      <td>
-                        <p>string</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>The name of the stream aggregate.</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code><a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></code>&nbsp;The stream aggregate with the saName.</p>
-                </dd>
-              </dl>
               <h3 id="getStreamAggrNames"><span class="symbol-name">getStreamAggrNames</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Array of string</span></span></h3>
               <p>Returns an array of the stream aggregates names connected to the store.</p>
               <dl class="dl-compact">
@@ -761,7 +721,7 @@ base.store(&quot;Companies&quot;).push({ Name: &quot;DC Comics&quot;, Location: 
 base.store(&quot;Companies&quot;).push({ Name: &quot;DC Shoes&quot;, Location: &quot;Huntington Beach, California&quot; });
 base.store(&quot;Companies&quot;).push({ Name: &quot;21st Century Fox&quot;, Location: &quot;New York City, New York&quot; });
 // get the vector of company names
-var companyNames = base.store(&quot;Companies&quot;).getVector(&quot;Name&quot;);	// returns a vector [&quot;DC Comics&quot;, &quot;DC Shoes&quot;, &quot;21st Century Fox&quot;]
+var companyNames = base.store(&quot;Companies&quot;).getVector(&quot;Name&quot;); // returns a vector [&quot;DC Comics&quot;, &quot;DC Shoes&quot;, &quot;21st Century Fox&quot;]
 base.close();</code></pre>
                 </div>
               </section>
@@ -1330,7 +1290,7 @@ var base = new qm.Base({
 base.store(&quot;Superheroes&quot;).push({ Name: &quot;Superman&quot;, Superpowers: [&quot;flight&quot;, &quot;heat vision&quot;, &quot;bulletproof&quot;] }); // returns 0
 // add a new supervillian to the Supervillians store
 base.store(&quot;Supervillians&quot;).push({ Name: &quot;Lex Luthor&quot;, Superpowers: [&quot;expert engineer&quot;, &quot;genius-level intellect&quot;, &quot;money&quot;] }); // returns 0
-base.close();	</code></pre>
+base.close(); </code></pre>
                 </div>
               </section>
               <section>
