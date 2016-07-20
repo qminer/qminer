@@ -863,28 +863,6 @@ bool TChAIn::GetNextLnBf(TChA& LnChA){
 }
 
 /////////////////////////////////////////////////
-// Ref-String
-//int TRStr::CmpI(const char* p, const char* r){
-//  if (!p){return r ? (*r ? -1 : 0) : 0;}
-//  if (!r){return (*p ? 1 : 0);}
-//  while (*p && *r){
-//    int i=int(toupper(*p++))-int(toupper(*r++));
-//    if (i!=0){return i;}
-//  }
-//  return int(toupper(*p++))-int(toupper(*r++));
-//}
-
-//
-// this section overloads the new operator for debug purposes (tracking memory leaks)
-//
-#ifdef WIN32
-#ifdef _DEBUG
-#define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
-#define new DEBUG_NEW
-#endif
-#endif
-
-/////////////////////////////////////////////////
 // String
 const char TStr::EmptyStr = 0;
 
