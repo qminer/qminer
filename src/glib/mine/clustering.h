@@ -979,7 +979,7 @@ void TDnsKMeans<TCentroidType>::Apply(const TDataType& FtrVV, const int& NInst, 
 
         // get the distance of each of the points to each of the centroids
         // and assign the instances
-        TAbsKMeans<TCentroidType>::Dist->UpdateNormC2(CentroidVV, NormC2);
+        TAbsKMeans<TCentroidType>::Dist->UpdateNormC2(TAbsKMeans<TCentroidType>::CentroidVV, NormC2);
         TAbsKMeans<TCentroidType>::Dist->GetDist2VV(TAbsKMeans<TCentroidType>::CentroidVV, FtrVV, NormC2, NormX2, ClustDistVV);
 
         TLinAlgSearch::GetColMinIdxV(ClustDistVV, *AssignIdxVPtr);
