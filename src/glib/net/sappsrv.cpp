@@ -286,6 +286,7 @@ void TSAppSrv::OnHttpRq(const uint64& SockId, const PHttpRq& HttpRq) {
         PUrl HttpRqUrl = HttpRq->GetUrl();
         EAssertR(HttpRqUrl->IsOk(), "Bad request URL!");
         // extract function name
+	EAssertR(HttpRqUrl->GetPathSegs() > 0, "Bad request URL!");
         TStr FunNm = HttpRqUrl->GetPathSeg(0);
         // check if we have the function registered
         if (FunNm == "favicon.ico") {
