@@ -1597,12 +1597,13 @@ int TStr::SearchChBack(const char& Ch, int BChN) const {
 }
 
 int TStr::SearchStr(const TStr& Str, const int& BChN) const {
-  int ThisLen = Len();
-  EAssertR(BChN >= 0 && BChN < ThisLen, "TStr::SearchStr: index BChN out of bounds!");
-  int NrBChN = BChN; // TInt::GetMx(BChN, 0);
-  //if(ThisLen == 0) { return -1; }
-  //if(NrBChN > ThisLen) { return -1; }
+  const int ThisLen = Len();
+  EAssertR(BChN >= 0 && BChN <= ThisLen, "TStr::SearchStr: index BChN out of bounds!");
 
+  // special case for handling empty strings
+  if (ThisLen == 0) { return Str.Empty() ? 0 : -1; }
+  
+  const int NrBChN = BChN;
   const char* StrPt = strstr((const char*) CStr() + NrBChN, Str.CStr());
   if (StrPt == nullptr) { return -1; }
   return int(StrPt - CStr());
