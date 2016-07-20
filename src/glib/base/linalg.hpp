@@ -428,7 +428,7 @@ TSizeTy TLinAlgSearch::GetColMinIdx(const TVVec<TNum<TType>, TSizeTy, ColMajor>&
 			MinIdx = RowN;
 		}
 	}
-	EAssertR(MinIdx >= 0, "Mininum index not set!");
+	EAssertR(MinIdx >= 0, "Minimum index not set!");
 	return MinIdx;
 }
 
