@@ -1564,6 +1564,9 @@ exports = {}; require.modules.qminer_analytics = exports;
 * @property {string} [centroidType="Dense"] - The type of centroids. Options: "Dense" or "Sparse".
 * @property {string} [distanceType="Euclid"] - The distance type used at the calculations. Options: "Euclid" or "Cos".
 * @property {boolean} [verbose=false] - If false, the console output is supressed.
+* @property {Array.<number>} [fitIdx] - The index array used for the construction of the initial centroids.
+* @property {Object} [fitStart] - The KMeans model returned by {@link module:analytics.KMeans.prototype.getModel} used for centroid initialization.
+* @property {(module:la.Matrix | module:la.SparseMatrix)} fitStart.C - The centroid matrix.
 */
 /** 
  * @classdesc KMeans clustering
