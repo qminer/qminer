@@ -1,5 +1,29 @@
 # QMiner Change Log
 
+### 22 July 2016
+
+**Version: 6.1.0**
+
+**Non-breaking with new features
+
+New Features:
+- Changed `TStreamAggrOut` interfaces to be flat
+- `TTDigest` Stream aggregate can wait for `N` elements before it is initialized
+
+Bugfix:
+- Calling `DelObjKey` on key that is first in `KeyValH` makes following serialization invalid. `ObjKeyN` starts with 1 which makes invalid json object. Relevant change is in `TJsonVal::GetChAFromVal()`
+- `TStr::SearchStr` return exception when called on empty string
+- `TStrHash` created temporary `TStr`s when computing hash codes creating significant overhead without any good reason
+- `TSAppSrv::OnHttpRq` does better check for valid URL
+- Removed old debug code in `TStr`
+- Issue #418: Categorical feature extraction documentation - Removed the 'values' from the construction documentation.
+- Issue #439: Added the two missing optional parameters in the new KMeans constructor, `fitIdx` and `fitStart`. Also fixed the documentation for KMeans constructor parameter and added some new unit tests for KMeans. 
+- Issue #449: Not all methods used for KMeans.fit were implemented when using distanceType: "Cos". Added unit tests for the fit and predict methods in the case of distanceType: "Cos".
+
+Other:
+- Replaced tabs with spaces in `sappsrv.cpp`
+
+
 ### 24 June 2016
 
 **Version: 6.0.0**
