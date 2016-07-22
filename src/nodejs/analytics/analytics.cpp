@@ -2291,16 +2291,17 @@ void TNodeJsKMeans::UpdateParams(const PJsonVal& ParamVal) {
             throw TExcept::New("Update KMeans Exception: centroidType must be Dense or Sparse!");
         }
     }
+    if (ParamVal->IsObjKey("verbose")) { Verbose = ParamVal->GetObjBool("verbose"); }
 
     if (DistType == TDistanceType::dtEuclid) {
         Dist = new TClustering::TEuclDist;
-    } else if (DistType == TDistanceType::dtCos) {
+    }
+    else if (DistType == TDistanceType::dtCos) {
         Dist = new TClustering::TCosDist;
-    } else {
+    }
+    else {
         throw TExcept::New("Update KMeans Exception: distance type is not valid " + TInt::GetStr((int)DistType));
     }
-
-    if (ParamVal->IsObjKey("verbose")) { Verbose = ParamVal->GetObjBool("verbose"); }
 
     Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
 }
@@ -2593,14 +2594,11 @@ void TNodeJsKMeans::TFitTask::Run() {
                else {
                    KMeans->Apply(JsFltVV->Mat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
                }
-
                KMeans->Assign(JsFltVV->Mat, JsKMeans->AssignV);
-
                TFltVV D;
                JsKMeans->Dist->GetDist2VV(JsFltVV->Mat, KMeans->GetCentroidVV(), D);
                TLinAlg::MultiplyScalar(-1, D, D);
                TLinAlgSearch::GetColMaxIdxV(D, JsKMeans->Medoids);
-
                if (JsIntV != nullptr) {
                    EAssertR(JsIntV->Vec.Len() == JsFltVV->Mat.GetCols(), "KMeans.fit: IntVector RecordIds.length must be equal to number of columns of X!");
                    
@@ -2648,11 +2646,11 @@ void TNodeJsKMeans::TFitTask::Run() {
                else {
                    KMeans->Apply(JsSpVV->Mat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
                }
-
                KMeans->Assign(JsSpVV->Mat, JsKMeans->AssignV);
-               
+
                TFltVV D;
                JsKMeans->Dist->GetDist2VV(JsSpVV->Mat, KMeans->GetCentroidVV(), D);
+
                TLinAlg::MultiplyScalar(-1, D, D);
                TLinAlgSearch::GetColMaxIdxV(D, JsKMeans->Medoids);
 
