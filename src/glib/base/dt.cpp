@@ -863,28 +863,6 @@ bool TChAIn::GetNextLnBf(TChA& LnChA){
 }
 
 /////////////////////////////////////////////////
-// Ref-String
-//int TRStr::CmpI(const char* p, const char* r){
-//  if (!p){return r ? (*r ? -1 : 0) : 0;}
-//  if (!r){return (*p ? 1 : 0);}
-//  while (*p && *r){
-//    int i=int(toupper(*p++))-int(toupper(*r++));
-//    if (i!=0){return i;}
-//  }
-//  return int(toupper(*p++))-int(toupper(*r++));
-//}
-
-//
-// this section overloads the new operator for debug purposes (tracking memory leaks)
-//
-#ifdef WIN32
-#ifdef _DEBUG
-#define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
-#define new DEBUG_NEW
-#endif
-#endif
-
-/////////////////////////////////////////////////
 // String
 const char TStr::EmptyStr = 0;
 
@@ -1597,12 +1575,13 @@ int TStr::SearchChBack(const char& Ch, int BChN) const {
 }
 
 int TStr::SearchStr(const TStr& Str, const int& BChN) const {
-  int ThisLen = Len();
-  EAssertR(BChN >= 0 && BChN < ThisLen, "TStr::SearchStr: index BChN out of bounds!");
-  int NrBChN = BChN; // TInt::GetMx(BChN, 0);
-  //if(ThisLen == 0) { return -1; }
-  //if(NrBChN > ThisLen) { return -1; }
+  const int ThisLen = Len();
+  EAssertR(BChN >= 0 && BChN <= ThisLen, "TStr::SearchStr: index BChN out of bounds!");
 
+  // special case for handling empty strings
+  if (ThisLen == 0) { return Str.Empty() ? 0 : -1; }
+  
+  const int NrBChN = BChN;
   const char* StrPt = strstr((const char*) CStr() + NrBChN, Str.CStr());
   if (StrPt == nullptr) { return -1; }
   return int(StrPt - CStr());
@@ -2293,16 +2272,6 @@ bool TStrIn::GetNextLnBf(TChA& LnChA){
   FailR(TStr::Fmt("TStrIn::GetNextLnBf: not implemented").CStr());
   return false;
 }
-
-//
-// this section disables the overloaded new operator so it doesn't clash with the rest of the library (tracking memory leaks)
-//
-#ifdef WIN32
-#ifdef _DEBUG
-#undef DEBUG_NEW
-#undef new 
-#endif
-#endif
 
 /////////////////////////////////////////////////
 // String-Pool
