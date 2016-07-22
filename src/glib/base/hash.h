@@ -103,6 +103,12 @@ public:
  static inline int GetSecHashCd(const TKey& Key) { return Key.GetSecHashCd(); }
 };
 
+// forward declaration of string hash functions
+class TStrHashF_OldGLib;
+class TStrHashF_Md5;
+class TStrHashF_DJB;
+class TStrHashF_Murmur3;
+
 /////////////////////////////////////////////////
 // Hash-Table
 template<class TKey, class TDat, class THashFunc = TDefaultHashFunc<TKey> >
@@ -756,7 +762,7 @@ public:
 
 /////////////////////////////////////////////////
 // String-Hash-Table
-template <class TDat, class TStringPool = TStrPool, class THashFunc = TDefaultHashFunc<TStr> >
+template <class TDat, class TStringPool = TStrPool, class THashFunc = TStrHashF_DJB >
 class TStrHash{
 private:
   //typedef typename PStringPool::TObj TStringPool;

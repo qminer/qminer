@@ -716,6 +716,61 @@ var V = result.V;</code></pre>
                         <p>Defaults to <code>false</code>.</p>
                       </td>
                     </tr>
+                    <tr>
+                      <td>
+                        <p>fitIdx</p>
+                      </td>
+                      <td>
+                        <p>Array of number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The index array used for the construction of the initial centroids.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>fitStart</p>
+                      </td>
+                      <td>
+                        <p>Object</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The KMeans model returned by module:analytics.KMeans.prototype.getModel used for centroid initialization.</p>
+                        <p>Values in <code>fitStart</code> have the following properties:</p>
+                        <table class="jsdoc-details-table">
+                          <thead>
+                            <tr>
+                              <th>Name</th>
+                              <th>Type</th>
+                              <th>Optional</th>
+                              <th>Description</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td>
+                                <p>C</p>
+                              </td>
+                              <td>
+                                <p>(<a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</p>
+                              </td>
+                              <td>
+                                <p>&nbsp;</p>
+                              </td>
+                              <td>
+                                <p>The centroid matrix.</p>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               </section>

@@ -3911,17 +3911,19 @@ describe('TDigest test', function () {
 	            type: 'tdigest',
 	            store: 'Processor',
 	            inAggr: 'TickAggr',
-	            quantiles: [0.90, 0.95, 0.99, 0.999]
+	            quantiles: [0.90, 0.95, 0.99, 0.999],
+                minCount: 5
 	        }
 	        
 	        td = store.addStreamAggr(aggr);
-	
 	        store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.9948628368 });
 	        store.push({ Time: '2015-12-01T14:20:33.0', Value: 0.1077458826 });
 	        store.push({ Time: '2015-12-01T14:20:34.0', Value: 0.9855685823 });
 	        store.push({ Time: '2015-12-01T14:20:35.0', Value: 0.7796449082 });
+	        assert(!td.init);
 	        store.push({ Time: '2015-12-01T14:20:36.0', Value: 0.0844943286 });
-	        store.push({ Time: '2015-12-01T14:20:37.0', Value: 0.187490856  });
+	        assert(td.init);
+	        store.push({ Time: '2015-12-01T14:20:37.0', Value: 0.187490856 });
 	        store.push({ Time: '2015-12-01T14:20:38.0', Value: 0.0779815107 });
 	        store.push({ Time: '2015-12-01T14:20:39.0', Value: 0.8945312691 });
 	        store.push({ Time: '2015-12-01T14:20:40.0', Value: 0.5574567409 });

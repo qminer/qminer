@@ -2018,8 +2018,10 @@ private:
 * @property {string} [centroidType="Dense"] - The type of centroids. Options: "Dense" or "Sparse".
 * @property {string} [distanceType="Euclid"] - The distance type used at the calculations. Options: "Euclid" or "Cos".
 * @property {boolean} [verbose=false] - If false, the console output is supressed.
+* @property {Array.<number>} [fitIdx] - The index array used for the construction of the initial centroids.
+* @property {Object} [fitStart] - The KMeans model returned by {@link module:analytics.KMeans.prototype.getModel} used for centroid initialization.
+* @property {(module:la.Matrix | module:la.SparseMatrix)} fitStart.C - The centroid matrix.
 */
-
 
 /** 
  * @classdesc KMeans clustering
@@ -2054,6 +2056,10 @@ private:
     TIntV AssignV;
     TIntV Medoids;
 
+	TIntV FitIdx;
+    TFltVV DenseFitMatrix;
+    TVec<TIntFltKdV> SparseFitMatrix;
+
     TDistanceType DistType;
     TClustering::PDist Dist;
 
@@ -2064,6 +2070,8 @@ private:
     PNotify Notify;
 
     TNodeJsKMeans(const PJsonVal& ParamVal);
+    TNodeJsKMeans(const PJsonVal& ParamVal, const TFltVV& Mat);
+    TNodeJsKMeans(const PJsonVal& ParamVal, const TVec<TIntFltKdV>& Mat);
     TNodeJsKMeans(TSIn& SIn);
     ~TNodeJsKMeans();
 
@@ -2245,7 +2253,6 @@ public:
 
 private:
     void UpdateParams(const PJsonVal& ParamVal);
-    PJsonVal GetParams() const;
     void Save(TSOut& SOut) const;
     void CleanUp();
 };
