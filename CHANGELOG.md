@@ -4,13 +4,13 @@
 
 **Version: 6.1.0**
 
-**Non-breaking with new features
+**Non-breaking with new features**
 
 New Features:
 - Changed `TStreamAggrOut` interfaces to be flat
 - `TTDigest` Stream aggregate can wait for `N` elements before it is initialized
 
-Bugfix:
+Bug fixes:
 - Calling `DelObjKey` on key that is first in `KeyValH` makes following serialization invalid. `ObjKeyN` starts with 1 which makes invalid json object. Relevant change is in `TJsonVal::GetChAFromVal()`
 - `TStr::SearchStr` return exception when called on empty string
 - `TStrHash` created temporary `TStr`s when computing hash codes creating significant overhead without any good reason
@@ -38,7 +38,7 @@ New Features:
 - (__breaking__) Added window buffer stream aggregate that keeps values in memory.
 - References to store and stream aggregate can be passed as parameters in jsons as object when creating new stream aggregates.
 
-Bugfix:
+Bug fixes:
 - Fixed clang warnings in `printf` for `uint64`
 - (__breaking__) Fixed stream aggregates that worked on window buffer to correctly work in case on `OnTime` and `OnStep` triggers.
 - `getSubmatrix` can not get the last row and column of a matrix
@@ -63,7 +63,7 @@ New features:
  - added TFtrExt::GetFtrRange() which returns the range of the feature
  - added method TJsonVal::SetArrVal
 
-Bugfix: 
+Bug fixes: 
  - fixed concurrency bug when executing code from worker thread on the main thread
  - fixed TNodeJsUtil::GetFldObj and TNodeJsUtil::GetFldFun
 
@@ -80,10 +80,10 @@ Other:
 
 **Non-breaking with new feature**
 
-New features:
+New feature:
  - Added binary option to multinomial feature extractor: check only for presenc of value and does not weight by count
 
-Bugfix: 
+Bug fix: 
  - `TSimpleLinReg::SaveState` failed as it saved object and loaded smart-pointer.
 
 
