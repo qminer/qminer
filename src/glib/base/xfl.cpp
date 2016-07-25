@@ -453,7 +453,11 @@ void TFileNotify::OpenNewFileForDate() {
 	LastLogDate = TTm::GetCurLocTm().GetWebLogDateStr();
 	FileName.ChangeChAll('\\', '/');
 	TStr Path, FName; FileName.SplitOnLastCh(Path, '/', FName);
-	File = TFOut::New(Path + "/" + LastLogDate + " " + FName, true);
+	TStr FullNm = Path;
+	if (Path != "")
+		FullNm += "/";
+	FullNm += LastLogDate + " " + FName;
+	File = TFOut::New(FullNm, true);
 }
 
 void TFileNotify::OnStatus(const TStr& MsgStr) {
