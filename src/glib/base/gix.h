@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -48,15 +48,15 @@ public:
 
 	static PGixMerger New() { return new TGixDefMerger<TKey, TItem>(); }
 
-	void Union(TVec<TItem>& MainV, const TVec<TItem>& JoinV) const { MainV.Union(JoinV); }
-	void Intrs(TVec<TItem>& MainV, const TVec<TItem>& JoinV) const { MainV.Intrs(JoinV); }
-	void Minus(const TVec<TItem>& MainV, const TVec<TItem>& JoinV, TVec<TItem>& ResV) const { MainV.Diff(JoinV, ResV); }
+	inline void Union(TVec<TItem>& MainV, const TVec<TItem>& JoinV) const { MainV.Union(JoinV); }
+	inline void Intrs(TVec<TItem>& MainV, const TVec<TItem>& JoinV) const { MainV.Intrs(JoinV); }
+	inline void Minus(const TVec<TItem>& MainV, const TVec<TItem>& JoinV, TVec<TItem>& ResV) const { MainV.Diff(JoinV, ResV); }
 	void Def(const TKey& Key, TVec<TItem>& MainV) const {}
 
 	void Merge(TVec<TItem>& ItemV, bool IsLocal = false) const { ItemV.Merge(); }
 	void Delete(const TItem& Item, TVec<TItem>& MainV) const { return MainV.DelAll(Item); }
-	bool IsLt(const TItem& Item1, const TItem& Item2) const { return Item1 < Item2; }
-	bool IsLtE(const TItem& Item1, const TItem& Item2) const { return Item1 <= Item2; }
+	inline bool IsLt(const TItem& Item1, const TItem& Item2) const { return Item1 < Item2; }
+	inline bool IsLtE(const TItem& Item1, const TItem& Item2) const { return Item1 <= Item2; }
 };
 
 /////////////////////////////////////////////////
@@ -88,7 +88,7 @@ class TGixItemSet {
 private:
 	TCRef CRef;
 	typedef TPt<TGixItemSet<TKey, TItem, TGixMerger> > PGixItemSet;
-	
+
 private:
 	/// This struct contans statistics about child vector
 	struct TGixItemSetChildInfo {
@@ -132,7 +132,7 @@ private:
 			Pt.Save(SOut);
 		}
 	};
-	
+
 private:
 	/// The key of this itemset
 	TKey ItemSetKey;
@@ -245,7 +245,7 @@ public:
 		res += Children.GetMemUsed();
 		res += ChildrenData.GetMemUsedDeep();
 		return res;
-		
+
 		/*return ItemSetKey.GetMemUsed() + ItemV.GetMemUsed() + ItemVDel.GetMemUsed()
 			+ Children.GetMemUsed() + ChildrenData.GetMemUsed() + GetChildMemUsed()
 			+ 2 * sizeof(TBool) + sizeof(int) + sizeof(TCRef)
@@ -393,20 +393,23 @@ template <class TKey, class TItem, class TGixMerger>
 void TGixItemSet<TKey, TItem, TGixMerger>::InjectWorkBufferToChildren() {
 	if (Children.Len() > 0 && ItemV.Len() > 0) {
 		int i = 0;
-		int j = 0;
+		int j = Children.Len()-1;
 		while (i < ItemV.Len()) {
-			TItem val = ItemV[i++];
-			while (j < Children.Len() && Merger->IsLt(Children[j].MaxVal, val)) {
-				j++;
+			const TItem val = ItemV[i];
+			// find the child vector where the value should be inserted into
+			// start from the last backward since items in ItemV will most likely be added in the latest Children vectors
+			while (j > 0 && Merger->IsLt(val, Children[j].MinVal)){
+				j--;
 			}
-			if (j < Children.Len()) { // ok, insert into j-th child
+			// the val value is smaller than the biggest element in the latest children vector - insert into j-th child
+			if (j < Children.Len()-1 && Merger->IsLt(Children[j].MaxVal, val)) {
 				LoadChildVector(j);
 				ChildrenData[j].Add(val);
 				Children[j].Len = ChildrenData[j].Len();
 				Children[j].Dirty = true;
+				i++;
 			} else {
-				i--;
-				break; // all remaining values in input buffer will not be inserted into child vectors 
+				break; // all remaining values in input buffer will not be inserted into child vectors
 			}
 		}
 		// delete items from work-buffer that have been inserted into child vectors
@@ -479,14 +482,20 @@ void TGixItemSet<TKey, TItem, TGixMerger>::PushMergedDataBackToChildren(int firs
 
 template <class TKey, class TItem, class TGixMerger>
 void TGixItemSet<TKey, TItem, TGixMerger>::AddItem(const TItem& NewItem, const bool& NotifyCacheOnlyDelta) {
-	//const uint64 OldSize = GetMemUsed();
-	const uint64 OldSize = (NotifyCacheOnlyDelta ? GetMemUsed() : 0); // avoid calculation of GetMemUsed if not needed
+	// if NotifyCacheOnlyDelta is false we have just added a clear itemset and we have to report to gix
+	// the base size used by the empty itemset itself
+	if (NotifyCacheOnlyDelta == false)
+		Gix->AddToNewCacheSizeInc(GetMemUsed());
+
 	if (IsFull()) {
+		// if we will do a cleanup of data we need to update the cache size used
+		const uint64 OldSize = GetMemUsed();
 		Def();
 		if (IsFull()) {
 			PushWorkBufferToChildren();
 		}
 		RecalcTotalCnt(); // work buffer might have been merged
+		Gix->AddToNewCacheSizeInc(GetMemUsed() - OldSize);
 	}
 
 	if (MergedP) {
@@ -500,19 +509,16 @@ void TGixItemSet<TKey, TItem, TGixMerger>::AddItem(const TItem& NewItem, const b
 			MergedP = Merger->IsLt(ItemV.Last(), NewItem); // compare to the last item in the work buffer
 		}
 	}
+	const uint64 OldItemVSize = ItemV.GetMemUsed();
 	if (ItemV.Len() == 0) {
 		ItemV.Reserve(2);
 	}
 	ItemV.Add(NewItem);
+	// update the cache size (for the newly added item)
+	// in general we could just add sizeof(TItem) to cache size - however we would underestimate the used size since the arrays allocate extra buffer
+	Gix->AddToNewCacheSizeInc(ItemV.GetMemUsed() - OldItemVSize);
 	Dirty = true;
 	TotalCnt++;
-
-	// notify cache that this item grew
-	if (NotifyCacheOnlyDelta) {
-		Gix->AddToNewCacheSizeInc(GetMemUsed() - OldSize);
-	} else {
-		Gix->AddToNewCacheSizeInc(GetMemUsed());
-	}
 }
 
 template <class TKey, class TItem, class TGixMerger>
@@ -552,21 +558,24 @@ void TGixItemSet<TKey, TItem, TGixMerger>::GetItemV(TVec<TItem>& _ItemV) {
 
 template <class TKey, class TItem, class TGixMerger>
 void TGixItemSet<TKey, TItem, TGixMerger>::DelItem(const TItem& Item) {
-	const uint64 OldSize = GetMemUsed();
 	if (IsFull()) {
+		const uint64 OldSize = GetMemUsed();
 		Def();
 		if (IsFull()) {
 			PushWorkBufferToChildren();
 		}
 		RecalcTotalCnt(); // work buffer might have been merged
+		Gix->AddToNewCacheSizeInc(GetMemUsed() - OldSize);
 	}
+
+	const uint64 OldSize = ItemVDel.GetMemUsed() + ItemV.GetMemUsed();
 	ItemVDel.Add(ItemV.Len());
 	ItemV.Add(Item);
+	const uint64 NewSize = ItemVDel.GetMemUsed() + ItemV.GetMemUsed();
+	Gix->AddToNewCacheSizeInc(NewSize - OldSize);
 	MergedP = false;
 	Dirty = true;
 	TotalCnt++;
-
-	Gix->AddToNewCacheSizeInc(GetMemUsed() - OldSize);
 }
 
 template <class TKey, class TItem, class TGixMerger>
@@ -627,7 +636,7 @@ void TGixItemSet<TKey, TItem, TGixMerger>::ProcessDeletes() {
 
 template <class TKey, class TItem, class TGixMerger>
 void TGixItemSet<TKey, TItem, TGixMerger>::Def() {
-	// call merger to pack items, if not merged yet 
+	// call merger to pack items, if not merged yet
 	if (!MergedP) {
 		ProcessDeletes(); // "execute" deletes, possibly leaving some child vectors too short
 		Merger->Merge(ItemV, true); // first do local merge of work-buffer
@@ -664,7 +673,7 @@ void TGixItemSet<TKey, TItem, TGixMerger>::Def() {
 
 template <class TKey, class TItem, class TGixMerger>
 void TGixItemSet<TKey, TItem, TGixMerger>::DefLocal() {
-	// call merger to pack items in work buffer, if not merged yet 
+	// call merger to pack items in work buffer, if not merged yet
 	if (!MergedP) {
 		if (ItemVDel.Len() == 0) { // deletes are not treated as local - merger would get confused
 			Merger->Merge(ItemV, true); // perform local merge
@@ -1007,10 +1016,10 @@ TPt<TGixItemSet<TKey, TItem, TGixMerger> > TGix<TKey, TItem, TGixMerger>::GetIte
 }
 template <class TKey, class TItem, class TGixMerger>
 TPt<TGixItemSet<TKey, TItem, TGixMerger> > TGix<TKey, TItem, TGixMerger>::GetItemSet(const TBlobPt& KeyId) const {
-	if (KeyId.Empty()) { 
+	if (KeyId.Empty()) {
 		// return empty itemset
 		return TGixItemSet<TKey, TItem, TGixMerger>::New(TKey(), &Merger, this);
-	} 
+	}
 	PGixItemSet ItemSet;
 	if (!ItemSetCache.Get(KeyId, ItemSet)) {
 		// have to load it from the hard drive...
