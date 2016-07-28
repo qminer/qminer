@@ -106,7 +106,7 @@ private:
 
 		/// constructor with values
 		TGixItemSetChildInfo(const TItem& _MinVal, const TItem& _MaxVal,
-			const TInt& _Len, const TBlobPt& _Pt, const TBool& _MergedP)
+			const TInt& _Len, const TBlobPt& _Pt)
 			: MinVal(_MinVal), MaxVal(_MaxVal), Len(_Len), Pt(_Pt),
 			Loaded(false), Dirty(false) {}
 
@@ -187,10 +187,31 @@ private:
 		return -1;
 	}
 
-	/// Work buffer is merged and still full, push it to children collection
+	/// Get the index of the first child index from which onward the content needs to be merged
+	/// There can be other children with smaller indices that are dirty, but we might not want to merge them
+	int FirstChildToMerge() {
+		// start checking either from 0 or 1 depending on whether we allow the first child to be
+		for (int i = 0; i < Children.Len(); i++) {
+			// the child at least needs to be dirty to be merged
+			if (!Children[i].Dirty)
+				continue;
+			// if child is not out of the size boundaries it also doesn't need to be merged
+			if (Children[i].Len >= Gix->GetSplitLenMin() && Children[i].Len <= Gix->GetSplitLenMax())
+				continue;
+			// for the first child we might allow it to be extra short, without need for merge
+			// when removing oldest items, the first vector will be becoming shorter and shorter and will be removed completely once empty
+			if (i == 0 && Gix->CanFirstChildBeUnfilled() && Children[i].Len <= Gix->GetSplitLenMax())
+				continue;
+			// otherwise, yes, it needs to be merged
+			return i;
+		}
+		return -1;
+	}
+
+	/// Work buffer is merged and still full, add new children collections with the data in work buffer
 	void PushWorkBufferToChildren();
 
-	/// Work buffer contains data that needs to be injected into child vectors
+	/// If work buffer contains data that belongs to child vectors then push that content to them
 	void InjectWorkBufferToChildren();
 
 	/// Data has been merged in memory and needs to be pushed to child vectors (overwrite them)
@@ -365,6 +386,7 @@ void TGixItemSet<TKey, TItem, TGixMerger>::Save(TMOut& SOut) {
 
 template <class TKey, class TItem, class TGixMerger>
 void TGixItemSet<TKey, TItem, TGixMerger>::OnDelFromCache(const TBlobPt& BlobPt, void* Gix) {
+	// TODO: is IsReadOnly() test necessary? Isn't the only case when Dirty == true if we are allowed write access?
 	if (!((TGix<TKey, TItem, TGixMerger>*)Gix)->IsReadOnly() && Dirty) {
 		((TGix<TKey, TItem, TGixMerger>*)Gix)->StoreItemSet(BlobPt);
 	}
@@ -375,15 +397,16 @@ void TGixItemSet<TKey, TItem, TGixMerger>::PushWorkBufferToChildren() {
 	// push work-buffer into children array
 	int split_len = Gix->GetSplitLen();
 	while (ItemV.Len() >= split_len) {
+		// create a vector of split_len items
 		TVec<TItem> tmp;
-		//ItemV.GetSubValVMemCpy(0, split_len - 1, tmp);
 		ItemV.GetSubValV(0, split_len - 1, tmp);
-		TGixItemSetChildInfo child_info(tmp[0], tmp.Last(), split_len, Gix->EnlistChildVector(tmp), true);
+		// create the child info for the vector and also push the vector to a blob
+		TGixItemSetChildInfo child_info(tmp[0], tmp.Last(), split_len, Gix->EnlistChildVector(tmp));
 		child_info.Loaded = false;
 		child_info.Dirty = false;
 		Children.Add(child_info);
+		// add an empty vector to ChildrenData - the data for this vector will be loaded from the blob when necessary
 		ChildrenData.Add(TVec<TItem>());
-		//ItemV.DelMemCpy(0, split_len - 1);
 		ItemV.Del(0, split_len - 1);
 		Dirty = true;
 	}
@@ -391,46 +414,53 @@ void TGixItemSet<TKey, TItem, TGixMerger>::PushWorkBufferToChildren() {
 
 template <class TKey, class TItem, class TGixMerger>
 void TGixItemSet<TKey, TItem, TGixMerger>::InjectWorkBufferToChildren() {
+	AssertR(ItemV.IsSorted(), "Items in working buffer ItemV should be sorted");
 	if (Children.Len() > 0 && ItemV.Len() > 0) {
-		int i = 0;
+		// find the first Children index into which we need to insert the first value
+		// since items in ItemV will most likely have the highest values, it makes sense to go from end backwards
 		int j = Children.Len()-1;
+		const TItem& firstVal = ItemV[0];
+		while (j > 0 && Merger->IsLt(firstVal, Children[j].MinVal))
+			j--;
+		// go from j onward, inserting items from ItemV into Children
+		int i = 0;
 		while (i < ItemV.Len()) {
-			const TItem val = ItemV[i];
-			// find the child vector where the value should be inserted into
-			// start from the last backward since items in ItemV will most likely be added in the latest Children vectors
-			while (j > 0 && Merger->IsLt(val, Children[j].MinVal)){
-				j--;
+			const TItem& val = ItemV[i];
+			while (j < Children.Len() && Merger->IsLt(Children[j].MaxVal, val)) {
+				j++;
 			}
-			// the val value is smaller than the biggest element in the latest children vector - insert into j-th child
-			if (j < Children.Len()-1 && Merger->IsLt(Children[j].MaxVal, val)) {
-				LoadChildVector(j);
-				ChildrenData[j].Add(val);
-				Children[j].Len = ChildrenData[j].Len();
-				Children[j].Dirty = true;
-				i++;
-			} else {
-				break; // all remaining values in input buffer will not be inserted into child vectors
-			}
+			// if val is larger than MaxVal in last Children vector, then all remaining values in input buffer will not be inserted into child vectors
+			if (j >= Children.Len())
+				break;
+			// ok, insert into j-th child
+			LoadChildVector(j);
+			ChildrenData[j].Add(val);
+			Children[j].Len = ChildrenData[j].Len();
+			Children[j].Dirty = true;
+			i++;
 		}
+
 		// delete items from work-buffer that have been inserted into child vectors
-		if (i < ItemV.Len()) {
-			if (i > 0) {
-				//ItemV.DelMemCpy(0, i - 1);
-				ItemV.Del(0, i - 1);
-				Dirty = true;
-			}
-		} else {
-			ItemV.Clr();
+		if (i > 0) {
+			// we made at least one insertion into the children, mark itemset as dirty
 			Dirty = true;
+			if (i == ItemV.Len())
+				// we inserted all items into children - clear the working buffer
+				ItemV.Clr();
+			else
+				// clear only the items that were already inserted into children
+				ItemV.Del(0, i - 1);
 		}
+
 		// merge dirty un-merged children
 		for (int j = 0; j < Children.Len(); j++) {
 			if (Children[j].Dirty) {
-				LoadChildVector(j); // just in case - they should be in memory at this point anyway
+				AssertR(Children[j].Loaded == true, "The child vector is dirty and should therefore already be loaded");
+				//LoadChildVector(j); // just in case - they should be in memory at this point anyway
 				TVec<TItem>& cd = ChildrenData[j];
 				Merger->Merge(cd, false);
 				Children[j].Len = cd.Len();
-				Children[j].Dirty = true;
+				//Children[j].Dirty = true;
 				if (cd.Len() > 0) {
 					Children[j].MinVal = cd[0];
 					Children[j].MaxVal = cd.Last();
@@ -467,14 +497,15 @@ void TGixItemSet<TKey, TItem, TGixMerger>::PushMergedDataBackToChildren(int firs
 		}
 	}
 
-	// clear children that became empty - kill'em all
-	int first_empty_child = child_index;
-	while (child_index < Children.Len()) { // remove them from BLOB storage
-		Gix->DeleteChildVector(Children[child_index++].Pt); // remove from storage
-	}
-	if (first_empty_child < Children.Len()) { // now remove their stuff from memory
-		Children.Del(first_empty_child, Children.Len() - 1);
-		ChildrenData.Del(first_empty_child, ChildrenData.Len() - 1);
+	// remove children that became empty
+	// remove them first from BLOB storage
+	for (int ind = child_index; ind < Children.Len(); ind++)
+		Gix->DeleteChildVector(Children[ind].Pt);
+
+	// finally remove them from memory
+	if (child_index < Children.Len()) {
+		Children.Del(child_index, Children.Len() - 1);
+		ChildrenData.Del(child_index, ChildrenData.Len() - 1);
 	}
 	Dirty = true;
 }
@@ -482,7 +513,7 @@ void TGixItemSet<TKey, TItem, TGixMerger>::PushMergedDataBackToChildren(int firs
 
 template <class TKey, class TItem, class TGixMerger>
 void TGixItemSet<TKey, TItem, TGixMerger>::AddItem(const TItem& NewItem, const bool& NotifyCacheOnlyDelta) {
-	// if NotifyCacheOnlyDelta is false we have just added a clear itemset and we have to report to gix
+	// if NotifyCacheOnlyDelta is false we have just added a new itemset and we have to report to gix
 	// the base size used by the empty itemset itself
 	if (NotifyCacheOnlyDelta == false)
 		Gix->AddToNewCacheSizeInc(GetMemUsed());
@@ -494,6 +525,7 @@ void TGixItemSet<TKey, TItem, TGixMerger>::AddItem(const TItem& NewItem, const b
 		if (IsFull()) {
 			PushWorkBufferToChildren();
 		}
+		// TODO: why is next RecalcTotalCnt needed? Def() already calls it if anything is changed. It might be needed only if IsFull() was true.
 		RecalcTotalCnt(); // work buffer might have been merged
 		Gix->AddToNewCacheSizeInc(GetMemUsed() - OldSize);
 	}
@@ -602,26 +634,33 @@ void TGixItemSet<TKey, TItem, TGixMerger>::ProcessDeletes() {
 		TVec<TItem> ItemVNew;
 		int ItemVNewI = 0;
 
+		// go over all indices in ItemVDel that represent which items in ItemV are keys to delete
 		for (int i = 0; i < ItemVDel.Len(); i++) {
-			TItem val = ItemV[ItemVDel[i]];
-			// first delete data from children
-			int j = Children.Len() - 1;
+			// get the value to delete
+			const TItem& val = ItemV[ItemVDel[i]];
+			// find the children vector from which we need to delete the value
+			// since deletes are often called on the oldest items we immediately test if val is in the first vector - if not, go from last vector backward
+			int j = (Children.Len() > 0 && Merger->IsLtE(val, Children[0].MaxVal)) ? 0 : Children.Len() - 1;
 			while (j >= 0 && Merger->IsLtE(val, Children[j].MaxVal)) {
 				if (Merger->IsLtE(Children[j].MinVal, val)) {
 					LoadChildVector(j);
 					Merger->Delete(val, ChildrenData[j]);
 					Children[j].Len = ChildrenData[j].Len();
 					Children[j].Dirty = true;
+					// since we have already found and deleted the item, we can stop iterating over children vectors
+					break;
 					// we don't update stats (min & max), because they are still usable.
 				}
 				j--;
 			}
-			// delete from the new work-buffer
+			// copy from ItemV to ItemVNew items up to index ItemVDel[i]
 			while (ItemVNewI <= ItemVDel[i]) {
 				ItemVNew.Add(ItemV[ItemVNewI++]);
 			}
+			// it is possible that value val appears multiple times in ItemVNew so we have to delete all it's instances
 			Merger->Delete(val, ItemVNew);
 		}
+		// copy the remaining items from the last item to delete to the end of the vector ItemV and copy items to ItemVNew
 		while (ItemVNewI < ItemV.Len()) {
 			ItemVNew.Add(ItemV[ItemVNewI++]);
 		}
@@ -643,29 +682,57 @@ void TGixItemSet<TKey, TItem, TGixMerger>::Def() {
 		Dirty = true;
 		InjectWorkBufferToChildren(); // inject data into child vectors
 
-		int first_dirty_child = FirstDirtyChild();
-		if (first_dirty_child >= 0 || (Children.Len() > 0 && ItemV.Len() > 0)) {
-			int first_child_to_merge = (first_dirty_child >= 0 ? first_dirty_child : Children.Len());
+		//int first_dirty_child = FirstDirtyChild();
+		//if (first_dirty_child >= 0 || (Children.Len() > 0 && ItemV.Len() > 0)) {
+		//	int first_child_to_merge = (first_dirty_child >= 0 ? first_dirty_child : Children.Len());
+
+		//	// collect all data from subsequent child vectors and work-buffer
+		//	TVec<TItem> MergedItems;
+		//	for (int i = first_child_to_merge; i < Children.Len(); i++) {
+		//		LoadChildVector(i);
+		//		//MergedItems.AddVMemCpy(ChildrenData[i]);
+		//		MergedItems.AddV(ChildrenData[i]);
+		//	}
+		//	//MergedItems.AddVMemCpy(ItemV);
+		//	MergedItems.AddV(ItemV);
+		//	Merger->Merge(MergedItems, false); // perform global merge
+
+		//	PushMergedDataBackToChildren(first_child_to_merge, MergedItems); // now save them back
+		//	PushWorkBufferToChildren(); // it could happen that data in work buffer is still to large
+
+		//} else if (Children.Len() > 0 && ItemV.Len() == 0) {
+		//	// nothing, children should already be merged and work-buffer is empty
+		//} else {
+		//	// nothing, there are no children and work-buffer has already been merged
+		//}
+
+		int firstChildToMerge = FirstChildToMerge();
+		if (firstChildToMerge >= 0 || (Children.Len() > 0 && ItemV.Len() > 0)) {
+			if (firstChildToMerge < 0)
+				firstChildToMerge = Children.Len();
 
 			// collect all data from subsequent child vectors and work-buffer
 			TVec<TItem> MergedItems;
-			for (int i = first_child_to_merge; i < Children.Len(); i++) {
+			for (int i = firstChildToMerge; i < Children.Len(); i++) {
 				LoadChildVector(i);
-				//MergedItems.AddVMemCpy(ChildrenData[i]);
 				MergedItems.AddV(ChildrenData[i]);
 			}
-			//MergedItems.AddVMemCpy(ItemV);
 			MergedItems.AddV(ItemV);
 			Merger->Merge(MergedItems, false); // perform global merge
 
-			PushMergedDataBackToChildren(first_child_to_merge, MergedItems); // now save them back
-			PushWorkBufferToChildren(); // it could happen that data in work buffer is still to large
-
-		} else if (Children.Len() > 0 && ItemV.Len() == 0) {
-			// nothing, children should already be merged and work-buffer is empty
-		} else {
-			// nothing, there are no children and work-buffer has already been merged
+			PushMergedDataBackToChildren(firstChildToMerge, MergedItems); // now save them back
+			PushWorkBufferToChildren(); // it could happen that data in work buffer is still too large
 		}
+
+		// in case deletes emptied the first children completely, remove them
+		while (Children.Len() > 0 && Children[0].Len == 0) {
+			// remove them first from BLOB storage
+			Gix->DeleteChildVector(Children[0].Pt);
+			// remove it from memory
+			Children.Del(0);
+			ChildrenData.Del(0);
+		}
+
 		RecalcTotalCnt();
 		MergedP = true;
 	}
@@ -676,6 +743,7 @@ void TGixItemSet<TKey, TItem, TGixMerger>::DefLocal() {
 	// call merger to pack items in work buffer, if not merged yet
 	if (!MergedP) {
 		if (ItemVDel.Len() == 0) { // deletes are not treated as local - merger would get confused
+			const int OldItemVLen = ItemV.Len();
 			Merger->Merge(ItemV, true); // perform local merge
 			Dirty = true;
 			if (Children.Len() > 0 && ItemV.Len() > 0) {
@@ -685,7 +753,9 @@ void TGixItemSet<TKey, TItem, TGixMerger>::DefLocal() {
 			} else {
 				MergedP = true;
 			}
-			RecalcTotalCnt();
+			// update the total count - since we have only been modifying the ItemV we can simply
+			// update the total count by comparing previous and current number of items in ItemV
+			TotalCnt = TotalCnt - OldItemVLen + ItemV.Len();
 		}
 	}
 }
@@ -788,6 +858,9 @@ private:
 	int SplitLenMin;
 	/// Maximal length for child vectors
 	int SplitLenMax;
+	/// Can the first child vector be of any non-empty size and not be merged with following vectors
+	/// This can significantly speed-up deleting items from Gix
+	bool CanFirstChildBeUnfilled_;
 
 	/// Internal member for holding statistics
 	mutable TGixStats Stats;
@@ -797,11 +870,13 @@ private:
 public:
 	TGix(const TStr& Nm, const TStr& FPath = TStr(),
 		const TFAccess& _Access = faRdOnly, const int64& CacheSize = 100000000,
-		int _SplitLen = 1024);
+		int _SplitLen = 1024, int _SplitLenMin = 512, int _SplitLenMax = 2048,
+		bool _CanFirstChildBeUnfilled = false);
 	static PGix New(const TStr& Nm, const TStr& FPath = TStr(),
 		const TFAccess& Access = faRdOnly, const int64& CacheSize = 100000000,
-		int _SplitLen = 1024) {
-		return new TGix(Nm, FPath, Access, CacheSize, _SplitLen);
+		int _SplitLen = 1024, int _SplitLenMin = 512, int _SplitLenMax = 2048,
+		bool _CanFirstChildBeUnfilled = false) {
+		return new TGix(Nm, FPath, Access, CacheSize, _SplitLen, _CanFirstChildBeUnfilled);
 	}
 
 	~TGix();
@@ -811,9 +886,10 @@ public:
 	bool IsCacheFullP() const { return CacheFullP; }
 	TStr GetFPath() const { return GixFNm.GetFPath(); }
 	int64 GetMxCacheSize() const { return GetMxMemUsed(); }
-	int GetSplitLen() const { return SplitLen; };
-	int GetSplitLenMax() const { return SplitLenMax; };
-	int GetSplitLenMin() const { return SplitLenMin; };
+	int GetSplitLen() const { return SplitLen; }
+	int GetSplitLenMax() const { return SplitLenMax; }
+	int GetSplitLenMin() const { return SplitLenMin; }
+	bool CanFirstChildBeUnfilled() const { return CanFirstChildBeUnfilled_; }
 
 	/// do we have Key in the index?
 	bool IsKey(const TKey& Key) const { return KeyIdH.IsKey(Key); }
@@ -969,8 +1045,10 @@ TBlobPt TGix<TKey, TItem, TGixMerger>::GetKeyId(const TKey& Key) const {
 
 template <class TKey, class TItem, class TGixMerger>
 TGix<TKey, TItem, TGixMerger>::TGix(const TStr& Nm, const TStr& FPath, const TFAccess& _Access,
-	const int64& CacheSize, int _SplitLen) : Access(_Access),
-	ItemSetCache(CacheSize, 1000000, GetVoidThis()), SplitLen(_SplitLen) {
+	const int64& CacheSize, int _SplitLen, int _SplitLenMin, int _SplitLenMax, bool _CanFirstChildBeUnfilled) :
+	Access(_Access), ItemSetCache(CacheSize, 1000000, GetVoidThis()),
+	SplitLen(_SplitLen), SplitLenMin(_SplitLenMin), SplitLenMax(_SplitLenMax),
+	CanFirstChildBeUnfilled_(_CanFirstChildBeUnfilled) {
 
 	// filenames of the GIX datastore
 	GixFNm = TStr::GetNrFPath(FPath) + Nm.GetFBase() + ".Gix";
@@ -992,9 +1070,6 @@ TGix<TKey, TItem, TGixMerger>::TGix(const TStr& Nm, const TStr& FPath, const TFA
 	CacheResetThreshold = int64(0.1 * double(CacheSize));
 	NewCacheSizeInc = 0;
 	CacheFullP = false;
-	int Tolerance = SplitLen / 10;
-	SplitLenMax = SplitLen + Tolerance;
-	SplitLenMin = SplitLen - Tolerance;
 }
 
 template <class TKey, class TItem, class TGixMerger>
@@ -1270,10 +1345,10 @@ void TGix<TKey, TItem, TGixMerger>::GetChildVector(const TBlobPt& KeyId, TVec<TI
 
 template <class TKey, class TItem, class TGixMerger>
 void TGix<TKey, TItem, TGixMerger>::RefreshMemUsed() {
-    // only report when cache size bigger then 10GB
-    const int ReportP = CacheResetThreshold > (uint64)(TInt::Giga);
 	// check if we have to drop anything from the cache
 	if (NewCacheSizeInc > CacheResetThreshold) {
+		// only report when cache size bigger then 10GB
+		const bool ReportP = CacheResetThreshold > (uint64) (TInt::Giga);
         if (ReportP) { printf("Cache clean-up [%s] ... ", TUInt64::GetMegaStr(NewCacheSizeInc).CStr()); }
 		// pack all the item sets
 		TBlobPt BlobPt;
@@ -1285,8 +1360,10 @@ void TGix<TKey, TItem, TGixMerger>::RefreshMemUsed() {
 		// clean-up cache
 		CacheFullP = ItemSetCache.RefreshMemUsed();
 		NewCacheSizeInc = 0;
-		const uint64 NewSize = ItemSetCache.GetMemUsed();
-		if (ReportP) { printf("Done [%s]\n", TUInt64::GetMegaStr(NewSize).CStr()); }
+		if (ReportP) {
+			const uint64 NewSize = ItemSetCache.GetMemUsed();
+			printf("Done [%s]\n", TUInt64::GetMegaStr(NewSize).CStr());
+		}
 	}
 }
 
