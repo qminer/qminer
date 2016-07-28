@@ -424,6 +424,7 @@ void TGixItemSet<TKey, TItem, TGixMerger>::InjectWorkBufferToChildren() {
 			j--;
 		// go from j onward, inserting items from ItemV into Children
 		int i = 0;
+		TIntSet TouchedVectorH;
 		while (i < ItemV.Len()) {
 			const TItem& val = ItemV[i];
 			while (j < Children.Len() && Merger->IsLt(Children[j].MaxVal, val)) {
@@ -437,6 +438,7 @@ void TGixItemSet<TKey, TItem, TGixMerger>::InjectWorkBufferToChildren() {
 			ChildrenData[j].Add(val);
 			Children[j].Len = ChildrenData[j].Len();
 			Children[j].Dirty = true;
+			TouchedVectorH.AddKey(j);
 			i++;
 		}
 
@@ -452,19 +454,17 @@ void TGixItemSet<TKey, TItem, TGixMerger>::InjectWorkBufferToChildren() {
 				ItemV.Del(0, i - 1);
 		}
 
-		// merge dirty un-merged children
-		for (int j = 0; j < Children.Len(); j++) {
-			if (Children[j].Dirty) {
-				AssertR(Children[j].Loaded == true, "The child vector is dirty and should therefore already be loaded");
-				//LoadChildVector(j); // just in case - they should be in memory at this point anyway
-				TVec<TItem>& cd = ChildrenData[j];
-				Merger->Merge(cd, false);
-				Children[j].Len = cd.Len();
-				//Children[j].Dirty = true;
-				if (cd.Len() > 0) {
-					Children[j].MinVal = cd[0];
-					Children[j].MaxVal = cd.Last();
-				}
+		// go over all the vectors that we modified and merge + update stats for them
+		for (int KeyId = TouchedVectorH.FFirstKeyId(); TouchedVectorH.FNextKeyId(KeyId); ) {
+			int ind = TouchedVectorH.GetKey(KeyId);
+			LoadChildVector(ind); // just in case - they should be in memory at this point anyway
+			TVec<TItem>& cd = ChildrenData[ind];
+			Merger->Merge(cd, false);
+			Children[ind].Len = cd.Len();
+			Children[ind].Dirty = true;
+			if (cd.Len() > 0) {
+				Children[ind].MinVal = cd[0];
+				Children[ind].MaxVal = cd.Last();
 			}
 		}
 	}
