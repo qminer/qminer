@@ -176,7 +176,7 @@ public:
 
 	/**
 	* <% title %> 
-	* @classdesc Used for storing key/data pairs, wrapps an efficient C++ implementation.
+	* @classdesc Used for storing key/data pairs, wraps an efficient C++ implementation.
 	* @class
 	* @example
 	* // create a new hashtable
@@ -221,7 +221,7 @@ public:
     JsDeclareFunction(get);
 	
 	/**
-	* add/update key-value pair.
+	* Add/update key-value pair.
 	* @param {<% keyType %>} key - Hashmap key.
 	* @param {<% datType %>} data - Hashmap data.
 	* @returns {module:ht.<% className %>} Self.
