@@ -10,6 +10,8 @@ module.exports = exports = function (pathQmBinary) {
     var qm = require(pathQmBinary); // This loads only c++ functions of qm
     exports = qm.statistics;
 
+    //!STARTJSDOC
+
     /**
 	 * Calculates the z-score for a point sampled from a Gaussian distribution. The z-score indicates
 	 * how many standard deviations an element is from the meam and can be calculated using
@@ -31,5 +33,7 @@ module.exports = exports = function (pathQmBinary) {
     	return (x - mu) / sigma;
     }
     
+    //!ENDJSDOC
+
     return exports;
 }
