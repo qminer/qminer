@@ -2273,16 +2273,6 @@ bool TStrIn::GetNextLnBf(TChA& LnChA){
   return false;
 }
 
-//
-// this section disables the overloaded new operator so it doesn't clash with the rest of the library (tracking memory leaks)
-//
-#ifdef WIN32
-#ifdef _DEBUG
-#undef DEBUG_NEW
-#undef new 
-#endif
-#endif
-
 /////////////////////////////////////////////////
 // String-Pool
 void TStrPool::Resize(const uint& _MxBfL) {

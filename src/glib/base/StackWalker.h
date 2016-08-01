@@ -1,7 +1,7 @@
 #ifndef STACKWALKER_H
 #define STACKWALKER_H
 /**********************************************************************
- * 
+ *
  * StackWalker.h
  *
  *
@@ -37,7 +37,7 @@
  *   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  **********************************************************************/
-// #pragma once is supported starting with _MCS_VER 1000, 
+// #pragma once is supported starting with _MCS_VER 1000,
 // so we need not to check the version (because we only support _MSC_VER >= 1100)!
 #pragma once
 
@@ -59,42 +59,42 @@ class StackWalker
 public:
   typedef enum StackWalkOptions
   {
-    // No addition info will be retrived 
+    // No addition info will be retrived
     // (only the address is available)
     RetrieveNone = 0,
-    
+
     // Try to get the symbol-name
     RetrieveSymbol = 1,
-    
+
     // Try to get the line for this symbol
     RetrieveLine = 2,
-    
+
     // Try to retrieve the module-infos
     RetrieveModuleInfo = 4,
-    
+
     // Also retrieve the version for the DLL/EXE
     RetrieveFileVersion = 8,
-    
+
     // Contains all the abouve
     RetrieveVerbose = 0xF,
-    
+
     // Generate a "good" symbol-search-path
     SymBuildPath = 0x10,
-    
+
     // Also use the public Microsoft-Symbol-Server
     SymUseSymSrv = 0x20,
-    
+
     // Contains all the abouve "Sym"-options
     SymAll = 0x30,
-    
+
     // Contains all options (default)
     OptionsAll = 0x3F
   } StackWalkOptions;
 
   StackWalker(
     int options = OptionsAll, // 'int' is by design, to combine the enum-flags
-    LPCSTR szSymPath = NULL, 
-    DWORD dwProcessId = GetCurrentProcessId(), 
+    LPCSTR szSymPath = NULL,
+    DWORD dwProcessId = GetCurrentProcessId(),
     HANDLE hProcess = GetCurrentProcess()
     );
   StackWalker(DWORD dwProcessId, HANDLE hProcess);
@@ -112,14 +112,14 @@ public:
   BOOL LoadModules();
 
   BOOL ShowCallstack(
-    HANDLE hThread = GetCurrentThread(), 
-    const CONTEXT *context = NULL, 
+    HANDLE hThread = GetCurrentThread(),
+    const CONTEXT *context = NULL,
     PReadProcessMemoryRoutine readMemoryFunction = NULL,
     LPVOID pUserData = NULL  // optional to identify some data in the 'readMemoryFunction'-callback
     );
 
 #if _MSC_VER >= 1300
-// due to some reasons, the "STACKWALK_MAX_NAMELEN" must be declared as "public" 
+// due to some reasons, the "STACKWALK_MAX_NAMELEN" must be declared as "public"
 // in older compilers in order to use it... starting with VC7 we can declare it as "protected"
 protected:
 #endif
@@ -144,7 +144,7 @@ protected:
     CHAR loadedImageName[STACKWALK_MAX_NAMELEN];
   } CallstackEntry;
 
-  typedef enum CallstackEntryType {firstEntry, nextEntry, lastEntry} DummyCallstackEntryTypeDeclarator;
+  enum CallstackEntryType {firstEntry, nextEntry, lastEntry};
 
   virtual void OnSymInit(LPCSTR szSearchPath, DWORD symOptions, LPCSTR szUserName);
   virtual void OnLoadModule(LPCSTR img, LPCSTR mod, DWORD64 baseAddr, DWORD size, DWORD result, LPCSTR symType, LPCSTR pdbName, ULONGLONG fileVersion);
@@ -168,10 +168,10 @@ protected:
 
 
 // The "ugly" assembler-implementation is needed for systems before XP
-// If you have a new PSDK and you only compile for XP and later, then you can use 
+// If you have a new PSDK and you only compile for XP and later, then you can use
 // the "RtlCaptureContext"
-// Currently there is no define which determines the PSDK-Version... 
-// So we just use the compiler-version (and assumes that the PSDK is 
+// Currently there is no define which determines the PSDK-Version...
+// So we just use the compiler-version (and assumes that the PSDK is
 // the one which was installed by the VS-IDE)
 
 // INFO: If you want, you can use the RtlCaptureContext if you only target XP and later...
@@ -180,7 +180,7 @@ protected:
 
 #if defined(_M_IX86)
 #ifdef CURRENT_THREAD_VIA_EXCEPTION
-// TODO: The following is not a "good" implementation, 
+// TODO: The following is not a "good" implementation,
 // because the callstack is only valid in the "__except" block...
 #define GET_CURRENT_CONTEXT(c, contextFlags) \
   do { \
