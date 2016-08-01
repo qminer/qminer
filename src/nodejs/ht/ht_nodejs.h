@@ -311,6 +311,7 @@ public:
     * fout = fs.openWrite('map.dat'); // open write stream
     * h.save(fout).close(); // save and close write stream
     * var fin = fs.openRead('map.dat'); // open read stream
+    * var h2 = new ht.<% className %>();
     * h2.load(fin); // load
 	*/
     //# exports.<% className %>.prototype.load = function(fin) { return this; }
