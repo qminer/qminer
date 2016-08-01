@@ -1009,7 +1009,7 @@ public:
     * // create a new sparse matrix
     * var mat = new la.SparseMatrix([[[0, 2], [2, -3]], [[1, 1], [3, -2]]]);
     * // get the submatrix containing the 1, 2 and 4 column
-    * var submat = mat.getColSubmatrix(new la.IntVector([0, 1, 3]));
+    * var submat = mat.getColSubmatrix(new la.IntVector([1]));
     */
 	//# exports.SparseMatrix.prototype.getColSubmatrix = function (columnIdVec) { return Object.create(require('qminer').la.SparseMatrix.prototype); }
     JsDeclareFunction(getColSubmatrix);
