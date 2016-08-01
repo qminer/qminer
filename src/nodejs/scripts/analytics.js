@@ -88,46 +88,40 @@ module.exports = exports = function (pathQmBinary) {
 
     // Exports preprocessing namespace
     exports.preprocessing = preprocessing;
-
-    /**
-    * SVM model.
-    * @typedef {Object} svmModel
-    * @property  {module:la.Vector} [svmModel.weigths] - SVM normal vector.
-    */
+    
+    // SVM 
     /**
 	* Get the model.
-	* @returns {module:analytics~svmModel} The current SVM model.
+	* @returns {Object} The `svmModel` object containing the property:
+    * <br> 1. `svmModel.weights` - The SVM normal vector, type {@link module:la.Vector}.
     * @example
     * // import analytics module
     * var analytics = require('qminer').analytics;
     * // create a SVC model
     * var SVC = new analytics.SVC();
     * // get the properties of the model
-    * var model = SVC.getModel(); // returns { weight: new require('qminer').la.Vector(); }
+    * var model = SVC.getModel();
 	*/
     exports.SVC.prototype.getModel = function() { return { weights: this.weights }; }
     /**
 	* Get the model.
-	* @returns {module:analytics~svmModel} Get current SVM model
+	* @returns {Object} The `svmModel` object containing the property:
+    * <br> 1. `svmModel.weights` - The SVM normal vector, type {@link module:la.Vector}.
     * @example
     * // import analytics module
     * var analytics = require('qminer').analytics;
     * // create a SVR model
     * var SVR = new analytics.SVR();
     * // get the properties of the model
-    * var model = SVR.getModel(); // returns { weights: new require('qminer').la.Vector(); }
+    * var model = SVR.getModel();
 	*/
     exports.SVR.prototype.getModel = function() { return { weights: this.weights }; }
 
     // Ridge Regression
     /**
-    * @typedef {Object} ridgeRegModel
-    * @property {module:la.Vector} [ridgeRegModel.weights] - The Ridge Regression model vector.
-    */
-
-    /**
     * Gets the model.
-    * @returns {module:analytics~ridgeRegModel} Get current model.
+    * @returns {Object} The `ridgeRegModel` object containing the property:
+    * <br> 1. `ridgeRegModel.weights` - The Ridge Regression model vector, type {@link module:la.Vector}.
     * @example
     * // import analytics module
     * var analytics = require('qminer').analytics;
@@ -140,12 +134,9 @@ module.exports = exports = function (pathQmBinary) {
 
     // Recursive Linear Regression
     /**
-    * @typedef {Object} recLinRegModel
-    * @property {module:la.Vector} [recLinRegModel.weights] - Recursive Linear Regression model vector.
-    */
-    /**
-    * Gets Recursive Linear Regression model
-    * @returns {module:analytics~recLnRegModel} The current model.
+    * Gets the model.
+    * @returns {Object} The `recLinRegModel` object containing the property:
+    * <br> 1. `recLinRegModel.weights` - The Recursive Linear Regression model vector, type {@link module:la.Vector}.
     * @example
     * // import analytics module
     * var analytics = require('qminer').analytics;
@@ -1673,15 +1664,15 @@ module.exports = exports = function (pathQmBinary) {
     /**
      * @typedef KMeansExplanation
      * @type {Object}
-     * @property {number} medoidID - The ID of the nearest medoids
-     * @property {module:la.IntVector} featureIDs - The IDs of features, sorted by contribution
-     * @property {module:la.Vector} featureContributions - Weights of each feature contribution (sum to 1.0)
+     * @property {number} medoidID - The ID of the nearest medoids.
+     * @property {module:la.IntVector} featureIDs - The IDs of features, sorted by contribution.
+     * @property {module:la.Vector} featureContributions - Weights of each feature contribution (sum to 1.0).
      */
 
     /**
      * Returns the IDs of the nearest medoid for each example.
      * @param {(module:la.Matrix | module:la.SparseMatrix)} X - Matrix whose columns correspond to examples.
-     * @returns {Array.<KMeansExplanation>} Object containing the vector of medoid IDs.
+     * @returns {Array.<KMeansExplanation>} Array containing the KMeans explanantions.
      * @example
      * // import analytics module
      * var analytics = require('qminer').analytics;
@@ -1743,15 +1734,11 @@ module.exports = exports = function (pathQmBinary) {
     }
 
     /**
-     * @typedef {Object} KMeansModel
-     * @property {(module:la.Matrix | module:la.SparseMatrix)} C - Matrix containing the centroids.
-     * @property module:la.IntVector} medoids - The cluster medoids of the training data.
-     * @property {module:la.IntVector} idxv - The cluster ids of the training data.
-     */
-
-    /**
     * Returns the model
-    * @returns {module:analytics~KMeansModel} The model.
+    * @returns {Object} The `KMeansModel` object containing the properites:
+    * <br> 1. `KMeansModel.C` - The {@link module:la.Matrix} or {@link module:la.SparseMatrix} containing the centroids,
+    * <br> 2. `KMeansModel.medoids` - The {@link module:la.IntVector} of cluster medoids of the training data,
+    * <br> 3. `KMeansModel.idxv` - The {@link module:la.IntVector} of cluster IDs of the training data.
     * @example
     * // import modules
     * var analytics = require('qminer').analytics;
