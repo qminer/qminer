@@ -542,7 +542,7 @@ module.exports = exports = function (pathQmBinary) {
      * // create a vector
      * var vec = new la.Vector([1, 2, 3]);
      * // square the values of the vector
-     * returns the vector containing  the values 1, 4, 9
+     * // returns the vector containing  the values 1, 4, 9
      * var sqr = la.square(vec);
      */
     exports.square = function(x) {
