@@ -527,13 +527,13 @@ public:
 //! 
 
 /**
-* Sparse Vector
-* @classdesc Represents a sparse vector.
+* Sparse Vector.
+* @classdesc Sparse vector is an array of (int,double) pairs that represent column indices and values.
 * @class
 * @param {(Array<Array<number>> | module:la.SparseVector)} [arg] - Constructor arguments. There are two ways of constructing:
-* <br>1. Nested array of vector elements. Example: [[0, 2],[2, 3]] has two nonzero values, first value is 2 at position 0, second value is 3 at position 2.
-* <br>2. A sparse vector (copy constructor).
-* @param {number} [dim] - Maximal length of sparse vector. It is only in combinantion with nested array of vector elements.
+* <br>1. Using a nested array of vector elements. Example: `[[0, 2],[2, 3]]` has two nonzero values, first value is 2 at position 0, second value is 3 at position 2,
+* <br>2. using a sparse vector (copy constructor).
+* @param {number} [dim] - Maximum length of sparse vector. <i>It is only in combinantion with nested array of vector elements.</i>
 * @example
 * // import la module
 * var la = require('qminer').la;
@@ -583,7 +583,7 @@ public:
 	* Puts a new element in sparse vector.
 	* @param {number} idx - Index (zero based).
 	* @param {number} num - Input value.
-	* @returns {module:la.SparseVector} Self. It puts/changes the values with the index idx to the value num.
+	* @returns {module:la.SparseVector} Self. It puts/changes the values with the index `idx` to the value `num`.
 	* @example
 	* // import la module
 	* var la = require('qminer').la;
@@ -628,7 +628,7 @@ public:
 	/**
 	* Multiplies the sparse vector with a scalar.
 	* @param {number} num - The scalar.
-	* @returns {module:la.SparseVector} The product of num and sparse vector.
+	* @returns {module:la.SparseVector} The product of `num` and sparse vector.
 	* @example
 	* // import la module
 	* var la = require('qminer').la;
@@ -643,21 +643,28 @@ public:
 	/**
 	* Normalizes the sparse vector.
 	* @returns {module:la.SparseVector} Self. The vector is normalized.
+    * @example
+    * // import la module
+    * var la = require('qminer').la;
+    * // create a new sparse vector
+    * var spVec = new la.SparseVector([[0, 1], [2, 3], [3, 6]]);
+    * // normalize the sparse vector
+    * spVec.normalize();
 	*/
 	//# exports.SparseVector.prototype.normalize = function () { return Object.create(require('qminer').la.SparseVector.prototype); }
 	JsDeclareFunction(normalize);
 
 	/**
-	* Returns the number of nonzero values.
-	* @returns {number} Number of nonzero values.
+	* Returns the number of non-zero values.
+	* @returns {number} Number of non-zero values.
 	* @example
 	* // import la module
 	* var la = require('qminer').la;
 	* // create a new sparse vector
-	* var vec = new la.SparseVector([[0,2], [3,1], [7, 5], [11,4]]);
+	* var vec = new la.SparseVector([[0, 2], [3, 1], [7, 5], [11, 4]]);
 	* // check the number of nonzero values in sparse vector
+    * // returns 4
 	* var nonz = vec.nnz;
-	* // returns 4
 	*/
 	//# exports.SparseVector.prototype.nnz = 0;
 	JsDeclareProperty(nnz);
@@ -665,6 +672,14 @@ public:
 	/**
 	* Returns the dimension of sparse vector.
 	* @returns {number} Dimension of sparse vector.
+    * @example
+    * // import la module
+    * var la = require('qminer').la;
+    * // create a new sparse vector and designate the dimension of the vector
+    * var vec = new la.SparseVector([[0, 2], [3, 1], [7, 5], [11, 4]], 15);
+    * // get the dimension of the sparse vector
+    * // returns 15
+    * var dim = vec.dim; 
 	*/
 	//# exports.SparseVector.prototype.dim = 0;
 	JsDeclareProperty(dim);
@@ -672,6 +687,13 @@ public:
 	/**
 	* Returns the norm of sparse vector.
 	* @returns {number} Norm of sparse vector.
+    * @example
+    * // import la module
+    * var la = require('qminer').la;
+    * // create a new sparse vector
+    * var vec = new la.SparseVector([[0, 2], [3, 1], [7, 5], [11, 4]]); 
+    * // get the norm of the vector
+    * var norm = vec.norm();
 	*/
 	//# exports.SparseVector.prototype.norm = function () { return 0.0; }
 	JsDeclareFunction(norm);
@@ -679,20 +701,41 @@ public:
 	/**
 	* Returns the dense vector representation of the sparse vector.
 	* @returns {module:la.Vector} The dense vector representation.
+    * @example
+    * // import la module
+    * var la = require('qminer').la;
+    * // create a new sparse vector
+    * var vec = new la.SparseVector([[0, 2], [3, 1], [7, 5], [11, 4]]); 
+    * // create a dense representation of the vector
+    * var dense = vec.full();
 	*/
 	//# exports.SparseVector.prototype.full = function () { return Object.create(require('qminer').la.Vector.prototype); }
 	JsDeclareFunction(full);
 
 	/**
-	* Returns a dense vector of values of nonzero elements of sparse vector.
+	* Returns a dense vector of values of non-zero elements of sparse vector.
 	* @returns {module:la.Vector} A dense vector of values.
+    * @example
+    * // import la module
+    * var la = require('qminer').la;
+    * // create a new sparse vector
+    * var vec = new la.SparseVector([[0, 2], [3, 1], [7, 5], [11, 4]]);
+    * // get the non-zero values of the sparse vector
+    * var valVec = vec.valVec();
 	*/
 	//# exports.SparseVector.prototype.valVec = function () { return Object.create(require('qminer').la.Vector.prototype); }
 	JsDeclareFunction(valVec);
 
 	/**
-	* Returns a dense vector of indices (zero based) of nonzero elements of sparse vector.
+	* Returns a dense vector of indices (zero based) of non-zero elements of sparse vector.
 	* @returns {module:la.Vector} A dense vector of indeces.
+    * @example
+    * // import la module
+    * var la = require('qminer').la;
+    * // create a new sprase vector
+    * var vec = new la.SparseVector([[0, 2], [3, 1], [7, 5], [11, 4]]);
+    * // get the non-zero indeces of the sparse vector
+    * var idxVec = vec.idxVec();
 	*/
 	//# exports.SparseVector.prototype.idxVec = function () { return Object.create(require('qminer').la.Vector.prototype); }
 	JsDeclareFunction(idxVec);
@@ -728,13 +771,13 @@ public:
 
 /**
 * Sparse Matrix
-* @classdesc Represents a sparse matrix.
+* @classdesc Sparse Matrix is represented as a dense vector of sparse vectors which correspond to matrix columns.
 * @class
 * @param {(Array<Array<Array<number>>> | module:la.SparseMatrix)} [arg] - Constructor arguments. There are two ways of constructing:
-* <br>1. A nested array of sparse vectors (columns). A sparse vector is a nested array of pairs, first value is index, second is value.. Example: [[[0,2]], [[0, 1], [2,3]]] has 2 columns.
-* The second nonzero element in second column has a value 3 at index 2.
-* <br>2. A sparse matrix (copy constructor).
-* @param {number} [rows] - Maximal number of rows in sparse vector. It is only in combinantion with nested array of vector elements.
+* <br>1. using a nested array of sparse vectors (columns). A sparse vector is a nested array of pairs, first value is index, second is value. Example: [[[0, 2]], [[0, 1], [2, 3]]] has 2 columns.
+* The second non-zero element in second column has a value 3 at index 2,
+* <br>2. using a sparse matrix (copy constructor).
+* @param {number} [rows] - Maximal number of rows in sparse vector. <i>It is only in combinantion with nested array of vector elements.</i>
 * @example
 * // import la module
 * var la = require('qminer').la;
@@ -787,7 +830,7 @@ public:
 	* @param {number} rowIdx - Row index (zero based).
 	* @param {number} colIdx - Column index (zero based).
 	* @param {number} num - Element value.
-	* @returns {module:la.SparseMatrix} Self. The value at position (rowIdx, colIdx) is changed.
+	* @returns {module:la.SparseMatrix} Self. The value at position (`rowIdx`, `colIdx`) is changed.
 	* @example
 	* // import la module
 	* var la = require('qminer').la;
@@ -807,7 +850,7 @@ public:
 	/**
 	* Returns the column of the sparse matrix.
 	* @param {number} colIdx - The column index (zero based).
-	* @returns {module:la.SparseVector} Sparse vector corresponding to the colIdx-th column of sparse matrix.
+	* @returns {module:la.SparseVector} Sparse vector corresponding to the `colIdx`-th column of sparse matrix.
 	* @example
 	* // import la module
 	* var la = require('qminer').la;
@@ -823,7 +866,7 @@ public:
 	* Sets a column in sparse matrix.
 	* @param {number} colIdx - Column index (zero based).
 	* @param {module:la.SparseVector} spVec - The new column sparse vector.
-	* @returns {module:la.SparseMatrix} Self.
+	* @returns {module:la.SparseMatrix} Self. The `colIdx`-th column has been replaced with `spVec`.
 	* @example
 	* // import la module
 	* var la = require('qminer').la;
@@ -839,7 +882,7 @@ public:
 	/**
 	* Attaches a column to the sparse matrix.
 	* @param {module:la.SparseVector} spVec - Attached column as sparse vector.
-	* @returns {module:la.SparseMatrix} Self. The last column is now the added sparse vector and the number of columns is now bigger by one.
+	* @returns {module:la.SparseMatrix} Self. The last column is now the added `spVec` and the number of columns is now bigger by one.
 	* @example
 	* // import la module
 	* var la = require('qminer').la;
@@ -859,11 +902,20 @@ public:
 	JsDeclareFunction(push);
 
 	/**
-	* Multiplies argument with sparse vector.
+	* Multiplies argument with sparse maatrix.
 	* @param {(number | module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix)} arg - Multiplication input.
 	* @returns {(module:la.Vector | module:la.Matrix)}
-	* <br>1. {@link module:la.Matrix}, if arg is number, {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
-	* <br>2. {@link module:la.Vector}, if arg is {@link module:la.Vector} or {@link module:la.SparseVector}.
+	* <br>1. {@link module:la.Matrix}, if `arg` is number, {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
+	* <br>2. {@link module:la.Vector}, if `arg` is {@link module:la.Vector} or {@link module:la.SparseVector}.
+    * @example
+    * // import la module
+    * var la = require('qminer').la;
+    * // create new sparse matrix
+    * var mat = new la.SparseMatrix([[[0, 2], [3, 5]], [[1, -3]]]);
+    * // create a vector
+    * var vec = new la.Vector([3, -2]);
+    * // multiply the matrix and vector
+    * var vec2 = mat.multiply(vec);
 	*/
 	//# exports.SparseMatrix.prototype.multiply = function (arg) { return (arg instanceof require('qminer').la.Vector | arg instanceof require('qminer').la.SparseVector) ? Object.create(require('qminer').la.Vector.prototype) : Object.create(require('qminer').la.Matrix.prototype); }
 	JsDeclareFunction(multiply);
@@ -872,14 +924,23 @@ public:
 	* Sparse matrix transpose and multiplies with argument.
 	* @param {(number | module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix)} arg - Multiplication input.
 	* @returns {(module:la.Vector | module:la.Matrix)}
-	* <br>1. {@link module:la.Matrix}, if arg is number, {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
-	* <br>2. {@link module:la.Vector}, if arg is {@link module:la.Vector} or {@link module:la.SparseVector}.
+	* <br>1. {@link module:la.Matrix}, if `arg` is number, {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
+	* <br>2. {@link module:la.Vector}, if `arg` is {@link module:la.Vector} or {@link module:la.SparseVector}.
+    * @example
+    * // import la module
+    * var la = require('qminer').la;
+    * // create new sparse matrix
+    * var mat = new la.SparseMatrix([[[0, 2], [3, 5]], [[1, -3]]]);
+    * // create a dense matrix
+    * var mat2 = new la.Matrix([[0, 1], [2, 3], [4, 5], [-1, 3]]);
+    * // transpose mat and multiply it with mat2
+    * var mat3 = mat.multiplyT(mat2);
 	*/
 	//# exports.SparseMatrix.prototype.multiplyT = function (arg) { return (arg instanceof require('qminer').la.Vector | arg instanceof require('qminer').la.SparseVector) ? Object.create(require('qminer').la.Vector.prototype) : Object.create(require('qminer').la.Matrix.prototype); }
 	JsDeclareFunction(multiplyT);
 
 	/**
-	* Returns the sum of two matrices.
+	* Addition of two matrices.
 	* @param {module:la.SparseMatrix} mat - The second sparse matrix.
 	* @returns {module:la.SparseMatrix} Sum of the two sparse matrices.
 	* @example
@@ -900,7 +961,7 @@ public:
 	JsDeclareFunction(plus);
 
 	/**
-	* Returns the difference of two matrices.
+	* Substraction of two matrices.
 	* @param {module:la.SparseMatrix} mat - The second sparse matrix.
 	* @returns {module:la.SparseMatrix} The difference of the two sparse matrices.
 	* @example
@@ -941,20 +1002,42 @@ public:
     * Returns a submatrix containing only selected columns.
     * Columns are identified by a vector of ids.
 	* @param {module:la.IntVector} columnIdVec - Integer vector containing selected column ids.
-    * @returns {module:la.SparseMatrix}
+    * @returns {module:la.SparseMatrix} The submatrix containing the the columns of the original matrix.
+    * @example
+    * //import la module
+    * var la = require('qminer').la;
+    * // create a new sparse matrix
+    * var mat = new la.SparseMatrix([[[0, 2], [2, -3]], [[1, 1], [3, -2]]]);
+    * // get the submatrix containing the 1, 2 and 4 column
+    * var submat = mat.getColSubmatrix(new la.IntVector([0, 1, 3]));
     */
 	//# exports.SparseMatrix.prototype.getColSubmatrix = function (columnIdVec) { return Object.create(require('qminer').la.SparseMatrix.prototype); }
     JsDeclareFunction(getColSubmatrix);
 
     /**
     * Clear content of the matrix and sets its row dimension to -1.
+    * @returns {module:la.SparseMatrix} Self. All the content has been cleared.
+    * @example
+    * //import la module
+    * var la = require('qminer').la;
+    * // create a new sparse matrix
+    * var mat = new la.SparseMatrix([[[0, 2], [2, -3]], [[1, 1], [3, -2]]]);
+    * // clear the matrix
+    * mat.clear();
     */
-    //# exports.SparseMatrix.prototype.clear = function () { }
+    //# exports.SparseMatrix.prototype.clear = function () { return Object.create(require('qminer').la.SparseMatrix.prototype); }
     JsDeclareFunction(clear);
 
 	/**
 	* Returns the vector of column norms of sparse matrix.
 	* @returns {module:la.Vector} Vector of column norms. Ihe i-th value of the return vector is the norm of i-th column of sparse matrix.
+    * @example
+    * //import la module
+    * var la = require('qminer').la;
+    * // create a new sparse matrix
+    * var mat = new la.SparseMatrix([[[0, 2], [2, -3]], [[1, 1], [3, -2]]]);
+    * // get the column norms
+    * var norms = mat.colNorms();
 	*/
 	//# exports.SparseMatrix.prototype.colNorms = function () { return Object.create(require('qminer').la.Vector.prototype); }
 	JsDeclareFunction(colNorms);
@@ -968,11 +1051,11 @@ public:
 	* // create a new sparse matrix
 	* var mat = new la.SparseMatrix([[[0, 2]], [[0, 1], [2, 3]]]);
 	* // normalize matrix columns
+    * // The new matrix elements are:
+    * // 1  0.316227
+    * // 0  0
+    * // 0  0.948683
 	* mat.normalizeCols();
-	* // The new matrix elements are:
-	* // 1  0.316227
-	* // 0  0
-	* // 0  0.948683
 	*/
 	//# exports.SparseMatrix.prototype.normalizeCols = function () { return Object.create(require('qminer').la.SparseMatrix.prototype); }
 	JsDeclareFunction(normalizeCols);
@@ -986,11 +1069,11 @@ public:
 	* // create a new sparse matrix
 	* var mat = new la.SparseMatrix([[[0, 2]], [[0, 1], [2, 3]]]);
 	* // create a dense representation of sparse matrix
+    * // returns the dense matrix:
+    * // 2  1
+    * // 0  0
+    * // 0  3
 	* mat.full();
-	* // returns
-	* // 2  1
-	* // 0  0
-	* // 0  3
 	*/
 	//# exports.SparseMatrix.prototype.full = function () { return Object.create(require('qminer').la.Matrix.prototype); }
 	JsDeclareFunction(full);
@@ -1006,7 +1089,7 @@ public:
 	* // get the frobenious norm of sparse matrix
 	* var norm = mat.frob(); // returns sqrt(30)
 	*/
-	//# exports.SparseMatrix.prototype.frob = function () { return 0; }
+	//# exports.SparseMatrix.prototype.frob = function () { return 0.0; }
 	JsDeclareFunction(frob);
 
 	/**
@@ -1059,7 +1142,7 @@ public:
 	* Saves the sparse matrix as output stream.
 	* @param {module:fs.FOut} fout - Output stream.
 	* @param {boolean} [saveMatlab=false] - If true, saves using matlab three column text format. Otherwise, saves using binary format.
-	* @returns {module:fs.FOut} The output stream fout.
+	* @returns {module:fs.FOut} The output stream `fout`.
 	* @example
 	* // import the modules
 	* var fs = require('qminer').fs;
@@ -1077,7 +1160,7 @@ public:
 	/**
 	* Loads the sparse matrix from input stream.
 	* @param {module:fs.FIn} fin - Input stream.
-	* @returns {module:la.Matrix} Self.
+	* @returns {module:la.Matrix} Self. The content has been loaded using `fin`.
 	* @example
 	* // import the modules
 	* var fs = require('qminer').fs;
@@ -1089,12 +1172,12 @@ public:
 	* // load the matrix
 	* mat.load(fin);
 	*/
-	//# exports.SparseMatrix.prototype.load = function (FIn) { return Object.create(require('qminer').fs.FIn.prototype); }
+	//# exports.SparseMatrix.prototype.load = function (FIn) { return Object.create(require('qminer').la.SparseMatrix.prototype); }
 	JsDeclareFunction(load);
 
 	/**
-	* Sets the row dimension
-	* @param {number} rowDim - Row dimension
+	* Sets the row dimension.
+	* @param {number} rowDim - Row dimension.
 	* @example
 	* // import the modules
 	* var la = require('qminer').la;
@@ -1103,7 +1186,7 @@ public:
 	* mat.setRowDim(2);
 	* mat.rows // prints 2
 	*/
-	//# exports.SparseMatrix.prototype.setRowDim = function (dim) { }
+	//# exports.SparseMatrix.prototype.setRowDim = function (rowDim) { }
 	JsDeclareFunction(setRowDim);
 
 	//!- `spMat2 = spMat.sign()` -- create a new sparse matrix `spMat2` whose elements are sign function applied to elements of `spMat`.
