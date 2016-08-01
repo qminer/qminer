@@ -15,8 +15,15 @@ module.exports = exports = function (pathQmBinary) {
     //!STARTJSDOC
 
     /**
-    * Returns the frobenious norm squared
-    * @returns {number} Frobenious norm squared
+    * Caluclates the frobenious norm squared of the matrix.
+    * @returns {number} Frobenious norm squared.
+    * @example
+    * // import la module
+    * var la = require('qminer').la;
+    * // create a sparse matrix
+    * var spMat = new la.SparseMatrix([[[0, 1], [1, 5]], [[0, 2], [2, -3]]]);
+    * // get the forbenious norm squared of the sparse matrix
+    * var frob = spMat.frob2();
     */
     exports.SparseMatrix.prototype.frob2 = function () {
         return Math.pow(this.frob(), 2);
@@ -34,9 +41,18 @@ module.exports = exports = function (pathQmBinary) {
     * var text = mat.toString(); // returns 'rows: -1, cols: 2, nnz: 3'
     */
     exports.SparseMatrix.prototype.toString = function () { return "rows: " + this.rows + ", cols:" + this.cols + ", nnz: " + this.nnz(); }
+
     /**
     * Returns the number of non-zero elements of sparse matrix.
     * @returns {number} Number of non-zero elements.
+    * @example
+    * // import la module
+    * var la = require('qminer').la;
+    * // create a sparse matrix
+    * var spMat = new la.SparseMatrix([[[0, 1], [1, 5]], [[0, 2], [2, -3]]]);
+    * // get the number of non-zero elements
+    * // returns 4
+    * var nnz = spMat.nnz(); 
     */
     exports.SparseMatrix.prototype.nnz = function () {
         var nnz = 0;
@@ -113,7 +129,7 @@ module.exports = exports = function (pathQmBinary) {
 
 	/**
     * Copies the vector into a JavaScript array of numbers.
-    * @returns {Array<number>} A JavaScript array of numbers.
+    * @returns {Array.<number>} A JavaScript array of numbers.
     * @example
     * // import la module
     * var la = require('qminer').la;
@@ -126,19 +142,43 @@ module.exports = exports = function (pathQmBinary) {
         return vec2arr(this);
 	}
 	/**
-    * Copies the vector into a JavaScript array
+    * Copies the vector into a JavaScript array of numbers.
+    * @returns {Array.<number>} A JavaScript array of integers.
+    * @example
+    * // import la module
+    * var la = require('qminer').la;
+    * // create a new integer vector
+    * var vec = new la.IntVector([1, 2, 3]);
+    * // create a JavaScript array out of vec
+    * var arr = vec.toArray(); // returns an array [1, 2, 3] 
     */
 	exports.IntVector.prototype.toArray = function () {
         return vec2arr(this);
 	}
 	/**
-    * Copies the vector into a JavaScript array
+    * Copies the vector into a JavaScript array of strings.
+    * @returns {Array.<string>} A JavaScript array of strings.
+    * @example
+    * // import la module
+    * var la = require('qminer').la;
+    * // create a new vector
+    * var vec = new la.StrVector(["one", "two", "three"]);
+    * // create a JavaScript array out of vec
+    * var arr = vec.toArray(); // returns an array ["one", "two", "three"]
     */
 	exports.StrVector.prototype.toArray = function () {
         return vec2arr(this);
 	}
 	/**
-    * Copies the vector into a JavaScript array
+    * Copies the vector into a JavaScript array of booleans.
+    * @returns {Array.<boolean>} A JavaScript array of booleans.
+    * @example
+    * // import la module
+    * var la = require('qminer').la;
+    * // create a new vector
+    * var vec = new la.BoolVector([true, false, true]);
+    * // create a JavaScript array out of vec
+    * var arr = vec.toArray(); // returns an array [true, false, true]
     */
 	exports.BoolVector.prototype.toArray = function () {
         return vec2arr(this);
@@ -409,7 +449,7 @@ module.exports = exports = function (pathQmBinary) {
     /**
     * Constructs a matrix by concatenating a double-nested array of matrices.
     * @param {Array<Array<module:la.Matrix>> } nestedArrMat - An array of block rows, where each block row is an array of matrices.
-    * For example: [[m_11, m_12], [m_21, m_22]] is used to construct a matrix where the (i,j)-th block submatrix is m_ij.
+    * For example: `[[m_11, m_12], [m_21, m_22]]` is used to construct a matrix where the (i,j)-th block submatrix is `m_ij`.
     * @returns {module:la.Matrix} Concatenated matrix.
     * @example
     * // import la module
@@ -420,12 +460,13 @@ module.exports = exports = function (pathQmBinary) {
     * var B = new la.Matrix([[5,6], [7,8]]);
     * var C = new la.Matrix([[9,10], [11,12]]);
     * var D = new la.Matrix([[13,14], [15,16]]);
-    * var mat = la.cat([[A,B], [C,D]]);
+    * // create a nested matrix
     * // returns the matrix:
     * // 1  2  5  6
     * // 3  4  7  8
     * // 9  10 13 14
     * // 11 12 15 16
+    * var mat = la.cat([[A,B], [C,D]]);
     */
     exports.cat = function (nestedArrMat) {
         var dimx = []; //cell row dimensions
@@ -517,7 +558,7 @@ module.exports = exports = function (pathQmBinary) {
 
     /**
     * Returns a JS array of indices `idxArray` that correspond to the max elements in each column of dense matrix. The resulting array has one element for vector input.
-    * @param {(la.Matrix | la.Vector)} X - The matrix or vector.
+    * @param {(module:la.Matrix | module:la.Vector)} X - The matrix or vector.
     * @returns {Array<number>} Array of indexes where maximum is found, one for each column.
     * @example
     * // import la module
@@ -547,19 +588,20 @@ module.exports = exports = function (pathQmBinary) {
 
     /**
     * Computes and returns the pairwise squared euclidean distances between columns of `X1` and `X2` (`mat3[i,j] = ||mat(:,i) - mat2(:,j)||^2`).
-    * @param {la.Matrix} X1 - First matrix
-    * @param {la.Matrix} X2 - Second matrix
-    * @returns {la.Matrix} Matrix with `X1.cols` rows and `X2.cols` columns containing squared euclidiean distances.
+    * @param {module:la.Matrix} X1 - First matrix.
+    * @param {module:la.Matrix} X2 - Second matrix.
+    * @returns {module:la.Matrix} Matrix with `X1.cols` rows and `X2.cols` columns containing squared euclidean distances.
     * @example
     * // import la module
     * var la = require('qminer').la;
     * // construct two input matrices
     * var X1 = new la.Matrix([[1,2], [2,0]]);
     * var X2 = new la.Matrix([[1,0.5,0],[0,-0.5,-1]]);
-    * la.pdist2(X1, X2)
+    * // get the pairwise squared distance between the matrices
     * // returns the matrix:
     * // 4 6.5 10
     * // 1 2.5 5
+    * la.pdist2(X1, X2)
     */
     exports.pdist2 = function (X1, X2) {
         var snorm1 = exports.square(X1.colNorms());
@@ -575,7 +617,14 @@ module.exports = exports = function (pathQmBinary) {
     /**
     * Calculates the inverse matrix with SVD.
     * @param {module:la.Matrix} mat - The matrix we want to inverse.
-    * @returns {module:la.Matrix} The inverse matrix of mat.
+    * @returns {module:la.Matrix} The inverse matrix of `mat`.
+    * @example
+    * // import la module
+    * var la = require('qminer').la;
+    * // create a random matrix
+    * var mat = new la.Matrix({ rows: 5, cols: 5, random: true });
+    * // get the inverse of mat
+    * var inv = la.inverseSVD(mat);
     */
     exports.inverseSVD = function (mat) {
         var k = Math.min(mat.rows, mat.cols);
@@ -607,15 +656,22 @@ module.exports = exports = function (pathQmBinary) {
         return B;
     }
 
-
-    //!- `la.conjgrad(mat,vec,vec2)` -- solves the psd symmetric system mat * vec2 = vec, where `mat` is a matrix and `vec` and `vec2` are dense vectors
-    //!- `la.conjgrad(spMat,vec,vec2)` -- solves the psd symmetric system spMat * vec2 = vec, where `spMat` is a matrix and `vec` and `vec2` are dense vectors
     /**
     * Solves the PSD symmetric system: A x = b, where A is a positive-definite symmetric matrix.
     * @param {(module:la.Matrix | module:la.SparseMatrix)} A - The matrix on the left-hand side of the system.
     * @param {module:la.Vector} b - The vector on the right-hand side of the system.
     * @param {module:la.Vector} [x] - Current solution. Default is a vector of zeros.
     * @returns {module:la.Vector} Solution to the system.
+    * @example
+    * // import la module
+    * var la = require('qminer').la;
+    * // create a positive-definite symmetric matrix
+    * var vecTemp = new la.Vector([1, 2, 3]);
+    * var mat = vecTemp.diag();
+    * // create the right-hand side vector 
+    * var vec = new la.Vector([0.5, 3, -2]);
+    * // solve the PSD symmetric system
+    * var x = la.conjgrad(mat, vec);
     */
     exports.conjgrad = function (A, b, x) {
     	x = x || new exports.Vector({vals: A.cols});

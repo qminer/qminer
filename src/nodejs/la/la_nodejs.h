@@ -106,6 +106,13 @@ public:
 	* @returns {Object} A JSON object `qrRes` which contains the decomposition matrices:
 	* <br>`qrRes.Q` - The orthogonal matrix Q of the QR decomposition. Type {@link module:la.Matrix}.
 	* <br>`qrRes.R` - The upper triangular matrix R of the QR decomposition. Type {@link module:la.Matrix}.
+    * @example
+    * // import la module
+    * var la = require('qminer').la;
+    * // create a random matrix
+    * var mat = new la.Matrix({ rows: 10, cols: 5, random: true });
+    * // calculate the QR decomposition of mat
+    * var qrRes = la.qr(mat);
 	*/
 	//# exports.prototype.qr = function (mat, tol) { return { Q: Object.create(require('qminer').la.Matrix.prototype), R: Object.create(require('qminer').la.Matrix.prototype) } }
 	JsDeclareFunction(qr);
