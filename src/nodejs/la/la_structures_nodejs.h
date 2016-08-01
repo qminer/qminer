@@ -14,19 +14,19 @@
 /**
 * Matrix constructor parameter object.
 * @typedef {Object} matrixArg
-* @property  {number} matrixArg.rows - Number of rows.
-* @property  {number} matrixArg.cols - Number of columns.
-* @property  {boolean} [matrixArg.random=false] - Generate a random matrix with entries sampled from a uniform [0,1] distribution. If set to false, a zero matrix is created.
+* @property {number} rows - Number of rows.
+* @property {number} cols - Number of columns.
+* @property {boolean} [random=false] - Generate a random matrix with entries sampled from a uniform [0,1] distribution. If set to false, a zero matrix is created.
 */
 
 /**
-* Matrix class
+* Matrix class.
 * @classdesc Represents a dense matrix (2d array), wraps a C++ object implemented in glib/base/ds.h.
 * @class
 * @param {(module:la~matrixArg | Array<Array<number>> | module:la.Matrix)} [arg] - Constructor arguments. There are three ways of constructing:
-* <br>1. Parameter object {@link module:la~matrixArg}.
-* <br>2. Nested array of matrix elements (row major). Example: [[1,2],[3,4]] has two rows, the first row is [1,2].
-* <br>3. A dense matrix (copy constructor).
+* <br>1. Using the parameter object {@link module:la~matrixArg},
+* <br>2. using a nested array of matrix elements (row major). Example: [[1,2],[3,4]] has two rows, the first row is [1,2],
+* <br>3. using a dense matrix (copy constructor).
 * @example
 * // import la module
 * var la = require('qminer').la;
@@ -74,8 +74,8 @@ private:
 	* Sets an element or a block of matrix.
 	* @param {number} rowIdx - Row index (zero based). 
 	* @param {number} colIdx - Column index (zero based).
-	* @param {(number | module:la.Matrix)} arg - A number or a matrix. If the arg is a matrix, then it gets copied, where the argument's upper left corner, arg.at(0,0), gets copied to (rowIdx, colIdx).
-	* @returns {module:la.Matrix} Self. The (rowIdx, colIdx) value/block is changed.
+	* @param {(number | module:la.Matrix)} arg - A number or a matrix. If arg is of type {@link module:la.Matrix}, it gets copied, where the argument's upper left corner, <code>arg.at(0,0)</code>, gets copied to position (<code>rowIdx</code>, <code>colIdx</code>).
+	* @returns {module:la.Matrix} Self. The (<code>rowIdx</code>, <code>colIdx</code>) value/block is changed.
 	* @example
 	* // import la module
 	* var la = require('qminer').la;
@@ -95,8 +95,8 @@ private:
 	* Right-hand side multiplication of matrix with parameter.
 	* @param {(number | module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix)} arg - Multiplication input. Supports scalar, vector and matrix input.
 	* @returns {(module:la.Matrix | module:la.Vector)}
-	* <br>1. {@link module:la.Matrix}, if arg is a number, {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
-	* <br>2. {@link module:la.Vector}, if arg is a {@link module:la.Vector} or {@link module:la.SparseVector}.
+	* <br>1. {@link module:la.Matrix}, if <code>arg</code> is a number, {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
+	* <br>2. {@link module:la.Vector}, if <code>arg</code> is a {@link module:la.Vector} or {@link module:la.SparseVector}.
 	* @example
 	* // import la module
 	* var la = require('qminer').la;
@@ -114,8 +114,8 @@ private:
 	* Matrix transpose and right-hand side multiplication of matrix with parameter.
 	* @param {(number | module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix)} arg - Multiplication input. Supports scalar, vector and matrix input.
 	* @returns {(module:la.Matrix | module:la.Vector)}
-	* <br>1. {@link module:la.Matrix}, if arg is a number, {@link module:la.Matrix} or a {@link module:la.SparseMatrix}.
-	* <br>2. {@link module:la.Vector}, if arg is a {@link module:la.Vector} or a {@link module:la.SparseVector}.
+	* <br>1. {@link module:la.Matrix}, if <code>arg</code> is a number, {@link module:la.Matrix} or a {@link module:la.SparseMatrix}.
+	* <br>2. {@link module:la.Vector}, if <code>arg</code> is a {@link module:la.Vector} or a {@link module:la.SparseVector}.
 	* @example
 	* // import la module
 	* var la = require('qminer').la;
@@ -130,7 +130,7 @@ private:
 	JsDeclareFunction(multiplyT);
 
 	/**
-	* Addition of two matrices.
+	* Adds two matrices.
 	* @param {module:la.Matrix} mat - The second matrix.
 	* @returns {module:la.Matrix} The sum of the matrices.
 	* @example
@@ -149,7 +149,7 @@ private:
 	JsDeclareFunction(plus);
 
 	/**
-	* Substraction of two matrices.
+	* Substracts two matrices.
 	* @param {module:la.Matrix} mat - The second matrix.
 	* @returns {module:la.Matrix} The difference of the matrices.
 	* @example
@@ -168,7 +168,7 @@ private:
 	JsDeclareFunction(minus);
 
 	/**
-	* Transposes matrix.
+	* Transposes the matrix.
 	* @returns {module:la.Matrix} Transposed matrix.
 	* @example
 	* // import la module
@@ -202,7 +202,7 @@ private:
 	JsDeclareFunction(solve);
 
 	/**
-	* Returns a vector of row norms.
+	* Calculates the matrix row norms.
 	* @returns {module:la.Vector} Vector, where the value at i-th index is the norm of the i-th row of matrix.
 	* @example
 	* // import la module
@@ -216,7 +216,7 @@ private:
 	JsDeclareFunction(rowNorms);
 
 	/**
-	* Returns a vector of column norms.
+	* Calculates the matrix column norms.
 	* @returns {module:la.Vector} Vector, where the value at i-th index is the norm of the i-th column of matrix.
 	* @example
 	* // import la module
@@ -231,7 +231,7 @@ private:
 
 	/**
 	* Normalizes each column of matrix.
-	* @returns {module:la.Matrix} Self. The columns of the matrix are normalized. 
+	* @returns {module:la.Matrix} Self. The columns of matrix are normalized. 
 	* @example
 	* // import la module
 	* var la = require('qminer').la;
@@ -290,7 +290,7 @@ private:
 
 	/**
 	* Gives the number of rows of matrix.
-	* @returns {number} Number of rows in matrix.
+	* @returns {number} Number of rows of matrix.
 	* @example
 	* // import la module
 	* var la = require('qminer').la;
@@ -304,7 +304,7 @@ private:
 
 	/**
 	* Gives the number of columns of matrix.
-	* @returns {number} Number of columns in matrix.
+	* @returns {number} Number of columns of matrix.
 	* @example
 	* // import la module
 	* var la = require('qminer').la;
@@ -319,7 +319,7 @@ private:
 	/**
 	* Gives the index of the maximum element in the given row.
 	* @param {number} rowIdx - Row index (zero based).
-	* @returns {number} Column index (zero based) of the maximum value in the rowIdx-th row of matrix.
+	* @returns {number} Column index (zero based) of the maximum value in the <code>rowIdx</code>-th row of matrix.
 	* @example
 	* // import la module
 	* var la = require('qminer').la;
@@ -334,7 +334,7 @@ private:
 	/**
 	* Gives the index of the maximum element in the given column.
 	* @param {number} colIdx - Column index (zero based).
-	* @returns {number} Row index (zero based) of the maximum value in colIdx-th column of matrix.
+	* @returns {number} Row index (zero based) of the maximum value in <code>colIdx</code>-th column of matrix.
 	* @example
 	* // import la module
 	* var la = require('qminer').la;
@@ -349,7 +349,7 @@ private:
 	/**
 	* Returns the corresponding column of matrix as vector.
 	* @param {number} colIdx - Column index (zero based).
-	* @returns {module:la.Vector} The colIdx-th column of matrix.
+	* @returns {module:la.Vector} The <code>colIdx</code>-th column of matrix.
 	* @example
 	* // import la module
 	* var la = require('qminer').la;
@@ -365,7 +365,7 @@ private:
 	* Sets the column of the matrix.
 	* @param {number} colIdx - Column index (zero based).
 	* @param {module:la.Vector} vec - The new column of matrix.
-	* @returns {module:la.Matrix} Self. The colIdx-th column is changed.
+	* @returns {module:la.Matrix} Self. The <code>colIdx</code>-th column is changed.
 	* @example
 	* // import la module
 	* var la = require('qminer').la;
@@ -387,6 +387,13 @@ private:
 	* Gets the submatrix from the column ids.
 	* @param {module:la.IntVector} intVec - The vector containing the column ids.
 	* @returns {module:la.Matrix} The submatrix containing the the columns of the original matrix.
+    * @example 
+    * //import la module
+    * var la = require('qminer').la;
+    * // create a random matrix
+    * var mat = new la.Matrix({ rows: 10, cols: 10, random: true });
+    * // get the submatrix containing the 1, 2 and 4 column
+    * var submat = mat.getColSubmatrix(new la.IntVector([0, 1, 3]));
 	*/
 	//# exports.Matrix.prototype.getColSubmatrix = function (intVec) { return Object.create(require('qminer').la.Matrix.prototype); }
 	JsDeclareFunction(getColSubmatrix);
@@ -398,6 +405,13 @@ private:
 	* @param {number} minCol - The minimum column index.
 	* @param {number} maxCol - The maximum column index.
 	* @returns {module:la.Matrix} The submatrix of the original matrix.
+    * @example
+    * //import la module
+    * var la = require('qminer').la;
+    * // create a random matrix
+    * var mat = new la.Matrix({ rows: 10, cols: 10, random: true });
+    * // get the submatrix containing from the position (1, 2) to (7, 4)
+    * var submat = mat.getSubmatrix(1, 7, 2, 4);
 	*/
 	//# exports.Matrix.prototype.getSubmatrix = function (minRow, maxRow, minCol, maxCol) { return Object.create(require('qminer').la.Matrix.prototype); }
 	JsDeclareFunction(getSubmatrix);
@@ -405,7 +419,7 @@ private:
 	/**
 	* Returns the corresponding row of matrix as vector.
 	* @param {number} rowIdx - Row index (zero based).
-	* @returns {module:la.Vector} The rowIdx-th row of matrix.
+	* @returns {module:la.Vector} The <code>rowIdx</code>-th row of matrix.
 	* @example
 	* // import la module
 	* var la = require('qminer').la;
@@ -421,7 +435,7 @@ private:
 	* Sets the row of matrix.
 	* @param {number} rowIdx - Row index (zero based).
 	* @param {module:la.Vector} vec - The new row of matrix.
-	* @returns {module:la.Matrix} Self. The rowIdx-th row is changed.
+	* @returns {module:la.Matrix} Self. The <code>rowIdx</code>-th row is changed.
 	* @example
 	* // import la module
 	* var la = require('qminer').la;
@@ -456,7 +470,7 @@ private:
 	/**
 	* Saves the matrix as output stream.
 	* @param {module:fs.FOut} fout - Output stream.
-	* @returns {module:fs.FOut} The output stream fout.
+	* @returns {module:fs.FOut} The output stream <code>fout</code>.
 	* @example
 	* // import the modules
 	* var fs = require('qminer').fs;
@@ -474,7 +488,7 @@ private:
 	/**
 	* Loads the matrix from input stream.
 	* @param {module:fs.FIn} fin - Input stream.
-	* @returns {module:la.Matrix} Self. It is made out of the input stream fin.
+	* @returns {module:la.Matrix} Self. It is made out of the input stream <code>fin</code>.
 	* @example
 	* // import the modules
 	* var fs = require('qminer').fs;

@@ -45,7 +45,7 @@ public:
     * // vector contains the elements [1, 2, 1]
     * var mean = statistics.mean(mat);
 	*/
-	//# exports.mean = function (input) { return input instanceof Object.create(require('qminer').la.Vector) ? 0.0 : Object.create(require('qminer').la.Vector); }
+	//# exports.mean = function (input) { return input instanceof Object.create(require('qminer').la.Vector) ? 0.0 : Object.create(require('qminer').la.Vector.prototype); }
 	JsDeclareFunction(mean);
 	
 	/**
@@ -67,7 +67,7 @@ public:
     * // calculate the standard deviation of the matrix columns
     * var mean = statistics.std(mat); 
 	*/
-	//# exports.std = function (X, flag, dim) { return input instanceof Object.create(require('qminer').la.Vector) ? 0.0 : Object.create(require('qminer').la.Vector); }
+	//# exports.std = function (X, flag, dim) { return input instanceof Object.create(require('qminer').la.Vector) ? 0.0 : Object.create(require('qminer').la.Vector.prototype); }
 	JsDeclareFunction(std);
 
 	/**
@@ -76,10 +76,10 @@ public:
 	* @param {number} [flag=0] - If set to 0, it normalizes mat by n-1; if set to 1, it normalizes by n.
 	* @param {number} [dim=1] - Computes the standard deviations along the dimension of mat specified by parameter `dim`. 
     * If set to 1, calculates the column standard deviation. If set to 2, calculates the row standard deviation.
-	* @returns {Object} The object 'zscoreResult' containing:
-	* <br>zscoreResult.sigma - Vector of standard deviations of mat used to compute the z-scores.
-	* <br>zscoreResult.mu - Vector of mean values of mat used to compute the z-scores.
-	* <br>zscoreResult.Z - A matrix of z-scores that has mean 0 and variance 1.
+	* @returns {Object} The object `zscoreResult` containing:
+	* <br>`zscoreResult.sigma` - {@link module:la.Vector} of standard deviations of mat used to compute the z-scores.
+	* <br>`zscoreResult.mu` - {@link module:la.Vector} of mean values of mat used to compute the z-scores.
+	* <br>`zscoreResult.Z` - {@link module:la.Matrix} of z-scores that has mean 0 and variance 1.
     * @example
     * // import modules
     * var qm = require('qminer');
@@ -90,7 +90,7 @@ public:
     * // calculate the standard deviation of the matrix columns
     * var mean = statistics.zscore(mat);
 	*/
-	//# exports.zscore = function (mat, flag, dim) { return {sigma: Object.create(require('qminer').la.Vector), mu: Object.create(require('qminer').la.Vector), Z: Object.create(require('qminer').la.Matrix)}; }
+	//# exports.zscore = function (mat, flag, dim) { return {sigma: Object.create(require('qminer').la.Vector.prototype), mu: Object.create(require('qminer').la.Vector.prototype), Z: Object.create(require('qminer').la.Matrix.prototype)}; }
 	JsDeclareFunction(zscore);
 
 	/**

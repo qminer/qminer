@@ -15,7 +15,7 @@ module.exports = exports = function (pathQmBinary) {
     /**
 	 * Calculates the z-score for a point sampled from a Gaussian distribution. The z-score indicates
 	 * how many standard deviations an element is from the meam and can be calculated using
-	 * the following formula: z = (x - mu) / sigma.
+	 * the following formula: `z = (x - mu) / sigma`.
 	 * @param {Number} x - The sampled point.
 	 * @param {Number} mu - Mean of the distribution.
 	 * @param {Number} sigma - Variance of the distribution.
