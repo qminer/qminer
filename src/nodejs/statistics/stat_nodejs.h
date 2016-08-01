@@ -17,7 +17,7 @@
 * @example
 * // import the modules
 * var qm = require('qminer');
-* var statistics = require('qminer');
+* var statistics = qm.statistics;
 * // create a vector
 * var vec = new qm.la.Vector([0, 1, 2, -1, -2]);
 * // calculate the mean value of the vector
