@@ -15,7 +15,7 @@ module.exports = exports = function (pathQmBinary) {
     //!STARTJSDOC
 
     /**
-    * Caluclates the frobenious norm squared of the matrix.
+    * Calculates the frobenious norm squared of the matrix.
     * @returns {number} Frobenious norm squared.
     * @example
     * // import la module
