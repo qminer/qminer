@@ -25,7 +25,7 @@ module.exports = exports = function (pathQmBinary) {
     ///////////////////////////////////////////////////
 
     /**
-    * Preprocessing
+    * PreprocessingF
     * @namespace
     * @desc Preprocessing functions for preparing labels in formats accepted
     * by learning modules in {@link module:analytics}.
@@ -1729,7 +1729,7 @@ module.exports = exports = function (pathQmBinary) {
    
 
     /**
-     * @typedef {Object} KMeansExplanation
+     * @typedef {Object} KMeansExplain
      * The examplanation returned by {@link module:analytics.KMeans#explain}.
      * @property {number} medoidID - The ID of the nearest medoids.
      * @property {module:la.IntVector} featureIDs - The IDs of features, sorted by contribution.
@@ -1739,7 +1739,7 @@ module.exports = exports = function (pathQmBinary) {
     /**
      * Returns the IDs of the nearest medoid for each example.
      * @param {(module:la.Matrix | module:la.SparseMatrix)} X - Matrix whose columns correspond to examples.
-     * @returns {Array.<module:analytics~KMeansExplanation>} Array containing the KMeans explanantions.
+     * @returns {Array.<module:analytics~KMeansExplain>} Array containing the KMeans explanantions.
      * @example
      * // import analytics module
      * var analytics = require('qminer').analytics;
