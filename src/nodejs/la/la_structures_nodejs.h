@@ -289,8 +289,7 @@ private:
 	JsDeclareFunction(frob);
 
 	/**
-	* Gives the number of rows of matrix.
-	* @returns {number} Number of rows of matrix.
+	* Gives the number of rows of matrix. Type `number`.
 	* @example
 	* // import la module
 	* var la = require('qminer').la;
@@ -303,8 +302,7 @@ private:
 	JsDeclareProperty(rows);
 
 	/**
-	* Gives the number of columns of matrix.
-	* @returns {number} Number of columns of matrix.
+	* Gives the number of columns of matrix. Type `number`.
 	* @example
 	* // import la module
 	* var la = require('qminer').la;
@@ -655,8 +653,7 @@ public:
 	JsDeclareFunction(normalize);
 
 	/**
-	* Returns the number of non-zero values.
-	* @returns {number} Number of non-zero values.
+	* Returns the number of non-zero values. Type `number`.
 	* @example
 	* // import la module
 	* var la = require('qminer').la;
@@ -670,8 +667,7 @@ public:
 	JsDeclareProperty(nnz);
 
 	/**
-	* Returns the dimension of sparse vector.
-	* @returns {number} Dimension of sparse vector.
+	* Returns the dimension of sparse vector. Type `number`.
     * @example
     * // import la module
     * var la = require('qminer').la;
@@ -1093,8 +1089,7 @@ public:
 	JsDeclareFunction(frob);
 
 	/**
-	* Gives the number of rows of sparse matrix.
-	* @returns {number} Number of rows of sparse matrix.
+	* Gives the number of rows of sparse matrix. Type `number`.
 	* @example
 	* // import la module
 	* var la = require('qminer').la;
@@ -1107,8 +1102,7 @@ public:
 	JsDeclareProperty(rows);
 
 	/**
-	* Gives the number of columns of sparse matrix.
-	* @returns {number} Number of columns of sparse matrix.
+	* Gives the number of columns of sparse matrix. Type `number`.
 	* @example
 	* // import la module
 	* var la = require('qminer').la;

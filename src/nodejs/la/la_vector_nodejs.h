@@ -487,8 +487,7 @@ private:
 	JsDeclareSpecializedFunction(normalize);
 
 	/**
-	* Gives the length of vector.
-	* @returns {number} Length of vector.
+	* Gives the length of vector. Type `number`.
     * @example
     * var la = require('qminer').la;
     * // create a new vector

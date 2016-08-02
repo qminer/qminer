@@ -139,8 +139,8 @@ private:
 // QMiner-JavaScript-Support-Vector-Classification
 
 /**
-* SVM constructor parameters. Used for the construction of {@link module:analytics.SVC} and {@link module:analytics.SVR}.
 * @typedef {Object} SVMParam
+* SVM constructor parameters. Used for the construction of {@link module:analytics.SVC} and {@link module:analytics.SVR}.
 * @property  {string} [algorithm='SGD'] - The algorithm procedure. Possible options are `'SGD'`, `'PR_LOQO'` and `'LIBSVM'`.
 * @property  {number} [c=1.0] - Cost parameter. Increasing the parameter forces the model to fit the training data more accurately (setting it too large may lead to overfitting) .
 * @property  {number} [j=1.0] - Unbalance parameter. Increasing it gives more weight to the positive examples (getting a better fit on the positive training examples gets a higher priority). Setting c=n is like adding n-1 copies of the positive training examples to the data set.
@@ -214,8 +214,7 @@ public:
 	//# exports.SVC.prototype.setParams = function(param) { return Object.create(require('qminer').analytics.SVC.prototype); };
 
 	/**	
-	* Gets the vector of coefficients of the linear model.
-	* @property {module:la.Vector} weights - Vector of coefficients of the linear model.
+	* Gets the vector of coefficients of the linear model. Type {@link module:la.Vector}.
 	* @example 
 	* // import the analytics and la modules
 	* var analytics = require('qminer').analytics;
@@ -394,8 +393,7 @@ public:
 	//# exports.SVR.prototype.setParams = function(param) { return Object.create(require('qminer').analytics.SVR.prototype); };
 
 	/**
-	* The vector of coefficients of the linear model.
-	* @returns {module:la.Vector} weights - Vector of coefficients of the linear model.
+	* The vector of coefficients of the linear model. Type {@link module:la.Vector}.
     * @example
     * // import the modules
 	* var analytics = require('qminer').analytics;
@@ -515,9 +513,10 @@ public:
 */
 
 /**
- * Ridge regression. Minimizes: `||A' x - b||^2 + ||gamma x||^2`. 
- * Uses {@link http://en.wikipedia.org/wiki/Tikhonov_regularization Tikhonov regularization}.
+ * Ridge Regression
  * @class
+ * @classdesc Ridge regression minimizes the value `||A' x - b||^2 + ||gamma x||^2`. 
+ * Uses {@link http://en.wikipedia.org/wiki/Tikhonov_regularization Tikhonov regularization}.
  * @param {module:analytics~ridgeRegParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
  * <br>1. Using the parameter object {@link  module:analytics~ridgeRegParam},
  * <br>2. using the file input stream {@link module:fs.FIn}.
@@ -661,7 +660,7 @@ public:
     JsDeclareFunction(predict);
     
     /**
-     * @property {module:la.Vector} weights - Vector of coefficients for linear regression.
+     * Vector of coefficients for linear regression. Type {@link module:la.Vector}.
      * @example
      * // import modules
 	 * var analytics = require('qminer').analytics;
@@ -712,9 +711,7 @@ public:
 /**
  * Sigmoid function (`y = 1/[1 + exp[-A*x + B]]`) fitted on decision function to mimic.
  * @class
- * @param {module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
-* <br>1. construction by default value (not giving an argument),
-* <br>2. using the file input stream {@link module:fs.FIn}.
+ * @param {module:fs.FIn} [arg] - Construction arguments.
  * @example
  * // import modules
  * la = require('qminer').la;
@@ -781,9 +778,9 @@ public:
 
 	/**
 	* Gets the model.
-	* @returns {Object} The object `sigRes` containing the properties:
-    * <br> `sigRes.A` - First value of the Sigmoid model,
-    * <br> `sigRes.B` - Second value of the Sigmoid model.
+	* @returns {Object} The object `sigModel` containing the properties:
+    * <br> `sigModel.A` - First value of the Sigmoid model,
+    * <br> `sigModel.B` - Second value of the Sigmoid model.
 	* @example
 	* // import analytics module
 	* var analytics = require('qminer').analytics;
@@ -1007,9 +1004,9 @@ public:
     
 	/**
 	* Returns the model.
-	* @returns {Object} The object `nnRes` containing the properties:
-	* <br> 1. `nnRes.rate` - The expected fraction of emmited anomalies.
-	* <br> 2. `nnRes.thresh` - Maximal squared distance to the nearest neighbor that is not anomalous.
+	* @returns {Object} The object `neighbourModel` containing the properties:
+	* <br> 1. `neighbourModel.rate` - The expected fraction of emmited anomalies.
+	* <br> 2. `neighbourModel.thresh` - Maximal squared distance to the nearest neighbor that is not anomalous.
 	* @example
 	* // import analytics module
 	* var analytics = require('qminer').analytics;
@@ -1110,7 +1107,7 @@ public:
 
 	/**
 	* @typedef {Object} NearestNeighborADExplain
-	* An object used for interpreting the predictions of {@link module:analytics.NearestNeighborAD}.
+	* An object used for interpreting the predictions of {@link module:analytics.NearestNeighborAD#explain}.
 	* @property {number} nearestID - The ID of the nearest neighbor.
 	* @property {number} distance - The distance to the nearest neighbor.
 	* @property {Array.<module:analytics~NearestNeighborADFeatureContribution>} features - An array with feature contributions.
@@ -1120,7 +1117,8 @@ public:
 
 	/**
 	* @typedef {Object} NearestNeighborADFeatureContribution
-	* An object explaining the prediction of {@link module:analytics.NearestNeighborAD} in terms of a single feature.
+	* An object explaining the prediction of {@link module:analytics.NearestNeighborAD#explain} in terms of a single feature.
+    * Contained in the object {@link module:analytics~NearestNeighborADExplain}.
 	* @property {number} id - The ID of the feature.
 	* @property {number} val - The value of the feature for the vector we are explaining.
 	* @property {number} nearVal - The the value of the feature for the nearest neighbor.
@@ -1150,7 +1148,7 @@ public:
 	JsDeclareFunction(explain);
 
 	/**
-	* Returns true when the model has enough data to initialize.
+	* Returns true when the model has enough data to initialize. Type `boolean`.
     * @example
     * // import modules
 	* var analytics = require('qminer').analytics;
@@ -1172,7 +1170,7 @@ public:
 // QMiner-JavaScript-Recursive-Linear-Regression
 
 /**
-* @typedef {Object} recLinearRegParam
+* @typedef {Object} recLinRegParam
 * An object used for the construction of {@link module:analytics.RecLinReg}.
 * @param {number} dim - The dimension of the model.
 * @param {number} [regFact=1.0] - The regularization factor.
@@ -1183,7 +1181,7 @@ public:
 * Recursive Linear Regression
 * @classdesc Holds the Recursive Linear Regression model.
 * @class
-* @param {module:analytics~recLinearRegParam | module:fs.FIn} arg - Construction arguments. There are two ways of constructing:
+* @param {module:analytics~recLinRegParam | module:fs.FIn} arg - Construction arguments. There are two ways of constructing:
 * <br>1. Using the parameter object {@link  module:analytics~detectorParam},
 * <br>2. using the file input stream {@link module:fs.FIn}.
 * @example
@@ -1269,7 +1267,7 @@ private:
 
 	/**
 	* Sets the parameters of the model.
-	* @param {module:analytics~recLinearRegParam} params - The new parameters of the model.
+	* @param {module:analytics~recLinRegParam} params - The new parameters of the model.
 	* @returns {module:analytics.RecLinReg} Self. The parameters are updated. Any previous model is set to default.
 	* @example
 	* // import analytics module
@@ -1284,7 +1282,7 @@ private:
 
 	/**
 	* Returns the parameters.
-	* @returns {module:analytics~recLinearRegParam} The parameters of the model.
+	* @returns {module:analytics~recLinRegParam} The parameters of the model.
 	* @example
 	* // import analytics module
 	* var analytics = require('qminer').analytics;
@@ -1297,7 +1295,7 @@ private:
 	JsDeclareFunction(getParams);
 
 	/**
-	* Gives the weights of the model.
+	* Gives the weights of the model. Type {@link module:la.Vector}.
     * @example
     * // import analytics module
     * var analytics = require('qminer').analytics;
@@ -1316,7 +1314,7 @@ private:
 	JsDeclareProperty(weights);
 
 	/**
-	* Gets the dimensionality of the model.
+	* Gets the dimensionality of the model. Type `number`.
     * @example
     * // import analytics module
     * var analytics = require('qminer').analytics;
@@ -1477,7 +1475,7 @@ public:
 	JsDeclareFunction(predict);
 
 	/**
-	 * Gives the weights of the model.
+	 * Gives the weights of the model. Type {@link module:la.Vector}.
      * @example 
      * // import modules
      * var analytics = require('qminer').analytics;
@@ -1640,7 +1638,7 @@ public:
 	JsDeclareFunction(predict);
 
 	/**
-	 * The models weights.
+	 * The models weights. Type {@link module:la.Vector}.
      * @example
      * // import modules
 	 * var analytics = require('qminer').analytics;
@@ -1689,13 +1687,13 @@ public:
 // QMiner-JavaScript-Neural-Networks
 
 /**
-* @typedef {Object} nnetParams
+* @typedef {Object} nnetParam
 * An object used for the construction of {@link module:analytics.NNet}.
 * @property {Array.<number>} [layout = [1, 2, 1]] - The array representing the network schema.
 * @property {number} [learnRate = 0.1] - The learning rate.
 * @property {number} [momentum = 0.5] - The momentum of optimization.
-* @property {string} [tFuncHidden = 'tanHyper'] - Type of activation function used on hidden nevrons. Possible options are: `'tanHyper'`, `'sigmoid'`, `'fastTanh'`, `'softPlus'`, `'fastSigmoid'` and `'linear'`.
-* @property {string} [tFuncOut = 'tanHyper'] - Type of activation function used on output nevrons. Possible options are: `'tanHyper'`, `'sigmoid'`, `'fastTanh'`, `'softPlus'`, `'fastSigmoid'` and `'linear'`.
+* @property {string} [tFuncHidden = 'tanHyper'] - Type of activation function used on hidden nevrons. Possible options are `'tanHyper'`, `'sigmoid'`, `'fastTanh'`, `'softPlus'`, `'fastSigmoid'` and `'linear'`.
+* @property {string} [tFuncOut = 'tanHyper'] - Type of activation function used on output nevrons. Possible options are `'tanHyper'`, `'sigmoid'`, `'fastTanh'`, `'softPlus'`, `'fastSigmoid'` and `'linear'`.
 */
 
 /**
@@ -2338,7 +2336,7 @@ public:
     JsDeclareFunction(save);
 
     /**
-     * The centroids created with the fit method.
+     * The centroids created with the fit method. Type {@link module:la.Matrix}.
      * @example
      * // import the modules
      * var analytics = require('qminer').analytics;
@@ -2352,7 +2350,7 @@ public:
     JsDeclareProperty(centroids);
 
     /**
-    * The medoids created with the fit method.
+    * The medoids created with the fit method. Type {@link module:la.IntVector}.
     * @example
     * // import the modules
     * var analytics = require('qminer').analytics;
@@ -2366,7 +2364,7 @@ public:
     JsDeclareProperty(medoids);
 
     /**
-    * The integer vector containing the cluster ids of the training set created with the fit method.
+    * The integer vector containing the cluster ids of the training set created with the fit method. Type {@link module:la.IntVector}.
     * @example
     * // import the modules
     * var analytics = require('qminer').analytics;
@@ -2484,9 +2482,9 @@ public:
 
 	/**
 	 * Gets the model.
-	 * @returns {Object} An object `recRes` containing the properties:
-     * <br>1. `recRes.U` - The matrix `U` from the weighted NMF. Type {@link module:la.Matrix}.
-     * <br>2. `recRes.V` - The matrix `V` from the weighted NMF. Type {@link module:la.Matrix}.
+	 * @returns {Object} An object `recSysModel` containing the properties:
+     * <br>1. `recSysModel.U` - The matrix `U` from the weighted NMF. Type {@link module:la.Matrix}.
+     * <br>2. `recSysModel.V` - The matrix `V` from the weighted NMF. Type {@link module:la.Matrix}.
 	 * @example
 	 * // import modules
 	 * //var analytics = require('qminer').analytics;
@@ -2507,7 +2505,7 @@ public:
 	* Fits the input matrix to the recommender model.
 	* @param {module:la.Matrix | module:la.SparseMatrix} A - Matrix with the ratings, where it A_ij element is the rating that the i-th person
 	* gave to the j-th item. If A_ij = 0, the data doesn't exist.
-	* @returns {module:analytics.RecommenderSys} Self.
+	* @returns {module:analytics.RecommenderSys} Self. The model has been fitted.
 	* @example <caption> Asynhronous function </caption>
 	* // import modules
 	* var analytics = require('qminer').analytics;

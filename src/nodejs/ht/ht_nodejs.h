@@ -256,7 +256,15 @@ public:
     JsDeclareFunction(hasKey);
 	
 	/**
-    * @property {number} length - Number of key/dat pairs.
+    * Number of key/dat pairs. Type `number`.
+    * @example
+    * // create a new hashtable
+	* ht = require('qminer').ht;
+	* var h = new ht.<% className %>();
+	* // Adding two key/dat pairs
+	* h.put(<% key1 %>, <% val1 %>);
+    * // get the number of key/dat pairs
+    * var length = h.length; // returns 1
 	*/
 	//# exports.<% className %>.prototype.length = 0;
 	JsDeclareProperty(length);
