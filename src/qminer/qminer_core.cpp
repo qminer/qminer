@@ -47,7 +47,7 @@ void TEnv::Init() {
 };
 
 void TEnv::InitLogger(const int& _Verbosity,
-        const TStr& FPath, const bool& TimestampP) {
+		const TStr& FPath, const bool& TimestampP) {
 
 	// direct logger to appropriate output
 	if (FPath == "null") {
@@ -438,9 +438,9 @@ void TStore::AddJoinRec(const uint64& RecId, const PJsonVal& RecVal) {
 			TWPt<TStore> JoinStore = Base->GetStoreByStoreId(JoinDesc.GetJoinStoreId());
 			// different handling for field and index joins
 			if (JoinDesc.IsFieldJoin()) {
-                // first make an empty join
-                SetFieldUInt64(RecId, JoinDesc.GetJoinRecFieldId(), TUInt64::Mx);
-                SetFieldInt(RecId, JoinDesc.GetJoinFqFieldId(), 0);
+				// first make an empty join
+				SetFieldUInt64(RecId, JoinDesc.GetJoinRecFieldId(), TUInt64::Mx);
+				SetFieldInt(RecId, JoinDesc.GetJoinFqFieldId(), 0);
 				// get join record JSon object
 				PJsonVal JoinRecVal = RecVal->GetObjKey(JoinDesc.GetJoinNm());
 				// insert join record
@@ -1985,13 +1985,45 @@ void TRecSet::SortByField(const bool& Asc, const int& SortFieldId) {
 	const TFieldDesc& Desc = Store->GetFieldDesc(SortFieldId);
 	// apply appropriate comparator
 	if (Desc.IsInt()) {
-		SortCmp(TRecCmpByFieldInt(Store, SortFieldId, Asc));
+		typedef TKeyDat<TInt, TUInt64IntKd> TItem;
+		TVec<TItem> TItemV(RecIdFqV.Len());
+		for (int N = 0; N < RecIdFqV.Len(); N++) {
+			TItemV.SetVal(N, TItem(Store->GetFieldInt(RecIdFqV[N].Key, SortFieldId), RecIdFqV[N]));
+		}
+		TItemV.Sort(Asc);
+		for (int N = 0; N < TItemV.Len(); N++) {
+			RecIdFqV.SetVal(N, TItemV[N].Dat);
+		}
 	} else if (Desc.IsFlt()) {
-		SortCmp(TRecCmpByFieldFlt(Store, SortFieldId, Asc));
+		typedef TKeyDat<TFlt, TUInt64IntKd> TItem;
+		TVec<TItem> TItemV(RecIdFqV.Len());
+		for (int N = 0; N < RecIdFqV.Len(); N++) {
+			TItemV.SetVal(N, TItem(Store->GetFieldFlt(RecIdFqV[N].Key, SortFieldId), RecIdFqV[N]));
+		}
+		TItemV.Sort(Asc);
+		for (int N = 0; N < TItemV.Len(); N++) {
+			RecIdFqV.SetVal(N, TItemV[N].Dat);
+		}
 	} else if (Desc.IsStr()) {
-		SortCmp(TRecCmpByFieldStr(Store, SortFieldId, Asc));
+		typedef TKeyDat<TStr, TUInt64IntKd> TItem;
+		TVec<TItem> TItemV(RecIdFqV.Len());
+		for (int N = 0; N < RecIdFqV.Len(); N++) {
+			TItemV.SetVal(N, TItem(Store->GetFieldStr(RecIdFqV[N].Key, SortFieldId), RecIdFqV[N]));
+		}
+		TItemV.Sort(Asc);
+		for (int N = 0; N < TItemV.Len(); N++) {
+			RecIdFqV.SetVal(N, TItemV[N].Dat);
+		}
 	} else if (Desc.IsTm()) {
-		SortCmp(TRecCmpByFieldTm(Store, SortFieldId, Asc));
+		typedef TKeyDat<TUInt64, TUInt64IntKd> TItem;
+		TVec<TItem> TItemV(RecIdFqV.Len());
+		for (int N = 0; N < RecIdFqV.Len(); N++) {
+			TItemV.SetVal(N, TItem(Store->GetFieldTmMSecs(RecIdFqV[N].Key, SortFieldId), RecIdFqV[N]));
+		}
+		TItemV.Sort(Asc);
+		for (int N = 0; N < TItemV.Len(); N++) {
+			RecIdFqV.SetVal(N, TItemV[N].Dat);
+		}
 	} else {
 		throw TQmExcept::New("Unsupported sort field type!");
 	}
@@ -3893,10 +3925,10 @@ bool TIndex::DoQuerySmall(const TIndex::PQmGixExpItemSmall& ExpItem,
 }
 
 void TIndex::Upgrade(const TQmGixItemSmallV& Src, TQmGixItemV& Dest) const {
-    Dest.Clr(); Dest.Reserve(Src.Len());
-    for (int i = 0; i < Src.Len(); i++) {
-        Dest.Add(TQmGixItem((uint64)Src[i].Key, (int)Src[i].Dat));
-    }
+	Dest.Clr(); Dest.Reserve(Src.Len());
+	for (int i = 0; i < Src.Len(); i++) {
+		Dest.Add(TQmGixItem((uint64)Src[i].Key, (int)Src[i].Dat));
+	}
 }
 
 TIndex::TIndex(const TStr& _IndexFPath, const TFAccess& _Access,
@@ -4356,11 +4388,11 @@ void TIndex::SaveTxt(const TWPt<TBase>& Base, const TStr& FNm) {
 }
 
 TBlobBsStats TIndex::GetBlobStats() const {
-    return TBlobBsStats::Add(Gix->GetBlobStats(), GixSmall->GetBlobStats());
+	return TBlobBsStats::Add(Gix->GetBlobStats(), GixSmall->GetBlobStats());
 }
 
 TGixStats TIndex::GetGixStats(const bool& RefreshP) const {
-    return TGixStats::Add(Gix->GetGixStats(RefreshP), GixSmall->GetGixStats(RefreshP));
+	return TGixStats::Add(Gix->GetGixStats(RefreshP), GixSmall->GetGixStats(RefreshP));
 }
 
 int TIndex::PartialFlush(const int& WndInMsec) {
