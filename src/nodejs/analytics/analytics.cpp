@@ -1909,7 +1909,7 @@ TNodeJsTokenizer* TNodeJsTokenizer::NewFromArgs(const v8::FunctionCallbackInfo<v
         const TStr& TypeNm = "unicode";
         PJsonVal ParamVal = TJsonVal::NewObj();
         ParamVal->AddToObj("type", TypeNm);
-        // create
+        // create tokenizer
         PTokenizer Tokenizer = TTokenizer::New(TypeNm, ParamVal);
         return new TNodeJsTokenizer(Tokenizer);
     } else if (TNodeJsUtil::IsArgObj(Args, 0)) {
@@ -1920,7 +1920,7 @@ TNodeJsTokenizer* TNodeJsTokenizer::NewFromArgs(const v8::FunctionCallbackInfo<v
         } else {
             ParamVal->AddToObj("type", TypeNm);
         }
-        // create
+        // create tokenizer
         PTokenizer Tokenizer = TTokenizer::New(TypeNm, ParamVal);
         return new TNodeJsTokenizer(Tokenizer);
     } else {
