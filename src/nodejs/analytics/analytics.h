@@ -158,7 +158,7 @@ private:
 * see: {@link http://ttic.uchicago.edu/~nati/Publications/PegasosMPB.pdf Pegasos: Primal Estimated sub-GrAdient SOlver for SVM}.
 * @class
 * @param {module:analytics~SVMParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
-* <br>1. Using the parameter object {@link  module:analytics~SVMParam},
+* <br>1. Using the {@link  module:analytics~SVMParam} object,
 * <br>2. using the file input stream {@link module:fs.FIn}.
 * @example
 * // import modules
@@ -338,7 +338,7 @@ public:
 * @classdesc Support Vector Machine Regression. Implements a soft margin linear support vector regression using the PEGASOS algorithm with epsilon insensitive loss, see: {@link http://ttic.uchicago.edu/~nati/Publications/PegasosMPB.pdf Pegasos: Primal Estimated sub-GrAdient SOlver for SVM}.
 * @class
 * @param {module:analytics~SVMParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
-* <br>1. Using the parameter object {@link  module:analytics~SVMParam},
+* <br>1. Using the {@link  module:analytics~SVMParam} object,
 * <br>2. using the file input stream {@link module:fs.FIn}.
 * @example
 * // import module
@@ -518,7 +518,7 @@ public:
  * @classdesc Ridge regression minimizes the value `||A' x - b||^2 + ||gamma x||^2`. 
  * Uses {@link http://en.wikipedia.org/wiki/Tikhonov_regularization Tikhonov regularization}.
  * @param {module:analytics~ridgeRegParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
- * <br>1. Using the parameter object {@link  module:analytics~ridgeRegParam},
+ * <br>1. Using the {@link  module:analytics~ridgeRegParam} object,
  * <br>2. using the file input stream {@link module:fs.FIn}.
  * @example
  * // import modules
@@ -904,7 +904,7 @@ public:
  * @classdesc Anomaly detector that checks if the test point is too far from the nearest known point.
  * @class
  * @param {module:analytics~detectorParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
-* <br>1. Using the parameter object {@link  module:analytics~detectorParam},
+* <br>1. Using the {@link  module:analytics~detectorParam} object,
 * <br>2. using the file input stream {@link module:fs.FIn}.
  * @example
  * // import modules
@@ -1182,7 +1182,7 @@ public:
 * @classdesc Holds the Recursive Linear Regression model.
 * @class
 * @param {module:analytics~recLinRegParam | module:fs.FIn} arg - Construction arguments. There are two ways of constructing:
-* <br>1. Using the parameter object {@link  module:analytics~detectorParam},
+* <br>1. Using the {@link  module:analytics~detectorParam} object,
 * <br>2. using the file input stream {@link module:fs.FIn}.
 * @example
 * // import analytics module
@@ -1372,7 +1372,7 @@ private:
  * @class
  * @classdesc  Uses Newtons method to compute the weights. <b>Before use: QMiner must be built with the OpenBLAS library.</b>
  * @param { module:analytics~logisticRegParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
-* <br>1. Using the parameter object {@link  module:analytics~logisticRegParam},
+* <br>1. Using the {@link  module:analytics~logisticRegParam} object,
 * <br>2. using the file input stream {@link module:fs.FIn}.
  * @example
  * // import analytics module
@@ -1534,7 +1534,7 @@ public:
  * @classdesc Proportional Hazards Model  with a constant hazard function. Uses Newtons method to compute the weights.
  * <b>Before use: QMiner must be built with the OpenBLAS library.</b>
  * @param {module:analytics~hazardModelParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
-* <br>1. Using the parameter object {@link module:analytics~hazardModelParam},
+* <br>1. Using the {@link module:analytics~hazardModelParam} object,
 * <br>2. using the file input stream {@link module:fs.FIn}.
  * @example
  * // import analytics module
@@ -1701,7 +1701,7 @@ public:
 * @class
 * @classdesc Holds online/offline neural network model.
 * @param {module:analytics~nnetParams | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
-* <br>1. Using the parameter object {@link module:analytics~nnetParams},
+* <br>1. Using the {@link module:analytics~nnetParams} object,
 * <br>2. using the file input stream {@link module:fs.FIn}.
 * @example
 * // import module
@@ -1950,7 +1950,7 @@ public:
 * @class
 * @classdesc Scales a higher level vectors into a 2D vector space such that the distances between vectors are preserved as well as possible.
 * @param {module:analytics~MDSParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
-* <br>1. Using the parameter object {@link module:analytics~MDSParam},
+* <br>1. Using the {@link module:analytics~MDSParam} object,
 * <br>2. using the file input stream {@link module:fs.FIn}.
 * @example
 * // import analytics module
@@ -2110,7 +2110,7 @@ private:
 * @classdesc KMeans Clustering is an iterative, data-partitioning algorithm that assigns observations into K clusters.
 * @class
 * @param {module:analytics~KMeansParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
-* <br>1. Using the parameter object {@link module:analytics~KMeansParam},
+* <br>1. Using the {@link module:analytics~KMeansParam} object,
 * <br>2. using the file input stream {@link module:fs.FIn}.
 * @example
 * // import analytics and la modules
@@ -2401,7 +2401,7 @@ private:
 * unknown values. If `A` is a matrix with unknown values it calculates the matrices `U` and `V` such that `U*V` approximates `A`.
 * @class
 * @param {module:analytics~RecSysParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
-* <br>1. Using the parameter object {@link module:analytics~RecSysParam},
+* <br>1. Using the {@link module:analytics~RecSysParam} object,
 * <br>2. using the file input stream {@link module:fs.FIn}.
 * @example
 * // import analytics and la modules

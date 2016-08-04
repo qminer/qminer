@@ -1457,7 +1457,7 @@ module.exports = exports = function (pathQmBinary) {
     * @class
     * @classdesc Principal Components Analysis
     * @param {module:analytics~PCAParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
-    * <br>1. Using the parameter object {@link module:analytics~PCAParam},
+    * <br>1. Using the {@link module:analytics~PCAParam} object,
     * <br>2. using the file input stream {@link module:fs.FIn}.
     * @example <caption>Using default constructor</caption>
     * // import analytics module
@@ -1801,7 +1801,7 @@ module.exports = exports = function (pathQmBinary) {
     }
 
     /**
-    * Returns the model
+    * Returns the model.
     * @returns {Object} The `KMeansModel` object containing the properites:
     * <br> 1. `KMeansModel.C` - The {@link module:la.Matrix} or {@link module:la.SparseMatrix} containing the centroids,
     * <br> 2. `KMeansModel.medoids` - The {@link module:la.IntVector} of cluster medoids of the training data,
