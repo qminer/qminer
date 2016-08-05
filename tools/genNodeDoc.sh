@@ -10,7 +10,7 @@ node makedoc.js ../src/nodejs/la/la_vector_nodejs.h "" ../nodedoc/ladoc.js ../no
 node makedoc.js ../src/nodejs/qm/qm_nodejs.h ../src/nodejs/scripts/qm.js ../nodedoc/qminerdoc.js
 node makedoc.js ../src/nodejs/qm/qm_nodejs_streamaggr.h "" ../nodedoc/qminer_aggrdoc.js
 
-node makedoc.js ../src/nodejs/statistics/stat_nodejs.h "" ../nodedoc/statdoc.js
+node makedoc.js ../src/nodejs/statistics/stat_nodejs.h ../src/nodejs/scripts/statistics.js ../nodedoc/statdoc.js
 
 node appendIntellisense ../nodedoc/fsdoc.js ../src/nodejs/intellisense/fs_intellisense.js "exports = {}; require.modules.qminer_fs = exports;"
 node appendIntellisense ../nodedoc/ladoc.js ../src/nodejs/intellisense/la_intellisense.js "exports = {}; require.modules.qminer_la = exports;"

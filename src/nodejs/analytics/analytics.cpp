@@ -1905,13 +1905,23 @@ void TNodeJsTokenizer::Init(v8::Handle<v8::Object> exports) {
 
 TNodeJsTokenizer* TNodeJsTokenizer::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	// parse arguments
-	PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
-	EAssertR(ParamVal->IsObjKey("type"),
-		"Missing tokenizer type " + ParamVal->SaveStr());
-	const TStr& TypeNm = ParamVal->GetObjStr("type");
-	// create
-	PTokenizer Tokenizer = TTokenizer::New(TypeNm, ParamVal);
-	return new TNodeJsTokenizer(Tokenizer);
+    if (Args.Length() == 0) {
+        const TStr TypeNm = "unicode";
+        PJsonVal ParamVal = TJsonVal::NewObj();
+        ParamVal->AddToObj("type", TypeNm);
+        // create tokenizer
+        PTokenizer Tokenizer = TTokenizer::New(TypeNm, ParamVal);
+        return new TNodeJsTokenizer(Tokenizer);
+    } else if (TNodeJsUtil::IsArgObj(Args, 0)) {
+        PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+        const TStr TypeNm = ParamVal->GetObjStr("type", "unicode");
+        ParamVal->AddToObj("type", TypeNm.CStr());
+        // create tokenizer
+        PTokenizer Tokenizer = TTokenizer::New(TypeNm, ParamVal);
+        return new TNodeJsTokenizer(Tokenizer);
+    } else {
+        throw TExcept::New("Tokenizer construction: supported only objects!");
+    }
 }
 
 void TNodeJsTokenizer::getTokens(const v8::FunctionCallbackInfo<v8::Value>& Args) {
