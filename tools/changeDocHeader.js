@@ -22,7 +22,7 @@ for (var i = 0; i < htmlFiles.length; i++) {
     // read the file
     var fin = fs.readFileSync(hfile + htmlFiles[i], 'ascii');
     var pattern = /<a href=\"index.html\" class=\"jsdoc-navbar-package-name\">Home<\/a>/g;
-    var changed = "<a href=\"index.html\" class=\"jsdoc-navbar-package-name\">QMiner JavaScript API " + qm.version + "<\/a>";
+    var changed = "<a href=\"index.html\" class=\"jsdoc-navbar-package-name\">QMiner JavaScript API v" + qm.version + "<\/a>";
     fin = fin.replace(pattern, changed);
 
     // create a write stream
