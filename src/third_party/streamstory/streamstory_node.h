@@ -123,6 +123,8 @@ public:
 	 */
 	JsDeclareFunction(histStates);
 
+	JsDeclareFunction(getHistoricalStates);
+
 	/**
 	 * Returns an object representation of this model.
 	 *
@@ -267,11 +269,6 @@ public:
 	JsDeclareFunction(onPrediction);
 
 	JsDeclareFunction(onActivity);
-
-	/**
-	 * Rebuilds its hierarchy.
-	 */
-	JsDeclareFunction(rebuildHierarchy);
 
 	/**
 	 * Rebuilds the histograms using the instances stored in the columns of X.

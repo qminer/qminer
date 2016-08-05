@@ -1905,13 +1905,23 @@ void TNodeJsTokenizer::Init(v8::Handle<v8::Object> exports) {
 
 TNodeJsTokenizer* TNodeJsTokenizer::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	// parse arguments
-	PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
-	EAssertR(ParamVal->IsObjKey("type"),
-		"Missing tokenizer type " + ParamVal->SaveStr());
-	const TStr& TypeNm = ParamVal->GetObjStr("type");
-	// create
-	PTokenizer Tokenizer = TTokenizer::New(TypeNm, ParamVal);
-	return new TNodeJsTokenizer(Tokenizer);
+    if (Args.Length() == 0) {
+        const TStr TypeNm = "unicode";
+        PJsonVal ParamVal = TJsonVal::NewObj();
+        ParamVal->AddToObj("type", TypeNm);
+        // create tokenizer
+        PTokenizer Tokenizer = TTokenizer::New(TypeNm, ParamVal);
+        return new TNodeJsTokenizer(Tokenizer);
+    } else if (TNodeJsUtil::IsArgObj(Args, 0)) {
+        PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+        const TStr TypeNm = ParamVal->GetObjStr("type", "unicode");
+        ParamVal->AddToObj("type", TypeNm);
+        // create tokenizer
+        PTokenizer Tokenizer = TTokenizer::New(TypeNm, ParamVal);
+        return new TNodeJsTokenizer(Tokenizer);
+    } else {
+        throw TExcept::New("Tokenizer construction: supported only objects!");
+    }
 }
 
 void TNodeJsTokenizer::getTokens(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -2291,16 +2301,17 @@ void TNodeJsKMeans::UpdateParams(const PJsonVal& ParamVal) {
             throw TExcept::New("Update KMeans Exception: centroidType must be Dense or Sparse!");
         }
     }
+    if (ParamVal->IsObjKey("verbose")) { Verbose = ParamVal->GetObjBool("verbose"); }
 
     if (DistType == TDistanceType::dtEuclid) {
         Dist = new TClustering::TEuclDist;
-    } else if (DistType == TDistanceType::dtCos) {
+    }
+    else if (DistType == TDistanceType::dtCos) {
         Dist = new TClustering::TCosDist;
-    } else {
+    }
+    else {
         throw TExcept::New("Update KMeans Exception: distance type is not valid " + TInt::GetStr((int)DistType));
     }
-
-    if (ParamVal->IsObjKey("verbose")) { Verbose = ParamVal->GetObjBool("verbose"); }
 
     Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
 }
@@ -2593,14 +2604,11 @@ void TNodeJsKMeans::TFitTask::Run() {
                else {
                    KMeans->Apply(JsFltVV->Mat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
                }
-
                KMeans->Assign(JsFltVV->Mat, JsKMeans->AssignV);
-
                TFltVV D;
                JsKMeans->Dist->GetDist2VV(JsFltVV->Mat, KMeans->GetCentroidVV(), D);
                TLinAlg::MultiplyScalar(-1, D, D);
                TLinAlgSearch::GetColMaxIdxV(D, JsKMeans->Medoids);
-
                if (JsIntV != nullptr) {
                    EAssertR(JsIntV->Vec.Len() == JsFltVV->Mat.GetCols(), "KMeans.fit: IntVector RecordIds.length must be equal to number of columns of X!");
                    
@@ -2648,11 +2656,11 @@ void TNodeJsKMeans::TFitTask::Run() {
                else {
                    KMeans->Apply(JsSpVV->Mat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
                }
-
                KMeans->Assign(JsSpVV->Mat, JsKMeans->AssignV);
-               
+
                TFltVV D;
                JsKMeans->Dist->GetDist2VV(JsSpVV->Mat, KMeans->GetCentroidVV(), D);
+
                TLinAlg::MultiplyScalar(-1, D, D);
                TLinAlgSearch::GetColMaxIdxV(D, JsKMeans->Medoids);
 
