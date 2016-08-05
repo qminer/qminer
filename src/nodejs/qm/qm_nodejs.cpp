@@ -2305,6 +2305,8 @@ void TNodeJsRec::sjoin(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     }
 }
 
+///////////////////////////////
+// NodeJs QMiner Record
 v8::Persistent<v8::Function> TNodeJsRecByValV::Constructor;
 
 void TNodeJsRecByValV::Init(v8::Handle<v8::Object> Exports) {

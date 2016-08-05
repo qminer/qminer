@@ -1472,6 +1472,8 @@ private:
     JsDeclareFunction(sjoin);
 };
 
+///////////////////////////////
+// NodeJs QMiner Record
 class TNodeJsRecByValV: public node::ObjectWrap {
     friend class TNodeJsUtil;
 private:
@@ -1481,11 +1483,11 @@ public:
     // Node framework
     static void Init(v8::Handle<v8::Object> Exports);
     static const TStr GetClassId() { return "RecordVector"; }
-
+    // C++ wrapped object
     TVec<TQm::TRec> RecV;
-
+    // C++ constructors
     TNodeJsRecByValV(): RecV() {}
-
+    // 
     static TNodeJsRecByValV* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
 private:
