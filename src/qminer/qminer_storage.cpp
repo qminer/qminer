@@ -3442,14 +3442,17 @@ uchar TStoreImpl::GetFieldByte(const uint64& RecId, const int& FieldId) const {
     TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
     return GetFieldSerializator(FieldId)->GetFieldByte(RecMem, FieldId);
 }
+
 int TStoreImpl::GetFieldInt(const uint64& RecId, const int& FieldId) const {
     TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
     return GetFieldSerializator(FieldId)->GetFieldInt(RecMem, FieldId);
 }
+
 int16 TStoreImpl::GetFieldInt16(const uint64& RecId, const int& FieldId) const {
     TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
     return GetFieldSerializator(FieldId)->GetFieldInt16(RecMem, FieldId);
 }
+
 int64 TStoreImpl::GetFieldInt64(const uint64& RecId, const int& FieldId) const {
     TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
     return GetFieldSerializator(FieldId)->GetFieldInt64(RecMem, FieldId);
