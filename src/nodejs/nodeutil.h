@@ -155,7 +155,7 @@ public:
     static void CheckJSExcept(const v8::TryCatch& TryCatch);
     /// Convert v8 Json to GLib Json (PJsonVal). Is parameter IgnoreFunc is set to true the method will
     /// ignore functions otherwise an exception will be thrown when a function is encountered
-    static PJsonVal GetObjJson(const v8::Local<v8::Value>& Val, const bool IgnoreFunc=false);
+    static PJsonVal GetObjJson(const v8::Local<v8::Value>& Val, const bool& IgnoreFunc=false, const bool& IgnoreWrappedObj=false);
     static PJsonVal GetObjProps(const v8::Local<v8::Object>& Obj) { return GetObjJson(Obj, true); }
     static PJsonVal GetObjToNmJson(const v8::Local<v8::Value>& Val);
 
@@ -237,7 +237,7 @@ public:
     /// Extract argument ArgN property as string
     static TStr GetArgStr(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property, const TStr& DefVal);
     /// Extract argument ArgN as GLib Json (PJsonVal)
-    static PJsonVal GetArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
+    static PJsonVal GetArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const bool& IgnoreFunc=false, const bool& IgnoreWrappedObj=false);
     static PJsonVal GetArgToNmJson(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
     /// Extracts TVec<TIntV>
     static void GetArgIntVV(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, TVec<TIntV>& IntVV);

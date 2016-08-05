@@ -16,9 +16,8 @@ void TNodeJsUtil::CheckJSExcept(const v8::TryCatch& TryCatch) {
     }
 }
 
-PJsonVal TNodeJsUtil::GetObjJson(const v8::Local<v8::Value>& Val, const bool IgnoreFunc) {
+PJsonVal TNodeJsUtil::GetObjJson(const v8::Local<v8::Value>& Val, const bool& IgnoreFunc, const bool& IgnoreWrappedObj) {
     AssertR(!Val->IsExternal(), "TNodeJsUtil::GetObjJson: Cannot parse v8::External!");
-
     if (Val->IsObject()) {
         // if we aren't ignoring functions and the object is a function
         // then throw an exception
@@ -44,7 +43,7 @@ PJsonVal TNodeJsUtil::GetObjJson(const v8::Local<v8::Value>& Val, const bool Ign
             v8::Array* Arr = v8::Array::Cast(*Val);
             for (uint i = 0; i < Arr->Length(); i++) {
                 if (!IgnoreFunc || !Arr->Get(i)->IsFunction()) {
-                    JsonArr->AddToArr(GetObjJson(Arr->Get(i), IgnoreFunc));
+                    JsonArr->AddToArr(GetObjJson(Arr->Get(i), IgnoreFunc, IgnoreWrappedObj));
                 }
             }
 
@@ -55,16 +54,18 @@ PJsonVal TNodeJsUtil::GetObjJson(const v8::Local<v8::Value>& Val, const bool Ign
             v8::Local<v8::Object> Obj = Val->ToObject();
 
             TStr ClassNm = GetClass(Obj);
-            EAssertR(ClassNm.Empty(), "TNodeJsUtil::GetObjJson: Cannot convert '" + ClassNm + "' to json!");
+            EAssertR(IgnoreWrappedObj || ClassNm.Empty(), "TNodeJsUtil::GetObjJson: Cannot convert '" + ClassNm + "' to json!");
             
-            v8::Local<v8::Array> FldNmV = Obj->GetOwnPropertyNames();
-            for (uint i = 0; i < FldNmV->Length(); i++) {
-                const TStr FldNm(*v8::String::Utf8Value(FldNmV->Get(i)->ToString()));
+            if (ClassNm.Empty()) {
+                v8::Local<v8::Array> FldNmV = Obj->GetOwnPropertyNames();
+                for (uint i = 0; i < FldNmV->Length(); i++) {
+                    const TStr FldNm(*v8::String::Utf8Value(FldNmV->Get(i)->ToString()));
 
-                v8::Local<v8::Value> FldVal = Obj->Get(FldNmV->Get(i));
+                    v8::Local<v8::Value> FldVal = Obj->Get(FldNmV->Get(i));
 
-                if (!IgnoreFunc || !FldVal->IsFunction()) {
-                    JsonVal->AddToObj(FldNm, GetObjJson(FldVal, IgnoreFunc));
+                    if (!IgnoreFunc || !FldVal->IsFunction()) {
+                        JsonVal->AddToObj(FldNm, GetObjJson(FldVal, IgnoreFunc, IgnoreWrappedObj));
+                    }
                 }
             }
 
@@ -475,10 +476,10 @@ TStr TNodeJsUtil::GetArgStr(const v8::FunctionCallbackInfo<v8::Value>& Args, con
     return DefVal;
 }
 
-PJsonVal TNodeJsUtil::GetArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
+PJsonVal TNodeJsUtil::GetArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const bool& IgnoreFunc, const bool& IgnoreWrappedObj) {
     EAssertR(Args.Length() >= ArgN, "TNodeJsUtil::GetArgJson: Invalid number of arguments!");
     EAssertR(Args[ArgN]->IsObject(), "TNodeJsUtil::GetArgJson: Argument is not an object, number or boolean!");
-    return GetObjJson(Args[ArgN]->ToObject());
+    return GetObjJson(Args[ArgN]->ToObject(), IgnoreFunc, IgnoreWrappedObj);
 }
 
 PJsonVal TNodeJsUtil::GetArgToNmJson(const v8::FunctionCallbackInfo<v8::Value>& Args,

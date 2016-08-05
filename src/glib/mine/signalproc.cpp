@@ -1365,12 +1365,8 @@ PJsonVal TOnlineHistogram::SaveJson() const {
     return Result;
 }
 
-void TTDigest::Update(const double& V) {
-    const TFlt Count = 1;
-    Update(V, Count);
-}
-
 void TTDigest::Update(const double& V, const double& Count) {
+    Updates++;
     if (TempLast >= TempWeight.Len()) {
         MergeValues();
     }

@@ -1013,6 +1013,9 @@ private:
     TFltV TempMean;
     TFltV Quantiles;
 
+    TInt Updates;
+    TInt MinPointsInit;
+
     // Given the number of centroids, determine temp buffer size
     // Perform binary search to find value k such that N = k log2 k
     // This should give us good amortized asymptotic complexity
@@ -1046,6 +1049,7 @@ public:
     }
     /// Constructs given JSON arguments
     TTDigest(const PJsonVal& ParamVal) {
+        MinPointsInit = ParamVal->GetObjInt("minCount", 0);
         if (ParamVal->IsObjKey("clusters")) {
             TInt N = ParamVal->GetObjInt("clusters");
             Init(N);
@@ -1072,8 +1076,8 @@ public:
     // Argument *v* is the value to add.
     // Argument *count* is the integer number of occurrences to add.
     // If not provided, *count* defaults to 1.
-    void Update(const double& V);
-    void Update(const double& V, const double& Count);
+    void Update(const double& V, const double& Count = 1);
+    bool IsInit() const { return Updates >= MinPointsInit; }
     void MergeValues();
     /// Prints the model
     void Print() const;
