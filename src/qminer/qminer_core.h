@@ -712,6 +712,8 @@ public:
     /// Check if the value of given field for a given record is NULL
     bool IsFieldNmNull(const uint64& RecId, const TStr& FieldNm) const;
     /// Get field value using field name   
+    uchar GetFieldNmByte(const uint64& RecId, const TStr& FieldNm) const;
+    /// Get field value using field name   
     int GetFieldNmInt(const uint64& RecId, const TStr& FieldNm) const;
     /// Get field value using field name   
     void GetFieldNmIntV(const uint64& RecId, const TStr& FieldNm, TIntV& IntV) const;
@@ -794,6 +796,8 @@ public:
 
     /// Set the value of given field to NULL
     void SetFieldNmNull(const uint64& RecId, const TStr& FieldNm);
+    /// Set field value using field name   
+    void SetFieldNmByte(const uint64& RecId, const TStr& FieldNm, const uchar& Byte);
     /// Set field value using field name   
     void SetFieldNmInt(const uint64& RecId, const TStr& FieldNm, const int& Int);
     /// Set field value using field name   
@@ -1177,6 +1181,23 @@ public:
     TRecCmpByFieldTm(const TWPt<TStore>& _Store, const int& _FieldId,
         const bool& _Asc) : Store(_Store), FieldId(_FieldId), Asc(_Asc) {}
     
+    bool operator()(const TUInt64IntKd& RecIdFq1, const TUInt64IntKd& RecIdFq2) const;
+};
+
+///////////////////////////////
+/// Record Comparator by Byte Field. 
+class TRecCmpByFieldByte {
+private:
+    /// Store from which we are sorting the records 
+    TWPt<TStore> Store;
+    /// Field according to which we are sorting
+    TInt FieldId;
+    /// Sort direction
+    TBool Asc;
+public:
+    TRecCmpByFieldByte(const TWPt<TStore>& _Store, const int& _FieldId,
+        const bool& _Asc) : Store(_Store), FieldId(_FieldId), Asc(_Asc) {}
+
     bool operator()(const TUInt64IntKd& RecIdFq1, const TUInt64IntKd& RecIdFq2) const;
 };
 
