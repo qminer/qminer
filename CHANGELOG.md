@@ -1,5 +1,20 @@
 # QMiner Change Log
 
+### 5 August 2016
+
+**Version: 6.2.0**
+
+**Non-breaking with new features**
+
+New Features:
+- Speed up of `RecSet.SortByField`
+- Added `Store.GetFieldNmByte` and `Store.SetFieldNmByte`
+- Tokenizer uses `unicode` as default type in constructor
+
+Other:
+- Updated documentation: added missing types, descriptions, links and methods. Reduced number of clicks to get to specific information.
+
+
 ### 22 July 2016
 
 **Version: 6.1.0**
