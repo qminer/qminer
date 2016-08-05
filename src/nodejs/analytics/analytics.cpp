@@ -1906,7 +1906,7 @@ void TNodeJsTokenizer::Init(v8::Handle<v8::Object> exports) {
 TNodeJsTokenizer* TNodeJsTokenizer::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	// parse arguments
     if (Args.Length() == 0) {
-        const TStr& TypeNm = "unicode";
+        const TStr TypeNm = "unicode";
         PJsonVal ParamVal = TJsonVal::NewObj();
         ParamVal->AddToObj("type", TypeNm);
         // create tokenizer
@@ -1914,12 +1914,8 @@ TNodeJsTokenizer* TNodeJsTokenizer::NewFromArgs(const v8::FunctionCallbackInfo<v
         return new TNodeJsTokenizer(Tokenizer);
     } else if (TNodeJsUtil::IsArgObj(Args, 0)) {
         PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
-        TStr& TypeNm = TStr("unicode");
-        if (ParamVal->IsObjKey("type")) {
-            TypeNm = ParamVal->GetObjStr("type");
-        } else {
-            ParamVal->AddToObj("type", TypeNm);
-        }
+        const TStr TypeNm = ParamVal->GetObjStr("type", "unicode");
+        ParamVal->AddToObj("type", TypeNm.CStr());
         // create tokenizer
         PTokenizer Tokenizer = TTokenizer::New(TypeNm, ParamVal);
         return new TNodeJsTokenizer(Tokenizer);
