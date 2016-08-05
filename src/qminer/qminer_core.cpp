@@ -1516,6 +1516,48 @@ TRec& TRec::operator=(const TRec& Rec) {
     return *this;
 }
 
+TRec::TRec(const TWPt<TBase>& Base, TSIn& SIn): RecValOut(RecVal) {
+    // load store
+    const uint StoreId = TUInt(SIn);
+    if (StoreId == TUInt::Mx) {
+        // empty record
+        ByRefP = false; RecId = TUInt64::Mx;
+    } else {
+        Store = Base->GetStoreByStoreId(StoreId);
+        // check if we are by refrence or by value
+        ByRefP = TBool(SIn);
+        if (ByRefP) {
+            // we are by reference, just load record ID and frequency
+            RecId = TUInt64(SIn);
+            Fq = TInt(SIn);
+        } else {
+            // we are by value, load serialization
+            Fq = TInt(SIn);
+            FieldIdPosH.Load(SIn);
+            JoinIdPosH.Load(SIn);
+            RecVal.Load(SIn);        
+        }
+    }
+}
+
+void TRec::Save(TSOut& SOut) const {
+    // save store id, or indicate this is an empty record with TUInt::Mx
+    TUInt StoreId = Store.Empty() ? TUInt::Mx : GetStoreId();
+    StoreId.Save(SOut);
+    // check if there is more to save
+    if (Store.Empty()) {
+        // nope
+    } else if (ByRefP) {
+        RecId.Save(SOut);
+        Fq.Save(SOut);
+    } else {
+        Fq.Save(SOut);
+        FieldIdPosH.Save(SOut);
+        JoinIdPosH.Save(SOut);
+        RecVal.Save(SOut);
+    }
+}
+
 bool TRec::IsFieldNull(const int& FieldId) const {
     return IsByRef() ?
         Store->IsFieldNull(RecId, FieldId) :
