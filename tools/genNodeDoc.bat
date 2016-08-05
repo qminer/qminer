@@ -3,8 +3,8 @@ node makedoc.js ../src/nodejs/ht/ht_nodejs.h ../src/nodejs/scripts/ht.js ../node
 node makedoc.js ../src/nodejs/fs/fs_nodejs.h ../src/nodejs/scripts/fs.js ../nodedoc/fsdoc.js
 node makedoc.js ../src/nodejs/analytics/analytics.h ../src/nodejs/scripts/analytics.js ../nodedoc/analyticsdoc.js
 
-node makedoc.js ../src/nodejs/la/la_nodejs.h "" ../nodedoc/ladoc_module.js 
-node makedoc.js ../src/nodejs/la/la_structures_nodejs.h ../src/nodejs/scripts/la.js ../nodedoc/ladoc_structures.js ../nodedoc/ladoc_module.js 
+node makedoc.js ../src/nodejs/la/la_nodejs.h "" ../nodedoc/ladoc_module.js
+node makedoc.js ../src/nodejs/la/la_structures_nodejs.h ../src/nodejs/scripts/la.js ../nodedoc/ladoc_structures.js ../nodedoc/ladoc_module.js
 node makedoc.js ../src/nodejs/la/la_vector_nodejs.h "" ../nodedoc/ladoc.js ../nodedoc/ladoc_structures.js ../src/nodejs/la/VectorDocData.js ../src/nodejs/la/StrVectorDocData.js ../src/nodejs/la/IntVectorDocData.js ../src/nodejs/la/BoolVectorDocData.js
 
 node makedoc.js ../src/nodejs/qm/qm_nodejs.h ../src/nodejs/scripts/qm.js ../nodedoc/qminerdoc.js
@@ -19,7 +19,7 @@ node appendIntellisense ../nodedoc/statdoc.js ../src/nodejs/intellisense/statist
 node appendIntellisense ../nodedoc/analyticsdoc.js ../src/nodejs/intellisense/analytics_intellisense.js "exports = {}; require.modules.qminer_analytics = exports;"
 node appendIntellisense ../nodedoc/qminerdoc.js ../src/nodejs/intellisense/qminer_intellisense.js "// this file mimicks the qminer module index.js file\nexports = {}; require.modules.qminer = exports;\nexports.la = require('qminer_la');\nexports.fs = require('qminer_fs');\nexports.analytics = require('qminer_analytics');\nexports.ht= require('qminer_ht');\nexports.statistics= require('qminer_stat');"
 
-call jsdoc --template ../node_modules/jsdoc-baseline ../nodedoc/htdoc.js ../nodedoc/fsdoc.js ../nodedoc/analyticsdoc.js  ../nodedoc/ladoc.js ../nodedoc/qminerdoc.js ../nodedoc/statdoc.js ../nodedoc/qminer_aggrdoc.js -d ../nodedoc 
+call jsdoc --template ../node_modules/jsdoc-baseline ../nodedoc/htdoc.js ../nodedoc/fsdoc.js ../nodedoc/analyticsdoc.js  ../nodedoc/ladoc.js ../nodedoc/qminerdoc.js ../nodedoc/statdoc.js ../nodedoc/qminer_aggrdoc.js -d ../nodedoc
 
 node factorydoc.js ../nodedoc/module-qm.html
 node factorydoc.js ../nodedoc/module-qm.Iterator.html
@@ -30,5 +30,7 @@ node factorydoc.js ../nodedoc/module-qm.Store.html
 node removeTimestamp.js ../nodedoc
 
 xcopy "pictures" "..\nodedoc\pictures\" /S/E/Y
+
+node changeDocHeader.js ../nodedoc/
 
 node createExampleTests.js ../nodedoc/ ../test/nodejs/

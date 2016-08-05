@@ -1915,7 +1915,7 @@ TNodeJsTokenizer* TNodeJsTokenizer::NewFromArgs(const v8::FunctionCallbackInfo<v
     } else if (TNodeJsUtil::IsArgObj(Args, 0)) {
         PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
         const TStr TypeNm = ParamVal->GetObjStr("type", "unicode");
-        ParamVal->AddToObj("type", TypeNm.CStr());
+        ParamVal->AddToObj("type", TypeNm);
         // create tokenizer
         PTokenizer Tokenizer = TTokenizer::New(TypeNm, ParamVal);
         return new TNodeJsTokenizer(Tokenizer);
