@@ -868,15 +868,16 @@ private:
 	void RefreshStats() const;
 
 public:
-	TGix(const TStr& Nm, const TStr& FPath = TStr(),
-		const TFAccess& _Access = faRdOnly, const int64& CacheSize = 100000000,
-		int _SplitLen = 1024, int _SplitLenMin = 512, int _SplitLenMax = 2048,
-		bool _CanFirstChildBeUnfilled = false);
+	TGix(const TStr& Nm, const TStr& FPath,
+		const TFAccess& _Access, const int64& CacheSize,
+		int _SplitLen, int _SplitLenMin, int _SplitLenMax,
+		bool _CanFirstChildBeUnfilled);
 	static PGix New(const TStr& Nm, const TStr& FPath = TStr(),
 		const TFAccess& Access = faRdOnly, const int64& CacheSize = 100000000,
-		int _SplitLen = 1024, int _SplitLenMin = 512, int _SplitLenMax = 2048,
-		bool _CanFirstChildBeUnfilled = false) {
-		return new TGix(Nm, FPath, Access, CacheSize, _SplitLen, _CanFirstChildBeUnfilled);
+		int SplitLen = 1024, bool CanFirstChildBeUnfilled = false, 
+    int SplitLenMin = 512, int SplitLenMax = 2048) {
+		return new TGix(Nm, FPath, Access, CacheSize, SplitLen, 
+      CanFirstChildBeUnfilled, SplitLenMin, SplitLenMax);
 	}
 
 	~TGix();
