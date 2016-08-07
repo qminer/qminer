@@ -870,12 +870,12 @@ private:
 public:
 	TGix(const TStr& Nm, const TStr& FPath,
 		const TFAccess& _Access, const int64& CacheSize,
-		int _SplitLen, int _SplitLenMin, int _SplitLenMax,
-		bool _CanFirstChildBeUnfilled);
+		const int _SplitLen, const bool _CanFirstChildBeUnfilled,
+    const int _SplitLenMin, const int _SplitLenMax);
 	static PGix New(const TStr& Nm, const TStr& FPath = TStr(),
 		const TFAccess& Access = faRdOnly, const int64& CacheSize = 100000000,
-		int SplitLen = 1024, bool CanFirstChildBeUnfilled = false, 
-    int SplitLenMin = 512, int SplitLenMax = 2048) {
+    const int SplitLen = 1024, const bool CanFirstChildBeUnfilled = false,
+    const int SplitLenMin = 512, const int SplitLenMax = 2048) {
 		return new TGix(Nm, FPath, Access, CacheSize, SplitLen, 
       CanFirstChildBeUnfilled, SplitLenMin, SplitLenMax);
 	}
@@ -1046,11 +1046,11 @@ TBlobPt TGix<TKey, TItem, TGixMerger>::GetKeyId(const TKey& Key) const {
 
 template <class TKey, class TItem, class TGixMerger>
 TGix<TKey, TItem, TGixMerger>::TGix(const TStr& Nm, const TStr& FPath, const TFAccess& _Access,
-	const int64& CacheSize, int _SplitLen, int _SplitLenMin, int _SplitLenMax, bool _CanFirstChildBeUnfilled) :
+	const int64& CacheSize, const int _SplitLen, const bool _CanFirstChildBeUnfilled, 
+  const int _SplitLenMin, const int _SplitLenMax) :
 	Access(_Access), ItemSetCache(CacheSize, 1000000, GetVoidThis()),
-	SplitLen(_SplitLen), SplitLenMin(_SplitLenMin), SplitLenMax(_SplitLenMax),
-	CanFirstChildBeUnfilled_(_CanFirstChildBeUnfilled) {
-
+	SplitLen(_SplitLen), CanFirstChildBeUnfilled_(_CanFirstChildBeUnfilled), 
+  SplitLenMin(_SplitLenMin), SplitLenMax(_SplitLenMax) {
 	// filenames of the GIX datastore
 	GixFNm = TStr::GetNrFPath(FPath) + Nm.GetFBase() + ".Gix";
 	GixBlobFNm = TStr::GetNrFPath(FPath) + Nm.GetFBase() + ".GixDat";
