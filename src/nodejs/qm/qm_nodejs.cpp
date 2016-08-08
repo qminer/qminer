@@ -497,15 +497,15 @@ void TNodeJsBase::store(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 }
 
 void TNodeJsBase::isStore(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
 
-	// unwrap
-	TNodeJsBase* JsBase = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsBase>(Args.Holder());
+    // unwrap
+    TNodeJsBase* JsBase = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsBase>(Args.Holder());
 
-	const TStr StoreNm = TNodeJsUtil::GetArgStr(Args, 0);
+    const TStr StoreNm = TNodeJsUtil::GetArgStr(Args, 0);
 
-	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, JsBase->Base->IsStoreNm(StoreNm)));
+    Args.GetReturnValue().Set(v8::Boolean::New(Isolate, JsBase->Base->IsStoreNm(StoreNm)));
 }
 
 void TNodeJsBase::getStoreList(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -1202,24 +1202,24 @@ void TNodeJsStore::resetStreamAggregates(const v8::FunctionCallbackInfo<v8::Valu
     Base->GetStreamAggrSet(Store->GetStoreId())->Reset();
 }
 
-void TNodeJsStore::getStreamAggrNames(const v8::FunctionCallbackInfo<v8::Value>& Args) {		
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();		
-    v8::HandleScope HandleScope(Isolate);		
-		
-    try {		
-        TNodeJsStore* JsStore = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsStore>(Args.Holder());		
-        TWPt<TQm::TStore>& Store = JsStore->Store;		
-        const TWPt<TQm::TBase>& Base = JsStore->Store->GetBase();		
-		
-        // get list of names		
-        TStrV StreamAggrNmV = Base->GetStreamAggrSet(Store->GetStoreId())->GetStreamAggrNmV();		
-        // set list as return value		
-        Args.GetReturnValue().Set(TNodeJsUtil::GetStrArr(StreamAggrNmV));		
-    }		
-    catch (const PExcept& Except) {		
-        throw TQm::TQmExcept::New("[except] " + Except->GetMsgStr());		
-    }		
-}		
+void TNodeJsStore::getStreamAggrNames(const v8::FunctionCallbackInfo<v8::Value>& Args) {        
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();       
+    v8::HandleScope HandleScope(Isolate);       
+        
+    try {       
+        TNodeJsStore* JsStore = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsStore>(Args.Holder());       
+        TWPt<TQm::TStore>& Store = JsStore->Store;      
+        const TWPt<TQm::TBase>& Base = JsStore->Store->GetBase();       
+        
+        // get list of names        
+        TStrV StreamAggrNmV = Base->GetStreamAggrSet(Store->GetStoreId())->GetStreamAggrNmV();      
+        // set list as return value     
+        Args.GetReturnValue().Set(TNodeJsUtil::GetStrArr(StreamAggrNmV));       
+    }       
+    catch (const PExcept& Except) {     
+        throw TQm::TQmExcept::New("[except] " + Except->GetMsgStr());       
+    }       
+}       
 
 void TNodeJsStore::toJSON(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();

@@ -485,43 +485,43 @@ private:
     //# exports.Base.prototype.store = function (name) { return Object.create(require('qminer').Store.prototype); }
     JsDeclareFunction(store);
 
-	/**
-	 * Checks if there is a store.
-	 * @param {string} name - Store name.
-	 * @returns {boolean} True, if there exists a store with the store `name`. Otherwise, false.
-	 * @example
-	 * // import qm module
-	 * var qm = require('qminer');
-	 * // create a base with two stores
-	 * var base = new qm.Base({
-	 *    mode: "createClean",
-	 *    schema: [
-	 *    {
-	 *        name: "KwikEMart",
-	 *        fields: [
-	 *            { name: "Worker", type: "string" },
-	 *            { name: "Groceries", type: "string_v" }
-	 *        ]
-	 *    },
-	 *    {
-	 *        name: "NuclearPowerplant",
-	 *        fields: [
-	 *            { name: "Owner", type: "string" },
-	 *            { name: "NumberOfAccidents", type: "int" },
-	 *            { name: "Workers", type: "string_v" }
-	 *        ]
-	 *    }]
-	 * });
-	 * // get the "KwikEMart" store
-	 * var exists = base.isStore("KwikEMart");	// true
-	 * base.close();
-	 */
-	//# exports.Base.prototype.isStore = function (name) { return false; }
-	JsDeclareFunction(isStore);
+    /**
+     * Checks if there is a store.
+     * @param {string} name - Store name.
+     * @returns {boolean} True, if there exists a store with the store `name`. Otherwise, false.
+     * @example
+     * // import qm module
+     * var qm = require('qminer');
+     * // create a base with two stores
+     * var base = new qm.Base({
+     *    mode: "createClean",
+     *    schema: [
+     *    {
+     *        name: "KwikEMart",
+     *        fields: [
+     *            { name: "Worker", type: "string" },
+     *            { name: "Groceries", type: "string_v" }
+     *        ]
+     *    },
+     *    {
+     *        name: "NuclearPowerplant",
+     *        fields: [
+     *            { name: "Owner", type: "string" },
+     *            { name: "NumberOfAccidents", type: "int" },
+     *            { name: "Workers", type: "string_v" }
+     *        ]
+     *    }]
+     * });
+     * // get the "KwikEMart" store
+     * var exists = base.isStore("KwikEMart");    // true
+     * base.close();
+     */
+    //# exports.Base.prototype.isStore = function (name) { return false; }
+    JsDeclareFunction(isStore);
 
-	/**
-	 * Returns a list of store descriptors.
-	 * @returns {Array.<object>} An array of store descriptors. The store descriptor `storeDesc` contains the properties:
+    /**
+     * Returns a list of store descriptors.
+     * @returns {Array.<object>} An array of store descriptors. The store descriptor `storeDesc` contains the properties:
      * <br>1. `storeDesc.storeId` - The store ID. Type `number`.
      * <br>2. `storeDesc.storeName` - Store name. Type `string`.
      * <br>3. `storeDesc.storeRecords` - Number of records in store. Type `number`.
@@ -554,9 +554,9 @@ private:
      * // get the list of store descriptors
      * var exists = base.getStoreList();
      * base.close();
-	 */
-	//# exports.Base.prototype.getStoreList = function () { return [{storeId: 0, storeName:'', storeRecords: 0, fields: [{}], keys: [{}], joins: [{}]}]; }
-	JsDeclareFunction(getStoreList);
+     */
+    //# exports.Base.prototype.getStoreList = function () { return [{storeId: 0, storeName:'', storeRecords: 0, fields: [{}], keys: [{}], joins: [{}]}]; }
+    JsDeclareFunction(getStoreList);
 
     /**
     * Creates a new store.
@@ -1348,7 +1348,7 @@ private:
     JsDeclareFunction(resetStreamAggregates);
 
     /**
-    * Returns an array of the stream aggregates names connected to the store.		
+    * Returns an array of the stream aggregates names connected to the store.        
     * @returns {Array.<string>} An array of stream aggregates names.
     * @example
     * // import qm module
@@ -1378,10 +1378,10 @@ private:
     * // get the stream aggregates on store "Laser"
     * base.store("Laser").getStreamAggrNames();
     * base.close();
-    */		
-    //# exports.Store.prototype.getStreamAggrNames = function () { return [""]; }		
-    JsDeclareFunction(getStreamAggrNames);		
-		
+    */        
+    //# exports.Store.prototype.getStreamAggrNames = function () { return [""]; }        
+    JsDeclareFunction(getStreamAggrNames);        
+        
    /**
     * Returns the store as a JSON.
     * @returns {Object} The store as a JSON.
