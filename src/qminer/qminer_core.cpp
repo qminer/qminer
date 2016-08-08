@@ -1555,14 +1555,17 @@ void TRec::Save(TSOut& SOut) const {
     // check if there is more to save
     if (Store.Empty()) {
         // nope
-    } else if (ByRefP) {
-        RecId.Save(SOut);
-        Fq.Save(SOut);
     } else {
-        Fq.Save(SOut);
-        FieldIdPosH.Save(SOut);
-        JoinIdPosH.Save(SOut);
-        RecVal.Save(SOut);
+        ByRefP.Save(SOut);
+        if (ByRefP) {
+            RecId.Save(SOut);
+            Fq.Save(SOut);
+        } else {
+            Fq.Save(SOut);
+            FieldIdPosH.Save(SOut);
+            JoinIdPosH.Save(SOut);
+            RecVal.Save(SOut);
+        }
     }
 }
 

@@ -2306,7 +2306,7 @@ void TNodeJsRec::sjoin(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 }
 
 ///////////////////////////////
-// NodeJs QMiner Record
+// NodeJs QMiner Record Vector
 v8::Persistent<v8::Function> TNodeJsRecByValV::Constructor;
 
 void TNodeJsRecByValV::Init(v8::Handle<v8::Object> Exports) {
@@ -2320,13 +2320,43 @@ void TNodeJsRecByValV::Init(v8::Handle<v8::Object> Exports) {
 
     // Add all methods, getters and setters here.
     NODE_SET_PROTOTYPE_METHOD(tpl, "push", _push);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
-    Exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()),
-            tpl->GetFunction());
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "length"), _length);
+    tpl->InstanceTemplate()->SetIndexedPropertyHandler(_indexId);
+
+    Exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
 }
 
 TNodeJsRecByValV* TNodeJsRecByValV::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-    return new TNodeJsRecByValV;
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    // check we have at leat one object parameter
+    QmAssertR(Args.Length() > 0 && Args[0]->IsObject(),
+        "RecordVector: expected at least `base` parameter in constructor");
+
+    // unwrap the base
+    TNodeJsBase* JsBase = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsBase>(Args[0]->ToObject());
+    // create empty vector
+    TNodeJsRecByValV* JsRecV = new TNodeJsRecByValV(JsBase->Watcher);
+        
+    if (Args.Length() == 1) {
+        // we just return empty vector
+        return JsRecV;
+    } else if (Args.Length() == 2 && TNodeJsUtil::IsArgWrapObj<TNodeJsFIn>(Args, 1)) {
+        // load vector from disk
+        TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[1]->ToObject());
+        int Recs; JsFIn->SIn->Load(Recs);
+        for (int RecN = 0; RecN < Recs; RecN++) {
+            JsRecV->RecV.Add(TQm::TRec(JsBase->Base, *JsFIn->SIn));
+        }
+        // and return it
+        return JsRecV;
+    } else {
+        // unknown construtor, complain
+        throw TExcept::New("RecordVector: Unknown constructor parameters");
+    }
 }
 
 void TNodeJsRecByValV::push(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -2336,10 +2366,55 @@ void TNodeJsRecByValV::push(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     TNodeJsRecByValV* JsRecV = ObjectWrap::Unwrap<TNodeJsRecByValV>(Args.Holder());
     TNodeJsRec* JsRec = TNodeJsUtil::GetArgUnwrapObj<TNodeJsRec>(Args, 0);
 
-    EAssertR(JsRec->Rec.IsByVal(), "TNodeJsRecByValV::push: the record is not by value!");
+    EAssertR(JsRec->Rec.IsByVal(), "RecordVector::push: the record is not by value!");
     JsRecV->RecV.Add(JsRec->Rec);
 
     Args.GetReturnValue().Set(v8::Undefined(Isolate));
+}
+
+void TNodeJsRecByValV::length(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsRecByValV* JsRecV = ObjectWrap::Unwrap<TNodeJsRecByValV>(Info.Holder());
+
+    Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsRecV->RecV.Len()));
+}
+
+
+void TNodeJsRecByValV::indexId(uint32_t Index, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsRecByValV* JsRecV = ObjectWrap::Unwrap<TNodeJsRecByValV>(Info.Holder());
+
+    // check if we ask for valid index
+    const int RecN = Index;
+    if (0 <= RecN && RecN < JsRecV->RecV.Len()) {
+        // if yes, create JS wrapper around record
+        Info.GetReturnValue().Set(TNodeJsRec::NewInstance(
+            new TNodeJsRec(JsRecV->Watcher, JsRecV->RecV[RecN], 1)));
+    } else {
+        // if not, return null
+        Info.GetReturnValue().Set(v8::Null(Isolate));
+    }
+}
+
+void TNodeJsRecByValV::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsRecByValV* JsRecV = ObjectWrap::Unwrap<TNodeJsRecByValV>(Args.Holder());
+    TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+
+    // Cannot serialize directly as vector, since there is no TRec(SIn) constructor
+    // that we can use to load it later. We serialize manually
+    JsFOut->SOut->Save(int(JsRecV->RecV.Len()));
+    for (const TQm::TRec& Rec : JsRecV->RecV) {
+        Rec.Save(*JsFOut->SOut);
+    }
+
+    Args.GetReturnValue().Set(Args[0]);
 }
 
 ///////////////////////////////
