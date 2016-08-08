@@ -598,6 +598,7 @@ private:
     // past states
     int HistCacheSize;
     TVec<TStateIdV> PastStateIdV;	// TODO not optimal structure
+    TVec<TUInt64IntPrV> HierarchHistoryVV;
 
     // number of leaf states, these are stored in the first part of the hierarchy vector
     int NLeafs;
@@ -623,7 +624,8 @@ public:
 	// loads the model from the output stream
 	static THierarch* Load(TSIn& SIn);
 
-	void Init(const int& CurrLeafId, const TStreamStory& StreamStory);
+	void Init(const TUInt64V& RecTmV, const TFltVV& ObsFtrVV, const int& CurrLeafId,
+	        const TStreamStory& StreamStory);
 	void UpdateHistory(const int& CurrLeafId);
 
 	const TFltV& GetUniqueHeightV() const { return UniqueHeightV; }
@@ -655,7 +657,11 @@ public:
 
 	void GetCurrStateIdHeightPrV(TIntFltPrV& StateIdHeightPrV) const;
 	void GetUiCurrStateIdHeightPrV(TIntFltPrV& StateIdHeightPrV) const;
+	/// returns the last few states that occurred in the real-time data stream
 	void GetHistStateIdV(const double& Height, TStateIdV& StateIdV) const;
+	/// returns the whole history of states on the given scale
+	void GetStateHistory(const double& Scale, TUInt64IntPrV& StateTmStateIdPrV) const;
+	void GetStateHistory(TVec<TPair<TFlt, TUInt64IntPrV>>& ScaleTmIdPrPrV) const;
 
 	// for each state returns the number of leafs it's subtree has
 	void GetLeafSuccesorCountV(TIntV& LeafCountV) const;
@@ -690,7 +696,8 @@ private:
 	// returns the ID of the parent state
 	int GetParentId(const int& StateId) const;
 	// returns the height of the state
-	int GetNearestHeightN(const double& Height) const;
+	int GetHeightN(const double& Height) const;
+	int GetUiScaleN(const double& Height) const;
 	double GetNearestHeight(const double& InHeight) const;
 
 	bool IsRoot(const int& StateId) const;
@@ -710,6 +717,9 @@ private:
 
 	// methods for calculating the natural scales in the model
 	void CalcNaturalScales(const TStreamStory& StreamStory, const TRnd& Rnd, TFltV& ScaleV) const;
+	/// initializes the history of hierarchies
+	void InitHistHierarch(const TUInt64V& RecTmV, const TFltVV& ObsFtrVV,
+	        const TStateIdentifier& StateIdentifier);
 
 	double GetNextUiHeight(const double& Height) const {
 		const TFltV& UiHeightV = GetUiHeightV();
@@ -728,6 +738,8 @@ private:
 	static bool IsRoot(const int& StateId, const TIntV& HierarchV);
 	// returns a vector of unique heights
 	static void GenUniqueHeightV(const TFltV& HeightV, TFltV& UniqueHeightV);
+
+	static int FindScaleNBin(const double& Scale, const TFltV& ScaleV);
 
 	// clears the state
 	void ClrFlds();
@@ -1050,7 +1062,8 @@ public:
 			const TFltVV& IgnoredFtrVV, TIntV& AssignV);
 	void InitMChain(const TFltVV& FtrVV, const TIntV& AssignV, const TUInt64V& RecTmV,
 			const bool IsBatchData, const TBoolV& EndBatchV);
-	void InitHierarch();
+	/// initializes the hierarchy
+	void InitHierarch(const TUInt64V& RecTmV, const TFltVV& ObsFtrVV);
 	void InitHistograms(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const TFltVV& IgnoredFtrVV,
 			const TUInt64V& RecTmV, const TBoolV& BatchEndV);
 	void InitStateAssist(const TUInt64V& RecTmV, const TFltVV& ObsFtrVV,
@@ -1092,6 +1105,8 @@ public:
 			const int& NBins=-1) const;
 	void GetTimeHistogram(const int& StateId, const TStateIdentifier::TTmHistType& HistType,
 			TIntV& BinV, TFltV& ProbV) const;
+	void GetStateHistory(const double& Scale, TUInt64IntPrV& StateTmStateIdPrV) const;
+	void GetStateHistory(TVec<TPair<TFlt, TUInt64IntPrV>>& ScaleTmIdPrPrV) const;
 
 	// state explanations
 	PJsonVal GetStateWgtV(const int& StateId) const;

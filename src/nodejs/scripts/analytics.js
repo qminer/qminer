@@ -25,10 +25,10 @@ module.exports = exports = function (pathQmBinary) {
     ///////////////////////////////////////////////////
 
     /**
-    * Preprocessing
+    * PreprocessingF
     * @namespace
     * @desc Preprocessing functions for preparing labels in formats accepted
-    * by learning moduls in qm.analytics.
+    * by learning modules in {@link module:analytics}.
     */
     var preprocessing = preprocessing || {};
     // namespacing: http://addyosmani.com/blog/essential-js-namespacing/
@@ -41,17 +41,15 @@ module.exports = exports = function (pathQmBinary) {
     * numeric value for elements when label matches specified label and
     * for other elements. By default, these values are +1 for matching
     * labels, and -1 for the rest.
-    * @param {Array} y - labels
-    * @param {(string | number)} positiveLabel - positive label
-    * @param {number} [positiveId = 1] - value when matching positive label
-    * @param {number} [negativeId = -1] - value when not matching positive label
+    * @param {Array} y - Labels.
+    * @param {string | number} positiveLabel - Positive label.
+    * @param {number} [positiveId = 1] - Value when matching positive label.
+    * @param {number} [negativeId = -1] - Value when not matching positive label.
     * @example
     * // import analytics module
     * var analytics = require('qminer').analytics;
     * // create binarizer with 'b' as positive label
     * var binarizer = new analytics.preprocessing.Binarizer('b');
-    * // get vector with binarized labels
-    * var bins = binarizer.transform(['a','b','a','c']);
     */
     preprocessing.Binarizer = function (positiveLabel, positiveId, negativeId) {
         if (positiveLabel == undefined) { throw "Binarizer needs positive label"; }
@@ -66,8 +64,15 @@ module.exports = exports = function (pathQmBinary) {
 
         /**
         * Transform given array of labels to binary numeric vector.
-        * @param {(Array<number> | Array<string> | module:la.Vector | module:la.StrVector)} y - labels
-        * @return {modul:la.Vector} binarized vector
+        * @param {(Array<number> | Array<string> | module:la.Vector | module:la.StrVector)} y - Labels.
+        * @return {modul:la.Vector} Binarized vector.
+        * @example
+        * // import analytics module
+        * var analytics = require('qminer').analytics;
+        * // create binarizer with 'b' as positive label
+        * var binarizer = new analytics.preprocessing.Binarizer('b');
+        * // get vector with binarized labels
+        * var bins = binarizer.transform(['a','b','a','c']);
         */
         this.transform = function (y) {
             var target = new la.Vector();
@@ -78,7 +83,19 @@ module.exports = exports = function (pathQmBinary) {
         }
     };
 
+    /**
+    * Applies the model's `decisionFunction` method (if exists) on each column of matrix `X`.
+    * @param {Object} model - The model, that has the `decisionFunction` method.
+    * @param {module:la.SparseMatrix} X - The matrix.
+    * @returns {module:la.Vector} The dense vector where the i-th value is the value the `model.decisionFunction`
+    * returned for the sparse vector `X[i]`.
+    * @example
+    * // TODO
+    */
     preprocessing.applyModel = function (model, X) {
+        if (model.decisionFunction == undefined) {
+            throw "preprocessing.applyModel: model doesn't have a method called decisionFunction!";
+        }
         var target = new la.Vector();
         for (var i = 0; i < X.cols; i++) {
             target.push(model.decisionFunction(X[i]));
@@ -88,64 +105,55 @@ module.exports = exports = function (pathQmBinary) {
 
     // Exports preprocessing namespace
     exports.preprocessing = preprocessing;
-
-    /**
-    * SVM model.
-    * @typedef {Object} svmModel
-    * @property  {module:la.Vector} [svmModel.weigths] - SVM normal vector.
-    */
+    
+    // SVM 
     /**
 	* Get the model.
-	* @returns {module:analytics~svmModel} The current SVM model.
+	* @returns {Object} The `svmModel` object containing the property:
+    * <br> 1. `svmModel.weights` - The weights of the model. Type {@link module:la.Vector}.
     * @example
     * // import analytics module
     * var analytics = require('qminer').analytics;
     * // create a SVC model
     * var SVC = new analytics.SVC();
     * // get the properties of the model
-    * var model = SVC.getModel(); // returns { weight: new require('qminer').la.Vector(); }
+    * var model = SVC.getModel();
 	*/
     exports.SVC.prototype.getModel = function() { return { weights: this.weights }; }
     /**
 	* Get the model.
-	* @returns {module:analytics~svmModel} Get current SVM model
+	* @returns {Object} The `svmModel` object containing the property:
+    * <br> 1. `svmModel.weights` - The weights of the model. Type {@link module:la.Vector}.
     * @example
     * // import analytics module
     * var analytics = require('qminer').analytics;
     * // create a SVR model
     * var SVR = new analytics.SVR();
     * // get the properties of the model
-    * var model = SVR.getModel(); // returns { weights: new require('qminer').la.Vector(); }
+    * var model = SVR.getModel();
 	*/
     exports.SVR.prototype.getModel = function() { return { weights: this.weights }; }
 
     // Ridge Regression
     /**
-    * @typedef {Object} ridgeRegModel
-    * @property {module:la.Vector} [ridgeRegModel.weights] - The Ridge Regression model vector.
-    */
-
-    /**
     * Gets the model.
-    * @returns {module:analytics~ridgeRegModel} Get current model.
+    * @returns {Object} The `ridgeRegModel` object containing the property:
+    * <br> 1. `ridgeRegModel.weights` - The weights of the model. Type {@link module:la.Vector}.
     * @example
     * // import analytics module
     * var analytics = require('qminer').analytics;
     * // create the Ridge Regression model
     * var regmod = new analytics.RidgeReg();
     * // get the model
-    * var model = regmod.getModel(); // returns { weights: new require('qminer').la.Vector(); }
+    * var model = regmod.getModel();
     */
     exports.RidgeReg.prototype.getModel = function () { return { weights: this.weights }; }
 
     // Recursive Linear Regression
     /**
-    * @typedef {Object} recLinRegModel
-    * @property {module:la.Vector} [recLinRegModel.weights] - Recursive Linear Regression model vector.
-    */
-    /**
-    * Gets Recursive Linear Regression model
-    * @returns {module:analytics~recLnRegModel} The current model.
+    * Gets the model.
+    * @returns {Object} The `recLinRegModel` object containing the property:
+    * <br> 1. `recLinRegModel.weights` - The weights of the model. Type {@link module:la.Vector}.
     * @example
     * // import analytics module
     * var analytics = require('qminer').analytics;
@@ -158,38 +166,38 @@ module.exports = exports = function (pathQmBinary) {
 
     /**
     * @typedef {Object} oneVsAllParam
-    * The parameter given to the OneVsAll object. A Json object containing the parameter keys with values.
-    * @param {function} [model] - Constructor for binary model to be
+    * An object used for the construction of {@link module:analytics.OneVsAll}.
+    * @property {function} [model] - Constructor for binary model to be
     * used internaly. Constructor should expect only one parameter.
-    * @param {Object} [modelParam] - Parameter for oneVsAllParam.model constructor.
-    * @param {number} [categories] - Number of categories.
-    * @param {boolean} [verbose = false] - If false, the console output is supressed.
+    * @property {Object} [modelParam] - Parameter for `oneVsAllParam.model` constructor.
+    * @property {number} [categories] - Number of categories.
+    * @property {boolean} [verbose = false] - If false, the console output is supressed.
     */
 
     /**
-    * @classdesc One vs. all model for multiclass prediction. Builds binary model
+    * @classdesc One vs All model for multiclass prediction. Builds binary model
     * for each category and predicts the one with the highest score. Binary model is
     * provided as part of the constructor.
     * @class
-    * @param {module:analytics~oneVsAllParam} [oneVsAllParam] - Constructor parameters.
+    * @param {module:analytics~oneVsAllParam} [arg] - Construction arguments.
     * @example
     * // import analytics module
     * var analytics = require('qminer').analytics;
     * // create a new OneVsAll object with the model analytics.SVC
     * var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
     */
-    exports.OneVsAll = function (oneVsAllParam) {
+    exports.OneVsAll = function (arg) {
         // remember parameters
-        var model = oneVsAllParam.model;
-        var modelParam = oneVsAllParam.modelParam;
-        var cats = oneVsAllParam.cats;
-        var verbose = oneVsAllParam.verbose == undefined ? false : oneVsAllParam.verbose;
+        var model = arg.model;
+        var modelParam = arg.modelParam;
+        var cats = arg.cats;
+        var verbose = arg.verbose == undefined ? false : arg.verbose;
         // trained models
         var models = [ ];
 
         /**
         * Gets the parameters.
-        * @returns {Object} Json object containing the parameters.
+        * @returns {module:analytics~oneVsAllParam} The constructor parameters.
         * @example
         * // import analytics module
         * var analytics = require('qminer').analytics;
@@ -206,6 +214,7 @@ module.exports = exports = function (pathQmBinary) {
 
         /**
         * Sets the parameters.
+        * @param {module:analytics~OneVsAllParam} params - The constructor parameters.
         * @returns {module:analytics.OneVsAll} Self. The parameters are changed.
         * @example
         * // import analytics module
@@ -215,21 +224,21 @@ module.exports = exports = function (pathQmBinary) {
         * // set the parameters
         * var params = onevsall.setParams({ model: analytics.SVR, modelParam: { c: 12, maxTime: 10000}, cats: 3, verbose: true });
         */
-        this.setParams = function (oneVsAllParam) {
-            model = oneVsAllParam.model == undefined ? model : oneVsAllParam.model;
-            modelParam = oneVsAllParam.modelParam == undefined ? modelParam : oneVsAllParam.modelParam;
-            cats = oneVsAllParam.cats == undefined ? cats : oneVsAllParam.cats;
-            verbose = oneVsAllParam.verbose == undefined ? verbose : oneVsAllParam.verbose;
+        this.setParams = function (params) {
+            model = params.model == undefined ? model : params.model;
+            modelParam = params.modelParam == undefined ? modelParam : params.modelParam;
+            cats = params.cats == undefined ? cats : params.cats;
+            verbose = params.verbose == undefined ? verbose : params.verbose;
         }
 
         /**
          * Apply all models to the given vector and returns a vector of scores, one for each category.
-         * Semantic of scores depand on the provided binary model.
+         * Semantic of scores depend on the provided binary model.
          * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X -
-         * Input feature vector or matrix with feature vectors as columns.
-         * @returns {module:la.Vector | module:la.Matrix} The score and label of the input:
-         * <br>1. {@link module:la.Vector} of scores, if X is of type {@link module:la.Vector} or {@link module:la.SparseVector}.
-         * <br>2. {@link module:la.Matrix} with columns corresponding to instances, and rows corresponding to labels, if X is of type {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
+         * Feature vector or matrix with feature vectors as columns.
+         * @returns {module:la.Vector | module:la.Matrix} The score and label of the input `X`:
+         * <br>1. {@link module:la.Vector} of scores, if `X` is of type {@link module:la.Vector} or {@link module:la.SparseVector}.
+         * <br>2. {@link module:la.Matrix} with columns corresponding to instances, and rows corresponding to labels, if `X` is of type {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
          * @example
          * // import modules
          * var analytics = require('qminer').analytics;
@@ -244,7 +253,7 @@ module.exports = exports = function (pathQmBinary) {
          * // create the vector for the decisionFunction
          * var test = new la.Vector([1, 2]);
          * // give the vector to the decision function
-         * var prediction = onevsall.predict(test); // returns the vector of scores
+         * var prediction = onevsall.decisionFunction(test); // returns the vector of scores
          */
         this.decisionFunction = function(X) {
             // check what is our input
@@ -273,10 +282,10 @@ module.exports = exports = function (pathQmBinary) {
         /**
          * Apply all models to the given vector and returns category with the highest score.
          * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X -
-         * Input feature vector or matrix with feature vectors as columns.
-         * @returns {number | module:la.IntVector} Returns:
-         * <br>1. number of the category with the higher score, if X is {@link module:la.Vector} or {@link module:la.SparseVector}.
-         * <br>2. {@link module:la.IntVector} of categories with the higher score for each column of X, if X is {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
+         * Feature vector or matrix with feature vectors as columns.
+         * @returns {number | module:la.IntVector}
+         * <br>1. number of the category with the higher score, if `X` is {@link module:la.Vector} or {@link module:la.SparseVector}.
+         * <br>2. {@link module:la.IntVector} of categories with the higher score for each column of `X`, if `X` is {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
          * @example
          * // import modules
          * var analytics = require('qminer').analytics;
@@ -316,8 +325,8 @@ module.exports = exports = function (pathQmBinary) {
          * Apply all models to the given vector and returns category with the highest score.
          * @param {module:la.Matrix | module:la.SparseMatrix} X - training instance feature vectors.
          * @param {module:la.Vector} y - target category for each training instance. Categories must
-         * be integer numbers between 0 and oneVsAllParam.categories - 1.
-         * @returns {module:analytics.OneVsAll} Self. The models are now fitted.
+         * be integer numbers between `0` and `oneVsAllParam.categories-1`.
+         * @returns {module:analytics.OneVsAll} Self. The models have been fitted.
          * @example
          * // import modules
          * var analytics = require('qminer').analytics;
@@ -354,6 +363,16 @@ module.exports = exports = function (pathQmBinary) {
         }
     };
 
+    /**
+     * Threshold Model
+     * @class
+     * @classdesc The Threshold model. Uses the methods from the {@link module:analytics.metrics}.
+     * @param {Object} [arg] - The constructor parameters.
+     * @param {string} [arg.target] - Target type. Possible options are `"recall"` and `"precision"`.
+     * @param {TODO} [arg.level] - TODO
+     * @example
+     * // TODO
+     */
     exports.ThresholdModel = function(params) {
         // what do we optimize
         this.target = params.target;
@@ -366,6 +385,15 @@ module.exports = exports = function (pathQmBinary) {
         // apply all models to the given vector and return distance to the class boundary
         // x = dense vector with prediction score for each class
         // result = traslated predictions based on thresholds
+        /**
+         * Apply all models to the given vector and returns the distance to the class boundary.
+         * @param {number | module:la.Vector} x - The prediction score for each class.
+         * @returns {number | module:la.Vector}
+         * <br>1. value of the translated prediction based on the threshold, if `x` is `number`,
+         * <br>2. {@link module:la.Vector} of translated prediction based on the threshold, if `x` is {@link module:la.Vector}.
+         * @example
+         * // TODO
+         */
         this.decisionFunction = function(x) {
             if (x instanceof Number) {
                 // just transate based on the model's threshold
@@ -385,6 +413,15 @@ module.exports = exports = function (pathQmBinary) {
         // return the most likely category
         // x = dense vector with prediction score for each class
         // result = array of positive label ids
+        /**
+         * Returns the most likely category.
+         * @param {number | module:la.Vector} x - The prediction score for each class.
+         * @returns {number | module:la.Vector}
+         * <br>1. value of the positive label IDs, if `x` is `number`,
+         * <br>2. {@link module:la.Vector} of the positive label IDs, if `x` is {@link module:la.Vector}.
+         * @example
+         * // TODO
+         */
         this.predict = function(x) {
             // evaluate all models
             var scores = this.decisionFunction(x)
@@ -402,6 +439,13 @@ module.exports = exports = function (pathQmBinary) {
 
         // X = vector of predictions for each instance (output of decision_funcition)
         // y = target labels (1 or -1)
+        /**
+         * Fits the model.
+         * @param {module:la.Vector} X - Prediction for each instance (output of descisionFunction).
+         * @param {number} y - The target labels (1 or -1).
+         * @example
+         * // TODO
+         */
         this.fit = function(X, y) {
             if (this.target === "f1") {
                 // find threshold that maximizes F1 measure
@@ -422,7 +466,7 @@ module.exports = exports = function (pathQmBinary) {
     /**
     * Metrics
     * @namespace
-    * @desc Classification and regression metrics
+    * @desc Classification and regression metrics.
     * @example <caption>Batch classification example</caption>
     * // import metrics module
     * var analytics = require('qminer').analytics;
@@ -487,24 +531,24 @@ module.exports = exports = function (pathQmBinary) {
     /**
     * For evaluating provided categories from binary? classifiers.
     * @class
-    * @classdesc Class implements several classification measures (precision, recall, F1, accuracy)
-    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lable(s)
-    * @param {(Array<number> | module:la.Vector)} yPred - Predicted (estimated) lable(s)
+    * @classdesc Class implements several classification measures (precision, recall, F1, accuracy).
+    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lable(s).
+    * @param {(Array<number> | module:la.Vector)} yPred - Predicted (estimated) lable(s).
     */
     metrics.ClassificationScore = function (yTrue, yPred) {
         /**
-        * Returns `Object` containing different classification measures
-        * @returns {Object} scores - Object with different classification socres
-        * @returns {number} scores.count - Count
-        * @returns {number} scores.TP - Number of true positives
-        * @returns {number} scores.TN - Number of true negative
-        * @returns {number} scores.FP - Number of false positives
-        * @returns {number} scores.FN - Number of false positives
-        * @returns {number} scores.all - Number of all results
-        * @returns {number} scores.accuracy - Accuracy score. Formula: (tp + tn) / (tp + fp + fn + tn)
-        * @returns {number} scores.precision - Precision score. Formula: tp / (tp + fp)
-        * @returns {number} scores.recall - Recall score. Formula: tp / (tp + fn)
-        * @returns {number} scores.f1 - F1 score. Formula:  2 * (precision * recall) / (precision + recall)
+        * Returns `Object` containing different classification measures.
+        * @returns {Object} scores - Object with different classification socres.
+        * @returns {number} scores.count - Count.
+        * @returns {number} scores.TP - Number of true positives.
+        * @returns {number} scores.TN - Number of true negative.
+        * @returns {number} scores.FP - Number of false positives.
+        * @returns {number} scores.FN - Number of false positives.
+        * @returns {number} scores.all - Number of all results.
+        * @returns {number} scores.accuracy - Accuracy score. Formula: `(tp + tn) / (tp + fp + fn + tn)`.
+        * @returns {number} scores.precision - Precision score. Formula: `tp / (tp + fp)`.
+        * @returns {number} scores.recall - Recall score. Formula: `tp / (tp + fn)`.
+        * @returns {number} scores.f1 - F1 score. Formula:  `2 * (precision * recall) / (precision + recall)`.
         */
         this.scores = {
             count: 0, predictionCount: 0,
@@ -518,7 +562,7 @@ module.exports = exports = function (pathQmBinary) {
         };
 
         /**
-        * Adds prediction to the current statistics. Labels can be either integers
+        * Adds prediction to the current statistics. Labels can be either integers.
         * or integer array (when there are zero or more then one lables).
         * @param {number} correct - Correct lable.
         * @param {number} predicted - Predicted lable.
@@ -566,10 +610,10 @@ module.exports = exports = function (pathQmBinary) {
     /**
     * Accuracy score is the proportion of true results (both true positives and true negatives)
     * among the total number of cases examined.
-    * Formula: (tp + tn) / (tp + fp + fn + tn).
-    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables
-    * @param {(Array<number> | module:la.Vector)} yPred - Predicted (estimated) lables
-    * @returns {number} Accuracy value
+    * Formula: `(tp + tn) / (tp + fp + fn + tn)`.
+    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables.
+    * @param {(Array<number> | module:la.Vector)} yPred - Predicted (estimated) lables.
+    * @returns {number} Accuracy value.
     */
     metrics.accuracyScore = function (yTrue, yPred) {
         return new metrics.ClassificationScore(yTrue, yPred).scores.accuracy();
@@ -578,10 +622,10 @@ module.exports = exports = function (pathQmBinary) {
     /**
     * Precision score is defined as the proportion of the true positives against all the
     * positive results (both true positives and false positives).
-    * Formula: tp / (tp + fp).
-    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables
-    * @param {(Array<number> | module:la.Vector)} yPred - Predicted (estimated) lables
-    * @returns {number} Precission score
+    * Formula: `tp / (tp + fp)`.
+    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables.
+    * @param {(Array<number> | module:la.Vector)} yPred - Predicted (estimated) lables.
+    * @returns {number} Precission score.
     */
     metrics.precisionScore = function (yTrue, yPred) {
         return new metrics.ClassificationScore(yTrue, yPred).scores.precision();
@@ -589,10 +633,10 @@ module.exports = exports = function (pathQmBinary) {
 
     /**
     * Recall score is intuitively the ability of the classifier to find all the positive samples.
-    * Formula: tp / (tp + fn).
-    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables
-    * @param {(Array<number> | module:la.Vector)} yPred - Predicted (estimated) lables
-    * @returns {number} Recall score
+    * Formula: `tp / (tp + fn)`.
+    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables.
+    * @param {(Array<number> | module:la.Vector)} yPred - Predicted (estimated) lables.
+    * @returns {number} Recall score.
     */
     metrics.recallScore = function (yTrue, yPred) {
         return new metrics.ClassificationScore(yTrue, yPred).scores.recall();
@@ -602,21 +646,21 @@ module.exports = exports = function (pathQmBinary) {
     * The F1 score can be interpreted as a weighted average of the precision and recall, where
     * an F1 score reaches its best value at 1 and worst score at 0. The relative contribution of
     * precision and recall to the F1 score are equal.
-    * Formula: 2 * (precision * recall) / (precision + recall)
-    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables
-    * @param {(Array<number> | module:la.Vector)} yPred - Predicted (estimated) lables
-    * @returns {number} F1 score
+    * Formula: `2 * (precision * recall) / (precision + recall)`.
+    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables.
+    * @param {(Array<number> | module:la.Vector)} yPred - Predicted (estimated) lables.
+    * @returns {number} F1 score.
     */
     metrics.f1Score = function (yTrue, yPred) {
         return new metrics.ClassificationScore(yTrue, yPred).scores.f1();
     };
 
     /**
-    * Class implements several prediction curve measures (ROC, AOC, Precision-Recall, ...)
+    * Class implements several prediction curve measures (ROC, AOC, Precision-Recall, ...).
     * @class
-    * @classdesc used for computing ROC curve and other related measures such as AUC
+    * @classdesc Used for computing ROC curve and other related measures such as AUC.
     * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lable(s) of binary classification in range {-1, 1} or {0, 1}.
-    * @param {(Array<number> | module:la.Vector)} yPred - Estimated probabilities
+    * @param {(Array<number> | module:la.Vector)} yPred - Estimated probabilities.
     * @example
     * // import metrics module
     * var metrics = require('qminer').analytics.metrics;
@@ -640,32 +684,32 @@ module.exports = exports = function (pathQmBinary) {
     */
     metrics.PredictionCurve = function (yTrue, yPred) {
         /**
-        * Count of all examples
+        * Count of all examples.
         * @name module:analytics~metrics.PredictionCurve#length
         * @type number
         */
         this.length = 0;
         /**
-        * Count of all positive examples
+        * Count of all positive examples.
         * @name module:analytics~metrics.PredictionCurve#allPositives
         * @type number
         */
         this.allPositives = 0;
         /**
-        * Count of all negative examples
+        * Count of all negative examples.
         * @name module:analytics~metrics.PredictionCurve#allNegatives
         * @type number
         */
         this.allNegatives = 0;
         // store of predictions and ground truths
         /**
-        * Store of ground truths
+        * Store of ground truths.
         * @name module:analytics~metrics.PredictionCurve#grounds
         * @type module:la.Vector
         */
         this.grounds = new la.Vector();
         /**
-        * Store of predictions
+        * Store of predictions.
         * @name module:analytics~metrics.PredictionCurve#predictions
         * @type module:la.Vector
         */
@@ -707,9 +751,9 @@ module.exports = exports = function (pathQmBinary) {
         }
 
         /**
-        * Get  Receiver Operating Characteristic (ROC) parametrization sampled on `sample` points
-        * @param {number} [sample=10] - Desired number of samples in output
-        * @returns {module:la.Matrix} A matrix with increasing false and true positive rates
+        * Get Receiver Operating Characteristic (ROC) parametrization sampled on `sample` points.
+        * @param {number} [sample=10] - Desired number of samples in output.
+        * @returns {module:la.Matrix} A matrix with increasing false and true positive rates.
         */
         this.roc = function (sample) {
             // default sample size is 10
@@ -759,9 +803,9 @@ module.exports = exports = function (pathQmBinary) {
         }
 
         /**
-        * Get Area Under the Curve (AUC) of the current curve
-        * @param {number} [sample=10] - Desired number of samples in output
-        * @returns {number} Area under ROC curve
+        * Get Area Under the Curve (AUC) of the current curve.
+        * @param {number} [sample=10] - Desired number of samples in output.
+        * @returns {number} Area under ROC curve.
         */
         this.auc = function (sample) {
             // default sample size is 10
@@ -783,9 +827,9 @@ module.exports = exports = function (pathQmBinary) {
         }
 
         /**
-        * evalPrecisionRecall
+        * evalPrecisionRecall.
         * @private
-        * @param {callback} callback
+        * @param {callback} callback.
         */
         this.evalPrecisionRecall = function (callback) {
             // sort according to predictions
@@ -811,8 +855,8 @@ module.exports = exports = function (pathQmBinary) {
         }
 
         /**
-        * Get precision recall curve sampled on `sample` points
-        * @param {number} [sample=10] - Desired number of samples in output
+        * Get precision recall curve sampled on `sample` points.
+        * @param {number} [sample=10] - Desired number of samples in output.
         * @returns {module:la.Matrix} Precision-recall pairs.
         */
         this.precisionRecallCurve = function (sample) {
@@ -847,7 +891,7 @@ module.exports = exports = function (pathQmBinary) {
         };
 
         /**
-        * Get break-even point, the value where precision and recall intersect
+        * Get break-even point, the value where precision and recall intersect.
         * @returns {number} Break-even point.
         */
         this.breakEvenPoint = function () {
@@ -862,7 +906,7 @@ module.exports = exports = function (pathQmBinary) {
         }
 
         /**
-        * Gets threshold for prediction score, which results in the highest F1
+        * Gets threshold for prediction score, which results in the highest F1.
         * @returns {number} Threshold with highest F1 score.
         */
         this.bestF1 = function () {
@@ -880,9 +924,9 @@ module.exports = exports = function (pathQmBinary) {
         }
 
         /**
-        * Gets threshold for prediction score, nearest to specified recall
+        * Gets threshold for prediction score, nearest to specified recall.
         * @param {number} desiredRecall - Desired recall score.
-        * @returns {number} recal score threshold - Threshold for recall score, nearest to specified `recall`
+        * @returns {number} Recal Score Threshold. Threshold for recall score, nearest to specified `recall`.
         */
         this.desiredRecall = function (desiredRecall) {
             return this.evalPrecisionRecall(new function () {
@@ -899,9 +943,9 @@ module.exports = exports = function (pathQmBinary) {
         }
 
         /**
-        * Gets threshold for prediction score, nearest to specified precision
+        * Gets threshold for prediction score, nearest to specified precision.
         * @param {number} desiredPrecision - Desired precision score.
-        * @returns {number} Threshold for prediction score, nearest to specified `precision`
+        * @returns {number} Threshold for prediction score, nearest to specified `precision`.
         */
         this.desiredPrecision = function (desiredPrecision) {
             return this.evalPrecisionRecall(new function () {
@@ -919,11 +963,11 @@ module.exports = exports = function (pathQmBinary) {
     };
 
     /**
-    * Get ROC parametrization sampled on `sample` points
-    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables
-    * @param {(Array<number> | module:la.Vector)} yPred - Estimated probabilities
-    * @param {number} [sample=10] - Desired number of samples in output
-    * @returns {module:la.Matrix} A matrix with increasing false and true positive rates
+    * Get ROC parametrization sampled on `sample` points.
+    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables.
+    * @param {(Array<number> | module:la.Vector)} yPred - Estimated probabilities.
+    * @param {number} [sample=10] - Desired number of samples in output.
+    * @returns {module:la.Matrix} A matrix with increasing false and true positive rates.
     * @example
     * // import metrics module
     * var metrics = require('qminer').analytics.metrics;
@@ -940,11 +984,11 @@ module.exports = exports = function (pathQmBinary) {
     };
 
     /**
-    * Get AUC of the current curve
-    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables
-    * @param {(Array<number> | module:la.Vector)} yPred - Estimated probabilities
-    * @param {number} [sample=10] - Desired number of samples in output
-    * @returns {number} Area under ROC curve
+    * Get AUC of the current curve.
+    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables.
+    * @param {(Array<number> | module:la.Vector)} yPred - Estimated probabilities.
+    * @param {number} [sample=10] - Desired number of samples in output.
+    * @returns {number} Area under ROC curve.
     * @example
     * // import metrics module
     * var metrics = require('qminer').analytics.metrics;
@@ -961,53 +1005,53 @@ module.exports = exports = function (pathQmBinary) {
     };
 
     /**
-    * Get precision recall curve sampled on `sample` points
-    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables
-    * @param {(Array<number> | module:la.Vector)} yPred - Estimated probabilities
-    * @param {number} [sample=10] - Desired number of samples in output
-    * @returns {module:la.Matrix} Precision-recall pairs
+    * Get precision recall curve sampled on `sample` points.
+    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables.
+    * @param {(Array<number> | module:la.Vector)} yPred - Estimated probabilities.
+    * @param {number} [sample=10] - Desired number of samples in output.
+    * @returns {module:la.Matrix} Precision-recall pairs.
     */
     metrics.precisionRecallCurve = function (yTrue, yPred, sample) {
         return new metrics.PredictionCurve(yTrue, yPred).precisionRecallCurve(sample);
     };
 
     /**
-    * Get break-even point, the value where precision and recall intersect
-    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables
-    * @param {(Array<number> | module:la.Vector)} yPred - Estimated probabilities
-    * @returns {number} Break-even point score
+    * Get break-even point, the value where precision and recall intersect.
+    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables.
+    * @param {(Array<number> | module:la.Vector)} yPred - Estimated probabilities.
+    * @returns {number} Break-even point score.
     */
     metrics.breakEventPointScore = function (yTrue, yPred) {
         return new metrics.PredictionCurve(yTrue, yPred).breakEvenPoint();
     };
 
     /**
-    * Gets threshold for prediction score, which results in the highest F1
-    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables
-    * @param {(Array<number> | module:la.Vector)} yPred - Estimated probabilities
-    * @returns {number} Threshold with highest F1 score
+    * Gets threshold for prediction score, which results in the highest F1.
+    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables.
+    * @param {(Array<number> | module:la.Vector)} yPred - Estimated probabilities.
+    * @returns {number} Threshold with highest F1 score.
     */
     metrics.bestF1Threshold = function (yTrue, yPred) {
         return new metrics.PredictionCurve(yTrue, yPred).bestF1();
     };
 
     /**
-    * Gets threshold for recall score, nearest to specified recall
-    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables
-    * @param {(Array<number> | module:la.Vector)} yPred - Estimated probabilities
+    * Gets threshold for recall score, nearest to specified recall.
+    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables.
+    * @param {(Array<number> | module:la.Vector)} yPred - Estimated probabilities.
     * @param {number} desiredRecall - Desired recall score.
-    * @returns {number} Threshold for recall score, nearest to specified `recall`
+    * @returns {number} Threshold for recall score, nearest to specified `recall`.
     */
     metrics.desiredRecallThreshold = function (yTrue, yPred, desiredRecall) {
         return new metrics.PredictionCurve(yTrue, yPred).desiredRecall(desiredRecall);
     };
 
     /**
-    * Gets threshold for prediction score, nearest to specified precision
-    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables
-    * @param {(Array<number> | module:la.Vector)} yPred - Estimated probabilities
+    * Gets threshold for prediction score, nearest to specified precision.
+    * @param {(Array<number> | module:la.Vector)} yTrue - Ground truth (correct) lables.
+    * @param {(Array<number> | module:la.Vector)} yPred - Estimated probabilities.
     * @param {number} desiredPrecision - Desired precision score.
-    * @returns {number} Threshold for prediction score, nearest to specified `precision`
+    * @returns {number} Threshold for prediction score, nearest to specified `precision`.
     */
     metrics.desiredPrecisionThreshold = function (yTrue, yPred, desiredPrecision) {
         return new metrics.PredictionCurve(yTrue, yPred).desiredPrecision(desiredPrecision);
@@ -1045,8 +1089,8 @@ module.exports = exports = function (pathQmBinary) {
 
         /**
         * Updates metric with ground truth target value `yTrue` and estimated target value `yPred`.
-        * @param {number} yTrue - Ground truth (correct) target value
-        * @param {number} yPred - Estimated target value
+        * @param {number} yTrue - Ground truth (correct) target value.
+        * @param {number} yPred - Estimated target value.
         */
         this.push = function (yTrue, yPred, ref_num) {
             // set default values of optional input parameters
@@ -1060,16 +1104,16 @@ module.exports = exports = function (pathQmBinary) {
 
         /**
         * Returns error value.
-        * @returns {number} Error value
+        * @returns {number} Error value.
         */
         this.getError = function () {
             return error;
         }
 
         /**
-	    * Save metric state to provided output stream `FOut`.
-	    * @param {module:fs.FOut} FOut - The output stream.
-	    * @returns {module:fs.FOut} Provided output stream `FOut`.
+	    * Save metric state to provided output stream `fout`.
+	    * @param {module:fs.FOut} fout - The output stream.
+	    * @returns {module:fs.FOut} The output stream `fout`.
         */
         this.save = function (fout) {
             fout.writeJson(this.metric.state);
@@ -1077,9 +1121,9 @@ module.exports = exports = function (pathQmBinary) {
         }
 
         /**
-	    * Load metric state from provided input stream `FIn`.
-	    * @param {module:fs.FIn} FIn - The output stream.
-	    * @returns {module:fs.FIn} Provided output stream `FIn`.
+	    * Load metric state from provided input stream `fin`.
+	    * @param {module:fs.FIn} fin - The output stream.
+	    * @returns {module:fs.FIn} The output stream `fin`.
         */
         this.load = function (fin) {
             this.metric.state = fin.readJson();
@@ -1093,8 +1137,8 @@ module.exports = exports = function (pathQmBinary) {
     /**
     * Create new (online) mean error instance.
     * @class
-    * @classdesc Online Mean Error (ME) instance
-    * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
+    * @classdesc Online Mean Error (ME) instance.
+    * @param {module:fs.FIn} [fin] - Saved state can be loaded via constructor.
     * @extends module:analytics~createOnlineMetric
     */
     metrics.MeanError = function (fin) {
@@ -1126,8 +1170,8 @@ module.exports = exports = function (pathQmBinary) {
     /**
     * Create new (online) mean absolute error instance.
     * @class
-    * @classdesc Online Mean Absolute Error (MAE) instance
-    * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
+    * @classdesc Online Mean Absolute Error (MAE) instance.
+    * @param {module:fs.FIn} [fin] - Saved state can be loaded via constructor.
     * @extends module:analytics~createOnlineMetric
     */
     metrics.MeanAbsoluteError = function (fin) {
@@ -1159,8 +1203,8 @@ module.exports = exports = function (pathQmBinary) {
     /**
     * Create new (online) mean square error instance.
     * @class
-    * @classdesc Online Mean Square Error (MSE) instance
-    * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
+    * @classdesc Online Mean Square Error (MSE) instance.
+    * @param {module:fs.FIn} [fin] - Saved state can be loaded via constructor.
     * @extends module:analytics~createOnlineMetric
     */
     metrics.MeanSquareError = function (fin) {
@@ -1192,8 +1236,8 @@ module.exports = exports = function (pathQmBinary) {
     /**
     * Create new (online) root mean square error instance.
     * @class
-    * @classdesc Online Root Mean Square Error (RMSE) instance
-    * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
+    * @classdesc Online Root Mean Square Error (RMSE) instance.
+    * @param {module:fs.FIn} [fin] - Saved state can be loaded via constructor.
     * @extends module:analytics~createOnlineMetric
     */
     metrics.RootMeanSquareError = function (fin) {
@@ -1225,8 +1269,8 @@ module.exports = exports = function (pathQmBinary) {
     /**
     * Create new (online) mean absolute percentage error instance.
     * @class
-    * @classdesc Online Mean Absolute Percentage Error (MAPE) instance
-    * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
+    * @classdesc Online Mean Absolute Percentage Error (MAPE) instance.
+    * @param {module:fs.FIn} [fin] - Saved state can be loaded via constructor.
     * @extends module:analytics~createOnlineMetric
     */
     metrics.MeanAbsolutePercentageError = function (fin) {
@@ -1260,8 +1304,8 @@ module.exports = exports = function (pathQmBinary) {
     /**
     * Create new (online) R Square instance. This statistic measures how successful the fit is in explaining the variation of the data. Best possible score is 1.0, lower values are worse.
     * @class
-    * @classdesc Online R Squared (R2) score instance
-    * @param {module:fs.FIn} [FIn] - Saved state can be loaded via constructor
+    * @classdesc Online R Squared (R2) score instance.
+    * @param {module:fs.FIn} [fin] - Saved state can be loaded via constructor.
     * @extends module:analytics~createOnlineMetric
     */
     metrics.R2Score = function (fin) {
@@ -1340,9 +1384,9 @@ module.exports = exports = function (pathQmBinary) {
 
     /**
     * Mean error (ME) regression loss.
-    * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`
-    * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`
-    * @returns {number} Error value
+    * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`.
+    * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`.
+    * @returns {number} Error value.
     */
     metrics.meanError = function (yTrueVec, yPredVec) {
         return new calcBatchError(yTrueVec, yPredVec).ME()
@@ -1350,9 +1394,9 @@ module.exports = exports = function (pathQmBinary) {
 
     /**
     * Mean absolute error (MAE) regression loss.
-    * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`
-    * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`
-    * @returns {number} Error value
+    * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`.
+    * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`.
+    * @returns {number} Error value.
     */
     metrics.meanAbsoluteError = function (yTrueVec, yPredVec) {
         return new calcBatchError(yTrueVec, yPredVec).MAE()
@@ -1360,9 +1404,9 @@ module.exports = exports = function (pathQmBinary) {
 
     /**
     * Mean square error (MSE) regression loss.
-    * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`
-    * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`
-    * @returns {number} Error value
+    * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`.
+    * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`.
+    * @returns {number} Error value.
     */
     metrics.meanSquareError = function (yTrueVec, yPredVec) {
         return new calcBatchError(yTrueVec, yPredVec).MSE()
@@ -1370,9 +1414,9 @@ module.exports = exports = function (pathQmBinary) {
 
     /**
     * Root mean square (RMSE) error regression loss.
-    * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`
-    * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`
-    * @returns {number} Error value
+    * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`.
+    * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`.
+    * @returns {number} Error value.
     */
     metrics.rootMeanSquareError = function (yTrueVec, yPredVec) {
         return new calcBatchError(yTrueVec, yPredVec).RMSE()
@@ -1380,9 +1424,9 @@ module.exports = exports = function (pathQmBinary) {
 
     /**
     * Mean absolute percentage error (MAPE) regression loss.
-    * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`
-    * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`
-    * @returns {number} Error value
+    * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`.
+    * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec.`
+    * @returns {number} Error value.
     */
     metrics.meanAbsolutePercentageError = function (yTrueVec, yPredVec) {
         return new calcBatchError(yTrueVec, yPredVec).MAPE()
@@ -1390,9 +1434,9 @@ module.exports = exports = function (pathQmBinary) {
 
     /**
     * R^2 (coefficient of determination) regression score.
-    * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`
-    * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`
-    * @returns {number} Error value
+    * @param {(Array<number> | module:la.Vector)} yTrueVec - ground truth values in `yTrueVec`.
+    * @param {(Array<number> | module:la.Vector)} yPredVec - estimated values in `yPredVec`.
+    * @returns {number} Error value.
     */
     metrics.r2Score = function (yTrueVec, yPredVec) {
         return new calcBatchError(yTrueVec, yPredVec).R2()
@@ -1402,56 +1446,64 @@ module.exports = exports = function (pathQmBinary) {
     exports.metrics = metrics;
 
     /**
-    * @typedef {Object} pcaParams
+    * @typedef {Object} PCAParam
+    * An object used for the construction of {@link module:analytics.PCA}.
     * @property {number} [k = null] - Number of eigenvectors to be computed.
     * @property {number} [iter = 100] - Number of iterations.
     */
 
     /**
-    * @classdesc Principal components analysis
+    * Principal Components Analysis
     * @class
-    * @param {module:analytics~pcaParams | module:fs.FIn} [params] - The constructor parameters.
+    * @classdesc Principal Components Analysis
+    * @param {module:analytics~PCAParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
+    * <br>1. Using the {@link module:analytics~PCAParam} object,
+    * <br>2. using the file input stream {@link module:fs.FIn}.
     * @example <caption>Using default constructor</caption>
     * // import analytics module
     * var analytics = require('qminer').analytics;
     * // construct model
     * var pca = new analytics.PCA();
+    *
     * @example <caption>Using custom constructor</caption>
     * // import analytics module
     * var analytics = require('qminer').analytics;
     * // construct model
     * var pca = new analytics.PCA({ k: 5, iter: 50 });
     */
-    exports.PCA = function (param) {
+    exports.PCA = function (arg) {
         var iter, k;
         var initParam;
         this.P = undefined;
         this.mu = undefined;
         this.lambda = undefined;
         var count = 1;
-        if (param != undefined && param.constructor.name == 'FIn') {
+        if (arg != undefined && arg.constructor.name == 'FIn') {
             this.P = new la.Matrix();
-            this.P.load(param);
+            this.P.load(arg);
             this.mu = new la.Vector();
-            this.mu.load(param);
+            this.mu.load(arg);
             this.lambda = new la.Vector();
-            this.lambda.load(param);
+            this.lambda.load(arg);
             var params_vec = new la.Vector();
-            params_vec.load(param);
+            params_vec.load(arg);
             iter = params_vec[0];
             k = params_vec[1];
-        } else if (param == undefined || typeof param == 'object') {
-            param = param == undefined ? {} : param;
+        } else if (arg == undefined || typeof arg == 'object') {
+            arg = arg == undefined ? {} : arg;
             // Fit params
-            var iter = param.iter == undefined ? 100 : param.iter;
-            var k = param.k; // can be undefined
+            var iter = arg.iter == undefined ? 100 : arg.iter;
+            var k = arg.k; // can be undefined
         } else {
             throw "PCA.constructor: parameter must be a JSON object or a fs.FIn!";
         }
         initParam = { iter: iter, k: k };
         /**
-        * Returns the model
-        * @returns {Object} The model object whose keys are: P (eigenvectors), lambda (eigenvalues) and mu (mean)
+        * Returns the model.
+        * @returns {Object} The object `pcaModel` containing the properties:
+        * <br>1. `pcaModel.P` - The eigenvectors. Type {@link module:la.Matrix}.
+        * <br>2. `pcaModel.lambda` - The eigenvalues. Type {@link module:la.Vector}.
+        * <br>3. `pcaModel.mu` - The mean values. Type {@link module:la.Vector}.
         * @example
         * // import analytics module
         * var analytics = require('qminer').analytics;
@@ -1471,7 +1523,7 @@ module.exports = exports = function (pathQmBinary) {
         /**
         * Saves the model.
         * @param {module:fs.FOut} fout - The output stream.
-        * @returns {module:fs.FOut} The given output stream fout.
+        * @returns {module:fs.FOut} The output stream `fout`.
         * @example
         * // import analytics module
         * var analytics = require('qminer').analytics;
@@ -1507,8 +1559,8 @@ module.exports = exports = function (pathQmBinary) {
         
 
         /**
-        * Sets parameters
-        * @param {p} Object whose keys are: k (number of eigenvectors) and iter (maximum iterations)
+        * Sets parameters.
+        * @param {module:analytics~PCAParam} param - The constructor parameters.
         * @example
         * // import analytics module
         * var analytics = require('qminer').analytics;
@@ -1521,11 +1573,12 @@ module.exports = exports = function (pathQmBinary) {
             iter = param.iter == undefined ? iter : param.iter;
             k = param.k == undefined ? k : param.k;
             initParam = { iter: iter, k: k };
+            return this;
         }
 
         /**
-        * Gets parameters
-        * @returns Object whose keys are: k (number of eigenvectors) and iter (maximum iterations)
+        * Gets parameters.
+        * @returns {moduel:analytics~PCAParam} The constructor parameters.
         * @example <caption>Using default constructor</caption>
         * // import analytics module
         * var analytics = require('qminer').analytics;
@@ -1533,6 +1586,7 @@ module.exports = exports = function (pathQmBinary) {
         * var pca = new analytics.PCA();
         * // check the constructor parameters
         * var paramvalue = pca.getParams();
+        *
         * @example <caption>Using custom constructor</caption>
         * // import analytics module
         * var analytics = require('qminer').analytics;
@@ -1580,14 +1634,16 @@ module.exports = exports = function (pathQmBinary) {
             this.P = res.U;
             this.lambda = res.s;
             this.mu = mu;
+
+            return this;
         }
 
         /**
-        * Projects the example(s) and expresses them as coefficients in the eigenvector basis this.P.
-        * Recovering the data in the original space: (this.P).multiply(p), where p's rows are the coefficients
+        * Projects the example(s) and expresses them as coefficients in the eigenvector basis `this.P`.
+        * Recovering the data in the original space: `(this.P).multiply(p)`, where `p`'s rows are the coefficients
         * in the eigenvector basis.
-        * @param {(module:la.Vector | module:la.Matrix)} x - Test vector or matrix with column examples
-        * @returns {(module:la.Vector | module:la.Matrix)} Returns projected vector or matrix
+        * @param {(module:la.Vector | module:la.Matrix)} x - Test vector or matrix with column examples.
+        * @returns {(module:la.Vector | module:la.Matrix)} Returns projected vector or matrix.
         * @example <caption>Transforming the matrix</caption>
         * // import analytics module
         * var analytics = require('qminer').analytics;
@@ -1600,6 +1656,7 @@ module.exports = exports = function (pathQmBinary) {
         * var model = pca.getModel();
         * // transform matrix
         * var transform = pca.transform(matrix);
+        *
         * @example <caption>Transforming the vector</caption>
         * // import analytics module
         * var analytics = require('qminer').analytics;
@@ -1627,9 +1684,9 @@ module.exports = exports = function (pathQmBinary) {
         }
 
         /**
-        * Reconstructs the vector in the original space, reverses centering
-        * @param {(module:la.Vector | module:la.Matrix)} x - Test vector or matrix with column examples, in the PCA space
-        * @returns {(module:la.Vector | module:la.Matrix)} Returns the reconstruction
+        * Reconstructs the vector in the original space, reverses centering.
+        * @param {(module:la.Vector | module:la.Matrix)} x - Test vector or matrix with column examples, in the PCA space.
+        * @returns {(module:la.Vector | module:la.Matrix)} Returns the reconstruction.
         * @example <caption>Inverse transform of matrix</caption>
         * // import analytics module
         * var analytics = require('qminer').analytics;
@@ -1642,6 +1699,7 @@ module.exports = exports = function (pathQmBinary) {
         * var model = pca.getModel();
         * // use inverseTransform on matrix
         * var invTransform = pca.inverseTransform(matrix);
+        *
         * @example <caption>Inverse transform of vector</caption>
         * // import analytics module
         * var analytics = require('qminer').analytics;
@@ -1671,17 +1729,17 @@ module.exports = exports = function (pathQmBinary) {
    
 
     /**
-     * @typedef KMeansExplanation
-     * @type {Object}
-     * @property {number} medoidID - The ID of the nearest medoids
-     * @property {module:la.IntVector} featureIDs - The IDs of features, sorted by contribution
-     * @property {module:la.Vector} featureContributions - Weights of each feature contribution (sum to 1.0)
+     * @typedef {Object} KMeansExplain
+     * The examplanation returned by {@link module:analytics.KMeans#explain}.
+     * @property {number} medoidID - The ID of the nearest medoids.
+     * @property {module:la.IntVector} featureIDs - The IDs of features, sorted by contribution.
+     * @property {module:la.Vector} featureContributions - Weights of each feature contribution (sum to 1.0).
      */
 
     /**
      * Returns the IDs of the nearest medoid for each example.
      * @param {(module:la.Matrix | module:la.SparseMatrix)} X - Matrix whose columns correspond to examples.
-     * @returns {Array.<KMeansExplanation>} Object containing the vector of medoid IDs.
+     * @returns {Array.<module:analytics~KMeansExplain>} Array containing the KMeans explanantions.
      * @example
      * // import analytics module
      * var analytics = require('qminer').analytics;
@@ -1743,15 +1801,11 @@ module.exports = exports = function (pathQmBinary) {
     }
 
     /**
-     * @typedef {Object} KMeansModel
-     * @property {(module:la.Matrix | module:la.SparseMatrix)} C - Matrix containing the centroids.
-     * @property module:la.IntVector} medoids - The cluster medoids of the training data.
-     * @property {module:la.IntVector} idxv - The cluster ids of the training data.
-     */
-
-    /**
-    * Returns the model
-    * @returns {module:analytics~KMeansModel} The model.
+    * Returns the model.
+    * @returns {Object} The `KMeansModel` object containing the properites:
+    * <br> 1. `KMeansModel.C` - The {@link module:la.Matrix} or {@link module:la.SparseMatrix} containing the centroids,
+    * <br> 2. `KMeansModel.medoids` - The {@link module:la.IntVector} of cluster medoids of the training data,
+    * <br> 3. `KMeansModel.idxv` - The {@link module:la.IntVector} of cluster IDs of the training data.
     * @example
     * // import modules
     * var analytics = require('qminer').analytics;

@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 exports.view = {
-	"title" : "Integer-Float hashmap",
+	"title" : "Integer-Float hashmap.",
 	"className" : "IntFltMap",
 	"key1" : "5",
 	"val1" : "10.5",
