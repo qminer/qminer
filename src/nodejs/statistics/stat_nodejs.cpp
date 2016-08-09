@@ -63,8 +63,11 @@ void TNodeJsStat::std(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 	if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltV::GetClassId().CStr())) {
 		// If input argument is vec
-		// TODO
-		throw TExcept::New("stat.std(vec) not implemented yet. Use stat.std(mat).");
+        TNodeJsFltV* JsVec = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltV>(Args, 0);
+        const double Result = TLinAlgStat::Std(JsVec->Vec, Flag);
+
+        Args.GetReturnValue().Set(v8::Number::New(Isolate, Result));
+        return;
 	}
 	if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltVV::GetClassId())) {
 		//If input argument is matrix

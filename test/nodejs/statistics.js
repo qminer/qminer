@@ -10,7 +10,7 @@
 // Sample unit test using standard assert JS library 
 // 
 
-var assert = require("assert")
+var assert = require("../../src/nodejs/scripts/assert.js")
 //var la = require("../../../build/Debug/la.node")
 //var stat = require('../../../build/Debug/stat.node');
 var la = require('qminer').la;
@@ -50,7 +50,17 @@ describe('Testing mean functionalities...', function () {
 
 describe('Testing std functionalities...', function () {
 
-    describe('Matrix std test: Testing matrix is la.matrix([[1, 2, 3], [2, 3, 4]]', function () {
+    describe('Vector std test: Testing vector is la.Vector([1, 2, 3])', function () {
+
+        it('stat.std(vec) should return new value 2/3', function () {
+            assert.eqtol(stat.std(vec), 1);
+        })
+        it('stat.std(mat, 1) should return new value 1', function () {
+            assert.eqtol(stat.std(vec, 1), Math.sqrt(2/3));
+        })
+    })
+
+    describe('Matrix std test: Testing matrix is la.matrix([[1, 2, 3], [2, 3, 4]])', function () {
 
         it('stat.std(mat) should return new vector [0.707107, 0.707107, 0.707107]', function () {
             assert.equal(stat.std(mat).toString(), new la.Vector([0.707107, 0.707107, 0.707107]).toString());
