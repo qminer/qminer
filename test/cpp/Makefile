@@ -17,19 +17,20 @@
 #
 
 # dependencies
-LIBS += -lgtest
+LIBS += -L./gtest-1.7.0/lib/.libs/ -lgtest
 GLIB = ../../src/glib
 include $(GLIB)/Makefile.config
 
 ## Main application file
 MAIN = run-all-tests
 
-TEST_SRCS = test-AggrOnStep.cpp
+TEST_SRCS = test-TStr.cpp
 
 TEST_OBJS = $(TEST_SRCS:.cpp=.o)
 
 # we test in release	
-CXXFLAGS += -O0 -DEBUG
+CXXFLAGS += -O0 -DEBUG -I./gtest-1.7.0/include
+
 
 .PHONY: all run
 all: $(MAIN)
@@ -39,7 +40,7 @@ run: test
 .cpp.o:
 	$(CC) $(CXXFLAGS) -c $<
 
-$(MAIN): $(MAIN).o $(TEST_OBJS) $(GLIB)/glib.a
+$(MAIN): $(MAIN).o $(TEST_OBJS) $(GLIB)/glib.a 
 	$(CC) -o $(MAIN) $^ $(LDFLAGS) $(LIBS)
 
 .PHONY: $(GLIB)/glib.a
