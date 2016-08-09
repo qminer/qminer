@@ -48,17 +48,23 @@ LIBS += -lgtest
 ## Main application file
 MAIN = run-all-tests
 
-TEST_SRCS = test-TStr.cpp test-THash.cpp
+# list of tests
+TEST_SRCS = test-TStr.cpp 
+TEST_SRCS += test-THash.cpp 
+TEST_SRCS += test-TQQueue.cpp 
+TEST_SRCS += test-sizeof.cpp
+
+# transform to list of object files
 TEST_OBJS = $(TEST_SRCS:.cpp=.o)
 
 # we test in release	
 
-all: $(MAIN)
+all: gyp $(MAIN)
 run: test
 
 # COMPILE
 
-$(MAIN): gyp $(MAIN).o $(TEST_OBJS) $(BUILD)/glib.a $(BUILD)/qminer.a 
+$(MAIN): $(MAIN).o $(TEST_OBJS) $(BUILD)/glib.a $(BUILD)/qminer.a 
 	$(CC) -o $(MAIN) $^ $(LDFLAGS) $(LIBS)
 
 .cpp.o:
