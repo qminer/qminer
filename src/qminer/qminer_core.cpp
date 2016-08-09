@@ -1524,6 +1524,51 @@ TRec& TRec::operator=(const TRec& Rec) {
     return *this;
 }
 
+TRec::TRec(const TWPt<TBase>& Base, TSIn& SIn): RecValOut(RecVal) {
+    // load store
+    const uint StoreId = TUInt(SIn);
+    if (StoreId == TUInt::Mx) {
+        // empty record
+        ByRefP = false; RecId = TUInt64::Mx;
+    } else {
+        Store = Base->GetStoreByStoreId(StoreId);
+        // check if we are by refrence or by value
+        ByRefP = TBool(SIn);
+        if (ByRefP) {
+            // we are by reference, just load record ID and frequency
+            RecId = TUInt64(SIn);
+            Fq = TInt(SIn);
+        } else {
+            // we are by value, load serialization
+            Fq = TInt(SIn);
+            FieldIdPosH.Load(SIn);
+            JoinIdPosH.Load(SIn);
+            RecVal.Load(SIn);        
+        }
+    }
+}
+
+void TRec::Save(TSOut& SOut) const {
+    // save store id, or indicate this is an empty record with TUInt::Mx
+    TUInt StoreId = Store.Empty() ? TUInt::Mx : GetStoreId();
+    StoreId.Save(SOut);
+    // check if there is more to save
+    if (Store.Empty()) {
+        // nope
+    } else {
+        ByRefP.Save(SOut);
+        if (ByRefP) {
+            RecId.Save(SOut);
+            Fq.Save(SOut);
+        } else {
+            Fq.Save(SOut);
+            FieldIdPosH.Save(SOut);
+            JoinIdPosH.Save(SOut);
+            RecVal.Save(SOut);
+        }
+    }
+}
+
 bool TRec::IsFieldNull(const int& FieldId) const {
     return IsByRef() ?
         Store->IsFieldNull(RecId, FieldId) :
@@ -3498,62 +3543,62 @@ void TRecSet::SortByFq(const bool& Asc) {
 }
 
 void TRecSet::SortByField(const bool& Asc, const int& SortFieldId) {
-	// get store and field type
-	const TFieldDesc& Desc = Store->GetFieldDesc(SortFieldId);
-	// apply appropriate comparator
-	if (Desc.IsInt()) {
-		typedef TKeyDat<TInt, TUInt64IntKd> TItem;
-		TVec<TItem> TItemV(RecIdFqV.Len());
-		for (int N = 0; N < RecIdFqV.Len(); N++) {
-			TItemV.SetVal(N, TItem(Store->GetFieldInt(RecIdFqV[N].Key, SortFieldId), RecIdFqV[N]));
-		}
-		TItemV.Sort(Asc);
-		for (int N = 0; N < TItemV.Len(); N++) {
-			RecIdFqV.SetVal(N, TItemV[N].Dat);
-		}
-	} else if (Desc.IsFlt()) {
-		typedef TKeyDat<TFlt, TUInt64IntKd> TItem;
-		TVec<TItem> TItemV(RecIdFqV.Len());
-		for (int N = 0; N < RecIdFqV.Len(); N++) {
-			TItemV.SetVal(N, TItem(Store->GetFieldFlt(RecIdFqV[N].Key, SortFieldId), RecIdFqV[N]));
-		}
-		TItemV.Sort(Asc);
-		for (int N = 0; N < TItemV.Len(); N++) {
-			RecIdFqV.SetVal(N, TItemV[N].Dat);
-		}
-	} else if (Desc.IsByte()) {
-		typedef TKeyDat<TUCh, TUInt64IntKd> TItem;
-		TVec<TItem> TItemV(RecIdFqV.Len());
-		for (int N = 0; N < RecIdFqV.Len(); N++) {
-			TItemV.SetVal(N, TItem(Store->GetFieldByte(RecIdFqV[N].Key, SortFieldId), RecIdFqV[N]));
-		}
-		TItemV.Sort(Asc);
-		for (int N = 0; N < TItemV.Len(); N++) {
-			RecIdFqV.SetVal(N, TItemV[N].Dat);
-		}
-	} else if (Desc.IsStr()) {
-		typedef TKeyDat<TStr, TUInt64IntKd> TItem;
-		TVec<TItem> TItemV(RecIdFqV.Len());
-		for (int N = 0; N < RecIdFqV.Len(); N++) {
-			TItemV.SetVal(N, TItem(Store->GetFieldStr(RecIdFqV[N].Key, SortFieldId), RecIdFqV[N]));
-		}
-		TItemV.Sort(Asc);
-		for (int N = 0; N < TItemV.Len(); N++) {
-			RecIdFqV.SetVal(N, TItemV[N].Dat);
-		}
-	} else if (Desc.IsTm()) {
-		typedef TKeyDat<TUInt64, TUInt64IntKd> TItem;
-		TVec<TItem> TItemV(RecIdFqV.Len());
-		for (int N = 0; N < RecIdFqV.Len(); N++) {
-			TItemV.SetVal(N, TItem(Store->GetFieldTmMSecs(RecIdFqV[N].Key, SortFieldId), RecIdFqV[N]));
-		}
-		TItemV.Sort(Asc);
-		for (int N = 0; N < TItemV.Len(); N++) {
-			RecIdFqV.SetVal(N, TItemV[N].Dat);
-		}
-	} else {
-		throw TQmExcept::New("Unsupported sort field type!");
-	}
+    // get store and field type
+    const TFieldDesc& Desc = Store->GetFieldDesc(SortFieldId);
+    // apply appropriate comparator
+    if (Desc.IsInt()) {
+        typedef TKeyDat<TInt, TUInt64IntKd> TItem;
+        TVec<TItem> TItemV(RecIdFqV.Len());
+        for (int N = 0; N < RecIdFqV.Len(); N++) {
+            TItemV.SetVal(N, TItem(Store->GetFieldInt(RecIdFqV[N].Key, SortFieldId), RecIdFqV[N]));
+        }
+        TItemV.Sort(Asc);
+        for (int N = 0; N < TItemV.Len(); N++) {
+            RecIdFqV.SetVal(N, TItemV[N].Dat);
+        }
+    } else if (Desc.IsFlt()) {
+        typedef TKeyDat<TFlt, TUInt64IntKd> TItem;
+        TVec<TItem> TItemV(RecIdFqV.Len());
+        for (int N = 0; N < RecIdFqV.Len(); N++) {
+            TItemV.SetVal(N, TItem(Store->GetFieldFlt(RecIdFqV[N].Key, SortFieldId), RecIdFqV[N]));
+        }
+        TItemV.Sort(Asc);
+        for (int N = 0; N < TItemV.Len(); N++) {
+            RecIdFqV.SetVal(N, TItemV[N].Dat);
+        }
+    } else if (Desc.IsByte()) {
+        typedef TKeyDat<TUCh, TUInt64IntKd> TItem;
+        TVec<TItem> TItemV(RecIdFqV.Len());
+        for (int N = 0; N < RecIdFqV.Len(); N++) {
+            TItemV.SetVal(N, TItem(Store->GetFieldByte(RecIdFqV[N].Key, SortFieldId), RecIdFqV[N]));
+        }
+        TItemV.Sort(Asc);
+        for (int N = 0; N < TItemV.Len(); N++) {
+            RecIdFqV.SetVal(N, TItemV[N].Dat);
+        }
+    } else if (Desc.IsStr()) {
+        typedef TKeyDat<TStr, TUInt64IntKd> TItem;
+        TVec<TItem> TItemV(RecIdFqV.Len());
+        for (int N = 0; N < RecIdFqV.Len(); N++) {
+            TItemV.SetVal(N, TItem(Store->GetFieldStr(RecIdFqV[N].Key, SortFieldId), RecIdFqV[N]));
+        }
+        TItemV.Sort(Asc);
+        for (int N = 0; N < TItemV.Len(); N++) {
+            RecIdFqV.SetVal(N, TItemV[N].Dat);
+        }
+    } else if (Desc.IsTm()) {
+        typedef TKeyDat<TUInt64, TUInt64IntKd> TItem;
+        TVec<TItem> TItemV(RecIdFqV.Len());
+        for (int N = 0; N < RecIdFqV.Len(); N++) {
+            TItemV.SetVal(N, TItem(Store->GetFieldTmMSecs(RecIdFqV[N].Key, SortFieldId), RecIdFqV[N]));
+        }
+        TItemV.Sort(Asc);
+        for (int N = 0; N < TItemV.Len(); N++) {
+            RecIdFqV.SetVal(N, TItemV[N].Dat);
+        }
+    } else {
+        throw TQmExcept::New("Unsupported sort field type!");
+    }
 }
 
 void TRecSet::FilterByExists() {
