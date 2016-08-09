@@ -1710,6 +1710,93 @@ public:
     TStr Type() const { return GetType(); }
 };
 
+
+class TMultivariateFun; typedef TPt<TMultivariateFun> PMultivariateFun;
+///////////////////////////////
+/// Multivariate function (maps vectors to vectors)
+class TMultivariateFun {
+private:
+    // smart-pointer
+    TCRef CRef;
+    friend class TPt<TMultivariateFun>;
+
+private:
+    /// New constructor delegate
+    typedef PMultivariateFun(*TNewF)(const PJsonVal& ParamVal);
+    /// New constructor router
+    static TFunRouter<PMultivariateFun, TNewF> NewRouter;
+
+public:
+    /// Register default multivariate functions
+    static void Init();
+    /// Register constructors
+    template <class TObj> static void Register() {
+        NewRouter.Register(TObj::GetType(), TObj::New);
+    }
+
+protected:
+    // Create new empty record filter
+    TMultivariateFun() { }
+
+public:
+    /// Create trivial record filter
+    static PMultivariateFun New() { return new TMultivariateFun(); }
+    /// Create new record filter.
+    static PMultivariateFun New(const TStr& TypeNm, const PJsonVal& ParamVal) { return NewRouter.Fun(TypeNm)(ParamVal); }
+
+    /// Destructor
+    virtual ~TMultivariateFun() { }
+
+    /// Calls the function, default just copies the input
+    virtual void Map(const TFltV& InVec, TFltV& OutVec) const { OutVec = InVec; }
+
+    /// Type name
+    static TStr GetType() { return "identity"; }
+    /// Type name 
+    virtual TStr Type() const { return GetType(); }
+};
+
+//////////////////////////////////////////////////////////////////////////////////
+/// Multivariate function stream aggregate (sends vectors to vectors)
+///   - Reads vectors from an aggregate which implements IFltVec interface
+///   - Implements IFltVec (outputs)
+///   - The implementation of the function that maps inputs to outputs is
+///     selected by using the TFunRouter mechanism and JSON constructor
+class TMultivariateFunAggr : public TStreamAggr {
+private:
+    /// Input X dense vector aggregate
+    TWPt<TStreamAggrOut::IFltVec> InAggr;
+    
+
+
+    /// Current value
+    TFltV ValV;
+protected:
+    /// Passes the call to Aggr
+    void OnStep();
+    /// JSON based constructor.
+    TMultivariateFunAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+public:
+    /// Smart pointer constructor
+    static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) { return new TMultivariateFunAggr(Base, ParamVal); }
+    
+    /// Loads state
+    void LoadState(TSIn& SIn) { ValV.Load(SIn); }
+    /// Saves state
+    void SaveState(TSOut& SOut) const { ValV.Save(SOut); }
+    /// Is the aggregate initialized? 
+    bool IsInit() const { return !ValV.Empty(); }
+
+    /// Resets the aggregate
+    void Reset() { ValV.Clr(true); }
+    /// JSON serialization
+    PJsonVal SaveJson(const int& Limit) const { return TJsonVal::NewObj(); }
+    /// Stream aggregator type name 
+    static TStr GetType() { return "multivariateFunction"; }
+    /// Stream aggregator type name 
+    TStr Type() const { return GetType(); }
+};
+
 ///////////////////////////////
 /// Template class implementation 
 #include "qminer_aggr.hpp"
