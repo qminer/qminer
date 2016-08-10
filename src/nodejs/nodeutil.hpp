@@ -175,6 +175,9 @@ void TNodeJsUtil::_NewJs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         TClass* Obj = TClass::NewFromArgs(Args);
         Obj->Wrap(Instance);
         Args.GetReturnValue().Set(Instance);
+        // obj statistics
+        ObjNameH.AddDat(TClass::GetClassId()).Val2++;
+        ObjCount.Val2++;
     } catch (const PExcept& Except) {
         Isolate->ThrowException(v8::Exception::TypeError(
             v8::String::NewFromUtf8(Isolate, (TStr("[addon] Exception in constructor call, ClassId: ") + TClass::GetClassId() + ":" + Except->GetMsgStr()).CStr())));
@@ -194,6 +197,9 @@ void TNodeJsUtil::_NewCpp(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         Instance->SetHiddenValue(key, value);
         // wrap is done elsewhere in cpp
         Args.GetReturnValue().Set(Instance);
+        // obj statistics
+        ObjNameH.AddDat(TClass::GetClassId()).Val1++;
+        ObjCount.Val1++;
     }
     catch (const PExcept& Except) {
         printf("%s\n", Except->GetMsgStr().CStr());

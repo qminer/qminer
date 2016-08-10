@@ -41,8 +41,8 @@ class TNodeJsFltVV : public node::ObjectWrap {
 	friend class TNodeJsUtil;
 private:
 	static v8::Persistent<v8::Function> Constructor;
-
 public:
+    ~TNodeJsFltVV() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 	static void Init(v8::Handle<v8::Object> exports);
 	const static TStr GetClassId() { return "Matrix"; }
 
@@ -546,6 +546,7 @@ class TNodeJsSpVec : public node::ObjectWrap {
 	friend class TNodeJsUtil;
 private:
 	static v8::Persistent<v8::Function> Constructor;
+    ~TNodeJsSpVec() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 public:
 	static void Init(v8::Handle<v8::Object> exports);
 	static const TStr GetClassId() { return "SparseVector"; }
@@ -788,6 +789,7 @@ class TNodeJsSpMat : public node::ObjectWrap {
 	friend class TNodeJsUtil;
 private:
 	static v8::Persistent<v8::Function> Constructor;
+    ~TNodeJsSpMat() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 public:
 	static void Init(v8::Handle<v8::Object> exports);
 	static const TStr GetClassId() { return "SparseMatrix"; }

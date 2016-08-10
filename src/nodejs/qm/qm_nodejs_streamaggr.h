@@ -1348,6 +1348,7 @@ class TNodeJsStreamAggr : public node::ObjectWrap {
 private:
     // Node framework
     static v8::Persistent<v8::Function> Constructor;
+    ~TNodeJsStreamAggr() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 public:
     // Node framework
     static void Init(v8::Handle<v8::Object> Exports);
@@ -1359,8 +1360,6 @@ public:
     // C++ constructors
     TNodeJsStreamAggr() { }
     TNodeJsStreamAggr(TWPt<TQm::TStreamAggr> _SA) : SA(_SA) { }
-    ~TNodeJsStreamAggr() { }
-
 
     static TNodeJsStreamAggr* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 public:

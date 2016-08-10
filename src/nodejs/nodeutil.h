@@ -151,6 +151,10 @@ typedef TNodeJsVec<TFlt, TAuxFltV> TNodeJsFltV;
 // Node - Utilities
 class TNodeJsUtil {
 public:
+    /// Number of objects (create by factories, created using new, deleted) per class ID
+    static THash<TStr, TTriple<TInt, TInt, TInt> > ObjNameH;
+    /// Total umber of objects (create by factories, created using new, deleted)
+    static TTriple<TInt, TInt, TInt> ObjCount;
     /// Checks if TryCatch caught an error, extracts the message and throws a PExcept
     static void CheckJSExcept(const v8::TryCatch& TryCatch);
     /// Convert v8 Json to GLib Json (PJsonVal). Is parameter IgnoreFunc is set to true the method will
