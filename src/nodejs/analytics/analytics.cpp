@@ -2274,6 +2274,8 @@ TNodeJsKMeans::TNodeJsKMeans(TSIn& SIn) :
 }
 
 TNodeJsKMeans::~TNodeJsKMeans() {
+    TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++;
+    TNodeJsUtil::ObjCount.Val3++;
     CleanUp();
 }
 

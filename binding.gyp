@@ -150,7 +150,21 @@
                 'src/nodejs/nodeutil.cpp',
                 # init functions
                 'src/nodejs/modinit.h',
-                'src/nodejs/modinit.cpp'
+                'src/nodejs/modinit.cpp',
+                'src/nodejs/nodeutil.h',
+                'src/nodejs/nodeutil.hpp',
+                'src/nodejs/analytics/analytics.h',
+                'src/nodejs/fs/fs_nodejs.h',
+                'src/nodejs/ht/ht_nodejs.h',
+                'src/nodejs/la/la_nodejs.h',
+                'src/nodejs/la/la_structures_nodejs.h',
+                'src/nodejs/la/la_vector_nodejs.h',
+                'src/nodejs/qm/qm_nodejs.h',
+                'src/nodejs/qm/qm_nodejs_store.h',
+                'src/nodejs/qm/qm_nodejs_streamaggr.h',
+                'src/nodejs/qm/qm_param.h',
+                'src/nodejs/snap/snap_nodejs.h',
+                'src/nodejs/statistics/stat_nodejs.h'
             ],
             'include_dirs': [
                 'src/nodejs/qm',
@@ -161,7 +175,6 @@
                 'src/nodejs/ht',
                 'src/nodejs/statistics',
                 # StreamStory
-                'src/third_party/streamstory/',
                 'src/third_party/streamstory/',
                 'src/nodejs/',
                 'src/qminer/',

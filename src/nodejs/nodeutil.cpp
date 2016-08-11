@@ -10,6 +10,9 @@
 /////////////////////////////////////////
 // Node - Utilities
 
+THash<TStr, TTriple<TInt, TInt, TInt> > TNodeJsUtil::ObjNameH = THash<TStr, TTriple<TInt, TInt, TInt> >();
+TTriple<TInt, TInt, TInt> TNodeJsUtil::ObjCount = TTriple<TInt,TInt,TInt>();
+
 void TNodeJsUtil::CheckJSExcept(const v8::TryCatch& TryCatch) {
     if (TryCatch.HasCaught()) {
         v8::String::Utf8Value Msg(TryCatch.Message()->Get());

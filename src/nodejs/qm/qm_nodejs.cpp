@@ -26,6 +26,7 @@ void TNodeJsQm::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_METHOD(exports, "create", _create);
     NODE_SET_METHOD(exports, "open", _open);
     NODE_SET_METHOD(exports, "verbosity", _verbosity);
+    NODE_SET_METHOD(exports, "stats", _stats);
 
     // Add properties
     exports->SetAccessor(v8::String::NewFromUtf8(Isolate, "flags"), _flags);
@@ -176,6 +177,40 @@ void TNodeJsQm::verbosity(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     const int Verbosity = TNodeJsUtil::GetArgInt32(Args, 0, 0);
     // set verbosity level
     TQm::TEnv::InitLogger(Verbosity, "std");
+}
+
+void TNodeJsQm::stats(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    v8::Local<v8::Object> Result = v8::Object::New(Isolate);
+
+    v8::Local<v8::Object> ByClass = v8::Object::New(Isolate);
+    v8::Local<v8::Object> Total = v8::Object::New(Isolate);
+    
+    for (const auto& KeyDat : TNodeJsUtil::ObjNameH) {
+        v8::Local<v8::Object> ClassCounts = v8::Object::New(Isolate);
+        ClassCounts->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "newFromCpp")),
+            v8::Number::New(Isolate, KeyDat.Dat.Val1));
+        ClassCounts->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "newFromJs")),
+            v8::Number::New(Isolate, KeyDat.Dat.Val2));
+        ClassCounts->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "destructorCalls")),
+            v8::Number::New(Isolate, KeyDat.Dat.Val3));
+        ByClass->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, KeyDat.Key.CStr())),
+            ClassCounts);
+    }
+
+    Total->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "newFromCpp")),
+        v8::Number::New(Isolate, TNodeJsUtil::ObjCount.Val1));
+    Total->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "newFromJs")),
+        v8::Number::New(Isolate, TNodeJsUtil::ObjCount.Val2));
+    Total->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "destructorCalls")),
+        v8::Number::New(Isolate, TNodeJsUtil::ObjCount.Val3));
+
+    Result->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "byClass")), ByClass);
+    Result->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "total")), Total);
+
+    Args.GetReturnValue().Set(Result);
 }
 
 void TNodeJsQm::flags(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {

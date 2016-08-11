@@ -160,6 +160,7 @@ template <class TKey = TStr, class TDat = TInt, class TAux = TAuxStrIntH>
 class TNodeJsHash : public node::ObjectWrap {
 	friend class TNodeJsUtil;
 public:
+
     typedef THash<TKey, TDat> TKeyDatH;
     TKeyDatH Map;
 
