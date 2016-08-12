@@ -1710,75 +1710,54 @@ public:
     TStr Type() const { return GetType(); }
 };
 
+class THistogramToPMFModel {
 
-class TMultivariateFun; typedef TPt<TMultivariateFun> PMultivariateFun;
-///////////////////////////////
-/// Multivariate function (maps vectors to vectors)
-class TMultivariateFun {
-private:
-    // smart-pointer
-    TCRef CRef;
-    friend class TPt<TMultivariateFun>;
-
-private:
-    /// New constructor delegate
-    typedef PMultivariateFun(*TNewF)(const PJsonVal& ParamVal);
-    /// New constructor router
-    static TFunRouter<PMultivariateFun, TNewF> NewRouter;
-
-public:
-    /// Register default multivariate functions
-    static void Init();
-    /// Register constructors
-    template <class TObj> static void Register() {
-        NewRouter.Register(TObj::GetType(), TObj::New);
+public: 
+    /// Parameters
+    THistogramToPMFModel(const PJsonVal& ParamVal) {
+        // TODO for more complex model
+        // options:
+        //   just normalize (default)
+        //   fit 1 gaussian
+        //   KDE
+        //   laplace
     }
-
-protected:
-    // Create new empty record filter
-    TMultivariateFun() { }
-
-public:
-    /// Create trivial record filter
-    static PMultivariateFun New() { return new TMultivariateFun(); }
-    /// Create new record filter.
-    static PMultivariateFun New(const TStr& TypeNm, const PJsonVal& ParamVal) { return NewRouter.Fun(TypeNm)(ParamVal); }
-
-    /// Destructor
-    virtual ~TMultivariateFun() { }
-
-    /// Calls the function, default just copies the input
-    virtual void Map(const TFltV& InVec, TFltV& OutVec) const { OutVec = InVec; }
-
-    /// Type name
-    static TStr GetType() { return "identity"; }
-    /// Type name 
-    virtual TStr Type() const { return GetType(); }
+    void GetPMF(const TFltV& Hist, TFltV& PMF) {
+        // TODO more complex model
+        PMF = Hist;
+        TLinAlg::NormalizeL1(PMF);
+    }
 };
 
 //////////////////////////////////////////////////////////////////////////////////
-/// Multivariate function stream aggregate (sends vectors to vectors)
-///   - Reads vectors from an aggregate which implements IFltVec interface
-///   - Implements IFltVec (outputs)
-///   - The implementation of the function that maps inputs to outputs is
-///     selected by using the TFunRouter mechanism and JSON constructor
-class TMultivariateFunAggr : public TStreamAggr {
+/// Histogram to probability mass function (PMF)
+///   - Reads vectors (histogram) from an aggregate which implements IFltVec interface
+///   - Implements IFltVec (outputs) and returns a PMF
+class THistogramToPMF : public TStreamAggr, public TStreamAggrOut::IFltVec {
 private:
     /// Input X dense vector aggregate
-    TWPt<TStreamAggrOut::IFltVec> InAggr;
-    
-
-
+    TWPt<TStreamAggr> InAggr;
+    TWPt<TStreamAggrOut::IFltVec> InAggrVal;
     /// Current value
     TFltV ValV;
+    /// Model
+    THistogramToPMFModel Model;
+
 protected:
     /// Passes the call to Aggr
-    void OnStep();
+    void OnStep() {
+        TFltV Hist; InAggrVal->GetValV(Hist);
+        Model.GetPMF(Hist, ValV);
+    }
     /// JSON based constructor.
-    TMultivariateFunAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+    THistogramToPMF(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal), Model(ParamVal) {
+        // parse out input aggregate
+        InAggr = ParseAggr(ParamVal, "inAggr");
+        InAggrVal = Cast<TStreamAggrOut::IFltVec>(InAggr);
+    }
 public:
     /// Smart pointer constructor
-    static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) { return new TMultivariateFunAggr(Base, ParamVal); }
+    static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) { return new THistogramToPMF(Base, ParamVal); }
     
     /// Loads state
     void LoadState(TSIn& SIn) { ValV.Load(SIn); }
@@ -1787,12 +1766,19 @@ public:
     /// Is the aggregate initialized? 
     bool IsInit() const { return !ValV.Empty(); }
 
+    /// returns the number of bins 
+    int GetVals() const { return ValV.Len(); }
+    /// returns the mass for a given bin
+    void GetVal(const int& ElN, TFlt& Val) const { Val = ValV[ElN]; }
+    /// returns the pmf vector
+    void GetValV(TFltV& _ValV) const { _ValV = ValV; }
+
     /// Resets the aggregate
     void Reset() { ValV.Clr(true); }
     /// JSON serialization
     PJsonVal SaveJson(const int& Limit) const { return TJsonVal::NewObj(); }
     /// Stream aggregator type name 
-    static TStr GetType() { return "multivariateFunction"; }
+    static TStr GetType() { return "hitogramPMF"; }
     /// Stream aggregator type name 
     TStr Type() const { return GetType(); }
 };
