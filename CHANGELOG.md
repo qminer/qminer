@@ -1,5 +1,18 @@
 # QMiner Change Log
 
+### 12 August 2016
+
+**Version: 6.3.0**
+
+**Non-breaking with new features**
+
+New Features:
+- Gix updated to speed up deletes of records, especially when using FIFO stores
+- Support methods for byte fields in `TStore`
+- Added `qm.RecordVector` which can hold array of records passed by value. Vector support serialization using QMiner streams.
+- Standard deviation `qm.statistics.std` now supports `la.Vector` as input.
+
+
 ### 5 August 2016
 
 **Version: 6.2.0**
