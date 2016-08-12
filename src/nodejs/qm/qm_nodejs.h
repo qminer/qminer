@@ -8,6 +8,16 @@
 #ifndef QMINER_QM_NODEJS
 #define QMINER_QM_NODEJS
 
+#include <node.h>
+#include <node_object_wrap.h>
+#include <qminer.h>
+#include "../la/la_nodejs.h"
+#include "../fs/fs_nodejs.h"
+#include "../nodeutil.h"
+
+#include "qm_nodejs_streamaggr.h"
+#include "qm_nodejs_store.h"
+
 ///////////////////////////////
 // NodeJs QMiner.
 // A factory of base objects

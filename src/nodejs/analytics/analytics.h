@@ -8,6 +8,14 @@
 #ifndef ANALYTICS_H_
 #define ANALYTICS_H_
 
+#include <node.h>
+#include <node_object_wrap.h>
+#include "../nodeutil.h"
+#include "fs_nodejs.h"
+#include "la_nodejs.h"
+#include "qminer_ftr.h"
+#include "../../glib/mine/mine.h"
+
 /**
  * Analytics module.
  * @module analytics

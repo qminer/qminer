@@ -113,6 +113,41 @@
             # node qminer module
             'target_name': 'qm',
             'sources': [
+                # core qm module
+                'src/nodejs/qm/qm_nodejs.h',
+                'src/nodejs/qm/qm_nodejs.cpp',
+                'src/nodejs/qm/qm_nodejs_streamaggr.h',
+                'src/nodejs/qm/qm_nodejs_streamaggr.cpp',
+                'src/nodejs/qm/qm_nodejs_store.h',
+                'src/nodejs/qm/qm_nodejs_store.cpp',
+                'src/nodejs/qm/qm_param.h',
+                # la
+                'src/nodejs/la/la_nodejs.h',
+                'src/nodejs/la/la_nodejs.cpp',
+                'src/nodejs/la/la_structures_nodejs.h',
+                'src/nodejs/la/la_structures_nodejs.cpp',
+                'src/nodejs/la/la_vector_nodejs.h',
+                # analytics
+                'src/nodejs/analytics/analytics.h',
+                'src/nodejs/analytics/analytics.cpp',
+                # fs
+                'src/nodejs/fs/fs_nodejs.h',
+                'src/nodejs/fs/fs_nodejs.cpp',
+                # snap
+                'src/nodejs/snap/snap_nodejs.h',
+                'src/nodejs/snap/snap_nodejs.cpp',
+                # ht
+                'src/nodejs/ht/ht_nodejs.h',
+                'src/nodejs/ht/ht_nodejs.cpp',
+                # statistics
+                'src/nodejs/statistics/stat_nodejs.h',
+                'src/nodejs/statistics/stat_nodejs.cpp',
+                # StreamStory
+                'src/third_party/streamstory/streamstory_node.h',
+                'src/third_party/streamstory/streamstory_node.cpp',
+                # addon utilities
+                'src/nodejs/nodeutil.h',
+                'src/nodejs/nodeutil.cpp',
                 # init functions
                 'src/nodejs/modinit.h',
                 'src/nodejs/modinit.cpp',
