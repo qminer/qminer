@@ -1349,7 +1349,6 @@
 * base.close();
 */
 
-
 class TNodeJsStreamAggr : public node::ObjectWrap {
     friend class TNodeJsUtil;
 private:

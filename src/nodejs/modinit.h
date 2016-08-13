@@ -21,7 +21,4 @@
 #include "qm_nodejs.h"
 #include "streamstory_node.h"
 
-// include some implementations at the end, so we don't get incomplete types
-#include "nodeutil.hpp"
-
 #endif

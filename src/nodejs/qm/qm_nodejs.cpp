@@ -795,6 +795,7 @@ void TNodeJsStore::Init(v8::Handle<v8::Object> exports) {
     Constructor.Reset(Isolate, tpl->GetFunction());
     // So we can add stuff to the prototype in JS
     exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
+    TNodeJsUtil::RegisterClassNmAccessor(GetClassId(), "name");
 }
 
 v8::Local<v8::Value> TNodeJsStore::Field(const TQm::TRec& Rec, const int FieldId) {
