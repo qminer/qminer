@@ -435,40 +435,40 @@
      */
  exports.Base.prototype.store = function (name) { return Object.create(require(&#x27;qminer&#x27;).Store.prototype); }
 /**
-	 * Checks if there is a store.
-	 * @param {string} name - Store name.
-	 * @returns {boolean} True, if there exists a store with the store &#x60;name&#x60;. Otherwise, false.
-	 * @example
-	 * // import qm module
-	 * var qm = require(&#x27;qminer&#x27;);
-	 * // create a base with two stores
-	 * var base = new qm.Base({
-	 *    mode: &quot;createClean&quot;,
-	 *    schema: [
-	 *    {
-	 *        name: &quot;KwikEMart&quot;,
-	 *        fields: [
-	 *            { name: &quot;Worker&quot;, type: &quot;string&quot; },
-	 *            { name: &quot;Groceries&quot;, type: &quot;string_v&quot; }
-	 *        ]
-	 *    },
-	 *    {
-	 *        name: &quot;NuclearPowerplant&quot;,
-	 *        fields: [
-	 *            { name: &quot;Owner&quot;, type: &quot;string&quot; },
-	 *            { name: &quot;NumberOfAccidents&quot;, type: &quot;int&quot; },
-	 *            { name: &quot;Workers&quot;, type: &quot;string_v&quot; }
-	 *        ]
-	 *    }]
-	 * });
-	 * // get the &quot;KwikEMart&quot; store
-	 * var exists = base.isStore(&quot;KwikEMart&quot;);	// true
-	 * base.close();
-	 */
+     * Checks if there is a store.
+     * @param {string} name - Store name.
+     * @returns {boolean} True, if there exists a store with the store &#x60;name&#x60;. Otherwise, false.
+     * @example
+     * // import qm module
+     * var qm = require(&#x27;qminer&#x27;);
+     * // create a base with two stores
+     * var base = new qm.Base({
+     *    mode: &quot;createClean&quot;,
+     *    schema: [
+     *    {
+     *        name: &quot;KwikEMart&quot;,
+     *        fields: [
+     *            { name: &quot;Worker&quot;, type: &quot;string&quot; },
+     *            { name: &quot;Groceries&quot;, type: &quot;string_v&quot; }
+     *        ]
+     *    },
+     *    {
+     *        name: &quot;NuclearPowerplant&quot;,
+     *        fields: [
+     *            { name: &quot;Owner&quot;, type: &quot;string&quot; },
+     *            { name: &quot;NumberOfAccidents&quot;, type: &quot;int&quot; },
+     *            { name: &quot;Workers&quot;, type: &quot;string_v&quot; }
+     *        ]
+     *    }]
+     * });
+     * // get the &quot;KwikEMart&quot; store
+     * var exists = base.isStore(&quot;KwikEMart&quot;);    // true
+     * base.close();
+     */
  exports.Base.prototype.isStore = function (name) { return false; }
 /**
-	 * Returns a list of store descriptors.
-	 * @returns {Array.&amp;lt;object&gt;} An array of store descriptors. The store descriptor &#x60;storeDesc&#x60; contains the properties:
+     * Returns a list of store descriptors.
+     * @returns {Array.&amp;lt;object&gt;} An array of store descriptors. The store descriptor &#x60;storeDesc&#x60; contains the properties:
      * &amp;lt;br&gt;1. &#x60;storeDesc.storeId&#x60; - The store ID. Type &#x60;number&#x60;.
      * &amp;lt;br&gt;2. &#x60;storeDesc.storeName&#x60; - Store name. Type &#x60;string&#x60;.
      * &amp;lt;br&gt;3. &#x60;storeDesc.storeRecords&#x60; - Number of records in store. Type &#x60;number&#x60;.
@@ -501,7 +501,7 @@
      * // get the list of store descriptors
      * var exists = base.getStoreList();
      * base.close();
-	 */
+     */
  exports.Base.prototype.getStoreList = function () { return [{storeId: 0, storeName:&#x27;&#x27;, storeRecords: 0, fields: [{}], keys: [{}], joins: [{}]}]; }
 /**
     * Creates a new store.
@@ -1211,7 +1211,7 @@
     */
  exports.Store.prototype.resetStreamAggregates = function () { }
 /**
-    * Returns an array of the stream aggregates names connected to the store.		
+    * Returns an array of the stream aggregates names connected to the store.        
     * @returns {Array.&amp;lt;string&gt;} An array of stream aggregates names.
     * @example
     * // import qm module
@@ -1242,7 +1242,7 @@
     * base.store(&quot;Laser&quot;).getStreamAggrNames();
     * base.close();
     */
- exports.Store.prototype.getStreamAggrNames = function () { return [&quot;&quot;]; }		
+ exports.Store.prototype.getStreamAggrNames = function () { return [&quot;&quot;]; }        
 /**
     * Returns the store as a JSON.
     * @returns {Object} The store as a JSON.
@@ -1602,9 +1602,109 @@
     */
  exports.Record.prototype.store = Object.create(&#x27;qminer&#x27;).Store.prototype;
 /**
+ * Vector of records by value
+ * @class
+ * @param {module:fs.FIn} [arg] - Load vector from input stream.
+ * @classdesc Vector storing records defined by value. Vector can be serialized and
+ * iterated over. For storing records by reference use {@link module:qm.RecordSet} or 
+ * {@link module:la.IntVector}.
+ * @example
+ * // import qm module
+ * var qm = require(&#x27;qminer&#x27;);
+ * // create a new base containing one store
+ * var base = new qm.Base({
+ *    mode: &quot;createClean&quot;,
+ *    schema: [{
+ *        name: &quot;Philosophers&quot;,
+ *        fields: [
+ *            { name: &quot;Name&quot;, type: &quot;string&quot; },
+ *            { name: &quot;Era&quot;, type: &quot;string&quot; }
+ *        ]
+ *    }]
+ * });
+ * // Create record vector
+ * var recordVector = new qm.RecordVector(base);
+ * // Add some records to the vector
+ * recordVector.push(store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Plato&quot;, Era: &quot;Ancient philosophy&quot; }));
+ * recordVector.push(store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Immanuel Kant&quot;, Era: &quot;18th-century philosophy&quot; }));
+ * recordVector.push(store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Emmanuel Levinas&quot;, Era: &quot;20th-century philosophy&quot; }));
+ * recordVector.push(store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Rene Descartes&quot;, Era: &quot;17th-century philosophy&quot; }));
+ * recordVector.push(store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Confucius&quot;, Era: &quot;Ancient philosophy&quot; }));
+ * // Iterate over all records
+ * for (var i = 0; i &amp;lt; recordVector.length; i++) {
+ *    var rec = recordVector[i];
+ *    var tite = rec.Name + &quot; (&quot; + rec.Era + &quot;)&quot;;
+ * }
+ * base.close();
+ */
+ exports.RecordVector = function(arg) { return Object.create(require(&#x27;qminer&#x27;).qm.RecordVector.prototype) };
+/**
      * Adds a new record to the vector.
+     * @param {module:qm.Record} rec - The added record. The record must be provided by value.
+     * @returns {number} The position of the added record in the vector.
+     * @example
+     * // import qm module
+     * var qm = require(&#x27;qminer&#x27;);
+     * // create a new base containing one store
+     * var base = new qm.Base({
+     *    mode: &quot;createClean&quot;,
+     *    schema: [{
+     *        name: &quot;Philosophers&quot;,
+     *        fields: [
+     *            { name: &quot;Name&quot;, type: &quot;string&quot; },
+     *            { name: &quot;Era&quot;, type: &quot;string&quot; }
+     *        ]
+     *    }]
+     * });
+     * // Create record vector
+     * var recordVector = new qm.RecordVector(base);
+     * // Add some records to the vector
+     * recordVector.push(store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Plato&quot;, Era: &quot;Ancient philosophy&quot; }));
+     * base.close();
      */
- exports.RecVector.prototype.push = function (rec) {};
+ exports.RecordVector.prototype.push = function (rec) {};
+/**
+     * Gives the number of records. Type &#x60;number&#x60;.
+     */
+ exports.RecordVector.prototype.length = 0;
+/**
+    * Gets the record with the given ID.
+    * @param {number} recN - The index of the record
+    * @returns {module:qm.Record} The record at &#x60;recN&#x60; position.
+    * @ignore
+    */
+/**
+     * Saves the vector into the output stream.
+     * @param {module:fs.FOut} fout - Output stream.
+     * @returns {module:fs.FOut} The output stream &#x60;fout&#x60;.
+     * @example
+     * // import qm module
+     * var qm = require(&#x27;qminer&#x27;);
+     * var fs = require(&#x27;qminer&#x27;).fs;
+     * // create a new base containing one store
+     * var base = new qm.Base({
+     *    mode: &quot;createClean&quot;,
+     *    schema: [{
+     *        name: &quot;Philosophers&quot;,
+     *        fields: [
+     *            { name: &quot;Name&quot;, type: &quot;string&quot; },
+     *            { name: &quot;Era&quot;, type: &quot;string&quot; }
+     *        ]
+     *    }]
+     * });
+     * // Create record vector
+     * var recordVector = new qm.RecordVector(base);
+     * // Add some records to the vector
+     * recordVector.push(store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Plato&quot;, Era: &quot;Ancient philosophy&quot; }));
+     * // save to disk
+     * var fout = fs.openWrite(&#x27;record_vector.bin&#x27;);
+     * recordVector.save(fout).close();
+     * // load into a new vector
+     * var fin = fs.openRead(&#x27;record_vector.bin&#x27;);
+     * var recordVector2 = new qm.RecordVector(base, fin);
+     * base.close();
+     */
+ exports.RecordVector.prototype.save = function(fout) { return Object.create(require(&#x27;qminer&#x27;).RecordVector.prototype); };
 /**
 * Record Set is a set of records. &amp;lt;br&gt;
 * &amp;lt;b&gt;Factory pattern&amp;lt;/b&gt;: this class cannot be construced using the new keyword. This class is constructed
