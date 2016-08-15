@@ -38,7 +38,7 @@ exports = {}; require.modules.qminer_fs = exports;
     * // close the stream 
     * fout.close();
     * // open file to read
-    * var fin = fs.openWrite('read_text.txt');
+    * var fin = fs.openRead('read_text.txt');
 	*/
  exports.openRead = function(fileName) { return Object.create(require('qminer').fs.FIn.prototype); }
 /**

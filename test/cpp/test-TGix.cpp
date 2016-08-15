@@ -161,7 +161,7 @@ void TMyGixDefMerger::Merge(TVec<TMyItem>& ItemV, bool IsLocal) const {
 }
 
 ////////////////////////////////////////////////////////////////////////
-// this class must be named XTest, because it is declared as friend in 
+// this class must be named XTest, because it is declared as friend in
 // source classes (wrapped in XTEST preprocessor directive)
 class XTest {
 public:
@@ -427,7 +427,7 @@ public:
 
 			EXPECT_EQ(TQm::TStorage::isdfNew, storage.DirtyV[target_id]);
 
-			// update 
+			// update
 			TMem mem;
 			mem.AddBf(&storage, 6);
 			storage.SetVal(target_id, mem);
@@ -440,7 +440,7 @@ public:
 
 			EXPECT_EQ(TQm::TStorage::isdfClean, storage.DirtyV[target_id]);
 
-			// update 
+			// update
 			TMem mem;
 			mem.AddBf(&storage, 8);
 			storage.SetVal(target_id, mem);
@@ -677,7 +677,7 @@ public:
 
 		delete[] bf;
 	}
-	
+
 	static void TPgBlob_AddBf1() {
 
 		double d1 = 65.43;
@@ -1448,6 +1448,86 @@ public:
 		}
 	}
 
+	// add and remove items from the index. assert that we have at the end only the items not deleted
+	static void Test_AddDeleteOne() {
+		PMyGix Gix = TMyGix::New("GixAddAndDelete", "", TFAccess::faCreate, 1 * TInt::Kilo, 16, true);
+		TRnd Rnd;
+		TMyKey Key(0,0);
+		THash<TUInt64, TInt> KeyToValH;
+		for (int ItemN = 0; ItemN < 500; ItemN += 1) {
+			const TUInt64 Item = ItemN * 10 + Rnd.GetUniDevInt(100);
+			KeyToValH.AddDat(Item) += 1;
+			Gix->AddItem(Key, TMyItem(Item, 1));
+		}
+
+		for (int N = 0, KeyId = KeyToValH.FFirstKeyId(); N < 200 && KeyToValH.FNextKeyId(KeyId); N++) {
+			const TUInt64 Item = KeyToValH.GetKey(KeyId);
+			Gix->AddItem(Key, TMyItem(Item, -1));
+			KeyToValH.AddDat(Item) += -1;
+		}
+
+    PMyItemSet Set = Gix->GetItemSet((TMyKey) Key);
+		Set->Def();
+		const int Items = Set->GetItems();
+		for (int ItemN = 0; ItemN < Items; ItemN++) {
+			TMyItem Item = Set->GetItem(ItemN);
+			TInt Val = KeyToValH.GetDat(Item.Key);
+			ASSERT_TRUE(Val.Val == Item.Dat.Val);
+		}
+	}
+
+  static void Test_AddDeleteRandom() {
+    PMyGix Gix = TMyGix::New("GixAddAndDelete", "", TFAccess::faCreate, 1 * TInt::Kilo, 16, true);
+    TRnd Rnd;
+    TMyKey Key(0, 0);
+	THash<TUInt64, TInt> KeyToValH;
+	for (int ItemN = 0; ItemN < 5000; ItemN += 1) {
+		const TUInt64 Item = ItemN + Rnd.GetUniDevInt(3);
+		int Val = 0;
+		// if we have this key, then we randomly choose whether to add or remove the value
+		if (KeyToValH.IsKey(Item)) {
+			if (Rnd.GetUniDevInt(2) == 0)
+				Val = Rnd.GetUniDevInt(5);
+			else
+				Val = -KeyToValH.GetDat(Item);
+		}
+		// otherwise we always add
+		else {
+			Val = Rnd.GetUniDevInt(5);
+		}
+		KeyToValH.AddDat(Item) += Val;
+		Gix->AddItem(Key, TMyItem(Item, Val));
+	}
+
+	PMyItemSet Set = Gix->GetItemSet((TMyKey) Key);
+	Set->Def();
+	const int Items = Set->GetItems();
+	for (int ItemN = 0; ItemN < Items; ItemN++) {
+		TMyItem Item = Set->GetItem(ItemN);
+		TInt Val = KeyToValH.GetDat(Item.Key);
+		ASSERT_TRUE(Val.Val == Item.Dat.Val);
+	}
+  }
+
+  static void Test_AddDeleteAll() {
+	  PMyGix Gix = TMyGix::New("GixAddAndDelete", "", TFAccess::faCreate, 1 * TInt::Kilo, 16, true);
+	  TRnd Rnd;
+	  TMyKey Key(0, 0);
+	  THash<TUInt64, TInt> KeyToValH;
+	  for (int ItemN = 0; ItemN < 500; ItemN += 1) {
+		  Gix->AddItem(Key, TMyItem(ItemN, 1));
+	  }
+
+	  for (int ItemN = 0; ItemN < 500; ItemN += 1) {
+		  Gix->DelItem(Key, TMyItem(ItemN, 1));
+	  }
+
+	  PMyItemSet Set = Gix->GetItemSet((TMyKey) Key);
+	  Set->Def();
+	  ASSERT_TRUE(Set->GetItems() == 0);
+  }
+
+
 	static void Test_BigInserts(int cache_size = 500 * 1024 * 1024, int split_len = 1000) {
 		TStr Nm("Test_Feed_Big");
 		TStr FName("data");
@@ -1569,7 +1649,7 @@ public:
 		}
 		{
 			// now open again in read-only mode
-			// this simulates situation when it was opened read-only  
+			// this simulates situation when it was opened read-only
 			// and the system crashed
 			TMyGix gix2(Nm, Path, faRdOnly, 10000, 100);
 			auto key2 = TIntUInt64Pr(12, 12);
@@ -1653,6 +1733,9 @@ TEST_F(testTGix, Delete22000And1000) { XTest::Test_Delete_22000And1000(); }
 TEST_F(testTGix, QuasiDelete120And1And2) { XTest::Test_QuasiDelete_120And1And2(); }
 TEST_F(testTGix, QuasiDelete120And20) { XTest::Test_QuasiDelete_120And20(); }
 TEST_F(testTGix, QuasiDelete22000And1000) { XTest::Test_QuasiDelete_22000And1000(); }
+TEST_F(testTGix, Test_AddDeleteOne) { XTest::Test_AddDeleteOne(); }
+TEST_F(testTGix, Test_AddDeleteRandom) { XTest::Test_AddDeleteRandom(); }
+TEST_F(testTGix, Test_AddDeleteAll) { XTest::Test_AddDeleteAll(); }
 
 //////////////////////////////////////////////////////////////////////////
 // Tests of online variance calculator

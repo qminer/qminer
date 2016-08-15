@@ -1524,6 +1524,51 @@ TRec& TRec::operator=(const TRec& Rec) {
     return *this;
 }
 
+TRec::TRec(const TWPt<TBase>& Base, TSIn& SIn): RecValOut(RecVal) {
+    // load store
+    const uint StoreId = TUInt(SIn);
+    if (StoreId == TUInt::Mx) {
+        // empty record
+        ByRefP = false; RecId = TUInt64::Mx;
+    } else {
+        Store = Base->GetStoreByStoreId(StoreId);
+        // check if we are by refrence or by value
+        ByRefP = TBool(SIn);
+        if (ByRefP) {
+            // we are by reference, just load record ID and frequency
+            RecId = TUInt64(SIn);
+            Fq = TInt(SIn);
+        } else {
+            // we are by value, load serialization
+            Fq = TInt(SIn);
+            FieldIdPosH.Load(SIn);
+            JoinIdPosH.Load(SIn);
+            RecVal.Load(SIn);        
+        }
+    }
+}
+
+void TRec::Save(TSOut& SOut) const {
+    // save store id, or indicate this is an empty record with TUInt::Mx
+    TUInt StoreId = Store.Empty() ? TUInt::Mx : GetStoreId();
+    StoreId.Save(SOut);
+    // check if there is more to save
+    if (Store.Empty()) {
+        // nope
+    } else {
+        ByRefP.Save(SOut);
+        if (ByRefP) {
+            RecId.Save(SOut);
+            Fq.Save(SOut);
+        } else {
+            Fq.Save(SOut);
+            FieldIdPosH.Save(SOut);
+            JoinIdPosH.Save(SOut);
+            RecVal.Save(SOut);
+        }
+    }
+}
+
 bool TRec::IsFieldNull(const int& FieldId) const {
     return IsByRef() ?
         Store->IsFieldNull(RecId, FieldId) :
@@ -3498,62 +3543,62 @@ void TRecSet::SortByFq(const bool& Asc) {
 }
 
 void TRecSet::SortByField(const bool& Asc, const int& SortFieldId) {
-	// get store and field type
-	const TFieldDesc& Desc = Store->GetFieldDesc(SortFieldId);
-	// apply appropriate comparator
-	if (Desc.IsInt()) {
-		typedef TKeyDat<TInt, TUInt64IntKd> TItem;
-		TVec<TItem> TItemV(RecIdFqV.Len());
-		for (int N = 0; N < RecIdFqV.Len(); N++) {
-			TItemV.SetVal(N, TItem(Store->GetFieldInt(RecIdFqV[N].Key, SortFieldId), RecIdFqV[N]));
-		}
-		TItemV.Sort(Asc);
-		for (int N = 0; N < TItemV.Len(); N++) {
-			RecIdFqV.SetVal(N, TItemV[N].Dat);
-		}
-	} else if (Desc.IsFlt()) {
-		typedef TKeyDat<TFlt, TUInt64IntKd> TItem;
-		TVec<TItem> TItemV(RecIdFqV.Len());
-		for (int N = 0; N < RecIdFqV.Len(); N++) {
-			TItemV.SetVal(N, TItem(Store->GetFieldFlt(RecIdFqV[N].Key, SortFieldId), RecIdFqV[N]));
-		}
-		TItemV.Sort(Asc);
-		for (int N = 0; N < TItemV.Len(); N++) {
-			RecIdFqV.SetVal(N, TItemV[N].Dat);
-		}
-	} else if (Desc.IsByte()) {
-		typedef TKeyDat<TUCh, TUInt64IntKd> TItem;
-		TVec<TItem> TItemV(RecIdFqV.Len());
-		for (int N = 0; N < RecIdFqV.Len(); N++) {
-			TItemV.SetVal(N, TItem(Store->GetFieldByte(RecIdFqV[N].Key, SortFieldId), RecIdFqV[N]));
-		}
-		TItemV.Sort(Asc);
-		for (int N = 0; N < TItemV.Len(); N++) {
-			RecIdFqV.SetVal(N, TItemV[N].Dat);
-		}
-	} else if (Desc.IsStr()) {
-		typedef TKeyDat<TStr, TUInt64IntKd> TItem;
-		TVec<TItem> TItemV(RecIdFqV.Len());
-		for (int N = 0; N < RecIdFqV.Len(); N++) {
-			TItemV.SetVal(N, TItem(Store->GetFieldStr(RecIdFqV[N].Key, SortFieldId), RecIdFqV[N]));
-		}
-		TItemV.Sort(Asc);
-		for (int N = 0; N < TItemV.Len(); N++) {
-			RecIdFqV.SetVal(N, TItemV[N].Dat);
-		}
-	} else if (Desc.IsTm()) {
-		typedef TKeyDat<TUInt64, TUInt64IntKd> TItem;
-		TVec<TItem> TItemV(RecIdFqV.Len());
-		for (int N = 0; N < RecIdFqV.Len(); N++) {
-			TItemV.SetVal(N, TItem(Store->GetFieldTmMSecs(RecIdFqV[N].Key, SortFieldId), RecIdFqV[N]));
-		}
-		TItemV.Sort(Asc);
-		for (int N = 0; N < TItemV.Len(); N++) {
-			RecIdFqV.SetVal(N, TItemV[N].Dat);
-		}
-	} else {
-		throw TQmExcept::New("Unsupported sort field type!");
-	}
+    // get store and field type
+    const TFieldDesc& Desc = Store->GetFieldDesc(SortFieldId);
+    // apply appropriate comparator
+    if (Desc.IsInt()) {
+        typedef TKeyDat<TInt, TUInt64IntKd> TItem;
+        TVec<TItem> TItemV(RecIdFqV.Len());
+        for (int N = 0; N < RecIdFqV.Len(); N++) {
+            TItemV.SetVal(N, TItem(Store->GetFieldInt(RecIdFqV[N].Key, SortFieldId), RecIdFqV[N]));
+        }
+        TItemV.Sort(Asc);
+        for (int N = 0; N < TItemV.Len(); N++) {
+            RecIdFqV.SetVal(N, TItemV[N].Dat);
+        }
+    } else if (Desc.IsFlt()) {
+        typedef TKeyDat<TFlt, TUInt64IntKd> TItem;
+        TVec<TItem> TItemV(RecIdFqV.Len());
+        for (int N = 0; N < RecIdFqV.Len(); N++) {
+            TItemV.SetVal(N, TItem(Store->GetFieldFlt(RecIdFqV[N].Key, SortFieldId), RecIdFqV[N]));
+        }
+        TItemV.Sort(Asc);
+        for (int N = 0; N < TItemV.Len(); N++) {
+            RecIdFqV.SetVal(N, TItemV[N].Dat);
+        }
+    } else if (Desc.IsByte()) {
+        typedef TKeyDat<TUCh, TUInt64IntKd> TItem;
+        TVec<TItem> TItemV(RecIdFqV.Len());
+        for (int N = 0; N < RecIdFqV.Len(); N++) {
+            TItemV.SetVal(N, TItem(Store->GetFieldByte(RecIdFqV[N].Key, SortFieldId), RecIdFqV[N]));
+        }
+        TItemV.Sort(Asc);
+        for (int N = 0; N < TItemV.Len(); N++) {
+            RecIdFqV.SetVal(N, TItemV[N].Dat);
+        }
+    } else if (Desc.IsStr()) {
+        typedef TKeyDat<TStr, TUInt64IntKd> TItem;
+        TVec<TItem> TItemV(RecIdFqV.Len());
+        for (int N = 0; N < RecIdFqV.Len(); N++) {
+            TItemV.SetVal(N, TItem(Store->GetFieldStr(RecIdFqV[N].Key, SortFieldId), RecIdFqV[N]));
+        }
+        TItemV.Sort(Asc);
+        for (int N = 0; N < TItemV.Len(); N++) {
+            RecIdFqV.SetVal(N, TItemV[N].Dat);
+        }
+    } else if (Desc.IsTm()) {
+        typedef TKeyDat<TUInt64, TUInt64IntKd> TItem;
+        TVec<TItem> TItemV(RecIdFqV.Len());
+        for (int N = 0; N < RecIdFqV.Len(); N++) {
+            TItemV.SetVal(N, TItem(Store->GetFieldTmMSecs(RecIdFqV[N].Key, SortFieldId), RecIdFqV[N]));
+        }
+        TItemV.Sort(Asc);
+        for (int N = 0; N < TItemV.Len(); N++) {
+            RecIdFqV.SetVal(N, TItemV[N].Dat);
+        }
+    } else {
+        throw TQmExcept::New("Unsupported sort field type!");
+    }
 }
 
 void TRecSet::FilterByExists() {
@@ -5279,31 +5324,33 @@ void TIndex::TQmGixDefMerger::Minus(const TQmGixItemV& MainV,
 void TIndex::TQmGixDefMerger::Merge(TQmGixItemV& ItemV, bool Local) const {
     if (ItemV.Empty()) { return; } // nothing to do in this case
     if (!ItemV.IsSorted()) { ItemV.Sort(); } // sort if not yet sorted
-    // merge counts
+                                             // merge counts
     int LastItemN = 0; bool ZeroP = false;
     for (int ItemN = 1; ItemN < ItemV.Len(); ItemN++) {
-        if (ItemV[ItemN] != ItemV[ItemN - 1]) {
+        if (ItemV[ItemN].Key != ItemV[ItemN - 1].Key) {
             LastItemN++;
             ItemV[LastItemN] = ItemV[ItemN];
         } else {
             ItemV[LastItemN].Dat += ItemV[ItemN].Dat;
         }
-        ZeroP = (ItemV[LastItemN].Dat <= 0) || ZeroP;
+        ZeroP = ZeroP || (ItemV[LastItemN].Dat <= 0);
     }
-    ItemV.Reserve(ItemV.Reserved(), LastItemN + 1);
     // remove items with zero count
     if (ZeroP) {
-        LastItemN = 0;
-        for (int ItemN = 0; ItemN < ItemV.Len(); ItemN++) {
+        int LastIndN = 0;
+        for (int ItemN = 0; ItemN < LastItemN + 1; ItemN++) {
             const TQmGixItem& Item = ItemV[ItemN];
             if (Item.Dat > 0 || (Local && Item.Dat < 0)) {
-                ItemV[LastItemN] = Item;
-                LastItemN++;
-            } else if (Item.Dat < 0) {
-                TEnv::Error->OnStatusFmt("Warning: negative item count %d:%d!", (int)Item.Key, (int)Item.Dat);
+                ItemV[LastIndN] = Item;
+                LastIndN++;
+            }
+            else if (Item.Dat < 0) {
+                TEnv::Error->OnStatusFmt("Warning: negative item count %d:%d!", (int) Item.Key, (int) Item.Dat);
             }
         }
-        ItemV.Reserve(ItemV.Reserved(), LastItemN);
+        ItemV.Reserve(ItemV.Reserved(), LastIndN);
+    } else {
+        ItemV.Reserve(ItemV.Reserved(), LastItemN + 1);
     }
 }
 
@@ -5345,7 +5392,7 @@ void TIndex::TQmGixDefMergerSmall::Minus(const TQmGixItemSmallV& MainV,
 void TIndex::TQmGixDefMergerSmall::Merge(TQmGixItemSmallV& ItemV, bool Local) const {
     if (ItemV.Empty()) { return; } // nothing to do in this case
     if (!ItemV.IsSorted()) { ItemV.Sort(); } // sort if not yet sorted
-    // merge counts
+                                             // merge counts
     int LastItemN = 0; bool ZeroP = false;
     for (int ItemN = 1; ItemN < ItemV.Len(); ItemN++) {
         if (ItemV[ItemN] != ItemV[ItemN - 1]) {
@@ -5354,22 +5401,25 @@ void TIndex::TQmGixDefMergerSmall::Merge(TQmGixItemSmallV& ItemV, bool Local) co
         } else {
             ItemV[LastItemN].Dat += ItemV[ItemN].Dat;
         }
-        ZeroP = (ItemV[LastItemN].Dat <= 0) || ZeroP;
+        ZeroP = ZeroP || (ItemV[LastItemN].Dat <= 0);
     }
-    ItemV.Reserve(ItemV.Reserved(), LastItemN + 1);
+
     // remove items with zero count
     if (ZeroP) {
-        LastItemN = 0;
-        for (int ItemN = 0; ItemN < ItemV.Len(); ItemN++) {
+        int LastIndN = 0;
+        for (int ItemN = 0; ItemN < LastItemN + 1; ItemN++) {
             const TQmGixItemSmall& Item = ItemV[ItemN];
-            if (Item.Dat > 0 || (Local && (int16)Item.Dat < 0)) {
-                ItemV[LastItemN] = Item;
-                LastItemN++;
-            } else if ((int16)Item.Dat < 0) {
-                TEnv::Error->OnStatusFmt("Warning: negative item count %d:%d!", (int)Item.Key, (int)Item.Dat);
+            if (Item.Dat > 0 || (Local && (int16) Item.Dat < 0)) {
+                ItemV[LastIndN] = Item;
+                LastIndN++;
+            }
+            else if ((int16) Item.Dat < 0) {
+                TEnv::Error->OnStatusFmt("Warning: negative item count %d:%d!", (int) Item.Key, (int) Item.Dat);
             }
         }
-        ItemV.Reserve(ItemV.Reserved(), LastItemN);
+        ItemV.Reserve(ItemV.Reserved(), LastIndN);
+    } else {
+        ItemV.Reserve(ItemV.Reserved(), LastItemN + 1);
     }
 }
 
