@@ -5,7 +5,7 @@
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
-
+"use strict"
 var assert = require('../../src/nodejs/scripts/assert.js');
 
 describe("test histogram, slotted-histogram and histogram_diff aggregates", function () {
@@ -1310,8 +1310,8 @@ describe('Simple linear regression test', function () {
 
 function fillHist(store, arr, ts, cb) {
     // each arr element is an array with two elements: val and num
-    for (let pair of arr) {
-        for (let i = 0; i < pair[1]; i++) {
+    for (var pair of arr) {
+        for (var i = 0; i < pair[1]; i++) {
             store.push({ Time: ts, X: pair[0] });
             if (cb !== undefined) { cb(); }
             ts = ts + 1;
@@ -1371,7 +1371,7 @@ describe('Histogram AD tests', function () {
                 tol: 1e-6,
                 thresholds: [0.5, 0.2]
             });
-            let ts = Date.now();
+            var ts = Date.now();
 
             fillHist(store, [[0, 5], [1, 2], [2, 1]], ts); //[5 2 1 0] -> [0.62 0.25 0.12 0]
 
