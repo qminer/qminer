@@ -1308,7 +1308,7 @@ describe('Simple linear regression test', function () {
 });
 
 
-function fillHist(arr, ts, cb) {
+function fillHist(store, arr, ts, cb) {
     // each arr element is an array with two elements: val and num
     for (let pair of arr) {
         for (let i = 0; i < pair[1]; i++) {
@@ -1373,14 +1373,11 @@ describe('Histogram AD tests', function () {
             });
             let ts = Date.now();
 
-            fillHist([[0, 5], [1, 2], [2, 1]], ts); //[5 2 1 0] -> [0.62 0.25 0.12 0]
+            fillHist(store, [[0, 5], [1, 2], [2, 1]], ts); //[5 2 1 0] -> [0.62 0.25 0.12 0]
 
             ts = ts + 2000; // histogram forgets everything
 
-            fillHist([[0, 5], [1, 2], [2, 1]], ts, function () {
-                console.log(hist.saveJson());
-                console.log(histAD.saveJson());
-            });
+            fillHist(store, [[0, 5], [1, 2], [2, 1]], ts);
 
             debugger
         });
