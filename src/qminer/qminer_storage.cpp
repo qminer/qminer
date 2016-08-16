@@ -5323,7 +5323,7 @@ TWPt<TBase> LoadBase(const TStr& FPath, const TFAccess& FAccess, const uint64& I
         if (StoreType == "TStorePbBlob") {
             Store = new TStorePbBlob(Base, FPath + StoreNm, FAccess, StoreCacheSize);
         } else {
-            Store = new TStoreImpl(Base, FPath + StoreNm, FAccess, StoreCacheSize);
+            Store = new TStoreImpl(Base, FPath + StoreNm, StoreCacheSize);
         }
         Base->AddStore(Store);
     }
