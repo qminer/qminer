@@ -1077,8 +1077,7 @@ PJsonVal TNodeJsUtil::GetObjToNmJson(const v8::Local<v8::Value>& Val) {
         const TStr ClassId = TNodeJsUtil::GetClass(Val->ToObject());
 
         if (!ClassId.Empty()) {
-            // TODO make this work: if ((ClassId == TNodeJsStore::GetClassId()) || (ClassId == TNodeJsStreamAggr::GetClassId())) {
-            if ((ClassId == "Store") || (ClassId == "StreamAggr")) {
+            if (ClassNmAccessorH.IsKey(ClassId)) {
                 TStr NmAccessor = TNodeJsUtil::GetClassNmAccessor(ClassId);
                 TStr Name = TStr(*v8::String::Utf8Value(Val->ToObject()->Get(
                         v8::String::NewFromUtf8(Isolate, NmAccessor.CStr()))->ToString()));
