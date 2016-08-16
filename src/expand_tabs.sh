@@ -23,11 +23,14 @@ e qminer/qminer_storage.h
 
 e nodejs/qm/qm_nodejs.cpp
 e nodejs/qm/qm_nodejs_streamaggr.cpp
-e nodejs/qm/qm_nodejs.h
+#e nodejs/qm/qm_nodejs.h
 e nodejs/qm/qm_nodejs_streamaggr.h
 e nodejs/qm/qm_nodejs_store.cpp
 e nodejs/qm/qm_param.h
 e nodejs/qm/qm_nodejs_store.h
 
-e nodejs/nodeutil.cpp
+e nodejs/nodeutil.cpp 
 e nodejs/nodeutil.h
+
+e nodejs/analytics/analytics.cpp
+#e nodejs/analytics/analytics.h
