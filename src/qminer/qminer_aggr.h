@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -20,7 +20,7 @@
 namespace TQm {
 
 namespace TAggrs {
-    
+
 ///////////////////////////////
 // QMiner-Aggregator-Count
 class TCount : public TAggr {
@@ -32,23 +32,23 @@ private:
     TInt Count;
     TStrH ValH;
 
-    TCount(const TWPt<TBase>& Base, const TStr& AggrNm, 
+    TCount(const TWPt<TBase>& Base, const TStr& AggrNm,
         const PRecSet& RecSet, const PFtrExt& FtrExt);
     TCount(const TWPt<TBase>& Base, const TStr& AggrNm,
         const PRecSet& RecSet, const int& KeyId);
 public:
-    static PAggr New(const TWPt<TBase>& Base, const TStr& AggrNm, 
+    static PAggr New(const TWPt<TBase>& Base, const TStr& AggrNm,
         const PRecSet& RecSet, const PFtrExt& FtrExt) {
         return new TCount(Base, AggrNm, RecSet, FtrExt); }
-    static PAggr New(const TWPt<TBase>& Base, const TStr& AggrNm, 
-        const PRecSet& RecSet, const int& KeyId) { 
+    static PAggr New(const TWPt<TBase>& Base, const TStr& AggrNm,
+        const PRecSet& RecSet, const int& KeyId) {
             return new TCount(Base, AggrNm, RecSet, KeyId); }
     static PAggr New(const TWPt<TBase>& Base, const TStr& AggrNm,
         const PRecSet& RecSet, const PJsonVal& JsonVal);
 
     PJsonVal SaveJson() const;
-    
-    // aggregator type name 
+
+    // aggregator type name
     static TStr GetType() { return "count"; }
 };
 
@@ -67,15 +67,15 @@ private:
     THistogram(const TWPt<TBase>& Base, const TStr& AggrNm,
         const PRecSet& RecSet, const PFtrExt& FtrExt, const int& Buckets);
 public:
-    static PAggr New(const TWPt<TBase>& Base, const TStr& AggrNm, 
+    static PAggr New(const TWPt<TBase>& Base, const TStr& AggrNm,
         const PRecSet& RecSet, const PFtrExt& FtrExt, const int& Buckets) {
             return new THistogram(Base, AggrNm, RecSet, FtrExt, Buckets); }
-    static PAggr New(const TWPt<TBase>& Base, const TStr& AggrNm, 
+    static PAggr New(const TWPt<TBase>& Base, const TStr& AggrNm,
         const PRecSet& RecSet, const PJsonVal& JsonVal);
 
     PJsonVal SaveJson() const;
 
-    // aggregator type name 
+    // aggregator type name
     static TStr GetType() { return "histogram"; }
 };
 
@@ -90,7 +90,7 @@ protected:
     PBowDocWgtBs BowDocWgtBs;
 
     TBow(const TWPt<TBase>& Base, const TStr& AggrNm,
-        const PRecSet& RecSet, const PFtrExt& FtrExt, const int& SampleSize, 
+        const PRecSet& RecSet, const PFtrExt& FtrExt, const int& SampleSize,
         const TBowWordWgtType& WgtType = bwwtLogDFNrmTFIDF);
 
     static void ParseJson(const TWPt<TBase>& Base, const PRecSet& RecSet,
@@ -104,21 +104,21 @@ private:
     // aggregations
     PBowKWordSet KWordSet;
 
-    TKeywords(const TWPt<TBase>& Base, const TStr& AggrNm, 
+    TKeywords(const TWPt<TBase>& Base, const TStr& AggrNm,
         const PRecSet& RecSet, const PFtrExt& FtrExt, const int& SampleSize);
 public:
-    static PAggr New(const TWPt<TBase>& Base, const TStr& AggrNm, 
+    static PAggr New(const TWPt<TBase>& Base, const TStr& AggrNm,
         const PRecSet& RecSet, const PFtrExt& FtrExt, const int& SampleSize) {
             return new TKeywords(Base, AggrNm, RecSet, FtrExt, SampleSize); }
-    static PAggr New(const TWPt<TBase>& Base, const TStr& AggrNm, 
+    static PAggr New(const TWPt<TBase>& Base, const TStr& AggrNm,
         const PRecSet& RecSet, const PJsonVal& JsonVal);
 
     static PJsonVal SaveKWordSet(const PBowKWordSet& KWordSet);
     PJsonVal SaveJson() const;
-    
-    // aggregator type name 
+
+    // aggregator type name
     static TStr GetType() { return "keywords"; }
-   
+
 };
 
 ///////////////////////////////
@@ -134,19 +134,19 @@ private:
     TStr MidFNm;
     TStr LargeFNm;
 
-    TDocAtlas(const TWPt<TBase>& Base, const TStr& AggrNm, 
+    TDocAtlas(const TWPt<TBase>& Base, const TStr& AggrNm,
         const PRecSet& RecSet, const PFtrExt& FtrExt, const int& SampleSize);
 public:
-    static PAggr New(const TWPt<TBase>& Base, const TStr& AggrNm, 
+    static PAggr New(const TWPt<TBase>& Base, const TStr& AggrNm,
         const PRecSet& RecSet, const PFtrExt& FtrExt, const int& SampleSize) {
             return new TDocAtlas(Base, AggrNm, RecSet, FtrExt, SampleSize); }
-    static PAggr New(const TWPt<TBase>& Base, const TStr& AggrNm, 
+    static PAggr New(const TWPt<TBase>& Base, const TStr& AggrNm,
         const PRecSet& RecSet, const PJsonVal& JsonVal);
 
     PJsonVal SaveJson() const;
-    
-    // aggregator type name 
-    static TStr GetType() { return "docatlas"; }    
+
+    // aggregator type name
+    static TStr GetType() { return "docatlas"; }
 };
 #endif
 
@@ -166,18 +166,18 @@ private:
 
     PJsonVal GetJsonList(const TStrH& StrH) const;
 
-    TTimeLine(const TWPt<TBase>& Base, const TStr& AggrNm, 
+    TTimeLine(const TWPt<TBase>& Base, const TStr& AggrNm,
         const PRecSet& RecSet, const PFtrExt& FtrExt);
 public:
-    static PAggr New(const TWPt<TBase>& Base, const TStr& AggrNm, 
+    static PAggr New(const TWPt<TBase>& Base, const TStr& AggrNm,
         const PRecSet& RecSet, const PFtrExt& FtrExt) {
         return new TTimeLine(Base, AggrNm, RecSet, FtrExt); }
     static PAggr New(const TWPt<TBase>& Base, const TStr& AggrNm,
         const PRecSet& RecSet, const PJsonVal& JsonVal);
 
     PJsonVal SaveJson() const;
-    
-    // aggregator type name 
+
+    // aggregator type name
     static TStr GetType() { return "timeline"; }
 };
 
@@ -206,7 +206,7 @@ public:
 
     PJsonVal SaveJson() const;
 
-    // aggregator type name 
+    // aggregator type name
     static TStr GetType() { return "timespan"; }
 };
 
@@ -223,7 +223,7 @@ private:
     TSignalProc::TBuffer<TUInt64> Buffer;
     /// Store from where we are collecting records
     TWPt<TStore> Store;
-    
+
 protected:
     /// Add new record to the buffer
     void OnAddRec(const TRec& Rec);
@@ -246,16 +246,16 @@ public:
 
     /// Serilization to JSon
     PJsonVal SaveJson(const int& Limit) const;
-    
-    /// Stream aggregator type name 
+
+    /// Stream aggregator type name
     static TStr GetType() { return "recordBuffer"; }
-    /// Stream aggregator type name 
+    /// Stream aggregator type name
     TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
 /// Time series tick.
-/// Wrapper for exposing time series to signal processing aggregates 
+/// Wrapper for exposing time series to signal processing aggregates
 class TTimeSeriesTick : public TStreamAggr,
                         public TStreamAggrOut::ITm,
                         public TStreamAggrOut::IFlt {
@@ -264,14 +264,14 @@ private:
     TInt TimeFieldId;
     /// Reader for extracting numeric values from records
     TFieldReader ValReader;
-    
+
     /// We are not initialized until we read the first value
     TBool InitP;
     /// Time of last extracted value
     TUInt64 TmMSecs;
     /// Last extracted value
     TFlt TickVal;
-    
+
 protected:
     /// On new record we update value and timestamp
     void OnAddRec(const TRec& Rec);
@@ -296,17 +296,17 @@ public:
     /// Resets the model state
     void Reset() { InitP = false; TickVal = 0.0; TmMSecs = 0; }
 
-    /// Time of last extracted value    
+    /// Time of last extracted value
     uint64 GetTmMSecs() const { return TmMSecs; }
     /// Last extracted value
     double GetFlt() const { return TickVal; }
 
     // serialization to JSon
     PJsonVal SaveJson(const int& Limit) const;
-    
-    /// Stream aggregator type name 
-    static TStr GetType() { return "timeSeriesTick"; }   
-    /// Stream aggregator type name 
+
+    /// Stream aggregator type name
+    static TStr GetType() { return "timeSeriesTick"; }
+    /// Stream aggregator type name
     TStr Type() const { return GetType(); }
 };
 
@@ -321,7 +321,7 @@ class TWinBufMem : public TStreamAggr,
                    public TStreamAggrOut::IValVec<TVal> {
 private:
     typedef enum { wbmuOnAddRec, wbmuAlways } TWinBufMemUpdate;
-    
+
 private:
     /// Input aggregate
     TWPt<TStreamAggr> InAggr;
@@ -343,7 +343,7 @@ private:
     TQQueue<TPair<TUInt64, TVal> > WindowQ;
     /// Current delay buffer
     TQQueue<TPair<TUInt64, TVal> > DelayQ;
-    
+
     /// New values from last trigger
     TVec<TVal> InValV;
     /// Timestamps for new values
@@ -356,24 +356,24 @@ private:
 protected:
     /// Value getter, must be overridden
     virtual TVal GetVal() const = 0;
-    
+
 private:
     /// Read new value from the input aggregate and adds it to the delay
     void UpdateVal();
      /// Read new timestamp from the input aggregate and move aggregates accordingly
     void UpdateTime();
-   
+
 protected:
     /// Get input aggregate
     const TWPt<TStreamAggr>& GetInAggr() const { return InAggr; }
-    
+
     /// Stream aggregate update function called when a record is added
     void OnAddRec(const TRec& Rec);
     /// Stream aggregate that forgets records when time is updated
     void OnTime(const uint64& TmMsec);
     /// Just a expection-throwing placeholder
     void OnStep();
-    
+
     /// JSON based constructor
     TWinBufMem(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:
@@ -420,7 +420,7 @@ public:
     void GetTmV(TUInt64V& MSecsV) const;
 
     /// serialization to JSon
-    PJsonVal SaveJson(const int& Limit) const;    
+    PJsonVal SaveJson(const int& Limit) const;
 };
 
 ///////////////////////////////
@@ -437,9 +437,9 @@ protected:
     TFlt GetVal() const { return InAggrVal->GetFlt(); }
     /// Json constructor
     TWinBufFltV(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
-    
+
 public:
-    /// Json constructor 
+    /// Json constructor
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
     /// Serialization to JSon
     PJsonVal SaveJson(const int& Limit) const;
@@ -452,17 +452,17 @@ public:
 
 ///////////////////////////////
 // Time series window buffer.
-// Wrapper for exposing a window in a time series to signal processing aggregates 
+// Wrapper for exposing a window in a time series to signal processing aggregates
 // Supports two parameters: window size (in milliseconds) and delay (in milliseconds)
 // When a new record with timestamp t_new is added, the buffer will be updated
-// and the timestamps of all contained records will satisfy: 
-// t_i - t_j <= window, for all i > j, and t_new - t_i >= delay, for all i.  
-// 
+// and the timestamps of all contained records will satisfy:
+// t_i - t_j <= window, for all i > j, and t_new - t_i >= delay, for all i.
+//
 // ASSUMPTION!
 // Internally the aggregate only tracks the IDs A <= B, C <= D, B <= D from which we can reconstruct:
 //  A ... B-1 forget interval
 //  B ... D-1 buffer interval
-//  C ... D-1 update interval 
+//  C ... D-1 update interval
 //  It may happen that B > C, which corresponds to records that skipped the buffer
 //  In that case, Skip := B - C is the number of skipped records, and
 //  A ... B-1-Skip is the forget interval
@@ -482,20 +482,20 @@ protected:
     // STORAGE ACCESS
     /// value getter
     virtual TVal GetRecVal(const uint64& RecId) const = 0;
-    /// 
+    ///
     virtual void RecUpdate(const uint64& RecId) const { }
     /// needed to access records through IDs
-    TWPt<TStore> Store; 
+    TWPt<TStore> Store;
 private:
     /// field ID of the timestamp field in the store (used for efficiency)
-    TInt TimeFieldId; 
-    
+    TInt TimeFieldId;
+
     // ALGORITHM PARAMETERS
     /// window size in milliseconds
     TUInt64 WinSizeMSecs;
     /// delay in milliseconds
-    TUInt64 DelayMSecs;  
-    
+    TUInt64 DelayMSecs;
+
     // ALGORITHM STATE
     /// Has the aggregate been updated at least once?
     TBool InitP;
@@ -519,7 +519,7 @@ protected:
     void OnTime(const uint64& TmMsec);
     /// Just a expection-throwing placeholder
     void OnStep() { throw TExcept::New("Should not be executed."); }
-    
+
     /// JSON based constructor
     TWinBuf(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:
@@ -534,7 +534,7 @@ public:
     void Reset();
 
     // INTERFACE
-    
+
     // ITm
     /// time stamp of the last record
     uint64 GetTmMSecs() const { return Timestamp; }
@@ -550,7 +550,7 @@ public:
     void GetInValV(TVec<TVal>& ValV) const;
     /// old values that fall out of the buffer
     void GetOutValV(TVec<TVal>& ValV) const;
-    
+
     // IValV
     /// get buffer length
     int GetVals() const { EAssertR(IsInit(), "WinBuf not initialized yet!"); return (int)(D - B); }
@@ -569,7 +569,7 @@ public:
 
     /// serialization to JSon
     PJsonVal SaveJson(const int& Limit) const;
-    
+
     /// Test if current state is consistent with store and parameters
     bool TestValid() const;
     /// print state for debugging
@@ -602,7 +602,7 @@ class TWinBufFlt : public TWinBuf<TFlt> {
 private:
     /// Numberic field reader
     TFieldReader ValReader;
-protected:  
+protected:
     /// Implementation of record value getter
     TFlt GetRecVal(const uint64& RecId) const;
 
@@ -618,7 +618,7 @@ public:
 
     /// Stream aggregator type name
     static TStr GetType() { return "timeSeriesWinBuf"; }
-    /// Stream aggregator type name    
+    /// Stream aggregator type name
     TStr Type(void) const { return GetType(); }
 };
 
@@ -671,7 +671,7 @@ private:
     TWPt<TStreamAggrOut::ITmIO> InAggrTmIO;
     /// Input time series
     TWPt<TStreamAggrOut::IFltIO> InAggrFltIO;
-    
+
     /// signal we are maintaining on the stream
     TSignalType Signal;
 
@@ -682,7 +682,7 @@ protected:
     TWinAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 
 public:
-    /// Json constructor 
+    /// Json constructor
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
         return new TWinAggr<TSignalType>(Base, ParamVal); }
 
@@ -699,13 +699,13 @@ public:
     double GetFlt() const { return Signal.GetValue(); }
     /// Get latest time stamp
     uint64 GetTmMSecs() const { return InAggrTm->GetTmMSecs(); }
-    
+
     /// Get list of input aggregates
     void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggr->GetAggrNm()); }
     /// Serialization to json
     PJsonVal SaveJson(const int& Limit) const;
 
-    /// Stream aggregator type name 
+    /// Stream aggregator type name
     static TStr GetType();
     /// Stream aggregator type name
     TStr Type() const { return GetType(); }
@@ -754,7 +754,7 @@ private:
     /// Input time series
     TWPt<TStreamAggrOut::IValIO<TIntFltKdV>> InAggrSparseVecIO;
 
-    /// signal we are maintaining on the stream    
+    /// signal we are maintaining on the stream
     TSignalType Signal;
 
 protected:
@@ -764,7 +764,7 @@ protected:
     TWinAggrSpVec(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 
 public:
-    /// json constructor 
+    /// json constructor
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
         return new TWinAggrSpVec<TSignalType>(Base, ParamVal); }
 
@@ -785,7 +785,7 @@ public:
     void GetValV(TVec<TIntFltKd>& ValV) const { ValV = Signal.GetValue(); }
     /// Get latest timestamp
     uint64 GetTmMSecs() const { return InAggrTm->GetTmMSecs(); }
-    
+
     /// Get list of input aggregates
     void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggr->GetAggrNm()); }
     /// Serialization to JSon
@@ -814,7 +814,7 @@ private:
     TWPt<TStreamAggrOut::ITm> InAggrTm;
     /// Input aggregate casted to time series
     TWPt<TStreamAggrOut::IFlt> InAggrFlt;
-    
+
     /// EMA indicator
     TSignalProc::TEma Ema;
 
@@ -846,9 +846,9 @@ public:
     void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggr->GetAggrNm());}
     /// Serialization to JSon
     PJsonVal SaveJson(const int& Limit) const;
-    
+
     /// Stream aggregator type name
-    static TStr GetType() { return "ema"; }  
+    static TStr GetType() { return "ema"; }
     /// Stream aggregator type name
     TStr Type() const { return GetType(); }
 };
@@ -861,11 +861,11 @@ class TEmaSpVec : public TStreamAggr,
 private:
     /// Input aggregate
     TWPt<TStreamAggr> InAggr;
-    /// Input aggregate casted to time series    
+    /// Input aggregate casted to time series
     TWPt<TStreamAggrOut::ITm> InAggrTm;
-    /// Input aggregate casted to time series    
+    /// Input aggregate casted to time series
     TWPt<TStreamAggrOut::ISparseVec> InAggrSparseVec;
-    
+
     /// EMA indicator
     TSignalProc::TEmaSpVec Ema;
 
@@ -873,7 +873,7 @@ protected:
     /// Update EMA
     void OnStep();
 
-    /// Json constructor        
+    /// Json constructor
     TEmaSpVec(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:
     /// Json constructor
@@ -916,11 +916,11 @@ class TThresholdAggr : public TStreamAggr,
 private:
     /// Input aggregate
     TWPt<TStreamAggr> InAggr;
-    /// Input aggregate casted to time series    
+    /// Input aggregate casted to time series
     TWPt<TStreamAggrOut::ITm> InAggrTm;
-    /// Input aggregate casted to time series    
+    /// Input aggregate casted to time series
     TWPt<TStreamAggrOut::IFlt> InAggrFlt;
-    
+
     /// Threshold value
     TFlt Threshold;
     /// Was input value at last step above threshold
@@ -929,7 +929,7 @@ private:
     TUInt64 TmMSecs;
 
 protected:
-    /// update aggregate value 
+    /// update aggregate value
     void OnStep();
 
     /// Json constructor
@@ -974,15 +974,15 @@ private:
     TWPt<TStreamAggrOut::ITmIO> InAggrTmIOX;
     /// Input X timeseries
     TWPt<TStreamAggrOut::IFltIO> InAggrFltIOX;
-    
+
     /// Input Y aggregate
     TWPt<TStreamAggr> InAggrY;
     /// Input Y timeseries
     TWPt<TStreamAggrOut::ITmIO> InAggrTmIOY;
     /// Input Y timeseries
     TWPt<TStreamAggrOut::IFltIO> InAggrFltIOY;
-    
-    /// Covariance 
+
+    /// Covariance
     TSignalProc::TCov Cov;
 
 protected:
@@ -991,14 +991,14 @@ protected:
 
     /// Json constructor
     TCov(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
-public:    
+public:
     /// Json constructor
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 
     /// Load stream aggregate state from stream
     void LoadState(TSIn& SIn);
     /// Save state of stream aggregate to stream
-    void SaveState(TSOut& SOut) const;    
+    void SaveState(TSOut& SOut) const;
 
     /// Did we finish initialization
     bool IsInit() const { return InAggrX->IsInit() && InAggrY->IsInit(); }
@@ -1013,9 +1013,9 @@ public:
     void GetInAggrNmV(TStrV& InAggrNmV) const;
     /// Serialization to JSon
     PJsonVal SaveJson(const int& Limit) const;
-    
+
     /// Stream aggregator type name
-    static TStr GetType() { return "covariance"; } 
+    static TStr GetType() { return "covariance"; }
     /// Stream aggregator type name
     TStr Type() const { return GetType(); }
 };
@@ -1025,29 +1025,29 @@ public:
 class TCorr : public TStreamAggr,
               public TStreamAggrOut::ITm,
               public TStreamAggrOut::IFlt {
-private:    
+private:
     /// Input covariance aggregate
     TWPt<TStreamAggr> InAggrCov;
     /// Input covariance timeseries
     TWPt<TStreamAggrOut::ITm> InAggrTmCov;
     /// Input covariance timeseries
     TWPt<TStreamAggrOut::IFlt> InAggrFltCov;
-    
+
     /// Input X variance aggregate
     TWPt<TStreamAggr> InAggrVarX;
     /// Input X variance timeseries
     TWPt<TStreamAggrOut::IFlt> InAggrFltVarX;
-    
+
     /// Input Y variance aggregate
     TWPt<TStreamAggr> InAggrVarY;
     /// Input Y variance timeseries
-    TWPt<TStreamAggrOut::IFlt> InAggrFltVarY;     
+    TWPt<TStreamAggrOut::IFlt> InAggrFltVarY;
 
     /// Current correlation value
     TFlt Corr;
     /// Current timestamp
     TUInt64 TmMSecs;
-   
+
 protected:
     /// Update current correlation values
     void OnStep();
@@ -1061,8 +1061,8 @@ public:
     /// Load stream aggregate state from stream
     void LoadState(TSIn& SIn);
     /// Save state of stream aggregate to stream
-    void SaveState(TSOut& SOut) const;    
-    
+    void SaveState(TSOut& SOut) const;
+
     /// Did we finish initialization
     bool IsInit() const;
     /// Resets the aggregate
@@ -1071,15 +1071,15 @@ public:
     double GetFlt() const { return Corr; }
     /// Return current timestamp
     uint64 GetTmMSecs() const { return 0; }
-    
+
     /// List input aggregates
     void GetInAggrNmV(TStrV& InAggrNmV) const;
     /// Serialization to JSon
     PJsonVal SaveJson(const int& Limit) const;
-    
-    /// Stream aggregator type name 
+
+    /// Stream aggregator type name
     static TStr GetType() { return "correlation"; }
-    /// Stream aggregator type name 
+    /// Stream aggregator type name
     TStr Type() const { return GetType(); }
 };
 
@@ -1087,7 +1087,7 @@ public:
 /// Merger
 class TMerger : public TQm::TStreamAggr {
 private:
-    
+
     /// Merger field map
     class TMergerFieldMap {
       public:
@@ -1098,17 +1098,17 @@ private:
         TInt TmFldId;
         /// ID of field in out store (OutStore)
         TInt OutFldId;
-        
+
       public:
-        TMergerFieldMap() { }        
+        TMergerFieldMap() { }
         TMergerFieldMap(const int& _InFldId, const TJoinSeq& _InFldJoinSeq,
             const int& _TmFldId, const int& _OutFldId);
         TMergerFieldMap(TSIn& SIn);
-        
+
         void Save(TSOut& SOut) const;
         void Load(TSIn& SIn);
     };
-    
+
 private:
     /// Pointer to output store
     TWPt<TStore> OutStore;
@@ -1159,15 +1159,15 @@ public:
     /// Save state of stream aggregate to stream
     void SaveState(TSOut& SOut) const;
 
-    /// Stream aggregator type name 
+    /// Stream aggregator type name
     static TStr GetType() { return "merger"; }
-    /// Stream aggregator type name 
+    /// Stream aggregator type name
     TStr Type() const { return GetType(); }
 
     /// Utility function that gets list of stores the merger will attach to
     /// according to the given parameters json (`fields` array)
     static TStrV GetStoreNm(const PJsonVal& ParamVal);
-    
+
 private:
     void InitFld(const TWPt<TQm::TBase> Base, const TMergerFieldMap& FieldMap,
             const TStr& InterpNm);
@@ -1226,18 +1226,18 @@ private:
 
     // berfore first update
     TBool UpdatedP;
-    
-protected:  
+
+protected:
     void OnAddRec(const TRec& Rec);
     void OnTime(const uint64& TmMsec);
     void OnStep();
-    
+
 private:
     // refreshes the interpolators to the specified time
     void RefreshInterpolators(const uint64& Tm);
     bool CanInterpolate();
-    void CreateStore(const TStr& NewStoreNm);    
-    
+    void CreateStore(const TStr& NewStoreNm);
+
     // InterpolatorV contains pair (input field, interpolator)
     TResampler(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 
@@ -1253,9 +1253,9 @@ public:
 
     PJsonVal SaveJson(const int& Limit) const;
 
-    /// Stream aggregator type name 
+    /// Stream aggregator type name
     static TStr GetType() { return "resampler"; }
-    /// Stream aggregator type name 
+    /// Stream aggregator type name
     TStr Type() const { return GetType(); }
 };
 
@@ -1273,10 +1273,10 @@ protected:
     /// Process new record
     void OnAddRec(const TRec& Rec);
 
-    /// Non-standard constructor 
+    /// Non-standard constructor
     TFtrExtAggr(const TWPt<TBase>& Base, const TStr& AggrNm, const TWPt<TFtrSpace>& _FtrSpace);
 public:
-    /// Non-standard constructor 
+    /// Non-standard constructor
     static PStreamAggr New(const TWPt<TBase>& Base, const TStr& AggrNm, const TWPt<TFtrSpace>& _FtrSpace);
 
     /// Load stream aggregate state from stream
@@ -1298,9 +1298,9 @@ public:
     // serialization to JSon
     PJsonVal SaveJson(const int& Limit) const;
 
-    /// Stream aggregator type name 
+    /// Stream aggregator type name
     static TStr GetType() { return "ftrext"; }
-    /// Stream aggregator type name 
+    /// Stream aggregator type name
     TStr Type() const { return GetType(); }
 };
 
@@ -1326,11 +1326,11 @@ private:
 
     // Aggregate state
     TSignalProc::TOnlineHistogram Model;
-    
+
 protected:
     /// Update histogram
     void OnStep();
-    
+
     /// JSON constructor
     TOnlineHistogram(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:
@@ -1349,17 +1349,20 @@ public:
     /// serilization to JSon
     PJsonVal SaveJson(const int& Limit) const { return Model.SaveJson(); }
 
-    /// returns the number of bins 
+    /// Finds the bin index given val, returns -1 if not found
+    int FindBin(const double& Val) const { return Model.FindBin(Val); }
+
+    /// returns the number of bins
     int GetVals() const { return Model.GetBins(); }
     /// returns frequencies in a given bin
     void GetVal(const int& ElN, TFlt& Val) const { Val = Model.GetCountN(ElN); }
     /// returns the vector of frequencies
     void GetValV(TFltV& ValV) const { Model.GetCountV(ValV); }
 
-    /// stream aggregator type name 
+    /// stream aggregator type name
     static TStr GetType() { return "onlineHistogram"; }
-    /// stream aggregator type name 
-    TStr Type() const { return GetType(); }    
+    /// stream aggregator type name
+    TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
@@ -1377,12 +1380,12 @@ private:
     TWPt<TStreamAggr> InAggr;
     /// Input timeseries
     TWPt<TStreamAggrOut::IFlt> InAggrFlt;
-    
+
     /// TDigest model
     TSignalProc::TTDigest Model;
     /// Vector of quantiles we want to track
     TFltV QuantileV;
-    
+
 protected:
     /// Update the model
     void OnStep();
@@ -1403,7 +1406,7 @@ public:
     /// Did we finish initialization
     bool IsInit() const { return Model.IsInit(); }
     /// Resets the aggregate
-    void Reset() { }    
+    void Reset() { }
     /// returns the number of clusters
     int GetVals() const { return Model.GetClusters(); }
     /// get current Quantile value vector
@@ -1415,7 +1418,7 @@ public:
     void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggr->GetAggrNm());}
     /// Serialization to JSon
     PJsonVal SaveJson(const int& Limit) const;
-    
+
     /// Stream aggregator type name
     static TStr GetType() { return "tdigest"; }
     /// Stream aggregator type name
@@ -1432,12 +1435,12 @@ private:
     /// Input X aggregate
     TWPt<TStreamAggr> InAggrX;
     /// Input X dense vector aggregate
-    TWPt<TStreamAggrOut::IFltVec> InAggrValX;       
+    TWPt<TStreamAggrOut::IFltVec> InAggrValX;
 
     /// Input X aggregate
     TWPt<TStreamAggr> InAggrY;
     /// Input X dense vector aggregate
-    TWPt<TStreamAggrOut::IFltVec> InAggrValY;       
+    TWPt<TStreamAggrOut::IFltVec> InAggrValY;
 
     /// ChiSquare indicator
     TSignalProc::TChiSquare ChiSquare;
@@ -1448,7 +1451,7 @@ protected:
 
     /// Json constructor
     TChiSquare(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
-public:    
+public:
     /// Json constructor
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 
@@ -1465,12 +1468,12 @@ public:
     double GetFlt() const { return ChiSquare.GetChi2(); }
 
     /// Get list of input aggregates
-    void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggrX->GetAggrNm()); 
+    void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggrX->GetAggrNm());
         InAggrNmV.Add(InAggrY->GetAggrNm());}
     // serialization to JSon
     PJsonVal SaveJson(const int& Limit) const;
-    // stream aggregator type name 
-    static TStr GetType() { return "chiSquare"; } 
+    // stream aggregator type name
+    static TStr GetType() { return "chiSquare"; }
     TStr Type() const { return GetType(); }
 };
 
@@ -1511,7 +1514,7 @@ private:
 protected:
     /// Update stream aggregate
     void OnStep();
-    
+
     /// JSON constructor
     TOnlineSlottedHistogram(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:
@@ -1529,7 +1532,7 @@ public:
     /// Reset the histogram model
     void Reset() { Model.Reset(); }
 
-    /// returns the number of bins 
+    /// returns the number of bins
     int GetVals() const { return Model.GetBins(); }
     /// returns frequencies in a given bin
     void GetVal(const int& ElN, TFlt& Val) const { Val = ValV[ElN]; }
@@ -1539,15 +1542,15 @@ public:
     /// serilization to JSon
     PJsonVal SaveJson(const int& Limit) const;
 
-    /// stream aggregator type name 
+    /// stream aggregator type name
     static TStr GetType() { return "onlineSlottedHistogram"; }
-    /// stream aggregator type name 
+    /// stream aggregator type name
     TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
 /// Vector difference stream aggregate.
-/// Provides difference of two vector, usually distributions, 
+/// Provides difference of two vector, usually distributions,
 /// connects to an online stream aggregates
 /// that implement TStreamAggrOut::IFltVec
 class TVecDiff : public TStreamAggr, public TStreamAggrOut::IFltVec {
@@ -1555,16 +1558,16 @@ private:
     /// Input X aggregate
     TWPt<TStreamAggr> InAggrX;
     /// Input X dense vector aggregate
-    TWPt<TStreamAggrOut::IFltVec> InAggrValX;       
+    TWPt<TStreamAggrOut::IFltVec> InAggrValX;
 
     /// Input X aggregate
     TWPt<TStreamAggr> InAggrY;
     /// Input X dense vector aggregate
-    TWPt<TStreamAggrOut::IFltVec> InAggrValY;       
+    TWPt<TStreamAggrOut::IFltVec> InAggrValY;
 
     /// Current value
     TFltV ValV;
-    
+
 protected:
     /// Update current value
     void OnStep();
@@ -1584,20 +1587,20 @@ public:
     bool IsInit() const { return InAggrX->IsInit() && InAggrY->IsInit(); }
     /// resets the aggregate
     void Reset() { }
-    
-    /// returns the number of bins 
+
+    /// returns the number of bins
     int GetVals() const { return InAggrValX->GetVals(); }
     /// returns frequencies in a given bin
     void GetVal(const int& ElN, TFlt& Val) const { Val = ValV[ElN]; }
     /// returns the vector of frequencies
     void GetValV(TFltV& _ValV) const { _ValV = ValV; }
-    
+
     /// serialization to JSon
     PJsonVal SaveJson(const int& Limit) const;
-    
-    /// stream aggregator type name 
+
+    /// stream aggregator type name
     static TStr GetType() { return "onlineVecDiff"; }
-    /// stream aggregator type name 
+    /// stream aggregator type name
     TStr Type() const { return GetType(); }
 };
 
@@ -1610,7 +1613,7 @@ public:
 ///
 /// Given the example above, the JSON output:
 /// { "intercept" : A, "slope" : B, "quantiles" : [0.05, 0.95], "bands" : [A_0, A_1] }
-/// 
+///
 /// The input vectors are represented by two stream aggregates who implement
 /// TStreamAggrOut::IFltVec.
 class TSimpleLinReg : public TStreamAggr {
@@ -1618,12 +1621,12 @@ private:
     /// Input X aggregate
     TWPt<TStreamAggr> InAggrX;
     /// Input X dense vector aggregate
-    TWPt<TStreamAggrOut::IFltVec> InAggrValX;       
+    TWPt<TStreamAggrOut::IFltVec> InAggrValX;
 
     /// Input X aggregate
     TWPt<TStreamAggr> InAggrY;
     /// Input X dense vector aggregate
-    TWPt<TStreamAggrOut::IFltVec> InAggrValY;       
+    TWPt<TStreamAggrOut::IFltVec> InAggrValY;
 
     /// Decides if a record should be processed (useful on a stream to improve performance)
     PRecFilter Filter;
@@ -1654,19 +1657,19 @@ public:
     /// Loads state which corresponds to the Result JSON
     void LoadState(TSIn& SIn) { Result = TJsonVal::Load(SIn); }
     /// Saves state which corresponds to the Result JSON
-    void SaveState(TSOut& SOut) const { Result->Save(SOut); }    
+    void SaveState(TSOut& SOut) const { Result->Save(SOut); }
 
-    /// Is the aggregate initialized? 
+    /// Is the aggregate initialized?
     bool IsInit() const { return InAggrX->IsInit() && InAggrY->IsInit(); }
     /// Resets the aggregate
     void Reset();
 
     /// JSON serialization
     PJsonVal SaveJson(const int& Limit) const { return Result; }
-    
-    /// Stream aggregator type name 
+
+    /// Stream aggregator type name
     static TStr GetType() { return "simpleLinearRegression"; }
-    /// Stream aggregator type name 
+    /// Stream aggregator type name
     TStr Type() const { return GetType(); }
 };
 
@@ -1678,7 +1681,7 @@ private:
     TWPt<TStreamAggr> Aggr;
     /// Decides if a record should be processed (useful on a stream to improve performance)
     TVec<PRecFilter> FilterV;
-    
+
 protected:
     /// Passes the record to Aggr
     void OnAddRec(const TRec& Rec);
@@ -1698,20 +1701,244 @@ public:
     /// No state to save
     void SaveState(TSOut& SOut) const { }
 
-    /// Is the aggregate initialized? 
+    /// Is the aggregate initialized?
     bool IsInit() const { return true; }
     /// Resets the aggregate
     void Reset() { }
     /// JSON serialization
     PJsonVal SaveJson(const int& Limit) const { return TJsonVal::NewObj(); }
-    /// Stream aggregator type name 
+    /// Stream aggregator type name
     static TStr GetType() { return "recordFilterAggr"; }
-    /// Stream aggregator type name 
+    /// Stream aggregator type name
     TStr Type() const { return GetType(); }
 };
 
+typedef enum {
+    hpmfKDEGaussian, // normal
+    hpmfKDETophat, // square
+    hpmfKDEEpanechnikov, //quadratic
+    hpmfL1, // square
+} THistogramPMFModelType;
+
+//////////////////////////////////////////////////////////////////////////////////
+/// Histogram to PMF model
+///   - Smooths a histogram
+///   - Classifies bins with different severities of anomalies (0 = normal, 1 = low, 2 = higher,...)
+///     given thresholds (input parameter).
+///   - Parametrized by a vector of thresholds: t_0 > t_2, >... > t_n (from low to high severity, example: 0.05, 0.01, 0.001)
+///     where t_-1 is defined as 1 and t_n+1 is defined as 0
+///   - A bin is classifiedas an anomaly with severity i, if its cumulative mass (after being sorted in ascending order)
+///     lies in the interval: (n * t(i), n * t(i-1)], where there are n points and r lies in [1,...,n]
+///   - Example:
+///      Thresholds [ 0.1, 0.05, 0.01 ]
+///      Severity intervals for cumulative mass:
+///         - [  0.1 ,    1 ] -> 0
+///         - [ 0.05 ,  0.1 ] -> 1
+///         - [ 0.01 ,  0.5 ] -> 2
+///         - [    0 , 0.01 ] -> 0
+///      PMF        = [ 0.025, 0.025, 0.5, 0.3, 0.1, 0.05 ]
+///      Severities = [     2,     2,   0,   0,   0,    1 ]
+///         - first two bins cover 0.05 mass (severity 2)
+///         - first two + last bin cover 0.1 mass, (last bin gets serverity 1)
+///         - no bin has mass less or equal 0.01 (no bin gets serverity 3)
+///         - the rest of the bins normal (severity 0)
+///    - Handles ties
+///       Thresholds [ 0.5 ]
+///       PMF        = [ 0.5, 0.5 ]
+///       Gets mapped to [ 0, 0 ] (the cells are considered as a group and their total mass of 1 is above 0.5)
+class THistogramToPMFModel {
+public:
+    /// Grouping tolerance
+    TFlt Tol;
+    /// cumulative density function anomaly thresholds (sorted in descending order)
+    TFltV Thresholds;
+    /// PMF model type
+    THistogramPMFModelType Type;
+    /// Gaussian KDE bandwidth - if 0 (default) it will be determined automatically
+    TFlt Bandwidth;
+    bool AutoBandwidth;
+
+    /// Parameters
+    THistogramToPMFModel(const PJsonVal& ParamVal);
+
+    //  Ties: The cells are added in groups of the same mass, each
+    //  group is assigned the same severity. The grouping
+    //  is based on a tolerance.
+    /// Maps PMF cells to severity scores
+    void ClassifyAnomalies(const TFltV& PMF, TFltV& Severities);
+
+    /// Transforms a histogram to a probability mass function (PMF)
+    void GetPMF(const TFltV& Hist, TFltV& PMF);
+};
+
+//////////////////////////////////////////////////////////////////////////////////
+/// Histogram based anomaly detector aggregate
+///
+///   OnStep has two phases (predict and fit):
+///   1. - reads a value from an input aggregate that implements IFlt
+///      - computes the bin number given an input histogram aggregate
+///      - uses THistogramToPMFModel to compute the severity (anomaly score) of the bin
+///      - exposes the result by implementing IFlt
+///   2. - updates the input histogram aggregate
+///      - updates THistogramToPMFModel
+///      - exposes the PMF and severities through SaveJson
+class THistogramAD : public TStreamAggr, public TStreamAggrOut::IFlt {
+private:
+    /// Input for prediction
+    TWPt<TStreamAggrOut::IFlt> InAggrVal;
+    /// Input for modelling (histogram)
+    TWPt<TOnlineHistogram> HistAggr;
+
+    /// Current severity, returned by GetFlt()
+    TFlt Severity;
+    /// Current PMF, computed in OnStep
+    TFltV PMF;
+    /// Current anomaly scores, computed in OnStep
+    TFltV Severities;
+    /// PMF/AD model
+    THistogramToPMFModel Model;
+
+protected:
+    /// Predicts the current severity and updates the histogram anomaly model
+    void OnStep();
+    /// JSON based constructor.
+    THistogramAD(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+public:
+    /// Smart pointer constructor
+    static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) { return new THistogramAD(Base, ParamVal); }
+    /// Loads state
+    void LoadState(TSIn& SIn);
+    /// Saves state
+    void SaveState(TSOut& SOut) const;
+    /// Is the aggregate initialized?
+    bool IsInit() const { return HistAggr->IsInit() && Severities.Len() > 0; }
+    /// Returns the current severity level (0 = normal)
+    double GetFlt() const { return Severity; }
+    /// Resets the aggregate
+    void Reset();
+    /// JSON serialization
+    PJsonVal SaveJson(const int& Limit) const;
+    /// Stream aggregator type name
+    static TStr GetType() { return "hitogramAD"; }
+    /// Stream aggregator type name
+    TStr Type() const { return GetType(); }
+};
+
+class TKDEModel {
+public:
+
+    /// Evaluate the kernel density around a single data point
+    static double EvalKernel(const double& Data, const double& Eval, const double& Bandwidth, const THistogramPMFModelType& KType = hpmfKDEGaussian) {
+        const double GCoef = 1.0 / TMath::Sqrt(2 * TMath::Pi);
+        const double Scale = 1.0 / Bandwidth;
+        const double U = abs(Data - Eval) / Bandwidth;
+
+        switch (KType) {
+        case hpmfKDEGaussian: return Scale * GCoef * TMath::Power(TMath::E, -0.5 * TMath::Sqr(U));
+            break;
+        case hpmfKDETophat: return U < 1.0 ? Scale * 0.5 : 0.0;
+            break;
+        case hpmfKDEEpanechnikov: return  U < 1.0 ? Scale * 0.75 * (1 - TMath::Sqr(U)) : 0.0;
+            break;
+        default: throw TExcept::New("Unsupported kernel type");
+            break;
+        }
+    }
+
+    /// Smooths a histogram using kernel density estimation
+    /// The histogram cells should be of equal size and the bandwidth parameter is expressed in units
+    /// of histogram cell size. The histogram bins are centered at 0, 1, 2,...
+    static void ComputeHistDensity(const TFltV& Hist, TFltV& Dens, const double& Bandwidth, const THistogramPMFModelType& KType = hpmfKDEGaussian) {
+        int Len = Hist.Len();
+        Dens.Gen(Len);
+        /// Compute kernels for all possible distances
+        TFltV Precompute(Len);
+        for (int HistElN = 0; HistElN < Len; HistElN++) {
+            Precompute[HistElN] = EvalKernel(HistElN, 0, Bandwidth, KType);
+        }
+        for (int HistElN = 0; HistElN < Len; HistElN++) {
+            if (Hist[HistElN] > 0.0) {
+                // only nonzero histogram elements contribute to mass
+                for (int CellN = 0; CellN < Len; CellN++) {
+                    Dens[CellN] += Hist[HistElN] * Precompute[abs(HistElN - CellN)];
+                }
+            }
+        }
+        TLinAlg::NormalizeL1(Dens);
+    }
+
+    /// Optimal bandwidth for Gaussian kernel if the data is normally distributed and represented as a histogram
+    /// The histogram bins are centered at 0, 1, 2,...
+    static double RuleOfThumbHistBandwidth(const TFltV& Hist) {
+        // also known as normal distribution approximation, Gaussian approximation, or Silverman's (1986) rule of thumb
+        double X = 0.0;
+        double X2 = 0.0;
+        double Sum = 0.0;
+        int Len = Hist.Len();
+
+        for (int HistElN = 0; HistElN < Len; HistElN++) {
+            if (Hist[HistElN] > 0.0) {
+                Sum += Hist[HistElN];
+                X += Hist[HistElN] * HistElN;
+                X2 += Hist[HistElN] * HistElN * HistElN;
+            }
+        }
+        // sqrt(E x^2 - (E x)^2)}
+        double Stdev = TMath::Sqrt((X2 - X) / Sum);
+        return 1.06 * Stdev * TMath::Power(Sum, -0.2);
+    }
+
+    /// Compute density given data, kernel type (gaussian default) and bandwidth on a set of evaluation points
+    static double ComputeDensity(const TFltV& Data, const double& EvalPoint, const double& Bandwidth, const THistogramPMFModelType& KType = hpmfKDEGaussian) {
+        int DLen = Data.Len();
+        double Dens = 0.0;
+        for (int DatN = 0; DatN < DLen; DatN++) {
+            Dens += EvalKernel(Data[DatN], EvalPoint, Bandwidth, KType);
+        }
+        Dens /= (double)DLen;
+        return Dens;
+    }
+
+    /// Compute density given data, kernel type (gaussian default) and bandwidth on a set of evaluation points
+    static void ComputeDensity(const TFltV& Data, const TFltV& EvalPoints, TFltV& Dens, const double& Bandwidth, const THistogramPMFModelType& KType = hpmfKDEGaussian) {
+        int ELen = EvalPoints.Len();
+        Dens.Gen(ELen);
+        for (int PointN = 0; PointN < ELen; PointN++) {
+            Dens[PointN] = ComputeDensity(Data, EvalPoints[PointN], Bandwidth, KType);
+        }
+    }
+
+    /// Optimal bandwidth for Gaussian kernel if the data is normally distributed
+    static double RuleOfThumbBandwidth(const TFltV& Data) {
+        // also known as normal distribution approximation, Gaussian approximation, or Silverman's (1986) rule of thumb
+        double Stdev = TLinAlgStat::Std(Data);
+        return 1.06 * Stdev * TMath::Power((double)Data.Len(), -0.2);
+    }
+
+    /// Bandwidth that aims to match detector rates.
+    ///    Given a bandwidth and a resulting pdf, each threshold t results in a set of anomaly intervals - sublevel sets of the pdf
+    ///    that cover t mass. Ideally, given a new sample from the same distribution, we should classify fraction t of points as anomalous.
+    ///    This should ideally hold for any t: for 0.05 we want 5% anomalies, for 0.1 we want 10% anomalies. Since we only
+    ///    have one sample, we use leave one out cross-validation and a range of thresholds to estimate how good a given bandwidth
+    ///    matches (L1 distance between its detection rates and ideal rates).
+    static double LeaveOneOutRateBandwidth(const TFltV& Data, const TFltV& Bandwidths, const TFltV& Thresholds_ = TFltV()) {
+        throw TExcept::New("Not implemented yet");
+        TFltV Thresholds = Thresholds_;
+        if (Thresholds.Len() == 0) {
+            int TLen = 100;
+            Thresholds.Gen(TLen);
+            for (int ElN = 0; ElN < TLen; ElN++) {
+                Thresholds[ElN] = (double)ElN / 100.0;
+            }
+        }
+        return 1.0; // TODO
+    }
+
+
+};
+
 ///////////////////////////////
-/// Template class implementation 
+/// Template class implementation
 #include "qminer_aggr.hpp"
 
 } // TStreamAggrs namespace
