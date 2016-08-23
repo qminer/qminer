@@ -1895,6 +1895,22 @@ TRecFilterAggr::TRecFilterAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal
 
 THistogramToPMFModel::THistogramToPMFModel(const PJsonVal& ParamVal) {
     Tol = ParamVal->GetObjNum("tol", 1e-8);
+    TStr ModelType = ParamVal->GetObjStr("pmfModel", "kdeNormal");
+    if (ModelType == "kdeNormal") {
+        Type = hpmfKDEGaussian;
+    } else if (ModelType == "l1") {
+        Type = hpmfL1;
+    } else {
+        throw TExcept::New("Unknown histogram PMF model type");
+    }
+
+    if (ParamVal->IsObjKey("bandwidth")) {
+        Bandwidth = ParamVal->GetObjNum("bandwidth");
+        AutoBandwidth = false;
+    } else {
+        AutoBandwidth = true;
+    }
+
     if (ParamVal->IsObjKey("thresholds")) {
         try {
             ParamVal->GetObjKey("thresholds")->GetArrNumV(Thresholds);
@@ -1912,12 +1928,9 @@ THistogramToPMFModel::THistogramToPMFModel(const PJsonVal& ParamVal) {
         Thresholds.Add(0.01);
         Thresholds.Add(0.001);
     }
-    // TODO for more complex model
-    // options:
-    //   just normalize (default)
-    //   fit 1 gaussian
-    //   kernel density smoothing
+    // Other models that could be implemented:
     //   laplace smoothing
+    //   fit 1 gaussian
 }
 
 void THistogramToPMFModel::ClassifyAnomalies(const TFltV& PMF, TFltV& Severities) {
@@ -1952,9 +1965,18 @@ void THistogramToPMFModel::ClassifyAnomalies(const TFltV& PMF, TFltV& Severities
 }
 
 void THistogramToPMFModel::GetPMF(const TFltV& Hist, TFltV& PMF) {
-    // TODO more complex model
     PMF = Hist;
-    TLinAlg::NormalizeL1(PMF);
+    if (Type == hpmfL1) {
+        TLinAlg::NormalizeL1(PMF);
+    } else if (Type == hpmfKDEGaussian) {
+        // Bandwidth in units of histogram cell width
+        if (AutoBandwidth) {
+            Bandwidth = TKDEModel::RuleOfThumbHistBandwidth(Hist);
+        }
+        TKDEModel::ComputeHistDensity(Hist, PMF, Bandwidth);
+    } else {
+        throw TExcept::New("Unknown histogram PMF model type");
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////////////

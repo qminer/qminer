@@ -9,6 +9,7 @@
 #include "qminer_core.h"
 #include "qminer_ftr.h"
 #include "qminer_aggr.h"
+#include "geospatial_aggr.h"
 
 namespace TQm {
 
@@ -6496,6 +6497,8 @@ void TStreamAggr::Init() {
     Register<TStreamAggrs::TEmaSpVec>();
     Register<TStreamAggrs::TWinBufSpVecSum>();
     Register<TStreamAggrs::THistogramAD>();
+    // geospatial aggregates
+    Register<TStreamAggrs::TStayPointDetector>();
 }
 
 TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm): Base(_Base), AggrNm(_AggrNm) {

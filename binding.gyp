@@ -212,13 +212,17 @@
                 'src/qminer/qminer_aggr.cpp',
                 # StreamStory
                 'src/third_party/streamstory/streamstory.h',
-                'src/third_party/streamstory/streamstory.cpp'
+                'src/third_party/streamstory/streamstory.cpp',
+                # Geospatial
+                'src/third_party/geospatial/geospatial_aggr.h',
+                'src/third_party/geospatial/geospatial_aggr.cpp'
             ],
             'include_dirs': [
                 'src/qminer',
                 'src/glib/base/',
                 'src/glib/mine/',
                 'src/glib/misc/',
+                'src/third_party/geospatial/',
                 'src/third_party/sole/',
                 '<(LIN_ALG_INCLUDE)',
                 '<(LIN_EIGEN_INCLUDE)'
