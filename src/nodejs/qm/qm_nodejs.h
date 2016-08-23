@@ -210,7 +210,9 @@ private:
 * @property {string} name - The name of the join.
 * @property {string} type - Join types. Possible options:
 * <br>1. `'field'` - Points to zero or one record and is implemented as an additional hidden field of type `uint64`, which can hold the ID of the record it links to. Accessing the records join returns a record.
-* <br>2. `'index'` - Point to any number of records and is implemented using the inverted index, where for each record a list (vector) of linked records is kept. Accessing the records join returns a record set.
+* <br>2. `'index'` - Point to any number of records and is implemented using the inverted index, where for each record a list (vector) of linked records is kept. Accessing the records join returns a record set. 
+* <b>Important:</b> The records given to this join field must be in an array.
+*
 * @property {string} store - The store name from which the linked records are.
 * @example
 * var qm = require('qminer');
@@ -235,17 +237,22 @@ private:
 * // Adds a movie, automatically adds 'Jim Jarmusch' to People, sets the 'director' join (field join)
 * // and automatically updates the index join 'directed', since it's an inverse join of 'director'
 * base.store('Movies').push({ title: 'Broken Flowers', director: { name: 'Jim Jarmusch' } });
+*
 * // Adds a movie, sets the 'director' join, updates the index join of 'Jim Jarmusch'
 * base.store('Movies').push({ title: 'Coffee and Cigarettes', director: { name: 'Jim Jarmusch' } });
 * // Adds movie, automatically adds 'Lars von Trier' to People, sets the 'director' join
 * // and 'directed' inverse join (automatically)
 * base.store('Movies').push({ title: 'Dogville', director: { name: 'Lars von Trier' } });
 *
+* // Adds a person, sets the 'directed' join with multiple movies ('directed' is of type 'index', movies must be given in an array)
+* base.store('People').push({ name: 'Christopher Nolan', directed: [{ title: 'Inception' }, { title: 'Interstellar' }] });
+*
 * var movie = base.store('Movies')[0]; // get the first movie (Broken Flowers)
 * // Each movie has a property corresponding to the join name: 'director'. 
 * // Accessing the property returns a {@link module:qm.Record} from the store People.
 * var person = movie.director; // get the director
 * var personName = person.name; // get person's name ('Jim Jarmusch')
+*
 * // Each person has a property corresponding to the join name: 'directed'. 
 * // Accessing the property returns a {@link module:qm.RecSet} from the store People.
 * var movies = person.directed; // get all the movies the person directed.
@@ -3199,7 +3206,7 @@ public:
 *       ]
 *    }]
 * });
-* // create a feature space containing the categorical extractor, where the it's values
+* // create a feature space containing the categorical extractor, where it's values
 * // are taken from the field "StudyGroup": "A", "B", "C" and "D"
 * var ftr = new qm.FeatureSpace(base, { type: "categorical", source: "Class", field: "StudyGroup" });
 * base.close();
@@ -3803,7 +3810,7 @@ public:
     * // create a feature matrix out of the records of the store by using the feature space
     * // returns a sparse matrix equal to
     * // 1  0  0  1
-    * // 0  1  0  1
+    * // 0  1  1  1
     * // 0  0  1  0
     * // 1  1  0  0
     * var matrix = ftr.extractMatrix(base.store("Class").allRecords);
