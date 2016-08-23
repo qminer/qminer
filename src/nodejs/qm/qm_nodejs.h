@@ -1838,7 +1838,7 @@ private:
 // NodeJs QMiner Record Vector
 
 /**
- * Vector of records by value
+ * Vector of records by value.
  * @class
  * @param {module:fs.FIn} [arg] - Load vector from input stream.
  * @classdesc Vector storing records defined by value. Vector can be serialized and
@@ -1861,11 +1861,11 @@ private:
  * // Create record vector
  * var recordVector = new qm.RecordVector(base);
  * // Add some records to the vector
- * recordVector.push(store("Philosophers").newRecord({ Name: "Plato", Era: "Ancient philosophy" }));
- * recordVector.push(store("Philosophers").newRecord({ Name: "Immanuel Kant", Era: "18th-century philosophy" }));
- * recordVector.push(store("Philosophers").newRecord({ Name: "Emmanuel Levinas", Era: "20th-century philosophy" }));
- * recordVector.push(store("Philosophers").newRecord({ Name: "Rene Descartes", Era: "17th-century philosophy" }));
- * recordVector.push(store("Philosophers").newRecord({ Name: "Confucius", Era: "Ancient philosophy" }));
+ * recordVector.push(base.store("Philosophers").newRecord({ Name: "Plato", Era: "Ancient philosophy" }));
+ * recordVector.push(base.store("Philosophers").newRecord({ Name: "Immanuel Kant", Era: "18th-century philosophy" }));
+ * recordVector.push(base.store("Philosophers").newRecord({ Name: "Emmanuel Levinas", Era: "20th-century philosophy" }));
+ * recordVector.push(base.store("Philosophers").newRecord({ Name: "Rene Descartes", Era: "17th-century philosophy" }));
+ * recordVector.push(base.store("Philosophers").newRecord({ Name: "Confucius", Era: "Ancient philosophy" }));
  * // Iterate over all records
  * for (var i = 0; i < recordVector.length; i++) {
  *    var rec = recordVector[i];
@@ -1914,7 +1914,7 @@ private:
      * // Create record vector
      * var recordVector = new qm.RecordVector(base);
      * // Add some records to the vector
-     * recordVector.push(store("Philosophers").newRecord({ Name: "Plato", Era: "Ancient philosophy" }));
+     * recordVector.push(base.store("Philosophers").newRecord({ Name: "Plato", Era: "Ancient philosophy" }));
      * base.close();
      */
     //# exports.RecordVector.prototype.push = function (rec) {};
@@ -1956,7 +1956,7 @@ private:
      * // Create record vector
      * var recordVector = new qm.RecordVector(base);
      * // Add some records to the vector
-     * recordVector.push(store("Philosophers").newRecord({ Name: "Plato", Era: "Ancient philosophy" }));
+     * recordVector.push(base.store("Philosophers").newRecord({ Name: "Plato", Era: "Ancient philosophy" }));
      * // save to disk
      * var fout = fs.openWrite('record_vector.bin');
      * recordVector.save(fout).close();
