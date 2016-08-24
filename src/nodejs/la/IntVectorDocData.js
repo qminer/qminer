@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 exports.view = {
-    "title": "Vector - array of integers",
+    "title": "Vector - array of integers.",
     "className": "IntVector",
     "elementType": "number",
 
@@ -16,12 +16,15 @@ exports.view = {
     "output2": "[1, 4, 5]",
     "output3": "[1]",
 
+	"val1": "10",
+	
     "sortCallback": "intVectorCompareCb",
     "exampleSort": "[-2, 1, 3]",
     "inputSort": "function(arg1, arg2) { return Math.abs(arg1) - Math.abs(arg2); }",
     "outputSort": "[1, -2, 3]",
     "outputSortAsc": "[-2, 1, 3]",
 
+	"skipSubVec": "",
     "skipInner": "skip.",
     "skipSum": "",
     "skipGetMaxIdx": "",

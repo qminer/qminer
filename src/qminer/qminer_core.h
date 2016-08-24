@@ -932,9 +932,10 @@ public:
     /// Assignment operator
     TRec& operator=(const TRec& Rec);
     
-    // TODO
-    TRec(TSIn& SIn): RecValOut(RecVal) { Fail; }
-    void Save(TSOut& SOut) const { Fail; };
+    /// Load record from stream, requires Base to initialize store pointer
+    TRec(const TWPt<TBase>& Base, TSIn& SIn);
+    /// Save record to stream
+    void Save(TSOut& SOut) const;
 
     /// Check if record is well defined
     bool IsDef() const { return !Store.Empty() && ((ByRefP && (RecId != TUInt64::Mx)) || !ByRefP); }
