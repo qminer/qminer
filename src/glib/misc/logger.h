@@ -43,6 +43,7 @@ public:
 	// (In/De)creaseSpaces methods allow one to have indented content in the logs. can be used to get tree-like view of function calls
 	void IncreaseSpaces(const int& ForVal = 2) { StartingSpaces = MIN(StartingSpaces + ForVal, 100); }
 	void DecreaseSpaces(const int& ForVal = 2) { StartingSpaces = MAX(StartingSpaces - ForVal, 0); }
+    void ResetSpaces() { StartingSpaces = 0; }
 
 	// when calling NotifyVerbose, only VerbosityLevel >= _VerbosityLevel will be used
 	void SetVerbosityLevel(const int _VerbosityLevel) { VerbosityLevel = _VerbosityLevel; }
