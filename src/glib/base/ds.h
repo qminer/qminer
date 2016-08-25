@@ -784,8 +784,12 @@ public:
     const TSizeTy ValN=SearchForw(Val); if (ValN==-1){Add(Val); return Last();} else {return GetVal(ValN);}}
   /// Returns the position of the largest element in the vector.
   TSizeTy GetMxValN() const;
+  /// Returns the position of the smallest element in the vector.
+  TSizeTy GetMnValN() const;
   /// Returns the largest element in the vector \c Val. ###TVec::GetMxVal
   const TVal& GetMxVal() const {return GetVal(GetMxValN());}
+  /// Returns the smallest element in the vector \c Val. ###TVec::GetMnVal
+  const TVal& GetMnVal() const { return GetVal(GetMnValN()); }
   
   /// Returns a vector on element \c Val1.
   static TVec<TVal, TSizeTy> GetV(const TVal& Val1){
