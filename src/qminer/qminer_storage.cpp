@@ -4597,6 +4597,30 @@ PStoreIter TStorePbBlob::GetIter() const {
         TStoreIterHash<THash<TUInt64, TPgBlobPt>>::New(RecIdBlobPtH);
 }
 
+uint64 TStorePbBlob::GetFirstRecId() const {
+    // recids are monotonically increasing but since we can remove any item in random order it's possible that the first item 
+    // in the hash table is deleted and a new key with large id is inserted in it's place. for that reason we have to iterate
+	// over the full list of record ids
+    THash<TUInt64, TPgBlobPt> RecIdH = DataMemP ? RecIdBlobPtHMem : RecIdBlobPtH;
+	TUInt64V RecIdV; RecIdH.GetKeyV(RecIdV);
+    if (RecIdV.Len() > 0)
+        return RecIdV.GetMnVal();
+    else
+        return TUInt64::Mx;
+}
+
+uint64 TStorePbBlob::GetLastRecId() const {
+    // recids are monotonically increasing but since we can remove any item in random order it's possible that the first item 
+    // in the hash table is deleted and a new key with large id is inserted in it's place. for that reason we have to iterate
+    // over the full list of record ids
+    THash<TUInt64, TPgBlobPt> RecIdH = DataMemP ? RecIdBlobPtHMem : RecIdBlobPtH;
+    TUInt64V RecIdV; RecIdH.GetKeyV(RecIdV);
+    if (RecIdV.Len() > 0)
+        return RecIdV.GetMxVal();
+    else
+        return TUInt64::Mx;
+}
+
 /// Helper function for returning JSON definition of store
 PJsonVal TStorePbBlob::GetStoreJson(const TWPt<TBase>& Base) const {
     PJsonVal Result = TStore::GetStoreJson(Base);
