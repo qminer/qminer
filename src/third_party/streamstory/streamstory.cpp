@@ -4419,12 +4419,18 @@ bool TUiHelper::HasMxPeaks(const int& MxPeakCount, const double& PeakMassThresho
 	}
 
 	// check if the peak is circular
-	if (IsInPeak && PdfHist[0] > MeanBinMass) {
-		PeakCount--;
-		EAssertR(PeakBorderV.Len() >= 2, "Not enough peaks in distribution when joining circularly!");
-		PeakBorderV[0].Val1 = PeakBorderV.Last().Val1;
-		PeakBorderV.DelLast();
+	if (IsInPeak) {
+	    if (PdfHist[0] > MeanBinMass) {
+	        PeakCount--;
+            EAssertR(PeakBorderV.Len() >= 2, "Not enough peaks in distribution when joining circularly!");
+            PeakBorderV[0].Val1 = PeakBorderV.Last().Val1;
+            PeakBorderV.DelLast();
+	    } else {
+	        PeakBorderV.Last().Val2 = PeakBorderV.Last().Val1;
+	    }
 	}
+
+	EAssertR(PeakBorderV.Last().Val2 >= 0, "Failed to close the last peak in the histogram!");
 
 	return PeakCount <= MxPeakCount && PeakMass / TotalMass >= PeakMassThreshold;
 }
