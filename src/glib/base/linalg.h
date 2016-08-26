@@ -1040,7 +1040,7 @@ public:
 	// Given a matrix a[1..n][1..n], this routine replaces it by the LU
 	// decomposition of a rowwise permutation of itself. a and n are input.
 	// a is output, arranged as in equation (2.3.14) above; indx[1..n] is
-	// an output vector that records the row permutation efected by the partial
+	// an output vector that records the row permutation effected by the partial
 	// pivoting; d is output as +-1 depending on whether the number of row
 	// interchanges was even or odd, respectively. This routine is used in
 	// combination with lubksb to solve linear equations or invert a matrix.
@@ -1091,6 +1091,9 @@ public:
     // the algorithms does modify A due to its use of LU decomposition
     static void GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV& EigenV,
     		const double& ConvergEps=1e-7);
+    /// extracts a vector x such that A*x = 0
+    /// the method assumes that the dimension of the kernel is 1 (only one vector in the kernel)
+    static void GetKernelVec(const TFltVV& A, TFltV& x, const double& Tol=1e-6);
 };
 
 ///////////////////////////////////////////////////////////////////////

@@ -1522,6 +1522,42 @@ void TNumericalStuff::GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV
 #endif
 }
 
+void TNumericalStuff::GetKernelVec(const TFltVV& A, TFltV& x, const double& Tol) {
+    EAssertR(A.GetRows() == A.GetCols(), "TNumericalStuff::GetKernelVec: input is not a square matrix!");
+
+    const int Dim = A.GetRows();
+
+#ifdef LAPACKE
+    TFltVV L, U;
+    TVec<TNum<index_t>, index_t> PermV;
+    MKLfunctions::LUFactorization(A, L, U, PermV);
+
+#else
+    TFltVV U = A;
+    TIntV PermV;
+    double d;
+    LUDecomposition(U, PermV, d);
+#endif
+
+    EAssertR(TFlt::Abs(U(Dim-1, Dim-1)) < Tol, "TNumericalStuff::GetKernelVec: Input is not a singular matrix!");
+
+    x.Gen(Dim);
+    x.Last() = 1;   // set the last element to an arbitrary value
+
+    // inverse iteration
+    for (int RowN = Dim-2; RowN >= 0; RowN--) {
+        double Sum = 0;
+
+        for (int ColN = RowN+1; ColN < Dim; ColN++) {
+            Sum += U(RowN, ColN)*x[ColN];
+        }
+
+        AssertR(double(U(RowN, RowN)) != 0, "TNumericalStuff::GetKernelVec: Dimension of kernel is more than 1!");
+
+        x[RowN] = -Sum / U(RowN, RowN);
+    }
+}
+
 
 ///////////////////////////////////////////////////////////////////////
 // Sparse-SVD

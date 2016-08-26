@@ -1252,7 +1252,9 @@ void TCtMChain::GetStatDistV(const TFltVV& QMat, TFltV& ProbV) {
 	// returns the stationary distribution
 	// pi*Q = 0
 	TFltVV QMatT(QMat.GetCols(), QMat.GetRows());	TLinAlg::Transpose(QMat, QMatT);
-	TNumericalStuff::GetEigenVec(QMatT, 0.0, ProbV);
+
+//	TNumericalStuff::GetEigenVec(QMatT, 0.0, ProbV);
+	TNumericalStuff::GetKernelVec(QMatT, ProbV);
 
 	double EigSum = TLinAlg::SumVec(ProbV);
 
@@ -4321,7 +4323,7 @@ void TUiHelper::InitStateExplain(const TStreamStory& StreamStory) {
 	TIntFltPrV StateIdHeightPrV;	Hierarch.GetStateIdHeightPrV(StateIdHeightPrV);
 	StateIdOccTmDescV.Gen(Hierarch.GetStates());
 
-	const uint64 TmUnit = MChain.GetTimeUnit();
+	const uint64& TmUnit = MChain.GetTimeUnit();
 
 	const int MxPeaks = 1;
 	const double MnSupport = .7;
