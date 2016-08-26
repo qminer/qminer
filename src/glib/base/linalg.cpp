@@ -1447,82 +1447,7 @@ void TNumericalStuff::DualLeastSquares(const TFltVV& A, const TFltV& b, const do
 	TLinAlg::Multiply(A, InvBb, x);	
 }
 
-void TNumericalStuff::GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV& EigenV, const double& ConvergEps) {
-#ifdef LAPACKE
-	EAssertR(A.GetRows() == A.GetCols(), "A should be a square matrix to compute eigenvalues!");
-
-	TFltVV A1 = A;
-
-    const int Dim = A1.GetRows();
-
-    // inverse iteration algorithm
-    // first compute (A - Lambda*I)
-	for (int i = 0; i < Dim; i++) {
-		A1(i,i) -= EigenVal;
-	}
-
-    const double UEps = 1e-8 * TLinAlg::FrobNorm(A1);
-    double Dist, Norm;
-    double Sgn;
-
-    TFltVV L, U;
-	TFltV OnesV(Dim), TempV(Dim);
-
-	TVec<TNum<index_t>, index_t> PermV;
-
-    // build an initial estimate of the eigenvector
-    // decompose (A - Lambda*I) into LU
-	MKLfunctions::LUFactorization(A1, L, U, PermV);
-
-    // extract U, replace any zero diagonal elements by |A|*eps
-    for (int i = 0; i < Dim; i++) {
-        OnesV[i] = 1;
-        if (TFlt::Abs(U(i,i)) < UEps) {
-        	Sgn = U(i,i) >= 0 ? 1 : -1;
-        	U(i,i) = Sgn*UEps;
-        }
-    }
-
-    // construct A from LU
-    TLinAlg::Multiply(L, U, A1);
-    // swap column i with column PermV[i]
-    for (int i = 0; i < Dim; i++) {
-    	const int pi = PermV[i] - 1;
-    	// swap rows i and pi in A
-    	for (int ColIdx = 0; ColIdx < Dim; ColIdx++) {
-			std::swap(A1(i, ColIdx), A1(pi, ColIdx));
-		}
-    }
-
-    // compute an initial estimate for the eigenvector
-    // I can ignore permutations here since then only swap elements
-    // in the vector of ones: P*A = L*U => A*x = b <=> L*U*x = P*b = P*1 = 1
-	MKLfunctions::TriangularSolve(U, EigenV, OnesV);	// TODO I get a better initial approximation in matlab by doing U \ ones(dim,1)	// TODO I get a better initial approximation in matlab by doing U \ ones(dim,1)
-
-    Norm = TLinAlg::Normalize(EigenV);
-	EAssertR(Norm != 0, "Cannot normalize, norm is 0!");
-
-    // iterate (A - Lambda*I)*x_n+1 = x_n until convergence
-    do {
-    	TempV = EigenV;
-
-		MKLfunctions::LUSolve(A1, EigenV, TempV);
-
-        // normalize
-//        Norm = TLinAlg::Normalize(EigenV);
-        // FIXME: not a general solution, works only in my case, where the eigen vector only has all positive or all negative elements
-        Norm = TLinAlg::SumVec(EigenV);	// taking the sum because sometimes I get +- on consecutive iterations when using the norm
-        EAssertR(Norm != 0, "Cannot normalize, norm is 0!");
-        TLinAlg::MultiplyScalar(1/Norm, EigenV, EigenV);
-
-        Dist = TLinAlg::EuclDist(EigenV, TempV);
-    } while (Dist > ConvergEps);
-#else
-    throw TExcept::New("Should include LAPACKE!!!");
-#endif
-}
-
-void TNumericalStuff::GetKernelVec(const TFltVV& A, TFltV& x, const double& Tol) {
+void TNumericalStuff::GetKernelVec(const TFltVV& A, TFltV& x) {
     EAssertR(A.GetRows() == A.GetCols(), "TNumericalStuff::GetKernelVec: input is not a square matrix!");
 
     const int Dim = A.GetRows();
@@ -1531,7 +1456,6 @@ void TNumericalStuff::GetKernelVec(const TFltVV& A, TFltV& x, const double& Tol)
     TFltVV L, U;
     TVec<TNum<index_t>, index_t> PermV;
     MKLfunctions::LUFactorization(A, L, U, PermV);
-
 #else
     TFltVV U = A;
     TIntV PermV;
@@ -1539,7 +1463,7 @@ void TNumericalStuff::GetKernelVec(const TFltVV& A, TFltV& x, const double& Tol)
     LUDecomposition(U, PermV, d);
 #endif
 
-    EAssertR(TFlt::Abs(U(Dim-1, Dim-1)) < Tol, "TNumericalStuff::GetKernelVec: Input is not a singular matrix!");
+    EAssertR(TFlt::Abs(U(Dim-1, Dim-1)) < 1e-6, "TNumericalStuff::GetKernelVec: Input is not a singular matrix!");
 
     x.Gen(Dim);
     x.Last() = 1;   // set the last element to an arbitrary value
@@ -1558,6 +1482,19 @@ void TNumericalStuff::GetKernelVec(const TFltVV& A, TFltV& x, const double& Tol)
     }
 }
 
+void TNumericalStuff::GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV& EigenV) {
+    const int Dim = A.GetRows();
+
+    // first compute (A - Lambda*I)
+    TFltVV A1 = A;
+
+    for (int i = 0; i < Dim; i++) {
+        A1(i,i) -= EigenVal;
+    }
+
+    // the result is in the kernel of (A - Lambda*I)
+    GetKernelVec(A1, EigenV);
+}
 
 ///////////////////////////////////////////////////////////////////////
 // Sparse-SVD

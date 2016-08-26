@@ -1086,14 +1086,14 @@ public:
 	// LUDecomposition and after solved using LUSolve. A is modified!
 	static void SolveLinearSystem(TFltVV& A, const TFltV& b, TFltV& x);
 
+	/// extracts a vector x such that A*x = 0
+    /// the method assumes that the dimension of the kernel is 1 (only one vector in the kernel)
+    static void GetKernelVec(const TFltVV& A, TFltV& x);
+
 	// Computes the eigenvector of A belonging to the specified eigenvalue
     // uses the inverse iteration algorithm
     // the algorithms does modify A due to its use of LU decomposition
-    static void GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV& EigenV,
-    		const double& ConvergEps=1e-7);
-    /// extracts a vector x such that A*x = 0
-    /// the method assumes that the dimension of the kernel is 1 (only one vector in the kernel)
-    static void GetKernelVec(const TFltVV& A, TFltV& x, const double& Tol=1e-6);
+    static void GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV& EigenV);
 };
 
 ///////////////////////////////////////////////////////////////////////
