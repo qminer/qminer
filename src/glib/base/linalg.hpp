@@ -1528,7 +1528,7 @@ void TLinAlg::QRbasis(TVVec<TNum<TType>, TSizeTy, ColMajor>& A) {
 	TSizeTy m = A.GetRows(); TSizeTy n = A.GetCols(); TSizeTy k = A.GetCols();
 	TSizeTy lda = ColMajor ? m : n;
 	int Matrix_Layout = ColMajor ? LAPACK_COL_MAJOR : LAPACK_ROW_MAJOR;
-	TVec<TType, TSizeTy> tau; tau.Gen(MAX(1, MIN(m, n)));
+	TVec<TNum<TType>, TSizeTy> tau; tau.Gen(MAX(1, MIN(m, n)));
 	LAPACKE_dgeqrf(Matrix_Layout, m, n, &A(0, 0).Val, lda, &tau[0].Val);
 	LAPACKE_dorgqr(Matrix_Layout, m, n, k, &A(0, 0).Val, lda, &tau[0].Val);
 }
@@ -1547,7 +1547,7 @@ void TLinAlg::QRcolpbasis(TVVec<TNum<TType>, TSizeTy, ColMajor>& A) {
 	TSizeTy m = A.GetRows(); TSizeTy n = A.GetCols(); TSizeTy k = A.GetCols();
 	TSizeTy lda = ColMajor ? m : n;
 	TSizeTy Matrix_Layout = ColMajor ? LAPACK_COL_MAJOR : LAPACK_ROW_MAJOR;
-	TVec<TType, TSizeTy> tau(MAX(1, MIN(m, n)));
+	TVec<TNum<TType>, TSizeTy> tau(MAX(1, MIN(m, n)));
 	TVec<TInt, TSizeTy> jvpt(MAX(1, n));
 	LAPACKE_dgeqp3(Matrix_Layout, m, n, &A(0, 0).Val, lda, &jvpt[0].Val, &tau[0].Val);
 	LAPACKE_dorgqr(Matrix_Layout, m, n, k, &A(0, 0).Val, lda, &tau[0].Val);
@@ -1575,7 +1575,7 @@ void TLinAlg::ThinSVD(const TVVec<TNum<TType>, TSizeTy, ColMajor>& A,
 	int ldu = ColMajor ? m : thin_dim;
 	int ldvt = ColMajor ? thin_dim : n;
 
-	TVec<TType, TSizeTy> superb(MAX(1, MIN(m, n)));
+	TVec<TNum<TType>, TSizeTy> superb(MAX(1, MIN(m, n)));
 	int opt = ColMajor ? LAPACK_COL_MAJOR : LAPACK_ROW_MAJOR;
 
 	/*int lda, ldu, ldvt;

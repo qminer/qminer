@@ -886,6 +886,16 @@ TSizeTy TVec<TVal, TSizeTy>::GetMxValN() const {
   return MxValN;
 }
 
+template <class TVal, class TSizeTy>
+TSizeTy TVec<TVal, TSizeTy>::GetMnValN() const {
+    if (Vals == 0) { return -1; }
+    TSizeTy MnValN = 0;
+    for (TSizeTy ValN = 1; ValN<Vals; ValN++) {
+        if (ValT[ValN]<ValT[MnValN]) { MnValN = ValN; }
+    }
+    return MnValN;
+}
+
 //#//////////////////////////////////////////////
 /// Vector Pool. ##TVecPool
 template <class TVal, class TSizeTy>

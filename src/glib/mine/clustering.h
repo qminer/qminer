@@ -217,19 +217,19 @@ public:
     void GetDist2VV(const TVec<TIntFltKdV>& X, const TVec<TIntFltKdV>& Y, TFltVV& D) const { GetDist2VV<TVec<TIntFltKdV>, TVec<TIntFltKdV>>(X, Y, D); }
 
     void GetDist2VV(const TFltVV& X, const TFltVV& Y, const TFltV& NormX2,
-        const TFltV& NormY2, TFltVV& D) const { GetDist2VV<TFltVV, TFltVV>(X, Y, D); }
+        const TFltV& NormY2, TFltVV& D) const { GetDist2VV<TFltVV, TFltVV>(X, Y, NormX2, NormY2, D); }
     void GetDist2VV(const TFltVV& X, const TVec<TIntFltKdV>& Y, const TFltV& NormX2,
-        const TFltV& NormY2, TFltVV& D) const {
-        GetDist2VV<TFltVV, TVec<TIntFltKdV>>(X, Y, D);
-    }
+        const TFltV& NormY2, TFltVV& D) const { GetDist2VV<TFltVV, TVec<TIntFltKdV>>(X, Y, NormX2, NormY2, D); }
     void GetDist2VV(const TVec<TIntFltKdV>& X, const TFltVV& Y, const TFltV& NormX2,
-        const TFltV& NormY2, TFltVV& D) const {
-        GetDist2VV<TVec<TIntFltKdV>, TFltVV>(X, Y, D);
-    }
+        const TFltV& NormY2, TFltVV& D) const { GetDist2VV<TVec<TIntFltKdV>, TFltVV>(X, Y, NormX2, NormY2, D); }
     void GetDist2VV(const TVec<TIntFltKdV>& X, const TVec<TIntFltKdV>& Y, const TFltV& NormX2,
-        const TFltV& NormY2, TFltVV& D) const {
-        GetDist2VV<TVec<TIntFltKdV>, TVec<TIntFltKdV>>(X, Y, D);
-    }
+        const TFltV& NormY2, TFltVV& D) const { GetDist2VV<TVec<TIntFltKdV>, TVec<TIntFltKdV>>(X, Y, NormX2, NormY2, D); }
+
+    void UpdateNormX2(const TFltVV& FtrVV, TFltV& NormX2) const { UpdateNormX2<TFltVV>(FtrVV, NormX2); }
+    void UpdateNormX2(const TVec<TIntFltKdV>& FtrVV, TFltV& NormX2) const { UpdateNormX2<TVec<TIntFltKdV>>(FtrVV, NormX2); }
+
+    void UpdateNormC2(const TFltVV& CentroidVV, TFltV& NormC2) const { UpdateNormC2<TFltVV>(CentroidVV, NormC2); }
+    void UpdateNormC2(const TVec<TIntFltKdV>& CentroidVV, TFltV& NormC2) const { UpdateNormC2<TVec<TIntFltKdV>>(CentroidVV, NormC2); }
 
     const TStr& GetType() const { return TYPE; }
 
@@ -255,6 +255,9 @@ private:
     // D_ij is the distance between x_i and y_j
     template <class TXMatType, class TYMatType>
     void GetDist2VV(const TXMatType& X, const TYMatType& Y, TFltVV& D) const;
+
+    template <class TXMatType, class TYMatType>
+    void GetDist2VV(const TXMatType& X, const TYMatType& Y, const TFltV& NormX2, const TFltV& NormY2, TFltVV& D) const;
 };
 
 
@@ -310,6 +313,12 @@ void TCosDist::UpdateNormC2(const TMatType& CentroidVV, TFltV& NormC2) const {
 template <class TXMatType, class TYMatType>
 void TCosDist::GetDist2VV(const TXMatType& X, const TYMatType& Y, TFltVV& D) const {
     GetDistVV(X, Y, D);
+    TLinAlgTransform::Sqr(D);
+}
+
+template <class TXMatType, class TYMatType>
+void TCosDist::GetDist2VV(const TXMatType& X, const TYMatType& Y, const TFltV& NormX2, const TFltV& NormY2, TFltVV& D) const {
+    TCosDist::GetDistVV(X, Y, NormX2, NormY2, D);
     TLinAlgTransform::Sqr(D);
 }
 
@@ -972,8 +981,9 @@ void TDnsKMeans<TCentroidType>::Apply(const TDataType& FtrVV, const int& NInst, 
         // and assign the instances
         TAbsKMeans<TCentroidType>::Dist->UpdateNormC2(TAbsKMeans<TCentroidType>::CentroidVV, NormC2);
         TAbsKMeans<TCentroidType>::Dist->GetDist2VV(TAbsKMeans<TCentroidType>::CentroidVV, FtrVV, NormC2, NormX2, ClustDistVV);
-        TLinAlgSearch::GetColMinIdxV(ClustDistVV, *AssignIdxVPtr);
 
+        TLinAlgSearch::GetColMinIdxV(ClustDistVV, *AssignIdxVPtr);
+        
         // if the assignment hasn't changed then terminate the loop
         if (*AssignIdxVPtr == *OldAssignIdxVPtr) {
             Notify->OnNotifyFmt(TNotifyType::ntInfo, "Converged at iteration: %d", IterN);

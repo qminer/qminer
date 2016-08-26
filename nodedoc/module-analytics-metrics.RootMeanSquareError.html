@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v6.3.1</a>
       </div>
     </div>
   </nav>
@@ -25,9 +25,9 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>~<wbr><a href="module-analytics-metrics.html">metrics</a>.<wbr></small><span class="symbol-name">RootMeanSquareError</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-2996">analyticsdoc.<wbr>js:2996</a></p>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-3192">analyticsdoc.<wbr>js:3192</a></p>
             <div class="symbol-classdesc">
-              <p>Online Root Mean Square Error (RMSE) instance</p>
+              <p>Online Root Mean Square Error (RMSE) instance.</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -41,7 +41,7 @@
                     <dt><a href="module-analytics-metrics.RootMeanSquareError.html#getError">getError()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics-metrics.RootMeanSquareError.html#load">load(FIn)</a></dt>
+                    <dt><a href="module-analytics-metrics.RootMeanSquareError.html#load">load(fin)</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -51,7 +51,7 @@
                     <dt><a href="module-analytics-metrics.RootMeanSquareError.html#push">push(yTrue, yPred)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics-metrics.RootMeanSquareError.html#save">save(FOut)</a></dt>
+                    <dt><a href="module-analytics-metrics.RootMeanSquareError.html#save">save(fout)</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -62,7 +62,7 @@
             </div>
           </section>
           <section>
-            <h2 id="RootMeanSquareError">new&nbsp;<span class="symbol-name">RootMeanSquareError</span><span class="signature"><span class="signature-params">([FIn])</span></span></h2>
+            <h2 id="RootMeanSquareError">new&nbsp;<span class="symbol-name">RootMeanSquareError</span><span class="signature"><span class="signature-params">([fin])</span></span></h2>
             <p>Create new (online) root mean square error instance.</p>
             <section>
               <h3>Parameter</h3>
@@ -78,7 +78,7 @@
                 <tbody>
                   <tr>
                     <td>
-                      <p>FIn</p>
+                      <p>fin</p>
                     </td>
                     <td>
                       <p><a href="module-fs.FIn.html">module:fs.FIn</a></p>
@@ -87,7 +87,7 @@
                       <p>Yes</p>
                     </td>
                     <td>
-                      <p>Saved state can be loaded via constructor</p>
+                      <p>Saved state can be loaded via constructor.</p>
                     </td>
                   </tr>
                 </tbody>
@@ -108,11 +108,11 @@
                 <dd><a href="module-analytics-createOnlineMetric.html#getError">module:analytics~createOnlineMetric#getError</a></dd>
                 <dt>Returns</dt>
                 <dd>
-                  <p>Error value</p>
+                  <p>Error value.</p>
                 </dd>
               </dl>
-              <h3 id="load"><span class="symbol-name">load</span><span class="signature"><span class="signature-params">(FIn)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FIn.html">module:fs.FIn</a></span></span></h3>
-              <p>Load metric state from provided input stream <code>FIn</code>.</p>
+              <h3 id="load"><span class="symbol-name">load</span><span class="signature"><span class="signature-params">(fin)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FIn.html">module:fs.FIn</a></span></span></h3>
+              <p>Load metric state from provided input stream <code>fin</code>.</p>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -127,7 +127,7 @@
                   <tbody>
                     <tr>
                       <td>
-                        <p>FIn</p>
+                        <p>fin</p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
@@ -147,7 +147,7 @@
                 <dd><a href="module-analytics-createOnlineMetric.html#load">module:analytics~createOnlineMetric#load</a></dd>
                 <dt>Returns</dt>
                 <dd>
-                  <p>Provided output stream <code>FIn</code>.</p>
+                  <p>The output stream <code>fin</code>.</p>
                 </dd>
               </dl>
               <h3 id="push"><span class="symbol-name">push</span><span class="signature"><span class="signature-params">(yTrue, yPred)</span></span></h3>
@@ -175,7 +175,7 @@
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Ground truth (correct) target value</p>
+                        <p>Ground truth (correct) target value.</p>
                       </td>
                     </tr>
                     <tr>
@@ -189,7 +189,7 @@
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Estimated target value</p>
+                        <p>Estimated target value.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -199,8 +199,8 @@
                 <dt>Inherited from</dt>
                 <dd><a href="module-analytics-createOnlineMetric.html#push">module:analytics~createOnlineMetric#push</a></dd>
               </dl>
-              <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(FOut)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
-              <p>Save metric state to provided output stream <code>FOut</code>.</p>
+              <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
+              <p>Save metric state to provided output stream <code>fout</code>.</p>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -215,7 +215,7 @@
                   <tbody>
                     <tr>
                       <td>
-                        <p>FOut</p>
+                        <p>fout</p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
@@ -235,7 +235,7 @@
                 <dd><a href="module-analytics-createOnlineMetric.html#save">module:analytics~createOnlineMetric#save</a></dd>
                 <dt>Returns</dt>
                 <dd>
-                  <p>Provided output stream <code>FOut</code>.</p>
+                  <p>The output stream <code>fout</code>.</p>
                 </dd>
               </dl>
             </section>

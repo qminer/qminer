@@ -1,5 +1,67 @@
 # QMiner Change Log
 
+### 19 August 2016
+
+**Version: 6.3.1**
+
+**Non-breaking with bug fix**
+
+Bug fix:
+- `TStoreImpl` got wrong value for cache size parameter when loading from disk.
+
+
+### 12 August 2016
+
+**Version: 6.3.0**
+
+**Non-breaking with new features**
+
+New Features:
+- Gix updated to speed up deletes of records, especially when using FIFO stores
+- Support methods for byte fields in `TStore`
+- Added `qm.RecordVector` which can hold array of records passed by value. Vector support serialization using QMiner streams.
+- Standard deviation `qm.statistics.std` now supports `la.Vector` as input
+
+
+### 5 August 2016
+
+**Version: 6.2.0**
+
+**Non-breaking with new features**
+
+New Features:
+- Speed up of `RecSet.SortByField`
+- Added `Store.GetFieldNmByte` and `Store.SetFieldNmByte`
+- Tokenizer uses `unicode` as default type in constructor
+
+Other:
+- Updated documentation: added missing types, descriptions, links and methods. Reduced number of clicks to get to specific information.
+
+
+### 22 July 2016
+
+**Version: 6.1.0**
+
+**Non-breaking with new features**
+
+New Features:
+- Changed `TStreamAggrOut` interfaces to be flat
+- `TTDigest` Stream aggregate can wait for `N` elements before it is initialized
+
+Bug fixes:
+- Calling `DelObjKey` on key that is first in `KeyValH` makes following serialization invalid. `ObjKeyN` starts with 1 which makes invalid json object. Relevant change is in `TJsonVal::GetChAFromVal()`
+- `TStr::SearchStr` return exception when called on empty string
+- `TStrHash` created temporary `TStr`s when computing hash codes creating significant overhead without any good reason
+- `TSAppSrv::OnHttpRq` does better check for valid URL
+- Removed old debug code in `TStr`
+- Issue #418: Categorical feature extraction documentation - Removed the 'values' from the construction documentation.
+- Issue #439: Added the two missing optional parameters in the new KMeans constructor, `fitIdx` and `fitStart`. Also fixed the documentation for KMeans constructor parameter and added some new unit tests for KMeans. 
+- Issue #449: Not all methods used for KMeans.fit were implemented when using distanceType: "Cos". Added unit tests for the fit and predict methods in the case of distanceType: "Cos".
+
+Other:
+- Replaced tabs with spaces in `sappsrv.cpp`
+
+
 ### 24 June 2016
 
 **Version: 6.0.0**
@@ -14,7 +76,7 @@ New Features:
 - (__breaking__) Added window buffer stream aggregate that keeps values in memory.
 - References to store and stream aggregate can be passed as parameters in jsons as object when creating new stream aggregates.
 
-Bugfix:
+Bug fixes:
 - Fixed clang warnings in `printf` for `uint64`
 - (__breaking__) Fixed stream aggregates that worked on window buffer to correctly work in case on `OnTime` and `OnStep` triggers.
 - `getSubmatrix` can not get the last row and column of a matrix
@@ -39,7 +101,7 @@ New features:
  - added TFtrExt::GetFtrRange() which returns the range of the feature
  - added method TJsonVal::SetArrVal
 
-Bugfix: 
+Bug fixes: 
  - fixed concurrency bug when executing code from worker thread on the main thread
  - fixed TNodeJsUtil::GetFldObj and TNodeJsUtil::GetFldFun
 
@@ -56,10 +118,10 @@ Other:
 
 **Non-breaking with new feature**
 
-New features:
+New feature:
  - Added binary option to multinomial feature extractor: check only for presenc of value and does not weight by count
 
-Bugfix: 
+Bug fix: 
  - `TSimpleLinReg::SaveState` failed as it saved object and loaded smart-pointer.
 
 

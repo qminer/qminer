@@ -506,6 +506,23 @@ void TLinAlgStat::Mean(const TFltVV& Mat, TFltV& Res, const TMatDim& Dim) {
 	 }
 }
 
+double TLinAlgStat::Std(const TFltV& Vec, const int& Flag) {
+    EAssertR(Flag == 0 || Flag == 1, "TLAMisc::Std: Invalid value of 'Flag' argument. "
+        "Supported 'Flag' arguments are 0 or 1. See Matlab std() documentation.");
+
+    int Len = Vec.Len();
+
+    double Mean = TLinAlgStat::Mean(Vec);
+    double Scalar = (Flag == 1) ? TMath::Sqrt(1.0 / (Len)) : TMath::Sqrt(1.0 / (Len - 1));
+
+    TFltV TempRes(Len);
+    TFltV Ones(Len);
+    Ones.PutAll(1.0);
+
+    TLinAlg::LinComb(-1, Vec, Mean, Ones, TempRes);
+    return Scalar * TLinAlg::Norm(TempRes);
+}
+
 void TLinAlgStat::Std(const TFltVV& Mat, TFltV& Res, const int& Flag, const TMatDim& Dim) {
 	EAssertR(Flag == 0 || Flag == 1, "TLAMisc::Std: Invalid value of 'Flag' argument. "
 							"Supported 'Flag' arguments are 0 or 1. See Matlab std() documentation.");

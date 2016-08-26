@@ -3442,14 +3442,17 @@ uchar TStoreImpl::GetFieldByte(const uint64& RecId, const int& FieldId) const {
     TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
     return GetFieldSerializator(FieldId)->GetFieldByte(RecMem, FieldId);
 }
+
 int TStoreImpl::GetFieldInt(const uint64& RecId, const int& FieldId) const {
     TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
     return GetFieldSerializator(FieldId)->GetFieldInt(RecMem, FieldId);
 }
+
 int16 TStoreImpl::GetFieldInt16(const uint64& RecId, const int& FieldId) const {
     TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
     return GetFieldSerializator(FieldId)->GetFieldInt16(RecMem, FieldId);
 }
+
 int64 TStoreImpl::GetFieldInt64(const uint64& RecId, const int& FieldId) const {
     TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
     return GetFieldSerializator(FieldId)->GetFieldInt64(RecMem, FieldId);
@@ -3996,7 +3999,6 @@ void TStorePbBlob::UpdateRec(const uint64& RecId, const PJsonVal& RecVal) {
     // update disk serialization when necessary
     if (CacheP) {
         // update serialization
-        TMem Mem;
         TPgBlobPt Pt = RecIdBlobPtH.GetDat(RecId);
         TThinMIn MIn = DataBlob->Get(Pt);
 
@@ -4011,7 +4013,7 @@ void TStorePbBlob::UpdateRec(const uint64& RecId, const PJsonVal& RecVal) {
                 CacheNewRecMem, this, CacheChangedFieldIdSet);
 
             // update the stored serializations with new values
-            Pt = DataBlob->Put(Mem.GetBf(), Mem.Len(), Pt);
+            Pt = DataBlob->Put(CacheNewRecMem.GetBf(), CacheNewRecMem.Len(), Pt);
             RecIdBlobPtH(RecId) = Pt;
             // update indexes pointing to the record
             RecIndexer.UpdateRec(CacheOldRecMem, CacheNewRecMem, RecId,
@@ -4026,9 +4028,8 @@ void TStorePbBlob::UpdateRec(const uint64& RecId, const PJsonVal& RecVal) {
     // update in-memory serialization when necessary
     if (MemP) {
         // update serialization
-        TMem Mem;
         TPgBlobPt Pt = RecIdBlobPtHMem.GetDat(RecId);
-        TThinMIn MIn = DataBlob->Get(Pt);
+        TThinMIn MIn = DataMem->Get(Pt);
 
         TIntSet ChangedFieldIdSet;
         if (MemVarP || KeyP) {
@@ -4041,7 +4042,7 @@ void TStorePbBlob::UpdateRec(const uint64& RecId, const PJsonVal& RecVal) {
                 NewRecMem, this, ChangedFieldIdSet);
 
             // update the stored serializations with new values
-            Pt = DataMem->Put(Mem.GetBf(), Mem.Len(), Pt);
+            Pt = DataMem->Put(NewRecMem.GetBf(), NewRecMem.Len(), Pt);
             RecIdBlobPtHMem(RecId) = Pt;
             // update indexes pointing to the record
             RecIndexer.UpdateRec(OldRecMem, NewRecMem, RecId,
@@ -4592,6 +4593,30 @@ PStoreIter TStorePbBlob::GetIter() const {
         //TStoreIterVec::New(DataMem.GetFirstValId(), DataMem.GetLastValId(), true) :
         TStoreIterHash<THash<TUInt64, TPgBlobPt>>::New(RecIdBlobPtHMem) :
         TStoreIterHash<THash<TUInt64, TPgBlobPt>>::New(RecIdBlobPtH);
+}
+
+uint64 TStorePbBlob::GetFirstRecId() const {
+    // recids are monotonically increasing but since we can remove any item in random order it's possible that the first item 
+    // in the hash table is deleted and a new key with large id is inserted in it's place. for that reason we have to iterate
+	// over the full list of record ids
+    THash<TUInt64, TPgBlobPt> RecIdH = DataMemP ? RecIdBlobPtHMem : RecIdBlobPtH;
+	TUInt64V RecIdV; RecIdH.GetKeyV(RecIdV);
+    if (RecIdV.Len() > 0)
+        return RecIdV.GetMnVal();
+    else
+        return TUInt64::Mx;
+}
+
+uint64 TStorePbBlob::GetLastRecId() const {
+    // recids are monotonically increasing but since we can remove any item in random order it's possible that the first item 
+    // in the hash table is deleted and a new key with large id is inserted in it's place. for that reason we have to iterate
+    // over the full list of record ids
+    THash<TUInt64, TPgBlobPt> RecIdH = DataMemP ? RecIdBlobPtHMem : RecIdBlobPtH;
+    TUInt64V RecIdV; RecIdH.GetKeyV(RecIdV);
+    if (RecIdV.Len() > 0)
+        return RecIdV.GetMxVal();
+    else
+        return TUInt64::Mx;
 }
 
 /// Helper function for returning JSON definition of store
@@ -5320,7 +5345,7 @@ TWPt<TBase> LoadBase(const TStr& FPath, const TFAccess& FAccess, const uint64& I
         if (StoreType == "TStorePbBlob") {
             Store = new TStorePbBlob(Base, FPath + StoreNm, FAccess, StoreCacheSize);
         } else {
-            Store = new TStoreImpl(Base, FPath + StoreNm, FAccess, StoreCacheSize);
+            Store = new TStoreImpl(Base, FPath + StoreNm, StoreCacheSize);
         }
         Base->AddStore(Store);
     }

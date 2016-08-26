@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -29,6 +29,7 @@ public:
   static const TStr LocFldNm;
   static const TStr SetCookieFldNm;
   static const TStr CookieFldNm;
+  static const TStr ResponseTimeNm;
   // content-type field-values
   static const TStr TextFldVal;
   static const TStr TextPlainFldVal;
@@ -173,11 +174,13 @@ private:
   void ParseHttpResp(const PSIn& SIn);
 public:
   THttpResp(const int& _StatusCd, const TStr& ContTypeVal,
-   const bool& CacheCtrlP, const PSIn& BodySIn, const TStr LocStr);
+   const bool& CacheCtrlP, const PSIn& BodySIn, const TStr LocStr, 
+   const int& ResponseTimeMs = 0, const TStrKdV& CustomHdrV = TStrKdV());
   static PHttpResp New(const int& StatusCd, const TStr& ContTypeVal,
-   const bool& CacheCtrlP, const PSIn& BodySIn, const TStr LocStr=TStr()){
+   const bool& CacheCtrlP, const PSIn& BodySIn, const TStr LocStr=TStr(), 
+      const int& ResponseTimeMs = 0, const TStrKdV& CustomHdrV = TStrKdV()){
     return PHttpResp(new
-     THttpResp(StatusCd, ContTypeVal, CacheCtrlP, BodySIn, LocStr));}
+     THttpResp(StatusCd, ContTypeVal, CacheCtrlP, BodySIn, LocStr, ResponseTimeMs, CustomHdrV));}
   THttpResp(const PSIn& SIn);
   static PHttpResp New(const PSIn& SIn){
     return PHttpResp(new THttpResp(SIn));}
