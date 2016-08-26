@@ -31,56 +31,56 @@ Bug reports can be sent to gleban@gmail.com
 class TBackupLogInfo
 {
 private:
-	TStr LogInfo;		// info about the success or failure of the backing up
-	TFlt SecsNeeded;	// how long did we need to make the backup (in seconds)
-	TStr FolderName;	// name of the folder in which we have stored the backup data
+    TStr LogInfo;       // info about the success or failure of the backing up
+    TFlt SecsNeeded;    // how long did we need to make the backup (in seconds)
+    TStr FolderName;    // name of the folder in which we have stored the backup data
 
 public:
-	TBackupLogInfo() {}
-	TBackupLogInfo(const PJsonVal& Json);
-	TBackupLogInfo(const TStr& FolderName, const TFlt SecsNeeded, const TStr& LogInfo);
-	PJsonVal GetJson() const;
-	TStr GetFolderName() const { return FolderName; }
+    TBackupLogInfo() {}
+    TBackupLogInfo(const PJsonVal& Json);
+    TBackupLogInfo(const TStr& FolderName, const TFlt SecsNeeded, const TStr& LogInfo);
+    PJsonVal GetJson() const;
+    TStr GetFolderName() const { return FolderName; }
 };
 
 // info about the folders to backup
 class TBackupFolderInfo
 {
 public:
-	TStr Folder;				// folder to backup
-	TStrV Extensions;			// list of extensions to backup. empty = backup all. specify only extensions (bin and not *.bin)
-	TBool IncludeSubfolders;	// should subfolders also be backedup
-	TStrV SkipIfContainingV;	// if a part of the full filename will match any text in this list, the file will not be backedup. Case sensitive!
+    TStr Folder;                // folder to backup
+    TStrV Extensions;           // list of extensions to backup. empty = backup all. specify only extensions (bin and not *.bin)
+    TBool IncludeSubfolders;    // should subfolders also be backedup
+    TStrV SkipIfContainingV;    // if a part of the full filename will match any text in this list, the file will not be backedup. Case sensitive!
 };
 
 class TBackupProfile
 {
 private:
-	TStr Destination;
-	TStr ProfileName;
-	TStr ProfileLogFile;
-	TInt VersionsToKeep;
-	TVec<TBackupFolderInfo> FolderV;
-	TVec<TBackupLogInfo> LogV;
+    TStr Destination;
+    TStr ProfileName;
+    TStr ProfileLogFile;
+    TInt VersionsToKeep;
+    TVec<TBackupFolderInfo> FolderV;
+    TVec<TBackupLogInfo> LogV;
 
-	TStr GetFolderNameForCurrentTime() const;
-	void CopyFolder(const TStr& BaseTargetFolder, const TStr& SourceFolder, const TStrV& Extensions, const TStrV& SkipIfContainingV, const bool& IncludeSubfolders, const bool& ReportP, TStr& ErrMsg);
-	
-	void SaveLogs() const;
+    TStr GetFolderNameForCurrentTime() const;
+    void CopyFolder(const TStr& BaseTargetFolder, const TStr& SourceFolder, const TStrV& Extensions, const TStrV& SkipIfContainingV, const bool& IncludeSubfolders, const bool& ReportP, TStr& ErrMsg);
+    
+    void SaveLogs() const;
 
 public:
 
-	enum ERestoringMode { RemoveExistingFirst, SkipIfExisting, OverwriteIfExisting };
+    enum ERestoringMode { RemoveExistingFirst, SkipIfExisting, OverwriteIfExisting };
 
-	TBackupProfile() {}
-	TBackupProfile(const PJsonVal& SettingsJson, const TStr& DestinationDirNm, const TStr& ProfileName);
-	TBackupLogInfo CreateBackup(const bool& ReportP);
-	void Restore(const TStr& BackupFolderName, const ERestoringMode& RestoringMode, const bool& ReportP) const;
+    TBackupProfile() {}
+    TBackupProfile(const PJsonVal& SettingsJson, const TStr& DestinationDirNm, const TStr& ProfileName);
+    TBackupLogInfo CreateBackup(const bool& ReportP);
+    void Restore(const TStr& BackupFolderName, const ERestoringMode& RestoringMode, const bool& ReportP) const;
 
-	int GetVersionsToKeep() const { return VersionsToKeep; }
-	TStr GetDestination() const { return Destination; }
-	const TVec<TBackupFolderInfo> GetFolders() const { return FolderV; }
-	const TVec<TBackupLogInfo> GetLogs() const { return LogV; }
+    int GetVersionsToKeep() const { return VersionsToKeep; }
+    TStr GetDestination() const { return Destination; }
+    const TVec<TBackupFolderInfo> GetFolders() const { return FolderV; }
+    const TVec<TBackupLogInfo> GetLogs() const { return LogV; }
 };
 
 
@@ -91,71 +91,71 @@ public:
 class TFolderBackup
 {
 private:
-	TStr DestinationDirNm;
-	bool ReportP;
+    TStr DestinationDirNm;
+    bool ReportP;
 
-	THash<TStr, TBackupProfile> ProfileH;
-	
-	void ParseSettings(const PJsonVal& SettingsJson);
+    THash<TStr, TBackupProfile> ProfileH;
+    
+    void ParseSettings(const PJsonVal& SettingsJson);
 
 public:
-	
+    
 
-	TFolderBackup(const TStr& SettingsFNm, const bool& ReportP = true);
-	TFolderBackup(const PJsonVal& SettingsJson, const bool& ReportP = true);
+    TFolderBackup(const TStr& SettingsFNm, const bool& ReportP = true);
+    TFolderBackup(const PJsonVal& SettingsJson, const bool& ReportP = true);
 
-	// backup a particular profile
-	TBackupLogInfo CreateBackup(const TStr& ProfileName);
-	// backup all profiles
-	void CreateBackup(TVec<TBackupLogInfo>& BackupLogInfo);
-	
-	void GetBackupFolders(const TStr& ProfileName, TStrV& FolderNmV) const;
-	int GetBackupCount(const TStr& ProfileName) const;
-	void Restore(const TStr& ProfileName, const TStr& BackupFolderName, const TBackupProfile::ERestoringMode& RestoringMode = TBackupProfile::RemoveExistingFirst) const;
-	bool RestoreLatest(const TStr& ProfileName, const TBackupProfile::ERestoringMode& RestoringMode = TBackupProfile::RemoveExistingFirst) const;
-	bool IsProfileName(const TStr& ProfileName) const { return ProfileH.IsKey(ProfileName); }
+    // backup a particular profile
+    TBackupLogInfo CreateBackup(const TStr& ProfileName);
+    // backup all profiles
+    void CreateBackup(TVec<TBackupLogInfo>& BackupLogInfo);
+    
+    void GetBackupFolders(const TStr& ProfileName, TStrV& FolderNmV) const;
+    int GetBackupCount(const TStr& ProfileName) const;
+    void Restore(const TStr& ProfileName, const TStr& BackupFolderName, const TBackupProfile::ERestoringMode& RestoringMode = TBackupProfile::RemoveExistingFirst) const;
+    bool RestoreLatest(const TStr& ProfileName, const TBackupProfile::ERestoringMode& RestoringMode = TBackupProfile::RemoveExistingFirst) const;
+    bool IsProfileName(const TStr& ProfileName) const { return ProfileH.IsKey(ProfileName); }
 };
 
 /*
 example of a json file containing the settings to be used when initializing the TFolderBackup instance:
 
 {
-	"destination": "./_AutoBackups",
-	"profiles" : {
-		"Articles1" : {
-			"versionsToKeep": 3,
-			"folders": [
-				{ 
-					"folder": "./IndexArticles", 
-					"extensions": ["*"],
-					"skipIfContaining" : ["ArticlesWebRqLog.bin"],
-					"includeSubfolders": true
-				}
-			]
-		},
-		"ClusteringEng" : {
-			"versionsToKeep": 3,
-			"folders": [
-				{ 
-					"folder": "./IndexClustersEng", 
-					"extensions": [".bin"],
-					"skipIfContaining" : ["IncomingWebRqLog"],
-					"includeSubfolders": true
-				}
-			]
-		},
-		"ClusteringDefault" : {
-			"versionsToKeep": 3,
-			"folders": [
-				{ 
-					"folder": "./IndexClustersDefault", 
-					"extensions": [".bin"],
-					"skipIfContaining" : ["IncomingWebRqLog"],
-					"includeSubfolders": true
-				}
-			]
-		}
-	}
+    "destination": "./_AutoBackups",
+    "profiles" : {
+        "Articles1" : {
+            "versionsToKeep": 3,
+            "folders": [
+                { 
+                    "folder": "./IndexArticles", 
+                    "extensions": ["*"],
+                    "skipIfContaining" : ["ArticlesWebRqLog.bin"],
+                    "includeSubfolders": true
+                }
+            ]
+        },
+        "ClusteringEng" : {
+            "versionsToKeep": 3,
+            "folders": [
+                { 
+                    "folder": "./IndexClustersEng", 
+                    "extensions": [".bin"],
+                    "skipIfContaining" : ["IncomingWebRqLog"],
+                    "includeSubfolders": true
+                }
+            ]
+        },
+        "ClusteringDefault" : {
+            "versionsToKeep": 3,
+            "folders": [
+                { 
+                    "folder": "./IndexClustersDefault", 
+                    "extensions": [".bin"],
+                    "skipIfContaining" : ["IncomingWebRqLog"],
+                    "includeSubfolders": true
+                }
+            ]
+        }
+    }
 }
 */
 

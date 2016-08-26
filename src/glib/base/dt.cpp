@@ -2553,6 +2553,19 @@ TStr TInt::GetStr(const int& Val, const char* FmtStr){
   }
 }
 
+TStr TInt::GetSepStr(const char& Sep) const
+{
+    TStr StrVal = GetStr().Reverse();
+    TChA Out;
+    for (int N = 0; N < StrVal.Len(); N++) {
+        if (N > 0 && N % 3 == 0)
+            Out += Sep;
+        Out += StrVal[N];
+    }
+    Out.Reverse();
+    return Out;
+}
+
 //-----------------------------------------------------------------------------
 // Frugal integer serialization
 //-----------------------------------------------------------------------------
