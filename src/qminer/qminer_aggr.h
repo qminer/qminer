@@ -1757,6 +1757,7 @@ public:
     /// Gaussian KDE bandwidth - if 0 (default) it will be determined automatically
     TFlt Bandwidth;
     bool AutoBandwidth;
+    TFlt MinBandwidth;
 
     /// Parameters
     THistogramToPMFModel(const PJsonVal& ParamVal);

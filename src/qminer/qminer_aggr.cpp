@@ -1939,7 +1939,6 @@ void THistogramToPMFModel::ClassifyAnomalies(const TFltV& PMF, TFltV& Severities
     // Sort in ascending order: most sever anomalies come first
     PMF.SortGetPerm(PMF, SortedV, PermV, true);
     int Len = PMF.Len();
-    int ThreshLen = Thresholds.Len();
     Severities = TFltV(Len); // default zero
     double CumSum = 0.0;
     int Severity = Thresholds.Len();
