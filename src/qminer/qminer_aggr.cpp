@@ -1936,7 +1936,7 @@ THistogramToPMFModel::THistogramToPMFModel(const PJsonVal& ParamVal) {
 
 void THistogramToPMFModel::ClassifyAnomalies(const TFltV& PMF, TFltV& Severities) {
     TFltV SortedV; TIntV PermV;
-    // Sort in ascending order: most sever anomalies come first
+    // Sort in ascending order: most severe anomalies come first
     PMF.SortGetPerm(PMF, SortedV, PermV, true);
     int Len = PMF.Len();
     Severities = TFltV(Len); // default zero
@@ -1946,7 +1946,7 @@ void THistogramToPMFModel::ClassifyAnomalies(const TFltV& PMF, TFltV& Severities
     for (int ElN = 0; ElN < Len; ElN++) {
         CumSum += SortedV[ElN];
         // check if the next cell has the same mass up to a tolerance
-        if ((ElN < Len - 1) && abs(SortedV[ElN] - SortedV[ElN + 1]) < Tol) {
+        if ((ElN < Len - 1) && fabs(SortedV[ElN] - SortedV[ElN + 1]) < Tol) {
             // if it does
             StepBack++;
             continue;
