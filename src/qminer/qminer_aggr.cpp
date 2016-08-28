@@ -1895,6 +1895,7 @@ TRecFilterAggr::TRecFilterAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal
 
 THistogramToPMFModel::THistogramToPMFModel(const PJsonVal& ParamVal) {
     Tol = ParamVal->GetObjNum("tol", 1e-8);
+    MinBandwidth = ParamVal->GetObjNum("minBandwidth", 0.01);
     TStr ModelType = ParamVal->GetObjStr("pmfModel", "kdeNormal");
     if (ModelType == "kdeNormal") {
         Type = hpmfKDEGaussian;
@@ -1972,6 +1973,7 @@ void THistogramToPMFModel::GetPMF(const TFltV& Hist, TFltV& PMF) {
         // Bandwidth in units of histogram cell width
         if (AutoBandwidth) {
             Bandwidth = TKDEModel::RuleOfThumbHistBandwidth(Hist);
+            Bandwidth = Bandwidth < MinBandwidth ? MinBandwidth : Bandwidth;
         }
         TKDEModel::ComputeHistDensity(Hist, PMF, Bandwidth);
     } else {
