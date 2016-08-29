@@ -1756,7 +1756,9 @@ public:
     THistogramPMFModelType Type;
     /// Gaussian KDE bandwidth - if 0 (default) it will be determined automatically
     TFlt Bandwidth;
-    bool AutoBandwidth;
+	/// If true, the bandwidth will be tuned every time GetPMF is called
+    bool AutoBandwidthP;
+	/// Controls automatic bandwidth selection
     TFlt MinBandwidth;
 
     /// Parameters
@@ -1777,21 +1779,23 @@ public:
 ///
 ///   OnStep has two phases (predict and fit):
 ///   1. - reads a value from an input aggregate that implements IFlt
-///      - computes the bin number given an input histogram aggregate
+///      - computes the bin number given an input histogram aggregate (exposes the index by implementing IInt)
 ///      - uses THistogramToPMFModel to compute the severity (anomaly score) of the bin
 ///      - exposes the result by implementing IFlt
 ///   2. - updates the input histogram aggregate
 ///      - updates THistogramToPMFModel
 ///      - exposes the PMF and severities through SaveJson
-class THistogramAD : public TStreamAggr, public TStreamAggrOut::IFlt {
+class THistogramAD : public TStreamAggr, public TStreamAggrOut::IFlt, TStreamAggrOut::IInt {
 private:
     /// Input for prediction
     TWPt<TStreamAggrOut::IFlt> InAggrVal;
     /// Input for modelling (histogram)
     TWPt<TOnlineHistogram> HistAggr;
 
-    /// Current severity, returned by GetFlt()
+    /// Current severity, returned by GetFlt(), corresponds to histogram bin with index LastHistIdx
     TFlt Severity;
+	/// The histogram bin index of the most recent prediction, returned by GetInt().
+	TInt LastHistIdx;
     /// Current PMF, computed in OnStep
     TFltV PMF;
     /// Current anomaly scores, computed in OnStep
@@ -1815,6 +1819,8 @@ public:
     bool IsInit() const { return HistAggr->IsInit() && Severities.Len() > 0; }
     /// Returns the current severity level (0 = normal)
     double GetFlt() const { return Severity; }
+	/// Returns the current histogram bin index
+	int GetInt() const { return Severity; }
     /// Resets the aggregate
     void Reset();
     /// JSON serialization

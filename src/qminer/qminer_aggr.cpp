@@ -1907,9 +1907,9 @@ THistogramToPMFModel::THistogramToPMFModel(const PJsonVal& ParamVal) {
 
     if (ParamVal->IsObjKey("bandwidth")) {
         Bandwidth = ParamVal->GetObjNum("bandwidth");
-        AutoBandwidth = false;
+        AutoBandwidthP = false;
     } else {
-        AutoBandwidth = true;
+        AutoBandwidthP = true;
     }
 
     if (ParamVal->IsObjKey("thresholds")) {
@@ -1971,7 +1971,7 @@ void THistogramToPMFModel::GetPMF(const TFltV& Hist, TFltV& PMF) {
         TLinAlg::NormalizeL1(PMF);
     } else if (Type == hpmfKDEGaussian) {
         // Bandwidth in units of histogram cell width
-        if (AutoBandwidth) {
+        if (AutoBandwidthP) {
             Bandwidth = TKDEModel::RuleOfThumbHistBandwidth(Hist);
             Bandwidth = Bandwidth < MinBandwidth ? MinBandwidth : Bandwidth;
         }
@@ -1987,10 +1987,10 @@ void THistogramToPMFModel::GetPMF(const TFltV& Hist, TFltV& PMF) {
 void THistogramAD::OnStep() {
     if (HistAggr->IsInit()) {
         // Predict
-        int BinIdx = HistAggr->FindBin(InAggrVal->GetFlt());
+		LastHistIdx = HistAggr->FindBin(InAggrVal->GetFlt());
         // Bin should be found and Severities should be initialized
-        if ((BinIdx >= 0) && (BinIdx < Severities.Len())) {
-            Severity = Severities[BinIdx];
+        if ((LastHistIdx >= 0) && (LastHistIdx < Severities.Len())) {
+            Severity = Severities[LastHistIdx];
         } else {
             Severity = -1;
         }
@@ -2011,18 +2011,21 @@ THistogramAD::THistogramAD(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : 
 
 void THistogramAD::LoadState(TSIn& SIn) {
     Severity.Load(SIn);
+	LastHistIdx.Load(SIn);
     PMF.Load(SIn);
     Severities.Load(SIn);
 }
 
 void THistogramAD::SaveState(TSOut& SOut) const {
     Severity.Save(SOut);
+	LastHistIdx.Save(SOut);
     PMF.Save(SOut);
     Severities.Save(SOut);
 }
 
 void THistogramAD::Reset() {
     Severity = -1;
+	LastHistIdx = 0;
     PMF.Clr();
     Severities.Clr();
 }
