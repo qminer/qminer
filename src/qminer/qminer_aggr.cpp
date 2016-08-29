@@ -1946,7 +1946,8 @@ void THistogramToPMFModel::ClassifyAnomalies(const TFltV& PMF, TFltV& Severities
     for (int ElN = 0; ElN < Len; ElN++) {
         CumSum += SortedV[ElN];
         // check if the next cell has the same mass up to a tolerance
-        if ((ElN < Len - 1) && fabs(SortedV[ElN] - SortedV[ElN + 1]) < Tol) {
+
+        if ((ElN < Len - 1) && TMath::Abs(SortedV[ElN] - SortedV[ElN + 1]) < Tol) {
             // if it does
             StepBack++;
             continue;
