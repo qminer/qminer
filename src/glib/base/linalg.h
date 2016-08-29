@@ -519,7 +519,9 @@ public:
 	TEMP_LA	static bool IsZero(const TDenseV& Vec);
 
 	/// returns true if the matrix contains at least one nan value
-	static bool ContainsNan(const TFltVV& FltVV);
+	TEMP_LA static bool ContainsNan(const TDenseVV& FltVV);
+	/// returns true if the sparse matrix contains at least one nan value
+	TEMP_LA static bool ContainsNan(const TSparseVV& FltVV);
 
 	// checks if set of vectors is ortogonal
 	TEMP_LA	static void AssertOrtogonality(const TVec<TDenseV, TSizeTy>& Vecs,

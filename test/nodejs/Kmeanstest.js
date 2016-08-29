@@ -7,8 +7,9 @@
  */
 
 // JavaScript source code
-var la = require("qminer").la;
-var analytics = require("qminer").analytics;
+var qm = require("qminer");
+var la = qm.la;
+var analytics = qm.analytics;
 var assert = require("../../src/nodejs/scripts/assert.js");
 //Unit test for Kmeans
 
@@ -405,7 +406,7 @@ describe("Kmeans test", function () {
             });
         });
         it("should create the model for dense centroids with sparse fitStart, dense matrix, distanceType Cos", function () {
-            var centroids = new la.SparseMatrix([[[1, 0]], [[0, -1]]]);
+            var centroids = new la.SparseMatrix([[[1, 1]], [[0, -1]]]);
             var KMeans = new analytics.KMeans({ distanceType: "Cos", fitStart: { C: centroids } });
             var matrix = new la.Matrix([[-1, 1], [0, 0]]);
             assert.doesNotThrow(function () {
@@ -1053,6 +1054,19 @@ describe("Kmeans test", function () {
             var params2 = KMeans2.getParams();
             assert.deepEqual(KMeans.getParams(), KMeans2.getParams());
             assert.deepEqual(KMeans.getModel().C, KMeans2.getModel().C, 1e-8);
+        })
+    });
+    
+    describe('Bad input tests ...', function () {
+        it('should find NaNs in the distance matrix because of bad initial centroids', function () {        	
+        	if (qm.flags.debug) return;	// TODO in debug, the program terminates! => for now only test in release
+        	
+        	var centroids = new la.SparseMatrix([[[1, 0]], [[0, -1]]]);
+            var KMeans = new analytics.KMeans({ distanceType: "Cos", fitStart: { C: centroids } });
+            var matrix = new la.Matrix([[-1, 1], [0, 0]]);
+            assert.throws(function () {
+                KMeans.fit(matrix);
+            });
         })
     });
 });

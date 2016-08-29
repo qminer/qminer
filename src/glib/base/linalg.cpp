@@ -752,21 +752,6 @@ bool TLinAlgCheck::IsZeroTol(const TFltV& Vec, const double& Eps) {
 	return IsZero;
 }
 
-bool TLinAlgCheck::ContainsNan(const TFltVV& FltVV) {
-	const int Rows = FltVV.GetRows();
-	const int Cols = FltVV.GetCols();
-
-	for (int RowN = 0; RowN < Rows; RowN++) {
-		for (int ColN = 0; ColN < Cols; ColN++) {
-			if (TFlt::IsNan(FltVV(RowN, ColN))) {
-				return true;
-			}
-		}
-	}
-
-	return false;
-}
-
 bool TLinAlgCheck::IsOrthonormal(const TFltVV& Vecs, const double& Threshold) {
 	int m = Vecs.GetCols();
 	TFltVV R(m, m);
@@ -1483,8 +1468,9 @@ void TNumericalStuff::GetKernelVec(const TFltVV& A, TFltV& x) {
     EAssertR(TFlt::Abs(U(Dim-1, Dim-1)) < 1e-6, "TNumericalStuff::GetKernelVec: Input is not a singular matrix!");
 
     x.Gen(Dim);
-    x.Last() = 1;   // set the last element to an arbitrary value
 
+    // set the last element to an arbitrary value
+    x.Last() = 1;
     // inverse iteration
     for (int RowN = Dim-2; RowN >= 0; RowN--) {
         double Sum = 0;

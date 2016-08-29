@@ -2722,15 +2722,25 @@ void TScaleHelper::CalcNaturalScales(const TScaleDescV& ScaleQMatPrV,
 		FtrVV.SetCol(HeightN, FtrV);
 	}
 
+	//================================================================
+	// TODO remove
 	printf("\n%s\n", TStrUtil::GetStr(FtrVV, ", ", "%.5f").CStr());
+	//================================================================
+
+	Assert(!TLinAlgCheck::ContainsNan(FtrVV));
 
 	TClustering::TDenseKMeans KMeans(NScales, Rnd, TCosDist::New());
 	KMeans.Apply(FtrVV, false, 1000, Notify);
 	TFltVV ClustDistVV;	KMeans.GetDistVV(FtrVV, ClustDistVV);
 
+	printf("\n%s\n", TStrUtil::GetStr(ClustDistVV, ", ", "%.4f").CStr());
+
 	TIntV MedoidIdV;	TLinAlgSearch::GetRowMinIdxV(ClustDistVV, MedoidIdV);
 
+	//================================================================
+    // TODO remove
 	printf("\n%s\n", TStrUtil::GetStr(MedoidIdV).CStr());
+	//================================================================
 
 	ScaleV.Gen(NScales);
 	for (int MedoidN = 0; MedoidN < NScales; MedoidN++) {
