@@ -946,24 +946,32 @@ void TRecSerializator::SetFieldByte(char* Bf, const int& BfL,
 
     char* bf = GetLocationFixed(Bf, BfL, FieldSerialDesc);
     *((uchar*)bf) = Byte;
+    // set the null field to false
+    SetFieldNull(Bf, BfL, FieldSerialDesc, false);
 }
 void TRecSerializator::SetFieldInt(char* Bf, const int& BfL,
     const TFieldSerialDesc& FieldSerialDesc, const int& Int) {
 
     char* bf = GetLocationFixed(Bf, BfL, FieldSerialDesc);
     *((int*)bf) = Int;
+    // set the null field to false
+    SetFieldNull(Bf, BfL, FieldSerialDesc, false);
 }
 void TRecSerializator::SetFieldInt16(char* Bf, const int& BfL,
     const TFieldSerialDesc& FieldSerialDesc, const int16& Int16) {
 
     char* bf = GetLocationFixed(Bf, BfL, FieldSerialDesc);
     *((int16*)bf) = Int16;
+    // set the null field to false
+    SetFieldNull(Bf, BfL, FieldSerialDesc, false);
 }
 void TRecSerializator::SetFieldInt64(char* Bf, const int& BfL,
     const TFieldSerialDesc& FieldSerialDesc, const int64& Int64) {
 
     char* bf = GetLocationFixed(Bf, BfL, FieldSerialDesc);
     *((int64*)bf) = Int64;
+    // set the null field to false
+    SetFieldNull(Bf, BfL, FieldSerialDesc, false);
 }
 
 void TRecSerializator::SetFieldUInt(char* Bf, const int& BfL,
@@ -971,18 +979,24 @@ void TRecSerializator::SetFieldUInt(char* Bf, const int& BfL,
 
     char* bf = GetLocationFixed(Bf, BfL, FieldSerialDesc);
     *((uint*)bf) = UInt;
+    // set the null field to false
+    SetFieldNull(Bf, BfL, FieldSerialDesc, false);
 }
 void TRecSerializator::SetFieldUInt16(char* Bf, const int& BfL,
     const TFieldSerialDesc& FieldSerialDesc, const uint16& UInt16) {
 
     char* bf = GetLocationFixed(Bf, BfL, FieldSerialDesc);
     *((uint16*)bf) = UInt16;
+    // set the null field to false
+    SetFieldNull(Bf, BfL, FieldSerialDesc, false);
 }
 void TRecSerializator::SetFieldUInt64(char* Bf, const int& BfL,
     const TFieldSerialDesc& FieldSerialDesc, const uint64& UInt64) {
 
     char* bf = GetLocationFixed(Bf, BfL, FieldSerialDesc);
     *((uint64*)bf) = UInt64;
+    // set the null field to false
+    SetFieldNull(Bf, BfL, FieldSerialDesc, false);
 }
 
 void TRecSerializator::SetFieldStr(char* Bf, const int& BfL,
@@ -991,6 +1005,8 @@ void TRecSerializator::SetFieldStr(char* Bf, const int& BfL,
     char* bf = GetLocationFixed(Bf, BfL, FieldSerialDesc);
     const int StrId = CodebookH.AddKey(Str);
     *((int*)bf) = StrId;
+    // set the null field to false
+    SetFieldNull(Bf, BfL, FieldSerialDesc, false);
 }
 
 void TRecSerializator::SetFieldBool(char* Bf, const int& BfL,
@@ -998,6 +1014,8 @@ void TRecSerializator::SetFieldBool(char* Bf, const int& BfL,
 
     char* bf = GetLocationFixed(Bf, BfL, FieldSerialDesc);
     *((bool*)bf) = Bool;
+    // set the null field to false
+    SetFieldNull(Bf, BfL, FieldSerialDesc, false);
 }
 
 void TRecSerializator::SetFieldFlt(char* Bf, const int& BfL,
@@ -1005,12 +1023,16 @@ void TRecSerializator::SetFieldFlt(char* Bf, const int& BfL,
 
     char* bf = GetLocationFixed(Bf, BfL, FieldSerialDesc);
     *((double*)bf) = Flt;
+    // set the null field to false
+    SetFieldNull(Bf, BfL, FieldSerialDesc, false);
 }
 void TRecSerializator::SetFieldSFlt(char* Bf, const int& BfL,
     const TFieldSerialDesc& FieldSerialDesc, const float& SFlt) {
 
     char* bf = GetLocationFixed(Bf, BfL, FieldSerialDesc);
     *((float*)bf) = SFlt;
+    // set the null field to false
+    SetFieldNull(Bf, BfL, FieldSerialDesc, false);
 }
 
 void TRecSerializator::SetFieldFltPr(char* Bf, const int& BfL,
@@ -1019,6 +1041,8 @@ void TRecSerializator::SetFieldFltPr(char* Bf, const int& BfL,
     char* bf = GetLocationFixed(Bf, BfL, FieldSerialDesc);
     *((double*)bf) = FltPr.Val1.Val;
     *(((double*)bf) + 1) = FltPr.Val2.Val;
+    // set the null field to false
+    SetFieldNull(Bf, BfL, FieldSerialDesc, false);
 }
 
 void TRecSerializator::SetFieldTm(char* Bf, const int& BfL,
@@ -1027,6 +1051,8 @@ void TRecSerializator::SetFieldTm(char* Bf, const int& BfL,
     char* bf = GetLocationFixed(Bf, BfL, FieldSerialDesc);
     uint64 TmMSecs = TTm::GetMSecsFromTm(Tm);
     *((uint64*)bf) = TmMSecs;
+    // set the null field to false
+    SetFieldNull(Bf, BfL, FieldSerialDesc, false);
 }
 
 void TRecSerializator::SetFieldTmMSecs(char* Bf, const int& BfL,
@@ -1034,6 +1060,8 @@ void TRecSerializator::SetFieldTmMSecs(char* Bf, const int& BfL,
 
     char* bf = GetLocationFixed(Bf, BfL, FieldSerialDesc);
     *((uint64*)bf) = TmMSecs;
+    // set the null field to false
+    SetFieldNull(Bf, BfL, FieldSerialDesc, false);
 }
 
 void TRecSerializator::SetFixedJsonVal(char* Bf, const int& BfL,
@@ -2020,8 +2048,6 @@ void TRecSerializator::SetFieldByte(const TMemBase& InRecMem,
     const TFieldSerialDesc& FieldSerialDesc = GetFieldSerialDesc(FieldId);
     // copy existing serialization
     OutRecMem.Copy(InRecMem);
-    // remove null flag, just in case
-    SetFieldNull(OutRecMem, FieldSerialDesc, false);
     // update the value
     SetFieldByte(OutRecMem, FieldSerialDesc, Byte);
 }
@@ -2031,8 +2057,6 @@ void TRecSerializator::SetFieldInt(const TMemBase& InRecMem,
     const TFieldSerialDesc& FieldSerialDesc = GetFieldSerialDesc(FieldId);
     // copy existing serialization
     OutRecMem.Copy(InRecMem);
-    // remove null flag, just in case
-    SetFieldNull(OutRecMem, FieldSerialDesc, false);
     // update the value
     SetFieldInt(OutRecMem, FieldSerialDesc, Int);
 }
@@ -2042,8 +2066,6 @@ void TRecSerializator::SetFieldInt16(const TMemBase& InRecMem,
     const TFieldSerialDesc& FieldSerialDesc = GetFieldSerialDesc(FieldId);
     // copy existing serialization
     OutRecMem.Copy(InRecMem);
-    // remove null flag, just in case
-    SetFieldNull(OutRecMem, FieldSerialDesc, false);
     // update the value
     SetFieldInt16(OutRecMem, FieldSerialDesc, Int16);
 }
@@ -2053,8 +2075,6 @@ void TRecSerializator::SetFieldInt64(const TMemBase& InRecMem,
     const TFieldSerialDesc& FieldSerialDesc = GetFieldSerialDesc(FieldId);
     // copy existing serialization
     OutRecMem.Copy(InRecMem);
-    // remove null flag, just in case
-    SetFieldNull(OutRecMem, FieldSerialDesc, false);
     // update the value
     SetFieldInt64(OutRecMem, FieldSerialDesc, Int64);
 }
@@ -2069,8 +2089,6 @@ void TRecSerializator::SetFieldIntV(const TMemBase& InRecMem, TMem& OutRecMem, c
         if (FieldSerialDesc.FieldId == FieldId) {
             // check if value is toasted => we need to delete it
             CheckToastDel(InRecMem, FieldSerialDesc);
-            // remove null flag, just in case
-            SetFieldNull(FixedMem, FieldSerialDesc, false);
             // serialize to record buffer
             SetFieldIntV(FixedMem, VarSOut, FieldSerialDesc, IntV);
         } else if (!FieldSerialDesc.FixedPartP) {
@@ -2088,8 +2106,6 @@ void TRecSerializator::SetFieldUInt(const TMemBase& InRecMem,
     const TFieldSerialDesc& FieldSerialDesc = GetFieldSerialDesc(FieldId);
     // copy existing serialization
     OutRecMem.Copy(InRecMem);
-    // remove null flag, just in case
-    SetFieldNull(OutRecMem, FieldSerialDesc, false);
     // update the value
     SetFieldUInt(OutRecMem, FieldSerialDesc, UInt);
 }
@@ -2099,8 +2115,6 @@ void TRecSerializator::SetFieldUInt16(const TMemBase& InRecMem,
     const TFieldSerialDesc& FieldSerialDesc = GetFieldSerialDesc(FieldId);
     // copy existing serialization
     OutRecMem.Copy(InRecMem);
-    // remove null flag, just in case
-    SetFieldNull(OutRecMem, FieldSerialDesc, false);
     // update the value
     SetFieldUInt16(OutRecMem, FieldSerialDesc, UInt16);
 }
@@ -2110,8 +2124,6 @@ void TRecSerializator::SetFieldUInt64(const TMemBase& InRecMem,
     const TFieldSerialDesc& FieldSerialDesc = GetFieldSerialDesc(FieldId);
     // copy existing serialization
     OutRecMem.Copy(InRecMem);
-    // remove null flag, just in case
-    SetFieldNull(OutRecMem, FieldSerialDesc, false);
     // update the value
     SetFieldUInt64(OutRecMem, FieldSerialDesc, UInt64);
 }
@@ -2124,8 +2136,6 @@ void TRecSerializator::SetFieldStr(const TMemBase& InRecMem,
     if (FieldSerialDesc.FixedPartP) {
         // copy existing serialization
         OutRecMem.Copy(InRecMem);
-        // remove null flag, just in case
-        SetFieldNull(OutRecMem, FieldSerialDesc, false);
         // update value
         SetFieldStr(OutRecMem, FieldSerialDesc, Str);
     } else {
@@ -2138,8 +2148,6 @@ void TRecSerializator::SetFieldStr(const TMemBase& InRecMem,
             if (FieldSerialDesc.FieldId == FieldId) {
                 // check if value is toasted => we need to delete it
                 CheckToastDel(InRecMem, FieldSerialDesc);
-                // remove null flag, just in case
-                SetFieldNull(FixedMem, FieldSerialDesc, false);
                 // serialize to record buffer
                 SetFieldStr(FixedMem, VarSOut, FieldSerialDesc, Str);
             } else if (!FieldSerialDesc.FixedPartP) {
@@ -2164,8 +2172,6 @@ void TRecSerializator::SetFieldStrV(const TMemBase& InRecMem,
         if (FieldSerialDesc.FieldId == FieldId) {
             // check if value is toasted => we need to delete it
             CheckToastDel(InRecMem, FieldSerialDesc);
-            // remove null flag, just in case
-            SetFieldNull(FixedMem, FieldSerialDesc, false);
             // serialize to record buffer
             SetFieldStrV(FixedMem, VarSOut, FieldSerialDesc, StrV);
         } else if (!FieldSerialDesc.FixedPartP) {
@@ -2183,8 +2189,6 @@ void TRecSerializator::SetFieldBool(const TMemBase& InRecMem,
     const TFieldSerialDesc& FieldSerialDesc = GetFieldSerialDesc(FieldId);
     // copy existing serialization
     OutRecMem.Copy(InRecMem);
-    // remove null flag, just in case
-    SetFieldNull(OutRecMem, FieldSerialDesc, false);
     // update the value
     SetFieldBool(OutRecMem, FieldSerialDesc, Bool);
 }
@@ -2195,8 +2199,6 @@ void TRecSerializator::SetFieldFlt(const TMemBase& InRecMem,
     const TFieldSerialDesc& FieldSerialDesc = GetFieldSerialDesc(FieldId);
     // copy existing serialization
     OutRecMem.Copy(InRecMem);
-    // remove null flag, just in case
-    SetFieldNull(OutRecMem, FieldSerialDesc, false);
     // update the value
     SetFieldFlt(OutRecMem, FieldSerialDesc, Flt);
 }
@@ -2206,8 +2208,6 @@ void TRecSerializator::SetFieldSFlt(const TMemBase& InRecMem,
     const TFieldSerialDesc& FieldSerialDesc = GetFieldSerialDesc(FieldId);
     // copy existing serialization
     OutRecMem.Copy(InRecMem);
-    // remove null flag, just in case
-    SetFieldNull(OutRecMem, FieldSerialDesc, false);
     // update the value
     SetFieldSFlt(OutRecMem, FieldSerialDesc, Flt);
 }
@@ -2218,8 +2218,6 @@ void TRecSerializator::SetFieldFltPr(const TMemBase& InRecMem,
     const TFieldSerialDesc& FieldSerialDesc = GetFieldSerialDesc(FieldId);
     // copy existing serialization
     OutRecMem.Copy(InRecMem);
-    // remove null flag, just in case
-    SetFieldNull(OutRecMem, FieldSerialDesc, false);
     // update the value
     SetFieldFltPr(OutRecMem, FieldSerialDesc, FltPr);
 }
@@ -2236,8 +2234,6 @@ void TRecSerializator::SetFieldFltV(const TMemBase& InRecMem,
         if (FieldSerialDesc.FieldId == FieldId) {
             // check if value is toasted => we need to delete it
             CheckToastDel(InRecMem, FieldSerialDesc);
-            // remove null flag, just in case
-            SetFieldNull(FixedMem, FieldSerialDesc, false);
             // serialize to record buffer
             SetFieldFltV(FixedMem, VarSOut, FieldSerialDesc, FltV);
         } else if (!FieldSerialDesc.FixedPartP) {
@@ -2255,8 +2251,6 @@ void TRecSerializator::SetFieldTm(const TMemBase& InRecMem,
     const TFieldSerialDesc& FieldSerialDesc = GetFieldSerialDesc(FieldId);
     // copy existing serialization
     OutRecMem.Copy(InRecMem);
-    // remove null flag, just in case
-    SetFieldNull(OutRecMem, FieldSerialDesc, false);
     // update the value
     SetFieldTm(OutRecMem, FieldSerialDesc, Tm);
 }
@@ -2267,8 +2261,6 @@ void TRecSerializator::SetFieldTmMSecs(const TMemBase& InRecMem,
     const TFieldSerialDesc& FieldSerialDesc = GetFieldSerialDesc(FieldId);
     // copy existing serialization
     OutRecMem.Copy(InRecMem);
-    // remove null flag, just in case
-    SetFieldNull(OutRecMem, FieldSerialDesc, false);
     // update the value
     SetFieldTmMSecs(OutRecMem, FieldSerialDesc, TmMSecs);
 }
@@ -2285,8 +2277,6 @@ void TRecSerializator::SetFieldNumSpV(const TMemBase& InRecMem,
         if (FieldSerialDesc.FieldId == FieldId) {
             // check if value is toasted => we need to delete it
             CheckToastDel(InRecMem, FieldSerialDesc);
-            // remove null flag, just in case
-            SetFieldNull(FixedMem, FieldSerialDesc, false);
             // serialize to record buffer
             SetFieldNumSpV(FixedMem, VarSOut, FieldSerialDesc, SpV);
         } else if (!FieldSerialDesc.FixedPartP) {
@@ -2310,8 +2300,6 @@ void TRecSerializator::SetFieldBowSpV(const TMemBase& InRecMem,
         if (FieldSerialDesc.FieldId == FieldId) {
             // check if value is toasted => we need to delete it
             CheckToastDel(InRecMem, FieldSerialDesc);
-            // remove null flag, just in case
-            SetFieldNull(FixedMem, FieldSerialDesc, false);
             // serialize to record buffer
             SetFieldBowSpV(FixedMem, VarSOut, FieldSerialDesc, SpV);
         } else if (!FieldSerialDesc.FixedPartP) {
@@ -2335,8 +2323,6 @@ void TRecSerializator::SetFieldTMem(const TMemBase& InRecMem,
         if (FieldSerialDesc.FieldId == FieldId) {
             // check if value is toasted => we need to delete it
             CheckToastDel(InRecMem, FieldSerialDesc);
-            // remove null flag, just in case
-            SetFieldNull(FixedMem, FieldSerialDesc, false);
             // serialize to record buffer
             SetFieldTMem(FixedMem, VarSOut, FieldSerialDesc, Mem);
         } else if (!FieldSerialDesc.FixedPartP) {
@@ -2360,8 +2346,6 @@ void TRecSerializator::SetFieldJsonVal(const TMemBase& InRecMem,
         if (FieldSerialDesc.FieldId == FieldId) {
             // check if value is toasted => we need to delete it
             CheckToastDel(InRecMem, FieldSerialDesc);
-            // remove null flag, just in case
-            SetFieldNull(FixedMem, FieldSerialDesc, false);
             // serialize to record buffer
             SetFieldJsonVal(FixedMem, VarSOut, FieldSerialDesc, Json);
         } else if (!FieldSerialDesc.FixedPartP) {
@@ -4012,12 +3996,14 @@ void TStorePbBlob::UpdateRec(const uint64& RecId, const PJsonVal& RecVal) {
             SerializatorCache->SerializeUpdate(RecVal, CacheOldRecMem,
                 CacheNewRecMem, this, CacheChangedFieldIdSet);
 
+            // update indexes pointing to the record
+            // NOTE: we have update rec here before calling Put, since it overrides the original data
+            RecIndexer.UpdateRec(CacheOldRecMem, CacheNewRecMem, RecId,
+                CacheChangedFieldIdSet, *SerializatorCache);
+
             // update the stored serializations with new values
             Pt = DataBlob->Put(CacheNewRecMem.GetBf(), CacheNewRecMem.Len(), Pt);
             RecIdBlobPtH(RecId) = Pt;
-            // update indexes pointing to the record
-            RecIndexer.UpdateRec(CacheOldRecMem, CacheNewRecMem, RecId,
-                CacheChangedFieldIdSet, *SerializatorCache);
         } else {
             // nice, all changes can be done in-place, no index changes
             SerializatorCache->SerializeUpdateInPlace(RecVal, MIn, this,
@@ -4040,13 +4026,15 @@ void TStorePbBlob::UpdateRec(const uint64& RecId, const PJsonVal& RecVal) {
 
             SerializatorMem->SerializeUpdate(RecVal, OldRecMem,
                 NewRecMem, this, ChangedFieldIdSet);
+            
+            // update indexes pointing to the record
+            // NOTE: we have update rec here before calling Put, since it overrides the original data
+            RecIndexer.UpdateRec(OldRecMem, NewRecMem, RecId,
+                ChangedFieldIdSet, *SerializatorMem);
 
             // update the stored serializations with new values
             Pt = DataMem->Put(NewRecMem.GetBf(), NewRecMem.Len(), Pt);
             RecIdBlobPtHMem(RecId) = Pt;
-            // update indexes pointing to the record
-            RecIndexer.UpdateRec(OldRecMem, NewRecMem, RecId,
-                ChangedFieldIdSet, *SerializatorMem);
         } else {
             // nice, all changes can be done in-place, no index changes
             SerializatorMem->SerializeUpdateInPlace(RecVal, MIn, this,
@@ -4762,6 +4750,21 @@ void TStorePbBlob::DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK) {
         OnDelete(DelRecId);
         // delete record from name-id map
         if (IsPrimaryField()) { DelPrimaryField(DelRecId); }
+        
+        // delete record from joins
+        TRec Rec(this, DelRecId);
+        for (int JoinN = 0; JoinN < GetJoins(); JoinN++) {
+            TJoinDesc JoinDesc = GetJoinDesc(JoinN);
+            // execute the join
+            PRecSet JoinRecSet = Rec.DoJoin(GetBase(), JoinDesc.GetJoinId());
+            for (int JoinRecN = 0; JoinRecN < JoinRecSet->GetRecs(); JoinRecN++) {
+                // remove joins with all matched records, one by one
+                const uint64 JoinRecId = JoinRecSet->GetRecId(JoinRecN);
+                const int JoinFq = JoinRecSet->GetRecFq(JoinRecN);
+                DelJoin(JoinDesc.GetJoinId(), DelRecId, JoinRecId, JoinFq);
+            }
+        }
+
         // delete record from indexes
         if (DataBlobP) {
             TPgBlobPt Pt = RecIdBlobPtH.GetDat(DelRecId);
@@ -4776,19 +4779,6 @@ void TStorePbBlob::DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK) {
             RecIndexer.DeindexRec(RecMem, DelRecId, *SerializatorMem);
             DataMem->Del(Pt);
             RecIdBlobPtHMem.DelKey(DelRecId);
-        }
-        // delete record from joins
-        TRec Rec(this, DelRecId);
-        for (int JoinN = 0; JoinN < GetJoins(); JoinN++) {
-            TJoinDesc JoinDesc = GetJoinDesc(JoinN);
-            // execute the join
-            PRecSet JoinRecSet = Rec.DoJoin(GetBase(), JoinDesc.GetJoinId());
-            for (int JoinRecN = 0; JoinRecN < JoinRecSet->GetRecs(); JoinRecN++) {
-                // remove joins with all matched records, one by one
-                const uint64 JoinRecId = JoinRecSet->GetRecId(JoinRecN);
-                const int JoinFq = JoinRecSet->GetRecFq(JoinRecN);
-                DelJoin(JoinDesc.GetJoinId(), DelRecId, JoinRecId, JoinFq);
-            }
         }
     }
 
@@ -4971,6 +4961,11 @@ TStorePbBlob::~TStorePbBlob() {
         RecIdBlobPtHMem.Save(FOut);
         RecIdCounter.Save(FOut);
 
+        int Items1, EmptyItems1;
+        DataMem->GetOverheads(Items1, EmptyItems1);
+        int Items2, EmptyItems2;
+        DataBlob->GetOverheads(Items2, EmptyItems2);
+        TEnv::Logger->OnStatusFmt("Overheads: mem: %d/%d, blob: %d/%d", EmptyItems1, Items1, EmptyItems2, Items2);
     } else {
         TEnv::Logger->OnStatus("No saving of generic store " + GetStoreNm() + " neccessary!");
     }
