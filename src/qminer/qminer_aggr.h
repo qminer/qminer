@@ -1785,7 +1785,7 @@ public:
 ///   2. - updates the input histogram aggregate
 ///      - updates THistogramToPMFModel
 ///      - exposes the PMF and severities through SaveJson
-class THistogramAD : public TStreamAggr, public TStreamAggrOut::IFlt, TStreamAggrOut::IInt {
+class THistogramAD : public TStreamAggr, public TStreamAggrOut::IFlt, public TStreamAggrOut::IInt {
 private:
     /// Input for prediction
     TWPt<TStreamAggrOut::IFlt> InAggrVal;
