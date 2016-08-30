@@ -189,6 +189,8 @@ void TPgBlob::ChangeItem(
 	char* Pg, uint16 ItemIndex, const char* Bf, const int BfL) {
 
 	// TODO locks?
+    /*printf("##Change start\n");
+    PrintHeaderInfo(Pg);*/
 
 	TPgHeader* Header = (TPgHeader*)Pg;
 	EAssert(BfL + (int)sizeof(TPgBlobPageItem) <= Header->GetFreeMem());
@@ -204,11 +206,18 @@ void TPgBlob::ChangeItem(
 
 	Header->OffsetFreeEnd -= BfL;
 	Header->SetDirty(true);
+
+    /*printf("##Change end\n");
+    PrintHeaderInfo(Pg);*/
 }
 
 /// Add given buffer to page, return item-index
 uint16 TPgBlob::AddItem(char* Pg, const char* Bf, const int BfL) {
 	// TODO locks?
+
+    /*printf("##Add start\n");
+    PrintHeaderInfo(Pg);*/
+
 	TPgHeader* Header = (TPgHeader*)Pg;
 	EAssert(Header->CanStoreBf(BfL));
 
@@ -226,6 +235,9 @@ uint16 TPgBlob::AddItem(char* Pg, const char* Bf, const int BfL) {
 	Header->OffsetFreeStart += sizeof(TPgBlobPageItem);
 
 	Header->SetDirty(true);
+
+    /*printf("##Add end\n");
+    PrintHeaderInfo(Pg);*/
 	return res;
 }
 
@@ -240,6 +252,9 @@ void TPgBlob::GetItem(char* Pg, uint16 ItemIndex, char** Bf, int& BfL) {
 /// Delete buffer from specified page
 void TPgBlob::DeleteItem(char* Pg, uint16 ItemIndex) {
 	// TODO locks?
+
+    /*printf("##Delete start\n");
+    PrintHeaderInfo(Pg);*/
 
 	TPgBlobPageItem* Item = GetItemRec(Pg, ItemIndex);
 	int PackOffset = Item->Len;
@@ -257,6 +272,7 @@ void TPgBlob::DeleteItem(char* Pg, uint16 ItemIndex) {
 	Header->OffsetFreeEnd += PackOffset;
 	memmove(OldFreeEnd + PackOffset, OldFreeEnd, Len);
 
+    Item->Offset += Item->Len;
 	Item->Len = 0;
 	Header->SetDirty(true);
 
@@ -269,8 +285,13 @@ void TPgBlob::DeleteItem(char* Pg, uint16 ItemIndex) {
 		}
 	}
 	if (all_deleted) {
-		Header->ItemCount = 0;
+        Header->OffsetFreeStart = sizeof(TPgHeader);
+        Header->OffsetFreeEnd = PG_PAGE_SIZE;
+        Header->ItemCount = 0;
 	}
+
+    /*printf("##Delete end\n");
+    PrintHeaderInfo(Pg);*/
 }
 
 /// Get pointer to item record - in it are offset and length
@@ -592,12 +613,21 @@ TPgBlobPt TPgBlob::Put(
 		memcpy(PgBf + ItemRec->Offset, Bf, BfL);
 		return Pt;
 
-	} else if (existing_size + PgH->GetFreeMem() >= BfL) {
+	} else if (existing_size + PgH->GetFreeMem() >= BfL + (int)sizeof(TPgBlobPageItem)) {
 		// ok, everything can still be inside this page
 		DeleteItem(PgBf, Pt.GetIIx());
-		ChangeItem(PgBf, Pt.GetIIx(), Bf, BfL);
-		Fsm.FsmUpdatePage(Pt, PgH->GetFreeMem());
-		return Pt;
+        Fsm.FsmUpdatePage(PgPt, PgH->GetFreeMem());
+
+		//ChangeItem(PgBf, Pt.GetIIx(), Bf, BfL);
+		//Fsm.FsmUpdatePage(Pt, PgH->GetFreeMem());
+		//return Pt;
+
+        uint16 ii = AddItem(PgBf, Bf, BfL);
+
+        TPgBlobPt Pt2(PgPt.GetFIx(), PgPt.GetPg(), ii);
+        PgH = (TPgHeader*) PgBf;
+        Fsm.FsmUpdatePage(PgPt, PgH->GetFreeMem());
+        return Pt2;
 
 	} else {
 		// bad luck, we need to move data to new page
@@ -609,7 +639,7 @@ TPgBlobPt TPgBlob::Put(
 
 		TPgBlobPt Pt2(PgPt.GetFIx(), PgPt.GetPg(), ii);
 		PgH = (TPgHeader*)PgBf;
-		Fsm.FsmUpdatePage(PgPt, PgH->GetFreeMem());
+		Fsm.FsmAddPage(PgPt, PgH->GetFreeMem());
 		return Pt2;
 	}
 }
@@ -704,6 +734,43 @@ PJsonVal TPgBlob::GetStats() {
 	res->AddToObj("loaded_extents", Extents.Len());
 	res->AddToObj("cache_size", PG_EXTENT_SIZE * Extents.Len());
 	return res;
+}
+
+
+void TPgBlob::PrintHeaderInfo(char* Pg) {
+    TPgHeader* Header = (TPgHeader*) Pg;
+    printf("ItemCount %d, OffsetFreeEnd %d, OffsetFreeStart %d \n", Header->ItemCount, Header->OffsetFreeEnd, Header->OffsetFreeStart);
+    for (int i = 0; i < Header->ItemCount; i++) {
+        TPgBlobPageItem* Item = GetItemRec(Pg, i);
+        printf("Len %d, Offset %d \n", Item->Len, Item->Offset);
+    }
+}
+
+void TPgBlob::GetHeaderOverhead(char* Pg, int& Items, int& EmptyItems)
+{
+    TPgHeader* Header = (TPgHeader*) Pg;
+    Items = Header->ItemCount; 
+    EmptyItems = 0;
+    for (int i = 0; i < Header->ItemCount; i++) {
+        TPgBlobPageItem* Item = GetItemRec(Pg, i);
+        if (Item->Len == 0)
+            EmptyItems++;
+    }
+}
+
+void TPgBlob::GetOverheads(int& Items, int& EmptyItems)
+{
+    Items = 0;
+    EmptyItems = 0;
+    for (int KeyId = LoadedPagesH.FFirstKeyId(); LoadedPagesH.FNextKeyId(KeyId); ) {
+        int Pg = LoadedPagesH[KeyId];
+        char * PgBuff = GetPageBf(Pg);
+        int PgItems = 0;
+        int PgEmptyItems = 0;
+        GetHeaderOverhead(PgBuff, PgItems, PgEmptyItems);
+        Items += PgItems;
+        EmptyItems += PgEmptyItems;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////
