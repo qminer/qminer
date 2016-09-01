@@ -1252,7 +1252,9 @@ void TCtMChain::GetStatDistV(const TFltVV& QMat, TFltV& ProbV) {
 	// returns the stationary distribution
 	// pi*Q = 0
 	TFltVV QMatT(QMat.GetCols(), QMat.GetRows());	TLinAlg::Transpose(QMat, QMatT);
-	TNumericalStuff::GetEigenVec(QMatT, 0.0, ProbV);
+
+//	TNumericalStuff::GetEigenVec(QMatT, 0.0, ProbV);
+	TNumericalStuff::GetKernelVec(QMatT, ProbV);
 
 	double EigSum = TLinAlg::SumVec(ProbV);
 
@@ -2720,15 +2722,25 @@ void TScaleHelper::CalcNaturalScales(const TScaleDescV& ScaleQMatPrV,
 		FtrVV.SetCol(HeightN, FtrV);
 	}
 
+	//================================================================
+	// TODO remove
 	printf("\n%s\n", TStrUtil::GetStr(FtrVV, ", ", "%.5f").CStr());
+	//================================================================
+
+	Assert(!TLinAlgCheck::ContainsNan(FtrVV));
 
 	TClustering::TDenseKMeans KMeans(NScales, Rnd, TCosDist::New());
 	KMeans.Apply(FtrVV, false, 1000, Notify);
 	TFltVV ClustDistVV;	KMeans.GetDistVV(FtrVV, ClustDistVV);
 
+	printf("\n%s\n", TStrUtil::GetStr(ClustDistVV, ", ", "%.4f").CStr());
+
 	TIntV MedoidIdV;	TLinAlgSearch::GetRowMinIdxV(ClustDistVV, MedoidIdV);
 
+	//================================================================
+    // TODO remove
 	printf("\n%s\n", TStrUtil::GetStr(MedoidIdV).CStr());
+	//================================================================
 
 	ScaleV.Gen(NScales);
 	for (int MedoidN = 0; MedoidN < NScales; MedoidN++) {
@@ -4321,7 +4333,7 @@ void TUiHelper::InitStateExplain(const TStreamStory& StreamStory) {
 	TIntFltPrV StateIdHeightPrV;	Hierarch.GetStateIdHeightPrV(StateIdHeightPrV);
 	StateIdOccTmDescV.Gen(Hierarch.GetStates());
 
-	const uint64 TmUnit = MChain.GetTimeUnit();
+	const uint64& TmUnit = MChain.GetTimeUnit();
 
 	const int MxPeaks = 1;
 	const double MnSupport = .7;
@@ -4419,12 +4431,18 @@ bool TUiHelper::HasMxPeaks(const int& MxPeakCount, const double& PeakMassThresho
 	}
 
 	// check if the peak is circular
-	if (IsInPeak && PdfHist[0] > MeanBinMass) {
-		PeakCount--;
-		EAssertR(PeakBorderV.Len() >= 2, "Not enough peaks in distribution when joining circularly!");
-		PeakBorderV[0].Val1 = PeakBorderV.Last().Val1;
-		PeakBorderV.DelLast();
+	if (IsInPeak) {
+	    if (PdfHist[0] > MeanBinMass) {
+	        PeakCount--;
+            EAssertR(PeakBorderV.Len() >= 2, "Not enough peaks in distribution when joining circularly!");
+            PeakBorderV[0].Val1 = PeakBorderV.Last().Val1;
+            PeakBorderV.DelLast();
+	    } else {
+	        PeakBorderV.Last().Val2 = PeakBorderV.Last().Val1;
+	    }
 	}
+
+	EAssertR(PeakBorderV.Last().Val2 >= 0, "Failed to close the last peak in the histogram!");
 
 	return PeakCount <= MxPeakCount && PeakMass / TotalMass >= PeakMassThreshold;
 }

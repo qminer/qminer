@@ -3382,6 +3382,84 @@ describe('Resampler Tests', function () {
     });
 });
 
+describe('New resampler tests', function () {
+    var base = undefined;
+    var store = undefined;
+    
+    function assertUpdateSequence(recValArr, updatesArr, store, aggr) {
+        var recJsonArr = [];
+        for (var i = 0; i < recValArr.length; i++) {
+            var recJson = recValArr[i];
+            recJsonArr.push(recJson);
+        }
+        assert.equal(aggr.saveJson().val, 0); // should be 0 at start!
+        for (var i = 0; i < recValArr.length; i++) {
+            store.push(recJsonArr[i]);
+            assert.equal(aggr.saveJson().val, updatesArr[i]);
+        }    
+    }
+    
+    beforeEach(function () {
+        base = new qm.Base({
+            mode: 'createClean',
+            schema: [{
+                name: 'default',
+                fields: [
+                    { name: 'timestamp', type: 'datetime' },
+                    { name: 'value', type: 'float' }
+                ]
+            }]
+        });
+        store = base.store('default');
+    });
+    afterEach(function () {
+        base.close();
+    });
+    
+    describe('General tests', function () {
+        it('should create a new resampler aggregator', function () {        	
+        	var raw = new qm.StreamAggr(base, {
+        		type: 'timeSeriesTick',
+        		store: store,
+        		timestamp: 'timestamp',
+            	value: 'value'
+            }, store);
+        	
+        	var resampler = new qm.StreamAggr(base, {
+        		name: 'resample',
+        		type: 'resample',
+        		inAggr: raw,
+        		interpolator: 'current',
+            	interval: 1000
+            }, store);
+            
+            var counter = new qm.StreamAggr(base, (function () {
+                var updates = 0;
+                
+                var that = {
+                	name: 'simple',
+                	init: function () { return true; },
+                    onAdd: function (rec) { that.onStep(); },
+                    onStep: function () { updates++; },
+                    saveJson: function (limit) { return { val: updates }; }
+                }
+                
+                return that;
+            })());
+            
+            resampler.setParams({ outAggr: counter });
+            
+            // do the test
+            var updateSeq = [
+                { timestamp: 0, value: 1 },
+                { timestamp: 10000, value: 1 }
+            ];
+
+            assertUpdateSequence(updateSeq, [1, 11], store, counter);
+        })
+    });
+});
+
 describe('Merger Tests', function () {
     var base = undefined;
     var strore = undefined;

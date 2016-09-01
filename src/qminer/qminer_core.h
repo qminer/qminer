@@ -3349,9 +3349,9 @@ protected:
 
 protected:
     /// Create new stream aggregate from JSon parameters
-    TStreamAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm);
+    TStreamAggr(const TWPt<TBase>& Base, const TStr& AggrNm);
     /// Create new stream aggregate from JSon parameters
-    TStreamAggr(const TWPt<TBase>& _Base, const PJsonVal& ParamVal);       
+    TStreamAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 
     /// Get pointer to QMiner base
     const TWPt<TBase>& GetBase() const { return Base; }
@@ -3369,6 +3369,9 @@ public:
     virtual void LoadState(TSIn& SIn);
     /// Save state of stream aggregate to stream
     virtual void SaveState(TSOut& SOut) const;
+
+    virtual PJsonVal GetParam() const { return TJsonVal::NewObj(); }
+    virtual void SetParam(const PJsonVal& JsonVal) {}
 
     /// Get aggregate name
     const TStr& GetAggrNm() const { return AggrNm; }
@@ -3407,7 +3410,7 @@ protected:
         TWPt<IInterface> CastAggr = dynamic_cast<IInterface*>(Aggr());
         QmAssertR(!CastAggr.Empty() || !CheckP, "[TStreamAggr] error casting " + Aggr->GetAggrNm());
         return CastAggr;
-    }    
+    }
 };
 
 ///////////////////////////////
@@ -3415,17 +3418,20 @@ protected:
 namespace TStreamAggrOut {
     class IInt {
     public:
+        virtual ~IInt() {}
         virtual int GetInt() const = 0;
     };
 
     class IFlt {
     public:
+        virtual ~IFlt() {}
         virtual double GetFlt() const = 0;
     };
 
     template <class TVal>
     class IVal {
     public:
+        virtual ~IVal() {}
         virtual TVal GetVal() const = 0;
     };
         
