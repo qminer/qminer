@@ -4834,7 +4834,7 @@ TStr TStorePbBlob::GetRecNm(const uint64& RecId) const {
 
 /// Return ID of record with given name
 uint64 TStorePbBlob::GetRecId(const TStr& RecNm) const {
-    return PrimaryStrIdH.GetDat(RecNm);
+    return (PrimaryStrIdH.IsKey(RecNm) ? PrimaryStrIdH.GetDat(RecNm).Val : TUInt64::Mx);
 }
 
 /// Get number of record
@@ -4847,8 +4847,8 @@ PStoreIter TStorePbBlob::GetIter() const {
     if (Empty()) { return TStoreIterVec::New(); }
     return DataMemP ?
         //TStoreIterVec::New(DataMem.GetFirstValId(), DataMem.GetLastValId(), true) :
-        TStoreIterHash<THash<TUInt64, TPgBlobPt>>::New(RecIdBlobPtHMem) :
-        TStoreIterHash<THash<TUInt64, TPgBlobPt>>::New(RecIdBlobPtH);
+        TStoreIterHashKey<THash<TUInt64, TPgBlobPt>>::New(RecIdBlobPtHMem) :
+        TStoreIterHashKey<THash<TUInt64, TPgBlobPt>>::New(RecIdBlobPtH);
 }
 
 uint64 TStorePbBlob::GetFirstRecId() const {
