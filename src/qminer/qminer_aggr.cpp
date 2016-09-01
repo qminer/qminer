@@ -1513,39 +1513,6 @@ PJsonVal TResampler::SaveJson(const int& Limit) const {
 
 ///////////////////////////////
 // Resampler of univariate time series
-void TUniVarResampler::OnStep() {
-    // get record time
-    const uint64 NewTmMSecs = InAggrTm->GetTmMSecs();
-    const double NewVal = InAggrFlt->GetFlt();
-
-    // update the interpolator
-    Interpolator->AddPoint(NewVal, NewTmMSecs);
-
-    // only do this first time when interpolation time not defined
-    if (InterpPointMSecs == 0) {
-        InterpPointMSecs = NewTmMSecs;
-        RefreshInterpolators(NewTmMSecs);
-    }
-
-    // warning if Rec time > InterpPointMSecs, this is the first update and we cannot interpolate
-    if (!UpdatedP && !CanInterpolate()) {
-        if (InterpPointMSecs < NewTmMSecs) {
-            InfoLog("Warning: resampler: start interpolation time is lower than the first record time, cannot interpolate. If future timestamps will keep increasing it might be possible that the resampler will be stuck and unable to interpolate.");
-        }
-    }
-    UpdatedP = true;
-
-    // insert new records while the interpolators allow us
-    while (InterpPointMSecs <= NewTmMSecs && CanInterpolate()) {
-        InterpPointVal = Interpolator->Interpolate(InterpPointMSecs);
-        OutAggr->OnStep();
-
-        InterpPointMSecs += IntervalMSecs;
-    }
-
-    RefreshInterpolators(NewTmMSecs);
-}
-
 TUniVarResampler::TUniVarResampler(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
         TStreamAggr(Base, ParamVal),
         OutAggr(),
@@ -1621,6 +1588,39 @@ void TUniVarResampler::SaveState(TSOut& SOut) const {
 PJsonVal TUniVarResampler::SaveJson(const int& Limit) const {
     PJsonVal Val = TJsonVal::NewObj();      // TODO
     return Val;
+}
+
+void TUniVarResampler::OnStep() {
+    // get record time
+    const uint64 NewTmMSecs = InAggrTm->GetTmMSecs();
+    const double NewVal = InAggrFlt->GetFlt();
+
+    // update the interpolator
+    Interpolator->AddPoint(NewVal, NewTmMSecs);
+
+    // only do this first time when interpolation time not defined
+    if (InterpPointMSecs == 0) {
+        InterpPointMSecs = NewTmMSecs;
+        RefreshInterpolators(NewTmMSecs);
+    }
+
+    // warning if Rec time > InterpPointMSecs, this is the first update and we cannot interpolate
+    if (!UpdatedP && !CanInterpolate()) {
+        if (InterpPointMSecs < NewTmMSecs) {
+            InfoLog("Warning: resampler: start interpolation time is lower than the first record time, cannot interpolate. If future timestamps will keep increasing it might be possible that the resampler will be stuck and unable to interpolate.");
+        }
+    }
+    UpdatedP = true;
+
+    // insert new records while the interpolators allow us
+    while (InterpPointMSecs <= NewTmMSecs && CanInterpolate()) {
+        InterpPointVal = Interpolator->Interpolate(InterpPointMSecs);
+        OutAggr->OnStep();
+
+        InterpPointMSecs += IntervalMSecs;
+    }
+
+    RefreshInterpolators(NewTmMSecs);
 }
 
 void TUniVarResampler::RefreshInterpolators(const uint64& Tm) {

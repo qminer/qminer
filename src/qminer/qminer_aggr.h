@@ -1283,9 +1283,6 @@ private:
     TFlt InterpPointVal;
     // berfore first update
     TBool UpdatedP;
-
-protected:  
-    void OnStep();
     
 private:
     // InterpolatorV contains pair (input field, interpolator)
@@ -1313,6 +1310,9 @@ public:
     static TStr GetType() { return "resample"; }
     /// Stream aggregator type name 
     TStr Type() const { return GetType(); }
+
+protected:
+    void OnStep();
 
 private:
     // refreshes the interpolators to the specified time
