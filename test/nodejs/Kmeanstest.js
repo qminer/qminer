@@ -117,7 +117,7 @@ describe("Kmeans test", function () {
             });
         });
         it("should create the model for dense centroids with sparse fitStart, dense matrix", function () {
-            var centroids = new la.SparseMatrix([[[1, 0]], [[0, -1]]]);
+            var centroids = new la.SparseMatrix([[[1, 1]], [[0, -1]]]);
             var KMeans = new analytics.KMeans({ fitStart: { C: centroids } });
             var matrix = new la.Matrix([[-1, 1], [0, 0]]);
             assert.doesNotThrow(function () {

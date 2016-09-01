@@ -6486,6 +6486,7 @@ void TStreamAggr::Init() {
     Register<TStreamAggrs::TCorr>();
     Register<TStreamAggrs::TMerger>();
     Register<TStreamAggrs::TResampler>();
+    Register<TStreamAggrs::TUniVarResampler>();
     Register<TStreamAggrs::TOnlineHistogram>();
     Register<TStreamAggrs::TTDigest>();
     Register<TStreamAggrs::TChiSquare>();
@@ -6503,7 +6504,6 @@ TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm): Base(_B
 
 TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const PJsonVal& ParamVal):
         Base(_Base), AggrNm(ParamVal->GetObjStr("name", TGuid::GenSafeGuid())) {
-    
     Base->AssertValidNm(AggrNm);
 }
 

@@ -1428,16 +1428,16 @@ bool TResampler::CanInterpolate() {
     return true;
 }
 
-void TResampler::CreateStore(const TStr& NewStoreNm) {    
+void TResampler::CreateStore(const TStr& NewStoreNm) {
     // prepare store description
-    PJsonVal StoreVal = TJsonVal::NewObj("name", NewStoreNm); 
+    PJsonVal StoreVal = TJsonVal::NewObj("name", NewStoreNm);
     PJsonVal FieldsVal = TJsonVal::NewArr();
     // insert time field
     PJsonVal TmFieldVal=TJsonVal::NewObj();
     TmFieldVal->AddToObj("name", InStore->GetFieldNm(TimeFieldId));
     TmFieldVal->AddToObj("type", "datetime");
-    FieldsVal->AddToArr(TmFieldVal);    
-    // insert interpolated fields    
+    FieldsVal->AddToArr(TmFieldVal);
+    // insert interpolated fields
     for (int FieldN = 0; FieldN < InFieldIdV.Len(); FieldN++) {
         PJsonVal FieldVal = TJsonVal::NewObj();
         FieldVal->AddToObj("name", InStore->GetFieldNm(InFieldIdV[FieldN]));
@@ -1445,7 +1445,7 @@ void TResampler::CreateStore(const TStr& NewStoreNm) {
         FieldsVal->AddToArr(FieldVal);
     }
     StoreVal->AddToObj("fields", FieldsVal);
-    // join that points to the original store (each record in the resampled 
+    // join that points to the original store (each record in the resampled
     // store points to the most recent record in the orinal store)
     PJsonVal JoinsVal = TJsonVal::NewArr();
     PJsonVal JoinVal = TJsonVal::NewObj();
@@ -1455,7 +1455,7 @@ void TResampler::CreateStore(const TStr& NewStoreNm) {
     JoinsVal->AddToArr(JoinVal);
     StoreVal->AddToObj("joins", JoinsVal);
     // create store
-    InfoLog("Creating new store '" + NewStoreNm + "'");    
+    InfoLog("Creating new store '" + NewStoreNm + "'");
     TStorage::CreateStoresFromSchema(GetBase(), StoreVal, 1024);
 }
 
@@ -1468,19 +1468,19 @@ TResampler::TResampler(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStr
     // get time field id
     TStr TimeFieldNm = ParamVal->GetObjStr("timestamp");
     TimeFieldId = InStore->GetFieldId(TimeFieldNm);
-    // get ids of interpolated fields 
+    // get ids of interpolated fields
     PJsonVal FieldArrVal = ParamVal->GetObjKey("fields");
     for(int FieldN = 0; FieldN < FieldArrVal->GetArrVals(); FieldN++) {
-        PJsonVal FieldVal = FieldArrVal->GetArrVal(FieldN);        
+        PJsonVal FieldVal = FieldArrVal->GetArrVal(FieldN);
         TStr FieldNm = FieldVal->GetObjStr("name");
         InFieldIdV.Add(InStore->GetFieldId(FieldNm));
         TStr InterpolatorType = FieldVal->GetObjStr("interpolator");
         InterpolatorV.Add(TSignalProc::TInterpolator::New(InterpolatorType));
-    }    
+    }
     // get output store
     const bool CreateStoreP = ParamVal->GetObjBool("createStore", false);
     if (CreateStoreP) { CreateStore(OutStoreNm); }
-    OutStore = Base->GetStoreByStoreNm(OutStoreNm);   
+    OutStore = Base->GetStoreByStoreNm(OutStoreNm);
     // initialize time parameters
     if (ParamVal->IsObjKey("start")) {
         TStr StartTmStr = ParamVal->GetObjStr("start");
@@ -1507,8 +1507,130 @@ void TResampler::SaveState(TSOut& SOut) const {
 }
 
 PJsonVal TResampler::SaveJson(const int& Limit) const {
-    PJsonVal Val = TJsonVal::NewObj();    
+    PJsonVal Val = TJsonVal::NewObj();
     return Val;
+}
+
+///////////////////////////////
+// Resampler of univariate time series
+void TUniVarResampler::OnStep() {
+    // get record time
+    const uint64 NewTmMSecs = InAggrTm->GetTmMSecs();
+    const double NewVal = InAggrFlt->GetFlt();
+
+    // update the interpolator
+    Interpolator->AddPoint(NewVal, NewTmMSecs);
+
+    // only do this first time when interpolation time not defined
+    if (InterpPointMSecs == 0) {
+        InterpPointMSecs = NewTmMSecs;
+        RefreshInterpolators(NewTmMSecs);
+    }
+
+    // warning if Rec time > InterpPointMSecs, this is the first update and we cannot interpolate
+    if (!UpdatedP && !CanInterpolate()) {
+        if (InterpPointMSecs < NewTmMSecs) {
+            InfoLog("Warning: resampler: start interpolation time is lower than the first record time, cannot interpolate. If future timestamps will keep increasing it might be possible that the resampler will be stuck and unable to interpolate.");
+        }
+    }
+    UpdatedP = true;
+
+    // insert new records while the interpolators allow us
+    while (InterpPointMSecs <= NewTmMSecs && CanInterpolate()) {
+        InterpPointVal = Interpolator->Interpolate(InterpPointMSecs);
+        OutAggr->OnStep();
+
+        InterpPointMSecs += IntervalMSecs;
+    }
+
+    RefreshInterpolators(NewTmMSecs);
+}
+
+TUniVarResampler::TUniVarResampler(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
+        TStreamAggr(Base, ParamVal),
+        OutAggr(),
+        UpdatedP(false) {
+    // parse the input aggregate
+    InAggr = ParseAggr(ParamVal, "inAggr");
+    InAggrFlt = Cast<TStreamAggrOut::IFlt>(InAggr, false);
+    InAggrTm = Cast<TStreamAggrOut::ITm>(InAggr, false);
+
+    // parse the interpolator
+    Interpolator = TSignalProc::TInterpolator::New(ParamVal->GetObjStr("interpolator"));
+
+    // initialize time parameters
+    if (ParamVal->IsObjKey("start")) {
+        TStr StartTmStr = ParamVal->GetObjStr("start");
+        TTm StartTm = TTm::GetTmFromWebLogDateTimeStr(StartTmStr, '-', ':', '.', 'T');
+        InterpPointMSecs = TTm::GetMSecsFromTm(StartTm);
+    }
+    IntervalMSecs = TJsonVal::GetMSecsFromJsonVal(ParamVal->GetObjKey("interval"));
+}
+
+PStreamAggr TUniVarResampler::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+    return new TUniVarResampler(Base, ParamVal);
+}
+
+PJsonVal TUniVarResampler::GetParam() const {
+    PJsonVal ParamVal = TJsonVal::NewObj();
+
+    if (!InAggr.Empty()) {
+        ParamVal->AddToObj("inAggr", OutAggr->GetAggrNm());
+    } else {
+        ParamVal->AddToObj("inAggr", TJsonVal::NewNull());
+    }
+
+    if (!OutAggr.Empty()) {
+        ParamVal->AddToObj("outAggr", OutAggr->GetAggrNm());
+    } else {
+        ParamVal->AddToObj("outAggr", TJsonVal::NewNull());
+    }
+
+
+    return ParamVal;
+}
+
+void TUniVarResampler::SetParam(const PJsonVal& ParamVal) {
+    if (ParamVal->IsObjKey("inAggr")) {
+        const TStr AggrNm = ParamVal->GetObjStr("inAggr");
+        EAssert(GetBase()->IsStreamAggr(AggrNm));
+        InAggr = GetBase()->GetStreamAggr(AggrNm);
+    }
+
+    if (ParamVal->IsObjKey("outAggr")) {
+        const TStr AggrNm = ParamVal->GetObjStr("outAggr");
+        EAssert(GetBase()->IsStreamAggr(AggrNm));
+        OutAggr = GetBase()->GetStreamAggr(AggrNm);
+    }
+}
+
+void TUniVarResampler::LoadState(TSIn& SIn) {
+    Interpolator = TSignalProc::TInterpolator::Load(SIn);
+    InterpPointMSecs.Load(SIn);
+    InterpPointVal.Load(SIn);
+    UpdatedP.Load(SIn);
+}
+
+void TUniVarResampler::SaveState(TSOut& SOut) const {
+    Interpolator->Save(SOut);
+    InterpPointMSecs.Save(SOut);
+    InterpPointVal.Save(SOut);
+    UpdatedP.Save(SOut);
+}
+
+PJsonVal TUniVarResampler::SaveJson(const int& Limit) const {
+    PJsonVal Val = TJsonVal::NewObj();      // TODO
+    return Val;
+}
+
+void TUniVarResampler::RefreshInterpolators(const uint64& Tm) {
+    // update time in the interpolators
+    Interpolator->SetNextInterpTm(Tm);
+}
+
+bool TUniVarResampler::CanInterpolate() {
+    RefreshInterpolators(InterpPointMSecs);
+    return Interpolator->CanInterpolate(InterpPointMSecs);
 }
 
 
@@ -1562,11 +1684,11 @@ void TOnlineHistogram::OnStep() {
 
 TOnlineHistogram::TOnlineHistogram(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
         TStreamAggr(Base, ParamVal), Model(ParamVal) {
-    
+
     /// parse input aggregate
     InAggr = ParseAggr(ParamVal, "inAggr");
     InAggrFlt = Cast<TStreamAggrOut::IFlt>(InAggr, false);
-    InAggrFltIO = Cast<TStreamAggrOut::IFltIO>(InAggr, false);   
+    InAggrFltIO = Cast<TStreamAggrOut::IFltIO>(InAggr, false);
     /// Check if at least one cast is OK
     if (!InAggrFlt.Empty()) {
         // all cool
@@ -1661,7 +1783,7 @@ void TChiSquare::OnStep() {
 
 TChiSquare::TChiSquare(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
         TStreamAggr(Base, ParamVal), ChiSquare(ParamVal) {
-  
+
     InAggrX = ParseAggr(ParamVal, "inAggrX");
     InAggrValX = Cast<TStreamAggrOut::IFltVec>(InAggrX);
     InAggrY = ParseAggr(ParamVal, "inAggrY");
@@ -1721,8 +1843,8 @@ TOnlineSlottedHistogram::TOnlineSlottedHistogram(const TWPt<TBase>& Base, const 
     InAggr = ParseAggr(ParamVal, "inAggr");
     InAggrTm = Cast<TStreamAggrOut::ITm>(InAggr, false);
     InAggrFlt = Cast<TStreamAggrOut::IFlt>(InAggr, false);
-    InAggrTmIO = Cast<TStreamAggrOut::ITmIO>(InAggr, false);   
-    InAggrFltIO = Cast<TStreamAggrOut::IFltIO>(InAggr, false);   
+    InAggrTmIO = Cast<TStreamAggrOut::ITmIO>(InAggr, false);
+    InAggrFltIO = Cast<TStreamAggrOut::IFltIO>(InAggr, false);
     /// Check if at least one cast is OK
     if (!InAggrTm.Empty() && !InAggrFlt.Empty()) {
         // all cool
