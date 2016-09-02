@@ -1840,7 +1840,7 @@ public:
     static double EvalKernel(const double& Data, const double& Eval, const double& Bandwidth, const THistogramPMFModelType& KType = hpmfKDEGaussian) {
         const double GCoef = 1.0 / TMath::Sqrt(2 * TMath::Pi);
         const double Scale = 1.0 / Bandwidth;
-        const double U = abs(Data - Eval) / Bandwidth;
+        const double U = TMath::Abs(Data - Eval) / Bandwidth;
 
         switch (KType) {
         case hpmfKDEGaussian: return Scale * GCoef * TMath::Power(TMath::E, -0.5 * TMath::Sqr(U));
