@@ -1987,42 +1987,63 @@ void THistogramToPMFModel::GetPMF(const TFltV& Hist, TFltV& PMF) {
 void THistogramAD::OnStep() {
     if (HistAggr->IsInit()) {
         // Predict
-		LastHistIdx = HistAggr->FindBin(InAggrVal->GetFlt());
+        LastHistIdx = HistAggr->FindBin(InAggrVal->GetFlt());
         // Bin should be found and Severities should be initialized
         if ((LastHistIdx >= 0) && (LastHistIdx < Severities.Len())) {
             Severity = Severities[LastHistIdx];
         } else {
             Severity = -1;
         }
-		// Save explanation
-		if (Severities.Len() > 0) {
-			Explanation = TJsonVal::NewArr();
-			int Len = Severities.Len();
-			double BoundStart = HistAggr->GetBoundN(0);
-			int CurCount = 1;
-			for (int SevN = 1; SevN < Len; SevN++) {
-				if ((int)Severities[SevN] != (int)Severities[SevN-1]) {
+        // Save explanation
+        if (Severities.Len() > 0) {
+            Explanation = TJsonVal::NewObj();
+            PJsonVal ExplanationCells = TJsonVal::NewArr();
+            int Len = Severities.Len();
+            double BoundStart = HistAggr->GetBoundN(0);
+            int CurCount = 1;
+            int Code = 0; //assume shorter than expected
+            for (int SevN = LastHistIdx - 1; SevN >= 0; SevN--) {
+                if ((int)Severities[SevN] == 0) {
+                    // maybe longer (not shorter than expected since we found a normal point)
+                    Code = 1;
+                    break;
+                }
+            }
+            if (Code == 1) {
+                for (int SevN = LastHistIdx + 1; SevN < Len; SevN++) {
+                    if ((int)Severities[SevN] == 0) {
+                        // unexpected
+                        Code = 2;
+                        break;
+                    }
+                }
+            }
+            for (int SevN = 1; SevN < Len; SevN++) {
+                if ((int)Severities[SevN] != (int)Severities[SevN - 1]) {
                     // push
-					PJsonVal Last = TJsonVal::NewObj();
-					Last->AddToObj("severity", (int)Severities[SevN - 1]);
-					Last->AddToObj("count", CurCount);
-					Last->AddToObj("boundStart", BoundStart);
-					Last->AddToObj("boundEnd", HistAggr->GetBoundN(SevN));
-					Explanation->AddToArr(Last);
-					BoundStart = HistAggr->GetBoundN(SevN);
-					CurCount = 1;
-				} else {
-					CurCount++;
-				}
-			}
-			// push last
-			PJsonVal Last = TJsonVal::NewObj();
-			Last->AddToObj("severity", (int)Severities[Len - 1]);
-			Last->AddToObj("count", CurCount);
-			Last->AddToObj("boundStart", BoundStart);
-			Last->AddToObj("boundEnd", HistAggr->GetBoundN(Len));
-			Explanation->AddToArr(Last);
-		}
+                    PJsonVal Last = TJsonVal::NewObj();
+                    Last->AddToObj("severity", (int)Severities[SevN - 1]);
+                    Last->AddToObj("count", CurCount);
+                    Last->AddToObj("boundStart", BoundStart);
+                    Last->AddToObj("boundEnd", HistAggr->GetBoundN(SevN));
+                    ExplanationCells->AddToArr(Last);
+                    BoundStart = HistAggr->GetBoundN(SevN);
+                    CurCount = 1;
+                } else {
+                    CurCount++;
+                }
+            }
+            // push last
+            PJsonVal Last = TJsonVal::NewObj();
+            Last->AddToObj("severity", (int)Severities[Len - 1]);
+            Last->AddToObj("count", CurCount);
+            Last->AddToObj("boundStart", BoundStart);
+            Last->AddToObj("boundEnd", HistAggr->GetBoundN(Len));
+            ExplanationCells->AddToArr(Last);
+
+            Explanation->AddToObj("code", Code);
+            Explanation->AddToObj("severities", ExplanationCells);
+        }
 
         // Fit
         TFltV Hist; HistAggr->GetValV(Hist);
@@ -2059,7 +2080,7 @@ void THistogramAD::Reset() {
 	LastHistIdx = 0;
     PMF.Clr();
     Severities.Clr();
-	Explanation = TJsonVal::NewArr();
+	Explanation = TJsonVal::NewObj();
 }
 
 PJsonVal THistogramAD::SaveJson(const int& Limit) const {
