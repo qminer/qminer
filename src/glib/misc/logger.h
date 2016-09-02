@@ -21,60 +21,61 @@
 #define NOTIFY_BUFF_SIZE 100*1024
 ClassTP(TLogger, PLogger)//{
 private:
-	int VerbosityLevel;
-	char NotifyBuff[NOTIFY_BUFF_SIZE];
-	int StartingSpaces;
+    int VerbosityLevel;
+    char NotifyBuff[NOTIFY_BUFF_SIZE];
+    int StartingSpaces;
 
-	//TLogger(const TLogger&);
-	TLogger& operator=(const TLogger&);
+    //TLogger(const TLogger&);
+    TLogger& operator=(const TLogger&);
 
 public:
-	static PLogger New(int VerbosityLevel = 3) {
-		return PLogger(new TLogger(VerbosityLevel));
-	}
-	TLogger(const int& _VerbosityLevel = 3) { VerbosityLevel = _VerbosityLevel; StartingSpaces = 0; }
-	~TLogger() { }
-	
-	// i don't know why, but I had to define this in order to compile
-	bool operator==(const TLogger& BSet) const { return &BSet == this;}
+    static PLogger New(int VerbosityLevel = 3) {
+        return PLogger(new TLogger(VerbosityLevel));
+    }
+    TLogger(const int& _VerbosityLevel = 3) { VerbosityLevel = _VerbosityLevel; StartingSpaces = 0; }
+    ~TLogger() { }
+    
+    // i don't know why, but I had to define this in order to compile
+    bool operator==(const TLogger& BSet) const { return &BSet == this;}
   
-	TVec<PNotify> NotifyInstV;
+    TVec<PNotify> NotifyInstV;
 
-	// (In/De)creaseSpaces methods allow one to have indented content in the logs. can be used to get tree-like view of function calls
-	void IncreaseSpaces(const int& ForVal = 2) { StartingSpaces = MIN(StartingSpaces + ForVal, 100); }
-	void DecreaseSpaces(const int& ForVal = 2) { StartingSpaces = MAX(StartingSpaces - ForVal, 0); }
+    // (In/De)creaseSpaces methods allow one to have indented content in the logs. can be used to get tree-like view of function calls
+    void IncreaseSpaces(const int& ForVal = 2) { StartingSpaces = MIN(StartingSpaces + ForVal, 100); }
+    void DecreaseSpaces(const int& ForVal = 2) { StartingSpaces = MAX(StartingSpaces - ForVal, 0); }
+    void ResetSpaces() { StartingSpaces = 0; }
 
-	// when calling NotifyVerbose, only VerbosityLevel >= _VerbosityLevel will be used
-	void SetVerbosityLevel(const int _VerbosityLevel) { VerbosityLevel = _VerbosityLevel; }
-	int GetVerbosityLevel() { return VerbosityLevel; }
-	void AddLogger(const PNotify& Notify) { NotifyInstV.Add(Notify); }
-	void RemoveLoggers() { NotifyInstV.Clr(); }
-	void RemoveLogger(const PNotify& Notify) { 
-		// SearchForW on the vector doesn't compile so we have to check item by item
-		for (int N = 0; N < NotifyInstV.Len(); N++) {
-			if (NotifyInstV[N]() == Notify())
-				NotifyInstV.Del(N);
-		}
-		//NotifyInstV.DelIfIn(Notify); 
-	}
+    // when calling NotifyVerbose, only VerbosityLevel >= _VerbosityLevel will be used
+    void SetVerbosityLevel(const int _VerbosityLevel) { VerbosityLevel = _VerbosityLevel; }
+    int GetVerbosityLevel() { return VerbosityLevel; }
+    void AddLogger(const PNotify& Notify) { NotifyInstV.Add(Notify); }
+    void RemoveLoggers() { NotifyInstV.Clr(); }
+    void RemoveLogger(const PNotify& Notify) { 
+        // SearchForW on the vector doesn't compile so we have to check item by item
+        for (int N = 0; N < NotifyInstV.Len(); N++) {
+            if (NotifyInstV[N]() == Notify())
+                NotifyInstV.Del(N);
+        }
+        //NotifyInstV.DelIfIn(Notify); 
+    }
 
-	void NotifyVerbose(const int& VerbosityLevel, const char *Str);
-	void NotifyVerbose(const int& VerbosityLevel, const TNotifyType& Type, const char *Str);
-	void NotifyVerboseFmt(const int& VerbosityLevel, const char *FmtStr, ...);
-	void NotifyVerboseFmt(const int& VerbosityLevel, const TNotifyType& Type, const char *FmtStr, ...);
-	
-	void NotifyInfo(const char *FmtStr, ...);
-	void NotifyWarn(const char *FmtStr, ...);
-	void NotifyErr(const char *FmtStr, ...);
-	void NotifyErr(const char *Str, const PExcept& Except);
-	void Notify(const TNotifyType& Type, const char *FmtStr, va_list argptr);
-	void Notify(const TNotifyType& Type, const char *FmtStr);
+    void NotifyVerbose(const int& VerbosityLevel, const char *Str);
+    void NotifyVerbose(const int& VerbosityLevel, const TNotifyType& Type, const char *Str);
+    void NotifyVerboseFmt(const int& VerbosityLevel, const char *FmtStr, ...);
+    void NotifyVerboseFmt(const int& VerbosityLevel, const TNotifyType& Type, const char *FmtStr, ...);
+    
+    void NotifyInfo(const char *FmtStr, ...);
+    void NotifyWarn(const char *FmtStr, ...);
+    void NotifyErr(const char *FmtStr, ...);
+    void NotifyErr(const char *Str, const PExcept& Except);
+    void Notify(const TNotifyType& Type, const char *FmtStr, va_list argptr);
+    void Notify(const TNotifyType& Type, const char *FmtStr);
 
-	static void PrintInfo(const TStr& Str);
-	static void PrintWarning(const TStr& Str);
-	static void PrintError(const TStr& Str);
+    static void PrintInfo(const TStr& Str);
+    static void PrintWarning(const TStr& Str);
+    static void PrintError(const TStr& Str);
 
-	static void PrintInfo(const char *FmtStr, ...);
-	static void PrintWarning(const char *FmtStr, ...);
-	static void PrintError(const char *FmtStr, ...);
+    static void PrintInfo(const char *FmtStr, ...);
+    static void PrintWarning(const char *FmtStr, ...);
+    static void PrintError(const char *FmtStr, ...);
 };

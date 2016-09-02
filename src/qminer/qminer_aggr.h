@@ -1226,18 +1226,18 @@ private:
 
     // berfore first update
     TBool UpdatedP;
-    
-protected:  
+
+protected:
     void OnAddRec(const TRec& Rec);
     void OnTime(const uint64& TmMsec);
     void OnStep();
-    
+
 private:
     // refreshes the interpolators to the specified time
     void RefreshInterpolators(const uint64& Tm);
     bool CanInterpolate();
-    void CreateStore(const TStr& NewStoreNm);    
-    
+    void CreateStore(const TStr& NewStoreNm);
+
     // InterpolatorV contains pair (input field, interpolator)
     TResampler(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 
@@ -1253,10 +1253,71 @@ public:
 
     PJsonVal SaveJson(const int& Limit) const;
 
-    /// Stream aggregator type name 
+    /// Stream aggregator type name
     static TStr GetType() { return "resampler"; }
+    /// Stream aggregator type name
+    TStr Type() const { return GetType(); }
+};
+
+///////////////////////////////
+// Resampler of univariate time series
+class TUniVarResampler : public TStreamAggr,
+                   public TStreamAggrOut::ITm,
+                   public TStreamAggrOut::IFlt {
+private:
+    // Input aggregate
+    TWPt<TStreamAggr> InAggr;
+    // output aggregate
+    TWPt<TStreamAggr> OutAggr;
+    /// Input aggregate casted to time series
+    TWPt<TStreamAggrOut::ITm> InAggrTm;
+    /// Input aggregate casted to time series
+    TWPt<TStreamAggrOut::IFlt> InAggrFlt;
+    // field interpolators
+    TSignalProc::PInterpolator Interpolator;
+    // interval size
+    TUInt64 IntervalMSecs;
+    // Timestamp of last generated record
+    TUInt64 InterpPointMSecs;
+    // value of the last generated record
+    TFlt InterpPointVal;
+    // berfore first update
+    TBool UpdatedP;
+    
+private:
+    // InterpolatorV contains pair (input field, interpolator)
+    TUniVarResampler(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+
+public:
+    static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+
+    PJsonVal GetParam() const;
+    void SetParam(const PJsonVal& ParamVal);
+
+    void Reset() { throw TQmExcept::New("TResampler::Reset() not implemented!"); }
+
+    /// Load stream aggregate state from stream
+    void LoadState(TSIn& SIn);
+    /// Save state of stream aggregate to stream
+    void SaveState(TSOut& SOut) const;
+
+    PJsonVal SaveJson(const int& Limit) const;
+
+    uint64 GetTmMSecs() const { return InterpPointMSecs; }
+    double GetFlt() const { return InterpPointVal; }
+
+    /// Stream aggregator type name 
+    static TStr GetType() { return "resample"; }
     /// Stream aggregator type name 
     TStr Type() const { return GetType(); }
+
+protected:
+    void OnStep();
+
+private:
+    // refreshes the interpolators to the specified time
+    void RefreshInterpolators(const uint64& Tm);
+    bool CanInterpolate();
 };
 
 ///////////////////////////////

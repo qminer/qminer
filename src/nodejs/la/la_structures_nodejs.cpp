@@ -1149,7 +1149,7 @@ TNodeJsSpMat* TNodeJsSpMat::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value
 						if (SpVecArray->Get(ElN)->IsArray()) {
 							v8::Handle<v8::Array> KdPair = v8::Handle<v8::Array>::Cast(SpVecArray->Get(ElN));
 							if (KdPair->Length() >= 2) {
-								if (KdPair->Get(0)->IsInt32() && KdPair->Get(1)->IsNumber()) {
+								if (KdPair->Get(0)->IsInt32() && KdPair->Get(1)->IsNumber() && KdPair->Get(1)->NumberValue() != 0.0) {
 									Mat[ColN].Add(TIntFltKd(KdPair->Get(0)->Int32Value(), KdPair->Get(1)->NumberValue()));
 								}
 							}
