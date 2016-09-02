@@ -1997,28 +1997,27 @@ void THistogramAD::OnStep() {
 		// Save explanation
 		if (Severities.Len() > 0) {
 			Explanation = TJsonVal::NewArr();
-			int CurSev = (int)Severities[0];
-			int CurCount = 0;
 			int Len = Severities.Len();
 			double BoundStart = HistAggr->GetBoundN(0);
-			for (int SevN = 0; SevN < Len; SevN++) {
-				if ((int)Severities[SevN] != CurSev) {
-					// push
+			int CurCount = 1;
+			for (int SevN = 1; SevN < Len; SevN++) {
+				if ((int)Severities[SevN] != (int)Severities[SevN-1]) {
+                    // push
 					PJsonVal Last = TJsonVal::NewObj();
-					Last->AddToObj("severity", CurSev);
+					Last->AddToObj("severity", (int)Severities[SevN - 1]);
 					Last->AddToObj("count", CurCount);
 					Last->AddToObj("boundStart", BoundStart);
-					Last->AddToObj("boundEnd", HistAggr->GetBoundN(SevN-1));
+					Last->AddToObj("boundEnd", HistAggr->GetBoundN(SevN));
 					Explanation->AddToArr(Last);
-					CurSev = (int)Severities[SevN];
 					BoundStart = HistAggr->GetBoundN(SevN);
+					CurCount = 1;
 				} else {
 					CurCount++;
 				}
 			}
 			// push last
 			PJsonVal Last = TJsonVal::NewObj();
-			Last->AddToObj("severity", CurSev);
+			Last->AddToObj("severity", (int)Severities[Len - 1]);
 			Last->AddToObj("count", CurCount);
 			Last->AddToObj("boundStart", BoundStart);
 			Last->AddToObj("boundEnd", HistAggr->GetBoundN(Len));
