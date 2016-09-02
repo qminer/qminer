@@ -1822,7 +1822,7 @@ public:
     /// Returns the current severity level (0 = normal)
     double GetFlt() const { return Severity; }
 	/// Returns the current histogram bin index
-	int GetInt() const { return (int)Severity; }
+	int GetInt() const { return LastHistIdx; }
     /// Resets the aggregate
     void Reset();
     /// JSON serialization

@@ -2001,10 +2001,10 @@ void THistogramAD::OnStep() {
             int Len = Severities.Len();
             double BoundStart = HistAggr->GetBoundN(0);
             int CurCount = 1;
-            int Code = 0; //assume shorter than expected
+            int Code = 0; //assume left extreme
             for (int SevN = LastHistIdx - 1; SevN >= 0; SevN--) {
                 if ((int)Severities[SevN] == 0) {
-                    // maybe longer (not shorter than expected since we found a normal point)
+                    // maybe extreme right
                     Code = 1;
                     break;
                 }
@@ -2012,7 +2012,7 @@ void THistogramAD::OnStep() {
             if (Code == 1) {
                 for (int SevN = LastHistIdx + 1; SevN < Len; SevN++) {
                     if ((int)Severities[SevN] == 0) {
-                        // unexpected
+                        // just unexpected
                         Code = 2;
                         break;
                     }
