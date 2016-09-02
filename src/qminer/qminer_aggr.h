@@ -1323,10 +1323,8 @@ private:
 
     /// Is buffered input aggregate provided?
     TBool BufferedP;
-
     // Aggregate state
     TSignalProc::TOnlineHistogram Model;
-
 protected:
     /// Update histogram
     void OnStep();
@@ -1351,6 +1349,8 @@ public:
 
     /// Finds the bin index given val, returns -1 if not found
     int FindBin(const double& Val) const { return Model.FindBin(Val); }
+	/// Returns the bound
+	double GetBoundN(const int& BoundN) const { return Model.GetBoundN(BoundN); }
 
     /// returns the number of bins
     int GetVals() const { return Model.GetBins(); }
@@ -1800,6 +1800,8 @@ private:
     TFltV PMF;
     /// Current anomaly scores, computed in OnStep
     TFltV Severities;
+	/// Explanation object holds a summary of the histogram state prior to making the last prediction (it explains why a prediction was classified with a given severity)
+	PJsonVal Explanation;
     /// PMF/AD model
     THistogramToPMFModel Model;
 
@@ -1820,7 +1822,7 @@ public:
     /// Returns the current severity level (0 = normal)
     double GetFlt() const { return Severity; }
 	/// Returns the current histogram bin index
-	int GetInt() const { return Severity; }
+	int GetInt() const { return (int)Severity; }
     /// Resets the aggregate
     void Reset();
     /// JSON serialization

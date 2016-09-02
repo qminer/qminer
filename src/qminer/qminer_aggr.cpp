@@ -1994,6 +1994,36 @@ void THistogramAD::OnStep() {
         } else {
             Severity = -1;
         }
+		// Save explanation
+		if (Severities.Len() > 0) {
+			Explanation = TJsonVal::NewArr();
+			int CurSev = (int)Severities[0];
+			int CurCount = 0;
+			int Len = Severities.Len();
+			double BoundStart = HistAggr->GetBoundN(0);
+			for (int SevN = 0; SevN < Len; SevN++) {
+				if ((int)Severities[SevN] != CurSev) {
+					// push
+					PJsonVal Last = TJsonVal::NewObj();
+					Last->AddToObj("severity", CurSev);
+					Last->AddToObj("count", CurCount);
+					Last->AddToObj("boundStart", BoundStart);
+					Last->AddToObj("boundEnd", HistAggr->GetBoundN(SevN-1));
+					Explanation->AddToArr(Last);
+					CurSev = (int)Severities[SevN];
+					BoundStart = HistAggr->GetBoundN(SevN);
+				} else {
+					CurCount++;
+				}
+			}
+			// push last
+			PJsonVal Last = TJsonVal::NewObj();
+			Last->AddToObj("severity", CurSev);
+			Last->AddToObj("count", CurCount);
+			Last->AddToObj("boundStart", BoundStart);
+			Last->AddToObj("boundEnd", HistAggr->GetBoundN(Len));
+			Explanation->AddToArr(Last);
+		}
 
         // Fit
         TFltV Hist; HistAggr->GetValV(Hist);
@@ -2014,6 +2044,7 @@ void THistogramAD::LoadState(TSIn& SIn) {
 	LastHistIdx.Load(SIn);
     PMF.Load(SIn);
     Severities.Load(SIn);
+	Explanation = TJsonVal::Load(SIn);
 }
 
 void THistogramAD::SaveState(TSOut& SOut) const {
@@ -2021,6 +2052,7 @@ void THistogramAD::SaveState(TSOut& SOut) const {
 	LastHistIdx.Save(SOut);
     PMF.Save(SOut);
     Severities.Save(SOut);
+	Explanation->Save(SOut);
 }
 
 void THistogramAD::Reset() {
@@ -2028,12 +2060,21 @@ void THistogramAD::Reset() {
 	LastHistIdx = 0;
     PMF.Clr();
     Severities.Clr();
+	Explanation = TJsonVal::NewArr();
 }
 
 PJsonVal THistogramAD::SaveJson(const int& Limit) const {
     PJsonVal Obj = TJsonVal::NewObj();
-    Obj->AddToObj("pmf", TJsonVal::NewArr(PMF));
-    Obj->AddToObj("severities", TJsonVal::NewArr(Severities));
+	if (Limit == -1) {
+		Obj->AddToObj("pmf", TJsonVal::NewArr(PMF));
+		Obj->AddToObj("severities", TJsonVal::NewArr(Severities));
+	} else if (Limit >= 0 && Limit < PMF.Len()) {
+		TFltV PMFClip; PMF.GetSubValV(0, Limit, PMFClip);
+		TFltV SevClip;  Severities.GetSubValV(0, Limit, SevClip);
+		Obj->AddToObj("pmf", TJsonVal::NewArr(PMFClip));
+		Obj->AddToObj("severities", TJsonVal::NewArr(SevClip));
+	}
+	Obj->AddToObj("explain", Explanation);
     Obj->AddToObj("thresholds", TJsonVal::NewArr(Model.Thresholds));
     Obj->AddToObj("tol", Model.Tol);
     return Obj;
