@@ -22,45 +22,49 @@ public:
     virtual void Save(TSOut& SOut) const { GetType().Save(SOut); }
     static PDist Load(TSIn& SIn);
 
-    // returns the distance between y to each of the columns in X
+    /// returns the distance between y to each of the columns in X
     virtual void GetDistV(const TFltVV& X, const TFltV& y, TFltV& DistV) const = 0;
     virtual void GetDistV(const TFltVV& X, const TIntFltKdV& y, TFltV& DistV) const = 0;
     virtual void GetDistV(const TVec<TIntFltKdV>& X, const TFltV& y, TFltV& DistV) const = 0;
     virtual void GetDistV(const TVec<TIntFltKdV>& X, const TIntFltKdV& y, TFltV& DistV) const = 0;
-    // returns a matrix D of distances between elements of X to elements of Y
-    // X and Y are assumed to have column vectors
-    // D_ij is the distance between x_i and y_j
+    /// returns a matrix D of distances between elements of X to elements of Y
+    /// X and Y are assumed to have column vectors
+    /// D_ij is the distance between x_i and y_j
     virtual void GetDistVV(const TFltVV& X, const TFltVV& Y, TFltVV& D) const = 0;
     virtual void GetDistVV(const TFltVV& X, const TVec<TIntFltKdV>& Y, TFltVV& D) const = 0;
     virtual void GetDistVV(const TVec<TIntFltKdV>& X, const TFltVV& Y, TFltVV& D) const = 0;
     virtual void GetDistVV(const TVec<TIntFltKdV>& X, const TVec<TIntFltKdV>& Y, TFltVV& D) const = 0;
-    // returns a matrix D of squared distances between elements of X to elements of Y
-    // X and Y are assumed to have column vectors
-    // D_ij is the distance between x_i and y_j
-    virtual void GetDist2VV(const TFltVV& X, const TFltVV& Y, TFltVV& D) const = 0;
-    virtual void GetDist2VV(const TFltVV& X, const TVec<TIntFltKdV>& Y, TFltVV& D) const = 0;
-    virtual void GetDist2VV(const TVec<TIntFltKdV>& X, const TFltVV& Y, TFltVV& D) const = 0;
-    virtual void GetDist2VV(const TVec<TIntFltKdV>& X, const TVec<TIntFltKdV>& Y, TFltVV& D) const = 0;
+    /// returns a matrix D of values which are proportional to distances between elements of X to elements of Y
+    /// in some manner. For example when using Euclidean distance, D will have squared distances
+    /// but when using Cosine distances, D will have regular distances
+    /// X and Y are assumed to contain column vectors
+    /// D_ij is (proportional to) the distance between x_i and y_j
+    virtual void GetQuasiDistVV(const TFltVV& X, const TFltVV& Y, TFltVV& D) const = 0;
+    virtual void GetQuasiDistVV(const TFltVV& X, const TVec<TIntFltKdV>& Y, TFltVV& D) const = 0;
+    virtual void GetQuasiDistVV(const TVec<TIntFltKdV>& X, const TFltVV& Y, TFltVV& D) const = 0;
+    virtual void GetQuasiDistVV(const TVec<TIntFltKdV>& X, const TVec<TIntFltKdV>& Y, TFltVV& D) const = 0;
+    /// used so that the developer can optimize the computation, by precomputing
+    /// two vectors and reusing them
+    virtual void GetQuasiDistVV(const TFltVV& X, const TFltVV& Y, const TFltV& NormXV,
+            const TFltV& NormCV, TFltVV& D) const { GetQuasiDistVV(X, Y, D); };
+    virtual void GetQuasiDistVV(const TFltVV& X, const TVec<TIntFltKdV>& Y, const TFltV& NormXV,
+        const TFltV& NormCV, TFltVV& D) const { GetQuasiDistVV(X, Y, D); };
+    virtual void GetQuasiDistVV(const TVec<TIntFltKdV>& X, const TFltVV& Y, const TFltV& NormXV,
+        const TFltV& NormCV, TFltVV& D) const { GetQuasiDistVV(X, Y, D); };
+    virtual void GetQuasiDistVV(const TVec<TIntFltKdV>& X, const TVec<TIntFltKdV>& Y, const TFltV& NormXV,
+                const TFltV& NormCV, TFltVV& D) const { GetQuasiDistVV(X, Y, D); };
 
-    // these methods are only used for optimization
-    // if one wishes to reuse a vector of size m and a vector of size n
-    // during their procedure, then they should implement these methods
-    // otherwise they can be left alone and the procedure will create
-    // temporary variables in each iteration
-    virtual void UpdateNormX2(const TFltVV& FtrVV, TFltV& NormX2) const {}
-    virtual void UpdateNormX2(const TVec<TIntFltKdV>& FtrVV, TFltV& NormX2) const {}
 
-    virtual void UpdateNormC2(const TFltVV& CentroidVV, TFltV& NormC2) const {}
-    virtual void UpdateNormC2(const TVec<TIntFltKdV>& CentroidVV, TFltV& NormC2) const {}
+    /// these methods are only used for optimization
+    /// if one wishes to reuse a vector of size m and a vector of size n
+    /// during their procedure, then they should implement these methods
+    /// otherwise they can be left alone and the procedure will create
+    /// temporary variables in each iteration
+    virtual void UpdateXLenDistHelpV(const TFltVV& FtrVV, TFltV& NormX2) const {}
+    virtual void UpdateXLenDistHelpV(const TVec<TIntFltKdV>& FtrVV, TFltV& NormX2) const {}
 
-    virtual void GetDist2VV(const TFltVV& X, const TFltVV& Y, const TFltV& NormXV,
-            const TFltV& NormCV, TFltVV& D) const { GetDist2VV(X, Y, D); };
-    virtual void GetDist2VV(const TFltVV& X, const TVec<TIntFltKdV>& Y, const TFltV& NormXV,
-        const TFltV& NormCV, TFltVV& D) const { GetDist2VV(X, Y, D); };
-    virtual void GetDist2VV(const TVec<TIntFltKdV>& X, const TFltVV& Y, const TFltV& NormXV,
-        const TFltV& NormCV, TFltVV& D) const { GetDist2VV(X, Y, D); };
-    virtual void GetDist2VV(const TVec<TIntFltKdV>& X, const TVec<TIntFltKdV>& Y, const TFltV& NormXV,
-                const TFltV& NormCV, TFltVV& D) const { GetDist2VV(X, Y, D); };
+    virtual void UpdateCLenDistHelpV(const TFltVV& CentroidVV, TFltV& NormC2) const {}
+    virtual void UpdateCLenDistHelpV(const TVec<TIntFltKdV>& CentroidVV, TFltV& NormC2) const {}
 
     virtual const TStr& GetType() const = 0;
 };
@@ -81,24 +85,24 @@ public:
     void GetDistVV(const TVec<TIntFltKdV>& X, const TFltVV& Y, TFltVV& D) const { GetDistVV<TVec<TIntFltKdV>, TFltVV>(X, Y, D); }
     void GetDistVV(const TVec<TIntFltKdV>& X, const TVec<TIntFltKdV>& Y, TFltVV& D) const { GetDistVV<TVec<TIntFltKdV>, TVec<TIntFltKdV>>(X, Y, D); }
 
-    void GetDist2VV(const TFltVV& X, const TFltVV& Y, TFltVV& D) const { GetDist2VV<TFltVV, TFltVV>(X, Y, D); }
-    void GetDist2VV(const TFltVV& X, const TVec<TIntFltKdV>& Y, TFltVV& D) const { GetDist2VV<TFltVV, TVec<TIntFltKdV>>(X, Y, D); }
-    void GetDist2VV(const TVec<TIntFltKdV>& X, const TFltVV& Y, TFltVV& D) const { GetDist2VV<TVec<TIntFltKdV>, TFltVV>(X, Y, D); }
-    void GetDist2VV(const TVec<TIntFltKdV>& X, const TVec<TIntFltKdV>& Y, TFltVV& D) const { GetDist2VV<TVec<TIntFltKdV>, TVec<TIntFltKdV>>(X, Y, D); }
+    void GetQuasiDistVV(const TFltVV& X, const TFltVV& Y, TFltVV& D) const { GetDist2VV<TFltVV, TFltVV>(X, Y, D); }
+    void GetQuasiDistVV(const TFltVV& X, const TVec<TIntFltKdV>& Y, TFltVV& D) const { GetDist2VV<TFltVV, TVec<TIntFltKdV>>(X, Y, D); }
+    void GetQuasiDistVV(const TVec<TIntFltKdV>& X, const TFltVV& Y, TFltVV& D) const { GetDist2VV<TVec<TIntFltKdV>, TFltVV>(X, Y, D); }
+    void GetQuasiDistVV(const TVec<TIntFltKdV>& X, const TVec<TIntFltKdV>& Y, TFltVV& D) const { GetDist2VV<TVec<TIntFltKdV>, TVec<TIntFltKdV>>(X, Y, D); }
 
-    void UpdateNormX2(const TFltVV& FtrVV, TFltV& NormX2) const { UpdateNormX2<TFltVV>(FtrVV, NormX2); }
-    void UpdateNormX2(const TVec<TIntFltKdV>& FtrVV, TFltV& NormX2) const { UpdateNormX2<TVec<TIntFltKdV>>(FtrVV, NormX2); }
+    void UpdateXLenDistHelpV(const TFltVV& FtrVV, TFltV& NormX2) const { UpdateNormX2<TFltVV>(FtrVV, NormX2); }
+    void UpdateXLenDistHelpV(const TVec<TIntFltKdV>& FtrVV, TFltV& NormX2) const { UpdateNormX2<TVec<TIntFltKdV>>(FtrVV, NormX2); }
 
-    void UpdateNormC2(const TFltVV& CentroidVV, TFltV& NormC2) const { UpdateNormC2<TFltVV>(CentroidVV, NormC2); }
-    void UpdateNormC2(const TVec<TIntFltKdV>& CentroidVV, TFltV& NormC2) const { UpdateNormC2<TVec<TIntFltKdV>>(CentroidVV, NormC2); }
+    void UpdateCLenDistHelpV(const TFltVV& CentroidVV, TFltV& NormC2) const { UpdateNormC2<TFltVV>(CentroidVV, NormC2); }
+    void UpdateCLenDistHelpV(const TVec<TIntFltKdV>& CentroidVV, TFltV& NormC2) const { UpdateNormC2<TVec<TIntFltKdV>>(CentroidVV, NormC2); }
 
-    void GetDist2VV(const TFltVV& X, const TFltVV& Y, const TFltV& NormX2,
+    void GetQuasiDistVV(const TFltVV& X, const TFltVV& Y, const TFltV& NormX2,
         const TFltV& NormY2, TFltVV& D) const { GetDist2VV<TFltVV, TFltVV>(X, Y, NormX2, NormY2, D); }
-    void GetDist2VV(const TFltVV& X, const TVec<TIntFltKdV>& Y, const TFltV& NormX2,
+    void GetQuasiDistVV(const TFltVV& X, const TVec<TIntFltKdV>& Y, const TFltV& NormX2,
         const TFltV& NormY2, TFltVV& D) const { GetDist2VV<TFltVV, TVec<TIntFltKdV>>(X, Y, NormX2, NormY2, D); }
-    void GetDist2VV(const TVec<TIntFltKdV>& X, const TFltVV& Y, const TFltV& NormX2,
+    void GetQuasiDistVV(const TVec<TIntFltKdV>& X, const TFltVV& Y, const TFltV& NormX2,
         const TFltV& NormY2, TFltVV& D) const { GetDist2VV<TVec<TIntFltKdV>, TFltVV>(X, Y, NormX2, NormY2, D); }
-    void GetDist2VV(const TVec<TIntFltKdV>& X, const TVec<TIntFltKdV>& Y, const TFltV& NormX2,
+    void GetQuasiDistVV(const TVec<TIntFltKdV>& X, const TVec<TIntFltKdV>& Y, const TFltV& NormX2,
         const TFltV& NormY2, TFltVV& D) const { GetDist2VV<TVec<TIntFltKdV>, TVec<TIntFltKdV>>(X, Y, NormX2, NormY2, D); }
 
     const TStr& GetType() const { return TYPE; }
@@ -119,15 +123,15 @@ private:
     template <class TXMatType, class TYMatType>
     void GetDist2VV(const TXMatType& X, const TYMatType& Y, TFltVV& D) const;
 
+    template<class TXMatType, class TYMatType>
+    void GetDist2VV(const TXMatType& X, const TYMatType& Y, const TFltV& NormX2,
+        const TFltV& NormY2, TFltVV& D) const;
+
     template <class TMatType>
     void UpdateNormX2(const TMatType& FtrVV, TFltV& NormX2) const;
 
     template <class TMatType>
     void UpdateNormC2(const TMatType& CentroidVV, TFltV& NormC2) const;
-
-    template<class TXMatType, class TYMatType>
-    void GetDist2VV(const TXMatType& X, const TYMatType& Y, const TFltV& NormX2,
-        const TFltV& NormY2, TFltVV& D) const;
 };
 
 
@@ -167,20 +171,10 @@ void TEuclDist::GetDist2VV(const TXMatType& X, const TYMatType& Y, TFltVV& D) co
     GetDist2VV(X, Y, NormX2, NormY2, D);
 }
 
-template <class TMatType>
-void TEuclDist::UpdateNormX2(const TMatType& FtrVV, TFltV& NormX2) const {
-    TLinAlg::GetColNorm2V(FtrVV, NormX2);
-}
-
-template <class TMatType>
-void TEuclDist::UpdateNormC2(const TMatType& CentroidVV, TFltV& NormC2) const {
-    TLinAlg::GetColNorm2V(CentroidVV, NormC2);
-}
-
 template<class TXMatType, class TYMatType>
 void TEuclDist::GetDist2VV(const TXMatType& X, const TYMatType& Y, const TFltV& NormX2,
     const TFltV& NormY2, TFltVV& D) const {
-    //	return (NormX2 * OnesY) - (X*2).MulT(Y) + (OnesX * NormY2);
+    //  return (NormX2 * OnesY) - (X*2).MulT(Y) + (OnesX * NormY2);
     // 1) X'Y
     TLinAlg::MultiplyT(X, Y, D);
     // 2) (NormX2 * OnesY) - (X*2).MulT(Y) + (OnesX * NormY2)
@@ -194,6 +188,15 @@ void TEuclDist::GetDist2VV(const TXMatType& X, const TYMatType& Y, const TFltV& 
     }
 }
 
+template <class TMatType>
+void TEuclDist::UpdateNormX2(const TMatType& FtrVV, TFltV& NormX2) const {
+    TLinAlg::GetColNorm2V(FtrVV, NormX2);
+}
+
+template <class TMatType>
+void TEuclDist::UpdateNormC2(const TMatType& CentroidVV, TFltV& NormC2) const {
+    TLinAlg::GetColNorm2V(CentroidVV, NormC2);
+}
 
 class TCosDist: public TDist {
 public:
@@ -211,25 +214,25 @@ public:
     void GetDistVV(const TVec<TIntFltKdV>& X, const TFltVV& Y, TFltVV& D) const { GetDistVV<TVec<TIntFltKdV>, TFltVV>(X, Y, D); }
     void GetDistVV(const TVec<TIntFltKdV>& X, const TVec<TIntFltKdV>& Y, TFltVV& D) const { GetDistVV<TVec<TIntFltKdV>, TVec<TIntFltKdV>>(X, Y, D); }
 
-    void GetDist2VV(const TFltVV& X, const TFltVV& Y, TFltVV& D) const { GetDist2VV<TFltVV, TFltVV>(X, Y, D); }	
-    void GetDist2VV(const TFltVV& X, const TVec<TIntFltKdV>& Y, TFltVV& D) const { GetDist2VV<TFltVV, TVec<TIntFltKdV>>(X, Y, D); }
-    void GetDist2VV(const TVec<TIntFltKdV>& X, const TFltVV& Y, TFltVV& D) const { GetDist2VV<TVec<TIntFltKdV>, TFltVV>(X, Y, D); }
-    void GetDist2VV(const TVec<TIntFltKdV>& X, const TVec<TIntFltKdV>& Y, TFltVV& D) const { GetDist2VV<TVec<TIntFltKdV>, TVec<TIntFltKdV>>(X, Y, D); }
+    void GetQuasiDistVV(const TFltVV& X, const TFltVV& Y, TFltVV& D) const { GetDistVV<TFltVV, TFltVV>(X, Y, D); }
+    void GetQuasiDistVV(const TFltVV& X, const TVec<TIntFltKdV>& Y, TFltVV& D) const { GetDistVV<TFltVV, TVec<TIntFltKdV>>(X, Y, D); }
+    void GetQuasiDistVV(const TVec<TIntFltKdV>& X, const TFltVV& Y, TFltVV& D) const { GetDistVV<TVec<TIntFltKdV>, TFltVV>(X, Y, D); }
+    void GetQuasiDistVV(const TVec<TIntFltKdV>& X, const TVec<TIntFltKdV>& Y, TFltVV& D) const { GetDistVV<TVec<TIntFltKdV>, TVec<TIntFltKdV>>(X, Y, D); }
 
-    void GetDist2VV(const TFltVV& X, const TFltVV& Y, const TFltV& NormX2,
-        const TFltV& NormY2, TFltVV& D) const { GetDist2VV<TFltVV, TFltVV>(X, Y, NormX2, NormY2, D); }
-    void GetDist2VV(const TFltVV& X, const TVec<TIntFltKdV>& Y, const TFltV& NormX2,
-        const TFltV& NormY2, TFltVV& D) const { GetDist2VV<TFltVV, TVec<TIntFltKdV>>(X, Y, NormX2, NormY2, D); }
-    void GetDist2VV(const TVec<TIntFltKdV>& X, const TFltVV& Y, const TFltV& NormX2,
-        const TFltV& NormY2, TFltVV& D) const { GetDist2VV<TVec<TIntFltKdV>, TFltVV>(X, Y, NormX2, NormY2, D); }
-    void GetDist2VV(const TVec<TIntFltKdV>& X, const TVec<TIntFltKdV>& Y, const TFltV& NormX2,
-        const TFltV& NormY2, TFltVV& D) const { GetDist2VV<TVec<TIntFltKdV>, TVec<TIntFltKdV>>(X, Y, NormX2, NormY2, D); }
+    void GetQuasiDistVV(const TFltVV& X, const TFltVV& Y, const TFltV& NormX2,
+        const TFltV& NormY2, TFltVV& D) const { GetDistVV<TFltVV, TFltVV>(X, Y, NormX2, NormY2, D); }
+    void GetQuasiDistVV(const TFltVV& X, const TVec<TIntFltKdV>& Y, const TFltV& NormX2,
+        const TFltV& NormY2, TFltVV& D) const { GetDistVV<TFltVV, TVec<TIntFltKdV>>(X, Y, NormX2, NormY2, D); }
+    void GetQuasiDistVV(const TVec<TIntFltKdV>& X, const TFltVV& Y, const TFltV& NormX2,
+        const TFltV& NormY2, TFltVV& D) const { GetDistVV<TVec<TIntFltKdV>, TFltVV>(X, Y, NormX2, NormY2, D); }
+    void GetQuasiDistVV(const TVec<TIntFltKdV>& X, const TVec<TIntFltKdV>& Y, const TFltV& NormX2,
+        const TFltV& NormY2, TFltVV& D) const { GetDistVV<TVec<TIntFltKdV>, TVec<TIntFltKdV>>(X, Y, NormX2, NormY2, D); }
 
-    void UpdateNormX2(const TFltVV& FtrVV, TFltV& NormX2) const { UpdateNormX2<TFltVV>(FtrVV, NormX2); }
-    void UpdateNormX2(const TVec<TIntFltKdV>& FtrVV, TFltV& NormX2) const { UpdateNormX2<TVec<TIntFltKdV>>(FtrVV, NormX2); }
+    void UpdateXLenDistHelpV(const TFltVV& FtrVV, TFltV& NormX2) const { UpdateNormX<TFltVV>(FtrVV, NormX2); }
+    void UpdateXLenDistHelpV(const TVec<TIntFltKdV>& FtrVV, TFltV& NormX2) const { UpdateNormX<TVec<TIntFltKdV>>(FtrVV, NormX2); }
 
-    void UpdateNormC2(const TFltVV& CentroidVV, TFltV& NormC2) const { UpdateNormC2<TFltVV>(CentroidVV, NormC2); }
-    void UpdateNormC2(const TVec<TIntFltKdV>& CentroidVV, TFltV& NormC2) const { UpdateNormC2<TVec<TIntFltKdV>>(CentroidVV, NormC2); }
+    void UpdateCLenDistHelpV(const TFltVV& CentroidVV, TFltV& NormC2) const { UpdateNormC<TFltVV>(CentroidVV, NormC2); }
+    void UpdateCLenDistHelpV(const TVec<TIntFltKdV>& CentroidVV, TFltV& NormC2) const { UpdateNormC<TVec<TIntFltKdV>>(CentroidVV, NormC2); }
 
     const TStr& GetType() const { return TYPE; }
 
@@ -246,18 +249,10 @@ private:
     void GetDistVV(const TXMatType& X, const TYMatType& Y, const TFltV& NormX2, const TFltV& NormY2, TFltVV& D) const;
 
     template <class TMatType>
-    void UpdateNormX2(const TMatType& FtrVV, TFltV& NormX2) const;
+    void UpdateNormX(const TMatType& FtrVV, TFltV& NormX2) const;
 
     template <class TMatType>
-    void UpdateNormC2(const TMatType& CentroidVV, TFltV& NormC2) const;
-
-    // returns a matrix D of squared distances between elements of X to elements of Y
-    // D_ij is the distance between x_i and y_j
-    template <class TXMatType, class TYMatType>
-    void GetDist2VV(const TXMatType& X, const TYMatType& Y, TFltVV& D) const;
-
-    template <class TXMatType, class TYMatType>
-    void GetDist2VV(const TXMatType& X, const TYMatType& Y, const TFltV& NormX2, const TFltV& NormY2, TFltVV& D) const;
+    void UpdateNormC(const TMatType& CentroidVV, TFltV& NormC2) const;
 };
 
 
@@ -279,47 +274,36 @@ void TCosDist::GetDistV(const TMatType& CentroidVV, const TVectorType& FtrV, TFl
 
 template <class TXMatType, class TYMatType>
 void TCosDist::GetDistVV(const TXMatType& X, const TYMatType& Y, TFltVV& D) const {
-    TFltV NormX2;	TLinAlg::GetColNormV(X, NormX2);
-    TFltV NormY2;	TLinAlg::GetColNormV(Y, NormY2);
+    TFltV NormX;	TLinAlg::GetColNormV(X, NormX);
+    TFltV NormY;	TLinAlg::GetColNormV(Y, NormY);
 
-    GetDistVV(X, Y, NormX2, NormY2, D);
+    GetDistVV(X, Y, NormX, NormY, D);
 }
 
 template <class TXMatType, class TYMatType>
-void TCosDist::GetDistVV(const TXMatType& X, const TYMatType& Y, const TFltV& NormX2, const TFltV& NormY2, TFltVV& D) const {
+void TCosDist::GetDistVV(const TXMatType& X, const TYMatType& Y, const TFltV& NormX2,
+        const TFltV& NormY2, TFltVV& D) const {
     // 1) X'Y
     TLinAlg::MultiplyT(X, Y, D);
-    // 2) (NormX2 * OnesY) - (X*2).MulT(Y) + (OnesX * NormY2)
+    // 2) X'Y ./ sqrt(x2 x y2)
     const int Rows = D.GetRows();
     const int Cols = D.GetCols();
 
     for (int RowN = 0; RowN < Rows; RowN++) {
         for (int ColN = 0; ColN < Cols; ColN++) {
-            D.PutXY(RowN, ColN, 1 - D(RowN, ColN) / NormX2[RowN] / NormY2[ColN]);
+            D.PutXY(RowN, ColN, 1 - D(RowN, ColN) / (NormX2[RowN]*NormY2[ColN]));
         }
     }
 }
 
 template <class TMatType>
-void TCosDist::UpdateNormX2(const TMatType& FtrVV, TFltV& NormX2) const {
-    TLinAlg::GetColNorm2V(FtrVV, NormX2);
+void TCosDist::UpdateNormX(const TMatType& FtrVV, TFltV& NormX2) const {
+    TLinAlg::GetColNormV(FtrVV, NormX2);
 }
 
 template <class TMatType>
-void TCosDist::UpdateNormC2(const TMatType& CentroidVV, TFltV& NormC2) const {
-    TLinAlg::GetColNorm2V(CentroidVV, NormC2);
-}
-
-template <class TXMatType, class TYMatType>
-void TCosDist::GetDist2VV(const TXMatType& X, const TYMatType& Y, TFltVV& D) const {
-    GetDistVV(X, Y, D);
-    TLinAlgTransform::Sqr(D);
-}
-
-template <class TXMatType, class TYMatType>
-void TCosDist::GetDist2VV(const TXMatType& X, const TYMatType& Y, const TFltV& NormX2, const TFltV& NormY2, TFltVV& D) const {
-    TCosDist::GetDistVV(X, Y, NormX2, NormY2, D);
-    TLinAlgTransform::Sqr(D);
+void TCosDist::UpdateNormC(const TMatType& CentroidVV, TFltV& NormC2) const {
+    TLinAlg::GetColNormV(CentroidVV, NormC2);
 }
 
 //============================================================
@@ -604,7 +588,7 @@ void TAbsKMeans<TCentroidType>::GetCentroid(const int& ClustN, TVectorType& FtrV
 template <class TCentroidType>
 template <class TMatType>
 void TAbsKMeans<TCentroidType>::Assign(const TMatType& FtrVV, TIntV& AssignV) const {
-    TFltVV DistVV;	Dist->GetDist2VV(CentroidVV, FtrVV, DistVV);
+    TFltVV DistVV;	Dist->GetQuasiDistVV(CentroidVV, FtrVV, DistVV);
     TLinAlgSearch::GetColMinIdxV(DistVV, AssignV);
 }
 
@@ -660,7 +644,7 @@ template<class TCentroidType>
 template<class TDataType>
 inline void TAbsKMeans<TCentroidType>::UpdateCentroids(const TDataType& FtrVV, const int& NInst, TIntV& AssignV,
     const TFltV& OnesN, const TIntV& RangeN, TFltV& TempK, TCentroidType& TempDxKV,
-    TVec<TIntFltKdV>& TempKxKSpVV, const TFltV& NormX2, TFltV& NormC2, const bool& AllowEmptyP) {
+    TVec<TIntFltKdV>& TempKxKSpVV, const TFltV& XLenDistHelpV, TFltV& CLenDistHelpV, const bool& AllowEmptyP) {
 
     const int K = GetDataCount(CentroidVV);
 
@@ -684,8 +668,8 @@ inline void TAbsKMeans<TCentroidType>::UpdateCentroids(const TDataType& FtrVV, c
             if (TempK[ClustN] == 0.0 && !AllowEmptyP) {	// don't allow empty clusters
                 // select a random point and create a new centroid from it
                 SelectRndCentroid(FtrVV, ClustN);
-                Dist->UpdateNormC2(CentroidVV, NormC2);
-                Assign(FtrVV, NormX2, NormC2, AssignV);
+                Dist->UpdateCLenDistHelpV(CentroidVV, CLenDistHelpV);
+                Assign(FtrVV, XLenDistHelpV, CLenDistHelpV, AssignV);
                 ExistsEmpty = true;
                 break;
             }
@@ -827,7 +811,7 @@ template<class TCentroidType>
 template<class TDataType>
 inline void TAbsKMeans<TCentroidType>::Assign(const TDataType& FtrVV, const TFltV& NormX2, const TFltV& NormC2,
     TIntV& AssignV) const {
-    TFltVV DistVV;	Dist->GetDist2VV(CentroidVV, FtrVV, NormC2, NormX2, DistVV);
+    TFltVV DistVV;	Dist->GetQuasiDistVV(CentroidVV, FtrVV, NormC2, NormX2, DistVV);
     TLinAlgSearch::GetColMinIdxV(DistVV, AssignV);
 }
 
@@ -955,12 +939,12 @@ void TDnsKMeans<TCentroidType>::Apply(const TDataType& FtrVV, const int& NInst, 
 
     // constant reused variables
     TFltV OnesN;			TLinAlgTransform::OnesV(NInst, OnesN);
-    TFltV NormX2;			TAbsKMeans<TCentroidType>::Dist->UpdateNormX2(FtrVV, NormX2);
+    TFltV XLenDistHelpV;	TAbsKMeans<TCentroidType>::Dist->UpdateXLenDistHelpV(FtrVV, XLenDistHelpV);
     TIntV RangeN(NInst);	TLinAlgTransform::RangeV(NInst, RangeN);
 
     // reused variables
     TFltVV ClustDistVV(K, NInst);		// (dimension k x n)
-    TFltV NormC2(K);
+    TFltV CLenDistHelpV(K);
     TFltV TempK(K);						// (dimension k)
     TCentroidType TempDxK;				// (dimension d x k)
     TVec<TIntFltKdV> TempKxKSpVV(K);	// (dimension k x k)
@@ -973,16 +957,18 @@ void TDnsKMeans<TCentroidType>::Apply(const TDataType& FtrVV, const int& NInst, 
         EAssertR(TAbsKMeans<TCentroidType>::GetDataCount(InitCentroidMat) == K, "Number of columns must be equal to K!");
         TAbsKMeans<TCentroidType>::SelectInitCentroids(InitCentroidMat);
     }
+
     // do the work
     for (int IterN = 0; IterN < MaxIter; IterN++) {
         if (IterN % 100 == 0) { Notify->OnNotifyFmt(TNotifyType::ntInfo, "%d", IterN); }
 
         // get the distance of each of the points to each of the centroids
         // and assign the instances
-        TAbsKMeans<TCentroidType>::Dist->UpdateNormC2(TAbsKMeans<TCentroidType>::CentroidVV, NormC2);
-        TAbsKMeans<TCentroidType>::Dist->GetDist2VV(TAbsKMeans<TCentroidType>::CentroidVV, FtrVV, NormC2, NormX2, ClustDistVV);
+        TAbsKMeans<TCentroidType>::Dist->UpdateCLenDistHelpV(TAbsKMeans<TCentroidType>::CentroidVV, CLenDistHelpV);
+        TAbsKMeans<TCentroidType>::Dist->GetQuasiDistVV(TAbsKMeans<TCentroidType>::CentroidVV, FtrVV, CLenDistHelpV, XLenDistHelpV, ClustDistVV);
 
         TLinAlgSearch::GetColMinIdxV(ClustDistVV, *AssignIdxVPtr);
+
         
         // if the assignment hasn't changed then terminate the loop
         if (*AssignIdxVPtr == *OldAssignIdxVPtr) {
@@ -991,13 +977,15 @@ void TDnsKMeans<TCentroidType>::Apply(const TDataType& FtrVV, const int& NInst, 
         }
 
         // recompute the means
-        TAbsKMeans<TCentroidType>::UpdateCentroids(FtrVV, NInst, *AssignIdxVPtr, OnesN, RangeN, TempK, TempDxK, TempKxKSpVV, NormX2, NormC2, AllowEmptyP);
+        TAbsKMeans<TCentroidType>::UpdateCentroids(FtrVV, NInst, *AssignIdxVPtr, OnesN, RangeN, TempK, TempDxK, TempKxKSpVV, XLenDistHelpV, CLenDistHelpV, AllowEmptyP);
 
         // swap the old and new assign vectors
         Temp = AssignIdxVPtr;
         AssignIdxVPtr = OldAssignIdxVPtr;
         OldAssignIdxVPtr = Temp;
     }
+
+    EAssertR(!TLinAlgCheck::ContainsNan(TAbsKMeans<TCentroidType>::CentroidVV), "TDnsKMeans<TCentroidType>::Apply: Found NaN in the centroids!");
 }
 
 template<class TCentroidType>
@@ -1068,7 +1056,7 @@ inline void TDpMeans<TCentroidType>::Apply(const TDataType& FtrVV, const int& NI
 
     // const variables, reused throughtout the procedure
     TFltV OnesN;			TLinAlgTransform::OnesV(NInst, OnesN);
-    TFltV NormX2;			TAbsKMeans<TCentroidType>::Dist->UpdateNormX2(FtrVV, NormX2);
+    TFltV NormX2;			TAbsKMeans<TCentroidType>::Dist->UpdateXLenDistHelpV(FtrVV, NormX2);
     TIntV RangeN(NInst);	TLinAlgTransform::RangeV(NInst, RangeN);
 
 
@@ -1086,8 +1074,8 @@ inline void TDpMeans<TCentroidType>::Apply(const TDataType& FtrVV, const int& NI
         if (IterN % 100 == 0) { Notify->OnNotifyFmt(TNotifyType::ntInfo, "%d", IterN); }
 
         // compute the distance matrix to all the centroids and assignments
-        TAbsKMeans<TCentroidType>::Dist->UpdateNormC2(TAbsKMeans<TCentroidType>::CentroidVV, NormC2);
-        TAbsKMeans<TCentroidType>::Dist->GetDist2VV(TAbsKMeans<TCentroidType>::CentroidVV, FtrVV, NormC2, NormX2, ClustDistVV);
+        TAbsKMeans<TCentroidType>::Dist->UpdateCLenDistHelpV(TAbsKMeans<TCentroidType>::CentroidVV, NormC2);
+        TAbsKMeans<TCentroidType>::Dist->GetQuasiDistVV(TAbsKMeans<TCentroidType>::CentroidVV, FtrVV, NormC2, NormX2, ClustDistVV);
         TLinAlgSearch::GetColMinIdxV(ClustDistVV, *AssignIdxVPtr);
 
         // check if we need to increase the number of centroids
@@ -1120,6 +1108,8 @@ inline void TDpMeans<TCentroidType>::Apply(const TDataType& FtrVV, const int& NI
         AssignIdxVPtr = OldAssignIdxVPtr;
         OldAssignIdxVPtr = Temp;
     }
+
+    EAssertR(!TLinAlgCheck::ContainsNan(TAbsKMeans<TCentroidType>::CentroidVV), "TDpMeans<TCentroidType>::Apply: Found NaN in the centroids!");
 }
 
 template<>
@@ -1210,7 +1200,7 @@ public:
 
         Notify->OnNotifyFmt(TNotifyType::ntInfo, "%s\n", TStrUtil::GetStr(X, ", ", "%.3f").CStr());
 
-        TFltVV ClustDistVV;	TDist().GetDist2VV(X,X, ClustDistVV);
+        TFltVV ClustDistVV;	TDist().GetQuasiDistVV(X,X, ClustDistVV);
         TIntV ItemCountV;	TLinAlgTransform::OnesV(NInst, ItemCountV);//TVector::Ones(NInst);
 
         for (int k = 0; k < NInst-1; k++) {
