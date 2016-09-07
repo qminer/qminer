@@ -1417,12 +1417,12 @@ public:
     IAssert(Mn<=Mx); return Val<Mn?Mn:(Val>Mx?Mx:Val);}
 
   TStr GetStr() const { return TNum::GetStr(Val); }
-
+  
   static TStr GetStr(const int& Val){ return TStr::Fmt("%d", Val); }
   static TStr GetStr(const TNum& Int){ return GetStr(Int.Val); }
   static TStr GetStr(const int& Val, const char* FmtStr);
   static TStr GetStr(const int& Val, const TStr& FmtStr){ return GetStr(Val, FmtStr.CStr());}
-
+  
   //J: So that TInt can convert any kind of integer to a string
   static TStr GetStr(const uint& Val){ return TStr::Fmt("%u", Val); }
   #ifdef GLib_WIN
@@ -1447,6 +1447,8 @@ public:
     else if (Val>=1000000){
       return GetStr(Val/1000000)+"."+GetStr((Val%1000000)/100000)+"M";}
     else {return GetKiloStr(Val);}}
+  // get the number as string using the thousands separator (1234 -> 1,234)
+  TStr GetSepStr(const char& Sep = ',') const;
 
   // frugal
   static char* SaveFrugalInt(char *pDest, int i);

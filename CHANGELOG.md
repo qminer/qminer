@@ -1,5 +1,49 @@
 # QMiner Change Log
 
+### 2 September 2016
+
+**Version: 6.4.0**
+
+**Non-breaking with bug fixes**
+
+New Features:
+- Added `TStorePbBlob::GetFirstRecId()` and `GetLastRecId()`
+- Added `TVec::GetMnValN` and `TVec::GetMnVal`
+- Added `TInt::GetSepStr()` to help formating numbers (`1234 -> "1,234"`)
+- Modified `KMeans.transform` to return a matrix of distances to centroids
+- Added method `TLinAlg::GetKernelVec`, which returns a vector in the kernel of a matrix
+- Added new resempler stream aggregate that can read from input stream aggregates and push data to other stream aggregates
+- Added `TStreamAggr::GetParam` and `TStreamAggr::SetParam` to check and modify stream aggregate parameters after construction
+
+Bug Fixes:
+- Fixed several bugs in `TStorePbBlob`
+- Fixed KMeans cosine distance generating NaN
+- Fixed compile warnings in `TGix`
+
+
+### 19 August 2016
+
+**Version: 6.3.1**
+
+**Non-breaking with bug fix**
+
+Bug fix:
+- `TStoreImpl` got wrong value for cache size parameter when loading from disk.
+
+
+### 12 August 2016
+
+**Version: 6.3.0**
+
+**Non-breaking with new features**
+
+New Features:
+- Gix updated to speed up deletes of records, especially when using FIFO stores
+- Support methods for byte fields in `TStore`
+- Added `qm.RecordVector` which can hold array of records passed by value. Vector support serialization using QMiner streams.
+- Standard deviation `qm.statistics.std` now supports `la.Vector` as input
+
+
 ### 5 August 2016
 
 **Version: 6.2.0**

@@ -847,7 +847,8 @@ void THttpResp::ParseHttpResp(const PSIn& SIn){
 }
 
 THttpResp::THttpResp(const int& _StatusCd, const TStr& ContTypeVal,
- const bool& CacheCtrlP, const PSIn& BodySIn, const TStr LocStr, const int& ResponseTimeMs):
+ const bool& CacheCtrlP, const PSIn& BodySIn, const TStr LocStr, 
+ const int& ResponseTimeMs, const TStrKdV& CustomHdrV):
   Ok(true), MajorVerN(1), MinorVerN(0), StatusCd(_StatusCd), ReasonPhrase(),
   FldNmToValVH(20), HdStr(), BodyMem(){
   ReasonPhrase=THttp::GetReasonPhrase(StatusCd);
@@ -877,6 +878,10 @@ THttpResp::THttpResp(const int& _StatusCd, const TStr& ContTypeVal,
   }
   // add response time header
   AddHdFld(THttp::ResponseTimeNm, TInt::GetStr(ResponseTimeMs), HdChA);
+  // add custom headers
+  for (int N = 0; N < CustomHdrV.Len(); N++) {
+      AddHdFld(CustomHdrV[N].Key, CustomHdrV[N].Dat, HdChA);
+  }
   // header/body separator
   HdChA+="\r\n";
   // header/body data

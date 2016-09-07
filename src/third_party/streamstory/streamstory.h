@@ -25,6 +25,7 @@ namespace {
 	typedef TVec<TFltV> TStateFtrVV;
 }
 
+// forward declarations
 class TStreamStory;
 
 // helper classes
@@ -42,12 +43,10 @@ public:
 	virtual void OnActivityDetected(const uint64& StartTm, const uint64& EndTm, const TStr& ActNm) = 0;
 };
 
-//================================================================
-// TODO move this somewhere
 enum TFtrType {
-	ftUndefined,
-	ftNumeric,
-	ftCategorical
+    ftUndefined,
+    ftNumeric,
+    ftCategorical
 };
 
 ///////////////////////////////////////////////
@@ -462,7 +461,7 @@ public:
 	void GetProbVAtTime(const TAggStateV& StateSetV, const TStateFtrVV& StateFtrVV,
 			const TStateIdV& StateIdV, const int& StartStateId, const double& Tm,
 			TFltV& ProbV) const;
-	// approximates the probability of jumping into the target state in the prespecified
+	// approximates the probability of jumping into the target state in the pre-specified
 	// time horizon
 	bool PredictOccurenceTime(const TStateFtrVV& StateFtrVV, const TAggStateV& StateSetV,
 			const TStateIdV& StateIdV, const int& CurrStateId, const int& TargetStateId,
@@ -749,12 +748,12 @@ private:
 // UI helper
 class TUiHelper {
 public:
-	enum TNumAutoNmLevel: uchar {	// TODO change to 0x8
-		nanlLowest = 0xF0,
-		nanlLow = 0xF1,
-		nanlMeduim = 0xF2,
-		nanlHigh = 0xF3,
-		nanlHighest = 0xF4
+	enum TNumAutoNmLevel: uchar {
+		nanlLowest = 0x80,
+		nanlLow = 0x81,
+		nanlMeduim = 0x82,
+		nanlHigh = 0x83,
+		nanlHighest = 0x84
 	};
 
 	class TAutoNmDesc;

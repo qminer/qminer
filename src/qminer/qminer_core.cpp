@@ -5330,31 +5330,33 @@ void TIndex::TQmGixDefMerger::Minus(const TQmGixItemV& MainV,
 void TIndex::TQmGixDefMerger::Merge(TQmGixItemV& ItemV, bool Local) const {
     if (ItemV.Empty()) { return; } // nothing to do in this case
     if (!ItemV.IsSorted()) { ItemV.Sort(); } // sort if not yet sorted
-    // merge counts
+                                             // merge counts
     int LastItemN = 0; bool ZeroP = false;
     for (int ItemN = 1; ItemN < ItemV.Len(); ItemN++) {
-        if (ItemV[ItemN] != ItemV[ItemN - 1]) {
+        if (ItemV[ItemN].Key != ItemV[ItemN - 1].Key) {
             LastItemN++;
             ItemV[LastItemN] = ItemV[ItemN];
         } else {
             ItemV[LastItemN].Dat += ItemV[ItemN].Dat;
         }
-        ZeroP = (ItemV[LastItemN].Dat <= 0) || ZeroP;
+        ZeroP = ZeroP || (ItemV[LastItemN].Dat <= 0);
     }
-    ItemV.Reserve(ItemV.Reserved(), LastItemN + 1);
     // remove items with zero count
     if (ZeroP) {
-        LastItemN = 0;
-        for (int ItemN = 0; ItemN < ItemV.Len(); ItemN++) {
+        int LastIndN = 0;
+        for (int ItemN = 0; ItemN < LastItemN + 1; ItemN++) {
             const TQmGixItem& Item = ItemV[ItemN];
             if (Item.Dat > 0 || (Local && Item.Dat < 0)) {
-                ItemV[LastItemN] = Item;
-                LastItemN++;
-            } else if (Item.Dat < 0) {
-                TEnv::Error->OnStatusFmt("Warning: negative item count %d:%d!", (int)Item.Key, (int)Item.Dat);
+                ItemV[LastIndN] = Item;
+                LastIndN++;
+            }
+            else if (Item.Dat < 0) {
+                TEnv::Error->OnStatusFmt("Warning: negative item count %d:%d!", (int) Item.Key, (int) Item.Dat);
             }
         }
-        ItemV.Reserve(ItemV.Reserved(), LastItemN);
+        ItemV.Reserve(ItemV.Reserved(), LastIndN);
+    } else {
+        ItemV.Reserve(ItemV.Reserved(), LastItemN + 1);
     }
 }
 
@@ -5396,7 +5398,7 @@ void TIndex::TQmGixDefMergerSmall::Minus(const TQmGixItemSmallV& MainV,
 void TIndex::TQmGixDefMergerSmall::Merge(TQmGixItemSmallV& ItemV, bool Local) const {
     if (ItemV.Empty()) { return; } // nothing to do in this case
     if (!ItemV.IsSorted()) { ItemV.Sort(); } // sort if not yet sorted
-    // merge counts
+                                             // merge counts
     int LastItemN = 0; bool ZeroP = false;
     for (int ItemN = 1; ItemN < ItemV.Len(); ItemN++) {
         if (ItemV[ItemN] != ItemV[ItemN - 1]) {
@@ -5405,22 +5407,25 @@ void TIndex::TQmGixDefMergerSmall::Merge(TQmGixItemSmallV& ItemV, bool Local) co
         } else {
             ItemV[LastItemN].Dat += ItemV[ItemN].Dat;
         }
-        ZeroP = (ItemV[LastItemN].Dat <= 0) || ZeroP;
+        ZeroP = ZeroP || (ItemV[LastItemN].Dat <= 0);
     }
-    ItemV.Reserve(ItemV.Reserved(), LastItemN + 1);
+
     // remove items with zero count
     if (ZeroP) {
-        LastItemN = 0;
-        for (int ItemN = 0; ItemN < ItemV.Len(); ItemN++) {
+        int LastIndN = 0;
+        for (int ItemN = 0; ItemN < LastItemN + 1; ItemN++) {
             const TQmGixItemSmall& Item = ItemV[ItemN];
-            if (Item.Dat > 0 || (Local && (int16)Item.Dat < 0)) {
-                ItemV[LastItemN] = Item;
-                LastItemN++;
-            } else if ((int16)Item.Dat < 0) {
-                TEnv::Error->OnStatusFmt("Warning: negative item count %d:%d!", (int)Item.Key, (int)Item.Dat);
+            if (Item.Dat > 0 || (Local && (int16) Item.Dat < 0)) {
+                ItemV[LastIndN] = Item;
+                LastIndN++;
+            }
+            else if ((int16) Item.Dat < 0) {
+                TEnv::Error->OnStatusFmt("Warning: negative item count %d:%d!", (int) Item.Key, (int) Item.Dat);
             }
         }
-        ItemV.Reserve(ItemV.Reserved(), LastItemN);
+        ItemV.Reserve(ItemV.Reserved(), LastIndN);
+    } else {
+        ItemV.Reserve(ItemV.Reserved(), LastItemN + 1);
     }
 }
 
@@ -6487,6 +6492,7 @@ void TStreamAggr::Init() {
     Register<TStreamAggrs::TCorr>();
     Register<TStreamAggrs::TMerger>();
     Register<TStreamAggrs::TResampler>();
+    Register<TStreamAggrs::TUniVarResampler>();
     Register<TStreamAggrs::TOnlineHistogram>();
     Register<TStreamAggrs::TTDigest>();
     Register<TStreamAggrs::TChiSquare>();
@@ -6504,7 +6510,6 @@ TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm): Base(_B
 
 TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const PJsonVal& ParamVal):
         Base(_Base), AggrNm(ParamVal->GetObjStr("name", TGuid::GenSafeGuid())) {
-    
     Base->AssertValidNm(AggrNm);
 }
 
