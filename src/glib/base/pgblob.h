@@ -454,6 +454,12 @@ public:
 	/// Retrieve statistics for this object
 	PJsonVal GetStats();
 
+    static void PrintHeaderInfo(char* Pg);
+    // return the number of items in header as well as the number of empty items
+    static void GetHeaderOverhead(char* Pg, int& Items, int& EmptyItems);
+    // go over all loaded pages and compute the overheads
+    void GetOverheads(int& Items, int& EmptyItems);
+
 	/// Returns maximal BLOB length that can be stored in single page
 	int GetMxBlobLen() const { return PG_PAGE_SIZE - sizeof(TPgHeader) - sizeof(TPgBlobPageItem); }
 
