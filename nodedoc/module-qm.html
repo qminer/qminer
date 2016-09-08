@@ -13,7 +13,7 @@
                 <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
         <div id="jsdoc-navbar-content">
-            <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v6.3.0</a>
+            <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v6.4.0</a>
         </div>
     </div>
 </nav>
@@ -1453,7 +1453,7 @@ var base = new qm.Base({
       ]
    }]
 });
-// create a feature space containing the categorical extractor, where the it&#x27;s values
+// create a feature space containing the categorical extractor, where it&#x27;s values
 // are taken from the field &quot;StudyGroup&quot;: &quot;A&quot;, &quot;B&quot;, &quot;C&quot; and &quot;D&quot;
 var ftr = new qm.FeatureSpace(base, { type: &quot;categorical&quot;, source: &quot;Class&quot;, field: &quot;StudyGroup&quot; });
 base.close();</code></pre>
@@ -4461,17 +4461,22 @@ var base = new qm.Base({
 // Adds a movie, automatically adds &#x27;Jim Jarmusch&#x27; to People, sets the &#x27;director&#x27; join (field join)
 // and automatically updates the index join &#x27;directed&#x27;, since it&#x27;s an inverse join of &#x27;director&#x27;
 base.store(&#x27;Movies&#x27;).push({ title: &#x27;Broken Flowers&#x27;, director: { name: &#x27;Jim Jarmusch&#x27; } });
+
 // Adds a movie, sets the &#x27;director&#x27; join, updates the index join of &#x27;Jim Jarmusch&#x27;
 base.store(&#x27;Movies&#x27;).push({ title: &#x27;Coffee and Cigarettes&#x27;, director: { name: &#x27;Jim Jarmusch&#x27; } });
 // Adds movie, automatically adds &#x27;Lars von Trier&#x27; to People, sets the &#x27;director&#x27; join
 // and &#x27;directed&#x27; inverse join (automatically)
 base.store(&#x27;Movies&#x27;).push({ title: &#x27;Dogville&#x27;, director: { name: &#x27;Lars von Trier&#x27; } });
 
+// Adds a person, sets the &#x27;directed&#x27; join with multiple movies (&#x27;directed&#x27; is of type &#x27;index&#x27;, movies must be given in an array)
+base.store(&#x27;People&#x27;).push({ name: &#x27;Christopher Nolan&#x27;, directed: [{ title: &#x27;Inception&#x27; }, { title: &#x27;Interstellar&#x27; }] });
+
 var movie = base.store(&#x27;Movies&#x27;)[0]; // get the first movie (Broken Flowers)
 // Each movie has a property corresponding to the join name: &#x27;director&#x27;. 
 // Accessing the property returns a {@link module:qm.Record} from the store People.
 var person = movie.director; // get the director
 var personName = person.name; // get person&#x27;s name (&#x27;Jim Jarmusch&#x27;)
+
 // Each person has a property corresponding to the join name: &#x27;directed&#x27;. 
 // Accessing the property returns a {@link module:qm.RecSet} from the store People.
 var movies = person.directed; // get all the movies the person directed.
@@ -4525,7 +4530,8 @@ base.close();</code></pre>
         <td>
                 <p>Join types. Possible options:
 <br>1. <code>'field'</code> - Points to zero or one record and is implemented as an additional hidden field of type <code>uint64</code>, which can hold the ID of the record it links to. Accessing the records join returns a record.
-<br>2. <code>'index'</code> - Point to any number of records and is implemented using the inverted index, where for each record a list (vector) of linked records is kept. Accessing the records join returns a record set.</p>
+<br>2. <code>'index'</code> - Point to any number of records and is implemented using the inverted index, where for each record a list (vector) of linked records is kept. Accessing the records join returns a record set. 
+<b>Important:</b> The records given to this join field must be in an array.</p>
         </td>
 </tr>
 

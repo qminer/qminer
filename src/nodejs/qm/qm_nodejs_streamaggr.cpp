@@ -40,6 +40,8 @@ void TNodeJsStreamAggr::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "onAdd", _onAdd);
     NODE_SET_PROTOTYPE_METHOD(tpl, "onUpdate", _onUpdate);
     NODE_SET_PROTOTYPE_METHOD(tpl, "onDelete", _onDelete);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _setParams);
     NODE_SET_PROTOTYPE_METHOD(tpl, "saveJson", _saveJson);
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
     NODE_SET_PROTOTYPE_METHOD(tpl, "load", _load);
@@ -136,6 +138,10 @@ TNodeJsStreamAggr* TNodeJsStreamAggr::NewFromArgs(const v8::FunctionCallbackInfo
             QmAssertR(StoresJson->IsDef(), "[StreamAggr] Args[2] should be a string (store name) or a string array (store names)");
             TStrV _StoreNmV; StoresJson->GetArrStrV(_StoreNmV);
             StoreNmV.AddV(_StoreNmV);
+        } else if (TNodeJsUtil::IsArgWrapObj<TNodeJsStore>(Args, 2)) {
+            const TNodeJsStore* JsStore = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsStore>(Args[2]->ToObject());
+            const TStr& StoreNm = JsStore->Store->GetStoreNm();
+            StoreNmV.Add(StoreNm);
         }
     }
 
@@ -218,6 +224,30 @@ void TNodeJsStreamAggr::onDelete(const v8::FunctionCallbackInfo<v8::Value>& Args
     JsSA->SA->OnDeleteRec(JsRec->Rec);
 
     Args.GetReturnValue().Set(Args.Holder());
+}
+
+void TNodeJsStreamAggr::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    // unwrap
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+
+    Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, JsSA->SA->GetParam()));
+}
+
+void TNodeJsStreamAggr::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    EAssertR(Args.Length() > 0, "TNodeJsStreamAggr::setParams: takes one argument!");
+
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+
+    const PJsonVal ParamVal = TNodeJsUtil::GetObjToNmJson(Args[0]);
+    JsSA->SA->SetParam(ParamVal);
+
+    Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 
 void TNodeJsStreamAggr::saveJson(const v8::FunctionCallbackInfo<v8::Value>& Args) {

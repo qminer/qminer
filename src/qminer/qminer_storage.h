@@ -1202,6 +1202,11 @@ public:
     /// Get iterator to go over all records in the store
     PStoreIter GetIter() const;
 
+    /// Gets the first record in the store
+    uint64 GetFirstRecId() const;
+    /// Gets the last record in the store
+    uint64 GetLastRecId() const;
+
     /// Does the store implement GetAllRecs?
     bool HasGetAllRecs() const { return true; }
     /// Is the forward iterator implemented?

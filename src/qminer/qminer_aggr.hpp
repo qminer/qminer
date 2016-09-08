@@ -406,7 +406,7 @@ void TWinAggr<TSignalType>::OnStep() {
 template <class TSignalType>
 TWinAggr<TSignalType>::TWinAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
         TStreamAggr(Base, ParamVal) {
-    
+
     InAggr = ParseAggr(ParamVal, "inAggr");
     InAggrTm = Cast<TStreamAggrOut::ITm>(InAggr);
     InAggrTmIO = Cast<TStreamAggrOut::ITmIO>(InAggr);
@@ -437,7 +437,7 @@ void TWinAggrSpVec<TSignalType>::OnStep() {
 template <class TSignalType>
 TWinAggrSpVec<TSignalType>::TWinAggrSpVec(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
         TStreamAggr(Base, ParamVal) {
-    
+
     InAggr = ParseAggr(ParamVal, "inAggr");
     InAggrTm = Cast<TStreamAggrOut::ITm>(InAggr);
     InAggrTmIO = Cast<TStreamAggrOut::ITmIO>(InAggr);

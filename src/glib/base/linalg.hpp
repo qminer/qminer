@@ -272,6 +272,40 @@ bool TLinAlgCheck::IsZero(const TVec<TNum<TType>, TSizeTy>& Vec) {
 }
 
 template <class TType, class TSizeTy, bool ColMajor>
+bool TLinAlgCheck::ContainsNan(const TVVec<TNum<TType>, TSizeTy, ColMajor>& FltVV) {
+    const TSizeTy& Rows = FltVV.GetRows();
+    const TSizeTy& Cols = FltVV.GetCols();
+
+    for (TSizeTy RowN = 0; RowN < Rows; RowN++) {
+        for (TSizeTy ColN = 0; ColN < Cols; ColN++) {
+            if (TNum<TType>::IsNan(FltVV(RowN, ColN))) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+template <class TType, class TSizeTy, bool ColMajor>
+bool TLinAlgCheck::ContainsNan(const TVec<TVec<TKeyDat<TNum<TSizeTy>, TNum<TType>>, TSizeTy>, TSizeTy>& SpVV) {
+    const TSizeTy& Cols = SpVV.Len();
+
+    for (TSizeTy ColN = 0; ColN < Cols; ColN++) {
+        const TVec<TKeyDat<TNum<TSizeTy>, TNum<TType>>, TSizeTy>& Col = SpVV[ColN];
+        const TSizeTy& Rows = Col.Len();
+
+        for (TSizeTy RowN = 0; RowN < Rows; RowN++) {
+            if (TNum<TType>::IsNan(Col[RowN].Dat)) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+template <class TType, class TSizeTy, bool ColMajor>
 void TLinAlgCheck::AssertOrtogonality(const TVec<TVec<TNum<TType>, TSizeTy>, TSizeTy>& Vecs,
 		const TType& Threshold) {
 	TSizeTy m = Vecs.Len();
@@ -390,6 +424,9 @@ TSizeTy TLinAlgSearch::GetRowMinIdx(const TVVec<TNum<TType>, TSizeTy, ColMajor>&
 	TType MnVal = TNum<TType>::Mx;
 	for (TSizeTy ColN = 0; ColN < Cols; ColN++) {
 		const TType& Val = X.At(RowN, ColN);
+
+		AssertR(!TNum<TType>::IsNan(Val), "TLinAlgSearch::GetRowMinIdx: NaN in matrix!");
+
 		if (Val < MnVal) {
 			MnVal = Val;
 			Idx = ColN;
@@ -423,6 +460,9 @@ TSizeTy TLinAlgSearch::GetColMinIdx(const TVVec<TNum<TType>, TSizeTy, ColMajor>&
 	TSizeTy MinIdx = -1;
 	for (TSizeTy RowN = 0; RowN < Rows; RowN++) {
 		const TType& Val = X(RowN, ColN);
+
+		AssertR(!TNum<TType>::IsNan(Val), "TLinAlgSearch::GetColMinIdx: NaN in column!");
+
 		if (Val < MinVal) {
 			MinVal = Val;
 			MinIdx = RowN;
