@@ -1490,7 +1490,7 @@
 * @property {string} [type=&#x27;unicode&#x27;] - The type of the tokenizer. The different types are: 
 *&amp;lt;br&gt;1. &#x27;simple&#x27; - Creates break on white spaces.
 *&amp;lt;br&gt;2. &#x27;html&#x27; - Creates break on white spaces and ignores html tags.
-*&amp;lt;br&gt;3. &#x27;unicode&#x27; - Creates break on white spaces and normalizes unicode letters, e.g. hp changes to cspz.
+*&amp;lt;br&gt;3. &#x27;unicode&#x27; - Creates break on white spaces and normalizes unicode letters, e.g. o?=o?= changes to cso?=z.
 */
 /**
  * Tokenizer
@@ -1769,7 +1769,7 @@
      */
  exports.KMeans.prototype.predict = function (A) { return Object.create(require(&#x27;qminer&#x27;).la.IntVector.prototype); }
 /**
-     * Transforms the points to vectors of squared distances to centroids.
+     * Transforms the points to vectors of distances to centroids.
      * @param {module:la.Matrix | module:la.SparseMatrix} A - Matrix whose columns correspond to examples.
      * @returns {module:la.Matrix} Matrix where each column represents the squared distances to the centroid vectors.
      * @example

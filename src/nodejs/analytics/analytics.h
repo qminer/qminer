@@ -1852,7 +1852,7 @@ public:
 * @property {string} [type='unicode'] - The type of the tokenizer. The different types are: 
 *<br>1. 'simple' - Creates break on white spaces.
 *<br>2. 'html' - Creates break on white spaces and ignores html tags.
-*<br>3. 'unicode' - Creates break on white spaces and normalizes unicode letters, e.g. èšðž changes to csðz.
+*<br>3. 'unicode' - Creates break on white spaces and normalizes unicode letters, e.g. ï¿½ï¿½ changes to csï¿½z.
 */
 
 /**
@@ -2278,7 +2278,7 @@ public:
     JsDeclareFunction(predict);
 
     /**
-     * Transforms the points to vectors of squared distances to centroids.
+     * Transforms the points to vectors of distances to centroids.
      * @param {module:la.Matrix | module:la.SparseMatrix} A - Matrix whose columns correspond to examples.
      * @returns {module:la.Matrix} Matrix where each column represents the squared distances to the centroid vectors.
      * @example

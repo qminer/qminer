@@ -194,7 +194,7 @@ public:
 	// The L is unit lower triangular matrix and U is an upper triangular matrix. 
 	// Vector P tell's us: column i is swapped with column P[i].
 	template<class Type, class Size, bool ColMajor = false>
-	static void LUFactorization(TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, ColMajor>& L, 
+	static void LUFactorization(const TVVec<Type, Size, ColMajor>& A, TVVec<Type, Size, ColMajor>& L,
 		TVVec<Type, Size, ColMajor>& U, TVec<TNum<glib_index>, glib_index>& P) {
 		Assert(A.GetRows() == A.GetCols());
 

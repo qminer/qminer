@@ -1448,6 +1448,23 @@ public:
     JsDeclareFunction(onDelete);
     
     /**
+     * Returns all the parameters of the stream aggregate
+     *
+     * @returns {Object} parameters
+     */
+    //# exports.StreamAggr.prototype.getParams = function () { return {}; }
+    JsDeclareFunction(getParams);
+
+    /**
+     * Sets one or more parameters.
+     *
+     * @param {Object} params - JSON representation of the parameters
+     */
+    //# exports.StreamAggr.prototype.setParams = function (val) {}
+    JsDeclareFunction(setParams);
+
+
+    /**
     * When executed it return a JSON object as defined by the user. For use example see {@link module:qm.StreamAggr} constructor example.
     * @param {number} [limit] - The meaning is specific to each type of stream aggregator.
     * @returns {Object} A JSON object as defined by the user.
