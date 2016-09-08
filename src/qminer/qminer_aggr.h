@@ -1323,10 +1323,8 @@ private:
 
     /// Is buffered input aggregate provided?
     TBool BufferedP;
-
     // Aggregate state
     TSignalProc::TOnlineHistogram Model;
-
 protected:
     /// Update histogram
     void OnStep();
@@ -1351,6 +1349,8 @@ public:
 
     /// Finds the bin index given val, returns -1 if not found
     int FindBin(const double& Val) const { return Model.FindBin(Val); }
+	/// Returns the bound
+	double GetBoundN(const int& BoundN) const { return Model.GetBoundN(BoundN); }
 
     /// returns the number of bins
     int GetVals() const { return Model.GetBins(); }
@@ -1756,7 +1756,10 @@ public:
     THistogramPMFModelType Type;
     /// Gaussian KDE bandwidth - if 0 (default) it will be determined automatically
     TFlt Bandwidth;
-    bool AutoBandwidth;
+	/// If true, the bandwidth will be tuned every time GetPMF is called
+    bool AutoBandwidthP;
+	/// Controls automatic bandwidth selection
+    TFlt MinBandwidth;
 
     /// Parameters
     THistogramToPMFModel(const PJsonVal& ParamVal);
@@ -1776,25 +1779,29 @@ public:
 ///
 ///   OnStep has two phases (predict and fit):
 ///   1. - reads a value from an input aggregate that implements IFlt
-///      - computes the bin number given an input histogram aggregate
+///      - computes the bin number given an input histogram aggregate (exposes the index by implementing IInt)
 ///      - uses THistogramToPMFModel to compute the severity (anomaly score) of the bin
 ///      - exposes the result by implementing IFlt
 ///   2. - updates the input histogram aggregate
 ///      - updates THistogramToPMFModel
 ///      - exposes the PMF and severities through SaveJson
-class THistogramAD : public TStreamAggr, public TStreamAggrOut::IFlt {
+class THistogramAD : public TStreamAggr, public TStreamAggrOut::IFlt, public TStreamAggrOut::IInt {
 private:
     /// Input for prediction
     TWPt<TStreamAggrOut::IFlt> InAggrVal;
     /// Input for modelling (histogram)
     TWPt<TOnlineHistogram> HistAggr;
 
-    /// Current severity, returned by GetFlt()
+    /// Current severity, returned by GetFlt(), corresponds to histogram bin with index LastHistIdx
     TFlt Severity;
+	/// The histogram bin index of the most recent prediction, returned by GetInt().
+	TInt LastHistIdx;
     /// Current PMF, computed in OnStep
     TFltV PMF;
     /// Current anomaly scores, computed in OnStep
     TFltV Severities;
+	/// Explanation object holds a summary of the histogram state prior to making the last prediction (it explains why a prediction was classified with a given severity)
+	PJsonVal Explanation;
     /// PMF/AD model
     THistogramToPMFModel Model;
 
@@ -1814,6 +1821,8 @@ public:
     bool IsInit() const { return HistAggr->IsInit() && Severities.Len() > 0; }
     /// Returns the current severity level (0 = normal)
     double GetFlt() const { return Severity; }
+	/// Returns the current histogram bin index
+	int GetInt() const { return LastHistIdx; }
     /// Resets the aggregate
     void Reset();
     /// JSON serialization
@@ -1831,7 +1840,7 @@ public:
     static double EvalKernel(const double& Data, const double& Eval, const double& Bandwidth, const THistogramPMFModelType& KType = hpmfKDEGaussian) {
         const double GCoef = 1.0 / TMath::Sqrt(2 * TMath::Pi);
         const double Scale = 1.0 / Bandwidth;
-        const double U = abs(Data - Eval) / Bandwidth;
+        const double U = TMath::Abs(Data - Eval) / Bandwidth;
 
         switch (KType) {
         case hpmfKDEGaussian: return Scale * GCoef * TMath::Power(TMath::E, -0.5 * TMath::Sqr(U));

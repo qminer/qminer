@@ -1319,6 +1319,10 @@ function fillHist(store, arr, ts, cb) {
     }
 }
 
+function deepCopy(obj) {
+    return JSON.parse(JSON.stringify(obj));
+}
+
 describe('Histogram AD tests', function () {
     var qm = require('qminer');
 
@@ -1373,11 +1377,21 @@ describe('Histogram AD tests', function () {
             });
             var ts = Date.now();
 
-            fillHist(store, [[0, 5], [1, 2], [2, 1]], ts); //[5 2 1 0] -> [0.62 0.25 0.12 0]
+            var sev0 = deepCopy(histAD.val.severities);
+            var pmf0 = deepCopy(histAD.val.pmf);
+            fillHist(store, [[0, 1]], ts);
+            var sev1 = deepCopy(histAD.val.severities);
+            var pmf2 = deepCopy(histAD.val.pmf);
+            fillHist(store, [[1, 1]], ts);
+            var sev2 = deepCopy(histAD.val.severities);
+            var pmf2 = deepCopy(histAD.val.pmf);
+            //fillHist(store, [[0, 5], [1, 2], [2, 1]], ts); //[5 2 1 0] -> [0.62 0.25 0.12 0]
 
-            ts = ts + 2000; // histogram forgets everything
+            //ts = ts + 2000; // histogram forgets everything
 
-            fillHist(store, [[0, 5], [1, 2], [2, 1]], ts);
+            //fillHist(store, [[0, 5], [1, 2], [2, 1]], ts);
+
+            
 
             debugger
         });

@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -16,6 +16,8 @@ public:
   static double Pi;
   static double LogOf2;
 
+  static double Abs(const double& x) { return TFlt::Abs(x); }
+  static int Abs(const int& x) { return TInt::Abs(x); }
   static double Inv(const double& x){IAssert(x!=0.0); return (1.0/x);}
   static double Sqr(const double& x){return x*x;}
   static double Sqrt(const double& x){IAssert(!(x<0.0)); return sqrt(x);}
@@ -493,7 +495,7 @@ public:
 	double GetBucketMn(const int& BucketN) const { return MnVal + BucketN * BucketSize; }
 	double GetBucketMx(const int& BucketN) const { return MnVal + (BucketN + 1) * BucketSize; }
 	int GetBucketVal(const int& BucketN) const { return BucketV[BucketN]; }
-	double GetBucketValPerc(const int& BucketN) const { 
+	double GetBucketValPerc(const int& BucketN) const {
 		return (Vals > 0) ? (double(BucketV[BucketN]) / double(Vals)) : 0.0; }
 
     void SaveStat(const TStr& ValNm, TSOut& FOut) const;

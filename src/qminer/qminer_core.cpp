@@ -6641,7 +6641,7 @@ void TStreamAggrSet::PrintStat() const {
 PJsonVal TStreamAggrSet::SaveJson(const int& Limit) const {
     PJsonVal ResVal = TJsonVal::NewArr();
     for (TWPt<TStreamAggr>& StreamAggr : StreamAggrV) {
-        ResVal->AddToArr(StreamAggr->SaveJson(Limit));
+        ResVal->AddToArr(StreamAggr->GetAggrNm());
     }
     return ResVal;
 }
