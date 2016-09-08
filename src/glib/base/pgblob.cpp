@@ -263,7 +263,7 @@ void TPgBlob::DeleteItem(char* Pg, uint16 ItemIndex) {
 	int Len = 0;
 	for (int i = 0; i < Header->ItemCount; i++) {
         TPgBlobPageItem* ItemX = GetItemRec(Pg, i);
-        if (ItemX->Offset <= Item->Offset) {
+        if (ItemX->Offset >= Item->Offset) {
             continue;
         }
 		if (ItemX->Len == 0) {
