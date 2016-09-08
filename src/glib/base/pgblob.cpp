@@ -261,8 +261,11 @@ void TPgBlob::DeleteItem(char* Pg, uint16 ItemIndex) {
 	TPgHeader* Header = (TPgHeader*)Pg;
 	char* OldFreeEnd = Pg + Header->OffsetFreeEnd;
 	int Len = 0;
-	for (int i = ItemIndex + 1; i < Header->ItemCount; i++) {
-		TPgBlobPageItem* ItemX = GetItemRec(Pg, i);
+	for (int i = 0; i < Header->ItemCount; i++) {
+        TPgBlobPageItem* ItemX = GetItemRec(Pg, i);
+        if (ItemX->Offset <= Item->Offset) {
+            continue;
+        }
 		if (ItemX->Len == 0) {
 			continue;
 		}
@@ -616,18 +619,18 @@ TPgBlobPt TPgBlob::Put(
 	} else if (existing_size + PgH->GetFreeMem() >= BfL + (int)sizeof(TPgBlobPageItem)) {
 		// ok, everything can still be inside this page
 		DeleteItem(PgBf, Pt.GetIIx());
-        Fsm.FsmUpdatePage(PgPt, PgH->GetFreeMem());
+        //Fsm.FsmUpdatePage(PgPt, PgH->GetFreeMem());
 
-		//ChangeItem(PgBf, Pt.GetIIx(), Bf, BfL);
-		//Fsm.FsmUpdatePage(Pt, PgH->GetFreeMem());
-		//return Pt;
+		ChangeItem(PgBf, Pt.GetIIx(), Bf, BfL);
+		Fsm.FsmUpdatePage(Pt, PgH->GetFreeMem());
+		return Pt;
 
-        uint16 ii = AddItem(PgBf, Bf, BfL);
+        //uint16 ii = AddItem(PgBf, Bf, BfL);
 
-        TPgBlobPt Pt2(PgPt.GetFIx(), PgPt.GetPg(), ii);
-        PgH = (TPgHeader*) PgBf;
-        Fsm.FsmUpdatePage(PgPt, PgH->GetFreeMem());
-        return Pt2;
+        //TPgBlobPt Pt2(PgPt.GetFIx(), PgPt.GetPg(), ii);
+        //PgH = (TPgHeader*) PgBf;
+        //Fsm.FsmUpdatePage(PgPt, PgH->GetFreeMem());
+        //return Pt2;
 
 	} else {
 		// bad luck, we need to move data to new page
