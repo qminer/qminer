@@ -20,7 +20,7 @@ typedef TPt<TPgBlobPage> TPgBlobPtPPgBlobPage;
 typedef TPt<TPgBlobFile> PPgBlobFile;
 typedef TPt<TPgBlob> PPgBlob;
 
-// Macros and constants	
+// Macros and constants
 #define PG_PAGE_SIZE (8 * 1024) // Page size is 8k
 #define PG_EXTENT_PCOUNT 8        // Number of pages per extent
 #define PG_EXTENT_SIZE (PG_PAGE_SIZE * PG_EXTENT_PCOUNT) // Extent size - 64k
@@ -74,7 +74,7 @@ public:
 };
 
 ////////////////////////////////////////////////////////////
-/// Pointer into Paged-Blob storage 
+/// Pointer into Paged-Blob storage
 class TPgBlobPt {
 protected:
 
@@ -253,7 +253,7 @@ public:
 
 	/// Load page with given index from the file into buffer
 	int LoadPage(const uint32& Page, void* Bf);
-	/// Save buffer to page within the file 
+	/// Save buffer to page within the file
 	int SavePage(const uint32& Page, const void* Bf, int Len = -1);
 	/// Reserve new space in the file. Returns -1 if file is full.
 	long CreateNewPage();
@@ -261,10 +261,12 @@ public:
 
 ////////////////////////////////////////////////////////////
 /// Multi-file paged-BLOB-storage with cache.
-/// Has no clue about the meaning of the data in pages. 
+/// Has no clue about the meaning of the data in pages.
 class TPgBlob {
-protected:
+private:
+    static const int MxBlobFLen;
 
+protected:
 	/// Housekeeping record for each loaded page
 	struct LoadedPage {
 	public:
@@ -390,10 +392,10 @@ protected:
 	bool ShouldSavePage(int Pg) { return ShouldSavePageP(GetPageBf(Pg)); }
 	/// This method tells if given page can be evicted from cache.
 	bool CanEvictPage(int Pg) { return CanEvictPageP(GetPageBf(Pg)); }
-	/// This method should be overridden in derived class to tell 
+	/// This method should be overridden in derived class to tell
 	/// if given page should be stored to disk.
 	bool ShouldSavePageP(char* Pt) { return ((TPgHeader*)Pt)->IsDirty(); }
-	/// This method should be overridden in derived class to tell 
+	/// This method should be overridden in derived class to tell
 	/// if given page can be evicted from cache.
 	bool CanEvictPageP(char* Pt) { return !((TPgHeader*)Pt)->IsLock(); }
 	/// Load given page into memory

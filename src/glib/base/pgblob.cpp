@@ -141,7 +141,7 @@ int TPgBlobFile::LoadPage(const uint32& Page, void* Bf) {
 	return 0;
 }
 
-/// Save buffer to page within the file 
+/// Save buffer to page within the file
 int TPgBlobFile::SavePage(const uint32& Page, const void* Bf, int Len) {
 	SetFPos(Page * PG_PAGE_SIZE);
 	Len = (Len <= 0 ? PG_PAGE_SIZE : Len);
@@ -183,6 +183,8 @@ long TPgBlobFile::CreateNewPage() {
 }
 
 ///////////////////////////////////////////////////////////////////////////
+
+const int TPgBlob::MxBlobFLen = 2000000000;
 
 /// Add given buffer to page, to existing item that has length 0
 void TPgBlob::ChangeItem(
@@ -366,7 +368,7 @@ void TPgBlob::LoadMain() {
 	Files.Clr();
 	for (int i = 0; i < children_cnt; i++) {
 		TStr FNmChild = FNm + ".bin" + TStr::GetNrNumFExt(i);
-		Files.Add(TPgBlobFile::New(FNmChild, Access, TInt::Giga));
+		Files.Add(TPgBlobFile::New(FNmChild, Access, MxBlobFLen));
 	}
 }
 
@@ -517,7 +519,7 @@ void TPgBlob::CreateNewPage(TPgBlobPgPt& Pt, char** Bf) {
 		}
 	}
 	TStr NewFNm = FNm + ".bin" + TStr::GetNrNumFExt(Files.Len());
-	Files.Add(TPgBlobFile::New(NewFNm, TFAccess::faCreate, TInt::Giga));
+	Files.Add(TPgBlobFile::New(NewFNm, TFAccess::faCreate, MxBlobFLen));
 	long Pg = Files.Last()->CreateNewPage();
 	EAssert(Pg >= 0);
 	Pt.Set(Files.Len() - 1, (uint32)Pg);
@@ -557,7 +559,7 @@ TPgBlobPt TPgBlob::Put(const char* Bf, const int& BfL) {
 	bool is_new_page = false;
 
 	// scan last 5 used pages if there is some space
-	// the logic is that during batch inserts we should reuse 
+	// the logic is that during batch inserts we should reuse
 	// recently-used pages so that data is packed together
 	int LoadedPage = LruFirst;
 	for (int i = 0; i < 5 && LoadedPage != -1; i++) {
@@ -752,7 +754,7 @@ void TPgBlob::PrintHeaderInfo(char* Pg) {
 void TPgBlob::GetHeaderOverhead(char* Pg, int& Items, int& EmptyItems)
 {
     TPgHeader* Header = (TPgHeader*) Pg;
-    Items = Header->ItemCount; 
+    Items = Header->ItemCount;
     EmptyItems = 0;
     for (int i = 0; i < Header->ItemCount; i++) {
         TPgBlobPageItem* Item = GetItemRec(Pg, i);
