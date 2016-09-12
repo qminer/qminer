@@ -189,11 +189,6 @@ const int TPgBlob::MxBlobFLen = 2000000000;
 /// Add given buffer to page, to existing item that has length 0
 void TPgBlob::ChangeItem(
 	char* Pg, uint16 ItemIndex, const char* Bf, const int BfL) {
-
-	// TODO locks?
-    /*printf("##Change start\n");
-    PrintHeaderInfo(Pg);*/
-
 	TPgHeader* Header = (TPgHeader*)Pg;
 	EAssert(BfL + (int)sizeof(TPgBlobPageItem) <= Header->GetFreeMem());
 
@@ -208,18 +203,10 @@ void TPgBlob::ChangeItem(
 
 	Header->OffsetFreeEnd -= BfL;
 	Header->SetDirty(true);
-
-    /*printf("##Change end\n");
-    PrintHeaderInfo(Pg);*/
 }
 
 /// Add given buffer to page, return item-index
 uint16 TPgBlob::AddItem(char* Pg, const char* Bf, const int BfL) {
-	// TODO locks?
-
-    /*printf("##Add start\n");
-    PrintHeaderInfo(Pg);*/
-
 	TPgHeader* Header = (TPgHeader*)Pg;
 	EAssert(Header->CanStoreBf(BfL));
 
@@ -238,14 +225,11 @@ uint16 TPgBlob::AddItem(char* Pg, const char* Bf, const int BfL) {
 
 	Header->SetDirty(true);
 
-    /*printf("##Add end\n");
-    PrintHeaderInfo(Pg);*/
 	return res;
 }
 
 /// Retrieve buffer from specified page
 void TPgBlob::GetItem(char* Pg, uint16 ItemIndex, char** Bf, int& BfL) {
-	// TODO locks?
 	TPgBlobPageItem* Item = GetItemRec(Pg, ItemIndex);
 	BfL = Item->Len;
 	*Bf = Pg + Item->Offset;
@@ -253,11 +237,6 @@ void TPgBlob::GetItem(char* Pg, uint16 ItemIndex, char** Bf, int& BfL) {
 
 /// Delete buffer from specified page
 void TPgBlob::DeleteItem(char* Pg, uint16 ItemIndex) {
-	// TODO locks?
-
-    /*printf("##Delete start\n");
-    PrintHeaderInfo(Pg);*/
-
 	TPgBlobPageItem* Item = GetItemRec(Pg, ItemIndex);
 	int PackOffset = Item->Len;
 	TPgHeader* Header = (TPgHeader*)Pg;
@@ -302,7 +281,6 @@ void TPgBlob::DeleteItem(char* Pg, uint16 ItemIndex) {
 /// Get pointer to item record - in it are offset and length
 TPgBlob::TPgBlobPageItem* TPgBlob::GetItemRec(
 	char* Pg, uint16 ItemIndex) {
-	// TODO locks?
 	return (TPgBlob::TPgBlobPageItem*)(
 		Pg
 		+ sizeof(TPgBlob::TPgHeader)
@@ -312,7 +290,6 @@ TPgBlob::TPgBlobPageItem* TPgBlob::GetItemRec(
 /// Private constructor
 TPgBlob::TPgBlob(const TStr& _FNm, const TFAccess& _Access,
 	const uint64& CacheSize) {
-
 	EAssertR(CacheSize >= PG_PAGE_SIZE, "Invalid cache size for TPgBlob.");
 
 	FNm = _FNm;
@@ -621,18 +598,10 @@ TPgBlobPt TPgBlob::Put(
 	} else if (existing_size + PgH->GetFreeMem() >= BfL + (int)sizeof(TPgBlobPageItem)) {
 		// ok, everything can still be inside this page
 		DeleteItem(PgBf, Pt.GetIIx());
-        //Fsm.FsmUpdatePage(PgPt, PgH->GetFreeMem());
 
 		ChangeItem(PgBf, Pt.GetIIx(), Bf, BfL);
 		Fsm.FsmUpdatePage(Pt, PgH->GetFreeMem());
 		return Pt;
-
-        //uint16 ii = AddItem(PgBf, Bf, BfL);
-
-        //TPgBlobPt Pt2(PgPt.GetFIx(), PgPt.GetPg(), ii);
-        //PgH = (TPgHeader*) PgBf;
-        //Fsm.FsmUpdatePage(PgPt, PgH->GetFreeMem());
-        //return Pt2;
 
 	} else {
 		// bad luck, we need to move data to new page
