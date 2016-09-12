@@ -741,7 +741,7 @@ PJsonVal TEma::SaveJson(const int& Limit) const {
 // Exponential Moving Average for sparse vectors
 void TEmaSpVec::OnStep() {
     if (InAggr->IsInit()) {
-        TIntFltKdV Vals; InAggrSparseVec->GetValV(Vals);
+        TIntFltKdV Vals; InAggrSparseVec->GetSparseVec(Vals);
         Ema.Update(Vals, InAggrTm->GetTmMSecs());
     }
 }
@@ -1633,35 +1633,80 @@ bool TUniVarResampler::CanInterpolate() {
     return Interpolator->CanInterpolate(InterpPointMSecs);
 }
 
-
 ///////////////////////////////
 // Dense Feature Extractor Stream Aggregate (extracts TFltV from records)
 void TFtrExtAggr::OnAddRec(const TRec& Rec) {
-    FtrSpace->GetFullV(Rec, Vec);
+    // extract vectors
+    if (FullP) { FtrSpace->GetFullV(Rec, FullVec); }
+    if (SparseP) { FtrSpace->GetSpV(Rec, SpVec); }
+    // update if needed
+    if (UpdateP) {
+        // show record to feature space
+        FtrSpace->Update(Rec);
+        // count till we are initalized
+        if (InitCount > 0) { InitCount--; }
+    }
 }
 
-TFtrExtAggr::TFtrExtAggr(const TWPt<TBase>& Base, const TStr& AggrNm, const TWPt<TFtrSpace>& _FtrSpace):
-    TStreamAggr(Base, AggrNm), FtrSpace(_FtrSpace) { }
+TFtrExtAggr::TFtrExtAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal) {
+    // pares parameters
+    InitCount = ParamVal->GetObjInt("initCount", 0);
+    UpdateP = ParamVal->GetObjBool("update", true);
+    FullP = ParamVal->GetObjBool("full", false);
+    SparseP = ParamVal->GetObjBool("sparse", true);
+    // define feature space
+    ParamVal->AssertObjKey("featureSpace", __FUNCTION__);
+    FtrSpace = TFtrSpace::New(Base, ParamVal->GetObjKey("featureSpace"));
+}
 
-PStreamAggr TFtrExtAggr::New(const TWPt<TBase>& Base, const TStr& AggrNm, const TWPt<TFtrSpace>& _FtrSpace) {
-    return new TFtrExtAggr(Base, AggrNm, _FtrSpace);
+PStreamAggr TFtrExtAggr::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+    return new TFtrExtAggr(Base, ParamVal);
 }
 
 void TFtrExtAggr::LoadState(TSIn& SIn) {
-    Vec.Load(SIn);
+    // load feature space
+    FtrSpace = TFtrSpace::Load(Base, SIn);
+    // load init counter
+    InitCount = TInt(SIn);
+    // load vectors
+    FullVec.Load(SIn);
+    SpVec.Load(SIn);
 }
 
 void TFtrExtAggr::SaveState(TSOut& SOut) const {
-    Vec.Save(SOut);
+    // save feature space (part of state)
+    FtrSpace->Save(SOut);
+    // save init counter
+    InitCount.Save(SOut);
+    // save last extracted vectors
+    FullVec.Save(SOut);
+    SpVec.Save(SOut);
 }
 
-void TFtrExtAggr::GetVal(const int& ElN, TFlt& Val) const {
-    QmAssertR(Vec.Len() > ElN, "TFtrExtAggr : GetFlt : index out of bounds");
-    Val = Vec[ElN];
+PJsonVal TFtrExtAggr::GetParam() const {
+    PJsonVal ParamsVal = TJsonVal::NewObj();
+    ParamsVal->AddToObj("initCount", InitCount);
+    ParamsVal->AddToObj("update", UpdateP);
+    ParamsVal->AddToObj("full", FullP);
+    ParamsVal->AddToObj("sparse", SparseP);
+    return ParamsVal;
+}
+
+void TFtrExtAggr::SetParam(const PJsonVal& ParamVal) {
+    if (ParamVal->IsObjKey("initCount")) { InitCount = ParamVal->GetObjNum("initCount"); }
+    if (ParamVal->IsObjKey("update")) { InitCount = ParamVal->GetObjBool("update"); }
+    if (ParamVal->IsObjKey("full")) { InitCount = ParamVal->GetObjBool("full"); }
+    if (ParamVal->IsObjKey("sparse")) { InitCount = ParamVal->GetObjBool("sparse"); }
+}
+
+void TFtrExtAggr::Reset() {
+    FtrSpace->Clr();
 }
 
 PJsonVal TFtrExtAggr::SaveJson(const int& Limit) const {
-    PJsonVal Val = TJsonVal::NewArr(Vec);
+    PJsonVal Val = TJsonVal::NewObj();
+    if (FullP) { Val->AddToObj("full", TJsonVal::NewArr(FullVec)); }
+    if (SparseP) { Val->AddToObj("sparse", TJsonVal::NewArr(SpVec)); }
     return Val;
 }
 

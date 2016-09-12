@@ -2258,8 +2258,9 @@ public:
     double GetNmInt(const TStr& Nm) const;
     void GetNmIntV(TStrIntPrV& NmIntV) const;
     // ISparseVec
-    void GetVal(const int& ElN, TIntFltKd& Val) const; // GetFltAtFun
-    void GetValV(TIntFltKdV& ValV) const;
+    int GetSparseVecLen() const;
+    TIntFltKd GetSparseVecVal(const int& ElN) const; // GetFltAtFun
+    void GetSparseVec(TIntFltKdV& ValV) const;
 };
 
 #endif

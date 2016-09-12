@@ -3450,7 +3450,14 @@ namespace TStreamAggrOut {
     };
     typedef IValVec<TFlt> IFltVec;
     typedef IValVec<TIntFltKdV> ISparseVVec;
-    typedef IValVec<TIntFltKd> ISparseVec;
+
+    /// vector of sparse vectors
+    class ISparseVec {
+    public:
+        virtual int GetSparseVecLen() const = 0;
+        virtual TIntFltKd GetSparseVecVal(const int& ElN) const = 0;
+        virtual void GetSparseVec(TIntFltKdV& SpVec) const = 0;
+    };
 
     /// vector of timestamps
     class ITmVec {
