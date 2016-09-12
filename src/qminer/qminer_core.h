@@ -412,6 +412,27 @@ public:
 };
 
 ///////////////////////////////
+/// Store Hash Key Iterator.
+/// Useful for stores using THash to store records
+/// Example: TStrH TestH; PStoreIter TestIter = TStoreIterHashKey<TStrH>::New(TestH);
+template <class THash>
+class TStoreIterHashKey : public TStoreIter {
+private:
+    /// Reference to hash table with KeyIds corresponding to Record IDs
+    const THash& Hash;
+    /// Current key ID (== record ID)
+    int KeyId;
+
+    TStoreIterHashKey(const THash& _Hash) : Hash(_Hash), KeyId(Hash.FFirstKeyId()) { }
+public:
+    // Create new iterator from a given hash table
+    static PStoreIter New(const THash& Hash) { return new TStoreIterHashKey<THash>(Hash); }
+
+    bool Next() { return Hash.FNextKeyId(KeyId); }
+    uint64 GetRecId() const { return Hash.GetKey(KeyId); }
+};
+
+///////////////////////////////
 /// Store Trigger.
 /// Interface for defining triggers called when records are added, deleted or updated.
 /// Each trigger gets unique internal ID when created (GUID).

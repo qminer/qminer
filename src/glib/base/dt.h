@@ -143,6 +143,7 @@ protected:
 	uchar* Bf;
 	int BfC, BfL;
 public:
+    TThinMIn();
 	TThinMIn(const TMemBase& Mem);
 	TThinMIn(const void* _Bf, const int& _BfL);
 	TThinMIn(const TThinMIn& min);
@@ -158,6 +159,9 @@ public:
 	void MoveTo(int Offset);
 	bool GetNextLnBf(TChA& LnChA);
 	TMemBase GetMemBase() { return TMemBase(GetBfAddr(), Len(), false); }
+    TThinMIn& operator=(const TThinMIn& Mem) {
+        Bf = Mem.Bf; BfC = Mem.BfC; BfL = Mem.BfL; return *this;
+    }
 };
 
 /////////////////////////////////////////////////////////////////////

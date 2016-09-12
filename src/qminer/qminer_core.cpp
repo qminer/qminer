@@ -1268,13 +1268,13 @@ void TStore::PrintAll(const TWPt<TBase>& Base, TSOut& SOut, const bool& Includin
                 SOut.PutStrFmtLn("  %s: %d", Desc.GetFieldNm().CStr(), FieldInt);
             } else if (Desc.IsUInt()) {
                 const uint64 FieldInt = GetFieldUInt(RecId, FieldId);
-                SOut.PutStrFmtLn("  %s: %s", Desc.GetFieldNm().CStr(), TInt64::GetStr(FieldInt).CStr());
+                SOut.PutStrFmtLn("  %s: %s", Desc.GetFieldNm().CStr(), TUInt64::GetStr(FieldInt).CStr());
             } else if (Desc.IsUInt16()) {
                 const uint64 FieldInt = GetFieldUInt16(RecId, FieldId);
-                SOut.PutStrFmtLn("  %s: %s", Desc.GetFieldNm().CStr(), TInt64::GetStr(FieldInt).CStr());
+                SOut.PutStrFmtLn("  %s: %s", Desc.GetFieldNm().CStr(), TUInt64::GetStr(FieldInt).CStr());
             } else if (Desc.IsUInt64()) {
                 const uint64 FieldInt = GetFieldUInt64(RecId, FieldId);
-                SOut.PutStrFmtLn("  %s: %s", Desc.GetFieldNm().CStr(), TInt64::GetStr(FieldInt).CStr());
+                SOut.PutStrFmtLn("  %s: %s", Desc.GetFieldNm().CStr(), TUInt64::GetStr(FieldInt).CStr());
             } else if (Desc.IsFlt()) {
                 const double FieldFlt = GetFieldFlt(RecId, FieldId);
                 SOut.PutStrFmtLn("  %s: %g", Desc.GetFieldNm().CStr(), FieldFlt);
