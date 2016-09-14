@@ -1809,9 +1809,9 @@ typedef enum {
 ///       Gets mapped to [ 0, 0 ] (the cells are considered as a group and their total mass of 1 is above 0.5)
 class THistogramToPMFModel {
 public:
-    /// Grouping tolerance
+    /// Grouping tolerance for classifying anomalies to severities
     TFlt Tol;
-    /// cumulative density function anomaly thresholds (sorted in descending order)
+    /// cumulative density function anomaly thresholds (sorted in descending order). 
     TFltV Thresholds;
     /// PMF model type
     THistogramPMFModelType Type;
@@ -1822,7 +1822,14 @@ public:
 	/// Controls automatic bandwidth selection
     TFlt MinBandwidth;
 
-    /// Parameters
+    /// Leave one-out automatic KDE bandwidth candidates
+    TFltV AutoBandwidthV;
+    /// Leave one-out automatic KDE threshold targets
+    TFltV AutoThresholdV;
+    /// Leave one-out automatic KDE tolerance
+    TFlt AutoBandwidthTol;
+
+    /// Read parameters from JSON
     THistogramToPMFModel(const PJsonVal& ParamVal);
 
     //  Ties: The cells are added in groups of the same mass, each
@@ -1831,8 +1838,8 @@ public:
     /// Maps PMF cells to severity scores
     void ClassifyAnomalies(const TFltV& PMF, TFltV& Severities);
 
-    /// Transforms a histogram to a probability mass function (PMF)
-    void GetPMF(const TFltV& Hist, TFltV& PMF);
+    /// Transforms a histogram to a probability mass function (PMF). The parameter ComputeBandwidthP decides if the (costly) 
+    void GetPMF(const TFltV& Hist, TFltV& PMF, const bool& ComputeBandwidthP);
 };
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -1850,9 +1857,10 @@ class THistogramAD : public TStreamAggr, public TStreamAggrOut::IFlt, public TSt
 private:
     /// Input for prediction
     TWPt<TStreamAggrOut::IFlt> InAggrVal;
+    /// Bandwidth will be recomputed every time Count is divisible with AutoBandwidthSkip
+    TInt AutoBandwidthSkip;
     /// Input for modelling (histogram)
     TWPt<TOnlineHistogram> HistAggr;
-
     /// Current severity, returned by GetFlt(), corresponds to histogram bin with index LastHistIdx
     TFlt Severity;
 	/// The histogram bin index of the most recent prediction, returned by GetInt().
@@ -1865,6 +1873,9 @@ private:
 	PJsonVal Explanation;
     /// PMF/AD model
     THistogramToPMFModel Model;
+    /// Number of calls to OnStep
+    TInt Count;
+    
 
 protected:
     /// Predicts the current severity and updates the histogram anomaly model
@@ -1898,113 +1909,33 @@ class TKDEModel {
 public:
 
     /// Evaluate the kernel density around a single data point
-    static double EvalKernel(const double& Data, const double& Eval, const double& Bandwidth, const THistogramPMFModelType& KType = hpmfKDEGaussian) {
-        const double GCoef = 1.0 / TMath::Sqrt(2 * TMath::Pi);
-        const double Scale = 1.0 / Bandwidth;
-        const double U = TMath::Abs(Data - Eval) / Bandwidth;
-
-        switch (KType) {
-        case hpmfKDEGaussian: return Scale * GCoef * TMath::Power(TMath::E, -0.5 * TMath::Sqr(U));
-            break;
-        case hpmfKDETophat: return U < 1.0 ? Scale * 0.5 : 0.0;
-            break;
-        case hpmfKDEEpanechnikov: return  U < 1.0 ? Scale * 0.75 * (1 - TMath::Sqr(U)) : 0.0;
-            break;
-        default: throw TExcept::New("Unsupported kernel type");
-            break;
-        }
-    }
+    static double EvalKernel(const double& Data, const double& Eval, const double& Bandwidth, const THistogramPMFModelType& KType = hpmfKDEGaussian);
 
     /// Smooths a histogram using kernel density estimation
     /// The histogram cells should be of equal size and the bandwidth parameter is expressed in units
     /// of histogram cell size. The histogram bins are centered at 0, 1, 2,...
-    static void ComputeHistDensity(const TFltV& Hist, TFltV& Dens, const double& Bandwidth, const THistogramPMFModelType& KType = hpmfKDEGaussian) {
-        int Len = Hist.Len();
-        Dens.Gen(Len);
-        /// Compute kernels for all possible distances
-        TFltV Precompute(Len);
-        for (int HistElN = 0; HistElN < Len; HistElN++) {
-            Precompute[HistElN] = EvalKernel(HistElN, 0, Bandwidth, KType);
-        }
-        for (int HistElN = 0; HistElN < Len; HistElN++) {
-            if (Hist[HistElN] > 0.0) {
-                // only nonzero histogram elements contribute to mass
-                for (int CellN = 0; CellN < Len; CellN++) {
-                    Dens[CellN] += Hist[HistElN] * Precompute[abs(HistElN - CellN)];
-                }
-            }
-        }
-        TLinAlg::NormalizeL1(Dens);
-    }
+    static void ComputeHistDensity(const TFltV& Hist, TFltV& Dens, const double& Bandwidth, const THistogramPMFModelType& KType = hpmfKDEGaussian);
 
     /// Optimal bandwidth for Gaussian kernel if the data is normally distributed and represented as a histogram
     /// The histogram bins are centered at 0, 1, 2,...
-    static double RuleOfThumbHistBandwidth(const TFltV& Hist) {
-        // also known as normal distribution approximation, Gaussian approximation, or Silverman's (1986) rule of thumb
-        double X = 0.0;
-        double X2 = 0.0;
-        double Sum = 0.0;
-        int Len = Hist.Len();
-
-        for (int HistElN = 0; HistElN < Len; HistElN++) {
-            if (Hist[HistElN] > 0.0) {
-                Sum += Hist[HistElN];
-                X += Hist[HistElN] * HistElN;
-                X2 += Hist[HistElN] * HistElN * HistElN;
-            }
-        }
-        // sqrt(E x^2 - (E x)^2)}
-        double Stdev = TMath::Sqrt((X2 - X) / Sum);
-        return 1.06 * Stdev * TMath::Power(Sum, -0.2);
-    }
+    static double RuleOfThumbHistBandwidth(const TFltV& Hist);
 
     /// Compute density given data, kernel type (gaussian default) and bandwidth on a set of evaluation points
-    static double ComputeDensity(const TFltV& Data, const double& EvalPoint, const double& Bandwidth, const THistogramPMFModelType& KType = hpmfKDEGaussian) {
-        int DLen = Data.Len();
-        double Dens = 0.0;
-        for (int DatN = 0; DatN < DLen; DatN++) {
-            Dens += EvalKernel(Data[DatN], EvalPoint, Bandwidth, KType);
-        }
-        Dens /= (double)DLen;
-        return Dens;
-    }
+    static double ComputeDensity(const TFltV& Data, const double& EvalPoint, const double& Bandwidth, const THistogramPMFModelType& KType = hpmfKDEGaussian);
 
     /// Compute density given data, kernel type (gaussian default) and bandwidth on a set of evaluation points
-    static void ComputeDensity(const TFltV& Data, const TFltV& EvalPoints, TFltV& Dens, const double& Bandwidth, const THistogramPMFModelType& KType = hpmfKDEGaussian) {
-        int ELen = EvalPoints.Len();
-        Dens.Gen(ELen);
-        for (int PointN = 0; PointN < ELen; PointN++) {
-            Dens[PointN] = ComputeDensity(Data, EvalPoints[PointN], Bandwidth, KType);
-        }
-    }
+    static void ComputeDensity(const TFltV& Data, const TFltV& EvalPoints, TFltV& Dens, const double& Bandwidth, const THistogramPMFModelType& KType = hpmfKDEGaussian);
 
     /// Optimal bandwidth for Gaussian kernel if the data is normally distributed
-    static double RuleOfThumbBandwidth(const TFltV& Data) {
-        // also known as normal distribution approximation, Gaussian approximation, or Silverman's (1986) rule of thumb
-        double Stdev = TLinAlgStat::Std(Data);
-        return 1.06 * Stdev * TMath::Power((double)Data.Len(), -0.2);
-    }
+    static double RuleOfThumbBandwidth(const TFltV& Data);
 
     /// Bandwidth that aims to match detector rates.
     ///    Given a bandwidth and a resulting pdf, each threshold t results in a set of anomaly intervals - sublevel sets of the pdf
     ///    that cover t mass. Ideally, given a new sample from the same distribution, we should classify fraction t of points as anomalous.
     ///    This should ideally hold for any t: for 0.05 we want 5% anomalies, for 0.1 we want 10% anomalies. Since we only
     ///    have one sample, we use leave one out cross-validation and a range of thresholds to estimate how good a given bandwidth
-    ///    matches (L1 distance between its detection rates and ideal rates).
-    static double LeaveOneOutRateBandwidth(const TFltV& Data, const TFltV& Bandwidths, const TFltV& Thresholds_ = TFltV()) {
-        throw TExcept::New("Not implemented yet");
-        TFltV Thresholds = Thresholds_;
-        if (Thresholds.Len() == 0) {
-            int TLen = 100;
-            Thresholds.Gen(TLen);
-            for (int ElN = 0; ElN < TLen; ElN++) {
-                Thresholds[ElN] = (double)ElN / 100.0;
-            }
-        }
-        return 1.0; // TODO
-    }
-
-
+    ///    matches (L1 distance between its detection rates and ideal rates). Complexity ~ O(bandwidths * (nonzero buckets)^2 * buckets).
+    static double LeaveOneOutRateBandwidth(const TFltV& Hist_, const TFltV& Bandwidths, const TFltV& Thresholds_ = TFltV(), const THistogramPMFModelType& KType = hpmfKDEGaussian, const double& Tol = 1e-8);
 };
 
 ///////////////////////////////
