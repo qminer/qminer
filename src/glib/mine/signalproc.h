@@ -4,7 +4,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- *
+ * 
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -15,7 +15,7 @@ namespace TSignalProc {
 /// Online Moving Average
 class TMaSimple {
 private:
-    TFlt Ma; // current computed MA value
+    TFlt Ma; // current computed MA value  
     TUInt64 N;
 public:
     TMaSimple() { };
@@ -46,7 +46,7 @@ public:
     void Load(TSIn& SIn);
     void Save(TSOut& SOut) const;
     void Update(const double& InVal);
-    // current status
+    // current status   
     uint64 GetN() const { return N; }
     double GetMean() const { return N > 0 ? (double)NewM : 0.0; }
     double GetStDev() const { return sqrt((double)GetVar()); }
@@ -69,12 +69,12 @@ private:
     void AddVal(const double& InVal);
     /// Delete value
     void DeleteVal(const double& OutVal);
-
+    
 public:
     TMa() { }
     TMa(const PJsonVal& ParamVal) { }
     TMa(TSIn& SIn): Count(SIn), Ma(SIn), TmMSecs(SIn) { }
-
+    
     /// Load state
     void Load(TSIn& SIn);
     /// Save state
@@ -84,7 +84,7 @@ public:
     bool IsInit() const { return (TmMSecs > 0); }
     /// Resets the model state
     void Reset() { Count = 0; Ma = 0.0; TmMSecs = 0; }
-
+    
     /// Update with a value to add and values to delete
     void Update(const double& InVal, const uint64& InTmMSecs,
         const TFltV& OutValV, const TUInt64V& OutTmMSecs);
@@ -92,12 +92,12 @@ public:
     void Update(const TFltV& InValV, const TUInt64V& InTmMSecsV,
         const TFltV& OutValV, const TUInt64V& OutTmMSecs);
     /// Get current moving average value
-
+    
     double GetValue() const { return Ma; }
     /// Get timestamp of the current value
     uint64 GetTmMSecs() const { return TmMSecs; }
 };
-
+    
 /////////////////////////////////////////////////
 /// Online Sum
 class TSum {
@@ -106,7 +106,7 @@ private:
     TFlt Sum;
     /// Timestamp of current value
     TUInt64 TmMSecs;
-
+    
 public:
     TSum() { }
     TSum(const PJsonVal& ParamVal) { }
@@ -127,8 +127,8 @@ public:
     /// Update with values to add and values to delete
     void Update(const TFltV& InValV, const TUInt64V& InTmMSecsV,
         const TFltV& OutValV, const TUInt64V& OutTmMSecs);
-
-    /// Get current sum value
+    
+    /// Get current sum value    
     double GetValue() const { return Sum; }
     /// Get timestamp of the current value
     uint64 GetTmMSecs() const { return TmMSecs; }
@@ -147,14 +147,14 @@ private:
     void AddVal(const TIntFltKdV& SpV);
     /// Delete old value from the sum
     void DelVal(const TIntFltKdV& SpV);
-
+    
 public:
     /// Simple constructor
     TSumSpVec() {};
     /// Initialization from JSON value
     TSumSpVec(const PJsonVal& ParamVal) {};
     /// Deserialization constructor
-    TSumSpVec(TSIn& SIn) : Sum(SIn), TmMSecs(SIn) {}
+    TSumSpVec(TSIn& SIn) : Sum(SIn), TmMSecs(SIn) {} 
 
     /// Loading from binary stream
     void Load(TSIn& SIn);
@@ -162,7 +162,7 @@ public:
     void Save(TSOut& SOut) const;
 
     /// Checks if this sum received any data yet
-    bool IsInit() const { return (TmMSecs > 0); }
+    bool IsInit() const { return (TmMSecs > 0); } 
     /// Resets the model state
     void Reset() { Sum = TIntFltKdV(); TmMSecs = 0; }
     /// Updates internal state with incoming and outgoing data
@@ -196,28 +196,28 @@ private:
     void AddVal(const double& InVal, const uint64& InTmMSecs);
     /// Delete old value (we just care for its timestamp)
     void DelVal(const uint64& OutTmMSecs);
-
+    
 public:
     TMin(): Min(TFlt::Mx) { }
     TMin(TSIn& SIn): Min(SIn), TmMSecs(SIn), AllValV(SIn) { }
 
     /// Loading from binary stream
     void Load(TSIn& SIn);
-    /// Saving to binary stream
+    /// Saving to binary stream    
     void Save(TSOut& SOut) const;
 
     /// Check if we saw at least one value
     bool IsInit() const { return (TmMSecs > 0); }
     /// Resets the model state
     void Reset() { Min = TFlt::Mx; TmMSecs = 0; }
-    /// Update with a value to add and values to delete
+    /// Update with a value to add and values to delete    
     void Update(const double& InVal, const uint64& InTmMSecs,
         const TFltV& OutValV, const TUInt64V& OutTmMSecs);
     /// Update with values to add and values to delete
     void Update(const TFltV& InValV, const TUInt64V& InTmMSecsV,
         const TFltV& OutValV, const TUInt64V& OutTmMSecsV);
-
-    /// Get current min value
+    
+    /// Get current min value    
     double GetValue() const { return Min; }
     /// Get timestamp of the current value
     uint64 GetTmMSecs() const { return TmMSecs; }
@@ -227,9 +227,9 @@ public:
 // Sliding Window Max
 class TMax {
 private:
-    /// current computed SUM value
+    /// current computed SUM value 
     TFlt Max;
-    /// timestamp of current MA
+    /// timestamp of current MA    
     TUInt64 TmMSecs;
     /// Sorted vector of potential min candidates.
     /// TODO: Replace TVec with TQQueue
@@ -239,14 +239,14 @@ private:
     void AddVal(const double& InVal, const uint64& InTmMSecs);
     /// Delete old value (we just care for its timestamp)
     void DelVal(const uint64& OutTmMSecs);
-
+    
 public:
     TMax(): Max(TFlt::Mn) { };
     TMax(TSIn& SIn): Max(SIn), TmMSecs(SIn), AllValV(SIn) { }
 
     /// Loading from binary stream
     void Load(TSIn& SIn);
-    /// Saving to binary stream
+    /// Saving to binary stream    
     void Save(TSOut& SOut) const;
 
     /// Check if we saw at least one value
@@ -259,8 +259,8 @@ public:
     /// Update with values to add and values to delete
     void Update(const TFltV& InValV, const TUInt64V& InTmMSecsV,
         const TFltV& OutValV, const TUInt64V& OutTmMSecsV);
-
-    /// Get current max value
+    
+    /// Get current max value        
     double GetValue() const { return Max; }
     /// Get timestamp of the current value
     uint64 GetTmMSecs() const { return TmMSecs; }
@@ -276,7 +276,7 @@ private:
     TEmaType Type; ///< interpolation type
     // current state
     TFlt LastVal; ///< last input value
-    TFlt Ema; ///< current computed EMA value
+    TFlt Ema; ///< current computed EMA value 
     TUInt64 TmMSecs; ///< timestamp of current EMA
     double TmInterval; ///< time interval for definition of decay
     // buffer for initialization
@@ -284,10 +284,10 @@ private:
     TUInt64 InitMinMSecs; ///< time window of required values for initialization
     TFltV InitValV; ///< first N values
     TUInt64V InitMSecsV; ///< weights of first N values
-
+    
     double GetNi(const double& Alpha, const double& Mi);
 public:
-    TEma(const double& _Decay, const TEmaType& _Type,
+    TEma(const double& _Decay, const TEmaType& _Type, 
         const uint64& _InitMinMSecs, const double& _TmInterval);
     TEma(const TEmaType& _Type, const uint64& _InitMinMSecs,
         const double& _TmInterval);
@@ -312,7 +312,7 @@ private:
     TEmaType Type; ///< interpolation type
     // current state
     TIntFltKdV LastVal; ///< last input value
-    TIntFltKdV Ema; ///< current computed EMA value
+    TIntFltKdV Ema; ///< current computed EMA value 
     TUInt64 TmMSecs; ///< timestamp of current EMA
     TFlt TmInterval; ///< time interval for definition of decay
     TFlt Cutoff; ///< Minimal value for dimension - if it falls below this, it is removed from Ema
@@ -334,12 +334,12 @@ public:
     void Update(const TIntFltKdV& Val, const uint64& NewTmMSecs);
     // current status
     bool IsInit() const { return InitP; }
-
+    
     /// Resets the aggregate
     void Reset();
     const TIntFltKdV GetValue() const { return Ema; }
     uint64 GetTmMSecs() const { return TmMSecs; }
-
+    
     PJsonVal GetJson() const; ///< Get JSON description of the sum
 };
 
@@ -364,7 +364,7 @@ private:
     void DelVal(const double& OutVal);
     /// Update current variance value
     void UpdateVar() { VarVal = (Count > 1) ? (M2 / ((double)Count - 1.0)) : 0.0; }
-
+    
 public:
     TVar() { }
     TVar(TSIn& SIn): Count(SIn), Ma(SIn), M2(SIn), VarVal(SIn), TmMSecs(SIn) { }
@@ -380,7 +380,7 @@ public:
     void Reset() { Count = 0; Ma = 0.0; M2 = 0.0; VarVal = 0.0; TmMSecs = 0; }
     /// Update with a value to add and values to delete
     void Update(const double& InVal, const uint64& InTmMSecs, const TFltV& OutValV, const TUInt64V& OutTmMSecsV);
-    /// Update with values to add and values to delete
+    /// Update with values to add and values to delete    
     void Update(const TFltV& InValV, const TUInt64V& InTmMSecsV, const TFltV& OutValV, const TUInt64V& OutTmMSecsV);
 
     /// Current variance
@@ -395,9 +395,9 @@ public:
 class TCov {
 private:
     /// Count of values in the window
-    TUInt64 Count;
+    TUInt64 Count;    
     /// current computed MA value for X
-    TFlt MaX;
+    TFlt MaX; 
     /// current computed MA value for Y
     TFlt MaY;
     /// Current computed non-normalized Cov value
@@ -410,10 +410,10 @@ private:
     /// Add new value to variance computation
     void AddVal(const double& InValX, const double& InValY);
     /// Remove value from variance computation
-    void DelVal(const double& OutValX, const double& OutValY);
+    void DelVal(const double& OutValX, const double& OutValY);    
     /// Update current covariance value
-    void UpdateCov() { CovVal = (Count > 1) ? (M2 / ((double)Count - 1.0)) : 0; }
-
+    void UpdateCov() { CovVal = (Count > 1) ? (M2 / ((double)Count - 1.0)) : 0; }    
+    
 public:
     TCov() { };
     TCov(TSIn& SIn): Count(SIn), MaX(SIn), MaY(SIn), M2(SIn), CovVal(SIn), TmMSecs(SIn) { }
@@ -422,16 +422,16 @@ public:
     void Load(TSIn& SIn);
     /// Saving to bianry stream
     void Save(TSOut& SOut) const;
-
+    
     /// Check if we got any value so far
     bool IsInit() const { return (TmMSecs > 0); }
     /// Resets the model state
     void Reset() { Count = 0; MaX = 0.0; MaY = 0.0; M2 = 0.0; CovVal = 0.0; TmMSecs = 0; }
     /// Update with a value to add and values to delete
-    void Update(const double& InValX, const double& InValY, const uint64& InTmMSecs,
+    void Update(const double& InValX, const double& InValY, const uint64& InTmMSecs, 
         const TFltV& OutValVX, const TFltV& OutValVY, const TUInt64V& OutTmMSecsV);
     /// Update with values to add and values to delete
-    void Update(const TFltV& InValVX, const TFltV& InValVY, const TUInt64V& InTmMSecsV,
+    void Update(const TFltV& InValVX, const TFltV& InValVY, const TUInt64V& InTmMSecsV, 
         const TFltV& OutValVX, const TFltV& OutValVY, const TUInt64V& OutTmMSecsV);
 
     /// Current covariance
@@ -451,9 +451,9 @@ private:
     TInt NextValN;
     // internal vector used to store circular buffer
     TVec<TVal> ValV;
-
+    
 public:
-    TBuffer(const int& BufferLen_): BufferLen(BufferLen_),
+    TBuffer(const int& BufferLen_): BufferLen(BufferLen_), 
         NextValN(0), ValV(BufferLen_, 0) { }
 
     // serialization
@@ -467,7 +467,7 @@ public:
         NextValN.Save(SOut);
         ValV.Save(SOut);
     }
-
+    
     /// add new value to the buffer
     void Update(const TVal& Val){
         // we add to the end while not full
@@ -479,8 +479,8 @@ public:
         // reset count once we come to BufferLen
         NextValN = NextValN % BufferLen;
     }
-
-    /// Is buffered initialized
+    
+    /// Is buffered initialized 
     bool IsInit() const { return ValV.Len() == BufferLen; }
     /// Resets the buffer
     void Reset() { NextValN = 0; ValV.Gen(0); }
@@ -488,7 +488,7 @@ public:
     bool Empty() const { return ValV.Empty(); }
     /// Number of elements at the moment
     int Len() const { return ValV.Len(); }
-
+        
     /// Get values from buffer (older values = larger index):
     ///  example buffer = [x_(t-3) x_(t-2) x_(t-1) x_t] => GetVal(i) returns x_(t-1)
     const TVal& GetVal(const int& ValN) const {
@@ -686,10 +686,10 @@ class TPreviousPoint : public TBufferedInterpolator {
 private:
     TPreviousPoint();
     TPreviousPoint(TSIn& SIn);
-public:
+public: 
     static PInterpolator New() { return new TPreviousPoint; }
     static PInterpolator New(TSIn& SIn) { return new TPreviousPoint(SIn); }
-
+    
     void SetNextInterpTm(const uint64& Time);
     double Interpolate(const uint64& TmMSecs) const;
     bool CanInterpolate(const uint64& Tm) const;
@@ -723,7 +723,7 @@ class TLinear : public TBufferedInterpolator {
 private:
     TLinear();
     TLinear(TSIn& SIn);
-public:
+public: 
     static PInterpolator New() { return new TLinear; }
     static PInterpolator New(TSIn& SIn) { return new TLinear(SIn); }
 
@@ -742,7 +742,7 @@ ClassTP(TNNet, PNNet) //{
 private:
     /////////////////////////////////////////
     // Neural Networks - Neuron
-    class TLayer;
+    class TLayer;    
     class TNeuron {
     private:
         static TRnd Rnd; //TODO: initialize it in the constructor with the 0
@@ -757,7 +757,7 @@ private:
         TTFunc TFuncNm; // transfer function name
         TFltV SumDeltaWeight;
         // hash containing weight[0] and delta weight[1] for each outgoing edge
-        TVec<TIntFltFltTr> OutEdgeV;
+        TVec<TIntFltFltTr> OutEdgeV; 
         // Id of this neuron
         TInt Id;
 
@@ -817,8 +817,8 @@ private:
         void Save(TSOut& SOut);
     };
 
-    TVec<TLayer> LayerV;
-    TFlt LearnRate; // [0.0..1.0] learning rate
+    TVec<TLayer> LayerV; 
+    TFlt LearnRate; // [0.0..1.0] learning rate 
     TFlt Momentum; // [0.0..n] multiplier of last weight change
     TFlt Error;
     TFlt RecentAvgError;
@@ -827,11 +827,11 @@ private:
 
 public:
     // constructor
-    TNNet(const TIntV& LayoutV, const TFlt& _LearnRate = 0.1,
+    TNNet(const TIntV& LayoutV, const TFlt& _LearnRate = 0.1, 
             const TFlt& _Momentum = 0.5, const TTFunc& TFuncHiddenL = tanHyper,
             const TTFunc& TFuncOutL = tanHyper);
     TNNet(TSIn& SIn); // JOST: A rabim tudi nov PNNet za ta konstruktor?===
-    static PNNet New(const TIntV& LayoutV, const TFlt& _LearnRate = 0.1,
+    static PNNet New(const TIntV& LayoutV, const TFlt& _LearnRate = 0.1, 
             const TFlt& _Momentum = 0.5, const TTFunc& TFuncHiddenL = tanHyper,
             const TTFunc& TFuncOutL = tanHyper)
             { return new TNNet(LayoutV, _LearnRate, _Momentum, TFuncHiddenL, TFuncOutL); }
@@ -857,7 +857,7 @@ public:
     }
     TFlt GetLearnRate() { return LearnRate; }
     TFlt GetMomentum() { return Momentum; }
-    TStr GetTFuncHidden() {
+    TStr GetTFuncHidden() { 
         TStr FuncHidden = GetFunction(LayerV[1].GetNeuron(0).GetFunction());
         return FuncHidden;
     };
@@ -886,7 +886,7 @@ private:
     TRecLinReg(TSIn& SIn);
     // default constructor
     TRecLinReg(const int& Dim, const double& _RegFact = 1.0, const double& _ForgetFact = 1.0);
-public:
+public: 
     // new method
     static PRecLinReg New(const int& Dim, const double& RegFact, const double& ForgetFact)
             { return new TRecLinReg(Dim, RegFact, ForgetFact); }
@@ -894,7 +894,7 @@ public:
 
     virtual ~TRecLinReg() {}
 
-    void Save(TSOut& SOut) const;
+    void Save(TSOut& SOut) const;   
 
     // assign operator
     TRecLinReg& operator =(TRecLinReg LinReg);
@@ -941,7 +941,7 @@ private:
     TFlt Count; ///< Sum of counts
     // parameters
     TFlt MinCount; ///< If Count < MinCount, then IsInit returns false
-public:
+public: 
     /// Constructs uninitialized object
     TOnlineHistogram() {};
     /// Constructs given bin parameters
@@ -975,8 +975,8 @@ public:
     void GetCountV(TFltV& Vec) const { Vec = Counts; }
     /// Returns an element of count vector given index
     double GetCountN(const int& CountN) const { return Counts[CountN]; }
-	/// Returns an element of bound vector given index
-	double GetBoundN(const int& BoundN) const { return Bounds[BoundN]; }
+    /// Returns an element of bound vector given index
+    double GetBoundN(const int& BoundN) const { return Bounds[BoundN]; }
     /// Has the model beeen initialized and has sufficient data?
     bool IsInit() const { return Counts.Len() > 0 && Bounds.Len() > 0 && Count >= MinCount; }
     /// Clears the model
@@ -1092,7 +1092,7 @@ public:
 /////////////////////////////////////////////////
 /// Chi square
 class TChiSquare {
-private:
+private:         
     // state
     TFlt Chi2;
     TFlt P;
