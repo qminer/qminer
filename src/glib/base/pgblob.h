@@ -228,6 +228,7 @@ private:
 	TFAccess Access;
 	/// Random-access file - BLOB storage
 	FILE* FileId;
+    static char* EmptyPage;
 
 	/// Private constructor
 	TPgBlobFile(const TStr& _FNm, const TFAccess& _Access = faRdOnly,

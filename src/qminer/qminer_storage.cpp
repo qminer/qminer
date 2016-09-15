@@ -4891,6 +4891,11 @@ PJsonVal TStorePbBlob::GetStoreJson(const TWPt<TBase>& Base) const {
     return Result;
 }
 
+int TStorePbBlob::GetCodebookId(const int& FieldId, const TStr& Str) const {
+    const TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
+    return FieldSerializator->GetCodebookId(FieldId, Str);
+}
+
 /// Save part of the data, given time-window
 int TStorePbBlob::PartialFlush(int WndInMsec) {
     DataBlob->PartialFlush(WndInMsec);

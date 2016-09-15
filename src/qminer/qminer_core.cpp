@@ -2771,6 +2771,26 @@ bool TRecFilterByFieldStrSet::Filter(const TRec& Rec) const {
 }
 
 ///////////////////////////////
+/// Record Filter by String Field Set.
+TRecFilterByFieldStrSetUsingCodebook::TRecFilterByFieldStrSetUsingCodebook(const TWPt<TBase>& _Base, const int& _FieldId, const PStore& _Store, const TStrSet& StrSet, const bool& _FilterNullP) :
+    TRecFilterByField(_Base, _FieldId, _FilterNullP)
+{
+    // prepare a set of ints representing the string values specified in the StrSet
+    for (int KeyId = StrSet.FFirstKeyId(); StrSet.FNextKeyId(KeyId);) {
+        IntSet.AddKey(_Store->GetCodebookId(_FieldId, StrSet.GetKey(KeyId)));
+    }
+}
+
+/// Filter function
+bool TRecFilterByFieldStrSetUsingCodebook::Filter(const TRec& Rec) const {
+    bool RecNull = Rec.IsFieldNull(FieldId);
+    if (RecNull) { return !FilterNullP; }
+    const int RecVal = Rec.GetFieldInt(FieldId);
+    return IntSet.IsKey(RecVal);
+}
+
+
+///////////////////////////////
 /// Record Filter by Time Field. 
 TRecFilterByFieldTm::TRecFilterByFieldTm(const TWPt<TBase>& _Base, const int& _FieldId, const uint64& _MinVal,
     const uint64& _MaxVal, const bool& _FilterNullP): TRecFilterByField(_Base, _FieldId, _FilterNullP), MinVal(_MinVal), MaxVal(_MaxVal) { }
@@ -3722,7 +3742,11 @@ void TRecSet::FilterByFieldStr(const int& FieldId, const TStrSet& ValSet) {
     const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
     QmAssertR(Desc.IsStr(), "Wrong field type, string expected");
     // apply the filter
-    FilterBy<TRecFilterByFieldStrSet>(TRecFilterByFieldStrSet(Store->GetBase(), FieldId, ValSet));
+    if (Desc.IsCodebook()) {
+        FilterBy<TRecFilterByFieldStrSetUsingCodebook>(TRecFilterByFieldStrSetUsingCodebook(Store->GetBase(), FieldId, Store, ValSet));
+    } else {
+        FilterBy<TRecFilterByFieldStrSet>(TRecFilterByFieldStrSet(Store->GetBase(), FieldId, ValSet));
+    }
 }
 
 void TRecSet::FilterByFieldTm(const int& FieldId, const uint64& MinVal, const uint64& MaxVal) {

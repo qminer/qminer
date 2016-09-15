@@ -96,10 +96,17 @@ int TPgBlobPt::GetSecHashCd() const {
 
 ///////////////////////////////////////////////////////////////////////////
 
+char* TPgBlobFile::EmptyPage = NULL;
+
 /// Private constructor
 TPgBlobFile::TPgBlobFile(
 	const TStr& _FNm, const TFAccess& _Access, const uint32& _MxSegLen) {
 
+    // initialize the array used as the empty page
+    if (EmptyPage == NULL) {
+        EmptyPage = new char[PG_PAGE_SIZE];
+        memset(EmptyPage, 0, PG_PAGE_SIZE);
+    }
 	Access = _Access;
 	FNm = _FNm;
 	MxFileLen = _MxSegLen;
@@ -175,9 +182,10 @@ long TPgBlobFile::CreateNewPage() {
 		return -1;
 	}
 	// write to the end of file - take what-ever chunk of memory
-	char tc = 0;
-	EAssertR(
-		fwrite(&tc, 1, PG_PAGE_SIZE, FileId) == PG_PAGE_SIZE,
+    //memset(&tc, 0, PG_PAGE_SIZE);
+	//char tc[PG_PAGE_SIZE];
+    size_t written = fwrite(EmptyPage, PG_PAGE_SIZE, 1, FileId);
+	EAssertR(written == 1,
 		"Error writing file '" + TStr(FNm) + "'.");
 	return len / PG_PAGE_SIZE;
 }
