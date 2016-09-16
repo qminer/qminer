@@ -2148,6 +2148,8 @@ void TRecSerializator::SetFieldStr(const TMemBase& InRecMem,
             if (FieldSerialDesc.FieldId == FieldId) {
                 // check if value is toasted => we need to delete it
                 CheckToastDel(InRecMem, FieldSerialDesc);
+                // remove null flag, just in case
+                SetFieldNull(FixedMem, FieldSerialDesc, false);
                 // serialize to record buffer
                 SetFieldStr(FixedMem, VarSOut, FieldSerialDesc, Str);
             } else if (!FieldSerialDesc.FixedPartP) {
@@ -2172,6 +2174,8 @@ void TRecSerializator::SetFieldStrV(const TMemBase& InRecMem,
         if (FieldSerialDesc.FieldId == FieldId) {
             // check if value is toasted => we need to delete it
             CheckToastDel(InRecMem, FieldSerialDesc);
+            // remove null flag, just in case
+            SetFieldNull(FixedMem, FieldSerialDesc, false);
             // serialize to record buffer
             SetFieldStrV(FixedMem, VarSOut, FieldSerialDesc, StrV);
         } else if (!FieldSerialDesc.FixedPartP) {
@@ -2234,6 +2238,8 @@ void TRecSerializator::SetFieldFltV(const TMemBase& InRecMem,
         if (FieldSerialDesc.FieldId == FieldId) {
             // check if value is toasted => we need to delete it
             CheckToastDel(InRecMem, FieldSerialDesc);
+            // remove null flag, just in case
+            SetFieldNull(FixedMem, FieldSerialDesc, false);
             // serialize to record buffer
             SetFieldFltV(FixedMem, VarSOut, FieldSerialDesc, FltV);
         } else if (!FieldSerialDesc.FixedPartP) {
@@ -2277,6 +2283,8 @@ void TRecSerializator::SetFieldNumSpV(const TMemBase& InRecMem,
         if (FieldSerialDesc.FieldId == FieldId) {
             // check if value is toasted => we need to delete it
             CheckToastDel(InRecMem, FieldSerialDesc);
+            // remove null flag, just in case
+            SetFieldNull(FixedMem, FieldSerialDesc, false);
             // serialize to record buffer
             SetFieldNumSpV(FixedMem, VarSOut, FieldSerialDesc, SpV);
         } else if (!FieldSerialDesc.FixedPartP) {
@@ -2300,6 +2308,8 @@ void TRecSerializator::SetFieldBowSpV(const TMemBase& InRecMem,
         if (FieldSerialDesc.FieldId == FieldId) {
             // check if value is toasted => we need to delete it
             CheckToastDel(InRecMem, FieldSerialDesc);
+            // remove null flag, just in case
+            SetFieldNull(FixedMem, FieldSerialDesc, false);
             // serialize to record buffer
             SetFieldBowSpV(FixedMem, VarSOut, FieldSerialDesc, SpV);
         } else if (!FieldSerialDesc.FixedPartP) {
@@ -2323,6 +2333,8 @@ void TRecSerializator::SetFieldTMem(const TMemBase& InRecMem,
         if (FieldSerialDesc.FieldId == FieldId) {
             // check if value is toasted => we need to delete it
             CheckToastDel(InRecMem, FieldSerialDesc);
+            // remove null flag, just in case
+            SetFieldNull(FixedMem, FieldSerialDesc, false);
             // serialize to record buffer
             SetFieldTMem(FixedMem, VarSOut, FieldSerialDesc, Mem);
         } else if (!FieldSerialDesc.FixedPartP) {
@@ -2346,6 +2358,8 @@ void TRecSerializator::SetFieldJsonVal(const TMemBase& InRecMem,
         if (FieldSerialDesc.FieldId == FieldId) {
             // check if value is toasted => we need to delete it
             CheckToastDel(InRecMem, FieldSerialDesc);
+            // remove null flag, just in case
+            SetFieldNull(FixedMem, FieldSerialDesc, false);
             // serialize to record buffer
             SetFieldJsonVal(FixedMem, VarSOut, FieldSerialDesc, Json);
         } else if (!FieldSerialDesc.FixedPartP) {
