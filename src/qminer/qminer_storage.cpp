@@ -3438,7 +3438,9 @@ void TStoreImpl::DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK) {
     }
 
     // report success :-)
-    TEnv::Logger->OnStatusFmt("  %s records at end", TUInt64::GetStr(GetRecs()).CStr());
+    if (DelRecIdV.Len() > 1000) {
+        TEnv::Logger->OnStatusFmt("  %s records at end", TUInt64::GetStr(GetRecs()).CStr());
+    }
 }
 
 bool TStoreImpl::IsFieldNull(const uint64& RecId, const int& FieldId) const {
@@ -5233,12 +5235,6 @@ TStorePbBlob::~TStorePbBlob() {
         RecIdBlobPtH.Save(FOut);
         RecIdBlobPtHMem.Save(FOut);
         RecIdCounter.Save(FOut);
-
-        int Items1, EmptyItems1;
-        DataMem->GetOverheads(Items1, EmptyItems1);
-        int Items2, EmptyItems2;
-        DataBlob->GetOverheads(Items2, EmptyItems2);
-        TEnv::Logger->OnStatusFmt("Overheads: mem: %d/%d, blob: %d/%d", EmptyItems1, Items1, EmptyItems2, Items2);
     } else {
         TEnv::Logger->OnStatus("No saving of generic store " + GetStoreNm() + " neccessary!");
     }
