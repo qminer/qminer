@@ -1410,8 +1410,8 @@ public:
 
     /// Finds the bin index given val, returns -1 if not found
     int FindBin(const double& Val) const { return Model.FindBin(Val); }
-	/// Returns the bound
-	double GetBoundN(const int& BoundN) const { return Model.GetBoundN(BoundN); }
+    /// Returns the bound
+    double GetBoundN(const int& BoundN) const { return Model.GetBoundN(BoundN); }
 
     /// returns the number of bins
     int GetVals() const { return Model.GetBins(); }
