@@ -13,7 +13,7 @@
 #include "../nodeutil.h"
 #include "fs_nodejs.h"
 #include "la_nodejs.h"
-#include "qminer_ftr.h"
+#include "qminer_core.h"
 #include "../../glib/mine/mine.h"
 
 /**

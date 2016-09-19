@@ -75,3 +75,6 @@
 
 // non-negative matrix factorization
 #include "nmf.cpp"
+
+// kernel-density-estimation
+#include "kerneldensity.cpp"
