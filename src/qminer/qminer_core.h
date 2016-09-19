@@ -904,6 +904,9 @@ public:
     /// Prints all records with all the field values, useful for debugging
     void PrintAllAsJson(const TWPt<TBase>& Base, const TStr& FNm);
 
+    /// Get codebook mappings for given string field
+    virtual int GetCodebookId(const int& FieldId, const TStr& Str) const { throw TQmExcept::New("Not implemented"); }
+
     /// Save part of the data, given time-window
     virtual int PartialFlush(int WndInMsec = 500) { throw TQmExcept::New("Not implemented"); }
     /// Retrieve performance statistics for this store
@@ -1623,6 +1626,20 @@ private:
 public:
     /// Constructor
     TRecFilterByFieldStrSet(const TWPt<TBase>& _Base, const int& _FieldId, const TStrSet& _StrSet, const bool& _FilterNullP = true);
+    /// Filter function
+    bool Filter(const TRec& Rec) const;
+};
+
+///////////////////////////////
+/// Record filter by a set of strings in a set where the string field is using a codebook.
+class TRecFilterByFieldStrSetUsingCodebook : public TRecFilterByField {
+private:
+    /// String values
+    TIntSet IntSet;
+
+public:
+    /// Constructor
+    TRecFilterByFieldStrSetUsingCodebook(const TWPt<TBase>& _Base, const int& _FieldId, const PStore& _Store, const TStrSet& _StrSet, const bool& _FilterNullP = true);
     /// Filter function
     bool Filter(const TRec& Rec) const;
 };

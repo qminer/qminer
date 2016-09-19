@@ -2148,6 +2148,8 @@ void TRecSerializator::SetFieldStr(const TMemBase& InRecMem,
             if (FieldSerialDesc.FieldId == FieldId) {
                 // check if value is toasted => we need to delete it
                 CheckToastDel(InRecMem, FieldSerialDesc);
+                // remove null flag, just in case
+                SetFieldNull(FixedMem, FieldSerialDesc, false);
                 // serialize to record buffer
                 SetFieldStr(FixedMem, VarSOut, FieldSerialDesc, Str);
             } else if (!FieldSerialDesc.FixedPartP) {
@@ -2172,6 +2174,8 @@ void TRecSerializator::SetFieldStrV(const TMemBase& InRecMem,
         if (FieldSerialDesc.FieldId == FieldId) {
             // check if value is toasted => we need to delete it
             CheckToastDel(InRecMem, FieldSerialDesc);
+            // remove null flag, just in case
+            SetFieldNull(FixedMem, FieldSerialDesc, false);
             // serialize to record buffer
             SetFieldStrV(FixedMem, VarSOut, FieldSerialDesc, StrV);
         } else if (!FieldSerialDesc.FixedPartP) {
@@ -2234,6 +2238,8 @@ void TRecSerializator::SetFieldFltV(const TMemBase& InRecMem,
         if (FieldSerialDesc.FieldId == FieldId) {
             // check if value is toasted => we need to delete it
             CheckToastDel(InRecMem, FieldSerialDesc);
+            // remove null flag, just in case
+            SetFieldNull(FixedMem, FieldSerialDesc, false);
             // serialize to record buffer
             SetFieldFltV(FixedMem, VarSOut, FieldSerialDesc, FltV);
         } else if (!FieldSerialDesc.FixedPartP) {
@@ -2277,6 +2283,8 @@ void TRecSerializator::SetFieldNumSpV(const TMemBase& InRecMem,
         if (FieldSerialDesc.FieldId == FieldId) {
             // check if value is toasted => we need to delete it
             CheckToastDel(InRecMem, FieldSerialDesc);
+            // remove null flag, just in case
+            SetFieldNull(FixedMem, FieldSerialDesc, false);
             // serialize to record buffer
             SetFieldNumSpV(FixedMem, VarSOut, FieldSerialDesc, SpV);
         } else if (!FieldSerialDesc.FixedPartP) {
@@ -2300,6 +2308,8 @@ void TRecSerializator::SetFieldBowSpV(const TMemBase& InRecMem,
         if (FieldSerialDesc.FieldId == FieldId) {
             // check if value is toasted => we need to delete it
             CheckToastDel(InRecMem, FieldSerialDesc);
+            // remove null flag, just in case
+            SetFieldNull(FixedMem, FieldSerialDesc, false);
             // serialize to record buffer
             SetFieldBowSpV(FixedMem, VarSOut, FieldSerialDesc, SpV);
         } else if (!FieldSerialDesc.FixedPartP) {
@@ -2323,6 +2333,8 @@ void TRecSerializator::SetFieldTMem(const TMemBase& InRecMem,
         if (FieldSerialDesc.FieldId == FieldId) {
             // check if value is toasted => we need to delete it
             CheckToastDel(InRecMem, FieldSerialDesc);
+            // remove null flag, just in case
+            SetFieldNull(FixedMem, FieldSerialDesc, false);
             // serialize to record buffer
             SetFieldTMem(FixedMem, VarSOut, FieldSerialDesc, Mem);
         } else if (!FieldSerialDesc.FixedPartP) {
@@ -2346,6 +2358,8 @@ void TRecSerializator::SetFieldJsonVal(const TMemBase& InRecMem,
         if (FieldSerialDesc.FieldId == FieldId) {
             // check if value is toasted => we need to delete it
             CheckToastDel(InRecMem, FieldSerialDesc);
+            // remove null flag, just in case
+            SetFieldNull(FixedMem, FieldSerialDesc, false);
             // serialize to record buffer
             SetFieldJsonVal(FixedMem, VarSOut, FieldSerialDesc, Json);
         } else if (!FieldSerialDesc.FixedPartP) {
@@ -3438,7 +3452,9 @@ void TStoreImpl::DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK) {
     }
 
     // report success :-)
-    TEnv::Logger->OnStatusFmt("  %s records at end", TUInt64::GetStr(GetRecs()).CStr());
+    if (DelRecIdV.Len() > 1000) {
+        TEnv::Logger->OnStatusFmt("  %s records at end", TUInt64::GetStr(GetRecs()).CStr());
+    }
 }
 
 bool TStoreImpl::IsFieldNull(const uint64& RecId, const int& FieldId) const {
@@ -4891,6 +4907,11 @@ PJsonVal TStorePbBlob::GetStoreJson(const TWPt<TBase>& Base) const {
     return Result;
 }
 
+int TStorePbBlob::GetCodebookId(const int& FieldId, const TStr& Str) const {
+    const TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
+    return FieldSerializator->GetCodebookId(FieldId, Str);
+}
+
 /// Save part of the data, given time-window
 int TStorePbBlob::PartialFlush(int WndInMsec) {
     DataBlob->PartialFlush(WndInMsec);
@@ -5051,7 +5072,7 @@ void TStorePbBlob::DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK) {
     }
 
     // report success :-)
-    TEnv::Logger->OnStatusFmt("  %s records at end", TUInt64::GetStr(GetRecs()).CStr());
+    //TEnv::Logger->OnStatusFmt("  %s records at end", TUInt64::GetStr(GetRecs()).CStr());
 }
 
 /// Initialize field location flags
@@ -5228,12 +5249,6 @@ TStorePbBlob::~TStorePbBlob() {
         RecIdBlobPtH.Save(FOut);
         RecIdBlobPtHMem.Save(FOut);
         RecIdCounter.Save(FOut);
-
-        int Items1, EmptyItems1;
-        DataMem->GetOverheads(Items1, EmptyItems1);
-        int Items2, EmptyItems2;
-        DataBlob->GetOverheads(Items2, EmptyItems2);
-        TEnv::Logger->OnStatusFmt("Overheads: mem: %d/%d, blob: %d/%d", EmptyItems1, Items1, EmptyItems2, Items2);
     } else {
         TEnv::Logger->OnStatus("No saving of generic store " + GetStoreNm() + " neccessary!");
     }
