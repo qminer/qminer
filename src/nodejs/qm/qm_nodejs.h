@@ -8,6 +8,16 @@
 #ifndef QMINER_QM_NODEJS
 #define QMINER_QM_NODEJS
 
+#include <node.h>
+#include <node_object_wrap.h>
+#include <qminer.h>
+#include "../la/la_nodejs.h"
+#include "../fs/fs_nodejs.h"
+#include "../nodeutil.h"
+
+#include "qm_nodejs_streamaggr.h"
+#include "qm_nodejs_store.h"
+
 ///////////////////////////////
 // NodeJs QMiner.
 // A factory of base objects
@@ -66,6 +76,14 @@ private:
     */
     //# exports.verbosity = function (level) { }
     JsDeclareFunction(verbosity);
+
+    /**
+    * Returns an JSON with two properties: "byClass" and "total". The "byClass" value is a JSON where
+    * each key is a class ID and each value is of the form { newFromCpp: number, newFromJs: number, destructorCalls: number}
+    * and the value of "total" is of the same form (aggregated over "byClass")    
+    */
+    //# exports.stats = function () { }
+    JsDeclareFunction(stats);
     
     /**
     * @typedef {Object} QMinerFlags
@@ -411,6 +429,7 @@ class TNodeJsBase : public node::ObjectWrap {
     friend class TNodeJsUtil;
 private:
     static v8::Persistent<v8::Function> Constructor;
+    ~TNodeJsBase() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 public:
     static const int MAX_BASES;
     static void Init(v8::Handle<v8::Object> Exports);
@@ -926,6 +945,7 @@ class TNodeJsStore : public node::ObjectWrap {
 private:
     // Node framework
     static v8::Persistent<v8::Function> Constructor;
+    ~TNodeJsStore() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 public: 
     // Node framework 
     static void Init(v8::Handle<v8::Object> exports);
@@ -1662,6 +1682,7 @@ class TNodeJsRec: public node::ObjectWrap {
 private:
     // Modified node framework: one record template per each base,storeId combination
     static TVec<TVec<v8::Persistent<v8::Function> > > BaseStoreIdConstructor;
+    ~TNodeJsRec() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 public:
     // Node framework 
     static void Init(const TWPt<TQm::TStore>& Store);
@@ -1879,6 +1900,7 @@ class TNodeJsRecByValV: public node::ObjectWrap {
 private:
     // Node framework
     static v8::Persistent<v8::Function> Constructor;
+    ~TNodeJsRecByValV() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 public:
     // Node framework
     static void Init(v8::Handle<v8::Object> Exports);
@@ -1985,6 +2007,7 @@ class TNodeJsRecSet: public node::ObjectWrap {
 private:
     // Node framework
     static v8::Persistent<v8::Function> Constructor;
+    ~TNodeJsRecSet() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 public:
     // Node framework 
     static void Init(v8::Handle<v8::Object> exports);
@@ -2879,6 +2902,7 @@ class TNodeJsStoreIter: public node::ObjectWrap {
 private:
     // Node framework
     static v8::Persistent<v8::Function> Constructor;
+
 public:
     // Node framework 
     static void Init(v8::Handle<v8::Object> exports);
@@ -2900,7 +2924,7 @@ public:
 public:
     
     // delete placeholder
-    ~TNodeJsStoreIter() { RecObj.Reset(); }
+    ~TNodeJsStoreIter() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; RecObj.Reset(); }
     
     /**
     * Moves to the next record.
@@ -2992,6 +3016,7 @@ class TNodeJsIndexKey: public node::ObjectWrap {
 private:
     // Node framework
     static v8::Persistent<v8::Function> Constructor;
+    ~TNodeJsIndexKey() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 public:
     // Node framework
     static void Init(v8::Handle<v8::Object> exports);
@@ -3428,6 +3453,7 @@ class TNodeJsFtrSpace : public node::ObjectWrap {
     friend class TNodeJsUtil;
 private:
     static v8::Persistent<v8::Function> Constructor;
+    ~TNodeJsFtrSpace() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 public:
     // Node framework
     static void Init(v8::Handle<v8::Object> exports);

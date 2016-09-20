@@ -9,91 +9,8 @@
 #define QMINER_NODEJS_UTILS_HPP
 
 
-//////////////////////////////////////////////////////
-// Node - Utilities
-PJsonVal TNodeJsUtil::GetObjToNmJson(const v8::Local<v8::Value>& Val) {
-    if (Val->IsObject()) {
-        // we don't allow functions in the JSON configuration
-        EAssertR(!Val->IsFunction(), "TNodeJsUtil::GetObjToNmJson: Cannot parse functions!");
-
-        // first check if we encountered an object that needs to be replaced with
-        // its name or ID. Is there a better way to do this??
-        const TStr ClassId = TNodeJsUtil::GetClass(Val->ToObject());
-
-        if (!ClassId.Empty()) {
-            if (ClassId == TNodeJsStreamAggr::GetClassId()) {
-                // convert StreamAggregates to their names
-                const TNodeJsStreamAggr* JsStreamAggr = TNodeJsUtil::Unwrap<TNodeJsStreamAggr>(Val->ToObject());
-                return TJsonVal::NewStr(JsStreamAggr->SA->GetAggrNm());
-            }
-            else if (ClassId == TNodeJsStore::GetClassId()) {
-                // convert stores to their names
-                const TNodeJsStore* JsStore = TNodeJsUtil::Unwrap<TNodeJsStore>(Val->ToObject());
-                return TJsonVal::NewStr(JsStore->Store->GetStoreNm());
-            }
-            else {
-                throw TExcept::New("Invalid class ID when parsing configuration: " + ClassId);
-            }
-        }
-        else if (Val->IsBooleanObject()) {
-            v8::Local<v8::BooleanObject> BoolObj = v8::Local<v8::BooleanObject>::Cast(Val);
-            return TJsonVal::NewBool(BoolObj->ValueOf());
-        }
-        else if (Val->IsNumberObject()) {
-            return TJsonVal::NewNum(Val->NumberValue());
-        }
-        else if (Val->IsStringObject() || Val->IsRegExp() || Val->IsDate()) {
-            return TJsonVal::NewStr(TStr(*v8::String::Utf8Value(Val->ToString())));
-        }
-        else if (Val->IsArray()) {
-            PJsonVal JsonArr = TJsonVal::NewArr();
-
-            v8::Array* Arr = v8::Array::Cast(*Val);
-            for (uint i = 0; i < Arr->Length(); i++) {
-                JsonArr->AddToArr(GetObjToNmJson(Arr->Get(i)));
-            }
-
-            return JsonArr;
-        }
-        else {  // general object with fields
-            PJsonVal JsonVal = TJsonVal::NewObj();
-            v8::Local<v8::Object> Obj = Val->ToObject();
-
-            v8::Local<v8::Array> FldNmV = Obj->GetOwnPropertyNames();
-            for (uint i = 0; i < FldNmV->Length(); i++) {
-                const TStr FldNm(*v8::String::Utf8Value(FldNmV->Get(i)->ToString()));
-                v8::Local<v8::Value> FldVal = Obj->Get(FldNmV->Get(i));
-
-                const PJsonVal FldJson = GetObjToNmJson(FldVal);
-                JsonVal->AddToObj(FldNm, FldJson);
-            }
-
-            return JsonVal;
-        }
-    }
-    else {  // primitive
-        if (Val->IsUndefined()) {
-            return TJsonVal::New();
-        }
-        else if (Val->IsNull()) {
-            return TJsonVal::NewNull();
-        }
-        else if (Val->IsBoolean()) {
-            return TJsonVal::NewBool(Val->BooleanValue());
-        }
-        else if (Val->IsNumber()) {
-            const double& NumVal = Val->NumberValue();
-            return TJsonVal::NewNum(NumVal);
-        }
-        else if (Val->IsString()) {
-            return TJsonVal::NewStr(TStr(*v8::String::Utf8Value(Val->ToString())));
-        }
-        else {
-            // TODO check for v8::Symbol
-            throw TExcept::New("TNodeJsUtil::GetObjJson: Unknown v8::Primitive type!");
-        }
-    }
-}
+ ////////////////////////////////////////////////////////
+ //// Node - Utilities
 
 template <class TClass>
 bool TNodeJsUtil::IsClass(const v8::Handle<v8::Object> Obj) {
@@ -114,7 +31,7 @@ TClass* TNodeJsUtil::GetArgUnwrapObj(const v8::FunctionCallbackInfo<v8::Value>& 
 
 template <class TClass>
 TClass* TNodeJsUtil::GetArgUnwrapObj(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent(); 
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
     // check we have the argument
     EAssertR(ArgN < Args.Length(), "GetArgUnwrapObj: Not enough arguments!");
@@ -125,7 +42,7 @@ TClass* TNodeJsUtil::GetArgUnwrapObj(const v8::FunctionCallbackInfo<v8::Value>& 
 
 template <class TClass>
 bool TNodeJsUtil::IsFldClass(v8::Local<v8::Object> Obj, const TStr& FldNm) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent(); 
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
     if (!IsObjFld(Obj, FldNm)) { return false; }
     v8::Handle<v8::Value> ValFld = Obj->Get(v8::String::NewFromUtf8(Isolate, FldNm.CStr()));
@@ -150,7 +67,7 @@ TClass* TNodeJsUtil::GetUnwrapFld(v8::Local<v8::Object> Obj, const TStr& FldNm) 
 
 template <class TType, class TSizeTy>
 void TNodeJsUtil::GetCppTmMSecsV(const TVec<TType, TSizeTy>& NodeJsTmMSecsV,
-        TVec<TUInt64, TSizeTy>& CppTmMSecs) {
+    TVec<TUInt64, TSizeTy>& CppTmMSecs) {
     TSizeTy Len = NodeJsTmMSecsV.Len();
 
     if (CppTmMSecs.Len() != Len) { CppTmMSecs.Gen(Len); }
@@ -175,7 +92,11 @@ void TNodeJsUtil::_NewJs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         TClass* Obj = TClass::NewFromArgs(Args);
         Obj->Wrap(Instance);
         Args.GetReturnValue().Set(Instance);
-    } catch (const PExcept& Except) {
+        // obj statistics
+        ObjNameH.AddDat(TClass::GetClassId()).Val2++;
+        ObjCount.Val2++;
+    }
+    catch (const PExcept& Except) {
         Isolate->ThrowException(v8::Exception::TypeError(
             v8::String::NewFromUtf8(Isolate, (TStr("[addon] Exception in constructor call, ClassId: ") + TClass::GetClassId() + ":" + Except->GetMsgStr()).CStr())));
     }
@@ -194,12 +115,15 @@ void TNodeJsUtil::_NewCpp(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         Instance->SetHiddenValue(key, value);
         // wrap is done elsewhere in cpp
         Args.GetReturnValue().Set(Instance);
+        // obj statistics
+        ObjNameH.AddDat(TClass::GetClassId()).Val1++;
+        ObjCount.Val1++;
     }
     catch (const PExcept& Except) {
         printf("%s\n", Except->GetMsgStr().CStr());
         throw Except;
-//      Isolate->ThrowException(v8::Exception::TypeError(
-//          v8::String::NewFromUtf8(Isolate, (TStr("[addon] Exception in constructor call, ClassId: ") + TClass::GetClassId() + ":" + Except->GetMsgStr()).CStr())));
+        //      Isolate->ThrowException(v8::Exception::TypeError(
+        //          v8::String::NewFromUtf8(Isolate, (TStr("[addon] Exception in constructor call, ClassId: ") + TClass::GetClassId() + ":" + Except->GetMsgStr()).CStr())));
 
     }
 }
@@ -252,9 +176,10 @@ TClass* TNodeJsUtil::UnwrapCheckWatcher(v8::Handle<v8::Object> Arg) {
 // Node - Asynchronous Utilities
 template <typename THandle>
 void TNodeJsAsyncUtil::InternalDelHandle(uv_handle_t* Handle) {
-    THandle* Async = (THandle*) Handle;
+    THandle* Async = (THandle*)Handle;
     delete Async;
 }
+
 
 #endif
 

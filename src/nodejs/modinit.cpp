@@ -7,24 +7,6 @@
  */
 #include "modinit.h"
 
-#include "base.cpp"
-
-#include "streamstory.cpp"
-#include "Snap.cpp"
-
-#include "nodeutil.cpp"
-#include "fs_nodejs.cpp"
-#include "la_structures_nodejs.cpp"
-#include "la_nodejs.cpp"
-#include "ht_nodejs.cpp"
-#include "analytics.cpp"
-#include "stat_nodejs.cpp"
-#include "snap_nodejs.cpp"
-#include "qm_nodejs_streamaggr.cpp"
-#include "qm_nodejs_store.cpp"
-#include "qm_nodejs.cpp"
-#include "streamstory_node.cpp"
-
 using namespace v8;
 
 void InitFs(Handle<Object> Exports, const TStr& NsNm) {
