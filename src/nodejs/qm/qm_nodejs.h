@@ -3133,7 +3133,7 @@ public:
 * @typedef {Object} FeatureExtractorNumeric
 * The feature extractor of type `'numeric'`. Used for constructing {@link module:qm.FeatureSpace} objects.
 * @property {string} type - The type of the extractor. <b>Important</b>: It must be equal `'numeric'`.
-* @property {boolean} [normalize = 'false'] - Normalize values between 0.0 and 1.0.
+* @property {string} [normalize = 'none'] - Normalize values between 0.0 and 1.0 if set to `'scale'`. Standardize values to mean = 0 and sdiv = 1 if set to `'var'`.
 * @property {number} [min] - The minimal value used to form the normalization.
 * @property {number} [max] - The maximal value used to form the normalization.
 * @property {string} field - The name of the field from which to take the value.
@@ -3153,7 +3153,7 @@ public:
 * });
 * // create a feature space containing the numeric extractor, where the values are
 * // normalized, the values are taken from the field "Grade"
-* var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "Class", normalize: true, field: "Grade" });
+* var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "Class", normalize: "scale", field: "Grade" });
 * base.close();
 */
 
