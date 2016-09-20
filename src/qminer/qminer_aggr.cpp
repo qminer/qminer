@@ -1652,7 +1652,7 @@ TFtrExtAggr::TFtrExtAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TSt
     // pares parameters
     InitCount = ParamVal->GetObjInt("initCount", 0);
     UpdateP = ParamVal->GetObjBool("update", true);
-    FullP = ParamVal->GetObjBool("full", false);
+    FullP = ParamVal->GetObjBool("full", true);
     SparseP = ParamVal->GetObjBool("sparse", true);
     // define feature space
     ParamVal->AssertObjKey("featureSpace", __FUNCTION__);

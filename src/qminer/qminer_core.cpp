@@ -6493,6 +6493,7 @@ void TStreamAggr::Init() {
     Register<TStreamAggrs::TMerger>();
     Register<TStreamAggrs::TResampler>();
     Register<TStreamAggrs::TUniVarResampler>();
+    Register<TStreamAggrs::TFtrExtAggr>();
     Register<TStreamAggrs::TOnlineHistogram>();
     Register<TStreamAggrs::TTDigest>();
     Register<TStreamAggrs::TChiSquare>();

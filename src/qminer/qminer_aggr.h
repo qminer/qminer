@@ -1393,10 +1393,24 @@ public:
     PJsonVal SaveJson(const int& Limit) const;
 
     /// Stream aggregator type name 
-    static TStr GetType() { return "featureExtraction"; }
+    static TStr GetType() { return "featureSpace"; }
     /// Stream aggregator type name 
     TStr Type() const { return GetType(); }
 };
+
+///////////////////////////////
+/// Histogram stream aggregate.
+// class TNNAnomalyAggr: public TStreamAggr {
+// private:
+//     TAnomalyDetection::TNearestNeighbor Model;
+    
+//     /// JSON constructor
+//     TNNAnomalyAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+// public:
+//     /// JSON constructor
+//     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+  
+// };
 
 ///////////////////////////////
 /// Histogram stream aggregate.
