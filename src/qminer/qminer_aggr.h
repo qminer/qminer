@@ -1406,7 +1406,7 @@ public:
  private:
 	 // Input aggregate
 	 TWPt<TStreamAggr> InAggrTm;
-	 /// Input aggregate casted to time series
+	 /// Input aggregate casted to time value
 	 TWPt<TStreamAggrOut::ITm> InAggrValTm;
 	 // Input aggregate
 	 TWPt<TStreamAggr> InAggrSparseVec;
@@ -1416,11 +1416,10 @@ public:
 	 //the NN anomaly detector object
      TAnomalyDetection::TNearestNeighbor Model;
 
+	 //details about the last alarm
 	 TUInt64 LastTimeStamp;
 	 TInt LastSeverity;
 	 PJsonVal Explanation;
-
-	 bool NewAlarmP;
     
      /// JSON constructor
      TNNAnomalyAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
@@ -1432,12 +1431,12 @@ public:
      static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal){
 		 return new TNNAnomalyAggr(Base, ParamVal); }
 
+	 //implement TStreamAggr functions
 	 PJsonVal GetParam() const;
 	 void SetParam(const PJsonVal& ParamVal);
 
 	 /// Did we finish initialization
-	 bool IsInit() const { return Model.IsInit(); }
-	 bool IsNewAlarm() const { return NewAlarmP; }
+	 bool IsInit() const { return Model.IsInit(); }	
 	 void Reset() { throw TQmExcept::New("TNearestNeighbor::Reset() not implemented!"); }
 
 	 /// Load stream aggregate state from stream
