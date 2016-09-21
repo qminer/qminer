@@ -8,6 +8,13 @@
 #ifndef QMINER_STAT_NODEJS
 #define QMINER_STAT_NODEJS
 
+#include <node.h>
+#include <node_object_wrap.h>
+#include "base.h"
+#include "../nodeutil.h"
+#include "../la/la_nodejs.h"
+#include "../fs/fs_nodejs.h"
+
 ///////////////////////////////
 // NodeJs-Qminer-Stat
 
