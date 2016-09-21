@@ -1209,6 +1209,9 @@ private:
     // return the memory containig the field for the record and mark it as dirty
     TThinMIn GetEditableField(const uint64& RecId, const int& FieldId);
 
+    // given the recid and the fieldid get the memory that contains it, get blob that contains it and the page blob pointer
+    void GetRecData(const uint64& RecId, const int& FieldId, TMemBase& Mem, THash<TUInt64, TPgBlobPt>* &RecIdBlobPtr, PPgBlob& Blob, TPgBlobPt& PgPt);
+
 public:
     TStorePbBlob(const TWPt<TBase>& _Base, const uint& StoreId,
         const TStr& StoreName, const TStoreSchema& StoreSchema,
