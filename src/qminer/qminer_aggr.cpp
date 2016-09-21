@@ -1542,7 +1542,7 @@ PJsonVal TUniVarResampler::GetParam() const {
     PJsonVal ParamVal = TJsonVal::NewObj();
 
     if (!InAggr.Empty()) {
-        ParamVal->AddToObj("inAggr", OutAggr->GetAggrNm());
+        ParamVal->AddToObj("inAggr", InAggr->GetAggrNm());
     } else {
         ParamVal->AddToObj("inAggr", TJsonVal::NewNull());
     }
@@ -1708,6 +1708,87 @@ PJsonVal TFtrExtAggr::SaveJson(const int& Limit) const {
     if (FullP) { Val->AddToObj("full", TJsonVal::NewArr(FullVec)); }
     if (SparseP) { Val->AddToObj("sparse", TJsonVal::NewArr(SpVec)); }
     return Val;
+}
+
+///////////////////////////////
+/// Nearest Neighbor for Anomaly Detection stream aggregate.
+void TNNAnomalyAggr::OnStep() {}
+
+TNNAnomalyAggr::TNNAnomalyAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal) :
+	TStreamAggr(Base, ParamVal){
+	SetParam(ParamVal);
+}
+
+PJsonVal TNNAnomalyAggr::GetParam() const {
+	PJsonVal ParamVal = TJsonVal::NewObj();
+
+	if (!InAggr.Empty()) {
+		ParamVal->AddToObj("inAggr", InAggr->GetAggrNm());
+	}
+	else {
+		ParamVal->AddToObj("inAggr", TJsonVal::NewNull());
+	}
+
+	if (!OutAggr.Empty()) {
+		ParamVal->AddToObj("outAggr", OutAggr->GetAggrNm());
+	}
+	else {
+		ParamVal->AddToObj("outAggr", TJsonVal::NewNull());
+	}
+
+	ParamVal->AddToObj("rate", TJsonVal::NewArr(Model.GetRateV()));
+	ParamVal->AddToObj("windowSize", Model.GetWindowSize());
+
+	return ParamVal;
+}
+
+void TNNAnomalyAggr::SetParam(const PJsonVal& ParamVal) {
+	//parse aggregator parameters
+	if (ParamVal->IsObjKey("inAggr")) {
+		const TStr AggrNm = ParamVal->GetObjStr("inAggr");
+		EAssert(GetBase()->IsStreamAggr(AggrNm));
+		InAggr = GetBase()->GetStreamAggr(AggrNm);		
+		//InAggrStrFltKd = Cast<TStreamAggrOut::IFlt>(InAggr, false);
+	}
+
+	if (ParamVal->IsObjKey("outAggr")) {
+		const TStr AggrNm = ParamVal->GetObjStr("outAggr");
+		EAssert(GetBase()->IsStreamAggr(AggrNm));
+		OutAggr = GetBase()->GetStreamAggr(AggrNm);
+	}
+
+	// parse rate parameter(s)
+	TFltV RateV;
+	if (ParamVal->IsObjKey("rate")) {
+		// check if we get single number or array of numbers
+		if (ParamVal->GetObjKey("rate")->IsNum()) {
+			// we have a number
+			RateV.Add(ParamVal->GetObjNum("rate"));
+		}
+		else {
+			// must be an array
+			ParamVal->GetObjFltV("rate", RateV);
+		}
+	}
+	// if empty, use 0.05
+	if (RateV.Empty()) { RateV.Add(0.05); }
+	// create model
+	Model = TAnomalyDetection::TNearestNeighbor(RateV, ParamVal->GetObjInt("windowSize", 100));
+}
+
+/// Load from stream
+void TNNAnomalyAggr::LoadState(TSIn& SIn) {
+	Model = TAnomalyDetection::TNearestNeighbor(SIn);
+}
+
+/// Store state into stream
+void TNNAnomalyAggr::SaveState(TSOut& SOut) const {
+	Model.Save(SOut);
+}
+
+PJsonVal TNNAnomalyAggr::SaveJson(const int& Limit) const {
+	PJsonVal Val = TJsonVal::NewObj();
+	return Val;
 }
 
 ///////////////////////////////

@@ -79,7 +79,7 @@ TNearestNeighbor::TNearestNeighbor(const TFltV& _RateV, const int& _WindowSize):
 TNearestNeighbor::TNearestNeighbor(TSIn& SIn): RateV(SIn), WindowSize(SIn), Mat(SIn),
     DistV(SIn), DistColV(SIn), ThresholdV(SIn), InitVecs(SIn), NextCol(SIn), IDVec(SIn) { }
 
-void TNearestNeighbor::Save(TSOut& SOut) {
+void TNearestNeighbor::Save(TSOut& SOut) const {
     RateV.Save(SOut);
     WindowSize.Save(SOut);
     Mat.Save(SOut);

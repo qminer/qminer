@@ -1399,18 +1399,46 @@ public:
 };
 
 ///////////////////////////////
-/// Histogram stream aggregate.
-// class TNNAnomalyAggr: public TStreamAggr {
-// private:
-//     TAnomalyDetection::TNearestNeighbor Model;
+/// Nearest Neighbor for Anomaly Detection stream aggregate.
+ class TNNAnomalyAggr: public TStreamAggr {
+ private:
+	 // Input aggregate
+	 TWPt<TStreamAggr> InAggr;
+	 // output aggregate
+	 TWPt<TStreamAggr> OutAggr;
+
+	 //the NN anomaly detector object
+     TAnomalyDetection::TNearestNeighbor Model;
     
-//     /// JSON constructor
-//     TNNAnomalyAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
-// public:
-//     /// JSON constructor
-//     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
-  
-// };
+     /// JSON constructor
+     TNNAnomalyAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+ protected:
+	 /// Update NN anomaly detector
+	 void OnStep();
+ public:
+     /// JSON constructor
+     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal){
+		 return new TNNAnomalyAggr(Base, ParamVal); }
+
+	 PJsonVal GetParam() const;
+	 void SetParam(const PJsonVal& ParamVal);
+
+	 /// Did we finish initialization
+	 bool IsInit() const { return Model.IsInit(); }
+	 void Reset() { throw TQmExcept::New("TNearestNeighbor::Reset() not implemented!"); }
+
+	 /// Load stream aggregate state from stream
+	 void LoadState(TSIn& SIn);
+	 /// Save state of stream aggregate to stream
+	 void SaveState(TSOut& SOut) const;
+
+	 PJsonVal SaveJson(const int& Limit) const;
+
+	 /// Stream aggregator type name 
+	 static TStr GetType() { return "nnAnomalyDetector"; }
+	 /// Stream aggregator type name 
+	 TStr Type() const { return GetType(); }
+ };
 
 ///////////////////////////////
 /// Histogram stream aggregate.

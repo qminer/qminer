@@ -7,7 +7,7 @@
  */
 
 /////////////////////////////////////////////
-/// Annomaly Detection methods
+/// Anomaly Detection methods
 namespace TAnomalyDetection {
 
 /////////////////////////////////////////////
@@ -46,7 +46,7 @@ public:
     TNearestNeighbor(const TFltV& _RateV, const int& WindowSize);
 
     TNearestNeighbor(TSIn& SIn);
-    void Save(TSOut& SOut);
+    void Save(TSOut& SOut) const;
 
     /// Add new element to the model, provide a record ID (for explanation purposes)
     void PartialFit(const TIntFltKdV& Vec, const int& RecId = -1);	
