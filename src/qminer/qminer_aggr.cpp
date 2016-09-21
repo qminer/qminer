@@ -1712,7 +1712,19 @@ PJsonVal TFtrExtAggr::SaveJson(const int& Limit) const {
 
 ///////////////////////////////
 /// Nearest Neighbor for Anomaly Detection stream aggregate.
-void TNNAnomalyAggr::OnStep() {}
+void TNNAnomalyAggr::OnStep() {
+	if (InAggrTm->IsInit() && InAggrSparseVec->IsInit()) {
+		LastTimeStamp = InAggrValTm->GetTmMSecs();
+		TIntFltKdV Vals; InAggrValSparseVec->GetSparseVec(Vals);
+		LastSeverity = Model.Predict(Vals); //, InAggrTm->GetTmMSecs());
+		if (LastSeverity > 0) {
+			Explanation = Model.Explain(Vals); NewAlarmP = true;
+		} else {
+			Explanation = TJsonVal::NewObj(); NewAlarmP = false;
+		}
+		Model.PartialFit(Vals);
+	}
+}
 
 TNNAnomalyAggr::TNNAnomalyAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal) :
 	TStreamAggr(Base, ParamVal){
@@ -1722,18 +1734,15 @@ TNNAnomalyAggr::TNNAnomalyAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal
 PJsonVal TNNAnomalyAggr::GetParam() const {
 	PJsonVal ParamVal = TJsonVal::NewObj();
 
-	if (!InAggr.Empty()) {
-		ParamVal->AddToObj("inAggr", InAggr->GetAggrNm());
+	if (!InAggrTm.Empty()) {
+		ParamVal->AddToObj("inAggrTm", InAggrTm->GetAggrNm());
+	} else {
+		ParamVal->AddToObj("inAggrTm", TJsonVal::NewNull());
 	}
-	else {
-		ParamVal->AddToObj("inAggr", TJsonVal::NewNull());
-	}
-
-	if (!OutAggr.Empty()) {
-		ParamVal->AddToObj("outAggr", OutAggr->GetAggrNm());
-	}
-	else {
-		ParamVal->AddToObj("outAggr", TJsonVal::NewNull());
+	if (!InAggrSparseVec.Empty()) {
+		ParamVal->AddToObj("inAggrSpV", InAggrSparseVec->GetAggrNm());
+	} else {
+		ParamVal->AddToObj("inAggrSpV", TJsonVal::NewNull());
 	}
 
 	ParamVal->AddToObj("rate", TJsonVal::NewArr(Model.GetRateV()));
@@ -1744,17 +1753,17 @@ PJsonVal TNNAnomalyAggr::GetParam() const {
 
 void TNNAnomalyAggr::SetParam(const PJsonVal& ParamVal) {
 	//parse aggregator parameters
-	if (ParamVal->IsObjKey("inAggr")) {
-		const TStr AggrNm = ParamVal->GetObjStr("inAggr");
+	if (ParamVal->IsObjKey("inAggrTm")) {
+		const TStr AggrNm = ParamVal->GetObjStr("inAggrTm");
 		EAssert(GetBase()->IsStreamAggr(AggrNm));
-		InAggr = GetBase()->GetStreamAggr(AggrNm);		
-		//InAggrStrFltKd = Cast<TStreamAggrOut::IFlt>(InAggr, false);
+		InAggrTm = GetBase()->GetStreamAggr(AggrNm);
+		InAggrValTm = Cast<TStreamAggrOut::ITm>(InAggrTm);
 	}
-
-	if (ParamVal->IsObjKey("outAggr")) {
-		const TStr AggrNm = ParamVal->GetObjStr("outAggr");
+	if (ParamVal->IsObjKey("inAggrSpV")) {
+		const TStr AggrNm = ParamVal->GetObjStr("inAggrSpV");
 		EAssert(GetBase()->IsStreamAggr(AggrNm));
-		OutAggr = GetBase()->GetStreamAggr(AggrNm);
+		InAggrSparseVec = GetBase()->GetStreamAggr(AggrNm);
+		InAggrValSparseVec = Cast<TStreamAggrOut::ISparseVec>(InAggrSparseVec);
 	}
 
 	// parse rate parameter(s)
@@ -1779,16 +1788,21 @@ void TNNAnomalyAggr::SetParam(const PJsonVal& ParamVal) {
 /// Load from stream
 void TNNAnomalyAggr::LoadState(TSIn& SIn) {
 	Model = TAnomalyDetection::TNearestNeighbor(SIn);
+	LastTimeStamp.Load(SIn);
+	LastSeverity.Load(SIn);
+	Explanation = new TJsonVal(SIn);
 }
 
 /// Store state into stream
 void TNNAnomalyAggr::SaveState(TSOut& SOut) const {
 	Model.Save(SOut);
+	LastTimeStamp.Save(SOut);
+	LastSeverity.Save(SOut);
+	Explanation.Save(SOut);
 }
 
 PJsonVal TNNAnomalyAggr::SaveJson(const int& Limit) const {
-	PJsonVal Val = TJsonVal::NewObj();
-	return Val;
+	return Explanation;
 }
 
 ///////////////////////////////
