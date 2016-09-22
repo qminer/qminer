@@ -102,10 +102,12 @@ char* TPgBlobFile::EmptyPage = NULL;
 TPgBlobFile::TPgBlobFile(
     const TStr& _FNm, const TFAccess& _Access, const uint32& _MxSegLen) {
 
-    // initialize the array used as the empty page
+    // initialize the array used as the empty page - it is stored to disk when new page is allocated
     if (EmptyPage == NULL) {
         EmptyPage = new char[PG_PAGE_SIZE];
         memset(EmptyPage, 0, PG_PAGE_SIZE);
+        TPgBlob::InitPageP(EmptyPage);
+        ((TPgBlob::TPgHeader*)EmptyPage)->SetDirty(false);
     }
     Access = _Access;
     FNm = _FNm;
@@ -130,6 +132,7 @@ TPgBlobFile::TPgBlobFile(
     default:
         break;
     }
+    PgCnt = TFile::GetSize(FNm) / PG_PAGE_SIZE;
 }
 
 /// Destructor
@@ -181,12 +184,9 @@ long TPgBlobFile::CreateNewPage() {
     if (MxFileLen > 0 && len >= MxFileLen) {
         return -1;
     }
-    // write to the end of file - take what-ever chunk of memory
-    //memset(&tc, 0, PG_PAGE_SIZE);
-    //char tc[PG_PAGE_SIZE];
     size_t written = fwrite(EmptyPage, PG_PAGE_SIZE, 1, FileId);
-    EAssertR(written == 1,
-        "Error writing file '" + TStr(FNm) + "'.");
+    EAssertR(written == 1, "Error writing file '" + TStr(FNm) + "'.");
+    PgCnt++;
     return len / PG_PAGE_SIZE;
 }
 
@@ -412,7 +412,7 @@ void TPgBlob::MoveToStartLru(int Pg) {
         // it's ok, already at start LRU
     } else {
         UnlistFromLru(Pg);
-        EnlistToEndLru(Pg);
+        EnlistToStartLru(Pg);
     }
 }
 
@@ -426,7 +426,7 @@ void TPgBlob::MoveToEndLru(int Pg) {
         // it's ok, already at end LRU
     } else {
         UnlistFromLru(Pg);
-        EnlistToStartLru(Pg);
+        EnlistToEndLru(Pg);
     }
 }
 
@@ -441,6 +441,7 @@ int TPgBlob::Evict() {
     }
     LoadedPage& a = LoadedPages[Pg];
     UnlistFromLru(Pg);
+    //printf("evict pg=%d\n", a.Pt.GetPg());
     LoadedPagesH.DelKey(a.Pt);
     char* PgPt = GetPageBf(Pg);
     if (ShouldSavePageP(PgPt)) {
@@ -459,6 +460,7 @@ char* TPgBlob::LoadPage(const TPgBlobPgPt& Pt, const bool& LoadData) {
         return GetPageBf(Pg);
     }
     if ((uint64)LoadedPages.Len() == MxLoadedPages) {
+        //printf("load pg=%d\n", Pt.GetPg());
         // evict last page + load new page
         Pg = Evict();
         LoadedPage& a = LoadedPages[Pg];
@@ -579,6 +581,9 @@ TPgBlobPt TPgBlob::Put(const char* Bf, const int& BfL) {
     } else {
         Fsm.FsmUpdatePage(PgPt, PgH->GetFreeMem());
     }
+    //if (Pt.GetPg() == 52 && Pt.GetIIx() == 2) {
+    //    printf("********************************Created 52/2\n");
+    //}
     return Pt;
 }
 
@@ -586,6 +591,9 @@ TPgBlobPt TPgBlob::Put(const char* Bf, const int& BfL) {
 TPgBlobPt TPgBlob::Put(
     const char* Bf, const int& BfL, const TPgBlobPt& Pt) {
     IAssert(Access != TFAccess::faRdOnly);
+    //if (Pt.GetPg() == 52 && Pt.GetIIx() == 2) {
+    //    printf("********************************Updating 52/2\n");
+    //}
 
     // find page
     char* PgBf = NULL;
@@ -622,12 +630,20 @@ TPgBlobPt TPgBlob::Put(
         TPgBlobPt Pt2(PgPt.GetFIx(), PgPt.GetPg(), ii);
         PgH = (TPgHeader*)PgBf;
         Fsm.FsmAddPage(PgPt, PgH->GetFreeMem());
+
+        //if (Pt2.GetPg() == 52 && Pt2.GetIIx() == 2) {
+        //    printf("********************************Reusing 52/2\n");
+        //}
+
         return Pt2;
     }
 }
 
 /// Retrieve BLOB from storage
 TThinMIn TPgBlob::Get(const TPgBlobPt& Pt) {
+    //if (Pt.GetPg() == 52 && Pt.GetIIx() == 2) {
+    //    printf("********************************Getting 52/2\n");
+    //}
     char* Pg = LoadPage(Pt);
     TPgBlobPageItem* Item = GetItemRec(Pg, Pt.GetIIx());
     char* Data;
@@ -639,7 +655,9 @@ TThinMIn TPgBlob::Get(const TPgBlobPt& Pt) {
 /// Delete BLOB from storage
 void TPgBlob::Del(const TPgBlobPt& Pt) {
     IAssert(Access != TFAccess::faRdOnly);
-
+    if (Pt.GetPg() == 52 && Pt.GetIIx() == 2) {
+        printf("********************************Deleting 52/2\n");
+    }
     // find page
     TPgBlobPgPt PgPt = Pt;
     char* PgBf = LoadPage(PgPt);
@@ -647,7 +665,7 @@ void TPgBlob::Del(const TPgBlobPt& Pt) {
 
     DeleteItem(PgBf, Pt.GetIIx());
     if (PgH->ItemCount == 0) {
-        // optimization - empty pages are to be flushed as fast a s possible
+        // optimization - empty pages are to be flushed as fast as possible
         MoveToEndLru(Pt.GetPg());
     }
     Fsm.FsmUpdatePage(PgPt, PgH->GetFreeMem());
@@ -718,14 +736,67 @@ PJsonVal TPgBlob::GetStats() {
     return res;
 }
 
+/// This function verifies single page - buffer already loaded in memory
+void TPgBlob::VerifyPage(char* Pg) {
+    TPgHeader* Header = (TPgHeader*)Pg;    
+    for (uint16 i = 0; i < Header->ItemCount; i++) {
+        TPgBlobPageItem* Item = GetItemRec(Pg, i);
+        if (Item->Len == 0) continue; // theoretically, this should not be needed, but there seems to be some scenario where it falls through
+        if (Item->Offset < Header->OffsetFreeEnd) {
+            PrintHeaderInfo(Pg);
+            EAssertR(false, "Invalid position of item - starts inside free space of a page");
+        }
+        if (Item->Offset + Item->Len > PG_PAGE_SIZE) {
+            PrintHeaderInfo(Pg);
+            EAssertR(false, "Invalid position of item - stretches over page");
+        }
+    }
+    for (uint16 i = 0; i < Header->ItemCount; i++) {
+        TPgBlobPageItem* Item1 = GetItemRec(Pg, i);
+        for (uint16 j = i + 1; j < Header->ItemCount; j++) {
+            TPgBlobPageItem* Item2 = GetItemRec(Pg, j);
+            if (Item1->Len == 0 || Item2->Len == 0) continue;
+            if ((Item1->Offset < Item2->Offset) && (Item1->Offset + Item1->Len > Item2->Offset)) {
+                PrintHeaderInfo(Pg);
+                printf("--Len1 %d, Offset1 %d, Len2 %d, Offset2 %d\n", Item1->Len, Item1->Offset, Item2->Len, Item2->Offset);
+                EAssertR(false, "Invalid position of item - items overlap");
+            }
+            if ((Item2->Offset < Item1->Offset) && (Item2->Offset + Item2->Len > Item1->Offset)) {
+                PrintHeaderInfo(Pg);
+                printf("-Len1 %d, Offset1 %d, Len2 %d, Offset2 %d\n", Item1->Len, Item1->Offset, Item2->Len, Item2->Offset);
+                EAssertR(false, "Invalid position of item - items overlap");
+            }
+        }
+    }
+}
+
+/// Scans all pages and verifies their internal structure
+void TPgBlob::RunVerification() {
+    TMemBase tmp(PG_PAGE_SIZE);
+    // pages on disk
+    for (int i = 0; i < Files.Len(); i++) {
+        auto File = Files[i];
+        for (uint32 j = 0; j < File->GetPgCnt(); j++) {
+            File->LoadPage(j, tmp.GetBf());
+            VerifyPage(tmp.GetBf());
+        }
+    }
+    // pages in memory
+    for (int i = 0; i < LoadedPages.Len(); i++) {
+        char* Pg = GetPageBf(i);
+        VerifyPage(Pg);
+    }
+}
 
 void TPgBlob::PrintHeaderInfo(char* Pg) {
     TPgHeader* Header = (TPgHeader*) Pg;
+    printf("===================================\n");
     printf("ItemCount %d, OffsetFreeEnd %d, OffsetFreeStart %d \n", Header->ItemCount, Header->OffsetFreeEnd, Header->OffsetFreeStart);
     for (int i = 0; i < Header->ItemCount; i++) {
         TPgBlobPageItem* Item = GetItemRec(Pg, i);
         printf("Len %d, Offset %d \n", Item->Len, Item->Offset);
     }
+    printf("===================================\n");
 }
 
 void TPgBlob::GetHeaderOverhead(char* Pg, int& Items, int& EmptyItems)
