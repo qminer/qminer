@@ -721,8 +721,8 @@ PJsonVal TPgBlob::GetStats() {
 
 void TPgBlob::PrintHeaderInfo(char* Pg) {
     TPgHeader* Header = (TPgHeader*) Pg;
-    printf("ItemCount %d, OffsetFreeEnd %d, OffsetFreeStart %d \n", Header->ItemCount, Header->OffsetFreeEnd, Header->OffsetFreeStart);
-    for (int i = 0; i < Header->ItemCount; i++) {
+    printf("ItemCount %d, OffsetFreeEnd %d, OffsetFreeStart %d \n", (int)Header->ItemCount, (int)Header->OffsetFreeEnd, (int)Header->OffsetFreeStart);
+    for (uint16 i = 0; i < Header->ItemCount; i++) {
         TPgBlobPageItem* Item = GetItemRec(Pg, i);
         printf("Len %d, Offset %d \n", Item->Len, Item->Offset);
     }
