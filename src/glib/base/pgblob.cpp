@@ -281,9 +281,6 @@ void TPgBlob::DeleteItem(char* Pg, uint16 ItemIndex) {
         Header->OffsetFreeEnd = PG_PAGE_SIZE;
         Header->ItemCount = 0;
     }
-
-    /*printf("##Delete end\n");
-    PrintHeaderInfo(Pg);*/
 }
 
 /// Get pointer to item record - in it are offset and length
@@ -441,7 +438,6 @@ int TPgBlob::Evict() {
     }
     LoadedPage& a = LoadedPages[Pg];
     UnlistFromLru(Pg);
-    //printf("evict pg=%d\n", a.Pt.GetPg());
     LoadedPagesH.DelKey(a.Pt);
     char* PgPt = GetPageBf(Pg);
     if (ShouldSavePageP(PgPt)) {
@@ -460,7 +456,6 @@ char* TPgBlob::LoadPage(const TPgBlobPgPt& Pt, const bool& LoadData) {
         return GetPageBf(Pg);
     }
     if ((uint64)LoadedPages.Len() == MxLoadedPages) {
-        //printf("load pg=%d\n", Pt.GetPg());
         // evict last page + load new page
         Pg = Evict();
         LoadedPage& a = LoadedPages[Pg];
@@ -581,9 +576,6 @@ TPgBlobPt TPgBlob::Put(const char* Bf, const int& BfL) {
     } else {
         Fsm.FsmUpdatePage(PgPt, PgH->GetFreeMem());
     }
-    //if (Pt.GetPg() == 52 && Pt.GetIIx() == 2) {
-    //    printf("********************************Created 52/2\n");
-    //}
     return Pt;
 }
 
@@ -591,9 +583,6 @@ TPgBlobPt TPgBlob::Put(const char* Bf, const int& BfL) {
 TPgBlobPt TPgBlob::Put(
     const char* Bf, const int& BfL, const TPgBlobPt& Pt) {
     IAssert(Access != TFAccess::faRdOnly);
-    //if (Pt.GetPg() == 52 && Pt.GetIIx() == 2) {
-    //    printf("********************************Updating 52/2\n");
-    //}
 
     // find page
     char* PgBf = NULL;
@@ -609,6 +598,7 @@ TPgBlobPt TPgBlob::Put(
     if (existing_size == BfL) {
         // we're so lucky, just overwrite buffer
         memcpy(PgBf + ItemRec->Offset, Bf, BfL);
+        PgH->SetDirty(true);
         return Pt;
 
     } else if (existing_size + PgH->GetFreeMem() >= BfL + (int)sizeof(TPgBlobPageItem)) {
@@ -631,19 +621,12 @@ TPgBlobPt TPgBlob::Put(
         PgH = (TPgHeader*)PgBf;
         Fsm.FsmAddPage(PgPt, PgH->GetFreeMem());
 
-        //if (Pt2.GetPg() == 52 && Pt2.GetIIx() == 2) {
-        //    printf("********************************Reusing 52/2\n");
-        //}
-
         return Pt2;
     }
 }
 
 /// Retrieve BLOB from storage
 TThinMIn TPgBlob::Get(const TPgBlobPt& Pt) {
-    //if (Pt.GetPg() == 52 && Pt.GetIIx() == 2) {
-    //    printf("********************************Getting 52/2\n");
-    //}
     char* Pg = LoadPage(Pt);
     TPgBlobPageItem* Item = GetItemRec(Pg, Pt.GetIIx());
     char* Data;
@@ -655,9 +638,6 @@ TThinMIn TPgBlob::Get(const TPgBlobPt& Pt) {
 /// Delete BLOB from storage
 void TPgBlob::Del(const TPgBlobPt& Pt) {
     IAssert(Access != TFAccess::faRdOnly);
-    if (Pt.GetPg() == 52 && Pt.GetIIx() == 2) {
-        printf("********************************Deleting 52/2\n");
-    }
     // find page
     TPgBlobPgPt PgPt = Pt;
     char* PgBf = LoadPage(PgPt);
