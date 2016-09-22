@@ -4291,6 +4291,22 @@ TThinMIn TStorePbBlob::GetEditableField(const uint64& RecId, const int& FieldId)
     }
 }
 
+void TStorePbBlob::GetRecData(const uint64& RecId, const int& FieldId, TMemBase& Mem, THash<TUInt64, TPgBlobPt>* &RecIdBlobPtr, PPgBlob& Blob, TPgBlobPt* &PgPt)
+{
+    if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
+        Blob = DataBlob;
+        RecIdBlobPtr = &RecIdBlobPtH;
+        PgPt = &RecIdBlobPtH.GetDat(RecId);
+        Mem = DataBlob->GetMemBase(*PgPt);
+    }
+    else {
+        Blob = DataMem;
+        RecIdBlobPtr = &RecIdBlobPtHMem;
+        PgPt = &RecIdBlobPtHMem.GetDat(RecId);
+        Mem = DataMem->GetMemBase(*PgPt);
+    }
+}
+
 /// Set the value of given field to NULL
 void TStorePbBlob::SetFieldNull(const uint64& RecId, const int& FieldId) {
     // get the memory containig the field for the record
@@ -4408,22 +4424,18 @@ void TStorePbBlob::SetFieldInt64(const uint64& RecId, const int& FieldId, const 
 /// Set field value using field id (default implementation throws exception)
 void TStorePbBlob::SetFieldIntV(const uint64& RecId, const int& FieldId, const TIntV& IntV) {
     TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
-    if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
-        TPgBlobPt& PgPt = RecIdBlobPtH.GetDat(RecId);
-        TMemBase mem_in = DataBlob->GetMemBase(PgPt);
-        TMem mem_out;
-        SerializatorCache->SetFieldIntV(mem_in, mem_out, FieldId, IntV);
-        RecIndexer.UpdateRec(mem_in, mem_out, RecId, FieldId, *FieldSerializator);
-        RecIdBlobPtH.GetDat(RecId) = DataBlob->Put(mem_out.GetBf(), mem_out.Len(), PgPt);
+    THash<TUInt64, TPgBlobPt>* RecIdBlobPtr = NULL;
+    PPgBlob Blob; TPgBlobPt* PgPt = NULL;
+    TMem mem_in, mem_out;
+    GetRecData(RecId, FieldId, mem_in, RecIdBlobPtr, Blob, PgPt);
+    // deindex
+    if (RecIndexer.HasIndexKey(FieldId) && !IsFieldNull(RecId, FieldId)) {
+        RecIndexer.DeindexRecField(mem_in, RecId, FieldId, *FieldSerializator);
     }
-    else {
-        TPgBlobPt& PgPt = RecIdBlobPtHMem.GetDat(RecId);
-        TMemBase mem_in = DataMem->GetMemBase(PgPt);
-        TMem mem_out;
-        SerializatorMem->SetFieldIntV(mem_in, mem_out, FieldId, IntV);
-        RecIndexer.UpdateRec(mem_in, mem_out, RecId, FieldId, *FieldSerializator);
-        RecIdBlobPtHMem.GetDat(RecId) = DataMem->Put(mem_out.GetBf(), mem_out.Len(), PgPt);
-    }
+    SerializatorCache->SetFieldIntV(mem_in, mem_out, FieldId, IntV);
+    // index new data
+    RecIndexer.IndexRecField(mem_out, RecId, FieldId, *FieldSerializator);
+    RecIdBlobPtr->GetDat(RecId) = Blob->Put(mem_out.GetBf(), mem_out.Len(), *PgPt);
 }
 /// Set field value using field id (default implementation throws exception)
 void TStorePbBlob::SetFieldUInt(const uint64& RecId, const int& FieldId, const uint& UInt) {
@@ -4499,22 +4511,6 @@ void TStorePbBlob::SetFieldUInt64(const uint64& RecId, const int& FieldId, const
     if (FieldId == PrimaryFieldId) { SetPrimaryFieldUInt64(RecId, UInt64); }
 }
 
-void TStorePbBlob::GetRecData(const uint64& RecId, const int& FieldId, TMemBase& Mem, THash<TUInt64, TPgBlobPt>* &RecIdBlobPtr, PPgBlob& Blob, TPgBlobPt& PgPt)
-{
-    if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
-        Blob = DataBlob;
-        RecIdBlobPtr = &RecIdBlobPtH;
-        PgPt = RecIdBlobPtH.GetDat(RecId);
-        Mem = DataBlob->GetMemBase(PgPt);
-    }
-    else {
-        Blob = DataMem;
-        RecIdBlobPtr = &RecIdBlobPtHMem;
-        PgPt = RecIdBlobPtHMem.GetDat(RecId);
-        Mem = DataMem->GetMemBase(PgPt);
-    }
-}
-
 /// Set field value using field id (default implementation throws exception)
 void TStorePbBlob::SetFieldStr(const uint64& RecId, const int& FieldId, const TStr& Str) {
     // special case if field is primary field
@@ -4527,7 +4523,7 @@ void TStorePbBlob::SetFieldStr(const uint64& RecId, const int& FieldId, const TS
     }
     TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
     THash<TUInt64, TPgBlobPt>* RecIdBlobPtr = NULL;
-    PPgBlob Blob; TPgBlobPt PgPt;
+    PPgBlob Blob; TPgBlobPt* PgPt = NULL;
     TMem mem_in, mem_out;
     GetRecData(RecId, FieldId, mem_in, RecIdBlobPtr, Blob, PgPt);
     if (FieldId == PrimaryFieldId) { DelPrimaryFieldStr(RecId, FieldSerializator->GetFieldStr(mem_in, FieldId)); }
@@ -4539,27 +4535,23 @@ void TStorePbBlob::SetFieldStr(const uint64& RecId, const int& FieldId, const TS
     // index new data
     RecIndexer.IndexRecField(mem_out, RecId, FieldId, *FieldSerializator);
     if (FieldId == PrimaryFieldId) { SetPrimaryFieldStr(RecId, Str); }
-    RecIdBlobPtr->GetDat(RecId) = Blob->Put(mem_out.GetBf(), mem_out.Len(), PgPt);
+    RecIdBlobPtr->GetDat(RecId) = Blob->Put(mem_out.GetBf(), mem_out.Len(), *PgPt);
 }
 /// Set field value using field id (default implementation throws exception)
 void TStorePbBlob::SetFieldStrV(const uint64& RecId, const int& FieldId, const TStrV& StrV) {
     TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
-    if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
-        TPgBlobPt& PgPt = RecIdBlobPtH.GetDat(RecId);
-        TThinMIn min = DataBlob->Get(PgPt);
-        TMem mem_in(min);
-        TMem mem_out;
-        SerializatorCache->SetFieldStrV(mem_in, mem_out, FieldId, StrV);
-        RecIndexer.UpdateRec(mem_in, mem_out, RecId, FieldId, *FieldSerializator);
-        RecIdBlobPtH.GetDat(RecId) = DataBlob->Put(mem_out.GetBf(), mem_out.Len(), PgPt);
-    } else {
-        TPgBlobPt& PgPt = RecIdBlobPtHMem.GetDat(RecId);
-        TMemBase mem_in = DataMem->GetMemBase(PgPt);
-        TMem mem_out;
-        SerializatorMem->SetFieldStrV(mem_in, mem_out, FieldId, StrV);
-        RecIndexer.UpdateRec(mem_in, mem_out, RecId, FieldId, *FieldSerializator);
-        RecIdBlobPtHMem.GetDat(RecId) = DataMem->Put(mem_out.GetBf(), mem_out.Len(), PgPt);
+    THash<TUInt64, TPgBlobPt>* RecIdBlobPtr = NULL;
+    PPgBlob Blob; TPgBlobPt* PgPt = NULL;
+    TMem mem_in, mem_out;
+    GetRecData(RecId, FieldId, mem_in, RecIdBlobPtr, Blob, PgPt);
+    // deindex
+    if (RecIndexer.HasIndexKey(FieldId) && !IsFieldNull(RecId, FieldId)) {
+        RecIndexer.DeindexRecField(mem_in, RecId, FieldId, *FieldSerializator);
     }
+    SerializatorCache->SetFieldStrV(mem_in, mem_out, FieldId, StrV);
+    // index new data
+    RecIndexer.IndexRecField(mem_out, RecId, FieldId, *FieldSerializator);
+    RecIdBlobPtr->GetDat(RecId) = Blob->Put(mem_out.GetBf(), mem_out.Len(), *PgPt);
 }
 /// Set field value using field id (default implementation throws exception)
 void TStorePbBlob::SetFieldBool(const uint64& RecId, const int& FieldId, const bool& Bool) {
@@ -4658,22 +4650,18 @@ void TStorePbBlob::SetFieldFltPr(const uint64& RecId, const int& FieldId, const 
 /// Set field value using field id (default implementation throws exception)
 void TStorePbBlob::SetFieldFltV(const uint64& RecId, const int& FieldId, const TFltV& FltV) {
     TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
-    if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
-        TPgBlobPt& PgPt = RecIdBlobPtH.GetDat(RecId);
-        TThinMIn min = DataBlob->Get(PgPt);
-        TMem mem_in(min);
-        TMem mem_out;
-        SerializatorCache->SetFieldFltV(mem_in, mem_out, FieldId, FltV);
-        RecIndexer.UpdateRec(mem_in, mem_out, RecId, FieldId, *FieldSerializator);
-        RecIdBlobPtH.GetDat(RecId) = DataBlob->Put(mem_out.GetBf(), mem_out.Len(), PgPt);
-    } else {
-        TPgBlobPt& PgPt = RecIdBlobPtHMem.GetDat(RecId);
-        TMemBase mem_in = DataMem->GetMemBase(PgPt);
-        TMem mem_out;
-        SerializatorMem->SetFieldFltV(mem_in, mem_out, FieldId, FltV);
-        RecIndexer.UpdateRec(mem_in, mem_out, RecId, FieldId, *FieldSerializator);
-        RecIdBlobPtHMem.GetDat(RecId) = DataMem->Put(mem_out.GetBf(), mem_out.Len(), PgPt);
+    THash<TUInt64, TPgBlobPt>* RecIdBlobPtr = NULL;
+    PPgBlob Blob; TPgBlobPt* PgPt = NULL;
+    TMem mem_in, mem_out;
+    GetRecData(RecId, FieldId, mem_in, RecIdBlobPtr, Blob, PgPt);
+    // deindex
+    if (RecIndexer.HasIndexKey(FieldId) && !IsFieldNull(RecId, FieldId)) {
+        RecIndexer.DeindexRecField(mem_in, RecId, FieldId, *FieldSerializator);
     }
+    SerializatorCache->SetFieldFltV(mem_in, mem_out, FieldId, FltV);
+    // index new data
+    RecIndexer.IndexRecField(mem_out, RecId, FieldId, *FieldSerializator);
+    RecIdBlobPtr->GetDat(RecId) = Blob->Put(mem_out.GetBf(), mem_out.Len(), *PgPt);
 }
 /// Set field value using field id (default implementation throws exception)
 void TStorePbBlob::SetFieldTm(const uint64& RecId, const int& FieldId, const TTm& Tm) {
@@ -4730,82 +4718,66 @@ void TStorePbBlob::SetFieldTmMSecs(const uint64& RecId, const int& FieldId, cons
 /// Set field value using field id (default implementation throws exception)
 void TStorePbBlob::SetFieldNumSpV(const uint64& RecId, const int& FieldId, const TIntFltKdV& SpV) {
     TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
-    if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
-        TPgBlobPt& PgPt = RecIdBlobPtH.GetDat(RecId);
-        TThinMIn min = DataBlob->Get(PgPt);
-        TMem mem_in(min);
-        TMem mem_out;
-        SerializatorCache->SetFieldNumSpV(mem_in, mem_out, FieldId, SpV);
-        RecIndexer.UpdateRec(mem_in, mem_out, RecId, FieldId, *FieldSerializator);
-        RecIdBlobPtH.GetDat(RecId) = DataBlob->Put(mem_out.GetBf(), mem_out.Len(), PgPt);
-    } else {
-        TPgBlobPt& PgPt = RecIdBlobPtHMem.GetDat(RecId);
-        TMemBase mem_in = DataMem->GetMemBase(PgPt);
-        TMem mem_out;
-        SerializatorMem->SetFieldNumSpV(mem_in, mem_out, FieldId, SpV);
-        RecIndexer.UpdateRec(mem_in, mem_out, RecId, FieldId, *FieldSerializator);
-        RecIdBlobPtHMem.GetDat(RecId) = DataMem->Put(mem_out.GetBf(), mem_out.Len(), PgPt);
+    THash<TUInt64, TPgBlobPt>* RecIdBlobPtr = NULL;
+    PPgBlob Blob; TPgBlobPt* PgPt = NULL;
+    TMem mem_in, mem_out;
+    GetRecData(RecId, FieldId, mem_in, RecIdBlobPtr, Blob, PgPt);
+    // deindex
+    if (RecIndexer.HasIndexKey(FieldId) && !IsFieldNull(RecId, FieldId)) {
+        RecIndexer.DeindexRecField(mem_in, RecId, FieldId, *FieldSerializator);
     }
+    SerializatorCache->SetFieldNumSpV(mem_in, mem_out, FieldId, SpV);
+    // index new data
+    RecIndexer.IndexRecField(mem_out, RecId, FieldId, *FieldSerializator);
+    RecIdBlobPtr->GetDat(RecId) = Blob->Put(mem_out.GetBf(), mem_out.Len(), *PgPt);
 }
 /// Set field value using field id (default implementation throws exception)
 void TStorePbBlob::SetFieldBowSpV(const uint64& RecId, const int& FieldId, const PBowSpV& SpV) {
     TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
-    if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
-        TPgBlobPt& PgPt = RecIdBlobPtH.GetDat(RecId);
-        TThinMIn min = DataBlob->Get(PgPt);
-        TMem mem_in(min);
-        TMem mem_out;
-        SerializatorCache->SetFieldBowSpV(mem_in, mem_out, FieldId, SpV);
-        RecIndexer.UpdateRec(mem_in, mem_out, RecId, FieldId, *FieldSerializator);
-        RecIdBlobPtH.GetDat(RecId) = DataBlob->Put(mem_out.GetBf(), mem_out.Len(), PgPt);
-    } else {
-        TPgBlobPt& PgPt = RecIdBlobPtHMem.GetDat(RecId);
-        TMemBase mem_in = DataMem->GetMemBase(PgPt);
-        TMem mem_out;
-        SerializatorMem->SetFieldBowSpV(mem_in, mem_out, FieldId, SpV);
-        RecIndexer.UpdateRec(mem_in, mem_out, RecId, FieldId, *FieldSerializator);
-        RecIdBlobPtHMem.GetDat(RecId) = DataMem->Put(mem_out.GetBf(), mem_out.Len(), PgPt);
+    THash<TUInt64, TPgBlobPt>* RecIdBlobPtr = NULL;
+    PPgBlob Blob; TPgBlobPt* PgPt = NULL;
+    TMem mem_in, mem_out;
+    GetRecData(RecId, FieldId, mem_in, RecIdBlobPtr, Blob, PgPt);
+    // deindex
+    if (RecIndexer.HasIndexKey(FieldId) && !IsFieldNull(RecId, FieldId)) {
+        RecIndexer.DeindexRecField(mem_in, RecId, FieldId, *FieldSerializator);
     }
+    SerializatorCache->SetFieldBowSpV(mem_in, mem_out, FieldId, SpV);
+    // index new data
+    RecIndexer.IndexRecField(mem_out, RecId, FieldId, *FieldSerializator);
+    RecIdBlobPtr->GetDat(RecId) = Blob->Put(mem_out.GetBf(), mem_out.Len(), *PgPt);
 }
 /// Set field value using field id (default implementation throws exception)
 void TStorePbBlob::SetFieldTMem(const uint64& RecId, const int& FieldId, const TMem& Mem) {
     TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
-    if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
-        TPgBlobPt& PgPt = RecIdBlobPtH.GetDat(RecId);
-        TThinMIn min = DataBlob->Get(PgPt);
-        TMem mem_in(min);
-        TMem mem_out;
-        SerializatorCache->SetFieldTMem(mem_in, mem_out, FieldId, Mem);
-        RecIndexer.UpdateRec(mem_in, mem_out, RecId, FieldId, *FieldSerializator);
-        RecIdBlobPtH.GetDat(RecId) = DataBlob->Put(mem_out.GetBf(), mem_out.Len(), PgPt);
-    } else {
-        TPgBlobPt& PgPt = RecIdBlobPtHMem.GetDat(RecId);
-        TMemBase mem_in = DataMem->GetMemBase(PgPt);
-        TMem mem_out;
-        SerializatorMem->SetFieldTMem(mem_in, mem_out, FieldId, Mem);
-        RecIndexer.UpdateRec(mem_in, mem_out, RecId, FieldId, *FieldSerializator);
-        RecIdBlobPtHMem.GetDat(RecId) = DataMem->Put(mem_out.GetBf(), mem_out.Len(), PgPt);
+    THash<TUInt64, TPgBlobPt>* RecIdBlobPtr = NULL;
+    PPgBlob Blob; TPgBlobPt* PgPt = NULL;
+    TMem mem_in, mem_out;
+    GetRecData(RecId, FieldId, mem_in, RecIdBlobPtr, Blob, PgPt);
+    // deindex
+    if (RecIndexer.HasIndexKey(FieldId) && !IsFieldNull(RecId, FieldId)) {
+        RecIndexer.DeindexRecField(mem_in, RecId, FieldId, *FieldSerializator);
     }
+    SerializatorCache->SetFieldTMem(mem_in, mem_out, FieldId, Mem);
+    // index new data
+    RecIndexer.IndexRecField(mem_out, RecId, FieldId, *FieldSerializator);
+    RecIdBlobPtr->GetDat(RecId) = Blob->Put(mem_out.GetBf(), mem_out.Len(), *PgPt);
 }
 /// Set field value using field id (default implementation throws exception)
 void TStorePbBlob::SetFieldJsonVal(const uint64& RecId, const int& FieldId, const PJsonVal& Json) {
     TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
-    if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
-        TPgBlobPt& PgPt = RecIdBlobPtH.GetDat(RecId);
-        TThinMIn min = DataBlob->Get(PgPt);
-        TMem mem_in(min);
-        TMem mem_out;
-        SerializatorCache->SetFieldJsonVal(mem_in, mem_out, FieldId, Json);
-        RecIndexer.UpdateRec(mem_in, mem_out, RecId, FieldId, *FieldSerializator);
-        RecIdBlobPtH.GetDat(RecId) = DataBlob->Put(mem_out.GetBf(), mem_out.Len(), PgPt);
-    } else {
-        TPgBlobPt& PgPt = RecIdBlobPtHMem.GetDat(RecId);
-        TMemBase mem_in = DataMem->GetMemBase(PgPt);
-        TMem mem_out;
-        SerializatorMem->SetFieldJsonVal(mem_in, mem_out, FieldId, Json);
-        RecIndexer.UpdateRec(mem_in, mem_out, RecId, FieldId, *FieldSerializator);
-        RecIdBlobPtHMem.GetDat(RecId) = DataMem->Put(mem_out.GetBf(), mem_out.Len(), PgPt);
+    THash<TUInt64, TPgBlobPt>* RecIdBlobPtr = NULL;
+    PPgBlob Blob; TPgBlobPt* PgPt = NULL;
+    TMem mem_in, mem_out;
+    GetRecData(RecId, FieldId, mem_in, RecIdBlobPtr, Blob, PgPt);
+    // deindex
+    if (RecIndexer.HasIndexKey(FieldId) && !IsFieldNull(RecId, FieldId)) {
+        RecIndexer.DeindexRecField(mem_in, RecId, FieldId, *FieldSerializator);
     }
+    SerializatorCache->SetFieldJsonVal(mem_in, mem_out, FieldId, Json);
+    // index new data
+    RecIndexer.IndexRecField(mem_out, RecId, FieldId, *FieldSerializator);
+    RecIdBlobPtr->GetDat(RecId) = Blob->Put(mem_out.GetBf(), mem_out.Len(), *PgPt);
 }
 
 /// Check if given ID is valid
