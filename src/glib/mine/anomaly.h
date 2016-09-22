@@ -58,7 +58,7 @@ public:
     /// Returns the JSON that contains the ID of the nearest neighbour and a vector of per-feature
     /// contributions to the total distance to the nearest neighbor. Returns null JSON if not initialized.
     PJsonVal Explain(const TIntFltKdV& Vec) const;
-	
+
     /// Check if model is initialized
     bool IsInit() const { return (InitVecs == WindowSize); }
 

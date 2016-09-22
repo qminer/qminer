@@ -1400,59 +1400,59 @@ public:
 
 ///////////////////////////////
 /// Nearest Neighbor for Anomaly Detection stream aggregate.
- class TNNAnomalyAggr: public TStreamAggr,
-	                   public TStreamAggrOut::ITm,
-                       public TStreamAggrOut::IInt {
- private:
-	 // Input aggregate
-	 TWPt<TStreamAggr> InAggrTm;
-	 /// Input aggregate casted to time value
-	 TWPt<TStreamAggrOut::ITm> InAggrValTm;
-	 // Input aggregate
-	 TWPt<TStreamAggr> InAggrSparseVec;
-	 /// Input aggregate casted to sparse vector
-	 TWPt<TStreamAggrOut::ISparseVec> InAggrValSparseVec;
-
-	 //the NN anomaly detector object
-     TAnomalyDetection::TNearestNeighbor Model;
-
-	 //details about the last alarm
-	 TUInt64 LastTimeStamp;
-	 TInt LastSeverity;
-	 PJsonVal Explanation;
+class TNNAnomalyAggr: public TStreamAggr,
+                      public TStreamAggrOut::ITm,
+                      public TStreamAggrOut::IInt {
+private:
+    // Input aggregate
+    TWPt<TStreamAggr> InAggrTm;
+    /// Input aggregate casted to time value
+    TWPt<TStreamAggrOut::ITm> InAggrValTm;
+    // Input aggregate
+    TWPt<TStreamAggr> InAggrSparseVec;
+    /// Input aggregate casted to sparse vector
+    TWPt<TStreamAggrOut::ISparseVec> InAggrValSparseVec;
     
-     /// JSON constructor
-     TNNAnomalyAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
- protected:
-	 /// Update NN anomaly detector
-	 void OnStep();
- public:
-     /// JSON constructor
-     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal){
-		 return new TNNAnomalyAggr(Base, ParamVal); }
-
-	 //implement TStreamAggr functions
-	 PJsonVal GetParam() const;
-	 void SetParam(const PJsonVal& ParamVal);
-
-	 /// Did we finish initialization
-	 bool IsInit() const { return Model.IsInit(); }	
-	 void Reset() { throw TQmExcept::New("TNearestNeighbor::Reset() not implemented!"); }
-
-	 /// Load stream aggregate state from stream
-	 void LoadState(TSIn& SIn);
-	 /// Save state of stream aggregate to stream
-	 void SaveState(TSOut& SOut) const;
-
-	 uint64 GetTmMSecs() const { return LastTimeStamp.GetMsVal(); }
-	 int GetInt() const { return LastSeverity; }
-	 PJsonVal SaveJson(const int& Limit) const;
-
-	 /// Stream aggregator type name 
-	 static TStr GetType() { return "nnAnomalyDetector"; }
-	 /// Stream aggregator type name 
-	 TStr Type() const { return GetType(); }
- };
+    //the NN anomaly detector object
+    TAnomalyDetection::TNearestNeighbor Model;
+    
+    //details about the last alarm
+    TUInt64 LastTimeStamp;
+    TInt LastSeverity;
+    PJsonVal Explanation;
+    
+    /// JSON constructor
+    TNNAnomalyAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+protected:
+    /// Update NN anomaly detector
+   void OnStep();
+public:
+    /// JSON constructor
+    static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal){
+        return new TNNAnomalyAggr(Base, ParamVal); }
+    
+    //implement TStreamAggr functions
+    PJsonVal GetParam() const;
+    void SetParam(const PJsonVal& ParamVal);
+    
+    /// Did we finish initialization
+    bool IsInit() const { return Model.IsInit(); }
+    void Reset() { throw TQmExcept::New("TNearestNeighbor::Reset() not implemented!"); }
+    
+    /// Load stream aggregate state from stream
+    void LoadState(TSIn& SIn);
+    /// Save state of stream aggregate to stream
+    void SaveState(TSOut& SOut) const;
+    
+    uint64 GetTmMSecs() const { return LastTimeStamp.GetMsVal(); }
+    int GetInt() const { return LastSeverity; }
+    PJsonVal SaveJson(const int& Limit) const;
+    
+    /// Stream aggregator type name 
+    static TStr GetType() { return "nnAnomalyDetector"; }
+    /// Stream aggregator type name 
+    TStr Type() const { return GetType(); }
+};
 
 ///////////////////////////////
 /// Histogram stream aggregate.
