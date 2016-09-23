@@ -222,6 +222,8 @@ private:
 
     /// Maximal length of single file
     long MxFileLen;
+    /// Number of stored pages
+    long PgCnt;
     /// File name
     TStr FNm;
     /// File access type
@@ -258,6 +260,10 @@ public:
     int SavePage(const uint32& Page, const void* Bf, int Len = -1);
     /// Reserve new space in the file. Returns -1 if file is full.
     long CreateNewPage();
+    /// Returns name of the file
+    const TStr& GetFNm() const { return FNm; }
+    /// Returns the number of pages stored in this file
+    const long GetPgCnt() const { return PgCnt; }
 };
 
 ////////////////////////////////////////////////////////////
@@ -465,10 +471,15 @@ public:
 
     /// Returns maximal BLOB length that can be stored in single page
     int GetMxBlobLen() const { return PG_PAGE_SIZE - sizeof(TPgHeader) - sizeof(TPgBlobPageItem); }
+    /// Scans all pages and verifies their internal structure
+    void RunVerification();
+    /// Verifies single page - buffer already loaded in memory
+    void VerifyPage(char* Pg);
 
 #ifdef XTEST
     friend class XTest;
 #endif
+    friend class TPgBlobFile;
 };
 
 #endif

@@ -720,8 +720,9 @@ public:
 
     /// Get codebook id
     int GetCodebookId(const int& FieldId, const TStr& Str) const;
-
     bool GetUseToast() const { return UseToast; }
+    /// verify that given record is properly serialized
+    void Verify(char* Bf, const int& BfL) const;
 };
 
 ///////////////////////////////
@@ -1088,6 +1089,10 @@ public:
     int PartialFlush(int WndInMsec = 500);
     /// Retrieve performance statistics for this store
     PJsonVal GetStats();
+    /// Run verification for whole store
+    void RunVerification();
+    /// Run verification for single record
+    void RunVerificationForRecord(const uint64& RecId);
 };
 
 ///////////////////////////////
@@ -1369,6 +1374,10 @@ public:
     int PartialFlush(int WndInMsec = 500);
     /// Retrieve performance statistics for this store
     PJsonVal GetStats();
+    /// Run verification for whole store
+    void RunVerification();
+    /// Run verification for single record
+    void RunVerificationForRecord(const uint64& RecId);
 
     /// Check if store supports TOAST
     virtual bool CanToast() { return true; }
@@ -1483,6 +1492,11 @@ public:
     void SetFieldTMem(const uint64& RecId, const int& FieldId, const TMem& Mem);
     /// Set field value using field id   
     void SetFieldJsonVal(const uint64& RecId, const int& FieldId, const PJsonVal& Json);
+    
+    /// Run verification for whole store
+    void RunVerification();
+    /// Run verification for single record
+    void RunVerificationForRecord(const uint64& RecId);
 };
 
 ///////////////////////////////
