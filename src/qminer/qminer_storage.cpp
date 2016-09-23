@@ -4293,17 +4293,25 @@ TThinMIn TStorePbBlob::GetEditableField(const uint64& RecId, const int& FieldId)
 
 void TStorePbBlob::GetRecData(const uint64& RecId, const int& FieldId, TMemBase& Mem, THash<TUInt64, TPgBlobPt>* &RecIdBlobPtr, PPgBlob& Blob, TPgBlobPt* &PgPt)
 {
+    TMemBase MemInternal;
     if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
         Blob = DataBlob;
         RecIdBlobPtr = &RecIdBlobPtH;
         PgPt = &RecIdBlobPtH.GetDat(RecId);
-        Mem = DataBlob->GetMemBase(*PgPt);
+        MemInternal = DataBlob->GetMemBase(*PgPt);
     }
     else {
         Blob = DataMem;
         RecIdBlobPtr = &RecIdBlobPtHMem;
         PgPt = &RecIdBlobPtHMem.GetDat(RecId);
-        Mem = DataMem->GetMemBase(*PgPt);
+        MemInternal = DataMem->GetMemBase(*PgPt);
+    }
+    TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
+    if (FieldSerializator->GetUseToast()) {
+        Mem.Copy(MemInternal);
+    }
+    else {
+        Mem = MemInternal;
     }
 }
 

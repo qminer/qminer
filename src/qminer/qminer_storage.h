@@ -720,6 +720,8 @@ public:
 
     /// Get codebook id
     int GetCodebookId(const int& FieldId, const TStr& Str) const;
+
+    bool GetUseToast() const { return UseToast; }
 };
 
 ///////////////////////////////
