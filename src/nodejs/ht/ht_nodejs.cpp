@@ -5,6 +5,7 @@
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
+#include "ht_nodejs.h"
 
 ///////////////////////////////
 // NodeJs-Hash-Map

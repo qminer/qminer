@@ -8,6 +8,14 @@
 #ifndef ANALYTICS_H_
 #define ANALYTICS_H_
 
+#include <node.h>
+#include <node_object_wrap.h>
+#include "../nodeutil.h"
+#include "fs_nodejs.h"
+#include "la_nodejs.h"
+#include "qminer_core.h"
+#include "../../glib/mine/mine.h"
+
 /**
  * Analytics module.
  * @module analytics
@@ -91,6 +99,7 @@ class TNodeJsSvmModel : public node::ObjectWrap {
     friend class TNodeJsSVR;
 public:
     static const TStr GetClassId() { return "SvmModel"; }
+    ~TNodeJsSvmModel() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 private:
     // parameters
     TStr Algorithm;    
@@ -550,6 +559,7 @@ class TNodeJsRidgeReg : public node::ObjectWrap {
 public:
     static void Init(v8::Handle<v8::Object> exports);
     static const TStr GetClassId() { return "RidgeReg"; }
+    ~TNodeJsRidgeReg() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
     
 private:
     TRegression::TRidgeReg Model;
@@ -734,6 +744,7 @@ class TNodeJsSigmoid : public node::ObjectWrap {
 public:
     static void Init(v8::Handle<v8::Object> exports);
     static const TStr GetClassId() { return "Sigmoid"; }
+    ~TNodeJsSigmoid() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
     
 private:
     TSigmoid Sigmoid;
@@ -927,6 +938,7 @@ class TNodeJsNNAnomalies : public node::ObjectWrap {
 public:
     static void Init(v8::Handle<v8::Object> exports);
     static const TStr GetClassId() { return "NearestNeighborAD"; }
+    ~TNodeJsNNAnomalies() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
     
 private:
     TAnomalyDetection::TNearestNeighbor Model;
@@ -1199,6 +1211,7 @@ private:
 public:
     static void Init(v8::Handle<v8::Object> exports);
     static const TStr GetClassId() { return "RecLinReg"; }
+    ~TNodeJsRecLinReg() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 private:
 
     static TNodeJsRecLinReg* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
@@ -1386,6 +1399,7 @@ class TNodeJsLogReg : public node::ObjectWrap {
 public:
     static void Init(v8::Handle<v8::Object> exports);
     static const TStr GetClassId() { return "LogReg"; }
+    ~TNodeJsLogReg() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 
 private:
     TClassification::TLogReg LogReg;
@@ -1549,6 +1563,7 @@ class TNodeJsPropHaz : public node::ObjectWrap {
 public:
     static void Init(v8::Handle<v8::Object> exports);
     static const TStr GetClassId() { return "PropHazards"; }
+    ~TNodeJsPropHaz() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 
 private:
     TRegression::TPropHazards Model;
@@ -1722,6 +1737,7 @@ private:
 public:
     static void Init(v8::Handle<v8::Object> exports);
     static const TStr GetClassId() { return "NNet"; }
+    ~TNodeJsNNet() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 
     /**
     * Get the parameters of the model.
@@ -1862,7 +1878,7 @@ private:
 public:
     static void Init(v8::Handle<v8::Object> exports);
     static const TStr GetClassId() { return "Tokenizer"; }
-    
+    ~TNodeJsTokenizer() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
     static TNodeJsTokenizer* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
     // Functions:
@@ -1964,6 +1980,7 @@ class TNodeJsMDS : public node::ObjectWrap {
 public:
     static void Init(v8::Handle<v8::Object> exports);
     static const TStr GetClassId() { return "MDS"; }
+    ~TNodeJsMDS() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 
 private:
     // parameters
@@ -2420,6 +2437,7 @@ class TNodeJsRecommenderSys : public node::ObjectWrap {
 public:
     static void Init(v8::Handle<v8::Object> exports);
     static const TStr GetClassId() { return "RecommenderSys"; }
+    ~TNodeJsRecommenderSys() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 
 private:
     int Iter;

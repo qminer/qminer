@@ -77,6 +77,8 @@ void TNodeJsStreamAggr::Init(v8::Handle<v8::Object> exports) {
     // we need to export the class for calling using "new FIn(...)"
     exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()),
         tpl->GetFunction());
+
+    TNodeJsUtil::RegisterClassNmAccessor(GetClassId(), "name");
 }
 
 TNodeJsStreamAggr* TNodeJsStreamAggr::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
