@@ -461,7 +461,6 @@ PJsonVal TTimeLine::SaveJson() const {
 
 ///////////////////////////////
 // QMiner-Aggregator-TimeSpan
-
 PJsonVal TTimeSpan::GetJsonList(const TUInt64H& DataH) const {
     PJsonVal JsonVal = TJsonVal::NewArr();
     int KeyId = DataH.FFirstKeyId();
@@ -1764,6 +1763,8 @@ void TNNAnomalyAggr::SetParam(const PJsonVal& ParamVal) {
         EAssert(GetBase()->IsStreamAggr(AggrNm));
         InAggrTm = GetBase()->GetStreamAggr(AggrNm);
         InAggrValTm = Cast<TStreamAggrOut::ITm>(InAggrTm);
+    } else {
+        throw TQmExcept::New("The definition of the NN Anomaly Aggregator requires an input time aggregator (inAggrTm)");
     }
     //parse sparse vector aggregator parameters
     if (ParamVal->IsObjKey("inAggrSpV")) {
@@ -1771,6 +1772,8 @@ void TNNAnomalyAggr::SetParam(const PJsonVal& ParamVal) {
         EAssert(GetBase()->IsStreamAggr(AggrNm));
         InAggrSparseVec = GetBase()->GetStreamAggr(AggrNm);
         InAggrValSparseVec = Cast<TStreamAggrOut::ISparseVec>(InAggrSparseVec);
+    } else {
+        throw TQmExcept::New("The definition of the NN Anomaly Aggregator requires an input sparse vector aggregator (inAggrSpV)");
     }
     
     // parse rate parameter(s)
@@ -1784,11 +1787,22 @@ void TNNAnomalyAggr::SetParam(const PJsonVal& ParamVal) {
             // must be an array
             ParamVal->GetObjFltV("rate", RateV);
         }
+    } else {
+        throw TQmExcept::New("The definition of the NN Anomaly Aggregator requires an input rate number or vector (rate)");
     }
     // if empty, use 0.05
     if (RateV.Empty()) { RateV.Add(0.05); }
     // create model
     Model = TAnomalyDetection::TNearestNeighbor(RateV, ParamVal->GetObjInt("windowSize", 100));
+}
+
+///Reset the aggregator
+void TNNAnomalyAggr::Reset() { 
+    TFltV RateV = Model.GetRateV();
+    TInt WinSize = Model.GetWindowSize();
+    Model = TAnomalyDetection::TNearestNeighbor(RateV, WinSize);
+    LastSeverity = 0;
+    Explanation = TJsonVal::NewObj();
 }
 
 /// Load from stream
@@ -1811,7 +1825,7 @@ PJsonVal TNNAnomalyAggr::SaveJson(const int& Limit) const {
     PJsonVal Val = TJsonVal::NewObj();
     Val->AddToObj("time", LastTimeStamp);
     Val->AddToObj("severity", LastSeverity);
-    Val->AddToObj(Explanation);
+    Val->AddToObj("explanation", Explanation);
     return Val;
 }
 

@@ -1437,8 +1437,8 @@ public:
     
     /// Did we finish initialization
     bool IsInit() const { return Model.IsInit(); }
-    void Reset() { throw TQmExcept::New("TNearestNeighbor::Reset() not implemented!"); }
-    
+    void Reset();
+
     /// Load stream aggregate state from stream
     void LoadState(TSIn& SIn);
     /// Save state of stream aggregate to stream
