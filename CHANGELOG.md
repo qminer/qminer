@@ -2,7 +2,7 @@
 
 ### 23 September 2016
 
-**Version: **
+**Version: 6.5.0**
 
 **Non-breaking with new features**
 
