@@ -53,6 +53,12 @@ exports.statistics= require('qminer_stat');
     */
  exports.verbosity = function (level) { }
 /**
+    * Returns an JSON with two properties: "byClass" and "total". The "byClass" value is a JSON where
+    * each key is a class ID and each value is of the form { newFromCpp: number, newFromJs: number, destructorCalls: number}
+    * and the value of "total" is of the same form (aggregated over "byClass")    
+    */
+ exports.stats = function () { }
+/**
     * @typedef {Object} QMinerFlags
     * The object containing the QMiner compile flags.
     * @property {string} buildTime - The module build time.
@@ -139,7 +145,9 @@ exports.statistics= require('qminer_stat');
 * <br>8. `'float_pair'` - A pair of floats, useful for storing geo coordinates,
 * <br>9. `'float_v'` - Array of floats,
 * <br>10. `'datetime'` - Date and time format, stored in a form of miliseconds since 1600,
-* <br>11. `'num_sp_v'` - Array of [`int`, `float`] pairs. See constructor array for {@link module:la.SparseVector}.
+* <br>11. `'num_sp_v'` - Array of [`int`, `float`] pairs. See constructor array for {@link module:la.SparseVector},
+* <br>12. `'json'` - this field can be an arbitrary object and will be internally serialized into string using JSON notation,
+* <br>13. `'blob'` - Binary buffer, used for storing binary data,
 * @property {boolean} [primary=false] - Field which can be used to identify record. There can be only one primary field in a store. There can be at most one record for each value of the primary field. Currently following fields can be marked as primary: `int`, `uint64`, `string`, `float`, `datetime`. Primary fields of type `string` are also used for record querying using {@link module:qm.Store#recordByName}.
 * @property {boolean} [null=false] - When set to true, null is a possible value for a field (allow missing values).
 * @property {string} [store='memory'] - Defines where to store the field. Possible options 
@@ -2613,7 +2621,7 @@ exports.statistics= require('qminer_stat');
 * @typedef {Object} FeatureExtractorNumeric
 * The feature extractor of type `'numeric'`. Used for constructing {@link module:qm.FeatureSpace} objects.
 * @property {string} type - The type of the extractor. <b>Important</b>: It must be equal `'numeric'`.
-* @property {boolean} [normalize = 'false'] - Normalize values between 0.0 and 1.0.
+* @property {string} [normalize = 'none'] - Normalize values between 0.0 and 1.0 if set to `'scale'`. Standardize values to mean = 0 and sdiv = 1 if set to `'var'`.
 * @property {number} [min] - The minimal value used to form the normalization.
 * @property {number} [max] - The maximal value used to form the normalization.
 * @property {string} field - The name of the field from which to take the value.
@@ -2633,7 +2641,7 @@ exports.statistics= require('qminer_stat');
 * });
 * // create a feature space containing the numeric extractor, where the values are
 * // normalized, the values are taken from the field "Grade"
-* var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "Class", normalize: true, field: "Grade" });
+* var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "Class", normalize: "scale", field: "Grade" });
 * base.close();
 */
 /**
