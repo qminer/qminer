@@ -720,6 +720,9 @@ public:
 
     /// Get codebook id
     int GetCodebookId(const int& FieldId, const TStr& Str) const;
+
+    /// verify that given record is properly serialized
+    void Verify(char* Bf, const int& BfL) const;
 };
 
 ///////////////////////////////
@@ -1086,6 +1089,10 @@ public:
     int PartialFlush(int WndInMsec = 500);
     /// Retrieve performance statistics for this store
     PJsonVal GetStats();
+    /// Run verification for whole store
+    void RunVerification();
+    /// Run verification for single record
+    void RunVerificationForRecord(const uint64& RecId);
 };
 
 ///////////////////////////////
@@ -1208,6 +1215,9 @@ private:
 
     // return the memory containig the field for the record and mark it as dirty
     TThinMIn GetEditableField(const uint64& RecId, const int& FieldId);
+
+    // given the recid and the fieldid get the memory that contains it, get blob that contains it and the page blob pointer
+    void GetRecData(const uint64& RecId, const int& FieldId, TMemBase& Mem, THash<TUInt64, TPgBlobPt>* &RecIdBlobPtr, PPgBlob& Blob, TPgBlobPt& PgPt);
 
 public:
     TStorePbBlob(const TWPt<TBase>& _Base, const uint& StoreId,
@@ -1364,6 +1374,10 @@ public:
     int PartialFlush(int WndInMsec = 500);
     /// Retrieve performance statistics for this store
     PJsonVal GetStats();
+    /// Run verification for whole store
+    void RunVerification();
+    /// Run verification for single record
+    void RunVerificationForRecord(const uint64& RecId);
 
     /// Check if store supports TOAST
     virtual bool CanToast() { return true; }
@@ -1478,6 +1492,11 @@ public:
     void SetFieldTMem(const uint64& RecId, const int& FieldId, const TMem& Mem);
     /// Set field value using field id   
     void SetFieldJsonVal(const uint64& RecId, const int& FieldId, const PJsonVal& Json);
+    
+    /// Run verification for whole store
+    void RunVerification();
+    /// Run verification for single record
+    void RunVerificationForRecord(const uint64& RecId);
 };
 
 ///////////////////////////////

@@ -182,7 +182,9 @@ private:
 * <br>8. `'float_pair'` - A pair of floats, useful for storing geo coordinates,
 * <br>9. `'float_v'` - Array of floats,
 * <br>10. `'datetime'` - Date and time format, stored in a form of miliseconds since 1600,
-* <br>11. `'num_sp_v'` - Array of [`int`, `float`] pairs. See constructor array for {@link module:la.SparseVector}.
+* <br>11. `'num_sp_v'` - Array of [`int`, `float`] pairs. See constructor array for {@link module:la.SparseVector},
+* <br>12. `'json'` - this field can be an arbitrary object and will be internally serialized into string using JSON notation,
+* <br>13. `'blob'` - Binary buffer, used for storing binary data,
 * @property {boolean} [primary=false] - Field which can be used to identify record. There can be only one primary field in a store. There can be at most one record for each value of the primary field. Currently following fields can be marked as primary: `int`, `uint64`, `string`, `float`, `datetime`. Primary fields of type `string` are also used for record querying using {@link module:qm.Store#recordByName}.
 * @property {boolean} [null=false] - When set to true, null is a possible value for a field (allow missing values).
 * @property {string} [store='memory'] - Defines where to store the field. Possible options 

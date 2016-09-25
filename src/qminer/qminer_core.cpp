@@ -594,11 +594,13 @@ void TStore::DelTrigger(const PStoreTrigger& Trigger) {
 }
 
 TRec TStore::GetRec(const uint64& RecId) {
+    EAssertR(RecId != TUInt64::Mx, "Unable to create a record with invalid id");
     return TRec(this, RecId);
 }
 
 TRec TStore::GetRec(const TStr& RecNm) {
-    return TRec(this, GetRecId(RecNm));
+    const uint64 RecId = GetRecId(RecNm);
+    return GetRec(RecId);
 }
 
 PRecSet TStore::GetAllRecs() {

@@ -2379,6 +2379,41 @@ int TRecSerializator::GetCodebookId(const int& FieldId, const TStr& Str) const {
     return CodebookH.GetKeyId(Str);
 }
 
+/// verify that given record is properly serialized
+void TRecSerializator::Verify(char* Bf, const int& BfL) const {
+    TVec<int> VarFields;
+    for (int i = 0; i < FieldSerialDescV.Len(); i++) {
+        const TFieldSerialDesc& FieldSerialDesc = FieldSerialDescV[i];
+        if (FieldSerialDesc.FixedPartP) {
+            // nothing to do
+        } else {
+            const char* Bf2 = Bf + FieldSerialDesc.NullMapByte;
+            if ((*Bf2 & FieldSerialDesc.NullMapMask) == 0) {
+                // field is not null
+                VarFields.Add(i);
+                int FieldContentOffset = *((int*)(Bf + VarIndexPartOffset + FieldSerialDesc.Offset));
+                if (FieldContentOffset < 0) {
+                    printf(" FieldSerialDesc.Offset=%d FieldContentOffset=%d\n", FieldSerialDesc.Offset, FieldContentOffset);
+                    QmAssertR(false, "Var-len field content offset is too low");
+                }
+                if (FieldContentOffset + VarContentPartOffset >= BfL) {
+                    printf("FieldContentOffset=%d, VarContentPartOffset=%d, BfL=%d \n", FieldContentOffset, VarContentPartOffset, BfL);
+                    QmAssertR(false, "Var-len field content offset is too big");
+                }
+                //QmAssertR(*((int*)(Bf + VarIndexPartOffset + FieldSerialDesc.Offset)) < VarOffset, "");;
+            }
+        }
+    }
+    /*
+    for (int i = 0; i < VarFields.Len();i++) {
+        const TFieldSerialDesc& FieldSerialDesc1 = FieldSerialDescV[i];
+        for (int j = i+1; j < VarFields.Len(); j++) {
+            const TFieldSerialDesc& FieldSerialDesc2 = FieldSerialDescV[j];
+
+        }
+    }*/
+}
+
 ///////////////////////////////
 /// Field indexer
 void TRecIndexer::IndexKey(const TFieldIndexKey& Key, const TMemBase& RecMem,
@@ -3868,6 +3903,16 @@ PJsonVal TStoreImpl::GetStats() {
     return res;
 }
 
+/// Run verification for whole store
+void TStoreImpl::RunVerification() {
+    // do nothing for now
+}
+
+/// Run verification for single record
+void TStoreImpl::RunVerificationForRecord(const uint64& RecId) {
+    // do nothing fo rnow
+}
+
 ///////////////////////////////
 /// TStorePbBlob
 
@@ -4499,6 +4544,21 @@ void TStorePbBlob::SetFieldUInt64(const uint64& RecId, const int& FieldId, const
     if (FieldId == PrimaryFieldId) { SetPrimaryFieldUInt64(RecId, UInt64); }
 }
 
+void TStorePbBlob::GetRecData(const uint64& RecId, const int& FieldId, TMemBase& Mem, THash<TUInt64, TPgBlobPt>* &RecIdBlobPtr, PPgBlob& Blob, TPgBlobPt& PgPt)
+{
+    if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
+        Blob = DataBlob;
+        RecIdBlobPtr = &RecIdBlobPtH;
+        PgPt = RecIdBlobPtH.GetDat(RecId);
+        Mem = DataBlob->GetMemBase(PgPt);
+    } else {
+        Blob = DataMem;
+        RecIdBlobPtr = &RecIdBlobPtHMem;
+        PgPt = RecIdBlobPtHMem.GetDat(RecId);
+        Mem = DataMem->GetMemBase(PgPt);
+    }
+}
+
 /// Set field value using field id (default implementation throws exception)
 void TStorePbBlob::SetFieldStr(const uint64& RecId, const int& FieldId, const TStr& Str) {
     // special case if field is primary field
@@ -4510,24 +4570,22 @@ void TStorePbBlob::SetFieldStr(const uint64& RecId, const int& FieldId, const TS
         }
     }
     TRecSerializator* FieldSerializator = GetFieldSerializator(FieldId);
-    if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
-        TPgBlobPt& PgPt = RecIdBlobPtH.GetDat(RecId);
-        TMemBase mem_in = DataBlob->GetMemBase(PgPt);
-        if (FieldId == PrimaryFieldId) { DelPrimaryFieldStr(RecId, FieldSerializator->GetFieldStr(mem_in, FieldId)); }
-        TMem mem_out;
-        SerializatorCache->SetFieldStr(mem_in, mem_out, FieldId, Str);
-        RecIndexer.UpdateRec(mem_in, mem_out, RecId, FieldId, *FieldSerializator);
-        RecIdBlobPtH.GetDat(RecId) = DataBlob->Put(mem_out.GetBf(), mem_out.Len(), PgPt);
-    } else {
-        TPgBlobPt& PgPt = RecIdBlobPtHMem.GetDat(RecId);
-        TMemBase mem_in = DataMem->GetMemBase(PgPt);
-        if (FieldId == PrimaryFieldId) { DelPrimaryFieldStr(RecId, FieldSerializator->GetFieldStr(mem_in, FieldId)); }
-        TMem mem_out;
-        SerializatorMem->SetFieldStr(mem_in, mem_out, FieldId, Str);
-        RecIndexer.UpdateRec(mem_in, mem_out, RecId, FieldId, *FieldSerializator);
-        RecIdBlobPtHMem.GetDat(RecId) = DataMem->Put(mem_out.GetBf(), mem_out.Len(), PgPt);
+    THash<TUInt64, TPgBlobPt>* RecIdBlobPtr = NULL;
+    PPgBlob Blob; TPgBlobPt PgPt;
+    TMem mem_in, mem_out;
+    GetRecData(RecId, FieldId, mem_in, RecIdBlobPtr, Blob, PgPt);
+    if (FieldId == PrimaryFieldId) { DelPrimaryFieldStr(RecId, FieldSerializator->GetFieldStr(mem_in, FieldId)); }
+    // deindex
+    if (RecIndexer.HasIndexKey(FieldId) && !IsFieldNull(RecId, FieldId)) {
+        RecIndexer.DeindexRecField(mem_in, RecId, FieldId, *FieldSerializator);
     }
-    if (FieldId == PrimaryFieldId) { SetPrimaryFieldStr(RecId, Str); }
+    SerializatorCache->SetFieldStr(mem_in, mem_out, FieldId, Str);
+    // index new data
+    RecIndexer.IndexRecField(mem_out, RecId, FieldId, *FieldSerializator);
+    if (FieldId == PrimaryFieldId) {
+        SetPrimaryFieldStr(RecId, Str); 
+    }
+    RecIdBlobPtr->GetDat(RecId) = Blob->Put(mem_out.GetBf(), mem_out.Len(), PgPt);
 }
 /// Set field value using field id (default implementation throws exception)
 void TStorePbBlob::SetFieldStrV(const uint64& RecId, const int& FieldId, const TStrV& StrV) {
@@ -4925,6 +4983,28 @@ PJsonVal TStorePbBlob::GetStats() {
     res->AddToObj("blob_storage", DataBlob->GetStats());
     res->AddToObj("mem_storage", DataMem->GetStats());
     return res;
+}
+
+/// Run verification for whole store
+void TStorePbBlob::RunVerification() {
+    // loop over all pages
+    this->DataMem->RunVerification();
+    this->DataBlob->RunVerification();
+}
+
+/// Run verification for single record
+void TStorePbBlob::RunVerificationForRecord(const uint64& RecId) {
+    // do nothing for now
+    {
+        const TPgBlobPt PgPt = RecIdBlobPtH.GetDat(RecId);
+        TThinMIn min = DataBlob->Get(PgPt);
+        SerializatorCache->Verify(min.GetBfAddrChar(), min.Len());
+    }
+    {
+        const TPgBlobPt PgPt = RecIdBlobPtHMem.GetDat(RecId);
+        TThinMIn min = DataBlob->Get(PgPt);
+        SerializatorMem->Verify(min.GetBfAddrChar(), min.Len());
+    }
 }
 
 /// Purge records that fall out of store window (when it has one)
@@ -5471,6 +5551,9 @@ void TStoreNotImpl::SetFieldTMem(const uint64& RecId, const int& FieldId, const 
 void TStoreNotImpl::SetFieldJsonVal(const uint64& RecId, const int& FieldId, const PJsonVal& Json) {
     throw FieldError(FieldId, "Json");
 }
+
+void TStoreNotImpl::RunVerification() { }
+void TStoreNotImpl::RunVerificationForRecord(const uint64& RecId) { }
 
 ///////////////////////////////
 /// Create new stores in an existing base from a schema definition

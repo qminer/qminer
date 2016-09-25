@@ -911,6 +911,10 @@ public:
     virtual int PartialFlush(int WndInMsec = 500) { throw TQmExcept::New("Not implemented"); }
     /// Retrieve performance statistics for this store
     virtual PJsonVal GetStats() = 0;
+    /// Run verification for whole store
+    virtual void RunVerification() = 0;
+    /// Run verification for single record
+    virtual void RunVerificationForRecord(const uint64& RecId) = 0;
 };
 
 ///////////////////////////////
