@@ -5,6 +5,7 @@
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
+#include "analytics.h"
 
 //////////////////////////////////////////////////////
 // NodeJS - analytics
@@ -2273,6 +2274,8 @@ TNodeJsKMeans::TNodeJsKMeans(TSIn& SIn) :
 }
 
 TNodeJsKMeans::~TNodeJsKMeans() {
+    TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++;
+    TNodeJsUtil::ObjCount.Val3++;
     CleanUp();
 }
 

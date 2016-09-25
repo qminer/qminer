@@ -159,11 +159,10 @@ TFtrSpace::TFtrSpace(const TWPt<TBase>& _Base, const PFtrExt& FtrExt):
 TFtrSpace::TFtrSpace(const TWPt<TBase>& _Base, const TFtrExtV& _FtrExtV): 
     Base(_Base), FtrExtV(_FtrExtV) { Init(); }
 
-TFtrSpace::TFtrSpace(const TWPt<TBase>& _Base, const PJsonVal& ParamVal) :
-Base(_Base) {
+TFtrSpace::TFtrSpace(const TWPt<TBase>& _Base, const PJsonVal& ParamVal): Base(_Base) {
     if (ParamVal->IsArr()) {
         int Len = ParamVal->GetArrVals();
-        FtrExtV.Gen(Len);
+        FtrExtV.Gen(Len, 0);
         for (int ParamN = 0; ParamN < Len; ParamN++) {
             PJsonVal Param = ParamVal->GetArrVal(ParamN);
             TStr Type = Param->GetObjStr("type");
