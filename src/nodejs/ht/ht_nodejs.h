@@ -8,6 +8,12 @@
 #ifndef QMINER_HT_NODEJS_H
 #define QMINER_HT_NODEJS_H
 
+#include <node.h>
+#include <node_object_wrap.h>
+#include "base.h"
+#include "../nodeutil.h"
+#include "../fs/fs_nodejs.h"
+
 ///////////////////////////////
 // NodeJs-Hash-Map
 
@@ -154,6 +160,7 @@ template <class TKey = TStr, class TDat = TInt, class TAux = TAuxStrIntH>
 class TNodeJsHash : public node::ObjectWrap {
 	friend class TNodeJsUtil;
 public:
+
     typedef THash<TKey, TDat> TKeyDatH;
     TKeyDatH Map;
 

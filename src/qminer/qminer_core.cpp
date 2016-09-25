@@ -9,6 +9,7 @@
 #include "qminer_core.h"
 #include "qminer_ftr.h"
 #include "qminer_aggr.h"
+#include "geospatial_aggr.h"
 
 namespace TQm {
 
@@ -593,11 +594,13 @@ void TStore::DelTrigger(const PStoreTrigger& Trigger) {
 }
 
 TRec TStore::GetRec(const uint64& RecId) {
+    EAssertR(RecId != TUInt64::Mx, "Unable to create a record with invalid id");
     return TRec(this, RecId);
 }
 
 TRec TStore::GetRec(const TStr& RecNm) {
-    return TRec(this, GetRecId(RecNm));
+    const uint64 RecId = GetRecId(RecNm);
+    return GetRec(RecId);
 }
 
 PRecSet TStore::GetAllRecs() {
@@ -1268,13 +1271,13 @@ void TStore::PrintAll(const TWPt<TBase>& Base, TSOut& SOut, const bool& Includin
                 SOut.PutStrFmtLn("  %s: %d", Desc.GetFieldNm().CStr(), FieldInt);
             } else if (Desc.IsUInt()) {
                 const uint64 FieldInt = GetFieldUInt(RecId, FieldId);
-                SOut.PutStrFmtLn("  %s: %s", Desc.GetFieldNm().CStr(), TInt64::GetStr(FieldInt).CStr());
+                SOut.PutStrFmtLn("  %s: %s", Desc.GetFieldNm().CStr(), TUInt64::GetStr(FieldInt).CStr());
             } else if (Desc.IsUInt16()) {
                 const uint64 FieldInt = GetFieldUInt16(RecId, FieldId);
-                SOut.PutStrFmtLn("  %s: %s", Desc.GetFieldNm().CStr(), TInt64::GetStr(FieldInt).CStr());
+                SOut.PutStrFmtLn("  %s: %s", Desc.GetFieldNm().CStr(), TUInt64::GetStr(FieldInt).CStr());
             } else if (Desc.IsUInt64()) {
                 const uint64 FieldInt = GetFieldUInt64(RecId, FieldId);
-                SOut.PutStrFmtLn("  %s: %s", Desc.GetFieldNm().CStr(), TInt64::GetStr(FieldInt).CStr());
+                SOut.PutStrFmtLn("  %s: %s", Desc.GetFieldNm().CStr(), TUInt64::GetStr(FieldInt).CStr());
             } else if (Desc.IsFlt()) {
                 const double FieldFlt = GetFieldFlt(RecId, FieldId);
                 SOut.PutStrFmtLn("  %s: %g", Desc.GetFieldNm().CStr(), FieldFlt);
@@ -1495,8 +1498,7 @@ TRec::TRec(const TWPt<TStore>& _Store, const PJsonVal& JsonVal) :
         case oftTMem: {
             QmAssertR(FieldVal->IsStr(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not a number or a string that represents DateTime.");
             // TODO do we support anything else? probably not on this level...
-            TMem Mem;
-            TStr::Base64Decode(FieldVal->GetStr(), Mem);
+            TMem Mem; TStr::Base64Decode(FieldVal->GetStr(), Mem);
             SetFieldTMem(FieldId, Mem);
             break;
         }
@@ -1585,6 +1587,7 @@ int TRec::GetFieldInt(const int& FieldId) const {
     }
     throw FieldError(FieldId, "Int");
 }
+
 int16 TRec::GetFieldInt16(const int& FieldId) const {
     if (IsByRef()) {
         return Store->GetFieldInt16(RecId, FieldId);
@@ -1595,6 +1598,7 @@ int16 TRec::GetFieldInt16(const int& FieldId) const {
     }
     throw FieldError(FieldId, "Int16");
 }
+
 int64 TRec::GetFieldInt64(const int& FieldId) const {
     if (IsByRef()) {
         return Store->GetFieldInt64(RecId, FieldId);
@@ -1605,6 +1609,7 @@ int64 TRec::GetFieldInt64(const int& FieldId) const {
     }
     throw FieldError(FieldId, "Int64");
 }
+
 uchar TRec::GetFieldByte(const int& FieldId) const {
     if (IsByRef()) {
         return Store->GetFieldByte(RecId, FieldId);
@@ -1638,6 +1643,7 @@ uint TRec::GetFieldUInt(const int& FieldId) const {
     }
     throw FieldError(FieldId, "UInt");
 }
+
 uint16 TRec::GetFieldUInt16(const int& FieldId) const {
     if (IsByRef()) {
         return (uint16)Store->GetFieldUInt64(RecId, FieldId);
@@ -1648,6 +1654,7 @@ uint16 TRec::GetFieldUInt16(const int& FieldId) const {
     }
     throw FieldError(FieldId, "UInt16");
 }
+
 uint64 TRec::GetFieldUInt64(const int& FieldId) const {
     if (IsByRef()) {
         return Store->GetFieldUInt64(RecId, FieldId);
@@ -1886,7 +1893,8 @@ PJsonVal TRec::GetFieldJson(const int& FieldId) const {
         return TJsonVal::NewArr(FieldFltV);
     } else if (Desc.IsTm()) {
         TTm FieldTm; GetFieldTm(FieldId, FieldTm);
-        if (FieldTm.IsDef()) { return TJsonVal::NewStr(FieldTm.GetWebLogDateTimeStr(true, "T", true)); } else { return TJsonVal::NewNull(); }
+        if (FieldTm.IsDef()) { return TJsonVal::NewStr(FieldTm.GetWebLogDateTimeStr(true, "T", true)); }
+        else { return TJsonVal::NewNull(); }
     } else if (Desc.IsNumSpV()) {
         TIntFltKdV FieldIntFltKdV; GetFieldNumSpV(FieldId, FieldIntFltKdV);
         return TJsonVal::NewStr(TStrUtil::GetStr(FieldIntFltKdV));
@@ -2166,6 +2174,7 @@ PRecSet TRec::ToRecSet() const {
     QmAssertR(IsByRef(), "Cannot transform record passed by value to a set!");
     return IsDef() ? TRecSet::New(Store, RecId) : TRecSet::New(Store);
 }
+
 /// Returns record-id of given field join
 uint64 TRec::GetFieldJoinRecId(const int& JoinId) const {
     QmAssertR(Store->IsJoinId(JoinId), "Invalid JoinId");
@@ -2769,6 +2778,26 @@ bool TRecFilterByFieldStrSet::Filter(const TRec& Rec) const {
     const TStr RecVal = Rec.GetFieldStr(FieldId);
     return StrSet.IsKey(RecVal);
 }
+
+///////////////////////////////
+/// Record Filter by String Field Set.
+TRecFilterByFieldStrSetUsingCodebook::TRecFilterByFieldStrSetUsingCodebook(const TWPt<TBase>& _Base, const int& _FieldId, const PStore& _Store, const TStrSet& StrSet, const bool& _FilterNullP) :
+    TRecFilterByField(_Base, _FieldId, _FilterNullP)
+{
+    // prepare a set of ints representing the string values specified in the StrSet
+    for (int KeyId = StrSet.FFirstKeyId(); StrSet.FNextKeyId(KeyId);) {
+        IntSet.AddKey(_Store->GetCodebookId(_FieldId, StrSet.GetKey(KeyId)));
+    }
+}
+
+/// Filter function
+bool TRecFilterByFieldStrSetUsingCodebook::Filter(const TRec& Rec) const {
+    bool RecNull = Rec.IsFieldNull(FieldId);
+    if (RecNull) { return !FilterNullP; }
+    const int RecVal = Rec.GetFieldInt(FieldId);
+    return IntSet.IsKey(RecVal);
+}
+
 
 ///////////////////////////////
 /// Record Filter by Time Field. 
@@ -3722,7 +3751,11 @@ void TRecSet::FilterByFieldStr(const int& FieldId, const TStrSet& ValSet) {
     const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
     QmAssertR(Desc.IsStr(), "Wrong field type, string expected");
     // apply the filter
-    FilterBy<TRecFilterByFieldStrSet>(TRecFilterByFieldStrSet(Store->GetBase(), FieldId, ValSet));
+    if (Desc.IsCodebook()) {
+        FilterBy<TRecFilterByFieldStrSetUsingCodebook>(TRecFilterByFieldStrSetUsingCodebook(Store->GetBase(), FieldId, Store, ValSet));
+    } else {
+        FilterBy<TRecFilterByFieldStrSet>(TRecFilterByFieldStrSet(Store->GetBase(), FieldId, ValSet));
+    }
 }
 
 void TRecSet::FilterByFieldTm(const int& FieldId, const uint64& MinVal, const uint64& MaxVal) {
@@ -6487,6 +6520,8 @@ void TStreamAggr::Init() {
     Register<TStreamAggrs::TMerger>();
     Register<TStreamAggrs::TResampler>();
     Register<TStreamAggrs::TUniVarResampler>();
+    Register<TStreamAggrs::TFtrExtAggr>();
+	Register<TStreamAggrs::TNNAnomalyAggr>();
     Register<TStreamAggrs::TOnlineHistogram>();
     Register<TStreamAggrs::TTDigest>();
     Register<TStreamAggrs::TChiSquare>();
@@ -6496,6 +6531,9 @@ void TStreamAggr::Init() {
     Register<TStreamAggrs::TRecFilterAggr>();    
     Register<TStreamAggrs::TEmaSpVec>();
     Register<TStreamAggrs::TWinBufSpVecSum>();
+    Register<TStreamAggrs::THistogramAD>();
+    // geospatial aggregates
+    Register<TStreamAggrs::TStayPointDetector>();
 }
 
 TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm): Base(_Base), AggrNm(_AggrNm) {
@@ -7291,7 +7329,8 @@ bool TBase::RestoreJSonDump(const TStr& DumpDir) {
                 TStrV PartV; Line.SplitOnAllCh('|', PartV, false);
                 AssertR(PartV.Len() == 3, TStr::Fmt("The line with json data did not contain three parts when split with |. Store Name: %s, Line val: %s", StoreNm.CStr(), Line.CStr()));
                 const uint64 OldRecId = PartV[0].GetUInt64();
-                const uint64 NewRecId = OldToNewIdH.GetDat(OldRecId);   // map old rec ids to new rec ids
+                // map old rec ids to new rec ids
+                const uint64 NewRecId = OldToNewIdH.GetDat(OldRecId);
                 if (!Store->IsRecId(NewRecId)) {
                     TQm::TEnv::Logger->OnStatusFmt("ERROR: Failed to create join for missing record %I64U in store %s.", NewRecId, StoreNm.CStr());
                     continue;
@@ -7313,7 +7352,9 @@ bool TBase::RestoreJSonDump(const TStr& DumpDir) {
                 for (int N = 0; N < Joins; N++) {
                     TStr JoinRecIdStr, JoinFqStr; JoinV[N].SplitOnCh(JoinRecIdStr, ',', JoinFqStr);
                     const uint64 OldJoinRecId = JoinRecIdStr.GetUInt64();
-                    const uint64 NewJoinRecId = JoinOldToNewIdH.GetDat(OldJoinRecId);       // if some articles or other data was deleted from the index then old and new ids could be different. in most cases it should be the same
+                    // Ff some articles or other data was deleted from the index then old and
+                    // new ids could be different. In most cases it should be the same.
+                    const uint64 NewJoinRecId = JoinOldToNewIdH.GetDat(OldJoinRecId);
                     const int JoinFq = JoinFqStr.GetInt();
                     Store->AddJoin(NewJoinId, NewRecId, NewJoinRecId, JoinFq);
                 }
@@ -7466,8 +7507,7 @@ void TBase::SaveBaseConf(const TStr& FPath) const {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-
-/// Export TBlobBsStats object to JSON
+// Export TBlobBsStats object to JSON
 PJsonVal BlobBsStatsToJson(const TBlobBsStats& stats) {
     PJsonVal res = TJsonVal::NewObj();
     res->AddToObj("alloc_count", stats.AllocCount);
@@ -7486,7 +7526,6 @@ PJsonVal BlobBsStatsToJson(const TBlobBsStats& stats) {
     res->AddToObj("size_changes", stats.SizeChngs);
     return res;
 }
-
 
 /// Export TGixStats object to JSON
 PJsonVal GixStatsToJson(const TGixStats& stats) {

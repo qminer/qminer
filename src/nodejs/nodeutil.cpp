@@ -5,9 +5,14 @@
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
+#include "nodeutil.h"
 
 /////////////////////////////////////////
 // Node - Utilities
+
+THash<TStr, TTriple<TInt, TInt, TInt> > TNodeJsUtil::ObjNameH = THash<TStr, TTriple<TInt, TInt, TInt> >();
+TTriple<TInt, TInt, TInt> TNodeJsUtil::ObjCount = TTriple<TInt,TInt,TInt>();
+THash<TStr, TStr> TNodeJsUtil::ClassNmAccessorH = THash<TStr, TStr>();
 
 void TNodeJsUtil::CheckJSExcept(const v8::TryCatch& TryCatch) {
     if (TryCatch.HasCaught()) {
@@ -1057,4 +1062,88 @@ void TNodeJsAsyncUtil::ExecuteOnWorker(TAsyncTask* Task) {
     UvReq->data = new TWorkerData(Task);
 
     uv_queue_work(uv_default_loop(), UvReq, OnWorker, AfterOnWorker);
+}
+
+PJsonVal TNodeJsUtil::GetObjToNmJson(const v8::Local<v8::Value>& Val) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    
+    if (Val->IsObject()) {
+        // we don't allow functions in the JSON configuration
+        EAssertR(!Val->IsFunction(), "TNodeJsUtil::GetObjToNmJson: Cannot parse functions!");
+
+        // first check if we encountered an object that needs to be replaced with
+        // its name or ID. Is there a better way to do this??
+        const TStr ClassId = TNodeJsUtil::GetClass(Val->ToObject());
+
+        if (!ClassId.Empty()) {
+            if (ClassNmAccessorH.IsKey(ClassId)) {
+                TStr NmAccessor = TNodeJsUtil::GetClassNmAccessor(ClassId);
+                TStr Name = TStr(*v8::String::Utf8Value(Val->ToObject()->Get(
+                        v8::String::NewFromUtf8(Isolate, NmAccessor.CStr()))->ToString()));
+                return TJsonVal::NewStr(Name);
+            }
+            else {
+                throw TExcept::New("Invalid class ID when parsing configuration: " + ClassId);
+            }
+        }
+
+        else if (Val->IsBooleanObject()) {
+            v8::Local<v8::BooleanObject> BoolObj = v8::Local<v8::BooleanObject>::Cast(Val);
+            return TJsonVal::NewBool(BoolObj->ValueOf());
+        }
+        else if (Val->IsNumberObject()) {
+            return TJsonVal::NewNum(Val->NumberValue());
+        }
+        else if (Val->IsStringObject() || Val->IsRegExp() || Val->IsDate()) {
+            return TJsonVal::NewStr(TStr(*v8::String::Utf8Value(Val->ToString())));
+        }
+        else if (Val->IsArray()) {
+            PJsonVal JsonArr = TJsonVal::NewArr();
+
+            v8::Array* Arr = v8::Array::Cast(*Val);
+            for (uint i = 0; i < Arr->Length(); i++) {
+                JsonArr->AddToArr(GetObjToNmJson(Arr->Get(i)));
+            }
+
+            return JsonArr;
+        }
+        else {  // general object with fields
+            PJsonVal JsonVal = TJsonVal::NewObj();
+            v8::Local<v8::Object> Obj = Val->ToObject();
+
+            v8::Local<v8::Array> FldNmV = Obj->GetOwnPropertyNames();
+            for (uint i = 0; i < FldNmV->Length(); i++) {
+                const TStr FldNm(*v8::String::Utf8Value(FldNmV->Get(i)->ToString()));
+                v8::Local<v8::Value> FldVal = Obj->Get(FldNmV->Get(i));
+
+                const PJsonVal FldJson = GetObjToNmJson(FldVal);
+                JsonVal->AddToObj(FldNm, FldJson);
+            }
+
+            return JsonVal;
+        }
+    }
+    else {  // primitive
+        if (Val->IsUndefined()) {
+            return TJsonVal::New();
+        }
+        else if (Val->IsNull()) {
+            return TJsonVal::NewNull();
+        }
+        else if (Val->IsBoolean()) {
+            return TJsonVal::NewBool(Val->BooleanValue());
+        }
+        else if (Val->IsNumber()) {
+            const double& NumVal = Val->NumberValue();
+            return TJsonVal::NewNum(NumVal);
+        }
+        else if (Val->IsString()) {
+            return TJsonVal::NewStr(TStr(*v8::String::Utf8Value(Val->ToString())));
+        }
+        else {
+            // TODO check for v8::Symbol
+            throw TExcept::New("TNodeJsUtil::GetObjJson: Unknown v8::Primitive type!");
+        }
+    }
 }

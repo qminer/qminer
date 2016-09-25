@@ -12,6 +12,13 @@
     #define BUILDING_NODE_EXTENSION
 #endif
 
+#include <node.h>
+#include <node_object_wrap.h>
+#include <node_buffer.h>
+#include <uv.h>
+#include "base.h"
+#include "thread.h"
+
 #define JsDeclareProperty(Function) \
     static void Function(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info); \
     static void _ ## Function(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) { \
@@ -151,6 +158,18 @@ typedef TNodeJsVec<TFlt, TAuxFltV> TNodeJsFltV;
 // Node - Utilities
 class TNodeJsUtil {
 public:
+    /// Number of objects (create by factories, created using new, deleted) per class ID
+    static THash<TStr, TTriple<TInt, TInt, TInt> > ObjNameH;
+    /// Total number of objects (create by factories, created using new, deleted)
+    static TTriple<TInt, TInt, TInt> ObjCount;
+
+    /// Map from ClassId to JS object name accessor (example: "TRec" -> "$id", "Store" -> "name", "StreamAggr" -> "name") 
+    static THash<TStr, TStr> ClassNmAccessorH;
+    /// Registers the name of JS object name accessor for the given class
+    static void RegisterClassNmAccessor(const TStr& ClassId, const TStr& NmProp) { ClassNmAccessorH.AddDat(ClassId, NmProp); }
+    /// Returns the name of JS object name accessor for the given class
+    static TStr GetClassNmAccessor(const TStr& ClassId) { return ClassNmAccessorH.GetDatOrDef(ClassId, ""); }
+
     /// Checks if TryCatch caught an error, extracts the message and throws a PExcept
     static void CheckJSExcept(const v8::TryCatch& TryCatch);
     /// Convert v8 Json to GLib Json (PJsonVal). Is parameter IgnoreFunc is set to true the method will
@@ -480,6 +499,9 @@ public:
     /// executes the task on a worker thread
     static void ExecuteOnWorker(TAsyncTask* Task);
 };
+
+// include some implementations at the end, so we don't get incomplete types
+#include "nodeutil.hpp"
 
 #endif
 
