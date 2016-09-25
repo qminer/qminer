@@ -106,12 +106,6 @@ TNodeJsStreamAggr* TNodeJsStreamAggr::NewFromArgs(const v8::FunctionCallbackInfo
         TStr AggrName = TNodeJsUtil::GetArgStr(Args, 1, "name", TGuid::GenSafeGuid());
         // create aggregate
         StreamAggr = TNodeJsFuncStreamAggr::New(JsBase->Base, AggrName, Args[1]->ToObject());
-    } else if (TypeNm == "featureSpace") {
-        // we have feature extractor aggregate, first get its name if we have one
-        TStr AggrName = TNodeJsUtil::GetArgStr(Args, 1, "name", TGuid::GenSafeGuid());
-        // unwrap the feature space object
-        TNodeJsFtrSpace* JsFtrSpace = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFtrSpace>(Args, 1, "featureSpace");
-        StreamAggr = TQm::TStreamAggrs::TFtrExtAggr::New(JsBase->Base, AggrName, JsFtrSpace->FtrSpace);
     } else if (TypeNm == "merger") {
         // we have merger, get its parameters
         PJsonVal ParamVal = TNodeJsUtil::GetArgToNmJson(Args, 1);
@@ -625,7 +619,7 @@ void TNodeJsStreamAggr::getValueVector(const v8::FunctionCallbackInfo<v8::Value>
             TNodeJsUtil::NewInstance<TNodeJsSpMat>(new TNodeJsSpMat(Res)));
     } else if (!SpV.Empty()) {
         TIntFltKdV Res;
-        SpV->GetValV(Res);
+        SpV->GetSparseVec(Res);
         Args.GetReturnValue().Set(
             TNodeJsUtil::NewInstance<TNodeJsSpVec>(new TNodeJsSpVec(Res)));
     } else {
@@ -1154,7 +1148,7 @@ int TNodeJsFuncStreamAggr::GetN() const {
 // IFltVec
 int TNodeJsFuncStreamAggr::GetVals() const {
     // here be carefull when writing implementation
-    // this method can be called via IFltVec or via ISparseVec
+    // this method can be called via all derivates of IValVec
     throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetVals not implemented");
 }
 
@@ -1226,10 +1220,14 @@ void TNodeJsFuncStreamAggr::GetNmIntV(TStrIntPrV& NmIntV) const {
 }
 
 // ISparseVec
-void TNodeJsFuncStreamAggr::GetVal(const int& ElN, TIntFltKd& Val) const {
-    throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetVal not implemented");
+int TNodeJsFuncStreamAggr::GetSparseVecLen() const {
+    throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetSparseVecLen not implemented");
 }
 
-void TNodeJsFuncStreamAggr::GetValV(TIntFltKdV& ValV) const {
-    throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetValV not implemented");
+TIntFltKd TNodeJsFuncStreamAggr::GetSparseVecVal(const int& ElN) const {
+    throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetSparseVecVal not implemented");
+}
+
+void TNodeJsFuncStreamAggr::GetSparseVec(TIntFltKdV& ValV) const {
+    throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetSparseVec not implemented");
 }
