@@ -128,6 +128,39 @@ public:
 };
 
 ///////////////////////////////
+/// Store windowing type
+typedef enum {
+    swtNone = 0,   ///< No windowing on the store
+    swtLength = 1, ///< Record-number based windowing
+    swtTime = 2    ///< Time-based windowing
+} TStoreWndType;
+
+///////////////////////////////
+/// Store window description
+class TStoreWndDesc {
+public:
+    /// Prefix used for fields inserted by system
+    static TStr SysInsertedAtFieldName;
+
+public:
+    /// Windowing type
+    TStoreWndType WindowType;
+    /// For time window this is period length in milliseconds, otherwise it is max length
+    TUInt64 WindowSize;
+    /// User insert time
+    TBool InsertP;
+    /// Name of the field that serves as time-window indicator
+    TStr TimeFieldNm;
+
+public:
+    TStoreWndDesc() : WindowType(swtNone) { }
+    TStoreWndDesc(TSIn& SIn) { Load(SIn); }
+
+    void Save(TSOut& SOut) const;
+    void Load(TSIn& SIn);
+};
+
+///////////////////////////////
 /// Join Types
 typedef enum { 
     osjtUndef, 
@@ -500,6 +533,9 @@ private:
     /// Load store from stream (to be called only by base class!)
     void LoadStore(TSIn& SIn);
 protected:
+    /// Time window settings
+    TStoreWndDesc WndDesc;
+
     /// Create new store with given ID and name
     TStore(const TWPt<TBase>& _Base, uint _StoreId, const TStr& _StoreNm);
     /// Load store from input stream
@@ -557,6 +593,10 @@ public:
     uint GetStoreId() const { return StoreId; }
     /// Get store name
     TStr GetStoreNm() const { return StoreNm; }
+
+    // get time window settings
+    const TStoreWndDesc& GetWndDesc() { return WndDesc; }
+
 
     /// Load store ID from the stream and retrieve store
     static TWPt<TStore> LoadById(const TWPt<TBase>& Base, TSIn& SIn);

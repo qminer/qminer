@@ -111,39 +111,6 @@ public:
 };
 
 ///////////////////////////////
-/// Store windowing type
-typedef enum { 
-    swtNone = 0,   ///< No windowing on the store
-    swtLength = 1, ///< Record-number based windowing
-    swtTime = 2    ///< Time-based windowing
-} TStoreWndType;
-
-///////////////////////////////
-/// Store window description
-class TStoreWndDesc {
-public:
-    /// Prefix used for fields inserted by system
-    static TStr SysInsertedAtFieldName;   
-    
-public:    
-    /// Windowing type
-    TStoreWndType WindowType;
-    /// For time window this is period length in milliseconds, otherwise it is max length
-    TUInt64 WindowSize;   
-    /// User insert time
-    TBool InsertP;        
-    /// Name of the field that serves as time-window indicator
-    TStr TimeFieldNm;   
-    
-public:
-    TStoreWndDesc(): WindowType(swtNone) { }
-    TStoreWndDesc(TSIn& SIn){ Load(SIn); }
-
-    void Save(TSOut& SOut) const;
-    void Load(TSIn& SIn);
-};
-
-///////////////////////////////
 /// Store schema definition.
 /// Contains parsed version of store definition, which can be used to
 /// initialize TStoreImpl.
@@ -867,9 +834,6 @@ private:
     // record indexer
     TRecIndexer RecIndexer;
 
-    /// Time window settings
-    TStoreWndDesc WndDesc;
-
     /// initialize field storage location map
     void InitFieldLocV();
     /// Get TMem serialization of record from specified storage
@@ -1158,9 +1122,7 @@ private:
 
     // record indexer
     TRecIndexer RecIndexer;
-    /// Time window settings
-    TStoreWndDesc WndDesc;
-
+    
     /// initialize field storage location map
     void InitFieldLocV();
 

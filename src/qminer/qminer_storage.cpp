@@ -13,24 +13,6 @@ namespace TQm {
 namespace TStorage {
 
 ///////////////////////////////
-// Store window description
-TStr TStoreWndDesc::SysInsertedAtFieldName = "_sys_inserted_at";
-
-void TStoreWndDesc::Save(TSOut& SOut) const {
-    TInt(WindowType).Save(SOut);
-    WindowSize.Save(SOut);
-    InsertP.Save(SOut);
-    TimeFieldNm.Save(SOut);
-}
-
-void TStoreWndDesc::Load(TSIn& SIn) {
-    WindowType = TStoreWndType(TInt(SIn).Val);
-    WindowSize.Load(SIn);
-    InsertP.Load(SIn);
-    TimeFieldNm.Load(SIn);
-}
-
-///////////////////////////////
 /// Store schema definition.
 TStoreSchema::TMaps TStoreSchema::Maps;
 
@@ -2393,11 +2375,11 @@ void TRecSerializator::Verify(char* Bf, const int& BfL) const {
                 VarFields.Add(i);
                 int FieldContentOffset = *((int*)(Bf + VarIndexPartOffset + FieldSerialDesc.Offset));
                 if (FieldContentOffset < 0) {
-                    printf(" FieldSerialDesc.Offset=%d FieldContentOffset=%d\n", FieldSerialDesc.Offset, FieldContentOffset);
+                    printf(" FieldSerialDesc.Offset=%d FieldContentOffset=%d\n", FieldSerialDesc.Offset.Val, FieldContentOffset);
                     QmAssertR(false, "Var-len field content offset is too low");
                 }
                 if (FieldContentOffset + VarContentPartOffset >= BfL) {
-                    printf("FieldContentOffset=%d, VarContentPartOffset=%d, BfL=%d \n", FieldContentOffset, VarContentPartOffset, BfL);
+                    printf("FieldContentOffset=%d, VarContentPartOffset=%d, BfL=%d \n", FieldContentOffset, VarContentPartOffset.Val, BfL);
                     QmAssertR(false, "Var-len field content offset is too big");
                 }
                 //QmAssertR(*((int*)(Bf + VarIndexPartOffset + FieldSerialDesc.Offset)) < VarOffset, "");;
@@ -4883,10 +4865,12 @@ uint64 TStorePbBlob::GetFirstRecId() const {
 	// over the full list of record ids
     THash<TUInt64, TPgBlobPt> RecIdH = DataMemP ? RecIdBlobPtHMem : RecIdBlobPtH;
 	TUInt64V RecIdV; RecIdH.GetKeyV(RecIdV);
-    if (RecIdV.Len() > 0)
+    if (RecIdV.Len() > 0) {
         return RecIdV.GetMnVal();
-    else
+    }
+    else {
         return TUInt64::Mx;
+    }
 }
 
 uint64 TStorePbBlob::GetLastRecId() const {
@@ -4895,10 +4879,12 @@ uint64 TStorePbBlob::GetLastRecId() const {
     // over the full list of record ids
     THash<TUInt64, TPgBlobPt> RecIdH = DataMemP ? RecIdBlobPtHMem : RecIdBlobPtH;
     TUInt64V RecIdV; RecIdH.GetKeyV(RecIdV);
-    if (RecIdV.Len() > 0)
+    if (RecIdV.Len() > 0) {
         return RecIdV.GetMxVal();
-    else
+    }
+    else {
         return TUInt64::Mx;
+    }
 }
 
 /// Helper function for returning JSON definition of store
