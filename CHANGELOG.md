@@ -1,5 +1,44 @@
 # QMiner Change Log
 
+### 23 September 2016
+
+**Version: 6.5.0**
+
+**Non-breaking with new features**
+
+New Features:
+- `qm.stats` property lists statistics on constructor and destructor calls
+- Histogram smoothing using kernel density estimation in `THistogramToPMFModel`
+- Histogram based anomaly detection stream aggregate
+- Nearest neighbor anomaly detection stream aggregate
+- Optimized Record set filter over code book strings
+
+Bug Fixes:
+- Lots of fixes to PgPage and its associated store
+- Again compiles under debug mode in Visual Studio
+
+
+### 2 September 2016
+
+**Version: 6.4.0**
+
+**Non-breaking with bug fixes**
+
+New Features:
+- Added `TStorePbBlob::GetFirstRecId()` and `GetLastRecId()`
+- Added `TVec::GetMnValN` and `TVec::GetMnVal`
+- Added `TInt::GetSepStr()` to help formating numbers (`1234 -> "1,234"`)
+- Modified `KMeans.transform` to return a matrix of distances to centroids
+- Added method `TLinAlg::GetKernelVec`, which returns a vector in the kernel of a matrix
+- Added new resempler stream aggregate that can read from input stream aggregates and push data to other stream aggregates
+- Added `TStreamAggr::GetParam` and `TStreamAggr::SetParam` to check and modify stream aggregate parameters after construction
+
+Bug Fixes:
+- Fixed several bugs in `TStorePbBlob`
+- Fixed KMeans cosine distance generating NaN
+- Fixed compile warnings in `TGix`
+
+
 ### 19 August 2016
 
 **Version: 6.3.1**

@@ -8,6 +8,13 @@
 #ifndef QMINER_QM_NODEJS_STREAMAGGR
 #define QMINER_QM_NODEJS_STREAMAGGR
 
+#include <node.h>
+#include <node_object_wrap.h>
+#include <qminer.h>
+#include "../la/la_nodejs.h"
+#include "../fs/fs_nodejs.h"
+#include "../nodeutil.h"
+
 /**
 * QMiner module.
 * @module qm
@@ -1342,12 +1349,12 @@
 * base.close();
 */
 
-
 class TNodeJsStreamAggr : public node::ObjectWrap {
     friend class TNodeJsUtil;
 private:
     // Node framework
     static v8::Persistent<v8::Function> Constructor;
+    ~TNodeJsStreamAggr() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 public:
     // Node framework
     static void Init(v8::Handle<v8::Object> Exports);
@@ -1359,8 +1366,6 @@ public:
     // C++ constructors
     TNodeJsStreamAggr() { }
     TNodeJsStreamAggr(TWPt<TQm::TStreamAggr> _SA) : SA(_SA) { }
-    ~TNodeJsStreamAggr() { }
-
 
     static TNodeJsStreamAggr* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 public:
@@ -1442,6 +1447,23 @@ public:
     //# exports.StreamAggr.prototype.onDelete = function (rec) { return Object.create(require('qminer').StreamAggr.prototype); };
     JsDeclareFunction(onDelete);
     
+    /**
+     * Returns all the parameters of the stream aggregate
+     *
+     * @returns {Object} parameters
+     */
+    //# exports.StreamAggr.prototype.getParams = function () { return {}; }
+    JsDeclareFunction(getParams);
+
+    /**
+     * Sets one or more parameters.
+     *
+     * @param {Object} params - JSON representation of the parameters
+     */
+    //# exports.StreamAggr.prototype.setParams = function (val) {}
+    JsDeclareFunction(setParams);
+
+
     /**
     * When executed it return a JSON object as defined by the user. For use example see {@link module:qm.StreamAggr} constructor example.
     * @param {number} [limit] - The meaning is specific to each type of stream aggregator.
@@ -2241,8 +2263,9 @@ public:
     double GetNmInt(const TStr& Nm) const;
     void GetNmIntV(TStrIntPrV& NmIntV) const;
     // ISparseVec
-    void GetVal(const int& ElN, TIntFltKd& Val) const; // GetFltAtFun
-    void GetValV(TIntFltKdV& ValV) const;
+    int GetSparseVecLen() const;
+    TIntFltKd GetSparseVecVal(const int& ElN) const; // GetFltAtFun
+    void GetSparseVec(TIntFltKdV& ValV) const;
 };
 
 #endif

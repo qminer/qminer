@@ -40,6 +40,8 @@ void TNodeJsStreamAggr::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "onAdd", _onAdd);
     NODE_SET_PROTOTYPE_METHOD(tpl, "onUpdate", _onUpdate);
     NODE_SET_PROTOTYPE_METHOD(tpl, "onDelete", _onDelete);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _setParams);
     NODE_SET_PROTOTYPE_METHOD(tpl, "saveJson", _saveJson);
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
     NODE_SET_PROTOTYPE_METHOD(tpl, "load", _load);
@@ -75,6 +77,8 @@ void TNodeJsStreamAggr::Init(v8::Handle<v8::Object> exports) {
     // we need to export the class for calling using "new FIn(...)"
     exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()),
         tpl->GetFunction());
+
+    TNodeJsUtil::RegisterClassNmAccessor(GetClassId(), "name");
 }
 
 TNodeJsStreamAggr* TNodeJsStreamAggr::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -102,12 +106,6 @@ TNodeJsStreamAggr* TNodeJsStreamAggr::NewFromArgs(const v8::FunctionCallbackInfo
         TStr AggrName = TNodeJsUtil::GetArgStr(Args, 1, "name", TGuid::GenSafeGuid());
         // create aggregate
         StreamAggr = TNodeJsFuncStreamAggr::New(JsBase->Base, AggrName, Args[1]->ToObject());
-    } else if (TypeNm == "featureSpace") {
-        // we have feature extractor aggregate, first get its name if we have one
-        TStr AggrName = TNodeJsUtil::GetArgStr(Args, 1, "name", TGuid::GenSafeGuid());
-        // unwrap the feature space object
-        TNodeJsFtrSpace* JsFtrSpace = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFtrSpace>(Args, 1, "featureSpace");
-        StreamAggr = TQm::TStreamAggrs::TFtrExtAggr::New(JsBase->Base, AggrName, JsFtrSpace->FtrSpace);
     } else if (TypeNm == "merger") {
         // we have merger, get its parameters
         PJsonVal ParamVal = TNodeJsUtil::GetArgToNmJson(Args, 1);
@@ -134,6 +132,10 @@ TNodeJsStreamAggr* TNodeJsStreamAggr::NewFromArgs(const v8::FunctionCallbackInfo
             QmAssertR(StoresJson->IsDef(), "[StreamAggr] Args[2] should be a string (store name) or a string array (store names)");
             TStrV _StoreNmV; StoresJson->GetArrStrV(_StoreNmV);
             StoreNmV.AddV(_StoreNmV);
+        } else if (TNodeJsUtil::IsArgWrapObj<TNodeJsStore>(Args, 2)) {
+            const TNodeJsStore* JsStore = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsStore>(Args[2]->ToObject());
+            const TStr& StoreNm = JsStore->Store->GetStoreNm();
+            StoreNmV.Add(StoreNm);
         }
     }
 
@@ -216,6 +218,30 @@ void TNodeJsStreamAggr::onDelete(const v8::FunctionCallbackInfo<v8::Value>& Args
     JsSA->SA->OnDeleteRec(JsRec->Rec);
 
     Args.GetReturnValue().Set(Args.Holder());
+}
+
+void TNodeJsStreamAggr::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    // unwrap
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+
+    Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, JsSA->SA->GetParam()));
+}
+
+void TNodeJsStreamAggr::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    EAssertR(Args.Length() > 0, "TNodeJsStreamAggr::setParams: takes one argument!");
+
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+
+    const PJsonVal ParamVal = TNodeJsUtil::GetObjToNmJson(Args[0]);
+    JsSA->SA->SetParam(ParamVal);
+
+    Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 
 void TNodeJsStreamAggr::saveJson(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -593,7 +619,7 @@ void TNodeJsStreamAggr::getValueVector(const v8::FunctionCallbackInfo<v8::Value>
             TNodeJsUtil::NewInstance<TNodeJsSpMat>(new TNodeJsSpMat(Res)));
     } else if (!SpV.Empty()) {
         TIntFltKdV Res;
-        SpV->GetValV(Res);
+        SpV->GetSparseVec(Res);
         Args.GetReturnValue().Set(
             TNodeJsUtil::NewInstance<TNodeJsSpVec>(new TNodeJsSpVec(Res)));
     } else {
@@ -1122,7 +1148,7 @@ int TNodeJsFuncStreamAggr::GetN() const {
 // IFltVec
 int TNodeJsFuncStreamAggr::GetVals() const {
     // here be carefull when writing implementation
-    // this method can be called via IFltVec or via ISparseVec
+    // this method can be called via all derivates of IValVec
     throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetVals not implemented");
 }
 
@@ -1194,10 +1220,14 @@ void TNodeJsFuncStreamAggr::GetNmIntV(TStrIntPrV& NmIntV) const {
 }
 
 // ISparseVec
-void TNodeJsFuncStreamAggr::GetVal(const int& ElN, TIntFltKd& Val) const {
-    throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetVal not implemented");
+int TNodeJsFuncStreamAggr::GetSparseVecLen() const {
+    throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetSparseVecLen not implemented");
 }
 
-void TNodeJsFuncStreamAggr::GetValV(TIntFltKdV& ValV) const {
-    throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetValV not implemented");
+TIntFltKd TNodeJsFuncStreamAggr::GetSparseVecVal(const int& ElN) const {
+    throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetSparseVecVal not implemented");
+}
+
+void TNodeJsFuncStreamAggr::GetSparseVec(TIntFltKdV& ValV) const {
+    throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", GetSparseVec not implemented");
 }

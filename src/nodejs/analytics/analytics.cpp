@@ -5,6 +5,7 @@
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
+#include "analytics.h"
 
 //////////////////////////////////////////////////////
 // NodeJS - analytics
@@ -2273,6 +2274,8 @@ TNodeJsKMeans::TNodeJsKMeans(TSIn& SIn) :
 }
 
 TNodeJsKMeans::~TNodeJsKMeans() {
+    TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++;
+    TNodeJsUtil::ObjCount.Val3++;
     CleanUp();
 }
 
@@ -2606,7 +2609,7 @@ void TNodeJsKMeans::TFitTask::Run() {
                }
                KMeans->Assign(JsFltVV->Mat, JsKMeans->AssignV);
                TFltVV D;
-               JsKMeans->Dist->GetDist2VV(JsFltVV->Mat, KMeans->GetCentroidVV(), D);
+               JsKMeans->Dist->GetQuasiDistVV(JsFltVV->Mat, KMeans->GetCentroidVV(), D);
                TLinAlg::MultiplyScalar(-1, D, D);
                TLinAlgSearch::GetColMaxIdxV(D, JsKMeans->Medoids);
                if (JsIntV != nullptr) {
@@ -2659,7 +2662,7 @@ void TNodeJsKMeans::TFitTask::Run() {
                KMeans->Assign(JsSpVV->Mat, JsKMeans->AssignV);
 
                TFltVV D;
-               JsKMeans->Dist->GetDist2VV(JsSpVV->Mat, KMeans->GetCentroidVV(), D);
+               JsKMeans->Dist->GetQuasiDistVV(JsSpVV->Mat, KMeans->GetCentroidVV(), D);
 
                TLinAlg::MultiplyScalar(-1, D, D);
                TLinAlgSearch::GetColMaxIdxV(D, JsKMeans->Medoids);
@@ -2722,7 +2725,7 @@ void TNodeJsKMeans::TFitTask::Run() {
                KMeans->Assign(JsFltVV->Mat, JsKMeans->AssignV);
 
                TFltVV D;
-               JsKMeans->Dist->GetDist2VV(JsFltVV->Mat, KMeans->GetCentroidVV(), D);
+               JsKMeans->Dist->GetQuasiDistVV(JsFltVV->Mat, KMeans->GetCentroidVV(), D);
                TLinAlg::MultiplyScalar(-1, D, D);
                TLinAlgSearch::GetColMaxIdxV(D, JsKMeans->Medoids);
 
@@ -2774,7 +2777,7 @@ void TNodeJsKMeans::TFitTask::Run() {
                KMeans->Assign(JsSpVV->Mat, JsKMeans->AssignV);
 
                TFltVV D;
-               JsKMeans->Dist->GetDist2VV(JsSpVV->Mat, KMeans->GetCentroidVV(), D);
+               JsKMeans->Dist->GetQuasiDistVV(JsSpVV->Mat, KMeans->GetCentroidVV(), D);
                TLinAlg::MultiplyScalar(-1, D, D);
                TLinAlgSearch::GetColMaxIdxV(D, JsKMeans->Medoids);
 
@@ -2869,14 +2872,14 @@ void TNodeJsKMeans::transform(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         TFltVV& Mat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltVV>(Args, 0)->Mat;
         // if centroids are dense
         if (JsKMeans->CentType == TCentroidType::ctDense) {
-            JsKMeans->Dist->GetDist2VV(((TClustering::TDnsKMeans<TFltVV>*)JsKMeans->Model)->GetCentroidVV(), Mat, D);
+            JsKMeans->Dist->GetDistVV(((TClustering::TDnsKMeans<TFltVV>*)JsKMeans->Model)->GetCentroidVV(), Mat, D);
         }
         // if centroids are sparse
         else if (JsKMeans->CentType == TCentroidType::ctSparse) {
-            JsKMeans->Dist->GetDist2VV(((TClustering::TDnsKMeans<TVec<TIntFltKdV>>*)JsKMeans->Model)->GetCentroidVV(), Mat, D);
+            JsKMeans->Dist->GetDistVV(((TClustering::TDnsKMeans<TVec<TIntFltKdV>>*)JsKMeans->Model)->GetCentroidVV(), Mat, D);
         }
         else {
-            throw TExcept::New("KMeans.explain: centroid type invalid " + TInt::GetStr((int)JsKMeans->CentType));
+            throw TExcept::New("KMeans.explain: centroid type invalid " + TInt::GetStr((int) JsKMeans->CentType));
         }
     }
     // if the argument is a sparse matrix
@@ -2884,14 +2887,14 @@ void TNodeJsKMeans::transform(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         TVec<TIntFltKdV>& Mat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpMat>(Args, 0)->Mat;
         // if centroids are dense
         if (JsKMeans->CentType == TCentroidType::ctDense) {
-            JsKMeans->Dist->GetDist2VV(((TClustering::TDnsKMeans<TFltVV>*)JsKMeans->Model)->GetCentroidVV(), Mat, D);
+            JsKMeans->Dist->GetDistVV(((TClustering::TDnsKMeans<TFltVV>*)JsKMeans->Model)->GetCentroidVV(), Mat, D);
         }
         // if centroids are sparse
         else if (JsKMeans->CentType == TCentroidType::ctSparse) {
-            JsKMeans->Dist->GetDist2VV(((TClustering::TDnsKMeans<TVec<TIntFltKdV>>*)JsKMeans->Model)->GetCentroidVV(), Mat, D);
+            JsKMeans->Dist->GetDistVV(((TClustering::TDnsKMeans<TVec<TIntFltKdV>>*)JsKMeans->Model)->GetCentroidVV(), Mat, D);
         }
         else {
-            throw TExcept::New("KMeans.explain: centroid type invalid " + TInt::GetStr((int)JsKMeans->CentType));
+            throw TExcept::New("KMeans.explain: centroid type invalid " + TInt::GetStr((int) JsKMeans->CentType));
         }
     }
     else {

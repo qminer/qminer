@@ -53,6 +53,12 @@ exports.statistics= require('qminer_stat');
     */
  exports.verbosity = function (level) { }
 /**
+    * Returns an JSON with two properties: "byClass" and "total". The "byClass" value is a JSON where
+    * each key is a class ID and each value is of the form { newFromCpp: number, newFromJs: number, destructorCalls: number}
+    * and the value of "total" is of the same form (aggregated over "byClass")    
+    */
+ exports.stats = function () { }
+/**
     * @typedef {Object} QMinerFlags
     * The object containing the QMiner compile flags.
     * @property {string} buildTime - The module build time.
@@ -139,7 +145,9 @@ exports.statistics= require('qminer_stat');
 * <br>8. `'float_pair'` - A pair of floats, useful for storing geo coordinates,
 * <br>9. `'float_v'` - Array of floats,
 * <br>10. `'datetime'` - Date and time format, stored in a form of miliseconds since 1600,
-* <br>11. `'num_sp_v'` - Array of [`int`, `float`] pairs. See constructor array for {@link module:la.SparseVector}.
+* <br>11. `'num_sp_v'` - Array of [`int`, `float`] pairs. See constructor array for {@link module:la.SparseVector},
+* <br>12. `'json'` - this field can be an arbitrary object and will be internally serialized into string using JSON notation,
+* <br>13. `'blob'` - Binary buffer, used for storing binary data,
 * @property {boolean} [primary=false] - Field which can be used to identify record. There can be only one primary field in a store. There can be at most one record for each value of the primary field. Currently following fields can be marked as primary: `int`, `uint64`, `string`, `float`, `datetime`. Primary fields of type `string` are also used for record querying using {@link module:qm.Store#recordByName}.
 * @property {boolean} [null=false] - When set to true, null is a possible value for a field (allow missing values).
 * @property {string} [store='memory'] - Defines where to store the field. Possible options 
@@ -184,7 +192,9 @@ exports.statistics= require('qminer_stat');
 * @property {string} name - The name of the join.
 * @property {string} type - Join types. Possible options:
 * <br>1. `'field'` - Points to zero or one record and is implemented as an additional hidden field of type `uint64`, which can hold the ID of the record it links to. Accessing the records join returns a record.
-* <br>2. `'index'` - Point to any number of records and is implemented using the inverted index, where for each record a list (vector) of linked records is kept. Accessing the records join returns a record set.
+* <br>2. `'index'` - Point to any number of records and is implemented using the inverted index, where for each record a list (vector) of linked records is kept. Accessing the records join returns a record set. 
+* <b>Important:</b> The records given to this join field must be in an array.
+*
 * @property {string} store - The store name from which the linked records are.
 * @example
 * var qm = require('qminer');
@@ -209,17 +219,22 @@ exports.statistics= require('qminer_stat');
 * // Adds a movie, automatically adds 'Jim Jarmusch' to People, sets the 'director' join (field join)
 * // and automatically updates the index join 'directed', since it's an inverse join of 'director'
 * base.store('Movies').push({ title: 'Broken Flowers', director: { name: 'Jim Jarmusch' } });
+*
 * // Adds a movie, sets the 'director' join, updates the index join of 'Jim Jarmusch'
 * base.store('Movies').push({ title: 'Coffee and Cigarettes', director: { name: 'Jim Jarmusch' } });
 * // Adds movie, automatically adds 'Lars von Trier' to People, sets the 'director' join
 * // and 'directed' inverse join (automatically)
 * base.store('Movies').push({ title: 'Dogville', director: { name: 'Lars von Trier' } });
 *
+* // Adds a person, sets the 'directed' join with multiple movies ('directed' is of type 'index', movies must be given in an array)
+* base.store('People').push({ name: 'Christopher Nolan', directed: [{ title: 'Inception' }, { title: 'Interstellar' }] });
+*
 * var movie = base.store('Movies')[0]; // get the first movie (Broken Flowers)
 * // Each movie has a property corresponding to the join name: 'director'. 
 * // Accessing the property returns a {@link module:qm.Record} from the store People.
 * var person = movie.director; // get the director
 * var personName = person.name; // get person's name ('Jim Jarmusch')
+*
 * // Each person has a property corresponding to the join name: 'directed'. 
 * // Accessing the property returns a {@link module:qm.RecSet} from the store People.
 * var movies = person.directed; // get all the movies the person directed.
@@ -1581,7 +1596,7 @@ exports.statistics= require('qminer_stat');
     */
  exports.Record.prototype.store = Object.create('qminer').Store.prototype;
 /**
- * Vector of records by value
+ * Vector of records by value.
  * @class
  * @param {module:fs.FIn} [arg] - Load vector from input stream.
  * @classdesc Vector storing records defined by value. Vector can be serialized and
@@ -1604,11 +1619,11 @@ exports.statistics= require('qminer_stat');
  * // Create record vector
  * var recordVector = new qm.RecordVector(base);
  * // Add some records to the vector
- * recordVector.push(store("Philosophers").newRecord({ Name: "Plato", Era: "Ancient philosophy" }));
- * recordVector.push(store("Philosophers").newRecord({ Name: "Immanuel Kant", Era: "18th-century philosophy" }));
- * recordVector.push(store("Philosophers").newRecord({ Name: "Emmanuel Levinas", Era: "20th-century philosophy" }));
- * recordVector.push(store("Philosophers").newRecord({ Name: "Rene Descartes", Era: "17th-century philosophy" }));
- * recordVector.push(store("Philosophers").newRecord({ Name: "Confucius", Era: "Ancient philosophy" }));
+ * recordVector.push(base.store("Philosophers").newRecord({ Name: "Plato", Era: "Ancient philosophy" }));
+ * recordVector.push(base.store("Philosophers").newRecord({ Name: "Immanuel Kant", Era: "18th-century philosophy" }));
+ * recordVector.push(base.store("Philosophers").newRecord({ Name: "Emmanuel Levinas", Era: "20th-century philosophy" }));
+ * recordVector.push(base.store("Philosophers").newRecord({ Name: "Rene Descartes", Era: "17th-century philosophy" }));
+ * recordVector.push(base.store("Philosophers").newRecord({ Name: "Confucius", Era: "Ancient philosophy" }));
  * // Iterate over all records
  * for (var i = 0; i < recordVector.length; i++) {
  *    var rec = recordVector[i];
@@ -1638,7 +1653,7 @@ exports.statistics= require('qminer_stat');
      * // Create record vector
      * var recordVector = new qm.RecordVector(base);
      * // Add some records to the vector
-     * recordVector.push(store("Philosophers").newRecord({ Name: "Plato", Era: "Ancient philosophy" }));
+     * recordVector.push(base.store("Philosophers").newRecord({ Name: "Plato", Era: "Ancient philosophy" }));
      * base.close();
      */
  exports.RecordVector.prototype.push = function (rec) {};
@@ -1674,7 +1689,7 @@ exports.statistics= require('qminer_stat');
      * // Create record vector
      * var recordVector = new qm.RecordVector(base);
      * // Add some records to the vector
-     * recordVector.push(store("Philosophers").newRecord({ Name: "Plato", Era: "Ancient philosophy" }));
+     * recordVector.push(base.store("Philosophers").newRecord({ Name: "Plato", Era: "Ancient philosophy" }));
      * // save to disk
      * var fout = fs.openWrite('record_vector.bin');
      * recordVector.save(fout).close();
@@ -2606,7 +2621,7 @@ exports.statistics= require('qminer_stat');
 * @typedef {Object} FeatureExtractorNumeric
 * The feature extractor of type `'numeric'`. Used for constructing {@link module:qm.FeatureSpace} objects.
 * @property {string} type - The type of the extractor. <b>Important</b>: It must be equal `'numeric'`.
-* @property {boolean} [normalize = 'false'] - Normalize values between 0.0 and 1.0.
+* @property {string} [normalize = 'none'] - Normalize values between 0.0 and 1.0 if set to `'scale'`. Standardize values to mean = 0 and sdiv = 1 if set to `'var'`.
 * @property {number} [min] - The minimal value used to form the normalization.
 * @property {number} [max] - The maximal value used to form the normalization.
 * @property {string} field - The name of the field from which to take the value.
@@ -2626,7 +2641,7 @@ exports.statistics= require('qminer_stat');
 * });
 * // create a feature space containing the numeric extractor, where the values are
 * // normalized, the values are taken from the field "Grade"
-* var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "Class", normalize: true, field: "Grade" });
+* var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "Class", normalize: "scale", field: "Grade" });
 * base.close();
 */
 /**
@@ -2677,7 +2692,7 @@ exports.statistics= require('qminer_stat');
 *       ]
 *    }]
 * });
-* // create a feature space containing the categorical extractor, where the it's values
+* // create a feature space containing the categorical extractor, where it's values
 * // are taken from the field "StudyGroup": "A", "B", "C" and "D"
 * var ftr = new qm.FeatureSpace(base, { type: "categorical", source: "Class", field: "StudyGroup" });
 * base.close();
@@ -3200,7 +3215,7 @@ exports.statistics= require('qminer_stat');
     * // create a feature matrix out of the records of the store by using the feature space
     * // returns a sparse matrix equal to
     * // 1  0  0  1
-    * // 0  1  0  1
+    * // 0  1  1  1
     * // 0  0  1  0
     * // 1  1  0  0
     * var matrix = ftr.extractMatrix(base.store("Class").allRecords);

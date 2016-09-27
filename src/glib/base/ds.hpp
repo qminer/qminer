@@ -382,7 +382,7 @@ void TVec<TVal, TSizeTy>::GetSubValV(const TSizeTy& _BValN, const TSizeTy& _EVal
   const TSizeTy EValN=TInt::GetInRng(_EValN, 0, Len()-1);
   const TSizeTy SubVals=TInt::GetMx(0, EValN-BValN+1);
   SubValV.Gen(SubVals, 0);
-  for (TSizeTy ValN=BValN; ValN<=EValN; ValN++){
+  for (TSizeTy ValN = BValN; ValN <= EValN; ValN++) {
     SubValV.Add(GetVal(ValN));}
 }
 
@@ -884,6 +884,16 @@ TSizeTy TVec<TVal, TSizeTy>::GetMxValN() const {
     if (ValT[ValN]>ValT[MxValN]){MxValN=ValN;}
   }
   return MxValN;
+}
+
+template <class TVal, class TSizeTy>
+TSizeTy TVec<TVal, TSizeTy>::GetMnValN() const {
+    if (Vals == 0) { return -1; }
+    TSizeTy MnValN = 0;
+    for (TSizeTy ValN = 1; ValN<Vals; ValN++) {
+        if (ValT[ValN]<ValT[MnValN]) { MnValN = ValN; }
+    }
+    return MnValN;
 }
 
 //#//////////////////////////////////////////////
