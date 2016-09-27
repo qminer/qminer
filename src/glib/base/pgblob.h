@@ -263,7 +263,7 @@ public:
     /// Returns name of the file
     const TStr& GetFNm() const { return FNm; }
     /// Returns the number of pages stored in this file
-    const long GetPgCnt() const { return PgCnt; }
+    long GetPgCnt() const { return PgCnt; }
 };
 
 ////////////////////////////////////////////////////////////
