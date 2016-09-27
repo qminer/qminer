@@ -256,8 +256,8 @@ public:
   bool IsKey(const TKey& Key, int& KeyId) const { KeyId=GetKeyId(Key); return KeyId!=-1;}
   bool IsKeyId(const int& KeyId) const {
     return (0<=KeyId)&&(KeyId<KeyDatV.Len())&&(KeyDatV[KeyId].HashCd!=-1);}
-  const TDat& GetDat(const TKey& Key) const {return KeyDatV[GetKeyId(Key)].Dat;}
-  TDat& GetDat(const TKey& Key){return KeyDatV[GetKeyId(Key)].Dat;}
+  const TDat& GetDat(const TKey& Key) const;
+  TDat& GetDat(const TKey& Key);
 //  TKeyDatP GetKeyDat(const int& KeyId) const {
 //    TKeyDat& KeyDat=GetHashKeyDat(KeyId);
 //    return TKeyDatP(KeyDat.Key, KeyDat.Dat);}
@@ -490,6 +490,22 @@ void THash<TKey, TDat, THashFunc>::GetKeyV(TVec<TKey>& KeyV) const {
   int KeyId=FFirstKeyId();
   while (FNextKeyId(KeyId)){
     KeyV.Add(GetKey(KeyId));}
+}
+
+template<class TKey, class TDat, class THashFunc>
+TDat& THash<TKey, TDat, THashFunc>::GetDat(const TKey& Key) {
+    int KeyId = GetKeyId(Key);
+    // in case key is not found, ensure we don't try to access the data
+    EAssertR(KeyId >= 0, "Specified key does not exist");
+    return KeyDatV[KeyId].Dat;
+}
+
+template<class TKey, class TDat, class THashFunc>
+const TDat& THash<TKey, TDat, THashFunc>::GetDat(const TKey& Key) const {
+  int KeyId = GetKeyId(Key);
+  // in case key is not found, ensure we don't try to access the data
+  EAssertR(KeyId >= 0, "Specified key does not exist");
+  return KeyDatV[KeyId].Dat;
 }
 
 template<class TKey, class TDat, class THashFunc>
@@ -1177,7 +1193,7 @@ void TCache<TKey, TDat, THashFunc>::Flush(){
     Dat->OnDelFromCache(Key, RefToBs);
     Done++;
   }
-  if (MxMemUsed > (int64)TInt::Giga) { printf("Flush: %d/%d\r", KeyDatH.Len(), KeyDatH.Len()); }
+  if (MxMemUsed > (int64)TInt::Giga) { printf("Flush: %d/%d. Finished flushing.\n", KeyDatH.Len(), KeyDatH.Len()); }
 }
 
 template <class TKey, class TDat, class THashFunc>

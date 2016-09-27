@@ -461,7 +461,6 @@ PJsonVal TTimeLine::SaveJson() const {
 
 ///////////////////////////////
 // QMiner-Aggregator-TimeSpan
-
 PJsonVal TTimeSpan::GetJsonList(const TUInt64H& DataH) const {
     PJsonVal JsonVal = TJsonVal::NewArr();
     int KeyId = DataH.FFirstKeyId();
@@ -1542,7 +1541,7 @@ PJsonVal TUniVarResampler::GetParam() const {
     PJsonVal ParamVal = TJsonVal::NewObj();
 
     if (!InAggr.Empty()) {
-        ParamVal->AddToObj("inAggr", OutAggr->GetAggrNm());
+        ParamVal->AddToObj("inAggr", InAggr->GetAggrNm());
     } else {
         ParamVal->AddToObj("inAggr", TJsonVal::NewNull());
     }
@@ -1707,6 +1706,126 @@ PJsonVal TFtrExtAggr::SaveJson(const int& Limit) const {
     PJsonVal Val = TJsonVal::NewObj();
     if (FullP) { Val->AddToObj("full", TJsonVal::NewArr(FullVec)); }
     if (SparseP) { Val->AddToObj("sparse", TJsonVal::NewArr(SpVec)); }
+    return Val;
+}
+
+///////////////////////////////
+/// Nearest Neighbor for Anomaly Detection stream aggregate.
+void TNNAnomalyAggr::OnStep() {
+    //make sure input aggregators are initialized
+    if (InAggrTm->IsInit() && InAggrSparseVec->IsInit()) {
+        //get last time stamp and last sparse vector from the input aggregators
+        LastTimeStamp = InAggrValTm->GetTmMSecs();
+        TIntFltKdV Vals; InAggrValSparseVec->GetSparseVec(Vals);
+        //predict the severity of the alarm
+        LastSeverity = Model.Predict(Vals); // TODO: modify TNearestNeighbor to accept time stamps on input, not only RecIds (InAggrTm->GetTmMSecs());
+        //save the explanation for the alarm
+        if (LastSeverity > 0) {
+            Explanation = Model.Explain(Vals);
+        } else {
+            Explanation = TJsonVal::NewObj();
+        }
+        //update the model with the current feature vector
+        Model.PartialFit(Vals);
+    }
+}
+
+TNNAnomalyAggr::TNNAnomalyAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal) :
+    TStreamAggr(Base, ParamVal){
+    SetParam(ParamVal);
+}
+
+PJsonVal TNNAnomalyAggr::GetParam() const {
+    PJsonVal ParamVal = TJsonVal::NewObj();
+    
+    if (!InAggrTm.Empty()) {
+        ParamVal->AddToObj("inAggrTm", InAggrTm->GetAggrNm());
+    } else {
+        ParamVal->AddToObj("inAggrTm", TJsonVal::NewNull());
+    }
+    
+    if (!InAggrSparseVec.Empty()) {
+        ParamVal->AddToObj("inAggrSpV", InAggrSparseVec->GetAggrNm());
+    } else {
+        ParamVal->AddToObj("inAggrSpV", TJsonVal::NewNull());
+    }
+    
+    ParamVal->AddToObj("rate", TJsonVal::NewArr(Model.GetRateV()));
+    ParamVal->AddToObj("windowSize", Model.GetWindowSize());
+    
+    return ParamVal;
+}
+
+void TNNAnomalyAggr::SetParam(const PJsonVal& ParamVal) {
+    //parse time aggregator parameters
+    if (ParamVal->IsObjKey("inAggrTm")) {
+        const TStr AggrNm = ParamVal->GetObjStr("inAggrTm");
+        EAssert(GetBase()->IsStreamAggr(AggrNm));
+        InAggrTm = GetBase()->GetStreamAggr(AggrNm);
+        InAggrValTm = Cast<TStreamAggrOut::ITm>(InAggrTm);
+    } else {
+        throw TQmExcept::New("The definition of the NN Anomaly Aggregator requires an input time aggregator (inAggrTm)");
+    }
+    //parse sparse vector aggregator parameters
+    if (ParamVal->IsObjKey("inAggrSpV")) {
+        const TStr AggrNm = ParamVal->GetObjStr("inAggrSpV");
+        EAssert(GetBase()->IsStreamAggr(AggrNm));
+        InAggrSparseVec = GetBase()->GetStreamAggr(AggrNm);
+        InAggrValSparseVec = Cast<TStreamAggrOut::ISparseVec>(InAggrSparseVec);
+    } else {
+        throw TQmExcept::New("The definition of the NN Anomaly Aggregator requires an input sparse vector aggregator (inAggrSpV)");
+    }
+    
+    // parse rate parameter(s)
+    TFltV RateV;
+    if (ParamVal->IsObjKey("rate")) {
+        // check if we get single number or array of numbers
+        if (ParamVal->GetObjKey("rate")->IsNum()) {
+            // we have a number
+            RateV.Add(ParamVal->GetObjNum("rate"));
+        } else {
+            // must be an array
+            ParamVal->GetObjFltV("rate", RateV);
+        }
+    } else {
+        throw TQmExcept::New("The definition of the NN Anomaly Aggregator requires an input rate number or vector (rate)");
+    }
+    // if empty, use 0.05
+    if (RateV.Empty()) { RateV.Add(0.05); }
+    // create model
+    Model = TAnomalyDetection::TNearestNeighbor(RateV, ParamVal->GetObjInt("windowSize", 100));
+}
+
+///Reset the aggregator
+void TNNAnomalyAggr::Reset() { 
+    TFltV RateV = Model.GetRateV();
+    TInt WinSize = Model.GetWindowSize();
+    Model = TAnomalyDetection::TNearestNeighbor(RateV, WinSize);
+    LastSeverity = 0;
+    Explanation = TJsonVal::NewObj();
+}
+
+/// Load from stream
+void TNNAnomalyAggr::LoadState(TSIn& SIn) {
+    Model = TAnomalyDetection::TNearestNeighbor(SIn);
+    LastTimeStamp.Load(SIn);
+    LastSeverity.Load(SIn);
+    Explanation = new TJsonVal(SIn);
+}
+
+/// Store state into stream
+void TNNAnomalyAggr::SaveState(TSOut& SOut) const {
+    Model.Save(SOut);
+    LastTimeStamp.Save(SOut);
+    LastSeverity.Save(SOut);
+    Explanation.Save(SOut);
+}
+
+PJsonVal TNNAnomalyAggr::SaveJson(const int& Limit) const {
+    PJsonVal Val = TJsonVal::NewObj();
+    Val->AddToObj("time", LastTimeStamp);
+    Val->AddToObj("severity", LastSeverity);
+    Val->AddToObj("explanation", Explanation);
     return Val;
 }
 
@@ -2055,6 +2174,130 @@ TRecFilterAggr::TRecFilterAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal
     }    
     // parse out input aggregate
     Aggr = ParseAggr(ParamVal, "aggr");
+}
+
+//////////////////////////////////////////////////////////////////////////////////
+/// Histogram based anomaly detector aggregate
+
+void THistogramAD::OnStep() {
+    if (HistAggr->IsInit()) {
+        // Predict
+        LastHistIdx = HistAggr->FindBin(InAggrVal->GetFlt());
+        // Bin should be found and Severities should be initialized
+        if ((LastHistIdx >= 0) && (LastHistIdx < Severities.Len())) {
+            Severity = Severities[LastHistIdx];
+        } else {
+            Severity = -1;
+        }
+        // Save explanation
+        if (Severities.Len() > 0) {
+            Explanation = TJsonVal::NewObj();
+            PJsonVal ExplanationCells = TJsonVal::NewArr();
+            int Len = Severities.Len();
+            double BoundStart = HistAggr->GetBoundN(0);
+            int CurCount = 1;
+            int Code = 0; //assume left extreme
+            for (int SevN = LastHistIdx - 1; SevN >= 0; SevN--) {
+                if ((int)Severities[SevN] == 0) {
+                    // maybe extreme right
+                    Code = 1;
+                    break;
+                }
+            }
+            if (Code == 1) {
+                for (int SevN = LastHistIdx + 1; SevN < Len; SevN++) {
+                    if ((int)Severities[SevN] == 0) {
+                        // just unexpected
+                        Code = 2;
+                        break;
+                    }
+                }
+            }
+            for (int SevN = 1; SevN < Len; SevN++) {
+                if ((int)Severities[SevN] != (int)Severities[SevN - 1]) {
+                    // push
+                    PJsonVal Last = TJsonVal::NewObj();
+                    Last->AddToObj("severity", (int)Severities[SevN - 1]);
+                    Last->AddToObj("count", CurCount);
+                    Last->AddToObj("boundStart", BoundStart);
+                    Last->AddToObj("boundEnd", HistAggr->GetBoundN(SevN));
+                    ExplanationCells->AddToArr(Last);
+                    BoundStart = HistAggr->GetBoundN(SevN);
+                    CurCount = 1;
+                } else {
+                    CurCount++;
+                }
+            }
+            // push last
+            PJsonVal Last = TJsonVal::NewObj();
+            Last->AddToObj("severity", (int)Severities[Len - 1]);
+            Last->AddToObj("count", CurCount);
+            Last->AddToObj("boundStart", BoundStart);
+            Last->AddToObj("boundEnd", HistAggr->GetBoundN(Len));
+            ExplanationCells->AddToArr(Last);
+
+            Explanation->AddToObj("code", Code);
+            Explanation->AddToObj("severities", ExplanationCells);
+        }
+
+        // Fit
+        TFltV Hist; HistAggr->GetValV(Hist);
+        Model.GetPMF(Hist, PMF, Count % AutoBandwidthSkip == 0);
+        Model.ClassifyAnomalies(PMF, Severities);
+        Count++;
+    }
+}
+
+THistogramAD::THistogramAD(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal), Model(ParamVal) {
+    Reset();
+    AutoBandwidthSkip = (int)ParamVal->GetObjNum("skip", 1);
+    // parse out input aggregate
+    InAggrVal = Cast<TStreamAggrOut::IFlt>(ParseAggr(ParamVal, "inAggr"));
+    HistAggr = Cast<TOnlineHistogram>(ParseAggr(ParamVal, "inHistogram"));
+}
+
+void THistogramAD::LoadState(TSIn& SIn) {
+    Severity.Load(SIn);
+    LastHistIdx.Load(SIn);
+    PMF.Load(SIn);
+    Severities.Load(SIn);
+    Explanation = TJsonVal::Load(SIn);
+    Count.Load(SIn);
+}
+
+void THistogramAD::SaveState(TSOut& SOut) const {
+    Severity.Save(SOut);
+    LastHistIdx.Save(SOut);
+    PMF.Save(SOut);
+    Severities.Save(SOut);
+    Explanation->Save(SOut);
+    Count.Save(SOut);
+}
+
+void THistogramAD::Reset() {
+    Severity = -1;
+    LastHistIdx = 0;
+    PMF.Clr();
+    Severities.Clr();
+    Explanation = TJsonVal::NewObj();
+    Count = 0;
+}
+
+PJsonVal THistogramAD::SaveJson(const int& Limit) const {
+    PJsonVal Obj = TJsonVal::NewObj();
+    if (Limit == -1) {
+        Obj->AddToObj("pmf", TJsonVal::NewArr(PMF));
+        Obj->AddToObj("severities", TJsonVal::NewArr(Severities));
+    } else if (Limit >= 0 && Limit < PMF.Len()) {
+        TFltV PMFClip; PMF.GetSubValV(0, Limit, PMFClip);
+        TFltV SevClip;  Severities.GetSubValV(0, Limit, SevClip);
+        Obj->AddToObj("pmf", TJsonVal::NewArr(PMFClip));
+        Obj->AddToObj("severities", TJsonVal::NewArr(SevClip));
+    }
+    Obj->AddToObj("explain", Explanation);
+    Obj->AddToObj("thresholds", TJsonVal::NewArr(Model.Thresholds));
+    Obj->AddToObj("tol", Model.Tol);
+    return Obj;
 }
 
 } // TStreamAggrs namespace

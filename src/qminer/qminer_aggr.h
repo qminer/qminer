@@ -1399,18 +1399,60 @@ public:
 };
 
 ///////////////////////////////
-/// Histogram stream aggregate.
-// class TNNAnomalyAggr: public TStreamAggr {
-// private:
-//     TAnomalyDetection::TNearestNeighbor Model;
+/// Nearest Neighbor for Anomaly Detection stream aggregate.
+class TNNAnomalyAggr: public TStreamAggr,
+                      public TStreamAggrOut::ITm,
+                      public TStreamAggrOut::IInt {
+private:
+    // Input aggregate
+    TWPt<TStreamAggr> InAggrTm;
+    /// Input aggregate casted to time value
+    TWPt<TStreamAggrOut::ITm> InAggrValTm;
+    // Input aggregate
+    TWPt<TStreamAggr> InAggrSparseVec;
+    /// Input aggregate casted to sparse vector
+    TWPt<TStreamAggrOut::ISparseVec> InAggrValSparseVec;
     
-//     /// JSON constructor
-//     TNNAnomalyAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
-// public:
-//     /// JSON constructor
-//     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
-  
-// };
+    //the NN anomaly detector object
+    TAnomalyDetection::TNearestNeighbor Model;
+    
+    //details about the last alarm
+    TUInt64 LastTimeStamp;
+    TInt LastSeverity;
+    PJsonVal Explanation;
+    
+    /// JSON constructor
+    TNNAnomalyAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+protected:
+    /// Update NN anomaly detector
+   void OnStep();
+public:
+    /// JSON constructor
+    static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal){
+        return new TNNAnomalyAggr(Base, ParamVal); }
+    
+    //implement TStreamAggr functions
+    PJsonVal GetParam() const;
+    void SetParam(const PJsonVal& ParamVal);
+    
+    /// Did we finish initialization
+    bool IsInit() const { return Model.IsInit(); }
+    void Reset();
+
+    /// Load stream aggregate state from stream
+    void LoadState(TSIn& SIn);
+    /// Save state of stream aggregate to stream
+    void SaveState(TSOut& SOut) const;
+    
+    uint64 GetTmMSecs() const { return LastTimeStamp.GetMsVal(); }
+    int GetInt() const { return LastSeverity; }
+    PJsonVal SaveJson(const int& Limit) const;
+    
+    /// Stream aggregator type name 
+    static TStr GetType() { return "nnAnomalyDetector"; }
+    /// Stream aggregator type name 
+    TStr Type() const { return GetType(); }
+};
 
 ///////////////////////////////
 /// Histogram stream aggregate.
@@ -1431,14 +1473,12 @@ private:
 
     /// Is buffered input aggregate provided?
     TBool BufferedP;
-
     // Aggregate state
     TSignalProc::TOnlineHistogram Model;
-    
 protected:
     /// Update histogram
     void OnStep();
-    
+
     /// JSON constructor
     TOnlineHistogram(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:
@@ -1457,17 +1497,22 @@ public:
     /// serilization to JSon
     PJsonVal SaveJson(const int& Limit) const { return Model.SaveJson(); }
 
-    /// returns the number of bins 
+    /// Finds the bin index given val, returns -1 if not found
+    int FindBin(const double& Val) const { return Model.FindBin(Val); }
+    /// Returns the bound
+    double GetBoundN(const int& BoundN) const { return Model.GetBoundN(BoundN); }
+
+    /// returns the number of bins
     int GetVals() const { return Model.GetBins(); }
     /// returns frequencies in a given bin
     void GetVal(const int& ElN, TFlt& Val) const { Val = Model.GetCountN(ElN); }
     /// returns the vector of frequencies
     void GetValV(TFltV& ValV) const { Model.GetCountV(ValV); }
 
-    /// stream aggregator type name 
+    /// stream aggregator type name
     static TStr GetType() { return "onlineHistogram"; }
-    /// stream aggregator type name 
-    TStr Type() const { return GetType(); }    
+    /// stream aggregator type name
+    TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
@@ -1815,6 +1860,68 @@ public:
     /// Stream aggregator type name 
     static TStr GetType() { return "recordFilterAggr"; }
     /// Stream aggregator type name 
+    TStr Type() const { return GetType(); }
+};
+
+//////////////////////////////////////////////////////////////////////////////////
+/// Histogram based anomaly detector aggregate
+///
+///   OnStep has two phases (predict and fit):
+///   1. - reads a value from an input aggregate that implements IFlt
+///      - computes the bin number given an input histogram aggregate (exposes the index by implementing IInt)
+///      - uses THistogramToPMFModel to compute the severity (anomaly score) of the bin
+///      - exposes the result by implementing IFlt
+///   2. - updates the input histogram aggregate
+///      - updates THistogramToPMFModel
+///      - exposes the PMF and severities through SaveJson
+class THistogramAD : public TStreamAggr, public TStreamAggrOut::IFlt, public TStreamAggrOut::IInt {
+private:
+    /// Input for prediction
+    TWPt<TStreamAggrOut::IFlt> InAggrVal;
+    /// Bandwidth will be recomputed every time Count is divisible with AutoBandwidthSkip
+    TInt AutoBandwidthSkip;
+    /// Input for modelling (histogram)
+    TWPt<TOnlineHistogram> HistAggr;
+    /// Current severity, returned by GetFlt(), corresponds to histogram bin with index LastHistIdx
+    TFlt Severity;
+    /// The histogram bin index of the most recent prediction, returned by GetInt().
+    TInt LastHistIdx;
+    /// Current PMF, computed in OnStep
+    TFltV PMF;
+    /// Current anomaly scores, computed in OnStep
+    TFltV Severities;
+    /// Explanation object holds a summary of the histogram state prior to making the last prediction (it explains why a prediction was classified with a given severity)
+    PJsonVal Explanation;
+    /// PMF/AD model
+    THistogramToPMFModel Model;
+    /// Number of calls to OnStep
+    TInt Count;
+
+protected:
+    /// Predicts the current severity and updates the histogram anomaly model
+    void OnStep();
+    /// JSON based constructor.
+    THistogramAD(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+public:
+    /// Smart pointer constructor
+    static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) { return new THistogramAD(Base, ParamVal); }
+    /// Loads state
+    void LoadState(TSIn& SIn);
+    /// Saves state
+    void SaveState(TSOut& SOut) const;
+    /// Is the aggregate initialized?
+    bool IsInit() const { return HistAggr->IsInit() && Severities.Len() > 0; }
+    /// Returns the current severity level (0 = normal)
+    double GetFlt() const { return Severity; }
+    /// Returns the current histogram bin index
+    int GetInt() const { return LastHistIdx; }
+    /// Resets the aggregate
+    void Reset();
+    /// JSON serialization
+    PJsonVal SaveJson(const int& Limit) const;
+    /// Stream aggregator type name
+    static TStr GetType() { return "hitogramAD"; }
+    /// Stream aggregator type name
     TStr Type() const { return GetType(); }
 };
 

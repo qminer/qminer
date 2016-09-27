@@ -412,6 +412,27 @@ public:
 };
 
 ///////////////////////////////
+/// Store Hash Key Iterator.
+/// Useful for stores using THash to store records
+/// Example: TStrH TestH; PStoreIter TestIter = TStoreIterHashKey<TStrH>::New(TestH);
+template <class THash>
+class TStoreIterHashKey : public TStoreIter {
+private:
+    /// Reference to hash table with KeyIds corresponding to Record IDs
+    const THash& Hash;
+    /// Current key ID (== record ID)
+    int KeyId;
+
+    TStoreIterHashKey(const THash& _Hash) : Hash(_Hash), KeyId(Hash.FFirstKeyId()) { }
+public:
+    // Create new iterator from a given hash table
+    static PStoreIter New(const THash& Hash) { return new TStoreIterHashKey<THash>(Hash); }
+
+    bool Next() { return Hash.FNextKeyId(KeyId); }
+    uint64 GetRecId() const { return Hash.GetKey(KeyId); }
+};
+
+///////////////////////////////
 /// Store Trigger.
 /// Interface for defining triggers called when records are added, deleted or updated.
 /// Each trigger gets unique internal ID when created (GUID).
@@ -883,10 +904,17 @@ public:
     /// Prints all records with all the field values, useful for debugging
     void PrintAllAsJson(const TWPt<TBase>& Base, const TStr& FNm);
 
+    /// Get codebook mappings for given string field
+    virtual int GetCodebookId(const int& FieldId, const TStr& Str) const { throw TQmExcept::New("Not implemented"); }
+
     /// Save part of the data, given time-window
     virtual int PartialFlush(int WndInMsec = 500) { throw TQmExcept::New("Not implemented"); }
     /// Retrieve performance statistics for this store
     virtual PJsonVal GetStats() = 0;
+    /// Run verification for whole store
+    virtual void RunVerification() = 0;
+    /// Run verification for single record
+    virtual void RunVerificationForRecord(const uint64& RecId) = 0;
 };
 
 ///////////////////////////////
@@ -1602,6 +1630,20 @@ private:
 public:
     /// Constructor
     TRecFilterByFieldStrSet(const TWPt<TBase>& _Base, const int& _FieldId, const TStrSet& _StrSet, const bool& _FilterNullP = true);
+    /// Filter function
+    bool Filter(const TRec& Rec) const;
+};
+
+///////////////////////////////
+/// Record filter by a set of strings in a set where the string field is using a codebook.
+class TRecFilterByFieldStrSetUsingCodebook : public TRecFilterByField {
+private:
+    /// String values
+    TIntSet IntSet;
+
+public:
+    /// Constructor
+    TRecFilterByFieldStrSetUsingCodebook(const TWPt<TBase>& _Base, const int& _FieldId, const PStore& _Store, const TStrSet& _StrSet, const bool& _FilterNullP = true);
     /// Filter function
     bool Filter(const TRec& Rec) const;
 };

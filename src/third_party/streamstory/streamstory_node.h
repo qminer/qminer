@@ -8,6 +8,11 @@
 #ifndef STREAMSTORY_NODE_H_
 #define STREAMSTORY_NODE_H_
 
+#include "../nodeutil.h"
+#include "la_nodejs.h"
+
+#include "streamstory.h"
+
 ////////////////////////////////////////////////////////
 // Hierarchical Markov Chain model
 //!

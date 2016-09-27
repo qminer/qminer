@@ -975,6 +975,8 @@ public:
     void GetCountV(TFltV& Vec) const { Vec = Counts; }
     /// Returns an element of count vector given index
     double GetCountN(const int& CountN) const { return Counts[CountN]; }
+    /// Returns an element of bound vector given index
+    double GetBoundN(const int& BoundN) const { return Bounds[BoundN]; }
     /// Has the model beeen initialized and has sufficient data?
     bool IsInit() const { return Counts.Len() > 0 && Bounds.Len() > 0 && Count >= MinCount; }
     /// Clears the model

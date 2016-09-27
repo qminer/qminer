@@ -230,6 +230,9 @@ void TRnd::SaveTxt(TOLx& Lx) const {
 
 /////////////////////////////////////////////////
 /// Thin Input-Memory
+TThinMIn::TThinMIn() :
+    TSBase("Thin input memory"), TSIn("Thin input memory"), Bf(NULL), BfC(0), BfL(0) { }
+
 TThinMIn::TThinMIn(const TMemBase& Mem) :
 TSBase("Thin input memory"), TSIn("Thin input memory"), Bf(NULL), BfC(0), BfL(0) {
 
