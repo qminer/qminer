@@ -1403,6 +1403,7 @@ PExcept TRec::FieldError(const int& FieldId, const TStr& TypeStr) const {
 TRec::TRec(const TWPt<TStore>& _Store, const PJsonVal& JsonVal) :
     Store(_Store), ByRefP(false), RecId(TUInt64::Mx), RecValOut(RecVal) {
 
+    // first parse all the fields
     for (int FieldId = 0; FieldId < Store->GetFields(); FieldId++) {
         const TFieldDesc& FieldDesc = Store->GetFieldDesc(FieldId);
         // check if field exists in the JSON
@@ -1509,6 +1510,34 @@ TRec::TRec(const TWPt<TStore>& _Store, const PJsonVal& JsonVal) :
         default:
             throw TQmExcept::New("Unsupported JSon data type for function - " + FieldDesc.GetFieldTypeStr());
         }
+    }
+
+    // second parse out the joins
+    for (int JoinId = 0; JoinId < Store->GetJoins(); JoinId++) {
+        const TJoinDesc& JoinDesc = Store->GetJoinDesc(JoinId);
+        // check if field exists in the JSON
+        TStr JoinName = JoinDesc.GetJoinNm();
+        if (!JsonVal->IsObjKey(JoinName)) { continue; }
+        // parse the field from JSon
+        PJsonVal JoinVal = JsonVal->GetObjKey(JoinName);
+        // for now we only support index joins
+        QmAssertR(JoinVal->IsArr(), "Only support index joins in records by value");
+        // get join store
+        TWPt<TStore> JoinStore = JoinDesc.GetJoinStore(Store->GetBase());
+        // prepare record set with assumtion, that listed records exist
+        // in case record does not exist, it will not be added to index join
+        TUInt64V JoinRecIdV;
+        for (int ValN = 0; ValN < JoinVal->GetArrVals(); ValN++) {
+            PJsonVal JoinRecVal = JoinVal->GetArrVal(ValN);
+            // get record ID from the json
+            const uint64 JoinRecId = JoinStore->GetRecId(JoinRecVal);
+            // rembember the ID if we found corresponding record
+            if (JoinRecId != TUInt64::Mx) {
+                JoinRecIdV.Add(JoinRecId);
+            }
+        }
+        // remember join
+        AddJoin(JoinDesc.GetJoinId(), TRecSet::New(JoinStore, JoinRecIdV));
     }
 }
 
@@ -2167,7 +2196,8 @@ void TRec::SetFieldJsonVal(const int& FieldId, const PJsonVal& Json) {
 
 void TRec::AddJoin(const int& JoinId, const PRecSet& JoinRecSet) {
     JoinIdPosH.AddDat(JoinId, RecVal.Len());
-    JoinRecSet->GetRecIdFqV().Save(RecValOut);
+    const TUInt64IntKdV& JoinRecIdFqV = JoinRecSet->GetRecIdFqV();
+    JoinRecIdFqV.Save(RecValOut);
 }
 
 PRecSet TRec::ToRecSet() const {
@@ -2229,7 +2259,7 @@ PRecSet TRec::DoJoin(const TWPt<TBase>& Base, const int& JoinId) const {
         } else {
             // do join using serialized record set
             if (JoinIdPosH.IsKey(JoinId)) {
-                const int Pos = JoinIdPosH.GetKey(JoinId);
+                const int Pos = JoinIdPosH.GetDat(JoinId);
                 TMIn MIn(RecVal.GetBf() + Pos, RecVal.Len() - Pos, false);
                 JoinRecIdFqV.Load(MIn);
             }
