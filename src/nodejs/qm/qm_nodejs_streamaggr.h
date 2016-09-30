@@ -1040,6 +1040,82 @@
 */
 
 /**
+* @typedef {module:qmStreamAggr} StreamAggrAnomalyDetectorNN
+* This stream aggregator represents the anomaly detector using the Nearest Neighbor algorithm. It calculates the 
+* new incoming point's distance from its nearest neighbor and, depending on the input threshold values, it 
+* classifies the severity of the alarm. It implements the following methods:
+* <br>1. {@link module:qm.StreamAggr#getInteger} returns the severity of the alarm.
+* <br>2. {@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the latest alarm.
+* <br>3. {@link module:qm.StreamAggr#saveJson} returns the Json with the description and explanation of the alarm.
+* @property {string} name - The given name for the stream aggregator.
+* @property {string} type - The type of the stream aggregator. <b>Important:</b> It must be equal to `'nnAnomalyDetector'`.
+* @property {string} store - The name of the store from which it takes the data.
+* @property {string} inAggr - The name of the stream aggregator to which it connects and gets data.
+* It <b>cannot</b> be connect to the {@link module:qm~StreamAggrTimeSeriesWindow}.
+
+* @example
+* // import the qm module
+* var qm = require('qminer');
+* // create a base with a simple store named Cars with 4 fields
+* let base = new qm.Base({
+*     mode: 'createClean',
+*     schema: [{
+*         name: 'Cars',
+*         fields: [
+*             { name: 'NumberOfCars', type: 'float' },
+*             { name: 'Temperature', type: 'float' },
+*             { name: 'Precipitation', type: 'float' },
+*             { name: 'Time', type: 'datetime' }
+*         ]
+*     }]
+* });
+* // create the store
+* let store = base.store('Cars');
+* //define a feature space aggregator on the Cars store which needs at least 2 records to be initialized. Use three of the 
+* four fields of the store to create feature vectors with normalized values.
+* var aggr = {
+*    name: "ftrSpaceAggr",
+*    type: "featureSpace",
+*    initCount: 2,
+*    update: true, full: false, sparse: true,
+*    featureSpace: [
+*        { type: "numeric", source: "Cars", field: "NumberOfCars", normalize: "var" },
+*        { type: "numeric", source: "Cars", field: "Temperature", normalize: "var" },
+*        { type: "numeric", source: "Cars", field: "Precipitation", normalize: "var" }
+*    ]
+* };
+* //create the feature space aggregator
+* let ftrSpaceAggr = base.store('Cars').addStreamAggr(aggr);
+
+* // define a new time series tick stream aggregator for the 'Cars' store, that takes the values from the 'NumberOfCars' field
+* // and the timestamp from the 'Time' field.
+* var aggr = {
+*     name: "tickAggr",
+*     type: "timeSeriesTick",
+*     store: "Cars",
+*     timestamp: "Time",
+*     value: "NumberOfCars"
+* };
+* //create the tick aggregator
+* tickAggr = base.store('Cars').addStreamAggr(aggr);
+*
+* //define an anomaly detection aggregator using nearest neighbor on the cars store that takes as input timestamped features.
+* // The time stamp is provided by the tick aggregator while the feature vector is provided by the feature space aggregator.
+* var aggr = {
+*     name: 'AnomalyDetectorAggr',
+*     type: 'nnAnomalyDetector',
+*     inAggrSpV: 'ftrSpaceAggr',
+*     inAggrTm: 'tickAggr',
+*     rate: [0.15, 0.5, 0.7],
+*     windowSize: 2
+* };
+* //create the anomaly detection aggregator
+* var anomaly = base.store('Cars').addStreamAggr(aggr);
+* base.close();
+*/
+
+
+/**
 * @typedef {module:qm.StreamAggr} StreamAggrHistogram
 * This stream aggregator represents an online histogram. It can connect to a buffered aggregate (such as {@link module:qm~StreamAggrTimeSeriesWindow})
 * or a time series (such as {@link module:qm~StreamAggregateEMA}).
