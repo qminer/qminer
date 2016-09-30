@@ -1818,7 +1818,7 @@ void TNNAnomalyAggr::SaveState(TSOut& SOut) const {
     Model.Save(SOut);
     LastTimeStamp.Save(SOut);
     LastSeverity.Save(SOut);
-    Explanation.Save(SOut);
+    Explanation->Save(SOut);
 }
 
 PJsonVal TNNAnomalyAggr::SaveJson(const int& Limit) const {

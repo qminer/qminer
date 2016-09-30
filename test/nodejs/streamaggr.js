@@ -3796,6 +3796,35 @@ describe('Nearest Neighbor Anomaly Detection Tests', function () {
             assert(!anomaly.saveJson().explanation.distance);
         })
     });
+    describe('Save and load tests', function () {
+        it('should save and load the anomaly aggregator', function () {
+            var aggr = {
+                name: 'AnomalyDetectorAggr',
+                type: 'nnAnomalyDetector',
+                inAggrSpV: 'ftrSpaceAggr',
+                inAggrTm: 'tickAggr',
+                rate: [0.15, 0.5, 0.7],
+                windowSize: 2
+            };
+            var anomaly = base.store('Cars').addStreamAggr(aggr);
+
+            store.push({ NumberOfCars: 2, Temperature: 30, Precipitation: 200, Time: "2016-09-07T12:00:00" });
+            store.push({ NumberOfCars: 2, Temperature: 30, Precipitation: 200, Time: "2016-09-07T12:01:00" });
+            store.push({ NumberOfCars: 2, Temperature: 30, Precipitation: 200, Time: "2016-09-07T12:02:00" });
+            store.push({ NumberOfCars: 2, Temperature: 30, Precipitation: 0, Time: "2016-09-07T12:03:00" });
+
+            assert.equal(anomaly.getInteger(), 3);
+
+            var fs = require('qminer').fs;
+            var fout = new fs.FOut("./anomaly.txt");
+            anomaly.save(fout);
+            fout.close();
+            var fin = new fs.FIn("./anomaly.txt");
+            anomaly.load(fin);
+
+            assert.equal(anomaly.getInteger(), 3);
+        })
+    });
     describe('Reset the Anomaly Detection aggregator', function () {
         it('should reset the anomaly aggregator', function () {
             var aggr = {
