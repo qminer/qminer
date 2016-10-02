@@ -3423,7 +3423,7 @@ void TStoreImpl::DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK) {
     // delete records from index
     for (int DelRecN = 0; DelRecN < DelRecIdV.Len(); DelRecN++) {
         // report progress
-        if (DelRecN % 1000 == 0) {
+        if (DelRecN > 0 && DelRecN % 1000 == 0) {
             TEnv::Logger->OnStatusFmt("    %d\r", DelRecN);
         }
         // what are we deleting now
@@ -5050,7 +5050,7 @@ void TStorePbBlob::DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK) {
     // delete records
     for (int DelRecN = 0; DelRecN < DelRecIdV.Len(); DelRecN++) {
         // report progress
-        if (DelRecN % 1000 == 0) { TEnv::Logger->OnStatusFmt("    %d\r", DelRecN); }
+        if (DelRecN > 0 && DelRecN % 1000 == 0) { TEnv::Logger->OnStatusFmt("    %d\r", DelRecN); }
         // what are we deleting now
         const uint64 DelRecId = DelRecIdV[DelRecN];
         // execute triggers before deletion
