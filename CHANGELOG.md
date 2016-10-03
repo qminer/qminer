@@ -1,5 +1,32 @@
 # QMiner Change Log
 
+### 30 September 2016
+
+**Version: 6.5.1**
+
+**Non-breaking with a bug fix**
+
+Bug Fix:
+- Fixed support for index joins in records by value
+
+### 23 September 2016
+
+**Version: 6.5.0**
+
+**Non-breaking with new features**
+
+New Features:
+- `qm.stats` property lists statistics on constructor and destructor calls
+- Histogram smoothing using kernel density estimation in `THistogramToPMFModel`
+- Histogram based anomaly detection stream aggregate
+- Nearest neighbor anomaly detection stream aggregate
+- Optimized Record set filter over code book strings
+
+Bug Fixes:
+- Lots of fixes to PgPage and its associated store
+- Again compiles under debug mode in Visual Studio
+
+
 ### 2 September 2016
 
 **Version: 6.4.0**

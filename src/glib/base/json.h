@@ -86,6 +86,7 @@ public:
   static PJsonVal NewArr(const TIntV& IntV);
   static PJsonVal NewArr(const TUInt64V& IntV);
   static PJsonVal NewArr(const TFltV& FltV);
+  static PJsonVal NewArr(const TIntFltKdV& IntFltKdV);
   static PJsonVal NewArr(const double& Val1, const double& Val2);
   static PJsonVal NewArr(const TStrV& StrV);
   static PJsonVal NewArr(const TFltPr& FltPr);
@@ -184,6 +185,7 @@ public:
   void AssertObjKey(const TStr& Key, const TStr& Fun);
   void AssertObjKeyStr(const TStr& Key, const TStr& Fun);
   void AssertObjKeyNum(const TStr& Key, const TStr& Fun);
+  void AssertObjKeyBool(const TStr& Key, const TStr& Fun);
 
   // (de)serialization
   static PJsonVal GetValFromLx(TILx& Lx);

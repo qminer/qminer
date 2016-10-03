@@ -911,6 +911,10 @@ public:
     virtual int PartialFlush(int WndInMsec = 500) { throw TQmExcept::New("Not implemented"); }
     /// Retrieve performance statistics for this store
     virtual PJsonVal GetStats() = 0;
+    /// Run verification for whole store
+    virtual void RunVerification() = 0;
+    /// Run verification for single record
+    virtual void RunVerificationForRecord(const uint64& RecId) = 0;
 };
 
 ///////////////////////////////
@@ -3488,7 +3492,14 @@ namespace TStreamAggrOut {
     };
     typedef IValVec<TFlt> IFltVec;
     typedef IValVec<TIntFltKdV> ISparseVVec;
-    typedef IValVec<TIntFltKd> ISparseVec;
+
+    /// vector of sparse vectors
+    class ISparseVec {
+    public:
+        virtual int GetSparseVecLen() const = 0;
+        virtual TIntFltKd GetSparseVecVal(const int& ElN) const = 0;
+        virtual void GetSparseVec(TIntFltKdV& SpVec) const = 0;
+    };
 
     /// vector of timestamps
     class ITmVec {
