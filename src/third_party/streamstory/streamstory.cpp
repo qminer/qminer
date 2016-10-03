@@ -25,7 +25,7 @@ TFtrInfo::TFtrInfo(const TFtrType& _Type, const int& _Offset, const int& _Length
 TFtrInfo::TFtrInfo(TSIn& SIn):
 		Type(static_cast<TFtrType>(int(TInt(SIn)))),
 		Offset(TInt(SIn)),
-		Length(TInt(SIn)) {}
+        Length(TInt(SIn)) {}
 
 void TFtrInfo::Save(TSOut& SOut) const {
 	TInt(Type).Save(SOut);
@@ -3189,21 +3189,187 @@ void THierarch::GetHistStateIdV(const double& Height, TStateIdV& StateIdV) const
 	}
 }
 
-void THierarch::GetStateHistory(const double& Scale, TUInt64IntPrV& StateTmStateIdPrV) const {
-    StateTmStateIdPrV = HierarchHistoryVV[GetUiScaleN(Scale)];
+void THierarch::GetStateHistory(const double& RelOffset, const double& RelRange, const int& MxStates,
+        const double& Scale, uint64& GlobalMnDur,
+        TVec<TTriple<TUInt64,TUInt64,TIntFltH>>& TmDurStateIdPercHTrV) const {
+    // first get the time range
+    EAssertR(!HierarchHistoryVV.Empty(), "No scales in history vector!!");
+    const TUInt64IntPrV& LowestScaleHistV = HierarchHistoryVV[0];
+    EAssertR(LowestScaleHistV.Len() > 1, "Need at least 2 elements on the lowest scale!");
+    const uint64 TmRange = LowestScaleHistV.Last().Val1 - LowestScaleHistV[0].Val1; 
+
+    Notify->OnNotifyFmt(ntInfo, "Calculating history for scale: %.4f", Scale);
+
+    const uint64 IntervalStartTm = (uint64) (LowestScaleHistV[0].Val1 + TmRange*RelOffset);
+    const uint64 IntervalEndTm = (uint64) (IntervalStartTm + TmRange*RelRange);
+
+    Notify->OnNotifyFmt(ntInfo, "Start time: %ld, end time: %ld", IntervalStartTm, IntervalEndTm);
+
+    const TUInt64IntPrV& ScaleHistV = HierarchHistoryVV[GetUiScaleN(Scale)];
+    TUInt64UInt64IntTrV StateTmDurIdTrV(ScaleHistV.Len()-1, 0);
+    for (int TmN = 0; TmN < ScaleHistV.Len(); TmN++) {
+        const TUInt64IntPr& StateTmStateIdPr = ScaleHistV[TmN];
+
+        if (TmN < ScaleHistV.Len()-1) {
+            const TUInt64IntPr& NextStateTmStateIdPr = ScaleHistV[TmN+1];
+
+            uint64 StateStartTm = StateTmStateIdPr.Val1;
+            uint64 StateEndTm = NextStateTmStateIdPr.Val1;
+
+            const int& StateId = StateTmStateIdPr.Val2;
+
+            if (StateEndTm < IntervalStartTm) { continue; }
+            if (StateStartTm > IntervalEndTm) { break; }
+
+            if (StateStartTm < IntervalStartTm) { StateStartTm = IntervalStartTm; }
+            if (StateEndTm > IntervalEndTm) { StateEndTm = IntervalEndTm; }
+
+            const uint64 StateDur = StateEndTm - StateStartTm;
+
+            StateTmDurIdTrV.Add(TUInt64UInt64IntTr(StateStartTm, StateDur, StateId));
+        } else {
+            // this is the last state and we are still in the loop
+            const uint64& StateStartTm = StateTmStateIdPr.Val1;
+
+            if (StateStartTm > IntervalEndTm) { break; }
+
+            const int& StateId = StateTmStateIdPr.Val2;
+            const uint64 StateDur = IntervalEndTm - StateStartTm;
+
+            StateTmDurIdTrV.Add(TUInt64UInt64IntTr(StateStartTm, StateDur, StateId));
+        }
+    }
+
+    if (StateTmDurIdTrV.Len() > MxStates) {
+        Notify->OnNotifyFmt(ntInfo, "Resampling %d values ...", StateTmDurIdTrV.Len());
+
+        // find the MAX_HISTORY_SAMPLES-th largest duration
+        THeap<TUInt64, TGtr<TUInt64>> DurHeap(MxStates);
+
+        for (int TmN = 0; TmN < MxStates; TmN++) {
+            const uint64& StateDur = StateTmDurIdTrV[TmN].Val2;
+            DurHeap.PushHeap(StateDur);
+        }
+        for (int TmN = MxStates; TmN < StateTmDurIdTrV.Len(); TmN++) {
+            const uint64& StateDur = StateTmDurIdTrV[TmN].Val2;
+            const uint64& CurMnDur = DurHeap.TopHeap();
+            if (StateDur > CurMnDur) {
+                DurHeap.PushHeap(StateDur);
+                DurHeap.PopHeap();
+            }
+        }
+
+        const uint64& MnDur = DurHeap.TopHeap();
+
+        if (MnDur < GlobalMnDur) {
+            GlobalMnDur = MnDur;
+        }
+
+        Notify->OnNotifyFmt(ntInfo, "Skipping durations below %s ...", TStrUtil::GetHMSStrFromMSecs(GlobalMnDur).CStr());
+
+        TmDurStateIdPercHTrV.Gen(MxStates, 0);
+        for (int TmN = 0; TmN < StateTmDurIdTrV.Len(); TmN++) {
+            const TUInt64UInt64IntTr& TmDurIdTr = StateTmDurIdTrV[TmN];
+            const uint64& Dur = TmDurIdTr.Val2;
+
+            if (TmN == 0) {
+                TmDurStateIdPercHTrV.Add();
+                TTriple<TUInt64,TUInt64,TIntFltH>& TmDurStateDistHTr = TmDurStateIdPercHTrV.Last();
+
+                TmDurStateDistHTr.Val1 = TmDurIdTr.Val1;
+                TmDurStateDistHTr.Val2 = TmDurIdTr.Val2;
+                TmDurStateDistHTr.Val3.AddDat(TmDurIdTr.Val3, 1);
+            }
+            else {
+                if (Dur < GlobalMnDur) {
+                    // add the duration of the current state to the last state
+                    // that will be output
+                    TTriple<TUInt64,TUInt64,TIntFltH>& PrevTmDurStateDistHTr = TmDurStateIdPercHTrV.Last();
+                    const uint64 PrevDur = PrevTmDurStateDistHTr.Val2;
+
+                    const double PrevPerc = double(PrevDur) / (PrevDur + Dur);
+                    const double CurrPerc = 1 - PrevPerc;
+
+                    // redistribute the states in this block
+                    TIntFltH& PrevStateDistH = PrevTmDurStateDistHTr.Val3;
+                    int KeyId = PrevStateDistH.FFirstKeyId();
+                    while (PrevStateDistH.FNextKeyId(KeyId)) {
+                        PrevStateDistH[KeyId] *= PrevPerc;
+                    }
+
+                    if (PrevStateDistH.IsKey(TmDurIdTr.Val3)) {
+                        PrevStateDistH.GetDat(TmDurIdTr.Val3) += CurrPerc;
+                    } else {
+                        PrevStateDistH.AddDat(TmDurIdTr.Val3, CurrPerc);
+                    }
+
+                    // increase the total duration of the block
+                    PrevTmDurStateDistHTr.Val2 += Dur;
+                }
+                else {
+                    TmDurStateIdPercHTrV.Add();
+                    TTriple<TUInt64,TUInt64,TIntFltH>& TmDurStateDistHTr = TmDurStateIdPercHTrV.Last();
+
+                    TmDurStateDistHTr.Val1 = TmDurIdTr.Val1;
+                    TmDurStateDistHTr.Val2 = TmDurIdTr.Val2;
+                    TmDurStateDistHTr.Val3.AddDat(TmDurIdTr.Val3, 1);
+                }
+            }
+
+            // if two consecutive states are duplicate => merge them
+            const int CurrN = TmDurStateIdPercHTrV.Len();
+            if (CurrN >= 2 &&
+                    HaveSameKeys(TmDurStateIdPercHTrV.Last().Val3, TmDurStateIdPercHTrV[CurrN-2].Val3) &&
+                    GetStateProbDiff(TmDurStateIdPercHTrV.Last().Val3, TmDurStateIdPercHTrV[CurrN-2].Val3) < .03) {
+                TIntFltH& Dist1 = TmDurStateIdPercHTrV[CurrN-2].Val3;
+                const TIntFltH Dist2 = TmDurStateIdPercHTrV.Last().Val3;
+
+                const double Perc1 = double(TmDurStateIdPercHTrV[CurrN-2].Val2) / (TmDurStateIdPercHTrV[CurrN-2].Val2 + TmDurStateIdPercHTrV.Last().Val2);
+                const double Perc2 = 1 - Perc1;
+
+                int KeyId = Dist1.FFirstKeyId();
+                while (Dist1.FNextKeyId(KeyId)) {
+                    const int& StateId = Dist1.GetKey(KeyId);
+
+                    Dist1.GetDat(StateId) = Perc1*Dist1.GetDat(StateId) + Perc2*Dist2.GetDat(StateId);
+                }
+
+                TmDurStateIdPercHTrV[CurrN-2].Val2 += TmDurStateIdPercHTrV.Last().Val2;
+                TmDurStateIdPercHTrV.DelLast();
+            }
+        }
+
+        Notify->OnNotifyFmt(ntInfo, "%d historical states returned ...", TmDurStateIdPercHTrV.Len());
+    } else {
+        TmDurStateIdPercHTrV.Gen(StateTmDurIdTrV.Len());
+        for (int TmN = 0; TmN < StateTmDurIdTrV.Len(); TmN++) {
+            const TUInt64UInt64IntTr& InTmDurIdTr = StateTmDurIdTrV[TmN];
+            TTriple<TUInt64,TUInt64,TIntFltH>& TmDurStatePercHTr = TmDurStateIdPercHTrV[TmN];
+
+            TmDurStatePercHTr.Val1 = InTmDurIdTr.Val1;
+            TmDurStatePercHTr.Val2 = InTmDurIdTr.Val2;
+            TmDurStatePercHTr.Val3.AddDat(InTmDurIdTr.Val3, 1);
+        }
+    }
 }
 
-void THierarch::GetStateHistory(TVec<TPair<TFlt, TUInt64IntPrV>>& ScaleTmIdPrPrV) const {
+void THierarch::GetStateHistory(const double& RelOffset, const double& RelRange,
+        const int& MxStates, TVec<TPair<TFlt, TVec<TTriple<TUInt64,TUInt64,TIntFltH>>>>& ScaleTmDurIdDistPrTrV) const {
     const TFltV& ScaleV = GetUiHeightV();
 
-    ScaleTmIdPrPrV.Gen(ScaleV.Len());
+    Notify->OnNotifyFmt(ntInfo, "Fetching history for %d all scales ...", ScaleV.Len());
 
+    ScaleTmDurIdDistPrTrV.Gen(ScaleV.Len());
+
+    uint64 MnDur = TUInt64::Mx;
     for (int ScaleN = 0; ScaleN < ScaleV.Len(); ScaleN++) {
         const double& Scale = ScaleV[ScaleN];
 
-        ScaleTmIdPrPrV[ScaleN].Val1 = Scale;
-        GetStateHistory(Scale, ScaleTmIdPrPrV[ScaleN].Val2);
+        ScaleTmDurIdDistPrTrV[ScaleN].Val1 = Scale;
+        GetStateHistory(RelOffset, RelRange, MxStates, Scale, MnDur, ScaleTmDurIdDistPrTrV[ScaleN].Val2);
     }
+
+    Notify->OnNotify(ntInfo, "Done!");
 }
 
 void THierarch::GetLeafSuccesorCountV(TIntV& LeafCountV) const {
@@ -5554,13 +5720,9 @@ void TStreamStory::GetTimeHistogram(const int& StateId, const TStateIdentifier::
 	StateIdentifier->GetTimeHistogram(AggState, HistType, BinV, ProbV);
 }
 
-void TStreamStory::GetStateHistory(const double& Scale,
-        TUInt64IntPrV& StateTmStateIdPrV) const {
-    Hierarch->GetStateHistory(Scale, StateTmStateIdPrV);
-}
-
-void TStreamStory::GetStateHistory(TVec<TPair<TFlt, TUInt64IntPrV>>& ScaleTmIdPrPrV) const {
-    Hierarch->GetStateHistory(ScaleTmIdPrPrV);
+void TStreamStory::GetStateHistory(const double& RelOffset, const double& RelRange,
+	        const int& MxStates, TVec<TPair<TFlt, TVec<TTriple<TUInt64,TUInt64,TIntFltH>>>>& ScaleTmDurIdTrPrV) const {
+    Hierarch->GetStateHistory(RelOffset, RelRange, MxStates, ScaleTmDurIdTrPrV);
 }
 
 PJsonVal TStreamStory::GetStateWgtV(const int& StateId) const {

@@ -659,8 +659,13 @@ public:
 	/// returns the last few states that occurred in the real-time data stream
 	void GetHistStateIdV(const double& Height, TStateIdV& StateIdV) const;
 	/// returns the whole history of states on the given scale
-	void GetStateHistory(const double& Scale, TUInt64IntPrV& StateTmStateIdPrV) const;
-	void GetStateHistory(TVec<TPair<TFlt, TUInt64IntPrV>>& ScaleTmIdPrPrV) const;
+	void GetStateHistory(const double& RelOffset, const double& RelRange,
+	        const int& MxStates, const double& Scale, uint64& GlobalMnDur,
+	        TVec<TTriple<TUInt64,TUInt64,TIntFltH>>& TmDurStateIdPercHTrV) const;
+	/// returns the whole history of states on all the scales
+	void GetStateHistory(const double& RelOffset, const double& RelRange,
+            const int& MxStates,
+            TVec<TPair<TFlt, TVec<TTriple<TUInt64,TUInt64,TIntFltH>>>>& ScaleTmDurIdTrV) const;
 
 	// for each state returns the number of leafs it's subtree has
 	void GetLeafSuccesorCountV(TIntV& LeafCountV) const;
@@ -740,6 +745,31 @@ private:
 
 	static int FindScaleNBin(const double& Scale, const TFltV& ScaleV);
 
+	static bool HaveSameKeys(const TIntFltH& Hash1, const TIntFltH& Hash2) {
+	    if (Hash1.Len() != Hash2.Len()) { return false; }
+
+	    int KeyId = Hash1.FFirstKeyId();
+	    while (Hash1.FNextKeyId(KeyId)) {
+	        const int& Key1 = Hash1.GetKey(KeyId);
+	        if (!Hash2.IsKey(Key1)) {
+	            return false;
+	        }
+	    }
+
+	    return true;
+	}
+	static double GetStateProbDiff(const TIntFltH& DistH1, const TIntFltH& DistH2) {
+	    double Diff = 0;
+
+	    int KeyId = DistH1.FFirstKeyId();
+	    while (DistH1.FNextKeyId(KeyId)) {
+	        const int& Key1 = DistH1.GetKey(KeyId);
+
+	        Diff += TFlt::Abs(DistH1.GetDat(Key1) - DistH2.GetDat(Key1));
+	    }
+
+	    return Diff;
+	}
 	// clears the state
 	void ClrFlds();
 };
@@ -1104,8 +1134,8 @@ public:
 			const int& NBins=-1) const;
 	void GetTimeHistogram(const int& StateId, const TStateIdentifier::TTmHistType& HistType,
 			TIntV& BinV, TFltV& ProbV) const;
-	void GetStateHistory(const double& Scale, TUInt64IntPrV& StateTmStateIdPrV) const;
-	void GetStateHistory(TVec<TPair<TFlt, TUInt64IntPrV>>& ScaleTmIdPrPrV) const;
+	void GetStateHistory(const double& RelOffset, const double& RelRange,
+	        const int& MxStates, TVec<TPair<TFlt, TVec<TTriple<TUInt64,TUInt64,TIntFltH>>>>& ScaleTmDurIdTrPrV) const;
 
 	// state explanations
 	PJsonVal GetStateWgtV(const int& StateId) const;

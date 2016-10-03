@@ -410,53 +410,48 @@ void TNodeJsStreamStory::getHistoricalStates(const v8::FunctionCallbackInfo<v8::
 
     TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
 
-    if (Args.Length() > 0 && !TNodeJsUtil::IsArgNullOrUndef(Args, 0)) {
-        const double Scale = TNodeJsUtil::GetArgFlt(Args, 0);
+    const double RelOffset = TNodeJsUtil::GetArgFlt(Args, 0);
+    const double RelLen = TNodeJsUtil::GetArgFlt(Args, 1);
+    const int MxStates = TNodeJsUtil::GetArgInt32(Args, 2);
 
-        TUInt64IntPrV StateTmStateIdPrV;
-        JsStreamStory->StreamStory->GetStateHistory(Scale, StateTmStateIdPrV);
+    TVec<TPair<TFlt, TVec<TTriple<TUInt64,TUInt64,TIntFltH>>>> ScaleTmDurStateIdDistHTrV;
+    JsStreamStory->StreamStory->GetStateHistory(RelOffset, RelLen, MxStates, ScaleTmDurStateIdDistHTrV);
 
-        v8::Local<v8::Array> JsResult = v8::Array::New(Isolate, StateTmStateIdPrV.Len());
-        for (int StateN = 0; StateN < StateTmStateIdPrV.Len(); StateN++) {
+    v8::Local<v8::Array> JsResult = v8::Array::New(Isolate, ScaleTmDurStateIdDistHTrV.Len());
+    for (int ScaleN = 0; ScaleN < ScaleTmDurStateIdDistHTrV.Len(); ScaleN++) {
+        v8::Local<v8::Object> ScaleObj = v8::Object::New(Isolate);
+
+        const TPair<TFlt, TVec<TTriple<TUInt64,TUInt64,TIntFltH>>>& ScaleTmIdVPr = ScaleTmDurStateIdDistHTrV[ScaleN];
+        const TVec<TTriple<TUInt64,TUInt64,TIntFltH>>& StateTmDurStateIdPrV = ScaleTmIdVPr.Val2;
+
+        v8::Local<v8::Array> JsScaleHist = v8::Array::New(Isolate, StateTmDurStateIdPrV.Len());
+        for (int BlockN = 0; BlockN < StateTmDurStateIdPrV.Len(); BlockN++) {
             v8::Local<v8::Object> StateObj = v8::Object::New(Isolate);
 
-            StateObj->Set(v8::String::NewFromUtf8(Isolate, "start"), v8::Number::New(Isolate, (double) TNodeJsUtil::GetJsTimestamp(StateTmStateIdPrV[StateN].Val1)));
-            StateObj->Set(v8::String::NewFromUtf8(Isolate, "id"), v8::Integer::New(Isolate, StateTmStateIdPrV[StateN].Val2));
+            const TIntFltH& StateIdDistH = StateTmDurStateIdPrV[BlockN].Val3;
+            v8::Local<v8::Object> StateIdDistObj = v8::Object::New(Isolate);
+            int KeyId = StateIdDistH.FFirstKeyId();
+            while (StateIdDistH.FNextKeyId(KeyId)) {
+                const int& StateId = StateIdDistH.GetKey(KeyId);
+                const double& Prob = StateIdDistH[KeyId];
 
-            JsResult->Set(StateN, StateObj);
-        }
-
-        Args.GetReturnValue().Set(JsResult);
-    }
-    else {  // all scales
-        TVec<TPair<TFlt, TUInt64IntPrV>> ScaleTmIdPrV;
-        JsStreamStory->StreamStory->GetStateHistory(ScaleTmIdPrV);
-
-        v8::Local<v8::Array> JsResult = v8::Array::New(Isolate, ScaleTmIdPrV.Len());
-        for (int ScaleN = 0; ScaleN < ScaleTmIdPrV.Len(); ScaleN++) {
-            v8::Local<v8::Object> ScaleObj = v8::Object::New(Isolate);
-
-            const TPair<TFlt, TUInt64IntPrV>& ScaleTmIdVPr = ScaleTmIdPrV[ScaleN];
-            const TUInt64IntPrV& StateTmStateIdPrV = ScaleTmIdVPr.Val2;
-
-            v8::Local<v8::Array> JsScaleHist = v8::Array::New(Isolate, StateTmStateIdPrV.Len());
-            for (int StateN = 0; StateN < StateTmStateIdPrV.Len(); StateN++) {
-                v8::Local<v8::Object> StateObj = v8::Object::New(Isolate);
-
-                StateObj->Set(v8::String::NewFromUtf8(Isolate, "start"), v8::Number::New(Isolate, (double) TNodeJsUtil::GetJsTimestamp(StateTmStateIdPrV[StateN].Val1)));
-                StateObj->Set(v8::String::NewFromUtf8(Isolate, "id"), v8::Integer::New(Isolate, StateTmStateIdPrV[StateN].Val2));
-
-                JsScaleHist->Set(StateN, StateObj);
+                StateIdDistObj->Set(v8::Integer::New(Isolate, StateId), v8::Number::New(Isolate, Prob));
             }
 
-            ScaleObj->Set(v8::String::NewFromUtf8(Isolate, "scale"), v8::Number::New(Isolate, ScaleTmIdVPr.Val1));
-            ScaleObj->Set(v8::String::NewFromUtf8(Isolate, "states"), JsScaleHist);
+            StateObj->Set(v8::String::NewFromUtf8(Isolate, "start"), v8::Number::New(Isolate, (double) TNodeJsUtil::GetJsTimestamp(StateTmDurStateIdPrV[BlockN].Val1)));
+            StateObj->Set(v8::String::NewFromUtf8(Isolate, "duration"), v8::Number::New(Isolate, (double) StateTmDurStateIdPrV[BlockN].Val2));
+            StateObj->Set(v8::String::NewFromUtf8(Isolate, "states"), StateIdDistObj);
 
-            JsResult->Set(ScaleN, ScaleObj);
+            JsScaleHist->Set(BlockN, StateObj);
         }
 
-        Args.GetReturnValue().Set(JsResult);
+        ScaleObj->Set(v8::String::NewFromUtf8(Isolate, "scale"), v8::Number::New(Isolate, ScaleTmIdVPr.Val1));
+        ScaleObj->Set(v8::String::NewFromUtf8(Isolate, "states"), JsScaleHist);
+
+        JsResult->Set(ScaleN, ScaleObj);
     }
+
+    Args.GetReturnValue().Set(JsResult);
 }
 
 void TNodeJsStreamStory::toJSON(const v8::FunctionCallbackInfo<v8::Value>& Args) {

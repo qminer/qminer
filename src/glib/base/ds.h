@@ -639,7 +639,7 @@ public:
   void PutAll(const TVal& Val);
   /// removes elements with indices in ValNV
   void Del(const TVec<TNum<TSizeTy>, TSizeTy>& ValNV);
-  
+
   /// Move element from position \c ValN1 to \c ValN2
   void Move(const TSizeTy& FromValN, const TSizeTy& ToValN){
     ValT[ToValN] = std::move(ValT[FromValN]); } // C++11
