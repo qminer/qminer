@@ -3417,38 +3417,38 @@ describe('New resampler tests', function () {
     });
     
     describe('General tests', function () {
-        it('should create a new resampler aggregator', function () {        	
-        	var raw = new qm.StreamAggr(base, {
-        		type: 'timeSeriesTick',
-        		store: store,
-        		timestamp: 'timestamp',
-            	value: 'value'
+        it('should create a new resampler aggregator', function () {
+            var raw = new qm.StreamAggr(base, {
+                type: 'timeSeriesTick',
+                store: store,
+                timestamp: 'timestamp',
+                value: 'value'
             }, store);
-        	
-        	var resampler = new qm.StreamAggr(base, {
-        		name: 'resample',
-        		type: 'resample',
-        		inAggr: raw,
-        		interpolator: 'current',
-            	interval: 1000
+
+            var resampler = new qm.StreamAggr(base, {
+                name: 'resample',
+                type: 'resample',
+                inAggr: raw,
+                interpolator: 'current',
+                interval: 1000
             }, store);
-            
+
             var counter = new qm.StreamAggr(base, (function () {
                 var updates = 0;
-                
+
                 var that = {
-                	name: 'simple',
-                	init: function () { return true; },
+                    name: 'simple',
+                    init: function () { return true; },
                     onAdd: function (rec) { that.onStep(); },
                     onStep: function () { updates++; },
                     saveJson: function (limit) { return { val: updates }; }
                 }
-                
+
                 return that;
             })());
-            
+
             resampler.setParams({ outAggr: counter });
-            
+
             // do the test
             var updateSeq = [
                 { timestamp: 0, value: 1 },
