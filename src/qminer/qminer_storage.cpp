@@ -2393,11 +2393,11 @@ void TRecSerializator::Verify(char* Bf, const int& BfL) const {
                 VarFields.Add(i);
                 int FieldContentOffset = *((int*)(Bf + VarIndexPartOffset + FieldSerialDesc.Offset));
                 if (FieldContentOffset < 0) {
-                    printf(" FieldSerialDesc.Offset=%d FieldContentOffset=%d\n", FieldSerialDesc.Offset, FieldContentOffset);
+                    printf(" FieldSerialDesc.Offset=%d FieldContentOffset=%d\n", FieldSerialDesc.Offset.Val, FieldContentOffset);
                     QmAssertR(false, "Var-len field content offset is too low");
                 }
                 if (FieldContentOffset + VarContentPartOffset >= BfL) {
-                    printf("FieldContentOffset=%d, VarContentPartOffset=%d, BfL=%d \n", FieldContentOffset, VarContentPartOffset, BfL);
+                    printf("FieldContentOffset=%d, VarContentPartOffset=%d, BfL=%d \n", FieldContentOffset, VarContentPartOffset.Val, BfL);
                     QmAssertR(false, "Var-len field content offset is too big");
                 }
                 //QmAssertR(*((int*)(Bf + VarIndexPartOffset + FieldSerialDesc.Offset)) < VarOffset, "");;
