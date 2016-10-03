@@ -105,7 +105,7 @@ describe('Stream Aggregator Tests', function () {
             assert.equal(s.getNameInteger('Mary'), 1);
         });
 
-        it.only('should test isNameFloat and isNameInteger. getNameFloat (or getNameInteger) should always return null when isNameFloat (or isNameInteger) returns false', function () {
+        it('should test isNameFloat and isNameInteger. getNameFloat (or getNameInteger) should always return null when isNameFloat (or isNameInteger) returns false', function () {
             var s = new qm.StreamAggr(base, new function () {
                 var data = {};
                 this.onAdd = function (rec) {
