@@ -331,7 +331,10 @@ void TNodeJsStreamAggr::getTimestamp(const v8::FunctionCallbackInfo<v8::Value>& 
         throw TQm::TQmExcept::New("TNodeJsStreamAggr::getTm : stream aggregate does not implement ITm: " + JsSA->SA->GetAggrNm());
     }
 
-    Args.GetReturnValue().Set(v8::Number::New(Isolate, (double)Aggr->GetTmMSecs()));
+    uint64 WinMSecs = Aggr->GetTmMSecs();
+    // milliseconds from 1970-01-01T00:00:00Z, which is 11644473600 seconds after Windows file time start
+    double UnixMSecs = (double)TNodeJsUtil::GetJsTimestamp(WinMSecs);
+    Args.GetReturnValue().Set(v8::Number::New(Isolate, UnixMSecs));
 }
 
 void TNodeJsStreamAggr::getFloatLength(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -413,7 +416,11 @@ void TNodeJsStreamAggr::getTimestampAt(const v8::FunctionCallbackInfo<v8::Value>
         throw TQm::TQmExcept::New("TNodeJsStreamAggr::getTmAt : stream aggregate does not implement ITmVec: " + JsSA->SA->GetAggrNm());
     }
     QmAssertR(JsSA->SA->IsInit(), "TNodeJsStreamAggr::getTmAt : stream aggregate '" + JsSA->SA->GetAggrNm() + "' is not initialized!");
-    Args.GetReturnValue().Set(v8::Number::New(Isolate, (double)Aggr->GetTm(ElN)));
+
+    uint64 WinMSecs = Aggr->GetTm(ElN);
+    // milliseconds from 1970-01-01T00:00:00Z, which is 11644473600 seconds after Windows file time start
+    double UnixMSecs = (double)TNodeJsUtil::GetJsTimestamp(WinMSecs);
+    Args.GetReturnValue().Set(v8::Number::New(Isolate, UnixMSecs));
 }
 
 void TNodeJsStreamAggr::getTimestampVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -432,7 +439,8 @@ void TNodeJsStreamAggr::getTimestampVector(const v8::FunctionCallbackInfo<v8::Va
     int Len = Res.Len();
     TFltV FltRes(Len);
     for (int ElN = 0; ElN < Len; ElN++) {
-        FltRes[ElN] = (double)Res[ElN];
+        // milliseconds from 1970-01-01T00:00:00Z, which is 11644473600 seconds after Windows file time start
+        FltRes[ElN] = (double)TNodeJsUtil::GetJsTimestamp(Res[ElN]);
     }
 
     Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(FltRes));
@@ -471,7 +479,8 @@ void TNodeJsStreamAggr::getInTimestampVector(const v8::FunctionCallbackInfo<v8::
     int Len = Res.Len();
     TFltV FltRes(Len);
     for (int ElN = 0; ElN < Len; ElN++) {
-        FltRes[ElN] = (double)Res[ElN];
+        // milliseconds from 1970-01-01T00:00:00Z, which is 11644473600 seconds after Windows file time start
+        FltRes[ElN] = (double)TNodeJsUtil::GetJsTimestamp(Res[ElN]);
     }
 
     Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(FltRes));
@@ -510,7 +519,8 @@ void TNodeJsStreamAggr::getOutTimestampVector(const v8::FunctionCallbackInfo<v8:
     int Len = Res.Len();
     TFltV FltRes(Len);
     for (int ElN = 0; ElN < Len; ElN++) {
-        FltRes[ElN] = (double)Res[ElN];
+        // milliseconds from 1970-01-01T00:00:00Z, which is 11644473600 seconds after Windows file time start
+        FltRes[ElN] = (double)TNodeJsUtil::GetJsTimestamp(Res[ElN]);
     }
 
     Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(FltRes));
@@ -1122,7 +1132,8 @@ uint64 TNodeJsFuncStreamAggr::GetTmMSecs() const {
         v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
         TNodeJsUtil::CheckJSExcept(TryCatch);
         QmAssertR(RetVal->IsNumber(), "TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", getTm(): Return type expected to be number");
-        return (uint64)RetVal->NumberValue();
+        double UnixMSecs =  (uint64)RetVal->NumberValue();
+        return TNodeJsUtil::GetCppTimestamp((uint64)UnixMSecs);
     }
     else {
         throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", getTm() callback is empty!");
