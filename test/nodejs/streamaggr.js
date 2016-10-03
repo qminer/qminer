@@ -86,8 +86,8 @@ describe('Stream Aggregator Tests', function () {
                     return data[name] == undefined ? null : data[name];
                 };
             });
-            let rec1 = store.newRecord({ Name: 'John', Gender: 'Male' });
-            let rec2 = store.newRecord({ Name: 'Mary', Gender: 'Female' });
+            var rec1 = store.newRecord({ Name: 'John', Gender: 'Male' });
+            var rec2 = store.newRecord({ Name: 'Mary', Gender: 'Female' });
             s.onAdd(rec1);
             assert.equal(s.getNameFloat('John'), 1);
             assert.equal(s.getNameFloat('Mary'), null);
@@ -135,8 +135,8 @@ describe('Stream Aggregator Tests', function () {
                     }
                 };
             });
-            let rec1 = store.newRecord({ Name: 'John', Gender: 'Male' });
-            let rec2 = store.newRecord({ Name: 'Mary', Gender: 'Female' });
+            var rec1 = store.newRecord({ Name: 'John', Gender: 'Male' });
+            var rec2 = store.newRecord({ Name: 'Mary', Gender: 'Female' });
             s.onAdd(rec1);
             assert.equal(s.getNameFloat('John'), 1);
             assert.equal(s.getNameFloat('Mary'), null);
