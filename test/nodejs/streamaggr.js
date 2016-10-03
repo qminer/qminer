@@ -70,6 +70,90 @@ describe('Stream Aggregator Tests', function () {
     });
 
     describe('JsStreamAggr Test', function () {
+        it('should test getNameFloat and getNameInteger', function () {
+            var s = new qm.StreamAggr(base, new function () {
+                var data = {};
+                this.onAdd = function (rec) {
+                    data[rec.Name] = data[rec.Name] == undefined ? 1 : data[rec.Name] + 1;
+                };
+                this.saveJson = function (limit) {
+                    return data;
+                };
+                this.getNameFloat = function (name) {
+                    return data[name] == undefined ? null : data[name];
+                };
+                this.getNameInteger = function (name) {
+                    return data[name] == undefined ? null : data[name];
+                };
+            });
+            let rec1 = store.newRecord({ Name: 'John', Gender: 'Male' });
+            let rec2 = store.newRecord({ Name: 'Mary', Gender: 'Female' });
+            s.onAdd(rec1);
+            assert.equal(s.getNameFloat('John'), 1);
+            assert.equal(s.getNameFloat('Mary'), null);
+            assert.equal(s.getNameInteger('John'), 1);
+            assert.equal(s.getNameInteger('Mary'), null);
+            s.onAdd(rec1);
+            assert.equal(s.getNameFloat('John'), 2);
+            assert.equal(s.getNameFloat('Mary'), null);
+            assert.equal(s.getNameInteger('John'), 2);
+            assert.equal(s.getNameInteger('Mary'), null);
+            s.onAdd(rec2);
+            assert.equal(s.getNameFloat('John'), 2);
+            assert.equal(s.getNameFloat('Mary'), 1);
+            assert.equal(s.getNameInteger('John'), 2);
+            assert.equal(s.getNameInteger('Mary'), 1);
+        });
+
+        it.only('should test isNameFloat and isNameInteger. getNameFloat (or getNameInteger) should always return null when isNameFloat (or isNameInteger) returns false', function () {
+            var s = new qm.StreamAggr(base, new function () {
+                var data = {};
+                this.onAdd = function (rec) {
+                    data[rec.Name] = data[rec.Name] == undefined ? 1 : data[rec.Name] + 1;
+                };
+                this.saveJson = function (limit) {
+                    return data;
+                };
+                this.getNameFloat = function (name) {
+                    return data[name] == undefined ? null : data[name];
+                };
+                this.getNameInteger = function (name) {
+                    return data[name] == undefined ? null : data[name];
+                };
+                this.isNameFloat = function (name) {
+                    if (name == 'John') {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                };
+                this.isNameInteger = function (name) {
+                    if (name == 'John') {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                };
+            });
+            let rec1 = store.newRecord({ Name: 'John', Gender: 'Male' });
+            let rec2 = store.newRecord({ Name: 'Mary', Gender: 'Female' });
+            s.onAdd(rec1);
+            assert.equal(s.getNameFloat('John'), 1);
+            assert.equal(s.getNameFloat('Mary'), null);
+            assert.equal(s.getNameInteger('John'), 1);
+            assert.equal(s.getNameInteger('Mary'), null);
+            s.onAdd(rec1);
+            assert.equal(s.getNameFloat('John'), 2);
+            assert.equal(s.getNameFloat('Mary'), null);
+            assert.equal(s.getNameInteger('John'), 2);
+            assert.equal(s.getNameInteger('Mary'), null);
+            s.onAdd(rec2);
+            assert.equal(s.getNameFloat('John'), 2);
+            assert.equal(s.getNameFloat('Mary'), null);
+            assert.equal(s.getNameInteger('John'), 2);
+            assert.equal(s.getNameInteger('Mary'), null);
+        });
+
         it('should serialize and deserialize a JS implemented stream aggregate', function () {
             var s = store.addStreamAggr(new function () {
                 var data = {};

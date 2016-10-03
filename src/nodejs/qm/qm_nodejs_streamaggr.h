@@ -2128,6 +2128,24 @@ public:
     JsDeclareFunction(getFeatureSpace);
 
     /**
+    * A map from strings to integers
+    * @param {string} str - The string.
+    * @returns {(number | null)} The integer that corresponds to `str`  or null if `str` is unknown.
+    * @example
+    */
+    //# exports.StreamAggr.prototype.getNameInteger = function (str) { return 0; };
+    JsDeclareFunction(getNameInteger);
+
+    /**
+    * A map from strings to numbers
+    * @param {string} str - The string.
+    * @returns {(number | null)} The number that corresponds to `str` or null if `str` is unknown.
+    * @example
+    */
+    //# exports.StreamAggr.prototype.getNameFloat = function (str) { return 0; };
+    JsDeclareFunction(getNameFloat);
+
+    /**
     * Returns the name of the stream aggregate. Type `string`.
     */
     //# exports.StreamAggr.prototype.name = "";
@@ -2197,11 +2215,10 @@ private:
     // INmFlt 
     v8::Persistent<v8::Function> IsNmFltFun;
     v8::Persistent<v8::Function> GetNmFltFun;
-    v8::Persistent<v8::Function> GetNmFltVFun;
+
     // INmInt
-    v8::Persistent<v8::Function> IsNmFun;
+    v8::Persistent<v8::Function> IsNmIntFun;
     v8::Persistent<v8::Function> GetNmIntFun;
-    v8::Persistent<v8::Function> GetNmIntVFun;
 
     // Serialization
     v8::Persistent<v8::Function> SaveFun;
@@ -2257,11 +2274,9 @@ public:
     // INmFlt 
     bool IsNmFlt(const TStr& Nm) const;
     double GetNmFlt(const TStr& Nm) const;
-    void GetNmFltV(TStrFltPrV& NmFltV) const;
     // INmInt
-    bool IsNm(const TStr& Nm) const;
-    double GetNmInt(const TStr& Nm) const;
-    void GetNmIntV(TStrIntPrV& NmIntV) const;
+    bool IsNmInt(const TStr& Nm) const;
+    int GetNmInt(const TStr& Nm) const;
     // ISparseVec
     int GetSparseVecLen() const;
     TIntFltKd GetSparseVecVal(const int& ElN) const; // GetFltAtFun
