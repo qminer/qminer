@@ -1,5 +1,14 @@
 # QMiner Change Log
 
+### 30 September 2016
+
+**Version: 6.5.1**
+
+**Non-breaking with a bug fix**
+
+Bug Fix:
+- Fixed support for index joins in records by value
+
 ### 23 September 2016
 
 **Version: 6.5.0**
