@@ -1145,8 +1145,8 @@ uint64 TNodeJsFuncStreamAggr::GetTmMSecs() const {
         v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
         TNodeJsUtil::CheckJSExcept(TryCatch);
         QmAssertR(RetVal->IsNumber(), "TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", getTm(): Return type expected to be number");
-        double UnixMSecs =  (uint64)RetVal->NumberValue();
-        return TNodeJsUtil::GetCppTimestamp((uint64)UnixMSecs);
+        uint64 UnixMSecs =  (uint64)RetVal->NumberValue();
+        return TNodeJsUtil::GetCppTimestamp(UnixMSecs);
     }
     else {
         throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", getTm() callback is empty!");
