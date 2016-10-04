@@ -1692,7 +1692,7 @@ PJsonVal TFtrExtAggr::GetParam() const {
 }
 
 void TFtrExtAggr::SetParam(const PJsonVal& ParamVal) {
-    if (ParamVal->IsObjKey("initCount")) { InitCount = ParamVal->GetObjNum("initCount"); }
+    if (ParamVal->IsObjKey("initCount")) { InitCount = (int)ParamVal->GetObjNum("initCount"); }
     if (ParamVal->IsObjKey("update")) { InitCount = ParamVal->GetObjBool("update"); }
     if (ParamVal->IsObjKey("full")) { InitCount = ParamVal->GetObjBool("full"); }
     if (ParamVal->IsObjKey("sparse")) { InitCount = ParamVal->GetObjBool("sparse"); }
@@ -2198,7 +2198,7 @@ void THistogramAD::OnStep() {
             int CurCount = 1;
             int Code = 0; //assume left extreme
             for (int SevN = LastHistIdx - 1; SevN >= 0; SevN--) {
-                if ((int)Severities[SevN] == 0) {
+                if (Severities[SevN] == 0) {
                     // maybe extreme right
                     Code = 1;
                     break;
@@ -2206,7 +2206,7 @@ void THistogramAD::OnStep() {
             }
             if (Code == 1) {
                 for (int SevN = LastHistIdx + 1; SevN < Len; SevN++) {
-                    if ((int)Severities[SevN] == 0) {
+                    if (Severities[SevN] == 0) {
                         // just unexpected
                         Code = 2;
                         break;
@@ -2214,10 +2214,10 @@ void THistogramAD::OnStep() {
                 }
             }
             for (int SevN = 1; SevN < Len; SevN++) {
-                if ((int)Severities[SevN] != (int)Severities[SevN - 1]) {
+                if (Severities[SevN] != Severities[SevN - 1]) {
                     // push
                     PJsonVal Last = TJsonVal::NewObj();
-                    Last->AddToObj("severity", (int)Severities[SevN - 1]);
+                    Last->AddToObj("severity", Severities[SevN - 1]);
                     Last->AddToObj("count", CurCount);
                     Last->AddToObj("boundStart", BoundStart);
                     Last->AddToObj("boundEnd", HistAggr->GetBoundN(SevN));
@@ -2230,7 +2230,7 @@ void THistogramAD::OnStep() {
             }
             // push last
             PJsonVal Last = TJsonVal::NewObj();
-            Last->AddToObj("severity", (int)Severities[Len - 1]);
+            Last->AddToObj("severity", Severities[Len - 1]);
             Last->AddToObj("count", CurCount);
             Last->AddToObj("boundStart", BoundStart);
             Last->AddToObj("boundEnd", HistAggr->GetBoundN(Len));
@@ -2290,7 +2290,7 @@ PJsonVal THistogramAD::SaveJson(const int& Limit) const {
         Obj->AddToObj("severities", TJsonVal::NewArr(Severities));
     } else if (Limit >= 0 && Limit < PMF.Len()) {
         TFltV PMFClip; PMF.GetSubValV(0, Limit, PMFClip);
-        TFltV SevClip;  Severities.GetSubValV(0, Limit, SevClip);
+        TIntV SevClip;  Severities.GetSubValV(0, Limit, SevClip);
         Obj->AddToObj("pmf", TJsonVal::NewArr(PMFClip));
         Obj->AddToObj("severities", TJsonVal::NewArr(SevClip));
     }

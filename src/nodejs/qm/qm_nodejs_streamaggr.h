@@ -1488,13 +1488,19 @@ public:
     //# exports.StreamAggr.prototype.load = function (fin) { return Object.create(require('qminer').StreamAggr.prototype); }
     JsDeclareFunction(load);
 
-    // IInt
-    //!- `num = sa.getInt()` -- returns a number if sa implements the interface IInt
+    /**
+    * A map from strings to integers
+    * @param {string} [str] - The string.
+    * @returns {(number | null)} A number (stream aggregator specific), possibly null if `str` was provided.
+    * @example
+    */
+    //# exports.StreamAggr.prototype.getInteger = function (str) { return 0; };
     JsDeclareFunction(getInteger);
 
     /**
     * Returns the value of the specific stream aggregator. For return values see {@link module:qm~StreamAggregator}.
-    * @returns {number} The value of the stream aggregator.
+    * @param {string} [str] - The string.
+    * @returns {(number | null)} A number (stream aggregator specific), possibly null if `str` was provided.
     * @example
     * // import qm module
     * var qm = require('qminer');
@@ -1538,7 +1544,7 @@ public:
     * var average = averageGrade.getFloat(); // returns 74 + 1/3
     * base.close();
     */
-    //# exports.StreamAggr.prototype.getFloat = function () { return 0; };
+    //# exports.StreamAggr.prototype.getFloat = function (str) { return 0; };
     JsDeclareFunction(getFloat);
 
     /**
@@ -2126,24 +2132,6 @@ public:
     */
     //# exports.StreamAggr.prototype.getFeatureSpace = function() { return Object.create(require('qminer').FeatureSpace.prototype); };
     JsDeclareFunction(getFeatureSpace);
-
-    /**
-    * A map from strings to integers
-    * @param {string} str - The string.
-    * @returns {(number | null)} The integer that corresponds to `str`  or null if `str` is unknown.
-    * @example
-    */
-    //# exports.StreamAggr.prototype.getNameInteger = function (str) { return 0; };
-    JsDeclareFunction(getNameInteger);
-
-    /**
-    * A map from strings to numbers
-    * @param {string} str - The string.
-    * @returns {(number | null)} The number that corresponds to `str` or null if `str` is unknown.
-    * @example
-    */
-    //# exports.StreamAggr.prototype.getNameFloat = function (str) { return 0; };
-    JsDeclareFunction(getNameFloat);
 
     /**
     * Returns the name of the stream aggregate. Type `string`.

@@ -70,7 +70,7 @@ describe('Stream Aggregator Tests', function () {
     });
 
     describe('JsStreamAggr Test', function () {
-        it('should test getNameFloat and getNameInteger', function () {
+        it('should test getFloat and getInteger with string input', function () {
             var s = new qm.StreamAggr(base, new function () {
                 var data = {};
                 this.onAdd = function (rec) {
@@ -79,33 +79,33 @@ describe('Stream Aggregator Tests', function () {
                 this.saveJson = function (limit) {
                     return data;
                 };
-                this.getNameFloat = function (name) {
+                this.getFloat = function (name) {
                     return data[name] == undefined ? null : data[name];
                 };
-                this.getNameInteger = function (name) {
+                this.getInteger = function (name) {
                     return data[name] == undefined ? null : data[name];
                 };
             });
             let rec1 = store.newRecord({ Name: 'John', Gender: 'Male' });
             let rec2 = store.newRecord({ Name: 'Mary', Gender: 'Female' });
             s.onAdd(rec1);
-            assert.equal(s.getNameFloat('John'), 1);
-            assert.equal(s.getNameFloat('Mary'), null);
-            assert.equal(s.getNameInteger('John'), 1);
-            assert.equal(s.getNameInteger('Mary'), null);
+            assert.equal(s.getFloat('John'), 1);
+            assert.equal(s.getFloat('Mary'), null);
+            assert.equal(s.getInteger('John'), 1);
+            assert.equal(s.getInteger('Mary'), null);
             s.onAdd(rec1);
-            assert.equal(s.getNameFloat('John'), 2);
-            assert.equal(s.getNameFloat('Mary'), null);
-            assert.equal(s.getNameInteger('John'), 2);
-            assert.equal(s.getNameInteger('Mary'), null);
+            assert.equal(s.getFloat('John'), 2);
+            assert.equal(s.getFloat('Mary'), null);
+            assert.equal(s.getInteger('John'), 2);
+            assert.equal(s.getInteger('Mary'), null);
             s.onAdd(rec2);
-            assert.equal(s.getNameFloat('John'), 2);
-            assert.equal(s.getNameFloat('Mary'), 1);
-            assert.equal(s.getNameInteger('John'), 2);
-            assert.equal(s.getNameInteger('Mary'), 1);
+            assert.equal(s.getFloat('John'), 2);
+            assert.equal(s.getFloat('Mary'), 1);
+            assert.equal(s.getInteger('John'), 2);
+            assert.equal(s.getInteger('Mary'), 1);
         });
 
-        it('should test isNameFloat and isNameInteger. getNameFloat (or getNameInteger) should always return null when isNameFloat (or isNameInteger) returns false', function () {
+        it('should test isNameFloat and isNameInteger. getFloat (or getInteger) should always return null when isNameFloat (or isNameInteger) returns false', function () {
             var s = new qm.StreamAggr(base, new function () {
                 var data = {};
                 this.onAdd = function (rec) {
@@ -114,10 +114,10 @@ describe('Stream Aggregator Tests', function () {
                 this.saveJson = function (limit) {
                     return data;
                 };
-                this.getNameFloat = function (name) {
+                this.getFloat = function (name) {
                     return data[name] == undefined ? null : data[name];
                 };
-                this.getNameInteger = function (name) {
+                this.getInteger = function (name) {
                     return data[name] == undefined ? null : data[name];
                 };
                 this.isNameFloat = function (name) {
@@ -138,20 +138,20 @@ describe('Stream Aggregator Tests', function () {
             let rec1 = store.newRecord({ Name: 'John', Gender: 'Male' });
             let rec2 = store.newRecord({ Name: 'Mary', Gender: 'Female' });
             s.onAdd(rec1);
-            assert.equal(s.getNameFloat('John'), 1);
-            assert.equal(s.getNameFloat('Mary'), null);
-            assert.equal(s.getNameInteger('John'), 1);
-            assert.equal(s.getNameInteger('Mary'), null);
+            assert.equal(s.getFloat('John'), 1);
+            assert.equal(s.getFloat('Mary'), null);
+            assert.equal(s.getInteger('John'), 1);
+            assert.equal(s.getInteger('Mary'), null);
             s.onAdd(rec1);
-            assert.equal(s.getNameFloat('John'), 2);
-            assert.equal(s.getNameFloat('Mary'), null);
-            assert.equal(s.getNameInteger('John'), 2);
-            assert.equal(s.getNameInteger('Mary'), null);
+            assert.equal(s.getFloat('John'), 2);
+            assert.equal(s.getFloat('Mary'), null);
+            assert.equal(s.getInteger('John'), 2);
+            assert.equal(s.getInteger('Mary'), null);
             s.onAdd(rec2);
-            assert.equal(s.getNameFloat('John'), 2);
-            assert.equal(s.getNameFloat('Mary'), null);
-            assert.equal(s.getNameInteger('John'), 2);
-            assert.equal(s.getNameInteger('Mary'), null);
+            assert.equal(s.getFloat('John'), 2);
+            assert.equal(s.getFloat('Mary'), null);
+            assert.equal(s.getInteger('John'), 2);
+            assert.equal(s.getInteger('Mary'), null);
         });
 
         it('should serialize and deserialize a JS implemented stream aggregate', function () {
