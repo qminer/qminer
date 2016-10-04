@@ -23,6 +23,10 @@ namespace {
 	typedef TIntV TAggState;
 	typedef TVec<TAggState> TAggStateV;
 	typedef TVec<TFltV> TStateFtrVV;
+
+	// structure for returning the "state history" or "big picture"
+    typedef TVec<TTriple<TUInt64,TUInt64,TIntFltH>> TStateHist;
+    typedef TVec<TPair<TFlt, TStateHist>> TScaleStateHistV;
 }
 
 // forward declarations
@@ -661,11 +665,12 @@ public:
 	/// returns the whole history of states on the given scale
 	void GetStateHistory(const double& RelOffset, const double& RelRange,
 	        const int& MxStates, const double& Scale, uint64& GlobalMnDur,
-	        TVec<TTriple<TUInt64,TUInt64,TIntFltH>>& TmDurStateIdPercHTrV) const;
+	        TStateHist& TmDurStateIdPercHTrV) const;
 	/// returns the whole history of states on all the scales
 	void GetStateHistory(const double& RelOffset, const double& RelRange,
             const int& MxStates,
-            TVec<TPair<TFlt, TVec<TTriple<TUInt64,TUInt64,TIntFltH>>>>& ScaleTmDurIdTrV) const;
+            TScaleStateHistV& ScaleTmDurIdTrV,
+            uint64& MnTm, uint64& MxTm) const;
 
 	// for each state returns the number of leafs it's subtree has
 	void GetLeafSuccesorCountV(TIntV& LeafCountV) const;
@@ -1135,7 +1140,9 @@ public:
 	void GetTimeHistogram(const int& StateId, const TStateIdentifier::TTmHistType& HistType,
 			TIntV& BinV, TFltV& ProbV) const;
 	void GetStateHistory(const double& RelOffset, const double& RelRange,
-	        const int& MxStates, TVec<TPair<TFlt, TVec<TTriple<TUInt64,TUInt64,TIntFltH>>>>& ScaleTmDurIdTrPrV) const;
+	        const int& MxStates,
+	        TVec<TPair<TFlt, TVec<TTriple<TUInt64,TUInt64,TIntFltH>>>>& ScaleTmDurIdTrPrV,
+	        uint64& MnTm, uint64& MxTm) const;
 
 	// state explanations
 	PJsonVal GetStateWgtV(const int& StateId) const;

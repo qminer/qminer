@@ -3191,12 +3191,16 @@ void THierarch::GetHistStateIdV(const double& Height, TStateIdV& StateIdV) const
 
 void THierarch::GetStateHistory(const double& RelOffset, const double& RelRange, const int& MxStates,
         const double& Scale, uint64& GlobalMnDur,
-        TVec<TTriple<TUInt64,TUInt64,TIntFltH>>& TmDurStateIdPercHTrV) const {
+        TStateHist& TmDurStateIdPercHTrV) const {
     // first get the time range
     EAssertR(!HierarchHistoryVV.Empty(), "No scales in history vector!!");
     const TUInt64IntPrV& LowestScaleHistV = HierarchHistoryVV[0];
+
+    // set the minimum and maximum times
     EAssertR(LowestScaleHistV.Len() > 1, "Need at least 2 elements on the lowest scale!");
-    const uint64 TmRange = LowestScaleHistV.Last().Val1 - LowestScaleHistV[0].Val1; 
+    const uint64& MnTm = LowestScaleHistV[0].Val1;
+    const uint64& MxTm = LowestScaleHistV.Last().Val1;
+    const uint64 TmRange = MxTm - MnTm;
 
     Notify->OnNotifyFmt(ntInfo, "Calculating history for scale: %.4f", Scale);
 
@@ -3320,7 +3324,7 @@ void THierarch::GetStateHistory(const double& RelOffset, const double& RelRange,
             const int CurrN = TmDurStateIdPercHTrV.Len();
             if (CurrN >= 2 &&
                     HaveSameKeys(TmDurStateIdPercHTrV.Last().Val3, TmDurStateIdPercHTrV[CurrN-2].Val3) &&
-                    GetStateProbDiff(TmDurStateIdPercHTrV.Last().Val3, TmDurStateIdPercHTrV[CurrN-2].Val3) < .03) {
+                    GetStateProbDiff(TmDurStateIdPercHTrV.Last().Val3, TmDurStateIdPercHTrV[CurrN-2].Val3) < .07) {
                 TIntFltH& Dist1 = TmDurStateIdPercHTrV[CurrN-2].Val3;
                 const TIntFltH Dist2 = TmDurStateIdPercHTrV.Last().Val3;
 
@@ -3354,19 +3358,35 @@ void THierarch::GetStateHistory(const double& RelOffset, const double& RelRange,
 }
 
 void THierarch::GetStateHistory(const double& RelOffset, const double& RelRange,
-        const int& MxStates, TVec<TPair<TFlt, TVec<TTriple<TUInt64,TUInt64,TIntFltH>>>>& ScaleTmDurIdDistPrTrV) const {
+        const int& MxStates,
+        TScaleStateHistV& ScaleTmDurIdDistPrTrV,
+        uint64& MnTm, uint64& MxTm) const {
     const TFltV& ScaleV = GetUiHeightV();
 
     Notify->OnNotifyFmt(ntInfo, "Fetching history for %d all scales ...", ScaleV.Len());
 
     ScaleTmDurIdDistPrTrV.Gen(ScaleV.Len());
 
+    // set the minimum and maximum times
+    const TUInt64IntPrV& LowestScaleHistV = HierarchHistoryVV[0];
+    EAssertR(LowestScaleHistV.Len() > 1, "Need at least 2 elements on the lowest scale!");
+    MnTm = LowestScaleHistV[0].Val1;
+    MxTm = LowestScaleHistV.Last().Val1;
+
+    // get the the history blocks
     uint64 MnDur = TUInt64::Mx;
     for (int ScaleN = 0; ScaleN < ScaleV.Len(); ScaleN++) {
         const double& Scale = ScaleV[ScaleN];
 
         ScaleTmDurIdDistPrTrV[ScaleN].Val1 = Scale;
-        GetStateHistory(RelOffset, RelRange, MxStates, Scale, MnDur, ScaleTmDurIdDistPrTrV[ScaleN].Val2);
+        GetStateHistory(
+            RelOffset,
+            RelRange,
+            MxStates,
+            Scale,
+            MnDur,
+            ScaleTmDurIdDistPrTrV[ScaleN].Val2
+        );
     }
 
     Notify->OnNotify(ntInfo, "Done!");
@@ -5721,8 +5741,10 @@ void TStreamStory::GetTimeHistogram(const int& StateId, const TStateIdentifier::
 }
 
 void TStreamStory::GetStateHistory(const double& RelOffset, const double& RelRange,
-	        const int& MxStates, TVec<TPair<TFlt, TVec<TTriple<TUInt64,TUInt64,TIntFltH>>>>& ScaleTmDurIdTrPrV) const {
-    Hierarch->GetStateHistory(RelOffset, RelRange, MxStates, ScaleTmDurIdTrPrV);
+	        const int& MxStates,
+	        TVec<TPair<TFlt, TVec<TTriple<TUInt64,TUInt64,TIntFltH>>>>& ScaleTmDurIdTrPrV,
+	        uint64& MnTm, uint64& MxTm) const {
+    Hierarch->GetStateHistory(RelOffset, RelRange, MxStates, ScaleTmDurIdTrPrV, MnTm, MxTm);
 }
 
 PJsonVal TStreamStory::GetStateWgtV(const int& StateId) const {
