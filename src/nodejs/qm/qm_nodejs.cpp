@@ -2155,7 +2155,7 @@ void TNodeJsRec::setField(v8::Local<v8::String> Name, v8::Local<v8::Value> Value
     TStr FieldNm = TNodeJsUtil::GetStr(Name);
     const int FieldId = Store->GetFieldId(FieldNm);
     //TODO: for now we don't support by-value records, fix this
-    QmAssertR(Rec.IsByRef(), "Only records by reference (from stores) supported for setters.");
+    //QmAssertR(Rec.IsByRef(), "Only records by reference (from stores) supported for setters.");
     // not null, get value
     const TQm::TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
     if (Value->IsNull()) {
