@@ -1059,6 +1059,7 @@
 * @property {number} [bins=5] - The number of bins bounded by `lowerBound` and `upperBound`.
 * @property {boolean} [addNegInf=false] - Include a bin `[-Inf, lowerBound]`.
 * @property {boolean} [addPosInf=false] - Include a bin `[upperBound, Inf]`.
+* @property {boolean} [autoResize=false] - The histogram will be empty at the beginning and double its size on demand (resize only when incrementing counts). The unbounded bins are guaranteed to stay between lowerBound and upperBound and in all cases the bin size equals (upperBound - lowerBound)/bins.
 * @example
 * // import the qm module
 * var qm = require('qminer');

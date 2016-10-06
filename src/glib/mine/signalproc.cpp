@@ -1268,102 +1268,221 @@ bool TRecLinReg::HasNaN() const {
     return false;
 }
 
-void TOnlineHistogram::Init(const double& LBound, const double& UBound, const int& Bins, const bool& AddNegInf, const bool& AddPosInf) {
-    int TotalBins = Bins + (AddNegInf ? 1 : 0) + (AddPosInf ? 1 : 0);
-    Counts.Gen(TotalBins); // sets to zero
-    Bounds.Gen(TotalBins + 1, 0);
-    if (AddNegInf) { Bounds.Add(TFlt::NInf); }
-    for (int ElN = 0; ElN <= Bins; ElN++) {
-        Bounds.Add(LBound + ElN * (UBound - LBound) / Bins);
-    }
-    if (AddPosInf) { Bounds.Add(TFlt::PInf); }
-}
 
-void TOnlineHistogram::Reset() {
-    for (int ElN = 0; ElN < Counts.Len(); ElN++) {
-        Counts[ElN] = 0; Count = 0;
-    }
-}
+////////////////////////////////////////////////////
+// TOnlineHistogram
 
 TOnlineHistogram::TOnlineHistogram(const PJsonVal& ParamVal) {
     EAssertR(ParamVal->IsObjKey("lowerBound"), "TOnlineHistogram: lowerBound key missing!");
     EAssertR(ParamVal->IsObjKey("upperBound"), "TOnlineHistogram: upperBound key missing!");
     // bounded lowest point
-    TFlt LBound = ParamVal->GetObjNum("lowerBound");
+    LBound = ParamVal->GetObjNum("lowerBound");
     // bounded highest point
-    TFlt UBound = ParamVal->GetObjNum("upperBound");
+    UBound = ParamVal->GetObjNum("upperBound");
     EAssertR(LBound < UBound, "TOnlineHistogram: Lower bound should be smaller than upper bound");
     // number of equal bins ? (not counting possibly infinite ones)
-    TInt Bins = ParamVal->GetObjInt("bins", 5);
+    Bins = ParamVal->GetObjInt("bins", 5);
     EAssertR(Bins > 0, "TOnlineHistogram: Number of bins should be greater than 0");
     // include infinities in the bounds?
-    TBool AddNegInf = ParamVal->GetObjBool("addNegInf", false);
-    TBool AddPosInf = ParamVal->GetObjBool("addPosInf", false);
-    
+    AddNegInf = ParamVal->GetObjBool("addNegInf", false);
+    AddPosInf = ParamVal->GetObjBool("addPosInf", false);
+    AutoResize = ParamVal->GetObjBool("autoResize", false);
     MinCount = ParamVal->GetObjInt("initMinCount", 0);
-
-    Init(LBound, UBound, Bins, AddNegInf, AddPosInf);
-};
-
-
-int TOnlineHistogram::FindBin(const double& Val) const {
-    int Bins = Bounds.Len() - 1;
-    int LBound = 0;
-    int UBound = Bins - 1;
-    
-    // out of bounds
-    if ((Val < Bounds[0]) || (Val > Bounds.Last())) { return -1; }
-    // the last bound is an exception: the interval is closed from the right
-    if (Val == Bounds.Last()) { return UBound; }
-
-    while (LBound <= UBound) {
-        int Idx = (LBound + UBound) / 2;
-        if ((Val >= Bounds[Idx]) && (Val < Bounds[Idx + 1])) { // value between
-            return Idx; 
-        } else if (Val < Bounds[Idx]) { // value on the left, move upper bound
-            UBound = Idx - 1;
-        } else { // Val > Bounds[Idx + 1]
-            LBound = Idx + 1;
-        }
-    }
-    return -1;
+    Init();
 }
 
-void TOnlineHistogram::Increment(const double& Val) {   
+void TOnlineHistogram::Init() {
+    Count = 0;
+    CountLeftInf = 0;
+    CountRightInf = 0;
+    if (!AutoResize) {
+        Bounds.Gen(Bins + 1, 0);
+        Counts.Gen(Bins); // sets to zero
+        for (int ElN = 0; ElN <= Bins; ElN++) {
+            Bounds.Add(LBound + ElN * (UBound - LBound) / Bins);
+        }
+        CurMinIdx = 0;
+        CurMaxIdx = Bins - 1;
+    } else {
+        Counts.Clr();
+        Bounds.Clr();
+        CurMinIdx = -2;
+        CurMaxIdx = -2;
+    }
+}
+
+TOnlineHistogram::TOnlineHistogram(TSIn& SIn) : CountLeftInf(SIn), CountRightInf(SIn), Counts(SIn),
+Bounds(SIn), Count(SIn), CurMinIdx(SIn), CurMaxIdx(SIn), LBound(SIn), UBound(SIn),
+Bins(SIn), AddNegInf(SIn), AddPosInf(SIn), AutoResize(SIn), MinCount(SIn) {}
+
+void TOnlineHistogram::Save(TSOut& SOut) const {
+    CountLeftInf.Save(SOut); CountRightInf.Save(SOut); Counts.Save(SOut);
+    Bounds.Save(SOut); Count.Save(SOut); CurMinIdx.Save(SOut); CurMaxIdx.Save(SOut);
+    LBound.Save(SOut); UBound.Save(SOut); Bins.Save(SOut); AddNegInf.Save(SOut); AddPosInf.Save(SOut);
+    AutoResize.Save(SOut); MinCount.Save(SOut);
+}
+
+void TOnlineHistogram::Resize(const int& BinN) {
+    // expect valid 0 <= BinN <= Bins - 1
+    // check if nothing to do
+    if (BinN >= CurMinIdx && BinN <= CurMaxIdx) { return; }
+    // first example
+    if (CurMinIdx == -2 && CurMaxIdx == -2) {
+        Counts.Gen(1);
+        Bounds.Add(LBound + BinN * (UBound - LBound) / Bins);
+        Bounds.Add(LBound + (BinN + 1) * (UBound - LBound) / Bins);
+        CurMinIdx = BinN;
+        CurMaxIdx = BinN;
+        return;
+    }
+    int OldMinIdx = CurMinIdx;
+    int OldMaxIdx = CurMaxIdx;
+    while (BinN < CurMinIdx && CurMinIdx > 0) {
+        CurMinIdx -= (CurMaxIdx - CurMinIdx + 1);
+        CurMinIdx = MAX(CurMinIdx, 0);
+    }
+    while (BinN > CurMaxIdx && CurMinIdx < Bins - 1) {
+        CurMaxIdx += (CurMaxIdx - CurMinIdx + 1);
+        CurMaxIdx = MIN(CurMaxIdx, Bins - 1);
+    }
+    TFltV Counts_(CurMaxIdx - CurMinIdx + 1, 0);
+    for (int ElN = CurMinIdx; ElN < OldMinIdx; ElN++) {
+        Counts_.Add(0);
+    }
+    Counts_.AddV(Counts);
+    for (int ElN = OldMaxIdx + 1; ElN <= CurMaxIdx; ElN++) {
+        Counts_.Add(0);
+    }
+    Counts = Counts_;
+    Bounds.Gen(CurMaxIdx - CurMinIdx + 2, 0);
+    for (int ElN = CurMinIdx; ElN <= CurMaxIdx + 1; ElN++) {
+        Bounds.Add(LBound + ElN * (UBound - LBound) / Bins);
+    }
+}
+
+int TOnlineHistogram::FindBin(const double& Val) const {
+    // This returns the bin index when for bins between LBound and UBound, enumerated as 0,... Bins-1 (possibly not materialized yet)
+    if (Val < LBound) return -1;
+    if (Val > UBound) return Bins;
+    // Get bin index
+    double BinWidth = (UBound - LBound) / Bins;
+    int Idx = (int)floor((Val - LBound) / BinWidth);
+    // Exception if Val == UBound (included in the last noninf bin)
+    if (Idx == Bins) { Idx--; }
+    return Idx;
+}
+
+void TOnlineHistogram::Increment(const double& Val) {
     int Idx = FindBin(Val);
-    if (Idx >= 0) { Counts[Idx]++; Count++; }
+    if (Idx == -1) {
+        if (AddNegInf) {
+            CountLeftInf++;
+            Count++;
+        }
+        return;
+    }
+    if (Idx == Bins) {
+        if (AddPosInf) {
+            CountRightInf++;
+            Count++;
+        }
+        return;
+    }
+    if (AutoResize) {
+        Resize(Idx);
+    }
+    // IOB cannot occour (AutoResize)
+    Counts[Idx - CurMinIdx]++;
+    Count++;
+
 }
 
 void TOnlineHistogram::Decrement(const double& Val) {
     int Idx = FindBin(Val);
-    if (Idx >= 0) { Counts[Idx]--; Count--; }
+    if (Idx < CurMinIdx) {
+        if (AddNegInf) {
+            CountLeftInf--;
+            Count--;
+        }
+        return;
+    }
+    if (Idx > CurMaxIdx) {
+        if (AddPosInf) {
+            CountRightInf--;
+            Count--;
+        }
+        return;
+    }
+    // We know that IOB cannot occour
+    Counts[Idx - CurMinIdx]--;
+    Count--;
 }
 
 double TOnlineHistogram::GetCount(const double& Val) const {
     int Idx = FindBin(Val);
-    return Idx >= 0 ? (double)Counts[Idx] : 0.0;
+    if (Idx == -1) { return AddNegInf ? CountLeftInf : 0.0; }
+    if (Idx == Bins - 1) { return AddPosInf ? CountRightInf : 0.0; }
+    return ((Idx >= CurMinIdx) && (Idx <= CurMaxIdx)) ? Counts[Idx - CurMinIdx] : 0.0;
+}
+
+void TOnlineHistogram::GetCountV(TFltV& Vec) const {
+    Vec.Gen(Counts.Len() + (AddNegInf ? 1 : 0) + (AddPosInf ? 1 : 0), 0);
+    if (AddNegInf) { Vec.Add(CountLeftInf); }
+    Vec.AddV(Counts);
+    if (AddPosInf) { Vec.Add(CountRightInf); }
+}
+
+double TOnlineHistogram::GetCountN(const int& CountN) const {
+    if (AddNegInf && (CountN == 0)) { return CountLeftInf; }
+    if (AddPosInf && (CountN >= (Counts.Len() + (AddNegInf ? 1 : 0)))) { return CountRightInf; }
+    return Counts[CountN - (AddNegInf ? 1 : 0)];
+}
+
+double TOnlineHistogram::GetBoundN(const int& BoundN) const {
+    if (AddNegInf && (BoundN == 0)) { return TFlt::Mn; }
+    if (AddPosInf && (BoundN >= (Bounds.Len() + (AddNegInf ? 1 : 0)))) { return TFlt::Mx; }
+    return Bounds[BoundN - (AddNegInf ? 1 : 0)];
 }
 
 void TOnlineHistogram::Print() const {
     printf("Histogram:\n");
+    if (AddNegInf) {
+        printf("%g [%g, %g]\n", CountLeftInf.Val, TFlt::Mn, Bounds[0].Val);
+    }
     for (int BinN = 0; BinN < Counts.Len(); BinN++) {
         printf("%g [%g, %g]\n", Counts[BinN].Val, Bounds[BinN].Val, Bounds[BinN + 1].Val);
+    }
+    if (AddPosInf) {
+        printf("%g [%g, %g]\n", CountRightInf.Val, Bounds[Bins-1].Val, TFlt::Mx);
     }
 }
 
 PJsonVal TOnlineHistogram::SaveJson() const {
+    EAssertR(IsInit(), "TOnlineHistogram::SaveJson: online histogram is not initialized yet!");
     PJsonVal Result = TJsonVal::NewObj();
     PJsonVal BoundsArr = TJsonVal::NewArr();
     PJsonVal CountsArr = TJsonVal::NewArr();
+    if (AddNegInf) {
+        BoundsArr->AddToArr(TFlt::Mn);
+        CountsArr->AddToArr(CountLeftInf);
+    }
     for (int ElN = 0; ElN < Counts.Len(); ElN++) {
         BoundsArr->AddToArr(Bounds[ElN]);
         CountsArr->AddToArr(Counts[ElN]);
+    }if (Bounds.Len() > 0) {
+        BoundsArr->AddToArr(Bounds.Last());
     }
-    BoundsArr->AddToArr(Bounds.Last());
+    if (AddPosInf) {
+        BoundsArr->AddToArr(TFlt::Mx);
+        CountsArr->AddToArr(CountRightInf);
+    }
     Result->AddToObj("bounds", BoundsArr);
     Result->AddToObj("counts", CountsArr);
     return Result;
 }
+
+///////////////////////////////////////////////////////////////////
+// TTDigest
 
 void TTDigest::Update(const double& V, const double& Count) {
     Updates++;

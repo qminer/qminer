@@ -4804,5 +4804,230 @@ describe('Stream aggregate set tests', function () {
         store.push({ Value: 3, Date: new Date(time + 3000).toISOString() });
         assert.equal(ma.getFloat(), 2);
     });
+});
+
+describe('Online histogram tests', function () {
+    var base = undefined;
+    var store = undefined;
     
+    beforeEach(function () {
+        // create a base with a simple store
+        base = new qm.Base({
+            mode: "createClean",
+            schema: [
+            {
+                name: "Store",
+                fields: [
+                    { "name": "Value", "type": "float" },
+                    { "name": "Time", "type": "datetime" }
+                ]
+            }]
+        });
+        store = base.store("Store");
+    });
+    afterEach(function () {
+        base.close();
+    });
+
+    it('Tests online histogram increment/decrement', function () {
+            
+        var winbuf = store.addStreamAggr({
+            type: 'timeSeriesWinBuf',
+            timestamp: 'Time',
+            value: 'Value',
+            winsize: 1000
+        });
+
+        var hist = store.addStreamAggr({
+            type: 'onlineHistogram',
+            inAggr: winbuf.name,
+            lowerBound: 0,
+            upperBound: 5,
+            bins: 5,
+            addNegInf: false,
+            addPosInf: false
+        });
+
+        function pushDatIncrTs(val, ts, incr) {
+            ts = ts + incr;
+            store.push({ Value: val, Time: ts });
+            return ts;
+        }
+        function assertEqualArray(ar1, ar2) {
+            assert(ar1.length, ar2.length);
+            for (var i = 0; i < ar1.length; i++) {
+                assert.equal(ar1[i], ar2[i]);
+            }
+
+        }
+
+        var ts = new Date().getTime();
+        ts = pushDatIncrTs(0.1, ts, 1);
+        ts = pushDatIncrTs(1.1, ts, 1);
+        ts = pushDatIncrTs(2.1, ts, 1);
+        ts = pushDatIncrTs(3.1, ts, 1);
+        ts = pushDatIncrTs(5, ts, 1);
+        ts = pushDatIncrTs(5.1, ts, 1);
+        assertEqualArray(hist.val.counts, [1, 1, 1, 1, 1]);
+        ts = pushDatIncrTs(1, ts, 1001);
+        assertEqualArray(hist.val.counts, [0, 1, 0, 0, 0]);
+        ts = pushDatIncrTs(1, ts, 1000);
+        assertEqualArray(hist.val.counts, [0, 2, 0, 0, 0]);
+    });
+
+    it('Tests online histogram reset/save/load', function () {
+
+        var winbuf = store.addStreamAggr({
+            type: 'timeSeriesWinBuf',
+            timestamp: 'Time',
+            value: 'Value',
+            winsize: 1000
+        });
+
+        var hist = store.addStreamAggr({
+            type: 'onlineHistogram',
+            inAggr: winbuf.name,
+            lowerBound: 0,
+            upperBound: 5,
+            bins: 5,
+            addNegInf: false,
+            addPosInf: false
+        });
+
+        function pushDatIncrTs(val, ts, incr) {
+            ts = ts + incr;
+            store.push({ Value: val, Time: ts });
+            return ts;
+        }
+        function assertEqualArray(ar1, ar2) {
+            assert(ar1.length, ar2.length);
+            for (var i = 0; i < ar1.length; i++) {
+                assert.equal(ar1[i], ar2[i]);
+            }
+
+        }
+
+        var ts = new Date().getTime();
+        ts = pushDatIncrTs(0.1, ts, 1);
+        ts = pushDatIncrTs(1.1, ts, 1);
+        ts = pushDatIncrTs(2.1, ts, 1);
+        ts = pushDatIncrTs(3.1, ts, 1);
+        ts = pushDatIncrTs(5, ts, 1);
+        ts = pushDatIncrTs(5.1, ts, 1);
+        ts = pushDatIncrTs(1, ts, 1001);
+        ts = pushDatIncrTs(1, ts, 1000);
+
+        var fout = qm.fs.openWrite('onlineHist.bin');
+        hist.save(fout);
+        hist.reset();
+        assertEqualArray(hist.val.counts, [0, 0, 0, 0, 0]);
+        var fin = qm.fs.openRead('onlineHist.bin');
+        hist.load(fin);
+        assertEqualArray(hist.val.counts, [0, 2, 0, 0, 0]);
+    });
+
+    it('Tests online histogram autoResize', function () {
+
+        var winbuf = store.addStreamAggr({
+            type: 'timeSeriesWinBuf',
+            timestamp: 'Time',
+            value: 'Value',
+            winsize: 1000
+        });
+
+        var hist = store.addStreamAggr({
+            type: 'onlineHistogram',
+            inAggr: winbuf.name,
+            lowerBound: 0,
+            upperBound: 5,
+            bins: 5,
+            addNegInf: false,
+            addPosInf: false,
+            autoResize: true
+        });
+
+        function pushDatIncrTs(val, ts, incr) {
+            ts = ts + incr;
+            store.push({ Value: val, Time: ts });
+            return ts;
+        }
+        function assertEqualArray(ar1, ar2) {
+            assert(ar1.length, ar2.length);
+            for (var i = 0; i < ar1.length; i++) {
+                assert.equal(ar1[i], ar2[i]);
+            }
+
+        }
+
+        var t = new Date().getTime();
+        t = pushDatIncrTs(1.1, t, 1);
+        assertEqualArray(hist.val.counts, [1]);
+        assertEqualArray(hist.val.bounds, [1, 2]);
+        t = pushDatIncrTs(0.1, t, 1);
+        t = pushDatIncrTs(2.1, t, 1);
+        t = pushDatIncrTs(3.1, t, 1);
+        assertEqualArray(hist.val.counts, [1, 1, 1, 1]);
+        assertEqualArray(hist.val.bounds, [0, 1, 2, 3, 4]);
+        t = pushDatIncrTs(1, t, 1001);
+        assertEqualArray(hist.val.counts, [0, 1, 0, 0]);
+        t = pushDatIncrTs(5, t, 1001);
+        assertEqualArray(hist.val.counts, [0, 0, 0, 0, 1]);
+
+    });
+
+    it('Tests online histogram autoResize with -inf and inf included as bounds', function () {
+        var winbuf = store.addStreamAggr({
+            type: 'timeSeriesWinBuf',
+            timestamp: 'Time',
+            value: 'Value',
+            winsize: 1000
+        });
+
+        var hist = store.addStreamAggr({
+            type: 'onlineHistogram',
+            inAggr: winbuf.name,
+            lowerBound: 0,
+            upperBound: 5,
+            bins: 5,
+            addNegInf: true,
+            addPosInf: true,
+            autoResize: true
+        });
+
+        function pushDatIncrTs(val, ts, incr) {
+            ts = ts + incr;
+            store.push({ Value: val, Time: ts });
+            return ts;
+        }
+        function assertEqualArray(ar1, ar2) {
+            assert(ar1.length, ar2.length);
+            for (var i = 0; i < ar1.length; i++) {
+                assert.equal(ar1[i], ar2[i]);
+            }
+
+        }
+
+        var t = new Date().getTime();
+        t = pushDatIncrTs(1.1, t, 1);
+        assertEqualArray(hist.val.counts, [0, 1, 0]);
+        assertEqualArray(hist.val.bounds.slice(1,3), [1, 2]);
+        t = pushDatIncrTs(0.1, t, 1);
+        t = pushDatIncrTs(2.1, t, 1);
+        t = pushDatIncrTs(3.1, t, 1);
+        assertEqualArray(hist.val.counts, [0, 1, 1, 1, 1, 0]);
+        assertEqualArray(hist.val.bounds.slice(1,6), [0, 1, 2, 3, 4]);
+        t = pushDatIncrTs(1, t, 1001);
+        assertEqualArray(hist.val.counts, [0, 0, 1, 0, 0, 0]);
+        t = pushDatIncrTs(5, t, 1001);
+        assertEqualArray(hist.val.counts, [0, 0, 0, 0, 0, 1, 0]);
+        t = pushDatIncrTs(5.1, t, 1001);
+        assertEqualArray(hist.val.counts, [0, 0, 0, 0, 0, 0, 1]);
+        t = pushDatIncrTs(-5.1, t, 1001);
+        assertEqualArray(hist.val.counts, [1, 0, 0, 0, 0, 0, 0]);
+        t = pushDatIncrTs(-5.1, t, 1001);
+        t = pushDatIncrTs(100, t, 1);
+        t = pushDatIncrTs(5, t, 1);
+        t = pushDatIncrTs(1.5, t, 1);
+        assertEqualArray(hist.val.counts, [1, 0, 1, 0, 0, 1, 1]);
+    });
 });
