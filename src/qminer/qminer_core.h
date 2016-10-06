@@ -3530,9 +3530,8 @@ namespace TStreamAggrOut {
     class INmInt {
     public:
         // retrieving named values
-        virtual bool IsNm(const TStr& Nm) const = 0;
-        virtual double GetNmInt(const TStr& Nm) const = 0;
-        virtual void GetNmIntV(TStrIntPrV& NmIntV) const = 0;
+        virtual bool IsNmInt(const TStr& Nm) const = 0;
+        virtual int GetNmInt(const TStr& Nm) const = 0;
     };
 
     class INmFlt {
@@ -3540,7 +3539,6 @@ namespace TStreamAggrOut {
         // retrieving named values
         virtual bool IsNmFlt(const TStr& Nm) const = 0;
         virtual double GetNmFlt(const TStr& Nm) const = 0;
-        virtual void GetNmFltV(TStrFltPrV& NmFltV) const = 0;
     };
 
     class IFtrSpace {

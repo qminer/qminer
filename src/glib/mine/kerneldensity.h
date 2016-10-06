@@ -68,7 +68,7 @@ public:
     //  group is assigned the same severity. The grouping
     //  is based on a tolerance.
     /// Maps PMF cells to severity scores
-    void ClassifyAnomalies(const TFltV& PMF, TFltV& Severities);
+    void ClassifyAnomalies(const TFltV& PMF, TIntV& Severities);
 
     /// Transforms a histogram to a probability mass function (PMF). The parameter ComputeBandwidthP decides if the (costly) 
     void GetPMF(const TFltV& Hist, TFltV& PMF, const bool& ComputeBandwidthP);
