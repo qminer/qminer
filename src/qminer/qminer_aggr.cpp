@@ -1692,7 +1692,7 @@ PJsonVal TFtrExtAggr::GetParam() const {
 }
 
 void TFtrExtAggr::SetParam(const PJsonVal& ParamVal) {
-    if (ParamVal->IsObjKey("initCount")) { InitCount = (int)ParamVal->GetObjNum("initCount"); }
+    if (ParamVal->IsObjKey("initCount")) { InitCount = ParamVal->GetObjInt("initCount"); }
     if (ParamVal->IsObjKey("update")) { InitCount = ParamVal->GetObjBool("update"); }
     if (ParamVal->IsObjKey("full")) { InitCount = ParamVal->GetObjBool("full"); }
     if (ParamVal->IsObjKey("sparse")) { InitCount = ParamVal->GetObjBool("sparse"); }
