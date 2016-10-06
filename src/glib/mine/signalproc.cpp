@@ -1339,11 +1339,11 @@ void TOnlineHistogram::Resize(const int& BinN) {
     int OldMaxIdx = CurMaxIdx;
     while (BinN < CurMinIdx && CurMinIdx > 0) {
         CurMinIdx -= (CurMaxIdx - CurMinIdx + 1);
-        CurMinIdx = MAX(CurMinIdx, 0);
+        CurMinIdx = MAX(CurMinIdx.Val, 0);
     }
     while (BinN > CurMaxIdx && CurMinIdx < Bins - 1) {
         CurMaxIdx += (CurMaxIdx - CurMinIdx + 1);
-        CurMaxIdx = MIN(CurMaxIdx, Bins - 1);
+        CurMaxIdx = MIN(CurMaxIdx.Val, Bins.Val - 1);
     }
     TFltV Counts_(CurMaxIdx - CurMinIdx + 1, 0);
     for (int ElN = CurMinIdx; ElN < OldMinIdx; ElN++) {
@@ -1420,9 +1420,9 @@ void TOnlineHistogram::Decrement(const double& Val) {
 
 double TOnlineHistogram::GetCount(const double& Val) const {
     int Idx = FindBin(Val);
-    if (Idx == -1) { return AddNegInf ? CountLeftInf : 0.0; }
-    if (Idx == Bins - 1) { return AddPosInf ? CountRightInf : 0.0; }
-    return ((Idx >= CurMinIdx) && (Idx <= CurMaxIdx)) ? Counts[Idx - CurMinIdx] : 0.0;
+    if (Idx == -1) { return AddNegInf ? CountLeftInf.Val : 0.0; }
+    if (Idx == Bins - 1) { return AddPosInf ? CountRightInf.Val : 0.0; }
+    return ((Idx >= CurMinIdx) && (Idx <= CurMaxIdx)) ? Counts[Idx - CurMinIdx].Val : 0.0;
 }
 
 void TOnlineHistogram::GetCountV(TFltV& Vec) const {
