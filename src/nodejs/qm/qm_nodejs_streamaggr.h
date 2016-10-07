@@ -1057,7 +1057,7 @@
 * // import the qm module
 * var qm = require('qminer');
 * // create a base with a simple store named Cars with 4 fields
-* let base = new qm.Base({
+* var base = new qm.Base({
 *     mode: 'createClean',
 *     schema: [{
 *         name: 'Cars',
@@ -1070,7 +1070,7 @@
 *     }]
 * });
 * // create the store
-* let store = base.store('Cars');
+* var store = base.store('Cars');
 * // define a feature space aggregator on the Cars store which needs at least 2 records to be initialized. Use three of the 
 * // four fields of the store to create feature vectors with normalized values.
 * var aggr = {
@@ -1085,7 +1085,7 @@
 *    ]
 * };
 * //create the feature space aggregator
-* let ftrSpaceAggr = base.store('Cars').addStreamAggr(aggr);
+* var ftrSpaceAggr = base.store('Cars').addStreamAggr(aggr);
 
 * // define a new time series tick stream aggregator for the 'Cars' store, that takes the values from the 'NumberOfCars' field
 * // and the timestamp from the 'Time' field.
