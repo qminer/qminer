@@ -1404,19 +1404,19 @@ class TNNAnomalyAggr: public TStreamAggr,
                       public TStreamAggrOut::ITm,
                       public TStreamAggrOut::IInt {
 private:
-    // Input aggregate
+    /// Input aggregate
     TWPt<TStreamAggr> InAggrTm;
     /// Input aggregate casted to time value
     TWPt<TStreamAggrOut::ITm> InAggrValTm;
-    // Input aggregate
+    /// Input aggregate
     TWPt<TStreamAggr> InAggrSparseVec;
     /// Input aggregate casted to sparse vector
     TWPt<TStreamAggrOut::ISparseVec> InAggrValSparseVec;
     
-    //the NN anomaly detector object
+    /// the NN anomaly detector object
     TAnomalyDetection::TNearestNeighbor Model;
     
-    //details about the last alarm
+    /// details about the last alarm
     TUInt64 LastTimeStamp;
     TInt LastSeverity;
     PJsonVal Explanation;
@@ -1431,7 +1431,7 @@ public:
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal){
         return new TNNAnomalyAggr(Base, ParamVal); }
     
-    //implement TStreamAggr functions
+    /// implement TStreamAggr functions
     PJsonVal GetParam() const;
     void SetParam(const PJsonVal& ParamVal);
     
