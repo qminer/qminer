@@ -11,8 +11,8 @@ New Features:
 - Online histogram can resize accordingly to new observed values.
 
 Bug Fix:
-- **BREAKING:**: stream aggregates return Unix timestamps on JavaScript side and Windows timestamps on C++ side (issue #286)
-  - `new Date(sa.getTimestamp()-11644473600000)` => `new Date(sa.getTimestamp())`
+- **BREAKING:** stream aggregates return Unix timestamps on JavaScript side and Windows timestamps on C++ side (issue #286)
+  - `new Date(sa.getTimestamp()-11644473600000)` => `new Date(sa.getTimestamp())` where `sa instanceof qm.StreamAggreator`.
 - Cleaned `INmFlt` and `INmInt` interfaces.
 
 ### 30 September 2016
