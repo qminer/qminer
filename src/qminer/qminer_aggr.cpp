@@ -1718,7 +1718,7 @@ void TNNAnomalyAggr::OnStep() {
         LastTimeStamp = InAggrValTm->GetTmMSecs();
         TIntFltKdV Vals; InAggrValSparseVec->GetSparseVec(Vals);
         //predict the severity of the alarm
-        LastSeverity = Model.Predict(Vals); // TODO: modify TNearestNeighbor to accept time stamps on input, not only RecIds (InAggrTm->GetTmMSecs());
+        LastSeverity = Model.Predict(Vals); 
         //save the explanation for the alarm
         if (LastSeverity > 0) {
             Explanation = Model.Explain(Vals);
@@ -1726,7 +1726,7 @@ void TNNAnomalyAggr::OnStep() {
             Explanation = TJsonVal::NewObj();
         }
         //update the model with the current feature vector
-        Model.PartialFit(Vals);
+        Model.PartialFit(Vals, LastTimeStamp);
     }
 }
 
@@ -1796,7 +1796,7 @@ void TNNAnomalyAggr::SetParam(const PJsonVal& ParamVal) {
     Model = TAnomalyDetection::TNearestNeighbor(RateV, ParamVal->GetObjInt("windowSize", 100));
 }
 
-///Reset the aggregator
+/// Reset the aggregator
 void TNNAnomalyAggr::Reset() { 
     TFltV RateV = Model.GetRateV();
     TInt WinSize = Model.GetWindowSize();

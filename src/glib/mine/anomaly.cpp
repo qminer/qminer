@@ -73,11 +73,11 @@ TNearestNeighbor::TNearestNeighbor(const TFltV& _RateV, const int& _WindowSize):
     Mat.Gen(WindowSize, 0);
     DistV.Gen(WindowSize, 0);
     DistColV.Gen(WindowSize, 0);
-    IDVec.Gen(WindowSize, 0);
+    DatV.Gen(WindowSize, 0);
 }
 
 TNearestNeighbor::TNearestNeighbor(TSIn& SIn): RateV(SIn), WindowSize(SIn), Mat(SIn),
-    DistV(SIn), DistColV(SIn), ThresholdV(SIn), InitVecs(SIn), NextCol(SIn), IDVec(SIn) { }
+    DistV(SIn), DistColV(SIn), ThresholdV(SIn), InitVecs(SIn), NextCol(SIn), DatV(SIn) { }
 
 void TNearestNeighbor::Save(TSOut& SOut) const {
     RateV.Save(SOut);
@@ -88,14 +88,14 @@ void TNearestNeighbor::Save(TSOut& SOut) const {
     ThresholdV.Save(SOut);
     InitVecs.Save(SOut);
     NextCol.Save(SOut);
-    IDVec.Save(SOut);
+    DatV.Save(SOut);
 }
 
-void TNearestNeighbor::PartialFit(const TIntFltKdV& Vec, const int& RecId) {
+void TNearestNeighbor::PartialFit(const TIntFltKdV& Vec, const uint64& Dat) {
     if (InitVecs < WindowSize) {
         // not yet full, extend matrix and distance vectors
         Mat.Add(Vec);
-        IDVec.Add(RecId);
+        DatV.Add(Dat);
         // make sure we are very far from everything for update distance to kick in
         DistV.Add(TFlt::Mx); DistColV.Add(InitVecs);
         // update distance for new vector
@@ -109,7 +109,7 @@ void TNearestNeighbor::PartialFit(const TIntFltKdV& Vec, const int& RecId) {
         Forget(NextCol);
         // overwrite
         Mat[NextCol] = Vec;
-        IDVec[NextCol] = RecId;
+        DatV[NextCol] = Dat;
         DistV[NextCol] = TFlt::Mx;
         DistColV[NextCol] = NextCol;
         // update distance for overwriten vector
@@ -156,38 +156,43 @@ PJsonVal TNearestNeighbor::Explain(const TIntFltKdV& Vec) const {
     // generate JSon explanations
     PJsonVal ResVal = TJsonVal::NewObj();
     // id of the nearest element
-    ResVal->AddToObj("nearestID", IDVec[NearColN]);
+    ResVal->AddToObj("nearestDat", DatV[NearColN]);
     ResVal->AddToObj("distance", NearDist);
     // element-wise difference
     PJsonVal DiffVal = TJsonVal::NewArr();
     int NearEltN = 0, EltN = 0;
     while (NearEltN < NearVec.Len() && EltN < Vec.Len()) {
         // get values
-        const int FtrId =      (NearVec[NearEltN].Key < Vec[EltN].Key) ? NearVec[NearEltN].Key     : Vec[EltN].Key;
-        const double Val =     (NearVec[NearEltN].Key >= Vec[EltN].Key) ? Vec[EltN].Dat.Val : 0.0;
+        const int FtrId = (NearVec[NearEltN].Key < Vec[EltN].Key) ? NearVec[NearEltN].Key : Vec[EltN].Key;
+        const double Val = (NearVec[NearEltN].Key >= Vec[EltN].Key) ? Vec[EltN].Dat.Val : 0.0;
         const double NearVal = (NearVec[NearEltN].Key <= Vec[EltN].Key) ? NearVec[NearEltN].Dat.Val : 0.0;
-        const double Diff    = TMath::Sqr(NearVal - Val) / NearDist;
+        const double Diff = TMath::Sqr(NearVal - Val) / NearDist;
         // add to json result
         PJsonVal FtrVal = TJsonVal::NewObj();
-        FtrVal->AddToObj("id", FtrId);
-        FtrVal->AddToObj("val", Val);
-        FtrVal->AddToObj("nearVal", NearVal);
-        FtrVal->AddToObj("contribution", Diff);
-        DiffVal->AddToArr(FtrVal);
-        // move to the next feature
-        if (NearVec[NearEltN].Key > Vec[EltN].Key) {
-            EltN++;
-        } else if (NearVec[NearEltN].Key < Vec[EltN].Key) {
-            NearEltN++;
-        } else {
-            NearEltN++; EltN++;
+        //avoid unnecessary fields in the explanation
+        if (Diff < 1e-8) {
+            FtrVal->AddToObj("id", FtrId);
+            FtrVal->AddToObj("val", Val);
+            FtrVal->AddToObj("nearVal", NearVal);
+            FtrVal->AddToObj("contribution", Diff);
+            DiffVal->AddToArr(FtrVal);
+            // move to the next feature
+            if (NearVec[NearEltN].Key > Vec[EltN].Key) {
+                EltN++;
+            }
+            else if (NearVec[NearEltN].Key < Vec[EltN].Key) {
+                NearEltN++;
+            }
+            else {
+                NearEltN++; EltN++;
+            }
         }
     }
     ResVal->AddToObj("features", DiffVal);
     // first and last record in the buffer
-    ResVal->AddToObj("oldestID", IDVec[NextCol]);
+    ResVal->AddToObj("oldestDat", DatV[NextCol]);
     int CurCol = NextCol > 0 ? NextCol - 1 : WindowSize - 1;
-    ResVal->AddToObj("newestID", IDVec[CurCol]);
+    ResVal->AddToObj("newestDat", DatV[CurCol]);
     return ResVal;
 }
 
