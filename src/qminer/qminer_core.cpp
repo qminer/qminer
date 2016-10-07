@@ -3921,11 +3921,11 @@ PRecSet TRecSet::DoJoin(const TWPt<TBase>& Base, const int& JoinId, const int& S
         // do join using store field
         TUInt64H JoinRecIdFqH;
         const int JoinRecFieldId = JoinDesc.GetJoinRecFieldId();
+        const int JoinFqFieldId = JoinDesc.GetJoinFqFieldId();
         for (int RecN = 0; RecN < SampleRecs; RecN++) {
             const uint64 RecId = SampleRecIdKdV[RecN].Key;
             const uint64 JoinRecId = Store->GetFieldUInt64Safe(RecId, JoinRecFieldId);
             if (JoinRecId != TUInt64::Mx) {
-                const int JoinFqFieldId = JoinDesc.GetJoinFqFieldId();
                 int JoinRecFq = 1;
                 if (JoinFqFieldId >= 0) {
                     JoinRecFq = (int)Store->GetFieldInt64Safe(RecId, JoinFqFieldId);
