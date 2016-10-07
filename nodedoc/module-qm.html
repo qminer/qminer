@@ -13,7 +13,7 @@
                 <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
         <div id="jsdoc-navbar-content">
-            <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v6.4.0</a>
+            <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v6.5.1</a>
         </div>
     </div>
 </nav>
@@ -23,7 +23,7 @@
                                 <div id="jsdoc-content-container">
                                         <div id="jsdoc-main" role="main">
                     <header class="page-header">
-        <h1><div class="symbol-detail-labels"><span class="label label-kind">module</span></div><small></small><span class="symbol-name">qm</span></h1>        <p class="source-link">Source: <a href="qminer_aggrdoc.js.html#source-line-8">qminer_aggrdoc.<wbr>js:8</a></p>
+        <h1><div class="symbol-detail-labels"><span class="label label-kind">module</span></div><small></small><span class="symbol-name">qm</span></h1>        <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-8">qminerdoc.<wbr>js:8</a></p>
             <div class="symbol-description">
                     <p>QMiner module.</p>
 
@@ -146,13 +146,18 @@ var qm = require(&#x27;qminer&#x27;);</code></pre>
                 <dt><a href="module-qm.html#.open">open([configPath][, readOnly])</a></dt>
                 <dd>
                 </dd>
-                <dt><a href="module-qm.html#.verbosity">verbosity([level])</a></dt>
+                <dt><a href="module-qm.html#.stats">stats()</a></dt>
                 <dd>
                 </dd>
         </dl>
 </div>
 
                     <div class="summary-column">
+        <dl class="dl-summary-callout">
+                <dt><a href="module-qm.html#.verbosity">verbosity([level])</a></dt>
+                <dd>
+                </dd>
+        </dl>
 </div>
 
         </div>
@@ -759,6 +764,40 @@ var version = qm.version;</code></pre>
             <dt>Returns</dt>
         <dd><p><code><a href="module-qm.Base.html">module:qm.Base</a></code>&nbsp;The loaded base.</p></dd>
 
+    </dl>
+
+                <h3 id=".stats"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">stats</span><span class="signature"><span class="signature-params">()</span></span></h3>
+        <p>Returns an JSON with two properties: &quot;byClass&quot; and &quot;total&quot;. The &quot;byClass&quot; value is a JSON where
+each key is a class ID and each value is of the form { newFromCpp: number, newFromJs: number, destructorCalls: number}
+and the value of &quot;total&quot; is of the same form (aggregated over &quot;byClass&quot;)</p>
+
+    
+    
+    
+
+    <dl class="dl-compact">
+        
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+        
+        
+        
+        
+        
     </dl>
 
                 <h3 id=".verbosity"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">verbosity</span><span class="signature"><span class="signature-params">([level])</span></span></h3>
@@ -2347,7 +2386,7 @@ var base = new qm.Base({
 });
 // create a feature space containing the numeric extractor, where the values are
 // normalized, the values are taken from the field &quot;Grade&quot;
-var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;Class&quot;, normalize: true, field: &quot;Grade&quot; });
+var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;Class&quot;, normalize: &quot;scale&quot;, field: &quot;Grade&quot; });
 base.close();</code></pre>
 </div>
 
@@ -2386,14 +2425,14 @@ base.close();</code></pre>
             <p>normalize</p>
         </td>
         <td>
-                <p>boolean</p>
+                <p>string</p>
         </td>
         <td>
                 <p>Yes</p>
         </td>
         <td>
-                <p>Normalize values between 0.0 and 1.0.</p>
-                <p>Defaults to <code>'false'</code>.</p>
+                <p>Normalize values between 0.0 and 1.0 if set to <code>'scale'</code>. Standardize values to mean = 0 and sdiv = 1 if set to <code>'var'</code>.</p>
+                <p>Defaults to <code>'none'</code>.</p>
         </td>
 </tr>
 
@@ -4298,7 +4337,9 @@ base.close();</code></pre>
 <br>8. <code>'float_pair'</code> - A pair of floats, useful for storing geo coordinates,
 <br>9. <code>'float_v'</code> - Array of floats,
 <br>10. <code>'datetime'</code> - Date and time format, stored in a form of miliseconds since 1600,
-<br>11. <code>'num_sp_v'</code> - Array of [<code>int</code>, <code>float</code>] pairs. See constructor array for <a href="module-la.SparseVector.html">module:la.SparseVector</a>.</p>
+<br>11. <code>'num_sp_v'</code> - Array of [<code>int</code>, <code>float</code>] pairs. See constructor array for <a href="module-la.SparseVector.html">module:la.SparseVector</a>,
+<br>12. <code>'json'</code> - this field can be an arbitrary object and will be internally serialized into string using JSON notation,
+<br>13. <code>'blob'</code> - Binary buffer, used for storing binary data,</p>
         </td>
 </tr>
 

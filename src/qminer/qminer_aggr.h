@@ -778,11 +778,11 @@ public:
     /// Resets the aggregate
     void Reset() { Signal.Reset(); }
     /// Number of values in the output vector
-    int GetVals() const { return Signal.GetValue().Len(); }
+    int GetSparseVecLen() const { return Signal.GetValue().Len(); }
     /// Get ElN-th output value
-    void GetVal(const int& ElN, TIntFltKd& Val) const { Val = Signal.GetValue()[0]; }
+    TIntFltKd GetSparseVecVal(const int& ElN) const { return Signal.GetValue()[0]; }
     /// Get output vector
-    void GetValV(TVec<TIntFltKd>& ValV) const { ValV = Signal.GetValue(); }
+    void GetSparseVec(TVec<TIntFltKd>& ValV) const { ValV = Signal.GetValue(); }
     /// Get latest timestamp
     uint64 GetTmMSecs() const { return InAggrTm->GetTmMSecs(); }
     
@@ -889,11 +889,11 @@ public:
     /// Resets the aggregate
     void Reset() { Ema.Reset(); }
     /// Get number of values in the output vector
-    int GetVals() const { return Ema.GetValue().Len(); }
+    int GetSparseVecLen() const { return Ema.GetValue().Len(); }
     /// Get ElN-th value from the output vector
-    void GetVal(const int& ElN, TIntFltKd& Val) const { Val = Ema.GetValue()[ElN]; }
+    TIntFltKd GetSparseVecVal(const int& ElN) const { return Ema.GetValue()[ElN]; }
     /// Get output vector
-    virtual void GetValV(TVec<TIntFltKd>& ValV) const { ValV.Clr(); ValV.AddV(Ema.GetValue()); }
+    void GetSparseVec(TVec<TIntFltKd>& ValV) const { ValV = Ema.GetValue(); }
     /// Get last update timestamp
     uint64 GetTmMSecs() const { return Ema.GetTmMSecs(); }
 
@@ -1321,46 +1321,135 @@ private:
 };
 
 ///////////////////////////////
-/// Dense feature extractor stream aggregate.
+/// Feature extractor stream aggregate.
 /// Calls GetFullV on feature space and returns result.
-class TFtrExtAggr : public TStreamAggr, public TStreamAggrOut::IFltVec {
+class TFtrExtAggr : public TStreamAggr,
+                    public TStreamAggrOut::IFltVec,
+                    public TStreamAggrOut::ISparseVec,
+                    public TStreamAggrOut::IFtrSpace {
 private:
-    /// Feature space wrapped in the aggregate
-    TWPt<TFtrSpace> FtrSpace;
-    /// Value of last extracted vector
-    TFltV Vec;
+    /// Number of records still needed to declare we are initialized
+    TInt InitCount;
+    /// Shall we update the feature space as we get new records?
+    TBool UpdateP;
+    /// Shall we extract full vectors
+    TBool FullP;
+    /// Shall we extract sparse vectors
+    TBool SparseP;
+    
+    /// Feature space wrapped in the aggregate.
+    /// We keep a smart pointer for it to hold it up while we exist
+    PFtrSpace FtrSpace;
+
+    /// Value of last full extracted vector
+    TFltV FullVec;
+    /// Value of last sparse extracted vector
+    TIntFltKdV SpVec;
 
 protected:
     /// Process new record
     void OnAddRec(const TRec& Rec);
 
-    /// Non-standard constructor 
-    TFtrExtAggr(const TWPt<TBase>& Base, const TStr& AggrNm, const TWPt<TFtrSpace>& _FtrSpace);
+    /// JSON constructor
+    TFtrExtAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:
-    /// Non-standard constructor 
-    static PStreamAggr New(const TWPt<TBase>& Base, const TStr& AggrNm, const TWPt<TFtrSpace>& _FtrSpace);
+    /// JSON constructor
+    static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 
     /// Load stream aggregate state from stream
     void LoadState(TSIn& SIn);
     /// Save state of stream aggregate to stream
     void SaveState(TSOut& SOut) const;
 
+    /// Get current stream aggregate parameters
+    PJsonVal GetParam() const;
+    /// Update stream aggregate parameters. Only parameters given will be updated,
+    /// rest will be left as they are at the moment.
+    void SetParam(const PJsonVal& ParamVal);
+
     /// Did we finish initialization
-    bool IsInit() const { return true; }
-    /// Reset
-    void Reset() { }
-    /// Get number of elements in last extracted vector (== feature space dimension)
-    int GetVals() const { return FtrSpace->GetDim(); }
-    /// Get ElN-th element from last extracted vector
-    void GetVal(const int& ElN, TFlt& Val) const;
-    /// Get last extracted vector
-    void GetValV(TFltV& ValV) const { ValV = Vec; }
+    bool IsInit() const { return InitCount == 0; }
+    /// Reset feature space
+    void Reset();
+    
+    /// Get number of elements in the last extracted full vector
+    int GetVals() const { return FullVec.Len(); }
+    /// Get ElN-th element from the last extracted full vector
+    void GetVal(const int& ElN, TFlt& Val) const { Val = FullVec[ElN]; }
+    /// Get the last extracted full vector
+    void GetValV(TFltV& ValV) const { ValV = FullVec; }
+    
+    /// Get number of elements in the last extracted sparse vector
+    int GetSparseVecLen() const { return SpVec.Len(); }
+    /// Get ElN-th element from the last extracte sparse vector
+    TIntFltKd GetSparseVecVal(const int& ElN) const { return SpVec[ElN]; }
+    /// Get the last extracted sparse vector
+    void GetSparseVec(TIntFltKdV& _SpVec) const { _SpVec = SpVec; }
+
+    /// Return internal feature space
+    PFtrSpace GetFtrSpace() const { return FtrSpace; }
 
     // serialization to JSon
     PJsonVal SaveJson(const int& Limit) const;
 
     /// Stream aggregator type name 
-    static TStr GetType() { return "ftrext"; }
+    static TStr GetType() { return "featureSpace"; }
+    /// Stream aggregator type name 
+    TStr Type() const { return GetType(); }
+};
+
+///////////////////////////////
+/// Nearest Neighbor for Anomaly Detection stream aggregate.
+class TNNAnomalyAggr: public TStreamAggr,
+                      public TStreamAggrOut::ITm,
+                      public TStreamAggrOut::IInt {
+private:
+    /// Input aggregate
+    TWPt<TStreamAggr> InAggrTm;
+    /// Input aggregate casted to time value
+    TWPt<TStreamAggrOut::ITm> InAggrValTm;
+    /// Input aggregate
+    TWPt<TStreamAggr> InAggrSparseVec;
+    /// Input aggregate casted to sparse vector
+    TWPt<TStreamAggrOut::ISparseVec> InAggrValSparseVec;
+    
+    /// the NN anomaly detector object
+    TAnomalyDetection::TNearestNeighbor Model;
+    
+    /// details about the last alarm
+    TUInt64 LastTimeStamp;
+    TInt LastSeverity;
+    PJsonVal Explanation;
+    
+    /// JSON constructor
+    TNNAnomalyAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+protected:
+    /// Update NN anomaly detector
+   void OnStep();
+public:
+    /// JSON constructor
+    static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal){
+        return new TNNAnomalyAggr(Base, ParamVal); }
+    
+    /// implement TStreamAggr functions
+    PJsonVal GetParam() const;
+    void SetParam(const PJsonVal& ParamVal);
+    
+    /// Did we finish initialization
+    bool IsInit() const { return Model.IsInit(); }
+    void Reset();
+
+    /// Load stream aggregate state from stream
+    void LoadState(TSIn& SIn);
+    /// Save state of stream aggregate to stream
+    void SaveState(TSOut& SOut) const;
+    
+    uint64 GetTmMSecs() const { return LastTimeStamp.GetMsVal(); }
+    int GetInt() const { return LastSeverity; }
+    PJsonVal SaveJson(const int& Limit) const;
+    
+    /// Stream aggregator type name 
+    static TStr GetType() { return "nnAnomalyDetector"; }
     /// Stream aggregator type name 
     TStr Type() const { return GetType(); }
 };
@@ -1779,13 +1868,13 @@ public:
 ///
 ///   OnStep has two phases (predict and fit):
 ///   1. - reads a value from an input aggregate that implements IFlt
-///      - computes the bin number given an input histogram aggregate (exposes the index by implementing IInt)
+///      - computes the bin number given an input histogram aggregate, exposes the result by implementing INmInt with "index" as input
 ///      - uses THistogramToPMFModel to compute the severity (anomaly score) of the bin
-///      - exposes the result by implementing IFlt
+///      - exposes the result by implementing INmInt with "severity" as input
 ///   2. - updates the input histogram aggregate
 ///      - updates THistogramToPMFModel
 ///      - exposes the PMF and severities through SaveJson
-class THistogramAD : public TStreamAggr, public TStreamAggrOut::IFlt, public TStreamAggrOut::IInt {
+class THistogramAD : public TStreamAggr, public TStreamAggrOut::INmInt {
 private:
     /// Input for prediction
     TWPt<TStreamAggrOut::IFlt> InAggrVal;
@@ -1794,13 +1883,13 @@ private:
     /// Input for modelling (histogram)
     TWPt<TOnlineHistogram> HistAggr;
     /// Current severity, returned by GetFlt(), corresponds to histogram bin with index LastHistIdx
-    TFlt Severity;
+    TInt Severity;
     /// The histogram bin index of the most recent prediction, returned by GetInt().
     TInt LastHistIdx;
     /// Current PMF, computed in OnStep
     TFltV PMF;
     /// Current anomaly scores, computed in OnStep
-    TFltV Severities;
+    TIntV Severities;
     /// Explanation object holds a summary of the histogram state prior to making the last prediction (it explains why a prediction was classified with a given severity)
     PJsonVal Explanation;
     /// PMF/AD model
@@ -1822,16 +1911,16 @@ public:
     void SaveState(TSOut& SOut) const;
     /// Is the aggregate initialized?
     bool IsInit() const { return HistAggr->IsInit() && Severities.Len() > 0; }
-    /// Returns the current severity level (0 = normal)
-    double GetFlt() const { return Severity; }
-    /// Returns the current histogram bin index
-    int GetInt() const { return LastHistIdx; }
+    /// Returns true if the string is supported
+    bool IsNmInt(const TStr& Nm) const { return(Nm == "index") || (Nm == "severity"); }
+    /// Returns the current histogram bin index or current severity
+    int GetNmInt(const TStr& Nm) const { return Nm == "index" ? LastHistIdx : Severity; }
     /// Resets the aggregate
     void Reset();
     /// JSON serialization
     PJsonVal SaveJson(const int& Limit) const;
     /// Stream aggregator type name
-    static TStr GetType() { return "hitogramAD"; }
+    static TStr GetType() { return "histogramAD"; }
     /// Stream aggregator type name
     TStr Type() const { return GetType(); }
 };
