@@ -1718,7 +1718,7 @@ void TNNAnomalyAggr::OnStep() {
         LastTimeStamp = InAggrValTm->GetTmMSecs();
         TIntFltKdV Vals; InAggrValSparseVec->GetSparseVec(Vals);
         //predict the severity of the alarm
-        LastSeverity = Model.Predict(Vals); 
+        LastSeverity = Model.Predict(Vals);
         //save the explanation for the alarm
         if (LastSeverity > 0) {
             Explanation = Model.Explain(Vals);

@@ -1071,8 +1071,8 @@
 * });
 * // create the store
 * let store = base.store('Cars');
-* //define a feature space aggregator on the Cars store which needs at least 2 records to be initialized. Use three of the 
-* four fields of the store to create feature vectors with normalized values.
+* // define a feature space aggregator on the Cars store which needs at least 2 records to be initialized. Use three of the 
+* // four fields of the store to create feature vectors with normalized values.
 * var aggr = {
 *    name: "ftrSpaceAggr",
 *    type: "featureSpace",

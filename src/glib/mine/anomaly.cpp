@@ -170,22 +170,22 @@ PJsonVal TNearestNeighbor::Explain(const TIntFltKdV& Vec) const {
         // add to json result
         PJsonVal FtrVal = TJsonVal::NewObj();
         //avoid unnecessary fields in the explanation
-        if (Diff < 1e-8) {
+        if (Diff > 1e-8) {
             FtrVal->AddToObj("id", FtrId);
             FtrVal->AddToObj("val", Val);
             FtrVal->AddToObj("nearVal", NearVal);
             FtrVal->AddToObj("contribution", Diff);
             DiffVal->AddToArr(FtrVal);
-            // move to the next feature
-            if (NearVec[NearEltN].Key > Vec[EltN].Key) {
-                EltN++;
-            }
-            else if (NearVec[NearEltN].Key < Vec[EltN].Key) {
-                NearEltN++;
-            }
-            else {
-                NearEltN++; EltN++;
-            }
+        }
+        // move to the next feature
+        if (NearVec[NearEltN].Key > Vec[EltN].Key) {
+            EltN++;
+        }
+        else if (NearVec[NearEltN].Key < Vec[EltN].Key) {
+            NearEltN++;
+        }
+        else {
+            NearEltN++; EltN++;
         }
     }
     ResVal->AddToObj("features", DiffVal);
