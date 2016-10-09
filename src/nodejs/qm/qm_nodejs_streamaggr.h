@@ -1569,7 +1569,6 @@ public:
     * A map from strings to integers
     * @param {string} [str] - The string.
     * @returns {(number | null)} A number (stream aggregator specific), possibly null if `str` was provided.
-    * @example
     */
     //# exports.StreamAggr.prototype.getInteger = function (str) { return 0; };
     JsDeclareFunction(getInteger);

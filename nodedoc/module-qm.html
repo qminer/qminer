@@ -13,7 +13,7 @@
                 <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
         <div id="jsdoc-navbar-content">
-            <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v6.5.1</a>
+            <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.0.0</a>
         </div>
     </div>
 </nav>
@@ -23,7 +23,7 @@
                                 <div id="jsdoc-content-container">
                                         <div id="jsdoc-main" role="main">
                     <header class="page-header">
-        <h1><div class="symbol-detail-labels"><span class="label label-kind">module</span></div><small></small><span class="symbol-name">qm</span></h1>        <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-8">qminerdoc.<wbr>js:8</a></p>
+        <h1><div class="symbol-detail-labels"><span class="label label-kind">module</span></div><small></small><span class="symbol-name">qm</span></h1>        <p class="source-link">Source: <a href="qminer_aggrdoc.js.html#source-line-8">qminer_aggrdoc.<wbr>js:8</a></p>
             <div class="symbol-description">
                     <p>QMiner module.</p>
 
@@ -252,6 +252,9 @@ var qm = require(&#x27;qminer&#x27;);</code></pre>
                 <dt><a href="module-qm.html#~SchemaTimeWindowDef">SchemaTimeWindowDef</a></dt>
                 <dd>
                 </dd>
+                <dt><a href="module-qm.html#~StreamAggrAnomalyDetectorNN">StreamAggrAnomalyDetectorNN</a></dt>
+                <dd>
+                </dd>
                 <dt><a href="module-qm.html#~StreamAggregator">StreamAggregator</a></dt>
                 <dd>
                 </dd>
@@ -273,14 +276,14 @@ var qm = require(&#x27;qminer&#x27;);</code></pre>
                 <dt><a href="module-qm.html#~StreamAggrMin">StreamAggrMin</a></dt>
                 <dd>
                 </dd>
-                <dt><a href="module-qm.html#~StreamAggrMovingAverage">StreamAggrMovingAverage</a></dt>
-                <dd>
-                </dd>
         </dl>
 </div>
 
                     <div class="summary-column">
         <dl class="dl-summary-callout">
+                <dt><a href="module-qm.html#~StreamAggrMovingAverage">StreamAggrMovingAverage</a></dt>
+                <dd>
+                </dd>
                 <dt><a href="module-qm.html#~StreamAggrMovingCorrelation">StreamAggrMovingCorrelation</a></dt>
                 <dd>
                 </dd>
@@ -4954,6 +4957,186 @@ base.close();</code></pre>
         
     </dl>
 
+                <h3 id="~StreamAggrAnomalyDetectorNN"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggrAnomalyDetectorNN</span><small class="property-type">
+            &nbsp;module:qmStreamAggr</small></h3>
+        <p>This stream aggregator represents the anomaly detector using the Nearest Neighbor algorithm. It calculates the 
+new incoming point's distance from its nearest neighbor and, depending on the input threshold values, it 
+classifies the severity of the alarm. It implements the following methods:
+<br>1. <a href="module-qm.StreamAggr.html#getInteger">module:qm.StreamAggr#getInteger</a> returns the severity of the alarm.
+<br>2. <a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a> returns the timestamp of the latest alarm.
+<br>3. <a href="module-qm.StreamAggr.html#saveJson">module:qm.StreamAggr#saveJson</a> returns the Json with the description and explanation of the alarm.</p>
+
+        <section>
+        <h4>
+            Example
+        </h4>
+                <div>
+    <pre class="prettyprint"><code>// import the qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a base with a simple store named Cars with 4 fields
+var base = new qm.Base({
+    mode: &#x27;createClean&#x27;,
+    schema: [{
+        name: &#x27;Cars&#x27;,
+        fields: [
+            { name: &#x27;NumberOfCars&#x27;, type: &#x27;float&#x27; },
+            { name: &#x27;Temperature&#x27;, type: &#x27;float&#x27; },
+            { name: &#x27;Precipitation&#x27;, type: &#x27;float&#x27; },
+            { name: &#x27;Time&#x27;, type: &#x27;datetime&#x27; }
+        ]
+    }]
+});
+// create the store
+var store = base.store(&#x27;Cars&#x27;);
+// define a feature space aggregator on the Cars store which needs at least 2 records to be initialized. Use three of the 
+// four fields of the store to create feature vectors with normalized values.
+var aggr = {
+   name: &quot;ftrSpaceAggr&quot;,
+   type: &quot;featureSpace&quot;,
+   initCount: 2,
+   update: true, full: false, sparse: true,
+   featureSpace: [
+       { type: &quot;numeric&quot;, source: &quot;Cars&quot;, field: &quot;NumberOfCars&quot;, normalize: &quot;var&quot; },
+       { type: &quot;numeric&quot;, source: &quot;Cars&quot;, field: &quot;Temperature&quot;, normalize: &quot;var&quot; },
+       { type: &quot;numeric&quot;, source: &quot;Cars&quot;, field: &quot;Precipitation&quot;, normalize: &quot;var&quot; }
+   ]
+};
+//create the feature space aggregator
+var ftrSpaceAggr = base.store(&#x27;Cars&#x27;).addStreamAggr(aggr);
+// define a new time series tick stream aggregator for the &#x27;Cars&#x27; store, that takes the values from the &#x27;NumberOfCars&#x27; field
+// and the timestamp from the &#x27;Time&#x27; field.
+var aggr = {
+    name: &quot;tickAggr&quot;,
+    type: &quot;timeSeriesTick&quot;,
+    store: &quot;Cars&quot;,
+    timestamp: &quot;Time&quot;,
+    value: &quot;NumberOfCars&quot;
+};
+//create the tick aggregator
+tickAggr = base.store(&#x27;Cars&#x27;).addStreamAggr(aggr);
+
+//define an anomaly detection aggregator using nearest neighbor on the cars store that takes as input timestamped features.
+// The time stamp is provided by the tick aggregator while the feature vector is provided by the feature space aggregator.
+var aggr = {
+    name: &#x27;AnomalyDetectorAggr&#x27;,
+    type: &#x27;nnAnomalyDetector&#x27;,
+    inAggrSpV: &#x27;ftrSpaceAggr&#x27;,
+    inAggrTm: &#x27;tickAggr&#x27;,
+    rate: [0.15, 0.5, 0.7],
+    windowSize: 2
+};
+//create the anomaly detection aggregator
+var anomaly = base.store(&#x27;Cars&#x27;).addStreamAggr(aggr);
+base.close();</code></pre>
+</div>
+
+    </section>
+
+    
+        <section>
+        <h4>Properties</h4>
+            <table class="jsdoc-details-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Optional</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+                <tr>
+        <td>
+            <p>name</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The given name for the stream aggregator.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>type</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The type of the stream aggregator. <b>Important:</b> It must be equal to <code>'nnAnomalyDetector'</code>.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>store</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The name of the store from which it takes the data.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>inAggr</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The name of the stream aggregator to which it connects and gets data.
+It <b>cannot</b> be connect to the <a href="module-qm.html#~StreamAggrTimeSeriesWindow">module:qm~StreamAggrTimeSeriesWindow</a>.</p>
+        </td>
+</tr>
+
+        </tbody>
+</table>
+
+    </section>
+
+
+    <dl class="dl-compact">
+        
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+        
+        
+        
+        
+        
+    </dl>
+
                 <h3 id="~StreamAggregator"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggregator</span><small class="property-type">
             &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
         <p>Stream aggregator types.</p>
@@ -5961,6 +6144,22 @@ base.close();</code></pre>
         </td>
         <td>
                 <p>Include a bin <code>[upperBound, Inf]</code>.</p>
+                <p>Defaults to <code>false</code>.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>autoResize</p>
+        </td>
+        <td>
+                <p>boolean</p>
+        </td>
+        <td>
+                <p>Yes</p>
+        </td>
+        <td>
+                <p>The histogram will be empty at the beginning and double its size on demand (resize only when incrementing counts). The unbounded bins are guaranteed to stay between lowerBound and upperBound and in all cases the bin size equals (upperBound - lowerBound)/bins.</p>
                 <p>Defaults to <code>false</code>.</p>
         </td>
 </tr>
