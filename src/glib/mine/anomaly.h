@@ -32,7 +32,7 @@ private:
     /// Number of the next available column
     TInt NextCol;
     /// ID vector
-    TIntV IDVec;
+    TUInt64V DatV;
     
     /// Update all distances as if Mat[ColId] is new vector, ignoring column IgnoreColId
     void UpdateDistance(const int& ColId, const int& IgnoreColId = -1);
@@ -49,7 +49,7 @@ public:
     void Save(TSOut& SOut) const;
 
     /// Add new element to the model, provide a record ID (for explanation purposes)
-    void PartialFit(const TIntFltKdV& Vec, const int& RecId = -1);	
+    void PartialFit(const TIntFltKdV& Vec, const uint64& Dat = TUInt64::Mx);	
 
     /// Distance to the nearest neighbor
     double DecisionFunction(const TIntFltKdV& Vec) const;

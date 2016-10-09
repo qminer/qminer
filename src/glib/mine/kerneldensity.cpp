@@ -58,12 +58,12 @@ THistogramToPMFModel::THistogramToPMFModel(const PJsonVal& ParamVal) {
     //   fit 1 gaussian
 }
 
-void THistogramToPMFModel::ClassifyAnomalies(const TFltV& PMF, TFltV& Severities) {
+void THistogramToPMFModel::ClassifyAnomalies(const TFltV& PMF, TIntV& Severities) {
     TFltV SortedV; TIntV PermV;
     // Sort in ascending order: most severe anomalies come first
     PMF.SortGetPerm(PMF, SortedV, PermV, true);
     int Len = PMF.Len();
-    Severities = TFltV(Len); // default zero
+    Severities.Gen(Len); // default zero
     double CumSum = 0.0;
     int Severity = Thresholds.Len();
     int StepBack = 0;

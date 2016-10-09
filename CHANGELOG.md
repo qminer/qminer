@@ -1,5 +1,20 @@
 # QMiner Change Log
 
+### 7 October 2016
+
+**Version: 7.0.0**
+
+**Breaking with new features**
+
+New Features:
+- Added `getNameInteger` and `getNameFloat` for stream aggregates in JavaScript (`INmFlt` and `INmInt`).
+- Online histogram can resize accordingly to new observed values.
+
+Bug Fix:
+- **BREAKING:** stream aggregates return Unix timestamps on JavaScript side and Windows timestamps on C++ side (issue #286)
+  - `new Date(sa.getTimestamp()-11644473600000)` => `new Date(sa.getTimestamp())` where `sa instanceof qm.StreamAggreator`.
+- Cleaned `INmFlt` and `INmInt` interfaces.
+
 ### 30 September 2016
 
 **Version: 6.5.1**
