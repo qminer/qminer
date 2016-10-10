@@ -72,6 +72,7 @@ TWinBufMem<TVal>::TWinBufMem(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
     // parse out window parameters
     ParamVal->AssertObjKeyNum("winsize", __FUNCTION__);
     WinSizeMSecs = ParamVal->GetObjUInt64("winsize");
+    printf("WINDOW SIZE: %s\n", TUInt64::GetStr(WinSizeMSecs).CStr());
     DelayMSecs = ParamVal->GetObjUInt64("delay", 0);
 }
 
