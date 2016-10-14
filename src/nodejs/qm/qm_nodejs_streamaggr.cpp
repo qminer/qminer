@@ -702,6 +702,7 @@ void TNodeJsStreamAggr::init(v8::Local<v8::String> Name, const v8::PropertyCallb
 TNodeJsFuncStreamAggr::TNodeJsFuncStreamAggr(TWPt<TQm::TBase> _Base, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal) : TStreamAggr(_Base, _AggrNm) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    ThisObj.Reset(Isolate, TriggerVal);
     // Every stream aggregate should implement these two
     QmAssertR(TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "onAdd")), "TNodeJsFuncStreamAggr constructor, name: " + _AggrNm + ", type: javaScript. Missing onAdd callback. Possible reason: type of the aggregate was not specified and it defaulted to javaScript.");
     QmAssertR(TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "saveJson")), "TNodeJsFuncStreamAggr constructor, name: " + _AggrNm + ", type: javaScript. Missing saveJson callback. Possible reason: type of the aggregate was not specified and it defaulted to javaScript.");
@@ -852,6 +853,7 @@ TNodeJsFuncStreamAggr::TNodeJsFuncStreamAggr(TWPt<TQm::TBase> _Base, const TStr&
 }
 
 TNodeJsFuncStreamAggr::~TNodeJsFuncStreamAggr() {
+    ThisObj.Reset();
     // callbacks
     ResetFun.Reset();
     OnStepFun.Reset();
@@ -954,11 +956,12 @@ void TNodeJsFuncStreamAggr::OnAddRec(const TQm::TRec& Rec) {
         v8::HandleScope HandleScope(Isolate);
 
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, OnAddFun);
-        v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+        //v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+        v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
         const unsigned Argc = 1;
         v8::Local<v8::Value> ArgV[Argc] = { TNodeJsRec::NewInstance(new TNodeJsRec(TNodeJsBaseWatcher::New(), Rec)) };
         v8::TryCatch TryCatch;
-        Callback->Call(GlobalContext, Argc, ArgV);
+        Callback->Call(This, Argc, ArgV);
         if (TryCatch.HasCaught()) {
             v8::String::Utf8Value Msg(TryCatch.Message()->Get());
             v8::String::Utf8Value StackTrace(TryCatch.StackTrace());

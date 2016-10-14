@@ -2168,7 +2168,8 @@ class TNodeJsFuncStreamAggr :
     public TQm::TStreamAggrOut::INmInt,
     public TQm::TStreamAggrOut::ISparseVec
 {
-private:    
+private:
+    v8::Persistent<v8::Object> ThisObj;
     // callbacks
     v8::Persistent<v8::Function> ResetFun;
     v8::Persistent<v8::Function> OnStepFun;
