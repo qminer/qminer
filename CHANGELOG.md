@@ -9,6 +9,7 @@
 Bug Fixes:
 - Fixed histogram anomaly detector severity classifier
 - Fixed bad casts (unsigned)(int64) to (unsigned long long)(int64).
+- JS stream aggregate exceptions come with stacktraces, not just messages
 
 
 ### 7 October 2016
