@@ -902,10 +902,10 @@ void TNodeJsFuncStreamAggr::Reset() {
         v8::HandleScope HandleScope(Isolate);
 
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, ResetFun);
-        v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();   
+        v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
 
         v8::TryCatch TryCatch;
-        Callback->Call(GlobalContext, 0, NULL);
+        Callback->Call(This, 0, NULL);
         if (TryCatch.HasCaught()) {
             v8::String::Utf8Value Msg(TryCatch.Message()->Get());
             throw TQm::TQmExcept::New("Javascript exception from callback triggered in " + TStr(__FUNCTION__) + TStr(": ") + TStr(*Msg));
@@ -919,10 +919,10 @@ void TNodeJsFuncStreamAggr::OnStep() {
         v8::HandleScope HandleScope(Isolate);
 
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, OnStepFun);
-        v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+        v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
 
         v8::TryCatch TryCatch;
-        Callback->Call(GlobalContext, 0, NULL);
+        Callback->Call(This, 0, NULL);
         if (TryCatch.HasCaught()) {
             v8::String::Utf8Value Msg(TryCatch.Message()->Get());
             throw TQm::TQmExcept::New("Javascript exception from callback triggered in TNodeJsFuncStreamAggr::OnStep :" + TStr(*Msg));
@@ -936,12 +936,12 @@ void TNodeJsFuncStreamAggr::OnTime(const uint64& Time) {
         v8::HandleScope HandleScope(Isolate);
 
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, OnTimeFun);
-        v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+        v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
 
         const unsigned Argc = 1;
         v8::Local<v8::Value> ArgV[Argc] = { v8::Number::New(Isolate, (double)Time) };
         v8::TryCatch TryCatch;
-        Callback->Call(GlobalContext, Argc, ArgV);
+        Callback->Call(This, Argc, ArgV);
 
         if (TryCatch.HasCaught()) {
             v8::String::Utf8Value Msg(TryCatch.Message()->Get());
@@ -956,7 +956,6 @@ void TNodeJsFuncStreamAggr::OnAddRec(const TQm::TRec& Rec) {
         v8::HandleScope HandleScope(Isolate);
 
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, OnAddFun);
-        //v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
         v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
         const unsigned Argc = 1;
         v8::Local<v8::Value> ArgV[Argc] = { TNodeJsRec::NewInstance(new TNodeJsRec(TNodeJsBaseWatcher::New(), Rec)) };
@@ -976,11 +975,11 @@ void TNodeJsFuncStreamAggr::OnUpdateRec(const TQm::TRec& Rec) {
         v8::HandleScope HandleScope(Isolate);
 
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, OnUpdateFun);
-        v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+        v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
         const unsigned Argc = 1;
         v8::Local<v8::Value> ArgV[Argc] = { TNodeJsRec::NewInstance(new TNodeJsRec(TNodeJsBaseWatcher::New(), Rec)) };
         v8::TryCatch TryCatch;
-        Callback->Call(GlobalContext, Argc, ArgV);
+        Callback->Call(This, Argc, ArgV);
         TNodeJsUtil::CheckJSExcept(TryCatch);
     }
 }
@@ -991,11 +990,11 @@ void TNodeJsFuncStreamAggr::OnDeleteRec(const TQm::TRec& Rec) {
         v8::HandleScope HandleScope(Isolate);
 
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, OnDeleteFun);
-        v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+        v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
         const unsigned Argc = 1;
         v8::Local<v8::Value> ArgV[Argc] = { TNodeJsRec::NewInstance(new TNodeJsRec(TNodeJsBaseWatcher::New(), Rec)) };
         v8::TryCatch TryCatch;
-        Callback->Call(GlobalContext, Argc, ArgV);
+        Callback->Call(This, Argc, ArgV);
         TNodeJsUtil::CheckJSExcept(TryCatch);
     }
 }
@@ -1006,11 +1005,11 @@ PJsonVal TNodeJsFuncStreamAggr::SaveJson(const int& Limit) const {
         v8::HandleScope HandleScope(Isolate);
 
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, SaveJsonFun);
-        v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+        v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
         const unsigned Argc = 1;
         v8::Local<v8::Value> ArgV[Argc] = { v8::Number::New(Isolate, Limit) };
         v8::TryCatch TryCatch;
-        v8::Local<v8::Value> ReturnVal = Callback->Call(GlobalContext, Argc, ArgV);
+        v8::Local<v8::Value> ReturnVal = Callback->Call(This, Argc, ArgV);
         if (TryCatch.HasCaught()) {
             v8::String::Utf8Value Msg(TryCatch.Message()->Get());
             throw TQm::TQmExcept::New("Javascript exception from callback triggered: " +  TStr(*Msg));
@@ -1032,10 +1031,10 @@ bool TNodeJsFuncStreamAggr::IsInit() const {
         v8::HandleScope HandleScope(Isolate);
         
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, IsInitFun);
-        v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+        v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
 
         v8::TryCatch TryCatch;
-        v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
+        v8::Handle<v8::Value> RetVal = Callback->Call(This, 0, NULL);
         if (TryCatch.HasCaught()) {
             v8::String::Utf8Value Msg(TryCatch.Message()->Get());
             throw TQm::TQmExcept::New("Javascript exception from callback triggered in TNodeJsFuncStreamAggr, name: " + GetAggrNm() + "," + TStr(*Msg));
@@ -1059,12 +1058,12 @@ void TNodeJsFuncStreamAggr::SaveState(TSOut& SOut) const {
         v8::Local<v8::Object> JsFOut = TNodeJsUtil::NewInstance<TNodeJsFOut>(new TNodeJsFOut(POut));
         
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, SaveFun);
-        v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+        v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
         const unsigned Argc = 1;
         v8::Local<v8::Value> ArgV[Argc] = { JsFOut };
         
         v8::TryCatch TryCatch;
-        Callback->Call(GlobalContext, Argc, ArgV);
+        Callback->Call(This, Argc, ArgV);
         if (TryCatch.HasCaught()) {
             v8::String::Utf8Value Msg(TryCatch.Message()->Get());
             throw TQm::TQmExcept::New("Javascript exception from callback triggered: " + TStr(*Msg));
@@ -1084,11 +1083,11 @@ void TNodeJsFuncStreamAggr::LoadState(TSIn& SIn) {
         v8::Local<v8::Object> JsFIn = TNodeJsUtil::NewInstance<TNodeJsFIn>(new TNodeJsFIn(PIn));
 
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, LoadFun);
-        v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+        v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
         const unsigned Argc = 1;
         v8::Local<v8::Value> ArgV[Argc] = { JsFIn };
         v8::TryCatch TryCatch;
-        Callback->Call(GlobalContext, Argc, ArgV);
+        Callback->Call(This, Argc, ArgV);
         if (TryCatch.HasCaught()) {
             v8::String::Utf8Value Msg(TryCatch.Message()->Get());
             throw TQm::TQmExcept::New("Javascript exception from callback triggered: " + TStr(*Msg));
@@ -1103,10 +1102,10 @@ int TNodeJsFuncStreamAggr::GetInt() const {
         v8::HandleScope HandleScope(Isolate);
 
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, GetIntFun);
-        v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+        v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
 
         v8::TryCatch TryCatch;
-        v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
+        v8::Handle<v8::Value> RetVal = Callback->Call(This, 0, NULL);
         TNodeJsUtil::CheckJSExcept(TryCatch);
         QmAssertR(RetVal->IsInt32(), "TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", getInt(): Return type expected to be int32");
         return RetVal->Int32Value();
@@ -1123,10 +1122,10 @@ double TNodeJsFuncStreamAggr::GetFlt() const {
         v8::HandleScope HandleScope(Isolate);
 
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, GetFltFun);
-        v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+        v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
 
         v8::TryCatch TryCatch;
-        v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
+        v8::Handle<v8::Value> RetVal = Callback->Call(This, 0, NULL);
         TNodeJsUtil::CheckJSExcept(TryCatch);
         QmAssertR(RetVal->IsNumber(), "TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", getFlt(): Return type expected to be int32");
         return RetVal->NumberValue();
@@ -1143,10 +1142,10 @@ uint64 TNodeJsFuncStreamAggr::GetTmMSecs() const {
         v8::HandleScope HandleScope(Isolate);
 
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, GetTmMSecsFun);
-        v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+        v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
 
         v8::TryCatch TryCatch;
-        v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
+        v8::Handle<v8::Value> RetVal = Callback->Call(This, 0, NULL);
         TNodeJsUtil::CheckJSExcept(TryCatch);
         QmAssertR(RetVal->IsNumber(), "TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", getTm(): Return type expected to be number");
         uint64 UnixMSecs =  (uint64)RetVal->NumberValue();
@@ -1196,10 +1195,10 @@ void TNodeJsFuncStreamAggr::GetValV(TFltV& ValV) const {
         v8::HandleScope HandleScope(Isolate);
 
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, GetFltVFun);
-        v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+        v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
 
         v8::TryCatch TryCatch;
-        v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
+        v8::Handle<v8::Value> RetVal = Callback->Call(This, 0, NULL);
         if (TryCatch.HasCaught()) {
             v8::String::Utf8Value Msg(TryCatch.Message()->Get());
             throw TQm::TQmExcept::New("Javascript exception from callback triggered in TNodeJsFuncStreamAggr, name: " + GetAggrNm() + "," + TStr(*Msg));
@@ -1237,11 +1236,11 @@ bool TNodeJsFuncStreamAggr::IsNmFlt(const TStr& Nm) const {
     if (ProvidedIsNmFltFun || ProvidedGetNmFltFun || ProvidedGetFltFun) {
         v8::Local<v8::Function> Callback = ProvidedIsNmFltFun ? v8::Local<v8::Function>::New(Isolate, IsNmFltFun) : 
             (ProvidedGetNmFltFun ? v8::Local<v8::Function>::New(Isolate, GetNmFltFun) : v8::Local<v8::Function>::New(Isolate, GetFltFun));
-        v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+        v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
 
         v8::TryCatch TryCatch;
         v8::Handle<v8::Value> Argv[1] = { v8::String::NewFromUtf8(Isolate, Nm.CStr()) };
-        v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 1, Argv);
+        v8::Handle<v8::Value> RetVal = Callback->Call(This, 1, Argv);
         TNodeJsUtil::CheckJSExcept(TryCatch);
         if (ProvidedIsNmFltFun) {
             QmAssertR(RetVal->IsBoolean(), "TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", isNameFloat(): Return type expected to be a boolean value");
@@ -1261,11 +1260,11 @@ double TNodeJsFuncStreamAggr::GetNmFlt(const TStr& Nm) const {
     bool ProvidedGetFltFun = !GetFltFun.IsEmpty();
     if (ProvidedGetNmFltFun || ProvidedGetFltFun) {
         v8::Local<v8::Function> Callback = ProvidedGetNmFltFun ? v8::Local<v8::Function>::New(Isolate, GetNmFltFun) : v8::Local<v8::Function>::New(Isolate, GetFltFun);
-        v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+        v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
 
         v8::TryCatch TryCatch;
         v8::Handle<v8::Value> Argv[1] = { v8::String::NewFromUtf8(Isolate, Nm.CStr()) };
-        v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 1, Argv);
+        v8::Handle<v8::Value> RetVal = Callback->Call(This, 1, Argv);
         TNodeJsUtil::CheckJSExcept(TryCatch);
         QmAssertR(RetVal->IsNumber(), "TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", getNameFloat(): Return type expected to be a number");
         return RetVal->NumberValue();
@@ -1284,11 +1283,11 @@ bool TNodeJsFuncStreamAggr::IsNmInt(const TStr& Nm) const {
     if (ProvidedIsNmIntFun || ProvidedGetNmIntFun || ProvidedGetIntFun) {
         v8::Local<v8::Function> Callback = ProvidedIsNmIntFun ? v8::Local<v8::Function>::New(Isolate, IsNmIntFun) :
             (ProvidedGetNmIntFun ? v8::Local<v8::Function>::New(Isolate, GetNmIntFun) : v8::Local<v8::Function>::New(Isolate, GetIntFun));
-        v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+        v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
 
         v8::TryCatch TryCatch;
         v8::Handle<v8::Value> Argv[1] = { v8::String::NewFromUtf8(Isolate, Nm.CStr()) };
-        v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 1, Argv);
+        v8::Handle<v8::Value> RetVal = Callback->Call(This, 1, Argv);
         TNodeJsUtil::CheckJSExcept(TryCatch);
         if (ProvidedIsNmIntFun) {
             QmAssertR(RetVal->IsBoolean(), "TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", isNameInteger(): Return type expected to be a boolean value");
@@ -1309,11 +1308,11 @@ int TNodeJsFuncStreamAggr::GetNmInt(const TStr& Nm) const {
     bool ProvidedGetIntFun = !GetIntFun.IsEmpty();
     if (ProvidedGetNmIntFun || ProvidedGetIntFun) {
         v8::Local<v8::Function> Callback = ProvidedGetNmIntFun ? v8::Local<v8::Function>::New(Isolate, GetNmIntFun) : v8::Local<v8::Function>::New(Isolate, GetIntFun);
-        v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+        v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
 
         v8::TryCatch TryCatch;
         v8::Handle<v8::Value> Argv[1] = { v8::String::NewFromUtf8(Isolate, Nm.CStr()) };
-        v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 1, Argv);
+        v8::Handle<v8::Value> RetVal = Callback->Call(This, 1, Argv);
         TNodeJsUtil::CheckJSExcept(TryCatch);
         QmAssertR(RetVal->IsNumber(), "TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", getNameInteger(): Return type expected to be a number");
         return (int)RetVal->NumberValue();
