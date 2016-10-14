@@ -961,7 +961,8 @@ void TNodeJsFuncStreamAggr::OnAddRec(const TQm::TRec& Rec) {
         Callback->Call(GlobalContext, Argc, ArgV);
         if (TryCatch.HasCaught()) {
             v8::String::Utf8Value Msg(TryCatch.Message()->Get());
-            throw TQm::TQmExcept::New("Javascript exception from callback triggered in TNodeJsFuncStreamAggr::OnAddRec :" + TStr(*Msg));
+            v8::String::Utf8Value StackTrace(TryCatch.StackTrace());
+            throw TQm::TQmExcept::New("Javascript exception from callback triggered in TNodeJsFuncStreamAggr::OnAddRec :" + TStr(*Msg) + "\n" + TStr(*StackTrace));
         }
     }
 }
