@@ -70,18 +70,19 @@ describe('Stream Aggregator Tests', function () {
             assert.equal(s.saveJson().thisVal, 1);
         })
 
-        it('should test stream aggr construction using classes ', function () {
-            if (Number(process.versions.modules) >= 46) {
-                class S {
-                    constructor() { this.data = 0; }
-                    onAdd(rec) { this.data++; }
-                    saveJson() { return { thisVal: this.data }; }
-                }
-                var s = store.addStreamAggr(new S());
-                store.push({ Name: "John", Gender: "Male" });
-                assert.equal(s.saveJson().thisVal, 1);
-            }
-        });
+        // TODO: how do we enable this without breaking 0.12 builds (the test works but needs ES6)?
+        //it('should test stream aggr construction using classes ', function () {
+        //    if (Number(process.versions.modules) >= 46) {
+        //        class S {
+        //            constructor() { this.data = 0; }
+        //            onAdd(rec) { this.data++; }
+        //            saveJson() { return { thisVal: this.data }; }
+        //        }
+        //        var s = store.addStreamAggr(new S());
+        //        store.push({ Name: "John", Gender: "Male" });
+        //        assert.equal(s.saveJson().thisVal, 1);
+        //    }
+        //});
 
         it('should test stream aggr construction using objects ', function () {
             var S = {
