@@ -1,5 +1,16 @@
 # QMiner Change Log
 
+### 14 October 2016
+
+**Version: 7.0.1**
+
+**Non-breaking with bug fixes**
+
+Bug Fixes:
+- Fixed histogram anomaly detector severity classifier
+- Fixed bad casts (unsigned)(int64) to (unsigned long long)(int64).
+
+
 ### 7 October 2016
 
 **Version: 7.0.0**
