@@ -387,10 +387,7 @@ TNodeJsBase::TNodeJsBase(const TStr& DbFPath_, const TStr& SchemaFNm, const PJso
     }
     if (Create) {
         if (TDir::Exists(DbFPath)) {
-            TStrV FNmV;
-            TStrV FExtV;
-            TFFile::GetFNmV(DbFPath, FExtV, true, FNmV);
-            if (!FNmV.Empty()) {
+            if (TFile::Exists(TPath::Combine(DbFPath, "Base.json"))) {
                 // if not empty and create was called
                 throw TQm::TQmExcept::New("new base(...): database folder not empty "
                     "and mode=create. Clear db folder or use mode=createClean!");
