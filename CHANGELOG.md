@@ -11,6 +11,7 @@ Bug Fixes:
 - Fixed bad casts (unsigned)(int64) to (unsigned long long)(int64).
 - JS stream aggregate exceptions come with stacktraces, not just messages
 - JS stream aggregate `this` fixed
+- base construction with `createClean` mode made safer
 
 
 ### 7 October 2016
