@@ -1041,6 +1041,80 @@
 * base.close();
 */
 /**
+* @typedef {module:qmStreamAggr} StreamAggrAnomalyDetectorNN
+* This stream aggregator represents the anomaly detector using the Nearest Neighbor algorithm. It calculates the 
+* new incoming point&#x27;s distance from its nearest neighbor and, depending on the input threshold values, it 
+* classifies the severity of the alarm. It implements the following methods:
+* &amp;lt;br&gt;1. {@link module:qm.StreamAggr#getInteger} returns the severity of the alarm.
+* &amp;lt;br&gt;2. {@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the latest alarm.
+* &amp;lt;br&gt;3. {@link module:qm.StreamAggr#saveJson} returns the Json with the description and explanation of the alarm.
+* @property {string} name - The given name for the stream aggregator.
+* @property {string} type - The type of the stream aggregator. &amp;lt;b&gt;Important:&amp;lt;/b&gt; It must be equal to &#x60;&#x27;nnAnomalyDetector&#x27;&#x60;.
+* @property {string} store - The name of the store from which it takes the data.
+* @property {string} inAggr - The name of the stream aggregator to which it connects and gets data.
+* It &amp;lt;b&gt;cannot&amp;lt;/b&gt; be connect to the {@link module:qm~StreamAggrTimeSeriesWindow}.
+
+* @example
+* // import the qm module
+* var qm = require(&#x27;qminer&#x27;);
+* // create a base with a simple store named Cars with 4 fields
+* var base = new qm.Base({
+*     mode: &#x27;createClean&#x27;,
+*     schema: [{
+*         name: &#x27;Cars&#x27;,
+*         fields: [
+*             { name: &#x27;NumberOfCars&#x27;, type: &#x27;float&#x27; },
+*             { name: &#x27;Temperature&#x27;, type: &#x27;float&#x27; },
+*             { name: &#x27;Precipitation&#x27;, type: &#x27;float&#x27; },
+*             { name: &#x27;Time&#x27;, type: &#x27;datetime&#x27; }
+*         ]
+*     }]
+* });
+* // create the store
+* var store = base.store(&#x27;Cars&#x27;);
+* // define a feature space aggregator on the Cars store which needs at least 2 records to be initialized. Use three of the 
+* // four fields of the store to create feature vectors with normalized values.
+* var aggr = {
+*    name: &quot;ftrSpaceAggr&quot;,
+*    type: &quot;featureSpace&quot;,
+*    initCount: 2,
+*    update: true, full: false, sparse: true,
+*    featureSpace: [
+*        { type: &quot;numeric&quot;, source: &quot;Cars&quot;, field: &quot;NumberOfCars&quot;, normalize: &quot;var&quot; },
+*        { type: &quot;numeric&quot;, source: &quot;Cars&quot;, field: &quot;Temperature&quot;, normalize: &quot;var&quot; },
+*        { type: &quot;numeric&quot;, source: &quot;Cars&quot;, field: &quot;Precipitation&quot;, normalize: &quot;var&quot; }
+*    ]
+* };
+* //create the feature space aggregator
+* var ftrSpaceAggr = base.store(&#x27;Cars&#x27;).addStreamAggr(aggr);
+
+* // define a new time series tick stream aggregator for the &#x27;Cars&#x27; store, that takes the values from the &#x27;NumberOfCars&#x27; field
+* // and the timestamp from the &#x27;Time&#x27; field.
+* var aggr = {
+*     name: &quot;tickAggr&quot;,
+*     type: &quot;timeSeriesTick&quot;,
+*     store: &quot;Cars&quot;,
+*     timestamp: &quot;Time&quot;,
+*     value: &quot;NumberOfCars&quot;
+* };
+* //create the tick aggregator
+* tickAggr = base.store(&#x27;Cars&#x27;).addStreamAggr(aggr);
+*
+* //define an anomaly detection aggregator using nearest neighbor on the cars store that takes as input timestamped features.
+* // The time stamp is provided by the tick aggregator while the feature vector is provided by the feature space aggregator.
+* var aggr = {
+*     name: &#x27;AnomalyDetectorAggr&#x27;,
+*     type: &#x27;nnAnomalyDetector&#x27;,
+*     inAggrSpV: &#x27;ftrSpaceAggr&#x27;,
+*     inAggrTm: &#x27;tickAggr&#x27;,
+*     rate: [0.15, 0.5, 0.7],
+*     windowSize: 2
+* };
+* //create the anomaly detection aggregator
+* var anomaly = base.store(&#x27;Cars&#x27;).addStreamAggr(aggr);
+* base.close();
+*/
+/**
 * @typedef {module:qm.StreamAggr} StreamAggrHistogram
 * This stream aggregator represents an online histogram. It can connect to a buffered aggregate (such as {@link module:qm~StreamAggrTimeSeriesWindow})
 * or a time series (such as {@link module:qm~StreamAggregateEMA}).
@@ -1060,6 +1134,7 @@
 * @property {number} [bins=5] - The number of bins bounded by &#x60;lowerBound&#x60; and &#x60;upperBound&#x60;.
 * @property {boolean} [addNegInf=false] - Include a bin &#x60;[-Inf, lowerBound]&#x60;.
 * @property {boolean} [addPosInf=false] - Include a bin &#x60;[upperBound, Inf]&#x60;.
+* @property {boolean} [autoResize=false] - The histogram will be empty at the beginning and double its size on demand (resize only when incrementing counts). The unbounded bins are guaranteed to stay between lowerBound and upperBound and in all cases the bin size equals (upperBound - lowerBound)/bins.
 * @example
 * // import the qm module
 * var qm = require(&#x27;qminer&#x27;);
@@ -1444,8 +1519,15 @@
     */
  exports.StreamAggr.prototype.load = function (fin) { return Object.create(require(&#x27;qminer&#x27;).StreamAggr.prototype); }
 /**
+    * A map from strings to integers
+    * @param {string} [str] - The string.
+    * @returns {(number | null)} A number (stream aggregator specific), possibly null if &#x60;str&#x60; was provided.
+    */
+ exports.StreamAggr.prototype.getInteger = function (str) { return 0; };
+/**
     * Returns the value of the specific stream aggregator. For return values see {@link module:qm~StreamAggregator}.
-    * @returns {number} The value of the stream aggregator.
+    * @param {string} [str] - The string.
+    * @returns {(number | null)} A number (stream aggregator specific), possibly null if &#x60;str&#x60; was provided.
     * @example
     * // import qm module
     * var qm = require(&#x27;qminer&#x27;);
@@ -1489,7 +1571,7 @@
     * var average = averageGrade.getFloat(); // returns 74 + 1/3
     * base.close();
     */
- exports.StreamAggr.prototype.getFloat = function () { return 0; };
+ exports.StreamAggr.prototype.getFloat = function (str) { return 0; };
 /**
     * Returns the timestamp value of the newest record in buffer.
     * @returns {number} The timestamp of the newest record. It represents the number of miliseconds between the record time and 01.01.1601 time: 00:00:00.0.

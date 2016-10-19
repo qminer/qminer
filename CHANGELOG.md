@@ -1,5 +1,43 @@
 # QMiner Change Log
 
+### 14 October 2016
+
+**Version: 7.0.1**
+
+**Non-breaking with bug fixes**
+
+Bug Fixes:
+- Fixed histogram anomaly detector severity classifier
+- Fixed bad casts (unsigned)(int64) to (unsigned long long)(int64).
+- JS stream aggregate exceptions come with stacktraces, not just messages
+- JS stream aggregate `this` fixed
+- base construction with `createClean` mode made safer
+
+
+### 7 October 2016
+
+**Version: 7.0.0**
+
+**Breaking with new features**
+
+New Features:
+- Added `getNameInteger` and `getNameFloat` for stream aggregates in JavaScript (`INmFlt` and `INmInt`).
+- Online histogram can resize accordingly to new observed values.
+
+Bug Fix:
+- **BREAKING:** stream aggregates return Unix timestamps on JavaScript side and Windows timestamps on C++ side (issue #286)
+  - `new Date(sa.getTimestamp()-11644473600000)` => `new Date(sa.getTimestamp())` where `sa instanceof qm.StreamAggreator`.
+- Cleaned `INmFlt` and `INmInt` interfaces.
+
+### 30 September 2016
+
+**Version: 6.5.1**
+
+**Non-breaking with a bug fix**
+
+Bug Fix:
+- Fixed support for index joins in records by value
+
 ### 23 September 2016
 
 **Version: 6.5.0**
