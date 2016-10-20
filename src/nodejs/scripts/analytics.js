@@ -1066,7 +1066,7 @@ module.exports = exports = function (pathQmBinary) {
     // Main object for online metrics model
     /**
     * createOnlineMetric
-    * @private
+    * @ignore
     * @class
     *
     * This provides methods used for event handling. It's not meant to
@@ -1089,6 +1089,7 @@ module.exports = exports = function (pathQmBinary) {
 
         /**
         * Updates metric with ground truth target value `yTrue` and estimated target value `yPred`.
+        * @ignore
         * @param {number} yTrue - Ground truth (correct) target value.
         * @param {number} yPred - Estimated target value.
         */
@@ -1104,6 +1105,7 @@ module.exports = exports = function (pathQmBinary) {
 
         /**
         * Returns error value.
+        * @ignore
         * @returns {number} Error value.
         */
         this.getError = function () {
@@ -1112,6 +1114,7 @@ module.exports = exports = function (pathQmBinary) {
 
         /**
 	    * Save metric state to provided output stream `fout`.
+        * @ignore
 	    * @param {module:fs.FOut} fout - The output stream.
 	    * @returns {module:fs.FOut} The output stream `fout`.
         */
@@ -1122,6 +1125,7 @@ module.exports = exports = function (pathQmBinary) {
 
         /**
 	    * Load metric state from provided input stream `fin`.
+        * @ignore
 	    * @param {module:fs.FIn} fin - The output stream.
 	    * @returns {module:fs.FIn} The output stream `fin`.
         */
