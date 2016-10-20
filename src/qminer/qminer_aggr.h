@@ -1868,13 +1868,13 @@ public:
 ///
 ///   OnStep has two phases (predict and fit):
 ///   1. - reads a value from an input aggregate that implements IFlt
-///      - computes the bin number given an input histogram aggregate (exposes the index by implementing IInt)
+///      - computes the bin number given an input histogram aggregate, exposes the result by implementing INmInt with "index" as input
 ///      - uses THistogramToPMFModel to compute the severity (anomaly score) of the bin
-///      - exposes the result by implementing IFlt
+///      - exposes the result by implementing INmInt with "severity" as input
 ///   2. - updates the input histogram aggregate
 ///      - updates THistogramToPMFModel
 ///      - exposes the PMF and severities through SaveJson
-class THistogramAD : public TStreamAggr, public TStreamAggrOut::IFlt, public TStreamAggrOut::IInt {
+class THistogramAD : public TStreamAggr, public TStreamAggrOut::INmInt {
 private:
     /// Input for prediction
     TWPt<TStreamAggrOut::IFlt> InAggrVal;
@@ -1883,13 +1883,13 @@ private:
     /// Input for modelling (histogram)
     TWPt<TOnlineHistogram> HistAggr;
     /// Current severity, returned by GetFlt(), corresponds to histogram bin with index LastHistIdx
-    TFlt Severity;
+    TInt Severity;
     /// The histogram bin index of the most recent prediction, returned by GetInt().
     TInt LastHistIdx;
     /// Current PMF, computed in OnStep
     TFltV PMF;
     /// Current anomaly scores, computed in OnStep
-    TFltV Severities;
+    TIntV Severities;
     /// Explanation object holds a summary of the histogram state prior to making the last prediction (it explains why a prediction was classified with a given severity)
     PJsonVal Explanation;
     /// PMF/AD model
@@ -1911,16 +1911,16 @@ public:
     void SaveState(TSOut& SOut) const;
     /// Is the aggregate initialized?
     bool IsInit() const { return HistAggr->IsInit() && Severities.Len() > 0; }
-    /// Returns the current severity level (0 = normal)
-    double GetFlt() const { return Severity; }
-    /// Returns the current histogram bin index
-    int GetInt() const { return LastHistIdx; }
+    /// Returns true if the string is supported
+    bool IsNmInt(const TStr& Nm) const { return(Nm == "index") || (Nm == "severity"); }
+    /// Returns the current histogram bin index or current severity
+    int GetNmInt(const TStr& Nm) const { return Nm == "index" ? LastHistIdx : Severity; }
     /// Resets the aggregate
     void Reset();
     /// JSON serialization
     PJsonVal SaveJson(const int& Limit) const;
     /// Stream aggregator type name
-    static TStr GetType() { return "hitogramAD"; }
+    static TStr GetType() { return "histogramAD"; }
     /// Stream aggregator type name
     TStr Type() const { return GetType(); }
 };

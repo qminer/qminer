@@ -1135,6 +1135,7 @@
 * @property {number} [bins=5] - The number of bins bounded by `lowerBound` and `upperBound`.
 * @property {boolean} [addNegInf=false] - Include a bin `[-Inf, lowerBound]`.
 * @property {boolean} [addPosInf=false] - Include a bin `[upperBound, Inf]`.
+* @property {boolean} [autoResize=false] - The histogram will be empty at the beginning and double its size on demand (resize only when incrementing counts). The unbounded bins are guaranteed to stay between lowerBound and upperBound and in all cases the bin size equals (upperBound - lowerBound)/bins.
 * @example
 * // import the qm module
 * var qm = require('qminer');
@@ -1564,13 +1565,18 @@ public:
     //# exports.StreamAggr.prototype.load = function (fin) { return Object.create(require('qminer').StreamAggr.prototype); }
     JsDeclareFunction(load);
 
-    // IInt
-    //!- `num = sa.getInt()` -- returns a number if sa implements the interface IInt
+    /**
+    * A map from strings to integers
+    * @param {string} [str] - The string.
+    * @returns {(number | null)} A number (stream aggregator specific), possibly null if `str` was provided.
+    */
+    //# exports.StreamAggr.prototype.getInteger = function (str) { return 0; };
     JsDeclareFunction(getInteger);
 
     /**
     * Returns the value of the specific stream aggregator. For return values see {@link module:qm~StreamAggregator}.
-    * @returns {number} The value of the stream aggregator.
+    * @param {string} [str] - The string.
+    * @returns {(number | null)} A number (stream aggregator specific), possibly null if `str` was provided.
     * @example
     * // import qm module
     * var qm = require('qminer');
@@ -1614,7 +1620,7 @@ public:
     * var average = averageGrade.getFloat(); // returns 74 + 1/3
     * base.close();
     */
-    //# exports.StreamAggr.prototype.getFloat = function () { return 0; };
+    //# exports.StreamAggr.prototype.getFloat = function (str) { return 0; };
     JsDeclareFunction(getFloat);
 
     /**
@@ -2237,7 +2243,8 @@ class TNodeJsFuncStreamAggr :
     public TQm::TStreamAggrOut::INmInt,
     public TQm::TStreamAggrOut::ISparseVec
 {
-private:    
+private:
+    v8::Persistent<v8::Object> ThisObj;
     // callbacks
     v8::Persistent<v8::Function> ResetFun;
     v8::Persistent<v8::Function> OnStepFun;
@@ -2273,11 +2280,10 @@ private:
     // INmFlt 
     v8::Persistent<v8::Function> IsNmFltFun;
     v8::Persistent<v8::Function> GetNmFltFun;
-    v8::Persistent<v8::Function> GetNmFltVFun;
+
     // INmInt
-    v8::Persistent<v8::Function> IsNmFun;
+    v8::Persistent<v8::Function> IsNmIntFun;
     v8::Persistent<v8::Function> GetNmIntFun;
-    v8::Persistent<v8::Function> GetNmIntVFun;
 
     // Serialization
     v8::Persistent<v8::Function> SaveFun;
@@ -2333,11 +2339,9 @@ public:
     // INmFlt 
     bool IsNmFlt(const TStr& Nm) const;
     double GetNmFlt(const TStr& Nm) const;
-    void GetNmFltV(TStrFltPrV& NmFltV) const;
     // INmInt
-    bool IsNm(const TStr& Nm) const;
-    double GetNmInt(const TStr& Nm) const;
-    void GetNmIntV(TStrIntPrV& NmIntV) const;
+    bool IsNmInt(const TStr& Nm) const;
+    int GetNmInt(const TStr& Nm) const;
     // ISparseVec
     int GetSparseVecLen() const;
     TIntFltKd GetSparseVecVal(const int& ElN) const; // GetFltAtFun
