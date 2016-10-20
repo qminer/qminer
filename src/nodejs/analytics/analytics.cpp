@@ -3226,3 +3226,67 @@ void TNodeJsRecommenderSys::save(const v8::FunctionCallbackInfo<v8::Value>& Args
         throw TExcept::New(Except->GetMsgStr(), "RecommenderSys::save");
     }
 }
+
+/////////////////////////////////////////////
+// QMiner-JavaScript-Graph-Cascades
+
+
+void TNodeJsGraphCascade::Init(v8::Handle<v8::Object> exports) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsGraphCascade>);
+    tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
+    // ObjectWrap uses the first internal field to store the wrapped pointer.
+    tpl->InstanceTemplate()->SetInternalFieldCount(1);
+
+    // Add all methods, getters and setters here.
+    NODE_SET_PROTOTYPE_METHOD(tpl, "observeNode", _observeNode);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "computePosterior", _computePosterior);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "getPosterior", _getPosterior);
+
+    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
+}
+
+TNodeJsGraphCascade* TNodeJsGraphCascade::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    if (Args.Length() == 1 && TNodeJsUtil::IsArgObj(Args, 0)) {
+        // create new model from given parameters
+        PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+        return new TNodeJsGraphCascade(ParamVal);
+    } else {
+        throw TExcept::New("new TNodeJsGraphCascade: wrong arguments in constructor!");
+    }
+}
+
+void TNodeJsGraphCascade::observeNode(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    TStr NodeId = TNodeJsUtil::GetArgStr(Args, 0);
+    uint64 TmMSecs = TNodeJsUtil::GetArgTmMSecs(Args, 0);
+    
+    TNodeJsGraphCascade* JsGraphCascade = ObjectWrap::Unwrap<TNodeJsGraphCascade>(Args.Holder());
+    JsGraphCascade->Model.ObserveNode(NodeId, TmMSecs);
+}
+
+void TNodeJsGraphCascade::computePosterior(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    
+    uint64 TmMSecs = TNodeJsUtil::GetArgTmMSecs(Args, 0);
+    int SampleSize = TNodeJsUtil::GetArgInt32(Args, 1, 10000);
+
+    TNodeJsGraphCascade* JsGraphCascade = ObjectWrap::Unwrap<TNodeJsGraphCascade>(Args.Holder());
+    JsGraphCascade->Model.ComputePosterior(TmMSecs, SampleSize);
+}
+
+void TNodeJsGraphCascade::getPosterior(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsGraphCascade* JsGraphCascade = ObjectWrap::Unwrap<TNodeJsGraphCascade>(Args.Holder());
+    PJsonVal Posterior = JsGraphCascade->Model.SaveJson();
+    Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, Posterior));
+}
