@@ -1692,10 +1692,10 @@ PJsonVal TFtrExtAggr::GetParam() const {
 }
 
 void TFtrExtAggr::SetParam(const PJsonVal& ParamVal) {
-    if (ParamVal->IsObjKey("initCount")) { InitCount = ParamVal->GetObjNum("initCount"); }
-    if (ParamVal->IsObjKey("update")) { InitCount = ParamVal->GetObjBool("update"); }
-    if (ParamVal->IsObjKey("full")) { InitCount = ParamVal->GetObjBool("full"); }
-    if (ParamVal->IsObjKey("sparse")) { InitCount = ParamVal->GetObjBool("sparse"); }
+    if (ParamVal->IsObjKey("initCount")) { InitCount = ParamVal->GetObjInt("initCount"); }
+    if (ParamVal->IsObjKey("update")) { UpdateP = ParamVal->GetObjBool("update"); }
+    if (ParamVal->IsObjKey("full")) { FullP = ParamVal->GetObjBool("full"); }
+    if (ParamVal->IsObjKey("sparse")) { SparseP = ParamVal->GetObjBool("sparse"); }
 }
 
 void TFtrExtAggr::Reset() {
@@ -1716,17 +1716,17 @@ void TNNAnomalyAggr::OnStep() {
     if (InAggrTm->IsInit() && InAggrSparseVec->IsInit()) {
         //get last time stamp and last sparse vector from the input aggregators
         LastTimeStamp = InAggrValTm->GetTmMSecs();
-        TIntFltKdV Vals; InAggrValSparseVec->GetSparseVec(Vals);
+        TIntFltKdV ValV; InAggrValSparseVec->GetSparseVec(ValV);
         //predict the severity of the alarm
-        LastSeverity = Model.Predict(Vals);
+        LastSeverity = Model.Predict(ValV);
         //save the explanation for the alarm
         if (LastSeverity > 0) {
-            Explanation = Model.Explain(Vals);
+            Explanation = Model.Explain(ValV);
         } else {
             Explanation = TJsonVal::NewObj();
         }
         //update the model with the current feature vector
-        Model.PartialFit(Vals, LastTimeStamp);
+        Model.PartialFit(ValV, LastTimeStamp);
     }
 }
 
