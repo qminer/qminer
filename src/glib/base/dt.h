@@ -162,6 +162,7 @@ public:
     TThinMIn& operator=(const TThinMIn& Mem) {
         Bf = Mem.Bf; BfC = Mem.BfC; BfL = Mem.BfL; return *this;
     }
+    TSStr GetSNm() const { return "Thin input memory"; }
 };
 
 /////////////////////////////////////////////////////////////////////
@@ -293,6 +294,8 @@ public:
   int GetBf(const void* LBf, const TSize& LBfL);
   void Reset(){Cs=TCs(); BfC=0;}
   bool GetNextLnBf(TChA& LnChA);
+
+  TSStr GetSNm() const { return "Input-Memory"; }
 };
 
 /////////////////////////////////////////////////
@@ -308,6 +311,8 @@ public:
   int PutCh(const char& Ch){Mem += Ch; return Ch;}
   int PutBf(const void* LBf, const TSize& LBfL);
   void Flush(){}
+  
+  TSStr GetSNm() const { return "Output-Reference-Memory"; }
 };
 
 /////////////////////////////////////////////////
@@ -327,6 +332,8 @@ public:
     Mem->operator+=(Ch); return Ch;}
   int PutBf(const void* LBf, const TSize& LBfL);
   void Flush(){}
+
+  TSStr GetSNm() const { return "Output-Memory"; }
 };
 
 /////////////////////////////////////////////////
@@ -472,6 +479,7 @@ public:
   int GetBf(const void* LBf, const TSize& LBfL);
   void Reset(){Cs=TCs(); BfC=0;}
   bool GetNextLnBf(TChA& LnChA);
+  TSStr GetSNm() const { return "Input-Char-Array"; }
 };
 
 /////////////////////////////////////////////////
@@ -931,6 +939,7 @@ public:
   int GetBf(const void* LBf, const TSize& LBfL);
   void Reset(){Cs=TCs(); BfC=0;}
   bool GetNextLnBf(TChA& LnChA);
+  TSStr GetSNm() const { return "Input-String"; }
 };
 
 /////////////////////////////////////////////////
