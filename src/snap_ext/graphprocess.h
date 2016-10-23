@@ -20,22 +20,28 @@ namespace TGraphProcess {
 // 5 elements might represent duration time from 0 to 4 seconds)
 class TGraphCascade {
 private:
-    // fixed data after init
-    /// node id -> CDF (duration)
+    // FIXED AFTER INIT
+    /// maps node id to CDF of duration (wait time model for the node)
     THash<TInt, TFltV> CDF;
     /// node ids that are enabled (others skip their internal waiting) 
     THashSet<TInt> EnabledNodeIdH;
     /// Maps node names to node ids
     TStrIntH NodeNmIdH;
+    /// Maps node ids to node names
     TIntStrH NodeIdNmH;
+    /// pruned directed acyclic graph (only enabled nodes)
     TNGraph Graph;
     /// Topologically ordered node IDs
     TIntV NIdSweep;
+    /// number of milliseconds per unit for CDF models
+    int TimeUnit;
+    /// random generator
+    TRnd Rnd;
 
-    // changing data
+    // STATE
     /// sample: node id -> vector of samples from posterior. The vector has only one element if the node has been observed (is in the past)
     THash<TInt, TUInt64V> Sample;
-    /// Observed timestamps, 0 if not observed yet
+    /// Observed timestamps (msec from 1600), 0 if not observed yet
     THash<TInt, TUInt64> Timestamps;
 
 
@@ -46,13 +52,16 @@ private:
     void ProcessEnabled(const PJsonVal& EnabledList);
     // prints graph
     void Print(const TIntV& SortV = TIntV());
-
     /// remove disabled nodes
     void PruneGraph();
+    /// Initializes nodeid to timestamp map
+    void InitTimestamps();
     /// read PMFs, compute CDFs
     void ProcessModels(const PJsonVal& NodeModels);
     /// topological sort
     void TopologicalSort(TIntV& SortedNIdV);
+    /// get timestamp (sample, or a measurement)
+    uint64 SampleNodeTimestamp(const int& NodeId, const uint64& Time, const int& SampleN);
 
 public:
     /// Construct from JSON { dag: {nodeId1: [parentId1, parentId2,...], ...}, enabledNodes: [nodeId1,...], nodeModels: { nodeId1: pmfArray, nodeId2: pmfArray}}
@@ -66,8 +75,8 @@ public:
     void ObserveNode(const TStr& NodeNm, const uint64& Time);
     /// Computes the posterior of node times given all available information and current time
     void ComputePosterior(const uint64& Time, const int& SampleSize);
-    /// Saves the posterior to JSON
-    PJsonVal SaveJson() const;
+    /// Returns quantiles for a set of nodes
+    PJsonVal GetPosterior(const TStrV& NodeNmV, const TFltV& QuantileV) const;
 };
 
 

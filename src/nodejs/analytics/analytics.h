@@ -2584,14 +2584,14 @@ private:
 };
 
 /////////////////////////////////////////////
-// QMiner-JavaScript-Graph-Cascades
+// QMiner-JavaScript-Graph-Cascade
 
-//# exports.GraphCascades = function (arg) { return Object.create(require('qminer').analytics.GraphCascades.prototype); }
+//# exports.GraphCascade = function (arg) { return Object.create(require('qminer').analytics.GraphCascade.prototype); }
 class TNodeJsGraphCascade : public node::ObjectWrap {
     friend class TNodeJsUtil;
 public:
     static void Init(v8::Handle<v8::Object> exports);
-    static const TStr GetClassId() { return "GraphCascades"; }
+    static const TStr GetClassId() { return "GraphCascade"; }
     ~TNodeJsGraphCascade() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 
 private:

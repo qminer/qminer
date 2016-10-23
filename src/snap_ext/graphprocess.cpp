@@ -10,16 +10,19 @@
 
 namespace TGraphProcess {
     TGraphCascade::TGraphCascade(const PJsonVal& Params) {
-        // build graph and node map
+        // build graph and node name-id maps
         PJsonVal Dag = Params->GetObjKey("dag");
         GenGraph(Dag);
         // read enabled (ignore the ones missing from the graph)
         PJsonVal EnabledNodeIdH = Params->GetObjKey("enabledNodes");
         ProcessEnabled(EnabledNodeIdH);
         PruneGraph();
+        InitTimestamps();
         // read models
         PJsonVal NodeModels = Params->GetObjKey("nodeModels");
         ProcessModels(NodeModels);
+        TimeUnit = Params->GetObjInt("timeUnit", 1000);
+        Rnd.PutSeed(Params->GetObjInt("randSeed", 0));
     }
 
     void TGraphCascade::ProcessEnabled(const PJsonVal& EnabledList) {
@@ -98,7 +101,7 @@ namespace TGraphProcess {
                         }
                     }
                 }
-                printf("deleting node %s %d\n", NodeNmV[NodeN].CStr(), NodeId);
+                //printf("deleting node %s %d\n", NodeNmV[NodeN].CStr(), NodeId);
                 // - delete it (deletes edges)
                 Graph.DelNode(NodeId);
             }
@@ -109,11 +112,22 @@ namespace TGraphProcess {
         Print(NIdSweep);
     }
 
+    void TGraphCascade::InitTimestamps() {
+        TIntV NodeIdV; Graph.GetNIdV(NodeIdV);
+        int Nodes = Graph.GetNodes();
+        for (int NodeN = 0; NodeN < Nodes; NodeN++) {
+            Timestamps.AddDat(NodeIdV[NodeN], 0);
+        }
+    }
+
     void TGraphCascade::ProcessModels(const PJsonVal& NodeModels) {
         int Keys = NodeModels->GetObjKeys();
         for (int KeyN = 0; KeyN < Keys; KeyN++) {
             TStr Key = NodeModels->GetObjKey(KeyN);
-            EAssertR(NodeNmIdH.IsKey(Key), "TGraphCascade::ProcessModels node name unknown " + Key);
+            if (!NodeNmIdH.IsKey(Key)) {
+                // skip, we will not need this model
+                continue;
+            }
             PJsonVal Val = NodeModels->GetObjKey(Key);
             TFltV PMF;
             Val->GetArrNumV(PMF);
@@ -186,6 +200,59 @@ namespace TGraphProcess {
         SortedNIdV.Reverse();
     }
 
+    uint64 TGraphCascade::SampleNodeTimestamp(const int& NodeId, const uint64& Time, const int& SampleN) {
+        if (Timestamps.GetDat(NodeId) > 0) {
+            return Timestamps.GetDat(NodeId);
+        } else if (Sample.GetDat(NodeId).Len() > SampleN) {
+            return Sample.GetDat(NodeId)[SampleN];
+        }
+        TNGraph::TNodeI NI = Graph.GetNI(NodeId);
+        int Parents = NI.GetInDeg();
+        if (Parents == 0) {
+            throw TExcept::New("Root node has not been observed yet - cannot run simulation");
+        }
+        uint64 MaxParentTime = 0;
+        for (int ParentN = 0; ParentN < Parents; ParentN++) {
+            int ParentId = NI.GetInNId(ParentN);
+            // check if parent was observed or has samples available
+            if (Timestamps.GetDat(ParentId) == 0 && Sample.GetDat(ParentId).Empty()) {
+                throw TExcept::New("Parent node unobserved and sample not available! Missing data or bad graph");
+            }
+            // get SampleN from each parent
+            uint64 ParentTime = SampleNodeTimestamp(ParentId, Time, SampleN);
+            // update max
+            MaxParentTime = (MaxParentTime > ParentTime) ? MaxParentTime : ParentTime;
+        }
+        int TimeDiff = (int)(((int64)(Time)-(int64)(MaxParentTime)) / TimeUnit);
+        int MinDuration = MAX(TimeDiff, 0);
+        if (!CDF.IsKey(NodeId)) {
+            // model is missing and the node has not been observed
+            // this probably indicates that the node is always missing
+            // model its duration as 0, so it should have been observed after
+            // its last parent
+            return MaxParentTime;
+        }
+        TFltV& NodeCDF = CDF.GetDat(NodeId);
+        int MaxDuration = NodeCDF.Len();
+
+        if (TimeDiff > MaxDuration) { return Time + 1; } // out of model bounds
+        double CDFRemain = MinDuration == 0 ? 1.0 : (1.0 - NodeCDF[MinDuration - 1]);
+        if (CDFRemain < 1e-16) { return Time + 1; } // numerically out of model bounds
+        // inverse cdf sample, conditioned on elapsed time
+        double Samp = (1.0 - CDFRemain) + Rnd.GetUniDev() * CDFRemain;
+        // find the first CDF bin that exceeds Samp
+        // SPEEDUP possible with bisection
+        int BinIdx = MaxDuration;
+        for (int BinN = MinDuration; BinN < MaxDuration; BinN++) {
+            if (NodeCDF[BinN] >= Samp) {
+                BinIdx = BinN;
+                break;
+            }
+        }
+        // compute time
+        return MaxParentTime + (uint64)((BinIdx)* TimeUnit);
+    }
+
     TGraphCascade::TGraphCascade(TSIn& SIn) {
         //TODO
     }
@@ -195,17 +262,84 @@ namespace TGraphProcess {
     }
 
     void TGraphCascade::ObserveNode(const TStr& NodeNm, const uint64& Time) {
-        EAssertR(NodeNmIdH.IsKey(NodeNm), "TGraphCascade::ObserveNode unknown node name: " + NodeNm);
+        if (!NodeNmIdH.IsKey(NodeNm)) {
+            // skip, we do not use this node
+            return;
+        }
         int NodeId = NodeNmIdH.GetDat(NodeNm);
+        if (!Graph.IsNode(NodeId)) { return; } // skip, we do not use this node
+        // Assert that causality is OK, throw exception if it's violated
+        EAssertR(Timestamps.GetDat(NodeId) < Time, "TGraphCascade::ObserveNode: the node `" + NodeNm + "` was observed too late given causal constraints");
         Timestamps.AddDat(NodeId, Time);
     }
     
     void TGraphCascade::ComputePosterior(const uint64& Time, const int& SampleSize) {
         // handle missing observations (a child was observed, but a parent was not)
-        // 
+        // store histograms or full samples?
+        // 100 percentiles ?
+        int Nodes = Graph.GetNodes();
+        for (int NodeN = 0; NodeN < Nodes; NodeN++) {
+            int NodeId = NIdSweep[NodeN];
+            if (Timestamps.GetDat(NodeId) > 0) {
+                // observed node, no need to simulate
+                continue;
+            }
+            if (!Sample.IsKey(NodeId)) { Sample.AddKey(NodeId); }
+            TUInt64V& NodeSample = Sample.GetDat(NodeId);
+            NodeSample.Gen(SampleSize, 0);
+            for (int SampleN = 0; SampleN < SampleSize; SampleN++) {
+                // compute one sample and push it to the sample
+                NodeSample.Add(SampleNodeTimestamp(NodeId, Time, SampleN));
+            }
+        }
+
     }
 
-    PJsonVal TGraphCascade::SaveJson() const {
-        return TJsonVal::NewObj();
+    PJsonVal TGraphCascade::GetPosterior(const TStrV& NodeNmV, const TFltV& QuantileV) const {
+        PJsonVal Result = TJsonVal::NewObj();
+        TIntV NodeIdV;
+        if (NodeNmV.Empty()) {
+            // go over all zero timestamps for which samples exist
+            TIntV FullNodeIdV; Graph.GetNIdV(FullNodeIdV);
+            int Nodes = Graph.GetNodes();
+            for (int NodeN = 0; NodeN < Nodes; NodeN++) {
+                int NodeId = FullNodeIdV[NodeN];
+                if (Timestamps.IsKey(NodeId) && Sample.IsKey(NodeId) && !Sample.GetDat(NodeId).Empty()) {
+                    NodeIdV.Add(NodeId);
+                }
+            }
+        } else {
+            int Nodes = NodeNmV.Len();
+            for (int NodeN = 0; NodeN < Nodes; NodeN++) {
+                if (!NodeNmIdH.IsKey(NodeNmV[NodeN])) { continue; }
+                int NodeId = NodeNmIdH.GetDat(NodeNmV[NodeN]);
+                if (Timestamps.IsKey(NodeId) && Sample.IsKey(NodeId) && !Sample.GetDat(NodeId).Empty()) {
+                    NodeIdV.Add(NodeId);
+                }
+            }
+        }
+        EAssertR(QuantileV.Len() > 0, "TGraphCascade::GetPosterior quantiles should not be empty!");
+        for (int QuantileN = 0; QuantileN < QuantileV.Len(); QuantileN++) {
+            EAssertR((QuantileV[QuantileN] >= 0.0) && (QuantileV[QuantileN] <= 1.0), "TGraphCascade::GetPosterior quantiles should be between 0.0 and 1.0");
+        }
+
+        int Nodes = NodeIdV.Len();
+        for (int NodeN = 0; NodeN < Nodes; NodeN++) {
+            int NodeId = NodeIdV[NodeN];
+            TStr NodeNm = NodeIdNmH.GetDat(NodeId);
+            int Quantiles = QuantileV.Len();
+            TUInt64V SampleV = Sample.GetDat(NodeId);
+            SampleV.Sort(true);
+            int SampleSize = SampleV.Len();
+            PJsonVal QuantilesArr = TJsonVal::NewArr();
+            for (int QuantileN = 0; QuantileN < Quantiles; QuantileN++) {
+                int Idx = (int)floor(QuantileV[QuantileN] * SampleSize);
+                Idx = MIN(Idx, SampleSize - 1);
+                uint64 UnixTimestamp = TTm::GetUnixMSecsFromWinMSecs(SampleV[Idx]);
+                QuantilesArr->AddToArr((double)UnixTimestamp);
+            }
+            Result->AddToObj(NodeNm, QuantilesArr);
+        }
+        return Result;
     }
 }

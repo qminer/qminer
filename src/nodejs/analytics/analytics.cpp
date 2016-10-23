@@ -3228,7 +3228,7 @@ void TNodeJsRecommenderSys::save(const v8::FunctionCallbackInfo<v8::Value>& Args
 }
 
 /////////////////////////////////////////////
-// QMiner-JavaScript-Graph-Cascades
+// QMiner-JavaScript-Graph-Cascade
 
 
 void TNodeJsGraphCascade::Init(v8::Handle<v8::Object> exports) {
@@ -3264,11 +3264,11 @@ TNodeJsGraphCascade* TNodeJsGraphCascade::NewFromArgs(const v8::FunctionCallback
 void TNodeJsGraphCascade::observeNode(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    TStr NodeId = TNodeJsUtil::GetArgStr(Args, 0);
-    uint64 TmMSecs = TNodeJsUtil::GetArgTmMSecs(Args, 0);
+    TStr NodeNm = TNodeJsUtil::GetArgStr(Args, 0);
+    uint64 TmMSecs = TNodeJsUtil::GetArgTmMSecs(Args, 1);
     
     TNodeJsGraphCascade* JsGraphCascade = ObjectWrap::Unwrap<TNodeJsGraphCascade>(Args.Holder());
-    JsGraphCascade->Model.ObserveNode(NodeId, TmMSecs);
+    JsGraphCascade->Model.ObserveNode(NodeNm, TmMSecs);
 }
 
 void TNodeJsGraphCascade::computePosterior(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -3287,6 +3287,23 @@ void TNodeJsGraphCascade::getPosterior(const v8::FunctionCallbackInfo<v8::Value>
     v8::HandleScope HandleScope(Isolate);
 
     TNodeJsGraphCascade* JsGraphCascade = ObjectWrap::Unwrap<TNodeJsGraphCascade>(Args.Holder());
-    PJsonVal Posterior = JsGraphCascade->Model.SaveJson();
+    PJsonVal ParamVal = TJsonVal::NewObj();
+    if (TNodeJsUtil::IsArgObj(Args, 0)) {
+        ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+    }
+    TStrV NodeNmV;
+    if (ParamVal->IsObjKey("nodes")) {
+        ParamVal->GetObjKey("nodes")->GetArrStrV(NodeNmV);
+    }
+    TFltV QuantileV;
+    if (ParamVal->IsObjKey("quantiles")) {
+        ParamVal->GetObjKey("quantiles")->GetArrNumV(QuantileV);
+    } else {
+        QuantileV.Add(0.1);
+        QuantileV.Add(0.5);
+        QuantileV.Add(0.9);
+    }
+    PJsonVal Posterior = JsGraphCascade->Model.GetPosterior(NodeNmV, QuantileV);
     Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, Posterior));
+    
 }
