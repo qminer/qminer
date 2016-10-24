@@ -1716,8 +1716,8 @@ public:
 * Neural Network Model.
 * @class
 * @classdesc Holds online/offline neural network model.
-* @param {module:analytics~nnetParams | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
-* <br>1. Using the {@link module:analytics~nnetParams} object,
+* @param {module:analytics~nnetParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
+* <br>1. Using the {@link module:analytics~nnetParam} object,
 * <br>2. using the file input stream {@link module:fs.FIn}.
 * @example
 * // import module
@@ -1742,7 +1742,7 @@ public:
 
     /**
     * Get the parameters of the model.
-    * @returns {module:analytics~nnetParams} The constructor parameters.
+    * @returns {module:analytics~nnetParam} The constructor parameters.
     * @example
     * // import analytics module
     * var analytics = require('qminer').analytics;
@@ -1756,7 +1756,7 @@ public:
 
     /**
     * Sets the parameters of the model.
-    * @params {module:analytics~nnetParams} params - The given parameters.
+    * @params {module:analytics~nnetParam} params - The given parameters.
     * @returns {module:analytics.NNet} Self. The model parameters have been updated.
     * @example
     * // import analytics module
@@ -2235,18 +2235,20 @@ public:
      * @example <caption> Asynchronous function </caption>
      * // import analytics module
      * var analytics = require('qminer').analytics;
+     * var la = require('qminer').la;
      * // create a new KMeans object
      * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
      * // create a matrix to be fitted
      * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
      * // create the model with the matrix X
      * KMeans.fitAsync(X, function (err) {
-     *     if (err) throw err;
+     *     if (err) console.log(err);
      *     // successful calculation
      * });
      *
      * @example <caption> Synchronous function </caption>
      * var analytics = require('qminer').analytics;
+     * var la = require('qminer').la;
      * // create a new KMeans object
      * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
      * // create a matrix to be fitted
@@ -2264,6 +2266,7 @@ public:
      * @example
      * // import analytics module
      * var analytics = require('qminer').analytics;
+     * var la = require('qminer').la;
      * // create a new KMeans object
      * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
      * // create a matrix to be fitted
@@ -2358,7 +2361,6 @@ public:
      * @example
      * // import the modules
      * var analytics = require('qminer').analytics;
-     * var la = require('qminer').la;
      * // create a new KMeans object
      * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
      * // get the centroids
@@ -2372,7 +2374,6 @@ public:
     * @example
     * // import the modules
     * var analytics = require('qminer').analytics;
-    * var la = require('qminer').la;
     * // create a new KMeans object
     * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
     * // get the centroids
@@ -2386,7 +2387,6 @@ public:
     * @example
     * // import the modules
     * var analytics = require('qminer').analytics;
-    * var la = require('qminer').la;
     * // create a new KMeans object
     * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
     * // get the idxv
