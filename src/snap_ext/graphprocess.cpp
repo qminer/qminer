@@ -109,7 +109,7 @@ namespace TGraphProcess {
 
         // generate search sequence from sinks to sources
         TopologicalSort(NIdSweep);
-        Print(NIdSweep);
+        //Print(NIdSweep);
     }
 
     void TGraphCascade::InitTimestamps() {
