@@ -50,6 +50,8 @@ TStr TFtrInfo::GetTypeStr() const {
 		return "numeric";
 	case ftCategorical:
 		return "categorical";
+	case ftTime:
+	    return "time";
 	default:
 		throw TExcept::New("Unknown feature type: " + TInt::GetStr((int) GetType()));
 	}
@@ -832,6 +834,9 @@ void TStateIdentifier::InitHistVV(const TFtrInfoV& FtrInfoV, const int& NInst,
 			}
 			break;
 		}
+		case ftTime: {
+		    throw TExcept::New("Histograms not supported for time features!");
+		}
 		default: {
 			throw TExcept::New("Unknown feature type when initializing histograms: " + TInt::GetStr(FtrInfo.GetType()));
 		}
@@ -965,6 +970,9 @@ void TStateIdentifier::UpdateHistVV(const TFtrInfoV& FtrInfoV, const TFltVV& Ftr
 				const int FtrVal = FtrInfo.GetCategoricalFtrVal(FtrV);
 				FtrHistV[FtrN].Update((double) FtrVal);
 				break;
+			}
+			case ftTime: {
+			    throw TExcept::New("Cannot initialize histogram of time feature!");
 			}
 			default: {
 				throw TExcept::New("Unknown feature type when initializing histograms: " + TInt::GetStr(FtrInfo.GetType()));
@@ -2722,11 +2730,6 @@ void TScaleHelper::CalcNaturalScales(const TScaleDescV& ScaleQMatPrV,
 		FtrVV.SetCol(HeightN, FtrV);
 	}
 
-	//================================================================
-	// TODO remove
-	printf("\n%s\n", TStrUtil::GetStr(FtrVV, ", ", "%.5f").CStr());
-	//================================================================
-
 	Assert(!TLinAlgCheck::ContainsNan(FtrVV));
 
 	TClustering::TDenseKMeans KMeans(NScales, Rnd, TCosDist::New());
@@ -2736,11 +2739,6 @@ void TScaleHelper::CalcNaturalScales(const TScaleDescV& ScaleQMatPrV,
 	printf("\n%s\n", TStrUtil::GetStr(ClustDistVV, ", ", "%.4f").CStr());
 
 	TIntV MedoidIdV;	TLinAlgSearch::GetRowMinIdxV(ClustDistVV, MedoidIdV);
-
-	//================================================================
-    // TODO remove
-	printf("\n%s\n", TStrUtil::GetStr(MedoidIdV).CStr());
-	//================================================================
 
 	ScaleV.Gen(NScales);
 	for (int MedoidN = 0; MedoidN < NScales; MedoidN++) {
@@ -3618,16 +3616,6 @@ int THierarch::GetParentId(const int& StateId) const {
 int THierarch::GetHeightN(const double& Height) const {
     const TFltV& HeightV = GetUniqueHeightV();
     return FindScaleNBin(Height, HeightV);
-
-//	// TODO optimize:
-//	// 1) use binary search to find the nearest height
-//
-//	for (int i = 0; i < HeightV.Len() - 1; i++) {
-//		if (HeightV[i] <= Height && HeightV[i+1] > Height) {
-//			return i;
-//		}
-//	}
-//	return HeightV.Len() - 1;
 }
 
 int THierarch::GetUiScaleN(const double& Scale) const {
@@ -3848,6 +3836,9 @@ TUiHelper::PAutoNmDesc TUiHelper::TAutoNmDesc::Load(TSIn& SIn) {
 	case ftCategorical: {
 		return new TCatAutoNmDesc(SIn);
 	}
+	case ftTime: {
+	    return new TAutoNmTmDesc(SIn);
+	}
 	default:
 		throw TExcept::New("Unknown feature type: " + TInt::GetStr((int) Type));
 	}
@@ -3975,6 +3966,44 @@ PJsonVal TUiHelper::TCatAutoNmDesc::GetNarrateJson() const {
 	return Result;
 }
 
+TUiHelper::TAutoNmTmDesc::TAutoNmTmDesc(const TTmDesc& TmDesc):
+        TAutoNmDesc(-1, 0), // TODO hacked by setting p-val to zero!!!
+        FromToStrPr() {
+    GetFromToStrPr(TmDesc, FromToStrPr, dtShort);
+}
+
+TUiHelper::TAutoNmTmDesc::TAutoNmTmDesc(TSIn& SIn):
+        TAutoNmDesc(SIn),
+        FromToStrPr(SIn) {}
+
+void TUiHelper::TAutoNmTmDesc::Save(TSOut& SOut) const {
+    TAutoNmDesc::Save(SOut);
+    FromToStrPr.Save(SOut);
+}
+
+PJsonVal TUiHelper::TAutoNmTmDesc::GetJson() const {
+    PJsonVal Result = TJsonVal::NewObj();
+
+    Result->AddToObj("type", "time");
+
+    if (FromToStrPr.Val1 != FromToStrPr.Val2) {
+        Result->AddToObj("from", FromToStrPr.Val1);
+        Result->AddToObj("to", FromToStrPr.Val2);
+    } else {
+        Result->AddToObj("on", FromToStrPr.Val1);
+    }
+
+    return Result;
+}
+
+PJsonVal TUiHelper::TAutoNmTmDesc::GetNarrateJson() const {
+    PJsonVal Result = TJsonVal::NewObj();
+
+    Result->AddToObj("type", "time");
+
+    return Result;
+}
+
 /////////////////////////////////////////////////////////////////
 // UI helper
 const double TUiHelper::RADIUS_FACTOR = 1.8;
@@ -3999,6 +4028,21 @@ const TStr TUiHelper::MONTHS[] = {
 		"October",
 		"November",
 		"December"
+};
+
+const TStr TUiHelper::MONTHS_SHORT[] = {
+		"Jan",
+		"Feb",
+		"Mar",
+		"Apr",
+		"May",
+		"Jun",
+		"Jul",
+		"Aug",
+		"Sep",
+		"Oct",
+		"Nov",
+		"Dec"
 };
 
 const TStr TUiHelper::DAYS_IN_MONTH[] = {
@@ -4072,6 +4116,16 @@ const TStr TUiHelper::DAYS_IN_WEEK[] = {
 		"Sunday"
 };
 
+const TStr TUiHelper::DAYS_IN_WEEK_SHORT[] = {
+		"Mon",
+		"Tue",
+		"Wed",
+		"Thu",
+		"Fri",
+		"Sat",
+		"Sun"
+};
+
 TUiHelper::TUiHelper(const TRnd& _Rnd, const bool& _Verbose):
 		StateCoordV(),
 		StateAutoNmV(),
@@ -4106,6 +4160,7 @@ void TUiHelper::Init(const TStreamStory& StreamStory) {
 	RefineStateCoordV(StreamStory);
 	InitAutoNmV(StreamStory);
 	InitStateExplain(StreamStory);
+	RefineAutoNmV();
 }
 
 const TFltPr& TUiHelper::GetStateCoords(const int& StateId) const {
@@ -4137,6 +4192,11 @@ const TUiHelper::PAutoNmDesc& TUiHelper::GetStateAutoNm(const int& StateId) cons
 	return StateAutoNmV[StateId];
 }
 
+void TUiHelper::SetStateAutoNm(const int& StateId, const TUiHelper::PAutoNmDesc& Desc) {
+	EAssertR(0 <= StateId && StateId < StateAutoNmV.Len(), "THierarch::GetStateAutoNm: Invalid state ID!");
+	StateAutoNmV[StateId] = Desc;
+}
+
 void TUiHelper::GetAutoNmPValDesc(const int& StateId, PAutoNmDescV& DescV) const {
 	EAssert(0 <= StateId && StateId < StateIdAutoNmDescVV.Len());
 	if (!DescV.Empty()) { DescV.Clr(); }
@@ -4146,17 +4206,25 @@ void TUiHelper::GetAutoNmPValDesc(const int& StateId, PAutoNmDescV& DescV) const
 	for (int DescN = 0; DescN < AutoNmDescV.Len(); DescN++) {
 		const PAutoNmDesc& Desc = AutoNmDescV[DescN];
 
-		if (Desc->GetFtrType() == ftNumeric) {
+		switch (Desc->GetFtrType()) {
+		case ftNumeric: {
 			const TNumAutoNmDesc* NumDesc = (TNumAutoNmDesc*) Desc();
 			if (NumDesc->GetLevel() == TNumAutoNmLevel::nanlMeduim) { continue; }
 
 			DescV.Add(Desc);
+			break;
 		}
-		else if (Desc->GetFtrType() == ftCategorical) {
+		case ftCategorical: {
 			DescV.Add(Desc);
+			break;
 		}
-		else {
+		case ftTime: {
+		    DescV.Add(Desc);
+		    break;
+		}
+		default: {
 			throw TExcept::New("Unknown feature type: " + TInt::GetStr((int) Desc->GetFtrType()));
+		}
 		}
 	}
 }
@@ -4169,7 +4237,7 @@ void TUiHelper::GetTmDesc(const int& StateId, TStrPrV& DescIntervalV) const {
 	for (int DescN = 0; DescN < TmDescV.Len(); DescN++) {
 		const TTmDesc& Desc = TmDescV[DescN];
 
-		GetTimeDescStr(Desc, DescIntervalV[DescN]);
+		GetFromToStrPr(Desc, DescIntervalV[DescN], dtNormal);
 	}
 }
 
@@ -4492,6 +4560,9 @@ void TUiHelper::InitAutoNmV(const TStreamStory& StreamStory) {
 				StateAutoNmDescV.Add(new TCatAutoNmDesc(FtrN, PVal, TargetBinN));
 				break;
 			}
+			case ftTime: {
+			    throw TExcept::New("Time features not supported while generating auto names");
+			}
 			default:
 				throw TExcept::New("Unknown feature type: " + TInt::GetStr(FtrInfo.GetType()));
 			}
@@ -4508,6 +4579,44 @@ void TUiHelper::InitAutoNmV(const TStreamStory& StreamStory) {
 	}
 
 	Notify->OnNotify(TNotifyType::ntInfo, "Auto names generated!");
+}
+
+void TUiHelper::RefineAutoNmV() {
+    const int States = StateAutoNmV.Len();
+
+    for (int StateId = 0; StateId < States; StateId++) {
+        const PAutoNmDesc& AutoNmDesc = GetStateAutoNm(StateId);
+
+        const TFtrType& FtrType = AutoNmDesc->GetFtrType();
+        switch (FtrType) {
+        case ftNumeric: {
+            const TNumAutoNmDesc* NumAutoNmDesc = (TNumAutoNmDesc*) AutoNmDesc();
+            const TNumAutoNmLevel& Level = NumAutoNmDesc->GetLevel();
+
+            if (Level == nanlMeduim) {
+                // try to name the state based on the time
+                TTmDescV StateTmDescV;   GetTmDesc(StateId, StateTmDescV);
+
+                if (!StateTmDescV.Empty()) {
+                    const PAutoNmDesc NewAutoNmDesc = new TAutoNmTmDesc(StateTmDescV[0]);
+                    SetStateAutoNm(StateId, NewAutoNmDesc);
+                }
+            }
+            break;
+        }
+        case ftCategorical: {
+            // TODO do nothing for now
+            break;
+        }
+        case ftTime: {
+            throw TExcept::New("Tried to refine a time feature, these should not exist yet!");
+        }
+        default: {
+            throw TExcept::New("Unknown feature type: " + TInt::GetStr(FtrType));
+        }
+        }
+    }
+
 }
 
 void TUiHelper::InitStateExplain(const TStreamStory& StreamStory) {
@@ -4637,7 +4746,7 @@ void TUiHelper::GetTmDesc(const int& StateId, TTmDescV& DescV) const {
 	DescV = StateIdOccTmDescV[StateId];
 }
 
-void TUiHelper::GetTimeDescStr(const TTmDesc& Desc, TStrPr& StrDesc) {
+void TUiHelper::GetFromToStrPr(const TTmDesc& Desc, TStrPr& StrDesc, const TDescType& DescType) {
 	const TStateIdentifier::TTmHistType HistTmScale = (TStateIdentifier::TTmHistType) ((uchar) Desc.Val1);
 
 	switch (HistTmScale) {
@@ -4648,8 +4757,18 @@ void TUiHelper::GetTimeDescStr(const TTmDesc& Desc, TStrPr& StrDesc) {
 		EAssert(0 <= StartMonth && StartMonth < 12);
 		EAssert(0 <= EndMonth && EndMonth < 12);
 
-		StrDesc.Val1 = MONTHS[StartMonth];
-		StrDesc.Val2 = MONTHS[EndMonth];
+		switch (DescType) {
+		case dtNormal: {
+            StrDesc.Val1 = MONTHS[StartMonth];
+            StrDesc.Val2 = MONTHS[EndMonth];
+            break;
+		}
+		case dtShort: {
+            StrDesc.Val1 = MONTHS_SHORT[StartMonth];
+            StrDesc.Val2 = MONTHS_SHORT[EndMonth];
+            break;
+		}
+		}
 
 		break;
 	}
@@ -4672,8 +4791,18 @@ void TUiHelper::GetTimeDescStr(const TTmDesc& Desc, TStrPr& StrDesc) {
 		EAssert(0 <= StartDay && StartDay < 7);
 		EAssert(0 <= EndDay && EndDay < 7);
 
-		StrDesc.Val1 = DAYS_IN_WEEK[StartDay];
-		StrDesc.Val2 = DAYS_IN_WEEK[EndDay];
+		switch (DescType) {
+		case dtNormal: {
+            StrDesc.Val1 = DAYS_IN_WEEK[StartDay];
+            StrDesc.Val2 = DAYS_IN_WEEK[EndDay];
+            break;
+		}
+		case dtShort: {
+            StrDesc.Val1 = DAYS_IN_WEEK_SHORT[StartDay];
+            StrDesc.Val2 = DAYS_IN_WEEK_SHORT[EndDay];
+            break;
+		}
+		}
 
 		break;
 	}
@@ -5830,6 +5959,10 @@ PJsonVal TStreamStory::GetStateExplain(const int& StateId) const {
 				}
 				break;
 			}
+			case ftTime: {
+			    // do nothing, this is not included in the narration
+			    continue;
+			}
 			default: {
 				throw TExcept::New("Invalid feature type: " + TInt::GetStr((int) FtrInfo.GetType()));
 			}
@@ -6346,6 +6479,9 @@ void TStreamStory::TransformExplainTree(PJsonVal& RootJson) const {
 
 			CutJson->AddToObj("value", ValJson);
 			break;
+		}
+		case ftTime: {
+		    throw TExcept::New("Time feature not supported in explanation tree");
 		}
 		default: {
 			throw TExcept::New("Invalid feature type: " + TInt::GetStr((int) FtrInfo.GetType()));

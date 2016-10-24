@@ -50,7 +50,8 @@ public:
 enum TFtrType {
     ftUndefined,
     ftNumeric,
-    ftCategorical
+    ftCategorical,
+    ftTime
 };
 
 ///////////////////////////////////////////////
@@ -783,12 +784,20 @@ private:
 // UI helper
 class TUiHelper {
 public:
+	typedef TTriple<TUCh, TInt, TInt> TTmDesc;
+	typedef TVec<TTmDesc> TTmDescV;
+
 	enum TNumAutoNmLevel: uchar {
 		nanlLowest = 0x80,
 		nanlLow = 0x81,
 		nanlMeduim = 0x82,
 		nanlHigh = 0x83,
 		nanlHighest = 0x84
+	};
+
+	enum TDescType {
+	    dtNormal,
+	    dtShort
 	};
 
 	class TAutoNmDesc;
@@ -858,13 +867,25 @@ public:
 		const int& GetBin() const { return BinN; }
 	};
 
+	class TAutoNmTmDesc: public TAutoNmDesc {
+	private:
+	    TStrPr FromToStrPr;
+
+	public:
+	    TAutoNmTmDesc(const TTmDesc& TmDesc);
+	    TAutoNmTmDesc(TSIn& SIn);
+
+	    void Save(TSOut& SOut) const;
+	private:
+	    TFtrType GetFtrType() const { return ftTime; }
+	    PJsonVal GetJson() const;
+	    PJsonVal GetNarrateJson() const;
+	};
+
 	typedef TVec<PAutoNmDesc> PAutoNmDescV;
 	typedef TVec<PAutoNmDescV> PAutoNmDescVV;
 
 private:
-
-	typedef TTriple<TUCh, TInt, TInt> TTmDesc;
-	typedef TVec<TTmDesc> TTmDescV;
 
 	// state sizes and coordinates
 	static const double RADIUS_FACTOR;
@@ -879,8 +900,10 @@ private:
 
 	// time descriptions
 	static const TStr MONTHS[12];
+	static const TStr MONTHS_SHORT[12];
 	static const TStr DAYS_IN_MONTH[31];
 	static const TStr DAYS_IN_WEEK[7];
+	static const TStr DAYS_IN_WEEK_SHORT[7];
 	static const TStr HOURS_IN_DAY[24];
 
 	TFltPrV StateCoordV;
@@ -913,10 +936,13 @@ public:
 private:
 	TFltPr& GetModStateCoords(const int& StateId);
 
+	void SetStateAutoNm(const int& StateId, const TUiHelper::PAutoNmDesc& Desc);
+
 	// computes the coordinates (in 2D) of each state
 	void InitStateCoordV(const TStreamStory& StreamStory);
 	void RefineStateCoordV(const TStreamStory& StreamStory);
 	void InitAutoNmV(const TStreamStory& StreamStory);
+	void RefineAutoNmV();
 	void InitStateExplain(const TStreamStory& StreamStory);
 
 	bool HasMxPeaks(const int& MxPeakCount, const double& PeakMassThreshold, const TFltV& PdfHist,
@@ -924,7 +950,8 @@ private:
 
 	void GetTmDesc(const int& StateId, TTmDescV& DescV) const;
 
-	static void GetTimeDescStr(const TTmDesc& Desc, TStrPr& StrDesc);
+	static void GetFromToStrPr(const TTmDesc& Desc, TStrPr& StrDesc,
+	        const TDescType& DescType);
 	static double GetStateRaduis(const double& Prob);
 	static bool NodesOverlap(const int& StartId, const int& EndId, const TFltPrV& CoordV,
 			const TFltV& RaduisV);
