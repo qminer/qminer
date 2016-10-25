@@ -15,6 +15,7 @@
 #include "la_nodejs.h"
 #include "qminer_core.h"
 #include "../../glib/mine/mine.h"
+#include "graphprocess.h"
 
 /**
  * Analytics module.
@@ -2580,6 +2581,47 @@ private:
     PJsonVal GetParams() const;
 
     void Save(TSOut& SOut) const;
+};
+
+/////////////////////////////////////////////
+// QMiner-JavaScript-Graph-Cascade
+
+//# exports.GraphCascade = function (arg) { return Object.create(require('qminer').analytics.GraphCascade.prototype); }
+class TNodeJsGraphCascade : public node::ObjectWrap {
+    friend class TNodeJsUtil;
+public:
+    static void Init(v8::Handle<v8::Object> exports);
+    static const TStr GetClassId() { return "GraphCascade"; }
+    ~TNodeJsGraphCascade() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
+
+private:
+    TGraphProcess::TGraphCascade Model;
+
+private:
+ 
+    TNodeJsGraphCascade(const PJsonVal& ParamVal) : Model(ParamVal) {}
+
+    static TNodeJsGraphCascade* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+public:
+    /**
+    * Sets the cascade time for a given node
+    * @param {string} nodeId - 
+    * @param {number} timestamp - 
+    */
+    JsDeclareFunction(observeNode);
+    
+    /**
+    * Computes the posterior for timestamps of unobserved nodes
+    * @param {number} timestamp - current time
+    */
+    JsDeclareFunction(computePosterior);
+    /**
+    * Returns the posteriors
+    * @returns {Object} - model
+    */
+    JsDeclareFunction(getPosterior);
+
 };
 
 #endif /* ANALYTICS_H_ */
