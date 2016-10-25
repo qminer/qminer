@@ -1,6 +1,6 @@
 # QMiner Change Log
 
-### 14 October 2016
+### 21 October 2016
 
 **Version: 7.0.1**
 
@@ -12,7 +12,8 @@ Bug Fixes:
 - JS stream aggregate exceptions come with stacktraces, not just messages
 - JS stream aggregate `this` fixed
 - base construction with `createClean` mode made safer
-
+- Fixed broken links in documentation (#481)
+- Fixed bug in feature space. Output vector when calling `TFtrSpace::GetSpV` was not cleared when not empty.
 
 ### 7 October 2016
 
