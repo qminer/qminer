@@ -66,27 +66,24 @@ void THistogramToPMFModel::ClassifyAnomalies(const TFltV& PMF, TIntV& Severities
     Severities.Gen(Len); // default zero
     double CumSum = 0.0;
     int Severity = Thresholds.Len();
-    int StepBack = 0;
-    for (int ElN = 0; ElN < Len; ElN++) {
-        CumSum += SortedV[ElN];
-        // check if the next cell has the same mass up to a tolerance
 
-        if ((ElN < Len - 1) && TMath::Abs(SortedV[ElN] - SortedV[ElN + 1]) < Tol) {
-            // if it does
-            StepBack++;
-            continue;
-        } else {
-            // Decrease severity if the cumulative sum is above the threshold
-            while ((Severity > 0) && (CumSum > Thresholds[Severity - 1])) {
-                Severity--;
+    TFltV SThresh = Thresholds; SThresh.Sort(true);
+    int Classified = 0;
+    TIntV SevCount(Severity + 1);
+    for (int ElN = 0; ElN < Len; ElN++) {
+        if (Severity == 0) { break; }
+        CumSum += SortedV[ElN];
+        if (CumSum > 1.0 - SThresh[Severity-1]) {
+            SevCount[Severity] = ElN - Classified;
+            // Go from Classified to ElN and classify as Severity
+            for (int Idx = 0; Idx < SevCount[Severity]; Idx++) {
+                Severities[PermV[Classified + Idx]] = Severity;
             }
-            if (Severity == 0) { break; } // this group and the following will have 0 Severity
-            for (int StepN = 0; StepN <= StepBack; StepN++) {
-                Severities[PermV[ElN - StepN]] = Severity;
-            }
-            StepBack = 0;
+            Classified = ElN;
+            Severity--;
         }
     }
+    // Normal points are classified as 0 by default
 }
 
 void THistogramToPMFModel::GetPMF(const TFltV& Hist, TFltV& PMF, const bool& ComputeBandwidthP) {
