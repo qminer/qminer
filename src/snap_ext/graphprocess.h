@@ -11,13 +11,13 @@
 namespace TGraphProcess {
 
 /////////////////////////////////////////////
-// Modelling when nodes are activated (visited) in a DAG
-// Inputs: directed acyclic graph
-//       : enabled nodes (subgraph)
-//       : node duration models (PMF vectors, where the indices represent units of time)
-//       : units (how many milliseconds per cell)
-// one unit of time corresponds to one cell in the CDF (example: CDF vector with 
-// 5 elements might represent duration time from 0 to 4 seconds)
+/// Modelling when nodes are activated (visited) in a DAG.
+/// Inputs: directed acyclic graph
+///       : enabled nodes (subgraph)
+///       : node duration models (PMF vectors, where the indices represent units of time)
+///       : units (how many milliseconds per cell)
+/// one unit of time corresponds to one cell in the CDF (example: CDF vector with 
+/// 5 elements might represent duration time from 0 to 4 seconds)
 class TGraphCascade {
 private:
     // FIXED AFTER INIT
