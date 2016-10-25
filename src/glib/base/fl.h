@@ -58,7 +58,7 @@ public:
   TSBase() {}
   virtual ~TSBase(){}
 
-  virtual TSStr GetSNm() const = 0;
+  virtual TStr GetSNm() const = 0;
 };
 
 /////////////////////////////////////////////////
@@ -120,7 +120,7 @@ public:
   bool GetNextLn(TStr& LnStr);
   bool GetNextLn(TChA& LnChA);
 
-  TSStr GetSNm() const;
+  TStr GetSNm() const;
 
   static const TPt<TSIn> StdIn;
   friend class TPt<TSIn>;
@@ -213,7 +213,7 @@ public:
   TSOut& operator<<(TSIn& SIn);
   TSOut& operator<<(PSIn& SIn){return operator<<(*SIn);}
 
-  TSStr GetSNm() const;
+  TStr GetSNm() const;
   static const TPt<TSOut> StdOut;
   friend class TPt<TSOut>;
 };
@@ -240,7 +240,7 @@ public:
   virtual int GetSize() const=0; // size of whole stream
   virtual void Clr()=0; // clear IO buffer
 
-  TSStr GetSNm() const;
+  TStr GetSNm() const;
   friend class TPt<TSInOut>;
 };
 typedef TPt<TSInOut> PSInOut;
@@ -264,7 +264,7 @@ public:
   void Reset(){Cs=TCs();}
   bool GetNextLnBf(TChA& LnChA);
 
-  TSStr GetSNm() const;
+  TStr GetSNm() const;
 };
 
 /////////////////////////////////////////////////
@@ -280,7 +280,7 @@ public:
   int PutCh(const char& Ch){putchar(Ch); return Ch;}
   int PutBf(const void *LBf, const TSize& LBfL);
   void Flush(){fflush(stdout);}
-  TSStr GetSNm() const;
+  TStr GetSNm() const;
 };
 
 /////////////////////////////////////////////////
@@ -326,7 +326,7 @@ public:
   void Reset(){rewind(FileId); Cs=TCs(); BfC=BfL=-1; FillBf();}
   bool GetNextLnBf(TChA& LnChA);
 
-  TSStr GetSNm() const;
+  TStr GetSNm() const;
   //J:not needed
   //TFileId GetFileId() const {return FileId;} //J:
   //void SetFileId(const FileId& FlId) {FileId=FlId; BfC=BfL=-1; FillBf(); } //J: for low level manipulations
@@ -358,7 +358,7 @@ public:
   int PutBf(const void* LBf, const TSize& LBfL);
   void Flush();
 
-  TSStr GetSNm() const;
+  TStr GetSNm() const;
   TFileId GetFileId() const {return FileId;}
 };
 
@@ -399,7 +399,7 @@ public:
   int PutBf(const void* LBf, const TSize& LBfL);
   void Flush() { IAssert(fflush(FileId) == 0); }
 
-  TSStr GetSNm() const;
+  TStr GetSNm() const;
 };
 
 /////////////////////////////////////////////////
@@ -433,7 +433,7 @@ public:
   void Reset(){Cs=TCs(); BfC=0;}
   bool GetNextLnBf(TChA& LnChA);
 
-  TSStr GetSNm() const;
+  TStr GetSNm() const;
   char* GetBfAddr(){return Bf;}
 };
 
@@ -478,7 +478,7 @@ public:
   void Seek(const int& ChN) {
 	  IAssert((0 <= ChN) && (ChN < BfL)); BfL = ChN; };
 
-  TSStr GetSNm() const;
+  TStr GetSNm() const;
 };
 
 /////////////////////////////////////////////////

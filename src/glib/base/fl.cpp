@@ -63,7 +63,7 @@ bool TSIn::GetNextLn(TChA& LnChA){
   return !LnChA.Empty();
 }
 
-TSStr TSIn::GetSNm() const {
+TStr TSIn::GetSNm() const {
   return "Input-Stream"; 
 }
 
@@ -71,7 +71,7 @@ const PSIn TSIn::StdIn=PSIn(new TStdIn());
 
 TStdIn::TStdIn(): TSBase(), TSIn() {}
 
-TSStr TStdIn::GetSNm() const {
+TStr TStdIn::GetSNm() const {
   return "Standard-input";
 }
 
@@ -219,7 +219,7 @@ TSOut& TSOut::operator<<(TSIn& SIn) {
   return *this;
 }
 
-TSStr TSOut::GetSNm() const {
+TStr TSOut::GetSNm() const {
   return "Output-Stream"; 
 }
 
@@ -227,14 +227,14 @@ const PSOut TSOut::StdOut=PSOut(new TStdOut());
 
 TStdOut::TStdOut(): TSBase(), TSOut(){}
 
-TSStr TStdOut::GetSNm() const {
+TStr TStdOut::GetSNm() const {
   return "Standard output"; 
 }
 
 /////////////////////////////////////////////////
 // Input-Output-Stream-Base
 
-TSStr TSInOut::GetSNm() const {
+TStr TSInOut::GetSNm() const {
   return "Input-Output-Stream"; 
 }
 
@@ -442,7 +442,7 @@ int TFIn::FindEol(int& BfN, bool& CrEnd) {
   return 0;
 }
 
-TSStr TFIn::GetSNm() const {
+TStr TFIn::GetSNm() const {
   return SNm; 
 }
 
@@ -520,7 +520,7 @@ void TFOut::Flush(){
   EAssertR(fflush(FileId)==0, "Can not flush file '"+GetSNm()+"'.");
 }
 
-TSStr TFOut::GetSNm() const {
+TStr TFOut::GetSNm() const {
   return SNm; 
 }
 
@@ -580,8 +580,8 @@ TStr TFInOut::GetFNm() const {
   return GetSNm();
 }
 
-TSStr TFInOut::GetSNm() const {
-    return SNm;
+TStr TFInOut::GetSNm() const {
+  return SNm;
 }
 
 /////////////////////////////////////////////////
@@ -662,7 +662,7 @@ bool TMIn::GetNextLnBf(TChA& LnChA){
   return false;
 }
 
-TSStr TMIn::GetSNm() const {
+TStr TMIn::GetSNm() const {
   return "Input-Memory"; 
 }
 
@@ -795,7 +795,7 @@ void TMOut::MkEolnLn(){
     PutCh(TCh::CrCh); PutCh(TCh::LfCh);}
 }
 
-TSStr TMOut::GetSNm() const {
+TStr TMOut::GetSNm() const {
   return "Output-Memory"; 
 }
 

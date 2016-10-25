@@ -71,7 +71,7 @@ public:
   static uint64 GetFLen(const TStr& ZipFNm);
   static PSIn NewIfZip(const TStr& FNm) { return IsZipFNm(FNm) ? New(FNm) : TFIn::New(FNm); }
 
-  TSStr GetSNm() const { return SNm; }
+  TStr GetSNm() const { return SNm; }
 };
 
 //#//////////////////////////////////////////////
@@ -119,7 +119,7 @@ public:
   static TStr GetCmd(const TStr& ZipFNm);
   static PSOut NewIfZip(const TStr& FNm) { return IsZipFNm(FNm) ? New(FNm) : TFOut::New(FNm); }
 
-  TSStr GetSNm() const { return SNm; }
+  TStr GetSNm() const { return SNm; }
 };
 
 #endif

@@ -282,6 +282,9 @@ bool TThinMIn::GetNextLnBf(TChA& LnChA) {
 	return GetNextLn(LnChA);
 }
 
+TStr TThinMIn::GetSNm() const { 
+    return "Thin input memory"; 
+}
 /////////////////////////////////////////////////
 // Memory
 void TMem::Resize(const int& _MxBfL){
@@ -506,6 +509,10 @@ bool TMemIn::GetNextLnBf(TChA& LnChA){
   return false;
 }
 
+TStr TMemIn::GetSNm() const { 
+  return "Input-Memory"; 
+}
+
 /////////////////////////////////////////////////
 // Output-Memory
 TRefMemOut::TRefMemOut(TMem& _Mem): TSBase(), 
@@ -520,6 +527,10 @@ int TRefMemOut::PutBf(const void* LBf, const TSize& LBfL){
   return LBfS;
 }
 
+TStr TRefMemOut::GetSNm() const { 
+  return "Output-Reference-Memory"; 
+}
+
 /////////////////////////////////////////////////
 // Output-Memory
 TMemOut::TMemOut(const PMem& _Mem): TSBase(), TSOut(), Mem(_Mem){}
@@ -532,6 +543,10 @@ int TMemOut::PutBf(const void* LBf, const TSize& LBfL){
     LBfS+=Ch; _Mem+=Ch;
   }
   return LBfS;
+}
+
+TStr TMemOut::GetSNm() const { 
+  return "Output-Memory"; 
 }
 
 /////////////////////////////////////////////////
@@ -863,6 +878,10 @@ bool TChAIn::GetNextLnBf(TChA& LnChA){
   // not implemented
   FailR(TStr::Fmt("TChAIn::GetNextLnBf: not implemented").CStr());
   return false;
+}
+
+TStr TChAIn::GetSNm() const { 
+  return "Input-Char-Array"; 
 }
 
 /////////////////////////////////////////////////
@@ -2276,6 +2295,10 @@ bool TStrIn::GetNextLnBf(TChA& LnChA){
   // not implemented
   FailR(TStr::Fmt("TStrIn::GetNextLnBf: not implemented").CStr());
   return false;
+}
+
+TStr TStrIn::GetSNm() const { 
+  return "Input-String"; 
 }
 
 /////////////////////////////////////////////////
