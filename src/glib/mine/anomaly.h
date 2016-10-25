@@ -7,7 +7,7 @@
  */
 
 /////////////////////////////////////////////
-/// Annomaly Detection methods
+/// Anomaly Detection methods
 namespace TAnomalyDetection {
 
 /////////////////////////////////////////////
@@ -31,8 +31,8 @@ private:
     TInt InitVecs;
     /// Number of the next available column
     TInt NextCol;
-	/// ID vector
-	TIntV IDVec;
+    /// ID vector
+    TUInt64V DatV;
     
     /// Update all distances as if Mat[ColId] is new vector, ignoring column IgnoreColId
     void UpdateDistance(const int& ColId, const int& IgnoreColId = -1);
@@ -46,21 +46,21 @@ public:
     TNearestNeighbor(const TFltV& _RateV, const int& WindowSize);
 
     TNearestNeighbor(TSIn& SIn);
-    void Save(TSOut& SOut);
+    void Save(TSOut& SOut) const;
 
     /// Add new element to the model, provide a record ID (for explanation purposes)
-	void PartialFit(const TIntFltKdV& Vec, const int& RecId = -1);	
+    void PartialFit(const TIntFltKdV& Vec, const uint64& Dat = TUInt64::Mx);	
 
     /// Distance to the nearest neighbor
     double DecisionFunction(const TIntFltKdV& Vec) const;
     /// ID of the rate which triggered the anomaly (0 = none, 1 = RateV[0], ...)
     int Predict(const TIntFltKdV& Vec) const;
-	/// Returns the JSON that contains the ID of the nearest neighbour and a vector of per-feature
+    /// Returns the JSON that contains the ID of the nearest neighbour and a vector of per-feature
     /// contributions to the total distance to the nearest neighbor. Returns null JSON if not initialized.
-	PJsonVal Explain(const TIntFltKdV& Vec) const;
-	
-	/// Check if model is initialized
-	bool IsInit() const { return (InitVecs == WindowSize); }
+    PJsonVal Explain(const TIntFltKdV& Vec) const;
+
+    /// Check if model is initialized
+    bool IsInit() const { return (InitVecs == WindowSize); }
 
     // parameters
     const TFltV& GetRateV() const { return RateV; }

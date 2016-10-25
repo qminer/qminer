@@ -3973,9 +3973,6 @@ uint64 TStorePbBlob::AddRec(const PJsonVal& RecVal, const bool& TriggerEvents) {
     if (DataBlobP) {
         TMem CacheRecMem;
         SerializatorCache->Serialize(RecVal, CacheRecMem, this);
-
-        //SerializatorCache->Verify(CacheRecMem.GetBf(), CacheRecMem.Len());
-
         TPgBlobPt Pt = DataBlob->Put(CacheRecMem.GetBf(), CacheRecMem.Len());
         CacheRecId = Pt;
         RecIdBlobPtH.AddDat(RecId) = Pt;
@@ -3986,9 +3983,6 @@ uint64 TStorePbBlob::AddRec(const PJsonVal& RecVal, const bool& TriggerEvents) {
     if (DataMemP) {
         TMem MemRecMem;
         SerializatorMem->Serialize(RecVal, MemRecMem, this);
-
-        //SerializatorMem->Verify(MemRecMem.GetBf(), MemRecMem.Len());
-
         TPgBlobPt Pt = DataMem->Put(MemRecMem.GetBf(), MemRecMem.Len());
         MemRecId = Pt;
         RecIdBlobPtHMem.AddDat(RecId) = Pt;

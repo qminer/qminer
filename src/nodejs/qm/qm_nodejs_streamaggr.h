@@ -1040,6 +1040,82 @@
 */
 
 /**
+* @typedef {module:qmStreamAggr} StreamAggrAnomalyDetectorNN
+* This stream aggregator represents the anomaly detector using the Nearest Neighbor algorithm. It calculates the 
+* new incoming point's distance from its nearest neighbor and, depending on the input threshold values, it 
+* classifies the severity of the alarm. It implements the following methods:
+* <br>1. {@link module:qm.StreamAggr#getInteger} returns the severity of the alarm.
+* <br>2. {@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the latest alarm.
+* <br>3. {@link module:qm.StreamAggr#saveJson} returns the Json with the description and explanation of the alarm.
+* @property {string} name - The given name for the stream aggregator.
+* @property {string} type - The type of the stream aggregator. <b>Important:</b> It must be equal to `'nnAnomalyDetector'`.
+* @property {string} store - The name of the store from which it takes the data.
+* @property {string} inAggr - The name of the stream aggregator to which it connects and gets data.
+* It <b>cannot</b> be connect to the {@link module:qm~StreamAggrTimeSeriesWindow}.
+
+* @example
+* // import the qm module
+* var qm = require('qminer');
+* // create a base with a simple store named Cars with 4 fields
+* var base = new qm.Base({
+*     mode: 'createClean',
+*     schema: [{
+*         name: 'Cars',
+*         fields: [
+*             { name: 'NumberOfCars', type: 'float' },
+*             { name: 'Temperature', type: 'float' },
+*             { name: 'Precipitation', type: 'float' },
+*             { name: 'Time', type: 'datetime' }
+*         ]
+*     }]
+* });
+* // create the store
+* var store = base.store('Cars');
+* // define a feature space aggregator on the Cars store which needs at least 2 records to be initialized. Use three of the 
+* // four fields of the store to create feature vectors with normalized values.
+* var aggr = {
+*    name: "ftrSpaceAggr",
+*    type: "featureSpace",
+*    initCount: 2,
+*    update: true, full: false, sparse: true,
+*    featureSpace: [
+*        { type: "numeric", source: "Cars", field: "NumberOfCars", normalize: "var" },
+*        { type: "numeric", source: "Cars", field: "Temperature", normalize: "var" },
+*        { type: "numeric", source: "Cars", field: "Precipitation", normalize: "var" }
+*    ]
+* };
+* //create the feature space aggregator
+* var ftrSpaceAggr = base.store('Cars').addStreamAggr(aggr);
+
+* // define a new time series tick stream aggregator for the 'Cars' store, that takes the values from the 'NumberOfCars' field
+* // and the timestamp from the 'Time' field.
+* var aggr = {
+*     name: "tickAggr",
+*     type: "timeSeriesTick",
+*     store: "Cars",
+*     timestamp: "Time",
+*     value: "NumberOfCars"
+* };
+* //create the tick aggregator
+* tickAggr = base.store('Cars').addStreamAggr(aggr);
+*
+* //define an anomaly detection aggregator using nearest neighbor on the cars store that takes as input timestamped features.
+* // The time stamp is provided by the tick aggregator while the feature vector is provided by the feature space aggregator.
+* var aggr = {
+*     name: 'AnomalyDetectorAggr',
+*     type: 'nnAnomalyDetector',
+*     inAggrSpV: 'ftrSpaceAggr',
+*     inAggrTm: 'tickAggr',
+*     rate: [0.15, 0.5, 0.7],
+*     windowSize: 2
+* };
+* //create the anomaly detection aggregator
+* var anomaly = base.store('Cars').addStreamAggr(aggr);
+* base.close();
+*/
+
+
+/**
 * @typedef {module:qm.StreamAggr} StreamAggrHistogram
 * This stream aggregator represents an online histogram. It can connect to a buffered aggregate (such as {@link module:qm~StreamAggrTimeSeriesWindow})
 * or a time series (such as {@link module:qm~StreamAggregateEMA}).
@@ -1059,6 +1135,7 @@
 * @property {number} [bins=5] - The number of bins bounded by `lowerBound` and `upperBound`.
 * @property {boolean} [addNegInf=false] - Include a bin `[-Inf, lowerBound]`.
 * @property {boolean} [addPosInf=false] - Include a bin `[upperBound, Inf]`.
+* @property {boolean} [autoResize=false] - The histogram will be empty at the beginning and double its size on demand (resize only when incrementing counts). The unbounded bins are guaranteed to stay between lowerBound and upperBound and in all cases the bin size equals (upperBound - lowerBound)/bins.
 * @example
 * // import the qm module
 * var qm = require('qminer');
@@ -1488,13 +1565,18 @@ public:
     //# exports.StreamAggr.prototype.load = function (fin) { return Object.create(require('qminer').StreamAggr.prototype); }
     JsDeclareFunction(load);
 
-    // IInt
-    //!- `num = sa.getInt()` -- returns a number if sa implements the interface IInt
+    /**
+    * A map from strings to integers
+    * @param {string} [str] - The string.
+    * @returns {(number | null)} A number (stream aggregator specific), possibly null if `str` was provided.
+    */
+    //# exports.StreamAggr.prototype.getInteger = function (str) { return 0; };
     JsDeclareFunction(getInteger);
 
     /**
     * Returns the value of the specific stream aggregator. For return values see {@link module:qm~StreamAggregator}.
-    * @returns {number} The value of the stream aggregator.
+    * @param {string} [str] - The string.
+    * @returns {(number | null)} A number (stream aggregator specific), possibly null if `str` was provided.
     * @example
     * // import qm module
     * var qm = require('qminer');
@@ -1538,7 +1620,7 @@ public:
     * var average = averageGrade.getFloat(); // returns 74 + 1/3
     * base.close();
     */
-    //# exports.StreamAggr.prototype.getFloat = function () { return 0; };
+    //# exports.StreamAggr.prototype.getFloat = function (str) { return 0; };
     JsDeclareFunction(getFloat);
 
     /**
@@ -2161,7 +2243,8 @@ class TNodeJsFuncStreamAggr :
     public TQm::TStreamAggrOut::INmInt,
     public TQm::TStreamAggrOut::ISparseVec
 {
-private:    
+private:
+    v8::Persistent<v8::Object> ThisObj;
     // callbacks
     v8::Persistent<v8::Function> ResetFun;
     v8::Persistent<v8::Function> OnStepFun;
@@ -2197,11 +2280,10 @@ private:
     // INmFlt 
     v8::Persistent<v8::Function> IsNmFltFun;
     v8::Persistent<v8::Function> GetNmFltFun;
-    v8::Persistent<v8::Function> GetNmFltVFun;
+
     // INmInt
-    v8::Persistent<v8::Function> IsNmFun;
+    v8::Persistent<v8::Function> IsNmIntFun;
     v8::Persistent<v8::Function> GetNmIntFun;
-    v8::Persistent<v8::Function> GetNmIntVFun;
 
     // Serialization
     v8::Persistent<v8::Function> SaveFun;
@@ -2257,14 +2339,13 @@ public:
     // INmFlt 
     bool IsNmFlt(const TStr& Nm) const;
     double GetNmFlt(const TStr& Nm) const;
-    void GetNmFltV(TStrFltPrV& NmFltV) const;
     // INmInt
-    bool IsNm(const TStr& Nm) const;
-    double GetNmInt(const TStr& Nm) const;
-    void GetNmIntV(TStrIntPrV& NmIntV) const;
+    bool IsNmInt(const TStr& Nm) const;
+    int GetNmInt(const TStr& Nm) const;
     // ISparseVec
-    void GetVal(const int& ElN, TIntFltKd& Val) const; // GetFltAtFun
-    void GetValV(TIntFltKdV& ValV) const;
+    int GetSparseVecLen() const;
+    TIntFltKd GetSparseVecVal(const int& ElN) const; // GetFltAtFun
+    void GetSparseVec(TIntFltKdV& ValV) const;
 };
 
 #endif

@@ -187,12 +187,14 @@
                 'src/third_party/Snap/snap-adv',
                 'src/third_party/Snap/snap-exp',
                 'src/third_party/Snap/qlib-core',
+                'src/snap_ext',
                 '<(LIN_ALG_INCLUDE)',
                 '<(LIN_EIGEN_INCLUDE)'
             ],
             'dependencies': [
                 'glib',
                 'snap_lib',
+                'snap_ext',
                 'qminer',
             ],
         },
@@ -236,6 +238,26 @@
                 'src/third_party/Snap/snap-core/Snap.cpp'
             ],
             'include_dirs': [
+                'src/third_party/Snap/snap-core',
+                'src/third_party/Snap/snap-adv',
+                'src/third_party/Snap/snap-exp',
+                'src/glib/base/',
+                'src/glib/mine/',
+                'src/glib/misc/',
+                '<(LIN_ALG_INCLUDE)',
+                '<(LIN_EIGEN_INCLUDE)'
+            ],
+        },
+        {
+            # snap extensions
+            'target_name': 'snap_ext',
+            'type': 'static_library',
+            'sources': [
+                'src/snap_ext/graphprocess.h',
+                'src/snap_ext/graphprocess.cpp'
+            ],
+            'include_dirs': [
+                'src/snap_ext',
                 'src/third_party/Snap/snap-core',
                 'src/third_party/Snap/snap-adv',
                 'src/third_party/Snap/snap-exp',

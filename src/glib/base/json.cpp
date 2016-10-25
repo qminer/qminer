@@ -92,11 +92,19 @@ PJsonVal TJsonVal::NewArr(const TFltV& FltV) {
 	return Val;
 }
 
+PJsonVal TJsonVal::NewArr(const TIntFltKdV& IntFltKdV) {
+    PJsonVal Val = TJsonVal::NewArr();
+    for (const TIntFltKd& IntFltKd : IntFltKdV) {
+        Val->AddToArr(TJsonVal::NewArr((double)IntFltKd.Key, IntFltKd.Dat));
+    }
+    return Val;
+}
+
 PJsonVal TJsonVal::NewArr(const double& Val1, const double& Val2) {
     PJsonVal Val = TJsonVal::NewArr();
     Val->AddToArr(TJsonVal::NewNum(Val1));
     Val->AddToArr(TJsonVal::NewNum(Val2));
-	return Val;
+    return Val;
 }
 
 PJsonVal TJsonVal::NewArr(const TStrV& StrV) {
@@ -144,16 +152,16 @@ void TJsonVal::GetArrNumV(TFltV& FltV) const {
 }
 
 void TJsonVal::GetArrNumSpV(TIntFltKdV& NumSpV) const {
-	EAssert(IsArr());
-	for (int ElN = 0; ElN < GetArrVals(); ElN++) {
-		PJsonVal ArrVal = GetArrVal(ElN);
-		EAssert(ArrVal->IsArr());
-		EAssert(ArrVal->GetArrVals() ==  2);
-		int Idx = ArrVal->GetArrVal(0)->GetInt();
-		double Val = ArrVal->GetArrVal(1)->GetNum();
-		NumSpV.Add(TIntFltKd(Idx, Val));
-	}
-	NumSpV.Sort();
+    EAssert(IsArr());
+    for (int ElN = 0; ElN < GetArrVals(); ElN++) {
+        PJsonVal ArrVal = GetArrVal(ElN);
+        EAssert(ArrVal->IsArr());
+        EAssert(ArrVal->GetArrVals() ==  2);
+        int Idx = ArrVal->GetArrVal(0)->GetInt();
+        double Val = ArrVal->GetArrVal(1)->GetNum();
+        NumSpV.Add(TIntFltKd(Idx, Val));
+    }
+    NumSpV.Sort();
 }
 
 void TJsonVal::GetArrIntV(TIntV& IntV) const {
@@ -291,15 +299,21 @@ void TJsonVal::AssertObjKey(const TStr& Key, const TStr& Fun) {
 }
 
 void TJsonVal::AssertObjKeyStr(const TStr& Key, const TStr& Fun) {
-	// missing key or key not string
+    // missing key or key not string
     AssertObjKey(Key, Fun);
-	if (!GetObjKey(Key)->IsStr()) { throw TExcept::New("Exception in function `" + Fun + "`: JSON property:`" + Key + "` is not a string."); }
+    if (!GetObjKey(Key)->IsStr()) { throw TExcept::New("Exception in function `" + Fun + "`: JSON property:`" + Key + "` is not a string."); }
 }
 
 void TJsonVal::AssertObjKeyNum(const TStr& Key, const TStr& Fun) {
-	// missing key or key not string
+    // missing key or key not string
     AssertObjKey(Key, Fun);
-	if (!GetObjKey(Key)->IsNum()) { throw TExcept::New("Exception in function `" + Fun + "`: JSON property:`" + Key + "` is not a number."); }
+    if (!GetObjKey(Key)->IsNum()) { throw TExcept::New("Exception in function `" + Fun + "`: JSON property:`" + Key + "` is not a number."); }
+}
+
+void TJsonVal::AssertObjKeyBool(const TStr& Key, const TStr& Fun) {
+    // missing key or key not string
+    AssertObjKey(Key, Fun);
+    if (!GetObjKey(Key)->IsBool()) { throw TExcept::New("Exception in function `" + Fun + "`: JSON property:`" + Key + "` is not a boolean."); }
 }
 
 PJsonVal TJsonVal::GetValFromLx(TILx& Lx){

@@ -86,6 +86,7 @@ public:
   static PJsonVal NewArr(const TIntV& IntV);
   static PJsonVal NewArr(const TUInt64V& IntV);
   static PJsonVal NewArr(const TFltV& FltV);
+  static PJsonVal NewArr(const TIntFltKdV& IntFltKdV);
   static PJsonVal NewArr(const double& Val1, const double& Val2);
   static PJsonVal NewArr(const TStrV& StrV);
   static PJsonVal NewArr(const TFltPr& FltPr);
@@ -118,7 +119,7 @@ public:
   bool GetBool() const {EAssert(IsBool()); return Bool;}
   double GetNum() const {EAssert(IsNum()); return Num;}
   int GetInt() const {EAssert(IsNum()); return TFlt::Round(Num);}
-  uint64 GetUInt64() const {EAssert(IsNum()); return (unsigned)(int64)(Num);}
+  uint64 GetUInt64() const {EAssert(IsNum()); return (unsigned long long)(int64)(Num);}
   uint GetUInt() const { EAssert(IsNum()); return uint(Num); }
   int64 GetInt64() const { EAssert(IsNum()); return int64(Num); }
   const TStr& GetStr() const {EAssert(IsStr()); return Str;}
@@ -184,6 +185,7 @@ public:
   void AssertObjKey(const TStr& Key, const TStr& Fun);
   void AssertObjKeyStr(const TStr& Key, const TStr& Fun);
   void AssertObjKeyNum(const TStr& Key, const TStr& Fun);
+  void AssertObjKeyBool(const TStr& Key, const TStr& Fun);
 
   // (de)serialization
   static PJsonVal GetValFromLx(TILx& Lx);
