@@ -268,6 +268,7 @@ bool TFtrSpace::Update(const PRecSet& RecSet) {
 
 void TFtrSpace::GetSpV(const TRec& Rec, TIntFltKdV& SpV, const int& FtrExtN) const {
     int Offset = 0;
+    SpV.Clr();
     if (FtrExtN < 0) {
         for (int FtrExtN = 0; FtrExtN < FtrExtV.Len(); FtrExtN++) {
             FtrExtV[FtrExtN]->AddSpV(Rec, SpV, Offset);

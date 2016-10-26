@@ -1569,7 +1569,6 @@ public:
     * A map from strings to integers
     * @param {string} [str] - The string.
     * @returns {(number | null)} A number (stream aggregator specific), possibly null if `str` was provided.
-    * @example
     */
     //# exports.StreamAggr.prototype.getInteger = function (str) { return 0; };
     JsDeclareFunction(getInteger);
@@ -2244,7 +2243,8 @@ class TNodeJsFuncStreamAggr :
     public TQm::TStreamAggrOut::INmInt,
     public TQm::TStreamAggrOut::ISparseVec
 {
-private:    
+private:
+    v8::Persistent<v8::Object> ThisObj;
     // callbacks
     v8::Persistent<v8::Function> ResetFun;
     v8::Persistent<v8::Function> OnStepFun;

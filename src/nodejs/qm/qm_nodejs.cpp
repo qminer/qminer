@@ -364,28 +364,30 @@ TNodeJsBase::TNodeJsBase(const TStr& DbFPath_, const TStr& SchemaFNm, const PJso
     
     // clean folder and lock
     if (ForceCreate) {
-        if (TFile::Exists(LockFNm)) {
-            TFile::Del(LockFNm, false);
-        }
         if (TDir::Exists(DbFPath)) {
-            TStrV FNmV;
-            TStrV FExtV;
-            TFFile::GetFNmV(DbFPath, FExtV, true, FNmV);
-            if (!FNmV.Empty()) {
-                // delete all files
-                for (int FileN = 0; FileN < FNmV.Len(); FileN++) {
-                    const TStr& FNm = FNmV[FileN];
-                    TFile::Del(FNm, true);
-                }
-            }
+            // delete only qminer stuff!
+            TFile::Del(TPath::Combine(DbFPath, LockFNm), false);
+            // json files
+            TFile::Del(TPath::Combine(DbFPath, "Base.json"), false);
+            TFile::Del(TPath::Combine(DbFPath, "StoreList.json"), false);
+            // Index files
+            TFile::DelWc(TPath::Combine(DbFPath, "Index.*"), false);
+            // IndexSmall files
+            TFile::DelWc(TPath::Combine(DbFPath, "IndexSmall.*"), false);
+            // IndexVoc files
+            TFile::Del(TPath::Combine(DbFPath, "IndexVoc.dat"), false);
+            // StoreBlob files
+            TFile::DelWc(TPath::Combine(DbFPath, "StoreBlob.*"), false);
+            // Store files (*.BaseStore, *.Cache, *.GenericStore, *.MemCache)
+            TFile::DelWc(TPath::Combine(DbFPath, "*.BaseStore"), false);
+            TFile::DelWc(TPath::Combine(DbFPath, "*.Cache"), false);
+            TFile::DelWc(TPath::Combine(DbFPath, "*.GenericStore"), false);
+            TFile::DelWc(TPath::Combine(DbFPath, "*.MemCache"), false);
         }
     }
     if (Create) {
         if (TDir::Exists(DbFPath)) {
-            TStrV FNmV;
-            TStrV FExtV;
-            TFFile::GetFNmV(DbFPath, FExtV, true, FNmV);
-            if (!FNmV.Empty()) {
+            if (TFile::Exists(TPath::Combine(DbFPath, "StoreList.json"))) {
                 // if not empty and create was called
                 throw TQm::TQmExcept::New("new base(...): database folder not empty "
                     "and mode=create. Clear db folder or use mode=createClean!");
@@ -2155,7 +2157,7 @@ void TNodeJsRec::setField(v8::Local<v8::String> Name, v8::Local<v8::Value> Value
     TStr FieldNm = TNodeJsUtil::GetStr(Name);
     const int FieldId = Store->GetFieldId(FieldNm);
     //TODO: for now we don't support by-value records, fix this
-    QmAssertR(Rec.IsByRef(), "Only records by reference (from stores) supported for setters.");
+    //QmAssertR(Rec.IsByRef(), "Only records by reference (from stores) supported for setters.");
     // not null, get value
     const TQm::TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
     if (Value->IsNull()) {

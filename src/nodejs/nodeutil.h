@@ -28,7 +28,7 @@
             Function(Name, Info); \
         } catch (const PExcept& Except) { \
             Isolate->ThrowException(v8::Exception::TypeError( \
-            v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr()))); \
+            v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetStr()).CStr()))); \
         } \
     };
 
@@ -41,7 +41,7 @@
             Function(Index, Info); \
         } catch(const PExcept& Except) { \
             Isolate->ThrowException(v8::Exception::TypeError(\
-            v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr()))); \
+            v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetStr()).CStr()))); \
         } \
     }
 
@@ -54,7 +54,7 @@
             FunctionGetter(Index, Info); \
         } catch(const PExcept& Except) { \
             Isolate->ThrowException(v8::Exception::TypeError(\
-            v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr()))); \
+            v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetStr()).CStr()))); \
         } \
     } \
     static void FunctionSetter(uint32_t Index, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<v8::Value>& Info); \
@@ -65,7 +65,7 @@
             FunctionSetter(Index, Value, Info); \
         } catch(const PExcept& Except) { \
             Isolate->ThrowException(v8::Exception::TypeError(\
-            v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr()))); \
+            v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetStr()).CStr()))); \
         } \
     }
 
@@ -78,7 +78,7 @@
             GetFunction(Name, Info); \
         } catch (const PExcept& Except) { \
             Isolate->ThrowException(v8::Exception::TypeError( \
-            v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr()))); \
+            v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetStr()).CStr()))); \
       } \
     } \
     static void SetFunction(v8::Local<v8::String> Name, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<void>& Info); \
@@ -89,7 +89,7 @@
             SetFunction(Name, Value, Info); \
         } catch (const PExcept& Except) { \
             Isolate->ThrowException(v8::Exception::TypeError( \
-            v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr()))); \
+            v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetStr()).CStr()))); \
         } \
     };
 
@@ -101,7 +101,7 @@
             Function(Args); \
         } catch (const PExcept& Except) { \
             Isolate->ThrowException(v8::Exception::TypeError(\
-            v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr()))); \
+            v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetStr()).CStr()))); \
         } \
     };
 
@@ -118,7 +118,7 @@
             Function(Args); \
         } catch (const PExcept& Except) { \
             Isolate->ThrowException(v8::Exception::TypeError(\
-            v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr()))); \
+            v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetStr()).CStr()))); \
         } \
     };
 

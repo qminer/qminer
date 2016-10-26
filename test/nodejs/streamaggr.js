@@ -35,7 +35,7 @@ describe('Stream Aggregator Tests', function () {
     });
 
     describe('Constructor Tests', function () {
-        it('should construct a new stream aggregator for the base and People store', function () {
+        it('should construct a new stream aggregator for the People store using new qm.StreamAggr', function () {
 
             var aggr = new qm.StreamAggr(base, new function () {
                 var length = 0;
@@ -48,25 +48,61 @@ describe('Stream Aggregator Tests', function () {
                 }
             }, 'People');
 
-            var id1 = base.store('People').push({ Name: "John", Gender: "Male" });
+            store.push({ Name: "John", Gender: "Male" });
             assert.equal(aggr.saveJson().val, 4);
         })
-        it('should contruct a new stream aggregator for the People store by adding it', function () {
+        it('should test stream aggr construction using functions', function () {
             var s = store.addStreamAggr(new function () {
                 var length = 0;
+                this.data = 0;
                 this.name = 'nameLength';
                 this.onAdd = function (rec) {
+                    this.data++;
                     length = rec.Name.length;
                 }
                 this.saveJson = function (limit) {
-                    return { val: length };
+                    return { val: length, thisVal: this.data };
                 }
-            });
+            }());
 
-            var id1 = base.store('People').push({ Name: "John", Gender: "Male" });
+            store.push({ Name: "John", Gender: "Male" });
             assert.equal(s.saveJson().val, 4);
-
+            assert.equal(s.saveJson().thisVal, 1);
         })
+
+        // TODO: how do we enable this without breaking 0.12 builds (the test works but needs ES6)?
+        //it('should test stream aggr construction using classes ', function () {
+        //    if (Number(process.versions.modules) >= 46) {
+        //        class S {
+        //            constructor() { this.data = 0; }
+        //            onAdd(rec) { this.data++; }
+        //            saveJson() { return { thisVal: this.data }; }
+        //        }
+        //        var s = store.addStreamAggr(new S());
+        //        store.push({ Name: "John", Gender: "Male" });
+        //        assert.equal(s.saveJson().thisVal, 1);
+        //    }
+        //});
+
+        it('should test stream aggr construction using objects ', function () {
+            var S = {
+                onAdd: function (rec) { assert(Object.is(this, S)); this.touched = true; console.log('touched ' + this.touched);},
+                saveJson: function () { return { touched: this.touched }; }
+            };
+            var s = store.addStreamAggr(S);
+            store.push({ Name: "John", Gender: "Male" });
+            assert(s.saveJson().touched);
+        });
+
+        it('should test stream aggr construction using prototypes ', function () {
+            var t = null;
+            function S() { }
+            S.prototype.onAdd = function (rec) { assert(Object.is(this, t)); }
+            S.prototype.saveJson = function () { return { } }
+            t = new S();
+            var s = store.addStreamAggr(t);
+            store.push({ Name: "John", Gender: "Male" });
+        });
     });
 
     describe('JsStreamAggr Test', function () {
