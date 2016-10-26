@@ -343,7 +343,7 @@ PSIn TGBlobBs::GetBlob(const TBlobPt& BlobPt){
 }
 
 /// Deletes specified BLOB
-void TGBlobBs::DelBlob(const TBlobPt& BlobPt){
+int TGBlobBs::DelBlob(const TBlobPt& BlobPt){
   EAssert((Access==faCreate)||(Access==faUpdate)||(Access==faRestore));
   FBlobBs->SetFPos(BlobPt.GetAddr());                                  // find BLOB start
   AssertBlobTag(FBlobBs, btBegin);
@@ -370,6 +370,8 @@ void TGBlobBs::DelBlob(const TBlobPt& BlobPt){
   Stats.AllocUsedSize -= BfL;
   Stats.ReleasedCount++;
   Stats.ReleasedSize += MxBfL;
+  // return the amount of the buffer that we released
+  return MxBfL;
 }
 
 TBlobPt TGBlobBs::FFirstBlobPt(){
@@ -451,8 +453,13 @@ void TMBlobBs::SaveMain() const {
 TMBlobBs::TMBlobBs(
  const TStr& BlobBsFNm, const TFAccess& _Access, const int& _MxSegLen):
   TBlobBs(), Access(_Access), MxSegLen(_MxSegLen),
-  NrFPath(), NrFMid(), SegV(), CurSegN(0){
+  NrFPath(), NrFMid(), SegV() {
   if (MxSegLen==-1){MxSegLen=MxBlobFLen;}
+  // initialize the hashtable of block sizes to first segment
+  TBlobBs::GenBlockLenV(BlockLenV);
+  for (uint N = 0; N < BlockLenV.Len(); N++) {
+    BlockSizeToSegH.AddDat(BlockLenV[N], 0);
+  }
   GetNrFPathFMid(BlobBsFNm, NrFPath, NrFMid);
   switch (Access){
     case faCreate:{
@@ -510,22 +517,46 @@ TMBlobBs::~TMBlobBs(){
 
 TBlobPt TMBlobBs::PutBlob(const PSIn& SIn){
   EAssert((Access==faCreate)||(Access==faUpdate)||(Access==faRestore));
-  TBlobPt BlobPt=SegV[CurSegN]->PutBlob(SIn);
-  if (BlobPt.Empty()){
-    for (uint16 SegN=0; SegN<SegV.Len(); SegN++){
-      BlobPt=SegV[CurSegN=SegN]->PutBlob(SIn);
-      if (!BlobPt.Empty()){break;}
-    }
-    if (BlobPt.Empty()){
-      TStr SegFNm=GetSegFNm(NrFPath, NrFMid, SegV.Len());
-      PBlobBs Seg=TGBlobBs::New(SegFNm, faCreate, MxSegLen);
-      CurSegN=SegV.Add(Seg); 
-      EAssert(CurSegN <= TUSInt::Mx);
-      BlobPt=SegV[CurSegN]->PutBlob(SIn);
+  // buffer size that we need to store
+  int BfL = SIn->Len();
+  // segment index from which we will start to check if we can insert data into
+  uint16 DestSegN = 0;
+  int BlockSize = 0;
+  for (int KeyId = BlockSizeToSegH.FFirstKeyId(); BlockSizeToSegH.FNextKeyId(KeyId);) {
+    BlockSize = BlockSizeToSegH.GetKey(KeyId);
+    // if we found a block size that could store the buffer
+    if (BlockSize > BfL) {
+      DestSegN = BlockSizeToSegH[KeyId];
+      break;
     }
   }
+  // temp:
+  DestSegN = 0;
+  TBlobPt BlobPt;
+  while (DestSegN < SegV.Len()) {
+    BlobPt = SegV[DestSegN]->PutBlob(SIn);
+    if (!BlobPt.Empty()) { 
+      break; 
+    }
+    DestSegN++;
+  }
+  // we were not able to find a segment of required size in any of the available segments
+  // create a new segment
+  if (BlobPt.Empty()) {
+    TStr SegFNm = GetSegFNm(NrFPath, NrFMid, SegV.Len());
+    PBlobBs Seg = TGBlobBs::New(SegFNm, faCreate, MxSegLen);
+    DestSegN = SegV.Add(Seg);
+    EAssert(DestSegN <= TUSInt::Mx);
+    BlobPt = SegV[DestSegN]->PutBlob(SIn);
+    //// if we have added a new file then we also need to re-initialize the mappings from block size to the available segment
+    //for (uint N = 0; N < BlockLenV.Len(); N++) {
+    //  BlockSizeToSegH.AddDat(BlockLenV[N], 0);
+    //}
+  }
+  // remember the segment index to which we are able to write buffer of this length
+  BlockSizeToSegH.AddDat(BlockSize, DestSegN);
   if (!BlobPt.Empty()){
-    BlobPt.PutSeg(uint16(CurSegN));}
+    BlobPt.PutSeg(uint16(DestSegN));}
   return BlobPt;
 }
 
@@ -546,9 +577,12 @@ PSIn TMBlobBs::GetBlob(const TBlobPt& BlobPt){
   return SegV[SegN]->GetBlob(BlobPt);
 }
 
-void TMBlobBs::DelBlob(const TBlobPt& BlobPt){
+int TMBlobBs::DelBlob(const TBlobPt& BlobPt){
   int SegN=BlobPt.GetSeg();
-  SegV[SegN]->DelBlob(BlobPt);
+  int ReleasedSize = SegV[SegN]->DelBlob(BlobPt);
+  // we released a certain chunk. Mark in the BlockSizeToSegH the index of the segment if lower than current
+  BlockSizeToSegH.AddDat(ReleasedSize) = MIN(SegN, BlockSizeToSegH.GetDatOrDef(ReleasedSize, 0));
+  return ReleasedSize;
 }
 
 TBlobPt TMBlobBs::GetFirstBlobPt(){
