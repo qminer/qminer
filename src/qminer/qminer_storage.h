@@ -111,39 +111,6 @@ public:
 };
 
 ///////////////////////////////
-/// Store windowing type
-typedef enum { 
-    swtNone = 0,   ///< No windowing on the store
-    swtLength = 1, ///< Record-number based windowing
-    swtTime = 2    ///< Time-based windowing
-} TStoreWndType;
-
-///////////////////////////////
-/// Store window description
-class TStoreWndDesc {
-public:
-    /// Prefix used for fields inserted by system
-    static TStr SysInsertedAtFieldName;   
-    
-public:    
-    /// Windowing type
-    TStoreWndType WindowType;
-    /// For time window this is period length in milliseconds, otherwise it is max length
-    TUInt64 WindowSize;   
-    /// User insert time
-    TBool InsertP;        
-    /// Name of the field that serves as time-window indicator
-    TStr TimeFieldNm;   
-    
-public:
-    TStoreWndDesc(): WindowType(swtNone) { }
-    TStoreWndDesc(TSIn& SIn){ Load(SIn); }
-
-    void Save(TSOut& SOut) const;
-    void Load(TSIn& SIn);
-};
-
-///////////////////////////////
 /// Store schema definition.
 /// Contains parsed version of store definition, which can be used to
 /// initialize TStoreImpl.
@@ -720,7 +687,7 @@ public:
 
     /// Get codebook id
     int GetCodebookId(const int& FieldId, const TStr& Str) const;
-
+    bool GetUseToast() const { return UseToast; }
     /// verify that given record is properly serialized
     void Verify(char* Bf, const int& BfL) const;
 };
@@ -866,9 +833,6 @@ private:
 
     // record indexer
     TRecIndexer RecIndexer;
-
-    /// Time window settings
-    TStoreWndDesc WndDesc;
 
     /// initialize field storage location map
     void InitFieldLocV();
@@ -1158,9 +1122,7 @@ private:
 
     // record indexer
     TRecIndexer RecIndexer;
-    /// Time window settings
-    TStoreWndDesc WndDesc;
-
+    
     /// initialize field storage location map
     void InitFieldLocV();
 
@@ -1217,7 +1179,7 @@ private:
     TThinMIn GetEditableField(const uint64& RecId, const int& FieldId);
 
     // given the recid and the fieldid get the memory that contains it, get blob that contains it and the page blob pointer
-    void GetRecData(const uint64& RecId, const int& FieldId, TMemBase& Mem, THash<TUInt64, TPgBlobPt>* &RecIdBlobPtr, PPgBlob& Blob, TPgBlobPt& PgPt);
+    void GetRecData(const uint64& RecId, const int& FieldId, TMemBase& Mem, THash<TUInt64, TPgBlobPt>* &RecIdBlobPtr, PPgBlob& Blob, TPgBlobPt* &PgPt);
 
 public:
     TStorePbBlob(const TWPt<TBase>& _Base, const uint& StoreId,
