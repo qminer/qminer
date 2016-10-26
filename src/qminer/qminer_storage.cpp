@@ -4946,6 +4946,50 @@ void TStorePbBlob::GarbageCollect() {
     // if no records, nothing to do here
     if (Empty()) { return; }
     // TODO find records to delete
+    // prepare list of records that need to be deleted
+    TUInt64V DelRecIdV;
+    if (WndDesc.WindowType == swtTime) {
+        // get last added record
+        const uint64 LastRecId = GetLastRecId();
+        // get time window field
+        const int TimeFieldId = GetFieldId(WndDesc.TimeFieldNm);
+        // get time which we use as end of time-window (could be insert time or field value)
+        uint64 CurMSecs = WndDesc.InsertP ? TTm::GetCurUniMSecs() :
+            GetFieldTmMSecs(LastRecId, TimeFieldId);
+        // get start of time window
+        const uint64 WindowStartMSecs = CurMSecs - WndDesc.WindowSize;
+        // report what is the established time window used by the garbage collection
+        TEnv::Logger->OnStatusFmt("  window: %s - %s",
+            TTm::GetTmFromMSecs(WindowStartMSecs).GetWebLogDateTimeStr(true, "T", false).CStr(),
+            TTm::GetTmFromMSecs(CurMSecs).GetWebLogDateTimeStr(true, "T", false).CStr());
+        // iterate from the start until we hit the time window
+        PStoreIter Iter = GetIter();
+        while (Iter->Next()) {
+            uint64 RecId = Iter->GetRecId();
+            // get record time
+            uint64 TmMSecs = GetFieldTmMSecs(RecId, TimeFieldId);
+            // if we are within time window we stop
+            if (TmMSecs >= WindowStartMSecs) break;
+            // otherwise we mark the record for deletion
+            DelRecIdV.Add(RecId);
+        }
+    }
+    else if (GetRecs() > WndDesc.WindowSize) {
+        // we are windowing based on number of records
+        TEnv::Logger->OnStatusFmt("  window: last %d records", (int) WndDesc.WindowSize);
+        // get number of records which need to be deleted so we are back in the window
+        int DelRecs = (int) (GetRecs() - WndDesc.WindowSize);
+        // iterate from the start until we hit the time window
+        PStoreIter Iter = GetIter();
+        while (Iter->Next() && DelRecs > 0) {
+            // mark record for deletion
+            DelRecIdV.Add(Iter->GetRecId());
+            // track progress
+            DelRecs--;
+        }
+    }
+    TEnv::Logger->OnStatusFmt("  purging %d records", DelRecIdV.Len());
+    TStorePbBlob::DeleteRecs(DelRecIdV, false);
 }
 
 /// Perform defragmentation
