@@ -77,6 +77,8 @@ public:
     void ComputePosterior(const uint64& Time, const int& SampleSize);
     /// Returns quantiles for a set of nodes
     PJsonVal GetPosterior(const TStrV& NodeNmV, const TFltV& QuantileV) const;
+    /// Returns the pruned graph (only enabled nodes with induced dependencies)
+    PJsonVal GetGraph() const;
 };
 
 
