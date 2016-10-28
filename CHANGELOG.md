@@ -2,7 +2,7 @@
 
 ### 28 October 2016
 
-**Version 7.1.0
+**Version 7.1.0**
 
 **Non-breaking with new features and bug fixes**
 
