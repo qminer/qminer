@@ -1984,6 +1984,10 @@ exports = {}; require.modules.qminer_analytics = exports;
     * Returns the posteriors
     * @returns {Object} - model
     */
+/**
+    * Returns the pruned directed acyclic graph
+    * @returns {Object} - dag
+    */
 
 
     ///////////////////////////////////////////////////

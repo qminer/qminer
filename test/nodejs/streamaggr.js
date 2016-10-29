@@ -209,7 +209,7 @@ describe('Stream Aggregator Tests', function () {
                     data = {};
                 };
                 this.init = function() {
-                    return data.Name != undefined;	
+                    return data.Name != undefined;
                 }
             });
             assert(!s.init);
@@ -235,7 +235,7 @@ describe('Stream Aggregator Tests', function () {
             assert.equal(restoredState.Name, 'John');
             assert.equal(restoredState.Gender, 'Male');
             fin.close();
-        });    	
+        });
         it('should register a Js extractor, which counts record.name string length', function () {
 
             var s = store.addStreamAggr(new function () {
@@ -387,7 +387,7 @@ describe('Stream Aggregator Tests', function () {
 
             aggr.reset();
             assert.equal(aggr.saveJson().val, 0);
-        })        
+        })
     });
     describe('OnUpdate Tests', function () {
         it('should execute the onUpdate function and return 1', function () {
@@ -1176,19 +1176,19 @@ describe('Time Series Window Buffer Vector Tests', function () {
 
     describe('Simple test', function () {
         it('winbufvec.getFloatVector should equal to winbuf.getFloatVector', function () {
-            var winbuf = store.addStreamAggr({                
-                type: 'timeSeriesWinBuf',                
+            var winbuf = store.addStreamAggr({
+                type: 'timeSeriesWinBuf',
                 timestamp: 'Time',
                 value: 'Value',
                 winsize: 2000
             });
-            var tick = store.addStreamAggr({                
-                type: 'timeSeriesTick',                
+            var tick = store.addStreamAggr({
+                type: 'timeSeriesTick',
                 timestamp: 'Time',
                 value: 'Value'
             });
-            var winbufvec = store.addStreamAggr({                
-                type: 'timeSeriesWinBufVector',                
+            var winbufvec = store.addStreamAggr({
+                type: 'timeSeriesWinBufVector',
                 inAggr: tick.name,
                 winsize: 2000
             });
@@ -1196,7 +1196,7 @@ describe('Time Series Window Buffer Vector Tests', function () {
             store.push({ Time: '2015-06-10T14:33:30.0', Value: 2 });
             store.push({ Time: '2015-06-10T14:33:31.0', Value: 3 });
             store.push({ Time: '2015-06-10T14:33:32.0', Value: 4 });
-            
+
             assert.equal(winbuf.getFloatLength(), winbufvec.getFloatLength());
             var vec = winbuf.getFloatVector();
             var vec2 = winbufvec.getFloatVector();
@@ -1299,7 +1299,7 @@ describe('MovingWindowBufferSum Tests', function () {
             assert.equal(suma.getFloat(), 9);
         })
     });
-    describe('Reset Tests', function () {        
+    describe('Reset Tests', function () {
         it('should sum up all the values except those, that are out of the window', function () {
             var aggr = {
                 name: 'SumaAggr',
@@ -1507,7 +1507,7 @@ describe('MovingWindowBufferMin Tests', function () {
         })
     });
 
-    describe('Reset Tests', function () {        
+    describe('Reset Tests', function () {
         it('should reset the buffer', function () {
             var aggr = {
                 name: 'MinAggr',
@@ -1704,7 +1704,7 @@ describe('MovingWindowBufferMax Tests', function () {
     });
 
     describe('Reset Tests', function () {
-        
+
         it('should reset the window buffer', function () {
             var aggr = {
                 name: 'MaxAggr',
@@ -1895,7 +1895,7 @@ describe('MovingAverage Tests', function () {
         })
     });
 
-    describe('Reset Tests', function () {        
+    describe('Reset Tests', function () {
         it('should reset the window buffer', function () {
             var aggr = {
                 name: 'AverageAggr',
@@ -1919,7 +1919,7 @@ describe('MovingAverage Tests', function () {
             store.push({ Time: '2015-06-10T14:13:33.4', Value: 4 });
             store.push({ Time: '2015-06-10T14:13:35.4', Value: 5 });
             assert.equal(ma.getFloat(), 4.5);
-        })        
+        })
     });
 
     describe('GetTimestamp Tests', function () {
@@ -2241,11 +2241,11 @@ describe('TimeSeriesTick Tests', function () {
                 timestamp: 'Time',
                 value: 'Value',
             };
-            var tick = store.addStreamAggr(aggr);            
+            var tick = store.addStreamAggr(aggr);
             store.push({ Value: 1, Time: "2015-01-01" }, true);
             assert(tick.val.Val == 1);
             store.push({ Value: 2, Time: "2015-01-01" }, false);
-            assert(tick.val.Val == 1);            
+            assert(tick.val.Val == 1);
         });
         it('should be updated when we call store.triggerOnAddCallbacks()', function () {
             var aggr = {
@@ -3505,7 +3505,7 @@ describe('Resampler Tests', function () {
 describe('New resampler tests', function () {
     var base = undefined;
     var store = undefined;
-    
+
     function assertUpdateSequence(recValArr, updatesArr, store, aggr) {
         var recJsonArr = [];
         for (var i = 0; i < recValArr.length; i++) {
@@ -3516,9 +3516,9 @@ describe('New resampler tests', function () {
         for (var i = 0; i < recValArr.length; i++) {
             store.push(recJsonArr[i]);
             assert.equal(aggr.saveJson().val, updatesArr[i]);
-        }    
+        }
     }
-    
+
     beforeEach(function () {
         base = new qm.Base({
             mode: 'createClean',
@@ -3535,7 +3535,7 @@ describe('New resampler tests', function () {
     afterEach(function () {
         base.close();
     });
-    
+
     describe('General tests', function () {
         it('should create a new resampler aggregator', function () {
             var raw = new qm.StreamAggr(base, {
@@ -3848,7 +3848,7 @@ describe('Nearest Neighbor Anomaly Detection Tests', function () {
     });
 
     describe('Constructor Tests', function () {
-        it('should create a new anomaly aggregator', function () {
+        it('should create a new NN Anomaly Detection aggregator', function () {
             var aggr = {
                 name: 'AnomalyDetectorAggr',
                 type: 'nnAnomalyDetector',
@@ -3873,7 +3873,7 @@ describe('Nearest Neighbor Anomaly Detection Tests', function () {
             })
         })
     });
-    describe('Pass data through the Anomaly Detection aggregator', function () {
+    describe('Pass data through the NN Anomaly Detection aggregator', function () {
         it('should get the severity of the alarm', function () {
             var aggr = {
                 name: 'AnomalyDetectorAggr',
@@ -3916,7 +3916,31 @@ describe('Nearest Neighbor Anomaly Detection Tests', function () {
             assert(!anomaly.saveJson().explanation.distance);
         })
     });
-    describe('Save and load tests', function () {
+    describe('Save and load tests for NN Anomaly Detection aggregator', function () {
+        it('should save and load the anomaly aggregator', function () {
+            var aggr = {
+                name: 'AnomalyDetectorAggr',
+                type: 'nnAnomalyDetector',
+                inAggrSpV: 'ftrSpaceAggr',
+                inAggrTm: 'tickAggr',
+                rate: [0.15, 0.5, 0.7],
+                windowSize: 2
+            };
+            var anomaly = base.store('Cars').addStreamAggr(aggr);
+
+            assert(!anomaly.init);
+            assert.equal(anomaly.getInteger(), 0);
+
+            var fs = require('qminer').fs;
+            var fout = new fs.FOut("./anomaly.bin");
+            anomaly.save(fout);
+            fout.close();
+            var fin = new fs.FIn("./anomaly.bin");
+            anomaly.load(fin);
+
+            assert(!anomaly.init);
+            assert.equal(anomaly.getInteger(), 0);
+        })
         it('should save and load the anomaly aggregator', function () {
             var aggr = {
                 name: 'AnomalyDetectorAggr',
@@ -3936,16 +3960,16 @@ describe('Nearest Neighbor Anomaly Detection Tests', function () {
             assert.equal(anomaly.getInteger(), 3);
 
             var fs = require('qminer').fs;
-            var fout = new fs.FOut("./anomaly.txt");
+            var fout = new fs.FOut("./anomaly.bin");
             anomaly.save(fout);
             fout.close();
-            var fin = new fs.FIn("./anomaly.txt");
+            var fin = new fs.FIn("./anomaly.bin");
             anomaly.load(fin);
 
             assert.equal(anomaly.getInteger(), 3);
         })
     });
-    describe('Reset the Anomaly Detection aggregator', function () {
+    describe('Reset the NN Anomaly Detection aggregator', function () {
         it('should reset the anomaly aggregator', function () {
             var aggr = {
                 name: 'AnomalyDetectorAggr',
@@ -3964,7 +3988,7 @@ describe('Nearest Neighbor Anomaly Detection Tests', function () {
 
             assert.equal(anomaly.getInteger(), 3);
             assert.equal(anomaly.saveJson().severity, 3);
-            
+
             store.resetStreamAggregates();
             assert.equal(anomaly.getInteger(), 0);
             assert.equal(anomaly.saveJson().severity, 0);
@@ -4214,10 +4238,10 @@ describe('TDigest test', function () {
     var base = undefined;
     var store = undefined;
     var td = undefined;
-    
+
     beforeEach(function () {
         // create a base with a simple store
-        // the store records results of throwing two independent fair dices        
+        // the store records results of throwing two independent fair dices
         base = new qm.Base({
             mode: "createClean",
             schema: [
@@ -4257,21 +4281,21 @@ describe('TDigest test', function () {
                 quantiles: [0.9, 0.95, 0.99, 0.999]
             }
             td = store.addStreamAggr(aggr);
-            
+
             // add some values
-            store.push({ Time: '2015-12-01T14:11:32.0', Value: 0.9948628368 }); 
+            store.push({ Time: '2015-12-01T14:11:32.0', Value: 0.9948628368 });
             store.push({ Time: '2015-12-01T14:16:32.0', Value: 0.1077458826 });
             store.push({ Time: '2015-12-01T14:14:32.0', Value: 0.9855685823 });
             store.push({ Time: '2015-12-01T14:15:32.0', Value: 0.7796449082 });
             store.push({ Time: '2015-12-01T14:18:32.0', Value: 0.0844943286 });
             store.push({ Time: '2015-12-01T14:19:32.0', Value: 0.187490856 });
-            store.push({ Time: '2015-12-01T14:12:32.0', Value: 0.0779815107 }); 
+            store.push({ Time: '2015-12-01T14:12:32.0', Value: 0.0779815107 });
             store.push({ Time: '2015-12-01T14:17:32.0', Value: 0.8945312691 });
-            store.push({ Time: '2015-12-01T14:13:32.0', Value: 0.5574567409 }); 
-            store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.1929709807 });      
+            store.push({ Time: '2015-12-01T14:13:32.0', Value: 0.5574567409 });
+            store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.1929709807 });
         });
     });
-    describe('Datalib output test', function () {	
+    describe('Datalib output test', function () {
         it('should test t-digest precision is within 10%', function () {
             // add TDigest stream aggregator
             var aggr = {
@@ -4282,7 +4306,7 @@ describe('TDigest test', function () {
                 quantiles: [0.90, 0.95, 0.99, 0.999],
                 minCount: 5
             }
-            
+
             td = store.addStreamAggr(aggr);
             store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.9948628368 });
             store.push({ Time: '2015-12-01T14:20:33.0', Value: 0.1077458826 });
@@ -4295,14 +4319,14 @@ describe('TDigest test', function () {
             store.push({ Time: '2015-12-01T14:20:38.0', Value: 0.0779815107 });
             store.push({ Time: '2015-12-01T14:20:39.0', Value: 0.8945312691 });
             store.push({ Time: '2015-12-01T14:20:40.0', Value: 0.5574567409 });
-          
+
             var result = td.getFloatVector();
-            
+
             assert(result[0] >= 0.8012572567 && result[0] <= 0.9987427433);
             assert(result[1] >= 0.8568245395 && result[1] <= 1.0);
             assert(result[2] >= 0.8905106194 && result[2] <= 1.0);
             assert(result[3] >= 0.8992346849 && result[3] <= 1.0);
-        });					
+        });
         it('should test t-digest with nodejs datalib output', function () {
             // add TDigest stream aggregator
             var aggr = {
@@ -4312,9 +4336,9 @@ describe('TDigest test', function () {
                 inAggr: 'TickAggr',
                 quantiles: [0.90, 0.95, 0.99, 0.999]
             }
-            
+
             td = store.addStreamAggr(aggr);
-            
+
             // add values
             store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.9948628368});
             store.push({ Time: '2015-12-01T14:20:33.0', Value: 0.1077458826});
@@ -4340,9 +4364,9 @@ describe('TDigest test', function () {
             store.push({ Time: '2015-12-01T14:20:53.0', Value: 0.5717752152});
             store.push({ Time: '2015-12-01T14:20:54.0', Value: 0.7872615189});
             store.push({ Time: '2015-12-01T14:20:55.0', Value: 0.9502113182});
-            
+
             var result = td.getFloatVector();
-            
+
             assert.equal(result[0], 0.9822256766499999);
             assert.equal(result[1], 0.99517217467);
             assert.equal(result[2], 0.997588116104);
@@ -4359,19 +4383,19 @@ describe('TDigest test', function () {
                 inAggr: 'TickAggr',
                 quantiles: [0.90, 0.95, 0.99, 0.999]
             }
-            
+
             td = store.addStreamAggr(aggr);
-            
+
             function getRnd(min, max) {
                 return Math.random() * (max - min) + min;
             }
-        
+
             for (var i=1; i<=10000; i++) {
                 store.push({ Time: '2015-12-01T14:20:32.0', Value: getRnd(0,1) });
             }
-            
+
             var result = td.getFloatVector();
-          
+
             assert(result[0] > 0.8 && result[0] < 1);
             assert(result[1] > 0.8 && result[1] < 1);
             assert(result[2] > 0.8 && result[2] < 1);
@@ -4386,13 +4410,13 @@ describe('TDigest test', function () {
                 inAggr: 'TickAggr',
                 quantiles: [0.90, 0.95, 0.99, 0.999]
             }
-            
+
             td = store.addStreamAggr(aggr);
 
             for (var i=1; i<=10000; i++) {
                 store.push({ Time: '2015-12-01T14:20:32.0', Value: i });
             }
-          
+
             var result = td.getFloatVector();
             assert(result[0] > 9000.0 && result[0] < 10000.0);
             assert(result[1] > 9000.0 && result[1] < 10000.0);
@@ -4400,7 +4424,7 @@ describe('TDigest test', function () {
             assert(result[3] > 9900.0 && result[3] < 10000.0);
         });
     });
-    describe('Save and load test', function () {	
+    describe('Save and load test', function () {
         it('should test t-digest save and load', function () {
             // add TDigest stream aggregator
             var aggr = {
@@ -4410,9 +4434,9 @@ describe('TDigest test', function () {
                 inAggr: 'TickAggr',
                 quantiles: [0.90, 0.95, 0.99, 0.999]
             }
-            
+
             td = store.addStreamAggr(aggr);
-        
+
             store.push({ Time: '2015-12-01T14:20:32.0', Value: 0.9948628368 });
             store.push({ Time: '2015-12-01T14:20:33.0', Value: 0.1077458826 });
             store.push({ Time: '2015-12-01T14:20:34.0', Value: 0.9855685823 });
@@ -4422,13 +4446,13 @@ describe('TDigest test', function () {
             store.push({ Time: '2015-12-01T14:20:38.0', Value: 0.0779815107 });
             store.push({ Time: '2015-12-01T14:20:39.0', Value: 0.8945312691 });
             store.push({ Time: '2015-12-01T14:20:40.0', Value: 0.5574567409 });
-          
+
             var result = td.getFloatVector();
-            
+
             var fout = qm.fs.openWrite("aggr.tmp");
             td.save(fout);
             fout.close();
-        
+
             var aggrNew = {
                 name: 'TDigestNew',
                 type: 'tdigest',
@@ -4436,15 +4460,15 @@ describe('TDigest test', function () {
                 inAggr: 'TickAggr',
                 quantiles: [0.90, 0.95, 0.99, 0.999]
             }
-            
+
             var td1 = store.addStreamAggr(aggrNew);
-            
+
             var fin = qm.fs.openRead("aggr.tmp");
             td1.load(fin);
             fin.close();
-            
+
             var result1 = td1.getFloatVector();
-                
+
             assert.equal(result[0], result1[0]);
             assert.equal(result[1], result1[1]);
             assert.equal(result[2], result1[2]);
@@ -4460,7 +4484,7 @@ describe('ChiSquare Tests', function () {
     var hist2 = undefined;
     beforeEach(function () {
         // create a base with a simple store
-        // the store records results of throwing two independent fair dices        
+        // the store records results of throwing two independent fair dices
         base = new qm.Base({
             mode: "createClean",
             schema: [
@@ -4549,25 +4573,25 @@ describe('ChiSquare Tests', function () {
         var chi = store.addStreamAggr(aggr);
 
         // add some values (throwing a pair of dice)
-        store.push({ Time: '2015-06-10T14:13:30.0', Sample1: 2 , Sample2: 4 }); 
-        store.push({ Time: '2015-06-10T14:13:31.0', Sample1: 2 , Sample2: 5 }); 
-        store.push({ Time: '2015-06-10T14:13:32.0', Sample1: 2 , Sample2: 2 }); 
-        store.push({ Time: '2015-06-10T14:13:33.0', Sample1: 2 , Sample2: 2 }); 
-        store.push({ Time: '2015-06-10T14:13:34.0', Sample1: 6 , Sample2: 2 }); 
-        store.push({ Time: '2015-06-10T14:13:35.0', Sample1: 3 , Sample2: 5 }); 
-        store.push({ Time: '2015-06-10T14:13:41.0', Sample1: 2 , Sample2: 3 }); 
-        store.push({ Time: '2015-06-10T14:13:41.0', Sample1: 6 , Sample2: 6 }); 
-        store.push({ Time: '2015-06-10T14:13:42.0', Sample1: 5 , Sample2: 1 }); 
-        store.push({ Time: '2015-06-10T14:13:43.0', Sample1: 2 , Sample2: 3 }); 
-        store.push({ Time: '2015-06-10T14:13:44.0', Sample1: 1 , Sample2: 4 }); 
-        store.push({ Time: '2015-06-10T14:13:45.0', Sample1: 3 , Sample2: 2 }); 
-        store.push({ Time: '2015-06-10T14:13:50.0', Sample1: 6 , Sample2: 4 }); 
-        store.push({ Time: '2015-06-10T14:13:51.0', Sample1: 3 , Sample2: 1 }); 
-        store.push({ Time: '2015-06-10T14:13:52.0', Sample1: 4 , Sample2: 1 }); 
-        store.push({ Time: '2015-06-10T14:13:53.0', Sample1: 5 , Sample2: 1 }); 
-        store.push({ Time: '2015-06-10T14:13:54.0', Sample1: 5 , Sample2: 3 }); 
+        store.push({ Time: '2015-06-10T14:13:30.0', Sample1: 2 , Sample2: 4 });
+        store.push({ Time: '2015-06-10T14:13:31.0', Sample1: 2 , Sample2: 5 });
+        store.push({ Time: '2015-06-10T14:13:32.0', Sample1: 2 , Sample2: 2 });
+        store.push({ Time: '2015-06-10T14:13:33.0', Sample1: 2 , Sample2: 2 });
+        store.push({ Time: '2015-06-10T14:13:34.0', Sample1: 6 , Sample2: 2 });
+        store.push({ Time: '2015-06-10T14:13:35.0', Sample1: 3 , Sample2: 5 });
+        store.push({ Time: '2015-06-10T14:13:41.0', Sample1: 2 , Sample2: 3 });
+        store.push({ Time: '2015-06-10T14:13:41.0', Sample1: 6 , Sample2: 6 });
+        store.push({ Time: '2015-06-10T14:13:42.0', Sample1: 5 , Sample2: 1 });
+        store.push({ Time: '2015-06-10T14:13:43.0', Sample1: 2 , Sample2: 3 });
+        store.push({ Time: '2015-06-10T14:13:44.0', Sample1: 1 , Sample2: 4 });
+        store.push({ Time: '2015-06-10T14:13:45.0', Sample1: 3 , Sample2: 2 });
+        store.push({ Time: '2015-06-10T14:13:50.0', Sample1: 6 , Sample2: 4 });
+        store.push({ Time: '2015-06-10T14:13:51.0', Sample1: 3 , Sample2: 1 });
+        store.push({ Time: '2015-06-10T14:13:52.0', Sample1: 4 , Sample2: 1 });
+        store.push({ Time: '2015-06-10T14:13:53.0', Sample1: 5 , Sample2: 1 });
+        store.push({ Time: '2015-06-10T14:13:54.0', Sample1: 5 , Sample2: 3 });
         store.push({ Time: '2015-06-10T14:13:55.0', Sample1: 4 , Sample2: 1 });
-        
+
         assert(Math.abs(chi.getFloat() - 4.4666) < 0.001);
         // todo assert correct result
     });
@@ -4605,15 +4629,15 @@ describe('ChiSquare Tests', function () {
         store.push({ Time: '2015-06-10T14:13:53.0', Sample1: 5, Sample2: 1 });
         store.push({ Time: '2015-06-10T14:13:54.0', Sample1: 5, Sample2: 3 });
         store.push({ Time: '2015-06-10T14:13:55.0', Sample1: 4, Sample2: 1 });
-        
+
         var endVal = chi.getFloat();
 
         var fout = qm.fs.openWrite("aggr.tmp");
         chi.save(fout);
         fout.close();
-        
-        store.resetStreamAggregates();       
-        
+
+        store.resetStreamAggregates();
+
         var fin = qm.fs.openRead("aggr.tmp");
         chi.load(fin);
         fin.close();
@@ -4632,7 +4656,7 @@ describe('ChiSquare Tests - sfloat', function () {
     var hist2 = undefined;
     beforeEach(function () {
         // create a base with a simple store
-        // the store records results of throwing two independent fair dices        
+        // the store records results of throwing two independent fair dices
         base = new qm.Base({
             mode: "createClean",
             schema: [
@@ -4721,25 +4745,25 @@ describe('ChiSquare Tests - sfloat', function () {
         var chi = store.addStreamAggr(aggr);
 
         // add some values (throwing a pair of dice)
-        store.push({ Time: '2015-06-10T14:13:30.0', Sample1: 2 , Sample2: 4 }); 
-        store.push({ Time: '2015-06-10T14:13:31.0', Sample1: 2 , Sample2: 5 }); 
-        store.push({ Time: '2015-06-10T14:13:32.0', Sample1: 2 , Sample2: 2 }); 
-        store.push({ Time: '2015-06-10T14:13:33.0', Sample1: 2 , Sample2: 2 }); 
-        store.push({ Time: '2015-06-10T14:13:34.0', Sample1: 6 , Sample2: 2 }); 
-        store.push({ Time: '2015-06-10T14:13:35.0', Sample1: 3 , Sample2: 5 }); 
-        store.push({ Time: '2015-06-10T14:13:41.0', Sample1: 2 , Sample2: 3 }); 
-        store.push({ Time: '2015-06-10T14:13:41.0', Sample1: 6 , Sample2: 6 }); 
-        store.push({ Time: '2015-06-10T14:13:42.0', Sample1: 5 , Sample2: 1 }); 
-        store.push({ Time: '2015-06-10T14:13:43.0', Sample1: 2 , Sample2: 3 }); 
-        store.push({ Time: '2015-06-10T14:13:44.0', Sample1: 1 , Sample2: 4 }); 
-        store.push({ Time: '2015-06-10T14:13:45.0', Sample1: 3 , Sample2: 2 }); 
-        store.push({ Time: '2015-06-10T14:13:50.0', Sample1: 6 , Sample2: 4 }); 
-        store.push({ Time: '2015-06-10T14:13:51.0', Sample1: 3 , Sample2: 1 }); 
-        store.push({ Time: '2015-06-10T14:13:52.0', Sample1: 4 , Sample2: 1 }); 
-        store.push({ Time: '2015-06-10T14:13:53.0', Sample1: 5 , Sample2: 1 }); 
-        store.push({ Time: '2015-06-10T14:13:54.0', Sample1: 5 , Sample2: 3 }); 
+        store.push({ Time: '2015-06-10T14:13:30.0', Sample1: 2 , Sample2: 4 });
+        store.push({ Time: '2015-06-10T14:13:31.0', Sample1: 2 , Sample2: 5 });
+        store.push({ Time: '2015-06-10T14:13:32.0', Sample1: 2 , Sample2: 2 });
+        store.push({ Time: '2015-06-10T14:13:33.0', Sample1: 2 , Sample2: 2 });
+        store.push({ Time: '2015-06-10T14:13:34.0', Sample1: 6 , Sample2: 2 });
+        store.push({ Time: '2015-06-10T14:13:35.0', Sample1: 3 , Sample2: 5 });
+        store.push({ Time: '2015-06-10T14:13:41.0', Sample1: 2 , Sample2: 3 });
+        store.push({ Time: '2015-06-10T14:13:41.0', Sample1: 6 , Sample2: 6 });
+        store.push({ Time: '2015-06-10T14:13:42.0', Sample1: 5 , Sample2: 1 });
+        store.push({ Time: '2015-06-10T14:13:43.0', Sample1: 2 , Sample2: 3 });
+        store.push({ Time: '2015-06-10T14:13:44.0', Sample1: 1 , Sample2: 4 });
+        store.push({ Time: '2015-06-10T14:13:45.0', Sample1: 3 , Sample2: 2 });
+        store.push({ Time: '2015-06-10T14:13:50.0', Sample1: 6 , Sample2: 4 });
+        store.push({ Time: '2015-06-10T14:13:51.0', Sample1: 3 , Sample2: 1 });
+        store.push({ Time: '2015-06-10T14:13:52.0', Sample1: 4 , Sample2: 1 });
+        store.push({ Time: '2015-06-10T14:13:53.0', Sample1: 5 , Sample2: 1 });
+        store.push({ Time: '2015-06-10T14:13:54.0', Sample1: 5 , Sample2: 3 });
         store.push({ Time: '2015-06-10T14:13:55.0', Sample1: 4 , Sample2: 1 });
-        
+
         assert(Math.abs(chi.getFloat() - 4.4666) < 0.001);
         // todo assert correct result
     });
@@ -4777,15 +4801,15 @@ describe('ChiSquare Tests - sfloat', function () {
         store.push({ Time: '2015-06-10T14:13:53.0', Sample1: 5, Sample2: 1 });
         store.push({ Time: '2015-06-10T14:13:54.0', Sample1: 5, Sample2: 3 });
         store.push({ Time: '2015-06-10T14:13:55.0', Sample1: 4, Sample2: 1 });
-        
+
         var endVal = chi.getFloat();
 
         var fout = qm.fs.openWrite("aggr.tmp");
         chi.save(fout);
         fout.close();
-        
-        store.resetStreamAggregates();       
-        
+
+        store.resetStreamAggregates();
+
         var fin = qm.fs.openRead("aggr.tmp");
         chi.load(fin);
         fin.close();
@@ -4799,7 +4823,7 @@ describe('ChiSquare Tests - sfloat', function () {
 describe('Stream aggregate set tests', function () {
     var base = undefined;
     var store = undefined;
-    
+
     beforeEach(function () {
         // create a base with a simple store
         base = new qm.Base({
@@ -4809,7 +4833,7 @@ describe('Stream aggregate set tests', function () {
                 name: "Test",
                 fields: [
                     { "name": "Value", "type": "float" },
-                    { "name": "Date", "type": "datetime" }        
+                    { "name": "Date", "type": "datetime" }
                 ]
             }]
         });
@@ -4823,7 +4847,7 @@ describe('Stream aggregate set tests', function () {
         var tick = new qm.StreamAggr(base, { type: "timeSeriesWinBuf", store: "Test", timestamp: "Date", value: "Value", winsize: 5000 });
         var ma = new qm.StreamAggr(base, { type: "ma", inAggr: tick.name });
         var set = store.addStreamAggr({ type: "set", aggregates: [tick.name, ma.name] });
-        
+
         assert.throws(function () { store.addStreamAggr({ type: "set", aggregates: [ { a: 1 } ] }); });
         assert.throws(function () { store.addStreamAggr({ type: "set", aggregates: [ store ] }); });
 
@@ -4835,12 +4859,12 @@ describe('Stream aggregate set tests', function () {
         store.push({ Value: 3, Date: new Date(time + 3000).toISOString() });
         assert.equal(ma.getFloat(), 2);
     });
-    
+
     it('Creating simple MA pipeline (by reference)', function () {
         var tick = new qm.StreamAggr(base, { type: "timeSeriesWinBuf", store: "Test", timestamp: "Date", value: "Value", winsize: 5000 });
         var ma = new qm.StreamAggr(base, { type: "ma", inAggr: tick });
         var set = store.addStreamAggr({ type: "set", aggregates: [tick, ma] });
-        
+
         assert.throws(function () { store.addStreamAggr({ type: "set", aggregates: [ { a: 1 } ] }); });
         assert.throws(function () { store.addStreamAggr({ type: "set", aggregates: [ store ] }); });
 
@@ -4852,12 +4876,12 @@ describe('Stream aggregate set tests', function () {
         store.push({ Value: 3, Date: new Date(time + 3000).toISOString() });
         assert.equal(ma.getFloat(), 2);
     });
-    
+
     it('Creating simple MA pipeline (combination of name and reference)', function () {
         var tick = new qm.StreamAggr(base, { type: "timeSeriesWinBuf", store: "Test", timestamp: "Date", value: "Value", winsize: 5000 });
         var ma = new qm.StreamAggr(base, { type: "ma", inAggr: tick });
         var set = store.addStreamAggr({ type: "set", aggregates: [tick, ma] });
-        
+
         assert.throws(function () { store.addStreamAggr({ type: "set", aggregates: [ { a: 1 } ] }); });
         assert.throws(function () { store.addStreamAggr({ type: "set", aggregates: [ store ] }); });
 
@@ -4874,7 +4898,7 @@ describe('Stream aggregate set tests', function () {
 describe('Online histogram tests', function () {
     var base = undefined;
     var store = undefined;
-    
+
     beforeEach(function () {
         // create a base with a simple store
         base = new qm.Base({
@@ -4895,7 +4919,7 @@ describe('Online histogram tests', function () {
     });
 
     it('Tests online histogram increment/decrement', function () {
-            
+
         var winbuf = store.addStreamAggr({
             type: 'timeSeriesWinBuf',
             timestamp: 'Time',

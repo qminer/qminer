@@ -73,7 +73,7 @@ void TZipIn::FillBf(){
   BfC = 0;
 }
 
-TZipIn::TZipIn(const TStr& FNm) : TSBase(FNm.CStr()), TSIn(FNm), ZipStdoutRd(NULL), ZipStdoutWr(NULL),
+TZipIn::TZipIn(const TStr& FNm) : TSBase(), TSIn(), ZipStdoutRd(NULL), ZipStdoutWr(NULL), SNm(FNm.CStr()),
   FLen(0), CurFPos(0), Bf(NULL), BfC(0), BfL(0) {
   EAssertR(! FNm.Empty(), "Empty file-name.");
   EAssertR(TFile::Exists(FNm), TStr::Fmt("File %s does not exist", FNm.CStr()).CStr());
@@ -106,7 +106,7 @@ TZipIn::TZipIn(const TStr& FNm) : TSBase(FNm.CStr()), TSIn(FNm), ZipStdoutRd(NUL
   FillBf();
 }
 
-TZipIn::TZipIn(const TStr& FNm, bool& OpenedP) : TSBase(FNm.CStr()), TSIn(FNm), ZipStdoutRd(NULL), ZipStdoutWr(NULL),
+TZipIn::TZipIn(const TStr& FNm, bool& OpenedP) : TSBase(), TSIn(), ZipStdoutRd(NULL), ZipStdoutWr(NULL), SNm(FNm.CStr()),
   FLen(0), CurFPos(0), Bf(NULL), BfC(0), BfL(0) {
   EAssertR(! FNm.Empty(), "Empty file-name.");
   FLen = TZipIn::GetFLen(FNm);
@@ -351,7 +351,7 @@ void TZipOut::CreateZipProcess(const TStr& Cmd, const TStr& ZipFNm) {
   #endif
 }
 
-TZipOut::TZipOut(const TStr& FNm) : TSBase(FNm.CStr()), TSOut(FNm), ZipStdinRd(NULL), ZipStdinWr(NULL), Bf(NULL), BfL(0){
+TZipOut::TZipOut(const TStr& FNm) : TSBase(), TSOut(), ZipStdinRd(NULL), ZipStdinWr(NULL), SNm(FNm.CStr()), Bf(NULL), BfL(0){
   EAssertR(! FNm.Empty(), "Empty file-name.");
   #ifdef GLib_WIN
   // create pipes

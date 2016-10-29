@@ -31,6 +31,7 @@ private:
   #else 
     FILE* ZipStdoutRd, *ZipStdoutWr;
   #endif
+  TSStr SNm;
   uint64 FLen, CurFPos;
   char* Bf;
   int BfC, BfL;
@@ -69,6 +70,8 @@ public:
   /// Return the uncompressed size (in bytes) of the compressed file ZipFNm.
   static uint64 GetFLen(const TStr& ZipFNm);
   static PSIn NewIfZip(const TStr& FNm) { return IsZipFNm(FNm) ? New(FNm) : TFIn::New(FNm); }
+
+  TStr GetSNm() const { return SNm; }
 };
 
 //#//////////////////////////////////////////////
@@ -88,6 +91,7 @@ private:
   #else 
     FILE *ZipStdinRd, *ZipStdinWr;
   #endif
+  TSStr SNm;
   char* Bf;
   TSize BfL;
 private:
@@ -114,6 +118,8 @@ public:
   /// Return a command-line string that is executed in order to decompress a file to standard output. 
   static TStr GetCmd(const TStr& ZipFNm);
   static PSOut NewIfZip(const TStr& FNm) { return IsZipFNm(FNm) ? New(FNm) : TFOut::New(FNm); }
+
+  TStr GetSNm() const { return SNm; }
 };
 
 #endif
