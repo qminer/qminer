@@ -9,7 +9,7 @@
 #include "qminer_core.h"
 #include "qminer_ftr.h"
 #include "qminer_aggr.h"
-#include "geospatial_aggr.h"
+//#include "geospatial_aggr.h"
 
 namespace TQm {
 
@@ -135,6 +135,24 @@ void TNmValidator::AssertValidNm(const TStr& NmStr) const {
 
 void TNmValidator::SetStrictNmP(const bool& _StrictNmP) {
     StrictNmP = _StrictNmP;
+}
+
+///////////////////////////////
+// Store window description
+TStr TStoreWndDesc::SysInsertedAtFieldName = "_sys_inserted_at";
+
+void TStoreWndDesc::Save(TSOut& SOut) const {
+    TInt(WindowType).Save(SOut);
+    WindowSize.Save(SOut);
+    InsertP.Save(SOut);
+    TimeFieldNm.Save(SOut);
+}
+
+void TStoreWndDesc::Load(TSIn& SIn) {
+    WindowType = TStoreWndType(TInt(SIn).Val);
+    WindowSize.Load(SIn);
+    InsertP.Load(SIn);
+    TimeFieldNm.Load(SIn);
 }
 
 ///////////////////////////////
@@ -3939,11 +3957,11 @@ PRecSet TRecSet::DoJoin(const TWPt<TBase>& Base, const int& JoinId, const int& S
         // do join using store field
         TUInt64H JoinRecIdFqH;
         const int JoinRecFieldId = JoinDesc.GetJoinRecFieldId();
+        const int JoinFqFieldId = JoinDesc.GetJoinFqFieldId();
         for (int RecN = 0; RecN < SampleRecs; RecN++) {
             const uint64 RecId = SampleRecIdKdV[RecN].Key;
             const uint64 JoinRecId = Store->GetFieldUInt64Safe(RecId, JoinRecFieldId);
             if (JoinRecId != TUInt64::Mx) {
-                const int JoinFqFieldId = JoinDesc.GetJoinFqFieldId();
                 int JoinRecFq = 1;
                 if (JoinFqFieldId >= 0) {
                     JoinRecFq = (int)Store->GetFieldInt64Safe(RecId, JoinFqFieldId);
@@ -6563,7 +6581,7 @@ void TStreamAggr::Init() {
     Register<TStreamAggrs::TWinBufSpVecSum>();
     Register<TStreamAggrs::THistogramAD>();
     // geospatial aggregates
-    Register<TStreamAggrs::TStayPointDetector>();
+    //Register<TStreamAggrs::TStayPointDetector>();
 }
 
 TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm): Base(_Base), AggrNm(_AggrNm) {
