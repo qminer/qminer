@@ -358,4 +358,15 @@ PJsonVal TGraphCascade::GetGraph() const {
     }
     return G;
 }
+
+PJsonVal TGraphCascade::GetOrder() const {
+    PJsonVal OrderArr = TJsonVal::NewArr();
+    int Len = NIdSweep.Len();
+    for (int NodeN = 0; NodeN < Len; NodeN++) {
+        TStr NodeNm = NodeIdNmH.GetDat(NIdSweep[NodeN]);
+        OrderArr->AddToArr(NodeNm);
+    }
+    return OrderArr;
+}
+
 }

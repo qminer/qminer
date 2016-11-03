@@ -2626,6 +2626,11 @@ public:
     * @returns {Object} - dag
     */
     JsDeclareFunction(getGraph);
+    /**
+    * Returns the topologically ordered node names
+    * @returns {Object} - nodeArr
+    */
+    JsDeclareFunction(getOrder);
 
 };
 
