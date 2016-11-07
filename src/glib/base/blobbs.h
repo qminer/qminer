@@ -174,7 +174,7 @@ public:
   int GetMxSegLen(const PFRnd& FBlobBs);
 
   static const TStr BlockLenVNm;
-  void GenBlockLenV(TIntV& BlockLenV);
+  static void GenBlockLenV(TIntV& BlockLenV);
   void PutBlockLenV(const PFRnd& FBlobBs, const TIntV& BlockLenV);
   void GetBlockLenV(const PFRnd& FBlobBs, TIntV& BlockLenV);
 
@@ -202,7 +202,7 @@ public:
     PSIn SIn=TStrIn::New(Str); return PutBlob(SIn);}
   virtual TBlobPt PutBlob(const TBlobPt& BlobPt, const PSIn& SIn)=0;
   virtual PSIn GetBlob(const TBlobPt& BlobPt)=0;
-  virtual void DelBlob(const TBlobPt& BlobPt)=0;
+  virtual int DelBlob(const TBlobPt& BlobPt)=0;
 
   virtual TBlobPt GetFirstBlobPt()=0;
   virtual TBlobPt FFirstBlobPt()=0;
@@ -246,7 +246,7 @@ public:
   TBlobPt PutBlob(const PSIn& SIn);
   TBlobPt PutBlob(const TBlobPt& BlobPt, const PSIn& SIn);
   PSIn GetBlob(const TBlobPt& BlobPt);
-  void DelBlob(const TBlobPt& BlobPt);
+  int DelBlob(const TBlobPt& BlobPt);
 
   TBlobPt GetFirstBlobPt(){return FirstBlobPt;}
   TBlobPt FFirstBlobPt();
@@ -266,7 +266,9 @@ private:
   int MxSegLen;
   TStr NrFPath, NrFMid;
   TBlobBsV SegV;
-  uint CurSegN;
+  TIntV BlockLenV;
+  // for each block size store the segment index that last had space to store the buffer of that size
+  THash<TInt, TUInt16> BlockSizeToSegH;
   static void GetNrFPathFMid(const TStr& BlobBsFNm, TStr& NrFPath, TStr& NrFMid);
   static TStr GetMainFNm(const TStr& NrFPath, const TStr& NrFMid);
   static TStr GetSegFNm(const TStr& NrFPath, const TStr& NrFMid, const int& SegN);
@@ -288,7 +290,7 @@ public:
   TBlobPt PutBlob(const PSIn& SIn);
   TBlobPt PutBlob(const TBlobPt& BlobPt, const PSIn& SIn);
   PSIn GetBlob(const TBlobPt& BlobPt);
-  void DelBlob(const TBlobPt& BlobPt);
+  int DelBlob(const TBlobPt& BlobPt);
 
   TBlobPt GetFirstBlobPt();
   TBlobPt FFirstBlobPt();
