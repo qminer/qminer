@@ -276,7 +276,6 @@ void TGraphCascade::ObserveNode(const TStr& NodeNm, const uint64& Time) {
 void TGraphCascade::ComputePosterior(const uint64& Time, const int& SampleSize) {
     // handle missing observations (a child was observed, but a parent was not)
     // store histograms or full samples?
-    // 100 percentiles ?
     int Nodes = Graph.GetNodes();
     for (int NodeN = 0; NodeN < Nodes; NodeN++) {
         int NodeId = NIdSweep[NodeN];
@@ -305,7 +304,7 @@ PJsonVal TGraphCascade::GetPosterior(const TStrV& NodeNmV, const TFltV& Quantile
         int Nodes = Graph.GetNodes();
         for (int NodeN = 0; NodeN < Nodes; NodeN++) {
             int NodeId = FullNodeIdV[NodeN];
-            if (Timestamps.IsKey(NodeId) && Sample.IsKey(NodeId) && !Sample.GetDat(NodeId).Empty()) {
+            if (Timestamps.IsKey(NodeId) && Sample.IsKey(NodeId) && !Sample.GetDat(NodeId).Empty() && Timestamps.GetDat(NodeId) == 0) {
                 NodeIdV.Add(NodeId);
             }
         }
@@ -314,7 +313,7 @@ PJsonVal TGraphCascade::GetPosterior(const TStrV& NodeNmV, const TFltV& Quantile
         for (int NodeN = 0; NodeN < Nodes; NodeN++) {
             if (!NodeNmIdH.IsKey(NodeNmV[NodeN])) { continue; }
             int NodeId = NodeNmIdH.GetDat(NodeNmV[NodeN]);
-            if (Timestamps.IsKey(NodeId) && Sample.IsKey(NodeId) && !Sample.GetDat(NodeId).Empty()) {
+            if (Timestamps.IsKey(NodeId) && Sample.IsKey(NodeId) && !Sample.GetDat(NodeId).Empty() && Timestamps.GetDat(NodeId) == 0) {
                 NodeIdV.Add(NodeId);
             }
         }
