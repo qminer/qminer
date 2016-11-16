@@ -595,7 +595,7 @@ int TMBlobBs::DelBlob(const TBlobPt& BlobPt){
   // remove the data. Obtain also the info about the blob size that was released
   int ReleasedSize = SegV[SegN]->DelBlob(BlobPt);
   // we released a certain chunk. Mark in the BlockSizeToSegH the index of the segment if lower than current
-  BlockSizeToSegH.AddDat(ReleasedSize) = MIN(SegN, BlockSizeToSegH.GetDatOrDef(ReleasedSize, 0));
+  BlockSizeToSegH.AddDat(ReleasedSize) = MIN(SegN, (int)BlockSizeToSegH.GetDatOrDef(ReleasedSize, 0));
   return ReleasedSize;
 }
 
