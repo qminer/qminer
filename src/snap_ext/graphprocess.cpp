@@ -343,4 +343,30 @@ PJsonVal TGraphCascade::GetPosterior(const TStrV& NodeNmV, const TFltV& Quantile
     }
     return Result;
 }
+
+PJsonVal TGraphCascade::GetGraph() const {
+    PJsonVal G = TJsonVal::NewObj();
+    for (TNGraph::TNodeI NI = Graph.BegNI(); NI < Graph.EndNI(); NI++) {
+        TStr NodeNm = NodeIdNmH.GetDat(NI.GetId());
+        PJsonVal ParentsArr = TJsonVal::NewArr();
+        int InDeg = NI.GetInDeg();
+        for (int ParentN = 0; ParentN < InDeg; ParentN++) {
+            TStr ParentNm = NodeIdNmH.GetDat(NI.GetInNId(ParentN));
+            ParentsArr->AddToArr(ParentNm);
+        }
+        G->AddToObj(NodeNm, ParentsArr);
+    }
+    return G;
+}
+
+PJsonVal TGraphCascade::GetOrder() const {
+    PJsonVal OrderArr = TJsonVal::NewArr();
+    int Len = NIdSweep.Len();
+    for (int NodeN = 0; NodeN < Len; NodeN++) {
+        TStr NodeNm = NodeIdNmH.GetDat(NIdSweep[NodeN]);
+        OrderArr->AddToArr(NodeNm);
+    }
+    return OrderArr;
+}
+
 }

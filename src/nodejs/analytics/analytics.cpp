@@ -3244,6 +3244,8 @@ void TNodeJsGraphCascade::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "observeNode", _observeNode);
     NODE_SET_PROTOTYPE_METHOD(tpl, "computePosterior", _computePosterior);
     NODE_SET_PROTOTYPE_METHOD(tpl, "getPosterior", _getPosterior);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "getGraph", _getGraph);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "getOrder", _getOrder);
 
     exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
 }
@@ -3288,7 +3290,7 @@ void TNodeJsGraphCascade::getPosterior(const v8::FunctionCallbackInfo<v8::Value>
 
     TNodeJsGraphCascade* JsGraphCascade = ObjectWrap::Unwrap<TNodeJsGraphCascade>(Args.Holder());
     PJsonVal ParamVal = TJsonVal::NewObj();
-    if (TNodeJsUtil::IsArgObj(Args, 0)) {
+    if (Args.Length() > 0 && TNodeJsUtil::IsArgObj(Args, 0)) {
         ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
     }
     TStrV NodeNmV;
@@ -3305,5 +3307,22 @@ void TNodeJsGraphCascade::getPosterior(const v8::FunctionCallbackInfo<v8::Value>
     }
     PJsonVal Posterior = JsGraphCascade->Model.GetPosterior(NodeNmV, QuantileV);
     Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, Posterior));
-    
+}
+
+void TNodeJsGraphCascade::getGraph(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsGraphCascade* JsGraphCascade = ObjectWrap::Unwrap<TNodeJsGraphCascade>(Args.Holder());
+    PJsonVal Graph = JsGraphCascade->Model.GetGraph();
+    Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, Graph));
+}
+
+void TNodeJsGraphCascade::getOrder(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsGraphCascade* JsGraphCascade = ObjectWrap::Unwrap<TNodeJsGraphCascade>(Args.Holder());
+    PJsonVal GraphArr = JsGraphCascade->Model.GetOrder();
+    Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, GraphArr));
 }

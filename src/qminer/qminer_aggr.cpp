@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -16,7 +16,7 @@
 namespace TQm {
 
 namespace TAggrs {
-    
+
 ///////////////////////////////
 // QMiner-Aggregator-Count
 TCount::TCount(const TWPt<TBase>& Base, const TStr& AggrNm,
@@ -26,7 +26,7 @@ TCount::TCount(const TWPt<TBase>& Base, const TStr& AggrNm,
     JoinPathStr = FtrExt->GetJoinSeq(RecSet->GetStoreId()).GetJoinPathStr(Base);
     // prepare field name
     FieldNm = FtrExt->GetNm();
-    // prepare 
+    // prepare
     const int Recs = RecSet->GetRecs();
     for (int RecN = 0; RecN < Recs; RecN++) {
         TStrV FtrValV; FtrExt->ExtractStrV(RecSet->GetRec(RecN), FtrValV);
@@ -37,7 +37,7 @@ TCount::TCount(const TWPt<TBase>& Base, const TStr& AggrNm,
     ValH.SortByDat(false);
 }
 
-TCount::TCount(const TWPt<TBase>& Base, const TStr& AggrNm, 
+TCount::TCount(const TWPt<TBase>& Base, const TStr& AggrNm,
         const PRecSet& RecSet, const int& KeyId): TAggr(Base, AggrNm) {
 
     // prepare key name
@@ -90,7 +90,7 @@ PAggr TCount::New(const TWPt<TBase>& Base, const TStr& AggrNm,
     }
 }
 
-PJsonVal TCount::SaveJson() const { 
+PJsonVal TCount::SaveJson() const {
     PJsonVal ResVal = TJsonVal::NewObj();
     ResVal->AddToObj("type", "count");
     ResVal->AddToObj("field", FieldNm);
@@ -144,7 +144,7 @@ THistogram::THistogram(const TWPt<TBase>& Base, const TStr& AggrNm,
         for (int FtrValN = 0; FtrValN < FtrValV.Len(); FtrValN++) {
             const double FtrVal = FtrValV[FtrValN].Val;
             Mom->Add(FtrVal); Sum += FtrVal;
-            Hist.Add(FtrValV[FtrValN], true); 
+            Hist.Add(FtrValV[FtrValN], true);
         }
     }
     Mom->Def();
@@ -171,7 +171,7 @@ PAggr THistogram::New(const TWPt<TBase>& Base, const TStr& AggrNm,
     return New(Base, AggrNm, RecSet, FtrExt, Buckets);
 }
 
-PJsonVal THistogram::SaveJson() const { 
+PJsonVal THistogram::SaveJson() const {
     PJsonVal ResVal = TJsonVal::NewObj();
     ResVal->AddToObj("type", "histogram");
     ResVal->AddToObj("field", FieldNm);
@@ -220,7 +220,7 @@ TBow::TBow(const TWPt<TBase>& Base, const TStr& AggrNm,
     // prepare documents
     BowDocBs = TBowDocBs::New();
     const TWPt<TStore>& RecStore = SampleRecSet->GetStore();
-    for (int RecN = 0; RecN < SampleRecSet->GetRecs(); RecN++) {        
+    for (int RecN = 0; RecN < SampleRecSet->GetRecs(); RecN++) {
         TStr DocNm = RecStore->GetRecNm(SampleRecSet->GetRecId(RecN));
         //TStr DocNm = TUInt64::GetStr(SampleRecSet->GetRecId(RecN));
         TStrV WdStrV; FtrExt->ExtractStrV(SampleRecSet->GetRec(RecN), WdStrV);
@@ -247,19 +247,19 @@ void TBow::ParseJson(const TWPt<TBase>& Base, const PRecSet& RecSet,
     SampleSize = TFlt::Round(JsonVal->GetObjNum("sample", 1000.0));
     // get the type of tokenizator
     const bool TokenizeP = JsonVal->GetObjBool("tokenize", true);
-    if (TokenizeP) {    
-        // read stemmer    
-        PStemmer Stemmer = JsonVal->IsObjKey("stemmer") ? 
+    if (TokenizeP) {
+        // read stemmer
+        PStemmer Stemmer = JsonVal->IsObjKey("stemmer") ?
             TStemmer::ParseJson(JsonVal->GetObjKey("stemmer"), true) :
             TStemmer::New(stmtNone, true);
         // read stop words (default is English)
-        PSwSet SwSet = JsonVal->IsObjKey("stopwords") ? 
+        PSwSet SwSet = JsonVal->IsObjKey("stopwords") ?
             TSwSet::ParseJson(JsonVal->GetObjKey("stopwords")) :
-            TSwSet::New(swstEn523); 
+            TSwSet::New(swstEn523);
         // tokenizor
         PTokenizer Tokenizer = TTokenizers::THtmlUnicode::New(SwSet, Stemmer);
         // prepare feature extractor
-        FtrExt = TFtrExts::TBagOfWords::New(Base, JoinSeq, 
+        FtrExt = TFtrExts::TBagOfWords::New(Base, JoinSeq,
             FieldId, TFtrExts::bowmConcat, Tokenizer);
     } else {
         FtrExt = TFtrExts::TMultinomial::New(Base, JoinSeq, FieldId);
@@ -304,7 +304,7 @@ PJsonVal TKeywords::SaveKWordSet(const PBowKWordSet& KWordSet) {
     return KeyWdsVal;
 }
 
-PJsonVal TKeywords::SaveJson() const { 
+PJsonVal TKeywords::SaveJson() const {
     PJsonVal ResVal = TJsonVal::NewObj();
     ResVal->AddToObj("type", "keywords");
     ResVal->AddToObj("keywords", SaveKWordSet(KWordSet));
@@ -319,7 +319,7 @@ TDocAtlas::TDocAtlas(const TWPt<TBase>& Base, const TStr& AggrNm,
             TBow(Base, AggrNm, RecSet, FtrExt, SampleSize) {
 
     // prepare visualization
-    PVizMap VizMap = TVizMapFactory::NewVizMap(BowDocBs, BowDocWgtBs, 
+    PVizMap VizMap = TVizMapFactory::NewVizMap(BowDocBs, BowDocWgtBs,
         BowDocBs, BowDocWgtBs, 300, 200, 0.8, TEnv::Logger);
     // generate images
     PVizMapContext VizMapContext = TVizMapContext::New(VizMap);
@@ -330,19 +330,19 @@ TDocAtlas::TDocAtlas(const TWPt<TBase>& Base, const TStr& AggrNm,
     if (!TDir::GenDir(TempFPath)) { TEnv::Logger->OnStatus("Error creating directory " + TempFPath); }
     // save small image
     TWfBmpGks SmallGks(500, 400);
-    VizMapContext->Paint(SmallGks.GetGks(), false, FontSize, 0, 
+    VizMapContext->Paint(SmallGks.GetGks(), false, FontSize, 0,
         1.0, -1, false, true, FontSize, false, -1, -1);
-    SmallFNm = TFile::GetUniqueFNm(TempFPath + "small.png"); 
+    SmallFNm = TFile::GetUniqueFNm(TempFPath + "small.png");
     SmallGks.SavePng(SmallFNm);
-    // save medium image    
+    // save medium image
     TWfBmpGks MediumGks(750, 600);
-    VizMapContext->Paint(MediumGks.GetGks(), false, FontSize, 0, 
+    VizMapContext->Paint(MediumGks.GetGks(), false, FontSize, 0,
         1.0, -1, false, true, FontSize, false, -1, -1);
     MidFNm = TFile::GetUniqueFNm(TempFPath + "medium.png");
     MediumGks.SavePng(MidFNm);
     // save large image
     TWfBmpGks LargeGks(1000, 800);
-    VizMapContext->Paint(LargeGks.GetGks(), false, FontSize, 0, 
+    VizMapContext->Paint(LargeGks.GetGks(), false, FontSize, 0,
         1.0, -1, false, true, FontSize, false, -1, -1);
     LargeFNm = TFile::GetUniqueFNm(TempFPath + "large.png");
     LargeGks.SavePng(LargeFNm);
@@ -360,7 +360,7 @@ PAggr TDocAtlas::New(const TWPt<TBase>& Base, const TStr& AggrNm,
     return New(Base, AggrNm, RecSet, FtrExt, SampleSize);
 }
 
-PJsonVal TDocAtlas::SaveJson() const { 
+PJsonVal TDocAtlas::SaveJson() const {
     PJsonVal ResVal = TJsonVal::NewObj();
     ResVal->AddToObj("type", "docatlas");
     ResVal->AddToObj("field", FieldNm);
@@ -411,14 +411,14 @@ TTimeLine::TTimeLine(const TWPt<TBase>& Base, const TStr& AggrNm,
     for (int RecN = 0; RecN < Recs; RecN++) {
         TTmV FtrValV; FtrExt->ExtractTmV(RecSet->GetRec(RecN), FtrValV);
         for (int FtrValN = 0; FtrValN < FtrValV.Len(); FtrValN++) {
-            const TTm& Tm = FtrValV[FtrValN]; 
+            const TTm& Tm = FtrValV[FtrValN];
             if (Tm.IsDef()) {
                 TSecTm SecTm(Tm); Count++;
                 TStr DateStr = Tm.GetWebLogDateStr();
                 AbsDateH.AddDat(DateStr)++;
                 MonthH.AddDat(SecTm.GetMonthNm())++;
                 DayOfWeekH.AddDat(SecTm.GetDayOfWeekNm())++;
-                if (0 <= Tm.GetHour() && Tm.GetHour() < 24) { 
+                if (0 <= Tm.GetHour() && Tm.GetHour() < 24) {
                     HourOfDayH[Tm.GetHour()]++; }
             }
         }
@@ -426,7 +426,7 @@ TTimeLine::TTimeLine(const TWPt<TBase>& Base, const TStr& AggrNm,
     AbsDateH.SortByKey(true);
 }
 
-PAggr TTimeLine::New(const TWPt<TBase>& Base, const TStr& AggrNm, 
+PAggr TTimeLine::New(const TWPt<TBase>& Base, const TStr& AggrNm,
         const PRecSet& RecSet, const PJsonVal& JsonVal) {
 
     // parse join
@@ -445,7 +445,7 @@ PAggr TTimeLine::New(const TWPt<TBase>& Base, const TStr& AggrNm,
     return New(Base, AggrNm, RecSet, FtrExt);
 }
 
-PJsonVal TTimeLine::SaveJson() const { 
+PJsonVal TTimeLine::SaveJson() const {
     PJsonVal ResVal = TJsonVal::NewObj();
     ResVal->AddToObj("type", "timeline");
     ResVal->AddToObj("field", FieldNm);
@@ -475,7 +475,7 @@ PJsonVal TTimeSpan::GetJsonList(const TUInt64H& DataH) const {
 }
 
 TTimeSpan::TTimeSpan(const TWPt<TBase>& Base, const TStr& AggrNm,
-    const PRecSet& RecSet, const PFtrExt& FtrExt, const uint64 _SlotLen) 
+    const PRecSet& RecSet, const PFtrExt& FtrExt, const uint64 _SlotLen)
     : TAggr(Base, AggrNm), SlotLen(_SlotLen) {
 
     // prepare join path string, if necessary
@@ -535,8 +535,8 @@ namespace TStreamAggrs {
 ///////////////////////////////
 // Record Id Buffer.
 void TRecBuffer::OnAddRec(const TRec& Rec) {
-    QmAssertR(Rec.IsByRef(), "TRecBuffer::OnAddRec supports records by ref only!"); 
-    QmAssertR(Rec.GetStoreId() == Store->GetStoreId(), "TRecBuffer::OnAddRec record store id mismatch"); 
+    QmAssertR(Rec.IsByRef(), "TRecBuffer::OnAddRec supports records by ref only!");
+    QmAssertR(Rec.GetStoreId() == Store->GetStoreId(), "TRecBuffer::OnAddRec record store id mismatch");
     Buffer.Update(Rec.GetRecId());
 }
 
@@ -545,7 +545,7 @@ TRecBuffer::TRecBuffer(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
     Store(Base->GetStoreByStoreNm(ParamVal->GetObjStr("store"))) { }
 
 PStreamAggr TRecBuffer::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
-    return new TRecBuffer(Base, ParamVal); 
+    return new TRecBuffer(Base, ParamVal);
 }
 
 void TRecBuffer::LoadState(TSIn& SIn) {
@@ -564,7 +564,7 @@ PJsonVal TRecBuffer::SaveJson(const int& Limit) const {
         const TRec& OldestRec = Store->GetRec(Buffer.GetOldest());
         const TRec& NewestRec = Store->GetRec(Buffer.GetNewest());
         JsonVal->AddToObj("oldest", OldestRec.GetJson(GetBase(), true, false, false, false, true));
-        JsonVal->AddToObj("newest", NewestRec.GetJson(GetBase(), true, false, false, false, true));    
+        JsonVal->AddToObj("newest", NewestRec.GetJson(GetBase(), true, false, false, false, true));
     }
     return JsonVal;
 }
@@ -585,9 +585,9 @@ void TTimeSeriesTick::OnStep() {
     throw TExcept::New("[TTimeSeriesTick] OnStep should have not been executed.");
 }
 
-TTimeSeriesTick::TTimeSeriesTick(const TWPt<TBase>& Base, const PJsonVal& ParamVal): 
+TTimeSeriesTick::TTimeSeriesTick(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
         TStreamAggr(Base, ParamVal) {
-        
+
     // get input store
     TStr StoreNm = ParamVal->GetObjStr("store");
     TWPt<TStore> Store = Base->GetStoreByStoreNm(StoreNm);
@@ -649,7 +649,7 @@ TFlt TWinBufFlt::GetRecVal(const uint64& RecId) const {
     return ValReader.GetFlt(TRec(Store, RecId));
 }
 
-TWinBufFlt::TWinBufFlt(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TWinBuf<TFlt>(Base, ParamVal) { 
+TWinBufFlt::TWinBufFlt(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TWinBuf<TFlt>(Base, ParamVal) {
     // parse out input and output fields
     TStr ValFieldNm = ParamVal->GetObjStr("value");
     int ValFieldId = Store->GetFieldId(ValFieldNm);
@@ -686,7 +686,7 @@ void TWinBufFtrSpVec::RecUpdate(const uint64& RecId) const {
 
 TWinBufFtrSpVec::TWinBufFtrSpVec(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
         TWinBuf<TIntFltKdV>(Base, ParamVal) {
-    
+
     PJsonVal FtrSpaceParam = ParamVal->GetObjKey("featureSpace");
     FtrSpace = TFtrSpace::New(Store->GetBase(), FtrSpaceParam);
 }
@@ -726,7 +726,7 @@ void TEma::LoadState(TSIn& SIn) {
 }
 
 void TEma::SaveState(TSOut& SOut) const {
-    Ema.Save(SOut); 
+    Ema.Save(SOut);
 }
 
 PJsonVal TEma::SaveJson(const int& Limit) const {
@@ -856,7 +856,7 @@ PStreamAggr TCov::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
 }
 
 void TCov::GetInAggrNmV(TStrV& InAggrNmV) const {
-    InAggrNmV.Add(InAggrX->GetAggrNm()); 
+    InAggrNmV.Add(InAggrX->GetAggrNm());
     InAggrNmV.Add(InAggrY->GetAggrNm());
 }
 
@@ -913,7 +913,7 @@ bool TCorr::IsInit() const {
 }
 
 void TCorr::GetInAggrNmV(TStrV& InAggrNmV) const {
-    InAggrNmV.Add(InAggrCov->GetAggrNm()); 
+    InAggrNmV.Add(InAggrCov->GetAggrNm());
     InAggrNmV.Add(InAggrVarX->GetAggrNm());
     InAggrNmV.Add(InAggrVarY->GetAggrNm());
 }
@@ -924,33 +924,33 @@ PJsonVal TCorr::SaveJson(const int& Limit) const {
     Val->AddToObj("Time", TTm::GetTmFromMSecs(TmMSecs).GetWebLogDateTimeStr(true, "T"));
     return Val;
 }
- 
+
 ///////////////////////////////
 /// Merger
 
 TMerger::TMergerFieldMap::TMergerFieldMap(const int& _InFldId, const TJoinSeq& _InFldJoinSeq,
     const int& _TmFldId, const int& _OutFldId): InFldId(_InFldId), InFldJoinSeq(_InFldJoinSeq),
-    TmFldId(_TmFldId), OutFldId(_OutFldId) {} 
+    TmFldId(_TmFldId), OutFldId(_OutFldId) {}
 
 TMerger::TMergerFieldMap::TMergerFieldMap(TSIn& SIn) { Load(SIn); }
- 
+
 void TMerger::TMergerFieldMap::Save(TSOut& SOut) const {
     InFldId.Save(SOut);
     InFldJoinSeq.Save(SOut);
     TmFldId.Save(SOut);
     OutFldId.Save(SOut);
 }
- 
+
 void TMerger::TMergerFieldMap::Load(TSIn& SIn) {
     InFldId.Load(SIn);
     InFldJoinSeq.Load(SIn);
     TmFldId.Load(SIn);
     OutFldId.Load(SIn);
 }
- 
+
 TMerger::TMerger(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal):
         TStreamAggr(Base, ParamVal) {
-    
+
     QmAssertR(ParamVal->IsObjKey("outStore"), "Field 'outStore' missing!");
     QmAssertR(ParamVal->IsObjKey("timestamp"), "Field 'timestamp' missing!");
     QmAssertR(ParamVal->IsObjKey("fields"), "Field 'fields' missing!");
@@ -984,23 +984,23 @@ TMerger::TMerger(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal):
             TInt TimeField = StartStore->GetFieldId(TimeFieldNm);
             TInt OutFieldId = OutStore->GetFieldId(OutFieldNm);
 
-            JoinSeq = TJoinSeq(Base->GetStoreByStoreNm(inStoreNm)->GetStoreId());           
+            JoinSeq = TJoinSeq(Base->GetStoreByStoreNm(inStoreNm)->GetStoreId());
             TWPt<TStore> EndStore = JoinSeq.GetEndStore(Base);
             TInt InFieldId = EndStore->GetFieldId(InFieldNm);
 
             TMergerFieldMap MergerFieldMap(InFieldId, JoinSeq, TimeField, OutFieldId);
             FieldMapV.Add(MergerFieldMap);
-            
+
         } else if (SourceVal->IsObj()) {
             // get store
-            TStr inStoreNm = SourceVal->GetObjStr("store");   
+            TStr inStoreNm = SourceVal->GetObjStr("store");
             StartStore = Base->GetStoreByStoreNm(inStoreNm);
             TInt TimeField = StartStore->GetFieldId(TimeFieldNm);
             TInt OutFieldId = OutStore->GetFieldId(OutFieldNm);
             // get joins if any given
             if (SourceVal->IsObjKey("join")) {
                 JoinSeq = TJoinSeq(Base, Base->GetStoreByStoreNm(inStoreNm)->GetStoreId(),
-                                   SourceVal->GetObjKey("join"));               
+                                   SourceVal->GetObjKey("join"));
                 TWPt<TStore> EndStore = JoinSeq.GetEndStore(Base);
                 TInt InFieldId = EndStore->GetFieldId(InFieldNm);
 
@@ -1014,8 +1014,8 @@ TMerger::TMerger(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal):
                 TMergerFieldMap MergerFieldMap(InFieldId, JoinSeq, TimeField, OutFieldId);
                 FieldMapV.Add(MergerFieldMap);
             }
-        }  
-    
+        }
+
         TWPt<TStore> EndStore = JoinSeq.GetEndStore(Base);
 
         // check if timestamp field exsists in in store
@@ -1049,10 +1049,10 @@ void TMerger::CreateStore(const TStr& NewStoreNm, const TStr& NewTimeFieldNm){
     PJsonVal TimeFieldVal = TJsonVal::NewObj();
     TimeFieldVal->AddToObj("name", NewTimeFieldNm);
     TimeFieldVal->AddToObj("type", "datetime");
-    FieldsVal->AddToArr(TimeFieldVal);  
+    FieldsVal->AddToArr(TimeFieldVal);
     //adding TFlt fields from StoresAndFields vector
     for (int FieldMapN = 0; FieldMapN < NInFlds; FieldMapN++){
-        //creating field 
+        //creating field
         PJsonVal FieldVal = TJsonVal::NewObj();
         FieldVal->AddToObj("name", OutFldNmV[FieldMapN]);
         FieldVal->AddToObj("type", "float");
@@ -1116,7 +1116,7 @@ TStrV TMerger::GetStoreNm(const PJsonVal& ParamVal) {
     return StoreNmV;
 }
 
-void TMerger::InitFld(const TWPt<TQm::TBase> Base, const TMergerFieldMap& FieldMap, 
+void TMerger::InitFld(const TWPt<TQm::TBase> Base, const TMergerFieldMap& FieldMap,
         const TStr& InterpNm) {
     uint InStoreId = FieldMap.InFldJoinSeq.GetStartStoreId();
     if (!StoreIdFldIdVH.IsKey(InStoreId)) {
@@ -1187,7 +1187,7 @@ void TMerger::OnStep() {
 
 void TMerger::OnAddRec(const TQm::TRec& Rec, const int& FieldMapIdx) {
     const int InterpIdx = FieldMapIdx; //StoreIdFldIdPrBuffIdxH.GetDat(StoreIdInFldIdPr);
-    
+
     // get record time and value
     TTm Tm; Rec.GetFieldTm(FieldMapV[InterpIdx].TmFldId, Tm);
     const uint64 RecTm = TTm::GetMSecsFromTm(Tm);
@@ -1712,47 +1712,49 @@ PJsonVal TFtrExtAggr::SaveJson(const int& Limit) const {
 ///////////////////////////////
 /// Nearest Neighbor for Anomaly Detection stream aggregate.
 void TNNAnomalyAggr::OnStep() {
-    //make sure input aggregators are initialized
+    // make sure input aggregators are initialized
     if (InAggrTm->IsInit() && InAggrSparseVec->IsInit()) {
-        //get last time stamp and last sparse vector from the input aggregators
+        // get last time stamp and last sparse vector from the input aggregators
         LastTimeStamp = InAggrValTm->GetTmMSecs();
         TIntFltKdV ValV; InAggrValSparseVec->GetSparseVec(ValV);
-        //predict the severity of the alarm
+        // predict the severity of the alarm
         LastSeverity = Model.Predict(ValV);
-        //save the explanation for the alarm
+        // save the explanation for the alarm
         if (LastSeverity > 0) {
             Explanation = Model.Explain(ValV);
         } else {
             Explanation = TJsonVal::NewObj();
         }
-        //update the model with the current feature vector
+        // update the model with the current feature vector
         Model.PartialFit(ValV, LastTimeStamp);
     }
 }
 
-TNNAnomalyAggr::TNNAnomalyAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal) :
-    TStreamAggr(Base, ParamVal){
+TNNAnomalyAggr::TNNAnomalyAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal) {
+    // parse parameters
     SetParam(ParamVal);
+    // we start with empty explanation
+    Explanation = TJsonVal::NewObj();
 }
 
 PJsonVal TNNAnomalyAggr::GetParam() const {
     PJsonVal ParamVal = TJsonVal::NewObj();
-    
+
     if (!InAggrTm.Empty()) {
         ParamVal->AddToObj("inAggrTm", InAggrTm->GetAggrNm());
     } else {
         ParamVal->AddToObj("inAggrTm", TJsonVal::NewNull());
     }
-    
+
     if (!InAggrSparseVec.Empty()) {
         ParamVal->AddToObj("inAggrSpV", InAggrSparseVec->GetAggrNm());
     } else {
         ParamVal->AddToObj("inAggrSpV", TJsonVal::NewNull());
     }
-    
+
     ParamVal->AddToObj("rate", TJsonVal::NewArr(Model.GetRateV()));
     ParamVal->AddToObj("windowSize", Model.GetWindowSize());
-    
+
     return ParamVal;
 }
 
@@ -1775,7 +1777,7 @@ void TNNAnomalyAggr::SetParam(const PJsonVal& ParamVal) {
     } else {
         throw TQmExcept::New("The definition of the NN Anomaly Aggregator requires an input sparse vector aggregator (inAggrSpV)");
     }
-    
+
     // parse rate parameter(s)
     TFltV RateV;
     if (ParamVal->IsObjKey("rate")) {
@@ -1797,7 +1799,7 @@ void TNNAnomalyAggr::SetParam(const PJsonVal& ParamVal) {
 }
 
 /// Reset the aggregator
-void TNNAnomalyAggr::Reset() { 
+void TNNAnomalyAggr::Reset() {
     TFltV RateV = Model.GetRateV();
     TInt WinSize = Model.GetWindowSize();
     Model = TAnomalyDetection::TNearestNeighbor(RateV, WinSize);
@@ -2000,7 +2002,7 @@ void TOnlineSlottedHistogram::OnStep() {
     Model.GetStats(LastTm - WndLen, LastTm, ValV);
 }
 
-TOnlineSlottedHistogram::TOnlineSlottedHistogram(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : 
+TOnlineSlottedHistogram::TOnlineSlottedHistogram(const TWPt<TBase>& Base, const PJsonVal& ParamVal) :
     TStreamAggr(Base, ParamVal) {
 
     // Cast the input as a stream aggregate
@@ -2101,7 +2103,7 @@ void TSimpleLinReg::OnStep() {
     TFltV X; InAggrValX->GetValV(X);
     TFltV Y; InAggrValY->GetValV(Y);
     // Fit linear model
-    double A, B; TSpecFunc::LinearFit(X, Y, A, B);   
+    double A, B; TSpecFunc::LinearFit(X, Y, A, B);
     // Save model for export
     Result->AddToObj("intercept", A);
     Result->AddToObj("slope", B);
@@ -2109,7 +2111,7 @@ void TSimpleLinReg::OnStep() {
     if (Quantiles.Len() > 0) {
         const int N = X.Len();
         TFltV Projected(N);
-        TFltV Bands(Quantiles.Len());       
+        TFltV Bands(Quantiles.Len());
         if (N > 0) { // empty vectors -> all bands are set to 0
             TLinAlg::LinComb(1.0, Y, -B, X, Projected);
             Projected.Sort(true);
@@ -2130,7 +2132,7 @@ TSimpleLinReg::TSimpleLinReg(const TWPt<TBase>& Base, const PJsonVal& ParamVal) 
     if (ParamVal->IsObjKey("filter")) {
         PJsonVal Val = ParamVal->GetObjKey("filter");
         Filter = TRecFilter::New(Base, Val->GetObjStr("type"), Val);
-    } else {        
+    } else {
         Filter = TRecFilter::New(Base);
     }
     // parse out input aggregate
@@ -2171,7 +2173,7 @@ TRecFilterAggr::TRecFilterAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal
     for (int FiltN = 0; FiltN < Arr->GetArrVals(); FiltN++) {
         PJsonVal Val = Arr->GetArrVal(FiltN);
         FilterV.Add(TRecFilter::New(Base, Val->GetObjStr("type"), Val));
-    }    
+    }
     // parse out input aggregate
     Aggr = ParseAggr(ParamVal, "aggr");
 }
