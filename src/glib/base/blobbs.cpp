@@ -565,13 +565,13 @@ TBlobPt TMBlobBs::PutBlob(const PSIn& SIn){
 TBlobPt TMBlobBs::PutBlob(const TBlobPt& BlobPt, const PSIn& SIn, int& ReleasedSize){
   EAssert((Access==faCreate)||(Access==faUpdate)||(Access==faRestore));
   // get the segment is which the data currently stored
-  int SegN=BlobPt.GetSeg();
+  const uint16 SegN=BlobPt.GetSeg();
   // try to store the SIn into the current segment
   TBlobPt NewBlobPt=SegV[SegN]->PutBlob(BlobPt, SIn, ReleasedSize);
   // if we have released the previously used data chunk then remember that we have a buffer 
   // in SegN of ReleasedSize available to be filled
   if (ReleasedSize > 0) {
-      BlockSizeToSegH.AddDat(ReleasedSize) = MIN(SegN, BlockSizeToSegH.GetDatOrDef(ReleasedSize, 0));
+      BlockSizeToSegH.AddDat(ReleasedSize) = MIN(SegN, (uint16) BlockSizeToSegH.GetDatOrDef(ReleasedSize, 0));
   }
   if (NewBlobPt.Empty()){
     // we were not able to save the data in the current segment so we want to store it as a new blob
@@ -585,17 +585,17 @@ TBlobPt TMBlobBs::PutBlob(const TBlobPt& BlobPt, const PSIn& SIn, int& ReleasedS
 }
 
 PSIn TMBlobBs::GetBlob(const TBlobPt& BlobPt){
-  int SegN=BlobPt.GetSeg();
+  uint16 SegN = BlobPt.GetSeg();
   return SegV[SegN]->GetBlob(BlobPt);
 }
 
 int TMBlobBs::DelBlob(const TBlobPt& BlobPt){
   // get the index of the segement from which we will remove the data
-  int SegN=BlobPt.GetSeg();
+  uint16 SegN = BlobPt.GetSeg();
   // remove the data. Obtain also the info about the blob size that was released
   int ReleasedSize = SegV[SegN]->DelBlob(BlobPt);
   // we released a certain chunk. Mark in the BlockSizeToSegH the index of the segment if lower than current
-  BlockSizeToSegH.AddDat(ReleasedSize) = MIN(SegN, (int)BlockSizeToSegH.GetDatOrDef(ReleasedSize, 0));
+  BlockSizeToSegH.AddDat(ReleasedSize) = MIN(SegN, (uint16) BlockSizeToSegH.GetDatOrDef(ReleasedSize, 0));
   return ReleasedSize;
 }
 
@@ -608,7 +608,7 @@ TBlobPt TMBlobBs::FFirstBlobPt(){
 }
 
 bool TMBlobBs::FNextBlobPt(TBlobPt& TrvBlobPt, TBlobPt& BlobPt, PSIn& BlobSIn){
-  uint16 SegN=TrvBlobPt.GetSeg();
+  uint16 SegN = TrvBlobPt.GetSeg();
   if (SegV[SegN]->FNextBlobPt(TrvBlobPt, BlobPt, BlobSIn)){
     TrvBlobPt.PutSeg(SegN);
     BlobPt.PutSeg(SegN);
