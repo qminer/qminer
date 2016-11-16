@@ -588,7 +588,8 @@ int TInMemStorage::SaveRec(int RecN) {
             if (BlobPtV[ii].Empty()) {
                 BlobPtV[ii] = BlobStorage->PutBlob(mem.GetSIn());
             } else {
-                BlobPtV[ii] = BlobStorage->PutBlob(BlobPtV[ii], mem.GetSIn());
+                int ReleasedSize;
+                BlobPtV[ii] = BlobStorage->PutBlob(BlobPtV[ii], mem.GetSIn(), ReleasedSize);
             }
         }
         break;

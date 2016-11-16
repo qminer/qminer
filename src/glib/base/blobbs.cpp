@@ -293,7 +293,7 @@ TBlobPt TGBlobBs::PutBlob(const PSIn& SIn){
   return BlobPt;
 }
 
-TBlobPt TGBlobBs::PutBlob(const TBlobPt& BlobPt, const PSIn& SIn){
+TBlobPt TGBlobBs::PutBlob(const TBlobPt& BlobPt, const PSIn& SIn, int& ReleasedSize){
   EAssert((Access==faCreate)||(Access==faUpdate)||(Access==faRestore));
   int BfL=SIn->Len();
 
@@ -303,9 +303,13 @@ TBlobPt TGBlobBs::PutBlob(const TBlobPt& BlobPt, const PSIn& SIn){
   AssertBlobState(FBlobBs, bsActive);
   if (BfL>MxBfL){
 	Stats.SizeChngs++;
-    DelBlob(BlobPt);
+    // remember the size of the chunk that we are releasing. needed to notify the level above
+    // that we have space available to fill
+    ReleasedSize = DelBlob(BlobPt);
     return PutBlob(SIn);
   } else {
+    // we are not releasing any data chunk
+    ReleasedSize = -1;
 	int FPos = FBlobBs->GetFPos();
 	int OldBfL = FBlobBs->GetInt();
 	FBlobBs->SetFPos(FPos);
@@ -515,6 +519,7 @@ TMBlobBs::~TMBlobBs(){
   }
 }
 
+// save a new buffer in SIn to a blob
 TBlobPt TMBlobBs::PutBlob(const PSIn& SIn){
   EAssert((Access==faCreate)||(Access==faUpdate)||(Access==faRestore));
   // buffer size that we need to store
@@ -556,13 +561,24 @@ TBlobPt TMBlobBs::PutBlob(const PSIn& SIn){
   return BlobPt;
 }
 
-TBlobPt TMBlobBs::PutBlob(const TBlobPt& BlobPt, const PSIn& SIn){
+// save (update) a buffer from SIn that we already have stored in BlobPt
+TBlobPt TMBlobBs::PutBlob(const TBlobPt& BlobPt, const PSIn& SIn, int& ReleasedSize){
   EAssert((Access==faCreate)||(Access==faUpdate)||(Access==faRestore));
+  // get the segment is which the data currently stored
   int SegN=BlobPt.GetSeg();
-  TBlobPt NewBlobPt=SegV[SegN]->PutBlob(BlobPt, SIn);
+  // try to store the SIn into the current segment
+  TBlobPt NewBlobPt=SegV[SegN]->PutBlob(BlobPt, SIn, ReleasedSize);
+  // if we have released the previously used data chunk then remember that we have a buffer 
+  // in SegN of ReleasedSize available to be filled
+  if (ReleasedSize > 0) {
+      BlockSizeToSegH.AddDat(ReleasedSize) = MIN(SegN, BlockSizeToSegH.GetDatOrDef(ReleasedSize, 0));
+  }
   if (NewBlobPt.Empty()){
+    // we were not able to save the data in the current segment so we want to store it as a new blob
+    // the data in the old blob was already removed
     NewBlobPt=PutBlob(SIn);
   } else {
+    // remember in which segment we put the blob
     NewBlobPt.PutSeg(BlobPt.GetSeg());
   }
   return NewBlobPt;

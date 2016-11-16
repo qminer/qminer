@@ -1113,7 +1113,8 @@ TBlobPt TGix<TKey, TItem, TGixMerger>::StoreItemSet(const TBlobPt& KeyId) {
         // store the current version to the blob
         TMOut MOut;
         ItemSet->Save(MOut);
-        TBlobPt NewKeyId = ItemSetBlobBs->PutBlob(KeyId, MOut.GetSIn());
+        int ReleasedSize;
+        TBlobPt NewKeyId = ItemSetBlobBs->PutBlob(KeyId, MOut.GetSIn(), ReleasedSize);
         // and update the KeyId in the hash table
         KeyIdH.GetDat(ItemSet->GetKey()) = NewKeyId;
         return NewKeyId;
@@ -1307,7 +1308,8 @@ TBlobPt TGix<TKey, TItem, TGixMerger>::StoreChildVector(const TBlobPt& ExistingK
     TMOut MOut;
     //Data.SaveMemCpy(MOut);
     Data.Save(MOut);
-    return ItemSetBlobBs->PutBlob(ExistingKeyId, MOut.GetSIn());
+    int ReleasedSize;
+    return ItemSetBlobBs->PutBlob(ExistingKeyId, MOut.GetSIn(), ReleasedSize);
 }
 
 /// for deleting child vector from blob
