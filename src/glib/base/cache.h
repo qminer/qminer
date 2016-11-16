@@ -286,7 +286,8 @@ void TBlockCache<TVal>::StoreBlock(const int& BlockId) {
         BlockBlobPtV[BlockId] = BlockBlobBs->PutBlob(MOut.GetSIn());
     } else {
         // overwrite existing
-        BlockBlobPtV[BlockId] = BlockBlobBs->PutBlob(BlockBlobPt, MOut.GetSIn());
+        int ReleasedSize;
+        BlockBlobPtV[BlockId] = BlockBlobBs->PutBlob(BlockBlobPt, MOut.GetSIn(), ReleasedSize);
     }
 }
 
