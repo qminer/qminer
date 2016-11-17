@@ -885,7 +885,7 @@ bool TLinear::CanInterpolate(const uint64& Tm) const {
 TAggResampler::TAggResampler(const PJsonVal& ParamVal) {
     IntervalMSecs = ParamVal->GetObjUInt64("interval");
     TStr TypeNm = ParamVal->GetObjStr("aggType");
-    Type = TypeNm == "avg" ? TAggResamplerType::arAvg : TAggResamplerType::arSum;
+    Type = GetType(TypeNm);
     // start point - interval = LastResamplePointVal
     if (ParamVal->IsObjKey("start")) {
         uint64 StartTm = 0;
@@ -905,13 +905,16 @@ TAggResampler::TAggResampler(const PJsonVal& ParamVal) {
         RoundStart = ParamVal->GetObjStr("roundStart");
         EAssertR(RoundStart == "" || RoundStart == "h" || RoundStart == "m" || RoundStart == "s", "TAggResampler: roundStart should be 'h', 'm' or 's'");
     }
+    // XXX decide if we should use NaN for default (max,min,avg are not defined for empty buffers)?
+    DefaultVal = ParamVal->GetObjNum("defaultValue", 0);
 }
 
 PJsonVal TAggResampler::GetParam() const {
     PJsonVal Result = TJsonVal::NewObj();
     Result->AddToObj("interval", IntervalMSecs);
-    Result->AddToObj("aggType", Type == TAggResamplerType::arAvg ? "avg": "sum");
+    Result->AddToObj("aggType", GetTypeStr(Type));
     Result->AddToObj("roundStart", RoundStart);
+    Result->AddToObj("defaultValue", DefaultVal);
     return Result;
 }
 
@@ -927,6 +930,7 @@ void TAggResampler::LoadState(TSIn& SIn) {
     // Should we load this?
     //IntervalMSecs.Load(SIn);
     //Type = LoadEnum<TAggResamplerType>(SIn);
+    // RoundStart, DefaultVal?
     CurrentTmMSecs.Load(SIn);
     LastResampPointMSecs.Load(SIn);
     LastResampPointVal.Load(SIn);
@@ -938,6 +942,7 @@ void TAggResampler::SaveState(TSOut& SOut) const {
     // Should we save this?
     //IntervalMSecs.Save(SOut);
     //SaveEnum<TAggResamplerType>(SOut, Type);
+    // RoundStart, DefaultVal?
     CurrentTmMSecs.Save(SOut);
     LastResampPointMSecs.Save(SOut);
     LastResampPointVal.Save(SOut);
@@ -976,10 +981,18 @@ void TAggResampler::SetCurrentTm(const uint64& Tm) {
     }
 }
 
-bool TAggResampler::TryResampleOnce(double& Val, uint64& Tm) {
+bool TAggResampler::TryResampleOnce(double& Val, uint64& Tm, bool& FoundEmptyP) {
+    FoundEmptyP = false;
     bool ResampleP = CanResample();
     if (ResampleP) {
-        Val = 0;
+        if (Type == TAggResamplerType::artMax) {
+            Val = TFlt::Mn;
+        } else if (Type == TAggResamplerType::artMin) {
+            Val = TFlt::Mx;
+        } else {
+            // avg/sum
+            Val = 0;
+        }
         int Vals = 0;
         // keep adding to Val and removing from buffer all the values that fall in the
         // interval [LastResampPointMSecs + IntervalMSecs , LastResampPointMSecs + 2 * IntervalMSecs)
@@ -995,16 +1008,25 @@ bool TAggResampler::TryResampleOnce(double& Val, uint64& Tm) {
                 continue;
             }
             if (Point.Val1 > End) { break; }
-            Val += Point.Val2;
+            if (Type == TAggResamplerType::artMax) {
+                Val = MAX(Val, Point.Val2);
+            } else if (Type == TAggResamplerType::artMin) {
+                Val = MIN(Val, Point.Val2);
+            } else {
+                // avg/sum
+                Val += Point.Val2;
+            }
             Vals++;
             Buff.DelOldest(); // Point == NULL
         }
-        if (Type == TAggResamplerType::arAvg) {
+        if (Type == TAggResamplerType::artAvg) {
             Val /= (double)Vals;
-            if (Vals == 0) {
-                // generate a warning?
-                // printf("AggResampler:Nan generated while resampling and using average aggrgator (no data in the interval)\n");
-            }
+        }
+        if (Vals == 0 && ResampleP) {
+            // notify the caller that an empty (but complete) interval was found
+            FoundEmptyP = true;
+            Val = DefaultVal;
+            // printf("AggResampler:Nan generated while resampling and using average aggrgator (no data in the interval)\n");
         }
         // new left point of the last successfully aggregated interval
         Tm = LastResampPointMSecs + IntervalMSecs;
@@ -1017,7 +1039,7 @@ bool TAggResampler::TryResampleOnce(double& Val, uint64& Tm) {
 
 void TAggResampler::PrintState(const TStr& Prefix) const {
     printf("%s: interval %s, type %s\n", Prefix.CStr(),
-        TUInt64::GetStr(IntervalMSecs).CStr(), Type == TAggResamplerType::arAvg ? "avg" : "sum");
+        TUInt64::GetStr(IntervalMSecs).CStr(), GetTypeStr(Type).CStr());
     printf("%s: last r. value: %f\n", Prefix.CStr(),
         LastResampPointVal.Val);
     printf("%s: last r. time:  %s\n", Prefix.CStr(),
@@ -1028,6 +1050,34 @@ void TAggResampler::PrintState(const TStr& Prefix) const {
         InitP ? "yes" : "no");
     for (int ElN = 0; ElN < (int)Buff.Len(); ElN++) {
         printf("%s: buffer:        %f %s\n",Prefix.CStr(),  Buff.GetOldest(ElN).Val2.Val, TTm::GetTmFromMSecs(Buff.GetOldest(ElN).Val1).GetWebLogDateTimeStr().CStr());
+    }
+}
+
+TAggResamplerType TAggResampler::GetType(const TStr& TypeStr) const {
+    if (TypeStr == "avg") {
+        return TAggResamplerType::artAvg;
+    } else if (TypeStr == "sum") {
+        return TAggResamplerType::artSum;
+    } else if (TypeStr == "min") {
+        return TAggResamplerType::artMin;
+    } else if (TypeStr == "max") {
+        return TAggResamplerType::artMax;
+    } else {
+        throw TExcept::New("TAggResampler::Unknown resampler type.");
+    }
+}
+
+TStr TAggResampler::GetTypeStr(const TAggResamplerType& Type) const {
+    if (Type == TAggResamplerType::artAvg) {
+        return "avg";
+    } else if (Type == TAggResamplerType::artSum) {
+        return "sum";
+    } else if (Type == TAggResamplerType::artMin) {
+        return "min";
+    } else if (Type == TAggResamplerType::artMax) {
+        return "max";
+    } else {
+        throw TExcept::New("TAggResampler::Unknown resampler type.");
     }
 }
 

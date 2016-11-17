@@ -735,7 +735,7 @@ public:
 };
 
 
-typedef enum { arSum, arAvg } TAggResamplerType;
+typedef enum { artSum, artAvg, artMin, artMax } TAggResamplerType;
 ///////////////////////////////////////////////
 /// Aggregating resampler
 /// The resampler maintains a buffer of time series points and
@@ -760,6 +760,8 @@ private:
     TAggResamplerType Type;
     /// Round start time (used when start is not set by the user but determined from data)
     TStr RoundStart;
+    /// Default value when the buffer is empty
+    TFlt DefaultVal;
 
     // STATE
     /// Timestamp of the current time
@@ -794,14 +796,18 @@ public:
     /// Add a time series value and time
     void AddPoint(const double& Val, const uint64& Tm);
 
-    /// Returns true if it resampled and false otherwise. If true the results are set as the arguments
-    bool TryResampleOnce(double& Val, uint64& Tm);
+    /// Returns true if it resampled and false otherwise. If true the results are set as the arguments. EmptyP signifies empty buffer.
+    bool TryResampleOnce(double& Val, uint64& Tm, bool& FoundEmptyP);
     /// Sets the current time
     void SetCurrentTm(const uint64& Tm);
     /// Returns true if a new interval of values can be aggregated
     bool CanResample() const { return LastResampPointMSecs + 2 * IntervalMSecs <= CurrentTmMSecs; }
     /// Prints all internal variables for debugging
     void PrintState (const TStr& Prefix = "") const;
+    /// Maps string type to enum type
+    TAggResamplerType GetType(const TStr& TypeStr) const;
+    /// Maps enum type to string type
+    TStr GetTypeStr(const TAggResamplerType& Type) const;
 };
 
 /////////////////////////////////////////

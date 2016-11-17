@@ -1335,6 +1335,8 @@ private:
     /// Input aggregate casted to time series
     TWPt<TStreamAggrOut::IFlt> InAggrFlt;
     
+    /// Skip calling OnStep for empty intervals (no data) ?
+    TBool SkipEmptyP;
     /// Model
     TSignalProc::TAggResampler Resampler;
 private:

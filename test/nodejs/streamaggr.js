@@ -5129,8 +5129,8 @@ function testResampledSequence(inputArr, outArr, expectedOutArr, store) {
             store.push(inputArr[i]);
         }
     }
-    assert.equal(outArr.lenght, expectedOutArr.lenght);
-    for (var i = 0; i < outArr.lenght; i++) {
+    assert.equal(outArr.length, expectedOutArr.length);
+    for (var i = 0; i < outArr.length; i++) {
         var et = expectedOutArr[i].timestamp;
         var ev = expectedOutArr[i].value;
         if (Array.isArray(expectedOutArr[i])) {
@@ -5138,13 +5138,15 @@ function testResampledSequence(inputArr, outArr, expectedOutArr, store) {
             ev = expectedOutArr[i][1];
         }
         assert.equal(outArr[i].timestamp, et);
-        if (!isNaN(outArr[i].value) || !isNaN(ev)) {
-            assert.equal(outArr[i].value, ev);
+        if (isNaN(outArr[i].value) && isNaN(ev)) {
+            continue;
         }
+        assert.equal(outArr[i].value, ev);
+
     }
 }
 
-describe('Aggregating (sum/avg) resampler tests', function () {
+describe.only('Aggregating (sum/avg/min/max) resampler tests', function () {
     var base = undefined;
     var store = undefined;
 
@@ -5197,17 +5199,14 @@ describe('Aggregating (sum/avg) resampler tests', function () {
 
             var result = [];
 
-            var counter = new qm.StreamAggr(base, new function () {
-                var state = {};
+            var outAggr = new qm.StreamAggr(base, new function () {
                 this.onStep = function () {
-                    state = { value: resampler.getFloat(), timestamp: resampler.getTimestamp() };
-                    result.push(JSON.parse(JSON.stringify(state)));
+                    result.push({ value: resampler.getFloat(), timestamp: resampler.getTimestamp() });
                     //console.log(resampler.getFloat() + ' ' + new Date(resampler.getTimestamp()).toISOString());
                 }
-                this.saveJson = function (limit) { return state; }
             });
 
-            resampler.setParams({ outAggr: counter.name });
+            resampler.setParams({ outAggr: outAggr.name });
 
             var inputArr = [[0, 1], [1, 10], [500, 100], [2500, 1000], [3100, 10000]];
             var expectedOutArr = [[0, 111], [1000, 0], [2000, 1000]];
@@ -5232,17 +5231,14 @@ describe('Aggregating (sum/avg) resampler tests', function () {
 
             var result = [];
 
-            var counter = new qm.StreamAggr(base, new function () {
-                var state = {};
+            var outAggr = new qm.StreamAggr(base, new function () {
                 this.onStep = function () {
-                    state = { value: resampler.getFloat(), timestamp: resampler.getTimestamp() };
-                    result.push(JSON.parse(JSON.stringify(state)));
+                    result.push({ value: resampler.getFloat(), timestamp: resampler.getTimestamp() });
                     //console.log(resampler.getFloat() + ' ' + new Date(resampler.getTimestamp()).toISOString());
                 }
-                this.saveJson = function (limit) { return state; }
             });
 
-            resampler.setParams({ outAggr: counter.name });
+            resampler.setParams({ outAggr: outAggr.name });
 
             var inputArr = [[1, 1], [2, 10], [500, 100], [2500, 1000], [3100, 10000]];
             var expectedOutArr = [[1, 111], [1001, 0], [2001, 1000]];
@@ -5267,17 +5263,14 @@ describe('Aggregating (sum/avg) resampler tests', function () {
 
             var result = [];
 
-            var counter = new qm.StreamAggr(base, new function () {
-                var state = {};
+            var outAggr = new qm.StreamAggr(base, new function () {
                 this.onStep = function () {
-                    state = { value: resampler.getFloat(), timestamp: resampler.getTimestamp() };
-                    result.push(JSON.parse(JSON.stringify(state)));
+                    result.push({ value: resampler.getFloat(), timestamp: resampler.getTimestamp() });
                     //console.log(resampler.getFloat() + ' ' + new Date(resampler.getTimestamp()).toISOString());
                 }
-                this.saveJson = function (limit) { return state; }
             });
 
-            resampler.setParams({ outAggr: counter.name });
+            resampler.setParams({ outAggr: outAggr.name });
 
             var inputArr = [[1, 1], [2, 10], [500, 100], [2500, 1000], [3100, 10000]];
             var expectedOutArr = [[0, 111], [1000, 0], [2000, 1000]];
@@ -5294,20 +5287,17 @@ describe('Aggregating (sum/avg) resampler tests', function () {
 
             var result = [];
 
-            var counter = new qm.StreamAggr(base, new function () {
-                var state = {};
+            var outAggr = new qm.StreamAggr(base, new function () {
                 this.onStep = function () {
-                    state = { value: resampler.getFloat(), timestamp: resampler.getTimestamp() };
-                    result.push(JSON.parse(JSON.stringify(state)));
+                    result.push({ value: resampler.getFloat(), timestamp: resampler.getTimestamp() });
                     //console.log(resampler.getFloat() + ' ' + new Date(resampler.getTimestamp()).toISOString());
                 }
-                this.saveJson = function (limit) { return state; }
             });
 
             var resampler = store.addStreamAggr({
                 type: 'aggResample',
                 inAggr: raw.name,
-                outAggr: counter.name,
+                outAggr: outAggr.name,
                 start: '1970-01-01T00:00:00.000',
                 //roundStart: 'm',
                 aggType: 'sum',
@@ -5327,27 +5317,25 @@ describe('Aggregating (sum/avg) resampler tests', function () {
                 value: 'value'
             });
 
-            var result = [];
-
-            var counter = new qm.StreamAggr(base, new function () {
-                var state = {};
-                this.onStep = function () {
-                    state = { value: resampler.getFloat(), timestamp: resampler.getTimestamp() };
-                    result.push(JSON.parse(JSON.stringify(state)));
-                    //console.log(resampler.getFloat() + ' ' + new Date(resampler.getTimestamp()).toISOString());
-                }
-                this.saveJson = function (limit) { return state; }
-            });
-
             var resampler = store.addStreamAggr({
                 type: 'aggResample',
                 inAggr: raw.name,
-                outAggr: counter.name,
                 start: '1970-01-01T00:00:00.000',
                 //roundStart: 'm',
                 aggType: 'sum',
                 interval: 1000
             });
+
+            var result = [];
+
+            var outAggr = new qm.StreamAggr(base, new function () {
+                this.onStep = function () {
+                    result.push({ value: resampler.getFloat(), timestamp: resampler.getTimestamp() });
+                    //console.log(resampler.getFloat() + ' ' + new Date(resampler.getTimestamp()).toISOString());
+                }
+            });
+
+            resampler.setParams({ outAggr: outAggr.name });
 
             var inputArr = [[0, 1], [1, 2], [500, 3], [2500, 1000], [3100, 10000]];
             var expectedOutArr = [[0, 6], [1000, 0], [2000, 1000]];
@@ -5371,33 +5359,32 @@ describe('Aggregating (sum/avg) resampler tests', function () {
                 inAggr: raw.name,
                 start: '1970-01-01T00:00:00.000',
                 //roundStart: 'm',
+                defaultValue: NaN,
                 aggType: 'avg',
                 interval: 1000
             });
 
             var result = [];
 
-            var counter = new qm.StreamAggr(base, new function () {
-                var state = {};
+            var outAggr = new qm.StreamAggr(base, new function () {
                 this.onStep = function () {
-                    state = { value: resampler.getFloat(), timestamp: resampler.getTimestamp() };
-                    result.push(JSON.parse(JSON.stringify(state)));
+                    result.push({ value: resampler.getFloat(), timestamp: resampler.getTimestamp() });
                     //console.log(resampler.getFloat() + ' ' + new Date(resampler.getTimestamp()).toISOString());
                 }
-                this.saveJson = function (limit) { return state; }
             });
 
-            resampler.setParams({ outAggr: counter.name });
+            resampler.setParams({ outAggr: outAggr.name });
 
             var inputArr = [[0, 1], [1, 2], [500, 3], [2500, 1000], [3100, 10000]];
             var expectedOutArr = [[0, 2], [1000, NaN], [2000, 1000]];
 
             testResampledSequence(inputArr, result, expectedOutArr, store);
+            debugger
         });
     });
 
     describe('Min tests', function () {
-        it.skip('should create a new min aggregating resampler stream aggregate', function () {
+        it('should create a new min aggregating resampler stream aggregate', function () {
             var raw = store.addStreamAggr({
                 type: 'timeSeriesTick',
                 timestamp: 'timestamp',
@@ -5409,23 +5396,21 @@ describe('Aggregating (sum/avg) resampler tests', function () {
                 inAggr: raw.name,
                 start: '1970-01-01T00:00:00.000',
                 //roundStart: 'm',
+                defaultValue: NaN,
                 aggType: 'min',
                 interval: 1000
             });
 
             var result = [];
 
-            var counter = new qm.StreamAggr(base, new function () {
-                var state = {};
+            var outAggr = new qm.StreamAggr(base, new function () {
                 this.onStep = function () {
-                    state = { value: resampler.getFloat(), timestamp: resampler.getTimestamp() };
-                    result.push(JSON.parse(JSON.stringify(state)));
+                    result.push({ value: resampler.getFloat(), timestamp: resampler.getTimestamp() });
                     //console.log(resampler.getFloat() + ' ' + new Date(resampler.getTimestamp()).toISOString());
                 }
-                this.saveJson = function (limit) { return state; }
             });
 
-            resampler.setParams({ outAggr: counter.name });
+            resampler.setParams({ outAggr: outAggr.name });
 
             var inputArr = [[0, 1], [1, 2], [500, 3], [2500, 1000], [3100, 10000]];
             var expectedOutArr = [[0, 1], [1000, NaN], [2000, 1000]];
@@ -5435,7 +5420,7 @@ describe('Aggregating (sum/avg) resampler tests', function () {
     });
 
     describe('Max tests', function () {
-        it.skip('should create a new max aggregating resampler stream aggregate', function () {
+        it('should create a new max aggregating resampler stream aggregate', function () {
             var raw = store.addStreamAggr({
                 type: 'timeSeriesTick',
                 timestamp: 'timestamp',
@@ -5447,23 +5432,21 @@ describe('Aggregating (sum/avg) resampler tests', function () {
                 inAggr: raw.name,
                 start: '1970-01-01T00:00:00.000',
                 //roundStart: 'm',
+                defaultValue: NaN,
                 aggType: 'max',
                 interval: 1000
             });
 
             var result = [];
 
-            var counter = new qm.StreamAggr(base, new function () {
-                var state = {};
+            var outAggr = new qm.StreamAggr(base, new function () {
                 this.onStep = function () {
-                    state = { value: resampler.getFloat(), timestamp: resampler.getTimestamp() };
-                    result.push(JSON.parse(JSON.stringify(state)));
+                    result.push({ value: resampler.getFloat(), timestamp: resampler.getTimestamp() });
                     //console.log(resampler.getFloat() + ' ' + new Date(resampler.getTimestamp()).toISOString());
                 }
-                this.saveJson = function (limit) { return state; }
             });
 
-            resampler.setParams({ outAggr: counter.name });
+            resampler.setParams({ outAggr: outAggr.name });
 
             var inputArr = [[0, 1], [1, 2], [500, 3], [2500, 1000], [3100, 10000]];
             var expectedOutArr = [[0, 3], [1000, NaN], [2000, 1000]];

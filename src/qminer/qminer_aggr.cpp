@@ -1644,6 +1644,7 @@ TAggResampler::TAggResampler(const TWPt<TBase>& Base, const PJsonVal& ParamVal) 
     if (ParamVal->IsObjKey("outAggr")) {
         OutAggr = ParseAggr(ParamVal, "outAggr");
     }
+    SkipEmptyP = ParamVal->GetObjBool("skipEmpty", false);
 }
 
 PStreamAggr TAggResampler::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
@@ -1663,6 +1664,8 @@ PJsonVal TAggResampler::GetParam() const {
     } else {
         ParamVal->AddToObj("outAggr", TJsonVal::NewNull());
     }
+
+    ParamVal->AddToObj("skipEmpty", SkipEmptyP);
 
     return ParamVal;
 }
@@ -1704,8 +1707,10 @@ void TAggResampler::Loop() {
     // loop: call Resampler as long as it can resample
     double ResampledValue = 0;
     uint64 ResampledTm = 0;
-    while (Resampler.TryResampleOnce(ResampledValue, ResampledTm)) {
+    bool FoundEmptyP = false;
+    while (Resampler.TryResampleOnce(ResampledValue, ResampledTm, FoundEmptyP)) {
         // notify out aggregate that new resampled values are available
+        if (FoundEmptyP && SkipEmptyP) { continue; }
         OutAggr->OnStep();
     }
 }
