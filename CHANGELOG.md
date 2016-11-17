@@ -1,12 +1,21 @@
 # QMiner Change Log
 
+### 4 November 2016
+
+**Version 7.2.0**
+
+**Non-breaking with new feature**
+
+New Feature:
+- Graph cascades expose topological order in JavaScript API
+
 ### 28 October 2016
 
 **Version 7.1.0**
 
 **Non-breaking with new features and bug fixes**
 
-New features
+New feature:
 - graph cascades model (modeling times of visiting nodes for directed acyclic graph sweeps)
 
 Bug fixes:
