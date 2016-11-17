@@ -5455,4 +5455,39 @@ describe.only('Aggregating (sum/avg/min/max) resampler tests', function () {
         });
     });
 
+    describe('Skip empty buckets', function () {
+        it('should not call onStep of out aggregate for empty buckets', function () {
+            var raw = store.addStreamAggr({
+                type: 'timeSeriesTick',
+                timestamp: 'timestamp',
+                value: 'value'
+            });
+
+            var resampler = store.addStreamAggr({
+                type: 'aggResample',
+                inAggr: raw.name,
+                start: '1970-01-01T00:00:00.000',
+                skipEmpty: true,
+                aggType: 'max',
+                interval: 1000
+            });
+
+            var result = [];
+
+            var outAggr = new qm.StreamAggr(base, new function () {
+                this.onStep = function () {
+                    result.push({ value: resampler.getFloat(), timestamp: resampler.getTimestamp() });
+                    //console.log(resampler.getFloat() + ' ' + new Date(resampler.getTimestamp()).toISOString());
+                }
+            });
+
+            resampler.setParams({ outAggr: outAggr.name });
+
+            var inputArr = [[0, 1], [1, 2], [500, 3], [2500, 1000], [3100, 10000]];
+            var expectedOutArr = [[0, 3], [2000, 1000]];
+
+            testResampledSequence(inputArr, result, expectedOutArr, store);
+        });
+    });
+
 });
