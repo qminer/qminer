@@ -173,7 +173,7 @@ void TNodeJsStreamAggr::onTime(const v8::FunctionCallbackInfo<v8::Value>& Args) 
 
     // unwrap
     TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
-    QmAssertR(Args.Length() == 1 && Args[0]->IsNumber(), "sa.onTime should take one argument of type TUInt64");
+    QmAssertR(Args.Length() == 1, "sa.onTime should take one argument of type TUInt64");
     const uint64 Time = TNodeJsUtil::GetArgTmMSecs(Args, 0);
     JsSA->SA->OnTime(Time);
 

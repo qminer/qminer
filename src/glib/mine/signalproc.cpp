@@ -907,7 +907,7 @@ TAggResampler::TAggResampler(const PJsonVal& ParamVal) {
     }
 }
 
-PJsonVal TAggResampler::TAggResampler::GetParam() const {
+PJsonVal TAggResampler::GetParam() const {
     PJsonVal Result = TJsonVal::NewObj();
     Result->AddToObj("interval", IntervalMSecs);
     Result->AddToObj("aggType", Type == TAggResamplerType::arAvg ? "avg": "sum");
@@ -1026,7 +1026,7 @@ void TAggResampler::PrintState(const TStr& Prefix) const {
         TTm::GetTmFromMSecs(CurrentTmMSecs).GetWebLogDateTimeStr().CStr());
     printf("%s: initialized:   %s\n", Prefix.CStr(),
         InitP ? "yes" : "no");
-    for (int ElN = 0; ElN < Buff.Len(); ElN++) {
+    for (int ElN = 0; ElN < (int)Buff.Len(); ElN++) {
         printf("%s: buffer:        %f %s\n",Prefix.CStr(),  Buff.GetOldest(ElN).Val2.Val, TTm::GetTmFromMSecs(Buff.GetOldest(ElN).Val1).GetWebLogDateTimeStr().CStr());
     }
 }
