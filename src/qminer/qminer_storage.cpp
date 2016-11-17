@@ -3455,8 +3455,7 @@ void TStoreImpl::DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK) {
             for (int JoinRecN = 0; JoinRecN < JoinRecSet->GetRecs(); JoinRecN++) {
                 // remove joins with all matched records, one by one
                 const uint64 JoinRecId = JoinRecSet->GetRecId(JoinRecN);
-                const int JoinFq = JoinRecSet->GetRecFq(JoinRecN);
-                DelJoin(JoinDesc.GetJoinId(), DelRecId, JoinRecId, JoinFq);
+                DelJoin(JoinDesc.GetJoinId(), DelRecId, JoinRecId);
             }
         }
     }
@@ -5106,8 +5105,7 @@ void TStorePbBlob::DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK) {
             for (int JoinRecN = 0; JoinRecN < JoinRecSet->GetRecs(); JoinRecN++) {
                 // remove joins with all matched records, one by one
                 const uint64 JoinRecId = JoinRecSet->GetRecId(JoinRecN);
-                const int JoinFq = JoinRecSet->GetRecFq(JoinRecN);
-                DelJoin(JoinDesc.GetJoinId(), DelRecId, JoinRecId, JoinFq);
+                DelJoin(JoinDesc.GetJoinId(), DelRecId, JoinRecId);
             }
         }
 
