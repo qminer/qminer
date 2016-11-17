@@ -111,6 +111,7 @@
 * @property {module:qm~StreamAggrMovingCovariance} cov - The moving covariance type.
 * @property {module:qm~StreamAggrMovingCorrelation} cor - The moving correlation type.
 * @property {module:qm~StreamAggrResampler} res - The resampler type.
+* @property {module:qm~StreamAggrAggResampler} res - The aggregating (avg/sum) resampler type.
 * @property {module:qm~StreamAggrMerger} mer - The merger type.
 * @property {module:qm~StreamAggrHistogram} hist - The online histogram type.
 * @property {module:qm~StreamAggrSlottedHistogram} slotted-hist - The online slotted-histogram type.
@@ -930,6 +931,62 @@
 * @property {string} outStore - The store in which the samples are stored.
 * @property {string} timestamp - The store field from which it takes the timestamps.
 * @property {Array.<Object>} fields - The array off `field` objects from which it takes the values. The `field` object contain the properties: 
+* <br>`field.name` - The store field from which it takes the values. Type `string`.
+* <br>`field.interpolator` - The type of the interpolation. The options are `'previous'`, `'next'` and `'linear'`. Type `string`.
+* @property {boolean} createStore - If true, `outStore` must be created.
+* @property {number} interval - The interval size. The frequency on which it makes the interpolated values.
+* @example
+* // import the qm module
+* var qm = require('qminer');
+* // create a base with a simple store
+* var base = new qm.Base({
+*    mode: "createClean",
+*    schema: [
+*    {
+*        name: "Heat",
+*        fields: [
+*            { name: "Celsius", type: "float" },
+*            { name: "Time", type: "datetime" }
+*        ]
+*    },
+*    {
+*        name: "interpolatedValues",
+*        fields: [
+*            { name: "Value", type: "float" },
+*            { name: "Time", type: "datetime" }
+*        ]
+*    }]
+* });
+* // create a new resampler stream aggregator for the 'Heat' store, that takes the values from the 'Celsius' field
+* // and the timestamp from the 'Time' field. The interpolated values are stored in the 'interpolatedValues' store.
+* // The interpolation should be linear and the interval should be 2 seconds
+* var res = {
+*    name: 'resamplerAggr',
+*    type: 'resampler',
+*    store: 'Heat',
+*    outStore: 'interpolatedValues',
+*    timestamp: 'Time',
+*    fields: [{
+*        name: 'Celsius',
+*        interpolator: 'linear'
+*    }],
+*    createStore: false,
+*    interval: 2000
+* };
+* var resampler = base.store("Heat").addStreamAggr(res);
+* base.close();
+*/
+
+/** JANKO
+* @typedef {module:qm.StreamAggr} StreamAggrAggResampler
+* This stream aggregator represents the resampler window buffer. It creates new values that are interpolated by using the values from an existing store.
+* No methods are implemented for this aggregator.
+* @property {string} name - The given name for the stream aggregator.
+* @property {string} type - The type of the stream aggregator. <b>Important:</b> It must be equal to `'resampler'`.
+* @property {string} store - The name of the store from which it takes the data.
+* @property {string} outStore - The store in which the samples are stored.
+* @property {string} timestamp - The store field from which it takes the timestamps.
+* @property {Array.<Object>} fields - The array off `field` objects from which it takes the values. The `field` object contain the properties:
 * <br>`field.name` - The store field from which it takes the values. Type `string`.
 * <br>`field.interpolator` - The type of the interpolation. The options are `'previous'`, `'next'` and `'linear'`. Type `string`.
 * @property {boolean} createStore - If true, `outStore` must be created.

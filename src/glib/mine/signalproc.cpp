@@ -880,6 +880,157 @@ bool TLinear::CanInterpolate(const uint64& Tm) const {
             (Buff.Len() >= 2 && Buff.GetOldest().Val1 <= Tm && Tm <= Buff.GetOldest(1).Val1);
 }
 
+///////////////////////////////////////////////
+// Aggregating resampler
+TAggResampler::TAggResampler(const PJsonVal& ParamVal) {
+    IntervalMSecs = ParamVal->GetObjUInt64("interval");
+    TStr TypeNm = ParamVal->GetObjStr("aggType");
+    Type = TypeNm == "avg" ? TAggResamplerType::arAvg : TAggResamplerType::arSum;
+    // start point - interval = LastResamplePointVal
+    if (ParamVal->IsObjKey("start")) {
+        uint64 StartTm = 0;
+        PJsonVal StartVal = ParamVal->GetObjKey("start");
+        if (StartVal->IsNum()) {
+            StartTm = TTm::GetWinMSecsFromUnixMSecs(static_cast<uint64_t> (StartVal->GetNum()));
+        } else if (StartVal->IsStr()) {
+            StartTm = TTm::GetMSecsFromTm(TTm::GetTmFromWebLogDateTimeStr(StartVal->GetStr(), '-', ':', '.', 'T'));
+        } else {
+            throw TExcept::New("TAggrResampler constructor: start property should be a unix timestamp (numnber) or a web log time string");
+        }
+        EAssertR(StartTm >= IntervalMSecs, "Start point too early");
+        LastResampPointMSecs = StartTm - IntervalMSecs;
+        InitP = true;
+    }
+    if (ParamVal->IsObjKey("roundStart")) {
+        RoundStart = ParamVal->GetObjStr("roundStart");
+        EAssertR(RoundStart == "" || RoundStart == "h" || RoundStart == "m" || RoundStart == "s", "TAggResampler: roundStart should be 'h', 'm' or 's'");
+    }
+}
+
+PJsonVal TAggResampler::TAggResampler::GetParam() const {
+    PJsonVal Result = TJsonVal::NewObj();
+    Result->AddToObj("interval", IntervalMSecs);
+    Result->AddToObj("aggType", Type == TAggResamplerType::arAvg ? "avg": "sum");
+    Result->AddToObj("roundStart", RoundStart);
+    return Result;
+}
+
+void TAggResampler::Reset() {
+    CurrentTmMSecs = 0;
+    LastResampPointMSecs = 0;
+    LastResampPointVal = 0;
+    Buff.Clr();
+    InitP = false;
+}
+
+void TAggResampler::LoadState(TSIn& SIn) {
+    // Should we load this?
+    //IntervalMSecs.Load(SIn);
+    //Type = LoadEnum<TAggResamplerType>(SIn);
+    CurrentTmMSecs.Load(SIn);
+    LastResampPointMSecs.Load(SIn);
+    LastResampPointVal.Load(SIn);
+    Buff = TLinkedBuffer<TUInt64FltPr>(SIn);
+    InitP.Load(SIn);
+}
+
+void TAggResampler::SaveState(TSOut& SOut) const {
+    // Should we save this?
+    //IntervalMSecs.Save(SOut);
+    //SaveEnum<TAggResamplerType>(SOut, Type);
+    CurrentTmMSecs.Save(SOut);
+    LastResampPointMSecs.Save(SOut);
+    LastResampPointVal.Save(SOut);
+    Buff.Save(SOut);
+    InitP.Save(SOut);
+}
+
+PJsonVal TAggResampler::SaveJson() const {
+    PJsonVal Result = TJsonVal::NewObj();
+    return Result;
+}
+
+void TAggResampler::AddPoint(const double& Val, const uint64& Tm) {
+    EAssertR(!TFlt::IsNan(Val), "TAggResampler::AddPoint: got NaN value!");
+    Buff.Add(TUInt64FltPr(Tm, Val));
+}
+
+/// Sets the current time
+void TAggResampler::SetCurrentTm(const uint64& Tm) { 
+    CurrentTmMSecs = Tm;
+    if (!InitP) {
+        EAssertR(Tm >= IntervalMSecs, "TAggResampler::SetCurrentTm: Current time point too early (currently in uninitialized state). Use 'start' property when constructing the resampler.");
+        LastResampPointMSecs = Tm - IntervalMSecs;
+        if (!RoundStart.Empty()) {
+            TTm Time = TTm::GetTmFromMSecs(LastResampPointMSecs);
+            if (RoundStart == "h") {
+                Time.SubTime(0, Time.GetMin(), Time.GetSec(), Time.GetMSec());
+            } else if (RoundStart == "m") {
+                Time.SubTime(0, 0, Time.GetSec(), Time.GetMSec());
+            } else {
+                Time.SubTime(0, 0, 0, Time.GetMSec());
+            }
+            LastResampPointMSecs = TTm::GetMSecsFromTm(Time);
+        }
+        InitP = true;
+    }
+}
+
+bool TAggResampler::TryResampleOnce(double& Val, uint64& Tm) {
+    bool ResampleP = CanResample();
+    if (ResampleP) {
+        Val = 0;
+        int Vals = 0;
+        // keep adding to Val and removing from buffer all the values that fall in the
+        // interval [LastResampPointMSecs + IntervalMSecs , LastResampPointMSecs + 2 * IntervalMSecs)
+        // assert that we have not found a point older than the current window
+        uint64 Start = LastResampPointMSecs + IntervalMSecs;
+        uint64 End = LastResampPointMSecs + 2 * IntervalMSecs - 1;
+        while (!Buff.Empty()) {
+            const TUInt64FltPr& Point = Buff.GetOldest();
+            if (Point.Val1 < Start) {
+                // ignore point but notify that its badly configured
+                printf("TAggResampler: stale point found. A point in the buffer should have been aggregated already but it wasn't\n");
+                Buff.DelOldest();
+                continue;
+            }
+            if (Point.Val1 > End) { break; }
+            Val += Point.Val2;
+            Vals++;
+            Buff.DelOldest(); // Point == NULL
+        }
+        if (Type == TAggResamplerType::arAvg) {
+            Val /= (double)Vals;
+            if (Vals == 0) {
+                // generate a warning?
+                // printf("AggResampler:Nan generated while resampling and using average aggrgator (no data in the interval)\n");
+            }
+        }
+        // new left point of the last successfully aggregated interval
+        Tm = LastResampPointMSecs + IntervalMSecs;
+        // save state
+        LastResampPointVal = Val;
+        LastResampPointMSecs = Tm;
+    }
+    return ResampleP;
+}
+
+void TAggResampler::PrintState(const TStr& Prefix) const {
+    printf("%s: interval %s, type %s\n", Prefix.CStr(),
+        TUInt64::GetStr(IntervalMSecs).CStr(), Type == TAggResamplerType::arAvg ? "avg" : "sum");
+    printf("%s: last r. value: %f\n", Prefix.CStr(),
+        LastResampPointVal.Val);
+    printf("%s: last r. time:  %s\n", Prefix.CStr(),
+        TTm::GetTmFromMSecs(LastResampPointMSecs).GetWebLogDateTimeStr().CStr());
+    printf("%s: current time:  %s\n", Prefix.CStr(),
+        TTm::GetTmFromMSecs(CurrentTmMSecs).GetWebLogDateTimeStr().CStr());
+    printf("%s: initialized:   %s\n", Prefix.CStr(),
+        InitP ? "yes" : "no");
+    for (int ElN = 0; ElN < Buff.Len(); ElN++) {
+        printf("%s: buffer:        %f %s\n",Prefix.CStr(),  Buff.GetOldest(ElN).Val2.Val, TTm::GetTmFromMSecs(Buff.GetOldest(ElN).Val1).GetWebLogDateTimeStr().CStr());
+    }
+}
+
 ///////////////////////////////////////////////////////////////////
 // Neural Networks - Neuron
 TRnd TNNet::TNeuron::Rnd = 0;
