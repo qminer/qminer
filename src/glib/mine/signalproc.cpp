@@ -927,22 +927,16 @@ void TAggResampler::Reset() {
 }
 
 void TAggResampler::LoadState(TSIn& SIn) {
-    // Should we load this?
-    //IntervalMSecs.Load(SIn);
-    //Type = LoadEnum<TAggResamplerType>(SIn);
-    // RoundStart, DefaultVal?
+    // only state, not params
     CurrentTmMSecs.Load(SIn);
     LastResampPointMSecs.Load(SIn);
     LastResampPointVal.Load(SIn);
-    Buff = TLinkedBuffer<TUInt64FltPr>(SIn);
+    Buff.Load(SIn);
     InitP.Load(SIn);
 }
 
 void TAggResampler::SaveState(TSOut& SOut) const {
-    // Should we save this?
-    //IntervalMSecs.Save(SOut);
-    //SaveEnum<TAggResamplerType>(SOut, Type);
-    // RoundStart, DefaultVal?
+    // only state, not params
     CurrentTmMSecs.Save(SOut);
     LastResampPointMSecs.Save(SOut);
     LastResampPointVal.Save(SOut);

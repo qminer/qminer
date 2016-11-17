@@ -523,6 +523,7 @@ public:
     TLinkedBuffer();
     TLinkedBuffer(TSIn& SIn);
 
+    void Load(TSIn& SIn);
     void Save(TSOut& SOut) const;
 
     ~TLinkedBuffer();
@@ -562,10 +563,20 @@ TLinkedBuffer<TVal, TSizeTy>::TLinkedBuffer(TSIn& SIn):
     Last = Curr;
 }
 
+
+template <class TVal, class TSizeTy>
+void TLinkedBuffer<TVal, TSizeTy>::Load(TSIn& SIn) {
+    Clr();
+    TSizeTy Len(SIn);
+    for (TSizeTy ElN = 0; ElN < Len; ElN++) {
+        TVal Val(SIn);
+        Add(Val);
+    }
+}
+
 template <class TVal, class TSizeTy>
 void TLinkedBuffer<TVal, TSizeTy>::Save(TSOut& SOut) const {
     Size.Save(SOut);
-
     Node* Curr = First;
     while (Curr != NULL) {
         Curr->Val.Save(SOut);
