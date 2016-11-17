@@ -1009,9 +1009,9 @@ bool TAggResampler::TryResampleOnce(double& Val, uint64& Tm, bool& FoundEmptyP) 
             }
             if (Point.Val1 > End) { break; }
             if (Type == TAggResamplerType::artMax) {
-                Val = MAX(Val, Point.Val2);
+                Val = MAX(Val, Point.Val2.Val);
             } else if (Type == TAggResamplerType::artMin) {
-                Val = MIN(Val, Point.Val2);
+                Val = MIN(Val, Point.Val2.Val);
             } else {
                 // avg/sum
                 Val += Point.Val2;
