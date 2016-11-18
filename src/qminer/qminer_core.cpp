@@ -2655,6 +2655,16 @@ PRecFilter TRecFilterByField::New(const TWPt<TBase>& Base, const PJsonVal& Param
 }
 
 ///////////////////////////////
+/// Keep (_FilterNullP = false) or remove (_FilterNullP = true) records that have null in the value of a field. 
+TRecFilterByFieldNull::TRecFilterByFieldNull(const TWPt<TBase>& _Base, const int& _FieldId, const bool& _RemoveNullValues) :
+    TRecFilter(_Base), FieldId(_FieldId), RemoveNullValues(_RemoveNullValues) { }
+
+bool TRecFilterByFieldNull::Filter(const TRec& Rec) const {
+    const bool RecNull = Rec.IsFieldNull(FieldId);
+    return RecNull == RemoveNullValues;
+}
+
+///////////////////////////////
 /// Record Filter by Bool Field. 
 TRecFilterByFieldBool::TRecFilterByFieldBool(const TWPt<TBase>& _Base, const int& _FieldId, const bool& _Val, const bool& _FilterNullP):
     TRecFilterByField(_Base, _FieldId, _FilterNullP), Val(_Val) { }
@@ -3696,6 +3706,14 @@ void TRecSet::FilterByRecIdSet(const TUInt64Set& RecIdSet) {
 void TRecSet::FilterByFq(const int& MinFq, const int& MaxFq) {
     // apply filter
     FilterBy<TRecFilterByRecFq>(TRecFilterByRecFq(Store->GetBase(), MinFq, MaxFq));
+}
+
+void TRecSet::FilterByFieldNull(const int& FieldId, const bool RemoveNullValues) {
+    // get store and field type
+    const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
+    QmAssertR(Desc.IsNullable(), "The field is not nullable");
+    // apply the filter
+    FilterBy<TRecFilterByFieldNull>(TRecFilterByFieldNull(Store->GetBase(), FieldId, RemoveNullValues));
 }
 
 void TRecSet::FilterByFieldBool(const int& FieldId, const bool& Val) {
