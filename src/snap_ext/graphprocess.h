@@ -83,5 +83,50 @@ public:
     PJsonVal GetOrder() const;
 };
 
+/// This class correlates event co-occurances in time.
+/// Events are described by tags
+class TEventCorrelator {
+private:
+    /// Internal structure that is stored in window
+    class TEvent {
+    public:
+        TUInt64V TagCombinations;
+        TTm Ts;
+        TEvent() {};
+        TEvent(const TUInt64V& event_tags, const TTm event_ts);
+        TEvent(TSIn& SIn);
+        void Save(TSOut& SOut) const;
+    };
+    /// Window length in milliseconds
+    TUInt64 WinLen;
+
+    /// Mapping from string value of tag into its ID
+    TStrHash<TUInt64> TagCodebookH;
+    /// Window
+    TVec<TEvent> Window;
+    /// counts for single combination occurences
+    THash<TUInt64, TInt> SingleCounts;
+    /// counts for combination-pair co-occurences
+    THash<TPair<TUInt64, TUInt64>, TInt> CooccurCounts;
+
+    /// Recursive function for creating combinations from string array
+    void GetCombinationsR(TUInt64V& res, const TStrV& src, TStrV& curr, int offset);
+    /// Starting function for creating combinations from string array
+    TUInt64V GetCombinations(const TStrV& e);
+    /// Given combination ids update single counters
+    void IncreaseSingleCounters(const TUInt64V& e_combinations);
+
+    /// Utility method for setting up this object from JSON
+    void InitFromJson(const PJsonVal& Params);
+public:
+    /// Construct from JSON parameters
+    TEventCorrelator(const PJsonVal& Params) { InitFromJson(Params); }
+    /// Load from stream
+    TEventCorrelator(TSIn& SIn);
+    /// Save to stream
+    void Save(TSOut& SOut) const;
+    /// Adds given event into internal structures
+    void Add(const TStrV& event_tags, const TTm event_ts);
+};
 
 }

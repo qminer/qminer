@@ -369,4 +369,123 @@ PJsonVal TGraphCascade::GetOrder() const {
     return OrderArr;
 }
 
+/////////////////////////////////////////////////////////////////////
+
+TEventCorrelator::TEvent::TEvent(const TUInt64V& event_tags, const TTm event_ts):
+    TagCombinations(event_tags), Ts(event_ts) {}
+
+
+TEventCorrelator::TEvent::TEvent(TSIn& SIn) {
+    TagCombinations.Load(SIn);
+    uint64 tmp;
+    SIn.Load(tmp);
+    Ts = TTm::GetTmFromMSecs(tmp);
+}
+
+void TEventCorrelator::TEvent::Save(TSOut& SOut) const {
+    TagCombinations.Save(SOut);
+    SOut.Save(TTm::GetMSecsFromTm(Ts));
+}
+
+/////////////////////////////////////////////////////////////////////
+
+void TEventCorrelator::InitFromJson(const PJsonVal& Params) {
+    WinLen = Params->GetObjUInt64("win_len", 60 * 60 * 1000);
+
+    // TODO support exclussion patterns for flags or their combinations, possibly with wildcards
+}
+
+TEventCorrelator::TEventCorrelator(TSIn& SIn) {
+    PJsonVal memento = TJsonVal::Load(SIn);
+    InitFromJson(memento);
+
+    Window.Load(SIn);
+    TagCodebookH.Load(SIn);
+    SingleCounts.Load(SIn);
+    CooccurCounts.Load(SIn);
+}
+
+void TEventCorrelator::Save(TSOut& SOut) const {
+    // create memento object for init parameters
+    PJsonVal memento = TJsonVal::New();
+    memento->AddToObj("win_len", WinLen);
+    memento->Save(SOut);
+
+    Window.Save(SOut);
+    TagCodebookH.Save(SOut);
+    SingleCounts.Save(SOut);
+    CooccurCounts.Save(SOut);
+}
+
+TStr Join(const TStrV& arr, const TStr& Delim) {
+    if (arr.Len() == 0) return TStr("");
+    TStr res = arr[0];
+    for (int i = 1; i < arr.Len(); i++) {
+        res += Delim;
+        res += arr[i];
+    }
+    return res;
+}
+
+void TEventCorrelator::GetCombinationsR(TUInt64V& res, const TStrV& src, TStrV& curr, int offset) {
+    if (offset >= src.Len()) {
+        if (curr.Len() > 0) {
+            TStr comb = Join(curr, "#");
+            if (TagCodebookH.IsKey(comb)) {
+                res.Add(TagCodebookH.GetDat(comb));
+            } else {
+                res.Add(TagCodebookH.AddDat(comb, TagCodebookH.Len()));
+            }
+        }
+    } else {
+        for (int i = offset; i <= src.Len(); ++i) {
+            curr.Add(src[i]);
+            GetCombinationsR(res, src, curr, i + 1);
+            curr.DelLast();
+        }
+    }
+}
+
+TUInt64V TEventCorrelator::GetCombinations(const TStrV& e) {
+    TUInt64V res;
+    TStrV curr;
+    GetCombinationsR(res, e, curr, 0);
+    return res;
+}
+
+void TEventCorrelator::IncreaseSingleCounters(const TUInt64V& e_combinations) {
+    for (int i = 0; i < e_combinations.Len(); i++) {
+        const TUInt64& eid = e_combinations[i];
+        if (SingleCounts.IsKey(eid)) {
+            SingleCounts[eid]++;
+        } else {
+            SingleCounts.AddDat(eid, 1);
+        }
+    }
+}
+
+void TEventCorrelator::Add(const TStrV& event_tags, const TTm event_ts) {
+    // create internal structure
+    TStrV tags(event_tags);
+    tags.Sort();
+    TUInt64V e_combinations = GetCombinations(tags);
+    TEvent e(e_combinations, event_ts);
+    IncreaseSingleCounters(e_combinations);
+
+    // scan window and update counts
+    int i;
+    for (i = 0; i < Window.Len(); i++) {
+        const TEvent& e_prev = Window[i];
+        if (TTm::GetMSecsFromTm(e_prev.Ts) + WinLen < TTm::GetMSecsFromTm(e.Ts)) continue; // too early
+        if (e_prev.Ts > e.Ts) break; // too late
+
+        // TODO update counts
+    }
+    for (; i < Window.Len(); i++) {
+        const TEvent& e_follow = Window[i];
+        if (TTm::GetMSecsFromTm(e.Ts) + WinLen < TTm::GetMSecsFromTm(e_follow.Ts)) break; // too early
+        // TODO update counts
+    }
+    // TODO insert into window
+}
 }
