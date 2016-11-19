@@ -1981,6 +1981,10 @@
     * Returns the posteriors
     * @returns {Object} - model
     */
+/**
+    * Returns the pruned directed acyclic graph
+    * @returns {Object} - dag
+    */
 
 
     ///////////////////////////////////////////////////

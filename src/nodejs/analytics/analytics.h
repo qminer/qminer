@@ -2621,6 +2621,16 @@ public:
     * @returns {Object} - model
     */
     JsDeclareFunction(getPosterior);
+    /**
+    * Returns the pruned directed acyclic graph
+    * @returns {Object} - dag
+    */
+    JsDeclareFunction(getGraph);
+    /**
+    * Returns the topologically ordered node names
+    * @returns {Object} - nodeArr
+    */
+    JsDeclareFunction(getOrder);
 
 };
 
