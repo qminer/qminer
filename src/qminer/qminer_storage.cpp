@@ -4784,7 +4784,7 @@ void TStorePbBlob::SetFieldJsonVal(const uint64& RecId, const int& FieldId, cons
 
 /// Check if given ID is valid
 bool TStorePbBlob::IsRecId(const uint64& RecId) const {
-    return RecIdBlobPtH.IsKey(RecId);
+    return DataMemP ? RecIdBlobPtHMem.IsKey(RecId) : RecIdBlobPtH.IsKey(RecId);
 }
 
 /// Set primary field map
