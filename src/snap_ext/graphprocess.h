@@ -115,6 +115,8 @@ private:
     TUInt64V GetCombinations(const TStrV& e);
     /// Given combination ids update single counters
     void IncreaseSingleCounters(const TUInt64V& e_combinations);
+    /// Given two events update co-occurence counters
+    void IncreaseCoOccurenceCounters(const TEvent& a, const TEvent& b);
 
     /// Utility method for setting up this object from JSON
     void InitFromJson(const PJsonVal& Params);

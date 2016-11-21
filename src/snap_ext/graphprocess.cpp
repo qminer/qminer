@@ -457,9 +457,22 @@ void TEventCorrelator::IncreaseSingleCounters(const TUInt64V& e_combinations) {
     for (int i = 0; i < e_combinations.Len(); i++) {
         const TUInt64& eid = e_combinations[i];
         if (SingleCounts.IsKey(eid)) {
-            SingleCounts[eid]++;
+            SingleCounts.GetDat(eid)++;
         } else {
             SingleCounts.AddDat(eid, 1);
+        }
+    }
+}
+
+void TEventCorrelator::IncreaseCoOccurenceCounters(const TEvent& a, const TEvent& b) {
+    for (int i = 0; i < a.TagCombinations.Len(); i++) {
+        for (int j = 0; j < b.TagCombinations.Len(); j++) {
+            TPair<TUInt64, TUInt64> pair(a.TagCombinations[i], b.TagCombinations[j]);
+            if (!CooccurCounts.IsKey(pair)) {
+                CooccurCounts.AddDat(pair, 1);
+            } else {
+                CooccurCounts.GetDat(pair)++;
+            }
         }
     }
 }
@@ -479,13 +492,16 @@ void TEventCorrelator::Add(const TStrV& event_tags, const TTm event_ts) {
         if (TTm::GetMSecsFromTm(e_prev.Ts) + WinLen < TTm::GetMSecsFromTm(e.Ts)) continue; // too early
         if (e_prev.Ts > e.Ts) break; // too late
 
-        // TODO update counts
+        IncreaseCoOccurenceCounters(e_prev, e);
     }
     for (; i < Window.Len(); i++) {
         const TEvent& e_follow = Window[i];
         if (TTm::GetMSecsFromTm(e.Ts) + WinLen < TTm::GetMSecsFromTm(e_follow.Ts)) break; // too early
-        // TODO update counts
+        IncreaseCoOccurenceCounters(e, e_follow);
     }
+
     // TODO insert into window
+
+    // TODO predictions
 }
 }
