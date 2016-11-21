@@ -104,6 +104,8 @@ private:
     TStrHash<TUInt64> TagCodebookH;
     /// Window
     TVec<TEvent> Window;
+    /// counts for single combination occurences inside current window
+    THash<TUInt64, TInt> WindowTagCounts;
     /// counts for single combination occurences
     THash<TUInt64, TInt> SingleCounts;
     /// counts for combination-pair co-occurences
@@ -116,7 +118,7 @@ private:
     /// Given combination ids update single counters
     void IncreaseSingleCounters(const TUInt64V& e_combinations);
     /// Given two events update co-occurence counters
-    void IncreaseCoOccurenceCounters(const TEvent& a, const TEvent& b);
+    //void IncreaseCoOccurenceCounters(const TEvent& a, const TEvent& b);
 
     /// Utility method for setting up this object from JSON
     void InitFromJson(const PJsonVal& Params);

@@ -400,6 +400,7 @@ TEventCorrelator::TEventCorrelator(TSIn& SIn) {
     InitFromJson(memento);
 
     Window.Load(SIn);
+    WindowTagCounts.Load(SIn);
     TagCodebookH.Load(SIn);
     SingleCounts.Load(SIn);
     CooccurCounts.Load(SIn);
@@ -412,6 +413,7 @@ void TEventCorrelator::Save(TSOut& SOut) const {
     memento->Save(SOut);
 
     Window.Save(SOut);
+    WindowTagCounts.Save(SOut);
     TagCodebookH.Save(SOut);
     SingleCounts.Save(SOut);
     CooccurCounts.Save(SOut);
@@ -464,20 +466,22 @@ void TEventCorrelator::IncreaseSingleCounters(const TUInt64V& e_combinations) {
     }
 }
 
-void TEventCorrelator::IncreaseCoOccurenceCounters(const TEvent& a, const TEvent& b) {
-    for (int i = 0; i < a.TagCombinations.Len(); i++) {
-        for (int j = 0; j < b.TagCombinations.Len(); j++) {
-            TPair<TUInt64, TUInt64> pair(a.TagCombinations[i], b.TagCombinations[j]);
-            if (!CooccurCounts.IsKey(pair)) {
-                CooccurCounts.AddDat(pair, 1);
-            } else {
-                CooccurCounts.GetDat(pair)++;
-            }
-        }
-    }
-}
+//void TEventCorrelator::IncreaseCoOccurenceCounters(const TEvent& a, const TEvent& b) {
+//    for (int i = 0; i < a.TagCombinations.Len(); i++) {
+//        for (int j = 0; j < b.TagCombinations.Len(); j++) {
+//            TPair<TUInt64, TUInt64> pair(a.TagCombinations[i], b.TagCombinations[j]);
+//            if (!CooccurCounts.IsKey(pair)) {
+//                CooccurCounts.AddDat(pair, 1);
+//            } else {
+//                CooccurCounts.GetDat(pair)++;
+//            }
+//        }
+//    }
+//}
 
 void TEventCorrelator::Add(const TStrV& event_tags, const TTm event_ts) {
+    // TODO purge window given new timestamp
+
     // create internal structure
     TStrV tags(event_tags);
     tags.Sort();
@@ -485,22 +489,45 @@ void TEventCorrelator::Add(const TStrV& event_tags, const TTm event_ts) {
     TEvent e(e_combinations, event_ts);
     IncreaseSingleCounters(e_combinations);
 
-    // scan window and update counts
-    int i;
-    for (i = 0; i < Window.Len(); i++) {
-        const TEvent& e_prev = Window[i];
-        if (TTm::GetMSecsFromTm(e_prev.Ts) + WinLen < TTm::GetMSecsFromTm(e.Ts)) continue; // too early
-        if (e_prev.Ts > e.Ts) break; // too late
-
-        IncreaseCoOccurenceCounters(e_prev, e);
+    // scan window and update co-occurence counts
+    for (auto iter = WindowTagCounts.begin(); iter != WindowTagCounts.end(); iter++) {
+        if (iter->Dat == 0) continue;
+        auto key = iter->Key;
+        for (int i = 0; i < e_combinations.Len(); i++) {
+            TPair<TUInt64, TUInt64> pair(e_combinations[i], key);
+            if (!CooccurCounts.IsKey(pair)) {
+                CooccurCounts.AddDat(pair, 1);
+            } else {
+                CooccurCounts.GetDat(pair)++;
+            }
+        }
     }
-    for (; i < Window.Len(); i++) {
-        const TEvent& e_follow = Window[i];
-        if (TTm::GetMSecsFromTm(e.Ts) + WinLen < TTm::GetMSecsFromTm(e_follow.Ts)) break; // too early
-        IncreaseCoOccurenceCounters(e, e_follow);
-    }
 
-    // TODO insert into window
+    //int i;
+    //for (i = 0; i < Window.Len(); i++) {
+    //    const TEvent& e_prev = Window[i];
+    //    if (TTm::GetMSecsFromTm(e_prev.Ts) + WinLen < TTm::GetMSecsFromTm(e.Ts)) continue; // too early
+    //    if (e_prev.Ts > e.Ts) break; // too late
+
+    //    IncreaseCoOccurenceCounters(e_prev, e);
+    //}
+    //for (; i < Window.Len(); i++) {
+    //    const TEvent& e_follow = Window[i];
+    //    if (TTm::GetMSecsFromTm(e.Ts) + WinLen < TTm::GetMSecsFromTm(e_follow.Ts)) break; // too early
+    //    IncreaseCoOccurenceCounters(e, e_follow);
+    //}
+
+    // TODO insert into Window
+
+    // increase tag counts in WindowTagCounts
+    for (int i = 0; i < e.TagCombinations.Len(); i++) {
+        const TUInt64& eid = e.TagCombinations[i];
+        if (WindowTagCounts.IsKey(eid)) {
+            WindowTagCounts.GetDat(eid)++;
+        } else {
+            WindowTagCounts.AddDat(eid, 1);
+        }
+    }
 
     // TODO predictions
 }
