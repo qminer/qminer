@@ -461,7 +461,7 @@ TMBlobBs::TMBlobBs(
   if (MxSegLen==-1){MxSegLen=MxBlobFLen;}
   // initialize the hashtable of block sizes to first segment
   TBlobBs::GenBlockLenV(BlockLenV);
-  for (uint N = 0; N < BlockLenV.Len(); N++) {
+  for (int N = 0; N < BlockLenV.Len(); N++) {
     BlockSizeToSegH.AddDat(BlockLenV[N], 0);
   }
   GetNrFPathFMid(BlobBsFNm, NrFPath, NrFMid);
@@ -551,7 +551,7 @@ TBlobPt TMBlobBs::PutBlob(const PSIn& SIn){
     TStr SegFNm = GetSegFNm(NrFPath, NrFMid, SegV.Len());
     PBlobBs Seg = TGBlobBs::New(SegFNm, faCreate, MxSegLen);
     DestSegN = SegV.Add(Seg);
-    EAssert(DestSegN <= TUSInt::Mx);
+    EAssert(DestSegN < TUSInt::Mx);
     BlobPt = SegV[DestSegN]->PutBlob(SIn);
   }
   // remember the segment index to which we are able to write buffer of this length
