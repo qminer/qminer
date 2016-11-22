@@ -83,7 +83,7 @@ public:
     PJsonVal GetOrder() const;
 };
 
-/// This class correlates event co-occurances in time.
+/// This class correlates event co-occurrances in time.
 /// Events are described by tags
 class TEventCorrelator {
 private:
@@ -96,29 +96,47 @@ private:
         TEvent(const TUInt64V& event_tags, const TTm event_ts);
         TEvent(TSIn& SIn);
         void Save(TSOut& SOut) const;
+
+        bool operator==(const TEvent& Other) const { return Ts == Other.Ts; }
+        bool operator<(const TEvent& Other) const { return Ts < Other.Ts; }
     };
+
+    class TEventStats {
+    public:
+        TInt Cnt;
+        THash<TUInt64, TInt> Cooccurences;
+
+        TEventStats() {};
+        TEventStats(TSIn& SIn);
+        void Save(TSOut& SOut) const;
+    };
+
     /// Window length in milliseconds
     TUInt64 WinLen;
 
     /// Mapping from string value of tag into its ID
     TStrHash<TUInt64> TagCodebookH;
+    /// Mapping from tag ID into string value
+    THash<TUInt64, TStr> TagCodebookInverseH;
+
     /// Window
     TVec<TEvent> Window;
     /// counts for single combination occurences inside current window
     THash<TUInt64, TInt> WindowTagCounts;
-    /// counts for single combination occurences
-    THash<TUInt64, TInt> SingleCounts;
-    /// counts for combination-pair co-occurences
-    THash<TPair<TUInt64, TUInt64>, TInt> CooccurCounts;
+
+    /// counts for single combination occurences and co-occurences
+    THash<TUInt64, TEventStats> Counts;
 
     /// Recursive function for creating combinations from string array
-    void GetCombinationsR(TUInt64V& res, const TStrV& src, TStrV& curr, int offset);
+    void GetCombinationsR(TUInt64V& Res, const TStrV& Tags, TStrV& Curr, int Offset);
     /// Starting function for creating combinations from string array
-    TUInt64V GetCombinations(const TStrV& e);
-    /// Given combination ids update single counters
-    void IncreaseSingleCounters(const TUInt64V& e_combinations);
-    /// Given two events update co-occurence counters
-    //void IncreaseCoOccurenceCounters(const TEvent& a, const TEvent& b);
+    TUInt64V GetCombinations(const TStrV& Tags);
+    /// Given combination ids update single counters and oc-occurence counters
+    void IncreaseCounters(const TUInt64V& Combinations);
+    /// Remove events from window that are older than given timestamp
+    void PurgeWindow(const TTm& EventTs);
+    /// Add event to window
+    void AddToWindow(const TEvent& Event);
 
     /// Utility method for setting up this object from JSON
     void InitFromJson(const PJsonVal& Params);
@@ -130,7 +148,10 @@ public:
     /// Save to stream
     void Save(TSOut& SOut) const;
     /// Adds given event into internal structures
-    void Add(const TStrV& event_tags, const TTm event_ts);
+    void Add(const TStrV& EventTags, const TTm EventTs);
+    /// Create predictions - events that are most likely to occur
+    /// Result means (probability, event_to_occurr, event_that_already_occurred)
+    void Predict(TVec<TTriple<TFlt, TStr, TStr>>& Predictions, const int MaxPredictions = 10);
 };
 
 }
