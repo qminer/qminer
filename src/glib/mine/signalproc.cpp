@@ -895,7 +895,7 @@ TAggResampler::TAggResampler(const PJsonVal& ParamVal) {
         } else if (StartVal->IsStr()) {
             StartTm = TTm::GetMSecsFromTm(TTm::GetTmFromWebLogDateTimeStr(StartVal->GetStr(), '-', ':', '.', 'T'));
         } else {
-            throw TExcept::New("TAggrResampler constructor: start property should be a unix timestamp (numnber) or a web log time string");
+            throw TExcept::New("TAggResampler constructor: start property should be a unix timestamp (numnber) or a web log time string");
         }
         EAssertR(StartTm >= IntervalMSecs, "Start point too early");
         LastResampPointMSecs = StartTm - IntervalMSecs;
@@ -951,7 +951,7 @@ PJsonVal TAggResampler::SaveJson() const {
 
 void TAggResampler::AddPoint(const double& Val, const uint64& Tm) {
     EAssertR(!TFlt::IsNan(Val), "TAggResampler::AddPoint: got NaN value!");
-    Buff.Add(TUInt64FltPr(Tm, Val));
+    Buff.Push(TUInt64FltPr(Tm, Val));
 }
 
 /// Sets the current time
@@ -994,11 +994,11 @@ bool TAggResampler::TryResampleOnce(double& Val, uint64& Tm, bool& FoundEmptyP) 
         uint64 Start = LastResampPointMSecs + IntervalMSecs;
         uint64 End = LastResampPointMSecs + 2 * IntervalMSecs - 1;
         while (!Buff.Empty()) {
-            const TUInt64FltPr& Point = Buff.GetOldest();
+            const TUInt64FltPr& Point = Buff.Top();
             if (Point.Val1 < Start) {
                 // ignore point but notify that its badly configured
                 printf("TAggResampler: stale point found. A point in the buffer should have been aggregated already but it wasn't\n");
-                Buff.DelOldest();
+                Buff.Pop();
                 continue;
             }
             if (Point.Val1 > End) { break; }
@@ -1011,7 +1011,7 @@ bool TAggResampler::TryResampleOnce(double& Val, uint64& Tm, bool& FoundEmptyP) 
                 Val += Point.Val2;
             }
             Vals++;
-            Buff.DelOldest(); // Point == NULL
+            Buff.Pop(); // Point == NULL
         }
         if (Type == TAggResamplerType::artAvg) {
             Val /= (double)Vals;
@@ -1043,7 +1043,7 @@ void TAggResampler::PrintState(const TStr& Prefix) const {
     printf("%s: initialized:   %s\n", Prefix.CStr(),
         InitP ? "yes" : "no");
     for (int ElN = 0; ElN < (int)Buff.Len(); ElN++) {
-        printf("%s: buffer:        %f %s\n",Prefix.CStr(),  Buff.GetOldest(ElN).Val2.Val, TTm::GetTmFromMSecs(Buff.GetOldest(ElN).Val1).GetWebLogDateTimeStr().CStr());
+        printf("%s: buffer:        %f %s\n",Prefix.CStr(),  Buff[ElN].Val2.Val, TTm::GetTmFromMSecs(Buff[ElN].Val1).GetWebLogDateTimeStr().CStr());
     }
 }
 

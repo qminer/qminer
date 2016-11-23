@@ -1711,6 +1711,7 @@ void TAggResampler::Loop() {
     while (Resampler.TryResampleOnce(ResampledValue, ResampledTm, FoundEmptyP)) {
         // notify out aggregate that new resampled values are available
         if (FoundEmptyP && SkipEmptyP) { continue; }
+        QmAssertR(!OutAggr.Empty(), "TAggResampler: OutAggr is NULL. Have you set outAggr using setParams?");
         OutAggr->OnStep();
     }
 }

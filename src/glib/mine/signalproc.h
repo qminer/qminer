@@ -782,7 +782,8 @@ private:
     /// Value of the last generated record
     TFlt LastResampPointVal;
     /// Buffer holding the time series to be aggregated
-    TLinkedBuffer<TPair<TUInt64, TFlt>> Buff;
+    TQQueue<TPair<TUInt64, TFlt>> Buff;
+
     /// Has resampling succeeed once?
     TBool InitP;
 public:

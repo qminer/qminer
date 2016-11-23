@@ -5146,7 +5146,7 @@ function testResampledSequence(inputArr, outArr, expectedOutArr, store) {
     }
 }
 
-describe.only('Aggregating (sum/avg/min/max) resampler tests', function () {
+describe('Aggregating (sum/avg/min/max) resampler tests', function () {
     var base = undefined;
     var store = undefined;
 
@@ -5491,7 +5491,7 @@ describe.only('Aggregating (sum/avg/min/max) resampler tests', function () {
     });
 
     describe('Save/load', function () {
-        it('should not save and load properly', function () {
+        it('should save and load properly', function () {
             var raw = store.addStreamAggr({
                 type: 'timeSeriesTick',
                 timestamp: 'timestamp',
@@ -5529,6 +5529,115 @@ describe.only('Aggregating (sum/avg/min/max) resampler tests', function () {
             var expectedOutArr = [[1000, 3], [2000, 1000]];
             testResampledSequence(inputArr, result, expectedOutArr, store);
 
+        });
+
+        it('should save and load (without reset) properly', function () {
+            var raw = store.addStreamAggr({
+                type: 'timeSeriesTick',
+                timestamp: 'timestamp',
+                value: 'value'
+            });
+
+            var resampler = store.addStreamAggr({
+                type: 'aggResample',
+                inAggr: raw.name,
+                start: '1970-01-01T00:00:00.000',
+                skipEmpty: true,
+                aggType: 'sum',
+                interval: 1000
+            });
+
+            var result = [];
+
+            var outAggr = new qm.StreamAggr(base, new function () {
+                this.onStep = function () {
+                    result.push({ value: resampler.getFloat(), timestamp: resampler.getTimestamp() });
+                    //console.log(resampler.getFloat() + ' ' + new Date(resampler.getTimestamp()).toISOString());
+                }
+            });
+
+
+            resampler.setParams({ outAggr: outAggr.name });
+
+            var inputArr = [[0, 1], [1, 2], [500, 3], [1000, 3]];
+            var expectedOutArr = [[0, 6]];
+            testResampledSequence(inputArr, result, expectedOutArr, store);
+            resampler.save(qm.fs.openWrite('aggResamplerTest.bin')).close();
+
+            // resampler 2
+            var result2 = [];
+            var outAggr2 = new qm.StreamAggr(base, new function () {
+                this.onStep = function () {
+                    result2.push({ value: resampler2.getFloat(), timestamp: resampler2.getTimestamp() });
+                    //console.log(resampler.getFloat() + ' ' + new Date(resampler.getTimestamp()).toISOString());
+                }
+            });
+            var resampler2 = store.addStreamAggr({
+                type: 'aggResample',
+                inAggr: raw.name,
+                start: '1970-01-01T00:00:00.000',
+                skipEmpty: true,
+                aggType: 'sum',
+                interval: 1000
+            });
+            resampler2.setParams({ outAggr: outAggr2.name });
+
+            resampler2.load(qm.fs.openRead('aggResamplerTest.bin'));
+            var inputArr = [[2500, 1000], [3100, 10000]];
+            var expectedOutArr = [[1000, 3], [2000, 1000]];
+            testResampledSequence(inputArr, result2, expectedOutArr, store);
+
+        });
+
+        it('should save and load properly an uninitialized resampler', function () {
+            var raw = store.addStreamAggr({
+                type: 'timeSeriesTick',
+                timestamp: 'timestamp',
+                value: 'value'
+            });
+
+            var resampler = store.addStreamAggr({
+                type: 'aggResample',
+                inAggr: raw.name,
+                start: '1970-01-01T00:00:00.000',
+                skipEmpty: true,
+                aggType: 'sum',
+                interval: 1000
+            });
+
+            resampler.save(qm.fs.openWrite('aggResamplerTest.bin')).close();
+
+            var resampler2 = store.addStreamAggr({
+                type: 'aggResample',
+                inAggr: raw.name,
+                start: '1970-01-01T00:00:00.000',
+                skipEmpty: true,
+                aggType: 'sum',
+                interval: 1000
+            });
+
+            var result = [];
+            var outAggr = new qm.StreamAggr(base, new function () {
+                this.onStep = function () {
+                    result.push({ value: resampler2.getFloat(), timestamp: resampler2.getTimestamp() });
+                }
+            });
+            resampler.setParams({ outAggr: outAggr.name });
+
+            var result2 = [];
+            var outAggr2 = new qm.StreamAggr(base, new function () {
+                this.onStep = function () {
+                    result2.push({ value: resampler2.getFloat(), timestamp: resampler2.getTimestamp() });
+                }
+            });
+
+            resampler2.setParams({ outAggr: outAggr2.name });
+            resampler2.load(qm.fs.openRead('aggResamplerTest.bin'));
+
+            var inputArr = [[0, 1], [1, 2], [500, 3], [1000, 3]];
+            var expectedOutArr = [[0, 6]];
+            testResampledSequence(inputArr, result2, expectedOutArr, store);
+            
         });
     });
 
