@@ -128,6 +128,39 @@ public:
 };
 
 ///////////////////////////////
+/// Store windowing type
+typedef enum {
+    swtNone = 0,   ///< No windowing on the store
+    swtLength = 1, ///< Record-number based windowing
+    swtTime = 2    ///< Time-based windowing
+} TStoreWndType;
+
+///////////////////////////////
+/// Store window description
+class TStoreWndDesc {
+public:
+    /// Prefix used for fields inserted by system
+    static TStr SysInsertedAtFieldName;
+
+public:
+    /// Windowing type
+    TStoreWndType WindowType;
+    /// For time window this is period length in milliseconds, otherwise it is max length
+    TUInt64 WindowSize;
+    /// User insert time
+    TBool InsertP;
+    /// Name of the field that serves as time-window indicator
+    TStr TimeFieldNm;
+
+public:
+    TStoreWndDesc() : WindowType(swtNone) { }
+    TStoreWndDesc(TSIn& SIn) { Load(SIn); }
+
+    void Save(TSOut& SOut) const;
+    void Load(TSIn& SIn);
+};
+
+///////////////////////////////
 /// Join Types
 typedef enum { 
     osjtUndef, 
@@ -500,6 +533,9 @@ private:
     /// Load store from stream (to be called only by base class!)
     void LoadStore(TSIn& SIn);
 protected:
+    /// Time window settings
+    TStoreWndDesc WndDesc;
+
     /// Create new store with given ID and name
     TStore(const TWPt<TBase>& _Base, uint _StoreId, const TStr& _StoreNm);
     /// Load store from input stream
@@ -557,6 +593,10 @@ public:
     uint GetStoreId() const { return StoreId; }
     /// Get store name
     TStr GetStoreNm() const { return StoreNm; }
+
+    // get time window settings
+    const TStoreWndDesc& GetWndDesc() { return WndDesc; }
+
 
     /// Load store ID from the stream and retrieve store
     static TWPt<TStore> LoadById(const TWPt<TBase>& Base, TSIn& SIn);
@@ -1417,12 +1457,28 @@ public:
 };
 
 ///////////////////////////////
+/// Remove (RemoveNullValues = true) or keep (RemoveNullValues = false) records that have null in the value of a field. 
+class TRecFilterByFieldNull : public TRecFilter {
+private:
+    /// Field according to which we are filtering
+    TInt FieldId;
+    /// If true (default), null fields are filtered out (Filter returns false)
+    TBool RemoveNullValues;
+
+public:
+    /// Constructor
+    TRecFilterByFieldNull(const TWPt<TBase>& Base, const int& FieldId, const bool& RemoveNullValues);
+    /// Filter function
+    bool Filter(const TRec& Rec) const;
+};
+
+///////////////////////////////
 /// Record filter by bool field. 
 class TRecFilterByFieldBool : public TRecFilterByField {
 private:
     /// Value
     TBool Val;
-    
+
 public:
     /// Constructor
     TRecFilterByFieldBool(const TWPt<TBase>& _Base, const int& _FieldId, const bool& _Val, const bool& _FilterNullP = true);
@@ -1920,6 +1976,8 @@ public:
     void FilterByRecIdSet(const TUInt64Set& RecIdSet);
     /// Filter records to keep only the ones with weight between `MinFq' and `MaxFq'
     void FilterByFq(const int& MinFq, const int& MaxFq);
+    /// Filter records to keep only the ones that have a value (RemoveNullValues = true) or don't have a value (RemoveNullValues = false)
+    void FilterByFieldNull(const int& FieldId, const bool RemoveNullValues);
     /// Filter records to keep only the ones that match the boolean value
     void FilterByFieldBool(const int& FieldId, const bool& Val);
     /// Filter records to keep only the ones with values of a given field within given range

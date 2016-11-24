@@ -98,7 +98,7 @@ void TNodeJsUtil::_NewJs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     }
     catch (const PExcept& Except) {
         Isolate->ThrowException(v8::Exception::TypeError(
-            v8::String::NewFromUtf8(Isolate, (TStr("[addon] Exception in constructor call, ClassId: ") + TClass::GetClassId() + ":" + Except->GetMsgStr()).CStr())));
+            v8::String::NewFromUtf8(Isolate, (TStr("[addon] Exception in constructor call, ClassId: ") + TClass::GetClassId() + ":" + Except->GetStr()).CStr())));
     }
 }
 
@@ -120,10 +120,10 @@ void TNodeJsUtil::_NewCpp(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         ObjCount.Val1++;
     }
     catch (const PExcept& Except) {
-        printf("%s\n", Except->GetMsgStr().CStr());
+        printf("%s\n", Except->GetStr().CStr());
         throw Except;
         //      Isolate->ThrowException(v8::Exception::TypeError(
-        //          v8::String::NewFromUtf8(Isolate, (TStr("[addon] Exception in constructor call, ClassId: ") + TClass::GetClassId() + ":" + Except->GetMsgStr()).CStr())));
+        //          v8::String::NewFromUtf8(Isolate, (TStr("[addon] Exception in constructor call, ClassId: ") + TClass::GetClassId() + ":" + Except->GetStr()).CStr())));
 
     }
 }

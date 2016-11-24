@@ -1,5 +1,41 @@
 # QMiner Change Log
 
+### 4 November 2016
+
+**Version 7.2.0**
+
+**Non-breaking with new feature**
+
+New Feature:
+- Graph cascades expose topological order in JavaScript API
+
+### 28 October 2016
+
+**Version 7.1.0**
+
+**Non-breaking with new features and bug fixes**
+
+New feature:
+- graph cascades model (modeling times of visiting nodes for directed acyclic graph sweeps)
+
+Bug fixes:
+- Fixed documentation (broken links in nnets)
+- TSIn, TSBase optimized (does not create redundant strings any more)
+- TStorePbBlob several fixes
+- TRecSet::DoJoin optimized
+- TNNAnomalyAggr initialization fix
+
+
+### 21 October 2016
+
+**Version: 7.0.2**
+
+**Non-breaking with bug fixes**
+
+Bug Fixes:
+- Fixed broken links in documentation (#481)
+- Fixed bug in feature space. Output vector when calling `TFtrSpace::GetSpV` was not cleared when not empty.
+
 ### 14 October 2016
 
 **Version: 7.0.1**
@@ -12,7 +48,6 @@ Bug Fixes:
 - JS stream aggregate exceptions come with stacktraces, not just messages
 - JS stream aggregate `this` fixed
 - base construction with `createClean` mode made safer
-
 
 ### 7 October 2016
 

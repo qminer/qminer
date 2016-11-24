@@ -523,6 +523,7 @@ public:
     TLinkedBuffer();
     TLinkedBuffer(TSIn& SIn);
 
+    void Load(TSIn& SIn);
     void Save(TSOut& SOut) const;
 
     ~TLinkedBuffer();
@@ -562,10 +563,20 @@ TLinkedBuffer<TVal, TSizeTy>::TLinkedBuffer(TSIn& SIn):
     Last = Curr;
 }
 
+
+template <class TVal, class TSizeTy>
+void TLinkedBuffer<TVal, TSizeTy>::Load(TSIn& SIn) {
+    Clr();
+    TSizeTy Len(SIn);
+    for (TSizeTy ElN = 0; ElN < Len; ElN++) {
+        TVal Val(SIn);
+        Add(Val);
+    }
+}
+
 template <class TVal, class TSizeTy>
 void TLinkedBuffer<TVal, TSizeTy>::Save(TSOut& SOut) const {
     Size.Save(SOut);
-
     Node* Curr = First;
     while (Curr != NULL) {
         Curr->Val.Save(SOut);
@@ -732,6 +743,83 @@ public:
     bool CanInterpolate(const uint64& Tm) const;
 
     static TStr GetType() { return "linear"; }
+};
+
+
+typedef enum { artSum, artAvg, artMin, artMax } TAggrResamplerType;
+///////////////////////////////////////////////
+/// Aggregating resampler
+/// The resampler maintains a buffer of time series points and
+/// computes aggregates (sum or average) on a sequence of consequtive
+/// intervals of equal size.
+/// State: - current time
+///        - last resample result (left time point of the interval and aggregated value)
+///        - buffer of points that have not been aggregated yet
+///        - init (true if at least one resampling happened)
+/// Parameters: - interval size
+///             - type of aggregation (sum or avg)
+///             - RoundStart ('h', 'm', 's') - strips away (m,s,msec) if set to h, strips (s,msec) if set to m, ...
+/// Main logic: TryResampleOnce
+///               Resampling is possible if there exists an interval (of predefined width)
+///               that ends before current time and starts at last resample time point.
+class TAggrResampler {
+private:
+    // PARAMS
+    /// interval size
+    TUInt64 IntervalMSecs;
+    /// type
+    TAggrResamplerType Type;
+    /// Round start time (used when start is not set by the user but determined from data)
+    TStr RoundStart;
+    /// Default value when the buffer is empty
+    TFlt DefaultVal;
+
+    // STATE
+    /// Timestamp of the current time
+    TUInt64 CurrentTmMSecs;
+    /// Timestamp of last generated record
+    TUInt64 LastResampPointMSecs;
+    /// Value of the last generated record
+    TFlt LastResampPointVal;
+    /// Buffer holding the time series to be aggregated
+    TQQueue<TPair<TUInt64, TFlt>> Buff;
+
+    /// Has resampling succeeed once?
+    TBool InitP;
+public:
+    /// Json constructor (sets interval, type and start time)
+    TAggrResampler(const PJsonVal& ParamVal);
+    /// Returns the parameters
+    PJsonVal GetParam() const;
+    /// Resets the state
+    void Reset();
+    /// Load stream aggregate state from stream
+    void LoadState(TSIn& SIn);
+    /// Save state of stream aggregate to stream
+    void SaveState(TSOut& SOut) const;
+
+    /// Returns the start time of the last aggregated interval
+    uint64 GetTmMSecs() const { return LastResampPointMSecs; }
+    /// Returns the value of the last aggregated interval
+    double GetFlt() const { return LastResampPointVal; }
+    /// Saves state as a JSON
+    PJsonVal SaveJson() const;
+
+    /// Add a time series value and time
+    void AddPoint(const double& Val, const uint64& Tm);
+
+    /// Returns true if it resampled and false otherwise. If true the results are set as the arguments. EmptyP signifies empty buffer.
+    bool TryResampleOnce(double& Val, uint64& Tm, bool& FoundEmptyP);
+    /// Sets the current time
+    void SetCurrentTm(const uint64& Tm);
+    /// Returns true if a new interval of values can be aggregated
+    bool CanResample() const { return LastResampPointMSecs + 2 * IntervalMSecs <= CurrentTmMSecs; }
+    /// Prints all internal variables for debugging
+    void PrintState (const TStr& Prefix = "") const;
+    /// Maps string type to enum type
+    TAggrResamplerType GetType(const TStr& TypeStr) const;
+    /// Maps enum type to string type
+    TStr GetTypeStr(const TAggrResamplerType& Type) const;
 };
 
 /////////////////////////////////////////

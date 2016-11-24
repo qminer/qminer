@@ -9,7 +9,7 @@
 #include "qminer_core.h"
 #include "qminer_ftr.h"
 #include "qminer_aggr.h"
-#include "geospatial_aggr.h"
+//#include "geospatial_aggr.h"
 
 namespace TQm {
 
@@ -135,6 +135,24 @@ void TNmValidator::AssertValidNm(const TStr& NmStr) const {
 
 void TNmValidator::SetStrictNmP(const bool& _StrictNmP) {
     StrictNmP = _StrictNmP;
+}
+
+///////////////////////////////
+// Store window description
+TStr TStoreWndDesc::SysInsertedAtFieldName = "_sys_inserted_at";
+
+void TStoreWndDesc::Save(TSOut& SOut) const {
+    TInt(WindowType).Save(SOut);
+    WindowSize.Save(SOut);
+    InsertP.Save(SOut);
+    TimeFieldNm.Save(SOut);
+}
+
+void TStoreWndDesc::Load(TSIn& SIn) {
+    WindowType = TStoreWndType(TInt(SIn).Val);
+    WindowSize.Load(SIn);
+    InsertP.Load(SIn);
+    TimeFieldNm.Load(SIn);
 }
 
 ///////////////////////////////
@@ -2637,6 +2655,16 @@ PRecFilter TRecFilterByField::New(const TWPt<TBase>& Base, const PJsonVal& Param
 }
 
 ///////////////////////////////
+/// Keep (_FilterNullP = false) or remove (_FilterNullP = true) records that have null in the value of a field. 
+TRecFilterByFieldNull::TRecFilterByFieldNull(const TWPt<TBase>& _Base, const int& _FieldId, const bool& _RemoveNullValues) :
+    TRecFilter(_Base), FieldId(_FieldId), RemoveNullValues(_RemoveNullValues) { }
+
+bool TRecFilterByFieldNull::Filter(const TRec& Rec) const {
+    const bool RecNull = Rec.IsFieldNull(FieldId);
+    return RecNull == RemoveNullValues;
+}
+
+///////////////////////////////
 /// Record Filter by Bool Field. 
 TRecFilterByFieldBool::TRecFilterByFieldBool(const TWPt<TBase>& _Base, const int& _FieldId, const bool& _Val, const bool& _FilterNullP):
     TRecFilterByField(_Base, _FieldId, _FilterNullP), Val(_Val) { }
@@ -3680,6 +3708,14 @@ void TRecSet::FilterByFq(const int& MinFq, const int& MaxFq) {
     FilterBy<TRecFilterByRecFq>(TRecFilterByRecFq(Store->GetBase(), MinFq, MaxFq));
 }
 
+void TRecSet::FilterByFieldNull(const int& FieldId, const bool RemoveNullValues) {
+    // get store and field type
+    const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
+    QmAssertR(Desc.IsNullable(), "The field is not nullable");
+    // apply the filter
+    FilterBy<TRecFilterByFieldNull>(TRecFilterByFieldNull(Store->GetBase(), FieldId, RemoveNullValues));
+}
+
 void TRecSet::FilterByFieldBool(const int& FieldId, const bool& Val) {
     // get store and field type
     const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
@@ -3939,14 +3975,14 @@ PRecSet TRecSet::DoJoin(const TWPt<TBase>& Base, const int& JoinId, const int& S
         // do join using store field
         TUInt64H JoinRecIdFqH;
         const int JoinRecFieldId = JoinDesc.GetJoinRecFieldId();
+        const int JoinFqFieldId = JoinDesc.GetJoinFqFieldId();
         for (int RecN = 0; RecN < SampleRecs; RecN++) {
             const uint64 RecId = SampleRecIdKdV[RecN].Key;
-            const uint64 JoinRecId = Store->GetFieldUInt64Safe(RecId, JoinRecFieldId);
-            if (JoinRecId != TUInt64::Mx) {
-                const int JoinFqFieldId = JoinDesc.GetJoinFqFieldId();
+            if (!Store->IsFieldNull(RecId, JoinRecFieldId)) {
+                const uint64 JoinRecId = Store->GetFieldUInt64Safe(RecId, JoinRecFieldId);
                 int JoinRecFq = 1;
                 if (JoinFqFieldId >= 0) {
-                    JoinRecFq = (int)Store->GetFieldInt64Safe(RecId, JoinFqFieldId);
+                    JoinRecFq = (int) Store->GetFieldInt64Safe(RecId, JoinFqFieldId);
                 }
                 JoinRecIdFqH.AddDat(JoinRecId) += JoinRecFq;
             }
@@ -6550,6 +6586,7 @@ void TStreamAggr::Init() {
     Register<TStreamAggrs::TMerger>();
     Register<TStreamAggrs::TResampler>();
     Register<TStreamAggrs::TUniVarResampler>();
+    Register<TStreamAggrs::TAggrResampler>();
     Register<TStreamAggrs::TFtrExtAggr>();
 	Register<TStreamAggrs::TNNAnomalyAggr>();
     Register<TStreamAggrs::TOnlineHistogram>();
@@ -6563,7 +6600,7 @@ void TStreamAggr::Init() {
     Register<TStreamAggrs::TWinBufSpVecSum>();
     Register<TStreamAggrs::THistogramAD>();
     // geospatial aggregates
-    Register<TStreamAggrs::TStayPointDetector>();
+    //Register<TStreamAggrs::TStayPointDetector>();
 }
 
 TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm): Base(_Base), AggrNm(_AggrNm) {

@@ -162,6 +162,7 @@ public:
   TThinMIn& operator=(const TThinMIn& Mem) {
     Bf = Mem.Bf; BfC = Mem.BfC; BfL = Mem.BfL; return *this;
   }
+  TStr GetSNm() const;
 };
 
 /////////////////////////////////////////////////////////////////////
@@ -293,6 +294,8 @@ public:
   int GetBf(const void* LBf, const TSize& LBfL);
   void Reset(){Cs=TCs(); BfC=0;}
   bool GetNextLnBf(TChA& LnChA);
+
+  TStr GetSNm() const;
 };
 
 /////////////////////////////////////////////////
@@ -308,6 +311,8 @@ public:
   int PutCh(const char& Ch){Mem += Ch; return Ch;}
   int PutBf(const void* LBf, const TSize& LBfL);
   void Flush(){}
+  
+  TStr GetSNm() const;
 };
 
 /////////////////////////////////////////////////
@@ -327,6 +332,8 @@ public:
     Mem->operator+=(Ch); return Ch;}
   int PutBf(const void* LBf, const TSize& LBfL);
   void Flush(){}
+
+  TStr GetSNm() const;
 };
 
 /////////////////////////////////////////////////
@@ -472,6 +479,7 @@ public:
   int GetBf(const void* LBf, const TSize& LBfL);
   void Reset(){Cs=TCs(); BfC=0;}
   bool GetNextLnBf(TChA& LnChA);
+  TStr GetSNm() const;
 };
 
 /////////////////////////////////////////////////
@@ -931,6 +939,7 @@ public:
   int GetBf(const void* LBf, const TSize& LBfL);
   void Reset(){Cs=TCs(); BfC=0;}
   bool GetNextLnBf(TChA& LnChA);
+  TStr GetSNm() const;
 };
 
 /////////////////////////////////////////////////
