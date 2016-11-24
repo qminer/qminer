@@ -882,7 +882,7 @@ bool TLinear::CanInterpolate(const uint64& Tm) const {
 
 ///////////////////////////////////////////////
 // Aggregating resampler
-TAggResampler::TAggResampler(const PJsonVal& ParamVal) {
+TAggrResampler::TAggrResampler(const PJsonVal& ParamVal) {
     IntervalMSecs = ParamVal->GetObjUInt64("interval");
     TStr TypeNm = ParamVal->GetObjStr("aggType");
     Type = GetType(TypeNm);
@@ -895,7 +895,7 @@ TAggResampler::TAggResampler(const PJsonVal& ParamVal) {
         } else if (StartVal->IsStr()) {
             StartTm = TTm::GetMSecsFromTm(TTm::GetTmFromWebLogDateTimeStr(StartVal->GetStr(), '-', ':', '.', 'T'));
         } else {
-            throw TExcept::New("TAggResampler constructor: start property should be a unix timestamp (numnber) or a web log time string");
+            throw TExcept::New("TAggrResampler constructor: start property should be a unix timestamp (numnber) or a web log time string");
         }
         EAssertR(StartTm >= IntervalMSecs, "Start point too early");
         LastResampPointMSecs = StartTm - IntervalMSecs;
@@ -903,13 +903,13 @@ TAggResampler::TAggResampler(const PJsonVal& ParamVal) {
     }
     if (ParamVal->IsObjKey("roundStart")) {
         RoundStart = ParamVal->GetObjStr("roundStart");
-        EAssertR(RoundStart == "" || RoundStart == "h" || RoundStart == "m" || RoundStart == "s", "TAggResampler: roundStart should be 'h', 'm' or 's'");
+        EAssertR(RoundStart == "" || RoundStart == "h" || RoundStart == "m" || RoundStart == "s", "TAggrResampler: roundStart should be 'h', 'm' or 's'");
     }
     // XXX decide if we should use NaN for default (max,min,avg are not defined for empty buffers)?
     DefaultVal = ParamVal->GetObjNum("defaultValue", 0);
 }
 
-PJsonVal TAggResampler::GetParam() const {
+PJsonVal TAggrResampler::GetParam() const {
     PJsonVal Result = TJsonVal::NewObj();
     Result->AddToObj("interval", IntervalMSecs);
     Result->AddToObj("aggType", GetTypeStr(Type));
@@ -918,7 +918,7 @@ PJsonVal TAggResampler::GetParam() const {
     return Result;
 }
 
-void TAggResampler::Reset() {
+void TAggrResampler::Reset() {
     CurrentTmMSecs = 0;
     LastResampPointMSecs = 0;
     LastResampPointVal = 0;
@@ -926,7 +926,7 @@ void TAggResampler::Reset() {
     InitP = false;
 }
 
-void TAggResampler::LoadState(TSIn& SIn) {
+void TAggrResampler::LoadState(TSIn& SIn) {
     // only state, not params
     CurrentTmMSecs.Load(SIn);
     LastResampPointMSecs.Load(SIn);
@@ -935,7 +935,7 @@ void TAggResampler::LoadState(TSIn& SIn) {
     InitP.Load(SIn);
 }
 
-void TAggResampler::SaveState(TSOut& SOut) const {
+void TAggrResampler::SaveState(TSOut& SOut) const {
     // only state, not params
     CurrentTmMSecs.Save(SOut);
     LastResampPointMSecs.Save(SOut);
@@ -944,21 +944,21 @@ void TAggResampler::SaveState(TSOut& SOut) const {
     InitP.Save(SOut);
 }
 
-PJsonVal TAggResampler::SaveJson() const {
+PJsonVal TAggrResampler::SaveJson() const {
     PJsonVal Result = TJsonVal::NewObj();
     return Result;
 }
 
-void TAggResampler::AddPoint(const double& Val, const uint64& Tm) {
-    EAssertR(!TFlt::IsNan(Val), "TAggResampler::AddPoint: got NaN value!");
+void TAggrResampler::AddPoint(const double& Val, const uint64& Tm) {
+    EAssertR(!TFlt::IsNan(Val), "TAggrResampler::AddPoint: got NaN value!");
     Buff.Push(TUInt64FltPr(Tm, Val));
 }
 
 /// Sets the current time
-void TAggResampler::SetCurrentTm(const uint64& Tm) { 
+void TAggrResampler::SetCurrentTm(const uint64& Tm) { 
     CurrentTmMSecs = Tm;
     if (!InitP) {
-        EAssertR(Tm >= IntervalMSecs, "TAggResampler::SetCurrentTm: Current time point too early (currently in uninitialized state). Use 'start' property when constructing the resampler.");
+        EAssertR(Tm >= IntervalMSecs, "TAggrResampler::SetCurrentTm: Current time point too early (currently in uninitialized state). Use 'start' property when constructing the resampler.");
         LastResampPointMSecs = Tm - IntervalMSecs;
         if (!RoundStart.Empty()) {
             TTm Time = TTm::GetTmFromMSecs(LastResampPointMSecs);
@@ -975,13 +975,13 @@ void TAggResampler::SetCurrentTm(const uint64& Tm) {
     }
 }
 
-bool TAggResampler::TryResampleOnce(double& Val, uint64& Tm, bool& FoundEmptyP) {
+bool TAggrResampler::TryResampleOnce(double& Val, uint64& Tm, bool& FoundEmptyP) {
     FoundEmptyP = false;
     bool ResampleP = CanResample();
     if (ResampleP) {
-        if (Type == TAggResamplerType::artMax) {
+        if (Type == TAggrResamplerType::artMax) {
             Val = TFlt::Mn;
-        } else if (Type == TAggResamplerType::artMin) {
+        } else if (Type == TAggrResamplerType::artMin) {
             Val = TFlt::Mx;
         } else {
             // avg/sum
@@ -997,14 +997,14 @@ bool TAggResampler::TryResampleOnce(double& Val, uint64& Tm, bool& FoundEmptyP) 
             const TUInt64FltPr& Point = Buff.Top();
             if (Point.Val1 < Start) {
                 // ignore point but notify that its badly configured
-                printf("TAggResampler: stale point found. A point in the buffer should have been aggregated already but it wasn't\n");
+                printf("TAggrResampler: stale point found. A point in the buffer should have been aggregated already but it wasn't\n");
                 Buff.Pop();
                 continue;
             }
             if (Point.Val1 > End) { break; }
-            if (Type == TAggResamplerType::artMax) {
+            if (Type == TAggrResamplerType::artMax) {
                 Val = MAX(Val, Point.Val2.Val);
-            } else if (Type == TAggResamplerType::artMin) {
+            } else if (Type == TAggrResamplerType::artMin) {
                 Val = MIN(Val, Point.Val2.Val);
             } else {
                 // avg/sum
@@ -1013,14 +1013,14 @@ bool TAggResampler::TryResampleOnce(double& Val, uint64& Tm, bool& FoundEmptyP) 
             Vals++;
             Buff.Pop(); // Point == NULL
         }
-        if (Type == TAggResamplerType::artAvg) {
+        if (Type == TAggrResamplerType::artAvg) {
             Val /= (double)Vals;
         }
         if (Vals == 0 && ResampleP) {
             // notify the caller that an empty (but complete) interval was found
             FoundEmptyP = true;
             Val = DefaultVal;
-            // printf("AggResampler:Nan generated while resampling and using average aggrgator (no data in the interval)\n");
+            // printf("TAggrResampler:Nan generated while resampling and using average aggrgator (no data in the interval)\n");
         }
         // new left point of the last successfully aggregated interval
         Tm = LastResampPointMSecs + IntervalMSecs;
@@ -1031,7 +1031,7 @@ bool TAggResampler::TryResampleOnce(double& Val, uint64& Tm, bool& FoundEmptyP) 
     return ResampleP;
 }
 
-void TAggResampler::PrintState(const TStr& Prefix) const {
+void TAggrResampler::PrintState(const TStr& Prefix) const {
     printf("%s: interval %s, type %s\n", Prefix.CStr(),
         TUInt64::GetStr(IntervalMSecs).CStr(), GetTypeStr(Type).CStr());
     printf("%s: last r. value: %f\n", Prefix.CStr(),
@@ -1047,31 +1047,31 @@ void TAggResampler::PrintState(const TStr& Prefix) const {
     }
 }
 
-TAggResamplerType TAggResampler::GetType(const TStr& TypeStr) const {
+TAggrResamplerType TAggrResampler::GetType(const TStr& TypeStr) const {
     if (TypeStr == "avg") {
-        return TAggResamplerType::artAvg;
+        return TAggrResamplerType::artAvg;
     } else if (TypeStr == "sum") {
-        return TAggResamplerType::artSum;
+        return TAggrResamplerType::artSum;
     } else if (TypeStr == "min") {
-        return TAggResamplerType::artMin;
+        return TAggrResamplerType::artMin;
     } else if (TypeStr == "max") {
-        return TAggResamplerType::artMax;
+        return TAggrResamplerType::artMax;
     } else {
-        throw TExcept::New("TAggResampler::Unknown resampler type.");
+        throw TExcept::New("TAggrResampler::Unknown resampler type.");
     }
 }
 
-TStr TAggResampler::GetTypeStr(const TAggResamplerType& Type) const {
-    if (Type == TAggResamplerType::artAvg) {
+TStr TAggrResampler::GetTypeStr(const TAggrResamplerType& Type) const {
+    if (Type == TAggrResamplerType::artAvg) {
         return "avg";
-    } else if (Type == TAggResamplerType::artSum) {
+    } else if (Type == TAggrResamplerType::artSum) {
         return "sum";
-    } else if (Type == TAggResamplerType::artMin) {
+    } else if (Type == TAggrResamplerType::artMin) {
         return "min";
-    } else if (Type == TAggResamplerType::artMax) {
+    } else if (Type == TAggrResamplerType::artMax) {
         return "max";
     } else {
-        throw TExcept::New("TAggResampler::Unknown resampler type.");
+        throw TExcept::New("TAggrResampler::Unknown resampler type.");
     }
 }
 

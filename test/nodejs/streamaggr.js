@@ -5189,7 +5189,7 @@ describe('Aggregating (sum/avg/min/max) resampler tests', function () {
             });
 
             var resampler = store.addStreamAggr({
-                type: 'aggResample',
+                type: 'aggrResample',
                 inAggr: raw.name,
                 start: '1970-01-01T00:00:00.000',
                 //roundStart: 'm',
@@ -5221,7 +5221,7 @@ describe('Aggregating (sum/avg/min/max) resampler tests', function () {
             });
 
             var resampler = store.addStreamAggr({
-                type: 'aggResample',
+                type: 'aggrResample',
                 inAggr: raw.name,
                 //start: '1970-01-01T00:00:00.000',
                 //roundStart: 'm',
@@ -5253,7 +5253,7 @@ describe('Aggregating (sum/avg/min/max) resampler tests', function () {
             });
 
             var resampler = store.addStreamAggr({
-                type: 'aggResample',
+                type: 'aggrResample',
                 inAggr: raw.name,
                 //start: '1970-01-01T00:00:00.000',
                 roundStart: 's',
@@ -5295,7 +5295,7 @@ describe('Aggregating (sum/avg/min/max) resampler tests', function () {
             });
 
             var resampler = store.addStreamAggr({
-                type: 'aggResample',
+                type: 'aggrResample',
                 inAggr: raw.name,
                 outAggr: outAggr.name,
                 start: '1970-01-01T00:00:00.000',
@@ -5318,7 +5318,7 @@ describe('Aggregating (sum/avg/min/max) resampler tests', function () {
             });
 
             var resampler = store.addStreamAggr({
-                type: 'aggResample',
+                type: 'aggrResample',
                 inAggr: raw.name,
                 start: '1970-01-01T00:00:00.000',
                 //roundStart: 'm',
@@ -5355,7 +5355,7 @@ describe('Aggregating (sum/avg/min/max) resampler tests', function () {
             });
 
             var resampler = store.addStreamAggr({
-                type: 'aggResample',
+                type: 'aggrResample',
                 inAggr: raw.name,
                 start: '1970-01-01T00:00:00.000',
                 //roundStart: 'm',
@@ -5392,7 +5392,7 @@ describe('Aggregating (sum/avg/min/max) resampler tests', function () {
             });
 
             var resampler = store.addStreamAggr({
-                type: 'aggResample',
+                type: 'aggrResample',
                 inAggr: raw.name,
                 start: '1970-01-01T00:00:00.000',
                 //roundStart: 'm',
@@ -5428,7 +5428,7 @@ describe('Aggregating (sum/avg/min/max) resampler tests', function () {
             });
 
             var resampler = store.addStreamAggr({
-                type: 'aggResample',
+                type: 'aggrResample',
                 inAggr: raw.name,
                 start: '1970-01-01T00:00:00.000',
                 //roundStart: 'm',
@@ -5464,7 +5464,7 @@ describe('Aggregating (sum/avg/min/max) resampler tests', function () {
             });
 
             var resampler = store.addStreamAggr({
-                type: 'aggResample',
+                type: 'aggrResample',
                 inAggr: raw.name,
                 start: '1970-01-01T00:00:00.000',
                 skipEmpty: true,
@@ -5499,7 +5499,7 @@ describe('Aggregating (sum/avg/min/max) resampler tests', function () {
             });
 
             var resampler = store.addStreamAggr({
-                type: 'aggResample',
+                type: 'aggrResample',
                 inAggr: raw.name,
                 start: '1970-01-01T00:00:00.000',
                 skipEmpty: true,
@@ -5521,9 +5521,9 @@ describe('Aggregating (sum/avg/min/max) resampler tests', function () {
             var inputArr = [[0, 1], [1, 2], [500, 3], [1000,3]];
             var expectedOutArr = [[0, 6]];
             testResampledSequence(inputArr, result, expectedOutArr, store);
-            resampler.save(qm.fs.openWrite('aggResamplerTest.bin')).close();
+            resampler.save(qm.fs.openWrite('aggrResamplerTest.bin')).close();
             resampler.reset();
-            resampler.load(qm.fs.openRead('aggResamplerTest.bin'));
+            resampler.load(qm.fs.openRead('aggrResamplerTest.bin'));
             result = [];
             var inputArr = [[2500, 1000], [3100, 10000]];
             var expectedOutArr = [[1000, 3], [2000, 1000]];
@@ -5539,7 +5539,7 @@ describe('Aggregating (sum/avg/min/max) resampler tests', function () {
             });
 
             var resampler = store.addStreamAggr({
-                type: 'aggResample',
+                type: 'aggrResample',
                 inAggr: raw.name,
                 start: '1970-01-01T00:00:00.000',
                 skipEmpty: true,
@@ -5562,7 +5562,7 @@ describe('Aggregating (sum/avg/min/max) resampler tests', function () {
             var inputArr = [[0, 1], [1, 2], [500, 3], [1000, 3]];
             var expectedOutArr = [[0, 6]];
             testResampledSequence(inputArr, result, expectedOutArr, store);
-            resampler.save(qm.fs.openWrite('aggResamplerTest.bin')).close();
+            resampler.save(qm.fs.openWrite('aggrResamplerTest.bin')).close();
 
             // resampler 2
             var result2 = [];
@@ -5573,7 +5573,7 @@ describe('Aggregating (sum/avg/min/max) resampler tests', function () {
                 }
             });
             var resampler2 = store.addStreamAggr({
-                type: 'aggResample',
+                type: 'aggrResample',
                 inAggr: raw.name,
                 start: '1970-01-01T00:00:00.000',
                 skipEmpty: true,
@@ -5582,7 +5582,7 @@ describe('Aggregating (sum/avg/min/max) resampler tests', function () {
             });
             resampler2.setParams({ outAggr: outAggr2.name });
 
-            resampler2.load(qm.fs.openRead('aggResamplerTest.bin'));
+            resampler2.load(qm.fs.openRead('aggrResamplerTest.bin'));
             var inputArr = [[2500, 1000], [3100, 10000]];
             var expectedOutArr = [[1000, 3], [2000, 1000]];
             testResampledSequence(inputArr, result2, expectedOutArr, store);
@@ -5597,7 +5597,7 @@ describe('Aggregating (sum/avg/min/max) resampler tests', function () {
             });
 
             var resampler = store.addStreamAggr({
-                type: 'aggResample',
+                type: 'aggrResample',
                 inAggr: raw.name,
                 start: '1970-01-01T00:00:00.000',
                 skipEmpty: true,
@@ -5605,10 +5605,10 @@ describe('Aggregating (sum/avg/min/max) resampler tests', function () {
                 interval: 1000
             });
 
-            resampler.save(qm.fs.openWrite('aggResamplerTest.bin')).close();
+            resampler.save(qm.fs.openWrite('aggrResamplerTest.bin')).close();
 
             var resampler2 = store.addStreamAggr({
-                type: 'aggResample',
+                type: 'aggrResample',
                 inAggr: raw.name,
                 start: '1970-01-01T00:00:00.000',
                 skipEmpty: true,
@@ -5632,7 +5632,7 @@ describe('Aggregating (sum/avg/min/max) resampler tests', function () {
             });
 
             resampler2.setParams({ outAggr: outAggr2.name });
-            resampler2.load(qm.fs.openRead('aggResamplerTest.bin'));
+            resampler2.load(qm.fs.openRead('aggrResamplerTest.bin'));
 
             var inputArr = [[0, 1], [1, 2], [500, 3], [1000, 3]];
             var expectedOutArr = [[0, 6]];

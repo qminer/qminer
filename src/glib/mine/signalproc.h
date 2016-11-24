@@ -746,7 +746,7 @@ public:
 };
 
 
-typedef enum { artSum, artAvg, artMin, artMax } TAggResamplerType;
+typedef enum { artSum, artAvg, artMin, artMax } TAggrResamplerType;
 ///////////////////////////////////////////////
 /// Aggregating resampler
 /// The resampler maintains a buffer of time series points and
@@ -762,13 +762,13 @@ typedef enum { artSum, artAvg, artMin, artMax } TAggResamplerType;
 /// Main logic: TryResampleOnce
 ///               Resampling is possible if there exists an interval (of predefined width)
 ///               that ends before current time and starts at last resample time point.
-class TAggResampler {
+class TAggrResampler {
 private:
     // PARAMS
     /// interval size
     TUInt64 IntervalMSecs;
     /// type
-    TAggResamplerType Type;
+    TAggrResamplerType Type;
     /// Round start time (used when start is not set by the user but determined from data)
     TStr RoundStart;
     /// Default value when the buffer is empty
@@ -788,7 +788,7 @@ private:
     TBool InitP;
 public:
     /// Json constructor (sets interval, type and start time)
-    TAggResampler(const PJsonVal& ParamVal);
+    TAggrResampler(const PJsonVal& ParamVal);
     /// Returns the parameters
     PJsonVal GetParam() const;
     /// Resets the state
@@ -817,9 +817,9 @@ public:
     /// Prints all internal variables for debugging
     void PrintState (const TStr& Prefix = "") const;
     /// Maps string type to enum type
-    TAggResamplerType GetType(const TStr& TypeStr) const;
+    TAggrResamplerType GetType(const TStr& TypeStr) const;
     /// Maps enum type to string type
-    TStr GetTypeStr(const TAggResamplerType& Type) const;
+    TStr GetTypeStr(const TAggrResamplerType& Type) const;
 };
 
 /////////////////////////////////////////

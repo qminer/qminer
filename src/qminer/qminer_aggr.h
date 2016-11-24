@@ -1322,7 +1322,7 @@ private:
 
 ///////////////////////////////
 /// Aggregating resampler of univariate time series (maps intervals to sums or averages)
-class TAggResampler : public TStreamAggr,
+class TAggrResampler : public TStreamAggr,
     public TStreamAggrOut::ITm,
     public TStreamAggrOut::IFlt {
 private:
@@ -1338,10 +1338,10 @@ private:
     /// Skip calling OnStep for empty intervals (no data) ?
     TBool SkipEmptyP;
     /// Model
-    TSignalProc::TAggResampler Resampler;
+    TSignalProc::TAggrResampler Resampler;
 private:
     /// Json constructor
-    TAggResampler(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+    TAggrResampler(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:
     /// Smart pointer constructor
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
@@ -1362,7 +1362,7 @@ public:
     /// Returns the value of the last aggregated interval
     double GetFlt() const { return Resampler.GetFlt(); }
     /// Stream aggregator type name
-    static TStr GetType() { return "aggResample"; }
+    static TStr GetType() { return "aggrResample"; }
     /// Stream aggregator type name
     TStr Type() const { return GetType(); }
 protected:

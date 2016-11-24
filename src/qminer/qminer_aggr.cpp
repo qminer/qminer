@@ -1635,7 +1635,7 @@ bool TUniVarResampler::CanInterpolate() {
 ///////////////////////////////
 // Aggregating resampler
 
-TAggResampler::TAggResampler(const TWPt<TBase>& Base, const PJsonVal& ParamVal) :
+TAggrResampler::TAggrResampler(const TWPt<TBase>& Base, const PJsonVal& ParamVal) :
     TStreamAggr(Base, ParamVal), OutAggr(), Resampler(ParamVal) {
     // parse the input aggregate
     InAggr = ParseAggr(ParamVal, "inAggr");
@@ -1647,11 +1647,11 @@ TAggResampler::TAggResampler(const TWPt<TBase>& Base, const PJsonVal& ParamVal) 
     SkipEmptyP = ParamVal->GetObjBool("skipEmpty", false);
 }
 
-PStreamAggr TAggResampler::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
-    return new TAggResampler(Base, ParamVal);
+PStreamAggr TAggrResampler::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+    return new TAggrResampler(Base, ParamVal);
 }
 
-PJsonVal TAggResampler::GetParam() const {
+PJsonVal TAggrResampler::GetParam() const {
     PJsonVal ParamVal = Resampler.GetParam();
     if (!InAggr.Empty()) {
         ParamVal->AddToObj("inAggr", InAggr->GetAggrNm());
@@ -1670,7 +1670,7 @@ PJsonVal TAggResampler::GetParam() const {
     return ParamVal;
 }
 
-void TAggResampler::SetParam(const PJsonVal& ParamVal) {
+void TAggrResampler::SetParam(const PJsonVal& ParamVal) {
     if (ParamVal->IsObjKey("inAggr")) {
         const TStr AggrNm = ParamVal->GetObjStr("inAggr");
         EAssert(GetBase()->IsStreamAggr(AggrNm));
@@ -1684,14 +1684,14 @@ void TAggResampler::SetParam(const PJsonVal& ParamVal) {
     }
 }
 
-void TAggResampler::OnTime(const uint64& TmMsec) {
+void TAggrResampler::OnTime(const uint64& TmMsec) {
     // set current time
     Resampler.SetCurrentTm(TmMsec);
     // try resampling
     Loop();
 }
 
-void TAggResampler::OnStep() {
+void TAggrResampler::OnStep() {
     // read new val and time
     const uint64 NewTmMSecs = InAggrTm->GetTmMSecs();
     const double NewVal = InAggrFlt->GetFlt();
@@ -1703,7 +1703,7 @@ void TAggResampler::OnStep() {
     Loop();
 }
 
-void TAggResampler::Loop() {
+void TAggrResampler::Loop() {
     // loop: call Resampler as long as it can resample
     double ResampledValue = 0;
     uint64 ResampledTm = 0;
@@ -1711,7 +1711,7 @@ void TAggResampler::Loop() {
     while (Resampler.TryResampleOnce(ResampledValue, ResampledTm, FoundEmptyP)) {
         // notify out aggregate that new resampled values are available
         if (FoundEmptyP && SkipEmptyP) { continue; }
-        QmAssertR(!OutAggr.Empty(), "TAggResampler: OutAggr is NULL. Have you set outAggr using setParams?");
+        QmAssertR(!OutAggr.Empty(), "TAggrResampler: OutAggr is NULL. Have you set outAggr using setParams?");
         OutAggr->OnStep();
     }
 }

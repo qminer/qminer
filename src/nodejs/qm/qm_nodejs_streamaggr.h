@@ -111,7 +111,7 @@
 * @property {module:qm~StreamAggrMovingCovariance} cov - The moving covariance type.
 * @property {module:qm~StreamAggrMovingCorrelation} cor - The moving correlation type.
 * @property {module:qm~StreamAggrResampler} res - The resampler type.
-* @property {module:qm~StreamAggrAggResampler} res - The aggregating (avg/sum) resampler type.
+* @property {module:qm~StreamAggrAggrResampler} res - The aggregating (avg/sum) resampler type.
 * @property {module:qm~StreamAggrMerger} mer - The merger type.
 * @property {module:qm~StreamAggrHistogram} hist - The online histogram type.
 * @property {module:qm~StreamAggrSlottedHistogram} slotted-hist - The online slotted-histogram type.
@@ -978,7 +978,7 @@
 */
 
 /**
-* @typedef {module:qm.StreamAggr} StreamAggrAggResampler
+* @typedef {module:qm.StreamAggr} StreamAggrAggrResampler
 * This stream aggregate resamples an input time series to a new time seris
 * of equally spaced measurements. Each new measurement corresponds to an
 * aggregate (sum,avg,min,max) computed over an interval. The aggregate
@@ -994,7 +994,7 @@
 * The reading and resampling occourrs wehen resampler's onStep() or onTime() methods are called.
 * When resampling succeeds (all the data needed for the computation becomes available), the resampler
 * will trigger the onStep() method of an output stream aggregate that will read the resampler's state through getFloat and getTime.
-* @property {string} type - The type of the stream aggregator. <b>Important:</b> It must be equal to `'aggResampler'`.
+* @property {string} type - The type of the stream aggregator. <b>Important:</b> It must be equal to `'aggrResampler'`.
 * @property {number} interval - Interval size in milliseconds
 * @property {string} aggType - Must be one of the values: "sum", "avg", "min" or "max" - represents the function executed on the data values in the interval.
 * @property {(string | module:qm.StreamAggr)} inAggr - The name of the input stream aggregate which must implement getFloat() and getTimestamp() methods.
@@ -1027,7 +1027,7 @@
 * 
 * // will compute sums over 1 second intervals
 * var resampler = store.addStreamAggr({
-*     type: 'aggResample',
+*     type: 'aggrResample',
 *     inAggr: raw.name,
 *     start: '1970-01-01T00:00:00.000',
 *     defaultValue: 0,
