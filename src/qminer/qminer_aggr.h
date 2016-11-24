@@ -1321,6 +1321,61 @@ private:
 };
 
 ///////////////////////////////
+/// Aggregating resampler of univariate time series (maps intervals to sums or averages)
+class TAggrResampler : public TStreamAggr,
+    public TStreamAggrOut::ITm,
+    public TStreamAggrOut::IFlt {
+private:
+    /// Input aggregate
+    TWPt<TStreamAggr> InAggr;
+    /// output aggregate
+    TWPt<TStreamAggr> OutAggr;
+    /// Input aggregate casted to time series
+    TWPt<TStreamAggrOut::ITm> InAggrTm;
+    /// Input aggregate casted to time series
+    TWPt<TStreamAggrOut::IFlt> InAggrFlt;
+    
+    /// Skip calling OnStep for empty intervals (no data) ?
+    TBool SkipEmptyP;
+    /// Model
+    TSignalProc::TAggrResampler Resampler;
+private:
+    /// Json constructor
+    TAggrResampler(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+public:
+    /// Smart pointer constructor
+    static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+    /// Returns the parameters
+    PJsonVal GetParam() const;
+    /// Sets the parameters - used for setting the output aggregate
+    void SetParam(const PJsonVal& ParamVal);
+    /// Resets the aggregate
+    void Reset() { Resampler.Reset(); }
+    /// Load stream aggregate state from stream
+    void LoadState(TSIn& SIn) { Resampler.LoadState(SIn); }
+    /// Save state of stream aggregate to stream
+    void SaveState(TSOut& SOut) const { Resampler.SaveState(SOut); }
+    /// Saves state
+    PJsonVal SaveJson(const int& Limit) const { return Resampler.SaveJson(); }
+    /// Returns the start time of the last aggregated interval
+    uint64 GetTmMSecs() const { return Resampler.GetTmMSecs(); }
+    /// Returns the value of the last aggregated interval
+    double GetFlt() const { return Resampler.GetFlt(); }
+    /// Stream aggregator type name
+    static TStr GetType() { return "aggrResample"; }
+    /// Stream aggregator type name
+    TStr Type() const { return GetType(); }
+protected:
+    /// Sets the current time and calls loop
+    void OnTime(const uint64& TmMsec);
+    /// Reads from input aggr, sets current time and calls loop
+    void OnStep();
+private:
+    /// Tries to resample as long as possible each time calling OnStep on out aggregate 
+    void Loop();
+};
+
+///////////////////////////////
 /// Feature extractor stream aggregate.
 /// Calls GetFullV on feature space and returns result.
 class TFtrExtAggr : public TStreamAggr,
