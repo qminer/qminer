@@ -7,7 +7,7 @@
 **Non-breaking with new features and bug fixes**
 
 Features:
-- aggregating resampler
+- aggregating resampler (TAggrResampler) The resampler computes aggregates over consecutive equally sized intervals. It implements summing, averaging, max and min.
 -	added TStorePbBlob::GarbageCollect()
 - added TRecFilterByFieldNull
 
