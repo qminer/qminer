@@ -84,7 +84,7 @@ void TLogReg::Fit(const TFltVV& _X, const TFltV& y, const double& Eps, const int
 	int k = 1;
 	do {
 		if (k >= MxIter) {
-		    Notify->OnNotifyFmt(TNotifyType::ntInfo, "Reached the maximum number of iterations, will break ...");
+		    printf("Reached the maximum number of iterations, will break ...\n");
 		    break;
 		}
 		if (k % 10 == 0) {
@@ -133,7 +133,7 @@ void TLogReg::Fit(const TFltVV& _X, const TFltV& y, const double& Eps, const int
 #endif
 
 		if (TFlt::IsNan(TLinAlg::Norm(DeltaWgtV))) {
-			Notify->OnNotifyFmt(TNotifyType::ntInfo, "Got NaNs while fitting logistic regression! The weights could still be OK.");
+			printf("Got NaNs while fitting logistic regression! The weights could still be OK.\n");
 			break;
 		}
 
