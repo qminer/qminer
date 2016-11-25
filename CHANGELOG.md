@@ -7,17 +7,17 @@
 **Non-breaking with new features and bug fixes**
 
 Features:
-- Aggregating resampler
+- aggregating resampler
 -	added TStorePbBlob::GarbageCollect()
 - added TRecFilterByFieldNull
 
 Bug fixes:
-- When calling saveJson() on uninitalized TOnlineHistrogram, an exception was created. Now it serializes the current state.
+- when calling saveJson() on uninitalized TOnlineHistrogram, an exception was created. Now it serializes the current state.
 - fix for deleting blobs. freed content gets reused on following inserts.
 - TRecSet::DoJoin fixed
-- bug fix: when deleting records, we need to call DelJoin without the freqency parameter. Otherwise we might keep some joins to deleted records.
-- bug fix: TStorePbBlob::IsRecId did not work if all data for store was in memory
-- bug fix when storing new blobs. now we always correctly now which file has free space where to put the new buffer.
+- when deleting records, we need to call DelJoin without the freqency parameter. Otherwise we might keep some joins to deleted records.
+- TStorePbBlob::IsRecId did not work if all data for store was in memory
+- storing new blobs. now we always correctly now which file has free space where to put the new buffer.
 - had to extend the TBlobBs file with a parameter ReleasedSize that returns a value if the blob is moved and the previous buffer is released. needed for monitoring which places in the files are free
 
 
