@@ -1988,6 +1988,10 @@ exports = {}; require.modules.qminer_analytics = exports;
     * Returns the pruned directed acyclic graph
     * @returns {Object} - dag
     */
+/**
+    * Returns the topologically ordered node names
+    * @returns {Object} - nodeArr
+    */
 
 
     ///////////////////////////////////////////////////

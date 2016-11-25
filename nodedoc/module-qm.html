@@ -13,7 +13,7 @@
                 <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
         <div id="jsdoc-navbar-content">
-            <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.1.0</a>
+            <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.2.0</a>
         </div>
     </div>
 </nav>
@@ -23,7 +23,7 @@
                                 <div id="jsdoc-content-container">
                                         <div id="jsdoc-main" role="main">
                     <header class="page-header">
-        <h1><div class="symbol-detail-labels"><span class="label label-kind">module</span></div><small></small><span class="symbol-name">qm</span></h1>        <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-8">qminerdoc.<wbr>js:8</a></p>
+        <h1><div class="symbol-detail-labels"><span class="label label-kind">module</span></div><small></small><span class="symbol-name">qm</span></h1>        <p class="source-link">Source: <a href="qminer_aggrdoc.js.html#source-line-8">qminer_aggrdoc.<wbr>js:8</a></p>
             <div class="symbol-description">
                     <p>QMiner module.</p>
 
@@ -252,6 +252,9 @@ var qm = require(&#x27;qminer&#x27;);</code></pre>
                 <dt><a href="module-qm.html#~SchemaTimeWindowDef">SchemaTimeWindowDef</a></dt>
                 <dd>
                 </dd>
+                <dt><a href="module-qm.html#~StreamAggrAggrResampler">StreamAggrAggrResampler</a></dt>
+                <dd>
+                </dd>
                 <dt><a href="module-qm.html#~StreamAggrAnomalyDetectorNN">StreamAggrAnomalyDetectorNN</a></dt>
                 <dd>
                 </dd>
@@ -273,14 +276,14 @@ var qm = require(&#x27;qminer&#x27;);</code></pre>
                 <dt><a href="module-qm.html#~StreamAggrMerger">StreamAggrMerger</a></dt>
                 <dd>
                 </dd>
-                <dt><a href="module-qm.html#~StreamAggrMin">StreamAggrMin</a></dt>
-                <dd>
-                </dd>
         </dl>
 </div>
 
                     <div class="summary-column">
         <dl class="dl-summary-callout">
+                <dt><a href="module-qm.html#~StreamAggrMin">StreamAggrMin</a></dt>
+                <dd>
+                </dd>
                 <dt><a href="module-qm.html#~StreamAggrMovingAverage">StreamAggrMovingAverage</a></dt>
                 <dd>
                 </dd>
@@ -4957,6 +4960,285 @@ base.close();</code></pre>
         
     </dl>
 
+                <h3 id="~StreamAggrAggrResampler"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggrAggrResampler</span><small class="property-type">
+            &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
+        <p>This stream aggregate resamples an input time series to a new time seris
+of equally spaced measurements. Each new measurement corresponds to an
+aggregate (sum,avg,min,max) computed over an interval. The aggregate
+exposes the following methods.
+<br>1. <a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a> returns the last resampled value.
+<br>2. <a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a> returns the timestamp of the last resampled value.
+<br>3. module:qm.StreamAggr#onStep reads from an input aggregate and tries to resample.
+<br>4. <a href="module-qm.StreamAggr.html#onTime">module:qm.StreamAggr#onTime</a> updates the current time (no data has arrived, but time has passed) and tries to resample.
+<br>5. <a href="module-qm.StreamAggr.html#getParams">module:qm.StreamAggr#getParams</a> returns a parameter object.
+<br>6. <a href="module-qm.StreamAggr.html#setParams">module:qm.StreamAggr#setParams</a> used primarily for setting the out-aggregate.
+The stream aggregate exposes its results through getFloat and getTimestamp methods (itself represents timeseries).
+The resampler has an input time-series aggregate (supports getFloat and getTimestamp), from where it reads time series values.
+The reading and resampling occourrs wehen resampler's onStep() or onTime() methods are called.
+When resampling succeeds (all the data needed for the computation becomes available), the resampler
+will trigger the onStep() method of an output stream aggregate that will read the resampler's state through getFloat and getTime.</p>
+
+        <section>
+        <h4>
+            Example
+        </h4>
+                <div>
+    <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+// create a base with a simple timeseries store
+var base = new qm.Base({
+    mode: &#x27;createClean&#x27;,
+    schema: [{
+        name: &#x27;default&#x27;,
+        fields: [
+            { name: &#x27;timestamp&#x27;, type: &#x27;datetime&#x27; },
+            { name: &#x27;value&#x27;, type: &#x27;float&#x27; }
+        ]
+    }]
+});
+var store = base.store(&#x27;default&#x27;);
+// the tick aggregate reads from the store (provides time series input to other aggregates)
+var raw = store.addStreamAggr({
+    type: &#x27;timeSeriesTick&#x27;,
+    timestamp: &#x27;timestamp&#x27;,
+    value: &#x27;value&#x27;
+});
+
+// will compute sums over 1 second intervals
+var resampler = store.addStreamAggr({
+    type: &#x27;aggrResample&#x27;,
+    inAggr: raw.name,
+    start: &#x27;1970-01-01T00:00:00.000&#x27;,
+    defaultValue: 0,
+    aggType: &#x27;sum&#x27;,
+    interval: 1000
+});
+
+// will print out resampler state on each resample
+var resamplerOutput = new qm.StreamAggr(base, new function () {
+    this.onStep = function () {
+        console.log(&#x27;Resampler emitted the sum: &#x27; + resampler.getFloat() +
+            &#x27; for the interval [&#x27; + new Date(resampler.getTimestamp()).toISOString() +
+            &#x27; - &#x27; + new Date(resampler.getTimestamp() + resampler.getParams().interval).toISOString() + &#x27;)&#x27;);
+    }
+});
+
+// IMPORTANT. After the output exists, connect it to resampler
+resampler.setParams({ outAggr: resamplerOutput.name });
+
+store.push({ timestamp:  1, value: 1 });
+store.push({ timestamp: 10, value: 10 });
+store.push({ timestamp: 500, value: 100 });
+store.push({ timestamp: 2000, value: 1000 }); // triggers two resampling steps (two intervals complete)
+// // three measurements for the first interval
+// Resampler emitted the sum: 111 for the interval [1970-01-01T00:00:00.000Z - 1970-01-01T00:00:01.000Z)
+// // zero measurements for the second interval (does not skip empty)
+// Resampler emitted the sum: 0 for the interval [1970-01-01T00:00:01.000Z - 1970-01-01T00:00:02.000Z)
+store.push({ timestamp: 2001, value: 10000 });
+store.push({ timestamp: 3000, value: 100000 }); // triggers one resampling step (one interval complete)
+// // one measurement for the third interval
+// Resampler emitted the sum: 11000 for the interval [1970-01-01T00:00:02.000Z - 1970-01-01T00:00:03.000Z)
+
+base.close();</code></pre>
+</div>
+
+    </section>
+
+    
+        <section>
+        <h4>Properties</h4>
+            <table class="jsdoc-details-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Optional</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+                <tr>
+        <td>
+            <p>type</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The type of the stream aggregator. <b>Important:</b> It must be equal to <code>'aggrResampler'</code>.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>interval</p>
+        </td>
+        <td>
+                <p>number</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>Interval size in milliseconds</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>aggType</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>Must be one of the values: &quot;sum&quot;, &quot;avg&quot;, &quot;min&quot; or &quot;max&quot; - represents the function executed on the data values in the interval.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>inAggr</p>
+        </td>
+        <td>
+                <p>(string or <a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a>)</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The name of the input stream aggregate which must implement getFloat() and getTimestamp() methods.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>start</p>
+        </td>
+        <td>
+                <p>(string or number)</p>
+        </td>
+        <td>
+                <p>Yes</p>
+        </td>
+        <td>
+                <p>Start time (linux timestamp or a web log date string like '1970-01-01T00:00:00.000')</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>roundStart</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>Yes</p>
+        </td>
+        <td>
+                <p>Must be one of the values: &quot;h&quot;, &quot;m&quot; or &quot;s&quot; - represents rounding of the start time when it must be determined by the first observed record. 'h' will clip minutes, seconds and milliseconds, 'm' will clip seconds and milliseconds and 's' will clip only milliseconds.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>defaultValue</p>
+        </td>
+        <td>
+                <p>number</p>
+        </td>
+        <td>
+                <p>Yes</p>
+        </td>
+        <td>
+                <p>default value for empty intervals (no data available).</p>
+                <p>Defaults to <code>0</code>.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>skipEmpty</p>
+        </td>
+        <td>
+                <p>boolean</p>
+        </td>
+        <td>
+                <p>Yes</p>
+        </td>
+        <td>
+                <p>If true, the resampler will not call the onStep method of the out-aggregate when the interval is empty (for example, average of an empty set is not defined).</p>
+                <p>Defaults to <code>false</code>.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>name</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>Yes</p>
+        </td>
+        <td>
+                <p>The given name for the stream aggregator.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>outAggr</p>
+        </td>
+        <td>
+                <p>(string or <a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a>)</p>
+        </td>
+        <td>
+                <p>Yes</p>
+        </td>
+        <td>
+                <p>The name of the output stream aggregate. Only useful when the outAggr is a javascript stream aggregate, otherwise the output must be set by calling setParam({outAggr: outAggregateName}).</p>
+        </td>
+</tr>
+
+        </tbody>
+</table>
+
+    </section>
+
+
+    <dl class="dl-compact">
+        
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+        
+        
+        
+        
+        
+    </dl>
+
                 <h3 id="~StreamAggrAnomalyDetectorNN"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggrAnomalyDetectorNN</span><small class="property-type">
             &nbsp;module:qmStreamAggr</small></h3>
         <p>This stream aggregator represents the anomaly detector using the Nearest Neighbor algorithm. It calculates the 
@@ -5377,6 +5659,21 @@ It <b>cannot</b> be connect to the <a href="module-qm.html#~StreamAggrTimeSeries
         </td>
         <td>
                 <p>The resampler type.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>res</p>
+        </td>
+        <td>
+                <p><a href="module-qm.html#~StreamAggrAggrResampler">module:qm~StreamAggrAggrResampler</a></p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The aggregating (avg/sum) resampler type.</p>
         </td>
 </tr>
 
