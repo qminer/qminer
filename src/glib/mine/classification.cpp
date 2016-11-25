@@ -35,7 +35,7 @@ void TLogReg::Save(TSOut& SOut) const {
 }
 
 
-void TLogReg::Fit(const TFltVV& _X, const TFltV& y, const double& Eps) {
+void TLogReg::Fit(const TFltVV& _X, const TFltV& y, const double& Eps, const int& MxIter) {
 	TFltVV X(_X);
 
 	if (IncludeIntercept) {
@@ -83,6 +83,10 @@ void TLogReg::Fit(const TFltVV& _X, const TFltV& y, const double& Eps) {
 	double AbsDiff;
 	int k = 1;
 	do {
+		if (k >= MxIter) {
+		    Notify->OnNotifyFmt(TNotifyType::ntInfo, "Reached the maximum number of iterations, will break ...");
+		    break;
+		}
 		if (k % 10 == 0) {
 			Notify->OnNotifyFmt(TNotifyType::ntInfo, "Step: %d, diff: %.3f", k, Diff);
 		}
