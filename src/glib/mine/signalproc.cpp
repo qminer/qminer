@@ -1653,7 +1653,6 @@ void TOnlineHistogram::Print() const {
 }
 
 PJsonVal TOnlineHistogram::SaveJson() const {
-    EAssertR(IsInit(), "TOnlineHistogram::SaveJson: online histogram is not initialized yet!");
     PJsonVal Result = TJsonVal::NewObj();
     PJsonVal BoundsArr = TJsonVal::NewArr();
     PJsonVal CountsArr = TJsonVal::NewArr();
@@ -1662,9 +1661,10 @@ PJsonVal TOnlineHistogram::SaveJson() const {
         CountsArr->AddToArr(CountLeftInf);
     }
     for (int ElN = 0; ElN < Counts.Len(); ElN++) {
-        BoundsArr->AddToArr(Bounds[ElN]);
         CountsArr->AddToArr(Counts[ElN]);
-    }if (Bounds.Len() > 0) {
+        if (Bounds.Len() > ElN) { BoundsArr->AddToArr(Bounds[ElN]); }
+    }
+    if (Bounds.Len() > 0) {
         BoundsArr->AddToArr(Bounds.Last());
     }
     if (AddPosInf) {
