@@ -4973,7 +4973,7 @@ void TStateAssist::Init(const TUInt64V& RecTmV, const TFltVV& ObsFtrVV, const TF
 			InitSingle(AllFtrVV, StateId, Height, Hierarch, AssignV, Rnd, ClassifyV[HeightN], DecisionTreeV[HeightN]);
 
 			if (Callback != nullptr) {
-				Callback->OnProgress(70, "Initilized " + TInt::GetStr(HeightN+1) + " of " + TInt::GetStr(StateIdHeightPrV.Len()) + " states ...");
+				Callback->OnProgress(70, "Initialized " + TInt::GetStr(HeightN+1) + " of " + TInt::GetStr(StateIdHeightPrV.Len()) + " states ...");
 			}
 		}
 	}
