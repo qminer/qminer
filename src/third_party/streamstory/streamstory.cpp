@@ -4958,7 +4958,7 @@ void TStateAssist::Init(const TUInt64V& RecTmV, const TFltVV& ObsFtrVV, const TF
 			{
 				Notify->OnNotifyFmt(TNotifyType::ntInfo, "Finished task %d out of %d ...", ++NFinished, TotalTasks);
 				if (Callback != nullptr) {
-					Callback->OnProgress(70, "Initilized " + TInt::GetStr(NFinished) + " of " + TInt::GetStr(TotalTasks) + " states ...");
+					Callback->OnProgress(70, "Initialized " + TInt::GetStr(NFinished) + " of " + TInt::GetStr(TotalTasks) + " states ...");
 				}
 			}
 		}
@@ -5109,7 +5109,7 @@ void TStateAssist::FitAssistModels(const TFltVV& FtrVV, const TFltV& LabelV, TLo
 		Tree = TDecisionTree(SplitCriteria, PruneCriteria, GrowCriteria, true);
 	}
 
-	LogReg.Fit(FtrVV, LabelV);
+	LogReg.Fit(FtrVV, LabelV, 1e-3, 1000);
 	Tree.Fit(FtrVV, LabelV, TNotify::NullNotify);
 }
 
