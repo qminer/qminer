@@ -3245,6 +3245,7 @@ void TNodeJsGraphCascade::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "computePosterior", _computePosterior);
     NODE_SET_PROTOTYPE_METHOD(tpl, "getPosterior", _getPosterior);
     NODE_SET_PROTOTYPE_METHOD(tpl, "getGraph", _getGraph);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "getOrder", _getOrder);
 
     exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
 }
@@ -3315,4 +3316,13 @@ void TNodeJsGraphCascade::getGraph(const v8::FunctionCallbackInfo<v8::Value>& Ar
     TNodeJsGraphCascade* JsGraphCascade = ObjectWrap::Unwrap<TNodeJsGraphCascade>(Args.Holder());
     PJsonVal Graph = JsGraphCascade->Model.GetGraph();
     Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, Graph));
+}
+
+void TNodeJsGraphCascade::getOrder(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsGraphCascade* JsGraphCascade = ObjectWrap::Unwrap<TNodeJsGraphCascade>(Args.Holder());
+    PJsonVal GraphArr = JsGraphCascade->Model.GetOrder();
+    Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, GraphArr));
 }
