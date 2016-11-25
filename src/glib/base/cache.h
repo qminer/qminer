@@ -286,7 +286,8 @@ void TBlockCache<TVal>::StoreBlock(const int& BlockId) {
         BlockBlobPtV[BlockId] = BlockBlobBs->PutBlob(MOut.GetSIn());
     } else {
         // overwrite existing
-        BlockBlobPtV[BlockId] = BlockBlobBs->PutBlob(BlockBlobPt, MOut.GetSIn());
+        int ReleasedSize;
+        BlockBlobPtV[BlockId] = BlockBlobBs->PutBlob(BlockBlobPt, MOut.GetSIn(), ReleasedSize);
     }
 }
 
@@ -639,7 +640,8 @@ void TWndBlockCache<TVal>::StoreBlock(const int& BlockId) {
         BlockBlobPtV[_BlockId] = BlockBlobBs->PutBlob(MOut.GetSIn());
     } else {
         // overwrite existing
-        BlockBlobPtV[_BlockId] = BlockBlobBs->PutBlob(BlockBlobPt, MOut.GetSIn());
+        int ReleasedSize;
+        BlockBlobPtV[_BlockId] = BlockBlobBs->PutBlob(BlockBlobPt, MOut.GetSIn(), ReleasedSize);
     }
 }
 

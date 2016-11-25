@@ -79,6 +79,8 @@ public:
     PJsonVal GetPosterior(const TStrV& NodeNmV, const TFltV& QuantileV) const;
     /// Returns the pruned graph (only enabled nodes with induced dependencies)
     PJsonVal GetGraph() const;
+    /// Returns the topological order (only enabled nodes with induced dependencies)
+    PJsonVal GetOrder() const;
 };
 
 

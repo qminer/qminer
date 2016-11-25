@@ -1633,6 +1633,90 @@ bool TUniVarResampler::CanInterpolate() {
 }
 
 ///////////////////////////////
+// Aggregating resampler
+
+TAggrResampler::TAggrResampler(const TWPt<TBase>& Base, const PJsonVal& ParamVal) :
+    TStreamAggr(Base, ParamVal), OutAggr(), Resampler(ParamVal) {
+    // parse the input aggregate
+    InAggr = ParseAggr(ParamVal, "inAggr");
+    InAggrFlt = Cast<TStreamAggrOut::IFlt>(InAggr, false);
+    InAggrTm = Cast<TStreamAggrOut::ITm>(InAggr, false);
+    if (ParamVal->IsObjKey("outAggr")) {
+        OutAggr = ParseAggr(ParamVal, "outAggr");
+    }
+    SkipEmptyP = ParamVal->GetObjBool("skipEmpty", false);
+}
+
+PStreamAggr TAggrResampler::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+    return new TAggrResampler(Base, ParamVal);
+}
+
+PJsonVal TAggrResampler::GetParam() const {
+    PJsonVal ParamVal = Resampler.GetParam();
+    if (!InAggr.Empty()) {
+        ParamVal->AddToObj("inAggr", InAggr->GetAggrNm());
+    } else {
+        ParamVal->AddToObj("inAggr", TJsonVal::NewNull());
+    }
+
+    if (!OutAggr.Empty()) {
+        ParamVal->AddToObj("outAggr", OutAggr->GetAggrNm());
+    } else {
+        ParamVal->AddToObj("outAggr", TJsonVal::NewNull());
+    }
+
+    ParamVal->AddToObj("skipEmpty", SkipEmptyP);
+
+    return ParamVal;
+}
+
+void TAggrResampler::SetParam(const PJsonVal& ParamVal) {
+    if (ParamVal->IsObjKey("inAggr")) {
+        const TStr AggrNm = ParamVal->GetObjStr("inAggr");
+        EAssert(GetBase()->IsStreamAggr(AggrNm));
+        InAggr = GetBase()->GetStreamAggr(AggrNm);
+    }
+
+    if (ParamVal->IsObjKey("outAggr")) {
+        const TStr AggrNm = ParamVal->GetObjStr("outAggr");
+        EAssert(GetBase()->IsStreamAggr(AggrNm));
+        OutAggr = GetBase()->GetStreamAggr(AggrNm);
+    }
+}
+
+void TAggrResampler::OnTime(const uint64& TmMsec) {
+    // set current time
+    Resampler.SetCurrentTm(TmMsec);
+    // try resampling
+    Loop();
+}
+
+void TAggrResampler::OnStep() {
+    // read new val and time
+    const uint64 NewTmMSecs = InAggrTm->GetTmMSecs();
+    const double NewVal = InAggrFlt->GetFlt();
+    // set current time
+    Resampler.SetCurrentTm(NewTmMSecs);
+    // add record to the buffer
+    Resampler.AddPoint(NewVal, NewTmMSecs);
+    // try resampling
+    Loop();
+}
+
+void TAggrResampler::Loop() {
+    // loop: call Resampler as long as it can resample
+    double ResampledValue = 0;
+    uint64 ResampledTm = 0;
+    bool FoundEmptyP = false;
+    while (Resampler.TryResampleOnce(ResampledValue, ResampledTm, FoundEmptyP)) {
+        // notify out aggregate that new resampled values are available
+        if (FoundEmptyP && SkipEmptyP) { continue; }
+        QmAssertR(!OutAggr.Empty(), "TAggrResampler: OutAggr is NULL. Have you set outAggr using setParams?");
+        OutAggr->OnStep();
+    }
+}
+
+///////////////////////////////
 // Dense Feature Extractor Stream Aggregate (extracts TFltV from records)
 void TFtrExtAggr::OnAddRec(const TRec& Rec) {
     // extract vectors

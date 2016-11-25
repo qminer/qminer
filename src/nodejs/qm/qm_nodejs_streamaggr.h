@@ -111,6 +111,7 @@
 * @property {module:qm~StreamAggrMovingCovariance} cov - The moving covariance type.
 * @property {module:qm~StreamAggrMovingCorrelation} cor - The moving correlation type.
 * @property {module:qm~StreamAggrResampler} res - The resampler type.
+* @property {module:qm~StreamAggrAggrResampler} res - The aggregating (avg/sum) resampler type.
 * @property {module:qm~StreamAggrMerger} mer - The merger type.
 * @property {module:qm~StreamAggrHistogram} hist - The online histogram type.
 * @property {module:qm~StreamAggrSlottedHistogram} slotted-hist - The online slotted-histogram type.
@@ -973,6 +974,92 @@
 *    interval: 2000
 * };
 * var resampler = base.store("Heat").addStreamAggr(res);
+* base.close();
+*/
+
+/**
+* @typedef {module:qm.StreamAggr} StreamAggrAggrResampler
+* This stream aggregate resamples an input time series to a new time seris
+* of equally spaced measurements. Each new measurement corresponds to an
+* aggregate (sum,avg,min,max) computed over an interval. The aggregate
+* exposes the following methods.
+* <br>1. {@link module:qm.StreamAggr#getFloat} returns the last resampled value.
+* <br>2. {@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the last resampled value.
+* <br>3. {@link module:qm.StreamAggr#onStep} reads from an input aggregate and tries to resample.
+* <br>4. {@link module:qm.StreamAggr#onTime} updates the current time (no data has arrived, but time has passed) and tries to resample.
+* <br>5. {@link module:qm.StreamAggr#getParams} returns a parameter object.
+* <br>6. {@link module:qm.StreamAggr#setParams} used primarily for setting the out-aggregate.
+* The stream aggregate exposes its results through getFloat and getTimestamp methods (itself represents timeseries).
+* The resampler has an input time-series aggregate (supports getFloat and getTimestamp), from where it reads time series values.
+* The reading and resampling occourrs wehen resampler's onStep() or onTime() methods are called.
+* When resampling succeeds (all the data needed for the computation becomes available), the resampler
+* will trigger the onStep() method of an output stream aggregate that will read the resampler's state through getFloat and getTime.
+* @property {string} type - The type of the stream aggregator. <b>Important:</b> It must be equal to `'aggrResampler'`.
+* @property {number} interval - Interval size in milliseconds
+* @property {string} aggType - Must be one of the values: "sum", "avg", "min" or "max" - represents the function executed on the data values in the interval.
+* @property {(string | module:qm.StreamAggr)} inAggr - The name of the input stream aggregate which must implement getFloat() and getTimestamp() methods.
+* @property {(string | number)} [start] - Start time (linux timestamp or a web log date string like '1970-01-01T00:00:00.000')
+* @property {string} [roundStart] - Must be one of the values: "h", "m" or "s" - represents rounding of the start time when it must be determined by the first observed record. 'h' will clip minutes, seconds and milliseconds, 'm' will clip seconds and milliseconds and 's' will clip only milliseconds.
+* @property {number} [defaultValue=0] - default value for empty intervals (no data available).
+* @property {boolean} [skipEmpty=false] - If true, the resampler will not call the onStep method of the out-aggregate when the interval is empty (for example, average of an empty set is not defined). 
+* @property {string} [name] - The given name for the stream aggregator.
+* @property {(string | module:qm.StreamAggr)} [outAggr] - The name of the output stream aggregate. Only useful when the outAggr is a javascript stream aggregate, otherwise the output must be set by calling setParam({outAggr: outAggregateName}).
+* @example
+* var qm = require('qminer');
+* // create a base with a simple timeseries store
+* var base = new qm.Base({
+*     mode: 'createClean',
+*     schema: [{
+*         name: 'default',
+*         fields: [
+*             { name: 'timestamp', type: 'datetime' },
+*             { name: 'value', type: 'float' }
+*         ]
+*     }]
+* });
+* var store = base.store('default');
+* // the tick aggregate reads from the store (provides time series input to other aggregates)
+* var raw = store.addStreamAggr({
+*     type: 'timeSeriesTick',
+*     timestamp: 'timestamp',
+*     value: 'value'
+* });
+* 
+* // will compute sums over 1 second intervals
+* var resampler = store.addStreamAggr({
+*     type: 'aggrResample',
+*     inAggr: raw.name,
+*     start: '1970-01-01T00:00:00.000',
+*     defaultValue: 0,
+*     aggType: 'sum',
+*     interval: 1000
+* });
+*
+* // will print out resampler state on each resample
+* var resamplerOutput = new qm.StreamAggr(base, new function () {
+*     this.onStep = function () {
+*         console.log('Resampler emitted the sum: ' + resampler.getFloat() +
+*             ' for the interval [' + new Date(resampler.getTimestamp()).toISOString() +
+*             ' - ' + new Date(resampler.getTimestamp() + resampler.getParams().interval).toISOString() + ')');
+*     }
+* });
+*
+* // IMPORTANT. After the output exists, connect it to resampler
+* resampler.setParams({ outAggr: resamplerOutput.name });
+*
+* store.push({ timestamp:  1, value: 1 });
+* store.push({ timestamp: 10, value: 10 });
+* store.push({ timestamp: 500, value: 100 });
+* store.push({ timestamp: 2000, value: 1000 }); // triggers two resampling steps (two intervals complete)
+* // // three measurements for the first interval
+* // Resampler emitted the sum: 111 for the interval [1970-01-01T00:00:00.000Z - 1970-01-01T00:00:01.000Z)
+* // // zero measurements for the second interval (does not skip empty)
+* // Resampler emitted the sum: 0 for the interval [1970-01-01T00:00:01.000Z - 1970-01-01T00:00:02.000Z)
+* store.push({ timestamp: 2001, value: 10000 });
+* store.push({ timestamp: 3000, value: 100000 }); // triggers one resampling step (one interval complete)
+* // // one measurement for the third interval
+* // Resampler emitted the sum: 11000 for the interval [1970-01-01T00:00:02.000Z - 1970-01-01T00:00:03.000Z)
+*
 * base.close();
 */
 

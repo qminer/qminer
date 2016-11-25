@@ -169,10 +169,12 @@ private:
 	TInt Ticks;
 	// timer start
 	TSecTm StartTm;
+    // repeat calling callback every TimeOutMSecs (if true) or a single call (if false)
+    bool Repeat;
 
 	UndefCopyAssign(TTTimer);
 public:
-	TTTimer(const int& _TimeOutMSecs = 0);
+	TTTimer(const int& _TimeOutMSecs = 0, const bool& _Repeat = false);
 	virtual ~TTTimer();
 
 	int GetTimeOut() const { return TimeOutMSecs; }
