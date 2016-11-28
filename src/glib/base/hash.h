@@ -1063,6 +1063,7 @@ public:
     bool Get(const TKey& Key, TDat& Dat);
     void Del(const TKey& Key, const bool& DoEventCall = true);
     void ChangeKey(const TKey& OldKey, const TKey& NewKey);
+    bool IsKey(const TKey& Key) { return KeyDatH.IsKey(Key); }
     int Len() const { return KeyDatH.Len(); }
     void Flush();
     void FlushAndClr();
@@ -1139,14 +1140,12 @@ void TCache<TKey, TDat, THashFunc>::ChangeKey(const TKey& OldKey, const TKey& Ne
 	if (OldKey == NewKey)
 		return;
 	int OldKeyId = KeyDatH.GetKeyId(OldKey);
-	if (OldKeyId == -1) {
-		// nothing
-	} else {
-		TKeyLNDatPr KeyLNDatPr = KeyDatH[OldKeyId];
-		KeyLNDatPr.Val1->GetVal() = NewKey; // update data inside linked-list node
-		KeyDatH.AddDat(NewKey, KeyLNDatPr); // store the same data pair under new key
-		KeyDatH.DelKeyId(OldKeyId);
-	}
+    EAssertR(OldKeyId != -1, "OldKeyId should be a valid key");
+
+	TKeyLNDatPr KeyLNDatPr = KeyDatH[OldKeyId];
+	KeyLNDatPr.Val1->GetVal() = NewKey; // update data inside linked-list node
+	KeyDatH.AddDat(NewKey, KeyLNDatPr); // store the same data pair under new key
+    KeyDatH.DelKeyId(OldKeyId);
 }
 
 template <class TKey, class TDat, class THashFunc>

@@ -1457,12 +1457,28 @@ public:
 };
 
 ///////////////////////////////
+/// Remove (RemoveNullValues = true) or keep (RemoveNullValues = false) records that have null in the value of a field. 
+class TRecFilterByFieldNull : public TRecFilter {
+private:
+    /// Field according to which we are filtering
+    TInt FieldId;
+    /// If true (default), null fields are filtered out (Filter returns false)
+    TBool RemoveNullValues;
+
+public:
+    /// Constructor
+    TRecFilterByFieldNull(const TWPt<TBase>& Base, const int& FieldId, const bool& RemoveNullValues);
+    /// Filter function
+    bool Filter(const TRec& Rec) const;
+};
+
+///////////////////////////////
 /// Record filter by bool field. 
 class TRecFilterByFieldBool : public TRecFilterByField {
 private:
     /// Value
     TBool Val;
-    
+
 public:
     /// Constructor
     TRecFilterByFieldBool(const TWPt<TBase>& _Base, const int& _FieldId, const bool& _Val, const bool& _FilterNullP = true);
@@ -1960,6 +1976,8 @@ public:
     void FilterByRecIdSet(const TUInt64Set& RecIdSet);
     /// Filter records to keep only the ones with weight between `MinFq' and `MaxFq'
     void FilterByFq(const int& MinFq, const int& MaxFq);
+    /// Filter records to keep only the ones that have a value (RemoveNullValues = true) or don't have a value (RemoveNullValues = false)
+    void FilterByFieldNull(const int& FieldId, const bool RemoveNullValues);
     /// Filter records to keep only the ones that match the boolean value
     void FilterByFieldBool(const int& FieldId, const bool& Val);
     /// Filter records to keep only the ones with values of a given field within given range

@@ -2655,6 +2655,16 @@ PRecFilter TRecFilterByField::New(const TWPt<TBase>& Base, const PJsonVal& Param
 }
 
 ///////////////////////////////
+/// Keep (_FilterNullP = false) or remove (_FilterNullP = true) records that have null in the value of a field. 
+TRecFilterByFieldNull::TRecFilterByFieldNull(const TWPt<TBase>& _Base, const int& _FieldId, const bool& _RemoveNullValues) :
+    TRecFilter(_Base), FieldId(_FieldId), RemoveNullValues(_RemoveNullValues) { }
+
+bool TRecFilterByFieldNull::Filter(const TRec& Rec) const {
+    const bool RecNull = Rec.IsFieldNull(FieldId);
+    return RecNull == RemoveNullValues;
+}
+
+///////////////////////////////
 /// Record Filter by Bool Field. 
 TRecFilterByFieldBool::TRecFilterByFieldBool(const TWPt<TBase>& _Base, const int& _FieldId, const bool& _Val, const bool& _FilterNullP):
     TRecFilterByField(_Base, _FieldId, _FilterNullP), Val(_Val) { }
@@ -3698,6 +3708,14 @@ void TRecSet::FilterByFq(const int& MinFq, const int& MaxFq) {
     FilterBy<TRecFilterByRecFq>(TRecFilterByRecFq(Store->GetBase(), MinFq, MaxFq));
 }
 
+void TRecSet::FilterByFieldNull(const int& FieldId, const bool RemoveNullValues) {
+    // get store and field type
+    const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
+    QmAssertR(Desc.IsNullable(), "The field is not nullable");
+    // apply the filter
+    FilterBy<TRecFilterByFieldNull>(TRecFilterByFieldNull(Store->GetBase(), FieldId, RemoveNullValues));
+}
+
 void TRecSet::FilterByFieldBool(const int& FieldId, const bool& Val) {
     // get store and field type
     const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
@@ -3960,11 +3978,11 @@ PRecSet TRecSet::DoJoin(const TWPt<TBase>& Base, const int& JoinId, const int& S
         const int JoinFqFieldId = JoinDesc.GetJoinFqFieldId();
         for (int RecN = 0; RecN < SampleRecs; RecN++) {
             const uint64 RecId = SampleRecIdKdV[RecN].Key;
-            const uint64 JoinRecId = Store->GetFieldUInt64Safe(RecId, JoinRecFieldId);
-            if (JoinRecId != TUInt64::Mx) {
+            if (!Store->IsFieldNull(RecId, JoinRecFieldId)) {
+                const uint64 JoinRecId = Store->GetFieldUInt64Safe(RecId, JoinRecFieldId);
                 int JoinRecFq = 1;
                 if (JoinFqFieldId >= 0) {
-                    JoinRecFq = (int)Store->GetFieldInt64Safe(RecId, JoinFqFieldId);
+                    JoinRecFq = (int) Store->GetFieldInt64Safe(RecId, JoinFqFieldId);
                 }
                 JoinRecIdFqH.AddDat(JoinRecId) += JoinRecFq;
             }
