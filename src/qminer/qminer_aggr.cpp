@@ -1537,7 +1537,7 @@ PStreamAggr TUniVarResampler::New(const TWPt<TBase>& Base, const PJsonVal& Param
     return new TUniVarResampler(Base, ParamVal);
 }
 
-PJsonVal TUniVarResampler::GetParam() const {
+PJsonVal TUniVarResampler::GetParams() const {
     PJsonVal ParamVal = TJsonVal::NewObj();
 
     if (!InAggr.Empty()) {
@@ -1556,7 +1556,7 @@ PJsonVal TUniVarResampler::GetParam() const {
     return ParamVal;
 }
 
-void TUniVarResampler::SetParam(const PJsonVal& ParamVal) {
+void TUniVarResampler::SetParams(const PJsonVal& ParamVal) {
     if (ParamVal->IsObjKey("inAggr")) {
         const TStr AggrNm = ParamVal->GetObjStr("inAggr");
         EAssert(GetBase()->IsStreamAggr(AggrNm));
@@ -1651,8 +1651,8 @@ PStreamAggr TAggrResampler::New(const TWPt<TBase>& Base, const PJsonVal& ParamVa
     return new TAggrResampler(Base, ParamVal);
 }
 
-PJsonVal TAggrResampler::GetParam() const {
-    PJsonVal ParamVal = Resampler.GetParam();
+PJsonVal TAggrResampler::GetParams() const {
+    PJsonVal ParamVal = Resampler.GetParams();
     if (!InAggr.Empty()) {
         ParamVal->AddToObj("inAggr", InAggr->GetAggrNm());
     } else {
@@ -1670,7 +1670,7 @@ PJsonVal TAggrResampler::GetParam() const {
     return ParamVal;
 }
 
-void TAggrResampler::SetParam(const PJsonVal& ParamVal) {
+void TAggrResampler::SetParams(const PJsonVal& ParamVal) {
     if (ParamVal->IsObjKey("inAggr")) {
         const TStr AggrNm = ParamVal->GetObjStr("inAggr");
         EAssert(GetBase()->IsStreamAggr(AggrNm));
@@ -1766,7 +1766,7 @@ void TFtrExtAggr::SaveState(TSOut& SOut) const {
     SpVec.Save(SOut);
 }
 
-PJsonVal TFtrExtAggr::GetParam() const {
+PJsonVal TFtrExtAggr::GetParams() const {
     PJsonVal ParamsVal = TJsonVal::NewObj();
     ParamsVal->AddToObj("initCount", InitCount);
     ParamsVal->AddToObj("update", UpdateP);
@@ -1775,7 +1775,7 @@ PJsonVal TFtrExtAggr::GetParam() const {
     return ParamsVal;
 }
 
-void TFtrExtAggr::SetParam(const PJsonVal& ParamVal) {
+void TFtrExtAggr::SetParams(const PJsonVal& ParamVal) {
     if (ParamVal->IsObjKey("initCount")) { InitCount = ParamVal->GetObjInt("initCount"); }
     if (ParamVal->IsObjKey("update")) { UpdateP = ParamVal->GetObjBool("update"); }
     if (ParamVal->IsObjKey("full")) { FullP = ParamVal->GetObjBool("full"); }
@@ -1816,12 +1816,12 @@ void TNNAnomalyAggr::OnStep() {
 
 TNNAnomalyAggr::TNNAnomalyAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal) {
     // parse parameters
-    SetParam(ParamVal);
+    SetParams(ParamVal);
     // we start with empty explanation
     Explanation = TJsonVal::NewObj();
 }
 
-PJsonVal TNNAnomalyAggr::GetParam() const {
+PJsonVal TNNAnomalyAggr::GetParams() const {
     PJsonVal ParamVal = TJsonVal::NewObj();
 
     if (!InAggrTm.Empty()) {
@@ -1842,7 +1842,7 @@ PJsonVal TNNAnomalyAggr::GetParam() const {
     return ParamVal;
 }
 
-void TNNAnomalyAggr::SetParam(const PJsonVal& ParamVal) {
+void TNNAnomalyAggr::SetParams(const PJsonVal& ParamVal) {
     //parse time aggregator parameters
     if (ParamVal->IsObjKey("inAggrTm")) {
         const TStr AggrNm = ParamVal->GetObjStr("inAggrTm");
@@ -2263,7 +2263,86 @@ TRecFilterAggr::TRecFilterAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal
 }
 
 //////////////////////////////////////////////////////////////////////////////////
-/// Histogram based anomaly detector aggregate
+// Record switch stream aggregate
+
+void TRecSwitchAggr::OnAddRec(const TRec& Rec) {
+    TStr Key = Rec.GetFieldStr(FldId);
+    if (AggrH.IsKey(Key)) {
+        // trigger the appropriate aggregate
+        AggrH.GetDat(Key)->OnAddRec(Rec);
+    } else if (ThrowMissingP) {
+        throw TQmExcept::New("TRecSwitchAggr::OnAddRec key not found: " + Key);
+    }
+}
+
+TRecSwitchAggr::TRecSwitchAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal) {
+    // get input store
+    QmAssertR(ParamVal->IsObjKey("store"), "TRecSwitchAggr::TRecSwitchAggr: missing `store` property.");
+    TStr StoreNm = ParamVal->GetObjStr("store");
+    Store = Base->GetStoreByStoreNm(StoreNm);
+    // get field name
+    QmAssertR(ParamVal->IsObjKey("fieldName"), "TRecSwitchAggr::TRecSwitchAggr: missing `fieldName` property.");
+    TStr FldNm = ParamVal->GetObjStr("fieldName");
+    QmAssertR(Store->IsFieldNm(FldNm), "TRecSwitchAggr::TRecSwitchAggr: not a store field: " + FldNm);
+    FldId = Store->GetFieldId(FldNm);
+    if (ParamVal->IsObjKey("$set")) {
+        TRecSwitchAggr::SetParams(ParamVal);
+    }
+    ThrowMissingP = ParamVal->GetObjBool("throwMissing", false);
+}
+
+PJsonVal TRecSwitchAggr::GetParams() const {
+    PJsonVal Result = TJsonVal::NewObj();
+    Result->AddToObj("store", Store->GetStoreNm());
+    Result->AddToObj("fieldName", Store->GetFieldNm(FldId));
+    Result->AddToObj("throwMissing", ThrowMissingP);
+    TStrV KeyV;
+    AggrH.GetKeyV(KeyV);
+    int Len = KeyV.Len();
+    PJsonVal Set = TJsonVal::NewArr();
+    for (int KeyN = 0; KeyN < Len; KeyN++) {
+        PJsonVal Element = TJsonVal::NewObj();
+        Element->AddToObj("key", KeyV[KeyN]);
+        Element->AddToObj("aggrName", AggrH.GetDat(KeyV[KeyN])->GetAggrNm());
+        Set->AddToArr(Element);
+    }
+    Result->AddToObj("$set", Set);
+    return Result;
+}
+
+void TRecSwitchAggr::SetParams(const PJsonVal& ParamVal) {
+    // $set takes an array and overwrites the map
+    // $add takes a single key-aggrName pair and add it to the map
+    if (ParamVal->IsObjKey("$set")) {
+        PJsonVal Val = ParamVal->GetObjKey("$set");
+        QmAssertR(Val->IsArr(), "TRecSwitchAggr::SetParam: $set value should be an array: [{key:str, aggrName: str}, ...].");
+        int Len = Val->GetArrVals();
+        AggrH.Clr();
+        for (int ElN = 0; ElN < Len; ElN++) {
+            PJsonVal Obj = Val->GetArrVal(ElN);
+            TStr Key = Obj->GetObjStr("key");
+            TStr AggrNm = Obj->GetObjStr("aggrName");
+            QmAssertR(GetBase()->IsStreamAggr(AggrNm), "TRecSwitchAggr::SetParam: stream aggregate name not found for: " + AggrNm);
+            TWPt<TStreamAggr> StreamAggr = GetBase()->GetStreamAggr(AggrNm);
+            AggrH.AddDat(Key, StreamAggr);
+        }
+    } else if (ParamVal->IsObjKey("$add")) {
+        PJsonVal Obj = ParamVal->GetObjKey("$add");
+        QmAssertR(Obj->IsObj(), "TRecSwitchAggr::SetParam: $add value should be an object: {key: str, aggrName: str}.");
+        TStr Key = Obj->GetObjStr("key");
+        TStr AggrNm = Obj->GetObjStr("aggrName");
+        QmAssertR(GetBase()->IsStreamAggr(AggrNm), "TRecSwitchAggr::SetParam: stream aggregate name not found for: " + AggrNm);
+        TWPt<TStreamAggr> StreamAggr = GetBase()->GetStreamAggr(AggrNm);
+        AggrH.AddDat(Key, StreamAggr);
+    } else {
+        throw TQmExcept::New("TRecSwitchAggr::SetParam: the input should contain either $set or $add and other properties are ignored.");
+    }
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////
+// Histogram based anomaly detector aggregate
 
 void THistogramAD::OnStep() {
     if (HistAggr->IsInit()) {

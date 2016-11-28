@@ -6580,6 +6580,7 @@ void TStreamAggr::Init() {
     Register<TStreamAggrs::TRecFilterAggr>();    
     Register<TStreamAggrs::TEmaSpVec>();
     Register<TStreamAggrs::TWinBufSpVecSum>();
+    Register<TStreamAggrs::TRecSwitchAggr>();
     Register<TStreamAggrs::THistogramAD>();
     // geospatial aggregates
     //Register<TStreamAggrs::TStayPointDetector>();

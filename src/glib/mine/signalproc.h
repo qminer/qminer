@@ -790,7 +790,7 @@ public:
     /// Json constructor (sets interval, type and start time)
     TAggrResampler(const PJsonVal& ParamVal);
     /// Returns the parameters
-    PJsonVal GetParam() const;
+    PJsonVal GetParams() const;
     /// Resets the state
     void Reset();
     /// Load stream aggregate state from stream
