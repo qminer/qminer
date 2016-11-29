@@ -311,6 +311,68 @@ public:
 };
 
 ///////////////////////////////
+/// Time series tick.
+/// Wrapper for exposing time series to signal processing aggregates
+class TTimeSeriesSparseVectorTick : public TStreamAggr,
+                        public TStreamAggrOut::ITm,
+                        public TStreamAggrOut::ISparseVec {
+private:
+    /// ID of the field from which we collect time points
+    TInt TimeFieldId;
+    /// Reader for extracting numeric values from records
+    TFieldReader ValReader;
+
+    /// We are not initialized until we read the first value
+    TBool InitP;
+    /// Time of last extracted value
+    TUInt64 TmMSecs;
+    /// Last extracted value
+    TIntFltKdV TickVal;
+
+protected:
+    /// On new record we update value and timestamp
+    void OnAddRec(const TRec& Rec);
+    /// On new timestamp we update timestamp
+    void OnTime(const uint64& TmMsec);
+    /// No on step supported
+    void OnStep();
+
+    /// Json constructor
+    TTimeSeriesSparseVectorTick(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+public:
+    /// Json constructor
+    static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+
+    /// Load stream aggregate state from stream
+    void LoadState(TSIn& SIn);
+    /// Save state of stream aggregate to stream
+    void SaveState(TSOut& SOut) const;
+
+    /// Did we finish initialization
+    bool IsInit() const { return InitP; }
+    /// Resets the model state
+    void Reset();
+
+    /// Time of last extracted value
+    uint64 GetTmMSecs() const { return TmMSecs; }
+
+    /// returns the number of values
+    int GetVals() const;
+    /// retuns the n-th entry
+    void GetVal(const int& ElN, TIntFltKd& Val) const;
+    /// Last extracted value
+    void GetValV(TIntFltKdV& SpV) const;
+
+    // serialization to JSon
+    PJsonVal SaveJson(const int& Limit) const;
+
+    /// Stream aggregator type name
+    static TStr GetType() { return "timeSeriesSparseVectorTick"; }
+    /// Stream aggregator type name
+    TStr Type() const { return GetType(); }
+};
+
+///////////////////////////////
 /// Time series window buffer with memory.
 template <class TVal>
 class TWinBufMem : public TStreamAggr,
@@ -446,6 +508,33 @@ public:
 
     /// Stream aggregator type name
     static TStr GetType() { return "timeSeriesWinBufVector"; }
+    /// Stream aggregator type name
+    TStr Type() const { return GetType(); }
+};
+
+///////////////////////////////
+/// Sparse vector circular buffer.
+/// Reads from TWinBuf and stores the buffer values in memory as a circular buffer,
+/// which can be resized if needed.
+class TWinBufSpV : public TWinBufMem<TIntFltKdV> {
+private:
+    /// Input time series aggregate
+    TWPt<TStreamAggrOut::ISparseVec> InAggrVal;
+
+protected:
+    /// Json constructor
+    TWinBufSpV(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+    /// Value getter, we read float from input aggregate
+    TIntFltKdV GetVal() const;
+
+public:
+    /// Json constructor
+    static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+    /// Serialization to JSon
+    PJsonVal SaveJson(const int& Limit) const;
+
+    /// Stream aggregator type name
+    static TStr GetType() { return "sparseVectorWindow"; }
     /// Stream aggregator type name
     TStr Type() const { return GetType(); }
 };

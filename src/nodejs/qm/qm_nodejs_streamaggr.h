@@ -1828,7 +1828,32 @@ public:
     */
     //# exports.StreamAggr.prototype.getTimestampVector = function () { return Object.create(require('qminer').la.Vector.prototype); };
     JsDeclareFunction(getTimestampVector);
+
+    /**
+    * Gets the timestamp from the timestamp vector of the stream aggregator at the specific index.
+    * @param {number} idx - The index.
+    * @returns {Array} The timestamp of the timestamp vector at position `idx`.
+    * @example
+    */
+    //# exports.StreamAggr.prototype.getTimestampAt = function (idx) { return 0; };
+    JsDeclareFunction(getSparseVectorAt);
     
+    /**
+    * Gets the length  of the buffer (if the buffer contains sparse vectors).
+    * @returns {number} The length of the buffer.
+    * @example
+    */
+    //# exports.StreamAggr.prototype.getSparseVectorLength = function () { return 0; };
+    JsDeclareFunction(getSparseVectorLength);
+
+    /**
+    * Gets the vector containing the timestamps of the stream aggregator.
+    * @returns {module:la.Vector} The vector containing the timestamps.
+    * @example
+    */
+    //# exports.StreamAggr.prototype.getSparseVectorVector = function () { return Object.create(require('qminer').la.Vector.prototype); };
+    JsDeclareFunction(getSparseVectorVector);
+
     /**
     * Gets a vector containing the values that are entering the stream aggregator.
     * @returns {module:la.Vector} The vector containing the values that are entering the buffer.
