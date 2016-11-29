@@ -6,6 +6,12 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+#include "qm_nodejs.h"
+#include "qm_param.h"
+#include "../la/la_nodejs.h"
+
+#include <node_buffer.h>
+
 ///////////////////////////////
 // NodeJs QMiner
 
@@ -20,6 +26,7 @@ void TNodeJsQm::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_METHOD(exports, "create", _create);
     NODE_SET_METHOD(exports, "open", _open);
     NODE_SET_METHOD(exports, "verbosity", _verbosity);
+    NODE_SET_METHOD(exports, "stats", _stats);
 
     // Add properties
     exports->SetAccessor(v8::String::NewFromUtf8(Isolate, "flags"), _flags);
@@ -170,6 +177,40 @@ void TNodeJsQm::verbosity(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     const int Verbosity = TNodeJsUtil::GetArgInt32(Args, 0, 0);
     // set verbosity level
     TQm::TEnv::InitLogger(Verbosity, "std");
+}
+
+void TNodeJsQm::stats(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    v8::Local<v8::Object> Result = v8::Object::New(Isolate);
+
+    v8::Local<v8::Object> ByClass = v8::Object::New(Isolate);
+    v8::Local<v8::Object> Total = v8::Object::New(Isolate);
+    
+    for (const auto& KeyDat : TNodeJsUtil::ObjNameH) {
+        v8::Local<v8::Object> ClassCounts = v8::Object::New(Isolate);
+        ClassCounts->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "newFromCpp")),
+            v8::Number::New(Isolate, KeyDat.Dat.Val1));
+        ClassCounts->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "newFromJs")),
+            v8::Number::New(Isolate, KeyDat.Dat.Val2));
+        ClassCounts->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "destructorCalls")),
+            v8::Number::New(Isolate, KeyDat.Dat.Val3));
+        ByClass->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, KeyDat.Key.CStr())),
+            ClassCounts);
+    }
+
+    Total->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "newFromCpp")),
+        v8::Number::New(Isolate, TNodeJsUtil::ObjCount.Val1));
+    Total->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "newFromJs")),
+        v8::Number::New(Isolate, TNodeJsUtil::ObjCount.Val2));
+    Total->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "destructorCalls")),
+        v8::Number::New(Isolate, TNodeJsUtil::ObjCount.Val3));
+
+    Result->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "byClass")), ByClass);
+    Result->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "total")), Total);
+
+    Args.GetReturnValue().Set(Result);
 }
 
 void TNodeJsQm::flags(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
@@ -323,28 +364,30 @@ TNodeJsBase::TNodeJsBase(const TStr& DbFPath_, const TStr& SchemaFNm, const PJso
     
     // clean folder and lock
     if (ForceCreate) {
-        if (TFile::Exists(LockFNm)) {
-            TFile::Del(LockFNm, false);
-        }
         if (TDir::Exists(DbFPath)) {
-            TStrV FNmV;
-            TStrV FExtV;
-            TFFile::GetFNmV(DbFPath, FExtV, true, FNmV);
-            if (!FNmV.Empty()) {
-                // delete all files
-                for (int FileN = 0; FileN < FNmV.Len(); FileN++) {
-                    const TStr& FNm = FNmV[FileN];
-                    TFile::Del(FNm, true);
-                }
-            }
+            // delete only qminer stuff!
+            TFile::Del(TPath::Combine(DbFPath, LockFNm), false);
+            // json files
+            TFile::Del(TPath::Combine(DbFPath, "Base.json"), false);
+            TFile::Del(TPath::Combine(DbFPath, "StoreList.json"), false);
+            // Index files
+            TFile::DelWc(TPath::Combine(DbFPath, "Index.*"), false);
+            // IndexSmall files
+            TFile::DelWc(TPath::Combine(DbFPath, "IndexSmall.*"), false);
+            // IndexVoc files
+            TFile::Del(TPath::Combine(DbFPath, "IndexVoc.dat"), false);
+            // StoreBlob files
+            TFile::DelWc(TPath::Combine(DbFPath, "StoreBlob.*"), false);
+            // Store files (*.BaseStore, *.Cache, *.GenericStore, *.MemCache)
+            TFile::DelWc(TPath::Combine(DbFPath, "*.BaseStore"), false);
+            TFile::DelWc(TPath::Combine(DbFPath, "*.Cache"), false);
+            TFile::DelWc(TPath::Combine(DbFPath, "*.GenericStore"), false);
+            TFile::DelWc(TPath::Combine(DbFPath, "*.MemCache"), false);
         }
     }
     if (Create) {
         if (TDir::Exists(DbFPath)) {
-            TStrV FNmV;
-            TStrV FExtV;
-            TFFile::GetFNmV(DbFPath, FExtV, true, FNmV);
-            if (!FNmV.Empty()) {
+            if (TFile::Exists(TPath::Combine(DbFPath, "StoreList.json"))) {
                 // if not empty and create was called
                 throw TQm::TQmExcept::New("new base(...): database folder not empty "
                     "and mode=create. Clear db folder or use mode=createClean!");
@@ -754,6 +797,7 @@ void TNodeJsStore::Init(v8::Handle<v8::Object> exports) {
     Constructor.Reset(Isolate, tpl->GetFunction());
     // So we can add stuff to the prototype in JS
     exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
+    TNodeJsUtil::RegisterClassNmAccessor(GetClassId(), "name");
 }
 
 v8::Local<v8::Value> TNodeJsStore::Field(const TQm::TRec& Rec, const int FieldId) {
@@ -2113,7 +2157,7 @@ void TNodeJsRec::setField(v8::Local<v8::String> Name, v8::Local<v8::Value> Value
     TStr FieldNm = TNodeJsUtil::GetStr(Name);
     const int FieldId = Store->GetFieldId(FieldNm);
     //TODO: for now we don't support by-value records, fix this
-    QmAssertR(Rec.IsByRef(), "Only records by reference (from stores) supported for setters.");
+    //QmAssertR(Rec.IsByRef(), "Only records by reference (from stores) supported for setters.");
     // not null, get value
     const TQm::TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
     if (Value->IsNull()) {

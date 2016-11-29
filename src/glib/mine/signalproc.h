@@ -523,6 +523,7 @@ public:
     TLinkedBuffer();
     TLinkedBuffer(TSIn& SIn);
 
+    void Load(TSIn& SIn);
     void Save(TSOut& SOut) const;
 
     ~TLinkedBuffer();
@@ -562,10 +563,20 @@ TLinkedBuffer<TVal, TSizeTy>::TLinkedBuffer(TSIn& SIn):
     Last = Curr;
 }
 
+
+template <class TVal, class TSizeTy>
+void TLinkedBuffer<TVal, TSizeTy>::Load(TSIn& SIn) {
+    Clr();
+    TSizeTy Len(SIn);
+    for (TSizeTy ElN = 0; ElN < Len; ElN++) {
+        TVal Val(SIn);
+        Add(Val);
+    }
+}
+
 template <class TVal, class TSizeTy>
 void TLinkedBuffer<TVal, TSizeTy>::Save(TSOut& SOut) const {
     Size.Save(SOut);
-
     Node* Curr = First;
     while (Curr != NULL) {
         Curr->Val.Save(SOut);
@@ -732,6 +743,83 @@ public:
     bool CanInterpolate(const uint64& Tm) const;
 
     static TStr GetType() { return "linear"; }
+};
+
+
+typedef enum { artSum, artAvg, artMin, artMax } TAggrResamplerType;
+///////////////////////////////////////////////
+/// Aggregating resampler
+/// The resampler maintains a buffer of time series points and
+/// computes aggregates (sum or average) on a sequence of consequtive
+/// intervals of equal size.
+/// State: - current time
+///        - last resample result (left time point of the interval and aggregated value)
+///        - buffer of points that have not been aggregated yet
+///        - init (true if at least one resampling happened)
+/// Parameters: - interval size
+///             - type of aggregation (sum or avg)
+///             - RoundStart ('h', 'm', 's') - strips away (m,s,msec) if set to h, strips (s,msec) if set to m, ...
+/// Main logic: TryResampleOnce
+///               Resampling is possible if there exists an interval (of predefined width)
+///               that ends before current time and starts at last resample time point.
+class TAggrResampler {
+private:
+    // PARAMS
+    /// interval size
+    TUInt64 IntervalMSecs;
+    /// type
+    TAggrResamplerType Type;
+    /// Round start time (used when start is not set by the user but determined from data)
+    TStr RoundStart;
+    /// Default value when the buffer is empty
+    TFlt DefaultVal;
+
+    // STATE
+    /// Timestamp of the current time
+    TUInt64 CurrentTmMSecs;
+    /// Timestamp of last generated record
+    TUInt64 LastResampPointMSecs;
+    /// Value of the last generated record
+    TFlt LastResampPointVal;
+    /// Buffer holding the time series to be aggregated
+    TQQueue<TPair<TUInt64, TFlt>> Buff;
+
+    /// Has resampling succeeed once?
+    TBool InitP;
+public:
+    /// Json constructor (sets interval, type and start time)
+    TAggrResampler(const PJsonVal& ParamVal);
+    /// Returns the parameters
+    PJsonVal GetParams() const;
+    /// Resets the state
+    void Reset();
+    /// Load stream aggregate state from stream
+    void LoadState(TSIn& SIn);
+    /// Save state of stream aggregate to stream
+    void SaveState(TSOut& SOut) const;
+
+    /// Returns the start time of the last aggregated interval
+    uint64 GetTmMSecs() const { return LastResampPointMSecs; }
+    /// Returns the value of the last aggregated interval
+    double GetFlt() const { return LastResampPointVal; }
+    /// Saves state as a JSON
+    PJsonVal SaveJson() const;
+
+    /// Add a time series value and time
+    void AddPoint(const double& Val, const uint64& Tm);
+
+    /// Returns true if it resampled and false otherwise. If true the results are set as the arguments. EmptyP signifies empty buffer.
+    bool TryResampleOnce(double& Val, uint64& Tm, bool& FoundEmptyP);
+    /// Sets the current time
+    void SetCurrentTm(const uint64& Tm);
+    /// Returns true if a new interval of values can be aggregated
+    bool CanResample() const { return LastResampPointMSecs + 2 * IntervalMSecs <= CurrentTmMSecs; }
+    /// Prints all internal variables for debugging
+    void PrintState (const TStr& Prefix = "") const;
+    /// Maps string type to enum type
+    TAggrResamplerType GetType(const TStr& TypeStr) const;
+    /// Maps enum type to string type
+    TStr GetTypeStr(const TAggrResamplerType& Type) const;
 };
 
 /////////////////////////////////////////
@@ -933,52 +1021,71 @@ public:
 ///    The intervals are open on the right, except for the last interval [b_n-1 b_n]
 ///    The count data can be incremented or decremented, so we can work in an online
 ///    setting.
+///    AutoResize: if true, then histogram bounds are initially empty (except for the optional inf and -inf)
+///                the histogram will resize on demand, but not over the specified LBound and UBound.
+///                The first point will create a single bin. As a new point arrives, the histogram will double
+///                its cells in the needed direction (but the noninfinite bounds will not resize over LBound and UBound.
+///                TODO: When a point is deleted, the histogram will try to shrink by half.
 class TOnlineHistogram {
 private:
     // state
-    TFltV Counts; ///< Number of occurrences
-    TFltV Bounds; ///< Interval bounds (Bounds.Len() == Counts.Len() + 1)
-    TFlt Count; ///< Sum of counts
+    TFlt CountLeftInf; ///< Counts for (-inf, Bounds[0])
+    TFlt CountRightInf; ///< Counts for (Bounds[Bins-1], Inf)
+    TFltV Counts; ///< Number of occurrences for noninf bins
+    TFltV Bounds; ///< Interval bounds for noninf bins (Bounds.Len() == Counts.Len() + 1)
+    TFlt Count; ///< Sum of counts of all bins (including inf bins)
+    TInt CurMinIdx; ///< Current minimal bin index (equals 0 when AutoResize == false)
+    TInt CurMaxIdx; ///< Current maximal bin index (equals Bins-1 last index when AutoResize == false)
     // parameters
+    TFlt LBound; ///< Lowest noninfinite bound
+    TFlt UBound; ///< Highest noninfinite bound
+    TInt Bins; ///< Maximal number of bounded bins (the actual number may be less than this, if AutoResize == true)
+    TBool AddNegInf; ///< Appends -inf as the first bound
+    TBool AddPosInf; ///< Appends inf as the last bound
+    TBool AutoResize; ///< If true, the histogram will materialize on demand
     TFlt MinCount; ///< If Count < MinCount, then IsInit returns false
 public: 
     /// Constructs uninitialized object
     TOnlineHistogram() {};
     /// Constructs given bin parameters
-    TOnlineHistogram(const double& LBound, const double& UBound, const int& Bins, const bool& AddNegInf, const bool& AddPosInf) { Init(LBound, UBound, Bins, AddNegInf, AddPosInf); }
+    TOnlineHistogram(const double& LBound, const double& UBound, const int& Bins, const bool& AddNegInf,
+        const bool& AddPosInf, const bool& AutoResize = false): LBound(LBound), UBound(UBound), Bins(Bins), AddNegInf(AddNegInf), AddPosInf(AddPosInf), AutoResize(AutoResize) { Init(); }
     /// Constructs given JSON arguments
     TOnlineHistogram(const PJsonVal& ParamVal);
-    /// Constructs from stream
-    TOnlineHistogram(TSIn& SIn) : Counts(SIn), Bounds(SIn), Count(SIn) { }
-
     /// Initializes the object, resets current content is present
-    void Init(const double& LBound, const double& UBound, const int& Bins, const bool& AddNegInf, const bool& AddPosInf);
-
+    void Init();
     /// Resets the counts
-    void Reset();
+    void Reset() { Init(); }
 
+    /// Constructs from stream
+    TOnlineHistogram(TSIn& SIn);
     /// Loads the model from stream
     void Load(TSIn& SIn) { *this = TOnlineHistogram(SIn); }
     /// Saves the model to stream
-    void Save(TSOut& SOut) const { Counts.Save(SOut); Bounds.Save(SOut); SOut.Save(Count); }
-    /// Finds the bin index given val, returns -1 if not found
+    void Save(TSOut& SOut) const;
+
+private:
+    /// Resizes the histogram if needed (only relevant when AutoResize == true)
+    void Resize(const int& BinN);
+public:
+    /// Finds the bin index given val (possibly nonmaterialized), returns -1 if Val is less LBound and Bins if Val is greater than UBound
     int FindBin(const double& Val) const;
-    /// Increments the number of occurrences of values that fall within the same bin as Val
+    /// Increments the number of occurrences of values that fall within the same bin as Val (possibly resizes, if the bin is not materialized)
     void Increment(const double& Val);
     /// Decrements the number of occurrences of values that fall within the same bin as Val
     void Decrement(const double& Val);
     /// Returns the number of occurrences of values that fall within the same bin as Val
     double GetCount(const double& Val) const;
-    /// Returns the number of bins
-    int GetBins() const { return Counts.Len(); }
-    /// Copies the count vector
-    void GetCountV(TFltV& Vec) const { Vec = Counts; }
-    /// Returns an element of count vector given index
-    double GetCountN(const int& CountN) const { return Counts[CountN]; }
+    /// Returns the number of materialized bins
+    int GetBins() const { return Counts.Len() + (AddNegInf ? 1 : 0) + (AddPosInf ? 1 : 0); }
+    /// Copies the count vector (materialized bins, optionally appends left and right infinite interval counts)
+    void GetCountV(TFltV& Vec) const;
+    /// Returns an element of count vector given index (corresponds to materialized bins + optional left/right inf)
+    double GetCountN(const int& CountN) const;
+    /// Returns an element of bound vector given index (corrsponds to materialized bins + optional left/right inf)
+    double GetBoundN(const int& BoundN) const;
     /// Has the model beeen initialized and has sufficient data?
     bool IsInit() const { return Counts.Len() > 0 && Bounds.Len() > 0 && Count >= MinCount; }
-    /// Clears the model
-    void Clr() { Counts.Clr(); Bounds.Clr(); }
     /// Prints the model
     void Print() const;
     /// Returns a JSON representation of the model

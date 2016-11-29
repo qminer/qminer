@@ -8,6 +8,12 @@
 #ifndef QMINER_FS_NODEJS_H
 #define QMINER_FS_NODEJS_H
 
+#include <node.h>
+#include <node_buffer.h>
+#include <node_object_wrap.h>
+#include "base.h"
+#include "../nodeutil.h"
+
 ///////////////////////////////
 /// JavaScript Directory
 class TNodeJsFPath {
@@ -360,6 +366,7 @@ class TNodeJsFIn : public node::ObjectWrap {
 //    -attach template function to exports in Init function
 private:
 	static v8::Persistent<v8::Function> Constructor;
+    ~TNodeJsFIn() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 public:
 	static void Init(v8::Handle<v8::Object> Exports);
 	static const TStr GetClassId() { return "FIn"; }
@@ -559,6 +566,7 @@ class TNodeJsFOut : public node::ObjectWrap {
 	friend class TNodeJsUtil;
 private:
 	static v8::Persistent<v8::Function> Constructor;
+    ~TNodeJsFOut() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 public:
 	static void Init(v8::Handle<v8::Object> exports);
 	static const TStr GetClassId() { return "FOut"; }

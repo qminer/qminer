@@ -1625,7 +1625,7 @@ exports = {}; require.modules.qminer_la = exports;
     * // returns the matrix:
     * // 4 6.5 10
     * // 1 2.5 5
-    * la.pdist2(X1, X2)
+    * la.pdist2(X1, X2);
     */
     exports.pdist2 = function (X1, X2) {
         var snorm1 = exports.square(X1.colNorms());
@@ -1685,6 +1685,7 @@ exports = {}; require.modules.qminer_la = exports;
     * @param {(module:la.Matrix | module:la.SparseMatrix)} A - The matrix on the left-hand side of the system.
     * @param {module:la.Vector} b - The vector on the right-hand side of the system.
     * @param {module:la.Vector} [x] - Current solution. Default is a vector of zeros.
+    * @param {boolean} [verbose=false] - If true, console logs the residuum value.
     * @returns {module:la.Vector} Solution to the system.
     * @example
     * // import la module
@@ -1697,7 +1698,8 @@ exports = {}; require.modules.qminer_la = exports;
     * // solve the PSD symmetric system
     * var x = la.conjgrad(mat, vec);
     */
-    exports.conjgrad = function (A, b, x) {
+    exports.conjgrad = function (A, b, x, verbose) {
+        verbose = verbose === undefined ? false : verbose;
     	x = x || new exports.Vector({vals: A.cols});
         var r = b.minus(A.multiply(x));
         var p = new exports.Vector(r); //clone
@@ -1708,7 +1710,9 @@ exports = {}; require.modules.qminer_la = exports;
             x = x.plus(p.multiply(alpha));
             r = r.minus(Ap.multiply(alpha));
             var rsnew = r.inner(r);
-            console.log("resid = " + rsnew);
+            if (verbose) {
+                console.log("resid = " + rsnew);
+            }
             if (Math.sqrt(rsnew) < 1e-6) {
                 break;
             }

@@ -382,7 +382,7 @@ void TVec<TVal, TSizeTy>::GetSubValV(const TSizeTy& _BValN, const TSizeTy& _EVal
   const TSizeTy EValN=TInt::GetInRng(_EValN, 0, Len()-1);
   const TSizeTy SubVals=TInt::GetMx(0, EValN-BValN+1);
   SubValV.Gen(SubVals, 0);
-  for (TSizeTy ValN=BValN; ValN<=EValN; ValN++){
+  for (TSizeTy ValN = BValN; ValN <= EValN; ValN++) {
     SubValV.Add(GetVal(ValN));}
 }
 

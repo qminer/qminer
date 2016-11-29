@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v6.3.1</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.2.0</a>
       </div>
     </div>
   </nav>
@@ -67,7 +67,7 @@
                     <dt><a href="module-qm.StreamAggr.html#getFeatureSpace">getFeatureSpace()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.StreamAggr.html#getFloat">getFloat()</a></dt>
+                    <dt><a href="module-qm.StreamAggr.html#getFloat">getFloat([str])</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.StreamAggr.html#getFloatAt">getFloatAt(idx)</a></dt>
@@ -80,6 +80,9 @@
                     <dd>
                     </dd>
                     <dt><a href="module-qm.StreamAggr.html#getInFloatVector">getInFloatVector()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.StreamAggr.html#getInteger">getInteger([str])</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.StreamAggr.html#getInTimestampVector">getInTimestampVector()</a></dt>
@@ -102,6 +105,9 @@
                     <dd>
                     </dd>
                     <dt><a href="module-qm.StreamAggr.html#getOutValueVector">getOutValueVector()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.StreamAggr.html#getParams">getParams()</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.StreamAggr.html#getTimestamp">getTimestamp()</a></dt>
@@ -145,6 +151,9 @@
                     <dd>
                     </dd>
                     <dt><a href="module-qm.StreamAggr.html#saveJson">saveJson([limit])</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.StreamAggr.html#setParams">setParams(params)</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -306,7 +315,7 @@ base.close();</code></pre>
                   <p><code><a href="module-qm.FeatureSpace.html">module:qm.FeatureSpace</a></code>&nbsp;The feature space.</p>
                 </dd>
               </dl>
-              <h3 id="getFloat"><span class="symbol-name">getFloat</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <h3 id="getFloat"><span class="symbol-name">getFloat</span><span class="signature"><span class="signature-params">([str])</span>&nbsp;&rarr; <span class="signature-returns"> (number or null)</span></span></h3>
               <p>Returns the value of the specific stream aggregator. For return values see <a href="module-qm.html#~StreamAggregator">module:qm~StreamAggregator</a>.</p>
               <section>
                 <h4>
@@ -356,10 +365,39 @@ var average = averageGrade.getFloat(); // returns 74 + 1/3
 base.close();</code></pre>
                 </div>
               </section>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>str</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The string.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;The value of the stream aggregator.</p>
+                  <p><code>(number or null)</code>&nbsp;A number (stream aggregator specific), possibly null if <code>str</code> was provided.</p>
                 </dd>
               </dl>
               <h3 id="getFloatAt"><span class="symbol-name">getFloatAt</span><span class="signature"><span class="signature-params">(idx)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
@@ -578,6 +616,43 @@ base.close();</code></pre>
                 <dt>Returns</dt>
                 <dd>
                   <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;The vector containing the values that are entering the buffer.</p>
+                </dd>
+              </dl>
+              <h3 id="getInteger"><span class="symbol-name">getInteger</span><span class="signature"><span class="signature-params">([str])</span>&nbsp;&rarr; <span class="signature-returns"> (number or null)</span></span></h3>
+              <p>A map from strings to integers</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>str</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The string.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>(number or null)</code>&nbsp;A number (stream aggregator specific), possibly null if <code>str</code> was provided.</p>
                 </dd>
               </dl>
               <h3 id="getInTimestampVector"><span class="symbol-name">getInTimestampVector</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
@@ -849,6 +924,14 @@ base.close();</code></pre>
                 <dt>Returns</dt>
                 <dd>
                   <p><code>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</code>&nbsp;Vector of floats or a vector of sparse vectors.</p>
+                </dd>
+              </dl>
+              <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
+              <p>Returns all the parameters of the stream aggregate</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Object</code>&nbsp;parameters</p>
                 </dd>
               </dl>
               <h3 id="getTimestamp"><span class="symbol-name">getTimestamp</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
@@ -1398,6 +1481,39 @@ base.close();</code></pre>
                 <dd>
                   <p><code>Object</code>&nbsp;A JSON object as defined by the user.</p>
                 </dd>
+              </dl>
+              <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(params)</span></span></h3>
+              <p>Sets one or more parameters.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>params</p>
+                      </td>
+                      <td>
+                        <p>Object</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>JSON representation of the parameters</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
               </dl>
             </section>
           </section>

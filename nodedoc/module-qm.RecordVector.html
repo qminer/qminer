@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v6.3.1</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.2.0</a>
       </div>
     </div>
   </nav>
@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">RecordVector</span></h1>
-            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-1610">qminerdoc.<wbr>js:1610</a></p>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-1625">qminerdoc.<wbr>js:1625</a></p>
             <div class="symbol-classdesc">
               <p>Vector storing records defined by value. Vector can be serialized and iterated over. For storing records by reference use <a href="module-qm.RecordSet.html">module:qm.RecordSet</a> or
                 <a href="module-la.IntVector.html">module:la.IntVector</a>.</p>
@@ -74,7 +74,7 @@
           </section>
           <section>
             <h2 id="RecordVector">new&nbsp;<span class="symbol-name">RecordVector</span><span class="signature"><span class="signature-params">([arg])</span></span></h2>
-            <p>Vector of records by value</p>
+            <p>Vector of records by value.</p>
             <section>
               <h3>
             Example
@@ -96,11 +96,11 @@ var base = new qm.Base({
 // Create record vector
 var recordVector = new qm.RecordVector(base);
 // Add some records to the vector
-recordVector.push(store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Plato&quot;, Era: &quot;Ancient philosophy&quot; }));
-recordVector.push(store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Immanuel Kant&quot;, Era: &quot;18th-century philosophy&quot; }));
-recordVector.push(store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Emmanuel Levinas&quot;, Era: &quot;20th-century philosophy&quot; }));
-recordVector.push(store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Rene Descartes&quot;, Era: &quot;17th-century philosophy&quot; }));
-recordVector.push(store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Confucius&quot;, Era: &quot;Ancient philosophy&quot; }));
+recordVector.push(base.store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Plato&quot;, Era: &quot;Ancient philosophy&quot; }));
+recordVector.push(base.store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Immanuel Kant&quot;, Era: &quot;18th-century philosophy&quot; }));
+recordVector.push(base.store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Emmanuel Levinas&quot;, Era: &quot;20th-century philosophy&quot; }));
+recordVector.push(base.store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Rene Descartes&quot;, Era: &quot;17th-century philosophy&quot; }));
+recordVector.push(base.store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Confucius&quot;, Era: &quot;Ancient philosophy&quot; }));
 // Iterate over all records
 for (var i = 0; i &lt; recordVector.length; i++) {
    var rec = recordVector[i];
@@ -174,7 +174,7 @@ var base = new qm.Base({
 // Create record vector
 var recordVector = new qm.RecordVector(base);
 // Add some records to the vector
-recordVector.push(store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Plato&quot;, Era: &quot;Ancient philosophy&quot; }));
+recordVector.push(base.store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Plato&quot;, Era: &quot;Ancient philosophy&quot; }));
 base.close();</code></pre>
                 </div>
               </section>
@@ -237,7 +237,7 @@ var base = new qm.Base({
 // Create record vector
 var recordVector = new qm.RecordVector(base);
 // Add some records to the vector
-recordVector.push(store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Plato&quot;, Era: &quot;Ancient philosophy&quot; }));
+recordVector.push(base.store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Plato&quot;, Era: &quot;Ancient philosophy&quot; }));
 // save to disk
 var fout = fs.openWrite(&#x27;record_vector.bin&#x27;);
 recordVector.save(fout).close();

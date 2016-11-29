@@ -9,6 +9,7 @@
 #include "qminer_core.h"
 #include "qminer_ftr.h"
 #include "qminer_aggr.h"
+//#include "geospatial_aggr.h"
 
 namespace TQm {
 
@@ -134,6 +135,24 @@ void TNmValidator::AssertValidNm(const TStr& NmStr) const {
 
 void TNmValidator::SetStrictNmP(const bool& _StrictNmP) {
     StrictNmP = _StrictNmP;
+}
+
+///////////////////////////////
+// Store window description
+TStr TStoreWndDesc::SysInsertedAtFieldName = "_sys_inserted_at";
+
+void TStoreWndDesc::Save(TSOut& SOut) const {
+    TInt(WindowType).Save(SOut);
+    WindowSize.Save(SOut);
+    InsertP.Save(SOut);
+    TimeFieldNm.Save(SOut);
+}
+
+void TStoreWndDesc::Load(TSIn& SIn) {
+    WindowType = TStoreWndType(TInt(SIn).Val);
+    WindowSize.Load(SIn);
+    InsertP.Load(SIn);
+    TimeFieldNm.Load(SIn);
 }
 
 ///////////////////////////////
@@ -593,11 +612,13 @@ void TStore::DelTrigger(const PStoreTrigger& Trigger) {
 }
 
 TRec TStore::GetRec(const uint64& RecId) {
+    EAssertR(RecId != TUInt64::Mx, "Unable to create a record with invalid id");
     return TRec(this, RecId);
 }
 
 TRec TStore::GetRec(const TStr& RecNm) {
-    return TRec(this, GetRecId(RecNm));
+    const uint64 RecId = GetRecId(RecNm);
+    return GetRec(RecId);
 }
 
 PRecSet TStore::GetAllRecs() {
@@ -1268,13 +1289,13 @@ void TStore::PrintAll(const TWPt<TBase>& Base, TSOut& SOut, const bool& Includin
                 SOut.PutStrFmtLn("  %s: %d", Desc.GetFieldNm().CStr(), FieldInt);
             } else if (Desc.IsUInt()) {
                 const uint64 FieldInt = GetFieldUInt(RecId, FieldId);
-                SOut.PutStrFmtLn("  %s: %s", Desc.GetFieldNm().CStr(), TInt64::GetStr(FieldInt).CStr());
+                SOut.PutStrFmtLn("  %s: %s", Desc.GetFieldNm().CStr(), TUInt64::GetStr(FieldInt).CStr());
             } else if (Desc.IsUInt16()) {
                 const uint64 FieldInt = GetFieldUInt16(RecId, FieldId);
-                SOut.PutStrFmtLn("  %s: %s", Desc.GetFieldNm().CStr(), TInt64::GetStr(FieldInt).CStr());
+                SOut.PutStrFmtLn("  %s: %s", Desc.GetFieldNm().CStr(), TUInt64::GetStr(FieldInt).CStr());
             } else if (Desc.IsUInt64()) {
                 const uint64 FieldInt = GetFieldUInt64(RecId, FieldId);
-                SOut.PutStrFmtLn("  %s: %s", Desc.GetFieldNm().CStr(), TInt64::GetStr(FieldInt).CStr());
+                SOut.PutStrFmtLn("  %s: %s", Desc.GetFieldNm().CStr(), TUInt64::GetStr(FieldInt).CStr());
             } else if (Desc.IsFlt()) {
                 const double FieldFlt = GetFieldFlt(RecId, FieldId);
                 SOut.PutStrFmtLn("  %s: %g", Desc.GetFieldNm().CStr(), FieldFlt);
@@ -1400,6 +1421,7 @@ PExcept TRec::FieldError(const int& FieldId, const TStr& TypeStr) const {
 TRec::TRec(const TWPt<TStore>& _Store, const PJsonVal& JsonVal) :
     Store(_Store), ByRefP(false), RecId(TUInt64::Mx), RecValOut(RecVal) {
 
+    // first parse all the fields
     for (int FieldId = 0; FieldId < Store->GetFields(); FieldId++) {
         const TFieldDesc& FieldDesc = Store->GetFieldDesc(FieldId);
         // check if field exists in the JSON
@@ -1495,8 +1517,7 @@ TRec::TRec(const TWPt<TStore>& _Store, const PJsonVal& JsonVal) :
         case oftTMem: {
             QmAssertR(FieldVal->IsStr(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not a number or a string that represents DateTime.");
             // TODO do we support anything else? probably not on this level...
-            TMem Mem;
-            TStr::Base64Decode(FieldVal->GetStr(), Mem);
+            TMem Mem; TStr::Base64Decode(FieldVal->GetStr(), Mem);
             SetFieldTMem(FieldId, Mem);
             break;
         }
@@ -1507,6 +1528,34 @@ TRec::TRec(const TWPt<TStore>& _Store, const PJsonVal& JsonVal) :
         default:
             throw TQmExcept::New("Unsupported JSon data type for function - " + FieldDesc.GetFieldTypeStr());
         }
+    }
+
+    // second parse out the joins
+    for (int JoinId = 0; JoinId < Store->GetJoins(); JoinId++) {
+        const TJoinDesc& JoinDesc = Store->GetJoinDesc(JoinId);
+        // check if field exists in the JSON
+        TStr JoinName = JoinDesc.GetJoinNm();
+        if (!JsonVal->IsObjKey(JoinName)) { continue; }
+        // parse the field from JSon
+        PJsonVal JoinVal = JsonVal->GetObjKey(JoinName);
+        // for now we only support index joins
+        QmAssertR(JoinVal->IsArr(), "Only support index joins in records by value");
+        // get join store
+        TWPt<TStore> JoinStore = JoinDesc.GetJoinStore(Store->GetBase());
+        // prepare record set with assumtion, that listed records exist
+        // in case record does not exist, it will not be added to index join
+        TUInt64V JoinRecIdV;
+        for (int ValN = 0; ValN < JoinVal->GetArrVals(); ValN++) {
+            PJsonVal JoinRecVal = JoinVal->GetArrVal(ValN);
+            // get record ID from the json
+            const uint64 JoinRecId = JoinStore->GetRecId(JoinRecVal);
+            // rembember the ID if we found corresponding record
+            if (JoinRecId != TUInt64::Mx) {
+                JoinRecIdV.Add(JoinRecId);
+            }
+        }
+        // remember join
+        AddJoin(JoinDesc.GetJoinId(), TRecSet::New(JoinStore, JoinRecIdV));
     }
 }
 
@@ -1585,6 +1634,7 @@ int TRec::GetFieldInt(const int& FieldId) const {
     }
     throw FieldError(FieldId, "Int");
 }
+
 int16 TRec::GetFieldInt16(const int& FieldId) const {
     if (IsByRef()) {
         return Store->GetFieldInt16(RecId, FieldId);
@@ -1595,6 +1645,7 @@ int16 TRec::GetFieldInt16(const int& FieldId) const {
     }
     throw FieldError(FieldId, "Int16");
 }
+
 int64 TRec::GetFieldInt64(const int& FieldId) const {
     if (IsByRef()) {
         return Store->GetFieldInt64(RecId, FieldId);
@@ -1605,6 +1656,7 @@ int64 TRec::GetFieldInt64(const int& FieldId) const {
     }
     throw FieldError(FieldId, "Int64");
 }
+
 uchar TRec::GetFieldByte(const int& FieldId) const {
     if (IsByRef()) {
         return Store->GetFieldByte(RecId, FieldId);
@@ -1638,6 +1690,7 @@ uint TRec::GetFieldUInt(const int& FieldId) const {
     }
     throw FieldError(FieldId, "UInt");
 }
+
 uint16 TRec::GetFieldUInt16(const int& FieldId) const {
     if (IsByRef()) {
         return (uint16)Store->GetFieldUInt64(RecId, FieldId);
@@ -1648,6 +1701,7 @@ uint16 TRec::GetFieldUInt16(const int& FieldId) const {
     }
     throw FieldError(FieldId, "UInt16");
 }
+
 uint64 TRec::GetFieldUInt64(const int& FieldId) const {
     if (IsByRef()) {
         return Store->GetFieldUInt64(RecId, FieldId);
@@ -1886,7 +1940,8 @@ PJsonVal TRec::GetFieldJson(const int& FieldId) const {
         return TJsonVal::NewArr(FieldFltV);
     } else if (Desc.IsTm()) {
         TTm FieldTm; GetFieldTm(FieldId, FieldTm);
-        if (FieldTm.IsDef()) { return TJsonVal::NewStr(FieldTm.GetWebLogDateTimeStr(true, "T", true)); } else { return TJsonVal::NewNull(); }
+        if (FieldTm.IsDef()) { return TJsonVal::NewStr(FieldTm.GetWebLogDateTimeStr(true, "T", true)); }
+        else { return TJsonVal::NewNull(); }
     } else if (Desc.IsNumSpV()) {
         TIntFltKdV FieldIntFltKdV; GetFieldNumSpV(FieldId, FieldIntFltKdV);
         return TJsonVal::NewStr(TStrUtil::GetStr(FieldIntFltKdV));
@@ -2159,13 +2214,15 @@ void TRec::SetFieldJsonVal(const int& FieldId, const PJsonVal& Json) {
 
 void TRec::AddJoin(const int& JoinId, const PRecSet& JoinRecSet) {
     JoinIdPosH.AddDat(JoinId, RecVal.Len());
-    JoinRecSet->GetRecIdFqV().Save(RecValOut);
+    const TUInt64IntKdV& JoinRecIdFqV = JoinRecSet->GetRecIdFqV();
+    JoinRecIdFqV.Save(RecValOut);
 }
 
 PRecSet TRec::ToRecSet() const {
     QmAssertR(IsByRef(), "Cannot transform record passed by value to a set!");
     return IsDef() ? TRecSet::New(Store, RecId) : TRecSet::New(Store);
 }
+
 /// Returns record-id of given field join
 uint64 TRec::GetFieldJoinRecId(const int& JoinId) const {
     QmAssertR(Store->IsJoinId(JoinId), "Invalid JoinId");
@@ -2220,7 +2277,7 @@ PRecSet TRec::DoJoin(const TWPt<TBase>& Base, const int& JoinId) const {
         } else {
             // do join using serialized record set
             if (JoinIdPosH.IsKey(JoinId)) {
-                const int Pos = JoinIdPosH.GetKey(JoinId);
+                const int Pos = JoinIdPosH.GetDat(JoinId);
                 TMIn MIn(RecVal.GetBf() + Pos, RecVal.Len() - Pos, false);
                 JoinRecIdFqV.Load(MIn);
             }
@@ -2598,6 +2655,16 @@ PRecFilter TRecFilterByField::New(const TWPt<TBase>& Base, const PJsonVal& Param
 }
 
 ///////////////////////////////
+/// Keep (_FilterNullP = false) or remove (_FilterNullP = true) records that have null in the value of a field. 
+TRecFilterByFieldNull::TRecFilterByFieldNull(const TWPt<TBase>& _Base, const int& _FieldId, const bool& _RemoveNullValues) :
+    TRecFilter(_Base), FieldId(_FieldId), RemoveNullValues(_RemoveNullValues) { }
+
+bool TRecFilterByFieldNull::Filter(const TRec& Rec) const {
+    const bool RecNull = Rec.IsFieldNull(FieldId);
+    return RecNull == RemoveNullValues;
+}
+
+///////////////////////////////
 /// Record Filter by Bool Field. 
 TRecFilterByFieldBool::TRecFilterByFieldBool(const TWPt<TBase>& _Base, const int& _FieldId, const bool& _Val, const bool& _FilterNullP):
     TRecFilterByField(_Base, _FieldId, _FilterNullP), Val(_Val) { }
@@ -2769,6 +2836,26 @@ bool TRecFilterByFieldStrSet::Filter(const TRec& Rec) const {
     const TStr RecVal = Rec.GetFieldStr(FieldId);
     return StrSet.IsKey(RecVal);
 }
+
+///////////////////////////////
+/// Record Filter by String Field Set.
+TRecFilterByFieldStrSetUsingCodebook::TRecFilterByFieldStrSetUsingCodebook(const TWPt<TBase>& _Base, const int& _FieldId, const PStore& _Store, const TStrSet& StrSet, const bool& _FilterNullP) :
+    TRecFilterByField(_Base, _FieldId, _FilterNullP)
+{
+    // prepare a set of ints representing the string values specified in the StrSet
+    for (int KeyId = StrSet.FFirstKeyId(); StrSet.FNextKeyId(KeyId);) {
+        IntSet.AddKey(_Store->GetCodebookId(_FieldId, StrSet.GetKey(KeyId)));
+    }
+}
+
+/// Filter function
+bool TRecFilterByFieldStrSetUsingCodebook::Filter(const TRec& Rec) const {
+    bool RecNull = Rec.IsFieldNull(FieldId);
+    if (RecNull) { return !FilterNullP; }
+    const int RecVal = Rec.GetFieldInt(FieldId);
+    return IntSet.IsKey(RecVal);
+}
+
 
 ///////////////////////////////
 /// Record Filter by Time Field. 
@@ -3621,6 +3708,14 @@ void TRecSet::FilterByFq(const int& MinFq, const int& MaxFq) {
     FilterBy<TRecFilterByRecFq>(TRecFilterByRecFq(Store->GetBase(), MinFq, MaxFq));
 }
 
+void TRecSet::FilterByFieldNull(const int& FieldId, const bool RemoveNullValues) {
+    // get store and field type
+    const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
+    QmAssertR(Desc.IsNullable(), "The field is not nullable");
+    // apply the filter
+    FilterBy<TRecFilterByFieldNull>(TRecFilterByFieldNull(Store->GetBase(), FieldId, RemoveNullValues));
+}
+
 void TRecSet::FilterByFieldBool(const int& FieldId, const bool& Val) {
     // get store and field type
     const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
@@ -3722,7 +3817,11 @@ void TRecSet::FilterByFieldStr(const int& FieldId, const TStrSet& ValSet) {
     const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
     QmAssertR(Desc.IsStr(), "Wrong field type, string expected");
     // apply the filter
-    FilterBy<TRecFilterByFieldStrSet>(TRecFilterByFieldStrSet(Store->GetBase(), FieldId, ValSet));
+    if (Desc.IsCodebook()) {
+        FilterBy<TRecFilterByFieldStrSetUsingCodebook>(TRecFilterByFieldStrSetUsingCodebook(Store->GetBase(), FieldId, Store, ValSet));
+    } else {
+        FilterBy<TRecFilterByFieldStrSet>(TRecFilterByFieldStrSet(Store->GetBase(), FieldId, ValSet));
+    }
 }
 
 void TRecSet::FilterByFieldTm(const int& FieldId, const uint64& MinVal, const uint64& MaxVal) {
@@ -3876,14 +3975,14 @@ PRecSet TRecSet::DoJoin(const TWPt<TBase>& Base, const int& JoinId, const int& S
         // do join using store field
         TUInt64H JoinRecIdFqH;
         const int JoinRecFieldId = JoinDesc.GetJoinRecFieldId();
+        const int JoinFqFieldId = JoinDesc.GetJoinFqFieldId();
         for (int RecN = 0; RecN < SampleRecs; RecN++) {
             const uint64 RecId = SampleRecIdKdV[RecN].Key;
-            const uint64 JoinRecId = Store->GetFieldUInt64Safe(RecId, JoinRecFieldId);
-            if (JoinRecId != TUInt64::Mx) {
-                const int JoinFqFieldId = JoinDesc.GetJoinFqFieldId();
+            if (!Store->IsFieldNull(RecId, JoinRecFieldId)) {
+                const uint64 JoinRecId = Store->GetFieldUInt64Safe(RecId, JoinRecFieldId);
                 int JoinRecFq = 1;
                 if (JoinFqFieldId >= 0) {
-                    JoinRecFq = (int)Store->GetFieldInt64Safe(RecId, JoinFqFieldId);
+                    JoinRecFq = (int) Store->GetFieldInt64Safe(RecId, JoinFqFieldId);
                 }
                 JoinRecIdFqH.AddDat(JoinRecId) += JoinRecFq;
             }
@@ -6489,6 +6588,9 @@ void TStreamAggr::Init() {
     Register<TStreamAggrs::TMerger>();
     Register<TStreamAggrs::TResampler>();
     Register<TStreamAggrs::TUniVarResampler>();
+    Register<TStreamAggrs::TAggrResampler>();
+    Register<TStreamAggrs::TFtrExtAggr>();
+	Register<TStreamAggrs::TNNAnomalyAggr>();
     Register<TStreamAggrs::TOnlineHistogram>();
     Register<TStreamAggrs::TTDigest>();
     Register<TStreamAggrs::TChiSquare>();
@@ -6498,6 +6600,10 @@ void TStreamAggr::Init() {
     Register<TStreamAggrs::TRecFilterAggr>();    
     Register<TStreamAggrs::TEmaSpVec>();
     Register<TStreamAggrs::TWinBufSpVecSum>();
+    Register<TStreamAggrs::TRecSwitchAggr>();
+    Register<TStreamAggrs::THistogramAD>();
+    // geospatial aggregates
+    //Register<TStreamAggrs::TStayPointDetector>();
 }
 
 TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm): Base(_Base), AggrNm(_AggrNm) {
@@ -7293,7 +7399,8 @@ bool TBase::RestoreJSonDump(const TStr& DumpDir) {
                 TStrV PartV; Line.SplitOnAllCh('|', PartV, false);
                 AssertR(PartV.Len() == 3, TStr::Fmt("The line with json data did not contain three parts when split with |. Store Name: %s, Line val: %s", StoreNm.CStr(), Line.CStr()));
                 const uint64 OldRecId = PartV[0].GetUInt64();
-                const uint64 NewRecId = OldToNewIdH.GetDat(OldRecId);   // map old rec ids to new rec ids
+                // map old rec ids to new rec ids
+                const uint64 NewRecId = OldToNewIdH.GetDat(OldRecId);
                 if (!Store->IsRecId(NewRecId)) {
                     TQm::TEnv::Logger->OnStatusFmt("ERROR: Failed to create join for missing record %I64U in store %s.", NewRecId, StoreNm.CStr());
                     continue;
@@ -7315,7 +7422,9 @@ bool TBase::RestoreJSonDump(const TStr& DumpDir) {
                 for (int N = 0; N < Joins; N++) {
                     TStr JoinRecIdStr, JoinFqStr; JoinV[N].SplitOnCh(JoinRecIdStr, ',', JoinFqStr);
                     const uint64 OldJoinRecId = JoinRecIdStr.GetUInt64();
-                    const uint64 NewJoinRecId = JoinOldToNewIdH.GetDat(OldJoinRecId);       // if some articles or other data was deleted from the index then old and new ids could be different. in most cases it should be the same
+                    // Ff some articles or other data was deleted from the index then old and
+                    // new ids could be different. In most cases it should be the same.
+                    const uint64 NewJoinRecId = JoinOldToNewIdH.GetDat(OldJoinRecId);
                     const int JoinFq = JoinFqStr.GetInt();
                     Store->AddJoin(NewJoinId, NewRecId, NewJoinRecId, JoinFq);
                 }
@@ -7468,8 +7577,7 @@ void TBase::SaveBaseConf(const TStr& FPath) const {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-
-/// Export TBlobBsStats object to JSON
+// Export TBlobBsStats object to JSON
 PJsonVal BlobBsStatsToJson(const TBlobBsStats& stats) {
     PJsonVal res = TJsonVal::NewObj();
     res->AddToObj("alloc_count", stats.AllocCount);
@@ -7488,7 +7596,6 @@ PJsonVal BlobBsStatsToJson(const TBlobBsStats& stats) {
     res->AddToObj("size_changes", stats.SizeChngs);
     return res;
 }
-
 
 /// Export TGixStats object to JSON
 PJsonVal GixStatsToJson(const TGixStats& stats) {

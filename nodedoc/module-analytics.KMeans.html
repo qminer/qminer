@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v6.3.1</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.2.0</a>
       </div>
     </div>
   </nav>
@@ -169,7 +169,6 @@ KMeans.fit(X);</code></pre>
                 <div>
                   <pre class="prettyprint"><code>// import the modules
 var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
 // create a new KMeans object
 var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
 // get the centroids
@@ -187,7 +186,6 @@ var centroids = KMeans.centroids;</code></pre>
                 <div>
                   <pre class="prettyprint"><code>// import the modules
 var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
 // create a new KMeans object
 var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
 // get the idxv
@@ -205,7 +203,6 @@ var idxv = KMeans.idxv;</code></pre>
                 <div>
                   <pre class="prettyprint"><code>// import the modules
 var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
 // create a new KMeans object
 var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
 // get the centroids
@@ -285,19 +282,21 @@ var explanation = KMeans.explain(test);</code></pre>
                   <p> Asynchronous function </p>
                   <pre class="prettyprint"><code>// import analytics module
 var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
 // create a new KMeans object
 var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
 // create a matrix to be fitted
 var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
 // create the model with the matrix X
 KMeans.fitAsync(X, function (err) {
-    if (err) throw err;
+    if (err) console.log(err);
     // successful calculation
 });</code></pre>
                 </div>
                 <div>
                   <p> Synchronous function </p>
                   <pre class="prettyprint"><code>var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
 // create a new KMeans object
 var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
 // create a matrix to be fitted
@@ -457,6 +456,7 @@ KMeans.permuteCentroids(Mapping);</code></pre>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
 var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
 // create a new KMeans object
 var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
 // create a matrix to be fitted
@@ -617,7 +617,7 @@ KMeans.setParams({ iter: 1000, k: 5 });</code></pre>
                 </dd>
               </dl>
               <h3 id="transform"><span class="symbol-name">transform</span><span class="signature"><span class="signature-params">(A)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
-              <p>Transforms the points to vectors of squared distances to centroids.</p>
+              <p>Transforms the points to vectors of distances to centroids.</p>
               <section>
                 <h4>
             Example

@@ -1356,8 +1356,8 @@ exports = {}; require.modules.qminer_analytics = exports;
 * Neural Network Model.
 * @class
 * @classdesc Holds online/offline neural network model.
-* @param {module:analytics~nnetParams | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
-* <br>1. Using the {@link module:analytics~nnetParams} object,
+* @param {module:analytics~nnetParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
+* <br>1. Using the {@link module:analytics~nnetParam} object,
 * <br>2. using the file input stream {@link module:fs.FIn}.
 * @example
 * // import module
@@ -1368,7 +1368,7 @@ exports = {}; require.modules.qminer_analytics = exports;
  exports.NNet = function (arg) { return Object.create(require('qminer').analytics.NNet.prototype); }
 /**
     * Get the parameters of the model.
-    * @returns {module:analytics~nnetParams} The constructor parameters.
+    * @returns {module:analytics~nnetParam} The constructor parameters.
     * @example
     * // import analytics module
     * var analytics = require('qminer').analytics;
@@ -1380,7 +1380,7 @@ exports = {}; require.modules.qminer_analytics = exports;
  exports.NNet.prototype.getParams = function () { return { layout: Object.create(require('qminer').la.IntVector.prototype), learnRate: 0.0, momentum: 0.0, tFuncHidden: "", TFuncOut: "" }; }
 /**
     * Sets the parameters of the model.
-    * @params {module:analytics~nnetParams} params - The given parameters.
+    * @params {module:analytics~nnetParam} params - The given parameters.
     * @returns {module:analytics.NNet} Self. The model parameters have been updated.
     * @example
     * // import analytics module
@@ -1463,7 +1463,7 @@ exports = {}; require.modules.qminer_analytics = exports;
 * @property {string} [type='unicode'] - The type of the tokenizer. The different types are: 
 *<br>1. 'simple' - Creates break on white spaces.
 *<br>2. 'html' - Creates break on white spaces and ignores html tags.
-*<br>3. 'unicode' - Creates break on white spaces and normalizes unicode letters, e.g. hp changes to cspz.
+*<br>3. 'unicode' - Creates break on white spaces and normalizes unicode letters, e.g. o?=o?= changes to cso?=z.
 */
 /**
  * Tokenizer
@@ -1702,18 +1702,20 @@ exports = {}; require.modules.qminer_analytics = exports;
      * @example <caption> Asynchronous function </caption>
      * // import analytics module
      * var analytics = require('qminer').analytics;
+     * var la = require('qminer').la;
      * // create a new KMeans object
      * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
      * // create a matrix to be fitted
      * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
      * // create the model with the matrix X
      * KMeans.fitAsync(X, function (err) {
-     *     if (err) throw err;
+     *     if (err) console.log(err);
      *     // successful calculation
      * });
      *
      * @example <caption> Synchronous function </caption>
      * var analytics = require('qminer').analytics;
+     * var la = require('qminer').la;
      * // create a new KMeans object
      * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
      * // create a matrix to be fitted
@@ -1729,6 +1731,7 @@ exports = {}; require.modules.qminer_analytics = exports;
      * @example
      * // import analytics module
      * var analytics = require('qminer').analytics;
+     * var la = require('qminer').la;
      * // create a new KMeans object
      * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
      * // create a matrix to be fitted
@@ -1742,7 +1745,7 @@ exports = {}; require.modules.qminer_analytics = exports;
      */
  exports.KMeans.prototype.predict = function (A) { return Object.create(require('qminer').la.IntVector.prototype); }
 /**
-     * Transforms the points to vectors of squared distances to centroids.
+     * Transforms the points to vectors of distances to centroids.
      * @param {module:la.Matrix | module:la.SparseMatrix} A - Matrix whose columns correspond to examples.
      * @returns {module:la.Matrix} Matrix where each column represents the squared distances to the centroid vectors.
      * @example
@@ -1815,7 +1818,6 @@ exports = {}; require.modules.qminer_analytics = exports;
      * @example
      * // import the modules
      * var analytics = require('qminer').analytics;
-     * var la = require('qminer').la;
      * // create a new KMeans object
      * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
      * // get the centroids
@@ -1827,7 +1829,6 @@ exports = {}; require.modules.qminer_analytics = exports;
     * @example
     * // import the modules
     * var analytics = require('qminer').analytics;
-    * var la = require('qminer').la;
     * // create a new KMeans object
     * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
     * // get the centroids
@@ -1839,7 +1840,6 @@ exports = {}; require.modules.qminer_analytics = exports;
     * @example
     * // import the modules
     * var analytics = require('qminer').analytics;
-    * var la = require('qminer').la;
     * // create a new KMeans object
     * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
     * // get the idxv
@@ -1970,6 +1970,28 @@ exports = {}; require.modules.qminer_analytics = exports;
     * var recSys2 = new analytics.RecommenderSys(fin);
     */
  exports.RecommenderSys.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
+ exports.GraphCascade = function (arg) { return Object.create(require('qminer').analytics.GraphCascade.prototype); }
+/**
+    * Sets the cascade time for a given node
+    * @param {string} nodeId - 
+    * @param {number} timestamp - 
+    */
+/**
+    * Computes the posterior for timestamps of unobserved nodes
+    * @param {number} timestamp - current time
+    */
+/**
+    * Returns the posteriors
+    * @returns {Object} - model
+    */
+/**
+    * Returns the pruned directed acyclic graph
+    * @returns {Object} - dag
+    */
+/**
+    * Returns the topologically ordered node names
+    * @returns {Object} - nodeArr
+    */
 
 
     ///////////////////////////////////////////////////
@@ -3018,7 +3040,7 @@ exports = {}; require.modules.qminer_analytics = exports;
     // Main object for online metrics model
     /**
     * createOnlineMetric
-    * @private
+    * @ignore
     * @class
     *
     * This provides methods used for event handling. It's not meant to
@@ -3041,6 +3063,7 @@ exports = {}; require.modules.qminer_analytics = exports;
 
         /**
         * Updates metric with ground truth target value `yTrue` and estimated target value `yPred`.
+        * @ignore
         * @param {number} yTrue - Ground truth (correct) target value.
         * @param {number} yPred - Estimated target value.
         */
@@ -3056,6 +3079,7 @@ exports = {}; require.modules.qminer_analytics = exports;
 
         /**
         * Returns error value.
+        * @ignore
         * @returns {number} Error value.
         */
         this.getError = function () {
@@ -3064,6 +3088,7 @@ exports = {}; require.modules.qminer_analytics = exports;
 
         /**
 	    * Save metric state to provided output stream `fout`.
+        * @ignore
 	    * @param {module:fs.FOut} fout - The output stream.
 	    * @returns {module:fs.FOut} The output stream `fout`.
         */
@@ -3074,6 +3099,7 @@ exports = {}; require.modules.qminer_analytics = exports;
 
         /**
 	    * Load metric state from provided input stream `fin`.
+        * @ignore
 	    * @param {module:fs.FIn} fin - The output stream.
 	    * @returns {module:fs.FIn} The output stream `fin`.
         */
