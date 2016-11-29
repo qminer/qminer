@@ -1925,7 +1925,7 @@ public:
 ///   Looks at a given record field and maps it to stream aggregate.
 ///   Based on a hashmap from strings to stream aggregate IDs.
 ///   If a key is found, the corresponding stream aggregate gets triggered.
-class TRecSwitchAggr : public TStreamAggr {
+class TRecSwitchAggr : public TStreamAggr, public TStreamAggrOut::INmInt {
 private:
     /// PARAMS
     /// Aggregate hash-map
@@ -1970,6 +1970,10 @@ public:
     static TStr GetType() { return "recordSwitchAggr"; }
     /// Stream aggregator type name
     TStr Type() const { return GetType(); }
+    /// Check if the key is known
+    bool IsNmInt(const TStr& Nm) const { return AggrH.IsKey(Nm); }
+    /// Check if the key is known
+    int GetNmInt(const TStr& Nm) const { return AggrH.IsKey(Nm) ? 1 : 0; }
 };
 
 //////////////////////////////////////////////////////////////////////////////////

@@ -5705,6 +5705,63 @@ describe('Record switch aggregate', function () {
         });
     });
 
+    describe('getInteger', function () {
+        it('should return 1 for known keys and 0 for unknown keys', function () {
+            var result = [];
+            // first JS aggregate
+            var outAggr1 = new qm.StreamAggr(base, new function () {
+                this.onAdd = function (rec) {
+                    result.push(1);
+                }
+            });
+            // second JS aggregate
+            var outAggr2 = new qm.StreamAggr(base, new function () {
+                this.onAdd = function (rec) {
+                    result.push(2);
+                }
+            });
+            // switcher aggregate
+            var switcher = store.addStreamAggr({
+                type: 'recordSwitchAggr',
+                store: 'testStore',
+                fieldName: 'switchField',
+                $set: [
+                    { key: 'a', aggrName: outAggr1.name },
+                    { key: 'b', aggrName: outAggr2.name },
+                ],
+                throwMissing: false
+            });
+            assert.equal(switcher.getInteger('a'), 1);
+            assert.equal(switcher.getInteger('b'), 1);
+            assert.equal(switcher.getInteger('c'), null);
+        });
+        it('should return 0 for all keys (empty map)', function () {
+            var result = [];
+            // first JS aggregate
+            var outAggr1 = new qm.StreamAggr(base, new function () {
+                this.onAdd = function (rec) {
+                    result.push(1);
+                }
+            });
+            // second JS aggregate
+            var outAggr2 = new qm.StreamAggr(base, new function () {
+                this.onAdd = function (rec) {
+                    result.push(2);
+                }
+            });
+            // switcher aggregate
+            var switcher = store.addStreamAggr({
+                type: 'recordSwitchAggr',
+                store: 'testStore',
+                fieldName: 'switchField',
+                throwMissing: false
+            });
+            assert.equal(switcher.getInteger('a'), null);
+            assert.equal(switcher.getInteger('b'), null);
+            assert.equal(switcher.getInteger('c'), null);
+        });
+    });
+
     describe('Get/Set parameter', function () {
         it('should set several targets', function () {
             var result = [];
