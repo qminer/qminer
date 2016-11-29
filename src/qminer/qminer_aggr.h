@@ -1291,8 +1291,8 @@ private:
 public:
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 
-    PJsonVal GetParam() const;
-    void SetParam(const PJsonVal& ParamVal);
+    PJsonVal GetParams() const;
+    void SetParams(const PJsonVal& ParamVal);
 
     void Reset() { throw TQmExcept::New("TResampler::Reset() not implemented!"); }
 
@@ -1346,9 +1346,9 @@ public:
     /// Smart pointer constructor
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
     /// Returns the parameters
-    PJsonVal GetParam() const;
+    PJsonVal GetParams() const;
     /// Sets the parameters - used for setting the output aggregate
-    void SetParam(const PJsonVal& ParamVal);
+    void SetParams(const PJsonVal& ParamVal);
     /// Resets the aggregate
     void Reset() { Resampler.Reset(); }
     /// Load stream aggregate state from stream
@@ -1417,10 +1417,10 @@ public:
     void SaveState(TSOut& SOut) const;
 
     /// Get current stream aggregate parameters
-    PJsonVal GetParam() const;
+    PJsonVal GetParams() const;
     /// Update stream aggregate parameters. Only parameters given will be updated,
     /// rest will be left as they are at the moment.
-    void SetParam(const PJsonVal& ParamVal);
+    void SetParams(const PJsonVal& ParamVal);
 
     /// Did we finish initialization
     bool IsInit() const { return InitCount == 0; }
@@ -1489,8 +1489,8 @@ public:
         return new TNNAnomalyAggr(Base, ParamVal); }
 
     /// implement TStreamAggr functions
-    PJsonVal GetParam() const;
-    void SetParam(const PJsonVal& ParamVal);
+    PJsonVal GetParams() const;
+    void SetParams(const PJsonVal& ParamVal);
 
     /// Did we finish initialization
     bool IsInit() const { return Model.IsInit(); }
@@ -1918,6 +1918,62 @@ public:
     static TStr GetType() { return "recordFilterAggr"; }
     /// Stream aggregator type name
     TStr Type() const { return GetType(); }
+};
+
+///////////////////////////////
+/// Record switch stream aggregate
+///   Looks at a given record field and maps it to stream aggregate.
+///   Based on a hashmap from strings to stream aggregate IDs.
+///   If a key is found, the corresponding stream aggregate gets triggered.
+class TRecSwitchAggr : public TStreamAggr, public TStreamAggrOut::INmInt {
+private:
+    /// PARAMS
+    /// Aggregate hash-map
+    THash<TStr, TWPt<TStreamAggr>> AggrH;
+    /// Field ID
+    TInt FldId;
+    /// Pointer to store
+    TWPt<TStore> Store;
+    /// Throw exception when key is not found? (default: false)
+    TBool ThrowMissingP;
+protected:
+    /// Passes the record to Aggr
+    void OnAddRec(const TRec& Rec);
+    /// Passes the call to Aggr
+    void OnTime(const uint64& TmMsec) { throw TQmExcept::New("TRecSwitchAggr: OnTime not supported!"); }
+    /// Passes the call to Aggr
+    void OnStep() { throw TQmExcept::New("TRecSwitchAggr: OnStep not supported!"); }
+
+    /// JSON based constructor.
+    TRecSwitchAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+public:
+    /// Smart pointer constructor
+    static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) { return new TRecSwitchAggr(Base, ParamVal); }
+
+    /// No sate to load
+    void LoadState(TSIn& SIn) {}
+    /// No state to save
+    void SaveState(TSOut& SOut) const {}
+
+    /// Returns the parameters
+    PJsonVal GetParams() const;
+    /// Sets the parameters - used for updating the map (extend or replace)
+    void SetParams(const PJsonVal& ParamVal);
+
+    /// Is the aggregate initialized?
+    bool IsInit() const { return true; }
+    /// Resets the aggregate
+    void Reset() {}
+    /// JSON serialization
+    PJsonVal SaveJson(const int& Limit) const { return TJsonVal::NewObj(); }
+    /// Stream aggregator type name
+    static TStr GetType() { return "recordSwitchAggr"; }
+    /// Stream aggregator type name
+    TStr Type() const { return GetType(); }
+    /// Check if the key is known
+    bool IsNmInt(const TStr& Nm) const { return AggrH.IsKey(Nm); }
+    /// Check if the key is known
+    int GetNmInt(const TStr& Nm) const { return AggrH.IsKey(Nm) ? 1 : 0; }
 };
 
 //////////////////////////////////////////////////////////////////////////////////

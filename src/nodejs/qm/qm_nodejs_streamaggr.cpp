@@ -227,7 +227,7 @@ void TNodeJsStreamAggr::getParams(const v8::FunctionCallbackInfo<v8::Value>& Arg
     // unwrap
     TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
 
-    Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, JsSA->SA->GetParam()));
+    Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, JsSA->SA->GetParams()));
 }
 
 void TNodeJsStreamAggr::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -239,7 +239,7 @@ void TNodeJsStreamAggr::setParams(const v8::FunctionCallbackInfo<v8::Value>& Arg
     TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
 
     const PJsonVal ParamVal = TNodeJsUtil::GetObjToNmJson(Args[0]);
-    JsSA->SA->SetParam(ParamVal);
+    JsSA->SA->SetParams(ParamVal);
 
     Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }

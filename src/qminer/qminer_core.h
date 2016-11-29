@@ -3470,8 +3470,8 @@ public:
     /// Save state of stream aggregate to stream
     virtual void SaveState(TSOut& SOut) const;
 
-    virtual PJsonVal GetParam() const { return TJsonVal::NewObj(); }
-    virtual void SetParam(const PJsonVal& JsonVal) {}
+    virtual PJsonVal GetParams() const { return TJsonVal::NewObj(); }
+    virtual void SetParams(const PJsonVal& JsonVal) {}
 
     /// Get aggregate name
     const TStr& GetAggrNm() const { return AggrNm; }

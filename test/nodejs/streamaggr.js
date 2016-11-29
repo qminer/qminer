@@ -5640,5 +5640,332 @@ describe('Aggregating (sum/avg/min/max) resampler tests', function () {
             
         });
     });
+});
+
+describe('Record switch aggregate', function () {
+    var base = undefined;
+    var store = undefined;
+
+    function assertSwitcherSequence(inputArr, resultArr, expectedArr, store) {
+        for (var i = 0; i < inputArr.length; i++) {
+            store.push(inputArr[i]);
+        }
+        assert.equal(resultArr.length, expectedArr.length);
+        for (var i = 0; i < resultArr.length; i++) {
+            assert.equal(resultArr[i], expectedArr[i]);
+        }
+    }
+
+    beforeEach(function () {
+        base = new qm.Base({
+            mode: 'createClean',
+            schema: [{
+                name: 'testStore',
+                fields: [
+                    { name: 'switchField', type: 'string' }
+                ]
+            }]
+        });
+        store = base.store('testStore');
+    });
+    afterEach(function () {
+        base.close();
+    });
+
+    describe('Switching', function () {
+        it('should switch between two aggregates', function () {
+            var result = [];
+            // first JS aggregate
+            var outAggr1 = new qm.StreamAggr(base, new function () {
+                this.onAdd = function (rec) {
+                    result.push(1);
+                }
+            });
+            // second JS aggregate
+            var outAggr2 = new qm.StreamAggr(base, new function () {
+                this.onAdd = function (rec) {
+                    result.push(2);
+                }
+            });
+            // switcher aggregate
+            var switcher = store.addStreamAggr({
+                type: 'recordSwitchAggr',
+                store: 'testStore',
+                fieldName: 'switchField',
+                $set: [
+                    { key: 'a', aggrName: outAggr1.name},
+                    { key: 'b', aggrName: outAggr2.name},
+                ],
+                throwMissing: false
+            });
+
+            // c will be ignored
+            var inputArr = ['a','b','b','a','c','a'].map(function(x) { return { switchField : x} });
+            assertSwitcherSequence(inputArr, result, [1, 2, 2, 1, 1], store);
+        });
+    });
+
+    describe('getInteger', function () {
+        it('should return 1 for known keys and null for unknown keys', function () {
+            var result = [];
+            // first JS aggregate
+            var outAggr1 = new qm.StreamAggr(base, new function () {
+                this.onAdd = function (rec) {
+                    result.push(1);
+                }
+            });
+            // second JS aggregate
+            var outAggr2 = new qm.StreamAggr(base, new function () {
+                this.onAdd = function (rec) {
+                    result.push(2);
+                }
+            });
+            // switcher aggregate
+            var switcher = store.addStreamAggr({
+                type: 'recordSwitchAggr',
+                store: 'testStore',
+                fieldName: 'switchField',
+                $set: [
+                    { key: 'a', aggrName: outAggr1.name },
+                    { key: 'b', aggrName: outAggr2.name },
+                ],
+                throwMissing: false
+            });
+            assert.equal(switcher.getInteger('a'), 1);
+            assert.equal(switcher.getInteger('b'), 1);
+            assert.equal(switcher.getInteger('c'), null);
+        });
+        it('should return null for all keys (empty map)', function () {
+            var result = [];
+            // first JS aggregate
+            var outAggr1 = new qm.StreamAggr(base, new function () {
+                this.onAdd = function (rec) {
+                    result.push(1);
+                }
+            });
+            // second JS aggregate
+            var outAggr2 = new qm.StreamAggr(base, new function () {
+                this.onAdd = function (rec) {
+                    result.push(2);
+                }
+            });
+            // switcher aggregate
+            var switcher = store.addStreamAggr({
+                type: 'recordSwitchAggr',
+                store: 'testStore',
+                fieldName: 'switchField',
+                throwMissing: false
+            });
+            assert.equal(switcher.getInteger('a'), null);
+            assert.equal(switcher.getInteger('b'), null);
+            assert.equal(switcher.getInteger('c'), null);
+        });
+    });
+
+    describe('Get/Set parameter', function () {
+        it('should set several targets', function () {
+            var result = [];
+            // first JS aggregate
+            var outAggr1 = new qm.StreamAggr(base, new function () {
+                this.onAdd = function (rec) {
+                    result.push(1);
+                }
+            });
+            // second JS aggregate
+            var outAggr2 = new qm.StreamAggr(base, new function () {
+                this.onAdd = function (rec) {
+                    result.push(2);
+                }
+            });
+            // switcher aggregate
+            var switcher = store.addStreamAggr({
+                type: 'recordSwitchAggr',
+                store: 'testStore',
+                fieldName: 'switchField',
+                throwMissing: false
+            });
+
+            switcher.setParams({
+                $set: [
+                   { key: 'a', aggrName: outAggr1.name },
+                   { key: 'b', aggrName: outAggr2.name },
+                ]
+            });
+
+            // c will be ignored
+            var inputArr = ['a', 'b', 'b', 'a', 'c', 'a'].map(function (x) { return { switchField: x } });
+            assertSwitcherSequence(inputArr, result, [1, 2, 2, 1, 1], store);
+        });
+
+        it('should add one target', function () {
+            var result = [];
+            // first JS aggregate
+            var outAggr1 = new qm.StreamAggr(base, new function () {
+                this.onAdd = function (rec) {
+                    result.push(1);
+                }
+            });
+            // second JS aggregate
+            var outAggr2 = new qm.StreamAggr(base, new function () {
+                this.onAdd = function (rec) {
+                    result.push(2);
+                }
+            });
+            // switcher aggregate
+            var switcher = store.addStreamAggr({
+                type: 'recordSwitchAggr',
+                store: 'testStore',
+                fieldName: 'switchField',
+                $set: [
+                   { key: 'a', aggrName: outAggr1.name }
+                ],
+                throwMissing: false
+            });
+
+            switcher.setParams({
+                $add: { key: 'b', aggrName: outAggr2.name }
+            });
+
+            // c will be ignored
+            var inputArr = ['a', 'b', 'b', 'a', 'c', 'a'].map(function(x) {return { switchField: x } });
+            assertSwitcherSequence(inputArr, result, [1, 2, 2, 1, 1], store);
+        });
+        it('should throw for invalid set parameters', function () {
+            var result = [];
+            // first JS aggregate
+            var outAggr1 = new qm.StreamAggr(base, new function () {
+                this.onAdd = function (rec) {
+                    result.push(1);
+                }
+            });
+            // second JS aggregate
+            var outAggr2 = new qm.StreamAggr(base, new function () {
+                this.onAdd = function (rec) {
+                    result.push(2);
+                }
+            });
+            assert.throws(function () {
+                // switcher aggregate missing fieldName
+                var switcher = store.addStreamAggr({
+                    type: 'recordSwitchAggr',
+                    store: 'testStore'
+                });
+            });
+            assert.throws(function () {
+                // switcher aggregate missing store name
+                var switcher = new qm.StreamAggr(base, {
+                    type: 'recordSwitchAggr',
+                    fieldName: 'switchField'
+                });
+            });
+        });
+
+        it('should get the params', function () {
+            var result = [];
+            // first JS aggregate
+            var outAggr1 = new qm.StreamAggr(base, new function () {
+                this.onAdd = function (rec) {
+                    result.push(1);
+                }
+            });
+            // second JS aggregate
+            var outAggr2 = new qm.StreamAggr(base, new function () {
+                this.onAdd = function (rec) {
+                    result.push(2);
+                }
+            });
+            // switcher aggregate
+            var switcher = store.addStreamAggr({
+                type: 'recordSwitchAggr',
+                store: 'testStore',
+                fieldName: 'switchField',
+                $set: [
+                   { key: 'a', aggrName: outAggr1.name }
+                ],
+                throwMissing: false
+            });
+            var params = switcher.getParams();
+            assert(!params.throwMissing);
+            assert.equal(params.store, 'testStore');
+            assert.equal(params.fieldName, 'switchField');
+            assert.equal(JSON.stringify(params.$set), JSON.stringify([{ key: 'a', aggrName: outAggr1.name }]));
+        });
+    });
+
+    describe('Missing key', function () {
+        // throwMissing: true
+        it('should throw an exception for a record with unknown key', function () {
+            var result = [];
+            // first JS aggregate
+            var outAggr1 = new qm.StreamAggr(base, new function () {
+                this.onAdd = function (rec) {
+                    result.push(1);
+                }
+            });
+            // second JS aggregate
+            var outAggr2 = new qm.StreamAggr(base, new function () {
+                this.onAdd = function (rec) {
+                    result.push(2);
+                }
+            });
+            // switcher aggregate
+            var switcher = store.addStreamAggr({
+                type: 'recordSwitchAggr',
+                store: 'testStore',
+                fieldName: 'switchField',
+                $set: [
+                    { key: 'a', aggrName: outAggr1.name },
+                    { key: 'b', aggrName: outAggr2.name },
+                ],
+                throwMissing: true
+            });
+
+            assert.throws(function () {
+                store.push({ switchField: 'c' });
+            });
+        });
+    });
+
+    describe('Other methods (trivial implementation)', function () {
+        it('should survive save/load', function () {
+            var result = [];
+            // first JS aggregate
+            var outAggr1 = new qm.StreamAggr(base, new function () {
+                this.onAdd = function (rec) {
+                    result.push(1);
+                }
+            });
+            // second JS aggregate
+            var outAggr2 = new qm.StreamAggr(base, new function () {
+                this.onAdd = function (rec) {
+                    result.push(2);
+                }
+            });
+            // switcher aggregate
+            var switcher = store.addStreamAggr({
+                type: 'recordSwitchAggr',
+                store: 'testStore',
+                fieldName: 'switchField',
+                throwMissing: false
+            });
+
+            switcher.save(qm.fs.openWrite('switcherTest.bin')).close();
+            
+            var switcher2 = store.addStreamAggr({
+                type: 'recordSwitchAggr',
+                store: 'testStore',
+                fieldName: 'switchField',
+                $set: [
+                    { key: 'a', aggrName: outAggr1.name },
+                    { key: 'b', aggrName: outAggr2.name },
+                ],
+                throwMissing: false
+            });
+            switcher2.load(qm.fs.openRead('switcherTest.bin'));
+            // c will be ignored
+            var inputArr = ['a', 'b', 'b', 'a', 'c', 'a'].map(function(x) {return { switchField: x } });
+            assertSwitcherSequence(inputArr, result, [1, 2, 2, 1, 1], store);
+        });
+    });
 
 });
