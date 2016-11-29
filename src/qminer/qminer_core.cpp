@@ -6706,33 +6706,33 @@ void TStreamAggrSet::Reset() {
     }
 }
 
-void TStreamAggrSet::OnStep() {
+void TStreamAggrSet::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
     for (TWPt<TStreamAggr>& StreamAggr : StreamAggrV) {
-        StreamAggr->OnStep();
+        StreamAggr->OnStep(this);
     }
 }
 
-void TStreamAggrSet::OnTime(const uint64& TmMsec) {
+void TStreamAggrSet::OnTime(const uint64& TmMsec, const TWPt<TStreamAggr>& CallerAggr) {
     for (TWPt<TStreamAggr>& StreamAggr : StreamAggrV) {
-        StreamAggr->OnTime(TmMsec);
+        StreamAggr->OnTime(TmMsec, this);
     }
 }
 
-void TStreamAggrSet::OnAddRec(const TRec& Rec) {
+void TStreamAggrSet::OnAddRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr) {
     for (TWPt<TStreamAggr>& StreamAggr : StreamAggrV) {
-        StreamAggr->OnAddRec(Rec);
+        StreamAggr->OnAddRec(Rec, this);
     }
 }
 
-void TStreamAggrSet::OnUpdateRec(const TRec& Rec) {
+void TStreamAggrSet::OnUpdateRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr) {
     for (TWPt<TStreamAggr>& StreamAggr : StreamAggrV) {
-        StreamAggr->OnUpdateRec(Rec);
+        StreamAggr->OnUpdateRec(Rec, this);
     }
 }
 
-void TStreamAggrSet::OnDeleteRec(const TRec& Rec) {
+void TStreamAggrSet::OnDeleteRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr) {
     for (TWPt<TStreamAggr>& StreamAggr : StreamAggrV) {
-        StreamAggr->OnDeleteRec(Rec);
+        StreamAggr->OnDeleteRec(Rec, this);
     }
 }
 
@@ -6760,15 +6760,15 @@ PStoreTrigger TStreamAggrTrigger::New(const TWPt<TStreamAggr>& StreamAggr) {
 }
 
 void TStreamAggrTrigger::OnAdd(const TRec& Rec) {
-    StreamAggr->OnAddRec(Rec);
+    StreamAggr->OnAddRec(Rec, NULL);
 }
 
 void TStreamAggrTrigger::OnUpdate(const TRec& Rec) {
-    StreamAggr->OnUpdateRec(Rec);
+    StreamAggr->OnUpdateRec(Rec, NULL);
 }
 
 void TStreamAggrTrigger::OnDelete(const TRec& Rec) {
-    StreamAggr->OnDeleteRec(Rec);
+    StreamAggr->OnDeleteRec(Rec, NULL);
 }
 
 ///////////////////////////////

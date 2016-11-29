@@ -1656,8 +1656,17 @@ public:
     JsDeclareFunction(reset);
 
     /**
+    * Executes the function that updates the aggregate. For use example see {@link module:qm.StreamAggr} constructor example.
+    * @param {module:qm.StreamAggr} [Caller] - Caller stream aggregate.
+    * @returns {module:qm.StreamAggr} Self. Values in the stream aggregator are changed as defined in the inner onTime function.
+    */
+    //# exports.StreamAggr.prototype.onStep = function () { return Object.create(require('qminer').StreamAggr.prototype); };
+    JsDeclareFunction(onStep);
+
+    /**
     * Executes the function that updates the aggregate at a given timestamp. For use example see {@link module:qm.StreamAggr} constructor example.
     * @param {TmMsec} ts - Timestamp in milliseconds.
+    * @param {module:qm.StreamAggr} [Caller] - Caller stream aggregate.
     * @returns {module:qm.StreamAggr} Self. Values in the stream aggregator are changed as defined in the inner onTime function.
     */
     //# exports.StreamAggr.prototype.onTime = function (ts) { return Object.create(require('qminer').StreamAggr.prototype); };
@@ -1666,6 +1675,7 @@ public:
     /**
     * Executes the function when a new record is put in store. For use example see {@link module:qm.StreamAggr} constructor example.
     * @param {module:qm.Record} rec - The record given to the stream aggregator.
+    * @param {module:qm.StreamAggr} [Caller] - Caller stream aggregate.
     * @returns {module:qm.StreamAggr} Self. Values in the stream aggregator are changed as defined in the inner onAdd function.
     */
     //# exports.StreamAggr.prototype.onAdd = function (rec) { return Object.create(require('qminer').StreamAggr.prototype); };
@@ -1674,6 +1684,7 @@ public:
     /**
     * Executes the function when a record in the store is updated. For use example see {@link module:qm.StreamAggr} constructor example.
     * @param {module:qmRecord} rec - The updated record given to the stream aggregator.
+    * @param {module:qm.StreamAggr} [Caller] - Caller stream aggregate.
     * @returns {module:qm.StreamAggr} Self. Values in the stream aggregator are changed as defined in the inner onUpdate function.
     */
     //# exports.StreamAggr.prototype.onUpdate = function (rec) { return Object.create(require('qminer').StreamAggr.prototype); };
@@ -1682,6 +1693,7 @@ public:
     /**
     * Executes the function when a record in the store is deleted. For use example see {@link module:qm.StreamAggr} constructor example.
     * @param {module:qm.Record} rec - The deleted record given to the stream aggregator.
+    * @param {module:qm.StreamAggr} [Caller] - Caller stream aggregate.
     * @returns {module:qm.StreamAggr} Self. The values in the stream aggregator are changed as defined in the inner onDelete function.
     */
     //# exports.StreamAggr.prototype.onDelete = function (rec) { return Object.create(require('qminer').StreamAggr.prototype); };
@@ -2461,11 +2473,11 @@ public:
     ~TNodeJsFuncStreamAggr();
 
     void Reset();
-    void OnStep();
-    void OnTime(const uint64& Time);
-    void OnAddRec(const TQm::TRec& Rec);
-    void OnUpdateRec(const TQm::TRec& Rec);
-    void OnDeleteRec(const TQm::TRec& Rec);
+    void OnStep(const TWPt<TStreamAggr>& CallerAggr);
+    void OnTime(const uint64& Time, const TWPt<TStreamAggr>& CallerAggr);
+    void OnAddRec(const TQm::TRec& Rec, const TWPt<TStreamAggr>& CallerAggr);
+    void OnUpdateRec(const TQm::TRec& Rec, const TWPt<TStreamAggr>& CallerAggr);
+    void OnDeleteRec(const TQm::TRec& Rec, const TWPt<TStreamAggr>& CallerAggr);
     PJsonVal SaveJson(const int& Limit) const;
     bool IsInit() const;
 

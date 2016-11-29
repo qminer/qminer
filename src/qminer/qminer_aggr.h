@@ -226,7 +226,7 @@ private:
 
 protected:
     /// Add new record to the buffer
-    void OnAddRec(const TRec& Rec);
+    void OnAddRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr);
 
     /// Json constructor
     TRecBuffer(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
@@ -274,11 +274,11 @@ private:
 
 protected:
     /// On new record we update value and timestamp
-    void OnAddRec(const TRec& Rec);
+    void OnAddRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr);
     /// On new timestamp we update timestamp
-    void OnTime(const uint64& TmMsec);
+    void OnTime(const uint64& TmMsec, const TWPt<TStreamAggr>& CallerAggr);
     /// No on step supported
-    void OnStep();
+    void OnStep(const TWPt<TStreamAggr>& CallerAggr);
 
     /// Json constructor
     TTimeSeriesTick(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
@@ -331,11 +331,11 @@ private:
 
 protected:
     /// On new record we update value and timestamp
-    void OnAddRec(const TRec& Rec);
+    void OnAddRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr);
     /// On new timestamp we update timestamp
-    void OnTime(const uint64& TmMsec);
+    void OnTime(const uint64& TmMsec, const TWPt<TStreamAggr>& CallerAggr);
     /// No on step supported
-    void OnStep();
+    void OnStep(const TWPt<TStreamAggr>& CallerAggr);
 
     /// Json constructor
     TTimeSeriesSparseVectorTick(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
@@ -430,11 +430,11 @@ protected:
     const TWPt<TStreamAggr>& GetInAggr() const { return InAggr; }
 
     /// Stream aggregate update function called when a record is added
-    void OnAddRec(const TRec& Rec);
+    void OnAddRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr);
     /// Stream aggregate that forgets records when time is updated
-    void OnTime(const uint64& TmMsec);
+    void OnTime(const uint64& TmMsec, const TWPt<TStreamAggr>& CallerAggr);
     /// Just a expection-throwing placeholder
-    void OnStep();
+    void OnStep(const TWPt<TStreamAggr>& CallerAggr);
 
     /// JSON based constructor
     TWinBufMem(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
@@ -603,11 +603,11 @@ private:
     TUInt64 Timestamp;
 protected:
     /// Stream aggregate update function called when a record is added
-    void OnAddRec(const TRec& Rec);
+    void OnAddRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr);
     /// Stream aggregate that forgets records when time is updated
-    void OnTime(const uint64& TmMsec);
+    void OnTime(const uint64& TmMsec, const TWPt<TStreamAggr>& CallerAggr);
     /// Just a expection-throwing placeholder
-    void OnStep() { throw TExcept::New("Should not be executed."); }
+    void OnStep(const TWPt<TStreamAggr>& CallerAggr) { throw TExcept::New("Should not be executed."); }
 
     /// JSON based constructor
     TWinBuf(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
@@ -766,7 +766,7 @@ private:
 
 protected:
     /// Update signal based on the changes from the input
-    void OnStep();
+    void OnStep(const TWPt<TStreamAggr>& CallerAggr);
     /// Json constructor
     TWinAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 
@@ -848,7 +848,7 @@ private:
 
 protected:
     /// Update strema aggregate
-    void OnStep();
+    void OnStep(const TWPt<TStreamAggr>& CallerAggr);
     /// Json constructor
     TWinAggrSpVec(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 
@@ -909,7 +909,7 @@ private:
 
 protected:
     /// Update EMA
-    void OnStep();
+    void OnStep(const TWPt<TStreamAggr>& CallerAggr);
 
     /// Json constructor
     TEma(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
@@ -960,7 +960,7 @@ private:
 
 protected:
     /// Update EMA
-    void OnStep();
+    void OnStep(const TWPt<TStreamAggr>& CallerAggr);
 
     /// Json constructor
     TEmaSpVec(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
@@ -1019,7 +1019,7 @@ private:
 
 protected:
     /// update aggregate value
-    void OnStep();
+    void OnStep(const TWPt<TStreamAggr>& CallerAggr);
 
     /// Json constructor
     TThresholdAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
@@ -1076,7 +1076,7 @@ private:
 
 protected:
     /// Update covariance
-    void OnStep();
+    void OnStep(const TWPt<TStreamAggr>& CallerAggr);
 
     /// Json constructor
     TCov(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
@@ -1139,7 +1139,7 @@ private:
 
 protected:
     /// Update current correlation values
-    void OnStep();
+    void OnStep(const TWPt<TStreamAggr>& CallerAggr);
 
     /// Initialize from json
     TCorr(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
@@ -1265,12 +1265,12 @@ private:
             const bool& CreateStoreP, const bool& ExactInterp, const TStrV& InterpV);
 
 protected:
-    void OnAddRec(const TQm::TRec& Rec);
-    void OnTime(const uint64& TmMsec);
-    void OnStep();
+    void OnAddRec(const TQm::TRec& Rec, const TWPt<TStreamAggr>& CallerAggr);
+    void OnTime(const uint64& TmMsec, const TWPt<TStreamAggr>& CallerAggr);
+    void OnStep(const TWPt<TStreamAggr>& CallerAggr);
 
 private:
-    void OnAddRec(const TQm::TRec& Rec,  const int& FieldMapIdx);
+    void _OnAddRec(const TQm::TRec& Rec, const int& FieldMapIdx);
     // adds a new record to the specified buffer
     void AddToBuff(const int& BuffIdx, const uint64 RecTm, const TFlt& Val);
     // shifts all the buffers so that the second value is greater then the current interpolation time
@@ -1280,7 +1280,7 @@ private:
     // adds the record to the output store
     void AddToStore(const TFltV& InterpValV, const uint64 InterpTm, const uint64& RecId);
     // checks if the record can be added to the output store and adds it
-    void AddRec(const TFltV& InterpValV, const uint64 InterpTm, const TQm::TRec& Rec);
+    void _AddRec(const TFltV& InterpValV, const uint64 InterpTm, const TQm::TRec& Rec);
     // checks if the conditions for interpolation are true in this iteration
     bool CanInterpolate();
     // updates the next interpolation time
@@ -1317,9 +1317,9 @@ private:
     TBool UpdatedP;
 
 protected:
-    void OnAddRec(const TRec& Rec);
-    void OnTime(const uint64& TmMsec);
-    void OnStep();
+    void OnAddRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr);
+    void OnTime(const uint64& TmMsec, const TWPt<TStreamAggr>& CallerAggr);
+    void OnStep(const TWPt<TStreamAggr>& CallerAggr);
 
 private:
     // refreshes the interpolators to the specified time
@@ -1401,7 +1401,7 @@ public:
     TStr Type() const { return GetType(); }
 
 protected:
-    void OnStep();
+    void OnStep(const TWPt<TStreamAggr>& CallerAggr);
 
 private:
     // refreshes the interpolators to the specified time
@@ -1456,9 +1456,9 @@ public:
     TStr Type() const { return GetType(); }
 protected:
     /// Sets the current time and calls loop
-    void OnTime(const uint64& TmMsec);
+    void OnTime(const uint64& TmMsec, const TWPt<TStreamAggr>& CallerAggr);
     /// Reads from input aggr, sets current time and calls loop
-    void OnStep();
+    void OnStep(const TWPt<TStreamAggr>& CallerAggr);
 private:
     /// Tries to resample as long as possible each time calling OnStep on out aggregate 
     void Loop();
@@ -1492,7 +1492,7 @@ private:
 
 protected:
     /// Process new record
-    void OnAddRec(const TRec& Rec);
+    void OnAddRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr);
 
     /// JSON constructor
     TFtrExtAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
@@ -1571,7 +1571,7 @@ private:
     TNNAnomalyAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 protected:
     /// Update NN anomaly detector
-   void OnStep();
+   void OnStep(const TWPt<TStreamAggr>& CallerAggr);
 public:
     /// JSON constructor
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
@@ -1623,7 +1623,7 @@ private:
     TSignalProc::TOnlineHistogram Model;
 protected:
     /// Update histogram
-    void OnStep();
+    void OnStep(const TWPt<TStreamAggr>& CallerAggr);
 
     /// JSON constructor
     TOnlineHistogram(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
@@ -1684,7 +1684,7 @@ private:
 
 protected:
     /// Update the model
-    void OnStep();
+    void OnStep(const TWPt<TStreamAggr>& CallerAggr);
     /// Add new data to statistics
     void Add(const TFlt& Val);
 
@@ -1743,7 +1743,7 @@ private:
 
 protected:
     /// Update aggregate
-    void OnStep();
+    void OnStep(const TWPt<TStreamAggr>& CallerAggr);
 
     /// Json constructor
     TChiSquare(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
@@ -1809,7 +1809,7 @@ private:
 
 protected:
     /// Update stream aggregate
-    void OnStep();
+    void OnStep(const TWPt<TStreamAggr>& CallerAggr);
 
     /// JSON constructor
     TOnlineSlottedHistogram(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
@@ -1866,7 +1866,7 @@ private:
 
 protected:
     /// Update current value
-    void OnStep();
+    void OnStep(const TWPt<TStreamAggr>& CallerAggr);
 
     /// Json constructor
     TVecDiff(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
@@ -1935,11 +1935,11 @@ private:
 
 protected:
     /// Calls on step
-    void OnAddRec(const TRec& Rec) { if (Filter->Filter(Rec)) { OnStep(); } }
+    void OnAddRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr) { if (Filter->Filter(Rec)) { OnStep(CallerAggr); } }
     /// Calls on step
-    void OnTime(const uint64& TmMsec) { OnStep(); }
+    void OnTime(const uint64& TmMsec, const TWPt<TStreamAggr>& CallerAggr) { OnStep(CallerAggr); }
     /// Fits the linear regression and computes the bands (if configured to do so)
-    void OnStep();
+    void OnStep(const TWPt<TStreamAggr>& CallerAggr);
 
     /// JSON based constructor.
     /// \param ParamVal Holds the store names and aggregate names and an optional key "quantiles"
@@ -1980,11 +1980,11 @@ private:
 
 protected:
     /// Passes the record to Aggr
-    void OnAddRec(const TRec& Rec);
+    void OnAddRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr);
     /// Passes the call to Aggr
-    void OnTime(const uint64& TmMsec) { Aggr->OnTime(TmMsec); }
+    void OnTime(const uint64& TmMsec, const TWPt<TStreamAggr>& CallerAggr) { Aggr->OnTime(TmMsec, this); }
     /// Passes the call to Aggr
-    void OnStep() { Aggr->OnStep(); }
+    void OnStep(const TWPt<TStreamAggr>& CallerAggr) { Aggr->OnStep(this); }
 
     /// JSON based constructor.
     TRecFilterAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
@@ -2027,11 +2027,11 @@ private:
     TBool ThrowMissingP;
 protected:
     /// Passes the record to Aggr
-    void OnAddRec(const TRec& Rec);
+    void OnAddRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr);
     /// Passes the call to Aggr
-    void OnTime(const uint64& TmMsec) { throw TQmExcept::New("TRecSwitchAggr: OnTime not supported!"); }
+    void OnTime(const uint64& TmMsec, const TWPt<TStreamAggr>& CallerAggr) { throw TQmExcept::New("TRecSwitchAggr: OnTime not supported!"); }
     /// Passes the call to Aggr
-    void OnStep() { throw TQmExcept::New("TRecSwitchAggr: OnStep not supported!"); }
+    void OnStep(const TWPt<TStreamAggr>& CallerAggr) { throw TQmExcept::New("TRecSwitchAggr: OnStep not supported!"); }
 
     /// JSON based constructor.
     TRecSwitchAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
@@ -2101,7 +2101,7 @@ private:
 
 protected:
     /// Predicts the current severity and updates the histogram anomaly model
-    void OnStep();
+    void OnStep(const TWPt<TStreamAggr>& CallerAggr);
     /// JSON based constructor.
     THistogramAD(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:
