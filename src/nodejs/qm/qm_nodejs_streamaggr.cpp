@@ -484,7 +484,7 @@ void TNodeJsStreamAggr::getSparseVectorLength(const v8::FunctionCallbackInfo<v8:
     // try to cast as IFltVec
     TWPt<TQm::TStreamAggrOut::ISparseVVec> Aggr = dynamic_cast<TQm::TStreamAggrOut::ISparseVVec*>(JsSA->SA());
     if (Aggr.Empty()) {
-        throw TQm::TQmExcept::New("TNodeJsStreamAggr::getFltLen : stream aggregate does not implement IFltVec: " + JsSA->SA->GetAggrNm());
+        throw TQm::TQmExcept::New("TNodeJsStreamAggr::getSparseVectorLength : stream aggregate does not implement IFltVec: " + JsSA->SA->GetAggrNm());
     }
 
     Args.GetReturnValue().Set(v8::Number::New(Isolate, Aggr->GetVals()));
@@ -501,9 +501,9 @@ void TNodeJsStreamAggr::getSparseVectorAt(const v8::FunctionCallbackInfo<v8::Val
     int ElN = TNodeJsUtil::GetArgInt32(Args, 0);
     TWPt<TQm::TStreamAggrOut::ISparseVVec> Aggr = dynamic_cast<TQm::TStreamAggrOut::ISparseVVec*>(JsSA->SA());
     if (Aggr.Empty()) {
-        throw TQm::TQmExcept::New("TNodeJsStreamAggr::getTmAt : stream aggregate does not implement ITmVec: " + JsSA->SA->GetAggrNm());
+        throw TQm::TQmExcept::New("TNodeJsStreamAggr::getSparseVectorAt : stream aggregate does not implement ITmVec: " + JsSA->SA->GetAggrNm());
     }
-    QmAssertR(JsSA->SA->IsInit(), "TNodeJsStreamAggr::getTmAt : stream aggregate '" + JsSA->SA->GetAggrNm() + "' is not initialized!");
+    QmAssertR(JsSA->SA->IsInit(), "TNodeJsStreamAggr::getSparseVectorAt : stream aggregate '" + JsSA->SA->GetAggrNm() + "' is not initialized!");
     TNodeJsSpVec* JsSpVec = new TNodeJsSpVec();
     Aggr->GetVal(ElN, JsSpVec->Vec);
     Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsSpVec>(JsSpVec));
@@ -518,7 +518,7 @@ void TNodeJsStreamAggr::getSparseVectorVector(const v8::FunctionCallbackInfo<v8:
     // try to cast as ITmVec
     TWPt<TQm::TStreamAggrOut::ISparseVVec> Aggr = dynamic_cast<TQm::TStreamAggrOut::ISparseVVec*>(JsSA->SA());
     if (Aggr.Empty()) {
-        throw TQm::TQmExcept::New("TNodeJsStreamAggr::getTmV : stream aggregate does not implement ITmVec: " + JsSA->SA->GetAggrNm());
+        throw TQm::TQmExcept::New("TNodeJsStreamAggr::getSparseVectorVector : stream aggregate does not implement ITmVec: " + JsSA->SA->GetAggrNm());
     }
     TVec<TIntFltKdV> Res;
     Aggr->GetValV(Res);
