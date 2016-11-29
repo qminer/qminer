@@ -628,9 +628,97 @@ PJsonVal TTimeSeriesTick::SaveJson(const int& Limit) const {
 }
 
 ///////////////////////////////
+// Time series tick that works on sparse vectors.
+void TTimeSeriesSparseVectorTick::OnAddRec(const TRec& Rec) {
+    TickVal.Clr();
+    ValReader.GetNumSpV(Rec, TickVal);
+    TmMSecs = Rec.GetFieldTmMSecs(TimeFieldId);
+    InitP = true;
+}
+
+void TTimeSeriesSparseVectorTick::OnTime(const uint64& Time) {
+    TmMSecs = Time;
+}
+
+void TTimeSeriesSparseVectorTick::OnStep() {
+    throw TExcept::New("[TTimeSeriesSparseVectorTick] OnStep should have not been executed.");
+}
+
+TTimeSeriesSparseVectorTick::TTimeSeriesSparseVectorTick(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
+        TStreamAggr(Base, ParamVal) {
+
+    // get input store
+    TStr StoreNm = ParamVal->GetObjStr("store");
+    TWPt<TStore> Store = Base->GetStoreByStoreNm(StoreNm);
+    // get time field
+    TStr TimeFieldNm = ParamVal->GetObjStr("timestamp");
+    TimeFieldId = Store->GetFieldId(TimeFieldNm);
+    // get numeric field
+    TStr TickValFieldNm = ParamVal->GetObjStr("value");
+    const int TickValFieldId = Store->GetFieldId(TickValFieldNm);
+    // initialize reader for getting numeric value
+    ValReader = TFieldReader(Store->GetStoreId(), TickValFieldId, Store->GetFieldDesc(TickValFieldId));
+    // make sure parameters make sense
+    QmAssertR(Store->GetFieldDesc(TimeFieldId).IsTm(), "[Window buffer] field " + TimeFieldNm + " not of type 'datetime'");
+    QmAssertR(ValReader.IsNumSpV(), "[Window buffer] field " + TickValFieldNm + " cannot be casted to numeric sparse vector!");
+}
+
+PStreamAggr TTimeSeriesSparseVectorTick::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+    return new TTimeSeriesSparseVectorTick(Base, ParamVal);
+}
+
+void TTimeSeriesSparseVectorTick::LoadState(TSIn& SIn) {
+    InitP.Load(SIn);
+    TickVal.Load(SIn);
+    TmMSecs.Load(SIn);
+}
+
+int TTimeSeriesSparseVectorTick::GetSparseVecLen() const {
+    return TickVal.Len();
+}
+
+TIntFltKd TTimeSeriesSparseVectorTick::GetSparseVecVal(const int& ElN) const {
+    EAssert(0 <= ElN && ElN < TickVal.Len());
+    return TickVal[ElN];
+}
+
+void TTimeSeriesSparseVectorTick::GetSparseVec(TIntFltKdV& SpV) const {
+    SpV = TickVal;
+}
+
+void TTimeSeriesSparseVectorTick::SaveState(TSOut& SOut) const {
+    InitP.Save(SOut);
+    TickVal.Save(SOut);
+    TmMSecs.Save(SOut);
+}
+
+void TTimeSeriesSparseVectorTick::Reset() {
+    InitP = false;
+    TickVal.Clr();
+    TmMSecs = 0;
+}
+
+PJsonVal TTimeSeriesSparseVectorTick::SaveJson(const int& Limit) const {
+    PJsonVal Res = TJsonVal::NewObj();
+    PJsonVal Val = TJsonVal::NewObj();
+    for (int EntryN = 0; EntryN < TickVal.Len(); EntryN++) {
+        Val->AddToObj(TInt::GetStr(TickVal[EntryN].Key), TickVal[EntryN].Dat);
+    }
+    Res->AddToObj("Val", Val);
+    Res->AddToObj("Time", TTm::GetTmFromMSecs(TmMSecs).GetWebLogDateTimeStr(true, "T"));
+    return Res;
+}
+
+///////////////////////////////
 // Numberic circular buffer
 TWinBufFltV::TWinBufFltV(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TWinBufMem<TFlt>(Base, ParamVal) {
     InAggrVal = Cast<TStreamAggrOut::IFlt>(GetInAggr());
+}
+
+TIntFltKdV TWinBufSpV::GetVal() const {
+    TIntFltKdV Res;
+    InAggrVal->GetSparseVec(Res);
+    return Res;
 }
 
 PStreamAggr TWinBufFltV::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
@@ -641,6 +729,34 @@ PStreamAggr TWinBufFltV::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) 
 PJsonVal TWinBufFltV::SaveJson(const int& Limit) const {
     TFltV FltV; GetValV(FltV);
     return TJsonVal::NewArr(FltV);
+}
+
+///////////////////////////////
+// Sparse vector circular buffer
+TWinBufSpV::TWinBufSpV(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
+        TWinBufMem<TIntFltKdV>(Base, ParamVal) {
+    InAggrVal = Cast<TStreamAggrOut::ISparseVec>(GetInAggr());
+}
+
+PStreamAggr TWinBufSpV::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+    return new TWinBufSpV(Base, ParamVal);
+}
+
+// serialization to JSon
+PJsonVal TWinBufSpV::SaveJson(const int& Limit) const {
+    TVec<TIntFltKdV> ValV;
+    GetValV(ValV);
+    PJsonVal ResJson = TJsonVal::NewArr();
+    for (int ValN = 0; ValN < ValV.Len(); ValN++) {
+        const TIntFltKdV& Val = ValV[ValN];
+        PJsonVal ValJson = TJsonVal::New();
+        for (int EntryN = 0; EntryN < Val.Len(); EntryN++) {
+            const TIntFltKd& Entry = Val[EntryN];
+            ValJson->AddToObj(TInt::GetStr(Entry.Key), Entry.Dat);
+        }
+        ResJson->AddToArr(ValJson);
+    }
+    return ResJson;
 }
 
 ///////////////////////////////

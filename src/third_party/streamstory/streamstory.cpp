@@ -25,7 +25,7 @@ TFtrInfo::TFtrInfo(const TFtrType& _Type, const int& _Offset, const int& _Length
 TFtrInfo::TFtrInfo(TSIn& SIn):
 		Type(static_cast<TFtrType>(int(TInt(SIn)))),
 		Offset(TInt(SIn)),
-		Length(TInt(SIn)) {}
+        Length(TInt(SIn)) {}
 
 void TFtrInfo::Save(TSOut& SOut) const {
 	TInt(Type).Save(SOut);
@@ -50,6 +50,8 @@ TStr TFtrInfo::GetTypeStr() const {
 		return "numeric";
 	case ftCategorical:
 		return "categorical";
+	case ftTime:
+	    return "time";
 	default:
 		throw TExcept::New("Unknown feature type: " + TInt::GetStr((int) GetType()));
 	}
@@ -832,6 +834,9 @@ void TStateIdentifier::InitHistVV(const TFtrInfoV& FtrInfoV, const int& NInst,
 			}
 			break;
 		}
+		case ftTime: {
+		    throw TExcept::New("Histograms not supported for time features!");
+		}
 		default: {
 			throw TExcept::New("Unknown feature type when initializing histograms: " + TInt::GetStr(FtrInfo.GetType()));
 		}
@@ -965,6 +970,9 @@ void TStateIdentifier::UpdateHistVV(const TFtrInfoV& FtrInfoV, const TFltVV& Ftr
 				const int FtrVal = FtrInfo.GetCategoricalFtrVal(FtrV);
 				FtrHistV[FtrN].Update((double) FtrVal);
 				break;
+			}
+			case ftTime: {
+			    throw TExcept::New("Cannot initialize histogram of time feature!");
 			}
 			default: {
 				throw TExcept::New("Unknown feature type when initializing histograms: " + TInt::GetStr(FtrInfo.GetType()));
@@ -2722,11 +2730,6 @@ void TScaleHelper::CalcNaturalScales(const TScaleDescV& ScaleQMatPrV,
 		FtrVV.SetCol(HeightN, FtrV);
 	}
 
-	//================================================================
-	// TODO remove
-	printf("\n%s\n", TStrUtil::GetStr(FtrVV, ", ", "%.5f").CStr());
-	//================================================================
-
 	Assert(!TLinAlgCheck::ContainsNan(FtrVV));
 
 	TClustering::TDenseKMeans KMeans(NScales, Rnd, TCosDist::New());
@@ -2736,11 +2739,6 @@ void TScaleHelper::CalcNaturalScales(const TScaleDescV& ScaleQMatPrV,
 	printf("\n%s\n", TStrUtil::GetStr(ClustDistVV, ", ", "%.4f").CStr());
 
 	TIntV MedoidIdV;	TLinAlgSearch::GetRowMinIdxV(ClustDistVV, MedoidIdV);
-
-	//================================================================
-    // TODO remove
-	printf("\n%s\n", TStrUtil::GetStr(MedoidIdV).CStr());
-	//================================================================
 
 	ScaleV.Gen(NScales);
 	for (int MedoidN = 0; MedoidN < NScales; MedoidN++) {
@@ -3189,21 +3187,207 @@ void THierarch::GetHistStateIdV(const double& Height, TStateIdV& StateIdV) const
 	}
 }
 
-void THierarch::GetStateHistory(const double& Scale, TUInt64IntPrV& StateTmStateIdPrV) const {
-    StateTmStateIdPrV = HierarchHistoryVV[GetUiScaleN(Scale)];
+void THierarch::GetStateHistory(const double& RelOffset, const double& RelRange, const int& MxStates,
+        const double& Scale, uint64& GlobalMnDur,
+        TStateHist& TmDurStateIdPercHTrV) const {
+    // first get the time range
+    EAssertR(!HierarchHistoryVV.Empty(), "No scales in history vector!!");
+    const TUInt64IntPrV& LowestScaleHistV = HierarchHistoryVV[0];
+
+    // set the minimum and maximum times
+    EAssertR(LowestScaleHistV.Len() > 1, "Need at least 2 elements on the lowest scale!");
+    const uint64& MnTm = LowestScaleHistV[0].Val1;
+    const uint64& MxTm = LowestScaleHistV.Last().Val1;
+    const uint64 TmRange = MxTm - MnTm;
+
+    Notify->OnNotifyFmt(ntInfo, "Calculating history for scale: %.4f", Scale);
+
+    const uint64 IntervalStartTm = (uint64) (LowestScaleHistV[0].Val1 + TmRange*RelOffset);
+    const uint64 IntervalEndTm = (uint64) (IntervalStartTm + TmRange*RelRange);
+
+    Notify->OnNotifyFmt(ntInfo, "Start time: %ld, end time: %ld", IntervalStartTm, IntervalEndTm);
+
+    const TUInt64IntPrV& ScaleHistV = HierarchHistoryVV[GetUiScaleN(Scale)];
+    TUInt64UInt64IntTrV StateTmDurIdTrV(ScaleHistV.Len()-1, 0);
+    for (int TmN = 0; TmN < ScaleHistV.Len(); TmN++) {
+        const TUInt64IntPr& StateTmStateIdPr = ScaleHistV[TmN];
+
+        if (TmN < ScaleHistV.Len()-1) {
+            const TUInt64IntPr& NextStateTmStateIdPr = ScaleHistV[TmN+1];
+
+            uint64 StateStartTm = StateTmStateIdPr.Val1;
+            uint64 StateEndTm = NextStateTmStateIdPr.Val1;
+
+            const int& StateId = StateTmStateIdPr.Val2;
+
+            if (StateEndTm < IntervalStartTm) { continue; }
+            if (StateStartTm > IntervalEndTm) { break; }
+
+            if (StateStartTm < IntervalStartTm) { StateStartTm = IntervalStartTm; }
+            if (StateEndTm > IntervalEndTm) { StateEndTm = IntervalEndTm; }
+
+            const uint64 StateDur = StateEndTm - StateStartTm;
+
+            StateTmDurIdTrV.Add(TUInt64UInt64IntTr(StateStartTm, StateDur, StateId));
+        } else {
+            // this is the last state and we are still in the loop
+            const uint64& StateStartTm = StateTmStateIdPr.Val1;
+
+            if (StateStartTm > IntervalEndTm) { break; }
+
+            const int& StateId = StateTmStateIdPr.Val2;
+            const uint64 StateDur = IntervalEndTm - StateStartTm;
+
+            StateTmDurIdTrV.Add(TUInt64UInt64IntTr(StateStartTm, StateDur, StateId));
+        }
+    }
+
+    if (StateTmDurIdTrV.Len() > MxStates) {
+        Notify->OnNotifyFmt(ntInfo, "Resampling %d values ...", StateTmDurIdTrV.Len());
+
+        // find the MAX_HISTORY_SAMPLES-th largest duration
+        THeap<TUInt64, TGtr<TUInt64>> DurHeap(MxStates);
+
+        for (int TmN = 0; TmN < MxStates; TmN++) {
+            const uint64& StateDur = StateTmDurIdTrV[TmN].Val2;
+            DurHeap.PushHeap(StateDur);
+        }
+        for (int TmN = MxStates; TmN < StateTmDurIdTrV.Len(); TmN++) {
+            const uint64& StateDur = StateTmDurIdTrV[TmN].Val2;
+            const uint64& CurMnDur = DurHeap.TopHeap();
+            if (StateDur > CurMnDur) {
+                DurHeap.PushHeap(StateDur);
+                DurHeap.PopHeap();
+            }
+        }
+
+        const uint64& MnDur = DurHeap.TopHeap();
+
+        if (MnDur < GlobalMnDur) {
+            GlobalMnDur = MnDur;
+        }
+
+        Notify->OnNotifyFmt(ntInfo, "Skipping durations below %s ...", TStrUtil::GetHMSStrFromMSecs(GlobalMnDur).CStr());
+
+        TmDurStateIdPercHTrV.Gen(MxStates, 0);
+        for (int TmN = 0; TmN < StateTmDurIdTrV.Len(); TmN++) {
+            const TUInt64UInt64IntTr& TmDurIdTr = StateTmDurIdTrV[TmN];
+            const uint64& Dur = TmDurIdTr.Val2;
+
+            if (TmN == 0) {
+                TmDurStateIdPercHTrV.Add();
+                TTriple<TUInt64,TUInt64,TIntFltH>& TmDurStateDistHTr = TmDurStateIdPercHTrV.Last();
+
+                TmDurStateDistHTr.Val1 = TmDurIdTr.Val1;
+                TmDurStateDistHTr.Val2 = TmDurIdTr.Val2;
+                TmDurStateDistHTr.Val3.AddDat(TmDurIdTr.Val3, 1);
+            }
+            else {
+                if (Dur < GlobalMnDur) {
+                    // add the duration of the current state to the last state
+                    // that will be output
+                    TTriple<TUInt64,TUInt64,TIntFltH>& PrevTmDurStateDistHTr = TmDurStateIdPercHTrV.Last();
+                    const uint64 PrevDur = PrevTmDurStateDistHTr.Val2;
+
+                    const double PrevPerc = double(PrevDur) / (PrevDur + Dur);
+                    const double CurrPerc = 1 - PrevPerc;
+
+                    // redistribute the states in this block
+                    TIntFltH& PrevStateDistH = PrevTmDurStateDistHTr.Val3;
+                    int KeyId = PrevStateDistH.FFirstKeyId();
+                    while (PrevStateDistH.FNextKeyId(KeyId)) {
+                        PrevStateDistH[KeyId] *= PrevPerc;
+                    }
+
+                    if (PrevStateDistH.IsKey(TmDurIdTr.Val3)) {
+                        PrevStateDistH.GetDat(TmDurIdTr.Val3) += CurrPerc;
+                    } else {
+                        PrevStateDistH.AddDat(TmDurIdTr.Val3, CurrPerc);
+                    }
+
+                    // increase the total duration of the block
+                    PrevTmDurStateDistHTr.Val2 += Dur;
+                }
+                else {
+                    TmDurStateIdPercHTrV.Add();
+                    TTriple<TUInt64,TUInt64,TIntFltH>& TmDurStateDistHTr = TmDurStateIdPercHTrV.Last();
+
+                    TmDurStateDistHTr.Val1 = TmDurIdTr.Val1;
+                    TmDurStateDistHTr.Val2 = TmDurIdTr.Val2;
+                    TmDurStateDistHTr.Val3.AddDat(TmDurIdTr.Val3, 1);
+                }
+            }
+
+            // if two consecutive states are duplicate => merge them
+            const int CurrN = TmDurStateIdPercHTrV.Len();
+            if (CurrN >= 2 &&
+                    HaveSameKeys(TmDurStateIdPercHTrV.Last().Val3, TmDurStateIdPercHTrV[CurrN-2].Val3) &&
+                    GetStateProbDiff(TmDurStateIdPercHTrV.Last().Val3, TmDurStateIdPercHTrV[CurrN-2].Val3) < .07) {
+                TIntFltH& Dist1 = TmDurStateIdPercHTrV[CurrN-2].Val3;
+                const TIntFltH Dist2 = TmDurStateIdPercHTrV.Last().Val3;
+
+                const double Perc1 = double(TmDurStateIdPercHTrV[CurrN-2].Val2) / (TmDurStateIdPercHTrV[CurrN-2].Val2 + TmDurStateIdPercHTrV.Last().Val2);
+                const double Perc2 = 1 - Perc1;
+
+                int KeyId = Dist1.FFirstKeyId();
+                while (Dist1.FNextKeyId(KeyId)) {
+                    const int& StateId = Dist1.GetKey(KeyId);
+
+                    Dist1.GetDat(StateId) = Perc1*Dist1.GetDat(StateId) + Perc2*Dist2.GetDat(StateId);
+                }
+
+                TmDurStateIdPercHTrV[CurrN-2].Val2 += TmDurStateIdPercHTrV.Last().Val2;
+                TmDurStateIdPercHTrV.DelLast();
+            }
+        }
+
+        Notify->OnNotifyFmt(ntInfo, "%d historical states returned ...", TmDurStateIdPercHTrV.Len());
+    } else {
+        TmDurStateIdPercHTrV.Gen(StateTmDurIdTrV.Len());
+        for (int TmN = 0; TmN < StateTmDurIdTrV.Len(); TmN++) {
+            const TUInt64UInt64IntTr& InTmDurIdTr = StateTmDurIdTrV[TmN];
+            TTriple<TUInt64,TUInt64,TIntFltH>& TmDurStatePercHTr = TmDurStateIdPercHTrV[TmN];
+
+            TmDurStatePercHTr.Val1 = InTmDurIdTr.Val1;
+            TmDurStatePercHTr.Val2 = InTmDurIdTr.Val2;
+            TmDurStatePercHTr.Val3.AddDat(InTmDurIdTr.Val3, 1);
+        }
+    }
 }
 
-void THierarch::GetStateHistory(TVec<TPair<TFlt, TUInt64IntPrV>>& ScaleTmIdPrPrV) const {
+void THierarch::GetStateHistory(const double& RelOffset, const double& RelRange,
+        const int& MxStates,
+        TScaleStateHistV& ScaleTmDurIdDistPrTrV,
+        uint64& MnTm, uint64& MxTm) const {
     const TFltV& ScaleV = GetUiHeightV();
 
-    ScaleTmIdPrPrV.Gen(ScaleV.Len());
+    Notify->OnNotifyFmt(ntInfo, "Fetching history for %d all scales ...", ScaleV.Len());
 
+    ScaleTmDurIdDistPrTrV.Gen(ScaleV.Len());
+
+    // set the minimum and maximum times
+    const TUInt64IntPrV& LowestScaleHistV = HierarchHistoryVV[0];
+    EAssertR(LowestScaleHistV.Len() > 1, "Need at least 2 elements on the lowest scale!");
+    MnTm = LowestScaleHistV[0].Val1;
+    MxTm = LowestScaleHistV.Last().Val1;
+
+    // get the the history blocks
+    uint64 MnDur = TUInt64::Mx;
     for (int ScaleN = 0; ScaleN < ScaleV.Len(); ScaleN++) {
         const double& Scale = ScaleV[ScaleN];
 
-        ScaleTmIdPrPrV[ScaleN].Val1 = Scale;
-        GetStateHistory(Scale, ScaleTmIdPrPrV[ScaleN].Val2);
+        ScaleTmDurIdDistPrTrV[ScaleN].Val1 = Scale;
+        GetStateHistory(
+            RelOffset,
+            RelRange,
+            MxStates,
+            Scale,
+            MnDur,
+            ScaleTmDurIdDistPrTrV[ScaleN].Val2
+        );
     }
+
+    Notify->OnNotify(ntInfo, "Done!");
 }
 
 void THierarch::GetLeafSuccesorCountV(TIntV& LeafCountV) const {
@@ -3432,16 +3616,6 @@ int THierarch::GetParentId(const int& StateId) const {
 int THierarch::GetHeightN(const double& Height) const {
     const TFltV& HeightV = GetUniqueHeightV();
     return FindScaleNBin(Height, HeightV);
-
-//	// TODO optimize:
-//	// 1) use binary search to find the nearest height
-//
-//	for (int i = 0; i < HeightV.Len() - 1; i++) {
-//		if (HeightV[i] <= Height && HeightV[i+1] > Height) {
-//			return i;
-//		}
-//	}
-//	return HeightV.Len() - 1;
 }
 
 int THierarch::GetUiScaleN(const double& Scale) const {
@@ -3662,6 +3836,9 @@ TUiHelper::PAutoNmDesc TUiHelper::TAutoNmDesc::Load(TSIn& SIn) {
 	case ftCategorical: {
 		return new TCatAutoNmDesc(SIn);
 	}
+	case ftTime: {
+	    return new TAutoNmTmDesc(SIn);
+	}
 	default:
 		throw TExcept::New("Unknown feature type: " + TInt::GetStr((int) Type));
 	}
@@ -3789,6 +3966,44 @@ PJsonVal TUiHelper::TCatAutoNmDesc::GetNarrateJson() const {
 	return Result;
 }
 
+TUiHelper::TAutoNmTmDesc::TAutoNmTmDesc(const TTmDesc& TmDesc):
+        TAutoNmDesc(-1, 0), // TODO hacked by setting p-val to zero!!!
+        FromToStrPr() {
+    GetFromToStrPr(TmDesc, FromToStrPr, dtShort);
+}
+
+TUiHelper::TAutoNmTmDesc::TAutoNmTmDesc(TSIn& SIn):
+        TAutoNmDesc(SIn),
+        FromToStrPr(SIn) {}
+
+void TUiHelper::TAutoNmTmDesc::Save(TSOut& SOut) const {
+    TAutoNmDesc::Save(SOut);
+    FromToStrPr.Save(SOut);
+}
+
+PJsonVal TUiHelper::TAutoNmTmDesc::GetJson() const {
+    PJsonVal Result = TJsonVal::NewObj();
+
+    Result->AddToObj("type", "time");
+
+    if (FromToStrPr.Val1 != FromToStrPr.Val2) {
+        Result->AddToObj("from", FromToStrPr.Val1);
+        Result->AddToObj("to", FromToStrPr.Val2);
+    } else {
+        Result->AddToObj("on", FromToStrPr.Val1);
+    }
+
+    return Result;
+}
+
+PJsonVal TUiHelper::TAutoNmTmDesc::GetNarrateJson() const {
+    PJsonVal Result = TJsonVal::NewObj();
+
+    Result->AddToObj("type", "time");
+
+    return Result;
+}
+
 /////////////////////////////////////////////////////////////////
 // UI helper
 const double TUiHelper::RADIUS_FACTOR = 1.8;
@@ -3813,6 +4028,21 @@ const TStr TUiHelper::MONTHS[] = {
 		"October",
 		"November",
 		"December"
+};
+
+const TStr TUiHelper::MONTHS_SHORT[] = {
+		"Jan",
+		"Feb",
+		"Mar",
+		"Apr",
+		"May",
+		"Jun",
+		"Jul",
+		"Aug",
+		"Sep",
+		"Oct",
+		"Nov",
+		"Dec"
 };
 
 const TStr TUiHelper::DAYS_IN_MONTH[] = {
@@ -3886,6 +4116,16 @@ const TStr TUiHelper::DAYS_IN_WEEK[] = {
 		"Sunday"
 };
 
+const TStr TUiHelper::DAYS_IN_WEEK_SHORT[] = {
+		"Mon",
+		"Tue",
+		"Wed",
+		"Thu",
+		"Fri",
+		"Sat",
+		"Sun"
+};
+
 TUiHelper::TUiHelper(const TRnd& _Rnd, const bool& _Verbose):
 		StateCoordV(),
 		StateAutoNmV(),
@@ -3920,6 +4160,7 @@ void TUiHelper::Init(const TStreamStory& StreamStory) {
 	RefineStateCoordV(StreamStory);
 	InitAutoNmV(StreamStory);
 	InitStateExplain(StreamStory);
+	RefineAutoNmV();
 }
 
 const TFltPr& TUiHelper::GetStateCoords(const int& StateId) const {
@@ -3951,6 +4192,11 @@ const TUiHelper::PAutoNmDesc& TUiHelper::GetStateAutoNm(const int& StateId) cons
 	return StateAutoNmV[StateId];
 }
 
+void TUiHelper::SetStateAutoNm(const int& StateId, const TUiHelper::PAutoNmDesc& Desc) {
+	EAssertR(0 <= StateId && StateId < StateAutoNmV.Len(), "THierarch::GetStateAutoNm: Invalid state ID!");
+	StateAutoNmV[StateId] = Desc;
+}
+
 void TUiHelper::GetAutoNmPValDesc(const int& StateId, PAutoNmDescV& DescV) const {
 	EAssert(0 <= StateId && StateId < StateIdAutoNmDescVV.Len());
 	if (!DescV.Empty()) { DescV.Clr(); }
@@ -3960,17 +4206,25 @@ void TUiHelper::GetAutoNmPValDesc(const int& StateId, PAutoNmDescV& DescV) const
 	for (int DescN = 0; DescN < AutoNmDescV.Len(); DescN++) {
 		const PAutoNmDesc& Desc = AutoNmDescV[DescN];
 
-		if (Desc->GetFtrType() == ftNumeric) {
+		switch (Desc->GetFtrType()) {
+		case ftNumeric: {
 			const TNumAutoNmDesc* NumDesc = (TNumAutoNmDesc*) Desc();
 			if (NumDesc->GetLevel() == TNumAutoNmLevel::nanlMeduim) { continue; }
 
 			DescV.Add(Desc);
+			break;
 		}
-		else if (Desc->GetFtrType() == ftCategorical) {
+		case ftCategorical: {
 			DescV.Add(Desc);
+			break;
 		}
-		else {
+		case ftTime: {
+		    DescV.Add(Desc);
+		    break;
+		}
+		default: {
 			throw TExcept::New("Unknown feature type: " + TInt::GetStr((int) Desc->GetFtrType()));
+		}
 		}
 	}
 }
@@ -3983,7 +4237,7 @@ void TUiHelper::GetTmDesc(const int& StateId, TStrPrV& DescIntervalV) const {
 	for (int DescN = 0; DescN < TmDescV.Len(); DescN++) {
 		const TTmDesc& Desc = TmDescV[DescN];
 
-		GetTimeDescStr(Desc, DescIntervalV[DescN]);
+		GetFromToStrPr(Desc, DescIntervalV[DescN], dtNormal);
 	}
 }
 
@@ -4306,6 +4560,9 @@ void TUiHelper::InitAutoNmV(const TStreamStory& StreamStory) {
 				StateAutoNmDescV.Add(new TCatAutoNmDesc(FtrN, PVal, TargetBinN));
 				break;
 			}
+			case ftTime: {
+			    throw TExcept::New("Time features not supported while generating auto names");
+			}
 			default:
 				throw TExcept::New("Unknown feature type: " + TInt::GetStr(FtrInfo.GetType()));
 			}
@@ -4322,6 +4579,44 @@ void TUiHelper::InitAutoNmV(const TStreamStory& StreamStory) {
 	}
 
 	Notify->OnNotify(TNotifyType::ntInfo, "Auto names generated!");
+}
+
+void TUiHelper::RefineAutoNmV() {
+    const int States = StateAutoNmV.Len();
+
+    for (int StateId = 0; StateId < States; StateId++) {
+        const PAutoNmDesc& AutoNmDesc = GetStateAutoNm(StateId);
+
+        const TFtrType& FtrType = AutoNmDesc->GetFtrType();
+        switch (FtrType) {
+        case ftNumeric: {
+            const TNumAutoNmDesc* NumAutoNmDesc = (TNumAutoNmDesc*) AutoNmDesc();
+            const TNumAutoNmLevel& Level = NumAutoNmDesc->GetLevel();
+
+            if (Level == nanlMeduim) {
+                // try to name the state based on the time
+                TTmDescV StateTmDescV;   GetTmDesc(StateId, StateTmDescV);
+
+                if (!StateTmDescV.Empty()) {
+                    const PAutoNmDesc NewAutoNmDesc = new TAutoNmTmDesc(StateTmDescV[0]);
+                    SetStateAutoNm(StateId, NewAutoNmDesc);
+                }
+            }
+            break;
+        }
+        case ftCategorical: {
+            // TODO do nothing for now
+            break;
+        }
+        case ftTime: {
+            throw TExcept::New("Tried to refine a time feature, these should not exist yet!");
+        }
+        default: {
+            throw TExcept::New("Unknown feature type: " + TInt::GetStr(FtrType));
+        }
+        }
+    }
+
 }
 
 void TUiHelper::InitStateExplain(const TStreamStory& StreamStory) {
@@ -4451,7 +4746,7 @@ void TUiHelper::GetTmDesc(const int& StateId, TTmDescV& DescV) const {
 	DescV = StateIdOccTmDescV[StateId];
 }
 
-void TUiHelper::GetTimeDescStr(const TTmDesc& Desc, TStrPr& StrDesc) {
+void TUiHelper::GetFromToStrPr(const TTmDesc& Desc, TStrPr& StrDesc, const TDescType& DescType) {
 	const TStateIdentifier::TTmHistType HistTmScale = (TStateIdentifier::TTmHistType) ((uchar) Desc.Val1);
 
 	switch (HistTmScale) {
@@ -4462,8 +4757,18 @@ void TUiHelper::GetTimeDescStr(const TTmDesc& Desc, TStrPr& StrDesc) {
 		EAssert(0 <= StartMonth && StartMonth < 12);
 		EAssert(0 <= EndMonth && EndMonth < 12);
 
-		StrDesc.Val1 = MONTHS[StartMonth];
-		StrDesc.Val2 = MONTHS[EndMonth];
+		switch (DescType) {
+		case dtNormal: {
+            StrDesc.Val1 = MONTHS[StartMonth];
+            StrDesc.Val2 = MONTHS[EndMonth];
+            break;
+		}
+		case dtShort: {
+            StrDesc.Val1 = MONTHS_SHORT[StartMonth];
+            StrDesc.Val2 = MONTHS_SHORT[EndMonth];
+            break;
+		}
+		}
 
 		break;
 	}
@@ -4486,8 +4791,18 @@ void TUiHelper::GetTimeDescStr(const TTmDesc& Desc, TStrPr& StrDesc) {
 		EAssert(0 <= StartDay && StartDay < 7);
 		EAssert(0 <= EndDay && EndDay < 7);
 
-		StrDesc.Val1 = DAYS_IN_WEEK[StartDay];
-		StrDesc.Val2 = DAYS_IN_WEEK[EndDay];
+		switch (DescType) {
+		case dtNormal: {
+            StrDesc.Val1 = DAYS_IN_WEEK[StartDay];
+            StrDesc.Val2 = DAYS_IN_WEEK[EndDay];
+            break;
+		}
+		case dtShort: {
+            StrDesc.Val1 = DAYS_IN_WEEK_SHORT[StartDay];
+            StrDesc.Val2 = DAYS_IN_WEEK_SHORT[EndDay];
+            break;
+		}
+		}
 
 		break;
 	}
@@ -4643,7 +4958,7 @@ void TStateAssist::Init(const TUInt64V& RecTmV, const TFltVV& ObsFtrVV, const TF
 			{
 				Notify->OnNotifyFmt(TNotifyType::ntInfo, "Finished task %d out of %d ...", ++NFinished, TotalTasks);
 				if (Callback != nullptr) {
-					Callback->OnProgress(70, "Initilized " + TInt::GetStr(NFinished) + " of " + TInt::GetStr(TotalTasks) + " states ...");
+					Callback->OnProgress(70, "Initialized " + TInt::GetStr(NFinished) + " of " + TInt::GetStr(TotalTasks) + " states ...");
 				}
 			}
 		}
@@ -4658,7 +4973,7 @@ void TStateAssist::Init(const TUInt64V& RecTmV, const TFltVV& ObsFtrVV, const TF
 			InitSingle(AllFtrVV, StateId, Height, Hierarch, AssignV, Rnd, ClassifyV[HeightN], DecisionTreeV[HeightN]);
 
 			if (Callback != nullptr) {
-				Callback->OnProgress(70, "Initilized " + TInt::GetStr(HeightN+1) + " of " + TInt::GetStr(StateIdHeightPrV.Len()) + " states ...");
+				Callback->OnProgress(70, "Initialized " + TInt::GetStr(HeightN+1) + " of " + TInt::GetStr(StateIdHeightPrV.Len()) + " states ...");
 			}
 		}
 	}
@@ -4794,7 +5109,7 @@ void TStateAssist::FitAssistModels(const TFltVV& FtrVV, const TFltV& LabelV, TLo
 		Tree = TDecisionTree(SplitCriteria, PruneCriteria, GrowCriteria, true);
 	}
 
-	LogReg.Fit(FtrVV, LabelV);
+	LogReg.Fit(FtrVV, LabelV, 1e-3, 1000);
 	Tree.Fit(FtrVV, LabelV, TNotify::NullNotify);
 }
 
@@ -5554,13 +5869,11 @@ void TStreamStory::GetTimeHistogram(const int& StateId, const TStateIdentifier::
 	StateIdentifier->GetTimeHistogram(AggState, HistType, BinV, ProbV);
 }
 
-void TStreamStory::GetStateHistory(const double& Scale,
-        TUInt64IntPrV& StateTmStateIdPrV) const {
-    Hierarch->GetStateHistory(Scale, StateTmStateIdPrV);
-}
-
-void TStreamStory::GetStateHistory(TVec<TPair<TFlt, TUInt64IntPrV>>& ScaleTmIdPrPrV) const {
-    Hierarch->GetStateHistory(ScaleTmIdPrPrV);
+void TStreamStory::GetStateHistory(const double& RelOffset, const double& RelRange,
+	        const int& MxStates,
+	        TVec<TPair<TFlt, TVec<TTriple<TUInt64,TUInt64,TIntFltH>>>>& ScaleTmDurIdTrPrV,
+	        uint64& MnTm, uint64& MxTm) const {
+    Hierarch->GetStateHistory(RelOffset, RelRange, MxStates, ScaleTmDurIdTrPrV, MnTm, MxTm);
 }
 
 PJsonVal TStreamStory::GetStateWgtV(const int& StateId) const {
@@ -5645,6 +5958,10 @@ PJsonVal TStreamStory::GetStateExplain(const int& StateId) const {
 					throw TExcept::New("WTF!? the categorical description contains both le and gt!");
 				}
 				break;
+			}
+			case ftTime: {
+			    // do nothing, this is not included in the narration
+			    continue;
 			}
 			default: {
 				throw TExcept::New("Invalid feature type: " + TInt::GetStr((int) FtrInfo.GetType()));
@@ -6162,6 +6479,9 @@ void TStreamStory::TransformExplainTree(PJsonVal& RootJson) const {
 
 			CutJson->AddToObj("value", ValJson);
 			break;
+		}
+		case ftTime: {
+		    throw TExcept::New("Time feature not supported in explanation tree");
 		}
 		default: {
 			throw TExcept::New("Invalid feature type: " + TInt::GetStr((int) FtrInfo.GetType()));

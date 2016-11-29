@@ -2090,7 +2090,7 @@ public:
     */
     //# exports.StreamAggr.prototype.getTimestampVector = function () { return Object.create(require('qminer').la.Vector.prototype); };
     JsDeclareFunction(getTimestampVector);
-    
+
     /**
     * Gets a vector containing the values that are entering the stream aggregator.
     * @returns {module:la.Vector} The vector containing the values that are entering the buffer.
