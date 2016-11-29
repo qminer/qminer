@@ -6571,9 +6571,11 @@ void TStreamAggr::Init() {
     Register<TStreamAggrSet>();
     Register<TStreamAggrs::TRecBuffer>();
     Register<TStreamAggrs::TTimeSeriesTick>();
+    Register<TStreamAggrs::TTimeSeriesSparseVectorTick>();
     Register<TStreamAggrs::TWinBufFlt>();
     Register<TStreamAggrs::TWinBufFtrSpVec>();
     Register<TStreamAggrs::TWinBufFltV>();
+    Register<TStreamAggrs::TWinBufSpV>();
     Register<TStreamAggrs::TWinBufSum>();
     Register<TStreamAggrs::TWinBufMin>();
     Register<TStreamAggrs::TWinBufMax>();
