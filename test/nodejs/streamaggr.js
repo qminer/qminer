@@ -5700,7 +5700,7 @@ describe('Record switch aggregate', function () {
             });
 
             // c will be ignored
-            var inputArr = ['a','b','b','a','c','a'].map((x) => { return { switchField : x} });
+            var inputArr = ['a','b','b','a','c','a'].map(function(x) { return { switchField : x} });
             assertSwitcherSequence(inputArr, result, [1, 2, 2, 1, 1], store);
         });
     });
@@ -5736,7 +5736,7 @@ describe('Record switch aggregate', function () {
             });
 
             // c will be ignored
-            var inputArr = ['a', 'b', 'b', 'a', 'c', 'a'].map((x) => { return { switchField: x } });
+            var inputArr = ['a', 'b', 'b', 'a', 'c', 'a'].map(function (x) { return { switchField: x } });
             assertSwitcherSequence(inputArr, result, [1, 2, 2, 1, 1], store);
         });
 
@@ -5770,7 +5770,7 @@ describe('Record switch aggregate', function () {
             });
 
             // c will be ignored
-            var inputArr = ['a', 'b', 'b', 'a', 'c', 'a'].map((x) => { return { switchField: x } });
+            var inputArr = ['a', 'b', 'b', 'a', 'c', 'a'].map(function(x) {return { switchField: x } });
             assertSwitcherSequence(inputArr, result, [1, 2, 2, 1, 1], store);
         });
         it('should throw for invalid set parameters', function () {
@@ -5906,7 +5906,7 @@ describe('Record switch aggregate', function () {
             });
             switcher2.load(qm.fs.openRead('switcherTest.bin'));
             // c will be ignored
-            var inputArr = ['a', 'b', 'b', 'a', 'c', 'a'].map((x) => { return { switchField: x } });
+            var inputArr = ['a', 'b', 'b', 'a', 'c', 'a'].map(function(x) {return { switchField: x } });
             assertSwitcherSequence(inputArr, result, [1, 2, 2, 1, 1], store);
         });
     });
