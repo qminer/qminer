@@ -331,11 +331,11 @@ private:
 
 protected:
     /// On new record we update value and timestamp
-    void OnAddRec(const TRec& Rec);
+    void OnAddRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr);
     /// On new timestamp we update timestamp
-    void OnTime(const uint64& TmMsec);
+    void OnTime(const uint64& TmMsec, const TWPt<TStreamAggr>& CallerAggr);
     /// No on step supported
-    void OnStep();
+    void OnStep(const TWPt<TStreamAggr>& CallerAggr);
 
     /// Json constructor
     TTimeSeriesSparseVectorTick(const TWPt<TBase>& Base, const PJsonVal& ParamVal);

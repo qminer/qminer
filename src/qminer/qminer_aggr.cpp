@@ -629,18 +629,18 @@ PJsonVal TTimeSeriesTick::SaveJson(const int& Limit) const {
 
 ///////////////////////////////
 // Time series tick that works on sparse vectors.
-void TTimeSeriesSparseVectorTick::OnAddRec(const TRec& Rec) {
+void TTimeSeriesSparseVectorTick::OnAddRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr) {
     TickVal.Clr();
     ValReader.GetNumSpV(Rec, TickVal);
     TmMSecs = Rec.GetFieldTmMSecs(TimeFieldId);
     InitP = true;
 }
 
-void TTimeSeriesSparseVectorTick::OnTime(const uint64& Time) {
+void TTimeSeriesSparseVectorTick::OnTime(const uint64& Time, const TWPt<TStreamAggr>& CallerAggr) {
     TmMSecs = Time;
 }
 
-void TTimeSeriesSparseVectorTick::OnStep() {
+void TTimeSeriesSparseVectorTick::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
     throw TExcept::New("[TTimeSeriesSparseVectorTick] OnStep should have not been executed.");
 }
 
