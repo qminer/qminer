@@ -50,7 +50,21 @@ describe('Stream Aggregator Tests', function () {
 
             store.push({ Name: "John", Gender: "Male" });
             assert.equal(aggr.saveJson().val, 4);
-        })
+        });
+        it('should test onStep for javascript new qm.StreamAggr', function () {
+            var aggr = new qm.StreamAggr(base, new function () {
+                var length = 0;
+                this.onStep = function () {
+                    length++;
+                }
+                this.saveJson = function (limit) {
+                    return { val: length };
+                }
+            }, 'People');
+            aggr.onStep();
+            aggr.onStep();
+            assert.equal(aggr.saveJson().val, 2);
+        });
         it('should test stream aggr construction using functions', function () {
             var s = store.addStreamAggr(new function () {
                 var length = 0;

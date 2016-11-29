@@ -174,7 +174,6 @@ void TNodeJsStreamAggr::onStep(const v8::FunctionCallbackInfo<v8::Value>& Args) 
 
     // unwrap
     TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
-    const uint64 Time = TNodeJsUtil::GetArgTmMSecs(Args, 0);
     // if arg 1 exists, get the caller stream aggregate
     if (Args.Length() >= 1) {
         EAssertR(TNodeJsUtil::IsClass(Args[0]->ToObject(), TNodeJsStreamAggr::GetClassId()), "Argument expected to be a stream aggregate!");
