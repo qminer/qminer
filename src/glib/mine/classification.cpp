@@ -88,7 +88,7 @@ void TLogReg::Fit(const TFltVV& _X, const TFltV& y, const double& Eps, const int
 		    break;
 		}
 		if (k % 10 == 0) {
-			printf("Step: %d, diff: %.3f\n", k, Diff);
+			Notify->OnNotifyFmt(ntInfo, "Step: %d, diff: %.3f\n", k, Diff);
 		}
 
 		// compute the probabilities p_i = 1 / (1 + exp(-w*x_i)) and
