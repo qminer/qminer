@@ -1273,6 +1273,75 @@ describe('sparseVectorWindow tests', function () {
             }
     	})
     })
+
+    describe('Testing save/load', function () {
+        it('should survive save/load', function () {
+    		var input = [
+				[[0, 1], [2, 1], [3, 1]],
+				[[0, 2], [2, 2], [3, 2]],
+				[[0, 3], [2, 3], [3, 3]],
+				[[0, 4], [2, 4], [3, 4]]
+    		]
+
+            var tick = store.addStreamAggr({                
+                type: 'timeSeriesSparseVectorTick',                
+                timestamp: 'Time',
+                value: 'Value'
+            });
+    		var winbuf1 = store.addStreamAggr({
+    			type: 'sparseVectorWindow',
+    			inAggr: tick,
+    			winsize: 2000
+    		})
+
+    		winbuf1.save(qm.fs.openWrite('sparsesave.bin')).close();
+    		
+    		winbuf2 = store.addStreamAggr({
+    			type: 'sparseVectorWindow',
+    			inAggr: tick,
+    			winsize: 2000
+    		})
+    		
+    		winbuf2.load(qm.fs.openRead('sparsesave.bin'))
+    		
+    		assert.equal(winbuf2.getValueVector().cols, 0);
+
+			store.push({ Time: '2015-06-10T14:13:32.0', Value: input[0] });
+			store.push({ Time: '2015-06-10T14:33:30.0', Value: input[1] });
+			store.push({ Time: '2015-06-10T14:33:31.0', Value: input[2] });
+			store.push({ Time: '2015-06-10T14:33:32.0', Value: input[3] });
+
+    		winbuf2.save(qm.fs.openWrite('sparsesave.bin')).close();
+
+    		winbuf3 = store.addStreamAggr({
+    			type: 'sparseVectorWindow',
+    			inAggr: tick,
+    			winsize: 2000
+    		})
+
+    		winbuf3.load(qm.fs.openRead('sparsesave.bin'))
+
+            var output = winbuf3.getValueVector();
+            assert.equal(output.cols, 3);
+            
+            for (var i = 0; i < output.length; i++) {
+            	var expected = input[i+1];
+            	var actual = output[i];
+            	var actualVals = actual.valVec();
+            	var actualIdxs = actual.idxVec();
+
+            	assert.equal(actualVals.length, expected.length);
+
+            	for (var elN = 0; elN < expected.length; elN++) {
+            		var idx = expected[elN][0];
+            		var val = expected[elN][1];
+
+            		assert.equal(idx, actualIdxs[elN]);
+            		assert.equal(val, actualVals[elN]);
+            	}
+            }
+        });
+    });
 })
 
 describe('MovingWindowBufferSum Tests', function () {
