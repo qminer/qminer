@@ -5213,6 +5213,39 @@ describe('Aggregating (sum/avg/min/max) resampler tests', function () {
 
             testResampledSequence(inputArr, result, expectedOutArr, store);
         });
+        it('should identify resampler as the caller', function () {
+            var raw = store.addStreamAggr({
+                type: 'timeSeriesTick',
+                timestamp: 'timestamp',
+                value: 'value'
+            });
+
+            var resampler = store.addStreamAggr({
+                type: 'aggrResample',
+                inAggr: raw.name,
+                start: '1970-01-01T00:00:00.000',
+                //roundStart: 'm',
+                aggType: 'sum',
+                interval: 1000
+            });
+
+            var result = [];
+
+            var outAggr = new qm.StreamAggr(base, new function () {
+                this.onStep = function (aggr) {
+                    assert(aggr.name == resampler.name);
+                    result.push({ value: resampler.getFloat(), timestamp: resampler.getTimestamp() });
+                    //console.log(resampler.getFloat() + ' ' + new Date(resampler.getTimestamp()).toISOString());
+                }
+            });
+
+            resampler.setParams({ outAggr: outAggr.name });
+
+            var inputArr = [[0, 1], [1, 10], [500, 100], [2500, 1000], [3100, 10000]];
+            var expectedOutArr = [[0, 111], [1000, 0], [2000, 1000]];
+
+            testResampledSequence(inputArr, result, expectedOutArr, store);
+        });
         it('should test auto start', function () {
             var raw = store.addStreamAggr({
                 type: 'timeSeriesTick',
@@ -5701,6 +5734,40 @@ describe('Record switch aggregate', function () {
 
             // c will be ignored
             var inputArr = ['a','b','b','a','c','a'].map(function(x) { return { switchField : x} });
+            assertSwitcherSequence(inputArr, result, [1, 2, 2, 1, 1], store);
+        });
+    });
+
+    describe('caller stream aggregate', function () {
+        it('should identify the switcher as the caller', function () {
+            var result = [];
+            // first JS aggregate
+            var outAggr1 = new qm.StreamAggr(base, new function () {
+                this.onAdd = function (rec, aggr) {
+                    assert.equal(aggr.name, switcher.name);
+                    result.push(1);
+                }
+            });
+            // second JS aggregate
+            var outAggr2 = new qm.StreamAggr(base, new function () {
+                this.onAdd = function (rec, aggr) {
+                    assert(aggr.name == switcher.name);
+                    result.push(2);
+                }
+            });
+            // switcher aggregate
+            var switcher = store.addStreamAggr({
+                type: 'recordSwitchAggr',
+                store: 'testStore',
+                fieldName: 'switchField',
+                $set: [
+                    { key: 'a', aggrName: outAggr1.name },
+                    { key: 'b', aggrName: outAggr2.name },
+                ],
+                throwMissing: false
+            });
+
+            var inputArr = ['a', 'b', 'b', 'a', 'c', 'a'].map(function (x) { return { switchField: x } });
             assertSwitcherSequence(inputArr, result, [1, 2, 2, 1, 1], store);
         });
     });
