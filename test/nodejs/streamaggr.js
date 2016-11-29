@@ -5706,7 +5706,7 @@ describe('Record switch aggregate', function () {
     });
 
     describe('getInteger', function () {
-        it('should return 1 for known keys and 0 for unknown keys', function () {
+        it('should return 1 for known keys and null for unknown keys', function () {
             var result = [];
             // first JS aggregate
             var outAggr1 = new qm.StreamAggr(base, new function () {
@@ -5735,7 +5735,7 @@ describe('Record switch aggregate', function () {
             assert.equal(switcher.getInteger('b'), 1);
             assert.equal(switcher.getInteger('c'), null);
         });
-        it('should return 0 for all keys (empty map)', function () {
+        it('should return null for all keys (empty map)', function () {
             var result = [];
             // first JS aggregate
             var outAggr1 = new qm.StreamAggr(base, new function () {
