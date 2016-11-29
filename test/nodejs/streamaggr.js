@@ -1252,9 +1252,9 @@ describe('sparseVectorWindow tests', function () {
 			store.push({ Time: '2015-06-10T14:33:31.0', Value: input[2] });
 			store.push({ Time: '2015-06-10T14:33:32.0', Value: input[3] });
 			
-            assert.equal(winbuf.getSparseVectorLength(), 3);
+            var output = winbuf.getValueVector();
+            assert.equal(output.cols, 3);
             
-            var output = winbuf.getSparseVectorVector();
             for (var i = 0; i < output.length; i++) {
             	var expected = input[i+1];
             	var actual = output[i];
