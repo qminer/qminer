@@ -673,16 +673,16 @@ void TTimeSeriesSparseVectorTick::LoadState(TSIn& SIn) {
     TmMSecs.Load(SIn);
 }
 
-int TTimeSeriesSparseVectorTick::GetVals() const {
+int TTimeSeriesSparseVectorTick::GetSparseVecLen() const {
     return TickVal.Len();
 }
 
-void TTimeSeriesSparseVectorTick::GetVal(const int& ElN, TIntFltKd& Val) const {
+TIntFltKd TTimeSeriesSparseVectorTick::GetSparseVecVal(const int& ElN) const {
     EAssert(0 <= ElN && ElN < TickVal.Len());
-    Val = TickVal[ElN];
+    return TickVal[ElN];
 }
 
-void TTimeSeriesSparseVectorTick::GetValV(TIntFltKdV& SpV) const {
+void TTimeSeriesSparseVectorTick::GetSparseVec(TIntFltKdV& SpV) const {
     SpV = TickVal;
 }
 
@@ -717,7 +717,7 @@ TWinBufFltV::TWinBufFltV(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TWi
 
 TIntFltKdV TWinBufSpV::GetVal() const {
     TIntFltKdV Res;
-    InAggrVal->GetValV(Res);
+    InAggrVal->GetSparseVec(Res);
     return Res;
 }
 

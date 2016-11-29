@@ -357,11 +357,11 @@ public:
     uint64 GetTmMSecs() const { return TmMSecs; }
 
     /// returns the number of values
-    int GetVals() const;
+    int GetSparseVecLen() const;
     /// retuns the n-th entry
-    void GetVal(const int& ElN, TIntFltKd& Val) const;
+    TIntFltKd GetSparseVecVal(const int& ElN) const;
     /// Last extracted value
-    void GetValV(TIntFltKdV& SpV) const;
+    void GetSparseVec(TIntFltKdV& SpV) const;
 
     // serialization to JSon
     PJsonVal SaveJson(const int& Limit) const;
