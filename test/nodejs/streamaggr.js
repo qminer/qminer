@@ -1108,7 +1108,7 @@ describe('sparseVectorWindow tests', function () {
     });
     
     describe('Simple test', function () {
-    	it('Testing if the buffer contains enough values', function () {
+    	it('Testing if the buffer contains correct values', function () {
             var tick = store.addStreamAggr({                
                 type: 'timeSeriesSparseVectorTick',                
                 timestamp: 'Time',
