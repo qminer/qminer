@@ -3508,7 +3508,13 @@ protected:
     template <class IInterface>
     static TWPt<IInterface> Cast(const TWPt<TStreamAggr>& Aggr, const bool& CheckP = true) {
         TWPt<IInterface> CastAggr = dynamic_cast<IInterface*>(Aggr());
-        QmAssertR(!CastAggr.Empty() || !CheckP, "[TStreamAggr] error casting " + Aggr->GetAggrNm());
+        QmAssertR(
+            !CastAggr.Empty() || !CheckP,
+            "[TStreamAggr] error casting stream aggregate " +
+                Aggr->GetAggrNm() +
+                " to " +
+                TTypeNm<IInterface>()
+        );
         return CastAggr;
     }
 };

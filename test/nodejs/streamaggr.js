@@ -1217,7 +1217,8 @@ describe('sparseVectorWindow tests', function () {
                 name: 'Function',
                 fields: [
                     { name: 'Time', type: 'datetime' },
-                    { name: 'Value', type: 'num_sp_v' }
+                    { name: 'Value', type: 'num_sp_v' },
+                    { name: 'FloatValue', type: 'float' }
                 ]
             }]
         });
@@ -1241,22 +1242,73 @@ describe('sparseVectorWindow tests', function () {
     		})
     		
     		var input = [
-				[[0, 1], [2, 1], [3, 1]],
-				[[0, 2], [2, 2], [3, 2]],
-				[[0, 3], [2, 3], [3, 3]],
-				[[0, 4], [2, 4], [3, 4]]
+    		    { Time: '2015-06-10T14:13:32.0', Value: [[0, 1], [2, 1], [3, 1]], FloatValue: 1 },
+    		    { Time: '2015-06-10T14:33:30.0', Value: [[0, 2], [2, 2], [3, 2]], FloatValue: 2 },
+    		    { Time: '2015-06-10T14:33:31.0', Value: [[0, 3], [2, 3], [3, 3]], FloatValue: 3 },
+    		    { Time: '2015-06-10T14:33:32.0', Value: [[0, 4], [2, 4], [3, 4]], FloatValue: 4 }
     		]
     		
-			store.push({ Time: '2015-06-10T14:13:32.0', Value: input[0] });
-			store.push({ Time: '2015-06-10T14:33:30.0', Value: input[1] });
-			store.push({ Time: '2015-06-10T14:33:31.0', Value: input[2] });
-			store.push({ Time: '2015-06-10T14:33:32.0', Value: input[3] });
+    		
+    		for (var i = 0; i < input.length; i++) {
+    			store.push(input[i]);
+    		}
 			
             var output = winbuf.getValueVector();
             assert.equal(output.cols, 3);
             
             for (var i = 0; i < output.length; i++) {
-            	var expected = input[i+1];
+            	var expected = input[i+1].Value;
+            	var actual = output[i];
+            	var actualVals = actual.valVec();
+            	var actualIdxs = actual.idxVec();
+
+            	assert.equal(actualVals.length, expected.length);
+
+            	for (var elN = 0; elN < expected.length; elN++) {
+            		var idx = expected[elN][0];
+            		var val = expected[elN][1];
+
+            		assert.equal(idx, actualIdxs[elN]);
+            		assert.equal(val, actualVals[elN]);
+            	}
+            }
+    	})
+    	
+    	it('Testing if sparseVectorWindow works correctly with separate time and value aggregates', function () {
+            var valueTick = store.addStreamAggr({                
+                type: 'timeSeriesSparseVectorTick',                
+                timestamp: 'Time',
+                value: 'Value'
+            });
+            var timeTick = store.addStreamAggr({
+            	type: 'timeSeriesTick',
+            	timestamp: 'Time',
+            	value: 'FloatValue'
+            })
+    		var winbuf = store.addStreamAggr({
+    			type: 'sparseVectorWindow',
+    			inAggr: valueTick,
+    			inAggrTm: timeTick,
+    			winsize: 2000
+    		})
+    		
+    		var input = [
+    		    { Time: '2015-06-10T14:13:32.0', Value: [[0, 1], [2, 1], [3, 1]], FloatValue: 1 },
+    		    { Time: '2015-06-10T14:33:30.0', Value: [[0, 2], [2, 2], [3, 2]], FloatValue: 2 },
+    		    { Time: '2015-06-10T14:33:31.0', Value: [[0, 3], [2, 3], [3, 3]], FloatValue: 3 },
+    		    { Time: '2015-06-10T14:33:32.0', Value: [[0, 4], [2, 4], [3, 4]], FloatValue: 4 }
+    		]
+    		
+    		
+    		for (var i = 0; i < input.length; i++) {
+    			store.push(input[i]);
+    		}
+			
+            var output = winbuf.getValueVector();
+            assert.equal(output.cols, 3);
+            
+            for (var i = 0; i < output.length; i++) {
+            	var expected = input[i+1].Value;
             	var actual = output[i];
             	var actualVals = actual.valVec();
             	var actualIdxs = actual.idxVec();
@@ -1275,12 +1327,12 @@ describe('sparseVectorWindow tests', function () {
     })
 
     describe('Testing save/load', function () {
-        it('should survive save/load', function () {
+        it('should survive save/load and load properly', function () {
     		var input = [
-				[[0, 1], [2, 1], [3, 1]],
-				[[0, 2], [2, 2], [3, 2]],
-				[[0, 3], [2, 3], [3, 3]],
-				[[0, 4], [2, 4], [3, 4]]
+    		    { Time: '2015-06-10T14:13:32.0', Value: [[0, 1], [2, 1], [3, 1]], FloatValue: 1 },
+    		    { Time: '2015-06-10T14:33:30.0', Value: [[0, 2], [2, 2], [3, 2]], FloatValue: 2 },
+    		    { Time: '2015-06-10T14:33:31.0', Value: [[0, 3], [2, 3], [3, 3]], FloatValue: 3 },
+    		    { Time: '2015-06-10T14:33:32.0', Value: [[0, 4], [2, 4], [3, 4]], FloatValue: 4 }
     		]
 
             var tick = store.addStreamAggr({                
@@ -1306,10 +1358,9 @@ describe('sparseVectorWindow tests', function () {
     		
     		assert.equal(winbuf2.getValueVector().cols, 0);
 
-			store.push({ Time: '2015-06-10T14:13:32.0', Value: input[0] });
-			store.push({ Time: '2015-06-10T14:33:30.0', Value: input[1] });
-			store.push({ Time: '2015-06-10T14:33:31.0', Value: input[2] });
-			store.push({ Time: '2015-06-10T14:33:32.0', Value: input[3] });
+    		for (var i = 0; i < input.length; i++) {
+    			store.push(input[i]);
+    		}
 
     		winbuf2.save(qm.fs.openWrite('sparsesave.bin')).close();
 
@@ -1325,7 +1376,7 @@ describe('sparseVectorWindow tests', function () {
             assert.equal(output.cols, 3);
             
             for (var i = 0; i < output.length; i++) {
-            	var expected = input[i+1];
+            	var expected = input[i+1].Value;
             	var actual = output[i];
             	var actualVals = actual.valVec();
             	var actualIdxs = actual.idxVec();
