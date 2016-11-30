@@ -715,12 +715,6 @@ TWinBufFltV::TWinBufFltV(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TWi
     InAggrVal = Cast<TStreamAggrOut::IFlt>(GetInAggr());
 }
 
-TIntFltKdV TWinBufSpV::GetVal() const {
-    TIntFltKdV Res;
-    InAggrVal->GetSparseVec(Res);
-    return Res;
-}
-
 PStreamAggr TWinBufFltV::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
     return new TWinBufFltV(Base, ParamVal);
 }
@@ -736,6 +730,12 @@ PJsonVal TWinBufFltV::SaveJson(const int& Limit) const {
 TWinBufSpV::TWinBufSpV(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
         TWinBufMem<TIntFltKdV>(Base, ParamVal) {
     InAggrVal = Cast<TStreamAggrOut::ISparseVec>(GetInAggr());
+}
+
+TIntFltKdV TWinBufSpV::GetVal() const {
+    TIntFltKdV Res;
+    InAggrVal->GetSparseVec(Res);
+    return Res;
 }
 
 PStreamAggr TWinBufSpV::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {

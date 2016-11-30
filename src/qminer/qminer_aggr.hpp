@@ -65,7 +65,8 @@ template <class TVal>
 TWinBufMem<TVal>::TWinBufMem(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal) {
     // parse out input aggregate
     InAggr = ParseAggr(ParamVal, "inAggr");
-    InAggrTm = Cast<TStreamAggrOut::ITm>(InAggr);    
+    InAggrTm = Cast<TStreamAggrOut::ITm>(ParamVal->IsObjKey("inAggrTm") ?
+            ParseAggr(ParamVal, "inAggrTm") : InAggr);
     // when should we pump in new values?
     TStr UpdateTypeStr = ParamVal->GetObjStr("update", "onNewRecord");
     UpdateType = (UpdateTypeStr == "onNewRecord") ? wbmuOnAddRec : wbmuAlways;
