@@ -8,10 +8,6 @@
 #ifndef QMINER_SNAP_NODEJS
 #define QMINER_SNAP_NODEJS
 
-//#ifndef BUILDING_NODE_EXTENSION
-//	#define BUILDING_NODE_EXTENSION
-//#endif
-
 #include <node.h>
 #include <node_object_wrap.h>
 #include "base.h"
@@ -19,6 +15,11 @@
 #include "../fs/fs_nodejs.h"
 #include "../la/la_nodejs.h"
 #include "Snap.h"
+
+//#ifndef BUILDING_NODE_EXTENSION
+//	#define BUILDING_NODE_EXTENSION
+//#endif
+
 
 /**
 * Snap module.
@@ -649,10 +650,7 @@ void TNodeJsGraph<T>::eachNode(const v8::FunctionCallbackInfo<v8::Value>& Args) 
 			NodeObj, v8::Local<v8::Number>::New(Isolate, v8::Integer::NewFromUnsigned(Isolate, Count++))
 		};
 		Callback->Call(Isolate->GetCurrentContext()->Global(), Argc, ArgV);
-		if (TryCatch.HasCaught()) {
-			TryCatch.ReThrow();
-			return;
-		}
+		TNodeJsUtil::CheckJSExcept(TryCatch);
 		Count++;
 	}
 
@@ -676,10 +674,7 @@ void TNodeJsGraph<T>::eachEdge(const v8::FunctionCallbackInfo<v8::Value>& Args) 
 			EdgeObj, v8::Local<v8::Number>::New(Isolate, v8::Integer::NewFromUnsigned(Isolate, Count++))
 		};
 		Callback->Call(Isolate->GetCurrentContext()->Global(), Argc, ArgV);
-		if (TryCatch.HasCaught()) {
-			TryCatch.ReThrow();
-			return;
-		}
+		TNodeJsUtil::CheckJSExcept(TryCatch);
 		Count++;
 	}
 
@@ -791,7 +786,7 @@ void TNodeJsGraph<T>::components(const v8::FunctionCallbackInfo<v8::Value>& Args
 	}
 
 	Args.GetReturnValue().Set(
-		TNodeJsUtil::NewInstance<TNodeJsSpMat>(new TNodeJsSpMat(Mat, TLAMisc::GetMaxDimIdx(Mat) + 1)));
+		TNodeJsUtil::NewInstance<TNodeJsSpMat>(new TNodeJsSpMat(Mat, TLinAlgSearch::GetMaxDimIdx(Mat) + 1)));
 }
 
 template <class T>
@@ -990,10 +985,7 @@ void TNodeJsNode<T>::eachNbr(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			v8::Integer::New(Isolate, NbrId), v8::Local<v8::Number>::New(Isolate, v8::Integer::NewFromUnsigned(Isolate, Count++))
 		};
 		Callback->Call(Isolate->GetCurrentContext()->Global(), Argc, ArgV);
-		if (TryCatch.HasCaught()) {
-			TryCatch.ReThrow();
-			return;
-		}
+		TNodeJsUtil::CheckJSExcept(TryCatch);
 		Count++;
 	}
 
@@ -1017,10 +1009,7 @@ void TNodeJsNode<T>::eachInNbr(const v8::FunctionCallbackInfo<v8::Value>& Args) 
 			v8::Integer::New(Isolate, NbrId), v8::Local<v8::Number>::New(Isolate, v8::Integer::NewFromUnsigned(Isolate, Count++))
 		};
 		Callback->Call(Isolate->GetCurrentContext()->Global(), Argc, ArgV);
-		if (TryCatch.HasCaught()) {
-			TryCatch.ReThrow();
-			return;
-		}
+		TNodeJsUtil::CheckJSExcept(TryCatch);
 		Count++;
 	}
 
@@ -1044,10 +1033,7 @@ void TNodeJsNode<T>::eachOutNbr(const v8::FunctionCallbackInfo<v8::Value>& Args)
 			v8::Integer::New(Isolate, NbrId), v8::Local<v8::Number>::New(Isolate, v8::Integer::NewFromUnsigned(Isolate, Count++))
 		};
 		Callback->Call(Isolate->GetCurrentContext()->Global(), Argc, ArgV);
-		if (TryCatch.HasCaught()) {
-			TryCatch.ReThrow();
-			return;
-		}
+		TNodeJsUtil::CheckJSExcept(TryCatch);
 		Count++;
 	}
 

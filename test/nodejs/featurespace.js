@@ -461,27 +461,12 @@ describe('Feature Space Tests', function () {
     });
 
     describe('InvertFeatureVector Tests', function () {
-        it('should return the values of the first record: constant', function () {
-            var ftr = new qm.FeatureSpace(base, { type: "constant", source: "FtrSpaceTest" });
-            var ftrvec = ftr.extractVector(Store[0]);
-
-            var vec = ftr.invertFeatureVector(ftrvec);
-            assert.equal(vec.length, 1);
-            assert.equal(vec.at(0), 1);
-        })
-        it('should throw an exception for extractor type: random', function () {
-            var ftr = new qm.FeatureSpace(base, { type: "random", source: "FtrSpaceTest" });
-            var ftrvec = ftr.extractVector(Store[0]);
-            assert.throws(function () {
-                var vec = ftr.invertFeatureVector(ftrvec);
-            });
-        })
         it('should return the values of the first record: numeric, parameter is an array', function () {
             var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", field: "Value" });
             var vec = ftr.invertFeatureVector([1]);
 
             assert.equal(vec.length, 1);
-            assert.equal(vec.at(0), 1.0);
+            assert.equal(vec[0], 1.0);
         })
         it('should return the values of the first record: numeric', function () {
             var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", field: "Value" });
@@ -489,120 +474,71 @@ describe('Feature Space Tests', function () {
 
             var vec = ftr.invertFeatureVector(ftrvec);
             assert.equal(vec.length, 1);
-            assert.equal(vec.at(0), 1.0);
+            assert.equal(vec[0], 1.0);
         })
-        it('should throw an exception for extractor type: categorical', function () {
-            var ftr = new qm.FeatureSpace(base, { type: "categorical", source: "FtrSpaceTest", field: "Category", value: ["a", "b", "c"] });
+        it('should invert a feature for extractor type: categorical', function () {
+            var ftr = new qm.FeatureSpace(base, { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] });
             var ftrvec = ftr.extractVector(Store[0]);
-            assert.throws(function () {
-                var vec = ftr.invertFeatureVector(ftrvec);
-                assert.equal(vec.length, 1);
-                assert.equal(vec.at(0), "a");
-            });
+            
+            var inv = ftr.invertFeatureVector(ftrvec);
+            
+            assert.notNull(inv);
+            assert.equal(1, inv.length);	// there is only 1 feature exractor defined
+            
+            var invFtr = inv[0];
+            
+            assert.notNull(invFtr);
+            assert.deepEqual(invFtr, { a: 1, b: 0, c: 0 });
         })
-        it('should throw an exception for extractor type: categorical, hashDimension', function () {
+        it('should invert a feature for extractor type: categorical, hashDimension', function () {
             var ftr = new qm.FeatureSpace(base, { type: "categorical", source: "FtrSpaceTest", field: "Category", hashDimension: 4, value: ["a", "b", "c"] });
+            
             var ftrvec = ftr.extractVector(Store[0]);
-            assert.throws(function () {
-                var vec = ftr.invertFeatureVector(ftrvec);
-            });
+            var inv = ftr.invertFeatureVector(ftrvec);
+            var range = ftr.getFeatureRange(0);
+            
+            assert.notNull(inv);
+            
+            // extract the label
+            var hashCategory = null;
+            for (var i = 0; i < ftrvec.length; i++) {
+            	if (ftrvec[i] > 0) {
+            		hashCategory = range[i];
+            	}
+            }
+            
+            assert.notNull(hashCategory);
+            assert.equal(1, inv.length);	// there is only 1 feature exractor defined
+            
+            var ftrInv = inv[0];            
+            for (var key in ftrInv) {
+            	if (key == hashCategory) {
+            		assert.equal(1, ftrInv[key]);
+            	}
+            	else {
+            		assert.equal(0, ftrInv[key]);
+            	}
+            }
         })
-        it('should throw an exception for extractor type: multinomial', function () {
-            var ftr = new qm.FeatureSpace(base, { type: "multinomial", source: "FtrSpaceTest", field: "Categories", value: ["a", "b", "c", "q", "w", "e"] });
-            var ftrvec = ftr.extractVector(Store[0]);
-            assert.throws(function () {
-                var vec = ftr.invertFeatureVector(ftrvec);
-                assert.equal(vec.length, 2);
-                assert.equal(vec.at(0), "a");
-                assert.equal(vec.at(1), "q");
-            })
-        })
-        it('should throw an exception for extractor type: multinomial, hashDimension', function () {
-            var ftr = new qm.FeatureSpace(base, {
-                type: "multinomial", source: "FtrSpaceTest", field: "Categories", hashDimension: 4,
-                value: ["a", "b", "c", "q", "w", "e"]
-            });
-            var ftrvec = ftr.extractVector(Store[0]);
-            assert.throws(function () {
-                var vec = ftr.invertFeatureVector(ftrvec);
-            })
-        })
-        it('should throw an exception for extractor type: text', function () {
-            var ftr = new qm.FeatureSpace(base, {
-                type: "text", source: "FtrSpaceTest", field: "Text", ngrams: [1, 4]
-            });
-            ftr.updateRecord(Store[0]);
-            var ftrvec = ftr.extractVector(Store[0]);
-            assert.throws(function () {
-                var vec = ftr.invertFeatureVector(ftrvec);
-            });
-        })
-        it('should throw an exception for extractor type: text, hashDimension', function () {
-            var ftr = new qm.FeatureSpace(base, {
-                type: "text", source: "FtrSpaceTest", field: "Text", hashDimension: 4, ngrams: [1, 4]
-            });
-            ftr.updateRecord(Store[0]);
-            var ftrvec = ftr.extractVector(Store[0]);
-            assert.throws(function () {
-                var vec = ftr.invertFeatureVector(ftrvec);
-            });
-        })
-        it('should throw an exception for extractor type: pair', function () {
-            var ftr = new qm.FeatureSpace(base, {
-                type: "pair", source: "FtrSpaceTest",
-                first: { type: "numeric", source: "FtrSpaceTest", field: "Value" },
-                second: { type: "multinomial", source: "FtrSpaceTest", field: "Categories", values: ["a", "b", "c", "q", "w", "e"] }
-            });
-            assert.throws(function () {
-                var ftrvec = ftr.extractVector(Store[0]);
-                var vec = ftr.invertFeatureVector(ftrvec);
-            })
-        })
-        it('should throw an exception for extractor type: pair (numeric, constant)', function () {
-            var ftr = new qm.FeatureSpace(base, {
-                type: "pair", source: "FtrSpaceTest",
-                first: { type: "numeric", source: "FtrSpaceTest", field: "Value" },
-                second: { type: "constant", source: "FtrSpaceTest" }
-            });
-            assert.throws(function () {
-                var ftrvec = ftr.extractVector(Store[0]);
-                var vec = ftr.invertFeatureVector(ftrVec);
-            })
-        })
-        it('should throw an exception for extractor type: jsfunc', function () {
-            var ftr = new qm.FeatureSpace(base, {
-                type: "jsfunc", source: "FtrSpaceTest", name: "TestFunc", dim: 1,
-                fun: function (rec) { return rec.Categories.length }
-            });
-            var ftrvec = ftr.extractVector(Store[0]);
-            assert.throws(function () {
-                var vec = ftr.invertFeatureVector(ftrvec);
-            })
-        })
-        it('should throw an exception for a non-implemented extractors', function () {
+        it('should invert the numerical and categorical feature', function () {
             var ftr = new qm.FeatureSpace(base, [
                 { type: "numeric", source: "FtrSpaceTest", field: "Value" },
                 { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] }
             ]);
 
-            assert.throws(function () {
-                var vec = ftr.invertFeatureVector([1, 1, 0, 0]);
-            });
+            var inv = ftr.invertFeatureVector([1, 1, 0, 0]);
+            
+            assert.equal(2, inv.length);
+            
+            var numInv = inv[0];
+            var catInv = inv[1];
+            
+            assert.equal(numInv, 1);
+            assert.deepEqual(catInv, { a: 1, b: 0, c: 0 });
         })
     });
 
     describe('InvertFeature Tests', function () {
-        it('should inverse the value for extractor type: constant', function () {
-            var ftr = new qm.FeatureSpace(base, { type: "constant", source: "FtrSpaceTest" });
-            var val = ftr.invertFeature(0, 5);
-            assert.equal(val, 1);
-        })
-        it('should throw an exception for extractor type: random', function () {
-            var ftr = new qm.FeatureSpace(base, { type: "random", source: "FtrSpaceTest" });
-            assert.throws(function () {
-                var val = ftr.invertFeature(0, 0.5);
-            })
-        })
         it('should inverse the value for extractor type: numeric', function () {
             var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "FtrSpaceTest", field: "Value" });
             var val = ftr.invertFeature(0, 1);
@@ -615,78 +551,23 @@ describe('Feature Space Tests', function () {
             var val = ftr.invertFeature(0, 0.8);
             assert.eqtol(val, 1.8);
         })
-        it('should throw an exception for extractor type: categorical', function () {
+        it('should invert a feature vector for extractor type: categorical', function () {
             var ftr = new qm.FeatureSpace(base, { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] });
-            assert.throws(function () {
-                var val = ftr.invertFeature(0, [1, 0, 0]);
-            });
+            
+            var val = ftr.invertFeature(0, [1, 0, 0]);
+            assert.deepEqual(val, { a: 1, b: 0, c: 0 });
         })
-        it('should throw an exception for extractor type: categorical, hashDimension', function () {
+        it('should invert a feature vector for extractor type: categorical, hashDimension', function () {
             var ftr = new qm.FeatureSpace(base, { type: "categorical", source: "FtrSpaceTest", field: "Category", hashDimension: 4 });
-            assert.throws(function () {
-                var val = ftr.invertFeature(0, [1, 0, 0, 0]);
-            });
+            
+            var inv = ftr.invertFeature(0, [1, 0, 0, 0]);
+            var range = ftr.getFeatureRange(0);
+            
+            assert.equal(inv[range[0]], 1);
+            assert.equal(inv[range[1]], 0);
+            assert.equal(inv[range[2]], 0);
+            assert.equal(inv[range[3]], 0);
         })
-        it('should throw an exception for extractor type: multinomial', function () {
-            var ftr = new qm.FeatureSpace(base, { type: "multinomial", source: "FtrSpaceTest", field: "Categories", values: ["a", "b", "c", "q", "w", "e"] });
-            assert.throws(function () {
-                var val = ftr.invertFeature(0, [1, 0, 0, 1, 0, 0]);
-            });
-        })
-        it('should throw an exception for extractor type: multinomial, hashDimension', function () {
-            var ftr = new qm.FeatureSpace(base, { type: "multinomial", source: "FtrSpaceTest", field: "Categories", hashDimension: 4 });
-            assert.throws(function () {
-                var val = ftr.invertFeature(0, [1, 0, 1, 0]);
-            });
-        })
-        it('should throw an exception for extractor type: text', function () {
-            var ftr = new qm.FeatureSpace(base, {
-                type: "text", source: "FtrSpaceTest", field: "Text", ngrams: [1, 4]
-            });
-            ftr.updateRecord(Store[0]);
-            assert.throws(function () {
-                var vec = ftr.invertFeature(0, { "one": 1 });
-            });
-        })
-        it('should throw an exception for extractor type: text, hashDimension', function () {
-            var ftr = new qm.FeatureSpace(base, {
-                type: "text", source: "FtrSpaceTest", field: "Text", hashDimension: 4, ngrams: [1, 4]
-            });
-            ftr.updateRecord(Store[0]);
-            assert.throws(function () {
-                var vec = ftr.invertFeature(0, { "one": 1 });
-            });
-        })
-        it('should throw an exception for extractor type: pair', function () {
-            var ftr = new qm.FeatureSpace(base, {
-                type: "pair", source: "FtrSpaceTest",
-                first: { type: "numeric", source: "FtrSpaceTest", field: "Value" },
-                second: { type: "multinomial", source: "FtrSpaceTest", field: "Categories", values: ["a", "b", "c", "q", "w", "e"] }
-            });
-            assert.throws(function () {
-                var vec = ftr.invertFeature(0, [10, [0, 1, 0]]);
-            })
-        })
-        it('should throw an exception for extractor type: pair (numeric, constant)', function () {
-            var ftr = new qm.FeatureSpace(base, {
-                type: "pair", source: "FtrSpaceTest",
-                first: { type: "numeric", source: "FtrSpaceTest", field: "Value" },
-                second: { type: "constant", source: "FtrSpaceTest" }
-            });
-            assert.throws(function () {
-                var vec = ftr.invertFeature(0, [10, [0, 1, 0]]);
-            })
-        })
-        it('should throw an exception for extractor type: jsfunc', function () {
-            var ftr = new qm.FeatureSpace(base, {
-                type: "jsfunc", source: "FtrSpaceTest", name: "TestFunc", dim: 1,
-                fun: function (rec) { return rec.Categories.length }
-            });
-            assert.throws(function () {
-                var vec = ftr.invertFeature(0, 2);
-            })
-        })
-
         it('should get the value by using the first extractor', function () {
             var ftr = new qm.FeatureSpace(base, [
                 { type: "numeric", source: "FtrSpaceTest", field: "Value" },
@@ -697,6 +578,18 @@ describe('Feature Space Tests', function () {
             assert.equal(val, 5);
         })
     })
+    
+    describe('Range tests', function () {
+    	it('Should return [a, b, c]', function () {
+    		var origRange = ['a', 'b', 'c'];
+    		var ftr = new qm.FeatureSpace(base, { type: "categorical", source: "FtrSpaceTest", field: "Category", values: origRange });
+    		
+    		var range = ftr.getFeatureRange(0);
+    		for (var i = 0; i < origRange.length; i++) {
+    			assert.equal(origRange[i], range[i]);
+    		}
+    	});
+    });
 
     describe('GetFeatureExtractor Tests', function () {
         it('should return the name of the first feature extractor: constant', function () {
@@ -814,9 +707,9 @@ describe('Feature Space Tests', function () {
         })
         it('should return the name of the features of extractor type: categorical, hashDimension', function () {
             var ftr = new qm.FeatureSpace(base, { type: "categorical", source: "FtrSpaceTest", field: "Category", hashDimension: 3 });
-            assert.equal(ftr.getFeature(0), "hash");
-            assert.equal(ftr.getFeature(1), "hash");
-            assert.equal(ftr.getFeature(2), "hash");
+            assert.equal(ftr.getFeature(0), "0");
+            assert.equal(ftr.getFeature(1), "1");
+            assert.equal(ftr.getFeature(2), "2");
         })
         it('should return the name of the features of extractor type: multinomial', function () {
             var ftr = new qm.FeatureSpace(base, { type: "multinomial", source: "FtrSpaceTest", field: "Categories", values: ["a", "b", "c", "q", "w", "e"] });
@@ -829,9 +722,9 @@ describe('Feature Space Tests', function () {
         })
         it('should return the name of the features of extractor type: multinomial, hashDimension', function () {
             var ftr = new qm.FeatureSpace(base, { type: "multinomial", source: "FtrSpaceTest", field: "Categories", hashDimension: 3 });
-            assert.equal(ftr.getFeature(0), "hash");
-            assert.equal(ftr.getFeature(1), "hash");
-            assert.equal(ftr.getFeature(2), "hash");
+            assert.equal(ftr.getFeature(0), "0");
+            assert.equal(ftr.getFeature(1), "1");
+            assert.equal(ftr.getFeature(2), "2");
         })
         it('should return the name of the features of extractor type: text', function () {
             var ftr = new qm.FeatureSpace(base, { type: "text", source: "FtrSpaceTest", field: "Text", hashDimension: 3, ngrams: [1, 4] });

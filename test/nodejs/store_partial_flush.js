@@ -77,21 +77,21 @@ describe('Partial-flush tests', function () {
                 Director: [director]
             });
             if (i % 10000 == 0) {
-                console.log("partial flush ", i);
+                //console.log("partial flush ", i);
                 base.partialFlush(100);
-                console.log(".");
+                //console.log(".");
             }
         }
-        console.log("Closing base");
+        //console.log("Closing base");
         base.close();
         
-        console.log("Opening base");
+        //console.log("Opening base");
         var base2 = new qm.Base({ mode: 'open' });
         var store2 = base2.store(tab2_name);
         var recs2 = store2.allRecords;
         assert.equal(recs2.length, rec_cnt);
         
-        console.log("Checking records");
+        //console.log("Checking records");
         for (var i = 0; i < rec_cnt; i++) {
             var rec2 = recs2[i];
             assert.equal(rec2.Name, "Another name " + i);
@@ -105,9 +105,9 @@ describe('Partial-flush tests', function () {
                 Director: [director2]
             });
             if (i % 10000 == 0) {
-                console.log("partial flush ", i);
+                //console.log("partial flush ", i);
                 base2.partialFlush(100);
-                console.log(".");
+                //console.log(".");
             }
         }
         base2.close();
@@ -179,27 +179,27 @@ describe('Partial-flush tests', function () {
             //console.log(rec)
             base.store(tab2_name).push(rec);
             if (i % 10000 == 0) {
-                console.log("partial flush ", i);
+                //console.log("partial flush ", i);
                 base.partialFlush(100);
-                console.log(".");
+                //console.log(".");
             }
         }
-        console.log("Closing base");
+        //console.log("Closing base");
         base.close();
         
-        console.log("Opening base");
+        //console.log("Opening base");
         var base2 = new qm.Base({ mode: 'open' });
         var store2 = base2.store(tab2_name);
         var recs2 = store2.allRecords;
         assert.equal(recs2.length, rec_cnt);
         
-        console.log("Checking records");
+        //console.log("Checking records");
         for (var i = 0; i < rec_cnt; i++) {
             var rec2 = recs2[i];
             assert.equal(rec2.server, (i % 2 == 0 ? "s1" : "s2"));
         }
         
-        console.log("Adding new data");
+        //console.log("Adding new data");
         now = new Date();
         for (var i = rec_cnt; i < 2 * rec_cnt; i++) {
             var rec2 = { 
@@ -220,9 +220,9 @@ describe('Partial-flush tests', function () {
             };
             base2.store(tab2_name).push(rec2);
             if (i % 10000 == 0) {
-                console.log("partial flush ", i);
+                //console.log("partial flush ", i);
                 base2.partialFlush(100);
-                console.log(".");
+                //console.log(".");
             }
         }
         base2.close();

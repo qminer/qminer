@@ -18,14 +18,14 @@ namespace TQm {
 // QMiner-Server-Function
 class TSrvFun : public TSAppSrvFun {
 protected:
-	TWPt<TBase> Base;
+    TWPt<TBase> Base;
 protected:
-	TSrvFun(const TWPt<TBase>& _Base, const TStr& FunNm, const TSAppOutType& OutType): 
-		 TSAppSrvFun(FunNm, OutType), Base(_Base) { }
+    TSrvFun(const TWPt<TBase>& _Base, const TStr& FunNm, const TSAppOutType& OutType): 
+         TSAppSrvFun(FunNm, OutType), Base(_Base) { }
 
-	const TWPt<TBase>& GetBase() const { return Base; }
+    const TWPt<TBase>& GetBase() const { return Base; }
 public:
-	static void RegDefFun(const TWPt<TBase>& Base, TSAppSrvFunV& SrvFunV);
+    static void RegDefFun(const TWPt<TBase>& Base, TSAppSrvFunV& SrvFunV);
 };
 
 ///////////////////////////////////////////
@@ -33,11 +33,11 @@ public:
 //  stops qminer server
 class TSfExit: public TSrvFun {
 private:
-	TSfExit(const TWPt<TBase>& Base): TSrvFun(Base, "exit", saotJSon) { }
+    TSfExit(const TWPt<TBase>& Base): TSrvFun(Base, "exit", saotJSon) { }
 public:
-	static PSAppSrvFun New(const TWPt<TBase>& Base) { return new TSfExit(Base); }
+    static PSAppSrvFun New(const TWPt<TBase>& Base) { return new TSfExit(Base); }
 
-	TStr ExecJSon(const TStrKdV& FldNmValPrV, const PSAppSrvRqEnv& RqEnv);
+    TStr ExecJSon(const TStrKdV& FldNmValPrV, const PSAppSrvRqEnv& RqEnv);
 };
 
 ///////////////////////////////////////////
@@ -45,11 +45,11 @@ public:
 //  for testing failover
 class TSfFail: public TSrvFun {
 private:
-	TSfFail(const TWPt<TBase>& Base): TSrvFun(Base, "fail", saotJSon) { }
+    TSfFail(const TWPt<TBase>& Base): TSrvFun(Base, "fail", saotJSon) { }
 public:
-	static PSAppSrvFun New(const TWPt<TBase>& Base) { return new TSfFail(Base); }
+    static PSAppSrvFun New(const TWPt<TBase>& Base) { return new TSfFail(Base); }
 
-	TStr ExecJSon(const TStrKdV& FldNmValPrV, const PSAppSrvRqEnv& RqEnv) { 
+    TStr ExecJSon(const TStrKdV& FldNmValPrV, const PSAppSrvRqEnv& RqEnv) { 
         FailR("FailoverTest"); return ""; }
 };
 
@@ -58,12 +58,12 @@ public:
 //  lists all stores in the base and their definiton
 class TSfStores: public TSrvFun {
 private:
-	TSfStores(const TWPt<TBase>& Base):	TSrvFun(Base, "qm_stores", saotJSon) { }
+    TSfStores(const TWPt<TBase>& Base): TSrvFun(Base, "qm_stores", saotJSon) { }
 public:
-	static PSAppSrvFun New(const TWPt<TBase>& Base) { return new TSfStores(Base); }
-	static PJsonVal GetStoreJson(const TWPt<TBase>& Base, const TWPt<TStore>& Store);
+    static PSAppSrvFun New(const TWPt<TBase>& Base) { return new TSfStores(Base); }
+    static PJsonVal GetStoreJson(const TWPt<TBase>& Base, const TWPt<TStore>& Store);
 
-	TStr ExecJSon(const TStrKdV& FldNmValPrV, const PSAppSrvRqEnv& RqEnv);
+    TStr ExecJSon(const TStrKdV& FldNmValPrV, const PSAppSrvRqEnv& RqEnv);
 };
 
 ///////////////////////////////////////////
@@ -71,13 +71,13 @@ public:
 //  lists all complete vocabulray for given key
 class TSfWordVoc: public TSrvFun {
 private:
-	void GetWordVoc(const TStrKdV& FldNmValPrV, TStrIntPrV& WordStrFqV); 
+    void GetWordVoc(const TStrKdV& FldNmValPrV, TStrIntPrV& WordStrFqV); 
 
-	TSfWordVoc(const TWPt<TBase>& Base): TSrvFun(Base, "qm_wordvoc", saotJSon) { }
+    TSfWordVoc(const TWPt<TBase>& Base): TSrvFun(Base, "qm_wordvoc", saotJSon) { }
 public:
-	static PSAppSrvFun New(const TWPt<TBase>& Base) { return new TSfWordVoc(Base); }
+    static PSAppSrvFun New(const TWPt<TBase>& Base) { return new TSfWordVoc(Base); }
 
-	TStr ExecJSon(const TStrKdV& FldNmValPrV, const PSAppSrvRqEnv& RqEnv);
+    TStr ExecJSon(const TStrKdV& FldNmValPrV, const PSAppSrvRqEnv& RqEnv);
 };
 
 ///////////////////////////////////////////
@@ -85,15 +85,15 @@ public:
 //  lists all the fields and values from a record
 class TSfStoreRec: public TSrvFun {
 private:
-	// helper functions for parsing input parameters
-	TWPt<TStore> GetStore(const TStrKdV& FldNmValPrV) const;
-	TRec GetRec(const TStrKdV& FldNmValPrV, const TWPt<TStore>& Store) const;
+    // helper functions for parsing input parameters
+    TWPt<TStore> GetStore(const TStrKdV& FldNmValPrV) const;
+    TRec GetRec(const TStrKdV& FldNmValPrV, const TWPt<TStore>& Store) const;
 
-	TSfStoreRec(const TWPt<TBase>& Base): TSrvFun(Base, "qm_record", saotJSon) { }
+    TSfStoreRec(const TWPt<TBase>& Base): TSrvFun(Base, "qm_record", saotJSon) { }
 public:
-	static PSAppSrvFun New(const TWPt<TBase>& Base) { return new TSfStoreRec(Base); }
+    static PSAppSrvFun New(const TWPt<TBase>& Base) { return new TSfStoreRec(Base); }
 
-	TStr ExecJSon(const TStrKdV& FldNmValPrV, const PSAppSrvRqEnv& RqEnv);
+    TStr ExecJSon(const TStrKdV& FldNmValPrV, const PSAppSrvRqEnv& RqEnv);
 };
 
 ///////////////////////////////////////////
@@ -101,11 +101,11 @@ public:
 //  dumps statistics to disk
 class TSfDebug: public TSrvFun {
 private:
-	TSfDebug(const TWPt<TBase>& Base): TSrvFun(Base, "qm_debug", saotJSon) { }
+    TSfDebug(const TWPt<TBase>& Base): TSrvFun(Base, "qm_debug", saotJSon) { }
 public:
-	static PSAppSrvFun New(const TWPt<TBase>& Base) { return new TSfDebug(Base); }
+    static PSAppSrvFun New(const TWPt<TBase>& Base) { return new TSfDebug(Base); }
 
-	TStr ExecJSon(const TStrKdV& FldNmValPrV, const PSAppSrvRqEnv& RqEnv);
+    TStr ExecJSon(const TStrKdV& FldNmValPrV, const PSAppSrvRqEnv& RqEnv);
 };
 
 ///////////////////////////////////////////
@@ -113,11 +113,11 @@ public:
 //  executes partial flush of data from memory to disk
 class TSfPartialFlush : public TSrvFun {
 private:
-	TSfPartialFlush(const TWPt<TBase>& Base) : TSrvFun(Base, "qm_partial_flush", saotJSon) {}
+    TSfPartialFlush(const TWPt<TBase>& Base) : TSrvFun(Base, "qm_partial_flush", saotJSon) {}
 public:
-	static PSAppSrvFun New(const TWPt<TBase>& Base) { return new TSfPartialFlush(Base); }
+    static PSAppSrvFun New(const TWPt<TBase>& Base) { return new TSfPartialFlush(Base); }
 
-	TStr ExecJSon(const TStrKdV& FldNmValPrV, const PSAppSrvRqEnv& RqEnv);
+    TStr ExecJSon(const TStrKdV& FldNmValPrV, const PSAppSrvRqEnv& RqEnv);
 };
 }  // namespace
 

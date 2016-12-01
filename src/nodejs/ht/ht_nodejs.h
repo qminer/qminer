@@ -8,7 +8,6 @@
 #ifndef QMINER_HT_NODEJS_H
 #define QMINER_HT_NODEJS_H
 
-
 #include <node.h>
 #include <node_object_wrap.h>
 #include "base.h"
@@ -161,6 +160,7 @@ template <class TKey = TStr, class TDat = TInt, class TAux = TAuxStrIntH>
 class TNodeJsHash : public node::ObjectWrap {
 	friend class TNodeJsUtil;
 public:
+
     typedef THash<TKey, TDat> TKeyDatH;
     TKeyDatH Map;
 
@@ -183,7 +183,7 @@ public:
 
 	/**
 	* <% title %> 
-	* @classdesc Used for storing key/data pairs, wrapps an efficient C++ implementation.
+	* @classdesc Used for storing key/data pairs, wraps an efficient C++ implementation.
 	* @class
 	* @example
 	* // create a new hashtable
@@ -210,80 +210,177 @@ public:
 	JsDeclareFunction(New);	
 	
 	/**
-	* Returns dat given key
+	* Returns dat given key.
 	* @param {<% keyType %>} key - Hashmap key.
 	* @returns {<% datType %>} Hashmap data.
+    * @example
+    * // import modules
+    * var qm = require('qminer');
+    * var ht = qm.ht;
+    * // create a new hashtable
+    * var h = new ht.<% className %>();
+    * // add a key/dat pair
+    * h.put(<% key1 %>, <% val1 %>);
+    * // get the newly added data
+    * var val = h.get(<% key1 %>); // returns <% val1 %>
 	*/
     //# exports.<% className %>.prototype.get = function(key) { return <% defaultVal %>; }
     JsDeclareFunction(get);
 	
 	/**
-	* add/update key-value pair
+	* Add/update key-value pair.
 	* @param {<% keyType %>} key - Hashmap key.
 	* @param {<% datType %>} data - Hashmap data.
 	* @returns {module:ht.<% className %>} Self.
+    * @example
+    * // import modules
+    * var qm = require('qminer');
+    * var ht = qm.ht;
+    * // create a new hashtable
+    * var h = new ht.<% className %>();
+    * // add a key/dat pair
+    * h.put(<% key1 %>, <% val1 %>);
 	*/
     //# exports.<% className %>.prototype.put = function(key, data) { return this; }
     JsDeclareFunction(put);    
 	
 	/**
-	* returns true if the map has a given key 
+	* Returns true if the map has a given key.
 	* @param {<% keyType %>} key - Hashmap key.	
-	* @returns {boolean} True if the map contains key.
+	* @returns {boolean} True if the map contains key. Otherwise, false.
+    * @example
+    * // import modules
+    * var qm = require('qminer');
+    * var ht = qm.ht;
+    * // create a new hashtable
+    * var h = new ht.<% className %>();
+    * // add a key/dat pair
+    * h.put(<% key1 %>, <% val1 %>);
+    * // check if the hashtable has the key
+    * h.hasKey(<% key1 %>); // returns true
 	*/
     //# exports.<% className %>.prototype.hasKey = function(key) { return false; }
     JsDeclareFunction(hasKey);
 	
 	/**
-    * @property {number} length - Number of key/dat pairs
+    * Number of key/dat pairs. Type `number`.
+    * @example
+    * // create a new hashtable
+	* ht = require('qminer').ht;
+	* var h = new ht.<% className %>();
+	* // Adding two key/dat pairs
+	* h.put(<% key1 %>, <% val1 %>);
+    * // get the number of key/dat pairs
+    * var length = h.length; // returns 1
 	*/
 	//# exports.<% className %>.prototype.length = 0;
 	JsDeclareProperty(length);
     
 	/**
-	* returns n-th key
-	* @param {number} n - Hashmap key number. Should be between 0 and length-1.	
-	* @returns {<% keyType %>} n-th key.
+	* Returns n-th key.
+	* @param {number} n - Hashmap key index number. Should be between 0 and length-1.	
+	* @returns {<% keyType %>} The n-th key.
+    * @example
+    * // import modules
+    * var qm = require('qminer');
+    * var ht = qm.ht;
+    * // create a new hashtable
+    * var h = new ht.<% className %>();
+    * // add a key/dat pair
+    * h.put(<% key1 %>, <% val1 %>);
+    * // get the first key
+    * var key = h.key(0); // returns <% key1 %>
 	*/
     //# exports.<% className %>.prototype.key = function(n) { return <% defaultKey %>; }	
     JsDeclareFunction(key);
 
 	/**
-	* returns n-th dat
-	* @param {number} n - Hashmap dat number. Should be between 0 and length-1
-	* @returns {<% datType %>} n-th data value.
+	* Returns n-th dat.
+	* @param {number} n - Hashmap dat index number. Should be between 0 and length-1.
+	* @returns {<% datType %>} The n-th data value.
+    * @example
+    * // import modules
+    * var qm = require('qminer');
+    * var ht = qm.ht;
+    * // create a new hashtable
+    * var h = new ht.<% className %>();
+    * // add a key/dat pair
+    * h.put(<% key1 %>, <% val1 %>);
+    * // get the first dat
+    * var key = h.key(0); // returns <% val1 %>
 	*/
     //# exports.<% className %>.prototype.dat = function(n) { return <% defaultVal %>; }
     JsDeclareFunction(dat);
     
 	/**
-	* loads the hashtable from input stream
+	* Loads the hashtable from input stream.
 	* @param {module:fs.FIn} fin - Input stream.	
 	* @returns {module:ht.<% className %>} Self.
+    * @example
+    * // import modules
+    * var qm = require('qminer');
+    * var ht = qm.ht;
+    * var fs = qm.fs;
+    * // create a new hashtable
+    * var h = new ht.<% className %>();
+    * fout = fs.openWrite('map.dat'); // open write stream
+    * h.save(fout).close(); // save and close write stream
+    * var fin = fs.openRead('map.dat'); // open read stream
+    * var h2 = new ht.<% className %>();
+    * h2.load(fin); // load
 	*/
     //# exports.<% className %>.prototype.load = function(fin) { return this; }
     JsDeclareFunction(load);
 
 	/**
-	* saves the hashtable to output stream
+	* Saves the hashtable to output stream.
 	* @param {module:fs.FOut} fout - Output stream.	
 	* @returns {module:fs.FOut} fout.
+    * @example
+    * // import modules
+    * var qm = require('qminer');
+    * var ht = qm.ht;
+    * var fs = qm.fs;
+    * // create a new hashtable
+    * var h = new ht.<% className %>();
+    * fout = fs.openWrite('map.dat'); // open write stream
+    * h.save(fout).close(); // save and close write stream
 	*/
     //# exports.<% className %>.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); }
     JsDeclareFunction(save);
 
 	/**
-	* sorts by keys
-	* @param {boolean} [asc=true] - Sort in ascending order?
+	* Sorts by keys.
+	* @param {boolean} [asc=true] - If true, sorts in ascending order.
 	* @returns {module:ht.<% className %>} Self.
+    * @example
+    * // import modules
+    * var qm = require('qminer');
+    * var ht = qm.ht;
+    * // create a new hashtable
+    * var h = new ht.<% className %>();
+    * h.put(<% key1 %>, <% val1 %>);
+    * h.put(<% key2 %>, <% val2 %>);
+    * // sort the hashtable by keys
+    * h.sortKey();
 	*/
 	//# exports.<% className %>.prototype.sortKey = function(asc) { return this; }
 	JsDeclareFunction(sortKey);
 
 	/**
-	* sorts by values
-	* @param {boolean} [asc=true] - Sort in ascending order?
+	* Sorts by dat.
+	* @param {boolean} [asc=true] - If true, sorts in ascending order.
 	* @returns {module:ht.<% className %>} Self.
+    * @example
+    * // import modules
+    * var qm = require('qminer');
+    * var ht = qm.ht;
+    * // create a new hashtable
+    * var h = new ht.<% className %>();
+    * h.put(<% key1 %>, <% val1 %>);
+    * h.put(<% key2 %>, <% val2 %>);
+    * // sort the hashtable by dat
+    * h.sortDat();
 	*/
 	//# exports.<% className %>.prototype.sortDat = function(asc) { return this; }
 	JsDeclareFunction(sortDat);

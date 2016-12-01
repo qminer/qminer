@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.2.0</a>
       </div>
     </div>
   </nav>
@@ -25,9 +25,9 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">StreamAggr</span></h1>
-            <p class="source-link">Source: <a href="qminer_aggrdoc.js.html#source-line-69">qminer_aggrdoc.<wbr>js:69</a></p>
+            <p class="source-link">Source: <a href="qminer_aggrdoc.js.html#source-line-83">qminer_aggrdoc.<wbr>js:83</a></p>
             <div class="symbol-classdesc">
-              <p>Represents the stream aggregate. The class can construct these <a href="module-qm.html#~StreamAggregators">module:qm~StreamAggregators</a>. Also turn to these stream aggregators to see which methods are implemented for them.</p>
+              <p>Represents a stream aggregate. The class can construct these <a href="module-qm.html#~StreamAggregator">module:qm~StreamAggregator</a> objects. Also turn to these stream aggregators to see which methods are implemented.</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -67,7 +67,7 @@
                     <dt><a href="module-qm.StreamAggr.html#getFeatureSpace">getFeatureSpace()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.StreamAggr.html#getFloat">getFloat()</a></dt>
+                    <dt><a href="module-qm.StreamAggr.html#getFloat">getFloat([str])</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.StreamAggr.html#getFloatAt">getFloatAt(idx)</a></dt>
@@ -79,28 +79,25 @@
                     <dt><a href="module-qm.StreamAggr.html#getFloatVector">getFloatVector()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.StreamAggr.html#getInFloat">getInFloat()</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="module-qm.StreamAggr.html#getInFloatVector">getInFloatVector()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.StreamAggr.html#getInTimestamp">getInTimestamp()</a></dt>
+                    <dt><a href="module-qm.StreamAggr.html#getInteger">getInteger([str])</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.StreamAggr.html#getInTimestampVector">getInTimestampVector()</a></dt>
                     <dd>
                     </dd>
-                  </dl>
-                </div>
-                <div class="summary-column">
-                  <dl class="dl-summary-callout">
                     <dt><a href="module-qm.StreamAggr.html#getInValueVector">getInValueVector()</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.StreamAggr.html#getNumberOfRecords">getNumberOfRecords()</a></dt>
                     <dd>
                     </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
                     <dt><a href="module-qm.StreamAggr.html#getOutFloatVector">getOutFloatVector()</a></dt>
                     <dd>
                     </dd>
@@ -108,6 +105,9 @@
                     <dd>
                     </dd>
                     <dt><a href="module-qm.StreamAggr.html#getOutValueVector">getOutValueVector()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.StreamAggr.html#getParams">getParams()</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.StreamAggr.html#getTimestamp">getTimestamp()</a></dt>
@@ -122,16 +122,16 @@
                     <dt><a href="module-qm.StreamAggr.html#getTimestampVector">getTimestampVector()</a></dt>
                     <dd>
                     </dd>
-                  </dl>
-                </div>
-                <div class="summary-column">
-                  <dl class="dl-summary-callout">
                     <dt><a href="module-qm.StreamAggr.html#getValueVector">getValueVector()</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.StreamAggr.html#load">load(fin)</a></dt>
                     <dd>
                     </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
                     <dt><a href="module-qm.StreamAggr.html#onAdd">onAdd(rec)</a></dt>
                     <dd>
                     </dd>
@@ -153,13 +153,16 @@
                     <dt><a href="module-qm.StreamAggr.html#saveJson">saveJson([limit])</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-qm.StreamAggr.html#setParams">setParams(params)</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
               </div>
             </div>
           </section>
           <section>
-            <h2 id="StreamAggr">new&nbsp;<span class="symbol-name">StreamAggr</span><span class="signature"><span class="signature-params">(base, json[, storeName])</span></span></h2>
+            <h2 id="StreamAggr">new&nbsp;<span class="symbol-name">StreamAggr</span><span class="signature"><span class="signature-params">(base, arg[, storeName])</span></span></h2>
             <p>Stream Aggregate</p>
             <section>
               <h3>
@@ -189,14 +192,26 @@ var base = new qm.Base({
 
 // create a new stream aggregator for &#x27;People&#x27; store, get the length of the record name (with the function object)
 var aggr = new qm.StreamAggr(base, new function () {
-   var length = 0;
+   var numOfAdds = 0;
+   var numOfUpdates = 0;
+   var numOfDeletes = 0;
+   var time = &quot;&quot;;
    this.name = &#x27;nameLength&#x27;,
    this.onAdd = function (rec) {
-       length = rec.Name.length;
+       numOfAdds += 1;
+   };
+   this.onUpdate = function (rec) {
+       numOfUpdates += 1;
+   };
+   this.onDelete = function (rec) {
+       numOfDeletes += 1;
+   };
+   this.onTime = function (ts) {
+       time = ts;
    };
    this.saveJson = function (limit) {
-       return { val: length };
-   }
+       return { adds: numOfAdds, updates: numOfUpdates, deletes: numOfDeletes, time: time };
+   };
 }, &quot;People&quot;);
 
 // create a new time series window buffer stream aggregator for &#x27;Laser&#x27; store (with the JSON object)
@@ -240,16 +255,18 @@ base.close();</code></pre>
                   </tr>
                   <tr>
                     <td>
-                      <p>json</p>
+                      <p>arg</p>
                     </td>
                     <td>
-                      <p>(Object or function())</p>
+                      <p>(<a href="module-qm.html#~StreamAggregator">module:qm~StreamAggregator</a> or function())</p>
                     </td>
                     <td>
                       <p>&nbsp;</p>
                     </td>
                     <td>
-                      <p>The JSON object containing the schema of the stream aggregate or the function object defining the operations of the stream aggregate.</p>
+                      <p>Constructor arguments. There are two argument types:
+                        <br>1. Using the <a href="module-qm.html#~StreamAggregator">module:qm~StreamAggregator</a> object,
+                        <br>2. using a function/JavaScript class. The function has defined The object containing the schema of the stream aggregate or the function object defining the operations of the stream aggregate.</p>
                     </td>
                   </tr>
                   <tr>
@@ -263,7 +280,7 @@ base.close();</code></pre>
                       <p>Yes</p>
                     </td>
                     <td>
-                      <p>A store name or an array of store names, where the aggregate will be registered.</p>
+                      <p>The store names where the aggregate will be registered.</p>
                     </td>
                   </tr>
                 </tbody>
@@ -276,26 +293,30 @@ base.close();</code></pre>
             <h2>Properties</h2>
             <section>
               <h3 id="init"><span class="symbol-name">init</span></h3>
-              <p>Returns true when the stream aggregate has enough data to initialize its internal state.</p>
+              <p>Returns true when the stream aggregate has enough data to initialize its internal state. Type <code>init</code>.</p>
               <dl class="dl-compact">
               </dl>
               <h3 id="name"><span class="symbol-name">name</span></h3>
-              <p>Returns the name of the stream aggregate.</p>
+              <p>Returns the name of the stream aggregate. Type <code>string</code>.</p>
               <dl class="dl-compact">
               </dl>
               <h3 id="val"><span class="symbol-name">val</span></h3>
-              <p>Returns the JSON object of the stream aggregate. Same as the method saveJson.</p>
+              <p>Returns the JSON object of the stream aggregate. Same as the method saveJson. Type <code>object</code>.</p>
               <dl class="dl-compact">
               </dl>
             </section>
             <h2>Methods</h2>
             <section>
-              <h3 id="getFeatureSpace"><span class="symbol-name">getFeatureSpace</span><span class="signature"><span class="signature-params">()</span></span></h3>
-              <p>Returns a feature space</p>
+              <h3 id="getFeatureSpace"><span class="symbol-name">getFeatureSpace</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.FeatureSpace.html">module:qm.FeatureSpace</a></span></span></h3>
+              <p>Returns a feature space.</p>
               <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.FeatureSpace.html">module:qm.FeatureSpace</a></code>&nbsp;The feature space.</p>
+                </dd>
               </dl>
-              <h3 id="getFloat"><span class="symbol-name">getFloat</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
-              <p>Returns the value of the specific stream aggregator. For return values see <a href="module-qm.html#~StreamAggregators">module:qm~StreamAggregators</a>.</p>
+              <h3 id="getFloat"><span class="symbol-name">getFloat</span><span class="signature"><span class="signature-params">([str])</span>&nbsp;&rarr; <span class="signature-returns"> (number or null)</span></span></h3>
+              <p>Returns the value of the specific stream aggregator. For return values see <a href="module-qm.html#~StreamAggregator">module:qm~StreamAggregator</a>.</p>
               <section>
                 <h4>
             Example
@@ -344,10 +365,39 @@ var average = averageGrade.getFloat(); // returns 74 + 1/3
 base.close();</code></pre>
                 </div>
               </section>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>str</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The string.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;The value of the stream aggregator.</p>
+                  <p><code>(number or null)</code>&nbsp;A number (stream aggregator specific), possibly null if <code>str</code> was provided.</p>
                 </dd>
               </dl>
               <h3 id="getFloatAt"><span class="symbol-name">getFloatAt</span><span class="signature"><span class="signature-params">(idx)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
@@ -423,7 +473,7 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;The value of the float vector at position idx.</p>
+                  <p><code>number</code>&nbsp;The value of the float vector at position <code>idx</code>.</p>
                 </dd>
               </dl>
               <h3 id="getFloatLength"><span class="symbol-name">getFloatLength</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
@@ -520,8 +570,8 @@ base.close();</code></pre>
                   <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;The vector containing the values of the buffer.</p>
                 </dd>
               </dl>
-              <h3 id="getInFloat"><span class="symbol-name">getInFloat</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
-              <p>Gets the value of the newest record added to the stream aggregator.</p>
+              <h3 id="getInFloatVector"><span class="symbol-name">getInFloatVector</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
+              <p>Gets a vector containing the values that are entering the stream aggregator.</p>
               <section>
                 <h4>
             Example
@@ -533,48 +583,33 @@ var qm = require(&#x27;qminer&#x27;);
 var base = new qm.Base({
    mode: &#x27;createClean&#x27;,
    schema: [{
-       name: &#x27;Marathon&#x27;,
+       name: &#x27;Noise&#x27;,
        fields: [
-           { name: &#x27;Runner&#x27;, type: &#x27;string&#x27; },
-           { name: &#x27;Speed&#x27;, type: &#x27;float&#x27; },
+           { name: &#x27;Decibels&#x27;, type: &#x27;float&#x27; },
            { name: &#x27;Time&#x27;, type: &#x27;datetime&#x27; }
        ]
    }]
 });
-// create a time series stream aggregator that gets the values from the &#x27;Speed&#x27; field
-// and the timestamp from the &#x27;Time&#x27; field. The window size should be 10 minutes.
+// create a time series stream aggregator that takes the values from the &#x27;Decibels&#x27; field
+// and timestamps from the &#x27;Time&#x27; fields. The window size should be 1 second.
 var ts = {
-   name: &#x27;Sensor&#x27;,
+   name: &#x27;Music&#x27;,
    type: &#x27;timeSeriesWinBuf&#x27;,
-   store: &#x27;Marathon&#x27;,
+   store: &#x27;Noise&#x27;,
    timestamp: &#x27;Time&#x27;,
-   value: &#x27;Speed&#x27;,
-   winsize: 600000
+   value: &#x27;Decibels&#x27;,
+   winsize: 1000
 };
-var sensor = base.store(&#x27;Marathon&#x27;).addStreamAggr(ts);
-// add some records to the store
-base.store(&#x27;Marathon&#x27;).push({ Runner: &#x27;Marko Primozic&#x27;, Speed: 13.4, Time: &#x27;2015-07-21T20:23:13.0&#x27; });
-base.store(&#x27;Marathon&#x27;).push({ Runner: &#x27;Leonard Cohen&#x27;, Speed: 14.1, Time: &#x27;2015-07-21T20:24:01.0&#x27; });
-base.store(&#x27;Marathon&#x27;).push({ Runner: &#x27;Coco Chanelle&#x27;, Speed: 13.7, Time: &#x27;2015-07-21T20:24:27.0&#x27; });
-// get the last value that got in the buffer
-var last = sensor.getInFloat(); // returns 13.7
+var music = base.store(&#x27;Noise&#x27;).addStreamAggr(ts);
+// add some records in the store
+base.store(&#x27;Noise&#x27;).push({ Decibels: 54, Time: &#x27;2015-07-21T14:43:00.0&#x27; });
+base.store(&#x27;Noise&#x27;).push({ Decibels: 55, Time: &#x27;2015-07-21T14:43:00.200&#x27; });
+base.store(&#x27;Noise&#x27;).push({ Decibels: 53, Time: &#x27;2015-07-21T14:43:00.800&#x27; });
+base.store(&#x27;Noise&#x27;).push({ Decibels: 54, Time: &#x27;2015-07-21T14:43:01.0&#x27; });
+base.store(&#x27;Noise&#x27;).push({ Decibels: 53, Time: &#x27;2015-07-21T14:43:01.2&#x27; });
+// get the in vector
+var vec = music.getInFloatVector();
 base.close();</code></pre>
-                </div>
-              </section>
-              <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code>number</code>&nbsp;The value of the newest record in the buffer.</p>
-                </dd>
-              </dl>
-              <h3 id="getInFloatVector"><span class="symbol-name">getInFloatVector</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
-              <p>Gets a vector containing the values that are entering the stream aggregator.</p>
-              <section>
-                <h4>
-            Example
-        </h4>
-                <div>
-                  <pre class="prettyprint"><code>// TODO + add unit test!</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -583,51 +618,41 @@ base.close();</code></pre>
                   <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;The vector containing the values that are entering the buffer.</p>
                 </dd>
               </dl>
-              <h3 id="getInTimestamp"><span class="symbol-name">getInTimestamp</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
-              <p>Gets the timestamp of the newest record added to the stream aggregator.</p>
+              <h3 id="getInteger"><span class="symbol-name">getInteger</span><span class="signature"><span class="signature-params">([str])</span>&nbsp;&rarr; <span class="signature-returns"> (number or null)</span></span></h3>
+              <p>A map from strings to integers</p>
               <section>
-                <h4>
-            Example
-        </h4>
-                <div>
-                  <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
-// create a simple base containing one store
-var base = new qm.Base({
-   mode: &#x27;createClean&#x27;,
-   schema: [{
-       name: &#x27;F1&#x27;,
-       fields: [
-           { name: &#x27;Driver&#x27;, type: &#x27;string&#x27; },
-           { name: &#x27;Speed&#x27;, type: &#x27;float&#x27; },
-           { name: &#x27;Time&#x27;, type: &#x27;datetime&#x27; }
-       ]
-   }]
-});
-// create a time series stream aggregator that gets the values from the &#x27;Speed&#x27; field
-// and the timestamp from the &#x27;Time&#x27; field. The window size should be 5 minutes.
-var ts = {
-   name: &#x27;Sensor&#x27;,
-   type: &#x27;timeSeriesWinBuf&#x27;,
-   store: &#x27;F1&#x27;,
-   timestamp: &#x27;Time&#x27;,
-   value: &#x27;Speed&#x27;,
-   winsize: 300000
-};
-var sensor = base.store(&#x27;F1&#x27;).addStreamAggr(ts);
-// add some records to the store
-base.store(&#x27;F1&#x27;).push({ Driver: &#x27;Sebastian Vettel&#x27;, Speed: 203.4, Time: &#x27;2015-07-19T09:32:01.0&#x27; });
-base.store(&#x27;F1&#x27;).push({ Driver: &#x27;Thomas &quot;Tommy&quot; Angelo&#x27;, Speed: 152.8, Time: &#x27;2015-07-19T09:35:23.0&#x27; });
-base.store(&#x27;F1&#x27;).push({ Driver: &#x27;Mark Ham&#x27;, Speed: 189.5, Time: &#x27;2015-07-19T09:38:43.0&#x27; });
-// get the last timestamp that was added in the window buffer
-var time = sensor.getInTimestamp(); // returns 13081772323000
-base.close();</code></pre>
-                </div>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>str</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The string.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;The timestamp given as the number of miliseconds since 01.01.1601, time: 00:00:00.0.</p>
+                  <p><code>(number or null)</code>&nbsp;A number (stream aggregator specific), possibly null if <code>str</code> was provided.</p>
                 </dd>
               </dl>
               <h3 id="getInTimestampVector"><span class="symbol-name">getInTimestampVector</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
@@ -637,7 +662,39 @@ base.close();</code></pre>
             Example
         </h4>
                 <div>
-                  <pre class="prettyprint"><code>// TODO + add unit test!</code></pre>
+                  <pre class="prettyprint"><code>// import qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a simple base containing one store
+var base = new qm.Base({
+   mode: &#x27;createClean&#x27;,
+   schema: [{
+       name: &#x27;Noise&#x27;,
+       fields: [
+           { name: &#x27;Decibels&#x27;, type: &#x27;float&#x27; },
+           { name: &#x27;Time&#x27;, type: &#x27;datetime&#x27; }
+       ]
+   }]
+});
+// create a time series stream aggregator that takes the values from the &#x27;Decibels&#x27; field
+// and timestamps from the &#x27;Time&#x27; fields. The window size should be 1 second.
+var ts = {
+   name: &#x27;Music&#x27;,
+   type: &#x27;timeSeriesWinBuf&#x27;,
+   store: &#x27;Noise&#x27;,
+   timestamp: &#x27;Time&#x27;,
+   value: &#x27;Decibels&#x27;,
+   winsize: 1000
+};
+var music = base.store(&#x27;Noise&#x27;).addStreamAggr(ts);
+// add some records in the store
+base.store(&#x27;Noise&#x27;).push({ Decibels: 54, Time: &#x27;2015-07-21T14:43:00.0&#x27; });
+base.store(&#x27;Noise&#x27;).push({ Decibels: 55, Time: &#x27;2015-07-21T14:43:00.200&#x27; });
+base.store(&#x27;Noise&#x27;).push({ Decibels: 53, Time: &#x27;2015-07-21T14:43:00.800&#x27; });
+base.store(&#x27;Noise&#x27;).push({ Decibels: 54, Time: &#x27;2015-07-21T14:43:01.0&#x27; });
+base.store(&#x27;Noise&#x27;).push({ Decibels: 53, Time: &#x27;2015-07-21T14:43:01.2&#x27; });
+// get the in timestamps
+var vec = music.getInTimestampVector();
+base.close();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -712,7 +769,7 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</code>&nbsp;Vector of floats or a vector of sparse vectors</p>
+                  <p><code>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</code>&nbsp;The vector or sparse matrix of values that just entered the buffer.</p>
                 </dd>
               </dl>
               <h3 id="getNumberOfRecords"><span class="symbol-name">getNumberOfRecords</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
@@ -862,19 +919,19 @@ base.close();</code></pre>
                 </dd>
               </dl>
               <h3 id="getOutValueVector"><span class="symbol-name">getOutValueVector</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</span></span></h3>
-              <p>Gets the vector of 'just-out values (values that have just fallen out of the buffer). Values can be floats or sparse vectors.</p>
-              <section>
-                <h4>
-            Example
-        </h4>
-                <div>
-                  <pre class="prettyprint"><code>// look at the example for getInValueVector</code></pre>
-                </div>
-              </section>
+              <p>Gets the vector of 'just-out' values (values that have just fallen out of the buffer). Values can be floats or sparse vectors. For use example see <a href="module-qm.StreamAggr.html#getOutFloatVector">module:qm.StreamAggr#getOutFloatVector</a>                example.</p>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</code>&nbsp;Vector of floats or a vector of sparse vectors</p>
+                  <p><code>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</code>&nbsp;Vector of floats or a vector of sparse vectors.</p>
+                </dd>
+              </dl>
+              <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
+              <p>Returns all the parameters of the stream aggregate</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Object</code>&nbsp;parameters</p>
                 </dd>
               </dl>
               <h3 id="getTimestamp"><span class="symbol-name">getTimestamp</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
@@ -1006,7 +1063,7 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;The timestamp of the timestamp vector at position idx.</p>
+                  <p><code>number</code>&nbsp;The timestamp of the timestamp vector at position <code>idx</code>.</p>
                 </dd>
               </dl>
               <h3 id="getTimestampLength"><span class="symbol-name">getTimestampLength</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
@@ -1106,15 +1163,7 @@ base.close();</code></pre>
                 </dd>
               </dl>
               <h3 id="getValueVector"><span class="symbol-name">getValueVector</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</span></span></h3>
-              <p>Gets the vector of values in the buffer. Values can be floats or sparse vectors.</p>
-              <section>
-                <h4>
-            Example
-        </h4>
-                <div>
-                  <pre class="prettyprint"><code>// look at the example for getInValueVector</code></pre>
-                </div>
-              </section>
+              <p>Gets the vector of values in the buffer. Values can be floats or sparse vectors. For use example see module:qm.SreamAggr#getInValueVector.</p>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
@@ -1159,7 +1208,7 @@ base.close();</code></pre>
                 </dd>
               </dl>
               <h3 id="onAdd"><span class="symbol-name">onAdd</span><span class="signature"><span class="signature-params">(rec)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></span></span></h3>
-              <p>Executes the function when a new record is put in store.</p>
+              <p>Executes the function when a new record is put in store. For use example see <a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a> constructor example.</p>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -1196,7 +1245,7 @@ base.close();</code></pre>
                 </dd>
               </dl>
               <h3 id="onDelete"><span class="symbol-name">onDelete</span><span class="signature"><span class="signature-params">(rec)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></span></span></h3>
-              <p>Executes the function when a record in the store is deleted.</p>
+              <p>Executes the function when a record in the store is deleted. For use example see <a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a> constructor example.</p>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -1233,7 +1282,7 @@ base.close();</code></pre>
                 </dd>
               </dl>
               <h3 id="onTime"><span class="symbol-name">onTime</span><span class="signature"><span class="signature-params">(ts)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></span></span></h3>
-              <p>Executes the function that updates the aggregate at a given timestamp</p>
+              <p>Executes the function that updates the aggregate at a given timestamp. For use example see <a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a> constructor example.</p>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -1270,7 +1319,7 @@ base.close();</code></pre>
                 </dd>
               </dl>
               <h3 id="onUpdate"><span class="symbol-name">onUpdate</span><span class="signature"><span class="signature-params">(rec)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></span></span></h3>
-              <p>Executes the function when a record in the store is updated.</p>
+              <p>Executes the function when a record in the store is updated. For use example see <a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a> constructor example.</p>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -1308,10 +1357,55 @@ base.close();</code></pre>
               </dl>
               <h3 id="reset"><span class="symbol-name">reset</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></span></span></h3>
               <p>Resets the state of the aggregate.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import the qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a base with a simple store
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [
+   {
+       name: &quot;Heat&quot;,
+       fields: [
+           { name: &quot;Celsius&quot;, type: &quot;float&quot; },
+           { name: &quot;Time&quot;, type: &quot;datetime&quot; }
+       ]
+   }]
+});
+
+// create a new time series stream aggregator for the &#x27;Heat&#x27; store, that takes the values from the &#x27;Celsius&#x27; field
+// and the timestamp from the &#x27;Time&#x27; field. The size of the window should be 1 day.
+var timeser = {
+   name: &#x27;TimeSeriesAggr&#x27;,
+   type: &#x27;timeSeriesWinBuf&#x27;,
+   store: &#x27;Heat&#x27;,
+   timestamp: &#x27;Time&#x27;,
+   value: &#x27;Celsius&#x27;,
+   winsize: 86400000
+};
+var timeSeries = base.store(&quot;Heat&quot;).addStreamAggr(timeser);
+
+// add a moving average aggregator, that is connected with the &#x27;TimeSeriesAggr&#x27; aggregator
+var ma = {
+   name: &#x27;movingAverageAggr&#x27;,
+   type: &#x27;ma&#x27;,
+   store: &#x27;Heat&#x27;,
+   inAggr: &#x27;TimeSeriesAggr&#x27;
+};
+var movingAverage = base.store(&quot;Heat&quot;).addStreamAggr(ma);
+// reset the moving average aggregate
+movingAverage.reset();
+base.close();</code></pre>
+                </div>
+              </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></code>&nbsp;Self.</p>
+                  <p><code><a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></code>&nbsp;Self. The state has been reset.</p>
                 </dd>
               </dl>
               <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
@@ -1348,11 +1442,11 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;The output stream given as the parameter.</p>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;The output stream <code>fout</code>.</p>
                 </dd>
               </dl>
               <h3 id="saveJson"><span class="symbol-name">saveJson</span><span class="signature"><span class="signature-params">([limit])</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
-              <p>When executed it return a JSON object as defined by the user.</p>
+              <p>When executed it return a JSON object as defined by the user. For use example see <a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a> constructor example.</p>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -1387,6 +1481,39 @@ base.close();</code></pre>
                 <dd>
                   <p><code>Object</code>&nbsp;A JSON object as defined by the user.</p>
                 </dd>
+              </dl>
+              <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(params)</span></span></h3>
+              <p>Sets one or more parameters.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>params</p>
+                      </td>
+                      <td>
+                        <p>Object</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>JSON representation of the parameters</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
               </dl>
             </section>
           </section>

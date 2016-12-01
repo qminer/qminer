@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.2.0</a>
       </div>
     </div>
   </nav>
@@ -25,9 +25,9 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">OneVsAll</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1878">analyticsdoc.<wbr>js:1878</a></p>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-2160">analyticsdoc.<wbr>js:2160</a></p>
             <div class="symbol-classdesc">
-              <p>One vs. all model for multiclass prediction. Builds binary model for each category and predicts the one with the highest score. Binary model is provided as part of the constructor.</p>
+              <p>One vs All model for multiclass prediction. Builds binary model for each category and predicts the one with the highest score. Binary model is provided as part of the constructor.</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -58,7 +58,7 @@
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.OneVsAll.html#setParams">setParams()</a></dt>
+                    <dt><a href="module-analytics.OneVsAll.html#setParams">setParams(params)</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -67,7 +67,7 @@
             </div>
           </section>
           <section>
-            <h2 id="OneVsAll">new&nbsp;<span class="symbol-name">OneVsAll</span><span class="signature"><span class="signature-params">([oneVsAllParam])</span></span></h2>
+            <h2 id="OneVsAll">new&nbsp;<span class="symbol-name">OneVsAll</span><span class="signature"><span class="signature-params">([arg])</span></span></h2>
             <section>
               <h3>
             Example
@@ -93,7 +93,7 @@ var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 1
                 <tbody>
                   <tr>
                     <td>
-                      <p>oneVsAllParam</p>
+                      <p>arg</p>
                     </td>
                     <td>
                       <p><a href="module-analytics.html#~oneVsAllParam">module:analytics~oneVsAllParam</a></p>
@@ -102,7 +102,7 @@ var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 1
                       <p>Yes</p>
                     </td>
                     <td>
-                      <p>Constructor parameters.</p>
+                      <p>Construction arguments.</p>
                     </td>
                   </tr>
                 </tbody>
@@ -115,7 +115,7 @@ var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 1
             <h2>Methods</h2>
             <section>
               <h3 id="decisionFunction"><span class="symbol-name">decisionFunction</span><span class="signature"><span class="signature-params">(X)</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</span></span></h3>
-              <p>Apply all models to the given vector and returns a vector of scores, one for each category. Semantic of scores depand on the provided binary model.</p>
+              <p>Apply all models to the given vector and returns a vector of scores, one for each category. Semantic of scores depend on the provided binary model.</p>
               <section>
                 <h4>
             Example
@@ -134,7 +134,7 @@ onevsall.fit(matrix, vector);
 // create the vector for the decisionFunction
 var test = new la.Vector([1, 2]);
 // give the vector to the decision function
-var prediction = onevsall.predict(test); // returns the vector of scores</code></pre>
+var prediction = onevsall.decisionFunction(test); // returns the vector of scores</code></pre>
                 </div>
               </section>
               <section>
@@ -160,7 +160,7 @@ var prediction = onevsall.predict(test); // returns the vector of scores</code><
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Input feature vector or matrix with feature vectors as columns.</p>
+                        <p>Feature vector or matrix with feature vectors as columns.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -169,9 +169,9 @@ var prediction = onevsall.predict(test); // returns the vector of scores</code><
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</code>&nbsp;The score and label of the input:
-                    <br>1. <a href="module-la.Vector.html">module:la.Vector</a> of scores, if X is of type <a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.SparseVector.html">module:la.SparseVector</a>.
-                    <br>2. <a href="module-la.Matrix.html">module:la.Matrix</a> with columns corresponding to instances, and rows corresponding to labels, if X is of type <a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>.</p>
+                  <p><code>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</code>&nbsp;The score and label of the input <code>X</code>:
+                    <br>1. <a href="module-la.Vector.html">module:la.Vector</a> of scores, if <code>X</code> is of type <a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.SparseVector.html">module:la.SparseVector</a>.
+                    <br>2. <a href="module-la.Matrix.html">module:la.Matrix</a> with columns corresponding to instances, and rows corresponding to labels, if <code>X</code> is of type <a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>.</p>
                 </dd>
               </dl>
               <h3 id="fit"><span class="symbol-name">fit</span><span class="signature"><span class="signature-params">(X, y)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.OneVsAll.html">module:analytics.OneVsAll</a></span></span></h3>
@@ -230,7 +230,7 @@ onevsall.fit(matrix, vector);</code></pre>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>target category for each training instance. Categories must be integer numbers between 0 and oneVsAllParam.categories - 1.</p>
+                        <p>target category for each training instance. Categories must be integer numbers between <code>0</code> and <code>oneVsAllParam.categories-1</code>.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -239,10 +239,10 @@ onevsall.fit(matrix, vector);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.OneVsAll.html">module:analytics.OneVsAll</a></code>&nbsp;Self. The models are now fitted.</p>
+                  <p><code><a href="module-analytics.OneVsAll.html">module:analytics.OneVsAll</a></code>&nbsp;Self. The models have been fitted.</p>
                 </dd>
               </dl>
-              <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
+              <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.html#~oneVsAllParam">module:analytics~oneVsAllParam</a></span></span></h3>
               <p>Gets the parameters.</p>
               <section>
                 <h4>
@@ -262,7 +262,7 @@ var params = onevsall.getParams();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Object</code>&nbsp;Json object containing the parameters.</p>
+                  <p><code><a href="module-analytics.html#~oneVsAllParam">module:analytics~oneVsAllParam</a></code>&nbsp;The constructor parameters.</p>
                 </dd>
               </dl>
               <h3 id="predict"><span class="symbol-name">predict</span><span class="signature"><span class="signature-params">(X)</span>&nbsp;&rarr; <span class="signature-returns"> (number or <a href="module-la.IntVector.html">module:la.IntVector</a>)</span></span></h3>
@@ -311,7 +311,7 @@ var prediction = onevsall.predict(test); // returns 0</code></pre>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Input feature vector or matrix with feature vectors as columns.</p>
+                        <p>Feature vector or matrix with feature vectors as columns.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -320,12 +320,12 @@ var prediction = onevsall.predict(test); // returns 0</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>(number or <a href="module-la.IntVector.html">module:la.IntVector</a>)</code>&nbsp;Returns:
-                    <br>1. number of the category with the higher score, if X is <a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.SparseVector.html">module:la.SparseVector</a>.
-                    <br>2. <a href="module-la.IntVector.html">module:la.IntVector</a> of categories with the higher score for each column of X, if X is <a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>.</p>
+                  <p><code>(number or <a href="module-la.IntVector.html">module:la.IntVector</a>)</code>&nbsp;
+                    <br>1. number of the category with the higher score, if <code>X</code> is <a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.SparseVector.html">module:la.SparseVector</a>.
+                    <br>2. <a href="module-la.IntVector.html">module:la.IntVector</a> of categories with the higher score for each column of <code>X</code>, if <code>X</code> is <a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>.</p>
                 </dd>
               </dl>
-              <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.OneVsAll.html">module:analytics.OneVsAll</a></span></span></h3>
+              <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(params)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.OneVsAll.html">module:analytics.OneVsAll</a></span></span></h3>
               <p>Sets the parameters.</p>
               <section>
                 <h4>
@@ -339,6 +339,35 @@ var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 1
 // set the parameters
 var params = onevsall.setParams({ model: analytics.SVR, modelParam: { c: 12, maxTime: 10000}, cats: 3, verbose: true });</code></pre>
                 </div>
+              </section>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>params</p>
+                      </td>
+                      <td>
+                        <p>module:analytics~OneVsAllParam</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The constructor parameters.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>

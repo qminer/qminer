@@ -1,6 +1,6 @@
 {
   "name": "qminer",
-  "version": "4.9.0",
+  "version": "7.3.0",
   "description": "A C++ based data analytics platform for processing large-scale real-time streams containing structured and unstructured data",
   "engines": {
     "node": ">=0.12"
@@ -98,6 +98,7 @@
     "node-pre-gyp"
   ],
   "devDependencies": {
+    "async": "^2.0.0-rc.6",
     "aws-sdk": "~2.0.0-rc.15",
     "jsdoc": "~3.3.0-beta3",
     "jsdoc-baseline": "https://github.com/hegemonic/jsdoc-baseline.git#d161c4136e12ca5d5674747d4b115067a6980185",
@@ -106,7 +107,7 @@
   },
   "scripts": {
     "install": "node-pre-gyp install --fallback-to-build",
-    "test": "./test/nodejs/test.sh"
+    "test": "cd test & cd nodejs & mocha *.js --timeout 30000"
   },
   "binary": {
     "module_name": "qm",

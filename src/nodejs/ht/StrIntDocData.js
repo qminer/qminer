@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 exports.view = {
-	"title" : "String-Integer hashmap",
+	"title" : "String-Integer hashmap.",
 	"className" : "StrIntMap",
 	"key1" : "'foo'",
 	"val1" : "10",

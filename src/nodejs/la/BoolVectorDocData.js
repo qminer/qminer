@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 exports.view = {
-    "title": "Vector - array of boolean",
+    "title": "Vector - array of boolean.",
     "className": "BoolVector",
     "elementType": "boolean",
 
@@ -16,12 +16,15 @@ exports.view = {
     "output2": "[true, false, true]",
     "output3": "[true]",
 
+	"val1": "false",
+	
     "sortCallback": "boolVectorCompareCb",
     "exampleSort": "[true, false, false]",
     "inputSort": "function(arg1, arg2) { return arg2; }",
     "outputSort": "[false, true, true]",
     "outputSortAsc": "[false, true, true]",
     
+	"skipSubVec": "skip.",
     "skipInner": "skip.",
     "skipSum": "skip.",
     "skipGetMaxIdx": "skip.",

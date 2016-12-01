@@ -169,7 +169,7 @@ void TSparseRowMatrix::Init() {
 ///////////////////////////////////////////////////////////////////////
 // Full-Col-Matrix
 TFullColMatrix::TFullColMatrix(const TStr& MatlabMatrixFNm): TMatrix() {
-    TLAMisc::LoadMatlabTFltVV(MatlabMatrixFNm, ColV);
+    TLinAlgIO::LoadMatlabTFltVV(MatlabMatrixFNm, ColV);
     RowN=ColV[0].Len(); ColN=ColV.Len();
     for (int i = 0; i < ColN; i++) {
         EAssertR(ColV[i].Len() == RowN, TStr::Fmt("%d != %d", ColV[i].Len(), RowN));
@@ -258,11 +258,779 @@ void TStructuredCovarianceMatrix::PMultiplyT(const TFltVV& B, TFltVV& Result) co
 
 void TStructuredCovarianceMatrix::PMultiplyT(const TFltV& Vec, TFltV& Result) const {
     FailR("Not implemented yet"); // TODO
-} 
+}
+
+//////////////////////////////////////////////////////////////////////
+// Linear algebra input/output operations
+void TLinAlgIO::SaveCsvTFltV(const TFltV& Vec, TSOut& SOut) {
+    for (int ValN = 0; ValN < Vec.Len(); ValN++) {
+        SOut.PutFlt(Vec[ValN]); SOut.PutCh(',');
+    }
+    SOut.PutLn();
+}
+
+void TLinAlgIO::SaveMatlabTFltIntKdV(const TIntFltKdV& SpV, const int& ColN, TSOut& SOut) {
+    const int Len = SpV.Len();
+    for (int ValN = 0; ValN < Len; ValN++) {
+        SOut.PutStrLn(TStr::Fmt("%d %d %g", SpV[ValN].Key+1, ColN+1, SpV[ValN].Dat()));
+    }
+}
+
+void TLinAlgIO::SaveMatlabSpMat(const TVec<TIntFltKdV>& SpMat, TSOut& SOut) {
+	int Cols = SpMat.Len();
+	for (int ColN = 0; ColN < Cols; ColN++) {
+		int Els = SpMat[ColN].Len();
+		for (int ElN = 0; ElN < Els; ElN++) {
+			SOut.PutStrLn(SpMat[ColN][ElN].Key.GetStr() + " " + TInt::GetStr(ColN) + " " + TStr::Fmt("%.17g", SpMat[ColN][ElN].Dat.Val));
+		}
+	}
+	SOut.Flush();
+}
+
+
+void TLinAlgIO::SaveMatlabSpMat(const TTriple<TIntV, TIntV,TFltV>& SpMat, TSOut& SOut) {
+	int Len = SpMat.Val1.Len();
+	for (int ElN = 0; ElN < Len; ElN++) {
+		SOut.PutStrLn(SpMat.Val1[ElN].GetStr() + " " + SpMat.Val2[ElN].GetStr() + " " + SpMat.Val3[ElN].GetStr());
+	}
+	SOut.Flush();
+}
+
+void TLinAlgIO::SaveMatlabTFltV(const TFltV& m, const TStr& FName) {
+    PSOut out = TFOut::New(FName);
+    const int RowN = m.Len();
+    for (int RowId = 0; RowId < RowN; RowId++) {
+        out->PutStr(TFlt::GetStr(m[RowId], 20, 18));
+        out->PutCh('\n');
+    }
+    out->Flush();
+}
+
+void TLinAlgIO::SaveMatlabTIntV(const TIntV& m, const TStr& FName) {
+    PSOut out = TFOut::New(FName);
+    const int RowN = m.Len();
+    for (int RowId = 0; RowId < RowN; RowId++) {
+        out->PutInt(m[RowId]);
+        out->PutCh('\n');
+    }
+    out->Flush();
+}
+
+void TLinAlgIO::SaveMatlabTFltVVCol(const TFltVV& m, int ColId, const TStr& FName) {
+    PSOut out = TFOut::New(FName);
+    const int RowN = m.GetRows();
+    for (int RowId = 0; RowId < RowN; RowId++) {
+        out->PutStr(TFlt::GetStr(m(RowId,ColId), 20, 18));
+        out->PutCh('\n');
+    }
+    out->Flush();
+}
+
+
+void TLinAlgIO::SaveMatlabTFltVV(const TFltVV& m, const TStr& FName) {
+    PSOut out = TFOut::New(FName);
+    TLinAlgIO::SaveMatlabTFltVV(m, *out);
+}
+
+void TLinAlgIO::SaveMatlabTFltVV(const TFltVV& m, TSOut& SOut) {
+	const int RowN = m.GetRows();
+	const int ColN = m.GetCols();
+	for (int RowId = 0; RowId < RowN; RowId++) {
+		for (int ColId = 0; ColId < ColN; ColId++) {
+			SOut.PutStr(TFlt::GetStr(m(RowId, ColId), 20, 18));
+			SOut.PutCh(' ');
+		}
+		SOut.PutCh('\n');
+	}
+	SOut.Flush();
+}
+
+void TLinAlgIO::SaveMatlabTFltVVMjrSubMtrx(const TFltVV& m,
+        int RowN, int ColN, const TStr& FName) {
+
+    PSOut out = TFOut::New(FName);
+    for (int RowId = 0; RowId < RowN; RowId++) {
+        for (int ColId = 0; ColId < ColN; ColId++) {
+            out->PutStr(TFlt::GetStr(m(RowId,ColId), 20, 18)); out->PutCh(' ');
+        }
+        out->PutCh('\n');
+    }
+    out->Flush();
+}
+
+void TLinAlgIO::LoadMatlabTFltVV(const TStr& FNm, TVec<TFltV>& ColV) {
+    PSIn SIn = TFIn::New(FNm);
+    TLinAlgIO::LoadMatlabTFltVV(ColV, *SIn);
+}
+
+void TLinAlgIO::LoadMatlabTFltVV(const TStr& FNm, TFltVV& MatrixVV) {
+	PSIn SIn = TFIn::New(FNm);
+	TLinAlgIO::LoadMatlabTFltVV(MatrixVV, *SIn);
+}
+
+void TLinAlgIO::LoadMatlabTFltVV(TFltVV& MatrixVV, TSIn& SIn) {
+	TVec<TFltV> ColV; LoadMatlabTFltVV(ColV, SIn);
+	if (ColV.Empty()) { MatrixVV.Clr(); return; }
+	const int Rows = ColV[0].Len(), Cols = ColV.Len();
+	MatrixVV.Gen(Rows, Cols);
+	for (int RowN = 0; RowN < Rows; RowN++) {
+		for (int ColN = 0; ColN < Cols; ColN++) {
+			MatrixVV(RowN, ColN) = ColV[ColN][RowN];
+		}
+	}
+}
+
+void TLinAlgIO::LoadMatlabTFltVV(TVec<TFltV>& ColV, TSIn& SIn) {
+	TILx Lx(&SIn, TFSet() | iloRetEoln | iloSigNum | iloExcept);
+	int Row = 0, Col = 0; ColV.Clr();
+	Lx.GetSym(syFlt, syEof, syEoln);
+	//printf("%d x %d\r", Row, ColV.Len());
+	while (Lx.Sym != syEof) {
+		if (Lx.Sym == syFlt) {
+			if (ColV.Len() > Col) {
+				EAssert(ColV[Col].Len() == Row);
+				ColV[Col].Add(Lx.Flt);
+			}
+			else {
+				EAssert(Row == 0);
+				ColV.Add(TFltV::GetV(Lx.Flt));
+			}
+			Col++;
+		}
+		else if (Lx.Sym == syEoln) {
+			EAssert(Col == ColV.Len());
+			Col = 0; Row++;
+			if (Row % 100 == 0) {
+				//printf("%d x %d\r", Row, ColV.Len());
+			}
+		}
+		else {
+			Fail;
+		}
+		Lx.GetSym(syFlt, syEof, syEoln);
+	}
+	//printf("\n");
+	EAssert(Col == ColV.Len() || Col == 0);
+}
+
+void TLinAlgIO::PrintTFltV(const TFltV& Vec, const TStr& VecNm) {
+    printf("%s = [", VecNm.CStr());
+    for (int i = 0; i < Vec.Len(); i++) {
+        printf("%.5f", Vec[i]());
+		if (i < Vec.Len() - 1) { printf(", "); }
+    }
+    printf("]\n");
+}
+
+void TLinAlgIO::PrintTFltVVToStr(const TFltVV& A, TStr& Out) {
+	Out = "";
+	int Rows = A.GetRows();
+	int Cols = A.GetCols();
+	for (int RowN = 0; RowN < Rows; RowN++) {
+		for (int ColN = 0; ColN < Cols; ColN++) {
+			Out += A.At(RowN,ColN).GetStr() + " ";
+		}
+		Out += "\n";
+	}
+    Out += "\n";
+
+}
+
+void TLinAlgIO::PrintTFltVV(const TFltVV& A, const TStr& MatrixNm) {
+    printf("%s = [\n", MatrixNm.CStr());
+	int Rows = A.GetRows();
+	int Cols = A.GetCols();
+	for (int RowN = 0; RowN < Rows; RowN++) {
+		for (int ColN = 0; ColN < Cols; ColN++) {
+			printf("%f ", A.At(RowN, ColN).Val);
+		}
+		printf("\n");
+	}
+    printf("]\n");
+}
+
+void TLinAlgIO::PrintSpMat(const TTriple<TIntV, TIntV, TFltV>& A, const TStr& MatrixNm) {
+	int Nonzeros = A.Val1.Len();
+	printf("%s = [\n", MatrixNm.CStr());
+	for (int ElN = 0; ElN < Nonzeros; ElN++) {
+		printf("%d %d %f\n", A.Val1[ElN].Val, A.Val2[ElN].Val, A.Val3[ElN].Val);
+	}
+	printf("]\n");
+}
+
+void TLinAlgIO::PrintSpMat(const TVec<TIntFltKdV>& A, const TStr& MatrixNm) {
+	printf("%s = [\n", MatrixNm.CStr());
+	int Cols = A.Len();
+	for (int ColN = 0; ColN < Cols; ColN++) {
+		int Els = A[ColN].Len();
+		for (int ElN = 0; ElN < Els; ElN++) {
+			printf("%d %d %f\n", A[ColN][ElN].Key.Val, ColN, A[ColN][ElN].Dat.Val);
+		}
+	}
+	printf("]\n");
+}
+
+void TLinAlgIO::PrintTIntV(const TIntV& Vec, const TStr& VecNm) {
+    printf("%s = [", VecNm.CStr());
+    for (int i = 0; i < Vec.Len(); i++) {
+        printf("%d", Vec[i]());
+        if (i < Vec.Len() - 1) printf(", ");
+    }
+    printf("]\n");
+}
+
+//////////////////////////////////////////////////////////////////////
+// Statistics on linear algebra structures
+double TLinAlgStat::Mean(const TFltV& Vec) {
+	 EAssertR(Vec.Len() != 0, "TLAMisc::Mean: Vector length should not be zero");
+	 return TLinAlg::SumVec(Vec) / Vec.Len();
+}
+
+void TLinAlgStat::Mean(const TFltVV& Mat, TFltV& Res, const TMatDim& Dim) {
+	 int Rows = Mat.GetRows();
+	 int Cols = Mat.GetCols();
+	 if (Dim == TMatDim::mdCols) {
+		 if (Res.Len() != Cols) {
+			 Res.Gen(Cols);
+		 }
+		 TFltV Vec(Rows);
+		 Vec.PutAll(1.0 / Rows);
+		 TLinAlg::MultiplyT(Mat, Vec, Res);
+	 } else if (Dim == TMatDim::mdRows) {
+		 if (Res.Len() != Rows) {
+			 Res.Gen(Rows);
+		 }
+		 TFltV Vec(Cols);
+		 Vec.PutAll(1.0 / Cols);
+		 TLinAlg::Multiply(Mat, Vec, Res);
+	 }
+}
+
+double TLinAlgStat::Std(const TFltV& Vec, const int& Flag) {
+    EAssertR(Flag == 0 || Flag == 1, "TLAMisc::Std: Invalid value of 'Flag' argument. "
+        "Supported 'Flag' arguments are 0 or 1. See Matlab std() documentation.");
+
+    int Len = Vec.Len();
+
+    double Mean = TLinAlgStat::Mean(Vec);
+    double Scalar = (Flag == 1) ? TMath::Sqrt(1.0 / (Len)) : TMath::Sqrt(1.0 / (Len - 1));
+
+    TFltV TempRes(Len);
+    TFltV Ones(Len);
+    Ones.PutAll(1.0);
+
+    TLinAlg::LinComb(-1, Vec, Mean, Ones, TempRes);
+    return Scalar * TLinAlg::Norm(TempRes);
+}
+
+void TLinAlgStat::Std(const TFltVV& Mat, TFltV& Res, const int& Flag, const TMatDim& Dim) {
+	EAssertR(Flag == 0 || Flag == 1, "TLAMisc::Std: Invalid value of 'Flag' argument. "
+							"Supported 'Flag' arguments are 0 or 1. See Matlab std() documentation.");
+	int Cols = Mat.GetCols();
+	int Rows = Mat.GetRows();
+	TFltV MeanVec;
+	TLinAlgStat::Mean(Mat, MeanVec, Dim);
+	EAssertR(Cols == MeanVec.Len() || Rows == MeanVec.Len(), "TLAMisc::Std");
+
+	if (Dim == TMatDim::mdCols) {
+		if(Res.Empty()) Res.Gen(Cols);
+		EAssertR(Cols == Res.Len(), "TLAMisc::Std");
+
+		double Scalar = (Flag == 1) ? TMath::Sqrt(1.0/(Rows)) : TMath::Sqrt(1.0/(Rows-1));
+		TFltV TempRes(Rows);
+		TFltV Ones(Rows);
+		Ones.PutAll(1.0);
+
+		for (int ColN = 0; ColN < Cols; ColN++) {
+			TLinAlg::LinComb(-1.0, Mat, ColN, MeanVec[ColN], Ones, TempRes);
+			Res[ColN] = Scalar * TLinAlg::Norm(TempRes);
+		}
+	}
+	else if (Dim == TMatDim::mdRows) {
+		if(Res.Empty()) Res.Gen(Rows);
+		EAssertR(Rows == Res.Len(), "TLAMisc::Std");
+
+		double Scalar = (Flag == 1) ? TMath::Sqrt(1.0/(Cols)) : TMath::Sqrt(1.0/(Cols-1));
+		TFltV TempRes(Cols);
+		TFltV Ones(Cols);
+		Ones.PutAll(1.0);
+
+		for (int RowN = 0; RowN < Rows; RowN++) {
+			TLinAlg::LinComb(-1.0, Mat, RowN, MeanVec[RowN], Ones, TempRes, 2);
+			Res[RowN] = Scalar * TLinAlg::Norm(TempRes);
+		}
+	}
+}
+
+void TLinAlgStat::ZScore(const TFltVV& Mat, TFltVV& Res, const int& Flag, const TMatDim& Dim) {
+	EAssertR(Flag == 0 || Flag == 1, "TLAMisc::ZScore: Invalid value of 'Flag' argument. "
+							"Supported 'Flag' arguments are 0 or 1. See Matlab std() documentation.");
+
+	int Cols = Mat.GetCols();
+	int Rows = Mat.GetRows();
+
+	if (Res.Empty()) Res.Gen(Rows, Cols);
+
+	TFltV MeanVec;
+	TLinAlgStat::Mean(Mat, MeanVec, Dim);
+	TFltV StdVec;
+	TLinAlgStat::Std(Mat, StdVec, Flag, Dim);
+
+	if (Dim == TMatDim::mdCols) {
+
+		TFltV TempRes(Rows);
+		TFltV Ones(Rows);
+		Ones.PutAll(1.0);
+
+		for (int ColN = 0; ColN < Cols; ColN++) {
+			TLinAlg::LinComb(1.0/StdVec[ColN], Mat, ColN, -1.0 * MeanVec[ColN]/StdVec[ColN], Ones, TempRes);
+			for (int RowN = 0; RowN < Rows; RowN++) {
+				Res.At(RowN, ColN) = TempRes[RowN];
+			}
+		}
+	}
+	else if (Dim == TMatDim::mdRows) {
+
+		TFltV TempRes(Cols);
+		TFltV Ones(Cols);
+		Ones.PutAll(1.0);
+
+		for (int RowN = 0; RowN < Rows; RowN++) {
+			TLinAlg::LinComb(1.0/StdVec[RowN], Mat, RowN, -1.0 * MeanVec[RowN]/StdVec[RowN], Ones, TempRes, 2);
+			for (int ColN = 0; ColN < Cols; ColN++) {
+				Res.At(RowN, ColN) = TempRes[ColN];
+			}
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////
+/// Transformations of linear algebra structures
+void TLinAlgTransform::Fill(TFltVV& A, const double& val) {
+	const int Rows = A.GetRows();
+	const int Cols = A.GetCols();
+	for (int RowN = 0; RowN < Rows; RowN++) {
+		for (int ColN = 0; ColN < Cols; ColN++) {
+			A.PutXY(RowN, ColN, val);
+		}
+	}
+}
+
+void TLinAlgTransform::Fill(TFltV& V, const double& val){
+	const int n = V.Len();
+	for (int i = 0; i < n; i++){
+		V[i] = val;
+	}
+}
+
+void TLinAlgTransform::FillRnd(const int& Len, TFltV& Vec, TRnd& Rnd) {
+    Vec.Gen(Len);
+    for(int i = 0; i < Len; i++) {
+        Vec[i] = Rnd.GetUniDev();
+    }
+}
+
+void TLinAlgTransform::FillIdentity(TFltVV& M) {
+    EAssert(M.GetRows() == M.GetCols());
+    int Len = M.GetRows();
+    for (int i = 0; i < Len; i++) {
+        for (int j = 0; j < Len; j++) M(i,j) = 0.0;
+        M(i,i) = 1.0;
+    }
+}
+
+void TLinAlgTransform::FillIdentity(TFltVV& M, const double& Elt) {
+    EAssert(M.GetRows() == M.GetCols());
+    int Len = M.GetRows();
+    for (int i = 0; i < Len; i++) {
+        for (int j = 0; j < Len; j++) M(i,j) = 0.0;
+        M(i,i) = Elt;
+    }
+}
+
+/*void TLinAlgTransform::FillRange(const int& Vals, TFltV& Vec) {
+	//Added by Andrej
+	if (Vec.Len() != Vals){
+		Vec.Gen(Vals);
+	}
+	for(int i = 0; i < Vals; i++){
+		Vec[i] = i;
+	}
+}
+void TLinAlgTransform::FillRange(const int& Vals, TIntV& Vec) {
+	//Added by Andrej
+	if (Vec.Len() != Vals){
+		Vec.Gen(Vals);
+	}
+	for (int i = 0; i < Vals; i++){
+		Vec[i] = i;
+	}
+}*/
+
+//void TLinAlgTransform::Diag(const TFltV& Vec, TFltVV& Mat) {
+//	Mat.Gen(Vec.Len(), Vec.Len());
+//	Mat.PutAll(0.0);
+//	for (int ElN = 0; ElN < Vec.Len(); ElN++) {
+//		Mat.At(ElN, ElN) = Vec[ElN];
+//	}
+//}
+
+void TLinAlgTransform::ToSpVec(const TFltV& Vec, TIntFltKdV& SpVec,
+        const double& CutSumPrc) {
+
+    // determine minimal element value
+    EAssert(0.0 <= CutSumPrc && CutSumPrc <= 1.0);
+    const int Elts = Vec.Len();
+    double EltSum = 0.0;
+    for (int EltN = 0; EltN < Elts; EltN++) {
+        EltSum += TFlt::Abs(Vec[EltN]); }
+    const double MnEltVal = CutSumPrc * EltSum;
+    // create sparse vector
+    SpVec.Clr();
+    for (int EltN = 0; EltN < Elts; EltN++) {
+        if (TFlt::Abs(Vec[EltN]) > MnEltVal) {
+            SpVec.Add(TIntFltKd(EltN, Vec[EltN]));
+        }
+    }
+    SpVec.Pack();
+}
+
+void TLinAlgTransform::ToVec(const TIntFltKdV& SpVec, TFltV& Vec, const int& VecLen) {
+    Vec.Gen(VecLen); Vec.PutAll(0.0);
+    int Elts = SpVec.Len();
+    for (int EltN = 0; EltN < Elts; EltN++) {
+        if (SpVec[EltN].Key < VecLen) {
+            Vec[SpVec[EltN].Key] = SpVec[EltN].Dat;
+        }
+    }
+}
+
+void TLinAlgTransform::Convert(const TVec<TPair<TIntV, TFltV>>& A, TTriple<TIntV, TIntV, TFltV>& B) {
+	B.Val1.Clr();
+	B.Val2.Clr();
+	B.Val3.Clr();
+	int Cols = A.Len();
+	for (int ColN = 0; ColN < Cols; ColN++) {
+		int Nnz = A[ColN].Val1.Len();
+		for (int ElN = 0; ElN < Nnz; ElN++) {
+			B.Val1.Add(A[ColN].Val1[ElN]);
+			B.Val2.Add(ColN);
+			B.Val3.Add(A[ColN].Val2[ElN]);
+		}
+	}
+}
+
+void TLinAlgTransform::Convert(const TVec<TIntFltKdV>& A, TTriple<TIntV, TIntV, TFltV>&B) {
+	int Cols = A.Len();
+	int TotalNnz = 0;
+	for (int ColN = 0; ColN < Cols; ColN++) {
+		TotalNnz += A[ColN].Len();
+	}
+	B.Val1.Gen(TotalNnz, 0);
+	B.Val2.Gen(TotalNnz, 0);
+	B.Val3.Gen(TotalNnz, 0);
+	for (int ColN = 0; ColN < Cols; ColN++) {
+		int Nnz = A[ColN].Len();
+		for (int ElN = 0; ElN < Nnz; ElN++) {
+			B.Val1.Add(A[ColN][ElN].Key);
+			B.Val2.Add(ColN);
+			B.Val3.Add(A[ColN][ElN].Dat);
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////
+/// Contains methods to check the properties of linear algebra structures
+bool TLinAlgCheck::IsZeroTol(const TFltV& Vec, const double& Eps) {
+	bool IsZero = true;
+	for (int i = 0; i < Vec.Len(); i++) {
+		if (!TMath::IsInEps((double)Vec[i], Eps)) {
+			IsZero = false;
+			break;
+		}
+	}
+	return IsZero;
+}
+
+bool TLinAlgCheck::IsOrthonormal(const TFltVV& Vecs, const double& Threshold) {
+	int m = Vecs.GetCols();
+	TFltVV R(m, m);
+	TLinAlg::MultiplyT(Vecs, Vecs, R);
+	for (int i = 0; i < m; i++) { R(i, i) -= 1; }
+	return TLinAlg::Frob(R) < Threshold;
+}
 
 ////////////////////////////////////////////////////////////////////////
 //// Basic Linear Algebra Operations
-/// Everything moved to linalg.h
+void TLinAlg::LinComb(const double& p, const TIntFltKdV& x, const double& q, const TIntFltKdV& y, TIntFltKdV& z) {
+	TSparseOpsIntFlt::SparseLinComb(p, x, q, y, z);
+}
+
+void TLinAlg::LinComb(const double& p, const TVec<TIntFltKdV>& X, const double& q, const TVec<TIntFltKdV>& Y, TVec<TIntFltKdV>& Z) {
+    if (Z.Empty()) { Z.Gen(X.Len()); }
+    EAssert(X.Len() == Y.Len() && Y.Len() == Z.Len());
+    int Cols = X.Len();
+    for (int ColN = 0; ColN < Cols; ColN++) {
+        TLinAlg::LinComb(p, X[ColN], q, Y[ColN], Z[ColN]);
+    }
+}
+
+void TLinAlg::LinComb(const double& p, const TFltVV& X, const double& q, const TVec<TIntFltKdV>& Y, TFltVV& Z) {
+    if (Z.Empty()) { Z.Gen(X.GetRows(), X.GetCols()); }
+    EAssert(X.GetRows() >= TLinAlgSearch::GetMaxDimIdx(Y) && X.GetCols() == Y.Len() && X.GetRows() == Z.GetRows() && X.GetCols() == Z.GetCols());
+    int Rows = X.GetRows();
+    int Cols = X.GetCols();
+    for (int ColN = 0; ColN < Cols; ColN++) {
+        int KeyN = 0;
+        for (int RowN = 0; RowN < Rows; RowN++) {
+            Z.At(RowN, ColN) = p*X.At(RowN, ColN);
+            if (KeyN < Y[ColN].Len() && Y[ColN][KeyN].Key == RowN) {
+                Z.At(RowN, ColN) += q*Y[ColN][KeyN].Dat; KeyN++;
+            }
+        }
+    }
+}
+
+void TLinAlg::LinComb(const double& p, const TVec<TIntFltKdV>& X, const double& q, TFltVV const& Y, TVec<TIntFltKdV>& Z) {
+    if (Z.Empty()) { Z.Gen(Y.GetCols()); }
+    EAssert(TLinAlgSearch::GetMaxDimIdx(X) <= Y.GetRows() && X.Len() == Y.GetCols() && Y.GetCols() == Z.Len());
+    int Rows = Y.GetRows();
+    int Cols = Y.GetCols();
+    for (int ColN = 0; ColN < Cols; ColN++) {
+        int KeyN = 0;
+        for (int RowN = 0; RowN < Rows; RowN++) {
+            if (X[ColN][KeyN].Key == RowN) {
+                Z[ColN].Add(TIntFltKd(RowN, p*X[ColN][KeyN].Dat + q*Y.At(RowN, ColN))); KeyN++;
+            }
+            else {
+                Z[ColN].Add(TIntFltKd(RowN, q*Y.At(RowN, ColN)));
+            }
+        }
+    }
+}
+
+void TLinAlg::AddVec(const double& k, const TVec<TFltV>& X, int ColId, const TFltV& y, TFltV& z) {
+	EAssert(0 <= ColId && ColId < X.Len());
+	AddVec(k, X[ColId], y, z);
+}
+
+void TLinAlg::AddVec(const double& k, const TFltVV& X, int ColId, const TFltV& y, TFltV& z) {
+	EAssert(X.GetRows() == y.Len());
+	EAssert(y.Len() == z.Len());
+	const int len = z.Len();
+	for (int i = 0; i < len; i++) {
+		z[i] = y[i] + k * X(i, ColId);
+	}
+}
+
+void TLinAlg::AddVec(const double& k, const TVec<TIntFltKdV>& X, int ColId, const TFltV& y, TFltV& z) {
+	EAssert(0 <= ColId && ColId < X.Len());
+	AddVec(k, X[ColId], y, z);
+}
+
+void TLinAlg::AddVec(const double& k, const TIntFltKdV& x, TFltV& y) {
+	const int xLen = x.Len(), yLen = y.Len();
+	for (int i = 0; i < xLen; i++) {
+		const int ii = x[i].Key;
+		if (ii < yLen) {
+			y[ii] += k * x[i].Dat;
+		}
+	}
+}
+
+void TLinAlg::AddVec(const TIntFltKdV& x, const TIntFltKdV& y, TIntFltKdV& z) {
+	TSparseOpsIntFlt::SparseMerge(x, y, z);
+}
+
+double TLinAlg::EuclDist2(const TFltPr& x, const TFltPr& y) {
+	return TMath::Sqr(x.Val1 - y.Val1) + TMath::Sqr(x.Val2 - y.Val2);
+}
+
+double TLinAlg::EuclDist(const TFltPr& x, const TFltPr& y) {
+	return sqrt(TLinAlg::EuclDist2(x, y));
+}
+
+void TLinAlg::Transpose(const TVec<TIntFltKdV>& A, TVec<TIntFltKdV>& At, int Rows){
+	// A is a sparse col matrix:
+	int Cols = A.Len();
+	// find number of rows
+	if (Rows == -1) {
+		for (int ColN = 0; ColN < Cols; ColN++) {
+			int Els = A[ColN].Len();
+			for (int ElN = 0; ElN < Els; ElN++) {
+				Rows = MAX(Rows, A[ColN][ElN].Key.Val);
+			}
+		}
+		Rows = Rows + 1;
+	}
+	At.Gen(Rows);
+	// transpose
+	for (int ColN = 0; ColN < Cols; ColN++) {
+		int Els = A[ColN].Len();
+		for (int ElN = 0; ElN < Els; ElN++) {
+			At[A[ColN][ElN].Key].Add(TIntFltKd(ColN, A[ColN][ElN].Dat));
+		}
+	}
+	// sort
+	for (int ColN = 0; ColN < Rows; ColN++) {
+		At[ColN].Sort();
+	}
+}
+
+//Andrej Urgent
+//TODO template --- indextype TIntFltKdV ... TInt64
+void TLinAlg::Multiply(const TVec<TIntFltKdV>& A, const TFltVV& B, TFltVV& C, const int RowsA) {
+	// A = sparse column matrix
+	EAssert(A.Len() == B.GetRows());
+	int Rows = RowsA;
+	int ColsB = B.GetCols();
+	if (RowsA == -1) {
+		Rows = TLinAlgSearch::GetMaxDimIdx(A) + 1;
+	}
+	else {
+		EAssert(TLinAlgSearch::GetMaxDimIdx(A) + 1 <= RowsA);
+	}
+	if (C.Empty()) {
+		C.Gen(Rows, ColsB);
+	}
+	int RowsB = B.GetRows();
+	C.PutAll(0.0);
+	for (int ColN = 0; ColN < ColsB; ColN++) {
+		for (int RowN = 0; RowN < RowsB; RowN++) {
+			int Els = A[RowN].Len();
+			for (int ElN = 0; ElN < Els; ElN++) {
+				C.At(A[RowN][ElN].Key, ColN) += A[RowN][ElN].Dat * B.At(RowN, ColN);
+			}
+		}
+	}
+}
+// SPARSECOLMAT-SPARSECOLMAT
+
+//Andrej Urgent
+//TODO template --- indextype TIntFltKdV ... TInt64
+//TLAMisc
+//GetMaxDimIdx
+void TLinAlg::Multiply(const TVec<TIntFltKdV>& A, const TVec<TIntFltKdV>& B, TFltVV& C, const int RowsA) {
+	//// A,B = sparse column matrix
+	//EAssert(A.Len() == B.GetRows());
+	int Rows = RowsA;
+	int ColsB = B.Len();
+	if (RowsA == -1) {
+		Rows = TLinAlgSearch::GetMaxDimIdx(A) + 1;
+	}
+	else {
+		EAssert(TLinAlgSearch::GetMaxDimIdx(A) + 1 <= RowsA);
+	}
+	if (C.Empty()) {
+		C.Gen(Rows, ColsB);
+	}
+	EAssert(TLinAlgSearch::GetMaxDimIdx(B) + 1 <= A.Len());
+	C.PutAll(0.0);
+	for (int ColN = 0; ColN < ColsB; ColN++) {
+		int ElsB = B[ColN].Len();
+		for (int ElBN = 0; ElBN < ElsB; ElBN++) {
+			int IdxB = B[ColN][ElBN].Key;
+			double ValB = B[ColN][ElBN].Dat;
+			int ElsA = A[IdxB].Len();
+			for (int ElAN = 0; ElAN < ElsA; ElAN++) {
+				int IdxA = A[IdxB][ElAN].Key;
+				double ValA = A[IdxB][ElAN].Dat;
+				C.At(IdxA, ColN) += ValA * ValB;
+			}
+		}
+	}
+}
+
+void TLinAlg::Multiply(const TVec<TIntFltKdV>& A, const TVec<TIntFltKdV>& B, TVec<TIntFltKdV>& C,
+		const int RowsA) {
+    //// A,B = sparse column matrix
+    //EAssert(A.Len() == B.GetRows());
+    int Rows = RowsA;
+    int ColsB = B.Len();
+
+    if (RowsA == -1) { Rows = TLinAlgSearch::GetMaxDimIdx(A) + 1; }
+    EAssert(TLinAlgSearch::GetMaxDimIdx(A) + 1 <= Rows);
+
+    C.Gen(ColsB);
+    EAssert(TLinAlgSearch::GetMaxDimIdx(B) + 1 <= A.Len());
+
+    for (int ColN = 0; ColN < ColsB; ColN++) {
+        int ElsB = B[ColN].Len();
+        for (int ElBN = 0; ElBN < ElsB; ElBN++) {
+            int IdxB = B[ColN][ElBN].Key;
+            double ValB = B[ColN][ElBN].Dat;
+            int ElsA = A[IdxB].Len();
+            for (int ElAN = 0; ElAN < ElsA; ElAN++) {
+                int IdxA = A[IdxB][ElAN].Key;
+                double ValA = A[IdxB][ElAN].Dat;
+                C[ColN].Add(TIntFltKd(IdxA, ValA * ValB));
+            }
+        }
+    }
+}
+
+void TLinAlg::QR(const TFltVV& X, TFltVV& Q, TFltVV& R, const TFlt& Tol) {
+	int Rows = X.GetRows();
+	int Cols = X.GetCols();
+	int d = MIN(Rows, Cols);
+
+	// make a copy of X
+	TFltVV A(X);
+	if (Q.GetRows() != Rows || Q.GetCols() != d) { Q.Gen(Rows, d); }
+	if (R.GetRows() != d || R.GetCols() != Cols) { R.Gen(d, Cols); }
+	TRnd Random;
+	for (int k = 0; k < d; k++) {
+		R(k, k) = TLinAlg::Norm(A, k);
+		// if the remainders norm is too small we construct a random vector (handles rank deficient)
+		if (R(k, k) < Tol) {
+			// random Q(:,k)
+			for (int RowN = 0; RowN < Rows; RowN++) {
+				Q(RowN, k) = Random.GetNrmDev();
+			}
+			// make it orthonormal on others
+			for (int j = 0; j < k; j++) {
+				TLinAlg::AddVec(-TLinAlg::DotProduct(Q, j, Q, k), Q, j, Q, k);
+			}
+			TLinAlg::NormalizeColumn(Q, k);
+			R(k, k) = 0;
+		}
+		else {
+			// normalize
+			for (int RowN = 0; RowN < Rows; RowN++) {
+				Q(RowN, k) = A(RowN, k) / R(k, k);
+			}
+		}
+
+		// make the rest of the columns of A orthogonal to the current basis Q
+		for (int j = k + 1; j < Cols; j++) {
+			R(k, j) = TLinAlg::DotProduct(Q, k, A, j);
+			TLinAlg::AddVec(-R(k, j), Q, k, A, j);
+		}
+	}
+}
+
+// rotates vector (OldX,OldY) for angle Angle (in radians!)
+void TLinAlg::Rotate(const double& OldX, const double& OldY, const double& Angle,
+		double& NewX, double& NewY) {
+	NewX = OldX*cos(Angle) - OldY*sin(Angle);
+	NewY = OldX*sin(Angle) + OldY*cos(Angle);
+}
+
+void TLinAlg::NonNegProj(TFltV& Vec) {
+	for (int i = 0; i < Vec.Len(); i++) {
+		Vec[i] = TMath::Mx(0.0, (double)Vec[i]);
+	}
+}
+
+void TLinAlg::NonNegProj(TFltVV& Mat) {
+	int Rows = Mat.GetRows();
+	int Cols = Mat.GetCols();
+	for (int RowN = 0; RowN < Rows; RowN++) {
+		for (int ColN = 0; ColN < Cols; ColN++) {
+			Mat(RowN, ColN) = TMath::Mx(0.0, (double)Mat(RowN, ColN));
+		}
+	}
+}
 
 ///////////////////////////////////////////////////////////////////////
 // Numerical Linear Algebra
@@ -646,7 +1414,7 @@ void TNumericalStuff::PrimalLeastSquares(const TFltVV& A, const TFltV& b, const 
 	// I
 	TFltVV I = TFltVV(Feats, Feats);
 	TFltV Ones = TFltV(Feats); Ones.PutAll(1.0);
-	TLAMisc::Diag(Ones, I);
+	TLinAlgTransform::Diag(Ones, I);
 	// B = A * A' + Gamma^2 * I
 	TLinAlg::LinComb(1.0, B, Gamma*Gamma, I, B);
 	// Ab = A * b
@@ -671,7 +1439,7 @@ void TNumericalStuff::DualLeastSquares(const TFltVV& A, const TFltV& b, const do
 	// I
 	TFltVV I = TFltVV(N, N);
 	TFltV Ones = TFltV(N); Ones.PutAll(1.0);
-	TLAMisc::Diag(Ones, I);
+	TLinAlgTransform::Diag(Ones, I);
 	// B = A' * A + Gamma^2 * I
 	TLinAlg::LinComb(1.0, B, Gamma*Gamma, I, B);
 	// B^{-1}b
@@ -681,81 +1449,55 @@ void TNumericalStuff::DualLeastSquares(const TFltVV& A, const TFltV& b, const do
 	TLinAlg::Multiply(A, InvBb, x);	
 }
 
-void TNumericalStuff::GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV& EigenV, const double& ConvergEps) {
+void TNumericalStuff::GetKernelVec(const TFltVV& A, TFltV& x) {
+    EAssertR(A.GetRows() == A.GetCols(), "TNumericalStuff::GetKernelVec: input is not a square matrix!");
+
+    const int Dim = A.GetRows();
+
 #ifdef LAPACKE
-	EAssertR(A.GetRows() == A.GetCols(), "A should be a square matrix to compute eigenvalues!");
-
-	TFltVV A1 = A;
-
-    const int Dim = A1.GetRows();
-
-    // inverse iteration algorithm
-    // first compute (A - Lambda*I)
-	for (int i = 0; i < Dim; i++) {
-		A1(i,i) -= EigenVal;
-	}
-
-    const double UEps = 1e-8 * TLinAlg::FrobNorm(A1);
-    double Dist, Norm;
-    double Sgn;
-
     TFltVV L, U;
-	TFltV OnesV(Dim), TempV(Dim);
-
-	TVec<TNum<index_t>, index_t> PermV;
-
-    // build an initial estimate of the eigenvector
-    // decompose (A - Lambda*I) into LU
-	MKLfunctions::LUFactorization(A1, L, U, PermV);
-
-    // extract U, replace any zero diagonal elements by |A|*eps
-    for (int i = 0; i < Dim; i++) {
-        OnesV[i] = 1;
-        if (TFlt::Abs(U(i,i)) < UEps) {
-        	Sgn = U(i,i) >= 0 ? 1 : -1;
-        	U(i,i) = Sgn*UEps;
-        }
-    }
-
-    // construct A from LU
-    TLinAlg::Multiply(L, U, A1);
-    // swap column i with column PermV[i]
-    for (int i = 0; i < Dim; i++) {
-    	const int pi = PermV[i] - 1;
-    	// swap rows i and pi in A
-    	for (int ColIdx = 0; ColIdx < Dim; ColIdx++) {
-			std::swap(A1(i, ColIdx), A1(pi, ColIdx));
-		}
-    }
-
-    // compute an initial estimate for the eigenvector
-    // I can ignore permutations here since then only swap elements
-    // in the vector of ones: P*A = L*U => A*x = b <=> L*U*x = P*b = P*1 = 1
-	MKLfunctions::TriangularSolve(U, EigenV, OnesV);	// TODO I get a better initial approximation in matlab by doing U \ ones(dim,1)	// TODO I get a better initial approximation in matlab by doing U \ ones(dim,1)
-
-    Norm = TLinAlg::Normalize(EigenV);
-	EAssertR(Norm != 0, "Cannot normalize, norm is 0!");
-
-    // iterate (A - Lambda*I)*x_n+1 = x_n until convergence
-    do {
-    	TempV = EigenV;
-
-		MKLfunctions::LUSolve(A1, EigenV, TempV);
-
-        // normalize
-//        Norm = TLinAlg::Normalize(EigenV);
-        // FIXME: not a general solution, works only in my case, where the eigen vector only has all positive or all negative elements
-        Norm = TLinAlg::SumVec(EigenV);	// taking the sum because sometimes I get +- on consecutive iterations when using the norm
-        EAssertR(Norm != 0, "Cannot normalize, norm is 0!");
-        TLinAlg::MultiplyScalar(1/Norm, EigenV, EigenV);
-
-        Dist = TLinAlg::EuclDist(EigenV, TempV);
-    } while (Dist > ConvergEps);
+    TVec<TNum<index_t>, index_t> PermV;
+    MKLfunctions::LUFactorization(A, L, U, PermV);
 #else
-    throw TExcept::New("Should include LAPACKE!!!");
+    TFltVV U = A;
+    TIntV PermV;
+    double d;
+    LUDecomposition(U, PermV, d);
 #endif
+
+    EAssertR(TFlt::Abs(U(Dim-1, Dim-1)) < 1e-6, "TNumericalStuff::GetKernelVec: Input is not a singular matrix!");
+
+    x.Gen(Dim);
+
+    // set the last element to an arbitrary value
+    x.Last() = 1;
+    // inverse iteration
+    for (int RowN = Dim-2; RowN >= 0; RowN--) {
+        double Sum = 0;
+
+        for (int ColN = RowN+1; ColN < Dim; ColN++) {
+            Sum += U(RowN, ColN)*x[ColN];
+        }
+
+        AssertR(double(U(RowN, RowN)) != 0, "TNumericalStuff::GetKernelVec: Dimension of kernel is more than 1!");
+
+        x[RowN] = -Sum / U(RowN, RowN);
+    }
 }
 
+void TNumericalStuff::GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV& EigenV) {
+    const int Dim = A.GetRows();
+
+    // first compute (A - Lambda*I)
+    TFltVV A1 = A;
+
+    for (int i = 0; i < Dim; i++) {
+        A1(i,i) -= EigenVal;
+    }
+
+    // the result is in the kernel of (A - Lambda*I)
+    GetKernelVec(A1, EigenV);
+}
 
 ///////////////////////////////////////////////////////////////////////
 // Sparse-SVD
@@ -818,7 +1560,7 @@ void TSparseSVD::OrtoIterSVD(const TMatrix& Matrix,
 	TFltVV Q, R;
 	
 	if (S.Empty()) {S.Gen(k);}
-	if (U.Empty()) {U.Gen(Rows, k); TLAMisc::FillRnd(U);}
+	if (U.Empty()) {U.Gen(Rows, k); TLinAlgTransform::FillRnd(U);}
 	if (V.Empty()) {V.Gen(Cols, k);}
 
 
@@ -832,11 +1574,11 @@ void TSparseSVD::OrtoIterSVD(const TMatrix& Matrix,
 		//U = GS(AA'U)
 		// orthogonalization
 		TLinAlg::QR(U, U, R, Tol);
-		if (!TLinAlg::IsOrthonormal(U, Tol)) {
+		if (!TLinAlgCheck::IsOrthonormal(U, Tol)) {
 			// reorthogonalization
 			TLinAlg::QR(U, U, R, Tol);
 		}
-		if (!TLinAlg::IsOrthonormal(U, Tol)) {
+		if (!TLinAlgCheck::IsOrthonormal(U, Tol)) {
 			printf("Orthofail!\n");
 		}
 		if (IterN > 0 && sqrt(TLinAlg::FrobDist2(S, SOld)/TLinAlg::Norm2(S)) < Tol) {break;}
@@ -911,7 +1653,7 @@ void TSparseSVD::SimpleLanczos(const TMatrix& Matrix,
         d[i+1] = alpha[i]; e[i+1] = beta[i]; }
     // solve eigne problem for tridiagonal matrix with diag d and subdiag e
     TFltVV S(NumEig+1,NumEig+1); // eigen-vectors
-    TLAMisc::FillIdentity(S); // make it identity
+    TLinAlgTransform::FillIdentity(S); // make it identity
     TNumericalStuff::EigSymmetricTridiag(d, e, NumEig, S); // solve
     //TLAMisc::PrintTFltV(d, "AllEigV");
 
@@ -1410,480 +2152,21 @@ void TLAMisc::Sort(TVec<TFlt, Size> & Vec, TVec<Size, Size>& index, const TBool&
 }
 #endif
 
-
-void TLAMisc::SaveCsvTFltV(const TFltV& Vec, TSOut& SOut) {
-    for (int ValN = 0; ValN < Vec.Len(); ValN++) {
-        SOut.PutFlt(Vec[ValN]); SOut.PutCh(',');
-    }
-    SOut.PutLn();
-}
-
-void TLAMisc::SaveMatlabTFltIntKdV(const TIntFltKdV& SpV, const int& ColN, TSOut& SOut) {
-    const int Len = SpV.Len();
-    for (int ValN = 0; ValN < Len; ValN++) {
-        SOut.PutStrLn(TStr::Fmt("%d %d %g", SpV[ValN].Key+1, ColN+1, SpV[ValN].Dat()));
-    }
-}
-
-void TLAMisc::SaveMatlabSpMat(const TVec<TIntFltKdV>& SpMat, TSOut& SOut) {
-	int Cols = SpMat.Len();
-	for (int ColN = 0; ColN < Cols; ColN++) {
-		int Els = SpMat[ColN].Len();
-		for (int ElN = 0; ElN < Els; ElN++) {
-			SOut.PutStrLn(SpMat[ColN][ElN].Key.GetStr() + " " + TInt::GetStr(ColN) + " " + TStr::Fmt("%.17g", SpMat[ColN][ElN].Dat.Val));
-		}
-	}
-	SOut.Flush();
-}
-
-
-void TLAMisc::SaveMatlabSpMat(const TTriple<TIntV, TIntV,TFltV>& SpMat, TSOut& SOut) {
-	int Len = SpMat.Val1.Len();
-	for (int ElN = 0; ElN < Len; ElN++) {
-		SOut.PutStrLn(SpMat.Val1[ElN].GetStr() + " " + SpMat.Val2[ElN].GetStr() + " " + SpMat.Val3[ElN].GetStr());
-	}
-	SOut.Flush();
-}
-
-void TLAMisc::SaveMatlabTFltV(const TFltV& m, const TStr& FName) {
-    PSOut out = TFOut::New(FName);
-    const int RowN = m.Len();
-    for (int RowId = 0; RowId < RowN; RowId++) {
-        out->PutStr(TFlt::GetStr(m[RowId], 20, 18));
-        out->PutCh('\n');
-    }
-    out->Flush();
-}
-
-void TLAMisc::SaveMatlabTIntV(const TIntV& m, const TStr& FName) {
-    PSOut out = TFOut::New(FName);
-    const int RowN = m.Len();
-    for (int RowId = 0; RowId < RowN; RowId++) {
-        out->PutInt(m[RowId]);
-        out->PutCh('\n');
-    }
-    out->Flush();
-}
-
-void TLAMisc::SaveMatlabTFltVVCol(const TFltVV& m, int ColId, const TStr& FName) {
-    PSOut out = TFOut::New(FName);
-    const int RowN = m.GetRows();
-    for (int RowId = 0; RowId < RowN; RowId++) {
-        out->PutStr(TFlt::GetStr(m(RowId,ColId), 20, 18));
-        out->PutCh('\n');
-    }
-    out->Flush();
-}
-
-
-void TLAMisc::SaveMatlabTFltVV(const TFltVV& m, const TStr& FName) {
-    PSOut out = TFOut::New(FName);
-	TLAMisc::SaveMatlabTFltVV(m, *out);	
-}
-
-void TLAMisc::SaveMatlabTFltVV(const TFltVV& m, TSOut& SOut) {	
-	const int RowN = m.GetRows();
-	const int ColN = m.GetCols();
-	for (int RowId = 0; RowId < RowN; RowId++) {
-		for (int ColId = 0; ColId < ColN; ColId++) {
-			SOut.PutStr(TFlt::GetStr(m(RowId, ColId), 20, 18));
-			SOut.PutCh(' ');
-		}
-		SOut.PutCh('\n');
-	}
-	SOut.Flush();
-}
-
-void TLAMisc::SaveMatlabTFltVVMjrSubMtrx(const TFltVV& m,
-        int RowN, int ColN, const TStr& FName) {
-
-    PSOut out = TFOut::New(FName);
-    for (int RowId = 0; RowId < RowN; RowId++) {
-        for (int ColId = 0; ColId < ColN; ColId++) {
-            out->PutStr(TFlt::GetStr(m(RowId,ColId), 20, 18)); out->PutCh(' ');
-        }
-        out->PutCh('\n');
-    }
-    out->Flush();
-}
-
-void TLAMisc::LoadMatlabTFltVV(const TStr& FNm, TVec<TFltV>& ColV) {
-    PSIn SIn = TFIn::New(FNm);
-	TLAMisc::LoadMatlabTFltVV(ColV, *SIn);
-}
-
-void TLAMisc::LoadMatlabTFltVV(const TStr& FNm, TFltVV& MatrixVV) {
-	PSIn SIn = TFIn::New(FNm);
-	TLAMisc::LoadMatlabTFltVV(MatrixVV, *SIn);
-}
-
-void TLAMisc::LoadMatlabTFltVV(TFltVV& MatrixVV, TSIn& SIn) {
-	TVec<TFltV> ColV; LoadMatlabTFltVV(ColV, SIn);
-	if (ColV.Empty()) { MatrixVV.Clr(); return; }
-	const int Rows = ColV[0].Len(), Cols = ColV.Len();
-	MatrixVV.Gen(Rows, Cols);
-	for (int RowN = 0; RowN < Rows; RowN++) {
-		for (int ColN = 0; ColN < Cols; ColN++) {
-			MatrixVV(RowN, ColN) = ColV[ColN][RowN];
-		}
-	}
-}
-
-void TLAMisc::LoadMatlabTFltVV(TVec<TFltV>& ColV, TSIn& SIn) {
-	TILx Lx(&SIn, TFSet() | iloRetEoln | iloSigNum | iloExcept);
-	int Row = 0, Col = 0; ColV.Clr();
-	Lx.GetSym(syFlt, syEof, syEoln);
-	//printf("%d x %d\r", Row, ColV.Len());
-	while (Lx.Sym != syEof) {
-		if (Lx.Sym == syFlt) {
-			if (ColV.Len() > Col) {
-				EAssert(ColV[Col].Len() == Row);
-				ColV[Col].Add(Lx.Flt);
-			}
-			else {
-				EAssert(Row == 0);
-				ColV.Add(TFltV::GetV(Lx.Flt));
-			}
-			Col++;
-		}
-		else if (Lx.Sym == syEoln) {
-			EAssert(Col == ColV.Len());
-			Col = 0; Row++;
-			if (Row % 100 == 0) {
-				//printf("%d x %d\r", Row, ColV.Len());
-			}
-		}
-		else {
-			Fail;
-		}
-		Lx.GetSym(syFlt, syEof, syEoln);
-	}
-	//printf("\n");
-	EAssert(Col == ColV.Len() || Col == 0);
-}
-
-void TLAMisc::PrintTFltV(const TFltV& Vec, const TStr& VecNm) {
-    printf("%s = [", VecNm.CStr());
-    for (int i = 0; i < Vec.Len(); i++) {
-        printf("%.5f", Vec[i]());
-		if (i < Vec.Len() - 1) { printf(", "); }
-    }
-    printf("]\n");
-}
-
-void TLAMisc::PrintTFltVVToStr(const TFltVV& A, TStr& Out) {
-	Out = "";
-	int Rows = A.GetRows();
-	int Cols = A.GetCols();
-	for (int RowN = 0; RowN < Rows; RowN++) {
-		for (int ColN = 0; ColN < Cols; ColN++) {
-			Out += A.At(RowN,ColN).GetStr() + " "; 
-		}
-		Out += "\n";
-	}
-    Out += "\n";
-
-}
-
-void TLAMisc::PrintTFltVV(const TFltVV& A, const TStr& MatrixNm) {
-    printf("%s = [\n", MatrixNm.CStr());
-	int Rows = A.GetRows();
-	int Cols = A.GetCols();
-	for (int RowN = 0; RowN < Rows; RowN++) {
-		for (int ColN = 0; ColN < Cols; ColN++) {
-			printf("%f ", A.At(RowN, ColN).Val);
-		}
-		printf("\n");
-	}
-    printf("]\n");
-}
-
-void TLAMisc::PrintSpMat(const TTriple<TIntV, TIntV, TFltV>& A, const TStr& MatrixNm) {
-	int Nonzeros = A.Val1.Len();
-	printf("%s = [\n", MatrixNm.CStr());
-	for (int ElN = 0; ElN < Nonzeros; ElN++) {
-		printf("%d %d %f\n", A.Val1[ElN].Val, A.Val2[ElN].Val, A.Val3[ElN].Val);
-	}
-	printf("]\n");
-}
-
-void TLAMisc::PrintSpMat(const TVec<TIntFltKdV>& A, const TStr& MatrixNm) {
-	printf("%s = [\n", MatrixNm.CStr());
-	int Cols = A.Len();
-	for (int ColN = 0; ColN < Cols; ColN++) {
-		int Els = A[ColN].Len();
-		for (int ElN = 0; ElN < Els; ElN++) {
-			printf("%d %d %f\n", A[ColN][ElN].Key.Val, ColN, A[ColN][ElN].Dat.Val);
-		}
-	}
-	printf("]\n");
-}
-
-void TLAMisc::PrintTIntV(const TIntV& Vec, const TStr& VecNm) {
-    printf("%s = [", VecNm.CStr());
-    for (int i = 0; i < Vec.Len(); i++) {
-        printf("%d", Vec[i]());
-        if (i < Vec.Len() - 1) printf(", ");
-    }
-    printf("]\n");
-}
-
-void TLAMisc::FillRnd(const int& Len, TFltV& Vec, TRnd& Rnd) {
-    Vec.Gen(Len);
-    for(int i = 0; i < Len; i++) {
-        Vec[i] = Rnd.GetUniDev();
-    }    
-}
-
-void TLAMisc::Fill(TFltV& V, const double& val){
-	const int n = V.Len();
-	for (int i = 0; i < n; i++){
-		V[i] = val;
-	}
-}
-
-void TLAMisc::FillIdentity(TFltVV& M) {
-    EAssert(M.GetRows() == M.GetCols());
-    int Len = M.GetRows();
-    for (int i = 0; i < Len; i++) {
-        for (int j = 0; j < Len; j++) M(i,j) = 0.0;
-        M(i,i) = 1.0;
-    }
-}
-
-void TLAMisc::FillIdentity(TFltVV& M, const double& Elt) {
-    EAssert(M.GetRows() == M.GetCols());
-    int Len = M.GetRows();
-    for (int i = 0; i < Len; i++) {
-        for (int j = 0; j < Len; j++) M(i,j) = 0.0;
-        M(i,i) = Elt;
-    }
-}
-
-void TLAMisc::FillRange(const int& Vals, TFltV& Vec) {
-	//Added by Andrej
-	if (Vec.Len() != Vals){
-		Vec.Gen(Vals);
-	}
-	for(int i = 0; i < Vals; i++){
-		Vec[i] = i;
-	}
-}
-void TLAMisc::FillRange(const int& Vals, TIntV& Vec) {
-	//Added by Andrej
-	if (Vec.Len() != Vals){
-		Vec.Gen(Vals);
-	}
-	for (int i = 0; i < Vals; i++){
-		Vec[i] = i;
-	}
-}
-
-int TLAMisc::SumVec(const TIntV& Vec) {
-    const int Len = Vec.Len();
-    int res = 0;
-    for (int i = 0; i < Len; i++)
-        res += Vec[i];
-    return res;
-}
-
-double TLAMisc::SumVec(const TFltV& Vec) {
-    const int Len = Vec.Len();
-    double res = 0.0;
-    for (int i = 0; i < Len; i++)
-        res += Vec[i];
-    return res;
-}
-
-void TLAMisc::ToSpVec(const TFltV& Vec, TIntFltKdV& SpVec,
-        const double& CutSumPrc) {
-
-    // determine minimal element value
-    EAssert(0.0 <= CutSumPrc && CutSumPrc <= 1.0);
-    const int Elts = Vec.Len();
-    double EltSum = 0.0;
-    for (int EltN = 0; EltN < Elts; EltN++) {
-        EltSum += TFlt::Abs(Vec[EltN]); }
-    const double MnEltVal = CutSumPrc * EltSum;
-    // create sparse vector
-    SpVec.Clr();
-    for (int EltN = 0; EltN < Elts; EltN++) {
-        if (TFlt::Abs(Vec[EltN]) > MnEltVal) {
-            SpVec.Add(TIntFltKd(EltN, Vec[EltN]));
-        }
-    }
-    SpVec.Pack();
-}
-
-void TLAMisc::ToVec(const TIntFltKdV& SpVec, TFltV& Vec, const int& VecLen) {
-    Vec.Gen(VecLen); Vec.PutAll(0.0);
-    int Elts = SpVec.Len();
-    for (int EltN = 0; EltN < Elts; EltN++) {
-        if (SpVec[EltN].Key < VecLen) {
-            Vec[SpVec[EltN].Key] = SpVec[EltN].Dat;
-        }
-    }
-}
-
-void TLAMisc::Diag(const TFltV& Vec, TFltVV& Mat) {
-	Mat.Gen(Vec.Len(), Vec.Len());
-	Mat.PutAll(0.0);
-	for (int ElN = 0; ElN < Vec.Len(); ElN++) {
-		Mat.At(ElN, ElN) = Vec[ElN];
-	}
-}
-
-void TLAMisc::Diag(const TFltV& Vec, TVec<TIntFltKdV>& Mat) {
-	int Len = Vec.Len();
-	Mat.Gen(Len);
-	for (int ColN = 0; ColN < Len; ColN++) {
-		Mat[ColN].Add(TIntFltKd(ColN, Vec[ColN]));
-	}	 
-}
-
-int TLAMisc::GetMaxDimIdx(const TIntFltKdV& SpVec) {
-	return SpVec.Len() > 0 ? SpVec.Last().Key.Val : 0;
-}
-
-int TLAMisc::GetMaxDimIdx(const TVec<TIntFltKdV>& SpMat) {
-	int MaxDim = 0;
-	for (int ColN = 0; ColN < SpMat.Len(); ColN++) {
-		if (!SpMat[ColN].Empty()) {
-			MaxDim = MAX(MaxDim, SpMat[ColN].Last().Key.Val);
-		}
-	}
-	return MaxDim;
-}
-
-int TLAMisc::GetMinIdx(const TFltV& Vec) {
-	const int Len = Vec.Len();
-
-	int MinIdx = 0;
-	double MinVal = Vec[MinIdx];
-	for (int i = 1; i < Len; i++) {
-		if (Vec[i] < MinVal) {
-			MinVal = Vec[i];
-			MinIdx = i;
-		}
-	}
-
-	return MinIdx;
-}
- 
- void TLAMisc::RangeV(const int& Min, const int& Max, TIntV& Res) {
-	 Res.Gen(Max - Min + 1, 0);
-	 for (int i = Min; i <= Max; i++) {
-		 Res.Add(i);
-	 }
- }
-
- double TLAMisc::Mean(const TFltV& Vec) {
-	 EAssertR(Vec.Len() != 0, "TLAMisc::Mean: Vector length should not be zero");
-	 return TLinAlg::SumVec(Vec) / Vec.Len();
- }
-
- void TLAMisc::Mean(const TFltVV& Mat, TFltV& Res, const TMatDim& Dim) {
-	 int Rows = Mat.GetRows();
-	 int Cols = Mat.GetCols();
-	 if (Dim == TMatDim::mdCols) {
-		 if (Res.Len() != Cols) {
-			 Res.Gen(Cols);
-		 }
-		 TFltV Vec(Rows);
-		 Vec.PutAll(1.0 / Rows);
-		 TLinAlg::MultiplyT(Mat, Vec, Res);
-	 } else if (Dim == TMatDim::mdRows) {
-		 if (Res.Len() != Rows) {
-			 Res.Gen(Rows);
-		 }
-		 TFltV Vec(Cols);
-		 Vec.PutAll(1.0 / Cols);
-		 TLinAlg::Multiply(Mat, Vec, Res);
-	 }
- }
-
-void TLAMisc::Std(const TFltVV& Mat, TFltV& Res, const int& Flag, const TMatDim& Dim) {
-	EAssertR(Flag == 0 || Flag == 1, "TLAMisc::Std: Invalid value of 'Flag' argument. "
-							"Supported 'Flag' arguments are 0 or 1. See Matlab std() documentation.");
-	int Cols = Mat.GetCols();
-	int Rows = Mat.GetRows();
-	TFltV MeanVec;
-	TLAMisc::Mean(Mat, MeanVec, Dim);
-	EAssertR(Cols == MeanVec.Len() || Rows == MeanVec.Len(), "TLAMisc::Std");
-
-	if (Dim == TMatDim::mdCols) {
-		if(Res.Empty()) Res.Gen(Cols);
-		EAssertR(Cols == Res.Len(), "TLAMisc::Std");	
-
-		double Scalar = (Flag == 1) ? TMath::Sqrt(1.0/(Rows)) : TMath::Sqrt(1.0/(Rows-1));
-		TFltV TempRes(Rows);
-		TFltV Ones(Rows);
-		Ones.PutAll(1.0);
-
-		for (int ColN = 0; ColN < Cols; ColN++) {		
-			TLinAlg::LinComb(-1.0, Mat, ColN, MeanVec[ColN], Ones, TempRes);
-			Res[ColN] = Scalar * TLinAlg::Norm(TempRes);
-		}
-	}
-	else if (Dim == TMatDim::mdRows) {
-		if(Res.Empty()) Res.Gen(Rows);
-		EAssertR(Rows == Res.Len(), "TLAMisc::Std");	
-
-		double Scalar = (Flag == 1) ? TMath::Sqrt(1.0/(Cols)) : TMath::Sqrt(1.0/(Cols-1));
-		TFltV TempRes(Cols);
-		TFltV Ones(Cols);
-		Ones.PutAll(1.0);
-
-		for (int RowN = 0; RowN < Rows; RowN++) {
-			TLinAlg::LinComb(-1.0, Mat, RowN, MeanVec[RowN], Ones, TempRes, 2);
-			Res[RowN] = Scalar * TLinAlg::Norm(TempRes);
-		}
-	}
-}
-
-void TLAMisc::ZScore(const TFltVV& Mat, TFltVV& Res, const int& Flag, const TMatDim& Dim) {
-	EAssertR(Flag == 0 || Flag == 1, "TLAMisc::ZScore: Invalid value of 'Flag' argument. "
-							"Supported 'Flag' arguments are 0 or 1. See Matlab std() documentation.");
-
-	int Cols = Mat.GetCols();
-	int Rows = Mat.GetRows();
-
-	if (Res.Empty()) Res.Gen(Rows, Cols);
-
-	TFltV MeanVec;
-	TLAMisc::Mean(Mat, MeanVec, Dim);
-	TFltV StdVec;
-	TLAMisc::Std(Mat, StdVec, Flag, Dim);
-
-	if (Dim == TMatDim::mdCols) {
-		
-		TFltV TempRes(Rows);
-		TFltV Ones(Rows);
-		Ones.PutAll(1.0);
-
-		for (int ColN = 0; ColN < Cols; ColN++) {		
-			TLinAlg::LinComb(1.0/StdVec[ColN], Mat, ColN, -1.0 * MeanVec[ColN]/StdVec[ColN], Ones, TempRes);	
-			for (int RowN = 0; RowN < Rows; RowN++) {
-				Res.At(RowN, ColN) = TempRes[RowN];
-			}
-		}
-	}
-	else if (Dim == TMatDim::mdRows) {
-
-		TFltV TempRes(Cols);
-		TFltV Ones(Cols);
-		Ones.PutAll(1.0);
-
-		for (int RowN = 0; RowN < Rows; RowN++) {		
-			TLinAlg::LinComb(1.0/StdVec[RowN], Mat, RowN, -1.0 * MeanVec[RowN]/StdVec[RowN], Ones, TempRes, 2);	
-			for (int ColN = 0; ColN < Cols; ColN++) {
-				Res.At(RowN, ColN) = TempRes[ColN];
-			}
-		}
-	}
-
-}
-
+//int TLAMisc::SumVec(const TIntV& Vec) {
+//    const int Len = Vec.Len();
+//    int res = 0;
+//    for (int i = 0; i < Len; i++)
+//        res += Vec[i];
+//    return res;
+//}
+//
+//double TLAMisc::SumVec(const TFltV& Vec) {
+//    const int Len = Vec.Len();
+//    double res = 0.0;
+//    for (int i = 0; i < Len; i++)
+//        res += Vec[i];
+//    return res;
+//}
 
 ///////////////////////////////////////////////////////////////////////
 // TVector
@@ -2627,17 +2910,17 @@ TVector TFullMatrix::RowSumV() const {
 }
 
 TVector TFullMatrix::GetColMinV() const {
-	TVector Result;	TLinAlg::GetColMinV(*Mat, Result.Vec);
+	TVector Result;	TLinAlgSearch::GetColMinV(*Mat, Result.Vec);
 	return Result;
 }
 
 TVector TFullMatrix::GetColMaxIdxV() const {
-	TIntV IdxV;	TLinAlg::GetColMaxIdxV(*Mat, IdxV);
+	TIntV IdxV;	TLinAlgSearch::GetColMaxIdxV(*Mat, IdxV);
 	return TVector(IdxV, false);
 }
 
 TVector TFullMatrix::GetColMinIdxV() const {
-	TIntV IdxV;	TLinAlg::GetColMinIdxV(*Mat, IdxV);
+	TIntV IdxV;	TLinAlgSearch::GetColMinIdxV(*Mat, IdxV);
 	return TVector(IdxV, false);
 }
 
@@ -2705,17 +2988,217 @@ void TFullMatrix::Load(TSIn& SIn) {
 	IsWrapper = false;
 }
  
-#if defined(LAPACKE) && defined(EIGEN)
-//no need to reserve memory for the matrices, all will be done internaly
-//Set k to 500
-//Tolerance ignored!
+//#if defined(LAPACKE) && defined(EIGEN)
+////no need to reserve memory for the matrices, all will be done internaly
+////Set k to 500
+////Tolerance ignored!
+//int TLinAlg::ComputeThinSVD(const TMatrix& XYt, const int& k, TFltVV& U, TFltV& s, TFltVV& V, const int Iters, const double Tol){
+//	//TStructuredCovarianceMatrix XYt(rows, cols, SampleN, MeanX, MeanY, X, Y);
+//	EAssert(k <= XYt.GetRows() && k <= XYt.GetCols());
+//
+//	const int its = Iters != -1 ? Iters : 2;
+//	 const int m = XYt.GetRows();
+//	 const int n = XYt.GetCols();
+//	 int l = (int)((11 / 10.0) * k);
+//	 //printf("l is %d\n", l);
+//	 if ((its+1)*l >= MIN(m, n)){
+//		 TFltVV XYtfull; XYtfull.Gen(m, n);
+//		 TFltVV Identity; Identity.Gen(n, n);
+//		 typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> Mat;
+//		 typedef Eigen::Map<Mat> MatW;
+//		 MatW IdentityWrapped(&Identity(0, 0).Val, n, n);
+//		 IdentityWrapped.setIdentity(n, n);
+//		 XYt.Multiply(Identity, XYtfull);
+//		 TFltVV VT;
+//		 TLinAlg::thinSVD(XYtfull, U, s, VT);
+//	     V.Gen(VT.GetCols(), VT.GetRows());
+//		 TLinAlg::Transpose(VT, V);
+//	 }
+//	 else{
+//		 TTmStopWatch Time;
+//		 if (m >= n){
+//			 //H is used for intermediate result and should be of the size n times l!
+//			 TFltVV H(n,l); TLAMisc::FillRnd(H);
+//			 //TFltVV RSample; RSample.GenRandom(n, l);
+//			 TFltVV F, F0, F1, F2; F0.Gen(m, l); F1.Gen(m, l); F2.Gen(m, l);
+//			 //Time.Start();
+//			 //printf("Start Multiplying with XYt'*XYt twice\n");
+//			 //Size of F0 should be m x l
+//			 XYt.Multiply(H, F0);
+//			 //H is used for intermediate result and should be of the size n times l!
+//			 XYt.MultiplyT(F0, H);
+//			 //H is used for intermediate result and should be of the size n times l!
+//			 XYt.Multiply(H, F1);
+//			 //H is used for intermediate result and should be of the size n times l!
+//			 XYt.MultiplyT(F1, H); XYt.Multiply(H, F2);
+//			 //Time.Stop("Finish Multiplying with XYt'*XYt twice\n");
+//			 //Free the memory
+//			 H.Clr();
+//			 typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> Mat;
+//			 F.Gen(m, (its + 1) * l);//its+1
+//			 typedef Eigen::Map<Mat> MatW;
+//			 MatW FWrapped(&F(0, 0).Val, m, (its + 1) * l); MatW F0Wrapped(&F0(0, 0).Val, m, l); MatW F1Wrapped(&F1(0, 0).Val, m, l); MatW F2Wrapped(&F2(0, 0).Val, m, l);
+//			 //printf("Started to join the memory\n");
+//			 //Time.Start();
+//			 FWrapped << F0Wrapped, F1Wrapped, F2Wrapped;
+//			 //Time.Stop("Finished joining the memory\n");
+//			 //Free the memory
+//			 F0.Clr(); F1.Clr(); F2.Clr();
+//			 //Do QR in place at the end F becomes Q
+//			 //printf("Orthogonal basis in place computation\n");
+//			 //Time.Start();
+//			 TLinAlg::QRbasis(F);
+//			 //Time.Stop("Orthogonal basis in place computation took: ");
+//			 //Is F still valid
+//			 TFltVV FF; FF.Gen(n, (its + 1) * l);
+//			 //printf("Start Multiplying with XYt'\n");
+//			 //Time.Start();
+//			 XYt.MultiplyT(F, FF);
+//			 //Time.Stop("Multiplying with XYt' took: ");
+//			 TFltVV UU, VT;
+//			 //printf("Size of matrix FF: %d\n", FF.GetCols());
+//			 //printf("Computation of thin SVD\n");
+//			 //Time.Start();
+//			 TFltVV FFT; FFT.Gen((its + 1) * l, n);
+//			 TLinAlg::Transpose(FF, FFT);
+//			 TLinAlg::thinSVD(FFT, UU, s, VT);
+//			 //Time.Stop("Computation of thin SVD took:");
+//			 //printf("UU (%d, %d)\n", UU.GetRows(), UU.GetCols());
+//			 //Copy and save U
+//			 U.Gen(m, (its + 1)*l);
+//			 TLinAlg::Multiply(F, UU, U);
+//			 V.Gen(VT.GetCols(), VT.GetRows());
+//			 TLinAlg::Transpose(VT, V);
+//			 //U = Q*U2;
+//		 }
+//		 else{
+//			 //H is used for intermediate result and should be of the size m times l!
+//			 TFltVV H(m,l); TLAMisc::FillRnd(H);
+//			 //TFltVV RSample; RSample.GenRandom(n, l);
+//			 TFltVV F, F0, F1, F2; F0.Gen(n, l); F1.Gen(n, l); F2.Gen(n, l);
+//			 //printf("Star Multiplying with XYt'*XYt\n");
+//			 //Size of F0 should be m x l
+//			 XYt.MultiplyT(H, F0);
+//			 //printf("Finish Multiplying with XYt'*Xyt");
+//			 //H is used for intermediate result and should be of the size m times l!
+//			 XYt.Multiply(F0, H);
+//			 //H is used for intermediate result and should be of the size m times l!
+//			 XYt.MultiplyT(H, F1);
+//			 //H is used for intermediate result and should be of the size m times l!
+//			 XYt.Multiply(F1, H); XYt.MultiplyT(H, F2);
+//			 printf("Finish Multiplying with XYt\n");
+//			 //Free the memory
+//			 H.Clr();
+//			 typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> Mat;
+//			 F.Gen(n, (its + 1) * l); TLAMisc::FillRnd(F);//its+1
+//
+//			 typedef Eigen::Map<Mat> MatW;
+//			 MatW FWrapped(&F(0, 0).Val, n, (its + 1) * l); MatW F0Wrapped(&F0(0, 0).Val, n, l); MatW F1Wrapped(&F1(0, 0).Val, n, l); MatW F2Wrapped(&F2(0, 0).Val, n, l);
+//			 //printf("Started to join the memory");
+//			 FWrapped << F0Wrapped, F1Wrapped, F2Wrapped;
+//			 //printf("Finished join the memory");
+//			 //Free the memory
+//			 F0.Clr(); F1.Clr(); F2.Clr();
+//			 //Do QR in place at the end F becomes Q
+//			 TLinAlg::QRbasis(F);
+//			 //printf("QR finsihed\n");
+//			 //Is F still valid
+//			 TFltVV FF; FF.Gen(m, (its + 1) * l);
+//			 XYt.Multiply(F, FF);
+//			 TFltVV VV, VVT;
+//			 //printf("Size of matrix FF: %d\n", FF.GetCols());
+//			 TLinAlg::thinSVD(FF, U, s, VVT);
+//			 VV.Gen(VVT.GetCols(), VVT.GetRows());
+//			 TLinAlg::Transpose(VVT, VV);
+//			 V.Gen(n, (its + 1)*l);
+//			 //printf("Almost done\n");
+//			 //printf("F sizes: (%d, %d), VV sizes (%d, %d), V sizes (%d, %d)", F.GetRows(), F.GetCols(), VV.GetRows(), VV.GetCols(), V.GetRows(), V.GetCols());
+//			 TLinAlg::Multiply(F, VV, V);
+//			 //V = Q*V2;
+//		 }
+//	 }
+//	 //Clip to only top k components
+//	 int kk = MIN(k, MIN(m, n));
+//	 TFltVV UU, VV; UU.Gen(U.GetRows(), kk); VV.Gen(V.GetRows(), kk);
+//	 TFltV ss; ss.Gen(kk);
+//	 for (int j = 0; j < kk; j++){
+//		 ss[j] = s[j];
+//		 for (int i = 0; i < U.GetRows(); i++){
+//			 UU(i, j) = U(i, j);
+//		 }
+//		 for (int i = 0; i < V.GetRows(); i++){
+//			 VV(i, j) = V(i, j);
+//		 }
+//	 }
+//	 U = UU;
+//	 V = VV;
+//	 s = ss;
+//	 return kk;
+// }
+//#else
+
+void TLinAlg::SVDSolve(const TFltVV& A, TFltV& x, const TFltV& b,
+		const double& EpsSing) {
+	Assert(A.GetRows() == b.Len());
+
+	// data used for solution
+	int NumOfRows_Matrix = A.GetRows();
+	int NumOfCols_Matrix = A.GetCols();
+
+	// generating the SVD factorization
+	TFltVV U, VT, M = A;
+	TFltV Sing;
+	ComputeSVD(M, U, Sing, VT);
+
+	// generating temporary solution
+	x.Gen(NumOfCols_Matrix);
+	TLinAlgTransform::FillZero(x);
+	TFltV ui; ui.Gen(U.GetRows());
+	TFltV vi; vi.Gen(VT.GetCols());
+
+	double Scalar;
+	int i = 0;
+	while (i < MIN(NumOfRows_Matrix, NumOfCols_Matrix) && Sing[i].Val > EpsSing*Sing[0]) {
+		U.GetCol(i, ui);
+		VT.GetRow(i, vi);
+		Scalar = TLinAlg::DotProduct(ui, b) / Sing[i].Val;
+		TLinAlg::AddVec(Scalar, vi, x);
+		i++;
+	}
+}
+
+void TLinAlg::ComputeSVD(const TFltVV& A, TFltVV& U, TFltV& Sing,
+		TFltVV& VT) {
+#ifdef LAPACKE
+	MKLfunctions::SVDFactorization(A, U, Sing, VT);
+#else
+	// TODO optimize this part
+	if (VT.GetRows() != A.GetCols() || VT.GetCols() != A.GetCols()) {
+		VT.Gen(A.GetCols(), A.GetCols());
+	}
+
+	TSvd SVD;
+	SVD.Svd(A, U, Sing, VT);
+
+	// transpose V
+	VT.Transpose();
+#endif
+}
+
+
 int TLinAlg::ComputeThinSVD(const TMatrix& XYt, const int& k, TFltVV& U, TFltV& s, TFltVV& V, const int Iters, const double Tol){
-	//TStructuredCovarianceMatrix XYt(rows, cols, SampleN, MeanX, MeanY, X, Y);
-	 const int its = Iters != -1 ? Iters : 2;
+#if defined(LAPACKE) && defined(EIGEN)
+	//no need to reserve memory for the matrices, all will be done internaly
+	//Set k to 500
+	//Tolerance ignored!
+
+	EAssert(k <= XYt.GetRows() && k <= XYt.GetCols());
+
+	const int its = Iters != -1 ? Iters : 2;
 	 const int m = XYt.GetRows();
 	 const int n = XYt.GetCols();
 	 int l = (int)((11 / 10.0) * k);
-	 //printf("l is %d\n", l);	 
+	 //printf("l is %d\n", l);
 	 if ((its+1)*l >= MIN(m, n)){
 		 TFltVV XYtfull; XYtfull.Gen(m, n);
 		 TFltVV Identity; Identity.Gen(n, n);
@@ -2725,15 +3208,16 @@ int TLinAlg::ComputeThinSVD(const TMatrix& XYt, const int& k, TFltVV& U, TFltV& 
 		 IdentityWrapped.setIdentity(n, n);
 		 XYt.Multiply(Identity, XYtfull);
 		 TFltVV VT;
-		 TLinAlg::thinSVD(XYtfull, U, s, VT);
-	     V.Gen(VT.GetCols(), VT.GetRows());
+		 TLinAlg::ThinSVD(XYtfull, U, s, VT);
+		 V.Gen(VT.GetCols(), VT.GetRows());
 		 TLinAlg::Transpose(VT, V);
 	 }
 	 else{
 		 TTmStopWatch Time;
 		 if (m >= n){
+
 			 //H is used for intermediate result and should be of the size n times l!			 
-			 TFltVV H(n,l); TLAMisc::FillRnd(H);
+			 TFltVV H(n,l); TLinAlgTransform::FillRnd(H);
 			 //TFltVV RSample; RSample.GenRandom(n, l);
 			 TFltVV F, F0, F1, F2; F0.Gen(m, l); F1.Gen(m, l); F2.Gen(m, l);
 			 //Time.Start();
@@ -2776,7 +3260,7 @@ int TLinAlg::ComputeThinSVD(const TMatrix& XYt, const int& k, TFltVV& U, TFltV& 
 			 //Time.Start();
 			 TFltVV FFT; FFT.Gen((its + 1) * l, n);
 			 TLinAlg::Transpose(FF, FFT);
-			 TLinAlg::thinSVD(FFT, UU, s, VT);
+			 TLinAlg::ThinSVD(FFT, UU, s, VT);
 			 //Time.Stop("Computation of thin SVD took:");
 			 //printf("UU (%d, %d)\n", UU.GetRows(), UU.GetCols());
 			 //Copy and save U
@@ -2788,7 +3272,7 @@ int TLinAlg::ComputeThinSVD(const TMatrix& XYt, const int& k, TFltVV& U, TFltV& 
 		 }
 		 else{
 			 //H is used for intermediate result and should be of the size m times l!
-			 TFltVV H(m,l); TLAMisc::FillRnd(H);
+			 TFltVV H(m,l); TLinAlgTransform::FillRnd(H);
 			 //TFltVV RSample; RSample.GenRandom(n, l);
 			 TFltVV F, F0, F1, F2; F0.Gen(n, l); F1.Gen(n, l); F2.Gen(n, l);
 			 //printf("Star Multiplying with XYt'*XYt\n");
@@ -2805,7 +3289,7 @@ int TLinAlg::ComputeThinSVD(const TMatrix& XYt, const int& k, TFltVV& U, TFltV& 
 			 //Free the memory
 			 H.Clr();
 			 typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> Mat;
-			 F.Gen(n, (its + 1) * l); TLAMisc::FillRnd(F);//its+1
+			 F.Gen(n, (its + 1) * l); TLinAlgTransform::FillRnd(F);//its+1
 
 			 typedef Eigen::Map<Mat> MatW;
 			 MatW FWrapped(&F(0, 0).Val, n, (its + 1) * l); MatW F0Wrapped(&F0(0, 0).Val, n, l); MatW F1Wrapped(&F1(0, 0).Val, n, l); MatW F2Wrapped(&F2(0, 0).Val, n, l);
@@ -2822,7 +3306,7 @@ int TLinAlg::ComputeThinSVD(const TMatrix& XYt, const int& k, TFltVV& U, TFltV& 
 			 XYt.Multiply(F, FF);
 			 TFltVV VV, VVT;
 			 //printf("Size of matrix FF: %d\n", FF.GetCols());
-			 TLinAlg::thinSVD(FF, U, s, VVT);
+			 TLinAlg::ThinSVD(FF, U, s, VVT);
 			 VV.Gen(VVT.GetCols(), VVT.GetRows());
 			 TLinAlg::Transpose(VVT, VV);
 			 V.Gen(n, (its + 1)*l);
@@ -2835,7 +3319,7 @@ int TLinAlg::ComputeThinSVD(const TMatrix& XYt, const int& k, TFltVV& U, TFltV& 
 	 //Clip to only top k components
 	 int kk = MIN(k, MIN(m, n));
 	 TFltVV UU, VV; UU.Gen(U.GetRows(), kk); VV.Gen(V.GetRows(), kk);
-	 TFltV ss; ss.Gen(kk); 
+	 TFltV ss; ss.Gen(kk);
 	 for (int j = 0; j < kk; j++){
 		 ss[j] = s[j];
 		 for (int i = 0; i < U.GetRows(); i++){
@@ -2849,10 +3333,9 @@ int TLinAlg::ComputeThinSVD(const TMatrix& XYt, const int& k, TFltVV& U, TFltV& 
 	 V = VV;
 	 s = ss;
 	 return kk;
- }
 #else
-int TLinAlg::ComputeThinSVD(const TMatrix& X, const int& k, TFltVV& U, TFltV& s, TFltVV& V, const int Iters, const double Tol){
-	TSparseSVD::OrtoIterSVD(X, k, s, U, V, Iters, Tol);
+	TSparseSVD::OrtoIterSVD(XYt, k, s, U, V, Iters, Tol);
 	return k;
-}
 #endif
+}
+//#endif

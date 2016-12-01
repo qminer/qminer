@@ -82,14 +82,17 @@ module.exports = exports = function (pathQmBinary) {
     /**
      * Reads a buffer, containing a CSV file, line by line and calls a callback for each line.
      * The callback function accepts an array with the values of the current line.
-     *
-     * @param {Buffer} buffer - the Node.js buffer
-     * @param {Object} opts - options parameter
-     * @param {function} opts.onLine - a callback that gets called on each line (for example: function (lineArr) {})
-     * @param {function} opts.onEnd - a callback that gets returned after all the lines have been read
-     * @param {String} opts.delimiter - the delimiter used when parsing
-     * @param {Number} opts.lineLimit - the maximum number of lines read
-     * @param {Number} opts.skipLines - the number of lines that should be skipped before first calling the callback
+     * @param {Buffer} buffer - The Node.js buffer.
+     * @param {Object} opts - Options parameter.
+     * @param {function} opts.onLine - A callback that gets called on each line (for example: `function (lineArr) {}`).
+     * @param {function} opts.onEnd - A callback that gets returned after all the lines have been read.
+     * @param {String} opts.delimiter - The delimiter used when parsing.
+     * @param {Number} opts.lineLimit - The maximum number of lines read.
+     * @param {Number} opts.skipLines - The number of lines that should be skipped before first calling the callback.
+     * @example
+     * // import fs module
+     * var fs = require('qminer').fs;
+     * // open a csv file and read the lines
      */
     exports.readCsvLines = function (fin, opts) {
     	exports.readLines(fin, processCsvLine(opts), opts.onEnd);
@@ -97,7 +100,11 @@ module.exports = exports = function (pathQmBinary) {
     
     /**
      * Reads json that was serialized using `fs.FOut.writeJson`.
-     * @returns {Object} Json object
+     * @returns {Object} Json object.
+     * @example
+     * // import fs module
+     * var fs = require('qminer').fs;
+     * // create and save a json and then read it using the readJson method
      */
     exports.FIn.prototype.readJson = function () {
     	var str = this.readString();
@@ -106,8 +113,12 @@ module.exports = exports = function (pathQmBinary) {
     
     /**
      * Saves json object, which can be read by `fs.FIn.readJson`.
-     * @returns {Object} obj - Json object to write
+     * @returns {Object} obj - Json object to write.
      * @returns {module:fs.FOut} Self.
+     * @example
+     * // import fs module
+     * var fs = require('qminer').fs;
+     * // create and save a json using the writeJson method
      */
     exports.FOut.prototype.writeJson = function (json) {
     	var str = JSON.stringify(json);

@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.2.0</a>
       </div>
     </div>
   </nav>
@@ -25,9 +25,9 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-la.html">la</a>.<wbr></small><span class="symbol-name">SparseMatrix</span></h1>
-            <p class="source-link">Source: <a href="ladoc.js.html#source-line-636">ladoc.<wbr>js:636</a></p>
+            <p class="source-link">Source: <a href="ladoc.js.html#source-line-705">ladoc.<wbr>js:705</a></p>
             <div class="symbol-classdesc">
-              <p>Represents a sparse matrix.</p>
+              <p>Sparse Matrix is represented as a dense vector of sparse vectors which correspond to matrix columns.</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -181,9 +181,9 @@ var mat2 = new la.SparseMatrix([[[0, 2]], [[0, 1], [2, 3]]], 3);</code></pre>
                     </td>
                     <td>
                       <p>Constructor arguments. There are two ways of constructing:
-                        <br>1. A nested array of sparse vectors (columns). A sparse vector is a nested array of pairs, first value is index, second is value.. Example: [[[0,2]], [[0, 1], [2,3]]] has 2 columns. The second nonzero element in second column has
-                        a value 3 at index 2.
-                        <br>2. A sparse matrix (copy constructor).</p>
+                        <br>1. using a nested array of sparse vectors (columns). A sparse vector is a nested array of pairs, first value is index, second is value. Example: [[[0, 2]], [[0, 1], [2, 3]]] has 2 columns. The second non-zero element in second
+                        column has a value 3 at index 2,
+                        <br>2. using a sparse matrix (copy constructor).</p>
                     </td>
                   </tr>
                   <tr>
@@ -197,7 +197,7 @@ var mat2 = new la.SparseMatrix([[[0, 2]], [[0, 1], [2, 3]]], 3);</code></pre>
                       <p>Yes</p>
                     </td>
                     <td>
-                      <p>Maximal number of rows in sparse vector. It is only in combinantion with nested array of vector elements.</p>
+                      <p>Maximal number of rows in sparse vector. <i>It is only in combinantion with nested array of vector elements.</i></p>
                     </td>
                   </tr>
                 </tbody>
@@ -210,7 +210,7 @@ var mat2 = new la.SparseMatrix([[[0, 2]], [[0, 1], [2, 3]]], 3);</code></pre>
             <h2>Properties</h2>
             <section>
               <h3 id="cols"><span class="symbol-name">cols</span></h3>
-              <p>Gives the number of columns of sparse matrix.</p>
+              <p>Gives the number of columns of sparse matrix. Type <code>number</code>.</p>
               <section>
                 <h4>
             Example
@@ -225,13 +225,9 @@ mat.cols;</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code>number</code>&nbsp;Number of columns of sparse matrix.</p>
-                </dd>
               </dl>
               <h3 id="rows"><span class="symbol-name">rows</span></h3>
-              <p>Gives the number of rows of sparse matrix.</p>
+              <p>Gives the number of rows of sparse matrix. Type <code>number</code>.</p>
               <section>
                 <h4>
             Example
@@ -246,10 +242,6 @@ mat.rows;</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code>number</code>&nbsp;Number of rows of sparse matrix.</p>
-                </dd>
               </dl>
             </section>
             <h2>Methods</h2>
@@ -318,12 +310,42 @@ mat.at(1, 1); // returns 3</code></pre>
                   <p><code>number</code>&nbsp;Matrix value.</p>
                 </dd>
               </dl>
-              <h3 id="clear"><span class="symbol-name">clear</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <h3 id="clear"><span class="symbol-name">clear</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span></span></h3>
               <p>Clear content of the matrix and sets its row dimension to -1.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>//import la module
+var la = require(&#x27;qminer&#x27;).la;
+// create a new sparse matrix
+var mat = new la.SparseMatrix([[[0, 2], [2, -3]], [[1, 1], [3, -2]]]);
+// clear the matrix
+mat.clear();</code></pre>
+                </div>
+              </section>
               <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></code>&nbsp;Self. All the content has been cleared.</p>
+                </dd>
               </dl>
               <h3 id="colNorms"><span class="symbol-name">colNorms</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
               <p>Returns the vector of column norms of sparse matrix.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>//import la module
+var la = require(&#x27;qminer&#x27;).la;
+// create a new sparse matrix
+var mat = new la.SparseMatrix([[[0, 2], [2, -3]], [[1, 1], [3, -2]]]);
+// get the column norms
+var norms = mat.colNorms();</code></pre>
+                </div>
+              </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
@@ -352,11 +374,24 @@ var norm = mat.frob(); // returns sqrt(30)</code></pre>
                 </dd>
               </dl>
               <h3 id="frob2"><span class="symbol-name">frob2</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
-              <p>Returns the frobenious norm squared</p>
+              <p>Calculates the frobenious norm squared of the matrix.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import la module
+var la = require(&#x27;qminer&#x27;).la;
+// create a sparse matrix
+var spMat = new la.SparseMatrix([[[0, 1], [1, 5]], [[0, 2], [2, -3]]]);
+// get the forbenious norm squared of the sparse matrix
+var frob = spMat.frob2();</code></pre>
+                </div>
+              </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;Frobenious norm squared</p>
+                  <p><code>number</code>&nbsp;Frobenious norm squared.</p>
                 </dd>
               </dl>
               <h3 id="full"><span class="symbol-name">full</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
@@ -371,11 +406,11 @@ var la = require(&#x27;qminer&#x27;).la;
 // create a new sparse matrix
 var mat = new la.SparseMatrix([[[0, 2]], [[0, 1], [2, 3]]]);
 // create a dense representation of sparse matrix
-mat.full();
-// returns
+// returns the dense matrix:
 // 2  1
 // 0  0
-// 0  3</code></pre>
+// 0  3
+mat.full();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -431,11 +466,24 @@ var first = mat.getCol(0); // returns the first column of the sparse matrix</cod
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.SparseVector.html">module:la.SparseVector</a></code>&nbsp;Sparse vector corresponding to the colIdx-th column of sparse matrix.</p>
+                  <p><code><a href="module-la.SparseVector.html">module:la.SparseVector</a></code>&nbsp;Sparse vector corresponding to the <code>colIdx</code>-th column of sparse matrix.</p>
                 </dd>
               </dl>
               <h3 id="getColSubmatrix"><span class="symbol-name">getColSubmatrix</span><span class="signature"><span class="signature-params">(columnIdVec)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span></span></h3>
               <p>Returns a submatrix containing only selected columns. Columns are identified by a vector of ids.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>//import la module
+var la = require(&#x27;qminer&#x27;).la;
+// create a new sparse matrix
+var mat = new la.SparseMatrix([[[0, 2], [2, -3]], [[1, 1], [3, -2]]]);
+// get the submatrix containing the 1, 2 and 4 column
+var submat = mat.getColSubmatrix(new la.IntVector([1]));</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -468,7 +516,7 @@ var first = mat.getCol(0); // returns the first column of the sparse matrix</cod
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></code>&nbsp;</p>
+                  <p><code><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></code>&nbsp;The submatrix containing the the columns of the original matrix.</p>
                 </dd>
               </dl>
               <h3 id="load"><span class="symbol-name">load</span><span class="signature"><span class="signature-params">(fin)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
@@ -521,11 +569,11 @@ mat.load(fin);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>&nbsp;Self.</p>
+                  <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>&nbsp;Self. The content has been loaded using <code>fin</code>.</p>
                 </dd>
               </dl>
               <h3 id="minus"><span class="symbol-name">minus</span><span class="signature"><span class="signature-params">(mat)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span></span></h3>
-              <p>Returns the difference of two matrices.</p>
+              <p>Substraction of two matrices.</p>
               <section>
                 <h4>
             Example
@@ -581,7 +629,22 @@ var diff = mat.minus(mat2);</code></pre>
                 </dd>
               </dl>
               <h3 id="multiply"><span class="symbol-name">multiply</span><span class="signature"><span class="signature-params">(arg)</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</span></span></h3>
-              <p>Multiplies argument with sparse vector.</p>
+              <p>Multiplies argument with sparse maatrix.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import la module
+var la = require(&#x27;qminer&#x27;).la;
+// create new sparse matrix
+var mat = new la.SparseMatrix([[[0, 2], [3, 5]], [[1, -3]]]);
+// create a vector
+var vec = new la.Vector([3, -2]);
+// multiply the matrix and vector
+var vec2 = mat.multiply(vec);</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -615,13 +678,28 @@ var diff = mat.minus(mat2);</code></pre>
                 <dt>Returns</dt>
                 <dd>
                   <p><code>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</code>&nbsp;
-                    <br>1. <a href="module-la.Matrix.html">module:la.Matrix</a>, if arg is number, <a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>.
-                    <br>2. <a href="module-la.Vector.html">module:la.Vector</a>, if arg is <a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.SparseVector.html">module:la.SparseVector</a>.</p>
+                    <br>1. <a href="module-la.Matrix.html">module:la.Matrix</a>, if <code>arg</code> is number, <a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>.
+                    <br>2. <a href="module-la.Vector.html">module:la.Vector</a>, if <code>arg</code> is <a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.SparseVector.html">module:la.SparseVector</a>.</p>
                 </dd>
               </dl>
               <h3 id="multiplyT"><span class="symbol-name">multiplyT</span><span class="signature"><span class="signature-params">(arg)</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</span></span></h3>
               <p>Sparse matrix transpose and multiplies with argument.</p>
               <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import la module
+var la = require(&#x27;qminer&#x27;).la;
+// create new sparse matrix
+var mat = new la.SparseMatrix([[[0, 2], [3, 5]], [[1, -3]]]);
+// create a dense matrix
+var mat2 = new la.Matrix([[0, 1], [2, 3], [4, 5], [-1, 3]]);
+// transpose mat and multiply it with mat2
+var mat3 = mat.multiplyT(mat2);</code></pre>
+                </div>
+              </section>
+              <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
                   <thead>
@@ -654,12 +732,26 @@ var diff = mat.minus(mat2);</code></pre>
                 <dt>Returns</dt>
                 <dd>
                   <p><code>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</code>&nbsp;
-                    <br>1. <a href="module-la.Matrix.html">module:la.Matrix</a>, if arg is number, <a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>.
-                    <br>2. <a href="module-la.Vector.html">module:la.Vector</a>, if arg is <a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.SparseVector.html">module:la.SparseVector</a>.</p>
+                    <br>1. <a href="module-la.Matrix.html">module:la.Matrix</a>, if <code>arg</code> is number, <a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>.
+                    <br>2. <a href="module-la.Vector.html">module:la.Vector</a>, if <code>arg</code> is <a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.SparseVector.html">module:la.SparseVector</a>.</p>
                 </dd>
               </dl>
               <h3 id="nnz"><span class="symbol-name">nnz</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
               <p>Returns the number of non-zero elements of sparse matrix.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import la module
+var la = require(&#x27;qminer&#x27;).la;
+// create a sparse matrix
+var spMat = new la.SparseMatrix([[[0, 1], [1, 5]], [[0, 2], [2, -3]]]);
+// get the number of non-zero elements
+// returns 4
+var nnz = spMat.nnz(); </code></pre>
+                </div>
+              </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
@@ -678,11 +770,11 @@ var la = require(&#x27;qminer&#x27;).la;
 // create a new sparse matrix
 var mat = new la.SparseMatrix([[[0, 2]], [[0, 1], [2, 3]]]);
 // normalize matrix columns
-mat.normalizeCols();
 // The new matrix elements are:
 // 1  0.316227
 // 0  0
-// 0  0.948683</code></pre>
+// 0  0.948683
+mat.normalizeCols();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -692,7 +784,7 @@ mat.normalizeCols();
                 </dd>
               </dl>
               <h3 id="plus"><span class="symbol-name">plus</span><span class="signature"><span class="signature-params">(mat)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span></span></h3>
-              <p>Returns the sum of two matrices.</p>
+              <p>Addition of two matrices.</p>
               <section>
                 <h4>
             Example
@@ -823,7 +915,7 @@ mat.push(vec);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></code>&nbsp;Self. The last column is now the added sparse vector and the number of columns is now bigger by one.</p>
+                  <p><code><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></code>&nbsp;Self. The last column is now the added <code>spVec</code> and the number of columns is now bigger by one.</p>
                 </dd>
               </dl>
               <h3 id="put"><span class="symbol-name">put</span><span class="signature"><span class="signature-params">(rowIdx, colIdx, num)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span></span></h3>
@@ -901,7 +993,7 @@ mat.put(2, 2, -4);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></code>&nbsp;Self. The value at position (rowIdx, colIdx) is changed.</p>
+                  <p><code><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></code>&nbsp;Self. The value at position (<code>rowIdx</code>, <code>colIdx</code>) is changed.</p>
                 </dd>
               </dl>
               <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout[, saveMatlab])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
@@ -969,7 +1061,7 @@ mat.save(fout).close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;The output stream fout.</p>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;The output stream <code>fout</code>.</p>
                 </dd>
               </dl>
               <h3 id="setCol"><span class="symbol-name">setCol</span><span class="signature"><span class="signature-params">(colIdx, spVec)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span></span></h3>
@@ -1035,11 +1127,11 @@ mat.setCol(2, vec); // returns mat with the third column changed</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></code>&nbsp;Self.</p>
+                  <p><code><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></code>&nbsp;Self. The <code>colIdx</code>-th column has been replaced with <code>spVec</code>.</p>
                 </dd>
               </dl>
               <h3 id="setRowDim"><span class="symbol-name">setRowDim</span><span class="signature"><span class="signature-params">(rowDim)</span></span></h3>
-              <p>Sets the row dimension</p>
+              <p>Sets the row dimension.</p>
               <section>
                 <h4>
             Example
@@ -1076,7 +1168,7 @@ mat.rows // prints 2</code></pre>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Row dimension</p>
+                        <p>Row dimension.</p>
                       </td>
                     </tr>
                   </tbody>

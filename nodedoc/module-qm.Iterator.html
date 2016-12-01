@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.2.0</a>
       </div>
     </div>
   </nav>
@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">Iterator</span></h1>
-            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-1991">qminerdoc.<wbr>js:1991</a></p>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-2512">qminerdoc.<wbr>js:2512</a></p>
             <dl class="dl-compact">
             </dl>
           </header>
@@ -71,6 +71,7 @@
           <section>
             <h2 id="Iterator"><span class="symbol-name">Iterator</span><span class="signature"><span class="signature-params">()</span></span></h2>
             <p>Store Iterators allows you to iterate through the records in the store.
+              <br>
               <b>Factory pattern</b>: this class cannot be construced using the new keyword. It is constructed by calling a specific method or attribute, e.g. calling <a href="module-qm.Store.html#forwardIter">module:qm.Store#forwardIter</a> to construct
               the Iterator.</p>
             <section>
@@ -106,11 +107,11 @@ base.close();</code></pre>
             <h2>Properties</h2>
             <section>
               <h3 id="record"><span class="symbol-name">record</span></h3>
-              <p>Gives the current record.</p>
+              <p>Gives the current record. Type <a href="module-qm.Record.html">module:qm.Record</a>.</p>
               <dl class="dl-compact">
               </dl>
               <h3 id="store"><span class="symbol-name">store</span></h3>
-              <p>Gives the store of the iterator.</p>
+              <p>Gives the store of the iterator. Type <a href="module-qm.Store.html">module:qm.Store</a>.</p>
               <dl class="dl-compact">
               </dl>
             </section>
@@ -155,8 +156,8 @@ base.close();</code></pre>
                 <dt>Returns</dt>
                 <dd>
                   <p><code>boolean</code>&nbsp;
-                    <br>1. True, if the iteration successfully moves to the next record.
-                    <br>2. False, if there is no record left.</p>
+                    <br>1. <code>True</code>, if the iteration successfully moves to the next record.
+                    <br>2. <code>False</code>, if there is no record left.</p>
                 </dd>
               </dl>
             </section>

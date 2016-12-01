@@ -26,3 +26,7 @@ exports.eqtol = function (flt1, flt2, tol, msg) {
 
     exports.ok(diff < tol,  err);
 }
+
+exports.notNull = function (val) {
+	exports.ok(val != null, 'the value is not defined');
+};

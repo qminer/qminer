@@ -32,7 +32,8 @@ bool TNumeric::Update(const double& Val) {
 	if (Type == ntNormalize) {
         MnVal = TFlt::GetMn(MnVal, Val); 
         MxVal = TFlt::GetMx(MxVal, Val);         
-	} else if (Type == ntNormalizeVar) {
+	}
+	else if (Type == ntNormalizeVar) {
 		Var.Update(Val);
 	}
     return false;
@@ -64,16 +65,16 @@ void TNumeric::AddFtr(const double& Val, TFltV& FullV, int& Offset) const {
     FullV[Offset] = GetFtr(Val); Offset++;
 }
 
-double TNumeric::InvFtr(const TFltV& FullV, int& Offset) const {
-	double Val = FullV[Offset++];
+double TNumeric::InvFtr(const double& FtrVal) const {
+	double InvVal = FtrVal;
 	if (Type == ntNormalizeVar) {
 		double M2 = Var.GetStDev();
-		if (M2 > 0) Val *= M2;
-		Val += Var.GetMean();
+		if (M2 > 0) InvVal *= M2;
+		InvVal += Var.GetMean();
 	} else if (Type != ntNone && MnVal < MxVal) {
-		Val =  Val*(MxVal - MnVal) + MnVal;
+		InvVal =  InvVal*(MxVal - MnVal) + MnVal;
 	}
-	return Val;
+	return InvVal;
 }
 
 ///////////////////////////////////////
@@ -129,11 +130,29 @@ void TCategorical::AddFtr(const TStr& Val, TFltV& FullV, int& Offset) const {
     Offset += GetDim();
 }
 
+TStr TCategorical::GetVal(const int& ValN) const {
+	return (Type == ctHash) ? TInt::GetStr(ValN) : ValSet.GetKey(ValN);
+}
+
 ///////////////////////////////////////
 // Multi-Feature-Generator
+void TMultinomial::Init(const bool& NormalizeP, const bool& BinaryP) {
+    if (NormalizeP) { Flags.Val |= mtNormalize; }
+    if (BinaryP) { Flags.Val |= mtBinary; }
+}
+
+TMultinomial::TMultinomial(const bool& NormalizeP, const bool& BinaryP):
+    Flags(0), FtrGen() { Init(NormalizeP, BinaryP); }
+
+TMultinomial::TMultinomial(const bool& NormalizeP, const bool& BinaryP, const TStrV& ValV):
+    Flags(0), FtrGen(ValV) {Init(NormalizeP, BinaryP); }
+
+TMultinomial::TMultinomial(const bool& NormalizeP, const bool& BinaryP, const int& HashDim):
+    Flags(0), FtrGen(HashDim) { Init(NormalizeP, BinaryP); }
+
 void TMultinomial::Save(TSOut& SOut) const { 
-    SaveEnum<TMultinomialType>(SOut, Type); 
-    FtrGen.Save(SOut); 
+    Flags.Save(SOut);
+    FtrGen.Save(SOut);
 }
 
 bool TMultinomial::Update(const TStr& Str) {
@@ -194,8 +213,10 @@ void TMultinomial::AddFtr(const TStrV& StrV, const TFltV& FltV, TIntFltKdV& SpV)
     }
     // truncate the vector
     SpV.Trunc(GoodSpN + 1);
+    // replace values with 1 if needed
+    if (IsBinary()) { for (TIntFltKd& Sp : SpV) { Sp.Dat = 1.0; } }
     // final normalization, if needed
-    if (Type == mtNormalize) { TLinAlg::Normalize(SpV); }    
+    if (IsNormalize()) { TLinAlg::Normalize(SpV); }    
 }
 
 void TMultinomial::AddFtr(const TStrV& StrV, const TFltV& FltV, TIntFltKdV& SpV, int& Offset) const {

@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.2.0</a>
       </div>
     </div>
   </nav>
@@ -25,9 +25,9 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-la.html">la</a>.<wbr></small><span class="symbol-name">SparseVector</span></h1>
-            <p class="source-link">Source: <a href="ladoc.js.html#source-line-497">ladoc.<wbr>js:497</a></p>
+            <p class="source-link">Source: <a href="ladoc.js.html#source-line-525">ladoc.<wbr>js:525</a></p>
             <div class="symbol-classdesc">
-              <p>Represents a sparse vector.</p>
+              <p>Sparse vector is an array of (int,double) pairs that represent column indices and values.</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -110,7 +110,7 @@
           </section>
           <section>
             <h2 id="SparseVector">new&nbsp;<span class="symbol-name">SparseVector</span><span class="signature"><span class="signature-params">([arg][, dim])</span></span></h2>
-            <p>Sparse Vector</p>
+            <p>Sparse Vector.</p>
             <section>
               <h3>
             Example
@@ -148,8 +148,8 @@ var spVec2 = new la.SparseVector([[0, 1], [2, 3], [3, 6]], 5); // largest index 
                     </td>
                     <td>
                       <p>Constructor arguments. There are two ways of constructing:
-                        <br>1. Nested array of vector elements. Example: [[0, 2],[2, 3]] has two nonzero values, first value is 2 at position 0, second value is 3 at position 2.
-                        <br>2. A sparse vector (copy constructor).</p>
+                        <br>1. Using a nested array of vector elements. Example: <code>[[0, 2],[2, 3]]</code> has two nonzero values, first value is 2 at position 0, second value is 3 at position 2,
+                        <br>2. using a sparse vector (copy constructor).</p>
                     </td>
                   </tr>
                   <tr>
@@ -163,7 +163,7 @@ var spVec2 = new la.SparseVector([[0, 1], [2, 3], [3, 6]], 5); // largest index 
                       <p>Yes</p>
                     </td>
                     <td>
-                      <p>Maximal length of sparse vector. It is only in combinantion with nested array of vector elements.</p>
+                      <p>Maximum length of sparse vector. <i>It is only in combinantion with nested array of vector elements.</i></p>
                     </td>
                   </tr>
                 </tbody>
@@ -176,15 +176,25 @@ var spVec2 = new la.SparseVector([[0, 1], [2, 3], [3, 6]], 5); // largest index 
             <h2>Properties</h2>
             <section>
               <h3 id="dim"><span class="symbol-name">dim</span></h3>
-              <p>Returns the dimension of sparse vector.</p>
+              <p>Returns the dimension of sparse vector. Type <code>number</code>.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import la module
+var la = require(&#x27;qminer&#x27;).la;
+// create a new sparse vector and designate the dimension of the vector
+var vec = new la.SparseVector([[0, 2], [3, 1], [7, 5], [11, 4]], 15);
+// get the dimension of the sparse vector
+// returns 15
+var dim = vec.dim; </code></pre>
+                </div>
+              </section>
               <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code>number</code>&nbsp;Dimension of sparse vector.</p>
-                </dd>
               </dl>
               <h3 id="nnz"><span class="symbol-name">nnz</span></h3>
-              <p>Returns the number of nonzero values.</p>
+              <p>Returns the number of non-zero values. Type <code>number</code>.</p>
               <section>
                 <h4>
             Example
@@ -193,17 +203,13 @@ var spVec2 = new la.SparseVector([[0, 1], [2, 3], [3, 6]], 5); // largest index 
                   <pre class="prettyprint"><code>// import la module
 var la = require(&#x27;qminer&#x27;).la;
 // create a new sparse vector
-var vec = new la.SparseVector([[0,2], [3,1], [7, 5], [11,4]]);
+var vec = new la.SparseVector([[0, 2], [3, 1], [7, 5], [11, 4]]);
 // check the number of nonzero values in sparse vector
-var nonz = vec.nnz;
-// returns 4</code></pre>
+// returns 4
+var nonz = vec.nnz;</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code>number</code>&nbsp;Number of nonzero values.</p>
-                </dd>
               </dl>
             </section>
             <h2>Methods</h2>
@@ -260,6 +266,19 @@ vec.at(3); // returns the value 2</code></pre>
               </dl>
               <h3 id="full"><span class="symbol-name">full</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
               <p>Returns the dense vector representation of the sparse vector.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import la module
+var la = require(&#x27;qminer&#x27;).la;
+// create a new sparse vector
+var vec = new la.SparseVector([[0, 2], [3, 1], [7, 5], [11, 4]]); 
+// create a dense representation of the vector
+var dense = vec.full();</code></pre>
+                </div>
+              </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
@@ -267,7 +286,20 @@ vec.at(3); // returns the value 2</code></pre>
                 </dd>
               </dl>
               <h3 id="idxVec"><span class="symbol-name">idxVec</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
-              <p>Returns a dense vector of indices (zero based) of nonzero elements of sparse vector.</p>
+              <p>Returns a dense vector of indices (zero based) of non-zero elements of sparse vector.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import la module
+var la = require(&#x27;qminer&#x27;).la;
+// create a new sprase vector
+var vec = new la.SparseVector([[0, 2], [3, 1], [7, 5], [11, 4]]);
+// get the non-zero indeces of the sparse vector
+var idxVec = vec.idxVec();</code></pre>
+                </div>
+              </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
@@ -372,11 +404,24 @@ var spVec2 = spVec.multiply(3.14); // returns sparse vector [3.14, 0, 9.42, 18.8
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.SparseVector.html">module:la.SparseVector</a></code>&nbsp;The product of num and sparse vector.</p>
+                  <p><code><a href="module-la.SparseVector.html">module:la.SparseVector</a></code>&nbsp;The product of <code>num</code> and sparse vector.</p>
                 </dd>
               </dl>
               <h3 id="norm"><span class="symbol-name">norm</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
               <p>Returns the norm of sparse vector.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import la module
+var la = require(&#x27;qminer&#x27;).la;
+// create a new sparse vector
+var vec = new la.SparseVector([[0, 2], [3, 1], [7, 5], [11, 4]]); 
+// get the norm of the vector
+var norm = vec.norm();</code></pre>
+                </div>
+              </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
@@ -385,6 +430,19 @@ var spVec2 = spVec.multiply(3.14); // returns sparse vector [3.14, 0, 9.42, 18.8
               </dl>
               <h3 id="normalize"><span class="symbol-name">normalize</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.SparseVector.html">module:la.SparseVector</a></span></span></h3>
               <p>Normalizes the sparse vector.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import la module
+var la = require(&#x27;qminer&#x27;).la;
+// create a new sparse vector
+var spVec = new la.SparseVector([[0, 1], [2, 3], [3, 6]]);
+// normalize the sparse vector
+spVec.normalize();</code></pre>
+                </div>
+              </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
@@ -469,7 +527,7 @@ vec.put(2, -4);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.SparseVector.html">module:la.SparseVector</a></code>&nbsp;Self. It puts/changes the values with the index idx to the value num.</p>
+                  <p><code><a href="module-la.SparseVector.html">module:la.SparseVector</a></code>&nbsp;Self. It puts/changes the values with the index <code>idx</code> to the value <code>num</code>.</p>
                 </dd>
               </dl>
               <h3 id="sum"><span class="symbol-name">sum</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
@@ -515,7 +573,20 @@ spVec.toString(); // returns the string &#x27;[(0, 1), (2, 3)]&#x27;</code></pre
                 </dd>
               </dl>
               <h3 id="valVec"><span class="symbol-name">valVec</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
-              <p>Returns a dense vector of values of nonzero elements of sparse vector.</p>
+              <p>Returns a dense vector of values of non-zero elements of sparse vector.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import la module
+var la = require(&#x27;qminer&#x27;).la;
+// create a new sparse vector
+var vec = new la.SparseVector([[0, 2], [3, 1], [7, 5], [11, 4]]);
+// get the non-zero values of the sparse vector
+var valVec = vec.valVec();</code></pre>
+                </div>
+              </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>

@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.2.0</a>
       </div>
     </div>
   </nav>
@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-fs.html">fs</a>.<wbr></small><span class="symbol-name">FOut</span></h1>
-            <p class="source-link">Source: <a href="fsdoc.js.html#source-line-186">fsdoc.<wbr>js:186</a></p>
+            <p class="source-link">Source: <a href="fsdoc.js.html#source-line-413">fsdoc.<wbr>js:413</a></p>
             <div class="symbol-classdesc">
               <p>Used for writing files.</p>
             </div>
@@ -58,6 +58,9 @@
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-fs.FOut.html#writeJson">writeJson()</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-fs.FOut.html#writeLine">writeLine(str)</a></dt>
                     <dd>
                     </dd>
@@ -107,7 +110,7 @@ fout.close();</code></pre>
                       <p>&nbsp;</p>
                     </td>
                     <td>
-                      <p>File name</p>
+                      <p>File name.</p>
                     </td>
                   </tr>
                   <tr>
@@ -121,7 +124,7 @@ fout.close();</code></pre>
                       <p>Yes</p>
                     </td>
                     <td>
-                      <p>Append flag</p>
+                      <p>Append flag.</p>
                       <p>Defaults to <code>false</code>.</p>
                     </td>
                   </tr>
@@ -135,11 +138,43 @@ fout.close();</code></pre>
             <h2>Methods</h2>
             <section>
               <h3 id="close"><span class="symbol-name">close</span><span class="signature"><span class="signature-params">()</span></span></h3>
-              <p>Closes the output stream</p>
+              <p>Closes the output stream.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import module
+var fs = require(&#x27;qminer&#x27;).fs;
+// open file in write mode
+var fout = new fs.FOut(&#x27;file.txt&#x27;);
+// write a line
+fout.writeLine(&#x27;example text&#x27;);
+// close
+fout.close();</code></pre>
+                </div>
+              </section>
               <dl class="dl-compact">
               </dl>
               <h3 id="flush"><span class="symbol-name">flush</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
-              <p>Flushes the output stream</p>
+              <p>Flushes the output stream.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import module
+var fs = require(&#x27;qminer&#x27;).fs;
+// open file in write mode
+var fout = new fs.FOut(&#x27;file.txt&#x27;);
+// write a line
+fout.writeLine(&#x27;example text&#x27;);
+// flush the stream
+fout.flush();
+// close
+fout.close();</code></pre>
+                </div>
+              </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
@@ -147,7 +182,22 @@ fout.close();</code></pre>
                 </dd>
               </dl>
               <h3 id="write"><span class="symbol-name">write</span><span class="signature"><span class="signature-params">(arg)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
-              <p>Writes a string or number or a JSON object in human readable form</p>
+              <p>Writes a string or number or a JSON object in human readable form.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import module
+var fs = require(&#x27;qminer&#x27;).fs;
+// open file in write mode
+var fout = new fs.FOut(&#x27;file.txt&#x27;);
+// write a string
+fout.write(&#x27;example text&#x27;);
+// close
+fout.close();</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -171,7 +221,7 @@ fout.close();</code></pre>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Argument to write</p>
+                        <p>Argument to write.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -184,7 +234,17 @@ fout.close();</code></pre>
                 </dd>
               </dl>
               <h3 id="writeBinary"><span class="symbol-name">writeBinary</span><span class="signature"><span class="signature-params">(str)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
-              <p>Writes a string or number or a JSON object in binary form</p>
+              <p>Writes a string or number or a JSON object in binary form.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import fs module
+var fs = require(&#x27;qminer&#x27;).fs;
+// save a string in binary form</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -208,7 +268,7 @@ fout.close();</code></pre>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Argument to write</p>
+                        <p>Argument to write.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -220,8 +280,44 @@ fout.close();</code></pre>
                   <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;Self.</p>
                 </dd>
               </dl>
+              <h3 id="writeJson"><span class="symbol-name">writeJson</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> (Object or <a href="module-fs.FOut.html">module:fs.FOut</a>)</span></span></h3>
+              <p>Saves json object, which can be read by <code>fs.FIn.readJson</code>.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import fs module
+var fs = require(&#x27;qminer&#x27;).fs;
+// create and save a json using the writeJson method</code></pre>
+                </div>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Object</code>&nbsp;obj - Json object to write.</p>
+                </dd>
+                <dd>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;Self.</p>
+                </dd>
+              </dl>
               <h3 id="writeLine"><span class="symbol-name">writeLine</span><span class="signature"><span class="signature-params">(str)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
-              <p>Writes a string and adds a new line</p>
+              <p>Writes a string and adds a new line.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import module
+var fs = require(&#x27;qminer&#x27;).fs;
+// open file in write mode
+var fout = new fs.FOut(&#x27;file.txt&#x27;);
+// write a line
+fout.writeLine(&#x27;example text&#x27;);
+// close
+fout.close();</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -245,7 +341,7 @@ fout.close();</code></pre>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>String to write</p>
+                        <p>String to write.</p>
                       </td>
                     </tr>
                   </tbody>

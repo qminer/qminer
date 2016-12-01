@@ -35,7 +35,7 @@ void TLogReg::Save(TSOut& SOut) const {
 }
 
 
-void TLogReg::Fit(const TFltVV& _X, const TFltV& y, const double& Eps) {
+void TLogReg::Fit(const TFltVV& _X, const TFltV& y, const double& Eps, const int& MxIter) {
 	TFltVV X(_X);
 
 	if (IncludeIntercept) {
@@ -83,8 +83,12 @@ void TLogReg::Fit(const TFltVV& _X, const TFltV& y, const double& Eps) {
 	double AbsDiff;
 	int k = 1;
 	do {
+		if (k >= MxIter) {
+		    printf("Reached the maximum number of iterations, will break ...\n");
+		    break;
+		}
 		if (k % 10 == 0) {
-			Notify->OnNotifyFmt(TNotifyType::ntInfo, "Step: %d, diff: %.3f", k, Diff);
+			Notify->OnNotifyFmt(ntInfo, "Step: %d, diff: %.3f", k, Diff);
 		}
 
 		// compute the probabilities p_i = 1 / (1 + exp(-w*x_i)) and
@@ -129,7 +133,7 @@ void TLogReg::Fit(const TFltVV& _X, const TFltV& y, const double& Eps) {
 #endif
 
 		if (TFlt::IsNan(TLinAlg::Norm(DeltaWgtV))) {
-			Notify->OnNotifyFmt(TNotifyType::ntInfo, "Got NaNs while fitting logistic regression! The weights could still be OK.");
+			printf("Got NaNs while fitting logistic regression! The weights could still be OK.\n");
 			break;
 		}
 
@@ -849,7 +853,7 @@ void TDecisionTree::Grow(const TFltVV& FtrVV, const TFltV& ClassV, const PNotify
 	CleanUp();
 	const int NInst = FtrVV.GetCols();
 
-	TIntV RangeV(NInst);	TLAUtil::Range(NInst, RangeV);
+	TIntV RangeV(NInst);	TLinAlgTransform::RangeV(NInst, RangeV);
 
 	Root = new TNode(this);
 	Root->Fit(FtrVV, ClassV, RangeV);

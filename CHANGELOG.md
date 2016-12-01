@@ -1,6 +1,379 @@
 # QMiner Change Log
 
-### 9 Mar 2016
+### 25 November 2016
+
+**Version 7.3.0**
+
+**Non-breaking with new features and bug fixes**
+
+New features:
+- Aggregating resampler (`TAggrResampler`) The resampler computes aggregates over consecutive equally sized intervals. It implements summing, averaging, max and min.
+-	Added `TStorePbBlob::GarbageCollect()`
+- Added `TRecFilterByFieldNull`
+
+Bug fixes:
+- When calling `saveJson()` on uninitalized `TOnlineHistrogram`, an exception was created. Now it serializes the current state.
+- Fix for deleting blobs; freed space from older blob files gets reused on following inserts. Now we always correctly know which file has free space where to put the new buffer. Had to extend the `TBlobBs` file with a parameter `ReleasedSize` that returns a value if the blob is moved and the previous buffer is released. Needed for monitoring which places in the files are free.
+- `TRecSet::DoJoin` fixed when using types onther than `uint64` for field join
+- When deleting records, we need to call `DelJoin` without the freqency parameter. Otherwise we might keep some joins to deleted records.
+- `TStorePbBlob::IsRecId` did not work if all data for store was in memory
+
+
+### 4 November 2016
+
+**Version 7.2.0**
+
+**Non-breaking with new feature**
+
+New Feature:
+- Graph cascades expose topological order in JavaScript API
+
+### 28 October 2016
+
+**Version 7.1.0**
+
+**Non-breaking with new features and bug fixes**
+
+New feature:
+- graph cascades model (modeling times of visiting nodes for directed acyclic graph sweeps)
+
+Bug fixes:
+- Fixed documentation (broken links in nnets)
+- TSIn, TSBase optimized (does not create redundant strings any more)
+- TStorePbBlob several fixes
+- TRecSet::DoJoin optimized
+- TNNAnomalyAggr initialization fix
+
+
+### 21 October 2016
+
+**Version: 7.0.2**
+
+**Non-breaking with bug fixes**
+
+Bug Fixes:
+- Fixed broken links in documentation (#481)
+- Fixed bug in feature space. Output vector when calling `TFtrSpace::GetSpV` was not cleared when not empty.
+
+### 14 October 2016
+
+**Version: 7.0.1**
+
+**Non-breaking with bug fixes**
+
+Bug Fixes:
+- Fixed histogram anomaly detector severity classifier
+- Fixed bad casts (unsigned)(int64) to (unsigned long long)(int64).
+- JS stream aggregate exceptions come with stacktraces, not just messages
+- JS stream aggregate `this` fixed
+- base construction with `createClean` mode made safer
+
+### 7 October 2016
+
+**Version: 7.0.0**
+
+**Breaking with new features**
+
+New Features:
+- Added `getNameInteger` and `getNameFloat` for stream aggregates in JavaScript (`INmFlt` and `INmInt`).
+- Online histogram can resize accordingly to new observed values.
+
+Bug Fix:
+- **BREAKING:** stream aggregates return Unix timestamps on JavaScript side and Windows timestamps on C++ side (issue #286)
+  - `new Date(sa.getTimestamp()-11644473600000)` => `new Date(sa.getTimestamp())` where `sa instanceof qm.StreamAggreator`.
+- Cleaned `INmFlt` and `INmInt` interfaces.
+
+### 30 September 2016
+
+**Version: 6.5.1**
+
+**Non-breaking with a bug fix**
+
+Bug Fix:
+- Fixed support for index joins in records by value
+
+### 23 September 2016
+
+**Version: 6.5.0**
+
+**Non-breaking with new features**
+
+New Features:
+- `qm.stats` property lists statistics on constructor and destructor calls
+- Histogram smoothing using kernel density estimation in `THistogramToPMFModel`
+- Histogram based anomaly detection stream aggregate
+- Nearest neighbor anomaly detection stream aggregate
+- Optimized Record set filter over code book strings
+
+Bug Fixes:
+- Lots of fixes to PgPage and its associated store
+- Again compiles under debug mode in Visual Studio
+
+
+### 2 September 2016
+
+**Version: 6.4.0**
+
+**Non-breaking with bug fixes**
+
+New Features:
+- Added `TStorePbBlob::GetFirstRecId()` and `GetLastRecId()`
+- Added `TVec::GetMnValN` and `TVec::GetMnVal`
+- Added `TInt::GetSepStr()` to help formating numbers (`1234 -> "1,234"`)
+- Modified `KMeans.transform` to return a matrix of distances to centroids
+- Added method `TLinAlg::GetKernelVec`, which returns a vector in the kernel of a matrix
+- Added new resempler stream aggregate that can read from input stream aggregates and push data to other stream aggregates
+- Added `TStreamAggr::GetParam` and `TStreamAggr::SetParam` to check and modify stream aggregate parameters after construction
+
+Bug Fixes:
+- Fixed several bugs in `TStorePbBlob`
+- Fixed KMeans cosine distance generating NaN
+- Fixed compile warnings in `TGix`
+
+
+### 19 August 2016
+
+**Version: 6.3.1**
+
+**Non-breaking with bug fix**
+
+Bug fix:
+- `TStoreImpl` got wrong value for cache size parameter when loading from disk.
+
+
+### 12 August 2016
+
+**Version: 6.3.0**
+
+**Non-breaking with new features**
+
+New Features:
+- Gix updated to speed up deletes of records, especially when using FIFO stores
+- Support methods for byte fields in `TStore`
+- Added `qm.RecordVector` which can hold array of records passed by value. Vector support serialization using QMiner streams.
+- Standard deviation `qm.statistics.std` now supports `la.Vector` as input
+
+
+### 5 August 2016
+
+**Version: 6.2.0**
+
+**Non-breaking with new features**
+
+New Features:
+- Speed up of `RecSet.SortByField`
+- Added `Store.GetFieldNmByte` and `Store.SetFieldNmByte`
+- Tokenizer uses `unicode` as default type in constructor
+
+Other:
+- Updated documentation: added missing types, descriptions, links and methods. Reduced number of clicks to get to specific information.
+
+
+### 22 July 2016
+
+**Version: 6.1.0**
+
+**Non-breaking with new features**
+
+New Features:
+- Changed `TStreamAggrOut` interfaces to be flat
+- `TTDigest` Stream aggregate can wait for `N` elements before it is initialized
+
+Bug fixes:
+- Calling `DelObjKey` on key that is first in `KeyValH` makes following serialization invalid. `ObjKeyN` starts with 1 which makes invalid json object. Relevant change is in `TJsonVal::GetChAFromVal()`
+- `TStr::SearchStr` return exception when called on empty string
+- `TStrHash` created temporary `TStr`s when computing hash codes creating significant overhead without any good reason
+- `TSAppSrv::OnHttpRq` does better check for valid URL
+- Removed old debug code in `TStr`
+- Issue #418: Categorical feature extraction documentation - Removed the 'values' from the construction documentation.
+- Issue #439: Added the two missing optional parameters in the new KMeans constructor, `fitIdx` and `fitStart`. Also fixed the documentation for KMeans constructor parameter and added some new unit tests for KMeans. 
+- Issue #449: Not all methods used for KMeans.fit were implemented when using distanceType: "Cos". Added unit tests for the fit and predict methods in the case of distanceType: "Cos".
+
+Other:
+- Replaced tabs with spaces in `sappsrv.cpp`
+
+
+### 24 June 2016
+
+**Version: 6.0.0**
+
+**Breaking with new features**
+
+New Features:
+- Removed `TStreamAggrBase` and introduced `TStreamAggrSet` instead.
+- (__breaking__) Adjusted rest of the codebase to `TStreamAggrSet` replacing `TStreamAggrBase`.
+- Introduced new record filters which now all derive from `TRecFilter` and most have JSON constructors.
+- Added `TStreamAggrFilter` which calls given stream aggregate only when record passes given record filter.
+- (__breaking__) Added window buffer stream aggregate that keeps values in memory.
+- References to store and stream aggregate can be passed as parameters in jsons as object when creating new stream aggregates.
+
+Bug fixes:
+- Fixed clang warnings in `printf` for `uint64`
+- (__breaking__) Fixed stream aggregates that worked on window buffer to correctly work in case on `OnTime` and `OnStep` triggers.
+- `getSubmatrix` can not get the last row and column of a matrix
+
+Other:
+- Added `fs.js` to documentation generation
+- Moved instructions for building OpenBLAS to qminer wiki
+- Normalized few more files replacing all leading tabs to 4 spaces
+- Added script for noramlizing tabs to spaces
+- Cleaned output of example tests
+- Examples from documentation are executed using `async` to avoid base colisions
+
+### 26 May 2016
+
+**Version: 5.3.0**
+
+**Non-breaking with new features**
+
+New features:
+ - Non-negative matrix factorization: *qm.analytics.nmf(mat, k, json)*
+ - Recommender System (using nmf): *new qm.analytics.RecommenderSys(params)*
+ - added TFtrExt::GetFtrRange() which returns the range of the feature
+ - added method TJsonVal::SetArrVal
+
+Bug fixes: 
+ - fixed concurrency bug when executing code from worker thread on the main thread
+ - fixed TNodeJsUtil::GetFldObj and TNodeJsUtil::GetFldFun
+
+Other:
+ - testing non-implemented stuff removed
+ - new API for inverting feature vectors
+ - moved StreamStory to third_party
+ - started cleaning TLinAlg: added some new classes, removed most ifdefs
+ - added macros for TLinAlg templates
+
+### 6 May 2016
+
+**Version: 5.2.0**
+
+**Non-breaking with new feature**
+
+New feature:
+ - Added binary option to multinomial feature extractor: check only for presenc of value and does not weight by count
+
+Bug fix: 
+ - `TSimpleLinReg::SaveState` failed as it saved object and loaded smart-pointer.
+
+
+### 15 Apr 2016
+
+**Version: 5.1.0**
+
+**Non-breaking with new features**
+
+New features:
+- `TStoreImpl` can tell integer ID for codebook strings. `TFieldDesc` can tell if field is encoded using codebook.
+
+Bug fixes:
+- Issue 400: `RecSet.saveCsv` should escape `”` using `””` and not `\”`
+
+Other:
+- `TStr::Empty()` uses `Assert` instead of `IAssert` to confirm Inner is either `NULL` or points to nonemtpy string.
+
+
+### 8 Apr 2016
+
+**New version 5.0.0**
+
+**Breaking with new features**
+
+New features:
+- Stores from same `TBase` share same `PBlobBs`. Speed improvements for 1000 empty stores:
+  - create: 0.5s vs 21s
+  - save: 0.6s vs 5s
+  - load: 0.06s vs 4s
+- Removed unused flags from blob pointer, freeing 37.5% space per `TBlobPt`
+- Changed `TBlobPt` segment parameter from `uchar` to `uint16`, increasing max blob base size to **128TB**
+- KMeans reimplemented in C++: Templated and wrapped Stopar's KMeans, which is implemented ```clustering.h``` and ```clustering.cpp```. The javascript wrapper contains the same functions as before.
+
+Constructor parameters are:
+
+name             | type    | description
+-----------------|---------|---------------
+**iter**         | number  | Number of iterations
+**k**            | number  | Number of centroids
+**verbose**      | boolean | If false, the console output is supressed
+**centroidType** | string  | Type of the centroids. Options: "Dense" or "Sparse"
+**distanceType** | string  | Distance type used at the calculation. Options: "Euclid" or "Cos"
+
+**Properties**
+```centroids```, ```medoids```, ```idxv```.
+
+**Methods**
+```getParams```, ```setParams```, ```getModel```, ```fit```, ```fitAsync```, ```predict```, ```transform```, ```permuteCentroids```, ```explain```, ```save```
+
+The ```fit``` method can be used asynchronously (```fitAsync```).
+```javascript
+var qm = require('qminer');
+var params = { iter: 10000, k: 2, verbose: false, distanceType: 'Euclid', centroidType: 'Dense' };
+var kmeans = new qm.analytics.KMeans(params);
+// create the matrix
+var mat = new qm.la.Matrix({ rows: 1000, cols: 300, random: true });
+
+//- Synchronous use of fit
+kmeans.fit(mat);
+
+//- Asynchronous use of fit
+kmeans.fitAsync(mat, function (err) {
+    if (err) { console.log(err); }
+    // successful fitting
+}); 
+
+```
+
+Bug fixes:
+- fixed clang warnings
+- changed tabs to four spaces on qminer source files
+- Fixed issue 398 — move `stat.h` stuff to `xmath.h`
+- Fixed issue 399 - stream aggregate example description
+
+
+### 25 Mar 2016
+
+**New version 4.10.0**
+
+**Non-breaking with new features**
+
+New features:
+- `TStreamAggrOnAddFilter` class can be extended to override `CallOnAdd` method that takes a record and returns true if the aggregate should process it. Currently we have two filters: default that passes every record and `TOnAddSubsampler`, which can skip a given amount of records for every time the aggregate is actually updated. `TSimpleLinReg` is currently the only aggregate that supports filtering. Example:
+```
+var linReg = store.addStreamAggr({
+    filter: { type: "subsamplingFilter", skip: 3 },
+    type: 'simpleLinearRegression',
+    inAggrX: winX.name,
+    inAggrY: winY.name,
+    storeX: "Function",
+    storeY: "Function",
+    quantiles: [0.25, 0.75]
+});
+```
+
+Bug fixes:
+- #394. Added asserts for invalid record IDs in the buffer which are a result of store window being too short (incompatible with the window aggregate).
+- #264 (incorrect exception handling) `TJsonVal` has two new functions: `AssertObjKeyStr`, `AssertObjKeyNum`. The functions take a second parameter (function name), where `__FUNCTION__` can be used (not standard but works on msvc and gcc). 
+Example: `ParamVal->AssertObjKeyStr("timestamp", __FUNCTION__);`
+- #372. all JS vectors have `toArray` function.
+- #350. arm publish script added
+
+Other:
+- deleted example tests (generated by travis)
+- removed datasets tests (will be moved to `qminer-data-loader`)
+- global mocha instalation is not required any more. tests can be run by calling `npm test`
+- made tests in `store_partial_flush.js` silent 
+- updated GitHub Wiki (part of #351)
+
+
+### 18 Mar 2016
+
+**New vesion 4.9.1**
+
+**Non-breaking with a big fix**
+
+Bug fix:
+- Primary keys could be set to existing values belonging to other records. Now we throw exception in such cases. Added corresponding tests.
+
+### 11 Mar 2016
 
 **New version: 4.9.0**
 

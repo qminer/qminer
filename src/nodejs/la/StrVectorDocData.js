@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 exports.view = {
-	"title" : "Vector - array of strings",
+	"title" : "Vector - array of strings.",
 	"className" : "StrVector",
 	"elementType": "string",
 
@@ -16,12 +16,15 @@ exports.view = {
     "output2": "['a', 'd', 'e']",
     "output3": "['a']",
 	
+	"val1": "'xyz'",
+	
 	"sortCallback": "strVectorCompareCb",
     "exampleSort": "['asd', 'z', 'kkkk']",
     "inputSort": "function(arg1, arg2) { return arg1.length - arg2.length; }",
     "outputSort": "['z', 'asd', 'kkkk']",
     "outputSortAsc": "['asd', 'kkkk', 'z']",
 
+	"skipSubVec": "",
 	"skipInner": "skip.",
 	"skipSum": "skip.",
 	"skipGetMaxIdx": "skip.",

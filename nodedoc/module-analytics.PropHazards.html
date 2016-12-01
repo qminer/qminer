@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.2.0</a>
       </div>
     </div>
   </nav>
@@ -25,7 +25,11 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">PropHazards</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1134">analyticsdoc.<wbr>js:1134</a></p>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1232">analyticsdoc.<wbr>js:1232</a></p>
+            <div class="symbol-classdesc">
+              <p>Proportional Hazards Model with a constant hazard function. Uses Newtons method to compute the weights.
+                <b>Before use: QMiner must be built with the OpenBLAS library.</b></p>
+            </div>
             <dl class="dl-compact">
             </dl>
           </header>
@@ -64,7 +68,7 @@
                     <dt><a href="module-analytics.PropHazards.html#predict">predict(x)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.PropHazards.html#save">save(sout)</a></dt>
+                    <dt><a href="module-analytics.PropHazards.html#save">save(fout)</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -80,9 +84,8 @@
             </div>
           </section>
           <section>
-            <h2 id="PropHazards">new&nbsp;<span class="symbol-name">PropHazards</span><span class="signature"><span class="signature-params">()</span></span></h2>
-            <p>Proportional Hazards Model with a constant hazard function. Uses Newtons method to compute the weights.
-              <b>Before use: include BLAS library.</b></p>
+            <h2 id="PropHazards">new&nbsp;<span class="symbol-name">PropHazards</span><span class="signature"><span class="signature-params">([arg])</span></span></h2>
+            <p>Proportional Hazards Model</p>
             <section>
               <h3>
             Example
@@ -95,7 +98,7 @@ var hazard = new analytics.PropHazards();</code></pre>
               </div>
             </section>
             <section>
-              <h3>Property</h3>
+              <h3>Parameter</h3>
               <table class="jsdoc-details-table">
                 <thead>
                   <tr>
@@ -108,7 +111,7 @@ var hazard = new analytics.PropHazards();</code></pre>
                 <tbody>
                   <tr>
                     <td>
-                      <p>opts</p>
+                      <p>arg</p>
                     </td>
                     <td>
                       <p>(<a href="module-analytics.html#~hazardModelParam">module:analytics~hazardModelParam</a> or <a href="module-fs.FIn.html">module:fs.FIn</a>)</p>
@@ -117,7 +120,9 @@ var hazard = new analytics.PropHazards();</code></pre>
                       <p>Yes</p>
                     </td>
                     <td>
-                      <p>The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.</p>
+                      <p>Construction arguments. There are two ways of constructing:
+                        <br>1. Using the <a href="module-analytics.html#~hazardModelParam">module:analytics~hazardModelParam</a> object,
+                        <br>2. using the file input stream <a href="module-fs.FIn.html">module:fs.FIn</a>.</p>
                     </td>
                   </tr>
                 </tbody>
@@ -130,14 +135,28 @@ var hazard = new analytics.PropHazards();</code></pre>
             <h2>Property</h2>
             <section>
               <h3 id="weights"><span class="symbol-name">weights</span></h3>
-              <p>The models weights.</p>
+              <p>The models weights. Type <a href="module-la.Vector.html">module:la.Vector</a>.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import modules
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
+// create the Proportional Hazards model
+var hazards = new analytics.PropHazards();
+// get the weights
+var weights = hazards.weights;</code></pre>
+                </div>
+              </section>
               <dl class="dl-compact">
               </dl>
             </section>
             <h2>Methods</h2>
             <section>
               <h3 id="fit"><span class="symbol-name">fit</span><span class="signature"><span class="signature-params">(X, y[, eps])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.PropHazards.html">module:analytics.PropHazards</a></span></span></h3>
-              <p>Fits a column matrix of feature vectors X onto the response variable y.</p>
+              <p>Fits a column matrix of feature vectors <code>X</code> onto the response variable <code>y</code>.</p>
               <section>
                 <h4>
             Example
@@ -217,7 +236,7 @@ if (require(&#x27;qminer&#x27;).flags.blas) {
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.PropHazards.html">module:analytics.PropHazards</a></code>&nbsp;Self.</p>
+                  <p><code><a href="module-analytics.PropHazards.html">module:analytics.PropHazards</a></code>&nbsp;Self. The model has been updated.</p>
                 </dd>
               </dl>
               <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.html#~hazardModelParam">module:analytics~hazardModelParam</a></span></span></h3>
@@ -256,7 +275,7 @@ var hazards = new analytics.PropHazards();
 // create the input matrix and vector for fitting the model
 var mat = new la.Matrix([[1, 1], [1, -1]]);
 var vec = new la.Vector([3, 3]);
-// if openblas used
+// if openblas used, fit the model and get the prediction
 if (require(&#x27;qminer&#x27;).flags.blas) {
     // fit the model
     hazards.fit(mat, vec);       
@@ -302,7 +321,7 @@ if (require(&#x27;qminer&#x27;).flags.blas) {
                   <p><code>number</code>&nbsp;The expected response.</p>
                 </dd>
               </dl>
-              <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(sout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
+              <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
               <p>Saves the model into the output stream.</p>
               <section>
                 <h4>
@@ -329,7 +348,7 @@ fout.close();
 // create input stream
 var fin = fs.openRead(&#x27;hazards_example.bin&#x27;);
 // create a Proportional Hazards object that loads the model and parameters from input stream
-var hazards2 = new analytics.PropHazards(fin);	</code></pre>
+var hazards2 = new analytics.PropHazards(fin);    </code></pre>
                 </div>
               </section>
               <section>
@@ -346,7 +365,7 @@ var hazards2 = new analytics.PropHazards(fin);	</code></pre>
                   <tbody>
                     <tr>
                       <td>
-                        <p>sout</p>
+                        <p>fout</p>
                       </td>
                       <td>
                         <p><a href="module-fs.FOut.html">module:fs.FOut</a></p>
@@ -364,7 +383,7 @@ var hazards2 = new analytics.PropHazards(fin);	</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;The output stream sout.</p>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;The output stream <code>fout</code>.</p>
                 </dd>
               </dl>
               <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(params)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.PropHazards.html">module:analytics.PropHazards</a></span></span></h3>
@@ -414,7 +433,7 @@ hazard.setParams({ lambda: 10 });</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.PropHazards.html">module:analytics.PropHazards</a></code>&nbsp;Self.</p>
+                  <p><code><a href="module-analytics.PropHazards.html">module:analytics.PropHazards</a></code>&nbsp;Self. The model parameters have been updated.</p>
                 </dd>
               </dl>
             </section>

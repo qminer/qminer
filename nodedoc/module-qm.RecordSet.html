@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.2.0</a>
       </div>
     </div>
   </nav>
@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">RecordSet</span></h1>
-            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-1184">qminerdoc.<wbr>js:1184</a></p>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-1700">qminerdoc.<wbr>js:1700</a></p>
             <dl class="dl-compact">
             </dl>
           </header>
@@ -77,19 +77,22 @@
                     <dt><a href="module-qm.RecordSet.html#filterByField">filterByField(fieldName, minVal, maxVal)</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-qm.RecordSet.html#filterByFq">filterByFq([minFq][, maxFq])</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.RecordSet.html#filterById">filterById([minId][, maxId])</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.RecordSet.html#getMatrix">getMatrix(fieldName)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.RecordSet.html#getVector">getVector(fieldName)</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.RecordSet.html#getVector">getVector(fieldName)</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.RecordSet.html#join">join(joinName[, sampleSize])</a></dt>
                     <dd>
                     </dd>
@@ -111,13 +114,13 @@
                     <dt><a href="module-qm.RecordSet.html#setUnion">setUnion(rs)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.RecordSet.html#shuffle">shuffle([seed])</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.RecordSet.html#shuffle">shuffle([seed])</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.RecordSet.html#sort">sort(callback)</a></dt>
                     <dd>
                     </dd>
@@ -147,6 +150,7 @@
           <section>
             <h2 id="RecordSet"><span class="symbol-name">RecordSet</span><span class="signature"><span class="signature-params">()</span></span></h2>
             <p>Record Set is a set of records.
+              <br>
               <b>Factory pattern</b>: this class cannot be construced using the new keyword. This class is constructed when calling a specific method or attribute, e.g. using <a href="module-qm.Store.html#allRecords">module:qm.Store#allRecords</a> to
               get all the records in the store as a record set.</p>
             <dl class="dl-compact">
@@ -156,19 +160,19 @@
             <h2>Properties</h2>
             <section>
               <h3 id="empty"><span class="symbol-name">empty</span></h3>
-              <p>Checks if the record set is empty. If the record set is empty, then it returns true. Otherwise, it returns false.</p>
+              <p>Checks if the record set is empty. If the record set is empty, then it returns true. Otherwise, it returns false. Type <code>boolean</code>.</p>
               <dl class="dl-compact">
               </dl>
               <h3 id="length"><span class="symbol-name">length</span></h3>
-              <p>Returns the number of records in record set.</p>
+              <p>Returns the number of records in record set. Type <code>number</code>.</p>
               <dl class="dl-compact">
               </dl>
               <h3 id="store"><span class="symbol-name">store</span></h3>
-              <p>Returns the store, where the records in the record set are stored.</p>
+              <p>Returns the store, where the records in the record set are stored. Type <a href="module-qm.Store.html">module:qm.Store</a>.</p>
               <dl class="dl-compact">
               </dl>
               <h3 id="weighted"><span class="symbol-name">weighted</span></h3>
-              <p>Checks if the record set is weighted. If the record set is weighted, then it returns true. Otherwise, it returns false.</p>
+              <p>Checks if the record set is weighted. If the record set is weighted, then it returns true. Otherwise, it returns false. Type <code>boolean</code>.</p>
               <dl class="dl-compact">
               </dl>
             </section>
@@ -214,7 +218,7 @@ base.close();</code></pre>
                 </dd>
               </dl>
               <h3 id="deleteRecords"><span class="symbol-name">deleteRecords</span><span class="signature"><span class="signature-params">(rs)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecordSet.html">module:qm.RecordSet</a></span></span></h3>
-              <p>Deletes the records, that are also in the other record set.</p>
+              <p>Deletes the records, that are also in the second record set.</p>
               <section>
                 <h4>
             Example
@@ -274,7 +278,7 @@ base.close();</code></pre>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>The other record set.</p>
+                        <p>The second record set.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -283,7 +287,7 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-qm.RecordSet.html">module:qm.RecordSet</a></code>&nbsp;Self. Contains only the records, that are not in rs.</p>
+                  <p><code><a href="module-qm.RecordSet.html">module:qm.RecordSet</a></code>&nbsp;Self. Contains only the records, that are not in <code>rs</code>.</p>
                 </dd>
               </dl>
               <h3 id="each"><span class="symbol-name">each</span><span class="signature"><span class="signature-params">(callback)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecordSet.html">module:qm.RecordSet</a></span></span></h3>
@@ -341,8 +345,8 @@ base.close();</code></pre>
                       </td>
                       <td>
                         <p>Function to be executed. It takes two parameters:
-                          <br>rec - The current record.
-                          <br>[idx] - The index of the current record.</p>
+                          <br>1. <code>rec</code> - The current record. Type <a href="module-qm.Record.html">module:qm.Record</a>.
+                          <br>2. <code>idx</code> - The index of the current record (<i>optional</i>). Type <code>number</code>.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -408,7 +412,9 @@ base.close();</code></pre>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>The filter function. It takes one parameter and return a boolean object.</p>
+                        <p>The filter function. It takes one parameter:
+                          <br>1. <code>rec</code> - The record in the record set. Type <a href="module-qm.Record.html">module:qm.Record</a>.
+                          <br> Returns a <code>boolean</code> value.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -417,7 +423,7 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-qm.RecordSet.html">module:qm.RecordSet</a></code>&nbsp;Self. Containing only the record that pass the callback function.</p>
+                  <p><code><a href="module-qm.RecordSet.html">module:qm.RecordSet</a></code>&nbsp;Self. Contains only the records that pass the callback function.</p>
                 </dd>
               </dl>
               <h3 id="filterByField"><span class="symbol-name">filterByField</span><span class="signature"><span class="signature-params">(fieldName, minVal, maxVal)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecordSet.html">module:qm.RecordSet</a></span></span></h3>
@@ -493,8 +499,8 @@ base.close();</code></pre>
                       </td>
                       <td>
                         <p>
-                          <br>1. Is a string, if the field type is a string. The exact string to compare.
-                          <br>2. Is a number, if the field type is a number. The minimal value for comparison.
+                          <br>1. If the field type is a <code>string</code>, the exact string to compare. Type <code>number</code>.
+                          <br>2. If the field type is a <code>number</code>, the minimal value for comparison. Type <code>number</code>.
                           <br>3. TODO Time field</p>
                       </td>
                     </tr>
@@ -509,7 +515,7 @@ base.close();</code></pre>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Only in combination with minVal for non-string fields. The maximal value for comparison.</p>
+                        <p>Only in combination with <code>minVal</code> for non-string fields. The maximal value for comparison.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -518,8 +524,62 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-qm.RecordSet.html">module:qm.RecordSet</a></code>&nbsp;Self. Containing only the records with the fieldName value between minVal and maxVal. If the fieldName type is string, it contains only the records with fieldName
-                    equal to minVal.</p>
+                  <p><code><a href="module-qm.RecordSet.html">module:qm.RecordSet</a></code>&nbsp;Self.
+                    <br>1. If the <code>fieldName</code> field type is <code>number</code>, contains only the records with the <code>fieldName</code> value between <code>minVal</code> and <code>maxVal</code>.
+                    <br>2. If the <code>fieldName</code> field type is <code>string</code>, contains only the records with <code>fieldName</code> equal to <code>minVal</code>.</p>
+                </dd>
+              </dl>
+              <h3 id="filterByFq"><span class="symbol-name">filterByFq</span><span class="signature"><span class="signature-params">([minFq][, maxFq])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecordSet.html">module:qm.RecordSet</a></span></span></h3>
+              <p>Keeps only the records with weight between two values.</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>minFq</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The minimum value.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>maxFq</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The maximum value.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.RecordSet.html">module:qm.RecordSet</a></code>&nbsp;Self.
+                    <br>1. Contains only the records of the original with weights between <code>minFq</code> and <code>maxFq</code>, if parameters are given.
+                    <br>2. Contains all the records of the original, if no parameter is given.</p>
                 </dd>
               </dl>
               <h3 id="filterById"><span class="symbol-name">filterById</span><span class="signature"><span class="signature-params">([minId][, maxId])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecordSet.html">module:qm.RecordSet</a></span></span></h3>
@@ -604,7 +664,7 @@ base.close();</code></pre>
                 <dt>Returns</dt>
                 <dd>
                   <p><code><a href="module-qm.RecordSet.html">module:qm.RecordSet</a></code>&nbsp;Self.
-                    <br>1. Contains only the records of the original with ids between minId and maxId, if parameters are given.
+                    <br>1. Contains only the records of the original with IDs between <code>minId</code> and <code>maxId</code>, if parameters are given.
                     <br>2. Contains all the records of the original, if no parameter is given.</p>
                 </dd>
               </dl>
@@ -667,7 +727,7 @@ base.close();</code></pre>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>The field from which to take the values. It's type must be numeric, e.g. float, int, float_v, num_sp_v,...</p>
+                        <p>The field from which to take the values. It's type must be numeric, e.g. <code>int</code>, <code>float</code>, <code>float_v</code>, <code>num_sp_v</code>...</p>
                       </td>
                     </tr>
                   </tbody>
@@ -736,7 +796,7 @@ base.close();</code></pre>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>The field from which to take the values. It's type must be one-dimensional, e.g. float, int, string,...</p>
+                        <p>The field from which to take the values. It's type must be one-dimensional, e.g. <code>int</code>, <code>float</code>, <code>string</code>...</p>
                       </td>
                     </tr>
                   </tbody>
@@ -899,8 +959,8 @@ base.close();</code></pre>
                       </td>
                       <td>
                         <p>Function that generates the array. It takes two parameters:
-                          <br>rec - The current record.
-                          <br>[idx] - The index of the current record.</p>
+                          <br>1. <code>rec</code> - The current record. Type <a href="module-qm.Record.html">module:qm.Record</a>.
+                          <br>2. <code>idx</code> - The index of the current record (<i>optional</i>). Type <code>number</code>.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -1222,7 +1282,7 @@ base.close();</code></pre>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>The other record set.</p>
+                        <p>The second record set.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -1361,9 +1421,9 @@ base.close();</code></pre>
                       </td>
                       <td>
                         <p>The function used to sort the records. It takes two parameters:
-                          <br>1. rec - The first record.
-                          <br>2. rec2 - The second record.
-                          <br>It returns a boolean object.</p>
+                          <br>1. <code>rec</code> - The first record.
+                          <br>2. <code>rec2</code> - The second record.
+                          <br>The function return type <code>boolean</code>.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -1372,7 +1432,7 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-qm.RecordSet.html">module:qm.RecordSet</a></code>&nbsp;Self. The records are sorted according to the callback function.</p>
+                  <p><code><a href="module-qm.RecordSet.html">module:qm.RecordSet</a></code>&nbsp;Self. The records are sorted according to the <code>callback</code> function.</p>
                 </dd>
               </dl>
               <h3 id="sortByField"><span class="symbol-name">sortByField</span><span class="signature"><span class="signature-params">(fieldName[, arc])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecordSet.html">module:qm.RecordSet</a></span></span></h3>
@@ -1445,7 +1505,7 @@ base.close();</code></pre>
                         <p>Yes</p>
                       </td>
                       <td>
-                        <p>if asc &gt; 0, it sorts in ascending order. Otherwise, it sorts in descending order.</p>
+                        <p>if <code>asc</code> &gt; 0, it sorts in ascending order. Otherwise, it sorts in descending order.</p>
                         <p>Defaults to <code>-1</code>.</p>
                       </td>
                     </tr>
@@ -1455,7 +1515,7 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-qm.RecordSet.html">module:qm.RecordSet</a></code>&nbsp;Self. Records are sorted according to fieldName and arc.</p>
+                  <p><code><a href="module-qm.RecordSet.html">module:qm.RecordSet</a></code>&nbsp;Self. Records are sorted according to <code>fieldName</code> and <code>arc</code>.</p>
                 </dd>
               </dl>
               <h3 id="sortByFq"><span class="symbol-name">sortByFq</span><span class="signature"><span class="signature-params">([asc])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecordSet.html">module:qm.RecordSet</a></span></span></h3>
@@ -1483,7 +1543,7 @@ base.close();</code></pre>
                         <p>Yes</p>
                       </td>
                       <td>
-                        <p>If asc &gt; 0, it sorts in ascending order. Otherwise, it sorts in descending order.</p>
+                        <p>If <code>asc</code> &gt; 0, it sorts in ascending order. Otherwise, it sorts in descending order.</p>
                         <p>Defaults to <code>1</code>.</p>
                       </td>
                     </tr>
@@ -1493,11 +1553,11 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-qm.RecordSet.html">module:qm.RecordSet</a></code>&nbsp;Self. Records are sorted according to record weight and asc.</p>
+                  <p><code><a href="module-qm.RecordSet.html">module:qm.RecordSet</a></code>&nbsp;Self. Records are sorted according to record weight and <code>asc</code>.</p>
                 </dd>
               </dl>
               <h3 id="sortById"><span class="symbol-name">sortById</span><span class="signature"><span class="signature-params">([asc])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecordSet.html">module:qm.RecordSet</a></span></span></h3>
-              <p>Sorts the records according to record id.</p>
+              <p>Sorts the records according to record ID.</p>
               <section>
                 <h4>
             Example
@@ -1554,7 +1614,7 @@ base.close();</code></pre>
                         <p>Yes</p>
                       </td>
                       <td>
-                        <p>If asc &gt; 0, it sorts in ascending order. Otherwise, it sorts in descending order.</p>
+                        <p>If <code>asc</code> &gt; 0, it sorts in ascending order. Otherwise, it sorts in descending order.</p>
                         <p>Defaults to <code>-1</code>.</p>
                       </td>
                     </tr>
@@ -1564,7 +1624,7 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-qm.RecordSet.html">module:qm.RecordSet</a></code>&nbsp;Self. Records are sorted according to record id and asc.</p>
+                  <p><code><a href="module-qm.RecordSet.html">module:qm.RecordSet</a></code>&nbsp;Self. Records are sorted according to record ID and <code>asc</code>.</p>
                 </dd>
               </dl>
               <h3 id="split"><span class="symbol-name">split</span><span class="signature"><span class="signature-params">(callback)</span>&nbsp;&rarr; <span class="signature-returns"> Array of <a href="module-qm.RecordSet.html">module:qm.RecordSet</a></span></span></h3>
@@ -1629,7 +1689,10 @@ base.close();</code></pre>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>The splitter function. It takes two parameters (records) and returns a boolean object.</p>
+                        <p>The splitter function. It takes two parameters:
+                          <br>1. <code>rec</code> - The first record. Type <a href="module-qm.Record.html">module:qm.Record</a>.
+                          <br>2. <code>rec2</code> - The second record. Type <a href="module-qm.Record.html">module:qm.Record</a>.
+                          <br> Returns a <code>boolean</code> value.</p>
                       </td>
                     </tr>
                   </tbody>

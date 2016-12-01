@@ -28,14 +28,7 @@ TCs TCs::GetCsFromBf(char* Bf, const int& BfL){
 }
 
 /////////////////////////////////////////////////
-// Stream-Base
-TStr TSBase::GetSNm() const {
-  return TStr(SNm.CStr());
-}
-
-/////////////////////////////////////////////////
 // Input-Stream
-TSIn::TSIn(const TStr& Str) : TSBase(Str.CStr()), FastMode(false){}
 
 void TSIn::LoadCs(){
   TCs CurCs=Cs; TCs TestCs;
@@ -70,14 +63,20 @@ bool TSIn::GetNextLn(TChA& LnChA){
   return !LnChA.Empty();
 }
 
+TStr TSIn::GetSNm() const {
+  return "Input-Stream"; 
+}
+
 const PSIn TSIn::StdIn=PSIn(new TStdIn());
 
-TStdIn::TStdIn(): TSBase("Standard input"), TSIn("Standard input") {}
+TStdIn::TStdIn(): TSBase(), TSIn() {}
+
+TStr TStdIn::GetSNm() const {
+  return "Standard-input";
+}
 
 /////////////////////////////////////////////////
 // Output-Stream
-TSOut::TSOut(const TStr& Str):
-  TSBase(Str.CStr()), MxLnLen(-1), LnLen(0){}
 
 int TSOut::UpdateLnLen(const int& StrLen, const bool& ForceInLn){
   int Cs=0;
@@ -220,9 +219,24 @@ TSOut& TSOut::operator<<(TSIn& SIn) {
   return *this;
 }
 
+TStr TSOut::GetSNm() const {
+  return "Output-Stream"; 
+}
+
 const PSOut TSOut::StdOut=PSOut(new TStdOut());
 
-TStdOut::TStdOut(): TSBase(TSStr("Standard output")), TSOut("Standard output"){}
+TStdOut::TStdOut(): TSBase(), TSOut(){}
+
+TStr TStdOut::GetSNm() const {
+  return "Standard output"; 
+}
+
+/////////////////////////////////////////////////
+// Input-Output-Stream-Base
+
+TStr TSInOut::GetSNm() const {
+  return "Input-Output-Stream"; 
+}
 
 /////////////////////////////////////////////////
 // Standard-Input
@@ -283,7 +297,8 @@ void TFIn::FillBf(){
 }
 
 TFIn::TFIn(const TStr& FNm):
-  TSBase(FNm.CStr()), TSIn(FNm), FileId(NULL), Bf(NULL), BfC(0), BfL(0){
+  TSBase(), TSIn(), SNm(FNm.CStr()), FileId(NULL), Bf(NULL), BfC(0), BfL(0){
+
   EAssertR(!FNm.Empty(), "Empty file-name.");
   FileId=fopen(FNm.CStr(), "rb");
   EAssertR(FileId!=NULL, "Can not open file '"+FNm+"'.");
@@ -291,7 +306,7 @@ TFIn::TFIn(const TStr& FNm):
 }
 
 TFIn::TFIn(const TStr& FNm, bool& OpenedP, const bool IgnoreBOMIfExistsP):
-  TSBase(FNm.CStr()), TSIn(FNm), FileId(NULL), Bf(NULL), BfC(0), BfL(0){
+  TSBase(), TSIn(), SNm(FNm.CStr()), FileId(NULL), Bf(NULL), BfC(0), BfL(0){
   EAssertR(!FNm.Empty(), "Empty file-name.");
   FileId=fopen(FNm.CStr(), "rb");
   OpenedP=(FileId!=NULL);
@@ -427,6 +442,10 @@ int TFIn::FindEol(int& BfN, bool& CrEnd) {
   return 0;
 }
 
+TStr TFIn::GetSNm() const {
+  return SNm; 
+}
+
 /////////////////////////////////////////////////
 // Output-File
 const TSize TFOut::MxBfL=16*1024;;
@@ -439,7 +458,7 @@ void TFOut::FlushBf(){
 }
 
 TFOut::TFOut(const TStr& FNm, const bool& Append):
-  TSBase(FNm.CStr()), TSOut(FNm), FileId(NULL), Bf(NULL), BfL(0){
+  TSBase(), TSOut(), SNm(FNm.CStr()), FileId(NULL), Bf(NULL), BfL(0){
   if (FNm.GetUc()=="CON"){
     FileId=stdout;
   } else {
@@ -451,7 +470,7 @@ TFOut::TFOut(const TStr& FNm, const bool& Append):
 }
 
 TFOut::TFOut(const TStr& FNm, const bool& Append, bool& OpenedP):
-  TSBase(FNm.CStr()), TSOut(FNm), FileId(NULL), Bf(NULL), BfL(0){
+  TSBase(), TSOut(), SNm(FNm.CStr()), FileId(NULL), Bf(NULL), BfL(0){
   if (FNm.GetUc()=="CON"){
     FileId=stdout;
   } else {
@@ -501,10 +520,14 @@ void TFOut::Flush(){
   EAssertR(fflush(FileId)==0, "Can not flush file '"+GetSNm()+"'.");
 }
 
+TStr TFOut::GetSNm() const {
+  return SNm; 
+}
+
 /////////////////////////////////////////////////
 // Input-Output-File
 TFInOut::TFInOut(const TStr& FNm, const TFAccess& FAccess, const bool& CreateIfNo) :
- TSBase(TSStr(FNm.CStr())), FileId(NULL) {
+ TSBase(), SNm(FNm.CStr()), FileId(NULL) {
   switch (FAccess){
     case faCreate: FileId=fopen(FNm.CStr(), "w+b"); break;
     case faUpdate: FileId=fopen(FNm.CStr(), "r+b"); break;
@@ -557,10 +580,14 @@ TStr TFInOut::GetFNm() const {
   return GetSNm();
 }
 
+TStr TFInOut::GetSNm() const {
+  return SNm;
+}
+
 /////////////////////////////////////////////////
 // Input-Memory
 TMIn::TMIn(const void* _Bf, const int& _BfL, const bool& TakeBf):
-  TSBase("Input-Memory"), TSIn("Input-Memory"), Bf(NULL), BfC(0), BfL(_BfL){
+  TSBase(), TSIn(), Bf(NULL), BfC(0), BfL(_BfL){
   if (TakeBf){
     Bf=(char*)_Bf;
   } else {
@@ -569,23 +596,23 @@ TMIn::TMIn(const void* _Bf, const int& _BfL, const bool& TakeBf):
 }
 
 TMIn::TMIn(TSIn& SIn):
-  TSBase("Input-Memory"), TSIn("Input-Memory"), Bf(NULL), BfC(0), BfL(0){
+  TSBase(), TSIn(), Bf(NULL), BfC(0), BfL(0){
   BfL=SIn.Len(); Bf=new char[BfL];
   for (int BfC=0; BfC<BfL; BfC++){Bf[BfC]=SIn.GetCh();}
 }
 
 TMIn::TMIn(const char* CStr):
-  TSBase("Input-Memory"), TSIn("Input-Memory"), Bf(NULL), BfC(0), BfL(0){
+  TSBase(), TSIn(), Bf(NULL), BfC(0), BfL(0){
   BfL=int(strlen(CStr)); Bf=new char[BfL+1]; strcpy(Bf, CStr);
 }
 
 TMIn::TMIn(const TStr& Str):
-  TSBase("Input-Memory"), TSIn("Input-Memory"), Bf(NULL), BfC(0), BfL(0){
+  TSBase(), TSIn(), Bf(NULL), BfC(0), BfL(0){
   BfL=Str.Len(); Bf=new char[BfL]; strncpy(Bf, Str.CStr(), BfL);
 }
 
 TMIn::TMIn(const TChA& ChA):
-  TSBase("Input-Memory"), TSIn("Input-Memory"), Bf(NULL), BfC(0), BfL(0){
+  TSBase(), TSIn(), Bf(NULL), BfC(0), BfL(0){
   BfL=ChA.Len(); Bf=new char[BfL]; strncpy(Bf, ChA.CStr(), BfL);
 }
 
@@ -635,6 +662,10 @@ bool TMIn::GetNextLnBf(TChA& LnChA){
   return false;
 }
 
+TStr TMIn::GetSNm() const {
+  return "Input-Memory"; 
+}
+
 /////////////////////////////////////////////////
 // Output-Memory
 void TMOut::Resize(const int& ReqLen){
@@ -653,14 +684,14 @@ void TMOut::Resize(const int& ReqLen){
 }
 
 TMOut::TMOut(const int& _MxBfL):
-  TSBase("Output-Memory"), TSOut("Output-Memory"),
+  TSBase(), TSOut(),
   Bf(NULL), BfL(0), MxBfL(0), OwnBf(true){
   MxBfL=_MxBfL>0?_MxBfL:1024;
   Bf=new char[MxBfL];
 }
 
 TMOut::TMOut(char* _Bf, const int& _MxBfL):
-  TSBase("Output-Memory"), TSOut("Output-Memory"),
+  TSBase(), TSOut(),
   Bf(_Bf), BfL(0), MxBfL(_MxBfL), OwnBf(false){}
 
 void TMOut::AppendBf(const void* LBf, const TSize& LBfL) {
@@ -762,6 +793,10 @@ TStr TMOut::GetEolnLn(const bool& DoAddEoln, const bool& DoCutBf){
 void TMOut::MkEolnLn(){
   if (!IsEolnLn()){
     PutCh(TCh::CrCh); PutCh(TCh::LfCh);}
+}
+
+TStr TMOut::GetSNm() const {
+  return "Output-Memory"; 
 }
 
 /////////////////////////////////////////////////
@@ -1099,7 +1134,9 @@ bool TFile::Del(const TStr& FNm, const bool& ThrowExceptP){
 void TFile::DelWc(const TStr& WcStr, const bool& RecurseDirP){
   // collect file-names
   TStrV FNmV;
-  TFFile FFile(WcStr, RecurseDirP); TStr FNm;
+  TFFile FFile(WcStr, RecurseDirP);
+
+  TStr FNm;
   while (FFile.Next(FNm)){
     FNmV.Add(FNm);}
   // delete files

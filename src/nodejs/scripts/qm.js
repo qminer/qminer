@@ -20,18 +20,18 @@ module.exports = exports = function (pathQmBinary) {
     //==================================================================
 
     /**
-    * The parameter given to {@link module:qm.Base#loadCSV}.
     * @typedef {object} BaseLoadCSVParam
-    * @property {string} BaseLoadCSVParam.file - The name of the input file.
-    * @property {string} BaseLoadCSVParam.store - Name of the store which will be created.
-    * @property {module:qm.Base} BaseLoadCSVParam.base - QMiner base object that creates the store.
-    * @property {string} [BaseLoadCSVParam.delimiter = ','] - Optional delimiter.
-    * @property {string} [BaseLoadCSVParam.quote = '"'] - Optional character to escape values that contain a delimiter.
+    * The parameter given to {@link module:qm.Base#loadCSV}.
+    * @property {string} file - The name of the input file.
+    * @property {string} store - Name of the store which will be created.
+    * @property {module:qm.Base} base - QMiner base object that creates the store.
+    * @property {string} [delimiter = ','] - Optional delimiter.
+    * @property {string} [quote = '"'] - Optional character to escape values that contain a delimiter.
     */
 
     /**
      * Loads the store from a CSV file.
-     * @param {module:qm~baseLoadCSVParam} opts - Options object.
+     * @param {module:qm~BaseLoadCSVParam} opts - Options object.
      * @param {function} [callback] - Callback function, called on errors and when the procedure finishes.
      */
     exports.Base.prototype.loadCSV = function (opts, callback) {
@@ -219,16 +219,15 @@ module.exports = exports = function (pathQmBinary) {
     	}
     };
 
-    /**
-     * Loads the store from a CSV file.
-     * @param {module:qm~baseLoadCSVParam} opts - Options object.
-     * @param {function} [callback] - Callback function, called on errors and when the procedure finishes.
-     */
-
     //==================================================================
     // STORE
     //==================================================================
 
+    /**
+     * Adds a stream aggregate to a store.
+     * @param {function} trigger - The trigger containing the method {@link module:qm.StreamAggr#onAdd} and optional
+     * {@link module:qm.StreamAggr#onUpdate} and {@link module:qm.StreamAggr#onDelete}.
+     */
     exports.Store.prototype.addTrigger = function (trigger) {
         // name is automatically generated
         // saveJson isn't needed
@@ -241,11 +240,21 @@ module.exports = exports = function (pathQmBinary) {
         var streamAggr = new exports.StreamAggr(this.base, Callbacks, this.name);
     }
 
+    /**
+     * Adds a stream aggregate to the store. For use example see {@link module:qm.StreamAggr} constructor example.
+     * @param {(module:qm~StreamAggregator | function)} arg - Constructor arguments. There are two argument types:
+     * <br>1. Using the {@link module:qm~StreamAggregator} object,
+     * <br>2. using a function/JavaScript class. The function has defined The object containing the schema of the stream aggregate or the function object defining the operations of the stream aggregate.
+     */ 
     exports.Store.prototype.addStreamAggr = function (params) {
-        var newParams = params; newParams.store = this.name;
-        return new exports.StreamAggr(this.base, newParams, this.name);
+        return new exports.StreamAggr(this.base, params, this.name);
     }
 
+    /**
+     * Inspects the stores.
+     * @param {number} depth - The depth of inspection. How many times to recurse while formatting the store object.
+     * @returns {string} String representation of the store.
+     */
     exports.Store.prototype.inspect = function (depth) {
         var d = (depth == null) ? 0 : depth;
         return util.inspect(this, { depth: d, 'customInspect': false });
@@ -253,9 +262,9 @@ module.exports = exports = function (pathQmBinary) {
 
     /**
      * Load given file line by line, parse each line to JSON and push it to the store.
-     *
-     * @param {String} file - Name of the json line file
-     * @param {Number} [limit] - Maximal number of records to load from file
+     * @param {String} file - Name of the JSON line file.
+     * @param {Number} [limit] - Maximal number of records to load from file.
+     * @returns {number} Number of records loaded from file.
      */
     exports.Store.prototype.loadJson = function (file, limit) {
         var fin = fs.openRead(file);
@@ -283,16 +292,22 @@ module.exports = exports = function (pathQmBinary) {
     /**
      * Stores the record set as a CSV file.
      *
-     * @param {Object} opts - arguments
-     * @property {String} opts.fname - name of the output file
-     * @property {Boolean} [opts.includeHeaders] - indicates wether to include the header in the first line
-     * @property {String} [opts.timestampType] - If set to 'ISO', datetime fields will be printed as ISO dates, otherwise as timestamps. Defaults to 'timestamp'.
+     * @param {Object} opts - Arguments.
+     * @property {String} opts.fname - Name of the output file.
+     * @property {Boolean} [opts.includeHeaders = true] - Indicates wether to include the header in the first line.
+     * @property {String} [opts.timestampType = 'timestamp'] - Date format. Possible options: 
+     * <br>1. `'ISO'` - Datetime fields will be printed as ISO dates,
+     * <br>2. `'timestamp'` - Datetime fields will be printed as timestamps.
+     * @property {String} [opts.escapeChar = "] - Character which escapes quotes.
      */
     exports.RecSet.prototype.saveCsv = function (opts) {
     	if (opts == null || opts.fname == null) throw new Error('Missing parameter fname!');
     	if (opts.includeHeaders == null) opts.includeHeaders = true;
     	if (opts.timestampType == null) opts.timestampType = 'timestamp';
+    	if (opts.escapeChar == null) opts.escapeChar = '"';
 
+    	var escapeStr = opts.escapeChar + '"';
+    	
     	// read field descriptions
     	var fields = this.store.fields;
     	var fieldDesc = [];
@@ -317,7 +332,7 @@ module.exports = exports = function (pathQmBinary) {
     	if (opts.includeHeaders) {
     		var headerLine = '';
     		for (var i = 0; i < nFields; i++) {
-    			headerLine += '"' + fieldDesc[i].name.replace(/"/g, '\\"') + '"';
+    			headerLine += '"' + fieldDesc[i].name.replace(/"/g, escapeStr) + '"';
     			if (i < nFields - 1)
     				headerLine += ',';
     		}
@@ -339,7 +354,7 @@ module.exports = exports = function (pathQmBinary) {
 	    			} else if (type == 'datetime') {
 	    				line += useTimestamp ? fldVal.getTime() : fldVal.toISOString();
 	    			} else if (type == 'string') {
-	    				line += '"' + fldVal + '"';
+	    				line += '"' + fldVal.replace(/"/g, escapeStr) + '"';
 	    			} else {
 	    				throw new Error('Invalid type of field: ' + type);
 	    			}
@@ -369,13 +384,17 @@ module.exports = exports = function (pathQmBinary) {
     * are removed from the buffer and new records are stored in their place. For
     * adding and deleting a callback is called. Records are stored by their IDs.
     * @class
-    * @param {Object} [param] - Constructor parameters
+    * @param {Object} [params] - Constructor parameters.
     * @param {module:qm.Store} param.store - Store for the records in the buffer.
     * @param {number} param.size - Size of the buffer (number of records).
     * @param {function} [param.onAdd] - Callback executed when new record is
-    * added to the buffer. Callback is give two parameters: record and instance of CircularRecordBuffer.
+    * added to the buffer. Callback is give two parameters: 
+    * <br>`rec` - The record. Type {@link module:qm.Record}.
+    * <br>`circRecBuff` - The circular record buffer instance. Type {@link module:qm.CircularRecordBuffer}.
     * @param {function} [param.onDelete] - Callback executed when record is removed
-    * from the buffer. Callback is give two parameters: record and instance of CircularRecordBuffer.
+    * from the buffer. Callback is give two parameters:
+    * <br>`rec` - The record. Type {@link module:qm.Record}.
+    * <br>`circRecBuff` - The circular record buffer instance. Type {@link module:qm.CircularRecordBuffer}.
     * @example
 	* // TODO
     */
@@ -397,7 +416,9 @@ module.exports = exports = function (pathQmBinary) {
         /**
         * Load circular buffer from input stream. Assumes store, onAdd and onDelete
         * were already initialized in constructor.
-        * @param {module:fs.FIn} fin - input stream
+        * @param {module:fs.FIn} fin - input stream.
+        * @example 
+        * // TODO
         */
         this.load = function (fin) {
             var finParam = fin.readJson();
@@ -409,8 +430,10 @@ module.exports = exports = function (pathQmBinary) {
         /**
         * Saves circular buffer to the output stream. Does not save store, onAdd
         * and onDelete callbacks.
-        * @param {module:fs.FOut} fout - output stream
-        * @returns {module:fs.FOut} output stream
+        * @param {module:fs.FOut} fout - Output stream.
+        * @returns {module:fs.FOut} The output stream `fout`.
+        * @example
+        * // TODO
         */
         this.save = function (fout) {
             fout.writeJson({

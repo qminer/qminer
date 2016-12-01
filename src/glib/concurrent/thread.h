@@ -36,7 +36,7 @@ protected:
 	TBlocker SleeperBlocker;
 public:
 	TInterruptibleThread(): TThread() { }
-	TInterruptibleThread(const TInterruptibleThread& Other) { operator=(Other); }
+	TInterruptibleThread(const TInterruptibleThread& Other): TThread() { operator=(Other); }
 	TInterruptibleThread& operator=(const TInterruptibleThread& Other);
 	
 	void WaitForInterrupt(const int Msecs = INFINITE);

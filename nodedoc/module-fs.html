@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.2.0</a>
       </div>
     </div>
   </nav>
@@ -115,6 +115,9 @@ var str = fin.readLine();</code></pre>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-fs.html#.readCsvLines">readCsvLines(buffer, opts)</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-fs.html#.readLines">readLines(buffer, onLine, onEnd, onError)</a></dt>
                     <dd>
                     </dd>
@@ -154,7 +157,22 @@ var str = fin.readLine();</code></pre>
             <h2>Methods</h2>
             <section>
               <h3 id=".copy"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">copy</span><span class="signature"><span class="signature-params">(source, dest)</span></span></h3>
-              <p>copies a file</p>
+              <p>Copies a file.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import fs module
+var fs = require(&#x27;qminer&#x27;).fs;
+// open file to write
+var fout = fs.openWrite(&#x27;text.txt&#x27;);
+// close the stream
+fout.close();
+// copy the file
+var destination = fs.copy(&#x27;text.txt&#x27;, &#x27;copy.txt&#x27;);</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
@@ -201,7 +219,22 @@ var str = fin.readLine();</code></pre>
               <dl class="dl-compact">
               </dl>
               <h3 id=".del"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">del</span><span class="signature"><span class="signature-params">(fileName)</span>&nbsp;&rarr; <span class="signature-returns"> boolean</span></span></h3>
-              <p>deletes a file</p>
+              <p>Deletes a file.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import fs module
+var fs = require(&#x27;qminer&#x27;).fs;
+// open file to write
+var fout = fs.openWrite(&#x27;delete.txt&#x27;);
+// close the stream
+fout.close();
+// delete the file
+var destination = fs.del(&#x27;delete.txt&#x27;);</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -238,7 +271,18 @@ var str = fin.readLine();</code></pre>
                 </dd>
               </dl>
               <h3 id=".exists"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">exists</span><span class="signature"><span class="signature-params">(fileName)</span>&nbsp;&rarr; <span class="signature-returns"> boolean</span></span></h3>
-              <p>checks if the file exists</p>
+              <p>Checks if the file exists.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import fs module
+var fs = require(&#x27;qminer&#x27;).fs;
+// check if a file exists
+fs.exists(&#x27;text.txt&#x27;);</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -275,7 +319,22 @@ var str = fin.readLine();</code></pre>
                 </dd>
               </dl>
               <h3 id=".fileInfo"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">fileInfo</span><span class="signature"><span class="signature-params">(fileName)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.html#~FileInfo">module:fs~FileInfo</a></span></span></h3>
-              <p>returns the file info</p>
+              <p>Returns the file info.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import fs module
+var fs = require(&#x27;qminer&#x27;).fs;
+// open file to write
+var fout = fs.openWrite(&#x27;text.txt&#x27;);
+// close the stream
+fout.close();
+// get the file info
+var info = fs.fileInfo(&#x27;text.txt&#x27;);</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -312,7 +371,18 @@ var str = fin.readLine();</code></pre>
                 </dd>
               </dl>
               <h3 id=".listFile"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">listFile</span><span class="signature"><span class="signature-params">(dirName[, fileExtension][, recursive])</span>&nbsp;&rarr; <span class="signature-returns"> Array of string</span></span></h3>
-              <p>Returns a list fo files in the folder</p>
+              <p>Returns a list fo files in the folder.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import fs module
+var fs = require(&#x27;qminer&#x27;).fs;
+// get the names of all files
+var fileNames = fs.listFile(&#x27;./&#x27;);</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
@@ -378,7 +448,18 @@ var str = fin.readLine();</code></pre>
                 </dd>
               </dl>
               <h3 id=".mkdir"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">mkdir</span><span class="signature"><span class="signature-params">(dirName)</span>&nbsp;&rarr; <span class="signature-returns"> boolean</span></span></h3>
-              <p>Creates a folder</p>
+              <p>Creates a folder.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import fs module
+var fs = require(&#x27;qminer&#x27;).fs;
+// create a folder
+var makeFolder = fs.mkdir(&#x27;folder&#x27;);</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -415,7 +496,22 @@ var str = fin.readLine();</code></pre>
                 </dd>
               </dl>
               <h3 id=".move"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">move</span><span class="signature"><span class="signature-params">(source, dest)</span></span></h3>
-              <p>moves a file</p>
+              <p>Moves a file.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import fs module
+var fs = require(&#x27;qminer&#x27;).fs;
+// open file to write
+var fout = fs.openWrite(&#x27;text.txt&#x27;);
+// close the stream
+fout.close();
+// move the file
+var destination = fs.move(&#x27;text.txt&#x27;, &#x27;move.txt&#x27;);</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
@@ -462,7 +558,24 @@ var str = fin.readLine();</code></pre>
               <dl class="dl-compact">
               </dl>
               <h3 id=".openAppend"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">openAppend</span><span class="signature"><span class="signature-params">(fileName)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
-              <p>open file in append mode and return file output stream</p>
+              <p>Open file in append mode and return file output stream.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import fs module
+var fs = require(&#x27;qminer&#x27;).fs;
+// open file to write
+var fout = fs.openWrite(&#x27;append_text.txt&#x27;);
+// close the stream
+fout.close();
+// open file in append mode
+var foutAppend = fs.openAppend(&#x27;append_text.txt&#x27;);
+// close the stream
+foutAppend.close();</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -499,7 +612,24 @@ var str = fin.readLine();</code></pre>
                 </dd>
               </dl>
               <h3 id=".openRead"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">openRead</span><span class="signature"><span class="signature-params">(fileName)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FIn.html">module:fs.FIn</a></span></span></h3>
-              <p>open file in read mode and return file input stream</p>
+              <p>Open file in read mode and return file input stream.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import fs module
+var fs = require(&#x27;qminer&#x27;).fs;
+// open file to write
+var fout = fs.openWrite(&#x27;read_text.txt&#x27;);
+// write to file
+fout.write(&#x27;This is awesome!&#x27;);
+// close the stream 
+fout.close();
+// open file to read
+var fin = fs.openRead(&#x27;read_text.txt&#x27;);</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -536,7 +666,20 @@ var str = fin.readLine();</code></pre>
                 </dd>
               </dl>
               <h3 id=".openWrite"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">openWrite</span><span class="signature"><span class="signature-params">(fileName)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
-              <p>open file in write mode and return file output stream</p>
+              <p>Open file in write mode and return file output stream.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import fs module
+var fs = require(&#x27;qminer&#x27;).fs;
+// open file to write
+var fout = fs.openWrite(&#x27;write_text.txt&#x27;);
+// close the stream 
+fout.close();</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -572,8 +715,18 @@ var str = fin.readLine();</code></pre>
                   <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;Output stream.</p>
                 </dd>
               </dl>
-              <h3 id=".readLines"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">readLines</span><span class="signature"><span class="signature-params">(buffer, onLine, onEnd, onError)</span></span></h3>
-              <p>Reads a buffer line by line and calls a callback for each line.</p>
+              <h3 id=".readCsvLines"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">readCsvLines</span><span class="signature"><span class="signature-params">(buffer, opts)</span></span></h3>
+              <p>Reads a buffer, containing a CSV file, line by line and calls a callback for each line. The callback function accepts an array with the values of the current line.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import fs module
+var fs = require(&#x27;qminer&#x27;).fs;
+// open a csv file and read the lines</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
@@ -591,13 +744,171 @@ var str = fin.readLine();</code></pre>
                         <p>buffer</p>
                       </td>
                       <td>
-                        <p>(String, FIn, or Buffer)</p>
+                        <p>Buffer</p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>name of the file, input stream of a Node.js buffer</p>
+                        <p>The Node.js buffer.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>opts</p>
+                      </td>
+                      <td>
+                        <p>Object</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Options parameter.</p>
+                        <p>Values in <code>opts</code> have the following properties:</p>
+                        <table class="jsdoc-details-table">
+                          <thead>
+                            <tr>
+                              <th>Name</th>
+                              <th>Type</th>
+                              <th>Optional</th>
+                              <th>Description</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td>
+                                <p>onLine</p>
+                              </td>
+                              <td>
+                                <p>function()</p>
+                              </td>
+                              <td>
+                                <p>&nbsp;</p>
+                              </td>
+                              <td>
+                                <p>A callback that gets called on each line (for example: <code>function (lineArr) {}</code>).</p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <p>onEnd</p>
+                              </td>
+                              <td>
+                                <p>function()</p>
+                              </td>
+                              <td>
+                                <p>&nbsp;</p>
+                              </td>
+                              <td>
+                                <p>A callback that gets returned after all the lines have been read.</p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <p>delimiter</p>
+                              </td>
+                              <td>
+                                <p>String</p>
+                              </td>
+                              <td>
+                                <p>&nbsp;</p>
+                              </td>
+                              <td>
+                                <p>The delimiter used when parsing.</p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <p>lineLimit</p>
+                              </td>
+                              <td>
+                                <p>Number</p>
+                              </td>
+                              <td>
+                                <p>&nbsp;</p>
+                              </td>
+                              <td>
+                                <p>The maximum number of lines read.</p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <p>skipLines</p>
+                              </td>
+                              <td>
+                                <p>Number</p>
+                              </td>
+                              <td>
+                                <p>&nbsp;</p>
+                              </td>
+                              <td>
+                                <p>The number of lines that should be skipped before first calling the callback.</p>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id=".readLines"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">readLines</span><span class="signature"><span class="signature-params">(buffer, onLine, onEnd, onError)</span></span></h3>
+              <p>Reads a buffer line by line and calls a callback for each line.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import fs module
+var fs = require(&#x27;qminer&#x27;).fs;
+// create a file and write some lines
+var fout = fs.openWrite(&#x27;poem.txt&#x27;);
+fout.write(&#x27;I dig,\nYou dig,\nHe digs,\nShe digs,\nWe dig,\nThey dig.\n It\&#x27;s not a beautiful poem, but it\&#x27;s deep.&#x27;);
+fout.close();
+// open the file in read mode
+var fin = fs.openRead(&#x27;poem.txt&#x27;);
+// read the file line by line and call functions
+//var numberOfLines = 0;
+//function onLine(line) {
+//    console.log(line);
+//    numberOfLines += 1;
+//}
+//function onEnd(line) {
+//    console.log(&quot;Number of lines&quot;, numberOfLines);
+//}
+//function onError(err) {
+//    console.log(err);
+//}
+//fs.readLines(fin, onLine, onEnd, onError);</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>buffer</p>
+                      </td>
+                      <td>
+                        <p>(String, <a href="module-fs.FIn.html">module:fs.FIn</a>, or Buffer)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Name of the file, input stream of a Node.js buffer.</p>
                       </td>
                     </tr>
                     <tr>
@@ -611,7 +922,7 @@ var str = fin.readLine();</code></pre>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>a callback that gets called on each line (for example: function (line) {})</p>
+                        <p>A callback that gets called on each line (for example: <code>function (line) {}</code>).</p>
                       </td>
                     </tr>
                     <tr>
@@ -625,7 +936,7 @@ var str = fin.readLine();</code></pre>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>a callback that gets returned after all the lines have been read</p>
+                        <p>A callback that gets returned after all the lines have been read.</p>
                       </td>
                     </tr>
                     <tr>
@@ -639,7 +950,7 @@ var str = fin.readLine();</code></pre>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>a callback that gets called if an error occurs</p>
+                        <p>A callback that gets called if an error occurs.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -648,7 +959,25 @@ var str = fin.readLine();</code></pre>
               <dl class="dl-compact">
               </dl>
               <h3 id=".rename"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">rename</span><span class="signature"><span class="signature-params">(source, dest)</span></span></h3>
-              <p>renames a file</p>
+              <p>Renames a file.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import fs module
+var fs = require(&#x27;qminer&#x27;).fs;
+// open file to write
+var fout = fs.openWrite(&#x27;text.txt&#x27;);
+// close the stream
+fout.close();
+// rename the file
+if (fs.exists(&#x27;rename.txt&#x27;)) {
+   fs.del(&#x27;rename.txt&#x27;);
+}
+var destination = fs.rename(&#x27;text.txt&#x27;, &#x27;rename.txt&#x27;);</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
@@ -695,7 +1024,22 @@ var str = fin.readLine();</code></pre>
               <dl class="dl-compact">
               </dl>
               <h3 id=".rmdir"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">rmdir</span><span class="signature"><span class="signature-params">(dirName)</span>&nbsp;&rarr; <span class="signature-returns"> boolean</span></span></h3>
-              <p>Removes a folder</p>
+              <p>Removes a folder.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import fs module
+var fs = require(&#x27;qminer&#x27;).fs;
+// create a folder
+var makeFolder = fs.mkdir(&#x27;folder&#x27;);
+// delete folder
+if (makeFolder) {
+   fs.rmdir(&#x27;folder&#x27;);
+}</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -736,7 +1080,7 @@ var str = fin.readLine();</code></pre>
             <section>
               <h3 id="~FileInfo"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">FileInfo</span><small class="property-type">
             &nbsp;Object</small></h3>
-              <p>Information about the file</p>
+              <p>Information about the file.</p>
               <section>
                 <h4>Properties</h4>
                 <table class="jsdoc-details-table">
@@ -751,7 +1095,7 @@ var str = fin.readLine();</code></pre>
                   <tbody>
                     <tr>
                       <td>
-                        <p>FileInfo.createTime</p>
+                        <p>createTime</p>
                       </td>
                       <td>
                         <p>string</p>
@@ -765,7 +1109,7 @@ var str = fin.readLine();</code></pre>
                     </tr>
                     <tr>
                       <td>
-                        <p>FileInfo.lastAccessTime</p>
+                        <p>lastAccessTime</p>
                       </td>
                       <td>
                         <p>string</p>
@@ -779,7 +1123,7 @@ var str = fin.readLine();</code></pre>
                     </tr>
                     <tr>
                       <td>
-                        <p>FileInfo.lastWriteTime</p>
+                        <p>lastWriteTime</p>
                       </td>
                       <td>
                         <p>string</p>
@@ -793,7 +1137,7 @@ var str = fin.readLine();</code></pre>
                     </tr>
                     <tr>
                       <td>
-                        <p>FileInfo.size</p>
+                        <p>size</p>
                       </td>
                       <td>
                         <p>number</p>

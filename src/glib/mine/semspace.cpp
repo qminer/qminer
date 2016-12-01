@@ -262,14 +262,14 @@ TVecSemSpace::TVecSemSpace(PSVMTrainSet Set, PPartialGS R,
 };
 
 TVecSemSpace::TVecSemSpace(const TStr& MatlabFName): TSemSpace("Matlab") {
-    TLAMisc::LoadMatlabTFltVV(MatlabFName, BasisV);
+	TLinAlgIO::LoadMatlabTFltVV(MatlabFName, BasisV);
 }
 
 TVecSemSpace::TVecSemSpace(const TStr& MatlabFName, 
         const TStr& MapFName): TSemSpace("Matlab") {
 
     // load matlab matrix
-    TLAMisc::LoadMatlabTFltVV(MatlabFName, BasisV);
+	TLinAlgIO::LoadMatlabTFltVV(MatlabFName, BasisV);
     // parse map
     PSIn SIn = TFIn::New(MapFName);
     TILx Lx(SIn, TFSet()|iloRetEoln|iloSigNum|iloExcept);
@@ -777,7 +777,7 @@ void TSemSpaceAlg::CalcKCCA(const TFltVV& Ra, const TFltVV& Rb,
     TNumericalStuff::SymetricToTridiag(A, SubSizeB, d, e);
     // A is now transformation that made previous A tridiagonal
     // set B to identity matrix
-    TLAMisc::FillIdentity(B);
+    TLinAlgTransform::FillIdentity(B);
     // find eigenvectors of tridiagonal matrix
     printf("2..");
     TNumericalStuff::EigSymmetricTridiag(d, e, SubSizeB, B);
@@ -975,7 +975,7 @@ void TSemSpaceAlg::DecomposeKernelMatrix(PSVMTrainSet Set, const int& Dim,
     //printf("tridiagonalise kernel matrix...\n");
     TFltV d(Size+1), e(Size+1);
     TNumericalStuff::SymetricToTridiag(K, Size, d, e);
-    TFltVV V(Size, Size); TLAMisc::FillIdentity(V);
+    TFltVV V(Size, Size); TLinAlgTransform::FillIdentity(V);
     //printf("get eigen vectors...\n");
     TNumericalStuff::EigSymmetricTridiag(d, e, Size, V);
     // eigen vectors are now columns of (K*V)

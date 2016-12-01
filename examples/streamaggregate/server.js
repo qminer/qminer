@@ -105,7 +105,7 @@ var resampler = saBase.store('Random').addStreamAggr(res);
 // add a merger stream aggregate connected to the 'Gauss' and 'OtherGauss' stores
 var mer = {
     name: 'MergerAggr',
-    type: 'stmerger',
+    type: 'merger',
     outStore: 'Merger',
     createStore: false,
     timestamp: 'Time',

@@ -110,7 +110,7 @@ void TThreadExecutor::Execute(const PRunnable& Runnable) {
 	TaskQ.Push(Runnable);
 	Lock.Signal();
 
-	int QSize = TaskQ.Len();
+	uint64 QSize = TaskQ.Len();
 
 	Lock.Release();
 

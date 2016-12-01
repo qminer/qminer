@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.2.0</a>
       </div>
     </div>
   </nav>
@@ -25,9 +25,9 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">FeatureSpace</span></h1>
-            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-2435">qminerdoc.<wbr>js:2435</a></p>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-2891">qminerdoc.<wbr>js:2891</a></p>
             <div class="symbol-classdesc">
-              <p>Represents the feature space. It contains any of the <a href="module-qm.html#~FeatureExtractors">module:qm~FeatureExtractors</a>.</p>
+              <p>Represents the feature space. It contains any of the <a href="module-qm.html#~FeatureExtractor">module:qm~FeatureExtractor</a> objects.</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -59,26 +59,26 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.FeatureSpace.html#addFeatureExtractor">addFeatureExtractor(obj)</a></dt>
+                    <dt><a href="module-qm.FeatureSpace.html#addFeatureExtractor">addFeatureExtractor(ftExt)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.FeatureSpace.html#clear">clear()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.FeatureSpace.html#extractMatrix">extractMatrix(rs[, featureExtractorId])</a></dt>
+                    <dt><a href="module-qm.FeatureSpace.html#extractMatrix">extractMatrix(rs[, idx])</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.FeatureSpace.html#extractSparseMatrix">extractSparseMatrix(rs[, featureExtractorId])</a></dt>
+                    <dt><a href="module-qm.FeatureSpace.html#extractSparseMatrix">extractSparseMatrix(rs[, idx])</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.FeatureSpace.html#extractSparseVector">extractSparseVector(rec[, featureExtractorId])</a></dt>
+                    <dt><a href="module-qm.FeatureSpace.html#extractSparseVector">extractSparseVector(rec[, idx])</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.FeatureSpace.html#extractVector">extractVector(rec[, featureExtractorId])</a></dt>
+                    <dt><a href="module-qm.FeatureSpace.html#extractVector">extractVector(rec[, idx])</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.FeatureSpace.html#filter">filter(vec, idx[, keepOffset])</a></dt>
@@ -115,7 +115,7 @@
             </div>
           </section>
           <section>
-            <h2 id="FeatureSpace">new&nbsp;<span class="symbol-name">FeatureSpace</span><span class="signature"><span class="signature-params">(base, param)</span></span></h2>
+            <h2 id="FeatureSpace">new&nbsp;<span class="symbol-name">FeatureSpace</span><span class="signature"><span class="signature-params">(base, arg)</span></span></h2>
             <p>Feature Space</p>
             <section>
               <h3>
@@ -177,16 +177,18 @@ base.close();</code></pre>
                   </tr>
                   <tr>
                     <td>
-                      <p>param</p>
+                      <p>arg</p>
                     </td>
                     <td>
-                      <p>(Array of Object or <a href="module-fs.FIn.html">module:fs.FIn</a>)</p>
+                      <p>(Array of <a href="module-qm.html#~FeatureExtractor">module:qm~FeatureExtractor</a> or <a href="module-fs.FIn.html">module:fs.FIn</a>)</p>
                     </td>
                     <td>
                       <p>&nbsp;</p>
                     </td>
                     <td>
-                      <p>Array with definiton of extractors or input stream.</p>
+                      <p>Constructor arguments. There are two ways of constructing:
+                        <br>1. Using an array of <a href="module-qm.html#~FeatureExtractor">module:qm~FeatureExtractor</a> objects,
+                        <br>2. using a file input stream <a href="module-fs.FIn.html">module:fs.FIn</a>.</p>
                     </td>
                   </tr>
                 </tbody>
@@ -199,17 +201,17 @@ base.close();</code></pre>
             <h2>Properties</h2>
             <section>
               <h3 id="dim"><span class="symbol-name">dim</span></h3>
-              <p>Returns the dimension of the feature space.</p>
+              <p>Returns the dimension of the feature space. Type <code>number</code>.</p>
               <dl class="dl-compact">
               </dl>
               <h3 id="dims"><span class="symbol-name">dims</span></h3>
-              <p>Returns an array of the dimensions of each feature extractor in the feature space.</p>
+              <p>Returns an array of the dimensions of each feature extractor in the feature space. Type <code>Array of numbers</code>.</p>
               <dl class="dl-compact">
               </dl>
             </section>
             <h2>Methods</h2>
             <section>
-              <h3 id="addFeatureExtractor"><span class="symbol-name">addFeatureExtractor</span><span class="signature"><span class="signature-params">(obj)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.FeatureSpace.html">module:qm.FeatureSpace</a></span></span></h3>
+              <h3 id="addFeatureExtractor"><span class="symbol-name">addFeatureExtractor</span><span class="signature"><span class="signature-params">(ftExt)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.FeatureSpace.html">module:qm.FeatureSpace</a></span></span></h3>
               <p>Adds a new feature extractor to the feature space.</p>
               <section>
                 <h4>
@@ -259,16 +261,16 @@ base.close();</code></pre>
                   <tbody>
                     <tr>
                       <td>
-                        <p>obj</p>
+                        <p>ftExt</p>
                       </td>
                       <td>
-                        <p>Object</p>
+                        <p><a href="module-qm.html#~FeatureExtractor">module:qm~FeatureExtractor</a></p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>The added feature extractor. It must be given as a JSON object.</p>
+                        <p>The added feature extractor.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -317,10 +319,10 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-qm.FeatureSpace.html">module:qm.FeatureSpace</a></code>&nbsp;Self.</p>
+                  <p><code><a href="module-qm.FeatureSpace.html">module:qm.FeatureSpace</a></code>&nbsp;Self. Features space has been cleared.</p>
                 </dd>
               </dl>
-              <h3 id="extractMatrix"><span class="symbol-name">extractMatrix</span><span class="signature"><span class="signature-params">(rs[, featureExtractorId])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
+              <h3 id="extractMatrix"><span class="symbol-name">extractMatrix</span><span class="signature"><span class="signature-params">(rs[, idx])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
               <p>Extracts the feature vectors from the recordset and returns them as columns of a dense matrix.</p>
               <section>
                 <h4>
@@ -350,7 +352,7 @@ var ftr = new qm.FeatureSpace(base, { type: &quot;multinomial&quot;, source: &qu
 // create a feature matrix out of the records of the store by using the feature space
 // returns a sparse matrix equal to
 // 1  0  0  1
-// 0  1  0  1
+// 0  1  1  1
 // 0  0  1  0
 // 1  1  0  0
 var matrix = ftr.extractMatrix(base.store(&quot;Class&quot;).allRecords);
@@ -385,7 +387,7 @@ base.close();</code></pre>
                     </tr>
                     <tr>
                       <td>
-                        <p>featureExtractorId</p>
+                        <p>idx</p>
                       </td>
                       <td>
                         <p>number</p>
@@ -403,10 +405,10 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>&nbsp;The dense matrix, where the i-th column is the feature vector of the i-th record in rs.</p>
+                  <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>&nbsp;The dense matrix, where the i-th column is the feature vector of the i-th record in <code>rs</code>.</p>
                 </dd>
               </dl>
-              <h3 id="extractSparseMatrix"><span class="symbol-name">extractSparseMatrix</span><span class="signature"><span class="signature-params">(rs[, featureExtractorId])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span></span></h3>
+              <h3 id="extractSparseMatrix"><span class="symbol-name">extractSparseMatrix</span><span class="signature"><span class="signature-params">(rs[, idx])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span></span></h3>
               <p>Extracts the sparse feature vectors from the record set and returns them as columns of the sparse matrix.</p>
               <section>
                 <h4>
@@ -468,7 +470,7 @@ base.close();</code></pre>
                     </tr>
                     <tr>
                       <td>
-                        <p>featureExtractorId</p>
+                        <p>idx</p>
                       </td>
                       <td>
                         <p>number</p>
@@ -477,7 +479,7 @@ base.close();</code></pre>
                         <p>Yes</p>
                       </td>
                       <td>
-                        <p>when given, only use specified feature extractor</p>
+                        <p>When given, only use specified feature extractor.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -486,10 +488,10 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></code>&nbsp;The sparse matrix, where the i-th column is the sparse feature vector of the i-th record in rs.</p>
+                  <p><code><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></code>&nbsp;The sparse matrix, where the i-th column is the sparse feature vector of the i-th record in <code>rs</code>.</p>
                 </dd>
               </dl>
-              <h3 id="extractSparseVector"><span class="symbol-name">extractSparseVector</span><span class="signature"><span class="signature-params">(rec[, featureExtractorId])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.SparseVector.html">module:la.SparseVector</a></span></span></h3>
+              <h3 id="extractSparseVector"><span class="symbol-name">extractSparseVector</span><span class="signature"><span class="signature-params">(rec[, idx])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.SparseVector.html">module:la.SparseVector</a></span></span></h3>
               <p>Creates a sparse feature vector from the given record.</p>
               <section>
                 <h4>
@@ -557,7 +559,7 @@ base.close();</code></pre>
                     </tr>
                     <tr>
                       <td>
-                        <p>featureExtractorId</p>
+                        <p>idx</p>
                       </td>
                       <td>
                         <p>number</p>
@@ -566,7 +568,7 @@ base.close();</code></pre>
                         <p>Yes</p>
                       </td>
                       <td>
-                        <p>when given, only use specified feature extractor.</p>
+                        <p>When given, only use specified feature extractor.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -575,10 +577,10 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.SparseVector.html">module:la.SparseVector</a></code>&nbsp;The sparse feature vector gained from rec.</p>
+                  <p><code><a href="module-la.SparseVector.html">module:la.SparseVector</a></code>&nbsp;The sparse feature vector gained from <code>rec</code> and <code>idx</code>.</p>
                 </dd>
               </dl>
-              <h3 id="extractVector"><span class="symbol-name">extractVector</span><span class="signature"><span class="signature-params">(rec[, featureExtractorId])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
+              <h3 id="extractVector"><span class="symbol-name">extractVector</span><span class="signature"><span class="signature-params">(rec[, idx])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
               <p>Creates a feature vector from the given record.</p>
               <section>
                 <h4>
@@ -646,7 +648,7 @@ base.close();</code></pre>
                     </tr>
                     <tr>
                       <td>
-                        <p>featureExtractorId</p>
+                        <p>idx</p>
                       </td>
                       <td>
                         <p>number</p>
@@ -664,7 +666,7 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;The feature vector gained from rec.</p>
+                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;The feature vector gained from <code>rec</code> and <code>idx</code>.</p>
                 </dd>
               </dl>
               <h3 id="filter"><span class="symbol-name">filter</span><span class="signature"><span class="signature-params">(vec, idx[, keepOffset])</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.SparseVector.html">module:la.SparseVector</a>)</span></span></h3>
@@ -772,8 +774,8 @@ base.close();</code></pre>
                 <dt>Returns</dt>
                 <dd>
                   <p><code>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.SparseVector.html">module:la.SparseVector</a>)</code>&nbsp;
-                    <br>1. module:la.Vector, if vec is of type module:la.Vector.
-                    <br>2. module:la.SparseVector, if vec is of type module:la.SparseVector.</p>
+                    <br>1. <a href="module-la.Vector.html">module:la.Vector</a>, if <code>vec</code> is <a href="module-la.Vector.html">module:la.Vector</a>.
+                    <br>2. <a href="module-la.SparseVector.html">module:la.SparseVector</a>, if <code>vec</code> is <a href="module-la.SparseVector.html">module:la.SparseVector</a>.</p>
                 </dd>
               </dl>
               <h3 id="getFeature"><span class="symbol-name">getFeature</span><span class="signature"><span class="signature-params">(idx)</span>&nbsp;&rarr; <span class="signature-returns"> String</span></span></h3>
@@ -847,7 +849,7 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>String</code>&nbsp;The name of the feature at the position idx.</p>
+                  <p><code>String</code>&nbsp;The name of the feature at the position <code>idx</code>.</p>
                 </dd>
               </dl>
               <h3 id="getFeatureExtractor"><span class="symbol-name">getFeatureExtractor</span><span class="signature"><span class="signature-params">(idx)</span>&nbsp;&rarr; <span class="signature-returns"> String</span></span></h3>
@@ -913,7 +915,7 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>String</code>&nbsp;The name of the feature extractor at position idx.</p>
+                  <p><code>String</code>&nbsp;The name of the feature extractor at position <code>idx</code>.</p>
                 </dd>
               </dl>
               <h3 id="invertFeature"><span class="symbol-name">invertFeature</span><span class="signature"><span class="signature-params">(idx, val)</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
@@ -1001,11 +1003,11 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Object</code>&nbsp;The inverse of val using the feature extractor with index idx.</p>
+                  <p><code>Object</code>&nbsp;The inverse of <code>val</code> using the feature extractor with index <code>idx</code>.</p>
                 </dd>
               </dl>
-              <h3 id="invertFeatureVector"><span class="symbol-name">invertFeatureVector</span><span class="signature"><span class="signature-params">(ftr)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
-              <p>Performs the inverse operation of ftrVec. Works only for numeric feature extractors.</p>
+              <h3 id="invertFeatureVector"><span class="symbol-name">invertFeatureVector</span><span class="signature"><span class="signature-params">(ftr)</span>&nbsp;&rarr; <span class="signature-returns"> Array of Object</span></span></h3>
+              <p>Performs the inverse operation of <code>ftrVec</code>. Works only for numeric feature extractors.</p>
               <section>
                 <h4>
             Example
@@ -1078,7 +1080,7 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;The inverse of ftr as vector.</p>
+                  <p><code>Array of Object</code>&nbsp;The inverse of <code>ftr</code> as an array.</p>
                 </dd>
               </dl>
               <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
@@ -1115,7 +1117,7 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;The output stream.</p>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;The output stream <code>fout</code>.</p>
                 </dd>
               </dl>
               <h3 id="updateRecord"><span class="symbol-name">updateRecord</span><span class="signature"><span class="signature-params">(rec)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.FeatureSpace.html">module:qm.FeatureSpace</a></span></span></h3>
@@ -1198,7 +1200,7 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-qm.FeatureSpace.html">module:qm.FeatureSpace</a></code>&nbsp;Self.</p>
+                  <p><code><a href="module-qm.FeatureSpace.html">module:qm.FeatureSpace</a></code>&nbsp;Self. The feature space has been updated.</p>
                 </dd>
               </dl>
               <h3 id="updateRecords"><span class="symbol-name">updateRecords</span><span class="signature"><span class="signature-params">(rs)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.FeatureSpace.html">module:qm.FeatureSpace</a></span></span></h3>
@@ -1280,7 +1282,7 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-qm.FeatureSpace.html">module:qm.FeatureSpace</a></code>&nbsp;Self.</p>
+                  <p><code><a href="module-qm.FeatureSpace.html">module:qm.FeatureSpace</a></code>&nbsp;Self. The feature space has been updated.</p>
                 </dd>
               </dl>
             </section>

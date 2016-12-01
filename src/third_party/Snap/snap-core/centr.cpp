@@ -482,7 +482,7 @@ void MaxCPGreedyBetter(const PUNGraph& Graph, const int k, TIntH& GroupNodes) {
     printf("%i,", br);
   }
 
-  delete NNodes;
+  delete[] NNodes;
 }
 
 TIntH LoadNodeList(TStr InFNmNodes) {

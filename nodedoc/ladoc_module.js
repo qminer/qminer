@@ -9,22 +9,31 @@
 * Linear algebra module.
 * @module la
 * @example
-* // import module, create a random matrix and a vector, multiply. find svd of the matrix
+* // import la module
+* var la = require('qminer').la;
+* // create a random matrix
+* var mat = new la.Matrix({ rows: 10, cols: 5, random: true });
+* // create a vector
+* var vec = new la.Vector([1, 2, 3, 0, -1]);
+* // multiply the matrix and vector
+* var vec2 = mat.multiply(vec);
+* // calculate the svd decomposition of the matrix
+* var svd = la.svd(mat, 3);
 */
 /**
 	* Computes the truncated SVD decomposition.
-	* @param {module:la.Matrix | matrix:la.SparseMatrix} mat - The matrix.
+	* @param {module:la.Matrix | module:la.SparseMatrix} mat - The matrix.
 	* @param {number} k - The number of singular vectors to be computed.
-	* @param {Object} [json] - The JSON object containing the properties iter and tol:
+	* @param {Object} [json] - The JSON object.
 	* @param {number} [json.iter = 100] - The number of iterations used for the algorithm.
 	* @param {number} [json.tol = 1e-6] - The tolerance number.
 	* @param {function} [callback] - The callback function, that takes the error parameters (err) and the result parameter (res). 
 	* <i>Only for the asynchronous function.</i>
-	* @returns {Object} The JSON object svdRes which contains the SVD decomposition U*S*V^T matrices:
-	* <br>svdRes.U - The dense matrix of the decomposition. Type {@link module:la.Matrix}.
-	* <br>svdRes.V - The dense matrix of the decomposition. Type {@link module:la.Matrix}.
-	* <br>svdRes.s - The vector containing the singular values of the decomposition. Type {@link module:la.Vector}.
-	* @example <caption>Asynchronous calculation</caption>
+	* @returns {Object} The JSON object `svdRes` which contains the SVD decomposition U*S*V^T matrices:
+	* <br>`svdRes.U` - The dense matrix of the decomposition. Type {@link module:la.Matrix}.
+	* <br>`svdRes.V` - The dense matrix of the decomposition. Type {@link module:la.Matrix}.
+	* <br>`svdRes.s` - The vector containing the singular values of the decomposition. Type {@link module:la.Vector}.
+	* @example <caption>Asynchronous function</caption>
 	* // import the modules
 	* var la = require('qminer').la;
 	* // create a random matrix
@@ -40,7 +49,7 @@
 	*    var V = result.V;
 	*    var s = result.s;
 	* });
-	* @example <caption>Synchronous calculation</caption>
+	* @example <caption>Synchronous function</caption>
 	* // import the modules
 	* var la = require('qminer').la;
 	* // create a random matrix
@@ -60,8 +69,15 @@
 	* Computes the QR decomposition.
 	* @param {module:la.Matrix} mat - The matrix.
 	* @param {number} [tol = 1e-6] - The tolerance number.
-	* @returns {Object} A JSON object qrRes which contains the decomposition matrices:
-	* <br>qrRes.Q - The orthogonal dense matrix Q of the QR decomposition. Type {@link module:la.Matrix}.
-	* <br>qrRes.R - The upper triangular dense matrix R of the QR decomposition. Type {@link module:la.Matrix}.
+	* @returns {Object} A JSON object `qrRes` which contains the decomposition matrices:
+	* <br>`qrRes.Q` - The orthogonal matrix Q of the QR decomposition. Type {@link module:la.Matrix}.
+	* <br>`qrRes.R` - The upper triangular matrix R of the QR decomposition. Type {@link module:la.Matrix}.
+    * @example
+    * // import la module
+    * var la = require('qminer').la;
+    * // create a random matrix
+    * var mat = new la.Matrix({ rows: 10, cols: 5, random: true });
+    * // calculate the QR decomposition of mat
+    * var qrRes = la.qr(mat);
 	*/
  exports.prototype.qr = function (mat, tol) { return { Q: Object.create(require('qminer').la.Matrix.prototype), R: Object.create(require('qminer').la.Matrix.prototype) } }

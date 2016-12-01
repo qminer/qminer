@@ -7,8 +7,9 @@
  */
 
 // JavaScript source code
-var la = require("qminer").la;
-var analytics = require("qminer").analytics;
+var qm = require("qminer");
+var la = qm.la;
+var analytics = qm.analytics;
 var assert = require("../../src/nodejs/scripts/assert.js");
 //Unit test for Kmeans
 
@@ -18,21 +19,36 @@ describe("Kmeans test", function () {
         it("should return empty parameter values", function () {
             var KMeans = new analytics.KMeans();
             var params = KMeans.getParams();
-            assert.equal(Object.keys(params).length, 3);
+            assert.equal(Object.keys(params).length, 6);
         });
         it("should return parameter values", function () {
             var KMeans = new analytics.KMeans({ iter: 100, k: 2, verbose: false });
             var params = KMeans.getParams();
             assert.equal(params.iter, 100);
             assert.equal(params.k, 2);
+            assert.equal(params.distanceType, "Euclid");
+            assert.equal(params.centroidType, "Dense");
             assert.equal(params.verbose, false);
-            assert.equal(params.fitIdx, undefined);
         });
-        it("should return empty model parameters", function () {
-            var KMeans = new analytics.KMeans();
-            var model = KMeans.getModel();
-            assert.equal(model.C, undefined);
-            assert.equal(model.idxv, undefined);
+        it("should return the custom KMeans", function () {
+            var KMeans = new analytics.KMeans({ iter: 20000, k: 100, verbose: true, distanceType: "Cos", centroidType: "Sparse" });
+            var params = KMeans.getParams();
+            assert.equal(params.iter, 20000);
+            assert.equal(params.k, 100);
+            assert.equal(params.distanceType, "Cos");
+            assert.equal(params.centroidType, "Sparse");
+            assert.equal(params.verbose, true);
+        });
+        it("should return the custom KMeans with fitIdx", function () {
+            var KMeans = new analytics.KMeans({ iter: 20000, k: 2, verbose: true, distanceType: "Cos", centroidType: "Sparse", fitIdx: [5, 2] });
+            var params = KMeans.getParams();
+            assert.equal(params.iter, 20000);
+            assert.equal(params.k, 2);
+            assert.equal(params.distanceType, "Cos");
+            assert.equal(params.centroidType, "Sparse");
+            assert.equal(params.verbose, true);
+            assert.equal(params.fitIdx[0], 5);
+            assert.equal(params.fitIdx[1], 2);
         });
     });
     describe("Testing getParams and setParams", function () {
@@ -44,6 +60,30 @@ describe("Kmeans test", function () {
             assert.equal(params.k, 30);
             assert.equal(params.verbose, true);
         });
+        it("should return the same parameters used for the construction", function () {
+            var KMeans = new analytics.KMeans({ iter: 100, k: 20, fitIdx: [0, 1, 2] });
+            var params = KMeans.getParams();
+            assert.equal(params.iter, 100);
+            assert.equal(params.k, 20);
+            assert.equal(params.verbose, false);
+            assert.equal(params.fitIdx[0], 0);
+            assert.equal(params.fitIdx[1], 1);
+            assert.equal(params.fitIdx[2], 2);
+        });
+        it("should return the same parameters used for the construction", function () {
+            var mat = new la.Matrix([[0, 1], [2, 3]]);
+            var KMeans = new analytics.KMeans({ iter: 100, k: 20, fitStart: { C: mat } });
+            var params = KMeans.getParams();
+            assert.equal(params.iter, 100);
+            assert.equal(params.k, 20);
+            assert.equal(params.verbose, false);
+            assert.equal(params.fitStart.C.rows, 2);
+            assert.equal(params.fitStart.C.cols, 2);
+            assert.equal(params.fitStart.C.at(0, 0), 0);
+            assert.equal(params.fitStart.C.at(0, 1), 1);
+            assert.equal(params.fitStart.C.at(1, 0), 2);
+            assert.equal(params.fitStart.C.at(1, 1), 3);
+        });
         it("should return the changed values of parameters even if added keys", function () {
             var KMeans = new analytics.KMeans();
             KMeans.setParams({ iter: 10, k: 5, alpha: false });
@@ -54,76 +94,586 @@ describe("Kmeans test", function () {
         });
     });
     describe("Fit test", function () {
-        it("should create the model", function () {
+        it("should create the model for dense centroids, dense matrix", function () {
             var KMeans = new analytics.KMeans();
             var matrix = new la.Matrix([[-1, 1], [0, 0]]);
             assert.doesNotThrow(function () {
                 KMeans.fit(matrix);
             });
         });
-        it("should create the model, using fitIdx", function () {
+        it("should create the model for dense centroids with fitIdx, dense matrix", function () {
             var KMeans = new analytics.KMeans({ fitIdx: [0, 1] });
             var matrix = new la.Matrix([[-1, 1], [0, 0]]);
             assert.doesNotThrow(function () {
                 KMeans.fit(matrix);
             });
         });
-        it("should return the correct idxv of the model", function () {
-            var KMeans = new analytics.KMeans({ k: 3, fitIdx: [0, 1, 2] });
+        it("should create the model for dense centroids with dense fitStart, dense matrix", function () {
+            var centroids = new la.Matrix({ rows: 2, cols: 2, random: true });
+            var KMeans = new analytics.KMeans({ fitStart: { C: centroids } });
+            var matrix = new la.Matrix([[-1, 1], [0, 0]]);
+            assert.doesNotThrow(function () {
+                KMeans.fit(matrix);
+            });
+        });
+        it("should create the model for dense centroids with sparse fitStart, dense matrix", function () {
+            var centroids = new la.SparseMatrix([[[1, 1]], [[0, -1]]]);
+            var KMeans = new analytics.KMeans({ fitStart: { C: centroids } });
+            var matrix = new la.Matrix([[-1, 1], [0, 0]]);
+            assert.doesNotThrow(function () {
+                KMeans.fit(matrix);
+            });
+        });
+        it("should create the model for dense centroids, sparse matrix", function () {
+            var KMeans = new analytics.KMeans();
+            var matrix = new la.SparseMatrix([[[0, 1], [10, 2]], [[2, 3]]]);
+            assert.doesNotThrow(function () {
+                KMeans.fit(matrix);
+            });
+        });
+        it("should create the model for dense centroids with fitIdx, sparse matrix", function () {
+            var KMeans = new analytics.KMeans({ fitIdx: [0, 1] });
+            var matrix = new la.SparseMatrix([[[0, 1], [10, 2]], [[2, 3]]]);
+            assert.doesNotThrow(function () {
+                KMeans.fit(matrix);
+            });
+        });
+        it("should create the model for dense centroids with dense fitStart, sparse matrix", function () {
+            var KMeans = new analytics.KMeans({ fitStart: { C: new la.Matrix({ rows: 11, cols: 2, random: true }) } });
+            var matrix = new la.SparseMatrix([[[0, 1], [10, 2]], [[2, 3]]]);
+            assert.doesNotThrow(function () {
+                KMeans.fit(matrix);
+            });
+        });
+        it("should create the model for dense centroids with sparse fitStart, sparse matrix", function () {
+            var KMeans = new analytics.KMeans({ fitStart: { C: new la.SparseMatrix([[[0, 1]], [[11, 3]]]) }});
+            var matrix = new la.SparseMatrix([[[0, 1], [10, 2]], [[2, 3]]]);
+            assert.doesNotThrow(function () {
+                KMeans.fit(matrix);
+            });
+        })
+        it("should return the correct model for dense centroids, dense matrix", function () {
+            var KMeans = new analytics.KMeans({ k: 2 });
             var matrix = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
             KMeans.fit(matrix);
             var model = KMeans.getModel();
-            assert.equal(model.C.cols, 3);
             assert.equal(model.idxv.length, 3);
+            assert.equal(model.C.rows, 2);
+            assert.equal(model.C.cols, 2);
         });
-        it("should return the correct centroids of the model", function () {
-            var KMeans = new analytics.KMeans({ k: 3, fitIdx: [0, 1, 2] });
+        it("should return the correct model for dense centroids with fitIdx, dense matrix", function () {
+            var KMeans = new analytics.KMeans({ k: 2, fitIdx: [0, 1] });
             var matrix = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
             KMeans.fit(matrix);
             var model = KMeans.getModel();
-            assert.deepEqual(model.C, matrix);
+            assert.equal(model.idxv.length, 3);
+            assert.equal(model.C.rows, 2);
+            assert.equal(model.C.cols, 2);
         });
-        it("should return the correct C of the model", function () {
-            var KMeans = new analytics.KMeans({ k: 3, fitIdx: [1, 7, 6] });
+        it("should return the correct model for dense centroids with dense fitStart, dense matrix", function () {
+            var KMeans = new analytics.KMeans({ k: 2, fitStart: { C: new la.Matrix({ rows: 2, cols: 2, random: true }) } });
+            var matrix = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(matrix);
+            var model = KMeans.getModel();
+            assert.equal(model.idxv.length, 3);
+            assert.equal(model.C.rows, 2);
+            assert.equal(model.C.cols, 2);
+        });
+        it("should return the correct model for dense centroids with sparse fitStart, dense matrix", function () {
+            var KMeans = new analytics.KMeans({ k: 2, fitStart: { C: new la.SparseMatrix([[[0, 1]], [[1, 3]]]) } });
+            var matrix = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(matrix);
+            var model = KMeans.getModel();
+            assert.equal(model.idxv.length, 3);
+            assert.equal(model.C.rows, 2);
+            assert.equal(model.C.cols, 2);
+        });
+        it("should return the correct model for dense centroids, sparse matrix", function () {
+            var KMeans = new analytics.KMeans({ k: 2 });
+            var matrix = new la.SparseMatrix([[[0, 1], [10, 2]], [[2, 3]], [[4, -1]]]);
+            KMeans.fit(matrix);
+            var model = KMeans.getModel();
+            assert.equal(model.idxv.length, 3);
+            assert.equal(model.C.rows, 11);
+            assert.equal(model.C.cols, 2);
+        });
+        it("should return the correct model for dense centroids with fitIdx, sparse matrix", function () {
+            var KMeans = new analytics.KMeans({ k: 2, fitIdx: [0, 1] });
+            var matrix = new la.SparseMatrix([[[0, 1], [10, 2]], [[2, 3]], [[4, -1]]]);
+            KMeans.fit(matrix);
+            var model = KMeans.getModel();
+            assert.equal(model.idxv.length, 3);
+            assert.equal(model.C.rows, 11);
+            assert.equal(model.C.cols, 2);
+        });
+        it("should return the correct model for dense centroids with dense fitStart, sparse matrix", function () {
+            var KMeans = new analytics.KMeans({ k: 2, fitStart: { C: new la.Matrix({ rows: 2, cols: 2, random: true }) } });
+            var matrix = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(matrix);
+            var model = KMeans.getModel();
+            assert.equal(model.idxv.length, 3);
+            assert.equal(model.C.rows, 2);
+            assert.equal(model.C.cols, 2);
+        });
+        it("should return the correct model for dense centroids with sparse fitStart, sparse matrix", function () {
+            var KMeans = new analytics.KMeans({ k: 2, fitStart: { C: new la.SparseMatrix([[[0, 1]], [[11, 3]]]) } });
+            var matrix = new la.SparseMatrix([[[0, 1], [10, 2]], [[2, 3]], [[4, -1]]]);
+            KMeans.fit(matrix);
+            var model = KMeans.getModel();
+            assert.equal(model.idxv.length, 3);
+            assert.equal(model.C.rows, 12);
+            assert.equal(model.C.cols, 2);
+        });
+        it("should return the correct model for dense centroids, dense matrix", function () {
+            var KMeans = new analytics.KMeans({ k: 2 });
             var matrix = new la.Matrix([[1, 2, 3, -10, -10, 4, 2, -10], [7, 6, 5, 5, -5, -1, -3, 0]]);
             KMeans.fit(matrix);
-            var C = KMeans.getModel().C;
-            assert.eqtol(C.at(0, 0), 2, 5e-1);
-            assert.eqtol(C.at(1, 0), 6, 5e-1);
-            assert.eqtol(C.at(0, 1), -10, 5e-1);
-            assert.eqtol(C.at(1, 1), 0, 5e-1);
-            assert.eqtol(C.at(0, 2), 3, 5e-1);
-            assert.eqtol(C.at(1, 2), -2, 5e-1);
+            var model = KMeans.getModel();
+            assert.equal(model.idxv.length, 8);
+            assert.equal(model.C.rows, 2);
+            assert.equal(model.C.cols, 2);
         });
-        it("should throw an exception if fitIdx is not of length k", function () {
-            var KMeans = new analytics.KMeans({ fitIdx: [0, 1, 2] });
-            var matrix = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
-            assert.throws(function () {
-                KMeans.fit(matrix);
-            });
+        it("should return the correct model for dense centroids with fitIdx, dense matrix", function () {
+            var KMeans = new analytics.KMeans({ k: 2, fitIdx: [0, 1] });
+            var matrix = new la.Matrix([[1, 2, 3, -10, -10, 4, 2, -10], [7, 6, 5, 5, -5, -1, -3, 0]]);
+            KMeans.fit(matrix);
+            var model = KMeans.getModel();
+            assert.equal(model.idxv.length, 8);
+            assert.equal(model.C.rows, 2);
+            assert.equal(model.C.cols, 2);
         });
-        it("should throw an exception if fitIdx has index greater than number of matrix columns", function () {
-            var KMeans = new analytics.KMeans({ k: 3, fitIdx: [4, 1, 2] });
-            var matrix = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
-            assert.throws(function () {
-                KMeans.fit(matrix);
-            });
-        });
-        it("should return the same model even after changing parameter values", function () {
-            var KMeans = new analytics.KMeans({ k: 3, fitIdx: [0, 1, 2] });
+        it("should return the same model even after changing parameter values, dense centroids", function () {
+            var KMeans = new analytics.KMeans({ k: 3 });
             var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
             KMeans.fit(X);
             var model = KMeans.getModel();
             assert.deepEqual(model.C, X);
 
-            KMeans.setParams({ iter: 102, fitIdx: [] });
+            KMeans.setParams({ iter: 102 });
             var model2 = KMeans.getModel();
             assert.deepEqual(model2.C, X);
         });
+
+        it("should create the model for sparse centroids, dense matrix", function () {
+            var KMeans = new analytics.KMeans({ centroidType: "Sparse" });
+            var matrix = new la.Matrix([[-1, 1], [0, 0]]);
+            assert.doesNotThrow(function () {
+                KMeans.fit(matrix);
+            });
+        });
+        it("should create the model for sparse centroids with fitIdx, dense matrix", function () {
+            var KMeans = new analytics.KMeans({ centroidType: "Sparse", fitIdx: [0, 1] });
+            var matrix = new la.Matrix([[-1, 1], [0, 0]]);
+            assert.doesNotThrow(function () {
+                KMeans.fit(matrix);
+            });
+        });
+        it("should create the model for sparse centroids with dense fitStart, dense matrix", function () {
+            var KMeans = new analytics.KMeans({ iter: 100, k: 2, centroidType: "Sparse", fitStart: { C: new la.Matrix([[0, 1], [2, 3]]) } });
+            var matrix = new la.Matrix([[-1, 1], [0, 0]]);
+            assert.doesNotThrow(function () {
+                KMeans.fit(matrix);
+            });
+        });
+        it("should create the model for sparse centroids with sparse fitStart, dense matrix", function () {
+            var KMeans = new analytics.KMeans({ iter: 100, k: 2, centroidType: "Sparse", fitStart: { C: new la.SparseMatrix([[[0, 1]], [[1, 3]]]) } });
+            var matrix = new la.Matrix([[-1, 1], [0, 0]]);
+            assert.doesNotThrow(function () {
+                KMeans.fit(matrix);
+            });
+        });
+        it("should create the model for sparse centroids, sparse matrix", function () {
+            var KMeans = new analytics.KMeans({ centroidType: "Sparse" });
+            var matrix = new la.SparseMatrix([[[0, 1], [10, 2]], [[2, 3]]]);
+            assert.doesNotThrow(function () {
+                KMeans.fit(matrix);
+            });
+        });
+        it("should create the model for sparse centroids with fitIdx, sparse matrix", function () {
+            var KMeans = new analytics.KMeans({ centroidType: "Sparse", fitIdx: [0, 1] });
+            var matrix = new la.SparseMatrix([[[0, 1], [10, 2]], [[2, 3]]]);
+            assert.doesNotThrow(function () {
+                KMeans.fit(matrix);
+            });
+        });
+        it("should create the model for sparse centroids with dense fitStart, sparse matrix", function () {
+            var KMeans = new analytics.KMeans({ iter: 100, k: 2, centroidType: "Sparse", fitStart: { C: new la.Matrix([[0, 1], [3, 3]]) } });
+            var matrix = new la.SparseMatrix([[[0, 1], [10, 2]], [[2, 3]]]);
+            assert.doesNotThrow(function () {
+                KMeans.fit(matrix);
+            });
+        });
+        it("should create the model for sparse centroids with sparse fitStart, sparse matrix", function () {
+            var KMeans = new analytics.KMeans({ iter: 100, k: 2, centroidType: "Sparse", fitStart: { C: new la.SparseMatrix([[[0, 1]], [[1, 3]]]) } });
+            var matrix = new la.SparseMatrix([[[0, 1], [10, 2]], [[2, 3]]]);
+            assert.doesNotThrow(function () {
+                KMeans.fit(matrix);
+            });
+        });
+        it("should return the correct model for sparse centroids, dense matrix", function () {
+            var KMeans = new analytics.KMeans({ k: 3, centroidType: "Sparse" });
+            var matrix = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(matrix);
+            var model = KMeans.getModel();
+            assert.equal(model.idxv.length, 3);
+            assert.equal(model.C.rows, -1);
+            assert.equal(model.C.cols, 3);
+        });
+        it("should return the correct model for sparse centroids with fitIdx, dense matrix", function () {
+            var KMeans = new analytics.KMeans({ k: 3, centroidType: "Sparse", fitIdx: [0, 1, 2] });
+            var matrix = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(matrix);
+            var model = KMeans.getModel();
+            assert.equal(model.idxv.length, 3);
+            assert.equal(model.C.rows, -1);
+            assert.equal(model.C.cols, 3);
+        });
+        it("should return the correct model for sparse centroids, sparse matrix", function () {
+            var KMeans = new analytics.KMeans({ k: 2, centroidType: "Sparse" });
+            var matrix = new la.SparseMatrix([[[0, 1], [10, 2]], [[2, 3]], [[4, -1]]]);
+            KMeans.fit(matrix);
+            var model = KMeans.getModel();
+            assert.equal(model.idxv.length, 3);
+            assert.equal(model.C.rows, -1);
+            assert.equal(model.C.cols, 2);
+        });
+        it("should return the correct model for sparse centroids with fitIdx, sparse matrix", function () {
+            var KMeans = new analytics.KMeans({ k: 2, centroidType: "Sparse", fitIdx: [0, 1] });
+            var matrix = new la.SparseMatrix([[[0, 1], [10, 2]], [[2, 3]], [[4, -1]]]);
+            KMeans.fit(matrix);
+            var model = KMeans.getModel();
+            assert.equal(model.idxv.length, 3);
+            assert.equal(model.C.rows, -1);
+            assert.equal(model.C.cols, 2);
+        });
+        it("should return the same model even after changing parameter values, sparse centroids", function () {
+            var KMeans = new analytics.KMeans({ k: 3, centroidType: "Sparse" });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(X);
+            var model = KMeans.getModel();
+            assert.deepEqual(model.C.rows, -1);
+            assert.deepEqual(model.C.cols, 3);
+
+            KMeans.setParams({ iter: 102 });
+            var model2 = KMeans.getModel();
+            assert.deepEqual(model2.C.rows, -1);
+            assert.deepEqual(model2.C.cols, 3);
+        });
+        it("should throw an exception if k and length of fitIdx are not equal, dense centroids", function () {
+            var KMeans = new analytics.KMeans({ k: 3, fitIdx: [0, 1] });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            assert.throws(function () {
+                KMeans.fit(X);
+            });
+        });
+        it("should throw an exception if maximum value of fitIdx is greater that number of columns of matrix, dense centroids", function () {
+            var KMeans = new analytics.KMeans({ k: 2, fitIdx: [0, 5] });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            assert.throws(function () {
+                KMeans.fit(X);
+            });
+        });
+        it("should throw an exception if maximum value of fitIdx is greater that number of columns of matrix, sparse centroids", function () {
+            var KMeans = new analytics.KMeans({ k: 2, centroidType: "Sparse", fitIdx: [0, 5] });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            assert.throws(function () {
+                KMeans.fit(X);
+            });
+        });
+
+        // distanceType: "Cos"
+
+        it("should create the model for dense centroids, dense matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ distanceType: "Cos" });
+            var matrix = new la.Matrix([[-1, 1], [0, 0]]);
+            assert.doesNotThrow(function () {
+                KMeans.fit(matrix);
+            });
+        });
+        it("should create the model for dense centroids with fitIdx, dense matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ distanceType: "Cos", fitIdx: [0, 1] });
+            var matrix = new la.Matrix([[-1, 1], [0, 0]]);
+            assert.doesNotThrow(function () {
+                KMeans.fit(matrix);
+            });
+        });
+        it("should create the model for dense centroids with dense fitStart, dense matrix, distanceType Cos", function () {
+            var centroids = new la.Matrix({ rows: 2, cols: 2, random: true });
+            var KMeans = new analytics.KMeans({ distanceType: "Cos", fitStart: { C: centroids } });
+            var matrix = new la.Matrix([[-1, 1], [0, 1]]);
+            assert.doesNotThrow(function () {
+                KMeans.fit(matrix);
+            });
+        });
+        it("should create the model for dense centroids with sparse fitStart, dense matrix, distanceType Cos", function () {
+            var centroids = new la.SparseMatrix([[[1, 1]], [[0, -1]]]);
+            var KMeans = new analytics.KMeans({ distanceType: "Cos", fitStart: { C: centroids } });
+            var matrix = new la.Matrix([[-1, 1], [0, 0]]);
+            assert.doesNotThrow(function () {
+                KMeans.fit(matrix);
+            });
+        });
+        it("should create the model for dense centroids, sparse matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ distanceType: "Cos" });
+            var matrix = new la.SparseMatrix([[[0, 1], [10, 2]], [[2, 3]]]);
+            assert.doesNotThrow(function () {
+                KMeans.fit(matrix);
+            });
+        });
+        it("should create the model for dense centroids with fitIdx, sparse matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ distanceType: "Cos", fitIdx: [0, 1] });
+            var matrix = new la.SparseMatrix([[[0, 1], [10, 2]], [[2, 3]]]);
+            assert.doesNotThrow(function () {
+                KMeans.fit(matrix);
+            });
+        });
+        it("should create the model for dense centroids with dense fitStart, sparse matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ distanceType: "Cos", fitStart: { C: new la.Matrix({ rows: 11, cols: 2, random: true }) } });
+            var matrix = new la.SparseMatrix([[[0, 1], [10, 2]], [[2, 3]]]);
+            assert.doesNotThrow(function () {
+                KMeans.fit(matrix);
+            });
+        });
+        it("should create the model for dense centroids with sparse fitStart, sparse matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ distanceType: "Cos", fitStart: { C: new la.SparseMatrix([[[0, 1]], [[11, 3]]]) } });
+            var matrix = new la.SparseMatrix([[[0, 1], [10, 2]], [[2, 3]]]);
+            assert.doesNotThrow(function () {
+                KMeans.fit(matrix);
+            });
+        })
+        it("should return the correct model for dense centroids, dense matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ distanceType: "Cos", distanceType: "Cos", k: 2 });
+            var matrix = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(matrix);
+            var model = KMeans.getModel();
+            assert.equal(model.idxv.length, 3);
+            assert.equal(model.C.rows, 2);
+            assert.equal(model.C.cols, 2);
+        });
+        it("should return the correct model for dense centroids with fitIdx, dense matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ distanceType: "Cos", k: 2, fitIdx: [0, 1] });
+            var matrix = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(matrix);
+            var model = KMeans.getModel();
+            assert.equal(model.idxv.length, 3);
+            assert.equal(model.C.rows, 2);
+            assert.equal(model.C.cols, 2);
+        });
+        it("should return the correct model for dense centroids with dense fitStart, dense matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ distanceType: "Cos", k: 2, fitStart: { C: new la.Matrix({ rows: 2, cols: 2, random: true }) } });
+            var matrix = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(matrix);
+            var model = KMeans.getModel();
+            assert.equal(model.idxv.length, 3);
+            assert.equal(model.C.rows, 2);
+            assert.equal(model.C.cols, 2);
+        });
+        it("should return the correct model for dense centroids with sparse fitStart, dense matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ distanceType: "Cos", k: 2, fitStart: { C: new la.SparseMatrix([[[0, 1]], [[1, 3]]]) } });
+            var matrix = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(matrix);
+            var model = KMeans.getModel();
+            assert.equal(model.idxv.length, 3);
+            assert.equal(model.C.rows, 2);
+            assert.equal(model.C.cols, 2);
+        });
+        it("should return the correct model for dense centroids, sparse matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ distanceType: "Cos", k: 2 });
+            var matrix = new la.SparseMatrix([[[0, 1], [10, 2]], [[2, 3]], [[4, -1]]]);
+            KMeans.fit(matrix);
+            var model = KMeans.getModel();
+            assert.equal(model.idxv.length, 3);
+            assert.equal(model.C.rows, 11);
+            assert.equal(model.C.cols, 2);
+        });
+        it("should return the correct model for dense centroids with fitIdx, sparse matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ distanceType: "Cos", k: 2, fitIdx: [0, 1] });
+            var matrix = new la.SparseMatrix([[[0, 1], [10, 2]], [[2, 3]], [[4, -1]]]);
+            KMeans.fit(matrix);
+            var model = KMeans.getModel();
+            assert.equal(model.idxv.length, 3);
+            assert.equal(model.C.rows, 11);
+            assert.equal(model.C.cols, 2);
+        });
+        it("should return the correct model for dense centroids with dense fitStart, sparse matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ distanceType: "Cos", k: 2, fitStart: { C: new la.Matrix({ rows: 2, cols: 2, random: true }) } });
+            var matrix = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(matrix);
+            var model = KMeans.getModel();
+            assert.equal(model.idxv.length, 3);
+            assert.equal(model.C.rows, 2);
+            assert.equal(model.C.cols, 2);
+        });
+        it("should return the correct model for dense centroids with sparse fitStart, sparse matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ distanceType: "Cos", k: 2, fitStart: { C: new la.SparseMatrix([[[0, 1]], [[11, 3]]]) } });
+            var matrix = new la.SparseMatrix([[[0, 1], [10, 2]], [[2, 3]], [[4, -1]]]);
+            KMeans.fit(matrix);
+            var model = KMeans.getModel();
+            assert.equal(model.idxv.length, 3);
+            assert.equal(model.C.rows, 12);
+            assert.equal(model.C.cols, 2);
+        });
+        it("should return the correct model for dense centroids, dense matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ distanceType: "Cos", k: 2 });
+            var matrix = new la.Matrix([[1, 2, 3, -10, -10, 4, 2, -10], [7, 6, 5, 5, -5, -1, -3, 0]]);
+            KMeans.fit(matrix);
+            var model = KMeans.getModel();
+            assert.equal(model.idxv.length, 8);
+            assert.equal(model.C.rows, 2);
+            assert.equal(model.C.cols, 2);
+        });
+        it("should return the correct model for dense centroids with fitIdx, dense matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ distanceType: "Cos", k: 2, fitIdx: [0, 1] });
+            var matrix = new la.Matrix([[1, 2, 3, -10, -10, 4, 2, -10], [7, 6, 5, 5, -5, -1, -3, 0]]);
+            KMeans.fit(matrix);
+            var model = KMeans.getModel();
+            assert.equal(model.idxv.length, 8);
+            assert.equal(model.C.rows, 2);
+            assert.equal(model.C.cols, 2);
+        });
+        it("should return the same model even after changing parameter values, dense centroids, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ distanceType: "Cos", k: 3 });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(X);
+            var model = KMeans.getModel();
+            assert.deepEqual(model.C, X);
+
+            KMeans.setParams({ iter: 102 });
+            var model2 = KMeans.getModel();
+            assert.deepEqual(model2.C, X);
+        });
+
+        it("should create the model for sparse centroids, dense matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ distanceType: "Cos", centroidType: "Sparse" });
+            var matrix = new la.Matrix([[-1, 1], [0, 0]]);
+            assert.doesNotThrow(function () {
+                KMeans.fit(matrix);
+            });
+        });
+        it("should create the model for sparse centroids with fitIdx, dense matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ distanceType: "Cos", centroidType: "Sparse", fitIdx: [0, 1] });
+            var matrix = new la.Matrix([[-1, 1], [0, 0]]);
+            assert.doesNotThrow(function () {
+                KMeans.fit(matrix);
+            });
+        });
+        it("should create the model for sparse centroids with dense fitStart, dense matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ distanceType: "Cos", iter: 100, k: 2, centroidType: "Sparse", fitStart: { C: new la.Matrix([[0, 1], [2, 3]]) } });
+            var matrix = new la.Matrix([[-1, 1], [0, 0]]);
+            assert.doesNotThrow(function () {
+                KMeans.fit(matrix);
+            });
+        });
+        it("should create the model for sparse centroids with sparse fitStart, dense matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ distanceType: "Cos", iter: 100, k: 2, centroidType: "Sparse", fitStart: { C: new la.SparseMatrix([[[0, 1]], [[1, 3]]]) } });
+            var matrix = new la.Matrix([[-1, 1], [0, 0]]);
+            assert.doesNotThrow(function () {
+                KMeans.fit(matrix);
+            });
+        });
+        it("should create the model for sparse centroids, sparse matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ distanceType: "Cos", centroidType: "Sparse" });
+            var matrix = new la.SparseMatrix([[[0, 1], [10, 2]], [[2, 3]]]);
+            assert.doesNotThrow(function () {
+                KMeans.fit(matrix);
+            });
+        });
+        it("should create the model for sparse centroids with fitIdx, sparse matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ distanceType: "Cos", centroidType: "Sparse", fitIdx: [0, 1] });
+            var matrix = new la.SparseMatrix([[[0, 1], [10, 2]], [[2, 3]]]);
+            assert.doesNotThrow(function () {
+                KMeans.fit(matrix);
+            });
+        });
+        it("should create the model for sparse centroids with dense fitStart, sparse matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ distanceType: "Cos", iter: 100, k: 2, centroidType: "Sparse", fitStart: { C: new la.Matrix([[0, 1], [3, 3]]) } });
+            var matrix = new la.SparseMatrix([[[0, 1], [10, 2]], [[2, 3]]]);
+            assert.doesNotThrow(function () {
+                KMeans.fit(matrix);
+            });
+        });
+        it("should create the model for sparse centroids with sparse fitStart, sparse matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ distanceType: "Cos", iter: 100, k: 2, centroidType: "Sparse", fitStart: { C: new la.SparseMatrix([[[0, 1]], [[1, 3]]]) } });
+            var matrix = new la.SparseMatrix([[[0, 1], [10, 2]], [[2, 3]]]);
+            assert.doesNotThrow(function () {
+                KMeans.fit(matrix);
+            });
+        });
+        it("should return the correct model for sparse centroids, dense matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ distanceType: "Cos", k: 3, centroidType: "Sparse" });
+            var matrix = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(matrix);
+            var model = KMeans.getModel();
+            assert.equal(model.idxv.length, 3);
+            assert.equal(model.C.rows, -1);
+            assert.equal(model.C.cols, 3);
+        });
+        it("should return the correct model for sparse centroids with fitIdx, dense matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ distanceType: "Cos", k: 3, centroidType: "Sparse", fitIdx: [0, 1, 2] });
+            var matrix = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(matrix);
+            var model = KMeans.getModel();
+            assert.equal(model.idxv.length, 3);
+            assert.equal(model.C.rows, -1);
+            assert.equal(model.C.cols, 3);
+        });
+        it("should return the correct model for sparse centroids, sparse matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ distanceType: "Cos", k: 2, centroidType: "Sparse" });
+            var matrix = new la.SparseMatrix([[[0, 1], [10, 2]], [[2, 3]], [[4, -1]]]);
+            KMeans.fit(matrix);
+            var model = KMeans.getModel();
+            assert.equal(model.idxv.length, 3);
+            assert.equal(model.C.rows, -1);
+            assert.equal(model.C.cols, 2);
+        });
+        it("should return the correct model for sparse centroids with fitIdx, sparse matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ distanceType: "Cos", k: 2, centroidType: "Sparse", fitIdx: [0, 1] });
+            var matrix = new la.SparseMatrix([[[0, 1], [10, 2]], [[2, 3]], [[4, -1]]]);
+            KMeans.fit(matrix);
+            var model = KMeans.getModel();
+            assert.equal(model.idxv.length, 3);
+            assert.equal(model.C.rows, -1);
+            assert.equal(model.C.cols, 2);
+        });
+        it("should return the same model even after changing parameter values, sparse centroids, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ distanceType: "Cos", k: 3, centroidType: "Sparse" });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(X);
+            var model = KMeans.getModel();
+            assert.deepEqual(model.C.rows, -1);
+            assert.deepEqual(model.C.cols, 3);
+
+            KMeans.setParams({ iter: 102 });
+            var model2 = KMeans.getModel();
+            assert.deepEqual(model2.C.rows, -1);
+            assert.deepEqual(model2.C.cols, 3);
+        });
+        it("should throw an exception if k and length of fitIdx are not equal, dense centroids, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ distanceType: "Cos", k: 3, fitIdx: [0, 1] });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            assert.throws(function () {
+                KMeans.fit(X);
+            });
+        });
+        it("should throw an exception if maximum value of fitIdx is greater that number of columns of matrix, dense centroids, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ distanceType: "Cos", k: 2, fitIdx: [0, 5] });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            assert.throws(function () {
+                KMeans.fit(X);
+            });
+        });
+        it("should throw an exception if maximum value of fitIdx is greater that number of columns of matrix, sparse centroids, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ distanceType: "Cos", k: 2, centroidType: "Sparse", fitIdx: [0, 5] });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            assert.throws(function () {
+                KMeans.fit(X);
+            });
+        });
+
     });
     describe("Predict Tests", function () {
-        it("should not throw an exception", function () {
-            var KMeans = new analytics.KMeans({ k: 3, fitIdx: [0, 1, 2] });
+        it("should not throw an exception dense centroids, dense matrix", function () {
+            var KMeans = new analytics.KMeans({ k: 3 });
             var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
             KMeans.fit(X);
             var matrix = new la.Matrix([[1, 1], [0, -1]]);
@@ -131,18 +681,33 @@ describe("Kmeans test", function () {
                 KMeans.predict(matrix);
             });
         });
-        it("should return the predictions of the matrix", function () {
-            var KMeans = new analytics.KMeans({ k: 3, fitIdx: [0, 1, 2] });
+        it("should not throw an exception dense centroids, sparse matrix", function () {
+            var KMeans = new analytics.KMeans({ k: 3 });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(X);
+            var matrix = new la.SparseMatrix([[[1, 1]], [[0, -1]]]);
+            assert.doesNotThrow(function () {
+                KMeans.predict(matrix);
+            });
+        });
+        it("should return the predictions of the matrix dense centroids, dense matrix", function () {
+            var KMeans = new analytics.KMeans({ k: 3 });
             var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
             KMeans.fit(X);
             var matrix = new la.Matrix([[-1, 2, 1], [0, 1, -3]]);
             var prediction = KMeans.predict(matrix);
-            assert.equal(prediction[0], 1);
-            assert.equal(prediction[1], 0);
-            assert.equal(prediction[2], 2);
+            assert.equal(prediction.length, 3);
         });
-        it("should throw an exception if the matrix has less rows", function () {
-            var KMeans = new analytics.KMeans({ k: 3, fitIdx: [0, 1, 2] });
+        it("should return the predictions of the matrix dense centroids, sparse matrix", function () {
+            var KMeans = new analytics.KMeans({ k: 3 });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(X);
+            var matrix = new la.SparseMatrix([[[0, 1]], [[1, 1]], [[0, 2], [1, 4]]]);
+            var prediction = KMeans.predict(matrix);
+            assert.equal(prediction.length, 3);
+        });
+        it("should throw an exception if the matrix has less rows dense centroids, dense matrix", function () {
+            var KMeans = new analytics.KMeans({ k: 3 });
             var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
             KMeans.fit(X);
             var matrix = new la.Matrix([[1, 1]]);
@@ -150,8 +715,8 @@ describe("Kmeans test", function () {
                 KMeans.predict(matrix);
             });
         });
-        it("should throw an exception if the matrix has too many rows", function () {
-            var KMeans = new analytics.KMeans({ k: 3, fitIdx: [0, 1, 2] });
+        it("should throw an exception if the matrix has too many rows dense centroids, dense matrix", function () {
+            var KMeans = new analytics.KMeans({ k: 3 });
             var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
             KMeans.fit(X);
             var matrix = new la.Matrix([[1, 1], [0, -1], [0, 0]]);
@@ -159,12 +724,174 @@ describe("Kmeans test", function () {
                 KMeans.predict(matrix);
             });
         });
+        it("should throw an exception if the matrix has too many rows dense centroids, sparse matrix", function () {
+            var KMeans = new analytics.KMeans({ k: 3 });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(X);
+            var matrix = new la.SparseMatrix([[[4, 1]]]);
+            assert.throws(function () {
+                KMeans.predict(matrix);
+            });
+        });
+
+        it("should not throw an exception sparse centroids, dense matrix", function () {
+            var KMeans = new analytics.KMeans({ k: 3, centroidType: "Sparse" });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(X);
+            var matrix = new la.Matrix([[1, 1], [0, -1]]);
+            assert.doesNotThrow(function () {
+                KMeans.predict(matrix);
+            });
+        });
+        it("should not throw an exception sparse centroids, sparse matrix", function () {
+            var KMeans = new analytics.KMeans({ k: 3, centroidType: "Sparse" });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(X);
+            var matrix = new la.SparseMatrix([[[1, 1]], [[0, -1]]]);
+            assert.doesNotThrow(function () {
+                KMeans.predict(matrix);
+            });
+        });
+        it("should return the predictions of the matrix sparse centroids, dense matrix", function () {
+            var KMeans = new analytics.KMeans({ k: 3, centroidType: "Sparse" });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(X);
+            var matrix = new la.Matrix([[-1, 2, 1], [0, 1, -3]]);
+            var prediction = KMeans.predict(matrix);
+            assert.equal(prediction.length, 3);
+        });
+        it("should return the predictions of the matrix sparse centroids, sparse matrix", function () {
+            var KMeans = new analytics.KMeans({ k: 3, centroidType: "Sparse" });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(X);
+            var matrix = new la.SparseMatrix([[[0, 1]], [[1, 1]], [[0, 2], [1, 4]]]);
+            var prediction = KMeans.predict(matrix);
+            assert.equal(prediction.length, 3);
+        });
+        it("should throw an exception if the matrix has less rows sparse centroids, dense matrix", function () {
+            var KMeans = new analytics.KMeans({ k: 3, centroidType: "Sparse" });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(X);
+            var matrix = new la.Matrix([[1, 1]]);
+            assert.throws(function () {
+                KMeans.predict(matrix);
+            });
+        });
+
+        // distanceType: 'Cos'
+
+        it("should not throw an exception dense centroids, dense matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ k: 3, distanceType: 'Cos' });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(X);
+            var matrix = new la.Matrix([[1, 1], [0, -1]]);
+            assert.doesNotThrow(function () {
+                KMeans.predict(matrix);
+            });
+        });
+        it("should not throw an exception dense centroids, sparse matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ k: 3, distanceType: 'Cos' });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(X);
+            var matrix = new la.SparseMatrix([[[1, 1]], [[0, -1]]]);
+            assert.doesNotThrow(function () {
+                KMeans.predict(matrix);
+            });
+        });
+        it("should return the predictions of the matrix dense centroids, dense matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ k: 3, distanceType: 'Cos' });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(X);
+            var matrix = new la.Matrix([[-1, 2, 1], [0, 1, -3]]);
+            var prediction = KMeans.predict(matrix);
+            assert.equal(prediction.length, 3);
+        });
+        it("should return the predictions of the matrix dense centroids, sparse matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ k: 3, distanceType: 'Cos' });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(X);
+            var matrix = new la.SparseMatrix([[[0, 1]], [[1, 1]], [[0, 2], [1, 4]]]);
+            var prediction = KMeans.predict(matrix);
+            assert.equal(prediction.length, 3);
+        });
+        it("should throw an exception if the matrix has less rows dense centroids, dense matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ k: 3, distanceType: 'Cos' });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(X);
+            var matrix = new la.Matrix([[1, 1]]);
+            assert.throws(function () {
+                KMeans.predict(matrix);
+            });
+        });
+        it("should throw an exception if the matrix has too many rows dense centroids, dense matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ k: 3, distanceType: 'Cos' });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(X);
+            var matrix = new la.Matrix([[1, 1], [0, -1], [0, 0]]);
+            assert.throws(function () {
+                KMeans.predict(matrix);
+            });
+        });
+        it("should throw an exception if the matrix has too many rows dense centroids, sparse matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ k: 3, distanceType: 'Cos' });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(X);
+            var matrix = new la.SparseMatrix([[[4, 1]]]);
+            assert.throws(function () {
+                KMeans.predict(matrix);
+            });
+        });
+
+        it("should not throw an exception sparse centroids, dense matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ k: 3, centroidType: "Sparse", distanceType: 'Cos' });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(X);
+            var matrix = new la.Matrix([[1, 1], [0, -1]]);
+            assert.doesNotThrow(function () {
+                KMeans.predict(matrix);
+            });
+        });
+        it("should not throw an exception sparse centroids, sparse matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ k: 3, centroidType: "Sparse", distanceType: 'Cos' });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(X);
+            var matrix = new la.SparseMatrix([[[1, 1]], [[0, -1]]]);
+            assert.doesNotThrow(function () {
+                KMeans.predict(matrix);
+            });
+        });
+        it("should return the predictions of the matrix sparse centroids, dense matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ k: 3, centroidType: "Sparse", distanceType: 'Cos' });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(X);
+            var matrix = new la.Matrix([[-1, 2, 1], [0, 1, -3]]);
+            var prediction = KMeans.predict(matrix);
+            assert.equal(prediction.length, 3);
+        });
+        it("should return the predictions of the matrix sparse centroids, sparse matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ k: 3, centroidType: "Sparse", distanceType: 'Cos' });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(X);
+            var matrix = new la.SparseMatrix([[[0, 1]], [[1, 1]], [[0, 2], [1, 4]]]);
+            var prediction = KMeans.predict(matrix);
+            assert.equal(prediction.length, 3);
+        });
+        it("should throw an exception if the matrix has less rows sparse centroids, dense matrix, distanceType Cos", function () {
+            var KMeans = new analytics.KMeans({ k: 3, centroidType: "Sparse", distanceType: 'Cos' });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(X);
+            var matrix = new la.Matrix([[1, 1]]);
+            assert.throws(function () {
+                KMeans.predict(matrix);
+            });
+        });
+
     });
 
 
     describe("Explain Tests", function () {
         it("should not throw an exception", function () {
-            var KMeans = new analytics.KMeans({ k: 3, fitIdx: [0, 1, 2] });
+            var KMeans = new analytics.KMeans({ k: 3 });
             var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
             KMeans.fit(X, [1,2,3]);
             var matrix = new la.Matrix([[1, 1], [0, -1]]);
@@ -173,7 +900,7 @@ describe("Kmeans test", function () {
             });
         });
         it("should return the predictions of the matrix", function () {
-            var KMeans = new analytics.KMeans({ k: 3, fitIdx: [0, 1, 2] });
+            var KMeans = new analytics.KMeans({ k: 3 });
             var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
             KMeans.fit(X, [341,422,122]);
             var matrix = new la.Matrix([[-1, 2, 1], [0, 1, -3]]);
@@ -184,7 +911,7 @@ describe("Kmeans test", function () {
             assert.equal(explanation[2].medoidID, 122);
         });
         it("should throw an exception if the matrix columns do not match record ids", function () {
-            var KMeans = new analytics.KMeans({ k: 3, fitIdx: [0, 1, 2] });
+            var KMeans = new analytics.KMeans({ k: 3 });
             var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
             assert.throws(function () {
             	KMeans.fit(X , [0, 1]);
@@ -194,7 +921,7 @@ describe("Kmeans test", function () {
 
     describe("Transform Tests", function () {
         it("should not throw an exception", function () {
-            var KMeans = new analytics.KMeans({ k: 3, fitIdx: [0, 1, 2] });
+            var KMeans = new analytics.KMeans({ k: 3 });
             var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
             KMeans.fit(X);
             var matrix = new la.Matrix([[1, 1], [0, -1]]);
@@ -203,20 +930,16 @@ describe("Kmeans test", function () {
             });
         });
         it("should return the distance", function () {
-            var KMeans = new analytics.KMeans({ k: 3, fitIdx: [0, 1, 2] });
+            var KMeans = new analytics.KMeans({ k: 3 });
             var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
             KMeans.fit(X);
             var matrix = new la.Matrix([[-2, 0], [0, -3]]);
             var transform = KMeans.transform(matrix);
-            assert.eqtol(transform.at(0, 0), 10);
-            assert.eqtol(transform.at(0, 1), 17);
-            assert.eqtol(transform.at(1, 0), 1);
-            assert.eqtol(transform.at(1, 1), 20);
-            assert.eqtol(transform.at(2, 0), 10);
-            assert.eqtol(transform.at(2, 1), 1);
+            assert.equal(transform.rows, 3);
+            assert.equal(transform.cols, 2);
         });
         it("should throw an exception because the matrix dimension is too big", function () {
-            var KMeans = new analytics.KMeans({ k: 3, fitIdx: [0, 1, 2] });
+            var KMeans = new analytics.KMeans({ k: 3 });
             var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
             KMeans.fit(X);
             var matrix = new la.Matrix([[-2, 0], [0, -3], [0, 0]]);
@@ -225,7 +948,7 @@ describe("Kmeans test", function () {
             });
         });
         it("should throw an exception because the matrix dimension is too short", function () {
-            var KMeans = new analytics.KMeans({ k: 3, fitIdx: [0, 1, 2] });
+            var KMeans = new analytics.KMeans({ k: 3 });
             var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
             KMeans.fit(X);
             var matrix = new la.Matrix([[-2, 0]]);
@@ -235,17 +958,115 @@ describe("Kmeans test", function () {
         });
     });
 
-    describe('Serialization Tests', function () {
-        it('should serialize and deserialize', function () {
-            var KMeans = new analytics.KMeans({ k: 3, fitIdx: [0, 1, 2] });
+    describe('PermuteCentroids Tests', function () {
+        it('should not throw an exception, dense centroids', function () {
+            var KMeans = new analytics.KMeans({ k: 3 });
             var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
             KMeans.fit(X);
-            KMeans.save(require('qminer').fs.openWrite('kmeans_test.bin')).close();
+            var Vec = new la.IntVector([2, 0, 1]);
+            assert.doesNotThrow(function () {
+                KMeans.permuteCentroids(Vec);
+            });
+        })
+        it('should not throw an exception, sparse centroids', function () {
+            var KMeans = new analytics.KMeans({ k: 3, centroidType: "Sparse" });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(X);
+            var Vec = new la.IntVector([2, 0, 1]);
+            assert.doesNotThrow(function () {
+                KMeans.permuteCentroids(Vec);
+            });
+        })
+        it('should permute the centroids, dense centroids', function () {
+            var KMeans = new analytics.KMeans({ k: 2 });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(X);
+            var Cent1 = KMeans.getModel().C;
+            var Vec = new la.IntVector([1, 0]);
+            KMeans.permuteCentroids(Vec);
+            var Cent2 = KMeans.getModel().C;
+            assert.equal(Cent1.at(0, 0), Cent2.at(0, 1));
+            assert.equal(Cent1.at(0, 1), Cent2.at(0, 0));
+            assert.equal(Cent1.at(1, 0), Cent2.at(1, 1));
+            assert.equal(Cent1.at(1, 1), Cent2.at(1, 0));
+        })
+        it('should permute the centroids, sparse centroids', function () {
+            var KMeans = new analytics.KMeans({ k: 2, centroidType: "Sparse" });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(X);
+            var Cent1 = KMeans.getModel().C;
+            var Vec = new la.IntVector([1, 0]);
+            KMeans.permuteCentroids(Vec);
+            var Cent2 = KMeans.getModel().C;
+            assert.equal(Cent1.at(0, 0), Cent2.at(0, 1));
+            assert.equal(Cent1.at(0, 1), Cent2.at(0, 0));
+            assert.equal(Cent1.at(1, 0), Cent2.at(1, 1));
+            assert.equal(Cent1.at(1, 1), Cent2.at(1, 0));
+        })
+        it('should throw an exception if the mapping vector is too short, dense centroids', function () {
+            var KMeans = new analytics.KMeans({ k: 2 });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(X);
+            var Vec = new la.IntVector([0]);
+            assert.throws(function () {
+                KMeans.permuteCentroids(Vec);
+            });
+        })
+        it('should throw an exception if the mapping vector is too short, sparse centroids', function () {
+            var KMeans = new analytics.KMeans({ k: 2, centroidType: "Sparse" });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(X);
+            var Vec = new la.IntVector([0]);
+            assert.throws(function () {
+                KMeans.permuteCentroids(Vec);
+            });
+        })
+
+        it('should throw an exception if the mapping vector is too long, dense centroids', function () {
+            var KMeans = new analytics.KMeans({ k: 2 });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(X);
+            var Vec = new la.IntVector([0, 1, 2]);
+            assert.throws(function () {
+                KMeans.permuteCentroids(Vec);
+            });
+        })
+        it('should throw an exception if the mapping vector is too long, sparse centroids', function () {
+            var KMeans = new analytics.KMeans({ k: 2, centroidType: "Sparse" });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(X);
+            var Vec = new la.IntVector([0, 1, 2]);
+            assert.throws(function () {
+                KMeans.permuteCentroids(Vec);
+            });
+        })
+    });
+
+    describe('Serialization Tests', function () {
+        it('should serialize and deserialize', function () {
+            var KMeans = new analytics.KMeans({ k: 3 });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            KMeans.fit(X);
+            var fin = require('qminer').fs.openWrite('kmeans_test.bin');
+            KMeans.save(fin); fin.close();
             var KMeans2 = new analytics.KMeans(require('qminer').fs.openRead('kmeans_test.bin'));
             var params = KMeans.getParams();
             var params2 = KMeans2.getParams();
             assert.deepEqual(KMeans.getParams(), KMeans2.getParams());
             assert.deepEqual(KMeans.getModel().C, KMeans2.getModel().C, 1e-8);
+        })
+    });
+    
+    describe('Bad input tests ...', function () {
+        it('should find NaNs in the distance matrix because of bad initial centroids', function () {        	
+        	if (qm.flags.debug) return;	// TODO in debug, the program terminates! => for now only test in release
+        	
+        	var centroids = new la.SparseMatrix([[[1, 0]], [[0, -1]]]);
+            var KMeans = new analytics.KMeans({ distanceType: "Cos", fitStart: { C: centroids } });
+            var matrix = new la.Matrix([[-1, 1], [0, 0]]);
+            assert.throws(function () {
+                KMeans.fit(matrix);
+            });
         })
     });
 });

@@ -7,7 +7,6 @@
  */
 #include "snap_nodejs.h"
 
-
 ///////////////////////////////
 // NodeJs-Qminer-Snap 
 //
@@ -129,7 +128,7 @@ void TNodeJsGraph<TNEGraph>::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "eachEdge", _eachEdge);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "adjMat", _adjMat);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "dump", _dump);
-        NODE_SET_PROTOTYPE_METHOD(tpl, "clusteringCoefficient", _clusteringCoefficient);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "clusteringCoefficient", _clusteringCoefficient);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "components", _components);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "renumber", _renumber);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "degreeCentrality", _degreeCentrality);
@@ -165,10 +164,7 @@ inline void TNodeJsNode<TNEGraph>::eachEdge(const v8::FunctionCallbackInfo<v8::V
 			v8::Integer::New(Isolate, NbrEId), v8::Local<v8::Number>::New(Isolate, v8::Integer::NewFromUnsigned(Isolate, Count++))
 		};
 		Callback->Call(Isolate->GetCurrentContext()->Global(), Argc, ArgV);
-		if (TryCatch.HasCaught()) {
-			TryCatch.ReThrow();
-			return;
-		}
+		TNodeJsUtil::CheckJSExcept(TryCatch);
 		Count++;
 	}
 
@@ -193,10 +189,7 @@ inline void TNodeJsNode<TNEGraph>::eachInEdge(const v8::FunctionCallbackInfo<v8:
 			v8::Integer::New(Isolate, NbrEId), v8::Local<v8::Number>::New(Isolate, v8::Integer::NewFromUnsigned(Isolate, Count++))
 		};
 		Callback->Call(Isolate->GetCurrentContext()->Global(), Argc, ArgV);
-		if (TryCatch.HasCaught()) {
-			TryCatch.ReThrow();
-			return;
-		}
+		TNodeJsUtil::CheckJSExcept(TryCatch);
 		Count++;
 	}
 
@@ -221,10 +214,7 @@ inline void TNodeJsNode<TNEGraph>::eachOutEdge(const v8::FunctionCallbackInfo<v8
 			v8::Integer::New(Isolate, NbrEId), v8::Local<v8::Number>::New(Isolate, v8::Integer::NewFromUnsigned(Isolate, Count++))
 		};
 		Callback->Call(Isolate->GetCurrentContext()->Global(), Argc, ArgV);
-		if (TryCatch.HasCaught()) {
-			TryCatch.ReThrow();
-			return;
-		}
+		TNodeJsUtil::CheckJSExcept(TryCatch);
 		Count++;
 	}
 

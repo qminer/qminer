@@ -230,22 +230,25 @@ void TRnd::SaveTxt(TOLx& Lx) const {
 
 /////////////////////////////////////////////////
 /// Thin Input-Memory
+TThinMIn::TThinMIn() :
+    TSBase(), TSIn(), Bf(NULL), BfC(0), BfL(0) { }
+
 TThinMIn::TThinMIn(const TMemBase& Mem) :
-TSBase("Thin input memory"), TSIn("Thin input memory"), Bf(NULL), BfC(0), BfL(0) {
+TSBase(), TSIn(), Bf(NULL), BfC(0), BfL(0) {
 
 	Bf = (uchar*)Mem.GetBf();
 	BfL = Mem.Len();
 }
 
 TThinMIn::TThinMIn(const void* _Bf, const int& _BfL) :
-TSBase("Thin input memory"), TSIn("Thin input memory"),
+TSBase(), TSIn(),
 Bf(NULL), BfC(0), BfL(_BfL) {
 
 	Bf = (uchar*)_Bf;
 }
 
 TThinMIn::TThinMIn(const TThinMIn& min) :
-TSBase("Thin input memory"), TSIn("Thin input memory") {
+TSBase(), TSIn() {
 	Bf = min.Bf;
 	BfL = min.BfL;
 	BfC = min.BfC;
@@ -279,6 +282,9 @@ bool TThinMIn::GetNextLnBf(TChA& LnChA) {
 	return GetNextLn(LnChA);
 }
 
+TStr TThinMIn::GetSNm() const { 
+    return "Thin input memory"; 
+}
 /////////////////////////////////////////////////
 // Memory
 void TMem::Resize(const int& _MxBfL){
@@ -487,7 +493,7 @@ void TStr::Base64Decode(const TStr& In, TMem& Mem) {
 /////////////////////////////////////////////////
 // Input-Memory
 TMemIn::TMemIn(const TMem& _Mem, const int& _BfC):
-  TSBase("Input-Memory"), TSIn("Input-Memory"), Mem(), Bf(_Mem()), BfC(_BfC), BfL(_Mem.Len()){}
+  TSBase(), TSIn(), Mem(), Bf(_Mem()), BfC(_BfC), BfL(_Mem.Len()){}
 
 int TMemIn::GetBf(const void* LBf, const TSize& LBfL){
   Assert(TSize(BfC+LBfL)<=TSize(BfL));
@@ -503,10 +509,14 @@ bool TMemIn::GetNextLnBf(TChA& LnChA){
   return false;
 }
 
+TStr TMemIn::GetSNm() const { 
+  return "Input-Memory"; 
+}
+
 /////////////////////////////////////////////////
 // Output-Memory
-TRefMemOut::TRefMemOut(TMem& _Mem): TSBase("Output-Reference-Memory"), 
-    TSOut("Output-Reference-Memory"), Mem(_Mem){}
+TRefMemOut::TRefMemOut(TMem& _Mem): TSBase(), 
+    TSOut(), Mem(_Mem){}
 
 int TRefMemOut::PutBf(const void* LBf, const TSize& LBfL){
   int LBfS=0;
@@ -517,9 +527,13 @@ int TRefMemOut::PutBf(const void* LBf, const TSize& LBfL){
   return LBfS;
 }
 
+TStr TRefMemOut::GetSNm() const { 
+  return "Output-Reference-Memory"; 
+}
+
 /////////////////////////////////////////////////
 // Output-Memory
-TMemOut::TMemOut(const PMem& _Mem): TSBase("Output-Memory"), TSOut("Output-Memory"), Mem(_Mem){}
+TMemOut::TMemOut(const PMem& _Mem): TSBase(), TSOut(), Mem(_Mem){}
 
 int TMemOut::PutBf(const void* LBf, const TSize& LBfL){
   int LBfS=0;
@@ -529,6 +543,10 @@ int TMemOut::PutBf(const void* LBf, const TSize& LBfL){
     LBfS+=Ch; _Mem+=Ch;
   }
   return LBfS;
+}
+
+TStr TMemOut::GetSNm() const { 
+  return "Output-Memory"; 
 }
 
 /////////////////////////////////////////////////
@@ -846,7 +864,7 @@ TChA operator+(const TStr& LStr, const char* RCStr){
 /////////////////////////////////////////////////
 // Input-Char-Array
 TChAIn::TChAIn(const TChA& ChA, const int& _BfC):
-  TSBase("Input-Char-Array"), TSIn("Input-Char-Array"), Bf(ChA.CStr()), BfC(_BfC), BfL(ChA.Len()){}
+  TSBase(), TSIn(), Bf(ChA.CStr()), BfC(_BfC), BfL(ChA.Len()){}
 
 int TChAIn::GetBf(const void* LBf, const TSize& LBfL){
   Assert(TSize(BfC+LBfL)<=TSize(BfL));
@@ -862,27 +880,9 @@ bool TChAIn::GetNextLnBf(TChA& LnChA){
   return false;
 }
 
-/////////////////////////////////////////////////
-// Ref-String
-//int TRStr::CmpI(const char* p, const char* r){
-//  if (!p){return r ? (*r ? -1 : 0) : 0;}
-//  if (!r){return (*p ? 1 : 0);}
-//  while (*p && *r){
-//    int i=int(toupper(*p++))-int(toupper(*r++));
-//    if (i!=0){return i;}
-//  }
-//  return int(toupper(*p++))-int(toupper(*r++));
-//}
-
-//
-// this section overloads the new operator for debug purposes (tracking memory leaks)
-//
-#ifdef WIN32
-#ifdef _DEBUG
-#define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
-#define new DEBUG_NEW
-#endif
-#endif
+TStr TChAIn::GetSNm() const { 
+  return "Input-Char-Array"; 
+}
 
 /////////////////////////////////////////////////
 // String
@@ -1076,6 +1076,11 @@ char* TStr::CloneCStr() const {
 		Bf[0] = 0;
 	}
 	return Bf;
+}
+
+bool TStr::Empty() const {
+	 AssertR(Inner == nullptr || Inner[0] != 0, "TStr::Empty string is not nullptr. Fix immediately!");
+	 return  Inner == nullptr;
 }
 
 void TStr::Clr() {
@@ -1527,6 +1532,8 @@ void TStr::SplitOnStr(const TStr& SplitStr, TStrV& StrV) const {
   int SplitStrLen=SplitStr.Len();
   int PrevChN=0; int ChN=0;
   int StrLen = Len();
+  // on empty string we need to end here, otherwise the GetSubStr crashes
+  if (StrLen == 0) { return; }
   while (ChN < StrLen && (ChN = SearchStr(SplitStr, ChN)) != -1){
     // extract & add string
 	  if (ChN - 1 >= 0 && ChN - 1 < StrLen) {
@@ -1592,12 +1599,13 @@ int TStr::SearchChBack(const char& Ch, int BChN) const {
 }
 
 int TStr::SearchStr(const TStr& Str, const int& BChN) const {
-  int ThisLen = Len();
-  EAssertR(BChN >= 0 && BChN < ThisLen, "TStr::SearchStr: index BChN out of bounds!");
-  int NrBChN = BChN; // TInt::GetMx(BChN, 0);
-  //if(ThisLen == 0) { return -1; }
-  //if(NrBChN > ThisLen) { return -1; }
+  const int ThisLen = Len();
+  EAssertR(BChN >= 0 && BChN <= ThisLen, "TStr::SearchStr: index BChN out of bounds!");
 
+  // special case for handling empty strings
+  if (ThisLen == 0) { return Str.Empty() ? 0 : -1; }
+  
+  const int NrBChN = BChN;
   const char* StrPt = strstr((const char*) CStr() + NrBChN, Str.CStr());
   if (StrPt == nullptr) { return -1; }
   return int(StrPt - CStr());
@@ -2268,7 +2276,7 @@ bool TStr::IsUInt64(TChRet& Ch, const bool& Check, const uint64& MnVal, const ui
 /////////////////////////////////////////////////
 // Input-String
 TStrIn::TStrIn(const TStr& _Str, const bool& MakeCopyP) :
-  TSBase("Input-String"), TSIn("Input-String"), OwnP(MakeCopyP), 
+  TSBase(), TSIn(), OwnP(MakeCopyP), 
   Bf(MakeCopyP ? _Str.CloneCStr() : _Str.CStr()), BfC(0), BfL(_Str.Len()){}
 
 PSIn TStrIn::New(const TStr& Str, const bool& MakeCopyP){
@@ -2289,15 +2297,9 @@ bool TStrIn::GetNextLnBf(TChA& LnChA){
   return false;
 }
 
-//
-// this section disables the overloaded new operator so it doesn't clash with the rest of the library (tracking memory leaks)
-//
-#ifdef WIN32
-#ifdef _DEBUG
-#undef DEBUG_NEW
-#undef new 
-#endif
-#endif
+TStr TStrIn::GetSNm() const { 
+  return "Input-String"; 
+}
 
 /////////////////////////////////////////////////
 // String-Pool
@@ -2577,6 +2579,19 @@ TStr TInt::GetStr(const int& Val, const char* FmtStr){
     sprintf(Bf, FmtStr, Val);
     return TStr(Bf);
   }
+}
+
+TStr TInt::GetSepStr(const char& Sep) const
+{
+    TStr StrVal = GetStr().Reverse();
+    TChA Out;
+    for (int N = 0; N < StrVal.Len(); N++) {
+        if (N > 0 && N % 3 == 0)
+            Out += Sep;
+        Out += StrVal[N];
+    }
+    Out.Reverse();
+    return Out;
 }
 
 //-----------------------------------------------------------------------------

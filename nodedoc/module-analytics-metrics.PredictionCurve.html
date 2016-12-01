@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.2.0</a>
       </div>
     </div>
   </nav>
@@ -25,9 +25,9 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>~<wbr><a href="module-analytics-metrics.html">metrics</a>.<wbr></small><span class="symbol-name">PredictionCurve</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-2338">analyticsdoc.<wbr>js:2338</a></p>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-2656">analyticsdoc.<wbr>js:2656</a></p>
             <div class="symbol-classdesc">
-              <p>used for computing ROC curve and other related measures such as AUC</p>
+              <p>Used for computing ROC curve and other related measures such as AUC.</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -109,7 +109,7 @@
           </section>
           <section>
             <h2 id="PredictionCurve">new&nbsp;<span class="symbol-name">PredictionCurve</span><span class="signature"><span class="signature-params">(yTrue, yPred)</span></span></h2>
-            <p>Class implements several prediction curve measures (ROC, AOC, Precision-Recall, ...)</p>
+            <p>Class implements several prediction curve measures (ROC, AOC, Precision-Recall, ...).</p>
             <section>
               <h3>
             Example
@@ -173,7 +173,7 @@ var pr = predictionCurve.precisionRecallCurve() // get precision-recall curve</c
                       <p>&nbsp;</p>
                     </td>
                     <td>
-                      <p>Estimated probabilities</p>
+                      <p>Estimated probabilities.</p>
                     </td>
                   </tr>
                 </tbody>
@@ -187,34 +187,34 @@ var pr = predictionCurve.precisionRecallCurve() // get precision-recall curve</c
             <section>
               <h3 id="allNegatives"><span class="symbol-name">allNegatives</span><small class="property-type">
             &nbsp;number</small></h3>
-              <p>Count of all negative examples</p>
+              <p>Count of all negative examples.</p>
               <dl class="dl-compact">
               </dl>
               <h3 id="allPositives"><span class="symbol-name">allPositives</span><small class="property-type">
             &nbsp;number</small></h3>
-              <p>Count of all positive examples</p>
+              <p>Count of all positive examples.</p>
               <dl class="dl-compact">
               </dl>
               <h3 id="grounds"><span class="symbol-name">grounds</span><small class="property-type">
             &nbsp;<a href="module-la.Vector.html">module:la.Vector</a></small></h3>
-              <p>Store of ground truths</p>
+              <p>Store of ground truths.</p>
               <dl class="dl-compact">
               </dl>
               <h3 id="length"><span class="symbol-name">length</span><small class="property-type">
             &nbsp;number</small></h3>
-              <p>Count of all examples</p>
+              <p>Count of all examples.</p>
               <dl class="dl-compact">
               </dl>
               <h3 id="predictions"><span class="symbol-name">predictions</span><small class="property-type">
             &nbsp;<a href="module-la.Vector.html">module:la.Vector</a></small></h3>
-              <p>Store of predictions</p>
+              <p>Store of predictions.</p>
               <dl class="dl-compact">
               </dl>
             </section>
             <h2>Methods</h2>
             <section>
               <h3 id="auc"><span class="symbol-name">auc</span><span class="signature"><span class="signature-params">([sample])</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
-              <p>Get Area Under the Curve (AUC) of the current curve</p>
+              <p>Get Area Under the Curve (AUC) of the current curve.</p>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -238,7 +238,7 @@ var pr = predictionCurve.precisionRecallCurve() // get precision-recall curve</c
                         <p>Yes</p>
                       </td>
                       <td>
-                        <p>Desired number of samples in output</p>
+                        <p>Desired number of samples in output.</p>
                         <p>Defaults to <code>10</code>.</p>
                       </td>
                     </tr>
@@ -248,11 +248,11 @@ var pr = predictionCurve.precisionRecallCurve() // get precision-recall curve</c
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;Area under ROC curve</p>
+                  <p><code>number</code>&nbsp;Area under ROC curve.</p>
                 </dd>
               </dl>
               <h3 id="bestF1"><span class="symbol-name">bestF1</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
-              <p>Gets threshold for prediction score, which results in the highest F1</p>
+              <p>Gets threshold for prediction score, which results in the highest F1.</p>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
@@ -260,7 +260,7 @@ var pr = predictionCurve.precisionRecallCurve() // get precision-recall curve</c
                 </dd>
               </dl>
               <h3 id="breakEvenPoint"><span class="symbol-name">breakEvenPoint</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
-              <p>Get break-even point, the value where precision and recall intersect</p>
+              <p>Get break-even point, the value where precision and recall intersect.</p>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
@@ -268,7 +268,7 @@ var pr = predictionCurve.precisionRecallCurve() // get precision-recall curve</c
                 </dd>
               </dl>
               <h3 id="desiredPrecision"><span class="symbol-name">desiredPrecision</span><span class="signature"><span class="signature-params">(desiredPrecision)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
-              <p>Gets threshold for prediction score, nearest to specified precision</p>
+              <p>Gets threshold for prediction score, nearest to specified precision.</p>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -301,11 +301,11 @@ var pr = predictionCurve.precisionRecallCurve() // get precision-recall curve</c
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;Threshold for prediction score, nearest to specified <code>precision</code></p>
+                  <p><code>number</code>&nbsp;Threshold for prediction score, nearest to specified <code>precision</code>.</p>
                 </dd>
               </dl>
               <h3 id="desiredRecall"><span class="symbol-name">desiredRecall</span><span class="signature"><span class="signature-params">(desiredRecall)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
-              <p>Gets threshold for prediction score, nearest to specified recall</p>
+              <p>Gets threshold for prediction score, nearest to specified recall.</p>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -338,11 +338,11 @@ var pr = predictionCurve.precisionRecallCurve() // get precision-recall curve</c
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;recal score threshold - Threshold for recall score, nearest to specified <code>recall</code></p>
+                  <p><code>number</code>&nbsp;Recal Score Threshold. Threshold for recall score, nearest to specified <code>recall</code>.</p>
                 </dd>
               </dl>
               <h3 id="precisionRecallCurve"><span class="symbol-name">precisionRecallCurve</span><span class="signature"><span class="signature-params">([sample])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
-              <p>Get precision recall curve sampled on <code>sample</code> points</p>
+              <p>Get precision recall curve sampled on <code>sample</code> points.</p>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -366,7 +366,7 @@ var pr = predictionCurve.precisionRecallCurve() // get precision-recall curve</c
                         <p>Yes</p>
                       </td>
                       <td>
-                        <p>Desired number of samples in output</p>
+                        <p>Desired number of samples in output.</p>
                         <p>Defaults to <code>10</code>.</p>
                       </td>
                     </tr>
@@ -427,7 +427,7 @@ var pr = predictionCurve.precisionRecallCurve() // get precision-recall curve</c
               <dl class="dl-compact">
               </dl>
               <h3 id="roc"><span class="symbol-name">roc</span><span class="signature"><span class="signature-params">([sample])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
-              <p>Get Receiver Operating Characteristic (ROC) parametrization sampled on <code>sample</code> points</p>
+              <p>Get Receiver Operating Characteristic (ROC) parametrization sampled on <code>sample</code> points.</p>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -451,7 +451,7 @@ var pr = predictionCurve.precisionRecallCurve() // get precision-recall curve</c
                         <p>Yes</p>
                       </td>
                       <td>
-                        <p>Desired number of samples in output</p>
+                        <p>Desired number of samples in output.</p>
                         <p>Defaults to <code>10</code>.</p>
                       </td>
                     </tr>
@@ -461,7 +461,7 @@ var pr = predictionCurve.precisionRecallCurve() // get precision-recall curve</c
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>&nbsp;A matrix with increasing false and true positive rates</p>
+                  <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>&nbsp;A matrix with increasing false and true positive rates.</p>
                 </dd>
               </dl>
             </section>

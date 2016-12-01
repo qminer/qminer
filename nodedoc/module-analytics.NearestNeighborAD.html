@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.2.0</a>
       </div>
     </div>
   </nav>
@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">NearestNeighborAD</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-677">analyticsdoc.<wbr>js:677</a></p>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-734">analyticsdoc.<wbr>js:734</a></p>
             <div class="symbol-classdesc">
               <p>Anomaly detector that checks if the test point is too far from the nearest known point.</p>
             </div>
@@ -86,7 +86,7 @@
                     <dt><a href="module-analytics.NearestNeighborAD.html#save">save(fout)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.NearestNeighborAD.html#setParams">setParams(newParams)</a></dt>
+                    <dt><a href="module-analytics.NearestNeighborAD.html#setParams">setParams(params)</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -95,7 +95,7 @@
             </div>
           </section>
           <section>
-            <h2 id="NearestNeighborAD">new&nbsp;<span class="symbol-name">NearestNeighborAD</span><span class="signature"><span class="signature-params">([detectorParam])</span></span></h2>
+            <h2 id="NearestNeighborAD">new&nbsp;<span class="symbol-name">NearestNeighborAD</span><span class="signature"><span class="signature-params">([arg])</span></span></h2>
             <p>Nearest Neighbour Anomaly Detection</p>
             <section>
               <h3>
@@ -131,7 +131,7 @@ var prediction = neighbor.predict(vector);</code></pre>
                 <tbody>
                   <tr>
                     <td>
-                      <p>detectorParam</p>
+                      <p>arg</p>
                     </td>
                     <td>
                       <p>(<a href="module-analytics.html#~detectorParam">module:analytics~detectorParam</a> or <a href="module-fs.FIn.html">module:fs.FIn</a>)</p>
@@ -140,7 +140,9 @@ var prediction = neighbor.predict(vector);</code></pre>
                       <p>Yes</p>
                     </td>
                     <td>
-                      <p>Constructor parameters.</p>
+                      <p>Construction arguments. There are two ways of constructing:
+                        <br>1. Using the <a href="module-analytics.html#~detectorParam">module:analytics~detectorParam</a> object,
+                        <br>2. using the file input stream <a href="module-fs.FIn.html">module:fs.FIn</a>.</p>
                     </td>
                   </tr>
                 </tbody>
@@ -153,7 +155,21 @@ var prediction = neighbor.predict(vector);</code></pre>
             <h2>Property</h2>
             <section>
               <h3 id="init"><span class="symbol-name">init</span></h3>
-              <p>Returns true when the model has enough data to initialize.</p>
+              <p>Returns true when the model has enough data to initialize. Type <code>boolean</code>.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import modules
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
+// create a new NearestNeighborAD object
+var neighbor = new analytics.NearestNeighborAD({ rate:0.05, windowSize:3 });
+// check if the model has enough data
+neighbor.init;</code></pre>
+                </div>
+              </section>
               <dl class="dl-compact">
               </dl>
             </section>
@@ -217,7 +233,7 @@ var prediction = neighbor.decisionFunction(vector); // returns 1</code></pre>
                 </dd>
               </dl>
               <h3 id="explain"><span class="symbol-name">explain</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.html#~NearestNeighborADExplain">module:analytics~NearestNeighborADExplain</a></span></span></h3>
-              <p>Returns a JSON object that encodes the ID of the nearest neighbor and the features that contributed to the distance</p>
+              <p>Returns an object that encodes the ID of the nearest neighbor and the features that contributed to the distance.</p>
               <section>
                 <h4>
             Example
@@ -227,11 +243,11 @@ var prediction = neighbor.decisionFunction(vector); // returns 1</code></pre>
 var analytics = require(&#x27;qminer&#x27;).analytics;
 var la = require(&#x27;qminer&#x27;).la;
 // create a new NearestNeighborAD object
-var neighbor = new analytics.NearestNeighborAD({rate:0.05, windowSize:3});
+var neighbor = new analytics.NearestNeighborAD({ rate:0.05, windowSize:3 });
 // create a new sparse matrix
 var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
 // fit the model with the matrix and provide a vector record IDs
-neighbor.fit(matrix, new la.IntVector([3541,1112,4244]));
+neighbor.fit(matrix, new la.IntVector([3541, 1112, 4244]));
 // create a new sparse vector
 var vector = new la.SparseVector([[0, 4], [1, 0]]);
 // check if the vector is an anomaly
@@ -270,11 +286,11 @@ var explanation = neighbor.explain(vector); // returns an explanation</code></pr
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.html#~NearestNeighborADExplain">module:analytics~NearestNeighborADExplain</a></code>&nbsp;The explanation object</p>
+                  <p><code><a href="module-analytics.html#~NearestNeighborADExplain">module:analytics~NearestNeighborADExplain</a></code>&nbsp;The explanation object.</p>
                 </dd>
               </dl>
               <h3 id="fit"><span class="symbol-name">fit</span><span class="signature"><span class="signature-params">(A[, idVec])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.NearestNeighborAD.html">module:analytics.NearestNeighborAD</a></span></span></h3>
-              <p>Analyzes the nearest neighbor distances and computes the detector threshold based on the rate parameter.</p>
+              <p>Analyzes the nearest neighbor distances and calculates the detector threshold based on the rate parameter.</p>
               <section>
                 <h4>
             Example
@@ -314,7 +330,7 @@ neighbor.fit(matrix);</code></pre>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Matrix whose columns correspond to known examples. Gets saved as it is part of</p>
+                        <p>Matrix whose columns correspond to known examples. Gets saved as it is part of the model.</p>
                       </td>
                     </tr>
                     <tr>
@@ -328,7 +344,7 @@ neighbor.fit(matrix);</code></pre>
                         <p>Yes</p>
                       </td>
                       <td>
-                        <p>An integer vector of IDs the model.</p>
+                        <p>An integer vector of IDs.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -337,7 +353,7 @@ neighbor.fit(matrix);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.NearestNeighborAD.html">module:analytics.NearestNeighborAD</a></code>&nbsp;Self. The model is set by the matrix A.</p>
+                  <p><code><a href="module-analytics.NearestNeighborAD.html">module:analytics.NearestNeighborAD</a></code>&nbsp;Self. The model is set by the matrix <code>A</code>.</p>
                 </dd>
               </dl>
               <h3 id="getModel"><span class="symbol-name">getModel</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
@@ -359,13 +375,13 @@ var model = neighbor.getModel();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Object</code>&nbsp;Json object whose keys are:
-                    <br> 1. rate - The expected fraction of emmited anomalies.
-                    <br> 2. thresh - Maximal squared distance to the nearest neighbor that is not anomalous.</p>
+                  <p><code>Object</code>&nbsp;The object <code>neighbourModel</code> containing the properties:
+                    <br> 1. <code>neighbourModel.rate</code> - The expected fraction of emmited anomalies.
+                    <br> 2. <code>neighbourModel.thresh</code> - Maximal squared distance to the nearest neighbor that is not anomalous.</p>
                 </dd>
               </dl>
               <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.html#~detectorParam">module:analytics~detectorParam</a></span></span></h3>
-              <p>Returns parameters.</p>
+              <p>Gets parameters.</p>
               <section>
                 <h4>
             Example
@@ -383,11 +399,11 @@ var params = neighbor.getParams();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.html#~detectorParam">module:analytics~detectorParam</a></code>&nbsp;The Json object containing the rate value.</p>
+                  <p><code><a href="module-analytics.html#~detectorParam">module:analytics~detectorParam</a></code>&nbsp;The object containing the parameters.</p>
                 </dd>
               </dl>
               <h3 id="partialFit"><span class="symbol-name">partialFit</span><span class="signature"><span class="signature-params">(X, recId)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.NearestNeighborAD.html">module:analytics.NearestNeighborAD</a></span></span></h3>
-              <p>Adds a new point to the known points and recomputes the threshold.</p>
+              <p>Adds a new point to the known points and recalculates the threshold.</p>
               <section>
                 <h4>
             Example
@@ -431,7 +447,7 @@ neighbor.partialFit(vector);</code></pre>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Test example (vector input)</p>
+                        <p>Test example.</p>
                       </td>
                     </tr>
                     <tr>
@@ -445,7 +461,7 @@ neighbor.partialFit(vector);</code></pre>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Integer record ID, used in NearestNeighborAD.explain</p>
+                        <p>Integer record ID, used in module:analytics.NearestNeighborAD.prototype.explain.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -458,7 +474,7 @@ neighbor.partialFit(vector);</code></pre>
                 </dd>
               </dl>
               <h3 id="predict"><span class="symbol-name">predict</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
-              <p>Compares the point to the known points and returns 1 if it's too far away (based on the precomputed threshold).</p>
+              <p>Compares the point to the known points and returns 1 if it's too far away (based on the precalculated threshold).</p>
               <section>
                 <h4>
             Example
@@ -511,11 +527,11 @@ var prediction = neighbor.predict(vector); // returns 1</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;Returns 1.0 if the vector x is an anomaly and 0.0 otherwise.</p>
+                  <p><code>number</code>&nbsp;Returns 1.0 if the vector <code>x</code> is an anomaly and 0.0 otherwise.</p>
                 </dd>
               </dl>
               <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
-              <p>Save model to provided output stream.</p>
+              <p>Saves model to provided output stream.</p>
               <section>
                 <h4>
             Example
@@ -572,10 +588,10 @@ var neighbor2 = new analytics.NearestNeighborAD(fin);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;Provided output stream fout.</p>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;The output stream <code>fout</code>.</p>
                 </dd>
               </dl>
-              <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(newParams)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.NearestNeighborAD.html">module:analytics.NearestNeighborAD</a></span></span></h3>
+              <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(params)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.NearestNeighborAD.html">module:analytics.NearestNeighborAD</a></span></span></h3>
               <p>Sets parameters.</p>
               <section>
                 <h4>
@@ -604,7 +620,7 @@ neighbor.setParams({ rate: 0.1 });</code></pre>
                   <tbody>
                     <tr>
                       <td>
-                        <p>newParams</p>
+                        <p>params</p>
                       </td>
                       <td>
                         <p><a href="module-analytics.html#~detectorParam">module:analytics~detectorParam</a></p>
@@ -613,7 +629,7 @@ neighbor.setParams({ rate: 0.1 });</code></pre>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>The Json object containing the new rate value.</p>
+                        <p>The object containing the parameters.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -622,7 +638,7 @@ neighbor.setParams({ rate: 0.1 });</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.NearestNeighborAD.html">module:analytics.NearestNeighborAD</a></code>&nbsp;Self. The parameters are updated with newParams.</p>
+                  <p><code><a href="module-analytics.NearestNeighborAD.html">module:analytics.NearestNeighborAD</a></code>&nbsp;Self. The parameters are updated with <code>params</code>.</p>
                 </dd>
               </dl>
             </section>

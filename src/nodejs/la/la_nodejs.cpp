@@ -7,7 +7,6 @@
 */
 #include "la_nodejs.h"
 
-
 ///////////////////////////////
 // NodeJs-Qminer-LinAlg 
 //
@@ -24,14 +23,14 @@ void TNodeJsLinAlg::Init(v8::Handle<v8::Object> exports) {
 }
 
 TNodeJsLinAlg::TSVDTask::TSVDTask(const v8::FunctionCallbackInfo<v8::Value>& Args) :
-TNodeTask(Args),
-JsFltVV(nullptr),
-JsSpVV(nullptr),
-U(nullptr),
-V(nullptr),
-s(nullptr),
-Iters(-1),
-Tol(1e-6) {
+        TNodeTask(Args),
+        JsFltVV(nullptr),
+        JsSpVV(nullptr),
+        U(nullptr),
+        V(nullptr),
+        s(nullptr),
+        Iters(-1),
+        Tol(1e-6) {
 
 	if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltVV>(Args, 0)) {
 		JsFltVV = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltVV>(Args, 0);
@@ -106,57 +105,6 @@ v8::Local<v8::Value> TNodeJsLinAlg::TSVDTask::WrapResult() {
 	JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "s")), TNodeJsUtil::NewInstance(s));
 	return HandleScope.Escape(JsObj);
 }
-
-//void TNodeJsLinAlg::svd(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-//	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-//	v8::HandleScope HandleScope(Isolate);
-//	v8::Handle<v8::Object> JsObj = v8::Object::New(Isolate); // Result 
-//	TFltVV U;
-//	TFltVV V;
-//	TFltV s;
-//	if (Args.Length() > 1) {
-//		int Iters = -1;
-//		double Tol = 1e-6;
-//		if (Args.Length() > 2) {
-//			PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 2);
-//			Iters = ParamVal->GetObjInt("iter", -1);
-//			Tol = ParamVal->GetObjNum("tol", 1e-6);
-//		}
-//		if (Args[0]->IsObject() && Args[1]->IsInt32()) {
-//			int k = Args[1]->Int32Value();
-//			if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltVV>(Args, 0)) {
-//				TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
-//				TFullMatrix Mat(JsMat->Mat, true);	// only wrap the matrix
-//				TLinAlg::ComputeThinSVD(Mat, k, U, s, V, Iters, Tol);
-//			}
-//			else if (TNodeJsUtil::IsArgWrapObj<TNodeJsSpMat>(Args, 0)) {
-//				TNodeJsSpMat* JsMat = ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject());
-//				if (JsMat->Rows != -1) {
-//					TSparseColMatrix Mat(JsMat->Mat, JsMat->Rows, JsMat->Mat.Len());
-//					TLinAlg::ComputeThinSVD(Mat, k, U, s, V, Iters, Tol);
-//				}
-//				else {
-//					TSparseColMatrix Mat(JsMat->Mat);
-//					TLinAlg::ComputeThinSVD(Mat, k, U, s, V, Iters, Tol);
-//				}
-//			}
-//			else {
-//				EFailR("SVD expects TFltVV or TVec<TIntFltKdV>");
-//			}
-//			JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "U")), TNodeJsFltVV::New(U));
-//			JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "V")), TNodeJsFltVV::New(V));
-//			JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "s")), TNodeJsFltV::New(s));
-//			Args.GetReturnValue().Set(JsObj);
-//		}
-//		else {
-//			Args.GetReturnValue().Set(v8::Undefined(Isolate));
-//		}
-//	}
-//	else {
-//		EFailR("SVD expects a matrix and the parameter k");
-//		Args.GetReturnValue().Set(v8::Undefined(Isolate));
-//	}
-//}
 
 void TNodeJsLinAlg::qr(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();

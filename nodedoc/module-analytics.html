@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.2.0</a>
       </div>
     </div>
   </nav>
@@ -34,7 +34,10 @@
             Example
         </h2>
               <div>
-                <pre class="prettyprint"><code>// import module, load dataset, create model, evaluate model</code></pre>
+                <pre class="prettyprint"><code>// import modules
+var qm = require(&#x27;qminer&#x27;);
+var analytics = qm.analytics;
+// load dataset, create model, evaluate model</code></pre>
               </div>
             </section>
             <dl class="dl-compact">
@@ -46,54 +49,60 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.KMeans.html">KMeans()</a></dt>
+                    <dt><a href="module-analytics.KMeans.html">KMeans([arg])</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.LogReg.html">LogReg([opts])</a></dt>
+                    <dt><a href="module-analytics.LogReg.html">LogReg([arg])</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.MDS.html">MDS([params])</a></dt>
+                    <dt><a href="module-analytics.MDS.html">MDS([arg])</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.NearestNeighborAD.html">NearestNeighborAD([detectorParam])</a></dt>
+                    <dt><a href="module-analytics.NearestNeighborAD.html">NearestNeighborAD([arg])</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.NNet.html">NNet([params])</a></dt>
+                    <dt><a href="module-analytics.NNet.html">NNet([arg])</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.OneVsAll.html">OneVsAll([arg])</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.OneVsAll.html">OneVsAll([oneVsAllParam])</a></dt>
+                    <dt><a href="module-analytics.PCA.html">PCA([arg])</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.PCA.html">PCA([params])</a></dt>
+                    <dt><a href="module-analytics.PropHazards.html">PropHazards([arg])</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.PropHazards.html">PropHazards()</a></dt>
+                    <dt><a href="module-analytics.RecLinReg.html">RecLinReg(arg)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.RecLinReg.html">RecLinReg(param)</a></dt>
+                    <dt><a href="module-analytics.RecommenderSys.html">RecommenderSys([arg])</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-analytics.RidgeReg.html">RidgeReg([arg])</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-analytics.Sigmoid.html">Sigmoid([arg])</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.Sigmoid.html">Sigmoid([arg])</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="module-analytics.SVC.html">SVC([arg])</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-analytics.SVR.html">SVR([arg])</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.Tokenizer.html">Tokenizer(param)</a></dt>
+                    <dt><a href="module-analytics.ThresholdModel.html">ThresholdModel([arg])</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.Tokenizer.html">Tokenizer([arg])</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -122,6 +131,22 @@
               </div>
             </div>
             <div class="summary-callout">
+              <h2 class="summary-callout-heading">Method</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.html#nmf">nmf(mat, k[, json])</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                </div>
+                <div class="summary-column">
+                </div>
+              </div>
+            </div>
+            <div class="summary-callout">
               <h2 class="summary-callout-heading">Abstract types</h2>
               <div class="summary-content">
                 <div class="summary-column">
@@ -132,7 +157,10 @@
                     <dt><a href="module-analytics.html#~hazardModelParam">hazardModelParam</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.html#~KMeansExplanation">KMeansExplanation</a></dt>
+                    <dt><a href="module-analytics.html#~KMeansExplain">KMeansExplain</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.html#~KMeansParam">KMeansParam</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-analytics.html#~logisticRegParam">logisticRegParam</a></dt>
@@ -141,48 +169,39 @@
                     <dt><a href="module-analytics.html#~MDSParam">MDSParam</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.html#~NearestNeighborADExplain">NearestNeighborADExplain</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.html#~NearestNeighborADExplain">NearestNeighborADExplain</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-analytics.html#~NearestNeighborADFeatureContribution">NearestNeighborADFeatureContribution</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.html#~nnetParams">nnetParams</a></dt>
+                    <dt><a href="module-analytics.html#~nnetParam">nnetParam</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-analytics.html#~oneVsAllParam">oneVsAllParam</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.html#~pcaParams">pcaParams</a></dt>
+                    <dt><a href="module-analytics.html#~PCAParam">PCAParam</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.html#~recLinearRegParam">recLinearRegParam</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="module-analytics.html#~recLinRegModel">recLinRegModel</a></dt>
+                    <dt><a href="module-analytics.html#~recLinRegParam">recLinRegParam</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.html#~ridgeRegModel">ridgeRegModel</a></dt>
+                    <dt><a href="module-analytics.html#~RecSysParam">RecSysParam</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-analytics.html#~ridgeRegParam">ridgeRegParam</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.html#~svcParam">svcParam</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="module-analytics.html#~svmModel">svmModel</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="module-analytics.html#~svrParam">svrParam</a></dt>
+                    <dt><a href="module-analytics.html#~SVMParam">SVMParam</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-analytics.html#~tokenizerParam">tokenizerParam</a></dt>
@@ -205,10 +224,12 @@
               <h3><a href="module-analytics.PCA.html">PCA</a></h3>
               <h3><a href="module-analytics.PropHazards.html">PropHazards</a></h3>
               <h3><a href="module-analytics.RecLinReg.html">RecLinReg</a></h3>
+              <h3><a href="module-analytics.RecommenderSys.html">RecommenderSys</a></h3>
               <h3><a href="module-analytics.RidgeReg.html">RidgeReg</a></h3>
               <h3><a href="module-analytics.Sigmoid.html">Sigmoid</a></h3>
               <h3><a href="module-analytics.SVC.html">SVC</a></h3>
               <h3><a href="module-analytics.SVR.html">SVR</a></h3>
+              <h3><a href="module-analytics.ThresholdModel.html">ThresholdModel</a></h3>
               <h3><a href="module-analytics.Tokenizer.html">Tokenizer</a></h3>
             </section>
             <h2>Namespaces</h2>
@@ -216,11 +237,171 @@
               <h3><a href="module-analytics-metrics.html">metrics</a></h3>
               <h3><a href="module-analytics-preprocessing.html">preprocessing</a></h3>
             </section>
+            <h2>Method</h2>
+            <section>
+              <h3 id="nmf"><span class="symbol-name">nmf</span><span class="signature"><span class="signature-params">(mat, k[, json])</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
+              <p>Calculates the non-negative matrix factorization, see: <a href="https://en.wikipedia.org/wiki/Non-negative_matrix_factorization">https://en.wikipedia.org/wiki/Non-negative_matrix_factorization</a>.</p>
+              <section>
+                <h4>
+            Examples
+        </h4>
+                <div>
+                  <p>Asynchronous function</p>
+                  <pre class="prettyprint"><code>// import modules
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
+// create a matrix
+var mat = new la.Matrix({ rows: 10, cols: 5, random: true });
+// compute the non-negative matrix factorization
+analytics.nmfAsync(mat, 3, { iter: 100, tol: 1e-4 }, function (err, result) {
+   if (err) { console.log(err); }
+   // calculation successful
+   var U = result.U;
+   var V = result.V;
+});</code></pre>
+                </div>
+                <div>
+                  <p>Synchronous function</p>
+                  <pre class="prettyprint"><code>// import modules
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
+// create a matrix
+var mat = new la.Matrix({ rows: 10, cols: 5, random: true });
+// compute the non-negative matrix factorization
+var result = analytics.nmf(mat, 3, { iter: 100, tol: 1e-4 });
+var U = result.U;
+var V = result.V;</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>mat</p>
+                      </td>
+                      <td>
+                        <p>(<a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The non-negative matrix.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>k</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The reduced rank, e.g. number of columns in matrix U and number of rows in matrix V. Must be between 0 and <code>min(mat.rows, mat.cols)</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>json</p>
+                      </td>
+                      <td>
+                        <p>Object</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Algorithm options.</p>
+                        <p>Values in <code>json</code> have the following properties:</p>
+                        <table class="jsdoc-details-table">
+                          <thead>
+                            <tr>
+                              <th>Name</th>
+                              <th>Type</th>
+                              <th>Optional</th>
+                              <th>Description</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td>
+                                <p>iter</p>
+                              </td>
+                              <td>
+                                <p>number</p>
+                              </td>
+                              <td>
+                                <p>Yes</p>
+                              </td>
+                              <td>
+                                <p>The number of iterations used for the algorithm.</p>
+                                <p>Defaults to <code>100</code>.</p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <p>tol</p>
+                              </td>
+                              <td>
+                                <p>number</p>
+                              </td>
+                              <td>
+                                <p>Yes</p>
+                              </td>
+                              <td>
+                                <p>The tolerance.</p>
+                                <p>Defaults to <code>1e-3</code>.</p>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <p>verbose</p>
+                              </td>
+                              <td>
+                                <p>boolean</p>
+                              </td>
+                              <td>
+                                <p>Yes</p>
+                              </td>
+                              <td>
+                                <p>If false, the console output is supressed.</p>
+                                <p>Defaults to <code>false</code>.</p>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Object</code>&nbsp;The json object <code>nmfRes</code> containing the non-negative matrices U and V:
+                    <br> <code>nmfRes.U</code>- The <a href="module-la.Matrix.html">module:la.Matrix</a> representation of the matrix U,
+                    <br> <code>nmfRes.V</code>- The <a href="module-la.Matrix.html">module:la.Matrix</a> representation of the matrix V.</p>
+                </dd>
+              </dl>
+            </section>
             <h2>Abstract types</h2>
             <section>
               <h3 id="~detectorParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">detectorParam</span><small class="property-type">
             &nbsp;Object</small></h3>
-              <p>A Json object used for the creation of the <a href="module-analytics.NearestNeighborAD.html">module:analytics.NearestNeighborAD</a>.</p>
+              <p>An object used for the construction of <a href="module-analytics.NearestNeighborAD.html">module:analytics.NearestNeighborAD</a>.</p>
               <section>
                 <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
@@ -270,7 +451,7 @@
               </dl>
               <h3 id="~hazardModelParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">hazardModelParam</span><small class="property-type">
             &nbsp;Object</small></h3>
-              <p>The constructor parameters for the Proportional Hazards Model.</p>
+              <p>An object used for the construction of <a href="module-analytics.PropHazards.html">module:analytics.PropHazards</a>.</p>
               <section>
                 <h4>Property</h4>
                 <table class="jsdoc-details-table">
@@ -303,8 +484,9 @@
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~KMeansExplanation"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">KMeansExplanation</span><small class="property-type">
+              <h3 id="~KMeansExplain"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">KMeansExplain</span><small class="property-type">
             &nbsp;Object</small></h3>
+              <p>The examplanation returned by <a href="module-analytics.KMeans.html#explain">module:analytics.KMeans#explain</a>.</p>
               <section>
                 <h4>Properties</h4>
                 <table class="jsdoc-details-table">
@@ -328,7 +510,7 @@
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>The ID of the nearest medoids</p>
+                        <p>The ID of the nearest medoids.</p>
                       </td>
                     </tr>
                     <tr>
@@ -342,7 +524,7 @@
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>The IDs of features, sorted by contribution</p>
+                        <p>The IDs of features, sorted by contribution.</p>
                       </td>
                     </tr>
                     <tr>
@@ -356,7 +538,172 @@
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Weights of each feature contribution (sum to 1.0)</p>
+                        <p>Weights of each feature contribution (sum to 1.0).</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~KMeansParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">KMeansParam</span><small class="property-type">
+            &nbsp;Object</small></h3>
+              <p>An object used for the construction of <a href="module-analytics.KMeans.html">module:analytics.KMeans</a>.</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>iter</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The maximum number of iterations.</p>
+                        <p>Defaults to <code>10000</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>k</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The number of centroids.</p>
+                        <p>Defaults to <code>2</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>allowEmpty</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Whether to allow empty clusters to be generated.</p>
+                        <p>Defaults to <code>true</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>centroidType</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The type of centroids. Possible options are <code>'Dense'</code> and <code>'Sparse'</code>.</p>
+                        <p>Defaults to <code>"Dense"</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>distanceType</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The distance type used at the calculations. Possible options are <code>'Euclid'</code> and <code>'Cos'</code>.</p>
+                        <p>Defaults to <code>"Euclid"</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>verbose</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>If <code>false</code>, the console output is supressed.</p>
+                        <p>Defaults to <code>false</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>fitIdx</p>
+                      </td>
+                      <td>
+                        <p>Array of number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The index array used for the construction of the initial centroids.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>fitStart</p>
+                      </td>
+                      <td>
+                        <p>Object</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The KMeans model returned by module:analytics.KMeans.prototype.getModel used for centroid initialization.</p>
+                        <p>Values in <code>fitStart</code> have the following properties:</p>
+                        <table class="jsdoc-details-table">
+                          <thead>
+                            <tr>
+                              <th>Name</th>
+                              <th>Type</th>
+                              <th>Optional</th>
+                              <th>Description</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td>
+                                <p>C</p>
+                              </td>
+                              <td>
+                                <p>(<a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</p>
+                              </td>
+                              <td>
+                                <p>&nbsp;</p>
+                              </td>
+                              <td>
+                                <p>The centroid matrix.</p>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
                       </td>
                     </tr>
                   </tbody>
@@ -366,7 +713,7 @@
               </dl>
               <h3 id="~logisticRegParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">logisticRegParam</span><small class="property-type">
             &nbsp;Object</small></h3>
-              <p>The Json constructor parameters for <a href="module-analytics.LogReg.html">module:analytics.LogReg</a>.</p>
+              <p>An object used for the construction of <a href="module-analytics.LogReg.html">module:analytics.LogReg</a>.</p>
               <section>
                 <h4>Properties</h4>
                 <table class="jsdoc-details-table">
@@ -405,7 +752,7 @@
                         <p>Yes</p>
                       </td>
                       <td>
-                        <p>Indicates wether to automatically include the intercept.</p>
+                        <p>Indicates whether to automatically include the intercept.</p>
                         <p>Defaults to <code>false</code>.</p>
                       </td>
                     </tr>
@@ -416,6 +763,7 @@
               </dl>
               <h3 id="~MDSParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">MDSParam</span><small class="property-type">
             &nbsp;Object</small></h3>
+              <p>An object used for the construction of <a href="module-analytics.MDS.html">module:analytics.MDS</a>.</p>
               <section>
                 <h4>Properties</h4>
                 <table class="jsdoc-details-table">
@@ -439,7 +787,7 @@
                         <p>Yes</p>
                       </td>
                       <td>
-                        <p>The maximum time period to compute MDS of a matrix.</p>
+                        <p>The maximum time period to compute Multidimensional Scaling of a matrix.</p>
                         <p>Defaults to <code>500</code>.</p>
                       </td>
                     </tr>
@@ -495,9 +843,9 @@
               </dl>
               <h3 id="~NearestNeighborADExplain"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">NearestNeighborADExplain</span><small class="property-type">
             &nbsp;Object</small></h3>
-              <p>A Json object used for interpreting the predictions of <a href="module-analytics.NearestNeighborAD.html">module:analytics.NearestNeighborAD</a>.</p>
+              <p>An object used for interpreting the predictions of <a href="module-analytics.NearestNeighborAD.html#explain">module:analytics.NearestNeighborAD#explain</a>.</p>
               <section>
-                <h4>Parameters</h4>
+                <h4>Properties</h4>
                 <table class="jsdoc-details-table">
                   <thead>
                     <tr>
@@ -519,7 +867,7 @@
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>The ID of the nearest neighbor</p>
+                        <p>The ID of the nearest neighbor.</p>
                       </td>
                     </tr>
                     <tr>
@@ -533,7 +881,7 @@
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>The distance to the nearest neighbor</p>
+                        <p>The distance to the nearest neighbor.</p>
                       </td>
                     </tr>
                     <tr>
@@ -547,7 +895,7 @@
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>An array with feature contributions</p>
+                        <p>An array with feature contributions.</p>
                       </td>
                     </tr>
                     <tr>
@@ -561,7 +909,7 @@
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>The ID of the oldest record in the internal buffer (the record that was added first)</p>
+                        <p>The ID of the oldest record in the internal buffer (the record that was added first).</p>
                       </td>
                     </tr>
                     <tr>
@@ -575,7 +923,7 @@
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>The ID of the newest record in the internal buffer (the record that was added last)</p>
+                        <p>The ID of the newest record in the internal buffer (the record that was added last).</p>
                       </td>
                     </tr>
                   </tbody>
@@ -585,9 +933,9 @@
               </dl>
               <h3 id="~NearestNeighborADFeatureContribution"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">NearestNeighborADFeatureContribution</span><small class="property-type">
             &nbsp;Object</small></h3>
-              <p>A JSON object explaining the prediction of <a href="module-analytics.NearestNeighborAD.html">module:analytics.NearestNeighborAD</a> in terms of a single feature.</p>
+              <p>An object explaining the prediction of <a href="module-analytics.NearestNeighborAD.html#explain">module:analytics.NearestNeighborAD#explain</a> in terms of a single feature. Contained in the object <a href="module-analytics.html#~NearestNeighborADExplain">module:analytics~NearestNeighborADExplain</a>.</p>
               <section>
-                <h4>Parameters</h4>
+                <h4>Properties</h4>
                 <table class="jsdoc-details-table">
                   <thead>
                     <tr>
@@ -609,7 +957,7 @@
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>The ID of the feature</p>
+                        <p>The ID of the feature.</p>
                       </td>
                     </tr>
                     <tr>
@@ -623,7 +971,7 @@
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>The value of the feature for the vector we are explaining</p>
+                        <p>The value of the feature for the vector we are explaining.</p>
                       </td>
                     </tr>
                     <tr>
@@ -637,7 +985,7 @@
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>The the value of the feature for the nearest neighbor</p>
+                        <p>The the value of the feature for the nearest neighbor.</p>
                       </td>
                     </tr>
                     <tr>
@@ -651,7 +999,7 @@
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>fraction of the total distance (v(i) - n(i))^2 / ||v - n||^2</p>
+                        <p>Fraction of the total distance <code>(v(i) - n(i))^2 / ||v - n||^2</code>.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -659,8 +1007,9 @@
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~nnetParams"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">nnetParams</span><small class="property-type">
+              <h3 id="~nnetParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">nnetParam</span><small class="property-type">
             &nbsp;Object</small></h3>
+              <p>An object used for the construction of <a href="module-analytics.NNet.html">module:analytics.NNet</a>.</p>
               <section>
                 <h4>Properties</h4>
                 <table class="jsdoc-details-table">
@@ -678,13 +1027,14 @@
                         <p>layout</p>
                       </td>
                       <td>
-                        <p><a href="module-la.IntVector.html">module:la.IntVector</a></p>
+                        <p>Array of number</p>
                       </td>
                       <td>
                         <p>Yes</p>
                       </td>
                       <td>
-                        <p>The integer vector with the corresponding values of the number of neutrons. Default is the integer vector [1, 2 ,1].</p>
+                        <p>The array representing the network schema.</p>
+                        <p>Defaults to <code>[1, 2, 1]</code>.</p>
                       </td>
                     </tr>
                     <tr>
@@ -728,7 +1078,7 @@
                         <p>Yes</p>
                       </td>
                       <td>
-                        <p>The function.</p>
+                        <p>Type of activation function used on hidden nevrons. Possible options are <code>'tanHyper'</code>, <code>'sigmoid'</code>, <code>'fastTanh'</code>, <code>'softPlus'</code>, <code>'fastSigmoid'</code> and <code>'linear'</code>.</p>
                         <p>Defaults to <code>'tanHyper'</code>.</p>
                       </td>
                     </tr>
@@ -743,7 +1093,7 @@
                         <p>Yes</p>
                       </td>
                       <td>
-                        <p>The function.</p>
+                        <p>Type of activation function used on output nevrons. Possible options are <code>'tanHyper'</code>, <code>'sigmoid'</code>, <code>'fastTanh'</code>, <code>'softPlus'</code>, <code>'fastSigmoid'</code> and <code>'linear'</code>.</p>
                         <p>Defaults to <code>'tanHyper'</code>.</p>
                       </td>
                     </tr>
@@ -754,9 +1104,9 @@
               </dl>
               <h3 id="~oneVsAllParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">oneVsAllParam</span><small class="property-type">
             &nbsp;Object</small></h3>
-              <p>The parameter given to the OneVsAll object. A Json object containing the parameter keys with values.</p>
+              <p>An object used for the construction of <a href="module-analytics.OneVsAll.html">module:analytics.OneVsAll</a>.</p>
               <section>
-                <h4>Parameters</h4>
+                <h4>Properties</h4>
                 <table class="jsdoc-details-table">
                   <thead>
                     <tr>
@@ -792,7 +1142,7 @@
                         <p>Yes</p>
                       </td>
                       <td>
-                        <p>Parameter for oneVsAllParam.model constructor.</p>
+                        <p>Parameter for <code>oneVsAllParam.model</code> constructor.</p>
                       </td>
                     </tr>
                     <tr>
@@ -829,8 +1179,9 @@
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~pcaParams"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">pcaParams</span><small class="property-type">
+              <h3 id="~PCAParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">PCAParam</span><small class="property-type">
             &nbsp;Object</small></h3>
+              <p>An object used for the construction of <a href="module-analytics.PCA.html">module:analytics.PCA</a>.</p>
               <section>
                 <h4>Properties</h4>
                 <table class="jsdoc-details-table">
@@ -878,9 +1229,9 @@
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~recLinearRegParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">recLinearRegParam</span><small class="property-type">
+              <h3 id="~recLinRegParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">recLinRegParam</span><small class="property-type">
             &nbsp;Object</small></h3>
-              <p>The constructor parameter for <a href="module-analytics.RecLinReg.html">module:analytics.RecLinReg</a>.</p>
+              <p>An object used for the construction of <a href="module-analytics.RecLinReg.html">module:analytics.RecLinReg</a>.</p>
               <section>
                 <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
@@ -942,10 +1293,11 @@
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~recLinRegModel"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">recLinRegModel</span><small class="property-type">
+              <h3 id="~RecSysParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">RecSysParam</span><small class="property-type">
             &nbsp;Object</small></h3>
+              <p>An object used for the construction of <a href="module-analytics.RecommenderSys.html">module:analytics.RecommenderSys</a>.</p>
               <section>
-                <h4>Property</h4>
+                <h4>Properties</h4>
                 <table class="jsdoc-details-table">
                   <thead>
                     <tr>
@@ -958,49 +1310,62 @@
                   <tbody>
                     <tr>
                       <td>
-                        <p>recLinRegModel.weights</p>
+                        <p>iter</p>
                       </td>
                       <td>
-                        <p><a href="module-la.Vector.html">module:la.Vector</a></p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>Recursive Linear Regression model vector.</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-              </dl>
-              <h3 id="~ridgeRegModel"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">ridgeRegModel</span><small class="property-type">
-            &nbsp;Object</small></h3>
-              <section>
-                <h4>Property</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>ridgeRegModel.weights</p>
-                      </td>
-                      <td>
-                        <p><a href="module-la.Vector.html">module:la.Vector</a></p>
+                        <p>number</p>
                       </td>
                       <td>
                         <p>Yes</p>
                       </td>
                       <td>
-                        <p>The Ridge Regression model vector.</p>
+                        <p>The maximum number of iterations.</p>
+                        <p>Defaults to <code>10000</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>k</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The number of centroids.</p>
+                        <p>Defaults to <code>2</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>tol</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The tolerance.</p>
+                        <p>Defaults to <code>1e-3</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>verbose</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>If false, the console output is supressed.</p>
+                        <p>Defaults to <code>false</code>.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -1010,9 +1375,9 @@
               </dl>
               <h3 id="~ridgeRegParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">ridgeRegParam</span><small class="property-type">
             &nbsp;Object</small></h3>
-              <p>The Ridge Regression constructor parameter.</p>
+              <p>An object used for the construction of <a href="module-analytics.RidgeReg.html">module:analytics.RidgeReg</a>.</p>
               <section>
-                <h4>Parameter</h4>
+                <h4>Property</h4>
                 <table class="jsdoc-details-table">
                   <thead>
                     <tr>
@@ -1035,7 +1400,7 @@
                       </td>
                       <td>
                         <p>The gamma value.</p>
-                        <p>Defaults to <code>1.0</code>.</p>
+                        <p>Defaults to <code>0.0</code>.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -1043,9 +1408,9 @@
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~svcParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">svcParam</span><small class="property-type">
+              <h3 id="~SVMParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">SVMParam</span><small class="property-type">
             &nbsp;Object</small></h3>
-              <p>SVC constructor parameters</p>
+              <p>SVM constructor parameters. Used for the construction of <a href="module-analytics.SVC.html">module:analytics.SVC</a> and <a href="module-analytics.SVR.html">module:analytics.SVR</a>.</p>
               <section>
                 <h4>Properties</h4>
                 <table class="jsdoc-details-table">
@@ -1060,7 +1425,22 @@
                   <tbody>
                     <tr>
                       <td>
-                        <p>svcParam.c</p>
+                        <p>algorithm</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The algorithm procedure. Possible options are <code>'SGD'</code>, <code>'PR_LOQO'</code> and <code>'LIBSVM'</code>.</p>
+                        <p>Defaults to <code>'SGD'</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>c</p>
                       </td>
                       <td>
                         <p>number</p>
@@ -1075,7 +1455,7 @@
                     </tr>
                     <tr>
                       <td>
-                        <p>svcParam.j</p>
+                        <p>j</p>
                       </td>
                       <td>
                         <p>number</p>
@@ -1091,7 +1471,22 @@
                     </tr>
                     <tr>
                       <td>
-                        <p>svcParam.batchSize</p>
+                        <p>eps</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Epsilon insensitive loss parameter. Larger values result in fewer support vectors (smaller model complexity)</p>
+                        <p>Defaults to <code>1e-1</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>batchSize</p>
                       </td>
                       <td>
                         <p>number</p>
@@ -1106,7 +1501,7 @@
                     </tr>
                     <tr>
                       <td>
-                        <p>svcParam.maxIterations</p>
+                        <p>maxIterations</p>
                       </td>
                       <td>
                         <p>number</p>
@@ -1121,7 +1516,7 @@
                     </tr>
                     <tr>
                       <td>
-                        <p>svcParam.maxTime</p>
+                        <p>maxTime</p>
                       </td>
                       <td>
                         <p>number</p>
@@ -1136,7 +1531,7 @@
                     </tr>
                     <tr>
                       <td>
-                        <p>svcParam.minDiff</p>
+                        <p>minDiff</p>
                       </td>
                       <td>
                         <p>number</p>
@@ -1151,166 +1546,7 @@
                     </tr>
                     <tr>
                       <td>
-                        <p>svcParam.verbose</p>
-                      </td>
-                      <td>
-                        <p>boolean</p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>Toggle verbose output in the console.</p>
-                        <p>Defaults to <code>false</code>.</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-              </dl>
-              <h3 id="~svmModel"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">svmModel</span><small class="property-type">
-            &nbsp;Object</small></h3>
-              <p>SVM model.</p>
-              <section>
-                <h4>Property</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>svmModel.weigths</p>
-                      </td>
-                      <td>
-                        <p><a href="module-la.Vector.html">module:la.Vector</a></p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>SVM normal vector.</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-              </dl>
-              <h3 id="~svrParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">svrParam</span><small class="property-type">
-            &nbsp;Object</small></h3>
-              <p>SVR constructor parameters</p>
-              <section>
-                <h4>Properties</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>svrParam.c</p>
-                      </td>
-                      <td>
-                        <p>number</p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>Cost parameter. Increasing the parameter forces the model to fit the training data more accurately (setting it too large may lead to overfitting).</p>
-                        <p>Defaults to <code>1.0</code>.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>svrParam.eps</p>
-                      </td>
-                      <td>
-                        <p>number</p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>Epsilon insensitive loss parameter. Larger values result in fewer support vectors (smaller model complexity).</p>
-                        <p>Defaults to <code>1e-1</code>.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>svrParam.batchSize</p>
-                      </td>
-                      <td>
-                        <p>number</p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>Number of examples used in the subgradient estimation. Higher number of samples slows down the algorithm, but makes the local steps more accurate.</p>
-                        <p>Defaults to <code>1000</code>.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>svrParam.maxIterations</p>
-                      </td>
-                      <td>
-                        <p>number</p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>Maximum number of iterations.</p>
-                        <p>Defaults to <code>10000</code>.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>svrParam.maxTime</p>
-                      </td>
-                      <td>
-                        <p>number</p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>Maximum runtime in seconds.</p>
-                        <p>Defaults to <code>1.0</code>.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>svrParam.minDiff</p>
-                      </td>
-                      <td>
-                        <p>number</p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>Stopping criterion tolerance.</p>
-                        <p>Defaults to <code>1e-6</code>.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>svrParam.verbose</p>
+                        <p>verbose</p>
                       </td>
                       <td>
                         <p>boolean</p>
@@ -1330,6 +1566,7 @@
               </dl>
               <h3 id="~tokenizerParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">tokenizerParam</span><small class="property-type">
             &nbsp;Object</small></h3>
+              <p>An object used for the construction of <a href="module-analytics.Tokenizer.html">module:analytics.Tokenizer</a>.</p>
               <section>
                 <h4>Property</h4>
                 <table class="jsdoc-details-table">
@@ -1350,13 +1587,14 @@
                         <p>string</p>
                       </td>
                       <td>
-                        <p>&nbsp;</p>
+                        <p>Yes</p>
                       </td>
                       <td>
                         <p>The type of the tokenizer. The different types are:
-                          <br>&quot;simple&quot; -
-                          <br>&quot;html&quot; -
-                          <br>&quot;unicode&quot; -</p>
+                          <br>1. 'simple' - Creates break on white spaces.
+                          <br>2. 'html' - Creates break on white spaces and ignores html tags.
+                          <br>3. 'unicode' - Creates break on white spaces and normalizes unicode letters, e.g. o?=o?= changes to cso?=z.</p>
+                        <p>Defaults to <code>'unicode'</code>.</p>
                       </td>
                     </tr>
                   </tbody>

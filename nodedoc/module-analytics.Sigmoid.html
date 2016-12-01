@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.2.0</a>
       </div>
     </div>
   </nav>
@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">Sigmoid</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-521">analyticsdoc.<wbr>js:521</a></p>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-575">analyticsdoc.<wbr>js:575</a></p>
             <dl class="dl-compact">
             </dl>
           </header>
@@ -71,7 +71,7 @@
           </section>
           <section>
             <h2 id="Sigmoid">new&nbsp;<span class="symbol-name">Sigmoid</span><span class="signature"><span class="signature-params">([arg])</span></span></h2>
-            <p>Sigmoid function (y = 1/[1 + exp[-A*x + B]]) fitted on decision function to mimic.</p>
+            <p>Sigmoid function (<code>y = 1/[1 + exp[-A*x + B]]</code>) fitted on decision function to mimic.</p>
             <section>
               <h3>
             Example
@@ -110,13 +110,13 @@ var pred2 = sigmoid.predict(-1.2);</code></pre>
                       <p>arg</p>
                     </td>
                     <td>
-                      <p>(null or <a href="module-fs.FIn.html">module:fs.FIn</a>)</p>
+                      <p><a href="module-fs.FIn.html">module:fs.FIn</a></p>
                     </td>
                     <td>
                       <p>Yes</p>
                     </td>
                     <td>
-                      <p>Loads a model from input stream, or creates a new model.</p>
+                      <p>Construction arguments.</p>
                     </td>
                   </tr>
                 </tbody>
@@ -173,7 +173,7 @@ var prediction = s.decisionFunction(0.5);</code></pre>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Prediction score (or vector of them).</p>
+                        <p>Prediction score.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -182,11 +182,13 @@ var prediction = s.decisionFunction(0.5);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>(number or <a href="module-la.Vector.html">module:la.Vector</a>)</code>&nbsp;Normalized prediction score (or vector of them).</p>
+                  <p><code>(number or <a href="module-la.Vector.html">module:la.Vector</a>)</code>&nbsp;
+                    <br> 1. If <code>x</code> is a number, returns a normalized prediction score,
+                    <br> 2. if <code>x</code> is a <a href="module-la.Vector.html">module:la.Vector</a>, returns a vector of normalized prediction scores.</p>
                 </dd>
               </dl>
               <h3 id="fit"><span class="symbol-name">fit</span><span class="signature"><span class="signature-params">(x, y)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.Sigmoid.html">module:analytics.Sigmoid</a></span></span></h3>
-              <p>Fits a column matrix of feature vectors X onto the response variable y.</p>
+              <p>Fits a column matrix of feature vectors <code>X</code> onto the response variable <code>y</code>.</p>
               <section>
                 <h4>
             Example
@@ -202,7 +204,6 @@ var X = new la.Vector([-3, -2, -1, 1, 2, 3]);
 var y = new la.Vector([-1, -1, -1, 1, 1, 1]);
 // fit the model
 // changes the internal A and B values of the model 
-// (these values can be obtained with the getModel method)
 s.fit(X, y);</code></pre>
                 </div>
               </section>
@@ -229,7 +230,7 @@ s.fit(X, y);</code></pre>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Predicted values (e.g., using analytics.SVR)</p>
+                        <p>Predicted values (e.g. using <a href="module-analytics.SVR.html">module:analytics.SVR</a>).</p>
                       </td>
                     </tr>
                     <tr>
@@ -252,7 +253,7 @@ s.fit(X, y);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.Sigmoid.html">module:analytics.Sigmoid</a></code>&nbsp;Self.</p>
+                  <p><code><a href="module-analytics.Sigmoid.html">module:analytics.Sigmoid</a></code>&nbsp;Self. The model has been created.</p>
                 </dd>
               </dl>
               <h3 id="getModel"><span class="symbol-name">getModel</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
@@ -274,11 +275,13 @@ var model = s.getModel();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Object</code>&nbsp;The Json object containing the A and B values of the Sigmoid.</p>
+                  <p><code>Object</code>&nbsp;The object <code>sigModel</code> containing the properties:
+                    <br> <code>sigModel.A</code> - First value of the Sigmoid model,
+                    <br> <code>sigModel.B</code> - Second value of the Sigmoid model.</p>
                 </dd>
               </dl>
               <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
-              <p>Get the parameters. It doesn't do anything, it's only for consistency for constructing pipeline.</p>
+              <p>Get the parameters. <i>It doesn't do anything, it's only for consistency for constructing pipeline.</i></p>
               <section>
                 <h4>
             Example
@@ -289,14 +292,14 @@ var analytics = require(&#x27;qminer&#x27;).analytics;
 // create the Sigmoid model
 var s = new analytics.Sigmoid();
 // get the parameters
-// returns an empty Json object
+// returns an empty object
 var param = s.getParams();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Object</code>&nbsp;The Json object containing parameters.</p>
+                  <p><code>Object</code>&nbsp;An empty object.</p>
                 </dd>
               </dl>
               <h3 id="predict"><span class="symbol-name">predict</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> (number or <a href="module-la.Vector.html">module:la.Vector</a>)</span></span></h3>
@@ -344,7 +347,7 @@ var prediction = s.predict(0.5);</code></pre>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Prediction score (or vector of them).</p>
+                        <p>Prediction score.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -353,7 +356,9 @@ var prediction = s.predict(0.5);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>(number or <a href="module-la.Vector.html">module:la.Vector</a>)</code>&nbsp;Normalized prediction score (or vector of them).</p>
+                  <p><code>(number or <a href="module-la.Vector.html">module:la.Vector</a>)</code>&nbsp;
+                    <br> 1. If <code>x</code> is a number, returns a normalized prediction score,
+                    <br> 2. if <code>x</code> is a <a href="module-la.Vector.html">module:la.Vector</a>, returns a vector of normalized prediction scores.</p>
                 </dd>
               </dl>
               <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
@@ -415,11 +420,11 @@ var s2 = new analytics.Sigmoid(fin);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;The output stream fout.</p>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;The output stream <code>fout</code>.</p>
                 </dd>
               </dl>
               <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(arg)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.Sigmoid.html">module:analytics.Sigmoid</a></span></span></h3>
-              <p>Sets the parameters. It doesn't do anything, it's only for consistency for constructing pipeline.</p>
+              <p>Sets the parameters. <i>It doesn't do anything, it's only for consistency for constructing pipeline.</i></p>
               <section>
                 <h4>
             Example
@@ -466,7 +471,7 @@ s.setParams({});</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.Sigmoid.html">module:analytics.Sigmoid</a></code>&nbsp;Self.</p>
+                  <p><code><a href="module-analytics.Sigmoid.html">module:analytics.Sigmoid</a></code>&nbsp;Self. Nothing changes.</p>
                 </dd>
               </dl>
             </section>

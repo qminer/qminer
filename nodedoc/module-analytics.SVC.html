@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.2.0</a>
       </div>
     </div>
   </nav>
@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">SVC</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-49">analyticsdoc.<wbr>js:49</a></p>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-93">analyticsdoc.<wbr>js:93</a></p>
             <div class="symbol-classdesc">
               <p>Support Vector Machine Classifier. Implements a soft margin linear support vector classifier using the PEGASOS algorithm, see: <a href="http://ttic.uchicago.edu/~nati/Publications/PegasosMPB.pdf">Pegasos: Primal Estimated sub-GrAdient SOlver for SVM</a>.</p>
             </div>
@@ -132,13 +132,15 @@ var prediction = SVC.predict(test);</code></pre>
                       <p>arg</p>
                     </td>
                     <td>
-                      <p>(<a href="module-fs.FIn.html">module:fs.FIn</a> or <a href="module-analytics.html#~svcParam">module:analytics~svcParam</a>)</p>
+                      <p>(<a href="module-analytics.html#~SVMParam">module:analytics~SVMParam</a> or <a href="module-fs.FIn.html">module:fs.FIn</a>)</p>
                     </td>
                     <td>
                       <p>Yes</p>
                     </td>
                     <td>
-                      <p>File input stream (loads the model from disk) or constructor parameters svcParam.</p>
+                      <p>Construction arguments. There are two ways of constructing:
+                        <br>1. Using the <a href="module-analytics.html#~SVMParam">module:analytics~SVMParam</a> object,
+                        <br>2. using the file input stream <a href="module-fs.FIn.html">module:fs.FIn</a>.</p>
                     </td>
                   </tr>
                 </tbody>
@@ -151,7 +153,7 @@ var prediction = SVC.predict(test);</code></pre>
             <h2>Property</h2>
             <section>
               <h3 id="weights"><span class="symbol-name">weights</span></h3>
-              <p>Gets the vector of coefficients of the linear model.</p>
+              <p>Gets the vector of coefficients of the linear model. Type <a href="module-la.Vector.html">module:la.Vector</a>.</p>
               <section>
                 <h4>
             Example
@@ -172,10 +174,6 @@ var weights = SVC.weights; // returns the coefficients of the normal vector of t
                 </div>
               </section>
               <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;weights - Vector of coefficients of the linear model.</p>
-                </dd>
               </dl>
             </section>
             <h2>Methods</h2>
@@ -236,8 +234,8 @@ var distance = SVC.decisionFunction(vec2); // returns something close to 5</code
                 <dt>Returns</dt>
                 <dd>
                   <p><code>(number or <a href="module-la.Vector.html">module:la.Vector</a>)</code>&nbsp;Distance:
-                    <br>1. Real number, if input is <a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.SparseVector.html">module:la.SparseVector</a>.
-                    <br>2. <a href="module-la.Vector.html">module:la.Vector</a>, if input is <a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>.
+                    <br>1. Real number, if <code>X</code> is <a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.SparseVector.html">module:la.SparseVector</a>.
+                    <br>2. <a href="module-la.Vector.html">module:la.Vector</a>, if <code>X</code> is <a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>.
                     <br>Sign of the number corresponds to the class and the magnitude corresponds to the distance from the margin (certainty).</p>
                 </dd>
               </dl>
@@ -306,10 +304,10 @@ SVC.fit(matrix, vec); // creates a model, where the hyperplane has the normal se
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.SVC.html">module:analytics.SVC</a></code>&nbsp;Self.</p>
+                  <p><code><a href="module-analytics.SVC.html">module:analytics.SVC</a></code>&nbsp;Self. The model has been created.</p>
                 </dd>
               </dl>
-              <h3 id="getModel"><span class="symbol-name">getModel</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.html#~svmModel">module:analytics~svmModel</a></span></span></h3>
+              <h3 id="getModel"><span class="symbol-name">getModel</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
               <p>Get the model.</p>
               <section>
                 <h4>
@@ -321,17 +319,18 @@ var analytics = require(&#x27;qminer&#x27;).analytics;
 // create a SVC model
 var SVC = new analytics.SVC();
 // get the properties of the model
-var model = SVC.getModel(); // returns { weight: new require(&#x27;qminer&#x27;).la.Vector(); }</code></pre>
+var model = SVC.getModel();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.html#~svmModel">module:analytics~svmModel</a></code>&nbsp;The current SVM model.</p>
+                  <p><code>Object</code>&nbsp;The <code>svmModel</code> object containing the property:
+                    <br> 1. <code>svmModel.weights</code> - The weights of the model. Type <a href="module-la.Vector.html">module:la.Vector</a>.</p>
                 </dd>
               </dl>
-              <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.html#~svcParam">module:analytics~svcParam</a></span></span></h3>
-              <p>Returns the SVC parameters.</p>
+              <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.html#~SVMParam">module:analytics~SVMParam</a></span></span></h3>
+              <p>Gets the SVC parameters.</p>
               <section>
                 <h4>
             Example
@@ -342,14 +341,14 @@ var analytics = require(&#x27;qminer&#x27;).analytics;
 // create a new SVC model with json
 var SVC = new analytics.SVC({ c: 5, j: 10, batchSize: 2000, maxIterations: 12000, maxTime: 2, minDiff: 1e-10, verbose: true });
 // get the parameters of the SVC model
-// returns { algorithm: &#x27;SGD&#x27; c: 5, j: 10, batchSize: 2000, maxIterations: 12000, maxTime: 2, minDiff: 1e-10, verbose: true }
+// returns { algorithm: &#x27;SGD&#x27; c: 5, j: 10, eps: 0.1, batchSize: 2000, maxIterations: 12000, maxTime: 2, minDiff: 1e-10, verbose: true }
 var json = SVC.getParams(); </code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.html#~svcParam">module:analytics~svcParam</a></code>&nbsp;Parameters of the classifier model.</p>
+                  <p><code><a href="module-analytics.html#~SVMParam">module:analytics~SVMParam</a></code>&nbsp;Parameters of the classifier model.</p>
                 </dd>
               </dl>
               <h3 id="predict"><span class="symbol-name">predict</span><span class="signature"><span class="signature-params">(X)</span>&nbsp;&rarr; <span class="signature-returns"> (number or <a href="module-la.Vector.html">module:la.Vector</a>)</span></span></h3>
@@ -408,8 +407,8 @@ var prediction = SVC.predict(vec2); // returns 1</code></pre>
                 <dt>Returns</dt>
                 <dd>
                   <p><code>(number or <a href="module-la.Vector.html">module:la.Vector</a>)</code>&nbsp;Prediction:
-                    <br>1. Real number, if input is <a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.SparseVector.html">module:la.SparseVector</a>.
-                    <br>2. <a href="module-la.Vector.html">module:la.Vector</a>, if input is <a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>.
+                    <br>1. Real number, if <code>X</code> is <a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.SparseVector.html">module:la.SparseVector</a>.
+                    <br>2. <a href="module-la.Vector.html">module:la.Vector</a>, if <code>X</code> is <a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>.
                     <br>1 for positive class and -1 for negative.</p>
                 </dd>
               </dl>
@@ -427,7 +426,7 @@ var fs = require(&#x27;qminer&#x27;).fs;
 // create a new SVC object
 var SVC = new analytics.SVC();
 // create the matrix containing the input features and the input vector for each matrix column.
-var matrix = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);	
+var matrix = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);    
 var vec = new la.Vector([1, 0, -1, -2]);
 // fit the model
 SVC.fit(matrix, vec);
@@ -439,7 +438,7 @@ fout.close();
 // create input stream
 var fin = fs.openRead(&#x27;svc_example.bin&#x27;);
 // create a SVC object that loads the model and parameters from input stream
-var SVC2 = new analytics.SVC(fin);	</code></pre>
+var SVC2 = new analytics.SVC(fin);    </code></pre>
                 </div>
               </section>
               <section>
@@ -474,7 +473,7 @@ var SVC2 = new analytics.SVC(fin);	</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;The Output stream.</p>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;The output stream <code>fout</code>.</p>
                 </dd>
               </dl>
               <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(param)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.SVC.html">module:analytics.SVC</a></span></span></h3>
@@ -509,7 +508,7 @@ SVC.setParams({ j: 5, maxIterations: 12000, minDiff: 1e-10 }); // returns self</
                         <p>param</p>
                       </td>
                       <td>
-                        <p><a href="module-analytics.html#~svcParam">module:analytics~svcParam</a></p>
+                        <p><a href="module-analytics.html#~SVMParam">module:analytics~SVMParam</a></p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
@@ -524,7 +523,7 @@ SVC.setParams({ j: 5, maxIterations: 12000, minDiff: 1e-10 }); // returns self</
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.SVC.html">module:analytics.SVC</a></code>&nbsp;Self.</p>
+                  <p><code><a href="module-analytics.SVC.html">module:analytics.SVC</a></code>&nbsp;Self. Updated the training parameters.</p>
                 </dd>
               </dl>
             </section>

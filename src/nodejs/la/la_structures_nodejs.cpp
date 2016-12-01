@@ -57,8 +57,8 @@ void TNodeJsFltVV::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(Tpl, "colMaxIdx", _colMaxIdx);
     NODE_SET_PROTOTYPE_METHOD(Tpl, "getCol", _getCol);
     NODE_SET_PROTOTYPE_METHOD(Tpl, "setCol", _setCol);
-	NODE_SET_PROTOTYPE_METHOD(Tpl, "getSubmatrix", _getSubmatrix);
-	NODE_SET_PROTOTYPE_METHOD(Tpl, "getColSubmatrix", _getColSubmatrix);
+    NODE_SET_PROTOTYPE_METHOD(Tpl, "getSubmatrix", _getSubmatrix);
+    NODE_SET_PROTOTYPE_METHOD(Tpl, "getColSubmatrix", _getColSubmatrix);
     NODE_SET_PROTOTYPE_METHOD(Tpl, "getRow", _getRow);
     NODE_SET_PROTOTYPE_METHOD(Tpl, "setRow", _setRow);
     NODE_SET_PROTOTYPE_METHOD(Tpl, "diag", _diag);
@@ -118,7 +118,7 @@ TNodeJsFltVV* TNodeJsFltVV::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value
 					EAssert(Cols >= 0 && Rows >= 0);
 					Mat.Gen(Rows, Cols);
 					if (GenRandom) {
-						TLAMisc::FillRnd(Mat);
+						TLinAlgTransform::FillRnd(Mat);
 					}
 				}
 				return new TNodeJsFltVV(Mat);
@@ -136,7 +136,7 @@ v8::Local<v8::Object> TNodeJsFltVV::New(const TFltVV& FltVV) {
 }
 
 v8::Local<v8::Object> TNodeJsFltVV::New(const TFltV& FltV) {
-    TFltVV FltVV;	TLAMisc::Diag(FltV, FltVV);
+    TFltVV FltVV;	TLinAlgTransform::Diag(FltV, FltVV);
     return TNodeJsUtil::NewInstance(new TNodeJsFltVV(FltVV));
 }
 
@@ -226,7 +226,7 @@ void TNodeJsFltVV::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		}
 		else if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsSpVec::GetClassId())) {
 			TNodeJsSpVec* JsVec = ObjectWrap::Unwrap<TNodeJsSpVec>(Args[0]->ToObject());
-			EAssertR(JsMat->Mat.GetCols() > TLAMisc::GetMaxDimIdx(JsVec->Vec), "matrix * sparse_vector: dimensions mismatch");
+			EAssertR(JsMat->Mat.GetCols() > TLinAlgSearch::GetMaxDimIdx(JsVec->Vec), "matrix * sparse_vector: dimensions mismatch");
 			int Rows = JsMat->Mat.GetRows();
 			TFltVV Result(Rows, 1);
 			// Copy could be omitted if we implemented SparseColMat * SparseVec
@@ -243,7 +243,7 @@ void TNodeJsFltVV::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			int Rows = JsMat->Mat.GetRows();
 			int Cols = JsMat->Mat.GetCols();
 			if (JsMat2->Rows == -1) {
-				EAssertR(Cols > TLAMisc::GetMaxDimIdx(JsMat2->Mat), "matrix * sparse_col_matrix: dimensions mismatch");
+				EAssertR(Cols > TLinAlgSearch::GetMaxDimIdx(JsMat2->Mat), "matrix * sparse_col_matrix: dimensions mismatch");
 			}
 			TFltVV Result(Rows, JsMat2->Mat.Len());
 			TLinAlg::Multiply(JsMat->Mat, JsMat2->Mat, Result);
@@ -291,7 +291,7 @@ void TNodeJsFltVV::multiplyT(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		}
 		else if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsSpVec::GetClassId())) {
 			TNodeJsSpVec* JsVec = ObjectWrap::Unwrap<TNodeJsSpVec>(Args[0]->ToObject());
-			EAssertR(JsMat->Mat.GetRows() > TLAMisc::GetMaxDimIdx(JsVec->Vec), "matrix' * sparse_vector: dimensions mismatch");
+			EAssertR(JsMat->Mat.GetRows() > TLinAlgSearch::GetMaxDimIdx(JsVec->Vec), "matrix' * sparse_vector: dimensions mismatch");
 			TFltVV Result(JsMat->Mat.GetCols(), 1);
 			// Copy could be omitted if we implemented SparseColMat * SparseVec
 			TVec<TIntFltKdV> TempSpMat(1);
@@ -307,7 +307,7 @@ void TNodeJsFltVV::multiplyT(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			int Rows = JsMat->Mat.GetRows();
 			int Cols = JsMat->Mat.GetCols();
 			if (JsMat2->Rows == -1) {
-				EAssertR(Rows > TLAMisc::GetMaxDimIdx(JsMat2->Mat), "matrix' * sparse_col_matrix: dimensions mismatch");
+				EAssertR(Rows > TLinAlgSearch::GetMaxDimIdx(JsMat2->Mat), "matrix' * sparse_col_matrix: dimensions mismatch");
 			}
 			TFltVV Result(Cols, JsMat2->Mat.Len());
 			TLinAlg::MultiplyT(JsMat->Mat, JsMat2->Mat, Result);
@@ -447,7 +447,7 @@ void TNodeJsFltVV::sparse(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
     TVec<TIntFltKdV> SpMat = TVec<TIntFltKdV>();
-    TLinAlg::Sparse(JsMat->Mat, SpMat);
+    TLinAlgTransform::Sparse(JsMat->Mat, SpMat);
 
     Args.GetReturnValue().Set(
 		TNodeJsUtil::NewInstance<TNodeJsSpMat>(new TNodeJsSpMat(SpMat, JsMat->Mat.GetRows())));
@@ -459,7 +459,7 @@ void TNodeJsFltVV::toString(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
     TStr Out = "";
-    TLAMisc::PrintTFltVVToStr(JsMat->Mat, Out);
+    TLinAlgIO::PrintTFltVVToStr(JsMat->Mat, Out);
 
     Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, Out.CStr()));
 }
@@ -477,7 +477,7 @@ void TNodeJsFltVV::rowMaxIdx(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     EAssertR(0 <= RowN && RowN < JsMat->Mat.GetRows(),
         "Index out of bounds.");
 
-    const int MxIdx = TLinAlg::GetRowMaxIdx(JsMat->Mat, RowN);
+    const int MxIdx = TLinAlgSearch::GetRowMaxIdx(JsMat->Mat, RowN);
 
     Args.GetReturnValue().Set(v8::Integer::New(Isolate, MxIdx));
 }
@@ -495,7 +495,7 @@ void TNodeJsFltVV::colMaxIdx(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     EAssertR(0 <= ColN && ColN < JsMat->Mat.GetCols(),
         TStr::Fmt("Index out of bounds: %d / %d.", ColN, JsMat->Mat.GetCols()));
 
-    const int MxIdx = TLinAlg::GetColMaxIdx(JsMat->Mat, ColN);
+    const int MxIdx = TLinAlgSearch::GetColMaxIdx(JsMat->Mat, ColN);
 
     Args.GetReturnValue().Set(v8::Integer::New(Isolate, MxIdx));
 }
@@ -554,7 +554,7 @@ void TNodeJsFltVV::getSubmatrix(const v8::FunctionCallbackInfo<v8::Value>& Args)
 	EAssertR(0 <= MaxCols && MaxCols < JsMat->Mat.GetCols(), "Matrix.getSubmatrix: maxCol is not valid!");
 
 	TFltVV Result;
-	TLAUtil::SubMat(JsMat->Mat, MinRows, MaxRows, MinCols, MaxCols, Result);
+	TLinAlg::SubMat(JsMat->Mat, MinRows, MaxRows+1, MinCols, MaxCols+1, Result);
 
 	Args.GetReturnValue().Set(TNodeJsFltVV::New(Result));
 }
@@ -573,7 +573,7 @@ void TNodeJsFltVV::getColSubmatrix(const v8::FunctionCallbackInfo<v8::Value>& Ar
 		"Matrix.getColSubmatrix: The maximum value of the integer vector must be less than number of columns in matrix!");
 
 	TFltVV Result;
-	TLAUtil::SubMat(JsMat->Mat, JsVecArg->Vec, Result);
+	TLinAlg::SubMat(JsMat->Mat, JsVecArg->Vec, Result);
 
 	Args.GetReturnValue().Set(TNodeJsFltVV::New(Result));
 }
@@ -672,7 +672,7 @@ void TNodeJsFltVV::saveascii(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         "Expected a TNodeJsFOut object");
     TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
     PSOut SOut = JsFOut->SOut;
-    TLAMisc::SaveMatlabTFltVV(JsFltVV->Mat, *SOut);
+    TLinAlgIO::SaveMatlabTFltVV(JsFltVV->Mat, *SOut);
 
     Args.GetReturnValue().Set(Args[0]);
 }
@@ -686,7 +686,7 @@ void TNodeJsFltVV::loadascii(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         "Expected a TNodeJsFIn object");
     TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
     PSIn SIn = JsFIn->SIn;
-    TLAMisc::LoadMatlabTFltVV(JsFltVV->Mat, *SIn);
+    TLinAlgIO::LoadMatlabTFltVV(JsFltVV->Mat, *SIn);
 
     Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
@@ -762,14 +762,14 @@ TNodeJsSpVec::TNodeJsSpVec(const TIntFltKdV& IntFltKdV, const int& Dim) : Vec(In
     // dimension checks
     if (Dim != -1) {
         // we provided dimensionality, check they match
-        const int CalcDim = TLAMisc::GetMaxDimIdx(IntFltKdV);
+        const int CalcDim = TLinAlgSearch::GetMaxDimIdx(IntFltKdV);
         if (Dim == 0 && CalcDim == 0) {
             // both are zero, should be fine
-        } else if (TLAMisc::GetMaxDimIdx(IntFltKdV) >= Dim) {
+        } else if (TLinAlgSearch::GetMaxDimIdx(IntFltKdV) >= Dim) {
             // largest index is bigger than the dimensionality, not good
             throw TExcept::New(TStr::Fmt(
                 "TNodeJsSpVec::New inconsistent dim parameter (maximal index %d >= dim %d)",
-                TLAMisc::GetMaxDimIdx(IntFltKdV), Dim));
+				TLinAlgSearch::GetMaxDimIdx(IntFltKdV), Dim));
         }
     }
 }
@@ -803,7 +803,7 @@ TNodeJsSpVec* TNodeJsSpVec::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value
 		}
 		Dim = TNodeJsUtil::GetArgInt32(Args, 1, -1);		
 	}
-	EAssertR((Dim == -1) || TLAMisc::GetMaxDimIdx(Vec) < Dim, "TNodeJsSpVec::New inconsistent dim parameter (maximal index >= dim!)");
+	EAssertR((Dim == -1) || TLinAlgSearch::GetMaxDimIdx(Vec) < Dim, "TNodeJsSpVec::New inconsistent dim parameter (maximal index >= dim!)");
 	return new TNodeJsSpVec(Vec, Dim);
 }
 
@@ -898,7 +898,7 @@ void TNodeJsSpVec::inner(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			TNodeJsVec<TFlt, TAuxFltV>* OthVec = ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
 			int Dim = JsSpVec->Dim();
 			if (Dim == -1) {
-				EAssertR(TLAMisc::GetMaxDimIdx(JsSpVec->Vec) < OthVec->Vec.Len(), "TNodeJsSpVec::inner: dimension mismatch!");
+				EAssertR(TLinAlgSearch::GetMaxDimIdx(JsSpVec->Vec) < OthVec->Vec.Len(), "TNodeJsSpVec::inner: dimension mismatch!");
 			}
 			else {
 				EAssertR(Dim < OthVec->Vec.Len(), "TNodeJsSpVec::inner: dimension mismatch!");
@@ -974,9 +974,9 @@ void TNodeJsSpVec::full(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	int Dim = JsSpVec->Dim;
     
     if (Args.Length() > 0 && Args[0]->IsInt32()) { Dim = Args[0]->Int32Value(); }
-    if (Dim == -1) { Dim = TLAMisc::GetMaxDimIdx(JsSpVec->Vec) + 1; }
+    if (Dim == -1) { Dim = TLinAlgSearch::GetMaxDimIdx(JsSpVec->Vec) + 1; }
     TFltV Res;
-	TLAMisc::ToVec(JsSpVec->Vec, Res, Dim);
+    TLinAlgTransform::ToVec(JsSpVec->Vec, Res, Dim);
 
     Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Res));
 }
@@ -1149,7 +1149,7 @@ TNodeJsSpMat* TNodeJsSpMat::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value
 						if (SpVecArray->Get(ElN)->IsArray()) {
 							v8::Handle<v8::Array> KdPair = v8::Handle<v8::Array>::Cast(SpVecArray->Get(ElN));
 							if (KdPair->Length() >= 2) {
-								if (KdPair->Get(0)->IsInt32() && KdPair->Get(1)->IsNumber()) {
+								if (KdPair->Get(0)->IsInt32() && KdPair->Get(1)->IsNumber() && KdPair->Get(1)->NumberValue() != 0.0) {
 									Mat[ColN].Add(TIntFltKd(KdPair->Get(0)->Int32Value(), KdPair->Get(1)->NumberValue()));
 								}
 							}
@@ -1181,10 +1181,14 @@ TNodeJsSpMat* TNodeJsSpMat::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value
 		}
 	}
 	if (Rows != -1) {
-		EAssertR(TLAMisc::GetMaxDimIdx(Mat) < Rows, "TNodeJsSpMat::NewFromArgs inconsistent rows parameter (maximal row index >= rows!)");
+		EAssertR(TLinAlgSearch::GetMaxDimIdx(Mat) < Rows, "TNodeJsSpMat::NewFromArgs inconsistent rows parameter (maximal row index >= rows!)");
 	}
   
 	return new TNodeJsSpMat(Mat, Rows);
+}
+
+v8::Local<v8::Object> TNodeJsSpMat::New(const TVec<TIntFltKdV>& _Mat, const int& _Rows) {
+    return TNodeJsUtil::NewInstance(new TNodeJsSpMat(_Mat, _Rows));
 }
 
 void TNodeJsSpMat::at(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -1323,7 +1327,7 @@ void TNodeJsSpMat::push(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     JsSpMat->Mat.Add(JsSpVec->Vec);
     if (JsSpMat->Rows.Val != -1) {
-        JsSpMat->Rows = MAX(JsSpMat->Rows.Val, TLAMisc::GetMaxDimIdx(JsSpVec->Vec) + 1);
+        JsSpMat->Rows = MAX(JsSpMat->Rows.Val, TLinAlgSearch::GetMaxDimIdx(JsSpVec->Vec) + 1);
     }
 
     Args.GetReturnValue().Set(v8::Boolean::New(Isolate, true));
@@ -1343,7 +1347,7 @@ void TNodeJsSpMat::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsSpMat>(new TNodeJsSpMat(Result)));
         } else if (Args[0]->IsObject()) { // Vector 
             int Rows = JsSpMat->Rows;
-            if (JsSpMat->Rows == -1) { Rows = TLAMisc::GetMaxDimIdx(JsSpMat->Mat) + 1; }
+            if (JsSpMat->Rows == -1) { Rows = TLinAlgSearch::GetMaxDimIdx(JsSpMat->Mat) + 1; }
             if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltV::GetClassId().CStr())) {
                 TNodeJsVec<TFlt, TAuxFltV>* JsVec =
                     ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
@@ -1374,7 +1378,7 @@ void TNodeJsSpMat::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                 TNodeJsSpMat* JsSpMat2 =
                     ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject());
                 if (JsSpMat2->Rows == -1) {
-                    EAssertR(JsSpMat->Mat.Len() >= TLAMisc::GetMaxDimIdx(JsSpMat2->Mat) + 1,
+                    EAssertR(JsSpMat->Mat.Len() >= TLinAlgSearch::GetMaxDimIdx(JsSpMat2->Mat) + 1,
                         "sparse_col_matrix * sparse_col_matrix: dimensions mismatch");
 				} else {
 					EAssertR(JsSpMat->Mat.Len() == JsSpMat2->Rows,
@@ -1401,7 +1405,7 @@ void TNodeJsSpMat::multiplyT(const v8::FunctionCallbackInfo<v8::Value>& Args) {
             // computation
             int Rows = JsMat->Rows;
             if (Rows == -1) {
-                Rows = TLAMisc::GetMaxDimIdx(JsMat->Mat) + 1;
+                Rows = TLinAlgSearch::GetMaxDimIdx(JsMat->Mat) + 1;
             }
             TLinAlg::Transpose(JsMat->Mat, Result, Rows);
             TLinAlg::MultiplyScalar(Scalar, Result, Result);
@@ -1414,7 +1418,7 @@ void TNodeJsSpMat::multiplyT(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                 EAssertR(JsMat->Rows == -1 || JsMat->Rows == JsVec->Vec.Len(),
                     "sparse_col_matrix' * vector: dimensions mismatch");
                 if (JsMat->Rows == -1) {
-                    EAssertR(TLAMisc::GetMaxDimIdx(JsMat->Mat) < JsVec->Vec.Len(),
+                    EAssertR(TLinAlgSearch::GetMaxDimIdx(JsMat->Mat) < JsVec->Vec.Len(),
                         "sparse_col_matrix' * vector: dimensions mismatch");
                 }
                 // computation                
@@ -1428,7 +1432,7 @@ void TNodeJsSpMat::multiplyT(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                 TNodeJsFltVV* JsMat2 = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());                
                 EAssertR(JsMat->Rows == -1 || JsMat->Rows == JsMat2->Mat.GetRows(), "sparse_col_matrix' * matrix: dimensions mismatch");
                 if (JsMat->Rows == -1) {
-                    EAssertR(TLAMisc::GetMaxDimIdx(JsMat->Mat) < JsMat2->Mat.GetRows(), "sparse_col_matrix' * matrix: dimensions mismatch");
+                    EAssertR(TLinAlgSearch::GetMaxDimIdx(JsMat->Mat) < JsMat2->Mat.GetRows(), "sparse_col_matrix' * matrix: dimensions mismatch");
                 }
                 TFltVV Result;
                 // computation
@@ -1444,11 +1448,11 @@ void TNodeJsSpMat::multiplyT(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                 
 				if (JsMat->Rows == -1 && JsVec->Dim != -1) {
 					// check that maxdimidx < dim
-					EAssert(TLAMisc::GetMaxDimIdx(JsMat->Mat) < JsVec->Dim);
+					EAssert(TLinAlgSearch::GetMaxDimIdx(JsMat->Mat) < JsVec->Dim);
 				}
 				else if (JsMat->Rows != -1 && JsVec->Dim == -1) {
 					// check that vectorMaxIdx < JsMat->Rows
-					EAssert(TLAMisc::GetMaxDimIdx(JsVec->Vec) < JsMat->Rows);
+					EAssert(TLinAlgSearch::GetMaxDimIdx(JsVec->Vec) < JsMat->Rows);
 				}
 				
 				TFltVV Result(Cols, 1);
@@ -1471,11 +1475,11 @@ void TNodeJsSpMat::multiplyT(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 				if (ADim == -1 && BDim != -1) {
 					// check that maxdimidx < dim
-					EAssertR(TLAMisc::GetMaxDimIdx(JsMat->Mat) < BDim, "sparse_col_matrix' * sparse_matrix: dimensions mismatch");
+					EAssertR(TLinAlgSearch::GetMaxDimIdx(JsMat->Mat) < BDim, "sparse_col_matrix' * sparse_matrix: dimensions mismatch");
 				}
 				else if (ADim != -1 && BDim == -1) {
 					// check that vectorMaxIdx < JsMat->Rows
-					EAssertR(TLAMisc::GetMaxDimIdx(JsMat2->Mat) < ADim, "sparse_col_matrix' * sparse_matrix: dimensions mismatch");
+					EAssertR(TLinAlgSearch::GetMaxDimIdx(JsMat2->Mat) < ADim, "sparse_col_matrix' * sparse_matrix: dimensions mismatch");
 				}
 
                 TFltVV Result(Cols, JsMat2->Mat.Len());                    
@@ -1519,7 +1523,7 @@ void TNodeJsSpMat::plus(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         }
         int Rows = -1;
         if (JsSpMat->Rows == -1 && JsSpMat2->Rows == -1) {
-            Rows = TLAMisc::GetMaxDimIdx(Result) + 1;
+            Rows = TLinAlgSearch::GetMaxDimIdx(Result) + 1;
         } else {
             Rows = MAX(JsSpMat->Rows, JsSpMat2->Rows);
         }
@@ -1562,7 +1566,7 @@ void TNodeJsSpMat::minus(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         }
         int Rows = -1;
         if (JsSpMat->Rows == -1 && JsSpMat2->Rows == -1) {
-            Rows = TLAMisc::GetMaxDimIdx(Result) + 1;
+            Rows = TLinAlgSearch::GetMaxDimIdx(Result) + 1;
         } else {
             Rows = MAX(JsSpMat->Rows, JsSpMat2->Rows);
         }
@@ -1653,9 +1657,9 @@ void TNodeJsSpMat::full(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     TFltVV Result;
     int Rows = JsSpMat->Rows;
     if (Rows == -1) {
-        Rows = TLAMisc::GetMaxDimIdx(JsSpMat->Mat) + 1;
+        Rows = TLinAlgSearch::GetMaxDimIdx(JsSpMat->Mat) + 1;
     }
-    TLinAlg::Full(JsSpMat->Mat, Result, Rows);    
+    TLinAlgTransform::Full(JsSpMat->Mat, Result, Rows);
 
     Args.GetReturnValue().Set(TNodeJsFltVV::New(Result));
 }
@@ -1702,7 +1706,7 @@ void TNodeJsSpMat::print(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     TNodeJsSpMat* JsSpMat = ObjectWrap::Unwrap<TNodeJsSpMat>(Args.Holder());
 
     TStr SpMatStr;
-    TLAMisc::PrintSpMat(JsSpMat->Mat, SpMatStr);
+    TLinAlgIO::PrintSpMat(JsSpMat->Mat, SpMatStr);
 
     Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
@@ -1718,7 +1722,7 @@ void TNodeJsSpMat::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 	bool SaveMatlab = TNodeJsUtil::GetArgBool(Args, 1, false);
 	if (SaveMatlab) {
-		TLAMisc::SaveMatlabSpMat(JsSpMat->Mat, *SOut);		
+		TLinAlgIO::SaveMatlabSpMat(JsSpMat->Mat, *SOut);
 	} else  {
 		JsSpMat->Rows.Save(*SOut);
 		JsSpMat->Mat.Save(*SOut);

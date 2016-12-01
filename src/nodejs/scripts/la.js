@@ -15,8 +15,15 @@ module.exports = exports = function (pathQmBinary) {
     //!STARTJSDOC
 
     /**
-    * Returns the frobenious norm squared
-    * @returns {number} Frobenious norm squared
+    * Calculates the frobenious norm squared of the matrix.
+    * @returns {number} Frobenious norm squared.
+    * @example
+    * // import la module
+    * var la = require('qminer').la;
+    * // create a sparse matrix
+    * var spMat = new la.SparseMatrix([[[0, 1], [1, 5]], [[0, 2], [2, -3]]]);
+    * // get the forbenious norm squared of the sparse matrix
+    * var frob = spMat.frob2();
     */
     exports.SparseMatrix.prototype.frob2 = function () {
         return Math.pow(this.frob(), 2);
@@ -34,9 +41,18 @@ module.exports = exports = function (pathQmBinary) {
     * var text = mat.toString(); // returns 'rows: -1, cols: 2, nnz: 3'
     */
     exports.SparseMatrix.prototype.toString = function () { return "rows: " + this.rows + ", cols:" + this.cols + ", nnz: " + this.nnz(); }
+
     /**
     * Returns the number of non-zero elements of sparse matrix.
     * @returns {number} Number of non-zero elements.
+    * @example
+    * // import la module
+    * var la = require('qminer').la;
+    * // create a sparse matrix
+    * var spMat = new la.SparseMatrix([[[0, 1], [1, 5]], [[0, 2], [2, -3]]]);
+    * // get the number of non-zero elements
+    * // returns 4
+    * var nnz = spMat.nnz(); 
     */
     exports.SparseMatrix.prototype.nnz = function () {
         var nnz = 0;
@@ -76,7 +92,14 @@ module.exports = exports = function (pathQmBinary) {
 
 	/**
 	* Returns a copy of the matrix.
-	* @returns {module:la.Matrix} Copy
+	* @returns {module:la.Matrix} Matrix copy.
+    * @example 
+    * // import la module
+    * var la = require('qminer').la;
+    * // create a random matrix
+    * var mat = new la.Matrix({ rows: 5, cols: 4, random: true });
+    * // create a copy of the matrix
+    * var copy = mat.toMat();
 	*/
 	exports.Matrix.prototype.toMat = function () { return new exports.Matrix(this); }
 
@@ -94,9 +117,19 @@ module.exports = exports = function (pathQmBinary) {
     */
 	exports.Vector.prototype.print = function () { console.log(this.toString()); }
 
+
+    function vec2arr(vec) {
+    	var len = vec.length;
+        var arr = [];
+        for (var elN = 0; elN < len; elN++) {
+            arr[elN] = vec[elN];
+        }
+        return arr;
+    }
+
 	/**
     * Copies the vector into a JavaScript array of numbers.
-    * @returns {Array<number>} A JavaScript array of numbers.
+    * @returns {Array.<number>} A JavaScript array of numbers.
     * @example
     * // import la module
     * var la = require('qminer').la;
@@ -106,12 +139,49 @@ module.exports = exports = function (pathQmBinary) {
     * var arr = vec.toArray(); // returns an array [1, 2, 3]
     */
     exports.Vector.prototype.toArray = function () {
-        var len = this.length;
-        var arr = [];
-        for (var elN = 0; elN < len; elN++) {
-            arr[elN] = this[elN];
-        }
-        return arr;
+        return vec2arr(this);
+	}
+	/**
+    * Copies the vector into a JavaScript array of numbers.
+    * @returns {Array.<number>} A JavaScript array of integers.
+    * @example
+    * // import la module
+    * var la = require('qminer').la;
+    * // create a new integer vector
+    * var vec = new la.IntVector([1, 2, 3]);
+    * // create a JavaScript array out of vec
+    * var arr = vec.toArray(); // returns an array [1, 2, 3] 
+    */
+	exports.IntVector.prototype.toArray = function () {
+        return vec2arr(this);
+	}
+	/**
+    * Copies the vector into a JavaScript array of strings.
+    * @returns {Array.<string>} A JavaScript array of strings.
+    * @example
+    * // import la module
+    * var la = require('qminer').la;
+    * // create a new vector
+    * var vec = new la.StrVector(["one", "two", "three"]);
+    * // create a JavaScript array out of vec
+    * var arr = vec.toArray(); // returns an array ["one", "two", "three"]
+    */
+	exports.StrVector.prototype.toArray = function () {
+        return vec2arr(this);
+	}
+	/**
+    * Copies the vector into a JavaScript array of booleans.
+    * @returns {Array.<boolean>} A JavaScript array of booleans.
+    * @example
+    * // import la module
+    * var la = require('qminer').la;
+    * // create a new vector
+    * var vec = new la.BoolVector([true, false, true]);
+    * // create a JavaScript array out of vec
+    * var arr = vec.toArray(); // returns an array [true, false, true]
+    */
+	exports.BoolVector.prototype.toArray = function () {
+        return vec2arr(this);
 	}
 
 	/**
@@ -162,13 +232,22 @@ module.exports = exports = function (pathQmBinary) {
     ///////// RANDOM GENERATORS
 
     /**
-    * Returns an object with random numbers
+    * Returns an object with random numbers.
     * @param {number} [arg1] - Represents dimension of vector or number of rows in matrix. Must be an integer.
     * @param {number} [arg2] - Represents number of columns in matrix. Must be an integer.
     * @returns {(number | module:la.Vector | module:la.Matrix)}
     * <br>1. Number, if no parameters are given.
-    * <br>2. {@link module:la.Vector}, if parameter arg1 is given.
-    * <br>3. {@link module:la.Matrix}, if parameters arg1 and arg2 are given.
+    * <br>2. {@link module:la.Vector}, if parameter `arg1` is given.
+    * <br>3. {@link module:la.Matrix}, if parameters `arg1` and `arg2` are given.
+    * @example
+    * // import la module
+    * var la = require('qminer').la;
+    * // generate a random number
+    * var number = la.randn();
+    * // generate a random vector of length 7
+    * var vector = la.randn(7);
+    * // generate a random matrix with 7 rows and 10 columns
+    * var mat = la.randn(7, 10);
     */
     exports.randn = function (arg1, arg2) {
         //arguments.length
@@ -206,12 +285,19 @@ module.exports = exports = function (pathQmBinary) {
     };
 
     /**
-    * Returns a randomly selected integer from an array..
+    * Returns a randomly selected integer(s) from an array.
     * @param {number} num - The upper bound of the array. Must be an integer.
-    * @param {number} [len] - The number of integers. Must be an integer.
+    * @param {number} [len] - The number of selected integers. Must be an integer.
     * @returns {(number | la.IntVector)}
-    * <br>1. Randomly selected integer from the array [0, ..., num-1], if no parameters are given.
-    * <br>2. {@link module:la.Vector}, if parameter len is given. The vector contains random integers from the array [0, ..., num-1] (with repetition)
+    * <br>1. Randomly selected integer from the array `[0,...,num-1]`, if no parameters are given.
+    * <br>2. {@link module:la.IntVector}, if parameter `len` is given. The vector contains random integers from the array `[0,...,num-1]` (with repetition).
+    * @example
+    * // import la module
+    * var la = require('qminer').la;
+    * // generate a random integer between 0 and 10
+    * var number = la.randi(10);
+    * // generate an integer vector containing 5 random integers between 0 and 10
+    * var vec = la.randi(10, 5);
     */
     exports.randi = function () {
         var len = arguments.length;
@@ -236,9 +322,14 @@ module.exports = exports = function (pathQmBinary) {
 
     /**
     * Returns a JavaScript array, which is a sample of integers from an array.
-    * @param {number} n - The upper bound of the array [0, ..., n-1]. Must be an integer.
-    * @param {number} k - Length of the sample. Must be smaller or equal to n.
-    * @returns {Array<number>} The sample of k numbers from [0, ..., n-1], sampled without replacement.
+    * @param {number} n - The upper bound of the generated array `[0,...,n-1]`. Must be an integer.
+    * @param {number} k - Length of the sample. Must be smaller or equal to `n`.
+    * @returns {Array<number>} The sample of `k` numbers from `[0,...,n-1]`, sampled without replacement.
+    * @example
+    * // import la module
+    * var la = require('qminer').la;
+    * // create an array containing 5 integers between 0 and 15
+    * var arr = la.randVariation(15, 5);
     */
     exports.randVariation = function (n, k) {
         var n = arguments[0];
@@ -253,7 +344,12 @@ module.exports = exports = function (pathQmBinary) {
     /**
     * Returns a permutation of elements.
     * @param {number} k - Number of elements to permutate.
-    * @returns {Array<number>} A JavaScript array of integers. Represents a permutation of k elements.
+    * @returns {Array<number>} A JavaScript array of integers. Represents a permutation of `k` elements.
+    * @example
+    * // import la module
+    * var la = require('qminer').la;
+    * // create an array/permutation of 5 elements
+    * var perm = la.randPerm(5);
     */
     exports.randPerm = function (k) {
         assert(isInt(k));
@@ -266,9 +362,14 @@ module.exports = exports = function (pathQmBinary) {
     ///////// COMMON MATRICES
 
     /**
-    * Returns an dense identity matrix
+    * Returns an dense identity matrix.
     * @param {number} dim - The dimension of the identity matrix. Must be a positive integer.
-    * @returns {module:la.Matrix} A dim-by-dim identity matrix.
+    * @returns {module:la.Matrix} A `dim`-by-`dim` identity matrix.
+    * @example
+    * // import la module
+    * var la = require('qminer').la;
+    * // generate a dense identity matrix of dimension 5
+    * var id = la.eye(5);
     */
     exports.eye = function(dim) {
         var identity = new exports.Matrix({ "rows": dim, "cols": dim });
@@ -282,6 +383,11 @@ module.exports = exports = function (pathQmBinary) {
     * Returns a sparse identity matrix
     * @param {number} dim - The dimension of the identity matrix. Must be a positive integer.
     * @returns {module:la.SparseMatrix} A dim-by-dim identity matrix.
+    * @example
+    * // import la module
+    * var la = require('qminer').la;
+    * // generate a sparse identity matrix of dimension 5
+    * var spId = la.speye(5);
     */
     exports.speye = function (dim) {
         var vec = exports.ones(dim);
@@ -291,8 +397,13 @@ module.exports = exports = function (pathQmBinary) {
     /**
     * Returns a sparse zero matrix.
     * @param {number} rows - Number of rows of the sparse matrix.
-    * @param {number} cols - Number of columns of the sparse matrix.
-    * @returns {module:la.SparseMatrix} A rows-by-cols sparse zero matrix.
+    * @param {number} [cols = rows] - Number of columns of the sparse matrix.
+    * @returns {module:la.SparseMatrix} A `rows`-by-`cols` sparse zero matrix.
+    * @example
+    * // import la module
+    * var la = require('qminer').la;
+    * // create a sparse zero matrix with 5 rows and columns
+    * var spMat = la.sparse(5);
     */
     exports.sparse = function (rows, cols) {
         cols = typeof cols == 'undefined' ? rows : cols;
@@ -303,8 +414,13 @@ module.exports = exports = function (pathQmBinary) {
     /**
     * Returns a dense zero matrix.
     * @param {number} rows - Number of rows of the matrix.
-    * @param {number} cols - Number of columns of the matrix.
-    * @returns {module:la.Matrix} A rows-by-cols dense zero matrix.
+    * @param {number} [cols = rows] - Number of columns of the matrix.
+    * @returns {module:la.Matrix} A `rows`-by-`cols` dense zero matrix.
+    * @example
+    * // import la module
+    * var la = require('qminer').la;
+    * // create a sparse zero matrix with 5 rows and 3 columns
+    * var mat = la.zeros(5, 3);
     */
     exports.zeros = function (rows, cols) {
         cols = typeof cols == 'undefined' ? rows : cols;
@@ -315,7 +431,7 @@ module.exports = exports = function (pathQmBinary) {
     /**
     * Returns a vector with all entries set to 1.0.
     * @param {number} dim - Dimension of the vector.
-    * @returns {module:la.Vector} A dim-dimensional vector whose entries are set to 1.0.
+    * @returns {module:la.Vector} A `dim`-dimensional vector whose entries are set to 1.0.
     * @example
     * // import la module
     * var la = require('qminer').la;
@@ -331,10 +447,10 @@ module.exports = exports = function (pathQmBinary) {
     };
 
     /**
-    * Constructs a matrix by concatenating a doubly-nested array of matrices.
-    * @param {Array<Array<module:la.Matrix>> } matrixDoubleArr - An array of block rows, where each block row is an array of matrices.
-    * For example: [[m11, m12], [m21, m22]] is used to construct a matrix where the (i,j)-th block submatrix is mij.
-    * @returns {module:la.Matrix} Concatenated matrix
+    * Constructs a matrix by concatenating a double-nested array of matrices.
+    * @param {Array<Array<module:la.Matrix>> } nestedArrMat - An array of block rows, where each block row is an array of matrices.
+    * For example: `[[m_11, m_12], [m_21, m_22]]` is used to construct a matrix where the (i,j)-th block submatrix is `m_ij`.
+    * @returns {module:la.Matrix} Concatenated matrix.
     * @example
     * // import la module
     * var la = require('qminer').la;
@@ -344,14 +460,14 @@ module.exports = exports = function (pathQmBinary) {
     * var B = new la.Matrix([[5,6], [7,8]]);
     * var C = new la.Matrix([[9,10], [11,12]]);
     * var D = new la.Matrix([[13,14], [15,16]]);
-    * var mat = la.cat([[A,B], [C,D]]);
+    * // create a nested matrix
     * // returns the matrix:
     * // 1  2  5  6
     * // 3  4  7  8
     * // 9  10 13 14
     * // 11 12 15 16
+    * var mat = la.cat([[A,B], [C,D]]);
     */
-    //# exports.cat = function(matrixDoubleArr) {}
     exports.cat = function (nestedArrMat) {
         var dimx = []; //cell row dimensions
         var dimy = []; //cell col dimensions
@@ -393,18 +509,16 @@ module.exports = exports = function (pathQmBinary) {
     }
 
     /**
-    * Generates an integer vector given range
-    * @param {number} min - Start value (should be an integer)
-    * @param {number} max - End value (should be an integer)
-    * @returns {module:la.IntVector} Integer range vector
+    * Generates an integer vector given range.
+    * @param {number} min - Start value. Should be an integer.
+    * @param {number} max - End value. Should be an integer.
+    * @returns {module:la.IntVector} Integer range vector.
     * @example
     * // import la module
     * var la = require('qminer').la;
+    * // create a range vector containing 1, 2, 3
     * var vec = la.rangeVec(1, 3);
-    * // returns the vector:
-    * // 1  2  3
     */
-    //# exports.rangeVec = function(min, max) {}
     exports.rangeVec = function (min, max) {
         var len = max - min + 1;
         var rangeV = new exports.IntVector({ "vals": len });
@@ -416,6 +530,21 @@ module.exports = exports = function (pathQmBinary) {
 
 	//////// METHODS
 
+    /**
+     * Squares the values in vector.
+     * @param {number | module:la.Vector} x - The value/vector.
+     * @returns {number | module:la.Vector}
+     * <br> 1. If `x` is a number, returns square of `x`.
+     * <br> 2. If `x` is a {@link module:la.Vector}, returns a {@link module:la.Vector}, where the i-th value of the vector is the square of `x[i]`.
+     * @example
+     * // import la module
+     * var la = require('qminer').la;
+     * // create a vector
+     * var vec = new la.Vector([1, 2, 3]);
+     * // square the values of the vector
+     * // returns the vector containing  the values 1, 4, 9
+     * var sqr = la.square(vec);
+     */
     exports.square = function(x) {
         if (typeof x.length == "undefined") {
             return x * x;
@@ -428,19 +557,19 @@ module.exports = exports = function (pathQmBinary) {
     };
 
     /**
-    * returns a JS array of indices `idxArray` that correspond to the max elements in each column of dense matrix. The resulting array has one element for vector input.
-    * @param {(la.Matrix | la.Vector)} X - A matrix or a vector
-    * @returns {Array<number>} Array of indexes where maximum is found, one for each column
+    * Returns a JS array of indices `idxArray` that correspond to the max elements in each column of dense matrix. The resulting array has one element for vector input.
+    * @param {(module:la.Matrix | module:la.Vector)} X - The matrix or vector.
+    * @returns {Array<number>} Array of indexes where maximum is found, one for each column.
     * @example
     * // import la module
     * var la = require('qminer').la;
     * // create a dense matrix
     * var mat = new la.Matrix([[1, 2], [2, 0]]);
-    * la.findMaxIdx(mat)
+    * // get the indices of the maximum elements in each column of mat
     * // returns the array:
     * // [1, 0]
+    * la.findMaxIdx(mat);
     */
-    //# exports.findMaxIdx = function(X) {}
     exports.findMaxIdx = function (X) {
         var idxv = new Array();
         // X is a dense matrix
@@ -458,22 +587,22 @@ module.exports = exports = function (pathQmBinary) {
     };
 
     /**
-    * computes and returns the pairwise squared euclidean distances between columns of `X1` and `X2` (`mat3[i,j] = ||mat(:,i) - mat2(:,j)||^2`).
-    * @param {la.Matrix} X1 - First matrix
-    * @param {la.Matrix} X2 - Second matrix
-    * @returns {la.Matrix} Matrix with `X1.cols` rows and `X2.cols` columns containing squared euclidiean distances.
+    * Computes and returns the pairwise squared euclidean distances between columns of `X1` and `X2` (`mat3[i,j] = ||mat(:,i) - mat2(:,j)||^2`).
+    * @param {module:la.Matrix} X1 - First matrix.
+    * @param {module:la.Matrix} X2 - Second matrix.
+    * @returns {module:la.Matrix} Matrix with `X1.cols` rows and `X2.cols` columns containing squared euclidean distances.
     * @example
     * // import la module
     * var la = require('qminer').la;
     * // construct two input matrices
     * var X1 = new la.Matrix([[1,2], [2,0]]);
     * var X2 = new la.Matrix([[1,0.5,0],[0,-0.5,-1]]);
-    * la.pdist2(X1, X2)
+    * // get the pairwise squared distance between the matrices
     * // returns the matrix:
     * // 4 6.5 10
     * // 1 2.5 5
+    * la.pdist2(X1, X2);
     */
-    // exports.pdist2 = function (X1, X2) {}
     exports.pdist2 = function (X1, X2) {
         var snorm1 = exports.square(X1.colNorms());
         var snorm2 = exports.square(X2.colNorms());
@@ -488,7 +617,14 @@ module.exports = exports = function (pathQmBinary) {
     /**
     * Calculates the inverse matrix with SVD.
     * @param {module:la.Matrix} mat - The matrix we want to inverse.
-    * @returns {module:la.Matrix} The inverse matrix of mat.
+    * @returns {module:la.Matrix} The inverse matrix of `mat`.
+    * @example
+    * // import la module
+    * var la = require('qminer').la;
+    * // create a random matrix
+    * var mat = new la.Matrix({ rows: 5, cols: 5, random: true });
+    * // get the inverse of mat
+    * var inv = la.inverseSVD(mat);
     */
     exports.inverseSVD = function (mat) {
         var k = Math.min(mat.rows, mat.cols);
@@ -520,17 +656,26 @@ module.exports = exports = function (pathQmBinary) {
         return B;
     }
 
-
-    //!- `la.conjgrad(mat,vec,vec2)` -- solves the psd symmetric system mat * vec2 = vec, where `mat` is a matrix and `vec` and `vec2` are dense vectors
-    //!- `la.conjgrad(spMat,vec,vec2)` -- solves the psd symmetric system spMat * vec2 = vec, where `spMat` is a matrix and `vec` and `vec2` are dense vectors
     /**
     * Solves the PSD symmetric system: A x = b, where A is a positive-definite symmetric matrix.
     * @param {(module:la.Matrix | module:la.SparseMatrix)} A - The matrix on the left-hand side of the system.
     * @param {module:la.Vector} b - The vector on the right-hand side of the system.
     * @param {module:la.Vector} [x] - Current solution. Default is a vector of zeros.
+    * @param {boolean} [verbose=false] - If true, console logs the residuum value.
     * @returns {module:la.Vector} Solution to the system.
+    * @example
+    * // import la module
+    * var la = require('qminer').la;
+    * // create a positive-definite symmetric matrix
+    * var vecTemp = new la.Vector([1, 2, 3]);
+    * var mat = vecTemp.diag();
+    * // create the right-hand side vector 
+    * var vec = new la.Vector([0.5, 3, -2]);
+    * // solve the PSD symmetric system
+    * var x = la.conjgrad(mat, vec);
     */
-    exports.conjgrad = function (A, b, x) {
+    exports.conjgrad = function (A, b, x, verbose) {
+        verbose = verbose === undefined ? false : verbose;
     	x = x || new exports.Vector({vals: A.cols});
         var r = b.minus(A.multiply(x));
         var p = new exports.Vector(r); //clone
@@ -541,7 +686,9 @@ module.exports = exports = function (pathQmBinary) {
             x = x.plus(p.multiply(alpha));
             r = r.minus(Ap.multiply(alpha));
             var rsnew = r.inner(r);
-            console.log("resid = " + rsnew);
+            if (verbose) {
+                console.log("resid = " + rsnew);
+            }
             if (Math.sqrt(rsnew) < 1e-6) {
                 break;
             }

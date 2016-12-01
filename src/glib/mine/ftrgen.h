@@ -39,7 +39,10 @@ public:
     void AddFtr(const double& Val, TIntFltKdV& SpV, int& Offset) const;
     void AddFtr(const double& Val, TFltV& FullV, int& Offset) const;
     
-    double InvFtr(const TFltV& FullV, int& Offset) const;
+    double InvFtr(const double& Val) const;
+
+    const TFlt& GetMn() const { return MnVal; }
+    const TFlt& GetMx() const { return MxVal; }
 
     int GetDim() const { return 1; }
 };
@@ -72,26 +75,31 @@ public:
     void AddFtr(const TStr& Val, TFltV& FullV, int& Offset) const;
 
     int GetDim() const { return (Type == ctHash) ? HashDim.Val : ValSet.Len(); }
-    TStr GetVal(const int& ValN) const { return (Type == ctHash) ? "hash" : ValSet.GetKey(ValN); }
+    TStr GetVal(const int& ValN) const;
 };
 
 ///////////////////////////////////////
 // Multinomial feature generator
 class TMultinomial {
 private:
-    typedef enum { mtNone, mtNormalize } TMultinomialType;
+    typedef enum {
+        mtNormalize = (1 << 0),
+        mtBinary = (1 << 1)
+    } TMultinomialType;
     
 private:
     /// Feature generator type
-    TMultinomialType Type;
+    TInt Flags;
     /// Feature generation handled by categorical feature generator
     TCategorical FtrGen;
 
+    void Init(const bool& NormalizeP, const bool& BinaryP);
+    
 public:
-	TMultinomial(const bool& NormalizeP = true) : Type(NormalizeP ? mtNormalize : mtNone), FtrGen() { }
-	TMultinomial(const bool& NormalizeP, const TStrV& ValV) : Type(NormalizeP ? mtNormalize : mtNone), FtrGen(ValV) { }
-	TMultinomial(const bool& NormalizeP, const int& HashDim) : Type(NormalizeP ? mtNormalize : mtNone), FtrGen(HashDim) { }
-    TMultinomial(TSIn& SIn): Type(LoadEnum<TMultinomialType>(SIn)), FtrGen(SIn) { }
+    TMultinomial(const bool& NormalizeP = true, const bool& BinaryP = false);
+    TMultinomial(const bool& NormalizeP, const bool& BinaryP, const TStrV& ValV);
+    TMultinomial(const bool& NormalizeP, const bool& BinaryP, const int& HashDim);
+    TMultinomial(TSIn& SIn): Flags(SIn), FtrGen(SIn) { }
     void Save(TSOut& SOut) const;
 
     void Clr() { FtrGen.Clr(); }
@@ -105,6 +113,9 @@ public:
 
     int GetDim() const { return FtrGen.GetDim(); }
     TStr GetVal(const int& ValN) const { return FtrGen.GetVal(ValN); }
+
+    bool IsNormalize() const { return ((Flags & mtNormalize) != 0); }
+    bool IsBinary() const { return ((Flags & mtBinary) != 0); }
 };
 
 ///////////////////////////////////////

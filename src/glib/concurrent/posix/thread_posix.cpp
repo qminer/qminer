@@ -158,7 +158,7 @@ void * TThread::EntryPoint(void * pArg) {
     try {
     	pThis->Run();
     } catch (...) {
-    	printf("Unknown exception while running thread: %lu!\n", pThis->GetThreadId());
+    	printf("Unknown exception while running thread: %s!\n", TUInt64::GetStr(pThis->GetThreadId()).CStr());
     }
 
     // pop and execute the cleanup routine

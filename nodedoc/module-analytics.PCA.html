@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.2.0</a>
       </div>
     </div>
   </nav>
@@ -25,9 +25,9 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">PCA</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-3122">analyticsdoc.<wbr>js:3122</a></p>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-3449">analyticsdoc.<wbr>js:3449</a></p>
             <div class="symbol-classdesc">
-              <p>Principal components analysis</p>
+              <p>Principal Components Analysis</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -57,7 +57,7 @@
                     <dt><a href="module-analytics.PCA.html#save">save(fout)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.PCA.html#setParams">setParams(Object)</a></dt>
+                    <dt><a href="module-analytics.PCA.html#setParams">setParams(param)</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -73,7 +73,8 @@
             </div>
           </section>
           <section>
-            <h2 id="PCA">new&nbsp;<span class="symbol-name">PCA</span><span class="signature"><span class="signature-params">([params])</span></span></h2>
+            <h2 id="PCA">new&nbsp;<span class="symbol-name">PCA</span><span class="signature"><span class="signature-params">([arg])</span></span></h2>
+            <p>Principal Components Analysis</p>
             <section>
               <h3>
             Examples
@@ -107,16 +108,18 @@ var pca = new analytics.PCA({ k: 5, iter: 50 });</code></pre>
                 <tbody>
                   <tr>
                     <td>
-                      <p>params</p>
+                      <p>arg</p>
                     </td>
                     <td>
-                      <p>(<a href="module-analytics.html#~pcaParams">module:analytics~pcaParams</a> or <a href="module-fs.FIn.html">module:fs.FIn</a>)</p>
+                      <p>(<a href="module-analytics.html#~PCAParam">module:analytics~PCAParam</a> or <a href="module-fs.FIn.html">module:fs.FIn</a>)</p>
                     </td>
                     <td>
                       <p>Yes</p>
                     </td>
                     <td>
-                      <p>The constructor parameters.</p>
+                      <p>Construction arguments. There are two ways of constructing:
+                        <br>1. Using the <a href="module-analytics.html#~PCAParam">module:analytics~PCAParam</a> object,
+                        <br>2. using the file input stream <a href="module-fs.FIn.html">module:fs.FIn</a>.</p>
                     </td>
                   </tr>
                 </tbody>
@@ -177,7 +180,7 @@ pca.fit(matrix);</code></pre>
               <dl class="dl-compact">
               </dl>
               <h3 id="getModel"><span class="symbol-name">getModel</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
-              <p>Returns the model</p>
+              <p>Returns the model.</p>
               <section>
                 <h4>
             Example
@@ -198,11 +201,14 @@ var model = pca.getModel();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Object</code>&nbsp;The model object whose keys are: P (eigenvectors), lambda (eigenvalues) and mu (mean)</p>
+                  <p><code>Object</code>&nbsp;The object <code>pcaModel</code> containing the properties:
+                    <br>1. <code>pcaModel.P</code> - The eigenvectors. Type <a href="module-la.Matrix.html">module:la.Matrix</a>.
+                    <br>2. <code>pcaModel.lambda</code> - The eigenvalues. Type <a href="module-la.Vector.html">module:la.Vector</a>.
+                    <br>3. <code>pcaModel.mu</code> - The mean values. Type <a href="module-la.Vector.html">module:la.Vector</a>.</p>
                 </dd>
               </dl>
-              <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span></span></h3>
-              <p>Gets parameters</p>
+              <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> moduel:analytics~PCAParam</span></span></h3>
+              <p>Gets parameters.</p>
               <section>
                 <h4>
             Examples
@@ -231,11 +237,11 @@ var paramvalue = pca.getParams();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p>Object whose keys are: k (number of eigenvectors) and iter (maximum iterations)</p>
+                  <p><code>moduel:analytics~PCAParam</code>&nbsp;The constructor parameters.</p>
                 </dd>
               </dl>
               <h3 id="inverseTransform"><span class="symbol-name">inverseTransform</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</span></span></h3>
-              <p>Reconstructs the vector in the original space, reverses centering</p>
+              <p>Reconstructs the vector in the original space, reverses centering.</p>
               <section>
                 <h4>
             Examples
@@ -294,7 +300,7 @@ var invTransform = pca.inverseTransform(vector);</code></pre>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Test vector or matrix with column examples, in the PCA space</p>
+                        <p>Test vector or matrix with column examples, in the PCA space.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -303,7 +309,7 @@ var invTransform = pca.inverseTransform(vector);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</code>&nbsp;Returns the reconstruction</p>
+                  <p><code>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</code>&nbsp;Returns the reconstruction.</p>
                 </dd>
               </dl>
               <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
@@ -358,11 +364,11 @@ pca.save(require(&#x27;qminer&#x27;).fs.openWrite(&#x27;pca_test.bin&#x27;)).clo
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;The given output stream fout.</p>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;The output stream <code>fout</code>.</p>
                 </dd>
               </dl>
-              <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(Object)</span></span></h3>
-              <p>Sets parameters</p>
+              <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(param)</span></span></h3>
+              <p>Sets parameters.</p>
               <section>
                 <h4>
             Example
@@ -390,16 +396,16 @@ pca.setParams({iter: 10, k: 5});</code></pre>
                   <tbody>
                     <tr>
                       <td>
-                        <p>Object</p>
+                        <p>param</p>
                       </td>
                       <td>
-                        <p>p</p>
+                        <p><a href="module-analytics.html#~PCAParam">module:analytics~PCAParam</a></p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>whose keys are: k (number of eigenvectors) and iter (maximum iterations)</p>
+                        <p>The constructor parameters.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -408,7 +414,8 @@ pca.setParams({iter: 10, k: 5});</code></pre>
               <dl class="dl-compact">
               </dl>
               <h3 id="transform"><span class="symbol-name">transform</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</span></span></h3>
-              <p>Projects the example(s) and expresses them as coefficients in the eigenvector basis this.P. Recovering the data in the original space: (this.P).multiply(p), where p's rows are the coefficients in the eigenvector basis.</p>
+              <p>Projects the example(s) and expresses them as coefficients in the eigenvector basis <code>this.P</code>. Recovering the data in the original space: <code>(this.P).multiply(p)</code>, where <code>p</code>'s rows are the coefficients in the
+                eigenvector basis.</p>
               <section>
                 <h4>
             Examples
@@ -467,7 +474,7 @@ var transform = pca.transform(vector);</code></pre>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Test vector or matrix with column examples</p>
+                        <p>Test vector or matrix with column examples.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -476,7 +483,7 @@ var transform = pca.transform(vector);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</code>&nbsp;Returns projected vector or matrix</p>
+                  <p><code>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</code>&nbsp;Returns projected vector or matrix.</p>
                 </dd>
               </dl>
             </section>

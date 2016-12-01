@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.2.0</a>
       </div>
     </div>
   </nav>
@@ -25,9 +25,9 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">namespace</span>&nbsp;<span class="label label-inner">inner</span></div><small><a href="module-analytics.html">analytics</a>~<wbr></small><span class="symbol-name">preprocessing</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1730">analyticsdoc.<wbr>js:1730</a></p>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-2004">analyticsdoc.<wbr>js:2004</a></p>
             <div class="symbol-description">
-              <p>Preprocessing functions for preparing labels in formats accepted by learning moduls in qm.analytics.</p>
+              <p>Preprocessing functions for preparing labels in formats accepted by learning modules in <a href="module-analytics.html">module:analytics</a>.</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -49,11 +49,89 @@
                 </div>
               </div>
             </div>
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Method</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics-preprocessing.html#.applyModel">applyModel(model, X)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                </div>
+                <div class="summary-column">
+                </div>
+              </div>
+            </div>
           </section>
           <section>
             <h2>Class</h2>
             <section id='members-links'>
               <h3><a href="module-analytics-preprocessing.Binarizer.html">Binarizer</a></h3>
+            </section>
+            <h2>Method</h2>
+            <section>
+              <h3 id=".applyModel"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">applyModel</span><span class="signature"><span class="signature-params">(model, X)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
+              <p>Applies the model's <code>decisionFunction</code> method (if exists) on each column of matrix <code>X</code>.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// TODO</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>model</p>
+                      </td>
+                      <td>
+                        <p>Object</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The model, that has the <code>decisionFunction</code> method.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>X</p>
+                      </td>
+                      <td>
+                        <p><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The matrix.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;The dense vector where the i-th value is the value the <code>model.decisionFunction</code> returned for the sparse vector <code>X[i]</code>.</p>
+                </dd>
+              </dl>
             </section>
           </section>
         </div>

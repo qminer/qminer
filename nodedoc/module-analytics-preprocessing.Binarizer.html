@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.2.0</a>
       </div>
     </div>
   </nav>
@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>~<wbr><a href="module-analytics-preprocessing.html">preprocessing</a>.<wbr></small><span class="symbol-name">Binarizer</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1753">analyticsdoc.<wbr>js:1753</a></p>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-2025">analyticsdoc.<wbr>js:2025</a></p>
             <div class="symbol-classdesc">
               <p>Transform given array of labels into binary vector with different numeric value for elements when label matches specified label and for other elements. By default, these values are +1 for matching labels, and -1 for the rest.</p>
             </div>
@@ -61,9 +61,7 @@
                 <pre class="prettyprint"><code>// import analytics module
 var analytics = require(&#x27;qminer&#x27;).analytics;
 // create binarizer with &#x27;b&#x27; as positive label
-var binarizer = new analytics.preprocessing.Binarizer(&#x27;b&#x27;);
-// get vector with binarized labels
-var bins = binarizer.transform([&#x27;a&#x27;,&#x27;b&#x27;,&#x27;a&#x27;,&#x27;c&#x27;]);</code></pre>
+var binarizer = new analytics.preprocessing.Binarizer(&#x27;b&#x27;);</code></pre>
               </div>
             </section>
             <section>
@@ -89,7 +87,7 @@ var bins = binarizer.transform([&#x27;a&#x27;,&#x27;b&#x27;,&#x27;a&#x27;,&#x27;
                       <p>&nbsp;</p>
                     </td>
                     <td>
-                      <p>labels</p>
+                      <p>Labels.</p>
                     </td>
                   </tr>
                   <tr>
@@ -103,7 +101,7 @@ var bins = binarizer.transform([&#x27;a&#x27;,&#x27;b&#x27;,&#x27;a&#x27;,&#x27;
                       <p>&nbsp;</p>
                     </td>
                     <td>
-                      <p>positive label</p>
+                      <p>Positive label.</p>
                     </td>
                   </tr>
                   <tr>
@@ -117,7 +115,7 @@ var bins = binarizer.transform([&#x27;a&#x27;,&#x27;b&#x27;,&#x27;a&#x27;,&#x27;
                       <p>Yes</p>
                     </td>
                     <td>
-                      <p>value when matching positive label</p>
+                      <p>Value when matching positive label.</p>
                       <p>Defaults to <code>1</code>.</p>
                     </td>
                   </tr>
@@ -132,7 +130,7 @@ var bins = binarizer.transform([&#x27;a&#x27;,&#x27;b&#x27;,&#x27;a&#x27;,&#x27;
                       <p>Yes</p>
                     </td>
                     <td>
-                      <p>value when not matching positive label</p>
+                      <p>Value when not matching positive label.</p>
                       <p>Defaults to <code>-1</code>.</p>
                     </td>
                   </tr>
@@ -147,6 +145,19 @@ var bins = binarizer.transform([&#x27;a&#x27;,&#x27;b&#x27;,&#x27;a&#x27;,&#x27;
             <section>
               <h3 id="transform"><span class="symbol-name">transform</span><span class="signature"><span class="signature-params">(y)</span>&nbsp;&rarr; <span class="signature-returns"> modul:la.Vector</span></span></h3>
               <p>Transform given array of labels to binary numeric vector.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import analytics module
+var analytics = require(&#x27;qminer&#x27;).analytics;
+// create binarizer with &#x27;b&#x27; as positive label
+var binarizer = new analytics.preprocessing.Binarizer(&#x27;b&#x27;);
+// get vector with binarized labels
+var bins = binarizer.transform([&#x27;a&#x27;,&#x27;b&#x27;,&#x27;a&#x27;,&#x27;c&#x27;]);</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -170,7 +181,7 @@ var bins = binarizer.transform([&#x27;a&#x27;,&#x27;b&#x27;,&#x27;a&#x27;,&#x27;
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>labels</p>
+                        <p>Labels.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -179,7 +190,7 @@ var bins = binarizer.transform([&#x27;a&#x27;,&#x27;b&#x27;,&#x27;a&#x27;,&#x27;
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>modul:la.Vector</code>&nbsp;binarized vector</p>
+                  <p><code>modul:la.Vector</code>&nbsp;Binarized vector.</p>
                 </dd>
               </dl>
             </section>

@@ -17,7 +17,7 @@ TFunRouter<PFtrExt, TFtrExt::TLoadF> TFtrExt::LoadRouter;
 
 void TFtrExt::Init() {
     Register<TFtrExts::TRandom>();
-	Register<TFtrExts::TConstant>();
+    Register<TFtrExts::TConstant>();
     Register<TFtrExts::TNumeric>();
     Register<TFtrExts::TNumSpV>();
     Register<TFtrExts::TCategorical>();
@@ -29,19 +29,19 @@ void TFtrExt::Init() {
 }
     
 TRec TFtrExt::DoSingleJoin(const TRec& Rec) const {
-	QmAssertR(IsStartStore(Rec.GetStoreId()), "Start store not supported!");
-	return Rec.DoSingleJoin(Base, GetJoinIdV(Rec.GetStoreId()));
+    QmAssertR(IsStartStore(Rec.GetStoreId()), "Start store not supported!");
+    return Rec.DoSingleJoin(Base, GetJoinIdV(Rec.GetStoreId()));
 }
 
 TFtrExt::TFtrExt(const TWPt<TBase>& _Base, const TJoinSeqV& JoinSeqV): Base(_Base) {
-	QmAssertR(!JoinSeqV.Empty(), "At least one join sequence must be supplied!");
-	FtrStore = JoinSeqV[0].GetEndStore(Base);
+    QmAssertR(!JoinSeqV.Empty(), "At least one join sequence must be supplied!");
+    FtrStore = JoinSeqV[0].GetEndStore(Base);
     // get mapping from stores to join sequence
-	for (int JoinSeqN = 0; JoinSeqN < JoinSeqV.Len(); JoinSeqN++) {
-		const TJoinSeq& JoinSeq = JoinSeqV[JoinSeqN];
+    for (int JoinSeqN = 0; JoinSeqN < JoinSeqV.Len(); JoinSeqN++) {
+        const TJoinSeq& JoinSeq = JoinSeqV[JoinSeqN];
         QmAssertR(JoinSeq.GetEndStoreId(Base) == FtrStore->GetStoreId(), "Mismatching feature stores");
-		JoinSeqH.AddDat(JoinSeq.GetStartStoreId(), JoinSeq);
-	}
+        JoinSeqH.AddDat(JoinSeq.GetStartStoreId(), JoinSeq);
+    }
 }
 
 TFtrExt::TFtrExt(const TWPt<TBase>& _Base, const PJsonVal& ParamVal): Base(_Base) {
@@ -75,7 +75,7 @@ TFtrExt::TFtrExt(const TWPt<TBase>& _Base, const PJsonVal& ParamVal): Base(_Base
             if (JoinVal->IsObjKey("join")) {                
                 TJoinSeq JoinSeq = TJoinSeq(Base, Store->GetStoreId(), JoinVal->GetObjKey("join"));
                 Store = JoinSeq.GetEndStore(Base);
-        		JoinSeqH.AddDat(JoinSeq.GetStartStoreId(), JoinSeq);
+                JoinSeqH.AddDat(JoinSeq.GetStartStoreId(), JoinSeq);
             } else {
                 // no join, just remember the store
                 JoinSeqH.AddDat(Store->GetStoreId(), TJoinSeq(Store->GetStoreId()));
@@ -97,7 +97,7 @@ PFtrExt TFtrExt::New(const TWPt<TBase>& Base, const TStr& TypeNm, const PJsonVal
 }
 
 PFtrExt TFtrExt::Load(const TWPt<TBase>& Base, TSIn& SIn) {
-	TStr TypeNm(SIn);
+    TStr TypeNm(SIn);
     return LoadRouter.Fun(TypeNm)(Base, SIn);
 }
 
@@ -116,53 +116,64 @@ void TFtrExt::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
 }
 
 void TFtrExt::ExtractStrV(const TRec& FtrRec, TStrV& StrV) const { 
-	throw TQmExcept::New("ExtractStrV not implemented!"); 
+    throw TQmExcept::New("ExtractStrV not implemented!"); 
 }
 
 void TFtrExt::ExtractFltV(const TRec& FtrRec, TFltV& FltV) const {
-	throw TQmExcept::New("ExtractFltV not implemented!"); 
+    throw TQmExcept::New("ExtractFltV not implemented!"); 
 }
 
 void TFtrExt::ExtractTmV(const TRec& FtrRec, TTmV& TmV) const {
-	throw TQmExcept::New("ExtractTmV not implemented!"); 
+    throw TQmExcept::New("ExtractTmV not implemented!"); 
+}
+
+PJsonVal TFtrExt::InvertFullV(const TFltV& FtrV, const int& Offset) const {
+    throw TExcept::New("TFtrExt::InvertFullV: not implemented for " + GetNm());
+}
+
+PJsonVal TFtrExt::InvertFtr(const PJsonVal& FtrVal) const {
+    throw TExcept::New("TFtrExt::InvertFtr: not implemented for " + GetNm());
+}
+
+PJsonVal TFtrExt::GetFtrRange() const {
+    throw TExcept::New("TFtrExt::GetFtrRange: not implemented for " + GetNm());
 }
 
 ///////////////////////////////////////////////
 // QMiner-Feature-Space
 void TFtrSpace::Init() {
     // we start with empty space
-	DimV.Gen(FtrExtV.Len(), 0); Dim = 0;
-	for (int FtrExtN = 0; FtrExtN < FtrExtV.Len(); FtrExtN++) {
+    DimV.Gen(FtrExtV.Len(), 0); Dim = 0;
+    for (int FtrExtN = 0; FtrExtN < FtrExtV.Len(); FtrExtN++) {
         const PFtrExt& FtrExt = FtrExtV[FtrExtN];
         // get dimensionality
-		const int FtrExtDim = FtrExt->GetDim();
+        const int FtrExtDim = FtrExt->GetDim();
         // update counts
-		DimV.Add(FtrExtDim); Dim += FtrExtDim;
-	}   
+        DimV.Add(FtrExtDim); Dim += FtrExtDim;
+    }   
 }
-	
+    
 TFtrSpace::TFtrSpace(const TWPt<TBase>& _Base, const PFtrExt& FtrExt): 
     Base(_Base), FtrExtV(TFtrExtV::GetV(FtrExt)) { Init(); }
 
 TFtrSpace::TFtrSpace(const TWPt<TBase>& _Base, const TFtrExtV& _FtrExtV): 
     Base(_Base), FtrExtV(_FtrExtV) { Init(); }
 
-TFtrSpace::TFtrSpace(const TWPt<TBase>& _Base, const PJsonVal& ParamVal) :
-Base(_Base) {
-	if (ParamVal->IsArr()) {
-		int Len = ParamVal->GetArrVals();
-		FtrExtV.Gen(Len);
-		for (int ParamN = 0; ParamN < Len; ParamN++) {
-			PJsonVal Param = ParamVal->GetArrVal(ParamN);
-			TStr Type = Param->GetObjStr("type");
-			FtrExtV.Add(TFtrExt::New(_Base, Type, Param));
-		}
-	}
-	else {
-		TStr Type = ParamVal->GetObjStr("type");
-		FtrExtV.Add(TFtrExt::New(_Base, Type, ParamVal));
-	}
-	Init();
+TFtrSpace::TFtrSpace(const TWPt<TBase>& _Base, const PJsonVal& ParamVal): Base(_Base) {
+    if (ParamVal->IsArr()) {
+        int Len = ParamVal->GetArrVals();
+        FtrExtV.Gen(Len, 0);
+        for (int ParamN = 0; ParamN < Len; ParamN++) {
+            PJsonVal Param = ParamVal->GetArrVal(ParamN);
+            TStr Type = Param->GetObjStr("type");
+            FtrExtV.Add(TFtrExt::New(_Base, Type, Param));
+        }
+    }
+    else {
+        TStr Type = ParamVal->GetObjStr("type");
+        FtrExtV.Add(TFtrExt::New(_Base, Type, ParamVal));
+    }
+    Init();
 }
 
 TFtrSpace::TFtrSpace(const TWPt<TBase>& _Base, TSIn& SIn): 
@@ -185,7 +196,7 @@ TPt<TFtrSpace> TFtrSpace::New(const TWPt<TBase>& Base, const TFtrExtV& FtrExtV) 
 }
 
 TPt<TFtrSpace> TFtrSpace::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
-	return new TFtrSpace(Base, ParamVal);
+    return new TFtrSpace(Base, ParamVal);
 }
 
 TPt<TFtrSpace> TFtrSpace::Load(const TWPt<TBase>& Base, TSIn& SIn) { 
@@ -201,33 +212,33 @@ void TFtrSpace::Save(TSOut& SOut) const {
 }
 
 void TFtrSpace::AddFtrExt(const PFtrExt& FtrExt) {
-	const int FtrExtDim = FtrExt->GetDim();
-	DimV.Add(FtrExtDim);
-	Dim += FtrExtDim;
-	FtrExtV.Add(FtrExt);
+    const int FtrExtDim = FtrExt->GetDim();
+    DimV.Add(FtrExtDim);
+    Dim += FtrExtDim;
+    FtrExtV.Add(FtrExt);
 }
 
 TStr TFtrSpace::GetNm() const {
-	TChA NmChA = "Space:";
-	for (int FtrExtN = 0; FtrExtN < FtrExtV.Len(); FtrExtN++) {
-		NmChA += "\n - ";
+    TChA NmChA = "Space:";
+    for (int FtrExtN = 0; FtrExtN < FtrExtV.Len(); FtrExtN++) {
+        NmChA += "\n - ";
         NmChA += FtrExtV[FtrExtN]->GetNm();
-	}
-	return NmChA;
+    }
+    return NmChA;
 }
 
 void TFtrSpace::Clr() {
-	for (int FtrExtN = 0; FtrExtN < FtrExtV.Len(); FtrExtN++) {
-		FtrExtV[FtrExtN]->Clr();
-	}
-	Init();
+    for (int FtrExtN = 0; FtrExtN < FtrExtV.Len(); FtrExtN++) {
+        FtrExtV[FtrExtN]->Clr();
+    }
+    Init();
 }
 
 bool TFtrSpace::Update(const TRec& Rec) {
     bool UpdateDimP = false;
-	for (int FtrExtN = 0; FtrExtN < FtrExtV.Len(); FtrExtN++) {
+    for (int FtrExtN = 0; FtrExtN < FtrExtV.Len(); FtrExtN++) {
         const PFtrExt& FtrExt = FtrExtV[FtrExtN];       
-		const bool FtrExtUpdateDimP = FtrExt->Update(Rec);
+        const bool FtrExtUpdateDimP = FtrExt->Update(Rec);
         if (FtrExtUpdateDimP) {
             // get new dimensionality
             const int NewDim = FtrExt->GetDim();
@@ -238,48 +249,49 @@ bool TFtrSpace::Update(const TRec& Rec) {
             // remember we did this
             UpdateDimP = true;
         }
-	}
+    }
     return UpdateDimP;
 }
 
 bool TFtrSpace::Update(const PRecSet& RecSet) {
     TEnv::Logger->OnStatusFmt("Updating feature space with %d records", RecSet->GetRecs());
     bool UpdateDimP = false;
-	for (int RecN = 0; RecN < RecSet->GetRecs(); RecN++) {
-		if (RecN % 10000 == 0) { TEnv::Logger->OnStatusFmt("%d\r", RecN); }
+    for (int RecN = 0; RecN < RecSet->GetRecs(); RecN++) {
+        if (RecN % 10000 == 0) { TEnv::Logger->OnStatusFmt("%d\r", RecN); }
         // update according to the record
         const bool RecUpdateDimP = Update(RecSet->GetRec(RecN));
         // check if we did a dimensionality update
-		UpdateDimP = UpdateDimP || RecUpdateDimP;
-	}
+        UpdateDimP = UpdateDimP || RecUpdateDimP;
+    }
     return UpdateDimP;
 }
 
 void TFtrSpace::GetSpV(const TRec& Rec, TIntFltKdV& SpV, const int& FtrExtN) const {
-	int Offset = 0;
+    int Offset = 0;
+    SpV.Clr();
     if (FtrExtN < 0) {
         for (int FtrExtN = 0; FtrExtN < FtrExtV.Len(); FtrExtN++) {
             FtrExtV[FtrExtN]->AddSpV(Rec, SpV, Offset);
         }
     } else {
-		EAssert(FtrExtN < FtrExtV.Len());
-		FtrExtV[FtrExtN]->AddSpV(Rec, SpV, Offset);
+        EAssert(FtrExtN < FtrExtV.Len());
+        FtrExtV[FtrExtN]->AddSpV(Rec, SpV, Offset);
     }
 }
 
 void TFtrSpace::GetFullV(const TRec& Rec, TFltV& FullV, const int& FtrExtN) const {
     // create empty full vector
-	int Offset = 0;
-	if (FtrExtN < 0) {
-		FullV.Gen(GetDim()); FullV.PutAll(0.0);
-		for (int FtrExtN = 0; FtrExtN < FtrExtV.Len(); FtrExtN++) {
-			FtrExtV[FtrExtN]->AddFullV(Rec, FullV, Offset);
-		}
-	} else {
-		EAssert(FtrExtN < FtrExtV.Len());
-		FullV.Gen(FtrExtV[FtrExtN]->GetDim());
-		FtrExtV[FtrExtN]->AddFullV(Rec, FullV, Offset);
-	}
+    int Offset = 0;
+    if (FtrExtN < 0) {
+        FullV.Gen(GetDim()); FullV.PutAll(0.0);
+        for (int FtrExtN = 0; FtrExtN < FtrExtV.Len(); FtrExtN++) {
+            FtrExtV[FtrExtN]->AddFullV(Rec, FullV, Offset);
+        }
+    } else {
+        EAssert(FtrExtN < FtrExtV.Len());
+        FullV.Gen(FtrExtV[FtrExtN]->GetDim());
+        FtrExtV[FtrExtN]->AddFullV(Rec, FullV, Offset);
+    }
 }
 
 void TFtrSpace::GetSpVV(const PRecSet& RecSet, TVec<TIntFltKdV>& SpVV, const int& FtrExtN) const {
@@ -319,60 +331,63 @@ void TFtrSpace::GetFullVV(const PRecSet& RecSet, TFltVV& FullVV, const int& FtrE
         }
     }
 }
-	
+    
 void TFtrSpace::GetCentroidSpV(const PRecSet& RecSet, 
-		TIntFltKdV& CentroidSpV, const bool& NormalizeP) const {
+        TIntFltKdV& CentroidSpV, const bool& NormalizeP) const {
 
-	for (int RecStrN = 0; RecStrN < RecSet->GetRecs(); RecStrN++) { 
-		// get record sparse vector
-		TIntFltKdV RecSpV; GetSpV(RecSet->GetRec(RecStrN), RecSpV);
-		// add it to the centroid
-		TIntFltKdV SumSpV;
-		TLinAlg::AddVec(RecSpV, CentroidSpV, SumSpV);
-		CentroidSpV = SumSpV;
-	}
-	if (NormalizeP) { TLinAlg::Normalize(CentroidSpV); }
+    for (int RecStrN = 0; RecStrN < RecSet->GetRecs(); RecStrN++) { 
+        // get record sparse vector
+        TIntFltKdV RecSpV; GetSpV(RecSet->GetRec(RecStrN), RecSpV);
+        // add it to the centroid
+        TIntFltKdV SumSpV;
+        TLinAlg::AddVec(RecSpV, CentroidSpV, SumSpV);
+        CentroidSpV = SumSpV;
+    }
+    if (NormalizeP) { TLinAlg::Normalize(CentroidSpV); }
 }
 
 void TFtrSpace::GetCentroidV(const PRecSet& RecSet,
-		TFltV& CentroidV, const bool& NormalizeP) const {
+        TFltV& CentroidV, const bool& NormalizeP) const {
 
-	CentroidV.Gen(GetDim()); CentroidV.PutAll(0.0);
-	for (int RecStrN = 0; RecStrN < RecSet->GetRecs(); RecStrN++) { 
-		// get record sparse vector
-		TIntFltKdV RecSpV; GetSpV(RecSet->GetRec(RecStrN), RecSpV);
-		// add it to the centroid
-		TLinAlg::AddVec(1.0, RecSpV, CentroidV, CentroidV);
-	}
-	if (NormalizeP) { TLinAlg::Normalize(CentroidV); }
+    CentroidV.Gen(GetDim()); CentroidV.PutAll(0.0);
+    for (int RecStrN = 0; RecStrN < RecSet->GetRecs(); RecStrN++) { 
+        // get record sparse vector
+        TIntFltKdV RecSpV; GetSpV(RecSet->GetRec(RecStrN), RecSpV);
+        // add it to the centroid
+        TLinAlg::AddVec(1.0, RecSpV, CentroidV, CentroidV);
+    }
+    if (NormalizeP) { TLinAlg::Normalize(CentroidV); }
 }
 
 double TFtrSpace::GetSingleFtr(const int& FtrExtN, const double& Val) const {
-	printf("GetSingleFtr is DEPRECATED\n");
-	const PFtrExt& FtrExt = FtrExtV[FtrExtN];
-	return FtrExt->__GetVal(Val);
+    printf("GetSingleFtr is DEPRECATED\n");
+    const PFtrExt& FtrExt = FtrExtV[FtrExtN];
+    return FtrExt->__GetVal(Val);
 }
 
-void TFtrSpace::InvertFullV(const TFltV& FullV, TFltV& InvertV) const {
-	int Offset = 0;
-	for (int FtrExtN = 0; FtrExtN < FtrExtV.Len(); FtrExtN++) {
-		const PFtrExt& FtrExt = FtrExtV[FtrExtN];
+PJsonVal TFtrSpace::InvertFullV(const TFltV& FullV) const {
+    PJsonVal Result = TJsonVal::NewArr();
 
-		TFltV InvV;	FtrExt->InvFullV(FullV, Offset, InvV);
-		InvertV.AddV(InvV);
-	}
+    int Offset = 0;
+    for (int FtrExtN = 0; FtrExtN < FtrExtV.Len(); FtrExtN++) {
+        const PFtrExt& FtrExt = FtrExtV[FtrExtN];
+
+        const PJsonVal InvVal = FtrExt->InvertFullV(FullV, Offset);
+        Result->AddToArr(InvVal);
+
+        Offset += FtrExt->GetDim();
+    }
+
+    return Result;
 }
 
-double TFtrSpace::InvertFtr(const int& FtrExtN, const TFlt& FtrVal) const {
-	const PFtrExt FtrExt = FtrExtV[FtrExtN];
+PJsonVal TFtrSpace::InvertFtr(const int& FtrExtN, const PJsonVal& FtrVal) const {
+    const PFtrExt& FtrExt = FtrExtV[FtrExtN];
+    return FtrExt->InvertFtr(FtrVal);
+}
 
-	TFltV FtrV, InvV;
-	FtrV.Add(FtrVal);
-
-	int Offset = 0;
-	FtrExt->InvFullV(FtrV, Offset, InvV);
-
-	return InvV[0];
+PJsonVal TFtrSpace::GetFtrRange(const int& FtrExtN) const {
+    return FtrExtV[FtrExtN]->GetFtrRange();
 }
 
 void TFtrSpace::ExtractStrV(const int& DimN, const PJsonVal& RecVal, TStrV &StrV) const {
@@ -383,20 +398,20 @@ void TFtrSpace::ExtractStrV(const int& DimN, const PJsonVal& RecVal, TStrV &StrV
 }
 
 int TFtrSpace::GetDim() const {
-	return Dim;
+    return Dim;
 }
 
 TStr TFtrSpace::GetFtr(const int& FtrN) const {
-	int SumDim = 0;
-	for (int DimN = 0; DimN < DimV.Len(); DimN++) {
-		SumDim += DimV[DimN];
-		if (SumDim > FtrN) { 
-			const int LocalFtrN = FtrN - (SumDim - DimV[DimN]);
-			return FtrExtV[DimN]->GetFtr(LocalFtrN);
-		}
-	}
-	throw TQmExcept::New("Feature number out of bounds!");
-	return TStr();
+    int SumDim = 0;
+    for (int DimN = 0; DimN < DimV.Len(); DimN++) {
+        SumDim += DimV[DimN];
+        if (SumDim > FtrN) { 
+            const int LocalFtrN = FtrN - (SumDim - DimV[DimN]);
+            return FtrExtV[DimN]->GetFtr(LocalFtrN);
+        }
+    }
+    throw TQmExcept::New("Feature number out of bounds: " + TInt::GetStr(FtrN) + "!");
+    return TStr();
 }
 
 int TFtrSpace::GetFtrExts() const {
@@ -404,8 +419,8 @@ int TFtrSpace::GetFtrExts() const {
 }
 
 PFtrExt TFtrSpace::GetFtrExt(const int& FtrExtN) const {
-    QmAssert(0 <= FtrExtN && FtrExtN < FtrExtV.Len());
-    return FtrExtV[FtrExtN];    
+    QmAssertR(0 <= FtrExtN && FtrExtN < FtrExtV.Len(), "Invalid feature extractor index: " + TInt::GetStr(FtrExtN));
+    return FtrExtV[FtrExtN];
 }
 
 int TFtrSpace::GetFtrExtDim(const int& FtrExtN) const {
@@ -434,16 +449,16 @@ int TFtrSpace::GetMxFtrN(const int& FtrExtN) const {
 }
 
 bool TFtrSpace::IsStartStore(const uint& StoreId) const {
-	for (int FtrExtN = 0; FtrExtN < FtrExtV.Len(); FtrExtN++) {
-		const PFtrExt& FtrExt = FtrExtV[FtrExtN];
+    for (int FtrExtN = 0; FtrExtN < FtrExtV.Len(); FtrExtN++) {
+        const PFtrExt& FtrExt = FtrExtV[FtrExtN];
         if (!FtrExt->IsStartStore(StoreId)) { return false; }
     }
     return true;
 }
 
 PBowDocBs TFtrSpace::MakeBowDocBs(const PRecSet& FtrRecSet) {
-	// prepare documents
-	PBowDocBs BowDocBs = TBowDocBs::New();
+    // prepare documents
+    PBowDocBs BowDocBs = TBowDocBs::New();
     for (int RecN = 0; RecN < FtrRecSet->GetRecs(); RecN++) { 
         TStr DocNm =  FtrRecSet->GetRec(RecN).GetRecNm();
         TStrV WdStrV;
@@ -460,7 +475,7 @@ namespace TFtrExts {
 ///////////////////////////////////////////////
 // Constant Feature Extractor
 TConstant::TConstant(const TWPt<TBase>& Base, const PJsonVal& ParamVal): 
-	TFtrExt(Base, ParamVal), Constant(ParamVal->GetObjNum("const", 1.0)) { }
+    TFtrExt(Base, ParamVal), Constant(ParamVal->GetObjNum("const", 1.0)) { }
 
 TConstant:: TConstant(const TWPt<TBase>& Base, TSIn& SIn): TFtrExt(Base, SIn), Constant(SIn) { }
 
@@ -480,20 +495,15 @@ void TConstant::Save(TSOut& SOut) const {
 }
 
 void TConstant::AddSpV(const TRec& FtrRec, TIntFltKdV& SpV, int& Offset) const {
-	SpV.Add(TIntFltKd(Offset, Constant.Val)); Offset++;
+    SpV.Add(TIntFltKd(Offset, Constant.Val)); Offset++;
 }
 
 void TConstant::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
     FullV[Offset] = Constant.Val; Offset++;
 }
 
-void TConstant::InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
-	InvV.Add(Constant.Val);
-	Offset++;
-}
-
 void TConstant::ExtractFltV(const TRec& FtrRec, TFltV& FltV) const {
-	FltV.Add(Constant.Val);
+    FltV.Add(Constant.Val);
 }
     
 ///////////////////////////////////////////////
@@ -507,15 +517,15 @@ TRandom::TRandom(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
 TRandom:: TRandom(const TWPt<TBase>& Base, TSIn& SIn): TFtrExt(Base, SIn), Rnd(SIn) { }
     
 PFtrExt TRandom::New(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const int& RndSeed) {
-	return new TRandom(Base, TJoinSeqV::GetV(TJoinSeq(Store->GetStoreId())), RndSeed); 
+    return new TRandom(Base, TJoinSeqV::GetV(TJoinSeq(Store->GetStoreId())), RndSeed); 
 }
 
 PFtrExt TRandom::New(const TWPt<TBase>& Base, const TJoinSeq& JoinSeq, const int& RndSeed) { 
-	return new TRandom(Base, TJoinSeqV::GetV(JoinSeq), RndSeed); 
+    return new TRandom(Base, TJoinSeqV::GetV(JoinSeq), RndSeed); 
 }
 
 PFtrExt TRandom::New(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, const int& RndSeed) { 
-	return new TRandom(Base, JoinSeqV, RndSeed);
+    return new TRandom(Base, JoinSeqV, RndSeed);
 }
 
 PFtrExt TRandom::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
@@ -534,34 +544,30 @@ void TRandom::Save(TSOut& SOut) const {
 }
 
 void TRandom::AddSpV(const TRec& FtrRec, TIntFltKdV& SpV, int& Offset) const {
-	SpV.Add(TIntFltKd(Offset, Rnd.GetUniDev())); Offset++;
+    SpV.Add(TIntFltKd(Offset, Rnd.GetUniDev())); Offset++;
 }
 
 void TRandom::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
     FullV[Offset] = Rnd.GetUniDev(); Offset++;
 }
 
-void TRandom::InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
-	throw TExcept::New("Not implemented yet!", "TRandom::InvFullV");
-}
-
 void TRandom::ExtractFltV(const TRec& FtrRec, TFltV& FltV) const {
-	FltV.Add(Rnd.GetUniDev());
+    FltV.Add(Rnd.GetUniDev());
 }
 
 ///////////////////////////////////////////////
 // Numeric Feature Extractor
 double TNumeric::GetVal(const TRec& FtrRec) const {
-	Assert(IsStartStore(FtrRec.GetStoreId()));
-	if (IsJoin(FtrRec.GetStoreId())) {
+    Assert(IsStartStore(FtrRec.GetStoreId()));
+    if (IsJoin(FtrRec.GetStoreId())) {
         // do the join
         TRec JoinRec = FtrRec.DoSingleJoin(GetBase(), GetJoinIdV(FtrRec.GetStoreId()));
         // get feature value
-		return Reader.GetFlt(JoinRec);
+        return Reader.GetFlt(JoinRec);
     } else {
         // get feature value
         return Reader.GetFlt(FtrRec);
-	}
+    }
 }
 
 TNumeric::TNumeric(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, 
@@ -577,30 +583,30 @@ TNumeric::TNumeric(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TFtrExt(B
         const double MxVal = ParamVal->GetObjNum("max");
         FtrGen = TFtrGen::TNumeric(MnVal, MxVal);
     } else {
-		bool NormalizeP = false;
-		bool NormalizeVar = false;
-		if (ParamVal->IsObjKey("normalize")) {
-			PJsonVal NormalizeKey = ParamVal->GetObjKey("normalize");
-			if (NormalizeKey->IsBool()) { // old boolean syntax
-				NormalizeP = ParamVal->GetObjBool("normalize", false);
-			} else {
-				TStr Val = ParamVal->GetObjStr("normalize");
-				Val = Val.ToLc();
-				NormalizeP = true;
-				if (Val == "var") {
-					NormalizeP = true;
-					NormalizeVar = true;
-				} else if (Val == "scale") {
-					NormalizeP = true;
-					NormalizeVar = false;
-				} else {
-					NormalizeP = false;
-					NormalizeVar = false;
-				}
-			}
-		} else {
-			// use defaults
-		}
+        bool NormalizeP = false;
+        bool NormalizeVar = false;
+        if (ParamVal->IsObjKey("normalize")) {
+            PJsonVal NormalizeKey = ParamVal->GetObjKey("normalize");
+            if (NormalizeKey->IsBool()) { // old boolean syntax
+                NormalizeP = ParamVal->GetObjBool("normalize", false);
+            } else {
+                TStr Val = ParamVal->GetObjStr("normalize");
+                Val = Val.ToLc();
+                NormalizeP = true;
+                if (Val == "var") {
+                    NormalizeP = true;
+                    NormalizeVar = true;
+                } else if (Val == "scale") {
+                    NormalizeP = true;
+                    NormalizeVar = false;
+                } else {
+                    NormalizeP = false;
+                    NormalizeVar = false;
+                }
+            }
+        } else {
+            // use defaults
+        }
         FtrGen = TFtrGen::TNumeric(NormalizeP, NormalizeVar);
     }
     // parse out input parameters  
@@ -652,9 +658,9 @@ void TNumeric::Save(TSOut& SOut) const {
 }
 
 TStr TNumeric::GetNm() const {
-	const TWPt<TStore>& Store = GetFtrStore();
-	const TStr& FieldNm = Store->GetFieldNm(FieldId);
-	return TStr::Fmt("Numeric[%s]", FieldNm.CStr());
+    const TWPt<TStore>& Store = GetFtrStore();
+    const TStr& FieldNm = Store->GetFieldNm(FieldId);
+    return TStr::Fmt("Numeric[%s]", FieldNm.CStr());
 }
 
 bool TNumeric::Update(const TRec& Rec) {
@@ -670,27 +676,43 @@ void TNumeric::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
     FtrGen.AddFtr(GetVal(Rec), FullV, Offset);
 }
 
-void TNumeric::InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
-	InvV.Add(FtrGen.InvFtr(FullV, Offset));
+void TNumeric::ExtractFltV(const TRec& Rec, TFltV& FltV) const {
+    FltV.Add(FtrGen.GetFtr(GetVal(Rec)));   
 }
 
-void TNumeric::ExtractFltV(const TRec& Rec, TFltV& FltV) const {
-	FltV.Add(FtrGen.GetFtr(GetVal(Rec)));   
+PJsonVal TNumeric::InvertFullV(const TFltV& FtrV, const int& Offset) const {
+    return TJsonVal::NewNum(FtrGen.InvFtr(FtrV[Offset]));
+}
+
+PJsonVal TNumeric::InvertFtr(const PJsonVal& FtrValJson) const {
+    EAssert(FtrValJson->IsNum());
+    const double& FtrVal = FtrValJson->GetNum();
+    const double InvVal = FtrGen.InvFtr(FtrVal);
+    return TJsonVal::NewNum(InvVal);
+}
+
+PJsonVal TNumeric::GetFtrRange() const {
+    PJsonVal Result = TJsonVal::NewObj();
+
+    Result->AddToObj("min", FtrGen.GetMn());
+    Result->AddToObj("max", FtrGen.GetMx());
+
+    return Result;
 }
 
 ///////////////////////////////////////////////
 // Sparse Vector Feature Extractor
 void TNumSpV::GetVal(const TRec& FtrRec, TIntFltKdV& NumSpV) const {
-	Assert(IsStartStore(FtrRec.GetStoreId()));
-	if (IsJoin(FtrRec.GetStoreId())) {
+    Assert(IsStartStore(FtrRec.GetStoreId()));
+    if (IsJoin(FtrRec.GetStoreId())) {
         // do the join
         TRec JoinRec = FtrRec.DoSingleJoin(GetBase(), GetJoinIdV(FtrRec.GetStoreId()));
         // get feature value
-		Reader.GetNumSpV(JoinRec, NumSpV);
+        Reader.GetNumSpV(JoinRec, NumSpV);
     } else {
         // get feature value
         Reader.GetNumSpV(FtrRec, NumSpV);
-	}
+    }
 }
 
 TNumSpV::TNumSpV(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, const int& _FieldId,
@@ -790,14 +812,10 @@ void TNumSpV::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
     Offset += GetDim();
 }
 
-void TNumSpV::InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
-	throw TExcept::New("Not implemented yet!", "TCategorical::InvFullV");
-}
-
 ///////////////////////////////////////////////
 // Categorical Feature Extractor
 TStr TCategorical::GetVal(const TRec& Rec) const {
-	Assert(IsStartStore(Rec.GetStoreId()));
+    Assert(IsStartStore(Rec.GetStoreId()));
     if (IsJoin(Rec.GetStoreId())) {
         TRec JoinRec = DoSingleJoin(Rec);
         return Reader.GetStr(JoinRec);
@@ -831,6 +849,7 @@ TCategorical::TCategorical(const TWPt<TBase>& Base, const PJsonVal& ParamVal): T
         FtrGen = TFtrGen::TCategorical();
     }
     // get input parameters (field, stuff, etc.)
+    ParamVal->AssertObjKeyStr("field", __FUNCTION__);
     TStr FieldNm = ParamVal->GetObjStr("field");
     FieldId = GetFtrStore()->GetFieldId(FieldNm);
     FieldDesc = GetFtrStore()->GetFieldDesc(FieldId);
@@ -846,11 +865,11 @@ PFtrExt TCategorical::New(const TWPt<TBase>& Base, const TWPt<TStore>& Store, co
 }
 
 PFtrExt TCategorical::New(const TWPt<TBase>& Base, const TJoinSeq& JoinSeq, const int& FieldId) { 
-	return new TCategorical(Base, TJoinSeqV::GetV(JoinSeq), FieldId); 
+    return new TCategorical(Base, TJoinSeqV::GetV(JoinSeq), FieldId); 
 }
 
 PFtrExt TCategorical::New(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, const int& FieldId) { 
-	return new TCategorical(Base, JoinSeqV, FieldId); 
+    return new TCategorical(Base, JoinSeqV, FieldId); 
 }
 
 PFtrExt TCategorical::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) { 
@@ -871,37 +890,73 @@ void TCategorical::Save(TSOut& SOut) const {
 }   
 
 bool TCategorical::Update(const TRec& Rec) {
-	return FtrGen.Update(GetVal(Rec));
+    return FtrGen.Update(GetVal(Rec));
 }
 
 void TCategorical::AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const {
-	FtrGen.AddFtr(GetVal(Rec), SpV, Offset);
+    FtrGen.AddFtr(GetVal(Rec), SpV, Offset);
 }
 
 void TCategorical::AddFullV(const TRec& Rec, TFltV& FtrV, int& Offset) const {
-	FtrGen.AddFtr(GetVal(Rec), FtrV, Offset);
-}
-
-void TCategorical::InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
-	throw TExcept::New("Not implemented yet!", "TCategorical::InvFullV");
+    FtrGen.AddFtr(GetVal(Rec), FtrV, Offset);
 }
 
 void TCategorical::ExtractStrV(const TRec& Rec, TStrV& StrV) const {
-	StrV.Add(GetVal(Rec));
+    StrV.Add(GetVal(Rec));
+}
+
+PJsonVal TCategorical::InvertFullV(const TFltV& FtrV, const int& Offset) const {
+    const int& Dim = GetDim();
+
+    PJsonVal FtrJson = TJsonVal::NewArr();
+    for (int ValN = 0; ValN < Dim; ValN++) {
+        FtrJson->AddToArr(FtrV[Offset + ValN]);
+    }
+
+    return InvertFtr(FtrJson);
+}
+
+PJsonVal TCategorical::InvertFtr(const PJsonVal& FtrValJsonV) const {
+    EAssert(FtrValJsonV->IsArr() && FtrValJsonV->GetArrVals()   == GetDim());
+
+    PJsonVal Result = TJsonVal::NewObj();
+    for (int FtrN = 0; FtrN < FtrValJsonV->GetArrVals(); FtrN++) {
+        const PJsonVal FtrValJson = FtrValJsonV->GetArrVal(FtrN);
+
+        EAssert(FtrValJson->IsNum());
+
+        const TStr& FtrNm = FtrGen.GetVal(FtrN);
+        const double& FtrVal = FtrValJson->GetNum();
+
+        Result->AddToObj(FtrNm, FtrVal);
+    }
+
+    return Result;
+}
+
+PJsonVal TCategorical::GetFtrRange() const {
+    const int& Dim = FtrGen.GetDim();
+
+    PJsonVal Result = TJsonVal::NewArr();
+    for (int ValN = 0; ValN < Dim; ValN++) {
+        Result->AddToArr(FtrGen.GetVal(ValN));
+    }
+
+    return Result;
 }
 
 ///////////////////////////////////////////////
 // Multinomial Feature Extractor
 void TMultinomial::GetVal(const TRec& Rec, TStrV& StrV, TFltV& FltV) const {
-	Assert(IsStartStore(Rec.GetStoreId()));
-	if (IsJoin(Rec.GetStoreId())) {
-		PRecSet RecSet = Rec.DoJoin(GetBase(), GetJoinIdV(Rec.GetStoreId()));
-		Reader.GetStrV(RecSet, StrV);
+    Assert(IsStartStore(Rec.GetStoreId()));
+    if (IsJoin(Rec.GetStoreId())) {
+        PRecSet RecSet = Rec.DoJoin(GetBase(), GetJoinIdV(Rec.GetStoreId()));
+        Reader.GetStrV(RecSet, StrV);
         if (HasValFields()) { ValReader.GetFltV(RecSet, FltV); }
-	} else {
+    } else {
         Reader.GetStrV(Rec, StrV);
         if (HasValFields()) { ValReader.GetFltV(Rec, FltV); }
-	}
+    }
 }
 
 void TMultinomial::AddField(const int& FieldId) {
@@ -938,20 +993,21 @@ TMultinomial::TMultinomial(const TWPt<TBase>& Base, const PJsonVal& ParamVal): T
     }
     // prase out feature generator parameters
     const bool NormalizeP = ParamVal->GetObjBool("normalize", false);
+    const bool BinaryP = ParamVal->GetObjBool("binary", false);
     if (ParamVal->IsObjKey("values")) {
         // we have fixed values
         TStrV ValV; ParamVal->GetObjStrV("values", ValV);
-        FtrGen = TFtrGen::TMultinomial(NormalizeP, ValV);        
+        FtrGen = TFtrGen::TMultinomial(NormalizeP, BinaryP, ValV);        
     } else if (ParamVal->IsObjKey("hashDimension")) {
         // we have hashed values into fixed dimensionality
         const int HashDim = ParamVal->GetObjInt("hashDimension");
-        FtrGen = TFtrGen::TMultinomial(NormalizeP, HashDim);
+        FtrGen = TFtrGen::TMultinomial(NormalizeP, BinaryP, HashDim);
     } else if (ParamVal->GetObjBool("datetime", false)) {
         // initialize feature generator with all possible date extracts
-        FtrGen = TFtrGen::TMultinomial(NormalizeP, TFieldReader::GetDateRange());
+        FtrGen = TFtrGen::TMultinomial(NormalizeP, BinaryP, TFieldReader::GetDateRange());
     } else {
         // we have open value set
-        FtrGen = TFtrGen::TMultinomial(NormalizeP);
+        FtrGen = TFtrGen::TMultinomial(NormalizeP, BinaryP);
     }
     // parse out field(s)
     PJsonVal FieldVal = ParamVal->GetObjKey("field");
@@ -1027,14 +1083,14 @@ TStr TMultinomial::GetNm() const {
 };
 
 bool TMultinomial::Update(const TRec& Rec) {
-	TStrV StrV; TFltV FltV; GetVal(Rec, StrV, FltV);
-	FtrGen.Update(StrV);
+    TStrV StrV; TFltV FltV; GetVal(Rec, StrV, FltV);
+    FtrGen.Update(StrV);
     return true;
 }
 
 void TMultinomial::AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const {
-	TStrV StrV; TFltV FltV; GetVal(Rec, StrV, FltV);
-	FtrGen.AddFtr(StrV, FltV, SpV, Offset);
+    TStrV StrV; TFltV FltV; GetVal(Rec, StrV, FltV);
+    FtrGen.AddFtr(StrV, FltV, SpV, Offset);
 }
 
 void TMultinomial::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
@@ -1044,23 +1100,19 @@ void TMultinomial::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
     }
 }
 
-void TMultinomial::InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
-	throw TExcept::New("Not implemented yet!", "TMultinomial::InvFullV");
-}
-
 void TMultinomial::ExtractStrV(const TRec& Rec, TStrV& StrV) const {
-	TFltV FltV; GetVal(Rec, StrV, FltV);
+    TFltV FltV; GetVal(Rec, StrV, FltV);
 }
 
 void TMultinomial::ExtractFltV(const TRec& Rec, TFltV& FltV) const {
-	TStrV StrV; GetVal(Rec, StrV, FltV);
+    TStrV StrV; GetVal(Rec, StrV, FltV);
 }
 
 void TMultinomial::ExtractTmV(const TRec& Rec, TTmV& TmV) const {
-	// assert store ...
-	TWPt<TStore> FtrStore = GetFtrStore();
-	Assert(Rec.GetStoreId() == FtrStore->GetStoreId());
-	// ... and field description
+    // assert store ...
+    TWPt<TStore> FtrStore = GetFtrStore();
+    Assert(Rec.GetStoreId() == FtrStore->GetStoreId());
+    // ... and field description
     for (int FieldIdN = 0; FieldIdN < FieldIdV.Len(); FieldIdN++) {
         const int FieldId = FieldIdV[FieldIdN];
         const TFieldDesc& FieldDesc = FieldDescV[FieldIdN];    
@@ -1070,7 +1122,7 @@ void TMultinomial::ExtractTmV(const TRec& Rec, TTmV& TmV) const {
             if (IsJoin(Rec.GetStoreId())) {
                 PRecSet RecSet = Rec.DoJoin(GetBase(), GetJoinIdV(Rec.GetStoreId()));
                 for (int RecN = 0; RecN < RecSet->GetRecs(); RecN++) {
-                    TTm FieldTm; FtrStore->GetFieldTm(Rec.GetRecId(), FieldId, FieldTm);				
+                    TTm FieldTm; FtrStore->GetFieldTm(Rec.GetRecId(), FieldId, FieldTm);                
                     TmV.Add(FieldTm);
                 }
             } else {
@@ -1086,13 +1138,13 @@ void TMultinomial::ExtractTmV(const TRec& Rec, TTmV& TmV) const {
 ///////////////////////////////////////////////
 // Bag-of-words Feature Extractor
 void TBagOfWords::GetVal(const TRec& Rec, TStrV& StrV) const {
-	Assert(IsStartStore(Rec.GetStoreId()));
-	if (IsJoin(Rec.GetStoreId())) {
-		PRecSet RecSet = Rec.DoJoin(GetBase(), GetJoinIdV(Rec.GetStoreId()));
-		Reader.GetStrV(RecSet, StrV);
-	} else {
+    Assert(IsStartStore(Rec.GetStoreId()));
+    if (IsJoin(Rec.GetStoreId())) {
+        PRecSet RecSet = Rec.DoJoin(GetBase(), GetJoinIdV(Rec.GetStoreId()));
+        Reader.GetStrV(RecSet, StrV);
+    } else {
         Reader.GetStrV(Rec, StrV);
-	}
+    }
 }
 
 void TBagOfWords::AddField(const int& FieldId) {
@@ -1257,8 +1309,8 @@ PFtrExt TBagOfWords::New(const TWPt<TBase>& Base, const TWPt<TStore>& Store,
 
 PFtrExt TBagOfWords::New(const TWPt<TBase>& Base, const TJoinSeq& JoinSeq, 
         const int& FieldId, const TBagOfWordsMode& Mode, const PTokenizer& Tokenizer) { 
-		
-	return new TBagOfWords(Base, TJoinSeqV::GetV(JoinSeq), FieldId, Mode, Tokenizer); 
+        
+    return new TBagOfWords(Base, TJoinSeqV::GetV(JoinSeq), FieldId, Mode, Tokenizer); 
 }
 
 PFtrExt TBagOfWords::New(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV,
@@ -1321,118 +1373,114 @@ bool TBagOfWords::Update(const TRec& Rec) {
         // update the tick
         TmWnd.Tick(TimeMSecs);
     }
-	// get all instances
-	TStrV RecStrV; GetVal(Rec, RecStrV);
-	if (Mode == bowmConcat) {
-		// merge into one document
-		return FtrGen.Update(TStr::GetStr(RecStrV, "\n"));
-	} else if (Mode == bowmCentroid) {
+    // get all instances
+    TStrV RecStrV; GetVal(Rec, RecStrV);
+    if (Mode == bowmConcat) {
+        // merge into one document
+        return FtrGen.Update(TStr::GetStr(RecStrV, "\n"));
+    } else if (Mode == bowmCentroid) {
         bool UpdateP = false;
-		// threat each as a separate document
-		for (int RecStrN = 0; RecStrN < RecStrV.Len(); RecStrN++) { 
+        // threat each as a separate document
+        for (int RecStrN = 0; RecStrN < RecStrV.Len(); RecStrN++) { 
             const bool RecUpdateP = FtrGen.Update(RecStrV[RecStrN]); 
-			UpdateP = UpdateP || RecUpdateP;
+            UpdateP = UpdateP || RecUpdateP;
         }
         return UpdateP;
     } else if (Mode == bowmTokenized) {
-		return FtrGen.Update(RecStrV);
-	} else {
-		throw TQmExcept::New("Unknown tokenizer mode for handling multiple instances");
-	}
+        return FtrGen.Update(RecStrV);
+    } else {
+        throw TQmExcept::New("Unknown tokenizer mode for handling multiple instances");
+    }
 }
 
 void TBagOfWords::AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const {
-	// get all instances
-	TStrV RecStrV; GetVal(Rec, RecStrV);
-	if (Mode == bowmConcat) {
-		// merge into one document
-		FtrGen.AddFtr(TStr::GetStr(RecStrV, "\n"), SpV, Offset);
-	} else if (Mode == bowmCentroid) {
-		// threat each as a string as a separate document
-		TIntFltKdV CentroidSpV;
-		for (int RecStrN = 0; RecStrN < RecStrV.Len(); RecStrN++) { 
-			// get record sparse vector
-			TIntFltKdV RecSpV; FtrGen.AddFtr(RecStrV[RecStrN], RecSpV);
-			// add it to the centroid
-			TIntFltKdV SumSpV;
-			TLinAlg::AddVec(RecSpV, CentroidSpV, SumSpV);
-			CentroidSpV = SumSpV;
-		}
-		// normalize centroid
+    // get all instances
+    TStrV RecStrV; GetVal(Rec, RecStrV);
+    if (Mode == bowmConcat) {
+        // merge into one document
+        FtrGen.AddFtr(TStr::GetStr(RecStrV, "\n"), SpV, Offset);
+    } else if (Mode == bowmCentroid) {
+        // threat each as a string as a separate document
+        TIntFltKdV CentroidSpV;
+        for (int RecStrN = 0; RecStrN < RecStrV.Len(); RecStrN++) { 
+            // get record sparse vector
+            TIntFltKdV RecSpV; FtrGen.AddFtr(RecStrV[RecStrN], RecSpV);
+            // add it to the centroid
+            TIntFltKdV SumSpV;
+            TLinAlg::AddVec(RecSpV, CentroidSpV, SumSpV);
+            CentroidSpV = SumSpV;
+        }
+        // normalize centroid
         if (FtrGen.IsNormalize()) { TLinAlg::Normalize(CentroidSpV); }
-		// add to the input sparse vector
-		for (int SpN = 0; SpN < CentroidSpV.Len(); SpN++) {
-			const int Id = CentroidSpV[SpN].Key;
-			const double Wgt = CentroidSpV[SpN].Dat;
-			SpV.Add(TIntFltKd(Offset + Id, Wgt));
-		}
-		// move offset for the number of tokens in feature generator
-		Offset += FtrGen.GetDim();
+        // add to the input sparse vector
+        for (int SpN = 0; SpN < CentroidSpV.Len(); SpN++) {
+            const int Id = CentroidSpV[SpN].Key;
+            const double Wgt = CentroidSpV[SpN].Dat;
+            SpV.Add(TIntFltKd(Offset + Id, Wgt));
+        }
+        // move offset for the number of tokens in feature generator
+        Offset += FtrGen.GetDim();
     } else if (Mode == bowmTokenized) {
         // already tokenized
         FtrGen.AddFtr(RecStrV, SpV, Offset);
-	} else {
-		throw TQmExcept::New("Unknown tokenizer mode for handling multiple instances");
-	}
+    } else {
+        throw TQmExcept::New("Unknown tokenizer mode for handling multiple instances");
+    }
 }
 
 void TBagOfWords::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
-	// get all instances
-	TStrV RecStrV; GetVal(Rec, RecStrV);
-	if (Mode == bowmConcat) {
-		// merge into one document
+    // get all instances
+    TStrV RecStrV; GetVal(Rec, RecStrV);
+    if (Mode == bowmConcat) {
+        // merge into one document
         TStr RecStr = TStr::GetStr(RecStrV, "\n");
-		FtrGen.AddFtr(RecStr, FullV, Offset);
-	} else if (Mode == bowmCentroid) {
-		// threat each as a string as a separate document
-		TFltV CentroidV(FtrGen.GetDim());
-		for (int RecStrN = 0; RecStrN < RecStrV.Len(); RecStrN++) { 
-			// get record sparse vector
-			TIntFltKdV RecSpV; FtrGen.AddFtr(RecStrV[RecStrN], RecSpV);
-			// add it to the centroid
-			TLinAlg::AddVec(1.0, RecSpV, CentroidV);
-		}
-		// normalize centroid
+        FtrGen.AddFtr(RecStr, FullV, Offset);
+    } else if (Mode == bowmCentroid) {
+        // threat each as a string as a separate document
+        TFltV CentroidV(FtrGen.GetDim());
+        for (int RecStrN = 0; RecStrN < RecStrV.Len(); RecStrN++) { 
+            // get record sparse vector
+            TIntFltKdV RecSpV; FtrGen.AddFtr(RecStrV[RecStrN], RecSpV);
+            // add it to the centroid
+            TLinAlg::AddVec(1.0, RecSpV, CentroidV);
+        }
+        // normalize centroid
         if (FtrGen.IsNormalize()) { TLinAlg::Normalize(CentroidV); }
-		// add to the input sparse vector
-		for (int CentroidN = 0; CentroidN < CentroidV.Len(); CentroidN++) {
+        // add to the input sparse vector
+        for (int CentroidN = 0; CentroidN < CentroidV.Len(); CentroidN++) {
             FullV[Offset + CentroidN] = CentroidV[CentroidN];
-		}
-		// move offset for the number of tokens in feature generator
-		Offset += FtrGen.GetDim();
+        }
+        // move offset for the number of tokens in feature generator
+        Offset += FtrGen.GetDim();
     } else if (Mode == bowmTokenized) {
         // already tokenized
         FtrGen.AddFtr(RecStrV, FullV, Offset);
-	} else {
-		throw TQmExcept::New("Unknown tokenizer mode for handling multiple instances");
-	}
-}
-
-void TBagOfWords::InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
-	throw TExcept::New("Not implemented yet!", "TBagOfWords::InvFullV");
+    } else {
+        throw TQmExcept::New("Unknown tokenizer mode for handling multiple instances");
+    }
 }
 
 void TBagOfWords::ExtractStrV(const TRec& Rec, TStrV& StrV) const {
-	TStrV RecStrV; GetVal(Rec, RecStrV);
-	for (int RecStrN = 0; RecStrN < RecStrV.Len(); RecStrN++) { 
-		FtrGen.GetFtr(RecStrV[RecStrN], StrV);
-	}
+    TStrV RecStrV; GetVal(Rec, RecStrV);
+    for (int RecStrN = 0; RecStrN < RecStrV.Len(); RecStrN++) { 
+        FtrGen.GetFtr(RecStrV[RecStrN], StrV);
+    }
 }
 
 ///////////////////////////////////////////////
 // QMiner-Feature-Extractor-Join 
 void TJoin::Def() {
-	QmAssertR(BucketSize > 0, "Sample parameter must be > 0!");
-	// get the maximal record id
-	uint64 MxRecId = 0; Dim = 0;
-	TWPt<TStore> FtrStore = GetFtrStore();
-	PStoreIter Iter = FtrStore->GetIter();
-	while (Iter->Next()) {
-		const uint64 RecId = Iter->GetRecId() / BucketSize;
-		if (RecId > MxRecId) { MxRecId = RecId; }
-	}
-	// use that as the ceiling for dimensionality
-	if (MxRecId > 0) { Dim = (int)(MxRecId + 1); }
+    QmAssertR(BucketSize > 0, "Sample parameter must be > 0!");
+    // get the maximal record id
+    uint64 MxRecId = 0; Dim = 0;
+    TWPt<TStore> FtrStore = GetFtrStore();
+    PStoreIter Iter = FtrStore->GetIter();
+    while (Iter->Next()) {
+        const uint64 RecId = Iter->GetRecId() / BucketSize;
+        if (RecId > MxRecId) { MxRecId = RecId; }
+    }
+    // use that as the ceiling for dimensionality
+    if (MxRecId > 0) { Dim = (int)(MxRecId + 1); }
 }
 
 TJoin::TJoin(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, const int& _BucketSize): 
@@ -1469,114 +1517,110 @@ void TJoin::Save(TSOut& SOut) const {
 }
 
 void TJoin::AddSpV(const TRec& FtrRec, TIntFltKdV& SpV, int& Offset) const {
-	// do the joins
-	Assert(IsStartStore(FtrRec.GetStoreId()));
-	PRecSet RecSet = FtrRec.DoJoin(GetBase(), GetJoinIdV(FtrRec.GetStoreId())); 
-	// sort by ids, to make it a valid sparse vector
-	RecSet->SortById(true);
-	// generate a sparse vector out of join
-	const int FirstSpN = SpV.Len(); 
-	int SampleId = 0; double NormSq = 0.0, SampleFq = 0.0; 
-	for (int RecN = 0; RecN < RecSet->GetRecs(); RecN++) {
-		const int Id = (int)RecSet->GetRecId(RecN) / BucketSize;
-		const double Fq = (double)RecSet->GetRecFq(RecN);
-		if (Id < Dim) { 
-			if (Id == SampleId) {
-				// repeat of the previous Id, just update the frequency
-				SampleFq += Fq;
-			} else {
-				// new id, add previous one to the feature vector
-				NormSq += TMath::Sqr(SampleFq);
-				SpV.Add(TIntFltKd(Offset + SampleId, SampleFq)); 
-				// and update the id-tracker
-				SampleId = Id; SampleFq = Fq;
-			}
-		} else {
-			break; // we are out of defined feature space
-		}
-	}
-	// add last element if nonzero
-	if (SampleFq > 0.0) {
-		NormSq += TMath::Sqr(SampleFq);
-		SpV.Add(TIntFltKd(Offset + SampleId, SampleFq)); 
-	}
-	// normalize, as returning unit norm feature vectors is polite
-	if (NormSq > 0.0) { 
-		const double InvNorm = 1.0 / TMath::Sqrt(NormSq);
-		for (int SpN = FirstSpN; SpN < SpV.Len(); SpN++) {
-			SpV[SpN].Dat *= InvNorm;
-		}
-	}
-	// and attach to the provided vector
-	Offset += Dim;
-}
-
-void TJoin::InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
-	throw TExcept::New("Not implemented yet!", "TJoin::InvFullV");
+    // do the joins
+    Assert(IsStartStore(FtrRec.GetStoreId()));
+    PRecSet RecSet = FtrRec.DoJoin(GetBase(), GetJoinIdV(FtrRec.GetStoreId())); 
+    // sort by ids, to make it a valid sparse vector
+    RecSet->SortById(true);
+    // generate a sparse vector out of join
+    const int FirstSpN = SpV.Len(); 
+    int SampleId = 0; double NormSq = 0.0, SampleFq = 0.0; 
+    for (int RecN = 0; RecN < RecSet->GetRecs(); RecN++) {
+        const int Id = (int)RecSet->GetRecId(RecN) / BucketSize;
+        const double Fq = (double)RecSet->GetRecFq(RecN);
+        if (Id < Dim) { 
+            if (Id == SampleId) {
+                // repeat of the previous Id, just update the frequency
+                SampleFq += Fq;
+            } else {
+                // new id, add previous one to the feature vector
+                NormSq += TMath::Sqr(SampleFq);
+                SpV.Add(TIntFltKd(Offset + SampleId, SampleFq)); 
+                // and update the id-tracker
+                SampleId = Id; SampleFq = Fq;
+            }
+        } else {
+            break; // we are out of defined feature space
+        }
+    }
+    // add last element if nonzero
+    if (SampleFq > 0.0) {
+        NormSq += TMath::Sqr(SampleFq);
+        SpV.Add(TIntFltKd(Offset + SampleId, SampleFq)); 
+    }
+    // normalize, as returning unit norm feature vectors is polite
+    if (NormSq > 0.0) { 
+        const double InvNorm = 1.0 / TMath::Sqrt(NormSq);
+        for (int SpN = FirstSpN; SpN < SpV.Len(); SpN++) {
+            SpV[SpN].Dat *= InvNorm;
+        }
+    }
+    // and attach to the provided vector
+    Offset += Dim;
 }
 
 void TJoin::ExtractStrV(const TRec& FtrRec, TStrV& StrV) const {
-	// do the joins
-	Assert(IsStartStore(FtrRec.GetStoreId()));
-	PRecSet RecSet = FtrRec.DoJoin(GetBase(), GetJoinIdV(FtrRec.GetStoreId())); 
-	// extract record names
-	TWPt<TStore> FtrStore = GetFtrStore();
-	for (int RecN = 0; RecN < RecSet->GetRecs(); RecN++) {
-		StrV.Add(FtrStore->GetRecNm(RecSet->GetRecId(RecN)));
-	}	
+    // do the joins
+    Assert(IsStartStore(FtrRec.GetStoreId()));
+    PRecSet RecSet = FtrRec.DoJoin(GetBase(), GetJoinIdV(FtrRec.GetStoreId())); 
+    // extract record names
+    TWPt<TStore> FtrStore = GetFtrStore();
+    for (int RecN = 0; RecN < RecSet->GetRecs(); RecN++) {
+        StrV.Add(FtrStore->GetRecNm(RecSet->GetRecId(RecN)));
+    }   
 }
 
 ///////////////////////////////////////////////
 // QMiner-Feature-Extractor-Pair 
 void TPair::GetFtrIdV_Update(const TRec& _FtrRec, const PFtrExt& FtrExt, TIntV& FtrIdV) {
-	// do the joins
-	Assert(IsStartStore(_FtrRec.GetStoreId()));
-	PRecSet FtrRecSet = IsJoin(_FtrRec.GetStoreId()) ? 
+    // do the joins
+    Assert(IsStartStore(_FtrRec.GetStoreId()));
+    PRecSet FtrRecSet = IsJoin(_FtrRec.GetStoreId()) ? 
         _FtrRec.DoJoin(GetBase(), GetJoinSeq(_FtrRec.GetStoreId())) :
         TRecSet::New(_FtrRec.GetStore(), _FtrRec.GetRecId());
-	// extract string features for each record
-	TIntSet FtrIdSet;
-	for (int RecN = 0; RecN < FtrRecSet->GetRecs(); RecN++) {
-		const TRec& FtrRec = FtrRecSet->GetRec(RecN);
-		TStrV FtrValV; FtrExt->ExtractStrV(FtrRec, FtrValV);
-		if (FtrValV.Empty()) { FtrValV.Add("[empty]"); }
-		// load them into the vocabulary
-		for (int FtrValN = 0; FtrValN < FtrValV.Len(); FtrValN++) {
-			// get feature id
-			const int FtrId = FtrValH.AddKey(FtrValV[FtrValN]);
-			// count the feature
-			FtrValH[FtrId]++;
-			// and remember the id
-			FtrIdSet.AddKey(FtrId);
-		}
-	}
-	// return feature id vector
-	FtrIdSet.GetKeyV(FtrIdV);
+    // extract string features for each record
+    TIntSet FtrIdSet;
+    for (int RecN = 0; RecN < FtrRecSet->GetRecs(); RecN++) {
+        const TRec& FtrRec = FtrRecSet->GetRec(RecN);
+        TStrV FtrValV; FtrExt->ExtractStrV(FtrRec, FtrValV);
+        if (FtrValV.Empty()) { FtrValV.Add("[empty]"); }
+        // load them into the vocabulary
+        for (int FtrValN = 0; FtrValN < FtrValV.Len(); FtrValN++) {
+            // get feature id
+            const int FtrId = FtrValH.AddKey(FtrValV[FtrValN]);
+            // count the feature
+            FtrValH[FtrId]++;
+            // and remember the id
+            FtrIdSet.AddKey(FtrId);
+        }
+    }
+    // return feature id vector
+    FtrIdSet.GetKeyV(FtrIdV);
 }
 
 void TPair::GetFtrIdV_RdOnly(const TRec& _FtrRec, const PFtrExt& FtrExt, TIntV& FtrIdV) const {
-	// do the joins
-	Assert(IsStartStore(_FtrRec.GetStoreId()));
-	PRecSet FtrRecSet = IsJoin(_FtrRec.GetStoreId()) ? 
+    // do the joins
+    Assert(IsStartStore(_FtrRec.GetStoreId()));
+    PRecSet FtrRecSet = IsJoin(_FtrRec.GetStoreId()) ? 
         _FtrRec.DoJoin(GetBase(), GetJoinSeq(_FtrRec.GetStoreId())) :
         TRecSet::New(_FtrRec.GetStore(), _FtrRec.GetRecId());
-	// extract string features for each record
-	TIntSet FtrIdSet;
-	for (int RecN = 0; RecN < FtrRecSet->GetRecs(); RecN++) {
-		const TRec& FtrRec = FtrRecSet->GetRec(RecN);
-		TStrV FtrValV; FtrExt->ExtractStrV(FtrRec, FtrValV);
-		if (FtrValV.Empty()) { FtrValV.Add("[empty]"); }
-		// load them into the vocabulary
-		for (int FtrValN = 0; FtrValN < FtrValV.Len(); FtrValN++) {
-			// get feature id
-			const TStr& FtrVal = FtrValV[FtrValN];
-			const int FtrId = FtrValH.GetKeyId(FtrVal);
-			// if feature exists, pass on
-			if (FtrId != -1) { FtrIdSet.AddKey(FtrId); }
-		}
-	}
-	// return feature id vector
-	FtrIdSet.GetKeyV(FtrIdV);
+    // extract string features for each record
+    TIntSet FtrIdSet;
+    for (int RecN = 0; RecN < FtrRecSet->GetRecs(); RecN++) {
+        const TRec& FtrRec = FtrRecSet->GetRec(RecN);
+        TStrV FtrValV; FtrExt->ExtractStrV(FtrRec, FtrValV);
+        if (FtrValV.Empty()) { FtrValV.Add("[empty]"); }
+        // load them into the vocabulary
+        for (int FtrValN = 0; FtrValN < FtrValV.Len(); FtrValN++) {
+            // get feature id
+            const TStr& FtrVal = FtrValV[FtrValN];
+            const int FtrId = FtrValH.GetKeyId(FtrVal);
+            // if feature exists, pass on
+            if (FtrId != -1) { FtrIdSet.AddKey(FtrId); }
+        }
+    }
+    // return feature id vector
+    FtrIdSet.GetKeyV(FtrIdV);
 }
 
 TPair::TPair(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, 
@@ -1631,85 +1675,81 @@ void TPair::Save(TSOut& SOut) const{
 }
 
 TStr TPair::GetFtr(const int& FtrN) const {
-	if (FtrIdPairH.IsKeyId(FtrN)) {
-		const TIntPr& Pair = FtrIdPairH.GetKey(FtrN);
-		TStr FtrVal1 = FtrValH.GetKey(Pair.Val1);
-		TStr FtrVal2 = FtrValH.GetKey(Pair.Val2);
-		return "[" + FtrVal1 + ", " + FtrVal2 + "]";
-	}
-	return "";
+    if (FtrIdPairH.IsKeyId(FtrN)) {
+        const TIntPr& Pair = FtrIdPairH.GetKey(FtrN);
+        TStr FtrVal1 = FtrValH.GetKey(Pair.Val1);
+        TStr FtrVal2 = FtrValH.GetKey(Pair.Val2);
+        return "[" + FtrVal1 + ", " + FtrVal2 + "]";
+    }
+    return "";
 }
 
 bool TPair::Update(const TRec& FtrRec) {
-	// extract feature values using each extractor
-	TIntV FtrIdV1; GetFtrIdV_Update(FtrRec, FtrExt1, FtrIdV1);
-	TIntV FtrIdV2; GetFtrIdV_Update(FtrRec, FtrExt2, FtrIdV2);
-	// transform 
-	for (int FtrIdN1 = 0; FtrIdN1 < FtrIdV1.Len(); FtrIdN1++) {
-		const int FtrId1 = FtrIdV1[FtrIdN1];
-		for (int FtrIdN2 = 0; FtrIdN2 < FtrIdV2.Len(); FtrIdN2++) {
-			const int FtrId2 = FtrIdV2[FtrIdN2];
-			// remember the pair
-			FtrIdPairH.AddDat(TIntPr(FtrId1, FtrId2))++;
-		}
-	}
+    // extract feature values using each extractor
+    TIntV FtrIdV1; GetFtrIdV_Update(FtrRec, FtrExt1, FtrIdV1);
+    TIntV FtrIdV2; GetFtrIdV_Update(FtrRec, FtrExt2, FtrIdV2);
+    // transform 
+    for (int FtrIdN1 = 0; FtrIdN1 < FtrIdV1.Len(); FtrIdN1++) {
+        const int FtrId1 = FtrIdV1[FtrIdN1];
+        for (int FtrIdN2 = 0; FtrIdN2 < FtrIdV2.Len(); FtrIdN2++) {
+            const int FtrId2 = FtrIdV2[FtrIdN2];
+            // remember the pair
+            FtrIdPairH.AddDat(TIntPr(FtrId1, FtrId2))++;
+        }
+    }
     return true;
 }
 
 void TPair::AddSpV(const TRec& FtrRec, TIntFltKdV& SpV, int& Offset) const {
-	// extract feature values using each extractor
-	TIntV FtrIdV1; GetFtrIdV_RdOnly(FtrRec, FtrExt1, FtrIdV1);
-	TIntV FtrIdV2; GetFtrIdV_RdOnly(FtrRec, FtrExt2, FtrIdV2);
-	// transform
-	TIntFltH PairIdWgtH;
-	for (int FtrIdN1 = 0; FtrIdN1 < FtrIdV1.Len(); FtrIdN1++) {
-		const int FtrId1 = FtrIdV1[FtrIdN1];
-		for (int FtrIdN2 = 0; FtrIdN2 < FtrIdV2.Len(); FtrIdN2++) {
-			const int FtrId2 = FtrIdV2[FtrIdN2];
-			// get feature pair id
-			const int PairId = FtrIdPairH.GetKeyId(TIntPr(FtrId1, FtrId2));
-			// remember the pair
-			if (PairId != -1) { PairIdWgtH.AddDat(PairId) += 1.0; }
-		}
-	}
-	// transform to sparse vector
-	TIntFltKdV PairSpV; PairIdWgtH.GetKeyDatKdV(PairSpV); PairSpV.Sort();
-	// normalize
-	TLinAlg::Normalize(PairSpV);
-	// add to the existing sparse vector
-	for (int PairSpN = 0; PairSpN < PairSpV.Len(); PairSpN++) {
-		const TIntFltKd PairSp = PairSpV[PairSpN];
-		SpV.Add(TIntFltKd(PairSp.Key + Offset, PairSp.Dat));
-	}
-	// increase the offset by the dimension
+    // extract feature values using each extractor
+    TIntV FtrIdV1; GetFtrIdV_RdOnly(FtrRec, FtrExt1, FtrIdV1);
+    TIntV FtrIdV2; GetFtrIdV_RdOnly(FtrRec, FtrExt2, FtrIdV2);
+    // transform
+    TIntFltH PairIdWgtH;
+    for (int FtrIdN1 = 0; FtrIdN1 < FtrIdV1.Len(); FtrIdN1++) {
+        const int FtrId1 = FtrIdV1[FtrIdN1];
+        for (int FtrIdN2 = 0; FtrIdN2 < FtrIdV2.Len(); FtrIdN2++) {
+            const int FtrId2 = FtrIdV2[FtrIdN2];
+            // get feature pair id
+            const int PairId = FtrIdPairH.GetKeyId(TIntPr(FtrId1, FtrId2));
+            // remember the pair
+            if (PairId != -1) { PairIdWgtH.AddDat(PairId) += 1.0; }
+        }
+    }
+    // transform to sparse vector
+    TIntFltKdV PairSpV; PairIdWgtH.GetKeyDatKdV(PairSpV); PairSpV.Sort();
+    // normalize
+    TLinAlg::Normalize(PairSpV);
+    // add to the existing sparse vector
+    for (int PairSpN = 0; PairSpN < PairSpV.Len(); PairSpN++) {
+        const TIntFltKd PairSp = PairSpV[PairSpN];
+        SpV.Add(TIntFltKd(PairSp.Key + Offset, PairSp.Dat));
+    }
+    // increase the offset by the dimension
     Offset += GetDim();
 }
 
-void TPair::InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
-	throw TExcept::New("Not implemented yet!", "TPair::InvFullV");
-}
-
 void TPair::ExtractStrV(const TRec& _FtrRec, TStrV& StrV) const {
-	// do the joins
-	Assert(IsStartStore(_FtrRec.GetStoreId()));
-	PRecSet FtrRecSet = _FtrRec.DoJoin(GetBase(), GetJoinSeq(_FtrRec.GetStoreId())); 
-	// extract features for each record
-	for (int RecN = 0; RecN < FtrRecSet->GetRecs(); RecN++) {
-		const TRec& FtrRec = FtrRecSet->GetRec(RecN);
-		TStrV FtrValV1; FtrExt1->ExtractStrV(FtrRec, FtrValV1);
-		TStrV FtrValV2; FtrExt2->ExtractStrV(FtrRec, FtrValV2);
-		// put placeholder when empty
-		if (FtrValV1.Empty()) { FtrValV1.Add("[empty]"); }
-		if (FtrValV2.Empty()) { FtrValV2.Add("[empty]"); }
-		// generate combined features
-		for (int FtrValN1 = 0; FtrValN1 < FtrValV1.Len(); FtrValN1++) {
-			const TStr& FtrVal1 = FtrValV1[FtrValN1];
-			for (int FtrValN2 = 0; FtrValN2 < FtrValV2.Len(); FtrValN2++) {
-				const TStr& FtrVal2 = FtrValV2[FtrValN2];
-				StrV.Add("[" + FtrVal1 + ", " + FtrVal2 + "]");
-			}
-		}
-	}
+    // do the joins
+    Assert(IsStartStore(_FtrRec.GetStoreId()));
+    PRecSet FtrRecSet = _FtrRec.DoJoin(GetBase(), GetJoinSeq(_FtrRec.GetStoreId())); 
+    // extract features for each record
+    for (int RecN = 0; RecN < FtrRecSet->GetRecs(); RecN++) {
+        const TRec& FtrRec = FtrRecSet->GetRec(RecN);
+        TStrV FtrValV1; FtrExt1->ExtractStrV(FtrRec, FtrValV1);
+        TStrV FtrValV2; FtrExt2->ExtractStrV(FtrRec, FtrValV2);
+        // put placeholder when empty
+        if (FtrValV1.Empty()) { FtrValV1.Add("[empty]"); }
+        if (FtrValV2.Empty()) { FtrValV2.Add("[empty]"); }
+        // generate combined features
+        for (int FtrValN1 = 0; FtrValN1 < FtrValV1.Len(); FtrValN1++) {
+            const TStr& FtrVal1 = FtrValV1[FtrValN1];
+            for (int FtrValN2 = 0; FtrValN2 < FtrValV2.Len(); FtrValN2++) {
+                const TStr& FtrVal2 = FtrValV2[FtrValN2];
+                StrV.Add("[" + FtrVal1 + ", " + FtrVal2 + "]");
+            }
+        }
+    }
 }
 
 ///////////////////////////////////////////////
@@ -1728,16 +1768,16 @@ uint64 TDateWnd::_GetVal(const TRec& FtrRec) const {
 }
 
 uint64 TDateWnd::GetVal(const TRec& FtrRec) const {
-	Assert(IsStartStore(FtrRec.GetStoreId()));
-	if (IsJoin(FtrRec.GetStoreId())) {
+    Assert(IsStartStore(FtrRec.GetStoreId()));
+    if (IsJoin(FtrRec.GetStoreId())) {
         // do the join
         TRec JoinRec = FtrRec.DoSingleJoin(GetBase(), GetJoinIdV(FtrRec.GetStoreId()));
         // get feature value
-		return _GetVal(JoinRec);
+        return _GetVal(JoinRec);
     } else {
         // get feature value
         return _GetVal(FtrRec);
-	}
+    }
 }
 
 TDateWnd::TDateWnd(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, 
@@ -1849,10 +1889,6 @@ void TDateWnd::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
     if (FtrGen.IsInit()) {
         FtrGen.AddFtr(TTm::GetTmFromMSecs(GetVal(Rec)), FullV, Offset);
     }
-}
-
-void TDateWnd::InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
-	throw TExcept::New("Not implemented yet!", "TPair::InvFullV");
 }
 
 }

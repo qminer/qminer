@@ -52,6 +52,8 @@ public:
   void PutArr(){JsonValType=jvtArr;}
   void AddToArr(const PJsonVal& Val){
     EAssert(JsonValType==jvtArr); ValV.Add(Val);}
+  void SetArrVal(const int& ValN, const PJsonVal& Val){
+	  EAssert(JsonValType==jvtArr&&ValN < GetArrVals()); ValV[ValN] = Val;}
   void AddToArr(const int& Val){ AddToArr(NewNum((double)Val)); }
   void AddToArr(const uint& Val){ AddToArr(NewNum((double)Val)); }
   void AddToArr(const double& Val){ AddToArr(NewNum(Val)); }
@@ -84,6 +86,7 @@ public:
   static PJsonVal NewArr(const TIntV& IntV);
   static PJsonVal NewArr(const TUInt64V& IntV);
   static PJsonVal NewArr(const TFltV& FltV);
+  static PJsonVal NewArr(const TIntFltKdV& IntFltKdV);
   static PJsonVal NewArr(const double& Val1, const double& Val2);
   static PJsonVal NewArr(const TStrV& StrV);
   static PJsonVal NewArr(const TFltPr& FltPr);
@@ -116,7 +119,7 @@ public:
   bool GetBool() const {EAssert(IsBool()); return Bool;}
   double GetNum() const {EAssert(IsNum()); return Num;}
   int GetInt() const {EAssert(IsNum()); return TFlt::Round(Num);}
-  uint64 GetUInt64() const {EAssert(IsNum()); return (unsigned)(int64)(Num);}
+  uint64 GetUInt64() const {EAssert(IsNum()); return (unsigned long long)(int64)(Num);}
   uint GetUInt() const { EAssert(IsNum()); return uint(Num); }
   int64 GetInt64() const { EAssert(IsNum()); return int64(Num); }
   const TStr& GetStr() const {EAssert(IsStr()); return Str;}
@@ -128,6 +131,7 @@ public:
   void GetArrNumV(TFltV& FltV) const;
   void GetArrNumSpV(TIntFltKdV& NumSpV) const;
   void GetArrIntV(TIntV& IntV) const;
+  void GetArrUInt64V(TUInt64V& IntV) const;
   void GetArrStrV(TStrV& StrV) const;
   int GetObjKeys() const {EAssert(IsObj()); return KeyValH.Len();}
   void GetObjKeyVal(const int& KeyValN, TStr& Key, PJsonVal& Val) const {
@@ -165,6 +169,7 @@ public:
   uint64 GetObjUInt64(const TStr& Key, const uint64& DefNum) const;
   uint64 GetObjUInt64(const char *Key, const uint64& DefNum) const;
   void GetObjIntV(const TStr& Key, TIntV& IntV) const;
+  void GetObjUInt64V(const TStr& Key, TUInt64V& UInt64V) const;
   void GetObjFltV(const TStr& Key, TFltV& FltV) const;
   const TStr& GetObjStr(const TStr& Key, const TStr& DefStr) const;
   const TStr& GetObjStr(const char *Key, const TStr& DefStr) const;
@@ -175,6 +180,12 @@ public:
   void DelObjKey(const TStr& Key) { EAssert(IsObj()); KeyValH.DelIfKey(Key); /*KeyValH.Defrag();*/ }
   void DelObjKey(const char *Key) { EAssert(IsObj()); KeyValH.DelIfKey(Key); /*KeyValH.Defrag();*/ }
   void DelArrVal(const int& ValN) { EAssert(IsArr()); ValV.Del(ValN); }
+
+  // validation
+  void AssertObjKey(const TStr& Key, const TStr& Fun);
+  void AssertObjKeyStr(const TStr& Key, const TStr& Fun);
+  void AssertObjKeyNum(const TStr& Key, const TStr& Fun);
+  void AssertObjKeyBool(const TStr& Key, const TStr& Fun);
 
   // (de)serialization
   static PJsonVal GetValFromLx(TILx& Lx);

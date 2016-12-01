@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.2.0</a>
       </div>
     </div>
   </nav>
@@ -25,9 +25,9 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-ht.html">ht</a>.<wbr></small><span class="symbol-name">StrFltMap</span></h1>
-            <p class="source-link">Source: <a href="htdoc.js.html#source-line-231">htdoc.<wbr>js:231</a></p>
+            <p class="source-link">Source: <a href="htdoc.js.html#source-line-426">htdoc.<wbr>js:426</a></p>
             <div class="symbol-classdesc">
-              <p>Used for storing key/data pairs, wrapps an efficient C++ implementation.</p>
+              <p>Used for storing key/data pairs, wraps an efficient C++ implementation.</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -96,7 +96,7 @@
           </section>
           <section>
             <h2 id="StrFltMap">new&nbsp;<span class="symbol-name">StrFltMap</span><span class="signature"><span class="signature-params">()</span></span></h2>
-            <p>String-Float hashmap</p>
+            <p>String-Float hashmap.</p>
             <section>
               <h3>
             Example
@@ -130,34 +130,20 @@ h2.load(fin); // load</code></pre>
             <h2>Property</h2>
             <section>
               <h3 id="length"><span class="symbol-name">length</span></h3>
+              <p>Number of key/dat pairs. Type <code>number</code>.</p>
               <section>
-                <h4>Property</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>length</p>
-                      </td>
-                      <td>
-                        <p>number</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>Number of key/dat pairs</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// create a new hashtable
+ht = require(&#x27;qminer&#x27;).ht;
+var h = new ht.StrFltMap();
+// Adding two key/dat pairs
+h.put(&#x27;foo&#x27;, 10.5);
+// get the number of key/dat pairs
+var length = h.length; // returns 1</code></pre>
+                </div>
               </section>
               <dl class="dl-compact">
               </dl>
@@ -165,7 +151,23 @@ h2.load(fin); // load</code></pre>
             <h2>Methods</h2>
             <section>
               <h3 id="dat"><span class="symbol-name">dat</span><span class="signature"><span class="signature-params">(n)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
-              <p>returns n-th dat</p>
+              <p>Returns n-th dat.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import modules
+var qm = require(&#x27;qminer&#x27;);
+var ht = qm.ht;
+// create a new hashtable
+var h = new ht.StrFltMap();
+// add a key/dat pair
+h.put(&#x27;foo&#x27;, 10.5);
+// get the first dat
+var key = h.key(0); // returns 10.5</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -189,7 +191,7 @@ h2.load(fin); // load</code></pre>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Hashmap dat number. Should be between 0 and length-1</p>
+                        <p>Hashmap dat index number. Should be between 0 and length-1.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -198,11 +200,27 @@ h2.load(fin); // load</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;n-th data value.</p>
+                  <p><code>number</code>&nbsp;The n-th data value.</p>
                 </dd>
               </dl>
               <h3 id="get"><span class="symbol-name">get</span><span class="signature"><span class="signature-params">(key)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
-              <p>Returns dat given key</p>
+              <p>Returns dat given key.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import modules
+var qm = require(&#x27;qminer&#x27;);
+var ht = qm.ht;
+// create a new hashtable
+var h = new ht.StrFltMap();
+// add a key/dat pair
+h.put(&#x27;foo&#x27;, 10.5);
+// get the newly added data
+var val = h.get(&#x27;foo&#x27;); // returns 10.5</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -239,7 +257,23 @@ h2.load(fin); // load</code></pre>
                 </dd>
               </dl>
               <h3 id="hasKey"><span class="symbol-name">hasKey</span><span class="signature"><span class="signature-params">(key)</span>&nbsp;&rarr; <span class="signature-returns"> boolean</span></span></h3>
-              <p>returns true if the map has a given key</p>
+              <p>Returns true if the map has a given key.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import modules
+var qm = require(&#x27;qminer&#x27;);
+var ht = qm.ht;
+// create a new hashtable
+var h = new ht.StrFltMap();
+// add a key/dat pair
+h.put(&#x27;foo&#x27;, 10.5);
+// check if the hashtable has the key
+h.hasKey(&#x27;foo&#x27;); // returns true</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -272,11 +306,27 @@ h2.load(fin); // load</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>boolean</code>&nbsp;True if the map contains key.</p>
+                  <p><code>boolean</code>&nbsp;True if the map contains key. Otherwise, false.</p>
                 </dd>
               </dl>
               <h3 id="key"><span class="symbol-name">key</span><span class="signature"><span class="signature-params">(n)</span>&nbsp;&rarr; <span class="signature-returns"> string</span></span></h3>
-              <p>returns n-th key</p>
+              <p>Returns n-th key.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import modules
+var qm = require(&#x27;qminer&#x27;);
+var ht = qm.ht;
+// create a new hashtable
+var h = new ht.StrFltMap();
+// add a key/dat pair
+h.put(&#x27;foo&#x27;, 10.5);
+// get the first key
+var key = h.key(0); // returns &#x27;foo&#x27;</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -300,7 +350,7 @@ h2.load(fin); // load</code></pre>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>Hashmap key number. Should be between 0 and length-1.</p>
+                        <p>Hashmap key index number. Should be between 0 and length-1.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -309,11 +359,29 @@ h2.load(fin); // load</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>string</code>&nbsp;n-th key.</p>
+                  <p><code>string</code>&nbsp;The n-th key.</p>
                 </dd>
               </dl>
               <h3 id="load"><span class="symbol-name">load</span><span class="signature"><span class="signature-params">(fin)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-ht.StrFltMap.html">module:ht.StrFltMap</a></span></span></h3>
-              <p>loads the hashtable from input stream</p>
+              <p>Loads the hashtable from input stream.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import modules
+var qm = require(&#x27;qminer&#x27;);
+var ht = qm.ht;
+var fs = qm.fs;
+// create a new hashtable
+var h = new ht.StrFltMap();
+fout = fs.openWrite(&#x27;map.dat&#x27;); // open write stream
+h.save(fout).close(); // save and close write stream
+var fin = fs.openRead(&#x27;map.dat&#x27;); // open read stream
+var h2 = new ht.StrFltMap();
+h2.load(fin); // load</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -350,7 +418,21 @@ h2.load(fin); // load</code></pre>
                 </dd>
               </dl>
               <h3 id="put"><span class="symbol-name">put</span><span class="signature"><span class="signature-params">(key, data)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-ht.StrFltMap.html">module:ht.StrFltMap</a></span></span></h3>
-              <p>add/update key-value pair</p>
+              <p>Add/update key-value pair.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import modules
+var qm = require(&#x27;qminer&#x27;);
+var ht = qm.ht;
+// create a new hashtable
+var h = new ht.StrFltMap();
+// add a key/dat pair
+h.put(&#x27;foo&#x27;, 10.5);</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
@@ -401,7 +483,22 @@ h2.load(fin); // load</code></pre>
                 </dd>
               </dl>
               <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
-              <p>saves the hashtable to output stream</p>
+              <p>Saves the hashtable to output stream.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import modules
+var qm = require(&#x27;qminer&#x27;);
+var ht = qm.ht;
+var fs = qm.fs;
+// create a new hashtable
+var h = new ht.StrFltMap();
+fout = fs.openWrite(&#x27;map.dat&#x27;); // open write stream
+h.save(fout).close(); // save and close write stream</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -438,7 +535,23 @@ h2.load(fin); // load</code></pre>
                 </dd>
               </dl>
               <h3 id="sortDat"><span class="symbol-name">sortDat</span><span class="signature"><span class="signature-params">([asc])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-ht.StrFltMap.html">module:ht.StrFltMap</a></span></span></h3>
-              <p>sorts by values</p>
+              <p>Sorts by dat.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import modules
+var qm = require(&#x27;qminer&#x27;);
+var ht = qm.ht;
+// create a new hashtable
+var h = new ht.StrFltMap();
+h.put(&#x27;foo&#x27;, 10.5);
+h.put(&#x27;bar&#x27;, 20.2);
+// sort the hashtable by dat
+h.sortDat();</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -462,7 +575,7 @@ h2.load(fin); // load</code></pre>
                         <p>Yes</p>
                       </td>
                       <td>
-                        <p>Sort in ascending order?</p>
+                        <p>If true, sorts in ascending order.</p>
                         <p>Defaults to <code>true</code>.</p>
                       </td>
                     </tr>
@@ -476,7 +589,23 @@ h2.load(fin); // load</code></pre>
                 </dd>
               </dl>
               <h3 id="sortKey"><span class="symbol-name">sortKey</span><span class="signature"><span class="signature-params">([asc])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-ht.StrFltMap.html">module:ht.StrFltMap</a></span></span></h3>
-              <p>sorts by keys</p>
+              <p>Sorts by keys.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import modules
+var qm = require(&#x27;qminer&#x27;);
+var ht = qm.ht;
+// create a new hashtable
+var h = new ht.StrFltMap();
+h.put(&#x27;foo&#x27;, 10.5);
+h.put(&#x27;bar&#x27;, 20.2);
+// sort the hashtable by keys
+h.sortKey();</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -500,7 +629,7 @@ h2.load(fin); // load</code></pre>
                         <p>Yes</p>
                       </td>
                       <td>
-                        <p>Sort in ascending order?</p>
+                        <p>If true, sorts in ascending order.</p>
                         <p>Defaults to <code>true</code>.</p>
                       </td>
                     </tr>

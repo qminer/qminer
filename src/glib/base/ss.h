@@ -75,6 +75,8 @@ public:
 /// Fast Spread Sheet Parser. ##TSsParser
 ClassTP(TSsParser, PSsParser)//{
 private:
+  static const char QUOTE_CH;
+
   TSsFmt SsFmt;  ///< Separator type.
   bool SkipLeadBlanks;  ///< Ignore leading whitespace characters in a line.
   bool SkipCmt;         ///< Skip comments (lines starting with #).

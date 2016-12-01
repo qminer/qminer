@@ -103,6 +103,12 @@ public:
  static inline int GetSecHashCd(const TKey& Key) { return Key.GetSecHashCd(); }
 };
 
+// forward declaration of string hash functions
+class TStrHashF_OldGLib;
+class TStrHashF_Md5;
+class TStrHashF_DJB;
+class TStrHashF_Murmur3;
+
 /////////////////////////////////////////////////
 // Hash-Table
 template<class TKey, class TDat, class THashFunc = TDefaultHashFunc<TKey> >
@@ -250,8 +256,8 @@ public:
   bool IsKey(const TKey& Key, int& KeyId) const { KeyId=GetKeyId(Key); return KeyId!=-1;}
   bool IsKeyId(const int& KeyId) const {
     return (0<=KeyId)&&(KeyId<KeyDatV.Len())&&(KeyDatV[KeyId].HashCd!=-1);}
-  const TDat& GetDat(const TKey& Key) const {return KeyDatV[GetKeyId(Key)].Dat;}
-  TDat& GetDat(const TKey& Key){return KeyDatV[GetKeyId(Key)].Dat;}
+  const TDat& GetDat(const TKey& Key) const;
+  TDat& GetDat(const TKey& Key);
 //  TKeyDatP GetKeyDat(const int& KeyId) const {
 //    TKeyDat& KeyDat=GetHashKeyDat(KeyId);
 //    return TKeyDatP(KeyDat.Key, KeyDat.Dat);}
@@ -484,6 +490,22 @@ void THash<TKey, TDat, THashFunc>::GetKeyV(TVec<TKey>& KeyV) const {
   int KeyId=FFirstKeyId();
   while (FNextKeyId(KeyId)){
     KeyV.Add(GetKey(KeyId));}
+}
+
+template<class TKey, class TDat, class THashFunc>
+TDat& THash<TKey, TDat, THashFunc>::GetDat(const TKey& Key) {
+    int KeyId = GetKeyId(Key);
+    // in case key is not found, ensure we don't try to access the data
+    EAssertR(KeyId >= 0, "Specified key does not exist");
+    return KeyDatV[KeyId].Dat;
+}
+
+template<class TKey, class TDat, class THashFunc>
+const TDat& THash<TKey, TDat, THashFunc>::GetDat(const TKey& Key) const {
+  int KeyId = GetKeyId(Key);
+  // in case key is not found, ensure we don't try to access the data
+  EAssertR(KeyId >= 0, "Specified key does not exist");
+  return KeyDatV[KeyId].Dat;
 }
 
 template<class TKey, class TDat, class THashFunc>
@@ -756,7 +778,7 @@ public:
 
 /////////////////////////////////////////////////
 // String-Hash-Table
-template <class TDat, class TStringPool = TStrPool, class THashFunc = TDefaultHashFunc<TStr> >
+template <class TDat, class TStringPool = TStrPool, class THashFunc = TStrHashF_DJB >
 class TStrHash{
 private:
   //typedef typename PStringPool::TObj TStringPool;
@@ -1041,6 +1063,7 @@ public:
     bool Get(const TKey& Key, TDat& Dat);
     void Del(const TKey& Key, const bool& DoEventCall = true);
     void ChangeKey(const TKey& OldKey, const TKey& NewKey);
+    bool IsKey(const TKey& Key) { return KeyDatH.IsKey(Key); }
     int Len() const { return KeyDatH.Len(); }
     void Flush();
     void FlushAndClr();
@@ -1117,14 +1140,12 @@ void TCache<TKey, TDat, THashFunc>::ChangeKey(const TKey& OldKey, const TKey& Ne
 	if (OldKey == NewKey)
 		return;
 	int OldKeyId = KeyDatH.GetKeyId(OldKey);
-	if (OldKeyId == -1) {
-		// nothing
-	} else {
-		TKeyLNDatPr KeyLNDatPr = KeyDatH[OldKeyId];
-		KeyLNDatPr.Val1->GetVal() = NewKey; // update data inside linked-list node
-		KeyDatH.AddDat(NewKey, KeyLNDatPr); // store the same data pair under new key
-		KeyDatH.DelKeyId(OldKeyId);
-	}
+    EAssertR(OldKeyId != -1, "OldKeyId should be a valid key");
+
+	TKeyLNDatPr KeyLNDatPr = KeyDatH[OldKeyId];
+	KeyLNDatPr.Val1->GetVal() = NewKey; // update data inside linked-list node
+	KeyDatH.AddDat(NewKey, KeyLNDatPr); // store the same data pair under new key
+    KeyDatH.DelKeyId(OldKeyId);
 }
 
 template <class TKey, class TDat, class THashFunc>
@@ -1171,7 +1192,7 @@ void TCache<TKey, TDat, THashFunc>::Flush(){
     Dat->OnDelFromCache(Key, RefToBs);
     Done++;
   }
-  if (MxMemUsed > (int64)TInt::Giga) { printf("Flush: %d/%d\r", KeyDatH.Len(), KeyDatH.Len()); }
+  if (MxMemUsed > (int64)TInt::Giga) { printf("Flush: %d/%d. Finished flushing.\n", KeyDatH.Len(), KeyDatH.Len()); }
 }
 
 template <class TKey, class TDat, class THashFunc>

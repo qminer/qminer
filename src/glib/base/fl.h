@@ -48,17 +48,17 @@ public:
 class TSBase{
 protected:
   TCRef CRef;
-  TSStr SNm;
+  /*TSStr SNm;*/
   TCs Cs;
 //protected:
 //  TSBase();
 //  TSBase(const TSBase&);
 //  TSBase& operator=(const TSBase&);
 public:
-  TSBase(const TSStr& Nm): SNm(Nm){}
+  TSBase() {}
   virtual ~TSBase(){}
 
-  virtual TStr GetSNm() const;
+  virtual TStr GetSNm() const = 0;
 };
 
 /////////////////////////////////////////////////
@@ -70,8 +70,7 @@ private:
   TSIn(const TSIn&);
   TSIn& operator=(const TSIn&);
 public:
-  TSIn(): TSBase("Input-Stream"), FastMode(false){}
-  TSIn(const TStr& Str);
+  TSIn(): TSBase(), FastMode(false){}
   virtual ~TSIn(){}
 
   virtual bool Eof()=0; // if end-of-file
@@ -121,6 +120,8 @@ public:
   bool GetNextLn(TStr& LnStr);
   bool GetNextLn(TChA& LnChA);
 
+  TStr GetSNm() const;
+
   static const TPt<TSIn> StdIn;
   friend class TPt<TSIn>;
 };
@@ -141,8 +142,7 @@ private:
   TSOut(const TSIn&);
   TSOut& operator = (const TSOut&);
 public:
-  TSOut(): TSBase("Output-Stream"), MxLnLen(-1), LnLen(0){}
-  TSOut(const TStr& Str);
+  TSOut(): TSBase(), MxLnLen(-1), LnLen(0){}
   virtual ~TSOut(){}
 
   void EnableLnTrunc(const int& _MxLnLen){MxLnLen=_MxLnLen;}
@@ -213,6 +213,7 @@ public:
   TSOut& operator<<(TSIn& SIn);
   TSOut& operator<<(PSIn& SIn){return operator<<(*SIn);}
 
+  TStr GetSNm() const;
   static const TPt<TSOut> StdOut;
   friend class TPt<TSOut>;
 };
@@ -230,7 +231,7 @@ private:
   TSInOut(const TSInOut&);
   TSInOut& operator=(const TSInOut&);
 public:
-  TSInOut(): TSBase("Input-Output-Stream"), TSIn(), TSOut() {}
+  TSInOut(): TSBase(), TSIn(), TSOut() {}
   virtual ~TSInOut(){}
 
   virtual void SetPos(const int& Pos)=0;
@@ -239,6 +240,7 @@ public:
   virtual int GetSize() const=0; // size of whole stream
   virtual void Clr()=0; // clear IO buffer
 
+  TStr GetSNm() const;
   friend class TPt<TSInOut>;
 };
 typedef TPt<TSInOut> PSInOut;
@@ -261,6 +263,8 @@ public:
   int GetBf(const void* LBf, const TSize& LBfL);
   void Reset(){Cs=TCs();}
   bool GetNextLnBf(TChA& LnChA);
+
+  TStr GetSNm() const;
 };
 
 /////////////////////////////////////////////////
@@ -276,6 +280,7 @@ public:
   int PutCh(const char& Ch){putchar(Ch); return Ch;}
   int PutBf(const void *LBf, const TSize& LBfL);
   void Flush(){fflush(stdout);}
+  TStr GetSNm() const;
 };
 
 /////////////////////////////////////////////////
@@ -283,6 +288,7 @@ public:
 class TFIn: public TSIn{
 private:
   static const int MxBfL;
+  TSStr SNm;
   TFileId FileId;
   char* Bf; //< buffer that was read from the disk and is (partially) usable for future GetBf calls
   int BfC;  //< index to the next data in Bf that we can use (0 <= BfC <= BfL)	
@@ -320,6 +326,7 @@ public:
   void Reset(){rewind(FileId); Cs=TCs(); BfC=BfL=-1; FillBf();}
   bool GetNextLnBf(TChA& LnChA);
 
+  TStr GetSNm() const;
   //J:not needed
   //TFileId GetFileId() const {return FileId;} //J:
   //void SetFileId(const FileId& FlId) {FileId=FlId; BfC=BfL=-1; FillBf(); } //J: for low level manipulations
@@ -330,6 +337,7 @@ public:
 class TFOut: public TSOut{
 private:
   static const TSize MxBfL;
+  TSStr SNm;
   TFileId FileId;
   char* Bf;
   TSize BfL;
@@ -350,6 +358,7 @@ public:
   int PutBf(const void* LBf, const TSize& LBfL);
   void Flush();
 
+  TStr GetSNm() const;
   TFileId GetFileId() const {return FileId;}
 };
 
@@ -359,6 +368,7 @@ typedef enum {faUndef, faCreate, faUpdate, faAppend, faRdOnly, faRestore} TFAcce
 
 class TFInOut : public TSInOut {
 private:
+  TSStr SNm;
   TFileId FileId;
 private:
   TFInOut();
@@ -388,6 +398,8 @@ public:
   int PutCh(const char& Ch) { return PutBf(&Ch, sizeof(Ch)); }
   int PutBf(const void* LBf, const TSize& LBfL);
   void Flush() { IAssert(fflush(FileId) == 0); }
+
+  TStr GetSNm() const;
 };
 
 /////////////////////////////////////////////////
@@ -421,6 +433,7 @@ public:
   void Reset(){Cs=TCs(); BfC=0;}
   bool GetNextLnBf(TChA& LnChA);
 
+  TStr GetSNm() const;
   char* GetBfAddr(){return Bf;}
 };
 
@@ -464,6 +477,8 @@ public:
   void MkEolnLn();
   void Seek(const int& ChN) {
 	  IAssert((0 <= ChN) && (ChN < BfL)); BfL = ChN; };
+
+  TStr GetSNm() const;
 };
 
 /////////////////////////////////////////////////
@@ -560,7 +575,9 @@ public:
   void PutInt(const int& Int){PutBf(&Int, sizeof(Int));}
   int GetInt(){int Int; GetBf(&Int, sizeof(Int)); return Int;}
   void PutUInt(const uint& UInt){PutBf(&UInt, sizeof(UInt));}
+  void PutUInt16(const uint16& UInt16) { PutBf(&UInt16, sizeof(UInt16)); }
   uint GetUInt(){uint UInt; GetBf(&UInt, sizeof(UInt)); return UInt;}
+  uint16 GetUInt16() { uint16 UInt16;  GetBf(&UInt16, sizeof(UInt16)); return UInt16; }
   void PutStr(const TStr& Str);
   TStr GetStr(const int& StrLen);
   TStr GetStr(const int& MxStrLen, bool& IsOk);

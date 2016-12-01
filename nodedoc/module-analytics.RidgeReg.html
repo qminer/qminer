@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.2.0</a>
       </div>
     </div>
   </nav>
@@ -25,7 +25,10 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">RidgeReg</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-377">analyticsdoc.<wbr>js:377</a></p>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-423">analyticsdoc.<wbr>js:423</a></p>
+            <div class="symbol-classdesc">
+              <p>Ridge regression minimizes the value <code>||A' x - b||^2 + ||gamma x||^2</code>. Uses <a href="http://en.wikipedia.org/wiki/Tikhonov_regularization">Tikhonov regularization</a>.</p>
+            </div>
             <dl class="dl-compact">
             </dl>
           </header>
@@ -87,20 +90,19 @@
           </section>
           <section>
             <h2 id="RidgeReg">new&nbsp;<span class="symbol-name">RidgeReg</span><span class="signature"><span class="signature-params">([arg])</span></span></h2>
-            <p>Ridge regression. Minimizes: ||A' x - b||^2 + ||gamma x||^2</p>
-            <p>Uses <a href="http://en.wikipedia.org/wiki/Tikhonov_regularization">Tikhonov regularization</a>.</p>
+            <p>Ridge Regression</p>
             <section>
               <h3>
             Example
         </h3>
               <div>
                 <pre class="prettyprint"><code>// import modules
-la = require(&#x27;qminer&#x27;).la;
 analytics = require(&#x27;qminer&#x27;).analytics;
-// create a new model with gamma = 1.0
+la = require(&#x27;qminer&#x27;).la;
+// create a new model with gamma equal to 1.0
 var regmod = new analytics.RidgeReg({ gamma: 1.0 });
 // generate a random feature matrix
-var A = la.randn(10,100);
+var A = la.randn(10, 100);
 // generate a random model
 var w = la.randn(10);
 // generate noise
@@ -109,10 +111,10 @@ var n = la.randn(100).multiply(0.01);
 var b = A.transpose().multiply(w).plus(n);
 // fit model
 regmod.fit(A, b);
-// compare
+// compare the true with the trained model
 // true model
 w.print();
-// trained model&#x27;);
+// trained model;
 regmod.weights.print();
 // cosine between the true and the estimated model should be close to 1 if the fit succeeded
 var cos = regmod.weights.cosine(w);</code></pre>
@@ -141,7 +143,9 @@ var cos = regmod.weights.cosine(w);</code></pre>
                       <p>Yes</p>
                     </td>
                     <td>
-                      <p>Loads a model from input stream, or creates a new model by setting gamma=arg from a Json object. Empty constructor sets gamma to zero.</p>
+                      <p>Construction arguments. There are two ways of constructing:
+                        <br>1. Using the <a href="module-analytics.html#~ridgeRegParam">module:analytics~ridgeRegParam</a> object,
+                        <br>2. using the file input stream <a href="module-fs.FIn.html">module:fs.FIn</a>.</p>
                     </td>
                   </tr>
                 </tbody>
@@ -154,34 +158,25 @@ var cos = regmod.weights.cosine(w);</code></pre>
             <h2>Property</h2>
             <section>
               <h3 id="weights"><span class="symbol-name">weights</span></h3>
+              <p>Vector of coefficients for linear regression. Type <a href="module-la.Vector.html">module:la.Vector</a>.</p>
               <section>
-                <h4>Property</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>weights</p>
-                      </td>
-                      <td>
-                        <p><a href="module-la.Vector.html">module:la.Vector</a></p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>Vector of coefficients for linear regression.</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import modules
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
+// create a new Ridge Regression object
+var regmod = new analytics.RidgeReg();
+// create the test matrix and vector
+var X = new la.Matrix([[1, 2], [1, -1]]);
+var y = new la.Vector([3, 3]);
+// fit the model with X and y
+regmod.fit(X, y);
+// get the weights
+var weights = regmod.weights;</code></pre>
+                </div>
               </section>
               <dl class="dl-compact">
               </dl>
@@ -248,7 +243,7 @@ var prediction = regmod.decisionFunction(vec);</code></pre>
                 </dd>
               </dl>
               <h3 id="fit"><span class="symbol-name">fit</span><span class="signature"><span class="signature-params">(X, y)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.RidgeReg.html">module:analytics.RidgeReg</a></span></span></h3>
-              <p>Fits a column matrix of feature vectors X onto the response variable y.</p>
+              <p>Fits a column matrix of feature vectors <code>X</code> onto the response variable <code>y</code>.</p>
               <section>
                 <h4>
             Example
@@ -313,10 +308,10 @@ regmod.fit(X, y);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.RidgeReg.html">module:analytics.RidgeReg</a></code>&nbsp;Self. The model is fitted by X and y.</p>
+                  <p><code><a href="module-analytics.RidgeReg.html">module:analytics.RidgeReg</a></code>&nbsp;Self. The model is fitted by <code>X</code> and <code>y</code>.</p>
                 </dd>
               </dl>
-              <h3 id="getModel"><span class="symbol-name">getModel</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.html#~ridgeRegModel">module:analytics~ridgeRegModel</a></span></span></h3>
+              <h3 id="getModel"><span class="symbol-name">getModel</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
               <p>Gets the model.</p>
               <section>
                 <h4>
@@ -328,16 +323,17 @@ var analytics = require(&#x27;qminer&#x27;).analytics;
 // create the Ridge Regression model
 var regmod = new analytics.RidgeReg();
 // get the model
-var model = regmod.getModel(); // returns { weights: new require(&#x27;qminer&#x27;).la.Vector(); }</code></pre>
+var model = regmod.getModel();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.html#~ridgeRegModel">module:analytics~ridgeRegModel</a></code>&nbsp;Get current model.</p>
+                  <p><code>Object</code>&nbsp;The <code>ridgeRegModel</code> object containing the property:
+                    <br> 1. <code>ridgeRegModel.weights</code> - The weights of the model. Type <a href="module-la.Vector.html">module:la.Vector</a>.</p>
                 </dd>
               </dl>
-              <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
+              <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> model:analytics~RidgeRegParam</span></span></h3>
               <p>Gets the parameters.</p>
               <section>
                 <h4>
@@ -356,7 +352,7 @@ var param = regmod.getParams();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Object</code>&nbsp;The Json object containing the parameters.</p>
+                  <p><code>model:analytics~RidgeRegParam</code>&nbsp;The object containing the parameters.</p>
                 </dd>
               </dl>
               <h3 id="predict"><span class="symbol-name">predict</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
@@ -477,7 +473,7 @@ var regmod2 = new analytics.RidgeReg(fin);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;THe output stream fout.</p>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;The output stream <code>fout</code>.</p>
                 </dd>
               </dl>
               <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(gamma)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.RidgeReg.html">module:analytics.RidgeReg</a></span></span></h3>
@@ -512,13 +508,13 @@ var param = regmod.setParams({ gamma: 10 });</code></pre>
                         <p>gamma</p>
                       </td>
                       <td>
-                        <p>(number or Object)</p>
+                        <p>(number or model:analytics~RidgeRegParam)</p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>The new parameter for the model, given as a number or as a json object.</p>
+                        <p>The new parameter for the model, given as a number or as an object.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -527,7 +523,7 @@ var param = regmod.setParams({ gamma: 10 });</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.RidgeReg.html">module:analytics.RidgeReg</a></code>&nbsp;Self. The parameter is set to gamma.</p>
+                  <p><code><a href="module-analytics.RidgeReg.html">module:analytics.RidgeReg</a></code>&nbsp;Self. The parameter is set to <code>gamma</code>.</p>
                 </dd>
               </dl>
             </section>

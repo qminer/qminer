@@ -136,7 +136,7 @@ template double TSparseKMeans::GetClusteringSSE() const;*/
  */
 class TBowKMeansUtils {
 public:
-	
+
 	/** Compatibility layer */
 	static PBowDocPart GetKMeansPartForDocWgtBs(
 		const PNotify& Notify,

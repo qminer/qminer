@@ -123,6 +123,21 @@ TStr TStrUtil::GetStr(const TIntIntFltTrV& IntIntFltTrV, const TStr& DelimiterSt
 	return ResChA;
 }
 
+TStr TStrUtil::GetStr(const TUInt64UInt64IntTrV& UInt64UInt64IntTrV,
+		const TStr& DelimiterStr) {
+	TChA ResChA;
+	for (int ValN = 0; ValN < UInt64UInt64IntTrV.Len(); ValN++) {
+		const TUInt64UInt64IntTr& Val = UInt64UInt64IntTrV[ValN];
+
+		ResChA += "(";
+		ResChA += Val.Val1.GetStr() + ", " + Val.Val2.GetStr() + ", " + Val.Val3.GetStr() + ")";
+		if (ValN < UInt64UInt64IntTrV.Len()-1) {
+			ResChA += DelimiterStr;
+		}
+	}
+	return ResChA;
+}
+
 TStr TStrUtil::GetStr(const TIntSet& IntSet, const TStr& DelimiterStr) {
 	TChA ResChA;
 
@@ -163,4 +178,15 @@ TStr TStrUtil::GetStr(const TStrH& StrH, const TStr& FieldDelimiterStr, const TS
 	ResChA+=StrH[KeyId].GetStr();
   }
   return ResChA;
+}
+
+TStr TStrUtil::GetHMSStrFromMSecs(const uint64& TmMSecs) {
+    TChAV DurChA;
+    uint64 DispDur = TmMSecs / 1000;
+
+    const int Secs = int(DispDur % 60);   DispDur /= 60;
+    const int Mins = int(DispDur % 60);   DispDur /= 60;
+    const int Hours = int(DispDur);
+
+    return TStr::Fmt("%dh%dm%ds", Hours, Mins, Secs);
 }

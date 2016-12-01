@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.2.0</a>
       </div>
     </div>
   </nav>
@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">CircularRecordBuffer</span></h1>
-            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-3322">qminerdoc.<wbr>js:3322</a></p>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-3797">qminerdoc.<wbr>js:3797</a></p>
             <div class="symbol-classdesc">
               <p>Circular buffer for storing records. Size of buffer is defined at start and is denoted in number of records. When buffer is full, old records are removed from the buffer and new records are stored in their place. For adding and deleting
                 a callback is called. Records are stored by their IDs.</p>
@@ -62,7 +62,7 @@
             </div>
           </section>
           <section>
-            <h2 id="CircularRecordBuffer">new&nbsp;<span class="symbol-name">CircularRecordBuffer</span><span class="signature"><span class="signature-params">([param])</span></span></h2>
+            <h2 id="CircularRecordBuffer">new&nbsp;<span class="symbol-name">CircularRecordBuffer</span><span class="signature"><span class="signature-params">([params])</span></span></h2>
             <section>
               <h3>
             Example
@@ -85,7 +85,7 @@
                 <tbody>
                   <tr>
                     <td>
-                      <p>param</p>
+                      <p>params</p>
                     </td>
                     <td>
                       <p>Object</p>
@@ -94,76 +94,67 @@
                       <p>Yes</p>
                     </td>
                     <td>
-                      <p>Constructor parameters</p>
-                      <p>Values in <code>param</code> have the following properties:</p>
-                      <table class="jsdoc-details-table">
-                        <thead>
-                          <tr>
-                            <th>Name</th>
-                            <th>Type</th>
-                            <th>Optional</th>
-                            <th>Description</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr>
-                            <td>
-                              <p>store</p>
-                            </td>
-                            <td>
-                              <p><a href="module-qm.Store.html">module:qm.Store</a></p>
-                            </td>
-                            <td>
-                              <p>&nbsp;</p>
-                            </td>
-                            <td>
-                              <p>Store for the records in the buffer.</p>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
-                              <p>size</p>
-                            </td>
-                            <td>
-                              <p>number</p>
-                            </td>
-                            <td>
-                              <p>&nbsp;</p>
-                            </td>
-                            <td>
-                              <p>Size of the buffer (number of records).</p>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
-                              <p>onAdd</p>
-                            </td>
-                            <td>
-                              <p>function()</p>
-                            </td>
-                            <td>
-                              <p>Yes</p>
-                            </td>
-                            <td>
-                              <p>Callback executed when new record is added to the buffer. Callback is give two parameters: record and instance of CircularRecordBuffer.</p>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
-                              <p>onDelete</p>
-                            </td>
-                            <td>
-                              <p>function()</p>
-                            </td>
-                            <td>
-                              <p>Yes</p>
-                            </td>
-                            <td>
-                              <p>Callback executed when record is removed from the buffer. Callback is give two parameters: record and instance of CircularRecordBuffer.</p>
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
+                      <p>Constructor parameters.</p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p>param.store</p>
+                    </td>
+                    <td>
+                      <p><a href="module-qm.Store.html">module:qm.Store</a></p>
+                    </td>
+                    <td>
+                      <p>&nbsp;</p>
+                    </td>
+                    <td>
+                      <p>Store for the records in the buffer.</p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p>param.size</p>
+                    </td>
+                    <td>
+                      <p>number</p>
+                    </td>
+                    <td>
+                      <p>&nbsp;</p>
+                    </td>
+                    <td>
+                      <p>Size of the buffer (number of records).</p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p>param.onAdd</p>
+                    </td>
+                    <td>
+                      <p>function()</p>
+                    </td>
+                    <td>
+                      <p>Yes</p>
+                    </td>
+                    <td>
+                      <p>Callback executed when new record is added to the buffer. Callback is give two parameters:
+                        <br><code>rec</code> - The record. Type <a href="module-qm.Record.html">module:qm.Record</a>.
+                        <br><code>circRecBuff</code> - The circular record buffer instance. Type <a href="module-qm.CircularRecordBuffer.html">module:qm.CircularRecordBuffer</a>.</p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p>param.onDelete</p>
+                    </td>
+                    <td>
+                      <p>function()</p>
+                    </td>
+                    <td>
+                      <p>Yes</p>
+                    </td>
+                    <td>
+                      <p>Callback executed when record is removed from the buffer. Callback is give two parameters:
+                        <br><code>rec</code> - The record. Type <a href="module-qm.Record.html">module:qm.Record</a>.
+                        <br><code>circRecBuff</code> - The circular record buffer instance. Type <a href="module-qm.CircularRecordBuffer.html">module:qm.CircularRecordBuffer</a>.</p>
                     </td>
                   </tr>
                 </tbody>
@@ -177,6 +168,14 @@
             <section>
               <h3 id="load"><span class="symbol-name">load</span><span class="signature"><span class="signature-params">(fin)</span></span></h3>
               <p>Load circular buffer from input stream. Assumes store, onAdd and onDelete were already initialized in constructor.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// TODO</code></pre>
+                </div>
+              </section>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -200,7 +199,7 @@
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>input stream</p>
+                        <p>input stream.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -252,6 +251,14 @@
               <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
               <p>Saves circular buffer to the output stream. Does not save store, onAdd and onDelete callbacks.</p>
               <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// TODO</code></pre>
+                </div>
+              </section>
+              <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
                   <thead>
@@ -274,7 +281,7 @@
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>output stream</p>
+                        <p>Output stream.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -283,7 +290,7 @@
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;output stream</p>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;The output stream <code>fout</code>.</p>
                 </dd>
               </dl>
             </section>

@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.2.0</a>
       </div>
     </div>
   </nav>
@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">Tokenizer</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1559">analyticsdoc.<wbr>js:1559</a></p>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1476">analyticsdoc.<wbr>js:1476</a></p>
             <div class="symbol-classdesc">
               <p>Breaks text into tokens (i.e. words).</p>
             </div>
@@ -61,7 +61,7 @@
             </div>
           </section>
           <section>
-            <h2 id="Tokenizer">new&nbsp;<span class="symbol-name">Tokenizer</span><span class="signature"><span class="signature-params">(param)</span></span></h2>
+            <h2 id="Tokenizer">new&nbsp;<span class="symbol-name">Tokenizer</span><span class="signature"><span class="signature-params">([arg])</span></span></h2>
             <p>Tokenizer</p>
             <section>
               <h3>
@@ -70,8 +70,8 @@
               <div>
                 <pre class="prettyprint"><code>// import analytics module
 var analytics = require(&#x27;qminer&#x27;).analytics;
-// construct model
-var tokenizer = new analytics.Tokenizer({ type: &quot;simple&quot; })</code></pre>
+// construct Tokenizer object
+var tokenizer = new analytics.Tokenizer({ type: &quot;simple&quot; });</code></pre>
               </div>
             </section>
             <section>
@@ -88,16 +88,16 @@ var tokenizer = new analytics.Tokenizer({ type: &quot;simple&quot; })</code></pr
                 <tbody>
                   <tr>
                     <td>
-                      <p>param</p>
+                      <p>arg</p>
                     </td>
                     <td>
-                      <p>module:analytics.tokenizerParam</p>
+                      <p><a href="module-analytics.html#~tokenizerParam">module:analytics~tokenizerParam</a></p>
                     </td>
                     <td>
-                      <p>&nbsp;</p>
+                      <p>Yes</p>
                     </td>
                     <td>
-                      <p>The constructor parameters.</p>
+                      <p>Construction arguments. If arg is not given it uses the <code>'unicode'</code> tokenizer type.</p>
                     </td>
                   </tr>
                 </tbody>
@@ -110,7 +110,7 @@ var tokenizer = new analytics.Tokenizer({ type: &quot;simple&quot; })</code></pr
             <h2>Methods</h2>
             <section>
               <h3 id="getParagraphs"><span class="symbol-name">getParagraphs</span><span class="signature"><span class="signature-params">(str)</span>&nbsp;&rarr; <span class="signature-returns"> Array of String</span></span></h3>
-              <p>This function breaks text into paragraphs and returns them as an array of strings.</p>
+              <p>Breaks string into paragraphs.</p>
               <section>
                 <h4>
             Example
@@ -120,7 +120,7 @@ var tokenizer = new analytics.Tokenizer({ type: &quot;simple&quot; })</code></pr
 var analytics = require(&#x27;qminer&#x27;).analytics;
 var la = require(&#x27;qminer&#x27;).la;
 // construct model
-var tokenizer = new analytics.Tokenizer({ type: &quot;simple&quot; });
+var tokenizer = new analytics.Tokenizer();
 // string you wish to tokenize
 var string = &quot;Yes!\t No?\n Maybe...&quot;;
 // tokenize text using getParagraphs
@@ -152,7 +152,7 @@ tokens = [&quot;Yes&quot;, &quot; No&quot;, &quot; Maybe&quot;];</code></pre>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>String of text you want to break into paragraphs.</p>
+                        <p>String given to break into paragraphs.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -161,12 +161,11 @@ tokens = [&quot;Yes&quot;, &quot; No&quot;, &quot; Maybe&quot;];</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Array of String</code>&nbsp;Returns array of strings. The number of strings in this array is equal to number of paragraphs in input string parameter. When function detects commands '\n', '\r' or '\t' it breaks text as new paragraph.
-                    With all 3 types this function returns paragraphs as they are.</p>
+                  <p><code>Array of String</code>&nbsp;Array of paragraphs. The number of paragraphs is equal to number of paragraphs in input <code>str</code>. When function detects escape sequences <code>'\n'</code>, <code>'\r'</code> or <code>'\t'</code>                    it breaks text as new paragraph.</p>
                 </dd>
               </dl>
               <h3 id="getSentences"><span class="symbol-name">getSentences</span><span class="signature"><span class="signature-params">(str)</span>&nbsp;&rarr; <span class="signature-returns"> Array of String</span></span></h3>
-              <p>This function breaks text into sentences and returns them as an array of strings.</p>
+              <p>Breaks string into sentences.</p>
               <section>
                 <h4>
             Example
@@ -176,7 +175,7 @@ tokens = [&quot;Yes&quot;, &quot; No&quot;, &quot; Maybe&quot;];</code></pre>
 var analytics = require(&#x27;qminer&#x27;).analytics;
 var la = require(&#x27;qminer&#x27;).la;
 // construct model
-var tokenizer = new analytics.Tokenizer({ type: &quot;simple&quot; });
+var tokenizer = new analytics.Tokenizer();
 // string you wish to tokenize
 var string = &quot;C++? Alright. Let&#x27;s do this!&quot;;
 // tokenize text using getSentences
@@ -208,7 +207,7 @@ tokens = [&quot;C++&quot;, &quot; Alright&quot;, &quot; Let&#x27;s do this&quot;
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>String of text you want to break into sentences.</p>
+                        <p>String given to break into sentences.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -217,12 +216,12 @@ tokens = [&quot;C++&quot;, &quot; Alright&quot;, &quot; Let&#x27;s do this&quot;
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Array of String</code>&nbsp;Returns array of strings. The number of strings in this array is equal to number of sentences in input string parameter. How function breaks sentences depends on where you use a full-stop, exclamation
-                    mark, question mark or the new line command. Careful: the space between the lines is not ignored. With all 3 types this function returns sentences as they are.</p>
+                  <p><code>Array of String</code>&nbsp;Array of sentences. The number of sentences is equal to number of sentences in input <code>str</code>. How function breaks sentences depends on where you use a full-stop, exclamation mark, question mark
+                    or the new line command. Careful: the space between the lines is not ignored.</p>
                 </dd>
               </dl>
               <h3 id="getTokens"><span class="symbol-name">getTokens</span><span class="signature"><span class="signature-params">(str)</span>&nbsp;&rarr; <span class="signature-returns"> Array of String</span></span></h3>
-              <p>This function tokenizes given strings and returns it as an array of strings.</p>
+              <p>Tokenizes given string.</p>
               <section>
                 <h4>
             Example
@@ -232,7 +231,7 @@ tokens = [&quot;C++&quot;, &quot; Alright&quot;, &quot; Let&#x27;s do this&quot;
 var analytics = require(&#x27;qminer&#x27;).analytics;
 var la = require(&#x27;qminer&#x27;).la;
 // construct model
-var tokenizer = new analytics.Tokenizer({ type: &quot;simple&quot; });
+var tokenizer = new analytics.Tokenizer();
 // string you wish to tokenize
 var string = &quot;What a beautiful day!&quot;;
 // tokenize string using getTokens
@@ -264,7 +263,7 @@ tokens = [&quot;What&quot;, &quot;a&quot;, &quot;beautiful&quot;, &quot;day&quot
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>String of text you want to tokenize.</p>
+                        <p>String given to tokenize.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -273,8 +272,8 @@ tokens = [&quot;What&quot;, &quot;a&quot;, &quot;beautiful&quot;, &quot;day&quot
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Array of String</code>&nbsp;Returns array of strings. The number of strings in this array is equal to number of words in input string parameter. Only keeps words, skips all punctuation. Tokenizing contractions (i.e. don't) depends
-                    on which type you use. Type 'html' breaks contractions into 2 tokens.</p>
+                  <p><code>Array of String</code>&nbsp;Array of tokens. The number of tokens is equal to number of words in input <code>str</code>. Only keeps words, skips all punctuation. Tokenizing contractions (i.e. don't) depends on which type you use.
+                    Example: type <code>'html'</code> breaks contractions into 2 tokens.</p>
                 </dd>
               </dl>
             </section>

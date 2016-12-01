@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.2.0</a>
       </div>
     </div>
   </nav>
@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">RecLinReg</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-881">analyticsdoc.<wbr>js:881</a></p>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-948">analyticsdoc.<wbr>js:948</a></p>
             <div class="symbol-classdesc">
               <p>Holds the Recursive Linear Regression model.</p>
             </div>
@@ -85,7 +85,7 @@
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.RecLinReg.html#setParams">setParams(param)</a></dt>
+                    <dt><a href="module-analytics.RecLinReg.html#setParams">setParams(params)</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -94,7 +94,7 @@
             </div>
           </section>
           <section>
-            <h2 id="RecLinReg">new&nbsp;<span class="symbol-name">RecLinReg</span><span class="signature"><span class="signature-params">(param)</span></span></h2>
+            <h2 id="RecLinReg">new&nbsp;<span class="symbol-name">RecLinReg</span><span class="signature"><span class="signature-params">(arg)</span></span></h2>
             <p>Recursive Linear Regression</p>
             <section>
               <h3>
@@ -121,16 +121,18 @@ var linreg = new analytics.RecLinReg({ dim: 10, regFact: 1.0, forgetFact: 1.0 })
                 <tbody>
                   <tr>
                     <td>
-                      <p>param</p>
+                      <p>arg</p>
                     </td>
                     <td>
-                      <p>(<a href="module-analytics.html#~recLinearRegParam">module:analytics~recLinearRegParam</a> or <a href="module-fs.FIn.html">module:fs.FIn</a>)</p>
+                      <p>(<a href="module-analytics.html#~recLinRegParam">module:analytics~recLinRegParam</a> or <a href="module-fs.FIn.html">module:fs.FIn</a>)</p>
                     </td>
                     <td>
                       <p>&nbsp;</p>
                     </td>
                     <td>
-                      <p>The constructor parameter json object.</p>
+                      <p>Construction arguments. There are two ways of constructing:
+                        <br>1. Using the <a href="module-analytics.html#~detectorParam">module:analytics~detectorParam</a> object,
+                        <br>2. using the file input stream <a href="module-fs.FIn.html">module:fs.FIn</a>.</p>
                     </td>
                   </tr>
                 </tbody>
@@ -143,18 +145,50 @@ var linreg = new analytics.RecLinReg({ dim: 10, regFact: 1.0, forgetFact: 1.0 })
             <h2>Properties</h2>
             <section>
               <h3 id="dim"><span class="symbol-name">dim</span></h3>
-              <p>Gets the dimensionality of the model.</p>
+              <p>Gets the dimensionality of the model. Type <code>number</code>.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import analytics module
+var analytics = require(&#x27;qminer&#x27;).analytics;
+// create a new Recursive Linear Regression model
+var linreg = new analytics.RecLinReg({ dim: 10 });
+// get the dimensionality of the model
+var dim = linreg.dim;</code></pre>
+                </div>
+              </section>
               <dl class="dl-compact">
               </dl>
               <h3 id="weights"><span class="symbol-name">weights</span></h3>
-              <p>Gives the weights of the model.</p>
+              <p>Gives the weights of the model. Type <a href="module-la.Vector.html">module:la.Vector</a>.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import analytics module
+var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
+// create a new Recursive Linear Regression model
+var linreg = new analytics.RecLinReg({ dim: 2 });
+// create a new dense matrix and target vector
+var mat = new la.Matrix([[1, 2], [1, -1]]);
+var vec = new la.Vector([3, 3]);
+// fit the model with the matrix
+linreg.fit(mat, vec);
+// get the weights of the model
+var weights = linreg.weights;</code></pre>
+                </div>
+              </section>
               <dl class="dl-compact">
               </dl>
             </section>
             <h2>Methods</h2>
             <section>
               <h3 id="fit"><span class="symbol-name">fit</span><span class="signature"><span class="signature-params">(mat, vec)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.RecLinReg.html">module:analytics.RecLinReg</a></span></span></h3>
-              <p>Creates a fit of the input.</p>
+              <p>Creates/updates the internal model.</p>
               <section>
                 <h4>
             Example
@@ -209,7 +243,7 @@ linreg.fit(mat, vec);</code></pre>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>The target numbers, where the i-th number in vector is the target number for the i-th column of the matrix.</p>
+                        <p>The target numbers, where the i-th number in vector is the target number for the i-th column of the <code>mat</code>.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -221,8 +255,8 @@ linreg.fit(mat, vec);</code></pre>
                   <p><code><a href="module-analytics.RecLinReg.html">module:analytics.RecLinReg</a></code>&nbsp;Self. The internal model is updated.</p>
                 </dd>
               </dl>
-              <h3 id="getModel"><span class="symbol-name">getModel</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> module:analytics~recLnRegModel</span></span></h3>
-              <p>Gets Recursive Linear Regression model</p>
+              <h3 id="getModel"><span class="symbol-name">getModel</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
+              <p>Gets the model.</p>
               <section>
                 <h4>
             Example
@@ -239,10 +273,11 @@ var model = linreg.getModel(); // returns { weights: new require(&#x27;qminer&#x
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>module:analytics~recLnRegModel</code>&nbsp;The current model.</p>
+                  <p><code>Object</code>&nbsp;The <code>recLinRegModel</code> object containing the property:
+                    <br> 1. <code>recLinRegModel.weights</code> - The weights of the model. Type <a href="module-la.Vector.html">module:la.Vector</a>.</p>
                 </dd>
               </dl>
-              <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.html#~recLinearRegParam">module:analytics~recLinearRegParam</a></span></span></h3>
+              <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.html#~recLinRegParam">module:analytics~recLinRegParam</a></span></span></h3>
               <p>Returns the parameters.</p>
               <section>
                 <h4>
@@ -260,11 +295,11 @@ var params = linreg.getParams(); // returns { dim: 10, recFact: 1.0, forgetFact:
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.html#~recLinearRegParam">module:analytics~recLinearRegParam</a></code>&nbsp;The parameters of the model.</p>
+                  <p><code><a href="module-analytics.html#~recLinRegParam">module:analytics~recLinRegParam</a></code>&nbsp;The parameters of the model.</p>
                 </dd>
               </dl>
               <h3 id="partialFit"><span class="symbol-name">partialFit</span><span class="signature"><span class="signature-params">(vec, num)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.RecLinReg.html">module:analytics.RecLinReg</a></span></span></h3>
-              <p>Creates a partial fit of the input.</p>
+              <p>Updates the internal model.</p>
               <section>
                 <h4>
             Example
@@ -376,7 +411,7 @@ var prediction = linreg.predict(pred); // returns something close to 3.0</code><
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>The vector needed to be predicted.</p>
+                        <p>The prediction vector.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -447,10 +482,10 @@ var linreg2 = new analytics.RecLinReg(fin);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;Provided output stream fout.</p>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;The output stream <code>fout</code>.</p>
                 </dd>
               </dl>
-              <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(param)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.RecLinReg.html">module:analytics.RecLinReg</a></span></span></h3>
+              <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(params)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.RecLinReg.html">module:analytics.RecLinReg</a></span></span></h3>
               <p>Sets the parameters of the model.</p>
               <section>
                 <h4>
@@ -479,10 +514,10 @@ linreg.setParams({ dim: 3, recFact: 1e2, forgetFact: 0.5 });</code></pre>
                   <tbody>
                     <tr>
                       <td>
-                        <p>param</p>
+                        <p>params</p>
                       </td>
                       <td>
-                        <p><a href="module-analytics.html#~recLinearRegParam">module:analytics~recLinearRegParam</a></p>
+                        <p><a href="module-analytics.html#~recLinRegParam">module:analytics~recLinRegParam</a></p>
                       </td>
                       <td>
                         <p>&nbsp;</p>

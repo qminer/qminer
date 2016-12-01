@@ -37,14 +37,14 @@ void TNodeJsStat::mean(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		// If input argument is vec
 		//TNodeJsVec* Test = ObjectWrap::Unwrap<TNodeJsVec>(Args[0]->ToObject()); 
 		TNodeJsVec<TFlt, TAuxFltV>* JsVec = ObjectWrap::Unwrap< TNodeJsVec< TFlt, TAuxFltV > >(Args[0]->ToObject());
-		Args.GetReturnValue().Set(v8::Number::New(Isolate, TLAMisc::Mean(JsVec->Vec)));
+		Args.GetReturnValue().Set(v8::Number::New(Isolate, TLinAlgStat::Mean(JsVec->Vec)));
 		return;
 	}
 	if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltVV::GetClassId())) {
 		//If input argument is matrix
 		TFltV Vec;
 		TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
-		TLAMisc::Mean(JsMat->Mat, Vec, Dim == 1 ? TMatDim::mdCols : TMatDim::mdRows);
+		TLinAlgStat::Mean(JsMat->Mat, Vec, Dim == 1 ? TMatDim::mdCols : TMatDim::mdRows);
 		Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Vec));
 		return;
 	}
@@ -64,15 +64,18 @@ void TNodeJsStat::std(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 	if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltV::GetClassId().CStr())) {
 		// If input argument is vec
-		// TODO
-		throw TExcept::New("stat.std(vec) not implemented yet. Use stat.std(mat).");
+        TNodeJsFltV* JsVec = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltV>(Args, 0);
+        const double Result = TLinAlgStat::Std(JsVec->Vec, Flag);
+
+        Args.GetReturnValue().Set(v8::Number::New(Isolate, Result));
+        return;
 	}
 	if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltVV::GetClassId())) {
 		//If input argument is matrix
 		TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
 		TFltV Res;
 		const TMatDim CalcDim = Dim == 1 ? TMatDim::mdCols : TMatDim::mdRows;
-		TLAMisc::Std(JsMat->Mat, Res, Flag, CalcDim);
+		TLinAlgStat::Std(JsMat->Mat, Res, Flag, CalcDim);
 
 		Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Res));
 		return;
@@ -95,9 +98,9 @@ void TNodeJsStat::zscore(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	TFltV sigma;
 
 	const TMatDim CalcDim = Dim == 1 ? TMatDim::mdCols : TMatDim::mdRows;
-	TLAMisc::ZScore(JsMat->Mat, Z, Flag, CalcDim);
-	TLAMisc::Mean(JsMat->Mat, mu, CalcDim);
-	TLAMisc::Std(JsMat->Mat, sigma, Flag, CalcDim);
+	TLinAlgStat::ZScore(JsMat->Mat, Z, Flag, CalcDim);
+	TLinAlgStat::Mean(JsMat->Mat, mu, CalcDim);
+	TLinAlgStat::Std(JsMat->Mat, sigma, Flag, CalcDim);
 
 	JsObj->Set(v8::String::NewFromUtf8(Isolate, "Z"), TNodeJsFltVV::New(Z));
 	JsObj->Set(v8::String::NewFromUtf8(Isolate, "mu"), TNodeJsVec< TFlt, TAuxFltV >::New(mu));
