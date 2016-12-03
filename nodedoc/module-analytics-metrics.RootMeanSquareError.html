@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v6.4.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.2.0</a>
       </div>
     </div>
   </nav>
@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>~<wbr><a href="module-analytics-metrics.html">metrics</a>.<wbr></small><span class="symbol-name">RootMeanSquareError</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-3192">analyticsdoc.<wbr>js:3192</a></p>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-3218">analyticsdoc.<wbr>js:3218</a></p>
             <div class="symbol-classdesc">
               <p>Online Root Mean Square Error (RMSE) instance.</p>
             </div>
@@ -33,33 +33,6 @@
             </dl>
           </header>
           <section id="summary">
-            <div class="summary-callout">
-              <h2 class="summary-callout-heading">Methods</h2>
-              <div class="summary-content">
-                <div class="summary-column">
-                  <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics-metrics.RootMeanSquareError.html#getError">getError()</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="module-analytics-metrics.RootMeanSquareError.html#load">load(fin)</a></dt>
-                    <dd>
-                    </dd>
-                  </dl>
-                </div>
-                <div class="summary-column">
-                  <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics-metrics.RootMeanSquareError.html#push">push(yTrue, yPred)</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="module-analytics-metrics.RootMeanSquareError.html#save">save(fout)</a></dt>
-                    <dd>
-                    </dd>
-                  </dl>
-                </div>
-                <div class="summary-column">
-                </div>
-              </div>
-            </div>
           </section>
           <section>
             <h2 id="RootMeanSquareError">new&nbsp;<span class="symbol-name">RootMeanSquareError</span><span class="signature"><span class="signature-params">([fin])</span></span></h2>
@@ -95,150 +68,10 @@
             </section>
             <dl class="dl-compact">
               <dt>Extends</dt>
-              <dd><a href="module-analytics-createOnlineMetric.html">module:analytics~createOnlineMetric</a></dd>
+              <dd>module:analytics~createOnlineMetric</dd>
             </dl>
           </section>
           <section>
-            <h2>Methods</h2>
-            <section>
-              <h3 id="getError"><span class="symbol-name">getError</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
-              <p>Returns error value.</p>
-              <dl class="dl-compact">
-                <dt>Inherited from</dt>
-                <dd><a href="module-analytics-createOnlineMetric.html#getError">module:analytics~createOnlineMetric#getError</a></dd>
-                <dt>Returns</dt>
-                <dd>
-                  <p>Error value.</p>
-                </dd>
-              </dl>
-              <h3 id="load"><span class="symbol-name">load</span><span class="signature"><span class="signature-params">(fin)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FIn.html">module:fs.FIn</a></span></span></h3>
-              <p>Load metric state from provided input stream <code>fin</code>.</p>
-              <section>
-                <h4>Parameter</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>fin</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>The output stream.</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-                <dt>Inherited from</dt>
-                <dd><a href="module-analytics-createOnlineMetric.html#load">module:analytics~createOnlineMetric#load</a></dd>
-                <dt>Returns</dt>
-                <dd>
-                  <p>The output stream <code>fin</code>.</p>
-                </dd>
-              </dl>
-              <h3 id="push"><span class="symbol-name">push</span><span class="signature"><span class="signature-params">(yTrue, yPred)</span></span></h3>
-              <p>Updates metric with ground truth target value <code>yTrue</code> and estimated target value <code>yPred</code>.</p>
-              <section>
-                <h4>Parameters</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>yTrue</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>Ground truth (correct) target value.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>yPred</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>Estimated target value.</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-                <dt>Inherited from</dt>
-                <dd><a href="module-analytics-createOnlineMetric.html#push">module:analytics~createOnlineMetric#push</a></dd>
-              </dl>
-              <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
-              <p>Save metric state to provided output stream <code>fout</code>.</p>
-              <section>
-                <h4>Parameter</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>fout</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>The output stream.</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-                <dt>Inherited from</dt>
-                <dd><a href="module-analytics-createOnlineMetric.html#save">module:analytics~createOnlineMetric#save</a></dd>
-                <dt>Returns</dt>
-                <dd>
-                  <p>The output stream <code>fout</code>.</p>
-                </dd>
-              </dl>
-            </section>
           </section>
         </div>
       </div>

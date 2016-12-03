@@ -1353,8 +1353,8 @@
 * Neural Network Model.
 * @class
 * @classdesc Holds online/offline neural network model.
-* @param {module:analytics~nnetParams | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
-* <br>1. Using the {@link module:analytics~nnetParams} object,
+* @param {module:analytics~nnetParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
+* <br>1. Using the {@link module:analytics~nnetParam} object,
 * <br>2. using the file input stream {@link module:fs.FIn}.
 * @example
 * // import module
@@ -1365,7 +1365,7 @@
  exports.NNet = function (arg) { return Object.create(require('qminer').analytics.NNet.prototype); }
 /**
     * Get the parameters of the model.
-    * @returns {module:analytics~nnetParams} The constructor parameters.
+    * @returns {module:analytics~nnetParam} The constructor parameters.
     * @example
     * // import analytics module
     * var analytics = require('qminer').analytics;
@@ -1377,7 +1377,7 @@
  exports.NNet.prototype.getParams = function () { return { layout: Object.create(require('qminer').la.IntVector.prototype), learnRate: 0.0, momentum: 0.0, tFuncHidden: "", TFuncOut: "" }; }
 /**
     * Sets the parameters of the model.
-    * @params {module:analytics~nnetParams} params - The given parameters.
+    * @params {module:analytics~nnetParam} params - The given parameters.
     * @returns {module:analytics.NNet} Self. The model parameters have been updated.
     * @example
     * // import analytics module
@@ -1699,18 +1699,20 @@
      * @example <caption> Asynchronous function </caption>
      * // import analytics module
      * var analytics = require('qminer').analytics;
+     * var la = require('qminer').la;
      * // create a new KMeans object
      * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
      * // create a matrix to be fitted
      * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
      * // create the model with the matrix X
      * KMeans.fitAsync(X, function (err) {
-     *     if (err) throw err;
+     *     if (err) console.log(err);
      *     // successful calculation
      * });
      *
      * @example <caption> Synchronous function </caption>
      * var analytics = require('qminer').analytics;
+     * var la = require('qminer').la;
      * // create a new KMeans object
      * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
      * // create a matrix to be fitted
@@ -1726,6 +1728,7 @@
      * @example
      * // import analytics module
      * var analytics = require('qminer').analytics;
+     * var la = require('qminer').la;
      * // create a new KMeans object
      * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
      * // create a matrix to be fitted
@@ -1812,7 +1815,6 @@
      * @example
      * // import the modules
      * var analytics = require('qminer').analytics;
-     * var la = require('qminer').la;
      * // create a new KMeans object
      * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
      * // get the centroids
@@ -1824,7 +1826,6 @@
     * @example
     * // import the modules
     * var analytics = require('qminer').analytics;
-    * var la = require('qminer').la;
     * // create a new KMeans object
     * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
     * // get the centroids
@@ -1836,7 +1837,6 @@
     * @example
     * // import the modules
     * var analytics = require('qminer').analytics;
-    * var la = require('qminer').la;
     * // create a new KMeans object
     * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
     * // get the idxv
@@ -1967,6 +1967,28 @@
     * var recSys2 = new analytics.RecommenderSys(fin);
     */
  exports.RecommenderSys.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
+ exports.GraphCascade = function (arg) { return Object.create(require('qminer').analytics.GraphCascade.prototype); }
+/**
+    * Sets the cascade time for a given node
+    * @param {string} nodeId - 
+    * @param {number} timestamp - 
+    */
+/**
+    * Computes the posterior for timestamps of unobserved nodes
+    * @param {number} timestamp - current time
+    */
+/**
+    * Returns the posteriors
+    * @returns {Object} - model
+    */
+/**
+    * Returns the pruned directed acyclic graph
+    * @returns {Object} - dag
+    */
+/**
+    * Returns the topologically ordered node names
+    * @returns {Object} - nodeArr
+    */
 
 
     ///////////////////////////////////////////////////
@@ -3015,7 +3037,7 @@
     // Main object for online metrics model
     /**
     * createOnlineMetric
-    * @private
+    * @ignore
     * @class
     *
     * This provides methods used for event handling. It's not meant to
@@ -3038,6 +3060,7 @@
 
         /**
         * Updates metric with ground truth target value `yTrue` and estimated target value `yPred`.
+        * @ignore
         * @param {number} yTrue - Ground truth (correct) target value.
         * @param {number} yPred - Estimated target value.
         */
@@ -3053,6 +3076,7 @@
 
         /**
         * Returns error value.
+        * @ignore
         * @returns {number} Error value.
         */
         this.getError = function () {
@@ -3061,6 +3085,7 @@
 
         /**
 	    * Save metric state to provided output stream `fout`.
+        * @ignore
 	    * @param {module:fs.FOut} fout - The output stream.
 	    * @returns {module:fs.FOut} The output stream `fout`.
         */
@@ -3071,6 +3096,7 @@
 
         /**
 	    * Load metric state from provided input stream `fin`.
+        * @ignore
 	    * @param {module:fs.FIn} fin - The output stream.
 	    * @returns {module:fs.FIn} The output stream `fin`.
         */

@@ -17,7 +17,8 @@ THash<TStr, TStr> TNodeJsUtil::ClassNmAccessorH = THash<TStr, TStr>();
 void TNodeJsUtil::CheckJSExcept(const v8::TryCatch& TryCatch) {
     if (TryCatch.HasCaught()) {
         v8::String::Utf8Value Msg(TryCatch.Message()->Get());
-        throw TExcept::New("Javascript exception from callback triggered:" + TStr(*Msg));
+        v8::String::Utf8Value StackTrace(TryCatch.StackTrace());
+        throw TExcept::New("Javascript exception from callback triggered:" + TStr(*Msg) + "\n" + TStr(*StackTrace));
     }
 }
 
@@ -482,14 +483,14 @@ TStr TNodeJsUtil::GetArgStr(const v8::FunctionCallbackInfo<v8::Value>& Args, con
 }
 
 PJsonVal TNodeJsUtil::GetArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const bool& IgnoreFunc, const bool& IgnoreWrappedObj) {
-    EAssertR(Args.Length() >= ArgN, "TNodeJsUtil::GetArgJson: Invalid number of arguments!");
+    EAssertR(Args.Length() > ArgN, "TNodeJsUtil::GetArgJson: Invalid number of arguments!");
     EAssertR(Args[ArgN]->IsObject(), "TNodeJsUtil::GetArgJson: Argument is not an object, number or boolean!");
     return GetObjJson(Args[ArgN]->ToObject(), IgnoreFunc, IgnoreWrappedObj);
 }
 
 PJsonVal TNodeJsUtil::GetArgToNmJson(const v8::FunctionCallbackInfo<v8::Value>& Args,
         const int& ArgN) {
-    EAssertR(Args.Length() >= ArgN, "TNodeJsUtil::GetArgJson: Invalid number of arguments!");
+    EAssertR(Args.Length() > ArgN, "TNodeJsUtil::GetArgJson: Invalid number of arguments!");
     EAssertR(Args[ArgN]->IsObject(), "TNodeJsUtil::GetArgJson: Argument is not an object, number or boolean!");
     return GetObjToNmJson(Args[ArgN]->ToObject());
 }
@@ -499,7 +500,7 @@ void TNodeJsUtil::GetArgIntVV(const v8::FunctionCallbackInfo<v8::Value>& Args, c
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    EAssertR(Args.Length() >= ArgN, "TNodeJsUtil::GetArgIntVV: Invalid number of arguments!");
+    EAssertR(Args.Length() > ArgN, "TNodeJsUtil::GetArgIntVV: Invalid number of arguments!");
     EAssertR(Args[ArgN]->IsArray(), "TNodeJsUtil::GetArgIntVV: argument is not an array!");
 
     v8::Array* JsIntVV = v8::Array::Cast(*Args[ArgN]);
@@ -796,7 +797,7 @@ v8::Local<v8::Object> TNodeJsUtil::NewBuffer(const char* ChA, const size_t& Len)
 }
 
 PMem TNodeJsUtil::GetArgMem(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
-    EAssertR(Args.Length() >= ArgN, "TNodeJsUtil::GetArgMem: Invalid number of arguments!");
+    EAssertR(Args.Length() > ArgN, "TNodeJsUtil::GetArgMem: Invalid number of arguments!");
     EAssertR(Args[ArgN]->IsObject(), "TNodeJsUtil::GetArgMem: Argument is not an object!");
 
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();

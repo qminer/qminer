@@ -13,8 +13,9 @@
 #include "../nodeutil.h"
 #include "fs_nodejs.h"
 #include "la_nodejs.h"
-#include "qminer_ftr.h"
+#include "qminer_core.h"
 #include "../../glib/mine/mine.h"
+#include "graphprocess.h"
 
 /**
  * Analytics module.
@@ -1715,8 +1716,8 @@ public:
 * Neural Network Model.
 * @class
 * @classdesc Holds online/offline neural network model.
-* @param {module:analytics~nnetParams | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
-* <br>1. Using the {@link module:analytics~nnetParams} object,
+* @param {module:analytics~nnetParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
+* <br>1. Using the {@link module:analytics~nnetParam} object,
 * <br>2. using the file input stream {@link module:fs.FIn}.
 * @example
 * // import module
@@ -1741,7 +1742,7 @@ public:
 
     /**
     * Get the parameters of the model.
-    * @returns {module:analytics~nnetParams} The constructor parameters.
+    * @returns {module:analytics~nnetParam} The constructor parameters.
     * @example
     * // import analytics module
     * var analytics = require('qminer').analytics;
@@ -1755,7 +1756,7 @@ public:
 
     /**
     * Sets the parameters of the model.
-    * @params {module:analytics~nnetParams} params - The given parameters.
+    * @params {module:analytics~nnetParam} params - The given parameters.
     * @returns {module:analytics.NNet} Self. The model parameters have been updated.
     * @example
     * // import analytics module
@@ -2234,18 +2235,20 @@ public:
      * @example <caption> Asynchronous function </caption>
      * // import analytics module
      * var analytics = require('qminer').analytics;
+     * var la = require('qminer').la;
      * // create a new KMeans object
      * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
      * // create a matrix to be fitted
      * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
      * // create the model with the matrix X
      * KMeans.fitAsync(X, function (err) {
-     *     if (err) throw err;
+     *     if (err) console.log(err);
      *     // successful calculation
      * });
      *
      * @example <caption> Synchronous function </caption>
      * var analytics = require('qminer').analytics;
+     * var la = require('qminer').la;
      * // create a new KMeans object
      * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
      * // create a matrix to be fitted
@@ -2263,6 +2266,7 @@ public:
      * @example
      * // import analytics module
      * var analytics = require('qminer').analytics;
+     * var la = require('qminer').la;
      * // create a new KMeans object
      * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
      * // create a matrix to be fitted
@@ -2357,7 +2361,6 @@ public:
      * @example
      * // import the modules
      * var analytics = require('qminer').analytics;
-     * var la = require('qminer').la;
      * // create a new KMeans object
      * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
      * // get the centroids
@@ -2371,7 +2374,6 @@ public:
     * @example
     * // import the modules
     * var analytics = require('qminer').analytics;
-    * var la = require('qminer').la;
     * // create a new KMeans object
     * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
     * // get the centroids
@@ -2385,7 +2387,6 @@ public:
     * @example
     * // import the modules
     * var analytics = require('qminer').analytics;
-    * var la = require('qminer').la;
     * // create a new KMeans object
     * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
     * // get the idxv
@@ -2580,6 +2581,57 @@ private:
     PJsonVal GetParams() const;
 
     void Save(TSOut& SOut) const;
+};
+
+/////////////////////////////////////////////
+// QMiner-JavaScript-Graph-Cascade
+
+//# exports.GraphCascade = function (arg) { return Object.create(require('qminer').analytics.GraphCascade.prototype); }
+class TNodeJsGraphCascade : public node::ObjectWrap {
+    friend class TNodeJsUtil;
+public:
+    static void Init(v8::Handle<v8::Object> exports);
+    static const TStr GetClassId() { return "GraphCascade"; }
+    ~TNodeJsGraphCascade() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
+
+private:
+    TGraphProcess::TGraphCascade Model;
+
+private:
+ 
+    TNodeJsGraphCascade(const PJsonVal& ParamVal) : Model(ParamVal) {}
+
+    static TNodeJsGraphCascade* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+public:
+    /**
+    * Sets the cascade time for a given node
+    * @param {string} nodeId - 
+    * @param {number} timestamp - 
+    */
+    JsDeclareFunction(observeNode);
+    
+    /**
+    * Computes the posterior for timestamps of unobserved nodes
+    * @param {number} timestamp - current time
+    */
+    JsDeclareFunction(computePosterior);
+    /**
+    * Returns the posteriors
+    * @returns {Object} - model
+    */
+    JsDeclareFunction(getPosterior);
+    /**
+    * Returns the pruned directed acyclic graph
+    * @returns {Object} - dag
+    */
+    JsDeclareFunction(getGraph);
+    /**
+    * Returns the topologically ordered node names
+    * @returns {Object} - nodeArr
+    */
+    JsDeclareFunction(getOrder);
+
 };
 
 #endif /* ANALYTICS_H_ */

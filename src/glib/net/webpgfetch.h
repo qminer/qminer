@@ -32,8 +32,7 @@ protected:
 public:
   TWebPgFetch():
     TimeOutMSecs(30*1000), MxConns(-1), MxContLen(-1), MxRetries(1), LastFId(0),
-    WaitFIdUrlPrL(), ConnFIdToEventH(1000), LastDelEvent(), 
-    ProxyStr(), UserAgentStr(){}
+    LastDelEvent(), ProxyStr(), UserAgentStr(), WaitFIdUrlPrL(), ConnFIdToEventH(1000) {}
   static PWebPgFetch New(){return new TWebPgFetch();}
   virtual ~TWebPgFetch();
 

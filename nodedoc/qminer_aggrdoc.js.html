@@ -130,6 +130,7 @@
 * @property {module:qm~StreamAggrMovingCovariance} cov - The moving covariance type.
 * @property {module:qm~StreamAggrMovingCorrelation} cor - The moving correlation type.
 * @property {module:qm~StreamAggrResampler} res - The resampler type.
+* @property {module:qm~StreamAggrAggrResampler} res - The aggregating (avg/sum) resampler type.
 * @property {module:qm~StreamAggrMerger} mer - The merger type.
 * @property {module:qm~StreamAggrHistogram} hist - The online histogram type.
 * @property {module:qm~StreamAggrSlottedHistogram} slotted-hist - The online slotted-histogram type.
@@ -979,6 +980,91 @@
 * base.close();
 */
 /**
+* @typedef {module:qm.StreamAggr} StreamAggrAggrResampler
+* This stream aggregate resamples an input time series to a new time seris
+* of equally spaced measurements. Each new measurement corresponds to an
+* aggregate (sum,avg,min,max) computed over an interval. The aggregate
+* exposes the following methods.
+* &amp;lt;br&gt;1. {@link module:qm.StreamAggr#getFloat} returns the last resampled value.
+* &amp;lt;br&gt;2. {@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the last resampled value.
+* &amp;lt;br&gt;3. {@link module:qm.StreamAggr#onStep} reads from an input aggregate and tries to resample.
+* &amp;lt;br&gt;4. {@link module:qm.StreamAggr#onTime} updates the current time (no data has arrived, but time has passed) and tries to resample.
+* &amp;lt;br&gt;5. {@link module:qm.StreamAggr#getParams} returns a parameter object.
+* &amp;lt;br&gt;6. {@link module:qm.StreamAggr#setParams} used primarily for setting the out-aggregate.
+* The stream aggregate exposes its results through getFloat and getTimestamp methods (itself represents timeseries).
+* The resampler has an input time-series aggregate (supports getFloat and getTimestamp), from where it reads time series values.
+* The reading and resampling occourrs wehen resampler&#x27;s onStep() or onTime() methods are called.
+* When resampling succeeds (all the data needed for the computation becomes available), the resampler
+* will trigger the onStep() method of an output stream aggregate that will read the resampler&#x27;s state through getFloat and getTime.
+* @property {string} type - The type of the stream aggregator. &amp;lt;b&gt;Important:&amp;lt;/b&gt; It must be equal to &#x60;&#x27;aggrResampler&#x27;&#x60;.
+* @property {number} interval - Interval size in milliseconds
+* @property {string} aggType - Must be one of the values: &quot;sum&quot;, &quot;avg&quot;, &quot;min&quot; or &quot;max&quot; - represents the function executed on the data values in the interval.
+* @property {(string | module:qm.StreamAggr)} inAggr - The name of the input stream aggregate which must implement getFloat() and getTimestamp() methods.
+* @property {(string | number)} [start] - Start time (linux timestamp or a web log date string like &#x27;1970-01-01T00:00:00.000&#x27;)
+* @property {string} [roundStart] - Must be one of the values: &quot;h&quot;, &quot;m&quot; or &quot;s&quot; - represents rounding of the start time when it must be determined by the first observed record. &#x27;h&#x27; will clip minutes, seconds and milliseconds, &#x27;m&#x27; will clip seconds and milliseconds and &#x27;s&#x27; will clip only milliseconds.
+* @property {number} [defaultValue=0] - default value for empty intervals (no data available).
+* @property {boolean} [skipEmpty=false] - If true, the resampler will not call the onStep method of the out-aggregate when the interval is empty (for example, average of an empty set is not defined). 
+* @property {string} [name] - The given name for the stream aggregator.
+* @property {(string | module:qm.StreamAggr)} [outAggr] - The name of the output stream aggregate. Only useful when the outAggr is a javascript stream aggregate, otherwise the output must be set by calling setParam({outAggr: outAggregateName}).
+* @example
+* var qm = require(&#x27;qminer&#x27;);
+* // create a base with a simple timeseries store
+* var base = new qm.Base({
+*     mode: &#x27;createClean&#x27;,
+*     schema: [{
+*         name: &#x27;default&#x27;,
+*         fields: [
+*             { name: &#x27;timestamp&#x27;, type: &#x27;datetime&#x27; },
+*             { name: &#x27;value&#x27;, type: &#x27;float&#x27; }
+*         ]
+*     }]
+* });
+* var store = base.store(&#x27;default&#x27;);
+* // the tick aggregate reads from the store (provides time series input to other aggregates)
+* var raw = store.addStreamAggr({
+*     type: &#x27;timeSeriesTick&#x27;,
+*     timestamp: &#x27;timestamp&#x27;,
+*     value: &#x27;value&#x27;
+* });
+* 
+* // will compute sums over 1 second intervals
+* var resampler = store.addStreamAggr({
+*     type: &#x27;aggrResample&#x27;,
+*     inAggr: raw.name,
+*     start: &#x27;1970-01-01T00:00:00.000&#x27;,
+*     defaultValue: 0,
+*     aggType: &#x27;sum&#x27;,
+*     interval: 1000
+* });
+*
+* // will print out resampler state on each resample
+* var resamplerOutput = new qm.StreamAggr(base, new function () {
+*     this.onStep = function () {
+*         console.log(&#x27;Resampler emitted the sum: &#x27; + resampler.getFloat() +
+*             &#x27; for the interval [&#x27; + new Date(resampler.getTimestamp()).toISOString() +
+*             &#x27; - &#x27; + new Date(resampler.getTimestamp() + resampler.getParams().interval).toISOString() + &#x27;)&#x27;);
+*     }
+* });
+*
+* // IMPORTANT. After the output exists, connect it to resampler
+* resampler.setParams({ outAggr: resamplerOutput.name });
+*
+* store.push({ timestamp:  1, value: 1 });
+* store.push({ timestamp: 10, value: 10 });
+* store.push({ timestamp: 500, value: 100 });
+* store.push({ timestamp: 2000, value: 1000 }); // triggers two resampling steps (two intervals complete)
+* // // three measurements for the first interval
+* // Resampler emitted the sum: 111 for the interval [1970-01-01T00:00:00.000Z - 1970-01-01T00:00:01.000Z)
+* // // zero measurements for the second interval (does not skip empty)
+* // Resampler emitted the sum: 0 for the interval [1970-01-01T00:00:01.000Z - 1970-01-01T00:00:02.000Z)
+* store.push({ timestamp: 2001, value: 10000 });
+* store.push({ timestamp: 3000, value: 100000 }); // triggers one resampling step (one interval complete)
+* // // one measurement for the third interval
+* // Resampler emitted the sum: 11000 for the interval [1970-01-01T00:00:02.000Z - 1970-01-01T00:00:03.000Z)
+*
+* base.close();
+*/
+/**
 * @typedef {module:qm.StreamAggr} StreamAggrMerger
 * This stream aggregator represents the merger aggregator. It merges records from two or more stores into a new store
 * depending on the timestamp. No methods are implemented for this aggregator.
@@ -1041,6 +1127,80 @@
 * base.close();
 */
 /**
+* @typedef {module:qmStreamAggr} StreamAggrAnomalyDetectorNN
+* This stream aggregator represents the anomaly detector using the Nearest Neighbor algorithm. It calculates the 
+* new incoming point&#x27;s distance from its nearest neighbor and, depending on the input threshold values, it 
+* classifies the severity of the alarm. It implements the following methods:
+* &amp;lt;br&gt;1. {@link module:qm.StreamAggr#getInteger} returns the severity of the alarm.
+* &amp;lt;br&gt;2. {@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the latest alarm.
+* &amp;lt;br&gt;3. {@link module:qm.StreamAggr#saveJson} returns the Json with the description and explanation of the alarm.
+* @property {string} name - The given name for the stream aggregator.
+* @property {string} type - The type of the stream aggregator. &amp;lt;b&gt;Important:&amp;lt;/b&gt; It must be equal to &#x60;&#x27;nnAnomalyDetector&#x27;&#x60;.
+* @property {string} store - The name of the store from which it takes the data.
+* @property {string} inAggr - The name of the stream aggregator to which it connects and gets data.
+* It &amp;lt;b&gt;cannot&amp;lt;/b&gt; be connect to the {@link module:qm~StreamAggrTimeSeriesWindow}.
+
+* @example
+* // import the qm module
+* var qm = require(&#x27;qminer&#x27;);
+* // create a base with a simple store named Cars with 4 fields
+* var base = new qm.Base({
+*     mode: &#x27;createClean&#x27;,
+*     schema: [{
+*         name: &#x27;Cars&#x27;,
+*         fields: [
+*             { name: &#x27;NumberOfCars&#x27;, type: &#x27;float&#x27; },
+*             { name: &#x27;Temperature&#x27;, type: &#x27;float&#x27; },
+*             { name: &#x27;Precipitation&#x27;, type: &#x27;float&#x27; },
+*             { name: &#x27;Time&#x27;, type: &#x27;datetime&#x27; }
+*         ]
+*     }]
+* });
+* // create the store
+* var store = base.store(&#x27;Cars&#x27;);
+* // define a feature space aggregator on the Cars store which needs at least 2 records to be initialized. Use three of the 
+* // four fields of the store to create feature vectors with normalized values.
+* var aggr = {
+*    name: &quot;ftrSpaceAggr&quot;,
+*    type: &quot;featureSpace&quot;,
+*    initCount: 2,
+*    update: true, full: false, sparse: true,
+*    featureSpace: [
+*        { type: &quot;numeric&quot;, source: &quot;Cars&quot;, field: &quot;NumberOfCars&quot;, normalize: &quot;var&quot; },
+*        { type: &quot;numeric&quot;, source: &quot;Cars&quot;, field: &quot;Temperature&quot;, normalize: &quot;var&quot; },
+*        { type: &quot;numeric&quot;, source: &quot;Cars&quot;, field: &quot;Precipitation&quot;, normalize: &quot;var&quot; }
+*    ]
+* };
+* //create the feature space aggregator
+* var ftrSpaceAggr = base.store(&#x27;Cars&#x27;).addStreamAggr(aggr);
+
+* // define a new time series tick stream aggregator for the &#x27;Cars&#x27; store, that takes the values from the &#x27;NumberOfCars&#x27; field
+* // and the timestamp from the &#x27;Time&#x27; field.
+* var aggr = {
+*     name: &quot;tickAggr&quot;,
+*     type: &quot;timeSeriesTick&quot;,
+*     store: &quot;Cars&quot;,
+*     timestamp: &quot;Time&quot;,
+*     value: &quot;NumberOfCars&quot;
+* };
+* //create the tick aggregator
+* tickAggr = base.store(&#x27;Cars&#x27;).addStreamAggr(aggr);
+*
+* //define an anomaly detection aggregator using nearest neighbor on the cars store that takes as input timestamped features.
+* // The time stamp is provided by the tick aggregator while the feature vector is provided by the feature space aggregator.
+* var aggr = {
+*     name: &#x27;AnomalyDetectorAggr&#x27;,
+*     type: &#x27;nnAnomalyDetector&#x27;,
+*     inAggrSpV: &#x27;ftrSpaceAggr&#x27;,
+*     inAggrTm: &#x27;tickAggr&#x27;,
+*     rate: [0.15, 0.5, 0.7],
+*     windowSize: 2
+* };
+* //create the anomaly detection aggregator
+* var anomaly = base.store(&#x27;Cars&#x27;).addStreamAggr(aggr);
+* base.close();
+*/
+/**
 * @typedef {module:qm.StreamAggr} StreamAggrHistogram
 * This stream aggregator represents an online histogram. It can connect to a buffered aggregate (such as {@link module:qm~StreamAggrTimeSeriesWindow})
 * or a time series (such as {@link module:qm~StreamAggregateEMA}).
@@ -1060,6 +1220,7 @@
 * @property {number} [bins=5] - The number of bins bounded by &#x60;lowerBound&#x60; and &#x60;upperBound&#x60;.
 * @property {boolean} [addNegInf=false] - Include a bin &#x60;[-Inf, lowerBound]&#x60;.
 * @property {boolean} [addPosInf=false] - Include a bin &#x60;[upperBound, Inf]&#x60;.
+* @property {boolean} [autoResize=false] - The histogram will be empty at the beginning and double its size on demand (resize only when incrementing counts). The unbounded bins are guaranteed to stay between lowerBound and upperBound and in all cases the bin size equals (upperBound - lowerBound)/bins.
 * @example
 * // import the qm module
 * var qm = require(&#x27;qminer&#x27;);
@@ -1444,8 +1605,15 @@
     */
  exports.StreamAggr.prototype.load = function (fin) { return Object.create(require(&#x27;qminer&#x27;).StreamAggr.prototype); }
 /**
+    * A map from strings to integers
+    * @param {string} [str] - The string.
+    * @returns {(number | null)} A number (stream aggregator specific), possibly null if &#x60;str&#x60; was provided.
+    */
+ exports.StreamAggr.prototype.getInteger = function (str) { return 0; };
+/**
     * Returns the value of the specific stream aggregator. For return values see {@link module:qm~StreamAggregator}.
-    * @returns {number} The value of the stream aggregator.
+    * @param {string} [str] - The string.
+    * @returns {(number | null)} A number (stream aggregator specific), possibly null if &#x60;str&#x60; was provided.
     * @example
     * // import qm module
     * var qm = require(&#x27;qminer&#x27;);
@@ -1489,7 +1657,7 @@
     * var average = averageGrade.getFloat(); // returns 74 + 1/3
     * base.close();
     */
- exports.StreamAggr.prototype.getFloat = function () { return 0; };
+ exports.StreamAggr.prototype.getFloat = function (str) { return 0; };
 /**
     * Returns the timestamp value of the newest record in buffer.
     * @returns {number} The timestamp of the newest record. It represents the number of miliseconds between the record time and 01.01.1601 time: 00:00:00.0.

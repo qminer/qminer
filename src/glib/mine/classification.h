@@ -29,7 +29,7 @@ public:
 
 	// Fits the regression model. The method assumes that the instances are stored in the
 	// columns of the matrix X and the responses are stored in vector y.
-	void Fit(const TFltVV& X, const TFltV& y, const double& Eps=1e-3);
+	void Fit(const TFltVV& X, const TFltV& y, const double& Eps=1e-3, const int& MxIter=10000);
 	// returns the expected response for the given feature vector
 	double Predict(const TFltV& x) const;
 

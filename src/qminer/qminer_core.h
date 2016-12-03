@@ -128,6 +128,39 @@ public:
 };
 
 ///////////////////////////////
+/// Store windowing type
+typedef enum {
+    swtNone = 0,   ///< No windowing on the store
+    swtLength = 1, ///< Record-number based windowing
+    swtTime = 2    ///< Time-based windowing
+} TStoreWndType;
+
+///////////////////////////////
+/// Store window description
+class TStoreWndDesc {
+public:
+    /// Prefix used for fields inserted by system
+    static TStr SysInsertedAtFieldName;
+
+public:
+    /// Windowing type
+    TStoreWndType WindowType;
+    /// For time window this is period length in milliseconds, otherwise it is max length
+    TUInt64 WindowSize;
+    /// User insert time
+    TBool InsertP;
+    /// Name of the field that serves as time-window indicator
+    TStr TimeFieldNm;
+
+public:
+    TStoreWndDesc() : WindowType(swtNone) { }
+    TStoreWndDesc(TSIn& SIn) { Load(SIn); }
+
+    void Save(TSOut& SOut) const;
+    void Load(TSIn& SIn);
+};
+
+///////////////////////////////
 /// Join Types
 typedef enum { 
     osjtUndef, 
@@ -412,6 +445,27 @@ public:
 };
 
 ///////////////////////////////
+/// Store Hash Key Iterator.
+/// Useful for stores using THash to store records
+/// Example: TStrH TestH; PStoreIter TestIter = TStoreIterHashKey<TStrH>::New(TestH);
+template <class THash>
+class TStoreIterHashKey : public TStoreIter {
+private:
+    /// Reference to hash table with KeyIds corresponding to Record IDs
+    const THash& Hash;
+    /// Current key ID (== record ID)
+    int KeyId;
+
+    TStoreIterHashKey(const THash& _Hash) : Hash(_Hash), KeyId(Hash.FFirstKeyId()) { }
+public:
+    // Create new iterator from a given hash table
+    static PStoreIter New(const THash& Hash) { return new TStoreIterHashKey<THash>(Hash); }
+
+    bool Next() { return Hash.FNextKeyId(KeyId); }
+    uint64 GetRecId() const { return Hash.GetKey(KeyId); }
+};
+
+///////////////////////////////
 /// Store Trigger.
 /// Interface for defining triggers called when records are added, deleted or updated.
 /// Each trigger gets unique internal ID when created (GUID).
@@ -479,6 +533,9 @@ private:
     /// Load store from stream (to be called only by base class!)
     void LoadStore(TSIn& SIn);
 protected:
+    /// Time window settings
+    TStoreWndDesc WndDesc;
+
     /// Create new store with given ID and name
     TStore(const TWPt<TBase>& _Base, uint _StoreId, const TStr& _StoreNm);
     /// Load store from input stream
@@ -536,6 +593,10 @@ public:
     uint GetStoreId() const { return StoreId; }
     /// Get store name
     TStr GetStoreNm() const { return StoreNm; }
+
+    // get time window settings
+    const TStoreWndDesc& GetWndDesc() { return WndDesc; }
+
 
     /// Load store ID from the stream and retrieve store
     static TWPt<TStore> LoadById(const TWPt<TBase>& Base, TSIn& SIn);
@@ -883,10 +944,17 @@ public:
     /// Prints all records with all the field values, useful for debugging
     void PrintAllAsJson(const TWPt<TBase>& Base, const TStr& FNm);
 
+    /// Get codebook mappings for given string field
+    virtual int GetCodebookId(const int& FieldId, const TStr& Str) const { throw TQmExcept::New("Not implemented"); }
+
     /// Save part of the data, given time-window
     virtual int PartialFlush(int WndInMsec = 500) { throw TQmExcept::New("Not implemented"); }
     /// Retrieve performance statistics for this store
     virtual PJsonVal GetStats() = 0;
+    /// Run verification for whole store
+    virtual void RunVerification() = 0;
+    /// Run verification for single record
+    virtual void RunVerificationForRecord(const uint64& RecId) = 0;
 };
 
 ///////////////////////////////
@@ -1389,12 +1457,28 @@ public:
 };
 
 ///////////////////////////////
+/// Remove (RemoveNullValues = true) or keep (RemoveNullValues = false) records that have null in the value of a field. 
+class TRecFilterByFieldNull : public TRecFilter {
+private:
+    /// Field according to which we are filtering
+    TInt FieldId;
+    /// If true (default), null fields are filtered out (Filter returns false)
+    TBool RemoveNullValues;
+
+public:
+    /// Constructor
+    TRecFilterByFieldNull(const TWPt<TBase>& Base, const int& FieldId, const bool& RemoveNullValues);
+    /// Filter function
+    bool Filter(const TRec& Rec) const;
+};
+
+///////////////////////////////
 /// Record filter by bool field. 
 class TRecFilterByFieldBool : public TRecFilterByField {
 private:
     /// Value
     TBool Val;
-    
+
 public:
     /// Constructor
     TRecFilterByFieldBool(const TWPt<TBase>& _Base, const int& _FieldId, const bool& _Val, const bool& _FilterNullP = true);
@@ -1602,6 +1686,20 @@ private:
 public:
     /// Constructor
     TRecFilterByFieldStrSet(const TWPt<TBase>& _Base, const int& _FieldId, const TStrSet& _StrSet, const bool& _FilterNullP = true);
+    /// Filter function
+    bool Filter(const TRec& Rec) const;
+};
+
+///////////////////////////////
+/// Record filter by a set of strings in a set where the string field is using a codebook.
+class TRecFilterByFieldStrSetUsingCodebook : public TRecFilterByField {
+private:
+    /// String values
+    TIntSet IntSet;
+
+public:
+    /// Constructor
+    TRecFilterByFieldStrSetUsingCodebook(const TWPt<TBase>& _Base, const int& _FieldId, const PStore& _Store, const TStrSet& _StrSet, const bool& _FilterNullP = true);
     /// Filter function
     bool Filter(const TRec& Rec) const;
 };
@@ -1878,6 +1976,8 @@ public:
     void FilterByRecIdSet(const TUInt64Set& RecIdSet);
     /// Filter records to keep only the ones with weight between `MinFq' and `MaxFq'
     void FilterByFq(const int& MinFq, const int& MaxFq);
+    /// Filter records to keep only the ones that have a value (RemoveNullValues = true) or don't have a value (RemoveNullValues = false)
+    void FilterByFieldNull(const int& FieldId, const bool RemoveNullValues);
     /// Filter records to keep only the ones that match the boolean value
     void FilterByFieldBool(const int& FieldId, const bool& Val);
     /// Filter records to keep only the ones with values of a given field within given range
@@ -3370,8 +3470,8 @@ public:
     /// Save state of stream aggregate to stream
     virtual void SaveState(TSOut& SOut) const;
 
-    virtual PJsonVal GetParam() const { return TJsonVal::NewObj(); }
-    virtual void SetParam(const PJsonVal& JsonVal) {}
+    virtual PJsonVal GetParams() const { return TJsonVal::NewObj(); }
+    virtual void SetParams(const PJsonVal& JsonVal) {}
 
     /// Get aggregate name
     const TStr& GetAggrNm() const { return AggrNm; }
@@ -3382,15 +3482,15 @@ public:
     virtual void Reset() = 0;
 
     /// Update state of the aggregate
-    virtual void OnStep() { }
+    virtual void OnStep(const TWPt<TStreamAggr>& CallerAggr) { }
     /// Update state of the aggregate at time
-    virtual void OnTime(const uint64& TmMsec) { OnStep(); }
+    virtual void OnTime(const uint64& TmMsec, const TWPt<TStreamAggr>& CallerAggr) { OnStep(CallerAggr); }
     /// Add new record to the aggregate
-    virtual void OnAddRec(const TRec& Rec) { OnStep(); }
+    virtual void OnAddRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr) { OnStep(CallerAggr); }
     /// Recored already added to the aggregate is being updated
-    virtual void OnUpdateRec(const TRec& Rec) { }
+    virtual void OnUpdateRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr) { }
     /// Recored already added to the aggregate is being deleted from the store 
-    virtual void OnDeleteRec(const TRec& Rec) { }
+    virtual void OnDeleteRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr) { }
 
     // retrieving input aggregate names
     virtual void GetInAggrNmV(TStrV& InAggrNmV) const { };
@@ -3450,7 +3550,14 @@ namespace TStreamAggrOut {
     };
     typedef IValVec<TFlt> IFltVec;
     typedef IValVec<TIntFltKdV> ISparseVVec;
-    typedef IValVec<TIntFltKd> ISparseVec;
+
+    /// vector of sparse vectors
+    class ISparseVec {
+    public:
+        virtual int GetSparseVecLen() const = 0;
+        virtual TIntFltKd GetSparseVecVal(const int& ElN) const = 0;
+        virtual void GetSparseVec(TIntFltKdV& SpVec) const = 0;
+    };
 
     /// vector of timestamps
     class ITmVec {
@@ -3481,9 +3588,8 @@ namespace TStreamAggrOut {
     class INmInt {
     public:
         // retrieving named values
-        virtual bool IsNm(const TStr& Nm) const = 0;
-        virtual double GetNmInt(const TStr& Nm) const = 0;
-        virtual void GetNmIntV(TStrIntPrV& NmIntV) const = 0;
+        virtual bool IsNmInt(const TStr& Nm) const = 0;
+        virtual int GetNmInt(const TStr& Nm) const = 0;
     };
 
     class INmFlt {
@@ -3491,7 +3597,6 @@ namespace TStreamAggrOut {
         // retrieving named values
         virtual bool IsNmFlt(const TStr& Nm) const = 0;
         virtual double GetNmFlt(const TStr& Nm) const = 0;
-        virtual void GetNmFltV(TStrFltPrV& NmFltV) const = 0;
     };
 
     class IFtrSpace {
@@ -3536,15 +3641,15 @@ public:
     void Reset();
 
     /// Update state of the aggregates
-    void OnStep();
+    void OnStep(const TWPt<TStreamAggr>& CallerAggr);
     /// Update state of the aggregates at time
-    void OnTime(const uint64& TmMsec);
+    void OnTime(const uint64& TmMsec, const TWPt<TStreamAggr>& CallerAggr);
     /// Add new record to the aggregates
-    void OnAddRec(const TRec& Rec);
+    void OnAddRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr);
     /// Recored already added to the aggregates is being updated
-    void OnUpdateRec(const TRec& Rec);
+    void OnUpdateRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr);
     /// Recored already added to the aggregates is being deleted from the store 
-    void OnDeleteRec(const TRec& Rec);
+    void OnDeleteRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr);
 
     /// Print latest statistics to logger
     void PrintStat() const;

@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v6.4.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.2.0</a>
       </div>
     </div>
   </nav>
@@ -97,14 +97,14 @@ var nnet = new analytics.NNet({ layout: [3, 5, 2], learnRate: 0.2, momentum: 0.6
                       <p>arg</p>
                     </td>
                     <td>
-                      <p>(module:analytics~nnetParams or <a href="module-fs.FIn.html">module:fs.FIn</a>)</p>
+                      <p>(<a href="module-analytics.html#~nnetParam">module:analytics~nnetParam</a> or <a href="module-fs.FIn.html">module:fs.FIn</a>)</p>
                     </td>
                     <td>
                       <p>Yes</p>
                     </td>
                     <td>
                       <p>Construction arguments. There are two ways of constructing:
-                        <br>1. Using the module:analytics~nnetParams object,
+                        <br>1. Using the <a href="module-analytics.html#~nnetParam">module:analytics~nnetParam</a> object,
                         <br>2. using the file input stream <a href="module-fs.FIn.html">module:fs.FIn</a>.</p>
                     </td>
                   </tr>
@@ -187,7 +187,7 @@ nnet.fit(matIn, matOut);</code></pre>
                   <p><code><a href="module-analytics.NNet.html">module:analytics.NNet</a></code>&nbsp;Self. The model has been updated.</p>
                 </dd>
               </dl>
-              <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> module:analytics~nnetParams</span></span></h3>
+              <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.html#~nnetParam">module:analytics~nnetParam</a></span></span></h3>
               <p>Get the parameters of the model.</p>
               <section>
                 <h4>
@@ -205,7 +205,7 @@ var params = nnet.getParams();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>module:analytics~nnetParams</code>&nbsp;The constructor parameters.</p>
+                  <p><code><a href="module-analytics.html#~nnetParam">module:analytics~nnetParam</a></code>&nbsp;The constructor parameters.</p>
                 </dd>
               </dl>
               <h3 id="predict"><span class="symbol-name">predict</span><span class="signature"><span class="signature-params">(vec)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>

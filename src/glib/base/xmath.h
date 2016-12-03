@@ -477,36 +477,39 @@ public:
 // Histogram
 class THist {
 private:
-	TFlt MnVal;
-	TFlt MxVal;
+    TFlt MnVal;
+    TFlt MxVal;
     TIntV BucketV;
-	TFlt BucketSize;
+    TFlt BucketSize;
     TInt Vals;
 public:
-    THist() { }
-    THist(const double& _MnVal, const double& _MxVal, const int& Buckets):
-      MnVal(_MnVal), MxVal(_MxVal), BucketV(Buckets) {
-      BucketSize = (MxVal == MnVal) ? 1.0 : (1.01 * double(MxVal - MnVal) / double(Buckets)); }
+    THist() {}
+    THist(const double& _MnVal, const double& _MxVal, const int& Buckets) :
+        MnVal(_MnVal), MxVal(_MxVal), BucketV(Buckets) {
+        BucketSize = (MxVal == MnVal) ? 1.0 : (1.01 * double(MxVal - MnVal) / double(Buckets));
+    }
 
     void Add(const double& Val, const bool& OnlyInP);
 
-	int GetVals() const { return Vals; }
-	int GetBuckets() const { return BucketV.Len(); }
-	double GetBucketMn(const int& BucketN) const { return MnVal + BucketN * BucketSize; }
-	double GetBucketMx(const int& BucketN) const { return MnVal + (BucketN + 1) * BucketSize; }
-	int GetBucketVal(const int& BucketN) const { return BucketV[BucketN]; }
-	double GetBucketValPerc(const int& BucketN) const {
-		return (Vals > 0) ? (double(BucketV[BucketN]) / double(Vals)) : 0.0; }
+    int GetVals() const { return Vals; }
+    int GetBuckets() const { return BucketV.Len(); }
+    double GetBucketMn(const int& BucketN) const { return MnVal + BucketN * BucketSize; }
+    double GetBucketMx(const int& BucketN) const { return MnVal + (BucketN + 1) * BucketSize; }
+    int GetBucketVal(const int& BucketN) const { return BucketV[BucketN]; }
+    double GetBucketValPerc(const int& BucketN) const {
+        return (Vals > 0) ? (double(BucketV[BucketN]) / double(Vals)) : 0.0;
+    }
 
     void SaveStat(const TStr& ValNm, TSOut& FOut) const;
     void SaveTxt(const TStr& ValNm, const TStr& FNm) const {
-        TFOut FOut(FNm); SaveStat(ValNm, FOut); }
+        TFOut FOut(FNm); SaveStat(ValNm, FOut);
+    }
 };
 
 /////////////////////////////////////////////////
 // Statistics
 class TStatFun {
 public:
-	static void ChiSquare(const TFltV& OutValVX, const TFltV& OutValVY, const TInt& Df,
-			TFlt& Chi2, TFlt& P);
+    static void ChiSquare(const TFltV& OutValVX, const TFltV& OutValVY, const TInt& Df,
+        TFlt& Chi2, TFlt& P);
 };

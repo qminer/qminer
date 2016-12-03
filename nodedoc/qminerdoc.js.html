@@ -74,6 +74,12 @@
     */
  exports.verbosity = function (level) { }
 /**
+    * Returns an JSON with two properties: &quot;byClass&quot; and &quot;total&quot;. The &quot;byClass&quot; value is a JSON where
+    * each key is a class ID and each value is of the form { newFromCpp: number, newFromJs: number, destructorCalls: number}
+    * and the value of &quot;total&quot; is of the same form (aggregated over &quot;byClass&quot;)    
+    */
+ exports.stats = function () { }
+/**
     * @typedef {Object} QMinerFlags
     * The object containing the QMiner compile flags.
     * @property {string} buildTime - The module build time.
@@ -160,7 +166,9 @@
 * &amp;lt;br&gt;8. &#x60;&#x27;float_pair&#x27;&#x60; - A pair of floats, useful for storing geo coordinates,
 * &amp;lt;br&gt;9. &#x60;&#x27;float_v&#x27;&#x60; - Array of floats,
 * &amp;lt;br&gt;10. &#x60;&#x27;datetime&#x27;&#x60; - Date and time format, stored in a form of miliseconds since 1600,
-* &amp;lt;br&gt;11. &#x60;&#x27;num_sp_v&#x27;&#x60; - Array of [&#x60;int&#x60;, &#x60;float&#x60;] pairs. See constructor array for {@link module:la.SparseVector}.
+* &amp;lt;br&gt;11. &#x60;&#x27;num_sp_v&#x27;&#x60; - Array of [&#x60;int&#x60;, &#x60;float&#x60;] pairs. See constructor array for {@link module:la.SparseVector},
+* &amp;lt;br&gt;12. &#x60;&#x27;json&#x27;&#x60; - this field can be an arbitrary object and will be internally serialized into string using JSON notation,
+* &amp;lt;br&gt;13. &#x60;&#x27;blob&#x27;&#x60; - Binary buffer, used for storing binary data,
 * @property {boolean} [primary=false] - Field which can be used to identify record. There can be only one primary field in a store. There can be at most one record for each value of the primary field. Currently following fields can be marked as primary: &#x60;int&#x60;, &#x60;uint64&#x60;, &#x60;string&#x60;, &#x60;float&#x60;, &#x60;datetime&#x60;. Primary fields of type &#x60;string&#x60; are also used for record querying using {@link module:qm.Store#recordByName}.
 * @property {boolean} [null=false] - When set to true, null is a possible value for a field (allow missing values).
 * @property {string} [store=&#x27;memory&#x27;] - Defines where to store the field. Possible options 
@@ -2634,7 +2642,7 @@
 * @typedef {Object} FeatureExtractorNumeric
 * The feature extractor of type &#x60;&#x27;numeric&#x27;&#x60;. Used for constructing {@link module:qm.FeatureSpace} objects.
 * @property {string} type - The type of the extractor. &amp;lt;b&gt;Important&amp;lt;/b&gt;: It must be equal &#x60;&#x27;numeric&#x27;&#x60;.
-* @property {boolean} [normalize = &#x27;false&#x27;] - Normalize values between 0.0 and 1.0.
+* @property {string} [normalize = &#x27;none&#x27;] - Normalize values between 0.0 and 1.0 if set to &#x60;&#x27;scale&#x27;&#x60;. Standardize values to mean = 0 and sdiv = 1 if set to &#x60;&#x27;var&#x27;&#x60;.
 * @property {number} [min] - The minimal value used to form the normalization.
 * @property {number} [max] - The maximal value used to form the normalization.
 * @property {string} field - The name of the field from which to take the value.
@@ -2654,7 +2662,7 @@
 * });
 * // create a feature space containing the numeric extractor, where the values are
 * // normalized, the values are taken from the field &quot;Grade&quot;
-* var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;Class&quot;, normalize: true, field: &quot;Grade&quot; });
+* var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;Class&quot;, normalize: &quot;scale&quot;, field: &quot;Grade&quot; });
 * base.close();
 */
 /**

@@ -111,39 +111,6 @@ public:
 };
 
 ///////////////////////////////
-/// Store windowing type
-typedef enum { 
-    swtNone = 0,   ///< No windowing on the store
-    swtLength = 1, ///< Record-number based windowing
-    swtTime = 2    ///< Time-based windowing
-} TStoreWndType;
-
-///////////////////////////////
-/// Store window description
-class TStoreWndDesc {
-public:
-    /// Prefix used for fields inserted by system
-    static TStr SysInsertedAtFieldName;   
-    
-public:    
-    /// Windowing type
-    TStoreWndType WindowType;
-    /// For time window this is period length in milliseconds, otherwise it is max length
-    TUInt64 WindowSize;   
-    /// User insert time
-    TBool InsertP;        
-    /// Name of the field that serves as time-window indicator
-    TStr TimeFieldNm;   
-    
-public:
-    TStoreWndDesc(): WindowType(swtNone) { }
-    TStoreWndDesc(TSIn& SIn){ Load(SIn); }
-
-    void Save(TSOut& SOut) const;
-    void Load(TSIn& SIn);
-};
-
-///////////////////////////////
 /// Store schema definition.
 /// Contains parsed version of store definition, which can be used to
 /// initialize TStoreImpl.
@@ -720,6 +687,9 @@ public:
 
     /// Get codebook id
     int GetCodebookId(const int& FieldId, const TStr& Str) const;
+    bool GetUseToast() const { return UseToast; }
+    /// verify that given record is properly serialized
+    void Verify(char* Bf, const int& BfL) const;
 };
 
 ///////////////////////////////
@@ -802,6 +772,13 @@ public:
     /// Update indexes for existing record
     void UpdateRec(const TMemBase& OldRecMem, const TMemBase& NewRecMem,
         const uint64& RecId, TIntSet& ChangedFieldIdSet, TRecSerializator& Serializator);
+
+    /// deindex field
+    void DeindexRecField(const TMemBase& RecMem, const uint64& RecId, const int& FieldId, TRecSerializator& Serializator);
+    /// index field
+    void IndexRecField(const TMemBase& RecMem, const uint64& RecId, const int& FieldId, TRecSerializator& Serializator);
+
+    bool HasIndexKey(const int& FieldId) { return FieldIdToKeyN.IsKey(FieldId); }
 };
 
 ///////////////////////////////
@@ -856,9 +833,6 @@ private:
 
     // record indexer
     TRecIndexer RecIndexer;
-
-    /// Time window settings
-    TStoreWndDesc WndDesc;
 
     /// initialize field storage location map
     void InitFieldLocV();
@@ -1079,6 +1053,10 @@ public:
     int PartialFlush(int WndInMsec = 500);
     /// Retrieve performance statistics for this store
     PJsonVal GetStats();
+    /// Run verification for whole store
+    void RunVerification();
+    /// Run verification for single record
+    void RunVerificationForRecord(const uint64& RecId);
 };
 
 ///////////////////////////////
@@ -1144,9 +1122,7 @@ private:
 
     // record indexer
     TRecIndexer RecIndexer;
-    /// Time window settings
-    TStoreWndDesc WndDesc;
-
+    
     /// initialize field storage location map
     void InitFieldLocV();
 
@@ -1156,19 +1132,14 @@ private:
     /// Get serializator for given location
     TRecSerializator* GetSerializator(const TStoreLoc& StoreLoc);
     /// Get serializator for given location
-    TRecSerializator* GetSerializator(const TStoreLoc& StoreLoc) const;
+    const TRecSerializator* GetSerializator(const TStoreLoc& StoreLoc) const;
     /// Get serializator for given field
-    TRecSerializator& GetFieldSerializator(const int &FieldId);
+    TRecSerializator* GetFieldSerializator(const int &FieldId);
     /// Get serializator for given field
-    const TRecSerializator& GetFieldSerializator(const int &FieldId) const;
+    const TRecSerializator* GetFieldSerializator(const int &FieldId) const;
     /// Remove record from name-id map
     void DelRecNm(const uint64& RecId);
-    /// Do we have a primary field
-    bool IsPrimaryField() const { return PrimaryFieldId != -1; }
-    /// Set primary field map
-    void SetPrimaryField(const uint64& RecId);
-    /// Delete primary field map
-    void DelPrimaryField(const uint64& RecId);
+    
     /// Transform Join name to it's corresponding field name
     TStr GetJoinFieldNm(const TStr& JoinNm) const { return JoinNm + "Id"; }
 
@@ -1176,6 +1147,39 @@ private:
     void InitFromSchema(const TStoreSchema& StoreSchema);
     /// Initialize field location flags
     void InitDataFlags();
+
+    /// Do we have a primary field
+    bool IsPrimaryField() const { return PrimaryFieldId != -1; }
+    /// Set primary field map
+    void SetPrimaryField(const uint64& RecId);
+    /// Set primary field map for a given string value
+    void SetPrimaryFieldStr(const uint64& RecId, const TStr& Str);
+    /// Set primary field map for a given integer value
+    void SetPrimaryFieldInt(const uint64& RecId, const int& Int);
+    /// Set primary field map for a given uint64 value
+    void SetPrimaryFieldUInt64(const uint64& RecId, const uint64& UInt64);
+    /// Set primary field map for a given double value
+    void SetPrimaryFieldFlt(const uint64& RecId, const double& Flt);
+    /// Set primary field map for a given TTm value
+    void SetPrimaryFieldMSecs(const uint64& RecId, const uint64& MSecs);
+    /// Delete primary field map
+    void DelPrimaryField(const uint64& RecId);
+    /// Delete primary field map for a given string value
+    void DelPrimaryFieldStr(const uint64& RecId, const TStr& Str);
+    /// Delete primary field map for a given integer value
+    void DelPrimaryFieldInt(const uint64& RecId, const int& Int);
+    /// Delete primary field map for a given uint64 value
+    void DelPrimaryFieldUInt64(const uint64& RecId, const uint64& UInt64);
+    /// Delete primary field map for a given double value
+    void DelPrimaryFieldFlt(const uint64& RecId, const double& Flt);
+    /// Delete primary field map for a given TTm value
+    void DelPrimaryFieldMSecs(const uint64& RecId, const uint64& MSecs);
+
+    // return the memory containig the field for the record and mark it as dirty
+    TThinMIn GetEditableField(const uint64& RecId, const int& FieldId);
+
+    // given the recid and the fieldid get the memory that contains it, get blob that contains it and the page blob pointer
+    void GetRecData(const uint64& RecId, const int& FieldId, TMemBase& Mem, THash<TUInt64, TPgBlobPt>* &RecIdBlobPtr, PPgBlob& Blob, TPgBlobPt* &PgPt);
 
 public:
     TStorePbBlob(const TWPt<TBase>& _Base, const uint& StoreId,
@@ -1325,10 +1329,17 @@ public:
     /// Helper function for returning JSon definition of store
     PJsonVal GetStoreJson(const TWPt<TBase>& Base) const;
     
+    /// Get codebook mappings for given string field
+    int GetCodebookId(const int& FieldId, const TStr& Str) const;
+
     /// Save part of the data, given time-window
     int PartialFlush(int WndInMsec = 500);
     /// Retrieve performance statistics for this store
     PJsonVal GetStats();
+    /// Run verification for whole store
+    void RunVerification();
+    /// Run verification for single record
+    void RunVerificationForRecord(const uint64& RecId);
 
     /// Check if store supports TOAST
     virtual bool CanToast() { return true; }
@@ -1443,6 +1454,11 @@ public:
     void SetFieldTMem(const uint64& RecId, const int& FieldId, const TMem& Mem);
     /// Set field value using field id   
     void SetFieldJsonVal(const uint64& RecId, const int& FieldId, const PJsonVal& Json);
+    
+    /// Run verification for whole store
+    void RunVerification();
+    /// Run verification for single record
+    void RunVerificationForRecord(const uint64& RecId);
 };
 
 ///////////////////////////////

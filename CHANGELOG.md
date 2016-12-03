@@ -1,5 +1,115 @@
 # QMiner Change Log
 
+### 25 November 2016
+
+**Version 7.3.0**
+
+**Non-breaking with new features and bug fixes**
+
+New features:
+- Aggregating resampler (`TAggrResampler`) The resampler computes aggregates over consecutive equally sized intervals. It implements summing, averaging, max and min.
+-	Added `TStorePbBlob::GarbageCollect()`
+- Added `TRecFilterByFieldNull`
+
+Bug fixes:
+- When calling `saveJson()` on uninitalized `TOnlineHistrogram`, an exception was created. Now it serializes the current state.
+- Fix for deleting blobs; freed space from older blob files gets reused on following inserts. Now we always correctly know which file has free space where to put the new buffer. Had to extend the `TBlobBs` file with a parameter `ReleasedSize` that returns a value if the blob is moved and the previous buffer is released. Needed for monitoring which places in the files are free.
+- `TRecSet::DoJoin` fixed when using types onther than `uint64` for field join
+- When deleting records, we need to call `DelJoin` without the freqency parameter. Otherwise we might keep some joins to deleted records.
+- `TStorePbBlob::IsRecId` did not work if all data for store was in memory
+
+
+### 4 November 2016
+
+**Version 7.2.0**
+
+**Non-breaking with new feature**
+
+New Feature:
+- Graph cascades expose topological order in JavaScript API
+
+### 28 October 2016
+
+**Version 7.1.0**
+
+**Non-breaking with new features and bug fixes**
+
+New feature:
+- graph cascades model (modeling times of visiting nodes for directed acyclic graph sweeps)
+
+Bug fixes:
+- Fixed documentation (broken links in nnets)
+- TSIn, TSBase optimized (does not create redundant strings any more)
+- TStorePbBlob several fixes
+- TRecSet::DoJoin optimized
+- TNNAnomalyAggr initialization fix
+
+
+### 21 October 2016
+
+**Version: 7.0.2**
+
+**Non-breaking with bug fixes**
+
+Bug Fixes:
+- Fixed broken links in documentation (#481)
+- Fixed bug in feature space. Output vector when calling `TFtrSpace::GetSpV` was not cleared when not empty.
+
+### 14 October 2016
+
+**Version: 7.0.1**
+
+**Non-breaking with bug fixes**
+
+Bug Fixes:
+- Fixed histogram anomaly detector severity classifier
+- Fixed bad casts (unsigned)(int64) to (unsigned long long)(int64).
+- JS stream aggregate exceptions come with stacktraces, not just messages
+- JS stream aggregate `this` fixed
+- base construction with `createClean` mode made safer
+
+### 7 October 2016
+
+**Version: 7.0.0**
+
+**Breaking with new features**
+
+New Features:
+- Added `getNameInteger` and `getNameFloat` for stream aggregates in JavaScript (`INmFlt` and `INmInt`).
+- Online histogram can resize accordingly to new observed values.
+
+Bug Fix:
+- **BREAKING:** stream aggregates return Unix timestamps on JavaScript side and Windows timestamps on C++ side (issue #286)
+  - `new Date(sa.getTimestamp()-11644473600000)` => `new Date(sa.getTimestamp())` where `sa instanceof qm.StreamAggreator`.
+- Cleaned `INmFlt` and `INmInt` interfaces.
+
+### 30 September 2016
+
+**Version: 6.5.1**
+
+**Non-breaking with a bug fix**
+
+Bug Fix:
+- Fixed support for index joins in records by value
+
+### 23 September 2016
+
+**Version: 6.5.0**
+
+**Non-breaking with new features**
+
+New Features:
+- `qm.stats` property lists statistics on constructor and destructor calls
+- Histogram smoothing using kernel density estimation in `THistogramToPMFModel`
+- Histogram based anomaly detection stream aggregate
+- Nearest neighbor anomaly detection stream aggregate
+- Optimized Record set filter over code book strings
+
+Bug Fixes:
+- Lots of fixes to PgPage and its associated store
+- Again compiles under debug mode in Visual Studio
+
+
 ### 2 September 2016
 
 **Version: 6.4.0**
