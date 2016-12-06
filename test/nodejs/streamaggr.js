@@ -5580,6 +5580,38 @@ describe('Aggregating (sum/avg/min/max) resampler tests', function () {
             assert.equal(result[3].value, 10000);
         });
 
+        it('should throw an exception', function () {
+            var raw = store.addStreamAggr({
+                type: 'timeSeriesTick',
+                timestamp: 'timestamp',
+                value: 'value'
+            });
+
+            var resampler = store.addStreamAggr({
+                type: 'aggrResample',
+                inAggr: raw.name,
+                start: '1970-01-01T00:00:00.000',
+                //roundStart: 'm',
+                aggType: 'sum',
+                interval: 1000
+            });
+
+            var result = [];
+
+            var outAggr = new qm.StreamAggr(base, new function () {
+                this.onStep = function () {
+                    throw 'error';
+                }
+            });
+
+            resampler.setParams({ outAggr: outAggr.name });
+
+            store.push({ timestamp: 0, value: 1 }); // no error (no resampling)
+            assert.throws(function () {
+                store.push({ timestamp: 1000, value: 1 }); // error
+            });
+        });
+
     });
     describe('Avg tests', function () {
         it('should create a new avg aggregating resampler stream aggregate', function () {

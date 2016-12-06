@@ -958,10 +958,8 @@ void TNodeJsFuncStreamAggr::Reset() {
 
         v8::TryCatch TryCatch;
         Callback->Call(This, 0, NULL);
-        if (TryCatch.HasCaught()) {
-            v8::String::Utf8Value Msg(TryCatch.Message()->Get());
-            throw TQm::TQmExcept::New("Javascript exception from callback triggered in " + TStr(__FUNCTION__) + TStr(": ") + TStr(*Msg));
-        }
+
+        TNodeJsUtil::CheckJSExcept(TryCatch);
     }
 }
 
@@ -979,13 +977,10 @@ void TNodeJsFuncStreamAggr::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
         } else {
             const unsigned Argc = 1;
             v8::Local<v8::Value> ArgV[Argc] = { TNodeJsUtil::NewInstance<TNodeJsStreamAggr>(new TNodeJsStreamAggr(CallerAggr)) };
-            v8::TryCatch TryCatch;
             Callback->Call(This, Argc, ArgV);
         }
-        if (TryCatch.HasCaught()) {
-            v8::String::Utf8Value Msg(TryCatch.Message()->Get());
-            throw TQm::TQmExcept::New("Javascript exception from callback triggered in TNodeJsFuncStreamAggr::OnStep :" + TStr(*Msg));
-        }
+
+        TNodeJsUtil::CheckJSExcept(TryCatch);
     }
 }
 
@@ -1001,19 +996,14 @@ void TNodeJsFuncStreamAggr::OnTime(const uint64& Time, const TWPt<TStreamAggr>& 
         if (CallerAggr.Empty()) {
             const unsigned Argc = 1;
             v8::Local<v8::Value> ArgV[Argc] = { v8::Number::New(Isolate, (double)Time) };
-            v8::TryCatch TryCatch;
             Callback->Call(This, Argc, ArgV);
         } else {
             const unsigned Argc = 2;
             v8::Local<v8::Value> ArgV[Argc] = { v8::Number::New(Isolate, (double)Time),  TNodeJsUtil::NewInstance<TNodeJsStreamAggr>(new TNodeJsStreamAggr(CallerAggr)) };
-            v8::TryCatch TryCatch;
             Callback->Call(This, Argc, ArgV);
         }
 
-        if (TryCatch.HasCaught()) {
-            v8::String::Utf8Value Msg(TryCatch.Message()->Get());
-            throw TQm::TQmExcept::New("Javascript exception from callback triggered in TNodeJsFuncStreamAggr::OnTimeFun :" + TStr(*Msg));
-        }
+        TNodeJsUtil::CheckJSExcept(TryCatch);
     }
 }
 
@@ -1029,20 +1019,14 @@ void TNodeJsFuncStreamAggr::OnAddRec(const TQm::TRec& Rec, const TWPt<TStreamAgg
         if (CallerAggr.Empty()) {
             const unsigned Argc = 1;
             v8::Local<v8::Value> ArgV[Argc] = { TNodeJsRec::NewInstance(new TNodeJsRec(TNodeJsBaseWatcher::New(), Rec)) };
-            v8::TryCatch TryCatch;
             Callback->Call(This, Argc, ArgV);
         } else {
             const unsigned Argc = 2;
             v8::Local<v8::Value> ArgV[Argc] = { TNodeJsRec::NewInstance(new TNodeJsRec(TNodeJsBaseWatcher::New(), Rec)),  TNodeJsUtil::NewInstance<TNodeJsStreamAggr>(new TNodeJsStreamAggr(CallerAggr)) };
-            v8::TryCatch TryCatch;
             Callback->Call(This, Argc, ArgV);
         }
         
-        if (TryCatch.HasCaught()) {
-            v8::String::Utf8Value Msg(TryCatch.Message()->Get());
-            v8::String::Utf8Value StackTrace(TryCatch.StackTrace());
-            throw TQm::TQmExcept::New("Javascript exception from callback triggered in TNodeJsFuncStreamAggr::OnAddRec :" + TStr(*Msg) + "\n" + TStr(*StackTrace));
-        }
+        TNodeJsUtil::CheckJSExcept(TryCatch);
     }
 }
 
@@ -1058,12 +1042,10 @@ void TNodeJsFuncStreamAggr::OnUpdateRec(const TQm::TRec& Rec, const TWPt<TStream
         if (CallerAggr.Empty()) {
             const unsigned Argc = 1;
             v8::Local<v8::Value> ArgV[Argc] = { TNodeJsRec::NewInstance(new TNodeJsRec(TNodeJsBaseWatcher::New(), Rec)) };
-            v8::TryCatch TryCatch;
             Callback->Call(This, Argc, ArgV);
         } else {
             const unsigned Argc = 2;
             v8::Local<v8::Value> ArgV[Argc] = { TNodeJsRec::NewInstance(new TNodeJsRec(TNodeJsBaseWatcher::New(), Rec)),  TNodeJsUtil::NewInstance<TNodeJsStreamAggr>(new TNodeJsStreamAggr(CallerAggr)) };
-            v8::TryCatch TryCatch;
             Callback->Call(This, Argc, ArgV);
         }
 
@@ -1083,12 +1065,10 @@ void TNodeJsFuncStreamAggr::OnDeleteRec(const TQm::TRec& Rec, const TWPt<TStream
         if (CallerAggr.Empty()) {
             const unsigned Argc = 1;
             v8::Local<v8::Value> ArgV[Argc] = { TNodeJsRec::NewInstance(new TNodeJsRec(TNodeJsBaseWatcher::New(), Rec)) };
-            v8::TryCatch TryCatch;
             Callback->Call(This, Argc, ArgV);
         } else {
             const unsigned Argc = 2;
             v8::Local<v8::Value> ArgV[Argc] = { TNodeJsRec::NewInstance(new TNodeJsRec(TNodeJsBaseWatcher::New(), Rec)),  TNodeJsUtil::NewInstance<TNodeJsStreamAggr>(new TNodeJsStreamAggr(CallerAggr)) };
-            v8::TryCatch TryCatch;
             Callback->Call(This, Argc, ArgV);
         }
         
@@ -1107,10 +1087,9 @@ PJsonVal TNodeJsFuncStreamAggr::SaveJson(const int& Limit) const {
         v8::Local<v8::Value> ArgV[Argc] = { v8::Number::New(Isolate, Limit) };
         v8::TryCatch TryCatch;
         v8::Local<v8::Value> ReturnVal = Callback->Call(This, Argc, ArgV);
-        if (TryCatch.HasCaught()) {
-            v8::String::Utf8Value Msg(TryCatch.Message()->Get());
-            throw TQm::TQmExcept::New("Javascript exception from callback triggered: " +  TStr(*Msg));
-        }
+
+        TNodeJsUtil::CheckJSExcept(TryCatch);
+
         QmAssertR(ReturnVal->IsObject(), "Stream aggr JS callback: saveJson didn't return an object.");
         PJsonVal Res = TNodeJsUtil::GetObjJson(ReturnVal->ToObject());
 
@@ -1132,10 +1111,7 @@ bool TNodeJsFuncStreamAggr::IsInit() const {
 
         v8::TryCatch TryCatch;
         v8::Handle<v8::Value> RetVal = Callback->Call(This, 0, NULL);
-        if (TryCatch.HasCaught()) {
-            v8::String::Utf8Value Msg(TryCatch.Message()->Get());
-            throw TQm::TQmExcept::New("Javascript exception from callback triggered in TNodeJsFuncStreamAggr, name: " + GetAggrNm() + "," + TStr(*Msg));
-        }
+        TNodeJsUtil::CheckJSExcept(TryCatch);
         QmAssertR(RetVal->IsBoolean(), "TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", init did not return a boolean!");
         return RetVal->BooleanValue();
     } else {
@@ -1161,10 +1137,7 @@ void TNodeJsFuncStreamAggr::SaveState(TSOut& SOut) const {
         
         v8::TryCatch TryCatch;
         Callback->Call(This, Argc, ArgV);
-        if (TryCatch.HasCaught()) {
-            v8::String::Utf8Value Msg(TryCatch.Message()->Get());
-            throw TQm::TQmExcept::New("Javascript exception from callback triggered: " + TStr(*Msg));
-        }
+        TNodeJsUtil::CheckJSExcept(TryCatch);
     }
 }
 
@@ -1185,10 +1158,7 @@ void TNodeJsFuncStreamAggr::LoadState(TSIn& SIn) {
         v8::Local<v8::Value> ArgV[Argc] = { JsFIn };
         v8::TryCatch TryCatch;
         Callback->Call(This, Argc, ArgV);
-        if (TryCatch.HasCaught()) {
-            v8::String::Utf8Value Msg(TryCatch.Message()->Get());
-            throw TQm::TQmExcept::New("Javascript exception from callback triggered: " + TStr(*Msg));
-        }       
+        TNodeJsUtil::CheckJSExcept(TryCatch);
     }
 }
 
@@ -1296,10 +1266,7 @@ void TNodeJsFuncStreamAggr::GetValV(TFltV& ValV) const {
 
         v8::TryCatch TryCatch;
         v8::Handle<v8::Value> RetVal = Callback->Call(This, 0, NULL);
-        if (TryCatch.HasCaught()) {
-            v8::String::Utf8Value Msg(TryCatch.Message()->Get());
-            throw TQm::TQmExcept::New("Javascript exception from callback triggered in TNodeJsFuncStreamAggr, name: " + GetAggrNm() + "," + TStr(*Msg));
-        }
+        TNodeJsUtil::CheckJSExcept(TryCatch);
         QmAssertR(RetVal->IsObject() && TNodeJsUtil::IsClass(v8::Handle<v8::Object>::Cast(RetVal), TNodeJsFltV::GetClassId()), "TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ",GetFltV did not return a vector!");
         TNodeJsFltV* JsVec = TNodeJsUtil::Unwrap<TNodeJsFltV>(v8::Handle<v8::Object>::Cast(RetVal));
 
