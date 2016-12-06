@@ -1,5 +1,25 @@
 # QMiner Change Log
 
+### 2 December 2016
+
+**Version 7.4.0**
+
+**Non-breaking with new features and a bug fix**
+
+New features:
+- Record switch aggregate (`TRecSwitchAggr`) reads strings from records and triggers other aggregates based on an internal hash map.
+- Time series sparse vector tick (`TTimeSeriesSparseVectorTick`) reads timestamps and sparse vectors from records, implements `ISparseVec` and `ITm` interfaces.
+- Sparse vector circular buffer (`TWinBufSpV`) reads from TWinBuf and stores the buffer values in memory as a circular buffer.
+- Stream aggregates can pass the caller when triggering `onAdd`, `onStep` and `onTime` of other aggregates.
+- `TWinMemBuf` supports separate aggregate that provides time.
+
+Bug fix:
+- Fixed parsing dates in JSON objects (providing a Date object for a datetime field of a record now works).
+
+Other:
+- Renamed `TStreamAggr::GetParam` -> `GetParams` (consistency with JS).
+- Renamed `TStreamAggr::SetParam` -> `SetParams` (consistency with JS).
+
 ### 25 November 2016
 
 **Version 7.3.0**

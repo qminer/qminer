@@ -3470,8 +3470,8 @@ public:
     /// Save state of stream aggregate to stream
     virtual void SaveState(TSOut& SOut) const;
 
-    virtual PJsonVal GetParam() const { return TJsonVal::NewObj(); }
-    virtual void SetParam(const PJsonVal& JsonVal) {}
+    virtual PJsonVal GetParams() const { return TJsonVal::NewObj(); }
+    virtual void SetParams(const PJsonVal& JsonVal) {}
 
     /// Get aggregate name
     const TStr& GetAggrNm() const { return AggrNm; }
@@ -3482,15 +3482,15 @@ public:
     virtual void Reset() = 0;
 
     /// Update state of the aggregate
-    virtual void OnStep() { }
+    virtual void OnStep(const TWPt<TStreamAggr>& CallerAggr) { }
     /// Update state of the aggregate at time
-    virtual void OnTime(const uint64& TmMsec) { OnStep(); }
+    virtual void OnTime(const uint64& TmMsec, const TWPt<TStreamAggr>& CallerAggr) { OnStep(CallerAggr); }
     /// Add new record to the aggregate
-    virtual void OnAddRec(const TRec& Rec) { OnStep(); }
+    virtual void OnAddRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr) { OnStep(CallerAggr); }
     /// Recored already added to the aggregate is being updated
-    virtual void OnUpdateRec(const TRec& Rec) { }
+    virtual void OnUpdateRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr) { }
     /// Recored already added to the aggregate is being deleted from the store 
-    virtual void OnDeleteRec(const TRec& Rec) { }
+    virtual void OnDeleteRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr) { }
 
     // retrieving input aggregate names
     virtual void GetInAggrNmV(TStrV& InAggrNmV) const { };
@@ -3508,7 +3508,13 @@ protected:
     template <class IInterface>
     static TWPt<IInterface> Cast(const TWPt<TStreamAggr>& Aggr, const bool& CheckP = true) {
         TWPt<IInterface> CastAggr = dynamic_cast<IInterface*>(Aggr());
-        QmAssertR(!CastAggr.Empty() || !CheckP, "[TStreamAggr] error casting " + Aggr->GetAggrNm());
+        QmAssertR(
+            !CastAggr.Empty() || !CheckP,
+            "[TStreamAggr] error casting stream aggregate " +
+                Aggr->GetAggrNm() +
+                " to " +
+                TTypeNm<IInterface>()
+        );
         return CastAggr;
     }
 };
@@ -3641,15 +3647,15 @@ public:
     void Reset();
 
     /// Update state of the aggregates
-    void OnStep();
+    void OnStep(const TWPt<TStreamAggr>& CallerAggr);
     /// Update state of the aggregates at time
-    void OnTime(const uint64& TmMsec);
+    void OnTime(const uint64& TmMsec, const TWPt<TStreamAggr>& CallerAggr);
     /// Add new record to the aggregates
-    void OnAddRec(const TRec& Rec);
+    void OnAddRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr);
     /// Recored already added to the aggregates is being updated
-    void OnUpdateRec(const TRec& Rec);
+    void OnUpdateRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr);
     /// Recored already added to the aggregates is being deleted from the store 
-    void OnDeleteRec(const TRec& Rec);
+    void OnDeleteRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr);
 
     /// Print latest statistics to logger
     void PrintStat() const;

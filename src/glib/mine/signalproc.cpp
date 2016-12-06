@@ -909,7 +909,7 @@ TAggrResampler::TAggrResampler(const PJsonVal& ParamVal) {
     DefaultVal = ParamVal->GetObjNum("defaultValue", 0);
 }
 
-PJsonVal TAggrResampler::GetParam() const {
+PJsonVal TAggrResampler::GetParams() const {
     PJsonVal Result = TJsonVal::NewObj();
     Result->AddToObj("interval", IntervalMSecs);
     Result->AddToObj("aggType", GetTypeStr(Type));
