@@ -13,7 +13,7 @@
                 <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
         <div id="jsdoc-navbar-content">
-            <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.2.0</a>
+            <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.4.0</a>
         </div>
     </div>
 </nav>
@@ -23,7 +23,7 @@
                                 <div id="jsdoc-content-container">
                                         <div id="jsdoc-main" role="main">
                     <header class="page-header">
-        <h1><div class="symbol-detail-labels"><span class="label label-kind">module</span></div><small></small><span class="symbol-name">qm</span></h1>        <p class="source-link">Source: <a href="qminer_aggrdoc.js.html#source-line-8">qminer_aggrdoc.<wbr>js:8</a></p>
+        <h1><div class="symbol-detail-labels"><span class="label label-kind">module</span></div><small></small><span class="symbol-name">qm</span></h1>        <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-8">qminerdoc.<wbr>js:8</a></p>
             <div class="symbol-description">
                     <p>QMiner module.</p>
 
@@ -220,14 +220,14 @@ var qm = require(&#x27;qminer&#x27;);</code></pre>
                 <dt><a href="module-qm.html#~PerformanceStat">PerformanceStat</a></dt>
                 <dd>
                 </dd>
+                <dt><a href="module-qm.html#~PerformanceStatBase">PerformanceStatBase</a></dt>
+                <dd>
+                </dd>
         </dl>
 </div>
 
                     <div class="summary-column">
         <dl class="dl-summary-callout">
-                <dt><a href="module-qm.html#~PerformanceStatBase">PerformanceStatBase</a></dt>
-                <dd>
-                </dd>
                 <dt><a href="module-qm.html#~PerformanceStatStore">PerformanceStatStore</a></dt>
                 <dd>
                 </dd>
@@ -276,17 +276,17 @@ var qm = require(&#x27;qminer&#x27;);</code></pre>
                 <dt><a href="module-qm.html#~StreamAggrMerger">StreamAggrMerger</a></dt>
                 <dd>
                 </dd>
-        </dl>
-</div>
-
-                    <div class="summary-column">
-        <dl class="dl-summary-callout">
                 <dt><a href="module-qm.html#~StreamAggrMin">StreamAggrMin</a></dt>
                 <dd>
                 </dd>
                 <dt><a href="module-qm.html#~StreamAggrMovingAverage">StreamAggrMovingAverage</a></dt>
                 <dd>
                 </dd>
+        </dl>
+</div>
+
+                    <div class="summary-column">
+        <dl class="dl-summary-callout">
                 <dt><a href="module-qm.html#~StreamAggrMovingCorrelation">StreamAggrMovingCorrelation</a></dt>
                 <dd>
                 </dd>
@@ -297,6 +297,9 @@ var qm = require(&#x27;qminer&#x27;);</code></pre>
                 <dd>
                 </dd>
                 <dt><a href="module-qm.html#~StreamAggrRecordBuffer">StreamAggrRecordBuffer</a></dt>
+                <dd>
+                </dd>
+                <dt><a href="module-qm.html#~StreamAggrRecordSwitch">StreamAggrRecordSwitch</a></dt>
                 <dd>
                 </dd>
                 <dt><a href="module-qm.html#~StreamAggrResampler">StreamAggrResampler</a></dt>
@@ -4968,7 +4971,7 @@ aggregate (sum,avg,min,max) computed over an interval. The aggregate
 exposes the following methods.
 <br>1. <a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a> returns the last resampled value.
 <br>2. <a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a> returns the timestamp of the last resampled value.
-<br>3. module:qm.StreamAggr#onStep reads from an input aggregate and tries to resample.
+<br>3. <a href="module-qm.StreamAggr.html#onStep">module:qm.StreamAggr#onStep</a> reads from an input aggregate and tries to resample.
 <br>4. <a href="module-qm.StreamAggr.html#onTime">module:qm.StreamAggr#onTime</a> updates the current time (no data has arrived, but time has passed) and tries to resample.
 <br>5. <a href="module-qm.StreamAggr.html#getParams">module:qm.StreamAggr#getParams</a> returns a parameter object.
 <br>6. <a href="module-qm.StreamAggr.html#setParams">module:qm.StreamAggr#setParams</a> used primarily for setting the out-aggregate.
@@ -5749,6 +5752,21 @@ It <b>cannot</b> be connect to the <a href="module-qm.html#~StreamAggrTimeSeries
         </td>
         <td>
                 <p>The linear regressor type.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>recordSwitchAggr</p>
+        </td>
+        <td>
+                <p><a href="module-qm.html#~StreamAggrRecordSwitch">module:qm~StreamAggrRecordSwitch</a></p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The record switch type.</p>
         </td>
 </tr>
 
@@ -7812,6 +7830,215 @@ base.close();</code></pre>
         </td>
         <td>
                 <p>The size of the window.</p>
+        </td>
+</tr>
+
+        </tbody>
+</table>
+
+    </section>
+
+
+    <dl class="dl-compact">
+        
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+        
+        
+        
+        
+        
+    </dl>
+
+                <h3 id="~StreamAggrRecordSwitch"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggrRecordSwitch</span><small class="property-type">
+            &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
+        <p>This stream aggregate enables switching control flow between stream aggregates based
+on string keys. It is based on a hash table from keys (strings read from records) to
+stream aggregates. When OnAdd of a record switch is called, the aggregate looks for
+an appropriate target aggregate and triggers its onAdd. The aggregate
+exposes the following methods.
+<br>1. <a href="module-qm.StreamAggr.html#getInteger">module:qm.StreamAggr#getInteger</a> takes a string input and returns returns 1 if the string is a known key and <code>null</code> if it's unknown.
+<br>2. <a href="module-qm.StreamAggr.html#onAdd">module:qm.StreamAggr#onAdd</a> reads the appropriate field as a key and triggers the onAdd of a target aggregate if the key is known.
+<br>3. <a href="module-qm.StreamAggr.html#getParams">module:qm.StreamAggr#getParams</a> returns a parameter object.
+<br>4. <a href="module-qm.StreamAggr.html#setParams">module:qm.StreamAggr#setParams</a> used primarily for adding (using $add) new targets or seting  (using $set) the internal hashmap with new targets.</p>
+
+        <section>
+        <h4>
+            Example
+        </h4>
+                <div>
+    <pre class="prettyprint"><code>// main library
+var qm = require(&#x27;qminer&#x27;);
+
+// create a store
+var base = new qm.Base({
+    mode: &#x27;createClean&#x27;,
+    schema: [{
+        name: &#x27;testStore&#x27;,
+        fields: [
+            { name: &#x27;switchField&#x27;, type: &#x27;string&#x27; }
+        ]
+    }]
+});
+// select store
+var store = base.store(&#x27;testStore&#x27;);
+
+// first JS aggregate
+var outAggr1 = new qm.StreamAggr(base, new function () {
+    this.onAdd = function (rec) {
+        console.log(&#x27;first&#x27;);
+    }
+});
+
+// second JS aggregate
+var outAggr2 = new qm.StreamAggr(base, new function () {
+    this.onAdd = function (rec) {
+        console.log(&#x27;second&#x27;);
+    }
+});
+
+// switcher aggregate: calls outAggr1 when rec.switchField == &#x27;a&#x27; and outAggr2 when rec.switchField == &#x27;b&#x27;
+var switcher = store.addStreamAggr({
+    type: &#x27;recordSwitchAggr&#x27;,
+    store: &#x27;testStore&#x27;,
+    fieldName: &#x27;switchField&#x27;,
+    $set: [{ key: &#x27;a&#x27;, aggrName: outAggr1.name },
+           { key: &#x27;b&#x27;, aggrName: outAggr2.name }],
+    throwMissing: false
+});
+
+store.push({ switchField: &#x27;a&#x27; });
+// outAggr1 prints &#x60;first&#x60;
+store.push({ switchField: &#x27;b&#x27; });
+// outAggr2 prints &#x60;second&#x60;
+store.push({ switchField: &#x27;b&#x27; });
+// outAggr2 prints &#x60;second&#x60;
+store.push({ switchField: &#x27;c&#x27; });
+// nothing happens
+store.push({ switchField: &#x27;a&#x27; });
+// outAggr1 prints &#x60;first&#x60;
+
+// clean up
+base.close();</code></pre>
+</div>
+
+    </section>
+
+    
+        <section>
+        <h4>Properties</h4>
+            <table class="jsdoc-details-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Optional</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+                <tr>
+        <td>
+            <p>name</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>Yes</p>
+        </td>
+        <td>
+                <p>The given name of the stream aggregator (autogenerated by default).</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>type</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The type for the stream aggregator. <b>Important:</b> It must be equal to <code>'recordSwitchAggr'</code>.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>store</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The name of the store consistent with the records that it processes.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>fieldName</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The name of the field whose values are used for switching</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>throwMissing</p>
+        </td>
+        <td>
+                <p>boolean</p>
+        </td>
+        <td>
+                <p>Yes</p>
+        </td>
+        <td>
+                <p>If true, the aggregate will throw an exception when the record's key is not recognized (no appropirate target aggregate exists).</p>
+                <p>Defaults to <code>false</code>.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>$set</p>
+        </td>
+        <td>
+                <p>Array of Object</p>
+        </td>
+        <td>
+                <p>Yes</p>
+        </td>
+        <td>
+                <p>An array with objects like <code>{'key': string, 'aggrName': string}</code>. Each object is a switch key and the name of the target aggregate.</p>
         </td>
 </tr>
 

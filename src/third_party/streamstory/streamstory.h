@@ -23,6 +23,10 @@ namespace {
 	typedef TIntV TAggState;
 	typedef TVec<TAggState> TAggStateV;
 	typedef TVec<TFltV> TStateFtrVV;
+
+	// structure for returning the "state history" or "big picture"
+    typedef TVec<TTriple<TUInt64,TUInt64,TIntFltH>> TStateHist;
+    typedef TVec<TPair<TFlt, TStateHist>> TScaleStateHistV;
 }
 
 // forward declarations
@@ -46,7 +50,8 @@ public:
 enum TFtrType {
     ftUndefined,
     ftNumeric,
-    ftCategorical
+    ftCategorical,
+    ftTime
 };
 
 ///////////////////////////////////////////////
@@ -659,8 +664,14 @@ public:
 	/// returns the last few states that occurred in the real-time data stream
 	void GetHistStateIdV(const double& Height, TStateIdV& StateIdV) const;
 	/// returns the whole history of states on the given scale
-	void GetStateHistory(const double& Scale, TUInt64IntPrV& StateTmStateIdPrV) const;
-	void GetStateHistory(TVec<TPair<TFlt, TUInt64IntPrV>>& ScaleTmIdPrPrV) const;
+	void GetStateHistory(const double& RelOffset, const double& RelRange,
+	        const int& MxStates, const double& Scale, uint64& GlobalMnDur,
+	        TStateHist& TmDurStateIdPercHTrV) const;
+	/// returns the whole history of states on all the scales
+	void GetStateHistory(const double& RelOffset, const double& RelRange,
+            const int& MxStates,
+            TScaleStateHistV& ScaleTmDurIdTrV,
+            uint64& MnTm, uint64& MxTm) const;
 
 	// for each state returns the number of leafs it's subtree has
 	void GetLeafSuccesorCountV(TIntV& LeafCountV) const;
@@ -740,6 +751,31 @@ private:
 
 	static int FindScaleNBin(const double& Scale, const TFltV& ScaleV);
 
+	static bool HaveSameKeys(const TIntFltH& Hash1, const TIntFltH& Hash2) {
+	    if (Hash1.Len() != Hash2.Len()) { return false; }
+
+	    int KeyId = Hash1.FFirstKeyId();
+	    while (Hash1.FNextKeyId(KeyId)) {
+	        const int& Key1 = Hash1.GetKey(KeyId);
+	        if (!Hash2.IsKey(Key1)) {
+	            return false;
+	        }
+	    }
+
+	    return true;
+	}
+	static double GetStateProbDiff(const TIntFltH& DistH1, const TIntFltH& DistH2) {
+	    double Diff = 0;
+
+	    int KeyId = DistH1.FFirstKeyId();
+	    while (DistH1.FNextKeyId(KeyId)) {
+	        const int& Key1 = DistH1.GetKey(KeyId);
+
+	        Diff += TFlt::Abs(DistH1.GetDat(Key1) - DistH2.GetDat(Key1));
+	    }
+
+	    return Diff;
+	}
 	// clears the state
 	void ClrFlds();
 };
@@ -748,12 +784,20 @@ private:
 // UI helper
 class TUiHelper {
 public:
+	typedef TTriple<TUCh, TInt, TInt> TTmDesc;
+	typedef TVec<TTmDesc> TTmDescV;
+
 	enum TNumAutoNmLevel: uchar {
 		nanlLowest = 0x80,
 		nanlLow = 0x81,
 		nanlMeduim = 0x82,
 		nanlHigh = 0x83,
 		nanlHighest = 0x84
+	};
+
+	enum TDescType {
+	    dtNormal,
+	    dtShort
 	};
 
 	class TAutoNmDesc;
@@ -823,13 +867,25 @@ public:
 		const int& GetBin() const { return BinN; }
 	};
 
+	class TAutoNmTmDesc: public TAutoNmDesc {
+	private:
+	    TStrPr FromToStrPr;
+
+	public:
+	    TAutoNmTmDesc(const TTmDesc& TmDesc);
+	    TAutoNmTmDesc(TSIn& SIn);
+
+	    void Save(TSOut& SOut) const;
+	private:
+	    TFtrType GetFtrType() const { return ftTime; }
+	    PJsonVal GetJson() const;
+	    PJsonVal GetNarrateJson() const;
+	};
+
 	typedef TVec<PAutoNmDesc> PAutoNmDescV;
 	typedef TVec<PAutoNmDescV> PAutoNmDescVV;
 
 private:
-
-	typedef TTriple<TUCh, TInt, TInt> TTmDesc;
-	typedef TVec<TTmDesc> TTmDescV;
 
 	// state sizes and coordinates
 	static const double RADIUS_FACTOR;
@@ -844,8 +900,10 @@ private:
 
 	// time descriptions
 	static const TStr MONTHS[12];
+	static const TStr MONTHS_SHORT[12];
 	static const TStr DAYS_IN_MONTH[31];
 	static const TStr DAYS_IN_WEEK[7];
+	static const TStr DAYS_IN_WEEK_SHORT[7];
 	static const TStr HOURS_IN_DAY[24];
 
 	TFltPrV StateCoordV;
@@ -878,10 +936,13 @@ public:
 private:
 	TFltPr& GetModStateCoords(const int& StateId);
 
+	void SetStateAutoNm(const int& StateId, const TUiHelper::PAutoNmDesc& Desc);
+
 	// computes the coordinates (in 2D) of each state
 	void InitStateCoordV(const TStreamStory& StreamStory);
 	void RefineStateCoordV(const TStreamStory& StreamStory);
 	void InitAutoNmV(const TStreamStory& StreamStory);
+	void RefineAutoNmV();
 	void InitStateExplain(const TStreamStory& StreamStory);
 
 	bool HasMxPeaks(const int& MxPeakCount, const double& PeakMassThreshold, const TFltV& PdfHist,
@@ -889,7 +950,8 @@ private:
 
 	void GetTmDesc(const int& StateId, TTmDescV& DescV) const;
 
-	static void GetTimeDescStr(const TTmDesc& Desc, TStrPr& StrDesc);
+	static void GetFromToStrPr(const TTmDesc& Desc, TStrPr& StrDesc,
+	        const TDescType& DescType);
 	static double GetStateRaduis(const double& Prob);
 	static bool NodesOverlap(const int& StartId, const int& EndId, const TFltPrV& CoordV,
 			const TFltV& RaduisV);
@@ -1104,8 +1166,10 @@ public:
 			const int& NBins=-1) const;
 	void GetTimeHistogram(const int& StateId, const TStateIdentifier::TTmHistType& HistType,
 			TIntV& BinV, TFltV& ProbV) const;
-	void GetStateHistory(const double& Scale, TUInt64IntPrV& StateTmStateIdPrV) const;
-	void GetStateHistory(TVec<TPair<TFlt, TUInt64IntPrV>>& ScaleTmIdPrPrV) const;
+	void GetStateHistory(const double& RelOffset, const double& RelRange,
+	        const int& MxStates,
+	        TVec<TPair<TFlt, TVec<TTriple<TUInt64,TUInt64,TIntFltH>>>>& ScaleTmDurIdTrPrV,
+	        uint64& MnTm, uint64& MxTm) const;
 
 	// state explanations
 	PJsonVal GetStateWgtV(const int& StateId) const;
