@@ -6590,14 +6590,7 @@ describe('Aggregate set', function () {
             aggregates: [tick.name, winbufvec.name, customAggr.name]
         });
 
-        //store.push({ Time: '2015-06-10T14:13:32.0', Celsius: 1 });
-        //winbufvec.getFloatVector().print(); // prints 1
-        //store.push({ Time: '2015-06-10T14:33:30.0', Celsius: 2 });
-        //winbufvec.getFloatVector().print(); // prints 2
-        //store.push({ Time: '2015-06-10T14:33:31.0', Celsius: 3 });
-        //winbufvec.getFloatVector().print(); // prints 2,3
-        //store.push({ Time: '2015-06-10T14:33:32.0', Celsius: 4 });
-        //winbufvec.getFloatVector().print(); // prints 2,3,4
+        // No records are pushed into store with attached aggregates, therefore c++ aggregates should not be initialized
 
         assert.ok(set.init, 'Aggregate set is not initialized.');
         assert.ok(set.name);
