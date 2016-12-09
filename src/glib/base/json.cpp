@@ -271,12 +271,12 @@ void TJsonVal::GetObjFltV(const TStr& Key, TFltV& FltV) const {
     GetObjKey(Key)->GetArrNumV(FltV);
 }
 
-const TStr& TJsonVal::GetObjStr(const TStr& Key, const TStr& DefStr) const { 
+TStr TJsonVal::GetObjStr(const TStr& Key, const TStr& DefStr) const { 
   EAssert(IsObj());
   return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetStr() : DefStr;
 }
 
-const TStr& TJsonVal::GetObjStr(const char *Key, const TStr& DefStr) const {
+TStr TJsonVal::GetObjStr(const char *Key, const TStr& DefStr) const {
   EAssert(IsObj());
   return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetStr() : DefStr;
 }
