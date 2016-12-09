@@ -273,12 +273,18 @@ void TJsonVal::GetObjFltV(const TStr& Key, TFltV& FltV) const {
 
 TStr TJsonVal::GetObjStr(const TStr& Key, const TStr& DefStr) const { 
   EAssert(IsObj());
-  return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetStr() : DefStr;
+  if (!IsObjKey(Key)) return DefStr;
+  PJsonVal val = KeyValH.GetDat(Key);
+  if (val->IsNull()) return DefStr;
+  val->GetStr();
 }
 
 TStr TJsonVal::GetObjStr(const char *Key, const TStr& DefStr) const {
   EAssert(IsObj());
-  return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetStr() : DefStr;
+  if (!IsObjKey(Key)) return DefStr;
+  PJsonVal val = KeyValH.GetDat(Key);
+  if (val->IsNull()) return DefStr;
+  val->GetStr();
 }
 
 void TJsonVal::GetObjStrV(const TStr& Key, TStrV& StrV) const {
