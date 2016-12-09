@@ -771,12 +771,20 @@ TNodeJsFuncStreamAggr::TNodeJsFuncStreamAggr(TWPt<TQm::TBase> _Base, const TStr&
         v8::Handle<v8::Value> _OnTimeFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "onTime"));
         QmAssert(_OnTimeFun->IsFunction());
         OnTimeFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_OnTimeFun));
+    } else if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "onStep"))) {
+        v8::Handle<v8::Value> _OnStepFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "onStep"));
+        QmAssert(_OnStepFun->IsFunction());
+        OnTimeFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_OnStepFun));
     }
 
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "onAdd"))) {
         v8::Handle<v8::Value> _OnAddFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "onAdd"));
         QmAssert(_OnAddFun->IsFunction());
         OnAddFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_OnAddFun));
+    } else if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "onStep"))) {
+        v8::Handle<v8::Value> _OnStepFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "onStep"));
+        QmAssert(_OnStepFun->IsFunction());
+        OnAddFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_OnStepFun));
     }
 
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "onUpdate"))) {
@@ -784,6 +792,7 @@ TNodeJsFuncStreamAggr::TNodeJsFuncStreamAggr(TWPt<TQm::TBase> _Base, const TStr&
         QmAssert(_OnUpdateFun->IsFunction());
         OnUpdateFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_OnUpdateFun));
     }
+
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "onDelete"))) {
         v8::Handle<v8::Value> _OnDeleteFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "onDelete"));
         QmAssert(_OnDeleteFun->IsFunction());
