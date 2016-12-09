@@ -17,7 +17,8 @@ THash<TStr, TStr> TNodeJsUtil::ClassNmAccessorH = THash<TStr, TStr>();
 void TNodeJsUtil::CheckJSExcept(const v8::TryCatch& TryCatch) {
     if (TryCatch.HasCaught()) {
         v8::String::Utf8Value Msg(TryCatch.Message()->Get());
-        throw TExcept::New("Javascript exception from callback triggered:" + TStr(*Msg));
+        v8::String::Utf8Value StackTrace(TryCatch.StackTrace());
+        throw TExcept::New("Javascript exception from callback triggered:" + TStr(*Msg) + "\n" + TStr(*StackTrace));
     }
 }
 
@@ -39,8 +40,15 @@ PJsonVal TNodeJsUtil::GetObjJson(const v8::Local<v8::Value>& Val, const bool& Ig
         else if (Val->IsNumberObject()) {
             return TJsonVal::NewNum(Val->NumberValue());
         }
-        else if (Val->IsStringObject() || Val->IsRegExp() || Val->IsDate()) {
+        else if (Val->IsStringObject() || Val->IsRegExp()) {
             return TJsonVal::NewStr(TStr(*v8::String::Utf8Value(Val->ToString())));
+        }
+        else if (Val->IsDate()) {
+            v8::Local<v8::Date> DateObj = v8::Local<v8::Date>::Cast(Val);
+            const int64 UnixMSecs = (int64) DateObj->NumberValue();
+            const uint64 WinMSecs = TNodeJsUtil::GetCppTimestamp(UnixMSecs);
+            TTm Tm = TTm::GetTmFromMSecs(WinMSecs);
+            return TJsonVal::NewStr(Tm.GetWebLogDateTimeStr(true, "T", true) + "Z");    // XXX is there a better way than + "Z"???
         }
         else if (Val->IsArray()) {
             PJsonVal JsonArr = TJsonVal::NewArr();

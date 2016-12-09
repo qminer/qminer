@@ -1,5 +1,44 @@
 # QMiner Change Log
 
+### 2 December 2016
+
+**Version 7.4.0**
+
+**Non-breaking with new features and a bug fix**
+
+New features:
+- Record switch aggregate (`TRecSwitchAggr`) reads strings from records and triggers other aggregates based on an internal hash map.
+- Time series sparse vector tick (`TTimeSeriesSparseVectorTick`) reads timestamps and sparse vectors from records, implements `ISparseVec` and `ITm` interfaces.
+- Sparse vector circular buffer (`TWinBufSpV`) reads from TWinBuf and stores the buffer values in memory as a circular buffer.
+- Stream aggregates can pass the caller when triggering `onAdd`, `onStep` and `onTime` of other aggregates.
+- `TWinMemBuf` supports separate aggregate that provides time.
+
+Bug fix:
+- Fixed parsing dates in JSON objects (providing a Date object for a datetime field of a record now works).
+
+Other:
+- Renamed `TStreamAggr::GetParam` -> `GetParams` (consistency with JS).
+- Renamed `TStreamAggr::SetParam` -> `SetParams` (consistency with JS).
+
+### 25 November 2016
+
+**Version 7.3.0**
+
+**Non-breaking with new features and bug fixes**
+
+New features:
+- Aggregating resampler (`TAggrResampler`) The resampler computes aggregates over consecutive equally sized intervals. It implements summing, averaging, max and min.
+-	Added `TStorePbBlob::GarbageCollect()`
+- Added `TRecFilterByFieldNull`
+
+Bug fixes:
+- When calling `saveJson()` on uninitalized `TOnlineHistrogram`, an exception was created. Now it serializes the current state.
+- Fix for deleting blobs; freed space from older blob files gets reused on following inserts. Now we always correctly know which file has free space where to put the new buffer. Had to extend the `TBlobBs` file with a parameter `ReleasedSize` that returns a value if the blob is moved and the previous buffer is released. Needed for monitoring which places in the files are free.
+- `TRecSet::DoJoin` fixed when using types onther than `uint64` for field join
+- When deleting records, we need to call `DelJoin` without the freqency parameter. Otherwise we might keep some joins to deleted records.
+- `TStorePbBlob::IsRecId` did not work if all data for store was in memory
+
+
 ### 4 November 2016
 
 **Version 7.2.0**

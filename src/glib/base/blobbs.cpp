@@ -293,7 +293,7 @@ TBlobPt TGBlobBs::PutBlob(const PSIn& SIn){
   return BlobPt;
 }
 
-TBlobPt TGBlobBs::PutBlob(const TBlobPt& BlobPt, const PSIn& SIn){
+TBlobPt TGBlobBs::PutBlob(const TBlobPt& BlobPt, const PSIn& SIn, int& ReleasedSize){
   EAssert((Access==faCreate)||(Access==faUpdate)||(Access==faRestore));
   int BfL=SIn->Len();
 
@@ -303,9 +303,13 @@ TBlobPt TGBlobBs::PutBlob(const TBlobPt& BlobPt, const PSIn& SIn){
   AssertBlobState(FBlobBs, bsActive);
   if (BfL>MxBfL){
 	Stats.SizeChngs++;
-    DelBlob(BlobPt);
+    // remember the size of the chunk that we are releasing. needed to notify the level above
+    // that we have space available to fill
+    ReleasedSize = DelBlob(BlobPt);
     return PutBlob(SIn);
   } else {
+    // we are not releasing any data chunk
+    ReleasedSize = -1;
 	int FPos = FBlobBs->GetFPos();
 	int OldBfL = FBlobBs->GetInt();
 	FBlobBs->SetFPos(FPos);
@@ -457,7 +461,7 @@ TMBlobBs::TMBlobBs(
   if (MxSegLen==-1){MxSegLen=MxBlobFLen;}
   // initialize the hashtable of block sizes to first segment
   TBlobBs::GenBlockLenV(BlockLenV);
-  for (uint N = 0; N < BlockLenV.Len(); N++) {
+  for (int N = 0; N < BlockLenV.Len(); N++) {
     BlockSizeToSegH.AddDat(BlockLenV[N], 0);
   }
   GetNrFPathFMid(BlobBsFNm, NrFPath, NrFMid);
@@ -515,6 +519,7 @@ TMBlobBs::~TMBlobBs(){
   }
 }
 
+// save a new buffer in SIn to a blob
 TBlobPt TMBlobBs::PutBlob(const PSIn& SIn){
   EAssert((Access==faCreate)||(Access==faUpdate)||(Access==faRestore));
   // buffer size that we need to store
@@ -530,8 +535,8 @@ TBlobPt TMBlobBs::PutBlob(const PSIn& SIn){
       break;
     }
   }
-  // temp:
-  DestSegN = 0;
+  // DestSegN should now be an index of segment from which we will start checking if the segment has place for the given data
+  // if not, the index will be increased
   TBlobPt BlobPt;
   while (DestSegN < SegV.Len()) {
     BlobPt = SegV[DestSegN]->PutBlob(SIn);
@@ -546,12 +551,8 @@ TBlobPt TMBlobBs::PutBlob(const PSIn& SIn){
     TStr SegFNm = GetSegFNm(NrFPath, NrFMid, SegV.Len());
     PBlobBs Seg = TGBlobBs::New(SegFNm, faCreate, MxSegLen);
     DestSegN = SegV.Add(Seg);
-    EAssert(DestSegN <= TUSInt::Mx);
+    EAssert(DestSegN < TUSInt::Mx);
     BlobPt = SegV[DestSegN]->PutBlob(SIn);
-    //// if we have added a new file then we also need to re-initialize the mappings from block size to the available segment
-    //for (uint N = 0; N < BlockLenV.Len(); N++) {
-    //  BlockSizeToSegH.AddDat(BlockLenV[N], 0);
-    //}
   }
   // remember the segment index to which we are able to write buffer of this length
   BlockSizeToSegH.AddDat(BlockSize, DestSegN);
@@ -560,28 +561,41 @@ TBlobPt TMBlobBs::PutBlob(const PSIn& SIn){
   return BlobPt;
 }
 
-TBlobPt TMBlobBs::PutBlob(const TBlobPt& BlobPt, const PSIn& SIn){
+// save (update) a buffer from SIn that we already have stored in BlobPt
+TBlobPt TMBlobBs::PutBlob(const TBlobPt& BlobPt, const PSIn& SIn, int& ReleasedSize){
   EAssert((Access==faCreate)||(Access==faUpdate)||(Access==faRestore));
-  int SegN=BlobPt.GetSeg();
-  TBlobPt NewBlobPt=SegV[SegN]->PutBlob(BlobPt, SIn);
+  // get the segment is which the data currently stored
+  const uint16 SegN=BlobPt.GetSeg();
+  // try to store the SIn into the current segment
+  TBlobPt NewBlobPt=SegV[SegN]->PutBlob(BlobPt, SIn, ReleasedSize);
+  // if we have released the previously used data chunk then remember that we have a buffer 
+  // in SegN of ReleasedSize available to be filled
+  if (ReleasedSize > 0) {
+      BlockSizeToSegH.AddDat(ReleasedSize) = MIN(SegN, (uint16) BlockSizeToSegH.GetDatOrDef(ReleasedSize, 0));
+  }
   if (NewBlobPt.Empty()){
+    // we were not able to save the data in the current segment so we want to store it as a new blob
+    // the data in the old blob was already removed
     NewBlobPt=PutBlob(SIn);
   } else {
+    // remember in which segment we put the blob
     NewBlobPt.PutSeg(BlobPt.GetSeg());
   }
   return NewBlobPt;
 }
 
 PSIn TMBlobBs::GetBlob(const TBlobPt& BlobPt){
-  int SegN=BlobPt.GetSeg();
+  uint16 SegN = BlobPt.GetSeg();
   return SegV[SegN]->GetBlob(BlobPt);
 }
 
 int TMBlobBs::DelBlob(const TBlobPt& BlobPt){
-  int SegN=BlobPt.GetSeg();
+  // get the index of the segement from which we will remove the data
+  uint16 SegN = BlobPt.GetSeg();
+  // remove the data. Obtain also the info about the blob size that was released
   int ReleasedSize = SegV[SegN]->DelBlob(BlobPt);
   // we released a certain chunk. Mark in the BlockSizeToSegH the index of the segment if lower than current
-  BlockSizeToSegH.AddDat(ReleasedSize) = MIN(SegN, (int)BlockSizeToSegH.GetDatOrDef(ReleasedSize, 0));
+  BlockSizeToSegH.AddDat(ReleasedSize) = MIN(SegN, (uint16) BlockSizeToSegH.GetDatOrDef(ReleasedSize, 0));
   return ReleasedSize;
 }
 
@@ -594,15 +608,16 @@ TBlobPt TMBlobBs::FFirstBlobPt(){
 }
 
 bool TMBlobBs::FNextBlobPt(TBlobPt& TrvBlobPt, TBlobPt& BlobPt, PSIn& BlobSIn){
-  uint16 SegN=TrvBlobPt.GetSeg();
+  uint16 SegN = TrvBlobPt.GetSeg();
   if (SegV[SegN]->FNextBlobPt(TrvBlobPt, BlobPt, BlobSIn)){
     TrvBlobPt.PutSeg(SegN);
     BlobPt.PutSeg(SegN);
     return true;
-  } else
-  if (SegN==SegV.Len()-1){
+  } 
+  else if (SegN==SegV.Len()-1){
     return false;
-  } else {
+  } 
+  else {
     SegN++;
     TrvBlobPt=SegV[SegN]->FFirstBlobPt();
     TrvBlobPt.PutSeg(SegN);
@@ -617,14 +632,16 @@ bool TMBlobBs::Exists(const TStr& BlobBsFNm){
 }
 
 const TBlobBsStats& TMBlobBs::GetStats() {
-	Stats.Reset();
-	for (int i = 0; i < SegV.Len(); i++)
-		Stats.Add(SegV[i]->GetStats());
-	return Stats;
+  Stats.Reset();
+  for (int i = 0; i < SegV.Len(); i++) {
+    Stats.Add(SegV[i]->GetStats());
+  }
+  return Stats;
 }
 
 void TMBlobBs::ResetStats() {
-	Stats.Reset();
-	for (int i = 0; i < SegV.Len(); i++)
-		SegV[i]->ResetStats();
+  Stats.Reset();
+  for (int i = 0; i < SegV.Len(); i++) {
+    SegV[i]->ResetStats();
+  }
 }

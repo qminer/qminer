@@ -36,6 +36,7 @@ void TNodeJsStreamAggr::Init(v8::Handle<v8::Object> exports) {
     
     // Add all methods, getters and setters here.
     NODE_SET_PROTOTYPE_METHOD(tpl, "reset", _reset);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "onStep", _onStep);
     NODE_SET_PROTOTYPE_METHOD(tpl, "onTime", _onTime);
     NODE_SET_PROTOTYPE_METHOD(tpl, "onAdd", _onAdd);
     NODE_SET_PROTOTYPE_METHOD(tpl, "onUpdate", _onUpdate);
@@ -167,15 +168,40 @@ void TNodeJsStreamAggr::reset(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     Args.GetReturnValue().Set(Args.Holder());
 }
 
+void TNodeJsStreamAggr::onStep(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    // unwrap
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+    // if arg 1 exists, get the caller stream aggregate
+    if (Args.Length() >= 1) {
+        EAssertR(TNodeJsUtil::IsClass(Args[0]->ToObject(), TNodeJsStreamAggr::GetClassId()), "Argument expected to be a stream aggregate!");
+        TNodeJsStreamAggr* JsSACaller = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args[0]->ToObject());
+        JsSA->SA->OnStep(JsSACaller->SA);
+    } else {
+        JsSA->SA->OnStep(NULL);
+    }
+
+    Args.GetReturnValue().Set(Args.Holder());
+}
+
 void TNodeJsStreamAggr::onTime(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
     // unwrap
     TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
-    QmAssertR(Args.Length() == 1 && Args[0]->IsNumber(), "sa.onTime should take one argument of type TUInt64");
+    QmAssertR(Args.Length() >= 1, "sa.onTime should take one argument of type TUInt64");
     const uint64 Time = TNodeJsUtil::GetArgTmMSecs(Args, 0);
-    JsSA->SA->OnTime(Time);
+    // if arg 1 exists, get the caller stream aggregate
+    if (Args.Length() >= 2) {
+        EAssertR(TNodeJsUtil::IsClass(Args[1]->ToObject(), TNodeJsStreamAggr::GetClassId()), "Argument expected to be a stream aggregate!");
+        TNodeJsStreamAggr* JsSACaller = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args[1]->ToObject());
+        JsSA->SA->OnTime(Time, JsSACaller->SA);
+    } else {
+        JsSA->SA->OnTime(Time, NULL);
+    }
 
     Args.GetReturnValue().Set(Args.Holder());
 }
@@ -187,9 +213,16 @@ void TNodeJsStreamAggr::onAdd(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     // unwrap
     TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
 
-    QmAssertR(Args.Length() == 1 && Args[0]->IsObject(), "sa.onAdd should take one argument of type TNodeJsRec");
+    QmAssertR(Args.Length() >= 1 && Args[0]->IsObject(), "sa.onAdd should take one argument of type TNodeJsRec");
     TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[0]->ToObject());
-    JsSA->SA->OnAddRec(JsRec->Rec);
+    // if arg 1 exists, get the caller stream aggregate
+    if (Args.Length() >= 2) {
+        EAssertR(TNodeJsUtil::IsClass(Args[1]->ToObject(), TNodeJsStreamAggr::GetClassId()), "Argument expected to be a stream aggregate!");
+        TNodeJsStreamAggr* JsSACaller = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args[1]->ToObject());
+        JsSA->SA->OnAddRec(JsRec->Rec, JsSACaller->SA);
+    } else {
+        JsSA->SA->OnAddRec(JsRec->Rec, NULL);
+    }
 
     Args.GetReturnValue().Set(Args.Holder());
 }
@@ -200,9 +233,16 @@ void TNodeJsStreamAggr::onUpdate(const v8::FunctionCallbackInfo<v8::Value>& Args
 
     // unwrap
     TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
-    QmAssertR(Args.Length() == 1 && Args[0]->IsObject(), "sa.onUpdate should take one argument of type TNodeJsRec");
+    QmAssertR(Args.Length() >= 1 && Args[0]->IsObject(), "sa.onUpdate should take one argument of type TNodeJsRec");
     TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[0]->ToObject());
-    JsSA->SA->OnUpdateRec(JsRec->Rec);
+    // if arg 1 exists, get the caller stream aggregate
+    if (Args.Length() >= 2) {
+        EAssertR(TNodeJsUtil::IsClass(Args[1]->ToObject(), TNodeJsStreamAggr::GetClassId()), "Argument expected to be a stream aggregate!");
+        TNodeJsStreamAggr* JsSACaller = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args[1]->ToObject());
+        JsSA->SA->OnUpdateRec(JsRec->Rec, JsSACaller->SA);
+    } else {
+        JsSA->SA->OnUpdateRec(JsRec->Rec, NULL);
+    }
 
     Args.GetReturnValue().Set(Args.Holder());
 }
@@ -213,9 +253,16 @@ void TNodeJsStreamAggr::onDelete(const v8::FunctionCallbackInfo<v8::Value>& Args
 
     // unwrap
     TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
-    QmAssertR(Args.Length() == 1 && Args[0]->IsObject(), "sa.onDelete should take one argument of type TNodeJsRec");
+    QmAssertR(Args.Length() >= 1 && Args[0]->IsObject(), "sa.onDelete should take one argument of type TNodeJsRec");
     TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Args[0]->ToObject());
-    JsSA->SA->OnDeleteRec(JsRec->Rec);
+    // if arg 1 exists, get the caller stream aggregate
+    if (Args.Length() >= 2) {
+        EAssertR(TNodeJsUtil::IsClass(Args[1]->ToObject(), TNodeJsStreamAggr::GetClassId()), "Argument expected to be a stream aggregate!");
+        TNodeJsStreamAggr* JsSACaller = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args[1]->ToObject());
+        JsSA->SA->OnDeleteRec(JsRec->Rec, JsSACaller->SA);
+    } else {
+        JsSA->SA->OnDeleteRec(JsRec->Rec, NULL);
+    }
 
     Args.GetReturnValue().Set(Args.Holder());
 }
@@ -227,7 +274,7 @@ void TNodeJsStreamAggr::getParams(const v8::FunctionCallbackInfo<v8::Value>& Arg
     // unwrap
     TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
 
-    Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, JsSA->SA->GetParam()));
+    Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, JsSA->SA->GetParams()));
 }
 
 void TNodeJsStreamAggr::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -239,7 +286,7 @@ void TNodeJsStreamAggr::setParams(const v8::FunctionCallbackInfo<v8::Value>& Arg
     TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
 
     const PJsonVal ParamVal = TNodeJsUtil::GetObjToNmJson(Args[0]);
-    JsSA->SA->SetParam(ParamVal);
+    JsSA->SA->SetParams(ParamVal);
 
     Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
@@ -704,8 +751,9 @@ TNodeJsFuncStreamAggr::TNodeJsFuncStreamAggr(TWPt<TQm::TBase> _Base, const TStr&
     v8::HandleScope HandleScope(Isolate);
     ThisObj.Reset(Isolate, TriggerVal);
     // Every stream aggregate should implement these two
-    QmAssertR(TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "onAdd")), "TNodeJsFuncStreamAggr constructor, name: " + _AggrNm + ", type: javaScript. Missing onAdd callback. Possible reason: type of the aggregate was not specified and it defaulted to javaScript.");
-    QmAssertR(TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "saveJson")), "TNodeJsFuncStreamAggr constructor, name: " + _AggrNm + ", type: javaScript. Missing saveJson callback. Possible reason: type of the aggregate was not specified and it defaulted to javaScript.");
+    QmAssertR(TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "onAdd")) ||
+        TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "onTime")) ||
+        TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "onStep")), "TNodeJsFuncStreamAggr constructor, name: " + _AggrNm + ", type: javaScript. Missing onAdd/onTime/onStep (any) callback. Possible reason: type of the aggregate was not specified and it defaulted to javaScript.");
 
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "reset"))) {
         v8::Handle<v8::Value> _ResetFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "reset"));
@@ -725,9 +773,11 @@ TNodeJsFuncStreamAggr::TNodeJsFuncStreamAggr(TWPt<TQm::TBase> _Base, const TStr&
         OnTimeFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_OnTimeFun));
     }
 
-    v8::Handle<v8::Value> _OnAddFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "onAdd"));
-    QmAssert(_OnAddFun->IsFunction());
-    OnAddFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_OnAddFun));
+    if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "onAdd"))) {
+        v8::Handle<v8::Value> _OnAddFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "onAdd"));
+        QmAssert(_OnAddFun->IsFunction());
+        OnAddFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_OnAddFun));
+    }
 
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "onUpdate"))) {
         v8::Handle<v8::Value> _OnUpdateFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "onUpdate"));
@@ -740,9 +790,11 @@ TNodeJsFuncStreamAggr::TNodeJsFuncStreamAggr(TWPt<TQm::TBase> _Base, const TStr&
         OnDeleteFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_OnDeleteFun));
     }
 
-    v8::Handle<v8::Value> _SaveJsonFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "saveJson"));
-    QmAssert(_SaveJsonFun->IsFunction());
-    SaveJsonFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_SaveJsonFun));
+    if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "saveJson"))) {
+        v8::Handle<v8::Value> _SaveJsonFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "saveJson"));
+        QmAssert(_SaveJsonFun->IsFunction());
+        SaveJsonFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_SaveJsonFun));
+    }
     
     // StreamAggr::IsInit
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "init"))) {
@@ -906,14 +958,12 @@ void TNodeJsFuncStreamAggr::Reset() {
 
         v8::TryCatch TryCatch;
         Callback->Call(This, 0, NULL);
-        if (TryCatch.HasCaught()) {
-            v8::String::Utf8Value Msg(TryCatch.Message()->Get());
-            throw TQm::TQmExcept::New("Javascript exception from callback triggered in " + TStr(__FUNCTION__) + TStr(": ") + TStr(*Msg));
-        }
+
+        TNodeJsUtil::CheckJSExcept(TryCatch);
     }
 }
 
-void TNodeJsFuncStreamAggr::OnStep() {
+void TNodeJsFuncStreamAggr::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
     if (!OnStepFun.IsEmpty()) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::HandleScope HandleScope(Isolate);
@@ -922,15 +972,19 @@ void TNodeJsFuncStreamAggr::OnStep() {
         v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
 
         v8::TryCatch TryCatch;
-        Callback->Call(This, 0, NULL);
-        if (TryCatch.HasCaught()) {
-            v8::String::Utf8Value Msg(TryCatch.Message()->Get());
-            throw TQm::TQmExcept::New("Javascript exception from callback triggered in TNodeJsFuncStreamAggr::OnStep :" + TStr(*Msg));
+        if (CallerAggr.Empty()) {
+            Callback->Call(This, 0, NULL);
+        } else {
+            const unsigned Argc = 1;
+            v8::Local<v8::Value> ArgV[Argc] = { TNodeJsUtil::NewInstance<TNodeJsStreamAggr>(new TNodeJsStreamAggr(CallerAggr)) };
+            Callback->Call(This, Argc, ArgV);
         }
+
+        TNodeJsUtil::CheckJSExcept(TryCatch);
     }
 }
 
-void TNodeJsFuncStreamAggr::OnTime(const uint64& Time) {
+void TNodeJsFuncStreamAggr::OnTime(const uint64& Time, const TWPt<TStreamAggr>& CallerAggr) {
     if (!OnTimeFun.IsEmpty()) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::HandleScope HandleScope(Isolate);
@@ -938,63 +992,86 @@ void TNodeJsFuncStreamAggr::OnTime(const uint64& Time) {
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, OnTimeFun);
         v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
 
-        const unsigned Argc = 1;
-        v8::Local<v8::Value> ArgV[Argc] = { v8::Number::New(Isolate, (double)Time) };
         v8::TryCatch TryCatch;
-        Callback->Call(This, Argc, ArgV);
-
-        if (TryCatch.HasCaught()) {
-            v8::String::Utf8Value Msg(TryCatch.Message()->Get());
-            throw TQm::TQmExcept::New("Javascript exception from callback triggered in TNodeJsFuncStreamAggr::OnTimeFun :" + TStr(*Msg));
+        if (CallerAggr.Empty()) {
+            const unsigned Argc = 1;
+            v8::Local<v8::Value> ArgV[Argc] = { v8::Number::New(Isolate, (double)Time) };
+            Callback->Call(This, Argc, ArgV);
+        } else {
+            const unsigned Argc = 2;
+            v8::Local<v8::Value> ArgV[Argc] = { v8::Number::New(Isolate, (double)Time),  TNodeJsUtil::NewInstance<TNodeJsStreamAggr>(new TNodeJsStreamAggr(CallerAggr)) };
+            Callback->Call(This, Argc, ArgV);
         }
+
+        TNodeJsUtil::CheckJSExcept(TryCatch);
     }
 }
 
-void TNodeJsFuncStreamAggr::OnAddRec(const TQm::TRec& Rec) {
+void TNodeJsFuncStreamAggr::OnAddRec(const TQm::TRec& Rec, const TWPt<TStreamAggr>& CallerAggr) {
     if (!OnAddFun.IsEmpty()) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::HandleScope HandleScope(Isolate);
 
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, OnAddFun);
         v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
-        const unsigned Argc = 1;
-        v8::Local<v8::Value> ArgV[Argc] = { TNodeJsRec::NewInstance(new TNodeJsRec(TNodeJsBaseWatcher::New(), Rec)) };
+        
         v8::TryCatch TryCatch;
-        Callback->Call(This, Argc, ArgV);
-        if (TryCatch.HasCaught()) {
-            v8::String::Utf8Value Msg(TryCatch.Message()->Get());
-            v8::String::Utf8Value StackTrace(TryCatch.StackTrace());
-            throw TQm::TQmExcept::New("Javascript exception from callback triggered in TNodeJsFuncStreamAggr::OnAddRec :" + TStr(*Msg) + "\n" + TStr(*StackTrace));
+        if (CallerAggr.Empty()) {
+            const unsigned Argc = 1;
+            v8::Local<v8::Value> ArgV[Argc] = { TNodeJsRec::NewInstance(new TNodeJsRec(TNodeJsBaseWatcher::New(), Rec)) };
+            Callback->Call(This, Argc, ArgV);
+        } else {
+            const unsigned Argc = 2;
+            v8::Local<v8::Value> ArgV[Argc] = { TNodeJsRec::NewInstance(new TNodeJsRec(TNodeJsBaseWatcher::New(), Rec)),  TNodeJsUtil::NewInstance<TNodeJsStreamAggr>(new TNodeJsStreamAggr(CallerAggr)) };
+            Callback->Call(This, Argc, ArgV);
         }
+        
+        TNodeJsUtil::CheckJSExcept(TryCatch);
     }
 }
 
-void TNodeJsFuncStreamAggr::OnUpdateRec(const TQm::TRec& Rec) {
+void TNodeJsFuncStreamAggr::OnUpdateRec(const TQm::TRec& Rec, const TWPt<TStreamAggr>& CallerAggr) {
     if (!OnUpdateFun.IsEmpty()) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::HandleScope HandleScope(Isolate);
 
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, OnUpdateFun);
         v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
-        const unsigned Argc = 1;
-        v8::Local<v8::Value> ArgV[Argc] = { TNodeJsRec::NewInstance(new TNodeJsRec(TNodeJsBaseWatcher::New(), Rec)) };
+        
         v8::TryCatch TryCatch;
-        Callback->Call(This, Argc, ArgV);
+        if (CallerAggr.Empty()) {
+            const unsigned Argc = 1;
+            v8::Local<v8::Value> ArgV[Argc] = { TNodeJsRec::NewInstance(new TNodeJsRec(TNodeJsBaseWatcher::New(), Rec)) };
+            Callback->Call(This, Argc, ArgV);
+        } else {
+            const unsigned Argc = 2;
+            v8::Local<v8::Value> ArgV[Argc] = { TNodeJsRec::NewInstance(new TNodeJsRec(TNodeJsBaseWatcher::New(), Rec)),  TNodeJsUtil::NewInstance<TNodeJsStreamAggr>(new TNodeJsStreamAggr(CallerAggr)) };
+            Callback->Call(This, Argc, ArgV);
+        }
+
         TNodeJsUtil::CheckJSExcept(TryCatch);
     }
 }
 
-void TNodeJsFuncStreamAggr::OnDeleteRec(const TQm::TRec& Rec) {
+void TNodeJsFuncStreamAggr::OnDeleteRec(const TQm::TRec& Rec, const TWPt<TStreamAggr>& CallerAggr) {
     if (!OnDeleteFun.IsEmpty()) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::HandleScope HandleScope(Isolate);
 
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, OnDeleteFun);
         v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
-        const unsigned Argc = 1;
-        v8::Local<v8::Value> ArgV[Argc] = { TNodeJsRec::NewInstance(new TNodeJsRec(TNodeJsBaseWatcher::New(), Rec)) };
+        
         v8::TryCatch TryCatch;
-        Callback->Call(This, Argc, ArgV);
+        if (CallerAggr.Empty()) {
+            const unsigned Argc = 1;
+            v8::Local<v8::Value> ArgV[Argc] = { TNodeJsRec::NewInstance(new TNodeJsRec(TNodeJsBaseWatcher::New(), Rec)) };
+            Callback->Call(This, Argc, ArgV);
+        } else {
+            const unsigned Argc = 2;
+            v8::Local<v8::Value> ArgV[Argc] = { TNodeJsRec::NewInstance(new TNodeJsRec(TNodeJsBaseWatcher::New(), Rec)),  TNodeJsUtil::NewInstance<TNodeJsStreamAggr>(new TNodeJsStreamAggr(CallerAggr)) };
+            Callback->Call(This, Argc, ArgV);
+        }
+        
         TNodeJsUtil::CheckJSExcept(TryCatch);
     }
 }
@@ -1010,10 +1087,9 @@ PJsonVal TNodeJsFuncStreamAggr::SaveJson(const int& Limit) const {
         v8::Local<v8::Value> ArgV[Argc] = { v8::Number::New(Isolate, Limit) };
         v8::TryCatch TryCatch;
         v8::Local<v8::Value> ReturnVal = Callback->Call(This, Argc, ArgV);
-        if (TryCatch.HasCaught()) {
-            v8::String::Utf8Value Msg(TryCatch.Message()->Get());
-            throw TQm::TQmExcept::New("Javascript exception from callback triggered: " +  TStr(*Msg));
-        }
+
+        TNodeJsUtil::CheckJSExcept(TryCatch);
+
         QmAssertR(ReturnVal->IsObject(), "Stream aggr JS callback: saveJson didn't return an object.");
         PJsonVal Res = TNodeJsUtil::GetObjJson(ReturnVal->ToObject());
 
@@ -1035,10 +1111,7 @@ bool TNodeJsFuncStreamAggr::IsInit() const {
 
         v8::TryCatch TryCatch;
         v8::Handle<v8::Value> RetVal = Callback->Call(This, 0, NULL);
-        if (TryCatch.HasCaught()) {
-            v8::String::Utf8Value Msg(TryCatch.Message()->Get());
-            throw TQm::TQmExcept::New("Javascript exception from callback triggered in TNodeJsFuncStreamAggr, name: " + GetAggrNm() + "," + TStr(*Msg));
-        }
+        TNodeJsUtil::CheckJSExcept(TryCatch);
         QmAssertR(RetVal->IsBoolean(), "TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", init did not return a boolean!");
         return RetVal->BooleanValue();
     } else {
@@ -1064,10 +1137,7 @@ void TNodeJsFuncStreamAggr::SaveState(TSOut& SOut) const {
         
         v8::TryCatch TryCatch;
         Callback->Call(This, Argc, ArgV);
-        if (TryCatch.HasCaught()) {
-            v8::String::Utf8Value Msg(TryCatch.Message()->Get());
-            throw TQm::TQmExcept::New("Javascript exception from callback triggered: " + TStr(*Msg));
-        }
+        TNodeJsUtil::CheckJSExcept(TryCatch);
     }
 }
 
@@ -1088,10 +1158,7 @@ void TNodeJsFuncStreamAggr::LoadState(TSIn& SIn) {
         v8::Local<v8::Value> ArgV[Argc] = { JsFIn };
         v8::TryCatch TryCatch;
         Callback->Call(This, Argc, ArgV);
-        if (TryCatch.HasCaught()) {
-            v8::String::Utf8Value Msg(TryCatch.Message()->Get());
-            throw TQm::TQmExcept::New("Javascript exception from callback triggered: " + TStr(*Msg));
-        }       
+        TNodeJsUtil::CheckJSExcept(TryCatch);
     }
 }
 
@@ -1199,10 +1266,7 @@ void TNodeJsFuncStreamAggr::GetValV(TFltV& ValV) const {
 
         v8::TryCatch TryCatch;
         v8::Handle<v8::Value> RetVal = Callback->Call(This, 0, NULL);
-        if (TryCatch.HasCaught()) {
-            v8::String::Utf8Value Msg(TryCatch.Message()->Get());
-            throw TQm::TQmExcept::New("Javascript exception from callback triggered in TNodeJsFuncStreamAggr, name: " + GetAggrNm() + "," + TStr(*Msg));
-        }
+        TNodeJsUtil::CheckJSExcept(TryCatch);
         QmAssertR(RetVal->IsObject() && TNodeJsUtil::IsClass(v8::Handle<v8::Object>::Cast(RetVal), TNodeJsFltV::GetClassId()), "TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ",GetFltV did not return a vector!");
         TNodeJsFltV* JsVec = TNodeJsUtil::Unwrap<TNodeJsFltV>(v8::Handle<v8::Object>::Cast(RetVal));
 

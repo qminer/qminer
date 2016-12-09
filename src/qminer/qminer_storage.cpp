@@ -588,7 +588,8 @@ int TInMemStorage::SaveRec(int RecN) {
             if (BlobPtV[ii].Empty()) {
                 BlobPtV[ii] = BlobStorage->PutBlob(mem.GetSIn());
             } else {
-                BlobPtV[ii] = BlobStorage->PutBlob(BlobPtV[ii], mem.GetSIn());
+                int ReleasedSize;
+                BlobPtV[ii] = BlobStorage->PutBlob(BlobPtV[ii], mem.GetSIn(), ReleasedSize);
             }
         }
         break;
@@ -3454,8 +3455,7 @@ void TStoreImpl::DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK) {
             for (int JoinRecN = 0; JoinRecN < JoinRecSet->GetRecs(); JoinRecN++) {
                 // remove joins with all matched records, one by one
                 const uint64 JoinRecId = JoinRecSet->GetRecId(JoinRecN);
-                const int JoinFq = JoinRecSet->GetRecFq(JoinRecN);
-                DelJoin(JoinDesc.GetJoinId(), DelRecId, JoinRecId, JoinFq);
+                DelJoin(JoinDesc.GetJoinId(), DelRecId, JoinRecId);
             }
         }
     }
@@ -4784,7 +4784,7 @@ void TStorePbBlob::SetFieldJsonVal(const uint64& RecId, const int& FieldId, cons
 
 /// Check if given ID is valid
 bool TStorePbBlob::IsRecId(const uint64& RecId) const {
-    return RecIdBlobPtH.IsKey(RecId);
+    return DataMemP ? RecIdBlobPtHMem.IsKey(RecId) : RecIdBlobPtH.IsKey(RecId);
 }
 
 /// Set primary field map
@@ -5105,8 +5105,7 @@ void TStorePbBlob::DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK) {
             for (int JoinRecN = 0; JoinRecN < JoinRecSet->GetRecs(); JoinRecN++) {
                 // remove joins with all matched records, one by one
                 const uint64 JoinRecId = JoinRecSet->GetRecId(JoinRecN);
-                const int JoinFq = JoinRecSet->GetRecFq(JoinRecN);
-                DelJoin(JoinDesc.GetJoinId(), DelRecId, JoinRecId, JoinFq);
+                DelJoin(JoinDesc.GetJoinId(), DelRecId, JoinRecId);
             }
         }
 

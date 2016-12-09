@@ -197,11 +197,15 @@ public:
 
   void AssertBfCsEqFlCs(const TCs& BfCs, const TCs& FCs);
 
+  /// save data stored in SIn for the first time
   virtual TBlobPt PutBlob(const PSIn& SIn)=0;
   TBlobPt PutBlob(const TStr& Str){
     PSIn SIn=TStrIn::New(Str); return PutBlob(SIn);}
-  virtual TBlobPt PutBlob(const TBlobPt& BlobPt, const PSIn& SIn)=0;
+  /// update the SIn data currently stored in BlobPt. If data is reallocated, return the size of released chunk (ReleasedSize)
+  virtual TBlobPt PutBlob(const TBlobPt& BlobPt, const PSIn& SIn, int& ReleasedSize)=0;
+  /// return blob stored in BlobPt
   virtual PSIn GetBlob(const TBlobPt& BlobPt)=0;
+  /// delete blob stored in BlobPt. Return the size of the released data block
   virtual int DelBlob(const TBlobPt& BlobPt)=0;
 
   virtual TBlobPt GetFirstBlobPt()=0;
@@ -243,9 +247,13 @@ public:
   TGBlobBs& operator=(const TGBlobBs&){Fail; return *this;}
 
   TStr GetVersionStr() const {return TStr("General Blob Base Format 1.0");}
+  // save data stored in SIn for the first time
   TBlobPt PutBlob(const PSIn& SIn);
-  TBlobPt PutBlob(const TBlobPt& BlobPt, const PSIn& SIn);
+  // update the SIn data currently stored in BlobPt. If data is reallocated, return the size of released chunk (ReleasedSize)
+  TBlobPt PutBlob(const TBlobPt& BlobPt, const PSIn& SIn, int& ReleasedSize);
+  // return blob stored in BlobPt
   PSIn GetBlob(const TBlobPt& BlobPt);
+  // delete blob stored in BlobPt. Return the size of the released data block
   int DelBlob(const TBlobPt& BlobPt);
 
   TBlobPt GetFirstBlobPt(){return FirstBlobPt;}
@@ -267,7 +275,7 @@ private:
   TStr NrFPath, NrFMid;
   TBlobBsV SegV;
   TIntV BlockLenV;
-  // for each block size store the segment index that last had space to store the buffer of that size
+  /// for each block size store the segment index that last had space to store the buffer of that size
   THash<TInt, TUInt16> BlockSizeToSegH;
   static void GetNrFPathFMid(const TStr& BlobBsFNm, TStr& NrFPath, TStr& NrFMid);
   static TStr GetMainFNm(const TStr& NrFPath, const TStr& NrFMid);
@@ -287,9 +295,13 @@ public:
 
   TStr GetVersionStr() const {
     return TStr("Multiple-File Blob Base Format 1.0");}
+  /// save data stored in SIn for the first time
   TBlobPt PutBlob(const PSIn& SIn);
-  TBlobPt PutBlob(const TBlobPt& BlobPt, const PSIn& SIn);
+  /// update the SIn data currently stored in BlobPt. If data is reallocated, return the size of released chunk (ReleasedSize)
+  TBlobPt PutBlob(const TBlobPt& BlobPt, const PSIn& SIn, int& ReleasedSize);
+  /// return blob stored in BlobPt
   PSIn GetBlob(const TBlobPt& BlobPt);
+  /// delete blob stored in BlobPt. Return the size of the released data block
   int DelBlob(const TBlobPt& BlobPt);
 
   TBlobPt GetFirstBlobPt();
