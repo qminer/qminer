@@ -6414,44 +6414,6 @@ describe('Stream aggregate statistics', function () {
             assert(stats.types[1].msecs < diff, stats.types[1].msecs + " < " + diff);
             assert(stats.types[2].msecs < diff, stats.types[2].msecs + " < " + diff);
         });
-
-        it('should bae more then observed from stream aggregate and less then observed from javascript', function () {
-            // create one slow javascript stream aggregate that measures how long it executes
-            var saDiff = 0;
-            var aggr = new qm.StreamAggr(base, new function () {
-                this.onAdd = function () {
-                    console.time("test1");
-                    // var saStart = process.hrtime();
-
-                    for (var i = 0, j = 0, k = 0, l = 0; i < 100000000; i++) { j++; k++; l++; }
-
-                    // console.log(getMSecs(process.hrtime(saStart)));
-                    console.timeEnd("test1");
-
-                    // saDiff += getMSecs(process.hrtime(saStart));
-                };
-            }, "testStore");
-
-            // also measure how long it takes to add records
-            var pushStart = process.hrtime();
-
-            console.time("test2");
-            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
-            // store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
-            // store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
-            // store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
-            // store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
-            console.timeEnd("test2");
-
-            var pushDiff = getMSecs(process.hrtime(pushStart));
-
-            // make sure within bounds
-            var stats = base.getStreamAggrStats();
-            console.log(saDiff, stats.types[0].msecs, pushDiff);
-            console.log(saDiff, stats.types[1].msecs, pushDiff);
-        });
-
-
     });
 
 });
