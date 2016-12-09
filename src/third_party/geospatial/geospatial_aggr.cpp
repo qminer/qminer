@@ -13,7 +13,8 @@ namespace TStreamAggrs {
 
 ///////////////////////////////
 // StayPoint detector aggregate
-void TStayPointDetector::OnAddRec(const TRec& Rec) {
+void TStayPointDetector::OnAddRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
     // TODO logic
     State = TJsonVal::NewObj();
     State->AddToObj("status", 0);
@@ -63,4 +64,3 @@ void TStayPointDetector::Reset() {
 
 } // TStreamAggrs namespace
 } // TQm namespace
-
