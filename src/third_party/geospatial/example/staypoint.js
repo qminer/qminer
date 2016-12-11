@@ -1,4 +1,4 @@
-var qm = require('qminer');
+var qm = require('D:\\programming\\qminer');
 
 var base = new qm.Base({
     mode: "createClean",
@@ -25,7 +25,7 @@ var aggr = store.addStreamAggr({
     timeField: "Time",
     locationField: "Location",
     accuracyField: "Accuracy",
-    params: { k: 5 }
+    params: { dT: 51, tT: 301 }
 });
 
 var ts = Date.now();
