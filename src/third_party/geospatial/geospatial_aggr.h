@@ -38,12 +38,13 @@ private:
     PJsonVal Params;
 protected:
     ///  Updates the stay point model, sets State JSON
-    void OnAddRec(const TRec& Rec);
+    void OnAddRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr);
     /// JSON based constructor.
     TStayPointDetector(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:
     /// Smart pointer constructor
-    static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) { return new TStayPointDetector(Base, ParamVal); }
+    static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+        return new TStayPointDetector(Base, ParamVal); }
     /// Loads state
     void LoadState(TSIn& SIn);
     /// Saves state

@@ -382,6 +382,29 @@ describe('Stream Aggregator Tests', function () {
             });
         })
     });
+    describe('Fallback to OnStep tests', function () {
+        it('should execute OnStep instead of OnAdd', function () {
+            var aggr = new qm.StreamAggr(base, new function () {
+                var count = 0;
+                this.name = 'counter';
+                this.onStep = function () {
+                    count++;
+                }
+                this.saveJson = function (limit) {
+                    return { val: count };
+                }
+            }, "People");
+
+            assert.equal(aggr.saveJson().val, 0);
+            var id1 = base.store('People').push({ Name: "John", Gender: "Male" });
+            assert.equal(aggr.saveJson().val, 1);
+            var id2 = base.store('People').push({ Name: "Mary", Gender: "Female" });
+            assert.equal(aggr.saveJson().val, 2);
+            var id3 = base.store('People').push({ Name: "Bob", Gender: "Male" });
+            assert.equal(aggr.saveJson().val, 3);
+        })
+    });
+
     describe('Reset Tests', function () {
         it('should reset the stream aggregate to 0', function () {
             var aggr = new qm.StreamAggr(base, new function () {
@@ -1231,7 +1254,8 @@ describe('sparseVectorWindow tests', function () {
                 name: 'Function',
                 fields: [
                     { name: 'Time', type: 'datetime' },
-                    { name: 'Value', type: 'num_sp_v' }
+                    { name: 'Value', type: 'num_sp_v' },
+                    { name: 'FloatValue', type: 'float' }
                 ]
             }]
         });
@@ -1240,11 +1264,11 @@ describe('sparseVectorWindow tests', function () {
     afterEach(function () {
         base.close();
     });
-    
+
     describe('Simple test', function () {
     	it('Testing if the buffer contains correct values', function () {
-            var tick = store.addStreamAggr({                
-                type: 'timeSeriesSparseVectorTick',                
+            var tick = store.addStreamAggr({
+                type: 'timeSeriesSparseVectorTick',
                 timestamp: 'Time',
                 value: 'Value'
             });
@@ -1253,24 +1277,75 @@ describe('sparseVectorWindow tests', function () {
     			inAggr: tick,
     			winsize: 2000
     		})
-    		
+
     		var input = [
-				[[0, 1], [2, 1], [3, 1]],
-				[[0, 2], [2, 2], [3, 2]],
-				[[0, 3], [2, 3], [3, 3]],
-				[[0, 4], [2, 4], [3, 4]]
+    		    { Time: '2015-06-10T14:13:32.0', Value: [[0, 1], [2, 1], [3, 1]], FloatValue: 1 },
+    		    { Time: '2015-06-10T14:33:30.0', Value: [[0, 2], [2, 2], [3, 2]], FloatValue: 2 },
+    		    { Time: '2015-06-10T14:33:31.0', Value: [[0, 3], [2, 3], [3, 3]], FloatValue: 3 },
+    		    { Time: '2015-06-10T14:33:32.0', Value: [[0, 4], [2, 4], [3, 4]], FloatValue: 4 }
     		]
-    		
-			store.push({ Time: '2015-06-10T14:13:32.0', Value: input[0] });
-			store.push({ Time: '2015-06-10T14:33:30.0', Value: input[1] });
-			store.push({ Time: '2015-06-10T14:33:31.0', Value: input[2] });
-			store.push({ Time: '2015-06-10T14:33:32.0', Value: input[3] });
-			
+
+
+    		for (var i = 0; i < input.length; i++) {
+    			store.push(input[i]);
+    		}
+
             var output = winbuf.getValueVector();
             assert.equal(output.cols, 3);
-            
+
             for (var i = 0; i < output.length; i++) {
-            	var expected = input[i+1];
+            	var expected = input[i+1].Value;
+            	var actual = output[i];
+            	var actualVals = actual.valVec();
+            	var actualIdxs = actual.idxVec();
+
+            	assert.equal(actualVals.length, expected.length);
+
+            	for (var elN = 0; elN < expected.length; elN++) {
+            		var idx = expected[elN][0];
+            		var val = expected[elN][1];
+
+            		assert.equal(idx, actualIdxs[elN]);
+            		assert.equal(val, actualVals[elN]);
+            	}
+            }
+    	})
+
+    	it('Testing if sparseVectorWindow works correctly with separate time and value aggregates', function () {
+            var valueTick = store.addStreamAggr({
+                type: 'timeSeriesSparseVectorTick',
+                timestamp: 'Time',
+                value: 'Value'
+            });
+            var timeTick = store.addStreamAggr({
+            	type: 'timeSeriesTick',
+            	timestamp: 'Time',
+            	value: 'FloatValue'
+            })
+    		var winbuf = store.addStreamAggr({
+    			type: 'sparseVectorWindow',
+    			inAggr: valueTick,
+    			inAggrTm: timeTick,
+    			winsize: 2000
+    		})
+
+    		var input = [
+    		    { Time: '2015-06-10T14:13:32.0', Value: [[0, 1], [2, 1], [3, 1]], FloatValue: 1 },
+    		    { Time: '2015-06-10T14:33:30.0', Value: [[0, 2], [2, 2], [3, 2]], FloatValue: 2 },
+    		    { Time: '2015-06-10T14:33:31.0', Value: [[0, 3], [2, 3], [3, 3]], FloatValue: 3 },
+    		    { Time: '2015-06-10T14:33:32.0', Value: [[0, 4], [2, 4], [3, 4]], FloatValue: 4 }
+    		]
+
+
+    		for (var i = 0; i < input.length; i++) {
+    			store.push(input[i]);
+    		}
+
+            var output = winbuf.getValueVector();
+            assert.equal(output.cols, 3);
+
+            for (var i = 0; i < output.length; i++) {
+            	var expected = input[i+1].Value;
             	var actual = output[i];
             	var actualVals = actual.valVec();
             	var actualIdxs = actual.idxVec();
@@ -1289,16 +1364,16 @@ describe('sparseVectorWindow tests', function () {
     })
 
     describe('Testing save/load', function () {
-        it('should survive save/load', function () {
+        it('should survive save/load and load properly', function () {
     		var input = [
-				[[0, 1], [2, 1], [3, 1]],
-				[[0, 2], [2, 2], [3, 2]],
-				[[0, 3], [2, 3], [3, 3]],
-				[[0, 4], [2, 4], [3, 4]]
+    		    { Time: '2015-06-10T14:13:32.0', Value: [[0, 1], [2, 1], [3, 1]], FloatValue: 1 },
+    		    { Time: '2015-06-10T14:33:30.0', Value: [[0, 2], [2, 2], [3, 2]], FloatValue: 2 },
+    		    { Time: '2015-06-10T14:33:31.0', Value: [[0, 3], [2, 3], [3, 3]], FloatValue: 3 },
+    		    { Time: '2015-06-10T14:33:32.0', Value: [[0, 4], [2, 4], [3, 4]], FloatValue: 4 }
     		]
 
-            var tick = store.addStreamAggr({                
-                type: 'timeSeriesSparseVectorTick',                
+            var tick = store.addStreamAggr({
+                type: 'timeSeriesSparseVectorTick',
                 timestamp: 'Time',
                 value: 'Value'
             });
@@ -1309,21 +1384,20 @@ describe('sparseVectorWindow tests', function () {
     		})
 
     		winbuf1.save(qm.fs.openWrite('sparsesave.bin')).close();
-    		
+
     		winbuf2 = store.addStreamAggr({
     			type: 'sparseVectorWindow',
     			inAggr: tick,
     			winsize: 2000
     		})
-    		
+
     		winbuf2.load(qm.fs.openRead('sparsesave.bin'))
-    		
+
     		assert.equal(winbuf2.getValueVector().cols, 0);
 
-			store.push({ Time: '2015-06-10T14:13:32.0', Value: input[0] });
-			store.push({ Time: '2015-06-10T14:33:30.0', Value: input[1] });
-			store.push({ Time: '2015-06-10T14:33:31.0', Value: input[2] });
-			store.push({ Time: '2015-06-10T14:33:32.0', Value: input[3] });
+    		for (var i = 0; i < input.length; i++) {
+    			store.push(input[i]);
+    		}
 
     		winbuf2.save(qm.fs.openWrite('sparsesave.bin')).close();
 
@@ -1337,9 +1411,9 @@ describe('sparseVectorWindow tests', function () {
 
             var output = winbuf3.getValueVector();
             assert.equal(output.cols, 3);
-            
+
             for (var i = 0; i < output.length; i++) {
-            	var expected = input[i+1];
+            	var expected = input[i+1].Value;
             	var actual = output[i];
             	var actualVals = actual.valVec();
             	var actualIdxs = actual.idxVec();
@@ -5853,7 +5927,7 @@ describe('Aggregating (sum/avg/min/max) resampler tests', function () {
             var inputArr = [[0, 1], [1, 2], [500, 3], [1000, 3]];
             var expectedOutArr = [[0, 6]];
             testResampledSequence(inputArr, result2, expectedOutArr, store);
-            
+
         });
     });
 });
@@ -6200,7 +6274,7 @@ describe('Record switch aggregate', function () {
             });
 
             switcher.save(qm.fs.openWrite('switcherTest.bin')).close();
-            
+
             var switcher2 = store.addStreamAggr({
                 type: 'recordSwitchAggr',
                 store: 'testStore',
@@ -6218,4 +6292,474 @@ describe('Record switch aggregate', function () {
         });
     });
 
+});
+
+describe('Stream aggregate statistics', function () {
+    var base = undefined;
+    var store = undefined;
+
+    beforeEach(function () {
+        base = new qm.Base({
+            mode: 'createClean',
+            schema: [{
+                name: 'testStore',
+                fields: [
+                    { name: 'Time', type: 'datetime' },
+                    { name: 'Value', type: 'float' }
+                ]
+            }]
+        });
+        store = base.store('testStore');
+    });
+    afterEach(function () {
+        base.close();
+    });
+
+    function getMSecs(hrtime) {
+        return hrtime[0] * 1000 + hrtime[1] / 1000000
+    }
+
+    describe('Execution time', function () {
+        it('should be empty at start', function () {
+            var stats = base.getStreamAggrStats();
+            // no time was spent
+            assert.equal(stats.msecs, 0);
+            // we only have one store aggregate set
+            assert.equal(stats.count, 1);
+            assert.equal(stats.aggregates.length, 1);
+            assert.equal(stats.types.length, 1);
+            // make sure it's aggregate set
+            assert.equal(stats.types[0].type, "set");
+            assert.equal(stats.types[0].count, 1);
+            assert.equal(stats.types[0].msecs, 0);
+        });
+
+        it('should account for all aggregate types', function () {
+            // create few stream aggregates
+            var tick = store.addStreamAggr({
+                type: 'timeSeriesTick',
+                timestamp: 'Time',
+                value: 'Value'
+            });
+            var winbufvec = store.addStreamAggr({
+                type: 'timeSeriesWinBufVector',
+                inAggr: tick.name,
+                winsize: 1500
+            });
+            var winbufvec = store.addStreamAggr({
+                type: 'timeSeriesWinBufVector',
+                inAggr: tick.name,
+                winsize: 2000
+            });
+            var winbufvec = store.addStreamAggr({
+                type: 'timeSeriesWinBufVector',
+                inAggr: tick.name,
+                winsize: 3500
+            });
+
+            // make sure they appear
+            var stats = base.getStreamAggrStats();
+            // no time was spent
+            assert.equal(stats.msecs, 0);
+            // we only have one store aggregate set
+            assert.equal(stats.count, 5);
+            assert.equal(stats.aggregates.length, 5);
+            assert.equal(stats.types.length, 3);
+            // make sure it's aggregate set
+            assert.equal(stats.types[0].type, "set");
+            assert.equal(stats.types[0].count, 1);
+            assert.equal(stats.types[0].msecs, 0);
+            assert.equal(stats.types[1].type, "timeSeriesTick");
+            assert.equal(stats.types[1].count, 1);
+            assert.equal(stats.types[1].msecs, 0);
+            assert.equal(stats.types[2].type, "timeSeriesWinBufVector");
+            assert.equal(stats.types[2].count, 3);
+            assert.equal(stats.types[2].msecs, 0);
+        });
+
+        it('should be less then observed from javascript', function () {
+            // create few stream aggregates
+            var tick = store.addStreamAggr({
+                type: 'timeSeriesTick',
+                timestamp: 'Time',
+                value: 'Value'
+            });
+            var winbufvec = store.addStreamAggr({
+                type: 'timeSeriesWinBufVector',
+                inAggr: tick.name,
+                winsize: 1500
+            });
+            var winbufvec = store.addStreamAggr({
+                type: 'timeSeriesWinBufVector',
+                inAggr: tick.name,
+                winsize: 2000
+            });
+            var winbufvec = store.addStreamAggr({
+                type: 'timeSeriesWinBufVector',
+                inAggr: tick.name,
+                winsize: 3500
+            });
+
+            // measure insert time
+            var start = process.hrtime();
+            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+            store.push({ Time: '2015-06-10T14:33:30.0', Value: 2 });
+            store.push({ Time: '2015-06-10T14:33:31.0', Value: 3 });
+            store.push({ Time: '2015-06-10T14:33:32.0', Value: 4 });
+            var diff = getMSecs(process.hrtime(start));
+
+            // make sure we are below insert time
+            var stats = base.getStreamAggrStats();
+            assert(stats.types[0].msecs < diff, stats.types[0].msecs + " < " + diff);
+            assert(stats.types[1].msecs < diff, stats.types[1].msecs + " < " + diff);
+            assert(stats.types[2].msecs < diff, stats.types[2].msecs + " < " + diff);
+        });
+    });
+
+});
+
+describe('Aggregate set', function () {
+    var base = undefined;
+    var store = undefined;
+
+    beforeEach(function () {
+        base = new qm.Base({
+            mode: "createClean",
+            schema: [
+            {
+                name: "Heat",
+                fields: [
+                    { name: "Celsius", type: "float" },
+                    { name: "Time", type: "datetime" }
+                ]
+            }]
+        });
+        store = base.store("Heat");
+    });
+    afterEach(function () {
+        base.close();
+    });
+
+    it('should construct aggregate set', function () {
+        var tick = new qm.StreamAggr(base, {
+            type: 'timeSeriesTick',
+            timestamp: 'Time',
+            value: 'Celsius',
+            store: store.name
+        }, store);
+
+        var winbufvec = new qm.StreamAggr(base, {
+            type: 'timeSeriesWinBufVector',
+            inAggr: tick.name,
+            winsize: 2000
+        }, store);
+
+        var set = new qm.StreamAggr(base, {
+            type: 'set',
+            aggregates: [tick.name, winbufvec.name]
+        });
+
+        store.push({ Time: '2015-06-10T14:13:32.0', Celsius: 1 });
+        //winbufvec.getFloatVector().print(); // prints 1
+        store.push({ Time: '2015-06-10T14:33:30.0', Celsius: 2 });
+        //winbufvec.getFloatVector().print(); // prints 2
+        store.push({ Time: '2015-06-10T14:33:31.0', Celsius: 3 });
+        //winbufvec.getFloatVector().print(); // prints 2,3
+        store.push({ Time: '2015-06-10T14:33:32.0', Celsius: 4 });
+        //winbufvec.getFloatVector().print(); // prints 2,3,4
+
+        assert.ok(set.init, 'Aggregate set is not initialized.');
+        assert.ok(set.name);
+        assert.equal(tick.name, set.val[0]);
+        assert.equal(winbufvec.name, set.val[1]);
+    });
+
+    it('should save and load aggregates in set', function () {
+        var tick = new qm.StreamAggr(base, {
+            type: 'timeSeriesTick',
+            timestamp: 'Time',
+            value: 'Celsius',
+            store: store.name
+        }, store);
+
+        var winbufvec = new qm.StreamAggr(base, {
+            type: 'timeSeriesWinBufVector',
+            inAggr: tick.name,
+            winsize: 2000
+        }, store);
+
+        var set = new qm.StreamAggr(base, {
+            type: 'set',
+            aggregates: [tick.name, winbufvec.name]
+        });
+
+        store.push({ Time: '2015-06-10T14:13:32.0', Celsius: 1 });
+        //winbufvec.getFloatVector().print(); // prints 1
+        store.push({ Time: '2015-06-10T14:33:30.0', Celsius: 2 });
+        //winbufvec.getFloatVector().print(); // prints 2
+        store.push({ Time: '2015-06-10T14:33:31.0', Celsius: 3 });
+        //winbufvec.getFloatVector().print(); // prints 2,3
+        store.push({ Time: '2015-06-10T14:33:32.0', Celsius: 4 });
+        //winbufvec.getFloatVector().print(); // prints 2,3,4
+
+        var fout = qm.fs.openWrite('aggrSet.bin');
+        set.save(fout);
+        fout.close();
+
+        store.resetStreamAggregates();
+
+        var fin = qm.fs.openRead('aggrSet.bin');
+        set.load(fin);
+        fin.close();
+
+        assert.ok(set.init, 'Aggregate set is not initialized.');
+        assert.ok(set.name);
+        assert.equal(tick.name, set.val[0]);
+        assert.equal(winbufvec.name, set.val[1]);
+    });
+
+    it('should save and load also with custom aggregates in set (that has save and load method)', function () {
+        var tick = new qm.StreamAggr(base, {
+            type: 'timeSeriesTick',
+            timestamp: 'Time',
+            value: 'Celsius',
+            store: store.name
+        }, store);
+
+        var winbufvec = new qm.StreamAggr(base, {
+            type: 'timeSeriesWinBufVector',
+            inAggr: tick.name,
+            winsize: 2000
+        }, store);
+
+        var customAggr = new qm.StreamAggr(base, new function () {
+            this.onAdd = function (rec) {
+                console.log(JSON.stringify(rec))
+            }
+            this.save = function () { };
+            this.load = function () { };
+        });
+
+        var set = new qm.StreamAggr(base, {
+            type: 'set',
+            aggregates: [tick.name, winbufvec.name, customAggr.name]
+        });
+
+        store.push({ Time: '2015-06-10T14:13:32.0', Celsius: 1 });
+        //winbufvec.getFloatVector().print(); // prints 1
+        store.push({ Time: '2015-06-10T14:33:30.0', Celsius: 2 });
+        //winbufvec.getFloatVector().print(); // prints 2
+        store.push({ Time: '2015-06-10T14:33:31.0', Celsius: 3 });
+        //winbufvec.getFloatVector().print(); // prints 2,3
+        store.push({ Time: '2015-06-10T14:33:32.0', Celsius: 4 });
+        //winbufvec.getFloatVector().print(); // prints 2,3,4
+
+        var fout = qm.fs.openWrite('aggrSet.bin');
+        set.save(fout);
+        fout.close();
+
+        store.resetStreamAggregates();
+
+        var fin = qm.fs.openRead('aggrSet.bin');
+        set.load(fin);
+        fin.close();
+
+        assert.ok(set.init, 'Aggregate set is not initialized.');
+        assert.ok(set.name);
+        assert.equal(tick.name, set.val[0]);
+        assert.equal(winbufvec.name, set.val[1]);
+        assert.equal(customAggr.name, set.val[2]);
+    });
+
+    it('should throw exception if not all aggregates in set have save method', function () {
+        var tick = new qm.StreamAggr(base, {
+            type: 'timeSeriesTick',
+            timestamp: 'Time',
+            value: 'Celsius',
+            store: store.name
+        }, store);
+
+        var winbufvec = new qm.StreamAggr(base, {
+            type: 'timeSeriesWinBufVector',
+            inAggr: tick.name,
+            winsize: 2000
+        }, store);
+
+        var customAggr = new qm.StreamAggr(base, new function () {
+            this.onAdd = function (rec) {
+                console.log(JSON.stringify(rec))
+            }
+            //this.save = function () {};
+            this.load = function () { };
+        });
+
+        var set = new qm.StreamAggr(base, {
+            type: 'set',
+            aggregates: [tick.name, winbufvec.name, customAggr.name]
+        });
+
+        store.push({ Time: '2015-06-10T14:13:32.0', Celsius: 1 });
+        //winbufvec.getFloatVector().print(); // prints 1
+        store.push({ Time: '2015-06-10T14:33:30.0', Celsius: 2 });
+        //winbufvec.getFloatVector().print(); // prints 2
+        store.push({ Time: '2015-06-10T14:33:31.0', Celsius: 3 });
+        //winbufvec.getFloatVector().print(); // prints 2,3
+        store.push({ Time: '2015-06-10T14:33:32.0', Celsius: 4 });
+        //winbufvec.getFloatVector().print(); // prints 2,3,4
+
+        var fout = qm.fs.openWrite('aggrSet.bin');
+        assert.throws(function () { set.save(fout) }, Error);
+        fout.close();
+    });
+
+    it('should throw exception if not all aggregates in set have load method', function () {
+        var tick = new qm.StreamAggr(base, {
+            type: 'timeSeriesTick',
+            timestamp: 'Time',
+            value: 'Celsius',
+            store: store.name
+        }, store);
+
+        var winbufvec = new qm.StreamAggr(base, {
+            type: 'timeSeriesWinBufVector',
+            inAggr: tick.name,
+            winsize: 2000
+        }, store);
+
+        var customAggr = new qm.StreamAggr(base, new function () {
+            this.onAdd = function (rec) {
+                console.log(JSON.stringify(rec))
+            }
+            this.save = function () { };
+            //this.load = function () {};
+        });
+
+        var set = new qm.StreamAggr(base, {
+            type: 'set',
+            aggregates: [tick.name, winbufvec.name, customAggr.name]
+        });
+
+        store.push({ Time: '2015-06-10T14:13:32.0', Celsius: 1 });
+        //winbufvec.getFloatVector().print(); // prints 1
+        store.push({ Time: '2015-06-10T14:33:30.0', Celsius: 2 });
+        //winbufvec.getFloatVector().print(); // prints 2
+        store.push({ Time: '2015-06-10T14:33:31.0', Celsius: 3 });
+        //winbufvec.getFloatVector().print(); // prints 2,3
+        store.push({ Time: '2015-06-10T14:33:32.0', Celsius: 4 });
+        //winbufvec.getFloatVector().print(); // prints 2,3,4
+
+        var fout = qm.fs.openWrite('aggrSet.bin');
+        fout.close();
+
+        store.resetStreamAggregates();
+
+        var fin = qm.fs.openRead('aggrSet.bin');
+        assert.throws(function () { set.load(fin) }, Error);
+        fin.close();
+    });
+
+    it('should function with empty set aggregate', function () {
+        var tick = new qm.StreamAggr(base, {
+            type: 'timeSeriesTick',
+            timestamp: 'Time',
+            value: 'Celsius',
+            store: store.name
+        }, store);
+
+        var winbufvec = new qm.StreamAggr(base, {
+            type: 'timeSeriesWinBufVector',
+            inAggr: tick.name,
+            winsize: 2000
+        }, store);
+
+        var customAggr = new qm.StreamAggr(base, new function () {
+            this.onAdd = function (rec) {
+                console.log(JSON.stringify(rec))
+            }
+            this.save = function () { };
+            this.load = function () { };
+        });
+
+        var set = new qm.StreamAggr(base, {
+            type: 'set',
+            aggregates: []
+        });
+
+        store.push({ Time: '2015-06-10T14:13:32.0', Celsius: 1 });
+        //winbufvec.getFloatVector().print(); // prints 1
+        store.push({ Time: '2015-06-10T14:33:30.0', Celsius: 2 });
+        //winbufvec.getFloatVector().print(); // prints 2
+        store.push({ Time: '2015-06-10T14:33:31.0', Celsius: 3 });
+        //winbufvec.getFloatVector().print(); // prints 2,3
+        store.push({ Time: '2015-06-10T14:33:32.0', Celsius: 4 });
+        //winbufvec.getFloatVector().print(); // prints 2,3,4
+
+        assert.ok(set.init, 'Aggregate set is not initialized.');
+        assert.ok(set.name);
+        assert.equal(set.val.length, 0, 'Aggregate set val should be empty');
+
+        var fout = qm.fs.openWrite('aggrSet.bin');
+        fout.close();
+
+        store.resetStreamAggregates();
+
+        var fin = qm.fs.openRead('aggrSet.bin');
+        fin.close();
+
+        assert.equal(tick.init, false, 'Tick should not be initialized since it was not in set');
+        assert.equal(winbufvec.init, false, 'winbufvec should not be initialized since it was not in set');
+    });
+
+    it('should function with non-initialized aggregates in set', function () {
+        var tick = new qm.StreamAggr(base, {
+            type: 'timeSeriesTick',
+            timestamp: 'Time',
+            value: 'Celsius',
+            store: store.name
+        }, store);
+
+        var winbufvec = new qm.StreamAggr(base, {
+            type: 'timeSeriesWinBufVector',
+            inAggr: tick.name,
+            winsize: 2000
+        }, store);
+
+        var customAggr = new qm.StreamAggr(base, new function () {
+            this.onAdd = function (rec) {
+                console.log(JSON.stringify(rec))
+            }
+            this.save = function () { };
+            this.load = function () { };
+        });
+
+        var set = new qm.StreamAggr(base, {
+            type: 'set',
+            aggregates: [tick.name, winbufvec.name, customAggr.name]
+        });
+
+        // No records are pushed into store with attached aggregates, therefore c++ aggregates should not be initialized
+
+        assert.ok(set.init, 'Aggregate set is not initialized.');
+        assert.ok(set.name);
+        assert.equal(tick.init, false, 'Tick should not be initialized');
+        assert.equal(winbufvec.init, false, 'winbufvec should not be initialized');
+        assert.equal(customAggr.init, true, 'customAggr should be initialized');
+
+        assert.equal(set.val.length, 3);
+        assert.equal(tick.name, set.val[0]);
+        assert.equal(winbufvec.name, set.val[1]);
+        assert.equal(customAggr.name, set.val[2]);
+
+        var fout = qm.fs.openWrite('aggrSet.bin');
+        fout.close();
+
+        store.resetStreamAggregates();
+
+        var fin = qm.fs.openRead('aggrSet.bin');
+        fin.close();
+
+        assert.equal(tick.init, false, 'Tick should not be initialized since it was not in set');
+        assert.equal(winbufvec.init, false, 'winbufvec should not be initialized since it was not in set');
+        assert.equal(customAggr.init, true, 'customAggr should be initialized');
+    });
 });
