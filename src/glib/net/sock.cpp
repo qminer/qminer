@@ -231,9 +231,9 @@ void TTTimer_OnTimeOut(uv_timer_t* TimerHnd, int Status) {
 	_TimerHnd->Timer->OnTimeOut();
 }
 
-TTTimer::TTTimer(const int& _TimeOutMSecs): TimeOutMSecs(_TimeOutMSecs), 
-		Ticks(0), StartTm(TSecTm::GetCurTm()) {
-	
+TTTimer::TTTimer(const int& _TimeOutMSecs, const bool& _Repeat): TimeOutMSecs(_TimeOutMSecs), 
+    Repeat(_Repeat), Ticks(0), StartTm(TSecTm::GetCurTm()) 
+{	
 	// create new timer
 	uv_timer_req_t* _TimerHnd = (uv_timer_req_t*)malloc(sizeof(uv_timer_req_t));
 	// initialize
@@ -264,7 +264,7 @@ void TTTimer::StartTimer(const int& _TimeOutMSecs) {
 	// start new if non-zero timeout
 	if (_TimeOutMSecs > 0){
 		uv_timer_t* _TimerHnd = (uv_timer_t*)TimerHnd.Val;
-		uv_timer_start(_TimerHnd, TTTimer_OnTimeOut, (uint64)TimeOutMSecs, 0);
+		uv_timer_start(_TimerHnd, TTTimer_OnTimeOut, (uint64)TimeOutMSecs, Repeat ? (uint64) TimeOutMSecs : 0);
 	}
 }
 

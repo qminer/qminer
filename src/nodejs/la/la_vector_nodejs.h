@@ -8,6 +8,13 @@
 #ifndef QMINER_LA_VEC_NODEJS_H
 #define QMINER_LA_VEC_NODEJS_H
 
+#include <node.h>
+#include <node_object_wrap.h>
+#include "base.h"
+#include "../nodeutil.h"
+#include "../fs/fs_nodejs.h"
+#include "la_nodejs.h"
+
 // Vector helper classes
 class TNodeJsFltVV;
 

@@ -8,6 +8,14 @@
 #ifndef QMINER_SNAP_NODEJS
 #define QMINER_SNAP_NODEJS
 
+#include <node.h>
+#include <node_object_wrap.h>
+#include "base.h"
+#include "../nodeutil.h"
+#include "../fs/fs_nodejs.h"
+#include "../la/la_nodejs.h"
+#include "Snap.h"
+
 //#ifndef BUILDING_NODE_EXTENSION
 //	#define BUILDING_NODE_EXTENSION
 //#endif

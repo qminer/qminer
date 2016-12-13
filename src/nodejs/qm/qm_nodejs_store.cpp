@@ -75,7 +75,7 @@ namespace TQm {
                 throw TQm::TQmExcept::New("Javascript exception triggered from TNodeJsFuncStore::GetRecs, " + TStr(*Msg));
             }
             QmAssertR(RetVal->IsNumber(), "TNodeJsFuncStore::GetRecs: Return type expected to be number");
-            return (unsigned)(int64)RetVal->NumberValue();
+            return (unsigned long long)(int64)RetVal->NumberValue();
         }
 
         PRecSet TNodeJsFuncStore::GetAllRecs() {
@@ -113,7 +113,7 @@ namespace TQm {
                 throw TQm::TQmExcept::New("Javascript exception triggered from TNodeJsFuncStore::GetFirstRecId, " + TStr(*Msg));
             }
             QmAssertR(RetVal->IsNumber(), "TNodeJsFuncStore::GetFirstRecId: Return type expected to be number");
-            return (unsigned)(int64)RetVal->NumberValue();
+            return (unsigned long long)(int64)RetVal->NumberValue();
         }
 
         uint64 TNodeJsFuncStore::GetLastRecId() const {
@@ -131,7 +131,7 @@ namespace TQm {
                 throw TQm::TQmExcept::New("Javascript exception triggered from TNodeJsFuncStore::GetLastRecId, " + TStr(*Msg));
             }
             QmAssertR(RetVal->IsNumber(), "TNodeJsFuncStore::GetLastRecId: Return type expected to be number");
-            return (unsigned)(int64)RetVal->NumberValue();
+            return (unsigned long long)(int64)RetVal->NumberValue();
         }
 
         v8::Handle<v8::Value> TNodeJsFuncStore::GetField(const uint64& RecId, const int& FieldId) const {
@@ -190,7 +190,7 @@ namespace TQm {
             v8::HandleScope HandleScope(Isolate);
             v8::Local<v8::Value> RetVal = GetField(RecId, FieldId);
             QmAssertR(RetVal->IsNumber(), "TNodeJsFuncStore::GetField: Return type expected to be a number");
-            return (unsigned)(int64) RetVal->NumberValue();
+            return (unsigned long long)(int64) RetVal->NumberValue();
         }
         TStr TNodeJsFuncStore::GetFieldStr(const uint64& RecId, const int& FieldId) const {
             v8::Isolate* Isolate = v8::Isolate::GetCurrent();

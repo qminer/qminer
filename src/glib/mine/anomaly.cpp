@@ -73,13 +73,13 @@ TNearestNeighbor::TNearestNeighbor(const TFltV& _RateV, const int& _WindowSize):
     Mat.Gen(WindowSize, 0);
     DistV.Gen(WindowSize, 0);
     DistColV.Gen(WindowSize, 0);
-	IDVec.Gen(WindowSize, 0);
+    DatV.Gen(WindowSize, 0);
 }
 
 TNearestNeighbor::TNearestNeighbor(TSIn& SIn): RateV(SIn), WindowSize(SIn), Mat(SIn),
-    DistV(SIn), DistColV(SIn), ThresholdV(SIn), InitVecs(SIn), NextCol(SIn), IDVec(SIn) { }
+    DistV(SIn), DistColV(SIn), ThresholdV(SIn), InitVecs(SIn), NextCol(SIn), DatV(SIn) { }
 
-void TNearestNeighbor::Save(TSOut& SOut) {
+void TNearestNeighbor::Save(TSOut& SOut) const {
     RateV.Save(SOut);
     WindowSize.Save(SOut);
     Mat.Save(SOut);
@@ -88,14 +88,14 @@ void TNearestNeighbor::Save(TSOut& SOut) {
     ThresholdV.Save(SOut);
     InitVecs.Save(SOut);
     NextCol.Save(SOut);
-	IDVec.Save(SOut);
+    DatV.Save(SOut);
 }
 
-void TNearestNeighbor::PartialFit(const TIntFltKdV& Vec, const int& RecId) {
+void TNearestNeighbor::PartialFit(const TIntFltKdV& Vec, const uint64& Dat) {
     if (InitVecs < WindowSize) {
         // not yet full, extend matrix and distance vectors
         Mat.Add(Vec);
-		IDVec.Add(RecId);
+        DatV.Add(Dat);
         // make sure we are very far from everything for update distance to kick in
         DistV.Add(TFlt::Mx); DistColV.Add(InitVecs);
         // update distance for new vector
@@ -109,7 +109,7 @@ void TNearestNeighbor::PartialFit(const TIntFltKdV& Vec, const int& RecId) {
         Forget(NextCol);
         // overwrite
         Mat[NextCol] = Vec;
-		IDVec[NextCol] = RecId;
+        DatV[NextCol] = Dat;
         DistV[NextCol] = TFlt::Mx;
         DistColV[NextCol] = NextCol;
         // update distance for overwriten vector

@@ -140,6 +140,10 @@ binding-1.gyp
 *.opendb
 /test/nodejs/store_and_index.js
 /test/nodejs/jointest.dbg.js
+/test/nodejs/*.txt
+/test/nodejs/example*.js
+/test/cpp/gtest*
 
 # GIT FILES
 *.orig
+/TestStore

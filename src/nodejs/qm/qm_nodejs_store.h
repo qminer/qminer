@@ -8,6 +8,11 @@
 #ifndef QMINER_QM_NODEJS_STORE
 #define QMINER_QM_NODEJS_STORE
 
+#include <node.h>
+#include <node_object_wrap.h>
+#include <qminer.h>
+#include "../nodeutil.h"
+
 namespace TQm {
     namespace TStorage {
 

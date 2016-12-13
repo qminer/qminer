@@ -113,9 +113,58 @@
             # node qminer module
             'target_name': 'qm',
             'sources': [
+                # core qm module
+                'src/nodejs/qm/qm_nodejs.h',
+                'src/nodejs/qm/qm_nodejs.cpp',
+                'src/nodejs/qm/qm_nodejs_streamaggr.h',
+                'src/nodejs/qm/qm_nodejs_streamaggr.cpp',
+                'src/nodejs/qm/qm_nodejs_store.h',
+                'src/nodejs/qm/qm_nodejs_store.cpp',
+                'src/nodejs/qm/qm_param.h',
+                # la
+                'src/nodejs/la/la_nodejs.h',
+                'src/nodejs/la/la_nodejs.cpp',
+                'src/nodejs/la/la_structures_nodejs.h',
+                'src/nodejs/la/la_structures_nodejs.cpp',
+                'src/nodejs/la/la_vector_nodejs.h',
+                # analytics
+                'src/nodejs/analytics/analytics.h',
+                'src/nodejs/analytics/analytics.cpp',
+                # fs
+                'src/nodejs/fs/fs_nodejs.h',
+                'src/nodejs/fs/fs_nodejs.cpp',
+                # snap
+                'src/nodejs/snap/snap_nodejs.h',
+                'src/nodejs/snap/snap_nodejs.cpp',
+                # ht
+                'src/nodejs/ht/ht_nodejs.h',
+                'src/nodejs/ht/ht_nodejs.cpp',
+                # statistics
+                'src/nodejs/statistics/stat_nodejs.h',
+                'src/nodejs/statistics/stat_nodejs.cpp',
+                # StreamStory
+                'src/third_party/streamstory/streamstory_node.h',
+                'src/third_party/streamstory/streamstory_node.cpp',
+                # addon utilities
+                'src/nodejs/nodeutil.h',
+                'src/nodejs/nodeutil.cpp',
                 # init functions
                 'src/nodejs/modinit.h',
-                'src/nodejs/modinit.cpp'
+                'src/nodejs/modinit.cpp',
+                'src/nodejs/nodeutil.h',
+                'src/nodejs/nodeutil.hpp',
+                'src/nodejs/analytics/analytics.h',
+                'src/nodejs/fs/fs_nodejs.h',
+                'src/nodejs/ht/ht_nodejs.h',
+                'src/nodejs/la/la_nodejs.h',
+                'src/nodejs/la/la_structures_nodejs.h',
+                'src/nodejs/la/la_vector_nodejs.h',
+                'src/nodejs/qm/qm_nodejs.h',
+                'src/nodejs/qm/qm_nodejs_store.h',
+                'src/nodejs/qm/qm_nodejs_streamaggr.h',
+                'src/nodejs/qm/qm_param.h',
+                'src/nodejs/snap/snap_nodejs.h',
+                'src/nodejs/statistics/stat_nodejs.h'
             ],
             'include_dirs': [
                 'src/nodejs/qm',
@@ -126,7 +175,6 @@
                 'src/nodejs/ht',
                 'src/nodejs/statistics',
                 # StreamStory
-                'src/third_party/streamstory/',
                 'src/third_party/streamstory/',
                 'src/nodejs/',
                 'src/qminer/',
@@ -139,12 +187,14 @@
                 'src/third_party/Snap/snap-adv',
                 'src/third_party/Snap/snap-exp',
                 'src/third_party/Snap/qlib-core',
+                'src/snap_ext',
                 '<(LIN_ALG_INCLUDE)',
                 '<(LIN_EIGEN_INCLUDE)'
             ],
             'dependencies': [
                 'glib',
                 'snap_lib',
+                'snap_ext',
                 'qminer',
             ],
         },
@@ -164,13 +214,17 @@
                 'src/qminer/qminer_aggr.cpp',
                 # StreamStory
                 'src/third_party/streamstory/streamstory.h',
-                'src/third_party/streamstory/streamstory.cpp'
+                'src/third_party/streamstory/streamstory.cpp',
+                # Geospatial
+                'src/third_party/geospatial/geospatial_aggr.h',
+                'src/third_party/geospatial/geospatial_aggr.cpp'
             ],
             'include_dirs': [
                 'src/qminer',
                 'src/glib/base/',
                 'src/glib/mine/',
                 'src/glib/misc/',
+                'src/third_party/geospatial/',
                 'src/third_party/sole/',
                 '<(LIN_ALG_INCLUDE)',
                 '<(LIN_EIGEN_INCLUDE)'
@@ -184,6 +238,26 @@
                 'src/third_party/Snap/snap-core/Snap.cpp'
             ],
             'include_dirs': [
+                'src/third_party/Snap/snap-core',
+                'src/third_party/Snap/snap-adv',
+                'src/third_party/Snap/snap-exp',
+                'src/glib/base/',
+                'src/glib/mine/',
+                'src/glib/misc/',
+                '<(LIN_ALG_INCLUDE)',
+                '<(LIN_EIGEN_INCLUDE)'
+            ],
+        },
+        {
+            # snap extensions
+            'target_name': 'snap_ext',
+            'type': 'static_library',
+            'sources': [
+                'src/snap_ext/graphprocess.h',
+                'src/snap_ext/graphprocess.cpp'
+            ],
+            'include_dirs': [
+                'src/snap_ext',
                 'src/third_party/Snap/snap-core',
                 'src/third_party/Snap/snap-adv',
                 'src/third_party/Snap/snap-exp',

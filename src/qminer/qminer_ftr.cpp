@@ -159,11 +159,10 @@ TFtrSpace::TFtrSpace(const TWPt<TBase>& _Base, const PFtrExt& FtrExt):
 TFtrSpace::TFtrSpace(const TWPt<TBase>& _Base, const TFtrExtV& _FtrExtV): 
     Base(_Base), FtrExtV(_FtrExtV) { Init(); }
 
-TFtrSpace::TFtrSpace(const TWPt<TBase>& _Base, const PJsonVal& ParamVal) :
-Base(_Base) {
+TFtrSpace::TFtrSpace(const TWPt<TBase>& _Base, const PJsonVal& ParamVal): Base(_Base) {
     if (ParamVal->IsArr()) {
         int Len = ParamVal->GetArrVals();
-        FtrExtV.Gen(Len);
+        FtrExtV.Gen(Len, 0);
         for (int ParamN = 0; ParamN < Len; ParamN++) {
             PJsonVal Param = ParamVal->GetArrVal(ParamN);
             TStr Type = Param->GetObjStr("type");
@@ -269,6 +268,7 @@ bool TFtrSpace::Update(const PRecSet& RecSet) {
 
 void TFtrSpace::GetSpV(const TRec& Rec, TIntFltKdV& SpV, const int& FtrExtN) const {
     int Offset = 0;
+    SpV.Clr();
     if (FtrExtN < 0) {
         for (int FtrExtN = 0; FtrExtN < FtrExtV.Len(); FtrExtN++) {
             FtrExtV[FtrExtN]->AddSpV(Rec, SpV, Offset);

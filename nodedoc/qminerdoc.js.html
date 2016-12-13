@@ -74,6 +74,12 @@
     */
  exports.verbosity = function (level) { }
 /**
+    * Returns an JSON with two properties: &quot;byClass&quot; and &quot;total&quot;. The &quot;byClass&quot; value is a JSON where
+    * each key is a class ID and each value is of the form { newFromCpp: number, newFromJs: number, destructorCalls: number}
+    * and the value of &quot;total&quot; is of the same form (aggregated over &quot;byClass&quot;)    
+    */
+ exports.stats = function () { }
+/**
     * @typedef {Object} QMinerFlags
     * The object containing the QMiner compile flags.
     * @property {string} buildTime - The module build time.
@@ -160,7 +166,9 @@
 * &amp;lt;br&gt;8. &#x60;&#x27;float_pair&#x27;&#x60; - A pair of floats, useful for storing geo coordinates,
 * &amp;lt;br&gt;9. &#x60;&#x27;float_v&#x27;&#x60; - Array of floats,
 * &amp;lt;br&gt;10. &#x60;&#x27;datetime&#x27;&#x60; - Date and time format, stored in a form of miliseconds since 1600,
-* &amp;lt;br&gt;11. &#x60;&#x27;num_sp_v&#x27;&#x60; - Array of [&#x60;int&#x60;, &#x60;float&#x60;] pairs. See constructor array for {@link module:la.SparseVector}.
+* &amp;lt;br&gt;11. &#x60;&#x27;num_sp_v&#x27;&#x60; - Array of [&#x60;int&#x60;, &#x60;float&#x60;] pairs. See constructor array for {@link module:la.SparseVector},
+* &amp;lt;br&gt;12. &#x60;&#x27;json&#x27;&#x60; - this field can be an arbitrary object and will be internally serialized into string using JSON notation,
+* &amp;lt;br&gt;13. &#x60;&#x27;blob&#x27;&#x60; - Binary buffer, used for storing binary data,
 * @property {boolean} [primary=false] - Field which can be used to identify record. There can be only one primary field in a store. There can be at most one record for each value of the primary field. Currently following fields can be marked as primary: &#x60;int&#x60;, &#x60;uint64&#x60;, &#x60;string&#x60;, &#x60;float&#x60;, &#x60;datetime&#x60;. Primary fields of type &#x60;string&#x60; are also used for record querying using {@link module:qm.Store#recordByName}.
 * @property {boolean} [null=false] - When set to true, null is a possible value for a field (allow missing values).
 * @property {string} [store=&#x27;memory&#x27;] - Defines where to store the field. Possible options 
@@ -205,7 +213,9 @@
 * @property {string} name - The name of the join.
 * @property {string} type - Join types. Possible options:
 * &amp;lt;br&gt;1. &#x60;&#x27;field&#x27;&#x60; - Points to zero or one record and is implemented as an additional hidden field of type &#x60;uint64&#x60;, which can hold the ID of the record it links to. Accessing the records join returns a record.
-* &amp;lt;br&gt;2. &#x60;&#x27;index&#x27;&#x60; - Point to any number of records and is implemented using the inverted index, where for each record a list (vector) of linked records is kept. Accessing the records join returns a record set.
+* &amp;lt;br&gt;2. &#x60;&#x27;index&#x27;&#x60; - Point to any number of records and is implemented using the inverted index, where for each record a list (vector) of linked records is kept. Accessing the records join returns a record set. 
+* &amp;lt;b&gt;Important:&amp;lt;/b&gt; The records given to this join field must be in an array.
+*
 * @property {string} store - The store name from which the linked records are.
 * @example
 * var qm = require(&#x27;qminer&#x27;);
@@ -230,17 +240,22 @@
 * // Adds a movie, automatically adds &#x27;Jim Jarmusch&#x27; to People, sets the &#x27;director&#x27; join (field join)
 * // and automatically updates the index join &#x27;directed&#x27;, since it&#x27;s an inverse join of &#x27;director&#x27;
 * base.store(&#x27;Movies&#x27;).push({ title: &#x27;Broken Flowers&#x27;, director: { name: &#x27;Jim Jarmusch&#x27; } });
+*
 * // Adds a movie, sets the &#x27;director&#x27; join, updates the index join of &#x27;Jim Jarmusch&#x27;
 * base.store(&#x27;Movies&#x27;).push({ title: &#x27;Coffee and Cigarettes&#x27;, director: { name: &#x27;Jim Jarmusch&#x27; } });
 * // Adds movie, automatically adds &#x27;Lars von Trier&#x27; to People, sets the &#x27;director&#x27; join
 * // and &#x27;directed&#x27; inverse join (automatically)
 * base.store(&#x27;Movies&#x27;).push({ title: &#x27;Dogville&#x27;, director: { name: &#x27;Lars von Trier&#x27; } });
 *
+* // Adds a person, sets the &#x27;directed&#x27; join with multiple movies (&#x27;directed&#x27; is of type &#x27;index&#x27;, movies must be given in an array)
+* base.store(&#x27;People&#x27;).push({ name: &#x27;Christopher Nolan&#x27;, directed: [{ title: &#x27;Inception&#x27; }, { title: &#x27;Interstellar&#x27; }] });
+*
 * var movie = base.store(&#x27;Movies&#x27;)[0]; // get the first movie (Broken Flowers)
 * // Each movie has a property corresponding to the join name: &#x27;director&#x27;. 
 * // Accessing the property returns a {@link module:qm.Record} from the store People.
 * var person = movie.director; // get the director
 * var personName = person.name; // get person&#x27;s name (&#x27;Jim Jarmusch&#x27;)
+*
 * // Each person has a property corresponding to the join name: &#x27;directed&#x27;. 
 * // Accessing the property returns a {@link module:qm.RecSet} from the store People.
 * var movies = person.directed; // get all the movies the person directed.
@@ -1602,7 +1617,7 @@
     */
  exports.Record.prototype.store = Object.create(&#x27;qminer&#x27;).Store.prototype;
 /**
- * Vector of records by value
+ * Vector of records by value.
  * @class
  * @param {module:fs.FIn} [arg] - Load vector from input stream.
  * @classdesc Vector storing records defined by value. Vector can be serialized and
@@ -1625,11 +1640,11 @@
  * // Create record vector
  * var recordVector = new qm.RecordVector(base);
  * // Add some records to the vector
- * recordVector.push(store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Plato&quot;, Era: &quot;Ancient philosophy&quot; }));
- * recordVector.push(store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Immanuel Kant&quot;, Era: &quot;18th-century philosophy&quot; }));
- * recordVector.push(store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Emmanuel Levinas&quot;, Era: &quot;20th-century philosophy&quot; }));
- * recordVector.push(store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Rene Descartes&quot;, Era: &quot;17th-century philosophy&quot; }));
- * recordVector.push(store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Confucius&quot;, Era: &quot;Ancient philosophy&quot; }));
+ * recordVector.push(base.store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Plato&quot;, Era: &quot;Ancient philosophy&quot; }));
+ * recordVector.push(base.store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Immanuel Kant&quot;, Era: &quot;18th-century philosophy&quot; }));
+ * recordVector.push(base.store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Emmanuel Levinas&quot;, Era: &quot;20th-century philosophy&quot; }));
+ * recordVector.push(base.store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Rene Descartes&quot;, Era: &quot;17th-century philosophy&quot; }));
+ * recordVector.push(base.store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Confucius&quot;, Era: &quot;Ancient philosophy&quot; }));
  * // Iterate over all records
  * for (var i = 0; i &amp;lt; recordVector.length; i++) {
  *    var rec = recordVector[i];
@@ -1659,7 +1674,7 @@
      * // Create record vector
      * var recordVector = new qm.RecordVector(base);
      * // Add some records to the vector
-     * recordVector.push(store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Plato&quot;, Era: &quot;Ancient philosophy&quot; }));
+     * recordVector.push(base.store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Plato&quot;, Era: &quot;Ancient philosophy&quot; }));
      * base.close();
      */
  exports.RecordVector.prototype.push = function (rec) {};
@@ -1695,7 +1710,7 @@
      * // Create record vector
      * var recordVector = new qm.RecordVector(base);
      * // Add some records to the vector
-     * recordVector.push(store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Plato&quot;, Era: &quot;Ancient philosophy&quot; }));
+     * recordVector.push(base.store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Plato&quot;, Era: &quot;Ancient philosophy&quot; }));
      * // save to disk
      * var fout = fs.openWrite(&#x27;record_vector.bin&#x27;);
      * recordVector.save(fout).close();
@@ -2627,7 +2642,7 @@
 * @typedef {Object} FeatureExtractorNumeric
 * The feature extractor of type &#x60;&#x27;numeric&#x27;&#x60;. Used for constructing {@link module:qm.FeatureSpace} objects.
 * @property {string} type - The type of the extractor. &amp;lt;b&gt;Important&amp;lt;/b&gt;: It must be equal &#x60;&#x27;numeric&#x27;&#x60;.
-* @property {boolean} [normalize = &#x27;false&#x27;] - Normalize values between 0.0 and 1.0.
+* @property {string} [normalize = &#x27;none&#x27;] - Normalize values between 0.0 and 1.0 if set to &#x60;&#x27;scale&#x27;&#x60;. Standardize values to mean = 0 and sdiv = 1 if set to &#x60;&#x27;var&#x27;&#x60;.
 * @property {number} [min] - The minimal value used to form the normalization.
 * @property {number} [max] - The maximal value used to form the normalization.
 * @property {string} field - The name of the field from which to take the value.
@@ -2647,7 +2662,7 @@
 * });
 * // create a feature space containing the numeric extractor, where the values are
 * // normalized, the values are taken from the field &quot;Grade&quot;
-* var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;Class&quot;, normalize: true, field: &quot;Grade&quot; });
+* var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;Class&quot;, normalize: &quot;scale&quot;, field: &quot;Grade&quot; });
 * base.close();
 */
 /**
@@ -2698,7 +2713,7 @@
 *       ]
 *    }]
 * });
-* // create a feature space containing the categorical extractor, where the it&#x27;s values
+* // create a feature space containing the categorical extractor, where it&#x27;s values
 * // are taken from the field &quot;StudyGroup&quot;: &quot;A&quot;, &quot;B&quot;, &quot;C&quot; and &quot;D&quot;
 * var ftr = new qm.FeatureSpace(base, { type: &quot;categorical&quot;, source: &quot;Class&quot;, field: &quot;StudyGroup&quot; });
 * base.close();
@@ -3221,7 +3236,7 @@
     * // create a feature matrix out of the records of the store by using the feature space
     * // returns a sparse matrix equal to
     * // 1  0  0  1
-    * // 0  1  0  1
+    * // 0  1  1  1
     * // 0  0  1  0
     * // 1  1  0  0
     * var matrix = ftr.extractMatrix(base.store(&quot;Class&quot;).allRecords);

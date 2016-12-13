@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v6.3.1</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.4.0</a>
       </div>
     </div>
   </nav>
@@ -96,7 +96,7 @@ var svd = la.svd(mat, 3);</code></pre>
                     <dt><a href="module-la.html#.cat">cat(nestedArrMat)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-la.html#.conjgrad">conjgrad(A, b[, x])</a></dt>
+                    <dt><a href="module-la.html#.conjgrad">conjgrad(A, b[, x][, verbose])</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-la.html#.copyVecToArray">copyVecToArray(vec)</a></dt>
@@ -267,7 +267,7 @@ var mat = la.cat([[A,B], [C,D]]);</code></pre>
                   <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>&nbsp;Concatenated matrix.</p>
                 </dd>
               </dl>
-              <h3 id=".conjgrad"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">conjgrad</span><span class="signature"><span class="signature-params">(A, b[, x])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
+              <h3 id=".conjgrad"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">conjgrad</span><span class="signature"><span class="signature-params">(A, b[, x][, verbose])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
               <p>Solves the PSD symmetric system: A x = b, where A is a positive-definite symmetric matrix.</p>
               <section>
                 <h4>
@@ -337,6 +337,21 @@ var x = la.conjgrad(mat, vec);</code></pre>
                       </td>
                       <td>
                         <p>Current solution. Default is a vector of zeros.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>verbose</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>If true, console logs the residuum value.</p>
+                        <p>Defaults to <code>false</code>.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -612,7 +627,7 @@ var X2 = new la.Matrix([[1,0.5,0],[0,-0.5,-1]]);
 // returns the matrix:
 // 4 6.5 10
 // 1 2.5 5
-la.pdist2(X1, X2)</code></pre>
+la.pdist2(X1, X2);</code></pre>
                 </div>
               </section>
               <section>
