@@ -939,6 +939,14 @@ void TLinAlg::AddVec(double k, const TVVec<TNum<TType>, TSizeTy, ColMajor>& X, T
 }
 
 template <class TType, class TSizeTy, bool ColMajor>
+void TLinAlg::AddVec(const TType& k,
+       const TVec<TKeyDat<TNum<TSizeTy>, TNum<TType>>, TSizeTy>& x,
+       const TVec<TKeyDat<TNum<TSizeTy>, TNum<TType>>, TSizeTy>& y,
+       TVec<TKeyDat<TNum<TSizeTy>, TNum<TType>>, TSizeTy>& z) {
+    LinComb(k, x, 1, y, z);
+}
+
+template <class TType, class TSizeTy, bool ColMajor>
 TType TLinAlg::SumVec(const TVec<TNum<TType>, TSizeTy>& x) {
 	const TSizeTy len = x.Len();
 	double Res = 0.0;

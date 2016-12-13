@@ -161,31 +161,32 @@ PJsonVal TNearestNeighbor::Explain(const TIntFltKdV& Vec) const {
     // element-wise difference
     PJsonVal DiffVal = TJsonVal::NewArr();
     int NearEltN = 0, EltN = 0;
-    while (NearEltN < NearVec.Len() && EltN < Vec.Len()) {
+    while (NearEltN < NearVec.Len() || EltN < Vec.Len()) {
+        // get the feature ID
+        const int VecFtrId = EltN < Vec.Len() ? Vec[NearEltN].Key.Val : TInt::Mx;
+        const int NearFtrId = NearEltN < NearVec.Len() ? NearVec[NearEltN].Key.Val : TInt::Mx;
+        const int FtrId = NearFtrId < VecFtrId ? NearFtrId : VecFtrId;
         // get values
-        const int FtrId = (NearVec[NearEltN].Key < Vec[EltN].Key) ? NearVec[NearEltN].Key : Vec[EltN].Key;
-        const double Val = (NearVec[NearEltN].Key >= Vec[EltN].Key) ? Vec[EltN].Dat.Val : 0.0;
-        const double NearVal = (NearVec[NearEltN].Key <= Vec[EltN].Key) ? NearVec[NearEltN].Dat.Val : 0.0;
-        const double Diff = TMath::Sqr(NearVal - Val) / NearDist;
+        const double VecVal = FtrId < VecFtrId ? 0.0 : Vec[EltN].Dat.Val;
+        const double NearVal = FtrId < NearFtrId ? 0.0 : NearVec[NearEltN].Dat.Val;
+        // get diff
+        const double Diff = TMath::Sqr(NearVal - VecVal) / NearDist;
         // add to json result
         PJsonVal FtrVal = TJsonVal::NewObj();
         //avoid unnecessary fields in the explanation
         if (Diff > 1e-8) {
             FtrVal->AddToObj("id", FtrId);
-            FtrVal->AddToObj("val", Val);
+            FtrVal->AddToObj("val", VecVal);
             FtrVal->AddToObj("nearVal", NearVal);
             FtrVal->AddToObj("contribution", Diff);
             DiffVal->AddToArr(FtrVal);
         }
         // move to the next feature
-        if (NearVec[NearEltN].Key > Vec[EltN].Key) {
+        if (VecFtrId <= NearFtrId) {
             EltN++;
         }
-        else if (NearVec[NearEltN].Key < Vec[EltN].Key) {
+        if (NearFtrId <= VecFtrId) {
             NearEltN++;
-        }
-        else {
-            NearEltN++; EltN++;
         }
     }
     ResVal->AddToObj("features", DiffVal);
