@@ -653,8 +653,8 @@ void TNodeJsFOut::close(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::HandleScope HandleScope(Isolate);
 
     TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args.This());
+    JsFOut->SOut->Flush();
     JsFOut->SOut.Clr();
-
     Args.GetReturnValue().Set(Args.Holder());
 }
 

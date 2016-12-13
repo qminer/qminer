@@ -1142,7 +1142,8 @@ void TNodeJsFuncStreamAggr::SaveState(TSOut& SOut) const {
         v8::HandleScope HandleScope(Isolate);
 
         PSOut POut(&SOut);
-        v8::Local<v8::Object> JsFOut = TNodeJsUtil::NewInstance<TNodeJsFOut>(new TNodeJsFOut(POut));
+        TNodeJsFOut* FOut = new TNodeJsFOut(POut);
+        v8::Local<v8::Object> JsFOut = TNodeJsUtil::NewInstance<TNodeJsFOut>(FOut);
 
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, SaveFun);
         v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
@@ -1151,6 +1152,7 @@ void TNodeJsFuncStreamAggr::SaveState(TSOut& SOut) const {
 
         v8::TryCatch TryCatch;
         Callback->Call(This, Argc, ArgV);
+        FOut->SOut.Clr();
         TNodeJsUtil::CheckJSExcept(TryCatch);
     }
 }
