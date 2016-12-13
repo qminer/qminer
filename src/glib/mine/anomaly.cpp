@@ -144,51 +144,57 @@ int TNearestNeighbor::Predict(const TIntFltKdV& Vec) const {
 }
 
 PJsonVal TNearestNeighbor::Explain(const TIntFltKdV& Vec) const {
-	// if not initialized, return null (JSON)
-	if (!IsInit()) { return TJsonVal::NewNull(); }
-	// find nearest neighbor
-	double NearDist = TFlt::Mx; int NearColN = -1;
-	for (int ColN = 0; ColN < Mat.Len(); ColN++) {
-		const double Dist = TLinAlg::Norm2(Vec) - 2 * TLinAlg::DotProduct(Vec, Mat[ColN]) + TLinAlg::Norm2(Mat[ColN]);
-		if (Dist < NearDist) { NearDist = Dist; NearColN = ColN; }
-	}
+    // if not initialized, return null (JSON)
+    if (!IsInit()) { return TJsonVal::NewNull(); }
+    // find nearest neighbor
+    double NearDist = TFlt::Mx; int NearColN = -1;
+    for (int ColN = 0; ColN < Mat.Len(); ColN++) {
+        const double Dist = TLinAlg::Norm2(Vec) - 2 * TLinAlg::DotProduct(Vec, Mat[ColN]) + TLinAlg::Norm2(Mat[ColN]);
+        if (Dist < NearDist) { NearDist = Dist; NearColN = ColN; }
+    }
     const TIntFltKdV& NearVec = Mat[NearColN];
-	// generate JSon explanations
-	PJsonVal ResVal = TJsonVal::NewObj();
+    // generate JSon explanations
+    PJsonVal ResVal = TJsonVal::NewObj();
     // id of the nearest element
-	ResVal->AddToObj("nearestID", IDVec[NearColN]);
-	ResVal->AddToObj("distance", NearDist);
+    ResVal->AddToObj("nearestDat", DatV[NearColN]);
+    ResVal->AddToObj("distance", NearDist);
     // element-wise difference
     PJsonVal DiffVal = TJsonVal::NewArr();
     int NearEltN = 0, EltN = 0;
-    while (NearEltN < NearVec.Len() && EltN < Vec.Len()) {
+    while (NearEltN < NearVec.Len() || EltN < Vec.Len()) {
+        // get the feature ID
+        const int VecFtrId = EltN < Vec.Len() ? Vec[NearEltN].Key.Val : TInt::Mx;
+        const int NearFtrId = NearEltN < NearVec.Len() ? NearVec[NearEltN].Key.Val : TInt::Mx;
+        const int FtrId = NearFtrId < VecFtrId ? NearFtrId : VecFtrId;
         // get values
-        const int FtrId =      (NearVec[NearEltN].Key < Vec[EltN].Key) ? NearVec[NearEltN].Key     : Vec[EltN].Key;
-        const double Val =     (NearVec[NearEltN].Key >= Vec[EltN].Key) ? Vec[EltN].Dat.Val : 0.0;
-        const double NearVal = (NearVec[NearEltN].Key <= Vec[EltN].Key) ? NearVec[NearEltN].Dat.Val : 0.0;
-        const double Diff    = TMath::Sqr(NearVal - Val) / NearDist;
+        const double VecVal = FtrId < VecFtrId ? 0.0 : Vec[EltN].Dat.Val;
+        const double NearVal = FtrId < NearFtrId ? 0.0 : NearVec[NearEltN].Dat.Val;
+        // get diff
+        const double Diff = TMath::Sqr(NearVal - VecVal) / NearDist;
         // add to json result
         PJsonVal FtrVal = TJsonVal::NewObj();
-        FtrVal->AddToObj("id", FtrId);
-        FtrVal->AddToObj("val", Val);
-        FtrVal->AddToObj("nearVal", NearVal);
-        FtrVal->AddToObj("contribution", Diff);
-        DiffVal->AddToArr(FtrVal);
+        //avoid unnecessary fields in the explanation
+        if (Diff > 1e-8) {
+            FtrVal->AddToObj("id", FtrId);
+            FtrVal->AddToObj("val", VecVal);
+            FtrVal->AddToObj("nearVal", NearVal);
+            FtrVal->AddToObj("contribution", Diff);
+            DiffVal->AddToArr(FtrVal);
+        }
         // move to the next feature
-        if (NearVec[NearEltN].Key > Vec[EltN].Key) {
+        if (VecFtrId <= NearFtrId) {
             EltN++;
-        } else if (NearVec[NearEltN].Key < Vec[EltN].Key) {
+        }
+        if (NearFtrId <= VecFtrId) {
             NearEltN++;
-        } else {
-            NearEltN++; EltN++;
         }
     }
     ResVal->AddToObj("features", DiffVal);
-	// first and last record in the buffer
-	ResVal->AddToObj("oldestID", IDVec[NextCol]);
-	int CurCol = NextCol > 0 ? NextCol - 1 : WindowSize - 1;
-	ResVal->AddToObj("newestID", IDVec[CurCol]);
-	return ResVal;
+    // first and last record in the buffer
+    ResVal->AddToObj("oldestDat", DatV[NextCol]);
+    int CurCol = NextCol > 0 ? NextCol - 1 : WindowSize - 1;
+    ResVal->AddToObj("newestDat", DatV[CurCol]);
+    return ResVal;
 }
 
 };
