@@ -370,7 +370,7 @@ PJsonVal TGraphCascade::GetOrder() const {
 
 /////////////////////////////////////////////////////////////////////
 
-TEventCorrelator::TEvent::TEvent(const TUInt64V& event_tags, const TTm event_ts):
+TEventCorrelator::TEvent::TEvent(const TUInt64PV& event_tags, const TTm event_ts):
     TagCombinations(event_tags), Ts(event_ts) {}
 
 
@@ -390,12 +390,12 @@ void TEventCorrelator::TEvent::Save(TSOut& SOut) const {
 
 TEventCorrelator::TEventStats::TEventStats(TSIn& SIn) {
     Cnt.Load(SIn);
-    Cooccurences.Load(SIn);
+    OccursBefore.Load(SIn);
 }
 
 void TEventCorrelator::TEventStats::Save(TSOut& SOut) const {
     Cnt.Save(SOut);
-    Cooccurences.Save(SOut);
+    OccursBefore.Save(SOut);
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -410,12 +410,24 @@ TEventCorrelator::TEventCorrelator(TSIn& SIn) {
     PJsonVal memento = TJsonVal::Load(SIn);
     InitFromJson(memento);
 
+    TTm tmp1(SIn);
+    TTm tmp2(SIn);
+    TsMin = tmp1;
+    TsMax = tmp2;
+
+    CodebookH.Load(SIn);
+    CodebookInverseH.Load(SIn);
+
+    CombCodebookH.Load(SIn);
+    CombCodebookInverseH.Load(SIn);
+
+    TagCombToStemCombH.Load(SIn);
+    StemCombCountsH.Load(SIn);
+    Counts.Load(SIn);
+
     Window.Load(SIn);
     WindowTagCounts.Load(SIn);
-    TagCodebookH.Load(SIn);
-    TagCodebookInverseH.Load(SIn);
-    Counts.Load(SIn);
-    Counts.Load(SIn);
+
 }
 
 void TEventCorrelator::Save(TSOut& SOut) const {
@@ -424,34 +436,60 @@ void TEventCorrelator::Save(TSOut& SOut) const {
     memento->AddToObj("win_len", WinLen);
     memento->Save(SOut);
 
+    TsMin.Save(SOut);
+    TsMax.Save(SOut);
+
+    CodebookH.Save(SOut);
+    CodebookInverseH.Save(SOut);
+
+    CombCodebookH.Save(SOut);
+    CombCodebookInverseH.Save(SOut);
+
+    TagCombToStemCombH.Save(SOut);
+    StemCombCountsH.Save(SOut);
+    Counts.Save(SOut);
+
     Window.Save(SOut);
     WindowTagCounts.Save(SOut);
-    TagCodebookH.Save(SOut);
-    TagCodebookInverseH.Save(SOut);
-    Counts.Save(SOut);
-    Counts.Save(SOut);
 }
 
-TStr Join(const TStrV& arr, const TStr& Delim) {
+TStr Join(const TStrV& arr) {
     if (arr.Len() == 0) return TStr("");
     TStr res = arr[0];
     for (int i = 1; i < arr.Len(); i++) {
-        res += Delim;
+        res += "(";
         res += arr[i];
+        res += ")";
     }
     return res;
 }
 
-void TEventCorrelator::GetCombinationsR(TUInt64V& Res, const TStrV& Tags, TStrV& Curr, int Offset) {
+void TEventCorrelator::GetCombinationsR(TUInt64PV& Res, const TUInt64PV& Tags, TUInt64PV& Curr, int Offset) {
     if (Offset >= Tags.Len()) {
         if (Curr.Len() > 0) {
-            TStr comb = Join(Curr, "|");
-            if (TagCodebookH.IsKey(comb)) {
-                Res.Add(TagCodebookH.GetDat(comb));
-            } else {
-                Res.Add(TagCodebookH.AddDat(comb, TagCodebookH.Len()));
-                TagCodebookInverseH.AddDat(Res.Last(), comb);
+            TUInt64V stems;
+            TUInt64V tags;
+            for (int i = 0; i < Curr.Len(); i++) {
+                stems.Add(Curr[i].Val1);
+                tags.Add(Curr[i].Val2);
             }
+            TUInt64P Rec;
+            if (CombCodebookH.IsKey(stems)) {
+                Rec.Val1 = CombCodebookH.GetDat(stems);
+            } else {
+                Rec.Val1 = CombCodebookH.AddDat(stems, CombCodebookH.Len());
+                CombCodebookInverseH.AddDat(Rec.Val1, stems);
+                StemCombCountsH.AddDat(Rec.Val1, 0);
+            }
+            if (CombCodebookH.IsKey(tags)) {
+                Rec.Val2 = CombCodebookH.GetDat(tags);
+            } else {
+                Rec.Val2 = CombCodebookH.AddDat(tags, CombCodebookH.Len());
+                CombCodebookInverseH.AddDat(Rec.Val2, tags);
+                TagCombToStemCombH.AddDat(Rec.Val2, Rec.Val1);
+                StemCombCountsH.GetDat(Rec.Val1)++; // we found new tag combination for stem combination
+            }
+            Res.Add(Rec);
         }
     } else {
         for (int i = Offset; i <= Tags.Len(); ++i) {
@@ -462,40 +500,49 @@ void TEventCorrelator::GetCombinationsR(TUInt64V& Res, const TStrV& Tags, TStrV&
     }
 }
 
-TUInt64V TEventCorrelator::GetCombinations(const TStrV& Tags) {
-    TUInt64V res;
-    TStrV curr;
-    GetCombinationsR(res, Tags, curr, 0);
+TUInt64PV TEventCorrelator::GetCombinations(const TStrPV& Tags) {
+    // pre-emptively register all tags and stems
+    TUInt64PV TagsNum;
+    for (int i = 0; i < Tags.Len(); i++) {
+        TUInt64P Rec;
+        if (CodebookH.IsKey(Tags[i].Val1)) {
+            Rec.Val1 = CodebookH.GetDat(Tags[i].Val1);
+        } else {
+            Rec.Val1 = CodebookH.AddDat(Tags[i].Val1, CodebookH.Len());
+            CodebookInverseH.AddDat(Rec.Val1, Tags[i].Val1);
+        }
+        TStr s = Tags[i].Val1 + "=" + Tags[i].Val2;
+        if (CodebookH.IsKey(s)) {
+            Rec.Val2 = CodebookH.GetDat(s);
+        } else {
+            Rec.Val2 = CodebookH.AddDat(s, CodebookH.Len());
+            CodebookInverseH.AddDat(Rec.Val2, s);
+        }
+        TagsNum.Add(Rec);
+    }
+
+    TUInt64PV res;
+    TUInt64PV curr;
+    GetCombinationsR(res, TagsNum, curr, 0);
     return res;
 }
 
-void TEventCorrelator::IncreaseCounters(const TUInt64V& Combinations) {
+void TEventCorrelator::IncreaseCounters(const TUInt64PV& Combinations) {
     for (int i = 0; i < Combinations.Len(); i++) {
-        const TUInt64& eid = Combinations[i];
-        if (!Counts.IsKey(eid)) {
-            Counts.AddDat(eid, TEventStats());
+        const TUInt64P& eid = Combinations[i];
+        if (!Counts.IsKey(eid.Val2)) {
+            Counts.AddDat(eid.Val2, TEventStats());
         }
-        auto& item = Counts.GetDat(eid);
+        auto& item = Counts.GetDat(eid.Val2);
         item.Cnt++;
 
         for (auto iter = WindowTagCounts.begin(); iter != WindowTagCounts.end(); iter++) {
             if (iter->Dat == 0) continue;
             auto id2 = iter->Key;
-
-            // cooccurrance counts are stored under item with lower id
-            if (id2 > eid) {
-                if (!item.Cooccurences.IsKey(id2)) {
-                    item.Cooccurences.AddDat(id2, 1);
-                } else {
-                    item.Cooccurences.GetDat(id2)++;
-                }
+            if (!item.OccursBefore.IsKey(id2)) {
+                item.OccursBefore.AddDat(id2, 1);
             } else {
-                auto& item2 = Counts.GetDat(eid);
-                if (!item2.Cooccurences.IsKey(eid)) {
-                    item2.Cooccurences.AddDat(eid, 1);
-                } else {
-                    item2.Cooccurences.GetDat(eid)++;
-                }
+                item.OccursBefore.GetDat(id2)++;
             }
         }
     }
@@ -513,7 +560,7 @@ void TEventCorrelator::PurgeWindow(const TTm& EventTs) {
         if (item.Ts >= limit) break;
         // subtract counts for tag combinations from window
         for (int i = 0; i < item.TagCombinations.Len(); i++) {
-            WindowTagCounts.GetDat(item.TagCombinations[i])--;
+            WindowTagCounts.GetDat(item.TagCombinations[i].Val2)--;
         }
     }
     if (remove_before > 0) {
@@ -527,7 +574,7 @@ void TEventCorrelator::AddToWindow(const TEvent& Event) {
 
     // increase tag counts in WindowTagCounts
     for (int i = 0; i < Event.TagCombinations.Len(); i++) {
-        const TUInt64& eid = Event.TagCombinations[i];
+        const TUInt64& eid = Event.TagCombinations[i].Val2;
         if (WindowTagCounts.IsKey(eid)) {
             WindowTagCounts.GetDat(eid)++;
         } else {
@@ -536,12 +583,12 @@ void TEventCorrelator::AddToWindow(const TEvent& Event) {
     }
 }
 
-void TEventCorrelator::Add(const TStrV& EventTags, const TTm EventTs) {
+void TEventCorrelator::Add(const TStrPV& EventTags, const TTm EventTs) {
 
     // create internal structure
-    TStrV tags(EventTags);
+    TStrPV tags(EventTags);
     tags.Sort();
-    TUInt64V e_combinations = GetCombinations(tags);
+    TUInt64PV e_combinations = GetCombinations(tags);
     TEvent e(e_combinations, EventTs);
 
     PurgeWindow(EventTs);
@@ -559,13 +606,13 @@ void TEventCorrelator::Predict(TVec<TTriple<TFlt, TStr, TStr>>& Predictions, con
         const TUInt64& id1 = iter->Key;
         const TEventStats& item1 = Counts.GetDat(id1);
 
-        for (auto iter2 = item1.Cooccurences.begin(); iter2 != item1.Cooccurences.end(); iter2++) {
+        for (auto iter2 = item1.OccursBefore.begin(); iter2 != item1.OccursBefore.end(); iter2++) {
             const TInt& cnt_cooccurr = WindowTagCounts.GetDat(iter2->Key);
             if (cnt_cooccurr > 0) continue; // event 2 already happened in this window
             TTriple<TFlt, TStr, TStr> res_item(
                 -(double)cnt_cooccurr / item1.Cnt, // with which probability - negative values are used so that default sort already works
-                TagCodebookInverseH.GetDat(iter2->Key), // which tag combination is most likely to happen
-                TagCodebookInverseH.GetDat(id1) // which tag combination produced this prediction
+                CodebookInverseH.GetDat(iter2->Key), // which tag combination is most likely to happen
+                CodebookInverseH.GetDat(id1) // which tag combination produced this prediction
             );
             Predictions.AddSorted(res_item);
         }
@@ -573,6 +620,10 @@ void TEventCorrelator::Predict(TVec<TTriple<TFlt, TStr, TStr>>& Predictions, con
         if (Predictions.Len() > MaxPredictions) {
             Predictions.Del(MaxPredictions, Predictions.Len() - 1);
         }
+    }
+    // make probabilities positive again - resulting in descending sort
+    for (int i = 0; i < Predictions.Len(); i++) {
+        Predictions[i].Val1 *= -1;
     }
 }
 

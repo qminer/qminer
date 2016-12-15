@@ -83,17 +83,27 @@ public:
     PJsonVal GetOrder() const;
 };
 
+// string pairs
+typedef TPair<TStr, TStr> TStrP;
+// vector of string pairs
+typedef TVec<TStrP> TStrPV;
+// string pairs
+typedef TPair<TUInt64, TUInt64> TUInt64P;
+// vector of string pairs
+typedef TVec<TUInt64P> TUInt64PV;
+
 /// This class correlates event co-occurrances in time.
 /// Events are described by tags
 class TEventCorrelator {
 private:
+
     /// Internal structure that is stored in window
     class TEvent {
     public:
-        TUInt64V TagCombinations;
+        TUInt64PV TagCombinations;
         TTm Ts;
         TEvent() {};
-        TEvent(const TUInt64V& event_tags, const TTm event_ts);
+        TEvent(const TUInt64PV& event_tags, const TTm event_ts);
         TEvent(TSIn& SIn);
         void Save(TSOut& SOut) const;
 
@@ -104,7 +114,7 @@ private:
     class TEventStats {
     public:
         TInt Cnt;
-        THash<TUInt64, TInt> Cooccurences;
+        THash<TUInt64, TInt> OccursBefore;
 
         TEventStats() {};
         TEventStats(TSIn& SIn);
@@ -113,26 +123,40 @@ private:
 
     /// Window length in milliseconds
     TUInt64 WinLen;
+    /// Minimal timestamp of observed data
+    TTm TsMin;
+    /// Maximal timestamp of observed data
+    TTm TsMax;
 
-    /// Mapping from string value of tag into its ID
-    TStrHash<TUInt64> TagCodebookH;
+    /// Mapping from string value into its ID
+    TStrHash<TUInt64> CodebookH;
     /// Mapping from tag ID into string value
-    THash<TUInt64, TStr> TagCodebookInverseH;
+    THash<TUInt64, TStr> CodebookInverseH;
+
+    /// Mapping from combination into ID
+    THash<TUInt64V, TUInt64> CombCodebookH;
+    /// Mapping from ID into combination
+    THash<TUInt64, TUInt64V> CombCodebookInverseH;
+
+    /// Mapping from tag combination into stem combination
+    THash<TUInt64, TUInt64> TagCombToStemCombH;
+
+    /// Counts children (tag combinations) of stem combinations
+    THash<TUInt64, TInt> StemCombCountsH;
+    /// counts for single combination occurences and co-occurences
+    THash<TUInt64, TEventStats> Counts;
 
     /// Window
     TVec<TEvent> Window;
     /// counts for single combination occurences inside current window
     THash<TUInt64, TInt> WindowTagCounts;
 
-    /// counts for single combination occurences and co-occurences
-    THash<TUInt64, TEventStats> Counts;
-
     /// Recursive function for creating combinations from string array
-    void GetCombinationsR(TUInt64V& Res, const TStrV& Tags, TStrV& Curr, int Offset);
+    void GetCombinationsR(TUInt64PV& Res, const TUInt64PV& Tags, TUInt64PV& Curr, int Offset);
     /// Starting function for creating combinations from string array
-    TUInt64V GetCombinations(const TStrV& Tags);
+    TUInt64PV GetCombinations(const TStrPV& Tags);
     /// Given combination ids update single counters and oc-occurence counters
-    void IncreaseCounters(const TUInt64V& Combinations);
+    void IncreaseCounters(const TUInt64PV& Combinations);
     /// Remove events from window that are older than given timestamp
     void PurgeWindow(const TTm& EventTs);
     /// Add event to window
@@ -148,7 +172,7 @@ public:
     /// Save to stream
     void Save(TSOut& SOut) const;
     /// Adds given event into internal structures
-    void Add(const TStrV& EventTags, const TTm EventTs);
+    void Add(const TStrPV& EventTags, const TTm EventTs);
     /// Create predictions - events that are most likely to occur
     /// Result means (probability, event_to_occurr, event_that_already_occurred)
     void Predict(TVec<TTriple<TFlt, TStr, TStr>>& Predictions, const int MaxPredictions = 10);
