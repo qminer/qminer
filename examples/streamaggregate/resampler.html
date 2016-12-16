@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Example</title>
+
+    <link rel="stylesheet" href="streamaggregate.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+
+</head>
+<body>
+    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <script src="http://code.highcharts.com/highcharts.js"></script>
+
+    <!-- Highcharts chart representation -->
+    <script src="resampler.js"></script>
+
+    <h1>Resampler</h1>
+    <p>
+        We store the values of the brownian motion and the time intervals are now different. This means that the values are not given
+        equitemporial. Now we want to know, what are the values for every second.
+    </p>
+    <p>
+        This is when we use the <b>resampler</b> stream aggregator. It creates new values that are interpolated by using the values from
+        the store. There are three kinds of interpolation: 'previous', 'linear' and 'next'. In this example, we are using the 'linear'
+        interpolation. We also set the interval to 1000, which means that we want to get the interpolated values for every second
+        (1000 miliseconds).
+    </p>
+    <p>
+        The graph below represents brownian motion and linear resampler values gained by the resampler stream aggregator.
+    </p>
+    <div id="resampler"></div>
+
+</body>
+</html>

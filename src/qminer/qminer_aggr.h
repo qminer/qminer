@@ -1423,7 +1423,7 @@ private:
     TWPt<TStreamAggrOut::ITm> InAggrTm;
     /// Input aggregate casted to time series
     TWPt<TStreamAggrOut::IFlt> InAggrFlt;
-    
+
     /// Skip calling OnStep for empty intervals (no data) ?
     TBool SkipEmptyP;
     /// Model
@@ -1460,7 +1460,7 @@ protected:
     /// Reads from input aggr, sets current time and calls loop
     void OnStep(const TWPt<TStreamAggr>& CallerAggr);
 private:
-    /// Tries to resample as long as possible each time calling OnStep on out aggregate 
+    /// Tries to resample as long as possible each time calling OnStep on out aggregate
     void Loop();
 };
 
@@ -1982,9 +1982,9 @@ protected:
     /// Passes the record to Aggr
     void OnAddRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr);
     /// Passes the call to Aggr
-    void OnTime(const uint64& TmMsec, const TWPt<TStreamAggr>& CallerAggr) { Aggr->OnTime(TmMsec, this); }
+    void OnTime(const uint64& TmMsec, const TWPt<TStreamAggr>& CallerAggr);
     /// Passes the call to Aggr
-    void OnStep(const TWPt<TStreamAggr>& CallerAggr) { Aggr->OnStep(this); }
+    void OnStep(const TWPt<TStreamAggr>& CallerAggr);
 
     /// JSON based constructor.
     TRecFilterAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal);

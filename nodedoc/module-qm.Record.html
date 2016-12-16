@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.4.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.5.0</a>
       </div>
     </div>
   </nav>
@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">Record</span></h1>
-            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-1455">qminerdoc.<wbr>js:1455</a></p>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-1459">qminerdoc.<wbr>js:1459</a></p>
             <dl class="dl-compact">
             </dl>
           </header>
@@ -129,11 +129,11 @@ var qm = require(&#x27;qminer&#x27;);
 var base = new qm.Base({
     mode: &#x27;createClean&#x27;,
     schema: [
-      { name: &#x27;People&#x27;, 
-        fields: [{ name: &#x27;name&#x27;, type: &#x27;string&#x27;, primary: true }], 
+      { name: &#x27;People&#x27;,
+        fields: [{ name: &#x27;name&#x27;, type: &#x27;string&#x27;, primary: true }],
         joins: [{ name: &#x27;directed&#x27;, &#x27;type&#x27;: &#x27;index&#x27;, &#x27;store&#x27;: &#x27;Movies&#x27;, &#x27;inverse&#x27;: &#x27;director&#x27; }] },
-      { name: &#x27;Movies&#x27;, 
-        fields: [{ name: &#x27;title&#x27;, type: &#x27;string&#x27;, primary: true }], 
+      { name: &#x27;Movies&#x27;,
+        fields: [{ name: &#x27;title&#x27;, type: &#x27;string&#x27;, primary: true }],
         joins: [{ name: &#x27;director&#x27;, &#x27;type&#x27;: &#x27;field&#x27;, &#x27;store&#x27;: &#x27;People&#x27;, &#x27;inverse&#x27;: &#x27;directed&#x27; }] }
     ]
 });
@@ -259,11 +259,11 @@ var qm = require(&#x27;qminer&#x27;);
 var base = new qm.Base({
     mode: &#x27;createClean&#x27;,
     schema: [
-      { name: &#x27;People&#x27;, 
-        fields: [{ name: &#x27;name&#x27;, type: &#x27;string&#x27;, primary: true }], 
+      { name: &#x27;People&#x27;,
+        fields: [{ name: &#x27;name&#x27;, type: &#x27;string&#x27;, primary: true }],
         joins: [{ name: &#x27;directed&#x27;, &#x27;type&#x27;: &#x27;index&#x27;, &#x27;store&#x27;: &#x27;Movies&#x27;, &#x27;inverse&#x27;: &#x27;director&#x27; }] },
-      { name: &#x27;Movies&#x27;, 
-        fields: [{ name: &#x27;title&#x27;, type: &#x27;string&#x27;, primary: true }], 
+      { name: &#x27;Movies&#x27;,
+        fields: [{ name: &#x27;title&#x27;, type: &#x27;string&#x27;, primary: true }],
         joins: [{ name: &#x27;director&#x27;, &#x27;type&#x27;: &#x27;field&#x27;, &#x27;store&#x27;: &#x27;People&#x27;, &#x27;inverse&#x27;: &#x27;directed&#x27; }] }
     ]
 });
@@ -362,7 +362,7 @@ var base = new qm.Base({
 // create some records
 base.store(&quot;Musicians&quot;).push({ Name: &quot;Jimmy Page&quot;, DateOfBirth:  &quot;1944-01-09T00:00:00&quot;, GreatestHits: [&quot;Stairway to Heaven&quot;, &quot;Whole Lotta Love&quot;] });
 base.store(&quot;Musicians&quot;).push({ Name: &quot;Beyonce&quot;, DateOfBirth: &quot;1981-09-04T00:00:00&quot;, GreatestHits: [&quot;Single Ladies (Put a Ring on It)&quot;] });
-// get a JSON version of the &quot;Beyonce&quot; record 
+// get a JSON version of the &quot;Beyonce&quot; record
 // The JSON object for this example si:
 // { &#x27;$id&#x27;: 1, Name: &#x27;Beyonce&#x27;, ActiveSince: &#x27;1981-09-04T00:00:00&#x27;, GreatestHits: [&#x27;Single Ladies (Put a Ring on It)&#x27;] }
 var json = base.store(&quot;Musicians&quot;).recordByName(&quot;Beyonce&quot;).toJSON();
