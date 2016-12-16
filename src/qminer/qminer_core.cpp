@@ -6747,18 +6747,6 @@ void TStreamAggrSet::PrintStat() const {
     }
 }
 
-void TStreamAggrSet::SaveState(TSOut& SOut) const {
-    for (TWPt<TStreamAggr>& StreamAggr : StreamAggrV) {
-        StreamAggr->SaveState(SOut);
-    }
-}
-
-void TStreamAggrSet::LoadState(TSIn& SIn) {
-    for (TWPt<TStreamAggr>& StreamAggr : StreamAggrV) {
-        StreamAggr->LoadState(SIn);
-    }
-}
-
 PJsonVal TStreamAggrSet::SaveJson(const int& Limit) const {
     TStrV StreamAggrNmV = TStreamAggrSet::GetStreamAggrNmV();
     PJsonVal ResVal = TJsonVal::NewArr(StreamAggrNmV);
