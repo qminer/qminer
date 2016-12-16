@@ -17,7 +17,8 @@ THash<TStr, TStr> TNodeJsUtil::ClassNmAccessorH = THash<TStr, TStr>();
 void TNodeJsUtil::CheckJSExcept(const v8::TryCatch& TryCatch) {
     if (TryCatch.HasCaught()) {
         v8::String::Utf8Value Msg(TryCatch.Message()->Get());
-        throw TExcept::New("Javascript exception from callback triggered:" + TStr(*Msg));
+        v8::String::Utf8Value StackTrace(TryCatch.StackTrace());
+        throw TExcept::New("Javascript exception from callback triggered:" + TStr(*Msg) + "\n" + TStr(*StackTrace));
     }
 }
 

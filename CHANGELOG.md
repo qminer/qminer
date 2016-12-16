@@ -1,5 +1,23 @@
 # QMiner Change Log
 
+### 16 December 2016
+
+**Version 7.5.0**
+
+**Non-breaking with new feature and big fixes**
+
+New feature:
+- Measuring stream aggregate performance. Exposed through `TBase::GetStreamAggrStats()`
+
+Bug fixes:
+- Fixed silent exceptions in JavaScript stream aggregate
+- Javascript serialization of stream aggregate prohibited output stream to close properly
+- Nearest neighbor anomaly detector did not output complete explanation
+
+Other:
+- Fixed out-of-sync example timeseries
+
+
 ### 2 December 2016
 
 **Version 7.4.0**
