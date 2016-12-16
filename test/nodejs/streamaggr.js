@@ -5427,7 +5427,6 @@ describe('Aggregating (sum/avg/min/max) resampler tests', function () {
             var outAggr = new qm.StreamAggr(base, new function () {
                 this.onStep = function () {
                     result.push({ value: resampler.getFloat(), timestamp: resampler.getTimestamp() });
-                    write resampler
                     //console.log(resampler.getFloat() + ' ' + new Date(resampler.getTimestamp()).toISOString());
                 }
             });
@@ -6417,4 +6416,3 @@ describe('Stream aggregate statistics', function () {
         });
     });
 });
-
