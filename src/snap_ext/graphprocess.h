@@ -23,7 +23,7 @@ private:
     // FIXED AFTER INIT
     /// maps node id to CDF of duration (wait time model for the node)
     THash<TInt, TFltV> CDF;
-    /// node ids that are enabled (others skip their internal waiting) 
+    /// node ids that are enabled (others skip their internal waiting)
     THashSet<TInt> EnabledNodeIdH;
     /// Maps node names to node ids
     TStrIntH NodeNmIdH;
@@ -166,7 +166,7 @@ private:
     void InitFromJson(const PJsonVal& Params);
 public:
     /// Construct from JSON parameters
-    TEventCorrelator(const PJsonVal& Params) { InitFromJson(Params); }
+    TEventCorrelator(const PJsonVal& Params);
     /// Load from stream
     TEventCorrelator(TSIn& SIn);
     /// Save to stream

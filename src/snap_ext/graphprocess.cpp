@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-#include "graphprocess.h"
+#include <graphprocess.h>
 
 namespace TGraphProcess {
 TGraphCascade::TGraphCascade(const PJsonVal& Params) {
@@ -406,6 +406,10 @@ void TEventCorrelator::InitFromJson(const PJsonVal& Params) {
     // TODO support exclussion patterns for flags or their combinations, possibly with wildcards
 }
 
+TEventCorrelator::TEventCorrelator(const PJsonVal& Params) { 
+    InitFromJson(Params);
+}
+
 TEventCorrelator::TEventCorrelator(TSIn& SIn) {
     PJsonVal memento = TJsonVal::Load(SIn);
     InitFromJson(memento);
@@ -492,7 +496,7 @@ void TEventCorrelator::GetCombinationsR(TUInt64PV& Res, const TUInt64PV& Tags, T
             Res.Add(Rec);
         }
     } else {
-        for (int i = Offset; i <= Tags.Len(); ++i) {
+        for (int i = Offset; i < Tags.Len(); ++i) {
             Curr.Add(Tags[i]);
             GetCombinationsR(Res, Tags, Curr, i + 1);
             Curr.DelLast();
