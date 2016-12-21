@@ -101,7 +101,7 @@ PJsonVal TGeoCluster::ToJson(const TVec<TGPSMeasurement>& _GpsStateVec) const {
         const TGPSMeasurement& Gps = _GpsStateVec.GetVal(LocIdx);
         JLocs->AddToArr(Gps.ToJson());
     }
-    JGeoAct->AddToObj("Locations", JLocs);
+    JGeoAct->AddToObj("locations", JLocs);
     return JGeoAct;
 }
 
