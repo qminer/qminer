@@ -41,7 +41,7 @@ void TGeoCluster::AddPoint(const TInt Idx,
     const TVec<TGPSMeasurement>& _StateVec)
 {
     const TGPSMeasurement& CurrentGPS = _StateVec.GetVal(Idx);
-    if (MEndIdx != -1) {//if this cluster already contains some measurements
+    if (MEndIdx > -1) {//if this cluster already contains some measurements
         const TGPSMeasurement& Last = _StateVec.GetVal(MEndIdx);
         AssertR(Last.Time < CurrentGPS.Time,
             "New Point must be newr than the last one");
@@ -139,6 +139,7 @@ void TStayPointDetector::OnAddRec(const TRec& Rec,
         StateGpsMeasurements.Del(0, NumOfRecordsToForget);
         //+1 because it deletes 0 IDX as well
         cl.DownShiftIdx(NumOfRecordsToForget + 1);
+		plocs.DownShiftIdx(NumOfRecordsToForget + 1);
     }
     TGPSMeasurement* NewRec = PrepareGPSRecord(Rec);
     if (NewRec == NULL) {//rejected record
