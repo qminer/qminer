@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -17,31 +17,31 @@ namespace TStorage {
 
 ///////////////////////////////
 /// Location to where field is serialized
-typedef enum { 
+typedef enum {
     slMemory, ///< in-memory storage
     slDisk    ///< disk storage with most-recently-used memory cache
 } TStoreLoc;
-    
+
 ///////////////////////////////
 /// Schema description of field.
 /// Contains extra stuff needed for serialization not included in TFieldDesc.
 class TFieldDescEx  {
 public:
-    /// Where will this field be stored- true means 
+    /// Where will this field be stored- true means
     TStoreLoc FieldStoreLoc;
     /// Should be stored in codebook?
     TBool CodebookP;
     /// Is small string?
-    TBool SmallStringP;  
+    TBool SmallStringP;
     /// Default value if value not specified
-    PJsonVal DefaultVal;  
+    PJsonVal DefaultVal;
 public:
     TFieldDescEx() {}
-    TFieldDescEx(const TStoreLoc& _FieldStoreLoc, const bool& _CodebookP, 
+    TFieldDescEx(const TStoreLoc& _FieldStoreLoc, const bool& _CodebookP,
         const bool& _SmallStringP, const PJsonVal& _DefaultVal = NULL):
             FieldStoreLoc(_FieldStoreLoc), CodebookP(_CodebookP),
             SmallStringP(_SmallStringP), DefaultVal(_DefaultVal) { }
-};  
+};
 
 ///////////////////////////////
 /// Schema description of index key
@@ -59,7 +59,7 @@ public:
     TStr WordVocName;
     /// Tokenizer (used by inverted index)
     PTokenizer Tokenizer;
-    
+
 public:
     TIndexKeyEx() {}
 
@@ -80,13 +80,13 @@ public:
     bool IsById() const { return SortType == oikstById; }
     /// Key sortable as numeric value
     bool IsByFlt() const { return SortType == oikstByFlt; }
-    
+
     /// Checkes if we have defined tokenizer
     bool IsTokenizer() const { return !Tokenizer.Empty(); }
 };
 
 ///////////////////////////////
-// Schema description of join 
+// Schema description of join
 class TJoinDescEx {
 public:
     /// Join name
@@ -115,18 +115,18 @@ public:
 /// Contains parsed version of store definition, which can be used to
 /// initialize TStoreImpl.
 class TStoreSchema {
-private:   
+private:
     // class for internal static data
     class TMaps {
     public:
         TStrH FieldTypeMap;
         TStrHash<uint64> TimeWindowUnitMap;
 
-        TMaps();  
+        TMaps();
     };
 
     static TMaps Maps;
-    
+
 public:
     /// Store name
     TStr StoreName;
@@ -139,9 +139,9 @@ public:
     /// Window settings
     TStoreWndDesc WndDesc;
     /// Field descriptions
-    TStrHash<TFieldDesc> FieldH;
+    THash<TStr, TFieldDesc> FieldH;
     /// Extended field descriptions
-    TStrHash<TFieldDescEx> FieldExH;
+    THash<TStr, TFieldDescEx> FieldExH;
     /// Index key descriptions
     TVec<TIndexKeyEx> IndexKeyExV;
     /// Join descriptions
@@ -159,11 +159,11 @@ private:
     TJoinDescEx ParseJoinDescEx(const PJsonVal& JoinVal);
     /// Parse extended index key description from JSon
     TIndexKeyEx ParseIndexKeyEx(const PJsonVal& IndexKeyVal);
-    
+
 public:
     TStoreSchema(): DefaultFieldStoreLoc(slMemory) { }
     TStoreSchema(const TWPt<TBase>& Base, const PJsonVal& StoreVal);
-    
+
     /// Parse JSon definition file and return vector of store schemas
     static void ParseSchema(const TWPt<TBase>& Base, const PJsonVal& SchemaVal, TVec<TStoreSchema>& SchemaV);
     /// Validate give vector of store schemas
@@ -229,7 +229,7 @@ public:
     bool IsReadOnly() const { return Access == faRdOnly; }
 
     bool IsValId(const uint64& ValId) const;
-    void GetVal(const uint64& ValId, TMem& Val) const; 
+    void GetVal(const uint64& ValId, TMem& Val) const;
     uint64 AddVal(const TMem& Val);
     void SetVal(const uint64& ValId, const TMem& Val);
     void DelVals(int Vals);
@@ -260,18 +260,18 @@ public:
     virtual int GetMaxToastLen() { return -1; }
     /// Store value into internal storage using TOAST method
     virtual TPgBlobPt ToastVal(const TMemBase& Mem) { Fail; return TPgBlobPt(); }
-    /// Retrieve value that is saved using TOAST method from storage 
+    /// Retrieve value that is saved using TOAST method from storage
     virtual void UnToastVal(const TPgBlobPt& Pt, TMem& Mem) { Fail; }
-    /// Delete TOAST-ed value from storage 
+    /// Delete TOAST-ed value from storage
     virtual void DelToastVal(const TPgBlobPt& Pt) { Fail; }
 };
 
 //////////////////////////////////////////////////////////////////////////////
 /// Serialization and de-serialization of records to TMem.
-/// This class handles smart serialization of JSON with respect to field 
-/// serialization definitions. It supports NULL flags. It packs fixed-width 
-/// fields together. Variable-width fields are stored in two parts - first 
-/// there's an index array so that for each field we store its offset inside 
+/// This class handles smart serialization of JSON with respect to field
+/// serialization definitions. It supports NULL flags. It packs fixed-width
+/// fields together. Variable-width fields are stored in two parts - first
+/// there's an index array so that for each field we store its offset inside
 /// the buffer. Then there is the real variable-length part where the content
 /// is stored.
 class TRecSerializator {
@@ -299,9 +299,9 @@ private:
         /// Is this field a short string?
         TBool SmallStringP;
         /// Default value if value not specified
-        PJsonVal DefaultVal;  
+        PJsonVal DefaultVal;
 
-    public:    
+    public:
         TFieldSerialDesc() {}
         TFieldSerialDesc(TSIn& SIn){ Load(SIn); }
 
@@ -326,7 +326,7 @@ private:
     static const char ToastNo;
     /// Flag if field is TOAST-ed
     static const char ToastYes;
-private: 
+private:
     /// Only store fields with this storage flag
     TStoreLoc TargetStorage;
     /// Offset of fixed part
@@ -335,11 +335,11 @@ private:
     TInt VarIndexPartOffset;
     /// Offset of var-content part
     TInt VarContentPartOffset;
-    /// Definition of fields. 
+    /// Definition of fields.
     /// Order of definitions in this vector defines the order of serialization
     TVec<TFieldSerialDesc> FieldSerialDescV;
     /// Mapping from Field id (in TStore) to index inside FieldsF
-    THash<TInt, TInt> FieldIdToSerialDescIdH;   
+    THash<TInt, TInt> FieldIdToSerialDescIdH;
     /// Codebook for encoding strings
     TStrHash<TInt, TBigStrPool> CodebookH;
     /// Flag if TOAST should be used
@@ -349,7 +349,7 @@ private:
     /// Toaster to be used for TOAST-ing
     TWPt<TToaster> Toaster;
     /// TOAST objects to delete
-    TVec<TPgBlobPt> ToastPtToDel;   
+    TVec<TPgBlobPt> ToastPtToDel;
 
     /// Dump report used on failed asserts
     TStr GetErrorMsg(const TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc) const;
@@ -393,7 +393,7 @@ private:
     void SetLocationVar(char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc, const int& VarOffset) const;
     /// sets or un-sets NULL flag for specified field
     void SetFieldNull(char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc, const bool& NullP) const;
-    
+
     /// Fixed-length field setter
     void SetFieldByte(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uchar& Byte);
     /// Fixed-length field setter
@@ -469,14 +469,14 @@ private:
     /// Variable-length field setter
     void SetFieldNumSpV(TMem& RecMem, TMOut& SOut, const TFieldSerialDesc& FieldSerialDesc, const TIntFltKdV& SpV);
     /// Variable-length field setter
-    void SetFieldBowSpV(TMem& RecMem, TMOut& SOut, const TFieldSerialDesc& FieldSerialDesc, const PBowSpV& SpV);    
+    void SetFieldBowSpV(TMem& RecMem, TMOut& SOut, const TFieldSerialDesc& FieldSerialDesc, const PBowSpV& SpV);
     /// Variable-length field setter
     void SetFieldTMem(TMem& RecMem, TMOut& SOut, const TFieldSerialDesc& FieldSerialDesc, const TMem& Mem);
     /// Variable-length field setter
     void SetFieldJsonVal(TMem& RecMem, TMOut& SOut, const TFieldSerialDesc& FieldSerialDesc, const PJsonVal& Json);
-    
+
     /// parse variable-length field JSon value and serialize it accordingly to it's type
-    void SetVarJsonVal(TMem& RecMem, TMOut& SOut, const TFieldSerialDesc& FieldSerialDesc, 
+    void SetVarJsonVal(TMem& RecMem, TMOut& SOut, const TFieldSerialDesc& FieldSerialDesc,
         const TFieldDesc& FieldDesc, const PJsonVal& JsonVal);
     /// copy variable-length field from InRecMem to FixedMem and SOut
     void CopyFieldVar(const TMemBase& InRecMem, TMem& FixedMem, TMOut& VarSOut, const TFieldSerialDesc& FieldSerialDesc);
@@ -495,7 +495,7 @@ public:
     /// Initialize object from store schema
     TRecSerializator(const TWPt<TStore>& Store, const TWPt<TToaster>& _Toaster,
         const TStoreSchema& StoreSchema, const TStoreLoc& _TargetStorage);
-    
+
     /// Load from input stream
     void Load(TSIn& SIn);
     /// Save to output stream
@@ -504,7 +504,7 @@ public:
     /// Serialize JSon object
     void Serialize(const PJsonVal& RecVal, TMem& RecMem, const TWPt<TStore>& Store);
     /// Update existing serialization with updated fields from JSon object
-    void SerializeUpdate(const PJsonVal& RecVal, const TMemBase& InRecMem, TMem& OutRecMem, 
+    void SerializeUpdate(const PJsonVal& RecVal, const TMemBase& InRecMem, TMem& OutRecMem,
         const TWPt<TStore>& Store, TIntSet& ChangedFieldIdSet);
     /// Update existing serialization with updated fields from JSon object
     /// Allow only fixed-part fields
@@ -639,7 +639,7 @@ public:
     void SetFieldTm(char* Bf, const int& BfL, const int& FieldId, const TTm& Tm);
     /// Fixed-length field setter
     void SetFieldTmMSecs(char* Bf, const int& BfL, const int& FieldId, const uint64& TmMSecs);
-    
+
     /// Field setter
     void SetFieldNull(const TMemBase& InRecMem, TMem& OutRecMem, const int& FieldId);
     /// Field setter
@@ -693,7 +693,7 @@ public:
 };
 
 ///////////////////////////////
-/// Field indexer. 
+/// Field indexer.
 /// Takes record and updates the QMiner index structures according to schema
 class TRecIndexer {
 private:
@@ -716,9 +716,9 @@ private:
 
     public:
         TFieldIndexKey() { }
-        TFieldIndexKey(const int& _FieldId, const TStr& _FieldNm, const TFieldType& _FieldType, 
-            const TStr& _FieldTypeStr, const int& _KeyId, const TIndexKeyType& _KeyType, 
-            const int& _WordVocId): FieldId(_FieldId), FieldNm(_FieldNm), FieldType(_FieldType), 
+        TFieldIndexKey(const int& _FieldId, const TStr& _FieldNm, const TFieldType& _FieldType,
+            const TStr& _FieldTypeStr, const int& _KeyId, const TIndexKeyType& _KeyType,
+            const int& _WordVocId): FieldId(_FieldId), FieldNm(_FieldNm), FieldType(_FieldType),
                 FieldTypeStr(_FieldTypeStr), KeyId(_KeyId), KeyType(_KeyType), WordVocId(_WordVocId) { }
 
         /// Is indexed by value
@@ -732,7 +732,7 @@ private:
         /// Get index type as string (value, text, location, linear)
         TStr GetKeyType() const { return IsValue() ? "value" : IsText() ? "text" : IsLocation() ? "location" : "linear"; }
     };
-    
+
 private:
     /// Index shortcut
     TWPt<TIndex> Index;
@@ -742,24 +742,24 @@ private:
     TVec<TFieldIndexKey> FieldIndexKeyV;
     // map from field id to key position in FieldIndexKeyV
     TIntH FieldIdToKeyN;
-    
+
     /// Index a record using the given key
-    void IndexKey(const TFieldIndexKey& Key, const TMemBase& RecMem, 
+    void IndexKey(const TFieldIndexKey& Key, const TMemBase& RecMem,
         const uint64& RecId, TRecSerializator& Serializator);
     /// Delete existing index of a record based on a given key
-    void DeindexKey(const TFieldIndexKey& Key, const TMemBase& RecMem, 
+    void DeindexKey(const TFieldIndexKey& Key, const TMemBase& RecMem,
         const uint64& RecId, TRecSerializator& Serializator);
     /// Update value of existing index of a record
-    void UpdateKey(const TFieldIndexKey& Key, const TMemBase& OldRecMem, 
+    void UpdateKey(const TFieldIndexKey& Key, const TMemBase& OldRecMem,
         const TMemBase& NewRecMem, const uint64& RecId, TRecSerializator& Serializator);
     /// Check what needs to be done to update index for a given key
-    void ProcessKey(const TFieldIndexKey& Key, const TMemBase& OldRecMem, 
+    void ProcessKey(const TFieldIndexKey& Key, const TMemBase& OldRecMem,
         const TMemBase& NewRecMem, const uint64& RecId, TRecSerializator& Serializator);
-        
+
 public:
     TRecIndexer() { }
     TRecIndexer(const TWPt<TIndex>& Index, const TWPt<TStore>& Store);
-    
+
     /// Check if given field is used for indexing
     bool IsFieldIndexKey(const int& FieldId) const;
     /// Index new record
@@ -779,6 +779,86 @@ public:
     void IndexRecField(const TMemBase& RecMem, const uint64& RecId, const int& FieldId, TRecSerializator& Serializator);
 
     bool HasIndexKey(const int& FieldId) { return FieldIdToKeyN.IsKey(FieldId); }
+};
+
+///////////////////////////////
+/// Implementation of store which does not store any records
+class TStoreEmpty : public TStore {
+public:
+    TStoreEmpty(const TWPt<TBase>& _Base, const uint& StoreId,
+        const TStr& StoreName, const TStoreSchema& StoreSchema);
+
+    // we do not store anything, hence nothing is good
+    bool IsRecId(const uint64& RecId) const { return false; }
+    // we do not store anything, hence nothing is good
+    bool HasRecNm() const { return false; }
+    // we do not store anything, hence nothing is good
+    bool IsRecNm(const TStr& RecNm) const { return false; }
+    // if we are asked for a record, throw exception
+    TStr GetRecNm(const uint64& RecId) const { throw TQmExcept::New("TStoreEmpty does not store records"); }
+    // if we are asked for a record, throw exception
+    uint64 GetRecId(const TStr& RecNm) const  { throw TQmExcept::New("TStoreEmpty does not store records"); }
+    // we do not have any records
+    uint64 GetRecs() const  { return 0; }
+    // create empty iterator
+    PStoreIter GetIter() const { return TStoreIterVec::New(); }
+    // we do not store anything, throw exception
+    uint64 AddRec(const PJsonVal& RecVal, const bool& TriggerEvents = true) { throw TQmExcept::New("TStoreEmpty does not store records"); }
+    // we do not store anything, throw exception
+    void UpdateRec(const uint64& RecId, const PJsonVal& RecVal) { throw TQmExcept::New("TStoreEmpty does not store records"); }
+    // nothing to do here
+    void DeleteAllRecs() { };
+    void DeleteFirstRecs(const int& DelRecs) { };
+    // throw exception if somebody trys to delete specific record
+    void DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK = true) { throw TQmExcept::New("TStoreEmpty does not store records"); };
+
+    // we do not store anything, throw exceptions if somebody trys to get any field
+    bool IsFieldNull(const uint64& RecId, const int& FieldId) const { throw TQmExcept::New("TStoreEmpty does not store records"); }
+    int GetFieldInt(const uint64& RecId, const int& FieldId) const { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    int16 GetFieldInt16(const uint64& RecId, const int& FieldId) const { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    int64 GetFieldInt64(const uint64& RecId, const int& FieldId) const { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    uchar GetFieldByte(const uint64& RecId, const int& FieldId) const { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    void GetFieldIntV(const uint64& RecId, const int& FieldId, TIntV& IntV) const { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    uint GetFieldUInt(const uint64& RecId, const int& FieldId) const { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    uint16 GetFieldUInt16(const uint64& RecId, const int& FieldId) const { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    uint64 GetFieldUInt64(const uint64& RecId, const int& FieldId) const { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    TStr GetFieldStr(const uint64& RecId, const int& FieldId) const { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    void GetFieldStrV(const uint64& RecId, const int& FieldId, TStrV& StrV) const { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    bool GetFieldBool(const uint64& RecId, const int& FieldId) const { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    double GetFieldFlt(const uint64& RecId, const int& FieldId) const { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    float GetFieldSFlt(const uint64& RecId, const int& FieldId) const { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    TFltPr GetFieldFltPr(const uint64& RecId, const int& FieldId) const { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    void GetFieldFltV(const uint64& RecId, const int& FieldId, TFltV& FltV) const { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    void GetFieldTm(const uint64& RecId, const int& FieldId, TTm& Tm) const { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    uint64 GetFieldTmMSecs(const uint64& RecId, const int& FieldId) const { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    void GetFieldNumSpV(const uint64& RecId, const int& FieldId, TIntFltKdV& SpV) const { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    void GetFieldBowSpV(const uint64& RecId, const int& FieldId, PBowSpV& SpV) const { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    void GetFieldTMem(const uint64& RecId, const int& FieldId, TMem& Mem) const { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    PJsonVal GetFieldJsonVal(const uint64& RecId, const int& FieldId) const { throw TQmExcept::New("TStoreEmpty does not store records"); };
+
+    // we do not store anything, throw exceptions for attempts at modification
+    void SetFieldNull(const uint64& RecId, const int& FieldId) { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    void SetFieldByte(const uint64& RecId, const int& FieldId, const uchar& Byte) { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    void SetFieldInt(const uint64& RecId, const int& FieldId, const int& Int) { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    void SetFieldInt16(const uint64& RecId, const int& FieldId, const int16& Int16) { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    void SetFieldInt64(const uint64& RecId, const int& FieldId, const int64& Int64) { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    void SetFieldIntV(const uint64& RecId, const int& FieldId, const TIntV& IntV) { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    void SetFieldUInt(const uint64& RecId, const int& FieldId, const uint& UInt) { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    void SetFieldUInt16(const uint64& RecId, const int& FieldId, const uint16& UInt16) { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    void SetFieldUInt64(const uint64& RecId, const int& FieldId, const uint64& UInt64) { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    void SetFieldStr(const uint64& RecId, const int& FieldId, const TStr& Str) { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    void SetFieldStrV(const uint64& RecId, const int& FieldId, const TStrV& StrV) { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    void SetFieldBool(const uint64& RecId, const int& FieldId, const bool& Bool) { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    void SetFieldFlt(const uint64& RecId, const int& FieldId, const double& Flt) { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    void SetFieldSFlt(const uint64& RecId, const int& FieldId, const float& Flt) { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    void SetFieldFltPr(const uint64& RecId, const int& FieldId, const TFltPr& FltPr) { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    void SetFieldFltV(const uint64& RecId, const int& FieldId, const TFltV& FltV) { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    void SetFieldTm(const uint64& RecId, const int& FieldId, const TTm& Tm) { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    void SetFieldTmMSecs(const uint64& RecId, const int& FieldId, const uint64& TmMSecs) { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    void SetFieldNumSpV(const uint64& RecId, const int& FieldId, const TIntFltKdV& SpV) { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    void SetFieldBowSpV(const uint64& RecId, const int& FieldId, const PBowSpV& SpV) { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    void SetFieldTMem(const uint64& RecId, const int& FieldId, const TMem& Mem) { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    void SetFieldJsonVal(const uint64& RecId, const int& FieldId, const PJsonVal& Json) { throw TQmExcept::New("TStoreEmpty does not store records"); };
 };
 
 ///////////////////////////////
@@ -972,7 +1052,7 @@ public:
     double GetFieldFlt(const uint64& RecId, const int& FieldId) const;
     /// Get field value using field id (default implementation throws exception)
     float GetFieldSFlt(const uint64& RecId, const int& FieldId) const;
-    /// Get field value using field id (default implementation throws exception)
+   /// Get field value using field id (default implementation throws exception)
     TFltPr GetFieldFltPr(const uint64& RecId, const int& FieldId) const;
     /// Get field value using field id (default implementation throws exception)
     void GetFieldFltV(const uint64& RecId, const int& FieldId, TFltV& FltV) const;
@@ -1065,7 +1145,7 @@ public:
 class TStorePbBlob : public TStore, public TToaster {
 private:
 
-    /// For temporarily storing inverse joins which need to be 
+    /// For temporarily storing inverse joins which need to be
     /// indexed after adding records
     struct TFieldJoinDat {
         TWPt<TStore> JoinStore;
@@ -1122,7 +1202,7 @@ private:
 
     // record indexer
     TRecIndexer RecIndexer;
-    
+
     /// initialize field storage location map
     void InitFieldLocV();
 
@@ -1139,7 +1219,7 @@ private:
     const TRecSerializator* GetFieldSerializator(const int &FieldId) const;
     /// Remove record from name-id map
     void DelRecNm(const uint64& RecId);
-    
+
     /// Transform Join name to it's corresponding field name
     TStr GetJoinFieldNm(const TStr& JoinNm) const { return JoinNm + "Id"; }
 
@@ -1328,7 +1408,7 @@ public:
 
     /// Helper function for returning JSon definition of store
     PJsonVal GetStoreJson(const TWPt<TBase>& Base) const;
-    
+
     /// Get codebook mappings for given string field
     int GetCodebookId(const int& FieldId, const TStr& Str) const;
 
@@ -1347,9 +1427,9 @@ public:
     virtual int GetMaxToastLen() { return PG_PAGE_SIZE / 4; }
     /// Store value into internal storage using TOAST method
     virtual TPgBlobPt ToastVal(const TMemBase& Mem);
-    /// Retrieve value that is saved using TOAST method from storage 
+    /// Retrieve value that is saved using TOAST method from storage
     virtual void UnToastVal(const TPgBlobPt& Pt, TMem& Mem);
-    /// Delete TOAST-ed value from storage 
+    /// Delete TOAST-ed value from storage
     virtual void DelToastVal(const TPgBlobPt& Pt);
 };
 
@@ -1367,94 +1447,94 @@ public:
     /// Destructor
     ~TStoreNotImpl() { }
 
-    /// Get field value using field id   
+    /// Get field value using field id
     int GetFieldInt(const uint64& RecId, const int& FieldId) const;
-    /// Get field value using field id   
+    /// Get field value using field id
     int16 GetFieldInt16(const uint64& RecId, const int& FieldId) const;
-    /// Get field value using field id   
+    /// Get field value using field id
     int64 GetFieldInt64(const uint64& RecId, const int& FieldId) const;
-    /// Get field value using field id   
+    /// Get field value using field id
     uchar GetFieldByte(const uint64& RecId, const int& FieldId) const;
-    /// Get field value using field id   
+    /// Get field value using field id
     void GetFieldIntV(const uint64& RecId, const int& FieldId, TIntV& IntV) const;
-    /// Get field value using field id   
+    /// Get field value using field id
     uint GetFieldUInt(const uint64& RecId, const int& FieldId) const;
-    /// Get field value using field id   
+    /// Get field value using field id
     uint16 GetFieldUInt16(const uint64& RecId, const int& FieldId) const;
-    /// Get field value using field id   
+    /// Get field value using field id
     uint64 GetFieldUInt64(const uint64& RecId, const int& FieldId) const;
-    /// Get field value using field id   
+    /// Get field value using field id
     TStr GetFieldStr(const uint64& RecId, const int& FieldId) const;
-    /// Get field value using field id   
+    /// Get field value using field id
     void GetFieldStrV(const uint64& RecId, const int& FieldId, TStrV& StrV) const;
-    /// Get field value using field id   
+    /// Get field value using field id
     bool GetFieldBool(const uint64& RecId, const int& FieldId) const;
-    /// Get field value using field id   
+    /// Get field value using field id
     double GetFieldFlt(const uint64& RecId, const int& FieldId) const;
-    /// Get field value using field id   
+    /// Get field value using field id
     float GetFieldSFlt(const uint64& RecId, const int& FieldId) const;
-    /// Get field value using field id   
+    /// Get field value using field id
     TFltPr GetFieldFltPr(const uint64& RecId, const int& FieldId) const;
-    /// Get field value using field id   
+    /// Get field value using field id
     void GetFieldFltV(const uint64& RecId, const int& FieldId, TFltV& FltV) const;
-    /// Get field value using field id   
+    /// Get field value using field id
     void GetFieldTm(const uint64& RecId, const int& FieldId, TTm& Tm) const;
-    /// Get field value using field id   
+    /// Get field value using field id
     uint64 GetFieldTmMSecs(const uint64& RecId, const int& FieldId) const;
-    /// Get field value using field id   
+    /// Get field value using field id
     void GetFieldNumSpV(const uint64& RecId, const int& FieldId, TIntFltKdV& SpV) const;
-    /// Get field value using field id   
+    /// Get field value using field id
     void GetFieldBowSpV(const uint64& RecId, const int& FieldId, PBowSpV& SpV) const;
-    /// Get field value using field id   
+    /// Get field value using field id
     void GetFieldTMem(const uint64& RecId, const int& FieldId, TMem& Mem) const;
-    /// Get field value using field id   
+    /// Get field value using field id
     PJsonVal GetFieldJsonVal(const uint64& RecId, const int& FieldId) const;
 
     /// Set the value of given field to NULL
     void SetFieldNull(const uint64& RecId, const int& FieldId);
-    /// Set field value using field id   
+    /// Set field value using field id
     void SetFieldByte(const uint64& RecId, const int& FieldId, const uchar& Byte);
-    /// Set field value using field id   
+    /// Set field value using field id
     void SetFieldInt(const uint64& RecId, const int& FieldId, const int& Int);
-    /// Set field value using field id   
+    /// Set field value using field id
     void SetFieldInt16(const uint64& RecId, const int& FieldId, const int16& Int16);
-    /// Set field value using field id   
+    /// Set field value using field id
     void SetFieldInt64(const uint64& RecId, const int& FieldId, const int64& Int64);
-    /// Set field value using field id   
+    /// Set field value using field id
     void SetFieldIntV(const uint64& RecId, const int& FieldId, const TIntV& IntV);
-    /// Set field value using field id   
+    /// Set field value using field id
     void SetFieldUInt(const uint64& RecId, const int& FieldId, const uint& UInt);
-    /// Set field value using field id   
+    /// Set field value using field id
     void SetFieldUInt16(const uint64& RecId, const int& FieldId, const uint16& UInt16);
-    /// Set field value using field id   
+    /// Set field value using field id
     void SetFieldUInt64(const uint64& RecId, const int& FieldId, const uint64& UInt64);
-    /// Set field value using field id   
+    /// Set field value using field id
     void SetFieldStr(const uint64& RecId, const int& FieldId, const TStr& Str);
-    /// Set field value using field id   
+    /// Set field value using field id
     void SetFieldStrV(const uint64& RecId, const int& FieldId, const TStrV& StrV);
-    /// Set field value using field id   
+    /// Set field value using field id
     void SetFieldBool(const uint64& RecId, const int& FieldId, const bool& Bool);
-    /// Set field value using field id   
+    /// Set field value using field id
     void SetFieldFlt(const uint64& RecId, const int& FieldId, const double& Flt);
-    /// Set field value using field id   
+    /// Set field value using field id
     void SetFieldSFlt(const uint64& RecId, const int& FieldId, const float& Flt);
-    /// Set field value using field id   
+    /// Set field value using field id
     void SetFieldFltPr(const uint64& RecId, const int& FieldId, const TFltPr& FltPr);
-    /// Set field value using field id   
+    /// Set field value using field id
     void SetFieldFltV(const uint64& RecId, const int& FieldId, const TFltV& FltV);
-    /// Set field value using field id   
+    /// Set field value using field id
     void SetFieldTm(const uint64& RecId, const int& FieldId, const TTm& Tm);
-    /// Set field value using field id   
+    /// Set field value using field id
     void SetFieldTmMSecs(const uint64& RecId, const int& FieldId, const uint64& TmMSecs);
-    /// Set field value using field id   
+    /// Set field value using field id
     void SetFieldNumSpV(const uint64& RecId, const int& FieldId, const TIntFltKdV& SpV);
-    /// Set field value using field id   
+    /// Set field value using field id
     void SetFieldBowSpV(const uint64& RecId, const int& FieldId, const PBowSpV& SpV);
-    /// Set field value using field id   
+    /// Set field value using field id
     void SetFieldTMem(const uint64& RecId, const int& FieldId, const TMem& Mem);
-    /// Set field value using field id   
+    /// Set field value using field id
     void SetFieldJsonVal(const uint64& RecId, const int& FieldId, const PJsonVal& Json);
-    
+
     /// Run verification for whole store
     void RunVerification();
     /// Run verification for single record
