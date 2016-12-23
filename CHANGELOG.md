@@ -1,5 +1,18 @@
 # QMiner Change Log
 
+### 23 December 2016
+
+**Version 7.6.0**
+
+**Non-breaking with new feature and a bug fix**
+
+New feature:
+- Store that only holds schema and has no disk footprint: `TStoreEmpty`
+
+Bug fix:
+- `TJsonVal` can be parsed from string in multiple threads
+
+
 ### 16 December 2016
 
 **Version 7.5.0**

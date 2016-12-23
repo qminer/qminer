@@ -183,14 +183,18 @@ describe('NearestNeighborAD Tests', function () {
             var idVec = new la.IntVector([1, 2, 3]);
             neighbor.fit(matrix, idVec);
 
-            var vector = new la.SparseVector([[0, 1], [1, 4]]);
+            var vector = new la.SparseVector([[1, 4]]);
             var explain = neighbor.explain(vector);
             assert.equal(explain.nearestDat, 1);
-            assert.equal(explain.distance, 4);
-            assert.equal(explain.features[0].id, 1);
-            assert.equal(explain.features[0].val, 4);
-            assert.equal(explain.features[0].nearVal, 2);
-            assert.equal(explain.features[0].contribution, 1);
+            assert.equal(explain.distance, 5);
+            assert.equal(explain.features[0].id, 0);
+            assert.equal(explain.features[0].val, 0);
+            assert.equal(explain.features[0].nearVal, 1);
+            assert.equal(explain.features[0].contribution, 0.2);
+            assert.equal(explain.features[1].id, 1);
+            assert.equal(explain.features[1].val, 4);
+            assert.equal(explain.features[1].nearVal, 2);
+            assert.equal(explain.features[1].contribution, 0.8);
         })
     });
 
