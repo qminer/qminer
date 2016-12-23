@@ -23,13 +23,13 @@ TGPSMeasurement::TGPSMeasurement() {
 PJsonVal TGPSMeasurement::ToJson() const {
     //if (Json->IsNull()) {
     PJsonVal Json = TJsonVal::NewObj();
-    Json->AddToObj("Time", Time);
-    Json->AddToObj("Lat", LatLon.Lat);
-    Json->AddToObj("Lon", LatLon.Lon);
-    Json->AddToObj("Accuracy", Accuracy);
-    Json->AddToObj("Speed", Speed);
-    Json->AddToObj("DistanceDiff", Distance);
-    Json->AddToObj("TimeDiff", TimeDiff);
+    Json->AddToObj("time", Time);
+    Json->AddToObj("latitude", LatLon.Lat);
+    Json->AddToObj("longitude", LatLon.Lon);
+    Json->AddToObj("accuracy", Accuracy);
+    Json->AddToObj("speed", Speed);
+    Json->AddToObj("distanceDiff", Distance);
+    Json->AddToObj("timeDiff", TimeDiff);
     //}
     return Json;
 }
@@ -283,7 +283,11 @@ bool TStayPointDetector::parseRecord(const TRec& Rec, TGPSMeasurement& gps) {
         TTm::GetUnixMSecsFromWinMSecs(Timestamp.GetMSecsFromTm(Timestamp));
     double lat = Rec.GetFieldFltPr(LocationFieldId).Val1;
     double lon = Rec.GetFieldFltPr(LocationFieldId).Val2;
-    double accuracy = Rec.GetFieldByte(AccuracyFieldId);
+
+	double accuracy = 0;
+	if (!Rec.IsFieldNull(AccuracyFieldId)) {
+		accuracy = Rec.GetFieldByte(AccuracyFieldId);
+	}
     gps.Time = time;
     gps.LatLon = TPoint(lat, lon);
     gps.Accuracy = accuracy;
