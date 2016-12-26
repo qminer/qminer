@@ -122,6 +122,45 @@ double TGeoUtils::QuickDist(const TPoint& p1, const TPoint& p2) {
 
 ///////////////////////////////
 /// StayPoint detector aggregate
+
+TStayPointDetector::TStayPointDetector(
+    const TWPt<TBase>& Base,
+    const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal)
+{
+    if (ParamVal->IsObjKey("params")) {
+        Params = ParamVal->GetObjKey("params");
+        if (Params->IsObjKey("dT")) {
+            if (!Params->GetObjKey("dT")->IsNum()) {
+                throw TQmExcept::New("param dT must be a Number");
+            }
+            else {
+                TrDist = Params->GetObjKey("dT")->GetUInt();
+            }
+        }
+        if (Params->IsObjKey("tT")) {
+            if (!Params->GetObjKey("tT")->IsNum()) {
+                throw TQmExcept::New("param tT must be a Number");
+            }
+            else {
+                TrTime = Params->GetObjKey("tT")->GetUInt();
+            }
+        }
+    }//if params given
+
+     ///support (fast access of the fields)
+    TStr StoreNm = ParamVal->GetObjStr("store");
+    Store = Base->GetStoreByStoreNm(StoreNm);
+    TStr TimeFieldName = ParamVal->GetObjStr("timeField");
+    TimeFieldId = Store->GetFieldId(TimeFieldName);
+    TStr LocationFieldName = ParamVal->GetObjStr("locationField");
+    LocationFieldId = Store->GetFieldId(LocationFieldName);
+    TStr AccuracyFieldName = ParamVal->GetObjStr("accuracyField");
+    AccuracyFieldId = Store->GetFieldId(AccuracyFieldName);
+
+    //init the state in case saveJson is called before onAdd();
+    State = TJsonVal::NewArr();
+}//TStayPointDetector::constructor
+
 void TStayPointDetector::OnAddRec(const TRec& Rec,
     const TWPt<TStreamAggr>& CallerAggr)
 {
@@ -148,7 +187,6 @@ void TStayPointDetector::OnAddRec(const TRec& Rec,
 
     TInt CurrStateIdx = StateGpsMeasurements.Len() - 1;
 
-    //State = TJsonVal::NewObj();
     State = TJsonVal::NewArr();
 
     /* Implementation of ETC (named by Chinese paper):
@@ -237,42 +275,6 @@ PJsonVal TStayPointDetector::SaveJson(const int& Limit) const
     //State->AddToObj("geoActivities", JGeoActivities);
     return State;
 }
-
-
-TStayPointDetector::TStayPointDetector(
-    const TWPt<TBase>& Base,
-    const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal)
-{
-    if (ParamVal->IsObjKey("params")) {
-        Params = ParamVal->GetObjKey("params");
-        if (Params->IsObjKey("dT")) {
-            if (!Params->GetObjKey("dT")->IsNum()) {
-                throw TQmExcept::New("param dT must be a Number");
-            }
-            else {
-                TrDist = Params->GetObjKey("dT")->GetUInt();
-            }
-        }
-        if (Params->IsObjKey("tT")) {
-            if (!Params->GetObjKey("tT")->IsNum()) {
-                throw TQmExcept::New("param tT must be a Number");
-            }
-            else {
-                TrTime = Params->GetObjKey("tT")->GetUInt();
-            }
-        }
-    }//if params given
-
-        ///support (fast access of the fields)
-    TStr StoreNm = ParamVal->GetObjStr("store");
-    Store = Base->GetStoreByStoreNm(StoreNm);
-    TStr TimeFieldName = ParamVal->GetObjStr("timeField");
-    TimeFieldId = Store->GetFieldId(TimeFieldName);
-    TStr LocationFieldName = ParamVal->GetObjStr("locationField");
-    LocationFieldId = Store->GetFieldId(LocationFieldName);
-    TStr AccuracyFieldName = ParamVal->GetObjStr("accuracyField");
-    AccuracyFieldId = Store->GetFieldId(AccuracyFieldName);
-}//TStayPointDetector::constructor
 
 /// Helper function for easier GPSRecord creation. It assigns values to new
 /// TGPSRecord, compares it to the previous record and then re-stores it as
