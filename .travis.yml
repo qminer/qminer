@@ -9,7 +9,8 @@ env:
    - export NODE_VERSION="0.12"
    - export NODE_VERSION="4"
    - export NODE_VERSION="5"
-
+   - export NODE_VERSION="6"
+   
 before_install:
   - CXXFLAGS=-std=c++0x CXX=clang++-3.6 CC=clang
   - clang -v
@@ -28,12 +29,12 @@ install:
   - npm install --build-from-source --verbose
 
 script:
+  - echo status pub && echo $PUBLISH_BINARY && echo $TRAVIS_REPO_SLUG && echo $TRAVIS_PULL_REQUEST
+  - if [[ $PUBLISH_BINARY == true ]] && [ "$TRAVIS_REPO_SLUG" = "qminer/qminer" ] && [[ $TRAVIS_PULL_REQUEST == false ]]; then echo publishing && ./node_modules/.bin/node-pre-gyp package unpublish publish; fi
   - npm install -g mocha
   - npm install -g mustache
   - ./tools/mac_genExampleTests.sh
   - ./test/nodejs/mac_test.sh
-  - echo status pub && echo $PUBLISH_BINARY && echo $TRAVIS_REPO_SLUG && echo $TRAVIS_PULL_REQUEST
-  - if [[ $PUBLISH_BINARY == true ]] && [ "$TRAVIS_REPO_SLUG" = "qminer/qminer" ] && [[ $TRAVIS_PULL_REQUEST == false ]]; then echo publishing && ./node_modules/.bin/node-pre-gyp package unpublish publish; fi
 
 notifications:
   email:  
