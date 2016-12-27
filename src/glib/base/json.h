@@ -187,6 +187,9 @@ public:
   void AssertObjKeyNum(const TStr& Key, const TStr& Fun);
   void AssertObjKeyBool(const TStr& Key, const TStr& Fun);
 
+  /// debugging
+  uint64 GetMemUsed() const;
+
   // (de)serialization
   static PJsonVal GetValFromLx(TILx& Lx);
   static PJsonVal GetValFromSIn(const PSIn& SIn, bool& Ok, TStr& MsgStr);

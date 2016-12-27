@@ -52,11 +52,41 @@ TEST(sizeof, BasicStructures) {
 }
 
 TEST(sizeof, QMiner) {
-    ASSERT_EQ(sizeof(TQm::TRec), 216);
+    /* ASSERT_EQ(sizeof(TQm::TRec), 216); */ // TODO check on Mac and Windows
+    ASSERT_EQ(sizeof(TQm::TRec), 200);
     ASSERT_EQ(sizeof(TQm::TRecSet), 56);
     ASSERT_EQ(sizeof(TQm::TRecFilter), 24);
     ASSERT_EQ(sizeof(TQm::TAggr), 32);
-    ASSERT_EQ(sizeof(TQm::TStreamAggr), 32);
+    ASSERT_EQ(sizeof(TQm::TStreamAggr), 40);
     ASSERT_EQ(sizeof(TQm::TFtrExt), 80);
     ASSERT_EQ(sizeof(TQm::TFtrSpace), 72);
+}
+
+TEST(GetMemUsedDeep, TVec) {
+    const TStr TargetStr = "abcdefg";
+    const int NVecs = 4;
+    const int StrMemUsed = TargetStr.GetMemUsed();
+    const int VecMem = sizeof(TVec<TInt>) + NVecs*StrMemUsed;
+    const int VVecMem = sizeof(TVec<TIntV>) + NVecs*VecMem;
+    const int VVVecMem = sizeof(TVec<TVec<TIntV>>) + NVecs*VVecMem;
+
+    TStrV StrV(NVecs);
+    TVec<TStrV> StrVV(NVecs);
+    TVec<TVec<TStrV>> StrVVV(NVecs);
+
+    for (int i = 0; i < NVecs; i++) {
+        StrV[i] = TargetStr;
+    }
+
+    for (int i = 0; i < NVecs; i++) {
+        StrVV[i] = StrV;
+    }
+
+    for (int i = 0; i < NVecs; i++) {
+        StrVVV[i] = StrVV;
+    }
+
+    ASSERT_EQ(StrV.GetMemUsedDeep(), VecMem);
+    ASSERT_EQ(StrVV.GetMemUsedDeep(), VVecMem);
+    ASSERT_EQ(StrVVV.GetMemUsedDeep(), VVVecMem);
 }

@@ -439,6 +439,14 @@ class TVec{
 public:
   typedef TVal* TIter;  //!< Random access iterator to \c TVal.
 protected:
+#ifdef GLib_CPP11
+  /// cpp type traits, helper to check if type is TVec
+  template <typename T>
+  struct IsTVec : std::false_type{};
+  template <class TVal1, class TSizeTy1>
+  struct IsTVec<TVec<TVal1, TSizeTy1>> : std::true_type{};
+#endif
+
   TSizeTy MxVals; //!< Vector capacity. Capacity is the size of allocated storage. If <tt>MxVals==-1</tt>, then \c ValT is not owned by the vector, and it won't free it at destruction.
   TSizeTy Vals;   //!< Vector length. Length is the number of elements stored in the vector.
   TVal* ValT;     //!< Pointer to the memory where the elements of the vector are stored.
@@ -506,16 +514,8 @@ public:
   uint64 GetMemUsed() const {
 	  return TSizeTy(2 * sizeof(TSizeTy) + sizeof(TVal*) + sizeof(TVal)*(MxVals != -1 ? MxVals : 0));
   }
-  /// Returns the memory footprint (the number of bytes) of the vector.
-  uint64 GetMemUsedDeep() const {
-	  uint64 MemSize = 2 * sizeof(TSizeTy) + sizeof(TVal*);
-	  if (ValT != NULL && MxVals != -1){
-		  for (TSizeTy i = 0; i < MxVals; i++){
-			  MemSize += ValT[i].GetMemUsed();
-		  }
-	  }
-	  return MemSize;
-  }
+  /// Returns the memory footprint (the number of bytes) of the vector, including all its elements.
+  uint64 GetMemUsedDeep() const;
   /// Returns the memory size (the number of bytes) of a binary representation.
   TSizeTy GetMemSize(bool flat = true) const {
 	  return TSizeTy(2 * sizeof(TVal) + sizeof(TVal)*Vals);
@@ -818,6 +818,12 @@ public:
   /// Returns a vector on elements <tt>Val1...Val9</tt>.
   static TVec<TVal, TSizeTy> GetV(const TVal& Val1, const TVal& Val2, const TVal& Val3, const TVal& Val4, const TVal& Val5, const TVal& Val6, const TVal& Val7, const TVal& Val8, const TVal& Val9){
     TVec<TVal, TSizeTy> V(9, 0); V.Add(Val1); V.Add(Val2); V.Add(Val3); V.Add(Val4); V.Add(Val5); V.Add(Val6); V.Add(Val7); V.Add(Val8); V.Add(Val9); return V;}
+
+#ifdef GLib_CPP11
+private:
+    uint64 GetMemUsedDeep(std::true_type) const;
+    uint64 GetMemUsedDeep(std::false_type) const;
+#endif
 };
 
 //#//////////////////////////////////////////////

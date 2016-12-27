@@ -316,6 +316,16 @@ void TJsonVal::AssertObjKeyBool(const TStr& Key, const TStr& Fun) {
     if (!GetObjKey(Key)->IsBool()) { throw TExcept::New("Exception in function `" + Fun + "`: JSON property:`" + Key + "` is not a boolean."); }
 }
 
+uint64 TJsonVal::GetMemUsed() const {
+    return sizeof(TJsonVal) +
+           // JsonValType is an enum and is already counted
+           GetExtraMemberSize(Bool) +
+           GetExtraMemberSize(Num) +
+           GetExtraMemberSize(Str) +
+           GetDeepExtraMemberSize(ValV) +
+           GetExtraMemberSize(KeyValH); // THash already does a deep calculation
+}
+
 PJsonVal TJsonVal::GetValFromLx(TILx& Lx){
   static TFSet ValExpect=TFSet()|syIdStr|syFlt|syQStr|syLBracket|syLBrace|syRBracket;
   PJsonVal Val=TJsonVal::New();

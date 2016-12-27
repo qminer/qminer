@@ -534,6 +534,8 @@ public:
     double GetSec() const { return double(TimeSoFar) / double(CLOCKS_PER_SEC); }
     /// Get time in seconds
     int GetSecInt() const { return TFlt::Round(GetSec()); }
+    /// Get the memory footprint
+    uint64 GetMemUsed() const { return sizeof(TAggrExeTm); }
 };
 
 /////////////////////////////////////////////////

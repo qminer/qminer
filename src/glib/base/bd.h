@@ -468,6 +468,7 @@ public:
   void UnRef(){Assert(Refs>0); Refs--;}
   bool NoRef() const {return Refs==0;}
   int GetRefs() const {return Refs;}
+  uint64 GetMemUsed() const { return sizeof(TCRef); }
 };
 
 /////////////////////////////////////////////////
@@ -654,6 +655,22 @@ public:
     RQ -= 0x7fffffffU;
     return (RQ == 0x7fffffffU) ? 0 : (int) RQ; }
 };
+
+/////////////////////////////////////////////////
+// Functions which returns the part of the memory footprint of
+// an object which ignored by the sizeof operator
+template <class TClass>
+uint64 GetExtraMemberSize(const TClass& Inst) {
+    return Inst.GetMemUsed() - sizeof(TClass);
+}
+
+/////////////////////////////////////////////////
+// Functions which returns the part of the memory footprint of
+// an object which ignored by the sizeof operator
+template <class TClass>
+uint64 GetDeepExtraMemberSize(const TClass& Inst) {
+    return Inst.GetMemUsedDeep() - sizeof(TClass);
+}
 
 // Depending on the platform and compiler settings choose the faster implementation (of the same hash function)
 #if (defined(GLib_64Bit)) && ! (defined(DEBUG) || defined(_DEBUG))

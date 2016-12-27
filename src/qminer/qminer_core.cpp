@@ -6636,6 +6636,16 @@ void TStreamAggr::SaveState(TSOut& SOut) const {
     throw TQmExcept::New("TStreamAggr::_Save not implemented:" + GetAggrNm());
 };
 
+uint64 TStreamAggr::GetMemUsed() const {
+    // sizeof(TStreamAggr) returns the size of this class including all its members and
+    // alignment, but discards the size of any pointers that the members hold which
+    // equals Member.GetMemUsed() - sizeof(TMemberClass) (calculated by GetExtraMemberSize)
+    return sizeof(TStreamAggr) +
+           GetExtraMemberSize(CRef) +
+           GetExtraMemberSize(AggrNm) +
+           GetExtraMemberSize(ExeTm);
+}
+
 ///////////////////////////////
 // QMiner-Stream-Aggregator-Set
 TStreamAggrSet::TStreamAggrSet(const TWPt<TBase>& _Base, const TStr& _AggrNm):

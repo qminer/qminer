@@ -42,7 +42,7 @@ endif
 CXXFLAGS += -std=c++11 -Wall -O3 -DNDEBUG
 CXXFLAGS += -I$(GLIB_DIR)base -I$(GLIB_DIR)mine -I$(SOLE_DIR) -I$(QMINER_DIR)
 
-# ling with gtest
+# link with gtest
 LIBS += -lgtest
 
 ## Main application file

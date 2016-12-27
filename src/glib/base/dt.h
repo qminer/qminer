@@ -1324,6 +1324,8 @@ public:
 
   TSInt& operator++() { ++Val; return *this; } // prefix
   TSInt& operator--() { --Val; return *this; } // prefix
+  /// Returns the memoty footprint
+  uint64 GetMemUsed() const { return sizeof(TSInt); }
 };
 typedef TSInt TInt16;
 
@@ -1397,7 +1399,7 @@ public:
   TNum operator++(int){ TNum oldVal = Val; Val++; return oldVal; } // postfix
   TNum operator--(int){ TNum oldVal = Val; Val--; return oldVal; } // postfix
 
-  int GetMemUsed() const {return sizeof(TNum);}
+  int GetMemUsed() const { return sizeof(TInt); }
 
   int GetPrimHashCd() const {return Val;}
   int GetSecHashCd() const {return Val/0x10;}
