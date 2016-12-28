@@ -180,6 +180,16 @@ function makeServer() {
 	    response.sendFile(__dirname + '/streamaggregate.html');
 	});
 
+    	app.get('/moving_average.html', function (request, response) {
+	    response.sendFile(__dirname + '/moving_average.html');
+	});
+	app.get('/resampler.html', function (request, response) {
+	    response.sendFile(__dirname + '/resampler.html');
+	});
+	app.get('/merger.html', function (request, response) {
+	    response.sendFile(__dirname + '/merger.html');
+	});
+
 	// creates the server listener, so that we know that it's connected
 	var server = http.listen(3000, function () {
 		var port = server.address().port;

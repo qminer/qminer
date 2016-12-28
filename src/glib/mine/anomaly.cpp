@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -163,7 +163,7 @@ PJsonVal TNearestNeighbor::Explain(const TIntFltKdV& Vec) const {
     int NearEltN = 0, EltN = 0;
     while (NearEltN < NearVec.Len() || EltN < Vec.Len()) {
         // get the feature ID
-        const int VecFtrId = EltN < Vec.Len() ? Vec[NearEltN].Key.Val : TInt::Mx;
+        const int VecFtrId = EltN < Vec.Len() ? Vec[EltN].Key.Val : TInt::Mx;
         const int NearFtrId = NearEltN < NearVec.Len() ? NearVec[NearEltN].Key.Val : TInt::Mx;
         const int FtrId = NearFtrId < VecFtrId ? NearFtrId : VecFtrId;
         // get values

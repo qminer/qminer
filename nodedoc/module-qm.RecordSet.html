@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.4.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.6.0</a>
       </div>
     </div>
   </nav>
@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">RecordSet</span></h1>
-            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-1700">qminerdoc.<wbr>js:1700</a></p>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-1704">qminerdoc.<wbr>js:1704</a></p>
             <dl class="dl-compact">
             </dl>
           </header>
@@ -1463,7 +1463,7 @@ base.store(&quot;TVSeries&quot;).push({ Title: &quot;Rick and Morty&quot;, Numbe
 base.store(&quot;TVSeries&quot;).push({ Title: &quot;Game of Thrones&quot;, NumberOfEpisodes: 47 });
 // get the records of the &quot;TVSeries&quot; store as a record set
 var recordSet = base.store(&quot;TVSeries&quot;).allRecords;
-// sort the records by their &quot;Title&quot; field in ascending order 
+// sort the records by their &quot;Title&quot; field in ascending order
 recordSet.sortByField(&quot;Title&quot;, true); // returns self, record are sorted by their &quot;Title&quot;
 base.close();</code></pre>
                 </div>
@@ -1660,7 +1660,7 @@ var recordSet = base.store(&quot;SocialGames&quot;).allRecords;
 recordSet.sortByField(&quot;MinPlayers&quot;, true);
 // split the record set by the minimum number of players
 // returns an array containing three record sets: the first containing the &quot;DungeonsAndDragons&quot; record,
-// the second containing the &quot;Settlers of Catan&quot; and &quot;Munchkin&quot; records and the third containing the 
+// the second containing the &quot;Settlers of Catan&quot; and &quot;Munchkin&quot; records and the third containing the
 // &quot;Dobble&quot; record
 var arr = recordSet.split(function (rec, rec2) { return rec.MinPlayers &lt; rec2.MinPlayers; });
 base.close();</code></pre>
