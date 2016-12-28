@@ -174,7 +174,10 @@ TStr TNodeJsUtil::GetClass(const v8::Handle<v8::Object> Obj) {
         return "";
     } else {
         v8::String::Utf8Value Utf8(ClassNm.ToLocalChecked());
-        return TStr(*Utf8);
+        TStr Class(*Utf8);
+        if (Class == "undefined") {
+            return "";
+        } else return Class;
     }
 #else
     v8::Local<v8::Value> ClassNm = Obj->GetHiddenValue(v8::String::NewFromUtf8(Isolate, "class"));
