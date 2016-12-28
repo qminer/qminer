@@ -837,6 +837,21 @@ PMem TNodeJsUtil::GetArgMem(const v8::FunctionCallbackInfo<v8::Value>& Args, con
 #endif
 }
 
+void TNodeJsUtil::SetPrivate(
+    v8::Local<v8::Object> Object,
+    v8::Local<v8::String> Key,
+    v8::Local<v8::Value> Value) {
+#if NODE_MODULE_VERSION >= 48 //NODE_6_0_MODULE_VERSION
+    v8::Isolate *Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> Context = Isolate->GetCurrentContext();
+    v8::Local<v8::Private> Private_key = v8::Private::ForApi(Isolate, Key);
+    Object->SetPrivate(Context, Private_key, Value);
+#else
+    Object->SetHiddenValue(Key, Value);
+#endif
+}
+
 uint64 TNodeJsUtil::GetTmMSecs(v8::Handle<v8::Date>& Date) {
     return GetCppTimestamp(int64(Date->NumberValue()));
 }
