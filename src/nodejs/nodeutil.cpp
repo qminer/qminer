@@ -166,7 +166,7 @@ TStr TNodeJsUtil::GetStr(const v8::Local<v8::String>& V8Str) {
 TStr TNodeJsUtil::GetClass(const v8::Handle<v8::Object> Obj) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-#if NODE_MODULE_VERSION >= NODE_6_0_MODULE_VERSION
+#if NODE_MODULE_VERSION >= 48 //NODE_6_0_MODULE_VERSION
     v8::Local<v8::Context> Context = Isolate->GetCurrentContext();
     v8::Local<v8::Private> Private_key = v8::Private::ForApi(Isolate, v8::String::NewFromUtf8(Isolate, "class"));
     v8::MaybeLocal<v8::Value> ClassNm = Obj->GetPrivate(Context, Private_key);

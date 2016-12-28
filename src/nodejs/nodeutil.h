@@ -371,7 +371,7 @@ public:
         v8::Local<v8::Object> Object,
         v8::Local<v8::String> Key,
         v8::Local<v8::Value> Value) {
-#if NODE_MODULE_VERSION >= NODE_6_0_MODULE_VERSION
+#if NODE_MODULE_VERSION >= 48 //NODE_6_0_MODULE_VERSION
         v8::Isolate *Isolate = v8::Isolate::GetCurrent();
         v8::HandleScope HandleScope(Isolate);
         v8::Local<v8::Context> Context = Isolate->GetCurrentContext();
