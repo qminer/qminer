@@ -10,6 +10,7 @@ env:
    - export NODE_VERSION="4"
    - export NODE_VERSION="5"
    - export NODE_VERSION="6"
+   - export NODE_VERSION="7"
    
 before_install:
   - CXXFLAGS=-std=c++0x CXX=clang++-3.6 CC=clang
