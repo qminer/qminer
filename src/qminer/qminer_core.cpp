@@ -7596,7 +7596,8 @@ PJsonVal TBase::GetStreamAggrStats() const {
     PJsonVal AggrsVal = TJsonVal::NewArr();
     // we also collect aggregate statistics per type and overall
     int AllCount = 0; double AllExeMSecs = 0.0;
-    THash<TStr, TIntFltPr> AggrTypeExeMSecsH;
+    uint64 TotalMemUsed = 0;
+    THash<TStr, TIntFltUInt64Tr> AggrTypeExeMSecsH;
     for (const auto& StreamAggr : StreamAggrH) {
         // get stream aggregate name
         const TStr& AggrNm = StreamAggr.Key;
@@ -7604,16 +7605,21 @@ PJsonVal TBase::GetStreamAggrStats() const {
         const TStr AggrType = StreamAggr.Dat->Type();
         // get execution time in miliseconds
         const double ExeMSecs = StreamAggr.Dat->GetExeTm().GetMSec();
+        // get the memory footprint
+        const uint64 MemUsed = StreamAggr.Dat->GetMemUsed();
         // store to result output
         PJsonVal AggrVal = TJsonVal::NewObj();
         AggrVal->AddToObj("name", AggrNm);
         AggrVal->AddToObj("type", AggrType);
         AggrVal->AddToObj("msecs", ExeMSecs);
+        AggrVal->AddToObj("mem", MemUsed);
         AggrsVal->AddToArr(AggrVal);
         // add to aggregate counts
         AllCount++; AllExeMSecs += ExeMSecs;
+        TotalMemUsed += MemUsed;
         AggrTypeExeMSecsH.AddDat(AggrType).Val1++;
         AggrTypeExeMSecsH.AddDat(AggrType).Val2 += ExeMSecs;
+        AggrTypeExeMSecsH.AddDat(AggrType).Val3 += MemUsed;
     }
     ResVal->AddToObj("aggregates", AggrsVal);
 
@@ -7626,11 +7632,14 @@ PJsonVal TBase::GetStreamAggrStats() const {
         const int AggrCount = AggrTypeExeMSecs.Dat.Val1;
         // get time spent in the aggregate
         const double ExeMSecs = AggrTypeExeMSecs.Dat.Val2;
+        // get the memory footprint
+        const uint64 MemUsed = AggrTypeExeMSecs.Dat.Val3;
         // store to output
         PJsonVal TypeVal = TJsonVal::NewObj();
         TypeVal->AddToObj("type", AggrType);
         TypeVal->AddToObj("count", AggrCount);
         TypeVal->AddToObj("msecs", ExeMSecs);
+        TypeVal->AddToObj("mem", MemUsed);
         TypesVal->AddToArr(TypeVal);
     }
     ResVal->AddToObj("types", TypesVal);
@@ -7638,6 +7647,7 @@ PJsonVal TBase::GetStreamAggrStats() const {
     // get overall stats
     ResVal->AddToObj("count", AllCount);
     ResVal->AddToObj("msecs", AllExeMSecs);
+    ResVal->AddToObj("mem", TotalMemUsed);
 
     // we are good!
     return ResVal;

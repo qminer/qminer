@@ -202,6 +202,7 @@ typedef TTriple<TInt, TInt, TStr> TIntIntStrTr;
 typedef TTriple<TInt, TInt, TFlt> TIntIntFltTr;
 typedef TTriple<TInt, TFlt, TInt> TIntFltIntTr;
 typedef TTriple<TInt, TFlt, TFlt> TIntFltFltTr;
+typedef TTriple<TInt, TFlt, TUInt64> TIntFltUInt64Tr;
 typedef TTriple<TFlt, TInt, TFlt> TFltIntFltTr;
 typedef TTriple<TInt, TVec<TInt, int>, TInt> TIntIntVIntTr;
 typedef TTriple<TInt, TInt, TVec<TInt, int> > TIntIntIntVTr;

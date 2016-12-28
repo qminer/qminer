@@ -6415,4 +6415,60 @@ describe('Stream aggregate statistics', function () {
             assert(stats.types[2].msecs < diff, stats.types[2].msecs + " < " + diff);
         });
     });
+
+    it('should show memory usage ...', function () {
+        // create few stream aggregates
+        var tick = store.addStreamAggr({
+            type: 'timeSeriesTick',
+            timestamp: 'Time',
+            value: 'Value'
+        });
+        var winbufvec = store.addStreamAggr({
+            type: 'timeSeriesWinBufVector',
+            inAggr: tick.name,
+            winsize: 1500
+        });
+        var winbufvec = store.addStreamAggr({
+            type: 'timeSeriesWinBufVector',
+            inAggr: tick.name,
+            winsize: 2000
+        });
+        var winbufvec = store.addStreamAggr({
+            type: 'timeSeriesWinBufVector',
+            inAggr: tick.name,
+            winsize: 3500
+        });
+
+        // measure insert time
+        var start = process.hrtime();
+        store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+        store.push({ Time: '2015-06-10T14:33:30.0', Value: 2 });
+        store.push({ Time: '2015-06-10T14:33:31.0', Value: 3 });
+        store.push({ Time: '2015-06-10T14:33:32.0', Value: 4 });
+        var diff = getMSecs(process.hrtime(start));
+
+        // make sure we are below insert time
+        var stats = base.getStreamAggrStats();
+
+        var totalMem = 0;
+        var totalByType = 0;
+
+        var aggregates = stats.aggregates;
+        for (var i = 0; i < aggregates.length; i++) {
+            var aggregate = aggregates[i];
+            assert(aggregate.mem != null, 'Memory usage of aggregate is not defined!');
+            assert(aggregate.mem >= 0, 'Memory usage of aggregate is negative!');
+            totalMem += aggregate.mem;
+        }
+
+        var types = stats.types;
+        for (var i = 0; i < types.length; i++) {
+            assert(types[i].mem != null, 'Memory usage of aggregate type is not defined!');
+            assert(types[i].mem >= 0, 'Memory usage of aggregate type is negative!');
+            totalByType += types[i].mem;
+        }
+        assert(stats.mem != null, 'Total memory usage is not defined!');
+        assert(stats.mem == totalMem, 'Total memory usage does not match the usage of individual aggregates!');
+        assert(stats.mem == totalByType, 'Total memory usage does not match the usage by type!');
+    });
 });
