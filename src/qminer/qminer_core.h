@@ -697,7 +697,7 @@ public:
     virtual bool HasLastRecId() const { return false; }
 
     /// Add new record provided as JSon
-    virtual uint64 AddRec(const PJsonVal& RecVal, const bool& TriggerEvents=true) = 0;
+    virtual uint64 AddRec(const PJsonVal& RecVal, const bool& TriggerEvents = true) = 0;
     /// Update existing record with updates in provided JSon
     virtual void UpdateRec(const uint64& RecId, const PJsonVal& RecVal) = 0;
 
@@ -950,11 +950,11 @@ public:
     /// Save part of the data, given time-window
     virtual int PartialFlush(int WndInMsec = 500) { throw TQmExcept::New("Not implemented"); }
     /// Retrieve performance statistics for this store
-    virtual PJsonVal GetStats() = 0;
+    virtual PJsonVal GetStats() { return TJsonVal::NewObj(); }
     /// Run verification for whole store
-    virtual void RunVerification() = 0;
+    virtual void RunVerification() { };
     /// Run verification for single record
-    virtual void RunVerificationForRecord(const uint64& RecId) = 0;
+    virtual void RunVerificationForRecord(const uint64& RecId) { };
 };
 
 ///////////////////////////////

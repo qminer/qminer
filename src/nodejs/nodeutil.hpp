@@ -84,10 +84,10 @@ void TNodeJsUtil::_NewJs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     try {
         EAssertR(Args.IsConstructCall(), "Not a constructor call (you forgot to use the new operator)");
         v8::Local<v8::Object> Instance = Args.This();
-        v8::Handle<v8::String> key = v8::String::NewFromUtf8(Isolate, "class");
+        v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
         // static TStr TClass:ClassId must be defined
-        v8::Handle<v8::String> value = v8::String::NewFromUtf8(Isolate, TClass::GetClassId().CStr());
-        Instance->SetHiddenValue(key, value);
+        v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TClass::GetClassId().CStr());
+        TNodeJsUtil::SetPrivate(Instance, Key, Value);
         // This is skipped in _NewCpp
         TClass* Obj = TClass::NewFromArgs(Args);
         Obj->Wrap(Instance);
@@ -109,10 +109,10 @@ void TNodeJsUtil::_NewCpp(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     try {
         EAssertR(Args.IsConstructCall(), "Not a constructor call");
         v8::Local<v8::Object> Instance = Args.This();
-        v8::Handle<v8::String> key = v8::String::NewFromUtf8(Isolate, "class");
+        v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
         // static TStr TClass:ClassId must be defined
-        v8::Handle<v8::String> value = v8::String::NewFromUtf8(Isolate, TClass::GetClassId().CStr());
-        Instance->SetHiddenValue(key, value);
+        v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TClass::GetClassId().CStr());
+        TNodeJsUtil::SetPrivate(Instance, Key, Value);
         // wrap is done elsewhere in cpp
         Args.GetReturnValue().Set(Instance);
         // obj statistics
