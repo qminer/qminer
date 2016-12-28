@@ -166,11 +166,24 @@ TStr TNodeJsUtil::GetStr(const v8::Local<v8::String>& V8Str) {
 TStr TNodeJsUtil::GetClass(const v8::Handle<v8::Object> Obj) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+#if NODE_MODULE_VERSION >= NODE_6_0_MODULE_VERSION
+    v8::Local<v8::Context> Context = Isolate->GetCurrentContext();
+    v8::Local<v8::Private> Private_key = v8::Private::ForApi(Isolate, v8::String::NewFromUtf8(Isolate, "class"));
+    v8::MaybeLocal<v8::Value> ClassNm = Obj->GetPrivate(Context, Private_key);
+    if (ClassNm.IsEmpty()) {
+        return "";
+    } else {
+        v8::String::Utf8Value Utf8(ClassNm.ToLocalChecked());
+        return TStr(*Utf8);
+    }
+#else
     v8::Local<v8::Value> ClassNm = Obj->GetHiddenValue(v8::String::NewFromUtf8(Isolate, "class"));
     const bool EmptyP = ClassNm.IsEmpty();
     if (EmptyP) { return ""; }
     v8::String::Utf8Value Utf8(ClassNm);
     return TStr(*Utf8);
+#endif
+
 }
 
 bool TNodeJsUtil::IsClass(const v8::Handle<v8::Object> Obj, const TStr& ClassNm) {

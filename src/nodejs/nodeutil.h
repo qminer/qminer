@@ -367,6 +367,22 @@ public:
         return node::ObjectWrap::Unwrap<TClass>(Arg);
     }
 
+    static void SetPrivate(
+        v8::Local<v8::Object> Object,
+        v8::Local<v8::String> Key,
+        v8::Local<v8::Value> Value) {
+#if NODE_MODULE_VERSION >= NODE_6_0_MODULE_VERSION
+        v8::Isolate *Isolate = v8::Isolate::GetCurrent();
+        v8::HandleScope HandleScope(Isolate);
+        v8::Local<v8::Context> Context = Isolate->GetCurrentContext();
+        v8::Local<v8::Private> Private_key = v8::Private::ForApi(Isolate, Key);
+        Object->SetPrivate(Context, Private_key, Value);
+#else
+        Object->SetHiddenValue(Key, Value);
+#endif
+    }
+
+
 private:
     /// returns the internal C++ windows timestamp from a double representation of a UNIX timestamp
     static uint64 GetTmMSecs(const double& UnixMSecs);
