@@ -80,7 +80,9 @@ TGeoCluster::TGeoCluster(const int StartIdx, const int EndIdx,
     }
 }
 
-PJsonVal TGeoCluster::ToJson(const TVec<TGPSMeasurement>& _GpsStateVec) const {
+PJsonVal TGeoCluster::ToJson(const TVec<TGPSMeasurement>& _GpsStateVec,
+    const bool fullLoc) const
+{
     PJsonVal JGeoAct = TJsonVal::NewObj();
     if (Type() == TGeoActivityType::Path) {
         JGeoAct->AddToObj("type", "P");
@@ -94,14 +96,16 @@ PJsonVal TGeoCluster::ToJson(const TVec<TGPSMeasurement>& _GpsStateVec) const {
     JGeoAct->AddToObj("start_time", Arrive);
     JGeoAct->AddToObj("end_time", Depart);
     JGeoAct->AddToObj("duration", (Depart - Arrive) / 1000);
-    JGeoAct->AddToObj("LocationsNum", this->Len());
+    JGeoAct->AddToObj("locationsNum", this->Len());
 
-    PJsonVal JLocs = TJsonVal::NewArr();
-    for (int LocIdx = MStartIdx; LocIdx <= MEndIdx; LocIdx++) {
-        const TGPSMeasurement& Gps = _GpsStateVec.GetVal(LocIdx);
-        JLocs->AddToArr(Gps.ToJson());
+    if (fullLoc) {
+        PJsonVal JLocs = TJsonVal::NewArr();
+        for (int LocIdx = MStartIdx; LocIdx <= MEndIdx; LocIdx++) {
+            const TGPSMeasurement& Gps = _GpsStateVec.GetVal(LocIdx);
+            JLocs->AddToArr(Gps.ToJson());
+        }
+        JGeoAct->AddToObj("locations", JLocs);
     }
-    JGeoAct->AddToObj("locations", JLocs);
     return JGeoAct;
 }
 
@@ -168,6 +172,7 @@ void TStayPointDetector::OnAddRec(const TRec& Rec,
                                         //parse new GPS record from JSON
 
     int NumOfRecordsToForget = 0;
+    hasFinishedGeoActs = false;
     //delete previously detected stuff
     for (int i = 0; i < DetectedGeoActivities.Len(); i++) {
         TGeoCluster& clstr = DetectedGeoActivities.GetVal(i);
@@ -204,6 +209,7 @@ void TStayPointDetector::OnAddRec(const TRec& Rec,
             if (cl.Duration() > TrTime) {						           //06
                 cl.SetStatus(TGeoActivityStatus::Detected);
                 DetectedGeoActivities.Add(cl);						       //07
+                hasFinishedGeoActs = true;
             }
             cl = TGeoCluster(TGeoActivityType::Staytpoint);    		       //08
             cl.AddPoint(plocs.EndIdx(), StateGpsMeasurements);	           //09
@@ -226,7 +232,6 @@ void TStayPointDetector::OnAddRec(const TRec& Rec,
     /// save Json - get current state
 PJsonVal TStayPointDetector::SaveJson(const int& Limit) const
 {
-    
     TGeoCluster Path;
     int LastIdx = StateGpsMeasurements.Len() - 1;
     int StartIdx = 0; int EndIdx = 0;
@@ -238,9 +243,11 @@ PJsonVal TStayPointDetector::SaveJson(const int& Limit) const
             EndIdx = DetectedStp.StartIdx() - 1;//We need to add Path first
             Path = TGeoCluster(StartIdx, EndIdx, StateGpsMeasurements);
             Path.SetStatus(TGeoActivityStatus::Detected);
-            State->AddToArr(Path.ToJson(StateGpsMeasurements));
+            State->AddToArr(Path.ToJson(StateGpsMeasurements, 
+                hasFinishedGeoActs));
         }
-        State->AddToArr(DetectedStp.ToJson(StateGpsMeasurements));
+        State->AddToArr(DetectedStp.ToJson(StateGpsMeasurements, 
+                hasFinishedGeoActs));
         StartIdx = DetectedStp.EndIdx() + 1;
     }//if detected staypoint
         //if plocs locations are earlier than cl, we simply add them to the path
@@ -259,20 +266,18 @@ PJsonVal TStayPointDetector::SaveJson(const int& Limit) const
     //covers scenario when there is no detectedSTP and all up to here is a path
     if (StartIdx <= EndIdx) {
         Path = TGeoCluster(StartIdx, EndIdx, StateGpsMeasurements);
-        State->AddToArr(Path.ToJson(StateGpsMeasurements));
+        State->AddToArr(Path.ToJson(StateGpsMeasurements, hasFinishedGeoActs));
     }
 
     if (cl.Len() > 0) {
-        State->AddToArr(cl.ToJson(StateGpsMeasurements));
+        State->AddToArr(cl.ToJson(StateGpsMeasurements, hasFinishedGeoActs));
         EndIdx = cl.EndIdx() + 1;
     }
 
     if (EndIdx < LastIdx) {
         Path = TGeoCluster(EndIdx, LastIdx, StateGpsMeasurements);
-        State->AddToArr(Path.ToJson(StateGpsMeasurements));
+        State->AddToArr(Path.ToJson(StateGpsMeasurements, hasFinishedGeoActs));
     }
-
-    //State->AddToObj("geoActivities", JGeoActivities);
     return State;
 }
 

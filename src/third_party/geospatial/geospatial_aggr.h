@@ -102,7 +102,8 @@ public:
         GeoActStatus = _status;
     }
     const TGeoActivityStatus Status() const { return GeoActStatus; }
-    PJsonVal ToJson(const TVec<TGPSMeasurement>& _GpsStateVec) const;
+    PJsonVal ToJson(const TVec<TGPSMeasurement>& _GpsStateVec, 
+                    const bool fullLoc) const;
 };
 
 ///////////////////////////////
@@ -134,6 +135,7 @@ private:
     TGeoCluster cl;//cluster from the algorihm (cl)
     TGeoCluster plocs;//path locs from the algorithm (plocs)
     TVec<TGeoCluster> DetectedGeoActivities;
+    bool hasFinishedGeoActs = false;
 
     /// helper methods
     bool parseRecord(const TRec& Rec, TGPSMeasurement& gps);
