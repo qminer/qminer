@@ -55,10 +55,21 @@ void TGeoCluster::AddPoint(const TInt Idx,
     MEndIdx = Idx;
     TInt Len = this->Len();
     //incremental averaging (m_n = m_n-1 + ((a_n-m_n-1)/n)
+	//m_n = avg value we want to calculate
+	//m_n-1 = previous avg value
+	//a_n = current value
+	//n = number of records (values)
     CenterPoint.Lat = CenterPoint.Lat +
         ((CurrentGPS.LatLon.Lat - CenterPoint.Lat) / Len);
     CenterPoint.Lon = CenterPoint.Lon +
         ((CurrentGPS.LatLon.Lon - CenterPoint.Lon) / Len);
+	AvgSpeed = AvgSpeed +
+		((CurrentGPS.Speed - AvgSpeed) / Len);
+	AvgAccuracy = AvgAccuracy +
+		((CurrentGPS.Accuracy - AvgAccuracy) / Len);
+	
+	//distance
+	Distance = Distance + CurrentGPS.Distance;
 }//TGeoCluster::addPoint
 
 /// returns duration in seconds
@@ -97,6 +108,9 @@ PJsonVal TGeoCluster::ToJson(const TVec<TGPSMeasurement>& _GpsStateVec,
     JGeoAct->AddToObj("end_time", Depart);
     JGeoAct->AddToObj("duration", (Depart - Arrive) / 1000);
     JGeoAct->AddToObj("locationsNum", this->Len());
+	JGeoAct->AddToObj("avgSpeed", AvgSpeed);
+	JGeoAct->AddToObj("avgAccuracy", AvgAccuracy);
+	JGeoAct->AddToObj("distance", Distance);
 
     if (fullLoc) {
         PJsonVal JLocs = TJsonVal::NewArr();

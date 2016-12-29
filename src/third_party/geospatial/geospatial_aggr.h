@@ -83,6 +83,9 @@ private:
     TUInt64 Arrive = 0;
     TUInt64 Depart = 0;
     TPoint CenterPoint = TPoint(0, 0);
+	TFlt AvgSpeed = 0;
+	TFlt AvgAccuracy = 0;
+	TFlt Distance = 0;
     TGeoActivityType GeoType = TGeoActivityType::Path;
     TGeoActivityStatus GeoActStatus = TGeoActivityStatus::Current;
 public:
