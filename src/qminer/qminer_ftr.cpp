@@ -994,20 +994,21 @@ TMultinomial::TMultinomial(const TWPt<TBase>& Base, const PJsonVal& ParamVal): T
     // prase out feature generator parameters
     const bool NormalizeP = ParamVal->GetObjBool("normalize", false);
     const bool BinaryP = ParamVal->GetObjBool("binary", false);
+    const bool LogP = ParamVal->GetObjBool("log", false);
     if (ParamVal->IsObjKey("values")) {
         // we have fixed values
         TStrV ValV; ParamVal->GetObjStrV("values", ValV);
-        FtrGen = TFtrGen::TMultinomial(NormalizeP, BinaryP, ValV);        
+        FtrGen = TFtrGen::TMultinomial(NormalizeP, BinaryP, LogP, ValV);        
     } else if (ParamVal->IsObjKey("hashDimension")) {
         // we have hashed values into fixed dimensionality
         const int HashDim = ParamVal->GetObjInt("hashDimension");
-        FtrGen = TFtrGen::TMultinomial(NormalizeP, BinaryP, HashDim);
+        FtrGen = TFtrGen::TMultinomial(NormalizeP, BinaryP, LogP, HashDim);
     } else if (ParamVal->GetObjBool("datetime", false)) {
         // initialize feature generator with all possible date extracts
-        FtrGen = TFtrGen::TMultinomial(NormalizeP, BinaryP, TFieldReader::GetDateRange());
+        FtrGen = TFtrGen::TMultinomial(NormalizeP, BinaryP, LogP, TFieldReader::GetDateRange());
     } else {
         // we have open value set
-        FtrGen = TFtrGen::TMultinomial(NormalizeP, BinaryP);
+        FtrGen = TFtrGen::TMultinomial(NormalizeP, BinaryP, LogP);
     }
     // parse out field(s)
     PJsonVal FieldVal = ParamVal->GetObjKey("field");
