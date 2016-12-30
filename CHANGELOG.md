@@ -1,5 +1,16 @@
 # QMiner Change Log
 
+### 30 December 2016
+
+**Version 7.7.0**
+
+**Non-breaking with new features and bug fixes**
+
+New features:
+- Added log transform to multinomial feature extractor
+- Extended filter options for DMoz classifier (wildcard supported)
+- Node 7 supported
+
 ### 23 December 2016
 
 **Version 7.6.0**
