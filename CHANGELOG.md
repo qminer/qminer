@@ -1,5 +1,29 @@
 # QMiner Change Log
 
+### 30 December 2016
+
+**Version 7.7.0**
+
+**Non-breaking with new features and bug fixes**
+
+New features:
+- Added log transform to multinomial feature extractor
+- Extended filter options for DMoz classifier (wildcard supported)
+- Node 7 supported
+
+### 23 December 2016
+
+**Version 7.6.0**
+
+**Non-breaking with new feature and a bug fix**
+
+New feature:
+- Store that only holds schema and has no disk footprint: `TStoreEmpty`
+
+Bug fix:
+- `TJsonVal` can be parsed from string in multiple threads
+
+
 ### 16 December 2016
 
 **Version 7.5.0**
