@@ -136,19 +136,28 @@ TStr TCategorical::GetVal(const int& ValN) const {
 
 ///////////////////////////////////////
 // Multi-Feature-Generator
-void TMultinomial::Init(const bool& NormalizeP, const bool& BinaryP) {
+void TMultinomial::Init(const bool& NormalizeP, const bool& BinaryP, const bool& LogP) {
     if (NormalizeP) { Flags.Val |= mtNormalize; }
-    if (BinaryP) { Flags.Val |= mtBinary; }
+    if (BinaryP) {
+        Flags.Val |= mtBinary;
+        EAssertR(!IsLog(), "TMultinomial: flags 'binary' and 'log' are exclusive!");
+    }
+    if (LogP) {
+        Flags.Val |= mtLog;
+        EAssertR(!IsBinary(), "TMultinomial: flags 'binary' and 'log' are exclusive!");
+    }
 }
 
-TMultinomial::TMultinomial(const bool& NormalizeP, const bool& BinaryP):
-    Flags(0), FtrGen() { Init(NormalizeP, BinaryP); }
+TMultinomial::TMultinomial(const bool& NormalizeP, const bool& BinaryP, const bool& LogP):
+    Flags(0), FtrGen() { Init(NormalizeP, BinaryP, LogP); }
 
-TMultinomial::TMultinomial(const bool& NormalizeP, const bool& BinaryP, const TStrV& ValV):
-    Flags(0), FtrGen(ValV) {Init(NormalizeP, BinaryP); }
+TMultinomial::TMultinomial(const bool& NormalizeP, const bool& BinaryP, const bool& LogP,
+        const TStrV& ValV):
+    Flags(0), FtrGen(ValV) {Init(NormalizeP, BinaryP, LogP); }
 
-TMultinomial::TMultinomial(const bool& NormalizeP, const bool& BinaryP, const int& HashDim):
-    Flags(0), FtrGen(HashDim) { Init(NormalizeP, BinaryP); }
+TMultinomial::TMultinomial(const bool& NormalizeP, const bool& BinaryP, const bool& LogP,
+        const int& HashDim):
+    Flags(0), FtrGen(HashDim) { Init(NormalizeP, BinaryP, LogP); }
 
 void TMultinomial::Save(TSOut& SOut) const { 
     Flags.Save(SOut);
@@ -215,6 +224,8 @@ void TMultinomial::AddFtr(const TStrV& StrV, const TFltV& FltV, TIntFltKdV& SpV)
     SpV.Trunc(GoodSpN + 1);
     // replace values with 1 if needed
     if (IsBinary()) { for (TIntFltKd& Sp : SpV) { Sp.Dat = 1.0; } }
+    // compute the logarithm if needed
+    if (IsLog()) { for (TIntFltKd& Sp : SpV) { Sp.Dat = TMath::Log(Sp.Dat + 1); } }
     // final normalization, if needed
     if (IsNormalize()) { TLinAlg::Normalize(SpV); }    
 }
