@@ -1,4 +1,4 @@
-var qm = require('D:\\programming\\qminer');
+var qm = require('qminer');
 
 var base = new qm.Base({
     mode: "createClean",

@@ -17,9 +17,6 @@
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 
-#include <iostream>
-#include <vector>// std::vector
-
 namespace TQm {
 namespace TStreamAggrs {
 
@@ -38,24 +35,16 @@ class TGPSMeasurement {
 private:
     //PJsonVal Json;
 public:
-    TGPSMeasurement();
+	TGPSMeasurement() : Accuracy(0), Speed(-1), Distance(-1){
+		Time = 0;
+		TimeDiff = 0;
+	}
     TPoint LatLon;
-    TUInt64 Time = 0;//timestamp
+    TUInt64 Time;//timestamp
     TFlt Accuracy = 0;//accuracy
     TFlt Speed = -1;//given speed by GPS
     TFlt Distance = -1;//distance to previous
-    TUInt64 TimeDiff = 0;//time difference with previous
-
-    void PrintConsole() {
-        std::cout << "GPS:{time:" << Time << "\n";
-        std::cout << "lat:" << LatLon.Lat << "\n";
-        std::cout << "lon:" << LatLon.Lon << "\n";
-        std::cout << "acc:" << Accuracy << "\n";
-        std::cout << "speed:" << Speed << "\n";
-        std::cout << "dist:" << Distance << "\n";
-        std::cout << "timeDiff:" << TimeDiff << "}\n";
-    }
-
+    TUInt64 TimeDiff;//time difference with previous
     PJsonVal ToJson() const;
 };
 
@@ -64,12 +53,11 @@ public:
 class TGeoUtils {
 private:
     const static int R = 6371000;//earth radius in m
-    const static double Pi;//Pi
 public:
     /// Calculates distance betweet 2 geo points based on
     /// equirectangular distance approximation - this is
     /// good enough for small distances
-    static double QuickDist(const TPoint& p1, const TPoint& p2);
+    static double QuickDist(const TPoint& P1, const TPoint& P2);
 };
 
 //////////////////////
@@ -78,35 +66,35 @@ enum TGeoActivityType { Staytpoint, Path };
 enum TGeoActivityStatus { Current, Possible, Detected };
 class TGeoCluster {
 private:
-    TInt MStartIdx = -1;//start pointer to GPS Measurements state array
-    TInt MEndIdx = -1;  //end pointer to GPS Measurements state array
-    TUInt64 Arrive = 0;
-    TUInt64 Depart = 0;
-    TPoint CenterPoint = TPoint(0, 0);
+	TInt MStartIdx = -1;//start pointer to GPS Measurements state array
+	TInt MEndIdx = -1;  //end pointer to GPS Measurements state array
+	TUInt64 Arrive = 0;
+	TUInt64 Depart = 0;
+	TPoint CenterPoint = TPoint(0, 0);
 	TFlt AvgSpeed = 0;
 	TFlt AvgAccuracy = 0;
 	TFlt Distance = 0;
-    TGeoActivityType GeoType = TGeoActivityType::Path;
-    TGeoActivityStatus GeoActStatus = TGeoActivityStatus::Current;
+	TGeoActivityType GeoType = TGeoActivityType::Path;
+	TGeoActivityStatus GeoActStatus = TGeoActivityStatus::Current;
 public:
-    TGeoCluster(const int StartIdx, const int EndIdx,
-        const TVec<TGPSMeasurement>& StateVec);
-    TGeoCluster(TGeoActivityType _Type) : GeoType(_Type) {};
-    TGeoCluster() : GeoType(TGeoActivityType::Path) {};
-    void AddPoint(const TInt Idx, const TVec<TGPSMeasurement>& _GpsState);
-    uint Duration();
-    uint Len() const;
-    uint EndIdx() const { return MEndIdx; }
-    uint StartIdx() const { return MStartIdx; }
-    void DownShiftIdx(int _Num) { MStartIdx -= _Num; MEndIdx -= _Num; }
-    const TPoint& Center() const { return CenterPoint; }
-    const TGeoActivityType Type() const { return GeoType; }
-    void SetStatus(TGeoActivityStatus _status) {
-        GeoActStatus = _status;
-    }
-    const TGeoActivityStatus Status() const { return GeoActStatus; }
-    PJsonVal ToJson(const TVec<TGPSMeasurement>& _GpsStateVec, 
-                    const bool fullLoc) const;
+	TGeoCluster(const int& StartIdx, const int& EndIdx,
+		const TVec<TGPSMeasurement>& StateVec);
+	TGeoCluster(TGeoActivityType _Type) : GeoType(_Type) {};
+	TGeoCluster() : GeoType(TGeoActivityType::Path) {};
+	void AddPoint(const int& Idx, const TVec<TGPSMeasurement>& _GpsState);
+	uint64 Duration();
+	int Len() const;
+	int EndIdx() const { return MEndIdx; }
+	int StartIdx() const { return MStartIdx; }
+	void DownShiftIdx(int _Num) { MStartIdx -= _Num; MEndIdx -= _Num; }
+	const TPoint& Center() const { return CenterPoint; }
+	const TGeoActivityType Type() const { return GeoType; }
+	void SetStatus(TGeoActivityStatus Status) {
+		GeoActStatus = Status;
+	}
+	const TGeoActivityStatus Status() const { return GeoActStatus; }
+	PJsonVal ToJson(const TVec<TGPSMeasurement>& _GpsStateVec, 
+					const bool& FullLoc) const;
 };
 
 ///////////////////////////////
@@ -127,21 +115,21 @@ private:
     /// algorithm parameters
     PJsonVal Params;
     /// distance threshold (meters)
-    TUInt TrDist = 50;
+    TInt TrDist;
     /// time threshold (seconds)
-    TUInt TrTime = 300;
+    TInt TrTime;
 
     /// state
     //list of GPS measurements currently part of the satate
-    TVec<TGPSMeasurement> StateGpsMeasurements;
+    TVec<TGPSMeasurement> StateGpsMeasurementsV;
     //TGPSMeasurement lastRecord;//holds previous GPS record
-    TGeoCluster cl;//cluster from the algorihm (cl)
-    TGeoCluster plocs;//path locs from the algorithm (plocs)
-    TVec<TGeoCluster> DetectedGeoActivities;
-    bool hasFinishedGeoActs = false;
+    TGeoCluster CL;//cluster from the algorihm (cl)
+    TGeoCluster Plocs;//path locs from the algorithm (plocs)
+    TVec<TGeoCluster> DetectedGeoActivitiesV;
+    bool HasFinishedGeoActs = false;
 
     /// helper methods
-    bool parseRecord(const TRec& Rec, TGPSMeasurement& gps);
+    bool ParseRecord(const TRec& Rec, TGPSMeasurement& Gps);
     TGPSMeasurement* PrepareGPSRecord(const TRec& Rec);
 protected:
     ///  Updates the stay point model, sets State JSON
