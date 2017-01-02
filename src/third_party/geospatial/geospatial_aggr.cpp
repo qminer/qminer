@@ -189,7 +189,9 @@ void TStayPointDetector::OnAddRec(const TRec& Rec,
     }
 
     TInt CurrStateIdx = StateGpsMeasurementsV.Len() - 1;
+    
     State = TJsonVal::NewArr();
+    
 
     /* Implementation of ETC (named by Chinese paper):
     *  Extracting places from traces of locations:
@@ -229,6 +231,10 @@ void TStayPointDetector::OnAddRec(const TRec& Rec,
     /// save Json - get current state
 PJsonVal TStayPointDetector::SaveJson(const int& Limit) const
 {
+    if (State->GetArrVals() > 0) {
+        return State;
+    }
+
     TGeoCluster Path;
     int LastIdx = StateGpsMeasurementsV.Len() - 1;
     int StartIdx = 0; int EndIdx = 0;
