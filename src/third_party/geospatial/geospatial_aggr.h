@@ -25,7 +25,7 @@ namespace TStreamAggrs {
 struct TPoint {
     TFlt Lat;
     TFlt Lon;
-    TPoint() : Lat(0), Lon(0) {}
+	TPoint(){}
     TPoint(TFlt lat, TFlt lon) : Lat(lat), Lon(lon) {}
 };
 
@@ -35,15 +35,12 @@ class TGPSMeasurement {
 private:
     //PJsonVal Json;
 public:
-	TGPSMeasurement() : Accuracy(0), Speed(-1), Distance(-1){
-		Time = 0;
-		TimeDiff = 0;
-	}
+	TGPSMeasurement() : Speed(-1), Distance(-1){}
     TPoint LatLon;
     TUInt64 Time;//timestamp
-    TFlt Accuracy = 0;//accuracy
-    TFlt Speed = -1;//given speed by GPS
-    TFlt Distance = -1;//distance to previous
+    TFlt Accuracy;//accuracy
+    TFlt Speed;//given speed by GPS
+    TFlt Distance;//distance to previous
     TUInt64 TimeDiff;//time difference with previous
     PJsonVal ToJson() const;
 };
@@ -66,21 +63,23 @@ enum TGeoActivityType { Staytpoint, Path };
 enum TGeoActivityStatus { Current, Possible, Detected };
 class TGeoCluster {
 private:
-	TInt MStartIdx = -1;//start pointer to GPS Measurements state array
-	TInt MEndIdx = -1;  //end pointer to GPS Measurements state array
-	TUInt64 Arrive = 0;
-	TUInt64 Depart = 0;
-	TPoint CenterPoint = TPoint(0, 0);
-	TFlt AvgSpeed = 0;
-	TFlt AvgAccuracy = 0;
-	TFlt Distance = 0;
+	TInt MStartIdx;//start pointer to GPS Measurements state array
+	TInt MEndIdx;  //end pointer to GPS Measurements state array
+	TUInt64 Arrive;
+	TUInt64 Depart;
+	TPoint CenterPoint;
+	TFlt AvgSpeed;
+	TFlt AvgAccuracy;
+	TFlt Distance;
 	TGeoActivityType GeoType = TGeoActivityType::Path;
 	TGeoActivityStatus GeoActStatus = TGeoActivityStatus::Current;
 public:
+	TGeoCluster() : TGeoCluster(TGeoActivityType::Path) {};
+	TGeoCluster(TGeoActivityType _Type) : GeoType(_Type), MStartIdx(-1),
+		MEndIdx(-1){};
 	TGeoCluster(const int& StartIdx, const int& EndIdx,
 		const TVec<TGPSMeasurement>& StateVec);
-	TGeoCluster(TGeoActivityType _Type) : GeoType(_Type) {};
-	TGeoCluster() : GeoType(TGeoActivityType::Path) {};
+	
 	void AddPoint(const int& Idx, const TVec<TGPSMeasurement>& _GpsState);
 	uint64 Duration();
 	int Len() const;

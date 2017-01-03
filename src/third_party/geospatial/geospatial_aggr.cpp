@@ -72,7 +72,6 @@ uint64 TGeoCluster::Duration() {
     return (Depart - Arrive) / 1000;
 }//TGeoCluster::duration
 
-
 int TGeoCluster::Len() const {
 	if (MEndIdx < 0 || MStartIdx < 0) {
 		return 0;
@@ -81,7 +80,7 @@ int TGeoCluster::Len() const {
 }//TGeoCluster::size
 
 TGeoCluster::TGeoCluster(const int& StartIdx, const int& EndIdx,
-    const TVec<TGPSMeasurement>& StateVec)
+    const TVec<TGPSMeasurement>& StateVec): TGeoCluster(TGeoActivityType::Path)
 {
     for (int Idx = StartIdx; Idx <= EndIdx; Idx++) {
         AddPoint(Idx, StateVec);
