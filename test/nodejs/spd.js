@@ -7,14 +7,14 @@
  */
 
 // JavaScript source code
-var qm = require("../../");
+var qm = require("qminer");
 var assert = require("../../src/nodejs/scripts/assert.js");
 //Unit test for Kmeans
 
 describe("SPD aggregate system running aggr tests", function () {
-    let base = null;
-    let store = null;
-    let spdAggr = null;
+    var base = null;
+    var store = null;
+    var spdAggr = null;
 
     beforeEach(function(){
         base = new qm.Base({
@@ -55,7 +55,7 @@ describe("SPD aggregate system running aggr tests", function () {
     describe("Borderline usage (and arguments) tests", function () {
         it("should reject older or same age records that were already provided",
         function () {
-            let points =[
+            var points =[
                 {
                     "latitude": 46.0423046, 
                     "longitude": 14.4875852,
@@ -71,8 +71,8 @@ describe("SPD aggregate system running aggr tests", function () {
             ];
             
             for (var recIdx = 0; recIdx<points.length; recIdx++){
-                let rec = points[recIdx];
-                let qrec = store.newRecord({
+                var rec = points[recIdx];
+                var qrec = store.newRecord({
                     User:1,
                     Time:rec.time,
                     Location: [rec.latitude, rec.longitude],
