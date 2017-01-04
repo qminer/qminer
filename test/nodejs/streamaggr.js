@@ -120,6 +120,44 @@ describe('Stream Aggregator Tests', function () {
     });
 
     describe('JsStreamAggr Test', function () {
+    	it('should test saveStateJson and loadStateJson for javascript implemented stream aggregate', function () {
+            var aggr = new qm.StreamAggr(base, new function () {
+                var state = { calls : 0};
+                this.onStep = function () {
+                    state.calls++;
+                }
+                this.saveStateJson = function () {
+                    return state;
+                }
+                this.loadStateJson = function (_state) {
+                    state = _state;
+                }
+            }, 'People');            
+            var s0 = aggr.saveStateJson();
+            assert.equal(s0.calls, 0);
+            aggr.onStep();
+            
+            var s1 = aggr.saveStateJson();
+            assert.equal(s1.calls, 1);
+            // new aggregate
+            var aggr2 = new qm.StreamAggr(base, new function () {
+                var state = { calls : 0};
+                this.onStep = function () {
+                    state.calls++;
+                }
+                this.saveStateJson = function () {
+                    return state;
+                }
+                this.loadStateJson = function (_state) {
+                    state = _state;
+                }
+            }, 'People');
+            // load last state from the first aggregate
+            aggr2.loadStateJson(s1);
+            // get state of the second aggregate and compare
+            var s2 = aggr2.saveStateJson();
+            assert.equal(s2.calls, 1);
+        });
         it('should test getFloat and getInteger with string input', function () {
             var s = new qm.StreamAggr(base, new function () {
                 var data = {};
