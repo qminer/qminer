@@ -25,7 +25,7 @@ namespace TStreamAggrs {
 struct TPoint {
     TFlt Lat;
     TFlt Lon;
-	TPoint(){}
+    TPoint(){}
     TPoint(TFlt lat, TFlt lon) : Lat(lat), Lon(lon) {}
 };
 
@@ -35,7 +35,7 @@ class TGPSMeasurement {
 private:
     //PJsonVal Json;
 public:
-	TGPSMeasurement() : Speed(-1), Distance(-1){}
+    TGPSMeasurement() : Speed(-1), Distance(-1){}
     TPoint LatLon;
     TUInt64 Time;//timestamp
     TFlt Accuracy;//accuracy
@@ -63,45 +63,43 @@ enum TGeoActivityType { Staytpoint, Path };
 enum TGeoActivityStatus { Current, Possible, Detected };
 class TGeoCluster {
 private:
-	TInt MStartIdx;//start pointer to GPS Measurements state array
-	TInt MEndIdx;  //end pointer to GPS Measurements state array
-	TUInt64 Arrive;
-	TUInt64 Depart;
-	TPoint CenterPoint;
-	TFlt AvgSpeed;
-	TFlt AvgAccuracy;
-	TFlt Distance;
-	TGeoActivityType GeoType = TGeoActivityType::Path;
-	TGeoActivityStatus GeoActStatus = TGeoActivityStatus::Current;
+    TInt MStartIdx;//start pointer to GPS Measurements state array
+    TInt MEndIdx;  //end pointer to GPS Measurements state array
+    TUInt64 Arrive;
+    TUInt64 Depart;
+    TPoint CenterPoint;
+    TFlt AvgSpeed;
+    TFlt AvgAccuracy;
+    TFlt Distance;
+    TGeoActivityType GeoType;
+    TGeoActivityStatus GeoActStatus;
 public:
-	TGeoCluster() : TGeoCluster(TGeoActivityType::Path) {};
-	TGeoCluster(TGeoActivityType _Type) : GeoType(_Type), MStartIdx(-1),
-		MEndIdx(-1){};
-	TGeoCluster(const int& StartIdx, const int& EndIdx,
-		const TVec<TGPSMeasurement>& StateVec);
-	
-	void AddPoint(const int& Idx, const TVec<TGPSMeasurement>& _GpsState);
-	uint64 Duration();
-	int Len() const;
-	int EndIdx() const { return MEndIdx; }
-	int StartIdx() const { return MStartIdx; }
-	void DownShiftIdx(int _Num) { MStartIdx -= _Num; MEndIdx -= _Num; }
-	const TPoint& Center() const { return CenterPoint; }
-	const TGeoActivityType Type() const { return GeoType; }
-	void SetStatus(TGeoActivityStatus Status) {
-		GeoActStatus = Status;
-	}
-	const TGeoActivityStatus Status() const { return GeoActStatus; }
-	PJsonVal ToJson(const TVec<TGPSMeasurement>& _GpsStateVec, 
-					const bool& FullLoc) const;
+    TGeoCluster() : TGeoCluster(TGeoActivityType::Path) {};
+    TGeoCluster(TGeoActivityType _Type) : GeoType(_Type), MStartIdx(-1),
+        MEndIdx(-1), GeoActStatus(TGeoActivityStatus::Current){};
+    TGeoCluster(const int& StartIdx, const int& EndIdx,
+        const TVec<TGPSMeasurement>& StateVec);
+    
+    void AddPoint(const int& Idx, const TVec<TGPSMeasurement>& _GpsState);
+    uint64 Duration();
+    int Len() const;
+    int EndIdx() const { return MEndIdx; }
+    int StartIdx() const { return MStartIdx; }
+    void DownShiftIdx(int _Num) { MStartIdx -= _Num; MEndIdx -= _Num; }
+    const TPoint& Center() const { return CenterPoint; }
+    const TGeoActivityType Type() const { return GeoType; }
+    void SetStatus(TGeoActivityStatus Status) {
+        GeoActStatus = Status;
+    }
+    const TGeoActivityStatus Status() const { return GeoActStatus; }
+    PJsonVal ToJson(const TVec<TGPSMeasurement>& _GpsStateVec, 
+                    const bool& FullLoc) const;
 };
 
 ///////////////////////////////
 /// StayPoint detector aggregate
 class TStayPointDetector : public TStreamAggr {
 private:
-    /// state returned with SaveJson
-    PJsonVal State;
     /// pointer to store
     TWPt<TStore> Store;
     /// location field id for fast access

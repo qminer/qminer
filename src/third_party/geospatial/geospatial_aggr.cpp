@@ -50,21 +50,21 @@ void TGeoCluster::AddPoint(const int& Idx,
     MEndIdx = Idx;
     int Len = this->Len();
     // incremental averaging (m_n = m_n-1 + ((a_n-m_n-1)/n)
-	// m_n = avg value we want to calculate
-	// m_n-1 = previous avg value
-	// a_n = current value
-	// n = number of records (values)
+    // m_n = avg value we want to calculate
+    // m_n-1 = previous avg value
+    // a_n = current value
+    // n = number of records (values)
     CenterPoint.Lat = CenterPoint.Lat +
         ((CurrentGPS.LatLon.Lat - CenterPoint.Lat) / Len);
     CenterPoint.Lon = CenterPoint.Lon +
         ((CurrentGPS.LatLon.Lon - CenterPoint.Lon) / Len);
-	AvgSpeed = AvgSpeed +
-		((CurrentGPS.Speed - AvgSpeed) / Len);
-	AvgAccuracy = AvgAccuracy +
-		((CurrentGPS.Accuracy - AvgAccuracy) / Len);
-	
-	//distance
-	Distance = Distance + CurrentGPS.Distance;
+    AvgSpeed = AvgSpeed +
+        ((CurrentGPS.Speed - AvgSpeed) / Len);
+    AvgAccuracy = AvgAccuracy +
+        ((CurrentGPS.Accuracy - AvgAccuracy) / Len);
+    
+    //distance
+    Distance = Distance + CurrentGPS.Distance;
 }//TGeoCluster::addPoint
 
 /// returns duration in seconds
@@ -73,9 +73,9 @@ uint64 TGeoCluster::Duration() {
 }//TGeoCluster::duration
 
 int TGeoCluster::Len() const {
-	if (MEndIdx < 0 || MStartIdx < 0) {
-		return 0;
-	}
+    if (MEndIdx < 0 || MStartIdx < 0) {
+        return 0;
+    }
     return MEndIdx - MStartIdx + 1;
 }//TGeoCluster::size
 
@@ -90,33 +90,33 @@ TGeoCluster::TGeoCluster(const int& StartIdx, const int& EndIdx,
 PJsonVal TGeoCluster::ToJson(const TVec<TGPSMeasurement>& _GpsStateVec,
     const bool& FullLoc) const
 {
-	PJsonVal JGeoAct = TJsonVal::NewObj();
-	if (Type() == TGeoActivityType::Path) {
-		JGeoAct->AddToObj("type", "P");
-	}
-	else {
-		JGeoAct->AddToObj("type", "S");
-	}
-	JGeoAct->AddToObj("status", Status());
-	JGeoAct->AddToObj("latitude", Center().Lat);
-	JGeoAct->AddToObj("longitude", Center().Lon);
-	JGeoAct->AddToObj("start_time", Arrive);
-	JGeoAct->AddToObj("end_time", Depart);
-	JGeoAct->AddToObj("duration", (Depart - Arrive) / 1000);
-	JGeoAct->AddToObj("locationsNum", this->Len());
-	JGeoAct->AddToObj("avgSpeed", AvgSpeed);
-	JGeoAct->AddToObj("avgAccuracy", AvgAccuracy);
-	JGeoAct->AddToObj("distance", Distance);
+    PJsonVal JGeoAct = TJsonVal::NewObj();
+    if (Type() == TGeoActivityType::Path) {
+        JGeoAct->AddToObj("type", "P");
+    }
+    else {
+        JGeoAct->AddToObj("type", "S");
+    }
+    JGeoAct->AddToObj("status", Status());
+    JGeoAct->AddToObj("latitude", Center().Lat);
+    JGeoAct->AddToObj("longitude", Center().Lon);
+    JGeoAct->AddToObj("start_time", Arrive);
+    JGeoAct->AddToObj("end_time", Depart);
+    JGeoAct->AddToObj("duration", (Depart - Arrive) / 1000);
+    JGeoAct->AddToObj("locationsNum", this->Len());
+    JGeoAct->AddToObj("avgSpeed", AvgSpeed);
+    JGeoAct->AddToObj("avgAccuracy", AvgAccuracy);
+    JGeoAct->AddToObj("distance", Distance);
 
-	if (FullLoc) {
-		PJsonVal JLocs = TJsonVal::NewArr();
-		for (int LocIdx = MStartIdx; LocIdx <= MEndIdx; LocIdx++) {
-			const TGPSMeasurement& Gps = _GpsStateVec[LocIdx];
-			JLocs->AddToArr(Gps.ToJson());
-		}
-		JGeoAct->AddToObj("locations", JLocs);
-	}
-	return JGeoAct;
+    if (FullLoc) {
+        PJsonVal JLocs = TJsonVal::NewArr();
+        for (int LocIdx = MStartIdx; LocIdx <= MEndIdx; LocIdx++) {
+            const TGPSMeasurement& Gps = _GpsStateVec[LocIdx];
+            JLocs->AddToArr(Gps.ToJson());
+        }
+        JGeoAct->AddToObj("locations", JLocs);
+    }
+    return JGeoAct;
 }
 
 
@@ -143,7 +143,7 @@ TStayPointDetector::TStayPointDetector(
 {
     if (ParamVal->IsObjKey("params")) {
         Params = ParamVal->GetObjKey("params");
-		TrDist = (int)Params->GetObjNum("dT", 50);
+        TrDist = (int)Params->GetObjNum("dT", 50);
         TrTime = (int)Params->GetObjNum("tT", 300);
     }//if params given
 
@@ -156,9 +156,6 @@ TStayPointDetector::TStayPointDetector(
     LocationFieldId = Store->GetFieldId(LocationFieldName);
     TStr AccuracyFieldName = ParamVal->GetObjStr("accuracyField");
     AccuracyFieldId = Store->GetFieldId(AccuracyFieldName);
-
-    //init the state in case saveJson is called before onAdd();
-    State = TJsonVal::NewArr();
 }//TStayPointDetector::constructor
 
 void TStayPointDetector::OnAddRec(const TRec& Rec,
@@ -166,11 +163,10 @@ void TStayPointDetector::OnAddRec(const TRec& Rec,
 {
     TScopeStopWatch StopWatch(ExeTm);//auto stopwatch for the QM aggregate
                                         //parse new GPS record from JSON
-
     int NumOfRecordsToForget = 0;
     HasFinishedGeoActs = false;
     //delete previously detected stuff
-	int DetectedLen = DetectedGeoActivitiesV.Len();
+    int DetectedLen = DetectedGeoActivitiesV.Len();
     for (int GeoActN = 0; GeoActN < DetectedLen; GeoActN++) {
         TGeoCluster& clstr = DetectedGeoActivitiesV[GeoActN];
         NumOfRecordsToForget = clstr.EndIdx();
@@ -180,49 +176,45 @@ void TStayPointDetector::OnAddRec(const TRec& Rec,
         StateGpsMeasurementsV.Del(0, NumOfRecordsToForget);
         //+1 because it deletes 0 IDX as well
         CL.DownShiftIdx(NumOfRecordsToForget + 1);
-		Plocs.DownShiftIdx(NumOfRecordsToForget + 1);
+        Plocs.DownShiftIdx(NumOfRecordsToForget + 1);
     }
     TGPSMeasurement* NewRec = PrepareGPSRecord(Rec);
     if (NewRec == NULL) {//rejected record
         return;
     }
-
     TInt CurrStateIdx = StateGpsMeasurementsV.Len() - 1;
-    
-    State = TJsonVal::NewArr();
-    
-
+   
     /* Implementation of ETC (named by Chinese paper):
     *  Extracting places from traces of locations:
     *  Kang, J. H., Welbourne, W., Stewart, B., & Borriello, G. (2005).
     *  Extracting places from traces of locations. ACM SIGMOBILE Mobile
     *  Computing and Communications Review, 9(3), 58.
     *  http://doi.org/10.1145/1094549.1094558 */
-    if (TGeoUtils::QuickDist(CL.Center(), NewRec->LatLon) < TrDist) {	   //01
-        CL.AddPoint(CurrStateIdx, StateGpsMeasurementsV);			       //02
-        Plocs = TGeoCluster(TGeoActivityType::Path);	        	       //03
+    if (TGeoUtils::QuickDist(CL.Center(), NewRec->LatLon) < TrDist) {      //01
+        CL.AddPoint(CurrStateIdx, StateGpsMeasurementsV);                  //02
+        Plocs = TGeoCluster(TGeoActivityType::Path);                       //03
     }
-    else {							    							       //04
-        if (Plocs.Len() > 1) {										       //05
-            if (CL.Duration() > TrTime) {						           //06
+    else {                                                                 //04
+        if (Plocs.Len() > 1) {                                             //05
+            if (CL.Duration() > TrTime) {                                  //06
                 CL.SetStatus(TGeoActivityStatus::Detected);
-                DetectedGeoActivitiesV.Add(CL);						       //07
+                DetectedGeoActivitiesV.Add(CL);                            //07
                 HasFinishedGeoActs = true;
             }
-            CL = TGeoCluster(TGeoActivityType::Staytpoint);    		       //08
-            CL.AddPoint(Plocs.EndIdx(), StateGpsMeasurementsV);	           //09
-            Plocs = TGeoCluster(TGeoActivityType::Path);				   //10
+            CL = TGeoCluster(TGeoActivityType::Staytpoint);                //08
+            CL.AddPoint(Plocs.EndIdx(), StateGpsMeasurementsV);            //09
+            Plocs = TGeoCluster(TGeoActivityType::Path);                   //10
             if (TGeoUtils::QuickDist(CL.Center(), NewRec->LatLon) < TrDist) {//11
-                CL.AddPoint(CurrStateIdx, StateGpsMeasurementsV);		   //12
+                CL.AddPoint(CurrStateIdx, StateGpsMeasurementsV);          //12
                 Plocs = TGeoCluster(TGeoActivityType::Path);               //13??? not needed
             }
-            else {													       //14
-                Plocs.AddPoint(CurrStateIdx, StateGpsMeasurementsV);		   //15
+            else {                                                         //14
+                Plocs.AddPoint(CurrStateIdx, StateGpsMeasurementsV);       //15
             }
         }//if plcocs len >1
-        else															   //16
+        else                                                               //16
         {
-            Plocs.AddPoint(CurrStateIdx, StateGpsMeasurementsV);			   //17
+            Plocs.AddPoint(CurrStateIdx, StateGpsMeasurementsV);           //17
         }
     }
 }//TStayPointDetector::OnAddRec
@@ -230,10 +222,12 @@ void TStayPointDetector::OnAddRec(const TRec& Rec,
     /// save Json - get current state
 PJsonVal TStayPointDetector::SaveJson(const int& Limit) const
 {
-    if (State->GetArrVals() > 0) {
-        return State;
+    PJsonVal State = TJsonVal::NewArr();
+    bool GetFullLocs = false;
+    if (Limit || HasFinishedGeoActs)
+    {
+        GetFullLocs = true;
     }
-
     TGeoCluster Path;
     int LastIdx = StateGpsMeasurementsV.Len() - 1;
     int StartIdx = 0; int EndIdx = 0;
@@ -246,13 +240,13 @@ PJsonVal TStayPointDetector::SaveJson(const int& Limit) const
             Path = TGeoCluster(StartIdx, EndIdx, StateGpsMeasurementsV);
             Path.SetStatus(TGeoActivityStatus::Detected);
             State->AddToArr(Path.ToJson(StateGpsMeasurementsV, 
-                HasFinishedGeoActs));
+                GetFullLocs));
         }
         State->AddToArr(DetectedStp.ToJson(StateGpsMeasurementsV, 
-                HasFinishedGeoActs));
+                        GetFullLocs));
         StartIdx = DetectedStp.EndIdx() + 1;
     }//if detected staypoint
-        //if plocs locations are earlier than cl, we simply add them to the path
+    //if plocs locations are earlier than cl, we simply add them to the path
     if (CL.Len() == 0) {//if CL or CL and PLOCS are empty
         EndIdx = LastIdx;
     }
@@ -268,17 +262,17 @@ PJsonVal TStayPointDetector::SaveJson(const int& Limit) const
     //covers scenario when there is no detectedSTP and all up to here is a path
     if (StartIdx <= EndIdx) {
         Path = TGeoCluster(StartIdx, EndIdx, StateGpsMeasurementsV);
-        State->AddToArr(Path.ToJson(StateGpsMeasurementsV, HasFinishedGeoActs));
+        State->AddToArr(Path.ToJson(StateGpsMeasurementsV, GetFullLocs));
     }
 
     if (CL.Len() > 0) {
-        State->AddToArr(CL.ToJson(StateGpsMeasurementsV, HasFinishedGeoActs));
+        State->AddToArr(CL.ToJson(StateGpsMeasurementsV, GetFullLocs));
         EndIdx = CL.EndIdx() + 1;
     }
 
     if (EndIdx < LastIdx) {
         Path = TGeoCluster(EndIdx, LastIdx, StateGpsMeasurementsV);
-        State->AddToArr(Path.ToJson(StateGpsMeasurementsV, HasFinishedGeoActs));
+        State->AddToArr(Path.ToJson(StateGpsMeasurementsV, GetFullLocs));
     }
     return State;
 }
@@ -294,10 +288,10 @@ bool TStayPointDetector::ParseRecord(const TRec& Rec, TGPSMeasurement& Gps) {
     double Lat = Rec.GetFieldFltPr(LocationFieldId).Val1;
     double Lon = Rec.GetFieldFltPr(LocationFieldId).Val2;
 
-	double Accuracy = 0;
-	if (!Rec.IsFieldNull(AccuracyFieldId)) {
-		Accuracy = Rec.GetFieldByte(AccuracyFieldId);
-	}
+    double Accuracy = 0;
+    if (!Rec.IsFieldNull(AccuracyFieldId)) {
+        Accuracy = Rec.GetFieldByte(AccuracyFieldId);
+    }
     Gps.Time = Time;
     Gps.LatLon = TPoint(Lat, Lon);
     Gps.Accuracy = Accuracy;
