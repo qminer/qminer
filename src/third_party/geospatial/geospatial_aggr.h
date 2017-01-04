@@ -75,23 +75,24 @@ private:
     TGeoActivityStatus GeoActStatus;
 public:
     TGeoCluster() : TGeoCluster(TGeoActivityType::Path) {};
-    TGeoCluster(TGeoActivityType _Type) : GeoType(_Type), MStartIdx(-1),
-        MEndIdx(-1), GeoActStatus(TGeoActivityStatus::Current){};
+    TGeoCluster(TGeoActivityType _Type) : MStartIdx(-1), MEndIdx(-1), 
+        GeoType(_Type), GeoActStatus(TGeoActivityStatus::Current){};
     TGeoCluster(const int& StartIdx, const int& EndIdx,
         const TVec<TGPSMeasurement>& StateVec);
     
     void AddPoint(const int& Idx, const TVec<TGPSMeasurement>& _GpsState);
-    uint64 Duration();
+    int Duration();
     int Len() const;
     int EndIdx() const { return MEndIdx; }
     int StartIdx() const { return MStartIdx; }
     void DownShiftIdx(int _Num) { MStartIdx -= _Num; MEndIdx -= _Num; }
-    const TPoint& Center() const { return CenterPoint; }
-    const TGeoActivityType Type() const { return GeoType; }
+    //const TPoint& Center() const { return CenterPoint; }
+    double QuickDist(const TPoint& P1);
+    TGeoActivityType Type() const { return GeoType; }
     void SetStatus(TGeoActivityStatus Status) {
         GeoActStatus = Status;
     }
-    const TGeoActivityStatus Status() const { return GeoActStatus; }
+    TGeoActivityStatus Status() const { return GeoActStatus; }
     PJsonVal ToJson(const TVec<TGPSMeasurement>& _GpsStateVec, 
                     const bool& FullLoc) const;
 };

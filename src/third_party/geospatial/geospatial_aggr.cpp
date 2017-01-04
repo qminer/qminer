@@ -68,7 +68,7 @@ void TGeoCluster::AddPoint(const int& Idx,
 }//TGeoCluster::addPoint
 
 /// returns duration in seconds
-uint64 TGeoCluster::Duration() {
+int TGeoCluster::Duration() {
     return (Depart - Arrive) / 1000;
 }//TGeoCluster::duration
 
@@ -87,6 +87,10 @@ TGeoCluster::TGeoCluster(const int& StartIdx, const int& EndIdx,
     }
 }
 
+double TGeoCluster::QuickDist(const TPoint& P2) {
+    return TGeoUtils::QuickDist(CenterPoint, P2);
+}
+
 PJsonVal TGeoCluster::ToJson(const TVec<TGPSMeasurement>& _GpsStateVec,
     const bool& FullLoc) const
 {
@@ -98,8 +102,8 @@ PJsonVal TGeoCluster::ToJson(const TVec<TGPSMeasurement>& _GpsStateVec,
         JGeoAct->AddToObj("type", "S");
     }
     JGeoAct->AddToObj("status", Status());
-    JGeoAct->AddToObj("latitude", Center().Lat);
-    JGeoAct->AddToObj("longitude", Center().Lon);
+    JGeoAct->AddToObj("latitude", CenterPoint.Lat);
+    JGeoAct->AddToObj("longitude", CenterPoint.Lon);
     JGeoAct->AddToObj("start_time", Arrive);
     JGeoAct->AddToObj("end_time", Depart);
     JGeoAct->AddToObj("duration", (Depart - Arrive) / 1000);
@@ -190,7 +194,7 @@ void TStayPointDetector::OnAddRec(const TRec& Rec,
     *  Extracting places from traces of locations. ACM SIGMOBILE Mobile
     *  Computing and Communications Review, 9(3), 58.
     *  http://doi.org/10.1145/1094549.1094558 */
-    if (TGeoUtils::QuickDist(CL.Center(), NewRec->LatLon) < TrDist) {      //01
+    if (CL.QuickDist(NewRec->LatLon) < TrDist) {                           //01
         CL.AddPoint(CurrStateIdx, StateGpsMeasurementsV);                  //02
         Plocs = TGeoCluster(TGeoActivityType::Path);                       //03
     }
@@ -204,7 +208,7 @@ void TStayPointDetector::OnAddRec(const TRec& Rec,
             CL = TGeoCluster(TGeoActivityType::Staytpoint);                //08
             CL.AddPoint(Plocs.EndIdx(), StateGpsMeasurementsV);            //09
             Plocs = TGeoCluster(TGeoActivityType::Path);                   //10
-            if (TGeoUtils::QuickDist(CL.Center(), NewRec->LatLon) < TrDist) {//11
+            if (CL.QuickDist(NewRec->LatLon) < TrDist) {                   //11
                 CL.AddPoint(CurrStateIdx, StateGpsMeasurementsV);          //12
                 Plocs = TGeoCluster(TGeoActivityType::Path);               //13??? not needed
             }
