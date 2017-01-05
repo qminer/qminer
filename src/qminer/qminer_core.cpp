@@ -6629,11 +6629,19 @@ PStreamAggr TStreamAggr::New(const TWPt<TBase>& Base, const TStr& TypeNm, const 
 }
 
 void TStreamAggr::LoadState(TSIn& SIn) {
-    throw TQmExcept::New("TStreamAggr::_Load not implemented:" + GetAggrNm());
+    throw TQmExcept::New("TStreamAggr::LoadState not implemented:" + GetAggrNm());
 };
 
 void TStreamAggr::SaveState(TSOut& SOut) const {
-    throw TQmExcept::New("TStreamAggr::_Save not implemented:" + GetAggrNm());
+    throw TQmExcept::New("TStreamAggr::SaveState not implemented:" + GetAggrNm());
+};
+
+void TStreamAggr::LoadStateJson(const PJsonVal& State) {
+    throw TQmExcept::New("TStreamAggr::LoadStateJson not implemented:" + GetAggrNm());
+};
+
+PJsonVal TStreamAggr::SaveStateJson() const {
+    throw TQmExcept::New("TStreamAggr::SaveStateJson not implemented:" + GetAggrNm());
 };
 
 ///////////////////////////////
