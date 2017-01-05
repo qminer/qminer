@@ -297,14 +297,18 @@ PJsonVal TStayPointDetector::SaveJson(const int& Limit) const
 }
 
 void TStayPointDetector::LoadStateJson(const PJsonVal& State){
-    PJsonVal LocationsArr = State->GetObjKey("locations");
-    StateGpsMeasurementsV.Clr();
-    int LocLen = LocationsArr->GetArrVals();
-    for (int LocIdx = 0; LocIdx < LocLen; LocIdx++) {
-        TGPSMeasurement GpsRec = 
-            TGPSMeasurement(LocationsArr->GetArrVal(LocIdx));
-        //printf("%u\n", GpsRec.Time);
-        StateGpsMeasurementsV.Add(GpsRec);
+    if (!State->IsNull()) {
+        if (State->IsObjKey("locations")) {
+            PJsonVal LocationsArr = State->GetObjKey("locations");
+            StateGpsMeasurementsV.Clr();
+            int LocLen = LocationsArr->GetArrVals();
+            for (int LocIdx = 0; LocIdx < LocLen; LocIdx++) {
+                TGPSMeasurement GpsRec =
+                    TGPSMeasurement(LocationsArr->GetArrVal(LocIdx));
+                //printf("%u\n", GpsRec.Time);
+                StateGpsMeasurementsV.Add(GpsRec);
+            }
+        }
     }
 }
 
