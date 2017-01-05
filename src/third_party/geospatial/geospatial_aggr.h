@@ -36,6 +36,7 @@ private:
     //PJsonVal Json;
 public:
     TGPSMeasurement() : Speed(-1), Distance(-1){}
+    TGPSMeasurement(const PJsonVal& Rec);
     TPoint LatLon;
     TUInt64 Time;//timestamp
     TFlt Accuracy;//accuracy
@@ -128,7 +129,6 @@ private:
 
     /// helper methods
     bool ParseGPSRec(const TRec& Rec, TGPSMeasurement& Gps);
-    bool ParseJsonGPSRec(const PJsonVal& Rec, TGPSMeasurement& Gps);
     TGPSMeasurement* PrepareGPSRecord(const TRec& Rec);
 protected:
     ///  Updates the stay point model, sets State JSON

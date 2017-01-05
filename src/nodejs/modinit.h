@@ -20,5 +20,6 @@
 #include "snap_nodejs.h"
 #include "qm_nodejs.h"
 #include "streamstory_node.h"
+#include "geospatial_aggr.h"
 
 #endif
