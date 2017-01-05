@@ -41,7 +41,7 @@ public:
     TFlt Accuracy;//accuracy
     TFlt Speed;//given speed by GPS
     TFlt Distance;//distance to previous
-    TUInt64 TimeDiff;//time difference with previous
+    TInt TimeDiff;//time difference with previous
     PJsonVal ToJson() const;
 };
 
@@ -127,7 +127,8 @@ private:
     bool HasFinishedGeoActs = false;
 
     /// helper methods
-    bool ParseRecord(const TRec& Rec, TGPSMeasurement& Gps);
+    bool ParseGPSRec(const TRec& Rec, TGPSMeasurement& Gps);
+    bool ParseJsonGPSRec(const PJsonVal& Rec, TGPSMeasurement& Gps);
     TGPSMeasurement* PrepareGPSRecord(const TRec& Rec);
 protected:
     ///  Updates the stay point model, sets State JSON
@@ -139,10 +140,16 @@ public:
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
         return new TStayPointDetector(Base, ParamVal);
     }
+    
     /// Loads state
     void LoadState(TSIn& SIn);
     /// Saves state
     void SaveState(TSOut& SOut) const;
+    /// Load stream aggregate state from JSON
+    void LoadStateJson(const PJsonVal& State);
+    /// Save state of stream aggregate and return it as a JSON
+    PJsonVal SaveStateJson() const;
+
     /// Is the aggregate initialized?
     bool IsInit() const;
     /// Resets the aggregate

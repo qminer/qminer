@@ -69,7 +69,7 @@ void TGeoCluster::AddPoint(const int& Idx,
 
 /// returns duration in seconds
 int TGeoCluster::Duration() {
-    return (Depart - Arrive) / 1000;
+    return (int)(Depart - Arrive) / 1000;
 }//TGeoCluster::duration
 
 int TGeoCluster::Len() const {
@@ -281,11 +281,60 @@ PJsonVal TStayPointDetector::SaveJson(const int& Limit) const
     return State;
 }
 
+void TStayPointDetector::LoadStateJson(const PJsonVal& State){
+    PJsonVal LocationsArr = State->GetObjKey("locations");
+    StateGpsMeasurementsV.Clr();
+    int LocLen = LocationsArr->GetArrVals();
+    for (int LocIdx = 0; LocIdx < LocLen; LocIdx++) {
+        TGPSMeasurement GpsRec;
+        if (ParseJsonGPSRec(LocationsArr->GetArrVal(LocIdx), GpsRec)) {
+            StateGpsMeasurementsV.Add(GpsRec);
+        }
+    }
+}
+
+PJsonVal TStayPointDetector::SaveStateJson() const { 
+    PJsonVal SateObj = TJsonVal::NewObj(); 
+    PJsonVal JLocs = TJsonVal::NewArr();
+
+    //save locations
+    int Len = StateGpsMeasurementsV.Len();
+    for (int LocIdx = 0; LocIdx <= Len; LocIdx++) {
+        const TGPSMeasurement& Gps = StateGpsMeasurementsV[LocIdx];
+        JLocs->AddToArr(Gps.ToJson());
+    }
+    SateObj->AddToObj("locations", JLocs);
+    return SateObj;
+};
+
 /// Helper function for easier GPSRecord creation. It assigns values to new
 /// TGPSRecord, compares it to the previous record and then re-stores it as
 /// lastRecord, for next parsing. If parse is not successfull, it returns false
 /// otherwise True
-bool TStayPointDetector::ParseRecord(const TRec& Rec, TGPSMeasurement& Gps) {
+bool TStayPointDetector::ParseJsonGPSRec(const PJsonVal& Rec, 
+    TGPSMeasurement& Gps) 
+{
+    uint64 Time = Rec->GetObjKey("time")->GetNum();
+    double Lat = Rec->GetObjKey("latitude")->GetNum();
+    double Lon = Rec->GetObjKey("longitude")->GetNum();
+    double Accuracy = Rec->GetObjKey("accuracy")->GetNum();
+    double DistDiff = Rec->GetObjKey("distanceDiff")->GetNum();
+    double Speed = Rec->GetObjKey("speed")->GetNum();
+    double TimeDiff = Rec->GetObjKey("timeDiff")->GetNum();
+    Gps.Time = Time;
+    Gps.LatLon = TPoint(Lat, Lon);
+    Gps.Accuracy = Accuracy;
+    Gps.Distance = DistDiff;
+    Gps.Speed = Speed;
+    Gps.TimeDiff = (int)TimeDiff;
+    return true;
+}//ParseJsonGPSRec
+
+/// Helper function for easier GPSRecord creation. It assigns values to new
+/// TGPSRecord, compares it to the previous record and then re-stores it as
+/// lastRecord, for next parsing. If parse is not successfull, it returns false
+/// otherwise True
+bool TStayPointDetector::ParseGPSRec(const TRec& Rec, TGPSMeasurement& Gps) {
     TTm Timestamp; Rec.GetFieldTm(TimeFieldId, Timestamp);
     uint64 Time =
         TTm::GetUnixMSecsFromWinMSecs(Timestamp.GetMSecsFromTm(Timestamp));
@@ -325,7 +374,7 @@ bool TStayPointDetector::ParseRecord(const TRec& Rec, TGPSMeasurement& Gps) {
 TGPSMeasurement* TStayPointDetector::PrepareGPSRecord(const TRec& Rec) {
     TGPSMeasurement gps;
     //fill in the record
-    if (!ParseRecord(Rec, gps)) {
+    if (!ParseGPSRec(Rec, gps)) {
         return NULL;
     }
 
