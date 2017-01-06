@@ -3668,10 +3668,6 @@ public:
     /// Print latest statistics to logger
     void PrintStat() const;
 
-    /// Load stream aggregate state from stream
-    void LoadState(TSIn& SIn);
-    /// Save state of stream aggregate to stream
-    void SaveState(TSOut& SOut) const;
     /// Serialization current status to JSon
     PJsonVal SaveJson(const int& Limit) const;
 
