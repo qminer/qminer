@@ -297,7 +297,7 @@ PJsonVal TStayPointDetector::SaveJson(const int& Limit) const
 }
 
 void TStayPointDetector::LoadStateJson(const PJsonVal& State){
-    if (!State->IsNull()) {
+    if (!State->IsNull() && !State->IsArr()) {
         if (State->IsObjKey("locations")) {
             PJsonVal LocationsArr = State->GetObjKey("locations");
             StateGpsMeasurementsV.Clr();
