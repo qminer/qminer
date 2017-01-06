@@ -9,7 +9,6 @@
 #include "qminer_core.h"
 #include "qminer_ftr.h"
 #include "qminer_aggr.h"
-//#include "geospatial_aggr.h"
 
 namespace TQm {
 
@@ -6602,8 +6601,6 @@ void TStreamAggr::Init() {
     Register<TStreamAggrs::TWinBufSpVecSum>();
     Register<TStreamAggrs::TRecSwitchAggr>();
     Register<TStreamAggrs::THistogramAD>();
-    // geospatial aggregates
-    //Register<TStreamAggrs::TStayPointDetector>();
 }
 
 TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm): Base(_Base), AggrNm(_AggrNm) {
@@ -6629,11 +6626,19 @@ PStreamAggr TStreamAggr::New(const TWPt<TBase>& Base, const TStr& TypeNm, const 
 }
 
 void TStreamAggr::LoadState(TSIn& SIn) {
-    throw TQmExcept::New("TStreamAggr::_Load not implemented:" + GetAggrNm());
+    throw TQmExcept::New("TStreamAggr::LoadState not implemented:" + GetAggrNm());
 };
 
 void TStreamAggr::SaveState(TSOut& SOut) const {
-    throw TQmExcept::New("TStreamAggr::_Save not implemented:" + GetAggrNm());
+    throw TQmExcept::New("TStreamAggr::SaveState not implemented:" + GetAggrNm());
+};
+
+void TStreamAggr::LoadStateJson(const PJsonVal& State) {
+    throw TQmExcept::New("TStreamAggr::LoadStateJson not implemented:" + GetAggrNm());
+};
+
+PJsonVal TStreamAggr::SaveStateJson() const {
+    throw TQmExcept::New("TStreamAggr::SaveStateJson not implemented:" + GetAggrNm());
 };
 
 ///////////////////////////////

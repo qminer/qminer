@@ -145,6 +145,9 @@
                 # StreamStory
                 'src/third_party/streamstory/streamstory_node.h',
                 'src/third_party/streamstory/streamstory_node.cpp',
+                # Geospatial
+                'src/third_party/geospatial/geospatial_aggr.h',
+                'src/third_party/geospatial/geospatial_aggr.cpp',
                 # addon utilities
                 'src/nodejs/nodeutil.h',
                 'src/nodejs/nodeutil.cpp',
@@ -176,6 +179,8 @@
                 'src/nodejs/statistics',
                 # StreamStory
                 'src/third_party/streamstory/',
+                # Geospatial
+                'src/third_party/geospatial/',
                 'src/nodejs/',
                 'src/qminer/',
                 'src/glib/base/',

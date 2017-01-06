@@ -25,7 +25,7 @@ var aggr = store.addStreamAggr({
     timeField: "Time",
     locationField: "Location",
     accuracyField: "Accuracy",
-    params: { k: 5 }
+    params: { dT: 51, tT: 301 }
 });
 
 var ts = Date.now();
