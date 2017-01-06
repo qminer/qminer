@@ -42,11 +42,12 @@ script:
   - if [ "$CXX" = "g++-4.8" ] ; then echo gpp ok ; fi
   - echo status pub && echo $PUBLISH_BINARY && echo $TRAVIS_REPO_SLUG && echo $TRAVIS_PULL_REQUEST
   # publishing will work from qminer/qminer only!
-  - if [ "$CXX" = "g++-4.8" ] && [[ $PUBLISH_BINARY == true ]] && [ "$TRAVIS_REPO_SLUG" = "qminer/qminer" ] && [[ $TRAVIS_PULL_REQUEST == false ]]; then echo publishing && ./node_modules/.bin/node-pre-gyp package unpublish publish && ./tools/publish32.sh; fi
+  - if [ "$CXX" = "g++-4.8" ] && [[ $PUBLISH_BINARY == true ]] && [ "$TRAVIS_REPO_SLUG" = "qminer/qminer" ] && [[ $TRAVIS_PULL_REQUEST == false ]]; then echo publishing && ./node_modules/.bin/node-pre-gyp package unpublish publish; fi
   - npm install -g mocha
   - npm install -g mustache
   - ./tools/genExampleTests.sh
   - ./test/nodejs/test.sh
+  - if [ "$CXX" = "g++-4.8" ] && [[ $PUBLISH_BINARY == true ]] && [ "$TRAVIS_REPO_SLUG" = "qminer/qminer" ] && [[ $TRAVIS_PULL_REQUEST == false ]]; then echo "publishing 32bit" && ./tools/publish32.sh; fi
 os: linux
 notifications:
   email:  
