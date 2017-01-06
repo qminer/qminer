@@ -78,6 +78,7 @@ void InitAnalytics(Handle<Object> Exports, const TStr& NsNm) {
     TNodeJsTokenizer::Init(NsObj);
     TNodeJsMDS::Init(NsObj);
     TNodeJsKMeans::Init(NsObj);
+    TNodeJsTDigest::Init(NsObj);
     TNodeJsRecommenderSys::Init(NsObj);
     TNodeJsGraphCascade::Init(NsObj);
 

@@ -1678,22 +1678,31 @@ PJsonVal TOnlineHistogram::SaveJson() const {
 
 ///////////////////////////////////////////////////////////////////
 // TTDigest
+void TTDigest::Init(const int& N) {
+    Nc = N;
+    Max = TFlt::Mn;
+    Min = TFlt::Mx;
+    UnmergedSum = 0;
+    TempLast = 0;
 
-void TTDigest::Update(const double& V, const double& Count) {
-    Updates++;
-    if (TempLast >= TempWeight.Len()) {
-        MergeValues();
+    Size = (int)ceil(Nc * TMath::Pi / 2);
+    TotalSum = 0;
+    Last = 0;
+
+    for (int Iter = 0; Iter < Size; Iter++) {
+        Weight.Add(0);
+        Mean.Add(0);
+        MergeWeight.Add(0);
+        MergeMean.Add(0);
     }
-    TInt N_ = TempLast++;
-    TempWeight[N_] = Count;
-    TempMean[N_] = V;
-    UnmergedSum += Count;
-    MergeValues();
+
+    int Tempsize = NumTemp(Nc);
+    for (int Iter = 0; Iter < Tempsize; Iter++) {
+        TempMean.Add(TFlt::Mx);
+        TempWeight.Add(0);
+    }
 }
 
-int TTDigest::GetClusters() const {
-    return Mean.Len();
-}
 double TTDigest::GetQuantile(const double& Q) const {
     double Left = Min;
     double Right = Max;
@@ -1711,13 +1720,85 @@ double TTDigest::GetQuantile(const double& Q) const {
     int I = Bisect(MergeMean, QSum, N0, N1);
 
     if (I > 0) {
-        Left = Boundary(I-1, I, Mean, Weight);
+        Left = Boundary(I - 1, I, Mean, Weight);
     }
     if (I < Last) {
-        Right = Boundary(I, I+1, Mean, Weight);
+        Right = Boundary(I, I + 1, Mean, Weight);
     }
-    return Left + (Right - Left) * (QSum - (MergeMean[I-1])) / Weight[I];
+    double Quantile = Left + (Right - Left) * (QSum -
+        ((I <= 0 || I > MergeMean.Len()) ? 0.0 : MergeMean[I - 1])) / Weight[I];
+
+    return Quantile;
 };
+
+int TTDigest::GetClusters() const {
+    return Mean.Len();
+}
+
+void TTDigest::Update(const double& V, const double& Count) {
+    Updates++;
+    if (TempLast >= TempWeight.Len()) {
+        MergeValues();
+    }
+    TInt N_ = TempLast++;
+    TempWeight[N_] = Count;
+    TempMean[N_] = V;
+    UnmergedSum += Count;
+    MergeValues();
+}
+
+void TTDigest::SaveState(TSOut& SOut) const {
+    MinPointsInit.Save(SOut);
+    Nc.Save(SOut);
+    Size.Save(SOut);
+    Last.Save(SOut);
+    TotalSum.Save(SOut);
+    Weight.Save(SOut);
+    Mean.Save(SOut);
+    Min.Save(SOut);
+    Max.Save(SOut);
+    MergeWeight.Save(SOut);
+    MergeMean.Save(SOut);
+    Tempsize.Save(SOut);
+    UnmergedSum.Save(SOut);
+    TempLast.Save(SOut);
+    TempWeight.Save(SOut);
+    TempMean.Save(SOut);
+    Updates.Save(SOut);
+}
+
+void TTDigest::LoadState(TSIn& SIn) {
+    MinPointsInit.Load(SIn);
+    Nc.Load(SIn);
+    Size.Load(SIn);
+    Last.Load(SIn);
+    TotalSum.Load(SIn);
+    Weight.Load(SIn);
+    Mean.Load(SIn);
+    Min.Load(SIn);
+    Max.Load(SIn);
+    MergeWeight.Load(SIn);
+    MergeMean.Load(SIn);
+    Tempsize.Load(SIn);
+    UnmergedSum.Load(SIn);
+    TempLast.Load(SIn);
+    TempWeight.Load(SIn);
+    TempMean.Load(SIn);
+    Updates.Load(SIn);
+}
+
+PJsonVal TTDigest::GetParams() const {
+    PJsonVal Result = TJsonVal::NewObj();
+    Result->AddToObj("minCount", MinPointsInit);
+    Result->AddToObj("clusters", Nc);
+    return Result;
+}
+
+void TTDigest::SetParams(const PJsonVal& ParamVal) {
+    MinPointsInit = ParamVal->GetObjInt("minCount", MinPointsInit);
+    Nc = ParamVal->GetObjInt("clusters", Nc);
+    Init(Nc);
+}
 
 void TTDigest::MergeValues() {
     if (UnmergedSum == 0.0) {
@@ -1859,68 +1940,22 @@ int TTDigest::NumTemp(const int& N) const {
   return Lo;
 }
 
-void TTDigest::Print() const {}
-
-void TTDigest::SaveState(TSOut& SOut) const {
-    Nc.Save(SOut);
-    Size.Save(SOut);
-    Last.Save(SOut);
-    TotalSum.Save(SOut);
-    Weight.Save(SOut);
-    Mean.Save(SOut);
-    Min.Save(SOut);
-    Max.Save(SOut);
-    MergeWeight.Save(SOut);
-    MergeMean.Save(SOut);
-    Tempsize.Save(SOut);
-    UnmergedSum.Save(SOut);
-    TempLast.Save(SOut);
-    TempWeight.Save(SOut);
-    TempMean.Save(SOut);
-}
-
-void TTDigest::LoadState(TSIn& SIn) {
-    Nc.Load(SIn);
-    Size.Load(SIn);
-    Last.Load(SIn);
-    TotalSum.Load(SIn);
-    Weight.Load(SIn);
-    Mean.Load(SIn);
-    Min.Load(SIn);
-    Max.Load(SIn);
-    MergeWeight.Load(SIn);
-    MergeMean.Load(SIn);
-    Tempsize.Load(SIn);
-    UnmergedSum.Load(SIn);
-    TempLast.Load(SIn);
-    TempWeight.Load(SIn);
-    TempMean.Load(SIn);
-}
-
-void TTDigest::Init(const int& N) {
-    Nc = N;
-    Max = TFlt::Mn;
-    Min = TFlt::Mx;
-    UnmergedSum = 0;
-    TempLast = 0;
-
-    Size = (int) ceil(Nc * TMath::Pi/2);
-    TotalSum = 0;
-    Last = 0;
-
-    for (int Iter = 0; Iter < Size; Iter++) {
-        Weight.Add(0);
-        Mean.Add(0);
-        MergeWeight.Add(0);
-        MergeMean.Add(0);
-    }
-
-    int Tempsize = NumTemp(Nc);
-    for (int Iter = 0; Iter < Tempsize; Iter++) {
-        TempMean.Add(TFlt::Mx);
-        TempWeight.Add(0);
+void TTDigest::Print() const {
+    printf("\n MinPointsInit: %d\n Nc: %d\n Size: %d\n Last: %d\n TotalSum: %g\n"
+        " Weight.Len(): %d\n Mean.Len(): %d\n Min: %g\n Max: %g\n MergeWeight.Len(): %d\n"
+        " MergeMean.Len(): %d\n Tempsize: %d\n UnmergedSum: %g\n TempLast: %d\n"
+        " TempWeight.Len(): %d\n TempMean.Len(): %d\n Updates: %d\n\n",
+        MinPointsInit.Val, Nc.Val, Size.Val, Last.Val, TotalSum.Val,
+        Weight.Len(), Mean.Len(), Min.Val, Max.Val, MergeWeight.Len(),
+        MergeMean.Len(), Tempsize.Val, UnmergedSum.Val, TempLast.Val,
+        TempWeight.Len(), TempMean.Len(), Updates.Val);
+    for (int ElN = 0; ElN < Weight.Len(); ElN++) {
+        printf("c:%g, w:%g\n", Mean[ElN].Val, Weight[ElN].Val);
     }
 }
+
+/////////////////////////////////
+// TChiSquare
 
 TChiSquare::TChiSquare(const PJsonVal& ParamVal): P(TFlt::PInf) {
     // P value is set to infinity by default (null hypothesis is not rejected)
