@@ -3474,6 +3474,11 @@ public:
     /// Save state of stream aggregate to stream
     virtual void SaveState(TSOut& SOut) const;
 
+    /// Load stream aggregate state from JSON
+    virtual void LoadStateJson(const PJsonVal& State);
+    /// Save state of stream aggregate and return it as a JSON
+    virtual PJsonVal SaveStateJson() const;
+
     /// Get stream aggregate parameters
     virtual PJsonVal GetParams() const { return TJsonVal::NewObj(); }
     /// Update sream aggregate parameters
