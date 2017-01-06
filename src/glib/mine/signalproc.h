@@ -1137,7 +1137,7 @@ public:
     /// For example, q = 0.5 queries for the median.
     double GetQuantile(const double& Q) const;
     /// Number of clusters
-    int GetClusters() const;    
+    int GetClusters() const;
     /// Add a value to the t-digest.
     /// Argument *v* is the value to add.
     /// Argument *count* is the integer number of occurrences to add.

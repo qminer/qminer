@@ -1726,7 +1726,7 @@ double TTDigest::GetQuantile(const double& Q) const {
         Right = Boundary(I, I + 1, Mean, Weight);
     }
     double Quantile = Left + (Right - Left) * (QSum -
-        ((I <= 0 || I > MergeMean.Len()) ? 0.0 : MergeMean[I - 1])) / Weight[I];
+        ((I <= 0 || I > MergeMean.Len()) ? 0.0 : MergeMean[I - 1].Val)) / Weight[I];
 
     return Quantile;
 };
