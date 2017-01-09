@@ -22,14 +22,14 @@ namespace TStreamAggrs {
 ///
 TGPSMeasurement::TGPSMeasurement(const PJsonVal& Rec) {
     if (!Rec->IsNull()) {
-        Time = (uint64)Rec->GetObjKey("time")->GetNum();
+        Time = (uint64)Rec->GetObjKey("time")->GetUInt64();
         double Lat = Rec->GetObjKey("latitude")->GetNum();
         double Lon = Rec->GetObjKey("longitude")->GetNum();
         LatLon = TPoint(Lat, Lon);
         Accuracy = Rec->GetObjKey("accuracy")->GetNum();
         Distance = Rec->GetObjKey("distanceDiff")->GetNum();
         Speed = Rec->GetObjKey("speed")->GetNum();
-        TimeDiff = Rec->GetObjKey("timeDiff")->GetUInt64();
+        TimeDiff = Rec->GetObjKey("timeDiff")->GetInt64();
     }
 }
 
@@ -44,7 +44,7 @@ PJsonVal TGPSMeasurement::ToJson() const {
     Json->AddToObj("accuracy", Accuracy);
     Json->AddToObj("speed", Speed);
     Json->AddToObj("distanceDiff", Distance);
-    Json->AddToObj("timeDiff", (uint64)TimeDiff);
+    Json->AddToObj("timeDiff", (int64)TimeDiff);
     return Json;
 }
 

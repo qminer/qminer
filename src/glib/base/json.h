@@ -67,6 +67,7 @@ public:
   void AddToObj(const TStr& KeyNm, const int& Val){ AddToObj(KeyNm, NewNum((double)Val)); }
   void AddToObj(const TStr& KeyNm, const uint& Val){ AddToObj(KeyNm, NewNum((double)Val)); }
   void AddToObj(const TStr& KeyNm, const uint64& Val){ AddToObj(KeyNm, NewNum((double)Val)); }
+  void AddToObj(const TStr& KeyNm, const int64& Val) { AddToObj(KeyNm, NewNum((double)Val)); }
   void AddToObj(const TStr& KeyNm, const double& Val){ AddToObj(KeyNm, NewNum(Val)); }
   void AddToObj(const TStr& KeyNm, const double& Val1, const double& Val2){ AddToObj(KeyNm, NewArr(Val1, Val2)); }
   void AddToObj(const TStr& KeyNm, const TStr& Val){ AddToObj(KeyNm, NewStr(Val)); }

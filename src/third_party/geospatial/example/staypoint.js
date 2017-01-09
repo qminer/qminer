@@ -6,7 +6,7 @@ var base = new qm.Base({
 	    {
 	        "name": "GPS",
 	        "fields": [
-              { "name": "Time", "type": "datetime" },
+              { "name": "Time", "type": "int64" },
               { "name": "Location", type: "float_pair" },
               { "name": "Accuracy", type: "byte", "null": true }
 	        ],
@@ -28,12 +28,12 @@ var aggr = store.addStreamAggr({
     params: { dT: 51, tT: 301 }
 });
 
-/*var ts = Date.now();
+//test1
+var ts = Date.now();
 for (var i = 0; i < 100; i++) {
     // create qminer wrapped record from JSON
     var rec = store.newRecord({
-        ///Time: ts + i,
-        Time: 10000,
+        Time: ts + i,
         Location: [Math.random(), Math.random()],
         Accuracy: 1
     });
@@ -42,8 +42,10 @@ for (var i = 0; i < 100; i++) {
     var result = aggr.saveJson();
     console.log(result);
     console.log(new Date(result.lastTimestamp));
-}*/
+}
 
+/*
+//test2
 var points = [
     {//0
         "latitude": 46.0423046,
@@ -96,3 +98,4 @@ for (var recIdx = 0; recIdx < points.length; recIdx++) {
     state = aggr.saveStateJson();
     console.log(state);
 }
+*/
