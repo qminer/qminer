@@ -1,5 +1,16 @@
 # QMiner Change Log
 
+### 6 January 2017
+
+**Version 7.8.0**
+
+**Non-breaking with new features**
+
+New features:
+- Exposed keyid for hashtables in javascript
+- Stay-Point-Detector aggregate (third party) that aggregates GPS time-series
+- loadStateJson and saveStateJson added to stream aggregates (alternative to binary save and load)
+
 ### 30 December 2016
 
 **Version 7.7.0**
