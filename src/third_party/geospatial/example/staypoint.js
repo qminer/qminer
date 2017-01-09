@@ -6,7 +6,7 @@ var base = new qm.Base({
 	    {
 	        "name": "GPS",
 	        "fields": [
-              { "name": "Time", "type": "int64" },
+              { "name": "Time", "type": "datetime" },
               { "name": "Location", type: "float_pair" },
               { "name": "Accuracy", type: "byte", "null": true }
 	        ],
