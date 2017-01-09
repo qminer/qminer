@@ -13,9 +13,13 @@
 namespace TQm {
 namespace TStreamAggrs {
 
-/////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 ///TGPSMeasurement
+///////////////////////////////////////////////////////////////////////////////
 
+///
+/// TGPSMeasurement constructor initializing TGPSMeasurement from Json
+///
 TGPSMeasurement::TGPSMeasurement(const PJsonVal& Rec) {
     if (!Rec->IsNull()) {
         Time = (uint64)Rec->GetObjKey("time")->GetNum();
@@ -25,11 +29,13 @@ TGPSMeasurement::TGPSMeasurement(const PJsonVal& Rec) {
         Accuracy = Rec->GetObjKey("accuracy")->GetNum();
         Distance = Rec->GetObjKey("distanceDiff")->GetNum();
         Speed = Rec->GetObjKey("speed")->GetNum();
-        TimeDiff = (int)Rec->GetObjKey("timeDiff")->GetNum();
+        TimeDiff = Rec->GetObjKey("timeDiff")->GetUInt64();
     }
 }
 
-/// Returns JSON represenattion of GPS measurement 
+///
+/// Returns JSON represenation of GPS measurement 
+///
 PJsonVal TGPSMeasurement::ToJson() const {
     PJsonVal Json = TJsonVal::NewObj();
     Json->AddToObj("time", Time);
@@ -38,13 +44,56 @@ PJsonVal TGPSMeasurement::ToJson() const {
     Json->AddToObj("accuracy", Accuracy);
     Json->AddToObj("speed", Speed);
     Json->AddToObj("distanceDiff", Distance);
-    Json->AddToObj("timeDiff", TimeDiff);
+    Json->AddToObj("timeDiff", (uint64)TimeDiff);
     return Json;
 }
 
-
-///////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 /// TStaypointCluster
+///////////////////////////////////////////////////////////////////////////////
+
+///
+/// Constructor creating a TGeoCluster fom JSON
+///
+TGeoCluster::TGeoCluster(const PJsonVal& Rec) {
+    //status
+    int Status = Rec->GetObjInt("status", 0);
+    if (Status == 0) {
+        GeoActStatus = TGeoActivityStatus::Current;
+    }
+    else if (Status == 1) {
+        GeoActStatus = TGeoActivityStatus::Possible;
+    }
+    else if (Status == 2) {
+        GeoActStatus = TGeoActivityStatus::Detected;
+    }
+    //type
+    TStr Type = Rec->GetObjStr("type", "P");
+    if (Type == "P") {
+        GeoType = TGeoActivityType::Path;
+    }
+    else
+    {
+        GeoType = TGeoActivityType::Staytpoint;
+    }
+    
+    double Lat = Rec->GetObjNum("latitude", 0);
+    double Lon = Rec->GetObjNum("longitude", 0);
+    CenterPoint = TPoint(Lat, Lon);
+    Arrive = Rec->GetObjInt64("start_time", 0);
+    Depart = Rec->GetObjInt64("end_time", 0);
+    AvgSpeed = Rec->GetObjNum("avgSpeed", 0);
+    AvgAccuracy = Rec->GetObjNum("avgAccuracy", 0);
+    Distance = Rec->GetObjNum("distance", 0);
+    MStartIdx = Rec->GetObjInt("startIdx", -1);
+    MEndIdx = Rec->GetObjInt("endIdx", -1);
+}//TGeoCluster::TGeoCluster
+
+///
+/// Indirectly adds one GPS Measurement to the cluster. The measurement needs
+/// to be added to the vecotr first, then this method takes the reference to
+/// the measurements vector and the appropriate index of the measurement 
+///
 void TGeoCluster::AddPoint(const int& Idx,
     const TVec<TGPSMeasurement>& _StateVec)
 {
@@ -81,8 +130,8 @@ void TGeoCluster::AddPoint(const int& Idx,
 }//TGeoCluster::addPoint
 
 /// returns duration in seconds
-int TGeoCluster::Duration() {
-    return (int)(Depart - Arrive) / 1000;
+int64 TGeoCluster::Duration() {
+    return (Depart - Arrive) / 1000;
 }//TGeoCluster::duration
 
 int TGeoCluster::Len() const {
@@ -139,9 +188,9 @@ PJsonVal TGeoCluster::ToJson(const TVec<TGPSMeasurement>& _GpsStateVec,
 }
 
 
-///////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 /// GeoUtils
-
+///////////////////////////////////////////////////////////////////////////////
 double TGeoUtils::QuickDist(const TPoint& P1, const TPoint& P2) {
     double Lat1 = P1.Lat * TMath::Pi / 180;
     double Lon1 = P1.Lon * TMath::Pi / 180;
@@ -153,9 +202,9 @@ double TGeoUtils::QuickDist(const TPoint& P1, const TPoint& P2) {
 }//QuickDist function
 
 
-///////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 /// StayPoint detector aggregate
-
+///////////////////////////////////////////////////////////////////////////////
 TStayPointDetector::TStayPointDetector(
     const TWPt<TBase>& Base,
     const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal)
@@ -296,6 +345,9 @@ PJsonVal TStayPointDetector::SaveJson(const int& Limit) const
     return State;
 }
 
+///
+/// Loads internal state from JSON ojbect
+///
 void TStayPointDetector::LoadStateJson(const PJsonVal& State){
     if (!State->IsNull() && !State->IsArr()) {
         if (State->IsObjKey("locations")) {
@@ -308,10 +360,27 @@ void TStayPointDetector::LoadStateJson(const PJsonVal& State){
                 //printf("%u\n", GpsRec.Time);
                 StateGpsMeasurementsV.Add(GpsRec);
             }
-        }
-    }
+        }//if locations attribute
+        if (State->IsObjKey("CL")) {
+            CL = TGeoCluster(State->GetObjKey("CL"));
+        }//if CL attribute
+        if (State->IsObjKey("Plocs")) {
+            Plocs = TGeoCluster(State->GetObjKey("Plocs"));
+        }//if CL attribute
+        if (State->IsObjKey("Detected")) {
+            PJsonVal DetectedArr = State->GetObjKey("Detected");
+            for (int DetIdx = 0; DetIdx < DetectedArr->GetArrVals(); DetIdx++){
+                TGeoCluster GeoAct = 
+                    TGeoCluster(DetectedArr->GetArrVal(DetIdx));
+                DetectedGeoActivitiesV.Add(GeoAct);
+            }
+        }//if it has DetectedGeoActivities
+    }//if the root object is real JSON object 
 }
 
+/// 
+/// Returns the full internal state of the aggregate as JSON object
+///
 PJsonVal TStayPointDetector::SaveStateJson() const { 
     PJsonVal SateObj = TJsonVal::NewObj(); 
     PJsonVal JLocs = TJsonVal::NewArr();
@@ -325,18 +394,30 @@ PJsonVal TStayPointDetector::SaveStateJson() const {
     SateObj->AddToObj("locations", JLocs);
     SateObj->AddToObj("CL", CL.ToJson(StateGpsMeasurementsV, false));
     SateObj->AddToObj("Plocs", Plocs.ToJson(StateGpsMeasurementsV, false));
-
+    if (DetectedGeoActivitiesV.Len() > 0) {
+        PJsonVal JDetectedGeoActs = TJsonVal::NewArr();
+        for (int DetIdx = 0; DetIdx < DetectedGeoActivitiesV.Len(); DetIdx++) {
+            const TGeoCluster& GAct = DetectedGeoActivitiesV[DetIdx];
+            JDetectedGeoActs->
+                AddToArr(GAct.ToJson(StateGpsMeasurementsV, true));
+        }
+        SateObj->AddToObj("Detected", JDetectedGeoActs);
+    }
     return SateObj;
-};
+}
 
+///
 /// Helper function for easier GPSRecord creation. It assigns values to new
 /// TGPSRecord, compares it to the previous record and then re-stores it as
 /// lastRecord, for next parsing. If parse is not successfull, it returns false
 /// otherwise True
+///
 bool TStayPointDetector::ParseGPSRec(const TRec& Rec, TGPSMeasurement& Gps) {
-    TTm Timestamp; Rec.GetFieldTm(TimeFieldId, Timestamp);
+    TTm Timestamp; 
+    Rec.GetFieldTm(TimeFieldId, Timestamp);
     uint64 Time =
         TTm::GetUnixMSecsFromWinMSecs(Timestamp.GetMSecsFromTm(Timestamp));
+    // int64 Time = Rec.GetFieldInt64(TimeFieldId);
     double Lat = Rec.GetFieldFltPr(LocationFieldId).Val1;
     double Lon = Rec.GetFieldFltPr(LocationFieldId).Val2;
 
@@ -355,7 +436,7 @@ bool TStayPointDetector::ParseGPSRec(const TRec& Rec, TGPSMeasurement& Gps) {
             return false;
         }
         Gps.Distance = TGeoUtils::QuickDist(Gps.LatLon, lastRecord->LatLon);
-        Gps.TimeDiff = (int)(Gps.Time - lastRecord->Time);
+        Gps.TimeDiff = (Gps.Time - lastRecord->Time);
         if (Gps.Speed == -1.0) {
             Gps.Speed = Gps.Distance / Gps.TimeDiff;
         }
