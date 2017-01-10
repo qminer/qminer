@@ -1923,7 +1923,7 @@ public:
     /// Number of records in the set
     int GetRecs() const { return RecIdFqV.Len(); }  // FIXME this method should return uint64
     /// Get RecN-th record as TRec by reference
-    TRec GetRec(const int& RecN) const { return TRec(GetStore(), RecIdFqV[RecN].Key); }
+    TRec GetRec(const int& RecN) const;
     /// Get id of RecN-th record
     uint64 GetRecId(const int& RecN) const { return RecIdFqV[RecN].Key; }
     /// Get weight of RecN-th record
@@ -1934,7 +1934,7 @@ public:
     uint64 GetLastRecId() const { return RecIdFqV.Last().Key; }
     /// Get reference to complete vector of pairs (record id, weight)
     const TUInt64IntKdV& GetRecIdFqV() const { return RecIdFqV; }
-    /// Get direct reference to elements of vecotr
+    /// Get direct reference to elements of vector
     const TUInt64IntKd& GetRecIdFq(const int& RecN) const { return RecIdFqV[RecN]; }
 
     /// Load record ids into the provided vector

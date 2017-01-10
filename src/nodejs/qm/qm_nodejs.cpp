@@ -2758,7 +2758,7 @@ void TNodeJsRecSet::filterByFq(const v8::FunctionCallbackInfo<v8::Value>& Args) 
     TNodeJsRecSet* JsRecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args.Holder());
 
     const int MnFq = TNodeJsUtil::GetArgInt32(Args, 0);
-    const int MxFq = TNodeJsUtil::GetArgInt32(Args, 1);
+    const int MxFq = TNodeJsUtil::GetArgInt32(Args, 1, TInt::Mx);
     JsRecSet->RecSet->FilterByFq(MnFq, MxFq);
 
     Args.GetReturnValue().Set(Args.Holder());

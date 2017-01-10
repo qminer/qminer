@@ -3583,6 +3583,10 @@ void TRecSet::Save(TSOut& SOut) {
     RecIdFqV.Save(SOut);
 }
 
+TRec TRecSet::GetRec(const int& RecN) const {
+    return TRec(GetStore(), RecIdFqV[RecN].Key, RecIdFqV[RecN].Dat);
+}
+
 void TRecSet::GetRecIdV(TUInt64V& RecIdV) const {
     const int Recs = GetRecs();
     RecIdV.Gen(Recs, 0);
