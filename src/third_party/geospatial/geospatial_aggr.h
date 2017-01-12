@@ -42,7 +42,7 @@ public:
     TFlt Accuracy;//accuracy
     TFlt Speed;//given speed by GPS
     TFlt Distance;//distance to previous
-    TInt TimeDiff;//time difference with previous
+    TInt64 TimeDiff;//time difference with previous
     PJsonVal ToJson() const;
 };
 
@@ -78,11 +78,12 @@ public:
     TGeoCluster() : TGeoCluster(TGeoActivityType::Path) {};
     TGeoCluster(TGeoActivityType _Type) : MStartIdx(-1), MEndIdx(-1), 
         GeoType(_Type), GeoActStatus(TGeoActivityStatus::Current){};
+    TGeoCluster(const PJsonVal& Rec);
     TGeoCluster(const int& StartIdx, const int& EndIdx,
         const TVec<TGPSMeasurement>& StateVec);
     
     void AddPoint(const int& Idx, const TVec<TGPSMeasurement>& _GpsState);
-    int Duration();
+    int64 Duration();
     int Len() const;
     int EndIdx() const { return MEndIdx; }
     int StartIdx() const { return MStartIdx; }

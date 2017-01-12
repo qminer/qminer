@@ -28,6 +28,7 @@ var aggr = store.addStreamAggr({
     params: { dT: 51, tT: 301 }
 });
 
+//test1
 var ts = Date.now();
 for (var i = 0; i < 100; i++) {
     // create qminer wrapped record from JSON
@@ -42,4 +43,3 @@ for (var i = 0; i < 100; i++) {
     console.log(result);
     console.log(new Date(result.lastTimestamp));
 }
-
