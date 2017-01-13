@@ -1,5 +1,12 @@
 # QMiner Change Log
 
+### 13 January 2017
+
+**Version 7.8.1**
+
+Bug fix:
+- Fixed `FilterByFq` on `TRecSet`
+
 ### 6 January 2017
 
 **Version 7.8.0**
