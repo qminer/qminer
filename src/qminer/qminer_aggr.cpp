@@ -2426,7 +2426,7 @@ TRecFilterAggr::TRecFilterAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal
 
 uint64 TRecFilterAggr::GetMemUsed() const {
     return (TStreamAggr::GetMemUsed() - sizeof(TStreamAggr) + sizeof(TRecFilterAggr)) +
-           (FilterV.GetMemUsed() - sizeof(TVec<PRecFilter>));
+           TMemUtils::GetExtraMemberSize(FilterV);
 }
 
 //////////////////////////////////////////////////////////////////////////////////

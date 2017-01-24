@@ -57,6 +57,7 @@ TEST(sizeof, QMiner) {
     ASSERT_EQ(sizeof(TQm::TRecSet), 56);
     ASSERT_EQ(sizeof(TQm::TRecFilter), 24);
     ASSERT_EQ(sizeof(TQm::TAggr), 32);
+    /* ASSERT_EQ(sizeof(TQm::TStreamAggr), 32); */
     ASSERT_EQ(sizeof(TQm::TStreamAggr), 40);
     ASSERT_EQ(sizeof(TQm::TFtrExt), 80);
     ASSERT_EQ(sizeof(TQm::TFtrSpace), 72);

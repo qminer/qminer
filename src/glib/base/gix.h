@@ -236,11 +236,12 @@ private:
 
     /// Ask child vectors about their memory usage
     uint64 GetChildMemUsed() const {
-        uint64 mem = 0;
-        for (int i = 0; i < ChildrenData.Len(); i++) {
-            mem += ChildrenData[i].GetMemUsed();
-        }
-        return mem;
+        return ChildrenData.GetMemUsed(true);
+        /* uint64 mem = 0; */
+        /* for (int i = 0; i < ChildrenData.Len(); i++) { */
+        /*     mem += ChildrenData[i].GetMemUsed(); */
+        /* } */
+        /* return mem; */
     }
 
 public:
@@ -278,7 +279,7 @@ public:
         res += ItemV.GetMemUsed();
         res += ItemVDel.GetMemUsed();
         res += Children.GetMemUsed();
-        res += ChildrenData.GetMemUsed(false);
+        res += ChildrenData.GetMemUsed(true);
         return res;
 
         /*return ItemSetKey.GetMemUsed() + ItemV.GetMemUsed() + ItemVDel.GetMemUsed()
