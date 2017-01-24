@@ -658,69 +658,63 @@ public:
 
 #ifdef GLib_CPP11
 /// cpp type traits, helper to check if type is a container
-template <typename TClass>
-struct IsContainer : std::false_type{};
-#endif
+template <typename TClass> struct IsContainer : std::false_type{};
 
+#endif
 
 namespace TMemUtils {
 #ifdef GLib_CPP11
 
-/* #define ENABLE_MEMBER_IF(T, Cond)\ */
-/*     template <typename _T = T, typename std::enable_if<Cond<_T>{},bool>::type = true> */
-/* #define ENABLE_MEMBER_IF(T, Cond1, CondRest...) \ */
-/*     ENABLE_MEMBER_IF(T, Cond1<_T>{} && CondRest) */
+  /// fundamental types (int, float, ...)
+  template <typename T, typename std::enable_if<std::is_fundamental<T>::value,bool>::type = true>
+  uint64 GetMemUsed(const T& Val) {
+    return sizeof(T);
+  }
 
-    /// fundamental types (int, float, ...)
-    template <typename T, typename std::enable_if<std::is_fundamental<T>::value,bool>::type = true>
-    uint64 GetMemUsed(const T& Val) {
-        return sizeof(T);
-    }
+  /// pointers
+  template <typename T, typename std::enable_if<std::is_pointer<T>::value,bool>::type = true>
+  uint64 GetMemUsed(const T Val) {
+    if (Val == nullptr) { return sizeof(T); }
+    return sizeof(T) + Val->GetMemUsed();
+  }
 
-    /// pointers
-    template <typename T, typename std::enable_if<std::is_pointer<T>::value,bool>::type = true>
-    uint64 GetMemUsed(const T Val) {
-        if (Val == nullptr) { return sizeof(T); }
-        return sizeof(T) + Val->GetMemUsed();
-    }
+  /// get memory usabe for "normal" glib classes
+  template <typename T, typename std::enable_if<std::is_class<T>::value && !IsContainer<T>::value,bool>::type = true>
+  uint64 GetMemUsed(const T& Val) {
+    return Val.GetMemUsed();
+  }
 
-    /// get memory usabe for "normal" glib classes
-    template <typename T, typename std::enable_if<std::is_class<T>::value && !IsContainer<T>::value,bool>::type = true>
-    uint64 GetMemUsed(const T& Val) {
-        return Val.GetMemUsed();
-    }
+  /// glib structures
+  template <typename T, typename std::enable_if<IsContainer<T>::value,bool>::type = true>
+  uint64 GetMemUsed(const T& Val) {
+    return Val.GetMemUsed(true);   // deep
+  }
 
-    /// glib structures
-    template <typename T, typename std::enable_if<IsContainer<T>::value,bool>::type = true>
-    uint64 GetMemUsed(const T& Val) {
-        return Val.GetMemUsed(true);   // deep
-    }
-
-    /// get memory usabe for non-classes
-    template <typename T, typename std::enable_if<
-        !std::is_class<T>::value &&
-        !std::is_pointer<T>::value &&
-        !std::is_fundamental<T>::value &&
-        !IsContainer<T>::value
-    , bool>::type = true>
-    uint64 GetMemUsed(const T& Val) {
-        return sizeof(T);
-    }
+  /// get memory usabe for non-classes
+  template <typename T, typename std::enable_if<
+    !std::is_class<T>::value &&
+    !std::is_pointer<T>::value &&
+    !std::is_fundamental<T>::value &&
+    !IsContainer<T>::value
+  , bool>::type = true>
+  uint64 GetMemUsed(const T& Val) {
+    return sizeof(T);
+  }
 
 #else
-    template <class T>
-    uint64 GetMemUsed(const T& Val) {
-        return Val.GetMemUsed();
-    }
+  template <class T>
+  uint64 GetMemUsed(const T& Val) {
+    return Val.GetMemUsed();
+  }
 #endif
 
-    /////////////////////////////////////////////////
-    // Functions which returns the part of the memory footprint of
-    // an object which ignored by the sizeof operator
-    template <class TClass>
-    uint64 GetExtraMemberSize(const TClass& Inst) {
-        return TMemUtils::GetMemUsed(Inst) - sizeof(TClass);
-    }
+  /////////////////////////////////////////////////
+  // Functions which returns the part of the memory footprint of
+  // an object which ignored by the sizeof operator
+  template <class TClass>
+  uint64 GetExtraMemberSize(const TClass& Inst) {
+    return TMemUtils::GetMemUsed(Inst) - sizeof(TClass);
+  }
 }
 
 /* ///////////////////////////////////////////////// */

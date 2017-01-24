@@ -1324,7 +1324,7 @@ public:
 
   TSInt& operator++() { ++Val; return *this; } // prefix
   TSInt& operator--() { --Val; return *this; } // prefix
-  /// Returns the memoty footprint
+  /// Returns the memory footprint
   uint64 GetMemUsed() const { return sizeof(TSInt); }
 };
 typedef TSInt TInt16;
