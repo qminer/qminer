@@ -6641,9 +6641,9 @@ uint64 TStreamAggr::GetMemUsed() const {
     // alignment, but discards the size of any pointers that the members hold which
     // equals Member.GetMemUsed() - sizeof(TMemberClass) (calculated by GetExtraMemberSize)
     return sizeof(TStreamAggr) +
-           GetExtraMemberSize(CRef) +
-           GetExtraMemberSize(AggrNm) +
-           GetExtraMemberSize(ExeTm);
+           TMemUtils::GetExtraMemberSize(CRef) +
+           TMemUtils::GetExtraMemberSize(AggrNm) +
+           TMemUtils::GetExtraMemberSize(ExeTm);
 }
 
 ///////////////////////////////

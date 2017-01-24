@@ -1314,6 +1314,8 @@ public:
     /// Calls the filter, default keeps all records
     virtual bool Filter(const TRec& Rec) const { return true; }
 
+    /// Retuns the memory footprint
+    virtual uint64 GetMemUsed() const { return sizeof(TRecFilter); }
     /// Filter type name
     static TStr GetType() { return "trivial"; }
     /// Filter type name

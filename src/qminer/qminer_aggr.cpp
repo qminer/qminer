@@ -2032,8 +2032,8 @@ void TNNAnomalyAggr::Reset() {
 uint64 TNNAnomalyAggr::GetMemUsed() const {
     return sizeof(TNNAnomalyAggr) +
            (TStreamAggr::GetMemUsed() - sizeof(TStreamAggr)) +
-           GetExtraMemberSize(Model) +
-           GetExtraMemberSize(Explanation);
+           TMemUtils::GetExtraMemberSize(Model) +
+           TMemUtils::GetExtraMemberSize(Explanation);
 }
 
 /// Load from stream

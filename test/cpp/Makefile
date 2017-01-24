@@ -53,6 +53,7 @@ TEST_SRCS = test-TStr.cpp
 TEST_SRCS += test-THash.cpp 
 TEST_SRCS += test-TQQueue.cpp 
 TEST_SRCS += test-sizeof.cpp
+TEST_SRCS += test-traits.cpp
 
 # transform to list of object files
 TEST_OBJS = $(TEST_SRCS:.cpp=.o)

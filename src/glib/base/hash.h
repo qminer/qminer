@@ -185,25 +185,7 @@ public:
   TDat& operator[](const int& KeyId){return GetHashKeyDat(KeyId).Dat;}
   TDat& operator()(const TKey& Key){return AddDat(Key);}
   
-  uint64 GetMemUsed() const {
-    // return PortV.GetMemUsed()+KeyDatV.GetMemUsed()+sizeof(bool)+2*sizeof(int);}
-      uint64 MemUsed = sizeof(TBool) + 2 * sizeof(TInt);
-	  //MemUsed += uint64(PortV.Reserved()) * int64(sizeof(TInt));
-	  MemUsed += PortV.GetMemUsed();
-	  /*for (int KeyDatN = 0; KeyDatN < KeyDatV.Len(); KeyDatN++) {
-          MemUsed += uint64(2 * sizeof(TInt));
-          MemUsed += uint64(KeyDatV[KeyDatN].Key.GetMemUsed());
-          MemUsed += uint64(KeyDatV[KeyDatN].Dat.GetMemUsed());
-	  }*/
-	  MemUsed += KeyDatV.GetMemUsedDeep();
-	  return uint64(MemUsed);
-  }
-  uint64 GetMemUsedFlat() const {
-      uint64 MemUsed = sizeof(TBool) + 2 * sizeof(TInt);
-      MemUsed += PortV.GetMemUsed();
-      MemUsed += KeyDatV.GetMemUsed();
-      return uint64(MemUsed);
-  }
+  uint64 GetMemUsed(const bool& DeepP = false) const;
 
   TIter BegI() const {
     if (Len() == 0){return TIter(KeyDatV.EndI(), KeyDatV.EndI());}
@@ -288,6 +270,14 @@ public:
   void SortByDat(const bool& Asc=true) { Sort(false, Asc); }
 };
 
+/*
+ * TYPE TRAITS: tell the compiler that THash is a container
+ */
+#ifdef GLib_CPP11
+template<class TKey, class TDat, class THashFunc>
+struct IsContainer<THash<TKey, TDat, THashFunc>> : std::true_type{};
+#endif
+
 template<class TKey, class TDat, class THashFunc>
 const unsigned int THash<TKey, TDat, THashFunc>::HashPrimeT[HashPrimes]={
   3ul, 5ul, 11ul, 23ul,
@@ -359,6 +349,14 @@ bool THash<TKey, TDat, THashFunc>::operator==(const THash& Hash) const {
     if (GetDat(Key) != Hash.GetDat(Key)) { return false; }
   }
   return true;
+}
+
+template<class TKey, class TDat, class THashFunc>
+uint64 THash<TKey, TDat, THashFunc>::GetMemUsed(const bool& DeepP) const {
+  uint64 MemUsed = sizeof(TBool) + 2 * sizeof(TInt);
+  MemUsed += PortV.GetMemUsed();
+  MemUsed += KeyDatV.GetMemUsed(DeepP);
+  return uint64(MemUsed);
 }
 
 template<class TKey, class TDat, class THashFunc>
@@ -1092,7 +1090,7 @@ template <class TKey, class TDat, class THashFunc>
 int64 TCache<TKey, TDat, THashFunc>::GetMemUsed() const {
 	int64 MemUsed = 2 * sizeof(int64);
 	
-    MemUsed += KeyDatH.GetMemUsedFlat();
+    MemUsed += KeyDatH.GetMemUsed(false);
     MemUsed += TimeKeyL.GetMemUsed();
 	int cnt = 0;
     int KeyId = KeyDatH.FFirstKeyId();

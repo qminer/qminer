@@ -131,6 +131,15 @@ private:
             Len.Save(SOut);
             Pt.Save(SOut);
         }
+
+        uint64 GetMemUsed() const {
+            return TMemUtils::GetMemUsed(MinVal) +
+                   TMemUtils::GetMemUsed(MaxVal) +
+                   TMemUtils::GetMemUsed(Len) +
+                   TMemUtils::GetMemUsed(Pt) +
+                   TMemUtils::GetMemUsed(Loaded) +
+                   TMemUtils::GetMemUsed(Dirty);
+        }
     };
 
 private:
@@ -269,7 +278,7 @@ public:
         res += ItemV.GetMemUsed();
         res += ItemVDel.GetMemUsed();
         res += Children.GetMemUsed();
-        res += ChildrenData.GetMemUsedDeep();
+        res += ChildrenData.GetMemUsed(false);
         return res;
 
         /*return ItemSetKey.GetMemUsed() + ItemV.GetMemUsed() + ItemVDel.GetMemUsed()
@@ -936,7 +945,7 @@ public:
         res += sizeof(TGixStats);
         res += GixFNm.GetMemUsed();
         res += GixBlobFNm.GetMemUsed();
-        res += KeyIdH.GetMemUsed();
+        res += KeyIdH.GetMemUsed(true);
         res += ItemSetCache.GetMemUsed();
         return res;
         /*return

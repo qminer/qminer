@@ -199,15 +199,15 @@ PJsonVal TNearestNeighbor::Explain(const TIntFltKdV& Vec) const {
 
 uint64 TNearestNeighbor::GetMemUsed() const {
     return sizeof(TNearestNeighbor) +
-           GetDeepExtraMemberSize(RateV) +
-           GetExtraMemberSize(WindowSize) +
-           GetDeepExtraMemberSize(Mat) +
-           GetDeepExtraMemberSize(DistV) +
-           GetDeepExtraMemberSize(DistColV) +
-           GetDeepExtraMemberSize(ThresholdV) +
-           GetExtraMemberSize(InitVecs) +
-           GetExtraMemberSize(NextCol) +
-           GetDeepExtraMemberSize(DatV);
+           TMemUtils::GetExtraMemberSize(RateV) +
+           TMemUtils::GetExtraMemberSize(WindowSize) +
+           TMemUtils::GetExtraMemberSize(Mat) +
+           TMemUtils::GetExtraMemberSize(DistV) +
+           TMemUtils::GetExtraMemberSize(DistColV) +
+           TMemUtils::GetExtraMemberSize(ThresholdV) +
+           TMemUtils::GetExtraMemberSize(InitVecs) +
+           TMemUtils::GetExtraMemberSize(NextCol) +
+           TMemUtils::GetExtraMemberSize(DatV);
 }
 
 };

@@ -216,26 +216,6 @@ bool TVec<TVal, TSizeTy>::operator<(const TVec<TVal, TSizeTy>& Vec) const {
   }
 }
 
-template <class TVal, class TSizeTy>
-uint64 TVec<TVal, TSizeTy>::GetMemUsedDeep() const {
-#ifdef GLib_CPP11
-  // If TVal is of type TVec, then call GetMemUsedDeep on all its members,
-  // otherwise call GetMemUsed. The below method call is a cpp 11 hack to
-  // achieve this.
-  return GetMemUsedDeep(typename IsTVec<TVal>::type());
-#else
-  // FIXME: the pre-C++11 version will not return the correct result
-  // if TVal is a vector!!
-  uint64 MemSize = 2 * sizeof(TSizeTy) + sizeof(TVal*);
-  if (ValT != NULL && MxVals != -1){
-    for (TSizeTy i = 0; i < MxVals; i++){
-      MemSize += ValT[i].GetMemUsed();
-    }
-  }
-  return MemSize;
-#endif
-}
-
 // Improved hashing of vectors (Jure Apr 20 2013)
 // This change makes binary representation of vectors incompatible with previous code.
 // Previous hash functions are available for compatibility in class TVecHashF_OldGLib
@@ -908,38 +888,29 @@ TSizeTy TVec<TVal, TSizeTy>::GetMxValN() const {
 
 template <class TVal, class TSizeTy>
 TSizeTy TVec<TVal, TSizeTy>::GetMnValN() const {
-    if (Vals == 0) { return -1; }
-    TSizeTy MnValN = 0;
-    for (TSizeTy ValN = 1; ValN<Vals; ValN++) {
-        if (ValT[ValN]<ValT[MnValN]) { MnValN = ValN; }
-    }
-    return MnValN;
+  if (Vals == 0) { return -1; }
+  TSizeTy MnValN = 0;
+  for (TSizeTy ValN = 1; ValN<Vals; ValN++) {
+      if (ValT[ValN]<ValT[MnValN]) { MnValN = ValN; }
+  }
+  return MnValN;
 }
 
-
-#ifdef GLib_CPP11
 template <class TVal, class TSizeTy>
-uint64 TVec<TVal, TSizeTy>::GetMemUsedDeep(std::true_type) const {
+uint64 TVec<TVal, TSizeTy>::GetMemUsedDeep() const {
   uint64 MemSize = 2 * sizeof(TSizeTy) + sizeof(TVal*);
   if (ValT != NULL && MxVals != -1){
     for (TSizeTy i = 0; i < MxVals; i++){
-      MemSize += ValT[i].GetMemUsedDeep();
+      MemSize += TMemUtils::GetMemUsed(ValT[i]);
     }
   }
   return MemSize;
 }
 
 template <class TVal, class TSizeTy>
-uint64 TVec<TVal, TSizeTy>::GetMemUsedDeep(std::false_type) const {
-  uint64 MemSize = 2 * sizeof(TSizeTy) + sizeof(TVal*);
-  if (ValT != NULL && MxVals != -1){
-    for (TSizeTy i = 0; i < MxVals; i++){
-      MemSize += ValT[i].GetMemUsed();
-    }
-  }
-  return MemSize;
+uint64 TVec<TVal, TSizeTy>::GetMemUsedShallow() const {
+  return TSizeTy(2 * sizeof(TSizeTy) + sizeof(TVal*) + sizeof(TVal)*(MxVals != -1 ? MxVals : 0));
 }
-#endif
 
 //#//////////////////////////////////////////////
 /// Vector Pool. ##TVecPool

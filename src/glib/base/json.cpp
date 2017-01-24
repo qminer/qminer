@@ -319,11 +319,11 @@ void TJsonVal::AssertObjKeyBool(const TStr& Key, const TStr& Fun) {
 uint64 TJsonVal::GetMemUsed() const {
     return sizeof(TJsonVal) +
            // JsonValType is an enum and is already counted
-           GetExtraMemberSize(Bool) +
-           GetExtraMemberSize(Num) +
-           GetExtraMemberSize(Str) +
-           GetDeepExtraMemberSize(ValV) +
-           GetExtraMemberSize(KeyValH); // THash already does a deep calculation
+           TMemUtils::GetExtraMemberSize(Bool) +
+           TMemUtils::GetExtraMemberSize(Num) +
+           TMemUtils::GetExtraMemberSize(Str) +
+           TMemUtils::GetExtraMemberSize(ValV) +
+           TMemUtils::GetExtraMemberSize(KeyValH);
 }
 
 PJsonVal TJsonVal::GetValFromLx(TILx& Lx){
