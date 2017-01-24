@@ -1594,6 +1594,8 @@ public:
     int GetInt() const { return LastSeverity; }
     PJsonVal SaveJson(const int& Limit) const;
 
+    /// Returns the memory footprint of the object
+    uint64 GetMemUsed() const;
     /// Stream aggregator type name
     static TStr GetType() { return "nnAnomalyDetector"; }
     /// Stream aggregator type name
@@ -2003,6 +2005,8 @@ public:
     void Reset() { }
     /// JSON serialization
     PJsonVal SaveJson(const int& Limit) const { return TJsonVal::NewObj(); }
+    /// Returns the memory footprint
+    uint64 GetMemUsed() const;
     /// Stream aggregator type name
     static TStr GetType() { return "recordFilterAggr"; }
     /// Stream aggregator type name

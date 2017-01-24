@@ -131,6 +131,15 @@ private:
             Len.Save(SOut);
             Pt.Save(SOut);
         }
+
+        uint64 GetMemUsed() const {
+            return TMemUtils::GetMemUsed(MinVal) +
+                   TMemUtils::GetMemUsed(MaxVal) +
+                   TMemUtils::GetMemUsed(Len) +
+                   TMemUtils::GetMemUsed(Pt) +
+                   TMemUtils::GetMemUsed(Loaded) +
+                   TMemUtils::GetMemUsed(Dirty);
+        }
     };
 
 private:
@@ -227,11 +236,12 @@ private:
 
     /// Ask child vectors about their memory usage
     uint64 GetChildMemUsed() const {
-        uint64 mem = 0;
-        for (int i = 0; i < ChildrenData.Len(); i++) {
-            mem += ChildrenData[i].GetMemUsed();
-        }
-        return mem;
+        return ChildrenData.GetMemUsed(true);
+        /* uint64 mem = 0; */
+        /* for (int i = 0; i < ChildrenData.Len(); i++) { */
+        /*     mem += ChildrenData[i].GetMemUsed(); */
+        /* } */
+        /* return mem; */
     }
 
 public:
@@ -269,7 +279,7 @@ public:
         res += ItemV.GetMemUsed();
         res += ItemVDel.GetMemUsed();
         res += Children.GetMemUsed();
-        res += ChildrenData.GetMemUsedDeep();
+        res += ChildrenData.GetMemUsed(true);
         return res;
 
         /*return ItemSetKey.GetMemUsed() + ItemV.GetMemUsed() + ItemVDel.GetMemUsed()
@@ -936,7 +946,7 @@ public:
         res += sizeof(TGixStats);
         res += GixFNm.GetMemUsed();
         res += GixBlobFNm.GetMemUsed();
-        res += KeyIdH.GetMemUsed();
+        res += KeyIdH.GetMemUsed(true);
         res += ItemSetCache.GetMemUsed();
         return res;
         /*return

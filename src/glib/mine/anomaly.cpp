@@ -197,4 +197,17 @@ PJsonVal TNearestNeighbor::Explain(const TIntFltKdV& Vec) const {
     return ResVal;
 }
 
+uint64 TNearestNeighbor::GetMemUsed() const {
+    return sizeof(TNearestNeighbor) +
+           TMemUtils::GetExtraMemberSize(RateV) +
+           TMemUtils::GetExtraMemberSize(WindowSize) +
+           TMemUtils::GetExtraMemberSize(Mat) +
+           TMemUtils::GetExtraMemberSize(DistV) +
+           TMemUtils::GetExtraMemberSize(DistColV) +
+           TMemUtils::GetExtraMemberSize(ThresholdV) +
+           TMemUtils::GetExtraMemberSize(InitVecs) +
+           TMemUtils::GetExtraMemberSize(NextCol) +
+           TMemUtils::GetExtraMemberSize(DatV);
+}
+
 };

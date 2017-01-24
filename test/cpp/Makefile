@@ -42,7 +42,7 @@ endif
 CXXFLAGS += -std=c++11 -Wall -O3 -DNDEBUG
 CXXFLAGS += -I$(GLIB_DIR)base -I$(GLIB_DIR)mine -I$(SOLE_DIR) -I$(QMINER_DIR)
 
-# ling with gtest
+# link with gtest
 LIBS += -lgtest
 
 ## Main application file
@@ -53,6 +53,7 @@ TEST_SRCS = test-TStr.cpp
 TEST_SRCS += test-THash.cpp 
 TEST_SRCS += test-TQQueue.cpp 
 TEST_SRCS += test-sizeof.cpp
+TEST_SRCS += test-traits.cpp
 
 # transform to list of object files
 TEST_OBJS = $(TEST_SRCS:.cpp=.o)
