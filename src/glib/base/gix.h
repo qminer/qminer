@@ -290,9 +290,7 @@ public:
                TMemUtils::GetExtraMemberSize(Children) +
                TMemUtils::GetExtraMemberSize(ChildrenData) +
                TMemUtils::GetExtraMemberSize(MergedP) +
-               TMemUtils::GetExtraMemberSize(Dirty) +
-               sizeof(TGixMerger*) +
-               sizeof(TGix<TKey, TItem, TGixMerger>*);
+               TMemUtils::GetExtraMemberSize(Dirty);
 
         /* uint64 res = 2 * sizeof(TBool); */
         /* res += sizeof(int); */

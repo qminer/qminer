@@ -674,7 +674,7 @@ template <class TVal1, class TVal2>                  class TPair;
 namespace gtraits {
   /// cpp type traits, helper to check if type is a container
   template <typename T> struct is_container : std::false_type{};
-  // TODO: use a built-in trait to detect shallow classes when compilers will implement most type traits */
+  // TODO: use a built-in trait to detect shallow classes when compilers will implement most type traits
   /// helper to check if the type is shallow (does not have any pointers or references and can be copied using memcpy)
   template <typename T> struct is_shallow : std::false_type{};
 

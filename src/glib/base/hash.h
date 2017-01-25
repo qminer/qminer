@@ -1089,7 +1089,7 @@ int64 TCache<TKey, TDat, THashFunc>::GetMemUsed() const {
     return sizeof(TCache) +
            TMemUtils::GetExtraMemberSize(MxMemUsed) +
            TMemUtils::GetExtraMemberSize(CurMemUsed) +
-           TMemUtils::GetExtraContainerSizeShallow(KeyDatH) +
+           TMemUtils::GetExtraMemberSize(KeyDatH) +
            TMemUtils::GetExtraMemberSize(TimeKeyL);
     /* int64 MemUsed = 2 * sizeof(int64); */
 
