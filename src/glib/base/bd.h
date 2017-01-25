@@ -656,32 +656,38 @@ public:
     return (RQ == 0x7fffffffU) ? 0 : (int) RQ; }
 };
 
+//////////////////////////////////////////
+// Type traits
 #ifdef GLib_CPP11
 
-/// cpp type traits, helper to check if type is a container
-template <typename T> struct is_container : std::false_type{};
-// TODO: use a built-in trait to detect shallow classes when compilers will implement most type traits */
-/// helper to check if the type is shallow (does not have any pointers or references and can be copied using memcpy)
-template <typename T> struct is_shallow : std::false_type{};
-
-/* template <class TVal, class TSizeTy = int> class TVec; */
+// forward declarations
 class TBool;
 class TCh;
 class TUCh;
 class TUSInt;
-template <class Base> class TNum;
 
-template <> struct is_shallow<TBool> : std::true_type{};
-template <> struct is_shallow<TCh> : std::true_type{};
-template <> struct is_shallow<TUCh> : std::true_type{};
-template <> struct is_shallow<TUSInt> : std::true_type{};
-template <class Base> struct is_shallow<TNum<Base>> : std::true_type{};
+template <class Base>                                class TNum;
+template <class TVal, class TSizeTy>                 class TVec;
+template <class TKey, class TDat, class THashFunc>   class THash;
 
-template <class TVal, class TSizeTy> class TVec;
-template <class TKey, class TDat, class THashFunc> class THash;
-template <class TVal, class TSizeTy> struct is_container<TVec<TVal,TSizeTy>> : std::true_type{};
-template<class TKey, class TDat, class THashFunc>
-struct is_container<THash<TKey,TDat,THashFunc>> : std::true_type{};
+namespace gtraits {
+  /// cpp type traits, helper to check if type is a container
+  template <typename T> struct is_container : std::false_type{};
+  // TODO: use a built-in trait to detect shallow classes when compilers will implement most type traits */
+  /// helper to check if the type is shallow (does not have any pointers or references and can be copied using memcpy)
+  template <typename T> struct is_shallow : std::false_type{};
+
+  // specializations
+  template <> struct is_shallow<TBool> : std::true_type{};
+  template <> struct is_shallow<TCh> : std::true_type{};
+  template <> struct is_shallow<TUCh> : std::true_type{};
+  template <> struct is_shallow<TUSInt> : std::true_type{};
+  template <class Base> struct is_shallow<TNum<Base>> : std::true_type{};
+
+  template <class TVal, class TSizeTy> struct is_container<TVec<TVal,TSizeTy>> : std::true_type{};
+  template<class TKey, class TDat, class THashFunc>
+  struct is_container<THash<TKey,TDat,THashFunc>> : std::true_type{};
+}
 
 #endif
 
@@ -695,13 +701,13 @@ namespace TMemUtils {
   }
 
   /// get memory usage for regular glib classes
-  template <typename T, typename std::enable_if<std::is_class<T>::value && !is_container<T>::value,bool>::type = true>
+  template <typename T, typename std::enable_if<std::is_class<T>::value && !gtraits::is_container<T>::value,bool>::type = true>
   uint64 GetMemUsed(const T& Val) {
     return Val.GetMemUsed();
   }
 
   /// glib containers
-  template <typename T, typename std::enable_if<is_container<T>::value,bool>::type = true>
+  template <typename T, typename std::enable_if<gtraits::is_container<T>::value,bool>::type = true>
   uint64 GetMemUsed(const T& Val) {
     return Val.GetMemUsed(true);   // deep
   }

@@ -819,11 +819,11 @@ private:
 #ifdef GLib_CPP11
   /// get memory usage for simple types, such that we don't need to call
   /// GetMemUsed on each element
-  template <class T = TVal, typename std::enable_if<is_shallow<T>::value, bool>::type = true>
+  template <class T = TVal, typename std::enable_if<gtraits::is_shallow<T>::value, bool>::type = true>
   uint64 GetVecMemUsed(const bool& = false) const { return GetMemUsedShallow(); }
   /// get memory usage for complex types, where we have to call GetMemUsed
   /// on each element
-  template <class T = TVal, typename std::enable_if<!is_shallow<T>::value, bool>::type = true>
+  template <class T = TVal, typename std::enable_if<!gtraits::is_shallow<T>::value, bool>::type = true>
   uint64 GetVecMemUsed(const bool& DeepP = false) const { return DeepP ? GetMemUsedDeep() : GetMemUsedShallow(); }
 #else
   /// get memory usage - pre-cpp11 implementation
