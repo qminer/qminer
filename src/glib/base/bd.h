@@ -688,11 +688,11 @@ namespace gtraits {
         private:
           // is_shallow
           template <class T1 = TVal1, class T2 = TVal2, typename std::enable_if<is_shallow<T1>::value && is_shallow<T2>::value,bool>::type = true>
-          static std::true_type IsShallow(const TPair<TVal1,TVal2>&);
+          static std::true_type IsShallow();
           template <class T1 = TVal1, class T2 = TVal2, typename std::enable_if<!(is_shallow<T1>::value && is_shallow<T2>::value),bool>::type = true>
-          static std::false_type IsShallow(const TPair<TVal1,TVal2>&);
+          static std::false_type IsShallow();
         public:
-          using shallow_type = decltype(IsShallow(std::declval<TPair<TVal1,TVal2>>()));
+          using shallow_type = decltype(IsShallow());
       };
   }
 
