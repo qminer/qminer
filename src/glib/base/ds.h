@@ -62,11 +62,11 @@ public:
   bool operator<(const TPair& Pair) const {
     return (Val1<Pair.Val1)||((Val1==Pair.Val1)&&(Val2<Pair.Val2));}
 
-#ifdef GLib_CPP11
-  uint64 GetMemUsed() const { return TMemUtils::GetMemUsed<TVal1>(Val1) + TMemUtils::GetMemUsed<TVal2>(Val2); }
-#else
-  uint64 GetMemUsed() const {return Val1.GetMemUsed()+Val2.GetMemUsed();}
-#endif
+  uint64 GetMemUsed() const {
+    return sizeof(TPair<TVal1,TVal2>) +
+           TMemUtils::GetExtraMemberSize(Val1) +
+           TMemUtils::GetExtraMemberSize(Val2);
+  }
 
   int GetPrimHashCd() const {return TPairHashImpl::GetHashCd(Val1.GetPrimHashCd(), Val2.GetPrimHashCd()); }
   int GetSecHashCd() const {return TPairHashImpl::GetHashCd(Val2.GetSecHashCd(), Val1.GetSecHashCd()); }
@@ -819,11 +819,11 @@ private:
 #ifdef GLib_CPP11
   /// get memory usage for simple types, such that we don't need to call
   /// GetMemUsed on each element
-  template <class T = TVal, typename std::enable_if<std::is_standard_layout<T>::value, bool>::type = true>
+  template <class T = TVal, typename std::enable_if<is_shallow<T>::value, bool>::type = true>
   uint64 GetVecMemUsed(const bool& = false) const { return GetMemUsedShallow(); }
   /// get memory usage for complex types, where we have to call GetMemUsed
   /// on each element
-  template <class T = TVal, typename std::enable_if<!std::is_standard_layout<T>::value, bool>::type = true>
+  template <class T = TVal, typename std::enable_if<!is_shallow<T>::value, bool>::type = true>
   uint64 GetVecMemUsed(const bool& DeepP = false) const { return DeepP ? GetMemUsedDeep() : GetMemUsedShallow(); }
 #else
   /// get memory usage - pre-cpp11 implementation
@@ -831,14 +831,6 @@ private:
   uint64 GetVecMemUsed(const bool& DeepP = false) const { return DeepP ? GetMemUsedDeep() : GetMemUsedShallow(); }
 #endif
 };
-
-/*
- * TYPE TRAITS: tell the compiler that TVec is a container
- */
-#ifdef GLib_CPP11
-template <class TVal1, class TSizeTy1>
-struct IsContainer<TVec<TVal1, TSizeTy1>> : std::true_type{};
-#endif
 
 //#//////////////////////////////////////////////
 /// TSIter is a stride iterator. ##TVec
@@ -1850,9 +1842,10 @@ public:
   TVal& GetVal(){Assert(this!=NULL); return Val;}
   const TVal& GetVal() const {Assert(this!=NULL); return Val;}
   uint64 GetMemUsed() const {
-      return TMemUtils::GetMemUsed(PrevNd) +
-             TMemUtils::GetMemUsed(NextNd) +
-             TMemUtils::GetMemUsed(Val);
+    return sizeof(TLstNd<TVal>) +
+           TMemUtils::GetExtraMemberSize(PrevNd) +
+           TMemUtils::GetExtraMemberSize(NextNd) +
+           TMemUtils::GetExtraMemberSize(Val);
   }
 };
 

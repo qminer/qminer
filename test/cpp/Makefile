@@ -72,7 +72,7 @@ $(MAIN): $(MAIN).o $(TEST_OBJS) $(BUILD)/glib.a $(BUILD)/qminer.a
 	$(CC) $(CXXFLAGS) -c $<
 
 gyp: $(BUILD)/glib.a $(BUILD)/qminer.a
-	cd ../..; node-gyp configure build
+	cd ../..; node-gyp configure build --jobs 20
 
 test: $(MAIN)
 	./$(MAIN)

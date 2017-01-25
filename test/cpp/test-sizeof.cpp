@@ -63,6 +63,11 @@ TEST(sizeof, QMiner) {
     ASSERT_EQ(sizeof(TQm::TFtrSpace), 72);
 }
 
+TEST(GetExtraMemberSize, TStr) {
+    const TStr Str = "abc";
+    ASSERT_EQ(TMemUtils::GetExtraMemberSize(Str), Str.Len() + 1);
+}
+
 TEST(GetMemUsed, TVec) {
     const TStr TargetStr = "abcdefg";
     const int NVecs = 4;
@@ -87,6 +92,10 @@ TEST(GetMemUsed, TVec) {
         StrVVV[i] = StrVV;
     }
 
+    // shallow
+    ASSERT_EQ(StrV.GetMemUsed(false),   sizeof(TStrV) +             NVecs*sizeof(TStr));
+    ASSERT_EQ(StrVV.GetMemUsed(false),  sizeof(TVec<TStrV>) +       NVecs*sizeof(TStrV));
+    ASSERT_EQ(StrVVV.GetMemUsed(false), sizeof(TVec<TVec<TStrV>>) + NVecs*sizeof(TVec<TStrV>));
     // deep
     ASSERT_EQ(StrV.GetMemUsed(true), VecMem);
     ASSERT_EQ(StrVV.GetMemUsed(true), VVecMem);
@@ -95,10 +104,6 @@ TEST(GetMemUsed, TVec) {
     ASSERT_EQ(StrV.GetMemUsed(false), StrV.GetMemUsed());
     ASSERT_EQ(StrVV.GetMemUsed(false), StrVV.GetMemUsed());
     ASSERT_EQ(StrVVV.GetMemUsed(false), StrVVV.GetMemUsed());
-    // shallow
-    ASSERT_EQ(StrV.GetMemUsed(false),   sizeof(TStrV) +             NVecs*sizeof(TStr));
-    ASSERT_EQ(StrVV.GetMemUsed(false),  sizeof(TVec<TStrV>) +       NVecs*sizeof(TStrV));
-    ASSERT_EQ(StrVVV.GetMemUsed(false), sizeof(TVec<TVec<TStrV>>) + NVecs*sizeof(TVec<TStrV>));
 }
 
 TEST(GetMemUsed, THash) {
@@ -119,4 +124,48 @@ TEST(GetMemUsed, THash) {
     // check for two elements
     ASSERT_EQ(TestH.GetMemUsed(true), BaseMemUsed + 2*TMemUtils::GetExtraMemberSize(TargetStr));
     ASSERT_EQ(TestH.GetMemUsed(false), BaseMemUsed);
+}
+
+TEST(GetMemUsed, pointer) {
+    double* NullPtr = NULL;
+    TStrV* Vec = new TStrV;
+    Vec->Add("Hello");
+    Vec->Add("World");
+
+    const double* ConstNullPtr = NullPtr;
+    const TStrV* ConstVec = Vec;
+
+    const uint64 VecMem = Vec->GetMemUsed(true);
+
+    ASSERT_EQ(TMemUtils::GetMemUsed(NullPtr), sizeof(double*));
+    ASSERT_EQ(TMemUtils::GetMemUsed(ConstNullPtr), sizeof(double*));
+    ASSERT_EQ(TMemUtils::GetMemUsed(Vec), sizeof(TStrV*) + VecMem);
+    ASSERT_EQ(TMemUtils::GetMemUsed(ConstVec), sizeof(TStrV*) + VecMem);
+}
+
+TEST(GetMemUsed, reference) {
+    TStrV Vec;
+    Vec.Add("Hello");
+    Vec.Add("World");
+
+    TStrV& VecRef = Vec;
+    const TStrV& ConstVecRef = Vec;
+
+    ASSERT_EQ(TMemUtils::GetMemUsed(VecRef), Vec.GetMemUsed(true));
+    ASSERT_EQ(TMemUtils::GetMemUsed(ConstVecRef), Vec.GetMemUsed(true));
+}
+
+TEST(GetMemUsed, fundamental) {
+    int Val = 3;
+    ASSERT_EQ(TMemUtils::GetMemUsed(Val), sizeof(int));
+}
+
+TEST(GetMemUsed, clazz) {
+    const TStr StrVal = "abc";
+    const TInt IntVal = 4;
+    const TFlt FltVal = 5;
+
+    ASSERT_EQ(TMemUtils::GetMemUsed(StrVal), sizeof(TStr) + StrVal.Len() + 1);
+    ASSERT_EQ(TMemUtils::GetMemUsed(IntVal), sizeof(TInt));
+    ASSERT_EQ(TMemUtils::GetMemUsed(FltVal), sizeof(FltVal));
 }

@@ -3042,6 +3042,11 @@ public:
         void Delete(const TQmGixItemSmall& Item, TQmGixItemSmallV& MainV) const { return MainV.DelAll(Item); }
         bool IsLt(const TQmGixItemSmall& Item1, const TQmGixItemSmall& Item2) const { return Item1 < Item2; }
         bool IsLtE(const TQmGixItemSmall& Item1, const TQmGixItemSmall& Item2) const { return Item1 <= Item2; }
+
+        uint64 GetMemUsed() const {
+            return sizeof(TQmGixDefMergerSmall) +
+                   (TGixExpMerger<TQmGixKey,TQmGixItemSmall>::GetMemUsed() - sizeof(TGixExpMerger<TQmGixKey,TQmGixItemSmall>));
+        }
     };
 
     /// Merger which sums the frequencies but removes the duplicates (e.g. 3+1 = 1+1 = 2)

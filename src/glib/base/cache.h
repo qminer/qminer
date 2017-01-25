@@ -506,11 +506,9 @@ private:
 
         // need to report size, for keeping up used-up space in cache
         int64 GetMemUsed() const {
-            int64 MemUsed = (int64)sizeof(TVec<TVal>);
-            return MemUsed + ValV.GetMemUsed(true);
-            /* for (int ValN = 0; ValN < ValV.Len(); ValN++) { */
-            /*     MemUsed += (int64)ValV[ValN].GetMemUsed(); } */
-            /* return MemUsed; */
+            return sizeof(TBlockDat) +
+                   TMemUtils::GetExtraMemberSize(ChangedP) +
+                   TMemUtils::GetExtraMemberSize(ValV); 
         }
         // store this data - on delete-from cache or on demand
         bool OnDelFromCache(const TInt& BlockId, void* WndBlockCache) {
