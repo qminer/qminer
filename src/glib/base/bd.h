@@ -669,6 +669,7 @@ class TUSInt;
 template <class Base>                                class TNum;
 template <class TVal, class TSizeTy>                 class TVec;
 template <class TKey, class TDat, class THashFunc>   class THash;
+template <class TVal1, class TVal2>                  class TPair;
 
 namespace gtraits {
   /// cpp type traits, helper to check if type is a container
@@ -677,14 +678,39 @@ namespace gtraits {
   /// helper to check if the type is shallow (does not have any pointers or references and can be copied using memcpy)
   template <typename T> struct is_shallow : std::false_type{};
 
-  // specializations
+  // helper types and classes
+  namespace utils {
+      template<typename T> struct bool_type : std::true_type{};
+      template<> struct bool_type<std::false_type> : std::false_type{};
+
+      template <class TVal1, class TVal2>
+      struct TPairHelper {
+        private:
+          // is_shallow
+          template <class T1 = TVal1, class T2 = TVal2, typename std::enable_if<is_shallow<T1>::value && is_shallow<T2>::value,bool>::type = true>
+          static std::true_type IsShallow(const TPair<TVal1,TVal2>&);
+          template <class T1 = TVal1, class T2 = TVal2, typename std::enable_if<!(is_shallow<T1>::value && is_shallow<T2>::value),bool>::type = true>
+          static std::false_type IsShallow(const TPair<TVal1,TVal2>&);
+        public:
+          using shallow_type = decltype(IsShallow(std::declval<TPair<TVal1,TVal2>>()));
+      };
+  }
+
+  // Specializations: is_shallow
+  // basic types
   template <> struct is_shallow<TBool> : std::true_type{};
   template <> struct is_shallow<TCh> : std::true_type{};
   template <> struct is_shallow<TUCh> : std::true_type{};
   template <> struct is_shallow<TUSInt> : std::true_type{};
+  // TNum
   template <class Base> struct is_shallow<TNum<Base>> : std::true_type{};
+  // TPair
+  template <class TVal1, class TVal2>
+  struct is_shallow<TPair<TVal1,TVal2>> : utils::bool_type<typename utils::TPairHelper<TVal1,TVal2>::shallow_type>{};
 
-  template <class TVal, class TSizeTy> struct is_container<TVec<TVal,TSizeTy>> : std::true_type{};
+  // Specializations: is_container
+  template <class TVal, class TSizeTy>
+  struct is_container<TVec<TVal,TSizeTy>> : std::true_type{};
   template<class TKey, class TDat, class THashFunc>
   struct is_container<THash<TKey,TDat,THashFunc>> : std::true_type{};
 }

@@ -57,9 +57,9 @@ TEST(type_traits, TStr) {
     ASSERT_FALSE(gtraits::is_shallow<TStr>::value);
 }
 
-/* TEST(type_traits, TPair) { */
-/*     ASSERT_TRUE(gtraits::is_shallow<TIntPr>::value); */
-/*     ASSERT_FALSE(gtraits::is_shallow<TIntStrPr>::value); */
-/* } */
+TEST(type_traits, TPair) {
+    ASSERT_TRUE(gtraits::is_shallow<TIntPr>::value);
+    ASSERT_FALSE(gtraits::is_shallow<TIntStrPr>::value);
+}
 
 #endif
