@@ -753,13 +753,13 @@ namespace TMemUtils {
 
 #else
   template <class T>
+  uint64 GetMemUsed(const T& Val) {
+    return Val.GetMemUsed();
+  }
+  template <class T>
   uint64 GetMemUsed(T* Val) {
     if (Val == NULL) { return sizeof(T*); }
     return sizeof(T*) + GetMemUsed(*Val);
-  }
-  template <class T>
-  uint64 GetMemUsed(const T& Val) {
-    return Val.GetMemUsed();
   }
 #endif
 
