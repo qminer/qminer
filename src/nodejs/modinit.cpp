@@ -139,6 +139,13 @@ void InitStreamStory(Handle<Object> Exports, const TStr& NsNm) {
     Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
 }
 
+void InitGeoSpatial(Handle<Object> Exports, const TStr& NsNm) {
+    // geospatial aggregates
+    TQm::TStreamAggr::Register<TQm::TStreamAggrs::TStayPointDetector>();
+}
+
+
+
 void InitQm(Handle<Object> Exports) {
     #ifdef WIN32
     _setmaxstdio(2048); 
@@ -168,6 +175,7 @@ void Init(Handle<Object> Exports) {
     InitSnap(Exports, "snap");
     InitDeprecated(Exports, "deprecated");
     InitStreamStory(Exports, "streamstory");
+    InitGeoSpatial(Exports, "geospatial");
     InitQm(Exports);
 }
 

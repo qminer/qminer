@@ -888,12 +888,35 @@ TSizeTy TVec<TVal, TSizeTy>::GetMxValN() const {
 
 template <class TVal, class TSizeTy>
 TSizeTy TVec<TVal, TSizeTy>::GetMnValN() const {
-    if (Vals == 0) { return -1; }
-    TSizeTy MnValN = 0;
-    for (TSizeTy ValN = 1; ValN<Vals; ValN++) {
-        if (ValT[ValN]<ValT[MnValN]) { MnValN = ValN; }
+  if (Vals == 0) { return -1; }
+  TSizeTy MnValN = 0;
+  for (TSizeTy ValN = 1; ValN<Vals; ValN++) {
+      if (ValT[ValN]<ValT[MnValN]) { MnValN = ValN; }
+  }
+  return MnValN;
+}
+
+template <class TVal, class TSizeTy>
+uint64 TVec<TVal, TSizeTy>::GetMemUsedDeep() const {
+  uint64 MemUsed = sizeof(TVec<TVal,TSizeTy>) +
+         TMemUtils::GetExtraMemberSize(MxVals) +
+         TMemUtils::GetExtraMemberSize(Vals);
+
+  if (ValT != NULL && MxVals != -1){
+    for (TSizeTy i = 0; i < MxVals; i++){
+      MemUsed += TMemUtils::GetMemUsed(ValT[i]);
     }
-    return MnValN;
+  }
+
+  return MemUsed;
+}
+
+template <class TVal, class TSizeTy>
+uint64 TVec<TVal, TSizeTy>::GetMemUsedShallow() const {
+  return sizeof(TVec<TVal,TSizeTy>) +
+         TMemUtils::GetExtraMemberSize(MxVals) +
+         TMemUtils::GetExtraMemberSize(Vals) +
+         sizeof(TVal)*(MxVals != -1 ? MxVals : 0);
 }
 
 //#//////////////////////////////////////////////

@@ -229,7 +229,7 @@ describe('Feature Space Tests', function () {
                 source: "FtrSpaceTest",
                 field: "Categories",
                 values: ["a", "b", "c", "q", "w", "e"],
-                log: true
+                transform: 'log'
             });
             var vec = ftr.extractVector(Store[0]);
 
@@ -239,18 +239,6 @@ describe('Feature Space Tests', function () {
             for (var i = 0; i < expected.length; i++) {
                 assert.equal(vec[i], Math.log(expected[i] + 1));
             }
-        })
-        it('should not allow exclusive binary and log transformations', function () {
-            assert.throws(function () {
-                var ftr = new qm.FeatureSpace(base, {
-                    type: "multinomial",
-                    source: "FtrSpaceTest",
-                    field: "Categories",
-                    values: ["a", "b", "c", "q", "w", "e"],
-                    log: true,
-                    binary: true
-                });
-            });
         })
         it('should return a vector for the first record in store: multinomial', function () {
             var ftr = new qm.FeatureSpace(base, { type: "multinomial", source: "FtrSpaceTest", field: "Categories", valueField: "Values", values: ["a", "b", "c", "q", "w", "e"] });
