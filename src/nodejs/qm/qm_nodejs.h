@@ -3251,8 +3251,10 @@ public:
 * The feature extractor of type `'multinomial'`. Used for constructing {@link module:qm.FeatureSpace} objects.
 * @property {string} type - The type of the extractor. <b>Important</b>: It must be equal `'multinomial'`.
 * @property {boolean} [normalize = 'false'] - Normalize the resulting vector of the extractor to have L2 norm 1.0.
-* @property {boolean} [binary = false] - Do not compute frequencies, but only a binary indicator whether the category appears
-* @property {boolean} [log = false] - Output logarithm of the frequencies log(1+x). This flag is exclusive with flag 'binary'.
+* @property {string} [transform] - Transformation to apply to each dimension of the feature vector.
+* <br> Transformation include:
+* <br> - 'log' - Compute a logarithm of the frequencies using the following formula: log(1+x)
+* <br> - 'binary' - Do not compute frequencies, but only a binary indicator whether the category appears
 * @property {Array.<Object>} [values] - A fixed set of values, which form a fixed feature set, no dimensionality changes if new values are seen in the updates. Cannot be used the same time as datetime.
 * @property {number} [hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hashDimension to get the corresponding dimension.
 * @property {Object} [datetime = false] - Same as `'values'`, only with predefined values which are extracted from date and time (`month`, `day of month`, `day of week`, `time of day`, `hour`).
