@@ -144,12 +144,12 @@ private:
 
         uint64 GetMemUsed() const {
             return sizeof(TGixItemSetChildInfo) +
-                   TMemUtils::GetMemUsed(MinVal) +
-                   TMemUtils::GetMemUsed(MaxVal) +
-                   TMemUtils::GetMemUsed(Len) +
-                   TMemUtils::GetMemUsed(Pt) +
-                   TMemUtils::GetMemUsed(Loaded) +
-                   TMemUtils::GetMemUsed(Dirty);
+                   TMemUtils::GetExtraMemberSize(MinVal) +
+                   TMemUtils::GetExtraMemberSize(MaxVal) +
+                   TMemUtils::GetExtraMemberSize(Len) +
+                   TMemUtils::GetExtraMemberSize(Pt) +
+                   TMemUtils::GetExtraMemberSize(Loaded) +
+                   TMemUtils::GetExtraMemberSize(Dirty);
         }
     };
 
