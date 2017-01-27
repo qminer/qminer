@@ -1,5 +1,18 @@
 # QMiner Change Log
 
+### 27 January 2017
+
+**Version 7.9.0**
+
+**Non-breaking with new features**
+
+New features:
+- created common API for calculating memory usage in containers
+- calculating stream aggregates memory footprint
+- type trait API for detecting shallow types and containers
+- optimized TVec memory footprint calculation using type traits (only for C++11)
+- new API for multinomial feature extractor transformation
+
 ### 13 January 2017
 
 **Version 7.8.1**
