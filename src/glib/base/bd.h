@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -468,6 +468,7 @@ public:
   void UnRef(){Assert(Refs>0); Refs--;}
   bool NoRef() const {return Refs==0;}
   int GetRefs() const {return Refs;}
+  uint64 GetMemUsed() const { return sizeof(TCRef); }
 };
 
 /////////////////////////////////////////////////
@@ -497,7 +498,7 @@ public:
   TPt(): Addr(NULL){}
   TPt(const TPt& Pt): Addr(Pt.Addr){MkRef();}
   TPt(TRec* _Addr): Addr(_Addr){MkRef();}
-  TPt(TWPt<TRec> WPt): Addr(WPt()){MkRef();}  
+  TPt(TWPt<TRec> WPt): Addr(WPt()){MkRef();}
   static TPt New(){return TObj::New();}
   ~TPt(){UnRef();}
   explicit TPt(TSIn& SIn);
@@ -511,7 +512,7 @@ public:
   bool operator==(const TPt& Pt) const {return *Addr==*Pt.Addr;}
   bool operator!=(const TPt& Pt) const {return *Addr!=*Pt.Addr;}
   bool operator<(const TPt& Pt) const {return *Addr<*Pt.Addr;}
-  
+
   TRec* operator->() const {Assert(Addr!=NULL); return Addr;}
   TRec& operator*() const {Assert(Addr!=NULL); return *Addr;}
   TRec& operator[](const int& RecN) const {
@@ -553,7 +554,7 @@ public:
   bool operator==(const TWPt& WPt) const {return *Addr==*WPt.Addr;}
   bool operator!=(const TWPt& WPt) const {return *Addr!=*WPt.Addr;}
   bool operator<(const TWPt& WPt) const {return *Addr<*WPt.Addr;}
-  
+
   TRec* operator->() const {Assert(Addr!=NULL); return Addr;}
   TRec& operator*() const {Assert(Addr!=NULL); return *Addr;}
   TRec& operator[](const int& RecN) const {
@@ -655,12 +656,136 @@ public:
     return (RQ == 0x7fffffffU) ? 0 : (int) RQ; }
 };
 
+//////////////////////////////////////////
+// Type traits
+#ifdef GLib_CPP11
+
+// forward declarations
+class TBool;
+class TCh;
+class TUCh;
+class TUSInt;
+
+template <class Base>                                class TNum;
+template <class TVal, class TSizeTy>                 class TVec;
+template <class TKey, class TDat, class THashFunc>   class THash;
+template <class TVal1, class TVal2>                  class TPair;
+
+namespace gtraits {
+  /// cpp type traits, helper to check if type is a container
+  template <typename T> struct is_container : std::false_type{};
+  // TODO: use a built-in trait to detect shallow classes when compilers will implement most type traits
+  /// helper to check if the type is shallow (does not have any pointers or references and can be copied using memcpy)
+  template <typename T> struct is_shallow : std::false_type{};
+
+  // helper types and classes
+  namespace utils {
+      template<typename T> struct bool_type : std::true_type{};
+      template<> struct bool_type<std::false_type> : std::false_type{};
+
+      template <class TVal1, class TVal2>
+      struct TPairHelper {
+        private:
+          // is_shallow
+          template <class T1 = TVal1, class T2 = TVal2, typename std::enable_if<is_shallow<T1>::value && is_shallow<T2>::value,bool>::type = true>
+          static std::true_type IsShallow();
+          template <class T1 = TVal1, class T2 = TVal2, typename std::enable_if<!(is_shallow<T1>::value && is_shallow<T2>::value),bool>::type = true>
+          static std::false_type IsShallow();
+        public:
+          using shallow_type = decltype(IsShallow());
+      };
+  }
+
+  // Specializations: is_shallow
+  // basic types
+  template <> struct is_shallow<TBool> : std::true_type{};
+  template <> struct is_shallow<TCh> : std::true_type{};
+  template <> struct is_shallow<TUCh> : std::true_type{};
+  template <> struct is_shallow<TUSInt> : std::true_type{};
+  // TNum
+  template <class Base> struct is_shallow<TNum<Base>> : std::true_type{};
+  // TPair
+  template <class TVal1, class TVal2>
+  struct is_shallow<TPair<TVal1,TVal2>> : utils::bool_type<typename utils::TPairHelper<TVal1,TVal2>::shallow_type>{};
+
+  // Specializations: is_container
+  template <class TVal, class TSizeTy>
+  struct is_container<TVec<TVal,TSizeTy>> : std::true_type{};
+  template<class TKey, class TDat, class THashFunc>
+  struct is_container<THash<TKey,TDat,THashFunc>> : std::true_type{};
+}
+
+#endif
+
+namespace TMemUtils {
+#ifdef GLib_CPP11
+
+  /// fundamental types (int, float, ...)
+  template <typename T, typename std::enable_if<std::is_fundamental<T>::value,bool>::type = true>
+  uint64 GetMemUsed(const T& Val) {
+    return sizeof(T);
+  }
+
+  /// get memory usage for regular glib classes
+  template <typename T, typename std::enable_if<std::is_class<T>::value && !gtraits::is_container<T>::value,bool>::type = true>
+  uint64 GetMemUsed(const T& Val) {
+    return Val.GetMemUsed();
+  }
+
+  /// glib containers
+  template <typename T, typename std::enable_if<gtraits::is_container<T>::value,bool>::type = true>
+  uint64 GetMemUsed(const T& Val) {
+    return Val.GetMemUsed(true);   // deep
+  }
+
+  /// references
+  template <typename T, typename std::enable_if<std::is_reference<T>::value,bool>::type = true>
+  uint64 GetMemUsed(T Val) {
+    return GetMemUsed<typename std::remove_reference<T>::type>(Val);
+  }
+
+  /// pointers
+  template <typename T, typename std::enable_if<std::is_pointer<T>::value,bool>::type = true>
+  uint64 GetMemUsed(T Val) {
+    if (Val == nullptr) { return sizeof(T); }
+    return sizeof(T) + GetMemUsed(*Val);
+  }
+
+#else
+  template <class T>
+  uint64 GetMemUsed(const T& Val) {
+    return Val.GetMemUsed();
+  }
+  template <class T>
+  uint64 GetMemUsed(T* Val) {
+    if (Val == NULL) { return sizeof(T*); }
+    return sizeof(T*) + GetMemUsed(*Val);
+  }
+#endif
+
+  /////////////////////////////////////////////////
+  // Functions which returns the part of the memory footprint of
+  // an object which ignored by the sizeof operator
+
+  /// returns the extra space that the instances members occupy
+  /// which is not taken into account by the sizeof operator
+  template <class TClass>
+  uint64 GetExtraMemberSize(const TClass& Inst) {
+    return TMemUtils::GetMemUsed(Inst) - sizeof(TClass);
+  }
+  /// returns the extra space that the container occupies
+  /// which is not taken into account by the sizeof operator
+  template <class TClass>
+  uint64 GetExtraContainerSizeShallow(const TClass& Inst) {
+    return Inst.GetMemUsed(false) - sizeof(TClass);
+  }
+}
+
 // Depending on the platform and compiler settings choose the faster implementation (of the same hash function)
 #if (defined(GLib_64Bit)) && ! (defined(DEBUG) || defined(_DEBUG))
   typedef TPairHashImpl1 TPairHashImpl;
 #else
   typedef TPairHashImpl2 TPairHashImpl;
 #endif
-
 
 #endif
