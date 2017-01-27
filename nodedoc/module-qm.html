@@ -13,7 +13,7 @@
                 <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
         <div id="jsdoc-navbar-content">
-            <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.8.1</a>
+            <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.9.0</a>
         </div>
     </div>
 </nav>
@@ -2250,33 +2250,19 @@ base.close();</code></pre>
 
                 <tr>
         <td>
-            <p>binary</p>
+            <p>transform</p>
         </td>
         <td>
-                <p>boolean</p>
-        </td>
-        <td>
-                <p>Yes</p>
-        </td>
-        <td>
-                <p>Do not compute frequencies, but only a binary indicator whether the category appears</p>
-                <p>Defaults to <code>false</code>.</p>
-        </td>
-</tr>
-
-                <tr>
-        <td>
-            <p>log</p>
-        </td>
-        <td>
-                <p>boolean</p>
+                <p>string</p>
         </td>
         <td>
                 <p>Yes</p>
         </td>
         <td>
-                <p>Output logarithm of the frequencies log(1+x). This flag is exclusive with flag 'binary'.</p>
-                <p>Defaults to <code>false</code>.</p>
+                <p>Transformation to apply to each dimension of the feature vector.
+<br> Transformation options are:
+<br> - 'log' - Compute a logarithm of the frequencies using the following formula: log(1+x)
+<br> - 'binary' - Do not compute frequencies, but only a binary indicator whether the category appears</p>
         </td>
 </tr>
 
@@ -3206,7 +3192,7 @@ base.close();</code></pre>
                 <p>The type of the encoding text. Possible options:
 <br>1. <code>'simple'</code> - The simple encoding.
 <br>2. <code>'html'</code> - The html encoding.
-<br>3.2<code>'unicode'</code> - The unicode encoding.</p>
+<br>3.B2<code>'unicode'</code> - The unicode encoding.</p>
                 <p>Defaults to <code>'simple'</code>.</p>
         </td>
 </tr>
