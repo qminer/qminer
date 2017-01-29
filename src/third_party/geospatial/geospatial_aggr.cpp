@@ -54,6 +54,7 @@ PJsonVal TGPSMeasurement::ToJson() const {
 
 ///
 /// Constructor creating a TGeoCluster fom JSON
+/// PJsonVal& Rec: Json representation of GeoCluster
 ///
 TGeoCluster::TGeoCluster(const PJsonVal& Rec) {
     //status
@@ -224,6 +225,8 @@ TStayPointDetector::TStayPointDetector(
     LocationFieldId = Store->GetFieldId(LocationFieldName);
     TStr AccuracyFieldName = ParamVal->GetObjStr("accuracyField");
     AccuracyFieldId = Store->GetFieldId(AccuracyFieldName);
+    TStr ActivitiesFieldName = ParamVal->GetObjStr("activitiesField");
+    ActivitiesField = Store->GetFieldId(AccuracyFieldName);
 }//TStayPointDetector::constructor
 
 void TStayPointDetector::OnAddRec(const TRec& Rec,
@@ -417,7 +420,7 @@ bool TStayPointDetector::ParseGPSRec(const TRec& Rec, TGPSMeasurement& Gps) {
     Rec.GetFieldTm(TimeFieldId, Timestamp);
     uint64 Time =
         TTm::GetUnixMSecsFromWinMSecs(Timestamp.GetMSecsFromTm(Timestamp));
-    // int64 Time = Rec.GetFieldInt64(TimeFieldId);
+   
     double Lat = Rec.GetFieldFltPr(LocationFieldId).Val1;
     double Lon = Rec.GetFieldFltPr(LocationFieldId).Val2;
 
@@ -428,7 +431,17 @@ bool TStayPointDetector::ParseGPSRec(const TRec& Rec, TGPSMeasurement& Gps) {
     Gps.Time = Time;
     Gps.LatLon = TPoint(Lat, Lon);
     Gps.Accuracy = Accuracy;
-
+    
+    /*if (!Rec.IsFieldNull(ActivitiesField)) {
+        Rec.GetFieldIntV(ActivitiesField, Gps.SensorActivities);
+        //TODO: This sensorActivities will go into a separate Aggregate
+        //once we construct the pipeline - this is a temporary functionality
+        //which allows us to continue to work on NextPin on another parts of
+        //the project
+        EAssertR(Gps.SensorActivities.Len() < 16, "SensorActivities arr must \
+                 be aligned with SenorActivities from NextPin : len 16");
+    }*/
+    
     if (StateGpsMeasurementsV.Len() > 0) {
         TGPSMeasurement* lastRecord = &StateGpsMeasurementsV.Last();
         //reject this record - it is earlier or same as previous

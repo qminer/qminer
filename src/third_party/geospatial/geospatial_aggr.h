@@ -44,6 +44,12 @@ public:
     TFlt Distance;//distance to previous
     TInt64 TimeDiff;//time difference with previous
     PJsonVal ToJson() const;
+    //Temporal hack untile we create a new aggregate caluclating the 
+    //type and avg activity (walking, running) inside a geoActivity (path).
+    //the idices are aligned with the exports.GeoActivityActivity 
+    //(shared_consts) from NextPin
+
+    TIntV SensorActivities;
 };
 
 //////////////////////
@@ -118,6 +124,8 @@ private:
     TInt TrDist;
     /// time threshold (seconds)
     TInt TrTime;
+    /// array of activity probabilities (see TGPSMeasurement::sensorActivities
+    TInt ActivitiesField;
 
     /// state
     //list of GPS measurements currently part of the satate
