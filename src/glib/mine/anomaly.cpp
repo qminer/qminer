@@ -55,6 +55,7 @@ void TNearestNeighbor::Forget(const int& ColId) {
         // we are the nearest neighbor, need to find a new one
         if (DistColV[ColN] == ColId) { CheckV.Add(ColN); }
     }
+
     // reasses
     for (const int ColN : CheckV) {
         // update distance for ColN ignoring vector ColId
