@@ -50,6 +50,7 @@ public:
     //(shared_consts) from NextPin
 
     TIntV SensorActivities;
+    const static int NumOfSensorActs = 16; //see shared_consts;
 };
 
 //////////////////////
@@ -80,10 +81,15 @@ private:
     TFlt Distance;
     TGeoActivityType GeoType;
     TGeoActivityStatus GeoActStatus;
+    TFltV AvgSensorActs;
 public:
     TGeoCluster() : TGeoCluster(TGeoActivityType::Path) {};
-    TGeoCluster(TGeoActivityType _Type) : MStartIdx(-1), MEndIdx(-1), 
-        GeoType(_Type), GeoActStatus(TGeoActivityStatus::Current){};
+    TGeoCluster(TGeoActivityType _Type) : 
+        MStartIdx(-1), 
+        MEndIdx(-1), 
+        GeoType(_Type), 
+        GeoActStatus(TGeoActivityStatus::Current),
+        AvgSensorActs(TGPSMeasurement::NumOfSensorActs){};
     TGeoCluster(const PJsonVal& Rec);
     TGeoCluster(const int& StartIdx, const int& EndIdx,
         const TVec<TGPSMeasurement>& StateVec);
