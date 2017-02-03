@@ -50,7 +50,7 @@ public:
     //(shared_consts) from NextPin
 
     TIntV SensorActivities;
-    const static int NumOfSensorActs = 16; //see shared_consts;
+    const static TInt NumOfSensorActs; //see shared_consts;
 };
 
 //////////////////////
