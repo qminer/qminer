@@ -349,9 +349,9 @@ describe("TMD averaging tests", function () {
         }
         result = spdAggr.saveJson(1);
         //current version of SPD will ignore the first point - it goes to path
-        let acts1 = result[0].locations[0].activities;
-        let acts2 = result[0].locations[1].activities;
-        let avgs = acts1;
+        var acts1 = result[0].locations[0].activities;
+        var acts2 = result[0].locations[1].activities;
+        var avgs = acts1;
         for (var i = 0; i < acts2.length; i++) {
             avgs[i] = (acts1[i] + acts2[i]) / 2;
         }
