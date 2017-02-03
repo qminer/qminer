@@ -38,6 +38,10 @@ nbproject
 # Vim
 .vimrc
 .ycm_extra_conf.py
+/tags
+/cscope.out
+/cscope.po.out
+/cscope.in.out
 
 # build results
 build

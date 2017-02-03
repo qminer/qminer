@@ -993,8 +993,10 @@ TMultinomial::TMultinomial(const TWPt<TBase>& Base, const PJsonVal& ParamVal): T
     }
     // prase out feature generator parameters
     const bool NormalizeP = ParamVal->GetObjBool("normalize", false);
-    const bool BinaryP = ParamVal->GetObjBool("binary", false);
-    const bool LogP = ParamVal->GetObjBool("log", false);
+    const bool BinaryP =
+                         ParamVal->GetObjBool("binary", false) ||   // XXX binary: true is deprecated, should use transform: 'binary' instead
+                         ParamVal->GetObjStr("transform", "") == "binary";
+    const bool LogP = ParamVal->GetObjStr("transform", "") == "log";
     if (ParamVal->IsObjKey("values")) {
         // we have fixed values
         TStrV ValV; ParamVal->GetObjStrV("values", ValV);

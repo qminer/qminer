@@ -1,5 +1,36 @@
 # QMiner Change Log
 
+### 27 January 2017
+
+**Version 7.9.0**
+
+**Non-breaking with new features**
+
+New features:
+- created common API for calculating memory usage in containers
+- calculating stream aggregates memory footprint
+- type trait API for detecting shallow types and containers
+- optimized TVec memory footprint calculation using type traits (only for C++11)
+- new API for multinomial feature extractor transformation
+
+### 13 January 2017
+
+**Version 7.8.1**
+
+Bug fix:
+- Fixed `FilterByFq` on `TRecSet`
+
+### 6 January 2017
+
+**Version 7.8.0**
+
+**Non-breaking with new features**
+
+New features:
+- Exposed keyid for hashtables in javascript
+- Stay-Point-Detector aggregate (third party) that aggregates GPS time-series
+- loadStateJson and saveStateJson added to stream aggregates (alternative to binary save and load)
+
 ### 30 December 2016
 
 **Version 7.7.0**
