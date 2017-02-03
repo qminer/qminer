@@ -16,6 +16,7 @@ namespace TStreamAggrs {
 ///////////////////////////////////////////////////////////////////////////////
 ///TGPSMeasurement
 ///////////////////////////////////////////////////////////////////////////////
+const TInt TGPSMeasurement::NumOfSensorActs = 16; //see shared_consts;
 
 ///
 /// TGPSMeasurement constructor initializing TGPSMeasurement from Json
@@ -30,6 +31,10 @@ TGPSMeasurement::TGPSMeasurement(const PJsonVal& Rec) {
         Distance = Rec->GetObjKey("distanceDiff")->GetNum();
         Speed = Rec->GetObjKey("speed")->GetNum();
         TimeDiff = Rec->GetObjKey("timeDiff")->GetInt64();
+
+        if (Rec->IsObjKey("activities")) {
+            Rec->GetObjKey("activities")->GetArrIntV(SensorActivities);
+        }
     }
 }
 
@@ -45,6 +50,15 @@ PJsonVal TGPSMeasurement::ToJson() const {
     Json->AddToObj("speed", Speed);
     Json->AddToObj("distanceDiff", Distance);
     Json->AddToObj("timeDiff", (int64)TimeDiff);
+
+    PJsonVal JsonSensActivities = TJsonVal::NewArr();
+    //TODO: This is temporal until we have special aggregate - 16 is due to
+    //consts in shared_consts.js (NextPin)
+    int SenLen = SensorActivities.Len();
+    for (int iSens = 0; iSens < SenLen; iSens++) {
+       JsonSensActivities->AddToArr((int)SensorActivities[iSens]);
+    }
+    Json->AddToObj("activities", JsonSensActivities);
     return Json;
 }
 
@@ -52,10 +66,21 @@ PJsonVal TGPSMeasurement::ToJson() const {
 /// TStaypointCluster
 ///////////////////////////////////////////////////////////////////////////////
 
+TGeoCluster::TGeoCluster(const int& StartIdx, const int& EndIdx,
+    const TVec<TGPSMeasurement>& StateVec) : TGeoCluster(TGeoActivityType::Path)
+{
+    for (int Idx = StartIdx; Idx <= EndIdx; Idx++) {
+        AddPoint(Idx, StateVec);
+    }
+}
+
 ///
 /// Constructor creating a TGeoCluster fom JSON
+/// PJsonVal& Rec: Json representation of GeoCluster
 ///
-TGeoCluster::TGeoCluster(const PJsonVal& Rec) {
+TGeoCluster::TGeoCluster(const PJsonVal& Rec): 
+    TGeoCluster(TGeoActivityType::Path) 
+{
     //status
     int Status = Rec->GetObjInt("status", 0);
     if (Status == 0) {
@@ -86,7 +111,22 @@ TGeoCluster::TGeoCluster(const PJsonVal& Rec) {
     AvgAccuracy = Rec->GetObjNum("avgAccuracy", 0);
     Distance = Rec->GetObjNum("distance", 0);
     MStartIdx = Rec->GetObjInt("startIdx", -1);
-    MEndIdx = Rec->GetObjInt("endIdx", -1);
+    MEndIdx = Rec->GetObjInt("endIdx", -1);   
+    
+    if (Rec->IsObjKey("activities")) {
+        AvgSensorActs.Clr();
+        Rec->GetObjKey("activities")->GetArrNumV(AvgSensorActs);
+        
+        //add zeros at the end
+        if (AvgSensorActs.Len() < TGPSMeasurement::NumOfSensorActs) {
+            int ToAdd = TGPSMeasurement::NumOfSensorActs -
+                AvgSensorActs.Len();
+            for (int AddIdx = 0; AddIdx < ToAdd; AddIdx++) {
+                AvgSensorActs.Add(0);
+            }
+        }
+    }
+
 }//TGeoCluster::TGeoCluster
 
 ///
@@ -127,6 +167,15 @@ void TGeoCluster::AddPoint(const int& Idx,
     
     //distance
     Distance = Distance + CurrentGPS.Distance;
+    //avg sensor act
+    for (int iSensorAct = 0; iSensorAct < TGPSMeasurement::NumOfSensorActs;
+        iSensorAct++)
+    {
+        AvgSensorActs[iSensorAct] = AvgSensorActs[iSensorAct] +
+            ((CurrentGPS.SensorActivities[iSensorAct] - 
+                AvgSensorActs[iSensorAct]) / Len);
+    }
+
 }//TGeoCluster::addPoint
 
 /// returns duration in seconds
@@ -140,14 +189,6 @@ int TGeoCluster::Len() const {
     }
     return MEndIdx - MStartIdx + 1;
 }//TGeoCluster::size
-
-TGeoCluster::TGeoCluster(const int& StartIdx, const int& EndIdx,
-    const TVec<TGPSMeasurement>& StateVec): TGeoCluster(TGeoActivityType::Path)
-{
-    for (int Idx = StartIdx; Idx <= EndIdx; Idx++) {
-        AddPoint(Idx, StateVec);
-    }
-}
 
 double TGeoCluster::QuickDist(const TPoint& P2) {
     return TGeoUtils::QuickDist(CenterPoint, P2);
@@ -175,6 +216,15 @@ PJsonVal TGeoCluster::ToJson(const TVec<TGPSMeasurement>& _GpsStateVec,
     JGeoAct->AddToObj("distance", Distance);
     JGeoAct->AddToObj("startIdx", MStartIdx);
     JGeoAct->AddToObj("endIdx", MEndIdx);
+
+    //TODO: This is temporal until we have special aggregate - 16 is due to
+    //consts in shared_consts.js (NextPin)
+    PJsonVal JSenActArr = TJsonVal::NewArr();
+    int SenLen = AvgSensorActs.Len();
+    for (int iSens = 0; iSens < SenLen; iSens++) {
+        JSenActArr->AddToArr((int)AvgSensorActs[iSens]);
+    }
+    JGeoAct->AddToObj("activities", JSenActArr);
 
     if (FullLoc) {
         PJsonVal JLocs = TJsonVal::NewArr();
@@ -224,6 +274,8 @@ TStayPointDetector::TStayPointDetector(
     LocationFieldId = Store->GetFieldId(LocationFieldName);
     TStr AccuracyFieldName = ParamVal->GetObjStr("accuracyField");
     AccuracyFieldId = Store->GetFieldId(AccuracyFieldName);
+    TStr ActivitiesFieldName = ParamVal->GetObjStr("activitiesField");
+    ActivitiesField = Store->GetFieldId(ActivitiesFieldName);
 }//TStayPointDetector::constructor
 
 void TStayPointDetector::OnAddRec(const TRec& Rec,
@@ -417,7 +469,7 @@ bool TStayPointDetector::ParseGPSRec(const TRec& Rec, TGPSMeasurement& Gps) {
     Rec.GetFieldTm(TimeFieldId, Timestamp);
     uint64 Time =
         TTm::GetUnixMSecsFromWinMSecs(Timestamp.GetMSecsFromTm(Timestamp));
-    // int64 Time = Rec.GetFieldInt64(TimeFieldId);
+   
     double Lat = Rec.GetFieldFltPr(LocationFieldId).Val1;
     double Lon = Rec.GetFieldFltPr(LocationFieldId).Val2;
 
@@ -428,7 +480,22 @@ bool TStayPointDetector::ParseGPSRec(const TRec& Rec, TGPSMeasurement& Gps) {
     Gps.Time = Time;
     Gps.LatLon = TPoint(Lat, Lon);
     Gps.Accuracy = Accuracy;
-
+    
+    if (!Rec.IsFieldNull(ActivitiesField)) {
+        //TODO: This sensorActivities will go into a separate Aggregate
+        //once we construct the pipeline - this is a temporary functionality
+        //which allows us to continue to work on NextPin on another parts of
+        //the project
+        Rec.GetFieldIntV(ActivitiesField, Gps.SensorActivities);
+    }
+    if (Gps.SensorActivities.Len() < TGPSMeasurement::NumOfSensorActs) {
+        int ToAdd = TGPSMeasurement::NumOfSensorActs -
+            Gps.SensorActivities.Len();
+        for (int AddIdx = 0; AddIdx < ToAdd; AddIdx++) {
+            Gps.SensorActivities.Add(0);
+        }
+    }
+    
     if (StateGpsMeasurementsV.Len() > 0) {
         TGPSMeasurement* lastRecord = &StateGpsMeasurementsV.Last();
         //reject this record - it is earlier or same as previous
