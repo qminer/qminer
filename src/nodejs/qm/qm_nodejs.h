@@ -3053,7 +3053,7 @@ public:
 
 ///////////////////////////////////////////////
 /// Javscript Function Feature Extractor.
-class TNodeJsFuncFtrExt : public TQm::TFtrExt {
+class TNodeJsFuncFtrExt : public TQm::TFtrExt, public node::ObjectWrap {
 private:
     // private constructor
     TNodeJsFuncFtrExt(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal,
