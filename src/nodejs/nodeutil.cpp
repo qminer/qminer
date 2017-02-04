@@ -166,11 +166,29 @@ TStr TNodeJsUtil::GetStr(const v8::Local<v8::String>& V8Str) {
 TStr TNodeJsUtil::GetClass(const v8::Handle<v8::Object> Obj) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+#if NODE_MODULE_VERSION >= 48 //NODE_6_0_MODULE_VERSION
+    v8::Local<v8::Context> Context = Isolate->GetCurrentContext();
+    v8::Local<v8::Private> Private_key = v8::Private::ForApi(Isolate, v8::String::NewFromUtf8(Isolate, "class"));
+    v8::MaybeLocal<v8::Value> ClassNm = Obj->GetPrivate(Context, Private_key);
+    if (ClassNm.IsEmpty()) {
+        return "";
+    } else {
+        v8::String::Utf8Value Utf8(ClassNm.ToLocalChecked());
+        TStr Class(*Utf8);
+        if (Class == "undefined") {
+            return "";
+        } else {
+            return Class;
+        }
+    }
+#else
     v8::Local<v8::Value> ClassNm = Obj->GetHiddenValue(v8::String::NewFromUtf8(Isolate, "class"));
     const bool EmptyP = ClassNm.IsEmpty();
     if (EmptyP) { return ""; }
     v8::String::Utf8Value Utf8(ClassNm);
     return TStr(*Utf8);
+#endif
+
 }
 
 bool TNodeJsUtil::IsClass(const v8::Handle<v8::Object> Obj, const TStr& ClassNm) {
@@ -818,6 +836,21 @@ PMem TNodeJsUtil::GetArgMem(const v8::FunctionCallbackInfo<v8::Value>& Args, con
     if (ExternalType != v8::ExternalArrayType::kExternalUint8Array) return TMem::New();
     int Len = Obj->GetIndexedPropertiesExternalArrayDataLength();
     return TMem::New(static_cast<char*>(Obj->GetIndexedPropertiesExternalArrayData()), Len);
+#endif
+}
+
+void TNodeJsUtil::SetPrivate(
+    v8::Local<v8::Object> Object,
+    v8::Local<v8::String> Key,
+    v8::Local<v8::Value> Value) {
+#if NODE_MODULE_VERSION >= 48 //NODE_6_0_MODULE_VERSION
+    v8::Isolate *Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> Context = Isolate->GetCurrentContext();
+    v8::Local<v8::Private> Private_key = v8::Private::ForApi(Isolate, Key);
+    Object->SetPrivate(Context, Private_key, Value);
+#else
+    Object->SetHiddenValue(Key, Value);
 #endif
 }
 

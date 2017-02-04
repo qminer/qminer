@@ -1,5 +1,78 @@
 # QMiner Change Log
 
+### 27 January 2017
+
+**Version 7.9.0**
+
+**Non-breaking with new features**
+
+New features:
+- created common API for calculating memory usage in containers
+- calculating stream aggregates memory footprint
+- type trait API for detecting shallow types and containers
+- optimized TVec memory footprint calculation using type traits (only for C++11)
+- new API for multinomial feature extractor transformation
+
+### 13 January 2017
+
+**Version 7.8.1**
+
+Bug fix:
+- Fixed `FilterByFq` on `TRecSet`
+
+### 6 January 2017
+
+**Version 7.8.0**
+
+**Non-breaking with new features**
+
+New features:
+- Exposed keyid for hashtables in javascript
+- Stay-Point-Detector aggregate (third party) that aggregates GPS time-series
+- loadStateJson and saveStateJson added to stream aggregates (alternative to binary save and load)
+
+### 30 December 2016
+
+**Version 7.7.0**
+
+**Non-breaking with new features and bug fixes**
+
+New features:
+- Added log transform to multinomial feature extractor
+- Extended filter options for DMoz classifier (wildcard supported)
+- Node 7 supported
+
+### 23 December 2016
+
+**Version 7.6.0**
+
+**Non-breaking with new feature and a bug fix**
+
+New feature:
+- Store that only holds schema and has no disk footprint: `TStoreEmpty`
+
+Bug fix:
+- `TJsonVal` can be parsed from string in multiple threads
+
+
+### 16 December 2016
+
+**Version 7.5.0**
+
+**Non-breaking with new feature and big fixes**
+
+New feature:
+- Measuring stream aggregate performance. Exposed through `TBase::GetStreamAggrStats()`
+
+Bug fixes:
+- Fixed silent exceptions in JavaScript stream aggregate
+- Javascript serialization of stream aggregate prohibited output stream to close properly
+- Nearest neighbor anomaly detector did not output complete explanation
+
+Other:
+- Fixed out-of-sync example timeseries
+
+
 ### 2 December 2016
 
 **Version 7.4.0**

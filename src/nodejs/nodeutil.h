@@ -367,6 +367,11 @@ public:
         return node::ObjectWrap::Unwrap<TClass>(Arg);
     }
 
+    /// Used for setting private properties (for example: `class`)
+    static void SetPrivate(v8::Local<v8::Object> Object,
+        v8::Local<v8::String> Key, v8::Local<v8::Value> Value);
+
+
 private:
     /// returns the internal C++ windows timestamp from a double representation of a UNIX timestamp
     static uint64 GetTmMSecs(const double& UnixMSecs);

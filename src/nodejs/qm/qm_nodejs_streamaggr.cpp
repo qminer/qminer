@@ -33,7 +33,7 @@ void TNodeJsStreamAggr::Init(v8::Handle<v8::Object> exports) {
     tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
     // ObjectWrap uses the first internal field to store the wrapped pointer
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
-    
+
     // Add all methods, getters and setters here.
     NODE_SET_PROTOTYPE_METHOD(tpl, "reset", _reset);
     NODE_SET_PROTOTYPE_METHOD(tpl, "onStep", _onStep);
@@ -46,6 +46,8 @@ void TNodeJsStreamAggr::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "saveJson", _saveJson);
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
     NODE_SET_PROTOTYPE_METHOD(tpl, "load", _load);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "saveStateJson", _saveStateJson);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "loadStateJson", _loadStateJson);
     NODE_SET_PROTOTYPE_METHOD(tpl, "getInteger", _getInteger);
     NODE_SET_PROTOTYPE_METHOD(tpl, "getFloat", _getFloat);
     NODE_SET_PROTOTYPE_METHOD(tpl, "getTimestamp", _getTimestamp);
@@ -64,7 +66,7 @@ void TNodeJsStreamAggr::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "getInValueVector", _getInValueVector);
     NODE_SET_PROTOTYPE_METHOD(tpl, "getOutValueVector", _getOutValueVector);
     NODE_SET_PROTOTYPE_METHOD(tpl, "getValueVector", _getValueVector);
-    
+
     NODE_SET_PROTOTYPE_METHOD(tpl, "getFeatureSpace", _getFeatureSpace);
 
     // Properties
@@ -72,7 +74,7 @@ void TNodeJsStreamAggr::Init(v8::Handle<v8::Object> exports) {
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "val"), _val);
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "init"), _init);
 
-    // This has to be last, otherwise the properties won't show up on the object in JavaScript  
+    // This has to be last, otherwise the properties won't show up on the object in JavaScript
     // Constructor is used when creating the object from C++
     Constructor.Reset(Isolate, child->GetFunction());
     // we need to export the class for calling using "new FIn(...)"
@@ -114,7 +116,7 @@ TNodeJsStreamAggr* TNodeJsStreamAggr::NewFromArgs(const v8::FunctionCallbackInfo
         StreamAggr = TQm::TStreamAggrs::TMerger::New(JsBase->Base, ParamVal);
         // automatically attach merger to all listed stores
         TStrV _StoreNmV = TQm::TStreamAggrs::TMerger::GetStoreNm(ParamVal);
-        StoreNmV.AddV(_StoreNmV);        
+        StoreNmV.AddV(_StoreNmV);
     } else {
         // we have a GLib stream aggregate, translate parameters to PJsonVal
         PJsonVal ParamVal = TNodeJsUtil::GetArgToNmJson(Args, 1);
@@ -150,7 +152,7 @@ TNodeJsStreamAggr* TNodeJsStreamAggr::NewFromArgs(const v8::FunctionCallbackInfo
             const uint StoreId = JsBase->Base->GetStoreByStoreNm(StoreNm)->GetStoreId();
             // attech the stream aggregate to the store
             JsBase->Base->GetStreamAggrSet(StoreId)->AddStreamAggr(StreamAggr);
-        }        
+        }
     }
 
     // we are good
@@ -326,8 +328,35 @@ void TNodeJsStreamAggr::load(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
     TNodeJsFIn* JsFIn = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFIn>(Args, 0);
 
-    // save
+    // load
     JsSA->SA->LoadState(*JsFIn->SIn);
+
+    Args.GetReturnValue().Set(Args.Holder());
+}
+
+void TNodeJsStreamAggr::saveStateJson(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    // unwrap
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+    
+    // save
+    PJsonVal StateJson = JsSA->SA->SaveStateJson();
+    v8::Handle<v8::Value> Result = TNodeJsUtil::ParseJson(Isolate, StateJson);
+    Args.GetReturnValue().Set(Result);
+}
+
+void TNodeJsStreamAggr::loadStateJson(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    // unwrap
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+    PJsonVal StateJson = TNodeJsUtil::GetArgJson(Args, 0);
+
+    // load
+    JsSA->SA->LoadStateJson(StateJson);
 
     Args.GetReturnValue().Set(Args.Holder());
 }
@@ -646,11 +675,11 @@ void TNodeJsStreamAggr::getOutValueVector(const v8::FunctionCallbackInfo<v8::Val
 
     // unwrap
     TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
-        
+
     // try to cast as IValTmIO
     TWPt<TQm::TStreamAggrOut::IValIO<TFlt> > AggrFlt = dynamic_cast<TQm::TStreamAggrOut::IValIO<TFlt> *>(JsSA->SA());
     TWPt<TQm::TStreamAggrOut::IValIO<TIntFltKdV> > AggrSpV = dynamic_cast<TQm::TStreamAggrOut::IValIO<TIntFltKdV> *>(JsSA->SA());
-        
+
     if (!AggrFlt.Empty()) {
         TFltV Res;
         AggrFlt->GetOutValV(Res);
@@ -677,7 +706,7 @@ void TNodeJsStreamAggr::getFeatureSpace(const v8::FunctionCallbackInfo<v8::Value
     TWPt<TQm::TStreamAggrOut::IFtrSpace > Aggr = dynamic_cast<TQm::TStreamAggrOut::IFtrSpace *>(JsSA->SA());
 
     if (!Aggr.Empty()) {
-        TQm::PFtrSpace FtrSpace = Aggr->GetFtrSpace();      
+        TQm::PFtrSpace FtrSpace = Aggr->GetFtrSpace();
         Args.GetReturnValue().Set(
             TNodeJsUtil::NewInstance<TNodeJsFtrSpace>(new TNodeJsFtrSpace(FtrSpace)));
     } else {
@@ -771,12 +800,20 @@ TNodeJsFuncStreamAggr::TNodeJsFuncStreamAggr(TWPt<TQm::TBase> _Base, const TStr&
         v8::Handle<v8::Value> _OnTimeFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "onTime"));
         QmAssert(_OnTimeFun->IsFunction());
         OnTimeFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_OnTimeFun));
+    } else if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "onStep"))) {
+        v8::Handle<v8::Value> _OnStepFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "onStep"));
+        QmAssert(_OnStepFun->IsFunction());
+        OnTimeFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_OnStepFun));
     }
 
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "onAdd"))) {
         v8::Handle<v8::Value> _OnAddFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "onAdd"));
         QmAssert(_OnAddFun->IsFunction());
         OnAddFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_OnAddFun));
+    } else if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "onStep"))) {
+        v8::Handle<v8::Value> _OnStepFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "onStep"));
+        QmAssert(_OnStepFun->IsFunction());
+        OnAddFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_OnStepFun));
     }
 
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "onUpdate"))) {
@@ -784,6 +821,7 @@ TNodeJsFuncStreamAggr::TNodeJsFuncStreamAggr(TWPt<TQm::TBase> _Base, const TStr&
         QmAssert(_OnUpdateFun->IsFunction());
         OnUpdateFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_OnUpdateFun));
     }
+
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "onDelete"))) {
         v8::Handle<v8::Value> _OnDeleteFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "onDelete"));
         QmAssert(_OnDeleteFun->IsFunction());
@@ -795,7 +833,7 @@ TNodeJsFuncStreamAggr::TNodeJsFuncStreamAggr(TWPt<TQm::TBase> _Base, const TStr&
         QmAssert(_SaveJsonFun->IsFunction());
         SaveJsonFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_SaveJsonFun));
     }
-    
+
     // StreamAggr::IsInit
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "init"))) {
         v8::Handle<v8::Value> _IsInit = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "init"));
@@ -815,6 +853,20 @@ TNodeJsFuncStreamAggr::TNodeJsFuncStreamAggr(TWPt<TQm::TBase> _Base, const TStr&
         v8::Handle<v8::Value> _Load = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "load"));
         QmAssert(_Load->IsFunction());
         LoadFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_Load));
+    }
+
+    // StreamAggr::SaveStateJson
+    if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "saveStateJson"))) {
+        v8::Handle<v8::Value> _SaveStateJson = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "saveStateJson"));
+        QmAssert(_SaveStateJson->IsFunction());
+        SaveStateJsonFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_SaveStateJson));
+    }
+
+    // StreamAggr::LoadStateJson
+    if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "loadStateJson"))) {
+        v8::Handle<v8::Value> _LoadStateJson = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "loadStateJson"));
+        QmAssert(_LoadStateJson->IsFunction());
+        LoadStateJsonFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_LoadStateJson));
     }
 
     // IInt
@@ -946,6 +998,8 @@ TNodeJsFuncStreamAggr::~TNodeJsFuncStreamAggr() {
     // Serialization
     SaveFun.Reset();
     LoadFun.Reset();
+    SaveStateJsonFun.Reset();
+    LoadStateJsonFun.Reset();
 }
 
 void TNodeJsFuncStreamAggr::Reset() {
@@ -964,6 +1018,7 @@ void TNodeJsFuncStreamAggr::Reset() {
 }
 
 void TNodeJsFuncStreamAggr::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
     if (!OnStepFun.IsEmpty()) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::HandleScope HandleScope(Isolate);
@@ -985,6 +1040,7 @@ void TNodeJsFuncStreamAggr::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
 }
 
 void TNodeJsFuncStreamAggr::OnTime(const uint64& Time, const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
     if (!OnTimeFun.IsEmpty()) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::HandleScope HandleScope(Isolate);
@@ -1008,13 +1064,14 @@ void TNodeJsFuncStreamAggr::OnTime(const uint64& Time, const TWPt<TStreamAggr>& 
 }
 
 void TNodeJsFuncStreamAggr::OnAddRec(const TQm::TRec& Rec, const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
     if (!OnAddFun.IsEmpty()) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::HandleScope HandleScope(Isolate);
 
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, OnAddFun);
         v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
-        
+
         v8::TryCatch TryCatch;
         if (CallerAggr.Empty()) {
             const unsigned Argc = 1;
@@ -1025,19 +1082,20 @@ void TNodeJsFuncStreamAggr::OnAddRec(const TQm::TRec& Rec, const TWPt<TStreamAgg
             v8::Local<v8::Value> ArgV[Argc] = { TNodeJsRec::NewInstance(new TNodeJsRec(TNodeJsBaseWatcher::New(), Rec)),  TNodeJsUtil::NewInstance<TNodeJsStreamAggr>(new TNodeJsStreamAggr(CallerAggr)) };
             Callback->Call(This, Argc, ArgV);
         }
-        
+
         TNodeJsUtil::CheckJSExcept(TryCatch);
     }
 }
 
 void TNodeJsFuncStreamAggr::OnUpdateRec(const TQm::TRec& Rec, const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
     if (!OnUpdateFun.IsEmpty()) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::HandleScope HandleScope(Isolate);
 
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, OnUpdateFun);
         v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
-        
+
         v8::TryCatch TryCatch;
         if (CallerAggr.Empty()) {
             const unsigned Argc = 1;
@@ -1054,13 +1112,14 @@ void TNodeJsFuncStreamAggr::OnUpdateRec(const TQm::TRec& Rec, const TWPt<TStream
 }
 
 void TNodeJsFuncStreamAggr::OnDeleteRec(const TQm::TRec& Rec, const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
     if (!OnDeleteFun.IsEmpty()) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::HandleScope HandleScope(Isolate);
 
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, OnDeleteFun);
         v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
-        
+
         v8::TryCatch TryCatch;
         if (CallerAggr.Empty()) {
             const unsigned Argc = 1;
@@ -1071,7 +1130,7 @@ void TNodeJsFuncStreamAggr::OnDeleteRec(const TQm::TRec& Rec, const TWPt<TStream
             v8::Local<v8::Value> ArgV[Argc] = { TNodeJsRec::NewInstance(new TNodeJsRec(TNodeJsBaseWatcher::New(), Rec)),  TNodeJsUtil::NewInstance<TNodeJsStreamAggr>(new TNodeJsStreamAggr(CallerAggr)) };
             Callback->Call(This, Argc, ArgV);
         }
-        
+
         TNodeJsUtil::CheckJSExcept(TryCatch);
     }
 }
@@ -1105,7 +1164,7 @@ bool TNodeJsFuncStreamAggr::IsInit() const {
     if (!IsInitFun.IsEmpty()) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::HandleScope HandleScope(Isolate);
-        
+
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, IsInitFun);
         v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
 
@@ -1128,15 +1187,17 @@ void TNodeJsFuncStreamAggr::SaveState(TSOut& SOut) const {
         v8::HandleScope HandleScope(Isolate);
 
         PSOut POut(&SOut);
-        v8::Local<v8::Object> JsFOut = TNodeJsUtil::NewInstance<TNodeJsFOut>(new TNodeJsFOut(POut));
-        
+        TNodeJsFOut* FOut = new TNodeJsFOut(POut);
+        v8::Local<v8::Object> JsFOut = TNodeJsUtil::NewInstance<TNodeJsFOut>(FOut);
+
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, SaveFun);
         v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
         const unsigned Argc = 1;
         v8::Local<v8::Value> ArgV[Argc] = { JsFOut };
-        
+
         v8::TryCatch TryCatch;
         Callback->Call(This, Argc, ArgV);
+        FOut->SOut.Clr();
         TNodeJsUtil::CheckJSExcept(TryCatch);
     }
 }
@@ -1156,6 +1217,44 @@ void TNodeJsFuncStreamAggr::LoadState(TSIn& SIn) {
         v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
         const unsigned Argc = 1;
         v8::Local<v8::Value> ArgV[Argc] = { JsFIn };
+        v8::TryCatch TryCatch;
+        Callback->Call(This, Argc, ArgV);
+        TNodeJsUtil::CheckJSExcept(TryCatch);
+    }
+}
+
+PJsonVal TNodeJsFuncStreamAggr::SaveStateJson() const {
+    if (SaveStateJsonFun.IsEmpty()) {
+        throw TQm::TQmExcept::New("TNodeJsFuncStreamAggr::SaveStateJson (called using sa.saveStateJson) : stream aggregate does not implement a save callback: " + GetAggrNm());
+    } else {
+        // create TNodeJsFOut and pass it to callback
+        v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+        v8::HandleScope HandleScope(Isolate);
+
+        v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, SaveStateJsonFun);
+        v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
+
+        v8::TryCatch TryCatch;
+        v8::Handle<v8::Value> RetVal = Callback->Call(This, 0, NULL);
+        TNodeJsUtil::CheckJSExcept(TryCatch);
+        return TNodeJsUtil::GetObjJson(RetVal);
+    }
+}
+
+void TNodeJsFuncStreamAggr::LoadStateJson(const PJsonVal& State) {
+    if (LoadStateJsonFun.IsEmpty()) {
+        throw TQm::TQmExcept::New("TNodeJsFuncStreamAggr::LoadStateJson (called using sa.loadStateJson) : stream aggregate does not implement a load callback: " + GetAggrNm());
+    } else {
+        // create TNodeJsFOut and pass it to callback
+        v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+        v8::HandleScope HandleScope(Isolate);
+
+        v8::Local<v8::Value> StateObj = TNodeJsUtil::ParseJson(Isolate, State);
+
+        v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, LoadStateJsonFun);
+        v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
+        const unsigned Argc = 1;
+        v8::Local<v8::Value> ArgV[Argc] = { StateObj };
         v8::TryCatch TryCatch;
         Callback->Call(This, Argc, ArgV);
         TNodeJsUtil::CheckJSExcept(TryCatch);
@@ -1298,7 +1397,7 @@ bool TNodeJsFuncStreamAggr::IsNmFlt(const TStr& Nm) const {
     bool ProvidedGetNmFltFun = !GetNmFltFun.IsEmpty();
     bool ProvidedGetFltFun = !GetFltFun.IsEmpty();
     if (ProvidedIsNmFltFun || ProvidedGetNmFltFun || ProvidedGetFltFun) {
-        v8::Local<v8::Function> Callback = ProvidedIsNmFltFun ? v8::Local<v8::Function>::New(Isolate, IsNmFltFun) : 
+        v8::Local<v8::Function> Callback = ProvidedIsNmFltFun ? v8::Local<v8::Function>::New(Isolate, IsNmFltFun) :
             (ProvidedGetNmFltFun ? v8::Local<v8::Function>::New(Isolate, GetNmFltFun) : v8::Local<v8::Function>::New(Isolate, GetFltFun));
         v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
 
@@ -1367,7 +1466,7 @@ bool TNodeJsFuncStreamAggr::IsNmInt(const TStr& Nm) const {
 int TNodeJsFuncStreamAggr::GetNmInt(const TStr& Nm) const {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     bool ProvidedGetNmIntFun = !GetNmIntFun.IsEmpty();
     bool ProvidedGetIntFun = !GetIntFun.IsEmpty();
     if (ProvidedGetNmIntFun || ProvidedGetIntFun) {

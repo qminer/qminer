@@ -707,7 +707,7 @@ public:
     TFOut SOut(FNm); Save(SOut);}
 
   int64 GetMemUsed() {
-	  return DocNmToDescStrH.GetMemUsed() + WordStrToDescH.GetMemUsed() + CatNmToFqH.GetMemUsed() + DocSpVV.GetMemUsed() + 
+	  return DocNmToDescStrH.GetMemUsed(true) + WordStrToDescH.GetMemUsed(true) + CatNmToFqH.GetMemUsed(true) + DocSpVV.GetMemUsed() + 
 		  DocStrV.GetMemUsed() + DocCIdVV.GetMemUsed() + TrainDIdV.GetMemUsed() + TestDIdV.GetMemUsed();
   }
   friend class TBowFl;

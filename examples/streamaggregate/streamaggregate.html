@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -10,14 +10,6 @@
 
 </head>
 <body>
-    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
-    <script src="http://code.highcharts.com/highcharts.js"></script>
-
-    <!-- Highcharts chart representation -->
-    <script src="statSmooth.js"></script>
-    <script src="resampler.js"></script>
-    <script src="merger.js"></script>
 
     <h1>Storage and stream aggregator example</h1>
 
@@ -26,67 +18,11 @@
         given to the stores as records, that contain the value and the time of time series.
     </p>
 
-    <h2>Moving average</h2>
-    <p>
-        Every second we store the values of a brownian motion (to the current value we add a random value taken from the standard
-        gaussian distribution and store it).
-    </p>
-    <p>
-        Then we use the <b>moving average</b> stream aggregator, which is connected with the store. By using the stream aggregator,
-        we can smooth the graph and get a clearer representation of the values we get. It is useful when we want to see how are the 
-        values changing by trying to minimize the noise of the data. Before we could use the stream aggregator, we needed to construct
-        the <b>time series window buffer</b> stream aggregator, that is connected to the store. Then we connect the moving average 
-        to the time series window buffer. 
-    </p>
-    <p>
-        The graphs bellow represent the brownian motion and the smoothen values gained by the moving average stream aggregator.
-    </p>
+    <h2><a href="moving_average.html">Moving average</a></h2>
 
-    <div id="statSmooth"></div>
-        
-    
+    <h2><a href="resampler.html">Resampler</a></h2>
 
-    <h2>Resampler</h2>
-    <p>
-        We store the values of the brownian motion and the time intervals are now different. This means that the values are not given
-        equitemporial. Now we want to know, what are the values for every second.
-    </p>
-    <p>
-        This is when we use the <b>resampler</b> stream aggregator. It creates new values that are interpolated by using the values from 
-        the store. There are three kinds of interpolation: 'previous', 'linear' and 'next'. In this example, we are using the 'linear'
-        interpolation. We also set the interval to 1000, which means that we want to get the interpolated values for every second 
-        (1000 miliseconds). 
-    </p>
-    <p>
-        The graph bellow represent the brownian motion and the linear resampler values gained by the resampler stream aggregator.
-    </p>
-    <div id="resampler"></div>
-    
-    <h2>Merger</h2>
-    <p>
-        We are now storing two values from the standard gaussian distribution in two different stores, respectively. These values 
-        are stored at different time intervals for each store. Now we want to have all these values stored in one store, where 
-        every record contains both values of the two stores and the time.
-    </p>
-    <p>
-        This is when we use the <b>merger</b> stream aggregator. It merges records from the two stores into a new store. We allready 
-        constructed the new store, in which we'll store the new records. We have to give the following values to the merger: where to 
-        store the merged records, where the timestamp should be saved and which stores (store fields) we want to use for the merger
-        and what kind of the interpolation we want to use: 'previous'. 'linear' or 'next'.  
-    </p>
+    <h2><a href="merger.html">Merger</a></h2>
 
-    <p>
-        The first graph bellow represents the values of the two stores. The second graph represent the values from the merger store.
-    </p>
-
-    <div id="gauss"></div>
-    <div id="merger"></div>
-
-    <p>
-        The following graph show the values of the two stores and the values of merger store on the same chart.
-    </p>
-
-    <div id="combinedMerger"></div>
-        
 </body>
 </html>

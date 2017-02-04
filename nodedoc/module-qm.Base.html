@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.4.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.9.0</a>
       </div>
     </div>
   </nav>
@@ -63,19 +63,22 @@
                     <dt><a href="module-qm.Base.html#getStreamAggrNames">getStreamAggrNames()</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-qm.Base.html#getStreamAggrStats">getStreamAggrStats()</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.Base.html#isClosed">isClosed()</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.Base.html#isStore">isStore(name)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.Base.html#loadCSV">loadCSV(opts[, callback])</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-qm.Base.html#loadCSV">loadCSV(opts[, callback])</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-qm.Base.html#partialFlush">partialFlush([window])</a></dt>
                     <dd>
                     </dd>
@@ -491,6 +494,10 @@ base.close();</code></pre>
                   <p><code>Array of string</code>&nbsp;The array containing the stream aggregate names.</p>
                 </dd>
               </dl>
+              <h3 id="getStreamAggrStats"><span class="symbol-name">getStreamAggrStats</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Retrieves performance statistics for stream aggregates.</p>
+              <dl class="dl-compact">
+              </dl>
               <h3 id="isClosed"><span class="symbol-name">isClosed</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Boolean</span></span></h3>
               <p>Checks if the base is closed.</p>
               <section>
@@ -766,7 +773,7 @@ var base = new qm.Base({
        ]
    }]
 });
-// get the &quot;KwikEMart&quot; store 
+// get the &quot;KwikEMart&quot; store
 var store = base.store(&quot;KwikEMart&quot;); // returns the store with the name &quot;KwikEMart&quot;
 base.close();</code></pre>
                 </div>

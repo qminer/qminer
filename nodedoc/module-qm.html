@@ -13,7 +13,7 @@
                 <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
         <div id="jsdoc-navbar-content">
-            <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.4.0</a>
+            <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.9.0</a>
         </div>
     </div>
 </nav>
@@ -837,8 +837,8 @@ and the value of &quot;total&quot; is of the same form (aggregated over &quot;by
         </td>
         <td>
                 <p>verbosity level. Possible options:
-<br>1. <code>0</code> - No output, 
-<br>2. <code>1</code> - Log output, 
+<br>1. <code>0</code> - No output,
+<br>2. <code>1</code> - Log output,
 <br>3. <code>2</code> - Log and debug output.</p>
                 <p>Defaults to <code>0</code>.</p>
         </td>
@@ -911,9 +911,9 @@ and the value of &quot;total&quot; is of the same form (aggregated over &quot;by
         </td>
         <td>
                 <p>Base access mode. Can be one of the following:
-<br>1. <code>'create'</code> - Sets up the db folder, 
-<br>2. <code>'createClean'</code> - Cleans db folder and then sets it up, 
-<br>3. <code>'open'</code> - Opens the db with read/write permissions, 
+<br>1. <code>'create'</code> - Sets up the db folder,
+<br>2. <code>'createClean'</code> - Cleans db folder and then sets it up,
+<br>3. <code>'open'</code> - Opens the db with read/write permissions,
 <br>4. <code>'openReadOnly'</code> - Opens the db in read only mode.</p>
                 <p>Defaults to <code>'openReadOnly'</code>.</p>
         </td>
@@ -2104,7 +2104,7 @@ base.close();</code></pre>
                 <p>&nbsp;</p>
         </td>
         <td>
-                <p>The javascript function callback. It takes one parameter: 
+                <p>The javascript function callback. It takes one parameter:
 <br>1. <code>rec</code> - The record. Type <a href="module-qm.Record.html">module:qm.Record</a>.
 It returns <code>number</code> or <a href="module-la.Vector.html">module:la.Vector</a>.</p>
         </td>
@@ -2250,6 +2250,24 @@ base.close();</code></pre>
 
                 <tr>
         <td>
+            <p>transform</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>Yes</p>
+        </td>
+        <td>
+                <p>Transformation to apply to each dimension of the feature vector.
+<br> Transformation options are:
+<br> - 'log' - Compute a logarithm of the frequencies using the following formula: log(1+x)
+<br> - 'binary' - Do not compute frequencies, but only a binary indicator whether the category appears</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
             <p>values</p>
         </td>
         <td>
@@ -2321,7 +2339,7 @@ base.close();</code></pre>
                 <p>Yes</p>
         </td>
         <td>
-                <p>The name of the field from which to take the numeric value. 
+                <p>The name of the field from which to take the numeric value.
 <br> Defaults to 1.0 for non-zero elements in the vector.</p>
         </td>
 </tr>
@@ -3071,7 +3089,7 @@ base.close();</code></pre>
                 <p>Yes</p>
         </td>
         <td>
-                <p>How are multi-record cases combined into single vector. Possible options: 
+                <p>How are multi-record cases combined into single vector. Possible options:
 <br>1. <code>'concatenate'</code> - Multi-record cases are merged into one document.
 <br>2. <code>'centroid'</code> - Treat each case as a seperate document.
 <br>3. <code>'tokenized'</code> - use the tokenizer option.</p>
@@ -3174,7 +3192,7 @@ base.close();</code></pre>
                 <p>The type of the encoding text. Possible options:
 <br>1. <code>'simple'</code> - The simple encoding.
 <br>2. <code>'html'</code> - The html encoding.
-<br>3.2<code>'unicode'</code> - The unicode encoding.</p>
+<br>3.B2<code>'unicode'</code> - The unicode encoding.</p>
                 <p>Defaults to <code>'simple'</code>.</p>
         </td>
 </tr>
@@ -3213,8 +3231,8 @@ base.close();</code></pre>
         </td>
         <td>
                 <p>The stemmer used for extraction. Possible options:
-<br>1. <code>'true'</code> - Using the porter stemmer. 
-<br>2. <code>'porter'</code> - Using the porter stemmer. 
+<br>1. <code>'true'</code> - Using the porter stemmer.
+<br>2. <code>'porter'</code> - Using the porter stemmer.
 <br>3. <code>'none'</code> - Using no stemmer.</p>
                 <p>Defaults to <code>'none'</code>.</p>
         </td>
@@ -4285,11 +4303,11 @@ base.close();</code></pre>
 // - we set the numeric sparse vector Vector with an array of two element arrays
 //   (index, value), see the sparse vector constructor {@link module:la.SparseVector}
 base.store(&#x27;NewsArticles&#x27;).push({
-  ID: &#x27;t12344&#x27;, 
-  Source: &#x27;s1234&#x27;, 
-  DateTime: &#x27;2015-01-01T00:05:00&#x27;, 
-  Title: &#x27;the title&#x27;, 
-  Tokens: [&#x27;token1&#x27;, &#x27;token2&#x27;], 
+  ID: &#x27;t12344&#x27;,
+  Source: &#x27;s1234&#x27;,
+  DateTime: &#x27;2015-01-01T00:05:00&#x27;,
+  Title: &#x27;the title&#x27;,
+  Tokens: [&#x27;token1&#x27;, &#x27;token2&#x27;],
   Vector: [[0,1], [1,1]]});
 base.close();</code></pre>
 </div>
@@ -4395,8 +4413,8 @@ base.close();</code></pre>
                 <p>Yes</p>
         </td>
         <td>
-                <p>Defines where to store the field. Possible options 
-<br>1. <code>'memory'</code> - Stores the values in RAM. 
+                <p>Defines where to store the field. Possible options
+<br>1. <code>'memory'</code> - Stores the values in RAM.
 <br>2 <code>'cache'</code> - Stores the values on disk, with a layer of FIFO cache in RAM, storing the most recently used values.</p>
                 <p>Defaults to <code>'memory'</code>.</p>
         </td>
@@ -4492,19 +4510,19 @@ base.close();</code></pre>
     <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
 // Create two stores: People which stores only names of persons and Movies, which stores only titles.
 // Each person can direct zero or more movies, so we use an index join named &#x27;directed&#x27; and
-// each movie has a single director, so we use a field join &#x27;director&#x27;. The joins are 
+// each movie has a single director, so we use a field join &#x27;director&#x27;. The joins are
 // inverses of each other. The inverse join simplifies the linking, since only one join needs
-// to be specified, and the other direction can be linked automatically (in the example 
+// to be specified, and the other direction can be linked automatically (in the example
 // below we specify only the &#x27;director&#x27; link and the &#x27;directed&#x27; join is updated automatically).
 //
 var base = new qm.Base({
     mode: &#x27;createClean&#x27;,
     schema: [
-      { name: &#x27;People&#x27;, 
-        fields: [{ name: &#x27;name&#x27;, type: &#x27;string&#x27;, primary: true }], 
+      { name: &#x27;People&#x27;,
+        fields: [{ name: &#x27;name&#x27;, type: &#x27;string&#x27;, primary: true }],
         joins: [{ name: &#x27;directed&#x27;, &#x27;type&#x27;: &#x27;index&#x27;, &#x27;store&#x27;: &#x27;Movies&#x27;, &#x27;inverse&#x27;: &#x27;director&#x27; }] },
-      { name: &#x27;Movies&#x27;, 
-        fields: [{ name: &#x27;title&#x27;, type: &#x27;string&#x27;, primary: true }], 
+      { name: &#x27;Movies&#x27;,
+        fields: [{ name: &#x27;title&#x27;, type: &#x27;string&#x27;, primary: true }],
         joins: [{ name: &#x27;director&#x27;, &#x27;type&#x27;: &#x27;field&#x27;, &#x27;store&#x27;: &#x27;People&#x27;, &#x27;inverse&#x27;: &#x27;directed&#x27; }] }
     ]
 });
@@ -4522,12 +4540,12 @@ base.store(&#x27;Movies&#x27;).push({ title: &#x27;Dogville&#x27;, director: { n
 base.store(&#x27;People&#x27;).push({ name: &#x27;Christopher Nolan&#x27;, directed: [{ title: &#x27;Inception&#x27; }, { title: &#x27;Interstellar&#x27; }] });
 
 var movie = base.store(&#x27;Movies&#x27;)[0]; // get the first movie (Broken Flowers)
-// Each movie has a property corresponding to the join name: &#x27;director&#x27;. 
+// Each movie has a property corresponding to the join name: &#x27;director&#x27;.
 // Accessing the property returns a {@link module:qm.Record} from the store People.
 var person = movie.director; // get the director
 var personName = person.name; // get person&#x27;s name (&#x27;Jim Jarmusch&#x27;)
 
-// Each person has a property corresponding to the join name: &#x27;directed&#x27;. 
+// Each person has a property corresponding to the join name: &#x27;directed&#x27;.
 // Accessing the property returns a {@link module:qm.RecSet} from the store People.
 var movies = person.directed; // get all the movies the person directed.
 movies.each(function (movie) { var title = movie.title; });
@@ -4580,7 +4598,7 @@ base.close();</code></pre>
         <td>
                 <p>Join types. Possible options:
 <br>1. <code>'field'</code> - Points to zero or one record and is implemented as an additional hidden field of type <code>uint64</code>, which can hold the ID of the record it links to. Accessing the records join returns a record.
-<br>2. <code>'index'</code> - Point to any number of records and is implemented using the inverted index, where for each record a list (vector) of linked records is kept. Accessing the records join returns a record set. 
+<br>2. <code>'index'</code> - Point to any number of records and is implemented using the inverted index, where for each record a list (vector) of linked records is kept. Accessing the records join returns a record set.
 <b>Important:</b> The records given to this join field must be in an array.</p>
         </td>
 </tr>
@@ -4648,7 +4666,7 @@ var base = new qm.Base({
         { name: &#x27;People&#x27;,
           fields: [{ name: &#x27;name&#x27;, type: &#x27;string&#x27;, primary: true }],
           keys: [
-            { field: &#x27;name&#x27;, type: &#x27;value&#x27;}, 
+            { field: &#x27;name&#x27;, type: &#x27;value&#x27;},
             { field: &#x27;name&#x27;, name: &#x27;nameText&#x27;, type: &#x27;text&#x27;}
          ]
        }
