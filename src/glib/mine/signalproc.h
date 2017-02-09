@@ -1100,7 +1100,11 @@ public:
 ///    Paper: Ted Dunning, Otmar Ertl - https://github.com/tdunning/t-digest/blob/master/docs/t-digest-paper/histo.pdf
 class TTDigest {
 private:
+    // PARAMETERS
+    TInt MinPointsInit;
     TInt Nc;
+
+    // STATE
     TInt Size;
     TInt Last;
     TFlt TotalSum;
@@ -1118,15 +1122,43 @@ private:
     TInt TempLast;
     TFltV TempWeight;
     TFltV TempMean;
-    TFltV Quantiles;
-
     TInt Updates;
-    TInt MinPointsInit;
+public:
+    /// Constructs given JSON arguments
+    TTDigest(const PJsonVal& ParamVal) { Nc = 100; SetParams(ParamVal); }
+    /// Constructs initialized object
+    TTDigest(const int& N = 100) { Init(N); }
+    /// Destructor
+    ~TTDigest() {}
+    /// Initializes the object, resets current content if present
+    void Init(const int& N = 100);
+    /// Query for estimated quantile *q*.
+    /// Argument *q* is a desired quantile in the range (0,1)
+    /// For example, q = 0.5 queries for the median.
+    double GetQuantile(const double& Q) const;
+    /// Number of clusters
+    int GetClusters() const;
+    /// Add a value to the t-digest.
+    /// Argument *v* is the value to add.
+    /// Argument *count* is the integer number of occurrences to add.
+    /// If not provided, *count* defaults to 1.    
+    void Update(const double& V, const double& Count = 1);
+    /// Is the model initialized?
+    bool IsInit() const { return Updates >= MinPointsInit; }
+    /// Load from stream
+    void LoadState(TSIn& SIn);
+    /// Store state into stream
+    void SaveState(TSOut& SOut) const;
+    /// Get parameters as a JSON
+    PJsonVal GetParams() const;
+    /// Set parameters with a JSON
+    void SetParams(const PJsonVal& Params);
 
-    // Given the number of centroids, determine temp buffer size
-    // Perform binary search to find value k such that N = k log2 k
-    // This should give us good amortized asymptotic complexity
-    int NumTemp(const int& N) const;
+private:
+    void MergeValues();
+
+    double MergeCentroid(double& Sum, double& K1, double& Wt, double& Ut);
+
     // Converts a quantile into a centroid index value. The centroid index is
     // nominally the number k of the centroid that a quantile point q should
     // belong to. Due to round-offs, however, we can't align things perfectly
@@ -1142,56 +1174,17 @@ private:
     // flatter so that centroids there will represent a larger chunk of quantiles.
     double Integrate(const double& Nc, const double& Q_) const;
 
-    double MergeCentroid(double& Sum, double& K1, double& Wt, double& Ut);
-
     int Bisect(const TFltV& A, const double& X, int& Low, int& Hi) const;
 
     double Boundary(const int& I, const int& J, const TFltV& U, const TFltV& W) const;
 
-    void Init(const int& N);
-public:
-    /// Constructs uninitialized object
-    TTDigest() {
-        Init(100);
-    }
-    /// Constructs given JSON arguments
-    TTDigest(const PJsonVal& ParamVal) {
-        MinPointsInit = ParamVal->GetObjInt("minCount", 0);
-        if (ParamVal->IsObjKey("clusters")) {
-            TInt N = ParamVal->GetObjInt("clusters");
-            Init(N);
-        }
-        else {
-            Init(100);
-        }
-    };
-    /// Constructs initialized object
-    TTDigest(const TInt& N) {
-        Init(N);
-    };
-    // Destructor
-    //~TTDigest() {}
-    /// Initializes the object, resets current content if present
-    void Init();
-    // Query for estimated quantile *q*.
-    // Argument *q* is a desired quantile in the range (0,1)
-    // For example, q = 0.5 queries for the median.
-    double GetQuantile(const double& Q) const;
-    // Number of clusters
-    int GetClusters() const;
-    // Add a value to the t-digest.
-    // Argument *v* is the value to add.
-    // Argument *count* is the integer number of occurrences to add.
-    // If not provided, *count* defaults to 1.
-    void Update(const double& V, const double& Count = 1);
-    bool IsInit() const { return Updates >= MinPointsInit; }
-    void MergeValues();
-    /// Prints the model
+    // Given the number of centroids, determine temp buffer size
+    // Perform binary search to find value k such that N = k log2 k
+    // This should give us good amortized asymptotic complexity
+    int NumTemp(const int& N) const;
+
     void Print() const;
-    /// Load from stream
-    void LoadState(TSIn& SIn);
-    /// Store state into stream
-    void SaveState(TSOut& SOut) const;
+
 };
 
 /////////////////////////////////////////////////

@@ -2402,6 +2402,102 @@ private:
 };
 
 /////////////////////////////////////////////
+// QMiner-JavaScript-TDigest
+
+/**
+* @typedef {Object} TDigestParam
+* An object used for the construction of {@link module:analytics.TDigest}.
+* @property {number} [minCount=0] - The minimal number of examples before the model is initialized.
+* @property {number} [clusters=100] - The number of 1-d clusters (large values lead to higher memory usage).
+*/
+
+/**
+* TDigest quantile estimation on streams
+* @classdesc TDigest is a methods that approximates the CDF function of streaming measurements.
+*   Data structure useful for percentile and quantile estimation for online data streams.
+*   It can be added to any anomaly detector to set the number of alarms triggered as a percentage of the total samples.
+*   This is based on the Data Lib Sketch Implementation: https://github.com/vega/datalib-sketch/blob/master/src/t-digest.js
+*   Paper: Ted Dunning, Otmar Ertl - https://github.com/tdunning/t-digest/blob/master/docs/t-digest-paper/histo.pdf.
+*   Adding new samples to the distribution is achieved through `partialFit` and querying the model (computing quantiles)
+*   is implemented by `predict` function.
+* @class
+* @param {module:analytics~TDigestParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
+* <br>1. Using the {@link module:analytics~TDigestParam} object,
+* <br>2. using the file input stream {@link module:fs.FIn}.
+* @example
+*/
+//# exports.TDigest = function (arg) { return Object.create(require('qminer').analytics.TDigest.prototype); }
+class TNodeJsTDigest : public node::ObjectWrap {
+    friend class TNodeJsUtil;
+public:
+    static void Init(v8::Handle<v8::Object> exports);
+    static const TStr GetClassId() { return "TDigest"; }
+
+private:
+    TSignalProc::TTDigest Model;
+
+    TNodeJsTDigest(const PJsonVal& ParamVal);
+    TNodeJsTDigest(TSIn& SIn);
+    ~TNodeJsTDigest() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
+
+    static TNodeJsTDigest* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+public:
+
+    /**
+    * Returns the parameters.
+    * @returns {module:analytics~TDigest} The construction parameters.
+    * @example
+    */
+    //# exports.TDigest.prototype.getParams = function () { return { }; }
+    JsDeclareFunction(getParams);
+
+    /**
+    * Sets the parameters.
+    * @param {module:analytics~TDigest} params - The construction parameters.
+    * @returns {module:analytics.TDigest} Self. The model parameters have been updated.
+    * @example
+    */
+    //# exports.TDigest.prototype.setParams = function (params) { return Object.create(require('qminer').analytics.TDigest.prototype); }
+    JsDeclareFunction(setParams);
+
+    /**
+    * Adds a new measurement to the model and updates the approximation of the data distribution.
+    * @param {number} x - Input number.
+    * @returns {module:analytics.TDigest} Self. The model has been updated.
+    * @example
+    */
+    //# exports.TDigest.prototype.partialFit = function (X) { return Object.create(require('qminer').analytics.TDigest.prototype); }
+    JsDeclareFunction(partialFit);
+
+    /**
+    * Returns a quantile given input number, that is the approximate fraction of samples smaller than the input (0.05 means that 5% of data is smaller than the input value).
+    * @param {number} x - Input number.
+    * @returns {number} Quantile (between 0 and 1).
+    * @example
+    */
+    //# exports.TDigest.prototype.predict = function (x) { return 0; }
+    JsDeclareFunction(predict);
+
+    /**
+    * Saves TDigest internal state into (binary) file.
+    * @param {module:fs.FOut} fout - The output stream.
+    * @returns {module:fs.FOut} The output stream `fout`.
+    * @example
+    */
+    //# exports.TDigest.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
+    JsDeclareFunction(save);
+
+    /**
+    * Returns true when the model has enough data to initialize. Type `boolean`.
+    * @example
+    */
+    //# exports.TDigest.prototype.init = false;
+    JsDeclareProperty(init);
+
+};
+
+/////////////////////////////////////////////
 // QMiner-JavaScript-Recommender System
 
 /**
