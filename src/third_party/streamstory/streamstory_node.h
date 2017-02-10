@@ -64,6 +64,8 @@ private:
 		TMc::TFtrInfoV ContrFtrInfo;
 		TMc::TFtrInfoV IgnFtrInfo;
 
+        TIntV DerivFtrIdV;
+
 	public:
 		TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
@@ -83,7 +85,7 @@ public:
 
 	JsDeclareSyncAsync(fit,fitAsync,TFitTask);
 
-	//!- `hmc.update(obsFtrV, contrFtrV, recTm)` TODO write documentation
+	//!- `ss.update(obsFtrV, contrFtrV, recTm)` TODO write documentation
 	JsDeclareFunction(update);
 
 	/**

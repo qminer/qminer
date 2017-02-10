@@ -502,6 +502,26 @@ PJsonVal TNodeJsUtil::GetArgToNmJson(const v8::FunctionCallbackInfo<v8::Value>& 
     return GetObjToNmJson(Args[ArgN]->ToObject());
 }
 
+void TNodeJsUtil::GetArgIntV(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN,
+        TIntV& IntV) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    EAssertR(Args.Length() > ArgN, "TNodeJsUtil::GetArgIntV: Invalid number of arguments!");
+    EAssertR(Args[ArgN]->IsArray(), "TNodeJsUtil::GetArgIntV: argument is not an array!");
+
+    v8::Array* JsIntV = v8::Array::Cast(*Args[ArgN]);
+
+    const int Len = JsIntV->Length();
+    IntV.Gen(Len);
+
+    for (int i = 0; i < Len; i++) {
+        v8::Local<v8::Value> Val = JsIntV->Get(i);
+        EAssertR(Val->IsNumber() || Val->IsInt32(), "TNodeJsUtil::GetArgIntV: value is not an integer!");
+        IntV[i] = static_cast<int>(Val->NumberValue());
+    }
+}
+
 void TNodeJsUtil::GetArgIntVV(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN,
         TVec<TIntV>& IntVV) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();

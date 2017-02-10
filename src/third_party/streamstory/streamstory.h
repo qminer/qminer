@@ -75,6 +75,7 @@ public:
 	TStr GetTypeStr() const;
 	const int& GetOffset() const { return Offset; }
 	const int& GetLength() const { return Length; }
+    const int& GetDim() const { return GetLength(); }
 	int GetRange() const { return IsNumeric() ? TInt::Mx : Length-1; }
 
 	bool IsNumeric() const { return GetType() == ftNumeric; }
@@ -83,6 +84,12 @@ public:
 	int GetCategoricalFtrVal(const TFltV& FtrV) const;
 	double GetNumericFtrVal(const TFltV& FtrV) const;
 	double GetFtrVal(const TFltV& FtrV) const;
+
+    // EXTRACT FEATURES FROM FEATURE VECTOR
+    
+    /// extract the represented feature into a vector
+    void ExtractFtr(const TFltV& FtrV, TFltV& FtrVal) const;
+    void ExtractFtr(const TFltVV& FtrVV, const int& ColN, TFltV& FtrVal) const;
 };
 
 typedef TVec<TFtrInfo> TFtrInfoV;
@@ -147,6 +154,8 @@ private:
   	// assigned to the centroid to the centroid
   	TUInt64FltPrV CentroidDistStatV;
 
+    // HISTOGRAMS
+
   	int NHistBins;						// the number of bins used in a histogram
   	TStateFtrHistVV ObsHistVV;			// histograms of observation features
   	TStateFtrHistVV ControlHistVV;		// histograms of control features
@@ -161,7 +170,15 @@ private:
 
   	TVec<TFltV> StateContrFtrValVV;
 
+    // ADDITIONAL FEATURES
+
+    // indicates whether to include time features in the feature vector
   	bool IncludeTmFtrV;
+    // for which features will we inlude the difference in the feature vector
+    TIntV DiffFtrIdV;
+
+    // OTHER STUFF
+
   	uint64 TmUnit;
   	double Sample;
 
@@ -176,8 +193,14 @@ public:
 		thtDay = 3
   	};
 
-  	TStateIdentifier(const PDenseKMeans& KMeans, const int NHistBins, const double& Sample,
-  			const bool IncludeTmFtrV, const TRnd& Rnd=TRnd(0), const bool& Verbose=false);
+  	TStateIdentifier(
+            const PDenseKMeans& KMeans,
+            const int NHistBins,
+            const double& Sample,
+  			const bool IncludeTmFtrV,
+            const TRnd& Rnd=TRnd(0),
+            const bool& Verbose=false
+            );
 	TStateIdentifier(TSIn& SIn);
 
 	virtual ~TStateIdentifier();
@@ -185,26 +208,36 @@ public:
 	void Save(TSOut& SOut) const;
 
 	// performs the clustering
-	void Init(const TStreamStory& StreamStory, const TUInt64V& TmV, const TFltVV& ObsFtrVV,
-			const TFltVV& ControlFtrVV, const TFltVV& IgnoredFtrVV);
+	void Init(
+            const TStreamStory& StreamStory,
+            const TUInt64V& TmV,
+            const TFltVV& ObsFtrVV,
+			const TFltVV& ControlFtrVV,
+            const TFltVV& IgnoredFtrVV,
+            const TIntV& DiffFtrIdV
+            );
 	// initializes histograms for every feature
-	void InitHistograms(const TStreamStory& StreamStory, const TFltVV& ObsMat, const TFltVV& ControlFtrVV,
-			const TFltVV& IgnoredFtrVV, const TIntV& AssignV);
+	void InitHistograms(const TStreamStory& StreamStory, const TFltVV& ObsMat,
+            const TFltVV& ControlFtrVV, const TFltVV& IgnoredFtrVV, const TIntV& AssignV);
 	void InitTimeHistogramV(const TUInt64V& TmV, const TIntV& AssignV, const int& Bins);
 
 	// assign methods
 	// assign instances to centroids
-	int Assign(const uint64& RecTm, const TFltV& FtrV) const;
+	int Assign(const TStreamStory& StreamStory, const uint64& RecTm, const TFltV& FtrV, const TFltV& PrevFtrV) const;
 	// assign instances to centroids, instances should be in the columns of the matrix
-	void Assign(const TUInt64V& RecTmV, const TFltVV& FtrVV, TIntV& AssignV) const;
+	void Assign(const TStreamStory& StreamStory, const TUInt64V& RecTmV, const TFltVV& FtrVV,
+           TIntV& AssignV) const;
 
 	// distance methods
 	// Returns a vector y containing the distance to all the
 	// centroids. The input vector x should be a column vector
-	void GetCentroidDistV(const uint64& RecTm, const TFltV& FtrV, TFltV& DistV) const;
-	void GetCentroidDistVV(const TUInt64V& RecTmV, const TFltVV& FtrVV, TFltVV& DistVV) const;
+	void GetCentroidDistV(const TStreamStory& StreamStory, const uint64& RecTm, const TFltV& FtrV,
+            const TFltV& PrevFtrV, TFltV& DistV) const;
+	void GetCentroidDistVV(const TStreamStory& StreamStory, const TUInt64V& RecTmV,
+            const TFltVV& FtrVV, TFltVV& DistVV) const;
 	// returns the distance from the cluster centroid to the point
-	double GetDist(const uint64& RecTm, const int& CentroidId, const TFltV& Pt) const;
+	double GetDist(const TStreamStory& StreamStory, const uint64& RecTm, const int& StateId,
+            const TFltV& FtrV, const TFltV& PrevFtrV) const;
 
 	// returns the coordinates of a "joined" centroid
 	void GetJoinedCentroid(const int& FtrSpaceN, const TIntV& StateIdV, TFltV& FtrV) const;
@@ -246,7 +279,8 @@ public:
 
 protected:
 	// used during initialization
-	void InitStatistics(const TUInt64V& RecTmV, const TFltVV& FtrVV, const TIntV& AssignV);
+	void InitStatistics(const TStreamStory& StreamStory, const TUInt64V& RecTmV,
+            const TFltVV& FtrVV, const TIntV& AssignV);
 
 private:
 	void InitCentroidVV(const TIntV& AssignV, const TFltVV& FtrVV, TFltVV& CentroidVV);
@@ -270,9 +304,24 @@ private:
 	void InitHists(const TStreamStory& StreamStory, const TFltVV& ObsFtrVV,
 			const TFltVV& ContrFtrVV, const TFltVV& IgnoredFtrVV);
 
-	void GenClustFtrVV(const TUInt64V& TmV, const TFltVV& ObsFtrVV, TFltVV& FtrVV) const;
-	void GenClustFtrV(const uint64& RecTm, const TFltV& FtrV, TFltV& ClustFtrV) const;
+    /// adds features to the original matrix of feature vectors
+	void GenClustFtrVV(const TStreamStory& StreamStory, const TUInt64V& TmV, const TFltVV& ObsFtrVV,
+            TFltVV& FtrVV) const;
+    /// adds features to a feature vector
+	void GenClustFtrV(const TStreamStory& StreamStory, const uint64& RecTm, const TFltV& FtrV,
+            const TFltV& PrevFtrV, TFltV& ClustFtrV) const;
 	void GenTmFtrV(const uint64& RecTm, TFltV& FtrV) const;
+
+    // ADDITIONAL FEATURES
+
+    bool IncludeDiffFtrV() const { return !DiffFtrIdV.Empty(); }
+
+    // additional feature dimensions
+    int GetTmFtrDim() const;
+    /// returns the number of features used as derivative features
+    int GetDiffFtrN() const { return DiffFtrIdV.Len(); }
+    /// returns the total dimension (sum of individual) of the derivative features
+    int GetDiffFtrDim(const TStreamStory& StreamStory) const;
 
 	static void UpdateHistVV(const TFtrInfoV& FtrInfoV, const TFltVV& FtrVV,
 			const TIntV& AssignV, const int& States, TStateFtrHistVV& StateFtrHistVV);
@@ -280,7 +329,6 @@ private:
 			const TFltVV& CentroidVV, const TUInt64V& StateSizeV, TFltV& FtrV);
 	static void ResampleHist(const int& Bins, const TFltV& OrigBinValV, const TIntV& OrigBinV, TFltV& BinValV,
 				TFltV& BinV);
-	static int GetTmFtrDim(const uint64& TmUnit);
 };
 
 class TEuclMds {
@@ -728,8 +776,8 @@ private:
 	// methods for calculating the natural scales in the model
 	void CalcNaturalScales(const TStreamStory& StreamStory, const TRnd& Rnd, TFltV& ScaleV) const;
 	/// initializes the history of hierarchies
-	void InitHistHierarch(const TUInt64V& RecTmV, const TFltVV& ObsFtrVV,
-	        const TStateIdentifier& StateIdentifier);
+	void InitHistHierarch(const TStreamStory& StreamStory, const TUInt64V& RecTmV,
+        const TFltVV& FtrVV);
 
 	double GetNextUiHeight(const double& Height) const {
 		const TFltV& UiHeightV = GetUiHeightV();
@@ -982,8 +1030,8 @@ public:
 	void Save(TSOut& SOut) const;
 
 	void Init(const TUInt64V& RecTmV, const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV,
-			const TFltVV& IgnFtrVV, const TStateIdentifier& Clust, const THierarch& Hierarch,
-			TStreamStoryCallback* Callback, const bool& MultiThread=true);
+        const TFltVV& IgnFtrVV, const TStreamStory& StreamStory, TStreamStoryCallback* Callback,
+        const bool& MultiThread);
 	void InitFtrBounds(const TFltVV& ObsFtrVV, const TFltVV& ContrFtrVV, const TFltVV& IgnoredFtrVV);
 
 	const TFltPr& GetFtrBounds(const int& FtrId) const;
@@ -1080,7 +1128,8 @@ private:
 
     bool FtrVecPredP;
 
-    TFltV LastObsFtrV, LastContrFtrV;
+    TFltV LastObsFtrV;
+    TFltV LastContrFtrV;
     int LastStateId;
     uint64 LastRecTm;
 
@@ -1110,17 +1159,32 @@ public:
 
 	// update methods
 	// initializes the model
-	void Init(const TFtrInfoV& ObsFtrInfoV, const TFtrInfoV& ContrFtrInfoV,
-			const TFtrInfoV& IgnFtrInfoV, const TFltVV& ObservFtrVV,
-			const TFltVV& ControlFtrVV, const TFltVV& IgnoredFtrVV, const TUInt64V& RecTmV,
-			const bool& MultiThread=true);
-	void InitBatches(const TFtrInfoV& ObsFtrInfoV, const TFtrInfoV& ContrFtrInfoV,
-			const TFtrInfoV& IgnFtrInfoV, const TFltVV& ObservFtrVV, const TFltVV& ControlFtrVV,
-			const TFltVV& IgnoredFtrVV, const TUInt64V& RecTmV, const TBoolV& BatchEndV,
-			const bool& MultiThread=true);
+	void Init(
+            const TFtrInfoV& ObsFtrInfoV,
+            const TFtrInfoV& ContrFtrInfoV,
+			const TFtrInfoV& IgnFtrInfoV,
+            const TFltVV& ObservFtrVV,
+			const TFltVV& ControlFtrVV,
+            const TFltVV& IgnoredFtrVV,
+            const TUInt64V& RecTmV,
+            const TIntV& DiffFtrIdV,
+			const bool& MultiThread=true
+            );
+	void InitBatches(
+            const TFtrInfoV& ObsFtrInfoV,
+            const TFtrInfoV& ContrFtrInfoV,
+			const TFtrInfoV& IgnFtrInfoV,
+            const TFltVV& ObservFtrVV,
+            const TFltVV& ControlFtrVV,
+			const TFltVV& IgnoredFtrVV,
+            const TUInt64V& RecTmV,
+            const TIntV& DiffFtrIdV,
+            const TBoolV& BatchEndV,
+			const bool& MultiThread=true
+            );
 	void InitFtrNToIdV();
 	void InitClust(const TUInt64V& TmV, const TFltVV& ObsFtrVV, const TFltVV& FtrVV,
-			const TFltVV& IgnoredFtrVV, TIntV& AssignV);
+			const TFltVV& IgnoredFtrVV, const TIntV& DiffFtrIdV, TIntV& AssignV);
 	void InitMChain(const TFltVV& FtrVV, const TIntV& AssignV, const TUInt64V& RecTmV,
 			const bool IsBatchData, const TBoolV& EndBatchV);
 	/// initializes the hierarchy
@@ -1287,6 +1351,12 @@ private:
     		const double& RootX, const double& RootY, TFltPrV& PosV) const;
 
     void TransformExplainTree(PJsonVal& TreeJson) const;
+    void InitLastVals(const TFltVV& ObsFtrV, const TFltVV& ContrFtrVV) {
+        LastObsFtrV.Gen(ObsFtrV.GetRows());
+        LastContrFtrV.Gen(ContrFtrVV.GetRows());
+        LastStateId = 0;
+        LastRecTm = 0;
+    }
 };
 
 }
