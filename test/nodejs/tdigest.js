@@ -34,9 +34,8 @@ describe("TDigest test", function () {
     });
 
     describe("Fit/predict test", function () {
-        it("It should return a default constructor", function () {
+        it("It should return a the prediction for the given fit", function () {
             var tdigest = new analytics.TDigest();
-            var params = tdigest.getParams();
             var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
             for (var i = 0; i < inputs.length; i++) {
                 tdigest.partialFit(inputs[i]);
