@@ -294,6 +294,24 @@ public:
     //# exports.<% className %>.prototype.key = function(n) { return <% defaultKey %>; }	
     JsDeclareFunction(key);
 
+    /**
+    * Returns the ID of the key provided as parameter.
+    * @param {<% keyType %>} key - Hashmap key.
+    * @returns {number} n - Hashmap index number of the key.
+    * @example
+    * // import modules
+    * var qm = require('qminer');
+    * var ht = qm.ht;
+    * // create a new hashtable
+    * var h = new ht.<% className %>();
+    * // add a key/dat pair
+    * h.put(<% key1 %>, <% val1 %>);
+    * // get key id of <% key1 %> 
+    * var key = h.keyid(<% key1 %>); // returns 0
+    */
+    //# exports.<% className %>.prototype.key = function(n) { return <% defaultKey %>; }	
+    JsDeclareFunction(keyid);
+
 	/**
 	* Returns n-th dat.
 	* @param {number} n - Hashmap dat index number. Should be between 0 and length-1.
@@ -441,6 +459,7 @@ void TNodeJsHash<TKey, TDat, TAux>::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "put", _put);
     NODE_SET_PROTOTYPE_METHOD(tpl, "hasKey", _hasKey);
     NODE_SET_PROTOTYPE_METHOD(tpl, "key", _key);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "keyid", _keyid);
     NODE_SET_PROTOTYPE_METHOD(tpl, "dat", _dat);
     NODE_SET_PROTOTYPE_METHOD(tpl, "load", _load);
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
@@ -525,6 +544,22 @@ void TNodeJsHash<TKey, TDat, TAux>::key(const v8::FunctionCallbackInfo<v8::Value
     const int Idx = TNodeJsUtil::GetArgInt32(Args, 0);
     EAssertR(JsMap->Map.IsKeyId(Idx), TStr::Fmt("%s::key Incorrect KeyId:%d", TAux::ClassId.CStr(), Idx));
     Args.GetReturnValue().Set(TAux::WrapKey(JsMap->Map.GetKey(Idx)));
+}
+
+template<class TKey, class TDat, class TAux>
+void TNodeJsHash<TKey, TDat, TAux>::keyid(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    EAssertR(Args.Length() == 1, "Expected an index as the argument.");
+    TNodeJsHash<TKey, TDat, TAux>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat, TAux> >(Args.Holder());
+
+    TKey Key = TAux::GetArgKey(Args, 0);
+    int Idx = -1;
+    if (JsMap->Map.IsKey(Key)) {
+        Idx = JsMap->Map.GetKeyId(Key);
+    }
+    Args.GetReturnValue().Set(v8::Integer::New(Isolate, Idx));    
 }
 
 template<class TKey, class TDat, class TAux>
