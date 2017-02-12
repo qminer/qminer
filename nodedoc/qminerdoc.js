@@ -1024,7 +1024,7 @@
     * Gets the details of the selected field.
     * @param {string} fieldName - The field name.
     * @returns {object} The object containing the details of the field. The properties are:
-    * <br>1. `id` - The ID of the field. Type 4number4.
+    * <br>1. `id` - The ID of the field. Type B4numberB4.
     * <br>2. `name` - The name of the field. Type `string`.
     * <br>3. `type` - The type of the field. Type `string`.
     * <br>4. `nullable` - If the field value can be null. Type `boolean`.
@@ -1400,7 +1400,7 @@
  exports.Store.prototype.allRecords = Object.create(require('qminer').RecordSet.prototype);
 /**
     * Gives an array of all field descriptor objects. Type `Array of objects`, where the objects contain the properties:
-    * <br>1. `id` - The ID of the field. Type 4number4.
+    * <br>1. `id` - The ID of the field. Type B4numberB4.
     * <br>2. `name` - The name of the field. Type `string`.
     * <br>3. `type` - The type of the field. Type `string`.
     * <br>4. `nullable` - If the field value can be null. Type `boolean`.
@@ -1410,7 +1410,7 @@
  exports.Store.prototype.fields = [{}];
 /**
     * Gives an array of all join descriptor objects. Type `Array of objects`, where the objects contain the properties:
-    * <br>1. `id` - The ID of the join. Type 4number4.
+    * <br>1. `id` - The ID of the join. Type B4numberB4.
     * <br>2. `name` - The name of the join. Type `string`.
     * <br>2. `store` - The store the join was created in. Type `string`.
     * <br>2. `inverse` - The inverse join. Type `string`.
@@ -2697,6 +2697,10 @@
 * The feature extractor of type `'multinomial'`. Used for constructing {@link module:qm.FeatureSpace} objects.
 * @property {string} type - The type of the extractor. <b>Important</b>: It must be equal `'multinomial'`.
 * @property {boolean} [normalize = 'false'] - Normalize the resulting vector of the extractor to have L2 norm 1.0.
+* @property {string} [transform] - Transformation to apply to each dimension of the feature vector.
+* <br> Transformation options are:
+* <br> - 'log' - Compute a logarithm of the frequencies using the following formula: log(1+x)
+* <br> - 'binary' - Do not compute frequencies, but only a binary indicator whether the category appears
 * @property {Array.<Object>} [values] - A fixed set of values, which form a fixed feature set, no dimensionality changes if new values are seen in the updates. Cannot be used the same time as datetime.
 * @property {number} [hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hashDimension to get the corresponding dimension.
 * @property {Object} [datetime = false] - Same as `'values'`, only with predefined values which are extracted from date and time (`month`, `day of month`, `day of week`, `time of day`, `hour`).
@@ -2843,7 +2847,7 @@
 * @property {string} [type = 'simple'] - The type of the encoding text. Possible options:
 * <br>1. `'simple'` - The simple encoding.
 * <br>2. `'html'` - The html encoding.
-* <br>3.2`'unicode'` - The unicode encoding.
+* <br>3.B2`'unicode'` - The unicode encoding.
 * @property {string | Array.<string>} [stopwords = 'en'] - The stopwords used for extraction. Possible options:
 * <br>1. `'none'` - No pre-defined stopword list. Type `string`.
 * <br>2. `'en'` - The english pre-defined stopword list. Type `string`.

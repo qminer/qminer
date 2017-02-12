@@ -1054,7 +1054,7 @@
     * Gets the details of the selected field.
     * @param {string} fieldName - The field name.
     * @returns {object} The object containing the details of the field. The properties are:
-    * &amp;lt;br&gt;1. &#x60;id&#x60; - The ID of the field. Type 4number4.
+    * &amp;lt;br&gt;1. &#x60;id&#x60; - The ID of the field. Type B4numberB4.
     * &amp;lt;br&gt;2. &#x60;name&#x60; - The name of the field. Type &#x60;string&#x60;.
     * &amp;lt;br&gt;3. &#x60;type&#x60; - The type of the field. Type &#x60;string&#x60;.
     * &amp;lt;br&gt;4. &#x60;nullable&#x60; - If the field value can be null. Type &#x60;boolean&#x60;.
@@ -1430,7 +1430,7 @@
  exports.Store.prototype.allRecords = Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype);
 /**
     * Gives an array of all field descriptor objects. Type &#x60;Array of objects&#x60;, where the objects contain the properties:
-    * &amp;lt;br&gt;1. &#x60;id&#x60; - The ID of the field. Type 4number4.
+    * &amp;lt;br&gt;1. &#x60;id&#x60; - The ID of the field. Type B4numberB4.
     * &amp;lt;br&gt;2. &#x60;name&#x60; - The name of the field. Type &#x60;string&#x60;.
     * &amp;lt;br&gt;3. &#x60;type&#x60; - The type of the field. Type &#x60;string&#x60;.
     * &amp;lt;br&gt;4. &#x60;nullable&#x60; - If the field value can be null. Type &#x60;boolean&#x60;.
@@ -1440,7 +1440,7 @@
  exports.Store.prototype.fields = [{}];
 /**
     * Gives an array of all join descriptor objects. Type &#x60;Array of objects&#x60;, where the objects contain the properties:
-    * &amp;lt;br&gt;1. &#x60;id&#x60; - The ID of the join. Type 4number4.
+    * &amp;lt;br&gt;1. &#x60;id&#x60; - The ID of the join. Type B4numberB4.
     * &amp;lt;br&gt;2. &#x60;name&#x60; - The name of the join. Type &#x60;string&#x60;.
     * &amp;lt;br&gt;2. &#x60;store&#x60; - The store the join was created in. Type &#x60;string&#x60;.
     * &amp;lt;br&gt;2. &#x60;inverse&#x60; - The inverse join. Type &#x60;string&#x60;.
@@ -2727,6 +2727,10 @@
 * The feature extractor of type &#x60;&#x27;multinomial&#x27;&#x60;. Used for constructing {@link module:qm.FeatureSpace} objects.
 * @property {string} type - The type of the extractor. &amp;lt;b&gt;Important&amp;lt;/b&gt;: It must be equal &#x60;&#x27;multinomial&#x27;&#x60;.
 * @property {boolean} [normalize = &#x27;false&#x27;] - Normalize the resulting vector of the extractor to have L2 norm 1.0.
+* @property {string} [transform] - Transformation to apply to each dimension of the feature vector.
+* &amp;lt;br&gt; Transformation options are:
+* &amp;lt;br&gt; - &#x27;log&#x27; - Compute a logarithm of the frequencies using the following formula: log(1+x)
+* &amp;lt;br&gt; - &#x27;binary&#x27; - Do not compute frequencies, but only a binary indicator whether the category appears
 * @property {Array.&amp;lt;Object&gt;} [values] - A fixed set of values, which form a fixed feature set, no dimensionality changes if new values are seen in the updates. Cannot be used the same time as datetime.
 * @property {number} [hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hashDimension to get the corresponding dimension.
 * @property {Object} [datetime = false] - Same as &#x60;&#x27;values&#x27;&#x60;, only with predefined values which are extracted from date and time (&#x60;month&#x60;, &#x60;day of month&#x60;, &#x60;day of week&#x60;, &#x60;time of day&#x60;, &#x60;hour&#x60;).
@@ -2873,7 +2877,7 @@
 * @property {string} [type = &#x27;simple&#x27;] - The type of the encoding text. Possible options:
 * &amp;lt;br&gt;1. &#x60;&#x27;simple&#x27;&#x60; - The simple encoding.
 * &amp;lt;br&gt;2. &#x60;&#x27;html&#x27;&#x60; - The html encoding.
-* &amp;lt;br&gt;3.2&#x60;&#x27;unicode&#x27;&#x60; - The unicode encoding.
+* &amp;lt;br&gt;3.B2&#x60;&#x27;unicode&#x27;&#x60; - The unicode encoding.
 * @property {string | Array.&amp;lt;string&gt;} [stopwords = &#x27;en&#x27;] - The stopwords used for extraction. Possible options:
 * &amp;lt;br&gt;1. &#x60;&#x27;none&#x27;&#x60; - No pre-defined stopword list. Type &#x60;string&#x60;.
 * &amp;lt;br&gt;2. &#x60;&#x27;en&#x27;&#x60; - The english pre-defined stopword list. Type &#x60;string&#x60;.

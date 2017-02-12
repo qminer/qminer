@@ -9,7 +9,6 @@
 #include "qminer_core.h"
 #include "qminer_ftr.h"
 #include "qminer_aggr.h"
-//#include "geospatial_aggr.h"
 
 namespace TQm {
 
@@ -3583,6 +3582,10 @@ void TRecSet::Save(TSOut& SOut) {
     RecIdFqV.Save(SOut);
 }
 
+TRec TRecSet::GetRec(const int& RecN) const {
+    return TRec(GetStore(), RecIdFqV[RecN].Key, RecIdFqV[RecN].Dat);
+}
+
 void TRecSet::GetRecIdV(TUInt64V& RecIdV) const {
     const int Recs = GetRecs();
     RecIdV.Gen(Recs, 0);
@@ -6602,8 +6605,6 @@ void TStreamAggr::Init() {
     Register<TStreamAggrs::TWinBufSpVecSum>();
     Register<TStreamAggrs::TRecSwitchAggr>();
     Register<TStreamAggrs::THistogramAD>();
-    // geospatial aggregates
-    //Register<TStreamAggrs::TStayPointDetector>();
 }
 
 TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm): Base(_Base), AggrNm(_AggrNm) {
@@ -6629,12 +6630,30 @@ PStreamAggr TStreamAggr::New(const TWPt<TBase>& Base, const TStr& TypeNm, const 
 }
 
 void TStreamAggr::LoadState(TSIn& SIn) {
-    throw TQmExcept::New("TStreamAggr::_Load not implemented:" + GetAggrNm());
+    throw TQmExcept::New("TStreamAggr::LoadState not implemented:" + GetAggrNm());
 };
 
 void TStreamAggr::SaveState(TSOut& SOut) const {
-    throw TQmExcept::New("TStreamAggr::_Save not implemented:" + GetAggrNm());
+    throw TQmExcept::New("TStreamAggr::SaveState not implemented:" + GetAggrNm());
 };
+
+void TStreamAggr::LoadStateJson(const PJsonVal& State) {
+    throw TQmExcept::New("TStreamAggr::LoadStateJson not implemented:" + GetAggrNm());
+};
+
+PJsonVal TStreamAggr::SaveStateJson() const {
+    throw TQmExcept::New("TStreamAggr::SaveStateJson not implemented:" + GetAggrNm());
+};
+
+uint64 TStreamAggr::GetMemUsed() const {
+    // sizeof(TStreamAggr) returns the size of this class including all its members and
+    // alignment, but discards the size of any pointers that the members hold which
+    // equals Member.GetMemUsed() - sizeof(TMemberClass) (calculated by GetExtraMemberSize)
+    return sizeof(TStreamAggr) +
+           TMemUtils::GetExtraMemberSize(CRef) +
+           TMemUtils::GetExtraMemberSize(AggrNm) +
+           TMemUtils::GetExtraMemberSize(ExeTm);
+}
 
 ///////////////////////////////
 // QMiner-Stream-Aggregator-Set
@@ -7586,7 +7605,8 @@ PJsonVal TBase::GetStreamAggrStats() const {
     PJsonVal AggrsVal = TJsonVal::NewArr();
     // we also collect aggregate statistics per type and overall
     int AllCount = 0; double AllExeMSecs = 0.0;
-    THash<TStr, TIntFltPr> AggrTypeExeMSecsH;
+    uint64 TotalMemUsed = 0;
+    THash<TStr, TIntFltUInt64Tr> AggrTypeExeMSecsH;
     for (const auto& StreamAggr : StreamAggrH) {
         // get stream aggregate name
         const TStr& AggrNm = StreamAggr.Key;
@@ -7594,16 +7614,21 @@ PJsonVal TBase::GetStreamAggrStats() const {
         const TStr AggrType = StreamAggr.Dat->Type();
         // get execution time in miliseconds
         const double ExeMSecs = StreamAggr.Dat->GetExeTm().GetMSec();
+        // get the memory footprint
+        const uint64 MemUsed = StreamAggr.Dat->GetMemUsed();
         // store to result output
         PJsonVal AggrVal = TJsonVal::NewObj();
         AggrVal->AddToObj("name", AggrNm);
         AggrVal->AddToObj("type", AggrType);
         AggrVal->AddToObj("msecs", ExeMSecs);
+        AggrVal->AddToObj("mem", MemUsed);
         AggrsVal->AddToArr(AggrVal);
         // add to aggregate counts
         AllCount++; AllExeMSecs += ExeMSecs;
+        TotalMemUsed += MemUsed;
         AggrTypeExeMSecsH.AddDat(AggrType).Val1++;
         AggrTypeExeMSecsH.AddDat(AggrType).Val2 += ExeMSecs;
+        AggrTypeExeMSecsH.AddDat(AggrType).Val3 += MemUsed;
     }
     ResVal->AddToObj("aggregates", AggrsVal);
 
@@ -7616,11 +7641,14 @@ PJsonVal TBase::GetStreamAggrStats() const {
         const int AggrCount = AggrTypeExeMSecs.Dat.Val1;
         // get time spent in the aggregate
         const double ExeMSecs = AggrTypeExeMSecs.Dat.Val2;
+        // get the memory footprint
+        const uint64 MemUsed = AggrTypeExeMSecs.Dat.Val3;
         // store to output
         PJsonVal TypeVal = TJsonVal::NewObj();
         TypeVal->AddToObj("type", AggrType);
         TypeVal->AddToObj("count", AggrCount);
         TypeVal->AddToObj("msecs", ExeMSecs);
+        TypeVal->AddToObj("mem", MemUsed);
         TypesVal->AddToArr(TypeVal);
     }
     ResVal->AddToObj("types", TypesVal);
@@ -7628,6 +7656,7 @@ PJsonVal TBase::GetStreamAggrStats() const {
     // get overall stats
     ResVal->AddToObj("count", AllCount);
     ResVal->AddToObj("msecs", AllExeMSecs);
+    ResVal->AddToObj("mem", TotalMemUsed);
 
     // we are good!
     return ResVal;

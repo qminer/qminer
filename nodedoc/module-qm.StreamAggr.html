@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.5.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.9.0</a>
       </div>
     </div>
   </nav>
@@ -94,13 +94,13 @@
                     <dt><a href="module-qm.StreamAggr.html#getNumberOfRecords">getNumberOfRecords()</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-qm.StreamAggr.html#getOutFloatVector">getOutFloatVector()</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.StreamAggr.html#getOutFloatVector">getOutFloatVector()</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="module-qm.StreamAggr.html#getOutTimestampVector">getOutTimestampVector()</a></dt>
                     <dd>
                     </dd>
@@ -128,13 +128,16 @@
                     <dt><a href="module-qm.StreamAggr.html#load">load(fin)</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-qm.StreamAggr.html#loadStateJson">loadStateJson(state)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.StreamAggr.html#onAdd">onAdd(rec[, Caller])</a></dt>
+                    <dd>
+                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-qm.StreamAggr.html#onAdd">onAdd(rec[, Caller])</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="module-qm.StreamAggr.html#onDelete">onDelete(rec[, Caller])</a></dt>
                     <dd>
                     </dd>
@@ -154,6 +157,9 @@
                     <dd>
                     </dd>
                     <dt><a href="module-qm.StreamAggr.html#saveJson">saveJson([limit])</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-qm.StreamAggr.html#saveStateJson">saveStateJson()</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.StreamAggr.html#setParams">setParams(params)</a></dt>
@@ -1210,6 +1216,43 @@ base.close();</code></pre>
                   <p><code><a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></code>&nbsp;Self.</p>
                 </dd>
               </dl>
+              <h3 id="loadStateJson"><span class="symbol-name">loadStateJson</span><span class="signature"><span class="signature-params">(state)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></span></span></h3>
+              <p>Loads the stream aggregator from the state.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>state</p>
+                      </td>
+                      <td>
+                        <p>Object</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The state.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></code>&nbsp;Self.</p>
+                </dd>
+              </dl>
               <h3 id="onAdd"><span class="symbol-name">onAdd</span><span class="signature"><span class="signature-params">(rec[, Caller])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></span></span></h3>
               <p>Executes the function when a new record is put in store. For use example see <a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a> constructor example.</p>
               <section>
@@ -1576,6 +1619,14 @@ base.close();</code></pre>
                 <dt>Returns</dt>
                 <dd>
                   <p><code>Object</code>&nbsp;A JSON object as defined by the user.</p>
+                </dd>
+              </dl>
+              <h3 id="saveStateJson"><span class="symbol-name">saveStateJson</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
+              <p>Returns the current state of the stream aggregate as a json.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Object</code>&nbsp;JSON that represents the state.</p>
                 </dd>
               </dl>
               <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(params)</span></span></h3>

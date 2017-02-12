@@ -2029,6 +2029,13 @@ void TNNAnomalyAggr::Reset() {
     Explanation = TJsonVal::NewObj();
 }
 
+uint64 TNNAnomalyAggr::GetMemUsed() const {
+    return sizeof(TNNAnomalyAggr) +
+           (TStreamAggr::GetMemUsed() - sizeof(TStreamAggr)) +
+           TMemUtils::GetExtraMemberSize(Model) +
+           TMemUtils::GetExtraMemberSize(Explanation);
+}
+
 /// Load from stream
 void TNNAnomalyAggr::LoadState(TSIn& SIn) {
     Model = TAnomalyDetection::TNearestNeighbor(SIn);
@@ -2414,6 +2421,12 @@ TRecFilterAggr::TRecFilterAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal
     }
     // parse out input aggregate
     Aggr = ParseAggr(ParamVal, "aggr");
+}
+
+
+uint64 TRecFilterAggr::GetMemUsed() const {
+    return (TStreamAggr::GetMemUsed() - sizeof(TStreamAggr) + sizeof(TRecFilterAggr)) +
+           TMemUtils::GetExtraMemberSize(FilterV);
 }
 
 //////////////////////////////////////////////////////////////////////////////////

@@ -697,7 +697,7 @@ public:
     virtual bool HasLastRecId() const { return false; }
 
     /// Add new record provided as JSon
-    virtual uint64 AddRec(const PJsonVal& RecVal, const bool& TriggerEvents=true) = 0;
+    virtual uint64 AddRec(const PJsonVal& RecVal, const bool& TriggerEvents = true) = 0;
     /// Update existing record with updates in provided JSon
     virtual void UpdateRec(const uint64& RecId, const PJsonVal& RecVal) = 0;
 
@@ -950,11 +950,11 @@ public:
     /// Save part of the data, given time-window
     virtual int PartialFlush(int WndInMsec = 500) { throw TQmExcept::New("Not implemented"); }
     /// Retrieve performance statistics for this store
-    virtual PJsonVal GetStats() = 0;
+    virtual PJsonVal GetStats() { return TJsonVal::NewObj(); }
     /// Run verification for whole store
-    virtual void RunVerification() = 0;
+    virtual void RunVerification() { };
     /// Run verification for single record
-    virtual void RunVerificationForRecord(const uint64& RecId) = 0;
+    virtual void RunVerificationForRecord(const uint64& RecId) { };
 };
 
 ///////////////////////////////
@@ -1314,6 +1314,8 @@ public:
     /// Calls the filter, default keeps all records
     virtual bool Filter(const TRec& Rec) const { return true; }
 
+    /// Retuns the memory footprint
+    virtual uint64 GetMemUsed() const { return sizeof(TRecFilter); }
     /// Filter type name
     static TStr GetType() { return "trivial"; }
     /// Filter type name
@@ -1923,7 +1925,7 @@ public:
     /// Number of records in the set
     int GetRecs() const { return RecIdFqV.Len(); }  // FIXME this method should return uint64
     /// Get RecN-th record as TRec by reference
-    TRec GetRec(const int& RecN) const { return TRec(GetStore(), RecIdFqV[RecN].Key); }
+    TRec GetRec(const int& RecN) const;
     /// Get id of RecN-th record
     uint64 GetRecId(const int& RecN) const { return RecIdFqV[RecN].Key; }
     /// Get weight of RecN-th record
@@ -1934,7 +1936,7 @@ public:
     uint64 GetLastRecId() const { return RecIdFqV.Last().Key; }
     /// Get reference to complete vector of pairs (record id, weight)
     const TUInt64IntKdV& GetRecIdFqV() const { return RecIdFqV; }
-    /// Get direct reference to elements of vecotr
+    /// Get direct reference to elements of vector
     const TUInt64IntKd& GetRecIdFq(const int& RecN) const { return RecIdFqV[RecN]; }
 
     /// Load record ids into the provided vector
@@ -3474,6 +3476,11 @@ public:
     /// Save state of stream aggregate to stream
     virtual void SaveState(TSOut& SOut) const;
 
+    /// Load stream aggregate state from JSON
+    virtual void LoadStateJson(const PJsonVal& State);
+    /// Save state of stream aggregate and return it as a JSON
+    virtual PJsonVal SaveStateJson() const;
+
     /// Get stream aggregate parameters
     virtual PJsonVal GetParams() const { return TJsonVal::NewObj(); }
     /// Update sream aggregate parameters
@@ -3505,6 +3512,8 @@ public:
     virtual void PrintStat() const { }
     /// Serialization current status to JSon
     virtual PJsonVal SaveJson(const int& Limit) const = 0;
+    /// Returns the memory footprint (the number of bytes) of the aggregate
+    virtual uint64 GetMemUsed() const;
     /// Get access to the timmer
     const TAggrExeTm& GetExeTm() const { return ExeTm; }
 

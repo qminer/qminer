@@ -1659,6 +1659,17 @@
     */
  exports.StreamAggr.prototype.load = function (fin) { return Object.create(require('qminer').StreamAggr.prototype); }
 /**
+    * Returns the current state of the stream aggregate as a json.
+    * @returns {Object} JSON that represents the state.
+    */
+ exports.StreamAggr.prototype.saveStateJson = function () { return {}; }
+/**
+    * Loads the stream aggregator from the state.
+    * @param {Object} state - The state.
+    * @returns {module:qm.StreamAggr} Self.
+    */
+ exports.StreamAggr.prototype.loadStateJson = function (state) { return Object.create(require('qminer').StreamAggr.prototype); }
+/**
     * A map from strings to integers
     * @param {string} [str] - The string.
     * @returns {(number | null)} A number (stream aggregator specific), possibly null if `str` was provided.

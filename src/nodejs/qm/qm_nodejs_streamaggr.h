@@ -1741,6 +1741,21 @@ public:
     JsDeclareFunction(load);
 
     /**
+    * Returns the current state of the stream aggregate as a json.
+    * @returns {Object} JSON that represents the state.
+    */
+    //# exports.StreamAggr.prototype.saveStateJson = function () { return {}; }
+    JsDeclareFunction(saveStateJson);
+
+    /**
+    * Loads the stream aggregator from the state.
+    * @param {Object} state - The state.
+    * @returns {module:qm.StreamAggr} Self.
+    */
+    //# exports.StreamAggr.prototype.loadStateJson = function (state) { return Object.create(require('qminer').StreamAggr.prototype); }
+    JsDeclareFunction(loadStateJson);
+
+    /**
     * A map from strings to integers
     * @param {string} [str] - The string.
     * @returns {(number | null)} A number (stream aggregator specific), possibly null if `str` was provided.
@@ -2442,7 +2457,7 @@ private:
     // ITmIO 
     v8::Persistent<v8::Function> GetInTmMSecsVFun;
     v8::Persistent<v8::Function> GetOutTmMSecsVFun;
-    v8::Persistent<v8::Function> GetNFun;   
+    v8::Persistent<v8::Function> GetNFun;
 
     // IFltVec
     v8::Persistent<v8::Function> GetFltLenFun;
@@ -2463,6 +2478,8 @@ private:
     // Serialization
     v8::Persistent<v8::Function> SaveFun;
     v8::Persistent<v8::Function> LoadFun;
+    v8::Persistent<v8::Function> SaveStateJsonFun;
+    v8::Persistent<v8::Function> LoadStateJsonFun;
 
 public:
     TNodeJsFuncStreamAggr(TWPt<TQm::TBase> _Base, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal);
@@ -2486,6 +2503,8 @@ public:
     TStr Type() const { return GetType(); }
     void SaveState(TSOut& SOut) const;
     void LoadState(TSIn& SIn);
+    PJsonVal SaveStateJson() const;
+    void LoadStateJson(const PJsonVal& State);
 
     // IInt
     int GetInt() const;
