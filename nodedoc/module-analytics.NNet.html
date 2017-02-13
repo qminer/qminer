@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.9.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.10.0</a>
       </div>
     </div>
   </nav>
@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">NNet</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1365">analyticsdoc.<wbr>js:1365</a></p>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1385">analyticsdoc.<wbr>js:1385</a></p>
             <div class="symbol-classdesc">
               <p>Holds online/offline neural network model.</p>
             </div>
@@ -77,7 +77,16 @@
                 <pre class="prettyprint"><code>// import module
 var analytics = require(&#x27;qminer&#x27;).analytics;
 // create a new Neural Networks model
-var nnet = new analytics.NNet({ layout: [3, 5, 2], learnRate: 0.2, momentum: 0.6 });</code></pre>
+var nnet = new analytics.NNet({ layout: [3, 5, 2], learnRate: 0.2, momentum: 0.6 });
+// create the matrices for the fitting of the model
+var matIn = new la.Matrix([[1, 0], [0, 1], [1, 1]]);
+var matOut = new la.Matrix([[-1, 8], [-3, -3]]);
+// fit the model
+nnet.fit(matIn, matOut);
+// create the vector for the prediction
+var test = new la.Vector([1, 1, 2]);
+// predict the value of the vector
+var prediction = nnet.predict(test);</code></pre>
               </div>
             </section>
             <section>

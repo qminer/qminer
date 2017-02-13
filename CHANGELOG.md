@@ -1,5 +1,21 @@
 # QMiner Change Log
 
+### 10 February 2017
+
+**Version 7.10.0**
+
+**Non-breaking with new features**
+
+New features:
+- tdigest wrapped as an analytics model, used to approximately track quantiles on streams
+- hashtable key id is exposed in ht module
+
+Bug fix:
+- javascript feature extractor that returns dense vectors crash fixed
+
+Other:
+- Documentation fixes and added examples
+
 ### 27 January 2017
 
 **Version 7.9.0**
