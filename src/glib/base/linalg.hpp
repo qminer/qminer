@@ -1459,10 +1459,14 @@ void TLinAlg::MultiplyScalar(const double& k, TVec<TNum<TType>, TSizeTy>& x) {
 template <class TType, class TSizeTy, bool ColMajor>
 void TLinAlg::MultiplyScalar(const double& k, const TVec<TNum<TType>, TSizeTy>& x,
 		TVec<TNum<TType>, TSizeTy>& y) {
+    TSizeTy Len = x.Len();
+
+    if (y.Empty()) { y.Gen(Len, Len); }
 	EAssert(x.Len() == y.Len());
-	TSizeTy Len = x.Len();
-	for (TSizeTy i = 0; i < Len; i++)
-		y[i] = k * x[i];
+
+    for (TSizeTy i = 0; i < Len; i++) {
+        y[i] = k * x[i];
+    }
 }
 
 template <class TType, class TSizeTy, bool ColMajor>
@@ -1481,9 +1485,12 @@ template <class TType, class TSizeTy, bool ColMajor>
 void TLinAlg::MultiplyScalar(const double& k,
 		const TVVec<TNum<TType>, TSizeTy, ColMajor>& X,
 		TVVec<TNum<TType>, TSizeTy, ColMajor>& Y) {
+    const TSizeTy Rows = X.GetRows();
+    const TSizeTy Cols = X.GetCols();
+
+    if (Y.Empty()) { Y.Gen(Rows, Cols); }
 	EAssert(X.GetRows() == Y.GetRows() && X.GetCols() == Y.GetCols());
-	const TSizeTy Rows = X.GetRows();
-	const TSizeTy Cols = X.GetCols();
+
 	for (TSizeTy i = 0; i < Rows; i++) {
 		for (TSizeTy j = 0; j < Cols; j++) {
 			Y(i, j) = k*X(i, j);

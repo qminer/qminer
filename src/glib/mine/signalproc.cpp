@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -22,7 +22,7 @@ void TVarSimple::Save(TSOut& SOut) const {
     N.Save(SOut);
 }
 
-void TVarSimple::Update(const double& InVal) {   
+void TVarSimple::Update(const double& InVal) {
     // See Knuth TAOCP vol 2, 3rd edition, page 232
     N++;
     if (N == 1) {
@@ -36,7 +36,7 @@ void TVarSimple::Update(const double& InVal) {
         OldS = NewS;
     }
 }
-   
+
 /////////////////////////////////////////////////
 // Online Moving Average
 void TMa::AddVal(const double& InVal) {
@@ -73,7 +73,7 @@ void TMa::Save(TSOut& SOut) const {
     TmMSecs.Save(SOut);
 }
 
-void TMa::Update(const double& InVal, const uint64& InTmMSecs, 
+void TMa::Update(const double& InVal, const uint64& InTmMSecs,
         const TFltV& OutValV, const TUInt64V& OutTmMSecsV){
 
     // delete old values
@@ -86,7 +86,7 @@ void TMa::Update(const double& InVal, const uint64& InTmMSecs,
 
 void TMa::Update(const TFltV& InValV, const TUInt64V& InTmMSecsV,
         const TFltV& OutValV, const TUInt64V& OutTmMSecs) {
-    
+
     // delete old values
     for (const double OutVal : OutValV) { DeleteVal(OutVal); }
     // add the new value
@@ -95,24 +95,24 @@ void TMa::Update(const TFltV& InValV, const TUInt64V& InTmMSecsV,
     // (we cannot assume any order in the input values)
     for (const uint64 InTmMSecs : InTmMSecsV) {
         if (InTmMSecs > TmMSecs) { TmMSecs = InTmMSecs; }
-    }    
+    }
 }
 
 /////////////////////////////////////////////////
-// Online Sum 
+// Online Sum
 void TSum::Load(TSIn& SIn) {
     *this = TSum(SIn);
 }
 
 void TSum::Save(TSOut& SOut) const {
-    Sum.Save(SOut); 
+    Sum.Save(SOut);
     TmMSecs.Save(SOut);
 }
 
 void TSum::Update(const double& InVal, const uint64& InTmMSecs, const TFltV& OutValV, const TUInt64V& OutTmMSecsV){
     // remove old values from the sum
     for (const double OutVal : OutValV) { Sum -= OutVal; }
-    // add the new value to the resulting sum    
+    // add the new value to the resulting sum
     Sum += InVal;
     // update time stamp
     TmMSecs = InTmMSecs;
@@ -135,13 +135,13 @@ void TSum::Update(const TFltV& InValV, const TUInt64V& InTmMSecsV, const TFltV& 
 void TSumSpVec::AddVal(const TIntFltKdV& SpV) {
     TIntFltKdV NewSum;
     TLinAlg::LinComb(1, Sum, 1, SpV, NewSum);
-    Sum = NewSum;    
+    Sum = NewSum;
 }
 
 void TSumSpVec::DelVal(const TIntFltKdV& SpV) {
     TIntFltKdV NewSum;
     TLinAlg::LinComb(1, Sum, -1, SpV, NewSum);
-    Sum = NewSum;        
+    Sum = NewSum;
 }
 
 void TSumSpVec::Load(TSIn& SIn) {
@@ -203,7 +203,7 @@ void TMin::AddVal(const double& InVal, const uint64& InTmMSecs) {
         AllValV.DelLast();
     }
     // Then we remember the new minimum candidate
-    AllValV.Add(TFltUInt64Pr(InVal, InTmMSecs));    
+    AllValV.Add(TFltUInt64Pr(InVal, InTmMSecs));
 }
 
 void TMin::DelVal(const uint64& OutTmMSecs) {
@@ -248,7 +248,7 @@ void TMin::Update(const TFltV& InValV, const TUInt64V& InTmMSecsV, const TFltV& 
 }
 
 /////////////////////////////////////////////////
-// Online Max 
+// Online Max
 void TMax::AddVal(const double& InVal, const uint64& InTmMSecs) {
     // First we remove all old max candidates that are bigger then the latest value
     while (!AllValV.Empty() && AllValV[AllValV.Len() - 1].Val1 <= InVal) {
@@ -263,7 +263,7 @@ void TMax::DelVal(const uint64& OutTmMSecs) {
     while (AllValV[0].Val2 <= OutTmMSecs) {
         // pop front
         AllValV.Del(0);
-    }    
+    }
 }
 
 void TMax::Load(TSIn& SIn) {
@@ -312,19 +312,19 @@ double TEma::GetNi(const double& Alpha, const double& Mi) {
 }
 
 //TODO: compute InitMinMSecs initialization time window from decay factor
-TEma::TEma(const double& _Decay, const TEmaType& _Type, const uint64& _InitMinMSecs, 
+TEma::TEma(const double& _Decay, const TEmaType& _Type, const uint64& _InitMinMSecs,
     const double& _TmInterval): Decay(_Decay), Type(_Type), LastVal(TFlt::Mn),
     TmInterval(_TmInterval), InitP(false), InitMinMSecs(_InitMinMSecs) { }
 
 //TODO: compute InitMinMSecs initialization time window from decay factor
 TEma::TEma(const TEmaType& _Type, const uint64& _InitMinMSecs,const double& _TmInterval):
-    Type(_Type), LastVal(TFlt::Mn), TmInterval(_TmInterval), InitP(false), 
+    Type(_Type), LastVal(TFlt::Mn), TmInterval(_TmInterval), InitP(false),
     InitMinMSecs(_InitMinMSecs) { }
 
 TEma::TEma(const PJsonVal& ParamVal) : LastVal(TFlt::Mn), InitP(false) {
     // type
     TStr TypeStr = ParamVal->GetObjStr("emaType");
-    if (TypeStr == "previous") { 
+    if (TypeStr == "previous") {
         Type = etPreviousPoint;
     } else if (TypeStr == "linear") {
         Type = etLinear;
@@ -363,7 +363,7 @@ void TEma::Save(TSOut& SOut) const {
     // TODO: Use macro for saving enum (SaveEnum, LoadEnum)
     // TODO: change TmInterval from double to TFlt
     // PROBLEM: After changing TmInterval from double to TFlt Qminer crashes hard!
-    TInt TypeI = Type; // TEmaType 
+    TInt TypeI = Type; // TEmaType
     TypeI.Save(SOut);
     TFlt TmIntervalFlt = TmInterval; // double
     TmIntervalFlt.Save(SOut);;
@@ -383,9 +383,9 @@ void TEma::Update(const double& Val, const uint64& NewTmMSecs) {
     if (InitP) {
         // computer parameters for EMA
         double Alpha;
-        if (Decay == 0.0) {         
+        if (Decay == 0.0) {
             Alpha = TmInterval1 / TmInterval;
-        } else {            
+        } else {
             Alpha = TmInterval1 / TmInterval  * (-1.0) * TMath::Log(Decay);
         }
         const double Mi = exp(-Alpha);
@@ -401,7 +401,7 @@ void TEma::Update(const double& Val, const uint64& NewTmMSecs) {
         if (StartInitMSecs < NewTmMSecs) {
             // Initialize using "buildup time interval",
             //TODO: check how interpolation type influences this code
-            const int Vals = InitMSecsV.Len();  
+            const int Vals = InitMSecsV.Len();
             // compute weights for each value in buffer
             TFltV WeightV(Vals, 0);
             for (int ValN = 0; ValN < Vals; ValN++) {
@@ -461,7 +461,7 @@ TEmaSpVec::TEmaSpVec(const PJsonVal& ParamVal) : LastVal(), InitP(false) {
     InitMinMSecs = ParamVal->GetObjInt("initWindow", 0);
 }
 
-TEmaSpVec::TEmaSpVec(TSIn& SIn) : LastVal(SIn), Ema(SIn), TmMSecs(SIn), 
+TEmaSpVec::TEmaSpVec(TSIn& SIn) : LastVal(SIn), Ema(SIn), TmMSecs(SIn),
     TmInterval(SIn), Cutoff(SIn), InitP(SIn),
     InitMinMSecs(SIn), InitValV(SIn), InitMSecsV(SIn) {
 
@@ -489,7 +489,7 @@ void TEmaSpVec::Save(TSOut& SOut) const {
     // TODO: Use macro for saving enum (SaveEnum, LoadEnum)
     // TODO: change TmInterval from double to TFlt
     // PROBLEM: After changing TmInterval from double to TFlt Qminer crashes hard!
-    TInt TypeI = Type; // TEmaType 
+    TInt TypeI = Type; // TEmaType
     TypeI.Save(SOut);
     //TFlt TmIntervalFlt = TmInterval; // double
     //TmIntervalFlt.Save(SOut);
@@ -501,12 +501,12 @@ void TEmaSpVec::Update(const TIntFltKdV& Val, const uint64& NewTmMSecs) {
     double TmInterval1;
     // EMA(first_point) = first_point (no smoothing is possible)
     if (InitMinMSecs == 0) {
-        if (LastVal.Empty()) { 
-            LastVal = Val; 
-            Ema = Val; 
-            TmMSecs = NewTmMSecs; 
-            InitP = true;  
-            return; 
+        if (LastVal.Empty()) {
+            LastVal = Val;
+            Ema = Val;
+            TmMSecs = NewTmMSecs;
+            InitP = true;
+            return;
         }
     }
     if (NewTmMSecs == TmMSecs) {
@@ -522,7 +522,7 @@ void TEmaSpVec::Update(const TIntFltKdV& Val, const uint64& NewTmMSecs) {
         // compute new ema
         //Ema = Mi*Ema + (Ni - Mi)*LastVal + (1.0 - Ni)*Val;
         TIntFltKdV Tmp;
-        TLinAlg::LinComb(Mi, Ema, Ni - Mi, LastVal, Tmp);       
+        TLinAlg::LinComb(Mi, Ema, Ni - Mi, LastVal, Tmp);
         TLinAlg::LinComb(1, Tmp, 1.0 - Ni, Val, Ema);
     } else {
         // update buffers
@@ -553,7 +553,7 @@ void TEmaSpVec::Update(const TIntFltKdV& Val, const uint64& NewTmMSecs) {
             Ema = Tmp;
 
             // mark that we are done and clean up after us
-            InitP = true; 
+            InitP = true;
             InitValV.Clr();
             InitMSecsV.Clr();
         }
@@ -605,7 +605,7 @@ void TVar::AddVal(const double& InVal) {
     // update variance parameters
     const double Delta = InVal - Ma;
     Ma = Ma + Delta / (double)Count;
-    M2 = M2 + Delta * (InVal - Ma);    
+    M2 = M2 + Delta * (InVal - Ma);
 }
 
 void TVar::DelVal(const double& OutVal) {
@@ -629,10 +629,10 @@ void TVar::Load(TSIn& SIn) {
 
 void TVar::Save(TSOut& SOut) const {
     Count.Save(SOut);
-    Ma.Save(SOut); 
+    Ma.Save(SOut);
     M2.Save(SOut);
     VarVal.Save(SOut);
-    TmMSecs.Save(SOut); 
+    TmMSecs.Save(SOut);
 }
 
 void TVar::Update(const double& InVal, const uint64& InTmMSecs, const TFltV& OutValV, const TUInt64V& OutTmMSecsV) {
@@ -652,13 +652,13 @@ void TVar::Update(const TFltV& InValV, const TUInt64V& InTmMSecsV, const TFltV& 
     // add new value to the parameters
     for (int ValN = 0; ValN < InValV.Len(); ValN++) { AddVal(InValV[ValN]); }
     // update variance
-    UpdateVar();    
+    UpdateVar();
     // update current timestamp
     if (!InTmMSecsV.Empty()) { TmMSecs = InTmMSecsV.Last(); }
 }
 
 /////////////////////////////////////////////////
-// Online Moving Covariance 
+// Online Moving Covariance
 void TCov::AddVal(const double& InValX, const double& InValY) {
     // increase count
     Count++;
@@ -675,7 +675,7 @@ void TCov::DelVal(const double& OutValX, const double& OutValY) {
     Count--;
     if (Count == 0) {
         // no more elements, just reset
-        Reset();        
+        Reset();
     } else {
         // update parameters
         MaX = MaX - OutValX;
@@ -692,14 +692,14 @@ void TCov::Load(TSIn& SIn) {
 
 void TCov::Save(TSOut& SOut) const {
     Count.Save(SOut);
-    MaX.Save(SOut); 
-    MaY.Save(SOut); 
+    MaX.Save(SOut);
+    MaY.Save(SOut);
     M2.Save(SOut);
     CovVal.Save(SOut);
-    TmMSecs.Save(SOut); 
+    TmMSecs.Save(SOut);
 }
 
-void TCov::Update(const double& InValX, const double& InValY, const uint64& InTmMSecs, 
+void TCov::Update(const double& InValX, const double& InValY, const uint64& InTmMSecs,
         const TFltV& OutValVX, const TFltV& OutValVY, const TUInt64V& OutTmMSecsV){
 
     // remove old values from the parameters
@@ -714,7 +714,7 @@ void TCov::Update(const double& InValX, const double& InValY, const uint64& InTm
     TmMSecs = InTmMSecs;
 }
 
-void TCov::Update(const TFltV& InValVX, const TFltV& InValVY, const TUInt64V& InTmMSecsV, 
+void TCov::Update(const TFltV& InValVX, const TFltV& InValVY, const TUInt64V& InTmMSecsV,
         const TFltV& OutValVX, const TFltV& OutValVY, const TUInt64V& OutTmMSecsV) {
 
     // remove old values from the parameters
@@ -726,7 +726,7 @@ void TCov::Update(const TFltV& InValVX, const TFltV& InValVY, const TUInt64V& In
         AddVal(InValVX[ValN], InValVY[ValN]);
     }
     // update variance
-    UpdateCov();    
+    UpdateCov();
     // update current timestamp
     if (!InTmMSecsV.Empty()) { TmMSecs = InTmMSecsV.Last(); }
 }
@@ -736,7 +736,7 @@ void TCov::Update(const TFltV& InValVX, const TFltV& InValVY, const TUInt64V& In
 PInterpolator TInterpolator::New(const TStr& InterpolatorType) {
     if (InterpolatorType == TPreviousPoint::GetType()) {
         return TPreviousPoint::New();
-    }    
+    }
     else if (InterpolatorType == TLinear::GetType()) {
         return TLinear::New();
     }
@@ -955,7 +955,7 @@ void TAggrResampler::AddPoint(const double& Val, const uint64& Tm) {
 }
 
 /// Sets the current time
-void TAggrResampler::SetCurrentTm(const uint64& Tm) { 
+void TAggrResampler::SetCurrentTm(const uint64& Tm) {
     CurrentTmMSecs = Tm;
     if (!InitP) {
         EAssertR(Tm >= IntervalMSecs, "TAggrResampler::SetCurrentTm: Current time point too early (currently in uninitialized state). Use 'start' property when constructing the resampler.");
@@ -1107,7 +1107,7 @@ void TNNet::TNeuron::FeedFwd(const TLayer& PrevLayer){
     TFlt SumIn = 0.0;
     // get the previous layer's outputs and sum them up
     for(int NeuronN = 0; NeuronN < PrevLayer.GetNeuronN(); ++NeuronN){
-        SumIn += PrevLayer.GetOutVal(NeuronN) * 
+        SumIn += PrevLayer.GetOutVal(NeuronN) *
                 PrevLayer.GetWeight(NeuronN, Id);
     }
     // not sure if static. maybe different fcn for output nodes
@@ -1136,7 +1136,7 @@ TFlt TNNet::TNeuron::TransferFcn(TFlt Sum){
            // training data should be scaled to what the transfer function can handle
            return (Sum / 2.0) / (1.0 + fabs(Sum)) + 0.5;
         case linear:
-            return Sum;         
+            return Sum;
     };
     throw TExcept::New("Unknown transfer function type");
 }
@@ -1158,7 +1158,7 @@ TFlt TNNet::TNeuron::TransferFcnDeriv(TFlt Sum){
         case fastSigmoid:
            return 1.0 / (2.0 * (1.0 + fabs(Sum)) * (1.0 + fabs(Sum)));
         case linear:
-            return 1;         
+            return 1;
     };
     throw TExcept::New("Unknown transfer function type");
 }
@@ -1194,8 +1194,8 @@ void TNNet::TNeuron::UpdateInputWeights(TLayer& PrevLayer, const TFlt& LearnRate
         TFlt OldDeltaWeight = Neuron.GetDeltaWeight(Id);
         //TFlt OldWeight = Neuron.GetWeight(Id);
         TFlt OldSumDeltaWeight = Neuron.GetSumDeltaWeight(Id);
-        
-        TFlt NewDeltaWeight = 
+
+        TFlt NewDeltaWeight =
                 // individual input magnified by the gradient and train rate
                 LearnRate
                 * Neuron.GetOutVal()
@@ -1203,7 +1203,7 @@ void TNNet::TNeuron::UpdateInputWeights(TLayer& PrevLayer, const TFlt& LearnRate
                 // add momentum = fraction of previous delta weight, if we are not in batch mode
                 + (UpdateWeights  && OldSumDeltaWeight == 0.0 ? Momentum : TFlt())
                 * OldDeltaWeight;
-        
+
         if(UpdateWeights){
             if(OldSumDeltaWeight != 0.0){
                 NewDeltaWeight = OldSumDeltaWeight + NewDeltaWeight;
@@ -1225,7 +1225,7 @@ void TNNet::TNeuron::Save(TSOut& SOut) {
     OutEdgeV.Save(SOut);
     Id.Save(SOut);
 }
-    
+
 /////////////////////////////////////////////////////////////////////////
 //// Neural Networks - Layer of Neurons
 // TODO: why do we need this empty constructor?
@@ -1241,7 +1241,7 @@ TNNet::TLayer::TLayer(const TInt& NeuronsN, const TInt& OutputsN, const TTFunc& 
         printf(" Neuron N: %d", NeuronN);
         printf(" Neuron H: %d", NeuronV.Len());
         printf("\n");*/
-    } 
+    }
     // Force the bias node's output value to 1.0
     NeuronV.Last().SetOutVal(1.0);
     //printf("\n");
@@ -1255,7 +1255,7 @@ void TNNet::TLayer::Save(TSOut& SOut) {
 
 /////////////////////////////////////////////////////////////////////////
 //// Neural Networks - Neural Net
-TNNet::TNNet(const TIntV& LayoutV, const TFlt& _LearnRate, 
+TNNet::TNNet(const TIntV& LayoutV, const TFlt& _LearnRate,
             const TFlt& _Momentum, const TTFunc& TFuncHiddenL,
             const TTFunc& TFuncOutL){
     // get number of layers
@@ -1316,14 +1316,14 @@ void TNNet::BackProp(const TFltV& TargValV, const TBool& UpdateWeights){
     }
     Error /= OutputLayer.GetNeuronN() - 1;
     Error = sqrt(Error); // RMS
-    
+
     // recent avg error measurement
     RecentAvgError = (RecentAvgError * RecentAvgSmoothingFactor + Error)
             / (RecentAvgSmoothingFactor + 1.0);
     // Calculate output layer gradients
     for(int NeuronN = 0; NeuronN < OutputLayer.GetNeuronN() - 1; ++NeuronN){
         OutputLayer.CalcOutGradient(NeuronN, TargValV[NeuronN]);
-    }        
+    }
     // Calculate gradients on hidden layers
     for(int LayerN = LayerV.Len() - 2; LayerN > 0; --LayerN){
         TLayer& HiddenLayer = LayerV[LayerN];
@@ -1384,79 +1384,122 @@ TStr TNNet::GetFunction(const TTFunc& FuncEnum) {
 
 ///////////////////////////////////////////////////////////////////
 // Recursive Linear Regression
-TRecLinReg::TRecLinReg(const TRecLinReg& LinReg):
-        ForgetFact(LinReg.ForgetFact),
-        RegFact(LinReg.RegFact),
-        P(LinReg.P),
-        Coeffs(LinReg.Coeffs) {}
-
-TRecLinReg::TRecLinReg(const TRecLinReg&& LinReg):
-        ForgetFact(std::move(LinReg.ForgetFact)),
-        RegFact(std::move(LinReg.RegFact)),
-        P(std::move(LinReg.P)),
-        Coeffs(std::move(LinReg.Coeffs)) {}
-
-TRecLinReg::TRecLinReg(TSIn& SIn):
-        ForgetFact(SIn),
-        RegFact(SIn) {
-    P.Load(SIn);
-    Coeffs.Load(SIn);
-}
-
-TRecLinReg::TRecLinReg(const int& Dim, const double& _RegFact,
+TOnlineLinReg::TOnlineLinReg(const int& Dim, const double& _RegFact,
             const double& _ForgetFact):
         ForgetFact(_ForgetFact),
         RegFact(_RegFact),
-        P(TFullMatrix::Identity(Dim) / RegFact),
-        Coeffs(Dim, true) {}
+        CovVV(Dim, Dim),
+        bn(Dim, Dim),
+        SampleN(0),
+        WgtV(Dim, Dim) {
 
-void TRecLinReg::Save(TSOut& SOut) const {
+    EAssert(0 < ForgetFact && ForgetFact <= 1);
+    EAssert(RegFact >= 0);
+    EAssert(Dim > 0);
+}
+
+TOnlineLinReg::TOnlineLinReg(TSIn& SIn):
+        ForgetFact(SIn),
+        RegFact(SIn),
+        CovVV(SIn),
+        bn(SIn),
+        SampleN(SIn),
+        WgtV(SIn) {}
+
+void TOnlineLinReg::Save(TSOut& SOut) const {
     ForgetFact.Save(SOut);
     RegFact.Save(SOut);
-    P.Save(SOut);
-    Coeffs.Save(SOut);
+    CovVV.Save(SOut);
+    bn.Save(SOut);
+    SampleN.Save(SOut);
+    WgtV.Save(SOut);
 }
 
-PRecLinReg TRecLinReg::Load(TSIn& SIn) {
-    return new TRecLinReg(SIn);
+TOnlineLinReg::TOnlineLinReg(const TOnlineLinReg& LinReg):
+        ForgetFact(LinReg.ForgetFact),
+        RegFact(LinReg.RegFact),
+        CovVV(LinReg.CovVV),
+        bn(LinReg.bn),
+        SampleN(LinReg.SampleN),
+        WgtV(LinReg.WgtV) {}
+
+TOnlineLinReg& TOnlineLinReg::operator =(const TOnlineLinReg& LinReg) {
+    // provide the strong guarantee (if copy fails, no data should be changed)
+    TOnlineLinReg Temp(LinReg);
+    std::swap(*this, Temp);
+    return *this;
 }
 
-TRecLinReg& TRecLinReg::operator =(TRecLinReg LinReg) {
+TOnlineLinReg::TOnlineLinReg(const TOnlineLinReg&& LinReg):
+        ForgetFact(std::move(LinReg.ForgetFact)),
+        RegFact(std::move(LinReg.RegFact)),
+        CovVV(std::move(LinReg.CovVV)),
+        bn(std::move(LinReg.bn)),
+        SampleN(std::move(LinReg.SampleN)),
+        WgtV(std::move(LinReg.WgtV)) {}
+
+TOnlineLinReg& TOnlineLinReg::operator =(TOnlineLinReg&& LinReg) {
+    if (this == &LinReg) { return *this; }
+
     std::swap(ForgetFact, LinReg.ForgetFact);
-    std::swap(P, LinReg.P);
-    std::swap(Coeffs, LinReg.Coeffs);
+    std::swap(RegFact, LinReg.RegFact);
+    std::swap(CovVV, LinReg.CovVV);
+    std::swap(bn, LinReg.bn);
+    std::swap(SampleN, LinReg.SampleN);
+    std::swap(WgtV, LinReg.WgtV);
 
     return *this;
 }
 
-double TRecLinReg::Predict(const TFltV& Sample) {
-    return Coeffs.DotProduct(Sample);
+double TOnlineLinReg::Predict(const TFltV& Sample) {
+    return TLinAlg::DotProduct(WgtV, Sample);
 }
 
-void TRecLinReg::Learn(const TFltV& Sample, const double& SampleVal) {
-    double PredVal = Predict(Sample);
-
-    TVector x(Sample);
-
-    TVector Px = P * x;
-    double xPx = Px.DotProduct(Sample);
-
-    /*
-     * linreg.P = (linreg.P - (Px * Px') / (linreg.lambda + xPx)) / linreg.lambda;
-     * linreg.w = linreg.w + Px*((y - y_hat)/(linreg.lambda + xPx));
-     */
-    P = (P - (Px*Px.GetT()) / (ForgetFact + xPx)) / ForgetFact;
-    Coeffs += Px*((SampleVal - PredVal) / (ForgetFact + xPx));
+void TOnlineLinReg::Learn(const TFltV& FtrV, const double& Val) {
+    const int Dim = CovVV.GetRows();
+    // if the forget factor is enabled, then first update the covariance matrix and X'y
+    // Cn <- beta*Cn
+    // bn <- beta*bn
+    if (ForgetFact < 1) {
+        TLinAlg::MultiplyScalar(ForgetFact, CovVV, CovVV);
+        TLinAlg::MultiplyScalar(ForgetFact, bn, bn);
+    }
+    // add the last sample
+    // Cn <- (beta*Cn) + x*x'
+    // bn <- (beta*bn) + x*y
+    for (int RowN = 0; RowN < Dim; RowN++) {
+        for (int ColN = 0; ColN < Dim; ColN++) {
+            CovVV(RowN, ColN) += FtrV[RowN]*FtrV[ColN];
+        }
+        bn[RowN] += FtrV[RowN]*Val;
+    }
+    // update n
+    SampleN++;
+    // update the weight vector
+    // XX <- Cn / n + lambda*I
+    TFltVV XX;
+    TFltV Xy;
+    TLinAlg::MultiplyScalar(1.0 / double(SampleN), CovVV, XX);
+    if (RegFact > 0.0) {
+        for (int ValN = 0; ValN < Dim; ValN++) {
+            XX(ValN, ValN) += RegFact;
+        }
+    }
+    // Xy <= bn / n
+    TLinAlg::MultiplyScalar(1.0 / double(SampleN), bn, Xy);
+    // solve the system
+    // w = XX \ Xy
+    TNumericalStuff::SolveLinearSystem(XX, Xy, WgtV);
 }
 
-void TRecLinReg::GetCoeffs(TFltV& Coef) const {
-    Coef = Coeffs.GetVec();
+void TOnlineLinReg::GetCoeffs(TFltV& _WgtV) const {
+    _WgtV = WgtV;
 }
 
-bool TRecLinReg::HasNaN() const {
-    int Dim = Coeffs.Len();
+bool TOnlineLinReg::HasNaN() const {
+    int Dim = WgtV.Len();
     for (int ElN = 0; ElN < Dim; ElN++) {
-        if (Coeffs[ElN].IsNan()) {
+        if (WgtV[ElN].IsNan()) {
             return true;
         }
     }
@@ -1931,7 +1974,7 @@ TChiSquare::TChiSquare(const PJsonVal& ParamVal): P(TFlt::PInf) {
 
 void TChiSquare::Print() const {
     printf("Chi2 = %g", Chi2.Val);
-    printf("P = %g", P.Val);    
+    printf("P = %g", P.Val);
 }
 
 void TChiSquare::Update(const TFltV& OutValVX, const TFltV& OutValVY) {
@@ -1940,7 +1983,7 @@ void TChiSquare::Update(const TFltV& OutValVX, const TFltV& OutValVY) {
 
 void TChiSquare::LoadState(TSIn& SIn) {
     Chi2.Load(SIn);
-    P.Load(SIn);    
+    P.Load(SIn);
 }
 
 void TChiSquare::SaveState(TSOut& SOut) const {
@@ -1964,7 +2007,7 @@ TSlottedHistogram::TSlottedHistogram(const uint64 _Period, const uint64 _Slot, c
 void TSlottedHistogram::Reset() {
     for (int HistN = 0; HistN < Dat.Len(); HistN++) {
         Dat[HistN].Reset();
-    }   
+    }
 }
 
 void TSlottedHistogram::LoadState(TSIn& SIn) {
