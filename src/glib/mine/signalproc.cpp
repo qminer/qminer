@@ -1475,6 +1475,7 @@ void TOnlineLinReg::Learn(const TFltV& FtrV, const double& Val) {
     }
     // update n
     SampleN++;
+
     // update the weight vector
     // XX <- Cn / n + lambda*I
     TFltVV XX;
