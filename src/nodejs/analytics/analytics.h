@@ -1207,8 +1207,8 @@ public:
 class TNodeJsRecLinReg : public node::ObjectWrap {
     friend class TNodeJsUtil;
 private:
-    TSignalProc::PRecLinReg Model;
-    TNodeJsRecLinReg(const TSignalProc::PRecLinReg& Model);
+    TSignalProc::POnlineLinReg Model;
+    TNodeJsRecLinReg(const TSignalProc::POnlineLinReg& Model);
 public:
     static void Init(v8::Handle<v8::Object> exports);
     static const TStr GetClassId() { return "RecLinReg"; }

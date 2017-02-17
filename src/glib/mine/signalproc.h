@@ -958,7 +958,7 @@ public:
 
 /////////////////////////////////////////
 // Recursive Linear Regression
-ClassTP(TOnlineLinReg, PRecLinReg)// {
+ClassTP(TOnlineLinReg, POnlineLinReg)// {
 private:
     TFlt ForgetFact;        // forgetting factor
     TFlt RegFact;           // regularization
@@ -975,9 +975,9 @@ public:
     virtual ~TOnlineLinReg() {}
 
     // new method
-    static PRecLinReg New(const int& Dim, const double& RegFact, const double& ForgetFact)
+    static POnlineLinReg New(const int& Dim, const double& RegFact, const double& ForgetFact)
             { return new TOnlineLinReg(Dim, RegFact, ForgetFact); }
-    static PRecLinReg Load(TSIn& SIn) { return new TOnlineLinReg(SIn); }
+    static POnlineLinReg Load(TSIn& SIn) { return new TOnlineLinReg(SIn); }
 
     // save and load
     TOnlineLinReg(TSIn& SIn);

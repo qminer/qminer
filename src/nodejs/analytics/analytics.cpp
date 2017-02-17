@@ -1100,7 +1100,7 @@ void TNodeJsNNAnomalies::init(v8::Local<v8::String> Name, const v8::PropertyCall
 
 ////////////////////////////////////////////////
 // QMiner-NodeJS-Recursive-Linear-Regression
-TNodeJsRecLinReg::TNodeJsRecLinReg(const TSignalProc::PRecLinReg& _Model):
+TNodeJsRecLinReg::TNodeJsRecLinReg(const TSignalProc::POnlineLinReg& _Model):
         Model(_Model) {}
 
 
