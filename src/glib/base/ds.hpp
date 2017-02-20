@@ -1608,6 +1608,21 @@ TLstNd<TVal>* TLst<TVal>::SearchBack(const TVal& Val){
   return NULL;
 }
 
+template <class TVal>
+uint64 TLst<TVal>::GetMemUsed(const bool& DeepP) const {
+  if (DeepP) {
+    uint64 MemUsed = sizeof(TLst<TVal>);
+    PLstNd Nd=First();
+    while (Nd!=NULL){
+      MemUsed += Nd->GetMemUsed();
+      Nd=Nd->Next();
+    }
+    return MemUsed;
+  } else {
+    return sizeof(TLst<TVal>) + sizeof(TVal) * Nds;
+  }
+}
+
 //#//////////////////////////////////////////////
 /// Simple heap data structure. ##THeap
 template <class TVal, class TCmp>
