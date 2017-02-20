@@ -1614,7 +1614,7 @@ uint64 TLst<TVal>::GetMemUsed(const bool& DeepP) const {
     uint64 MemUsed = sizeof(TLst<TVal>);
     PLstNd Nd=First();
     while (Nd!=NULL){
-      MemUsed += Nd->GetMemUsed();
+      MemUsed += TMemUtils::GetMemUsed(Nd);
       Nd=Nd->Next();
     }
     return MemUsed;
