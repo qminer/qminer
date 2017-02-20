@@ -606,33 +606,37 @@ private:
 
 /////////////////////////////////////////////////////////////////
 // Scale helper
-class TScaleHelper {
-	typedef TVec<TPair<TFlt,TFltVV>> TScaleDescV;
-protected:
-	PNotify Notify;
-public:
-	TScaleHelper(const PNotify _Notify): Notify(_Notify) {}
-	virtual ~TScaleHelper() {}
+namespace TScale {
+    const int MAX_SCALES{10};
 
-	void CalcNaturalScales(const TScaleDescV& ScaleQMatPrV,
-		const TRnd& Rnd, TFltV& ScaleV) const;
+    class TScaleHelper {
+        typedef TVec<TPair<TFlt,TFltVV>> TScaleDescV;
+    protected:
+        PNotify Notify;
+    public:
+        TScaleHelper(const PNotify _Notify): Notify(_Notify) {}
+        virtual ~TScaleHelper() {}
 
-protected:
-	virtual void GetScaleFtrV(const TFltVV& QMat, TFltV& FtrV) const = 0;
-	virtual int GetFtrVDim() const = 0;
-};
+        void CalcNaturalScales(const TScaleDescV& ScaleQMatPrV,
+            const TRnd& Rnd, TFltV& ScaleV) const;
 
-/////////////////////////////////////////////////////////////////
-// Scale helper - based on singular values of the Q-matrix
-class TEigValScaleHelper: public TScaleHelper {
-private:
-	static const int FTRV_DIM;
-public:
-	TEigValScaleHelper(const PNotify& Notify): TScaleHelper(Notify) {}
-protected:
-	void GetScaleFtrV(const TFltVV& QMat, TFltV& FtrV) const;
-	int GetFtrVDim() const { return FTRV_DIM; }
-};
+    protected:
+        virtual void GetScaleFtrV(const TFltVV& QMat, TFltV& FtrV) const = 0;
+        virtual int GetFtrVDim() const = 0;
+    };
+
+    /////////////////////////////////////////////////////////////////
+    // Scale helper - based on singular values of the Q-matrix
+    class TEigValScaleHelper: public TScaleHelper {
+    private:
+        static const int FTRV_DIM;
+    public:
+        TEigValScaleHelper(const PNotify& Notify): TScaleHelper(Notify) {}
+    protected:
+        void GetScaleFtrV(const TFltVV& QMat, TFltV& FtrV) const;
+        int GetFtrVDim() const { return FTRV_DIM; }
+    };
+}
 
 ////////////////////////////////////////////
 // Hierarchy modeler

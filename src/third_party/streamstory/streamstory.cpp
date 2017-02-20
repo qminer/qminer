@@ -2664,11 +2664,11 @@ void TCtmcModeller::GetFutureProbVV(const TFltVV& QMat, const double& Tm,
 
 /////////////////////////////////////////////////////////////////
 // Scale helper
-void TScaleHelper::CalcNaturalScales(const TScaleDescV& ScaleQMatPrV,
+void TScale::TScaleHelper::CalcNaturalScales(const TScaleDescV& ScaleQMatPrV,
     const TRnd& Rnd, TFltV& ScaleV) const {
     Notify->OnNotify(ntInfo, "Calculating natural scales ...");
 
-    const int NScales = ScaleQMatPrV.Len() / 2;
+    const int NScales = TMath::Mn(ScaleQMatPrV.Len() / 2, MAX_SCALES);
 
     TFltVV FtrVV(GetFtrVDim(), ScaleQMatPrV.Len());
 
@@ -2698,9 +2698,9 @@ void TScaleHelper::CalcNaturalScales(const TScaleDescV& ScaleQMatPrV,
 
 /////////////////////////////////////////////////////////////////
 // Scale helper - based on eigenvalues
-const int TEigValScaleHelper::FTRV_DIM = 3;
+const int TScale::TEigValScaleHelper::FTRV_DIM = 3;
 
-void TEigValScaleHelper::GetScaleFtrV(const TFltVV& QMat, TFltV& FtrV) const {
+void TScale::TEigValScaleHelper::GetScaleFtrV(const TFltVV& QMat, TFltV& FtrV) const {
     const int Dim = GetFtrVDim();
 
     // in the first version the feature vector will contain singular values
@@ -3300,6 +3300,7 @@ void THierarch::GetStateHistory(const double& RelOffset, const double& RelRange,
             TmDurStatePercHTr.Val2 = InTmDurIdTr.Val2;
             TmDurStatePercHTr.Val3.AddDat(InTmDurIdTr.Val3, 1);
         }
+        Notify->OnNotifyFmt(ntInfo, "Found %d states!", StateTmDurIdTrV.Len());
     }
 }
 
@@ -3662,7 +3663,7 @@ void THierarch::CalcNaturalScales(const TStreamStory& StreamStory, const TRnd& R
         MChain.GetQMatrix(AggStateV, StateFtrVV, ScaleQMatPrV[HeightN].Val2);
     }
 
-    TEigValScaleHelper ScaleHelper(Notify);
+    TScale::TEigValScaleHelper ScaleHelper(Notify);
     ScaleHelper.CalcNaturalScales(ScaleQMatPrV, Rnd, ScaleV);
 
     ScaleV.Sort(true);

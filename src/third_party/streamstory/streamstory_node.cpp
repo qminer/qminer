@@ -7,6 +7,7 @@
  */
 #include "streamstory_node.h"
 
+
 ////////////////////////////////////////////////////////
 // Hierarchical Markov Chain model
 const double TNodeJsStreamStory::DEFAULT_DELTA_TM = 1e-6;
@@ -417,9 +418,14 @@ void TNodeJsStreamStory::getHistoricalStates(const v8::FunctionCallbackInfo<v8::
     const double RelLen = TNodeJsUtil::GetArgFlt(Args, 1);
     const int MxStates = TNodeJsUtil::GetArgInt32(Args, 2);
 
-    TVec<TPair<TFlt, TVec<TTriple<TUInt64,TUInt64,TIntFltH>>>> ScaleTmDurStateIdDistHTrV;
+    TScaleStateHistVPrV ScaleTmDurStateIdDistHTrV;
     uint64 MnTm, MxTm;
     JsStreamStory->StreamStory->GetStateHistory(RelOffset, RelLen, MxStates, ScaleTmDurStateIdDistHTrV, MnTm, MxTm);
+
+    //=====================================================
+    // XXX for exporting. remove in production
+    /* DumpScaleStateHistVV(ScaleTmDurStateIdDistHTrV); */
+    //=====================================================
 
     v8::Local<v8::Object> JsResult = v8::Object::New(Isolate);
     v8::Local<v8::Array> JsBlocks = v8::Array::New(Isolate, ScaleTmDurStateIdDistHTrV.Len());
@@ -429,29 +435,40 @@ void TNodeJsStreamStory::getHistoricalStates(const v8::FunctionCallbackInfo<v8::
         const TPair<TFlt, TVec<TTriple<TUInt64,TUInt64,TIntFltH>>>& ScaleTmIdVPr = ScaleTmDurStateIdDistHTrV[ScaleN];
         const TVec<TTriple<TUInt64,TUInt64,TIntFltH>>& StateTmDurStateIdPrV = ScaleTmIdVPr.Val2;
 
-        v8::Local<v8::Array> JsScaleHist = v8::Array::New(Isolate, StateTmDurStateIdPrV.Len());
+        // create a new vector, giving control over it to node immediately (to avoid working with pointers)
+        v8::Handle<v8::Object> JsScaleJsonVec = TNodeJsUtil::NewInstance(new TNodeJsJsonV(StateTmDurStateIdPrV.Len()));
+        TNodeJsJsonV* ScaleJsonVec = TNodeJsUtil::Unwrap<TNodeJsJsonV>(JsScaleJsonVec);
+
         for (int BlockN = 0; BlockN < StateTmDurStateIdPrV.Len(); BlockN++) {
-            v8::Local<v8::Object> StateObj = v8::Object::New(Isolate);
+            PJsonVal StateJson = TJsonVal::NewObj();
+            /* v8::Local<v8::Object> StateObj = v8::Object::New(Isolate); */
 
             const TIntFltH& StateIdDistH = StateTmDurStateIdPrV[BlockN].Val3;
-            v8::Local<v8::Object> StateIdDistObj = v8::Object::New(Isolate);
+            /* v8::Local<v8::Object> StateIdDistObj = v8::Object::New(Isolate); */
+            PJsonVal StateIdDistJson = TJsonVal::NewObj();
+
             int KeyId = StateIdDistH.FFirstKeyId();
             while (StateIdDistH.FNextKeyId(KeyId)) {
                 const int& StateId = StateIdDistH.GetKey(KeyId);
                 const double& Prob = StateIdDistH[KeyId];
 
-                StateIdDistObj->Set(v8::Integer::New(Isolate, StateId), v8::Number::New(Isolate, Prob));
+                StateIdDistJson->AddToObj(TInt::GetStr(StateId), Prob);
+                /* StateIdDistObj->Set(v8::Integer::New(Isolate, StateId), v8::Number::New(Isolate, Prob)); */
             }
 
-            StateObj->Set(v8::String::NewFromUtf8(Isolate, "start"), v8::Number::New(Isolate, (double) TNodeJsUtil::GetJsTimestamp(StateTmDurStateIdPrV[BlockN].Val1)));
-            StateObj->Set(v8::String::NewFromUtf8(Isolate, "duration"), v8::Number::New(Isolate, (double) StateTmDurStateIdPrV[BlockN].Val2));
-            StateObj->Set(v8::String::NewFromUtf8(Isolate, "states"), StateIdDistObj);
+            StateJson->AddToObj("start", (double) TNodeJsUtil::GetJsTimestamp(StateTmDurStateIdPrV[BlockN].Val1));
+            StateJson->AddToObj("duration", StateTmDurStateIdPrV[BlockN].Val2);
+            StateJson->AddToObj("states", StateIdDistJson);
+            ScaleJsonVec->Vec[BlockN] = StateJson;
+            /* StateObj->Set(v8::String::NewFromUtf8(Isolate, "start"), v8::Number::New(Isolate, (double) TNodeJsUtil::GetJsTimestamp(StateTmDurStateIdPrV[BlockN].Val1))); */
+            /* StateObj->Set(v8::String::NewFromUtf8(Isolate, "duration"), v8::Number::New(Isolate, (double) StateTmDurStateIdPrV[BlockN].Val2)); */
+            /* StateObj->Set(v8::String::NewFromUtf8(Isolate, "states"), StateIdDistObj); */
 
-            JsScaleHist->Set(BlockN, StateObj);
+/*             JsScaleHist->Set(BlockN, StateObj); */
         }
 
         ScaleObj->Set(v8::String::NewFromUtf8(Isolate, "scale"), v8::Number::New(Isolate, ScaleTmIdVPr.Val1));
-        ScaleObj->Set(v8::String::NewFromUtf8(Isolate, "states"), JsScaleHist);
+        ScaleObj->Set(v8::String::NewFromUtf8(Isolate, "states"), JsScaleJsonVec);
 
         JsBlocks->Set(ScaleN, ScaleObj);
     }
@@ -1530,4 +1547,48 @@ void TNodeJsStreamStory::ParseFtrInfo(const PJsonVal& InfoJsonV, TMc::TFtrInfoV&
             throw TExcept::New("Only numeric features currently supported!");
         }
     }
+}
+
+void TNodeJsStreamStory::DumpScaleStateHistVV(const TScaleStateHistVPrV& ScaleStateHistVV) {
+    printf("Exporting data to file ...\n");
+    // transform to JSON and dump to file
+    PJsonVal ScaleStateHistJsonVV = TJsonVal::NewArr();
+    for (int ScaleN = 0; ScaleN < ScaleStateHistVV.Len(); ScaleN++) {
+        PJsonVal ScaleJson = TJsonVal::NewObj();
+
+        const TPair<TFlt, TVec<TTriple<TUInt64,TUInt64,TIntFltH>>>& ScaleTmIdVPr = ScaleStateHistVV[ScaleN];
+        const TVec<TTriple<TUInt64,TUInt64,TIntFltH>>& StateTmDurStateIdPrV = ScaleTmIdVPr.Val2;
+
+        // create a new vector, giving control over it to node immediately (to avoid working with pointers)
+        PJsonVal StatesJsonV = TJsonVal::NewArr();
+
+        for (int BlockN = 0; BlockN < StateTmDurStateIdPrV.Len(); BlockN++) {
+            PJsonVal StateJson = TJsonVal::NewObj();
+            PJsonVal StateIdDistJson = TJsonVal::NewObj();
+
+            const TIntFltH& StateIdDistH = StateTmDurStateIdPrV[BlockN].Val3;
+
+            int KeyId = StateIdDistH.FFirstKeyId();
+            while (StateIdDistH.FNextKeyId(KeyId)) {
+                const int& StateId = StateIdDistH.GetKey(KeyId);
+                const double& Prob = StateIdDistH[KeyId];
+
+                StateIdDistJson->AddToObj(TInt::GetStr(StateId), Prob);
+            }
+
+            StateJson->AddToObj("start", (double) TNodeJsUtil::GetJsTimestamp(StateTmDurStateIdPrV[BlockN].Val1));
+            StateJson->AddToObj("duration", StateTmDurStateIdPrV[BlockN].Val2);
+            StateJson->AddToObj("states", StateIdDistJson);
+            StatesJsonV->AddToArr(StateJson);
+        }
+
+        ScaleJson->AddToObj("scale", ScaleTmIdVPr.Val1);
+        ScaleJson->AddToObj("states", StatesJsonV);
+
+        ScaleStateHistJsonVV->AddToArr(ScaleJson);
+    }
+
+    PSOut FOut = TFOut::New("scale-states-export.json");
+    FOut->PutStr(TJsonVal::GetStrFromVal(ScaleStateHistJsonVV));
+    printf("Done!\n");
 }

@@ -101,6 +101,26 @@ public:
 	}
 };
 
+class TAuxJsonV {
+public:
+    static const TStr ClassId;  // set to JsonVector
+    static v8::Handle<v8::Value> GetObjVal(const PJsonVal& Val) {
+        v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+        v8::EscapableHandleScope HandleScope(Isolate);
+        return TNodeJsUtil::ParseJson(Isolate, Val);
+    }
+    static PJsonVal CastVal(const v8::Local<v8::Value>& Value) {
+        const PJsonVal JsonVal = TNodeJsUtil::GetObjJson(Value);
+        return JsonVal;
+    }
+    static void AssertType(const v8::Local<v8::Value>& Val) {
+        EAssertR(Val->IsObject(), ClassId + "::AssertType: Value expected to be an object");
+    }
+    static PJsonVal Parse(const TStr& Str) {
+        return TJsonVal::GetValFromStr(Str);
+    }
+};
+
 template <class TVal = TFlt, class TAux = TAuxFltV>
 class TJsVecComparator {
 private:	
@@ -165,6 +185,7 @@ public: // So we can register the class
 	static v8::Local<v8::Object> New(const TIntV& IntV);
 	static v8::Local<v8::Object> New(const TStrV& StrV);
 	static v8::Local<v8::Object> New(const TBoolV& BoolV);
+    static v8::Local<v8::Object> New(const TVec<PJsonVal>& JsonV);
 
 	//static v8::Local<v8::Object> New(v8::Local<v8::Array> Arr);
 public:
@@ -671,6 +692,7 @@ typedef TNodeJsVec<TFlt, TAuxFltV> TNodeJsFltV;
 typedef TNodeJsVec<TInt, TAuxIntV> TNodeJsIntV;
 typedef TNodeJsVec<TStr, TAuxStrV> TNodeJsStrV;
 typedef TNodeJsVec<TBool, TAuxBoolV> TNodeJsBoolV;
+typedef TNodeJsVec<PJsonVal, TAuxJsonV> TNodeJsJsonV;
 
 
 // template <typename TVal, typename TAux>
@@ -775,6 +797,22 @@ inline v8::Local<v8::Object> TNodeJsVec<TStr, TAuxStrV>::New(const TStrV& StrV) 
 	TNodeJsVec<TStr, TAuxStrV>* JsVec = new TNodeJsVec<TStr, TAuxStrV>(StrV);
 	JsVec->Wrap(Instance);
 	return HandleScope.Escape(Instance);
+}
+
+template <>
+inline v8::Local<v8::Object> TNodeJsVec<PJsonVal, TAuxJsonV>::New(const TVec<PJsonVal>& JsonV) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::EscapableHandleScope HandleScope(Isolate);
+    EAssertR(!Constructor.IsEmpty(), "TNodeJsJsonV::New: constructor is empty. Did you call TTNodeJsJsonV::Init(exports); in this module's init function?");
+    v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, Constructor);
+
+    v8::Local<v8::Object> Instance = cons->NewInstance();
+
+    v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
+    v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAuxJsonV::ClassId.CStr());
+    Instance->SetHiddenValue(Key, Value);
+
+    return TNodeJsUtil::NewInstance(new TNodeJsJsonV(JsonV));
 }
 
 // template <typename TVal, typename TAux>
@@ -1309,6 +1347,11 @@ void TNodeJsVec<TVal, TAux>::sum(const v8::FunctionCallbackInfo<v8::Value>& Args
 	Args.GetReturnValue().Set(TAux::GetObjVal(Sum));
 }
 
+template <>
+inline void TNodeJsVec<PJsonVal, TAuxJsonV>::sum(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    throw TExcept::New("Cannot sum objects!");
+}
+
 // put(idx, num) sets v[idx] := num 
 template <typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::put(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -1458,6 +1501,11 @@ void TNodeJsVec<TVal, TAux>::sort(const v8::FunctionCallbackInfo<v8::Value>& Arg
 	Args.GetReturnValue().Set(Args.Holder());
 }
 
+template <>
+inline void TNodeJsVec<PJsonVal, TAuxJsonV>::sort(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    throw TExcept::New("Cannot sort TNodeJsJsonV!");
+}
+
 template <typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::shuffle(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -1505,6 +1553,27 @@ void TNodeJsVec<TVal, TAux>::toString(const v8::FunctionCallbackInfo<v8::Value>&
 
 	Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, Str.CStr()));
 }
+
+template<>
+inline void TNodeJsVec<PJsonVal, TAuxJsonV>::toString(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsJsonV* JsVec =
+        ObjectWrap::Unwrap<TNodeJsJsonV>(Args.Holder());
+
+    TStr Str = "";
+    for (int ElN = 0; ElN < JsVec->Vec.Len() - 1; ++ElN) {
+        const PJsonVal JsonVal = JsVec->Vec[ElN];
+        Str += JsVec->Vec[ElN]->GetStr() + ", ";
+    }
+    if (JsVec->Vec.Len() > 0) {
+        Str += JsVec->Vec.Last()->GetStr();
+    }	
+
+    Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, Str.CStr()));
+}
+
 
 // Returns the size of the vector 
 template<typename TVal, typename TAux>
@@ -1566,6 +1635,25 @@ void TNodeJsVec<TVal, TAux>::saveascii(const v8::FunctionCallbackInfo<v8::Value>
 	}
 
 	Args.GetReturnValue().Set(Args[0]);
+}
+
+template<>
+inline void TNodeJsVec<PJsonVal, TAuxJsonV>::saveascii(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    EAssertR(Args.Length() == 1 && Args[0]->IsObject(),
+        "Expected a TNodeJsFOut object");
+    TNodeJsJsonV* JsVec = ObjectWrap::Unwrap<TNodeJsJsonV>(Args.Holder());
+    TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+    PSOut SOut = JsFOut->SOut;
+    const int Rows = JsVec->Vec.Len();
+    for (int RowId = 0; RowId < Rows; RowId++) {
+        SOut->PutStr(JsVec->Vec[RowId]->GetStr());
+        SOut->PutCh('\n');
+    }
+
+    Args.GetReturnValue().Set(Args[0]);
 }
 
 template<typename TVal, typename TAux>
