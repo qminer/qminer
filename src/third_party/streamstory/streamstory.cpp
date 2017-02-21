@@ -3148,12 +3148,8 @@ void THierarch::GetStateHistory(const double& RelOffset, const double& RelRange,
     const uint64& MxTm = LowestScaleHistV.Last().Val1;
     const uint64 TmRange = MxTm - MnTm;
 
-    Notify->OnNotifyFmt(ntInfo, "Calculating history for scale: %.4f", Scale);
-
     const uint64 IntervalStartTm = (uint64) (LowestScaleHistV[0].Val1 + TmRange*RelOffset);
     const uint64 IntervalEndTm = (uint64) (IntervalStartTm + TmRange*RelRange);
-
-    Notify->OnNotifyFmt(ntInfo, "Start time: %ld, end time: %ld", IntervalStartTm, IntervalEndTm);
 
     const TUInt64IntPrV& ScaleHistV = HierarchHistoryVV[GetUiScaleN(Scale)];
     TUInt64UInt64IntTrV StateTmDurIdTrV(ScaleHistV.Len()-1, 0);
@@ -3191,8 +3187,6 @@ void THierarch::GetStateHistory(const double& RelOffset, const double& RelRange,
     }
 
     if (StateTmDurIdTrV.Len() > MxStates) {
-        Notify->OnNotifyFmt(ntInfo, "Resampling %d values ...", StateTmDurIdTrV.Len());
-
         // find the MAX_HISTORY_SAMPLES-th largest duration
         THeap<TUInt64, TGtr<TUInt64>> DurHeap(MxStates);
 
@@ -3214,8 +3208,6 @@ void THierarch::GetStateHistory(const double& RelOffset, const double& RelRange,
         if (MnDur < GlobalMnDur) {
             GlobalMnDur = MnDur;
         }
-
-        Notify->OnNotifyFmt(ntInfo, "Skipping durations below %s ...", TStrUtil::GetHMSStrFromMSecs(GlobalMnDur).CStr());
 
         TmDurStateIdPercHTrV.Gen(MxStates, 0);
         for (int TmN = 0; TmN < StateTmDurIdTrV.Len(); TmN++) {
@@ -3288,8 +3280,6 @@ void THierarch::GetStateHistory(const double& RelOffset, const double& RelRange,
                 TmDurStateIdPercHTrV.DelLast();
             }
         }
-
-        Notify->OnNotifyFmt(ntInfo, "%d historical states returned ...", TmDurStateIdPercHTrV.Len());
     } else {
         TmDurStateIdPercHTrV.Gen(StateTmDurIdTrV.Len());
         for (int TmN = 0; TmN < StateTmDurIdTrV.Len(); TmN++) {
@@ -3300,7 +3290,6 @@ void THierarch::GetStateHistory(const double& RelOffset, const double& RelRange,
             TmDurStatePercHTr.Val2 = InTmDurIdTr.Val2;
             TmDurStatePercHTr.Val3.AddDat(InTmDurIdTr.Val3, 1);
         }
-        Notify->OnNotifyFmt(ntInfo, "Found %d states!", StateTmDurIdTrV.Len());
     }
 }
 
@@ -3335,8 +3324,6 @@ void THierarch::GetStateHistory(const double& RelOffset, const double& RelRange,
             ScaleTmDurIdDistPrTrV[ScaleN].Val2
         );
     }
-
-    Notify->OnNotify(ntInfo, "Done!");
 }
 
 void THierarch::GetLeafSuccesorCountV(TIntV& LeafCountV) const {
@@ -5338,8 +5325,6 @@ TStreamStory::~TStreamStory() {
 }
 
 void TStreamStory::Save(TSOut& SOut) const {
-    Notify->OnNotify(TNotifyType::ntInfo, "TStreamStory::Save: saving to stream ...");
-
     StateIdentifier->Save(SOut);
     MChain->Save(SOut);
     Hierarch->Save(SOut);
