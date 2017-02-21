@@ -631,7 +631,7 @@ public:
     /// Checks if field with the given ID exists
     bool IsFieldId(const int& FieldId) const { return (FieldId >=0) && (FieldId < FieldDescV.Len()); }
     /// Get name of a field with the given ID
-    const TStr& GetFieldNm(const int& FieldId) const { return FieldDescV[FieldId].GetFieldNm(); }
+    const TStr& GetFieldNm(const int& FieldId) const;
     /// Check if field with the given name exists
     bool IsFieldNm(const TStr& FieldNm) const { return FieldNmToIdH.IsKey(FieldNm); }
     /// Get ID of a field with the given name

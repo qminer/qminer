@@ -691,22 +691,23 @@ public:
 	double GetMinHeight() const { return UniqueHeightV[0]; }
 	double GetUiMinHeight() const { return NaturalScaleV[0]; }
 
+    /// returns the scale on which the state resides
 	double GetStateHeight(const int& StateId) const { return StateHeightV[StateId]; }
-	// return a list of state IDs and their heights
+	/// return a list of state IDs and their heights
 	void GetStateIdHeightPrV(TIntFltPrV& StateIdHeightPrV) const;
-	// returns the 'joined' states at the specified height, puts teh state IDs into StateIdV
-	// and sets of their leafs into JoinedStateVV
+	/// returns the 'joined' states at the specified height, puts teh state IDs into StateIdV
+	/// and sets of their leafs into JoinedStateVV
 	void GetStateSetsAtHeight(const double& Height, TStateIdV& StateIdV, TAggStateV& AggStateV) const;
-	// returns all the states just below the specified height
+	/// returns all the states just below the specified height
 	void GetStatesAtHeight(const double& Height, TIntSet& StateIdV) const;
-	// returns the next level of the level passed as the argument along with it's height
+	/// returns the next level of the level passed as the argument along with it's height
 	double GetNextLevel(const TIntV& CurrLevelIdV, TIntV& NextLevelIdV) const;
 	double GetNextUiLevel(const TIntV& CurrLevelIdV, TIntV& NextLevelIdV) const;
-	// fills the vector with IDs of the ancestors of the given state along with their heights
+	/// fills the vector with IDs of the ancestors of the given state along with their heights
 	void GetAncestorV(const int& StateId, TIntFltPrV& StateIdHeightPrV) const;
-	// returns the ID of the ancestor of the given leaf at the specified height
+	/// returns the ID of the ancestor of the given leaf at the specified height
 	int GetAncestorAtHeight(const int& LeafId, const double& Height) const;
-	// fills the vector with leaf descendants
+	/// fills the vector with leaf descendants
 	void GetLeafDescendantV(const int& StateId, TIntV& DescendantV) const;
 	void GetLeafIdV(TIntV& LeafIdV) const;
 	void GetDescendantsAtHeight(const double& Height, const TIntV& StateIdV, TAggStateV& AggStateV);

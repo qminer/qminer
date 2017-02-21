@@ -3311,7 +3311,6 @@ void THierarch::GetStateHistory(const double& RelOffset, const double& RelRange,
     uint64 MnDur = TUInt64::Mx;
     for (int ScaleN = 0; ScaleN < ScaleV.Len(); ScaleN++) {
         const double& Scale = ScaleV[ScaleN];
-
         ScaleTmDurIdDistPrTrV[ScaleN].Val1 = Scale;
         GetStateHistory(
             RelOffset,
@@ -4172,7 +4171,6 @@ void TUiHelper::GetTmDesc(const int& StateId, TStrPrV& DescIntervalV) const {
 
     for (int DescN = 0; DescN < TmDescV.Len(); DescN++) {
         const TTmDesc& Desc = TmDescV[DescN];
-
         GetFromToStrPr(Desc, DescIntervalV[DescN], dtNormal);
     }
 }
@@ -4679,6 +4677,7 @@ bool TUiHelper::HasMxPeaks(const int& MxPeakCount, const double& PeakMassThresho
 }
 
 void TUiHelper::GetTmDesc(const int& StateId, TTmDescV& DescV) const {
+    EAssertR(0 <= StateId && StateId < StateIdOccTmDescV.Len(), "Invalid state ID:" + TInt::GetStr(StateId) + "!");
     DescV = StateIdOccTmDescV[StateId];
 }
 
@@ -4893,12 +4892,15 @@ void TStateAssist::Init(const TUInt64V& RecTmV, const TFltVV& ObsFtrVV, const TF
             InitSingle(AllFtrVV, StateIdHeightPr.Val1, StateIdHeightPr.Val2, Hierarch,
                     AssignV, RndV[HeightN], ClassifyV[HeightN], DecisionTreeV[HeightN]);
 
+            TStr ProgressStr;
             #pragma omp critical
             {
-                Notify->OnNotifyFmt(TNotifyType::ntInfo, "Finished task %d out of %d ...", ++NFinished, TotalTasks);
-                if (Callback != nullptr) {
-                    Callback->OnProgress(70, "Initialized " + TInt::GetStr(NFinished) + " of " + TInt::GetStr(TotalTasks) + " states ...");
-                }
+                ++NFinished;
+                Notify->OnNotifyFmt(TNotifyType::ntInfo, "Finished task %d out of %d ...", NFinished, TotalTasks);
+                ProgressStr = "Initialized " + TInt::GetStr(NFinished) + " of " + TInt::GetStr(TotalTasks) + " states ...";
+            }
+            if (Callback != nullptr) {
+                Callback->OnProgress(70, ProgressStr);
             }
         }
     } else {
@@ -5397,8 +5399,6 @@ PJsonVal TStreamStory::GetSubModelJson(const int& StateId) const {
 
     TIntV DescendantIdV = TopStateAggV[TargetStateN];
 
-    Notify->OnNotify(TNotifyType::ntInfo, "TStreamStory::GetSubModelJson: saving JSON ...");
-
     TAggStateV AncAggStateV;
     TAggStateV AggStateV(TopStateIdV.Len()-1, 0);
     {
@@ -5466,8 +5466,6 @@ PJsonVal TStreamStory::GetSubModelJson(const int& StateId) const {
         DescendantIdV = NewDescIdV;
         NewDescIdV.Clr();
     }
-
-    Notify->OnNotify(TNotifyType::ntInfo, "Done.");
 
     return Result;
 }
@@ -5872,8 +5870,6 @@ PJsonVal TStreamStory::GetStateClassifyTree(const int& StateId) const {
 
 PJsonVal TStreamStory::GetStateExplain(const int& StateId) const {
     PJsonVal UnionJson = StateAssist->GetStateExplain(StateId);
-
-    Notify->OnNotify(ntInfo, "Transforming state explanation tree ...");
 
     for (int IntersectN = 0; IntersectN < UnionJson->GetArrVals(); IntersectN++) {
         PJsonVal IntersectJson = UnionJson->GetArrVal(IntersectN);

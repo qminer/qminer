@@ -584,6 +584,11 @@ void TStore::PutInverseJoinId(const int& JoinId, const int& InverseJoinId) {
     JoinDescV[JoinId].PutInverseJoinId(InverseJoinId);
 }
 
+const TStr& TStore::GetFieldNm(const int& FieldId) const {
+    QmAssert(0 <= FieldId && FieldId <= FieldDescV.Len());
+    return FieldDescV[FieldId].GetFieldNm(); 
+}
+
 TIntV TStore::GetFieldIdV(const TFieldType& Type) {
     TIntV FieldIdV;
     for (int i = 0; i < FieldDescV.Len(); i++) {
