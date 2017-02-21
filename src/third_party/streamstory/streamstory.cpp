@@ -3299,8 +3299,6 @@ void THierarch::GetStateHistory(const double& RelOffset, const double& RelRange,
         uint64& MnTm, uint64& MxTm) const {
     const TFltV& ScaleV = GetUiHeightV();
 
-    Notify->OnNotifyFmt(ntInfo, "Fetching history for %d all scales ...", ScaleV.Len());
-
     ScaleTmDurIdDistPrTrV.Gen(ScaleV.Len());
 
     // set the minimum and maximum times
@@ -5344,8 +5342,6 @@ void TStreamStory::Save(TSOut& SOut) const {
 }
 
 PJsonVal TStreamStory::GetJson() const {
-    Notify->OnNotify(TNotifyType::ntInfo, "TStreamStory::GetJson: saving JSON ...");
-
     PJsonVal Result = TJsonVal::NewArr();
 
     // we need to build a hierarchy and model state transitions
