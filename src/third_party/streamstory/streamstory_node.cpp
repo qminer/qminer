@@ -1507,8 +1507,8 @@ TClustering::TAbsKMeans<TFltVV>* TNodeJsStreamStory::GetClust(const PJsonVal& Pa
     const TStr& ClustAlg = ParamJson->GetObjStr("type");
     if (ClustAlg == "dpmeans") {
         const double Lambda = ParamJson->GetObjNum("lambda");
-        const int MinClusts = ParamJson->IsObjKey("minClusts") ? ParamJson->GetObjInt("minClusts") : 1;
-        const int MxClusts = ParamJson->IsObjKey("maxClusts") ? ParamJson->GetObjInt("maxClusts") : TInt::Mx;
+        const int MinClusts = ParamJson->GetObjInt("minStates", 1);
+        const int MxClusts = ParamJson->GetObjInt("maxStates", TInt::Mx);
 
         return new TClustering::TDpMeans<TFltVV>(Lambda, MinClusts, MxClusts, Rnd);
     } else if (ClustAlg == "kmeans") {
