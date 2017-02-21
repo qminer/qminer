@@ -435,8 +435,8 @@ double TStateIdentifier::GetDist(const TStreamStory& StreamStory, const uint64& 
     return KMeans->GetDist(StateId, TransFtrV);
 }
 
-void TStateIdentifier::GetJoinedCentroid(const int& FtrSpaceN, const TIntV& StateIdV,
-        TFltV& FtrV) const {
+void TStateIdentifier::GetJoinedCentroid(const TStreamStory& StreamStory, const int& FtrSpaceN,
+        const TIntV& StateIdV, TFltV& FtrV) const {
     TUInt64V StateSizeV(StateIdV.Len());
     for (int StateN = 0; StateN < StateIdV.Len(); StateN++) {
         StateSizeV[StateN] = GetStateSize(StateIdV[StateN]);
@@ -444,7 +444,7 @@ void TStateIdentifier::GetJoinedCentroid(const int& FtrSpaceN, const TIntV& Stat
 
     switch (FtrSpaceN) {
     case 0: {
-        TFltVV AllCentroidVV;   GetCentroidVV(AllCentroidVV);
+        TFltVV AllCentroidVV;   GetCentroidVV(StreamStory, AllCentroidVV);
         GetJoinedCentroid(StateIdV, AllCentroidVV, StateSizeV, FtrV);
         break;
     }
@@ -461,9 +461,10 @@ void TStateIdentifier::GetJoinedCentroid(const int& FtrSpaceN, const TIntV& Stat
     }
 }
 
-void TStateIdentifier::GetAllCentroid(const int& StateId, TFltV& FtrV) const {
+void TStateIdentifier::GetAllCentroid(const TStreamStory& StreamStory, const int& StateId,
+        TFltV& FtrV) const {
     TFltV TempV;
-    GetObsCentroid(StateId, FtrV);
+    GetObsCentroid(StreamStory, StateId, FtrV);
     GetControlCentroid(StateId, TempV);
     FtrV.AddV(TempV);
     GetIgnoredCentroid(StateId, TempV);
@@ -573,13 +574,13 @@ void TStateIdentifier::GetTimeHistogram(const TAggState& AggState, const TTmHist
     }
 }
 
-void TStateIdentifier::GetCentroidVV(TFltVV& CentroidVV) const {
+void TStateIdentifier::GetCentroidVV(const TStreamStory& StreamStory, TFltVV& CentroidVV) const {
     const TFltVV& OrigCentroidVV = GetRawCentroidVV();
 
-    if (IncludeTmFtrV) {
+    if (IncludeTmFtrV || IncludeDiffFtrV()) {
         TLinAlg::SubMat(
             OrigCentroidVV,
-            GetTmFtrDim(),        // start row
+            GetMetaFtrDim(StreamStory),        // start row
             OrigCentroidVV.GetRows(),   // end row
             0,                          // start col
             OrigCentroidVV.GetCols(),   // end col
@@ -749,9 +750,10 @@ void TStateIdentifier::InitCentroidVV(const TIntV& AssignV, const TFltVV& FtrVV,
     }
 }
 
-void TStateIdentifier::GetObsCentroid(const int& StateId, TFltV& FtrV) const {
+void TStateIdentifier::GetObsCentroid(const TStreamStory& StreamStory, const int& StateId,
+        TFltV& FtrV) const {
     EAssert(0 <= StateId && StateId < GetStates());
-    TFltVV CentroidVV;  GetCentroidVV(CentroidVV);
+    TFltVV CentroidVV;  GetCentroidVV(StreamStory, CentroidVV);
     CentroidVV.GetCol(StateId, FtrV);
 }
 
@@ -895,7 +897,7 @@ void TStateIdentifier::GenClustFtrVV(const TStreamStory& StreamStory, const TUIn
 
     const int NInst = TmV.Len();
     const int TotalDiffFtrDim = GetDiffFtrDim(StreamStory);
-    const int NFtrs = GetTmFtrDim() + TotalDiffFtrDim + ObsFtrVV.GetRows();
+    const int NFtrs = GetMetaFtrDim(StreamStory) + ObsFtrVV.GetRows();
 
     FtrVV.Gen(NFtrs, NInst);
     int FtrOffset = 0;
@@ -936,20 +938,6 @@ void TStateIdentifier::GenClustFtrVV(const TStreamStory& StreamStory, const TUIn
                 }
             }
         }
-        /* // include the difference for the first sample */
-        /* for (int FtrN = 0; FtrN < DiffFtrDim; FtrN++) { */
-        /*     const int DiffFtrId = DiffFtrIdV[FtrN]; */
-        /*     Notify->OnNotifyFmt(ntInfo, "Will include difference feature: %d\n", DiffFtrId); */
-        /*     FtrVV(FtrN + FtrOffset, 0) = ObsFtrVV(DiffFtrId, 0); */
-        /* } */
-        // first value is implicitly set to 0
-        /* for (int InstN = 1; InstN < NInst; InstN++) { */
-        /*     for (int FtrN = 0; FtrN < DiffFtrDim; FtrN++) { */
-        /*         const int DiffFtrId = DiffFtrIdV[FtrN]; */
-        /*         const TFlt& PrevFtrVal = ObsFtrVV(DiffFtrId, InstN-1); */
-        /*         FtrVV(FtrN + FtrOffset, InstN) = PrevFtrVal; */
-        /*     } */
-        /* } */
         FtrOffset += TotalDiffFtrDim;
     }
 
@@ -978,10 +966,6 @@ void TStateIdentifier::GenClustFtrV(const TStreamStory& StreamStory, const uint6
             FtrInfo.ExtractFtr(PrevFtrV, FtrVal);
             ClustFtrV.AddV(FtrVal);
         }
-        /* const int DiffFtrDim = GetDiffFtrDim(StreamStory); */
-        /* for (int FtrN = 0; FtrN < DiffFtrDim; FtrN++) { */
-        /*     ClustFtrV.Add(PrevFtrV[FtrId]); */
-        /* } */
     }
 
     ClustFtrV.AddV(FtrV);
@@ -1058,6 +1042,10 @@ int TStateIdentifier::GetDiffFtrDim(const TStreamStory& StreamStory) const {
         Dim += FtrInfo.GetDim();
     }
     return Dim;
+}
+
+int TStateIdentifier::GetMetaFtrDim(const TStreamStory& StreamStory) const {
+    return GetTmFtrDim() + GetDiffFtrDim(StreamStory);
 }
 
 void TStateIdentifier::UpdateHistVV(const TFtrInfoV& FtrInfoV, const TFltVV& FtrVV,
@@ -2785,7 +2773,7 @@ void THierarch::Init(const TUInt64V& RecTmV, const TFltVV& ObsFtrVV, const int& 
         const TStreamStory& StreamStory) {
     const TStateIdentifier& StateIdentifier = StreamStory.GetStateIdentifier();
 
-    TFltVV CentroidVV;  StateIdentifier.GetCentroidVV(CentroidVV);
+    TFltVV CentroidVV;  StateIdentifier.GetCentroidVV(StreamStory, CentroidVV);
 
     ClrFlds();
 
@@ -4190,7 +4178,7 @@ void TUiHelper::InitStateCoordV(const TStreamStory& StreamStory) {
 
     const int NStates = Hierarch.GetStates();
     const int NLeafs = Hierarch.GetLeafs();
-    TFltVV CentroidVV;  StateIdentifier.GetCentroidVV(CentroidVV);
+    TFltVV CentroidVV;  StateIdentifier.GetCentroidVV(StreamStory, CentroidVV);
 
     StateCoordV.Gen(NStates, NStates);
 
@@ -5953,7 +5941,7 @@ int TStreamStory::GetCurrStateId(const double& Height) const {
 void TStreamStory::GetCentroid(const int& StateId, const int& FtrSpaceN, TFltV& FtrV) const {
     TIntV LeafIdV;  Hierarch->GetLeafDescendantV(StateId, LeafIdV);
 
-    StateIdentifier->GetJoinedCentroid(FtrSpaceN, LeafIdV, FtrV);
+    StateIdentifier->GetJoinedCentroid(*this, FtrSpaceN, LeafIdV, FtrV);
 }
 
 void TStreamStory::GetCentroidVV(const int& StateId, TVec<TFltV>& FtrVV) const {
@@ -5968,7 +5956,7 @@ void TStreamStory::GetCentroidVV(const int& StateId, TVec<TFltV>& FtrVV) const {
     FtrVV.Gen(AggState.Len());
     for (int StateN = 0; StateN < AggState.Len(); StateN++) {
         const int LeafStateId = AggState[StateN];
-        StateIdentifier->GetAllCentroid(LeafStateId, FtrVV[StateN]);
+        StateIdentifier->GetAllCentroid(*this, LeafStateId, FtrVV[StateN]);
     }
 }
 

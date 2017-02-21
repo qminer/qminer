@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -86,7 +86,7 @@ public:
 	double GetFtrVal(const TFltV& FtrV) const;
 
     // EXTRACT FEATURES FROM FEATURE VECTOR
-    
+
     /// extract the represented feature into a vector
     void ExtractFtr(const TFltV& FtrV, TFltV& FtrVal) const;
     void ExtractFtr(const TFltVV& FtrVV, const int& ColN, TFltV& FtrVal) const;
@@ -240,8 +240,9 @@ public:
             const TFltV& FtrV, const TFltV& PrevFtrV) const;
 
 	// returns the coordinates of a "joined" centroid
-	void GetJoinedCentroid(const int& FtrSpaceN, const TIntV& StateIdV, TFltV& FtrV) const;
-	void GetAllCentroid(const int& StateId, TFltV& FtrV) const;
+	void GetJoinedCentroid(const TStreamStory& StreamStory, const int& FtrSpaceN,
+            const TIntV& StateIdV, TFltV& FtrV) const;
+	void GetAllCentroid(const TStreamStory& StreamStory, const int& StateId, TFltV& FtrV) const;
 
 	// cluster statistics
 	// returns the means distance of all the points assigned to centroid CentroidIdx
@@ -261,7 +262,7 @@ public:
 
 	int GetControlFtrVDim() const { return ControlCentroidVV.GetRows(); }
 
-	void GetCentroidVV(TFltVV& CentroidVV) const;
+	void GetCentroidVV(const TStreamStory& StreamStory, TFltVV& CentroidVV) const;
 	const TFltVV& GetRawCentroidVV() const { return KMeans->GetCentroidVV(); }
 	void GetControlCentroidVV(const TStreamStory& StreamStory, TStateFtrVV& StateFtrVV) const;
 
@@ -285,7 +286,7 @@ protected:
 private:
 	void InitCentroidVV(const TIntV& AssignV, const TFltVV& FtrVV, TFltVV& CentroidVV);
 	// returns the coordinates of the centroid with the specified ID
-	void GetObsCentroid(const int& StateId, TFltV& FtrV) const;
+	void GetObsCentroid(const TStreamStory& StreamStory, const int& StateId, TFltV& FtrV) const;
 	void GetControlCentroid(const int& StateId, TFltV& FtrV) const;
 	void GetIgnoredCentroid(const int& StateId, TFltV& FtrV) const;
 
@@ -322,6 +323,8 @@ private:
     int GetDiffFtrN() const { return DiffFtrIdV.Len(); }
     /// returns the total dimension (sum of individual) of the derivative features
     int GetDiffFtrDim(const TStreamStory& StreamStory) const;
+    /// returns the dimensions of all features that are appended to the observation feature vector
+    int GetMetaFtrDim(const TStreamStory& StreamStory) const;
 
 	static void UpdateHistVV(const TFtrInfoV& FtrInfoV, const TFltVV& FtrVV,
 			const TIntV& AssignV, const int& States, TStateFtrHistVV& StateFtrHistVV);
@@ -1254,7 +1257,8 @@ public:
 	// returns the current state on the specified level
 	int GetCurrStateId(const double& Height) const;
 	// returns the centroid of the given state
-	void GetCentroid(const int& StateId, const int& FtrSpaceN, TFltV& FtrV) const;
+	void GetCentroid(const int& StateId, const int& FtrSpaceN,
+            TFltV& FtrV) const;
 	void GetCentroidVV(const int& StateId, TVec<TFltV>& FtrVV) const;
 	// returns the IDs of all the states on the specified height
 	void GetStateIdVAtHeight(const double& Height, TStateIdV& StateIdV) const;
