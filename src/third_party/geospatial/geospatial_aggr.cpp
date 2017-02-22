@@ -34,9 +34,23 @@ TGPSMeasurement::TGPSMeasurement(const PJsonVal& Rec) {
 
         if (Rec->IsObjKey("activities")) {
             Rec->GetObjKey("activities")->GetArrIntV(SensorActivities);
+        }//if it has activities
+
+        int SensLen = SensorActivities.Len();
+        if (SensLen < TGPSMeasurement::NumOfSensorActs) {
+            int ToAdd = TGPSMeasurement::NumOfSensorActs - SensLen;
+            int StartIdx = 0;//starting index of the loop
+            if (SensLen == 0) {
+                SensorActivities.Add(100);//first one is UNKNOWN
+                StartIdx = 1;
+            }
+
+            for (int AddIdx = StartIdx; AddIdx < ToAdd; AddIdx++) {
+                SensorActivities.Add(0);
+            }
         }
-    }
-}
+    }//if JSon Rec is not null
+}//TGPSMeasurement::TGPSMeasurement
 
 ///
 /// Returns JSON represenation of GPS measurement 
