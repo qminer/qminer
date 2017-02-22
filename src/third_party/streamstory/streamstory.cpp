@@ -592,6 +592,24 @@ void TStateIdentifier::GetCentroidVV(const TStreamStory& StreamStory, TFltVV& Ce
     }
 }
 
+void TStateIdentifier::GetDiffCentroidVV(const TStreamStory& StreamStory, TFltVV& CentroidVV) const {
+    const TFltVV& OrigCentroidVV = GetRawCentroidVV();
+
+    if (IncludeTmFtrV) {
+        TLinAlg::SubMat(
+            OrigCentroidVV,
+            GetTmFtrDim(),              // start row
+            OrigCentroidVV.GetRows(),   // end row
+            0,                          // start col
+            OrigCentroidVV.GetCols(),   // end col
+            CentroidVV
+        );
+    }
+    else {
+        CentroidVV = OrigCentroidVV;
+    }
+}
+
 void TStateIdentifier::GetControlCentroidVV(const TStreamStory& StreamStory, TStateFtrVV& StateFtrVV) const {
     const int Cols = ControlCentroidVV.GetCols();
     const int Rows = ControlCentroidVV.GetRows();
@@ -4178,7 +4196,9 @@ void TUiHelper::InitStateCoordV(const TStreamStory& StreamStory) {
 
     const int NStates = Hierarch.GetStates();
     const int NLeafs = Hierarch.GetLeafs();
-    TFltVV CentroidVV;  StateIdentifier.GetCentroidVV(StreamStory, CentroidVV);
+
+    // IMPORTANT: take also the diff features so that you will see a nice circular structure
+    TFltVV CentroidVV;  StateIdentifier.GetDiffCentroidVV(StreamStory, CentroidVV);
 
     StateCoordV.Gen(NStates, NStates);
 

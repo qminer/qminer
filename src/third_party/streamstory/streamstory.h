@@ -263,6 +263,8 @@ public:
 	int GetControlFtrVDim() const { return ControlCentroidVV.GetRows(); }
 
 	void GetCentroidVV(const TStreamStory& StreamStory, TFltVV& CentroidVV) const;
+    /// reutrns state centroids including the derivates metainformation
+    void GetDiffCentroidVV(const TStreamStory& StreamStory, TFltVV& CentroidVV) const;
 	const TFltVV& GetRawCentroidVV() const { return KMeans->GetCentroidVV(); }
 	void GetControlCentroidVV(const TStreamStory& StreamStory, TStateFtrVV& StateFtrVV) const;
 
