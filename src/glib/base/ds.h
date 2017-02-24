@@ -509,7 +509,7 @@ public:
     AssertR((0<=ValN)&&(ValN<Vals), GetXOutOfBoundsErrMsg(ValN));
     return ValT[ValN];}
 
-  /// Get the memory usage of this vector. DeepP indicates whether the usage of 
+  /// Get the memory usage of this vector. DeepP indicates whether the usage of
   /// each individual element should be included in the calculation
   uint64 GetMemUsed(const bool& DeepP = false) const { return GetVecMemUsed(DeepP); }
 
@@ -1843,9 +1843,7 @@ public:
   const TVal& GetVal() const {Assert(this!=NULL); return Val;}
   uint64 GetMemUsed() const {
     return sizeof(TLstNd<TVal>) +
-           TMemUtils::GetExtraMemberSize(PrevNd) +
-           TMemUtils::GetExtraMemberSize(NextNd) +
-           TMemUtils::GetExtraMemberSize(Val);
+        TMemUtils::GetExtraMemberSize(Val);
   }
 };
 
@@ -1893,9 +1891,9 @@ public:
 
   PLstNd SearchForw(const TVal& Val);
   PLstNd SearchBack(const TVal& Val);
-  uint64 GetMemUsed() const {
-      return uint64(sizeof(int) + 2 * sizeof(PLstNd) + Nds * sizeof(TLstNd<TVal>));
-  }
+
+  uint64 GetMemUsed(const bool& DeepP = false) const;
+
   friend class TLstNd<TVal>;
 };
 
@@ -1998,4 +1996,3 @@ public:
   /// Builds a heap from a set of elements.
   void MakeHeap() { MakeHeap(0, Len()); }
 };
-
