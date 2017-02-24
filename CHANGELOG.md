@@ -1,5 +1,15 @@
 # QMiner Change Log
 
+### 24 February 2017
+
+**Version 7.10.1**
+
+**Non-breaking with a bug fix**
+
+Bug fix:
+- Fixed linked list memory computation
+
+
 ### 10 February 2017
 
 **Version 7.10.0**

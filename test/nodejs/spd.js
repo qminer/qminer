@@ -357,5 +357,102 @@ describe("TMD averaging tests", function () {
         }
         assert.deepEqual(avgs, result[0].activities);
     });//it
+
+    it("should properly calculate constant unknown sensor act", function () {
+        var points = [
+            {
+                "latitude": 46.0423046,
+                "longitude": 14.4875852,
+                "time": 0,
+                "accuracy": 26,
+                "activities": [100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0]
+            },
+            {
+                "latitude": 46.0423046,
+                "longitude": 14.4875852,
+                "time": 10000,
+                "accuracy": 26,
+                "activities": [100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+            },
+            {
+                "latitude": 46.0423046,
+                "longitude": 14.4875852,
+                "time": 300000,
+                "accuracy": 26,
+                "activities": [100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+            }
+        ];
+
+        for (var recIdx = 0; recIdx < points.length; recIdx++) {
+            var rec = points[recIdx];
+            var qrec = store.newRecord({
+                User: 1,
+                Time: rec.time,
+                Location: [rec.latitude, rec.longitude],
+                Accuracy: rec.accuracy,
+                Activities: rec.activities
+            });
+            spdAggr.onAdd(qrec);
+        }
+        result = spdAggr.saveJson(1);
+        //all geoActs should have [100, 0, 0, ...]
+        for (var i = 0; i < result.length; i++) {
+            var res = result[i];
+            assert.deepEqual(res.activities, points[0].activities);
+        }
+    });//it
+
+    it("should deal with states having empty activity vec", function () {
+        var state = {
+            "locations": [
+                {
+                    "time": 1487658300000,
+                    "latitude": 46.037208557128906,
+                    "longitude": 14.607879638671875,
+                    "accuracy": 0,
+                    "speed": 0.006789573316301387,
+                    "distanceDiff": 577.1137318856179,
+                    "timeDiff": 85000, "activities": []
+                },
+                {
+                    "time": 1487658400000,
+                    "latitude": 46.037208557128907,
+                    "longitude": 14.607879638671877,
+                    "accuracy": 10,
+                    "speed": 0.006789573316301387,
+                    "distanceDiff": 0.1137318856179,
+                    "timeDiff": 400, "activities": []
+                }]
+        };
+        spdAggr.loadStateJson(state);
+
+        var points = [
+            {
+                "latitude": 46.037208557128907,
+                "longitude": 14.607879638671877,
+                "time": 1487658401000,
+                "accuracy": 26,
+                "activities": [100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0]
+            }
+        ];
+
+        for (var recIdx = 0; recIdx < points.length; recIdx++) {
+            var rec = points[recIdx];
+            var qrec = store.newRecord({
+                User: 1,
+                Time: rec.time,
+                Location: [rec.latitude, rec.longitude],
+                Accuracy: rec.accuracy,
+                Activities: rec.activities
+            });
+            spdAggr.onAdd(qrec);
+        }
+        result = spdAggr.saveJson(1);
+        //all geoActs should have [100, 0, 0, ...]
+        for (var i = 0; i < result.length; i++) {
+            var res = result[i];
+            assert.deepEqual(res.activities, points[0].activities);
+        }
+    });//it
 });//describe outer sensor activity averaginng
 
