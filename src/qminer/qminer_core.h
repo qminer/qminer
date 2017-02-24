@@ -2085,46 +2085,6 @@ public:
 };
 typedef TVec<PRecSet> TRecSetV;
 
-// implementation of template functions
-template <class TFilter>
-void TRecSet::FilterBy(const TFilter& Filter) {
-    // prepare an empty key-dat vector for storing records that pass the filter
-    const int Recs = GetRecs();
-    TUInt64IntKdV NewRecIdFqV(Recs, 0);
-    for (int RecN = 0; RecN < Recs; RecN++) {
-        const TUInt64IntKd& RecIdFq = RecIdFqV[RecN];
-        const TRec Rec = GetRec(RecN);
-        // check the filter
-        if (Filter.Filter(Rec)) { NewRecIdFqV.Add(RecIdFq); }
-    }
-    // overwrite old result vector with filtered list
-    RecIdFqV = NewRecIdFqV;
-}
-
-template <class TSplitter>
-TVec<PRecSet> TRecSet::SplitBy(const TSplitter& Splitter) const {
-    TRecSetV ResV;
-    // if no records, nothing to do
-    if (Empty()) { return ResV; }
-    // initialize with the first record
-    TUInt64IntKdV NewRecIdFqV; NewRecIdFqV.Add(RecIdFqV[0]);
-    // go over the rest and see when to split
-    for (int RecN = 1; RecN < GetRecs(); RecN++) {
-        if (Splitter(RecIdFqV[RecN-1], RecIdFqV[RecN])) {
-            // we need to split, first we create record set for all existing records
-            ResV.Add(TRecSet::New(Store, NewRecIdFqV));
-            // and initialize a new one
-            NewRecIdFqV.Clr(false);
-        }
-        // add new record to the next record set
-        NewRecIdFqV.Add(RecIdFqV[RecN]);
-    }
-    // add last record set to the result list
-    ResV.Add(TRecSet::New(GetStore(), NewRecIdFqV));
-    // done
-    return ResV;
-}
-
 ///////////////////////////////
 // QMiner-Index-Typedefs
 typedef TIntUInt64Pr TKeyWord;
@@ -2966,102 +2926,58 @@ public:
     void SearchRange(const TPair<TVal, TVal>& RangeMinMax, TUInt64V& RecIdV) const;
 };
 
-template <class TVal>
-void TBTreeIndex<TVal>::AddKey(const TVal& Val, const uint64& RecId) {
-    BTree.Add(TTreeVal(Val, RecId));
-}
-
-template <class TVal>
-void TBTreeIndex<TVal>::DelKey(const TVal& Val, const uint64& RecId) {
-    BTree.Del(TTreeVal(Val, RecId));
-}
-
-template <class TVal>
-void TBTreeIndex<TVal>::SearchRange(const TPair<TVal, TVal>& RangeMinMax, TUInt64V& RecIdV) const {
-
-    TVec<TTreeVal> ResValRecIdV;
-    // execute query
-    BTree.RangeQuery(TTreeVal(RangeMinMax.Val1, 0), TTreeVal(RangeMinMax.Val2, TUInt64::Mx), ResValRecIdV);
-    // parse out record ids
-    RecIdV.Gen(ResValRecIdV.Len(), 0);
-    for (int ResN = 0; ResN < ResValRecIdV.Len(); ResN++) {
-        RecIdV.Add(ResValRecIdV[ResN].Val2);
-    }
-}
-
 ///////////////////////////////
 /// Index
 class TIndex {
 private:
-    // smart-pointer
+    /// Smart pointer refrence counter
     TCRef CRef;
     friend class TPt<TIndex>;
-public:
-    // gix template definitions
-    typedef TKeyWord TQmGixKey; // (int KeyId, uint64 WordId)
-    typedef TKeyDat<TUInt64, TInt> TQmGixItem; // [RecId, Freq]
-    typedef TKeyDat<TUInt, TSInt> TQmGixItemSmall; // [RecId, Freq]
-    typedef TVec<TQmGixItem> TQmGixItemV;
-    typedef TVec<TQmGixItemSmall> TQmGixItemSmallV;
-    typedef TPt<TGixExpMerger<TQmGixKey, TQmGixItem> > PQmGixExpMerger;
-    typedef TPt<TGixExpMerger<TQmGixKey, TQmGixItemSmall> > PQmGixExpMergerSmall;
-    typedef TPt<TGixKeyStr<TQmGixKey> > PQmGixKeyStr;
 
-    /// Merger which sums up the frequencies
-    class TQmGixDefMerger : public TGixExpMerger<TQmGixKey, TQmGixItem> {
+private:
+    // inverted index template definitions
+    /// We are indexing by (KeyId, WordId) pairs
+    typedef TKeyWord TQmGixKey;
+
+    /// Merger which sums up the frequencies of items
+    template <class TQmGixItem>
+    class TQmGixSumMerger : public TGixExpMerger<TQmGixKey, TQmGixItem> {
     public:
-        static PGixExpMerger New() { return new TQmGixDefMerger(); }
+        static TPt<TGixExpMerger<TQmGixKey, TQmGixItem> > New() { return new TQmGixSumMerger(); }
 
-        // overriden abstract methods
-        void Union(TQmGixItemV& MainV, const TQmGixItemV& JoinV) const;
-        void Intrs(TQmGixItemV& MainV, const TQmGixItemV& JoinV) const;
-        void Minus(const TQmGixItemV& MainV, const TQmGixItemV& JoinV, TQmGixItemV& ResV) const;
-        void Def(const TQmGixKey& Key, TQmGixItemV& MainV) const {}
+        /// Union sums up frequencies of overlapping items
+        void Union(TVec<TQmGixItem>& MainV, const TVec<TQmGixItem>& JoinV) const;
+        /// Intersection sums up frequencies of overlapping items
+        void Intrs(TVec<TQmGixItem>& MainV, const TVec<TQmGixItem>& JoinV) const;
+        /// Minus does not deal with frequencies
+        void Minus(const TVec<TQmGixItem>& MainV, const TVec<TQmGixItem>& JoinV, TVec<TQmGixItem>& ResV) const;
 
-        // methods needed for template
-        void Merge(TQmGixItemV& ItemV, bool IsLocal) const;
+        /// No initialization necessary
+        void Def(const TQmGixKey& Key, TVec<TQmGixItem>& MainV) const {}
+
+        /// Merge given items when they have same record ID. Frequency is sumed together
+        void Merge(TVec<TQmGixItem>& ItemV, const bool& IsLocal) const;
+        /// Remove given item from the list
         void Delete(const TQmGixItem& Item, TVec<TQmGixItem>& MainV) const { return MainV.DelAll(Item); }
+        /// < comparator between items
         bool IsLt(const TQmGixItem& Item1, const TQmGixItem& Item2) const { return Item1 < Item2; }
+        /// <= comparator between items
         bool IsLtE(const TQmGixItem& Item1, const TQmGixItem& Item2) const { return Item1 <= Item2; }
     };
 
-    /// Merger which sums up the frequencies
-    /// For small index data
-    class TQmGixDefMergerSmall : public TGixExpMerger<TQmGixKey, TQmGixItemSmall> {
-    public:
-        static PGixExpMerger New() { return new TQmGixDefMergerSmall(); }
+    /// Normal version of inverted index contains full record ID and frequency count values
+    typedef TKeyDat<TUInt64, TInt> TQmGixItemFull; // [RecId, Freq]
+    /// Merger for combining full records
+    typedef TQmGixSumMerger<TQmGixItemFull> TQmGixSumMergerFull;
+    /// Expression for executing gix queries for full records
+    typedef TGixExpItem<TQmGixKey, TQmGixItemFull, TQmGixSumMergerFull > TQmGixExpItemFull;
 
-        // overriden abstract methods
-        void Union(TQmGixItemSmallV& MainV, const TQmGixItemSmallV& JoinV) const;
-        void Intrs(TQmGixItemSmallV& MainV, const TQmGixItemSmallV& JoinV) const;
-        void Minus(const TQmGixItemSmallV& MainV, const TQmGixItemSmallV& JoinV, TQmGixItemSmallV& ResV) const;
-        void Def(const TQmGixKey& Key, TQmGixItemSmallV& MainV) const {}
-
-        // methods needed for template
-        void Merge(TQmGixItemSmallV& ItemV, bool IsLocal) const;
-        void Delete(const TQmGixItemSmall& Item, TQmGixItemSmallV& MainV) const { return MainV.DelAll(Item); }
-        bool IsLt(const TQmGixItemSmall& Item1, const TQmGixItemSmall& Item2) const { return Item1 < Item2; }
-        bool IsLtE(const TQmGixItemSmall& Item1, const TQmGixItemSmall& Item2) const { return Item1 <= Item2; }
-    };
-
-    /// Merger which sums the frequencies but removes the duplicates (e.g. 3+1 = 1+1 = 2)
-    class TQmGixRmDupMerger : public TQmGixDefMerger {
-    public:
-        static PGixExpMerger New() { return new TQmGixRmDupMerger(); }
-
-        void Union(TQmGixItemV& MainV, const TQmGixItemV& JoinV) const;
-        void Intrs(TQmGixItemV& MainV, const TQmGixItemV& JoinV) const;
-    };
-
-    /// Merger which sums the frequencies but removes the duplicates (e.g. 3+1 = 1+1 = 2)
-    /// For small index data
-    class TQmGixRmDupMergerSmall : public TQmGixDefMergerSmall {
-    public:
-        static PGixExpMerger New() { return new TQmGixRmDupMergerSmall(); }
-
-        void Union(TQmGixItemSmallV& MainV, const TQmGixItemSmallV& JoinV) const;
-        void Intrs(TQmGixItemSmallV& MainV, const TQmGixItemSmallV& JoinV) const;
-    };
+    /// Smaller version of inverted index which works when we have less then 2^32 records
+    typedef TKeyDat<TUInt, TSInt> TQmGixItemSmall; // [RecId, Freq]
+    /// Merger for combining small records
+    typedef TQmGixSumMerger<TQmGixItemSmall> TQmGixSumMergerSmall;
+    /// Expression for executing gix queries for small records
+    typedef TGixExpItem<TQmGixKey, TQmGixItemSmall, TQmGixSumMergerSmall > TQmGixExpItemSmall;
 
     /// Giving pretty names to GIX keys when printing debug statistics
     class TQmGixKeyStr : public TGixKeyStr<TQmGixKey> {
@@ -3071,49 +2987,38 @@ public:
 
         TQmGixKeyStr(const TWPt<TBase>& _Base, const TWPt<TIndexVoc>& _IndexVoc);
     public:
-        static PQmGixKeyStr New(const TWPt<TBase>& Base, const TWPt<TIndexVoc>& IndexVoc) {
+        static TPt<TGixKeyStr<TQmGixKey> >  New(const TWPt<TBase>& Base, const TWPt<TIndexVoc>& IndexVoc) {
             return new TQmGixKeyStr(Base, IndexVoc); }
 
         TStr GetKeyNm(const TQmGixKey& Key) const;
     };
 
-    // more typedefs
-    typedef TGixItemSet<TQmGixKey, TQmGixItem, TQmGixDefMerger> TQmGixItemSet;
-    typedef TGixItemSet<TQmGixKey, TQmGixItemSmall, TQmGixDefMergerSmall> TQmGixItemSetSmall;
-    typedef TPt<TQmGixItemSet> PQmGixItemSet;
-    typedef TPt<TQmGixItemSetSmall> PQmGixItemSetSmall;
-    typedef TGix<TQmGixKey, TQmGixItem, TQmGixDefMerger> TQmGix;
-    typedef TGix<TQmGixKey, TQmGixItemSmall, TQmGixDefMergerSmall> TQmGixSmall;
-    typedef TPt<TQmGix> PQmGix;
-    typedef TPt<TQmGixSmall> PQmGixSmall;
-    typedef TGixExpItem<TQmGixKey, TQmGixItem, TQmGixDefMerger> TQmGixExpItem;
-    typedef TGixExpItem<TQmGixKey, TQmGixItemSmall, TQmGixDefMergerSmall> TQmGixExpItemSmall;
-    typedef TPt<TQmGixExpItem> PQmGixExpItem;
-    typedef TPt<TQmGixExpItemSmall> PQmGixExpItemSmall;
-
+private:
     // b-tree definitions
-    typedef TPt<TBTreeIndex<TUCh>> PBTreeIndexUCh;
-    typedef TPt<TBTreeIndex<TInt>> PBTreeIndexInt;
-    typedef TPt<TBTreeIndex<TInt16>> PBTreeIndexInt16;
-    typedef TPt<TBTreeIndex<TInt64>> PBTreeIndexInt64;
-    typedef TPt<TBTreeIndex<TUInt>> PBTreeIndexUInt;
-    typedef TPt<TBTreeIndex<TUInt16>> PBTreeIndexUInt16;
-    typedef TPt<TBTreeIndex<TUInt64>> PBTreeIndexUInt64;
-    typedef TPt<TBTreeIndex<TFlt>> PBTreeIndexFlt;
-    typedef TPt<TBTreeIndex<TSFlt>> PBTreeIndexSFlt;
+    typedef TPt<TBTreeIndex<TUCh> > PBTreeIndexUCh;
+    typedef TPt<TBTreeIndex<TInt> > PBTreeIndexInt;
+    typedef TPt<TBTreeIndex<TInt16> > PBTreeIndexInt16;
+    typedef TPt<TBTreeIndex<TInt64> > PBTreeIndexInt64;
+    typedef TPt<TBTreeIndex<TUInt> > PBTreeIndexUInt;
+    typedef TPt<TBTreeIndex<TUInt16> > PBTreeIndexUInt16;
+    typedef TPt<TBTreeIndex<TUInt64> > PBTreeIndexUInt64;
+    typedef TPt<TBTreeIndex<TFlt> > PBTreeIndexFlt;
+    typedef TPt<TBTreeIndex<TSFlt> > PBTreeIndexSFlt;
 
 private:
     /// Remember index location
     TStr IndexFPath;
     /// Remember access mode to the index
     TFAccess Access;
-    /// Inverted index
-    mutable PQmGix Gix;
-    /// Inverted index - small
-    mutable PQmGixSmall GixSmall;
+
+    /// Full sized inverted index
+    mutable TPt<TGix<TQmGixKey, TQmGixItemFull, TQmGixSumMerger<TQmGixItemFull> > > GixFull;
+    /// Small inverted index (supports records with id < 2^32)
+    mutable TPt<TGix<TQmGixKey, TQmGixItemSmall, TQmGixSumMerger<TQmGixItemSmall> > > GixSmall;
 
     /// Location index (one for each key)
     THash<TInt, PGeoIndex> GeoIndexH;
+
     /// BTree index for bytes (one for each key)
     THash<TInt, PBTreeIndexUCh> BTreeIndexByteH;
     /// BTree index for integers (one for each key)
@@ -3136,33 +3041,31 @@ private:
     /// Index Vocabulary
     PIndexVoc IndexVoc;
     /// Inverted Index Default Merger
-    PQmGixExpMerger DefMerger;
+    TPt<TGixExpMerger<TQmGixKey, TQmGixItemFull> > SumMergerFull;
     /// Inverted Index Default Merger Small
-    PQmGixExpMergerSmall DefMergerSmall;
+    TPt<TGixExpMerger<TQmGixKey, TQmGixItemSmall> > SumMergerSmall;
 
     /// Converts query item tree to GIX query expression
-    PQmGixExpItem ToExpItem(const TQueryItem& QueryItem) const;
-    /// Converts query item tree to GIX-small query expression
-    PQmGixExpItemSmall ToExpItemSmall(const TQueryItem& QueryItem) const;
-    /// Executes GIX query expression against the index
-    bool DoQuery(const PQmGixExpItem& ExpItem, const PQmGixExpMerger& Merger,
-        TQmGixItemV& RecIdFqV) const;
-    /// Executes GIX-small query expression against the index
-    bool DoQuerySmall(const PQmGixExpItemSmall& ExpItem, const PQmGixExpMergerSmall& Merger,
-        TQmGixItemSmallV& RecIdFqV) const;
+    template <class TQmGixItem>
+    TPt<TGixExpItem<TQmGixKey, TQmGixItem, TQmGixSumMerger<TQmGixItem> > > ToExpItem(const TQueryItem& QueryItem) const;
+    /// Executes GIX query expression against the full index
+    bool DoQueryFull(const TPt<TQmGixExpItemFull>& ExpItem, TVec<TQmGixItemFull>& RecIdFqV) const;
+    /// Executes GIX query expression against the small index
+    bool DoQuerySmall(const TPt<TQmGixExpItemSmall>& ExpItem, TVec<TQmGixItemSmall>& RecIdFqV) const;
+
     /// Determines which Gix should be used for given KeyId
     bool UseGixSmall(const int& KeyId) const { return IndexVoc->GetKey(KeyId).IsSmall(); }
     /// Upgrades a vector of small items into a vector of big ones
-    void Upgrade(const TQmGixItemSmallV& Src, TQmGixItemV& Dest) const;
+    void UpgradeToFull(const TVec<TQmGixItemSmall>& Src, TVec<TQmGixItemFull>& Dest) const;
 
     /// Constructor
     TIndex(const TStr& _IndexFPath, const TFAccess& _Access, const PIndexVoc& IndexVoc,
-        const int64& CacheSize, const int64& CacheSizeSmall, const int& SplitLen);
+        const int64& CacheSizeFull, const int64& CacheSizeSmall, const int& SplitLen);
 public:
     /// Create (Access==faCreate) or open existing index
     static PIndex New(const TStr& IndexFPath, const TFAccess& Access, const PIndexVoc& IndexVoc,
-        const int64& CacheSize, const int64& CacheSizeSmall, const int& SplitLen) {
-            return new TIndex(IndexFPath, Access, IndexVoc, CacheSize, CacheSizeSmall, SplitLen);
+        const int64& CacheSizeFull, const int64& CacheSizeSmall, const int& SplitLen) {
+            return new TIndex(IndexFPath, Access, IndexVoc, CacheSizeFull, CacheSizeSmall, SplitLen);
     }
     /// Checks if there is an existing index at the given path
     static bool Exists(const TStr& IndexFPath) { return TFile::Exists(IndexFPath + "Index.Gix"); }
@@ -3174,10 +3077,8 @@ public:
     TStr GetIndexFPath() const { return IndexFPath; }
     /// Get index vocabulary
     TWPt<TIndexVoc> GetIndexVoc() const { return IndexVoc; }
-    /// Get default index merger
-    PQmGixExpMerger GetDefMerger() const { return DefMerger; }
-    /// Get default index merger - small gix
-    PQmGixExpMergerSmall GetDefMergerSmall() const { return DefMergerSmall; }
+    /// Get sum merger of recID/FQ vectors
+    TWPt<TGixExpMerger<TQmGixKey, TQmGixItemFull> > GetSumMerger() const { return SumMergerFull; }
 
     /// Index RecId under (Key, Word)
     void Index(const int& KeyId, const uint64& WordId, const uint64& RecId);
@@ -3323,11 +3224,11 @@ public:
     bool IsReadOnly() const { return Access == faRdOnly; }
 
     /// Do flat AND search, given the vector of inverted index queries
-    void SearchAnd(const TIntUInt64PrV& KeyWordV, TQmGixItemV& StoreRecIdFqV) const;
+    void SearchAnd(const TIntUInt64PrV& KeyWordV, TUInt64IntKdV& StoreRecIdFqV) const;
     /// Do flat OR search, given the vector of inverted index queries
-    void SearchOr(const TIntUInt64PrV& KeyWordV, TQmGixItemV& StoreRecIdFqV) const;
-    /// Search with special Merger (does not handle joins)
-    TPair<TBool, PRecSet> Search(const TWPt<TBase>& Base, const TQueryItem& QueryItem, const PQmGixExpMerger& Merger, const PQmGixExpMergerSmall& MergerSmall) const;
+    void SearchOr(const TIntUInt64PrV& KeyWordV, TUInt64IntKdV& StoreRecIdFqV) const;
+    /// Search, does not handle joins
+    TPair<TBool, PRecSet> Search(const TWPt<TBase>& Base, const TQueryItem& QueryItem) const;
     /// Do geo-location range (in meters) search
     PRecSet SearchGeoRange(const TWPt<TBase>& Base, const int& KeyId,
         const TFltPr& Loc, const double& Radius, const int& Limit) const;
@@ -3366,9 +3267,9 @@ public:
     TGixStats GetGixStats(const bool& RefreshP = true) const;
 
     /// Get split length of inner Gix
-    int GetSplitLen() const { return Gix->GetSplitLen(); }
+    int GetSplitLen() const;
     /// reset blob stats
-    void ResetStats() { Gix->ResetStats(); GixSmall->ResetStats(); }
+    void ResetStats();
 
     /// perform partial flush of index contents
     int PartialFlush(const int& WndInMsec = 500);
@@ -3393,9 +3294,7 @@ public:
     /// Register default aggregates
     static void Init();
     /// Register new aggregate
-    template <class TObj> static void Register() {
-        NewRouter.Register(TObj::GetType(), TObj::New);
-    }
+    template <class TObj> static void Register() { NewRouter.Register(TObj::GetType(), TObj::New); }
 
 private:
     /// QMiner Base pointer
@@ -3635,7 +3534,7 @@ namespace TStreamAggrOut {
 class TStreamAggrSet : public TStreamAggr {
 protected:
     /// List of aggregates triggered in step
-    TVec<TWPt<TStreamAggr>> StreamAggrV;
+    TVec<TWPt<TStreamAggr> > StreamAggrV;
 
     /// Create empty aggregate base
     TStreamAggrSet(const TWPt<TBase>& _Base, const TStr& _AggrNm);
@@ -3737,17 +3636,16 @@ private:
     /// List of all registered stream aggregates
     THash<TStr, PStreamAggr> StreamAggrH;
     /// Stream aggregate sets for each store
-    TVec<TWPt<TStreamAggrSet>> StreamAggrSetV;
+    TVec<TWPt<TStreamAggrSet> > StreamAggrSetV;
 
     /// Name validates used for validating field, join and key names
     TNmValidator NmValidator;
 
 private:
     /// Invert given record set (replace with all the records from the store that are not in it)
-    PRecSet Invert(const PRecSet& RecSet, const TIndex::PQmGixExpMerger& Merger);
+    PRecSet Invert(const PRecSet& RecSet);
     /// Execute search query. Returns results and a flag indicating if the results should be inverted.
-    TPair<TBool, PRecSet> Search(const TQueryItem& QueryItem, const TIndex::PQmGixExpMerger& Merger,
-        const TIndex::PQmGixExpMergerSmall& MergerSmall, const TQueryGixUsedType& ParentGixFlag);
+    TPair<TBool, PRecSet> Search(const TQueryItem& QueryItem, const TQueryGixUsedType& ParentGixFlag);
 
     /// Get config name for base located on a given path
     static TStr GetConfFNm(const TStr& FPath) { return FPath + "Base.json"; }
@@ -3912,6 +3810,9 @@ PJsonVal BlobBsStatsToJson(const TBlobBsStats& stats);
 
 /// Export TGixStats object to JSON
 PJsonVal GixStatsToJson(const TGixStats& stats);
+
+// implementation of template functions
+#include "qminer_core.hpp"
 
 } // namespace
 
