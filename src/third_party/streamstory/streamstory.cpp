@@ -6163,13 +6163,18 @@ int TStreamStory::GetFtrId(const int& FtrN) const {
 
 const TFtrInfo& TStreamStory::GetFtrInfo(const int& FtrId) const {
     if (FtrId < GetObsDim()) {
+        EAssert(0 <= FtrId && FtrId < ObsFtrInfoV.Len());
         return ObsFtrInfoV[FtrId];
     }
     else if (FtrId < GetContrDim()) {
-        return ContrFtrInfoV[FtrId - GetObsDim()];
+        const int ContrFtrId = FtrId - GetObsDim();
+        EAssert(0 <= ContrFtrId && ContrFtrId < ContrFtrInfoV.Len());
+        return ContrFtrInfoV[ContrFtrId];
     }
     else {
-        return IgnFtrInfoV[FtrId - GetObsDim() - GetContrDim()];
+        const int IgnFtrId = FtrId - GetObsDim() - GetContrDim();
+        EAssert(0 <= IgnFtrId && IgnFtrId < IgnFtrInfoV.Len());
+        return IgnFtrInfoV[IgnFtrId];
     }
 }
 
