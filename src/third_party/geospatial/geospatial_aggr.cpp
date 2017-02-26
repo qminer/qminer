@@ -139,8 +139,7 @@ TGeoCluster::TGeoCluster(const PJsonVal& Rec):
                 AvgSensorActs.Add(0);
             }
         }
-    }
-
+    }//if key activities exists
 }//TGeoCluster::TGeoCluster
 
 ///
@@ -187,9 +186,8 @@ void TGeoCluster::AddPoint(const int& Idx,
     {
         AvgSensorActs[iSensorAct] = AvgSensorActs[iSensorAct] +
             ((CurrentGPS.SensorActivities[iSensorAct] - 
-                AvgSensorActs[iSensorAct]) / Len);
+                AvgSensorActs[iSensorAct]) / (double)Len);
     }
-
 }//TGeoCluster::addPoint
 
 /// returns duration in seconds
@@ -236,7 +234,7 @@ PJsonVal TGeoCluster::ToJson(const TVec<TGPSMeasurement>& _GpsStateVec,
     PJsonVal JSenActArr = TJsonVal::NewArr();
     int SenLen = AvgSensorActs.Len();
     for (int iSens = 0; iSens < SenLen; iSens++) {
-        JSenActArr->AddToArr((int)AvgSensorActs[iSens]);
+        JSenActArr->AddToArr(AvgSensorActs[iSens]);//luka here
     }
     JGeoAct->AddToObj("activities", JSenActArr);
 
@@ -353,7 +351,7 @@ void TStayPointDetector::OnAddRec(const TRec& Rec,
     }
 }//TStayPointDetector::OnAddRec
 
-    /// save Json - get current state
+/// save Json - get current state
 PJsonVal TStayPointDetector::SaveJson(const int& Limit) const
 {
     PJsonVal State = TJsonVal::NewArr();
@@ -364,13 +362,15 @@ PJsonVal TStayPointDetector::SaveJson(const int& Limit) const
     }
     TGeoCluster Path;
     int LastIdx = StateGpsMeasurementsV.Len() - 1;
-    int StartIdx = 0; int EndIdx = 0;
+    int StartIdx = 0; 
+    
     //if there is detected cluster, we know that this cluster and path
-    //before (if exists), are of status 2
+    //before (if exists), are of status 2. In this instance there can be only
+    //one - array is here for future alogrithms
     if (DetectedGeoActivitiesV.Len() > 0) {
         const TGeoCluster& DetectedStp = DetectedGeoActivitiesV[0];
         if (DetectedStp.StartIdx() > 0) {//if there is a path before this stp
-            EndIdx = DetectedStp.StartIdx() - 1;//We need to add Path first
+            int EndIdx = DetectedStp.StartIdx() - 1;//We need to add Path first
             Path = TGeoCluster(StartIdx, EndIdx, StateGpsMeasurementsV);
             Path.SetStatus(TGeoActivityStatus::Detected);
             State->AddToArr(Path.ToJson(StateGpsMeasurementsV, 
@@ -380,36 +380,32 @@ PJsonVal TStayPointDetector::SaveJson(const int& Limit) const
                         GetFullLocs));
         StartIdx = DetectedStp.EndIdx() + 1;
     }//if detected staypoint
-    //if plocs locations are earlier than cl, we simply add them to the path
-    if (CL.Len() == 0) {//if CL or CL and PLOCS are empty
-        EndIdx = LastIdx;
-    }
-    //cl will be more also if plocs empty
-    else if (Plocs.StartIdx() < CL.StartIdx()) {
-        EndIdx = Plocs.EndIdx();
-    }
-    else {
-        EndIdx = CL.StartIdx() - 1;
+    
+    //plocs can be ignored since these are path as well as the unclustered
+    //locations. if CL doesn't have any locations we can simply add all that's
+    //left to the path
+    if (CL.Len() == 0) {
+        Path = TGeoCluster(StartIdx, LastIdx, StateGpsMeasurementsV);
+        State->AddToArr(Path.ToJson(StateGpsMeasurementsV, GetFullLocs));
+        return State;
     }
 
-    //there could be a path between detectedSTP and cl or plocs. This also
-    //covers scenario when there is no detectedSTP and all up to here is a path
-    if (StartIdx <= EndIdx) {
-        Path = TGeoCluster(StartIdx, EndIdx, StateGpsMeasurementsV);
+    //if start idx of CL is not the same as set up as previous steps, there is 
+    // a path before path before
+    if (CL.StartIdx() > StartIdx) {
+        Path = TGeoCluster(StartIdx, CL.StartIdx() - 1, StateGpsMeasurementsV);
         State->AddToArr(Path.ToJson(StateGpsMeasurementsV, GetFullLocs));
     }
+    State->AddToArr(CL.ToJson(StateGpsMeasurementsV, GetFullLocs));
+    StartIdx = CL.EndIdx() + 1;
 
-    if (CL.Len() > 0) {
-        State->AddToArr(CL.ToJson(StateGpsMeasurementsV, GetFullLocs));
-        EndIdx = CL.EndIdx() + 1;
-    }
-
-    if (EndIdx < LastIdx) {
-        Path = TGeoCluster(EndIdx, LastIdx, StateGpsMeasurementsV);
+    //there could be a path after CL
+    if (StartIdx <= LastIdx) {
+        Path = TGeoCluster(StartIdx, LastIdx, StateGpsMeasurementsV);
         State->AddToArr(Path.ToJson(StateGpsMeasurementsV, GetFullLocs));
     }
     return State;
-}
+}//SaveJson
 
 ///
 /// Loads internal state from JSON ojbect
