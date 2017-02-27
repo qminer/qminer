@@ -880,6 +880,201 @@ bool TLinear::CanInterpolate(const uint64& Tm) const {
             (Buff.Len() >= 2 && Buff.GetOldest().Val1 <= Tm && Tm <= Buff.GetOldest(1).Val1);
 }
 
+///////////////////////////////////////////////
+// Aggregating resampler
+TAggrResampler::TAggrResampler(const PJsonVal& ParamVal) {
+    IntervalMSecs = ParamVal->GetObjUInt64("interval");
+    TStr TypeNm = ParamVal->GetObjStr("aggType");
+    Type = GetType(TypeNm);
+    // start point - interval = LastResamplePointVal
+    if (ParamVal->IsObjKey("start")) {
+        uint64 StartTm = 0;
+        PJsonVal StartVal = ParamVal->GetObjKey("start");
+        if (StartVal->IsNum()) {
+            StartTm = TTm::GetWinMSecsFromUnixMSecs(static_cast<uint64_t> (StartVal->GetNum()));
+        } else if (StartVal->IsStr()) {
+            StartTm = TTm::GetMSecsFromTm(TTm::GetTmFromWebLogDateTimeStr(StartVal->GetStr(), '-', ':', '.', 'T'));
+        } else {
+            throw TExcept::New("TAggrResampler constructor: start property should be a unix timestamp (numnber) or a web log time string");
+        }
+        EAssertR(StartTm >= IntervalMSecs, "Start point too early");
+        LastResampPointMSecs = StartTm - IntervalMSecs;
+        InitP = true;
+    }
+    if (ParamVal->IsObjKey("roundStart")) {
+        RoundStart = ParamVal->GetObjStr("roundStart");
+        EAssertR(RoundStart == "" || RoundStart == "h" || RoundStart == "m" || RoundStart == "s", "TAggrResampler: roundStart should be 'h', 'm' or 's'");
+    }
+    // XXX decide if we should use NaN for default (max,min,avg are not defined for empty buffers)?
+    DefaultVal = ParamVal->GetObjNum("defaultValue", 0);
+}
+
+PJsonVal TAggrResampler::GetParams() const {
+    PJsonVal Result = TJsonVal::NewObj();
+    Result->AddToObj("interval", IntervalMSecs);
+    Result->AddToObj("aggType", GetTypeStr(Type));
+    Result->AddToObj("roundStart", RoundStart);
+    Result->AddToObj("defaultValue", DefaultVal);
+    return Result;
+}
+
+void TAggrResampler::Reset() {
+    CurrentTmMSecs = 0;
+    LastResampPointMSecs = 0;
+    LastResampPointVal = 0;
+    Buff.Clr();
+    InitP = false;
+}
+
+void TAggrResampler::LoadState(TSIn& SIn) {
+    // only state, not params
+    CurrentTmMSecs.Load(SIn);
+    LastResampPointMSecs.Load(SIn);
+    LastResampPointVal.Load(SIn);
+    Buff.Load(SIn);
+    InitP.Load(SIn);
+}
+
+void TAggrResampler::SaveState(TSOut& SOut) const {
+    // only state, not params
+    CurrentTmMSecs.Save(SOut);
+    LastResampPointMSecs.Save(SOut);
+    LastResampPointVal.Save(SOut);
+    Buff.Save(SOut);
+    InitP.Save(SOut);
+}
+
+PJsonVal TAggrResampler::SaveJson() const {
+    PJsonVal Result = TJsonVal::NewObj();
+    return Result;
+}
+
+void TAggrResampler::AddPoint(const double& Val, const uint64& Tm) {
+    EAssertR(!TFlt::IsNan(Val), "TAggrResampler::AddPoint: got NaN value!");
+    Buff.Push(TUInt64FltPr(Tm, Val));
+}
+
+/// Sets the current time
+void TAggrResampler::SetCurrentTm(const uint64& Tm) { 
+    CurrentTmMSecs = Tm;
+    if (!InitP) {
+        EAssertR(Tm >= IntervalMSecs, "TAggrResampler::SetCurrentTm: Current time point too early (currently in uninitialized state). Use 'start' property when constructing the resampler.");
+        LastResampPointMSecs = Tm - IntervalMSecs;
+        if (!RoundStart.Empty()) {
+            TTm Time = TTm::GetTmFromMSecs(LastResampPointMSecs);
+            if (RoundStart == "h") {
+                Time.SubTime(0, Time.GetMin(), Time.GetSec(), Time.GetMSec());
+            } else if (RoundStart == "m") {
+                Time.SubTime(0, 0, Time.GetSec(), Time.GetMSec());
+            } else {
+                Time.SubTime(0, 0, 0, Time.GetMSec());
+            }
+            LastResampPointMSecs = TTm::GetMSecsFromTm(Time);
+        }
+        InitP = true;
+    }
+}
+
+bool TAggrResampler::TryResampleOnce(double& Val, uint64& Tm, bool& FoundEmptyP) {
+    FoundEmptyP = false;
+    bool ResampleP = CanResample();
+    if (ResampleP) {
+        if (Type == TAggrResamplerType::artMax) {
+            Val = TFlt::Mn;
+        } else if (Type == TAggrResamplerType::artMin) {
+            Val = TFlt::Mx;
+        } else {
+            // avg/sum
+            Val = 0;
+        }
+        int Vals = 0;
+        // keep adding to Val and removing from buffer all the values that fall in the
+        // interval [LastResampPointMSecs + IntervalMSecs , LastResampPointMSecs + 2 * IntervalMSecs)
+        // assert that we have not found a point older than the current window
+        uint64 Start = LastResampPointMSecs + IntervalMSecs;
+        uint64 End = LastResampPointMSecs + 2 * IntervalMSecs - 1;
+        while (!Buff.Empty()) {
+            const TUInt64FltPr& Point = Buff.Top();
+            if (Point.Val1 < Start) {
+                // ignore point but notify that its badly configured
+                printf("TAggrResampler: stale point found. A point in the buffer should have been aggregated already but it wasn't\n");
+                Buff.Pop();
+                continue;
+            }
+            if (Point.Val1 > End) { break; }
+            if (Type == TAggrResamplerType::artMax) {
+                Val = MAX(Val, Point.Val2.Val);
+            } else if (Type == TAggrResamplerType::artMin) {
+                Val = MIN(Val, Point.Val2.Val);
+            } else {
+                // avg/sum
+                Val += Point.Val2;
+            }
+            Vals++;
+            Buff.Pop(); // Point == NULL
+        }
+        if (Type == TAggrResamplerType::artAvg) {
+            Val /= (double)Vals;
+        }
+        if (Vals == 0 && ResampleP) {
+            // notify the caller that an empty (but complete) interval was found
+            FoundEmptyP = true;
+            Val = DefaultVal;
+            // printf("TAggrResampler:Nan generated while resampling and using average aggrgator (no data in the interval)\n");
+        }
+        // new left point of the last successfully aggregated interval
+        Tm = LastResampPointMSecs + IntervalMSecs;
+        // save state
+        LastResampPointVal = Val;
+        LastResampPointMSecs = Tm;
+    }
+    return ResampleP;
+}
+
+void TAggrResampler::PrintState(const TStr& Prefix) const {
+    printf("%s: interval %s, type %s\n", Prefix.CStr(),
+        TUInt64::GetStr(IntervalMSecs).CStr(), GetTypeStr(Type).CStr());
+    printf("%s: last r. value: %f\n", Prefix.CStr(),
+        LastResampPointVal.Val);
+    printf("%s: last r. time:  %s\n", Prefix.CStr(),
+        TTm::GetTmFromMSecs(LastResampPointMSecs).GetWebLogDateTimeStr().CStr());
+    printf("%s: current time:  %s\n", Prefix.CStr(),
+        TTm::GetTmFromMSecs(CurrentTmMSecs).GetWebLogDateTimeStr().CStr());
+    printf("%s: initialized:   %s\n", Prefix.CStr(),
+        InitP ? "yes" : "no");
+    for (int ElN = 0; ElN < (int)Buff.Len(); ElN++) {
+        printf("%s: buffer:        %f %s\n",Prefix.CStr(),  Buff[ElN].Val2.Val, TTm::GetTmFromMSecs(Buff[ElN].Val1).GetWebLogDateTimeStr().CStr());
+    }
+}
+
+TAggrResamplerType TAggrResampler::GetType(const TStr& TypeStr) const {
+    if (TypeStr == "avg") {
+        return TAggrResamplerType::artAvg;
+    } else if (TypeStr == "sum") {
+        return TAggrResamplerType::artSum;
+    } else if (TypeStr == "min") {
+        return TAggrResamplerType::artMin;
+    } else if (TypeStr == "max") {
+        return TAggrResamplerType::artMax;
+    } else {
+        throw TExcept::New("TAggrResampler::Unknown resampler type.");
+    }
+}
+
+TStr TAggrResampler::GetTypeStr(const TAggrResamplerType& Type) const {
+    if (Type == TAggrResamplerType::artAvg) {
+        return "avg";
+    } else if (Type == TAggrResamplerType::artSum) {
+        return "sum";
+    } else if (Type == TAggrResamplerType::artMin) {
+        return "min";
+    } else if (Type == TAggrResamplerType::artMax) {
+        return "max";
+    } else {
+        throw TExcept::New("TAggrResampler::Unknown resampler type.");
+    }
+}
+
 ///////////////////////////////////////////////////////////////////
 // Neural Networks - Neuron
 TRnd TNNet::TNeuron::Rnd = 0;
@@ -1458,7 +1653,6 @@ void TOnlineHistogram::Print() const {
 }
 
 PJsonVal TOnlineHistogram::SaveJson() const {
-    EAssertR(IsInit(), "TOnlineHistogram::SaveJson: online histogram is not initialized yet!");
     PJsonVal Result = TJsonVal::NewObj();
     PJsonVal BoundsArr = TJsonVal::NewArr();
     PJsonVal CountsArr = TJsonVal::NewArr();
@@ -1467,9 +1661,10 @@ PJsonVal TOnlineHistogram::SaveJson() const {
         CountsArr->AddToArr(CountLeftInf);
     }
     for (int ElN = 0; ElN < Counts.Len(); ElN++) {
-        BoundsArr->AddToArr(Bounds[ElN]);
         CountsArr->AddToArr(Counts[ElN]);
-    }if (Bounds.Len() > 0) {
+        if (Bounds.Len() > ElN) { BoundsArr->AddToArr(Bounds[ElN]); }
+    }
+    if (Bounds.Len() > 0) {
         BoundsArr->AddToArr(Bounds.Last());
     }
     if (AddPosInf) {
@@ -1483,22 +1678,31 @@ PJsonVal TOnlineHistogram::SaveJson() const {
 
 ///////////////////////////////////////////////////////////////////
 // TTDigest
+void TTDigest::Init(const int& N) {
+    Nc = N;
+    Max = TFlt::Mn;
+    Min = TFlt::Mx;
+    UnmergedSum = 0;
+    TempLast = 0;
 
-void TTDigest::Update(const double& V, const double& Count) {
-    Updates++;
-    if (TempLast >= TempWeight.Len()) {
-        MergeValues();
+    Size = (int)ceil(Nc * TMath::Pi / 2);
+    TotalSum = 0;
+    Last = 0;
+
+    for (int Iter = 0; Iter < Size; Iter++) {
+        Weight.Add(0);
+        Mean.Add(0);
+        MergeWeight.Add(0);
+        MergeMean.Add(0);
     }
-    TInt N_ = TempLast++;
-    TempWeight[N_] = Count;
-    TempMean[N_] = V;
-    UnmergedSum += Count;
-    MergeValues();
+
+    int Tempsize = NumTemp(Nc);
+    for (int Iter = 0; Iter < Tempsize; Iter++) {
+        TempMean.Add(TFlt::Mx);
+        TempWeight.Add(0);
+    }
 }
 
-int TTDigest::GetClusters() const {
-    return Mean.Len();
-}
 double TTDigest::GetQuantile(const double& Q) const {
     double Left = Min;
     double Right = Max;
@@ -1516,13 +1720,85 @@ double TTDigest::GetQuantile(const double& Q) const {
     int I = Bisect(MergeMean, QSum, N0, N1);
 
     if (I > 0) {
-        Left = Boundary(I-1, I, Mean, Weight);
+        Left = Boundary(I - 1, I, Mean, Weight);
     }
     if (I < Last) {
-        Right = Boundary(I, I+1, Mean, Weight);
+        Right = Boundary(I, I + 1, Mean, Weight);
     }
-    return Left + (Right - Left) * (QSum - (MergeMean[I-1])) / Weight[I];
+    double Quantile = Left + (Right - Left) * (QSum -
+        ((I <= 0 || I > MergeMean.Len()) ? 0.0 : MergeMean[I - 1].Val)) / Weight[I];
+
+    return Quantile;
 };
+
+int TTDigest::GetClusters() const {
+    return Mean.Len();
+}
+
+void TTDigest::Update(const double& V, const double& Count) {
+    Updates++;
+    if (TempLast >= TempWeight.Len()) {
+        MergeValues();
+    }
+    TInt N_ = TempLast++;
+    TempWeight[N_] = Count;
+    TempMean[N_] = V;
+    UnmergedSum += Count;
+    MergeValues();
+}
+
+void TTDigest::SaveState(TSOut& SOut) const {
+    MinPointsInit.Save(SOut);
+    Nc.Save(SOut);
+    Size.Save(SOut);
+    Last.Save(SOut);
+    TotalSum.Save(SOut);
+    Weight.Save(SOut);
+    Mean.Save(SOut);
+    Min.Save(SOut);
+    Max.Save(SOut);
+    MergeWeight.Save(SOut);
+    MergeMean.Save(SOut);
+    Tempsize.Save(SOut);
+    UnmergedSum.Save(SOut);
+    TempLast.Save(SOut);
+    TempWeight.Save(SOut);
+    TempMean.Save(SOut);
+    Updates.Save(SOut);
+}
+
+void TTDigest::LoadState(TSIn& SIn) {
+    MinPointsInit.Load(SIn);
+    Nc.Load(SIn);
+    Size.Load(SIn);
+    Last.Load(SIn);
+    TotalSum.Load(SIn);
+    Weight.Load(SIn);
+    Mean.Load(SIn);
+    Min.Load(SIn);
+    Max.Load(SIn);
+    MergeWeight.Load(SIn);
+    MergeMean.Load(SIn);
+    Tempsize.Load(SIn);
+    UnmergedSum.Load(SIn);
+    TempLast.Load(SIn);
+    TempWeight.Load(SIn);
+    TempMean.Load(SIn);
+    Updates.Load(SIn);
+}
+
+PJsonVal TTDigest::GetParams() const {
+    PJsonVal Result = TJsonVal::NewObj();
+    Result->AddToObj("minCount", MinPointsInit);
+    Result->AddToObj("clusters", Nc);
+    return Result;
+}
+
+void TTDigest::SetParams(const PJsonVal& ParamVal) {
+    MinPointsInit = ParamVal->GetObjInt("minCount", MinPointsInit);
+    Nc = ParamVal->GetObjInt("clusters", Nc);
+    Init(Nc);
+}
 
 void TTDigest::MergeValues() {
     if (UnmergedSum == 0.0) {
@@ -1664,68 +1940,22 @@ int TTDigest::NumTemp(const int& N) const {
   return Lo;
 }
 
-void TTDigest::Print() const {}
-
-void TTDigest::SaveState(TSOut& SOut) const {
-    Nc.Save(SOut);
-    Size.Save(SOut);
-    Last.Save(SOut);
-    TotalSum.Save(SOut);
-    Weight.Save(SOut);
-    Mean.Save(SOut);
-    Min.Save(SOut);
-    Max.Save(SOut);
-    MergeWeight.Save(SOut);
-    MergeMean.Save(SOut);
-    Tempsize.Save(SOut);
-    UnmergedSum.Save(SOut);
-    TempLast.Save(SOut);
-    TempWeight.Save(SOut);
-    TempMean.Save(SOut);
-}
-
-void TTDigest::LoadState(TSIn& SIn) {
-    Nc.Load(SIn);
-    Size.Load(SIn);
-    Last.Load(SIn);
-    TotalSum.Load(SIn);
-    Weight.Load(SIn);
-    Mean.Load(SIn);
-    Min.Load(SIn);
-    Max.Load(SIn);
-    MergeWeight.Load(SIn);
-    MergeMean.Load(SIn);
-    Tempsize.Load(SIn);
-    UnmergedSum.Load(SIn);
-    TempLast.Load(SIn);
-    TempWeight.Load(SIn);
-    TempMean.Load(SIn);
-}
-
-void TTDigest::Init(const int& N) {
-    Nc = N;
-    Max = TFlt::Mn;
-    Min = TFlt::Mx;
-    UnmergedSum = 0;
-    TempLast = 0;
-
-    Size = (int) ceil(Nc * TMath::Pi/2);
-    TotalSum = 0;
-    Last = 0;
-
-    for (int Iter = 0; Iter < Size; Iter++) {
-        Weight.Add(0);
-        Mean.Add(0);
-        MergeWeight.Add(0);
-        MergeMean.Add(0);
-    }
-
-    int Tempsize = NumTemp(Nc);
-    for (int Iter = 0; Iter < Tempsize; Iter++) {
-        TempMean.Add(TFlt::Mx);
-        TempWeight.Add(0);
+void TTDigest::Print() const {
+    printf("\n MinPointsInit: %d\n Nc: %d\n Size: %d\n Last: %d\n TotalSum: %g\n"
+        " Weight.Len(): %d\n Mean.Len(): %d\n Min: %g\n Max: %g\n MergeWeight.Len(): %d\n"
+        " MergeMean.Len(): %d\n Tempsize: %d\n UnmergedSum: %g\n TempLast: %d\n"
+        " TempWeight.Len(): %d\n TempMean.Len(): %d\n Updates: %d\n\n",
+        MinPointsInit.Val, Nc.Val, Size.Val, Last.Val, TotalSum.Val,
+        Weight.Len(), Mean.Len(), Min.Val, Max.Val, MergeWeight.Len(),
+        MergeMean.Len(), Tempsize.Val, UnmergedSum.Val, TempLast.Val,
+        TempWeight.Len(), TempMean.Len(), Updates.Val);
+    for (int ElN = 0; ElN < Weight.Len(); ElN++) {
+        printf("c:%g, w:%g\n", Mean[ElN].Val, Weight[ElN].Val);
     }
 }
+
+/////////////////////////////////
+// TChiSquare
 
 TChiSquare::TChiSquare(const PJsonVal& ParamVal): P(TFlt::PInf) {
     // P value is set to infinity by default (null hypothesis is not rejected)

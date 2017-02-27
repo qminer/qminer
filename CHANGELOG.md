@@ -1,5 +1,143 @@
 # QMiner Change Log
 
+### 24 February 2017
+
+**Version 7.10.1**
+
+**Non-breaking with a bug fix**
+
+Bug fix:
+- Fixed linked list memory computation
+
+
+### 10 February 2017
+
+**Version 7.10.0**
+
+**Non-breaking with new features**
+
+New features:
+- tdigest wrapped as an analytics model, used to approximately track quantiles on streams
+- hashtable key id is exposed in ht module
+
+Bug fix:
+- javascript feature extractor that returns dense vectors crash fixed
+
+Other:
+- Documentation fixes and added examples
+
+### 27 January 2017
+
+**Version 7.9.0**
+
+**Non-breaking with new features**
+
+New features:
+- created common API for calculating memory usage in containers
+- calculating stream aggregates memory footprint
+- type trait API for detecting shallow types and containers
+- optimized TVec memory footprint calculation using type traits (only for C++11)
+- new API for multinomial feature extractor transformation
+
+### 13 January 2017
+
+**Version 7.8.1**
+
+Bug fix:
+- Fixed `FilterByFq` on `TRecSet`
+
+### 6 January 2017
+
+**Version 7.8.0**
+
+**Non-breaking with new features**
+
+New features:
+- Exposed keyid for hashtables in javascript
+- Stay-Point-Detector aggregate (third party) that aggregates GPS time-series
+- loadStateJson and saveStateJson added to stream aggregates (alternative to binary save and load)
+
+### 30 December 2016
+
+**Version 7.7.0**
+
+**Non-breaking with new features and bug fixes**
+
+New features:
+- Added log transform to multinomial feature extractor
+- Extended filter options for DMoz classifier (wildcard supported)
+- Node 7 supported
+
+### 23 December 2016
+
+**Version 7.6.0**
+
+**Non-breaking with new feature and a bug fix**
+
+New feature:
+- Store that only holds schema and has no disk footprint: `TStoreEmpty`
+
+Bug fix:
+- `TJsonVal` can be parsed from string in multiple threads
+
+
+### 16 December 2016
+
+**Version 7.5.0**
+
+**Non-breaking with new feature and big fixes**
+
+New feature:
+- Measuring stream aggregate performance. Exposed through `TBase::GetStreamAggrStats()`
+
+Bug fixes:
+- Fixed silent exceptions in JavaScript stream aggregate
+- Javascript serialization of stream aggregate prohibited output stream to close properly
+- Nearest neighbor anomaly detector did not output complete explanation
+
+Other:
+- Fixed out-of-sync example timeseries
+
+
+### 2 December 2016
+
+**Version 7.4.0**
+
+**Non-breaking with new features and a bug fix**
+
+New features:
+- Record switch aggregate (`TRecSwitchAggr`) reads strings from records and triggers other aggregates based on an internal hash map.
+- Time series sparse vector tick (`TTimeSeriesSparseVectorTick`) reads timestamps and sparse vectors from records, implements `ISparseVec` and `ITm` interfaces.
+- Sparse vector circular buffer (`TWinBufSpV`) reads from TWinBuf and stores the buffer values in memory as a circular buffer.
+- Stream aggregates can pass the caller when triggering `onAdd`, `onStep` and `onTime` of other aggregates.
+- `TWinMemBuf` supports separate aggregate that provides time.
+
+Bug fix:
+- Fixed parsing dates in JSON objects (providing a Date object for a datetime field of a record now works).
+
+Other:
+- Renamed `TStreamAggr::GetParam` -> `GetParams` (consistency with JS).
+- Renamed `TStreamAggr::SetParam` -> `SetParams` (consistency with JS).
+
+### 25 November 2016
+
+**Version 7.3.0**
+
+**Non-breaking with new features and bug fixes**
+
+New features:
+- Aggregating resampler (`TAggrResampler`) The resampler computes aggregates over consecutive equally sized intervals. It implements summing, averaging, max and min.
+-	Added `TStorePbBlob::GarbageCollect()`
+- Added `TRecFilterByFieldNull`
+
+Bug fixes:
+- When calling `saveJson()` on uninitalized `TOnlineHistrogram`, an exception was created. Now it serializes the current state.
+- Fix for deleting blobs; freed space from older blob files gets reused on following inserts. Now we always correctly know which file has free space where to put the new buffer. Had to extend the `TBlobBs` file with a parameter `ReleasedSize` that returns a value if the blob is moved and the previous buffer is released. Needed for monitoring which places in the files are free.
+- `TRecSet::DoJoin` fixed when using types onther than `uint64` for field join
+- When deleting records, we need to call `DelJoin` without the freqency parameter. Otherwise we might keep some joins to deleted records.
+- `TStorePbBlob::IsRecId` did not work if all data for store was in memory
+
+
 ### 4 November 2016
 
 **Version 7.2.0**

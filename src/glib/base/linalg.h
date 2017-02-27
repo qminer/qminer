@@ -670,6 +670,9 @@ public:
 	TEMP_LA	static void AddVec(const double& k, const TDenseV& x, TDenseVV& Y, const TSizeTy& ColIdY);
 	/// Result += k * X(:,Col)
 	TEMP_LA	static void AddVec(double k, const TDenseVV& X, TSizeTy ColId, TDenseV& Result);
+    /// z := k*x + y
+    TEMP_LA static void AddVec(const TType& k, const TSparseV& x, const TSparseV& y,
+           TSparseV& z);
 	/// z = x + y
 	static void AddVec(const TIntFltKdV& x, const TIntFltKdV& y, TIntFltKdV& z);
 

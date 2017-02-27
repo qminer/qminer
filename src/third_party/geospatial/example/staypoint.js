@@ -8,6 +8,7 @@ var base = new qm.Base({
 	        "fields": [
               { "name": "Time", "type": "datetime" },
               { "name": "Location", type: "float_pair" },
+              { "name": "Activities", type: "int_v", "null":true},
               { "name": "Accuracy", type: "byte", "null": true }
 	        ],
 	        "joins": [],
@@ -24,16 +25,19 @@ var aggr = store.addStreamAggr({
     type: "stayPointDetector",
     timeField: "Time",
     locationField: "Location",
+    activitiesField: "Activities",
     accuracyField: "Accuracy",
-    params: { k: 5 }
+    params: { dT: 51, tT: 301 }
 });
 
+//test1
 var ts = Date.now();
 for (var i = 0; i < 100; i++) {
     // create qminer wrapped record from JSON
     var rec = store.newRecord({
         Time: ts + i,
         Location: [Math.random(), Math.random()],
+        Activities: [20,15,22,23,50],
         Accuracy: 1
     });
     // calls onAdd on all stream aggregates registered on store
@@ -42,4 +46,3 @@ for (var i = 0; i < 100; i++) {
     console.log(result);
     console.log(new Date(result.lastTimestamp));
 }
-

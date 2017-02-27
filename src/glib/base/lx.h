@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -13,7 +13,7 @@
 typedef enum {lctUndef, lctSpace, lctNum, lctAlpha, lctSSym, lctTerm} TLxChTy;
 typedef enum {lcdtUsAscii, lcdtYuAscii} TLxChDefTy;
 
-ClassTP(TLxChDef, PLxChDef)//{
+class TLxChDef{
 private:
   TIntV ChTyV;
   TChV UcChV;
@@ -21,10 +21,7 @@ private:
   void SetChTy(const TLxChTy& ChTy, const TStr& Str);
 public:
   TLxChDef(const TLxChDefTy& ChDefTy);
-  static PLxChDef New(const TLxChDefTy& ChDefTy=lcdtUsAscii){
-    return PLxChDef(new TLxChDef(ChDefTy));}
   TLxChDef(TSIn& SIn): ChTyV(SIn), UcChV(SIn){}
-  static PLxChDef Load(TSIn& SIn){return new TLxChDef(SIn);}
   void Save(TSOut& SOut){ChTyV.Save(SOut); UcChV.Save(SOut);}
 
   TLxChDef& operator=(const TLxChDef& ChDef){
@@ -43,8 +40,9 @@ public:
   TStr GetUcStr(const TStr& Str) const;
 
   // standard entry points
-  static PLxChDef GetChDef(const TLxChDefTy& ChDefTy=lcdtUsAscii);
-//  static TLxChDef& GetChDefRef(const TLxChDefTy& ChDefTy=lcdtUsAscii);
+  static TLxChDef UsAsciiChDef;
+  static TLxChDef YuAsciiChDef;
+  static const TLxChDef& GetChDef(const TLxChDefTy& ChDefTy=lcdtUsAscii);
 };
 
 /////////////////////////////////////////////////
@@ -136,7 +134,7 @@ typedef enum {
 
 class TILx{
 private:
-  PLxChDef ChDef;
+  const TLxChDef& ChDef;
   PSIn SIn;
   TSIn& RSIn;
   char PrevCh, Ch;
@@ -258,7 +256,7 @@ typedef enum {
 
 class TOLx{
 private:
-  PLxChDef ChDef;
+  const TLxChDef& ChDef;
   PSOut SOut;
   TSOut& RSOut;
   bool IsCmtAlw, IsFrcEoln, IsSigNum, IsUniStr;
@@ -289,10 +287,10 @@ public:
     if (!IsSigNum){Assert(Flt>=0);}
     PutSep(syFlt); RSOut.PutStr(TFlt::GetStr(Flt, Width, Prec));}
   void PutStr(const TStr& Str){
-    if ((IsUniStr)&&(ChDef->IsNmStr(Str))){PutSep(syIdStr); RSOut.PutStr(Str);}
+    if ((IsUniStr)&&(ChDef.IsNmStr(Str))){PutSep(syIdStr); RSOut.PutStr(Str);}
     else {PutSep(syStr); RSOut.PutCh('"'); RSOut.PutStr(Str); RSOut.PutCh('"');}}
   void PutIdStr(const TStr& Str, const bool& CheckIdStr=true){
-    if (CheckIdStr){Assert(ChDef->IsNmStr(Str));}
+    if (CheckIdStr){Assert(ChDef.IsNmStr(Str));}
     PutSep(syIdStr); RSOut.PutStr(Str);}
   void PutQStr(const TStr& Str){
     PutSep(syQStr); RSOut.PutCh('"'); RSOut.PutStr(Str); RSOut.PutCh('"');}

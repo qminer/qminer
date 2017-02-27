@@ -523,6 +523,7 @@ public:
     TLinkedBuffer();
     TLinkedBuffer(TSIn& SIn);
 
+    void Load(TSIn& SIn);
     void Save(TSOut& SOut) const;
 
     ~TLinkedBuffer();
@@ -562,10 +563,20 @@ TLinkedBuffer<TVal, TSizeTy>::TLinkedBuffer(TSIn& SIn):
     Last = Curr;
 }
 
+
+template <class TVal, class TSizeTy>
+void TLinkedBuffer<TVal, TSizeTy>::Load(TSIn& SIn) {
+    Clr();
+    TSizeTy Len(SIn);
+    for (TSizeTy ElN = 0; ElN < Len; ElN++) {
+        TVal Val(SIn);
+        Add(Val);
+    }
+}
+
 template <class TVal, class TSizeTy>
 void TLinkedBuffer<TVal, TSizeTy>::Save(TSOut& SOut) const {
     Size.Save(SOut);
-
     Node* Curr = First;
     while (Curr != NULL) {
         Curr->Val.Save(SOut);
@@ -732,6 +743,83 @@ public:
     bool CanInterpolate(const uint64& Tm) const;
 
     static TStr GetType() { return "linear"; }
+};
+
+
+typedef enum { artSum, artAvg, artMin, artMax } TAggrResamplerType;
+///////////////////////////////////////////////
+/// Aggregating resampler
+/// The resampler maintains a buffer of time series points and
+/// computes aggregates (sum or average) on a sequence of consequtive
+/// intervals of equal size.
+/// State: - current time
+///        - last resample result (left time point of the interval and aggregated value)
+///        - buffer of points that have not been aggregated yet
+///        - init (true if at least one resampling happened)
+/// Parameters: - interval size
+///             - type of aggregation (sum or avg)
+///             - RoundStart ('h', 'm', 's') - strips away (m,s,msec) if set to h, strips (s,msec) if set to m, ...
+/// Main logic: TryResampleOnce
+///               Resampling is possible if there exists an interval (of predefined width)
+///               that ends before current time and starts at last resample time point.
+class TAggrResampler {
+private:
+    // PARAMS
+    /// interval size
+    TUInt64 IntervalMSecs;
+    /// type
+    TAggrResamplerType Type;
+    /// Round start time (used when start is not set by the user but determined from data)
+    TStr RoundStart;
+    /// Default value when the buffer is empty
+    TFlt DefaultVal;
+
+    // STATE
+    /// Timestamp of the current time
+    TUInt64 CurrentTmMSecs;
+    /// Timestamp of last generated record
+    TUInt64 LastResampPointMSecs;
+    /// Value of the last generated record
+    TFlt LastResampPointVal;
+    /// Buffer holding the time series to be aggregated
+    TQQueue<TPair<TUInt64, TFlt>> Buff;
+
+    /// Has resampling succeeed once?
+    TBool InitP;
+public:
+    /// Json constructor (sets interval, type and start time)
+    TAggrResampler(const PJsonVal& ParamVal);
+    /// Returns the parameters
+    PJsonVal GetParams() const;
+    /// Resets the state
+    void Reset();
+    /// Load stream aggregate state from stream
+    void LoadState(TSIn& SIn);
+    /// Save state of stream aggregate to stream
+    void SaveState(TSOut& SOut) const;
+
+    /// Returns the start time of the last aggregated interval
+    uint64 GetTmMSecs() const { return LastResampPointMSecs; }
+    /// Returns the value of the last aggregated interval
+    double GetFlt() const { return LastResampPointVal; }
+    /// Saves state as a JSON
+    PJsonVal SaveJson() const;
+
+    /// Add a time series value and time
+    void AddPoint(const double& Val, const uint64& Tm);
+
+    /// Returns true if it resampled and false otherwise. If true the results are set as the arguments. EmptyP signifies empty buffer.
+    bool TryResampleOnce(double& Val, uint64& Tm, bool& FoundEmptyP);
+    /// Sets the current time
+    void SetCurrentTm(const uint64& Tm);
+    /// Returns true if a new interval of values can be aggregated
+    bool CanResample() const { return LastResampPointMSecs + 2 * IntervalMSecs <= CurrentTmMSecs; }
+    /// Prints all internal variables for debugging
+    void PrintState (const TStr& Prefix = "") const;
+    /// Maps string type to enum type
+    TAggrResamplerType GetType(const TStr& TypeStr) const;
+    /// Maps enum type to string type
+    TStr GetTypeStr(const TAggrResamplerType& Type) const;
 };
 
 /////////////////////////////////////////
@@ -1012,7 +1100,11 @@ public:
 ///    Paper: Ted Dunning, Otmar Ertl - https://github.com/tdunning/t-digest/blob/master/docs/t-digest-paper/histo.pdf
 class TTDigest {
 private:
+    // PARAMETERS
+    TInt MinPointsInit;
     TInt Nc;
+
+    // STATE
     TInt Size;
     TInt Last;
     TFlt TotalSum;
@@ -1030,15 +1122,43 @@ private:
     TInt TempLast;
     TFltV TempWeight;
     TFltV TempMean;
-    TFltV Quantiles;
-
     TInt Updates;
-    TInt MinPointsInit;
+public:
+    /// Constructs given JSON arguments
+    TTDigest(const PJsonVal& ParamVal) { Nc = 100; SetParams(ParamVal); }
+    /// Constructs initialized object
+    TTDigest(const int& N = 100) { Init(N); }
+    /// Destructor
+    ~TTDigest() {}
+    /// Initializes the object, resets current content if present
+    void Init(const int& N = 100);
+    /// Query for estimated quantile *q*.
+    /// Argument *q* is a desired quantile in the range (0,1)
+    /// For example, q = 0.5 queries for the median.
+    double GetQuantile(const double& Q) const;
+    /// Number of clusters
+    int GetClusters() const;
+    /// Add a value to the t-digest.
+    /// Argument *v* is the value to add.
+    /// Argument *count* is the integer number of occurrences to add.
+    /// If not provided, *count* defaults to 1.    
+    void Update(const double& V, const double& Count = 1);
+    /// Is the model initialized?
+    bool IsInit() const { return Updates >= MinPointsInit; }
+    /// Load from stream
+    void LoadState(TSIn& SIn);
+    /// Store state into stream
+    void SaveState(TSOut& SOut) const;
+    /// Get parameters as a JSON
+    PJsonVal GetParams() const;
+    /// Set parameters with a JSON
+    void SetParams(const PJsonVal& Params);
 
-    // Given the number of centroids, determine temp buffer size
-    // Perform binary search to find value k such that N = k log2 k
-    // This should give us good amortized asymptotic complexity
-    int NumTemp(const int& N) const;
+private:
+    void MergeValues();
+
+    double MergeCentroid(double& Sum, double& K1, double& Wt, double& Ut);
+
     // Converts a quantile into a centroid index value. The centroid index is
     // nominally the number k of the centroid that a quantile point q should
     // belong to. Due to round-offs, however, we can't align things perfectly
@@ -1054,56 +1174,17 @@ private:
     // flatter so that centroids there will represent a larger chunk of quantiles.
     double Integrate(const double& Nc, const double& Q_) const;
 
-    double MergeCentroid(double& Sum, double& K1, double& Wt, double& Ut);
-
     int Bisect(const TFltV& A, const double& X, int& Low, int& Hi) const;
 
     double Boundary(const int& I, const int& J, const TFltV& U, const TFltV& W) const;
 
-    void Init(const int& N);
-public:
-    /// Constructs uninitialized object
-    TTDigest() {
-        Init(100);
-    }
-    /// Constructs given JSON arguments
-    TTDigest(const PJsonVal& ParamVal) {
-        MinPointsInit = ParamVal->GetObjInt("minCount", 0);
-        if (ParamVal->IsObjKey("clusters")) {
-            TInt N = ParamVal->GetObjInt("clusters");
-            Init(N);
-        }
-        else {
-            Init(100);
-        }
-    };
-    /// Constructs initialized object
-    TTDigest(const TInt& N) {
-        Init(N);
-    };
-    // Destructor
-    //~TTDigest() {}
-    /// Initializes the object, resets current content if present
-    void Init();
-    // Query for estimated quantile *q*.
-    // Argument *q* is a desired quantile in the range (0,1)
-    // For example, q = 0.5 queries for the median.
-    double GetQuantile(const double& Q) const;
-    // Number of clusters
-    int GetClusters() const;
-    // Add a value to the t-digest.
-    // Argument *v* is the value to add.
-    // Argument *count* is the integer number of occurrences to add.
-    // If not provided, *count* defaults to 1.
-    void Update(const double& V, const double& Count = 1);
-    bool IsInit() const { return Updates >= MinPointsInit; }
-    void MergeValues();
-    /// Prints the model
+    // Given the number of centroids, determine temp buffer size
+    // Perform binary search to find value k such that N = k log2 k
+    // This should give us good amortized asymptotic complexity
+    int NumTemp(const int& N) const;
+
     void Print() const;
-    /// Load from stream
-    void LoadState(TSIn& SIn);
-    /// Store state into stream
-    void SaveState(TSOut& SOut) const;
+
 };
 
 /////////////////////////////////////////////////

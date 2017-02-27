@@ -214,9 +214,36 @@ describe('Stream aggregate filter', function () {
             });
             callback();
         });
+    });
 
+    describe('Caller aggregate', function () {
+        it('should identify the filter aggregate as the caller', function (done) {
+            var outAggr = new qm.StreamAggr(base, new function () {
+                this.onAdd = function (rec, agg) {
+                    if (filt.name != agg.name) {
+                        // assert doesn't work in this async setting
+                        done(new Error('caller incorrect'));
+                    }
+                }
+            });
 
+            var filt = store.addStreamAggr({
+                type: 'recordFilterAggr',
+                aggr: outAggr.name,
+                filters: [{
+                    type: "field",
+                    store: "RecordTest",
+                    field: "Bool",
+                    value: true
+                }]
+            });
 
+            store.push({ "Bool": true });
+            store.push({ "Bool": false });
+            store.push({ "Bool": true });
+
+            done();
+        });
     });
 
     describe('Bool field filter', function () {

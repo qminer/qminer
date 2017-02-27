@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Example</title>
+
+    <link rel="stylesheet" href="streamaggregate.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+
+</head>
+<body>
+    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <script src="http://code.highcharts.com/highcharts.js"></script>
+
+    <!-- Highcharts chart representation -->
+    <script src="statSmooth.js"></script>
+
+    <h1>Moving average</h1>
+    <p>
+        Every second we store the values of a brownian motion (to the current value we add a random value taken from the standard
+        gaussian distribution and store it).
+    </p>
+    <p>
+        Then we use the <b>moving average</b> stream aggregator, which is connected with the store. By using the stream aggregator,
+        we can smooth the graph and get a clearer representation of the values we get. It is useful when we want to see how are the
+        values changing by trying to minimize the noise of the data. Before we could use the stream aggregator, we needed to construct
+        the <b>time series window buffer</b> stream aggregator, that is connected to the store. Then we connect the moving average
+        to the time series window buffer.
+    </p>
+    <p>
+        The graphs bellow represent the brownian motion and the smoothen values gained by the moving average stream aggregator.
+    </p>
+
+    <div id="statSmooth"></div>
+
+</body>
+</html>

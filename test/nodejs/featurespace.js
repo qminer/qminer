@@ -223,6 +223,23 @@ describe('Feature Space Tests', function () {
             assert.equal(vec[4], 0);
             assert.equal(vec[5], 0);
         })
+        it('should return a vector for the first record in store transformed using the logarithm', function () {
+            var ftr = new qm.FeatureSpace(base, {
+                type: "multinomial",
+                source: "FtrSpaceTest",
+                field: "Categories",
+                values: ["a", "b", "c", "q", "w", "e"],
+                transform: 'log'
+            });
+            var vec = ftr.extractVector(Store[0]);
+
+            var expected = [1, 0, 0, 1, 0, 0];
+
+            assert.equal(vec.length, expected.length);
+            for (var i = 0; i < expected.length; i++) {
+                assert.equal(vec[i], Math.log(expected[i] + 1));
+            }
+        })
         it('should return a vector for the first record in store: multinomial', function () {
             var ftr = new qm.FeatureSpace(base, { type: "multinomial", source: "FtrSpaceTest", field: "Categories", valueField: "Values", values: ["a", "b", "c", "q", "w", "e"] });
             var vec = ftr.extractVector(Store[0]);
@@ -254,7 +271,6 @@ describe('Feature Space Tests', function () {
         it('should return a vector for the first record in store: dateWindow', function () {
             var ftr = new qm.FeatureSpace(base, { type: "dateWindow", source: "FtrSpaceTest", field: "Date", window: 1, unit: "12hours" });
             var vec = ftr.extractVector(Store[0]);
-            vec.print();
         })
         it('should return a vector for the first record in store: jsfunc', function () {
             var ftr = new qm.FeatureSpace(base, {
@@ -264,6 +280,29 @@ describe('Feature Space Tests', function () {
             var vec = ftr.extractVector(Store[0]);
             assert.equal(vec.length, 1);
             assert.equal(vec[0], 2);
+        })
+        it('should return a 2d vector for the first record in store: jsfunc', function () {
+            var ftr = new qm.FeatureSpace(base, [{
+                type: "jsfunc", source: "FtrSpaceTest", name: "TestFunc", dim: 1,
+                fun: function (rec) { return rec.Categories.length; }
+            }, {
+                type: "jsfunc", source: "FtrSpaceTest", name: "TestFunc", dim: 1,
+                fun: function (rec) { return rec.Categories.length + 1; }
+            }]);
+            var vec = ftr.extractVector(Store[0]);
+            assert.equal(vec.length, 2);
+            assert.equal(vec[0], 2);
+            assert.equal(vec[1], 3);
+        })
+        it('should return a 2d vector for the first record in store: jsfunc', function () {
+            var ftr = new qm.FeatureSpace(base, {
+                type: "jsfunc", source: "FtrSpaceTest", name: "TestFunc", dim: 2,
+                fun: function (rec) { return new qm.la.Vector([1, 3]); }
+            });
+            var vec = ftr.extractVector(Store[0]);
+            assert.equal(vec.length, 2);
+            assert.equal(vec[0], 1);
+            assert.equal(vec[1], 3);
         })
         it('should return a vector for the first record in store: two extractors', function () {
             var ftr = new qm.FeatureSpace(base, [

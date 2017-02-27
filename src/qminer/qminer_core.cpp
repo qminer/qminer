@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -9,7 +9,6 @@
 #include "qminer_core.h"
 #include "qminer_ftr.h"
 #include "qminer_aggr.h"
-//#include "geospatial_aggr.h"
 
 namespace TQm {
 
@@ -451,7 +450,7 @@ void TStore::OnAdd(const TRec& Rec) {
 }
 
 void TStore::OnUpdate(const uint64& RecId) {
-    OnUpdate(GetRec(RecId));    
+    OnUpdate(GetRec(RecId));
 }
 
 void TStore::OnUpdate(const TRec& Rec) {
@@ -973,7 +972,7 @@ PJsonVal TStore::GetFieldJson(const uint64& RecId, const int& FieldId) const {
     } else if (Desc.IsBowSpV()) {
         return TJsonVal::NewStr("[PBowSpV]"); //TODO
     } else if (Desc.IsTMem()) {
-        TMem Mem; 
+        TMem Mem;
         GetFieldTMem(RecId, FieldId, Mem);
         return TJsonVal::NewStr(TStr::Base64Encode(Mem));
     } else if (Desc.IsJson()) {
@@ -1028,7 +1027,7 @@ TStr TStore::GetFieldText(const uint64& RecId, const int& FieldId) const {
     } else if (Desc.IsBowSpV()) {
         return "[PBowSpV]"; //TODO
     } else if (Desc.IsTMem()) {
-        TMem Mem; 
+        TMem Mem;
         GetFieldTMem(RecId, FieldId, Mem);
         return TStr::Base64Encode(Mem);
     } else if (Desc.IsJson()) {
@@ -1104,7 +1103,7 @@ PJsonVal TStore::GetStoreKeysJson(const TWPt<TBase>& Base) const {
 }
 
 PJsonVal TStore::GetStoreJoinsJson(const TWPt<TBase>& Base) const {
-    // output the results 
+    // output the results
     TJsonValV JoinValV;
     for (int JoinId = 0; JoinId < GetJoins(); JoinId++) {
         // get join description
@@ -1592,7 +1591,7 @@ TRec::TRec(const TWPt<TBase>& Base, TSIn& SIn): RecValOut(RecVal) {
             Fq = TInt(SIn);
             FieldIdPosH.Load(SIn);
             JoinIdPosH.Load(SIn);
-            RecVal.Load(SIn);        
+            RecVal.Load(SIn);
         }
     }
 }
@@ -1948,7 +1947,7 @@ PJsonVal TRec::GetFieldJson(const int& FieldId) const {
     } else if (Desc.IsBowSpV()) {
         return TJsonVal::NewStr("[PBowSpV]"); //TODO
     } else if (Desc.IsTMem()) {
-        TMem Mem; 
+        TMem Mem;
         GetFieldTMem(FieldId, Mem);
         return TJsonVal::NewStr(TStr::Base64Encode(Mem));
     } else if (Desc.IsJson()) {
@@ -2003,7 +2002,7 @@ TStr TRec::GetFieldText(const int& FieldId) const {
     } else if (Desc.IsBowSpV()) {
         return "[PBowSpV]"; //TODO
     } else if (Desc.IsTMem()) {
-        TMem Mem; 
+        TMem Mem;
         GetFieldTMem(FieldId, Mem);
         return TStr::Base64Encode(Mem);
     } else if (Desc.IsJson()) {
@@ -2431,7 +2430,7 @@ bool TRecCmpByFieldInt::operator()(const TUInt64IntKd& RecIdFq1, const TUInt64In
 }
 
 ///////////////////////////////
-/// Record Comparator by Numeric Field. 
+/// Record Comparator by Numeric Field.
 bool TRecCmpByFieldFlt::operator()(const TUInt64IntKd& RecIdFq1, const TUInt64IntKd& RecIdFq2) const {
     if (Store->IsFieldNull(RecIdFq1.Key, FieldId)) { return false; }
     if (Store->IsFieldNull(RecIdFq2.Key, FieldId)) { return false; }
@@ -2441,7 +2440,7 @@ bool TRecCmpByFieldFlt::operator()(const TUInt64IntKd& RecIdFq1, const TUInt64In
 }
 
 ///////////////////////////////
-/// Record Comparator by String Field. 
+/// Record Comparator by String Field.
 bool TRecCmpByFieldStr::operator()(const TUInt64IntKd& RecIdFq1, const TUInt64IntKd& RecIdFq2) const {
     if (Store->IsFieldNull(RecIdFq1.Key, FieldId)) { return false; }
     if (Store->IsFieldNull(RecIdFq2.Key, FieldId)) { return false; }
@@ -2451,7 +2450,7 @@ bool TRecCmpByFieldStr::operator()(const TUInt64IntKd& RecIdFq1, const TUInt64In
 }
 
 ///////////////////////////////
-/// Record Comparator by Time Field. 
+/// Record Comparator by Time Field.
 bool TRecCmpByFieldTm::operator()(const TUInt64IntKd& RecIdFq1, const TUInt64IntKd& RecIdFq2) const {
     if (Store->IsFieldNull(RecIdFq1.Key, FieldId)) { return false; }
     if (Store->IsFieldNull(RecIdFq2.Key, FieldId)) { return false; }
@@ -2461,7 +2460,7 @@ bool TRecCmpByFieldTm::operator()(const TUInt64IntKd& RecIdFq1, const TUInt64Int
 }
 
 ///////////////////////////////
-/// Record Comparator by Byte Field. 
+/// Record Comparator by Byte Field.
 bool TRecCmpByFieldByte::operator()(const TUInt64IntKd& RecIdFq1, const TUInt64IntKd& RecIdFq2) const {
     if (Store->IsFieldNull(RecIdFq1.Key, FieldId)) { return false; }
     if (Store->IsFieldNull(RecIdFq2.Key, FieldId)) { return false; }
@@ -2507,7 +2506,7 @@ bool TRecFilterSubsampler::Filter(const TRec& Rec) const {
 }
 
 ///////////////////////////////
-/// Record Filter by Record Exists. 
+/// Record Filter by Record Exists.
 TRecFilterByExists::TRecFilterByExists(const TWPt<TBase>& _Base, const TWPt<TStore>& _Store):
     TRecFilter(_Base), Store(_Store) { }
 
@@ -2524,7 +2523,7 @@ bool TRecFilterByExists::Filter(const TRec& Rec) const {
 }
 
 ///////////////////////////////
-/// Record Filter by Record Id. 
+/// Record Filter by Record Id.
 TRecFilterByRecId::TRecFilterByRecId(const TWPt<TBase>& _Base, const uint64& _MinRecId, const uint64& _MaxRecId):
     TRecFilter(_Base), FilterType(rfRange), MinRecId(_MinRecId), MaxRecId(_MaxRecId) { }
 
@@ -2553,7 +2552,7 @@ bool TRecFilterByRecId::Filter(const TRec& Rec) const {
 }
 
 ///////////////////////////////
-/// Record Filter by Record Fq. 
+/// Record Filter by Record Fq.
 TRecFilterByRecFq::TRecFilterByRecFq(const TWPt<TBase>& _Base, const int& _MinFq, const int& _MaxFq):
     TRecFilter(_Base), MinFq(_MinFq), MaxFq(_MaxFq) { }
 
@@ -2655,7 +2654,7 @@ PRecFilter TRecFilterByField::New(const TWPt<TBase>& Base, const PJsonVal& Param
 }
 
 ///////////////////////////////
-/// Keep (_FilterNullP = false) or remove (_FilterNullP = true) records that have null in the value of a field. 
+/// Keep (_FilterNullP = false) or remove (_FilterNullP = true) records that have null in the value of a field.
 TRecFilterByFieldNull::TRecFilterByFieldNull(const TWPt<TBase>& _Base, const int& _FieldId, const bool& _RemoveNullValues) :
     TRecFilter(_Base), FieldId(_FieldId), RemoveNullValues(_RemoveNullValues) { }
 
@@ -2665,7 +2664,7 @@ bool TRecFilterByFieldNull::Filter(const TRec& Rec) const {
 }
 
 ///////////////////////////////
-/// Record Filter by Bool Field. 
+/// Record Filter by Bool Field.
 TRecFilterByFieldBool::TRecFilterByFieldBool(const TWPt<TBase>& _Base, const int& _FieldId, const bool& _Val, const bool& _FilterNullP):
     TRecFilterByField(_Base, _FieldId, _FilterNullP), Val(_Val) { }
 
@@ -2677,7 +2676,7 @@ bool TRecFilterByFieldBool::Filter(const TRec& Rec) const {
 }
 
 ///////////////////////////////
-/// Record Filter by Integer Field. 
+/// Record Filter by Integer Field.
 TRecFilterByFieldInt::TRecFilterByFieldInt(const TWPt<TBase>& _Base, const int& _FieldId, const int& _MinVal,
     const int& _MaxVal, const bool& _FilterNullP): TRecFilterByField(_Base, _FieldId, _FilterNullP), MinVal(_MinVal), MaxVal(_MaxVal) { }
 
@@ -2689,7 +2688,7 @@ bool TRecFilterByFieldInt::Filter(const TRec& Rec) const {
 }
 
 ///////////////////////////////
-/// Record Filter by Integer Field. 
+/// Record Filter by Integer Field.
 TRecFilterByFieldInt16::TRecFilterByFieldInt16(const TWPt<TBase>& _Base, const int& _FieldId, const int16& _MinVal,
     const int16& _MaxVal, const bool& _FilterNullP): TRecFilterByField(_Base, _FieldId, _FilterNullP), MinVal(_MinVal), MaxVal(_MaxVal) { }
 
@@ -2701,7 +2700,7 @@ bool TRecFilterByFieldInt16::Filter(const TRec& Rec) const {
 }
 
 ///////////////////////////////
-/// Record Filter by Integer Field. 
+/// Record Filter by Integer Field.
 TRecFilterByFieldInt64::TRecFilterByFieldInt64(const TWPt<TBase>& _Base, const int& _FieldId, const int64& _MinVal,
     const int64& _MaxVal, const bool& _FilterNullP): TRecFilterByField(_Base, _FieldId, _FilterNullP), MinVal(_MinVal), MaxVal(_MaxVal) { }
 
@@ -2714,10 +2713,10 @@ bool TRecFilterByFieldInt64::Filter(const TRec& Rec) const {
 }
 
 ///////////////////////////////
-/// Record Filter by Integer Field. 
+/// Record Filter by Integer Field.
 TRecFilterByFieldByte::TRecFilterByFieldByte(const TWPt<TBase>& _Base, const int& _FieldId, const uchar& _MinVal,
     const uchar& _MaxVal, const bool& _FilterNullP): TRecFilterByField(_Base, _FieldId, _FilterNullP), MinVal(_MinVal), MaxVal(_MaxVal) { }
-                                                     
+
 bool TRecFilterByFieldByte::Filter(const TRec& Rec) const {
     bool RecNull = Rec.IsFieldNull(FieldId);
     if (RecNull) { return !FilterNullP; }
@@ -2726,7 +2725,7 @@ bool TRecFilterByFieldByte::Filter(const TRec& Rec) const {
 }
 
 ///////////////////////////////
-/// Record Filter by Integer Field. 
+/// Record Filter by Integer Field.
 TRecFilterByFieldUInt::TRecFilterByFieldUInt(const TWPt<TBase>& _Base, const int& _FieldId, const uint& _MinVal,
     const uint& _MaxVal, const bool& _FilterNullP): TRecFilterByField(_Base, _FieldId, _FilterNullP), MinVal(_MinVal), MaxVal(_MaxVal) { }
 
@@ -2738,7 +2737,7 @@ bool TRecFilterByFieldUInt::Filter(const TRec& Rec) const {
 }
 
 ///////////////////////////////
-/// Record Filter by Integer Field. 
+/// Record Filter by Integer Field.
 TRecFilterByFieldUInt16::TRecFilterByFieldUInt16(const TWPt<TBase>& _Base, const int& _FieldId, const uint16& _MinVal,
     const uint16& _MaxVal, const bool& _FilterNullP): TRecFilterByField(_Base, _FieldId, _FilterNullP), MinVal(_MinVal), MaxVal(_MaxVal) { }
 
@@ -2751,10 +2750,10 @@ bool TRecFilterByFieldUInt16::Filter(const TRec& Rec) const {
 }
 
 ///////////////////////////////
-/// Record Filter by UInt64 Field. 
+/// Record Filter by UInt64 Field.
 TRecFilterByFieldUInt64::TRecFilterByFieldUInt64(const TWPt<TBase>& _Base, const int& _FieldId, const uint64& _MinVal,
     const uint64& _MaxVal, const bool& _FilterNullP): TRecFilterByField(_Base, _FieldId, _FilterNullP), MinVal(_MinVal), MaxVal(_MaxVal) { }
-                                                        
+
 bool TRecFilterByFieldUInt64::Filter(const TRec& Rec) const {
     bool RecNull = Rec.IsFieldNull(FieldId);
     if (RecNull) { return !FilterNullP; }
@@ -2763,10 +2762,10 @@ bool TRecFilterByFieldUInt64::Filter(const TRec& Rec) const {
 }
 
 ///////////////////////////////
-/// Record Filter by Integer Field. 
+/// Record Filter by Integer Field.
 TRecFilterByFieldIntSafe::TRecFilterByFieldIntSafe(const TWPt<TBase>& _Base, const int& _FieldId, const uint64& _MinVal,
     const uint64& _MaxVal, const bool& _FilterNullP): TRecFilterByField(_Base, _FieldId, _FilterNullP), MinVal(_MinVal), MaxVal(_MaxVal) { }
-                                                      
+
 bool TRecFilterByFieldIntSafe::Filter(const TRec& Rec) const {
     bool RecNull = Rec.IsFieldNull(FieldId);
     if (RecNull) { return !FilterNullP; }
@@ -2775,7 +2774,7 @@ bool TRecFilterByFieldIntSafe::Filter(const TRec& Rec) const {
 }
 
 ///////////////////////////////
-/// Record Filter by Numeric Field. 
+/// Record Filter by Numeric Field.
 TRecFilterByFieldFlt::TRecFilterByFieldFlt(const TWPt<TBase>& _Base, const int& _FieldId, const double& _MinVal,
         const double& _MaxVal, const bool& _FilterNullP): TRecFilterByField(_Base, _FieldId, _FilterNullP), MinVal(_MinVal), MaxVal(_MaxVal) {}
 
@@ -2787,7 +2786,7 @@ bool TRecFilterByFieldFlt::Filter(const TRec& Rec) const {
 }
 
 ///////////////////////////////
-/// Record Filter by Numeric Field. 
+/// Record Filter by Numeric Field.
 TRecFilterByFieldSFlt::TRecFilterByFieldSFlt(const TWPt<TBase>& _Base, const int& _FieldId, const float& _MinVal,
     const float& _MaxVal, const bool& _FilterNullP): TRecFilterByField(_Base, _FieldId, _FilterNullP), MinVal(_MinVal), MaxVal(_MaxVal) {}
 
@@ -2799,10 +2798,10 @@ bool TRecFilterByFieldSFlt::Filter(const TRec& Rec) const {
 }
 
 ///////////////////////////////
-/// Record Filter by String Field. 
+/// Record Filter by String Field.
 TRecFilterByFieldStr::TRecFilterByFieldStr(const TWPt<TBase>& _Base, const int& _FieldId, const TStr& _StrVal, const bool& _FilterNullP):
     TRecFilterByField(_Base, _FieldId, _FilterNullP), StrVal(_StrVal) {}
-                                                     
+
 bool TRecFilterByFieldStr::Filter(const TRec& Rec) const {
     bool RecNull = Rec.IsFieldNull(FieldId);
     if (RecNull) { return !FilterNullP; }
@@ -2815,7 +2814,7 @@ bool TRecFilterByFieldStr::Filter(const TRec& Rec) const {
 TRecFilterByFieldStrRange::TRecFilterByFieldStrRange(const TWPt<TBase>& _Base, const int& _FieldId,
     const TStr& _StrVal, const TStr& _StrValMax, const bool& _FilterNullP): TRecFilterByField(_Base, _FieldId, _FilterNullP), StrValMin(_StrVal),
     StrValMax(_StrValMax) { }
-                                                           
+
 /// Filter function
 bool TRecFilterByFieldStrRange::Filter(const TRec& Rec) const {
     bool RecNull = Rec.IsFieldNull(FieldId);
@@ -2825,7 +2824,7 @@ bool TRecFilterByFieldStrRange::Filter(const TRec& Rec) const {
 }
 
 ///////////////////////////////
-/// Record Filter by String Field Set. 
+/// Record Filter by String Field Set.
 TRecFilterByFieldStrSet::TRecFilterByFieldStrSet(const TWPt<TBase>& _Base, const int& _FieldId,  const TStrSet& _StrSet, const bool& _FilterNullP):
     TRecFilterByField(_Base, _FieldId, _FilterNullP), StrSet(_StrSet) { }
 
@@ -2858,7 +2857,7 @@ bool TRecFilterByFieldStrSetUsingCodebook::Filter(const TRec& Rec) const {
 
 
 ///////////////////////////////
-/// Record Filter by Time Field. 
+/// Record Filter by Time Field.
 TRecFilterByFieldTm::TRecFilterByFieldTm(const TWPt<TBase>& _Base, const int& _FieldId, const uint64& _MinVal,
     const uint64& _MaxVal, const bool& _FilterNullP): TRecFilterByField(_Base, _FieldId, _FilterNullP), MinVal(_MinVal), MaxVal(_MaxVal) { }
 
@@ -3581,6 +3580,10 @@ void TRecSet::Save(TSOut& SOut) {
     Store->SaveId(SOut);
     FqP.Save(SOut);
     RecIdFqV.Save(SOut);
+}
+
+TRec TRecSet::GetRec(const int& RecN) const {
+    return TRec(GetStore(), RecIdFqV[RecN].Key, RecIdFqV[RecN].Dat);
 }
 
 void TRecSet::GetRecIdV(TUInt64V& RecIdV) const {
@@ -4514,14 +4517,14 @@ void TQueryItem::ParseWordStr(const TStr& WordStr, const TWPt<TIndexVoc>& IndexV
             throw TQmExcept::New("Wrong sort type for text Key!");
         }
         IndexVoc->GetWordIdV(KeyId, WordStr, WordIdV);
-        // we are done 
+        // we are done
         return;
     }
     // if wildchar, identify relevant words
     if (IsWildChar()) {
         // get all matching words
         IndexVoc->GetWcWordIdV(KeyId, WordStr, WordIdV);
-        // we are done 
+        // we are done
         return;
     }
     // otherwise just retrieve matching word id, when word exists
@@ -4936,7 +4939,7 @@ TQueryItem::TQueryItem(const PRecSet& _RecSet) :
 }
 
 TQueryItem::TQueryItem(const TWPt<TBase>& Base, const int& _KeyId,
-    const uint64& WordId, const TQueryCmpType& _CmpType) : 
+    const uint64& WordId, const TQueryCmpType& _CmpType) :
     KeyId(_KeyId), CmpType(_CmpType) {
     Type = (Base->GetIndexVoc()->GetKey(KeyId).IsSmall() ? oqitLeafGixSmall : oqitLeafGix);
     Base->GetIndexVoc()->GetKey(KeyId).IsSmall();
@@ -5103,7 +5106,6 @@ TWPt<TStore> TQueryItem::GetStore(const TWPt<TBase>& Base) const {
 }
 
 bool TQueryItem::IsFq() const {
-
     if (IsLeafGix() || IsLeafGixSmall() || IsGeo()) {
         // always weighted when only one key
         return true;
@@ -5111,7 +5113,7 @@ bool TQueryItem::IsFq() const {
         // we have only one sub-query, check its status
         return ItemV[0].IsFq();
     } else if (IsOr()) {
-        // or is weighted when all it's elements are 
+        // or is weighted when all it's elements are
         bool FqP = true;
         for (int ItemN = 0; ItemN < ItemV.Len(); ItemN++) {
             FqP = FqP && ItemV[ItemN].IsFq();
@@ -5131,7 +5133,7 @@ void TQueryItem::GetKeyWordV(TKeyWordV& KeyWordPrV) const {
         KeyWordPrV.Add(TKeyWord(KeyId, WordIdV[WordIdN]));
     }
 }
-    
+
 TQueryGixUsedType TQueryItem::GetGixFlag() const {
     //TQueryGixUsedType GixFlag = qgutUnknown;
     //if (IsLeafGix()) {
@@ -5143,12 +5145,12 @@ TQueryGixUsedType TQueryItem::GetGixFlag() const {
     //  int flag = 0;
     //  for (int i = 0; i < GetItems(); i++) {
     //      TQueryGixUsedType res = GetItem(i).GetGixFlag();
-    //      if (res == qgutNormal) { flag |= 1; } 
-    //      else if (res == qgutSmall) { flag |= 2; } 
+    //      if (res == qgutNormal) { flag |= 1; }
+    //      else if (res == qgutSmall) { flag |= 2; }
     //      else if (res == qgutBoth) { flag |= 3; break; }
     //  }
-    //  if (flag == 1) { GixFlag = qgutNormal; } 
-    //  else if (flag == 2) { GixFlag = qgutSmall; } 
+    //  if (flag == 1) { GixFlag = qgutNormal; }
+    //  else if (flag == 2) { GixFlag = qgutSmall; }
     //  else if (flag == 3) { GixFlag = qgutBoth; }
     //}
     return GixFlag;
@@ -5168,9 +5170,13 @@ void TQueryItem::SetGixFlag() {
         int flag = 0;
         for (int i = 0; i < GetItems(); i++) {
             TQueryGixUsedType res = GetItem(i).GetGixFlag();
-            if (res == qgutNormal) { flag |= 1; } else if (res == qgutSmall) { flag |= 2; } else if (res == qgutBoth) { flag |= 3; break; }
+            if (res == qgutNormal) { flag |= 1; }
+            else if (res == qgutSmall) { flag |= 2; }
+            else if (res == qgutBoth) { flag |= 3; break; }
         }
-        if (flag == 1) { GixFlag = qgutNormal; } else if (flag == 2) { GixFlag = qgutSmall; } else if (flag == 3) { GixFlag = qgutBoth; }
+        if (flag == 1) { GixFlag = qgutNormal; }
+        else if (flag == 2) { GixFlag = qgutSmall; }
+        else if (flag == 3) { GixFlag = qgutBoth; }
     }
 }
 
@@ -5384,220 +5390,6 @@ bool TGeoIndex::LocEquals(const TFltPr& Loc1, const TFltPr& Loc2) const {
 
 ///////////////////////////////
 // QMiner-Index
-void TIndex::TQmGixDefMerger::Union(
-    TQmGixItemV& MainV, const TQmGixItemV& JoinV) const {
-
-    TQmGixItemV ResV; int ValN1 = 0; int ValN2 = 0;
-    while ((ValN1 < MainV.Len()) && (ValN2 < JoinV.Len())) {
-        const TQmGixItem& Val1 = MainV.GetVal(ValN1);
-        const TQmGixItem& Val2 = JoinV.GetVal(ValN2);
-        if (Val1 < Val2) { ResV.Add(Val1); ValN1++; } else if (Val1 > Val2) { ResV.Add(Val2); ValN2++; } else { ResV.Add(TQmGixItem(Val1.Key, Val1.Dat + Val2.Dat)); ValN1++; ValN2++; }
-    }
-    for (int RestValN1 = ValN1; RestValN1 < MainV.Len(); RestValN1++) {
-        ResV.Add(MainV.GetVal(RestValN1));
-    }
-    for (int RestValN2 = ValN2; RestValN2 < JoinV.Len(); RestValN2++) {
-        ResV.Add(JoinV.GetVal(RestValN2));
-    }
-    MainV = ResV;
-}
-
-void TIndex::TQmGixDefMerger::Intrs(
-    TQmGixItemV& MainV, const TQmGixItemV& JoinV) const {
-
-    TQmGixItemV ResV; int ValN1 = 0; int ValN2 = 0;
-    while ((ValN1 < MainV.Len()) && (ValN2 < JoinV.Len())) {
-        const TQmGixItem& Val1 = MainV.GetVal(ValN1);
-        const TQmGixItem& Val2 = JoinV.GetVal(ValN2);
-        if (Val1 < Val2) { ValN1++; } else if (Val1 > Val2) { ValN2++; } else { ResV.Add(TQmGixItem(Val1.Key, Val1.Dat + Val2.Dat)); ValN1++; ValN2++; }
-    }
-    MainV = ResV;
-}
-
-void TIndex::TQmGixDefMerger::Minus(const TQmGixItemV& MainV,
-    const TQmGixItemV& JoinV, TQmGixItemV& ResV) const {
-
-    MainV.Diff(JoinV, ResV);
-}
-
-void TIndex::TQmGixDefMerger::Merge(TQmGixItemV& ItemV, bool Local) const {
-    if (ItemV.Empty()) { return; } // nothing to do in this case
-    if (!ItemV.IsSorted()) { ItemV.Sort(); } // sort if not yet sorted
-                                             // merge counts
-    int LastItemN = 0; bool ZeroP = false;
-    for (int ItemN = 1; ItemN < ItemV.Len(); ItemN++) {
-        if (ItemV[ItemN].Key != ItemV[ItemN - 1].Key) {
-            LastItemN++;
-            ItemV[LastItemN] = ItemV[ItemN];
-        } else {
-            ItemV[LastItemN].Dat += ItemV[ItemN].Dat;
-        }
-        ZeroP = ZeroP || (ItemV[LastItemN].Dat <= 0);
-    }
-    // remove items with zero count
-    if (ZeroP) {
-        int LastIndN = 0;
-        for (int ItemN = 0; ItemN < LastItemN + 1; ItemN++) {
-            const TQmGixItem& Item = ItemV[ItemN];
-            if (Item.Dat > 0 || (Local && Item.Dat < 0)) {
-                ItemV[LastIndN] = Item;
-                LastIndN++;
-            }
-            else if (Item.Dat < 0) {
-                TEnv::Error->OnStatusFmt("Warning: negative item count %d:%d!", (int) Item.Key, (int) Item.Dat);
-            }
-        }
-        ItemV.Reserve(ItemV.Reserved(), LastIndN);
-    } else {
-        ItemV.Reserve(ItemV.Reserved(), LastItemN + 1);
-    }
-}
-
-void TIndex::TQmGixDefMergerSmall::Union(
-    TQmGixItemSmallV& MainV, const TQmGixItemSmallV& JoinV) const {
-
-    TQmGixItemSmallV ResV; int ValN1 = 0; int ValN2 = 0;
-    while ((ValN1 < MainV.Len()) && (ValN2 < JoinV.Len())) {
-        const TQmGixItemSmall& Val1 = MainV.GetVal(ValN1);
-        const TQmGixItemSmall& Val2 = JoinV.GetVal(ValN2);
-        if (Val1 < Val2) { ResV.Add(Val1); ValN1++; } else if (Val1 > Val2) { ResV.Add(Val2); ValN2++; } else { ResV.Add(TQmGixItemSmall(Val1.Key, Val1.Dat + Val2.Dat)); ValN1++; ValN2++; }
-    }
-    for (int RestValN1 = ValN1; RestValN1 < MainV.Len(); RestValN1++) {
-        ResV.Add(MainV.GetVal(RestValN1));
-    }
-    for (int RestValN2 = ValN2; RestValN2 < JoinV.Len(); RestValN2++) {
-        ResV.Add(JoinV.GetVal(RestValN2));
-    }
-    MainV = ResV;
-}
-
-void TIndex::TQmGixDefMergerSmall::Intrs(
-    TQmGixItemSmallV& MainV, const TQmGixItemSmallV& JoinV) const {
-
-    TQmGixItemSmallV ResV; int ValN1 = 0; int ValN2 = 0;
-    while ((ValN1 < MainV.Len()) && (ValN2 < JoinV.Len())) {
-        const TQmGixItemSmall& Val1 = MainV.GetVal(ValN1);
-        const TQmGixItemSmall& Val2 = JoinV.GetVal(ValN2);
-        if (Val1 < Val2) { ValN1++; } else if (Val1 > Val2) { ValN2++; } else { ResV.Add(TQmGixItemSmall(Val1.Key, Val1.Dat + Val2.Dat)); ValN1++; ValN2++; }
-    }
-    MainV = ResV;
-}
-
-void TIndex::TQmGixDefMergerSmall::Minus(const TQmGixItemSmallV& MainV,
-    const TQmGixItemSmallV& JoinV, TQmGixItemSmallV& ResV) const {
-    MainV.Diff(JoinV, ResV);
-}
-
-void TIndex::TQmGixDefMergerSmall::Merge(TQmGixItemSmallV& ItemV, bool Local) const {
-    if (ItemV.Empty()) { return; } // nothing to do in this case
-    if (!ItemV.IsSorted()) { ItemV.Sort(); } // sort if not yet sorted
-                                             // merge counts
-    int LastItemN = 0; bool ZeroP = false;
-    for (int ItemN = 1; ItemN < ItemV.Len(); ItemN++) {
-        if (ItemV[ItemN] != ItemV[ItemN - 1]) {
-            LastItemN++;
-            ItemV[LastItemN] = ItemV[ItemN];
-        } else {
-            ItemV[LastItemN].Dat += ItemV[ItemN].Dat;
-        }
-        ZeroP = ZeroP || (ItemV[LastItemN].Dat <= 0);
-    }
-
-    // remove items with zero count
-    if (ZeroP) {
-        int LastIndN = 0;
-        for (int ItemN = 0; ItemN < LastItemN + 1; ItemN++) {
-            const TQmGixItemSmall& Item = ItemV[ItemN];
-            if (Item.Dat > 0 || (Local && (int16) Item.Dat < 0)) {
-                ItemV[LastIndN] = Item;
-                LastIndN++;
-            }
-            else if ((int16) Item.Dat < 0) {
-                TEnv::Error->OnStatusFmt("Warning: negative item count %d:%d!", (int) Item.Key, (int) Item.Dat);
-            }
-        }
-        ItemV.Reserve(ItemV.Reserved(), LastIndN);
-    } else {
-        ItemV.Reserve(ItemV.Reserved(), LastItemN + 1);
-    }
-}
-
-void TIndex::TQmGixRmDupMerger::Union(TQmGixItemV& MainV, const TQmGixItemV& JoinV) const {
-    TQmGixItemV ResV; int ValN1 = 0; int ValN2 = 0;
-    while ((ValN1 < MainV.Len()) && (ValN2 < JoinV.Len())) {
-        const TQmGixItem& Val1 = MainV.GetVal(ValN1);
-        const TQmGixItem& Val2 = JoinV.GetVal(ValN2);
-        if (Val1 < Val2) { ResV.Add(TQmGixItem(Val1.Key, 1)); ValN1++; } else if (Val1 > Val2) { ResV.Add(TQmGixItem(Val2.Key, 1)); ValN2++; } else {
-            int fq1 = TInt::GetMn(1, Val1.Dat);
-            int fq2 = TInt::GetMn(1, Val2.Dat);
-            ResV.Add(TQmGixItem(Val1.Key, fq1 + fq2)); ValN1++; ValN2++;
-        }
-    }
-    for (int RestValN1 = ValN1; RestValN1 < MainV.Len(); RestValN1++) {
-        TQmGixItem Item = MainV.GetVal(RestValN1);
-        Item.Dat = TInt::GetMn(1, Item.Dat);
-        ResV.Add(Item);
-    }
-    for (int RestValN2 = ValN2; RestValN2 < JoinV.Len(); RestValN2++) {
-        TQmGixItem Item = JoinV.GetVal(RestValN2);
-        Item.Dat = TInt::GetMn(1, Item.Dat);
-        ResV.Add(Item);
-    }
-    MainV = ResV;
-}
-
-void TIndex::TQmGixRmDupMerger::Intrs(TQmGixItemV& MainV, const TQmGixItemV& JoinV) const {
-    TQmGixItemV ResV; int ValN1 = 0; int ValN2 = 0;
-    while ((ValN1 < MainV.Len()) && (ValN2 < JoinV.Len())) {
-        const TQmGixItem& Val1 = MainV.GetVal(ValN1);
-        const TQmGixItem& Val2 = JoinV.GetVal(ValN2);
-        if (Val1 < Val2) { ValN1++; } else if (Val1 > Val2) { ValN2++; } else {
-            int fq1 = TInt::GetMn(1, Val1.Dat);
-            int fq2 = TInt::GetMn(1, Val2.Dat);
-            ResV.Add(TQmGixItem(Val1.Key, fq1 + fq2)); ValN1++; ValN2++;
-        }
-    }
-    MainV = ResV;
-}
-
-void TIndex::TQmGixRmDupMergerSmall::Union(TQmGixItemSmallV& MainV, const TQmGixItemSmallV& JoinV) const {
-    TQmGixItemSmallV ResV; int ValN1 = 0; int ValN2 = 0;
-    while ((ValN1 < MainV.Len()) && (ValN2 < JoinV.Len())) {
-        const TQmGixItemSmall& Val1 = MainV.GetVal(ValN1);
-        const TQmGixItemSmall& Val2 = JoinV.GetVal(ValN2);
-        if (Val1 < Val2) { ResV.Add(TQmGixItemSmall(Val1.Key, 1)); ValN1++; } else if (Val1 > Val2) { ResV.Add(TQmGixItemSmall(Val2.Key, 1)); ValN2++; } else {
-            int fq1 = TInt::GetMn(1, Val1.Dat);
-            int fq2 = TInt::GetMn(1, Val2.Dat);
-            ResV.Add(TQmGixItemSmall(Val1.Key, int16(fq1 + fq2))); ValN1++; ValN2++;
-        }
-    }
-    for (int RestValN1 = ValN1; RestValN1 < MainV.Len(); RestValN1++) {
-        TQmGixItemSmall Item = MainV.GetVal(RestValN1);
-        Item.Dat = TInt::GetMn(1, Item.Dat);
-        ResV.Add(Item);
-    }
-    for (int RestValN2 = ValN2; RestValN2 < JoinV.Len(); RestValN2++) {
-        TQmGixItemSmall Item = JoinV.GetVal(RestValN2);
-        Item.Dat = TInt::GetMn(1, Item.Dat);
-        ResV.Add(Item);
-    }
-    MainV = ResV;
-}
-
-void TIndex::TQmGixRmDupMergerSmall::Intrs(TQmGixItemSmallV& MainV, const TQmGixItemSmallV& JoinV) const {
-    TQmGixItemSmallV ResV; int ValN1 = 0; int ValN2 = 0;
-    while ((ValN1 < MainV.Len()) && (ValN2 < JoinV.Len())) {
-        const TQmGixItemSmall& Val1 = MainV.GetVal(ValN1);
-        const TQmGixItemSmall& Val2 = JoinV.GetVal(ValN2);
-        if (Val1 < Val2) { ValN1++; } else if (Val1 > Val2) { ValN2++; } else {
-            int fq1 = TInt::GetMn(1, Val1.Dat);
-            int fq2 = TInt::GetMn(1, Val2.Dat);
-            ResV.Add(TQmGixItemSmall(Val1.Key, fq1 + fq2)); ValN1++; ValN2++;
-        }
-    }
-    MainV = ResV;
-}
-
 TIndex::TQmGixKeyStr::TQmGixKeyStr(const TWPt<TBase>& _Base,
     const TWPt<TIndexVoc>& _IndexVoc) : Base(_Base), IndexVoc(_IndexVoc) {}
 
@@ -5626,157 +5418,41 @@ TStr TIndex::TQmGixKeyStr::GetKeyNm(const TQmGixKey& Key) const {
     return KeyChA;
 }
 
-//////////////////////////////////////////////////////////////////////////////////
-TIndex::PQmGixExpItem TIndex::ToExpItem(const TQueryItem& QueryItem) const {
-    if (QueryItem.IsLeafGix()) {
-        // we have a leaf, make it into expresion item
-        if (QueryItem.IsEqual()) {
-            // ==
-            TKeyWordV AllKeyV; QueryItem.GetKeyWordV(AllKeyV);
-            return TQmGixExpItem::NewAndV(AllKeyV);
-        } else if (QueryItem.IsGreater()) {
-            // >=
-            TKeyWordV AllGreaterV;
-            IndexVoc->GetAllGreaterV(QueryItem.GetKeyId(),
-                QueryItem.GetWordId(), AllGreaterV);
-            return TQmGixExpItem::NewOrV(AllGreaterV);
-        } else if (QueryItem.IsLess()) {
-            // <=
-            TKeyWordV AllLessV;
-            IndexVoc->GetAllLessV(QueryItem.GetKeyId(),
-                QueryItem.GetWordId(), AllLessV);
-            return TQmGixExpItem::NewOrV(AllLessV);
-        } else if (QueryItem.IsNotEqual()) {
-            // !=
-            TKeyWordV AllKeyV; QueryItem.GetKeyWordV(AllKeyV);
-            return TQmGixExpItem::NewNot(TQmGixExpItem::NewAndV(AllKeyV));
-        } else if (QueryItem.IsWildChar()) {
-            // ~
-            TKeyWordV AllKeyV; QueryItem.GetKeyWordV(AllKeyV);
-            return TQmGixExpItem::NewOrV(AllKeyV);
-        } else {
-            // unknown operator
-            throw TQmExcept::New("Index: Unknown query item operator");
-        }
-    } else if (QueryItem.IsAnd()) {
-        // we have a vector of AND items
-        TVec<PQmGixExpItem> ExpItemV(QueryItem.GetItems(), 0);
-        for (int ItemN = 0; ItemN < QueryItem.GetItems(); ItemN++) {
-            ExpItemV.Add(ToExpItem(QueryItem.GetItem(ItemN)));
-        }
-        return TQmGixExpItem::NewAndV(ExpItemV);
-    } else if (QueryItem.IsOr()) {
-        // we have a vector of OR items
-        TVec<PQmGixExpItem> ExpItemV(QueryItem.GetItems(), 0);
-        for (int ItemN = 0; ItemN < QueryItem.GetItems(); ItemN++) {
-            ExpItemV.Add(ToExpItem(QueryItem.GetItem(ItemN)));
-        }
-        return TQmGixExpItem::NewOrV(ExpItemV);
-    } else if (QueryItem.IsNot()) {
-        // we have a negation (can have only one child item!)
-        QmAssert(QueryItem.GetItems() == 1);
-        return TQmGixExpItem::NewNot(ToExpItem(QueryItem.GetItem(0)));
-    } else {
-        // unknow handle query item type
-        const int QueryItemType = (int)QueryItem.GetType();
-        throw TQmExcept::New(TStr::Fmt("Index: QueryItem of type %d which must be handled outside TIndex", QueryItemType));
-    }
-    return TQmGixExpItem::NewEmpty();
-}
-
-TIndex::PQmGixExpItemSmall TIndex::ToExpItemSmall(const TQueryItem& QueryItem) const {
-    if (QueryItem.IsLeafGixSmall()) {
-        // we have a leaf, make it into expresion item
-        if (QueryItem.IsEqual()) {
-            // ==
-            TKeyWordV AllKeyV; QueryItem.GetKeyWordV(AllKeyV);
-            return TQmGixExpItemSmall::NewAndV(AllKeyV);
-        } else if (QueryItem.IsGreater()) {
-            // >=
-            TKeyWordV AllGreaterV;
-            IndexVoc->GetAllGreaterV(QueryItem.GetKeyId(),
-                QueryItem.GetWordId(), AllGreaterV);
-            return TQmGixExpItemSmall::NewOrV(AllGreaterV);
-        } else if (QueryItem.IsLess()) {
-            // <=
-            TKeyWordV AllLessV;
-            IndexVoc->GetAllLessV(QueryItem.GetKeyId(),
-                QueryItem.GetWordId(), AllLessV);
-            return TQmGixExpItemSmall::NewOrV(AllLessV);
-        } else if (QueryItem.IsNotEqual()) {
-            // !=
-            TKeyWordV AllKeyV; QueryItem.GetKeyWordV(AllKeyV);
-            return TQmGixExpItemSmall::NewNot(TQmGixExpItemSmall::NewAndV(AllKeyV));
-        } else if (QueryItem.IsWildChar()) {
-            // ~
-            TKeyWordV AllKeyV; QueryItem.GetKeyWordV(AllKeyV);
-            return TQmGixExpItemSmall::NewOrV(AllKeyV);
-        } else {
-            // unknown operator
-            throw TQmExcept::New("Index: Unknown query item operator");
-        }
-    } else if (QueryItem.IsAnd()) {
-        // we have a vector of AND items
-        TVec<PQmGixExpItemSmall> ExpItemV(QueryItem.GetItems(), 0);
-        for (int ItemN = 0; ItemN < QueryItem.GetItems(); ItemN++) {
-            ExpItemV.Add(ToExpItemSmall(QueryItem.GetItem(ItemN)));
-        }
-        return TQmGixExpItemSmall::NewAndV(ExpItemV);
-    } else if (QueryItem.IsOr()) {
-        // we have a vector of OR items
-        TVec<PQmGixExpItemSmall> ExpItemV(QueryItem.GetItems(), 0);
-        for (int ItemN = 0; ItemN < QueryItem.GetItems(); ItemN++) {
-            ExpItemV.Add(ToExpItemSmall(QueryItem.GetItem(ItemN)));
-        }
-        return TQmGixExpItemSmall::NewOrV(ExpItemV);
-    } else if (QueryItem.IsNot()) {
-        // we have a negation (can have only one child item!)
-        QmAssert(QueryItem.GetItems() == 1);
-        return TQmGixExpItemSmall::NewNot(ToExpItemSmall(QueryItem.GetItem(0)));
-    } else {
-        // unknow handle query item type
-        const int QueryItemType = (int)QueryItem.GetType();
-        throw TQmExcept::New(TStr::Fmt("Index: QueryItem of type %d which must be handled outside TIndex", QueryItemType));
-    }
-    return TQmGixExpItemSmall::NewEmpty();
-}
-
-bool TIndex::DoQuery(const TIndex::PQmGixExpItem& ExpItem,
-    const PQmGixExpMerger& Merger, TQmGixItemV& ResIdFqV) const {
-
+bool TIndex::DoQueryFull(const TPt<TQmGixExpItemFull>& ExpItem, TVec<TQmGixItemFull>& RecIdFqV) const {
     // clean if there is anything on the input
-    ResIdFqV.Clr();
+    RecIdFqV.Clr();
     // execute query
-    return ExpItem->Eval(Gix, ResIdFqV, Merger);
+    return ExpItem->Eval(GixFull, RecIdFqV, SumMergerFull);
 }
-    
-bool TIndex::DoQuerySmall(const TIndex::PQmGixExpItemSmall& ExpItem,
-    const PQmGixExpMergerSmall& Merger, TQmGixItemSmallV& ResIdFqV) const {
 
+bool TIndex::DoQuerySmall(const TPt<TQmGixExpItemSmall>& ExpItem, TVec<TQmGixItemSmall>& RecIdFqV) const {
     // clean if there is anything on the input
-    ResIdFqV.Clr();
+    RecIdFqV.Clr();
     // execute query
-    return ExpItem->Eval(GixSmall, ResIdFqV, Merger);
+    return ExpItem->Eval(GixSmall, RecIdFqV, SumMergerSmall);
 }
 
-void TIndex::Upgrade(const TQmGixItemSmallV& Src, TQmGixItemV& Dest) const {
+void TIndex::UpgradeToFull(const TVec<TQmGixItemSmall>& Src, TVec<TQmGixItemFull>& Dest) const {
     Dest.Clr(); Dest.Reserve(Src.Len());
     for (int i = 0; i < Src.Len(); i++) {
-        Dest.Add(TQmGixItem((uint64)Src[i].Key, (int)Src[i].Dat));
+        Dest.Add(TQmGixItemFull((uint64)Src[i].Key, (int)Src[i].Dat));
     }
 }
 
 TIndex::TIndex(const TStr& _IndexFPath, const TFAccess& _Access,
-    const PIndexVoc& _IndexVoc, const int64& CacheSize, const int64& CacheSizeSmall,
+    const PIndexVoc& _IndexVoc, const int64& CacheSizeFull, const int64& CacheSizeSmall,
     const int& SplitLen) {
 
     IndexFPath = _IndexFPath;
     Access = _Access;
-    // initialize invered index
-    DefMerger = TQmGixDefMerger::New();
-    Gix = TQmGix::New("Index", IndexFPath, Access, CacheSize, SplitLen);
-    DefMergerSmall = TQmGixDefMergerSmall::New();
-    GixSmall = TQmGixSmall::New("IndexSmall", IndexFPath, Access, CacheSizeSmall, SplitLen);
+    // initialize full invered index
+    SumMergerFull = TQmGixSumMerger<TQmGixItemFull>::New();
+    GixFull = TGix<TQmGixKey, TQmGixItemFull, TQmGixSumMerger<TQmGixItemFull> >::New(
+        "Index.GixFull", IndexFPath, Access, CacheSizeFull, SplitLen);
+    // initialize small inverted index
+    SumMergerSmall = TQmGixSumMerger<TQmGixItemSmall>::New();
+    GixSmall = TGix<TQmGixKey, TQmGixItemSmall, TQmGixSumMerger<TQmGixItemSmall> >::New(
+        "Index.GixSmall", IndexFPath, Access, CacheSizeSmall, SplitLen);
     // initialize location index
     TStr SphereFNm = IndexFPath + "Index.Geo";
     if (TFile::Exists(SphereFNm) && Access != faCreate) {
@@ -5803,8 +5479,8 @@ TIndex::TIndex(const TStr& _IndexFPath, const TFAccess& _Access,
 
 TIndex::~TIndex() {
     if (!IsReadOnly()) {
-        TEnv::Logger->OnStatus("Saving and closing inverted index");
-        Gix.Clr();
+        TEnv::Logger->OnStatus("Saving and closing inverted index - full");
+        GixFull.Clr();
         TEnv::Logger->OnStatus("Saving and closing inverted index - small");
         GixSmall.Clr();
         {
@@ -5950,7 +5626,7 @@ void TIndex::IndexJoin(const TWPt<TStore>& Store, const TStr& JoinNm,
 }
 
 void TIndex::Index(const int& KeyId, const uint64& WordId, const uint64& RecId, const int& RecFq) {
-    // -1 should never come to here 
+    // -1 should never come to here
     Assert(KeyId != -1);
     // we shouldn't modify read-only index
     QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
@@ -5958,7 +5634,7 @@ void TIndex::Index(const int& KeyId, const uint64& WordId, const uint64& RecId, 
     if (UseGixSmall(KeyId)) {
         GixSmall->AddItem(TKeyWord(KeyId, WordId), TQmGixItemSmall((uint)RecId, (int16)RecFq));
     } else {
-        Gix->AddItem(TKeyWord(KeyId, WordId), TQmGixItem(RecId, RecFq));
+        GixFull->AddItem(TKeyWord(KeyId, WordId), TQmGixItemFull(RecId, RecFq));
     }
 }
 
@@ -6060,7 +5736,7 @@ void TIndex::DeleteJoin(const TWPt<TStore>& Store, const TStr& JoinNm,
 }
 
 void TIndex::Delete(const int& KeyId, const uint64& WordId, const uint64& RecId, const int& RecFq) {
-    // -1 should never come to here 
+    // -1 should never come to here
     Assert(KeyId != -1);
     // we shouldn't modify read-only index
     QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
@@ -6069,14 +5745,14 @@ void TIndex::Delete(const int& KeyId, const uint64& WordId, const uint64& RecId,
         if (UseGixSmall(KeyId)) {
             GixSmall->DelItem(TKeyWord(KeyId, WordId), TQmGixItemSmall((uint)RecId, 0));
         } else {
-            Gix->DelItem(TKeyWord(KeyId, WordId), TQmGixItem(RecId, 0));
+            GixFull->DelItem(TKeyWord(KeyId, WordId), TQmGixItemFull(RecId, 0));
         }
     } else {
         // add item with negative count, merger will delete item if necessary
         if (UseGixSmall(KeyId)) {
             GixSmall->AddItem(TKeyWord(KeyId, WordId), TQmGixItemSmall((uint)RecId, (int16)-RecFq));
         } else {
-            Gix->AddItem(TKeyWord(KeyId, WordId), TQmGixItem(RecId, -RecFq));
+            GixFull->AddItem(TKeyWord(KeyId, WordId), TQmGixItemFull(RecId, -RecFq));
         }
     }
 }
@@ -6101,7 +5777,7 @@ void TIndex::Delete(const uint& StoreId, const TStr& KeyNm, const TFltPr& Loc, c
 void TIndex::Delete(const int& KeyId, const TFltPr& Loc, const uint64& RecId) {
     // we shouldn't modify read-only index
     QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
-    // delete only if index exist 
+    // delete only if index exist
     if (GeoIndexH.IsKey(KeyId)) { GeoIndexH.GetDat(KeyId)->DelKey(Loc, RecId); }
 }
 
@@ -6235,112 +5911,113 @@ void TIndex::DeleteLinear(const uint& StoreId, const TStr& KeyNm, const float& V
 void TIndex::DeleteLinear(const int& KeyId, const uchar& Val, const uint64& RecId) {
     // we shouldn't modify read-only index
     QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
-    // delete only if index exist 
+    // delete only if index exist
     if (BTreeIndexByteH.IsKey(KeyId)) { BTreeIndexByteH.GetDat(KeyId)->DelKey(Val, RecId); }
 }
 void TIndex::DeleteLinear(const int& KeyId, const int& Val, const uint64& RecId) {
     // we shouldn't modify read-only index
     QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
-    // delete only if index exist 
+    // delete only if index exist
     if (BTreeIndexIntH.IsKey(KeyId)) { BTreeIndexIntH.GetDat(KeyId)->DelKey(Val, RecId); }
 }
 void TIndex::DeleteLinear(const int& KeyId, const int16& Val, const uint64& RecId) {
     // we shouldn't modify read-only index
     QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
-    // delete only if index exist 
+    // delete only if index exist
     if (BTreeIndexInt16H.IsKey(KeyId)) { BTreeIndexInt16H.GetDat(KeyId)->DelKey(Val, RecId); }
 }
 void TIndex::DeleteLinear(const int& KeyId, const int64& Val, const uint64& RecId) {
     // we shouldn't modify read-only index
     QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
-    // delete only if index exist 
+    // delete only if index exist
     if (BTreeIndexInt64H.IsKey(KeyId)) { BTreeIndexInt64H.GetDat(KeyId)->DelKey(Val, RecId); }
 }
 
 void TIndex::DeleteLinear(const int& KeyId, const uint& Val, const uint64& RecId) {
     // we shouldn't modify read-only index
     QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
-    // delete only if index exist 
+    // delete only if index exist
     if (BTreeIndexUIntH.IsKey(KeyId)) { BTreeIndexUIntH.GetDat(KeyId)->DelKey(Val, RecId); }
 }
 void TIndex::DeleteLinear(const int& KeyId, const uint16& Val, const uint64& RecId) {
     // we shouldn't modify read-only index
     QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
-    // delete only if index exist 
+    // delete only if index exist
     if (BTreeIndexUInt16H.IsKey(KeyId)) { BTreeIndexUInt16H.GetDat(KeyId)->DelKey(Val, RecId); }
 }
 void TIndex::DeleteLinear(const int& KeyId, const uint64& Val, const uint64& RecId) {
     // we shouldn't modify read-only index
     QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
-    // delete only if index exist 
+    // delete only if index exist
     if (BTreeIndexUInt64H.IsKey(KeyId)) { BTreeIndexUInt64H.GetDat(KeyId)->DelKey(Val, RecId); }
 }
 
 void TIndex::DeleteLinear(const int& KeyId, const double& Val, const uint64& RecId) {
     // we shouldn't modify read-only index
     QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
-    // delete only if index exist 
+    // delete only if index exist
     if (BTreeIndexFltH.IsKey(KeyId)) { BTreeIndexFltH.GetDat(KeyId)->DelKey(Val, RecId); }
 }
 void TIndex::DeleteLinear(const int& KeyId, const float& Val, const uint64& RecId) {
     // we shouldn't modify read-only index
     QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
-    // delete only if index exist 
+    // delete only if index exist
     if (BTreeIndexSFltH.IsKey(KeyId)) { BTreeIndexSFltH.GetDat(KeyId)->DelKey(Val, RecId); }
 }
 
-void TIndex::SearchAnd(const TIntUInt64PrV& KeyWordV, TQmGixItemV& StoreRecIdFqV) const {
+void TIndex::SearchAnd(const TIntUInt64PrV& KeyWordV, TUInt64IntKdV& StoreRecIdFqV) const {
     // prepare the query
-    TVec<PQmGixExpItem> ExpItemV(KeyWordV.Len(), 0);
-    TVec<PQmGixExpItemSmall> ExpItemSmallV(KeyWordV.Len(), 0);
+    TVec<TPt<TQmGixExpItemFull> > ExpItemFullV(KeyWordV.Len(), 0);
+    TVec<TPt<TQmGixExpItemSmall> > ExpItemSmallV(KeyWordV.Len(), 0);
     for (int ItemN = 0; ItemN < KeyWordV.Len(); ItemN++) {
         if (UseGixSmall(KeyWordV[ItemN].Val1)) {
-            ExpItemV.Add(TQmGixExpItem::NewItem(KeyWordV[ItemN]));
-        } else {
             ExpItemSmallV.Add(TQmGixExpItemSmall::NewItem(KeyWordV[ItemN]));
+        } else {
+            ExpItemFullV.Add(TQmGixExpItemFull::NewItem(KeyWordV[ItemN]));
         }
     }
-    PQmGixExpItem ExpItem = TQmGixExpItem::NewAndV(ExpItemV);
-    PQmGixExpItemSmall ExpItemSmall = TQmGixExpItemSmall::NewAndV(ExpItemSmallV);
+    TPt<TQmGixExpItemFull> ExpItemFull = TQmGixExpItemFull::NewAndV(ExpItemFullV);
+    TPt<TQmGixExpItemSmall> ExpItemSmall = TQmGixExpItemSmall::NewAndV(ExpItemSmallV);
 
     // execute the query and filter the results to desired item type
-    DoQuery(ExpItem, DefMerger, StoreRecIdFqV);
-    TQmGixItemSmallV Tmp;
-    DoQuerySmall(ExpItemSmall, DefMergerSmall, Tmp);
-    if (Tmp.Len()>0) {
-        TQmGixItemV Tmp2;
-        Upgrade(Tmp, Tmp2);
-        DefMerger->Intrs(StoreRecIdFqV, Tmp2);
+    DoQueryFull(ExpItemFull, StoreRecIdFqV);
+    TVec<TQmGixItemSmall> SmallStoreRecIdFqV;
+    DoQuerySmall(ExpItemSmall, SmallStoreRecIdFqV);
+    // we need to upgrade small items to full size record ids
+    if (SmallStoreRecIdFqV.Len() > 0) {
+        TUInt64IntKdV FullStoreRecIdFqV;
+        UpgradeToFull(SmallStoreRecIdFqV, FullStoreRecIdFqV);
+        SumMergerFull->Intrs(StoreRecIdFqV, FullStoreRecIdFqV);
     }
 }
 
-void TIndex::SearchOr(const TIntUInt64PrV& KeyWordV, TQmGixItemV& StoreRecIdFqV) const {
+void TIndex::SearchOr(const TIntUInt64PrV& KeyWordV, TUInt64IntKdV& StoreRecIdFqV) const {
     // prepare the query
-    TVec<PQmGixExpItem> ExpItemV(KeyWordV.Len(), 0);
-    TVec<PQmGixExpItemSmall> ExpItemSmallV(KeyWordV.Len(), 0);
-    for (int ItemN = 0; ItemN < KeyWordV.Len(); ItemN++) {          
+    TVec<TPt<TQmGixExpItemFull> > ExpItemFullV(KeyWordV.Len(), 0);
+    TVec<TPt<TQmGixExpItemSmall> > ExpItemSmallV(KeyWordV.Len(), 0);
+    for (int ItemN = 0; ItemN < KeyWordV.Len(); ItemN++) {
         if (UseGixSmall(KeyWordV[ItemN].Val1)) {
             ExpItemSmallV.Add(TQmGixExpItemSmall::NewItem(KeyWordV[ItemN]));
         } else {
-            ExpItemV.Add(TQmGixExpItem::NewItem(KeyWordV[ItemN]));
+            ExpItemFullV.Add(TQmGixExpItemFull::NewItem(KeyWordV[ItemN]));
         }
     }
-    PQmGixExpItem ExpItem = TQmGixExpItem::NewOrV(ExpItemV);
-    PQmGixExpItemSmall ExpItemSmall = TQmGixExpItemSmall::NewOrV(ExpItemSmallV);
+    TPt<TQmGixExpItemFull> ExpItemFull = TQmGixExpItemFull::NewOrV(ExpItemFullV);
+    TPt<TQmGixExpItemSmall> ExpItemSmall = TQmGixExpItemSmall::NewOrV(ExpItemSmallV);
 
     // execute the query and filter the results to desired item type
-    DoQuery(ExpItem, DefMerger, StoreRecIdFqV);
-    TQmGixItemSmallV Tmp;
-    DoQuerySmall(ExpItemSmall, DefMergerSmall, Tmp);
-    if (Tmp.Len()>0) {
-        TQmGixItemV Tmp2;
-        Upgrade(Tmp, Tmp2);
-        DefMerger->Union(StoreRecIdFqV, Tmp2);
+    DoQueryFull(ExpItemFull, StoreRecIdFqV);
+    TVec<TQmGixItemSmall> SmallStoreRecIdFqV;
+    DoQuerySmall(ExpItemSmall, SmallStoreRecIdFqV);
+    // we need to upgrade small items to full size record ids
+    if (SmallStoreRecIdFqV.Len() > 0) {
+        TUInt64IntKdV FullStoreRecIdFqV;
+        UpgradeToFull(SmallStoreRecIdFqV, FullStoreRecIdFqV);
+        SumMergerFull->Union(StoreRecIdFqV, FullStoreRecIdFqV);
     }
 }
 
-TPair<TBool, PRecSet> TIndex::Search(const TWPt<TBase>& Base, const TQueryItem& QueryItem,
-        const PQmGixExpMerger& Merger, const PQmGixExpMergerSmall& MergerSmall) const {
+TPair<TBool, PRecSet> TIndex::Search(const TWPt<TBase>& Base, const TQueryItem& QueryItem) const {
 
     // get query result store
     TWPt<TStore> Store = QueryItem.GetStore(Base);
@@ -6350,28 +6027,27 @@ TPair<TBool, PRecSet> TIndex::Search(const TWPt<TBase>& Base, const TQueryItem& 
     }
 
     // ok, detect which gix is used - big or small one
-    TQueryGixUsedType gix_flag = QueryItem.GetGixFlag();
-    if (gix_flag == qgutNormal) {
+    TQueryGixUsedType GixFlag = QueryItem.GetGixFlag();
+    if (GixFlag == qgutNormal) {
         // prepare the query
-        PQmGixExpItem ExpItem = ToExpItem(QueryItem);
+        TPt<TQmGixExpItemFull> ExpItem = ToExpItem<TQmGixItemFull>(QueryItem);
         // do the query
         TUInt64IntKdV StoreRecIdFqV;
-        const bool NotP = DoQuery(ExpItem, Merger, StoreRecIdFqV);
+        const bool NotP = DoQueryFull(ExpItem, StoreRecIdFqV);
         // return record set
         PRecSet RecSet = TRecSet::New(Store, StoreRecIdFqV, QueryItem.IsFq());
         return TPair<TBool, PRecSet>(NotP, RecSet);
-    } else if (gix_flag == qgutSmall) {
+    } else if (GixFlag == qgutSmall) {
         // prepare the query
-        PQmGixExpItemSmall ExpItem = ToExpItemSmall(QueryItem);
+        TPt<TQmGixExpItemSmall> ExpItem = ToExpItem<TQmGixItemSmall>(QueryItem);
         // do the query
-        TQmGixItemSmallV StoreRecIdFqVSmall;
-        const bool NotP = DoQuerySmall(ExpItem, MergerSmall, StoreRecIdFqVSmall);
-        TQmGixItemV StoreRecIdFqV;
-        Upgrade(StoreRecIdFqVSmall, StoreRecIdFqV);
+        TVec<TQmGixItemSmall> SmallStoreRecIdFqV;
+        const bool NotP = DoQuerySmall(ExpItem, SmallStoreRecIdFqV);
+        TUInt64IntKdV StoreRecIdFqV;
+        UpgradeToFull(SmallStoreRecIdFqV, StoreRecIdFqV);
         // return record set
         PRecSet RecSet = TRecSet::New(Store, StoreRecIdFqV, QueryItem.IsFq());
         return TPair<TBool, PRecSet>(NotP, RecSet);
-
     }
     throw TQmExcept::New("Error in TIndex::Search - hybrid search is not supported.");
 }
@@ -6494,50 +6170,54 @@ PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TS
 
 void TIndex::GetJoinRecIdFqV(const int& JoinKeyId, const uint64& RecId, TUInt64IntKdV& JoinRecIdFqV) const {
     TKeyWord KeyWord(JoinKeyId, RecId);
-    if (UseGixSmall(JoinKeyId)) {
-        if (!GixSmall->IsKey(KeyWord)) { return; }
-        PQmGixItemSetSmall res = GixSmall->GetItemSet(KeyWord); res->Def();
-        for (int i = 0; i < res->GetItems(); i++) {
-            auto item = res->GetItem(i);
-            JoinRecIdFqV.Add(TUInt64IntKd((uint64)item.Key, (int)item.Dat));
+    if (GixSmall->IsKey(KeyWord)) {
+        auto SmallItemSet = GixSmall->GetItemSet(KeyWord); SmallItemSet->Def();
+        for (int ItemN = 0; ItemN < SmallItemSet->GetItems(); ItemN++) {
+            auto Item = SmallItemSet->GetItem(ItemN);
+            JoinRecIdFqV.Add(TUInt64IntKd((uint64)Item.Key, (int)Item.Dat));
         }
-    } else {
-        if (!Gix->IsKey(KeyWord)) { return; }
-        PQmGixItemSet res = Gix->GetItemSet(KeyWord); res->Def();
-        for (int i = 0; i < res->GetItems(); i++) {
-            JoinRecIdFqV.Add(res->GetItem(i));
+    } else if (GixFull->IsKey(KeyWord)) {
+        auto FullItemSet = GixFull->GetItemSet(KeyWord); FullItemSet->Def();
+        for (int ItemN = 0; ItemN < FullItemSet->GetItems(); ItemN++) {
+            JoinRecIdFqV.Add(FullItemSet->GetItem(ItemN));
         }
     }
 }
 
-bool TIndex::HasJoin(const int& JoinKeyId, const uint64& RecId) const
-{
+bool TIndex::HasJoin(const int& JoinKeyId, const uint64& RecId) const {
     TKeyWord KeyWord(JoinKeyId, RecId);
-    if (UseGixSmall(JoinKeyId)) {
-        return GixSmall->IsKey(KeyWord);
-    }
-    else {
-        return Gix->IsKey(KeyWord);
-    }
+    return GixSmall->IsKey(KeyWord) || GixFull->IsKey(KeyWord);
 }
 
 void TIndex::SaveTxt(const TWPt<TBase>& Base, const TStr& FNm) {
-    Gix->SaveTxt(FNm, TQmGixKeyStr::New(Base, IndexVoc));
+    GixFull->SaveTxt(FNm, TQmGixKeyStr::New(Base, IndexVoc));
     GixSmall->SaveTxt(FNm + ".small", TQmGixKeyStr::New(Base, IndexVoc));
 }
 
 TBlobBsStats TIndex::GetBlobStats() const {
-    return TBlobBsStats::Add(Gix->GetBlobStats(), GixSmall->GetBlobStats());
+    return TBlobBsStats::Add(GixFull->GetBlobStats(), GixSmall->GetBlobStats());
 }
 
 TGixStats TIndex::GetGixStats(const bool& RefreshP) const {
-    return TGixStats::Add(Gix->GetGixStats(RefreshP), GixSmall->GetGixStats(RefreshP));
+    return TGixStats::Add(GixFull->GetGixStats(RefreshP), GixSmall->GetGixStats(RefreshP));
+}
+
+int TIndex::GetSplitLen() const {
+    // make sure small and full have same settings
+    EAssert(GixFull->GetSplitLen() == GixSmall->GetSplitLen());
+    // return
+    return GixFull->GetSplitLen();
+}
+
+void TIndex::ResetStats() {
+    GixFull->ResetStats();
+    GixSmall->ResetStats();
 }
 
 int TIndex::PartialFlush(const int& WndInMsec) {
     int WndInMsecHalf = WndInMsec / 2;
     int Res = 0;
-    Res += Gix->PartialFlush(WndInMsecHalf);
+    Res += GixFull->PartialFlush(WndInMsecHalf);
     Res += GixSmall->PartialFlush(WndInMsecHalf);
     return Res;
 }
@@ -6571,9 +6251,11 @@ void TStreamAggr::Init() {
     Register<TStreamAggrSet>();
     Register<TStreamAggrs::TRecBuffer>();
     Register<TStreamAggrs::TTimeSeriesTick>();
+    Register<TStreamAggrs::TTimeSeriesSparseVectorTick>();
     Register<TStreamAggrs::TWinBufFlt>();
     Register<TStreamAggrs::TWinBufFtrSpVec>();
     Register<TStreamAggrs::TWinBufFltV>();
+    Register<TStreamAggrs::TWinBufSpV>();
     Register<TStreamAggrs::TWinBufSum>();
     Register<TStreamAggrs::TWinBufMin>();
     Register<TStreamAggrs::TWinBufMax>();
@@ -6586,6 +6268,7 @@ void TStreamAggr::Init() {
     Register<TStreamAggrs::TMerger>();
     Register<TStreamAggrs::TResampler>();
     Register<TStreamAggrs::TUniVarResampler>();
+    Register<TStreamAggrs::TAggrResampler>();
     Register<TStreamAggrs::TFtrExtAggr>();
 	Register<TStreamAggrs::TNNAnomalyAggr>();
     Register<TStreamAggrs::TOnlineHistogram>();
@@ -6593,13 +6276,12 @@ void TStreamAggr::Init() {
     Register<TStreamAggrs::TChiSquare>();
     Register<TStreamAggrs::TOnlineSlottedHistogram>();
     Register<TStreamAggrs::TVecDiff>();
-    Register<TStreamAggrs::TSimpleLinReg>();   
-    Register<TStreamAggrs::TRecFilterAggr>();    
+    Register<TStreamAggrs::TSimpleLinReg>();
+    Register<TStreamAggrs::TRecFilterAggr>();
     Register<TStreamAggrs::TEmaSpVec>();
     Register<TStreamAggrs::TWinBufSpVecSum>();
+    Register<TStreamAggrs::TRecSwitchAggr>();
     Register<TStreamAggrs::THistogramAD>();
-    // geospatial aggregates
-    //Register<TStreamAggrs::TStayPointDetector>();
 }
 
 TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm): Base(_Base), AggrNm(_AggrNm) {
@@ -6625,12 +6307,30 @@ PStreamAggr TStreamAggr::New(const TWPt<TBase>& Base, const TStr& TypeNm, const 
 }
 
 void TStreamAggr::LoadState(TSIn& SIn) {
-    throw TQmExcept::New("TStreamAggr::_Load not implemented:" + GetAggrNm());
+    throw TQmExcept::New("TStreamAggr::LoadState not implemented:" + GetAggrNm());
 };
 
 void TStreamAggr::SaveState(TSOut& SOut) const {
-    throw TQmExcept::New("TStreamAggr::_Save not implemented:" + GetAggrNm());
+    throw TQmExcept::New("TStreamAggr::SaveState not implemented:" + GetAggrNm());
 };
+
+void TStreamAggr::LoadStateJson(const PJsonVal& State) {
+    throw TQmExcept::New("TStreamAggr::LoadStateJson not implemented:" + GetAggrNm());
+};
+
+PJsonVal TStreamAggr::SaveStateJson() const {
+    throw TQmExcept::New("TStreamAggr::SaveStateJson not implemented:" + GetAggrNm());
+};
+
+uint64 TStreamAggr::GetMemUsed() const {
+    // sizeof(TStreamAggr) returns the size of this class including all its members and
+    // alignment, but discards the size of any pointers that the members hold which
+    // equals Member.GetMemUsed() - sizeof(TMemberClass) (calculated by GetExtraMemberSize)
+    return sizeof(TStreamAggr) +
+           TMemUtils::GetExtraMemberSize(CRef) +
+           TMemUtils::GetExtraMemberSize(AggrNm) +
+           TMemUtils::GetExtraMemberSize(ExeTm);
+}
 
 ///////////////////////////////
 // QMiner-Stream-Aggregator-Set
@@ -6651,9 +6351,9 @@ TStreamAggrSet::TStreamAggrSet(const TWPt<TBase>& _Base, const PJsonVal& ParamVa
         QmAssertR(AggrVal->IsStr(), "[TStreamAggrSet] 'aggregates' values expected to be strings");
         const TStr& SubAggrNm = AggrVal->GetStr();
         // make sure it exists
-        QmAssertR(Base->IsStreamAggr(SubAggrNm), "[TStreamAggrSet] Unknonw stream aggregate '" + SubAggrNm + "'");
+        QmAssertR(GetBase()->IsStreamAggr(SubAggrNm), "[TStreamAggrSet] Unknonw stream aggregate '" + SubAggrNm + "'");
         // get it and add it to the set
-        AddStreamAggr(Base->GetStreamAggr(SubAggrNm));
+        AddStreamAggr(GetBase()->GetStreamAggr(SubAggrNm));
     }
 }
 
@@ -6679,7 +6379,7 @@ int TStreamAggrSet::Len() const {
 
 void TStreamAggrSet::AddStreamAggr(const PStreamAggr& StreamAggr) {
     // make sure we already registered this aggregate
-    QmAssertR(Base->IsStreamAggr(StreamAggr->GetAggrNm()),
+    QmAssertR(GetBase()->IsStreamAggr(StreamAggr->GetAggrNm()),
         "[TStreamAggrSet] Unregistered stream aggregate " + StreamAggr->GetAggrNm());
     StreamAggrV.Add(StreamAggr());
 }
@@ -6702,33 +6402,38 @@ void TStreamAggrSet::Reset() {
     }
 }
 
-void TStreamAggrSet::OnStep() {
+void TStreamAggrSet::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
     for (TWPt<TStreamAggr>& StreamAggr : StreamAggrV) {
-        StreamAggr->OnStep();
+        StreamAggr->OnStep(this);
     }
 }
 
-void TStreamAggrSet::OnTime(const uint64& TmMsec) {
+void TStreamAggrSet::OnTime(const uint64& TmMsec, const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
     for (TWPt<TStreamAggr>& StreamAggr : StreamAggrV) {
-        StreamAggr->OnTime(TmMsec);
+        StreamAggr->OnTime(TmMsec, this);
     }
 }
 
-void TStreamAggrSet::OnAddRec(const TRec& Rec) {
+void TStreamAggrSet::OnAddRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
     for (TWPt<TStreamAggr>& StreamAggr : StreamAggrV) {
-        StreamAggr->OnAddRec(Rec);
+        StreamAggr->OnAddRec(Rec, this);
     }
 }
 
-void TStreamAggrSet::OnUpdateRec(const TRec& Rec) {
+void TStreamAggrSet::OnUpdateRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
     for (TWPt<TStreamAggr>& StreamAggr : StreamAggrV) {
-        StreamAggr->OnUpdateRec(Rec);
+        StreamAggr->OnUpdateRec(Rec, this);
     }
 }
 
-void TStreamAggrSet::OnDeleteRec(const TRec& Rec) {
+void TStreamAggrSet::OnDeleteRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
     for (TWPt<TStreamAggr>& StreamAggr : StreamAggrV) {
-        StreamAggr->OnDeleteRec(Rec);
+        StreamAggr->OnDeleteRec(Rec, this);
     }
 }
 
@@ -6739,10 +6444,8 @@ void TStreamAggrSet::PrintStat() const {
 }
 
 PJsonVal TStreamAggrSet::SaveJson(const int& Limit) const {
-    PJsonVal ResVal = TJsonVal::NewArr();
-    for (TWPt<TStreamAggr>& StreamAggr : StreamAggrV) {
-        ResVal->AddToArr(StreamAggr->SaveJson(Limit));
-    }
+    TStrV StreamAggrNmV = TStreamAggrSet::GetStreamAggrNmV();
+    PJsonVal ResVal = TJsonVal::NewArr(StreamAggrNmV);
     return ResVal;
 }
 
@@ -6756,36 +6459,36 @@ PStoreTrigger TStreamAggrTrigger::New(const TWPt<TStreamAggr>& StreamAggr) {
 }
 
 void TStreamAggrTrigger::OnAdd(const TRec& Rec) {
-    StreamAggr->OnAddRec(Rec);
+    StreamAggr->OnAddRec(Rec, NULL);
 }
 
 void TStreamAggrTrigger::OnUpdate(const TRec& Rec) {
-    StreamAggr->OnUpdateRec(Rec);
+    StreamAggr->OnUpdateRec(Rec, NULL);
 }
 
 void TStreamAggrTrigger::OnDelete(const TRec& Rec) {
-    StreamAggr->OnDeleteRec(Rec);
+    StreamAggr->OnDeleteRec(Rec, NULL);
 }
 
 ///////////////////////////////
 // QMiner-Base
-PRecSet TBase::Invert(const PRecSet& RecSet, const TIndex::PQmGixExpMerger& Merger) {
+PRecSet TBase::Invert(const PRecSet& RecSet) {
     // prepare sorted list of all records from the store
-    TIndex::TQmGixItemV AllResIdV;
+    TUInt64IntKdV AllResIdV;
     const TWPt<TStore>& Store = RecSet->GetStore();
     PStoreIter Iter = Store->GetIter();
     while (Iter->Next()) {
-        AllResIdV.Add(TIndex::TQmGixItem(Iter->GetRecId(), 1));
+        AllResIdV.Add(TUInt64IntKd(Iter->GetRecId(), 1));
     }
     if (!AllResIdV.IsSorted()) { AllResIdV.Sort(); }
     // remove retrieved items
-    TIndex::TQmGixItemV ResIdFqV;
-    Merger->Minus(AllResIdV, RecSet->GetRecIdFqV(), ResIdFqV);
+    TUInt64IntKdV ResIdFqV;
+    AllResIdV.Diff(RecSet->GetRecIdFqV(), ResIdFqV);
     // return new record set
     return TRecSet::New(Store, ResIdFqV, false);
 }
 
-TPair<TBool, PRecSet> TBase::Search(const TQueryItem& QueryItem, const TIndex::PQmGixExpMerger& Merger, const TIndex::PQmGixExpMergerSmall& MergerSmall, const TQueryGixUsedType& ParentGixFlag) {
+TPair<TBool, PRecSet> TBase::Search(const TQueryItem& QueryItem, const TQueryGixUsedType& ParentGixFlag) {
     if (QueryItem.IsLeafGix() || QueryItem.IsLeafGixSmall()) {
         // return empty, when can be handled by parent-index
         if (ParentGixFlag != qgutBoth)
@@ -6793,7 +6496,7 @@ TPair<TBool, PRecSet> TBase::Search(const TQueryItem& QueryItem, const TIndex::P
         // we need to force index to execute the query =>
         //      create AND node with single child and execute it
         TQueryItem IndexQueryItem(oqitAnd, QueryItem);
-        TPair<TBool, PRecSet> NotRecSet = Index->Search(this, IndexQueryItem, Merger, MergerSmall);
+        TPair<TBool, PRecSet> NotRecSet = Index->Search(this, IndexQueryItem);
         PRecSet RecSet; bool NotP = false;
         NotP = NotRecSet.Val1; RecSet = NotRecSet.Val2;
         return TPair<TBool, PRecSet>(NotP, RecSet);
@@ -6859,11 +6562,11 @@ TPair<TBool, PRecSet> TBase::Search(const TQueryItem& QueryItem, const TIndex::P
             return TPair<TBool, PRecSet>(false, JoinRecSet);
         } else {
             // do the subordinate queries
-            TPair<TBool, PRecSet> NotRecSet = Search(QueryItem.GetItem(0), Merger, MergerSmall, QueryItem.GetGixFlag());
-            // in case it's empty, we must go to index 
-            if (NotRecSet.Val2.Empty()) { NotRecSet = Index->Search(this, QueryItem.GetItem(0), Merger, MergerSmall); }
+            TPair<TBool, PRecSet> NotRecSet = Search(QueryItem.GetItem(0), QueryItem.GetGixFlag());
+            // in case it's empty, we must go to index
+            if (NotRecSet.Val2.Empty()) { NotRecSet = Index->Search(this, QueryItem.GetItem(0)); }
             // in case it's negated, we must invert it
-            if (NotRecSet.Val1) { NotRecSet.Val2 = Invert(NotRecSet.Val2, Merger); }
+            if (NotRecSet.Val1) { NotRecSet.Val2 = Invert(NotRecSet.Val2); }
             // do the join
             PRecSet JoinRecSet = NotRecSet.Val2->DoJoin(this, QueryItem.GetJoinId(), QueryItem.GetSampleSize());
             // return joined record set
@@ -6890,7 +6593,7 @@ TPair<TBool, PRecSet> TBase::Search(const TQueryItem& QueryItem, const TIndex::P
         TBoolV NotV; TRecSetV RecSetV; bool EmptyP = true;
         for (int ItemN = 0; ItemN < QueryItem.GetItems(); ItemN++) {
             // do subsequent search
-            TPair<TBool, PRecSet> NotRecSet = Search(QueryItem.GetItem(ItemN), Merger, MergerSmall, GixFlag);
+            TPair<TBool, PRecSet> NotRecSet = Search(QueryItem.GetItem(ItemN), GixFlag);
             NotV.Add(NotRecSet.Val1); RecSetV.Add(NotRecSet.Val2);
             // check if to do anything
             EmptyP = EmptyP && RecSetV.Last().Empty();
@@ -6918,7 +6621,7 @@ TPair<TBool, PRecSet> TBase::Search(const TQueryItem& QueryItem, const TIndex::P
                 } else {
                     // call the index and use it to initialize
                     TQueryItem IndexQueryItem(QueryItem.GetType(), IndexQueryItemV);
-                    TPair<TBool, PRecSet> NotRecSet = Index->Search(this, IndexQueryItem, Merger, MergerSmall);
+                    TPair<TBool, PRecSet> NotRecSet = Index->Search(this, IndexQueryItem);
                     NotP = NotRecSet.Val1; RecSet = NotRecSet.Val2;
                 }
                 // prepare working vectors
@@ -6934,20 +6637,20 @@ TPair<TBool, PRecSet> TBase::Search(const TQueryItem& QueryItem, const TIndex::P
                         // decide for the operation based on not status
                         if (!NotP && !NotV[ItemN]) {
                             // life is easy, just do the intersect
-                            Merger->Intrs(ResRecIdFqV, RecIdFqV);
+                            Index->GetSumMerger()->Intrs(ResRecIdFqV, RecIdFqV);
                         } else if (NotP && NotV[ItemN]) {
                             // all negation, do the union
-                            Merger->Union(ResRecIdFqV, RecIdFqV);
+                            Index->GetSumMerger()->Union(ResRecIdFqV, RecIdFqV);
                         } else if (NotP && !NotV[ItemN]) {
                             // records from RecIdFqV should not be in the main
                             TUInt64IntKdV _ResRecIdFqV;
-                            Merger->Minus(RecIdFqV, ResRecIdFqV, _ResRecIdFqV);
+                            Index->GetSumMerger()->Minus(RecIdFqV, ResRecIdFqV, _ResRecIdFqV);
                             ResRecIdFqV = _ResRecIdFqV;
                             NotP = false;
                         } else if (!NotP && NotV[ItemN]) {
                             // records from main should not be in the RecIdFqV
                             TUInt64IntKdV _ResRecIdFqV;
-                            Merger->Minus(ResRecIdFqV, RecIdFqV, _ResRecIdFqV);
+                            Index->GetSumMerger()->Minus(ResRecIdFqV, RecIdFqV, _ResRecIdFqV);
                             ResRecIdFqV = _ResRecIdFqV;
                             NotP = false;
                         }
@@ -6961,20 +6664,20 @@ TPair<TBool, PRecSet> TBase::Search(const TQueryItem& QueryItem, const TIndex::P
                         // decide for the operation based on not status
                         if (!NotP && !NotV[ItemN]) {
                             // life is easy, just do the union
-                            Merger->Union(ResRecIdFqV, RecIdFqV);
+                            Index->GetSumMerger()->Union(ResRecIdFqV, RecIdFqV);
                         } else if (NotP && NotV[ItemN]) {
                             // all negation, do the intersect
-                            Merger->Intrs(ResRecIdFqV, RecIdFqV);
+                            Index->GetSumMerger()->Intrs(ResRecIdFqV, RecIdFqV);
                         } else if (NotP && !NotV[ItemN]) {
                             // records not from main or from RecIdFqV
                             TUInt64IntKdV _ResRecIdFqV;
-                            Merger->Minus(ResRecIdFqV, RecIdFqV, _ResRecIdFqV);
+                            Index->GetSumMerger()->Minus(ResRecIdFqV, RecIdFqV, _ResRecIdFqV);
                             ResRecIdFqV = _ResRecIdFqV;
                             NotP = true;
                         } else if (!NotP && NotV[ItemN]) {
                             // records from main or not from RecIdFqV
                             TUInt64IntKdV _ResRecIdFqV;
-                            Merger->Minus(RecIdFqV, ResRecIdFqV, _ResRecIdFqV);
+                            Index->GetSumMerger()->Minus(RecIdFqV, ResRecIdFqV, _ResRecIdFqV);
                             ResRecIdFqV = _ResRecIdFqV;
                             NotP = true;
                         }
@@ -6992,6 +6695,31 @@ TPair<TBool, PRecSet> TBase::Search(const TQueryItem& QueryItem, const TIndex::P
     // we should never have come to here
     throw TQmExcept::New("Unsupported query item type");
     return TPair<TBool, PRecSet>(false, NULL);
+}
+
+void TBase::LoadBaseConf(const TStr& FPath) {
+    const TStr BaseConfFNm = GetConfFNm(FPath);
+    PJsonVal BaseConfJson = nullptr;
+
+    if (!TFile::Exists(BaseConfFNm)) {
+        BaseConfJson = TJsonVal::NewObj();
+    } else {
+        PSIn BasePropsFIn = TFIn::New(BaseConfFNm);
+        BaseConfJson = TJsonVal::GetValFromSIn(BasePropsFIn);
+    }
+
+    NmValidator.SetStrictNmP(BaseConfJson->GetObjBool("strictNames", true));
+}
+
+void TBase::SaveBaseConf(const TStr& FPath) const {
+    PJsonVal BaseConfJson = TJsonVal::NewObj();
+
+    BaseConfJson->AddToObj("strictNames", NmValidator.IsStrictNmP());
+
+    const TStr BaseConfStr = TJsonVal::GetStrFromVal(BaseConfJson);
+    TFOut BasePropsFOut(GetConfFNm(FPath));
+    BasePropsFOut.PutStr(BaseConfStr);
+    BasePropsFOut.Flush();
 }
 
 TBase::TBase(const TStr& _FPath, const int64& IndexCacheSize, const int& SplitLen,
@@ -7145,7 +6873,7 @@ int TBase::NewIndexWordVoc(const TIndexKeyType& Type, const TStr& WordVocNm) {
         // done
         return WordVocId;
     }
-    // other indices do not need word vocabulary    
+    // other indices do not need word vocabulary
     return -1;
 }
 
@@ -7209,16 +6937,14 @@ uint64 TBase::AddRec(const uint& StoreId, const PJsonVal& RecVal) {
 
 PRecSet TBase::Search(const PQuery& Query) {
     // do the search
-    TIndex::PQmGixExpMerger Merger = Index->GetDefMerger();
-    TIndex::PQmGixExpMergerSmall MergerSmall = Index->GetDefMergerSmall();
-    TPair<TBool, PRecSet> NotRecSet = Search(Query->GetQueryItem(), Merger, MergerSmall, Query->GetQueryItem().GetGixFlag());
+    TPair<TBool, PRecSet> NotRecSet = Search(Query->GetQueryItem(), Query->GetQueryItem().GetGixFlag());
     // when empty, then query can be completly covered by index
     if (NotRecSet.Val2.Empty()) {
-        NotRecSet = Index->Search(this, Query->GetQueryItem(), Merger, MergerSmall);
+        NotRecSet = Index->Search(this, Query->GetQueryItem());
     }
     PRecSet RecSet = NotRecSet.Val2;
     // if result should be negated, do the invert
-    if (NotRecSet.Val1) { RecSet = Invert(NotRecSet.Val2, Merger); }
+    if (NotRecSet.Val1) { RecSet = Invert(NotRecSet.Val2); }
     // get the aggregates
     Aggr(RecSet, Query->GetAggrItemV());
     // sort if necessary
@@ -7361,7 +7087,7 @@ bool TBase::RestoreJSonDump(const TStr& DumpDir) {
             THash<TUInt64, TUInt64>& OldToNewIdH = StoreOldToNewIdHH.GetDat(StoreNm);
             PSIn InRecs = TFIn::New(DumpDir + StoreNm + "-joins.json");
             TStr Line;
-            // if the schema was changed then join ids are likely different. we have to use the 
+            // if the schema was changed then join ids are likely different. we have to use the
             // name of the stored id and see into which it maps now in the new schema.
             // mapping from old join ids (from old schema) to new join ids (in new schema)
             THash<TInt, TInt> OldJoinIdToNewIdH;
@@ -7547,29 +7273,68 @@ PJsonVal TBase::GetStats() {
     return res;
 }
 
-void TBase::LoadBaseConf(const TStr& FPath) {
-    const TStr BaseConfFNm = GetConfFNm(FPath);
-    PJsonVal BaseConfJson = nullptr;
+PJsonVal TBase::GetStreamAggrStats() const {
+    PJsonVal ResVal = TJsonVal::NewObj();
 
-    if (!TFile::Exists(BaseConfFNm)) {
-        BaseConfJson = TJsonVal::NewObj();
-    } else {
-        PSIn BasePropsFIn = TFIn::New(BaseConfFNm);
-        BaseConfJson = TJsonVal::GetValFromSIn(BasePropsFIn);
+    // go over all stream aggregates and get their execution times
+    PJsonVal AggrsVal = TJsonVal::NewArr();
+    // we also collect aggregate statistics per type and overall
+    int AllCount = 0; double AllExeMSecs = 0.0;
+    uint64 TotalMemUsed = 0;
+    THash<TStr, TIntFltUInt64Tr> AggrTypeExeMSecsH;
+    for (const auto& StreamAggr : StreamAggrH) {
+        // get stream aggregate name
+        const TStr& AggrNm = StreamAggr.Key;
+        // get stream aggregate type
+        const TStr AggrType = StreamAggr.Dat->Type();
+        // get execution time in miliseconds
+        const double ExeMSecs = StreamAggr.Dat->GetExeTm().GetMSec();
+        // get the memory footprint
+        const uint64 MemUsed = StreamAggr.Dat->GetMemUsed();
+        // store to result output
+        PJsonVal AggrVal = TJsonVal::NewObj();
+        AggrVal->AddToObj("name", AggrNm);
+        AggrVal->AddToObj("type", AggrType);
+        AggrVal->AddToObj("msecs", ExeMSecs);
+        AggrVal->AddToObj("mem", MemUsed);
+        AggrsVal->AddToArr(AggrVal);
+        // add to aggregate counts
+        AllCount++; AllExeMSecs += ExeMSecs;
+        TotalMemUsed += MemUsed;
+        AggrTypeExeMSecsH.AddDat(AggrType).Val1++;
+        AggrTypeExeMSecsH.AddDat(AggrType).Val2 += ExeMSecs;
+        AggrTypeExeMSecsH.AddDat(AggrType).Val3 += MemUsed;
     }
+    ResVal->AddToObj("aggregates", AggrsVal);
 
-    NmValidator.SetStrictNmP(BaseConfJson->GetObjBool("strictNames", true));
-}
+    // prepare aggregate statistics output
+    PJsonVal TypesVal = TJsonVal::NewArr();
+    for (const auto& AggrTypeExeMSecs : AggrTypeExeMSecsH) {
+        // get type
+        const TStr& AggrType = AggrTypeExeMSecs.Key;
+        // get number of aggregates
+        const int AggrCount = AggrTypeExeMSecs.Dat.Val1;
+        // get time spent in the aggregate
+        const double ExeMSecs = AggrTypeExeMSecs.Dat.Val2;
+        // get the memory footprint
+        const uint64 MemUsed = AggrTypeExeMSecs.Dat.Val3;
+        // store to output
+        PJsonVal TypeVal = TJsonVal::NewObj();
+        TypeVal->AddToObj("type", AggrType);
+        TypeVal->AddToObj("count", AggrCount);
+        TypeVal->AddToObj("msecs", ExeMSecs);
+        TypeVal->AddToObj("mem", MemUsed);
+        TypesVal->AddToArr(TypeVal);
+    }
+    ResVal->AddToObj("types", TypesVal);
 
-void TBase::SaveBaseConf(const TStr& FPath) const {
-    PJsonVal BaseConfJson = TJsonVal::NewObj();
+    // get overall stats
+    ResVal->AddToObj("count", AllCount);
+    ResVal->AddToObj("msecs", AllExeMSecs);
+    ResVal->AddToObj("mem", TotalMemUsed);
 
-    BaseConfJson->AddToObj("strictNames", NmValidator.IsStrictNmP());
-
-    const TStr BaseConfStr = TJsonVal::GetStrFromVal(BaseConfJson);
-    TFOut BasePropsFOut(GetConfFNm(FPath));
-    BasePropsFOut.PutStr(BaseConfStr);
-    BasePropsFOut.Flush();
+    // we are good!
+    return ResVal;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

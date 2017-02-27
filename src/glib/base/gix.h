@@ -34,6 +34,11 @@ public:
     virtual void Minus(const TVec<TItem>& MainV, const TVec<TItem>& JoinV, TVec<TItem>& ResV) const = 0;
     virtual void Def(const TKey& Key, TVec<TItem>& MainV) const = 0;
 
+    uint64 GetMemUsed() const {
+        return sizeof(TGixExpMerger<TKey,TItem>) +
+               TMemUtils::GetExtraMemberSize(CRef);
+    }
+
     friend class TPt < TGixExpMerger<TKey, TItem> > ;
 };
 
@@ -57,6 +62,11 @@ public:
     void Delete(const TItem& Item, TVec<TItem>& MainV) const { return MainV.DelAll(Item); }
     inline bool IsLt(const TItem& Item1, const TItem& Item2) const { return Item1 < Item2; }
     inline bool IsLtE(const TItem& Item1, const TItem& Item2) const { return Item1 <= Item2; }
+
+    uint64 GetMemUsed() const {
+        return sizeof(TGixDefMerger<TKey,TItem>) +
+               (TGixExpMerger<TKey,TItem>::GetMemUsed() - sizeof(TGixExpMerger<TKey,TItem>));
+    }
 };
 
 /////////////////////////////////////////////////
@@ -130,6 +140,16 @@ private:
             MaxVal.Save(SOut);
             Len.Save(SOut);
             Pt.Save(SOut);
+        }
+
+        uint64 GetMemUsed() const {
+            return sizeof(TGixItemSetChildInfo) +
+                   TMemUtils::GetExtraMemberSize(MinVal) +
+                   TMemUtils::GetExtraMemberSize(MaxVal) +
+                   TMemUtils::GetExtraMemberSize(Len) +
+                   TMemUtils::GetExtraMemberSize(Pt) +
+                   TMemUtils::GetExtraMemberSize(Loaded) +
+                   TMemUtils::GetExtraMemberSize(Dirty);
         }
     };
 
@@ -227,11 +247,12 @@ private:
 
     /// Ask child vectors about their memory usage
     uint64 GetChildMemUsed() const {
-        uint64 mem = 0;
-        for (int i = 0; i < ChildrenData.Len(); i++) {
-            mem += ChildrenData[i].GetMemUsed();
-        }
-        return mem;
+        return TMemUtils::GetExtraMemberSize(ChildrenData);
+        /* uint64 mem = 0; */
+        /* for (int i = 0; i < ChildrenData.Len(); i++) { */
+        /*     mem += ChildrenData[i].GetMemUsed(); */
+        /* } */
+        /* return mem; */
     }
 
 public:
@@ -260,17 +281,28 @@ public:
 
     // functions used by TCache
     uint64 GetMemUsed() const {
-        uint64 res = 2 * sizeof(TBool);
-        res += sizeof(int);
-        res += sizeof(TCRef);
-        res += sizeof(TGixMerger*);
-        res += sizeof(TGix<TKey, TItem, TGixMerger>*);
-        res += ItemSetKey.GetMemUsed();
-        res += ItemV.GetMemUsed();
-        res += ItemVDel.GetMemUsed();
-        res += Children.GetMemUsed();
-        res += ChildrenData.GetMemUsedDeep();
-        return res;
+        return sizeof(TGixItemSet) +
+               TMemUtils::GetExtraMemberSize(CRef) +
+               TMemUtils::GetExtraMemberSize(ItemSetKey) +
+               TMemUtils::GetExtraMemberSize(ItemV) +
+               TMemUtils::GetExtraMemberSize(ItemVDel) +
+               TMemUtils::GetExtraMemberSize(TotalCnt) +
+               TMemUtils::GetExtraMemberSize(Children) +
+               TMemUtils::GetExtraMemberSize(ChildrenData) +
+               TMemUtils::GetExtraMemberSize(MergedP) +
+               TMemUtils::GetExtraMemberSize(Dirty);
+
+        /* uint64 res = 2 * sizeof(TBool); */
+        /* res += sizeof(int); */
+        /* res += sizeof(TCRef); */
+        /* res += sizeof(TGixMerger*); */
+        /* res += sizeof(TGix<TKey, TItem, TGixMerger>*); */
+        /* res += ItemSetKey.GetMemUsed(); */
+        /* res += ItemV.GetMemUsed(); */
+        /* res += ItemVDel.GetMemUsed(); */
+        /* res += Children.GetMemUsed(); */
+        /* res += ChildrenData.GetMemUsed(true); */
+        /* return res; */
 
         /*return ItemSetKey.GetMemUsed() + ItemV.GetMemUsed() + ItemVDel.GetMemUsed()
             + Children.GetMemUsed() + ChildrenData.GetMemUsed() + GetChildMemUsed()
@@ -936,7 +968,7 @@ public:
         res += sizeof(TGixStats);
         res += GixFNm.GetMemUsed();
         res += GixBlobFNm.GetMemUsed();
-        res += KeyIdH.GetMemUsed();
+        res += KeyIdH.GetMemUsed(true);
         res += ItemSetCache.GetMemUsed();
         return res;
         /*return

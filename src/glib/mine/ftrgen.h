@@ -84,7 +84,8 @@ class TMultinomial {
 private:
     typedef enum {
         mtNormalize = (1 << 0),
-        mtBinary = (1 << 1)
+        mtBinary = (1 << 1),
+        mtLog = (1 << 2)
     } TMultinomialType;
     
 private:
@@ -93,12 +94,12 @@ private:
     /// Feature generation handled by categorical feature generator
     TCategorical FtrGen;
 
-    void Init(const bool& NormalizeP, const bool& BinaryP);
+    void Init(const bool& NormalizeP, const bool& BinaryP, const bool& LogP);
     
 public:
-    TMultinomial(const bool& NormalizeP = true, const bool& BinaryP = false);
-    TMultinomial(const bool& NormalizeP, const bool& BinaryP, const TStrV& ValV);
-    TMultinomial(const bool& NormalizeP, const bool& BinaryP, const int& HashDim);
+    TMultinomial(const bool& NormalizeP = true, const bool& BinaryP = false, const bool& LogP = false);
+    TMultinomial(const bool& NormalizeP, const bool& BinaryP, const bool& LogP, const TStrV& ValV);
+    TMultinomial(const bool& NormalizeP, const bool& BinaryP, const bool& LogP, const int& HashDim);
     TMultinomial(TSIn& SIn): Flags(SIn), FtrGen(SIn) { }
     void Save(TSOut& SOut) const;
 
@@ -116,6 +117,7 @@ public:
 
     bool IsNormalize() const { return ((Flags & mtNormalize) != 0); }
     bool IsBinary() const { return ((Flags & mtBinary) != 0); }
+    bool IsLog() const { return ((Flags & mtLog) != 0); }
 };
 
 ///////////////////////////////////////
