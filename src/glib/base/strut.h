@@ -32,6 +32,9 @@ public:
 	static TStr GetStr(const TUInt64UInt64IntTrV& UInt64UInt64IntTrV, const TStr& DelimiterStr = ",");
 	static TStr GetStr(const TIntSet& IntSet, const TStr& DelimiterStr = ",");
 
+    // format number 1234567 as "1,234,567"
+    static TStr GetStr(const int& Val, const TStr& ThousandDelimiterStr = ",");
+
 	template <class TKey, class TDat>
 	static TStr GetStr(const THash<TKey, TDat>& KeyDatH);
 };

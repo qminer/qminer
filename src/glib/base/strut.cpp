@@ -179,3 +179,17 @@ TStr TStrUtil::GetStr(const TStrH& StrH, const TStr& FieldDelimiterStr, const TS
   }
   return ResChA;
 }
+
+
+TStr TStrUtil::GetStr(const int& Val, const TStr& ThousandDelimiterStr)
+{
+    TStr StrVal = TInt(Val).GetStr();
+    int Ind = 0;
+    for (int N = StrVal.Len() - 1; N > 0; N--) {
+        Ind++;
+        if (Ind % 3 == 0) {
+            StrVal.InsStr(N, ThousandDelimiterStr);
+        }
+    }
+    return StrVal;
+}
