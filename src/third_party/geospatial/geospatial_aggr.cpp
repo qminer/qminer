@@ -16,7 +16,7 @@ namespace TStreamAggrs {
 ///////////////////////////////////////////////////////////////////////////////
 ///TGPSMeasurement
 ///////////////////////////////////////////////////////////////////////////////
-const TInt TGPSMeasurement::NumOfSensorActs = 16; //see shared_consts;
+const TInt TGPSMeasurement::NumOfSensorActs = 17; //see shared_consts;
 
 ///
 /// TGPSMeasurement constructor initializing TGPSMeasurement from Json
@@ -66,7 +66,7 @@ PJsonVal TGPSMeasurement::ToJson() const {
     Json->AddToObj("timeDiff", (int64)TimeDiff);
 
     PJsonVal JsonSensActivities = TJsonVal::NewArr();
-    //TODO: This is temporal until we have special aggregate - 16 is due to
+    //TODO: This is temporal until we have special aggregate - 17 is due to
     //consts in shared_consts.js (NextPin)
     int SenLen = SensorActivities.Len();
     for (int iSens = 0; iSens < SenLen; iSens++) {
@@ -229,7 +229,7 @@ PJsonVal TGeoCluster::ToJson(const TVec<TGPSMeasurement>& _GpsStateVec,
     JGeoAct->AddToObj("startIdx", MStartIdx);
     JGeoAct->AddToObj("endIdx", MEndIdx);
 
-    //TODO: This is temporal until we have special aggregate - 16 is due to
+    //TODO: This is temporal until we have special aggregate - 17 is due to
     //consts in shared_consts.js (NextPin)
     PJsonVal JSenActArr = TJsonVal::NewArr();
     int SenLen = AvgSensorActs.Len();
