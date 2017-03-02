@@ -357,6 +357,18 @@ describe('RecursiveLinearRegression Tests', function () {
             assert.deepEqual(linreg.getParams(), linreg2.getParams());
             assert.eqtol(linreg.weights.minus(linreg2.weights).norm(), 0, 1e-8);
         })
+        it('should serialize and deserialize a non-initialized model', function () {
+            var linreg = new analytics.RecLinReg({ dim: 2, regFact: 1e-10, forgetFact: 1.0 });
+            // assert.doesNotThrow(function () {
+                var fout = require('qminer').fs.openWrite('reclinreg_test-empty.bin');
+                linreg.save(fout);
+                fout.close();
+                var fin = require('qminer').fs.openRead('reclinreg_test-empty.bin');
+                var loaded = new analytics.RecLinReg(fin);
+                assert.deepEqual(linreg.getParams(), loaded.getParams());
+                assert.eqtol(linreg.weights.minus(loaded.weights).norm(), 0, 1e-8);
+            // })
+        })
     });
     describe('testing forget factor', function () {
         it('should return correct weights', function () {

@@ -964,7 +964,7 @@ private:
     TFlt RegFact;           // regularization
 
     TFltVV CovVV;           // covariance matrix at step n
-    TFltV bn;               // sum_{i=1}^n x_i*y_i
+    TFltV Xy;               // sum_{i=1}^n x_i*y_i
     TInt SampleN;           // the number of examples we have learned
 
     TFltV WgtV;             // vector of weights

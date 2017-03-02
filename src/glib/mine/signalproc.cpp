@@ -1389,7 +1389,7 @@ TOnlineLinReg::TOnlineLinReg(const int& Dim, const double& _RegFact,
         ForgetFact(_ForgetFact),
         RegFact(_RegFact),
         CovVV(Dim, Dim),
-        bn(Dim, Dim),
+        Xy(Dim, Dim),
         SampleN(0),
         WgtV(Dim, Dim) {
 
@@ -1402,7 +1402,7 @@ TOnlineLinReg::TOnlineLinReg(TSIn& SIn):
         ForgetFact(SIn),
         RegFact(SIn),
         CovVV(SIn),
-        bn(SIn),
+        Xy(SIn),
         SampleN(SIn),
         WgtV(SIn) {}
 
@@ -1410,7 +1410,7 @@ void TOnlineLinReg::Save(TSOut& SOut) const {
     ForgetFact.Save(SOut);
     RegFact.Save(SOut);
     CovVV.Save(SOut);
-    bn.Save(SOut);
+    Xy.Save(SOut);
     SampleN.Save(SOut);
     WgtV.Save(SOut);
 }
@@ -1419,7 +1419,7 @@ TOnlineLinReg::TOnlineLinReg(const TOnlineLinReg& LinReg):
         ForgetFact(LinReg.ForgetFact),
         RegFact(LinReg.RegFact),
         CovVV(LinReg.CovVV),
-        bn(LinReg.bn),
+        Xy(LinReg.Xy),
         SampleN(LinReg.SampleN),
         WgtV(LinReg.WgtV) {}
 
@@ -1434,7 +1434,7 @@ TOnlineLinReg::TOnlineLinReg(const TOnlineLinReg&& LinReg):
         ForgetFact(std::move(LinReg.ForgetFact)),
         RegFact(std::move(LinReg.RegFact)),
         CovVV(std::move(LinReg.CovVV)),
-        bn(std::move(LinReg.bn)),
+        Xy(std::move(LinReg.Xy)),
         SampleN(std::move(LinReg.SampleN)),
         WgtV(std::move(LinReg.WgtV)) {}
 
@@ -1444,7 +1444,7 @@ TOnlineLinReg& TOnlineLinReg::operator =(TOnlineLinReg&& LinReg) {
     std::swap(ForgetFact, LinReg.ForgetFact);
     std::swap(RegFact, LinReg.RegFact);
     std::swap(CovVV, LinReg.CovVV);
-    std::swap(bn, LinReg.bn);
+    std::swap(Xy, LinReg.Xy);
     std::swap(SampleN, LinReg.SampleN);
     std::swap(WgtV, LinReg.WgtV);
 
@@ -1459,38 +1459,41 @@ void TOnlineLinReg::Learn(const TFltV& FtrV, const double& Val) {
     const int Dim = CovVV.GetRows();
     // if the forget factor is enabled, then first update the covariance matrix and X'y
     // Cn <- beta*Cn
-    // bn <- beta*bn
+    // Xy <- beta*Xy
     if (ForgetFact < 1) {
-        TLinAlg::MultiplyScalar(ForgetFact, CovVV, CovVV);
-        TLinAlg::MultiplyScalar(ForgetFact, bn, bn);
+        CovVV *= ForgetFact;
+        Xy *= ForgetFact;
     }
     // add the last sample
     // Cn <- (beta*Cn) + x*x'
-    // bn <- (beta*bn) + x*y
+    // Xy <- (beta*Xy) + x*y
     for (int RowN = 0; RowN < Dim; RowN++) {
         for (int ColN = 0; ColN < Dim; ColN++) {
             CovVV(RowN, ColN) += FtrV[RowN]*FtrV[ColN];
         }
-        bn[RowN] += FtrV[RowN]*Val;
+        Xy[RowN] += FtrV[RowN]*Val;
     }
     // update n
     SampleN++;
 
     // update the weight vector
-    // XX <- Cn / n + lambda*I
-    TFltVV XX;
-    TFltV Xy;
-    TLinAlg::MultiplyScalar(1.0 / double(SampleN), CovVV, XX);
+    // w = (Cn / n + lambda*I) \ (Xy / n)
+
+    // XX <- Cn / n
+    // Xy <= Xy / n
+    TFltVV XX = CovVV / double(SampleN);
+    TFltV XyByN = Xy / double(SampleN);
+
+    // regularize
+    // XX <- (Cn / n) + lambda*I
     if (RegFact > 0.0) {
         for (int ValN = 0; ValN < Dim; ValN++) {
             XX(ValN, ValN) += RegFact;
         }
     }
-    // Xy <= bn / n
-    TLinAlg::MultiplyScalar(1.0 / double(SampleN), bn, Xy);
     // solve the system
     // w = XX \ Xy
-    TNumericalStuff::SolveLinearSystem(XX, Xy, WgtV);
+    TNumericalStuff::SolveLinearSystem(XX, XyByN, WgtV);
 }
 
 void TOnlineLinReg::GetCoeffs(TFltV& _WgtV) const {

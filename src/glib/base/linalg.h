@@ -948,6 +948,29 @@ public:
 	static void NonNegProj(TFltVV& Mat);
 };
 
+//===========================================================
+// OPERATORS
+//===========================================================
+
+// subtract
+TEMP_LA TDenseVV operator -(const TDenseVV& X, const TDenseVV& Y);
+TEMP_LA TDenseV operator -(const TDenseV& X, const TDenseV& Y);
+// multiply
+// Z = X*Y
+TEMP_LA TDenseVV operator *(const TDenseVV& X, const TDenseVV& Y);
+// Z = X*k
+TEMP_LA TDenseVV operator *(const TDenseVV& X, const double& k);
+
+TEMP_LA TDenseVV& operator *=(TDenseVV& X, const double& k);
+TEMP_LA TDenseV& operator *=(TDenseV& X, const double& k);
+
+// divide
+// Y = X / k
+TEMP_LA TDenseVV operator /(const TDenseVV& X, const double& k);
+// y = Vec / k
+TEMP_LA TDenseV operator /(const TDenseV& Vec, const double& k);
+
+
 #ifdef LAPACKE
 #include "MKLfunctions.h"
 #endif

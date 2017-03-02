@@ -2739,6 +2739,66 @@ TType TLinAlg::Trace(const TVVec<TNum<TType>, TSizeTy, ColMajor>& Mat) {
 	return sum;
 }
 
+template <class TType, class TSizeTy, bool ColMajor>
+TVVec<TNum<TType>, TSizeTy, ColMajor> operator -(const TVVec<TNum<TType>, TSizeTy, ColMajor>& X,
+        const TVVec<TNum<TType>, TSizeTy, ColMajor>& Y) {
+    TVVec<TNum<TType>, TSizeTy, ColMajor> Z(X.GetRows(), X.GetCols());
+    TLinAlg::LinComb(1.0, X, -1.0, Y, Z);
+    return Z;
+}
+
+template <class TType, class TSizeTy, bool ColMajor>
+TVec<TNum<TType>, TSizeTy> operator -(const TVVec<TNum<TType>, TSizeTy>& X,
+        const TVVec<TNum<TType>, TSizeTy>& Y) {
+    TVVec<TNum<TType>, TSizeTy> Z(X.Len(), X.Len());
+    TLinAlg::AddVec(-1.0, Y, X, Z);
+    return Z;
+}
+
+template <class TType, class TSizeTy, bool ColMajor>
+TVVec<TNum<TType>, TSizeTy, ColMajor> operator *(const TVVec<TNum<TType>, TSizeTy, ColMajor>& X,
+        const TVVec<TNum<TType>, TSizeTy, ColMajor>& Y) {
+    TVVec<TNum<TType>, TSizeTy, ColMajor> Z(X.GetRows(), Y.GetCols());
+    TLinAlg::Multiply(X, Y, Z);
+    return Z;
+}
+
+template <class TType, class TSizeTy, bool ColMajor>
+TVVec<TNum<TType>, TSizeTy, ColMajor> operator *(const TVVec<TNum<TType>, TSizeTy, ColMajor>& X,
+        const double& k) {
+    TVVec<TNum<TType>, TSizeTy, ColMajor> Y(X.GetRows(), X.GetCols());
+    TLinAlg::MultiplyScalar(k, X, Y);
+    return Y;
+}
+
+template <class TType, class TSizeTy, bool ColMajor>
+TVVec<TNum<TType>, TSizeTy, ColMajor>& operator *=(TVVec<TNum<TType>, TSizeTy, ColMajor>& X,
+        const double& k) {
+    TLinAlg::MultiplyScalar(k, X, X);
+    return X;
+}
+
+template <class TType, class TSizeTy, bool ColMajor>
+TVec<TNum<TType>, TSizeTy>& operator *=(TVVec<TNum<TType>, TSizeTy>& Vec, const double& k) {
+    TLinAlg::MultiplyScalar(k, Vec, Vec);
+    return Vec;
+}
+
+template <class TType, class TSizeTy, bool ColMajor>
+TVVec<TNum<TType>, TSizeTy, ColMajor> operator /(const TVVec<TNum<TType>, TSizeTy, ColMajor>& X,
+        const double& k) {
+    TVVec<TNum<TType>, TSizeTy, ColMajor> Y(X.GetRows(), X.GetCols());
+    TLinAlg::MultiplyScalar(1 / k, X, Y);
+    return Y;
+}
+
+template <class TType, class TSizeTy, bool ColMajor>
+TVec<TNum<TType>, TSizeTy> operator /(const TVec<TNum<TType>, TSizeTy>& Vec,
+        const double& k) {
+    TVec<TNum<TType>, TSizeTy> Res(Vec.Len(), Vec.Len());
+    TLinAlg::MultiplyScalar(1 / k, Vec, Res);
+    return Res;
+}
 
 /////////////////////////////////////////////////////////////////////////
 //// Full-Matrix
