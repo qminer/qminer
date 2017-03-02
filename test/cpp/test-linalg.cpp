@@ -31,9 +31,16 @@ void InitFltVV(TFltVV& FltVV) {
     }
 }
 
+void InitFltV(TFltV& FltV) {
+    TRnd Rnd;
+    for (int ValN = 0; ValN < FltV.Len(); ValN++) {
+        FltV[ValN] = Rnd.GetUniDev();
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 TEST(TLinAlg, OperatorsSubtract) {
-    int Dim = 4;
+    int Dim {4};
 
     TFltVV X {Dim, Dim};
     TFltVV Y {Dim, Dim};
@@ -50,13 +57,14 @@ TEST(TLinAlg, OperatorsSubtract) {
 }
 
 TEST(TLinAlg, OperatorsMultiply) {
+    // MATRICES
     TIntPr Dim1 {3, 4};
     TIntPr Dim2 {4, 2};
     TIntPr BadDim {7, 4};
 
     TFltVV X {Dim1.Val1, Dim1.Val2};    InitFltVV(X);
     TFltVV Y {Dim2.Val1, Dim2.Val2};    InitFltVV(Y);
-    const double k = 3;
+    const double k {3};
 
     const TFltVV Z1 = X * Y;
     TFltVV ExpectedZ1;  TLinAlg::Multiply(X, Y, ExpectedZ1);
@@ -68,6 +76,16 @@ TEST(TLinAlg, OperatorsMultiply) {
 
     ASSERT_NEAR(TLinAlg::FrobNorm(Z2 - ExpectedZ2), 0, Tol);
     ASSERT_ANY_THROW(X*TFltVV(BadDim.Val1, BadDim.Val2));
+
+
+    // VECTORS
+    const int VecDim {5};
+    TFltV Vec1 {VecDim, VecDim};    InitFltV(Vec1);
+    TFltV Vec2 {VecDim, VecDim};    InitFltV(Vec2);
+    TFltV BadVec {VecDim+1, VecDim+1};
+
+    ASSERT_NEAR(Vec1 * Vec2, TLinAlg::DotProduct(Vec1, Vec2), Tol);
+    ASSERT_ANY_THROW(Vec1 * BadVec);
 }
 
 TEST(TLinAlg, OperatorsDivide) {

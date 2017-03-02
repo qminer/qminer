@@ -1452,7 +1452,7 @@ TOnlineLinReg& TOnlineLinReg::operator =(TOnlineLinReg&& LinReg) {
 }
 
 double TOnlineLinReg::Predict(const TFltV& Sample) {
-    return TLinAlg::DotProduct(WgtV, Sample);
+    return WgtV * Sample;
 }
 
 void TOnlineLinReg::Learn(const TFltV& FtrV, const double& Val) {

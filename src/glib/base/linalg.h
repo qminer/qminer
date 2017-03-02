@@ -955,14 +955,18 @@ public:
 // subtract
 TEMP_LA TDenseVV operator -(const TDenseVV& X, const TDenseVV& Y);
 TEMP_LA TDenseV operator -(const TDenseV& X, const TDenseV& Y);
+
 // multiply
 // Z = X*Y
 TEMP_LA TDenseVV operator *(const TDenseVV& X, const TDenseVV& Y);
-// Z = X*k
-TEMP_LA TDenseVV operator *(const TDenseVV& X, const double& k);
+TEMP_LA TType operator *(const TDenseV& Vec1, const TDenseV& Vec2);
+// Z = Vec*k
+TEMP_LA TDenseVV operator *(const TDenseVV& Vec, const double& k);
 
+// X = X*k
 TEMP_LA TDenseVV& operator *=(TDenseVV& X, const double& k);
-TEMP_LA TDenseV& operator *=(TDenseV& X, const double& k);
+// Vec = Vec*k
+TEMP_LA TDenseV& operator *=(TDenseV& Vec, const double& k);
 
 // divide
 // Y = X / k

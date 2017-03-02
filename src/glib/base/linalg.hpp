@@ -2764,6 +2764,11 @@ TVVec<TNum<TType>, TSizeTy, ColMajor> operator *(const TVVec<TNum<TType>, TSizeT
 }
 
 template <class TType, class TSizeTy, bool ColMajor>
+TType operator *(const TVec<TNum<TType>, TSizeTy>& Vec1, const TVec<TNum<TType>, TSizeTy>& Vec2) {
+    return TLinAlg::DotProduct(Vec1, Vec2);
+}
+
+template <class TType, class TSizeTy, bool ColMajor>
 TVVec<TNum<TType>, TSizeTy, ColMajor> operator *(const TVVec<TNum<TType>, TSizeTy, ColMajor>& X,
         const double& k) {
     TVVec<TNum<TType>, TSizeTy, ColMajor> Y(X.GetRows(), X.GetCols());
@@ -2779,7 +2784,7 @@ TVVec<TNum<TType>, TSizeTy, ColMajor>& operator *=(TVVec<TNum<TType>, TSizeTy, C
 }
 
 template <class TType, class TSizeTy, bool ColMajor>
-TVec<TNum<TType>, TSizeTy>& operator *=(TVVec<TNum<TType>, TSizeTy>& Vec, const double& k) {
+TVec<TNum<TType>, TSizeTy>& operator *=(TVec<TNum<TType>, TSizeTy>& Vec, const double& k) {
     TLinAlg::MultiplyScalar(k, Vec, Vec);
     return Vec;
 }
