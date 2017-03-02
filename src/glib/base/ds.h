@@ -509,7 +509,7 @@ public:
     AssertR((0<=ValN)&&(ValN<Vals), GetXOutOfBoundsErrMsg(ValN));
     return ValT[ValN];}
 
-  /// Get the memory usage of this vector. DeepP indicates whether the usage of 
+  /// Get the memory usage of this vector. DeepP indicates whether the usage of
   /// each individual element should be included in the calculation
   uint64 GetMemUsed(const bool& DeepP = false) const { return GetVecMemUsed(DeepP); }
 
