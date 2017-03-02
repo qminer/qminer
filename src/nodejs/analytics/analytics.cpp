@@ -1100,7 +1100,7 @@ void TNodeJsNNAnomalies::init(v8::Local<v8::String> Name, const v8::PropertyCall
 
 ////////////////////////////////////////////////
 // QMiner-NodeJS-Recursive-Linear-Regression
-TNodeJsRecLinReg::TNodeJsRecLinReg(const TSignalProc::PRecLinReg& _Model):
+TNodeJsRecLinReg::TNodeJsRecLinReg(const TSignalProc::POnlineLinReg& _Model):
         Model(_Model) {}
 
 
@@ -1137,7 +1137,7 @@ TNodeJsRecLinReg* TNodeJsRecLinReg::NewFromArgs(const v8::FunctionCallbackInfo<v
 
     if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFIn::GetClassId())) {
         TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
-        return new TNodeJsRecLinReg(TSignalProc::TRecLinReg::Load(*JsFIn->SIn));
+        return new TNodeJsRecLinReg(TSignalProc::TOnlineLinReg::Load(*JsFIn->SIn));
     }
     else {
         PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
@@ -1146,7 +1146,7 @@ TNodeJsRecLinReg* TNodeJsRecLinReg::NewFromArgs(const v8::FunctionCallbackInfo<v
         const double RegFact = ParamVal->GetObjNum("regFact", 1.0);
         const double ForgetFact = ParamVal->GetObjNum("forgetFact", 1.0);
 
-        return new TNodeJsRecLinReg(TSignalProc::TRecLinReg::New(Dim, RegFact, ForgetFact));
+        return new TNodeJsRecLinReg(TSignalProc::TOnlineLinReg::New(Dim, RegFact, ForgetFact));
     }
 }
 
@@ -1247,9 +1247,9 @@ void TNodeJsRecLinReg::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args
     const double ForgetFact = ParamVal->GetObjNum("forgetFact", Model->Model->GetForgetFact());
 
     // copy the values
-    Model->Model->setForgetFact(ForgetFact);
-    Model->Model->setRegFact(RegFact);
-    Model->Model->setDim(Dim);
+    Model->Model->SetForgetFact(ForgetFact);
+    Model->Model->SetRegFact(RegFact);
+    Model->Model->SetDim(Dim);
 
     Args.GetReturnValue().Set(Args.Holder());
 }
