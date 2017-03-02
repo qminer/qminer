@@ -132,11 +132,11 @@ describe('Stream Aggregator Tests', function () {
                 this.loadStateJson = function (_state) {
                     state = _state;
                 }
-            }, 'People');            
+            }, 'People');
             var s0 = aggr.saveStateJson();
             assert.equal(s0.calls, 0);
             aggr.onStep();
-            
+
             var s1 = aggr.saveStateJson();
             assert.equal(s1.calls, 1);
             // new aggregate
