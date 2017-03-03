@@ -16,6 +16,7 @@ Bug fixes:
 
 Other:
 - Cleaned up duplicate code introduced whith `GixSmall`
+- Added Windows pre-gyp for Node 7
 
 ### 24 February 2017
 
