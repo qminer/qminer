@@ -1283,7 +1283,6 @@ PJsonVal TNodeJsFuncStreamAggr::GetParams() const {
     if (GetParamsFun.IsEmpty()) {
         throw TQm::TQmExcept::New("TNodeJsFuncStreamAggr::GetParams (called using sa.getParams) : stream aggregate does not implement a getParams callback: " + GetAggrNm());
     } else {
-        // create TNodeJsFOut and pass it to callback
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::HandleScope HandleScope(Isolate);
 
@@ -1301,7 +1300,6 @@ void TNodeJsFuncStreamAggr::SetParams(const PJsonVal& Params) {
     if (SetParamsFun.IsEmpty()) {
         throw TQm::TQmExcept::New("TNodeJsFuncStreamAggr::SetParams (called using sa.setParams) : stream aggregate does not implement a setParams callback: " + GetAggrNm());
     } else {
-        // create TNodeJsFOut and pass it to callback
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::HandleScope HandleScope(Isolate);
 
