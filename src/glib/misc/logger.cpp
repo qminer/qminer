@@ -24,7 +24,7 @@ void TLogger::NotifyVerboseFmt(const int& VerbosityLevel, const char *FmtStr, ..
 {
     if (this->VerbosityLevel >= VerbosityLevel) {
         va_list valist; va_start(valist, FmtStr);   
-        Notify(ntInfo, FmtStr, valist); va_end(valist); 
+        NotifyFmt(ntInfo, FmtStr, valist); va_end(valist); 
     }
 }
 
@@ -32,26 +32,41 @@ void TLogger::NotifyVerboseFmt(const int& VerbosityLevel, const TNotifyType& Typ
 {
     if (this->VerbosityLevel >= VerbosityLevel) {
         va_list valist; va_start(valist, FmtStr);
-        Notify(Type, FmtStr, valist); va_end(valist);
+        NotifyFmt(Type, FmtStr, valist); va_end(valist);
     }
 }
 
-void TLogger::NotifyInfo(const char *FmtStr, ...) 
+void TLogger::NotifyInfo(const char *Str)
+{
+    Notify(ntInfo, Str);
+}
+
+void TLogger::NotifyWarn(const char *Str)
+{
+    Notify(ntWarn, Str);
+}
+
+void TLogger::NotifyErr(const char *Str)
+{
+    Notify(ntErr, Str);
+}
+
+void TLogger::NotifyInfoFmt(const char *FmtStr, ...) 
 {
     va_list valist; va_start(valist, FmtStr);   
-    Notify(ntInfo, FmtStr, valist); va_end(valist); 
+    NotifyFmt(ntInfo, FmtStr, valist); va_end(valist); 
 }
 
-void TLogger::NotifyWarn(const char *FmtStr, ...)
+void TLogger::NotifyWarnFmt(const char *FmtStr, ...)
 {
     va_list valist; va_start(valist, FmtStr);
-    Notify(ntWarn, FmtStr, valist); va_end(valist);
+    NotifyFmt(ntWarn, FmtStr, valist); va_end(valist);
 }
 
-void TLogger::NotifyErr(const char *FmtStr, ...) 
+void TLogger::NotifyErrFmt(const char *FmtStr, ...) 
 {
     va_list valist; va_start(valist, FmtStr);
-    Notify(ntErr, FmtStr, valist); va_end(valist); 
+    NotifyFmt(ntErr, FmtStr, valist); va_end(valist);
 }
 
 void TLogger::NotifyErr(const char *Str, const PExcept& Except)
@@ -61,7 +76,7 @@ void TLogger::NotifyErr(const char *Str, const PExcept& Except)
 }
 
 
-void TLogger::Notify(const TNotifyType& Type, const char *FmtStr, va_list argptr) 
+void TLogger::NotifyFmt(const TNotifyType& Type, const char *FmtStr, va_list argptr) 
 {
     const int RetVal=vsnprintf(NotifyBuff, NOTIFY_BUFF_SIZE-2, FmtStr, argptr);
     if (RetVal < 0) return;

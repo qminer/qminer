@@ -64,12 +64,16 @@ public:
     void NotifyVerboseFmt(const int& VerbosityLevel, const char *FmtStr, ...);
     void NotifyVerboseFmt(const int& VerbosityLevel, const TNotifyType& Type, const char *FmtStr, ...);
     
-    void NotifyInfo(const char *FmtStr, ...);
-    void NotifyWarn(const char *FmtStr, ...);
-    void NotifyErr(const char *FmtStr, ...);
+    void NotifyInfo(const char *Str);
+    void NotifyWarn(const char *Str);
+    void NotifyErr(const char *Str);
+
+    void NotifyInfoFmt(const char *FmtStr, ...);
+    void NotifyWarnFmt(const char *FmtStr, ...);
+    void NotifyErrFmt(const char *FmtStr, ...);
     void NotifyErr(const char *Str, const PExcept& Except);
-    void Notify(const TNotifyType& Type, const char *FmtStr, va_list argptr);
-    void Notify(const TNotifyType& Type, const char *FmtStr);
+    void NotifyFmt(const TNotifyType& Type, const char *FmtStr, va_list argptr);
+    void Notify(const TNotifyType& Type, const char *Str);
 
     static void PrintInfo(const TStr& Str);
     static void PrintWarning(const TStr& Str);
