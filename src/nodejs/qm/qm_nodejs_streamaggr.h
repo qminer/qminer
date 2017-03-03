@@ -2633,7 +2633,7 @@ public:
     void LoadStateJson(const PJsonVal& State);
 
     PJsonVal GetParams() const;
-    void SetParams(const PJsonVal& State);
+    void SetParams(const PJsonVal& Params);
 
     // IInt
     int GetInt() const;

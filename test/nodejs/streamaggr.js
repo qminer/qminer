@@ -158,6 +158,27 @@ describe('Stream Aggregator Tests', function () {
             var s2 = aggr2.saveStateJson();
             assert.equal(s2.calls, 1);
         });
+        it('should test getParams and setParams', function () {
+            var s = new qm.StreamAggr(base, new function () {
+                var data = {};
+                var val = 1;
+                this.onAdd = function (rec) {
+                    data[rec.Name] = data[rec.Name] == undefined ? 1 : data[rec.Name] + 1;
+                };
+                this.saveJson = function (limit) {
+                    return data;
+                };
+                this.getParams = function () {
+                    return val;
+                };
+                this.setParams = function (value) {
+                    val = value;
+                };
+            });
+            assert.equal(s.getParams(), 1);
+            assert.equal(s.setParams(2), null);
+            assert.equal(s.getParams(), 2);
+        });
         it('should test getFloat and getInteger with string input', function () {
             var s = new qm.StreamAggr(base, new function () {
                 var data = {};

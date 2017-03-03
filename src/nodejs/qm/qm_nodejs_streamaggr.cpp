@@ -1297,7 +1297,7 @@ PJsonVal TNodeJsFuncStreamAggr::GetParams() const {
     }
 }
 
-void TNodeJsFuncStreamAggr::SetParams(const PJsonVal& State) {
+void TNodeJsFuncStreamAggr::SetParams(const PJsonVal& Params) {
     if (SetParamsFun.IsEmpty()) {
         throw TQm::TQmExcept::New("TNodeJsFuncStreamAggr::SetParams (called using sa.setParams) : stream aggregate does not implement a setParams callback: " + GetAggrNm());
     } else {
@@ -1305,12 +1305,12 @@ void TNodeJsFuncStreamAggr::SetParams(const PJsonVal& State) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::HandleScope HandleScope(Isolate);
 
-        v8::Local<v8::Value> StateObj = TNodeJsUtil::ParseJson(Isolate, State);
+        v8::Local<v8::Value> ParamObj = TNodeJsUtil::ParseJson(Isolate, Params);
 
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, SetParamsFun);
         v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
         const unsigned Argc = 1;
-        v8::Local<v8::Value> ArgV[Argc] = { StateObj };
+        v8::Local<v8::Value> ArgV[Argc] = { ParamObj };
         v8::TryCatch TryCatch;
         Callback->Call(This, Argc, ArgV);
         TNodeJsUtil::CheckJSExcept(TryCatch);
