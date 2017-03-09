@@ -223,8 +223,8 @@ PJsonVal TGeoCluster::ToJson(const TVec<TGPSMeasurement>& _GpsStateVec,
     JGeoAct->AddToObj("end_time", Depart);
     JGeoAct->AddToObj("duration", (Depart - Arrive) / 1000);
     JGeoAct->AddToObj("locationsNum", this->Len());
-    JGeoAct->AddToObj("avgSpeed", AvgSpeed);
-    JGeoAct->AddToObj("avgAccuracy", AvgAccuracy);
+    JGeoAct->AddToObj("avg_speed", AvgSpeed);
+    JGeoAct->AddToObj("avg_accuracy", AvgAccuracy);
     JGeoAct->AddToObj("distance", Distance);
     JGeoAct->AddToObj("startIdx", MStartIdx);
     JGeoAct->AddToObj("endIdx", MEndIdx);
