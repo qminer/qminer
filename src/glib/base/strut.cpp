@@ -180,7 +180,6 @@ TStr TStrUtil::GetStr(const TStrH& StrH, const TStr& FieldDelimiterStr, const TS
   return ResChA;
 }
 
-
 TStr TStrUtil::GetStr(const int& Val, const TStr& ThousandDelimiterStr)
 {
     TStr StrVal = TInt(Val).GetStr();
@@ -192,4 +191,15 @@ TStr TStrUtil::GetStr(const int& Val, const TStr& ThousandDelimiterStr)
         }
     }
     return StrVal;
+}
+
+TStr TStrUtil::GetHMSStrFromMSecs(const uint64& TmMSecs) {
+    TChAV DurChA;
+    uint64 DispDur = TmMSecs / 1000;
+
+    const int Secs = int(DispDur % 60);   DispDur /= 60;
+    const int Mins = int(DispDur % 60);   DispDur /= 60;
+    const int Hours = int(DispDur);
+
+    return TStr::Fmt("%dh%dm%ds", Hours, Mins, Secs);
 }

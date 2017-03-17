@@ -38,7 +38,8 @@ void TWinBufMem<TVal>::UpdateTime() {
 }
 
 template <class TVal>
-void TWinBufMem<TVal>::OnAddRec(const TRec& Rec) {
+void TWinBufMem<TVal>::OnAddRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
     // Always read new value
     UpdateVal();
     // Update the time buffers
@@ -46,7 +47,8 @@ void TWinBufMem<TVal>::OnAddRec(const TRec& Rec) {
 }
 
 template <class TVal>
-void TWinBufMem<TVal>::OnTime(const uint64& TmMsec) {
+void TWinBufMem<TVal>::OnTime(const uint64& TmMsec, const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
     // Update value only when set to always update
     if (UpdateType == wbmuAlways) { UpdateVal(); }
     // Update the time buffers
@@ -54,7 +56,8 @@ void TWinBufMem<TVal>::OnTime(const uint64& TmMsec) {
 }
 
 template <class TVal>
-void TWinBufMem<TVal>::OnStep() {
+void TWinBufMem<TVal>::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
     // Update value only when set to always update
     if (UpdateType == wbmuAlways) { UpdateVal(); }
     // Update the time buffers
@@ -65,7 +68,8 @@ template <class TVal>
 TWinBufMem<TVal>::TWinBufMem(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal) {
     // parse out input aggregate
     InAggr = ParseAggr(ParamVal, "inAggr");
-    InAggrTm = Cast<TStreamAggrOut::ITm>(InAggr);    
+    InAggrTm = Cast<TStreamAggrOut::ITm>(ParamVal->IsObjKey("inAggrTm") ?
+            ParseAggr(ParamVal, "inAggrTm") : InAggr);
     // when should we pump in new values?
     TStr UpdateTypeStr = ParamVal->GetObjStr("update", "onNewRecord");
     UpdateType = (UpdateTypeStr == "onNewRecord") ? wbmuOnAddRec : wbmuAlways;
@@ -138,15 +142,16 @@ PJsonVal TWinBufMem<TVal>::SaveJson(const int& Limit) const {
 ///////////////////////////////
 // Time series window buffer.
 template <class TVal>
-void TWinBuf<TVal>::OnAddRec(const TRec& Rec) {
+void TWinBuf<TVal>::OnAddRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr) {
     InitP = true;
 
     uint64 Timestamp_ = Rec.GetFieldTmMSecs(TimeFieldId);
-    OnTime(Timestamp_);
+    OnTime(Timestamp_, CallerAggr);
 }
 
 template <class TVal>
-void TWinBuf<TVal>::OnTime(const uint64& TmMsec) {
+void TWinBuf<TVal>::OnTime(const uint64& TmMsec, const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
     InitP = true;
 
     Timestamp = TmMsec;
@@ -177,9 +182,9 @@ TWinBuf<TVal>::TWinBuf(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStr
     // parse out input and output fields
     ParamVal->AssertObjKeyStr("store", __FUNCTION__);
     TStr StoreNm = ParamVal->GetObjStr("store");
-    Store = Base->GetStoreByStoreNm(StoreNm);   
+    Store = Base->GetStoreByStoreNm(StoreNm);
     // validate object has key, key is string. input: name
-    ParamVal->AssertObjKeyStr("timestamp", __FUNCTION__);   
+    ParamVal->AssertObjKeyStr("timestamp", __FUNCTION__);
     TStr TimeFieldNm = ParamVal->GetObjStr("timestamp");
     TimeFieldId = Store->GetFieldId(TimeFieldNm);
     ParamVal->AssertObjKeyNum("winsize", __FUNCTION__);
@@ -228,7 +233,7 @@ void TWinBuf<TVal>::GetInValV(TVec<TVal>& ValV) const {
     if (ValV.Len() != UpdateRecords) { ValV.Gen(UpdateRecords); }
     // iterate
     if (UpdateRecords > 0) {
-        EAssertR(Store->IsRecId(C + Skip) && Store->IsRecId(C + Skip + UpdateRecords - 1), 
+        EAssertR(Store->IsRecId(C + Skip) && Store->IsRecId(C + Skip + UpdateRecords - 1),
             "WinBuf::GetInValV record not in store! Possible reason: store is windowed and window is too "
             "small and it does not fully contain the buffer");
     }
@@ -393,7 +398,8 @@ void TWinBuf<TVal>::PrintInterval(const uint64& StartId, const uint64& EndId, co
 ///////////////////////////////
 // Windowed Stream aggregates
 template <class TSignalType>
-void TWinAggr<TSignalType>::OnStep() {
+void TWinAggr<TSignalType>::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
     if (InAggr->IsInit()) {
         TFltV InValV; InAggrFltIO->GetInValV(InValV);
         TUInt64V InTmMSecsV; InAggrTmIO->GetInTmMSecsV(InTmMSecsV);
@@ -424,7 +430,8 @@ PJsonVal TWinAggr<TSignalType>::SaveJson(const int& Limit) const {
 ///////////////////////////////
 /// Windowed stream aggregates
 template <class TSignalType>
-void TWinAggrSpVec<TSignalType>::OnStep() {
+void TWinAggrSpVec<TSignalType>::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
     if (InAggr->IsInit()) {
         TVec<TIntFltKdV> InValV; InAggrSparseVecIO->GetInValV(InValV);
         TUInt64V InTmMSecsV; InAggrTmIO->GetInTmMSecsV(InTmMSecsV);

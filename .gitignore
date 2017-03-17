@@ -12,6 +12,9 @@
 *.la
 *.a
 
+# compiled python files
+*.pyc
+
 # project files folder
 project
 
@@ -31,6 +34,14 @@ npm-debug.log
 .metadata
 # project files from NetBeans
 nbproject
+
+# Vim
+.vimrc
+.ycm_extra_conf.py
+/tags
+/cscope.out
+/cscope.po.out
+/cscope.in.out
 
 # build results
 build

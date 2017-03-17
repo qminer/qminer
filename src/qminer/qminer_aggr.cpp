@@ -534,7 +534,8 @@ namespace TStreamAggrs {
 
 ///////////////////////////////
 // Record Id Buffer.
-void TRecBuffer::OnAddRec(const TRec& Rec) {
+void TRecBuffer::OnAddRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
     QmAssertR(Rec.IsByRef(), "TRecBuffer::OnAddRec supports records by ref only!");
     QmAssertR(Rec.GetStoreId() == Store->GetStoreId(), "TRecBuffer::OnAddRec record store id mismatch");
     Buffer.Update(Rec.GetRecId());
@@ -571,17 +572,19 @@ PJsonVal TRecBuffer::SaveJson(const int& Limit) const {
 
 ///////////////////////////////
 // Time series tick.
-void TTimeSeriesTick::OnAddRec(const TRec& Rec) {
+void TTimeSeriesTick::OnAddRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
     TickVal = ValReader.GetFlt(Rec);
     TmMSecs = Rec.GetFieldTmMSecs(TimeFieldId);
     InitP = true;
 }
 
-void TTimeSeriesTick::OnTime(const uint64& Time) {
+void TTimeSeriesTick::OnTime(const uint64& Time, const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
     TmMSecs = Time;
 }
 
-void TTimeSeriesTick::OnStep() {
+void TTimeSeriesTick::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
     throw TExcept::New("[TTimeSeriesTick] OnStep should have not been executed.");
 }
 
@@ -628,6 +631,90 @@ PJsonVal TTimeSeriesTick::SaveJson(const int& Limit) const {
 }
 
 ///////////////////////////////
+// Time series tick that works on sparse vectors.
+void TTimeSeriesSparseVectorTick::OnAddRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
+    TickVal.Clr();
+    ValReader.GetNumSpV(Rec, TickVal);
+    TmMSecs = Rec.GetFieldTmMSecs(TimeFieldId);
+    InitP = true;
+}
+
+void TTimeSeriesSparseVectorTick::OnTime(const uint64& Time, const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
+    TmMSecs = Time;
+}
+
+void TTimeSeriesSparseVectorTick::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
+    throw TExcept::New("[TTimeSeriesSparseVectorTick] OnStep should have not been executed.");
+}
+
+TTimeSeriesSparseVectorTick::TTimeSeriesSparseVectorTick(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
+        TStreamAggr(Base, ParamVal) {
+
+    // get input store
+    TStr StoreNm = ParamVal->GetObjStr("store");
+    TWPt<TStore> Store = Base->GetStoreByStoreNm(StoreNm);
+    // get time field
+    TStr TimeFieldNm = ParamVal->GetObjStr("timestamp");
+    TimeFieldId = Store->GetFieldId(TimeFieldNm);
+    // get numeric field
+    TStr TickValFieldNm = ParamVal->GetObjStr("value");
+    const int TickValFieldId = Store->GetFieldId(TickValFieldNm);
+    // initialize reader for getting numeric value
+    ValReader = TFieldReader(Store->GetStoreId(), TickValFieldId, Store->GetFieldDesc(TickValFieldId));
+    // make sure parameters make sense
+    QmAssertR(Store->GetFieldDesc(TimeFieldId).IsTm(), "[Window buffer] field " + TimeFieldNm + " not of type 'datetime'");
+    QmAssertR(ValReader.IsNumSpV(), "[Window buffer] field " + TickValFieldNm + " cannot be casted to numeric sparse vector!");
+}
+
+PStreamAggr TTimeSeriesSparseVectorTick::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+    return new TTimeSeriesSparseVectorTick(Base, ParamVal);
+}
+
+void TTimeSeriesSparseVectorTick::LoadState(TSIn& SIn) {
+    InitP.Load(SIn);
+    TickVal.Load(SIn);
+    TmMSecs.Load(SIn);
+}
+
+int TTimeSeriesSparseVectorTick::GetSparseVecLen() const {
+    return TickVal.Len();
+}
+
+TIntFltKd TTimeSeriesSparseVectorTick::GetSparseVecVal(const int& ElN) const {
+    EAssert(0 <= ElN && ElN < TickVal.Len());
+    return TickVal[ElN];
+}
+
+void TTimeSeriesSparseVectorTick::GetSparseVec(TIntFltKdV& SpV) const {
+    SpV = TickVal;
+}
+
+void TTimeSeriesSparseVectorTick::SaveState(TSOut& SOut) const {
+    InitP.Save(SOut);
+    TickVal.Save(SOut);
+    TmMSecs.Save(SOut);
+}
+
+void TTimeSeriesSparseVectorTick::Reset() {
+    InitP = false;
+    TickVal.Clr();
+    TmMSecs = 0;
+}
+
+PJsonVal TTimeSeriesSparseVectorTick::SaveJson(const int& Limit) const {
+    PJsonVal Res = TJsonVal::NewObj();
+    PJsonVal Val = TJsonVal::NewObj();
+    for (int EntryN = 0; EntryN < TickVal.Len(); EntryN++) {
+        Val->AddToObj(TInt::GetStr(TickVal[EntryN].Key), TickVal[EntryN].Dat);
+    }
+    Res->AddToObj("Val", Val);
+    Res->AddToObj("Time", TTm::GetTmFromMSecs(TmMSecs).GetWebLogDateTimeStr(true, "T"));
+    return Res;
+}
+
+///////////////////////////////
 // Numberic circular buffer
 TWinBufFltV::TWinBufFltV(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TWinBufMem<TFlt>(Base, ParamVal) {
     InAggrVal = Cast<TStreamAggrOut::IFlt>(GetInAggr());
@@ -641,6 +728,40 @@ PStreamAggr TWinBufFltV::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) 
 PJsonVal TWinBufFltV::SaveJson(const int& Limit) const {
     TFltV FltV; GetValV(FltV);
     return TJsonVal::NewArr(FltV);
+}
+
+///////////////////////////////
+// Sparse vector circular buffer
+TWinBufSpV::TWinBufSpV(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
+        TWinBufMem<TIntFltKdV>(Base, ParamVal) {
+    InAggrVal = Cast<TStreamAggrOut::ISparseVec>(GetInAggr());
+}
+
+TIntFltKdV TWinBufSpV::GetVal() const {
+    TIntFltKdV Res;
+    InAggrVal->GetSparseVec(Res);
+    return Res;
+}
+
+PStreamAggr TWinBufSpV::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+    return new TWinBufSpV(Base, ParamVal);
+}
+
+// serialization to JSon
+PJsonVal TWinBufSpV::SaveJson(const int& Limit) const {
+    TVec<TIntFltKdV> ValV;
+    GetValV(ValV);
+    PJsonVal ResJson = TJsonVal::NewArr();
+    for (int ValN = 0; ValN < ValV.Len(); ValN++) {
+        const TIntFltKdV& Val = ValV[ValN];
+        PJsonVal ValJson = TJsonVal::New();
+        for (int EntryN = 0; EntryN < Val.Len(); EntryN++) {
+            const TIntFltKd& Entry = Val[EntryN];
+            ValJson->AddToObj(TInt::GetStr(Entry.Key), Entry.Dat);
+        }
+        ResJson->AddToArr(ValJson);
+    }
+    return ResJson;
 }
 
 ///////////////////////////////
@@ -703,7 +824,8 @@ void TWinBufFtrSpVec::SaveState(TSOut& SOut) const {
 
 ///////////////////////////////
 // Exponential Moving Average.
-void TEma::OnStep() {
+void TEma::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
     if (InAggr->IsInit()) {
         Ema.Update(InAggrFlt->GetFlt(), InAggrTm->GetTmMSecs());
     }
@@ -738,7 +860,8 @@ PJsonVal TEma::SaveJson(const int& Limit) const {
 
 ///////////////////////////////
 // Exponential Moving Average for sparse vectors
-void TEmaSpVec::OnStep() {
+void TEmaSpVec::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
     if (InAggr->IsInit()) {
         TIntFltKdV Vals; InAggrSparseVec->GetSparseVec(Vals);
         Ema.Update(Vals, InAggrTm->GetTmMSecs());
@@ -771,7 +894,8 @@ PJsonVal TEmaSpVec::SaveJson(const int& Limit) const {
 
 ///////////////////////////////
 // Threshold aggregate
-void TThresholdAggr::OnStep() {
+void TThresholdAggr::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
     if (InAggr->IsInit()) {
         IsAboveP = InAggrFlt->GetFlt() > Threshold ? 1.0 : 0.0;
         TmMSecs = InAggrTm->GetTmMSecs();
@@ -820,7 +944,8 @@ PJsonVal TThresholdAggr::SaveJson(const int& Limit) const {
 
 ///////////////////////////////
 // Moving Covariance
-void TCov::OnStep() {
+void TCov::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
     if (InAggrX->IsInit() && InAggrY->IsInit()) {
         // new series
         TFltV InValVX; InAggrFltIOX->GetInValV(InValVX);
@@ -869,7 +994,8 @@ PJsonVal TCov::SaveJson(const int& Limit) const {
 
 ///////////////////////////////
 // Moving Correlation
-void TCorr::OnStep() {
+void TCorr::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
     const double Cov = InAggrFltCov->GetFlt();
     const double Var1 = InAggrFltVarX->GetFlt();
     const double Var2 = InAggrFltVarY->GetFlt();
@@ -1162,7 +1288,8 @@ void TMerger::InitMerger(const TWPt<TQm::TBase> Base, const TStr& OutStoreNm,
     SignalsPresentV.Gen(NInFlds);
 }
 
-void TMerger::OnAddRec(const TQm::TRec& Rec) {
+void TMerger::OnAddRec(const TQm::TRec& Rec, const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
     // extract all the input fields that belong to this store
     const TWPt<TStore> Store = Rec.GetStore();
     const uint& StoreId = Store->GetStoreId();
@@ -1173,19 +1300,19 @@ void TMerger::OnAddRec(const TQm::TRec& Rec) {
     int KeyId = FieldMapIdxSet.FFirstKeyId();
     while (FieldMapIdxSet.FNextKeyId(KeyId)) {
         const int& FieldMapIdx = FieldMapIdxSet.GetKey(KeyId);
-        OnAddRec(Rec, FieldMapIdx);
+        _OnAddRec(Rec, FieldMapIdx);
     }
 }
 
-void TMerger::OnTime(const uint64& TmMsec) {
-    QmAssertR(false, "Merger::OnTime(const uint64& TmMsec) not supported.");
+void TMerger::OnTime(const uint64& TmMsec, const TWPt<TStreamAggr>& CallerAggr) {
+    throw TExcept::New("Merger::OnTime(const uint64& TmMsec, const TWPt<TStreamAggr>& CallerAggr) not supported.");
 }
 
-void TMerger::OnStep() {
-    QmAssertR(false, "Merger::OnStep() should not be executed.");
+void TMerger::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
+    throw TExcept::New("Merger::OnStep() should not be executed.");
 }
 
-void TMerger::OnAddRec(const TQm::TRec& Rec, const int& FieldMapIdx) {
+void TMerger::_OnAddRec(const TQm::TRec& Rec, const int& FieldMapIdx) {
     const int InterpIdx = FieldMapIdx; //StoreIdFldIdPrBuffIdxH.GetDat(StoreIdInFldIdPr);
 
     // get record time and value
@@ -1218,7 +1345,7 @@ void TMerger::OnAddRec(const TQm::TRec& Rec, const int& FieldMapIdx) {
         }
 
         // add the record to the output store
-        AddRec(ValV, NextInterpTm, Rec);
+        _AddRec(ValV, NextInterpTm, Rec);
         // update the next interpolation time
         UpdateNextInterpTm();
     }
@@ -1249,7 +1376,7 @@ void TMerger::AddToStore(const TFltV& InterpValV, const uint64 InterpTm, const u
     }
 }
 
-void TMerger::AddRec(const TFltV& InterpValV, const uint64 InterpTm, const TQm::TRec& Rec) {
+void TMerger::_AddRec(const TFltV& InterpValV, const uint64 InterpTm, const TQm::TRec& Rec) {
     if (OnlyPast) {
         // we need to wait until we get at least one future point before
         // committing the interpolation
@@ -1352,7 +1479,8 @@ void TMerger::HandleEdgeCases(const uint64& RecTm) {
 
 ///////////////////////////////
 // Resampler
-void TResampler::OnAddRec(const TRec& Rec) {
+void TResampler::OnAddRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
     QmAssertR(Rec.GetStoreId() == InStore->GetStoreId(), "Wrong store calling OnAddRec in Resampler");
     // get record time
     const uint64 RecTmMSecs = Rec.GetFieldTmMSecs(TimeFieldId);
@@ -1407,8 +1535,13 @@ void TResampler::OnAddRec(const TRec& Rec) {
     RefreshInterpolators(RecTmMSecs);
 }
 
-void TResampler::OnTime(const uint64& TmMsec) { QmAssertR(false, "TResampler::OnTime(const uint64& TmMsec): not supported."); }
-void TResampler::OnStep() { QmAssertR(false, "TResampler::OnStep(): should not be executed."); }
+void TResampler::OnTime(const uint64& TmMsec, const TWPt<TStreamAggr>& CallerAggr) {
+    throw TExcept::New("TResampler::OnTime(const uint64& TmMsec, const TWPt<TStreamAggr>& CallerAggr): not supported.");
+}
+
+void TResampler::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
+    throw TExcept::New("TResampler::OnStep(): should not be executed.");
+}
 
 void TResampler::RefreshInterpolators(const uint64& Tm) {
     // update time in the interpolators
@@ -1537,7 +1670,7 @@ PStreamAggr TUniVarResampler::New(const TWPt<TBase>& Base, const PJsonVal& Param
     return new TUniVarResampler(Base, ParamVal);
 }
 
-PJsonVal TUniVarResampler::GetParam() const {
+PJsonVal TUniVarResampler::GetParams() const {
     PJsonVal ParamVal = TJsonVal::NewObj();
 
     if (!InAggr.Empty()) {
@@ -1556,7 +1689,7 @@ PJsonVal TUniVarResampler::GetParam() const {
     return ParamVal;
 }
 
-void TUniVarResampler::SetParam(const PJsonVal& ParamVal) {
+void TUniVarResampler::SetParams(const PJsonVal& ParamVal) {
     if (ParamVal->IsObjKey("inAggr")) {
         const TStr AggrNm = ParamVal->GetObjStr("inAggr");
         EAssert(GetBase()->IsStreamAggr(AggrNm));
@@ -1589,7 +1722,8 @@ PJsonVal TUniVarResampler::SaveJson(const int& Limit) const {
     return Val;
 }
 
-void TUniVarResampler::OnStep() {
+void TUniVarResampler::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
     // get record time
     const uint64 NewTmMSecs = InAggrTm->GetTmMSecs();
     const double NewVal = InAggrFlt->GetFlt();
@@ -1614,7 +1748,7 @@ void TUniVarResampler::OnStep() {
     // insert new records while the interpolators allow us
     while (InterpPointMSecs <= NewTmMSecs && CanInterpolate()) {
         InterpPointVal = Interpolator->Interpolate(InterpPointMSecs);
-        OutAggr->OnStep();
+        OutAggr->OnStep(this);
 
         InterpPointMSecs += IntervalMSecs;
     }
@@ -1633,8 +1767,95 @@ bool TUniVarResampler::CanInterpolate() {
 }
 
 ///////////////////////////////
+// Aggregating resampler
+
+TAggrResampler::TAggrResampler(const TWPt<TBase>& Base, const PJsonVal& ParamVal) :
+    TStreamAggr(Base, ParamVal), OutAggr(), Resampler(ParamVal) {
+    // parse the input aggregate
+    InAggr = ParseAggr(ParamVal, "inAggr");
+    InAggrFlt = Cast<TStreamAggrOut::IFlt>(InAggr, false);
+    InAggrTm = Cast<TStreamAggrOut::ITm>(InAggr, false);
+    if (ParamVal->IsObjKey("outAggr")) {
+        OutAggr = ParseAggr(ParamVal, "outAggr");
+    }
+    SkipEmptyP = ParamVal->GetObjBool("skipEmpty", false);
+}
+
+PStreamAggr TAggrResampler::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+    return new TAggrResampler(Base, ParamVal);
+}
+
+PJsonVal TAggrResampler::GetParams() const {
+    PJsonVal ParamVal = Resampler.GetParams();
+    if (!InAggr.Empty()) {
+        ParamVal->AddToObj("inAggr", InAggr->GetAggrNm());
+    } else {
+        ParamVal->AddToObj("inAggr", TJsonVal::NewNull());
+    }
+
+    if (!OutAggr.Empty()) {
+        ParamVal->AddToObj("outAggr", OutAggr->GetAggrNm());
+    } else {
+        ParamVal->AddToObj("outAggr", TJsonVal::NewNull());
+    }
+
+    ParamVal->AddToObj("skipEmpty", SkipEmptyP);
+
+    return ParamVal;
+}
+
+void TAggrResampler::SetParams(const PJsonVal& ParamVal) {
+    if (ParamVal->IsObjKey("inAggr")) {
+        const TStr AggrNm = ParamVal->GetObjStr("inAggr");
+        EAssert(GetBase()->IsStreamAggr(AggrNm));
+        InAggr = GetBase()->GetStreamAggr(AggrNm);
+    }
+
+    if (ParamVal->IsObjKey("outAggr")) {
+        const TStr AggrNm = ParamVal->GetObjStr("outAggr");
+        EAssert(GetBase()->IsStreamAggr(AggrNm));
+        OutAggr = GetBase()->GetStreamAggr(AggrNm);
+    }
+}
+
+void TAggrResampler::OnTime(const uint64& TmMsec, const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
+    // set current time
+    Resampler.SetCurrentTm(TmMsec);
+    // try resampling
+    Loop();
+}
+
+void TAggrResampler::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
+    // read new val and time
+    const uint64 NewTmMSecs = InAggrTm->GetTmMSecs();
+    const double NewVal = InAggrFlt->GetFlt();
+    // set current time
+    Resampler.SetCurrentTm(NewTmMSecs);
+    // add record to the buffer
+    Resampler.AddPoint(NewVal, NewTmMSecs);
+    // try resampling
+    Loop();
+}
+
+void TAggrResampler::Loop() {
+    // loop: call Resampler as long as it can resample
+    double ResampledValue = 0;
+    uint64 ResampledTm = 0;
+    bool FoundEmptyP = false;
+    while (Resampler.TryResampleOnce(ResampledValue, ResampledTm, FoundEmptyP)) {
+        // notify out aggregate that new resampled values are available
+        if (FoundEmptyP && SkipEmptyP) { continue; }
+        QmAssertR(!OutAggr.Empty(), "TAggrResampler: OutAggr is NULL. Have you set outAggr using setParams?");
+        OutAggr->OnStep(this);
+    }
+}
+
+///////////////////////////////
 // Dense Feature Extractor Stream Aggregate (extracts TFltV from records)
-void TFtrExtAggr::OnAddRec(const TRec& Rec) {
+void TFtrExtAggr::OnAddRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
     // extract vectors
     if (FullP) { FtrSpace->GetFullV(Rec, FullVec); }
     if (SparseP) { FtrSpace->GetSpV(Rec, SpVec); }
@@ -1664,7 +1885,7 @@ PStreamAggr TFtrExtAggr::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) 
 
 void TFtrExtAggr::LoadState(TSIn& SIn) {
     // load feature space
-    FtrSpace = TFtrSpace::Load(Base, SIn);
+    FtrSpace = TFtrSpace::Load(GetBase(), SIn);
     // load init counter
     InitCount = TInt(SIn);
     // load vectors
@@ -1682,7 +1903,7 @@ void TFtrExtAggr::SaveState(TSOut& SOut) const {
     SpVec.Save(SOut);
 }
 
-PJsonVal TFtrExtAggr::GetParam() const {
+PJsonVal TFtrExtAggr::GetParams() const {
     PJsonVal ParamsVal = TJsonVal::NewObj();
     ParamsVal->AddToObj("initCount", InitCount);
     ParamsVal->AddToObj("update", UpdateP);
@@ -1691,7 +1912,7 @@ PJsonVal TFtrExtAggr::GetParam() const {
     return ParamsVal;
 }
 
-void TFtrExtAggr::SetParam(const PJsonVal& ParamVal) {
+void TFtrExtAggr::SetParams(const PJsonVal& ParamVal) {
     if (ParamVal->IsObjKey("initCount")) { InitCount = ParamVal->GetObjInt("initCount"); }
     if (ParamVal->IsObjKey("update")) { UpdateP = ParamVal->GetObjBool("update"); }
     if (ParamVal->IsObjKey("full")) { FullP = ParamVal->GetObjBool("full"); }
@@ -1711,7 +1932,8 @@ PJsonVal TFtrExtAggr::SaveJson(const int& Limit) const {
 
 ///////////////////////////////
 /// Nearest Neighbor for Anomaly Detection stream aggregate.
-void TNNAnomalyAggr::OnStep() {
+void TNNAnomalyAggr::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
     // make sure input aggregators are initialized
     if (InAggrTm->IsInit() && InAggrSparseVec->IsInit()) {
         // get last time stamp and last sparse vector from the input aggregators
@@ -1732,12 +1954,12 @@ void TNNAnomalyAggr::OnStep() {
 
 TNNAnomalyAggr::TNNAnomalyAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal) {
     // parse parameters
-    SetParam(ParamVal);
+    SetParams(ParamVal);
     // we start with empty explanation
     Explanation = TJsonVal::NewObj();
 }
 
-PJsonVal TNNAnomalyAggr::GetParam() const {
+PJsonVal TNNAnomalyAggr::GetParams() const {
     PJsonVal ParamVal = TJsonVal::NewObj();
 
     if (!InAggrTm.Empty()) {
@@ -1758,7 +1980,7 @@ PJsonVal TNNAnomalyAggr::GetParam() const {
     return ParamVal;
 }
 
-void TNNAnomalyAggr::SetParam(const PJsonVal& ParamVal) {
+void TNNAnomalyAggr::SetParams(const PJsonVal& ParamVal) {
     //parse time aggregator parameters
     if (ParamVal->IsObjKey("inAggrTm")) {
         const TStr AggrNm = ParamVal->GetObjStr("inAggrTm");
@@ -1807,6 +2029,13 @@ void TNNAnomalyAggr::Reset() {
     Explanation = TJsonVal::NewObj();
 }
 
+uint64 TNNAnomalyAggr::GetMemUsed() const {
+    return sizeof(TNNAnomalyAggr) +
+           (TStreamAggr::GetMemUsed() - sizeof(TStreamAggr)) +
+           TMemUtils::GetExtraMemberSize(Model) +
+           TMemUtils::GetExtraMemberSize(Explanation);
+}
+
 /// Load from stream
 void TNNAnomalyAggr::LoadState(TSIn& SIn) {
     Model = TAnomalyDetection::TNearestNeighbor(SIn);
@@ -1833,7 +2062,8 @@ PJsonVal TNNAnomalyAggr::SaveJson(const int& Limit) const {
 
 ///////////////////////////////
 /// Histogram stream aggregate
-void TOnlineHistogram::OnStep() {
+void TOnlineHistogram::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
     if (BufferedP) {
         TFltV UpdateV; InAggrFltIO->GetInValV(UpdateV);
         for (int ElN = 0; ElN < UpdateV.Len(); ElN++) {
@@ -1880,7 +2110,8 @@ void TOnlineHistogram::SaveState(TSOut& SOut) const {
 
 ///////////////////////////////
 /// TDigest stream aggregate
-void TTDigest::OnStep() {
+void TTDigest::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
     TFlt Val = InAggrFlt->GetFlt();
     if (InAggr->IsInit()) {
         Model.Update(Val);
@@ -1939,7 +2170,8 @@ PJsonVal TTDigest::SaveJson(const int& Limit) const {
 
 ///////////////////////////////
 /// Chi square stream aggregate
-void TChiSquare::OnStep() {
+void TChiSquare::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
     TFltV ValVX; InAggrValX->GetValV(ValVX);
     TFltV ValVY; InAggrValY->GetValV(ValVY);
     if (InAggrX->IsInit() && InAggrY->IsInit()) {
@@ -1977,7 +2209,8 @@ PJsonVal TChiSquare::SaveJson(const int& Limit) const {
 
 ///////////////////////////////
 // TOnlineSlottedHistogram
-void TOnlineSlottedHistogram::OnStep() {
+void TOnlineSlottedHistogram::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
     if (BufferedP) {
         // add new values
         TFltV InValV; InAggrFltIO->GetInValV(InValV);
@@ -2066,7 +2299,8 @@ PStreamAggr TVecDiff::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
     return new TVecDiff(Base, ParamVal);
 }
 
-void TVecDiff::OnStep() {
+void TVecDiff::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
     // Get input vectors
     TFltV ValV1, ValV2;
     InAggrValX->GetValV(ValV1);
@@ -2098,7 +2332,8 @@ PJsonVal TVecDiff::SaveJson(const int& Limit) const {
 
 ///////////////////////////////
 // Simple linear regression stream aggregate.
-void TSimpleLinReg::OnStep() {
+void TSimpleLinReg::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
     // Get input vectors
     TFltV X; InAggrValX->GetValV(X);
     TFltV Y; InAggrValY->GetValV(Y);
@@ -2155,14 +2390,24 @@ void TSimpleLinReg::Reset() {
     }
 }
 
-void TRecFilterAggr::OnAddRec(const TRec& Rec) {
+void TRecFilterAggr::OnAddRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
     // the record should pass all filter tests
     for (const PRecFilter& Filter : FilterV) {
         if (!Filter->Filter(Rec)) { return; }
     }
-    Aggr->OnAddRec(Rec);
+    Aggr->OnAddRec(Rec, this);
 }
 
+void TRecFilterAggr::OnTime(const uint64& TmMsec, const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
+    Aggr->OnTime(TmMsec, this);
+}
+
+void TRecFilterAggr::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
+    Aggr->OnStep(this);
+}
 
 TRecFilterAggr::TRecFilterAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal) {
     // single filter
@@ -2178,10 +2423,97 @@ TRecFilterAggr::TRecFilterAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal
     Aggr = ParseAggr(ParamVal, "aggr");
 }
 
-//////////////////////////////////////////////////////////////////////////////////
-/// Histogram based anomaly detector aggregate
 
-void THistogramAD::OnStep() {
+uint64 TRecFilterAggr::GetMemUsed() const {
+    return (TStreamAggr::GetMemUsed() - sizeof(TStreamAggr) + sizeof(TRecFilterAggr)) +
+           TMemUtils::GetExtraMemberSize(FilterV);
+}
+
+//////////////////////////////////////////////////////////////////////////////////
+// Record switch stream aggregate
+
+void TRecSwitchAggr::OnAddRec(const TRec& Rec, const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
+    TStr Key = Rec.GetFieldStr(FldId);
+    if (AggrH.IsKey(Key)) {
+        // trigger the appropriate aggregate
+        AggrH.GetDat(Key)->OnAddRec(Rec, this);
+    } else if (ThrowMissingP) {
+        throw TQmExcept::New("TRecSwitchAggr::OnAddRec key not found: " + Key);
+    }
+}
+
+TRecSwitchAggr::TRecSwitchAggr(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal) {
+    // get input store
+    QmAssertR(ParamVal->IsObjKey("store"), "TRecSwitchAggr::TRecSwitchAggr: missing `store` property.");
+    TStr StoreNm = ParamVal->GetObjStr("store");
+    Store = Base->GetStoreByStoreNm(StoreNm);
+    // get field name
+    QmAssertR(ParamVal->IsObjKey("fieldName"), "TRecSwitchAggr::TRecSwitchAggr: missing `fieldName` property.");
+    TStr FldNm = ParamVal->GetObjStr("fieldName");
+    QmAssertR(Store->IsFieldNm(FldNm), "TRecSwitchAggr::TRecSwitchAggr: not a store field: " + FldNm);
+    FldId = Store->GetFieldId(FldNm);
+    if (ParamVal->IsObjKey("$set")) {
+        TRecSwitchAggr::SetParams(ParamVal);
+    }
+    ThrowMissingP = ParamVal->GetObjBool("throwMissing", false);
+}
+
+PJsonVal TRecSwitchAggr::GetParams() const {
+    PJsonVal Result = TJsonVal::NewObj();
+    Result->AddToObj("store", Store->GetStoreNm());
+    Result->AddToObj("fieldName", Store->GetFieldNm(FldId));
+    Result->AddToObj("throwMissing", ThrowMissingP);
+    TStrV KeyV;
+    AggrH.GetKeyV(KeyV);
+    int Len = KeyV.Len();
+    PJsonVal Set = TJsonVal::NewArr();
+    for (int KeyN = 0; KeyN < Len; KeyN++) {
+        PJsonVal Element = TJsonVal::NewObj();
+        Element->AddToObj("key", KeyV[KeyN]);
+        Element->AddToObj("aggrName", AggrH.GetDat(KeyV[KeyN])->GetAggrNm());
+        Set->AddToArr(Element);
+    }
+    Result->AddToObj("$set", Set);
+    return Result;
+}
+
+void TRecSwitchAggr::SetParams(const PJsonVal& ParamVal) {
+    // $set takes an array and overwrites the map
+    // $add takes a single key-aggrName pair and add it to the map
+    if (ParamVal->IsObjKey("$set")) {
+        PJsonVal Val = ParamVal->GetObjKey("$set");
+        QmAssertR(Val->IsArr(), "TRecSwitchAggr::SetParam: $set value should be an array: [{key:str, aggrName: str}, ...].");
+        int Len = Val->GetArrVals();
+        AggrH.Clr();
+        for (int ElN = 0; ElN < Len; ElN++) {
+            PJsonVal Obj = Val->GetArrVal(ElN);
+            TStr Key = Obj->GetObjStr("key");
+            TStr AggrNm = Obj->GetObjStr("aggrName");
+            QmAssertR(GetBase()->IsStreamAggr(AggrNm), "TRecSwitchAggr::SetParam: stream aggregate name not found for: " + AggrNm);
+            TWPt<TStreamAggr> StreamAggr = GetBase()->GetStreamAggr(AggrNm);
+            AggrH.AddDat(Key, StreamAggr);
+        }
+    } else if (ParamVal->IsObjKey("$add")) {
+        PJsonVal Obj = ParamVal->GetObjKey("$add");
+        QmAssertR(Obj->IsObj(), "TRecSwitchAggr::SetParam: $add value should be an object: {key: str, aggrName: str}.");
+        TStr Key = Obj->GetObjStr("key");
+        TStr AggrNm = Obj->GetObjStr("aggrName");
+        QmAssertR(GetBase()->IsStreamAggr(AggrNm), "TRecSwitchAggr::SetParam: stream aggregate name not found for: " + AggrNm);
+        TWPt<TStreamAggr> StreamAggr = GetBase()->GetStreamAggr(AggrNm);
+        AggrH.AddDat(Key, StreamAggr);
+    } else {
+        throw TQmExcept::New("TRecSwitchAggr::SetParam: the input should contain either $set or $add and other properties are ignored.");
+    }
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////
+// Histogram based anomaly detector aggregate
+
+void THistogramAD::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
     if (HistAggr->IsInit()) {
         // Predict
         LastHistIdx = HistAggr->FindBin(InAggrVal->GetFlt());

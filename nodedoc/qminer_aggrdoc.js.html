@@ -117,24 +117,31 @@
 * Stream aggregator types.
 * @property {module:qm~StreamAggrTimeSeriesWindow} timeSeries - The time series type.
 * @property {module:qm~StreamAggrTimeSeriesWindowVector} timeSeriesBufferVector - The time series buffer vector type.
-* @property {module:qm~StreamAggrRecordBuffer} recordBuffer - The record buffer type.
-* @property {module:qm~StreamAggrSum} sum - The sum type.
-* @property {module:qm~StreamAggrMin} min - The minimal type.
-* @property {module:qm~StreamAggrMax} max - The maximal type.
-* @property {module:qm~StreamAggrSparseVecSum} sum - The sparse-vector-sum type.
 * @property {module:qm~StreamAggrTimeSeriesTick} tick - The time series tick type.
-* @property {module:qm~StreamAggrMovingAverage} ma - The moving average type.
-* @property {module:qm~StreamAggrEMA} ema - The exponental moving average type.
-* @property {module:qm~StreamAggrEMASpVec} ema - The exponental moving average for sparse vectors type.
-* @property {module:qm~StreamAggrMovingVariance} var - The moving variance type.
-* @property {module:qm~StreamAggrMovingCovariance} cov - The moving covariance type.
-* @property {module:qm~StreamAggrMovingCorrelation} cor - The moving correlation type.
-* @property {module:qm~StreamAggrResampler} res - The resampler type.
-* @property {module:qm~StreamAggrMerger} mer - The merger type.
+* @property {module:qm~StreamAggrRecordBuffer} record-buffer - The record buffer type.
+* @property {module:qm~StreamAggrFeatureSpace} ftr-space - The feature space type.
+* @property {module:qm~StreamAggrSum} sum - The sum type. Calculates the sum of values.
+* @property {module:qm~StreamAggrMin} min - The minimal type. Saves the minimal value in the buffer.
+* @property {module:qm~StreamAggrMax} max - The maximal type. Saves the maximal value in the buffer.
+* @property {module:qm~StreamAggrSparseVecSum} sparse-vec-sum - The sparse-vector-sum type.
+* @property {module:qm~StreamAggrMovingAverage} ma - The moving average type. Calculates the average within the window.
+* @property {module:qm~StreamAggrEMA} ema - The exponental moving average type. Calculates the exponental average of the values.
+* @property {module:qm~StreamAggrEMASpVec} ema-sp-vec - The exponental moving average for sparse vectors type.
+* @property {module:qm~StreamAggrMovingVariance} var - The moving variance type. Calculates the variance of values within the window.
+* @property {module:qm~StreamAggrMovingCovariance} cov - The moving covariance type. Calculates the covariance of values within the window.
+* @property {module:qm~StreamAggrMovingCorrelation} cor - The moving correlation type. Calculates the correlation of values within the window.
+* @property {module:qm~StreamAggrResampler} res - The resampler type. Resamples the records so that they come in in the same time interval.
+* @property {module:qm~StreamAggrAggrResampler} aggr-res - The aggregating (avg/sum) resampler type. Resamplers the records so that it takes the 
+* records in the time window and returns one sample.
+* @property {module:qm~StreamAggrMerger} mer - The merger type. Merges the records from two stream series.
 * @property {module:qm~StreamAggrHistogram} hist - The online histogram type.
 * @property {module:qm~StreamAggrSlottedHistogram} slotted-hist - The online slotted-histogram type.
 * @property {module:qm~StreamAggrVecDiff} vec-diff - The difference of two vectors (e.g. online histograms) type.
-* @property {module:qm~StreamAggrSimpleLinearRegression} linReg - The linear regressor type.
+* @property {module:qm~StreamAggrSimpleLinearRegression} lin-reg - The linear regressor type.
+* @property {module:qm~StreamAggrAnomalyDetectorNN} detector-nn - The anomaly detector type. Detects anomalies using the k nearest neighbour algorithm.
+* @property {module:qm~StreamAggrThreshold} treshold - The threshold indicator type.
+* @property {module:qm~StreamAggrTDigest} tdigest - The quantile estimator type. It estimates the quantiles of the given data using {@link module:analytics.TDigest TDigest}. 
+* @property {module:qm~StreamAggrRecordSwitch} record-switch-aggr - The record switch type.
 */
 /**
 * @typedef {module:qm.StreamAggr} StreamAggrTimeSeriesWindow
@@ -979,6 +986,91 @@
 * base.close();
 */
 /**
+* @typedef {module:qm.StreamAggr} StreamAggrAggrResampler
+* This stream aggregate resamples an input time series to a new time seris
+* of equally spaced measurements. Each new measurement corresponds to an
+* aggregate (sum,avg,min,max) computed over an interval. The aggregate
+* exposes the following methods.
+* &amp;lt;br&gt;1. {@link module:qm.StreamAggr#getFloat} returns the last resampled value.
+* &amp;lt;br&gt;2. {@link module:qm.StreamAggr#getTimestamp} returns the timestamp of the last resampled value.
+* &amp;lt;br&gt;3. {@link module:qm.StreamAggr#onStep} reads from an input aggregate and tries to resample.
+* &amp;lt;br&gt;4. {@link module:qm.StreamAggr#onTime} updates the current time (no data has arrived, but time has passed) and tries to resample.
+* &amp;lt;br&gt;5. {@link module:qm.StreamAggr#getParams} returns a parameter object.
+* &amp;lt;br&gt;6. {@link module:qm.StreamAggr#setParams} used primarily for setting the out-aggregate.
+* &amp;lt;br&gt;The stream aggregate exposes its results through &#x60;getFloat&#x60; and &#x60;getTimestamp&#x60; methods (itself represents timeseries).
+* The resampler has an input time-series aggregate (supports &#x60;getFloat&#x60; and &#x60;getTimestamp&#x60;), from where it reads time series values.
+* The reading and resampling occourrs wehen resamplers &#x60;onStep()&#x60; or &#x60;onTime()&#x60; methods are called.
+* When resampling succeeds (all the data needed for the computation becomes available), the resampler
+* will trigger the &#x60;onStep()&#x60; method of an output stream aggregate that will read the resamplers state through &#x60;getFloat&#x60; and &#x60;getTime&#x60;.
+* @property {string} type - The type of the stream aggregator. &amp;lt;b&gt;Important:&amp;lt;/b&gt; It must be equal to &#x60;&#x27;aggrResampler&#x27;&#x60;.
+* @property {number} interval - Interval size in milliseconds
+* @property {string} aggType - Must be one of the values: &#x60;&quot;sum&quot;&#x60;, &#x60;&quot;avg&quot;&#x60;, &#x60;&quot;min&quot;&#x60; or &#x60;&quot;max&quot;&#x60; - represents the function executed on the data values in the interval.
+* @property {(string | module:qm.StreamAggr)} inAggr - The name of the input stream aggregate which must implement &#x60;getFloat()&#x60; and &#x60;getTimestamp()&#x60; methods.
+* @property {(string | number)} [start] - Start time (linux timestamp or a web log date string like &#x60;1970-01-01T00:00:00.000&#x60;)
+* @property {string} [roundStart] - Must be one of the values: &#x60;&#x27;h&#x27;&#x60;, &#x60;&#x27;m&#x27;&#x60; or &#x60;&#x27;s&#x27;&#x60; - represents rounding of the start time when it must be determined by the first observed record. &#x60;&#x27;h&#x27;&#x60; will clip minutes, seconds and milliseconds, &#x60;&#x27;m&#x27;&#x60; will clip seconds and milliseconds and &#x60;&#x27;s&#x27;&#x60; will clip only milliseconds.
+* @property {number} [defaultValue=0] - default value for empty intervals (no data available).
+* @property {boolean} [skipEmpty=false] - If true, the resampler will not call the &#x60;onStep&#x60; method of the out-aggregate when the interval is empty (for example, average of an empty set is not defined). 
+* @property {string} [name] - The given name for the stream aggregator.
+* @property {(string | module:qm.StreamAggr)} [outAggr] - The name of the output stream aggregate. Only useful when the &#x60;outAggr&#x60; is a javascript stream aggregate, otherwise the output must be set by calling &#x60;setParam({outAggr: outAggregateName})&#x60;.
+* @example
+* var qm = require(&#x27;qminer&#x27;);
+* // create a base with a simple timeseries store
+* var base = new qm.Base({
+*     mode: &#x27;createClean&#x27;,
+*     schema: [{
+*         name: &#x27;default&#x27;,
+*         fields: [
+*             { name: &#x27;timestamp&#x27;, type: &#x27;datetime&#x27; },
+*             { name: &#x27;value&#x27;, type: &#x27;float&#x27; }
+*         ]
+*     }]
+* });
+* var store = base.store(&#x27;default&#x27;);
+* // the tick aggregate reads from the store (provides time series input to other aggregates)
+* var raw = store.addStreamAggr({
+*     type: &#x27;timeSeriesTick&#x27;,
+*     timestamp: &#x27;timestamp&#x27;,
+*     value: &#x27;value&#x27;
+* });
+* 
+* // will compute sums over 1 second intervals
+* var resampler = store.addStreamAggr({
+*     type: &#x27;aggrResample&#x27;,
+*     inAggr: raw.name,
+*     start: &#x27;1970-01-01T00:00:00.000&#x27;,
+*     defaultValue: 0,
+*     aggType: &#x27;sum&#x27;,
+*     interval: 1000
+* });
+*
+* // will print out resampler state on each resample
+* var resamplerOutput = new qm.StreamAggr(base, new function () {
+*     this.onStep = function () {
+*         console.log(&#x27;Resampler emitted the sum: &#x27; + resampler.getFloat() +
+*             &#x27; for the interval [&#x27; + new Date(resampler.getTimestamp()).toISOString() +
+*             &#x27; - &#x27; + new Date(resampler.getTimestamp() + resampler.getParams().interval).toISOString() + &#x27;)&#x27;);
+*     }
+* });
+*
+* // IMPORTANT. After the output exists, connect it to resampler
+* resampler.setParams({ outAggr: resamplerOutput.name });
+*
+* store.push({ timestamp:  1, value: 1 });
+* store.push({ timestamp: 10, value: 10 });
+* store.push({ timestamp: 500, value: 100 });
+* store.push({ timestamp: 2000, value: 1000 }); // triggers two resampling steps (two intervals complete)
+* // // three measurements for the first interval
+* // Resampler emitted the sum: 111 for the interval [1970-01-01T00:00:00.000Z - 1970-01-01T00:00:01.000Z)
+* // // zero measurements for the second interval (does not skip empty)
+* // Resampler emitted the sum: 0 for the interval [1970-01-01T00:00:01.000Z - 1970-01-01T00:00:02.000Z)
+* store.push({ timestamp: 2001, value: 10000 });
+* store.push({ timestamp: 3000, value: 100000 }); // triggers one resampling step (one interval complete)
+* // // one measurement for the third interval
+* // Resampler emitted the sum: 11000 for the interval [1970-01-01T00:00:02.000Z - 1970-01-01T00:00:03.000Z)
+*
+* base.close();
+*/
+/**
 * @typedef {module:qm.StreamAggr} StreamAggrMerger
 * This stream aggregator represents the merger aggregator. It merges records from two or more stores into a new store
 * depending on the timestamp. No methods are implemented for this aggregator.
@@ -1041,6 +1133,54 @@
 * base.close();
 */
 /**
+* @typedef {module:qmStreamAggr} StreamAggrFeatureSpace
+* This stream aggregator creates the feature space and stores the specified features of the last input. It implements the following methods:
+* &amp;lt;br&gt;1. {@link module:qm.StreamAggr#getFloatVector} returns the dense feature vectors.
+* &amp;lt;br&gt;2. {@link module:qm.StreamAggr#getFeatureSpace} returns the feature space.
+* @property {string} name - The given name for the stream aggregator.
+* @property {string} type - The type of the stream aggregator. &amp;lt;b&gt;Important:&amp;lt;/b&gt; It must be equal to &#x60;&#x27;featureSpace&#x27;&#x60;.
+* @property {string} store - The name of the store from which it takes the data.
+* @property {number} initCount - The number of records needed before it initializes.
+* @property {boolean} update - If true, updates the feature space.
+* @property {boolean} full - If true, saves the full vector of features.
+* @property {boolean} sparse - If true, saves the sparse vector of features.
+* @property {module:qm~FeatureExtractor[]} FeatureSpace - Array of feature extractors.
+* @example
+* // import the qm module
+* var qm = require(&#x27;qminer&#x27;);
+* // create a base with a simple store named Cars with 4 fields
+* var base = new qm.Base({
+*     mode: &#x27;createClean&#x27;,
+*     schema: [{
+*         name: &#x27;Cars&#x27;,
+*         fields: [
+*             { name: &#x27;NumberOfCars&#x27;, type: &#x27;float&#x27; },
+*             { name: &#x27;Temperature&#x27;, type: &#x27;float&#x27; },
+*             { name: &#x27;Precipitation&#x27;, type: &#x27;float&#x27; },
+*             { name: &#x27;Time&#x27;, type: &#x27;datetime&#x27; }
+*         ]
+*     }]
+* });
+* // create the store
+* var store = base.store(&#x27;Cars&#x27;);
+* // define a feature space aggregator on the Cars store which needs at least 2 records to be initialized. Use three of the
+* // four fields of the store to create feature vectors with normalized values.
+* var aggr = {
+*    name: &quot;ftrSpaceAggr&quot;,
+*    type: &quot;featureSpace&quot;,
+*    initCount: 2,
+*    update: true, full: false, sparse: true,
+*    featureSpace: [
+*        { type: &quot;numeric&quot;, source: &quot;Cars&quot;, field: &quot;NumberOfCars&quot;, normalize: &quot;var&quot; },
+*        { type: &quot;numeric&quot;, source: &quot;Cars&quot;, field: &quot;Temperature&quot;, normalize: &quot;var&quot; },
+*        { type: &quot;numeric&quot;, source: &quot;Cars&quot;, field: &quot;Precipitation&quot;, normalize: &quot;var&quot; }
+*    ]
+* };
+* //create the feature space aggregator
+* var ftrSpaceAggr = base.store(&#x27;Cars&#x27;).addStreamAggr(aggr);
+* base.close();
+*/
+/**
 * @typedef {module:qmStreamAggr} StreamAggrAnomalyDetectorNN
 * This stream aggregator represents the anomaly detector using the Nearest Neighbor algorithm. It calculates the 
 * new incoming point&#x27;s distance from its nearest neighbor and, depending on the input threshold values, it 
@@ -1098,7 +1238,7 @@
 *     value: &quot;NumberOfCars&quot;
 * };
 * //create the tick aggregator
-* tickAggr = base.store(&#x27;Cars&#x27;).addStreamAggr(aggr);
+* var tickAggr = base.store(&#x27;Cars&#x27;).addStreamAggr(aggr);
 *
 * //define an anomaly detection aggregator using nearest neighbor on the cars store that takes as input timestamped features.
 * // The time stamp is provided by the tick aggregator while the feature vector is provided by the feature space aggregator.
@@ -1107,7 +1247,7 @@
 *     type: &#x27;nnAnomalyDetector&#x27;,
 *     inAggrSpV: &#x27;ftrSpaceAggr&#x27;,
 *     inAggrTm: &#x27;tickAggr&#x27;,
-*     rate: [0.15, 0.5, 0.7],
+*     rate: [0.7, 0.5, 0.15],
 *     windowSize: 2
 * };
 * //create the anomaly detection aggregator
@@ -1421,6 +1561,147 @@
 * base.close();
 */
 /**
+* @typedef {module:qm.StreamAggr} StreamAggrTDigest
+* This stream aggregator computes the quantile estimators using the {@link module:analytics.TDigest TDigest} algorithm.
+* The quantile values are returned using {@link module:qm.StreamAggr#getFloatVector}.
+*
+* @property {string} name - The given name of the stream aggregator.
+* @property {string} type - The type for the stream aggregator. &amp;lt;b&gt;Important:&amp;lt;/b&gt; It must be equal to &#x60;&#x27;tdigest&#x27;&#x60;.
+* @property {string} store - The name of the store from which it takes the data.
+* @property {string} inAggr - The name of the stream aggregator to which it connects and gets data.
+* @property {Array.&amp;lt;number&gt;} quantiles - An array of numbers between 0 and 1 for which the quantile bands will be computed.
+* @property {Number} minCount - The minimal number of values given before it start to compute the quantiles.
+* @example
+* // import the qm module
+* var qm = require(&#x27;qminer&#x27;);
+* // create a base with the Time and Value fields
+* var base = new qm.Base({
+*    mode: &quot;createClean&quot;,
+*    schema: [
+*    {
+*        name: &quot;Processor&quot;,
+*        fields: [
+*            { name: &quot;Value&quot;, type: &quot;float&quot; },
+*            { name: &quot;Time&quot;, type: &quot;datetime&quot; }
+*        ]
+*    }]
+* });
+* var store = base.store(&#x27;Processor&#x27;);
+*
+* // create a new time series stream aggregator for the &#x27;Processor&#x27; store, that takes the value of the processor
+* // and the timestamp from the &#x27;Time&#x27; field. The size of the window is 1 second.
+* var tick = {
+*     name: &#x27;TickAggr&#x27;,
+*     type: &#x27;timeSeriesTick&#x27;,
+*     store: &#x27;Processor&#x27;,
+*     timestamp: &#x27;Time&#x27;,
+*     value: &#x27;Value&#x27;,
+*     winsize: 1000 // one day in miliseconds
+* };
+* var timeSeries = store.addStreamAggr(tick);
+*
+* // create the TDigest stream aggregator
+* var aggr = {
+*     name: &#x27;TDigest&#x27;,
+*     type: &#x27;tdigest&#x27;,
+*     store: &#x27;Processor&#x27;,
+*     inAggr: &#x27;TickAggr&#x27;,
+*     quantiles: [0.90, 0.95, 0.99, 0.999],
+*     minCount: 5
+* };
+* // add the stream aggregator to the &#x27;Processor&#x27; store
+* var td = store.addStreamAggr(aggr);
+* store.push({ Time: &#x27;2015-12-01T14:20:32.0&#x27;, Value: 0.9948628368 });
+* store.push({ Time: &#x27;2015-12-01T14:20:33.0&#x27;, Value: 0.1077458826 });
+* store.push({ Time: &#x27;2015-12-01T14:20:34.0&#x27;, Value: 0.9855685823 });
+* store.push({ Time: &#x27;2015-12-01T14:20:35.0&#x27;, Value: 0.7796449082 });
+* // with this record the aggregator will initialize becuase it is the 5th record
+* store.push({ Time: &#x27;2015-12-01T14:20:36.0&#x27;, Value: 0.0844943286 });
+* 
+* store.push({ Time: &#x27;2015-12-01T14:20:37.0&#x27;, Value: 0.187490856 });
+* store.push({ Time: &#x27;2015-12-01T14:20:38.0&#x27;, Value: 0.0779815107 });
+* store.push({ Time: &#x27;2015-12-01T14:20:39.0&#x27;, Value: 0.8945312691 });
+* store.push({ Time: &#x27;2015-12-01T14:20:40.0&#x27;, Value: 0.5574567409 });
+*
+* // get the quantile estimations
+* var result = td.getFloatVector();
+* base.close();
+*/
+/**
+* @typedef {module:qm.StreamAggr} StreamAggrRecordSwitch
+* This stream aggregate enables switching control flow between stream aggregates based
+* on string keys. It is based on a hash table from keys (strings read from records) to
+* stream aggregates. When OnAdd of a record switch is called, the aggregate looks for
+* an appropriate target aggregate and triggers its onAdd. The aggregate
+* exposes the following methods.
+* &amp;lt;br&gt;1. {@link module:qm.StreamAggr#getInteger} takes a string input and returns returns 1 if the string is a known key and &#x60;null&#x60; if it&#x27;s unknown.
+* &amp;lt;br&gt;2. {@link module:qm.StreamAggr#onAdd} reads the appropriate field as a key and triggers the onAdd of a target aggregate if the key is known.
+* &amp;lt;br&gt;3. {@link module:qm.StreamAggr#getParams} returns a parameter object.
+* &amp;lt;br&gt;4. {@link module:qm.StreamAggr#setParams} used primarily for adding (using $add) new targets or seting  (using $set) the internal hashmap with new targets.
+*
+* @property {string} [name] - The given name of the stream aggregator (autogenerated by default).
+* @property {string} type - The type for the stream aggregator. &amp;lt;b&gt;Important:&amp;lt;/b&gt; It must be equal to &#x60;&#x27;recordSwitchAggr&#x27;&#x60;.
+* @property {string} store - The name of the store consistent with the records that it processes.
+* @property {string} fieldName - The name of the field whose values are used for switching
+* @property {boolean} [throwMissing=false] - If true, the aggregate will throw an exception when the record&#x27;s key is not recognized (no appropirate target aggregate exists).
+* @property {Array.&amp;lt;Object&gt;} [$set] - An array with objects like &#x60;{&#x27;key&#x27;: string, &#x27;aggrName&#x27;: string}&#x60;. Each object is a switch key and the name of the target aggregate.
+* @example
+* // main library
+* var qm = require(&#x27;qminer&#x27;);
+*
+* // create a store
+* var base = new qm.Base({
+*     mode: &#x27;createClean&#x27;,
+*     schema: [{
+*         name: &#x27;testStore&#x27;,
+*         fields: [
+*             { name: &#x27;switchField&#x27;, type: &#x27;string&#x27; }
+*         ]
+*     }]
+* });
+* // select store
+* var store = base.store(&#x27;testStore&#x27;);
+*
+* // first JS aggregate
+* var outAggr1 = new qm.StreamAggr(base, new function () {
+*     this.onAdd = function (rec) {
+*         console.log(&#x27;first&#x27;);
+*     }
+* });
+*
+* // second JS aggregate
+* var outAggr2 = new qm.StreamAggr(base, new function () {
+*     this.onAdd = function (rec) {
+*         console.log(&#x27;second&#x27;);
+*     }
+* });
+*
+* // switcher aggregate: calls outAggr1 when rec.switchField == &#x27;a&#x27; and outAggr2 when rec.switchField == &#x27;b&#x27;
+* var switcher = store.addStreamAggr({
+*     type: &#x27;recordSwitchAggr&#x27;,
+*     store: &#x27;testStore&#x27;,
+*     fieldName: &#x27;switchField&#x27;,
+*     $set: [{ key: &#x27;a&#x27;, aggrName: outAggr1.name },
+*            { key: &#x27;b&#x27;, aggrName: outAggr2.name }],
+*     throwMissing: false
+* });
+*
+* store.push({ switchField: &#x27;a&#x27; });
+* // outAggr1 prints &#x60;first&#x60;
+* store.push({ switchField: &#x27;b&#x27; });
+* // outAggr2 prints &#x60;second&#x60;
+* store.push({ switchField: &#x27;b&#x27; });
+* // outAggr2 prints &#x60;second&#x60;
+* store.push({ switchField: &#x27;c&#x27; });
+* // nothing happens
+* store.push({ switchField: &#x27;a&#x27; });
+* // outAggr1 prints &#x60;first&#x60;
+*
+* // clean up
+* base.close();
+*
+*/
+/**
     * Resets the state of the aggregate.
     * @returns {module:qm.StreamAggr} Self. The state has been reset.
     * @example
@@ -1465,26 +1746,36 @@
     */
  exports.StreamAggr.prototype.reset = function () { return Object.create(require(&#x27;qminer&#x27;).StreamAggr.prototype);  };
 /**
+    * Executes the function that updates the aggregate. For use example see {@link module:qm.StreamAggr} constructor example.
+    * @param {module:qm.StreamAggr} [Caller] - Caller stream aggregate.
+    * @returns {module:qm.StreamAggr} Self. Values in the stream aggregator are changed as defined in the inner onTime function.
+    */
+ exports.StreamAggr.prototype.onStep = function () { return Object.create(require(&#x27;qminer&#x27;).StreamAggr.prototype); };
+/**
     * Executes the function that updates the aggregate at a given timestamp. For use example see {@link module:qm.StreamAggr} constructor example.
     * @param {TmMsec} ts - Timestamp in milliseconds.
+    * @param {module:qm.StreamAggr} [Caller] - Caller stream aggregate.
     * @returns {module:qm.StreamAggr} Self. Values in the stream aggregator are changed as defined in the inner onTime function.
     */
  exports.StreamAggr.prototype.onTime = function (ts) { return Object.create(require(&#x27;qminer&#x27;).StreamAggr.prototype); };
 /**
     * Executes the function when a new record is put in store. For use example see {@link module:qm.StreamAggr} constructor example.
     * @param {module:qm.Record} rec - The record given to the stream aggregator.
+    * @param {module:qm.StreamAggr} [Caller] - Caller stream aggregate.
     * @returns {module:qm.StreamAggr} Self. Values in the stream aggregator are changed as defined in the inner onAdd function.
     */
  exports.StreamAggr.prototype.onAdd = function (rec) { return Object.create(require(&#x27;qminer&#x27;).StreamAggr.prototype); };
 /**
     * Executes the function when a record in the store is updated. For use example see {@link module:qm.StreamAggr} constructor example.
     * @param {module:qmRecord} rec - The updated record given to the stream aggregator.
+    * @param {module:qm.StreamAggr} [Caller] - Caller stream aggregate.
     * @returns {module:qm.StreamAggr} Self. Values in the stream aggregator are changed as defined in the inner onUpdate function.
     */
  exports.StreamAggr.prototype.onUpdate = function (rec) { return Object.create(require(&#x27;qminer&#x27;).StreamAggr.prototype); };
 /**
     * Executes the function when a record in the store is deleted. For use example see {@link module:qm.StreamAggr} constructor example.
     * @param {module:qm.Record} rec - The deleted record given to the stream aggregator.
+    * @param {module:qm.StreamAggr} [Caller] - Caller stream aggregate.
     * @returns {module:qm.StreamAggr} Self. The values in the stream aggregator are changed as defined in the inner onDelete function.
     */
  exports.StreamAggr.prototype.onDelete = function (rec) { return Object.create(require(&#x27;qminer&#x27;).StreamAggr.prototype); };
@@ -1518,6 +1809,17 @@
     * @returns {module:qm.StreamAggr} Self.
     */
  exports.StreamAggr.prototype.load = function (fin) { return Object.create(require(&#x27;qminer&#x27;).StreamAggr.prototype); }
+/**
+    * Returns the current state of the stream aggregate as a json.
+    * @returns {Object} JSON that represents the state.
+    */
+ exports.StreamAggr.prototype.saveStateJson = function () { return {}; }
+/**
+    * Loads the stream aggregator from the state.
+    * @param {Object} state - The state.
+    * @returns {module:qm.StreamAggr} Self.
+    */
+ exports.StreamAggr.prototype.loadStateJson = function (state) { return Object.create(require(&#x27;qminer&#x27;).StreamAggr.prototype); }
 /**
     * A map from strings to integers
     * @param {string} [str] - The string.

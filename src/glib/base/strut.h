@@ -37,6 +37,9 @@ public:
 
 	template <class TKey, class TDat>
 	static TStr GetStr(const THash<TKey, TDat>& KeyDatH);
+
+	/// returns the furation in the form of 1h55m13s
+	static TStr GetHMSStrFromMSecs(const uint64& TmMSecs);
 };
 
 template <class TKey, class TDat>
