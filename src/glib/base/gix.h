@@ -569,7 +569,10 @@ void TGixItemSet<TKey, TItem, TGixMerger>::AddItem(const TItem& NewItem, const b
         }
         // TODO: why is next RecalcTotalCnt needed? Def() already calls it if anything is changed. It might be needed only if IsFull() was true.
         RecalcTotalCnt(); // work buffer might have been merged
-        Gix->AddToNewCacheSizeInc(GetMemUsed() - OldSize);
+        const uint64 NewSize = GetMemUsed();
+        if (NewSize > OldSize) {
+            Gix->AddToNewCacheSizeInc(NewSize - OldSize);
+        }
     }
 
     if (MergedP) {
@@ -590,7 +593,10 @@ void TGixItemSet<TKey, TItem, TGixMerger>::AddItem(const TItem& NewItem, const b
     ItemV.Add(NewItem);
     // update the cache size (for the newly added item)
     // in general we could just add sizeof(TItem) to cache size - however we would underestimate the used size since the arrays allocate extra buffer
-    Gix->AddToNewCacheSizeInc(ItemV.GetMemUsed() - OldItemVSize);
+    const uint64 NewItemVSize = ItemV.GetMemUsed();
+    if (NewItemVSize > OldItemVSize) {
+        Gix->AddToNewCacheSizeInc(NewItemVSize - OldItemVSize);
+    }
     Dirty = true;
     TotalCnt++;
 }
@@ -639,7 +645,10 @@ void TGixItemSet<TKey, TItem, TGixMerger>::DelItem(const TItem& Item) {
             PushWorkBufferToChildren();
         }
         RecalcTotalCnt(); // work buffer might have been merged
-        Gix->AddToNewCacheSizeInc(GetMemUsed() - OldSize);
+        const uint64 NewSize = GetMemUsed();
+        if (NewSize > OldSize) {
+            Gix->AddToNewCacheSizeInc(NewSize - OldSize);
+        }
     }
 
     const uint64 OldSize = ItemVDel.GetMemUsed() + ItemV.GetMemUsed();
@@ -667,7 +676,10 @@ void TGixItemSet<TKey, TItem, TGixMerger>::Clr() {
     MergedP = true;
     Dirty = true;
     TotalCnt = 0;
-    Gix->AddToNewCacheSizeInc(GetMemUsed() - OldSize);
+    const uint64 NewSize = GetMemUsed();
+    if (NewSize > OldSize) {
+        Gix->AddToNewCacheSizeInc(NewSize - OldSize);
+    }
 }
 
 template <class TKey, class TItem, class TGixMerger>
@@ -895,7 +907,7 @@ public:
         const TFAccess& Access = faRdOnly, const int64& CacheSize = 100000000,
         const int SplitLen = 1024, const bool CanFirstChildBeUnfilled = true,
         const int SplitLenMin = 512, const int SplitLenMax = 2048) {
-        return new TGix(Nm, FPath, Access, CacheSize, SplitLen, 
+        return new TGix(Nm, FPath, Access, CacheSize, SplitLen,
             CanFirstChildBeUnfilled, SplitLenMin, SplitLenMax);
     }
 
@@ -1057,7 +1069,7 @@ TBlobPt TGix<TKey, TItem, TGixMerger>::GetKeyId(const TKey& Key) const {
 
 template <class TKey, class TItem, class TGixMerger>
 TGix<TKey, TItem, TGixMerger>::TGix(const TStr& Nm, const TStr& FPath, const TFAccess& _Access,
-    const int64& CacheSize, const int _SplitLen, const bool _CanFirstChildBeUnfilled, 
+    const int64& CacheSize, const int _SplitLen, const bool _CanFirstChildBeUnfilled,
     const int _SplitLenMin, const int _SplitLenMax) :
         Access(_Access),
         ItemSetCache(CacheSize, 1000000, GetVoidThis()),
