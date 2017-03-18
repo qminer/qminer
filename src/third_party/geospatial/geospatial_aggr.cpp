@@ -121,8 +121,8 @@ TGeoCluster::TGeoCluster(const PJsonVal& Rec):
     CenterPoint = TPoint(Lat, Lon);
     Arrive = Rec->GetObjInt64("start_time", 0);
     Depart = Rec->GetObjInt64("end_time", 0);
-    AvgSpeed = Rec->GetObjNum("avgSpeed", 0);
-    AvgAccuracy = Rec->GetObjNum("avgAccuracy", 0);
+    AvgSpeed = Rec->GetObjNum("avg_speed", 0);
+    AvgAccuracy = Rec->GetObjNum("avg_accuracy", 0);
     Distance = Rec->GetObjNum("distance", 0);
     MStartIdx = Rec->GetObjInt("startIdx", -1);
     MEndIdx = Rec->GetObjInt("endIdx", -1);   
