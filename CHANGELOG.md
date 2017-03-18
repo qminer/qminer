@@ -1,5 +1,23 @@
 # QMiner Change Log
 
+### 3 March 2017
+
+**Version 7.11.0**
+
+**Non-brekaing with new features**
+
+New features:
+- Reimplemented online linear regression with more predictable influence of regaluarization and forgeting factor parameters.
+- Added `TStrUtil::GetStr(int)`, formats number `1234567` as `"1,234,567"`
+- Added `NotifyInfoFmt`, `NotifyWarnFmt`, `NotifyErrFmt` to the `TLogger`
+
+Bug fixes:
+- PartialFlush update should fix the problem caused due to using of some deleted itemsets
+
+Other:
+- Cleaned up duplicate code introduced whith `GixSmall`
+- Added Windows pre-gyp for Node 7
+
 ### 24 February 2017
 
 **Version 7.10.1**

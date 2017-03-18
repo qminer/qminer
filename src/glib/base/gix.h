@@ -1010,37 +1010,29 @@ public:
 
 template <class TKey, class TItem, class TGixMerger>
 int TGix<TKey, TItem, TGixMerger>::PartialFlush(int WndInMsec) {
-    TTmStopWatch sw(true);
-    TLstNd<TBlobPt>* current = ItemSetCache.Last();
-    PGixItemSet curr;
-    int cnt = 0;
-    int cnt_all = 0;
-    TBlobPt b;
-    TVec<TBlobPt> to_delete;
-    while (current != NULL) {
-        if (sw.GetMSecInt() > WndInMsec) break;
-        b = current->Val;
-        if (ItemSetCache.Get(current->Val, curr)) {
-            if (curr->Dirty) {
-                TBlobPt b_new = StoreItemSet(current->Val);
-                if (b_new.Empty()) { // if itemset is empty, we get NULL pointer
-                    to_delete.Add(b); // store it to list for deletion
-                } else {
-                    ItemSetCache.ChangeKey(b, b_new); // blob pointer might have changed, update cache
-                }
-                cnt++;
-            }
-        }
-        cnt_all++;
-        current = current->PrevNd;
-    }
-    // now delete from cache those that have already been deleted from BLOB and hash
-    for (int i = 0; i < to_delete.Len(); i++) {
-        ItemSetCache.Del(to_delete[i], false);
-    }
+    TBlobPt BlobPt;
+    PGixItemSet ItemSet;
+    THashSet<TBlobPt> BlobToDelH;
+    int Changes = 0;
+    void* KeyDatP;
 
-    // printf("Partial flush - %d itemsets saved to disk, scanned %d - %f.\n", cnt, cnt_all, ((double)cnt / cnt_all));
-    return cnt;
+    TTmStopWatch sw(true);
+
+    KeyDatP = ItemSetCache.FLastKeyDat();
+    while (ItemSetCache.FPrevKeyDat(KeyDatP, BlobPt, ItemSet)) {
+        if (sw.GetMSecInt() > WndInMsec) break;
+        if (ItemSet->Dirty) {
+            TBlobPt NewBlobPt = StoreItemSet(BlobPt);
+            if (NewBlobPt.Empty()) { // if itemset is empty, we get NULL pointer
+                ItemSetCache.Del(BlobPt, false);
+            }
+            else {
+                ItemSetCache.ChangeKey(BlobPt, NewBlobPt); // blob pointer might have changed, update cache
+            }
+            Changes++;
+        }
+    }
+    return Changes;
 }
 
 
