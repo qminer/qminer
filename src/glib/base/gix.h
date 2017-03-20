@@ -569,10 +569,7 @@ void TGixItemSet<TKey, TItem, TGixMerger>::AddItem(const TItem& NewItem, const b
         }
         // TODO: why is next RecalcTotalCnt needed? Def() already calls it if anything is changed. It might be needed only if IsFull() was true.
         RecalcTotalCnt(); // work buffer might have been merged
-        const uint64 NewSize = GetMemUsed();
-        if (NewSize > OldSize) {
-            Gix->AddToNewCacheSizeInc(NewSize - OldSize);
-        }
+        Gix->AddToNewCacheSizeInc(OldSize, GetMemUsed());
     }
 
     if (MergedP) {
@@ -593,10 +590,8 @@ void TGixItemSet<TKey, TItem, TGixMerger>::AddItem(const TItem& NewItem, const b
     ItemV.Add(NewItem);
     // update the cache size (for the newly added item)
     // in general we could just add sizeof(TItem) to cache size - however we would underestimate the used size since the arrays allocate extra buffer
-    const uint64 NewItemVSize = ItemV.GetMemUsed();
-    if (NewItemVSize > OldItemVSize) {
-        Gix->AddToNewCacheSizeInc(NewItemVSize - OldItemVSize);
-    }
+    Gix->AddToNewCacheSizeInc(OldItemVSize, ItemV.GetMemUsed());
+
     Dirty = true;
     TotalCnt++;
 }
@@ -645,17 +640,14 @@ void TGixItemSet<TKey, TItem, TGixMerger>::DelItem(const TItem& Item) {
             PushWorkBufferToChildren();
         }
         RecalcTotalCnt(); // work buffer might have been merged
-        const uint64 NewSize = GetMemUsed();
-        if (NewSize > OldSize) {
-            Gix->AddToNewCacheSizeInc(NewSize - OldSize);
-        }
+        Gix->AddToNewCacheSizeInc(OldSize, GetMemUsed());
     }
 
     const uint64 OldSize = ItemVDel.GetMemUsed() + ItemV.GetMemUsed();
     ItemVDel.Add(ItemV.Len());
     ItemV.Add(Item);
     const uint64 NewSize = ItemVDel.GetMemUsed() + ItemV.GetMemUsed();
-    Gix->AddToNewCacheSizeInc(NewSize - OldSize);
+    Gix->AddToNewCacheSizeInc(OldSize,  NewSize);
     MergedP = false;
     Dirty = true;
     TotalCnt++;
@@ -676,10 +668,7 @@ void TGixItemSet<TKey, TItem, TGixMerger>::Clr() {
     MergedP = true;
     Dirty = true;
     TotalCnt = 0;
-    const uint64 NewSize = GetMemUsed();
-    if (NewSize > OldSize) {
-        Gix->AddToNewCacheSizeInc(NewSize - OldSize);
-    }
+    Gix->AddToNewCacheSizeInc(OldSize, GetMemUsed());
 }
 
 template <class TKey, class TItem, class TGixMerger>
@@ -994,6 +983,7 @@ public:
     bool IsCacheFull() const { return CacheFullP; }
     void RefreshMemUsed();
     void AddToNewCacheSizeInc(const uint64& Diff) const { NewCacheSizeInc += Diff; }
+    void AddToNewCacheSizeInc(const uint64& OldSize, const uint64& NewSize) const;
 
 
     /// print statistics for index keys
@@ -1377,7 +1367,7 @@ void TGix<TKey, TItem, TGixMerger>::RefreshMemUsed() {
     // check if we have to drop anything from the cache
     if (NewCacheSizeInc > CacheResetThreshold) {
         // only report when cache size bigger then 10GB
-        const bool ReportP = CacheResetThreshold > (uint64) (TInt::Giga);
+        const bool ReportP = CacheResetThreshold > (uint64)(TInt::Giga);
         if (ReportP) { printf("Cache clean-up [%s] ... ", TUInt64::GetMegaStr(NewCacheSizeInc).CStr()); }
         // pack all the item sets
         TBlobPt BlobPt;
@@ -1392,6 +1382,29 @@ void TGix<TKey, TItem, TGixMerger>::RefreshMemUsed() {
         if (ReportP) {
             const uint64 NewSize = ItemSetCache.GetMemUsed();
             printf("Done [%s]\n", TUInt64::GetMegaStr(NewSize).CStr());
+        }
+    }
+}
+
+template <class TKey, class TItem, class TGixMerger>
+void TGix<TKey, TItem, TGixMerger>::AddToNewCacheSizeInc(const uint64& OldSize, const uint64& NewSize) const
+{
+    // no change
+    if (NewSize == OldSize) {
+        return;
+    }
+    // increased usage
+    if (NewSize > OldSize) {
+        NewCacheSizeInc += NewSize - OldSize;
+    }
+    // decreased usage
+    else {
+        if (NewCacheSizeInc >= OldSize - NewSize) {
+            NewCacheSizeInc -= OldSize - NewSize;
+        }
+        // make sure we don't make an overflow
+        else {
+            NewCacheSizeInc = 0;
         }
     }
 }
