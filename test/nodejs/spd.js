@@ -65,8 +65,16 @@ describe("SPD aggregate system running aggr tests", function () {
     * Borderline tests
     */
     describe("Borderline usage (and arguments) tests", function () {
+        it("should return empty array when no records pushed in", function () {
+            result = spdAggr.saveJson(1);
+            assert.equal(result.length, 0);
+            result = spdAggr.saveJson(0);
+            assert.equal(result.length, 0);
+        });//it
+
         it("should reject older or same age records that were already provided",
         function () {
+            console.log("HERE 0");
             var points =[
                 {
                     "latitude": 46.0423046, 
@@ -98,13 +106,6 @@ describe("SPD aggregate system running aggr tests", function () {
             assert.equal(result[0].locations.length, 1);
             assert.equal(result[0].locationsNum, 1);
         });//it
-        
-        it("should return empty array when no records pushed in", function () {
-            result = spdAggr.saveJson(1);
-            assert.equal(result.length,0);
-            result = spdAggr.saveJson(0);
-            assert.equal(result.length,0);
-        });//it
     });//describe borderline testsi
 
     /**
@@ -112,14 +113,15 @@ describe("SPD aggregate system running aggr tests", function () {
     */
     describe("Internal state tests", function(){
         it("Should return saveJsonState with Objects of proper values",
-        function(){
+        function () {
+            console.log("HERE 1");
             var points =[
                 {
                     "latitude": 46.0423046, 
                     "longitude": 14.4875852,
                     "time": 0, 
                     "accuracy": 26,
-                    "activities": [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
+                    "activities": [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16, 17]
                 },
                 {
                     "latitude": 46.0423046, 
@@ -127,7 +129,7 @@ describe("SPD aggregate system running aggr tests", function () {
                     "time": 100, 
                     "accuracy": 26,
                     "activities": [22, 33, 44, 55, 66, 77, 88, 99,
-                        10, 11, 12, 13, 14, 15, 16, 9]
+                        10, 11, 12, 13, 14, 15, 16, 9,44]
                 },
                 {
                     "latitude": 46.0423046, 
@@ -135,7 +137,7 @@ describe("SPD aggregate system running aggr tests", function () {
                     "time": 1000, 
                     "accuracy": 26,
                     "activities": [100, 99, 44, 55, 66, 77, 88, 99,
-                        10, 11, 12, 13, 14, 99, 16,12]
+                        10, 11, 12, 13, 14, 99, 16,12,12]
                 }
             ];
             
@@ -150,6 +152,7 @@ describe("SPD aggregate system running aggr tests", function () {
                 });
                 spdAggr.onAdd(qrec);
             }
+            console.log("HERE NOWWWWWW");
             state = spdAggr.saveStateJson();
             assert.equal(state.locations[0].time, points[0].time);
             assert.equal(state.locations[1].time, points[1].time);
@@ -316,7 +319,7 @@ describe("TMD averaging tests", function () {
                 "time": 0,
                 "accuracy": 26,
                 "activities": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
-                       13, 14, 15]
+                       13, 14, 15,12]
             },
             {
                 "latitude": 46.0423046,
@@ -324,7 +327,7 @@ describe("TMD averaging tests", function () {
                 "time": 10000,
                 "accuracy": 26,
                 "activities": [0, 0, 0, 0, 0, 0, 0, 0, 0,
-                    0, 0, 0, 0, 0, 0, 0]
+                    0, 0, 0, 0, 0, 0, 0,0]
             },
             {
                 "latitude": 46.0423046,
@@ -332,7 +335,7 @@ describe("TMD averaging tests", function () {
                 "time": 300000,
                 "accuracy": 26,
                 "activities": [100, 100, 100, 100, 100, 100, 100, 100, 100,
-                    100, 100, 100, 100, 100, 100, 100]
+                    100, 100, 100, 100, 100, 100, 100,100]
             }
         ];
         
@@ -349,37 +352,37 @@ describe("TMD averaging tests", function () {
         }
         result = spdAggr.saveJson(1);
         //current version of SPD will ignore the first point - it goes to path
-        var acts1 = result[0].locations[0].activities;
-        var acts2 = result[0].locations[1].activities;
+        var acts1 = result[1].locations[0].activities;
+        var acts2 = result[1].locations[1].activities;
         var avgs = acts1;
         for (var i = 0; i < acts2.length; i++) {
             avgs[i] = (acts1[i] + acts2[i]) / 2;
         }
-        assert.deepEqual(avgs, result[0].activities);
+        assert.deepEqual(avgs, result[1].activities);
     });//it
 
-    it("should properly calculate constant unknown sensor act", function () {
+    it("should properly calculate UNKNOWN sensor act", function () {
         var points = [
             {
                 "latitude": 46.0423046,
                 "longitude": 14.4875852,
                 "time": 0,
                 "accuracy": 26,
-                "activities": [100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0]
+                "activities": [100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0,0]
             },
             {
                 "latitude": 46.0423046,
                 "longitude": 14.4875852,
                 "time": 10000,
                 "accuracy": 26,
-                "activities": [100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                "activities": [100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0]
             },
             {
                 "latitude": 46.0423046,
                 "longitude": 14.4875852,
                 "time": 300000,
                 "accuracy": 26,
-                "activities": [100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                "activities": [100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0]
             }
         ];
 
@@ -432,7 +435,7 @@ describe("TMD averaging tests", function () {
                 "longitude": 14.607879638671877,
                 "time": 1487658401000,
                 "accuracy": 26,
-                "activities": [100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0]
+                "activities": [100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0,0]
             }
         ];
 
