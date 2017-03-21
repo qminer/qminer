@@ -234,16 +234,18 @@ PJsonVal TGeoCluster::ToJson(const TVec<TGPSMeasurement>& _GpsStateVec,
     PJsonVal JSenActArr = TJsonVal::NewArr();
     int SenLen = AvgSensorActs.Len();
     for (int iSens = 0; iSens < SenLen; iSens++) {
-        JSenActArr->AddToArr(AvgSensorActs[iSens]);//luka here
+        JSenActArr->AddToArr(AvgSensorActs[iSens]);
     }
     JGeoAct->AddToObj("activities", JSenActArr);
 
     if (FullLoc) {
         PJsonVal JLocs = TJsonVal::NewArr();
-        for (int LocIdx = MStartIdx; LocIdx <= MEndIdx; LocIdx++) {
-            const TGPSMeasurement& Gps = _GpsStateVec[LocIdx];
-            JLocs->AddToArr(Gps.ToJson());
-        }
+        if (MStartIdx >= 0 && MEndIdx <= _GpsStateVec.Len()) {
+            for (int LocIdx = MStartIdx; LocIdx <= MEndIdx; LocIdx++) {
+                const TGPSMeasurement& Gps = _GpsStateVec[LocIdx];
+                JLocs->AddToArr(Gps.ToJson());
+            }
+        }//in case the Cluster is still empty skip that
         JGeoAct->AddToObj("locations", JLocs);
     }
     return JGeoAct;
@@ -355,6 +357,10 @@ void TStayPointDetector::OnAddRec(const TRec& Rec,
 PJsonVal TStayPointDetector::SaveJson(const int& Limit) const
 {
     PJsonVal State = TJsonVal::NewArr();
+    if (StateGpsMeasurementsV.Len() == 0) {
+        return State;
+    }
+
     bool GetFullLocs = false;
     if (Limit || HasFinishedGeoActs)
     {
@@ -419,7 +425,6 @@ void TStayPointDetector::LoadStateJson(const PJsonVal& State){
             for (int LocIdx = 0; LocIdx < LocLen; LocIdx++) {
                 TGPSMeasurement GpsRec =
                     TGPSMeasurement(LocationsArr->GetArrVal(LocIdx));
-                //printf("%u\n", GpsRec.Time);
                 StateGpsMeasurementsV.Add(GpsRec);
             }
         }//if locations attribute
