@@ -15,11 +15,12 @@ TBackupLogInfo::TBackupLogInfo(const PJsonVal& Json)
 {
     FolderName = Json->GetObjStr("folderName");
     SecsNeeded = Json->GetObjInt("secsNeeded");
-    LogInfo = Json->GetObjStr("logInfo");
+    LogInfo = Json->GetObjStr("logInfo", "");
+    LogDetails = Json->GetObjStr("logDetails", "");
 }
 
-TBackupLogInfo::TBackupLogInfo(const TStr& _FolderName, const TFlt _SecsNeeded, const TStr& _LogInfo):
-    FolderName(_FolderName), SecsNeeded(_SecsNeeded), LogInfo(_LogInfo)
+TBackupLogInfo::TBackupLogInfo(const TStr& _FolderName, const TFlt _SecsNeeded, const TStr& _LogInfo, const TStr& _LogDetails):
+    FolderName(_FolderName), SecsNeeded(_SecsNeeded), LogInfo(_LogInfo), LogDetails(_LogDetails)
 {
 }
 
@@ -28,6 +29,7 @@ PJsonVal TBackupLogInfo::GetJson() const
     PJsonVal RetJson = TJsonVal::NewObj("folderName", FolderName);
     RetJson->AddToObj("secsNeeded", SecsNeeded);
     RetJson->AddToObj("logInfo", LogInfo);
+    RetJson->AddToObj("logDetails", LogDetails);
     return RetJson;
 }
 
@@ -94,19 +96,22 @@ TBackupLogInfo TBackupProfile::CreateBackup(const bool& ReportP)
 
         TTmStopWatch StopWatch(true);
 
-        TStr ErrMsgs;
+        TStr ErrMsgs, ErrDetails;
         for (int N = 0; N < FolderV.Len(); N++) {
-            TStr ErrMsg;
+            TStr ErrMsg, ErrDetail;
             // copy files
-            CopyFolder(FullDateFolder, FolderV[N].Folder, FolderV[N].Extensions, FolderV[N].SkipIfContainingV, FolderV[N].IncludeSubfolders, ReportP, ErrMsg);
+            CopyFolder(FullDateFolder, FolderV[N].Folder, FolderV[N].Extensions, FolderV[N].SkipIfContainingV, FolderV[N].IncludeSubfolders, ReportP, ErrMsg, ErrDetail);
             if (ErrMsg != "")
                 ErrMsgs += (ErrMsgs.Len() > 0) ? "\n" + ErrMsg : ErrMsg;
+            if (ErrDetails != "") {
+                ErrDetails = (ErrDetails.Len() > 0) ? "\n" + ErrDetail : ErrDetail;
+            }
         }
         const double Sec = StopWatch.GetSec();
         TStr OutText = ErrMsgs.Len() > 0 ? ErrMsgs : "Backup finished successfully.";
         
         // add a new log
-        TBackupLogInfo BackupLogInfo(DateFolderName, Sec, OutText);
+        TBackupLogInfo BackupLogInfo(DateFolderName, Sec, OutText, ErrDetails);
         LogV.Add(BackupLogInfo);
 
         // if we have too many backups of the profile, delete the oldest one
@@ -123,15 +128,15 @@ TBackupLogInfo TBackupProfile::CreateBackup(const bool& ReportP)
         return BackupLogInfo;
     }
     catch (PExcept E) {
-        return TBackupLogInfo("", 0, E->GetMsgStr());
+        return TBackupLogInfo("", 0, E->GetMsgStr(), E->GetLocStr());
     }
     catch (...) {
-        return TBackupLogInfo("", 0, "Unrecognized exception occured.");
+        return TBackupLogInfo("", 0, "Unrecognized exception occured.", "");
     }
 }
 
 // copy files for a particular folder info
-void TBackupProfile::CopyFolder(const TStr& BaseTargetFolder, const TStr& SourceFolder, const TStrV& Extensions, const TStrV& SkipIfContainingV, const bool& IncludeSubfolders, const bool& ReportP, TStr& ErrMsg)
+void TBackupProfile::CopyFolder(const TStr& BaseTargetFolder, const TStr& SourceFolder, const TStrV& Extensions, const TStrV& SkipIfContainingV, const bool& IncludeSubfolders, const bool& ReportP, TStr& ErrMsg, TStr& ErrDetails)
 {
     try {
         // get the name of the source folder
@@ -174,18 +179,20 @@ void TBackupProfile::CopyFolder(const TStr& BaseTargetFolder, const TStr& Source
 
         if (IncludeSubfolders) {
             for (int N = 0; N < FolderV.Len(); N++)
-                CopyFolder(TargetFolder, FolderV[N], Extensions, SkipIfContainingV, IncludeSubfolders, ReportP, ErrMsg);
+                CopyFolder(TargetFolder, FolderV[N], Extensions, SkipIfContainingV, IncludeSubfolders, ReportP, ErrMsg, ErrDetails);
         }
     }
     catch (PExcept E) {
         if (ErrMsg != "")
             ErrMsg += "\n";
         ErrMsg += "Exception while copying from " + SourceFolder + ": " + E->GetMsgStr();
+        ErrDetails = E->GetLocStr();
     }
     catch (...) {
         if (ErrMsg != "")
             ErrMsg += "\n";
         ErrMsg += "Exception while copying from " + SourceFolder + ": " + "Unrecognized exception occured.";
+        ErrDetails = "";
     }
 }
 
@@ -279,7 +286,7 @@ TBackupLogInfo TFolderBackup::CreateBackup(const TStr& ProfileName)
     }
     else {
         TNotify::StdNotify->OnStatusFmt("Unable to find profile with name %s", ProfileName.CStr());
-        return TBackupLogInfo("", 0, TStr::Fmt("Unable to find profile with the name %s", ProfileName.CStr()));
+        return TBackupLogInfo("", 0, TStr::Fmt("Unable to find profile with the name %s", ProfileName.CStr()), "");
     }
 }
 
