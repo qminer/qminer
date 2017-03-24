@@ -13,7 +13,7 @@
                 <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
         <div id="jsdoc-navbar-content">
-            <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.11.0</a>
+            <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.11.1</a>
         </div>
     </div>
 </nav>
@@ -5326,8 +5326,8 @@ base.close();</code></pre>
 
                 <h3 id="~StreamAggrAnomalyDetectorNN"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggrAnomalyDetectorNN</span><small class="property-type">
             &nbsp;module:qmStreamAggr</small></h3>
-        <p>This stream aggregator represents the anomaly detector using the Nearest Neighbor algorithm. It calculates the 
-new incoming point's distance from its nearest neighbor and, depending on the input threshold values, it 
+        <p>This stream aggregator represents the anomaly detector using the Nearest Neighbor algorithm. It calculates the
+new incoming point's distance from its nearest neighbor and, depending on the input threshold values, it
 classifies the severity of the alarm. It implements the following methods:
 <br>1. <a href="module-qm.StreamAggr.html#getInteger">module:qm.StreamAggr#getInteger</a> returns the severity of the alarm.
 <br>2. <a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a> returns the timestamp of the latest alarm.
@@ -5355,7 +5355,7 @@ var base = new qm.Base({
 });
 // create the store
 var store = base.store(&#x27;Cars&#x27;);
-// define a feature space aggregator on the Cars store which needs at least 2 records to be initialized. Use three of the 
+// define a feature space aggregator on the Cars store which needs at least 2 records to be initialized. Use three of the
 // four fields of the store to create feature vectors with normalized values.
 var aggr = {
    name: &quot;ftrSpaceAggr&quot;,
@@ -5773,7 +5773,7 @@ It <b>cannot</b> be connect to the <a href="module-qm.html#~StreamAggrTimeSeries
                 <p>&nbsp;</p>
         </td>
         <td>
-                <p>The aggregating (avg/sum) resampler type. Resamplers the records so that it takes the 
+                <p>The aggregating (avg/sum) resampler type. Resamplers the records so that it takes the
 records in the time window and returns one sample.</p>
         </td>
 </tr>
@@ -5946,7 +5946,7 @@ records in the time window and returns one sample.</p>
 
                 <h3 id="~StreamAggrEMA"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggrEMA</span><small class="property-type">
             &nbsp;module:qmStreamAggr</small></h3>
-        <p>This stream aggregator represents the exponential moving average window buffer. It calculates the weighted moving average 
+        <p>This stream aggregator represents the exponential moving average window buffer. It calculates the weighted moving average
 of the values in the connected stream aggregator, where the weights are exponentially decreasing.  It implements the following methods:
 <br>1. <a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a> returns the exponentional average of the values in its buffer window.
 <br>2. <a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a> returns the timestamp of the newest record in its buffer window.</p>
@@ -6068,7 +6068,7 @@ base.close();</code></pre>
                 <p>&nbsp;</p>
         </td>
         <td>
-                <p>The name of the stream aggregator to which it connects and gets data. 
+                <p>The name of the stream aggregator to which it connects and gets data.
 It <b>cannot</b> be connect to the <a href="module-qm.html#~StreamAggrTimeSeriesWindow">module:qm~StreamAggrTimeSeriesWindow</a>.</p>
         </td>
 </tr>
@@ -6085,7 +6085,7 @@ It <b>cannot</b> be connect to the <a href="module-qm.html#~StreamAggrTimeSeries
         </td>
         <td>
                 <p>The type of interpolation. Possible options are:
-<br>1. <code>'previous'</code> - Interpolates with the previous value. 
+<br>1. <code>'previous'</code> - Interpolates with the previous value.
 <br>2. <code>'next'</code> - Interpolates with the next value.
 <br>3. <code>'linear'</code> - Makes a linear interpolation.</p>
         </td>
@@ -6867,7 +6867,7 @@ base.close();</code></pre>
 
                 <h3 id="~StreamAggrMax"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggrMax</span><small class="property-type">
             &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
-        <p>This stream aggregator represents the maximum moving window buffer. It monitors the maximal value in the connected stream aggregator. 
+        <p>This stream aggregator represents the maximum moving window buffer. It monitors the maximal value in the connected stream aggregator.
 It implements the following methods:
 <br>1. <a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a> returns the maximal value of the records in its buffer window.
 <br>2. <a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a> returns the timestamp of the newest record in its buffer window.</p>
@@ -7179,7 +7179,7 @@ base.close();</code></pre>
                 <p>&nbsp;</p>
         </td>
         <td>
-                <p>An array of <code>field</code> objects. The <code>field</code> object contain the properties: 
+                <p>An array of <code>field</code> objects. The <code>field</code> object contain the properties:
 <br><code>field.source</code> - The name of the store, from which it takes the values. Type <code>string</code>.
 <br><code>field.inField</code> - The field name of source, from which it takes the values. Type <code>string</code>.
 <br><code>field.outField</code> - The field name of outStore, into which it saves the values. Type <code>string</code>.
@@ -7939,7 +7939,7 @@ base.close();</code></pre>
 
                 <h3 id="~StreamAggrMovingVariance"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggrMovingVariance</span><small class="property-type">
             &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
-        <p>This stream aggregator represents the moving variance window buffer. It calculates the moving variance of the stream aggregator, that it's connected to. 
+        <p>This stream aggregator represents the moving variance window buffer. It calculates the moving variance of the stream aggregator, that it's connected to.
 It implements the following methods:
 <br>1. <a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a> returns the variance of the values in its buffer window.
 <br>2. <a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a> returns the timestamp of the newest record in its buffer window.</p>
@@ -8580,7 +8580,7 @@ base.close();</code></pre>
                 <p>&nbsp;</p>
         </td>
         <td>
-                <p>The array off <code>field</code> objects from which it takes the values. The <code>field</code> object contain the properties: 
+                <p>The array off <code>field</code> objects from which it takes the values. The <code>field</code> object contain the properties:
 <br><code>field.name</code> - The store field from which it takes the values. Type <code>string</code>.
 <br><code>field.interpolator</code> - The type of the interpolation. The options are <code>'previous'</code>, <code>'next'</code> and <code>'linear'</code>. Type <code>string</code>.</p>
         </td>
@@ -8649,7 +8649,7 @@ base.close();</code></pre>
 
                 <h3 id="~StreamAggrSimpleLinearRegression"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggrSimpleLinearRegression</span><small class="property-type">
             &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
-        <p>This stream aggregator computes a simple linear regression given two stream aggregates 
+        <p>This stream aggregator computes a simple linear regression given two stream aggregates
 that support the <a href="module-qm.StreamAggr.html#getFloatVector">module:qm.StreamAggr#getFloatVector</a> method and represent variates (input) and covariates (output).
 Optionally the aggregate computes quantile bands: for each quantile <code>q</code> a parallel line to the fitted
 line is found, so that <code>q</code> fraction of <code>(x,y)</code> datapoints fall below the line. For example, under Gaussian noise,
@@ -8983,8 +8983,8 @@ base.close();</code></pre>
                 <h3 id="~StreamAggrSlottedHistogram"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggrSlottedHistogram</span><small class="property-type">
             &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
         <p>This stream aggregator represents an online slotted histogram. It can connect to a buffered aggregate (such as <a href="module-qm.html#~StreamAggrTimeSeriesWindow">module:qm~StreamAggrTimeSeriesWindow</a>)
-or a time series (such as module:qm~StreamAggregateEMA). 
-It maps historical values into single period (e.g. into hours of the week). 
+or a time series (such as module:qm~StreamAggregateEMA).
+It maps historical values into single period (e.g. into hours of the week).
 The aggregate defines an ordered set of points <code>p(0), ..., p(n)</code> that define n bins. Infinites at both ends are NOT allowed.
 A new measurement is tested for inclusion in the left-closed right-opened intervals <code>[p(i), p(i+1))</code> and the corresponding
 bin counter is increased for the appropriate bin (or decreased if the point is outgoing from the buffer).
@@ -9905,7 +9905,7 @@ It <b>cannot</b> be connect to the <a href="module-qm.html#~StreamAggrTimeSeries
 
                 <h3 id="~StreamAggrTimeSeriesTick"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggrTimeSeriesTick</span><small class="property-type">
             &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
-        <p>This stream aggregator represents the time series tick window buffer. It exposes the data to other stream aggregators 
+        <p>This stream aggregator represents the time series tick window buffer. It exposes the data to other stream aggregators
 (similar to <a href="module-qm.html#~StreamAggrTimeSeriesWindow">module:qm~StreamAggrTimeSeriesWindow</a>). It implements the following methods:
 <br>1. <a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a> returns the last value added in its buffer window.
 <br>2. <a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a> returns the timestamp of the newest record in its buffer window.</p>
@@ -10066,7 +10066,7 @@ base.close();</code></pre>
 
                 <h3 id="~StreamAggrTimeSeriesWindow"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggrTimeSeriesWindow</span><small class="property-type">
             &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
-        <p>This stream aggregator represents the time series window buffer. It stores the values inside a moving window. 
+        <p>This stream aggregator represents the time series window buffer. It stores the values inside a moving window.
 It implements all the stream aggregate methods <b>except</b> <a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a> and <a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a>.</p>
 
         <section>
@@ -10099,7 +10099,7 @@ var aggr = {
    value: &#x27;Celsius&#x27;,
    winsize: 2000
 };
-base.store(&quot;Heat&quot;).addStreamAggr(aggr); 
+base.store(&quot;Heat&quot;).addStreamAggr(aggr);
 base.close();</code></pre>
 </div>
 
@@ -10411,7 +10411,7 @@ base.close();</code></pre>
 
                 <h3 id="~StreamAggrVecDiff"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggrVecDiff</span><small class="property-type">
             &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
-        <p>This stream aggregator represents difference between two vectors (e.g. online histograms). 
+        <p>This stream aggregator represents difference between two vectors (e.g. online histograms).
 It implements the following methods:
 <br>1. <a href="module-qm.StreamAggr.html#getFloatLength">module:qm.StreamAggr#getFloatLength</a> returns the number of bins.
 <br>2. <a href="module-qm.StreamAggr.html#getFloatAt">module:qm.StreamAggr#getFloatAt</a> returns the count for a bin index.
@@ -10436,7 +10436,7 @@ schema: [
       { name: &quot;Time&quot;, type: &quot;datetime&quot; }
   ]
 }]
-});       
+});
 
 var store = base.store(&#x27;Rpm&#x27;);
 
@@ -10467,7 +10467,7 @@ var aggrJson1 = {
 var hist1 = base.store(&quot;Rpm&quot;).addStreamAggr(aggrJson1);
 
 // create a new time series stream aggregator for the &#x27;Rpm&#x27; store that takes the recorded cluster id
-// and the timestamp from the &#x27;Time&#x27; field. 
+// and the timestamp from the &#x27;Time&#x27; field.
 var timeser2 = {
   name: &#x27;TimeSeries2&#x27;,
   type: &#x27;timeSeriesWinBuf&#x27;,

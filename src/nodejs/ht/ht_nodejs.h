@@ -307,10 +307,10 @@ public:
     * // add a key/dat pair
     * h.put(<% key1 %>, <% val1 %>);
     * // get key id of <% key1 %> 
-    * var key = h.keyid(<% key1 %>); // returns 0
+    * var key = h.keyId(<% key1 %>); // returns 0
     */
     //# exports.<% className %>.prototype.key = function(n) { return <% defaultKey %>; }	
-    JsDeclareFunction(keyid);
+    JsDeclareFunction(keyId);
 
 	/**
 	* Returns n-th dat.
@@ -459,7 +459,7 @@ void TNodeJsHash<TKey, TDat, TAux>::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "put", _put);
     NODE_SET_PROTOTYPE_METHOD(tpl, "hasKey", _hasKey);
     NODE_SET_PROTOTYPE_METHOD(tpl, "key", _key);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "keyid", _keyid);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "keyId", _keyId);
     NODE_SET_PROTOTYPE_METHOD(tpl, "dat", _dat);
     NODE_SET_PROTOTYPE_METHOD(tpl, "load", _load);
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
@@ -547,11 +547,11 @@ void TNodeJsHash<TKey, TDat, TAux>::key(const v8::FunctionCallbackInfo<v8::Value
 }
 
 template<class TKey, class TDat, class TAux>
-void TNodeJsHash<TKey, TDat, TAux>::keyid(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsHash<TKey, TDat, TAux>::keyId(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    EAssertR(Args.Length() == 1, "Expected an index as the argument.");
+    EAssertR(Args.Length() == 1, "Expected key as the argument.");
     TNodeJsHash<TKey, TDat, TAux>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat, TAux> >(Args.Holder());
 
     TKey Key = TAux::GetArgKey(Args, 0);

@@ -1,5 +1,14 @@
 # QMiner Change Log
 
+### 24 March 2017
+
+**Version 7.11.1**
+
+**Non-breaking with a bugfix**
+
+Bug fixes:
+- Gix memory usage overflow fix
+
 ### 3 March 2017
 
 **Version 7.11.0**
