@@ -43,17 +43,13 @@ TCount::TCount(const TWPt<TBase>& Base, const TStr& AggrNm,
     // prepare key name
     FieldNm = Base->GetIndexVoc()->GetKeyNm(KeyId);
     // prepare counts
-    TUInt64IntKdV ResV = RecSet->GetRecIdFqV();
-    if (!ResV.IsSorted()) { ResV.Sort(); }
     const uint64 Words = Base->GetIndexVoc()->GetWords(KeyId);
     for (uint64 WordId = 0; WordId < Words; WordId++) {
-        // prepare filter query
-        TIntUInt64PrV FilterQueryItemV;
-        FilterQueryItemV.Add(TIntUInt64Pr(KeyId, WordId));
-        // execute query
-        TUInt64IntKdV FilterV; Base->GetIndex()->SearchAnd(FilterQueryItemV, FilterV);
+        // get all records matching curent word
+        PRecSet WordRecSet = Base->GetIndex()->SearchGix(Base, KeyId, WordId);
+        // get intersection
+        const int WordFq = WordRecSet->GetItersect(RecSet)->GetRecs();
         // add to count
-        FilterV.Intrs(ResV); const int WordFq = FilterV.Len();
         TStr WordStr = Base->GetIndexVoc()->GetWordStr(KeyId, WordId);
         ValH.AddDat(WordStr) = WordFq; Count += WordFq;
     }

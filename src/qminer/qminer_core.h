@@ -29,6 +29,131 @@ class TFtrExt; typedef TPt<TFtrExt> PFtrExt;
 class TFtrSpace; typedef TPt<TFtrSpace> PFtrSpace;
 
 ///////////////////////////////
+/// Store windowing type
+typedef enum {
+    swtNone = 0,   ///< No windowing on the store
+    swtLength = 1, ///< Record-number based windowing
+    swtTime = 2    ///< Time-based windowing
+} TStoreWndType;
+
+///////////////////////////////
+/// Join Types
+typedef enum {
+    osjtUndef,
+    osjtIndex, ///< Index join
+    osjtField  ///< Field join
+} TStoreJoinType;
+
+///////////////////////////////
+/// Field Type
+typedef enum {
+    oftUndef    = -1,///< Undefined
+    oftByte     = 17,///< Unsigned 8-bit integer
+    oftInt      = 0, ///< 32-bit integer
+    oftInt16    = 15,///< 16-bit integer
+    oftInt64    = 16,///< 64-bit integer
+    oftIntV     = 9, ///< Vector of integers
+    oftUInt     = 13,///< Unsigned 32bit integer
+    oftUInt16   = 14,///< Unsigned 16bit integer
+    oftUInt64   = 8, ///< Unsigned 64bit integer
+    oftStr      = 1, ///< String
+    oftStrV     = 2, ///< Vector of strings
+    oftBool     = 4, ///< Boolean
+    oftFlt      = 5, ///< Double precision number
+    oftSFlt     = 18,///< Single precision number
+    oftFltPr    = 6, ///< Pair of double precision numbers, useful for storing geographic coordinates
+    oftFltV     = 10,///< Vector of double precision numbers
+    oftTm       = 7, ///< Date and time
+    oftNumSpV   = 11,///< Sparse vector -- vector of (integer,double) pairs
+    oftBowSpV   = 12, ///< Bag-of-words sparse vector
+    oftTMem     = 19, ///< Memory buffer
+    oftJson     = 20  ///< JSON field
+} TFieldType;
+
+///////////////////////////////
+/// Index Key Type
+typedef enum {
+    oiktUndef     = 0,
+    oiktValue     = (1 << 0), ///< Index by exact value, using inverted index
+    oiktText      = (1 << 1), ///< Index as free text, using inverted index
+    oiktTextPos   = (1 << 6), ///< Index as free text including word positions for proximity search
+    oiktLocation  = (1 << 2), ///< Index as location. using geoindex
+    oiktLinear    = (1 << 5), ///< Index as linearly ordered value using b-tree
+    oiktInternal  = (1 << 3), ///< Index used internaly for joins, using inverted index
+    oiktGixFull   = (1 << 7), ///< uint64 for recId and int for frequency
+    oiktGixSmall  = (1 << 8), ///< uint for recid and short for frequency
+    oiktGixTiny   = (1 << 9)  ///< uint for recid and no frequency
+} TIndexKeyType;
+
+///////////////////////////////
+/// Index Key Gix Type
+typedef enum {
+    oikgtUndef = 0,
+    oikgtFull  = 1, ///< uint64 for recId and int for frequency
+    oikgtSmall = 2, ///< uint for recid and short for frequency
+    oikgtTiny  = 3  ///< uint for recid and no frequency
+} TIndexKeyGixType;
+
+///////////////////////////////
+/// Index Key Sort Type
+typedef enum {
+    oikstUndef    =  0,
+    // for GIX sorting
+    oikstByStr    =  1, ///< Sort lexicograficly as string
+    oikstById     =  2, ///< Sort by index word id
+    oikstByFlt    =  3, ///< Sort as float
+    // for Linear BTree sorting
+    oikstAsByte   =  8, ///< Sort as byte
+    oikstAsInt    =  4, ///< Sort as int
+    oikstAsInt16  =  9, ///< Sort as int16
+    oikstAsInt64  = 10, ///< Sort as int64
+    oikstAsUInt   = 11, ///< Sort as uint
+    oikstAsUInt16 = 12, ///< Sort as uint16
+    oikstAsUInt64 =  5, ///< Sort as uint64
+    oikstAsTm     =  6, ///< Sort as date-time
+    oikstAsFlt    =  7, ///< Sort as double
+    oikstAsSFlt   = 13, ///< Sort as float
+} TIndexKeySortType;
+
+///////////////////////////////
+/// Index Query Element Type.
+/// Types of nodes in the parsed query tree
+typedef enum {
+    oqitUndef        = 0,
+    oqitGix          = 1,  ///< Inverted index query
+    oqitGeo          = 8,  ///< Geoindex query
+    oqitRangeByte    = 15, ///< Range BTree byte query
+    oqitRangeInt     = 11, ///< Range BTree integer query
+    oqitRangeInt16   = 16, ///< Range BTree int16 query
+    oqitRangeInt64   = 17, ///< Range BTree int64 query
+    oqitRangeUInt    = 18, ///< Range BTree uint query
+    oqitRangeUInt16  = 19, ///< Range BTree uint16 query
+    oqitRangeUInt64  = 12, ///< Range BTree uint64 query
+    oqitRangeSFlt    = 20, ///< Range BTree float query
+    oqitRangeFlt     = 13, ///< Range BTree float query
+    oqitRangeTm      = 14, ///< Range BTree date-time query
+    oqitAnd          = 2,  ///< AND between two or more queries
+    oqitOr           = 3,  ///< OR between two or more queries
+    oqitNot          = 4,  ///< NOT on current matching records
+    oqitJoin         = 5,  ///< Execute join on given records
+    oqitRecSet       = 6,  ///< Pass on a records set
+    oqitRec          = 7,  ///< Pass on a record
+    oqitStore        = 9   ///< Incude all records from a store
+} TQueryItemType;
+
+///////////////////////////////
+/// Index Query Comparison Operators for GIX queries.
+/// Comparison operators that can be specified between a field and a value
+typedef enum {
+    oqctUndef    = 0,
+    oqctEqual    = 1, ///< Equals (==)
+    oqctGreater  = 2, ///< Greater than (>)
+    oqctLess     = 3, ///< Less than (<)
+    oqctNotEqual = 4, ///< Not equal (!=)
+    oqctWildChar = 5  ///< Wildchar string matching (* for zero or more chars, ? for exactly one char)
+} TQueryCmpType;
+
+///////////////////////////////
 /// QMiner Environment.
 class TEnv {
 private:
@@ -128,14 +253,6 @@ public:
 };
 
 ///////////////////////////////
-/// Store windowing type
-typedef enum {
-    swtNone = 0,   ///< No windowing on the store
-    swtLength = 1, ///< Record-number based windowing
-    swtTime = 2    ///< Time-based windowing
-} TStoreWndType;
-
-///////////////////////////////
 /// Store window description
 class TStoreWndDesc {
 public:
@@ -159,14 +276,6 @@ public:
     void Save(TSOut& SOut) const;
     void Load(TSIn& SIn);
 };
-
-///////////////////////////////
-/// Join Types
-typedef enum {
-    osjtUndef,
-    osjtIndex, ///< Index join
-    osjtField  ///< Field join
-} TStoreJoinType;
 
 ///////////////////////////////
 /// Join Description
@@ -194,10 +303,10 @@ public:
     TJoinDesc(): JoinId(-1), JoinStoreId(TUInt::Mx), JoinType(osjtUndef), InverseJoinId(-1) { }
     /// Create an index based join (1-N or N-M)
     TJoinDesc(const TWPt<TBase>& Base, const TStr& _JoinNm, const uint& _JoinStoreId,
-        const uint& StoreId, const TWPt<TIndexVoc>& IndexVoc, const bool& IsSmall);
+        const uint& StoreId, const TWPt<TIndexVoc>& IndexVoc, const TIndexKeyGixType& GixType);
     /// Create a field based join (1-1)
-    TJoinDesc(const TWPt<TBase>& Base, const TStr& _JoinNm, const uint& _JoinStoreId, const int& _JoinRecFieldId,
-        const int& _JoinFqFieldId);
+    TJoinDesc(const TWPt<TBase>& Base, const TStr& _JoinNm, const uint& _JoinStoreId,
+        const int& _JoinRecFieldId, const int& _JoinFqFieldId);
 
     TJoinDesc(TSIn& SIn);
     void Save(TSOut& SOut) const;
@@ -269,32 +378,6 @@ public:
 
 };
 typedef TVec<TJoinSeq> TJoinSeqV;
-
-///////////////////////////////
-/// Field Type
-typedef enum {
-    oftUndef    = -1,///< Undefined
-    oftByte     = 17,///< Unsigned 8-bit integer
-    oftInt      = 0, ///< 32-bit integer
-    oftInt16    = 15,///< 16-bit integer
-    oftInt64    = 16,///< 64-bit integer
-    oftIntV     = 9, ///< Vector of integers
-    oftUInt     = 13,///< Unsigned 32bit integer
-    oftUInt16   = 14,///< Unsigned 16bit integer
-    oftUInt64   = 8, ///< Unsigned 64bit integer
-    oftStr      = 1, ///< String
-    oftStrV     = 2, ///< Vector of strings
-    oftBool     = 4, ///< Boolean
-    oftFlt      = 5, ///< Double precision number
-    oftSFlt     = 18,///< Single precision number
-    oftFltPr    = 6, ///< Pair of double precision numbers, useful for storing geographic coordinates
-    oftFltV     = 10,///< Vector of double precision numbers
-    oftTm       = 7, ///< Date and time
-    oftNumSpV   = 11,///< Sparse vector -- vector of (integer,double) pairs
-    oftBowSpV   = 12, ///< Bag-of-words sparse vector
-    oftTMem     = 19, ///< Memory buffer
-    oftJson     = 20  ///< JSON field
-} TFieldType;
 
 ///////////////////////////////
 /// Field Description
@@ -2091,39 +2174,6 @@ typedef TIntUInt64Pr TKeyWord;
 typedef TIntUInt64PrV TKeyWordV;
 
 ///////////////////////////////
-/// Index Key Type
-typedef enum {
-    oiktUndef    = 0,
-    oiktValue    = (1 << 0), ///< Index by exact value, using inverted index
-    oiktText     = (1 << 1), ///< Index as free text, using inverted index
-    oiktLocation = (1 << 2), ///< Index as location. using geoindex
-    oiktLinear   = (1 << 5), ///< Index as linearly ordered value using b-tree
-    oiktInternal = (1 << 3), ///< Index used internaly for joins, using inverted index
-    oiktSmall    = (1 << 4)  ///< Index uses small inverted index storage type
-} TIndexKeyType;
-
-///////////////////////////////
-/// Index Key Sort Type
-typedef enum {
-    oikstUndef    = 0,
-    // for GIX sorting
-    oikstByStr    = 1, ///< Sort lexicograficly as string
-    oikstById     = 2, ///< Sort by index word id
-    oikstByFlt    = 3, ///< Sort as float
-    // for Linear BTree sorting
-    oikstAsByte   = 8, ///< Sort as byte
-    oikstAsInt    = 4, ///< Sort as int
-    oikstAsInt16  = 9, ///< Sort as int16
-    oikstAsInt64  =10, ///< Sort as int64
-    oikstAsUInt   =11, ///< Sort as uint
-    oikstAsUInt16 =12, ///< Sort as uint16
-    oikstAsUInt64 = 5, ///< Sort as uint64
-    oikstAsTm     = 6, ///< Sort as date-time
-    oikstAsFlt    = 7, ///< Sort as double
-    oikstAsSFlt   = 13, ///< Sort as float
-} TIndexKeySortType;
-
-///////////////////////////////
 /// Index Key.
 /// Information about one index key.
 class TIndexKey {
@@ -2152,10 +2202,12 @@ public:
     TIndexKey(): StoreId(TUInt::Mx), KeyId(-1), KeyNm(""),
         WordVocId(-1), TypeFlags(oiktUndef), SortType(oikstUndef) {}
     /// Create internal key, used for index joins
-    TIndexKey(const TWPt<TBase>& Base, const uint& _StoreId, const TStr& _KeyNm, const TStr& _JoinNm, const bool& IsSmall);
+    TIndexKey(const TWPt<TBase>& Base, const uint& _StoreId, const TStr& _KeyNm,
+        const TStr& _JoinNm, const TIndexKeyGixType& GixType);
     /// Create new key using given word vocabulary
-    TIndexKey(const TWPt<TBase>& Base, const uint& _StoreId, const TStr& _KeyNm, const int& _WordVocId,
-        const TIndexKeyType& _Type, const TIndexKeySortType& _SortType);
+    TIndexKey(const TWPt<TBase>& Base, const uint& _StoreId, const TStr& _KeyNm,
+        const int& _WordVocId, const TIndexKeyType& _Type,
+        const TIndexKeySortType& _SortType);
 
     /// Deserialize key from the stream
     TIndexKey(TSIn& SIn);
@@ -2179,14 +2231,23 @@ public:
     bool IsValue() const { return ((TypeFlags & oiktValue) != 0); }
     /// Checks key type is text
     bool IsText() const { return ((TypeFlags & oiktText) != 0); }
+    /// Checks key type is text with positions
+    bool IsTextPos() const { return ((TypeFlags & oiktTextPos) != 0); }
     /// Checks key type is location
     bool IsLocation() const { return ((TypeFlags & oiktLocation) != 0); }
     /// Checks key type is on linearly  ordered value using b-tree
     bool IsLinear() const { return ((TypeFlags & oiktLinear) != 0); }
     /// Checks key type is internal
     bool IsInternal() const { return ((TypeFlags & oiktInternal) != 0); }
+
+    /// Get flag that instructs index to use full gix
+    bool IsGixFull() const { return (TypeFlags & oikgtFull) != 0; }
     /// Get flag that instructs index to use small gix
-    bool IsSmall() const { return (TypeFlags & oiktSmall) != 0; }
+    bool IsGixSmall() const { return (TypeFlags & oikgtSmall) != 0; }
+    /// Get flag that instructs index to use tiny gix
+    bool IsGixTiny() const { return (TypeFlags & oikgtTiny) != 0; }
+    /// Get gix storage type
+    TIndexKeyGixType GetGixType() const;
 
     /// Get key sort type
     TIndexKeySortType GetSortType() const { return SortType; }
@@ -2377,7 +2438,8 @@ public:
     int AddKey(const TWPt<TBase>& Base, const uint& StoreId, const TStr& KeyNm, const int& WordVocId,
         const TIndexKeyType& Type, const TIndexKeySortType& SortType = oikstUndef);
     /// Create new internal key
-    int AddInternalKey(const TWPt<TBase>& Base, const uint& StoreId, const TStr& KeyNm, const TStr& JoinNm, const bool& IsSmall);
+    int AddInternalKey(const TWPt<TBase>& Base, const uint& StoreId,
+       const TStr& KeyNm, const TStr& JoinNm, const TIndexKeyGixType& GixType);
     /// Linking key to a field
     void AddKeyField(const int& KeyId, const uint& StoreId, const int& FieldId);
     /// Check if store has any index keys
@@ -2414,9 +2476,9 @@ public:
     /// Get vector of all words from a key that match given wildchar query
     void GetWcWordIdV(const int& KeyId, const TStr& WcStr, TUInt64V& WcWordIdV);
     /// Get all words from a key that are greater than `startWordId
-    void GetAllGreaterV(const int& KeyId, const uint64& StartWordId, TKeyWordV& AllGreaterV);
+    void GetAllGreaterV(const int& KeyId, const uint64& StartWordId, TUInt64V& AllGreaterV);
     /// Get all words from a key that are smaller than `startWordId
-    void GetAllLessV(const int& KeyId, const uint64& StartWordId, TKeyWordV& AllLessV);
+    void GetAllLessV(const int& KeyId, const uint64& StartWordId, TUInt64V& AllLessV);
 
     /// Get tokenizer from a key
     const PTokenizer& GetTokenizer(const int& KeyId) const;
@@ -2428,55 +2490,6 @@ public:
 };
 
 ///////////////////////////////
-/// Index Query Element Type.
-/// Types of nodes in the parsed query tree
-typedef enum {
-    oqitUndef        = 0,
-    oqitLeafGix      = 1, ///< Leaf inverted index query
-    oqitLeafGixSmall = 10,///< Leaf inverted index query - for small items
-    oqitGeo          = 8, ///< Geoindex query
-    oqitRangeByte    = 15,///< Range BTree byte query
-    oqitRangeInt     = 11,///< Range BTree integer query
-    oqitRangeInt16   = 16,///< Range BTree int16 query
-    oqitRangeInt64   = 17,///< Range BTree int64 query
-    oqitRangeUInt    = 18,///< Range BTree uint query
-    oqitRangeUInt16  = 19,///< Range BTree uint16 query
-    oqitRangeUInt64  = 12,///< Range BTree uint64 query
-    oqitRangeSFlt    = 20,///< Range BTree float query
-    oqitRangeFlt     = 13,///< Range BTree float query
-    oqitRangeTm      = 14,///< Range BTree date-time query
-    oqitAnd          = 2, ///< AND between two or more queries
-    oqitOr           = 3, ///< OR between two or more queries
-    oqitNot          = 4, ///< NOT on current matching records
-    oqitJoin         = 5, ///< Execute join on given records
-    oqitRecSet       = 6, ///< Pass on a records set
-    oqitRec          = 7, ///< Pass on a record
-    oqitStore        = 9  ///< Incude all records from a store
-} TQueryItemType;
-
-///////////////////////////////
-/// Index Query Comparison Operators for GIX queries.
-/// Comparison operators that can be specified between a field and a value
-typedef enum {
-    oqctUndef    = 0,
-    oqctEqual    = 1, ///< Equals (==)
-    oqctGreater  = 2, ///< Greater than (>)
-    oqctLess     = 3, ///< Less than (<)
-    oqctNotEqual = 4, ///< Not equal (!=)
-    oqctWildChar = 5 ///< Wildchar string matching (* for zero or more chars, ? for exactly one char)
-} TQueryCmpType;
-
-////////////////////////////////
-/// Flags which gix objects are used in certain query
-typedef enum {
-    qgutUnknown = 0,       ///< Value not known yet
-    qgutNone = 1,          ///< No gix used
-    qgutNormal = 2,        ///< Normal gix is used
-    qgutSmall = 3,         ///< Small-gix is used
-    qgutBoth = 4           ///< Both gixes are used
-} TQueryGixUsedType;
-
-///////////////////////////////
 /// Query Item
 class TQueryItem; typedef TVec<TQueryItem> TQueryItemV;
 
@@ -2484,12 +2497,15 @@ class TQueryItem {
 private:
     /// type of query item
     TQueryItemType Type;
+
     /// Index key (for leaf node)
     TInt KeyId;
-    /// Value or text query (for leaf node)
+
+    /// Value or text query (for gix query)
     TUInt64V WordIdV;
-    /// Comparison between field and value (for leaf node)
+    /// Comparison between field and value (for gix query)
     TQueryCmpType CmpType;
+
     /// Geographic coordinates (for location query)
     TFltPr Loc;
     /// Radius of search space in meters (for location query)
@@ -2519,20 +2535,19 @@ private:
     /// List of subordinate query items.
     /// Has exactly one element when NOT or JOIN node type
     TQueryItemV ItemV;
+
     /// Join ID (for join nodes)
     TInt JoinId;
     /// Join sampling size (for join nodes). Value -1 means everything.
     TInt SampleSize;
+
     /// Record set which this query node returns (for qiven record set query)
     PRecSet RecSet;
     /// Record which this query node returns (for given record query)
     TRec Rec;
+
     /// Store which this query node returns
     TUInt StoreId;
-    // This flag indicates which Gix is used in this query its (and its children)
-    TQueryGixUsedType GixFlag;
-    // This method recalculates gix flag - called after query is created
-    void SetGixFlag();
 
     /// Parse Value for leaf nodes (result stored in WordIdV)
     void ParseWordStr(const TStr& WordStr, const TWPt<TIndexVoc>& IndexVoc);
@@ -2607,15 +2622,11 @@ public:
     /// Get query type
     TQueryItemType GetType() const { return Type; }
     /// Check query type
-    bool IsRec() const { return (Type == oqitRec); }
-    /// Check query type
-    bool IsRecSet() const { return (Type == oqitRecSet); }
-    /// Check query type
-    bool IsLeafGix() const { return (Type == oqitLeafGix); }
-    /// Check query type
-    bool IsLeafGixSmall() const { return (Type == oqitLeafGixSmall); }
+    bool IsGix() const { return (Type == oqitGix); }
     /// Check query type
     bool IsGeo() const { return (Type == oqitGeo); }
+    /// Check query type
+    bool IsRangeByte() const { return (Type == oqitRangeByte); }
     /// Check query type
     bool IsRangeInt() const { return (Type == oqitRangeInt); }
     /// Check query type
@@ -2623,21 +2634,19 @@ public:
     /// Check query type
     bool IsRangeInt64() const { return (Type == oqitRangeInt64); }
     /// Check query type
-    bool IsRangeByte() const { return (Type == oqitRangeByte); }
-    /// Check query type
     bool IsRangeUInt() const { return (Type == oqitRangeUInt); }
     /// Check query type
     bool IsRangeUInt16() const { return (Type == oqitRangeUInt16); }
     /// Check query type
     bool IsRangeUInt64() const { return (Type == oqitRangeUInt64); }
     /// Check query type
-    bool IsRangeTm() const { return (Type == oqitRangeTm); }
+    bool IsRangeSFlt() const { return (Type == oqitRangeSFlt); }
     /// Check query type
     bool IsRangeFlt() const { return (Type == oqitRangeFlt); }
     /// Check query type
-    bool IsRangeSFlt() const { return (Type == oqitRangeSFlt); }
+    bool IsRangeTm() const { return (Type == oqitRangeTm); }
     /// Check query type
-    bool IsRange() const { return (IsRangeInt() || IsRangeInt16() || IsRangeInt64() || IsRangeByte() || IsRangeUInt64() || IsRangeUInt() || IsRangeUInt16() || IsRangeTm() || IsRangeFlt() || IsRangeSFlt()); }
+    bool IsRange() const { return (IsRangeByte() || IsRangeInt() || IsRangeInt16() || IsRangeInt64() || IsRangeUInt() || IsRangeUInt16() || IsRangeUInt64() || IsRangeSFlt() || IsRangeFlt() || IsRangeTm()); }
     /// Check query type
     bool IsAnd() const { return (Type == oqitAnd); }
     /// Check query type
@@ -2647,30 +2656,47 @@ public:
     /// Check query type
     bool IsJoin() const { return (Type == oqitJoin); }
     /// Check query type
+    bool IsRecSet() const { return (Type == oqitRecSet); }
+    /// Check query type
+    bool IsRec() const { return (Type == oqitRec); }
+    /// Check query type
     bool IsStore() const { return (Type == oqitStore); }
 
-    /// Calculates Gix-usage flag
-    TQueryGixUsedType GetGixFlag() const;
     /// Optimizes query tree by removing unneeded nodes
     void Optimize();
 
     /// Get result store id
     uint GetStoreId(const TWPt<TBase>& Base) const;
-    /// Get result store id
+    /// Get result store
     TWPt<TStore> GetStore(const TWPt<TBase>& Base) const;
     /// Check if there are no subordinate items or values
     bool Empty() const { return !IsItems() && !IsWordIds(); }
     /// Check if result is weighted (only or-items)
     bool IsFq() const;
 
+    /// Get Index key
+    int GetKeyId() const { return KeyId; }
+
     /// Get number of values (for inverted index queries)
     bool IsWordIds() const { return !WordIdV.Empty(); }
-    /// Get Index key (for inverted index queries)
-    int GetKeyId() const { return KeyId; }
-    /// Get (first) word id  (for inverted index queries)
-    uint64 GetWordId() const { return WordIdV[0]; }
+    /// Get vector of word ids (for inverted index queries)
+    const TUInt64V& GetWordIdV() const { return WordIdV; }
     /// Get index key and all values (for inverted index queries)
     void GetKeyWordV(TKeyWordV& KeyWordPrV) const;
+
+    /// Get comparison type
+    TQueryCmpType GetCmpType() const { return CmpType; }
+    /// Check comparison type
+    bool IsEqual() const { return (CmpType == oqctEqual); }
+    /// Check comparison type
+    bool IsGreater() const { return (CmpType == oqctGreater); }
+    /// Check comparison type
+    bool IsLess() const { return (CmpType == oqctLess); }
+    /// Check comparison type
+    bool IsNotEqual() const { return (CmpType == oqctNotEqual); }
+    /// Check comparison type
+    bool IsWildChar() const { return (CmpType == oqctWildChar); }
+
     /// Get location (for location queries)
     const TFltPr& GetLoc() const { return Loc; }
     /// Check if location query has radios (for location queries)
@@ -2699,33 +2725,23 @@ public:
     /// Get float range
     TSFltPr GetRangeSFltMinMax() const { return RangeSFltMnMx; }
 
-    /// Get comparison type
-    TQueryCmpType GetCmpType() const { return CmpType; }
-    /// Check comparison type
-    bool IsEqual() const { return (CmpType == oqctEqual); }
-    /// Check comparison type
-    bool IsGreater() const { return (CmpType == oqctGreater); }
-    /// Check comparison type
-    bool IsLess() const { return (CmpType == oqctLess); }
-    /// Check comparison type
-    bool IsNotEqual() const { return (CmpType == oqctNotEqual); }
-    /// Check comparison type
-    bool IsWildChar() const { return (CmpType == oqctWildChar); }
-
     /// Are there subordinate items
     bool IsItems() const { return !ItemV.Empty(); }
     /// Get number of subordinate items
     int GetItems() const { return ItemV.Len(); }
     /// Get ItemN-th subordinate item
     const TQueryItem& GetItem(const int& ItemN) const { return ItemV[ItemN]; }
+
     /// Get join ID
     int GetJoinId() const { return JoinId; }
     /// Get join sample size
     int GetSampleSize() const { return SampleSize; }
+
     /// Get query item record
     const TRec& GetRec() const { return Rec; }
     /// Get query item record set
     const PRecSet& GetRecSet() const { return RecSet; }
+
     /// Access to store parameters
     uint GetStoreId() const { return StoreId; }
 
@@ -2953,10 +2969,11 @@ private:
         void Minus(const TVec<TQmGixItem>& MainV, const TVec<TQmGixItem>& JoinV, TVec<TQmGixItem>& ResV) const;
 
         /// No initialization necessary
-        void Def(const TQmGixKey& Key, TVec<TQmGixItem>& MainV) const {}
+        void Def(const TQmGixKey& Key, TVec<TQmGixItem>& MainV) const { }
 
         /// Merge given items when they have same record ID. Frequency is sumed together
         void Merge(TVec<TQmGixItem>& ItemV, const bool& IsLocal) const;
+
         /// Remove given item from the list
         void Delete(const TQmGixItem& Item, TVec<TQmGixItem>& MainV) const { return MainV.DelAll(Item); }
         /// < comparator between items
@@ -2972,12 +2989,19 @@ private:
     /// Expression for executing gix queries for full records
     typedef TGixExpItem<TQmGixKey, TQmGixItemFull, TQmGixSumMergerFull > TQmGixExpItemFull;
 
-    /// Smaller version of inverted index which works when we have less then 2^32 records
+    /// Small version of inverted index which works when we have less then 2^32 records
     typedef TKeyDat<TUInt, TSInt> TQmGixItemSmall; // [RecId, Freq]
     /// Merger for combining small records
     typedef TQmGixSumMerger<TQmGixItemSmall> TQmGixSumMergerSmall;
     /// Expression for executing gix queries for small records
     typedef TGixExpItem<TQmGixKey, TQmGixItemSmall, TQmGixSumMergerSmall > TQmGixExpItemSmall;
+
+    /// Tiny version of inverted index which works when we have less then 2^32 records
+    typedef TUInt TQmGixItemTiny; // [RecId]
+    /// Merger for combining tiny records, does not keep track of frequency
+    typedef TGixDefMerger<TQmGixKey, TQmGixItemTiny> TQmGixMergerTiny;
+    /// Expression for executing gix queries for tiny records
+    typedef TGixExpItem<TQmGixKey, TQmGixItemTiny, TQmGixMergerTiny > TQmGixExpItemTiny;
 
     /// Giving pretty names to GIX keys when printing debug statistics
     class TQmGixKeyStr : public TGixKeyStr<TQmGixKey> {
@@ -3012,9 +3036,11 @@ private:
     TFAccess Access;
 
     /// Full sized inverted index
-    mutable TPt<TGix<TQmGixKey, TQmGixItemFull, TQmGixSumMerger<TQmGixItemFull> > > GixFull;
+    mutable TPt<TGix<TQmGixKey, TQmGixItemFull, TQmGixSumMergerFull> > GixFull;
     /// Small inverted index (supports records with id < 2^32)
-    mutable TPt<TGix<TQmGixKey, TQmGixItemSmall, TQmGixSumMerger<TQmGixItemSmall> > > GixSmall;
+    mutable TPt<TGix<TQmGixKey, TQmGixItemSmall, TQmGixSumMergerSmall> > GixSmall;
+    /// Tiny inverted index (supports records with id < 2^32)
+    mutable TPt<TGix<TQmGixKey, TQmGixItemTiny, TQmGixMergerTiny > > GixTiny;
 
     /// Location index (one for each key)
     THash<TInt, PGeoIndex> GeoIndexH;
@@ -3040,33 +3066,31 @@ private:
 
     /// Index Vocabulary
     PIndexVoc IndexVoc;
-    /// Inverted Index Default Merger
+    /// Inverted Index Default Merger Full
     TPt<TGixExpMerger<TQmGixKey, TQmGixItemFull> > SumMergerFull;
     /// Inverted Index Default Merger Small
     TPt<TGixExpMerger<TQmGixKey, TQmGixItemSmall> > SumMergerSmall;
+    /// Inverted Index Default Merger Tiny
+    TPt<TGixExpMerger<TQmGixKey, TQmGixItemTiny> > MergerTiny;
 
-    /// Converts query item tree to GIX query expression
-    template <class TQmGixItem>
-    TPt<TGixExpItem<TQmGixKey, TQmGixItem, TQmGixSumMerger<TQmGixItem> > > ToExpItem(const TQueryItem& QueryItem) const;
+    /// Determines which Gix should be used for given KeyId
+    TIndexKeyGixType GetGixType(const int& KeyId) const { return IndexVoc->GetKey(KeyId).GetGixType(); }
     /// Executes GIX query expression against the full index
     bool DoQueryFull(const TPt<TQmGixExpItemFull>& ExpItem, TVec<TQmGixItemFull>& RecIdFqV) const;
     /// Executes GIX query expression against the small index
-    bool DoQuerySmall(const TPt<TQmGixExpItemSmall>& ExpItem, TVec<TQmGixItemSmall>& RecIdFqV) const;
-
-    /// Determines which Gix should be used for given KeyId
-    bool UseGixSmall(const int& KeyId) const { return IndexVoc->GetKey(KeyId).IsSmall(); }
-    /// Upgrades a vector of small items into a vector of big ones
-    void UpgradeToFull(const TVec<TQmGixItemSmall>& Src, TVec<TQmGixItemFull>& Dest) const;
+    bool DoQuerySmall(const TPt<TQmGixExpItemSmall>& ExpItem, TVec<TQmGixItemFull>& RecIdFqV) const;
+    /// Executes GIX query expression against the tiny index
+    bool DoQueryTiny(const TPt<TQmGixExpItemTiny>& ExpItem, TVec<TQmGixItemFull>& RecIdFqV) const;
 
     /// Constructor
     TIndex(const TStr& _IndexFPath, const TFAccess& _Access, const PIndexVoc& IndexVoc,
-        const int64& CacheSizeFull, const int64& CacheSizeSmall, const int& SplitLen);
+        const int64& CacheSizeFull, const int64& CacheSizeSmall, const uint64& CacheSizeTiny,
+        const int& SplitLen);
 public:
     /// Create (Access==faCreate) or open existing index
     static PIndex New(const TStr& IndexFPath, const TFAccess& Access, const PIndexVoc& IndexVoc,
-        const int64& CacheSizeFull, const int64& CacheSizeSmall, const int& SplitLen) {
-            return new TIndex(IndexFPath, Access, IndexVoc, CacheSizeFull, CacheSizeSmall, SplitLen);
-    }
+        const int64& CacheSizeFull, const int64& CacheSizeSmall, const uint64& CacheSizeTiny,
+        const int& SplitLen);
     /// Checks if there is an existing index at the given path
     static bool Exists(const TStr& IndexFPath) { return TFile::Exists(IndexFPath + "Index.Gix"); }
 
@@ -3223,18 +3247,25 @@ public:
     /// Check if index opened in read-only mode
     bool IsReadOnly() const { return Access == faRdOnly; }
 
-    /// Do flat AND search, given the vector of inverted index queries
-    void SearchAnd(const TIntUInt64PrV& KeyWordV, TUInt64IntKdV& StoreRecIdFqV) const;
-    /// Do flat OR search, given the vector of inverted index queries
-    void SearchOr(const TIntUInt64PrV& KeyWordV, TUInt64IntKdV& StoreRecIdFqV) const;
-    /// Search, does not handle joins
-    TPair<TBool, PRecSet> Search(const TWPt<TBase>& Base, const TQueryItem& QueryItem) const;
+    /// Search inverted index suing single key-word pair
+    PRecSet SearchGix(const TWPt<TBase>& Base, const int& KeyId, const uint64& WordId) const;
+    /// Search inverted index for records matching all words from same key
+    PRecSet SearchGixAnd(const TWPt<TBase>& Base, const int& KeyId, const TUInt64V& WordIdV) const;
+    /// Search inverted index for records matching at least one word from the same key
+    PRecSet SearchGixOr(const TWPt<TBase>& Base, const int& KeyId, const TUInt64V& WordIdV) const;
+
+    /// Low-level access to Gix search used for joining
+    void SearchGixJoin(const int& KeyId, const uint64& RecId, TUInt64IntKdV& JoinRecIdFqV) const;
+    /// Low-level access to Gix search used for joining
+    void SearchGixJoin(const int& KeyId, const TUInt64V& RecIdV, TUInt64IntKdV& JoinRecIdFqV) const;
+
     /// Do geo-location range (in meters) search
     PRecSet SearchGeoRange(const TWPt<TBase>& Base, const int& KeyId,
         const TFltPr& Loc, const double& Radius, const int& Limit) const;
     /// Do geo-location nearest-neighbor search
     PRecSet SearchGeoNn(const TWPt<TBase>& Base, const int& KeyId,
         const TFltPr& Loc, const int& Limit) const;
+
     /// Do B-Tree linear search
     PRecSet SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TUChPr& RangeMinMax);
     /// Do B-Tree linear search
@@ -3253,10 +3284,6 @@ public:
     PRecSet SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TFltPr& RangeMinMax);
     /// Do B-Tree linear search
     PRecSet SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TSFltPr& RangeMinMax);
-    /// Get records ids and counts that are joined with given RecId (via given join key)
-    void GetJoinRecIdFqV(const int& JoinKeyId, const uint64& RecId, TUInt64IntKdV& JoinRecIdFqV) const;
-    /// Are there any existing joins from RecId using JoinKeyId
-    bool HasJoin(const int& JoinKeyId, const uint64& RecId) const;
 
     /// Save debug statistics to a file
     void SaveTxt(const TWPt<TBase>& Base, const TStr& FNm);
@@ -3645,7 +3672,7 @@ private:
     /// Invert given record set (replace with all the records from the store that are not in it)
     PRecSet Invert(const PRecSet& RecSet);
     /// Execute search query. Returns results and a flag indicating if the results should be inverted.
-    TPair<TBool, PRecSet> Search(const TQueryItem& QueryItem, const TQueryGixUsedType& ParentGixFlag);
+    TPair<TBool, PRecSet> _Search(const TQueryItem& QueryItem);
 
     /// Get config name for base located on a given path
     static TStr GetConfFNm(const TStr& FPath) { return FPath + "Base.json"; }

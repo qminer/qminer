@@ -60,8 +60,8 @@ public:
 
     void Merge(TVec<TItem>& ItemV, bool IsLocal = false) const { ItemV.Merge(); }
     void Delete(const TItem& Item, TVec<TItem>& MainV) const { return MainV.DelAll(Item); }
-    inline bool IsLt(const TItem& Item1, const TItem& Item2) const { return Item1 < Item2; }
-    inline bool IsLtE(const TItem& Item1, const TItem& Item2) const { return Item1 <= Item2; }
+    bool IsLt(const TItem& Item1, const TItem& Item2) const { return Item1 < Item2; }
+    bool IsLtE(const TItem& Item1, const TItem& Item2) const { return Item1 <= Item2; }
 
     uint64 GetMemUsed() const {
         return sizeof(TGixDefMerger<TKey,TItem>) +
