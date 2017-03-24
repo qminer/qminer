@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.11.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.11.1</a>
       </div>
     </div>
   </nav>
@@ -345,7 +345,7 @@ var base = new qm.Base({
        ]
    }]
 });
-// create a new time series stream aggregator which takes the values from the &#x27;Procents&#x27; field 
+// create a new time series stream aggregator which takes the values from the &#x27;Procents&#x27; field
 // and the timestamp from the &#x27;Time&#x27; field. The size of the window is 1 year.
 var ts = {
    name: &#x27;GradesAggr&#x27;,
@@ -353,10 +353,10 @@ var ts = {
    store: &#x27;Grades&#x27;,
    timestamp: &#x27;Time&#x27;,
    value: &#x27;Procents&#x27;,
-   winsize: 31536000000 
+   winsize: 31536000000
 };
 var timeSeries = base.store(&#x27;Grades&#x27;).addStreamAggr(ts);
-// create a new moving average stream aggregator that takes the values from the 
+// create a new moving average stream aggregator that takes the values from the
 // &#x27;GradesAggr&#x27; stream aggregator
 var ma = {
    name: &#x27;AverageGrade&#x27;,
@@ -445,7 +445,7 @@ base.store(&#x27;MusicSale&#x27;).push({ NumberOfAlbums: 10, Time: &#x27;2015-03
 base.store(&#x27;MusicSale&#x27;).push({ NumberOfAlbums: 15, Time: &#x27;2015-03-18T00:00:00.0&#x27; });
 base.store(&#x27;MusicSale&#x27;).push({ NumberOfAlbums: 30, Time: &#x27;2015-03-19T00:00:00.0&#x27; });
 base.store(&#x27;MusicSale&#x27;).push({ NumberOfAlbums: 45, Time: &#x27;2015-03-20T00:00:00.0&#x27; });
-// get the second value of the value vector 
+// get the second value of the value vector
 var albums = weekSales.getFloatAt(1); // returns 15
 base.close();</code></pre>
                 </div>
@@ -801,7 +801,7 @@ var base = new qm.Base({
        ]
    }]
 });
-// create a time series containing the values from the &#x27;NumberOfAlbums&#x27; field and 
+// create a time series containing the values from the &#x27;NumberOfAlbums&#x27; field and
 // the timestamp from the &#x27;Time&#x27; field. The window size should be 1 week.
 var ts = {
    name: &#x27;Sales&#x27;,

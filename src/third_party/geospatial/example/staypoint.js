@@ -1,33 +1,34 @@
 var qm = require('qminer');
 
-var base = new qm.Base({
+base = new qm.Base({
     mode: "createClean",
     schema: [
-	    {
-	        "name": "GPS",
-	        "fields": [
+        {
+            "name": "GPS",
+            "fields": [
+              { "name": "User", "type": "int" },
               { "name": "Time", "type": "datetime" },
               { "name": "Location", type: "float_pair" },
-              { "name": "Activities", type: "int_v", "null":true},
-              { "name": "Accuracy", type: "byte", "null": true }
-	        ],
-	        "joins": [],
-	        "keys": []
-	    }
+              { "name": "Accuracy", type: "byte", "null": true },
+              { "name": "Activities", type: "int_v", "null": true }
+            ],
+            "joins": [],
+            "keys": []
+        }
     ]
 });
-
 // used only for schema
 // will not be used to hold records (push will not be called)
 var store = base.store("GPS");
-
-var aggr = store.addStreamAggr({
+var aggr = new qm.StreamAggr(base, {
     type: "stayPointDetector",
+    store: store,
+    userField: "User",
     timeField: "Time",
     locationField: "Location",
-    activitiesField: "Activities",
     accuracyField: "Accuracy",
-    params: { dT: 51, tT: 301 }
+    activitiesField: "Activities",
+    params: { dT: 50, tT: 300 }
 });
 
 //test1

@@ -132,7 +132,7 @@
     * // add a key/dat pair
     * h.put('foo', 'bar');
     * // get key id of 'foo' 
-    * var key = h.keyid('foo'); // returns 0
+    * var key = h.keyId('foo'); // returns 0
     */
  exports.StrStrMap.prototype.key = function(n) { return ; }	
 /**
@@ -338,7 +338,7 @@
     * // add a key/dat pair
     * h.put('foo', 10);
     * // get key id of 'foo' 
-    * var key = h.keyid('foo'); // returns 0
+    * var key = h.keyId('foo'); // returns 0
     */
  exports.StrIntMap.prototype.key = function(n) { return ; }	
 /**
@@ -544,7 +544,7 @@
     * // add a key/dat pair
     * h.put('foo', 10.5);
     * // get key id of 'foo' 
-    * var key = h.keyid('foo'); // returns 0
+    * var key = h.keyId('foo'); // returns 0
     */
  exports.StrFltMap.prototype.key = function(n) { return ; }	
 /**
@@ -750,7 +750,7 @@
     * // add a key/dat pair
     * h.put(10, 'foo');
     * // get key id of 10 
-    * var key = h.keyid(10); // returns 0
+    * var key = h.keyId(10); // returns 0
     */
  exports.IntStrMap.prototype.key = function(n) { return 0; }	
 /**
@@ -956,7 +956,7 @@
     * // add a key/dat pair
     * h.put(5, 10);
     * // get key id of 5 
-    * var key = h.keyid(5); // returns 0
+    * var key = h.keyId(5); // returns 0
     */
  exports.IntIntMap.prototype.key = function(n) { return 0; }	
 /**
@@ -1162,7 +1162,7 @@
     * // add a key/dat pair
     * h.put(5, 10.5);
     * // get key id of 5 
-    * var key = h.keyid(5); // returns 0
+    * var key = h.keyId(5); // returns 0
     */
  exports.IntFltMap.prototype.key = function(n) { return 0; }	
 /**
