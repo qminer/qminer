@@ -114,7 +114,7 @@ TJoinDescEx TStoreSchema::ParseJoinDescEx(const PJsonVal& JoinVal) {
     } else if (JoinType == "field") {
         JoinDescEx.JoinType = osjtField;
     } else {
-        throw TQmExcept::New("Unsupported join type");
+        throw TQmExcept::New("Unsupported join type '" + JoinType + "'");
     }
     // get inverse join
     if (JoinVal->IsObjKey("inverse")) {
@@ -143,7 +143,7 @@ TJoinDescEx TStoreSchema::ParseJoinDescEx(const PJsonVal& JoinVal) {
         if (PartV.Len() == 2) {
             // make sure we know of the types
             QmAssertR(Maps.FieldTypeMap.IsKey(PartV[0]), "Unkown field join record type '" + PartV[0] + "'");
-            QmAssertR(Maps.FieldTypeMap.IsKey(PartV[0]), "Unkown field join frequency type '" + PartV[1] + "'");
+            QmAssertR(Maps.FieldTypeMap.IsKey(PartV[1]), "Unkown field join frequency type '" + PartV[1] + "'");
             // remember the types
             JoinDescEx.RecIdFieldType = (TFieldType)Maps.FieldTypeMap.GetDat(PartV[0]).Val;
             JoinDescEx.FreqFieldType = (TFieldType)Maps.FieldTypeMap.GetDat(PartV[1]).Val;
@@ -186,7 +186,8 @@ TIndexKeyEx TStoreSchema::ParseIndexKeyEx(const PJsonVal& IndexKeyVal) {
     TIndexKeyEx IndexKeyEx;
     IndexKeyEx.FieldName = IndexKeyVal->GetObjStr("field");
     // check if it is a valid field name
-    QmAssertR(FieldH.IsKey(IndexKeyEx.FieldName), "Target field for key-index unknown");
+    QmAssertR(FieldH.IsKey(IndexKeyEx.FieldName),
+        "Unknown target field for key-index: '" + IndexKeyEx.FieldName + "'");
     // get field type to avoid further lookups when indexing
     TFieldType FieldType = FieldH.GetDat(IndexKeyEx.FieldName).GetFieldType();
     // parse out key name, use field name as default
@@ -202,7 +203,7 @@ TIndexKeyEx TStoreSchema::ParseIndexKeyEx(const PJsonVal& IndexKeyVal) {
     } else if (KeyTypeStr == "linear") {
         IndexKeyEx.KeyType = oiktLinear;
     } else {
-        throw TQmExcept::New("Unknown key type " + KeyTypeStr);
+        throw TQmExcept::New("Unknown key type '" + KeyTypeStr  + "' for field '" + IndexKeyEx.FieldName + "'");
     }
     // parse out gix type (default is full)
     TStr StorageStr = IndexKeyVal->GetObjStr("storage", "full");
@@ -212,6 +213,8 @@ TIndexKeyEx TStoreSchema::ParseIndexKeyEx(const PJsonVal& IndexKeyVal) {
         IndexKeyEx.GixType = oikgtSmall;
     } else if (StorageStr == "tiny") {
         IndexKeyEx.GixType = oikgtTiny;
+    } else {
+        throw TQmExcept::New("Unkown gix storage type '" + StorageStr + "' for field '" + IndexKeyEx.FieldName + "'");
     }
     // check field type and index type match
     if (FieldType == oftStr && IndexKeyEx.IsValue()) {
@@ -231,13 +234,13 @@ TIndexKeyEx TStoreSchema::ParseIndexKeyEx(const PJsonVal& IndexKeyVal) {
     } else if (FieldType == oftSFlt && IndexKeyEx.IsLinear()) {
     } else {
         // not supported, lets complain about it...
-        throw TQmExcept::New("Indexing '" + KeyTypeStr + "' not supported for field " + IndexKeyEx.FieldName);
+        throw TQmExcept::New("Indexing '" + KeyTypeStr + "' not supported for field '" + IndexKeyEx.FieldName + "'");
     }
     // get and parse sort type
     if (IndexKeyVal->IsObjKey("sort")) {
         // check if we can even handle sort for this key
         if (!IndexKeyEx.IsValue()) {
-            throw TQmExcept::New("Sort only possible for keys of type 'value' and not " + KeyTypeStr);
+            throw TQmExcept::New("Sort only possible for keys of type 'value' and not '" + KeyTypeStr + "'");
         }
         // we can, parse out how we sort the values
         TStr SortTypeStr = IndexKeyVal->GetObjStr("sort");

@@ -3989,6 +3989,8 @@ PRecSet TRecSet::DoJoin(const TWPt<TBase>& Base, const int& JoinId, const int& S
             }
         }
         JoinRecIdFqH.GetKeyDatKdV(JoinRecIdFqV);
+        // make sure we are sorted so we are consistent with index join
+        JoinRecIdFqV.Sort();
     } else {
         // unknown join type
         throw TQmExcept::New("Unsupported join type for join " + JoinDesc.GetJoinNm() + "!");
@@ -5353,7 +5355,11 @@ bool TIndex::DoQueryFull(const TPt<TQmGixExpItemFull>& ExpItem, TVec<TQmGixItemF
     // clean if there is anything on the input
     RecIdFqV.Clr();
     // execute query
-    return ExpItem->Eval(GixFull, RecIdFqV, SumMergerFull);
+    const bool Not = ExpItem->Eval(GixFull, RecIdFqV, SumMergerFull);
+    // make sure we are sorted
+    Assert(RecIdFqV.IsSorted());
+    // pass forward return result
+    return Not;
 }
 
 bool TIndex::DoQuerySmall(const TPt<TQmGixExpItemSmall>& ExpItem, TVec<TQmGixItemFull>& RecIdFqV) const {
