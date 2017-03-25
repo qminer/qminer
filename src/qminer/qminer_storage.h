@@ -53,6 +53,8 @@ public:
     TStr KeyIndexName;
     /// Index type
     TIndexKeyType KeyType;
+    /// Index gix type (when relevant)
+    TIndexKeyGixType GixType;
     /// How to sort the key (if at all)
     TIndexKeySortType SortType;
     /// Word vocabulary name (used by inverted index)
@@ -97,8 +99,8 @@ public:
     TStoreJoinType JoinType;
     /// Name of reverse join (empty if none)
     TStr InverseJoinName;
-    /// Flag if index should use small storage
-    TBool IsSmall;
+    /// Index gix type (for index joins)
+    TIndexKeyGixType GixType;
     /// Type of field that contains joined record id (for field join)
     TFieldType RecIdFieldType;
     /// Type of field that contains join frequency (for field join).

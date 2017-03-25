@@ -48,7 +48,7 @@ TCount::TCount(const TWPt<TBase>& Base, const TStr& AggrNm,
         // get all records matching curent word
         PRecSet WordRecSet = Base->GetIndex()->SearchGix(Base, KeyId, WordId);
         // get intersection
-        const int WordFq = WordRecSet->GetItersect(RecSet)->GetRecs();
+        const int WordFq = WordRecSet->GetIntersect(RecSet)->GetRecs();
         // add to count
         TStr WordStr = Base->GetIndexVoc()->GetWordStr(KeyId, WordId);
         ValH.AddDat(WordStr) = WordFq; Count += WordFq;

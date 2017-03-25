@@ -120,28 +120,43 @@ TJoinDescEx TStoreSchema::ParseJoinDescEx(const PJsonVal& JoinVal) {
     if (JoinVal->IsObjKey("inverse")) {
         JoinDescEx.InverseJoinName = JoinVal->GetObjStr("inverse");
     }
-    // get "is small" flag
-    JoinDescEx.IsSmall = false;
-    JoinDescEx.RecIdFieldType = oftUInt64;
-    JoinDescEx.FreqFieldType = oftInt;
-    if (JoinVal->IsObjKey("small")) {
-        JoinDescEx.IsSmall = JoinVal->GetObjBool("small");
-        if (JoinDescEx.IsSmall) {
-            JoinDescEx.RecIdFieldType = oftUInt;
-            JoinDescEx.FreqFieldType = oftInt16;
-        }
-    }
-    if (JoinVal->IsObjKey("storage")) {
-        QmAssertR(JoinDescEx.JoinType == osjtField, "Index-join doesn't support storage flag");
-        TStr TypeStr = JoinVal->GetObjStr("storage");
-        TStrV Parts;
-        TypeStr.SplitOnAllCh('-', Parts);
-        if (Parts.Len() == 2) {
-            JoinDescEx.RecIdFieldType = (TFieldType)Maps.FieldTypeMap.GetDat(Parts[0]).Val;
-            JoinDescEx.FreqFieldType = (TFieldType)Maps.FieldTypeMap.GetDat(Parts[1]).Val;
+    // parse storage parameters for join
+    TStr StorageStr = JoinVal->GetObjStr("storage", "full");
+    if (StorageStr == "full") {
+        JoinDescEx.GixType = oikgtFull;
+        JoinDescEx.RecIdFieldType = oftUInt64;
+        JoinDescEx.FreqFieldType = oftInt;
+    } else if (StorageStr == "small") {
+        JoinDescEx.GixType = oikgtSmall;
+        JoinDescEx.RecIdFieldType = oftUInt;
+        JoinDescEx.FreqFieldType = oftInt16;
+    } else if (StorageStr == "tiny") {
+        JoinDescEx.GixType = oikgtTiny;
+        JoinDescEx.RecIdFieldType = oftUInt;
+        JoinDescEx.FreqFieldType = oftUndef;
+    } else {
+        // only field joins support more complex type combinations
+        QmAssertR(JoinDescEx.JoinType == osjtField, "Invalid storage definition '" + StorageStr + "' for index join");
+        JoinDescEx.GixType = oikgtUndef;
+        // parse types
+        TStrV PartV; StorageStr.SplitOnAllCh('-', PartV);
+        if (PartV.Len() == 2) {
+            // make sure we know of the types
+            QmAssertR(Maps.FieldTypeMap.IsKey(PartV[0]), "Unkown field join record type '" + PartV[0] + "'");
+            QmAssertR(Maps.FieldTypeMap.IsKey(PartV[0]), "Unkown field join frequency type '" + PartV[1] + "'");
+            // remember the types
+            JoinDescEx.RecIdFieldType = (TFieldType)Maps.FieldTypeMap.GetDat(PartV[0]).Val;
+            JoinDescEx.FreqFieldType = (TFieldType)Maps.FieldTypeMap.GetDat(PartV[1]).Val;
+        } else if (PartV.Len() == 1) {
+            // check we know of the type
+            QmAssertR(Maps.FieldTypeMap.IsKey(PartV[0]), "Unkown field join record type '" + PartV[0] + "'");
+            // remember record type
+            JoinDescEx.RecIdFieldType = (TFieldType)Maps.FieldTypeMap.GetDat(PartV[0]).Val;
+            // no field for frequency, value is 1 by default
+            JoinDescEx.FreqFieldType = TFieldType::oftUndef;
         } else {
-            JoinDescEx.RecIdFieldType = (TFieldType)Maps.FieldTypeMap.GetDat(Parts[0]).Val;
-            JoinDescEx.FreqFieldType = TFieldType::oftUndef; // no field for frequency, value is 1 by default
+            // we got invalid parts desc
+            throw TQmExcept::New("Unkown join storage definiton  '" + StorageStr + "' for index join");
         }
     }
     // field-join only - check flags where fields are stored
@@ -177,7 +192,6 @@ TIndexKeyEx TStoreSchema::ParseIndexKeyEx(const PJsonVal& IndexKeyVal) {
     // parse out key name, use field name as default
     IndexKeyEx.KeyIndexName = IndexKeyVal->GetObjStr("name", IndexKeyEx.FieldName);
     // get and parse key type
-
     TStr KeyTypeStr = IndexKeyVal->GetObjStr("type");
     if (KeyTypeStr == "value") {
         IndexKeyEx.KeyType = oiktValue;
@@ -190,9 +204,14 @@ TIndexKeyEx TStoreSchema::ParseIndexKeyEx(const PJsonVal& IndexKeyVal) {
     } else {
         throw TQmExcept::New("Unknown key type " + KeyTypeStr);
     }
-    // check if small index should be used
-    if (IndexKeyVal->IsObjKey("small") && IndexKeyVal->GetObjBool("small")) {
-        IndexKeyEx.KeyType = (TIndexKeyType)(IndexKeyEx.KeyType | oiktSmall);
+    // parse out gix type (default is full)
+    TStr StorageStr = IndexKeyVal->GetObjStr("storage", "full");
+    if (StorageStr == "full") {
+        IndexKeyEx.GixType = oikgtFull;
+    } else if (StorageStr == "small") {
+        IndexKeyEx.GixType = oikgtSmall;
+    } else if (StorageStr == "tiny") {
+        IndexKeyEx.GixType = oikgtTiny;
     }
     // check field type and index type match
     if (FieldType == oftStr && IndexKeyEx.IsValue()) {
@@ -1678,34 +1697,32 @@ void TRecSerializator::SerializeUpdate(const PJsonVal& RecVal, const TMemBase& I
     Merge(FixedMem, VarSOut, OutRecMem);
 }
 
-///////////////////////////
-/// Field getter
 bool TRecSerializator::IsFieldNull(TThinMIn& min, const int& FieldId) const {
     const TFieldSerialDesc& FieldSerialDesc = GetFieldSerialDesc(FieldId);
     const char* bf = min.GetBfAddrChar() + FieldSerialDesc.NullMapByte;
     return ((*bf & FieldSerialDesc.NullMapMask) != 0);
 }
-/// Field getter
+
 uchar TRecSerializator::GetFieldByte(TThinMIn& min, const int& FieldId) const {
     const char* bf = GetLocationFixed(min, GetFieldSerialDesc(FieldId));
     return *((uchar*)bf);
 }
-/// Field getter
+
 int TRecSerializator::GetFieldInt(TThinMIn& min, const int& FieldId) const {
     const char* bf = GetLocationFixed(min, GetFieldSerialDesc(FieldId));
     return *((int*)bf);
 }
-/// Field getter
+
 int16 TRecSerializator::GetFieldInt16(TThinMIn& min, const int& FieldId) const {
     const char* bf = GetLocationFixed(min, GetFieldSerialDesc(FieldId));
     return *((int16*)bf);
 }
-/// Field getter
+
 int64 TRecSerializator::GetFieldInt64(TThinMIn& min, const int& FieldId) const {
     const char* bf = GetLocationFixed(min, GetFieldSerialDesc(FieldId));
     return TInt64::GetFromBufSafe(bf);
 }
-/// Field getter
+
 void TRecSerializator::GetFieldIntV(TThinMIn& min, const int& FieldId, TIntV& IntV) const {
     min.MoveTo(GetOffsetVar(min, GetFieldSerialDesc(FieldId)));
     if (UseToast && min.GetCh() == ToastYes) {
@@ -1719,22 +1736,22 @@ void TRecSerializator::GetFieldIntV(TThinMIn& min, const int& FieldId, TIntV& In
         IntV.Load(min);
     }
 }
-/// Field getter
+
 uint TRecSerializator::GetFieldUInt(TThinMIn& min, const int& FieldId) const {
     const char* Bf = GetLocationFixed(min, GetFieldSerialDesc(FieldId));
     return *((uint*)Bf);
 }
-/// Field getter
+
 uint16 TRecSerializator::GetFieldUInt16(TThinMIn& min, const int& FieldId) const {
     const char* Bf = GetLocationFixed(min, GetFieldSerialDesc(FieldId));
     return *((uint16*)Bf);
 }
-/// Field getter
+
 uint64 TRecSerializator::GetFieldUInt64(TThinMIn& min, const int& FieldId) const {
     const char* Bf = GetLocationFixed(min, GetFieldSerialDesc(FieldId));
     return TUInt64::GetFromBufSafe(Bf);
 }
-/// Field getter
+
 TStr TRecSerializator::GetFieldStr(TThinMIn& min, const int& FieldId) const {
     const TFieldSerialDesc& FieldSerialDesc = GetFieldSerialDesc(FieldId);
     if (FieldSerialDesc.FixedPartP) {
@@ -1760,12 +1777,9 @@ TStr TRecSerializator::GetFieldStr(TThinMIn& min, const int& FieldId) const {
             Str.Load(min, FieldSerialDesc.SmallStringP);
             return Str;
         }
-        //TStr Str;
-        //Str.Load(min, FieldSerialDesc.SmallStringP);
-        //return Str;
     }
 }
-/// Field getter
+
 void TRecSerializator::GetFieldStrV(TThinMIn& min, const int& FieldId, TStrV& StrV) const {
     min.MoveTo(GetOffsetVar(min, GetFieldSerialDesc(FieldId)));
     if (UseToast && min.GetCh() == ToastYes) {
@@ -1778,29 +1792,28 @@ void TRecSerializator::GetFieldStrV(TThinMIn& min, const int& FieldId, TStrV& St
     } else {
         StrV.Load(min);
     }
-    //StrV.Load(min);
 }
-/// Field getter
+
 bool TRecSerializator::GetFieldBool(TThinMIn& min, const int& FieldId) const {
     const char* bf = GetLocationFixed(min, GetFieldSerialDesc(FieldId));
     return *((bool*)bf);
 }
-/// Field getter
+
 double TRecSerializator::GetFieldFlt(TThinMIn& min, const int& FieldId) const {
     const char* Bf = GetLocationFixed(min, GetFieldSerialDesc(FieldId));
     return TFlt::GetFromBufSafe(Bf); // do not cast (not portable to ARM)
 }
-/// Field getter
+
 float TRecSerializator::GetFieldSFlt(TThinMIn& min, const int& FieldId) const {
     const char* Bf = GetLocationFixed(min, GetFieldSerialDesc(FieldId));
     return TSFlt::GetFromBufSafe(Bf); // do not cast (not portable to ARM)
 }
-/// Field getter
+
 TFltPr TRecSerializator::GetFieldFltPr(TThinMIn& min, const int& FieldId) const {
     const char* Bf = GetLocationFixed(min, GetFieldSerialDesc(FieldId));
     return TFltPr(TFlt::GetFromBufSafe(Bf), TFlt::GetFromBufSafe(Bf + sizeof(double))); // do not cast (not portable to ARM)
 }
-/// Field getter
+
 void TRecSerializator::GetFieldFltV(TThinMIn& min, const int& FieldId, TFltV& FltV) const {
     min.MoveTo(GetOffsetVar(min, GetFieldSerialDesc(FieldId)));
     if (UseToast && min.GetCh() == ToastYes) {
@@ -1813,18 +1826,17 @@ void TRecSerializator::GetFieldFltV(TThinMIn& min, const int& FieldId, TFltV& Fl
     } else {
         FltV.Load(min);
     }
-    //FltV.Load(min);
 }
-/// Field getter
+
 void TRecSerializator::GetFieldTm(TThinMIn& min, const int& FieldId, TTm& Tm) const {
     Tm = TTm::GetTmFromMSecs(GetFieldTmMSecs(min, FieldId));
 }
-/// Field getter
+
 uint64 TRecSerializator::GetFieldTmMSecs(TThinMIn& min, const int& FieldId) const {
     const char* bf = GetLocationFixed(min, GetFieldSerialDesc(FieldId));
     return *((uint64*)bf);
 }
-/// Field getter
+
 void TRecSerializator::GetFieldNumSpV(TThinMIn& min, const int& FieldId, TIntFltKdV& SpV) const {
     min.MoveTo(GetOffsetVar(min, GetFieldSerialDesc(FieldId)));
     if (UseToast && min.GetCh() == ToastYes) {
@@ -1837,9 +1849,8 @@ void TRecSerializator::GetFieldNumSpV(TThinMIn& min, const int& FieldId, TIntFlt
     } else {
         SpV.Load(min);
     }
-    //SpV.Load(min);
 }
-/// Field getter
+
 void TRecSerializator::GetFieldBowSpV(TThinMIn& min, const int& FieldId, PBowSpV& SpV) const {
     min.MoveTo(GetOffsetVar(min, GetFieldSerialDesc(FieldId)));
     if (UseToast && min.GetCh() == ToastYes) {
@@ -1852,9 +1863,8 @@ void TRecSerializator::GetFieldBowSpV(TThinMIn& min, const int& FieldId, PBowSpV
     } else {
         SpV = TBowSpV::Load(min);
     }
-    //SpV = TBowSpV::Load(min);
 }
-/// Field getter
+
 void TRecSerializator::GetFieldTMem(TThinMIn& min, const int& FieldId, TMem& Mem) const {
     min.MoveTo(GetOffsetVar(min, GetFieldSerialDesc(FieldId)));
     if (UseToast && min.GetCh() == ToastYes) {
@@ -1865,7 +1875,7 @@ void TRecSerializator::GetFieldTMem(TThinMIn& min, const int& FieldId, TMem& Mem
         Mem.Load(min);
     }
 }
-/// Field getter
+
 PJsonVal TRecSerializator::GetFieldJsonVal(TThinMIn& min, const int& FieldId) const {
     min.MoveTo(GetOffsetVar(min, GetFieldSerialDesc(FieldId)));
     if (UseToast && min.GetCh() == ToastYes) {
@@ -1883,7 +1893,6 @@ PJsonVal TRecSerializator::GetFieldJsonVal(TThinMIn& min, const int& FieldId) co
         return TJsonVal::GetValFromStr(Str);
     }
 }
-///////////////////////////
 
 bool TRecSerializator::IsFieldNull(const TMemBase& RecMem, const int& FieldId) const {
     TThinMIn ThinMIn(RecMem);
@@ -2689,7 +2698,7 @@ TRecIndexer::TRecIndexer(const TWPt<TIndex>& _Index, const TWPt<TStore>& Store):
             // remember the field-key details
             const int KeyN = FieldIndexKeyV.Add(TFieldIndexKey(FieldId,
                 FieldDesc.GetFieldNm(), FieldDesc.GetFieldType(),
-                FieldDesc.GetFieldTypeStr(), KeyId, Key.GetTypeFlags(),
+                FieldDesc.GetFieldTypeStr(), KeyId, Key.GetType(),
                 Key.GetWordVocId()));
             // remember mapping from field id to key position
             FieldIdToKeyN.AddDat(FieldId, KeyN);
@@ -2983,7 +2992,7 @@ void TStoreImpl::InitFromSchema(const TStoreSchema& StoreSchema) {
         const int WordVocId = GetBase()->NewIndexWordVoc(IndexKeyEx.KeyType, IndexKeyEx.WordVocName);
         // create new index key
         const int KeyId = GetBase()->NewFieldIndexKey(this, IndexKeyEx.KeyIndexName,
-            FieldId, WordVocId, IndexKeyEx.KeyType, IndexKeyEx.SortType);
+            FieldId, WordVocId, IndexKeyEx.KeyType, IndexKeyEx.GixType, IndexKeyEx.SortType);
         // assign tokenizer to it if we have one
         if (IndexKeyEx.IsTokenizer()) { IndexVoc->PutTokenizer(KeyId, IndexKeyEx.Tokenizer); }
     }
@@ -5198,7 +5207,7 @@ void TStorePbBlob::InitFromSchema(const TStoreSchema& StoreSchema) {
         const int WordVocId = GetBase()->NewIndexWordVoc(IndexKeyEx.KeyType, IndexKeyEx.WordVocName);
         // create new index key
         const int KeyId = GetBase()->NewFieldIndexKey(this, IndexKeyEx.KeyIndexName,
-            FieldId, WordVocId, IndexKeyEx.KeyType, IndexKeyEx.SortType);
+            FieldId, WordVocId, IndexKeyEx.KeyType, IndexKeyEx.GixType, IndexKeyEx.SortType);
         // assign tokenizer to it if we have one
         if (IndexKeyEx.IsTokenizer()) { IndexVoc->PutTokenizer(KeyId, IndexKeyEx.Tokenizer); }
     }
@@ -5623,12 +5632,13 @@ TVec<TWPt<TStore> > CreateStoresFromSchema(const TWPt<TBase>& Base, const PJsonV
                 if (Store->IsFieldNm(JoinDescEx.JoinName + "Fq")) {
                     JoinFqFieldId = Store->GetFieldId(JoinDescEx.JoinName + "Fq");
                 }
-                Store->AddJoinDesc(TJoinDesc(Base, JoinDescEx.JoinName, JoinStore->GetStoreId(), JoinRecFieldId, JoinFqFieldId));
+                Store->AddJoinDesc(TJoinDesc(Base, JoinDescEx.JoinName,
+                    JoinStore->GetStoreId(), JoinRecFieldId, JoinFqFieldId));
             } else if (JoinDescEx.JoinType == osjtIndex) {
                 // index join
                 Store->AddJoinDesc(TJoinDesc(Base, JoinDescEx.JoinName,
                     JoinStore->GetStoreId(), Store->GetStoreId(),
-                    Base->GetIndexVoc(), JoinDescEx.IsSmall));
+                    Base->GetIndexVoc(), JoinDescEx.GixType));
             } else {
                 ErrorLog("Unknown join type for join " + JoinDescEx.JoinName);
             }

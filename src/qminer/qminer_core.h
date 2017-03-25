@@ -79,10 +79,7 @@ typedef enum {
     oiktTextPos   = (1 << 6), ///< Index as free text including word positions for proximity search
     oiktLocation  = (1 << 2), ///< Index as location. using geoindex
     oiktLinear    = (1 << 5), ///< Index as linearly ordered value using b-tree
-    oiktInternal  = (1 << 3), ///< Index used internaly for joins, using inverted index
-    oiktGixFull   = (1 << 7), ///< uint64 for recId and int for frequency
-    oiktGixSmall  = (1 << 8), ///< uint for recid and short for frequency
-    oiktGixTiny   = (1 << 9)  ///< uint for recid and no frequency
+    oiktInternal  = (1 << 3)  ///< Index used internaly for joins, using inverted index
 } TIndexKeyType;
 
 ///////////////////////////////
@@ -2187,7 +2184,9 @@ private:
     /// Vocabulary ID, which provides range of possible values for this key
     TInt WordVocId;
     /// Key type
-    TIndexKeyType TypeFlags;
+    TIndexKeyType Type;
+    /// Which gix are we useing (only for value and text types)
+    TIndexKeyGixType GixType;
     /// Sort type of the key
     TIndexKeySortType SortType;
     /// List of fields indexed by this key
@@ -2200,13 +2199,13 @@ private:
 public:
     /// Empty constructor creates undefined key
     TIndexKey(): StoreId(TUInt::Mx), KeyId(-1), KeyNm(""),
-        WordVocId(-1), TypeFlags(oiktUndef), SortType(oikstUndef) {}
+        WordVocId(-1), Type(oiktUndef), SortType(oikstUndef) {}
     /// Create internal key, used for index joins
     TIndexKey(const TWPt<TBase>& Base, const uint& _StoreId, const TStr& _KeyNm,
         const TStr& _JoinNm, const TIndexKeyGixType& GixType);
     /// Create new key using given word vocabulary
     TIndexKey(const TWPt<TBase>& Base, const uint& _StoreId, const TStr& _KeyNm,
-        const int& _WordVocId, const TIndexKeyType& _Type,
+        const int& _WordVocId, const TIndexKeyType& _Type, const TIndexKeyGixType& _GixType,
         const TIndexKeySortType& _SortType);
 
     /// Deserialize key from the stream
@@ -2225,29 +2224,29 @@ public:
     /// Set key id (used only when creating new keys)
     void PutKeyId(const int& _KeyId) { KeyId = _KeyId; }
 
-    /// Get key type
-    TIndexKeyType GetTypeFlags() const { return TypeFlags; }
+    /// Get type of index
+    TIndexKeyType GetType() const { return Type; }
     /// Checks key type is value
-    bool IsValue() const { return ((TypeFlags & oiktValue) != 0); }
+    bool IsValue() const { return ((Type & oiktValue) != 0); }
     /// Checks key type is text
-    bool IsText() const { return ((TypeFlags & oiktText) != 0); }
+    bool IsText() const { return ((Type & oiktText) != 0); }
     /// Checks key type is text with positions
-    bool IsTextPos() const { return ((TypeFlags & oiktTextPos) != 0); }
+    bool IsTextPos() const { return ((Type & oiktTextPos) != 0); }
     /// Checks key type is location
-    bool IsLocation() const { return ((TypeFlags & oiktLocation) != 0); }
+    bool IsLocation() const { return ((Type & oiktLocation) != 0); }
     /// Checks key type is on linearly  ordered value using b-tree
-    bool IsLinear() const { return ((TypeFlags & oiktLinear) != 0); }
+    bool IsLinear() const { return ((Type & oiktLinear) != 0); }
     /// Checks key type is internal
-    bool IsInternal() const { return ((TypeFlags & oiktInternal) != 0); }
+    bool IsInternal() const { return ((Type & oiktInternal) != 0); }
 
-    /// Get flag that instructs index to use full gix
-    bool IsGixFull() const { return (TypeFlags & oikgtFull) != 0; }
-    /// Get flag that instructs index to use small gix
-    bool IsGixSmall() const { return (TypeFlags & oikgtSmall) != 0; }
-    /// Get flag that instructs index to use tiny gix
-    bool IsGixTiny() const { return (TypeFlags & oikgtTiny) != 0; }
     /// Get gix storage type
-    TIndexKeyGixType GetGixType() const;
+    TIndexKeyGixType GetGixType() const { return GixType; }
+    /// Get flag that instructs index to use full gix
+    bool IsGixFull() const { return GixType == oikgtFull; }
+    /// Get flag that instructs index to use small gix
+    bool IsGixSmall() const { return GixType == oikgtSmall; }
+    /// Get flag that instructs index to use tiny gix
+    bool IsGixTiny() const { return GixType == oikgtTiny; }
 
     /// Get key sort type
     TIndexKeySortType GetSortType() const { return SortType; }
@@ -2436,7 +2435,7 @@ public:
 
     /// Create new key in the index vocabulary
     int AddKey(const TWPt<TBase>& Base, const uint& StoreId, const TStr& KeyNm, const int& WordVocId,
-        const TIndexKeyType& Type, const TIndexKeySortType& SortType = oikstUndef);
+        const TIndexKeyType& Type, const TIndexKeyGixType& GixType, const TIndexKeySortType& SortType);
     /// Create new internal key
     int AddInternalKey(const TWPt<TBase>& Base, const uint& StoreId,
        const TStr& KeyNm, const TStr& JoinNm, const TIndexKeyGixType& GixType);
@@ -3755,29 +3754,11 @@ public:
 
     /// Create new word vocabulary and returns its id
     int NewIndexWordVoc(const TIndexKeyType& Type, const TStr& WordVocNm = TStr());
-    /// Create index key, without linking it to a filed, returns the id of created key
-    int NewIndexKey(const TWPt<TStore>& Store, const TStr& KeyNm, const TIndexKeyType& Type = oiktValue,
-        const TIndexKeySortType& SortType = oikstUndef);
-    /// Create index key, without linking it to a field using specified vocabulary,
-    /// returns the id of created key
-    int NewIndexKey(const TWPt<TStore>& Store, const TStr& KeyNm, const int& WordVocId,
-        const TIndexKeyType& Type = oiktValue, const TIndexKeySortType& SortType = oikstUndef);
-    /// Create index key for a specified (store, field) pair, returns the id of created key
-    int NewFieldIndexKey(const TWPt<TStore>& Store, const TStr& KeyNm, const int& FieldId,
-        const TIndexKeyType& Type = oiktValue, const TIndexKeySortType& SortType = oikstUndef);
-    /// Create index key for a specified (store, field) pair, returns the id of created key.
-    /// Uses provided custom key name.
-    int NewFieldIndexKey(const TWPt<TStore>& Store, const int& FieldId,
-        const TIndexKeyType& Type = oiktValue, const TIndexKeySortType& SortType = oikstUndef);
-    // Create index key for a specified (store, field) pair using specified vocabulary,
-    // returns the id of created key
-    int NewFieldIndexKey(const TWPt<TStore>& Store, const int& FieldId, const int& WordVocId,
-        const TIndexKeyType& Type = oiktValue, const TIndexKeySortType& SortType = oikstUndef);
     // Create index key for a specified (store, field) pair using specified vocabulary,
     // returns the id of created key. Uses provided custom key name.
     int NewFieldIndexKey(const TWPt<TStore>& Store, const TStr& KeyNm, const int& FieldId,
-        const int& WordVocId, const TIndexKeyType& Type = oiktValue,
-        const TIndexKeySortType& SortType = oikstUndef);
+        const int& WordVocId, const TIndexKeyType& Type, const TIndexKeyGixType& GixType,
+        const TIndexKeySortType& SortType);
 
     /// Add new record to a give store
     uint64 AddRec(const TWPt<TStore>& Store, const PJsonVal& RecVal);

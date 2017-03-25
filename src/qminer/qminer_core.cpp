@@ -4074,34 +4074,26 @@ PJsonVal TRecSet::GetJson(const TWPt<TBase>& Base, const int& _MxHits, const int
 ///////////////////////////////
 // QMiner-Index-Key
 TIndexKey::TIndexKey(const TWPt<TBase>& Base, const uint& _StoreId, const TStr& _KeyNm,
-    const TStr& _JoinNm, const TIndexKeyGixType& GixType): StoreId(_StoreId), KeyNm(_KeyNm),
-    WordVocId(-1), TypeFlags(oiktInternal), SortType(oikstUndef), JoinNm(_JoinNm) {
+    const TStr& _JoinNm, const TIndexKeyGixType& _GixType): StoreId(_StoreId), KeyNm(_KeyNm),
+    WordVocId(-1), Type(oiktInternal), GixType(_GixType), SortType(oikstUndef), JoinNm(_JoinNm) {
 
-    // parse gix type and set appropriate internal flags
-    if (GixType == oikgtFull) { TypeFlags = (TIndexKeyType)(TypeFlags | oiktGixFull); }
-    else if (GixType == oikgtSmall) { TypeFlags = (TIndexKeyType)(TypeFlags | oiktGixSmall); }
-    else if (GixType == oikgtTiny) { TypeFlags = (TIndexKeyType)(TypeFlags | oiktGixTiny); }
-    else { throw TQmExcept::New("Invalid index key gix type"); }
+    // make sure we have gix type
+    QmAssert(GixType != oikgtUndef);
     // assert we got a valid name
     Base->AssertValidNm(KeyNm);
 }
 
 TIndexKey::TIndexKey(const TWPt<TBase>& Base, const uint& _StoreId, const TStr& _KeyNm,
-    const int& _WordVocId, const TIndexKeyType& _Type, const TIndexKeySortType& _SortType):
-    StoreId(_StoreId), KeyNm(_KeyNm), WordVocId(_WordVocId), TypeFlags(_Type), SortType(_SortType) {
+    const int& _WordVocId, const TIndexKeyType& _Type, const TIndexKeyGixType& _GixType,
+    const TIndexKeySortType& _SortType): StoreId(_StoreId), KeyNm(_KeyNm),
+    WordVocId(_WordVocId), Type(_Type), GixType(_GixType), SortType(_SortType) {
 
     // no internal keys allowed here
     QmAssert(!IsInternal());
     // value or text keys require vocabulary
     if (IsValue() || IsText() || IsTextPos()) { QmAssert(WordVocId >= 0); }
     // value or text require exactly one gix storage type to be set
-    if (IsValue() || IsText()) {
-        int GixTypeCount = 0;
-        if (IsGixFull()) { GixTypeCount++; }
-        if (IsGixSmall()) { GixTypeCount++; }
-        if (IsGixTiny()) { GixTypeCount++; }
-        QmAssert(GixTypeCount == 1);
-    }
+    if (IsValue() || IsText()) { QmAssert(GixType != oikgtUndef); }
     // location does not need vocabualry
     if (IsLocation()) { QmAssert(WordVocId == -1); }
     // name must be valid
@@ -4110,24 +4102,19 @@ TIndexKey::TIndexKey(const TWPt<TBase>& Base, const uint& _StoreId, const TStr& 
 
 TIndexKey::TIndexKey(TSIn& SIn) : StoreId(SIn), KeyId(SIn),
     KeyNm(SIn), WordVocId(SIn),
-    TypeFlags(LoadEnum<TIndexKeyType>(SIn)),
+    Type(LoadEnum<TIndexKeyType>(SIn)),
+    GixType(LoadEnum<TIndexKeyGixType>(SIn)),
     SortType(LoadEnum<TIndexKeySortType>(SIn)),
     FieldIdV(SIn), JoinNm(SIn), Tokenizer(SIn) {}
 
 void TIndexKey::Save(TSOut& SOut) const {
     StoreId.Save(SOut);
     KeyId.Save(SOut); KeyNm.Save(SOut); WordVocId.Save(SOut);
-    SaveEnum<TIndexKeyType>(SOut, TypeFlags);
+    SaveEnum<TIndexKeyType>(SOut, Type);
+    SaveEnum<TIndexKeyGixType>(SOut, GixType);
     SaveEnum<TIndexKeySortType>(SOut, SortType);
     FieldIdV.Save(SOut); JoinNm.Save(SOut);
     Tokenizer.Save(SOut);
-}
-
-TIndexKeyGixType TIndexKey::GetGixType() const {
-    if (IsGixFull()) { return oikgtFull; }
-    if (IsGixSmall()) { return oikgtSmall; }
-    if (IsGixTiny()) { return oikgtTiny; }
-    return oikgtUndef;
 }
 
 ///////////////////////////////
@@ -4288,11 +4275,12 @@ void TIndexVoc::SetWordVocNm(const int& WordVocId, const TStr& WordVocNm) {
 }
 
 int TIndexVoc::AddKey(const TWPt<TBase>& Base, const uint& StoreId, const TStr& KeyNm,
-        const int& WordVocId, const TIndexKeyType& Type, const TIndexKeySortType& SortType) {
+        const int& WordVocId, const TIndexKeyType& Type, const TIndexKeyGixType& GixType,
+        const TIndexKeySortType& SortType) {
 
     // create key
     const int KeyId = KeyH.AddKey(TUIntStrPr(StoreId, KeyNm));
-    KeyH[KeyId] = TIndexKey(Base, StoreId, KeyNm, WordVocId, Type, SortType);
+    KeyH[KeyId] = TIndexKey(Base, StoreId, KeyNm, WordVocId, Type, GixType, SortType);
     // tell to the key its ID
     KeyH[KeyId].PutKeyId(KeyId);
     // add the key to the associated store key set
@@ -6594,7 +6582,7 @@ TPair<TBool, PRecSet> TBase::_Search(const TQueryItem& QueryItem) {
         TBoolV NotV; TRecSetV RecSetV;
         for (int ItemN = 0; ItemN < QueryItem.GetItems(); ItemN++) {
             // do subsequent search
-            TPair<TBool, PRecSet> NotRecSet = _Search(QueryItem.GetItem(ItemN);
+            TPair<TBool, PRecSet> NotRecSet = _Search(QueryItem.GetItem(ItemN));
             NotV.Add(NotRecSet.Val1); RecSetV.Add(NotRecSet.Val2);
         }
         // merge the results according to the operator
@@ -6630,7 +6618,7 @@ TPair<TBool, PRecSet> TBase::_Search(const TQueryItem& QueryItem) {
                 }
             }
             // prepare resulting record set
-            RecSet = TRecSet::New(RecSet->GetStore(), ResRecIdFqV, QueryItem.IsFq());
+            PRecSet RecSet = TRecSet::New(RecSetV[0]->GetStore(), ResRecIdFqV, QueryItem.IsFq());
             return TPair<TBool, PRecSet>(NotP, RecSet);
         } else if (QueryItem.IsOr()) {
             // prepare working vectors with the first records set
@@ -6663,9 +6651,10 @@ TPair<TBool, PRecSet> TBase::_Search(const TQueryItem& QueryItem) {
                 }
             }
             // prepare resulting record set
-            RecSet = TRecSet::New(RecSet->GetStore(), ResRecIdFqV, QueryItem.IsFq());
+            PRecSet RecSet = TRecSet::New(RecSetV[0]->GetStore(), ResRecIdFqV, QueryItem.IsFq());
             return TPair<TBool, PRecSet>(NotP, RecSet);
         } else if (QueryItem.IsNot()) {
+            // just return records set but negate the current negation status
             QmAssert(RecSetV.Len() == 1);
             return TPair<TBool, PRecSet>(!NotV[0], RecSetV[0]);
         }
@@ -6708,7 +6697,7 @@ TBase::TBase(const TStr& _FPath, const int64& IndexCacheSize, const int& SplitLe
     TEnv::Logger->OnStatus("Opening in create mode");
     // prepare index
     IndexVoc = TIndexVoc::New();
-    Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize, IndexCacheSize, SplitLen);
+    Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize, IndexCacheSize, IndexCacheSize, SplitLen);
     // initialize store blob base
     StoreBlobBs = TMBlobBs::New(FPath + "StoreBlob", FAccess);
     // initialize with empty stores
@@ -6737,7 +6726,7 @@ TBase::TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCac
 
     // load index
     IndexVoc = TIndexVoc::Load(IndexVocFIn);
-    Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize, IndexCacheSize, SplitLen);
+    Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize, IndexCacheSize, IndexCacheSize, SplitLen);
     // load shared store blob base
     StoreBlobBs = TMBlobBs::New(FPath + "StoreBlob", FAccess);
     // initialize with empty stores
@@ -6854,48 +6843,20 @@ int TBase::NewIndexWordVoc(const TIndexKeyType& Type, const TStr& WordVocNm) {
     return -1;
 }
 
-int TBase::NewIndexKey(const TWPt<TStore>& Store, const TStr& KeyNm,
-    const TIndexKeyType& Type, const TIndexKeySortType& SortType) {
+int TBase::NewFieldIndexKey(const TWPt<TStore>& Store, const TStr& KeyNm, const int& FieldId,
+        const int& WordVocId, const TIndexKeyType& Type, const TIndexKeyGixType& GixType,
+        const TIndexKeySortType& SortType) {
 
-    return NewIndexKey(Store, KeyNm, NewIndexWordVoc(Type), Type, SortType);
-}
-
-int TBase::NewIndexKey(const TWPt<TStore>& Store, const TStr& KeyNm, const int& WordVocId,
-    const TIndexKeyType& Type, const TIndexKeySortType& SortType) {
-
+    // make sure we do not have the key already
     QmAssertR(!IndexVoc->IsKeyNm(Store->GetStoreId(), KeyNm),
         "Key " + Store->GetStoreNm() + "." + KeyNm + " already exists!");
-    const int KeyId = IndexVoc->AddKey(Store->GetBase(), Store->GetStoreId(), KeyNm, WordVocId, Type, SortType);
-    return KeyId;
-}
-
-int TBase::NewFieldIndexKey(const TWPt<TStore>& Store, const TStr& KeyNm, const int& FieldId,
-    const TIndexKeyType& Type, const TIndexKeySortType& SortType) {
-
-    return NewFieldIndexKey(Store, KeyNm, FieldId, NewIndexWordVoc(Type), Type, SortType);
-}
-
-int TBase::NewFieldIndexKey(const TWPt<TStore>& Store, const int& FieldId,
-    const TIndexKeyType& Type, const TIndexKeySortType& SortType) {
-
-    return NewFieldIndexKey(Store, Store->GetFieldNm(FieldId),
-        FieldId, NewIndexWordVoc(Type), Type, SortType);
-}
-
-int TBase::NewFieldIndexKey(const TWPt<TStore>& Store, const int& FieldId, const int& WordVocId,
-    const TIndexKeyType& Type, const TIndexKeySortType& SortType) {
-
-    return NewFieldIndexKey(Store, Store->GetFieldNm(FieldId), FieldId, WordVocId, Type, SortType);
-}
-
-int TBase::NewFieldIndexKey(const TWPt<TStore>& Store, const TStr& KeyNm, const int& FieldId,
-    const int& WordVocId, const TIndexKeyType& Type, const TIndexKeySortType& SortType) {
-
-    QmAssertR(!IndexVoc->IsKeyNm(Store->GetStoreId(), KeyNm),
-        "Key " + Store->GetStoreNm() + "." + KeyNm + " already exists!");
-    const int KeyId = IndexVoc->AddKey(Store->GetBase(), Store->GetStoreId(), KeyNm, WordVocId, Type, SortType);
+    // register key in the index vocabulary
+    const int KeyId = IndexVoc->AddKey(Store->GetBase(),
+        Store->GetStoreId(), KeyNm, WordVocId, Type, GixType, SortType);
+    // connect key and field in the vocabualry and store
     IndexVoc->AddKeyField(KeyId, Store->GetStoreId(), FieldId);
     Store->AddFieldKey(FieldId, KeyId);
+    // return id of created key
     return KeyId;
 }
 
@@ -6914,14 +6875,12 @@ uint64 TBase::AddRec(const uint& StoreId, const PJsonVal& RecVal) {
 
 PRecSet TBase::Search(const PQuery& Query) {
     // do the search
-    TPair<TBool, PRecSet> NotRecSet = _Search(Query->GetQueryItem();
-    // when empty, then query can be completly covered by index
-    if (NotRecSet.Val2.Empty()) {
-        NotRecSet = Index->Search(this, Query->GetQueryItem());
-    }
+    TPair<TBool, PRecSet> NotRecSet = _Search(Query->GetQueryItem());
+    // take the resulting record set
     PRecSet RecSet = NotRecSet.Val2;
+    Assert(!RecSet.Empty());
     // if result should be negated, do the invert
-    if (NotRecSet.Val1) { RecSet = Invert(NotRecSet.Val2); }
+    if (NotRecSet.Val1) { RecSet = Invert(RecSet); }
     // get the aggregates
     Aggr(RecSet, Query->GetAggrItemV());
     // sort if necessary
