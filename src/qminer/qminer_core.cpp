@@ -4370,27 +4370,25 @@ void TIndexVoc::AddWordIdV(const int& KeyId, const TStr& TextStr, TUInt64V& Word
     QmAssert(IsWordVoc(KeyId));
     // tokenize string
     TStrV TokV; GetTokenizer(KeyId)->GetTokens(TextStr, TokV);
-    WordIdV.Gen(TokV.Len(), 0); const PIndexWordVoc& WordVoc = GetWordVoc(KeyId);
+    // map words to their ids
+    WordIdV.Gen(TokV.Len(), 0);
+    const PIndexWordVoc& WordVoc = GetWordVoc(KeyId);
     for (int TokN = 0; TokN < TokV.Len(); TokN++) {
         WordIdV.Add(WordVoc->AddWordStr(TokV[TokN]));
     }
     WordVoc->IncRecs();
 }
 
-// void TIndexVoc::AddWordIdV(const int& KeyId, const TStrV& TextStrV, TUInt64V& WordIdV) {
-//     QmAssert(IsWordVoc(KeyId));
-//     // tokenize string
-//     TStrV TokV;
-//     const PTokenizer& Tokenizer = GetTokenizer(KeyId);
-//     for (int StrN = 0; StrN < TextStrV.Len(); StrN++) {
-//         Tokenizer->GetTokens(TextStrV[StrN], TokV);
-//     }
-//     WordIdV.Gen(TokV.Len(), 0); const PIndexWordVoc& WordVoc = GetWordVoc(KeyId);
-//     for (int TokN = 0; TokN < TokV.Len(); TokN++) {
-//         WordIdV.Add(WordVoc->AddWordStr(TokV[TokN]));
-//     }
-//     WordVoc->IncRecs();
-// }
+void TIndexVoc::AddWordIdV(const int& KeyId, const TStrV& WordV, TUInt64V& WordIdV) {
+    QmAssert(IsWordVoc(KeyId));
+    // map words to their ids
+    WordIdV.Gen(WordV.Len(), 0);
+    const PIndexWordVoc& WordVoc = GetWordVoc(KeyId);
+    for (int WordN = 0; WordN < WordV.Len(); WordN++) {
+        WordIdV.Add(WordVoc->AddWordStr(WordV[WordN]));
+    }
+    WordVoc->IncRecs();
+}
 
 void TIndexVoc::GetWcWordIdV(const int& KeyId, const TStr& WcStr, TUInt64V& WcWordIdV) {
     QmAssert(IsWordVoc(KeyId));
@@ -4508,7 +4506,7 @@ void TQueryItem::ParseWordStr(const TStr& WordStr, const TWPt<TIndexVoc>& IndexV
         // we are done
         return;
     }
-    // check for specail comparison ops
+    // check for special comparison ops
     if (IsWildChar()) {
         // get all matching words
         IndexVoc->GetWcWordIdV(KeyId, WordStr, WordIdV);
@@ -5658,7 +5656,6 @@ void TIndex::IndexTextPos(const int& KeyId, const TUInt64V& WordIdV, const uint6
         GixPos->AddItem(TKeyWord(KeyId, WordId), ItemPos);
     }
 }
-
 
 void TIndex::DeleteTextPos(const int& KeyId, const TStr& TextStr, const uint64& RecId) {
     // tokenize string

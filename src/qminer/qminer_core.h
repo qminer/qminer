@@ -2469,8 +2469,8 @@ public:
     uint64 AddWordStr(const int& KeyId, const TStr& WordStr);
     /// Get word ids from a key for a given text (adds new words)
     void AddWordIdV(const int& KeyId, const TStr& TextStr, TUInt64V& WordIdV);
-    // /// Get word ids from a key for a given texts (adds new words)
-    // void AddWordIdV(const int& KeyId, const TStrV& TextStr, TUInt64V& WordIdV);
+    /// Get word ids from a key for a given texts (adds new words)
+    void AddWordIdV(const int& KeyId, const TStrV& WordV, TUInt64V& WordIdV);
     /// Get vector of all words from a key that match given wildchar query
     void GetWcWordIdV(const int& KeyId, const TStr& WcStr, TUInt64V& WcWordIdV);
     /// Get all words from a key that are greater than `startWordId
@@ -3175,6 +3175,7 @@ public:
     void IndexTextPos(const int& KeyId, const TStr& TextStr, const uint64& RecId);
     /// Index RecId using given keys and words. Words are extracted by tokenizing the given string.
     void IndexTextPos(const int& KeyId, const TUInt64V& WordIdV, const uint64& RecId);
+
     /// Index RecId using given keys and words. Words are extracted by tokenizing the given string.
     void DeleteTextPos(const int& KeyId, const TStr& TextStr, const uint64& RecId);
     /// Index RecId using given keys and words. Words are extracted by tokenizing the given string.

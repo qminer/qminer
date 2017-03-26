@@ -13,6 +13,17 @@ namespace TQm {
 namespace TStorage {
 
 ///////////////////////////////
+/// Schema description of index key
+TStr TIndexKeyEx::GetKeyType() const {
+    return
+        IsValue()    ? "value" :
+        IsText()     ? "text" :
+        IsTextPos()  ? "text_position" :
+        IsLocation() ? "location" :
+                       "linear";
+}
+
+///////////////////////////////
 /// Store schema definition.
 TStoreSchema::TMaps TStoreSchema::Maps;
 
@@ -198,6 +209,8 @@ TIndexKeyEx TStoreSchema::ParseIndexKeyEx(const PJsonVal& IndexKeyVal) {
         IndexKeyEx.KeyType = oiktValue;
     } else if (KeyTypeStr == "text") {
         IndexKeyEx.KeyType = oiktText;
+    } else if (KeyTypeStr == "text_position") {
+        IndexKeyEx.KeyType = oiktTextPos;
     } else if (KeyTypeStr == "location") {
         IndexKeyEx.KeyType = oiktLocation;
     } else if (KeyTypeStr == "linear") {
@@ -219,6 +232,7 @@ TIndexKeyEx TStoreSchema::ParseIndexKeyEx(const PJsonVal& IndexKeyVal) {
     // check field type and index type match
     if (FieldType == oftStr && IndexKeyEx.IsValue()) {
     } else if (FieldType == oftStr && IndexKeyEx.IsText()) {
+    } else if (FieldType == oftStr && IndexKeyEx.IsTextPos()) {
     } else if (FieldType == oftStrV && IndexKeyEx.IsValue()) {
     } else if (FieldType == oftTm && IndexKeyEx.IsValue()) {
     } else if (FieldType == oftFltPr && IndexKeyEx.IsLocation()) {
@@ -282,7 +296,7 @@ TIndexKeyEx TStoreSchema::ParseIndexKeyEx(const PJsonVal& IndexKeyVal) {
     // parse out word vocabulary
     IndexKeyEx.WordVocName = IndexKeyVal->GetObjStr("vocabulary", "");
     // parse out tokenizer
-    if (IndexKeyEx.IsText()) {
+    if (IndexKeyEx.IsText() || IndexKeyEx.IsTextPos()) {
         if (IndexKeyVal->IsObjKey("tokenizer")) {
             PJsonVal TokenizerVal = IndexKeyVal->GetObjKey("tokenizer");
             QmAssertR(TokenizerVal->IsObjKey("type"),
@@ -2395,22 +2409,22 @@ void TRecSerializator::Verify(char* Bf, const int& BfL) const {
                     printf("FieldContentOffset=%d, VarContentPartOffset=%d, BfL=%d \n", FieldContentOffset, VarContentPartOffset.Val, BfL);
                     QmAssertR(false, "Var-len field content offset is too big");
                 }
-                //QmAssertR(*((int*)(Bf + VarIndexPartOffset + FieldSerialDesc.Offset)) < VarOffset, "");;
             }
         }
     }
-    /*
-    for (int i = 0; i < VarFields.Len();i++) {
-        const TFieldSerialDesc& FieldSerialDesc1 = FieldSerialDescV[i];
-        for (int j = i+1; j < VarFields.Len(); j++) {
-            const TFieldSerialDesc& FieldSerialDesc2 = FieldSerialDescV[j];
-
-        }
-    }*/
 }
 
 ///////////////////////////////
 /// Field indexer
+TStr TRecIndexer::TFieldIndexKey::GetKeyType() const {
+    return
+        IsValue()    ? "value" :
+        IsText()     ? "text" :
+        IsTextPos()  ? "text_position" :
+        IsLocation() ? "location" :
+                       "linear";
+}
+
 void TRecIndexer::IndexKey(const TFieldIndexKey& Key, const TMemBase& RecMem,
         const uint64& RecId, TRecSerializator& Serializator) {
 
@@ -2423,6 +2437,10 @@ void TRecIndexer::IndexKey(const TFieldIndexKey& Key, const TMemBase& RecMem,
         // inverted index over tokenized strings
         TStr Str = Serializator.GetFieldStr(RecMem, Key.FieldId);
         Index->IndexText(Key.KeyId, Str, RecId);
+    } else if (Key.FieldType == oftStr && Key.IsTextPos()) {
+        // inverted index over tokenized strings with position information
+        TStr Str = Serializator.GetFieldStr(RecMem, Key.FieldId);
+        Index->IndexTextPos(Key.KeyId, Str, RecId);
     } else if (Key.FieldType == oftStrV && Key.IsValue()) {
         // inverted index over string array
         TStrV StrV; Serializator.GetFieldStrV(RecMem, Key.FieldId, StrV);
@@ -2493,6 +2511,10 @@ void TRecIndexer::DeindexKey(const TFieldIndexKey& Key, const TMemBase& RecMem,
         // inverted index over tokenized strings
         TStr Str = Serializator.GetFieldStr(RecMem, Key.FieldId);
         Index->DeleteText(Key.KeyId, Str, RecId);
+    } else if (Key.FieldType == oftStr && Key.IsTextPos()) {
+        // inverted index over tokenized strings
+        TStr Str = Serializator.GetFieldStr(RecMem, Key.FieldId);
+        Index->DeleteTextPos(Key.KeyId, Str, RecId);
     } else if (Key.FieldType == oftStrV && Key.IsValue()) {
         // inverted index over string array
         TStrV StrV; Serializator.GetFieldStrV(RecMem, Key.FieldId, StrV);
@@ -2569,6 +2591,13 @@ void TRecIndexer::UpdateKey(const TFieldIndexKey& Key, const TMemBase& OldRecMem
         if (OldStr == NewStr) { return; }
         Index->DeleteText(Key.KeyId, OldStr, RecId);
         Index->IndexText(Key.KeyId, NewStr, RecId);
+    } else if (Key.FieldType == oftStr && Key.IsTextPos()) {
+        // inverted index over tokenized strings
+        TStr OldStr = Serializator.GetFieldStr(OldRecMem, Key.FieldId);
+        TStr NewStr = Serializator.GetFieldStr(NewRecMem, Key.FieldId);
+        if (OldStr == NewStr) { return; }
+        Index->DeleteTextPos(Key.KeyId, OldStr, RecId);
+        Index->IndexTextPos(Key.KeyId, NewStr, RecId);
     } else if (Key.FieldType == oftStrV && Key.IsValue()) {
         // inverted index over string array
         TStrV OldStrV; Serializator.GetFieldStrV(OldRecMem, Key.FieldId, OldStrV);
