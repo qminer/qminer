@@ -3917,15 +3917,6 @@ PRecSet TRecSet::GetMerge(const PRecSet& RecSet) const {
     return CloneRecSet;
 }
 
-//PRecSet TRecSet::GetMerge(const TVec<PRecSet>& RecSetV) {
-//  if (RecSetV.Len() == 0)
-//      return TRecSet::New();
-//  PRecSet RecSet = RecSetV[0]->Clone();
-//  for (int N = 1; N < RecSetV.Len(); N++)
-//      RecSet->Merge(RecSetV[N]);
-//  return RecSet;
-//}
-
 void TRecSet::Merge(const PRecSet& RecSet) {
     QmAssert(RecSet->GetStoreId() == GetStoreId());
     TUInt64IntKdV MergeRecIdFqV = RecSet->GetRecIdFqV();
@@ -3939,6 +3930,7 @@ void TRecSet::Merge(const TVec<PRecSet>& RecSetV) {
         Merge(RecSetV[RsIdx]);
     }
 }
+
 PRecSet TRecSet::GetIntersect(const PRecSet& RecSet) {
     QmAssert(RecSet->GetStoreId() == GetStoreId());
     TUInt64IntKdV TargetRecIdFqV = RecSet->GetRecIdFqV();
@@ -4385,20 +4377,20 @@ void TIndexVoc::AddWordIdV(const int& KeyId, const TStr& TextStr, TUInt64V& Word
     WordVoc->IncRecs();
 }
 
-void TIndexVoc::AddWordIdV(const int& KeyId, const TStrV& TextStrV, TUInt64V& WordIdV) {
-    QmAssert(IsWordVoc(KeyId));
-    // tokenize string
-    TStrV TokV;
-    const PTokenizer& Tokenizer = GetTokenizer(KeyId);
-    for (int StrN = 0; StrN < TextStrV.Len(); StrN++) {
-        Tokenizer->GetTokens(TextStrV[StrN], TokV);
-    }
-    WordIdV.Gen(TokV.Len(), 0); const PIndexWordVoc& WordVoc = GetWordVoc(KeyId);
-    for (int TokN = 0; TokN < TokV.Len(); TokN++) {
-        WordIdV.Add(WordVoc->AddWordStr(TokV[TokN]));
-    }
-    WordVoc->IncRecs();
-}
+// void TIndexVoc::AddWordIdV(const int& KeyId, const TStrV& TextStrV, TUInt64V& WordIdV) {
+//     QmAssert(IsWordVoc(KeyId));
+//     // tokenize string
+//     TStrV TokV;
+//     const PTokenizer& Tokenizer = GetTokenizer(KeyId);
+//     for (int StrN = 0; StrN < TextStrV.Len(); StrN++) {
+//         Tokenizer->GetTokens(TextStrV[StrN], TokV);
+//     }
+//     WordIdV.Gen(TokV.Len(), 0); const PIndexWordVoc& WordVoc = GetWordVoc(KeyId);
+//     for (int TokN = 0; TokN < TokV.Len(); TokN++) {
+//         WordIdV.Add(WordVoc->AddWordStr(TokV[TokN]));
+//     }
+//     WordVoc->IncRecs();
+// }
 
 void TIndexVoc::GetWcWordIdV(const int& KeyId, const TStr& WcStr, TUInt64V& WcWordIdV) {
     QmAssert(IsWordVoc(KeyId));
@@ -5351,6 +5343,32 @@ TStr TIndex::TQmGixKeyStr::GetKeyNm(const TQmGixKey& Key) const {
     return KeyChA;
 }
 
+int TIndex::TQmGixItemPos::MaxPos = 8;
+
+TIndex::TQmGixItemPos::TQmGixItemPos(TSIn& SIn): RecId(SIn) {
+    for (int PosN = 0; PosN < MaxPos; PosN++) {
+        PosV[PosN] = TUCh(SIn);
+    }
+}
+
+void TIndex::TQmGixItemPos::Save(TSOut& SOut) const {
+    RecId.Save(SOut);
+    // we always save all positions
+    for (int PosN = 0; PosN < MaxPos; PosN++) {
+        PosV[PosN].Save(SOut);
+    }
+}
+
+void TIndex::TQmGixItemPos::Add(const int& Pos) {
+    // make sure we still have palce to store
+    Assert(IsSpace());
+    // find place where to store it
+    int EmptyPosN = 0;
+    while (PosV[EmptyPosN] != 0) { EmptyPosN++; }
+    // store position
+    PosV[EmptyPosN] = (uchar)(Pos % 0xFF + 1);
+}
+
 bool TIndex::DoQueryFull(const TPt<TQmGixExpItemFull>& ExpItem, TVec<TQmGixItemFull>& RecIdFqV) const {
     // clean if there is anything on the input
     RecIdFqV.Clr();
@@ -5395,17 +5413,17 @@ TIndex::TIndex(const TStr& _IndexFPath, const TFAccess& _Access, const PIndexVoc
     IndexFPath = _IndexFPath;
     Access = _Access;
     // initialize full invered index
-    SumMergerFull = TQmGixSumMergerFull::New();
-    GixFull = TGix<TQmGixKey, TQmGixItemFull, TQmGixSumMergerFull>::New(
-        "Index.GixFull", IndexFPath, Access, CacheSizeFull, SplitLen);
+    SumMergerFull = new TQmGixSumMerger<TQmGixItemFull>;
+    GixFull = TGix<TQmGixKey, TQmGixItemFull>::New("Index.GixFull",
+        IndexFPath, Access, SumMergerFull, CacheSizeFull, SplitLen);
     // initialize small inverted index
-    SumMergerSmall = TQmGixSumMergerSmall::New();
-    GixSmall = TGix<TQmGixKey, TQmGixItemSmall, TQmGixSumMergerSmall>::New(
-        "Index.GixSmall", IndexFPath, Access, CacheSizeSmall, SplitLen);
+    SumMergerSmall = new TQmGixSumMerger<TQmGixItemSmall>;
+    GixSmall = TGix<TQmGixKey, TQmGixItemSmall>::New("Index.GixSmall",
+        IndexFPath, Access, SumMergerSmall, CacheSizeSmall, SplitLen);
     // initialize tiny inverted index
-    MergerTiny = TQmGixMergerTiny::New();
-    GixTiny = TGix<TQmGixKey, TQmGixItemTiny, TQmGixMergerTiny>::New(
-        "Index.GixTiny", IndexFPath, Access, CacheSizeTiny, SplitLen);
+    MergerTiny = new TGixDefMerger<TQmGixKey, TQmGixItemTiny>;
+    GixTiny = TGix<TQmGixKey, TQmGixItemTiny>::New("Index.GixTiny",
+        IndexFPath, Access, MergerTiny, CacheSizeTiny, SplitLen);
     // initialize location index
     TStr SphereFNm = IndexFPath + "Index.Geo";
     if (TFile::Exists(SphereFNm) && Access != faCreate) {
@@ -5442,10 +5460,13 @@ TIndex::~TIndex() {
     if (!IsReadOnly()) {
         TEnv::Logger->OnStatus("Saving and closing inverted index - full");
         GixFull.Clr();
+        delete SumMergerFull;
         TEnv::Logger->OnStatus("Saving and closing inverted index - small");
         GixSmall.Clr();
+        delete SumMergerSmall;
         TEnv::Logger->OnStatus("Saving and closing inverted index - tiny");
         GixTiny.Clr();
+        delete MergerTiny;
         {
             TEnv::Logger->OnStatus("Saving and closing location index");
             TFOut SphereFOut(IndexFPath + "Index.Geo");
@@ -5470,16 +5491,12 @@ TIndex::~TIndex() {
     }
 }
 
-void TIndex::Index(const int& KeyId, const uint64& WordId, const uint64& RecId) {
-    Index(KeyId, WordId, RecId, 1);
-}
-
-void TIndex::Index(const int& KeyId, const TStr& WordStr, const uint64& RecId) {
+void TIndex::IndexValue(const int& KeyId, const TStr& WordStr, const uint64& RecId) {
     const uint64 WordId = IndexVoc->AddWordStr(KeyId, WordStr);
-    Index(KeyId, WordId, RecId, 1);
+    IndexGix(KeyId, WordId, RecId, 1);
 }
 
-void TIndex::Index(const int& KeyId, const TStrV& WordStrV, const uint64& RecId) {
+void TIndex::IndexValue(const int& KeyId, const TStrV& WordStrV, const uint64& RecId) {
     // load word-counts
     TUInt64H WordIdH;
     for (int WordN = 0; WordN < WordStrV.Len(); WordN++) {
@@ -5491,46 +5508,7 @@ void TIndex::Index(const int& KeyId, const TStrV& WordStrV, const uint64& RecId)
     while (WordIdH.FNextKeyId(WordKeyId)) {
         const uint64 WordId = WordIdH.GetKey(WordKeyId);
         const int WordFq = WordIdH[WordKeyId];
-        Index(KeyId, WordId, RecId, WordFq);
-    }
-}
-
-void TIndex::Index(const int& KeyId, const TStrIntPrV& WordStrFqV, const uint64& RecId) {
-    TIntH WordIdH;
-    for (int WordN = 0; WordN < WordStrFqV.Len(); WordN++) {
-        const TStr WordStr = WordStrFqV[WordN].Val1; //.GetLc();
-        const uint64 WordId = IndexVoc->AddWordStr(KeyId, WordStr);
-        const int WordFq = WordStrFqV[WordN].Val2;
-        Index(KeyId, WordId, RecId, WordFq);
-    }
-}
-
-void TIndex::Index(const uint& StoreId, const TStr& KeyNm,
-    const TStr& WordStr, const uint64& RecId) {
-
-    Index(IndexVoc->GetKeyId(StoreId, KeyNm), WordStr, RecId);
-}
-
-void TIndex::Index(const uint& StoreId, const TStr& KeyNm,
-    const TStrV& WordStrV, const uint64& RecId) {
-
-    Index(IndexVoc->GetKeyId(StoreId, KeyNm), WordStrV, RecId);
-}
-
-void TIndex::Index(const uint& StoreId, const TStr& KeyNm,
-    const TStrIntPrV& WordStrFqV, const uint64& StoreRecId) {
-
-    Index(IndexVoc->GetKeyId(StoreId, KeyNm), WordStrFqV, StoreRecId);
-}
-
-void TIndex::Index(const uint& StoreId, const TStrPrV& KeyWordV, const uint64& RecId) {
-    for (int KeyWordN = 0; KeyWordN < KeyWordV.Len(); KeyWordN++) {
-        const TStrPr& KeyWord = KeyWordV[KeyWordN];
-        // get key and word id
-        const int KeyId = IndexVoc->GetKeyId(StoreId, KeyWord.Val1);
-        const uint64 WordId = IndexVoc->AddWordStr(KeyId, KeyWord.Val2);
-        // index the record
-        Index(KeyId, WordId, RecId, 1);
+        IndexGix(KeyId, WordId, RecId, WordFq);
     }
 }
 
@@ -5545,50 +5523,17 @@ void TIndex::IndexText(const int& KeyId, const TStr& TextStr, const uint64& RecI
     // index words
     int WordKeyId = WordIdFqH.FFirstKeyId();
     while (WordIdFqH.FNextKeyId(WordKeyId)) {
-        Index(KeyId, WordIdFqH.GetKey(WordKeyId), RecId, WordIdFqH[WordKeyId]);
+        IndexGix(KeyId, WordIdFqH.GetKey(WordKeyId), RecId, WordIdFqH[WordKeyId]);
     }
-}
-
-void TIndex::IndexText(const uint& StoreId, const TStr& KeyNm,
-    const TStr& TextStr, const uint64& RecId) {
-
-    IndexText(IndexVoc->GetKeyId(StoreId, KeyNm), TextStr, RecId);
-}
-
-void TIndex::IndexText(const int& KeyId, const TStrV& TextStrV, const uint64& RecId) {
-    // tokenize string
-    TUInt64V WordIdV; IndexVoc->AddWordIdV(KeyId, TextStrV, WordIdV);
-    // aggregate by word
-    TUInt64H WordIdFqH;
-    for (int WordIdN = 0; WordIdN < WordIdV.Len(); WordIdN++) {
-        WordIdFqH.AddDat(WordIdV[WordIdN])++;
-    }
-    // index words
-    int WordKeyId = WordIdFqH.FFirstKeyId();
-    while (WordIdFqH.FNextKeyId(WordKeyId)) {
-        Index(KeyId, WordIdFqH.GetKey(WordKeyId), RecId, WordIdFqH[WordKeyId]);
-    }
-}
-
-void TIndex::IndexText(const uint& StoreId, const TStr& KeyNm,
-    const TStrV& TextStrV, const uint64& RecId) {
-
-    IndexText(IndexVoc->GetKeyId(StoreId, KeyNm), TextStrV, RecId);
 }
 
 void TIndex::IndexJoin(const TWPt<TStore>& Store, const int& JoinId,
     const uint64& RecId, const uint64& JoinRecId, const int& JoinFq) {
 
-    Index(Store->GetJoinKeyId(JoinId), RecId, JoinRecId, JoinFq);
+    IndexGix(Store->GetJoinKeyId(JoinId), RecId, JoinRecId, JoinFq);
 }
 
-void TIndex::IndexJoin(const TWPt<TStore>& Store, const TStr& JoinNm,
-    const uint64& RecId, const uint64& JoinRecId, const int& JoinFq) {
-
-    Index(Store->GetJoinKeyId(JoinNm), RecId, JoinRecId, JoinFq);
-}
-
-void TIndex::Index(const int& KeyId, const uint64& WordId, const uint64& RecId, const int& RecFq) {
+void TIndex::IndexGix(const int& KeyId, const uint64& WordId, const uint64& RecId, const int& RecFq) {
     // -1 should never come to here
     Assert(KeyId != -1);
     // we shouldn't modify read-only index
@@ -5608,12 +5553,12 @@ void TIndex::Index(const int& KeyId, const uint64& WordId, const uint64& RecId, 
     }
 }
 
-void TIndex::Delete(const int& KeyId, const TStr& WordStr, const uint64& RecId) {
+void TIndex::DeleteValue(const int& KeyId, const TStr& WordStr, const uint64& RecId) {
     const uint64 WordId = IndexVoc->AddWordStr(KeyId, WordStr);
-    Delete(KeyId, WordId, RecId, 1);
+    DeleteGix(KeyId, WordId, RecId, 1);
 }
 
-void TIndex::Delete(const int& KeyId, const TStrV& WordStrV, const uint64& RecId) {
+void TIndex::DeleteValue(const int& KeyId, const TStrV& WordStrV, const uint64& RecId) {
     // load word-counts
     TUInt64H WordIdH;
     for (int WordN = 0; WordN < WordStrV.Len(); WordN++) {
@@ -5625,29 +5570,7 @@ void TIndex::Delete(const int& KeyId, const TStrV& WordStrV, const uint64& RecId
     while (WordIdH.FNextKeyId(WordKeyId)) {
         const uint64 WordId = WordIdH.GetKey(WordKeyId);
         const int WordFq = WordIdH[WordKeyId];
-        Delete(KeyId, WordId, RecId, WordFq);
-    }
-}
-
-void TIndex::Delete(const uint& StoreId, const TStr& KeyNm, const TStr& WordStr, const uint64& RecId) {
-    const int KeyId = IndexVoc->GetKeyId(StoreId, KeyNm);
-    const uint64 WordId = IndexVoc->AddWordStr(KeyId, WordStr);
-    Delete(KeyId, WordId, RecId, 1);
-}
-
-void TIndex::Delete(const uint& StoreId, const TStr& KeyNm, const uint64& WordId, const uint64& RecId) {
-    const int KeyId = IndexVoc->GetKeyId(StoreId, KeyNm);
-    Delete(KeyId, WordId, RecId, 1);
-}
-
-void TIndex::Delete(const uint& StoreId, const TStrPrV& KeyWordV, const uint64& RecId) {
-    for (int KeyWordN = 0; KeyWordN < KeyWordV.Len(); KeyWordN++) {
-        const TStrPr& KeyWord = KeyWordV[KeyWordN];
-        // get key and word id
-        const int KeyId = IndexVoc->GetKeyId(StoreId, KeyWord.Val1);
-        const uint64 WordId = IndexVoc->AddWordStr(KeyId, KeyWord.Val2);
-        // index the record
-        Delete(KeyId, WordId, RecId, 1);
+        DeleteGix(KeyId, WordId, RecId, WordFq);
     }
 }
 
@@ -5662,50 +5585,17 @@ void TIndex::DeleteText(const int& KeyId, const TStr& TextStr, const uint64& Rec
     // index words
     int WordKeyId = WordIdFqH.FFirstKeyId();
     while (WordIdFqH.FNextKeyId(WordKeyId)) {
-        Delete(KeyId, WordIdFqH.GetKey(WordKeyId), RecId, WordIdFqH[WordKeyId]);
+        DeleteGix(KeyId, WordIdFqH.GetKey(WordKeyId), RecId, WordIdFqH[WordKeyId]);
     }
-}
-
-void TIndex::DeleteText(const uint& StoreId, const TStr& KeyNm,
-    const TStr& TextStr, const uint64& RecId) {
-
-    DeleteText(IndexVoc->GetKeyId(StoreId, KeyNm), TextStr, RecId);
-}
-
-void TIndex::DeleteText(const int& KeyId, const TStrV& TextStrV, const uint64& RecId) {
-    // tokenize string
-    TUInt64V WordIdV; IndexVoc->AddWordIdV(KeyId, TextStrV, WordIdV);
-    // aggregate by word
-    TUInt64H WordIdFqH;
-    for (int WordIdN = 0; WordIdN < WordIdV.Len(); WordIdN++) {
-        WordIdFqH.AddDat(WordIdV[WordIdN])++;
-    }
-    // index words
-    int WordKeyId = WordIdFqH.FFirstKeyId();
-    while (WordIdFqH.FNextKeyId(WordKeyId)) {
-        Delete(KeyId, WordIdFqH.GetKey(WordKeyId), RecId, WordIdFqH[WordKeyId]);
-    }
-}
-
-void TIndex::DeleteText(const uint& StoreId, const TStr& KeyNm,
-    const TStrV& TextStrV, const uint64& RecId) {
-
-    DeleteText(IndexVoc->GetKeyId(StoreId, KeyNm), TextStrV, RecId);
 }
 
 void TIndex::DeleteJoin(const TWPt<TStore>& Store, const int& JoinId,
     const uint64& RecId, const uint64& JoinRecId, const int& JoinFq) {
 
-    Delete(Store->GetJoinKeyId(JoinId), RecId, JoinRecId, JoinFq);
+    DeleteGix(Store->GetJoinKeyId(JoinId), RecId, JoinRecId, JoinFq);
 }
 
-void TIndex::DeleteJoin(const TWPt<TStore>& Store, const TStr& JoinNm,
-    const uint64& RecId, const uint64& JoinRecId, const int& JoinFq) {
-
-    Delete(Store->GetJoinKeyId(JoinNm), RecId, JoinRecId, JoinFq);
-}
-
-void TIndex::Delete(const int& KeyId, const uint64& WordId, const uint64& RecId, const int& RecFq) {
+void TIndex::DeleteGix(const int& KeyId, const uint64& WordId, const uint64& RecId, const int& RecFq) {
     // -1 should never come to here
     Assert(KeyId != -1);
     // we shouldn't modify read-only index
@@ -5737,11 +5627,64 @@ void TIndex::Delete(const int& KeyId, const uint64& WordId, const uint64& RecId,
     }
 }
 
-void TIndex::Index(const uint& StoreId, const TStr& KeyNm, const TFltPr& Loc, const uint64& RecId) {
-    Index(IndexVoc->GetKeyId(StoreId, KeyNm), Loc, RecId);
+void TIndex::IndexTextPos(const int& KeyId, const TStr& TextStr, const uint64& RecId) {
+    // tokenize string
+    TUInt64V WordIdV; IndexVoc->AddWordIdV(KeyId, TextStr, WordIdV);
+    // index tokens
+    IndexTextPos(KeyId, WordIdV, RecId);
 }
 
-void TIndex::Index(const int& KeyId, const TFltPr& Loc, const uint64& RecId) {
+void TIndex::IndexTextPos(const int& KeyId, const TUInt64V& WordIdV, const uint64& RecId) {
+    // we shouldn't modify read-only index
+    QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
+    // aggregate by word
+    THash<TUInt64, TQmGixItemPos> WordIdPosH;
+    for (int WordIdN = 0; WordIdN < WordIdV.Len(); WordIdN++) {
+        const int WordId = WordIdV[WordIdN];
+        // check if first time we see the word
+        if (!WordIdPosH.IsKey(WordId)) {
+            WordIdPosH.AddDat(WordId, TQmGixItemPos(RecId));
+        }
+        // remember the position in case there is space left
+        TQmGixItemPos& ItemPos = WordIdPosH.GetDat(WordId);
+        if (ItemPos.IsSpace()) { ItemPos.Add(WordIdN); }
+    }
+    // add to index
+    for (auto& WordIdPos : WordIdPosH) {
+        // get word parameters
+        const TUInt64& WordId = WordIdPos.Key;
+        const TQmGixItemPos ItemPos = WordIdPos.Dat;
+        // add to gix
+        GixPos->AddItem(TKeyWord(KeyId, WordId), ItemPos);
+    }
+}
+
+
+void TIndex::DeleteTextPos(const int& KeyId, const TStr& TextStr, const uint64& RecId) {
+    // tokenize string
+    TUInt64V WordIdV; IndexVoc->AddWordIdV(KeyId, TextStr, WordIdV);
+    // index tokens
+    DeleteTextPos(KeyId, WordIdV, RecId);
+}
+
+void TIndex::DeleteTextPos(const int& KeyId, const TUInt64V& WordIdV, const uint64& RecId) {
+    // we shouldn't modify read-only index
+    QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
+    // create list of all word ids for which we should remove given record from index
+    THashSet<TUInt64> WordIdSet;
+    for (int WordIdN = 0; WordIdN < WordIdV.Len(); WordIdN++) {
+        const int WordId = WordIdV[WordIdN];
+        WordIdSet.AddKey(WordId);
+    }
+    // remove from index
+    int WordKeyId = WordIdSet.FFirstKeyId();
+    while (WordIdSet.FNextKeyId(WordKeyId)) {
+        const uint64 WordId = WordIdSet.GetKey(WordKeyId);
+        GixPos->DelItem(TKeyWord(KeyId, WordId), TQmGixItemPos(RecId));
+    }
+}
+
+void TIndex::IndexGeo(const int& KeyId, const TFltPr& Loc, const uint64& RecId) {
     // we shouldn't modify read-only index
     QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
     // if new key, create sphere first
@@ -5750,35 +5693,15 @@ void TIndex::Index(const int& KeyId, const TFltPr& Loc, const uint64& RecId) {
     GeoIndexH.GetDat(KeyId)->AddKey(Loc, RecId);
 }
 
-void TIndex::Delete(const uint& StoreId, const TStr& KeyNm, const TFltPr& Loc, const uint64& RecId) {
-    Delete(IndexVoc->GetKeyId(StoreId, KeyNm), Loc, RecId);
-}
-
-void TIndex::Delete(const int& KeyId, const TFltPr& Loc, const uint64& RecId) {
+void TIndex::DeleteGeo(const int& KeyId, const TFltPr& Loc, const uint64& RecId) {
     // we shouldn't modify read-only index
     QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
     // delete only if index exist
     if (GeoIndexH.IsKey(KeyId)) { GeoIndexH.GetDat(KeyId)->DelKey(Loc, RecId); }
 }
 
-bool TIndex::LocEquals(const uint& StoreId, const TStr& KeyNm, const TFltPr& Loc1, const TFltPr& Loc2) const {
-    return LocEquals(IndexVoc->GetKeyId(StoreId, KeyNm), Loc1, Loc2);
-}
-
 bool TIndex::LocEquals(const int& KeyId, const TFltPr& Loc1, const TFltPr& Loc2) const {
     return GeoIndexH.IsKey(KeyId) ? GeoIndexH.GetDat(KeyId)->LocEquals(Loc1, Loc2) : false;
-}
-
-void TIndex::IndexLinear(const uint& StoreId, const TStr& KeyNm, const int& Val, const uint64& RecId) {
-    IndexLinear(IndexVoc->GetKeyId(StoreId, KeyNm), Val, RecId);
-}
-
-void TIndex::IndexLinear(const uint& StoreId, const TStr& KeyNm, const uint64& Val, const uint64& RecId) {
-    IndexLinear(IndexVoc->GetKeyId(StoreId, KeyNm), Val, RecId);
-}
-
-void TIndex::IndexLinear(const uint& StoreId, const TStr& KeyNm, const double& Val, const uint64& RecId) {
-    IndexLinear(IndexVoc->GetKeyId(StoreId, KeyNm), Val, RecId);
 }
 
 void TIndex::IndexLinear(const int& KeyId, const uchar& Val, const uint64& RecId) {
@@ -5789,6 +5712,7 @@ void TIndex::IndexLinear(const int& KeyId, const uchar& Val, const uint64& RecId
     // index new location
     BTreeIndexByteH.GetDat(KeyId)->AddKey(Val, RecId);
 }
+
 void TIndex::IndexLinear(const int& KeyId, const int& Val, const uint64& RecId) {
     // we shouldn't modify read-only index
     QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
@@ -5797,6 +5721,7 @@ void TIndex::IndexLinear(const int& KeyId, const int& Val, const uint64& RecId) 
     // index new location
     BTreeIndexIntH.GetDat(KeyId)->AddKey(Val, RecId);
 }
+
 void TIndex::IndexLinear(const int& KeyId, const int16& Val, const uint64& RecId) {
     // we shouldn't modify read-only index
     QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
@@ -5805,6 +5730,7 @@ void TIndex::IndexLinear(const int& KeyId, const int16& Val, const uint64& RecId
     // index new location
     BTreeIndexInt16H.GetDat(KeyId)->AddKey(Val, RecId);
 }
+
 void TIndex::IndexLinear(const int& KeyId, const int64& Val, const uint64& RecId) {
     // we shouldn't modify read-only index
     QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
@@ -5814,7 +5740,6 @@ void TIndex::IndexLinear(const int& KeyId, const int64& Val, const uint64& RecId
     BTreeIndexInt64H.GetDat(KeyId)->AddKey(Val, RecId);
 }
 
-
 void TIndex::IndexLinear(const int& KeyId, const uint& Val, const uint64& RecId) {
     // we shouldn't modify read-only index
     QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
@@ -5823,6 +5748,7 @@ void TIndex::IndexLinear(const int& KeyId, const uint& Val, const uint64& RecId)
     // index new location
     BTreeIndexUIntH.GetDat(KeyId)->AddKey(Val, RecId);
 }
+
 void TIndex::IndexLinear(const int& KeyId, const uint16& Val, const uint64& RecId) {
     // we shouldn't modify read-only index
     QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
@@ -5831,6 +5757,7 @@ void TIndex::IndexLinear(const int& KeyId, const uint16& Val, const uint64& RecI
     // index new location
     BTreeIndexUInt16H.GetDat(KeyId)->AddKey(Val, RecId);
 }
+
 void TIndex::IndexLinear(const int& KeyId, const uint64& Val, const uint64& RecId) {
     // we shouldn't modify read-only index
     QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
@@ -5849,6 +5776,7 @@ void TIndex::IndexLinear(const int& KeyId, const double& Val, const uint64& RecI
     // index new location
     BTreeIndexFltH.GetDat(KeyId)->AddKey(Val, RecId);
 }
+
 void TIndex::IndexLinear(const int& KeyId, const float& Val, const uint64& RecId) {
     // we shouldn't modify read-only index
     QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
@@ -5858,54 +5786,27 @@ void TIndex::IndexLinear(const int& KeyId, const float& Val, const uint64& RecId
     BTreeIndexSFltH.GetDat(KeyId)->AddKey(Val, RecId);
 }
 
-void TIndex::DeleteLinear(const uint& StoreId, const TStr& KeyNm, const uchar& Val, const uint64& RecId) {
-    DeleteLinear(IndexVoc->GetKeyId(StoreId, KeyNm), Val, RecId);
-}
-void TIndex::DeleteLinear(const uint& StoreId, const TStr& KeyNm, const int& Val, const uint64& RecId) {
-    DeleteLinear(IndexVoc->GetKeyId(StoreId, KeyNm), Val, RecId);
-}
-void TIndex::DeleteLinear(const uint& StoreId, const TStr& KeyNm, const int16& Val, const uint64& RecId) {
-    DeleteLinear(IndexVoc->GetKeyId(StoreId, KeyNm), Val, RecId);
-}
-void TIndex::DeleteLinear(const uint& StoreId, const TStr& KeyNm, const int64& Val, const uint64& RecId) {
-    DeleteLinear(IndexVoc->GetKeyId(StoreId, KeyNm), Val, RecId);
-}
-
-void TIndex::DeleteLinear(const uint& StoreId, const TStr& KeyNm, const uint& Val, const uint64& RecId) {
-    DeleteLinear(IndexVoc->GetKeyId(StoreId, KeyNm), Val, RecId);
-}
-void TIndex::DeleteLinear(const uint& StoreId, const TStr& KeyNm, const uint16& Val, const uint64& RecId) {
-    DeleteLinear(IndexVoc->GetKeyId(StoreId, KeyNm), Val, RecId);
-}
-void TIndex::DeleteLinear(const uint& StoreId, const TStr& KeyNm, const uint64& Val, const uint64& RecId) {
-    DeleteLinear(IndexVoc->GetKeyId(StoreId, KeyNm), Val, RecId);
-}
-
-void TIndex::DeleteLinear(const uint& StoreId, const TStr& KeyNm, const double& Val, const uint64& RecId) {
-    DeleteLinear(IndexVoc->GetKeyId(StoreId, KeyNm), Val, RecId);
-}
-void TIndex::DeleteLinear(const uint& StoreId, const TStr& KeyNm, const float& Val, const uint64& RecId) {
-    DeleteLinear(IndexVoc->GetKeyId(StoreId, KeyNm), Val, RecId);
-}
-
 void TIndex::DeleteLinear(const int& KeyId, const uchar& Val, const uint64& RecId) {
     // we shouldn't modify read-only index
     QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
     // delete only if index exist
     if (BTreeIndexByteH.IsKey(KeyId)) { BTreeIndexByteH.GetDat(KeyId)->DelKey(Val, RecId); }
 }
+
 void TIndex::DeleteLinear(const int& KeyId, const int& Val, const uint64& RecId) {
     // we shouldn't modify read-only index
     QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
     // delete only if index exist
     if (BTreeIndexIntH.IsKey(KeyId)) { BTreeIndexIntH.GetDat(KeyId)->DelKey(Val, RecId); }
 }
+
 void TIndex::DeleteLinear(const int& KeyId, const int16& Val, const uint64& RecId) {
     // we shouldn't modify read-only index
     QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
     // delete only if index exist
     if (BTreeIndexInt16H.IsKey(KeyId)) { BTreeIndexInt16H.GetDat(KeyId)->DelKey(Val, RecId); }
 }
+
 void TIndex::DeleteLinear(const int& KeyId, const int64& Val, const uint64& RecId) {
     // we shouldn't modify read-only index
     QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
@@ -5919,12 +5820,14 @@ void TIndex::DeleteLinear(const int& KeyId, const uint& Val, const uint64& RecId
     // delete only if index exist
     if (BTreeIndexUIntH.IsKey(KeyId)) { BTreeIndexUIntH.GetDat(KeyId)->DelKey(Val, RecId); }
 }
+
 void TIndex::DeleteLinear(const int& KeyId, const uint16& Val, const uint64& RecId) {
     // we shouldn't modify read-only index
     QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
     // delete only if index exist
     if (BTreeIndexUInt16H.IsKey(KeyId)) { BTreeIndexUInt16H.GetDat(KeyId)->DelKey(Val, RecId); }
 }
+
 void TIndex::DeleteLinear(const int& KeyId, const uint64& Val, const uint64& RecId) {
     // we shouldn't modify read-only index
     QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
@@ -5938,6 +5841,7 @@ void TIndex::DeleteLinear(const int& KeyId, const double& Val, const uint64& Rec
     // delete only if index exist
     if (BTreeIndexFltH.IsKey(KeyId)) { BTreeIndexFltH.GetDat(KeyId)->DelKey(Val, RecId); }
 }
+
 void TIndex::DeleteLinear(const int& KeyId, const float& Val, const uint64& RecId) {
     // we shouldn't modify read-only index
     QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
@@ -6179,21 +6083,29 @@ PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TS
 }
 
 void TIndex::SaveTxt(const TWPt<TBase>& Base, const TStr& FNm) {
-    GixFull->SaveTxt(FNm, TQmGixKeyStr::New(Base, IndexVoc));
+    GixFull->SaveTxt(FNm + ".full", TQmGixKeyStr::New(Base, IndexVoc));
     GixSmall->SaveTxt(FNm + ".small", TQmGixKeyStr::New(Base, IndexVoc));
+    GixTiny->SaveTxt(FNm + ".tiny", TQmGixKeyStr::New(Base, IndexVoc));
 }
 
 TBlobBsStats TIndex::GetBlobStats() const {
-    return TBlobBsStats::Add(GixFull->GetBlobStats(), GixSmall->GetBlobStats());
+    TBlobBsStats Stats = GixFull->GetBlobStats();
+    Stats.Add(GixSmall->GetBlobStats());
+    Stats.Add(GixTiny->GetBlobStats());
+    return Stats;
 }
 
 TGixStats TIndex::GetGixStats(const bool& RefreshP) const {
-    return TGixStats::Add(GixFull->GetGixStats(RefreshP), GixSmall->GetGixStats(RefreshP));
+    TGixStats Stats = GixFull->GetGixStats(RefreshP);
+    Stats.Add(GixSmall->GetGixStats(RefreshP));
+    Stats.Add(GixTiny->GetGixStats(RefreshP));
+    return Stats;
 }
 
 int TIndex::GetSplitLen() const {
     // make sure small and full have same settings
     EAssert(GixFull->GetSplitLen() == GixSmall->GetSplitLen());
+    EAssert(GixFull->GetSplitLen() == GixTiny->GetSplitLen());
     // return
     return GixFull->GetSplitLen();
 }
@@ -6201,13 +6113,15 @@ int TIndex::GetSplitLen() const {
 void TIndex::ResetStats() {
     GixFull->ResetStats();
     GixSmall->ResetStats();
+    GixTiny->ResetStats();
 }
 
 int TIndex::PartialFlush(const int& WndInMsec) {
-    int WndInMsecHalf = WndInMsec / 2;
+    const int WndInMsecPerGix = WndInMsec / 3;
     int Res = 0;
-    Res += GixFull->PartialFlush(WndInMsecHalf);
-    Res += GixSmall->PartialFlush(WndInMsecHalf);
+    Res += GixFull->PartialFlush(WndInMsecPerGix);
+    Res += GixSmall->PartialFlush(WndInMsecPerGix);
+    Res += GixTiny->PartialFlush(WndInMsecPerGix);
     return Res;
 }
 

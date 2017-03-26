@@ -2120,7 +2120,6 @@ public:
     /// Merging does not assume any sort order. In the process, records in this record set
     /// are sorted by ids.
     PRecSet GetMerge(const PRecSet& RecSet) const;
-    static PRecSet GetMerge(const TVec<PRecSet>& RecSetV);
 
     /// Merges provided record set with `this'. Merging does not assume  any sort order.
     /// In the process, records in this record set are sorted by ids.
@@ -2470,8 +2469,8 @@ public:
     uint64 AddWordStr(const int& KeyId, const TStr& WordStr);
     /// Get word ids from a key for a given text (adds new words)
     void AddWordIdV(const int& KeyId, const TStr& TextStr, TUInt64V& WordIdV);
-    /// Get word ids from a key for a given texts (adds new words)
-    void AddWordIdV(const int& KeyId, const TStrV& TextStr, TUInt64V& WordIdV);
+    // /// Get word ids from a key for a given texts (adds new words)
+    // void AddWordIdV(const int& KeyId, const TStrV& TextStr, TUInt64V& WordIdV);
     /// Get vector of all words from a key that match given wildchar query
     void GetWcWordIdV(const int& KeyId, const TStr& WcStr, TUInt64V& WcWordIdV);
     /// Get all words from a key that are greater than `startWordId
@@ -2956,10 +2955,8 @@ private:
 
     /// Merger which sums up the frequencies of items
     template <class TQmGixItem>
-    class TQmGixSumMerger : public TGixExpMerger<TQmGixKey, TQmGixItem> {
+    class TQmGixSumMerger : public TGixMerger<TQmGixKey, TQmGixItem> {
     public:
-        static TPt<TGixExpMerger<TQmGixKey, TQmGixItem> > New() { return new TQmGixSumMerger(); }
-
         /// Union sums up frequencies of overlapping items
         void Union(TVec<TQmGixItem>& MainV, const TVec<TQmGixItem>& JoinV) const;
         /// Intersection sums up frequencies of overlapping items
@@ -2979,28 +2976,25 @@ private:
         bool IsLt(const TQmGixItem& Item1, const TQmGixItem& Item2) const { return Item1 < Item2; }
         /// <= comparator between items
         bool IsLtE(const TQmGixItem& Item1, const TQmGixItem& Item2) const { return Item1 <= Item2; }
+
+        /// Memory footprint
+        uint64 GetMemUsed() const { return sizeof(TQmGixSumMerger<TQmGixItem>); }
     };
 
     /// Normal version of inverted index contains full record ID and frequency count values
     typedef TKeyDat<TUInt64, TInt> TQmGixItemFull; // [RecId, Freq]
-    /// Merger for combining full records
-    typedef TQmGixSumMerger<TQmGixItemFull> TQmGixSumMergerFull;
     /// Expression for executing gix queries for full records
-    typedef TGixExpItem<TQmGixKey, TQmGixItemFull, TQmGixSumMergerFull > TQmGixExpItemFull;
+    typedef TGixExpItem<TQmGixKey, TQmGixItemFull> TQmGixExpItemFull;
 
     /// Small version of inverted index which works when we have less then 2^32 records
     typedef TKeyDat<TUInt, TSInt> TQmGixItemSmall; // [RecId, Freq]
-    /// Merger for combining small records
-    typedef TQmGixSumMerger<TQmGixItemSmall> TQmGixSumMergerSmall;
     /// Expression for executing gix queries for small records
-    typedef TGixExpItem<TQmGixKey, TQmGixItemSmall, TQmGixSumMergerSmall > TQmGixExpItemSmall;
+    typedef TGixExpItem<TQmGixKey, TQmGixItemSmall > TQmGixExpItemSmall;
 
     /// Tiny version of inverted index which works when we have less then 2^32 records
     typedef TUInt TQmGixItemTiny; // [RecId]
-    /// Merger for combining tiny records, does not keep track of frequency
-    typedef TGixDefMerger<TQmGixKey, TQmGixItemTiny> TQmGixMergerTiny;
     /// Expression for executing gix queries for tiny records
-    typedef TGixExpItem<TQmGixKey, TQmGixItemTiny, TQmGixMergerTiny > TQmGixExpItemTiny;
+    typedef TGixExpItem<TQmGixKey, TQmGixItemTiny > TQmGixExpItemTiny;
 
     /// Giving pretty names to GIX keys when printing debug statistics
     class TQmGixKeyStr : public TGixKeyStr<TQmGixKey> {
@@ -3015,6 +3009,51 @@ private:
 
         TStr GetKeyNm(const TQmGixKey& Key) const;
     };
+
+private:
+    /// Gix item to be used for storing records together with token positions
+    class TQmGixItemPos {
+    private:
+        /// Number of positions
+        static int MaxPos;
+    private:
+        /// Record Id
+        TUInt64 RecId;
+        /// Vector of word positions stored as (Pos % 0xFF + 1).
+        /// Emtpy positions are marked as 0
+        TUCh PosV[8];
+
+    public:
+        /// Default constructor for vectors
+        TQmGixItemPos(): RecId(TUInt64::Mx) { }
+        /// Start with record and no positons
+        TQmGixItemPos(const uint64& _RecId): RecId(_RecId) { }
+        /// Load from stream
+        TQmGixItemPos(TSIn& SIn);
+
+        /// Save to stream
+        void Save(TSOut& SOut) const;
+
+        /// Check if the item is empty (== first position is set to 0)
+        bool Empty() const { return PosV[0].Val == (uchar)0; }
+        /// Check if we still have space (== last position is set to 0)
+        bool IsSpace() const { return PosV[MaxPos - 1].Val == (uchar)0; }
+        /// Add new position to the item
+        void Add(const int& Pos);
+
+        /// Two items are same if they have same record id
+        bool operator==(const TQmGixItemPos& ItemPos) const { return RecId == ItemPos.RecId; }
+        /// Items are ordered according to record id
+        bool operator<(const TQmGixItemPos& ItemPos) const { return RecId < ItemPos.RecId; }
+
+        /// Memory footprint
+        uint64 GetMemUsed() const { return sizeof(TQmGixItemPos); }
+    };
+
+    /// Merger for combining position records
+    typedef TGixDefMerger<TQmGixKey, TQmGixItemPos> TQmGixMergerPos;
+    /// Expression for executing gix position queries
+    typedef TGixExpItem<TQmGixKey, TQmGixItemPos> TQmGixExpItemPos;
 
 private:
     // b-tree definitions
@@ -3035,11 +3074,14 @@ private:
     TFAccess Access;
 
     /// Full sized inverted index
-    mutable TPt<TGix<TQmGixKey, TQmGixItemFull, TQmGixSumMergerFull> > GixFull;
+    mutable TPt<TGix<TQmGixKey, TQmGixItemFull> > GixFull;
     /// Small inverted index (supports records with id < 2^32)
-    mutable TPt<TGix<TQmGixKey, TQmGixItemSmall, TQmGixSumMergerSmall> > GixSmall;
+    mutable TPt<TGix<TQmGixKey, TQmGixItemSmall> > GixSmall;
     /// Tiny inverted index (supports records with id < 2^32)
-    mutable TPt<TGix<TQmGixKey, TQmGixItemTiny, TQmGixMergerTiny > > GixTiny;
+    mutable TPt<TGix<TQmGixKey, TQmGixItemTiny> > GixTiny;
+
+    /// Position inverted index
+    mutable TPt<TGix<TQmGixKey, TQmGixItemPos> > GixPos;
 
     /// Location index (one for each key)
     THash<TInt, PGeoIndex> GeoIndexH;
@@ -3066,11 +3108,11 @@ private:
     /// Index Vocabulary
     PIndexVoc IndexVoc;
     /// Inverted Index Default Merger Full
-    TPt<TGixExpMerger<TQmGixKey, TQmGixItemFull> > SumMergerFull;
+    const TGixMerger<TQmGixKey, TQmGixItemFull>* SumMergerFull;
     /// Inverted Index Default Merger Small
-    TPt<TGixExpMerger<TQmGixKey, TQmGixItemSmall> > SumMergerSmall;
+    const TGixMerger<TQmGixKey, TQmGixItemSmall>* SumMergerSmall;
     /// Inverted Index Default Merger Tiny
-    TPt<TGixExpMerger<TQmGixKey, TQmGixItemTiny> > MergerTiny;
+    const TGixMerger<TQmGixKey, TQmGixItemTiny>* MergerTiny;
 
     /// Determines which Gix should be used for given KeyId
     TIndexKeyGixType GetGixType(const int& KeyId) const { return IndexVoc->GetKey(KeyId).GetGixType(); }
@@ -3101,92 +3143,50 @@ public:
     /// Get index vocabulary
     TWPt<TIndexVoc> GetIndexVoc() const { return IndexVoc; }
     /// Get sum merger of recID/FQ vectors
-    TWPt<TGixExpMerger<TQmGixKey, TQmGixItemFull> > GetSumMerger() const { return SumMergerFull; }
+    const TGixMerger<TQmGixKey, TQmGixItemFull>* GetSumMerger() const { return SumMergerFull; }
 
-    /// Index RecId under (Key, Word)
-    void Index(const int& KeyId, const uint64& WordId, const uint64& RecId);
     /// Index RecId under (Key, Word). WordStr is sent through index vocabulary.
-    void Index(const int& KeyId, const TStr& WordStr, const uint64& RecId);
+    void IndexValue(const int& KeyId, const TStr& WordStr, const uint64& RecId);
     /// Index RecId under (Key, Word). WordStrV is sent through index vocabulary.
     /// Repeated words have associated weight based on their count.
-    void Index(const int& KeyId, const TStrV& WordStrV, const uint64& RecId);
-    /// Index RecId under (Key, Word). WordStrV is sent through index vocabulary.
-    /// Each word indexed given the weight (frequency) from the input.
-    void Index(const int& KeyId, const TStrIntPrV& WordStrFqV, const uint64& RecId);
-    /// Index RecId under (Key, Word). WordStr is sent through index vocabulary.
-    /// Repeated words have associated weight based on their count, in case of text keys.
-    void Index(const uint& StoreId, const TStr& KeyNm, const TStr& WordStr, const uint64& RecId);
-    /// Index RecId under (Key, Word). WordStrV is sent through index vocabulary.
-    void Index(const uint& StoreId, const TStr& KeyNm, const TStrV& WordStrV, const uint64& RecId);
-    /// Index RecId under (Key, Word). WordStrV is sent through index vocabulary.
-    /// Each word indexed given the weight (frequency) from the input.
-    void Index(const uint& StoreId, const TStr& KeyNm, const TStrIntPrV& WordStrFqV, const uint64& RecId);
-    /// Index RecId under (Key, Word). Each word is sent through index vocabulary
-    void Index(const uint& StoreId, const TStrPrV& KeyWordV, const uint64& RecId);
+    void IndexValue(const int& KeyId, const TStrV& WordStrV, const uint64& RecId);
     /// Index RecId under given Key. Tokenize and clean given free text to derive words.
     void IndexText(const int& KeyId, const TStr& TextStr, const uint64& RecId);
-    /// Index RecId under given Key. Tokenize and clean given free text to derive words.
-    void IndexText(const uint& StoreId, const TStr& KeyNm, const TStr& TextStr, const uint64& RecId);
-    /// Index RecId under given Key. Tokenize and clean given free text to derive words.
-    void IndexText(const int& KeyId, const TStrV& TextStrV, const uint64& RecId);
-    /// Index RecId under given Key. Tokenize and clean given free text to derive words.
-    void IndexText(const uint& StoreId, const TStr& KeyNm, const TStrV& TextStrV, const uint64& RecId);
     /// Index a join between RecId and JoinRecId
     void IndexJoin(const TWPt<TStore>& Store, const int& JoinId,
         const uint64& RecId, const uint64& JoinRecId, const int& JoinFq = 1);
-    /// Index a join between RecId and JoinRecId
-    void IndexJoin(const TWPt<TStore>& Store, const TStr& JoinNm,
-        const uint64& RecId, const uint64& JoinRecId, const int& JoinFq = 1);
     /// Add to inverted index (RecId, RecFq) under key (KeyId, WordId).
-    void Index(const int& KeyId, const uint64& WordId, const uint64& RecId, const int& RecFq);
+    void IndexGix(const int& KeyId, const uint64& WordId, const uint64& RecId, const int& RecFq);
 
     /// Delete index for RecId under (Key, Word). WordStr is sent through index vocabulary.
-    void Delete(const int& KeyId, const TStr& WordStr, const uint64& RecId);
+    void DeleteValue(const int& KeyId, const TStr& WordStr, const uint64& RecId);
     /// Delete index for RecId under (Key, Word). WordStrV is sent through index vocabulary.
     /// Repeated words have associated weight based on their count.
-    void Delete(const int& KeyId, const TStrV& WordStrV, const uint64& RecId);
-    /// Delete index for RecId under (Key, Word). WordStr is sent through index vocabulary.
-    void Delete(const uint& StoreId, const TStr& KeyNm, const TStr& WordStr, const uint64& RecId);
-    /// Delete index for RecId under (Key, Word)
-    void Delete(const uint& StoreId, const TStr& KeyNm, const uint64& WordId, const uint64& RecId);
-    /// Delete index for RecId under (Key, Word). Each word is sent through index vocabulary
-    void Delete(const uint& StoreId, const TStrPrV& KeyWordV, const uint64& RecId);
+    void DeleteValue(const int& KeyId, const TStrV& WordStrV, const uint64& RecId);
     /// Delete index for RecId under given Key. Tokenize and clean given free text to derive words.
     void DeleteText(const int& KeyId, const TStr& TextStr, const uint64& RecId);
-    /// Delete index for RecId under given Key. Tokenize and clean given free text to derive words.
-    void DeleteText(const uint& StoreId, const TStr& KeyNm, const TStr& TextStr, const uint64& RecId);
-    /// Delete index for RecId under given Key. Tokenize and clean given free text to derive words.
-    void DeleteText(const int& KeyId, const TStrV& TextStrV, const uint64& RecId);
-    /// Delete index for RecId under given Key. Tokenize and clean given free text to derive words.
-    void DeleteText(const uint& StoreId, const TStr& KeyNm, const TStrV& TextStrV, const uint64& RecId);
     // Remove join from index
     void DeleteJoin(const TWPt<TStore>& Store, const int& JoinId,
         const uint64& RecId, const uint64& JoinRecId, const int& JoinFq = TInt::Mx);
-    // Remove join from index
-    void DeleteJoin(const TWPt<TStore>& Store, const TStr& JoinNm,
-        const uint64& RecId, const uint64& JoinRecId, const int& JoinFq = TInt::Mx);
     // Delete record from inverted index
-    void Delete(const int& KeyId, const uint64& WordId, const uint64& RecId, const int& RecFq);
+    void DeleteGix(const int& KeyId, const uint64& WordId, const uint64& RecId, const int& RecFq);
+
+    /// Index RecId using given keys and words. Words are extracted by tokenizing the given string.
+    void IndexTextPos(const int& KeyId, const TStr& TextStr, const uint64& RecId);
+    /// Index RecId using given keys and words. Words are extracted by tokenizing the given string.
+    void IndexTextPos(const int& KeyId, const TUInt64V& WordIdV, const uint64& RecId);
+    /// Index RecId using given keys and words. Words are extracted by tokenizing the given string.
+    void DeleteTextPos(const int& KeyId, const TStr& TextStr, const uint64& RecId);
+    /// Index RecId using given keys and words. Words are extracted by tokenizing the given string.
+    void DeleteTextPos(const int& KeyId, const TUInt64V& WordIdV, const uint64& RecId);
 
     /// Add RecId to location index under key (Key, Loc)
-    void Index(const uint& StoreId, const TStr& KeyNm, const TFltPr& Loc, const uint64& RecId);
-    /// Add RecId to location index under key (Key, Loc)
-    void Index(const int& KeyId, const TFltPr& Loc, const uint64& RecId);
-    /// Delete RecId from location index under (Key, Loc)
-    void Delete(const uint& StoreId, const TStr& KeyNm, const TFltPr& Loc, const uint64& RecId);
-    /// Delete RecId from location index under (Key, Loc)
-    void Delete(const int& KeyId, const TFltPr& Loc, const uint64& RecId);
-    /// Checks if two locations point to the same place
-    bool LocEquals(const uint& StoreId, const TStr& KeyNm, const TFltPr& Loc1, const TFltPr& Loc2) const;
-    /// Checks if two locations point to the same place
+    void IndexGeo(const int& KeyId, const TFltPr& Loc, const uint64& RecId);
+    // /// Delete RecId from location index under (Key, Loc)
+    void DeleteGeo(const int& KeyId, const TFltPr& Loc, const uint64& RecId);
+    // /// Checks if two locations point to the same place
     bool LocEquals(const int& KeyId, const TFltPr& Loc1, const TFltPr& Loc2) const;
 
-    /// Add RecId to linear index under (Key, Val)
-    void IndexLinear(const uint& StoreId, const TStr& KeyNm, const int& Val, const uint64& RecId);
-    /// Add RecId to linear index under (Key, Val)
-    void IndexLinear(const uint& StoreId, const TStr& KeyNm, const uint64& Val, const uint64& RecId);
-    /// Add RecId to linear index under (Key, Val)
-    void IndexLinear(const uint& StoreId, const TStr& KeyNm, const double& Val, const uint64& RecId);
     /// Add RecId to linear index under (Key, Val)
     void IndexLinear(const int& KeyId, const uchar& Val, const uint64& RecId);
     /// Add RecId to linear index under (Key, Val)
@@ -3206,24 +3206,6 @@ public:
     /// Add RecId to linear index under (Key, Val)
     void IndexLinear(const int& KeyId, const float& Val, const uint64& RecId);
 
-    /// Delete RecId from linear index under (Key, Val)
-    void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const uchar& Val, const uint64& RecId);
-    /// Delete RecId from linear index under (Key, Val)
-    void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const int& Val, const uint64& RecId);
-    /// Delete RecId from linear index under (Key, Val)
-    void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const int16& Val, const uint64& RecId);
-    /// Delete RecId from linear index under (Key, Val)
-    void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const int64& Val, const uint64& RecId);
-    /// Delete RecId from linear index under (Key, Val)
-    void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const uint& Val, const uint64& RecId);
-    /// Delete RecId from linear index under (Key, Val)
-    void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const uint16& Val, const uint64& RecId);
-    /// Delete RecId from linear index under (Key, Val)
-    void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const uint64& Val, const uint64& RecId);
-    /// Delete RecId from linear index under (Key, Val)
-    void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const double& Val, const uint64& RecId);
-    /// Delete RecId from linear index under (Key, Val)
-    void DeleteLinear(const uint& StoreId, const TStr& KeyNm, const float& Val, const uint64& RecId);
     /// Delete RecId from linear index under (Key, Val)
     void DeleteLinear(const int& KeyId, const uchar& Val, const uint64& RecId);
     /// Delete RecId from linear index under (Key, Val)
@@ -3291,7 +3273,6 @@ public:
     TBlobBsStats GetBlobStats() const;
     /// get gix stats
     TGixStats GetGixStats(const bool& RefreshP = true) const;
-
     /// Get split length of inner Gix
     int GetSplitLen() const;
     /// reset blob stats

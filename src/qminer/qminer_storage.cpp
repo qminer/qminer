@@ -2418,7 +2418,7 @@ void TRecIndexer::IndexKey(const TFieldIndexKey& Key, const TMemBase& RecMem,
     if (Key.FieldType == oftStr && Key.IsValue()){
         // inverted index over non-tokenized strings
         TStr Str = Serializator.GetFieldStr(RecMem, Key.FieldId);
-        Index->Index(Key.KeyId, Str, RecId);
+        Index->IndexValue(Key.KeyId, Str, RecId);
     } else if (Key.FieldType == oftStr && Key.IsText()) {
         // inverted index over tokenized strings
         TStr Str = Serializator.GetFieldStr(RecMem, Key.FieldId);
@@ -2426,15 +2426,15 @@ void TRecIndexer::IndexKey(const TFieldIndexKey& Key, const TMemBase& RecMem,
     } else if (Key.FieldType == oftStrV && Key.IsValue()) {
         // inverted index over string array
         TStrV StrV; Serializator.GetFieldStrV(RecMem, Key.FieldId, StrV);
-        Index->Index(Key.KeyId, StrV, RecId);
+        Index->IndexValue(Key.KeyId, StrV, RecId);
     } else if (Key.FieldType == oftTm && Key.IsValue()) {
         // time indexed as timestamp string
         const uint64 TmMSecs = Serializator.GetFieldTmMSecs(RecMem, Key.FieldId);
-        Index->Index(Key.KeyId, TUInt64::GetStr(TmMSecs), RecId);
+        Index->IndexValue(Key.KeyId, TUInt64::GetStr(TmMSecs), RecId);
     } else if (Key.FieldType == oftFltPr && Key.IsLocation()) {
         // index geo-location using geo-index
         TFltPr FltPr = Serializator.GetFieldFltPr(RecMem, Key.FieldId);
-        Index->Index(Key.KeyId, FltPr, RecId);
+        Index->IndexGeo(Key.KeyId, FltPr, RecId);
     } else if (Key.FieldType == oftByte && Key.IsLinear()) {
         // index integer value using btree
         const uchar Byte = Serializator.GetFieldByte(RecMem, Key.FieldId);
@@ -2488,7 +2488,7 @@ void TRecIndexer::DeindexKey(const TFieldIndexKey& Key, const TMemBase& RecMem,
     if (Key.FieldType == oftStr && Key.IsValue()) {
         // inverted index over non-tokenized strings
         TStr Str = Serializator.GetFieldStr(RecMem, Key.FieldId);
-        Index->Delete(Key.KeyId, Str, RecId);
+        Index->DeleteValue(Key.KeyId, Str, RecId);
     } else if (Key.FieldType == oftStr && Key.IsText()) {
         // inverted index over tokenized strings
         TStr Str = Serializator.GetFieldStr(RecMem, Key.FieldId);
@@ -2496,15 +2496,15 @@ void TRecIndexer::DeindexKey(const TFieldIndexKey& Key, const TMemBase& RecMem,
     } else if (Key.FieldType == oftStrV && Key.IsValue()) {
         // inverted index over string array
         TStrV StrV; Serializator.GetFieldStrV(RecMem, Key.FieldId, StrV);
-        Index->Delete(Key.KeyId, StrV, RecId);
+        Index->DeleteValue(Key.KeyId, StrV, RecId);
     } else if (Key.FieldType == oftTm && Key.IsValue()) {
         // time indexed as timestamp string, TODO: proper time indexing
         const uint64 TmMSecs = Serializator.GetFieldTmMSecs(RecMem, Key.FieldId);
-        Index->Delete(Key.KeyId, TUInt64::GetStr(TmMSecs), RecId);
+        Index->DeleteValue(Key.KeyId, TUInt64::GetStr(TmMSecs), RecId);
     } else if (Key.FieldType == oftFltPr && Key.IsLocation()) {
         // index geo-location using geo-index
         TFltPr FltPr = Serializator.GetFieldFltPr(RecMem, Key.FieldId);
-        Index->Delete(Key.KeyId, FltPr, RecId);
+        Index->DeleteGeo(Key.KeyId, FltPr, RecId);
     } else if (Key.FieldType == oftByte && Key.IsLinear()) {
         // index integer value using btree
         const uchar Byte = Serializator.GetFieldByte(RecMem, Key.FieldId);
@@ -2560,8 +2560,8 @@ void TRecIndexer::UpdateKey(const TFieldIndexKey& Key, const TMemBase& OldRecMem
         TStr OldStr = Serializator.GetFieldStr(OldRecMem, Key.FieldId);
         TStr NewStr = Serializator.GetFieldStr(NewRecMem, Key.FieldId);
         if (OldStr == NewStr) { return; }
-        Index->Delete(Key.KeyId, OldStr, RecId);
-        Index->Index(Key.KeyId, NewStr, RecId);
+        Index->DeleteValue(Key.KeyId, OldStr, RecId);
+        Index->IndexValue(Key.KeyId, NewStr, RecId);
     } else if (Key.FieldType == oftStr && Key.IsText()) {
         // inverted index over tokenized strings
         TStr OldStr = Serializator.GetFieldStr(OldRecMem, Key.FieldId);
@@ -2574,22 +2574,22 @@ void TRecIndexer::UpdateKey(const TFieldIndexKey& Key, const TMemBase& OldRecMem
         TStrV OldStrV; Serializator.GetFieldStrV(OldRecMem, Key.FieldId, OldStrV);
         TStrV NewStrV; Serializator.GetFieldStrV(NewRecMem, Key.FieldId, NewStrV);
         if (OldStrV == NewStrV) { return; }
-        Index->Delete(Key.KeyId, OldStrV, RecId);
-        Index->Index(Key.KeyId, NewStrV, RecId);
+        Index->DeleteValue(Key.KeyId, OldStrV, RecId);
+        Index->IndexValue(Key.KeyId, NewStrV, RecId);
     } else if (Key.FieldType == oftTm && Key.IsValue()) {
         // time indexed as timestamp string, TODO: proper time indexing
         const uint64 OldTmMSecs = Serializator.GetFieldTmMSecs(OldRecMem, Key.FieldId);
         const uint64 NewTmMSecs = Serializator.GetFieldTmMSecs(NewRecMem, Key.FieldId);
         if (OldTmMSecs == NewTmMSecs) { return; }
-        Index->Delete(Key.KeyId, TUInt64::GetStr(OldTmMSecs), RecId);
-        Index->Index(Key.KeyId, TUInt64::GetStr(NewTmMSecs), RecId);
+        Index->DeleteValue(Key.KeyId, TUInt64::GetStr(OldTmMSecs), RecId);
+        Index->IndexValue(Key.KeyId, TUInt64::GetStr(NewTmMSecs), RecId);
     } else if (Key.FieldType == oftFltPr && Key.IsLocation()) {
         // index geo-location using geo-index
         TFltPr OldFltPr = Serializator.GetFieldFltPr(OldRecMem, Key.FieldId);
         TFltPr NewFltPr = Serializator.GetFieldFltPr(NewRecMem, Key.FieldId);
         if (Index->LocEquals(Key.KeyId, OldFltPr, NewFltPr)) { return; }
-        Index->Delete(Key.KeyId, OldFltPr, RecId);
-        Index->Index(Key.KeyId, NewFltPr, RecId);
+        Index->DeleteGeo(Key.KeyId, OldFltPr, RecId);
+        Index->IndexGeo(Key.KeyId, NewFltPr, RecId);
     } else if (Key.FieldType == oftByte && Key.IsLinear()) {
         // index byte value using btree
         const uchar OldByte = Serializator.GetFieldByte(OldRecMem, Key.FieldId);
