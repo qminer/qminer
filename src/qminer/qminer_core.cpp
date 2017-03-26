@@ -5406,7 +5406,7 @@ bool TIndex::DoQueryTiny(const TPt<TQmGixExpItemTiny>& ExpItem, TVec<TQmGixItemF
 
 TIndex::TIndex(const TStr& _IndexFPath, const TFAccess& _Access, const PIndexVoc& _IndexVoc,
     const int64& CacheSizeFull, const int64& CacheSizeSmall, const uint64& CacheSizeTiny,
-    const int& SplitLen) {
+    const int64& CacheSizePos, const int& SplitLen) {
 
     IndexFPath = _IndexFPath;
     Access = _Access;
@@ -5422,6 +5422,10 @@ TIndex::TIndex(const TStr& _IndexFPath, const TFAccess& _Access, const PIndexVoc
     MergerTiny = new TGixDefMerger<TQmGixKey, TQmGixItemTiny>;
     GixTiny = TGix<TQmGixKey, TQmGixItemTiny>::New("Index.GixTiny",
         IndexFPath, Access, MergerTiny, CacheSizeTiny, SplitLen);
+    // initialize position inverted index
+    MergerPos = new TGixDefMerger<TQmGixKey, TQmGixItemPos>;
+    GixPos = TGix<TQmGixKey, TQmGixItemPos>::New("Index.GixPos",
+        IndexFPath, Access, MergerPos, CacheSizePos, SplitLen);
     // initialize location index
     TStr SphereFNm = IndexFPath + "Index.Geo";
     if (TFile::Exists(SphereFNm) && Access != faCreate) {
@@ -5448,23 +5452,28 @@ TIndex::TIndex(const TStr& _IndexFPath, const TFAccess& _Access, const PIndexVoc
 
 PIndex TIndex::New(const TStr& IndexFPath, const TFAccess& Access, const PIndexVoc& IndexVoc,
     const int64& CacheSizeFull, const int64& CacheSizeSmall, const uint64& CacheSizeTiny,
-    const int& SplitLen) {
+    const int64& CacheSizePos, const int& SplitLen) {
 
-    return new TIndex(IndexFPath, Access, IndexVoc,
-         CacheSizeFull, CacheSizeSmall, CacheSizeTiny, SplitLen);
+    return new TIndex(IndexFPath, Access, IndexVoc, CacheSizeFull,
+         CacheSizeSmall, CacheSizeTiny, CacheSizePos, SplitLen);
 }
 
 TIndex::~TIndex() {
     if (!IsReadOnly()) {
-        TEnv::Logger->OnStatus("Saving and closing inverted index - full");
-        GixFull.Clr();
-        delete SumMergerFull;
-        TEnv::Logger->OnStatus("Saving and closing inverted index - small");
-        GixSmall.Clr();
-        delete SumMergerSmall;
-        TEnv::Logger->OnStatus("Saving and closing inverted index - tiny");
-        GixTiny.Clr();
-        delete MergerTiny;
+        {
+            TEnv::Logger->OnStatus("Saving and closing inverted index - full");
+            GixFull.Clr();
+            delete SumMergerFull;
+            TEnv::Logger->OnStatus("Saving and closing inverted index - small");
+            GixSmall.Clr();
+            delete SumMergerSmall;
+            TEnv::Logger->OnStatus("Saving and closing inverted index - tiny");
+            GixTiny.Clr();
+            delete MergerTiny;
+            TEnv::Logger->OnStatus("Saving and closing inverted index - position");
+            GixPos.Clr();
+            delete MergerPos;
+        }
         {
             TEnv::Logger->OnStatus("Saving and closing location index");
             TFOut SphereFOut(IndexFPath + "Index.Geo");
@@ -6614,7 +6623,8 @@ TBase::TBase(const TStr& _FPath, const int64& IndexCacheSize, const int& SplitLe
     TEnv::Logger->OnStatus("Opening in create mode");
     // prepare index
     IndexVoc = TIndexVoc::New();
-    Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize, IndexCacheSize, IndexCacheSize, SplitLen);
+    Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize,
+        IndexCacheSize, IndexCacheSize, IndexCacheSize, SplitLen);
     // initialize store blob base
     StoreBlobBs = TMBlobBs::New(FPath + "StoreBlob", FAccess);
     // initialize with empty stores
@@ -6643,7 +6653,8 @@ TBase::TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCac
 
     // load index
     IndexVoc = TIndexVoc::Load(IndexVocFIn);
-    Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize, IndexCacheSize, IndexCacheSize, SplitLen);
+    Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize,
+        IndexCacheSize, IndexCacheSize, IndexCacheSize, SplitLen);
     // load shared store blob base
     StoreBlobBs = TMBlobBs::New(FPath + "StoreBlob", FAccess);
     // initialize with empty stores
@@ -6746,7 +6757,7 @@ void TBase::Aggr(PRecSet& RecSet, const TQueryAggrV& QueryAggrV) {
 }
 
 int TBase::NewIndexWordVoc(const TIndexKeyType& Type, const TStr& WordVocNm) {
-    if ((Type & oiktValue) || (Type & oiktText)) {
+    if ((Type & oiktValue) || (Type & oiktText) || (Type & oiktTextPos)) {
         // check if we have a vocabulary with such name
         int WordVocId = WordVocNm.Empty() ? -1 : IndexVoc->GetWordVoc(WordVocNm);
         // if no, create a new one

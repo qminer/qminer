@@ -1084,6 +1084,17 @@ describe('Gix Tests', function () {
                 assert.equal(base.search({ $from: "TestStore", Value: "C" }).length, 3);
                 assert.equal(base.search({ $from: "TestStore", Value: "D" }).length, 4);
             })
+            it('should return correct number of records for simple query after delete', function () {
+                prepareSimpleStore();
+                assert.equal(base.search({ $from: "TestStore", Value: "A" }).length, 1);
+                assert.equal(base.search({ $from: "TestStore", Value: "B" }).length, 2);
+                base.store("TestStore").clear(1);
+                assert.equal(base.search({ $from: "TestStore", Value: "A" }).length, 0);
+                base.store("TestStore").clear(1);
+                assert.equal(base.search({ $from: "TestStore", Value: "B" }).length, 1);
+                base.store("TestStore").clear(3);
+                assert.equal(base.search({ $from: "TestStore", Value: "B" }).length, 0);
+            })
             it('should return correct number of records for or query', function () {
                 prepareSimpleStore();
                 assert.equal(base.search({
@@ -1133,7 +1144,7 @@ describe('Gix Tests', function () {
                 });
                 assert.equal(res2.length, 1);
                 assert.equal(res2[0].Value, "x");
-                //C => [z, y]
+                //C => [y, z]
                 var res3 = base.search({
                     $join: {
                         $name: "Join",
@@ -1163,10 +1174,125 @@ describe('Gix Tests', function () {
                 assert.equal(res4[2].Value, "D");
                 assert.equal(res4[3].Value, "D");
             })
+            it('should return correct number of records for join query after delete', function () {
+                prepareJoinStore();
+                // x => [D, D, D]
+                base.store("TestStore1").clear(1);
+                var res1 = base.search({
+                    $join: {
+                        $name: "Join",
+                        $query: { $from: "TestStore2", Value: "x" }
+                    }
+                });
+                assert.equal(res1.length, 3);
+                assert.equal(res1[0].Value, "D");
+                assert.equal(res1[1].Value, "D");
+                assert.equal(res1[2].Value, "D");
+            })
+            it('should return correct number of records for join query after delete', function () {
+                prepareJoinStore();
+                // delete x
+                base.store("TestStore2").clear(1);
+                //C => [y, z]
+                var res3 = base.search({
+                    $join: {
+                        $name: "Join",
+                        $query: { $from: "TestStore1", Value: "C" }
+                    }
+                });
+                assert.equal(res3.length, 2);
+                assert.equal(res3[0].Value, "y");
+                assert.equal(res3[1].Value, "z");
+                // delete y
+                base.store("TestStore2").clear(1);
+                //C => [z]
+                var res3 = base.search({
+                    $join: {
+                        $name: "Join",
+                        $query: { $from: "TestStore1", Value: "C" }
+                    }
+                });
+                assert.equal(res3.length, 1);
+                assert.equal(res3[0].Value, "z");
+            })
         })
     }
 
     testGixSearch("full");
     testGixSearch("small");
     testGixSearch("tiny");
+});
+
+describe('Gix Position Tests', function () {
+    var base = undefined;
+
+    beforeEach(function () {
+        qm.delLock();
+        base = new qm.Base({mode: 'createClean'});
+    });
+    afterEach(function () {
+        base.close();
+    });
+
+    var text = [
+        "Kraft wins first individual ski flying event at Planica",
+        "Norway win ski flying team event in Planica, Slovenia fifth",
+        "Kraft clinches ski jump title with final-event win",
+        "Kraft wins final Planica event and ski-jumping World Cup",
+        "Germany, Norway neck-and-neck after the first series in Planica",
+        "aa aa aa aa aa bb aa aa aa aa aa cc aa dd"
+    ]
+
+    describe('Test creating stores with position gix index', function () {
+        it('create store with position index', function () {
+            var store = base.createStore({
+                name: 'TestStore',
+                fields: [ { name: 'Value', type: 'string' } ],
+                keys: [ { field: 'Value', type: 'text_position' } ]
+            });
+        });
+        it('create store with position index on wrong field type', function () {
+            assert.throws(function () {
+                var store = base.createStore({
+                    name: 'TestStore',
+                    fields: [ { name: 'Value', type: 'int' } ],
+                    keys: [ { field: 'Value', type: 'text_position' } ]
+                });
+            });
+        });
+        it('index new records', function () {
+            var store = base.createStore({
+                name: 'TestStore',
+                fields: [ { name: 'Value', type: 'string' } ],
+                keys: [ { field: 'Value', type: 'text_position' } ]
+            });
+            store.push({ Value: text[0] });
+            store.push({ Value: text[1] });
+            store.push({ Value: text[2] });
+            store.push({ Value: text[3] });
+            store.push({ Value: text[4] });
+            store.push({ Value: text[5] });
+            assert.equal(store.length, 6);
+        });
+        it('delete existing records', function () {
+            var store = base.createStore({
+                name: 'TestStore',
+                fields: [ { name: 'Value', type: 'string' } ],
+                keys: [ { field: 'Value', type: 'text_position' } ]
+            });
+            store.push({ Value: text[0] });
+            store.push({ Value: text[1] });
+            store.push({ Value: text[2] });
+            store.push({ Value: text[3] });
+            store.push({ Value: text[4] });
+            store.push({ Value: text[5] });
+
+            store.clear(1);
+            assert.equal(store.length, 5);
+            store.clear(2);
+            assert.equal(store.length, 3);
+            store.clear(3);
+            assert.equal(store.length, 0);
+        });
+    });
 });

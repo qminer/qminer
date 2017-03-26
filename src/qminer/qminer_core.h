@@ -3113,6 +3113,8 @@ private:
     const TGixMerger<TQmGixKey, TQmGixItemSmall>* SumMergerSmall;
     /// Inverted Index Default Merger Tiny
     const TGixMerger<TQmGixKey, TQmGixItemTiny>* MergerTiny;
+    /// Inverted Index Default Merger Position
+    const TGixMerger<TQmGixKey, TQmGixItemPos>* MergerPos;
 
     /// Determines which Gix should be used for given KeyId
     TIndexKeyGixType GetGixType(const int& KeyId) const { return IndexVoc->GetKey(KeyId).GetGixType(); }
@@ -3126,12 +3128,12 @@ private:
     /// Constructor
     TIndex(const TStr& _IndexFPath, const TFAccess& _Access, const PIndexVoc& IndexVoc,
         const int64& CacheSizeFull, const int64& CacheSizeSmall, const uint64& CacheSizeTiny,
-        const int& SplitLen);
+        const int64& CacheSizePos, const int& SplitLen);
 public:
     /// Create (Access==faCreate) or open existing index
     static PIndex New(const TStr& IndexFPath, const TFAccess& Access, const PIndexVoc& IndexVoc,
         const int64& CacheSizeFull, const int64& CacheSizeSmall, const uint64& CacheSizeTiny,
-        const int& SplitLen);
+        const int64& CacheSizePos, const int& SplitLen);
     /// Checks if there is an existing index at the given path
     static bool Exists(const TStr& IndexFPath) { return TFile::Exists(IndexFPath + "Index.Gix"); }
 
