@@ -1243,7 +1243,7 @@ describe('Gix Position Tests', function () {
         "aa aa aa aa aa bb aa aa aa aa aa cc aa dd"
     ]
 
-    describe('Test creating stores with position gix index', function () {
+    describe('Test creating stores with position index', function () {
         it('create store with position index', function () {
             var store = base.createStore({
                 name: 'TestStore',
@@ -1294,5 +1294,74 @@ describe('Gix Position Tests', function () {
             store.clear(3);
             assert.equal(store.length, 0);
         });
+    });
+
+    describe('Test searching', function () {
+        function populate(store) {
+            store.push({ Value: text[0] });
+            store.push({ Value: text[1] });
+            store.push({ Value: text[2] });
+            store.push({ Value: text[3] });
+            store.push({ Value: text[4] });
+            store.push({ Value: text[5] });
+        }
+
+        it('find single word', function () {
+            var store = base.createStore({
+                name: 'TestStore',
+                fields: [ { name: 'Value', type: 'string' } ],
+                keys: [ { field: 'Value', type: 'text_position' } ]
+            });
+            populate(store);
+
+            assert.equal(base.search({ $from: "TestStore", Value: "kraft" }).length, 3);
+            assert.equal(base.search({ $from: "TestStore", Value: "aa" }).length, 1);
+            assert.equal(base.search({ $from: "TestStore", Value: "aa" })[0].$fq, 8);
+            assert.equal(base.search({ $from: "TestStore", Value: "pizza" }).length, 0);
+        });
+        it('two word phrases', function () {
+            var store = base.createStore({
+                name: 'TestStore',
+                fields: [ { name: 'Value', type: 'string' } ],
+                keys: [ { field: 'Value', type: 'text_position' } ]
+            });
+            populate(store);
+
+            assert.equal(base.search({ $from: "TestStore", Value: "kraft wins" }).length, 2);
+            assert.equal(base.search({ $from: "TestStore", Value: "planica event" }).length, 1);
+            assert.equal(base.search({ $from: "TestStore", Value: "planica tralala" }).length, 0);
+            assert.equal(base.search({ $from: "TestStore", Value: "tralala planica" }).length, 0);
+            assert.equal(base.search({ $from: "TestStore", Value: "aa aa" }).length, 1);
+            assert.equal(base.search({ $from: "TestStore", Value: "aa aa" })[0].$fq, 6);
+            assert.equal(base.search({ $from: "TestStore", Value: "aa bb" }).length, 1);
+            assert.equal(base.search({ $from: "TestStore", Value: "aa cc" }).length, 0);
+        });
+        it('long word phrases', function () {
+            var store = base.createStore({
+                name: 'TestStore',
+                fields: [ { name: 'Value', type: 'string' } ],
+                keys: [ { field: 'Value', type: 'text_position' } ]
+            });
+            populate(store);
+
+            assert.equal(base.search({ $from: "TestStore", Value: "Kraft wins first individual ski flying event at Planica" }).length, 1);
+            assert.equal(base.search({ $from: "TestStore", Value: "planica event" }).length, 1);
+            assert.equal(base.search({ $from: "TestStore", Value: "aa aa aa" }).length, 1);
+            assert.equal(base.search({ $from: "TestStore", Value: "aa aa aa" })[0].$fq, 4);
+        });
+        it('phrases with gaps', function () {
+            var store = base.createStore({
+                name: 'TestStore',
+                fields: [ { name: 'Value', type: 'string' } ],
+                keys: [ { field: 'Value', type: 'text_position' } ]
+            });
+            populate(store);
+
+            assert.equal(base.search({ $from: "TestStore", Value: { $str: "kraft planica", $diff: 1 }}).length, 0);
+            assert.equal(base.search({ $from: "TestStore", Value: { $str: "kraft planica", $diff: 2 }}).length, 0);
+            assert.equal(base.search({ $from: "TestStore", Value: { $str: "kraft planica", $diff: 3 }}).length, 1);
+            assert.equal(base.search({ $from: "TestStore", Value: { $str: "cc dd", $diff: 2 }}).length, 1);
+        });
+
     });
 });

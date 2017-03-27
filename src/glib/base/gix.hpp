@@ -685,6 +685,11 @@ TPt<TGixItemSet<TKey, TItem> > TGix<TKey, TItem>::GetItemSet(const TBlobPt& KeyI
 }
 
 template <class TKey, class TItem>
+void TGix<TKey, TItem>::GetItemV(const TKey& Key, TVec<TItem>& ItemV) const {
+    return GetItemSet(Key)->GetItemV(ItemV);
+}
+
+template <class TKey, class TItem>
 TBlobPt TGix<TKey, TItem>::StoreItemSet(const TBlobPt& KeyId) {
     AssertReadOnly(); // check if we are allowed to write
     // get the pointer to the item set

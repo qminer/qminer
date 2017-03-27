@@ -118,6 +118,7 @@ typedef enum {
 typedef enum {
     oqitUndef        = 0,
     oqitGix          = 1,  ///< Inverted index query
+    oqitTextPos      = 21, ///< Text query with position locality
     oqitGeo          = 8,  ///< Geoindex query
     oqitRangeByte    = 15, ///< Range BTree byte query
     oqitRangeInt     = 11, ///< Range BTree integer query
@@ -2499,10 +2500,12 @@ private:
     /// Index key (for leaf node)
     TInt KeyId;
 
-    /// Value or text query (for gix query)
+    /// Value or text query (for gix or text position query)
     TUInt64V WordIdV;
     /// Comparison between field and value (for gix query)
     TQueryCmpType CmpType;
+    /// Max difference between words (for text position query)
+    TInt MaxPosDiff;
 
     /// Geographic coordinates (for location query)
     TFltPr Loc;
@@ -2580,28 +2583,27 @@ public:
     TQueryItem(const PRecSet& _RecSet);
     /// Create new inverted index leaf query
     TQueryItem(const TWPt<TBase>& Base, const int& _KeyId, const uint64& WordId,
-        const TQueryCmpType& _CmpType = oqctEqual);
+        const TQueryCmpType& _CmpType);
     /// Create new inverted index leaf query
     TQueryItem(const TWPt<TBase>& Base, const int& _KeyId, const TStr& WordStr,
-        const TQueryCmpType& _CmpType = oqctEqual);
+        const TQueryCmpType& _CmpType);
     /// Create new inverted index leaf query
     TQueryItem(const TWPt<TBase>& Base, const uint& StoreId, const TStr& KeyNm,
-        const TStr& WordStr, const TQueryCmpType& _CmpType = oqctEqual);
+        const TStr& WordStr, const TQueryCmpType& _CmpType);
     /// Create new inverted index leaf query
     TQueryItem(const TWPt<TBase>& Base, const TStr& StoreNm, const TStr& KeyNm,
-        const TStr& WordStr, const TQueryCmpType& _CmpType = oqctEqual);
+        const TStr& WordStr, const TQueryCmpType& _CmpType);
     /// New leaf location query (limit always required, range used when positive)
     TQueryItem(const TWPt<TBase>& Base, const int& _KeyId,
-        const TFltPr& _Loc, const int& _LocLimit = 100,
-        const double& _LocRadius = -1.0);
+        const TFltPr& _Loc, const int& _LocLimit, const double& _LocRadius);
     /// New leaf location query (limit always required, range used when positive)
     TQueryItem(const TWPt<TBase>& Base, const uint& StoreId,
-        const TStr& KeyNm, const TFltPr& _Loc, const int& _LocLimit = 100,
-        const double& _LocRadius = -1.0);
+        const TStr& KeyNm, const TFltPr& _Loc, const int& _LocLimit,
+        const double& _LocRadius);
     /// New leaf location query (limit always required, range used when positive)
     TQueryItem(const TWPt<TBase>& Base, const TStr& StoreNm,
-        const TStr& KeyNm, const TFltPr& _Loc, const int& _LocLimit = 100,
-        const double& _LocRadius = -1.0);
+        const TStr& KeyNm, const TFltPr& _Loc, const int& _LocLimit,
+        const double& _LocRadius);
     /// New non-leaf query item
     TQueryItem(const TQueryItemType& _Type);
     /// New non-leaf query item, with given subordinate item
@@ -2621,6 +2623,8 @@ public:
     TQueryItemType GetType() const { return Type; }
     /// Check query type
     bool IsGix() const { return (Type == oqitGix); }
+    /// Check query type
+    bool IsTextPos() const { return (Type == oqitTextPos); }
     /// Check query type
     bool IsGeo() const { return (Type == oqitGeo); }
     /// Check query type
@@ -2694,6 +2698,9 @@ public:
     bool IsNotEqual() const { return (CmpType == oqctNotEqual); }
     /// Check comparison type
     bool IsWildChar() const { return (CmpType == oqctWildChar); }
+
+    /// Get max difference between words in position search
+    int GetMaxPosDiff() const { return MaxPosDiff; }
 
     /// Get location (for location queries)
     const TFltPr& GetLoc() const { return Loc; }
@@ -3023,6 +3030,9 @@ private:
         /// Emtpy positions are marked as 0
         TUCh PosV[8];
 
+        /// Add new position that is already properly trimed
+        void _Add(const int& Pos);
+
     public:
         /// Default constructor for vectors
         TQmGixItemPos(): RecId(TUInt64::Mx) { }
@@ -3034,12 +3044,26 @@ private:
         /// Save to stream
         void Save(TSOut& SOut) const;
 
+        /// Get record id stored in the item
+        uint64 GetRecId() const { return RecId; }
+
         /// Check if the item is empty (== first position is set to 0)
         bool Empty() const { return PosV[0].Val == (uchar)0; }
         /// Check if we still have space (== last position is set to 0)
         bool IsSpace() const { return PosV[MaxPos - 1].Val == (uchar)0; }
+        /// Get number of positions stored
+        int GetPosLen() const;
+        /// Get position converted to int for easier handling outside
+        int GetPos(const int& PosN) const;
+
         /// Add new position to the item
         void Add(const int& Pos);
+        /// Intersect keeping bigger positions that are within MaxDiff difference:
+        /// Assumes that this is before Item and we only keep position when Item
+        /// position is <= MaxDiff ahead of this. This contains only positions that
+        /// are in the intersection and we keep the position from Item (bigger)
+        /// which makes it easier to intersect with the next word.
+        TQmGixItemPos Intersect(const TQmGixItemPos& Item, const int& MaxDiff) const;
 
         /// Two items are same if they have same record id
         bool operator==(const TQmGixItemPos& ItemPos) const { return RecId == ItemPos.RecId; }
@@ -3124,6 +3148,9 @@ private:
     bool DoQuerySmall(const TPt<TQmGixExpItemSmall>& ExpItem, TVec<TQmGixItemFull>& RecIdFqV) const;
     /// Executes GIX query expression against the tiny index
     bool DoQueryTiny(const TPt<TQmGixExpItemTiny>& ExpItem, TVec<TQmGixItemFull>& RecIdFqV) const;
+
+    /// Execute Position query. Result is vector of record ids and frequency of phrase occurences.
+    void DoQueryPos(const int& KeyId, const TUInt64V& WordIdV, const int& MaxDiff, TUInt64IntKdV& RecIdFqV) const;
 
     /// Constructor
     TIndex(const TStr& _IndexFPath, const TFAccess& _Access, const PIndexVoc& IndexVoc,
@@ -3231,7 +3258,7 @@ public:
     /// Check if index opened in read-only mode
     bool IsReadOnly() const { return Access == faRdOnly; }
 
-    /// Search inverted index suing single key-word pair
+    /// Search inverted index using single key-word pair
     PRecSet SearchGix(const TWPt<TBase>& Base, const int& KeyId, const uint64& WordId) const;
     /// Search inverted index for records matching all words from same key
     PRecSet SearchGixAnd(const TWPt<TBase>& Base, const int& KeyId, const TUInt64V& WordIdV) const;
@@ -3242,6 +3269,10 @@ public:
     void SearchGixJoin(const int& KeyId, const uint64& RecId, TUInt64IntKdV& JoinRecIdFqV) const;
     /// Low-level access to Gix search used for joining
     void SearchGixJoin(const int& KeyId, const TUInt64V& RecIdV, TUInt64IntKdV& JoinRecIdFqV) const;
+
+    /// Search text position inverted index where given words are MaxDiff appart.
+    PRecSet SearchTextPos(const TWPt<TBase>& Base, const int& KeyId,
+        const TUInt64V& WordIdV, const int& MaxDiff) const;
 
     /// Do geo-location range (in meters) search
     PRecSet SearchGeoRange(const TWPt<TBase>& Base, const int& KeyId,

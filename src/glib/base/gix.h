@@ -395,6 +395,8 @@ public:
     PGixItemSet GetItemSet(const TKey& Key) const;
     /// get item set for given BLOB pointer
     PGixItemSet GetItemSet(const TBlobPt& Pt) const;
+    /// Get items for given key
+    void GetItemV(const TKey& Key, TVec<TItem>& ItemV) const;
     /// for storing item sets from cache to blob
     TBlobPt StoreItemSet(const TBlobPt& KeyId);
     /// for deleting itemset from cache and blob

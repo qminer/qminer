@@ -4498,7 +4498,8 @@ void TIndexVoc::SaveTxt(const TWPt<TBase>& Base, const TStr& FNm) const {
 // QMiner-Query-Item
 void TQueryItem::ParseWordStr(const TStr& WordStr, const TWPt<TIndexVoc>& IndexVoc) {
     // if text key, tokenize the word string
-    if (IndexVoc->GetKey(KeyId).IsText()) {
+    if (IndexVoc->GetKey(KeyId).IsText() || IndexVoc->GetKey(KeyId).IsTextPos()) {
+        // if normal text query, make sure equal sign is correct
         if (!IsEqual() && !IsNotEqual()) {
             throw TQmExcept::New("Wrong sort type for text Key!");
         }
@@ -4803,6 +4804,27 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const
         } else {
             throw TQmExcept::New("Query: Invalid key definition: '" + TJsonVal::GetStrFromVal(KeyVal) + "'");
         }
+    } else if (Key.IsTextPos()) {
+        // we have a direct inverted index query
+        KeyId = Key.GetKeyId();
+        Type = oqitTextPos;
+        // plain string, must be equal
+        CmpType = oqctEqual;
+        // check how it is phrased
+        if (KeyVal->IsStr()) {
+            // plain string, we are looking for contiguous phrase
+            MaxPosDiff = 1;
+            // get target word id(s)
+            ParseWordStr(KeyVal->GetStr(), IndexVoc);
+        } else if (KeyVal->IsObj() && KeyVal->IsObjKey("$str")) {
+            // locality query, get max diff between words
+            MaxPosDiff = KeyVal->GetObjInt("$diff", 1);
+            QmAssertR(MaxPosDiff > 0, "Query: $diff parameter must be a positive integer");
+            // get string
+            ParseWordStr(KeyVal->GetObjStr("$str"), IndexVoc);
+        } else {
+            throw TQmExcept::New("Query: Invalid key definition: '" + TJsonVal::GetStrFromVal(KeyVal) + "'");
+        }
     } else if (Key.IsLocation()) {
         // remember key id
         KeyId = Key.GetKeyId();
@@ -5033,7 +5055,7 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TStr& JoinNm, const int& _
 }
 
 uint TQueryItem::GetStoreId(const TWPt<TBase>& Base) const {
-    if (IsGix() || IsGeo() || IsRange()) {
+    if (IsGix() || IsTextPos() || IsGeo() || IsRange()) {
         // when in the leaf, life is easy
         return Base->GetIndexVoc()->GetKeyStoreId(KeyId);
     } else if (IsRecSet()) {
@@ -5074,7 +5096,7 @@ TWPt<TStore> TQueryItem::GetStore(const TWPt<TBase>& Base) const {
 }
 
 bool TQueryItem::IsFq() const {
-    if (IsGix() || IsGeo()) {
+    if (IsGix() || IsTextPos() || IsGeo()) {
         // always weighted when only one key
         return true;
     } else if (IsAnd() && ItemV.Len() == 1) {
@@ -5343,6 +5365,16 @@ TStr TIndex::TQmGixKeyStr::GetKeyNm(const TQmGixKey& Key) const {
 
 int TIndex::TQmGixItemPos::MaxPos = 8;
 
+void TIndex::TQmGixItemPos::_Add(const int& Pos) {
+    // make sure we still have palce to store
+    Assert(IsSpace());
+    // find place where to store it
+    int EmptyPosN = 0;
+    while (PosV[EmptyPosN] != 0) { EmptyPosN++; }
+    // store position
+    PosV[EmptyPosN] = (uchar)(Pos);
+}
+
 TIndex::TQmGixItemPos::TQmGixItemPos(TSIn& SIn): RecId(SIn) {
     for (int PosN = 0; PosN < MaxPos; PosN++) {
         PosV[PosN] = TUCh(SIn);
@@ -5357,6 +5389,20 @@ void TIndex::TQmGixItemPos::Save(TSOut& SOut) const {
     }
 }
 
+int TIndex::TQmGixItemPos::GetPosLen() const {
+    // first check if we are full
+    if (!IsSpace()) { return MaxPos; }
+    // we are not, count!
+    int PosLen = 0;
+    while (PosV[PosLen] != 0) { PosLen++; }
+    return PosLen;
+}
+
+int TIndex::TQmGixItemPos::GetPos(const int& PosN) const {
+    Assert(PosN < GetPosLen());
+    return (int)PosV[PosN];
+}
+
 void TIndex::TQmGixItemPos::Add(const int& Pos) {
     // make sure we still have palce to store
     Assert(IsSpace());
@@ -5365,6 +5411,32 @@ void TIndex::TQmGixItemPos::Add(const int& Pos) {
     while (PosV[EmptyPosN] != 0) { EmptyPosN++; }
     // store position
     PosV[EmptyPosN] = (uchar)(Pos % 0xFF + 1);
+}
+
+TIndex::TQmGixItemPos TIndex::TQmGixItemPos::Intersect(const TQmGixItemPos& Item, const int& MaxDiff) const {
+    // first remember the length of boths items
+    const int PosLen1 = GetPosLen();
+    const int PosLen2 = Item.GetPosLen();
+    // new item
+    TQmGixItemPos _Item(RecId);
+    // go over all matches and compare them
+    for (int PosN1 = 0; PosN1 < PosLen1; PosN1++) {
+        const int Pos1 = GetPos(PosN1);
+        for (int PosN2 = 0; PosN2 < PosLen2; PosN2++) {
+            const int Pos2 = Item.GetPos(PosN2);
+            // check if we are within the intersection, first simple case
+            if (Pos1 < Pos2 && Pos2 <= (Pos1 + MaxDiff)) {
+                _Item._Add(Pos2); break;
+            }
+            // check for special case when Pos2 is after the break (% 0xFF).
+            // in such case Pos2 is near 0 and we just offset it for 0xFF
+            if (Pos1 < (Pos2 + 0xFF) && (Pos2 + 0xFF) <= (Pos1 + MaxDiff)) {
+                _Item._Add(Pos2); break;
+            }
+        }
+    }
+    // we are good
+    return _Item;
 }
 
 bool TIndex::DoQueryFull(const TPt<TQmGixExpItemFull>& ExpItem, TVec<TQmGixItemFull>& RecIdFqV) const {
@@ -5403,6 +5475,61 @@ bool TIndex::DoQueryTiny(const TPt<TQmGixExpItemTiny>& ExpItem, TVec<TQmGixItemF
     // pass forward return result
     return Not;
 }
+
+void TIndex::DoQueryPos(const int& KeyId, const TUInt64V& WordIdV,
+        const int& MaxDiff, TUInt64IntKdV& RecIdFqV) const {
+
+    // make sure all parameters are ok
+    QmAssert(MaxDiff > 0);
+    // prepare empty return vector
+    RecIdFqV.Clr();
+    // if no words, no results!
+    if (WordIdV.Empty()) { return; }
+    // get records for the first word from the index and
+    // store it into the running result candidate vector
+    TVec<TQmGixItemPos> ItemV;
+    GixPos->GetItemV(TQmGixKey(KeyId, WordIdV[0]), ItemV);
+    Assert(ItemV.IsSorted());
+    // now filter down the results by intersecting with subsequent words
+    for (int WordN = 1; WordN < WordIdV.Len(); WordN++) {
+        // stop in case we are out of candidates
+        if (ItemV.Empty()) { break; }
+        // get new word items
+        TVec<TQmGixItemPos> WordItemV;
+        GixPos->GetItemV(TQmGixKey(KeyId, WordIdV[WordN]), WordItemV);
+        Assert(ItemV.IsSorted());
+        // intersect the lists
+        TVec<TQmGixItemPos> _ItemV; int ItemN = 0;
+        for (const TQmGixItemPos& WordItem : WordItemV) {
+            // find next matching items
+            while (ItemN < ItemV.Len() && ItemV[ItemN].GetRecId() < WordItem.GetRecId()) { ItemN++; }
+            // break if we are at the end of running candidate vector
+            if (ItemN == ItemV.Len()) { break; }
+            // skip if we iterated beyond WordItem
+            if (WordItem.GetRecId() < ItemV[ItemN].GetRecId()) { continue; }
+            // if all checks pass, we have a matching positions
+            const TQmGixItemPos& Item = ItemV[ItemN];
+            Assert(Item.GetRecId() == WordItem.GetRecId());
+            // find any intersections of words
+            TQmGixItemPos _Item = Item.Intersect(WordItem, MaxDiff);
+            // keep if there is intersection
+            if (!_Item.Empty()) { _ItemV.Add(_Item); }
+        }
+        // update running candidate vector
+        ItemV = _ItemV;
+    }
+    // prepare final results by getting record ids that survived the intersecting.
+    // frequency is the number of positions that were kept till the last word.
+    for (int ItemN = 0; ItemN < ItemV.Len(); ItemN++) {
+        // get record id
+        const uint64 RecId = ItemV[ItemN].GetRecId();
+        // get number of occurences that survived
+        const int Fq = ItemV[ItemN].GetPosLen();
+        // add to return results
+        RecIdFqV.Add(TUInt64IntKd(RecId, Fq));
+    }
+}
+
 
 TIndex::TIndex(const TStr& _IndexFPath, const TFAccess& _Access, const PIndexVoc& _IndexVoc,
     const int64& CacheSizeFull, const int64& CacheSizeSmall, const uint64& CacheSizeTiny,
@@ -5951,6 +6078,17 @@ void TIndex::SearchGixJoin(const int& KeyId, const uint64& RecId, TUInt64IntKdV&
     }
 }
 
+PRecSet TIndex::SearchTextPos(const TWPt<TBase>& Base, const int& KeyId,
+        const TUInt64V& WordIdV, const int& MaxDiff) const {
+
+    // execute query
+    TUInt64IntKdV RecIdFqV; DoQueryPos(KeyId, WordIdV, MaxDiff, RecIdFqV);
+    // wrap as record set and return
+    const uint StoreId = IndexVoc->GetKey(KeyId).GetStoreId();
+    return TRecSet::New(Base->GetStoreByStoreId(StoreId), RecIdFqV);
+}
+
+
 void TIndex::SearchGixJoin(const int& KeyId, const TUInt64V& RecIdV, TUInt64IntKdV& JoinRecIdFqV) const {
     // prepare keys for gix
     TKeyWordV KeyWordV(RecIdV.Len(), 0);
@@ -6418,6 +6556,12 @@ TPair<TBool, PRecSet> TBase::_Search(const TQueryItem& QueryItem) {
             // unknown operator
             throw TQmExcept::New("Index: Unknown query item operator");
         }
+    } else if (QueryItem.IsTextPos()) {
+        // we have text position query
+        PRecSet RecSet = Index->SearchTextPos(this, QueryItem.GetKeyId(),
+            QueryItem.GetWordIdV(), QueryItem.GetMaxPosDiff());
+        // return the pair
+        return TPair<TBool, PRecSet>(false, RecSet);
     } else if (QueryItem.IsGeo()) {
         if (QueryItem.IsLocRadius()) {
             // must be handled by geo index
