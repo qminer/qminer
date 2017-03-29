@@ -1007,7 +1007,7 @@ public:
 
   int GetMemUsed() const {
       return sizeof(THashSetKey<TKey>) +
-          TMemUtils::GetExtraMemberSize(TKey); }
+          TMemUtils::GetExtraMemberSize(Key); }
 
   THashSetKey& operator=(const THashSetKey& SetKey) {
     if (this!=&SetKey) { Next=SetKey.Next; HashCd=SetKey.HashCd; Key=SetKey.Key; }
