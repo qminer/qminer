@@ -5008,6 +5008,37 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TStr& StoreNm, const TStr&
 }
 
 TQueryItem::TQueryItem(const TWPt<TBase>& Base, const int& _KeyId,
+    const TStr& WordStr, const int& _MaxPosDiff) : KeyId(_KeyId), MaxPosDiff(_MaxPosDiff), Type(oqitTextPos) {
+
+    CmpType = oqctEqual;
+    // get target word id(s)
+    ParseWordStr(WordStr, Base->GetIndexVoc());
+}
+
+TQueryItem::TQueryItem(const TWPt<TBase>& Base, const uint& StoreId, const TStr& KeyNm,
+    const TStr& WordStr, const int& _MaxPosDiff) : MaxPosDiff(_MaxPosDiff), Type(oqitTextPos) {
+
+    CmpType = oqctEqual;
+    // get the key
+    QmAssertR(Base->GetIndexVoc()->IsKeyNm(StoreId, KeyNm), "Unknown Key Name: " + KeyNm);
+    KeyId = Base->GetIndexVoc()->GetKeyId(StoreId, KeyNm);
+    // get target word id(s)
+    ParseWordStr(WordStr, Base->GetIndexVoc());
+}
+
+TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TStr& StoreNm, const TStr& KeyNm,
+    const TStr& WordStr, const int& _MaxPosDiff) : MaxPosDiff(_MaxPosDiff), Type(oqitTextPos) {
+
+    CmpType = oqctEqual;
+    // get the key
+    const uint StoreId = Base->GetStoreByStoreNm(StoreNm)->GetStoreId();
+    QmAssertR(Base->GetIndexVoc()->IsKeyNm(StoreId, KeyNm), "Unknown Key Name: " + KeyNm);
+    KeyId = Base->GetIndexVoc()->GetKeyId(StoreId, KeyNm);
+    // get target word id(s)
+    ParseWordStr(WordStr, Base->GetIndexVoc());
+}
+
+TQueryItem::TQueryItem(const TWPt<TBase>& Base, const int& _KeyId,
     const TFltPr& _Loc, const int& _LocLimit, const double& _LocRadius) :
     Type(oqitGeo), KeyId(_KeyId), Loc(_Loc), LocRadius(_LocRadius),
     LocLimit(_LocLimit) {

@@ -2600,6 +2600,15 @@ public:
     /// Create new inverted index leaf query
     TQueryItem(const TWPt<TBase>& Base, const TStr& StoreNm, const TStr& KeyNm,
         const TStr& WordStr, const TQueryCmpType& _CmpType);
+    /// Create new inverted index leaf query using positional index
+    TQueryItem(const TWPt<TBase>& Base, const int& _KeyId,
+        const TStr& WordStr, const int& MaxPosDiff);
+    /// Create new inverted index leaf query using positional index
+    TQueryItem(const TWPt<TBase>& Base, const uint& StoreId, const TStr& KeyNm,
+        const TStr& WordStr, const int& MaxPosDiff);
+    /// Create new inverted index leaf query using positional index
+    TQueryItem(const TWPt<TBase>& Base, const TStr& StoreNm, const TStr& KeyNm,
+        const TStr& WordStr, const int& MaxPosDiff);
     /// New leaf location query (limit always required, range used when positive)
     TQueryItem(const TWPt<TBase>& Base, const int& _KeyId,
         const TFltPr& _Loc, const int& _LocLimit, const double& _LocRadius);
@@ -3032,7 +3041,7 @@ private:
         static int MaxPos;
     private:
         /// Record Id
-        TUInt64 RecId;
+        TUInt RecId;
         /// Vector of word positions stored as (Pos % 0xFF + 1).
         /// Emtpy positions are marked as 0
         TUCh PosV[8];
@@ -3042,9 +3051,9 @@ private:
 
     public:
         /// Default constructor for vectors
-        TQmGixItemPos(): RecId(TUInt64::Mx) { }
+        TQmGixItemPos(): RecId(TUInt::Mx) { }
         /// Start with record and no positons
-        TQmGixItemPos(const uint64& _RecId): RecId(_RecId) { }
+        TQmGixItemPos(const uint64& _RecId): RecId((uint)_RecId) { }
         /// Load from stream
         TQmGixItemPos(TSIn& SIn);
 
@@ -3052,7 +3061,7 @@ private:
         void Save(TSOut& SOut) const;
 
         /// Get record id stored in the item
-        uint64 GetRecId() const { return RecId; }
+        uint64 GetRecId() const { return (uint64) RecId; }
 
         /// Check if the item is empty (== first position is set to 0)
         bool Empty() const { return PosV[0].Val == (uchar)0; }

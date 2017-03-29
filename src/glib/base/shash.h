@@ -1005,7 +1005,9 @@ public:
   void SaveXml(TSOut& SOut, const TStr& Nm) const {
     XSaveHd(Nm); XSave(Key); }
 
-  int GetMemUsed() const { return sizeof(TKey) + 2*sizeof(int); }
+  int GetMemUsed() const {
+      return sizeof(THashSetKey<TKey>) +
+          TMemUtils::GetExtraMemberSize(TKey); }
 
   THashSetKey& operator=(const THashSetKey& SetKey) {
     if (this!=&SetKey) { Next=SetKey.Next; HashCd=SetKey.HashCd; Key=SetKey.Key; }
