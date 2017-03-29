@@ -736,6 +736,16 @@ void TStore::DelJoins(const TStr& JoinNm, const uint64& RecId) {
     DelJoins(GetJoinId(JoinNm), RecId);
 }
 
+bool TStore::HasJoin(const int& JoinId, const uint64& RecId) const {
+    const int JoinKeyId = GetJoinKeyId(JoinId);
+    return Index->HasJoin(JoinKeyId, RecId);
+}
+
+bool TStore::HasJoin(const TStr& JoinNm, const uint64& RecId) const {
+    const int JoinKeyId = GetJoinKeyId(JoinNm);
+    return Index->HasJoin(JoinKeyId, RecId);
+}
+
 /// Get field value using field id safely
 uint64 TStore::GetFieldUInt64Safe(const uint64& RecId, const int& FieldId) const {
     switch (GetFieldDesc(FieldId).GetFieldType()) {
@@ -2215,6 +2225,16 @@ void TRec::AddJoin(const int& JoinId, const PRecSet& JoinRecSet) {
     JoinIdPosH.AddDat(JoinId, RecVal.Len());
     const TUInt64IntKdV& JoinRecIdFqV = JoinRecSet->GetRecIdFqV();
     JoinRecIdFqV.Save(RecValOut);
+}
+
+bool TRec::HasJoin(const int& JoinId) const {
+    const int JoinKeyId = Store->GetJoinKeyId(JoinId);
+    return Store->GetBase()->GetIndex()->HasJoin(JoinKeyId, RecId);
+}
+
+bool TRec::HasJoin(const TStr& JoinNm) const {
+    const int JoinKeyId = Store->GetJoinKeyId(JoinNm);
+    return Store->GetBase()->GetIndex()->HasJoin(JoinKeyId, RecId);
 }
 
 PRecSet TRec::ToRecSet() const {
@@ -4988,6 +5008,37 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TStr& StoreNm, const TStr&
 }
 
 TQueryItem::TQueryItem(const TWPt<TBase>& Base, const int& _KeyId,
+    const TStr& WordStr, const int& _MaxPosDiff) : KeyId(_KeyId), MaxPosDiff(_MaxPosDiff), Type(oqitTextPos) {
+
+    CmpType = oqctEqual;
+    // get target word id(s)
+    ParseWordStr(WordStr, Base->GetIndexVoc());
+}
+
+TQueryItem::TQueryItem(const TWPt<TBase>& Base, const uint& StoreId, const TStr& KeyNm,
+    const TStr& WordStr, const int& _MaxPosDiff) : MaxPosDiff(_MaxPosDiff), Type(oqitTextPos) {
+
+    CmpType = oqctEqual;
+    // get the key
+    QmAssertR(Base->GetIndexVoc()->IsKeyNm(StoreId, KeyNm), "Unknown Key Name: " + KeyNm);
+    KeyId = Base->GetIndexVoc()->GetKeyId(StoreId, KeyNm);
+    // get target word id(s)
+    ParseWordStr(WordStr, Base->GetIndexVoc());
+}
+
+TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TStr& StoreNm, const TStr& KeyNm,
+    const TStr& WordStr, const int& _MaxPosDiff) : MaxPosDiff(_MaxPosDiff), Type(oqitTextPos) {
+
+    CmpType = oqctEqual;
+    // get the key
+    const uint StoreId = Base->GetStoreByStoreNm(StoreNm)->GetStoreId();
+    QmAssertR(Base->GetIndexVoc()->IsKeyNm(StoreId, KeyNm), "Unknown Key Name: " + KeyNm);
+    KeyId = Base->GetIndexVoc()->GetKeyId(StoreId, KeyNm);
+    // get target word id(s)
+    ParseWordStr(WordStr, Base->GetIndexVoc());
+}
+
+TQueryItem::TQueryItem(const TWPt<TBase>& Base, const int& _KeyId,
     const TFltPr& _Loc, const int& _LocLimit, const double& _LocRadius) :
     Type(oqitGeo), KeyId(_KeyId), Loc(_Loc), LocRadius(_LocRadius),
     LocLimit(_LocLimit) {
@@ -5745,7 +5796,7 @@ void TIndex::DeleteGix(const int& KeyId, const uint64& WordId, const uint64& Rec
         case oikgtSmall:
             GixSmall->DelItem(TKeyWord(KeyId, WordId), TQmGixItemSmall((uint)RecId, 0)); break;
         case oikgtTiny:
-            GixTiny->DelItem(TKeyWord(KeyId, WordId), TQmGixItemTiny(RecId)); break;
+            GixTiny->DelItem(TKeyWord(KeyId, WordId), TQmGixItemTiny((uint)RecId)); break;
         default: throw TQmExcept::New("[TIndex::Delete] Unsupported gix type!");
         }
     } else {
@@ -5755,7 +5806,7 @@ void TIndex::DeleteGix(const int& KeyId, const uint64& WordId, const uint64& Rec
         case oikgtSmall:
             GixSmall->AddItem(TKeyWord(KeyId, WordId), TQmGixItemSmall((uint)RecId, (int16)-RecFq)); break;
         case oikgtTiny:
-            GixTiny->DelItem(TKeyWord(KeyId, WordId), TQmGixItemTiny(RecId)); break;
+            GixTiny->DelItem(TKeyWord(KeyId, WordId), TQmGixItemTiny((uint)RecId)); break;
         default: throw TQmExcept::New("[TIndex::Delete] Unsupported gix type!");
         }
     }
@@ -5774,7 +5825,7 @@ void TIndex::IndexTextPos(const int& KeyId, const TUInt64V& WordIdV, const uint6
     // aggregate by word
     THash<TUInt64, TQmGixItemPos> WordIdPosH;
     for (int WordIdN = 0; WordIdN < WordIdV.Len(); WordIdN++) {
-        const int WordId = WordIdV[WordIdN];
+        const uint64 WordId = WordIdV[WordIdN];
         // check if first time we see the word
         if (!WordIdPosH.IsKey(WordId)) {
             WordIdPosH.AddDat(WordId, TQmGixItemPos(RecId));
@@ -5806,7 +5857,7 @@ void TIndex::DeleteTextPos(const int& KeyId, const TUInt64V& WordIdV, const uint
     // create list of all word ids for which we should remove given record from index
     THashSet<TUInt64> WordIdSet;
     for (int WordIdN = 0; WordIdN < WordIdV.Len(); WordIdN++) {
-        const int WordId = WordIdV[WordIdN];
+        const uint64 WordId = WordIdV[WordIdN];
         WordIdSet.AddKey(WordId);
     }
     // remove from index
@@ -6224,6 +6275,24 @@ PRecSet TIndex::SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TS
         RecIdV.Sort();
     }
     return TRecSet::New(Base->GetStoreByStoreId(StoreId), RecIdV);
+}
+
+bool TIndex::HasJoin(const int& JoinKeyId, const uint64& RecId) const
+{
+    TKeyWord KeyWord(JoinKeyId, RecId);
+    // check which Gix to use
+    const TIndexKeyGixType GixType = GetGixType(JoinKeyId);
+    // send to appropriate index
+    switch (GixType) {
+    case oikgtFull:
+        return GixFull->IsKey(KeyWord);
+    case oikgtSmall:
+        return GixSmall->IsKey(KeyWord);
+    case oikgtTiny:
+        return GixTiny->IsKey(KeyWord);
+    default:
+        throw TQmExcept::New("[TIndex::HasJoin] Unsupported gix type!");
+    }
 }
 
 void TIndex::SaveTxt(const TWPt<TBase>& Base, const TStr& FNm) {

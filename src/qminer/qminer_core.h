@@ -791,6 +791,9 @@ public:
     /// Delete joins
     void DelJoins(const int& JoinId, const uint64& RecId);
     void DelJoins(const TStr& JoinNm, const uint64& RecId);
+    /// Are there any existing joins from RecId using given join name/id
+    bool HasJoin(const int& JoinId, const uint64& RecId) const;
+    bool HasJoin(const TStr& JoinNm, const uint64& RecId) const;
 
     /// Signal to purge any old stuff, e.g. records that fall out of time window when store has one
     virtual void GarbageCollect() { }
@@ -1210,6 +1213,10 @@ public:
     void SetFieldJsonVal(const int& FieldId, const PJsonVal& Json);
     /// Add join
     void AddJoin(const int& JoinId, const PRecSet& JoinRecSet);
+    /// Are there any existing joins from the given record using given join name/id
+    bool HasJoin(const int& JoinId) const;
+    bool HasJoin(const TStr& JoinNm) const;
+
 
     /// Get record set containing only this record (by reference)
     PRecSet ToRecSet() const;
@@ -2593,6 +2600,15 @@ public:
     /// Create new inverted index leaf query
     TQueryItem(const TWPt<TBase>& Base, const TStr& StoreNm, const TStr& KeyNm,
         const TStr& WordStr, const TQueryCmpType& _CmpType);
+    /// Create new inverted index leaf query using positional index
+    TQueryItem(const TWPt<TBase>& Base, const int& _KeyId,
+        const TStr& WordStr, const int& MaxPosDiff);
+    /// Create new inverted index leaf query using positional index
+    TQueryItem(const TWPt<TBase>& Base, const uint& StoreId, const TStr& KeyNm,
+        const TStr& WordStr, const int& MaxPosDiff);
+    /// Create new inverted index leaf query using positional index
+    TQueryItem(const TWPt<TBase>& Base, const TStr& StoreNm, const TStr& KeyNm,
+        const TStr& WordStr, const int& MaxPosDiff);
     /// New leaf location query (limit always required, range used when positive)
     TQueryItem(const TWPt<TBase>& Base, const int& _KeyId,
         const TFltPr& _Loc, const int& _LocLimit, const double& _LocRadius);
@@ -3025,7 +3041,7 @@ private:
         static int MaxPos;
     private:
         /// Record Id
-        TUInt64 RecId;
+        TUInt RecId;
         /// Vector of word positions stored as (Pos % 0xFF + 1).
         /// Emtpy positions are marked as 0
         TUCh PosV[8];
@@ -3035,9 +3051,9 @@ private:
 
     public:
         /// Default constructor for vectors
-        TQmGixItemPos(): RecId(TUInt64::Mx) { }
+        TQmGixItemPos(): RecId(TUInt::Mx) { }
         /// Start with record and no positons
-        TQmGixItemPos(const uint64& _RecId): RecId(_RecId) { }
+        TQmGixItemPos(const uint64& _RecId): RecId((uint)_RecId) { }
         /// Load from stream
         TQmGixItemPos(TSIn& SIn);
 
@@ -3045,7 +3061,7 @@ private:
         void Save(TSOut& SOut) const;
 
         /// Get record id stored in the item
-        uint64 GetRecId() const { return RecId; }
+        uint64 GetRecId() const { return (uint64) RecId; }
 
         /// Check if the item is empty (== first position is set to 0)
         bool Empty() const { return PosV[0].Val == (uchar)0; }
@@ -3162,7 +3178,11 @@ public:
         const int64& CacheSizeFull, const int64& CacheSizeSmall, const uint64& CacheSizeTiny,
         const int64& CacheSizePos, const int& SplitLen);
     /// Checks if there is an existing index at the given path
-    static bool Exists(const TStr& IndexFPath) { return TFile::Exists(IndexFPath + "Index.Gix"); }
+    static bool Exists(const TStr& IndexFPath) {
+        return TFile::Exists(IndexFPath + "Index.GixFull.Gix") ||
+            TFile::Exists(IndexFPath + "Index.GixPos.Gix") ||
+            TFile::Exists(IndexFPath + "Index.GixSmall.Gix") ||
+            TFile::Exists(IndexFPath + "Index.GixTiny.Gix"); }
 
     /// Close the query
     ~TIndex();
@@ -3299,6 +3319,9 @@ public:
     PRecSet SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TFltPr& RangeMinMax);
     /// Do B-Tree linear search
     PRecSet SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TSFltPr& RangeMinMax);
+
+    /// Are there any existing joins from RecId using JoinKeyId
+    bool HasJoin(const int& JoinKeyId, const uint64& RecId) const;
 
     /// Save debug statistics to a file
     void SaveTxt(const TWPt<TBase>& Base, const TStr& FNm);
