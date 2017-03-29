@@ -791,6 +791,9 @@ public:
     /// Delete joins
     void DelJoins(const int& JoinId, const uint64& RecId);
     void DelJoins(const TStr& JoinNm, const uint64& RecId);
+    /// Are there any existing joins from RecId using given join name/id
+    bool HasJoin(const int& JoinId, const uint64& RecId) const;
+    bool HasJoin(const TStr& JoinNm, const uint64& RecId) const;
 
     /// Signal to purge any old stuff, e.g. records that fall out of time window when store has one
     virtual void GarbageCollect() { }
@@ -1210,6 +1213,10 @@ public:
     void SetFieldJsonVal(const int& FieldId, const PJsonVal& Json);
     /// Add join
     void AddJoin(const int& JoinId, const PRecSet& JoinRecSet);
+    /// Are there any existing joins from the given record using given join name/id
+    bool HasJoin(const int& JoinId) const;
+    bool HasJoin(const TStr& JoinNm) const;
+
 
     /// Get record set containing only this record (by reference)
     PRecSet ToRecSet() const;
@@ -3162,7 +3169,11 @@ public:
         const int64& CacheSizeFull, const int64& CacheSizeSmall, const uint64& CacheSizeTiny,
         const int64& CacheSizePos, const int& SplitLen);
     /// Checks if there is an existing index at the given path
-    static bool Exists(const TStr& IndexFPath) { return TFile::Exists(IndexFPath + "Index.Gix"); }
+    static bool Exists(const TStr& IndexFPath) {
+        return TFile::Exists(IndexFPath + "Index.GixFull.Gix") ||
+            TFile::Exists(IndexFPath + "Index.GixPos.Gix") ||
+            TFile::Exists(IndexFPath + "Index.GixSmall.Gix") ||
+            TFile::Exists(IndexFPath + "Index.GixTiny.Gix"); }
 
     /// Close the query
     ~TIndex();
@@ -3299,6 +3310,9 @@ public:
     PRecSet SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TFltPr& RangeMinMax);
     /// Do B-Tree linear search
     PRecSet SearchLinear(const TWPt<TBase>& Base, const int& KeyId, const TSFltPr& RangeMinMax);
+
+    /// Are there any existing joins from RecId using JoinKeyId
+    bool HasJoin(const int& JoinKeyId, const uint64& RecId) const;
 
     /// Save debug statistics to a file
     void SaveTxt(const TWPt<TBase>& Base, const TStr& FNm);

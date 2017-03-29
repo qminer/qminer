@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -1004,6 +1004,8 @@ public:
     XLoadHd(Nm); XLoad(Key); }
   void SaveXml(TSOut& SOut, const TStr& Nm) const {
     XSaveHd(Nm); XSave(Key); }
+
+  int GetMemUsed() const { return sizeof(TKey) + 2*sizeof(int); }
 
   THashSetKey& operator=(const THashSetKey& SetKey) {
     if (this!=&SetKey) { Next=SetKey.Next; HashCd=SetKey.HashCd; Key=SetKey.Key; }
