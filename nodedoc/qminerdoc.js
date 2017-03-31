@@ -1024,7 +1024,7 @@
     * Gets the details of the selected field.
     * @param {string} fieldName - The field name.
     * @returns {object} The object containing the details of the field. The properties are:
-    * <br>1. `id` - The ID of the field. Type 4number4.
+    * <br>1. `id` - The ID of the field. Type B4numberB4.
     * <br>2. `name` - The name of the field. Type `string`.
     * <br>3. `type` - The type of the field. Type `string`.
     * <br>4. `nullable` - If the field value can be null. Type `boolean`.
@@ -1400,7 +1400,7 @@
  exports.Store.prototype.allRecords = Object.create(require('qminer').RecordSet.prototype);
 /**
     * Gives an array of all field descriptor objects. Type `Array of objects`, where the objects contain the properties:
-    * <br>1. `id` - The ID of the field. Type 4number4.
+    * <br>1. `id` - The ID of the field. Type B4numberB4.
     * <br>2. `name` - The name of the field. Type `string`.
     * <br>3. `type` - The type of the field. Type `string`.
     * <br>4. `nullable` - If the field value can be null. Type `boolean`.
@@ -1410,7 +1410,7 @@
  exports.Store.prototype.fields = [{}];
 /**
     * Gives an array of all join descriptor objects. Type `Array of objects`, where the objects contain the properties:
-    * <br>1. `id` - The ID of the join. Type 4number4.
+    * <br>1. `id` - The ID of the join. Type B4numberB4.
     * <br>2. `name` - The name of the join. Type `string`.
     * <br>2. `store` - The store the join was created in. Type `string`.
     * <br>2. `inverse` - The inverse join. Type `string`.
@@ -2559,15 +2559,15 @@
 /**
 * Feature extractor types. Used for constructing {@link module:qm.FeatureSpace} objects.
 * @typedef {Object} FeatureExtractor
-* @property {module:qm~FeatureExtractorConstant} constant - The constant type.
-* @property {module:qm~FeatureExtractorRandom} random - The random type.
-* @property {module:qm~FeatureExtractorNumeric} numeric - The numeric type.
+* @property {module:qm~FeatureExtractorConstant} constant - The constant type. Adds a constant value as a feature.
+* @property {module:qm~FeatureExtractorRandom} random - The random type. Adds a random value as a feature.
+* @property {module:qm~FeatureExtractorNumeric} numeric - The numeric type. Adds the numeric value as a feature.
 * @property {module:qm~FeatureExtractorCategorical} categorical - The categorical type.
 * @property {module:qm~FeatureExtractorMultinomial} multinomial - The multinomial type.
-* @property {module:qm~FeatureExtractorText} text - The text type.
+* @property {module:qm~FeatureExtractorText} text - The text type. Creates the bag-of-words text representation.
 * @property {module:qm~FeatureExtractorJoin} join - The join type.
 * @property {module:qm~FeatureExtractorPair} pair - The pair type.
-* @property {module:qm~FeatureExtractorJsfunc} jsfunc - The jsfunc type.
+* @property {module:qm~FeatureExtractorJsfunc} jsfunc - The jsfunc type. Allows creating a custom feature extractor.
 * @property {module:qm~FeatureExtractorDateWindow} dateWindow - The date window type.
 * @property {module:qm~FeatureExtractorSparseVector} sparseVector - The sparse vector type.
 *
@@ -2590,6 +2590,10 @@
 * });
 * // create a feature space containing the constant extractor, where the constant is equal 5
 * var ftr = new qm.FeatureSpace(base, { type: "constant", source: "Person", const: 5 });
+* // add a new record to the base
+* base.store("Person").push({ Name: "Peterson" });
+* // get the features of the record
+* var vec = ftr.extractVector(base.store("Person")[0]); // the vector [5]
 * base.close();
 */
 /**
@@ -2610,6 +2614,10 @@
 * });
 * // create a feature space containing the random extractor
 * var ftr = new qm.FeatureSpace(base, { type: "random", source: "Person" });
+* // add a new record to the base
+* base.store("Person").push({ Name: "Peterson" });
+* // get the features of the record
+* var vec = ftr.extractVector(base.store("Person")[0]); // the vector with the random value
 * base.close();
 */
 /**
@@ -2637,6 +2645,13 @@
 * // create a feature space containing the numeric extractor, where the values are
 * // normalized, the values are taken from the field "Grade"
 * var ftr = new qm.FeatureSpace(base, { type: "numeric", source: "Class", normalize: "scale", field: "Grade" });
+* // add a new record to the base
+* base.store("Class").push({ Name: "Peterson", Grade: 9 });
+* base.store("Class").push({ Name: "Ericsson", Grade: 8 });
+* // update the feature space for scaling 
+* ftr.updateRecords(base.store("Class").allRecords);
+* // get the features of the first record
+* var vec = ftr.extractVector(base.store("Class")[0]); // the vector with the random value
 * base.close();
 */
 /**
@@ -2690,6 +2705,14 @@
 * // create a feature space containing the categorical extractor, where it's values
 * // are taken from the field "StudyGroup": "A", "B", "C" and "D"
 * var ftr = new qm.FeatureSpace(base, { type: "categorical", source: "Class", field: "StudyGroup" });
+* // add a few records to the store
+* base.store("Class").push({ Name: "Fred", StudyGroup: "A" });
+* base.store("Class").push({ Name: "Wilma", StudyGroup: "B" });
+* base.store("Class").push({ Name: "Barney", StudyGroup: "C" });
+* // update the feature space to get the categories 
+* ftr.updateRecords(base.store("Class").allRecords);
+* // get the feature vector for the first record
+* var vec = ftr.extractVector(base.store("Class")[0]); // returns vector [1, 0, 0]
 * base.close();
 */
 /**
@@ -2697,8 +2720,10 @@
 * The feature extractor of type `'multinomial'`. Used for constructing {@link module:qm.FeatureSpace} objects.
 * @property {string} type - The type of the extractor. <b>Important</b>: It must be equal `'multinomial'`.
 * @property {boolean} [normalize = 'false'] - Normalize the resulting vector of the extractor to have L2 norm 1.0.
-* @property {boolean} [binary = false] - Do not compute frequencies, but only a binary indicator whether the category appears
-* @property {boolean} [log = false] - Output logarithm of the frequencies log(1+x). This flag is exclusive with flag 'binary'.
+* @property {string} [transform] - Transformation to apply to each dimension of the feature vector.
+* <br> Transformation options are:
+* <br> - 'log' - Compute a logarithm of the frequencies using the following formula: log(1+x)
+* <br> - 'binary' - Do not compute frequencies, but only a binary indicator whether the category appears
 * @property {Array.<Object>} [values] - A fixed set of values, which form a fixed feature set, no dimensionality changes if new values are seen in the updates. Cannot be used the same time as datetime.
 * @property {number} [hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hashDimension to get the corresponding dimension.
 * @property {Object} [datetime = false] - Same as `'values'`, only with predefined values which are extracted from date and time (`month`, `day of month`, `day of week`, `time of day`, `hour`).
@@ -2724,8 +2749,16 @@
 * // create a feature space containing the multinomial extractor, where the values are normalized,
 * // and taken from the field "StudyGroup": "A", "B", "C", "D", "E", "F"
 * var ftr = new qm.FeatureSpace(base, {
-*              type: "multinomial", source: "Class", field: "StudyGroups", normalize: true, values: ["A", "B", "C", "D", "E", "F"]
-*           });
+*     type: "multinomial", source: "Class", field: "StudyGroups", normalize: true
+* });
+* // add a few records to the store
+* base.store("Class").push({ Name: "Fred", StudyGroups: ["A", "B"] });
+* base.store("Class").push({ Name: "Wilma", StudyGroups: ["B", "C"] });
+* base.store("Class").push({ Name: "Barney", StudyGroups: ["C", "A"] });
+* // update the feature space to get the categories
+* ftr.updateRecords(base.store("Class").allRecords);
+* // get the feature vector for the first record
+* var vec = ftr.extractVector(base.store("Class")[0]); // returns vector [0.707, 0.707, 0]
 * base.close();
 */
 /**
@@ -2739,6 +2772,7 @@
 * <br>3. `'idf'` - Sets the inverse document frequency in the document.
 * <br>4. `'tfidf'` - Sets the product of the `tf` and `idf` frequency.
 * @property {number} [hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hashDimension to get the corresponding dimension.
+* @property {boolean} [hashTable=false] - If true, stores the hash table which is used for for feature naming.
 * @property {string} field - The name of the field from which to take the value.
 * @property {module:qm~FeatureTokenizer} tokenizer - The settings for extraction of text.
 * @property {string} [mode] - How are multi-record cases combined into single vector. Possible options:
@@ -2766,9 +2800,16 @@
 * // create a feature spave containing the text (bag of words) extractor, where the values are normalized,
 * // weighted with 'tfidf' and the tokenizer is of 'simple' type, it uses english stopwords.
 * var ftr = new qm.FeatureSpace(base, {
-*              type: "text", source: "Articles", field: "Text", normalize: true, weight: "tfidf",
-*              tokenizer: { type: "simple", stopwords: "en"}
-*           });
+*     type: "text", source: "Articles", field: "Text", normalize: true, weight: "tfidf",
+*     tokenizer: { type: "simple", stopwords: "en"}
+* });
+* // add a few records to the store
+* base.store("Articles").push({ Title: "Article1", Text: "The last time we drew up the league table for bad banks, UBS was on top." });
+* base.store("Articles").push({ Title: "Article2", Text: "Barclays dropped a bombshell on its investment bankers last week." });
+* // update the feature space to get the the terms for the bag-of-words text representation
+* ftr.updateRecords(base.store("Articles").allRecords);
+* // extract the feature vector for the first article
+* var vec = ftr.extractSparseVector(base.store("Articles")[0]);
 * base.close();
 */
 /**
@@ -2798,7 +2839,7 @@
 * @property {string} [unit = 'day'] - How granular is the time window. Possible options are `'day'`, `'week'`, `'month'`, `'year'`, `'12hours'`, `'6hours'`, `'4hours'`, `'2hours'`,
 * `'hour'`, `'30minutes'`, `'15minutes'`, `'10minutes'`, `'minute'`, `'second'`.
 * @property {number} [window = 1] - The size of the window.
-* @property {boolean} [normalize = 'false'] - Normalize the resulting vector of the extractor to have L2 norm 1.0. //TODO
+* @property {boolean} [normalize = 'false'] - Normalize the resulting vector of the extractor to have L2 norm 1.0.
 * @property {number} start - //TODO
 * @property {number} end - //TODO
 * @property {string} source - The store name.
@@ -2834,9 +2875,13 @@
 * // of study groups each student is part of. The functions name is "NumberOFGroups", it's dimension
 * // is 1 (returns only one value, not an array)
 * var ftr = new qm.FeatureSpace(base, {
-*              type: "jsfunc", source: "Class", name: "NumberOfGroups", dim: 1,
-*              fun: function (rec) { return rec.StudyGroups.length; }
-*           });
+*     type: "jsfunc", source: "Class", name: "NumberOfGroups", dim: 1,
+*     fun: function (rec) { return rec.StudyGroups.length; }
+* });
+* // add a record to the store
+* base.store("Class").push({ Name: "Gaben", StudyGroups: ["A", "B", "D"] });
+* // get the feature vector of the record
+* var vec = ftr.extractVector(base.store("Class")[0]); // returns vector [3]
 * base.close();
 */
 /**
@@ -2845,7 +2890,7 @@
 * @property {string} [type = 'simple'] - The type of the encoding text. Possible options:
 * <br>1. `'simple'` - The simple encoding.
 * <br>2. `'html'` - The html encoding.
-* <br>3.2`'unicode'` - The unicode encoding.
+* <br>3.B2`'unicode'` - The unicode encoding.
 * @property {string | Array.<string>} [stopwords = 'en'] - The stopwords used for extraction. Possible options:
 * <br>1. `'none'` - No pre-defined stopword list. Type `string`.
 * <br>2. `'en'` - The english pre-defined stopword list. Type `string`.
