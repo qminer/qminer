@@ -12,7 +12,7 @@ var qm = require('qminer');
 var fs = qm.fs;
 
 var now = Date.parse("2016-01-01T05:20:12");
-var slot0 = Date.parse("2016-01-01T05:20:00"); 
+var slot0 = Date.parse("2016-01-01T05:20:00");
 var slot1 = Date.parse("2016-01-01T05:25:00");
 var slot2 = Date.parse("2016-01-01T05:30:00");
 
@@ -36,7 +36,7 @@ describe('Query-aggregates tests ', function () {
             ]
         });
         store = base.store(store_name);
-        
+
         store.push({title: "title1", src: "src1", ts: now});
         store.push({title: "title2", src: "src1", ts: now + 2 * 60 * 1000 });
         store.push({title: "title3", src: "src2", ts: now + 7 * 60 * 1000 });
@@ -45,10 +45,10 @@ describe('Query-aggregates tests ', function () {
     afterEach(function () {
         base.close();
     });
-        
+
     //////////////////
     it('should execute count', function () {
-            
+
         var query = {
             $from : store_name
         };
@@ -59,17 +59,17 @@ describe('Query-aggregates tests ', function () {
             { type: "timeline", field: "ts", name: "aggr_ts" },
             { type: "timespan", field: "ts", name: "aggr_ts2", slot_length: 5 * 60 * 1000 } // 5 minutes
         ]);
-        console.log(JSON.stringify(aggrs));
+        //console.log(JSON.stringify(aggrs));
         //console.log(JSON.stringify(aggr.aggr_src.values));
         {
             var aggr0 = aggrs[0];
             assert.equal(aggr0.type, "count");
             assert.equal(aggr0.values.length, 3);
-            
+
             assert.equal(aggr0.values[0].value, "src1");
             assert.equal(aggr0.values[1].value, "src2");
             assert.equal(aggr0.values[2].value, "src3");
-            
+
             assert.equal(aggr0.values[0].frequency, 2);
             assert.equal(aggr0.values[1].frequency, 1);
             assert.equal(aggr0.values[2].frequency, 1);
@@ -83,11 +83,11 @@ describe('Query-aggregates tests ', function () {
             var aggr2 = aggrs[2];
             assert.equal(aggr2.type, "timespan");
             assert.equal(aggr2.slots.length, 3);
-            
+
             assert.equal(aggr2.slots[0].count, 2);
             assert.equal(aggr2.slots[1].count, 1);
             assert.equal(aggr2.slots[2].count, 1);
-            
+
             assert.equal(aggr2.slots[0].slot, slot0);
             assert.equal(aggr2.slots[1].slot, slot1);
             assert.equal(aggr2.slots[2].slot, slot2);

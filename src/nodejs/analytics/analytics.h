@@ -1207,8 +1207,8 @@ public:
 class TNodeJsRecLinReg : public node::ObjectWrap {
     friend class TNodeJsUtil;
 private:
-    TSignalProc::PRecLinReg Model;
-    TNodeJsRecLinReg(const TSignalProc::PRecLinReg& Model);
+    TSignalProc::POnlineLinReg Model;
+    TNodeJsRecLinReg(const TSignalProc::POnlineLinReg& Model);
 public:
     static void Init(v8::Handle<v8::Object> exports);
     static const TStr GetClassId() { return "RecLinReg"; }
@@ -1393,6 +1393,17 @@ private:
  * var analytics = require('qminer').analytics;
  * // create the Logistic Regression model
  * var logreg = new analytics.LogReg({ lambda: 2 });
+ * // create the input matrix and vector for fitting the model
+ * var mat = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+ * var vec = new la.Vector([1, 0, -1, -2]);
+ * // if OpenBLAS is used, fit the model
+ * if (require('qminer').flags.blas) {
+ *     logreg.fit(mat, vec);
+ *     // create the vector for the prediction
+ *     var test = new la.Vector([1, 1]);
+ *     // get the prediction
+ *     var prediction = logreg.predict(test);
+ * }
  */
 //# exports.LogReg = function (arg) { return Object.create(require('qminer').analytics.LogReg.prototype); }
 class TNodeJsLogReg : public node::ObjectWrap {
@@ -1724,6 +1735,15 @@ public:
 * var analytics = require('qminer').analytics;
 * // create a new Neural Networks model
 * var nnet = new analytics.NNet({ layout: [3, 5, 2], learnRate: 0.2, momentum: 0.6 });
+* // create the matrices for the fitting of the model
+* var matIn = new la.Matrix([[1, 0], [0, 1], [1, 1]]);
+* var matOut = new la.Matrix([[-1, 8], [-3, -3]]);
+* // fit the model
+* nnet.fit(matIn, matOut);
+* // create the vector for the prediction
+* var test = new la.Vector([1, 1, 2]);
+* // predict the value of the vector
+* var prediction = nnet.predict(test);
 */
 //# exports.NNet = function (arg) { return Object.create(require('qminer').analytics.NNet.prototype); }
 class TNodeJsNNet : public node::ObjectWrap {
@@ -1974,6 +1994,10 @@ public:
 * var analytics = require('qminer').analytics;
 * // construct a MDS instance
 * var mds = new analytics.MDS({ maxStep: 300, distType: 'Cos' });
+* // create the multidimensional matrix
+* var mat = new la.Matrix({ rows: 50, cols: 10, random: true });
+* // get the 2d representation of mat
+* var mat2d = mds.fitTransform(mat);
 */
 //# exports.MDS = function (arg) { return Object.create(require('qminer').analytics.MDS.prototype); }
 class TNodeJsMDS : public node::ObjectWrap {
@@ -2140,6 +2164,9 @@ private:
 * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
 * // create the model
 * KMeans.fit(X);
+* // predict where the columns of the matrix will be assigned
+* var Y = new la.Matrix([[1, 1, 0], [-2, 3, 1]]);
+* var prediction = KMeans.predict(Y);
 */
 //# exports.KMeans = function (arg) { return Object.create(require('qminer').analytics.KMeans.prototype); }
 class TNodeJsKMeans : public node::ObjectWrap {
@@ -2416,15 +2443,32 @@ private:
 * @classdesc TDigest is a methods that approximates the CDF function of streaming measurements.
 *   Data structure useful for percentile and quantile estimation for online data streams.
 *   It can be added to any anomaly detector to set the number of alarms triggered as a percentage of the total samples.
-*   This is based on the Data Lib Sketch Implementation: https://github.com/vega/datalib-sketch/blob/master/src/t-digest.js
-*   Paper: Ted Dunning, Otmar Ertl - https://github.com/tdunning/t-digest/blob/master/docs/t-digest-paper/histo.pdf.
 *   Adding new samples to the distribution is achieved through `partialFit` and querying the model (computing quantiles)
 *   is implemented by `predict` function.
+*   <br> This is based on the Data Lib Sketch Implementation: {@link https://github.com/vega/datalib-sketch/blob/master/src/t-digest.js t-digest.js}
+*   <br> Paper: Ted Dunning, Otmar Ertl - {@link https://github.com/tdunning/t-digest/blob/master/docs/t-digest-paper/histo.pdf Computing Extremely Accurate Quantiles Using t-Digests}.
 * @class
 * @param {module:analytics~TDigestParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
 * <br>1. Using the {@link module:analytics~TDigestParam} object,
 * <br>2. using the file input stream {@link module:fs.FIn}.
 * @example
+* // import modules
+* var qm = require('qminer');
+* var analytics = qm.analytics;
+* // create the default TDigest object
+* var tdigest = new analytics.TDigest();
+* // create the data used for calculating quantiles
+* var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
+* // fit the TDigest model
+* for (var i = 0; i < inputs.length; i++) {
+*     tdigest.partialFit(inputs[i]);
+* }
+* // make the prediction for the 0.1 quantile
+* var prediction = tdigest.predict(0.1);
+* // save the model
+* tdigest.save(fs.openWrite('tdigest.bin')).close();
+* // open the tdigest model under a new variable
+* var tdigest2 = new analytics.TDigest(fs.openRead('tdigest.bin'));
 */
 //# exports.TDigest = function (arg) { return Object.create(require('qminer').analytics.TDigest.prototype); }
 class TNodeJsTDigest : public node::ObjectWrap {
@@ -2446,17 +2490,31 @@ public:
 
     /**
     * Returns the parameters.
-    * @returns {module:analytics~TDigest} The construction parameters.
+    * @returns {module:analytics~TDigestParam} The construction parameters.
     * @example
+    * // import modules
+    * var qm = require('qminer');
+    * var analytics = qm.analytics;
+    * // create the default TDigest object
+    * var tdigest = new analytics.TDigest();
+    * // get the parameters of the object
+    * var params = tdigest.getParams();
     */
     //# exports.TDigest.prototype.getParams = function () { return { }; }
     JsDeclareFunction(getParams);
 
     /**
     * Sets the parameters.
-    * @param {module:analytics~TDigest} params - The construction parameters.
+    * @param {module:analytics~TDigestParam} params - The construction parameters.
     * @returns {module:analytics.TDigest} Self. The model parameters have been updated.
     * @example
+    * // import modules
+    * var qm = require('qminer');
+    * var analytics = qm.analytics;
+    * // create the default TDigest object
+    * var tdigest = new analytics.TDigest();
+    * // set the parameters of the object
+    * var params = tdigest.setParams({ minCount: 10, clusters: 50 });
     */
     //# exports.TDigest.prototype.setParams = function (params) { return Object.create(require('qminer').analytics.TDigest.prototype); }
     JsDeclareFunction(setParams);
@@ -2466,6 +2524,17 @@ public:
     * @param {number} x - Input number.
     * @returns {module:analytics.TDigest} Self. The model has been updated.
     * @example
+    * // import modules
+    * var qm = require('qminer');
+    * var analytics = qm.analytics;
+    * // create the default TDigest object
+    * var tdigest = new analytics.TDigest();
+    * // create the data used for calculating quantiles
+    * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
+    * // fit the TDigest model with all input values
+    * for (var i = 0; i < inputs.length; i++) {
+    *     tdigest.partialFit(inputs[i]);
+    * }
     */
     //# exports.TDigest.prototype.partialFit = function (X) { return Object.create(require('qminer').analytics.TDigest.prototype); }
     JsDeclareFunction(partialFit);
@@ -2475,6 +2544,19 @@ public:
     * @param {number} x - Input number.
     * @returns {number} Quantile (between 0 and 1).
     * @example
+    * // import modules
+    * var qm = require('qminer');
+    * var analytics = qm.analytics;
+    * // create the default TDigest object
+    * var tdigest = new analytics.TDigest();
+    * // create the data used for calculating quantiles
+    * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
+    * // fit the TDigest model
+    * for (var i = 0; i < inputs.length; i++) {
+    *     tdigest.partialFit(inputs[i]);
+    * }
+    * // make the prediction for the 0.1 quantile
+    * var prediction = tdigest.predict(0.1);
     */
     //# exports.TDigest.prototype.predict = function (x) { return 0; }
     JsDeclareFunction(predict);
@@ -2484,6 +2566,22 @@ public:
     * @param {module:fs.FOut} fout - The output stream.
     * @returns {module:fs.FOut} The output stream `fout`.
     * @example
+    * // import modules
+    * var qm = require('qminer');
+    * var analytics = qm.analytics;
+    * var fs = qm.fs;
+    * // create the default TDigest object
+    * var tdigest = new analytics.TDigest();
+    * // create the data used for calculating quantiles
+    * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
+    * // fit the TDigest model
+    * for (var i = 0; i < inputs.length; i++) {
+    *     tdigest.partialFit(inputs[i]);
+    * }
+    * // save the model
+    * tdigest.save(fs.openWrite('tdigest.bin')).close();
+    * // open the tdigest model under a new variable
+    * var tdigest2 = new analytics.TDigest(fs.openRead('tdigest.bin'));
     */
     //# exports.TDigest.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
     JsDeclareFunction(save);
@@ -2491,6 +2589,14 @@ public:
     /**
     * Returns true when the model has enough data to initialize. Type `boolean`.
     * @example
+    * // import modules
+    * var qm = require('qminer');
+    * var analytics = qm.analytics;
+    * var fs = qm.fs;
+    * // create the default TDigest object
+    * var tdigest = new analytics.TDigest();
+    * // check if the model has enough data to initialize
+    * if (tdigest.init) { console.log("Ready to initialize"); }
     */
     //# exports.TDigest.prototype.init = false;
     JsDeclareProperty(init);

@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.9.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.11.1</a>
       </div>
     </div>
   </nav>
@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">LogReg</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1102">analyticsdoc.<wbr>js:1102</a></p>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1113">analyticsdoc.<wbr>js:1113</a></p>
             <div class="symbol-classdesc">
               <p>Uses Newtons method to compute the weights. <b>Before use: QMiner must be built with the OpenBLAS library.</b></p>
             </div>
@@ -93,7 +93,18 @@
                 <pre class="prettyprint"><code>// import analytics module
 var analytics = require(&#x27;qminer&#x27;).analytics;
 // create the Logistic Regression model
-var logreg = new analytics.LogReg({ lambda: 2 });</code></pre>
+var logreg = new analytics.LogReg({ lambda: 2 });
+// create the input matrix and vector for fitting the model
+var mat = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
+var vec = new la.Vector([1, 0, -1, -2]);
+// if OpenBLAS is used, fit the model
+if (require(&#x27;qminer&#x27;).flags.blas) {
+    logreg.fit(mat, vec);
+    // create the vector for the prediction
+    var test = new la.Vector([1, 1]);
+    // get the prediction
+    var prediction = logreg.predict(test);
+}</code></pre>
               </div>
             </section>
             <section>

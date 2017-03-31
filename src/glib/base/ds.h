@@ -36,6 +36,7 @@ public:
 
 /////////////////////////////////////////////////
 // Pair
+#pragma pack(push, 1) // pack class size
 template <class TVal1, class TVal2>
 class TPair{
 public:
@@ -76,6 +77,7 @@ public:
   const TVal2& GetVal2() const { return Val2;}
   TStr GetStr() const {return TStr("Pair(")+Val1.GetStr()+", "+Val2.GetStr()+")";}
 };
+#pragma pack(pop)
 
 template <class TVal1, class TVal2, class TSizeTy>
 void GetSwitchedPrV(const TVec<TPair<TVal1, TVal2>, TSizeTy>& SrcPrV, TVec<TPair<TVal2, TVal1>, TSizeTy>& DstPrV){
@@ -340,6 +342,7 @@ public:
 
 /////////////////////////////////////////////////
 // Key-Data
+#pragma pack(push, 1) // pack class size
 template <class TKey, class TDat>
 class TKeyDat{
 public:
@@ -367,6 +370,7 @@ public:
   int GetSecHashCd() const {return Key.GetSecHashCd();}
   uint64 GetMemUsed() const { return Key.GetMemUsed() + Dat.GetMemUsed(); }
 };
+#pragma pack(pop)
 
 template <class TKey, class TDat>
 void GetSwitchedKdV(const TVec<TKeyDat<TKey, TDat>, int>& SrcKdV, TVec<TKeyDat<TDat, TKey>, int>& DstKdV){
@@ -509,7 +513,7 @@ public:
     AssertR((0<=ValN)&&(ValN<Vals), GetXOutOfBoundsErrMsg(ValN));
     return ValT[ValN];}
 
-  /// Get the memory usage of this vector. DeepP indicates whether the usage of 
+  /// Get the memory usage of this vector. DeepP indicates whether the usage of
   /// each individual element should be included in the calculation
   uint64 GetMemUsed(const bool& DeepP = false) const { return GetVecMemUsed(DeepP); }
 
@@ -1843,9 +1847,7 @@ public:
   const TVal& GetVal() const {Assert(this!=NULL); return Val;}
   uint64 GetMemUsed() const {
     return sizeof(TLstNd<TVal>) +
-           TMemUtils::GetExtraMemberSize(PrevNd) +
-           TMemUtils::GetExtraMemberSize(NextNd) +
-           TMemUtils::GetExtraMemberSize(Val);
+        TMemUtils::GetExtraMemberSize(Val);
   }
 };
 
@@ -1893,9 +1895,9 @@ public:
 
   PLstNd SearchForw(const TVal& Val);
   PLstNd SearchBack(const TVal& Val);
-  uint64 GetMemUsed() const {
-      return uint64(sizeof(int) + 2 * sizeof(PLstNd) + Nds * sizeof(TLstNd<TVal>));
-  }
+
+  uint64 GetMemUsed(const bool& DeepP = false) const;
+
   friend class TLstNd<TVal>;
 };
 
@@ -1998,4 +2000,3 @@ public:
   /// Builds a heap from a set of elements.
   void MakeHeap() { MakeHeap(0, Len()); }
 };
-
