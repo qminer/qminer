@@ -4,6 +4,8 @@
 
 **Version 8.0.0**
 
+**Breaking with new features and bugfixes**
+
 Breaking:
 - binary compatibility of GIX
 
@@ -12,15 +14,10 @@ New features:
 - introduced position index which can index words and their position in a string
 - search over phrases with gaps based on the position index
 
-Bug fix:
+Bug fixes:
 - fixed GetMemUsed() in THashSetKey
 - type bug fix in TIndex::IndexTextPos
 - fixed TIndex::Exists
-
-**Breaking with a new feature and a bugfix**
-
-Bug fixes:
-- Gix memory usage overflow fix
 
 ### 24 March 2017
 
