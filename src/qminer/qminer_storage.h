@@ -53,6 +53,8 @@ public:
     TStr KeyIndexName;
     /// Index type
     TIndexKeyType KeyType;
+    /// Index gix type (when relevant)
+    TIndexKeyGixType GixType;
     /// How to sort the key (if at all)
     TIndexKeySortType SortType;
     /// Word vocabulary name (used by inverted index)
@@ -67,12 +69,14 @@ public:
     bool IsValue() const { return (KeyType & oiktValue) > 0; }
     /// Is indexed as text (tokenized)
     bool IsText() const { return (KeyType & oiktText) > 0; }
+    /// Is indexed as text with word positions (tokenized)
+    bool IsTextPos() const { return (KeyType & oiktTextPos) > 0; }
     /// Is indexed as geo-location
     bool IsLocation() const { return (KeyType & oiktLocation) > 0; }
     /// Checks key type is on linearly  ordered value using b-tree
     bool IsLinear() const { return (KeyType & oiktLinear) > 0; }
     /// Get index type as string (value, text, location, linear)
-    TStr GetKeyType() const { return IsValue() ? "value" : IsText() ? "text" : IsLocation() ? "location" : "linear"; }
+    TStr GetKeyType() const;
 
     /// Key sortable as string
     bool IsByStr() const { return SortType == oikstByStr; }
@@ -97,8 +101,8 @@ public:
     TStoreJoinType JoinType;
     /// Name of reverse join (empty if none)
     TStr InverseJoinName;
-    /// Flag if index should use small storage
-    TBool IsSmall;
+    /// Index gix type (for index joins)
+    TIndexKeyGixType GixType;
     /// Type of field that contains joined record id (for field join)
     TFieldType RecIdFieldType;
     /// Type of field that contains join frequency (for field join).
@@ -725,12 +729,14 @@ private:
         bool IsValue() const { return (KeyType & oiktValue) > 0; }
         /// Is indexed as text (tokenized)
         bool IsText() const { return (KeyType & oiktText) > 0; }
+        /// Is indexed as text (tokenized)
+        bool IsTextPos() const { return (KeyType & oiktTextPos) > 0; }
         /// Is indexed as geo-location
         bool IsLocation() const { return (KeyType & oiktLocation) > 0; }
         /// Checks key type is on linearly  ordered value using b-tree
         bool IsLinear() const { return (KeyType & oiktLinear) > 0; }
         /// Get index type as string (value, text, location, linear)
-        TStr GetKeyType() const { return IsValue() ? "value" : IsText() ? "text" : IsLocation() ? "location" : "linear"; }
+        TStr GetKeyType() const;
     };
 
 private:
