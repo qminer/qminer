@@ -16,8 +16,6 @@ New features:
 
 Bug fixes:
 - fixed GetMemUsed() in THashSetKey
-- type bug fix in TIndex::IndexTextPos
-- fixed TIndex::Exists
 
 ### 24 March 2017
 
