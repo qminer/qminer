@@ -5,11 +5,11 @@
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
- 
+
 /**
  * This file is used for debugging from Visual Studio or some other IDE to find bugs in C++ code.
  */
- 
+
 var assert = require('../../src/nodejs/scripts/assert.js');     //adds assert.run function
 var qm = require('qminer');
 var fs = qm.fs;
@@ -59,7 +59,7 @@ function PerformTest(field_type, min, max) {
 					vals.push(val);
 				}
 				var rs = db.base.store(store_name).allRecords;
-				// assert.equal(rs.length, records);				
+				// assert.equal(rs.length, records);
 				// for (var i = 0; i < rs.length; i++) {
 					// var rec = rs[i];
 					// console.log("Expecting " + vals[i]);
