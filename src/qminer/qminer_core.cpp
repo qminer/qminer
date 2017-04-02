@@ -5540,7 +5540,7 @@ void TIndex::DoQueryPos(const int& KeyId, const TUInt64V& WordIdV,
     // store it into the running result candidate vector
     TVec<TQmGixItemPos> ItemV;
     GixPos->GetItemV(TQmGixKey(KeyId, WordIdV[0]), ItemV);
-    Assert(ItemV.IsSorted());
+    ItemV.Sort();
     // now filter down the results by intersecting with subsequent words
     for (int WordN = 1; WordN < WordIdV.Len(); WordN++) {
         // stop in case we are out of candidates
@@ -5548,7 +5548,7 @@ void TIndex::DoQueryPos(const int& KeyId, const TUInt64V& WordIdV,
         // get new word items
         TVec<TQmGixItemPos> WordItemV;
         GixPos->GetItemV(TQmGixKey(KeyId, WordIdV[WordN]), WordItemV);
-        Assert(ItemV.IsSorted());
+        WordItemV.Sort();
         // intersect the lists
         TVec<TQmGixItemPos> _ItemV; int ItemN = 0;
         for (const TQmGixItemPos& WordItem : WordItemV) {
