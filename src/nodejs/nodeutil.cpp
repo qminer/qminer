@@ -779,6 +779,12 @@ uint64 TNodeJsUtil::GetArgTmMSecs(const v8::FunctionCallbackInfo<v8::Value>& Arg
    return GetTmMSecs(Val);
 }
 
+
+void TNodeJsUtil::ThrowJsException(v8::Isolate* Isolate, const PExcept& Except) {
+    Isolate->ThrowException(v8::Exception::TypeError(
+        v8::String::NewFromUtf8(Isolate, (TStr("[addon] Exception in constructor call: ") + Except->GetStr()).CStr())));
+}
+
 v8::Local<v8::Value> TNodeJsUtil::V8JsonToV8Str(const v8::Handle<v8::Value>& Json) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::EscapableHandleScope HandleScope(Isolate);
