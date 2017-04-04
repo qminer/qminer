@@ -330,6 +330,7 @@ public:
     /// Throws and exception which can be caught in Javascript
     static void ThrowJsException(v8::Isolate* Isolate, const PExcept& Except);
 
+
     /// Constructor callback: sets the hidden "class" property of new instance,
     /// creates a new wrapper object and wraps the new instance. This callback
     /// should be used when creating object from javascript using "new"
