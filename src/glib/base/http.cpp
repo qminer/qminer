@@ -494,9 +494,9 @@ void THttpRq::ParseSearch(const TStr& SearchStr){
       switch (Ch){
         case '%':{
           char Ch1=ChRet.GetCh();
-		  if (!TCh::IsHex(Ch1)) { throw THttpEx(heBadSearchStr); }
-		  char Ch2=ChRet.GetCh();
-		  if (!TCh::IsHex(Ch2)) { throw THttpEx(heBadSearchStr); }
+          if (!TCh::IsHex(Ch1)) { throw THttpEx(heBadSearchStr); }
+          char Ch2=ChRet.GetCh();
+          if (!TCh::IsHex(Ch2)) { throw THttpEx(heBadSearchStr); }
           if (Ch1 == 0 && Ch2 == 0) throw THttpEx(heBadSearchStr);
           KeyNm.AddCh(char(16*TCh::GetHex(Ch1)+TCh::GetHex(Ch2)));} break;
         case '+': KeyNm.AddCh(' '); break;
@@ -512,9 +512,9 @@ void THttpRq::ParseSearch(const TStr& SearchStr){
       switch (Ch){
         case '%':{
           char Ch1=ChRet.GetCh();
-		  if (!TCh::IsHex(Ch1)) { throw THttpEx(heBadSearchStr); }
+          if (!TCh::IsHex(Ch1)) { throw THttpEx(heBadSearchStr); }
           char Ch2=ChRet.GetCh();
-		  if (!TCh::IsHex(Ch2)) { throw THttpEx(heBadSearchStr); }
+          if (!TCh::IsHex(Ch2)) { throw THttpEx(heBadSearchStr); }
           if (Ch1 == 0 && Ch2 == 0) throw THttpEx(heBadSearchStr);
           ValStr.AddCh(char(16*TCh::GetHex(Ch1)+TCh::GetHex(Ch2)));} break;
         case '+': ValStr.AddCh(' '); break;
