@@ -3538,11 +3538,6 @@ void THierarch::InitHierarchyTrans(const TStreamStory& StreamStory) {
     NewHierarchV.Add(RootId);
     NewHeightV.Add(MxHeight);
 
-    printf("Old hierarch:\n%s\n", TStrUtil::GetStr(HierarchV).CStr());
-    printf("New hierarch:\n%s\n", TStrUtil::GetStr(NewHierarchV).CStr());
-    printf("Old HeightV:\n%s\n", TStrUtil::GetStr(StateHeightV).CStr());
-    printf("New HeightV:\n%s\n", TStrUtil::GetStr(NewHeightV).CStr());
-
     // finish
     StateHeightV = NewHeightV;
     HierarchV = NewHierarchV;
@@ -3939,9 +3934,7 @@ PJsonVal TUiHelper::TAutoNmTmDesc::GetJson() const {
 
 PJsonVal TUiHelper::TAutoNmTmDesc::GetNarrateJson() const {
     PJsonVal Result = TJsonVal::NewObj();
-
     Result->AddToObj("type", "time");
-
     return Result;
 }
 
@@ -4151,7 +4144,6 @@ void TUiHelper::GetAutoNmPValDesc(const int& StateId, PAutoNmDescV& DescV) const
         case ftNumeric: {
             const TNumAutoNmDesc* NumDesc = (TNumAutoNmDesc*) Desc();
             if (NumDesc->GetLevel() == TNumAutoNmLevel::nanlMeduim) { continue; }
-
             DescV.Add(Desc);
             break;
         }
