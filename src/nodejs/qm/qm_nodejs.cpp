@@ -2758,7 +2758,7 @@ void TNodeJsRecSet::filterByFq(const v8::FunctionCallbackInfo<v8::Value>& Args) 
     TNodeJsRecSet* JsRecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args.Holder());
 
     const int MnFq = TNodeJsUtil::GetArgInt32(Args, 0);
-    const int MxFq = TNodeJsUtil::GetArgInt32(Args, 1);
+    const int MxFq = TNodeJsUtil::GetArgInt32(Args, 1, TInt::Mx);
     JsRecSet->RecSet->FilterByFq(MnFq, MxFq);
 
     Args.GetReturnValue().Set(Args.Holder());
@@ -3724,12 +3724,8 @@ void TNodeJsFuncFtrExt::ExecuteFuncVec(const TQm::TRec& FtrRec, TFltV& Vec) cons
     v8::Handle<v8::Object> RetValObj = v8::Handle<v8::Object>::Cast(RetVal);
 
     QmAssertR(TNodeJsUtil::IsClass(RetValObj, TNodeJsFltV::GetClassId()), "TJsFuncFtrExt::ExecuteFuncVec callback should return a dense vector (same type as la.newVec()).");
-
-    v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(RetValObj->GetInternalField(0));
-    // cast it to js vector and copy internal vector
-    TNodeJsFltV* JsVec = static_cast<TNodeJsFltV*>(WrappedObject->Value());
-
-    Vec = JsVec->Vec;
+    // cast it to js vector and copy internal vector    
+    Vec = ObjectWrap::Unwrap<TNodeJsFltV>(RetValObj)->Vec;
 }
 
 TNodeJsFuncFtrExt::TNodeJsFuncFtrExt(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal) : TFtrExt(Base, ParamVal) {

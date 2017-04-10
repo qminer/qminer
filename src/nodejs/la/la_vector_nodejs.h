@@ -398,49 +398,49 @@ private:
 	//# exports.<% className %>.prototype.shuffle = function () { return this; }
 	JsDeclareFunction(shuffle);
 
-	/**
-	* Deletes elements with sprecific index or more.
-	* @param {<% elementType %>} idx - Index (zero based).
-	* @returns {module:la.<% className %>} Self after truncating.
-	* @example
-	* var la = require('qminer').la;
-	* // create a new vector
-	* var vec = new la.<% className %>(<% example1 %>);
-	* // trunc all elements with index 1 or more
-	* vec.trunc(1); // returns vector <% output3 %>
-	*/
-	//# exports.<% className %>.prototype.trunc = function (idx) { return this; } 
-	JsDeclareFunction(trunc);
-	
-	/**
-	* Creates a dense matrix A by multiplying two vectors x and y: `A = x * y^T`.
-	* @param {module:la.<% className %>} vec - Second vector.
-	* @returns {module:la.Matrix} Matrix obtained by the outer product of the instance and second vector.
-	* @example
-	* var la = require('qminer').la;
-	* // create two new vectors
-	* var x = new la.<% className %>([1, 2, 3]);
-	* var y = new la.<% className %>([4, 5]);
-	* // create the outer product of these vectors
-	* var A = x.outer(y); // creates the dense matrix [[4, 5], [8, 10], [12, 15]]
-	*/
-	//# <% skipOuter %>exports.<% className %>.prototype.outer = function (vec) { return Object.create(require('qminer').la.Matrix.prototype); }
-	JsDeclareSpecializedFunction(outer);
-	
-	/**
-	* Computes the inner product.
-	* @param {module:la.Vector} vec - Other vector.
-	* @returns {number} Inner product between the instance and the other vector.
+    /**
+    * Deletes elements with sprecific index or more.
+    * @param {<% elementType %>} idx - Index (zero based).
+    * @returns {module:la.<% className %>} Self after truncating.
     * @example
-	* var la = require('qminer').la;
-	* // create two new vectors
-	* var x = new la.Vector([1, 2, 3]);
-	* var y = new la.Vector([4, 5, -1]);
+    * var la = require('qminer').la;
+    * // create a new vector
+    * var vec = new la.<% className %>(<% example1 %>);
+    * // trunc all elements with index 1 or more
+    * vec.trunc(1); // returns vector <% output3 %>
+    */
+    //# exports.<% className %>.prototype.trunc = function (idx) { return this; } 
+    JsDeclareFunction(trunc);
+    
+    /**
+    * Creates a dense matrix A by multiplying two vectors x and y: `A = x * y^T`.
+    * @param {module:la.<% className %>} vec - Second vector.
+    * @returns {module:la.Matrix} Matrix obtained by the outer product of the instance and second vector.
+    * @example
+    * var la = require('qminer').la;
+    * // create two new vectors
+    * var x = new la.<% className %>([1, 2, 3]);
+    * var y = new la.<% className %>([4, 5]);
+    * // create the outer product of these vectors
+    * var A = x.outer(y); // creates the dense matrix [[4, 5], [8, 10], [12, 15]]
+    */
+    //# <% skipOuter %>exports.<% className %>.prototype.outer = function (vec) { return Object.create(require('qminer').la.Matrix.prototype); }
+    JsDeclareSpecializedFunction(outer);
+    
+    /**
+    * Computes the inner product.
+    * @param {module:la.Vector} vec - Other vector.
+    * @returns {number} Inner product between the instance and the other vector.
+    * @example
+    * var la = require('qminer').la;
+    * // create two new vectors
+    * var x = new la.Vector([1, 2, 3]);
+    * var y = new la.Vector([4, 5, -1]);
     * // get the inner product of the two vectors
     * var prod = x.inner(y); // returns 11
-	*/
-	//# <% skipInner %>exports.Vector.prototype.inner = function(vec) { return 0; }
-	JsDeclareSpecializedFunction(inner);
+    */
+    //# <% skipInner %>exports.Vector.prototype.inner = function(vec) { return 0; }
+    JsDeclareSpecializedFunction(inner);
 
 	/**
 	* Returns the cosine between the two vectors.
@@ -704,9 +704,9 @@ inline v8::Local<v8::Object> TNodeJsVec<TFlt, TAuxFltV>::New(const TFltV& FltV) 
 	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, Constructor);
 	v8::Local<v8::Object> Instance = cons->NewInstance();
 
-	v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
-	v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAuxFltV::ClassId.CStr());
-	Instance->SetHiddenValue(Key, Value);
+    v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
+    v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAuxFltV::ClassId.CStr());
+    TNodeJsUtil::SetPrivate(Instance, Key, Value);
 
 	TNodeJsVec<TFlt, TAuxFltV>* JsVec = new TNodeJsVec<TFlt, TAuxFltV>(FltV);
 	JsVec->Wrap(Instance);
@@ -722,9 +722,9 @@ inline v8::Local<v8::Object> TNodeJsVec<TFlt, TAuxFltV>::New(const TIntV& IntV) 
 	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, Constructor);
 	v8::Local<v8::Object> Instance = cons->NewInstance();
 
-	v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
-	v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAuxFltV::ClassId.CStr());
-	Instance->SetHiddenValue(Key, Value);
+    v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
+    v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAuxFltV::ClassId.CStr());
+    TNodeJsUtil::SetPrivate(Instance, Key, Value);
 
 	int Len = IntV.Len();
 	TFltV Vec(Len);
@@ -745,9 +745,9 @@ inline v8::Local<v8::Object> TNodeJsVec<TInt, TAuxIntV>::New(const TFltV& FltV) 
 	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, Constructor);
 	v8::Local<v8::Object> Instance = cons->NewInstance();
 
-	v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
-	v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAuxIntV::ClassId.CStr());
-	Instance->SetHiddenValue(Key, Value);
+    v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
+    v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAuxIntV::ClassId.CStr());
+    TNodeJsUtil::SetPrivate(Instance, Key, Value);
 
 	int Len = FltV.Len();
 	TIntV Vec(Len);
@@ -770,9 +770,9 @@ inline v8::Local<v8::Object> TNodeJsVec<TInt, TAuxIntV>::New(const TIntV& IntV) 
 
 	v8::Local<v8::Object> Instance = cons->NewInstance();
 
-	v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
-	v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAuxIntV::ClassId.CStr());
-	Instance->SetHiddenValue(Key, Value);
+    v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
+    v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAuxIntV::ClassId.CStr());
+    TNodeJsUtil::SetPrivate(Instance, Key, Value);
 
 	TNodeJsVec<TInt, TAuxIntV>* JsVec = new TNodeJsVec<TInt, TAuxIntV>(IntV);
 	JsVec->Wrap(Instance);
@@ -790,9 +790,9 @@ inline v8::Local<v8::Object> TNodeJsVec<TStr, TAuxStrV>::New(const TStrV& StrV) 
 
 	v8::Local<v8::Object> Instance = cons->NewInstance();
 
-	v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
-	v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAuxStrV::ClassId.CStr());
-	Instance->SetHiddenValue(Key, Value);
+    v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
+    v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAuxStrV::ClassId.CStr());
+    TNodeJsUtil::SetPrivate(Instance, Key, Value);
 
 	TNodeJsVec<TStr, TAuxStrV>* JsVec = new TNodeJsVec<TStr, TAuxStrV>(StrV);
 	JsVec->Wrap(Instance);
@@ -810,7 +810,7 @@ inline v8::Local<v8::Object> TNodeJsVec<PJsonVal, TAuxJsonV>::New(const TVec<PJs
 
     v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
     v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAuxJsonV::ClassId.CStr());
-    Instance->SetHiddenValue(Key, Value);
+    TNodeJsUtil::SetPrivate(Instance, Key, Value);
 
     return TNodeJsUtil::NewInstance(new TNodeJsJsonV(JsonV));
 }
@@ -1235,16 +1235,16 @@ void TNodeJsVec<TVal, TAux>::New(const v8::FunctionCallbackInfo<v8::Value>& Args
 			}
 		} // else return an empty vector 
 
-		Instance->SetHiddenValue(Key, Value);
-		JsVec->Wrap(Instance);
-		Args.GetReturnValue().Set(Instance);
-	}
-	else {
-		//printf("vector NOT construct call, class = %s\n", TAux::ClassId.CStr());
-		const int Argc = 1;
-		v8::Local<v8::Value> Argv[Argc] = { Args[0] };
-		v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, Constructor);
-		v8::Local<v8::Object> Instance = cons->NewInstance(Argc, Argv);
+        TNodeJsUtil::SetPrivate(Instance, Key, Value);
+        JsVec->Wrap(Instance);
+        Args.GetReturnValue().Set(Instance);
+    }
+    else {
+        //printf("vector NOT construct call, class = %s\n", TAux::ClassId.CStr());
+        const int Argc = 1;
+        v8::Local<v8::Value> Argv[Argc] = { Args[0] };
+        v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, Constructor);
+        v8::Local<v8::Object> Instance = cons->NewInstance(Argc, Argv);
 
 		v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
 		v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAux::ClassId.CStr());
@@ -1573,7 +1573,6 @@ inline void TNodeJsVec<PJsonVal, TAuxJsonV>::toString(const v8::FunctionCallback
 
     Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, Str.CStr()));
 }
-
 
 // Returns the size of the vector 
 template<typename TVal, typename TAux>

@@ -41,11 +41,13 @@ void TNodeJsStreamAggr::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "onAdd", _onAdd);
     NODE_SET_PROTOTYPE_METHOD(tpl, "onUpdate", _onUpdate);
     NODE_SET_PROTOTYPE_METHOD(tpl, "onDelete", _onDelete);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _setParams);
     NODE_SET_PROTOTYPE_METHOD(tpl, "saveJson", _saveJson);
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
     NODE_SET_PROTOTYPE_METHOD(tpl, "load", _load);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "saveStateJson", _saveStateJson);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "loadStateJson", _loadStateJson);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _setParams);
     NODE_SET_PROTOTYPE_METHOD(tpl, "getInteger", _getInteger);
     NODE_SET_PROTOTYPE_METHOD(tpl, "getFloat", _getFloat);
     NODE_SET_PROTOTYPE_METHOD(tpl, "getTimestamp", _getTimestamp);
@@ -267,30 +269,6 @@ void TNodeJsStreamAggr::onDelete(const v8::FunctionCallbackInfo<v8::Value>& Args
     Args.GetReturnValue().Set(Args.Holder());
 }
 
-void TNodeJsStreamAggr::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::HandleScope HandleScope(Isolate);
-
-    // unwrap
-    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
-
-    Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, JsSA->SA->GetParams()));
-}
-
-void TNodeJsStreamAggr::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::HandleScope HandleScope(Isolate);
-
-    EAssertR(Args.Length() > 0, "TNodeJsStreamAggr::setParams: takes one argument!");
-
-    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
-
-    const PJsonVal ParamVal = TNodeJsUtil::GetObjToNmJson(Args[0]);
-    JsSA->SA->SetParams(ParamVal);
-
-    Args.GetReturnValue().Set(v8::Undefined(Isolate));
-}
-
 void TNodeJsStreamAggr::saveJson(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
@@ -326,10 +304,61 @@ void TNodeJsStreamAggr::load(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
     TNodeJsFIn* JsFIn = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFIn>(Args, 0);
 
-    // save
+    // load
     JsSA->SA->LoadState(*JsFIn->SIn);
 
     Args.GetReturnValue().Set(Args.Holder());
+}
+
+void TNodeJsStreamAggr::saveStateJson(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    // unwrap
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+
+    // save
+    PJsonVal StateJson = JsSA->SA->SaveStateJson();
+    v8::Handle<v8::Value> Result = TNodeJsUtil::ParseJson(Isolate, StateJson);
+    Args.GetReturnValue().Set(Result);
+}
+
+void TNodeJsStreamAggr::loadStateJson(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    // unwrap
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+    PJsonVal StateJson = TNodeJsUtil::GetArgJson(Args, 0);
+
+    // load
+    JsSA->SA->LoadStateJson(StateJson);
+
+    Args.GetReturnValue().Set(Args.Holder());
+}
+
+void TNodeJsStreamAggr::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    // unwrap
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+
+    Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, JsSA->SA->GetParams()));
+}
+
+void TNodeJsStreamAggr::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    EAssertR(Args.Length() > 0, "TNodeJsStreamAggr::setParams: takes one argument!");
+
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+
+    const PJsonVal ParamVal = TNodeJsUtil::GetObjToNmJson(Args[0]);
+    JsSA->SA->SetParams(ParamVal);
+
+    Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 
 void TNodeJsStreamAggr::getInteger(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -826,6 +855,34 @@ TNodeJsFuncStreamAggr::TNodeJsFuncStreamAggr(TWPt<TQm::TBase> _Base, const TStr&
         LoadFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_Load));
     }
 
+    // StreamAggr::SaveStateJson
+    if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "saveStateJson"))) {
+        v8::Handle<v8::Value> _SaveStateJson = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "saveStateJson"));
+        QmAssert(_SaveStateJson->IsFunction());
+        SaveStateJsonFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_SaveStateJson));
+    }
+
+    // StreamAggr::LoadStateJson
+    if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "loadStateJson"))) {
+        v8::Handle<v8::Value> _LoadStateJson = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "loadStateJson"));
+        QmAssert(_LoadStateJson->IsFunction());
+        LoadStateJsonFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_LoadStateJson));
+    }
+
+    // StreamAggr::GetParams
+    if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getParams"))) {
+        v8::Handle<v8::Value> _GetParamsJson = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getParams"));
+        QmAssert(_GetParamsJson->IsFunction());
+        GetParamsFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetParamsJson));
+    }
+
+     // StreamAggr::SetParams
+    if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "setParams"))) {
+       v8::Handle<v8::Value> _SetParamsJson = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "setParams"));
+       QmAssert(_SetParamsJson->IsFunction());
+       SetParamsFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_SetParamsJson));
+    }
+
     // IInt
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getInteger"))) {
         v8::Handle<v8::Value> _GetInt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getInteger"));
@@ -925,6 +982,10 @@ TNodeJsFuncStreamAggr::~TNodeJsFuncStreamAggr() {
     SaveJsonFun.Reset();
     IsInitFun.Reset();
 
+    // get/set
+    GetParamsFun.Reset();
+    SetParamsFun.Reset();
+
     GetIntFun.Reset();
     // IFlt
     GetFltFun.Reset();
@@ -955,6 +1016,8 @@ TNodeJsFuncStreamAggr::~TNodeJsFuncStreamAggr() {
     // Serialization
     SaveFun.Reset();
     LoadFun.Reset();
+    SaveStateJsonFun.Reset();
+    LoadStateJsonFun.Reset();
 }
 
 void TNodeJsFuncStreamAggr::Reset() {
@@ -1142,7 +1205,8 @@ void TNodeJsFuncStreamAggr::SaveState(TSOut& SOut) const {
         v8::HandleScope HandleScope(Isolate);
 
         PSOut POut(&SOut);
-        v8::Local<v8::Object> JsFOut = TNodeJsUtil::NewInstance<TNodeJsFOut>(new TNodeJsFOut(POut));
+        TNodeJsFOut* FOut = new TNodeJsFOut(POut);
+        v8::Local<v8::Object> JsFOut = TNodeJsUtil::NewInstance<TNodeJsFOut>(FOut);
 
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, SaveFun);
         v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
@@ -1151,6 +1215,7 @@ void TNodeJsFuncStreamAggr::SaveState(TSOut& SOut) const {
 
         v8::TryCatch TryCatch;
         Callback->Call(This, Argc, ArgV);
+        FOut->SOut.Clr();
         TNodeJsUtil::CheckJSExcept(TryCatch);
     }
 }
@@ -1170,6 +1235,80 @@ void TNodeJsFuncStreamAggr::LoadState(TSIn& SIn) {
         v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
         const unsigned Argc = 1;
         v8::Local<v8::Value> ArgV[Argc] = { JsFIn };
+        v8::TryCatch TryCatch;
+        Callback->Call(This, Argc, ArgV);
+        TNodeJsUtil::CheckJSExcept(TryCatch);
+    }
+}
+
+PJsonVal TNodeJsFuncStreamAggr::SaveStateJson() const {
+    if (SaveStateJsonFun.IsEmpty()) {
+        throw TQm::TQmExcept::New("TNodeJsFuncStreamAggr::SaveStateJson (called using sa.saveStateJson) : stream aggregate does not implement a save callback: " + GetAggrNm());
+    } else {
+        // create TNodeJsFOut and pass it to callback
+        v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+        v8::HandleScope HandleScope(Isolate);
+
+        v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, SaveStateJsonFun);
+        v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
+
+        v8::TryCatch TryCatch;
+        v8::Handle<v8::Value> RetVal = Callback->Call(This, 0, NULL);
+        TNodeJsUtil::CheckJSExcept(TryCatch);
+        return TNodeJsUtil::GetObjJson(RetVal);
+    }
+}
+
+void TNodeJsFuncStreamAggr::LoadStateJson(const PJsonVal& State) {
+    if (LoadStateJsonFun.IsEmpty()) {
+        throw TQm::TQmExcept::New("TNodeJsFuncStreamAggr::LoadStateJson (called using sa.loadStateJson) : stream aggregate does not implement a load callback: " + GetAggrNm());
+    } else {
+        // create TNodeJsFOut and pass it to callback
+        v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+        v8::HandleScope HandleScope(Isolate);
+
+        v8::Local<v8::Value> StateObj = TNodeJsUtil::ParseJson(Isolate, State);
+
+        v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, LoadStateJsonFun);
+        v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
+        const unsigned Argc = 1;
+        v8::Local<v8::Value> ArgV[Argc] = { StateObj };
+        v8::TryCatch TryCatch;
+        Callback->Call(This, Argc, ArgV);
+        TNodeJsUtil::CheckJSExcept(TryCatch);
+    }
+}
+
+PJsonVal TNodeJsFuncStreamAggr::GetParams() const {
+    if (GetParamsFun.IsEmpty()) {
+        throw TQm::TQmExcept::New("TNodeJsFuncStreamAggr::GetParams (called using sa.getParams) : stream aggregate does not implement a getParams callback: " + GetAggrNm());
+    } else {
+        v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+        v8::HandleScope HandleScope(Isolate);
+
+        v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, GetParamsFun);
+        v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
+
+        v8::TryCatch TryCatch;
+        v8::Handle<v8::Value> RetVal = Callback->Call(This, 0, NULL);
+        TNodeJsUtil::CheckJSExcept(TryCatch);
+        return TNodeJsUtil::GetObjJson(RetVal);
+    }
+}
+
+void TNodeJsFuncStreamAggr::SetParams(const PJsonVal& Params) {
+    if (SetParamsFun.IsEmpty()) {
+        throw TQm::TQmExcept::New("TNodeJsFuncStreamAggr::SetParams (called using sa.setParams) : stream aggregate does not implement a setParams callback: " + GetAggrNm());
+    } else {
+        v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+        v8::HandleScope HandleScope(Isolate);
+
+        v8::Local<v8::Value> ParamObj = TNodeJsUtil::ParseJson(Isolate, Params);
+
+        v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, SetParamsFun);
+        v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
+        const unsigned Argc = 1;
+        v8::Local<v8::Value> ArgV[Argc] = { ParamObj };
         v8::TryCatch TryCatch;
         Callback->Call(This, Argc, ArgV);
         TNodeJsUtil::CheckJSExcept(TryCatch);

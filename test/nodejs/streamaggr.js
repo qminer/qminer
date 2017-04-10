@@ -120,6 +120,65 @@ describe('Stream Aggregator Tests', function () {
     });
 
     describe('JsStreamAggr Test', function () {
+    	it('should test saveStateJson and loadStateJson for javascript implemented stream aggregate', function () {
+            var aggr = new qm.StreamAggr(base, new function () {
+                var state = { calls : 0};
+                this.onStep = function () {
+                    state.calls++;
+                }
+                this.saveStateJson = function () {
+                    return state;
+                }
+                this.loadStateJson = function (_state) {
+                    state = _state;
+                }
+            }, 'People');
+            var s0 = aggr.saveStateJson();
+            assert.equal(s0.calls, 0);
+            aggr.onStep();
+
+            var s1 = aggr.saveStateJson();
+            assert.equal(s1.calls, 1);
+            // new aggregate
+            var aggr2 = new qm.StreamAggr(base, new function () {
+                var state = { calls : 0};
+                this.onStep = function () {
+                    state.calls++;
+                }
+                this.saveStateJson = function () {
+                    return state;
+                }
+                this.loadStateJson = function (_state) {
+                    state = _state;
+                }
+            }, 'People');
+            // load last state from the first aggregate
+            aggr2.loadStateJson(s1);
+            // get state of the second aggregate and compare
+            var s2 = aggr2.saveStateJson();
+            assert.equal(s2.calls, 1);
+        });
+        it('should test getParams and setParams', function () {
+            var s = new qm.StreamAggr(base, new function () {
+                var data = {};
+                var val = 1;
+                this.onAdd = function (rec) {
+                    data[rec.Name] = data[rec.Name] == undefined ? 1 : data[rec.Name] + 1;
+                };
+                this.saveJson = function (limit) {
+                    return data;
+                };
+                this.getParams = function () {
+                    return val;
+                };
+                this.setParams = function (value) {
+                    val = value;
+                };
+            });
+            assert.equal(s.getParams(), 1);
+            assert.equal(s.setParams(2), null);
+            assert.equal(s.getParams(), 2);
+        });
         it('should test getFloat and getInteger with string input', function () {
             var s = new qm.StreamAggr(base, new function () {
                 var data = {};
@@ -6416,350 +6475,59 @@ describe('Stream aggregate statistics', function () {
         });
     });
 
-});
-
-describe('Aggregate set', function () {
-    var base = undefined;
-    var store = undefined;
-
-    beforeEach(function () {
-        base = new qm.Base({
-            mode: "createClean",
-            schema: [
-            {
-                name: "Heat",
-                fields: [
-                    { name: "Celsius", type: "float" },
-                    { name: "Time", type: "datetime" }
-                ]
-            }]
-        });
-        store = base.store("Heat");
-    });
-    afterEach(function () {
-        base.close();
-    });
-
-    it('should construct aggregate set', function () {
-        var tick = new qm.StreamAggr(base, {
+    it('should show memory usage ...', function () {
+        // create few stream aggregates
+        var tick = store.addStreamAggr({
             type: 'timeSeriesTick',
             timestamp: 'Time',
-            value: 'Celsius',
-            store: store.name
-        }, store);
-
-        var winbufvec = new qm.StreamAggr(base, {
+            value: 'Value'
+        });
+        var winbufvec = store.addStreamAggr({
+            type: 'timeSeriesWinBufVector',
+            inAggr: tick.name,
+            winsize: 1500
+        });
+        var winbufvec = store.addStreamAggr({
             type: 'timeSeriesWinBufVector',
             inAggr: tick.name,
             winsize: 2000
-        }, store);
-
-        var set = new qm.StreamAggr(base, {
-            type: 'set',
-            aggregates: [tick.name, winbufvec.name]
         });
-
-        store.push({ Time: '2015-06-10T14:13:32.0', Celsius: 1 });
-        //winbufvec.getFloatVector().print(); // prints 1
-        store.push({ Time: '2015-06-10T14:33:30.0', Celsius: 2 });
-        //winbufvec.getFloatVector().print(); // prints 2
-        store.push({ Time: '2015-06-10T14:33:31.0', Celsius: 3 });
-        //winbufvec.getFloatVector().print(); // prints 2,3
-        store.push({ Time: '2015-06-10T14:33:32.0', Celsius: 4 });
-        //winbufvec.getFloatVector().print(); // prints 2,3,4
-
-        assert.ok(set.init, 'Aggregate set is not initialized.');
-        assert.ok(set.name);
-        assert.equal(tick.name, set.val[0]);
-        assert.equal(winbufvec.name, set.val[1]);
-    });
-
-    it('should save and load aggregates in set', function () {
-        var tick = new qm.StreamAggr(base, {
-            type: 'timeSeriesTick',
-            timestamp: 'Time',
-            value: 'Celsius',
-            store: store.name
-        }, store);
-
-        var winbufvec = new qm.StreamAggr(base, {
+        var winbufvec = store.addStreamAggr({
             type: 'timeSeriesWinBufVector',
             inAggr: tick.name,
-            winsize: 2000
-        }, store);
-
-        var set = new qm.StreamAggr(base, {
-            type: 'set',
-            aggregates: [tick.name, winbufvec.name]
+            winsize: 3500
         });
 
-        store.push({ Time: '2015-06-10T14:13:32.0', Celsius: 1 });
-        //winbufvec.getFloatVector().print(); // prints 1
-        store.push({ Time: '2015-06-10T14:33:30.0', Celsius: 2 });
-        //winbufvec.getFloatVector().print(); // prints 2
-        store.push({ Time: '2015-06-10T14:33:31.0', Celsius: 3 });
-        //winbufvec.getFloatVector().print(); // prints 2,3
-        store.push({ Time: '2015-06-10T14:33:32.0', Celsius: 4 });
-        //winbufvec.getFloatVector().print(); // prints 2,3,4
+        // measure insert time
+        var start = process.hrtime();
+        store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
+        store.push({ Time: '2015-06-10T14:33:30.0', Value: 2 });
+        store.push({ Time: '2015-06-10T14:33:31.0', Value: 3 });
+        store.push({ Time: '2015-06-10T14:33:32.0', Value: 4 });
+        var diff = getMSecs(process.hrtime(start));
 
-        var fout = qm.fs.openWrite('aggrSet.bin');
-        set.save(fout);
-        fout.close();
+        // make sure we are below insert time
+        var stats = base.getStreamAggrStats();
 
-        store.resetStreamAggregates();
+        var totalMem = 0;
+        var totalByType = 0;
 
-        var fin = qm.fs.openRead('aggrSet.bin');
-        set.load(fin);
-        fin.close();
+        var aggregates = stats.aggregates;
+        for (var i = 0; i < aggregates.length; i++) {
+            var aggregate = aggregates[i];
+            assert(aggregate.mem != null, 'Memory usage of aggregate is not defined!');
+            assert(aggregate.mem >= 0, 'Memory usage of aggregate is negative!');
+            totalMem += aggregate.mem;
+        }
 
-        assert.ok(set.init, 'Aggregate set is not initialized.');
-        assert.ok(set.name);
-        assert.equal(tick.name, set.val[0]);
-        assert.equal(winbufvec.name, set.val[1]);
-    });
-
-    it('should save and load also with custom aggregates in set (that has save and load method)', function () {
-        var tick = new qm.StreamAggr(base, {
-            type: 'timeSeriesTick',
-            timestamp: 'Time',
-            value: 'Celsius',
-            store: store.name
-        }, store);
-
-        var winbufvec = new qm.StreamAggr(base, {
-            type: 'timeSeriesWinBufVector',
-            inAggr: tick.name,
-            winsize: 2000
-        }, store);
-
-        var customAggr = new qm.StreamAggr(base, new function () {
-            this.onAdd = function (rec) {
-                console.log(JSON.stringify(rec))
-            }
-            this.save = function () { };
-            this.load = function () { };
-        });
-
-        var set = new qm.StreamAggr(base, {
-            type: 'set',
-            aggregates: [tick.name, winbufvec.name, customAggr.name]
-        });
-
-        store.push({ Time: '2015-06-10T14:13:32.0', Celsius: 1 });
-        //winbufvec.getFloatVector().print(); // prints 1
-        store.push({ Time: '2015-06-10T14:33:30.0', Celsius: 2 });
-        //winbufvec.getFloatVector().print(); // prints 2
-        store.push({ Time: '2015-06-10T14:33:31.0', Celsius: 3 });
-        //winbufvec.getFloatVector().print(); // prints 2,3
-        store.push({ Time: '2015-06-10T14:33:32.0', Celsius: 4 });
-        //winbufvec.getFloatVector().print(); // prints 2,3,4
-
-        var fout = qm.fs.openWrite('aggrSet.bin');
-        set.save(fout);
-        fout.close();
-
-        store.resetStreamAggregates();
-
-        var fin = qm.fs.openRead('aggrSet.bin');
-        set.load(fin);
-        fin.close();
-
-        assert.ok(set.init, 'Aggregate set is not initialized.');
-        assert.ok(set.name);
-        assert.equal(tick.name, set.val[0]);
-        assert.equal(winbufvec.name, set.val[1]);
-        assert.equal(customAggr.name, set.val[2]);
-    });
-
-    it('should throw exception if not all aggregates in set have save method', function () {
-        var tick = new qm.StreamAggr(base, {
-            type: 'timeSeriesTick',
-            timestamp: 'Time',
-            value: 'Celsius',
-            store: store.name
-        }, store);
-
-        var winbufvec = new qm.StreamAggr(base, {
-            type: 'timeSeriesWinBufVector',
-            inAggr: tick.name,
-            winsize: 2000
-        }, store);
-
-        var customAggr = new qm.StreamAggr(base, new function () {
-            this.onAdd = function (rec) {
-                console.log(JSON.stringify(rec))
-            }
-            //this.save = function () {};
-            this.load = function () { };
-        });
-
-        var set = new qm.StreamAggr(base, {
-            type: 'set',
-            aggregates: [tick.name, winbufvec.name, customAggr.name]
-        });
-
-        store.push({ Time: '2015-06-10T14:13:32.0', Celsius: 1 });
-        //winbufvec.getFloatVector().print(); // prints 1
-        store.push({ Time: '2015-06-10T14:33:30.0', Celsius: 2 });
-        //winbufvec.getFloatVector().print(); // prints 2
-        store.push({ Time: '2015-06-10T14:33:31.0', Celsius: 3 });
-        //winbufvec.getFloatVector().print(); // prints 2,3
-        store.push({ Time: '2015-06-10T14:33:32.0', Celsius: 4 });
-        //winbufvec.getFloatVector().print(); // prints 2,3,4
-
-        var fout = qm.fs.openWrite('aggrSet.bin');
-        assert.throws(function () { set.save(fout) }, Error);
-        fout.close();
-    });
-
-    it('should throw exception if not all aggregates in set have load method', function () {
-        var tick = new qm.StreamAggr(base, {
-            type: 'timeSeriesTick',
-            timestamp: 'Time',
-            value: 'Celsius',
-            store: store.name
-        }, store);
-
-        var winbufvec = new qm.StreamAggr(base, {
-            type: 'timeSeriesWinBufVector',
-            inAggr: tick.name,
-            winsize: 2000
-        }, store);
-
-        var customAggr = new qm.StreamAggr(base, new function () {
-            this.onAdd = function (rec) {
-                console.log(JSON.stringify(rec))
-            }
-            this.save = function () { };
-            //this.load = function () {};
-        });
-
-        var set = new qm.StreamAggr(base, {
-            type: 'set',
-            aggregates: [tick.name, winbufvec.name, customAggr.name]
-        });
-
-        store.push({ Time: '2015-06-10T14:13:32.0', Celsius: 1 });
-        //winbufvec.getFloatVector().print(); // prints 1
-        store.push({ Time: '2015-06-10T14:33:30.0', Celsius: 2 });
-        //winbufvec.getFloatVector().print(); // prints 2
-        store.push({ Time: '2015-06-10T14:33:31.0', Celsius: 3 });
-        //winbufvec.getFloatVector().print(); // prints 2,3
-        store.push({ Time: '2015-06-10T14:33:32.0', Celsius: 4 });
-        //winbufvec.getFloatVector().print(); // prints 2,3,4
-
-        var fout = qm.fs.openWrite('aggrSet.bin');
-        fout.close();
-
-        store.resetStreamAggregates();
-
-        var fin = qm.fs.openRead('aggrSet.bin');
-        assert.throws(function () { set.load(fin) }, Error);
-        fin.close();
-    });
-
-    it('should function with empty set aggregate', function () {
-        var tick = new qm.StreamAggr(base, {
-            type: 'timeSeriesTick',
-            timestamp: 'Time',
-            value: 'Celsius',
-            store: store.name
-        }, store);
-
-        var winbufvec = new qm.StreamAggr(base, {
-            type: 'timeSeriesWinBufVector',
-            inAggr: tick.name,
-            winsize: 2000
-        }, store);
-
-        var customAggr = new qm.StreamAggr(base, new function () {
-            this.onAdd = function (rec) {
-                console.log(JSON.stringify(rec))
-            }
-            this.save = function () { };
-            this.load = function () { };
-        });
-
-        var set = new qm.StreamAggr(base, {
-            type: 'set',
-            aggregates: []
-        });
-
-        store.push({ Time: '2015-06-10T14:13:32.0', Celsius: 1 });
-        //winbufvec.getFloatVector().print(); // prints 1
-        store.push({ Time: '2015-06-10T14:33:30.0', Celsius: 2 });
-        //winbufvec.getFloatVector().print(); // prints 2
-        store.push({ Time: '2015-06-10T14:33:31.0', Celsius: 3 });
-        //winbufvec.getFloatVector().print(); // prints 2,3
-        store.push({ Time: '2015-06-10T14:33:32.0', Celsius: 4 });
-        //winbufvec.getFloatVector().print(); // prints 2,3,4
-
-        assert.ok(set.init, 'Aggregate set is not initialized.');
-        assert.ok(set.name);
-        assert.equal(set.val.length, 0, 'Aggregate set val should be empty');
-
-        var fout = qm.fs.openWrite('aggrSet.bin');
-        fout.close();
-
-        store.resetStreamAggregates();
-
-        var fin = qm.fs.openRead('aggrSet.bin');
-        fin.close();
-
-        assert.equal(tick.init, false, 'Tick should not be initialized since it was not in set');
-        assert.equal(winbufvec.init, false, 'winbufvec should not be initialized since it was not in set');
-    });
-
-    it('should function with non-initialized aggregates in set', function () {
-        var tick = new qm.StreamAggr(base, {
-            type: 'timeSeriesTick',
-            timestamp: 'Time',
-            value: 'Celsius',
-            store: store.name
-        }, store);
-
-        var winbufvec = new qm.StreamAggr(base, {
-            type: 'timeSeriesWinBufVector',
-            inAggr: tick.name,
-            winsize: 2000
-        }, store);
-
-        var customAggr = new qm.StreamAggr(base, new function () {
-            this.onAdd = function (rec) {
-                console.log(JSON.stringify(rec))
-            }
-            this.save = function () { };
-            this.load = function () { };
-        });
-
-        var set = new qm.StreamAggr(base, {
-            type: 'set',
-            aggregates: [tick.name, winbufvec.name, customAggr.name]
-        });
-
-        // No records are pushed into store with attached aggregates, therefore c++ aggregates should not be initialized
-
-        assert.ok(set.init, 'Aggregate set is not initialized.');
-        assert.ok(set.name);
-        assert.equal(tick.init, false, 'Tick should not be initialized');
-        assert.equal(winbufvec.init, false, 'winbufvec should not be initialized');
-        assert.equal(customAggr.init, true, 'customAggr should be initialized');
-
-        assert.equal(set.val.length, 3);
-        assert.equal(tick.name, set.val[0]);
-        assert.equal(winbufvec.name, set.val[1]);
-        assert.equal(customAggr.name, set.val[2]);
-
-        var fout = qm.fs.openWrite('aggrSet.bin');
-        fout.close();
-
-        store.resetStreamAggregates();
-
-        var fin = qm.fs.openRead('aggrSet.bin');
-        fin.close();
-
-        assert.equal(tick.init, false, 'Tick should not be initialized since it was not in set');
-        assert.equal(winbufvec.init, false, 'winbufvec should not be initialized since it was not in set');
-        assert.equal(customAggr.init, true, 'customAggr should be initialized');
+        var types = stats.types;
+        for (var i = 0; i < types.length; i++) {
+            assert(types[i].mem != null, 'Memory usage of aggregate type is not defined!');
+            assert(types[i].mem >= 0, 'Memory usage of aggregate type is negative!');
+            totalByType += types[i].mem;
+        }
+        assert(stats.mem != null, 'Total memory usage is not defined!');
+        assert(stats.mem == totalMem, 'Total memory usage does not match the usage of individual aggregates!');
+        assert(stats.mem == totalByType, 'Total memory usage does not match the usage by type!');
     });
 });

@@ -123,6 +123,22 @@ exports = {}; require.modules.qminer_ht = exports;
 	*/
  exports.StrStrMap.prototype.key = function(n) { return ; }	
 /**
+    * Returns the ID of the key provided as parameter.
+    * @param {string} key - Hashmap key.
+    * @returns {number} n - Hashmap index number of the key.
+    * @example
+    * // import modules
+    * var qm = require('qminer');
+    * var ht = qm.ht;
+    * // create a new hashtable
+    * var h = new ht.StrStrMap();
+    * // add a key/dat pair
+    * h.put('foo', 'bar');
+    * // get key id of 'foo' 
+    * var key = h.keyId('foo'); // returns 0
+    */
+ exports.StrStrMap.prototype.key = function(n) { return ; }	
+/**
 	* Returns n-th dat.
 	* @param {number} n - Hashmap dat index number. Should be between 0 and length-1.
 	* @returns {string} The n-th data value.
@@ -311,6 +327,22 @@ exports = {}; require.modules.qminer_ht = exports;
     * // get the first key
     * var key = h.key(0); // returns 'foo'
 	*/
+ exports.StrIntMap.prototype.key = function(n) { return ; }	
+/**
+    * Returns the ID of the key provided as parameter.
+    * @param {string} key - Hashmap key.
+    * @returns {number} n - Hashmap index number of the key.
+    * @example
+    * // import modules
+    * var qm = require('qminer');
+    * var ht = qm.ht;
+    * // create a new hashtable
+    * var h = new ht.StrIntMap();
+    * // add a key/dat pair
+    * h.put('foo', 10);
+    * // get key id of 'foo' 
+    * var key = h.keyId('foo'); // returns 0
+    */
  exports.StrIntMap.prototype.key = function(n) { return ; }	
 /**
 	* Returns n-th dat.
@@ -503,6 +535,22 @@ exports = {}; require.modules.qminer_ht = exports;
 	*/
  exports.StrFltMap.prototype.key = function(n) { return ; }	
 /**
+    * Returns the ID of the key provided as parameter.
+    * @param {string} key - Hashmap key.
+    * @returns {number} n - Hashmap index number of the key.
+    * @example
+    * // import modules
+    * var qm = require('qminer');
+    * var ht = qm.ht;
+    * // create a new hashtable
+    * var h = new ht.StrFltMap();
+    * // add a key/dat pair
+    * h.put('foo', 10.5);
+    * // get key id of 'foo' 
+    * var key = h.keyId('foo'); // returns 0
+    */
+ exports.StrFltMap.prototype.key = function(n) { return ; }	
+/**
 	* Returns n-th dat.
 	* @param {number} n - Hashmap dat index number. Should be between 0 and length-1.
 	* @returns {number} The n-th data value.
@@ -691,6 +739,22 @@ exports = {}; require.modules.qminer_ht = exports;
     * // get the first key
     * var key = h.key(0); // returns 10
 	*/
+ exports.IntStrMap.prototype.key = function(n) { return 0; }	
+/**
+    * Returns the ID of the key provided as parameter.
+    * @param {number} key - Hashmap key.
+    * @returns {number} n - Hashmap index number of the key.
+    * @example
+    * // import modules
+    * var qm = require('qminer');
+    * var ht = qm.ht;
+    * // create a new hashtable
+    * var h = new ht.IntStrMap();
+    * // add a key/dat pair
+    * h.put(10, 'foo');
+    * // get key id of 10 
+    * var key = h.keyId(10); // returns 0
+    */
  exports.IntStrMap.prototype.key = function(n) { return 0; }	
 /**
 	* Returns n-th dat.
@@ -883,6 +947,22 @@ exports = {}; require.modules.qminer_ht = exports;
 	*/
  exports.IntIntMap.prototype.key = function(n) { return 0; }	
 /**
+    * Returns the ID of the key provided as parameter.
+    * @param {number} key - Hashmap key.
+    * @returns {number} n - Hashmap index number of the key.
+    * @example
+    * // import modules
+    * var qm = require('qminer');
+    * var ht = qm.ht;
+    * // create a new hashtable
+    * var h = new ht.IntIntMap();
+    * // add a key/dat pair
+    * h.put(5, 10);
+    * // get key id of 5 
+    * var key = h.keyId(5); // returns 0
+    */
+ exports.IntIntMap.prototype.key = function(n) { return 0; }	
+/**
 	* Returns n-th dat.
 	* @param {number} n - Hashmap dat index number. Should be between 0 and length-1.
 	* @returns {number} The n-th data value.
@@ -1071,6 +1151,22 @@ exports = {}; require.modules.qminer_ht = exports;
     * // get the first key
     * var key = h.key(0); // returns 5
 	*/
+ exports.IntFltMap.prototype.key = function(n) { return 0; }	
+/**
+    * Returns the ID of the key provided as parameter.
+    * @param {number} key - Hashmap key.
+    * @returns {number} n - Hashmap index number of the key.
+    * @example
+    * // import modules
+    * var qm = require('qminer');
+    * var ht = qm.ht;
+    * // create a new hashtable
+    * var h = new ht.IntFltMap();
+    * // add a key/dat pair
+    * h.put(5, 10.5);
+    * // get key id of 5 
+    * var key = h.keyId(5); // returns 0
+    */
  exports.IntFltMap.prototype.key = function(n) { return 0; }	
 /**
 	* Returns n-th dat.

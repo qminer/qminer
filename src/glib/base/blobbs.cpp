@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -18,6 +18,61 @@ TStr TBlobPt::GetStr() const {
   }
   ChA+=']';
   return ChA;
+}
+
+/////////////////////////////////////////////////
+// Statistics for TBlobBs
+void TBlobBsStats::Reset() {
+    AvgPutNewLen = AvgGetLen = AvgPutLen = 0;
+    Dels = Puts = PutsNew = Gets = SizeChngs = 0;
+    AllocUsedSize = AllocUnusedSize = AllocSize = AllocCount = ReleasedCount = ReleasedSize = 0;
+}
+
+TBlobBsStats TBlobBsStats::Clone() const {
+    TBlobBsStats res;
+    res.AvgGetLen = this->AvgGetLen;
+    res.AvgPutLen = this->AvgPutLen;
+    res.AvgPutNewLen = this->AvgPutNewLen;
+    res.Dels = this->Dels;
+    res.Gets = this->Gets;
+    res.Puts = this->Puts;
+    res.PutsNew = this->PutsNew;
+    res.SizeChngs = this->SizeChngs;
+    res.AllocUsedSize = this->AllocUsedSize;
+    res.AllocUnusedSize = this->AllocUnusedSize;
+    res.AllocSize = this->AllocSize;
+    res.AllocCount = this->AllocCount;
+    res.ReleasedCount = this->ReleasedCount;
+    res.ReleasedSize = this->ReleasedSize;
+    return res;
+}
+
+void TBlobBsStats::Add(const TBlobBsStats& Othr) {
+    Puts += Othr.Puts;
+    PutsNew += Othr.PutsNew;
+    Gets += Othr.Gets;
+    SizeChngs += Othr.SizeChngs;
+    Dels += Othr.Dels;
+    AllocUsedSize += Othr.AllocUsedSize;
+    AllocUnusedSize += Othr.AllocUnusedSize;
+    AllocSize += Othr.AllocSize;
+    AllocCount += Othr.AllocCount;
+    ReleasedCount += Othr.ReleasedCount;
+    ReleasedSize += Othr.ReleasedSize;
+
+    AvgPutNewLen = 0;
+    AvgPutLen = 0;
+    AvgGetLen = 0;
+
+    if (PutsNew + Othr.PutsNew > 0) {
+        AvgPutNewLen = (AvgPutNewLen*PutsNew + Othr.AvgPutNewLen*Othr.PutsNew) / (PutsNew + Othr.PutsNew);
+    }
+    if (Gets + Othr.Gets) {
+        AvgGetLen = (AvgGetLen*Gets + Othr.AvgGetLen*Othr.Gets) / (Gets + Othr.Gets);
+    }
+    if (Puts + Othr.Puts > 0) {
+        AvgPutLen = (AvgPutLen*Puts + Othr.AvgPutLen*Othr.Puts) / (Puts + Othr.Puts);
+    }
 }
 
 /////////////////////////////////////////////////
@@ -365,7 +420,7 @@ int TGBlobBs::DelBlob(const TBlobPt& BlobPt){
   FBlobBs->PutCh(TCh::NullCh, MxBfL+sizeof(TCs));                      // erase existing content
   AssertBlobTag(FBlobBs, btEnd);
   FBlobBs->Flush();                                                    // write to disk
-  
+
   // update stats
   Stats.Dels++;
   Stats.AllocCount--;
@@ -540,8 +595,8 @@ TBlobPt TMBlobBs::PutBlob(const PSIn& SIn){
   TBlobPt BlobPt;
   while (DestSegN < SegV.Len()) {
     BlobPt = SegV[DestSegN]->PutBlob(SIn);
-    if (!BlobPt.Empty()) { 
-      break; 
+    if (!BlobPt.Empty()) {
+      break;
     }
     DestSegN++;
   }
@@ -568,7 +623,7 @@ TBlobPt TMBlobBs::PutBlob(const TBlobPt& BlobPt, const PSIn& SIn, int& ReleasedS
   const uint16 SegN=BlobPt.GetSeg();
   // try to store the SIn into the current segment
   TBlobPt NewBlobPt=SegV[SegN]->PutBlob(BlobPt, SIn, ReleasedSize);
-  // if we have released the previously used data chunk then remember that we have a buffer 
+  // if we have released the previously used data chunk then remember that we have a buffer
   // in SegN of ReleasedSize available to be filled
   if (ReleasedSize > 0) {
       BlockSizeToSegH.AddDat(ReleasedSize) = MIN(SegN, (uint16) BlockSizeToSegH.GetDatOrDef(ReleasedSize, 0));
@@ -613,10 +668,10 @@ bool TMBlobBs::FNextBlobPt(TBlobPt& TrvBlobPt, TBlobPt& BlobPt, PSIn& BlobSIn){
     TrvBlobPt.PutSeg(SegN);
     BlobPt.PutSeg(SegN);
     return true;
-  } 
+  }
   else if (SegN==SegV.Len()-1){
     return false;
-  } 
+  }
   else {
     SegN++;
     TrvBlobPt=SegV[SegN]->FFirstBlobPt();

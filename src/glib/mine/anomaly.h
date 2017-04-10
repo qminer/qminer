@@ -68,6 +68,8 @@ public:
     double GetRate(const int& RateN) const { return RateV[RateN]; }
     double GetThreshold(const int& RateN) const { return IsInit() ? ThresholdV[RateN].Val : 0.0; }
     int GetWindowSize() const { return WindowSize; }
+    /// Returns the memory footprint of the object
+    uint64 GetMemUsed() const;
 };
 
 };

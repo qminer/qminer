@@ -137,7 +137,7 @@ v8::Local<v8::Object> TNodeJsFltVV::New(const TFltVV& FltVV) {
 }
 
 v8::Local<v8::Object> TNodeJsFltVV::New(const TFltV& FltV) {
-    TFltVV FltVV;   TLinAlgTransform::Diag(FltV, FltVV);
+    TFltVV FltVV;    TLinAlgTransform::Diag(FltV, FltVV);
     return TNodeJsUtil::NewInstance(new TNodeJsFltVV(FltVV));
 }
 

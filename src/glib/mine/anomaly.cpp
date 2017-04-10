@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -164,7 +164,7 @@ PJsonVal TNearestNeighbor::Explain(const TIntFltKdV& Vec) const {
     int NearEltN = 0, EltN = 0;
     while (NearEltN < NearVec.Len() || EltN < Vec.Len()) {
         // get the feature ID
-        const int VecFtrId = EltN < Vec.Len() ? Vec[NearEltN].Key.Val : TInt::Mx;
+        const int VecFtrId = EltN < Vec.Len() ? Vec[EltN].Key.Val : TInt::Mx;
         const int NearFtrId = NearEltN < NearVec.Len() ? NearVec[NearEltN].Key.Val : TInt::Mx;
         const int FtrId = NearFtrId < VecFtrId ? NearFtrId : VecFtrId;
         // get values
@@ -196,6 +196,19 @@ PJsonVal TNearestNeighbor::Explain(const TIntFltKdV& Vec) const {
     int CurCol = NextCol > 0 ? NextCol - 1 : WindowSize - 1;
     ResVal->AddToObj("newestDat", DatV[CurCol]);
     return ResVal;
+}
+
+uint64 TNearestNeighbor::GetMemUsed() const {
+    return sizeof(TNearestNeighbor) +
+           TMemUtils::GetExtraMemberSize(RateV) +
+           TMemUtils::GetExtraMemberSize(WindowSize) +
+           TMemUtils::GetExtraMemberSize(Mat) +
+           TMemUtils::GetExtraMemberSize(DistV) +
+           TMemUtils::GetExtraMemberSize(DistColV) +
+           TMemUtils::GetExtraMemberSize(ThresholdV) +
+           TMemUtils::GetExtraMemberSize(InitVecs) +
+           TMemUtils::GetExtraMemberSize(NextCol) +
+           TMemUtils::GetExtraMemberSize(DatV);
 }
 
 };
