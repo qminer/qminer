@@ -2476,7 +2476,7 @@ TFullMatrix::TFullMatrix(const TFullMatrix& Other):
 		IsWrapper(Other.IsWrapper),
 		Mat(Other.IsWrapper ? Other.Mat : new TFltVV(*Other.Mat)) {}
 
-#ifdef GLib_CPP1
+#ifdef GLib_CPP11
 TFullMatrix::TFullMatrix(TFullMatrix&& Other):
 		TMatrix(Other),
 		IsWrapper(std::move(Other.IsWrapper)),
