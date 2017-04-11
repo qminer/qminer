@@ -181,11 +181,58 @@ public: // So we can register the class
 	static void Init(v8::Handle<v8::Object> exports);
 	// Does the job of the new operator in Javascript 
 	//static v8::Handle<v8::Value> NewInstance(const v8::FunctionCallbackInfo<v8::Value>& Args);
-	static v8::Local<v8::Object> New(const TFltV& FltV);
-	static v8::Local<v8::Object> New(const TIntV& IntV);
-	static v8::Local<v8::Object> New(const TStrV& StrV);
-	static v8::Local<v8::Object> New(const TBoolV& BoolV);
-    static v8::Local<v8::Object> New(const TVec<PJsonVal>& JsonV);
+
+    static v8::Local<v8::Object> New(const TVec<TVal>& Vec);
+
+    template <typename T = TVal, typename = typename gtraits::enable_if<gtraits::is_same<T, TFlt>::value>::type>
+    static v8::Local<v8::Object> New(const TIntV& IntV) {
+        v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+        v8::EscapableHandleScope HandleScope(Isolate);
+        EAssertR(!Constructor.IsEmpty(), "TNodeJsVec<TFlt, TAuxFltV>::New: constructor is empty. Did you call TNodeJsVec<TFlt, TAuxFltV>::Init(exports); in this module's init function?");
+        v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, Constructor);
+        v8::Local<v8::Object> Instance = cons->NewInstance();
+
+        v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
+        v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAuxFltV::ClassId.CStr());
+        TNodeJsUtil::SetPrivate(Instance, Key, Value);
+
+        int Len = IntV.Len();
+        TFltV Vec(Len);
+        for (int ElN = 0; ElN < Len; ElN++) {
+            Vec[ElN] = IntV[ElN];
+        }
+
+        TNodeJsVec<TFlt, TAuxFltV>* JsVec = new TNodeJsVec<TFlt, TAuxFltV>(Vec);
+        JsVec->Wrap(Instance);
+        return HandleScope.Escape(Instance);
+    }
+
+    template <typename T = TVal, typename = typename gtraits::enable_if<gtraits::is_same<T, TInt>::value>::type>
+    static v8::Local<v8::Object> New(const TFltV& FltV) {
+        v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+        v8::EscapableHandleScope HandleScope(Isolate);
+        EAssertR(!Constructor.IsEmpty(), "TNodeJsVec<TInt, TAuxIntV>::New: constructor is empty. Did you call TNodeJsVec<TInt, TAuxIntV>::Init(exports); in this module's init function?");
+        v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, Constructor);
+        v8::Local<v8::Object> Instance = cons->NewInstance();
+
+        v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
+        v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAuxIntV::ClassId.CStr());
+        TNodeJsUtil::SetPrivate(Instance, Key, Value);
+
+        int Len = FltV.Len();
+        TIntV Vec(Len);
+        for (int ElN = 0; ElN < Len; ElN++) {
+            Vec[ElN] = (int)FltV[ElN];
+        }
+
+        TNodeJsVec<TInt, TAuxIntV>* JsVec = new TNodeJsVec<TInt, TAuxIntV>(Vec);
+        JsVec->Wrap(Instance);
+        return HandleScope.Escape(Instance);
+    }
+
+    // default implementation, covers all the other cases there T != TVal
+    template <typename T>
+    static v8::Local<v8::Object> New(const TVec<T>&);
 
 	//static v8::Local<v8::Object> New(v8::Local<v8::Array> Arr);
 public:
@@ -694,185 +741,28 @@ typedef TNodeJsVec<TStr, TAuxStrV> TNodeJsStrV;
 typedef TNodeJsVec<TBool, TAuxBoolV> TNodeJsBoolV;
 typedef TNodeJsVec<PJsonVal, TAuxJsonV> TNodeJsJsonV;
 
-
-// template <typename TVal, typename TAux>
-template <>
-inline v8::Local<v8::Object> TNodeJsVec<TFlt, TAuxFltV>::New(const TFltV& FltV) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::EscapableHandleScope HandleScope(Isolate);
-	EAssertR(!Constructor.IsEmpty(), "TNodeJsVec<TFlt, TAuxFltV>::New: constructor is empty. Did you call TNodeJsVec<TFlt, TAuxFltV>::Init(exports); in this module's init function?");
-	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, Constructor);
-	v8::Local<v8::Object> Instance = cons->NewInstance();
-
-    v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
-    v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAuxFltV::ClassId.CStr());
-    TNodeJsUtil::SetPrivate(Instance, Key, Value);
-
-	TNodeJsVec<TFlt, TAuxFltV>* JsVec = new TNodeJsVec<TFlt, TAuxFltV>(FltV);
-	JsVec->Wrap(Instance);
-	return HandleScope.Escape(Instance);
-}
-
-// template <typename TVal, typename TAux>
-template <>
-inline v8::Local<v8::Object> TNodeJsVec<TFlt, TAuxFltV>::New(const TIntV& IntV) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::EscapableHandleScope HandleScope(Isolate);
-	EAssertR(!Constructor.IsEmpty(), "TNodeJsVec<TFlt, TAuxFltV>::New: constructor is empty. Did you call TNodeJsVec<TFlt, TAuxFltV>::Init(exports); in this module's init function?");
-	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, Constructor);
-	v8::Local<v8::Object> Instance = cons->NewInstance();
-
-    v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
-    v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAuxFltV::ClassId.CStr());
-    TNodeJsUtil::SetPrivate(Instance, Key, Value);
-
-	int Len = IntV.Len();
-	TFltV Vec(Len);
-	for (int ElN = 0; ElN < Len; ElN++) {
-		Vec[ElN] = IntV[ElN];
-	}
-
-	TNodeJsVec<TFlt, TAuxFltV>* JsVec = new TNodeJsVec<TFlt, TAuxFltV>(Vec);
-	JsVec->Wrap(Instance);
-	return HandleScope.Escape(Instance);
-}
-
-template <>
-inline v8::Local<v8::Object> TNodeJsVec<TInt, TAuxIntV>::New(const TFltV& FltV) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::EscapableHandleScope HandleScope(Isolate);
-	EAssertR(!Constructor.IsEmpty(), "TNodeJsVec<TInt, TAuxIntV>::New: constructor is empty. Did you call TNodeJsVec<TInt, TAuxIntV>::Init(exports); in this module's init function?");
-	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, Constructor);
-	v8::Local<v8::Object> Instance = cons->NewInstance();
-
-    v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
-    v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAuxIntV::ClassId.CStr());
-    TNodeJsUtil::SetPrivate(Instance, Key, Value);
-
-	int Len = FltV.Len();
-	TIntV Vec(Len);
-	for (int ElN = 0; ElN < Len; ElN++) {
-		Vec[ElN] = (int)FltV[ElN];
-	}
-
-	TNodeJsVec<TInt, TAuxIntV>* JsVec = new TNodeJsVec<TInt, TAuxIntV>(Vec);
-	JsVec->Wrap(Instance);
-	return HandleScope.Escape(Instance);
-}
-
-// template <typename TVal, typename TAux>
-template <>
-inline v8::Local<v8::Object> TNodeJsVec<TInt, TAuxIntV>::New(const TIntV& IntV) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::EscapableHandleScope HandleScope(Isolate);
-	EAssertR(!Constructor.IsEmpty(), "TNodeJsVec<TInt, TAuxIntV>::New: constructor is empty. Did you call TNodeJsVec<TInt, TAuxIntV>::Init(exports); in this module's init function?");
-	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, Constructor);
-
-	v8::Local<v8::Object> Instance = cons->NewInstance();
-
-    v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
-    v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAuxIntV::ClassId.CStr());
-    TNodeJsUtil::SetPrivate(Instance, Key, Value);
-
-	TNodeJsVec<TInt, TAuxIntV>* JsVec = new TNodeJsVec<TInt, TAuxIntV>(IntV);
-	JsVec->Wrap(Instance);
-	return HandleScope.Escape(Instance);
-}
-
-
-// template <typename TVal, typename TAux>
-template <>
-inline v8::Local<v8::Object> TNodeJsVec<TStr, TAuxStrV>::New(const TStrV& StrV) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::EscapableHandleScope HandleScope(Isolate);
-	EAssertR(!Constructor.IsEmpty(), "TNodeJsVec<TStr, TAuxStrV>::New: constructor is empty. Did you call TNodeJsVec<TStr, TAuxStrV>::Init(exports); in this module's init function?");
-	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, Constructor);
-
-	v8::Local<v8::Object> Instance = cons->NewInstance();
-
-    v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
-    v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAuxStrV::ClassId.CStr());
-    TNodeJsUtil::SetPrivate(Instance, Key, Value);
-
-	TNodeJsVec<TStr, TAuxStrV>* JsVec = new TNodeJsVec<TStr, TAuxStrV>(StrV);
-	JsVec->Wrap(Instance);
-	return HandleScope.Escape(Instance);
-}
-
-template <>
-inline v8::Local<v8::Object> TNodeJsVec<PJsonVal, TAuxJsonV>::New(const TVec<PJsonVal>& JsonV) {
+template <typename TVal, typename TAux>
+inline v8::Local<v8::Object> TNodeJsVec<TVal, TAux>::New(const TVec<TVal>& ValV) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::EscapableHandleScope HandleScope(Isolate);
-    EAssertR(!Constructor.IsEmpty(), "TNodeJsJsonV::New: constructor is empty. Did you call TTNodeJsJsonV::Init(exports); in this module's init function?");
+    EAssertR(!Constructor.IsEmpty(), TStr(TAux::ClassId) + "::New: constructor is empty. Did you call TNodeJsVec<TFlt, TAuxFltV>::Init(exports); in this module's init function?");
     v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, Constructor);
-
     v8::Local<v8::Object> Instance = cons->NewInstance();
 
     v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
-    v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAuxJsonV::ClassId.CStr());
+    v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAux::ClassId.CStr());
     TNodeJsUtil::SetPrivate(Instance, Key, Value);
 
-    return TNodeJsUtil::NewInstance(new TNodeJsJsonV(JsonV));
+    TNodeJsVec<TVal, TAux>* JsVec = new TNodeJsVec<TVal, TAux>(ValV);
+    JsVec->Wrap(Instance);
+    return HandleScope.Escape(Instance);
 }
 
-// template <typename TVal, typename TAux>
-template <>
-inline v8::Local<v8::Object> TNodeJsVec<TFlt, TAuxFltV>::New(const TStrV& StrV) {
-	throw TExcept::New("Not implemented");
+template <typename TVal, typename TAux>
+template <typename T>
+inline v8::Local<v8::Object> TNodeJsVec<TVal, TAux>::New(const TVec<T>&) {
+    throw TExcept::New("Not implemented!");
 }
-
-template <>
-inline v8::Local<v8::Object> TNodeJsVec<TInt, TAuxIntV>::New(const TStrV& StrV) {
-	throw TExcept::New("Not implemented");
-}
-
-template <>
-inline v8::Local<v8::Object> TNodeJsVec<TStr, TAuxStrV>::New(const TFltV& FltV) {
-	throw TExcept::New("Not implemented");
-}
-
-template <>
-inline v8::Local<v8::Object> TNodeJsVec<TStr, TAuxStrV>::New(const TIntV& IntV) {
-	throw TExcept::New("Not implemented");
-}
-
-// TODO implement the following three
-template <>
-inline v8::Local<v8::Object> TNodeJsVec<TBool, TAuxBoolV>::New(const TBoolV& BoolV) {
-	throw TExcept::New("Not implemented. TODO");
-}
-
-template <>
-inline v8::Local<v8::Object> TNodeJsVec<TFlt, TAuxFltV>::New(const TBoolV& BoolV) {
-	throw TExcept::New("Not implemented. TODO");
-}
-
-template <>
-inline v8::Local<v8::Object> TNodeJsVec<TInt, TAuxIntV>::New(const TBoolV& BoolV) {
-	throw TExcept::New("Not implemented. TODO");
-}
-
-template <>
-inline v8::Local<v8::Object> TNodeJsVec<TStr, TAuxStrV>::New(const TBoolV& BoolV) {
-	throw TExcept::New("Not implemented.");
-}
-
-template <>
-inline v8::Local<v8::Object> TNodeJsVec<TBool, TAuxBoolV>::New(const TStrV& StrV) {
-	throw TExcept::New("Not implemented");
-}
-
-template <>
-inline v8::Local<v8::Object> TNodeJsVec<TBool, TAuxBoolV>::New(const TFltV& FltV) {
-	throw TExcept::New("Not implemented");
-}
-
-template <>
-inline v8::Local<v8::Object> TNodeJsVec<TBool, TAuxBoolV>::New(const TIntV& IntV) {
-	throw TExcept::New("Not implemented");
-}
-
-
 
 template <typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::Init(v8::Handle<v8::Object> exports) {

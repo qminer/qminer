@@ -2476,12 +2476,14 @@ TFullMatrix::TFullMatrix(const TFullMatrix& Other):
 		IsWrapper(Other.IsWrapper),
 		Mat(Other.IsWrapper ? Other.Mat : new TFltVV(*Other.Mat)) {}
 
+#ifdef GLib_CPP1
 TFullMatrix::TFullMatrix(TFullMatrix&& Other):
 		TMatrix(Other),
 		IsWrapper(std::move(Other.IsWrapper)),
 		Mat(Other.Mat) {
 	Other.Mat = nullptr;
 }
+#endif
 
 TFullMatrix::TFullMatrix(TFltVV* _Mat):
 		IsWrapper(false),
