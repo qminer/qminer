@@ -557,6 +557,10 @@ public:
   TSizeTy Len() const {return Vals;}
   /// Returns the size of allocated storage capacity.
   TSizeTy Reserved() const {return MxVals;}
+  /// Returns a reference to the first element of the vector
+  const TVal& First() const { return GetVal(0); }
+  /// Returns a reference to the first element of the vector
+  TVal& First() { return GetVal(0); }
   /// Returns a reference to the last element of the vector.
   const TVal& Last() const {return GetVal(Len()-1);}
   /// Returns a reference to the last element of the vector.
