@@ -7,7 +7,7 @@
 * This source code is licensed under the FreeBSD license found in the
 * LICENSE file in the root directory of this source tree.
 */
-
+#include <stdio.h>
 #include "geospatial_aggr.h"
 
 namespace TQm {
@@ -125,7 +125,7 @@ TGeoCluster::TGeoCluster(const PJsonVal& Rec):
     AvgAccuracy = Rec->GetObjNum("avg_accuracy", 0);
     Distance = Rec->GetObjNum("distance", 0);
     MStartIdx = Rec->GetObjInt("startIdx", -1);
-    MEndIdx = Rec->GetObjInt("endIdx", -1);   
+    MEndIdx = Rec->GetObjInt("endIdx", -1);  
     
     if (Rec->IsObjKey("activities")) {
         AvgSensorActs.Clr();
@@ -291,6 +291,9 @@ TStayPointDetector::TStayPointDetector(
     AccuracyFieldId = Store->GetFieldId(AccuracyFieldName);
     TStr ActivitiesFieldName = ParamVal->GetObjStr("activitiesField");
     ActivitiesField = Store->GetFieldId(ActivitiesFieldName);
+	TStr SpeedFieldName = ParamVal->GetObjStr("speedField");
+	SpeedFieldId = Store->GetFieldId(SpeedFieldName);
+	
 }//TStayPointDetector::constructor
 
 void TStayPointDetector::OnAddRec(const TRec& Rec,
@@ -485,7 +488,7 @@ bool TStayPointDetector::ParseGPSRec(const TRec& Rec, TGPSMeasurement& Gps) {
     Rec.GetFieldTm(TimeFieldId, Timestamp);
     uint64 Time =
         TTm::GetUnixMSecsFromWinMSecs(Timestamp.GetMSecsFromTm(Timestamp));
-   
+ 
     double Lat = Rec.GetFieldFltPr(LocationFieldId).Val1;
     double Lon = Rec.GetFieldFltPr(LocationFieldId).Val2;
 
@@ -493,9 +496,14 @@ bool TStayPointDetector::ParseGPSRec(const TRec& Rec, TGPSMeasurement& Gps) {
     if (!Rec.IsFieldNull(AccuracyFieldId)) {
         Accuracy = Rec.GetFieldByte(AccuracyFieldId);
     }
+	double Speed = -1.0;
+	if (!Rec.IsFieldNull(SpeedFieldId)) {
+		Speed = Rec.GetFieldFlt(SpeedFieldId);
+	}
     Gps.Time = Time;
     Gps.LatLon = TPoint(Lat, Lon);
     Gps.Accuracy = Accuracy;
+	Gps.Speed = Speed;
     
     if (!Rec.IsFieldNull(ActivitiesField)) {
         //TODO: This sensorActivities will go into a separate Aggregate
@@ -525,7 +533,7 @@ bool TStayPointDetector::ParseGPSRec(const TRec& Rec, TGPSMeasurement& Gps) {
         }
     }
     else {
-        if (Gps.Speed == -1.0) { Gps.Speed = 0; }
+		if (Gps.Speed == -1.0) { Gps.Speed = 0; }
         Gps.Distance = 0;
     }
     return true;
