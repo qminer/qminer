@@ -1,5 +1,18 @@
 # QMiner Change Log
 
+### 21 April 2017
+
+**Version 8.1.0**
+
+**Non-breaking with a new feature and bugfix**
+
+New features:
+- JsonVector (new JSON type supported for vectors)
+
+Bug fixes:
+- assert the base create mode is valid
+- fixed error messages
+
 ### 31 March 2017
 
 **Version 8.0.0**
