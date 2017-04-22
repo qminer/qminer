@@ -255,7 +255,7 @@ uint64 TJsonVal::GetObjUInt64(const char *Key, const uint64& DefInt) const {
 
 void TJsonVal::GetObjIntV(const TStr& Key, TIntV& IntV) const {
     EAssert(IsObj());
-    EAssert(IsObjKey(Key));
+    EAssertR(IsObjKey(Key), "Key missing: " + Key);
     GetObjKey(Key)->GetArrIntV(IntV);
 }
 
