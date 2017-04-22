@@ -494,9 +494,10 @@ void THttpRq::ParseSearch(const TStr& SearchStr){
       switch (Ch){
         case '%':{
           char Ch1=ChRet.GetCh();
-		  if (!TCh::IsHex(Ch1)) { throw THttpEx(heBadSearchStr); }
-		  char Ch2=ChRet.GetCh();
-		  if (!TCh::IsHex(Ch2)) { throw THttpEx(heBadSearchStr); }
+          if (!TCh::IsHex(Ch1)) { throw THttpEx(heBadSearchStr); }
+          char Ch2=ChRet.GetCh();
+          if (!TCh::IsHex(Ch2)) { throw THttpEx(heBadSearchStr); }
+          if (Ch1 == 0 && Ch2 == 0) throw THttpEx(heBadSearchStr);
           KeyNm.AddCh(char(16*TCh::GetHex(Ch1)+TCh::GetHex(Ch2)));} break;
         case '+': KeyNm.AddCh(' '); break;
         case '&': throw THttpEx(heBadSearchStr);
@@ -511,9 +512,10 @@ void THttpRq::ParseSearch(const TStr& SearchStr){
       switch (Ch){
         case '%':{
           char Ch1=ChRet.GetCh();
-		  if (!TCh::IsHex(Ch1)) { throw THttpEx(heBadSearchStr); }
+          if (!TCh::IsHex(Ch1)) { throw THttpEx(heBadSearchStr); }
           char Ch2=ChRet.GetCh();
-		  if (!TCh::IsHex(Ch2)) { throw THttpEx(heBadSearchStr); }
+          if (!TCh::IsHex(Ch2)) { throw THttpEx(heBadSearchStr); }
+          if (Ch1 == 0 && Ch2 == 0) throw THttpEx(heBadSearchStr);
           ValStr.AddCh(char(16*TCh::GetHex(Ch1)+TCh::GetHex(Ch2)));} break;
         case '+': ValStr.AddCh(' '); break;
         case '&': throw THttpEx(heBadSearchStr);
@@ -623,7 +625,12 @@ THttpRq::THttpRq(const PSIn& SIn):
   try {
     ParseHttpRq(SIn);
   }
-  catch (const THttpEx&){Ok=false;}
+  catch (const THttpEx&){
+      Ok=false;
+  }
+  catch (PExcept E) {
+      Ok = false;
+  }
 }
 
 THttpRq::THttpRq(
@@ -847,7 +854,7 @@ void THttpResp::ParseHttpResp(const PSIn& SIn){
 }
 
 THttpResp::THttpResp(const int& _StatusCd, const TStr& ContTypeVal,
- const bool& CacheCtrlP, const PSIn& BodySIn, const TStr LocStr, 
+ const bool& CacheCtrlP, const PSIn& BodySIn, const TStr LocStr,
  const int& ResponseTimeMs, const TStrKdV& CustomHdrV):
   Ok(true), MajorVerN(1), MinorVerN(0), StatusCd(_StatusCd), ReasonPhrase(),
   FldNmToValVH(20), HdStr(), BodyMem(){

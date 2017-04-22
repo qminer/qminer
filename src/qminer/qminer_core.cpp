@@ -583,6 +583,11 @@ void TStore::PutInverseJoinId(const int& JoinId, const int& InverseJoinId) {
     JoinDescV[JoinId].PutInverseJoinId(InverseJoinId);
 }
 
+const TStr& TStore::GetFieldNm(const int& FieldId) const {
+    QmAssert(0 <= FieldId && FieldId <= FieldDescV.Len());
+    return FieldDescV[FieldId].GetFieldNm(); 
+}
+
 TIntV TStore::GetFieldIdV(const TFieldType& Type) {
     TIntV FieldIdV;
     for (int i = 0; i < FieldDescV.Len(); i++) {
@@ -5008,7 +5013,7 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TStr& StoreNm, const TStr&
 }
 
 TQueryItem::TQueryItem(const TWPt<TBase>& Base, const int& _KeyId,
-    const TStr& WordStr, const int& _MaxPosDiff) : KeyId(_KeyId), MaxPosDiff(_MaxPosDiff), Type(oqitTextPos) {
+    const TStr& WordStr, const int& _MaxPosDiff) : Type(oqitTextPos), KeyId(_KeyId), MaxPosDiff(_MaxPosDiff) {
 
     CmpType = oqctEqual;
     // get target word id(s)
@@ -5016,7 +5021,7 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const int& _KeyId,
 }
 
 TQueryItem::TQueryItem(const TWPt<TBase>& Base, const uint& StoreId, const TStr& KeyNm,
-    const TStr& WordStr, const int& _MaxPosDiff) : MaxPosDiff(_MaxPosDiff), Type(oqitTextPos) {
+    const TStr& WordStr, const int& _MaxPosDiff) : Type(oqitTextPos), MaxPosDiff(_MaxPosDiff) {
 
     CmpType = oqctEqual;
     // get the key
@@ -5027,7 +5032,7 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const uint& StoreId, const TStr&
 }
 
 TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TStr& StoreNm, const TStr& KeyNm,
-    const TStr& WordStr, const int& _MaxPosDiff) : MaxPosDiff(_MaxPosDiff), Type(oqitTextPos) {
+    const TStr& WordStr, const int& _MaxPosDiff) : Type(oqitTextPos), MaxPosDiff(_MaxPosDiff) {
 
     CmpType = oqctEqual;
     // get the key
