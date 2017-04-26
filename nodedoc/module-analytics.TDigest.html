@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3">
   <meta charset="utf-8">
-  <title>Class: PropHazards</title>
+  <title>Class: TDigest</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -24,11 +24,13 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">PropHazards</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1243">analyticsdoc.<wbr>js:1243</a></p>
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">TDigest</span></h1>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1911">analyticsdoc.<wbr>js:1911</a></p>
             <div class="symbol-classdesc">
-              <p>Proportional Hazards Model with a constant hazard function. Uses Newtons method to compute the weights.
-                <b>Before use: QMiner must be built with the OpenBLAS library.</b></p>
+              <p>TDigest is a methods that approximates the CDF function of streaming measurements. Data structure useful for percentile and quantile estimation for online data streams. It can be added to any anomaly detector to set the number of alarms
+                triggered as a percentage of the total samples. Adding new samples to the distribution is achieved through <code>partialFit</code> and querying the model (computing quantiles) is implemented by <code>predict</code> function.
+                <br> This is based on the Data Lib Sketch Implementation: <a href="https://github.com/vega/datalib-sketch/blob/master/src/t-digest.js">t-digest.js</a>
+                <br> Paper: Ted Dunning, Otmar Ertl - <a href="https://github.com/tdunning/t-digest/blob/master/docs/t-digest-paper/histo.pdf">Computing Extremely Accurate Quantiles Using t-Digests</a>.</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -39,7 +41,7 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.PropHazards.html#weights">weights</a></dt>
+                    <dt><a href="module-analytics.TDigest.html#init">init</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -55,27 +57,27 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.PropHazards.html#fit">fit(X, y[, eps])</a></dt>
+                    <dt><a href="module-analytics.TDigest.html#getParams">getParams()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.PropHazards.html#getParams">getParams()</a></dt>
-                    <dd>
-                    </dd>
-                  </dl>
-                </div>
-                <div class="summary-column">
-                  <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.PropHazards.html#predict">predict(x)</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="module-analytics.PropHazards.html#save">save(fout)</a></dt>
+                    <dt><a href="module-analytics.TDigest.html#partialFit">partialFit(x)</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.PropHazards.html#setParams">setParams(params)</a></dt>
+                    <dt><a href="module-analytics.TDigest.html#predict">predict(x)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.TDigest.html#save">save(fout)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.TDigest.html#setParams">setParams(params)</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -84,17 +86,30 @@
             </div>
           </section>
           <section>
-            <h2 id="PropHazards">new&nbsp;<span class="symbol-name">PropHazards</span><span class="signature"><span class="signature-params">([arg])</span></span></h2>
-            <p>Proportional Hazards Model</p>
+            <h2 id="TDigest">new&nbsp;<span class="symbol-name">TDigest</span><span class="signature"><span class="signature-params">([arg])</span></span></h2>
+            <p>TDigest quantile estimation on streams</p>
             <section>
               <h3>
             Example
         </h3>
               <div>
-                <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
-// create a Proportional Hazard model
-var hazard = new analytics.PropHazards();</code></pre>
+                <pre class="prettyprint"><code>// import modules
+var qm = require(&#x27;qminer&#x27;);
+var analytics = qm.analytics;
+// create the default TDigest object
+var tdigest = new analytics.TDigest();
+// create the data used for calculating quantiles
+var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
+// fit the TDigest model
+for (var i = 0; i &lt; inputs.length; i++) {
+    tdigest.partialFit(inputs[i]);
+}
+// make the prediction for the 0.1 quantile
+var prediction = tdigest.predict(0.1);
+// save the model
+tdigest.save(fs.openWrite(&#x27;tdigest.bin&#x27;)).close();
+// open the tdigest model under a new variable
+var tdigest2 = new analytics.TDigest(fs.openRead(&#x27;tdigest.bin&#x27;));</code></pre>
               </div>
             </section>
             <section>
@@ -114,14 +129,14 @@ var hazard = new analytics.PropHazards();</code></pre>
                       <p>arg</p>
                     </td>
                     <td>
-                      <p>(<a href="module-analytics.html#~hazardModelParam">module:analytics~hazardModelParam</a> or <a href="module-fs.FIn.html">module:fs.FIn</a>)</p>
+                      <p>(<a href="module-analytics.html#~TDigestParam">module:analytics~TDigestParam</a> or <a href="module-fs.FIn.html">module:fs.FIn</a>)</p>
                     </td>
                     <td>
                       <p>Yes</p>
                     </td>
                     <td>
                       <p>Construction arguments. There are two ways of constructing:
-                        <br>1. Using the <a href="module-analytics.html#~hazardModelParam">module:analytics~hazardModelParam</a> object,
+                        <br>1. Using the <a href="module-analytics.html#~TDigestParam">module:analytics~TDigestParam</a> object,
                         <br>2. using the file input stream <a href="module-fs.FIn.html">module:fs.FIn</a>.</p>
                     </td>
                   </tr>
@@ -134,20 +149,21 @@ var hazard = new analytics.PropHazards();</code></pre>
           <section>
             <h2>Property</h2>
             <section>
-              <h3 id="weights"><span class="symbol-name">weights</span></h3>
-              <p>The models weights. Type <a href="module-la.Vector.html">module:la.Vector</a>.</p>
+              <h3 id="init"><span class="symbol-name">init</span></h3>
+              <p>Returns true when the model has enough data to initialize. Type <code>boolean</code>.</p>
               <section>
                 <h4>
             Example
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
-// create the Proportional Hazards model
-var hazards = new analytics.PropHazards();
-// get the weights
-var weights = hazards.weights;</code></pre>
+var qm = require(&#x27;qminer&#x27;);
+var analytics = qm.analytics;
+var fs = qm.fs;
+// create the default TDigest object
+var tdigest = new analytics.TDigest();
+// check if the model has enough data to initialize
+if (tdigest.init) { console.log(&quot;Ready to initialize&quot;); }</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -155,135 +171,46 @@ var weights = hazards.weights;</code></pre>
             </section>
             <h2>Methods</h2>
             <section>
-              <h3 id="fit"><span class="symbol-name">fit</span><span class="signature"><span class="signature-params">(X, y[, eps])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.PropHazards.html">module:analytics.PropHazards</a></span></span></h3>
-              <p>Fits a column matrix of feature vectors <code>X</code> onto the response variable <code>y</code>.</p>
+              <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.html#~TDigestParam">module:analytics~TDigestParam</a></span></span></h3>
+              <p>Returns the parameters.</p>
               <section>
                 <h4>
             Example
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
-// create the Proportional Hazards model
-var hazards = new analytics.PropHazards();
-// create the input matrix and vector for fitting the model
-var mat = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
-var vec = new la.Vector([1, 0, -1, -2]);
-// if openblas used, fit the model
-if (require(&#x27;qminer&#x27;).flags.blas) {
-    hazards.fit(mat, vec);
-};</code></pre>
-                </div>
-              </section>
-              <section>
-                <h4>Parameters</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>X</p>
-                      </td>
-                      <td>
-                        <p><a href="module-la.Matrix.html">module:la.Matrix</a></p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>The column matrix which stores the feature vectors.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>y</p>
-                      </td>
-                      <td>
-                        <p><a href="module-la.Vector.html">module:la.Vector</a></p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>The response variable.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>eps</p>
-                      </td>
-                      <td>
-                        <p>number</p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>The epsilon used for convergence.</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code><a href="module-analytics.PropHazards.html">module:analytics.PropHazards</a></code>&nbsp;Self. The model has been updated.</p>
-                </dd>
-              </dl>
-              <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.html#~hazardModelParam">module:analytics~hazardModelParam</a></span></span></h3>
-              <p>Gets the parameters of the model.</p>
-              <section>
-                <h4>
-            Example
-        </h4>
-                <div>
-                  <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
-// create a Proportional Hazard model
-var hazard = new analytics.PropHazards({ lambda: 5 });
-// get the parameters of the model
-var param = hazard.getParams();</code></pre>
+var qm = require(&#x27;qminer&#x27;);
+var analytics = qm.analytics;
+// create the default TDigest object
+var tdigest = new analytics.TDigest();
+// get the parameters of the object
+var params = tdigest.getParams();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.html#~hazardModelParam">module:analytics~hazardModelParam</a></code>&nbsp;The parameters of the model.</p>
+                  <p><code><a href="module-analytics.html#~TDigestParam">module:analytics~TDigestParam</a></code>&nbsp;The construction parameters.</p>
                 </dd>
               </dl>
-              <h3 id="predict"><span class="symbol-name">predict</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
-              <p>Returns the expected response for the provided feature vector.</p>
+              <h3 id="partialFit"><span class="symbol-name">partialFit</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.TDigest.html">module:analytics.TDigest</a></span></span></h3>
+              <p>Adds a new measurement to the model and updates the approximation of the data distribution.</p>
               <section>
                 <h4>
             Example
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
-// create the Proportional Hazards model
-var hazards = new analytics.PropHazards();
-// create the input matrix and vector for fitting the model
-var mat = new la.Matrix([[1, 1], [1, -1]]);
-var vec = new la.Vector([3, 3]);
-// if openblas used, fit the model and get the prediction
-if (require(&#x27;qminer&#x27;).flags.blas) {
-    // fit the model
-    hazards.fit(mat, vec);       
-    // create a vector for the prediction
-     var test = new la.Vector([1, 2]);
-    // predict the value
-    var prediction = hazards.predict(test);
-};</code></pre>
+var qm = require(&#x27;qminer&#x27;);
+var analytics = qm.analytics;
+// create the default TDigest object
+var tdigest = new analytics.TDigest();
+// create the data used for calculating quantiles
+var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
+// fit the TDigest model with all input values
+for (var i = 0; i &lt; inputs.length; i++) {
+    tdigest.partialFit(inputs[i]);
+}</code></pre>
                 </div>
               </section>
               <section>
@@ -303,13 +230,13 @@ if (require(&#x27;qminer&#x27;).flags.blas) {
                         <p>x</p>
                       </td>
                       <td>
-                        <p><a href="module-la.Vector.html">module:la.Vector</a></p>
+                        <p>number</p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>The feature vector.</p>
+                        <p>Input number.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -318,37 +245,89 @@ if (require(&#x27;qminer&#x27;).flags.blas) {
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;The expected response.</p>
+                  <p><code><a href="module-analytics.TDigest.html">module:analytics.TDigest</a></code>&nbsp;Self. The model has been updated.</p>
                 </dd>
               </dl>
-              <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
-              <p>Saves the model into the output stream.</p>
+              <h3 id="predict"><span class="symbol-name">predict</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <p>Returns a quantile given input number, that is the approximate fraction of samples smaller than the input (0.05 means that 5% of data is smaller than the input value).</p>
               <section>
                 <h4>
             Example
         </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
-var fs = require(&#x27;qminer&#x27;).fs;
-// create the Proportional Hazards model
-var hazards = new analytics.PropHazards();
-// create the input matrix and vector for fitting the model
-var mat = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
-var vec = new la.Vector([1, 0, -1, -2]);
-// if openblas used, fit the model
-if (require(&#x27;qminer&#x27;).flags.blas) {
-    hazards.fit(mat, vec);
-};
-// create an output stream and save the model
-var fout = fs.openWrite(&#x27;hazards_example.bin&#x27;);
-hazards.save(fout);
-fout.close();
-// create input stream
-var fin = fs.openRead(&#x27;hazards_example.bin&#x27;);
-// create a Proportional Hazards object that loads the model and parameters from input stream
-var hazards2 = new analytics.PropHazards(fin);    </code></pre>
+var qm = require(&#x27;qminer&#x27;);
+var analytics = qm.analytics;
+// create the default TDigest object
+var tdigest = new analytics.TDigest();
+// create the data used for calculating quantiles
+var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
+// fit the TDigest model
+for (var i = 0; i &lt; inputs.length; i++) {
+    tdigest.partialFit(inputs[i]);
+}
+// make the prediction for the 0.1 quantile
+var prediction = tdigest.predict(0.1);</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>x</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Input number.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>number</code>&nbsp;Quantile (between 0 and 1).</p>
+                </dd>
+              </dl>
+              <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
+              <p>Saves TDigest internal state into (binary) file.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import modules
+var qm = require(&#x27;qminer&#x27;);
+var analytics = qm.analytics;
+var fs = qm.fs;
+// create the default TDigest object
+var tdigest = new analytics.TDigest();
+// create the data used for calculating quantiles
+var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
+// fit the TDigest model
+for (var i = 0; i &lt; inputs.length; i++) {
+    tdigest.partialFit(inputs[i]);
+}
+// save the model
+tdigest.save(fs.openWrite(&#x27;tdigest.bin&#x27;)).close();
+// open the tdigest model under a new variable
+var tdigest2 = new analytics.TDigest(fs.openRead(&#x27;tdigest.bin&#x27;));</code></pre>
                 </div>
               </section>
               <section>
@@ -386,19 +365,20 @@ var hazards2 = new analytics.PropHazards(fin);    </code></pre>
                   <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;The output stream <code>fout</code>.</p>
                 </dd>
               </dl>
-              <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(params)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.PropHazards.html">module:analytics.PropHazards</a></span></span></h3>
-              <p>Sets the parameters of the model.</p>
+              <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(params)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.TDigest.html">module:analytics.TDigest</a></span></span></h3>
+              <p>Sets the parameters.</p>
               <section>
                 <h4>
             Example
         </h4>
                 <div>
-                  <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
-// create a Proportional Hazard model
-var hazard = new analytics.PropHazards({ lambda: 5 });
-// set the parameters of the model
-hazard.setParams({ lambda: 10 });</code></pre>
+                  <pre class="prettyprint"><code>// import modules
+var qm = require(&#x27;qminer&#x27;);
+var analytics = qm.analytics;
+// create the default TDigest object
+var tdigest = new analytics.TDigest();
+// set the parameters of the object
+var params = tdigest.setParams({ minCount: 10, clusters: 50 });</code></pre>
                 </div>
               </section>
               <section>
@@ -418,13 +398,13 @@ hazard.setParams({ lambda: 10 });</code></pre>
                         <p>params</p>
                       </td>
                       <td>
-                        <p><a href="module-analytics.html#~hazardModelParam">module:analytics~hazardModelParam</a></p>
+                        <p><a href="module-analytics.html#~TDigestParam">module:analytics~TDigestParam</a></p>
                       </td>
                       <td>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>The parameters given to the model.</p>
+                        <p>The construction parameters.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -433,7 +413,7 @@ hazard.setParams({ lambda: 10 });</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.PropHazards.html">module:analytics.PropHazards</a></code>&nbsp;Self. The model parameters have been updated.</p>
+                  <p><code><a href="module-analytics.TDigest.html">module:analytics.TDigest</a></code>&nbsp;Self. The model parameters have been updated.</p>
                 </dd>
               </dl>
             </section>

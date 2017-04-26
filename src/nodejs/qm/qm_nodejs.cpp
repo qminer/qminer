@@ -492,6 +492,8 @@ TNodeJsBase* TNodeJsBase::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>&
     TStr DbPath = Val->GetObjStr("dbPath", "./db/");
     // mode: create, createClean, open, openReadOnly
     TStr Mode = Val->GetObjStr("mode", "openReadOnly");
+
+    EAssertR(Mode == "create" || Mode == "createClean" || Mode == "openReadOnly" || Mode == "open", "Base.create: Unrecognized mode " + Mode);
     const bool StrictNmP = Val->GetObjBool("strictNames", true);
 
     TStr SchemaFNm = Val->GetObjStr("schemaPath", "");
