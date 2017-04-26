@@ -288,6 +288,12 @@ void TNodeJsQm::flags(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo
     JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "msc")), v8::Boolean::New(Isolate, false));
 #endif
 
+#ifdef GLib_GLIBC
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "glibc")), v8::Boolean::New(Isolate, true));
+#else
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "glibc")), v8::Boolean::New(Isolate, false));
+#endif
+
     // By default the blas flags are false
     JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "blas")), v8::Boolean::New(Isolate, false));
     JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "blas_intel")), v8::Boolean::New(Isolate, false));
