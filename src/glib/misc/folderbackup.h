@@ -32,13 +32,14 @@ class TBackupLogInfo
 {
 private:
     TStr LogInfo;       // info about the success or failure of the backing up
+    TStr LogDetails;    // empty or contains a stack trace of the error
     TFlt SecsNeeded;    // how long did we need to make the backup (in seconds)
     TStr FolderName;    // name of the folder in which we have stored the backup data
 
 public:
     TBackupLogInfo() {}
     TBackupLogInfo(const PJsonVal& Json);
-    TBackupLogInfo(const TStr& FolderName, const TFlt SecsNeeded, const TStr& LogInfo);
+    TBackupLogInfo(const TStr& FolderName, const TFlt SecsNeeded, const TStr& LogInfo, const TStr& LogDetails);
     PJsonVal GetJson() const;
     TStr GetFolderName() const { return FolderName; }
 };
@@ -64,7 +65,7 @@ private:
     TVec<TBackupLogInfo> LogV;
 
     TStr GetFolderNameForCurrentTime() const;
-    void CopyFolder(const TStr& BaseTargetFolder, const TStr& SourceFolder, const TStrV& Extensions, const TStrV& SkipIfContainingV, const bool& IncludeSubfolders, const bool& ReportP, TStr& ErrMsg);
+    void CopyFolder(const TStr& BaseTargetFolder, const TStr& SourceFolder, const TStrV& Extensions, const TStrV& SkipIfContainingV, const bool& IncludeSubfolders, const bool& ReportP, TStr& ErrMsg, TStr& ErrDetails);
     
     void SaveLogs() const;
 

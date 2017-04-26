@@ -36,6 +36,7 @@ public:
 
 /////////////////////////////////////////////////
 // Pair
+#pragma pack(push, 1) // pack class size
 template <class TVal1, class TVal2>
 class TPair{
 public:
@@ -76,6 +77,7 @@ public:
   const TVal2& GetVal2() const { return Val2;}
   TStr GetStr() const {return TStr("Pair(")+Val1.GetStr()+", "+Val2.GetStr()+")";}
 };
+#pragma pack(pop)
 
 template <class TVal1, class TVal2, class TSizeTy>
 void GetSwitchedPrV(const TVec<TPair<TVal1, TVal2>, TSizeTy>& SrcPrV, TVec<TPair<TVal2, TVal1>, TSizeTy>& DstPrV){
@@ -340,6 +342,7 @@ public:
 
 /////////////////////////////////////////////////
 // Key-Data
+#pragma pack(push, 1) // pack class size
 template <class TKey, class TDat>
 class TKeyDat{
 public:
@@ -367,6 +370,7 @@ public:
   int GetSecHashCd() const {return Key.GetSecHashCd();}
   uint64 GetMemUsed() const { return Key.GetMemUsed() + Dat.GetMemUsed(); }
 };
+#pragma pack(pop)
 
 template <class TKey, class TDat>
 void GetSwitchedKdV(const TVec<TKeyDat<TKey, TDat>, int>& SrcKdV, TVec<TKeyDat<TDat, TKey>, int>& DstKdV){
@@ -819,11 +823,11 @@ private:
 #ifdef GLib_CPP11
   /// get memory usage for simple types, such that we don't need to call
   /// GetMemUsed on each element
-  template <class T = TVal, typename std::enable_if<gtraits::is_shallow<T>::value, bool>::type = true>
+  template <class T = TVal, typename gtraits::enable_if<gtraits::is_shallow<T>::value, bool>::type = true>
   uint64 GetVecMemUsed(const bool& = false) const { return GetMemUsedShallow(); }
   /// get memory usage for complex types, where we have to call GetMemUsed
   /// on each element
-  template <class T = TVal, typename std::enable_if<!gtraits::is_shallow<T>::value, bool>::type = true>
+  template <class T = TVal, typename gtraits::enable_if<!gtraits::is_shallow<T>::value, bool>::type = true>
   uint64 GetVecMemUsed(const bool& DeepP = false) const { return DeepP ? GetMemUsedDeep() : GetMemUsedShallow(); }
 #else
   /// get memory usage - pre-cpp11 implementation

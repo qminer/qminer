@@ -123,6 +123,8 @@ private:
     TInt AccuracyFieldId;
     /// time field id for fast access
     TInt TimeFieldId;
+	/// speed field id for fast access
+	TInt SpeedFieldId;
 
     /// algorithm parameters
     PJsonVal Params;

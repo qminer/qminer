@@ -258,6 +258,8 @@ public:
     /// Extract argument ArgN as GLib Json (PJsonVal)
     static PJsonVal GetArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const bool& IgnoreFunc=false, const bool& IgnoreWrappedObj=false);
     static PJsonVal GetArgToNmJson(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
+    /// Extracts TIntV
+    static void GetArgIntV(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, TIntV& IntV);
     /// Extracts TVec<TIntV>
     static void GetArgIntVV(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, TVec<TIntV>& IntVV);
     /// casts the argument into the appropriate type
@@ -329,6 +331,7 @@ public:
 
     /// Throws and exception which can be caught in Javascript
     static void ThrowJsException(v8::Isolate* Isolate, const PExcept& Except);
+
 
     /// Constructor callback: sets the hidden "class" property of new instance,
     /// creates a new wrapper object and wraps the new instance. This callback
