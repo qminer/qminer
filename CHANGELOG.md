@@ -1,5 +1,14 @@
 # QMiner Change Log
 
+### 5 May 2017
+
+**Version 8.2.0**
+
+**Non-breaking with a new feature**
+
+New features:
+- qm.flags includes compiler version and sizeof information 
+
 ### 21 April 2017
 
 **Version 8.1.0**
