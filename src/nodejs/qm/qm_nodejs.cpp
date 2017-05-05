@@ -228,6 +228,12 @@ void TNodeJsQm::flags(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo
     JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "win")), v8::Boolean::New(Isolate, false));
 #endif
 
+#ifdef GLib_UNIX
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "unix")), v8::Boolean::New(Isolate, true));
+#else
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "unix")), v8::Boolean::New(Isolate, false));
+#endif
+
 #ifdef GLib_LINUX
     JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "linux")), v8::Boolean::New(Isolate, true));
 #else
@@ -265,15 +271,27 @@ void TNodeJsQm::flags(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo
 #endif
 
 #ifdef GLib_GCC
-    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "gcc")), v8::Boolean::New(Isolate, true));
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "gcc")), v8::String::NewFromUtf8(Isolate, __VERSION__));
 #else
     JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "gcc")), v8::Boolean::New(Isolate, false));
 #endif
 
 #ifdef __clang__
-    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "clang")), v8::Boolean::New(Isolate, true));
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "clang")), v8::String::NewFromUtf8(Isolate, __clang_version__));
 #else
     JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "clang")), v8::Boolean::New(Isolate, false));
+#endif
+
+#ifdef GLib_MSC
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "msc")), v8::Boolean::New(Isolate, true));
+#else
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "msc")), v8::Boolean::New(Isolate, false));
+#endif
+
+#ifdef GLib_GLIBC
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "glibc")), v8::Boolean::New(Isolate, true));
+#else
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "glibc")), v8::Boolean::New(Isolate, false));
 #endif
 
     // By default the blas flags are false
@@ -297,6 +315,22 @@ void TNodeJsQm::flags(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo
 #else
     JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "lapacke")), v8::Boolean::New(Isolate, false));
 #endif
+
+    // basic type sizes
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(char)")), v8::Integer::New(Isolate, sizeof(char)));
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(int8)")), v8::Integer::New(Isolate, sizeof(int8)));
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(short)")), v8::Integer::New(Isolate, sizeof(short)));
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(int16)")), v8::Integer::New(Isolate, sizeof(int16)));
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(int)")), v8::Integer::New(Isolate, sizeof(int)));
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(int32)")), v8::Integer::New(Isolate, sizeof(int32)));
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(long)")), v8::Integer::New(Isolate, sizeof(long)));
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(long long)")), v8::Integer::New(Isolate, sizeof(long long)));
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(int64)")), v8::Integer::New(Isolate, sizeof(int64)));
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(char*)")), v8::Integer::New(Isolate, sizeof(char*)));
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(size_t)")), v8::Integer::New(Isolate, sizeof(size_t)));
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(float)")), v8::Integer::New(Isolate, sizeof(float)));
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(double)")), v8::Integer::New(Isolate, sizeof(double)));
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(char*)")), v8::Integer::New(Isolate, sizeof(char*)));
 
     Info.GetReturnValue().Set(JsObj);
 }
@@ -3726,7 +3760,7 @@ void TNodeJsFuncFtrExt::ExecuteFuncVec(const TQm::TRec& FtrRec, TFltV& Vec) cons
     v8::Handle<v8::Object> RetValObj = v8::Handle<v8::Object>::Cast(RetVal);
 
     QmAssertR(TNodeJsUtil::IsClass(RetValObj, TNodeJsFltV::GetClassId()), "TJsFuncFtrExt::ExecuteFuncVec callback should return a dense vector (same type as la.newVec()).");
-    // cast it to js vector and copy internal vector    
+    // cast it to js vector and copy internal vector
     Vec = ObjectWrap::Unwrap<TNodeJsFltV>(RetValObj)->Vec;
 }
 
