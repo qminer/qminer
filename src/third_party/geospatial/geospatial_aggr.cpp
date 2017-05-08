@@ -164,6 +164,8 @@ void TGeoCluster::AddPoint(const int& Idx,
     Depart = CurrentGPS.Time;
     MEndIdx = Idx;
     int Len = this->Len();
+	//distance
+	Distance = Distance + CurrentGPS.Distance;
     // incremental averaging (m_n = m_n-1 + ((a_n-m_n-1)/n)
     // m_n = avg value we want to calculate
     // m_n-1 = previous avg value
@@ -174,12 +176,10 @@ void TGeoCluster::AddPoint(const int& Idx,
     CenterPoint.Lon = CenterPoint.Lon +
         ((CurrentGPS.LatLon.Lon - CenterPoint.Lon) / Len);
     AvgSpeed = AvgSpeed +
-        ((CurrentGPS.Speed - AvgSpeed) / Len);
+		(CurrentGPS.Distance * (CurrentGPS.Speed - AvgSpeed) / Distance);
     AvgAccuracy = AvgAccuracy +
         ((CurrentGPS.Accuracy - AvgAccuracy) / Len);
     
-    //distance
-    Distance = Distance + CurrentGPS.Distance;
     //avg sensor act
 	// incremental average on weighted average -- weights are distances!
 	for (int iSensorAct = 0; iSensorAct < TGPSMeasurement::NumOfSensorActs;
@@ -318,6 +318,7 @@ void TStayPointDetector::OnAddRec(const TRec& Rec,
     }
     TGPSMeasurement* NewRec = PrepareGPSRecord(Rec);
     if (NewRec == NULL) {//rejected record
+		printf("REJECTED RECORD\n");
         return;
     }
     TInt CurrStateIdx = StateGpsMeasurementsV.Len() - 1;
@@ -524,6 +525,8 @@ bool TStayPointDetector::ParseGPSRec(const TRec& Rec, TGPSMeasurement& Gps) {
         TGPSMeasurement* lastRecord = &StateGpsMeasurementsV.Last();
         //reject this record - it is earlier or same as previous
         if (lastRecord->Time >= Gps.Time) {
+			printf("it failed here: lastRecord Time %lld Gps.Time %lld\n", lastRecord->Time, Gps.Time);
+			printf("last: (%lf, %lf) Gps: (%lf, %lf)\n", lastRecord->LatLon.Lat, lastRecord->LatLon.Lon, Gps.LatLon.Lat, Gps.LatLon.Lon);
             return false;
         }
         Gps.Distance = TGeoUtils::QuickDist(Gps.LatLon, lastRecord->LatLon);
@@ -546,6 +549,7 @@ TGPSMeasurement* TStayPointDetector::PrepareGPSRecord(const TRec& Rec) {
     TGPSMeasurement gps;
     //fill in the record
     if (!ParseGPSRec(Rec, gps)) {
+		printf("Invalid record / lost record.\n");
         return NULL;
     }
 
