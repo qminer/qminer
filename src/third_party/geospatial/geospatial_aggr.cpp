@@ -525,8 +525,6 @@ bool TStayPointDetector::ParseGPSRec(const TRec& Rec, TGPSMeasurement& Gps) {
         TGPSMeasurement* lastRecord = &StateGpsMeasurementsV.Last();
         //reject this record - it is earlier or same as previous
         if (lastRecord->Time >= Gps.Time) {
-			printf("it failed here: lastRecord Time %lld Gps.Time %lld\n", lastRecord->Time, Gps.Time);
-			printf("last: (%lf, %lf) Gps: (%lf, %lf)\n", lastRecord->LatLon.Lat, lastRecord->LatLon.Lon, Gps.LatLon.Lat, Gps.LatLon.Lon);
             return false;
         }
         Gps.Distance = TGeoUtils::QuickDist(Gps.LatLon, lastRecord->LatLon);
@@ -549,7 +547,6 @@ TGPSMeasurement* TStayPointDetector::PrepareGPSRecord(const TRec& Rec) {
     TGPSMeasurement gps;
     //fill in the record
     if (!ParseGPSRec(Rec, gps)) {
-		printf("Invalid record / lost record.\n");
         return NULL;
     }
 
