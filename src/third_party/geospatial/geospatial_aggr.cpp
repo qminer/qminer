@@ -199,6 +199,7 @@ void TGeoCluster::AddPoint(const int& Idx,
     
     //avg sensor act
 	// incremental average on weighted average -- weights are distances!
+	// using Laplace smoothing to avoid division by 0 --- adding 1 and Len to distances
 	for (int iSensorAct = 0; iSensorAct < TGPSMeasurement::NumOfSensorActs;
 		iSensorAct++)
 	{
