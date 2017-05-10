@@ -23,19 +23,19 @@ const TInt TGPSMeasurement::NumOfSensorActs = 17; //see shared_consts;
 ///
 TGPSMeasurement::TGPSMeasurement(const PJsonVal& Rec) {
     if (!Rec->IsNull()) {
-        printf("TIme:");
+        printf("TIme:\n");
         Time = (uint64)Rec->GetObjKey("time")->GetUInt64();
-        printf("latlon:");
+        printf("latlon:\n");
         double Lat = Rec->GetObjKey("latitude")->GetNum();
         double Lon = Rec->GetObjKey("longitude")->GetNum();
         LatLon = TPoint(Lat, Lon);
-        printf("acc:");
+        printf("acc:\n");
         Accuracy = Rec->GetObjKey("accuracy")->GetNum();
-        printf("distoff:");
+        printf("distoff:\n");
         Distance = Rec->GetObjKey("distanceDiff")->GetNum();
-        printf("speed:");
+        printf("speed:\n");
         Speed = Rec->GetObjKey("speed")->GetNum();
-        printf("TIme diff:");
+        printf("TIme diff:\n");
         TimeDiff = Rec->GetObjKey("timeDiff")->GetInt64();
 
         if (Rec->IsObjKey("activities")) {
