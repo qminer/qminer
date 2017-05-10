@@ -29,7 +29,8 @@ describe("SPD aggregate system running aggr tests", function () {
                       { "name": "User", "type": "int" },
                       { "name": "Time", "type": "datetime" },
                       { "name": "Location", type: "float_pair" },
-                      { "name": "Accuracy", type: "byte", "null": true },
+                      { "name": "Accuracy", type: "float", "null": true },
+                      { "name": "Speed", type: "float", "null": true },
                       { "name": "Activities", type: "int_v", "null": true }
                     ],
                     "joins": [],
@@ -48,6 +49,7 @@ describe("SPD aggregate system running aggr tests", function () {
             locationField: "Location",
             accuracyField: "Accuracy",
             activitiesField: "Activities",
+            speedField: "Speed",
             params: { dT: 50, tT: 300 }
         });
     });//beforeEach
@@ -121,6 +123,7 @@ describe("SPD aggregate system running aggr tests", function () {
                     "longitude": 14.4875852,
                     "time": 0, 
                     "accuracy": 26,
+                    "speed": 5.25,
                     "activities": [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16, 17]
                 },
                 {
@@ -128,6 +131,7 @@ describe("SPD aggregate system running aggr tests", function () {
                     "longitude": 14.4875852,
                     "time": 100, 
                     "accuracy": 26,
+                    "speed": 5.25,
                     "activities": [22, 33, 44, 55, 66, 77, 88, 99,
                         10, 11, 12, 13, 14, 15, 16, 9,44]
                 },
@@ -135,7 +139,8 @@ describe("SPD aggregate system running aggr tests", function () {
                     "latitude": 46.0423046, 
                     "longitude": 14.4875852,
                     "time": 1000, 
-                    "accuracy": 26,
+                    "accuracy": 26.5,
+                    "speed": 5.25,
                     "activities": [100, 99, 44, 55, 66, 77, 88, 99,
                         10, 11, 12, 13, 14, 99, 16,12,12]
                 }
@@ -148,7 +153,8 @@ describe("SPD aggregate system running aggr tests", function () {
                     Time:rec.time,
                     Location: [rec.latitude, rec.longitude],
                     Activities: rec.activities,
-                    Accuracy: rec.accuracy
+                    Accuracy: rec.accuracy,
+                    Speed: rec.speed
                 });
                 spdAggr.onAdd(qrec);
             }
@@ -166,6 +172,9 @@ describe("SPD aggregate system running aggr tests", function () {
             assert.equal(state.locations[0].accuracy, points[0].accuracy);
             assert.equal(state.locations[1].accuracy, points[1].accuracy);
             assert.equal(state.locations[2].accuracy, points[2].accuracy);
+            assert.equal(state.locations[0].speed, points[0].speed);
+            assert.equal(state.locations[1].speed, points[1].speed);
+            assert.equal(state.locations[2].speed, points[2].speed);
             assert.deepEqual(state.locations[0].activities,
                 points[0].activities);
             assert.deepEqual(state.locations[1].activities,
@@ -183,6 +192,7 @@ describe("SPD aggregate system running aggr tests", function () {
                     "longitude": 14.4875852,
                     "time": 0, 
                     "accuracy": 21,
+                    "speed": 5.25,
                     "activities": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
                         14, 15, 16]
                 },
@@ -191,6 +201,7 @@ describe("SPD aggregate system running aggr tests", function () {
                     "longitude": 14.4875852,
                     "time": 1000, 
                     "accuracy": 22,
+                    "speed": 5.25,
                     "activities": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
                        14, 15, 16]
                 },
@@ -199,6 +210,7 @@ describe("SPD aggregate system running aggr tests", function () {
                     "longitude": 14.4875852,
                     "time": 1342444474215,//100000 s later 
                     "accuracy": 23,
+                    "speed": 5.25,
                     "activities": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
                        14, 15, 16]
                 },
@@ -207,6 +219,7 @@ describe("SPD aggregate system running aggr tests", function () {
                     "longitude": 14.4875852,
                     "time": 13424544474215,//100000 s later 
                     "accuracy": 24,
+                    "speed": 5.25,
                     "activities": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
                        14, 15, 16]
                 },
@@ -215,6 +228,7 @@ describe("SPD aggregate system running aggr tests", function () {
                     "longitude": 14.4875852,
                     "time": 13424654474215,//100000 s later 
                     "accuracy": 25,
+                    "speed": 5.25,
                     "activities": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
                        14, 15, 16]
                 },
@@ -223,6 +237,7 @@ describe("SPD aggregate system running aggr tests", function () {
                     "longitude": 14.4875852,
                     "time": 13425654474215,//100000 s later 
                     "accuracy": 26,
+                    "speed": 5.25,
                     "activities": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
                        14, 15, 16]
                 }
@@ -235,7 +250,8 @@ describe("SPD aggregate system running aggr tests", function () {
                     Time:rec.time,
                     Location: [rec.latitude, rec.longitude],
                     Accuracy: rec.accuracy,
-                    Activities: rec.activities
+                    Activities: rec.activities,
+                    Speed: rec.speed
                 });
                 spdAggr.onAdd(qrec);
             }
@@ -247,6 +263,7 @@ describe("SPD aggregate system running aggr tests", function () {
                 locationField: "Location",
                 accuracyField: "Accuracy",
                 activitiesField: "Activities",
+                speedField: "Speed",
                 params: { dT: 51, tT: 301 }
             });
             aggr2.loadStateJson(state);
@@ -278,7 +295,8 @@ describe("TMD averaging tests", function () {
                       { "name": "User", "type": "int" },
                       { "name": "Time", "type": "datetime" },
                       { "name": "Location", type: "float_pair" },
-                      { "name": "Accuracy", type: "byte", "null": true },
+                      { "name": "Accuracy", type: "float", "null": true },
+                      { "name": "Speed", type: "float", "null": true },
                       { "name": "Activities", type: "int_v", "null": true }
                     ],
                     "joins": [],
@@ -297,6 +315,7 @@ describe("TMD averaging tests", function () {
             locationField: "Location",
             accuracyField: "Accuracy",
             activitiesField: "Activities",
+            speedField: "Speed",
             params: { dT: 50, tT: 300 }
         });
     });//beforeEach
@@ -318,6 +337,7 @@ describe("TMD averaging tests", function () {
                 "longitude": 14.4875852,
                 "time": 0,
                 "accuracy": 26,
+                "speed": 5.0,
                 "activities": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
                        13, 14, 15,12]
             },
@@ -326,6 +346,7 @@ describe("TMD averaging tests", function () {
                 "longitude": 14.4875852,
                 "time": 10000,
                 "accuracy": 26,
+                "speed": 6.5,
                 "activities": [0, 0, 0, 0, 0, 0, 0, 0, 0,
                     0, 0, 0, 0, 0, 0, 0,0]
             },
@@ -334,6 +355,7 @@ describe("TMD averaging tests", function () {
                 "longitude": 14.4875852,
                 "time": 300000,
                 "accuracy": 26,
+                "speed": 8.0,
                 "activities": [100, 100, 100, 100, 100, 100, 100, 100, 100,
                     100, 100, 100, 100, 100, 100, 100,100]
             }
@@ -346,7 +368,8 @@ describe("TMD averaging tests", function () {
                 Time: rec.time,
                 Location: [rec.latitude, rec.longitude],
                 Accuracy: rec.accuracy,
-                Activities: rec.activities
+                Activities: rec.activities,
+                Speed: rec.speed
             });
             spdAggr.onAdd(qrec);
         }
@@ -368,7 +391,7 @@ describe("TMD averaging tests", function () {
                 "longitude": 14.4875852,
                 "time": 0,
                 "accuracy": 26,
-                "activities": [100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0,0]
+                "activities": [100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
             },
             {
                 "latitude": 46.0423046,
@@ -393,7 +416,8 @@ describe("TMD averaging tests", function () {
                 Time: rec.time,
                 Location: [rec.latitude, rec.longitude],
                 Accuracy: rec.accuracy,
-                Activities: rec.activities
+                Activities: rec.activities,
+                Speed: 0
             });
             spdAggr.onAdd(qrec);
         }
@@ -446,7 +470,8 @@ describe("TMD averaging tests", function () {
                 Time: rec.time,
                 Location: [rec.latitude, rec.longitude],
                 Accuracy: rec.accuracy,
-                Activities: rec.activities
+                Activities: rec.activities,
+                Speed: 0
             });
             spdAggr.onAdd(qrec);
         }

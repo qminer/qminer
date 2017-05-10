@@ -176,7 +176,7 @@ void TGeoCluster::AddPoint(const int& Idx,
     CenterPoint.Lon = CenterPoint.Lon +
         ((CurrentGPS.LatLon.Lon - CenterPoint.Lon) / Len);
     AvgSpeed = AvgSpeed +
-		(CurrentGPS.Distance * (CurrentGPS.Speed - AvgSpeed) / Distance);
+		((CurrentGPS.Distance + 1) * (CurrentGPS.Speed - AvgSpeed) / (Distance + Len));
     AvgAccuracy = AvgAccuracy +
         ((CurrentGPS.Accuracy - AvgAccuracy) / Len);
     
@@ -186,8 +186,8 @@ void TGeoCluster::AddPoint(const int& Idx,
 		iSensorAct++)
 	{
 		AvgSensorActs[iSensorAct] = AvgSensorActs[iSensorAct] +	
-			(CurrentGPS.Distance * (CurrentGPS.SensorActivities[iSensorAct] - 
-			AvgSensorActs[iSensorAct]) / Distance);
+			((CurrentGPS.Distance + 1) * (CurrentGPS.SensorActivities[iSensorAct] - 
+			AvgSensorActs[iSensorAct]) / (Distance + Len));
 	}
 }//TGeoCluster::addPoint
 
@@ -495,7 +495,7 @@ bool TStayPointDetector::ParseGPSRec(const TRec& Rec, TGPSMeasurement& Gps) {
 
     double Accuracy = 0;
     if (!Rec.IsFieldNull(AccuracyFieldId)) {
-        Accuracy = Rec.GetFieldByte(AccuracyFieldId);
+        Accuracy = Rec.GetFieldFlt(AccuracyFieldId);
     }
 	double Speed = -1.0;
 	if (!Rec.IsFieldNull(SpeedFieldId)) {
