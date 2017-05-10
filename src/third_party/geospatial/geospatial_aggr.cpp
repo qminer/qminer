@@ -102,6 +102,7 @@ TGeoCluster::TGeoCluster(const int& StartIdx, const int& EndIdx,
 TGeoCluster::TGeoCluster(const PJsonVal& Rec): 
     TGeoCluster(TGeoActivityType::Path) 
 {
+    printf("Before Status:\n");
     //status
     int Status = Rec->GetObjInt("status", 0);
     if (Status == 0) {
@@ -113,6 +114,7 @@ TGeoCluster::TGeoCluster(const PJsonVal& Rec):
     else if (Status == 2) {
         GeoActStatus = TGeoActivityStatus::Detected;
     }
+    printf("Before Type:\n");
     //type
     TStr Type = Rec->GetObjStr("type", "P");
     if (Type == "P") {
@@ -123,17 +125,25 @@ TGeoCluster::TGeoCluster(const PJsonVal& Rec):
         GeoType = TGeoActivityType::Staytpoint;
     }
     
+    printf("Before latlon:\n");
     double Lat = Rec->GetObjNum("latitude", 0);
     double Lon = Rec->GetObjNum("longitude", 0);
     CenterPoint = TPoint(Lat, Lon);
+    printf("Before start:\n");
     Arrive = Rec->GetObjInt64("start_time", 0);
+    printf("Before end:\n");
     Depart = Rec->GetObjInt64("end_time", 0);
+    printf("Before avg_speed:\n");
     AvgSpeed = Rec->GetObjNum("avg_speed", 0);
+    printf("Before avg_acc:\n");
     AvgAccuracy = Rec->GetObjNum("avg_accuracy", 0);
+    printf("Before distance:\n");
     Distance = Rec->GetObjNum("distance", 0);
+    printf("Before index:\n");
     MStartIdx = Rec->GetObjInt("startIdx", -1);
     MEndIdx = Rec->GetObjInt("endIdx", -1);  
     
+    printf("Before activities:\n");
     if (Rec->IsObjKey("activities")) {
         AvgSensorActs.Clr();
         Rec->GetObjKey("activities")->GetArrNumV(AvgSensorActs);
