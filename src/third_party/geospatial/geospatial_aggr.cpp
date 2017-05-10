@@ -23,19 +23,26 @@ const TInt TGPSMeasurement::NumOfSensorActs = 17; //see shared_consts;
 ///
 TGPSMeasurement::TGPSMeasurement(const PJsonVal& Rec) {
     if (!Rec->IsNull()) {
+        printf("TIme:\n");
         Time = (uint64)Rec->GetObjKey("time")->GetUInt64();
+        printf("latlon:\n");
         double Lat = Rec->GetObjKey("latitude")->GetNum();
         double Lon = Rec->GetObjKey("longitude")->GetNum();
         LatLon = TPoint(Lat, Lon);
+        printf("acc:\n");
         Accuracy = Rec->GetObjKey("accuracy")->GetNum();
+        printf("distoff:\n");
         Distance = Rec->GetObjKey("distanceDiff")->GetNum();
+        printf("speed:\n");
         Speed = Rec->GetObjKey("speed")->GetNum();
+        printf("TIme diff:\n");
         TimeDiff = Rec->GetObjKey("timeDiff")->GetInt64();
-
+        printf("Activities:\n");
         if (Rec->IsObjKey("activities")) {
             Rec->GetObjKey("activities")->GetArrIntV(SensorActivities);
         }//if it has activities
 
+        printf("Before arraying:\n");
         int SensLen = SensorActivities.Len();
         if (SensLen < TGPSMeasurement::NumOfSensorActs) {
             int ToAdd = TGPSMeasurement::NumOfSensorActs - SensLen;
@@ -95,6 +102,7 @@ TGeoCluster::TGeoCluster(const int& StartIdx, const int& EndIdx,
 TGeoCluster::TGeoCluster(const PJsonVal& Rec): 
     TGeoCluster(TGeoActivityType::Path) 
 {
+    printf("Before Status:\n");
     //status
     int Status = Rec->GetObjInt("status", 0);
     if (Status == 0) {
@@ -106,6 +114,7 @@ TGeoCluster::TGeoCluster(const PJsonVal& Rec):
     else if (Status == 2) {
         GeoActStatus = TGeoActivityStatus::Detected;
     }
+    printf("Before Type:\n");
     //type
     TStr Type = Rec->GetObjStr("type", "P");
     if (Type == "P") {
@@ -116,17 +125,25 @@ TGeoCluster::TGeoCluster(const PJsonVal& Rec):
         GeoType = TGeoActivityType::Staytpoint;
     }
     
+    printf("Before latlon:\n");
     double Lat = Rec->GetObjNum("latitude", 0);
     double Lon = Rec->GetObjNum("longitude", 0);
     CenterPoint = TPoint(Lat, Lon);
+    printf("Before start:\n");
     Arrive = Rec->GetObjInt64("start_time", 0);
+    printf("Before end:\n");
     Depart = Rec->GetObjInt64("end_time", 0);
+    printf("Before avg_speed:\n");
     AvgSpeed = Rec->GetObjNum("avg_speed", 0);
+    printf("Before avg_acc:\n");
     AvgAccuracy = Rec->GetObjNum("avg_accuracy", 0);
+    printf("Before distance:\n");
     Distance = Rec->GetObjNum("distance", 0);
+    printf("Before index:\n");
     MStartIdx = Rec->GetObjInt("startIdx", -1);
     MEndIdx = Rec->GetObjInt("endIdx", -1);  
     
+    printf("Before activities:\n");
     if (Rec->IsObjKey("activities")) {
         AvgSensorActs.Clr();
         Rec->GetObjKey("activities")->GetArrNumV(AvgSensorActs);
@@ -433,12 +450,15 @@ void TStayPointDetector::LoadStateJson(const PJsonVal& State){
                 StateGpsMeasurementsV.Add(GpsRec);
             }
         }//if locations attribute
+        printf("Before CL:\n");
         if (State->IsObjKey("CL")) {
             CL = TGeoCluster(State->GetObjKey("CL"));
         }//if CL attribute
+        printf("Before PLocs:\n");
         if (State->IsObjKey("Plocs")) {
             Plocs = TGeoCluster(State->GetObjKey("Plocs"));
         }//if CL attribute
+        printf("Before Detected:\n");
         if (State->IsObjKey("Detected")) {
             PJsonVal DetectedArr = State->GetObjKey("Detected");
             for (int DetIdx = 0; DetIdx < DetectedArr->GetArrVals(); DetIdx++){
@@ -525,8 +545,6 @@ bool TStayPointDetector::ParseGPSRec(const TRec& Rec, TGPSMeasurement& Gps) {
         TGPSMeasurement* lastRecord = &StateGpsMeasurementsV.Last();
         //reject this record - it is earlier or same as previous
         if (lastRecord->Time >= Gps.Time) {
-			printf("it failed here: lastRecord Time %lld Gps.Time %lld\n", lastRecord->Time, Gps.Time);
-			printf("last: (%lf, %lf) Gps: (%lf, %lf)\n", lastRecord->LatLon.Lat, lastRecord->LatLon.Lon, Gps.LatLon.Lat, Gps.LatLon.Lon);
             return false;
         }
         Gps.Distance = TGeoUtils::QuickDist(Gps.LatLon, lastRecord->LatLon);
@@ -549,7 +567,6 @@ TGPSMeasurement* TStayPointDetector::PrepareGPSRecord(const TRec& Rec) {
     TGPSMeasurement gps;
     //fill in the record
     if (!ParseGPSRec(Rec, gps)) {
-		printf("Invalid record / lost record.\n");
         return NULL;
     }
 

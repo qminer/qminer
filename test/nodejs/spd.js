@@ -29,8 +29,8 @@ describe("SPD aggregate system running aggr tests", function () {
                       { "name": "User", "type": "int" },
                       { "name": "Time", "type": "datetime" },
                       { "name": "Location", type: "float_pair" },
+                      { "name": "Speed", type: "float" },
                       { "name": "Accuracy", type: "float", "null": true },
-                      { "name": "Speed", type: "float", "null": true },
                       { "name": "Activities", type: "int_v", "null": true }
                     ],
                     "joins": [],
@@ -46,6 +46,7 @@ describe("SPD aggregate system running aggr tests", function () {
             store: store,
             userField: "User",
             timeField: "Time",
+            speedField: "Speed",
             locationField: "Location",
             accuracyField: "Accuracy",
             activitiesField: "Activities",
@@ -158,7 +159,6 @@ describe("SPD aggregate system running aggr tests", function () {
                 });
                 spdAggr.onAdd(qrec);
             }
-            console.log("HERE NOWWWWWW");
             state = spdAggr.saveStateJson();
             assert.equal(state.locations[0].time, points[0].time);
             assert.equal(state.locations[1].time, points[1].time);
@@ -183,7 +183,7 @@ describe("SPD aggregate system running aggr tests", function () {
                 points[2].activities);
         });//it saveJsonState, loadJson state
         
-        it("Should saveJsonState and LoadJson state wihtou losing data",
+        it("Should saveJsonState and LoadJson state wihtout losing data",
         function(){
             //these points are chosen so to produce one finished staypoint
             var points =[
@@ -192,7 +192,7 @@ describe("SPD aggregate system running aggr tests", function () {
                     "longitude": 14.4875852,
                     "time": 0, 
                     "accuracy": 21,
-                    "speed": 5.25,
+                    "speed":1,
                     "activities": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
                         14, 15, 16]
                 },
@@ -201,7 +201,7 @@ describe("SPD aggregate system running aggr tests", function () {
                     "longitude": 14.4875852,
                     "time": 1000, 
                     "accuracy": 22,
-                    "speed": 5.25,
+                    "speed": 2,
                     "activities": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
                        14, 15, 16]
                 },
@@ -210,7 +210,7 @@ describe("SPD aggregate system running aggr tests", function () {
                     "longitude": 14.4875852,
                     "time": 1342444474215,//100000 s later 
                     "accuracy": 23,
-                    "speed": 5.25,
+                    "speed": 3,
                     "activities": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
                        14, 15, 16]
                 },
@@ -219,7 +219,7 @@ describe("SPD aggregate system running aggr tests", function () {
                     "longitude": 14.4875852,
                     "time": 13424544474215,//100000 s later 
                     "accuracy": 24,
-                    "speed": 5.25,
+                    "speed": 4,
                     "activities": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
                        14, 15, 16]
                 },
@@ -228,7 +228,7 @@ describe("SPD aggregate system running aggr tests", function () {
                     "longitude": 14.4875852,
                     "time": 13424654474215,//100000 s later 
                     "accuracy": 25,
-                    "speed": 5.25,
+                    "speed": 5,
                     "activities": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
                        14, 15, 16]
                 },
@@ -237,7 +237,7 @@ describe("SPD aggregate system running aggr tests", function () {
                     "longitude": 14.4875852,
                     "time": 13425654474215,//100000 s later 
                     "accuracy": 26,
-                    "speed": 5.25,
+                    "speed": 6,
                     "activities": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
                        14, 15, 16]
                 }
@@ -250,24 +250,24 @@ describe("SPD aggregate system running aggr tests", function () {
                     Time:rec.time,
                     Location: [rec.latitude, rec.longitude],
                     Accuracy: rec.accuracy,
-                    Activities: rec.activities,
-                    Speed: rec.speed
+                    Speed: rec.speed,
+                    Activities: rec.activities
                 });
                 spdAggr.onAdd(qrec);
             }
             state = spdAggr.saveStateJson();
-            
             var aggr2 = store.addStreamAggr({
                 type: "stayPointDetector",
                 timeField: "Time",
                 locationField: "Location",
+                speedField: "Speed",
                 accuracyField: "Accuracy",
                 activitiesField: "Activities",
-                speedField: "Speed",
                 params: { dT: 51, tT: 301 }
             });
             aggr2.loadStateJson(state);
             state2 = aggr2.saveStateJson();
+
             assert.deepEqual(state2,state);
             //console.log(state); 
         });//it saveJsonState, loadJson state
@@ -312,6 +312,7 @@ describe("TMD averaging tests", function () {
             store: store,
             userField: "User",
             timeField: "Time",
+            speedField: "Speed",
             locationField: "Location",
             accuracyField: "Accuracy",
             activitiesField: "Activities",
@@ -366,6 +367,7 @@ describe("TMD averaging tests", function () {
             var qrec = store.newRecord({
                 User: 1,
                 Time: rec.time,
+                Speed: rec.speed,
                 Location: [rec.latitude, rec.longitude],
                 Accuracy: rec.accuracy,
                 Activities: rec.activities,
