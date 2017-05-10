@@ -37,11 +37,12 @@ TGPSMeasurement::TGPSMeasurement(const PJsonVal& Rec) {
         Speed = Rec->GetObjKey("speed")->GetNum();
         printf("TIme diff:\n");
         TimeDiff = Rec->GetObjKey("timeDiff")->GetInt64();
-
+        printf("Activities:\n");
         if (Rec->IsObjKey("activities")) {
             Rec->GetObjKey("activities")->GetArrIntV(SensorActivities);
         }//if it has activities
 
+        printf("Before arraying:\n");
         int SensLen = SensorActivities.Len();
         if (SensLen < TGPSMeasurement::NumOfSensorActs) {
             int ToAdd = TGPSMeasurement::NumOfSensorActs - SensLen;
@@ -439,12 +440,15 @@ void TStayPointDetector::LoadStateJson(const PJsonVal& State){
                 StateGpsMeasurementsV.Add(GpsRec);
             }
         }//if locations attribute
+        printf("Before CL:\n");
         if (State->IsObjKey("CL")) {
             CL = TGeoCluster(State->GetObjKey("CL"));
         }//if CL attribute
+        printf("Before PLocs:\n");
         if (State->IsObjKey("Plocs")) {
             Plocs = TGeoCluster(State->GetObjKey("Plocs"));
         }//if CL attribute
+        printf("Before Detected:\n");
         if (State->IsObjKey("Detected")) {
             PJsonVal DetectedArr = State->GetObjKey("Detected");
             for (int DetIdx = 0; DetIdx < DetectedArr->GetArrVals(); DetIdx++){
