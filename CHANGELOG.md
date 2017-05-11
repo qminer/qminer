@@ -1,5 +1,22 @@
 # QMiner Change Log
 
+### 31 March 2017
+
+**Version 8.0.0**
+
+**Breaking with new features and bugfixes**
+
+Breaking:
+- binary compatibility of GIX
+
+New features:
+- introduced tiny gix index in TIndex which does not store any frequency information
+- introduced position index which can index words and their position in a string
+- search over phrases with gaps based on the position index
+
+Bug fixes:
+- fixed GetMemUsed() in THashSetKey
+
 ### 24 March 2017
 
 **Version 7.11.1**

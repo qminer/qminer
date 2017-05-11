@@ -1327,11 +1327,11 @@ int TNodeJsFuncStreamAggr::GetInt() const {
         v8::TryCatch TryCatch;
         v8::Handle<v8::Value> RetVal = Callback->Call(This, 0, NULL);
         TNodeJsUtil::CheckJSExcept(TryCatch);
-        QmAssertR(RetVal->IsInt32(), "TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", getInt(): Return type expected to be int32");
+        QmAssertR(RetVal->IsInt32(), "TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", getInteger(): Return type expected to be integer");
         return RetVal->Int32Value();
     }
     else {
-        throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", getInt() callback is empty!");
+        throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", getInteger() callback is empty!");
     }
 }
 
@@ -1347,11 +1347,11 @@ double TNodeJsFuncStreamAggr::GetFlt() const {
         v8::TryCatch TryCatch;
         v8::Handle<v8::Value> RetVal = Callback->Call(This, 0, NULL);
         TNodeJsUtil::CheckJSExcept(TryCatch);
-        QmAssertR(RetVal->IsNumber(), "TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", getFlt(): Return type expected to be int32");
+        QmAssertR(RetVal->IsNumber(), "TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", getFloat(): Return type expected to be a number");
         return RetVal->NumberValue();
     }
     else {
-        throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", getFlt() callback is empty!");
+        throw  TQm::TQmExcept::New("TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", getFloat() callback is empty!");
     }
 }
 
