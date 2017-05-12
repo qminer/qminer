@@ -30,7 +30,7 @@ describe("SPD aggregate system running aggr tests", function () {
                       { "name": "Time", "type": "datetime" },
                       { "name": "Location", type: "float_pair" },
                       { "name": "Speed", type: "float" },
-                      { "name": "Accuracy", type: "float", "null": true },
+                      { "name": "Accuracy", type: "byte", "null": true },
                       { "name": "Activities", type: "int_v", "null": true }
                     ],
                     "joins": [],
@@ -140,7 +140,7 @@ describe("SPD aggregate system running aggr tests", function () {
                     "latitude": 46.0423046, 
                     "longitude": 14.4875852,
                     "time": 1000, 
-                    "accuracy": 26.5,
+                    "accuracy": 26,
                     "speed": 5.25,
                     "activities": [100, 99, 44, 55, 66, 77, 88, 99,
                         10, 11, 12, 13, 14, 99, 16,12,12]

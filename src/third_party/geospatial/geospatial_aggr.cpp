@@ -516,7 +516,7 @@ bool TStayPointDetector::ParseGPSRec(const TRec& Rec, TGPSMeasurement& Gps) {
 
     double Accuracy = 0;
     if (!Rec.IsFieldNull(AccuracyFieldId)) {
-        Accuracy = Rec.GetFieldFlt(AccuracyFieldId);
+        Accuracy = Rec.GetFieldByte(AccuracyFieldId);
     }
 	double Speed = -1.0;
 	if (!Rec.IsFieldNull(SpeedFieldId)) {
