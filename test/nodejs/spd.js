@@ -29,7 +29,7 @@ describe("SPD aggregate system running aggr tests", function () {
                       { "name": "User", "type": "int" },
                       { "name": "Time", "type": "datetime" },
                       { "name": "Location", type: "float_pair" },
-                      { "name": "Speed", type: "float" },
+                      { "name": "Speed", type: "float", "null": true},
                       { "name": "Accuracy", type: "byte", "null": true },
                       { "name": "Activities", type: "int_v", "null": true }
                     ],
