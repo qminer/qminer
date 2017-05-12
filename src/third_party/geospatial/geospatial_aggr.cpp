@@ -193,18 +193,19 @@ void TGeoCluster::AddPoint(const int& Idx,
     CenterPoint.Lon = CenterPoint.Lon +
         ((CurrentGPS.LatLon.Lon - CenterPoint.Lon) / Len);
     AvgSpeed = AvgSpeed +
-		(CurrentGPS.Distance * (CurrentGPS.Speed - AvgSpeed) / Distance);
+		((CurrentGPS.Distance + 1) * (CurrentGPS.Speed - AvgSpeed) / (Distance + Len));
     AvgAccuracy = AvgAccuracy +
         ((CurrentGPS.Accuracy - AvgAccuracy) / Len);
     
     //avg sensor act
 	// incremental average on weighted average -- weights are distances!
+	// using Laplace smoothing to avoid division by 0 --- adding 1 and Len to distances
 	for (int iSensorAct = 0; iSensorAct < TGPSMeasurement::NumOfSensorActs;
 		iSensorAct++)
 	{
 		AvgSensorActs[iSensorAct] = AvgSensorActs[iSensorAct] +	
-			(CurrentGPS.Distance * (CurrentGPS.SensorActivities[iSensorAct] - 
-			AvgSensorActs[iSensorAct]) / Distance);
+			((CurrentGPS.Distance + 1) * (CurrentGPS.SensorActivities[iSensorAct] - 
+			AvgSensorActs[iSensorAct]) / (Distance + Len));
 	}
 }//TGeoCluster::addPoint
 
