@@ -29,7 +29,8 @@ describe("SPD aggregate system running aggr tests", function () {
                       { "name": "User", "type": "int" },
                       { "name": "Time", "type": "datetime" },
                       { "name": "Location", type: "float_pair" },
-                      { "name": "Speed", type: "float", "null": true},
+                      { "name": "Speed", type: "float", "null": true },
+                      { "name": "Distance", type: "float", "null": true },
                       { "name": "Accuracy", type: "byte", "null": true },
                       { "name": "Activities", type: "int_v", "null": true }
                     ],
@@ -47,6 +48,7 @@ describe("SPD aggregate system running aggr tests", function () {
             userField: "User",
             timeField: "Time",
             speedField: "Speed",
+            distanceField: "Distance",
             locationField: "Location",
             accuracyField: "Accuracy",
             activitiesField: "Activities",
@@ -100,6 +102,7 @@ describe("SPD aggregate system running aggr tests", function () {
                     Time:rec.time,
                     Location: [rec.latitude, rec.longitude],
                     Accuracy: 4,
+                    Distance: null,
                     Activities: [1, 2, 3, 4]
                 });
                 spdAggr.onAdd(qrec);
@@ -155,6 +158,7 @@ describe("SPD aggregate system running aggr tests", function () {
                     Location: [rec.latitude, rec.longitude],
                     Activities: rec.activities,
                     Accuracy: rec.accuracy,
+                    Distance: null,
                     Speed: rec.speed
                 });
                 spdAggr.onAdd(qrec);
@@ -251,6 +255,7 @@ describe("SPD aggregate system running aggr tests", function () {
                     Location: [rec.latitude, rec.longitude],
                     Accuracy: rec.accuracy,
                     Speed: rec.speed,
+                    Distance: null,
                     Activities: rec.activities
                 });
                 spdAggr.onAdd(qrec);
@@ -261,6 +266,7 @@ describe("SPD aggregate system running aggr tests", function () {
                 timeField: "Time",
                 locationField: "Location",
                 speedField: "Speed",
+                distanceField: "Distance",
                 accuracyField: "Accuracy",
                 activitiesField: "Activities",
                 params: { dT: 51, tT: 301 }
@@ -297,6 +303,7 @@ describe("TMD averaging tests", function () {
                       { "name": "Location", type: "float_pair" },
                       { "name": "Accuracy", type: "float", "null": true },
                       { "name": "Speed", type: "float", "null": true },
+                      { "name": "Distance", type: "float", "null": true },
                       { "name": "Activities", type: "int_v", "null": true }
                     ],
                     "joins": [],
@@ -313,6 +320,7 @@ describe("TMD averaging tests", function () {
             userField: "User",
             timeField: "Time",
             speedField: "Speed",
+            distanceField: "Distance",
             locationField: "Location",
             accuracyField: "Accuracy",
             activitiesField: "Activities",
@@ -368,6 +376,7 @@ describe("TMD averaging tests", function () {
                 User: 1,
                 Time: rec.time,
                 Speed: rec.speed,
+                Distance: null,
                 Location: [rec.latitude, rec.longitude],
                 Accuracy: rec.accuracy,
                 Activities: rec.activities,
@@ -419,7 +428,8 @@ describe("TMD averaging tests", function () {
                 Location: [rec.latitude, rec.longitude],
                 Accuracy: rec.accuracy,
                 Activities: rec.activities,
-                Speed: 0
+                Speed: 0,
+                Distance: null,
             });
             spdAggr.onAdd(qrec);
         }
@@ -473,7 +483,8 @@ describe("TMD averaging tests", function () {
                 Location: [rec.latitude, rec.longitude],
                 Accuracy: rec.accuracy,
                 Activities: rec.activities,
-                Speed: 0
+                Speed: 0,
+                Distance: null,
             });
             spdAggr.onAdd(qrec);
         }

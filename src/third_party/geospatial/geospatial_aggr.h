@@ -125,6 +125,8 @@ private:
     TInt TimeFieldId;
 	/// speed field id for fast access
 	TInt SpeedFieldId;
+    /// distance field id for fast access
+    TInt DistanceFieldId;
 
     /// algorithm parameters
     PJsonVal Params;

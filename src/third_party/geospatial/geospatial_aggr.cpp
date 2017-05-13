@@ -293,9 +293,12 @@ TStayPointDetector::TStayPointDetector(
     ActivitiesField = Store->GetFieldId(ActivitiesFieldName);
 	TStr SpeedFieldName = ParamVal->GetObjStr("speedField");
 	SpeedFieldId = Store->GetFieldId(SpeedFieldName);
-	
+    TStr DistanceFieldName = ParamVal->GetObjStr("distanceField");
+    DistanceFieldId = Store->GetFieldId(DistanceFieldName);
 }//TStayPointDetector::constructor
 
+///
+/// main aggregate record receiver mtethod, and main SPD algo entry
 void TStayPointDetector::OnAddRec(const TRec& Rec,
     const TWPt<TStreamAggr>& CallerAggr)
 {
@@ -433,15 +436,12 @@ void TStayPointDetector::LoadStateJson(const PJsonVal& State){
                 StateGpsMeasurementsV.Add(GpsRec);
             }
         }//if locations attribute
-        printf("Before CL:\n");
         if (State->IsObjKey("CL")) {
             CL = TGeoCluster(State->GetObjKey("CL"));
         }//if CL attribute
-        printf("Before PLocs:\n");
         if (State->IsObjKey("Plocs")) {
             Plocs = TGeoCluster(State->GetObjKey("Plocs"));
         }//if CL attribute
-        printf("Before Detected:\n");
         if (State->IsObjKey("Detected")) {
             PJsonVal DetectedArr = State->GetObjKey("Detected");
             for (int DetIdx = 0; DetIdx < DetectedArr->GetArrVals(); DetIdx++){
@@ -488,27 +488,30 @@ PJsonVal TStayPointDetector::SaveStateJson() const {
 /// otherwise True
 ///
 bool TStayPointDetector::ParseGPSRec(const TRec& Rec, TGPSMeasurement& Gps) {
+    //get time of the record
     TTm Timestamp; 
     Rec.GetFieldTm(TimeFieldId, Timestamp);
-    uint64 Time =
+    Gps.Time = 
         TTm::GetUnixMSecsFromWinMSecs(Timestamp.GetMSecsFromTm(Timestamp));
- 
+    
     double Lat = Rec.GetFieldFltPr(LocationFieldId).Val1;
     double Lon = Rec.GetFieldFltPr(LocationFieldId).Val2;
-
-    double Accuracy = 0;
-    if (!Rec.IsFieldNull(AccuracyFieldId)) {
-        Accuracy = Rec.GetFieldByte(AccuracyFieldId);
-    }
-	double Speed = -1.0;
-	if (!Rec.IsFieldNull(SpeedFieldId)) {
-		Speed = Rec.GetFieldFlt(SpeedFieldId);
-	}
-    Gps.Time = Time;
     Gps.LatLon = TPoint(Lat, Lon);
-    Gps.Accuracy = Accuracy;
-	Gps.Speed = Speed;
-    
+
+    Gps.Accuracy = 0;
+    if (!Rec.IsFieldNull(AccuracyFieldId)) {
+        Gps.Accuracy = Rec.GetFieldByte(AccuracyFieldId);
+    }
+    Gps.Speed = -1.0;
+	if (!Rec.IsFieldNull(SpeedFieldId)) {
+        Gps.Speed = Rec.GetFieldFlt(SpeedFieldId);
+	}
+
+    Gps.Distance = -1.0;
+    if (!Rec.IsFieldNull(DistanceFieldId)) {
+        Gps.Distance = Rec.GetFieldFlt(DistanceFieldId);
+    }
+
     if (!Rec.IsFieldNull(ActivitiesField)) {
         //TODO: This sensorActivities will go into a separate Aggregate
         //once we construct the pipeline - this is a temporary functionality
@@ -530,7 +533,10 @@ bool TStayPointDetector::ParseGPSRec(const TRec& Rec, TGPSMeasurement& Gps) {
         if (lastRecord->Time >= Gps.Time) {
             return false;
         }
-        Gps.Distance = TGeoUtils::QuickDist(Gps.LatLon, lastRecord->LatLon);
+        if (Gps.Distance == -1.0) {
+            Gps.Distance = TGeoUtils::QuickDist(Gps.LatLon, lastRecord->LatLon);
+        }
+        
         Gps.TimeDiff = (Gps.Time - lastRecord->Time);
         if (Gps.Speed == -1.0) {
             Gps.Speed = Gps.Distance / Gps.TimeDiff;
@@ -538,7 +544,7 @@ bool TStayPointDetector::ParseGPSRec(const TRec& Rec, TGPSMeasurement& Gps) {
     }
     else {
 		if (Gps.Speed == -1.0) { Gps.Speed = 0; }
-        Gps.Distance = 0;
+        if (Gps.Distance == -1.0) { Gps.Distance = 0; }
     }
     return true;
 }//parseRecord
