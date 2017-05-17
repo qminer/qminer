@@ -686,7 +686,11 @@ TPt<TGixItemSet<TKey, TItem> > TGix<TKey, TItem>::GetItemSet(const TBlobPt& KeyI
 
 template <class TKey, class TItem>
 void TGix<TKey, TItem>::GetItemV(const TKey& Key, TVec<TItem>& ItemV) const {
-    return GetItemSet(Key)->GetItemV(ItemV);
+	PGixItemSet ItemSet = GetItemSet(Key);
+	// first call Def() so that we can process some pending actions (like deletes) first
+	ItemSet->Def();
+	// get the items for the key
+	return ItemSet->GetItemV(ItemV);
 }
 
 template <class TKey, class TItem>
