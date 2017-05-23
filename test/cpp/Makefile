@@ -22,7 +22,7 @@ SOLE_DIR = ../../src/third_party/sole/
 QMINER_DIR = ../../src/qminer/
 
 # get prebuilt glib and qminer
-BUILD = ../../build/Release
+BUILD = ../../build/Debug
 
 # initialize OS specific flags
 UNAME := $(shell uname)
@@ -56,6 +56,8 @@ TEST_SRCS += test-sizeof.cpp
 TEST_SRCS += test-traits.cpp
 TEST_SRCS += test-linalg.cpp
 TEST_SRCS += test-tuple.cpp
+TEST_SRCS += test-quantiles.cpp
+TEST_SRCS += test-TVec.cpp
 
 # transform to list of object files
 TEST_OBJS = $(TEST_SRCS:.cpp=.o)
@@ -74,7 +76,7 @@ $(MAIN): $(MAIN).o $(TEST_OBJS) $(BUILD)/glib.a $(BUILD)/qminer.a
 	$(CC) $(CXXFLAGS) -c $<
 
 gyp: $(BUILD)/glib.a $(BUILD)/qminer.a
-	cd ../..; node-gyp configure build --jobs 20
+	cd ../..; node-gyp configure build --jobs 20 --debug
 
 test: $(MAIN)
 	./$(MAIN)

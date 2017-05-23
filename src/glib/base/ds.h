@@ -215,6 +215,7 @@ typedef TTriple<TInt, TInt, TVec<TInt, int> > TIntIntIntVTr;
 typedef TTriple<TFlt, TFlt, TFlt> TFltTr;
 typedef TTriple<TFlt, TInt, TInt> TFltIntIntTr;
 typedef TTriple<TFlt, TFlt, TInt> TFltFltIntTr;
+typedef TTriple<TFlt, TUInt64, TUInt64> TFltUInt64UInt64Tr;
 typedef TTriple<TFlt, TFlt, TStr> TFltFltStrTr;
 typedef TTriple<TChA, TChA, TChA> TChATr;
 typedef TTriple<TStr, TStr, TStr> TStrTr;
@@ -623,7 +624,7 @@ public:
   void DelMemCpy(const TSizeTy& ValN);
   /// Removes the elements at positions <tt>MnValN...MxValN</tt>.
   void Del(const TSizeTy& MnValN, const TSizeTy& MxValN);
-  /// Removes the elements at positions <tt>MnValN...MxValN</tt> using memcpy
+  /// Removes the elements at positions <tt>MnValN...MxValN</tt> (both inclusive) using memcpy
   void DelMemCpy(const TSizeTy& MnValN, const TSizeTy& MxValN);
   /// Removes the last element of the vector.
   void DelLast(){Del(Len()-1);}
