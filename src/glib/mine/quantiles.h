@@ -95,8 +95,12 @@ namespace TQuant {
         /// the accuracy at other quantiles q is max(eps0, eps0 * (q / q0))
         /* TBiasedGk(const double& Quant0, const double& Eps0, const bool& UseBands=true); */
 
-        /// the returned rank will be between (1-eps)r <= ri <= (1+eps)r up to 
+        /// the returned rank will be between (1-eps)r <= ri <= (1+eps)r up to
         /// quant0, the accuracy then stops increasing
+        ///
+        /// Quant0: the quantile where the accuracy stops increasing
+        /// Eps: the (multiplicative) allowed error
+        /// UseBands: when bands are used, the algorithm prefers to keep tuples which were inserted early on, which can save space in the long run
         TBiasedGk(const double& Quant0, const double& Eps, const bool& UseBands=true);
         // TODO need 2 constructors:
         // 1) specify the accuracy and the method takes as much space as needed

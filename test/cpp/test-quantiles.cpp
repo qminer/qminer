@@ -158,43 +158,49 @@ TEST(TGreenwaldKhanna, AutoCompress) {
 }
 
 TEST(TBiasedGk, Query) {
-    const int NTrials = 10;
+    const int NTrials = 100;
     const int NSamples = 1000;
     /* const double TargetPerc = .01; */
     const double Quant0 = .01;
     const double Eps0 = .1;
 
-    TBiasedGk Gk(Quant0, Eps0, false);
+    TBiasedGk BandGk(Quant0, Eps0, true);
+    TBiasedGk BandlessGk(Quant0, Eps0, false);
 
     for (int TrialN = 0; TrialN < NTrials; TrialN++) {
-        std::cout << "inserting samples\n";
+        /* std::cout << "inserting samples\n"; */
         TIntV SampleV;  GenSamplesUniform(NSamples, SampleV);
         for (int SampleN = 0; SampleN < NSamples; SampleN++) {
-            Gk.Insert(SampleV[SampleN]);
+            BandGk.Insert(SampleV[SampleN]);
+            BandlessGk.Insert(SampleV[SampleN]);
         }
 
-        std::cout << "printing summary\n";
-        Gk.PrintSummary();
+        /* std::cout << "printing summary\n"; */
 
-        std::cout << "querying\n";
+        /* std::cout << "querying\n"; */
         const double QuantStep = .0001;
         double CurrQuant = QuantStep;
         while (CurrQuant < 1) {
-            const double Actual = Gk.Query(CurrQuant);
+            const double ActualBand = BandGk.Query(CurrQuant);
+            const double ActualBandless = BandlessGk.Query(CurrQuant);
 
             const double Eps = CurrQuant < Quant0 ? Eps0 * Quant0 / CurrQuant : Eps0;
             const double LowerBound = std::floor((1 - Eps)*CurrQuant*NSamples);
             const double UpperBound = std::ceil((1 + Eps)*CurrQuant*NSamples);
-            Gk.PrintSummary();
 
-            /* const double Expected = CurrQuant*NSamples; */
-
-            ASSERT_GE(Actual, LowerBound);
-            ASSERT_LE(Actual, UpperBound);
+            ASSERT_GE(ActualBand, LowerBound);
+            ASSERT_GE(ActualBandless, LowerBound);
+            ASSERT_LE(ActualBand, UpperBound);
+            ASSERT_LE(ActualBandless, UpperBound);
 
             CurrQuant += QuantStep;
         }
     }
+
+    BandGk.PrintSummary();
+    BandlessGk.PrintSummary();
+    std::cout << "band summary size: " << BandGk.GetSummarySize() << ", bandless summary size: " << BandlessGk.GetSummarySize() << "\n";
+    ASSERT_TRUE(BandGk.GetSummarySize() <= BandlessGk.GetSummarySize());
 }
 
 /* TEST(TBiasedGk, QuerySorted) { */

@@ -36,7 +36,7 @@ namespace TQuant {
             Val(_Val),
             TupleSize(_TupleSize),
             MnMxRankDiff(Delta) {
-        std::cout << "delta: " << uint32(Delta) << "\n";
+        /* std::cout << "delta: " << uint32(Delta) << "\n"; */
         AssertR(Delta <= TUInt(TInt::Mx), "Invalid value of Delta: " + TUInt::GetStr(Delta));
     }
 
@@ -271,7 +271,7 @@ namespace TQuant {
     }
 
     void TBiasedGk::Insert(const double& Val) {
-        std::cout << "inserting " << Val << "\n";
+        /* std::cout << "inserting " << Val << "\n"; */
         int TupleN = 0;
         uint64 PrevTupleMnRank = 0;
 
@@ -283,7 +283,7 @@ namespace TQuant {
         }
 
         /* std::cout << "found tuple number: " << TupleN << "\n"; */
-        
+
         /* ++SampleN;      // XXX??? */
 
         if (TupleN == 0) {
@@ -358,9 +358,6 @@ namespace TQuant {
         } else {
             return Eps;
         }
-
-/*         /1* const double Quant = Rank / SampleN; *1/ */
-/*         return TMath::Mx(Eps.Val, Eps * Rank / (Quant0 * SampleN)); */
     }
 
     double TBiasedGk::GetMxTupleSize(const double& Rank) const {
