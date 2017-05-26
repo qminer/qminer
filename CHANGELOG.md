@@ -1,5 +1,16 @@
 # QMiner Change Log
 
+### 26 May 2017
+
+**Version 8.2.1**
+
+**Non-breaking with bug fixes**
+
+Bug fixes:
+
+- Positional index: items are not necessarily sorted
+- Positional index: Def() has to be called in case some items were deleted
+
 ### 5 May 2017
 
 **Version 8.2.0**
