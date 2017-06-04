@@ -878,7 +878,7 @@ public:
 
   void Pack(){KeyDatV.Pack();}
   uint64 GetMemUsed() const {
-      return PortV.GetMemUsed() + KeyDatV.GetMemUsedDeep() +
+      return PortV.GetMemUsed() + KeyDatV.GetMemUsed(true) +
           AutoSizeP.GetMemUsed() + FFreeKeyId.GetMemUsed() +
           FreeKeys.GetMemUsed() + Pool->GetMemUsed();
   }

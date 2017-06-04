@@ -547,6 +547,9 @@ public:
   TWPt(const TWPt& WPt): Addr(WPt.Addr){}
   TWPt(const TPt<TRec>& Pt): Addr(Pt()){}
   ~TWPt(){}
+  explicit TWPt(TSIn& SIn);
+  explicit TWPt(TSIn& SIn, void* ThisPt);
+  void Save(TSOut& SOut) const;
 
   TWPt& operator=(TRec* _Addr){Addr=_Addr; return *this;}
   TWPt& operator=(const TWPt& WPt){Addr=WPt.Addr; return *this;}
