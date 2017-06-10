@@ -22,7 +22,6 @@
 using namespace TQuant;
 
 void GenSamplesUniform(const int& NSamples, TIntV& SampleV, const bool& ShuffleP=true) {
-    std::cout << "generating " << NSamples << " samples\n";
     if (!SampleV.Empty()) { SampleV.Clr(); }
     for (int SampleN = 1; SampleN <= NSamples; SampleN++) {
         SampleV.Add(SampleN);
@@ -31,7 +30,6 @@ void GenSamplesUniform(const int& NSamples, TIntV& SampleV, const bool& ShuffleP
         TRnd Rnd(1);
         SampleV.Shuffle(Rnd);
     }
-    std::cout << "samples generated\n";
 }
 
 TEST(TGreenwaldKhanna, Query) {
@@ -160,7 +158,6 @@ TEST(TGreenwaldKhanna, AutoCompress) {
 TEST(TBiasedGk, Query) {
     const int NTrials = 100;
     const int NSamples = 1000;
-    /* const double TargetPerc = .01; */
     const double Quant0 = .01;
     const double Eps0 = .1;
 
@@ -168,16 +165,12 @@ TEST(TBiasedGk, Query) {
     TBiasedGk BandlessGk(Quant0, Eps0, false);
 
     for (int TrialN = 0; TrialN < NTrials; TrialN++) {
-        /* std::cout << "inserting samples\n"; */
         TIntV SampleV;  GenSamplesUniform(NSamples, SampleV);
         for (int SampleN = 0; SampleN < NSamples; SampleN++) {
             BandGk.Insert(SampleV[SampleN]);
             BandlessGk.Insert(SampleV[SampleN]);
         }
 
-        /* std::cout << "printing summary\n"; */
-
-        /* std::cout << "querying\n"; */
         const double QuantStep = .0001;
         double CurrQuant = QuantStep;
         while (CurrQuant < 1) {
@@ -197,38 +190,282 @@ TEST(TBiasedGk, Query) {
         }
     }
 
-    BandGk.PrintSummary();
-    BandlessGk.PrintSummary();
-    std::cout << "band summary size: " << BandGk.GetSummarySize() << ", bandless summary size: " << BandlessGk.GetSummarySize() << "\n";
     ASSERT_TRUE(BandGk.GetSummarySize() <= BandlessGk.GetSummarySize());
 }
 
-/* TEST(TBiasedGk, QuerySorted) { */
-/*     // TODO */
+TEST(TBiasedGk, HighQuantiles) {
+    const int NTrials = 10;
+    const int NSamples = 1000;
+    const double Quant0 = 1 - .01;
+    const double Eps0 = .1;
+
+    TBiasedGk Gk(Quant0, Eps0);
+
+    for (int TrialN = 0; TrialN < NTrials; TrialN++) {
+        TIntV SampleV;  GenSamplesUniform(NSamples, SampleV);
+        for (int SampleN = 0; SampleN < NSamples; SampleN++) {
+            Gk.Insert(SampleV[SampleN]);
+        }
+
+        const double QuantStep = .0001;
+        double CurrQuant = QuantStep;
+        while (CurrQuant < 1) {
+            const double Eps = CurrQuant > Quant0 ? Eps0 * (1 - Quant0) / (1 - CurrQuant) : Eps0;
+
+            const double Actual = Gk.Query(CurrQuant);
+            const double Expected = CurrQuant*NSamples;
+
+            ASSERT_LE(TMath::Abs(Actual - Expected), std::ceil(NSamples*Eps));
+
+            CurrQuant += QuantStep;
+        }
+    }
+}
+
+// TODO uncomment test
+/* TEST(TBiasedGk, OrderedInput) { */
+/*     const uint64 NSamples = 10000; */
+/*     const double Quant0 = .01; */
+/*     /1* const double Quant0 = 0; *1/ */
+/*     const double Eps = .1; */
+/*     const bool UseBands = true; */
+
+/*     TBiasedGk IncGk(Quant0, Eps, UseBands); */
+/*     TBiasedGk DecGk(Quant0, Eps, UseBands); */
+/*     TBiasedGk RandGk(Quant0, Eps, UseBands); */
+
+/*     TIntV SampleV;  GenSamplesUniform(NSamples, SampleV, true); */
+
+/*     for (uint64 SampleN = 0; SampleN < NSamples; SampleN++) { */
+/*         const uint64 SampleRand = SampleV[SampleN]; */
+/*         IncGk.Insert(SampleN + 1); */
+/*         DecGk.Insert(NSamples - SampleN); */
+/*         RandGk.Insert(SampleRand); */
+/*     } */
+
+/*     IncGk.Compress(); */
+/*     DecGk.Compress(); */
+/*     RandGk.Compress(); */
+
+/*     IncGk.PrintSummary(); */
+/*     DecGk.PrintSummary(); */
+/*     RandGk.PrintSummary(); */
+
+/*     // TODO test */
 /* } */
 
-/* TEST(TBiasedGk, ExtremeValues) { */
-/*     // TODO */
-/* } */
+TEST(TBiasedGk, ExtremeValues) {
+    const int NSamples = 10000;
+    const double Quant = .01;
+    const double Eps = .1;
 
-/* TEST(TBiasedGk, Bands) { */
-/*     const int NTrials = 5; */
+    TBiasedGk Gk(Quant, Eps);
+
+    TIntV SampleV;  GenSamplesUniform(NSamples, SampleV);
+    for (int SampleN = 0; SampleN < NSamples; SampleN++) {
+        Gk.Insert(SampleV[SampleN]);
+    }
+
+    ASSERT_EQ(Gk.Query(0), 1);
+    ASSERT_EQ(Gk.Query(1), NSamples);
+}
+
+TEST(TBiasedGk, ZeroQ0) {
+    const int NTrials = 10;
+    const int NSamples = 10000;
+    const double Quant0 = 0;
+    const double Eps = .1;
+
+    TBiasedGk Gk(Quant0, Eps);
+
+    TIntV SampleV;
+    for (int TrialN = 0; TrialN < NTrials; TrialN++) {
+        GenSamplesUniform(NSamples, SampleV);
+        for (int SampleN = 0; SampleN < NSamples; SampleN++) {
+            Gk.Insert(SampleV[SampleN]);
+        }
+
+        const double QuantStep = .001;
+        double CurrQuant = QuantStep;
+        while (CurrQuant < 1) {
+            const double Actual = Gk.Query(CurrQuant);
+
+            const double LowerBound = std::floor((1 - Eps)*CurrQuant*NSamples);
+            const double UpperBound = std::ceil((1 + Eps)*CurrQuant*NSamples);
+
+            ASSERT_GE(Actual, LowerBound);
+            ASSERT_LE(Actual, UpperBound);
+
+            CurrQuant += QuantStep;
+        }
+    }
+}
+
+// TODO test space limitation
+
+
+/* TEST(TExpHistogram, CountEquallySpaced) { */
+/*     const uint64 WindowMSec = 10000; */
+/*     const uint64 SampleInterval = 1000; */
 /*     const int NSamples = 1000; */
-/*     const double TargetPerc = .01; */
-/*     const double TargetPercEps = .01; */
+/*     const double Eps = .1; */
 
-/*     TBiasedGk BandGk(TargetPerc, TargetPercEps, true); */
-/*     TBiasedGk NonBandGk(TargetPerc, TargetPercEps, false); */
+/*     const int ExpectedCount = WindowMSec / SampleInterval; */
 
-/*     for (int TrialN = 0; TrialN < NTrials; TrialN++) { */
-/*         TIntV SampleV;  GenSamplesUniform(NSamples, SampleV); */
-/*         for (int SampleN = 0; SampleN < NSamples; SampleN++) { */
-/*             BandGk.Insert(SampleV[SampleN]); */
-/*             NonBandGk.Insert(SampleV[SampleN]); */
+/*     TExpHistWithMax ExpHistMx(WindowMSec, Eps); */
+/*     TExpHistogram ExpHist(WindowMSec, Eps); */
+
+/*     uint64 CurrTm = WindowMSec; */
+/*     for (int SampleN = 0; SampleN < NSamples; SampleN++) { */
+/*         ExpHistMx.Add(CurrTm, 1); */
+/*         ExpHist.Add(CurrTm); */
+
+/*         if (SampleN*SampleInterval > WindowMSec) { */
+/*             const int AllowedErr = std::ceil(Eps*ExpectedCount); */
+/*             const int Low = ExpectedCount - AllowedErr; */
+/*             const int High = ExpectedCount + AllowedErr; */
+/*             ASSERT_GE(ExpHistMx.GetCount(), Low); */
+/*             ASSERT_LE(ExpHistMx.GetCount(), High); */
+
+/*             ASSERT_GE(ExpHist.GetCount(), Low); */
+/*             ASSERT_LE(ExpHist.GetCount(), High); */
 /*         } */
 
-/*         std::cout << "band summary: " << BandGk.GetSummarySize() << ", non-band summary: " << NonBandGk.GetSummarySize() << "\n"; */
-
-/*         ASSERT_LT(BandGk.GetSummarySize(), NonBandGk.GetSummarySize()); */
+/*         CurrTm += SampleInterval; */
 /*     } */
 /* } */
+
+/* TEST(TExpHistogram, CountNonEqual) { */
+/*     const uint64 WindowMSec = 100000; */
+/*     const double Eps = .1; */
+
+/*     const uint64 StartTm = WindowMSec; */
+/*     const uint64 EndTm = StartTm + 100*WindowMSec; */
+
+/*     TExpHistWithMax ExpHistMx(WindowMSec, Eps); */
+/*     TExpHistogram ExpHist(WindowMSec, Eps); */
+
+/*     TRnd Rnd(1); */
+
+/*     uint64 CurrTm = StartTm; */
+/*     TUInt64V SampleTmV; */
+/*     while (CurrTm < EndTm) { */
+/*         SampleTmV.Add(CurrTm); */
+/*         while (!SampleTmV.Empty() && SampleTmV[0] <= CurrTm - WindowMSec) { */
+/*             SampleTmV.Del(0); */
+/*         } */
+
+/*         ExpHistMx.Add(CurrTm, 0); */
+/*         ExpHist.Add(CurrTm); */
+
+/*         const int Expected = SampleTmV.Len(); */
+
+/*         const int AllowedErr = std::ceil(Eps*Expected); */
+/*         const int Low = Expected - AllowedErr; */
+/*         const int High = Expected + AllowedErr; */
+
+/*         const uint ActualMx = ExpHistMx.GetCount(); */
+/*         const uint Actual = ExpHist.GetCount(); */
+
+/*         /1* ExpHistMx.PrintIntervals(); *1/ */
+/*         ASSERT_GE(ActualMx, Low); */
+/*         ASSERT_LE(ActualMx, High); */
+
+/*         ASSERT_GE(Actual, Low); */
+/*         ASSERT_LE(Actual, High); */
+
+/*         CurrTm += Rnd.GetUniDevInt(10, 100); */
+/*     } */
+/* } */
+
+/* TEST(TExpHistogram, Compression) { */
+/*     const uint64 WindowMSec = 100000; */
+/*     const uint64 DeltaTm = 100; */
+/*     const double Eps = .1; */
+
+/*     TExpHistWithMax ExpHistMx(WindowMSec, Eps); */
+/*     TExpHistogram ExpHist(WindowMSec, Eps); */
+
+/*     const uint NSteps = 1277; */
+
+/*     const uint64 StartTm = WindowMSec; */
+/*     for (uint StepN = 0; StepN < NSteps; StepN++) { */
+/*         ExpHistMx.Add(StartTm + StepN*DeltaTm, 0); */
+/*         ExpHist.Add(StartTm + StepN*DeltaTm); */
+/*     } */
+
+/*     ASSERT_EQ(ExpHistMx.GetIntervalCount(), 40); */
+/*     ASSERT_EQ(ExpHist.GetIntervalCount(), 40); */
+/* } */
+
+/* TEST(TExpHistogram, MxVal) { */
+/*     const uint64 WindowMSec = 10000; */
+/*     const uint64 MxValInterval = 200; */
+/*     const uint64 SamplesInWindow = 100; */
+
+/*     const uint64 SampleInterval = WindowMSec / SamplesInWindow; */
+
+/*     const double Eps = .1; */
+
+/*     const uint NSamples = 1000; */
+/*     const uint64 MxHighStayTm = WindowMSec + std::ceil(2*Eps*WindowMSec); */
+
+/*     TExpHistWithMax ExpHistMx(WindowMSec, Eps); */
+
+/*     uint64 LastHighTm = 0; */
+/*     const uint64 StartTm = WindowMSec; */
+/*     for (uint SampleN = 0; SampleN < NSamples; SampleN++) { */
+/*         const uint64 CurrTm = StartTm + SampleN*SampleInterval; */
+/*         if (SampleN % MxValInterval == 0) { */
+/*             ExpHistMx.Add(CurrTm, 2); */
+/*             LastHighTm = CurrTm; */
+/*         } */
+/*         else { */
+/*             ExpHistMx.Add(CurrTm, 0); */
+/*         } */
+
+/*         const uint64 TmSinceHigh = CurrTm - LastHighTm; */
+
+/*         if (TmSinceHigh <= WindowMSec) { */
+/*             ASSERT_EQ(2, ExpHistMx.GetMxVal()); */
+/*         } */
+/*         else if (TmSinceHigh > MxHighStayTm) { */
+/*             ASSERT_EQ(0, ExpHistMx.GetMxVal()); */
+/*         } */
+/*     } */
+/* } */
+
+TEST(TExpHistogram, Swallow) {
+    const uint64 WindowMSec = 1000;
+    const double Eps = .1;
+
+    TExpHistogram HistBig(WindowMSec, Eps);
+    TExpHistogram HistSmall(WindowMSec, Eps);
+
+    const int NSamples = 100;
+
+    uint64 CurrTm = 0;
+    for (int SampleN = 0; SampleN < NSamples; SampleN++) {
+        if (SampleN % 2 == 0) {
+            HistBig.Add(CurrTm);
+        }
+        else if (SampleN % 3 == 0) {
+            HistSmall.Add(CurrTm);
+        }
+        HistBig.PrintIntervalV();
+        ++CurrTm;
+    }
+
+    std::cout << "\n\nbig histogram:\n";
+    HistBig.PrintIntervalV();
+    std::cout << "small histogram:\n";
+    HistSmall.PrintIntervalV();
+
+    HistBig.Swallow(HistSmall);
+
+    std::cout << "result:\n";
+    HistBig.PrintIntervalV();
+}
+
+
+// TODO implement OnTime  functionality for the windowed GK

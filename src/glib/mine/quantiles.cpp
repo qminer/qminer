@@ -3,40 +3,21 @@
 
 namespace TQuant {
 
-    template <typename T1, typename T2, typename T3>
-    std::ostream& operator <<(std::ostream& os, const TTriple<T1, T2, T3>& Triple) {
-        os << "<" << Triple.Val1.Val << ", " << Triple.Val2.Val << ", " << Triple.Val3.Val << ">";
-        return os;
-    }
-
-    template <typename T>
-    std::ostream& operator <<(std::ostream& os, const TVec<T>& Vec) {
-        os << "[";
-        for (int ValN = 0; ValN < Vec.Len(); ValN++) {
-            os << Vec[ValN];
-            if (ValN< Vec.Len() - 1) {
-                os << ", ";
-            }
-        }
-        os << "]";
-        return os;
-    }
-
     std::ostream& operator <<(std::ostream& os, const TGkTuple& Tup) {
         os << '<' << Tup.GetVal() << ", " << Tup.GetTupleSize() << ", " << Tup.GetMnMxRankDiff() << '>';
         return os;
     }
 
-    TGkTuple::TGkTuple():
-            Val(),
-            TupleSize(),
-            MnMxRankDiff() {}
+    std::ostream& operator <<(std::ostream& os, const TUInt& Val) {
+        return os << Val.Val;
+    }
 
-    TGkTuple::TGkTuple(const TFlt& _Val, const TUInt& _TupleSize, const TUInt& Delta):
+    TGkTuple::TGkTuple() {}
+
+    TGkTuple::TGkTuple(const double& _Val, const uint& _TupleSize, const uint& Delta):
             Val(_Val),
             TupleSize(_TupleSize),
             MnMxRankDiff(Delta) {
-        /* std::cout << "delta: " << uint32(Delta) << "\n"; */
         AssertR(Delta <= TUInt(TInt::Mx), "Invalid value of Delta: " + TUInt::GetStr(Delta));
     }
 
@@ -125,7 +106,6 @@ namespace TQuant {
     }
 
     void TGk::Compress() {
-        /* std::cout << "compressing\n"; */
         const int ErrRange = 2*Eps*SampleN;
 
         // go throught the tuples and merge the ones you can
@@ -230,37 +210,34 @@ namespace TQuant {
     /*     MnEps(TargetQuantileEps), */
     /*     UseBands(_UseBands) {} */
 
-    TBiasedGk::TBiasedGk(const double& _MxTargetQuant, const double& _Eps, const bool& _UseBands):
-            Quant0(_MxTargetQuant),
+    TBiasedGk::TBiasedGk(const double& _Quant0, const double& _Eps, const bool& _UseBands):
+            Quant0(_Quant0),
             Eps(_Eps),
             UseBands(_UseBands) {
 
         EAssert(Eps > 0.0);
-        EAssert(Quant0 > 0);
+        EAssert(0 <= Quant0 && Quant0 <= 1);
+
+        if (Quant0 > .5) {
+            Quant0 = 1 - Quant0;
+            Dir = -1;
+        }
     }
 
     double TBiasedGk::Query(const double& Quantile) const {
-        EAssert(0 < Quantile && Quantile < 1);
         if (GetSummarySize() == 0) { return 0; }
 
-        /* const uint TargetRank = std::ceil(Quantile*SampleN - NUM_EPS);  // fix for numerical errors */
-        const double TargetRank = Quantile*SampleN;
-        /* const double EpsRank = double(GetMxTupleSize(TargetRank)) / 2.0; */
+        const double TargetRank = Dir > 0 ? Quantile*SampleN : (1 - Quantile)*SampleN;
         const double EpsRank = GetMxTupleSize(TargetRank) / 2;
 
         if (TargetRank <= 1) { return Summary[0].GetVal(); }
-
-        /* std::cout << "q: " << Quantile << ", target rank: " << TargetRank << ", n: " << SampleN << ", allowed error: " << EpsRank << "\n"; */
 
         int CurrMnRank = 0;
         for (int TupleN = 0; TupleN < Summary.Len(); TupleN++) {
             const TGkTuple& Tuple = Summary[TupleN];
             const uint64 MxRank = CurrMnRank + Tuple.GetTupleSize() + Tuple.GetMnMxRankDiff();
 
-            /* std::cout << "ri: " << CurrMnRank << ", r_max: " << MxRank << ", tuple: " << Tuple << "\n"; */
-
             if (MxRank > TargetRank + EpsRank) {
-                /* std::cout << "returning: " << Summary[TupleN-1].GetVal() << "\n"; */
                 return Summary[TupleN-1].GetVal();
             }
 
@@ -271,20 +248,15 @@ namespace TQuant {
     }
 
     void TBiasedGk::Insert(const double& Val) {
-        /* std::cout << "inserting " << Val << "\n"; */
         int TupleN = 0;
         uint64 PrevTupleMnRank = 0;
 
         while (TupleN < Summary.Len()) {
             const TGkTuple& Tuple = Summary[TupleN];
-            if (Tuple.GetVal() >= Val) { break; }   // this item will be on the right, don't add to the sum
+            if (Dir*(Val - Tuple.GetVal()) <= 0) { break; }
             PrevTupleMnRank += Tuple.GetTupleSize();
             TupleN++;
         }
-
-        /* std::cout << "found tuple number: " << TupleN << "\n"; */
-
-        /* ++SampleN;      // XXX??? */
 
         if (TupleN == 0) {
             // special case
@@ -294,12 +266,11 @@ namespace TQuant {
             Summary.Add(TGkTuple(Val, 1, 0));
         } else {
             const double NewTupleMxSize = GetMxTupleSize(PrevTupleMnRank);
-            /* std::cout << "new tuple max size: " << NewTupleMxSize << "\n"; */
             Summary.Ins(TupleN, TGkTuple(Val, 1, std::floor(NewTupleMxSize-1)));
             AssertR(NewTupleMxSize-1 >= 0, "Max tuple size is 0, but should be at least 1!");
         }
 
-        ++SampleN;    // XXX???
+        ++SampleN;
 
         if (ShouldCompress()) {
             Compress();
@@ -308,8 +279,6 @@ namespace TQuant {
 
     void TBiasedGk::Compress() {
         if (Summary.Empty()) { return; }
-
-        /* std::cout << "compressing\n"; */
 
         uint64 CurrMnRank = Summary[0].GetTupleSize();
         for (int TupleN = 1; TupleN < Summary.Len()-1; TupleN++) {
@@ -324,7 +293,6 @@ namespace TQuant {
                                        AdjTuple.GetTupleSize() +
                                        AdjTuple.GetMnMxRankDiff();
             const double MxTupleRange = GetMxTupleSize(PrevMnRank);
-            /* std::cout << "quantile: " << double(PrevMnRank) / SampleN << ", eps: " << GetEps(double(PrevMnRank) / SampleN) << "\n"; */
 
             if (UseBands) {
                 const int CurTupleBand = GetBand(CurTuple, CurrMnRank);
@@ -365,7 +333,7 @@ namespace TQuant {
     }
 
     bool TBiasedGk::ShouldCompress() const {
-        return SampleN % uint64(std::ceil(0.5 / Eps)) == 0;    // XXX
+        return SampleN % uint64(std::ceil(0.5 / Eps)) == 0;    // TODO set some smart compress strategy
     }
 
     int TBiasedGk::GetBand(const TGkTuple& Tuple, const uint64& MnRank) const {
@@ -403,5 +371,127 @@ namespace TQuant {
             FailR(MsgStr.CStr());
             return -1;
         }
+    }
+
+    TInterval::TInterval(): TInterval(0ul) {}
+
+    TInterval::TInterval(const uint64& _StartTm):
+            StartTm(_StartTm) {}
+
+    TInterval::TInterval(const uint64& _StartTm, const uint64& _Dur, const uint& _Count):
+            StartTm(_StartTm),
+            DurMSec(_Dur),
+            ElCount(_Count) {}
+
+    uint64 TInterval::GetEndTm() const {
+        return StartTm + DurMSec;
+    }
+
+    void TInterval::Swallow(const TInterval& Other) {
+        Assert(StartTm < Other.StartTm);
+
+        DurMSec = Other.DurMSec +  Other.StartTm - StartTm;
+        ElCount <<= 1;  // multiply by 2
+    }
+
+    ////////////////////////////////////////////
+    /// Approximate interval with maximum
+    TIntervalWithMax::TIntervalWithMax() : TIntervalWithMax(0, 0.0) {}
+
+    TIntervalWithMax::TIntervalWithMax(const uint64& BeginTm, const double& Val):
+        TInterval(BeginTm),
+        MxVal(Val) {}
+
+    void TIntervalWithMax::Swallow(const TIntervalWithMax& Other) {
+        TInterval::Swallow(Other);
+        if (Other.MxVal > MxVal) {
+            MxVal = Other.MxVal;
+        }
+    }
+
+
+    // print operators
+    std::ostream& operator <<(std::ostream& os, const TInterval& Interval) {
+        return os << "<" << Interval.GetStartTm() << ", " << Interval.GetDurMSec() << ", " << Interval.GetCount() << ">";
+    }
+
+    std::ostream& operator <<(std::ostream& os, const TIntervalWithMax& Interval) {
+        return os << "<"
+           << Interval.GetStartTm()
+           << ", " << Interval.GetDurMSec()
+           << ", " << Interval.GetCount()
+           << ", " << Interval.GetMxVal()
+           << ">";
+    }
+
+    std::ostream& operator <<(std::ostream& os, const TUIntUInt64Pr& Pr) {
+        return os << "<" << Pr.Val1.Val << ", " << Pr.Val2.Val << ">";
+    }
+
+    ///////////////////////////////////////////
+    /// Exponential Histogram
+    void TExpHistogram::Add(const uint64& Tm) {
+        TBase::Add(TInterval(Tm));
+    }
+
+    ///////////////////////////////////////////
+    /// Exponential Histogram with maximum
+    void TExpHistWithMax::Add(const uint64& Tm, const double& Val) {
+        if (GetCount() == 0 || Val > MxVal) { MxVal = Val; }
+        TBase::Add(TIntervalWithMax(Tm, Val));
+    }
+
+    double TExpHistWithMax::GetMxVal() const {
+        // TODO the paper returns the maximum of all BUT the last block
+        return MxVal;
+    }
+
+    void TExpHistWithMax::OnIntervalForgotten(const TIntervalWithMax& Interval) {
+        if (GetCount() == 0) { return; }
+
+        if (MxVal == Interval.GetMxVal()) {
+            // find a new maximal value
+            const TIntervalV IntervalV = TExpHistBase::GetIntervalV();
+
+            MxVal = IntervalV[0].GetMxVal();
+            for (int IntervalN = 1; IntervalN < IntervalV.Len(); IntervalN++) {
+                if (IntervalV[IntervalN].GetMxVal() > MxVal) {
+                    MxVal = IntervalV[IntervalN].GetMxVal();
+                }
+            }
+        }
+    }
+
+
+    ///////////////////////////////////////////////////
+    /// GK algorithm for sliding windows
+    double TSwGk::TTuple::GetVal() const {
+        return TupleSizeExpHist.GetMxVal();
+    }
+
+    double TSwGk::TTuple::GetTupleSize() const {
+        return TupleSizeExpHist.GetCount();
+    }
+
+    double TSwGk::TTuple::GetMnMxRankDiff() const {
+        // TODO
+        return 0;
+    }
+
+    double TSwGk::Query(const double& Quantile) const {
+        // TODO
+        return 0;
+    }
+
+    void TSwGk::Insert(const double& Val) {
+        // TODO
+    }
+
+    void TSwGk::Compress() {
+        // TODO
+    }
+
+    int TSwGk::GetSummarySize() const {
+        return Summary.Len();
     }
 }

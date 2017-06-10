@@ -1,17 +1,32 @@
 #ifndef _STREAM_QUANTILES_H
 #define _STREAM_QUANTILES_H
 
+#include <iostream>
+
 namespace TQuant {
+
+    class TGkTuple;
+
+    template <typename T1, typename T2, typename T3>
+    std::ostream& operator <<(std::ostream& os, const TTriple<T1, T2, T3>& Triple);
+
+    template <typename T>
+    std::ostream& operator <<(std::ostream& os, const TVec<T>& Vec);
+
+    std::ostream& operator <<(std::ostream& os, const TGkTuple& Tup);
+
+    std::ostream& operator <<(std::ostream& os, const TUInt& Val);
+
 
     class TGkTuple {
     private:
-        TFlt Val;
-        TUInt TupleSize;
-        TUInt MnMxRankDiff;
+        TFlt Val {};
+        TUInt TupleSize {};
+        TUInt MnMxRankDiff {};
 
     public:
         TGkTuple();
-        TGkTuple(const TFlt& Val, const TUInt& MnRankDiff, const TUInt& Delta);
+        TGkTuple(const double& Val, const uint& MnRankDiff, const uint& Delta);
 
         const TFlt& GetVal() const { return Val; }
         const TUInt& GetTupleSize() const { return TupleSize; }
@@ -100,7 +115,8 @@ namespace TQuant {
         ///
         /// Quant0: the quantile where the accuracy stops increasing
         /// Eps: the (multiplicative) allowed error
-        /// UseBands: when bands are used, the algorithm prefers to keep tuples which were inserted early on, which can save space in the long run
+        /// UseBands: when bands are used, the algorithm prefers to keep tuples
+        ///           which were inserted early on, which can save space in the long run
         TBiasedGk(const double& Quant0, const double& Eps, const bool& UseBands=true);
         // TODO need 2 constructors:
         // 1) specify the accuracy and the method takes as much space as needed
@@ -138,12 +154,243 @@ namespace TQuant {
         TUInt64 SampleN {0ul};
         TFlt Quant0;
         TFlt Eps;
+        TInt Dir {1};
         TBool UseBands;
+    };
+
+
+    class TInterval {
+    private:
+        TUInt64 StartTm;
+        TUInt64 DurMSec {0ul};  // the interval covers [StartTm, StartTm + DurMSec]
+        TUInt ElCount {1u};
+
+    public:
+        TInterval();
+        TInterval(const uint64& StartTm);
+        TInterval(const uint64& StartTm, const uint64& Dur, const uint& Count);
+
+        const TUInt& GetCount() const { return ElCount; }
+        const TUInt64& GetStartTm() const { return StartTm; }
+        const TUInt64& GetDurMSec() const { return DurMSec; }
+
+        uint64 GetEndTm() const;
+
+        void Swallow(const TInterval&);
+    };
+
+    class TIntervalWithMax : public TInterval {
+    private:
+        TFlt MxVal;             // the maximal value merged into the interval
+
+    public:
+        TIntervalWithMax();
+        TIntervalWithMax(const uint64& BeginTm, const double& Val);
+
+        const TFlt& GetMxVal() const { return MxVal; }
+
+        void Swallow(const TIntervalWithMax&);
+    };
+
+    std::ostream& operator <<(std::ostream&, const TInterval&);
+    std::ostream& operator <<(std::ostream&, const TIntervalWithMax&);
+    std::ostream& operator <<(std::ostream&, const TUIntUInt64Pr&);
+
+
+    //////////////////////////////////////////////
+    /// Base class with most of the logic needed by
+    /// exponential histograms
+    template <typename TInterval>
+    class TExpHistBase {
+        // TODO make OnIntervalForgotten public???
+    protected:
+        using TIntervalV = TVec<TInterval>;
+
+    private:
+
+        TIntervalV IntervalV {};
+        TUIntV LogSizeToBlockCountV {1};  // at index i stores the number of blocks of size (i+1)
+        TUInt64 WindowMSec;
+        TUInt MinBlocksCompress;
+        TUInt TotalCount {0u};
+
+    public:
+        /// Sets the time window and error. The (approximate) count
+        /// of the elements in time window [curr_time, curr_time - window)
+        /// in the bin is at most (1 + eps)*real_count.
+        TExpHistBase(const uint64& WindowMSec, const double& Eps);
+        virtual ~TExpHistBase() {}
+
+        uint GetCount() const;
+        uint GetIntervalCount() const;
+
+        void Swallow(const TExpHistBase<TInterval>&);
+
+    protected:
+        void Add(const TInterval&);
+        void Compress();
+
+        virtual void OnIntervalForgotten(const TInterval&) {}
+
+    private:
+        void Forget(const uint64& CurrTm);
+
+        TInterval& GetInterval(const int& IntervalN);
+        TInterval& GetPrevInterval(const int& IntervalN);
+
+        TUInt& LogBlockSizeToBlockCount(const uint& LogBlockSize);
+        TUInt& BlockSizeToBlockCount(const uint& BlockSize);
+        void ReserveStructures(const uint& LogBlockSize);
+
+        void AssertInvariant1() const;
+        void AssertInvariant2() const;
+
+        static void MergeAddItemBatch(const uint& BatchSize, const uint64& BatchTm, const uint& BlockSize,
+                TUIntUInt64Pr& CarryInfo, TIntervalV& NewIntervalV) {
+            std::cout << "adding batch of items, size: " << BatchSize << ", time: " << BatchTm << "\n";
+            if (CarryInfo.Val1 == 0) { CarryInfo.Val2 = BatchTm; }
+            CarryInfo.Val1 += BatchSize;
+            std::cout << "carry info: " << CarryInfo << "\n";
+            MergeFlushCarryInfo(BlockSize, BatchTm, CarryInfo, NewIntervalV);
+        }
+
+        static void MergeFlushCarryInfo(const uint& BlockSize, const uint64 EndTm,
+                TUIntUInt64Pr& CarryInfo, TIntervalV& NewIntervalV) {
+
+            if (CarryInfo.Val1 >= BlockSize) {
+                const uint64 StartTm = CarryInfo.Val2;
+                const uint64 Dur = EndTm - StartTm;
+                NewIntervalV.Add(TInterval(StartTm, Dur, BlockSize));
+                CarryInfo.Val1 -= BlockSize;
+                CarryInfo.Val2 = EndTm;
+                std::cout << "added interval: " << NewIntervalV.Last();
+                std::cout << "carry info: " << CarryInfo << "\n";
+            }
+        }
+
+        static void MergeCloseInterval(const TIntervalV& IntervalV, int& OpenN,
+                const TIntervalV& OthrIntervalV, const int& OthrN,
+                uint& CurrBlockSize, TUIntUInt64Pr& CarryInfo, TIntervalV& NewIntervalV) {
+
+            // close the interval
+            const TInterval& OpenInterval = IntervalV[OpenN];
+            const uint64 EndTm = OpenInterval.GetEndTm();
+            MergeAddItemBatch(
+                    OpenInterval.GetCount() >> 1,
+                    EndTm,
+                    CurrBlockSize,
+                    CarryInfo,
+                    NewIntervalV
+            );
+            ++OpenN;
+            // check if the block size changed, if so then flush the carry info as necessary
+            const uint Count1 = OpenN < IntervalV.Len() ? IntervalV[OpenN].GetCount().Val : 1u;
+            const uint Count2 = OthrN < OthrIntervalV.Len() ? OthrIntervalV[OthrN].GetCount().Val : 1u;
+            const uint NewBlockSize = TMath::Mx(Count1, Count2);
+            // create new blocks while there are as many items in the carry info
+            // as the new block size
+            while (CurrBlockSize > NewBlockSize) {
+                CurrBlockSize >>= 1;
+                std::cout << "reducing block size, curr size: " << CurrBlockSize << ", target: " << NewBlockSize << "\n";
+                MergeFlushCarryInfo(CurrBlockSize, EndTm, CarryInfo, NewIntervalV);
+            }
+            /* CurrBlockSize = NewBlockSize; */
+            /* while (CarryInfo.Val1 >= NewBlockSize) { */
+            /*     CurrBlockSize >>= 1; */
+            /*     MergeFlushCarryInfo(CurrBlockSize, EndTm, CarryInfo, NewIntervalV); */
+            /* } */
+        }
+
+    public:
+        // TODO should these be deleted???
+        const TIntervalV& GetIntervalV() const { return IntervalV; }
+
+        // TODO here for debugging
+        void PrintIntervalV() const { std::cout << IntervalV << "\n"; }
+    };
+
+
+    //////////////////////////////////////////////
+    /// Exponential Histogram
+    /// (approximately) counts the number of items
+    /// in a time window
+    class TExpHistogram : public TExpHistBase<TInterval> {
+    private:
+        using TBase = TExpHistBase<TInterval>;
+
+    public:
+        using TBase::TExpHistBase;
+
+        void Add(const uint64& Tm);
+    };
+
+    //////////////////////////////////////////////
+    /// Exponential Histogram which also holds the
+    /// maximum of the items
+    class TExpHistWithMax : public TExpHistBase<TIntervalWithMax> {
+    private:
+        using TBase = TExpHistBase<TIntervalWithMax>;
+        using TIntervalV = TBase::TIntervalV;   // TODO when done check if this is needed
+
+        TFlt MxVal; // the (approximate) maximum value on the interval
+
+    public:
+        using TBase::TExpHistBase;
+
+        /// adds a new item
+        void Add(const uint64& Tm, const double& Val);
+        /// returns the (approximate) number of items in the time window
+        /* int GetCount() const; */
+        /// returns the maximum value stored by the exponential histogram
+        double GetMxVal() const;
+
+    private:
+        void OnIntervalForgotten(const TIntervalWithMax&);
+    };
+
+    ////////////////////////////////////////////
+    /// Greenwald-Khanna algorithm on a sliding
+    /// window.
+    ///
+    /// Described in
+    /// "Online Algorithm for Approximate Quantile Queries on Sliding Windows"
+    /// http://dl.acm.org/citation.cfm?id=2954329
+    class TSwGk {
+    private:
+        class TTuple {
+        private:
+            TExpHistWithMax TupleSizeExpHist;
+            TExpHistogram MnMxRankDiffExpHist;
+
+        public:
+
+            double GetVal() const;
+            double GetTupleSize() const;
+            double GetMnMxRankDiff() const;
+        };
+
+        using TSummary = TVec<TTuple>;
+
+        TSummary Summary;
+        TFlt EpsGk;
+        TFlt EpsEh;
+
+    public:
+        double Query(const double& Quantile) const;
+        void Insert(const double& Val);
+
+        /// compresses the summary
+        void Compress();
+        /// returns the number of tuples in the summary
+        int GetSummarySize() const;
+        // TODO
     };
 
     using TGk = TGreenwaldKhanna;
     using TCkms = TBiasedGk;
 }
+
+#include "quantiles.hpp"
 
 // TODO all GK based: let query quantiles be 0 and 1
 

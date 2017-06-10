@@ -110,6 +110,7 @@ typedef TPair<TInt16, TInt16> TInt16Pr;
 typedef TPair<TInt64, TInt64> TInt64Pr;
 typedef TPair<TIntPr, TInt> TIntPrIntPr;
 typedef TPair<TUInt, TUInt> TUIntUIntPr;
+typedef TPair<TUInt, TUInt64> TUIntUInt64Pr;
 typedef TPair<TUInt, TInt> TUIntIntPr;
 typedef TPair<TUInt, TStr> TUIntStrPr;
 typedef TPair<TUInt16, TUInt16> TUInt16Pr;
