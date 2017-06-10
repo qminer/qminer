@@ -2742,6 +2742,16 @@ bool TRecFilterByFieldByte::Filter(const TRec& Rec) const {
     return (MinVal <= RecVal) && (RecVal <= MaxVal);
 }
 
+TRecFilterByFieldByteSet::TRecFilterByFieldByteSet(const TWPt<TBase>& _Base, const int& _FieldId, const TUChSet& ValSet_,
+    const bool& _FilterNullP) : TRecFilterByField(_Base, _FieldId, _FilterNullP), ValSet(ValSet_) { }
+
+bool TRecFilterByFieldByteSet::Filter(const TRec& Rec) const {
+    bool RecNull = Rec.IsFieldNull(FieldId);
+    if (RecNull) { return !FilterNullP; }
+    const uchar RecVal = Rec.GetFieldByte(FieldId);
+    return ValSet.IsKey(RecVal);
+}
+
 ///////////////////////////////
 /// Record Filter by Integer Field.
 TRecFilterByFieldUInt::TRecFilterByFieldUInt(const TWPt<TBase>& _Base, const int& _FieldId, const uint& _MinVal,
@@ -2752,6 +2762,18 @@ bool TRecFilterByFieldUInt::Filter(const TRec& Rec) const {
     if (RecNull) { return !FilterNullP; }
     const uint RecVal = Rec.GetFieldUInt(FieldId);
     return (MinVal <= RecVal) && (RecVal <= MaxVal);
+}
+
+///////////////////////////////
+/// Record filter by unsigned integer field.
+TRecFilterByFieldUIntSet::TRecFilterByFieldUIntSet(const TWPt<TBase>& _Base, const int& _FieldId, const TUIntSet& ValSet_,
+    const bool& _FilterNullP) : TRecFilterByField(_Base, _FieldId, _FilterNullP), ValSet(ValSet_) { }
+
+bool TRecFilterByFieldUIntSet::Filter(const TRec& Rec) const {
+    bool RecNull = Rec.IsFieldNull(FieldId);
+    if (RecNull) { return !FilterNullP; }
+    const uint RecVal = Rec.GetFieldUInt(FieldId);
+    return ValSet.IsKey(RecVal);
 }
 
 ///////////////////////////////
@@ -2777,6 +2799,18 @@ bool TRecFilterByFieldUInt64::Filter(const TRec& Rec) const {
     if (RecNull) { return !FilterNullP; }
     const uint64 RecVal = Rec.GetFieldUInt64(FieldId);
     return (MinVal <= RecVal) && (RecVal <= MaxVal);
+}
+
+///////////////////////////////
+/// Record filter by unsigned integer field.
+TRecFilterByFieldUInt64Set::TRecFilterByFieldUInt64Set(const TWPt<TBase>& _Base, const int& _FieldId, const TUInt64Set& ValSet_,
+    const bool& _FilterNullP) : TRecFilterByField(_Base, _FieldId, _FilterNullP), ValSet(ValSet_) { }
+
+bool TRecFilterByFieldUInt64Set::Filter(const TRec& Rec) const {
+    bool RecNull = Rec.IsFieldNull(FieldId);
+    if (RecNull) { return !FilterNullP; }
+    const uint64 RecVal = Rec.GetFieldUInt64(FieldId);
+    return ValSet.IsKey(RecVal);
 }
 
 ///////////////////////////////
@@ -3756,7 +3790,7 @@ void TRecSet::FilterByFieldInt(const int& FieldId, const int& MinVal, const int&
 void TRecSet::FilterByFieldInt16(const int& FieldId, const int16& MinVal, const int16& MaxVal) {
     // get store and field type
     const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
-    QmAssertR(Desc.IsInt16(), "Wrong field type, integer expected");
+    QmAssertR(Desc.IsInt16(), "Wrong field type, 16bit integer expected");
     // apply the filter
     FilterBy<TRecFilterByFieldInt16>(TRecFilterByFieldInt16(Store->GetBase(), FieldId, MinVal, MaxVal));
 }
@@ -3764,7 +3798,7 @@ void TRecSet::FilterByFieldInt16(const int& FieldId, const int16& MinVal, const 
 void TRecSet::FilterByFieldInt64(const int& FieldId, const int64& MinVal, const int64& MaxVal) {
     // get store and field type
     const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
-    QmAssertR(Desc.IsInt64(), "Wrong field type, integer expected");
+    QmAssertR(Desc.IsInt64(), "Wrong field type, 64bit integer expected");
     // apply the filter
     FilterBy<TRecFilterByFieldInt64>(TRecFilterByFieldInt64(Store->GetBase(), FieldId, MinVal, MaxVal));
 }
@@ -3772,23 +3806,39 @@ void TRecSet::FilterByFieldInt64(const int& FieldId, const int64& MinVal, const 
 void TRecSet::FilterByFieldByte(const int& FieldId, const uchar& MinVal, const uchar& MaxVal) {
     // get store and field type
     const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
-    QmAssertR(Desc.IsByte(), "Wrong field type, integer expected");
+    QmAssertR(Desc.IsByte(), "Wrong field type, byte expected");
     // apply the filter
     FilterBy<TRecFilterByFieldByte>(TRecFilterByFieldByte(Store->GetBase(), FieldId, MinVal, MaxVal));
+}
+
+void TRecSet::FilterByFieldByteSet(const int& FieldId, const TUChSet& ValSet) {
+    // get store and field type
+    const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
+    QmAssertR(Desc.IsUInt(), "Wrong field type, unsigned integer expected");
+    // apply the filter
+    FilterBy<TRecFilterByFieldByteSet>(TRecFilterByFieldByteSet(Store->GetBase(), FieldId, ValSet));
 }
 
 void TRecSet::FilterByFieldUInt(const int& FieldId, const uint& MinVal, const uint& MaxVal) {
     // get store and field type
     const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
-    QmAssertR(Desc.IsUInt(), "Wrong field type, integer expected");
+    QmAssertR(Desc.IsUInt(), "Wrong field type, unsigned integer expected");
     // apply the filter
     FilterBy<TRecFilterByFieldUInt>(TRecFilterByFieldUInt(Store->GetBase(), FieldId, MinVal, MaxVal));
+}
+
+void TRecSet::FilterByFieldUIntSet(const int& FieldId, const TUIntSet& ValSet) {
+    // get store and field type
+    const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
+    QmAssertR(Desc.IsUInt(), "Wrong field type, unsigned integer expected");
+    // apply the filter
+    FilterBy<TRecFilterByFieldUIntSet>(TRecFilterByFieldUIntSet(Store->GetBase(), FieldId, ValSet));
 }
 
 void TRecSet::FilterByFieldUInt16(const int& FieldId, const uint16& MinVal, const uint16& MaxVal) {
     // get store and field type
     const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
-    QmAssertR(Desc.IsUInt16(), "Wrong field type, integer expected");
+    QmAssertR(Desc.IsUInt16(), "Wrong field type, unsigned 16bit integer expected");
     // apply the filter
     FilterBy<TRecFilterByFieldUInt16>(TRecFilterByFieldUInt16(Store->GetBase(), FieldId, MinVal, MaxVal));
 }
@@ -3812,9 +3862,17 @@ void TRecSet::FilterByFieldSFlt(const int& FieldId, const float& MinVal, const f
 void TRecSet::FilterByFieldUInt64(const int& FieldId, const uint64& MinVal, const uint64& MaxVal) {
     // get store and field type
     const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
-    QmAssertR(Desc.IsUInt64(), "Wrong field type, integer expected");
+    QmAssertR(Desc.IsUInt64(), "Wrong field type, unsigned 64bit integer expected");
     // apply the filter
     FilterBy<TRecFilterByFieldUInt64>(TRecFilterByFieldUInt64(Store->GetBase(), FieldId, MinVal, MaxVal));
+}
+
+void TRecSet::FilterByFieldUInt64Set(const int& FieldId, const TUInt64Set& ValSet) {
+    // get store and field type
+    const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
+    QmAssertR(Desc.IsUInt(), "Wrong field type, unsigned integer expected");
+    // apply the filter
+    FilterBy<TRecFilterByFieldUInt64Set>(TRecFilterByFieldUInt64Set(Store->GetBase(), FieldId, ValSet));
 }
 
 void TRecSet::FilterByFieldStr(const int& FieldId, const TStr& FldVal) {
