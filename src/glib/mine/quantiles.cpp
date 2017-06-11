@@ -388,7 +388,8 @@ namespace TQuant {
     }
 
     void TInterval::Swallow(const TInterval& Other) {
-        Assert(StartTm < Other.StartTm);
+        std::cout << "interval " << *this << " is swallowing " << Other << "\n";
+        Assert(StartTm <= Other.StartTm);
 
         DurMSec = Other.DurMSec +  Other.StartTm - StartTm;
         ElCount <<= 1;  // multiply by 2

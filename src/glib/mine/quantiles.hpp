@@ -22,9 +22,9 @@ namespace TQuant {
     //////////////////////////////////////////////
     /// Exponential Histogram Base
     template <typename TInterval>
-    TExpHistBase<TInterval>::TExpHistBase(const uint64& WindowMSec, const double& Eps):
+    TExpHistBase<TInterval>::TExpHistBase(const uint64& WindowMSec, const double& _Eps):
             WindowMSec(WindowMSec),
-            MinBlocksCompress(1 / Eps) {
+            Eps(_Eps) {
         EAssert(0 < Eps && Eps <= .5);
     }
 
@@ -35,14 +35,9 @@ namespace TQuant {
     }
 
     template <typename TInterval>
-    uint TExpHistBase<TInterval>::GetIntervalCount() const {
-        return IntervalV.Len();
-    }
-
-    template <typename TInterval>
     void TExpHistBase<TInterval>::Swallow(const TExpHistBase<TInterval>& Other) {
         Assert(WindowMSec == Other.WindowMSec);
-        Assert(MinBlocksCompress == Other.MinBlocksCompress);
+        Assert(Eps == Other.Eps);
 
         TIntervalV NewIntervalV;
 
@@ -59,10 +54,7 @@ namespace TQuant {
         int Interval2N = 0;
 
         while (Interval1N < IntervalV1.Len() && Interval2N < IntervalV2.Len()) {
-            std::cout << "\n";
-            std::cout << "n1: " << Interval1N << ", n2: " << Interval2N << "\n";
             if (OpenVPtr == nullptr) {      // no interval open
-                std::cout << "both intervals closed\n";
                 // find the interval that starts first and open it
                 const TInterval& Interval1 = IntervalV1[Interval1N];
                 const TInterval& Interval2 = IntervalV2[Interval2N];
@@ -89,7 +81,6 @@ namespace TQuant {
                         );
                         OpenVPtr = &IntervalV1;
                         OpenNPtr = &Interval1N;
-                        std::cout << "opened interval 1\n";
                     }
                 }
                 else {
@@ -113,12 +104,10 @@ namespace TQuant {
                         );
                         OpenVPtr = &IntervalV2;
                         OpenNPtr = &Interval2N;
-                        std::cout << "opened interval 2\n";
                     }
                 }
             }
             else {
-                std::cout << "one interval open\n";
                 // one interval hasn't finished yet
                 const TIntervalV& OpenIntervalV = *OpenVPtr;
                 const TIntervalV& OthrIntervalV = OpenVPtr == &IntervalV ? IntervalV2 : IntervalV1;
@@ -135,7 +124,6 @@ namespace TQuant {
                 // add the batch of items from the open interval, close it and
                 // go to the next iteration
                 if (OpenInterval.GetEndTm() <= OthrInterval.GetStartTm()) {
-                    std::cout << "open interval closes\n";
                     MergeCloseInterval(
                             OpenIntervalV,
                             OpenN,
@@ -165,7 +153,6 @@ namespace TQuant {
                         ++OthrN;
                     } else {
                         // add the batch from the start of the new interval
-                        std::cout << "opening the new interval\n";
                         MergeAddItemBatch(
                                 OthrInterval.GetCount() >> 1,
                                 OthrInterval.GetStartTm(),
@@ -176,7 +163,6 @@ namespace TQuant {
                         // both intervals are now open, now close the one that finishes first
                         if (OthrInterval.GetEndTm() <= OpenInterval.GetEndTm()) {
                             // close the new interval, the open interval remains open
-                            std::cout << "closing the new interval\n";
                             MergeCloseInterval(
                                     OthrIntervalV,
                                     OthrN,
@@ -188,7 +174,6 @@ namespace TQuant {
                             );
                         } else {
                             // close the open interval
-                            std::cout << "closing the open interval\n";
                             MergeCloseInterval(
                                     OpenIntervalV,
                                     OpenN,
@@ -227,18 +212,92 @@ namespace TQuant {
             TotalCount += Interval.GetCount();
         }
 
-        // TODO compress
+        // compress the resulting EH
+        const uint MxBlocksPerCount = GetMxBlocksSameSize();
+        int CurrPos = IntervalV.Len()-1;
+        for (int LogBlockSize = 0; LogBlockSize < LogSizeToBlockCountV.Len(); LogBlockSize++) {
+            while (LogBlockSizeToBlockCount(LogBlockSize) > MxBlocksPerCount) {
+                CompressOldestInBatch(CurrPos);
+                --CurrPos;
+            }
+            CurrPos -= LogBlockSizeToBlockCount(LogBlockSize);
+        }
+
+        // forget any measurements which fell outside the window
+        if (!IntervalV.Empty()) {
+            Forget(IntervalV.Last().GetEndTm());
+        }
 
         // finished, assert that all invariants hold
-#ifndef NDEBUG
-        AssertInvariant1();
-        AssertInvariant2();
-#endif
+        AssertR(CheckInvariant1(), "EH: Invariant 1 fails after merge!");
+        AssertR(CheckInvariant2(), "EH: Invariant 2 fails after merge!");
+    }
+
+    template <typename TInterval>
+    uint TExpHistBase<TInterval>::GetSummarySize() const {
+        return IntervalV.Len();
+    }
+
+    template <typename TInterval>
+    bool TExpHistBase<TInterval>::CheckInvariant1() const {
+        if (IntervalV.Empty()) { return true; }
+
+        const uint MxErr = IntervalV[0].GetCount() >> 1;
+
+        uint OtherIntervalSum = 0;
+        for (int IntervalN = 1; IntervalN < IntervalV.Len(); IntervalN++) {
+            OtherIntervalSum += IntervalV[IntervalN].GetCount();
+        }
+
+        // checks if val <= n*(1 + eps)
+        return MxErr <= 1 + Eps*(1 + OtherIntervalSum);
+    }
+
+    template <typename TInterval>
+    bool TExpHistBase<TInterval>::CheckInvariant2() const {
+        PrintSummary();
+        const uint MnBlocksSameSize = GetMnBlocksSameSize();
+        const uint MxBlocksSameSize = GetMxBlocksSameSize();
+        // 1) bucket sizes are non-decreasing
+        // 2) bucket sizes are a power of 2
+        // 3) the power of the bucket size is less than the number of intervals
+        // 4) for every bucket size except the last, there are at least k/2 and at
+        //    most k/2+1 buckets of that size
+        int CurrBucketSize = 0;
+        for (int IntervalN = IntervalV.Len()-1; IntervalN >= 0; IntervalN--) {
+            const int BucketSize = IntervalV[IntervalN].GetCount();
+            // 1)
+            /* std::cout << "check 1\n"; */
+            if (BucketSize < CurrBucketSize) { return false; }
+            // 2)
+            /* std::cout << "check 2\n"; */
+            if (!TMath::IsPow2(BucketSize)) { return false; }
+            // 3)
+            /* std::cout << "check 3\n"; */
+            if (int(TMath::Log2(BucketSize)) > IntervalV.Len()) { return false; }
+
+            CurrBucketSize = BucketSize;
+        }
+
+        /* std::cout << "check 4, k/2 = " << MnBlocksSameSize << ", k/2+1 = " << MxBlocksSameSize << "\n"; */
+        /* std::cout << LogSizeToBlockCountV << "\n"; */
+        // 4)
+        for (int LogSize = 0; LogSize < LogSizeToBlockCountV.Len()-1; LogSize++) {
+            const TUInt& BucketCount = LogSizeToBlockCountV[LogSize];
+            // skip the last set of buckets (those can have lower counts)
+            if (LogSizeToBlockCountV[LogSize+1] == 0) { break; }
+            // check if the number of buckets is in correct range
+            if (BucketCount < MnBlocksSameSize || BucketCount > MxBlocksSameSize) {
+                return false;
+            }
+        }
+        // all checks pass
+        return true;
     }
 
     template <typename TInterval>
     void TExpHistBase<TInterval>::Add(const TInterval& Interval) {
-        std::cout << "Adding interval: " << Interval << "\n";
+        std::cout << "adding\n";
         Assert(Interval.GetCount() == 1);
         Assert(Interval.GetDurMSec() == 0);
 
@@ -249,52 +308,69 @@ namespace TQuant {
 
         Compress();
         Forget(Interval.GetStartTm());
+
+        AssertR(CheckInvariant1(), "EH: Invariant 1 fails after add!");
+        AssertR(CheckInvariant2(), "EH: Invariant 2 fails after add!");
     }
 
     template <typename TInterval>
     void TExpHistBase<TInterval>::Compress() {
-        if (LogBlockSizeToBlockCount(0) < MinBlocksCompress) { return; }
         std::cout << "compressing\n";
+        const uint MxBlocksPerCount = GetMxBlocksSameSize();
 
         uint CurrBlockPos = IntervalV.Len()-1;
         for (int LogBlockSize = 0; LogBlockSize < LogSizeToBlockCountV.Len(); LogBlockSize++) {
             const uint BlockCount = LogBlockSizeToBlockCount(LogBlockSize);
+            std::cout<< "block count " << BlockCount << "\n";
 
-            if (BlockCount < MinBlocksCompress) { break; }
+            if (BlockCount <= MxBlocksPerCount) { break; }
+            std::cout << "will compress\n";
 
-            // compress
-            const int MergeStartN = BlockCount % 2 == 0 ? CurrBlockPos : CurrBlockPos - 1;
-            const int NMerges = BlockCount / 2;
-
-            for (int MergeN = 0; MergeN < NMerges; MergeN++) {
-                const int DelElN = MergeStartN - 2*MergeN;
-                GetPrevInterval(DelElN).Swallow(GetInterval(DelElN));
-                IntervalV.Del(DelElN);
-            }
-
-            // update the interval counts
-            LogBlockSizeToBlockCount(LogBlockSize) -= 2*NMerges;
-            ReserveStructures(LogBlockSize+1);
-            LogBlockSizeToBlockCount(LogBlockSize+1) += NMerges;
-
-            CurrBlockPos -= BlockCount - NMerges;
+            CompressOldestInBatch(CurrBlockPos);
+            CurrBlockPos -= BlockCount - 1;
         }
+
+        std::cout << "finished compression, block sizes: " << LogSizeToBlockCountV << "\n";
     }
 
     template <typename TInterval>
     void TExpHistBase<TInterval>::Forget(const uint64& CurrTm) {
+        std::cout << "forgetting, block sizes: " << LogSizeToBlockCountV << "\n";
+        PrintSummary();
         const uint64 CutoffTm = CurrTm >= WindowMSec ? CurrTm - WindowMSec : 0ul;
 
         while (!IntervalV.Empty() && IntervalV[0].GetEndTm() < CutoffTm) {
             const TInterval RemovedInterval = IntervalV[0];
             const uint IntervalSize = RemovedInterval.GetCount();
 
+            std::cout << "forgetting interval: " << RemovedInterval << "\n";
             TotalCount -= IntervalSize;
             --BlockSizeToBlockCount(IntervalSize);
             IntervalV.Del(0);
 
             OnIntervalForgotten(RemovedInterval);
         }
+
+        std::cout << "finished forgetting, block sizes: " << LogSizeToBlockCountV << "\n";
+        PrintSummary();
+    }
+
+    template <typename TInterval>
+    void TExpHistBase<TInterval>::CompressOldestInBatch(const int& BatchPos) {
+        Assert(0 <= BatchPos && BatchPos < IntervalV.Len());
+        std::cout << "compressing oldest in batch, index: "<< BatchPos << ", summary: " << IntervalV << "\n";
+
+        const TInterval& FirstInterval = IntervalV[BatchPos];
+        const uint LogBlockSize = TMath::Log2(FirstInterval.GetCount());
+        const uint& BlockCount = LogBlockSizeToBlockCount(LogBlockSize);
+
+        const int DelElN = BatchPos - BlockCount + 2;
+        GetPrevInterval(DelElN).Swallow(GetInterval(DelElN));
+        IntervalV.Del(DelElN);
+
+        LogBlockSizeToBlockCount(LogBlockSize) -= 2;
+        ReserveStructures(LogBlockSize+1);
+        ++LogBlockSizeToBlockCount(LogBlockSize+1);
     }
 
     template <typename TInterval>
@@ -311,7 +387,7 @@ namespace TQuant {
 
     template <typename TInterval>
     TUInt& TExpHistBase<TInterval>::LogBlockSizeToBlockCount(const uint& LogBlockSize) {
-        Assert(LogBlockSize <= uint(LogSizeToBlockCountV.Len()));
+        Assert(LogBlockSize < uint(LogSizeToBlockCountV.Len()));
         return LogSizeToBlockCountV[LogBlockSize];
     }
 
@@ -329,12 +405,61 @@ namespace TQuant {
     }
 
     template <typename TInterval>
-    void TExpHistBase<TInterval>::AssertInvariant1() const {
-        // TODO
+    uint TExpHistBase<TInterval>::GetMnBlocksSameSize() const {
+        return std::ceil(1 / (2*Eps));
     }
 
     template <typename TInterval>
-    void TExpHistBase<TInterval>::AssertInvariant2() const {
-        // TODO
+    uint TExpHistBase<TInterval>::GetMxBlocksSameSize() const {
+        return GetMnBlocksSameSize() + 1;
+    }
+
+    template <typename TInterval>
+    void TExpHistBase<TInterval>::MergeAddItemBatch(const uint& BatchSize, const uint64& BatchTm, const uint& BlockSize,
+            TUIntUInt64Pr& CarryInfo, TIntervalV& NewIntervalV) {
+        if (CarryInfo.Val1 == 0) { CarryInfo.Val2 = BatchTm; }
+        CarryInfo.Val1 += BatchSize;
+        MergeFlushCarryInfo(BlockSize, BatchTm, CarryInfo, NewIntervalV);
+    }
+
+    template <typename TInterval>
+    void TExpHistBase<TInterval>::MergeFlushCarryInfo(const uint& BlockSize, const uint64 EndTm,
+            TUIntUInt64Pr& CarryInfo, TIntervalV& NewIntervalV) {
+
+        if (CarryInfo.Val1 >= BlockSize) {
+            const uint64 StartTm = CarryInfo.Val2;
+            const uint64 Dur = EndTm - StartTm;
+            NewIntervalV.Add(TInterval(StartTm, Dur, BlockSize));
+            CarryInfo.Val1 -= BlockSize;
+            CarryInfo.Val2 = EndTm;
+        }
+    }
+
+    template <typename TInterval>
+    void TExpHistBase<TInterval>::MergeCloseInterval(const TIntervalV& IntervalV, int& OpenN,
+            const TIntervalV& OthrIntervalV, const int& OthrN,
+            uint& CurrBlockSize, TUIntUInt64Pr& CarryInfo, TIntervalV& NewIntervalV) {
+
+        // close the interval
+        const TInterval& OpenInterval = IntervalV[OpenN];
+        const uint64 EndTm = OpenInterval.GetEndTm();
+        MergeAddItemBatch(
+                OpenInterval.GetCount() >> 1,
+                EndTm,
+                CurrBlockSize,
+                CarryInfo,
+                NewIntervalV
+        );
+        ++OpenN;
+        // check if the block size changed, if so then flush the carry info as necessary
+        const uint Count1 = OpenN < IntervalV.Len() ? IntervalV[OpenN].GetCount().Val : 1u;
+        const uint Count2 = OthrN < OthrIntervalV.Len() ? OthrIntervalV[OthrN].GetCount().Val : 1u;
+        const uint NewBlockSize = TMath::Mx(Count1, Count2);
+        // create new blocks while there are as many items in the carry info
+        // as the new block size
+        while (CurrBlockSize > NewBlockSize) {
+            CurrBlockSize >>= 1;
+            MergeFlushCarryInfo(CurrBlockSize, EndTm, CarryInfo, NewIntervalV);
+        }
     }
 }

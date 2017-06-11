@@ -211,7 +211,7 @@ namespace TQuant {
         TIntervalV IntervalV {};
         TUIntV LogSizeToBlockCountV {1};  // at index i stores the number of blocks of size (i+1)
         TUInt64 WindowMSec;
-        TUInt MinBlocksCompress;
+        TFlt Eps;
         TUInt TotalCount {0u};
 
     public:
@@ -221,10 +221,21 @@ namespace TQuant {
         TExpHistBase(const uint64& WindowMSec, const double& Eps);
         virtual ~TExpHistBase() {}
 
+        /// returns the (approximate) number of items in the time window
         uint GetCount() const;
-        uint GetIntervalCount() const;
 
+        /// merges the other exponential histogram into itself
         void Swallow(const TExpHistBase<TInterval>&);
+
+        /// returns the number of intervals in the summary
+        uint GetSummarySize() const;
+        /// prints the intervals to stadard output
+        void PrintSummary() const { std::cout << IntervalV << "\n"; }
+
+        /// checks if the error is bounded by eps
+        bool CheckInvariant1() const;
+        /// checks if the internal structure of the EH is correct
+        bool CheckInvariant2() const;
 
     protected:
         void Add(const TInterval&);
@@ -234,6 +245,7 @@ namespace TQuant {
 
     private:
         void Forget(const uint64& CurrTm);
+        void CompressOldestInBatch(const int& BatchPos);
 
         TInterval& GetInterval(const int& IntervalN);
         TInterval& GetPrevInterval(const int& IntervalN);
@@ -242,71 +254,22 @@ namespace TQuant {
         TUInt& BlockSizeToBlockCount(const uint& BlockSize);
         void ReserveStructures(const uint& LogBlockSize);
 
-        void AssertInvariant1() const;
-        void AssertInvariant2() const;
+        uint GetMnBlocksSameSize() const;
+        uint GetMxBlocksSameSize() const;
 
-        static void MergeAddItemBatch(const uint& BatchSize, const uint64& BatchTm, const uint& BlockSize,
-                TUIntUInt64Pr& CarryInfo, TIntervalV& NewIntervalV) {
-            std::cout << "adding batch of items, size: " << BatchSize << ", time: " << BatchTm << "\n";
-            if (CarryInfo.Val1 == 0) { CarryInfo.Val2 = BatchTm; }
-            CarryInfo.Val1 += BatchSize;
-            std::cout << "carry info: " << CarryInfo << "\n";
-            MergeFlushCarryInfo(BlockSize, BatchTm, CarryInfo, NewIntervalV);
-        }
-
+        // helper functions for the merge operation
+        static void MergeAddItemBatch(const uint& BatchSize, const uint64& BatchTm,
+                const uint& BlockSize, TUIntUInt64Pr& CarryInfo, TIntervalV& NewIntervalV);
         static void MergeFlushCarryInfo(const uint& BlockSize, const uint64 EndTm,
-                TUIntUInt64Pr& CarryInfo, TIntervalV& NewIntervalV) {
-
-            if (CarryInfo.Val1 >= BlockSize) {
-                const uint64 StartTm = CarryInfo.Val2;
-                const uint64 Dur = EndTm - StartTm;
-                NewIntervalV.Add(TInterval(StartTm, Dur, BlockSize));
-                CarryInfo.Val1 -= BlockSize;
-                CarryInfo.Val2 = EndTm;
-                std::cout << "added interval: " << NewIntervalV.Last();
-                std::cout << "carry info: " << CarryInfo << "\n";
-            }
-        }
-
+                TUIntUInt64Pr& CarryInfo, TIntervalV& NewIntervalV);
         static void MergeCloseInterval(const TIntervalV& IntervalV, int& OpenN,
                 const TIntervalV& OthrIntervalV, const int& OthrN,
-                uint& CurrBlockSize, TUIntUInt64Pr& CarryInfo, TIntervalV& NewIntervalV) {
-
-            // close the interval
-            const TInterval& OpenInterval = IntervalV[OpenN];
-            const uint64 EndTm = OpenInterval.GetEndTm();
-            MergeAddItemBatch(
-                    OpenInterval.GetCount() >> 1,
-                    EndTm,
-                    CurrBlockSize,
-                    CarryInfo,
-                    NewIntervalV
-            );
-            ++OpenN;
-            // check if the block size changed, if so then flush the carry info as necessary
-            const uint Count1 = OpenN < IntervalV.Len() ? IntervalV[OpenN].GetCount().Val : 1u;
-            const uint Count2 = OthrN < OthrIntervalV.Len() ? OthrIntervalV[OthrN].GetCount().Val : 1u;
-            const uint NewBlockSize = TMath::Mx(Count1, Count2);
-            // create new blocks while there are as many items in the carry info
-            // as the new block size
-            while (CurrBlockSize > NewBlockSize) {
-                CurrBlockSize >>= 1;
-                std::cout << "reducing block size, curr size: " << CurrBlockSize << ", target: " << NewBlockSize << "\n";
-                MergeFlushCarryInfo(CurrBlockSize, EndTm, CarryInfo, NewIntervalV);
-            }
-            /* CurrBlockSize = NewBlockSize; */
-            /* while (CarryInfo.Val1 >= NewBlockSize) { */
-            /*     CurrBlockSize >>= 1; */
-            /*     MergeFlushCarryInfo(CurrBlockSize, EndTm, CarryInfo, NewIntervalV); */
-            /* } */
-        }
+                uint& CurrBlockSize, TUIntUInt64Pr& CarryInfo, TIntervalV& NewIntervalV);
 
     public:
         // TODO should these be deleted???
         const TIntervalV& GetIntervalV() const { return IntervalV; }
 
-        // TODO here for debugging
-        void PrintIntervalV() const { std::cout << IntervalV << "\n"; }
     };
 
 
