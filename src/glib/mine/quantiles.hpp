@@ -45,7 +45,8 @@ namespace TQuant {
         const TIntervalV& IntervalV2 = Other.IntervalV;
 
         uint CurrBlockSize = TMath::Mx(IntervalV[0].GetCount(), Other.IntervalV[0].GetCount());
-        TUIntUInt64Pr CarryInfo;
+        TCarryInfo CarryInfo;
+        /* TUIntUInt64Pr CarryInfo; */
 
         const TIntervalV* OpenVPtr = nullptr;
         int* OpenNPtr = nullptr;
@@ -66,6 +67,7 @@ namespace TQuant {
                         MergeAddItemBatch(
                                 1,
                                 Interval1.GetStartTm(),
+                                TMergeHelper::ExtractOtherCarryInfo(Interval1),
                                 CurrBlockSize,
                                 CarryInfo,
                                 NewIntervalV
@@ -75,6 +77,7 @@ namespace TQuant {
                         MergeAddItemBatch(
                                 Interval1.GetCount() >> 1,
                                 Interval1.GetStartTm(),
+                                TMergeHelper::ExtractOtherCarryInfo(Interval1),
                                 CurrBlockSize,
                                 CarryInfo,
                                 NewIntervalV
@@ -89,6 +92,7 @@ namespace TQuant {
                         MergeAddItemBatch(
                                 1,
                                 Interval2.GetStartTm(),
+                                TMergeHelper::ExtractOtherCarryInfo(Interval2),
                                 CurrBlockSize,
                                 CarryInfo,
                                 NewIntervalV
@@ -98,6 +102,7 @@ namespace TQuant {
                         MergeAddItemBatch(
                                 Interval2.GetCount() >> 1,
                                 Interval2.GetStartTm(),
+                                TMergeHelper::ExtractOtherCarryInfo(Interval2),
                                 CurrBlockSize,
                                 CarryInfo,
                                 NewIntervalV
@@ -146,6 +151,7 @@ namespace TQuant {
                         MergeAddItemBatch(
                                 1,
                                 OthrInterval.GetStartTm(),
+                                TMergeHelper::ExtractOtherCarryInfo(OthrInterval),
                                 CurrBlockSize,
                                 CarryInfo,
                                 NewIntervalV
@@ -156,6 +162,7 @@ namespace TQuant {
                         MergeAddItemBatch(
                                 OthrInterval.GetCount() >> 1,
                                 OthrInterval.GetStartTm(),
+                                TMergeHelper::ExtractOtherCarryInfo(OthrInterval),
                                 CurrBlockSize,
                                 CarryInfo,
                                 NewIntervalV
@@ -228,6 +235,9 @@ namespace TQuant {
             Forget(IntervalV.Last().GetEndTm());
         }
 
+        // let derived classes update their state
+        OnAfterSwallow();
+
         // finished, assert that all invariants hold
         AssertR(CheckInvariant1(), "EH: Invariant 1 fails after merge!");
         AssertR(CheckInvariant2(), "EH: Invariant 2 fails after merge!");
@@ -255,7 +265,6 @@ namespace TQuant {
 
     template <typename TInterval>
     bool TExpHistBase<TInterval>::CheckInvariant2() const {
-        PrintSummary();
         const uint MnBlocksSameSize = GetMnBlocksSameSize();
         const uint MxBlocksSameSize = GetMxBlocksSameSize();
         // 1) bucket sizes are non-decreasing
@@ -267,20 +276,15 @@ namespace TQuant {
         for (int IntervalN = IntervalV.Len()-1; IntervalN >= 0; IntervalN--) {
             const int BucketSize = IntervalV[IntervalN].GetCount();
             // 1)
-            /* std::cout << "check 1\n"; */
             if (BucketSize < CurrBucketSize) { return false; }
             // 2)
-            /* std::cout << "check 2\n"; */
             if (!TMath::IsPow2(BucketSize)) { return false; }
             // 3)
-            /* std::cout << "check 3\n"; */
             if (int(TMath::Log2(BucketSize)) > IntervalV.Len()) { return false; }
 
             CurrBucketSize = BucketSize;
         }
 
-        /* std::cout << "check 4, k/2 = " << MnBlocksSameSize << ", k/2+1 = " << MxBlocksSameSize << "\n"; */
-        /* std::cout << LogSizeToBlockCountV << "\n"; */
         // 4)
         for (int LogSize = 0; LogSize < LogSizeToBlockCountV.Len()-1; LogSize++) {
             const TUInt& BucketCount = LogSizeToBlockCountV[LogSize];
@@ -297,7 +301,6 @@ namespace TQuant {
 
     template <typename TInterval>
     void TExpHistBase<TInterval>::Add(const TInterval& Interval) {
-        std::cout << "adding\n";
         Assert(Interval.GetCount() == 1);
         Assert(Interval.GetDurMSec() == 0);
 
@@ -315,50 +318,38 @@ namespace TQuant {
 
     template <typename TInterval>
     void TExpHistBase<TInterval>::Compress() {
-        std::cout << "compressing\n";
         const uint MxBlocksPerCount = GetMxBlocksSameSize();
 
         uint CurrBlockPos = IntervalV.Len()-1;
         for (int LogBlockSize = 0; LogBlockSize < LogSizeToBlockCountV.Len(); LogBlockSize++) {
             const uint BlockCount = LogBlockSizeToBlockCount(LogBlockSize);
-            std::cout<< "block count " << BlockCount << "\n";
 
             if (BlockCount <= MxBlocksPerCount) { break; }
-            std::cout << "will compress\n";
 
             CompressOldestInBatch(CurrBlockPos);
             CurrBlockPos -= BlockCount - 1;
         }
-
-        std::cout << "finished compression, block sizes: " << LogSizeToBlockCountV << "\n";
     }
 
     template <typename TInterval>
     void TExpHistBase<TInterval>::Forget(const uint64& CurrTm) {
-        std::cout << "forgetting, block sizes: " << LogSizeToBlockCountV << "\n";
-        PrintSummary();
         const uint64 CutoffTm = CurrTm >= WindowMSec ? CurrTm - WindowMSec : 0ul;
 
         while (!IntervalV.Empty() && IntervalV[0].GetEndTm() < CutoffTm) {
             const TInterval RemovedInterval = IntervalV[0];
             const uint IntervalSize = RemovedInterval.GetCount();
 
-            std::cout << "forgetting interval: " << RemovedInterval << "\n";
             TotalCount -= IntervalSize;
             --BlockSizeToBlockCount(IntervalSize);
             IntervalV.Del(0);
 
             OnIntervalForgotten(RemovedInterval);
         }
-
-        std::cout << "finished forgetting, block sizes: " << LogSizeToBlockCountV << "\n";
-        PrintSummary();
     }
 
     template <typename TInterval>
     void TExpHistBase<TInterval>::CompressOldestInBatch(const int& BatchPos) {
         Assert(0 <= BatchPos && BatchPos < IntervalV.Len());
-        std::cout << "compressing oldest in batch, index: "<< BatchPos << ", summary: " << IntervalV << "\n";
 
         const TInterval& FirstInterval = IntervalV[BatchPos];
         const uint LogBlockSize = TMath::Log2(FirstInterval.GetCount());
@@ -415,21 +406,23 @@ namespace TQuant {
     }
 
     template <typename TInterval>
-    void TExpHistBase<TInterval>::MergeAddItemBatch(const uint& BatchSize, const uint64& BatchTm, const uint& BlockSize,
-            TUIntUInt64Pr& CarryInfo, TIntervalV& NewIntervalV) {
+    void TExpHistBase<TInterval>::MergeAddItemBatch(const uint& BatchSize, const uint64& BatchTm,
+            const typename TMergeHelper::TOtherCarryInfo& OtherInfo, const uint& BlockSize,
+            TCarryInfo& CarryInfo, TIntervalV& NewIntervalV) {
         if (CarryInfo.Val1 == 0) { CarryInfo.Val2 = BatchTm; }
         CarryInfo.Val1 += BatchSize;
+        TMergeHelper::MergeOtherCarryInfo(OtherInfo, CarryInfo.Val3);
         MergeFlushCarryInfo(BlockSize, BatchTm, CarryInfo, NewIntervalV);
     }
 
     template <typename TInterval>
     void TExpHistBase<TInterval>::MergeFlushCarryInfo(const uint& BlockSize, const uint64 EndTm,
-            TUIntUInt64Pr& CarryInfo, TIntervalV& NewIntervalV) {
+            TCarryInfo& CarryInfo, TIntervalV& NewIntervalV) {
 
         if (CarryInfo.Val1 >= BlockSize) {
             const uint64 StartTm = CarryInfo.Val2;
             const uint64 Dur = EndTm - StartTm;
-            NewIntervalV.Add(TInterval(StartTm, Dur, BlockSize));
+            NewIntervalV.Add(TMergeHelper::CreateInterval(StartTm, Dur, BlockSize, CarryInfo.Val3));
             CarryInfo.Val1 -= BlockSize;
             CarryInfo.Val2 = EndTm;
         }
@@ -438,7 +431,7 @@ namespace TQuant {
     template <typename TInterval>
     void TExpHistBase<TInterval>::MergeCloseInterval(const TIntervalV& IntervalV, int& OpenN,
             const TIntervalV& OthrIntervalV, const int& OthrN,
-            uint& CurrBlockSize, TUIntUInt64Pr& CarryInfo, TIntervalV& NewIntervalV) {
+            uint& CurrBlockSize, TCarryInfo& CarryInfo, TIntervalV& NewIntervalV) {
 
         // close the interval
         const TInterval& OpenInterval = IntervalV[OpenN];
@@ -446,6 +439,7 @@ namespace TQuant {
         MergeAddItemBatch(
                 OpenInterval.GetCount() >> 1,
                 EndTm,
+                TMergeHelper::ExtractOtherCarryInfo(OpenInterval),
                 CurrBlockSize,
                 CarryInfo,
                 NewIntervalV

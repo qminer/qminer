@@ -522,4 +522,83 @@ TEST(TExpHist, SwallowSameTSteps) {
     ASSERT_GE(NewCount, std::floor((1-Eps/2)*(Count1 + Count2)));
 }
 
+TEST(TExpHistWithMax, SwallowSameTSteps) {
+    const uint64 WindowMSec = 100;
+    const double Eps = .1;
+
+    TExpHistWithMax Hist1(WindowMSec, Eps);
+    TExpHistWithMax Hist2(WindowMSec, Eps);
+
+    const int NSamples = 2000;
+    const int HighValInterval = 300;
+
+    uint64 CurrTm = 0;
+    int HighHistN = 0;
+    uint64 LastHighTm = 0;
+    for (int SampleN = 0; SampleN < NSamples; SampleN++) {
+        if (SampleN % 2 == 0) {
+            if (SampleN % HighValInterval == 0 && HighHistN == 0) {
+                Hist1.Add(CurrTm, 1);
+                HighHistN = 1 - HighHistN;
+                LastHighTm = CurrTm;
+            } else {
+                Hist1.Add(CurrTm, 0);
+            }
+        }
+        if (SampleN % 3 == 0) {
+            if (SampleN % HighValInterval == 0 && HighHistN == 1) {
+                Hist2.Add(CurrTm, 1);
+                HighHistN = 1 - HighHistN;
+                LastHighTm = CurrTm;
+            } else {
+                Hist2.Add(CurrTm, 0);
+            }
+        }
+
+        const uint Count1 = Hist1.GetCount();
+        const uint Count2 = Hist2.GetCount();
+
+        TExpHistWithMax Merged = Hist1;
+        Merged.Swallow(Hist2);
+
+        const uint NewCount = Merged.GetCount();
+
+        ASSERT_TRUE(Hist1.CheckInvariant1());
+        ASSERT_TRUE(Hist1.CheckInvariant2());
+
+        ASSERT_LE(NewCount, (1+Eps)*(Count1 + Count2));
+        ASSERT_GE(NewCount, std::floor((1-Eps)*(Count1 + Count2)));
+
+        if (Hist1.GetMxVal() == 0 && Hist2.GetMxVal() == 0) {
+            ASSERT_EQ(Merged.GetMxVal(), 0);
+        }
+        else if (CurrTm - LastHighTm <= WindowMSec) {
+            ASSERT_EQ(Merged.GetMxVal(), 1);
+        }
+
+        ++CurrTm;
+    }
+
+    const uint Count1 = Hist1.GetCount();
+    const uint Count2 = Hist2.GetCount();
+
+    TExpHistWithMax Merged = Hist1;
+    Merged.Swallow(Hist2);
+
+    const uint NewCount = Merged.GetCount();
+
+    ASSERT_TRUE(Hist1.CheckInvariant1());
+    ASSERT_TRUE(Hist1.CheckInvariant2());
+
+    ASSERT_LE(NewCount, (1+Eps)*(Count1 + Count2));
+    ASSERT_GE(NewCount, std::floor((1-Eps)*(Count1 + Count2)));
+
+    if (Hist1.GetMxVal() == 0 && Hist2.GetMxVal() == 0) {
+        ASSERT_EQ(Merged.GetMxVal(), 0);
+    }
+    else if (CurrTm - LastHighTm <= WindowMSec) {
+        ASSERT_EQ(Merged.GetMxVal(), 1);
+    }
+}
+
 // TODO implement OnTime  functionality for the windowed GK

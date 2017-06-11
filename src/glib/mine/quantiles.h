@@ -158,6 +158,41 @@ namespace TQuant {
         TBool UseBands;
     };
 
+    ///////////////////////////////////
+    /// Helper for the merge operation
+    /// for basic intervals
+    template <typename TInterval>
+    class TBasicMergeHelper {
+    public:
+        using TOtherCarryInfo = void*;
+
+        static TInterval CreateInterval(const uint64& StartTm, const uint64& Dur, const uint& Count,
+                const void*) {
+            return TInterval(StartTm, Dur, Count);
+        }
+        static void* ExtractOtherCarryInfo(const TInterval&) { return nullptr; }
+        static void MergeOtherCarryInfo(void*, void*) {}
+    };
+
+    ///////////////////////////////////
+    /// Helper for the merge operation
+    /// for intervals with max
+    template <typename TInterval>
+    class TMaxMergeHelper {
+    public:
+        using TOtherCarryInfo = TFlt;
+
+        static TInterval CreateInterval(const uint64& StartTm, const uint64& Dur,
+                const uint& Count, const double& MxVal) {
+            return TInterval(StartTm, Dur, Count, MxVal);
+        }
+        static TFlt ExtractOtherCarryInfo(const TInterval& Interval) { return Interval.GetMxVal(); }
+        static void MergeOtherCarryInfo(const TFlt& MxVal, TFlt& CurrMxVal) {
+            if (MxVal > CurrMxVal) {
+                CurrMxVal = MxVal;
+            }
+        }
+    };
 
     class TInterval {
     private:
@@ -166,6 +201,8 @@ namespace TQuant {
         TUInt ElCount {1u};
 
     public:
+        using TMergeHelper = TBasicMergeHelper<TInterval>;
+
         TInterval();
         TInterval(const uint64& StartTm);
         TInterval(const uint64& StartTm, const uint64& Dur, const uint& Count);
@@ -184,8 +221,12 @@ namespace TQuant {
         TFlt MxVal;             // the maximal value merged into the interval
 
     public:
+        using TMergeHelper = TMaxMergeHelper<TIntervalWithMax>;
+
         TIntervalWithMax();
         TIntervalWithMax(const uint64& BeginTm, const double& Val);
+        TIntervalWithMax(const uint64& StartTm, const uint64& Dur, const uint& Cnt,
+                const double& MxVal);
 
         const TFlt& GetMxVal() const { return MxVal; }
 
@@ -204,9 +245,9 @@ namespace TQuant {
     class TExpHistBase {
         // TODO make OnIntervalForgotten public???
     protected:
+        using TMergeHelper = typename TInterval::TMergeHelper;
+        using TCarryInfo = TTriple<TUInt, TUInt64, typename TMergeHelper::TOtherCarryInfo>;
         using TIntervalV = TVec<TInterval>;
-
-    private:
 
         TIntervalV IntervalV {};
         TUIntV LogSizeToBlockCountV {1};  // at index i stores the number of blocks of size (i+1)
@@ -242,6 +283,7 @@ namespace TQuant {
         void Compress();
 
         virtual void OnIntervalForgotten(const TInterval&) {}
+        virtual void OnAfterSwallow() {}
 
     private:
         void Forget(const uint64& CurrTm);
@@ -259,17 +301,13 @@ namespace TQuant {
 
         // helper functions for the merge operation
         static void MergeAddItemBatch(const uint& BatchSize, const uint64& BatchTm,
-                const uint& BlockSize, TUIntUInt64Pr& CarryInfo, TIntervalV& NewIntervalV);
+                const typename TMergeHelper::TOtherCarryInfo&, const uint& BlockSize,
+                TCarryInfo& CarryInfo, TIntervalV& NewIntervalV);
         static void MergeFlushCarryInfo(const uint& BlockSize, const uint64 EndTm,
-                TUIntUInt64Pr& CarryInfo, TIntervalV& NewIntervalV);
+                TCarryInfo& CarryInfo, TIntervalV& NewIntervalV);
         static void MergeCloseInterval(const TIntervalV& IntervalV, int& OpenN,
                 const TIntervalV& OthrIntervalV, const int& OthrN,
-                uint& CurrBlockSize, TUIntUInt64Pr& CarryInfo, TIntervalV& NewIntervalV);
-
-    public:
-        // TODO should these be deleted???
-        const TIntervalV& GetIntervalV() const { return IntervalV; }
-
+                uint& CurrBlockSize, TCarryInfo& CarryInfo, TIntervalV& NewIntervalV);
     };
 
 
@@ -307,8 +345,9 @@ namespace TQuant {
         /// returns the maximum value stored by the exponential histogram
         double GetMxVal() const;
 
-    private:
+    protected:
         void OnIntervalForgotten(const TIntervalWithMax&);
+        void OnAfterSwallow();
     };
 
     ////////////////////////////////////////////

@@ -204,12 +204,6 @@ namespace TQuant {
     //////////////////////////////////////////
     /// The CKMS (generalization of GK) algorithm for online
     /// biased quantile estimation.
-    /* TBiasedGk::TBiasedGk(const double& TargetQuantile, const double& TargetQuantileEps, */
-    /*         const bool& _UseBands): */
-    /*     MnQuantile(TargetQuantile), */
-    /*     MnEps(TargetQuantileEps), */
-    /*     UseBands(_UseBands) {} */
-
     TBiasedGk::TBiasedGk(const double& _Quant0, const double& _Eps, const bool& _UseBands):
             Quant0(_Quant0),
             Eps(_Eps),
@@ -388,7 +382,6 @@ namespace TQuant {
     }
 
     void TInterval::Swallow(const TInterval& Other) {
-        std::cout << "interval " << *this << " is swallowing " << Other << "\n";
         Assert(StartTm <= Other.StartTm);
 
         DurMSec = Other.DurMSec +  Other.StartTm - StartTm;
@@ -402,6 +395,11 @@ namespace TQuant {
     TIntervalWithMax::TIntervalWithMax(const uint64& BeginTm, const double& Val):
         TInterval(BeginTm),
         MxVal(Val) {}
+
+    TIntervalWithMax::TIntervalWithMax(const uint64& _StartTm, const uint64& _Dur, const uint& _Cnt,
+            const double& _MxVal):
+        TInterval(_StartTm, _Dur, _Cnt),
+        MxVal(_MxVal) {}
 
     void TIntervalWithMax::Swallow(const TIntervalWithMax& Other) {
         TInterval::Swallow(Other);
@@ -452,8 +450,6 @@ namespace TQuant {
 
         if (MxVal == Interval.GetMxVal()) {
             // find a new maximal value
-            const TIntervalV IntervalV = TExpHistBase::GetIntervalV();
-
             MxVal = IntervalV[0].GetMxVal();
             for (int IntervalN = 1; IntervalN < IntervalV.Len(); IntervalN++) {
                 if (IntervalV[IntervalN].GetMxVal() > MxVal) {
@@ -461,6 +457,16 @@ namespace TQuant {
                 }
             }
         }
+    }
+
+    void TExpHistWithMax::OnAfterSwallow() {
+        double NewMxVal = TFlt::NInf;
+        for (int IntervalN = 0; IntervalN < IntervalV.Len(); IntervalN++) {
+            if (IntervalV[IntervalN].GetMxVal() > NewMxVal) {
+                NewMxVal = IntervalV[IntervalN].GetMxVal();
+            }
+        }
+        MxVal = NewMxVal;
     }
 
 
