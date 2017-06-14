@@ -732,19 +732,19 @@ namespace TMemUtils {
   /// get memory usage for regular glib classes
   template <typename T, typename std::enable_if<std::is_class<T>::value && !gtraits::is_container<T>::value,bool>::type = true>
   uint64 GetMemUsed(const T& Val) {
-    return Val.GetMemUsed();
+    return (uint64) Val.GetMemUsed();
   }
 
   /// glib containers
   template <typename T, typename std::enable_if<gtraits::is_container<T>::value,bool>::type = true>
   uint64 GetMemUsed(const T& Val) {
-    return Val.GetMemUsed(true);   // deep
+    return (uint64) Val.GetMemUsed(true);   // deep
   }
 
   /// references
   template <typename T, typename std::enable_if<std::is_reference<T>::value,bool>::type = true>
   uint64 GetMemUsed(T Val) {
-    return GetMemUsed<typename std::remove_reference<T>::type>(Val);
+    return (uint64) GetMemUsed<typename std::remove_reference<T>::type>(Val);
   }
 
   /// pointers
