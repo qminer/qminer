@@ -877,10 +877,12 @@ public:
   void GetDatKeyPrV(TVec<TPair<TDat, TStr> >& DatKeyPrV) const;
 
   void Pack(){KeyDatV.Pack();}
-  uint64 GetMemUsed() const {
-      return PortV.GetMemUsed() + KeyDatV.GetMemUsedDeep() +
-          AutoSizeP.GetMemUsed() + FFreeKeyId.GetMemUsed() +
-          FreeKeys.GetMemUsed() + Pool->GetMemUsed();
+  uint64 GetMemUsed(const bool& DeepP = true) const {
+      return TMemUtils::GetExtraContainerSizeShallow(PortV) +
+          (DeepP ? TMemUtils::GetExtraMemberSize(KeyDatV) : TMemUtils::GetExtraContainerSizeShallow(KeyDatV)) +
+          TMemUtils::GetExtraMemberSize(AutoSizeP) +
+          TMemUtils::GetExtraMemberSize(FFreeKeyId) +
+          TMemUtils::GetExtraMemberSize(FreeKeys) + TMemUtils::GetExtraMemberSize(Pool);
   }
 };
 
