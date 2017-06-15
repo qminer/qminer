@@ -318,7 +318,7 @@ class TAbsKMeans {
 private:
     TCRef CRef;
 protected:
-    
+
     TCentroidType CentroidVV;
     PDist Dist;
 
@@ -969,7 +969,7 @@ void TDnsKMeans<TCentroidType>::Apply(const TDataType& FtrVV, const int& NInst, 
 
         TLinAlgSearch::GetColMinIdxV(ClustDistVV, *AssignIdxVPtr);
 
-        
+
         // if the assignment hasn't changed then terminate the loop
         if (*AssignIdxVPtr == *OldAssignIdxVPtr) {
             Notify->OnNotifyFmt(TNotifyType::ntInfo, "Converged at iteration: %d", IterN);
@@ -1039,7 +1039,7 @@ inline void TDpMeans<TCentroidType>::Apply(const TDataType& FtrVV, const int& NI
     EAssertR(MnClusts <= NInst, "Matrix should have more rows then the min number of clusters!");
     EAssertR(MnClusts <= MxClusts, "Minimum number of cluster should be less than the maximum.");
 
-    Notify->OnNotify(TNotifyType::ntInfo, "Executing DPMeans ...");
+    Notify->OnNotifyFmt(TNotifyType::ntInfo, "Executing DPMeans with paramters r=%.3f, minK=%d, maxK=%d ...", Lambda, MnClusts, MxClusts);
 
     const double LambdaSq = Lambda*Lambda;
 
@@ -1114,7 +1114,7 @@ inline void TDpMeans<TCentroidType>::Apply(const TDataType& FtrVV, const int& NI
 
 template<>
 template<>
-inline void TDpMeans<TFltVV>::AddCentroid(const TFltVV& FtrVV, TFltVV& ClustDistVV, TFltV& NormC2, 
+inline void TDpMeans<TFltVV>::AddCentroid(const TFltVV& FtrVV, TFltVV& ClustDistVV, TFltV& NormC2,
     TFltV& TempK, TFltVV& TempDxK, const int& InstN) {
     TFltV FtrV;  FtrVV.GetCol(InstN, FtrV);
     CentroidVV.AddCol(FtrV);

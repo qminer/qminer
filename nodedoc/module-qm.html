@@ -13,7 +13,7 @@
                 <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
         <div id="jsdoc-navbar-content">
-            <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.9.0</a>
+            <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v8.2.1</a>
         </div>
     </div>
 </nav>
@@ -23,7 +23,7 @@
                                 <div id="jsdoc-content-container">
                                         <div id="jsdoc-main" role="main">
                     <header class="page-header">
-        <h1><div class="symbol-detail-labels"><span class="label label-kind">module</span></div><small></small><span class="symbol-name">qm</span></h1>        <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-8">qminerdoc.<wbr>js:8</a></p>
+        <h1><div class="symbol-detail-labels"><span class="label label-kind">module</span></div><small></small><span class="symbol-name">qm</span></h1>        <p class="source-link">Source: <a href="qminer_aggrdoc.js.html#source-line-8">qminer_aggrdoc.<wbr>js:8</a></p>
             <div class="symbol-description">
                     <p>QMiner module.</p>
 
@@ -267,6 +267,9 @@ var qm = require(&#x27;qminer&#x27;);</code></pre>
                 <dt><a href="module-qm.html#~StreamAggrEMASpVec">StreamAggrEMASpVec</a></dt>
                 <dd>
                 </dd>
+                <dt><a href="module-qm.html#~StreamAggrFeatureSpace">StreamAggrFeatureSpace</a></dt>
+                <dd>
+                </dd>
                 <dt><a href="module-qm.html#~StreamAggrHistogram">StreamAggrHistogram</a></dt>
                 <dd>
                 </dd>
@@ -279,14 +282,14 @@ var qm = require(&#x27;qminer&#x27;);</code></pre>
                 <dt><a href="module-qm.html#~StreamAggrMin">StreamAggrMin</a></dt>
                 <dd>
                 </dd>
-                <dt><a href="module-qm.html#~StreamAggrMovingAverage">StreamAggrMovingAverage</a></dt>
-                <dd>
-                </dd>
         </dl>
 </div>
 
                     <div class="summary-column">
         <dl class="dl-summary-callout">
+                <dt><a href="module-qm.html#~StreamAggrMovingAverage">StreamAggrMovingAverage</a></dt>
+                <dd>
+                </dd>
                 <dt><a href="module-qm.html#~StreamAggrMovingCorrelation">StreamAggrMovingCorrelation</a></dt>
                 <dd>
                 </dd>
@@ -318,6 +321,9 @@ var qm = require(&#x27;qminer&#x27;);</code></pre>
                 <dd>
                 </dd>
                 <dt><a href="module-qm.html#~StreamAggrSum">StreamAggrSum</a></dt>
+                <dd>
+                </dd>
+                <dt><a href="module-qm.html#~StreamAggrTDigest">StreamAggrTDigest</a></dt>
                 <dd>
                 </dd>
                 <dt><a href="module-qm.html#~StreamAggrThreshold">StreamAggrThreshold</a></dt>
@@ -1294,7 +1300,7 @@ and the value of &quot;total&quot; is of the same form (aggregated over &quot;by
                 <p>&nbsp;</p>
         </td>
         <td>
-                <p>The constant type.</p>
+                <p>The constant type. Adds a constant value as a feature.</p>
         </td>
 </tr>
 
@@ -1309,7 +1315,7 @@ and the value of &quot;total&quot; is of the same form (aggregated over &quot;by
                 <p>&nbsp;</p>
         </td>
         <td>
-                <p>The random type.</p>
+                <p>The random type. Adds a random value as a feature.</p>
         </td>
 </tr>
 
@@ -1324,7 +1330,7 @@ and the value of &quot;total&quot; is of the same form (aggregated over &quot;by
                 <p>&nbsp;</p>
         </td>
         <td>
-                <p>The numeric type.</p>
+                <p>The numeric type. Adds the numeric value as a feature.</p>
         </td>
 </tr>
 
@@ -1369,7 +1375,7 @@ and the value of &quot;total&quot; is of the same form (aggregated over &quot;by
                 <p>&nbsp;</p>
         </td>
         <td>
-                <p>The text type.</p>
+                <p>The text type. Creates the bag-of-words text representation.</p>
         </td>
 </tr>
 
@@ -1414,7 +1420,7 @@ and the value of &quot;total&quot; is of the same form (aggregated over &quot;by
                 <p>&nbsp;</p>
         </td>
         <td>
-                <p>The jsfunc type.</p>
+                <p>The jsfunc type. Allows creating a custom feature extractor.</p>
         </td>
 </tr>
 
@@ -1504,6 +1510,14 @@ var base = new qm.Base({
 // create a feature space containing the categorical extractor, where it&#x27;s values
 // are taken from the field &quot;StudyGroup&quot;: &quot;A&quot;, &quot;B&quot;, &quot;C&quot; and &quot;D&quot;
 var ftr = new qm.FeatureSpace(base, { type: &quot;categorical&quot;, source: &quot;Class&quot;, field: &quot;StudyGroup&quot; });
+// add a few records to the store
+base.store(&quot;Class&quot;).push({ Name: &quot;Fred&quot;, StudyGroup: &quot;A&quot; });
+base.store(&quot;Class&quot;).push({ Name: &quot;Wilma&quot;, StudyGroup: &quot;B&quot; });
+base.store(&quot;Class&quot;).push({ Name: &quot;Barney&quot;, StudyGroup: &quot;C&quot; });
+// update the feature space to get the categories 
+ftr.updateRecords(base.store(&quot;Class&quot;).allRecords);
+// get the feature vector for the first record
+var vec = ftr.extractVector(base.store(&quot;Class&quot;)[0]); // returns vector [1, 0, 0]
 base.close();</code></pre>
 </div>
 
@@ -1648,6 +1662,10 @@ var base = new qm.Base({
 });
 // create a feature space containing the constant extractor, where the constant is equal 5
 var ftr = new qm.FeatureSpace(base, { type: &quot;constant&quot;, source: &quot;Person&quot;, const: 5 });
+// add a new record to the base
+base.store(&quot;Person&quot;).push({ Name: &quot;Peterson&quot; });
+// get the features of the record
+var vec = ftr.extractVector(base.store(&quot;Person&quot;)[0]); // the vector [5]
 base.close();</code></pre>
 </div>
 
@@ -1830,7 +1848,7 @@ var qm = require(&#x27;qminer&#x27;);</code></pre>
                 <p>Yes</p>
         </td>
         <td>
-                <p>Normalize the resulting vector of the extractor to have L2 norm 1.0. //TODO</p>
+                <p>Normalize the resulting vector of the extractor to have L2 norm 1.0.</p>
                 <p>Defaults to <code>'false'</code>.</p>
         </td>
 </tr>
@@ -2042,9 +2060,13 @@ var base = new qm.Base({
 // of study groups each student is part of. The functions name is &quot;NumberOFGroups&quot;, it&#x27;s dimension
 // is 1 (returns only one value, not an array)
 var ftr = new qm.FeatureSpace(base, {
-             type: &quot;jsfunc&quot;, source: &quot;Class&quot;, name: &quot;NumberOfGroups&quot;, dim: 1,
-             fun: function (rec) { return rec.StudyGroups.length; }
-          });
+    type: &quot;jsfunc&quot;, source: &quot;Class&quot;, name: &quot;NumberOfGroups&quot;, dim: 1,
+    fun: function (rec) { return rec.StudyGroups.length; }
+});
+// add a record to the store
+base.store(&quot;Class&quot;).push({ Name: &quot;Gaben&quot;, StudyGroups: [&quot;A&quot;, &quot;B&quot;, &quot;D&quot;] });
+// get the feature vector of the record
+var vec = ftr.extractVector(base.store(&quot;Class&quot;)[0]); // returns vector [3]
 base.close();</code></pre>
 </div>
 
@@ -2197,8 +2219,16 @@ var base = new qm.Base({
 // create a feature space containing the multinomial extractor, where the values are normalized,
 // and taken from the field &quot;StudyGroup&quot;: &quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;, &quot;E&quot;, &quot;F&quot;
 var ftr = new qm.FeatureSpace(base, {
-             type: &quot;multinomial&quot;, source: &quot;Class&quot;, field: &quot;StudyGroups&quot;, normalize: true, values: [&quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;, &quot;E&quot;, &quot;F&quot;]
-          });
+    type: &quot;multinomial&quot;, source: &quot;Class&quot;, field: &quot;StudyGroups&quot;, normalize: true
+});
+// add a few records to the store
+base.store(&quot;Class&quot;).push({ Name: &quot;Fred&quot;, StudyGroups: [&quot;A&quot;, &quot;B&quot;] });
+base.store(&quot;Class&quot;).push({ Name: &quot;Wilma&quot;, StudyGroups: [&quot;B&quot;, &quot;C&quot;] });
+base.store(&quot;Class&quot;).push({ Name: &quot;Barney&quot;, StudyGroups: [&quot;C&quot;, &quot;A&quot;] });
+// update the feature space to get the categories
+ftr.updateRecords(base.store(&quot;Class&quot;).allRecords);
+// get the feature vector for the first record
+var vec = ftr.extractVector(base.store(&quot;Class&quot;)[0]); // returns vector [0.707, 0.707, 0]
 base.close();</code></pre>
 </div>
 
@@ -2414,6 +2444,13 @@ var base = new qm.Base({
 // create a feature space containing the numeric extractor, where the values are
 // normalized, the values are taken from the field &quot;Grade&quot;
 var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;Class&quot;, normalize: &quot;scale&quot;, field: &quot;Grade&quot; });
+// add a new record to the base
+base.store(&quot;Class&quot;).push({ Name: &quot;Peterson&quot;, Grade: 9 });
+base.store(&quot;Class&quot;).push({ Name: &quot;Ericsson&quot;, Grade: 8 });
+// update the feature space for scaling 
+ftr.updateRecords(base.store(&quot;Class&quot;).allRecords);
+// get the features of the first record
+var vec = ftr.extractVector(base.store(&quot;Class&quot;)[0]); // the vector with the random value
 base.close();</code></pre>
 </div>
 
@@ -2692,6 +2729,10 @@ var base = new qm.Base({
 });
 // create a feature space containing the random extractor
 var ftr = new qm.FeatureSpace(base, { type: &quot;random&quot;, source: &quot;Person&quot; });
+// add a new record to the base
+base.store(&quot;Person&quot;).push({ Name: &quot;Peterson&quot; });
+// get the features of the record
+var vec = ftr.extractVector(base.store(&quot;Person&quot;)[0]); // the vector with the random value
 base.close();</code></pre>
 </div>
 
@@ -2961,9 +3002,16 @@ var base = new qm.Base({
 // create a feature spave containing the text (bag of words) extractor, where the values are normalized,
 // weighted with &#x27;tfidf&#x27; and the tokenizer is of &#x27;simple&#x27; type, it uses english stopwords.
 var ftr = new qm.FeatureSpace(base, {
-             type: &quot;text&quot;, source: &quot;Articles&quot;, field: &quot;Text&quot;, normalize: true, weight: &quot;tfidf&quot;,
-             tokenizer: { type: &quot;simple&quot;, stopwords: &quot;en&quot;}
-          });
+    type: &quot;text&quot;, source: &quot;Articles&quot;, field: &quot;Text&quot;, normalize: true, weight: &quot;tfidf&quot;,
+    tokenizer: { type: &quot;simple&quot;, stopwords: &quot;en&quot;}
+});
+// add a few records to the store
+base.store(&quot;Articles&quot;).push({ Title: &quot;Article1&quot;, Text: &quot;The last time we drew up the league table for bad banks, UBS was on top.&quot; });
+base.store(&quot;Articles&quot;).push({ Title: &quot;Article2&quot;, Text: &quot;Barclays dropped a bombshell on its investment bankers last week.&quot; });
+// update the feature space to get the the terms for the bag-of-words text representation
+ftr.updateRecords(base.store(&quot;Articles&quot;).allRecords);
+// extract the feature vector for the first article
+var vec = ftr.extractSparseVector(base.store(&quot;Articles&quot;)[0]);
 base.close();</code></pre>
 </div>
 
@@ -3045,6 +3093,22 @@ base.close();</code></pre>
         </td>
         <td>
                 <p>A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hashDimension to get the corresponding dimension.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>hashTable</p>
+        </td>
+        <td>
+                <p>boolean</p>
+        </td>
+        <td>
+                <p>Yes</p>
+        </td>
+        <td>
+                <p>If true, stores the hash table which is used for for feature naming.</p>
+                <p>Defaults to <code>false</code>.</p>
         </td>
 </tr>
 
@@ -4993,11 +5057,11 @@ exposes the following methods.
 <br>4. <a href="module-qm.StreamAggr.html#onTime">module:qm.StreamAggr#onTime</a> updates the current time (no data has arrived, but time has passed) and tries to resample.
 <br>5. <a href="module-qm.StreamAggr.html#getParams">module:qm.StreamAggr#getParams</a> returns a parameter object.
 <br>6. <a href="module-qm.StreamAggr.html#setParams">module:qm.StreamAggr#setParams</a> used primarily for setting the out-aggregate.
-The stream aggregate exposes its results through getFloat and getTimestamp methods (itself represents timeseries).
-The resampler has an input time-series aggregate (supports getFloat and getTimestamp), from where it reads time series values.
-The reading and resampling occourrs wehen resampler's onStep() or onTime() methods are called.
+<br>The stream aggregate exposes its results through <code>getFloat</code> and <code>getTimestamp</code> methods (itself represents timeseries).
+The resampler has an input time-series aggregate (supports <code>getFloat</code> and <code>getTimestamp</code>), from where it reads time series values.
+The reading and resampling occourrs wehen resamplers <code>onStep()</code> or <code>onTime()</code> methods are called.
 When resampling succeeds (all the data needed for the computation becomes available), the resampler
-will trigger the onStep() method of an output stream aggregate that will read the resampler's state through getFloat and getTime.</p>
+will trigger the <code>onStep()</code> method of an output stream aggregate that will read the resamplers state through <code>getFloat</code> and <code>getTime</code>.</p>
 
         <section>
         <h4>
@@ -5118,7 +5182,7 @@ base.close();</code></pre>
                 <p>&nbsp;</p>
         </td>
         <td>
-                <p>Must be one of the values: &quot;sum&quot;, &quot;avg&quot;, &quot;min&quot; or &quot;max&quot; - represents the function executed on the data values in the interval.</p>
+                <p>Must be one of the values: <code>&quot;sum&quot;</code>, <code>&quot;avg&quot;</code>, <code>&quot;min&quot;</code> or <code>&quot;max&quot;</code> - represents the function executed on the data values in the interval.</p>
         </td>
 </tr>
 
@@ -5133,7 +5197,7 @@ base.close();</code></pre>
                 <p>&nbsp;</p>
         </td>
         <td>
-                <p>The name of the input stream aggregate which must implement getFloat() and getTimestamp() methods.</p>
+                <p>The name of the input stream aggregate which must implement <code>getFloat()</code> and <code>getTimestamp()</code> methods.</p>
         </td>
 </tr>
 
@@ -5148,7 +5212,7 @@ base.close();</code></pre>
                 <p>Yes</p>
         </td>
         <td>
-                <p>Start time (linux timestamp or a web log date string like '1970-01-01T00:00:00.000')</p>
+                <p>Start time (linux timestamp or a web log date string like <code>1970-01-01T00:00:00.000</code>)</p>
         </td>
 </tr>
 
@@ -5163,7 +5227,7 @@ base.close();</code></pre>
                 <p>Yes</p>
         </td>
         <td>
-                <p>Must be one of the values: &quot;h&quot;, &quot;m&quot; or &quot;s&quot; - represents rounding of the start time when it must be determined by the first observed record. 'h' will clip minutes, seconds and milliseconds, 'm' will clip seconds and milliseconds and 's' will clip only milliseconds.</p>
+                <p>Must be one of the values: <code>'h'</code>, <code>'m'</code> or <code>'s'</code> - represents rounding of the start time when it must be determined by the first observed record. <code>'h'</code> will clip minutes, seconds and milliseconds, <code>'m'</code> will clip seconds and milliseconds and <code>'s'</code> will clip only milliseconds.</p>
         </td>
 </tr>
 
@@ -5194,7 +5258,7 @@ base.close();</code></pre>
                 <p>Yes</p>
         </td>
         <td>
-                <p>If true, the resampler will not call the onStep method of the out-aggregate when the interval is empty (for example, average of an empty set is not defined).</p>
+                <p>If true, the resampler will not call the <code>onStep</code> method of the out-aggregate when the interval is empty (for example, average of an empty set is not defined).</p>
                 <p>Defaults to <code>false</code>.</p>
         </td>
 </tr>
@@ -5225,7 +5289,7 @@ base.close();</code></pre>
                 <p>Yes</p>
         </td>
         <td>
-                <p>The name of the output stream aggregate. Only useful when the outAggr is a javascript stream aggregate, otherwise the output must be set by calling setParam({outAggr: outAggregateName}).</p>
+                <p>The name of the output stream aggregate. Only useful when the <code>outAggr</code> is a javascript stream aggregate, otherwise the output must be set by calling <code>setParam({outAggr: outAggregateName})</code>.</p>
         </td>
 </tr>
 
@@ -5262,8 +5326,8 @@ base.close();</code></pre>
 
                 <h3 id="~StreamAggrAnomalyDetectorNN"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggrAnomalyDetectorNN</span><small class="property-type">
             &nbsp;module:qmStreamAggr</small></h3>
-        <p>This stream aggregator represents the anomaly detector using the Nearest Neighbor algorithm. It calculates the 
-new incoming point's distance from its nearest neighbor and, depending on the input threshold values, it 
+        <p>This stream aggregator represents the anomaly detector using the Nearest Neighbor algorithm. It calculates the
+new incoming point's distance from its nearest neighbor and, depending on the input threshold values, it
 classifies the severity of the alarm. It implements the following methods:
 <br>1. <a href="module-qm.StreamAggr.html#getInteger">module:qm.StreamAggr#getInteger</a> returns the severity of the alarm.
 <br>2. <a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a> returns the timestamp of the latest alarm.
@@ -5291,7 +5355,7 @@ var base = new qm.Base({
 });
 // create the store
 var store = base.store(&#x27;Cars&#x27;);
-// define a feature space aggregator on the Cars store which needs at least 2 records to be initialized. Use three of the 
+// define a feature space aggregator on the Cars store which needs at least 2 records to be initialized. Use three of the
 // four fields of the store to create feature vectors with normalized values.
 var aggr = {
    name: &quot;ftrSpaceAggr&quot;,
@@ -5316,7 +5380,7 @@ var aggr = {
     value: &quot;NumberOfCars&quot;
 };
 //create the tick aggregator
-tickAggr = base.store(&#x27;Cars&#x27;).addStreamAggr(aggr);
+var tickAggr = base.store(&#x27;Cars&#x27;).addStreamAggr(aggr);
 
 //define an anomaly detection aggregator using nearest neighbor on the cars store that takes as input timestamped features.
 // The time stamp is provided by the tick aggregator while the feature vector is provided by the feature space aggregator.
@@ -5325,7 +5389,7 @@ var aggr = {
     type: &#x27;nnAnomalyDetector&#x27;,
     inAggrSpV: &#x27;ftrSpaceAggr&#x27;,
     inAggrTm: &#x27;tickAggr&#x27;,
-    rate: [0.15, 0.5, 0.7],
+    rate: [0.7, 0.5, 0.15],
     windowSize: 2
 };
 //create the anomaly detection aggregator
@@ -5490,81 +5554,6 @@ It <b>cannot</b> be connect to the <a href="module-qm.html#~StreamAggrTimeSeries
 
                 <tr>
         <td>
-            <p>recordBuffer</p>
-        </td>
-        <td>
-                <p><a href="module-qm.html#~StreamAggrRecordBuffer">module:qm~StreamAggrRecordBuffer</a></p>
-        </td>
-        <td>
-                <p>&nbsp;</p>
-        </td>
-        <td>
-                <p>The record buffer type.</p>
-        </td>
-</tr>
-
-                <tr>
-        <td>
-            <p>sum</p>
-        </td>
-        <td>
-                <p><a href="module-qm.html#~StreamAggrSum">module:qm~StreamAggrSum</a></p>
-        </td>
-        <td>
-                <p>&nbsp;</p>
-        </td>
-        <td>
-                <p>The sum type.</p>
-        </td>
-</tr>
-
-                <tr>
-        <td>
-            <p>min</p>
-        </td>
-        <td>
-                <p><a href="module-qm.html#~StreamAggrMin">module:qm~StreamAggrMin</a></p>
-        </td>
-        <td>
-                <p>&nbsp;</p>
-        </td>
-        <td>
-                <p>The minimal type.</p>
-        </td>
-</tr>
-
-                <tr>
-        <td>
-            <p>max</p>
-        </td>
-        <td>
-                <p><a href="module-qm.html#~StreamAggrMax">module:qm~StreamAggrMax</a></p>
-        </td>
-        <td>
-                <p>&nbsp;</p>
-        </td>
-        <td>
-                <p>The maximal type.</p>
-        </td>
-</tr>
-
-                <tr>
-        <td>
-            <p>sum</p>
-        </td>
-        <td>
-                <p><a href="module-qm.html#~StreamAggrSparseVecSum">module:qm~StreamAggrSparseVecSum</a></p>
-        </td>
-        <td>
-                <p>&nbsp;</p>
-        </td>
-        <td>
-                <p>The sparse-vector-sum type.</p>
-        </td>
-</tr>
-
-                <tr>
-        <td>
             <p>tick</p>
         </td>
         <td>
@@ -5580,6 +5569,96 @@ It <b>cannot</b> be connect to the <a href="module-qm.html#~StreamAggrTimeSeries
 
                 <tr>
         <td>
+            <p>record-buffer</p>
+        </td>
+        <td>
+                <p><a href="module-qm.html#~StreamAggrRecordBuffer">module:qm~StreamAggrRecordBuffer</a></p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The record buffer type.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>ftr-space</p>
+        </td>
+        <td>
+                <p><a href="module-qm.html#~StreamAggrFeatureSpace">module:qm~StreamAggrFeatureSpace</a></p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The feature space type.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>sum</p>
+        </td>
+        <td>
+                <p><a href="module-qm.html#~StreamAggrSum">module:qm~StreamAggrSum</a></p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The sum type. Calculates the sum of values.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>min</p>
+        </td>
+        <td>
+                <p><a href="module-qm.html#~StreamAggrMin">module:qm~StreamAggrMin</a></p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The minimal type. Saves the minimal value in the buffer.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>max</p>
+        </td>
+        <td>
+                <p><a href="module-qm.html#~StreamAggrMax">module:qm~StreamAggrMax</a></p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The maximal type. Saves the maximal value in the buffer.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>sparse-vec-sum</p>
+        </td>
+        <td>
+                <p><a href="module-qm.html#~StreamAggrSparseVecSum">module:qm~StreamAggrSparseVecSum</a></p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The sparse-vector-sum type.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
             <p>ma</p>
         </td>
         <td>
@@ -5589,7 +5668,7 @@ It <b>cannot</b> be connect to the <a href="module-qm.html#~StreamAggrTimeSeries
                 <p>&nbsp;</p>
         </td>
         <td>
-                <p>The moving average type.</p>
+                <p>The moving average type. Calculates the average within the window.</p>
         </td>
 </tr>
 
@@ -5604,13 +5683,13 @@ It <b>cannot</b> be connect to the <a href="module-qm.html#~StreamAggrTimeSeries
                 <p>&nbsp;</p>
         </td>
         <td>
-                <p>The exponental moving average type.</p>
+                <p>The exponental moving average type. Calculates the exponental average of the values.</p>
         </td>
 </tr>
 
                 <tr>
         <td>
-            <p>ema</p>
+            <p>ema-sp-vec</p>
         </td>
         <td>
                 <p><a href="module-qm.html#~StreamAggrEMASpVec">module:qm~StreamAggrEMASpVec</a></p>
@@ -5634,7 +5713,7 @@ It <b>cannot</b> be connect to the <a href="module-qm.html#~StreamAggrTimeSeries
                 <p>&nbsp;</p>
         </td>
         <td>
-                <p>The moving variance type.</p>
+                <p>The moving variance type. Calculates the variance of values within the window.</p>
         </td>
 </tr>
 
@@ -5649,7 +5728,7 @@ It <b>cannot</b> be connect to the <a href="module-qm.html#~StreamAggrTimeSeries
                 <p>&nbsp;</p>
         </td>
         <td>
-                <p>The moving covariance type.</p>
+                <p>The moving covariance type. Calculates the covariance of values within the window.</p>
         </td>
 </tr>
 
@@ -5664,7 +5743,7 @@ It <b>cannot</b> be connect to the <a href="module-qm.html#~StreamAggrTimeSeries
                 <p>&nbsp;</p>
         </td>
         <td>
-                <p>The moving correlation type.</p>
+                <p>The moving correlation type. Calculates the correlation of values within the window.</p>
         </td>
 </tr>
 
@@ -5679,13 +5758,13 @@ It <b>cannot</b> be connect to the <a href="module-qm.html#~StreamAggrTimeSeries
                 <p>&nbsp;</p>
         </td>
         <td>
-                <p>The resampler type.</p>
+                <p>The resampler type. Resamples the records so that they come in in the same time interval.</p>
         </td>
 </tr>
 
                 <tr>
         <td>
-            <p>res</p>
+            <p>aggr-res</p>
         </td>
         <td>
                 <p><a href="module-qm.html#~StreamAggrAggrResampler">module:qm~StreamAggrAggrResampler</a></p>
@@ -5694,7 +5773,8 @@ It <b>cannot</b> be connect to the <a href="module-qm.html#~StreamAggrTimeSeries
                 <p>&nbsp;</p>
         </td>
         <td>
-                <p>The aggregating (avg/sum) resampler type.</p>
+                <p>The aggregating (avg/sum) resampler type. Resamplers the records so that it takes the
+records in the time window and returns one sample.</p>
         </td>
 </tr>
 
@@ -5709,7 +5789,7 @@ It <b>cannot</b> be connect to the <a href="module-qm.html#~StreamAggrTimeSeries
                 <p>&nbsp;</p>
         </td>
         <td>
-                <p>The merger type.</p>
+                <p>The merger type. Merges the records from two stream series.</p>
         </td>
 </tr>
 
@@ -5760,7 +5840,7 @@ It <b>cannot</b> be connect to the <a href="module-qm.html#~StreamAggrTimeSeries
 
                 <tr>
         <td>
-            <p>linReg</p>
+            <p>lin-reg</p>
         </td>
         <td>
                 <p><a href="module-qm.html#~StreamAggrSimpleLinearRegression">module:qm~StreamAggrSimpleLinearRegression</a></p>
@@ -5775,7 +5855,52 @@ It <b>cannot</b> be connect to the <a href="module-qm.html#~StreamAggrTimeSeries
 
                 <tr>
         <td>
-            <p>recordSwitchAggr</p>
+            <p>detector-nn</p>
+        </td>
+        <td>
+                <p><a href="module-qm.html#~StreamAggrAnomalyDetectorNN">module:qm~StreamAggrAnomalyDetectorNN</a></p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The anomaly detector type. Detects anomalies using the k nearest neighbour algorithm.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>treshold</p>
+        </td>
+        <td>
+                <p><a href="module-qm.html#~StreamAggrThreshold">module:qm~StreamAggrThreshold</a></p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The threshold indicator type.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>tdigest</p>
+        </td>
+        <td>
+                <p><a href="module-qm.html#~StreamAggrTDigest">module:qm~StreamAggrTDigest</a></p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The quantile estimator type. It estimates the quantiles of the given data using <a href="module-analytics.TDigest.html">TDigest</a>.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>record-switch-aggr</p>
         </td>
         <td>
                 <p><a href="module-qm.html#~StreamAggrRecordSwitch">module:qm~StreamAggrRecordSwitch</a></p>
@@ -5821,7 +5946,7 @@ It <b>cannot</b> be connect to the <a href="module-qm.html#~StreamAggrTimeSeries
 
                 <h3 id="~StreamAggrEMA"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggrEMA</span><small class="property-type">
             &nbsp;module:qmStreamAggr</small></h3>
-        <p>This stream aggregator represents the exponential moving average window buffer. It calculates the weighted moving average 
+        <p>This stream aggregator represents the exponential moving average window buffer. It calculates the weighted moving average
 of the values in the connected stream aggregator, where the weights are exponentially decreasing.  It implements the following methods:
 <br>1. <a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a> returns the exponentional average of the values in its buffer window.
 <br>2. <a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a> returns the timestamp of the newest record in its buffer window.</p>
@@ -5943,7 +6068,7 @@ base.close();</code></pre>
                 <p>&nbsp;</p>
         </td>
         <td>
-                <p>The name of the stream aggregator to which it connects and gets data. 
+                <p>The name of the stream aggregator to which it connects and gets data.
 It <b>cannot</b> be connect to the <a href="module-qm.html#~StreamAggrTimeSeriesWindow">module:qm~StreamAggrTimeSeriesWindow</a>.</p>
         </td>
 </tr>
@@ -5960,7 +6085,7 @@ It <b>cannot</b> be connect to the <a href="module-qm.html#~StreamAggrTimeSeries
         </td>
         <td>
                 <p>The type of interpolation. Possible options are:
-<br>1. <code>'previous'</code> - Interpolates with the previous value. 
+<br>1. <code>'previous'</code> - Interpolates with the previous value.
 <br>2. <code>'next'</code> - Interpolates with the next value.
 <br>3. <code>'linear'</code> - Makes a linear interpolation.</p>
         </td>
@@ -6268,6 +6393,218 @@ It <b>cannot</b> be connect to the <a href="module-qm.html#~StreamAggrTimeSeries
         
     </dl>
 
+                <h3 id="~StreamAggrFeatureSpace"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggrFeatureSpace</span><small class="property-type">
+            &nbsp;module:qmStreamAggr</small></h3>
+        <p>This stream aggregator creates the feature space and stores the specified features of the last input. It implements the following methods:
+<br>1. <a href="module-qm.StreamAggr.html#getFloatVector">module:qm.StreamAggr#getFloatVector</a> returns the dense feature vectors.
+<br>2. <a href="module-qm.StreamAggr.html#getFeatureSpace">module:qm.StreamAggr#getFeatureSpace</a> returns the feature space.</p>
+
+        <section>
+        <h4>
+            Example
+        </h4>
+                <div>
+    <pre class="prettyprint"><code>// import the qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a base with a simple store named Cars with 4 fields
+var base = new qm.Base({
+    mode: &#x27;createClean&#x27;,
+    schema: [{
+        name: &#x27;Cars&#x27;,
+        fields: [
+            { name: &#x27;NumberOfCars&#x27;, type: &#x27;float&#x27; },
+            { name: &#x27;Temperature&#x27;, type: &#x27;float&#x27; },
+            { name: &#x27;Precipitation&#x27;, type: &#x27;float&#x27; },
+            { name: &#x27;Time&#x27;, type: &#x27;datetime&#x27; }
+        ]
+    }]
+});
+// create the store
+var store = base.store(&#x27;Cars&#x27;);
+// define a feature space aggregator on the Cars store which needs at least 2 records to be initialized. Use three of the
+// four fields of the store to create feature vectors with normalized values.
+var aggr = {
+   name: &quot;ftrSpaceAggr&quot;,
+   type: &quot;featureSpace&quot;,
+   initCount: 2,
+   update: true, full: false, sparse: true,
+   featureSpace: [
+       { type: &quot;numeric&quot;, source: &quot;Cars&quot;, field: &quot;NumberOfCars&quot;, normalize: &quot;var&quot; },
+       { type: &quot;numeric&quot;, source: &quot;Cars&quot;, field: &quot;Temperature&quot;, normalize: &quot;var&quot; },
+       { type: &quot;numeric&quot;, source: &quot;Cars&quot;, field: &quot;Precipitation&quot;, normalize: &quot;var&quot; }
+   ]
+};
+//create the feature space aggregator
+var ftrSpaceAggr = base.store(&#x27;Cars&#x27;).addStreamAggr(aggr);
+base.close();</code></pre>
+</div>
+
+    </section>
+
+    
+        <section>
+        <h4>Properties</h4>
+            <table class="jsdoc-details-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Optional</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+                <tr>
+        <td>
+            <p>name</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The given name for the stream aggregator.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>type</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The type of the stream aggregator. <b>Important:</b> It must be equal to <code>'featureSpace'</code>.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>store</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The name of the store from which it takes the data.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>initCount</p>
+        </td>
+        <td>
+                <p>number</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The number of records needed before it initializes.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>update</p>
+        </td>
+        <td>
+                <p>boolean</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>If true, updates the feature space.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>full</p>
+        </td>
+        <td>
+                <p>boolean</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>If true, saves the full vector of features.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>sparse</p>
+        </td>
+        <td>
+                <p>boolean</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>If true, saves the sparse vector of features.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>FeatureSpace</p>
+        </td>
+        <td>
+                <p>Array of <a href="module-qm.html#~FeatureExtractor">module:qm~FeatureExtractor</a></p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>Array of feature extractors.</p>
+        </td>
+</tr>
+
+        </tbody>
+</table>
+
+    </section>
+
+
+    <dl class="dl-compact">
+        
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+        
+        
+        
+        
+        
+    </dl>
+
                 <h3 id="~StreamAggrHistogram"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggrHistogram</span><small class="property-type">
             &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
         <p>This stream aggregator represents an online histogram. It can connect to a buffered aggregate (such as <a href="module-qm.html#~StreamAggrTimeSeriesWindow">module:qm~StreamAggrTimeSeriesWindow</a>)
@@ -6530,7 +6867,7 @@ base.close();</code></pre>
 
                 <h3 id="~StreamAggrMax"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggrMax</span><small class="property-type">
             &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
-        <p>This stream aggregator represents the maximum moving window buffer. It monitors the maximal value in the connected stream aggregator. 
+        <p>This stream aggregator represents the maximum moving window buffer. It monitors the maximal value in the connected stream aggregator.
 It implements the following methods:
 <br>1. <a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a> returns the maximal value of the records in its buffer window.
 <br>2. <a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a> returns the timestamp of the newest record in its buffer window.</p>
@@ -6842,7 +7179,7 @@ base.close();</code></pre>
                 <p>&nbsp;</p>
         </td>
         <td>
-                <p>An array of <code>field</code> objects. The <code>field</code> object contain the properties: 
+                <p>An array of <code>field</code> objects. The <code>field</code> object contain the properties:
 <br><code>field.source</code> - The name of the store, from which it takes the values. Type <code>string</code>.
 <br><code>field.inField</code> - The field name of source, from which it takes the values. Type <code>string</code>.
 <br><code>field.outField</code> - The field name of outStore, into which it saves the values. Type <code>string</code>.
@@ -7602,7 +7939,7 @@ base.close();</code></pre>
 
                 <h3 id="~StreamAggrMovingVariance"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggrMovingVariance</span><small class="property-type">
             &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
-        <p>This stream aggregator represents the moving variance window buffer. It calculates the moving variance of the stream aggregator, that it's connected to. 
+        <p>This stream aggregator represents the moving variance window buffer. It calculates the moving variance of the stream aggregator, that it's connected to.
 It implements the following methods:
 <br>1. <a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a> returns the variance of the values in its buffer window.
 <br>2. <a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a> returns the timestamp of the newest record in its buffer window.</p>
@@ -8243,7 +8580,7 @@ base.close();</code></pre>
                 <p>&nbsp;</p>
         </td>
         <td>
-                <p>The array off <code>field</code> objects from which it takes the values. The <code>field</code> object contain the properties: 
+                <p>The array off <code>field</code> objects from which it takes the values. The <code>field</code> object contain the properties:
 <br><code>field.name</code> - The store field from which it takes the values. Type <code>string</code>.
 <br><code>field.interpolator</code> - The type of the interpolation. The options are <code>'previous'</code>, <code>'next'</code> and <code>'linear'</code>. Type <code>string</code>.</p>
         </td>
@@ -8312,7 +8649,7 @@ base.close();</code></pre>
 
                 <h3 id="~StreamAggrSimpleLinearRegression"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggrSimpleLinearRegression</span><small class="property-type">
             &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
-        <p>This stream aggregator computes a simple linear regression given two stream aggregates 
+        <p>This stream aggregator computes a simple linear regression given two stream aggregates
 that support the <a href="module-qm.StreamAggr.html#getFloatVector">module:qm.StreamAggr#getFloatVector</a> method and represent variates (input) and covariates (output).
 Optionally the aggregate computes quantile bands: for each quantile <code>q</code> a parallel line to the fitted
 line is found, so that <code>q</code> fraction of <code>(x,y)</code> datapoints fall below the line. For example, under Gaussian noise,
@@ -8646,8 +8983,8 @@ base.close();</code></pre>
                 <h3 id="~StreamAggrSlottedHistogram"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggrSlottedHistogram</span><small class="property-type">
             &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
         <p>This stream aggregator represents an online slotted histogram. It can connect to a buffered aggregate (such as <a href="module-qm.html#~StreamAggrTimeSeriesWindow">module:qm~StreamAggrTimeSeriesWindow</a>)
-or a time series (such as module:qm~StreamAggregateEMA). 
-It maps historical values into single period (e.g. into hours of the week). 
+or a time series (such as module:qm~StreamAggregateEMA).
+It maps historical values into single period (e.g. into hours of the week).
 The aggregate defines an ordered set of points <code>p(0), ..., p(n)</code> that define n bins. Infinites at both ends are NOT allowed.
 A new measurement is tested for inclusion in the left-closed right-opened intervals <code>[p(i), p(i+1))</code> and the corresponding
 bin counter is increased for the appropriate bin (or decreased if the point is outgoing from the buffer).
@@ -9191,6 +9528,208 @@ base.close();</code></pre>
         
     </dl>
 
+                <h3 id="~StreamAggrTDigest"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggrTDigest</span><small class="property-type">
+            &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
+        <p>This stream aggregator computes the quantile estimators using the <a href="module-analytics.TDigest.html">TDigest</a> algorithm.
+The quantile values are returned using <a href="module-qm.StreamAggr.html#getFloatVector">module:qm.StreamAggr#getFloatVector</a>.</p>
+
+        <section>
+        <h4>
+            Example
+        </h4>
+                <div>
+    <pre class="prettyprint"><code>// import the qm module
+var qm = require(&#x27;qminer&#x27;);
+// create a base with the Time and Value fields
+var base = new qm.Base({
+   mode: &quot;createClean&quot;,
+   schema: [
+   {
+       name: &quot;Processor&quot;,
+       fields: [
+           { name: &quot;Value&quot;, type: &quot;float&quot; },
+           { name: &quot;Time&quot;, type: &quot;datetime&quot; }
+       ]
+   }]
+});
+var store = base.store(&#x27;Processor&#x27;);
+
+// create a new time series stream aggregator for the &#x27;Processor&#x27; store, that takes the value of the processor
+// and the timestamp from the &#x27;Time&#x27; field. The size of the window is 1 second.
+var tick = {
+    name: &#x27;TickAggr&#x27;,
+    type: &#x27;timeSeriesTick&#x27;,
+    store: &#x27;Processor&#x27;,
+    timestamp: &#x27;Time&#x27;,
+    value: &#x27;Value&#x27;,
+    winsize: 1000 // one day in miliseconds
+};
+var timeSeries = store.addStreamAggr(tick);
+
+// create the TDigest stream aggregator
+var aggr = {
+    name: &#x27;TDigest&#x27;,
+    type: &#x27;tdigest&#x27;,
+    store: &#x27;Processor&#x27;,
+    inAggr: &#x27;TickAggr&#x27;,
+    quantiles: [0.90, 0.95, 0.99, 0.999],
+    minCount: 5
+};
+// add the stream aggregator to the &#x27;Processor&#x27; store
+var td = store.addStreamAggr(aggr);
+store.push({ Time: &#x27;2015-12-01T14:20:32.0&#x27;, Value: 0.9948628368 });
+store.push({ Time: &#x27;2015-12-01T14:20:33.0&#x27;, Value: 0.1077458826 });
+store.push({ Time: &#x27;2015-12-01T14:20:34.0&#x27;, Value: 0.9855685823 });
+store.push({ Time: &#x27;2015-12-01T14:20:35.0&#x27;, Value: 0.7796449082 });
+// with this record the aggregator will initialize becuase it is the 5th record
+store.push({ Time: &#x27;2015-12-01T14:20:36.0&#x27;, Value: 0.0844943286 });
+
+store.push({ Time: &#x27;2015-12-01T14:20:37.0&#x27;, Value: 0.187490856 });
+store.push({ Time: &#x27;2015-12-01T14:20:38.0&#x27;, Value: 0.0779815107 });
+store.push({ Time: &#x27;2015-12-01T14:20:39.0&#x27;, Value: 0.8945312691 });
+store.push({ Time: &#x27;2015-12-01T14:20:40.0&#x27;, Value: 0.5574567409 });
+
+// get the quantile estimations
+var result = td.getFloatVector();
+base.close();</code></pre>
+</div>
+
+    </section>
+
+    
+        <section>
+        <h4>Properties</h4>
+            <table class="jsdoc-details-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Optional</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+                <tr>
+        <td>
+            <p>name</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The given name of the stream aggregator.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>type</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The type for the stream aggregator. <b>Important:</b> It must be equal to <code>'tdigest'</code>.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>store</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The name of the store from which it takes the data.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>inAggr</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The name of the stream aggregator to which it connects and gets data.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>quantiles</p>
+        </td>
+        <td>
+                <p>Array of number</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>An array of numbers between 0 and 1 for which the quantile bands will be computed.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>minCount</p>
+        </td>
+        <td>
+                <p>Number</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The minimal number of values given before it start to compute the quantiles.</p>
+        </td>
+</tr>
+
+        </tbody>
+</table>
+
+    </section>
+
+
+    <dl class="dl-compact">
+        
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+        
+        
+        
+        
+        
+    </dl>
+
                 <h3 id="~StreamAggrThreshold"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggrThreshold</span><small class="property-type">
             &nbsp;module:qmStreamAggr</small></h3>
         <p>This stream aggregator represents a threshold indicator. It outputs 1 if the current value in the data streams is
@@ -9366,7 +9905,7 @@ It <b>cannot</b> be connect to the <a href="module-qm.html#~StreamAggrTimeSeries
 
                 <h3 id="~StreamAggrTimeSeriesTick"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggrTimeSeriesTick</span><small class="property-type">
             &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
-        <p>This stream aggregator represents the time series tick window buffer. It exposes the data to other stream aggregators 
+        <p>This stream aggregator represents the time series tick window buffer. It exposes the data to other stream aggregators
 (similar to <a href="module-qm.html#~StreamAggrTimeSeriesWindow">module:qm~StreamAggrTimeSeriesWindow</a>). It implements the following methods:
 <br>1. <a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a> returns the last value added in its buffer window.
 <br>2. <a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a> returns the timestamp of the newest record in its buffer window.</p>
@@ -9527,7 +10066,7 @@ base.close();</code></pre>
 
                 <h3 id="~StreamAggrTimeSeriesWindow"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggrTimeSeriesWindow</span><small class="property-type">
             &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
-        <p>This stream aggregator represents the time series window buffer. It stores the values inside a moving window. 
+        <p>This stream aggregator represents the time series window buffer. It stores the values inside a moving window.
 It implements all the stream aggregate methods <b>except</b> <a href="module-qm.StreamAggr.html#getFloat">module:qm.StreamAggr#getFloat</a> and <a href="module-qm.StreamAggr.html#getTimestamp">module:qm.StreamAggr#getTimestamp</a>.</p>
 
         <section>
@@ -9560,7 +10099,7 @@ var aggr = {
    value: &#x27;Celsius&#x27;,
    winsize: 2000
 };
-base.store(&quot;Heat&quot;).addStreamAggr(aggr); 
+base.store(&quot;Heat&quot;).addStreamAggr(aggr);
 base.close();</code></pre>
 </div>
 
@@ -9872,7 +10411,7 @@ base.close();</code></pre>
 
                 <h3 id="~StreamAggrVecDiff"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggrVecDiff</span><small class="property-type">
             &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
-        <p>This stream aggregator represents difference between two vectors (e.g. online histograms). 
+        <p>This stream aggregator represents difference between two vectors (e.g. online histograms).
 It implements the following methods:
 <br>1. <a href="module-qm.StreamAggr.html#getFloatLength">module:qm.StreamAggr#getFloatLength</a> returns the number of bins.
 <br>2. <a href="module-qm.StreamAggr.html#getFloatAt">module:qm.StreamAggr#getFloatAt</a> returns the count for a bin index.
@@ -9897,7 +10436,7 @@ schema: [
       { name: &quot;Time&quot;, type: &quot;datetime&quot; }
   ]
 }]
-});       
+});
 
 var store = base.store(&#x27;Rpm&#x27;);
 
@@ -9928,7 +10467,7 @@ var aggrJson1 = {
 var hist1 = base.store(&quot;Rpm&quot;).addStreamAggr(aggrJson1);
 
 // create a new time series stream aggregator for the &#x27;Rpm&#x27; store that takes the recorded cluster id
-// and the timestamp from the &#x27;Time&#x27; field. 
+// and the timestamp from the &#x27;Time&#x27; field.
 var timeser2 = {
   name: &#x27;TimeSeries2&#x27;,
   type: &#x27;timeSeriesWinBuf&#x27;,

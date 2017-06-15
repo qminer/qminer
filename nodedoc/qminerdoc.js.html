@@ -1987,8 +1987,8 @@
 /**
     * Sorts the records according to a specific record field.
     * @param {string} fieldName - The field by which the sort will work.
-    * @param {number} [arc=-1] - if &#x60;asc&#x60; &gt; 0, it sorts in ascending order. Otherwise, it sorts in descending order.
-    * @returns {module:qm.RecordSet} Self. Records are sorted according to &#x60;fieldName&#x60; and &#x60;arc&#x60;.
+    * @param {number} [asc=-1] - if &#x60;asc&#x60; &gt; 0, it sorts in ascending order. Otherwise, it sorts in descending order.
+    * @returns {module:qm.RecordSet} Self. Records are sorted according to &#x60;fieldName&#x60; and &#x60;asc&#x60;.
     * @example
     * // import qm module
     * var qm = require(&#x27;qminer&#x27;);
@@ -2589,15 +2589,15 @@
 /**
 * Feature extractor types. Used for constructing {@link module:qm.FeatureSpace} objects.
 * @typedef {Object} FeatureExtractor
-* @property {module:qm~FeatureExtractorConstant} constant - The constant type.
-* @property {module:qm~FeatureExtractorRandom} random - The random type.
-* @property {module:qm~FeatureExtractorNumeric} numeric - The numeric type.
+* @property {module:qm~FeatureExtractorConstant} constant - The constant type. Adds a constant value as a feature.
+* @property {module:qm~FeatureExtractorRandom} random - The random type. Adds a random value as a feature.
+* @property {module:qm~FeatureExtractorNumeric} numeric - The numeric type. Adds the numeric value as a feature.
 * @property {module:qm~FeatureExtractorCategorical} categorical - The categorical type.
 * @property {module:qm~FeatureExtractorMultinomial} multinomial - The multinomial type.
-* @property {module:qm~FeatureExtractorText} text - The text type.
+* @property {module:qm~FeatureExtractorText} text - The text type. Creates the bag-of-words text representation.
 * @property {module:qm~FeatureExtractorJoin} join - The join type.
 * @property {module:qm~FeatureExtractorPair} pair - The pair type.
-* @property {module:qm~FeatureExtractorJsfunc} jsfunc - The jsfunc type.
+* @property {module:qm~FeatureExtractorJsfunc} jsfunc - The jsfunc type. Allows creating a custom feature extractor.
 * @property {module:qm~FeatureExtractorDateWindow} dateWindow - The date window type.
 * @property {module:qm~FeatureExtractorSparseVector} sparseVector - The sparse vector type.
 *
@@ -2620,6 +2620,10 @@
 * });
 * // create a feature space containing the constant extractor, where the constant is equal 5
 * var ftr = new qm.FeatureSpace(base, { type: &quot;constant&quot;, source: &quot;Person&quot;, const: 5 });
+* // add a new record to the base
+* base.store(&quot;Person&quot;).push({ Name: &quot;Peterson&quot; });
+* // get the features of the record
+* var vec = ftr.extractVector(base.store(&quot;Person&quot;)[0]); // the vector [5]
 * base.close();
 */
 /**
@@ -2640,6 +2644,10 @@
 * });
 * // create a feature space containing the random extractor
 * var ftr = new qm.FeatureSpace(base, { type: &quot;random&quot;, source: &quot;Person&quot; });
+* // add a new record to the base
+* base.store(&quot;Person&quot;).push({ Name: &quot;Peterson&quot; });
+* // get the features of the record
+* var vec = ftr.extractVector(base.store(&quot;Person&quot;)[0]); // the vector with the random value
 * base.close();
 */
 /**
@@ -2667,6 +2675,13 @@
 * // create a feature space containing the numeric extractor, where the values are
 * // normalized, the values are taken from the field &quot;Grade&quot;
 * var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;Class&quot;, normalize: &quot;scale&quot;, field: &quot;Grade&quot; });
+* // add a new record to the base
+* base.store(&quot;Class&quot;).push({ Name: &quot;Peterson&quot;, Grade: 9 });
+* base.store(&quot;Class&quot;).push({ Name: &quot;Ericsson&quot;, Grade: 8 });
+* // update the feature space for scaling 
+* ftr.updateRecords(base.store(&quot;Class&quot;).allRecords);
+* // get the features of the first record
+* var vec = ftr.extractVector(base.store(&quot;Class&quot;)[0]); // the vector with the random value
 * base.close();
 */
 /**
@@ -2720,6 +2735,14 @@
 * // create a feature space containing the categorical extractor, where it&#x27;s values
 * // are taken from the field &quot;StudyGroup&quot;: &quot;A&quot;, &quot;B&quot;, &quot;C&quot; and &quot;D&quot;
 * var ftr = new qm.FeatureSpace(base, { type: &quot;categorical&quot;, source: &quot;Class&quot;, field: &quot;StudyGroup&quot; });
+* // add a few records to the store
+* base.store(&quot;Class&quot;).push({ Name: &quot;Fred&quot;, StudyGroup: &quot;A&quot; });
+* base.store(&quot;Class&quot;).push({ Name: &quot;Wilma&quot;, StudyGroup: &quot;B&quot; });
+* base.store(&quot;Class&quot;).push({ Name: &quot;Barney&quot;, StudyGroup: &quot;C&quot; });
+* // update the feature space to get the categories 
+* ftr.updateRecords(base.store(&quot;Class&quot;).allRecords);
+* // get the feature vector for the first record
+* var vec = ftr.extractVector(base.store(&quot;Class&quot;)[0]); // returns vector [1, 0, 0]
 * base.close();
 */
 /**
@@ -2756,8 +2779,16 @@
 * // create a feature space containing the multinomial extractor, where the values are normalized,
 * // and taken from the field &quot;StudyGroup&quot;: &quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;, &quot;E&quot;, &quot;F&quot;
 * var ftr = new qm.FeatureSpace(base, {
-*              type: &quot;multinomial&quot;, source: &quot;Class&quot;, field: &quot;StudyGroups&quot;, normalize: true, values: [&quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;, &quot;E&quot;, &quot;F&quot;]
-*           });
+*     type: &quot;multinomial&quot;, source: &quot;Class&quot;, field: &quot;StudyGroups&quot;, normalize: true
+* });
+* // add a few records to the store
+* base.store(&quot;Class&quot;).push({ Name: &quot;Fred&quot;, StudyGroups: [&quot;A&quot;, &quot;B&quot;] });
+* base.store(&quot;Class&quot;).push({ Name: &quot;Wilma&quot;, StudyGroups: [&quot;B&quot;, &quot;C&quot;] });
+* base.store(&quot;Class&quot;).push({ Name: &quot;Barney&quot;, StudyGroups: [&quot;C&quot;, &quot;A&quot;] });
+* // update the feature space to get the categories
+* ftr.updateRecords(base.store(&quot;Class&quot;).allRecords);
+* // get the feature vector for the first record
+* var vec = ftr.extractVector(base.store(&quot;Class&quot;)[0]); // returns vector [0.707, 0.707, 0]
 * base.close();
 */
 /**
@@ -2771,6 +2802,7 @@
 * &amp;lt;br&gt;3. &#x60;&#x27;idf&#x27;&#x60; - Sets the inverse document frequency in the document.
 * &amp;lt;br&gt;4. &#x60;&#x27;tfidf&#x27;&#x60; - Sets the product of the &#x60;tf&#x60; and &#x60;idf&#x60; frequency.
 * @property {number} [hashDimension] - A hashing code to set the fixed dimensionality. All values are hashed and divided modulo hashDimension to get the corresponding dimension.
+* @property {boolean} [hashTable=false] - If true, stores the hash table which is used for for feature naming.
 * @property {string} field - The name of the field from which to take the value.
 * @property {module:qm~FeatureTokenizer} tokenizer - The settings for extraction of text.
 * @property {string} [mode] - How are multi-record cases combined into single vector. Possible options:
@@ -2798,9 +2830,16 @@
 * // create a feature spave containing the text (bag of words) extractor, where the values are normalized,
 * // weighted with &#x27;tfidf&#x27; and the tokenizer is of &#x27;simple&#x27; type, it uses english stopwords.
 * var ftr = new qm.FeatureSpace(base, {
-*              type: &quot;text&quot;, source: &quot;Articles&quot;, field: &quot;Text&quot;, normalize: true, weight: &quot;tfidf&quot;,
-*              tokenizer: { type: &quot;simple&quot;, stopwords: &quot;en&quot;}
-*           });
+*     type: &quot;text&quot;, source: &quot;Articles&quot;, field: &quot;Text&quot;, normalize: true, weight: &quot;tfidf&quot;,
+*     tokenizer: { type: &quot;simple&quot;, stopwords: &quot;en&quot;}
+* });
+* // add a few records to the store
+* base.store(&quot;Articles&quot;).push({ Title: &quot;Article1&quot;, Text: &quot;The last time we drew up the league table for bad banks, UBS was on top.&quot; });
+* base.store(&quot;Articles&quot;).push({ Title: &quot;Article2&quot;, Text: &quot;Barclays dropped a bombshell on its investment bankers last week.&quot; });
+* // update the feature space to get the the terms for the bag-of-words text representation
+* ftr.updateRecords(base.store(&quot;Articles&quot;).allRecords);
+* // extract the feature vector for the first article
+* var vec = ftr.extractSparseVector(base.store(&quot;Articles&quot;)[0]);
 * base.close();
 */
 /**
@@ -2830,7 +2869,7 @@
 * @property {string} [unit = &#x27;day&#x27;] - How granular is the time window. Possible options are &#x60;&#x27;day&#x27;&#x60;, &#x60;&#x27;week&#x27;&#x60;, &#x60;&#x27;month&#x27;&#x60;, &#x60;&#x27;year&#x27;&#x60;, &#x60;&#x27;12hours&#x27;&#x60;, &#x60;&#x27;6hours&#x27;&#x60;, &#x60;&#x27;4hours&#x27;&#x60;, &#x60;&#x27;2hours&#x27;&#x60;,
 * &#x60;&#x27;hour&#x27;&#x60;, &#x60;&#x27;30minutes&#x27;&#x60;, &#x60;&#x27;15minutes&#x27;&#x60;, &#x60;&#x27;10minutes&#x27;&#x60;, &#x60;&#x27;minute&#x27;&#x60;, &#x60;&#x27;second&#x27;&#x60;.
 * @property {number} [window = 1] - The size of the window.
-* @property {boolean} [normalize = &#x27;false&#x27;] - Normalize the resulting vector of the extractor to have L2 norm 1.0. //TODO
+* @property {boolean} [normalize = &#x27;false&#x27;] - Normalize the resulting vector of the extractor to have L2 norm 1.0.
 * @property {number} start - //TODO
 * @property {number} end - //TODO
 * @property {string} source - The store name.
@@ -2866,9 +2905,13 @@
 * // of study groups each student is part of. The functions name is &quot;NumberOFGroups&quot;, it&#x27;s dimension
 * // is 1 (returns only one value, not an array)
 * var ftr = new qm.FeatureSpace(base, {
-*              type: &quot;jsfunc&quot;, source: &quot;Class&quot;, name: &quot;NumberOfGroups&quot;, dim: 1,
-*              fun: function (rec) { return rec.StudyGroups.length; }
-*           });
+*     type: &quot;jsfunc&quot;, source: &quot;Class&quot;, name: &quot;NumberOfGroups&quot;, dim: 1,
+*     fun: function (rec) { return rec.StudyGroups.length; }
+* });
+* // add a record to the store
+* base.store(&quot;Class&quot;).push({ Name: &quot;Gaben&quot;, StudyGroups: [&quot;A&quot;, &quot;B&quot;, &quot;D&quot;] });
+* // get the feature vector of the record
+* var vec = ftr.extractVector(base.store(&quot;Class&quot;)[0]); // returns vector [3]
 * base.close();
 */
 /**

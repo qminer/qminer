@@ -32,6 +32,7 @@ void InitLa(Handle<Object> Exports, const TStr& NsNm) {
     TNodeJsVec<TFlt, TAuxFltV>::Init(NsObj);
     TNodeJsVec<TInt, TAuxIntV>::Init(NsObj);
     TNodeJsVec<TStr, TAuxStrV>::Init(NsObj);
+    TNodeJsVec<PJsonVal, TAuxJsonV>::Init(NsObj);
 
     TNodeJsBoolV::Init(NsObj);
     TNodeJsFltVV::Init(NsObj);
@@ -78,6 +79,7 @@ void InitAnalytics(Handle<Object> Exports, const TStr& NsNm) {
     TNodeJsTokenizer::Init(NsObj);
     TNodeJsMDS::Init(NsObj);
     TNodeJsKMeans::Init(NsObj);
+    TNodeJsTDigest::Init(NsObj);
     TNodeJsRecommenderSys::Init(NsObj);
     TNodeJsGraphCascade::Init(NsObj);
 

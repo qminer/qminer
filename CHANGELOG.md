@@ -1,5 +1,108 @@
 # QMiner Change Log
 
+### 26 May 2017
+
+**Version 8.2.1**
+
+**Non-breaking with bug fixes**
+
+Bug fixes:
+
+- Positional index: items are not necessarily sorted
+- Positional index: Def() has to be called in case some items were deleted
+
+### 5 May 2017
+
+**Version 8.2.0**
+
+**Non-breaking with a new feature**
+
+New features:
+- qm.flags includes compiler version and sizeof information 
+
+### 21 April 2017
+
+**Version 8.1.0**
+
+**Non-breaking with a new feature and bugfix**
+
+New features:
+- JsonVector (new JSON type supported for vectors)
+
+Bug fixes:
+- assert the base create mode is valid
+- fixed error messages
+
+### 31 March 2017
+
+**Version 8.0.0**
+
+**Breaking with new features and bugfixes**
+
+Breaking:
+- binary compatibility of GIX
+
+New features:
+- introduced tiny gix index in TIndex which does not store any frequency information
+- introduced position index which can index words and their position in a string
+- search over phrases with gaps based on the position index
+
+Bug fixes:
+- fixed GetMemUsed() in THashSetKey
+
+### 24 March 2017
+
+**Version 7.11.1**
+
+**Non-breaking with a bugfix**
+
+Bug fixes:
+- Gix memory usage overflow fix
+
+### 3 March 2017
+
+**Version 7.11.0**
+
+**Non-brekaing with new features**
+
+New features:
+- Reimplemented online linear regression with more predictable influence of regaluarization and forgeting factor parameters.
+- Added `TStrUtil::GetStr(int)`, formats number `1234567` as `"1,234,567"`
+- Added `NotifyInfoFmt`, `NotifyWarnFmt`, `NotifyErrFmt` to the `TLogger`
+
+Bug fixes:
+- PartialFlush update should fix the problem caused due to using of some deleted itemsets
+
+Other:
+- Cleaned up duplicate code introduced whith `GixSmall`
+- Added Windows pre-gyp for Node 7
+
+### 24 February 2017
+
+**Version 7.10.1**
+
+**Non-breaking with a bug fix**
+
+Bug fix:
+- Fixed linked list memory computation
+
+
+### 10 February 2017
+
+**Version 7.10.0**
+
+**Non-breaking with new features**
+
+New features:
+- tdigest wrapped as an analytics model, used to approximately track quantiles on streams
+- hashtable key id is exposed in ht module
+
+Bug fix:
+- javascript feature extractor that returns dense vectors crash fixed
+
+Other:
+- Documentation fixes and added examples
+
 ### 27 January 2017
 
 **Version 7.9.0**

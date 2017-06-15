@@ -494,7 +494,7 @@ void TVec<TVal, TSizeTy>::Del(const TVec<TNum<TSizeTy>, TSizeTy>& ValNV) {
 #ifdef GLib_CPP11
 	*this = std::move(NewVec);
 #else
-	*this = NewVVec;
+	*this = NewVec;
 #endif
 }
 
@@ -1606,6 +1606,21 @@ TLstNd<TVal>* TLst<TVal>::SearchBack(const TVal& Val){
     Nd=Nd->Prev();
   }
   return NULL;
+}
+
+template <class TVal>
+uint64 TLst<TVal>::GetMemUsed(const bool& DeepP) const {
+  if (DeepP) {
+    uint64 MemUsed = sizeof(TLst<TVal>);
+    PLstNd Nd=First();
+    while (Nd!=NULL){
+      MemUsed += TMemUtils::GetMemUsed(*Nd);
+      Nd=Nd->Next();
+    }
+    return MemUsed;
+  } else {
+    return sizeof(TLst<TVal>) + sizeof(TVal) * Nds;
+  }
 }
 
 //#//////////////////////////////////////////////

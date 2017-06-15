@@ -795,7 +795,7 @@ describe('Many Stores Test', function () {
             assert.equal(254, base.getStoreList().length);
         })
     });
-    
+
     // takes to long
     //describe('Creating 1000 Stores Test', function () {
     //    it('should create 1000 stores', function () {
@@ -1219,4 +1219,49 @@ describe('Schema Time Window Test', function () {
 
     });
 
+})
+
+describe('Int-ish field-type tests ', function () {
+    it('should allow query with eact value over linear index', function () {
+        var base = new qm.Base({ mode: 'createClean' });
+        base.createStore({
+            "name": "Alerts",
+            "fields": [
+                { "name": "title", "type": "string", "store" : "cache" },
+                { "name": "ts", "type": "datetime", "store": "cache" },
+                { "name": "is_child", "type": "byte", "store" : "cache", "default": 0 }
+            ],
+            "joins": [
+                { "name": "children", "type": "index", "store": "Alerts", "storage_location" : "cache" },
+                { "name": "parent", "type": "field", "store": "Alerts", "inverse": "children", "storage_location" : "cache" }
+            ],
+            "keys": [
+                { "field": "title", "type": "text" },
+                { "field": "ts", "type": "linear" },
+                { "field": "is_child", "type": "linear" }
+            ]
+        });
+        var store = base.store("Alerts");
+
+        var id1 = store.push({ title : "test title 1", ts : (new Date()).getTime(), is_child: 0 });
+        var id2 = store.push({ title : "test title 2", ts : (new Date()).getTime(), is_child: 1 });
+
+        var query = {
+            $from : "Alerts",
+            $limit : 50,
+            $sort : { ts : 0 },
+            is_child : 0
+        };
+
+        var rs = base.search(query);
+        assert.equal(rs.length, 1);
+        assert.equal(rs[0].$id, id1);
+
+        query.is_child = 1;
+        rs = base.search(query);
+        assert.equal(rs.length, 1);
+        assert.equal(rs[0].$id, id2);
+
+        base.close();
+    })
 })

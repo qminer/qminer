@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.9.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v8.2.1</a>
       </div>
     </div>
   </nav>
@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">MDS</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1557">analyticsdoc.<wbr>js:1557</a></p>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1581">analyticsdoc.<wbr>js:1581</a></p>
             <div class="symbol-classdesc">
               <p>Scales a higher level vectors into a 2D vector space such that the distances between vectors are preserved as well as possible.</p>
             </div>
@@ -72,7 +72,11 @@
                 <pre class="prettyprint"><code>// import analytics module
 var analytics = require(&#x27;qminer&#x27;).analytics;
 // construct a MDS instance
-var mds = new analytics.MDS({ maxStep: 300, distType: &#x27;Cos&#x27; });</code></pre>
+var mds = new analytics.MDS({ maxStep: 300, distType: &#x27;Cos&#x27; });
+// create the multidimensional matrix
+var mat = new la.Matrix({ rows: 50, cols: 10, random: true });
+// get the 2d representation of mat
+var mat2d = mds.fitTransform(mat);</code></pre>
               </div>
             </section>
             <section>

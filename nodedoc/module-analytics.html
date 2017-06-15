@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v7.9.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v8.2.1</a>
       </div>
     </div>
   </nav>
@@ -97,6 +97,9 @@ var analytics = qm.analytics;
                     <dd>
                     </dd>
                     <dt><a href="module-analytics.SVR.html">SVR([arg])</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.TDigest.html">TDigest([arg])</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-analytics.ThresholdModel.html">ThresholdModel([arg])</a></dt>
@@ -204,6 +207,9 @@ var analytics = qm.analytics;
                     <dt><a href="module-analytics.html#~SVMParam">SVMParam</a></dt>
                     <dd>
                     </dd>
+                    <dt><a href="module-analytics.html#~TDigestParam">TDigestParam</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-analytics.html#~tokenizerParam">tokenizerParam</a></dt>
                     <dd>
                     </dd>
@@ -229,6 +235,7 @@ var analytics = qm.analytics;
               <h3><a href="module-analytics.Sigmoid.html">Sigmoid</a></h3>
               <h3><a href="module-analytics.SVC.html">SVC</a></h3>
               <h3><a href="module-analytics.SVR.html">SVR</a></h3>
+              <h3><a href="module-analytics.TDigest.html">TDigest</a></h3>
               <h3><a href="module-analytics.ThresholdModel.html">ThresholdModel</a></h3>
               <h3><a href="module-analytics.Tokenizer.html">Tokenizer</a></h3>
             </section>
@@ -1557,6 +1564,56 @@ var V = result.V;</code></pre>
                       <td>
                         <p>Toggle verbose output in the console.</p>
                         <p>Defaults to <code>false</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="~TDigestParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">TDigestParam</span><small class="property-type">
+            &nbsp;Object</small></h3>
+              <p>An object used for the construction of <a href="module-analytics.TDigest.html">module:analytics.TDigest</a>.</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>minCount</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The minimal number of examples before the model is initialized.</p>
+                        <p>Defaults to <code>0</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>clusters</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The number of 1-d clusters (large values lead to higher memory usage).</p>
+                        <p>Defaults to <code>100</code>.</p>
                       </td>
                     </tr>
                   </tbody>
