@@ -1,5 +1,17 @@
 # QMiner Change Log
 
+### 16 June 2017
+
+**Version 8.3.0**
+
+**Non-breaking with new features**
+
+Features:
+
+- added TWPt serialization as in TPt
+- updated TStrHash.GetMemUsed() which used the nonavailable GetMemUsedDeep() method
+- added filtering classes TRecFilterByFieldByteSet, TRecFilterByFieldUIntSet, TRecFilterByFieldUInt64Set
+
 ### 26 May 2017
 
 **Version 8.2.1**
