@@ -408,10 +408,34 @@ namespace TQuant {
         }
     }
 
+    ////////////////////////////////////////////
+    /// Approximate interval with minimum
+    TIntervalWithMin::TIntervalWithMin() : TIntervalWithMin(0, 0.0) {}
+
+    TIntervalWithMin::TIntervalWithMin(const uint64& StartTm, const double& Val):
+        TInterval(StartTm),
+        MnVal(Val) {}
+
+    TIntervalWithMin::TIntervalWithMin(const uint64& _StartTm, const uint64& _Dur, const uint& _Cnt,
+            const double& _MnVal):
+        TInterval(_StartTm, _Dur, _Cnt),
+        MnVal(_MnVal) {}
+
+    void TIntervalWithMin::Swallow(const TIntervalWithMin& Other) {
+        TInterval::Swallow(Other);
+        if (Other.MnVal < MnVal) {
+            MnVal = Other.MnVal;
+        }
+    }
+
 
     // print operators
     std::ostream& operator <<(std::ostream& os, const TInterval& Interval) {
-        return os << "<" << Interval.GetStartTm() << ", " << Interval.GetDurMSec() << ", " << Interval.GetCount() << ">";
+        return os << "<"
+                  << Interval.GetStartTm() << ", "
+                  << Interval.GetDurMSec() << ", "
+                  << Interval.GetCount()
+                  << ">";
     }
 
     std::ostream& operator <<(std::ostream& os, const TIntervalWithMax& Interval) {
@@ -420,6 +444,15 @@ namespace TQuant {
            << ", " << Interval.GetDurMSec()
            << ", " << Interval.GetCount()
            << ", " << Interval.GetMxVal()
+           << ">";
+    }
+
+    std::ostream& operator <<(std::ostream& os, const TIntervalWithMin& Interval) {
+        return os << "<"
+           << Interval.GetStartTm()
+           << ", " << Interval.GetDurMSec()
+           << ", " << Interval.GetCount()
+           << ", " << Interval.GetMnVal()
            << ">";
     }
 
@@ -435,8 +468,28 @@ namespace TQuant {
 
     ///////////////////////////////////////////
     /// Exponential Histogram with maximum
+    TExpHistWithMax::TExpHistWithMax(const TExpHistWithMax& Other):
+            TBase(Other),
+            MxVal(Other.MxVal) {}
+
+    TExpHistWithMax& TExpHistWithMax::operator =(const TExpHistWithMax& Other) {
+        TBase::operator =(Other);
+        MxVal = Other.MxVal;
+        return *this;
+    }
+
+    TExpHistWithMax::TExpHistWithMax(TExpHistWithMax&& Other):
+            TBase(Other),
+            MxVal(Other.MxVal) {}
+
+    TExpHistWithMax& TExpHistWithMax::operator =(TExpHistWithMax&& Other) {
+        TBase::operator =(Other);
+        MxVal = Other.MxVal;
+        return *this;
+    }
+
     void TExpHistWithMax::Add(const uint64& Tm, const double& Val) {
-        if (GetCount() == 0 || Val > MxVal) { MxVal = Val; }
+        if (TotalCount == 0 || Val > MxVal) { MxVal = Val; }
         TBase::Add(TIntervalWithMax(Tm, Val));
     }
 
@@ -445,8 +498,25 @@ namespace TQuant {
         return MxVal;
     }
 
+    double TExpHistWithMax::GetMxVal(const uint64& Tm) {
+        Forget(Tm);
+        return GetMxVal();
+    }
+
+    void TExpHistWithMax::ToExpHist(TExpHistogram& ExpHist) const {
+        ExpHist.IntervalV.Gen(IntervalV.Len(), IntervalV.Len());
+        ExpHist.LogSizeToBlockCountV = LogSizeToBlockCountV;
+        ExpHist.WindowMSec = WindowMSec;
+        ExpHist.Eps = Eps;
+        ExpHist.TotalCount = TotalCount;
+
+        for (int IntervalN = 0; IntervalN < IntervalV.Len(); IntervalN++) {
+            ExpHist.IntervalV[IntervalN] = IntervalV[IntervalN];
+        }
+    }
+
     void TExpHistWithMax::OnIntervalForgotten(const TIntervalWithMax& Interval) {
-        if (GetCount() == 0) { return; }
+        if (TotalCount == 0) { return; }
 
         if (MxVal == Interval.GetMxVal()) {
             // find a new maximal value
@@ -471,34 +541,275 @@ namespace TQuant {
 
 
     ///////////////////////////////////////////////////
+    /// Approximate minimum on a sliding window
+    TWindowMin::TWindowMin(const uint64& _WindowMSec, const double& _Eps):
+            WindowMSec(_WindowMSec),
+            Eps(_Eps) {
+        EAssert(0 <= Eps && Eps < .5);
+    }
+
+    void TWindowMin::Add(const uint64& Tm, const double& Val) {
+        if (IntervalV.Empty() || Val < MnVal) { MnVal = Val; }
+
+        // discard all values which are >= Val
+        while (!IntervalV.Empty()) {
+            const uint IntervalSize = IntervalV.Last().GetCount();
+            IntervalV.DelLast();
+            --BlockSizeToBlockCount(IntervalSize);
+        }
+
+        // add the new element
+        IntervalV.Add(TIntervalWithMin(Tm, Val));
+
+        ++LogBlockSizeToBlockCount(0);
+
+        Compress();
+        Forget(Tm);
+
+        AssertR(CheckInvariant1(), "WindowMin: Invariant 1 fails after Add!");
+        AssertR(CheckInvariant2(), "WindowMin: Invariant 2 fails after Add!");
+    }
+
+    double TWindowMin::GetMnVal(const uint64& Tm) {
+        Forget(Tm);
+        return GetMnVal();
+    }
+
+    double TWindowMin::GetMnVal() const {
+        // TODO do the same is with TExpHistWithMax
+        return MnVal;
+    }
+
+    void TWindowMin::SetMnChangedCallback(TMnCallback* Cb) {
+        MnCallback = Cb;
+    }
+
+    void TWindowMin::Forget(const uint64& CurrTm) {
+        const uint64 CutoffTm = CurrTm >= WindowMSec >= WindowMSec ? CurrTm - WindowMSec : 0ul;
+
+        while (!IntervalV.Empty() && IntervalV[0].GetEndTm() < CutoffTm) {
+            const TIntervalWithMin& RemovedInterval = IntervalV[0];
+            const uint IntervalSize = RemovedInterval.GetCount();
+            const double IntervalMnVal = RemovedInterval.GetMnVal();
+
+            --BlockSizeToBlockCount(IntervalSize);
+            IntervalV.Del(0);
+
+            // check if we need to set a new minimum value
+            if (IntervalMnVal == MnVal && !IntervalV.Empty()) {
+                MnVal = IntervalV[0].GetMnVal();
+                for (int IntervalN = 1; IntervalN < IntervalV.Len(); IntervalN++) {
+                    if (IntervalV[IntervalN].GetMnVal() < MnVal) {
+                        MnVal = IntervalV[IntervalN].GetMnVal();
+                    }
+                }
+                if (MnCallback != nullptr) {
+                    MnCallback->OnMnChanged(MnVal);
+                }
+            }
+        }
+    }
+
+    void TWindowMin::Compress() {
+        int CurrLogSize = 0;
+        int CurrPos = IntervalV.Len()-1;
+        while (CurrLogSize < LogSizeToBlockCountV.Len()) {
+            const uint BlockCount = LogBlockSizeToBlockCount(CurrLogSize);
+
+            if (BlockCount <= GetMxBlockCount()) { break; }
+
+            // merge the block
+            const int MergePos = CurrPos - BlockCount + 1;
+            IntervalV[MergePos].Swallow(IntervalV[MergePos+1]);
+            IntervalV.Del(MergePos+1);
+
+            LogBlockSizeToBlockCount(CurrLogSize) -= 2;
+            ++LogBlockSizeToBlockCount(CurrLogSize+1);
+
+            ++CurrLogSize;
+            CurrPos = MergePos;
+        }
+    }
+
+    TUInt& TWindowMin::LogBlockSizeToBlockCount(const uint& LogSize) {
+        Assert(LogSize < uint(LogSizeToBlockCountV.Len()));
+        return LogSizeToBlockCountV[LogSize];
+    }
+
+    TUInt& TWindowMin::BlockSizeToBlockCount(const uint& BlockSize) {
+        Assert(1 <= BlockSize);
+        return LogBlockSizeToBlockCount(TMath::Log2(BlockSize));
+    }
+
+    uint TWindowMin::GetMxBlockCount() const {
+        if (Eps == 0.0) { return TUInt::Mx; }
+        return std::ceil(1.0 / Eps) + 1;
+    }
+
+
+    ///////////////////////////////////////////////////
     /// GK algorithm for sliding windows
-    double TSwGk::TTuple::GetVal() const {
-        return TupleSizeExpHist.GetMxVal();
+    TSwGk::TTuple::TTuple(const uint64& WindowLen, const double& Eps,
+                const uint64& Tm, const double& Val):
+            TupleSizeExpHist(WindowLen, Eps),
+            MnMxRankDiffExpHist(WindowLen, Eps) {
+        // initialize G
+        TupleSizeExpHist.Add(Tm, Val);
     }
 
-    double TSwGk::TTuple::GetTupleSize() const {
-        return TupleSizeExpHist.GetCount();
+    TSwGk::TTuple::TTuple(const uint64& WindowLen, const double& Eps, const uint64& Tm,
+                    const double& Val, TTuple& RightTup):
+            TupleSizeExpHist(WindowLen, Eps),
+            MnMxRankDiffExpHist() {
+
+        // initialize G = {(v,t)}
+        TupleSizeExpHist.Add(Tm, Val);
+
+        // initialize D = (Gi \ vi) U Di
+        // 1) D = Gi
+        RightTup.TupleSizeExpHist.ToExpHist(MnMxRankDiffExpHist);
+        // 2) D = (Gi \ {vi}) (since this histogram only counts, we can just remove the first element)
+        MnMxRankDiffExpHist.DelNewest();
+        // 3) D = (Gi \ {vi}) U Di
+        MnMxRankDiffExpHist.Swallow(RightTup.MnMxRankDiffExpHist);
     }
 
-    double TSwGk::TTuple::GetMnMxRankDiff() const {
-        // TODO
-        return 0;
+    double TSwGk::TTuple::GetVal(const uint64& Tm) {
+        return TupleSizeExpHist.GetMxVal(Tm);
     }
 
-    double TSwGk::Query(const double& Quantile) const {
-        // TODO
-        return 0;
+    uint TSwGk::TTuple::GetTupleSize(const uint64& Tm) {
+        return TupleSizeExpHist.GetCount(Tm);
+    }
+
+    uint TSwGk::TTuple::GetMnMxRankDiff(const uint64& Tm) {
+        return MnMxRankDiffExpHist.GetCount(Tm);
+    }
+
+    TSwGk::TSwGk(const uint64& _WindowLen, const double& _EpsGk, const double& _EpsEh):
+            WindowLen(_WindowLen),
+            EpsGk(_EpsGk),
+            EpsEh(_EpsEh) {
+        EAssert(EpsGk < .2);
+        EAssert(EpsEh < .2);
+        WinMin.SetMnChangedCallback(this);
+    }
+
+    double TSwGk::Query(const double& Quantile) {
+        if (GetSummarySize() == 0) { return 0; }
+
+        const uint64 WinSize = TMath::Mn(WindowLen, SampleN);
+        const double MnRankThreshold = WinSize*(TMath::Mx(0.0, Quantile - EpsGk));
+
+        uint64 CurrMnRank = 0;
+        double MxVal = TFlt::NInf;
+
+        typename TSummary::iterator TupleIt = Summary.begin();
+        while (TupleIt != Summary.end()) {
+            const double TupleVal = TupleIt->GetVal(SampleN);
+            CurrMnRank += TupleIt->GetTupleSize(SampleN);
+
+            if (TupleVal > MxVal) { MxVal = TupleVal; }
+            if (CurrMnRank >= MnRankThreshold) { break; }
+
+            ++TupleIt;
+        }
+
+        return MxVal;
     }
 
     void TSwGk::Insert(const double& Val) {
-        // TODO
+        std::cout << "inserting " << Val << std::endl;
+        typename TSummary::iterator TupleIt = Summary.begin();
+
+        // iterate to the correct position
+        while (TupleIt != Summary.end() && TupleIt->GetVal(SampleN) <= Val) {
+            ++TupleIt;
+        }
+
+        // insert the tuple
+        if (TupleIt == Summary.end()) {
+            Summary.insert(TupleIt, TTuple(WindowLen, EpsEh, SampleN, Val));
+        } else {
+            Summary.insert(TupleIt, TTuple(WindowLen, EpsEh, SampleN, Val, *TupleIt));
+        }
+
+        ++SampleN;
+
+        // compress if needed
+        if (ShouldCompress()) {
+            Compress();
+        }
     }
 
     void TSwGk::Compress() {
-        // TODO
+        std::cout << "starting compress, eps: " << EpsGk << std::endl;
+        PrintSummary();
+        const uint64 WinSize = TMath::Mn(WindowLen, SampleN);
+
+        std::cout << "window size " << WinSize << std::endl;
+
+        typename TSummary::iterator LeftIt = --Summary.end();
+
+        // erase empty tuples from the start of the list
+        while (LeftIt->GetTupleSize(SampleN) == 0) {
+            LeftIt = --Summary.erase(LeftIt);
+        }
+
+        if (LeftIt == Summary.begin()) { return; }
+
+        do {
+            typename TSummary::iterator RightIt = LeftIt--;
+
+            const uint LeftCount = LeftIt->GetTupleSize(SampleN);
+            // if the tuple is empty then delete it immediately
+            if (LeftCount == 0) {
+                LeftIt = Summary.erase(LeftIt);
+            } else {
+                // try to merge the two tuples
+                typename TSummary::iterator LargerIt = RightIt->GetVal(SampleN) > LeftIt->GetVal(SampleN) ?
+                                                            RightIt : LeftIt;
+
+                const uint LeftTupleCount = LeftIt->GetTupleSize(SampleN);
+                const uint RightTupleCount = RightIt->GetTupleSize(SampleN);
+                const uint LargerCorr = LargerIt->GetMnMxRankDiff(SampleN);
+
+                std::cout << "joined tuple count: " << LeftTupleCount + RightTupleCount << ", correction: " << LargerCorr << ", 2*eps*W: " << 2*EpsGk*WinSize << std::endl;
+                if (LeftTupleCount + RightTupleCount + LargerCorr < 2*EpsGk*WinSize) {
+                    // merge the two tuples
+                    RightIt->Swallow(*LeftIt, LargerIt == LeftIt);
+                    LeftIt = Summary.erase(LeftIt);
+                }
+            }
+        } while (LeftIt != Summary.begin());
+
+        std::cout << "ending compress" << std::endl;
+        PrintSummary();
     }
 
     int TSwGk::GetSummarySize() const {
-        return Summary.Len();
+        return Summary.size();
+    }
+
+    void TSwGk::PrintSummary() const {
+        std::cout << "[";
+
+        auto It = Summary.begin();
+        if (It != Summary.end()) { std::cout << *(It++); }
+        while (It != Summary.end()) {
+            std::cout << ", " << *(It++);
+        }
+        std::cout << "]" << std::endl;
+    }
+
+    void TSwGk::OnMnChanged(const double&) {
+        // TODO take one element from G1
+        if (GetSummarySize() > 0) {
+            Summary.begin()->DelNewestNonMx();
+        }
+    }
+
+    bool TSwGk::ShouldCompress() const {
+        return SampleN % int(ceil(1.0 / (2.0*EpsGk))) == 0;
     }
 }
