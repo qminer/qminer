@@ -537,7 +537,7 @@ bool TStayPointDetector::ParseGPSRec(const TRec& Rec, TGPSMeasurement& Gps) {
             Gps.Distance = TGeoUtils::QuickDist(Gps.LatLon, lastRecord->LatLon);
         }
         
-        Gps.TimeDiff = (Gps.Time - lastRecord->Time);
+        Gps.TimeDiff = (Gps.Time - lastRecord->Time)/1000;
         if (Gps.Speed == -1.0) {
             Gps.Speed = Gps.Distance / Gps.TimeDiff;
         }
