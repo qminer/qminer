@@ -65,6 +65,22 @@ namespace TQuant {
     }
 
     template <typename TInterval>
+    void TExpHistBase<TInterval>::Forget(const uint64& CurrTm) {
+        const uint64 CutoffTm = CurrTm >= WindowMSec ? CurrTm - WindowMSec : 0ul;
+
+        while (!IntervalV.Empty() && IntervalV[0].GetEndTm() < CutoffTm) {
+            const TInterval RemovedInterval = IntervalV[0];
+            const uint IntervalSize = RemovedInterval.GetCount();
+
+            TotalCount -= IntervalSize;
+            --BlockSizeToBlockCount(IntervalSize);
+            IntervalV.Del(0);
+
+            OnIntervalRemoved(RemovedInterval);
+        }
+    }
+
+    template <typename TInterval>
     uint TExpHistBase<TInterval>::GetCount() const {
         // return the result
         if (IntervalV.Empty()) { return 0; }
@@ -251,6 +267,27 @@ namespace TQuant {
             }
         }
 
+        // if any intervals are open, then we must close them
+        if (OpenVPtr != nullptr) {
+            const TIntervalV& OpenIntervalV = *OpenVPtr;
+            const TIntervalV& OthrIntervalV = OpenVPtr == &IntervalV ? IntervalV2 : IntervalV1;
+
+            int& OpenN = *OpenNPtr;
+            const int& OthrN = OpenNPtr == &Interval1N ? Interval2N : Interval1N;
+
+            Assert(OpenIntervalV[OpenN].GetCount() > 1);
+
+            MergeCloseInterval(
+                    OpenIntervalV,
+                    OpenN,
+                    OthrIntervalV,
+                    OthrN,
+                    CurrBlockSize,
+                    CarryInfo,
+                    NewIntervalV
+            );
+        }
+
         // finish both the interval vectors
         MergeFinishIntervalV(
                 IntervalV1,
@@ -311,43 +348,17 @@ namespace TQuant {
     void TExpHistBase<TInterval>::DelNewest() {
         Assert(!IntervalV.Empty());
 
-        const uint BlockSize = IntervalV.Last().GetCount();
+        const TInterval Deleted = IntervalV.Last();
+        const uint BlockSize = Deleted.GetCount();
         IntervalV.DelLast();
 
         TotalCount -= BlockSize;
         --BlockSizeToBlockCount(BlockSize);
 
-        // break apart blocks if needed to satisfy the invariants
-        int CurrLogSize = 0;
-        int CurrPos = IntervalV.Len()-1;
-        while (CurrLogSize+1 < LogSizeToBlockCountV.Len()) {
-            const uint NumBlocks = LogBlockSizeToBlockCount(CurrLogSize);
+        BreakBlocks();
 
-            // check if this set complies with the min number of blocks
-            if (NumBlocks >= GetMnBlocksSameSize()) { break; }
-            // the last set of blocks doen't need to comply with the count
-            if (LogBlockSizeToBlockCount(CurrLogSize+1) == 0) { break; }
-
-            // the set doesn't comply with the invariant, split blocks of
-            // larger size until it does
-            const int SplitPos = CurrPos - NumBlocks;
-            const TInterval& SplitInterval = IntervalV[SplitPos];
-
-            // split
-            TInterval StartInterval, EndInterval;
-            SplitInterval.Split(StartInterval, EndInterval);
-            // insert the two intervals (the end interval will override the one we split)
-            IntervalV.Ins(SplitPos, StartInterval);
-            IntervalV[SplitPos+1] = EndInterval;
-
-            // update the block counts
-            LogBlockSizeToBlockCount(CurrLogSize) += 2;
-            --LogBlockSizeToBlockCount(CurrLogSize+1);
-
-            // update the current position and block size
-            CurrPos -= NumBlocks + 1;
-            ++CurrLogSize;
-        }
+        // notify the subclasses so they can update
+        OnIntervalRemoved(Deleted);
 
         // finished, assert that all invariants hold
         AssertR(CheckInvariant1(), "EH: Invariant 1 fails after DelNewest!");
@@ -388,9 +399,13 @@ namespace TQuant {
         // 1) bucket sizes are non-decreasing
         // 2) bucket sizes are a power of 2
         // 3) the power of the bucket size is less than the number of intervals
-        // 4) for every bucket size except the last, there are at least k/2 and at
+        // 4) check that the interval times are rising
+        // 5) for every bucket size except the last, there are at least k/2 and at
+        // 6) check that the total counts match
         //    most k/2+1 buckets of that size
         int CurrBucketSize = 0;
+        uint TotalCountLogStruct = 0;
+        uint TotalCountBuckets = 0;
         for (int IntervalN = IntervalV.Len()-1; IntervalN >= 0; IntervalN--) {
             const int BucketSize = IntervalV[IntervalN].GetCount();
             // 1)
@@ -408,11 +423,17 @@ namespace TQuant {
                 std::cout << "check 3 failed" << std::endl;
                 return false;
             }
+            // 4)
+            if (IntervalN > 0 && IntervalV[IntervalN-1].GetEndTm() > IntervalV[IntervalN].GetStartTm()) {
+                std::cout << "check 4 failed " << IntervalV[IntervalN-1] << " > " << IntervalV[IntervalN] << std::endl;
+                PrintSummary();
+                return false;
+            }
 
+            TotalCountBuckets += BucketSize;
             CurrBucketSize = BucketSize;
         }
-
-        // 4)
+        // 5)
         for (int LogSize = 0; LogSize < LogSizeToBlockCountV.Len()-1; LogSize++) {
             const TUInt& BucketCount = LogSizeToBlockCountV[LogSize];
             // skip the last set of buckets (those can have lower counts)
@@ -424,6 +445,17 @@ namespace TQuant {
                 PrintSummary();
                 return false;
             }
+        }
+        // 6)
+        for (int LogSize = 0; LogSize < LogSizeToBlockCountV.Len(); LogSize++) {
+            const TUInt& BucketCount = LogSizeToBlockCountV[LogSize];
+            TotalCountLogStruct += BucketCount * (1 << LogSize);
+        }
+        if (TotalCount != TotalCountBuckets || TotalCount != TotalCountLogStruct) {
+            std::cout << "check 6 failed total count: " << TotalCount << ", total count buckets: " << TotalCountBuckets << ", total count log struct: " << TotalCountLogStruct << std::endl;
+            std::cout << "log struct: " << LogSizeToBlockCountV << ", summary: ";
+            PrintSummary();
+            return false;
         }
         // all checks pass
         return true;
@@ -465,19 +497,61 @@ namespace TQuant {
     }
 
     template <typename TInterval>
-    void TExpHistBase<TInterval>::Forget(const uint64& CurrTm) {
-        const uint64 CutoffTm = CurrTm >= WindowMSec ? CurrTm - WindowMSec : 0ul;
+    void TExpHistBase<TInterval>::BreakBlocks(const int& StartBlockSize) {
+        const int StartLogSize = TMath::Log2(StartBlockSize);
 
-        while (!IntervalV.Empty() && IntervalV[0].GetEndTm() < CutoffTm) {
-            const TInterval RemovedInterval = IntervalV[0];
-            const uint IntervalSize = RemovedInterval.GetCount();
-
-            TotalCount -= IntervalSize;
-            --BlockSizeToBlockCount(IntervalSize);
-            IntervalV.Del(0);
-
-            OnIntervalForgotten(RemovedInterval);
+        // move to the correct position
+        int CurrPos = IntervalV.Len()-1;
+        int CurrLogSize = 0;
+        while (CurrLogSize < LogSizeToBlockCountV.Len() && CurrLogSize < StartLogSize) {
+            CurrPos -= LogBlockSizeToBlockCount(CurrLogSize);
+            ++CurrLogSize;
         }
+
+        // break apart blocks if needed to satisfy the invariants
+        while (CurrLogSize+1 < LogSizeToBlockCountV.Len()) {
+            const uint NumBlocks = LogBlockSizeToBlockCount(CurrLogSize);
+
+            // check if this set complies with the min number of blocks
+            if (NumBlocks >= GetMnBlocksSameSize()) { break; }
+            // the last set of blocks doen't need to comply with the count
+            if (LogBlockSizeToBlockCount(CurrLogSize+1) == 0) { break; }
+
+            // the set doesn't comply with the invariant, split blocks of
+            // larger size until it does
+            const int SplitPos = CurrPos - NumBlocks;
+            const TInterval& SplitInterval = IntervalV[SplitPos];
+
+            // split
+            TInterval StartInterval, EndInterval;
+            SplitInterval.Split(StartInterval, EndInterval);
+            // insert the two intervals (the end interval will override the one we split)
+            IntervalV.Ins(SplitPos, StartInterval);
+            IntervalV[SplitPos+1] = EndInterval;
+
+            // update the block counts
+            LogBlockSizeToBlockCount(CurrLogSize) += 2;
+            --LogBlockSizeToBlockCount(CurrLogSize+1);
+
+            // update the current position and block size
+            CurrPos -= NumBlocks + 1;
+            ++CurrLogSize;
+        }
+
+        AssertR(CheckInvariant1(), "EH: Invariant 1 fails after breaking blocks!");
+        AssertR(CheckInvariant2(), "EH: Invariant 2 fails after breaking blocks!");
+    }
+
+    template <typename TInterval>
+    TUInt& TExpHistBase<TInterval>::LogBlockSizeToBlockCount(const uint& LogBlockSize) {
+        Assert(LogBlockSize < uint(LogSizeToBlockCountV.Len()));
+        return LogSizeToBlockCountV[LogBlockSize];
+    }
+
+    template <typename TInterval>
+    TUInt& TExpHistBase<TInterval>::BlockSizeToBlockCount(const uint& BlockSize) {
+        Assert(1 <= BlockSize);
+        return LogBlockSizeToBlockCount(TMath::Log2(BlockSize));
     }
 
     template <typename TInterval>
@@ -498,6 +572,18 @@ namespace TQuant {
     }
 
     template <typename TInterval>
+    uint TExpHistBase<TInterval>::GetMnBlocksSameSize() const {
+        if (Eps == 0.0) { return 0; }
+        return std::ceil(1 / (2*Eps));
+    }
+
+    template <typename TInterval>
+    uint TExpHistBase<TInterval>::GetMxBlocksSameSize() const {
+        if (Eps == 0.0) { return TUInt::Mx; }
+        return GetMnBlocksSameSize() + 1;
+    }
+
+    template <typename TInterval>
     TInterval& TExpHistBase<TInterval>::GetInterval(const int& IntervalN) {
         Assert(IntervalN >= 0);
         return IntervalV[IntervalN];
@@ -510,34 +596,10 @@ namespace TQuant {
     }
 
     template <typename TInterval>
-    TUInt& TExpHistBase<TInterval>::LogBlockSizeToBlockCount(const uint& LogBlockSize) {
-        Assert(LogBlockSize < uint(LogSizeToBlockCountV.Len()));
-        return LogSizeToBlockCountV[LogBlockSize];
-    }
-
-    template <typename TInterval>
-    TUInt& TExpHistBase<TInterval>::BlockSizeToBlockCount(const uint& BlockSize) {
-        Assert(1 <= BlockSize);
-        return LogBlockSizeToBlockCount(TMath::Log2(BlockSize));
-    }
-
-    template <typename TInterval>
     void TExpHistBase<TInterval>::ReserveStructures(const uint& LogBlockSize) {
         while (LogBlockSize >= uint(LogSizeToBlockCountV.Len())) {
             LogSizeToBlockCountV.Add(0);
         }
-    }
-
-    template <typename TInterval>
-    uint TExpHistBase<TInterval>::GetMnBlocksSameSize() const {
-        if (Eps == 0.0) { return 0; }
-        return std::ceil(1 / (2*Eps));
-    }
-
-    template <typename TInterval>
-    uint TExpHistBase<TInterval>::GetMxBlocksSameSize() const {
-        if (Eps == 0.0) { return TUInt::Mx; }
-        return GetMnBlocksSameSize() + 1;
     }
 
     template <typename TInterval>
@@ -553,7 +615,6 @@ namespace TQuant {
     template <typename TInterval>
     void TExpHistBase<TInterval>::MergeFlushCarryInfo(const uint& BlockSize, const uint64 EndTm,
             TCarryInfo& CarryInfo, TIntervalV& NewIntervalV) {
-
         if (CarryInfo.Val1 >= BlockSize) {
             const uint64 StartTm = CarryInfo.Val2;
             const uint64 Dur = EndTm - StartTm;
@@ -567,7 +628,6 @@ namespace TQuant {
     void TExpHistBase<TInterval>::MergeCloseInterval(const TIntervalV& IntervalV, int& OpenN,
             const TIntervalV& OthrIntervalV, const int& OthrN,
             uint& CurrBlockSize, TCarryInfo& CarryInfo, TIntervalV& NewIntervalV) {
-
         // close the interval
         const TInterval& OpenInterval = IntervalV[OpenN];
         const uint64 EndTm = OpenInterval.GetEndTm();
