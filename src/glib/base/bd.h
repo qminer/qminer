@@ -570,7 +570,7 @@ public:
 
   int GetPrimHashCd() const {return Addr->GetPrimHashCd();}
   int GetSecHashCd() const { return Addr->GetSecHashCd(); }
-  //uint64 GetMemUsed() const { return (Empty() ? 0 : Addr->GetMemUsed()) + sizeof(TPt); }
+  uint64 GetMemUsed() const { return (Empty() ? 0 : Addr->GetMemUsed()) + sizeof(TWPt); }
 };
 
 /////////////////////////////////////////////////
