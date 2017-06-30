@@ -5472,54 +5472,65 @@ TStr TIndex::TQmGixKeyStr::GetKeyNm(const TQmGixKey& Key) const {
     return KeyChA;
 }
 
-int TIndex::TQmGixItemPos::MaxPos = 8;
+//int TIndex::TQmGixItemPos::MaxPos = 8;
+int TIndex::TQmGixItemPos::Modulo = pow(2,10)-1;
 
 void TIndex::TQmGixItemPos::_Add(const int& Pos) {
-    // make sure we still have palce to store
+    // make sure we still have place to store
     Assert(IsSpace());
-    // find place where to store it
-    int EmptyPosN = 0;
-    while (PosV[EmptyPosN] != 0) { EmptyPosN++; }
-    // store position
-    PosV[EmptyPosN] = (uchar)(Pos);
+    // store value in the right position
+    if (PosV.Val1 == 0) { PosV.Val1 = (uint) Pos; }
+    else if (PosV.Val2 == 0) { PosV.Val2 = (uint) Pos; }
+    else { PosV.Val3 = (uint) Pos; }
 }
 
 TIndex::TQmGixItemPos::TQmGixItemPos(TSIn& SIn): RecId(SIn) {
-    for (int PosN = 0; PosN < MaxPos; PosN++) {
-        PosV[PosN] = TUCh(SIn);
+    BitsetConverter Converter;
+    // store position
+    for (int PosN = 0; PosN < 4; PosN++) {
+        Converter.ChV[PosN] = TUCh(SIn);
     }
+    PosV = Converter.PosV;
 }
 
 void TIndex::TQmGixItemPos::Save(TSOut& SOut) const {
     RecId.Save(SOut);
+    BitsetConverter Converter;
+    Converter.PosV = PosV;
     // we always save all positions
-    for (int PosN = 0; PosN < MaxPos; PosN++) {
-        PosV[PosN].Save(SOut);
+    for (int PosN = 0; PosN < 4; PosN++) {
+        Converter.ChV[PosN].Save(SOut);
     }
 }
 
 int TIndex::TQmGixItemPos::GetPosLen() const {
     // first check if we are full
-    if (!IsSpace()) { return MaxPos; }
+    if (!IsSpace()) { return 3; }
     // we are not, count!
-    int PosLen = 0;
-    while (PosV[PosLen] != 0) { PosLen++; }
-    return PosLen;
+    if (PosV.Val1 == 0) { return 0; }
+    else if (PosV.Val2 == 0) { return 1; }
+    else { return 2; }
 }
 
 int TIndex::TQmGixItemPos::GetPos(const int& PosN) const {
     Assert(PosN < GetPosLen());
-    return (int)PosV[PosN];
+    switch (PosN) {
+        case 0: return (int) PosV.Val1;
+        case 1: return (int) PosV.Val2;
+        case 2: return (int) PosV.Val3;
+        default: Assert(false);
+    }
 }
 
 void TIndex::TQmGixItemPos::Add(const int& Pos) {
     // make sure we still have palce to store
     Assert(IsSpace());
-    // find place where to store it
-    int EmptyPosN = 0;
-    while (PosV[EmptyPosN] != 0) { EmptyPosN++; }
     // store position
-    PosV[EmptyPosN] = (uchar)(Pos % 0xFF + 1);
+    uint Val = (uint)(Pos % Modulo + 1);
+    // store in the appropriate place
+    if (PosV.Val1 == 0) { PosV.Val1 = Val; }
+    else if (PosV.Val2 == 0) { PosV.Val2 = Val; }
+    else { PosV.Val3 = Val; }
 }
 
 TIndex::TQmGixItemPos TIndex::TQmGixItemPos::Intersect(const TQmGixItemPos& Item, const int& MaxDiff) const {
@@ -5539,7 +5550,7 @@ TIndex::TQmGixItemPos TIndex::TQmGixItemPos::Intersect(const TQmGixItemPos& Item
             }
             // check for special case when Pos2 is after the break (% 0xFF).
             // in such case Pos2 is near 0 and we just offset it for 0xFF
-            if (Pos1 < (Pos2 + 0xFF) && (Pos2 + 0xFF) <= (Pos1 + MaxDiff)) {
+            if (Pos1 < (Pos2 + Modulo) && (Pos2 + Modulo) <= (Pos1 + MaxDiff)) {
                 _Item._Add(Pos2); break;
             }
         }

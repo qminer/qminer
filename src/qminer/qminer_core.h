@@ -3076,17 +3076,31 @@ private:
     };
 
 private:
+    struct TQmGixItems {
+        uint Val1 : 10;
+        uint Val2 : 10;
+        uint Val3 : 10, :2;
+
+        TQmGixItems() { memset(this, 0, sizeof *this); };
+    };
+    typedef union BitsetConverter {
+        TQmGixItems PosV;
+        TUCh ChV[4];
+        BitsetConverter() : PosV{} {}
+    } BitsetConverter;
     /// Gix item to be used for storing records together with token positions
     class TQmGixItemPos {
     private:
         /// Number of positions
-        static int MaxPos;
+        //static int MaxPos;
+        // 2^10 - modulo used to compute the position value
+        static int Modulo;
     private:
         /// Record Id
         TUInt RecId;
         /// Vector of word positions stored as (Pos % 0xFF + 1).
         /// Emtpy positions are marked as 0
-        TUCh PosV[8];
+        TQmGixItems PosV;
 
         /// Add new position that is already properly trimed
         void _Add(const int& Pos);
@@ -3106,9 +3120,9 @@ private:
         uint64 GetRecId() const { return (uint64) RecId; }
 
         /// Check if the item is empty (== first position is set to 0)
-        bool Empty() const { return PosV[0].Val == (uchar)0; }
+        bool Empty() const { return PosV.Val1 == (uint)0; }
         /// Check if we still have space (== last position is set to 0)
-        bool IsSpace() const { return PosV[MaxPos - 1].Val == (uchar)0; }
+        bool IsSpace() const { return PosV.Val3 == (uint)0; }
         /// Get number of positions stored
         int GetPosLen() const;
         /// Get position converted to int for easier handling outside
