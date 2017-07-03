@@ -32,9 +32,16 @@ void GenSamplesUniform(const int& NSamples, TIntV& SampleV, const bool& ShuffleP
     }
 }
 
+double GetSwGkMxRelErr(const double& EpsGk, const double& EpsEh) {
+    return EpsGk + 2*EpsEh + EpsEh*EpsEh;
+}
+
 template <typename TGk, typename TLowerBoundFun, typename TUpperBoundFun>
 void AssertQuantileRange(TGk& Gk, const TLowerBoundFun& GetLowerBound,
         const TUpperBoundFun& GetUpperBound, const double QuantileStep=1e-3) {
+
+    /* Gk.PrintSummary(); */
+
     double CurrQuant = 0.0;
     while (CurrQuant <= 1.0) {
         const double QuantMn = GetLowerBound(CurrQuant);
@@ -43,8 +50,6 @@ void AssertQuantileRange(TGk& Gk, const TLowerBoundFun& GetLowerBound,
         const double EstQuant = Gk.Query(CurrQuant);
 
         /* std::cout << "quantile: " << CurrQuant << ", allowed: [" << QuantMn << ", " << QuantMx << "], value: " << EstQuant << std::endl; */
-
-        /* Gk.PrintSummary(); */
         /* std::cout << std::endl; */
 
         ASSERT_GE(EstQuant, QuantMn);
@@ -334,13 +339,18 @@ TEST(TExpHistogram, CountEquallySpaced) {
 
     const int ExpectedCount = WindowMSec / SampleInterval;
 
-    TExpHistWithMax ExpHistMx(WindowMSec, Eps);
-    TExpHistogram ExpHist(WindowMSec, Eps);
+    TExpHistWithMax ExpHistMx(Eps);
+    TExpHistogram ExpHist(Eps);
 
     uint64 CurrTm = WindowMSec;
     for (int SampleN = 0; SampleN < NSamples; SampleN++) {
+        const int64 ForgetTm = int64(CurrTm) - int64(WindowMSec);
+
         ExpHistMx.Add(CurrTm, 1);
         ExpHist.Add(CurrTm);
+
+        ExpHistMx.Forget(ForgetTm);
+        ExpHist.Forget(ForgetTm);
 
         if (SampleN*SampleInterval > WindowMSec) {
             const int AllowedErr = std::ceil(Eps*ExpectedCount);
@@ -364,14 +374,16 @@ TEST(TExpHistogram, CountNonEqual) {
     const uint64 StartTm = WindowMSec;
     const uint64 EndTm = StartTm + 100*WindowMSec;
 
-    TExpHistWithMax ExpHistMx(WindowMSec, Eps);
-    TExpHistogram ExpHist(WindowMSec, Eps);
+    TExpHistWithMax ExpHistMx(Eps);
+    TExpHistogram ExpHist(Eps);
 
     TRnd Rnd(1);
 
     uint64 CurrTm = StartTm;
     TUInt64V SampleTmV;
     while (CurrTm < EndTm) {
+        const int64 ForgetTm = int64(CurrTm) - int64(WindowMSec);
+
         SampleTmV.Add(CurrTm);
         while (!SampleTmV.Empty() && SampleTmV[0] <= CurrTm - WindowMSec) {
             SampleTmV.Del(0);
@@ -379,6 +391,9 @@ TEST(TExpHistogram, CountNonEqual) {
 
         ExpHistMx.Add(CurrTm, 0);
         ExpHist.Add(CurrTm);
+
+        ExpHistMx.Forget(ForgetTm);
+        ExpHist.Forget(ForgetTm);
 
         ASSERT_TRUE(ExpHistMx.CheckInvariant1());
         ASSERT_TRUE(ExpHistMx.CheckInvariant2());
@@ -409,8 +424,8 @@ TEST(TExpHistogram, Compression) {
     const uint64 DeltaTm = 10;
     const double Eps = .1;
 
-    TExpHistWithMax ExpHistMx(WindowMSec, Eps);
-    TExpHistogram ExpHist(WindowMSec, Eps);
+    TExpHistWithMax ExpHistMx(Eps);
+    TExpHistogram ExpHist(Eps);
 
     const uint NSteps = 1000;
 
@@ -421,28 +436,30 @@ TEST(TExpHistogram, Compression) {
         ExpHist.Add(CurrTm);
     }
 
+    const uint64 ForgetTm = StartTm + (NSteps-1)*DeltaTm - WindowMSec;
+    ExpHistMx.Forget(ForgetTm);
+    ExpHist.Forget(ForgetTm);
+
     ASSERT_LE(ExpHistMx.GetSummarySize(), 36);
     ASSERT_LE(ExpHist.GetSummarySize(), 36);
 }
 
 TEST(TExpHistogram, MxVal) {
-    const uint64 WindowMSec = 10000;
+    const uint64 WindowMSec = 100;
     const uint64 MxValInterval = 200;
-    const uint64 SamplesInWindow = 100;
-
-    const uint64 SampleInterval = WindowMSec / SamplesInWindow;
+    /* const uint64 SamplesInWindow = 100; */
 
     const double Eps = .1;
 
     const uint NSamples = 1000;
-    const uint64 MxHighStayTm = WindowMSec + std::ceil(2*Eps*WindowMSec);
+    /* const uint64 MxHighStayTm = WindowMSec + std::ceil(2*Eps*WindowMSec); */
 
-    TExpHistWithMax ExpHistMx(WindowMSec, Eps);
+    TExpHistWithMax ExpHistMx(Eps);
 
     uint64 LastHighTm = 0;
-    const uint64 StartTm = WindowMSec;
+    /* const uint64 StartTm = WindowMSec; */
     for (uint SampleN = 0; SampleN < NSamples; SampleN++) {
-        const uint64 CurrTm = StartTm + SampleN*SampleInterval;
+        const uint64 CurrTm = SampleN;
         if (SampleN % MxValInterval == 0) {
             ExpHistMx.Add(CurrTm, 2);
             LastHighTm = CurrTm;
@@ -451,13 +468,17 @@ TEST(TExpHistogram, MxVal) {
             ExpHistMx.Add(CurrTm, 0);
         }
 
-        const uint64 TmSinceHigh = CurrTm - LastHighTm;
+        const int64 ForgetTm = int64(CurrTm) - int64(WindowMSec);
+        ExpHistMx.Forget(ForgetTm);
 
-        if (TmSinceHigh <= WindowMSec) {
-            ASSERT_EQ(2, ExpHistMx.GetMxVal());
-        }
-        else if (TmSinceHigh > MxHighStayTm) {
-            ASSERT_EQ(0, ExpHistMx.GetMxVal());
+        const double MxVal = ExpHistMx.GetMxVal();
+
+        if (TFlt::Abs(int64(LastHighTm) - ForgetTm) > Eps*WindowMSec) {
+            if (int64(LastHighTm) < ForgetTm) {
+                ASSERT_EQ(0, MxVal);
+            } else {
+                ASSERT_EQ(2, MxVal);
+            }
         }
     }
 }
@@ -466,8 +487,8 @@ TEST(TExpHistogram, SwallowBasic) {
     const uint64 WindowMSec = 1000;
     const double Eps = .1;
 
-    TExpHistogram HistBig(WindowMSec, Eps);
-    TExpHistogram HistSmall(WindowMSec, Eps);
+    TExpHistogram HistBig(Eps);
+    TExpHistogram HistSmall(Eps);
 
     const int NSamples = 100;
 
@@ -479,8 +500,10 @@ TEST(TExpHistogram, SwallowBasic) {
         else if (SampleN % 3 == 0) {
             HistSmall.Add(CurrTm);
         }
+        HistBig.Forget(CurrTm - WindowMSec);
         ++CurrTm;
     }
+
 
     const int Count1 = HistBig.GetCount();
     const int Count2 = HistSmall.GetCount();
@@ -500,8 +523,8 @@ TEST(TExpHistogram, SwallowSameTSteps) {
     const uint64 WindowMSec = 1000;
     const double Eps = .1;
 
-    TExpHistogram Hist1(WindowMSec, Eps);
-    TExpHistogram Hist2(WindowMSec, Eps);
+    TExpHistogram Hist1(Eps);
+    TExpHistogram Hist2(Eps);
 
     const int NSamples = 2000;
 
@@ -513,6 +536,10 @@ TEST(TExpHistogram, SwallowSameTSteps) {
         if (SampleN % 3 == 0) {
             Hist2.Add(CurrTm);
         }
+
+        const int64 ForgetTm = int64(CurrTm) - int64(WindowMSec);
+        Hist1.Forget(ForgetTm);
+        Hist2.Forget(ForgetTm);
 
         const uint Count1 = Hist1.GetCount();
         const uint Count2 = Hist2.GetCount();
@@ -529,6 +556,10 @@ TEST(TExpHistogram, SwallowSameTSteps) {
 
         ++CurrTm;
     }
+
+    const int64 ForgetTm = int64(CurrTm) - int64(WindowMSec);
+    Hist1.Forget(ForgetTm);
+    Hist2.Forget(ForgetTm);
 
     const uint Count1 = Hist1.GetCount();
     const uint Count2 = Hist2.GetCount();
@@ -548,7 +579,7 @@ TEST(TExpHistogram, DelNewest) {
     const double Eps = .1;
     const uint64 WindowMSec = 100;
 
-    TExpHistogram Eh(WindowMSec, Eps);
+    TExpHistogram Eh(Eps);
 
     const int MxBlocksPerSize = std::ceil(1 / (2*Eps)) + 1;
 
@@ -556,25 +587,31 @@ TEST(TExpHistogram, DelNewest) {
         Eh.Add(SampleN);
     }
 
+    Eh.Forget(MxBlocksPerSize - WindowMSec);
+
     Eh.DelNewest();
 
     ASSERT_TRUE(Eh.CheckInvariant1());
     ASSERT_TRUE(Eh.CheckInvariant2());
 
-    TExpHistogram Eh1(WindowMSec, Eps);
+    TExpHistogram Eh1(Eps);
     for (int SampleN = 0; SampleN < 23; SampleN++) {
         Eh1.Add(SampleN);
     }
+
+    Eh1.Forget(22 - int(WindowMSec));
 
     Eh1.DelNewest();
 
     ASSERT_TRUE(Eh1.CheckInvariant1());
     ASSERT_TRUE(Eh1.CheckInvariant2());
 
-    TExpHistogram Eh2(WindowMSec, Eps);
+    TExpHistogram Eh2(Eps);
     for (int SampleN = 0; SampleN < 51; SampleN++) {
         Eh2.Add(SampleN);
     }
+
+    Eh1.Forget(50 - int(WindowMSec));
 
     Eh2.DelNewest();
 
@@ -586,7 +623,7 @@ TEST(TExpHistWithMax, DelNewestAcc) {
     const uint WindowMSec = 100;
     const double Eps = .1;
 
-    TExpHistWithMax Hist(WindowMSec, Eps);
+    TExpHistWithMax Hist(Eps);
 
     const int BatchSize = WindowMSec;
     const int NBatches = 20;
@@ -596,6 +633,7 @@ TEST(TExpHistWithMax, DelNewestAcc) {
         for (int SampleN = 0; SampleN < BatchSize; SampleN++) {
             Hist.Add(BatchN*BatchSize + SampleN, Rnd.GetUniDevUInt(1000));
         }
+        Hist.Forget((BatchN+1)*BatchSize - WindowMSec);
         Hist.DelNewest();
 
         ASSERT_TRUE(Hist.CheckInvariant1());
@@ -612,19 +650,27 @@ TEST(TExpHistWithMax, DelNewestNonMax) {
     const uint WindowMSec = 100;
     const double Eps = .1;
 
-    TExpHistWithMax HistRising(WindowMSec, Eps);
-    TExpHistWithMax HistRisingNewest(WindowMSec, Eps);
-    TExpHistWithMax HistFalling(WindowMSec, Eps);
+    TExpHistWithMax HistRising(Eps);
+    TExpHistWithMax HistRisingNewest(Eps);
+    TExpHistWithMax HistFalling(Eps);
 
     const int BatchSize = WindowMSec;
     const int NBatches = 20;
 
     for (int BatchN = 0; BatchN < NBatches; BatchN++) {
         for (int SampleN = 0; SampleN < BatchSize; SampleN++) {
-            HistRising.Add(BatchN*BatchSize + SampleN, SampleN);
-            HistRisingNewest.Add(BatchN*BatchSize + SampleN, SampleN);
-            HistFalling.Add(BatchN*BatchSize + SampleN, BatchSize - SampleN);
+            const uint64 CurrTm = BatchN*BatchSize + SampleN;
+            HistRising.Add(CurrTm, SampleN);
+            HistRisingNewest.Add(CurrTm, SampleN);
+            HistFalling.Add(CurrTm, BatchSize - SampleN);
         }
+
+        const int64 ForgetTm = (BatchN+1)*BatchSize - WindowMSec;
+
+        HistRising.Forget(ForgetTm);
+        HistRisingNewest.Forget(ForgetTm);
+        HistFalling.Forget(ForgetTm);
+
         HistRising.DelNewestNonMx();
         HistRisingNewest.DelNewest();
         HistFalling.DelNewestNonMx();
@@ -648,7 +694,8 @@ TEST(TExpHistWithMax, DelNewestNonMax) {
 
         ASSERT_EQ(BatchSize - 1, MxRising);
         ASSERT_EQ(BatchSize - 2, MxRisingNewest);
-        ASSERT_EQ(BatchSize, MxFalling);
+        ASSERT_LE(MxFalling, BatchSize);
+        ASSERT_GE(MxFalling, BatchSize*(1 - Eps));
     }
 }
 
@@ -656,8 +703,8 @@ TEST(TExpHistWithMax, DelNewestNonMaxEdgeCaseEps) {
     const uint WindowMSec = 100;
     const double Eps = .5;
 
-    TExpHistWithMax HistRising(WindowMSec, Eps);
-    TExpHistWithMax HistFalling(WindowMSec, Eps);
+    TExpHistWithMax HistRising(Eps);
+    TExpHistWithMax HistFalling(Eps);
 
     const int BatchSize = WindowMSec;
 
@@ -665,6 +712,10 @@ TEST(TExpHistWithMax, DelNewestNonMaxEdgeCaseEps) {
         HistRising.Add(SampleN, SampleN);
         HistFalling.Add(SampleN, BatchSize - SampleN);
     }
+
+    const int64 ForgetTm = BatchSize - WindowMSec;
+    HistRising.Forget(ForgetTm);
+    HistFalling.Forget(ForgetTm);
 
     HistRising.DelNewestNonMx();
     HistFalling.DelNewestNonMx();
@@ -693,92 +744,147 @@ TEST(TExpHistWithMax, SwallowSameTSteps) {
     const uint64 WindowMSec = 100;
     const double Eps = .1;
 
-    TExpHistWithMax Hist1(WindowMSec, Eps);
-    TExpHistWithMax Hist2(WindowMSec, Eps);
+    TExpHistWithMax Hist1(Eps);
+    TExpHistWithMax Hist2(Eps);
 
     const int NSamples = 2000;
     const int HighValInterval = 300;
 
     uint64 CurrTm = 0;
     int HighHistN = 0;
-    uint64 LastHighTm = 0;
+    /* uint64 LastHighTm = 0; */
+
+    TUInt64V Hist1CountV, Hist2CountV;
+    int CountSinceHigh1 = 0;
+    int CountSinceHigh2 = 0;
+
     for (int SampleN = 0; SampleN < NSamples; SampleN++) {
         if (SampleN % 2 == 0) {
             if (SampleN % HighValInterval == 0 && HighHistN == 0) {
                 Hist1.Add(CurrTm, 1);
                 HighHistN = 1 - HighHistN;
-                LastHighTm = CurrTm;
+                /* LastHighTm = CurrTm; */
+                CountSinceHigh1 = 0;
             } else {
                 Hist1.Add(CurrTm, 0);
+                ++CountSinceHigh1;
             }
+            Hist1CountV.Add(CurrTm);
         }
         if (SampleN % 3 == 0) {
             if (SampleN % HighValInterval == 0 && HighHistN == 1) {
                 Hist2.Add(CurrTm, 1);
                 HighHistN = 1 - HighHistN;
-                LastHighTm = CurrTm;
+                /* LastHighTm = CurrTm; */
+                CountSinceHigh2 = 0;
             } else {
                 Hist2.Add(CurrTm, 0);
+                ++CountSinceHigh2;
             }
+            Hist2CountV.Add(CurrTm);
         }
 
-        const uint Count1 = Hist1.GetCount();
-        const uint Count2 = Hist2.GetCount();
+        const int64 ForgetTm = CurrTm - WindowMSec;
+        Hist1.Forget(ForgetTm);
+        Hist2.Forget(ForgetTm);
+
+        while (!Hist1CountV.Empty() && int64(Hist1CountV[0]) <= ForgetTm) {
+            Hist1CountV.Del(0);
+        }
+        while (!Hist2CountV.Empty() && int64(Hist2CountV[0]) <= ForgetTm) {
+            Hist2CountV.Del(0);
+        }
+
+        const uint Count1 = Hist1CountV.Len();
+        const uint Count2 = Hist2CountV.Len();
+        const uint TotalCount = Hist1CountV.Len() + Hist2CountV.Len();
 
         TExpHistWithMax Merged = Hist1;
         Merged.Swallow(Hist2);
 
+        Merged.Forget(ForgetTm);
+
         const uint NewCount = Merged.GetCount();
 
-        ASSERT_TRUE(Hist1.CheckInvariant1());
-        ASSERT_TRUE(Hist1.CheckInvariant2());
+        ASSERT_TRUE(Merged.CheckInvariant1());
+        ASSERT_TRUE(Merged.CheckInvariant2());
 
-        ASSERT_LE(NewCount, (1+Eps)*(Count1 + Count2));
-        ASSERT_GE(NewCount, std::floor((1-Eps)*(Count1 + Count2)));
+        ASSERT_LE(NewCount, std::ceil((1+Eps)*TotalCount));
+        ASSERT_GE(NewCount, std::floor((1-Eps)*TotalCount));
 
-        if (Hist1.GetMxVal() == 0 && Hist2.GetMxVal() == 0) {
+        if (CountSinceHigh1 > (1 + Eps)*Count1 && CountSinceHigh2 > (1 + Eps)*Count2) {
+            ASSERT_EQ(Hist1.GetMxVal(), 0);
+            ASSERT_EQ(Hist2.GetMxVal(), 0);
             ASSERT_EQ(Merged.GetMxVal(), 0);
         }
-        else if (CurrTm - LastHighTm <= WindowMSec) {
+        else if (CountSinceHigh1 < (1 - Eps)*Count1 || CountSinceHigh2 <= (1 - Eps)*Count2) {
+            ASSERT_TRUE(Hist1.GetMxVal() > 0 || Hist2.GetMxVal() > 0);
             ASSERT_EQ(Merged.GetMxVal(), 1);
         }
 
         ++CurrTm;
     }
+}
 
-    const uint Count1 = Hist1.GetCount();
-    const uint Count2 = Hist2.GetCount();
+TEST(TWindowMin, Query) {
+    const uint NSamples = 1000;
 
-    TExpHistWithMax Merged = Hist1;
-    Merged.Swallow(Hist2);
+    const uint64 WindowLen = 100;
+    const double Eps = .1;
 
-    const uint NewCount = Merged.GetCount();
+    TWindowMin WinMin(Eps);
 
-    ASSERT_TRUE(Hist1.CheckInvariant1());
-    ASSERT_TRUE(Hist1.CheckInvariant2());
+    uint MinInterval = 180;
+    int LastMnTm = TInt::Mn;
 
-    ASSERT_LE(NewCount, (1+Eps)*(Count1 + Count2));
-    ASSERT_GE(NewCount, std::floor((1-Eps)*(Count1 + Count2)));
+    for (uint CurrTm = 0; CurrTm < NSamples; CurrTm++) {
+        if (CurrTm % MinInterval == 0) {
+            WinMin.Add(CurrTm, 0);
+            LastMnTm = CurrTm;
+        } else {
+            WinMin.Add(CurrTm, 1);
+        }
 
-    if (Hist1.GetMxVal() == 0 && Hist2.GetMxVal() == 0) {
-        ASSERT_EQ(Merged.GetMxVal(), 0);
-    }
-    else if (CurrTm - LastHighTm <= WindowMSec) {
-        ASSERT_EQ(Merged.GetMxVal(), 1);
+        const int ForgetTm = int(CurrTm) - int(WindowLen);
+        WinMin.Forget(ForgetTm);
+
+        const double MnVal = WinMin.GetMnVal();
+
+        if (LastMnTm > ForgetTm) {
+            ASSERT_EQ(0, MnVal);
+        } else {
+            ASSERT_EQ(1, MnVal);
+        }
     }
 }
 
-TEST(TSwGk, QueryAccNoWindow) {
-    const int BatchSize = 1000;
+TEST(TWindowMin, ForgetLarge) {
+    const uint64 WindowLen = 100;
+    const double Eps = .1;
+
+    TWindowMin WinMin(Eps);
+
+    for (uint SampleN = 0; SampleN < WindowLen; SampleN++) {
+        WinMin.Add(SampleN, SampleN+1);
+        WinMin.Forget(SampleN - WindowLen);
+    }
+
+    WinMin.Add(WindowLen+1, 0);
+
+    Assert(WinMin.GetSummarySize() == 1);
+}
+
+TEST(TCountWindowGk, QueryAccNoWindow) {
+    const int BatchSize = 100;
     const int TotalBatches = 10;
 
     const double EpsGk = .1;
     const double EpsEh = 0;
-    const uint64 WindowLen = TUInt64::Mx;
+    const uint64 WindowLen = TInt64::Mx;
 
-    const double MxRelErr = (EpsGk + 2*EpsEh);
+    const double MxRelErr = GetSwGkMxRelErr(EpsGk, EpsEh);
 
-    TSwGk Gk(WindowLen, EpsGk, EpsEh);
+    TCountWindowGk Gk(WindowLen, EpsGk, EpsEh);
 
     TIntV SampleV;
     for (int BatchN = 0; BatchN < TotalBatches; BatchN++) {
@@ -793,10 +899,25 @@ TEST(TSwGk, QueryAccNoWindow) {
         Gk.Compress();
 
         AssertQuantileRange(Gk, LowerBoundFun, UpperBoundFun);
+
+        if (BatchN > 0) {
+            const int TotalSamples = (BatchN+1)*BatchSize;
+
+            const uint64 ItemCount = Gk.GetValCount();
+            const uint64 ItemRecount = Gk.GetValRecount();
+
+            const uint64 LowerBound = std::floor(TotalSamples*(1 - EpsEh));
+            const uint64 UpperBound = std::ceil(TotalSamples*(1 + EpsEh));
+
+            ASSERT_GE(ItemCount, LowerBound);
+            ASSERT_LE(ItemCount, UpperBound);
+
+            ASSERT_EQ(ItemCount, ItemRecount);
+        }
     }
 }
 
-TEST(TSwGk, QueryAccWindow) {
+TEST(TCountWindowGk, QueryAccWindow) {
     const int BatchSize = 1000;
     const int TotalBatches = 10;
 
@@ -804,9 +925,9 @@ TEST(TSwGk, QueryAccWindow) {
     const double EpsEh = 0;
     const uint64 WindowLen = 1000;
 
-    const double MxRelErr = (EpsGk + 2*EpsEh);
+    const double MxRelErr = GetSwGkMxRelErr(EpsGk, EpsEh);
 
-    TSwGk Gk(WindowLen, EpsGk, EpsEh);
+    TCountWindowGk Gk(WindowLen, EpsGk, EpsEh);
 
     TIntV SampleV;
     for (int BatchN = 0; BatchN < TotalBatches; BatchN++) {
@@ -821,10 +942,11 @@ TEST(TSwGk, QueryAccWindow) {
         // test if the values are in range
         Gk.Compress();
         AssertQuantileRange(Gk, LowerBoundFun, UpperBoundFun);
+        ASSERT_LE(Gk.GetValCount(), std::ceil((1 + EpsEh)*WindowLen));
     }
 }
 
-TEST(TSwGk, Query) {
+TEST(TCountWindowGk, Query) {
     const int BatchSize = 1000;
     const int TotalBatches = 10;
 
@@ -834,7 +956,7 @@ TEST(TSwGk, Query) {
 
     const double MxRelErr = (EpsGk + 2*EpsEh);
 
-    TSwGk Gk(WindowLen, EpsGk, EpsEh);
+    TCountWindowGk Gk(WindowLen, EpsGk, EpsEh);
 
     TIntV SampleV;
     for (int BatchN = 0; BatchN < TotalBatches; BatchN++) {
@@ -849,10 +971,11 @@ TEST(TSwGk, Query) {
         // test if the values are in range
         Gk.Compress();
         AssertQuantileRange(Gk, LowerBoundFun, UpperBoundFun);
+        ASSERT_LE(Gk.GetValCount(), std::ceil((1 + EpsEh)*WindowLen));
     }
 }
 
-TEST(TSwGk, CheckForgetting) {
+TEST(TCountWindowGk, ConceptDrift) {
     const int BatchSize = 1000;
     const int TotalBatches = 10;
 
@@ -860,9 +983,134 @@ TEST(TSwGk, CheckForgetting) {
     const double EpsEh = .05;
     const uint64 WindowLen = BatchSize;
 
+    const double MxRelErr = GetSwGkMxRelErr(EpsGk, EpsEh);
+
+    TCountWindowGk Gk(WindowLen, EpsGk, EpsEh);
+
+    TIntV SampleV;
+    for (int BatchN = 0; BatchN < TotalBatches; BatchN++) {
+        const uint BatchStart = BatchSize*BatchN;
+
+        GenSamplesUniform(BatchSize, SampleV);
+        for (int SampleN = 0; SampleN < BatchSize; SampleN++) {
+            const uint Val = BatchStart + SampleV[SampleN];
+            Gk.Insert(Val);
+        }
+
+
+        const auto LowerBoundFun = [&](const double& Quant) { return std::floor(BatchStart + BatchSize*TMath::Mx(0.0, Quant - MxRelErr)); };
+        const auto UpperBoundFun = [&](const double& Quant) { return std::ceil(BatchStart + BatchSize*TMath::Mn(1.0, Quant + MxRelErr)); };
+
+        // test if the values are in range
+        Gk.Compress();
+
+        AssertQuantileRange(Gk, LowerBoundFun, UpperBoundFun);
+        ASSERT_LE(Gk.GetValCount(), std::ceil((1 + EpsEh)*WindowLen));
+    }
+}
+
+TEST(TCountWindowGk, ItemCountExact) {
+    const int NSamples = 1000;
+
+    const int WindowLen = 10;
+    const double EpsGk = .1;
+    const double EpsEh = 0;
+
+    TCountWindowGk Gk(WindowLen, EpsGk, EpsEh);
+
+    TIntV SampleV;  GenSamplesUniform(NSamples, SampleV);
+    for (int SampleN = 0; SampleN < NSamples; SampleN++) {
+        Gk.Insert(SampleV[SampleN]);
+
+        if (SampleN > 0 && SampleN % (10*WindowLen) == 0) {
+            Gk.Compress();
+
+            const uint64 ValCount = Gk.GetValCount();
+            const uint64 ValRecount = Gk.GetValRecount();
+
+            ASSERT_EQ(WindowLen, ValCount);
+            ASSERT_EQ(ValCount, ValRecount);
+        }
+    }
+
+    Gk.Compress();
+
+    const uint64 ValCount = Gk.GetValCount();
+    const uint64 ValRecount = Gk.GetValRecount();
+
+    ASSERT_EQ(WindowLen, ValCount);
+    ASSERT_EQ(ValCount, ValRecount);
+}
+
+TEST(TCountWindowGk, ItemCountApprox) {
+    const int NSamples = 100;
+
+    const int WindowLen = 10;
+    const double EpsGk = .1;
+    const double EpsEh = .05;
+
+    TCountWindowGk Gk(WindowLen, EpsGk, EpsEh);
+
+    TIntV SampleV;  GenSamplesUniform(NSamples, SampleV);
+    for (int SampleN = 0; SampleN < NSamples; SampleN++) {
+        Gk.Insert(SampleV[SampleN]);
+    }
+
+    Gk.Compress();
+
+    const uint64 ValCount = Gk.GetValCount();
+
+    ASSERT_EQ(ValCount, Gk.GetValRecount());
+    ASSERT_GE(ValCount, std::floor((1 - EpsEh)*WindowLen));
+    ASSERT_LE(ValCount, std::ceil((1 + EpsEh)*WindowLen));
+}
+
+TEST(TTimeWindowGk, Query) {
+
+    const double EpsGk = .1;
+    const double EpsEh = .05;
+    const uint64 WindowMSec = 10000;
+    const uint64 DeltaTm = 10;
+
+    const int SamplesInWindow = WindowMSec / DeltaTm;
+
+    const int BatchSize = SamplesInWindow;
+    const int TotalBatches = 10;
+
     const double MxRelErr = (EpsGk + 2*EpsEh);
 
-    TSwGk Gk(WindowLen, EpsGk, EpsEh);
+    TTimeWindowGk Gk(WindowMSec, EpsGk, EpsEh);
+
+    TIntV SampleV;
+    for (int BatchN = 0; BatchN < TotalBatches; BatchN++) {
+        GenSamplesUniform(BatchSize, SampleV);
+        for (int SampleN = 0; SampleN < BatchSize; SampleN++) {
+            const uint64 CurrTm = DeltaTm*(BatchN*BatchSize + SampleN);
+            Gk.Insert(CurrTm, SampleV[SampleN]);
+        }
+
+        const auto LowerBoundFun = [&](const double& Quant) { return std::floor(BatchSize*TMath::Mx(0.0, Quant - MxRelErr)); };
+        const auto UpperBoundFun = [&](const double& Quant) { return std::ceil(BatchSize*TMath::Mn(1.0, Quant + MxRelErr)); };
+
+        // test if the values are in range
+        Gk.Compress();
+        AssertQuantileRange(Gk, LowerBoundFun, UpperBoundFun);
+        ASSERT_LE(Gk.GetValCount(), std::ceil((1 + EpsEh)*SamplesInWindow));
+    }
+}
+
+TEST(TTimeWindowGk, ConceptDrift) {
+    const uint64 WindowMSec = 10000;
+    const uint64 DeltaTm = 10;
+    const int BatchSize = WindowMSec / DeltaTm;
+    const int TotalBatches = 10;
+
+    const double EpsGk = .1;
+    const double EpsEh = .05;
+
+    const double MxRelErr = GetSwGkMxRelErr(EpsGk, EpsEh);
+
+    TTimeWindowGk Gk(WindowMSec, EpsGk, EpsEh);
 
     TIntV SampleV;
     for (int BatchN = 0; BatchN < TotalBatches; BatchN++) {
@@ -873,10 +1121,10 @@ TEST(TSwGk, CheckForgetting) {
         /* std::cout << "inserting: "; */
         for (int SampleN = 0; SampleN < BatchSize; SampleN++) {
             const uint Val = BatchStart + SampleV[SampleN];
+            const uint64 CurrTm = (BatchN*BatchSize + SampleN)*DeltaTm;
             /* std::cout << Val << ", "; */
-            Gk.Insert(Val);
+            Gk.Insert(CurrTm, Val);
         }
-
 
         const auto LowerBoundFun = [&](const double& Quant) { return std::floor(BatchStart + BatchSize*TMath::Mx(0.0, Quant - MxRelErr)); };
         const auto UpperBoundFun = [&](const double& Quant) { return std::ceil(BatchStart + BatchSize*TMath::Mn(1.0, Quant + MxRelErr)); };
@@ -887,52 +1135,57 @@ TEST(TSwGk, CheckForgetting) {
         /* Gk.PrintSummary(); */
         /* std::cout << "checking quantiles" << std::endl; */
         AssertQuantileRange(Gk, LowerBoundFun, UpperBoundFun);
+        ASSERT_LE(Gk.GetValCount(), std::ceil((1 + EpsEh)*BatchSize));
     }
 }
 
-// TODO move this somewhere
-TEST(TWindowMin, Query) {
-    const uint NSamples = 1000;
+// TODO test time window for unuqually spaced samples
 
-    const uint64 WindowLen = 100;
-    const double Eps = .1;
+TEST(TTimeWindow, DrainSummary) {
+    const uint64 WindowMSec = 1000;
+    const uint64 DeltaTm = 10;
+    const int SamplesInWindow = WindowMSec / DeltaTm;
 
-    TWindowMin WinMin(WindowLen, Eps);
+    const double EpsGk = .1;
+    const double EpsEh = .05;
 
-    uint MinInterval = 180;
-    int LastMinTime = TInt::Mn;
+    TTimeWindowGk Gk(WindowMSec, EpsGk, EpsEh);
 
-    for (uint SampleN = 0; SampleN < NSamples; SampleN++) {
-        if (SampleN % MinInterval == 0) {
-            WinMin.Add(SampleN, 0);
-            LastMinTime = SampleN;
-        } else {
-            WinMin.Add(SampleN, 1);
-        }
+    TIntV SampleV;  GenSamplesUniform(SamplesInWindow, SampleV);
 
-        if (SampleN - LastMinTime <= WindowLen) {
-            ASSERT_EQ(0, WinMin.GetMnVal());
-        } else if (SampleN - LastMinTime > WindowLen*(1 + Eps)) {
-            ASSERT_EQ(1, WinMin.GetMnVal());
-        }
-    }
-}
-
-TEST(TWindowMin, ForgetLarge) {
-    const uint64 WindowLen = 100;
-    const double Eps = .1;
-
-    TWindowMin WinMin(WindowLen, Eps);
-
-    for (uint SampleN = 0; SampleN < WindowLen; SampleN++) {
-        WinMin.Add(SampleN, SampleN+1);
+    for (int SampleN = 0; SampleN < SamplesInWindow; SampleN++) {
+        const uint64 Tm = SampleN*DeltaTm;
+        Gk.Insert(Tm, SampleV[SampleN]);
     }
 
-    WinMin.Add(WindowLen+1, 0);
+    for (int SampleN = 0; SampleN < 2*SamplesInWindow; SampleN++) {
+        const uint64 Tm = (SamplesInWindow + SampleN)*DeltaTm;
+        Gk.UpdateTime(Tm);
+    }
 
-    Assert(WinMin.GetSummarySize() == 1);
+    Gk.Compress();
+    ASSERT_EQ(0, Gk.GetValCount());
+    ASSERT_EQ(0, Gk.GetValRecount());
+    ASSERT_EQ(0, Gk.Query(0));
+    ASSERT_EQ(0, Gk.Query(.5));
+    ASSERT_EQ(0, Gk.Query(1));
 }
 
-// TODO TWindowMin tests
+
+// TODO move this on top of TCountWindowGk
+TEST(TSwGk, Query) {
+    // TODO
+}
+
+TEST(TSwGk, ConceptDrift) {
+    // TODO
+}
+
+TEST(TSwGk, DrainedSummary) {
+    // TODO test how TSwGk handles if you empty its summary
+}
+
+
+// TODO test auto compress for SW-GK
+// TODO for each structure test what happens when it becomes empty
 // TODO check that empty histograms get deleted
-// TODO implement OnTime  functionality for the windowed GK

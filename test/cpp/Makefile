@@ -39,6 +39,7 @@ else ifeq ($(UNAME), Darwin)
 endif
 
 # initialize common flags
+# CXXFLAGS += -std=c++11 -Wall -Wsign-compare -Wtype-limits -Wconversion -O3 -DNDEBUG
 CXXFLAGS += -std=c++11 -Wall -O3 -DNDEBUG
 CXXFLAGS += -I$(GLIB_DIR)base -I$(GLIB_DIR)mine -I$(SOLE_DIR) -I$(QMINER_DIR)
 
