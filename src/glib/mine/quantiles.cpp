@@ -468,9 +468,6 @@ namespace TQuant {
 
     ///////////////////////////////////////////
     /// Exponential Histogram with maximum
-
-    // TODO when compressing the min can change because the oldest block can suddenly be in the
-    // window
     TExpHistWithMax::TExpHistWithMax(const TExpHistWithMax& Other):
             TBase(Other),
             MxVal(Other.MxVal) {}
@@ -511,7 +508,7 @@ namespace TQuant {
     }
 
     double TExpHistWithMax::GetMxVal() const {
-        Assert(!IntervalV.Empty());
+        /* Assert(!IntervalV.Empty()); */
         return MxVal;
     }
 
@@ -620,6 +617,8 @@ namespace TQuant {
     }
 
     void TWindowMin::Forget(const int64& NewForgetTm) {
+        ForgetTm = NewForgetTm;
+
         double MinForget = TFlt::PInf;
         while (!IntervalV.Empty() && !IsMinInWindow(NewForgetTm, IntervalV[0])) {
             const TIntervalWithMin& RemovedInterval = IntervalV[0];
@@ -663,8 +662,6 @@ namespace TQuant {
     }
 
     void TWindowMin::Compress() {
-        // TODO when compressing the min can change because the oldest block can
-        // go from being half out of the window to half in
         int CurrLogSize = 0;
         int CurrPos = IntervalV.Len()-1;
         while (CurrLogSize < LogSizeToBlockCountV.Len()) {
@@ -777,9 +774,9 @@ namespace TQuant {
     double TSwGk::Query(const double& Quantile) {
         if (GetSummarySize() == 0) { return 0; }
 
-        /* if (Quantile <= EpsGk || GetSummarySize() == 1) { */
         if (Quantile <= EpsGk) {
             WinMin.Forget(ForgetTm);
+            if (WinMin.Empty()) { return 0; }
             return WinMin.GetMnVal();
         } else {
             const double MnRankThreshold = ItemCount*(TMath::Mx(0.0, Quantile - EpsGk));
@@ -802,6 +799,13 @@ namespace TQuant {
                 }
 
                 ++TupleIt;
+            }
+
+            // if all the tuples were empty, then compress the structure and
+            // query again
+            if (MxVal == TFlt::NInf) {
+                Compress();
+                return Query(Quantile);
             }
 
             return MxVal;
@@ -897,16 +901,16 @@ namespace TQuant {
     }
 
     void TSwGk::PrintSummary() const {
-        std::cout << "minimum summary: ";
-        WinMin.PrintSummary();
-        std::cout << "\nsummary:\n[";
-
         auto It = Summary.begin();
         if (It != Summary.end()) { std::cout << *(It++); }
         while (It != Summary.end()) {
             std::cout << ", " << *(It++);
         }
         std::cout << "]" << std::endl;
+    }
+
+    void TSwGk::PrintMinWinSummary() const {
+        WinMin.PrintSummary();
     }
 
     void TSwGk::OnItemsDeleted(const uint64& DelCount) {

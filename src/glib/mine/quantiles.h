@@ -305,7 +305,6 @@ namespace TQuant {
         TIntervalV IntervalV {};
         TUIntV LogSizeToBlockCountV {1};  // at index i stores the number of blocks of size (i+1)
         TFlt Eps;
-        /* TUInt64 CutoffTm {0lu}; // TODO check if this is needed */
         TUInt TotalCount {0u};
         TExpHistCallback* Callback {nullptr}; // notifies certain events
 
@@ -479,6 +478,9 @@ namespace TQuant {
     public:
         TWindowMin(const double& Eps);
 
+        /* TWindowMin& operator =(TWindowMin&&) = default; */
+        // TODO copy / move operations
+
         /// add a new value to the window
         void Add(const uint64& Tm, const double& Val);
         /// forgets everyting before and including the specified time
@@ -513,6 +515,7 @@ namespace TQuant {
         TUIntV LogSizeToBlockCountV {1};
         TFlt Eps;
         TFlt MnVal {TFlt::PInf};
+        TInt64 ForgetTm {TInt64::Mn};
     };
 
     ////////////////////////////////////////////
@@ -560,6 +563,8 @@ namespace TQuant {
         uint64 GetValRecount();
         /// prints the summary at the specified time
         void PrintSummary() const;
+        /// prints the summary of the structure which tracks the minimum
+        void PrintMinWinSummary() const;
 
         const TUInt64& GetSampleN() const { return SampleN; }
 
@@ -636,7 +641,29 @@ namespace TQuant {
     /// GK algorithm which works on a fixed size window.
     class TCountWindowGk : protected TSwGk {
     public:
+        /// Default constructor, sets the error bound for both types of error incurred
+        /// by the algorithm.
+        ///
+        /// WindowSize: The number of items to store in the sliding window. When there are
+        ///        more items, the oldest one is forgotten.
+        ///
+        /// EpsGk: The maximum error bound for the quantile estimation algorithm. If the
+        ///        number of items in the sliding window is N, then assuming the counts
+        ///        are accurate, the error in rank produced by the algorithm is EpsGk*N.
+        ///        Lowering this bound will increase the number of tuples in the summary.
+        ///        On average, the number of tuples will be O(1 / EpsGk)
+        ///
+        /// EpsEh: The error bound for the approximate counting structures (exponential histograms).
+        ///        Each tuple maintains two exponential histograms. If the true count of
+        ///        items in the tuple is C, then the error produced by the structure is bounded
+        ///        by EpsEh*C.
+        ///
+        /// Overall, the worst-case error produced by the algorithm when there are N items
+        /// in the sliding window is bounded by N*(EpsGk + 2*EpsEh + O(EpsEh^2)). However
+        /// in practice, the error should be less.
         TCountWindowGk(const uint64& WindowSize, const double& EpsGk, const double& EpsEh);
+
+        // TODO copy / move operations
 
         void Insert(const double& Val);
         using TSwGk::Query;
@@ -656,7 +683,29 @@ namespace TQuant {
     /// GK algorithm which works on a fixed time window.
     class TTimeWindowGk : protected TSwGk {
     public:
+        /// Default constructor, sets the error bound for both types of error incurred
+        /// by the algorithm.
+        ///
+        /// WindowMSec: The duration of the sliding window in milliseconds. Items older
+        ///         than the end of the window are forgotten.
+        ///
+        /// EpsGk: The maximum error bound for the quantile estimation algorithm. If the
+        ///        number of items in the sliding window is N, then assuming the counts
+        ///        are accurate, the error in rank produced by the algorithm is EpsGk*N.
+        ///        Lowering this bound will increase the number of tuples in the summary.
+        ///        On average, the number of tuples will be O(1 / EpsGk)
+        ///
+        /// EpsEh: The error bound for the approximate counting structures (exponential histograms).
+        ///        Each tuple maintains two exponential histograms. If the true count of
+        ///        items in the tuple is C, then the error produced by the structure is bounded
+        ///        by EpsEh*C.
+        ///
+        /// Overall, the worst-case error produced by the algorithm when there are N items
+        /// in the sliding window is bounded by N*(EpsGk + 2*EpsEh + O(EpsEh^2)). However
+        /// in practice, the error should be less.
         TTimeWindowGk(const uint64& WindowMSec, const double& EpsGk, const double& EpsEh);
+
+        // TODO copy / move operations
 
         void Insert(const uint64& ValTm, const double& Val);
         /// moves the sliding window forward to the specified time
@@ -676,7 +725,5 @@ namespace TQuant {
 }
 
 #include "quantiles.hpp"
-
-// TODO all GK based: let query quantiles be 0 and 1
 
 #endif

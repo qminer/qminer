@@ -1130,16 +1130,103 @@ TEST(TTimeWindowGk, ConceptDrift) {
         const auto UpperBoundFun = [&](const double& Quant) { return std::ceil(BatchStart + BatchSize*TMath::Mn(1.0, Quant + MxRelErr)); };
 
         // test if the values are in range
-        /* std::cout << "compressing" << std::endl; */
         Gk.Compress();
-        /* Gk.PrintSummary(); */
-        /* std::cout << "checking quantiles" << std::endl; */
         AssertQuantileRange(Gk, LowerBoundFun, UpperBoundFun);
         ASSERT_LE(Gk.GetValCount(), std::ceil((1 + EpsEh)*BatchSize));
     }
 }
 
-// TODO test time window for unuqually spaced samples
+TEST(TTimeWindowGk, ItemCountExact) {
+    const int NSamples = 1000;
+
+    const int WindowMSec = 100;
+    const double EpsGk = .1;
+    const double EpsEh = 0;
+
+    TTimeWindowGk Gk(WindowMSec, EpsGk, EpsEh);
+
+    TIntV SampleV;  GenSamplesUniform(NSamples, SampleV);
+    TUInt64V SampleTmV;
+
+    TRnd Rnd(1);
+    uint64 CurrTm = 0;
+    for (int SampleN = 0; SampleN < NSamples; SampleN++) {
+        CurrTm += Rnd.GetUniDevInt(WindowMSec / 2);
+        const int64 ForgetTm = CurrTm - WindowMSec;
+
+        Gk.Insert(CurrTm, SampleV[SampleN]);
+
+        SampleTmV.Add(CurrTm);
+        while (!SampleTmV.Empty() && int64(SampleTmV[0]) <= ForgetTm) {
+            SampleTmV.Del(0);
+        }
+
+        if (SampleN > 0 && SampleN % 100 == 0) {
+            Gk.Compress();
+
+            const uint64 ValCount = Gk.GetValCount();
+            const uint64 ValRecount = Gk.GetValRecount();
+
+            ASSERT_EQ(SampleTmV.Len(), ValCount);
+            ASSERT_EQ(SampleTmV.Len(), ValRecount);
+        }
+    }
+
+    Gk.Compress();
+
+    const uint64 ValCount = Gk.GetValCount();
+    const uint64 ValRecount = Gk.GetValRecount();
+
+    ASSERT_EQ(SampleTmV.Len(), ValCount);
+    ASSERT_EQ(SampleTmV.Len(), ValRecount);
+}
+
+TEST(TTimeWindowGk, ItemCountApprox) {
+    const int NSamples = 1000;
+
+    const int WindowMSec = 100;
+    const double EpsGk = .1;
+    const double EpsEh = .05;
+
+    TTimeWindowGk Gk(WindowMSec, EpsGk, EpsEh);
+
+    TIntV SampleV;  GenSamplesUniform(NSamples, SampleV);
+    TUInt64V SampleTmV;
+
+    TRnd Rnd(1);
+    uint64 CurrTm = 0;
+    for (int SampleN = 0; SampleN < NSamples; SampleN++) {
+        CurrTm += Rnd.GetUniDevInt(WindowMSec / 2);
+        const int64 ForgetTm = CurrTm - WindowMSec;
+
+        Gk.Insert(CurrTm, SampleV[SampleN]);
+
+        SampleTmV.Add(CurrTm);
+        while (!SampleTmV.Empty() && int64(SampleTmV[0]) <= ForgetTm) {
+            SampleTmV.Del(0);
+        }
+
+        if (SampleN > 0 && SampleN % 100 == 0) {
+            Gk.Compress();
+
+            const uint64 ValCount = Gk.GetValCount();
+            const uint64 ValRecount = Gk.GetValRecount();
+
+            ASSERT_EQ(ValCount, ValRecount);
+            ASSERT_LE(ValCount, std::ceil(SampleTmV.Len())*(1 + EpsEh));
+            ASSERT_GE(ValCount, std::floor(SampleTmV.Len())*(1 - EpsEh));
+        }
+    }
+
+    Gk.Compress();
+
+    const uint64 ValCount = Gk.GetValCount();
+    const uint64 ValRecount = Gk.GetValRecount();
+
+    ASSERT_EQ(ValCount, ValRecount);
+    ASSERT_LE(ValCount, std::ceil(SampleTmV.Len())*(1 + EpsEh));
+    ASSERT_GE(ValCount, std::floor(SampleTmV.Len())*(1 - EpsEh));
+}
 
 TEST(TTimeWindow, DrainSummary) {
     const uint64 WindowMSec = 1000;
@@ -1163,29 +1250,79 @@ TEST(TTimeWindow, DrainSummary) {
         Gk.UpdateTime(Tm);
     }
 
+    const auto ZeroFun = [&](const double&) { return 0.0; };
+
     Gk.Compress();
     ASSERT_EQ(0, Gk.GetValCount());
     ASSERT_EQ(0, Gk.GetValRecount());
-    ASSERT_EQ(0, Gk.Query(0));
-    ASSERT_EQ(0, Gk.Query(.5));
-    ASSERT_EQ(0, Gk.Query(1));
+    AssertQuantileRange(Gk, ZeroFun, ZeroFun);
 }
 
+TEST(TTimeWindow, AutoCompress) {
+    const uint64 WindowMSec = 10000;
+    const int BatchSize = WindowMSec;
 
-// TODO move this on top of TCountWindowGk
+    const double EpsGk = .1;
+    const double EpsEh = .05;
+
+    TTimeWindowGk Gk(WindowMSec, EpsGk, EpsEh);
+
+    TIntV SampleV;  GenSamplesUniform(BatchSize, SampleV);
+
+    for (int SampleN = 0; SampleN < BatchSize; SampleN++) {
+        const uint64 Tm = SampleN;
+        Gk.Insert(Tm, SampleV[SampleN]);
+    }
+
+    ASSERT_LE(Gk.GetSummarySize(), 300);
+}
+
 TEST(TSwGk, Query) {
-    // TODO
-}
+    const int NSamples = 10000;
+    const int WindowLen = 1000;
 
-TEST(TSwGk, ConceptDrift) {
-    // TODO
+    const double EpsGk = .1;
+    const double EpsEh = .05;
+
+    TSwGk Gk(EpsGk, EpsEh);
+    TSwGk GkWin(EpsGk, EpsEh);
+
+    for (int SampleN = 0; SampleN < NSamples; SampleN++) {
+        Gk.Insert(SampleN, SampleN);
+        GkWin.Insert(SampleN, SampleN);
+        GkWin.Forget(SampleN - WindowLen);
+    }
+
+    const double MxRelErr = GetSwGkMxRelErr(EpsGk, EpsEh);
+
+    const auto LowerBoundFun = [&](const double& Quantile) { return std::floor(NSamples*(Quantile - MxRelErr)); };
+    const auto UpperBoundFun = [&](const double& Quantile) { return std::ceil(NSamples*(Quantile + MxRelErr)); };
+
+    AssertQuantileRange(Gk, LowerBoundFun, UpperBoundFun);
+
+    const int ForgetTm = NSamples - WindowLen;
+
+    const auto NewLowerBoundFun = [&](const double& Quantile) { return std::floor(ForgetTm + WindowLen*(Quantile - MxRelErr)); };
+    const auto NewUpperBoundFun = [&](const double& Quantile) { return std::ceil(ForgetTm + WindowLen*(Quantile + MxRelErr)); };
+
+    AssertQuantileRange(GkWin, NewLowerBoundFun, NewUpperBoundFun);
 }
 
 TEST(TSwGk, DrainedSummary) {
-    // TODO test how TSwGk handles if you empty its summary
+    const int NSamples = 1000;
+
+    const double EpsGk = .1;
+    const double EpsEh = .05;
+
+    TSwGk Gk(EpsGk, EpsEh);
+
+    TIntV SampleV;  GenSamplesUniform(NSamples, SampleV);
+    for (int SampleN = 0; SampleN < NSamples; SampleN++) {
+        Gk.Insert(SampleN, SampleV[SampleN]);
+    }
+
+    Gk.Forget(NSamples);
+
+    const auto ZeroFun = [&](const double&) { return 0.0; };
+    AssertQuantileRange(Gk, ZeroFun, ZeroFun);
 }
-
-
-// TODO test auto compress for SW-GK
-// TODO for each structure test what happens when it becomes empty
-// TODO check that empty histograms get deleted
