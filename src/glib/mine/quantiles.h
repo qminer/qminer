@@ -339,7 +339,7 @@ namespace TQuant {
         /// merges the other exponential histogram into itself
         void Swallow(const TExpHistBase<TInterval>&);
         /// deletes the newest interval in the EH
-        void DelNewest(const bool& FireEvent=true);
+        void DelNewest();
 
         /// returns the number of intervals in the summary
         uint GetSummarySize() const;
@@ -367,7 +367,7 @@ namespace TQuant {
         uint GetMnBlocksSameSize() const;
         uint GetMxBlocksSameSize() const;
 
-        virtual void OnIntervalRemoved(const TInterval& Interval, const bool& FireEvent=true);
+        virtual void OnIntervalRemoved(const TInterval& Interval);
         virtual void OnAfterSwallow();
 
     private:
@@ -449,12 +449,12 @@ namespace TQuant {
 
         /// deletes the newest element with values different from max
         /// from the structure if there is only one element, it is deleted
-        void DelNewestNonMx(const bool& FireEvent=true);
+        void DelNewestNonMx();
         /// returns a "normal" exponential histogram representation of itself
         void ToExpHist(TExpHistogram&) const;
 
     protected:
-        void OnIntervalRemoved(const TIntervalWithMax&, const bool& FireEvent=true);
+        void OnIntervalRemoved(const TIntervalWithMax&);
         void OnAfterSwallow();
 
     private:
@@ -477,21 +477,6 @@ namespace TQuant {
     /// sliding window without counting the elements
     class TWindowMin {
     public:
-        class TMnCallback { // TODO remove
-        public:
-            virtual void OnMnChanged(const double&) = 0;
-        };
-
-    private:
-        using TIntervalV = TVec<TIntervalWithMin>;
-
-        TIntervalV IntervalV {};
-        TUIntV LogSizeToBlockCountV {1};
-        TFlt Eps;
-        TFlt MnVal {TFlt::PInf};
-        TMnCallback* MnCallback {nullptr};
-
-    public:
         TWindowMin(const double& Eps);
 
         /// add a new value to the window
@@ -502,8 +487,6 @@ namespace TQuant {
         /// the the min val at the specified time
         /* double GetMnVal(const uint64& Tm); */
         double GetMnVal() const;
-
-        void SetMnChangedCallback(TMnCallback*);    // TODO remove
 
         uint GetSummarySize() const { return IntervalV.Len(); }
         bool Empty() const { return IntervalV.Empty(); }
@@ -523,6 +506,13 @@ namespace TQuant {
         static bool IsMinInWindow(const int64& ForgetTm, const TIntervalWithMin& Interval) {
             return ForgetTm < int64(Interval.GetStartTm() + Interval.GetEndTm()) / 2;
         }
+
+        using TIntervalV = TVec<TIntervalWithMin>;
+
+        TIntervalV IntervalV {};
+        TUIntV LogSizeToBlockCountV {1};
+        TFlt Eps;
+        TFlt MnVal {TFlt::PInf};
     };
 
     ////////////////////////////////////////////
@@ -532,9 +522,7 @@ namespace TQuant {
     /// Described in
     /// "Online Algorithm for Approximate Quantile Queries on Sliding Windows"
     /// http://dl.acm.org/citation.cfm?id=2954329
-    class TSwGk : public TWindowMin::TMnCallback,
-                  public TExpHistBase<TIntervalWithMax>::TExpHistCallback {
-
+    class TSwGk : public TExpHistBase<TIntervalWithMax>::TExpHistCallback {
     public:
         /// Default constructor, sets the error bound for both types of error incurred
         /// by the algorithm.
@@ -575,8 +563,6 @@ namespace TQuant {
 
         const TUInt64& GetSampleN() const { return SampleN; }
 
-        // TODO check if you can make this private or protected
-        void OnMnChanged(const double&);
         // TODO check if you can make this private or protected
         /// updates the total count of the items in the sliding window
         void OnItemsDeleted(const uint64& ItemCount);   // is called when items fall out of any of the tuples
@@ -620,7 +606,7 @@ namespace TQuant {
             void Forget(const int64& Tm);
             /* void Forget(const uint64& Tm); */
 
-            void DelNewestNonMx(const bool& FireEvent=true);
+            void DelNewestNonMx();
 
             void Swallow(TTuple& Other, const bool& TakeMnMxRank);
 

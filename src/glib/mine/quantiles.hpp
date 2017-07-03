@@ -331,7 +331,7 @@ namespace TQuant {
     }
 
     template <typename TInterval>
-    void TExpHistBase<TInterval>::DelNewest(const bool& FireEvent) {
+    void TExpHistBase<TInterval>::DelNewest() {
         Assert(!IntervalV.Empty());
 
         const TInterval Deleted = IntervalV.Last();
@@ -344,7 +344,7 @@ namespace TQuant {
         BreakBlocks();
 
         // notify the subclasses so they can update
-        OnIntervalRemoved(Deleted, FireEvent);
+        OnIntervalRemoved(Deleted);
 
         // finished, assert that all invariants hold
         AssertR(CheckInvariant1(), "EH: Invariant 1 fails after DelNewest!");
@@ -482,8 +482,8 @@ namespace TQuant {
     }
 
     template <typename TInterval>
-    void TExpHistBase<TInterval>::OnIntervalRemoved(const TInterval& Interval, const bool& FireEvent) {
-        if (FireEvent && Callback != nullptr) {
+    void TExpHistBase<TInterval>::OnIntervalRemoved(const TInterval& Interval) {
+        if (Callback != nullptr) {
             Callback->OnItemsDeleted(Interval.GetCount());
         }
     }

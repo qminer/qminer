@@ -515,10 +515,10 @@ namespace TQuant {
         return MxVal;
     }
 
-    void TExpHistWithMax::DelNewestNonMx(const bool& FireEvent) {
+    void TExpHistWithMax::DelNewestNonMx() {
         Assert(!IntervalV.Empty());
         if (IntervalV.Len() == 1 || IntervalV.Last().GetMxVal() != MxVal) {
-            DelNewest(FireEvent);
+            DelNewest();
         } else {
             // delete the second newest
             const int DelPos = IntervalV.Len()-2;
@@ -551,7 +551,7 @@ namespace TQuant {
                 }
 
                 // notify subclasses so they can adapt their state
-                OnIntervalRemoved(EndInterval, FireEvent);
+                OnIntervalRemoved(EndInterval);
             } else {
                 const TIntervalWithMax Removed = IntervalV[DelPos];
                 IntervalV.Del(DelPos);
@@ -559,7 +559,7 @@ namespace TQuant {
                 --LogBlockSizeToBlockCount(0);
                 BreakBlocks();
                 // notify subclasses so they can adapt their state
-                OnIntervalRemoved(Removed, FireEvent);
+                OnIntervalRemoved(Removed);
             }
         }
 
@@ -578,8 +578,8 @@ namespace TQuant {
         }
     }
 
-    void TExpHistWithMax::OnIntervalRemoved(const TIntervalWithMax& Interval, const bool& FireEvent) {
-        TExpHistBase<TIntervalWithMax>::OnIntervalRemoved(Interval, FireEvent);
+    void TExpHistWithMax::OnIntervalRemoved(const TIntervalWithMax& Interval) {
+        TExpHistBase<TIntervalWithMax>::OnIntervalRemoved(Interval);
 
         if (MxVal == Interval.GetMxVal()) {
             FindNewMxVal();
@@ -600,8 +600,6 @@ namespace TQuant {
     }
 
     void TWindowMin::Add(const uint64& Tm, const double& Val) {
-        bool MnChanged = false;
-
         // discard all values which are >= Val
         while (!IntervalV.Empty() && IntervalV.Last().GetMnVal() >= Val) {
             --BlockSizeToBlockCount(IntervalV.Last().GetCount());
@@ -611,7 +609,6 @@ namespace TQuant {
         // add the new element
         if (IntervalV.Empty() || Val < MnVal) {
             MnVal = Val;
-            MnChanged = true;
         }
         IntervalV.Add(TIntervalWithMin(Tm, Val));
         ++LogBlockSizeToBlockCount(0);
@@ -620,10 +617,6 @@ namespace TQuant {
 
         AssertR(CheckInvariant1(), "WindowMin: Invariant 1 fails after Add!");
         AssertR(CheckInvariant2(), "WindowMin: Invariant 2 fails after Add!");
-
-        if (MnChanged && MnCallback != nullptr) {
-            MnCallback->OnMnChanged(MnVal);
-        }
     }
 
     void TWindowMin::Forget(const int64& NewForgetTm) {
@@ -650,20 +643,12 @@ namespace TQuant {
                     MnVal = IntervalMn;
                 }
             }
-            if (MnCallback != nullptr) {
-                MnCallback->OnMnChanged(MnVal);
-            }
         }
     }
 
     double TWindowMin::GetMnVal() const {
         Assert(GetSummarySize() > 0);
         return MnVal;
-    }
-
-    void TWindowMin::SetMnChangedCallback(TMnCallback* Cb) {
-        // TODO?? should I call the callback????
-        /* MnCallback = Cb; */
     }
 
     void TWindowMin::PrintSummary() const {
@@ -787,7 +772,6 @@ namespace TQuant {
             EpsEh(_EpsEh) {
         EAssert(EpsGk < .2);
         EAssert(EpsEh < .2);
-        WinMin.SetMnChangedCallback(this);
     }
 
     double TSwGk::Query(const double& Quantile) {
@@ -925,19 +909,6 @@ namespace TQuant {
         std::cout << "]" << std::endl;
     }
 
-    void TSwGk::OnMnChanged(const double&) {    // TODO remove
-        while (GetSummarySize() > 0) {
-            typename TSummary::iterator FirstIt = Summary.begin();
-            FirstIt->Forget(ForgetTm);
-            if (FirstIt->GetTupleSize() > 0) { break; }
-            Summary.erase(FirstIt);
-        }
-        if (GetSummarySize() > 0) {
-            // TODO should ignore the change in OnItemsDeleted
-            Summary.begin()->DelNewestNonMx(false);
-        }
-    }
-
     void TSwGk::OnItemsDeleted(const uint64& DelCount) {
         Assert(ItemCount >= DelCount);
         ItemCount -= DelCount;
@@ -1003,8 +974,8 @@ namespace TQuant {
         MnMxRankDiffExpHist.Forget(Tm);
     }
 
-    void TSwGk::TTuple::DelNewestNonMx(const bool& FireEvent) {
-        TupleSizeExpHist.DelNewestNonMx(FireEvent);
+    void TSwGk::TTuple::DelNewestNonMx() {
+        TupleSizeExpHist.DelNewestNonMx();
     }
 
     void TSwGk::TTuple::Swallow(TTuple& Other, const bool& TakeMnMxRank) {
