@@ -6,35 +6,523 @@
 
 namespace TQuant {
 
-    class TGkTuple;
+    namespace TUtils {
 
-    template <typename T1, typename T2, typename T3>
-    std::ostream& operator <<(std::ostream& os, const TTriple<T1, T2, T3>& Triple);
+        template <typename T1, typename T2, typename T3>
+        std::ostream& operator <<(std::ostream& os, const TTriple<T1, T2, T3>& Triple);
+        template <typename T>
+        std::ostream& operator <<(std::ostream& os, const TVec<T>& Vec);
 
-    template <typename T>
-    std::ostream& operator <<(std::ostream& os, const TVec<T>& Vec);
+        ////////////////////////////////////
+        /// A tuple class used by the GK-based algorithms
+        class TGkTuple {
+        private:
+            TFlt Val {};
+            TUInt TupleSize {};
+            TUInt MnMxRankDiff {};
 
-    std::ostream& operator <<(std::ostream& os, const TGkTuple& Tup);
+        public:
+            TGkTuple();
+            TGkTuple(const double& Val, const uint& MnRankDiff, const uint& Delta);
 
-    std::ostream& operator <<(std::ostream& os, const TUInt& Val);
+            const TFlt& GetVal() const { return Val; }
+            const TUInt& GetTupleSize() const { return TupleSize; }
+            const TUInt& GetMnMxRankDiff() const { return MnMxRankDiff; }
 
+            void Swallow(const TGkTuple&);
+        };
 
-    class TGkTuple {
-    private:
-        TFlt Val {};
-        TUInt TupleSize {};
-        TUInt MnMxRankDiff {};
+        ///////////////////////////////////
+        /// Helper for the merge operation
+        /// for basic intervals
+        template <typename TInterval>
+        class TBasicMergeHelper {
+        public:
+            using TOtherCarryInfo = TBool;
 
-    public:
-        TGkTuple();
-        TGkTuple(const double& Val, const uint& MnRankDiff, const uint& Delta);
+            static TInterval CreateInterval(const uint64& StartTm, const uint64& Dur, const uint& Count,
+                    const TBool&) {
+                return TInterval(StartTm, Dur, Count);
+            }
+            static TBool ExtractOtherCarryInfo(const TInterval&) { return false; }
+            static void MergeOtherCarryInfo(const TBool&, const TBool&) {}
+            static void UndefineOtherInfo(const TBool&) {}
+        };
 
-        const TFlt& GetVal() const { return Val; }
-        const TUInt& GetTupleSize() const { return TupleSize; }
-        const TUInt& GetMnMxRankDiff() const { return MnMxRankDiff; }
+        ///////////////////////////////////
+        /// Helper for the merge operation
+        /// for intervals with max
+        template <typename TInterval>
+        class TMaxMergeHelper {
+        public:
+            using TOtherCarryInfo = TFlt;
 
-        void Swallow(const TGkTuple&);
-    };
+            static TInterval CreateInterval(const uint64& StartTm, const uint64& Dur,
+                    const uint& Count, const double& MxVal) {
+                return TInterval(StartTm, Dur, Count, MxVal);
+            }
+            static TFlt ExtractOtherCarryInfo(const TInterval& Interval) { return Interval.GetMxVal(); }
+            static void MergeOtherCarryInfo(const TFlt& MxVal, TFlt& CurrMxVal) {
+                if (MxVal > CurrMxVal) {
+                    CurrMxVal = MxVal;
+                }
+            }
+            static void UndefineOtherInfo(TFlt& MxVal) {
+                MxVal = TFlt::NInf;
+            }
+        };
+
+        ////////////////////////////////////
+        /// Time interval which holds a count
+        /// of items
+        class TInterval {
+        private:
+            TUInt64 StartTm;
+            TUInt64 DurMSec {0ul};  // the interval covers [StartTm, StartTm + DurMSec]
+            TUInt ElCount {1u};
+
+        public:
+            using TMergeHelper = TBasicMergeHelper<TInterval>;
+
+            TInterval();
+            TInterval(const uint64& StartTm);
+            TInterval(const uint64& StartTm, const uint64& Dur, const uint& Count);
+
+            // SERIALIZATION
+            TInterval(TSIn&);
+            void Save(TSOut& SOut) const;
+
+            const TUInt& GetCount() const { return ElCount; }
+            const TUInt64& GetStartTm() const { return StartTm; }
+            const TUInt64& GetDurMSec() const { return DurMSec; }
+
+            uint64 GetEndTm() const;
+
+            void Swallow(const TInterval&);
+            void Split(TInterval& StartInterval, TInterval& EndInterval) const {
+                Assert(ElCount > 1);
+                // the start interval which starts at the start of this one
+                // and has duration 0
+                StartInterval.StartTm = GetStartTm();
+                StartInterval.DurMSec = 0;
+                StartInterval.ElCount = GetCount() >> 1;
+                // the end interval occurs at the end of this interval
+                // and also has duration 0
+                EndInterval.StartTm = GetEndTm();
+                EndInterval.DurMSec = 0;
+                EndInterval.ElCount = GetCount() >> 1;
+            }
+        };
+
+        ///////////////////////////////////////////
+        /// Interval which holds the start time,
+        /// duration, item count and maximum value
+        class TIntervalWithMax : public TInterval {
+        private:
+            TFlt MxVal;             // the maximal value merged into the interval
+
+        public:
+            using TMergeHelper = TMaxMergeHelper<TIntervalWithMax>;
+
+            TIntervalWithMax();
+            TIntervalWithMax(const uint64& BeginTm, const double& Val);
+            TIntervalWithMax(const uint64& StartTm, const uint64& Dur, const uint& Cnt,
+                    const double& MxVal);
+
+            // SERIALIZATION
+            TIntervalWithMax(TSIn&);
+            void Save(TSOut&) const;
+
+            const TFlt& GetMxVal() const { return MxVal; }
+
+            void Swallow(const TIntervalWithMax&);
+            void Split(TIntervalWithMax& StartInterval, TIntervalWithMax& EndInterval) const {
+                TInterval::Split(StartInterval, EndInterval);
+                StartInterval.MxVal = MxVal;
+                EndInterval.MxVal = MxVal;
+            }
+        };
+
+        ///////////////////////////////////////////
+        /// Interval which holds the start time,
+        /// duration, item count and minimum value
+        class TIntervalWithMin : public TInterval {
+        private:
+            TFlt MnVal;
+
+        public:
+            TIntervalWithMin();
+            TIntervalWithMin(const uint64& BeginTm, const double& Val);
+            TIntervalWithMin(const uint64& BeginTm, const uint64& Dur, const uint& Cnt,
+                    const double& MnVal);
+
+            // SERIALIZATION
+            TIntervalWithMin(TSIn&);
+            void Save(TSOut&) const;
+
+            const TFlt& GetMnVal() const { return MnVal; }
+
+            void Swallow(const TIntervalWithMin&);
+        };
+
+        //////////////////////////////////////////////
+        /// Base class with most of the logic needed by
+        /// exponential histograms
+        template <typename TInterval>
+        class TExpHistBase {
+        protected:
+            using TMergeHelper = typename TInterval::TMergeHelper;
+            using TCarryInfo = TTriple<TUInt, TUInt64, typename TMergeHelper::TOtherCarryInfo>;
+            using TIntervalV = TVec<TInterval>;
+
+        public:
+            class TExpHistCallback {
+            public:
+                virtual void OnItemsDeleted(const uint64&) = 0;
+            };
+
+            /* TExpHistBase() {} */
+            /// Sets the time window and error. The (approximate) count
+            /// of the elements in time window [curr_time, curr_time - window)
+            /// in the bin is at most (1 + eps)*real_count.
+            TExpHistBase(const double& Eps);
+
+            virtual ~TExpHistBase() {}
+
+            // SERIALIZATION
+            TExpHistBase(TSIn&);
+            void Save(TSOut&) const;
+
+            // COPY/MOVE OPERATIONS
+            /// copy
+            TExpHistBase(const TExpHistBase<TInterval>&);
+            TExpHistBase& operator =(const TExpHistBase<TInterval>&);
+            // move
+            TExpHistBase(TExpHistBase<TInterval>&&);
+            TExpHistBase<TInterval>& operator =(TExpHistBase<TInterval>&&);
+
+            /// forgets all elements which occur at the specified time or before
+            virtual void Forget(const int64&);
+
+            /// returns the number of elements in the time window without
+            /// shifting the window
+            uint GetCount() const;
+
+            /// merges the other exponential histogram into itself
+            void Swallow(const TExpHistBase<TInterval>&);
+            /// deletes the newest interval in the EH
+            void DelNewest();
+
+            /// returns the number of intervals in the summary
+            uint GetSummarySize() const;
+            /// prints the intervals to stadard output
+            void PrintSummary() const { std::cout << IntervalV << "\n"; }
+
+            /// checks if the error is bounded by eps
+            bool CheckInvariant1() const;
+            /// checks if the internal structure of the EH is correct
+            bool CheckInvariant2() const;
+
+            /// sets the callback to notify various events
+            void SetCallback(TExpHistCallback& Cb) { Callback = &Cb; }
+
+        protected:
+            void Add(const TInterval&);
+            void Compress();
+            void BreakBlocks(const int& StartBlockSize = 1);
+
+            TUInt& LogBlockSizeToBlockCount(const uint& LogBlockSize);
+            TUInt& BlockSizeToBlockCount(const uint& BlockSize);
+
+            void CompressOldestInBatch(const int& BatchPos);
+
+            uint GetMnBlocksSameSize() const;
+            uint GetMxBlocksSameSize() const;
+
+            virtual void OnIntervalRemoved(const TInterval& Interval);
+            virtual void OnAfterSwallow();
+
+        private:
+
+            TInterval& GetInterval(const int& IntervalN);
+            TInterval& GetPrevInterval(const int& IntervalN);
+
+            void ReserveStructures(const uint& LogBlockSize);
+
+            static bool IsInWindow(const int64& ForgetTm, const TInterval& Interval) {
+                return ForgetTm < int64(Interval.GetEndTm());
+            }
+
+            // helper functions for the merge operation
+            static void MergeAddItemBatch(const uint& BatchSize, const uint64& BatchTm,
+                    const typename TMergeHelper::TOtherCarryInfo&, const uint& BlockSize,
+                    TCarryInfo& CarryInfo, TIntervalV& NewIntervalV);
+            static void MergeAddItemBatch(const uint& BatchSize, const uint64& BatchTm,
+                    const typename TMergeHelper::TOtherCarryInfo& BatchOtherInfo,
+                    const typename TMergeHelper::TOtherCarryInfo& OpenIntervalOtherInfo,
+                    const uint& BlockSize, TCarryInfo& CarryInfo, TIntervalV& NewIntervalV);
+            static void MergeFlushCarryInfo(const uint& BlockSize, const uint64 EndTm,
+                    TCarryInfo& CarryInfo, TIntervalV& NewIntervalV);
+            static void MergeCloseInterval(const TIntervalV& IntervalV, int& OpenN,
+                    const TIntervalV& OthrIntervalV, const int& OthrN,
+                    uint& CurrBlockSize, TCarryInfo& CarryInfo, TIntervalV& NewIntervalV);
+            static void MergeFinishIntervalV(const TIntervalV& IntervalV, int& IntervalN,
+                    const TIntervalV& OtherIntervalV, const int& OtherIntervalN,
+                    uint& CurrBlockSize, TCarryInfo& CarryInfo, TIntervalV& NewIntervalV);
+
+        protected:
+            // MEMBERS
+            TIntervalV IntervalV {};
+            TUIntV LogSizeToBlockCountV {1};  // at index i stores the number of blocks of size (i+1)
+            TFlt Eps;
+            TUInt TotalCount {0u};
+            TExpHistCallback* Callback {nullptr}; // notifies certain events
+        };
+
+        class TExpHistWithMax;  // TODO change the order
+
+        //////////////////////////////////////////////
+        /// Exponential Histogram
+        /// (approximately) counts the number of items
+        /// in a time window
+        class TExpHistogram : public TExpHistBase<TInterval> {
+            friend class TExpHistWithMax;
+        private:
+            using TIntervalType = TInterval;
+            using TBase = TExpHistBase<TIntervalType>;
+
+        public:
+            using TBase::TExpHistBase;
+
+            void Add(const uint64& Tm);
+        };
+
+        //////////////////////////////////////////////
+        /// Exponential Histogram which also holds the
+        /// maximum of the items
+        class TExpHistWithMax : public TExpHistBase<TIntervalWithMax> {
+            using TBase = TExpHistBase<TIntervalWithMax>;
+        public:
+            using TBase::TExpHistBase;
+
+            // SERIALIZATION
+            TExpHistWithMax(TSIn&);
+            void Save(TSOut&) const;
+
+            // COPY/MOVE operations
+            // copy
+            TExpHistWithMax(const TExpHistWithMax&);
+            TExpHistWithMax& operator =(const TExpHistWithMax&);
+            // move
+            TExpHistWithMax(TExpHistWithMax&&);
+            TExpHistWithMax& operator =(TExpHistWithMax&&);
+
+            void Forget(const int64&);
+
+            /// adds a new item
+            void Add(const uint64& Tm, const double& Val);
+            /// returns the maximum value in the time window without
+            /// shifting the window
+            double GetMxVal() const;
+
+            /// deletes the newest element with values different from max
+            /// from the structure if there is only one element, it is deleted
+            void DelNewestNonMx();
+            /// returns a "normal" exponential histogram representation of itself
+            void ToExpHist(TExpHistogram&) const;
+
+        protected:
+            void OnIntervalRemoved(const TIntervalWithMax&);
+            void OnAfterSwallow();
+
+        private:
+            void FindNewMxVal(const int& StartN=0) {
+                MxVal = TFlt::NInf;
+                for (int IntervalN = StartN; IntervalN < IntervalV.Len(); IntervalN++) {
+                    if (IntervalV[IntervalN].GetMxVal() > MxVal) {
+                        MxVal = IntervalV[IntervalN].GetMxVal();
+                    }
+                }
+            }
+            static bool IsMaxInWindow(const int64& ForgetTm, const TIntervalWithMax& Interval) {
+                return ForgetTm < int64(Interval.GetStartTm() + Interval.GetEndTm()) / 2;
+            }
+
+            // MEMBERS
+            using TIntervalV = TBase::TIntervalV;   // TODO when done check if this is needed
+
+            TFlt MxVal; // the (approximate) maximum value on the interval
+        };
+
+        //////////////////////////////////////////////
+        /// EH-like structure optimized for
+        /// approximating the minimum value in a
+        /// sliding window without counting the elements
+        class TWindowMin {
+        public:
+            TWindowMin(const double& Eps);
+
+            // SERIALIZATION
+
+            TWindowMin(TSIn& SIn);
+            void Save(TSOut& SOut) const;
+
+            /* TWindowMin& operator =(TWindowMin&&) = default; */
+            // TODO copy / move operations
+
+            /// add a new value to the window
+            void Add(const uint64& Tm, const double& Val);
+            /// forgets everyting before and including the specified time
+            void Forget(const int64&);
+            /// returns the (approximate) minimum value in the structure
+            double GetMnVal() const;
+
+            // DEBUGGING
+
+            uint GetSummarySize() const { return IntervalV.Len(); }
+            bool Empty() const { return IntervalV.Empty(); }
+            void PrintSummary() const;
+
+        private:
+            void Compress();
+
+            void ReserveStructures(const uint& LogSize);
+            TUInt& LogBlockSizeToBlockCount(const uint& LogBlockSize);
+            TUInt& BlockSizeToBlockCount(const uint& BlockSize);
+            uint GetMxBlocksSameSize() const;
+
+            bool CheckInvariant1() const;
+            bool CheckInvariant2() const;
+
+            static bool IsMinInWindow(const int64& ForgetTm, const TIntervalWithMin& Interval);
+
+            using TIntervalV = TVec<TIntervalWithMin>;
+
+            TIntervalV IntervalV {};
+            TUIntV LogSizeToBlockCountV {1};
+            TFlt Eps;
+            TFlt MnVal {TFlt::PInf};
+            TInt64 ForgetTm {TInt64::Mn};
+        };
+
+        /// tuple used in the summary
+        class TEhTuple {
+            using TDelCallback = TExpHistBase<TIntervalWithMax>::TExpHistCallback;
+        public:
+            TEhTuple(const double& Eps, const uint64& ValTm, const double& Val,
+                   TDelCallback& DelCallback);
+            TEhTuple(const double& Eps, const uint64& ValTm, const double& Val,
+                   TEhTuple& LeftTuple, TDelCallback& DelCallback);
+
+            // SERIALIZATION
+
+            TEhTuple(TSIn& SIn);
+            void Save(TSOut& SOut) const;
+
+            // TODO copy / move operations
+
+            /// returns the (approximate) max value in the tuple
+            /// without shifting the sliding window
+            double GetVal() const;
+            /// returns the (approximate) size of the tuple
+            /// without shifting the sliding window
+            uint GetTupleSize() const;
+            /// returns the (approximate) correction of capacity of the tuple
+            /// without shifting the sliding window
+            uint GetMnMxRankDiff() const;
+            /// indicates whether the tuple is empty
+            bool Empty() const { return GetTupleSize() == 0; }
+
+            /// Shifts the cutoff time. All the values at and after this time
+            /// are forgotten
+            void Forget(const int64& Tm);
+            /* void Forget(const uint64& Tm); */
+
+            void DelNewestNonMx();
+
+            void Swallow(TEhTuple& Other, const bool& TakeMnMxRank);
+
+            friend std::ostream& operator <<(std::ostream& os, const TEhTuple& Tup) {
+                return os << "<"
+                          << Tup.TupleSizeExpHist.GetMxVal() << ", "
+                          << Tup.TupleSizeExpHist.GetCount() << ", "
+                          << Tup.RightUncertExpHist.GetCount()
+                          << ">";
+            }
+
+        private:
+            TExpHistWithMax TupleSizeExpHist;   // G
+            TExpHistogram RightUncertExpHist;   // D
+        };
+
+        ///////////////////////////////////////////
+        /// A summary structure for the SwGk-based
+        /// algorithms which uses a linked list structure
+        class TSwGkLLSummary : public TExpHistBase<TUtils::TIntervalWithMax>::TExpHistCallback {
+        public:
+            TSwGkLLSummary(const double& EpsGk, const double& EpsEh);
+
+            // SERIALIZATION
+            TSwGkLLSummary(TSIn& SIn);
+            void Save(TSOut& SOut) const;
+
+            // API
+
+            /// inserts a new value into the summary
+            void Insert(const uint64& ValTm, const double& Val);
+            /// returns the (approximate) quantile
+            double Query(const double& Quantile);
+            /// forgets values after the forget time
+            void Forget(const uint64& ForgetTm);
+
+            /// updates the time window, removes empty tuples and merges
+            /// tuples which satisfy the merging criteria
+            void Compress();
+
+            // PARAMS
+            const TFlt& GetEpsGk() const;
+            const TFlt& GetEpsEh() const;
+
+            /// returns the (approximate) count of items in the summary
+            uint64 GetValCount();
+            /// returns the (approximate) count of items in the summary by recounting the
+            /// items in all the tuples
+            uint64 GetValRecount();
+            /// returns the number of tuples in the summary
+            uint GetTupleCount() const;
+
+            // TODO check if you can make this private or protected
+            /// updates the total count of the items in the sliding window
+            void OnItemsDeleted(const uint64& ItemCount);   // is called when items fall out of any of the tuples
+
+            friend std::ostream& operator <<(std::ostream&, const TSwGkLLSummary&);
+
+        private:
+            /// for each tuple updates the time window and removes
+            /// empty tuples
+            void Refresh(const uint64& ForgetTm);
+
+            using TTuple = TEhTuple;
+            using TSummary = std::list<TTuple>;
+
+            TSummary Summary {};
+            TUInt64 ItemCount {0ul};        // number of items in the sliding window
+            TInt64 ForgetTm {TInt64::Mn};   // the first timestamp forgotten by the summary
+
+            const TFlt EpsGk;               // quantile estimation error
+            const TFlt EpsEh;               // count estimation error
+        };
+
+        // PRINT OPERATORS
+
+        std::ostream& operator <<(std::ostream& os, const TGkTuple& Tup);
+        std::ostream& operator <<(std::ostream&, const TInterval&);
+        std::ostream& operator <<(std::ostream&, const TIntervalWithMax&);
+        std::ostream& operator <<(std::ostream&, const TIntervalWithMin&);
+        std::ostream& operator <<(std::ostream&, const TUIntUInt64Pr&);
+    }
+
+    using TUtils::operator<<;
 
     ///////////////////////////////////////////////
     /// The Greenwald-Khanna (GK) online quantile estimation algorithm
@@ -146,12 +634,13 @@ namespace TQuant {
         double GetMxTupleSize(const double& Rank) const;
 
         bool ShouldCompress() const;
-        int GetBand(const TGkTuple&, const uint64& MnRank) const;
+        int GetBand(const TUtils::TGkTuple&, const uint64& MnRank) const;
 
         static constexpr double NUM_EPS = 1e-12;
 
 
-        using TSummary = TVec<TGkTuple>;  // TODO use a linked list or some other structure
+        using TTuple = TUtils::TGkTuple;
+        using TSummary = TVec<TTuple>;  // TODO use a linked list or some other structure
 
         TSummary Summary {};
         TUInt64 SampleN {0ul};
@@ -163,360 +652,6 @@ namespace TQuant {
 
     using TCkms = TBiasedGk;
 
-    ///////////////////////////////////
-    /// Helper for the merge operation
-    /// for basic intervals
-    template <typename TInterval>
-    class TBasicMergeHelper {
-    public:
-        using TOtherCarryInfo = TBool;
-
-        static TInterval CreateInterval(const uint64& StartTm, const uint64& Dur, const uint& Count,
-                const TBool&) {
-            return TInterval(StartTm, Dur, Count);
-        }
-        static TBool ExtractOtherCarryInfo(const TInterval&) { return false; }
-        static void MergeOtherCarryInfo(const TBool&, const TBool&) {}
-        static void UndefineOtherInfo(const TBool&) {}
-    };
-
-    ///////////////////////////////////
-    /// Helper for the merge operation
-    /// for intervals with max
-    template <typename TInterval>
-    class TMaxMergeHelper {
-    public:
-        using TOtherCarryInfo = TFlt;
-
-        static TInterval CreateInterval(const uint64& StartTm, const uint64& Dur,
-                const uint& Count, const double& MxVal) {
-            return TInterval(StartTm, Dur, Count, MxVal);
-        }
-        static TFlt ExtractOtherCarryInfo(const TInterval& Interval) { return Interval.GetMxVal(); }
-        static void MergeOtherCarryInfo(const TFlt& MxVal, TFlt& CurrMxVal) {
-            if (MxVal > CurrMxVal) {
-                CurrMxVal = MxVal;
-            }
-        }
-        static void UndefineOtherInfo(TFlt& MxVal) {
-            MxVal = TFlt::NInf;
-        }
-    };
-
-    class TInterval {
-    private:
-        TUInt64 StartTm;
-        TUInt64 DurMSec {0ul};  // the interval covers [StartTm, StartTm + DurMSec]
-        TUInt ElCount {1u};
-
-    public:
-        using TMergeHelper = TBasicMergeHelper<TInterval>;
-
-        TInterval();
-        TInterval(const uint64& StartTm);
-        TInterval(const uint64& StartTm, const uint64& Dur, const uint& Count);
-
-        const TUInt& GetCount() const { return ElCount; }
-        const TUInt64& GetStartTm() const { return StartTm; }
-        const TUInt64& GetDurMSec() const { return DurMSec; }
-
-        uint64 GetEndTm() const;
-
-        void Swallow(const TInterval&);
-        void Split(TInterval& StartInterval, TInterval& EndInterval) const {
-            Assert(ElCount > 1);
-            // the start interval which starts at the start of this one
-            // and has duration 0
-            StartInterval.StartTm = GetStartTm();
-            StartInterval.DurMSec = 0;
-            StartInterval.ElCount = GetCount() >> 1;
-            // the end interval occurs at the end of this interval
-            // and also has duration 0
-            EndInterval.StartTm = GetEndTm();
-            EndInterval.DurMSec = 0;
-            EndInterval.ElCount = GetCount() >> 1;
-        }
-    };
-
-    ///////////////////////////////////////////
-    /// Interval which holds the start time,
-    /// duration, item count and maximum value
-    class TIntervalWithMax : public TInterval {
-    private:
-        TFlt MxVal;             // the maximal value merged into the interval
-
-    public:
-        using TMergeHelper = TMaxMergeHelper<TIntervalWithMax>;
-
-        TIntervalWithMax();
-        TIntervalWithMax(const uint64& BeginTm, const double& Val);
-        TIntervalWithMax(const uint64& StartTm, const uint64& Dur, const uint& Cnt,
-                const double& MxVal);
-
-        const TFlt& GetMxVal() const { return MxVal; }
-
-        void Swallow(const TIntervalWithMax&);
-        void Split(TIntervalWithMax& StartInterval, TIntervalWithMax& EndInterval) const {
-            TInterval::Split(StartInterval, EndInterval);
-            StartInterval.MxVal = MxVal;
-            EndInterval.MxVal = MxVal;
-        }
-    };
-
-    ///////////////////////////////////////////
-    /// Interval which holds the start time,
-    /// duration, item count and minimum value
-    class TIntervalWithMin : public TInterval {
-    private:
-        TFlt MnVal;
-
-    public:
-        TIntervalWithMin();
-        TIntervalWithMin(const uint64& BeginTm, const double& Val);
-        TIntervalWithMin(const uint64& BeginTm, const uint64& Dur, const uint& Cnt,
-                const double& MnVal);
-
-        const TFlt& GetMnVal() const { return MnVal; }
-
-        void Swallow(const TIntervalWithMin&);
-    };
-
-    std::ostream& operator <<(std::ostream&, const TInterval&);
-    std::ostream& operator <<(std::ostream&, const TIntervalWithMax&);
-    std::ostream& operator <<(std::ostream&, const TIntervalWithMin&);
-    std::ostream& operator <<(std::ostream&, const TUIntUInt64Pr&);
-
-    //////////////////////////////////////////////
-    /// Base class with most of the logic needed by
-    /// exponential histograms
-    template <typename TInterval>
-    class TExpHistBase {
-    public:
-        class TExpHistCallback {
-        public:
-            virtual void OnItemsDeleted(const uint64&) = 0;
-        };
-
-    protected:
-        using TMergeHelper = typename TInterval::TMergeHelper;
-        using TCarryInfo = TTriple<TUInt, TUInt64, typename TMergeHelper::TOtherCarryInfo>;
-        using TIntervalV = TVec<TInterval>;
-
-        TIntervalV IntervalV {};
-        TUIntV LogSizeToBlockCountV {1};  // at index i stores the number of blocks of size (i+1)
-        TFlt Eps;
-        TUInt TotalCount {0u};
-        TExpHistCallback* Callback {nullptr}; // notifies certain events
-
-    public:
-        /* TExpHistBase() {} */
-        /// Sets the time window and error. The (approximate) count
-        /// of the elements in time window [curr_time, curr_time - window)
-        /// in the bin is at most (1 + eps)*real_count.
-        TExpHistBase(const double& Eps);
-
-        virtual ~TExpHistBase() {}
-
-        // COPY/MOVE OPERATIONS
-        /// copy
-        TExpHistBase(const TExpHistBase<TInterval>&);
-        TExpHistBase& operator =(const TExpHistBase<TInterval>&);
-        // move
-        TExpHistBase(TExpHistBase<TInterval>&&);
-        TExpHistBase<TInterval>& operator =(TExpHistBase<TInterval>&&);
-
-        /// forgets all elements which occur at the specified time or before
-        virtual void Forget(const int64&);
-        /* /// forgets all the values which are outsize the sliding window */
-        /* /// ending at the provided time */
-        /* void Forget(const uint64& CurrTm); */
-
-        /// returns the number of elements in the time window without
-        /// shifting the window
-        uint GetCount() const;
-
-        /// merges the other exponential histogram into itself
-        void Swallow(const TExpHistBase<TInterval>&);
-        /// deletes the newest interval in the EH
-        void DelNewest();
-
-        /// returns the number of intervals in the summary
-        uint GetSummarySize() const;
-        /// prints the intervals to stadard output
-        void PrintSummary() const { std::cout << IntervalV << "\n"; }
-
-        /// checks if the error is bounded by eps
-        bool CheckInvariant1() const;
-        /// checks if the internal structure of the EH is correct
-        bool CheckInvariant2() const;
-
-        /// sets the callback to notify various events
-        void SetCallback(TExpHistCallback& Cb) { Callback = &Cb; }
-
-    protected:
-        void Add(const TInterval&);
-        void Compress();
-        void BreakBlocks(const int& StartBlockSize = 1);
-
-        TUInt& LogBlockSizeToBlockCount(const uint& LogBlockSize);
-        TUInt& BlockSizeToBlockCount(const uint& BlockSize);
-
-        void CompressOldestInBatch(const int& BatchPos);
-
-        uint GetMnBlocksSameSize() const;
-        uint GetMxBlocksSameSize() const;
-
-        virtual void OnIntervalRemoved(const TInterval& Interval);
-        virtual void OnAfterSwallow();
-
-    private:
-
-        TInterval& GetInterval(const int& IntervalN);
-        TInterval& GetPrevInterval(const int& IntervalN);
-
-        void ReserveStructures(const uint& LogBlockSize);
-
-        static bool IsInWindow(const int64& ForgetTm, const TInterval& Interval) {
-            return ForgetTm < int64(Interval.GetEndTm());
-        }
-
-        // helper functions for the merge operation
-        static void MergeAddItemBatch(const uint& BatchSize, const uint64& BatchTm,
-                const typename TMergeHelper::TOtherCarryInfo&, const uint& BlockSize,
-                TCarryInfo& CarryInfo, TIntervalV& NewIntervalV);
-        static void MergeAddItemBatch(const uint& BatchSize, const uint64& BatchTm,
-                const typename TMergeHelper::TOtherCarryInfo& BatchOtherInfo,
-                const typename TMergeHelper::TOtherCarryInfo& OpenIntervalOtherInfo,
-                const uint& BlockSize, TCarryInfo& CarryInfo, TIntervalV& NewIntervalV);
-        static void MergeFlushCarryInfo(const uint& BlockSize, const uint64 EndTm,
-                TCarryInfo& CarryInfo, TIntervalV& NewIntervalV);
-        static void MergeCloseInterval(const TIntervalV& IntervalV, int& OpenN,
-                const TIntervalV& OthrIntervalV, const int& OthrN,
-                uint& CurrBlockSize, TCarryInfo& CarryInfo, TIntervalV& NewIntervalV);
-        static void MergeFinishIntervalV(const TIntervalV& IntervalV, int& IntervalN,
-                const TIntervalV& OtherIntervalV, const int& OtherIntervalN,
-                uint& CurrBlockSize, TCarryInfo& CarryInfo, TIntervalV& NewIntervalV);
-    };
-
-    class TExpHistWithMax;  // TODO change the order
-
-
-    //////////////////////////////////////////////
-    /// Exponential Histogram
-    /// (approximately) counts the number of items
-    /// in a time window
-    class TExpHistogram : public TExpHistBase<TInterval> {
-        friend class TExpHistWithMax;
-    private:
-        using TIntervalType = TInterval;
-        using TBase = TExpHistBase<TIntervalType>;
-
-    public:
-        using TBase::TExpHistBase;
-
-        void Add(const uint64& Tm);
-    };
-
-    //////////////////////////////////////////////
-    /// Exponential Histogram which also holds the
-    /// maximum of the items
-    class TExpHistWithMax : public TExpHistBase<TIntervalWithMax> {
-    private:
-        using TBase = TExpHistBase<TIntervalWithMax>;
-        using TIntervalV = TBase::TIntervalV;   // TODO when done check if this is needed
-
-        TFlt MxVal; // the (approximate) maximum value on the interval
-
-    public:
-        using TBase::TExpHistBase;
-
-        // COPY/MOVE operations
-        // copy
-        TExpHistWithMax(const TExpHistWithMax&);
-        TExpHistWithMax& operator =(const TExpHistWithMax&);
-        // move
-        TExpHistWithMax(TExpHistWithMax&&);
-        TExpHistWithMax& operator =(TExpHistWithMax&&);
-
-        void Forget(const int64&);
-
-        /// adds a new item
-        void Add(const uint64& Tm, const double& Val);
-        /// returns the maximum value in the time window without
-        /// shifting the window
-        double GetMxVal() const;
-
-        /// deletes the newest element with values different from max
-        /// from the structure if there is only one element, it is deleted
-        void DelNewestNonMx();
-        /// returns a "normal" exponential histogram representation of itself
-        void ToExpHist(TExpHistogram&) const;
-
-    protected:
-        void OnIntervalRemoved(const TIntervalWithMax&);
-        void OnAfterSwallow();
-
-    private:
-        void FindNewMxVal(const int& StartN=0) {
-            MxVal = TFlt::NInf;
-            for (int IntervalN = StartN; IntervalN < IntervalV.Len(); IntervalN++) {
-                if (IntervalV[IntervalN].GetMxVal() > MxVal) {
-                    MxVal = IntervalV[IntervalN].GetMxVal();
-                }
-            }
-        }
-        static bool IsMaxInWindow(const int64& ForgetTm, const TIntervalWithMax& Interval) {
-            return ForgetTm < int64(Interval.GetStartTm() + Interval.GetEndTm()) / 2;
-        }
-    };
-
-    //////////////////////////////////////////////
-    /// EH-like structure optimized for
-    /// approximating the minimum value in a
-    /// sliding window without counting the elements
-    class TWindowMin {
-    public:
-        TWindowMin(const double& Eps);
-
-        /* TWindowMin& operator =(TWindowMin&&) = default; */
-        // TODO copy / move operations
-
-        /// add a new value to the window
-        void Add(const uint64& Tm, const double& Val);
-        /// forgets everyting before and including the specified time
-        void Forget(const int64&);
-
-        /// the the min val at the specified time
-        /* double GetMnVal(const uint64& Tm); */
-        double GetMnVal() const;
-
-        uint GetSummarySize() const { return IntervalV.Len(); }
-        bool Empty() const { return IntervalV.Empty(); }
-        void PrintSummary() const;
-
-    private:
-        void Compress();
-
-        void ReserveStructures(const uint& LogSize);
-        TUInt& LogBlockSizeToBlockCount(const uint& LogBlockSize);
-        TUInt& BlockSizeToBlockCount(const uint& BlockSize);
-        uint GetMxBlocksSameSize() const;
-
-        bool CheckInvariant1() const;
-        bool CheckInvariant2() const;
-
-        static bool IsMinInWindow(const int64& ForgetTm, const TIntervalWithMin& Interval) {
-            return ForgetTm < int64(Interval.GetStartTm() + Interval.GetEndTm()) / 2;
-        }
-
-        using TIntervalV = TVec<TIntervalWithMin>;
-
-        TIntervalV IntervalV {};
-        TUIntV LogSizeToBlockCountV {1};
-        TFlt Eps;
-        TFlt MnVal {TFlt::PInf};
-        TInt64 ForgetTm {TInt64::Mn};
-    };
 
     ////////////////////////////////////////////
     /// Greenwald-Khanna algorithm on a sliding
@@ -525,7 +660,7 @@ namespace TQuant {
     /// Described in
     /// "Online Algorithm for Approximate Quantile Queries on Sliding Windows"
     /// http://dl.acm.org/citation.cfm?id=2954329
-    class TSwGk : public TExpHistBase<TIntervalWithMax>::TExpHistCallback {
+    class TSwGk {
     public:
         /// Default constructor, sets the error bound for both types of error incurred
         /// by the algorithm.
@@ -546,14 +681,27 @@ namespace TQuant {
         /// in practice, the error should be less.
         TSwGk(const double& EpsGk, const double& EpsEh);
 
-        double Query(const double& Quantile);
+        // SERIALIZATION
+        /// loads the model from the input stream
+        TSwGk(TSIn& SIn);
+        /// saves the model to the output stream
+        void Save(TSOut& SOut) const;
+
+        // ALGORITHM API
+        /// returns the (approximate) quantile
+        double Query(const double& PVal);
         /// inserts a new value with the specified time
         void Insert(const uint64& ValTm, const double& Val);
         /// forgets all values before and including the specified time
         void Forget(const int64&);
-
         /// compresses the summary
         void Compress();
+
+        // PARAMS
+        const TFlt& GetEpsGk() const;
+        const TFlt& GetEpsEh() const;
+
+        // DEBUGGING
         /// returns the number of tuples in the summary
         int GetSummarySize() const;
         /// returns the total count of items in the sliding window
@@ -565,76 +713,26 @@ namespace TQuant {
         void PrintSummary() const;
         /// prints the summary of the structure which tracks the minimum
         void PrintMinWinSummary() const;
-
+        /// returns the number of samples seen by the algorithm
         const TUInt64& GetSampleN() const { return SampleN; }
 
-        // TODO check if you can make this private or protected
-        /// updates the total count of the items in the sliding window
-        void OnItemsDeleted(const uint64& ItemCount);   // is called when items fall out of any of the tuples
-
     private:
-        /// forgets old items and removes empty tuples
-        void RefreshSummary();
+        // HELPER FUNCTIONS
+
         /// specifies whether the compress condition holds
         bool ShouldCompress() const;
 
-        /// tuple used in the summary
-        class TTuple {
-        private:
-            using TDelCallback = TExpHistBase<TIntervalWithMax>::TExpHistCallback;
+        // MEMBERS
 
-            TExpHistWithMax TupleSizeExpHist;   // G
-            TExpHistogram MnMxRankDiffExpHist;  // D
+        using TSummary = TUtils::TSwGkLLSummary;
+        using TWindowMin = TUtils::TWindowMin;
 
-        public:
-            TTuple(const double& Eps, const uint64& ValTm, const double& Val,
-                   TDelCallback& DelCallback);
-            TTuple(const double& Eps, const uint64& Tm, const double& Val, TTuple& LeftTuple,
-                   TDelCallback& DelCallback);
-
-            // TODO copy / move operations
-
-            /// returns the (approximate) max value in the tuple
-            /// without shifting the sliding window
-            double GetVal() const;
-            /// returns the (approximate) size of the tuple
-            /// without shifting the sliding window
-            uint GetTupleSize() const;
-            /// returns the (approximate) correction of capacity of the tuple
-            /// without shifting the sliding window
-            uint GetMnMxRankDiff() const;
-            /// indicates whether the tuple is empty
-            bool Empty() const { return GetTupleSize() == 0; }
-
-            /// Shifts the cutoff time. All the values at and after this time
-            /// are forgotten
-            void Forget(const int64& Tm);
-            /* void Forget(const uint64& Tm); */
-
-            void DelNewestNonMx();
-
-            void Swallow(TTuple& Other, const bool& TakeMnMxRank);
-
-            friend std::ostream& operator <<(std::ostream& os, const TTuple& Tup) {
-                return os << "<"
-                          << Tup.TupleSizeExpHist.GetMxVal() << ", "
-                          << Tup.TupleSizeExpHist.GetCount() << ", "
-                          << Tup.MnMxRankDiffExpHist.GetCount()
-                          << ">";
-            }
-        };
-
-        using TSummary = std::list<TTuple>;
-
-        TSummary Summary {};
-        TWindowMin WinMin;
+        TSummary Summary;               // a summary which keeps track of the quantiles
+        TWindowMin WinMin;              // a structure which keeps track of the minimum value in the sliding window
+        const TFlt EpsGk;               // quantile estimation error
 
         TInt64 ForgetTm {TInt64::Mn};   // time of the last record which is not in the sliding window
-        TUInt64 ItemCount {0ul};        // number of items in the sliding window
-        TUInt64 SampleN {0ul};       // TODO see if you can remove this one
-
-        TFlt EpsGk;
-        TFlt EpsEh;
+        TUInt64 SampleN {0ul};          // total number of samples seen by the algorithm
     };
 
     ////////////////////////////////////////////
@@ -663,11 +761,24 @@ namespace TQuant {
         /// in practice, the error should be less.
         TCountWindowGk(const uint64& WindowSize, const double& EpsGk, const double& EpsEh);
 
+        // SERIALIZATION
+        TCountWindowGk(TSIn&);
+        void Save(TSOut&) const;
+
         // TODO copy / move operations
 
+        // API
+        /// Inserts a new value into the time window. If there are more
+        /// items in the timw window than the maximum amount, the older
+        /// ones are forgotten
         void Insert(const double& Val);
         using TSwGk::Query;
         using TSwGk::Compress;
+
+        // PARAMS
+        const TUInt64& GetWindowSize() const;
+        using TSwGk::GetEpsGk;
+        using TSwGk::GetEpsEh;
 
         // debugging stuff
         using TSwGk::PrintSummary;
@@ -705,6 +816,12 @@ namespace TQuant {
         /// in practice, the error should be less.
         TTimeWindowGk(const uint64& WindowMSec, const double& EpsGk, const double& EpsEh);
 
+        // SERIALIZATION
+        /// constructor which loads the model from an input stream
+        TTimeWindowGk(TSIn& SIn);
+        /// saves the model to the output stream
+        void Save(TSOut& SOut) const;
+
         // TODO copy / move operations
 
         void Insert(const uint64& ValTm, const double& Val);
@@ -712,6 +829,11 @@ namespace TQuant {
         void UpdateTime(const uint64& ValTm);
         using TSwGk::Query;
         using TSwGk::Compress;
+
+        // PARAMS
+        const TUInt64& GetWindowMSec() const;
+        using TSwGk::GetEpsGk;
+        using TSwGk::GetEpsEh;
 
         // debugging stuff
         using TSwGk::PrintSummary;
@@ -722,6 +844,8 @@ namespace TQuant {
     private:
         TUInt64 WindowMSec;
     };
+
+    std::ostream& operator <<(std::ostream& os, const TUInt& Val);
 }
 
 #include "quantiles.hpp"

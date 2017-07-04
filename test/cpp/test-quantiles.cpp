@@ -20,6 +20,7 @@
 #endif
 
 using namespace TQuant;
+using namespace TUtils;
 
 void GenSamplesUniform(const int& NSamples, TIntV& SampleV, const bool& ShuffleP=true) {
     if (!SampleV.Empty()) { SampleV.Clr(); }
