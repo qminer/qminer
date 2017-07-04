@@ -2603,7 +2603,70 @@ public:
 
 };
 
-// TODO write a comment
+
+/**
+ * @classdesc Greenwald - Khanna algorithm for quantile estimation on sliding windows. Given
+ *   a cumulative probability p, the algorithm returns the approximate value of the
+ *   p-th quantile of all the values in a sliding window.
+ *
+ *   The algorithm works by keeping a summary of buckets. Each bucket summarizes a
+ *   range of values. Through the run of the algorithm, new buckets are created and
+ *   old ones merged. To allow for the computation on a sliding window, each bucket
+ *   uses an Exponential Histogram structure to remember how many values it summarizes.
+ *
+ *   It is summarized in:
+ *   "Online Algorithm for Approximate Quantile Queries on Sliding Windows"
+ *   http://dl.acm.org/citation.cfm?id=2954329
+ *
+ *   The error is not bounded by the absolute value of the output, but by the error
+ *   in rank of the output element. For instance, if we have 100 elements and query
+ *   the median, we could get the 48-th (p=0.48), 50-th (p=0.5), 51-th (p=0.51),
+ *   etc. element.
+ *
+ *   The algorithms error is bounded by two factors. The first is the quantile
+ *   estimation factor `quantileEps` occurs because of the summary structure and
+ *   defines the maximum size of the buckets. The second type of error `countEps`
+ *   occurs because of the Exponential Histograms inside the buckets.
+ *
+ *   The worst-case error is bounded by (quantileEps + 2*countEps + O(countEps^2)),
+ *   although in practice the error is lower.
+ *
+ *   This version of the algorithm uses a count-based fixed size sliding window.
+ *
+ * @class
+ * @param {module:analytics~FixedWindowGkParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
+ * <br>1. Using the {@link module:analytics~FixedWindowGkParam} object,
+ * <br>2. using the file input stream {@link module:fs.FIn}.
+ *
+ * @example
+ * // import modules
+ * var qm = require('qminer');
+ * var analytics = qm.analytics;
+ *
+ * // create the default TDigest object
+ * var gk = new analytics.FixedWindowGk({
+ *     window: 5,
+ *     quantileEps: 0.001,
+ *     countEps: 0.0005
+ * });
+ *
+ * // create the data used for calculating quantiles
+ * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
+ *
+ * // fit the TDigest model
+ * for (var i = 0; i < inputs.length; i++) {
+ *     gk.partialFit(inputs[i]);
+ * }
+ *
+ * // make the prediction for the 0.1 quantile
+ * var prediction = gk.predict(0.1);
+ * // save the model
+ * gk.save(fs.openWrite('gk.bin')).close();
+ * // open the gk model under a new variable
+ * var gk2 = new analytics.FixedWindowGk(fs.openRead('gk.bin'));
+ *
+ */
+//# exports.FixedWindowGk = function (arg) { return Object.create(require('qminer').analytics.FixedWindowGk.prototype); }
 class TNodeJsCountWindowGk : public node::ObjectWrap {
     friend class TNodeJsUtil;
 public:
@@ -2620,6 +2683,21 @@ private:
     static TNodeJsCountWindowGk* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
 public:
+    /**
+     * Returns the models' parameters as a JavaScript object (JSON). These parameters
+     * are the same as are set through the constructor.
+     *
+     * @returns {module:analytics~FixedWindowGkParam} The construction parameters.
+     *
+     * var analytics = qm.analytics;
+     * var gk = new analytics.FixedWindowGk();
+     * var params = tdigest.getParams();
+     *
+     * console.log(params.windowSize);
+     * console.log(params.quantileEps);
+     * console.log(params.countEps);
+     */
+    //# exports.FixedWindowGk.prototype.getParams = function () { return { }; }
     JsDeclareFunction(getParams);
 
     /**
@@ -2639,7 +2717,31 @@ public:
      */
     //# exports.FixedWindowGk.partialFit = function (fout) { return Object.create(require('qminer').analytics.FixedWindowGk.prototype); }
     JsDeclareFunction(partialFit);
-    // TODO move to certain time
+
+    /**
+     * Given an input cumulative probability, returns a quantile associated with that
+     * probability (e.g. for input 0.5 it will return the median).
+     *
+     * @param {number} p - cumulative probability between 0 and 1 (both inclusive)
+     * @returns {number} quantile associated with p
+     *
+     * @example
+     * var qm = require('qminer');
+     *
+     * var gk = new qm.analytics.FixedWindowGk({
+     *     windowSize: 100    // window 100 elements long
+     * });
+     * gk.partialFit(1.0);
+     * gk.partialFit(2.0);
+     * gk.partialFit(1.0);
+     * gk.partialFit(3.0);
+     * gk.partialFit(2.0);
+     *
+     * console.log(gk.predict(0.01));   // prints the first percentile
+     * console.log(gk.predict(0.25));   // prints the first quartile
+     * console.log(gk.predict(0.5));    // prints the median
+     */
+    //# exports.FixedWindowGk.prototype.predict = function (x) { return 0; }
     JsDeclareFunction(predict);
 
     /**
@@ -2659,6 +2761,7 @@ public:
     //# exports.FixedWindowGk.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
     JsDeclareFunction(save);
 };
+
 
 /**
  * @classdesc Greenwald - Khanna algorithm for quantile estimation on sliding windows. Given
@@ -2720,8 +2823,7 @@ public:
  * // save the model
  * gk.save(fs.openWrite('gk.bin')).close();
  * // open the gk model under a new variable
- * var tdigest2 = new analytics.TDigest(fs.openRead('gk.bin'));
- *
+ * var gk2 = new analytics.TimeWindowGk(fs.openRead('gk.bin'));
  */
 //# exports.TimeWindowGk = function (arg) { return Object.create(require('qminer').analytics.TimeWindowGk.prototype); }
 class TNodeJsTimeWindowGk : public node::ObjectWrap {
@@ -2801,7 +2903,7 @@ public:
      * console.log(gk.predict(0.25));   // prints the first quartile
      * console.log(gk.predict(0.5));    // prints the median
      */
-    //# exports.TTimeWindowGk.prototype.predict = function (x) { return 0; }
+    //# exports.TimeWindowGk.prototype.predict = function (x) { return 0; }
     JsDeclareFunction(predict);
 
     /**
