@@ -814,6 +814,7 @@ public:
 
   TStrHash& operator = (const TStrHash& Hash);
 
+  void Clr() { PortV.Clr(); KeyDatV.Clr(); FFreeKeyId = -1; FreeKeys = 0; if (!Pool.Empty()) Pool->Clr(); }
   bool Empty() const {return ! Len(); }
   int Len() const { return KeyDatV.Len() - FreeKeys; }
   int Reserved() const { return KeyDatV.Reserved(); }
