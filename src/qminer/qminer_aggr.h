@@ -1723,10 +1723,14 @@ public:
     TStr Type() const { return GetType(); }
 };
 
-// TODO add an example in the documentation above
 ////////////////////////////////////////////
 /// Greenwald-Khanna quantile estimation algorithm
 /// on a sliding window.
+///
+/// Parameters:
+/// - quantileEps: maximal relative error of the quantile estimation algorithm
+/// - countEps: maximal relative error of the count estimation procedure
+/// - quantiles: array of p-values to track
 ///
 /// Described in
 /// "Online Algorithm for Approximate Quantile Queries on Sliding Windows"
