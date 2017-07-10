@@ -293,6 +293,7 @@ namespace TQuant {
 
         public:
             TExpHistogram(const double& Eps): TExpHistBase(Eps) {}
+            TExpHistogram(TSIn& SIn): TExpHistBase(SIn) {}
 
             void Add(const uint64& Tm);
         };
