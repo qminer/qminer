@@ -1240,7 +1240,8 @@ describe('Gix Position Tests', function () {
         "Kraft clinches ski jump title with final-event win",
         "Kraft wins final Planica event and ski-jumping World Cup",
         "Germany, Norway neck-and-neck after the first series in Planica",
-        "aa aa aa aa aa bb aa aa aa aa aa cc aa dd"
+        "aa aa aa aa aa bb aa aa aa aa aa cc aa dd",
+        "kk " + Array(1023).join("xx ") + "ll mm nn"
     ]
 
     describe('Test creating stores with position index', function () {
@@ -1266,13 +1267,10 @@ describe('Gix Position Tests', function () {
                 fields: [ { name: 'Value', type: 'string' } ],
                 keys: [ { field: 'Value', type: 'text_position' } ]
             });
-            store.push({ Value: text[0] });
-            store.push({ Value: text[1] });
-            store.push({ Value: text[2] });
-            store.push({ Value: text[3] });
-            store.push({ Value: text[4] });
-            store.push({ Value: text[5] });
-            assert.equal(store.length, 6);
+            for (var i=0; i < text.length; i++) {
+                store.push({ Value: text[i] });
+            }
+            assert.equal(store.length, text.length);
         });
         it('delete existing records', function () {
             var store = base.createStore({
@@ -1280,30 +1278,23 @@ describe('Gix Position Tests', function () {
                 fields: [ { name: 'Value', type: 'string' } ],
                 keys: [ { field: 'Value', type: 'text_position' } ]
             });
-            store.push({ Value: text[0] });
-            store.push({ Value: text[1] });
-            store.push({ Value: text[2] });
-            store.push({ Value: text[3] });
-            store.push({ Value: text[4] });
-            store.push({ Value: text[5] });
-
+            for (var i=0; i < text.length; i++) {
+                store.push({ Value: text[i] });
+            }
             store.clear(1);
-            assert.equal(store.length, 5);
+            assert.equal(store.length, text.length - 1);
             store.clear(2);
-            assert.equal(store.length, 3);
-            store.clear(3);
+            assert.equal(store.length, text.length - 3);
+            store.clear(text.length - 3);
             assert.equal(store.length, 0);
         });
     });
 
     describe('Test searching', function () {
         function populate(store) {
-            store.push({ Value: text[0] });
-            store.push({ Value: text[1] });
-            store.push({ Value: text[2] });
-            store.push({ Value: text[3] });
-            store.push({ Value: text[4] });
-            store.push({ Value: text[5] });
+            for (var i=0; i < text.length; i++) {
+                store.push({ Value: text[i] });
+            }
         }
 
         it('find single word', function () {
@@ -1316,7 +1307,7 @@ describe('Gix Position Tests', function () {
 
             assert.equal(base.search({ $from: "TestStore", Value: "kraft" }).length, 3);
             assert.equal(base.search({ $from: "TestStore", Value: "aa" }).length, 1);
-            assert.equal(base.search({ $from: "TestStore", Value: "aa" })[0].$fq, 8);
+            assert.equal(base.search({ $from: "TestStore", Value: "aa" })[0].$fq, 11);
             assert.equal(base.search({ $from: "TestStore", Value: "pizza" }).length, 0);
         });
         it('two word phrases', function () {
@@ -1332,9 +1323,17 @@ describe('Gix Position Tests', function () {
             assert.equal(base.search({ $from: "TestStore", Value: "planica tralala" }).length, 0);
             assert.equal(base.search({ $from: "TestStore", Value: "tralala planica" }).length, 0);
             assert.equal(base.search({ $from: "TestStore", Value: "aa aa" }).length, 1);
-            assert.equal(base.search({ $from: "TestStore", Value: "aa aa" })[0].$fq, 6);
+            assert.equal(base.search({ $from: "TestStore", Value: "aa aa" })[0].$fq, 8);
             assert.equal(base.search({ $from: "TestStore", Value: "aa bb" }).length, 1);
-            assert.equal(base.search({ $from: "TestStore", Value: "aa cc" }).length, 0);
+            assert.equal(base.search({ $from: "TestStore", Value: "aa cc" }).length, 1);
+            assert.equal(base.search({ $from: "TestStore", Value: "kk xx" }).length, 1);
+            assert.equal(base.search({ $from: "TestStore", Value: "xx ll" }).length, 1);
+            // no items where kk and ll are together
+            assert.equal(base.search({ $from: "TestStore", Value: "kk ll" }).length, 0);
+            // one false positive where kk and mm are together - due to modulo 1023
+            assert.equal(base.search({ $from: "TestStore", Value: "kk mm" }).length, 1);
+            assert.equal(base.search({ $from: "TestStore", Value: "kk nn" }).length, 0);
+
         });
         it('long word phrases', function () {
             var store = base.createStore({
@@ -1347,7 +1346,7 @@ describe('Gix Position Tests', function () {
             assert.equal(base.search({ $from: "TestStore", Value: "Kraft wins first individual ski flying event at Planica" }).length, 1);
             assert.equal(base.search({ $from: "TestStore", Value: "planica event" }).length, 1);
             assert.equal(base.search({ $from: "TestStore", Value: "aa aa aa" }).length, 1);
-            assert.equal(base.search({ $from: "TestStore", Value: "aa aa aa" })[0].$fq, 4);
+            assert.equal(base.search({ $from: "TestStore", Value: "aa aa aa" })[0].$fq, 6);
         });
         it('phrases with gaps', function () {
             var store = base.createStore({

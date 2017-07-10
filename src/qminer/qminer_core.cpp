@@ -5473,16 +5473,7 @@ TStr TIndex::TQmGixKeyStr::GetKeyNm(const TQmGixKey& Key) const {
 }
 
 //int TIndex::TQmGixItemPos::MaxPos = 8;
-int TIndex::TQmGixItemPos::Modulo = pow(2,10)-1;
-
-void TIndex::TQmGixItemPos::_Add(const int& Pos) {
-    // make sure we still have place to store
-    Assert(IsSpace());
-    // store value in the right position
-    if (PosV.Val1 == 0) { PosV.Val1 = (uint) Pos; }
-    else if (PosV.Val2 == 0) { PosV.Val2 = (uint) Pos; }
-    else { PosV.Val3 = (uint) Pos; }
-}
+const int TIndex::TQmGixItemPos::Modulo = ((int) pow(2,10))-1;
 
 TIndex::TQmGixItemPos::TQmGixItemPos(TSIn& SIn): RecId(SIn) {
     BitsetConverter Converter;
@@ -5504,33 +5495,40 @@ void TIndex::TQmGixItemPos::Save(TSOut& SOut) const {
 }
 
 int TIndex::TQmGixItemPos::GetPosLen() const {
-    // first check if we are full
-    if (!IsSpace()) { return 3; }
-    // we are not, count!
-    if (PosV.Val1 == 0) { return 0; }
-    else if (PosV.Val2 == 0) { return 1; }
-    else { return 2; }
+    if (PosV.Pos1 == 0) { return 0; }
+    else if (PosV.Pos2 == 0) { return 1; }
+    else if (PosV.Pos3 == 0) { return 2; }
+    else { return 3; }
 }
 
 int TIndex::TQmGixItemPos::GetPos(const int& PosN) const {
     Assert(PosN < GetPosLen());
     switch (PosN) {
-        case 0: return (int) PosV.Val1;
-        case 1: return (int) PosV.Val2;
-        case 2: return (int) PosV.Val3;
-        default: Assert(false);
+        case 0: return PosV.Pos1;
+        case 1: return PosV.Pos2;
+        case 2: return PosV.Pos3;
     }
+    Assert(false);
+    // we return a value so that compiler doesn't complain
+    return 0;
 }
 
-void TIndex::TQmGixItemPos::Add(const int& Pos) {
+bool TIndex::TQmGixItemPos::Add(const int& Pos) {
     // make sure we still have palce to store
     Assert(IsSpace());
+    // make sure we are adding a nonzero value (0 is rezerved for empty)
+    Assert(Pos > 0);
+    // make sure the position is already < Modulo
+    Assert(Pos <= Modulo);
+    // make sure that we always add values in increasing order
+    Assert(Pos > PosV.Pos1);
+    Assert(Pos > PosV.Pos2);
+    Assert(Pos > PosV.Pos3);
     // store position
-    uint Val = (uint)(Pos % Modulo + 1);
     // store in the appropriate place
-    if (PosV.Val1 == 0) { PosV.Val1 = Val; }
-    else if (PosV.Val2 == 0) { PosV.Val2 = Val; }
-    else { PosV.Val3 = Val; }
+    if (PosV.Pos1 == 0) { PosV.Pos1 = Pos; return false; }
+    else if (PosV.Pos2 == 0) { PosV.Pos2 = Pos; return false; }
+    else { PosV.Pos3 = Pos; return true; }
 }
 
 TIndex::TQmGixItemPos TIndex::TQmGixItemPos::Intersect(const TQmGixItemPos& Item, const int& MaxDiff) const {
@@ -5546,12 +5544,12 @@ TIndex::TQmGixItemPos TIndex::TQmGixItemPos::Intersect(const TQmGixItemPos& Item
             const int Pos2 = Item.GetPos(PosN2);
             // check if we are within the intersection, first simple case
             if (Pos1 < Pos2 && Pos2 <= (Pos1 + MaxDiff)) {
-                _Item._Add(Pos2); break;
+                _Item.Add(Pos2); break;
             }
             // check for special case when Pos2 is after the break (% 0xFF).
             // in such case Pos2 is near 0 and we just offset it for 0xFF
             if (Pos1 < (Pos2 + Modulo) && (Pos2 + Modulo) <= (Pos1 + MaxDiff)) {
-                _Item._Add(Pos2); break;
+                _Item.Add(Pos2); break;
             }
         }
     }
@@ -5607,46 +5605,70 @@ void TIndex::DoQueryPos(const int& KeyId, const TUInt64V& WordIdV,
     if (WordIdV.Empty()) { return; }
     // get records for the first word from the index and
     // store it into the running result candidate vector
-    TVec<TQmGixItemPos> ItemV;
-    GixPos->GetItemV(TQmGixKey(KeyId, WordIdV[0]), ItemV);
-    ItemV.Sort();
+    TVec<TQmGixItemPos> CurrentItemV;
+    GixPos->GetItemV(TQmGixKey(KeyId, WordIdV[0]), CurrentItemV);
+    Assert(CurrentItemV.IsSorted());
+    //ItemV.Sort();
     // now filter down the results by intersecting with subsequent words
     for (int WordN = 1; WordN < WordIdV.Len(); WordN++) {
         // stop in case we are out of candidates
-        if (ItemV.Empty()) { break; }
+        if (CurrentItemV.Empty()) { break; }
         // get new word items
         TVec<TQmGixItemPos> WordItemV;
         GixPos->GetItemV(TQmGixKey(KeyId, WordIdV[WordN]), WordItemV);
-        WordItemV.Sort();
+        Assert(WordItemV.IsSorted());
+        //WordItemV.Sort();
         // intersect the lists
-        TVec<TQmGixItemPos> _ItemV; int ItemN = 0;
+        TVec<TQmGixItemPos> _ItemV; int CurrentItemN = 0;
         for (const TQmGixItemPos& WordItem : WordItemV) {
             // find next matching items
-            while (ItemN < ItemV.Len() && ItemV[ItemN].GetRecId() < WordItem.GetRecId()) { ItemN++; }
+            while (CurrentItemN < CurrentItemV.Len() && CurrentItemV[CurrentItemN].GetRecId() < WordItem.GetRecId()) { CurrentItemN++; }
             // break if we are at the end of running candidate vector
-            if (ItemN == ItemV.Len()) { break; }
+            if (CurrentItemN == CurrentItemV.Len()) { break; }
             // skip if we iterated beyond WordItem
-            if (WordItem.GetRecId() < ItemV[ItemN].GetRecId()) { continue; }
+            if (WordItem.GetRecId() < CurrentItemV[CurrentItemN].GetRecId()) { continue; }
             // if all checks pass, we have a matching positions
-            const TQmGixItemPos& Item = ItemV[ItemN];
-            Assert(Item.GetRecId() == WordItem.GetRecId());
-            // find any intersections of words
-            TQmGixItemPos _Item = Item.Intersect(WordItem, MaxDiff);
-            // keep if there is intersection
-            if (!_Item.Empty()) { _ItemV.Add(_Item); }
+            // since we can have multiple items with same rec id we have to go through all of them. Because next WordItem could have the same recid
+            // we need to keep the CurrentItemN intact and increase a substitute variable
+            int SameRecIdN = CurrentItemN;
+            while (SameRecIdN < CurrentItemV.Len() && CurrentItemV[SameRecIdN].GetRecId() == WordItem.GetRecId()) {
+                const TQmGixItemPos& CurrentItem = CurrentItemV[SameRecIdN];
+                Assert(CurrentItem.GetRecId() == WordItem.GetRecId());
+                // find any intersections of words
+                TQmGixItemPos _Item = CurrentItem.Intersect(WordItem, MaxDiff);
+                // keep if there is intersection
+                if (!_Item.Empty()) { _ItemV.Add(_Item); }
+                SameRecIdN++;
+            }
         }
         // update running candidate vector
-        ItemV = _ItemV;
+        CurrentItemV = _ItemV;
     }
+
     // prepare final results by getting record ids that survived the intersecting.
+    // there can be multiple items in the vector with the same fq, but they are placed together in the vector
     // frequency is the number of positions that were kept till the last word.
-    for (int ItemN = 0; ItemN < ItemV.Len(); ItemN++) {
-        // get record id
-        const uint64 RecId = ItemV[ItemN].GetRecId();
-        // get number of occurences that survived
-        const int Fq = ItemV[ItemN].GetPosLen();
-        // add to return results
-        RecIdFqV.Add(TUInt64IntKd(RecId, Fq));
+    if (CurrentItemV.Len() > 0) {
+        RecIdFqV.Add(TUInt64IntKd(CurrentItemV[0].GetRecId(), CurrentItemV[0].GetPosLen()));
+        // the recid for the last item in the RecIdFqV - we update this so that we know if
+        // we should just update the fq or add the record also
+        uint64 LastRecId = CurrentItemV[0].GetRecId();
+        for (int ItemN = 1; ItemN < CurrentItemV.Len(); ItemN++) {
+            // get record id
+            const uint64 RecId = CurrentItemV[ItemN].GetRecId();
+            // get number of occurences that survived
+            const int Fq = CurrentItemV[ItemN].GetPosLen();
+            if (RecId == LastRecId) {
+                // just increase the Fq
+                RecIdFqV[RecIdFqV.Len()-1].Dat += Fq;
+            }
+            else {
+                // add to return results
+                RecIdFqV.Add(TUInt64IntKd(RecId, Fq));
+                // remember the last recid we've added
+                LastRecId = RecId;
+            }
+        }
     }
 }
 
@@ -5888,29 +5910,64 @@ void TIndex::IndexTextPos(const int& KeyId, const TStr& TextStr, const uint64& R
     IndexTextPos(KeyId, WordIdV, RecId);
 }
 
-void TIndex::IndexTextPos(const int& KeyId, const TUInt64V& WordIdV, const uint64& RecId) {
+void TIndex::UpdateTextPos(const int& KeyId, const TUInt64V& WordIdV, const uint64& RecId, void (TGix<TQmGixKey, TQmGixItemPos>::*UpdateMethod)(const TQmGixKey&, const TQmGixItemPos&)) {
     // we shouldn't modify read-only index
     QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
-    // aggregate by word
-    THash<TUInt64, TQmGixItemPos> WordIdPosH;
-    for (int WordIdN = 0; WordIdN < WordIdV.Len(); WordIdN++) {
-        const uint64 WordId = WordIdV[WordIdN];
-        // check if first time we see the word
-        if (!WordIdPosH.IsKey(WordId)) {
-            WordIdPosH.AddDat(WordId, TQmGixItemPos(RecId));
+    // for each word we want to build the TQmGixItemPos that is already sorted from beginning. For that reason we
+    // iterate through WordIdV in a way to so that all values added to TQmGixItemPos are in increasing order.
+    // Each time an item TQmGixItemPos becomes full, we add it to Gix and create a new item
+    const int Blocks = (int)ceil(WordIdV.Len() / (float) TQmGixItemPos::Modulo);
+    TIntV OffsetV;
+    for (int N = 0; N < Blocks; N++) { OffsetV.Add(N*TQmGixItemPos::Modulo); }
+
+    // key: word id, val: (Val, ItemPos) where Val is last Val added to ItemPos. Used to make sure we don't add duplicates
+    // if the ItemPos becomes full and we add it to Gix
+    THash<TUInt64, TPair<TInt, TQmGixItemPos>> WordIdPosH;
+    const int MaxVal = TInt::GetMn(WordIdV.Len(), TQmGixItemPos::Modulo);
+
+    for (int IndN = 0; IndN < MaxVal; IndN++) {
+        // the value that we want to add to corresponding TQmGixItemPos
+        const int Val = IndN + 1;
+        // go over all full-size blocks
+        for (int BlockInd = 0; BlockInd < Blocks; BlockInd++) {
+            const int WordIdN = OffsetV[BlockInd] + IndN;
+            // when we are processing the last block, it will likely not be full
+            if (WordIdN >= WordIdV.Len()) { continue; }
+            const uint64 WordId = WordIdV[WordIdN];
+            TPair<TInt, TQmGixItemPos>& LastValItemPosPr = WordIdPosH.AddDat(WordId);
+            // if the item with this value was already added ignore it
+            if (LastValItemPosPr.Val1 == Val) { continue; }
+            // remember the last added value - makes sure we don't add the same value multiple times
+            LastValItemPosPr.Val1 = Val;
+            // add the value Val to the TQmGixItemPos. If the object becomes full and we need to save it, we return true
+            const bool IsFull = LastValItemPosPr.Val2.Add(Val);
+            if (IsFull) {
+                // since we used default constructor we have to set the rec id before putting it to gix
+                LastValItemPosPr.Val2.SetRecId(RecId);
+                // add the full item to gix
+                ((*GixPos).*UpdateMethod)(TKeyWord(KeyId, WordId), LastValItemPosPr.Val2);
+                // create a new empty item that can be used to store other indices for the word
+                LastValItemPosPr.Val2 = TQmGixItemPos();
+            }
         }
-        // remember the position in case there is space left
-        TQmGixItemPos& ItemPos = WordIdPosH.GetDat(WordId);
-        if (ItemPos.IsSpace()) { ItemPos.Add(WordIdN); }
     }
-    // add to index
-    for (auto& WordIdPos : WordIdPosH) {
+
+    // add to index the remaining TQmGixItemPos instances that are not completely filled up
+    for (auto& LastValItemPosPr : WordIdPosH) {
         // get word parameters
-        const TUInt64& WordId = WordIdPos.Key;
-        const TQmGixItemPos ItemPos = WordIdPos.Dat;
+        const TUInt64& WordId = LastValItemPosPr.Key;
+        TQmGixItemPos ItemPos = LastValItemPosPr.Dat.Val2;
+        // in case we have added an item to gix and created a new empty item, we don't want to store the empty item
+        if (ItemPos.Empty()) { continue; }
+        // since we used default constructor we have to set the rec id before putting it to gix
+        ItemPos.SetRecId(RecId);
         // add to gix
-        GixPos->AddItem(TKeyWord(KeyId, WordId), ItemPos);
+        ((*GixPos).*UpdateMethod)(TKeyWord(KeyId, WordId), ItemPos);
     }
+}
+
+void TIndex::IndexTextPos(const int& KeyId, const TUInt64V& WordIdV, const uint64& RecId) {
+    UpdateTextPos(KeyId, WordIdV, RecId, &(TGix<TQmGixKey, TQmGixItemPos>::AddItem));
 }
 
 void TIndex::DeleteTextPos(const int& KeyId, const TStr& TextStr, const uint64& RecId) {
@@ -5921,20 +5978,7 @@ void TIndex::DeleteTextPos(const int& KeyId, const TStr& TextStr, const uint64& 
 }
 
 void TIndex::DeleteTextPos(const int& KeyId, const TUInt64V& WordIdV, const uint64& RecId) {
-    // we shouldn't modify read-only index
-    QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
-    // create list of all word ids for which we should remove given record from index
-    THashSet<TUInt64> WordIdSet;
-    for (int WordIdN = 0; WordIdN < WordIdV.Len(); WordIdN++) {
-        const uint64 WordId = WordIdV[WordIdN];
-        WordIdSet.AddKey(WordId);
-    }
-    // remove from index
-    int WordKeyId = WordIdSet.FFirstKeyId();
-    while (WordIdSet.FNextKeyId(WordKeyId)) {
-        const uint64 WordId = WordIdSet.GetKey(WordKeyId);
-        GixPos->DelItem(TKeyWord(KeyId, WordId), TQmGixItemPos(RecId));
-    }
+    UpdateTextPos(KeyId, WordIdV, RecId, &(TGix<TQmGixKey, TQmGixItemPos>::DelItem));
 }
 
 void TIndex::IndexGeo(const int& KeyId, const TFltPr& Loc, const uint64& RecId) {
@@ -7210,7 +7254,7 @@ bool TBase::RestoreJSonDump(const TStr& DumpDir) {
                 Json->DelObjKey("$id");
                 const uint64 RecId = Store->AddRec(Json);
                 OldToNewIdH.AddDat(ExRecId, RecId);
-                // validate that the added rec id is the same as the one that was saved in json
+                // validate that the added rec id is the same as the one that was Saved in json
                 // if this fails then we have a problem since the joins will point different records than in the original data
                 //AssertR(ExRecId == TUInt64::Mx || ExRecId == RecId, "The added record id does not match the one in the record json");
                 if (RecId % 1000 == 0) {
@@ -7352,71 +7396,71 @@ void TBase::PrintIndex(const TStr& FNm, const bool& SortP) {
 
 // perform partial flush of data
 int TBase::PartialFlush(int WndInMsec) {
-    int dirty_stores = (GetStores() + 1);
-    int saved = 100;
-    int res = 0;
-    TTmStopWatch sw(true);
+    int DirtyStores = (GetStores() + 1);
+    int Saved = 100;
+    int TotalSaved = 0;
+    TTmStopWatch Sw(true);
 
-    TVec<TPair<TWPt<TStore>, bool>> xstores;
-    bool xindex = true;
+    TVec<TPair<TWPt<TStore>, bool>> DirtyStoreV;
+    bool FlushIndex = true;
 
     for (int i = 0; i < GetStores(); i++) {
-        xstores.Add(TPair<TWPt<TStore>, bool>(GetStoreByStoreN(i), true));
+        DirtyStoreV.Add(TPair<TWPt<TStore>, bool>(GetStoreByStoreN(i), true));
     }
 
-    while (saved > 0) {
-        if (sw.GetMSecInt() > WndInMsec) {
+    while (Saved > 0) {
+        if (Sw.GetMSecInt() > WndInMsec) {
             break; // time is up
         }
-        int slice = WndInMsec / dirty_stores; // time-slice per store
-        dirty_stores = 0;
-        saved = 0; // how many saved in this loop
-        int xsaved = 0; // how many saved in this loop into last store/index
-        for (int i = 0; i < xstores.Len(); i++) {
-            if (!xstores[i].Val2)
+        int TimeSliceMs = WndInMsec / DirtyStores; // time-TimeSliceMs per store
+        DirtyStores = 0;
+        Saved = 0; // how many Saved in this loop
+        int xsaved = 0; // how many Saved in this loop into last store/index
+        for (int i = 0; i < DirtyStoreV.Len(); i++) {
+            if (!DirtyStoreV[i].Val2)
                 continue; // this store had no dirty data in previous loop
-            xsaved = xstores[i].Val1->PartialFlush(slice);
+            xsaved = DirtyStoreV[i].Val1->PartialFlush(TimeSliceMs);
             if (xsaved == 0) {
-                xstores[i].Val2 = false; // ok, this store is clean now
+                DirtyStoreV[i].Val2 = false; // ok, this store is clean now
             } else {
-                dirty_stores++;
-                saved += xsaved;
+                DirtyStores++;
+                Saved += xsaved;
             }
-            TQm::TEnv::Debug->OnStatusFmt("Partial flush:     store %s = %d", xstores[i].Val1->GetStoreNm().CStr(), xsaved);
+            TQm::TEnv::Debug->OnStatusFmt("Partial flush:     store %s = %d", DirtyStoreV[i].Val1->GetStoreNm().CStr(), xsaved);
         }
-        if (xindex) { // save index
-            xsaved = Index->PartialFlush(slice);
-            xindex = (xsaved > 0);
-            if (xindex) {
-                dirty_stores++;
+        if (FlushIndex) { // save index
+            xsaved = Index->PartialFlush(TimeSliceMs);
+            FlushIndex = (xsaved > 0);
+            if (FlushIndex) {
+                DirtyStores++;
             }
-            saved += xsaved;
+            Saved += xsaved;
             TQm::TEnv::Debug->OnStatusFmt("Partial flush:     index = %d", xsaved);
         }
-        res += saved;
-        TQm::TEnv::Debug->OnStatusFmt("Partial flush: this loop = %d", saved);
+        TotalSaved += Saved;
+        TQm::TEnv::Debug->OnStatusFmt("Partial flush: this loop = %d", Saved);
     }
-    sw.Stop();
-    TQm::TEnv::Debug->OnStatusFmt("Partial flush: %d msec, res = %d", sw.GetMSecInt(), res);
+    Sw.Stop();
+    TQm::TEnv::Debug->OnStatusFmt("Partial flush: %d msec, total saved = %d", Sw.GetMSecInt(), TotalSaved);
 
-    return res;
+    return TotalSaved;
 }
 
 /// get performance statistics in JSON form
 PJsonVal TBase::GetStats() {
-    PJsonVal res = TJsonVal::NewObj();
+    PJsonVal Res = TJsonVal::NewObj();
 
-    PJsonVal stores = TJsonVal::NewArr();
+    PJsonVal Stores = TJsonVal::NewArr();
     for (int i = 0; i < GetStores(); i++) {
-        stores->AddToArr(GetStoreByStoreN(i)->GetStats());
+        Stores->AddToArr(GetStoreByStoreN(i)->GetStats());
     }
-    res->AddToObj("stores", stores);
+    Res->AddToObj("stores", Stores);
     TGixStats gix_stats = GetGixStats();
     TBlobBsStats gix_blob_stats = GetGixBlobStats();
-    res->AddToObj("gix_stats", GixStatsToJson(gix_stats));
-    res->AddToObj("gix_blob", BlobBsStatsToJson(gix_blob_stats));
-    res->AddToObj("access", GetFAccess());
-    return res;
+    Res->AddToObj("gix_stats", GixStatsToJson(gix_stats));
+    Res->AddToObj("gix_blob", BlobBsStatsToJson(gix_blob_stats));
+    Res->AddToObj("access", GetFAccess());
+    return Res;
 }
 
 PJsonVal TBase::GetStreamAggrStats() const {
