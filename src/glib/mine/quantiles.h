@@ -78,7 +78,7 @@ namespace TQuant {
         class TInterval {
         private:
             TUInt64 StartTm;
-            TUInt64 DurMSec {0ul};  // the interval covers [StartTm, StartTm + DurMSec]
+            TUInt64 DurMSec {};  // initializes to 0, the interval covers [StartTm, StartTm + DurMSec]
             TUInt ElCount {1u};
 
         public:
@@ -292,7 +292,7 @@ namespace TQuant {
             using TBase = TExpHistBase<TIntervalType>;
 
         public:
-            using TBase::TExpHistBase;
+            TExpHistogram(const double& Eps): TExpHistBase(Eps) {}
 
             void Add(const uint64& Tm);
         };
@@ -506,7 +506,7 @@ namespace TQuant {
             using TSummary = std::list<TTuple>;
 
             TSummary Summary {};
-            TUInt64 ItemCount {0ul};        // number of items in the sliding window
+            TUInt64 ItemCount {};           // number of items in the sliding window, initializes to 0
             TInt64 ForgetTm {TInt64::Mn};   // the first timestamp forgotten by the summary
 
             TFlt EpsGk;                     // quantile estimation error
@@ -735,7 +735,7 @@ namespace TQuant {
         TFlt EpsGk;                     // quantile estimation error
 
         TInt64 ForgetTm {TInt64::Mn};   // time of the last record which is not in the sliding window
-        TUInt64 SampleN {0ul};          // total number of samples seen by the algorithm
+        TUInt64 SampleN {};             // initializes to 0, total number of samples seen by the algorithm
     };
 
     ////////////////////////////////////////////
