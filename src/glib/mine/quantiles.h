@@ -509,8 +509,8 @@ namespace TQuant {
             TUInt64 ItemCount {0ul};        // number of items in the sliding window
             TInt64 ForgetTm {TInt64::Mn};   // the first timestamp forgotten by the summary
 
-            const TFlt EpsGk;               // quantile estimation error
-            const TFlt EpsEh;               // count estimation error
+            TFlt EpsGk;                     // quantile estimation error
+            TFlt EpsEh;                     // count estimation error
         };
 
         // PRINT OPERATORS
@@ -697,6 +697,9 @@ namespace TQuant {
         /// compresses the summary
         void Compress();
 
+        /// resets the object to its original state
+        void Reset();
+
         // PARAMS
         const TFlt& GetEpsGk() const;
         const TFlt& GetEpsEh() const;
@@ -729,7 +732,7 @@ namespace TQuant {
 
         TSummary Summary;               // a summary which keeps track of the quantiles
         TWindowMin WinMin;              // a structure which keeps track of the minimum value in the sliding window
-        const TFlt EpsGk;               // quantile estimation error
+        TFlt EpsGk;                     // quantile estimation error
 
         TInt64 ForgetTm {TInt64::Mn};   // time of the last record which is not in the sliding window
         TUInt64 SampleN {0ul};          // total number of samples seen by the algorithm

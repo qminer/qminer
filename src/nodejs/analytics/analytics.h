@@ -2644,8 +2644,8 @@ public:
  * var analytics = qm.analytics;
  *
  * // create the default TDigest object
- * var gk = new analytics.FixedWindowGk({
- *     window: 5,
+ * var gk = new analytics.CountWindowGk({
+ *     windowSize: 5,
  *     quantileEps: 0.001,
  *     countEps: 0.0005
  * });
@@ -2663,15 +2663,15 @@ public:
  * // save the model
  * gk.save(fs.openWrite('gk.bin')).close();
  * // open the gk model under a new variable
- * var gk2 = new analytics.FixedWindowGk(fs.openRead('gk.bin'));
+ * var gk2 = new analytics.CountWindowGk(fs.openRead('gk.bin'));
  *
  */
-//# exports.FixedWindowGk = function (arg) { return Object.create(require('qminer').analytics.FixedWindowGk.prototype); }
+//# exports.CountWindowGk = function (arg) { return Object.create(require('qminer').analytics.CountWindowGk.prototype); }
 class TNodeJsCountWindowGk : public node::ObjectWrap {
     friend class TNodeJsUtil;
 public:
     static void Init(v8::Handle<v8::Object> exports);
-    static const TStr GetClassId() { return "FixedWindowGk"; }
+    static const TStr GetClassId() { return "CountWindowGk"; }
 
 private:
     TQuant::TCountWindowGk Gk;
@@ -2690,14 +2690,14 @@ public:
      * @returns {module:analytics~FixedWindowGkParam} The construction parameters.
      *
      * var analytics = qm.analytics;
-     * var gk = new analytics.FixedWindowGk();
+     * var gk = new analytics.CountWindowGk();
      * var params = tdigest.getParams();
      *
      * console.log(params.windowSize);
      * console.log(params.quantileEps);
      * console.log(params.countEps);
      */
-    //# exports.FixedWindowGk.prototype.getParams = function () { return { }; }
+    //# exports.CountWindowGk.prototype.getParams = function () { return { }; }
     JsDeclareFunction(getParams);
 
     /**
@@ -2705,17 +2705,17 @@ public:
      * falls outside the sliding window, it is forgotten.
      *
      * @param {number} val - the value
-     * @returns {module:analytics.FixedWindowGk} reference to self
+     * @returns {module:analytics.CountWindowGk} reference to self
      *
      * @example
      * var qm = require('qminer');
      *
-     * var gk = new qm.analytics.FixedWindowGk();
+     * var gk = new qm.analytics.CountWindowGk();
      * gk.partialFit(1.0);
      * gk.partialFit(2.0);
      *
      */
-    //# exports.FixedWindowGk.partialFit = function (fout) { return Object.create(require('qminer').analytics.FixedWindowGk.prototype); }
+    //# exports.CountWindowGk.partialFit = function (fout) { return Object.create(require('qminer').analytics.CountWindowGk.prototype); }
     JsDeclareFunction(partialFit);
 
     /**
@@ -2728,7 +2728,7 @@ public:
      * @example
      * var qm = require('qminer');
      *
-     * var gk = new qm.analytics.FixedWindowGk({
+     * var gk = new qm.analytics.CountWindowGk({
      *     windowSize: 100    // window 100 elements long
      * });
      * gk.partialFit(1.0);
@@ -2741,7 +2741,7 @@ public:
      * console.log(gk.predict(0.25));   // prints the first quartile
      * console.log(gk.predict(0.5));    // prints the median
      */
-    //# exports.FixedWindowGk.prototype.predict = function (x) { return 0; }
+    //# exports.CountWindowGk.prototype.predict = function (x) { return 0; }
     JsDeclareFunction(predict);
 
     /**
@@ -2751,14 +2751,14 @@ public:
      * @returns {module:fs.FOut} the output stream `fout`
      *
      * @example
-     * var gk = new qm.analytics.FixedWindowGk();
+     * var gk = new qm.analytics.CountWindowGk();
      *
      * // save the model
      * gk.save(fs.openWrite('tdigest.bin')).close();
      * // open the tdigest model under a new variable
-     * var gk = new analytics.FixedWindowGk(fs.openRead('tdigest.bin'));
+     * var gk = new analytics.CountWindowGk(fs.openRead('tdigest.bin'));
      */
-    //# exports.FixedWindowGk.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
+    //# exports.CountWindowGk.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
     JsDeclareFunction(save);
 };
 
@@ -2877,7 +2877,7 @@ public:
      * gk.partialFit(new Date('2017-06-07').getTime(), 1.0);
      * gk.partialFit(new Date('2017-06-08'));  // only move the time window, the first value is forgotten
      */
-    //# exports.FixedWindowGk.partialFit = function (fout) { return Object.create(require('qminer').analytics.FixedWindowGk.prototype); }
+    //# exports.TimeWindowGk.partialFit = function (fout) { return Object.create(require('qminer').analytics.TimeWindowGk.prototype); }
     JsDeclareFunction(partialFit);
 
     /**
@@ -2913,16 +2913,17 @@ public:
      * @returns {module:fs.FOut} the output stream `fout`
      *
      * @example
-     * var gk = new qm.analytics.FixedWindowGk();
+     * var gk = new qm.analytics.TimeWindowGk();
      *
      * // save the model
      * gk.save(fs.openWrite('tdigest.bin')).close();
      * // open the tdigest model under a new variable
-     * var gk = new analytics.FixedWindowGk(fs.openRead('tdigest.bin'));
+     * var gk = new analytics.TimeWindowGk(fs.openRead('tdigest.bin'));
      */
     //# exports.TimeWindowGk.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
     JsDeclareFunction(save);
 };
+
 
 /////////////////////////////////////////////
 // QMiner-JavaScript-Recommender System

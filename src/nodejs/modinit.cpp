@@ -82,6 +82,8 @@ void InitAnalytics(Handle<Object> Exports, const TStr& NsNm) {
     TNodeJsTDigest::Init(NsObj);
     TNodeJsRecommenderSys::Init(NsObj);
     TNodeJsGraphCascade::Init(NsObj);
+    TNodeJsCountWindowGk::Init(NsObj);
+    TNodeJsTimeWindowGk::Init(NsObj);
 
     Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
 }

@@ -3141,7 +3141,7 @@ void TNodeJsCountWindowGk::Init(v8::Handle<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsTDigest>);
+    v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsCountWindowGk>);
     tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
     // ObjectWrap uses the first internal field to store the wrapped pointer.
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
@@ -3157,7 +3157,8 @@ void TNodeJsCountWindowGk::Init(v8::Handle<v8::Object> exports) {
 }
 
 TNodeJsCountWindowGk::TNodeJsCountWindowGk(const PJsonVal& ParamVal):
-    Gk(ParamVal->GetObjUInt64("windowSize", 10000), ParamVal->GetObjNum("quantileEps", .01), ParamVal->GetObjNum("countEps", .005)) {}
+        Gk(ParamVal->GetObjUInt64("windowSize", 10000), ParamVal->GetObjNum("quantileEps", .01), ParamVal->GetObjNum("countEps", .005)) {
+}
 
 TNodeJsCountWindowGk::TNodeJsCountWindowGk(TSIn& SIn): Gk(SIn) {}
 
@@ -3182,7 +3183,7 @@ TNodeJsCountWindowGk* TNodeJsCountWindowGk::NewFromArgs(const v8::FunctionCallba
         PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
         return new TNodeJsCountWindowGk(ParamVal);
     } else {
-        throw TExcept::New("new TNodeJsCountWindowGk: wrong arguments in constructor!");
+        throw TExcept::New("new CountWindowGk: wrong arguments in constructor!");
     }
 }
 
@@ -3251,7 +3252,7 @@ void TNodeJsTimeWindowGk::Init(v8::Handle<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsTDigest>);
+    v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsTimeWindowGk>);
     tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
     // ObjectWrap uses the first internal field to store the wrapped pointer.
     tpl->InstanceTemplate()->SetInternalFieldCount(1);

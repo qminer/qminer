@@ -2165,6 +2165,111 @@ PJsonVal TTDigest::SaveJson(const int& Limit) const {
 }
 
 ///////////////////////////////
+/// SW-GK - sliding window quantiles
+PStreamAggr TSwGk::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+    return new TSwGk(Base, ParamVal);
+}
+
+int TSwGk::GetVals() const {
+    return Gk.GetSummarySize();
+}
+
+void TSwGk::GetVal(const int& QuantN, TFlt& Val) const {
+    Assert(0 <= QuantN && QuantN < ProbV.Len());
+    // XXX not good practice, using const cast to
+    // make the object unmutable
+    TQuant::TSwGk& MutableGk = const_cast<TQuant::TSwGk&>(Gk);
+    Val = MutableGk.Query(ProbV[QuantN]);
+}
+
+void TSwGk::GetValV(TFltV& QuantV) const {
+    if (QuantV.Len() != ProbV.Len()) { QuantV.Gen(ProbV.Len(), ProbV.Len()); }
+    for (int QuantN = 0; QuantN < ProbV.Len(); QuantN++) {
+        GetVal(QuantN, QuantV[QuantN]);
+    }
+}
+
+void TSwGk::LoadState(TSIn& SIn) {
+    Gk = TQuant::TSwGk(SIn);
+    ProbV.Load(SIn);
+}
+
+void TSwGk::SaveState(TSOut& SOut) const {
+    Gk.Save(SOut);
+    ProbV.Save(SOut);
+}
+
+PJsonVal TSwGk::SaveJson(const int&) const {
+    PJsonVal Val = TJsonVal::NewObj();
+
+    // XXX not good practice, using const cast to
+    // make the object unmutable
+    TSwGk& MutableThis = const_cast<TSwGk&>(*this);
+
+    PJsonVal QuantilesVal = TJsonVal::NewArr();
+    for (int ElN = 0; ElN < ProbV.Len(); ElN++) {
+        TFlt Quant; MutableThis.GetVal(ElN, Quant);
+
+        PJsonVal QuantileVal = TJsonVal::NewObj();
+        QuantileVal->AddToObj("quantile", ProbV[ElN]);
+        QuantileVal->AddToObj("value", Quant);
+
+        QuantilesVal->AddToArr(QuantileVal);
+    }
+    Val->AddToObj("quantiles", QuantilesVal);
+
+    return Val;
+}
+
+bool TSwGk::IsInit() const {
+    return true;
+}
+
+void TSwGk::Reset() {
+    Gk.Reset();
+}
+
+TStr TSwGk::Type() const {
+    return GetType();
+}
+
+TSwGk::TSwGk(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
+        TStreamAggr(Base, ParamVal),
+        Gk(ParamVal->GetObjNum("quantileEps"), ParamVal->GetObjNum("countEps")) {
+
+    InAggr = ParseAggr(ParamVal, "inAggr");
+    InAggrTmIOCast = Cast<TStreamAggrOut::ITmIO>(InAggr, false);
+    InAggrFltIOCast = Cast<TStreamAggrOut::IFltIO>(InAggr, false);
+
+    // vector of target probabilities
+    ParamVal->GetObjFltV("quantiles", ProbV);
+
+    QmAssertR(!InAggrTmIOCast.Empty(), "Invalid input time window aggregate!");
+    QmAssertR(!InAggrFltIOCast.Empty(), "Invalid input float window aggregate!");
+}
+
+void TSwGk::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
+
+    // add new values
+    TFltV AddValV;   InAggrFltIOCast->GetInValV(AddValV);
+    TUInt64V AddTmV;    InAggrTmIOCast->GetInTmMSecsV(AddTmV);
+    for (int ValN = 0; ValN < AddValV.Len(); ValN++) {
+        Gk.Insert(AddTmV[ValN], AddValV[ValN]);
+    }
+    // forget old values, it is enough to move the window to the newest
+    // time
+    TUInt64V ForgetTmV; InAggrTmIOCast->GetOutTmMSecsV(ForgetTmV);
+    uint64 MxVal = TUInt64::Mn;
+    for (int TmN = 0; TmN < ForgetTmV.Len(); TmN++) {
+        if (ForgetTmV[TmN] > MxVal) {
+            MxVal = ForgetTmV[TmN];
+        }
+    }
+    Gk.Forget(MxVal);
+}
+
+///////////////////////////////
 /// Chi square stream aggregate
 void TChiSquare::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
     TScopeStopWatch StopWatch(ExeTm);

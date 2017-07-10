@@ -1723,6 +1723,66 @@ public:
     TStr Type() const { return GetType(); }
 };
 
+// TODO add an example in the documentation above
+////////////////////////////////////////////
+/// Greenwald-Khanna quantile estimation algorithm
+/// on a sliding window.
+///
+/// Described in
+/// "Online Algorithm for Approximate Quantile Queries on Sliding Windows"
+/// http://dl.acm.org/citation.cfm?id=2954329
+class TSwGk : public TStreamAggr, public TStreamAggrOut::IFltVec {
+public:
+    static PStreamAggr New(const TWPt<TBase>&, const PJsonVal&);
+
+    // IFltVec interface
+
+    /// returns the number of quantiles tracket by this aggregate
+    int GetVals() const;
+    /// returns the current value of the n-th quantile
+    void GetVal(const int& QuantN, TFlt& Val) const;
+    /// returns the values of all the quantiles
+    void GetValV(TFltV&) const;
+
+    // TStreamAggr inerface
+
+    /// Load aggregate state
+    void LoadState(TSIn&);
+    /// Save aggregate state
+    void SaveState(TSOut&) const;
+    /// Saves the current quantiles to a JSON object
+    PJsonVal SaveJson(const int&) const;
+    /// indicates whether the model is initialized
+    bool IsInit() const;
+    /// resets the model
+    void Reset();
+    /// Stream aggregator type name
+    static TStr GetType() { return "windowQuantiles"; }
+    /// Stream aggregator type name
+    TStr Type() const;
+
+    /// JSON constructor
+    TSwGk(const TWPt<TBase>&, const PJsonVal&);
+    /// updates the state of the model
+    void OnStep(const TWPt<TStreamAggr>& CallerAggr);
+
+private:
+    // MEMBERS
+
+    /// the model
+    TQuant::TSwGk Gk;
+    /// vector of quantiles we are tracking
+    TFltV ProbV {};
+    /// the input aggregate
+    TWPt<TStreamAggr> InAggr {nullptr};
+
+    // CASTS OF INPUT AGGREGATE
+    /// the input aggregate cast to time window
+    TWPt<TStreamAggrOut::ITmIO> InAggrTmIOCast {nullptr};
+    /// the input aggregate cast to a time window of floats
+    TWPt<TStreamAggrOut::IFltIO> InAggrFltIOCast {nullptr};
+};
+
 ///////////////////////////////
 /// Chi square stream aggregate.
 /// Updates a chi square model, connects to an online histogram stream aggregate

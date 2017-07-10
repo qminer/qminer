@@ -1125,6 +1125,10 @@ namespace TQuant {
         WinMin.Forget(ForgetTm);
     }
 
+    void TSwGk::Reset() {
+        *this = TSwGk(EpsGk, Summary.GetEpsEh());
+    }
+
     const TFlt& TSwGk::GetEpsGk() const {
         return EpsGk;
     }
