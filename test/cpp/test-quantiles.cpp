@@ -126,7 +126,7 @@ TEST(TGreenwaldKhanna, Compress) {
         // test a grid
         const auto LowerBoundFun = [&](const double& PVal) { return std::floor(NSamples*(PVal - Eps)); };
         const auto UpperBoundFun = [&](const double& PVal) { return std::ceil(NSamples*(PVal + Eps)); };
-        AssertQuantileRange(Gk, LowerBoundFun, UpperBoundFun);
+        AssertQuantileRangeV(Gk, LowerBoundFun, UpperBoundFun);
     }
 }
 
@@ -153,12 +153,10 @@ TEST(TGreenwaldKhanna, LateManualCompress) {
     Gk.Compress();
     ASSERT_TRUE(Gk.GetSummarySize() < NSamples);
 
-    for (int i = 0; i < 10; i++) {
-        const double Prob = Rnd.GetUniDev();
-        const double Perc = Gk.Query(Prob);
-
-        ASSERT_NEAR(std::ceil(Prob*NSamples), Perc, Eps*NSamples);
-    }
+    // test a grid
+    const auto LowerBoundFun = [&](const double& PVal) { return std::floor(NSamples*(PVal - Eps)); };
+    const auto UpperBoundFun = [&](const double& PVal) { return std::ceil(NSamples*(PVal + Eps)); };
+    AssertQuantileRangeV(Gk, LowerBoundFun, UpperBoundFun);
 }
 
 TEST(TGreenwaldKhanna, AutoCompress) {
@@ -184,12 +182,9 @@ TEST(TGreenwaldKhanna, AutoCompress) {
     ASSERT_TRUE(Gk.GetSummarySize() < NSamples);
 
     // test the accuracy
-    double CurrPerc = .001;
-    do {
-        const double Perc = Gk.Query(CurrPerc);
-        ASSERT_NEAR(std::ceil(CurrPerc*NSamples), Perc, Eps*NSamples);
-        CurrPerc += .001;
-    } while (CurrPerc < 1);
+    const auto LowerBoundFun = [&](const double& PVal) { return std::floor(NSamples*(PVal - Eps)); };
+    const auto UpperBoundFun = [&](const double& PVal) { return std::ceil(NSamples*(PVal + Eps)); };
+    AssertQuantileRangeV(Gk, LowerBoundFun, UpperBoundFun);
 }
 
 TEST(TBiasedGk, Query) {

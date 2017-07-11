@@ -565,6 +565,8 @@ namespace TQuant {
 
             /// returns the quantile corresponding to the givem p-value
             double Query(const double& PVal) const;
+            /// returns an array of quantile estimates
+            void Query(const TFltV& PValV, TFltV& QuantV) const;
             /// inserts a new value into the summary
             void Insert(const double&);
             /// compresses the summary (if possible)
@@ -578,6 +580,7 @@ namespace TQuant {
             friend std::ostream& operator <<(std::ostream& os, const TGkVecSummary& Summary) {
                 return os << Summary.Summary;
             }
+
         private:
             uint GetMxTupleUncert() const;
             int GetBand(const TTuple&) const;
@@ -614,7 +617,7 @@ namespace TQuant {
         /// reutrns the (eps-approximate) value of the targeted quantile
         double Query(const double& PVal) const;
         /// returns an array of quantiles corresponding to the given p-values
-        /* double Query(const TFltV& PValV, TFltV& QuantV) const; */    // TODO implement
+        void Query(const TFltV& PValV, TFltV& QuantV) const;
         /// updates the summary with the new value
         void Insert(const double& Val);
 

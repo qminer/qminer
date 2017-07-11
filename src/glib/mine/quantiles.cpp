@@ -806,13 +806,49 @@ namespace TQuant {
 
             if (CurrMnRank >= MnRankThreshold) {
                 return Tuple.GetMxVal();
-                /* return Summary[TupleN-1].GetMxVal(); */
             }
 
             ++TupleN;
         }
 
         return Summary.Last().GetMxVal();
+    }
+
+    void TUtils::TGkVecSummary::Query(const TFltV& PValV, TFltV& QuantV) const {
+        if (QuantV.Len() != PValV.Len()) { QuantV.Gen(PValV.Len(), PValV.Len()); }
+        if (Summary.Empty() || PValV.Empty()) { return; }
+
+        uint64 CurrMnRank = 0;
+        int PValN = 0;
+
+        auto TupleIt = Summary.begin();
+        const auto EndIt = Summary.end();
+
+        while (PValN < PValV.Len()) {
+            const TFlt& PVal = PValV[PValN];
+            const double MnRankThreshold = double(SampleN)*(PVal - Eps);
+
+            while (TupleIt != EndIt) {
+                const TTuple& Tuple = *TupleIt;
+                const TUInt& TupleSize = Tuple.GetTupleSize();
+
+                CurrMnRank += TupleSize;
+
+                if (CurrMnRank >= MnRankThreshold) {
+                    QuantV[PValN] = Tuple.GetMxVal();
+                    CurrMnRank -= TupleSize;
+                    break;
+                }
+
+                ++TupleIt;
+            }
+
+            if (TupleIt == EndIt) {
+                QuantV[PValN] = Summary.Last().GetMxVal();
+            }
+
+            ++PValN;
+        }
     }
 
     void TUtils::TGkVecSummary::Insert(const double& Val) {
@@ -910,6 +946,10 @@ namespace TQuant {
 
     double TGk::Query(const double& Quantile) const {
         return Summary.Query(Quantile);
+    }
+
+    void TGk::Query(const TFltV& PValV, TFltV& QuantV) const {
+        Summary.Query(PValV, QuantV);
     }
 
     void TGk::Insert(const double& Val) {
