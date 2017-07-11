@@ -527,6 +527,68 @@ namespace TQuant {
 
     using TUtils::operator<<;
 
+    namespace TUtils {
+
+        class TBasicGkTuple {
+        public:
+            TBasicGkTuple(): MxVal() {}
+            TBasicGkTuple(const double&);
+            TBasicGkTuple(const double& Val, const TBasicGkTuple& RightTuple);
+
+            void Swallow(const TBasicGkTuple&);
+
+            const TFlt& GetMxVal() const { return MxVal; }
+            const TUInt& GetTupleSize() const { return TupleSize; }
+            const TUInt& GetUncertRight() const { return UncertRight; }
+
+            double GetTotalUncert() const { return GetTupleSize() + GetUncertRight(); }
+
+            friend std::ostream& operator <<(std::ostream& os, const TBasicGkTuple& Tuple) {
+                return os << "<"
+                          << Tuple.GetMxVal() << ", "
+                          << Tuple.GetTupleSize() << ","
+                          << Tuple.GetUncertRight()
+                          << ">";
+            }
+
+        private:
+            TFlt MxVal;             // the max value in this tuple
+            TUInt TupleSize {1u};   // how many tuples has this tuple swallowed
+            TUInt UncertRight {};   // how many items on the right could be smaller than this tuple
+        };
+
+        class TGkVecSummary {
+            using TTuple = TBasicGkTuple;
+            using TSummary = TVec<TTuple>;
+        public:
+            TGkVecSummary(const double& Eps);
+
+            /// returns the quantile corresponding to the givem p-value
+            double Query(const double& PVal) const;
+            /// inserts a new value into the summary
+            void Insert(const double&);
+            /// compresses the summary (if possible)
+            void Compress();
+            /// returns the total number of samples seen by the summary
+            const TUInt64& GetSampleN() const { return SampleN; }
+
+            // DEBUGGING
+            uint GetSize() const { return Summary.Len(); }
+
+            friend std::ostream& operator <<(std::ostream& os, const TGkVecSummary& Summary) {
+                return os << Summary.Summary;
+            }
+        private:
+            uint GetMxTupleUncert() const;
+            int GetBand(const TTuple&) const;
+
+            TSummary Summary {};
+            TUInt64 SampleN {uint64(0)}; // current size of the summary, initializes to 0
+            TFlt Eps;
+            bool UseBands {true};
+        };
+    }
+
     ///////////////////////////////////////////////
     /// The Greenwald-Khanna (GK) online quantile estimation algorithm
     /// The error produced by the algorithm is eps
@@ -534,14 +596,6 @@ namespace TQuant {
     /// http://infolab.stanford.edu/~datar/courses/cs361a/papers/quantiles.pdf
     class TGreenwaldKhanna {
     public:
-        // a <v_i, g_i, d_i> tuple with elements:
-        // v_i - the value of the observation
-        // g_i = r_min(i) - r_min(i-1) the difference between the minimal rank of the i-th and (i-1)-the observations
-        // d_i = r_max(i) - r_min(i) - the range of possible ranks for v_i
-        using TTuple = TFltIntIntTr;
-        // holds the tuples
-        using TSummary = TVec<TTuple>;  // TODO use a linked list or some other structure
-
         enum class TCompressStrategy {
             csAuto,
             csManual
@@ -558,7 +612,9 @@ namespace TQuant {
 
         // TODO interpolate the result before returning it
         /// reutrns the (eps-approximate) value of the targeted quantile
-        double Query(const double& Quantile) const;
+        double Query(const double& PVal) const;
+        /// returns an array of quantiles corresponding to the given p-values
+        /* double Query(const TFltV& PValV, TFltV& QuantV) const; */    // TODO implement
         /// updates the summary with the new value
         void Insert(const double& Val);
 
@@ -570,20 +626,11 @@ namespace TQuant {
 
     private:
         bool ShouldAutoCompress() const;
-        int GetBand(const int& TupleN) const;
 
-        // helper functions
-        static TFlt& GetQuantile(TTuple&);
-        static const TFlt& GetQuantile(const TTuple&);
-        static TInt& GetPrevMnRankDiff(TTuple&);
-        static const TInt& GetPrevMnRankDiff(const TTuple&);
-        static TInt& GetInsRankRange(TTuple&);
-        static const TInt& GetInsRankRange(const TTuple&);
+        using TSummary = TUtils::TGkVecSummary;
 
-        TSummary Summary {};
-        const TFlt Eps;
-        TUInt64 SampleN {uint64(0)};
-        TBool UseBands {true};
+        TSummary Summary;
+        TUInt CompressInterval;
         TCompressStrategy CompressStrategy {TCompressStrategy::csAuto};
     };
 
