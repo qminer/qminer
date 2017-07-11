@@ -585,7 +585,7 @@ void TStore::PutInverseJoinId(const int& JoinId, const int& InverseJoinId) {
 
 const TStr& TStore::GetFieldNm(const int& FieldId) const {
     QmAssert(0 <= FieldId && FieldId <= FieldDescV.Len());
-    return FieldDescV[FieldId].GetFieldNm(); 
+    return FieldDescV[FieldId].GetFieldNm();
 }
 
 TIntV TStore::GetFieldIdV(const TFieldType& Type) {
@@ -6391,7 +6391,7 @@ void TStreamAggr::Init() {
     Register<TStreamAggrs::TUniVarResampler>();
     Register<TStreamAggrs::TAggrResampler>();
     Register<TStreamAggrs::TFtrExtAggr>();
-	Register<TStreamAggrs::TNNAnomalyAggr>();
+    Register<TStreamAggrs::TNNAnomalyAggr>();
     Register<TStreamAggrs::TOnlineHistogram>();
     Register<TStreamAggrs::TTDigest>();
     Register<TStreamAggrs::TChiSquare>();
