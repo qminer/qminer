@@ -5521,9 +5521,9 @@ bool TIndex::TQmGixItemPos::Add(const int& Pos) {
     // make sure the position is already < Modulo
     Assert(Pos <= Modulo);
     // make sure that we always add values in increasing order
-    Assert(Pos > PosV.Pos1);
-    Assert(Pos > PosV.Pos2);
-    Assert(Pos > PosV.Pos3);
+    Assert((uint) Pos > PosV.Pos1);
+    Assert((uint) Pos > PosV.Pos2);
+    Assert((uint) Pos > PosV.Pos3);
     // store position
     // store in the appropriate place
     if (PosV.Pos1 == 0) { PosV.Pos1 = Pos; return false; }
@@ -5967,7 +5967,8 @@ void TIndex::UpdateTextPos(const int& KeyId, const TUInt64V& WordIdV, const uint
 }
 
 void TIndex::IndexTextPos(const int& KeyId, const TUInt64V& WordIdV, const uint64& RecId) {
-    UpdateTextPos(KeyId, WordIdV, RecId, &(TGix<TQmGixKey, TQmGixItemPos>::AddItem));
+    void(TGix<TQmGixKey, TQmGixItemPos>::*UpdateMethod)(const TQmGixKey&, const TQmGixItemPos&) = &TGix<TQmGixKey, TQmGixItemPos>::AddItem;
+    UpdateTextPos(KeyId, WordIdV, RecId, UpdateMethod);
 }
 
 void TIndex::DeleteTextPos(const int& KeyId, const TStr& TextStr, const uint64& RecId) {
@@ -5978,7 +5979,8 @@ void TIndex::DeleteTextPos(const int& KeyId, const TStr& TextStr, const uint64& 
 }
 
 void TIndex::DeleteTextPos(const int& KeyId, const TUInt64V& WordIdV, const uint64& RecId) {
-    UpdateTextPos(KeyId, WordIdV, RecId, &(TGix<TQmGixKey, TQmGixItemPos>::DelItem));
+    void(TGix<TQmGixKey, TQmGixItemPos>::*UpdateMethod)(const TQmGixKey&, const TQmGixItemPos&) = &TGix<TQmGixKey, TQmGixItemPos>::DelItem;
+    UpdateTextPos(KeyId, WordIdV, RecId, UpdateMethod);
 }
 
 void TIndex::IndexGeo(const int& KeyId, const TFltPr& Loc, const uint64& RecId) {

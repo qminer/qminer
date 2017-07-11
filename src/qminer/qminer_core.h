@@ -3085,13 +3085,13 @@ private:
         uint Pos2 : 10;
         uint Pos3 : 10, :2;
 
-        TQmGixPosVals() { memset(this, 0, sizeof *this); };
+        TQmGixPosVals() { memset(this, 0, sizeof(TQmGixPosVals)); };
     };
     // union required for serialization of the TQmGixPosVals struct
     typedef union BitsetConverter {
         TQmGixPosVals PosV;
         TUCh ChV[4];
-        BitsetConverter() : PosV{} {}
+        BitsetConverter() { memset(this, 0, sizeof(BitsetConverter)); };
     } BitsetConverter;
     /// Gix item to be used for storing records together with token positions
     class TQmGixItemPos {
