@@ -1116,14 +1116,11 @@ TEST(TTimeWindowGk, ConceptDrift) {
     TIntV SampleV;
     for (int BatchN = 0; BatchN < TotalBatches; BatchN++) {
         const uint BatchStart = BatchSize*BatchN;
-        /* std::cout << "generating batch " << BatchN << std::endl; */
 
         GenSamplesUniform(BatchSize, SampleV);
-        /* std::cout << "inserting: "; */
         for (int SampleN = 0; SampleN < BatchSize; SampleN++) {
             const uint Val = BatchStart + SampleV[SampleN];
             const uint64 CurrTm = (BatchN*BatchSize + SampleN)*DeltaTm;
-            /* std::cout << Val << ", "; */
             Gk.Insert(CurrTm, Val);
         }
 

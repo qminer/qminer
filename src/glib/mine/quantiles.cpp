@@ -1101,6 +1101,16 @@ namespace TQuant {
         }
     }
 
+    /* void TSwGk::Query(const TFltV& PValV, TFltV& ValV) { */
+/* #ifndef NDEBUG */
+    /*     for (int PValN = 1; PValN < PValV.Len(); PValN++) { */
+    /*         Assert(PValV[PValN-1] <= PValV[PValN]); */
+    /*     } */
+/* #endif */
+    /*     // TODO assert that the PValV is sorted */
+
+    /* } */
+
     void TSwGk::Insert(const uint64& ValTm, const double& Val) {
         Summary.Insert(ValTm, Val);
         ++SampleN;

@@ -2182,8 +2182,9 @@ void TSwGk::GetVal(const int& QuantN, TFlt& Val) const {
     Val = MutableGk.Query(ProbV[QuantN]);
 }
 
-void TSwGk::GetValV(TFltV& QuantV) const {
+void TSwGk::GetValV(TFltV& QuantV) const {  // TODO optimize: query multiple quantiles at once
     if (QuantV.Len() != ProbV.Len()) { QuantV.Gen(ProbV.Len(), ProbV.Len()); }
+
     for (int QuantN = 0; QuantN < ProbV.Len(); QuantN++) {
         GetVal(QuantN, QuantV[QuantN]);
     }
@@ -2251,15 +2252,9 @@ TSwGk::TSwGk(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
 void TSwGk::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
     TScopeStopWatch StopWatch(ExeTm);
 
-    // add new values
-    TFltV AddValV;   InAggrFltIOCast->GetInValV(AddValV);
-    TUInt64V AddTmV;    InAggrTmIOCast->GetInTmMSecsV(AddTmV);
-    for (int ValN = 0; ValN < AddValV.Len(); ValN++) {
-        Gk.Insert(AddTmV[ValN], AddValV[ValN]);
-    }
     // forget old values, it is enough to move the window to the newest
     // time
-    TUInt64V ForgetTmV; InAggrTmIOCast->GetOutTmMSecsV(ForgetTmV);
+    TUInt64V ForgetTmV; InAggrTmIOCast->GetOutTmMSecsV(ForgetTmV);  // TODO can I assume that ForgetTmV.Last() has the largest timestamp???
     uint64 MxVal = TUInt64::Mn;
     for (int TmN = 0; TmN < ForgetTmV.Len(); TmN++) {
         if (ForgetTmV[TmN] > MxVal) {
@@ -2267,6 +2262,13 @@ void TSwGk::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
         }
     }
     Gk.Forget(MxVal);
+
+    // add new values
+    TFltV AddValV;   InAggrFltIOCast->GetInValV(AddValV);
+    TUInt64V AddTmV;    InAggrTmIOCast->GetInTmMSecsV(AddTmV);
+    for (int ValN = 0; ValN < AddValV.Len(); ValN++) {
+        Gk.Insert(AddTmV[ValN], AddValV[ValN]);
+    }
 }
 
 ///////////////////////////////

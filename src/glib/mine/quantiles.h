@@ -304,7 +304,7 @@ namespace TQuant {
         class TExpHistWithMax : public TExpHistBase<TIntervalWithMax> {
             using TBase = TExpHistBase<TIntervalWithMax>;
         public:
-            using TBase::TExpHistBase;
+            TExpHistWithMax(const double& Eps): TExpHistBase(Eps) {}
 
             // SERIALIZATION
             TExpHistWithMax(TSIn&);
@@ -637,14 +637,11 @@ namespace TQuant {
         bool ShouldCompress() const;
         int GetBand(const TUtils::TGkTuple&, const uint64& MnRank) const;
 
-        static constexpr double NUM_EPS = 1e-12;
-
-
         using TTuple = TUtils::TGkTuple;
         using TSummary = TVec<TTuple>;  // TODO use a linked list or some other structure
 
         TSummary Summary {};
-        TUInt64 SampleN {0ul};
+        TUInt64 SampleN {};     // number of samples seen so far, initialized to 0
         TFlt Quant0;
         TFlt Eps;
         TInt Dir {1};
@@ -691,6 +688,9 @@ namespace TQuant {
         // ALGORITHM API
         /// returns the (approximate) quantile
         double Query(const double& PVal);
+        /// returns multiple (approximate) quantiles
+        /// PValV must be sorted!!
+        /* void Query(const TFltV& PValV, TFltV& QuantV);  // TODO implement */
         /// inserts a new value with the specified time
         void Insert(const uint64& ValTm, const double& Val);
         /// forgets all values before and including the specified time

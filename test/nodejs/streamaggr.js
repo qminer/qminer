@@ -4767,10 +4767,9 @@ describe('SwGk Tests', function () {
     var windowAggr = null;
 
     var batchSize = 1000;
-    var nbatches = 10;
 
     var dt = 10;
-    var windowMSec = batchSize*dt;
+    var windowMSec = (batchSize - 1)*dt;    // the window is inclusive, so we must take 1 less
 
     var quantileEps = 0.01;
     var countEps = 0.0001;
@@ -4818,6 +4817,8 @@ describe('SwGk Tests', function () {
 
     describe('Accuracy test', function () {
         it('should produce accurate results', function () {
+            var nbatches = 10;
+
             var gk = store.addStreamAggr({
                 type: 'windowQuantiles',
                 inAggr: windowAggr,
@@ -4850,6 +4851,51 @@ describe('SwGk Tests', function () {
                     var quant_hat = result[i];
                     assert(Math.floor((pval - maxRelErr)*batchSize) <= quant_hat);
                     assert(Math.ceil((pval + maxRelErr)*batchSize) >= quant_hat);
+                }
+            }
+        })
+
+        it('should forget old values', function () {
+            var nbatches = 2;
+
+            var gk = store.addStreamAggr({
+                type: 'windowQuantiles',
+                inAggr: windowAggr,
+                quantileEps: quantileEps,
+                countEps: 0,
+                quantiles: targetQuants
+            })
+
+            var vals = [];
+            for (var i = 0; i < batchSize; i++) {
+                vals.push(i);
+            }
+            for (var batchN = 0; batchN < nbatches; batchN++) {
+                // shuffle the array
+                for (var i = 0; i < batchSize; i++) {
+                    var swapN = Math.floor(Math.random()*batchSize);
+                    var temp = vals[i];
+                    vals[i] = vals[swapN];
+                    vals[swapN] = temp;
+                }
+
+                var batchOffset = batchN*batchSize;
+
+                for (var i = 0; i < batchSize; i++) {
+                    var time = (batchN*batchSize + i)*dt;
+                    var val = batchOffset + vals[i];
+                    // console.log('inserting value: ' + val + ' at time: ' + time);
+                    store.push({ time: time, value: val })
+                }
+
+                var result = gk.getFloatVector();
+                for (var i = 0; i < targetQuants.length; i++) {
+                    var pval = targetQuants[i];
+                    var quant_hat = result[i];
+
+                    // console.log('batchN: ' + batchN + ', p-val: ' + pval + ', quant_hat: ' + quant_hat);
+                    assert(batchOffset + Math.floor((pval - maxRelErr)*batchSize) <= quant_hat);
+                    assert(batchOffset + Math.ceil((pval + maxRelErr)*batchSize) >= quant_hat);
                 }
             }
         })
@@ -4894,6 +4940,8 @@ describe('SwGk Tests', function () {
 
     describe('Save and load test', function () {
         it('should survive save and load and retain its accuracy', function () {
+            var nbatches = 3;
+
             var gkParams = {
                 type: 'windowQuantiles',
                 inAggr: windowAggr,
