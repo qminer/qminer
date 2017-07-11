@@ -1334,6 +1334,9 @@ describe('Gix Position Tests', function () {
             assert.equal(base.search({ $from: "TestStore", Value: "kk mm" }).length, 1);
             assert.equal(base.search({ $from: "TestStore", Value: "kk nn" }).length, 0);
 
+            assert.equal(base.search({ $from: "TestStore", Value: "xx" }).length, 1);
+            assert.equal(base.search({ $from: "TestStore", Value: "xx" })[0].$fq, 1022);
+
         });
         it('long word phrases', function () {
             var store = base.createStore({

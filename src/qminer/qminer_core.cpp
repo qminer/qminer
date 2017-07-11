@@ -5472,11 +5472,13 @@ TStr TIndex::TQmGixKeyStr::GetKeyNm(const TQmGixKey& Key) const {
     return KeyChA;
 }
 
-//int TIndex::TQmGixItemPos::MaxPos = 8;
-const int TIndex::TQmGixItemPos::Modulo = ((int) pow(2,10))-1;
+// we use 2^10-1 as the modulo. 10 because we use 10 bits to store the position in the text
+// and we remove 1 since we reserve one value (in our case 0) as representing "empty" value
+const int TIndex::TQmGixItemPos::Modulo = 1023;
 
 TIndex::TQmGixItemPos::TQmGixItemPos(TSIn& SIn): RecId(SIn) {
-    BitsetConverter Converter;
+    TBitsetConverter Converter;
+    Assert(sizeof(TQmGixPosVals) == sizeof(TUCh[4]));
     // store position
     for (int PosN = 0; PosN < 4; PosN++) {
         Converter.ChV[PosN] = TUCh(SIn);
@@ -5486,7 +5488,7 @@ TIndex::TQmGixItemPos::TQmGixItemPos(TSIn& SIn): RecId(SIn) {
 
 void TIndex::TQmGixItemPos::Save(TSOut& SOut) const {
     RecId.Save(SOut);
-    BitsetConverter Converter;
+    TBitsetConverter Converter;
     Converter.PosV = PosV;
     // we always save all positions
     for (int PosN = 0; PosN < 4; PosN++) {
@@ -5494,11 +5496,9 @@ void TIndex::TQmGixItemPos::Save(TSOut& SOut) const {
     }
 }
 
-int TIndex::TQmGixItemPos::GetPosLen() const {
-    if (PosV.Pos1 == 0) { return 0; }
-    else if (PosV.Pos2 == 0) { return 1; }
-    else if (PosV.Pos3 == 0) { return 2; }
-    else { return 3; }
+void TIndex::TQmGixItemPos::SetRecId(const uint64& _RecId) {
+    Assert(_RecId < TUInt::Mx);
+    RecId = (uint)_RecId;
 }
 
 int TIndex::TQmGixItemPos::GetPos(const int& PosN) const {
@@ -5507,10 +5507,9 @@ int TIndex::TQmGixItemPos::GetPos(const int& PosN) const {
         case 0: return PosV.Pos1;
         case 1: return PosV.Pos2;
         case 2: return PosV.Pos3;
+        default:
+            throw TQmExcept::New("[TIndex::TQmGixItemPos::GetPos] Asked for a value out of valid range");
     }
-    Assert(false);
-    // we return a value so that compiler doesn't complain
-    return 0;
 }
 
 bool TIndex::TQmGixItemPos::Add(const int& Pos) {
@@ -5526,9 +5525,19 @@ bool TIndex::TQmGixItemPos::Add(const int& Pos) {
     Assert((uint) Pos > PosV.Pos3);
     // store position
     // store in the appropriate place
-    if (PosV.Pos1 == 0) { PosV.Pos1 = Pos; return false; }
-    else if (PosV.Pos2 == 0) { PosV.Pos2 = Pos; return false; }
-    else { PosV.Pos3 = Pos; return true; }
+    if (PosV.Pos1 == 0) {
+        PosV.Pos1 = Pos;
+        PosV.Len = 1;
+        return false;
+    } else if (PosV.Pos2 == 0) {
+        PosV.Pos2 = Pos;
+        PosV.Len = 2;
+        return false;
+    } else {
+        PosV.Pos3 = Pos;
+        PosV.Len = 3;
+        return true;
+    }
 }
 
 TIndex::TQmGixItemPos TIndex::TQmGixItemPos::Intersect(const TQmGixItemPos& Item, const int& MaxDiff) const {
@@ -5608,7 +5617,6 @@ void TIndex::DoQueryPos(const int& KeyId, const TUInt64V& WordIdV,
     TVec<TQmGixItemPos> CurrentItemV;
     GixPos->GetItemV(TQmGixKey(KeyId, WordIdV[0]), CurrentItemV);
     Assert(CurrentItemV.IsSorted());
-    //ItemV.Sort();
     // now filter down the results by intersecting with subsequent words
     for (int WordN = 1; WordN < WordIdV.Len(); WordN++) {
         // stop in case we are out of candidates
@@ -5617,7 +5625,6 @@ void TIndex::DoQueryPos(const int& KeyId, const TUInt64V& WordIdV,
         TVec<TQmGixItemPos> WordItemV;
         GixPos->GetItemV(TQmGixKey(KeyId, WordIdV[WordN]), WordItemV);
         Assert(WordItemV.IsSorted());
-        //WordItemV.Sort();
         // intersect the lists
         TVec<TQmGixItemPos> _ItemV; int CurrentItemN = 0;
         for (const TQmGixItemPos& WordItem : WordItemV) {
@@ -7256,7 +7263,7 @@ bool TBase::RestoreJSonDump(const TStr& DumpDir) {
                 Json->DelObjKey("$id");
                 const uint64 RecId = Store->AddRec(Json);
                 OldToNewIdH.AddDat(ExRecId, RecId);
-                // validate that the added rec id is the same as the one that was Saved in json
+                // validate that the added rec id is the same as the one that was saved in json
                 // if this fails then we have a problem since the joins will point different records than in the original data
                 //AssertR(ExRecId == TUInt64::Mx || ExRecId == RecId, "The added record id does not match the one in the record json");
                 if (RecId % 1000 == 0) {
@@ -7416,8 +7423,8 @@ int TBase::PartialFlush(int WndInMsec) {
         }
         int TimeSliceMs = WndInMsec / DirtyStores; // time-TimeSliceMs per store
         DirtyStores = 0;
-        Saved = 0; // how many Saved in this loop
-        int xsaved = 0; // how many Saved in this loop into last store/index
+        Saved = 0; // how many saved in this loop
+        int xsaved = 0; // how many saved in this loop into last store/index
         for (int i = 0; i < DirtyStoreV.Len(); i++) {
             if (!DirtyStoreV[i].Val2)
                 continue; // this store had no dirty data in previous loop

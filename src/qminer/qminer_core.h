@@ -3076,25 +3076,27 @@ private:
     };
 
 private:
-    // struct used to store the positions in text where the word appears. Positions are set by modulo 2^10.
-    // values in the object are stored in incremental order. If multiple instances of TQmGixPosVals are stored in
-    // gix for the same word (when more than 3 occurances of the word in the document) then the ordering of values
-    // across the TQmGixPosVals instances also holds (Val3 is smaller than Val1 of the following TQmGixPosVals)
-    struct TQmGixPosVals {
-        uint Pos1 : 10;
-        uint Pos2 : 10;
-        uint Pos3 : 10, :2;
-
-        TQmGixPosVals() { memset(this, 0, sizeof(TQmGixPosVals)); };
-    };
-    // union required for serialization of the TQmGixPosVals struct
-    typedef union BitsetConverter {
-        TQmGixPosVals PosV;
-        TUCh ChV[4];
-        BitsetConverter() { memset(this, 0, sizeof(BitsetConverter)); };
-    } BitsetConverter;
     /// Gix item to be used for storing records together with token positions
     class TQmGixItemPos {
+    public:
+        // struct used to store the positions in text where the word appears. Positions are set by modulo 2^10.
+        // values in the object are stored in incremental order. If multiple instances of TQmGixPosVals are stored in
+        // gix for the same word (when more than 3 occurances of the word in the document) then the ordering of values
+        // across the TQmGixPosVals instances also holds (Val3 is smaller than Val1 of the following TQmGixPosVals)
+        struct TQmGixPosVals {
+            uint Pos1 : 10;
+            uint Pos2 : 10;
+            uint Pos3 : 10;
+            uint Len : 2;
+
+            TQmGixPosVals() { memset(this, 0, sizeof(TQmGixPosVals)); };
+        };
+        // union required for serialization of the TQmGixPosVals struct
+        typedef union TBitsetConverter {
+            TQmGixPosVals PosV;
+            TUCh ChV[4];
+            TBitsetConverter() { memset(this, 0, sizeof(TBitsetConverter)); };
+        } TBitsetConverter;
     private:
         /// Record Id
         TUInt RecId;
@@ -3119,17 +3121,14 @@ private:
 
         /// Get record id stored in the item
         uint64 GetRecId() const { return (uint64) RecId; }
-        void SetRecId(const uint64& _RecId) {
-            Assert(_RecId < TUInt::Mx);
-            RecId = (uint)_RecId;
-        }
+        void SetRecId(const uint64& _RecId);
 
         /// Check if the item is empty (== first position is set to 0)
         bool Empty() const { return PosV.Pos1 == 0; }
         /// Check if we still have space (== last position is set to 0)
         bool IsSpace() const { return PosV.Pos3 == 0; }
         /// Get number of positions stored
-        int GetPosLen() const;
+        int GetPosLen() const { return PosV.Len; }
         /// Get position converted to int for easier handling outside
         int GetPos(const int& PosN) const;
 
@@ -3143,8 +3142,10 @@ private:
         TQmGixItemPos Intersect(const TQmGixItemPos& Item, const int& MaxDiff) const;
 
         /// since we can have multiple items with same record id, two items are same if they have same record id and have the matching first position
+        /// each position can appear only once for the same record.
         bool operator==(const TQmGixItemPos& ItemPos) const { return RecId == ItemPos.RecId && PosV.Pos1 == ItemPos.PosV.Pos1; }
-        /// Items are ordered according to record id followed by position
+        /// Items are ordered according to record id followed by position. Each position value can appear only once.
+        // Item with same RecId but higher position should appear later in the vector
         bool operator<(const TQmGixItemPos& ItemPos) const { return RecId < ItemPos.RecId || (RecId == ItemPos.RecId && PosV.Pos1 < ItemPos.PosV.Pos1); }
 
         /// Memory footprint
@@ -3229,6 +3230,9 @@ private:
     /// Execute Position query. Result is vector of record ids and frequency of phrase occurences.
     void DoQueryPos(const int& KeyId, const TUInt64V& WordIdV, const int& MaxDiff, TUInt64IntKdV& RecIdFqV) const;
 
+    /// method responsible for indexing or deleting words from index. The action is determined by UpdateMethod method pointer
+    void UpdateTextPos(const int& KeyId, const TUInt64V& WordIdV, const uint64& RecId, void (TGix<TQmGixKey, TQmGixItemPos>::*UpdateMethod)(const TQmGixKey&, const TQmGixItemPos&));
+
     /// Constructor
     TIndex(const TStr& _IndexFPath, const TFAccess& _Access, const PIndexVoc& IndexVoc,
         const int64& CacheSizeFull, const int64& CacheSizeSmall, const uint64& CacheSizeTiny,
@@ -3290,9 +3294,6 @@ public:
     void DeleteTextPos(const int& KeyId, const TStr& TextStr, const uint64& RecId);
     /// Index RecId using given keys and words. Words are extracted by tokenizing the given string.
     void DeleteTextPos(const int& KeyId, const TUInt64V& WordIdV, const uint64& RecId);
-
-    /// method responsible for indexing or deleting words from index
-    void UpdateTextPos(const int& KeyId, const TUInt64V& WordIdV, const uint64& RecId, void (TGix<TQmGixKey, TQmGixItemPos>::*UpdateMethod)(const TQmGixKey&, const TQmGixItemPos&));
 
     /// Add RecId to location index under key (Key, Loc)
     void IndexGeo(const int& KeyId, const TFltPr& Loc, const uint64& RecId);
