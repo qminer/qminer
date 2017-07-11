@@ -510,7 +510,7 @@ namespace TQuant {
 
         template <typename TInterval>
         void TExpHistBase<TInterval>::BreakBlocks(const int& StartBlockSize) {
-            const int StartLogSize = TMath::Log2(StartBlockSize);
+            const int StartLogSize = (int) TMath::Log2(StartBlockSize);
 
             // move to the correct position
             int CurrPos = IntervalV.Len()-1;
@@ -563,7 +563,7 @@ namespace TQuant {
         template <typename TInterval>
         TUInt& TExpHistBase<TInterval>::BlockSizeToBlockCount(const uint& BlockSize) {
             Assert(1 <= BlockSize);
-            return LogBlockSizeToBlockCount(TMath::Log2(BlockSize));
+            return LogBlockSizeToBlockCount((uint) TMath::Log2(BlockSize));
         }
 
         template <typename TInterval>
@@ -571,7 +571,7 @@ namespace TQuant {
             Assert(0 <= BatchPos && BatchPos < IntervalV.Len());
 
             const TInterval& FirstInterval = IntervalV[BatchPos];
-            const uint LogBlockSize = TMath::Log2(FirstInterval.GetCount());
+            const uint LogBlockSize = (uint) TMath::Log2(FirstInterval.GetCount());
             const uint& BlockCount = LogBlockSizeToBlockCount(LogBlockSize);
 
             const int DelElN = BatchPos - BlockCount + 2;
@@ -586,7 +586,7 @@ namespace TQuant {
         template <typename TInterval>
         uint TExpHistBase<TInterval>::GetMnBlocksSameSize() const {
             if (Eps == 0.0) { return 0; }
-            return std::ceil(1 / (2*Eps));
+            return (uint) std::ceil(1 / (2*Eps));
         }
 
         template <typename TInterval>

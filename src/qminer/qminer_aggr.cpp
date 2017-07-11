@@ -2182,12 +2182,13 @@ void TSwGk::GetVal(const int& QuantN, TFlt& Val) const {
     Val = MutableGk.Query(ProbV[QuantN]);
 }
 
-void TSwGk::GetValV(TFltV& QuantV) const {  // TODO optimize: query multiple quantiles at once
+void TSwGk::GetValV(TFltV& QuantV) const {
     if (QuantV.Len() != ProbV.Len()) { QuantV.Gen(ProbV.Len(), ProbV.Len()); }
 
-    for (int QuantN = 0; QuantN < ProbV.Len(); QuantN++) {
-        GetVal(QuantN, QuantV[QuantN]);
-    }
+    // XXX not good practice, using const cast to
+    // make the object unmutable
+    TQuant::TSwGk& MutableGk = const_cast<TQuant::TSwGk&>(Gk);
+    MutableGk.Query(ProbV, QuantV);
 }
 
 void TSwGk::LoadState(TSIn& SIn) {
@@ -2247,6 +2248,11 @@ TSwGk::TSwGk(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
 
     QmAssertR(!InAggrTmIOCast.Empty(), "Invalid input time window aggregate!");
     QmAssertR(!InAggrFltIOCast.Empty(), "Invalid input float window aggregate!");
+
+    // check that the quantiles are sorted
+    for (int PValN = 1; PValN < ProbV.Len(); PValN++) {
+        EAssertR(ProbV[PValN-1] <= ProbV[PValN], "SW-GK: p-values should be sorted!");
+    }
 }
 
 void TSwGk::OnStep(const TWPt<TStreamAggr>& CallerAggr) {

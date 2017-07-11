@@ -375,12 +375,12 @@ namespace TQuant {
 
         TUInt& TWindowMin::BlockSizeToBlockCount(const uint& BlockSize) {
             Assert(1 <= BlockSize);
-            return LogBlockSizeToBlockCount(TMath::Log2(BlockSize));
+            return LogBlockSizeToBlockCount((uint) TMath::Log2(BlockSize));
         }
 
         uint TWindowMin::GetMxBlocksSameSize() const {
             if (Eps == 0.0) { return TUInt::Mx; }
-            return std::ceil(1.0 / Eps) + 1;
+            return uint(std::ceil(1.0 / Eps) + 1);
         }
 
         bool TWindowMin::CheckInvariant1() const {
@@ -522,8 +522,8 @@ namespace TQuant {
                 EpsGk(SIn),
                 EpsEh(SIn) {
 
-            const TInt Len(SIn);
-            for (int TupleN = 0; TupleN < Len; TupleN++) {
+            const TUInt Len(SIn);
+            for (uint TupleN = 0; TupleN < Len; TupleN++) {
                 Summary.push_back(TTuple(SIn));
             }
         }
@@ -533,7 +533,7 @@ namespace TQuant {
             SOut.Save(EpsGk);
             SOut.Save(EpsEh);
 
-            const int Len = Summary.size();
+            const uint Len = (uint) Summary.size();
             SOut.Save(Len);
             for (auto TupleIt = Summary.begin(); TupleIt != Summary.end(); ++TupleIt) {
                 TupleIt->Save(SOut);
@@ -541,7 +541,7 @@ namespace TQuant {
         }
 
         void TSwGkLLSummary::Insert(const uint64& ValTm, const double& Val) {
-            typename TSummary::iterator TupleIt = Summary.begin();
+            TSummary::iterator TupleIt = Summary.begin();
 
             // iterate to the correct position
             while (TupleIt != Summary.end()) {
@@ -564,15 +564,14 @@ namespace TQuant {
         double TSwGkLLSummary::Query(const double& Quantile) {
             if (Summary.empty()) { return 0; }
 
-            const double MnRankThreshold = ItemCount*(TMath::Mx(0.0, Quantile - EpsGk));
-
             uint64 CurrMnRank = 0;
             double MxVal = TFlt::NInf;
 
-            typename TSummary::iterator TupleIt = Summary.begin();
+            TSummary::iterator TupleIt = Summary.begin();
             while (TupleIt != Summary.end()) {
                 TupleIt->Forget(ForgetTm);
 
+                const double MnRankThreshold = double(ItemCount)*(TMath::Mx(0.0, Quantile - EpsGk));    // must be calculated after forget, since the item count can change when forgetting
                 const uint TupleSize = TupleIt->GetTupleSize();
 
                 if (TupleSize > 0) {
@@ -596,6 +595,59 @@ namespace TQuant {
             return MxVal;
         }
 
+        void TSwGkLLSummary::Query(const TFltV& PValV, TFltV& QuantV) {
+            if (QuantV.Len() != PValV.Len()) { QuantV.Gen(PValV.Len(), PValV.Len()); }
+            if (Summary.empty() || PValV.Empty()) { return; }
+
+            uint64 CurrMnRank = 0;
+            double MxVal = TFlt::NInf;
+
+            int PValN = 0;
+            TSummary::iterator TupleIt = Summary.begin();
+
+            while (PValN < PValV.Len()) {
+                const TFlt& PVal = PValV[PValN];
+
+                while (TupleIt != Summary.end()) {
+                    TupleIt->Forget(ForgetTm);
+
+                    const double MnRankThreshold = double(ItemCount)*(TMath::Mx(0.0, PVal - EpsGk));
+                    const uint TupleSize = TupleIt->GetTupleSize();
+
+                    CurrMnRank += TupleSize;
+
+                    if (TupleSize > 0) {
+                        const double TupleVal = TupleIt->GetVal();
+
+                        if (TupleVal > MxVal) { MxVal = TupleVal; }
+
+                        if (CurrMnRank >= MnRankThreshold) {
+                            // we have found the quantile
+                            // reset the min rank to the begining of the iteration
+                            CurrMnRank -= TupleSize;
+                            break;
+                        }
+                    }
+
+                    ++TupleIt;
+                }
+
+                if (MxVal != TFlt::NInf) { QuantV[PValN] = MxVal; }
+
+                AssertR(PValN == 0 || PValV[PValN-1] <= PValV[PValN], "SW-GK: p-values should be sorted!");
+                ++PValN;
+            }
+
+            // if all the tuples were empty, then compress the structure and query again
+            // we could have done this in the loop, but that would require checks for every p-val
+            // I decided this way would be better, since here we are penalized when the summary is empty
+            // which is quick anyway
+            if (MxVal == TFlt::NInf) {
+                Compress();
+                Query(PValV, QuantV);
+            }
+        }
+
         void TSwGkLLSummary::Forget(const uint64& _ForgetTm) {
             ForgetTm = _ForgetTm;
         }
@@ -606,19 +658,19 @@ namespace TQuant {
             Refresh(ForgetTm);
 
             if (Summary.size() > 1) {
-                typename TSummary::iterator LeftIt = --Summary.end();
+                TSummary::iterator LeftIt = --Summary.end();
 
                 do {
-                    typename TSummary::iterator RightIt = LeftIt--;
+                    TSummary::iterator RightIt = LeftIt--;
                     // try to merge the two tuples
-                    typename TSummary::iterator LargerIt = RightIt->GetVal() > LeftIt->GetVal() ?
+                    TSummary::iterator LargerIt = RightIt->GetVal() > LeftIt->GetVal() ?
                                                                 RightIt : LeftIt;
 
                     const uint LeftTupleCount = LeftIt->GetTupleSize();
                     const uint RightTupleCount = RightIt->GetTupleSize();
                     const uint LargerCorr = LargerIt->GetMnMxRankDiff();
 
-                    if (LeftTupleCount + RightTupleCount + LargerCorr < 2*EpsGk*ItemCount) {
+                    if (LeftTupleCount + RightTupleCount + LargerCorr < uint(2*EpsGk*double(ItemCount))) {
                         // merge the two tuples
                         RightIt->Swallow(*LeftIt, LargerIt == LeftIt);
                         LeftIt = Summary.erase(LeftIt);
@@ -642,7 +694,7 @@ namespace TQuant {
 
         uint64 TSwGkLLSummary::GetValRecount() {
             uint64 Count = 0;
-            typename TSummary::iterator TupleIt = Summary.begin();
+            TSummary::iterator TupleIt = Summary.begin();
             while (TupleIt != Summary.end()) {
                 TupleIt->Forget(ForgetTm);
                 if (TupleIt->Empty()) {
@@ -656,7 +708,7 @@ namespace TQuant {
         }
 
         uint TSwGkLLSummary::GetTupleCount() const {
-            return Summary.size();
+            return (uint) Summary.size();
         }
 
         void TSwGkLLSummary::OnItemsDeleted(const uint64& DelCount) {
@@ -665,7 +717,7 @@ namespace TQuant {
         }
 
         void TSwGkLLSummary::Refresh(const uint64& ForgetTm) {
-            typename TSummary::iterator TupleIt = Summary.begin();
+            TSummary::iterator TupleIt = Summary.begin();
             while (TupleIt != Summary.end()) {
                 TupleIt->Forget(ForgetTm);
                 if (TupleIt->GetTupleSize() == 0) {
@@ -677,7 +729,7 @@ namespace TQuant {
         }
 
         std::ostream& operator <<(std::ostream& os, const TSwGkLLSummary& GkSummary) {
-            const typename TSwGkLLSummary::TSummary& Summary = GkSummary.Summary;
+            const TSwGkLLSummary::TSummary& Summary = GkSummary.Summary;
             auto It = Summary.begin();
             if (It != Summary.end()) { std::cout << *(It++); }
             while (It != Summary.end()) {
@@ -734,8 +786,8 @@ namespace TQuant {
     double TGk::Query(const double& Quantile) const {
         Assert(0.0 < Quantile && Quantile < 1);
 
-        const int TargetRank = std::ceil(Quantile * SampleN);
-        const int HalfErrRange = Eps * SampleN;
+        const int TargetRank = (int) std::ceil(Quantile * double(SampleN));
+        const int HalfErrRange = int(Eps * double(SampleN));
 
         const int SummarySize = GetSummarySize();
 
@@ -786,7 +838,7 @@ namespace TQuant {
         const auto Cmp = [&](const TTuple& Tup, const double& Val) { return Tup.Val1 < Val; };
         const auto ValIt = std::lower_bound(Summary.begin(), Summary.end(), Val, Cmp);
 
-        const int NewValN = ValIt - Summary.begin();
+        const int NewValN = int(ValIt - Summary.begin());
 
         // if Val is the smallest or largest element, we must insert <v,1,0>
         if (NewValN == 0 || NewValN == Summary.Len()) {
@@ -794,7 +846,7 @@ namespace TQuant {
         }
         else {
             // insert tuple <v,1,floor(2*eps*n)>
-            Summary.Ins(NewValN, TTuple(Val, 1, (int) (2*Eps*SampleN)));
+            Summary.Ins(NewValN, TTuple(Val, 1, (uint) (2*Eps*double(SampleN))));
         }
 
         ++SampleN;
@@ -805,7 +857,7 @@ namespace TQuant {
     }
 
     void TGk::Compress() {
-        const int ErrRange = 2*Eps*SampleN;
+        const int ErrRange = (int) (2*Eps*double(SampleN));
 
         // go throught the tuples and merge the ones you can
         // the first and last tuple should never get merged
@@ -847,7 +899,7 @@ namespace TQuant {
         // where capacity is defined as floor(2*eps*n) - delta_i
         const TTuple& Tuple = Summary[TupleN];
 
-        const uint64 p = (int) 2*Eps*SampleN;
+        const uint64 p = (int) (2*Eps*double(SampleN));
         const uint64 DeltaI = Tuple.Val3;
         const uint64 Capacity = p - DeltaI;
 
@@ -861,7 +913,7 @@ namespace TQuant {
                    Capacity < TMath::Pow2(Band) + (p % TMath::Pow2(Band));
         };
 
-        const int CandidateBand = (int) TMath::Log2(Capacity);
+        const int CandidateBand = (int) TMath::Log2((double) Capacity);
         if (TestBand(CandidateBand)) {
             return CandidateBand;
         }
@@ -920,7 +972,7 @@ namespace TQuant {
     double TBiasedGk::Query(const double& Quantile) const {
         if (GetSummarySize() == 0) { return 0; }
 
-        const double TargetRank = Dir > 0 ? Quantile*SampleN : (1 - Quantile)*SampleN;
+        const double TargetRank = Dir > 0 ? Quantile*double(SampleN) : (1 - Quantile)*double(SampleN);
         const double EpsRank = GetMxTupleSize(TargetRank) / 2;
 
         if (TargetRank <= 1) { return Summary[0].GetVal(); }
@@ -958,9 +1010,9 @@ namespace TQuant {
             // special case (symmetrical to the previous case)
             Summary.Add(TTuple(Val, 1, 0));
         } else {
-            const double NewTupleMxSize = GetMxTupleSize(PrevTupleMnRank);
-            Summary.Ins(TupleN, TTuple(Val, 1, std::floor(NewTupleMxSize-1)));
-            AssertR(NewTupleMxSize-1 >= 0, "Max tuple size is 0, but should be at least 1!");
+            const uint NewTupleMxSize = (uint) GetMxTupleSize((double) PrevTupleMnRank);
+            Summary.Ins(TupleN, TTuple(Val, 1, NewTupleMxSize-1));
+            AssertR(int(NewTupleMxSize)-1 >= 0, "Max tuple size is 0, but should be at least 1!");
         }
 
         ++SampleN;
@@ -985,7 +1037,7 @@ namespace TQuant {
             const uint NewTupleRange = CurTuple.GetTupleSize() +
                                        AdjTuple.GetTupleSize() +
                                        AdjTuple.GetMnMxRankDiff();
-            const double MxTupleRange = GetMxTupleSize(PrevMnRank);
+            const double MxTupleRange = GetMxTupleSize((double) PrevMnRank);
 
             if (UseBands) {
                 const int CurTupleBand = GetBand(CurTuple, CurrMnRank);
@@ -1022,7 +1074,7 @@ namespace TQuant {
     }
 
     double TBiasedGk::GetMxTupleSize(const double& Rank) const {
-        return TMath::Mx(1.0, 2.0*GetEps(Rank / SampleN)*Rank);
+        return TMath::Mx(1.0, 2.0*GetEps(Rank / double(SampleN))*Rank);
     }
 
     bool TBiasedGk::ShouldCompress() const {
@@ -1032,7 +1084,7 @@ namespace TQuant {
     int TBiasedGk::GetBand(const TTuple& Tuple, const uint64& MnRank) const {
         if (Tuple.GetMnMxRankDiff() == 0) { return TInt::Mx; }
 
-        const uint MxTupleSize = GetMxTupleSize(MnRank);
+        const uint MxTupleSize = (uint) GetMxTupleSize((double) MnRank);
         const uint TupleDelta = Tuple.GetMnMxRankDiff();
         const uint Capacity = MxTupleSize - TupleDelta;
         AssertR(MxTupleSize >= TupleDelta, "Tuple uncertainty greater than capacity!");
@@ -1101,15 +1153,23 @@ namespace TQuant {
         }
     }
 
-    /* void TSwGk::Query(const TFltV& PValV, TFltV& ValV) { */
-/* #ifndef NDEBUG */
-    /*     for (int PValN = 1; PValN < PValV.Len(); PValN++) { */
-    /*         Assert(PValV[PValN-1] <= PValV[PValN]); */
-    /*     } */
-/* #endif */
-    /*     // TODO assert that the PValV is sorted */
+    void TSwGk::Query(const TFltV& PValV, TFltV& QuantV) {
+        // steps:
+        // 1) query all the quantiles using the summary (all the p-vals <= eps will be incorrect)
+        // 2) correct the p-vals which are <= eps
+        Summary.Query(PValV, QuantV);
+        // correct pvals less or equal to eps
+        if (!PValV.Empty() && PValV[0] <= EpsGk) {
+            WinMin.Forget(ForgetTm);
+            const double MnVal = WinMin.Empty() ? 0 : WinMin.GetMnVal();
 
-    /* } */
+            int PValN = 0;
+            while (PValN < PValV.Len() && PValV[PValN] <= EpsGk) {
+                QuantV[PValN] = MnVal;
+                ++PValN;
+            }
+        }
+    }
 
     void TSwGk::Insert(const uint64& ValTm, const double& Val) {
         Summary.Insert(ValTm, Val);

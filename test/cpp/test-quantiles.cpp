@@ -41,8 +41,6 @@ template <typename TGk, typename TLowerBoundFun, typename TUpperBoundFun>
 void AssertQuantileRange(TGk& Gk, const TLowerBoundFun& GetLowerBound,
         const TUpperBoundFun& GetUpperBound, const double QuantileStep=1e-3) {
 
-    /* Gk.PrintSummary(); */
-
     double CurrQuant = 0.0;
     while (CurrQuant <= 1.0) {
         const double QuantMn = GetLowerBound(CurrQuant);
@@ -50,13 +48,34 @@ void AssertQuantileRange(TGk& Gk, const TLowerBoundFun& GetLowerBound,
 
         const double EstQuant = Gk.Query(CurrQuant);
 
-        /* std::cout << "quantile: " << CurrQuant << ", allowed: [" << QuantMn << ", " << QuantMx << "], value: " << EstQuant << std::endl; */
-        /* std::cout << std::endl; */
-
         ASSERT_GE(EstQuant, QuantMn);
         ASSERT_LE(EstQuant, QuantMx);
 
         CurrQuant += QuantileStep;
+    }
+}
+
+template <typename TGk, typename TLowerBoundFun, typename TUpperBoundFun>
+void AssertQuantileRangeV(TGk& Gk, const TLowerBoundFun& GetLowerBound,
+        const TUpperBoundFun& GetUpperBound, const double PValStep=1e-3) {
+
+    TFltV PValV;
+    for (double PVal = 0.0; PVal <= 1.0; PVal += PValStep) {
+        PValV.Add(PVal);
+    }
+
+    TFltV QuantV;   Gk.Query(PValV, QuantV);
+
+    for (int PValN = 0; PValN < PValV.Len(); ++PValN) {
+        const double PVal = PValV[PValN];
+        const double QuantMn = GetLowerBound(PVal);
+        const double QuantMx = GetUpperBound(PVal);
+
+        const double EstQuant = Gk.Query(PVal);
+
+        ASSERT_GE(EstQuant, QuantMn);
+        ASSERT_LE(EstQuant, QuantMx);
+        ASSERT_EQ(EstQuant, QuantV[PValN]);
     }
 }
 
@@ -899,7 +918,7 @@ TEST(TCountWindowGk, QueryAccNoWindow) {
         // test if the values are in range
         Gk.Compress();
 
-        AssertQuantileRange(Gk, LowerBoundFun, UpperBoundFun);
+        AssertQuantileRangeV(Gk, LowerBoundFun, UpperBoundFun);
 
         if (BatchN > 0) {
             const int TotalSamples = (BatchN+1)*BatchSize;
@@ -942,7 +961,7 @@ TEST(TCountWindowGk, QueryAccWindow) {
 
         // test if the values are in range
         Gk.Compress();
-        AssertQuantileRange(Gk, LowerBoundFun, UpperBoundFun);
+        AssertQuantileRangeV(Gk, LowerBoundFun, UpperBoundFun);
         ASSERT_LE(Gk.GetValCount(), std::ceil((1 + EpsEh)*WindowLen));
     }
 }
@@ -971,7 +990,7 @@ TEST(TCountWindowGk, Query) {
 
         // test if the values are in range
         Gk.Compress();
-        AssertQuantileRange(Gk, LowerBoundFun, UpperBoundFun);
+        AssertQuantileRangeV(Gk, LowerBoundFun, UpperBoundFun);
         ASSERT_LE(Gk.GetValCount(), std::ceil((1 + EpsEh)*WindowLen));
     }
 }
@@ -1005,7 +1024,7 @@ TEST(TCountWindowGk, ConceptDrift) {
         // test if the values are in range
         Gk.Compress();
 
-        AssertQuantileRange(Gk, LowerBoundFun, UpperBoundFun);
+        AssertQuantileRangeV(Gk, LowerBoundFun, UpperBoundFun);
         ASSERT_LE(Gk.GetValCount(), std::ceil((1 + EpsEh)*WindowLen));
     }
 }
@@ -1095,7 +1114,7 @@ TEST(TTimeWindowGk, Query) {
 
         // test if the values are in range
         Gk.Compress();
-        AssertQuantileRange(Gk, LowerBoundFun, UpperBoundFun);
+        AssertQuantileRangeV(Gk, LowerBoundFun, UpperBoundFun);
         ASSERT_LE(Gk.GetValCount(), std::ceil((1 + EpsEh)*SamplesInWindow));
     }
 }
@@ -1129,7 +1148,7 @@ TEST(TTimeWindowGk, ConceptDrift) {
 
         // test if the values are in range
         Gk.Compress();
-        AssertQuantileRange(Gk, LowerBoundFun, UpperBoundFun);
+        AssertQuantileRangeV(Gk, LowerBoundFun, UpperBoundFun);
         ASSERT_LE(Gk.GetValCount(), std::ceil((1 + EpsEh)*BatchSize));
     }
 }
@@ -1253,7 +1272,7 @@ TEST(TTimeWindow, DrainSummary) {
     Gk.Compress();
     ASSERT_EQ(0, Gk.GetValCount());
     ASSERT_EQ(0, Gk.GetValRecount());
-    AssertQuantileRange(Gk, ZeroFun, ZeroFun);
+    AssertQuantileRangeV(Gk, ZeroFun, ZeroFun);
 }
 
 TEST(TTimeWindow, AutoCompress) {
@@ -1296,14 +1315,14 @@ TEST(TSwGk, Query) {
     const auto LowerBoundFun = [&](const double& Quantile) { return std::floor(NSamples*(Quantile - MxRelErr)); };
     const auto UpperBoundFun = [&](const double& Quantile) { return std::ceil(NSamples*(Quantile + MxRelErr)); };
 
-    AssertQuantileRange(Gk, LowerBoundFun, UpperBoundFun);
+    AssertQuantileRangeV(Gk, LowerBoundFun, UpperBoundFun);
 
     const int ForgetTm = NSamples - WindowLen;
 
     const auto NewLowerBoundFun = [&](const double& Quantile) { return std::floor(ForgetTm + WindowLen*(Quantile - MxRelErr)); };
     const auto NewUpperBoundFun = [&](const double& Quantile) { return std::ceil(ForgetTm + WindowLen*(Quantile + MxRelErr)); };
 
-    AssertQuantileRange(GkWin, NewLowerBoundFun, NewUpperBoundFun);
+    AssertQuantileRangeV(GkWin, NewLowerBoundFun, NewUpperBoundFun);
 }
 
 TEST(TSwGk, DrainedSummary) {
@@ -1322,5 +1341,5 @@ TEST(TSwGk, DrainedSummary) {
     Gk.Forget(NSamples);
 
     const auto ZeroFun = [&](const double&) { return 0.0; };
-    AssertQuantileRange(Gk, ZeroFun, ZeroFun);
+    AssertQuantileRangeV(Gk, ZeroFun, ZeroFun);
 }

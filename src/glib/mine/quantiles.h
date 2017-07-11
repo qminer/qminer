@@ -472,7 +472,9 @@ namespace TQuant {
             /// inserts a new value into the summary
             void Insert(const uint64& ValTm, const double& Val);
             /// returns the (approximate) quantile
-            double Query(const double& Quantile);
+            double Query(const double& PVal);
+            /// returns a list of (approximate) quantiles, assumes values in PValV are sorted
+            void Query(const TFltV& PValV, TFltV& QuantV);
             /// forgets values after the forget time
             void Forget(const uint64& ForgetTm);
 
@@ -688,9 +690,8 @@ namespace TQuant {
         // ALGORITHM API
         /// returns the (approximate) quantile
         double Query(const double& PVal);
-        /// returns multiple (approximate) quantiles
-        /// PValV must be sorted!!
-        /* void Query(const TFltV& PValV, TFltV& QuantV);  // TODO implement */
+        /// returns multiple (approximate) quantiles, the method assumes PValV is sorted!
+        void Query(const TFltV& PValV, TFltV& QuantV);
         /// inserts a new value with the specified time
         void Insert(const uint64& ValTm, const double& Val);
         /// forgets all values before and including the specified time
