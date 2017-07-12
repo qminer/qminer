@@ -1241,7 +1241,8 @@ describe('Gix Position Tests', function () {
         "Kraft wins final Planica event and ski-jumping World Cup",
         "Germany, Norway neck-and-neck after the first series in Planica",
         "aa aa aa aa aa bb aa aa aa aa aa cc aa dd",
-        "kk " + Array(1023).join("xx ") + "ll mm nn"
+        "kk " + Array(1023).join("xx ") + "ll mm nn",
+        "oo pp " + Array(1022).join("rr ") + "ss tt uu"
     ]
 
     describe('Test creating stores with position index', function () {
@@ -1336,6 +1337,18 @@ describe('Gix Position Tests', function () {
 
             assert.equal(base.search({ $from: "TestStore", Value: "xx" }).length, 1);
             assert.equal(base.search({ $from: "TestStore", Value: "xx" })[0].$fq, 1022);
+
+            // false positives (due to modulo positions)
+            assert.equal(base.search({ $from: "TestStore", Value: "oo tt" }).length, 1);
+            assert.equal(base.search({ $from: "TestStore", Value: "ss pp" }).length, 1);
+            assert.equal(base.search({ $from: "TestStore", Value: "tt rr" }).length, 1);
+
+            assert.equal(base.search({ $from: "TestStore", Value: "ss rr" }).length, 0);
+            assert.equal(base.search({ $from: "TestStore", Value: { $str: "ss rr", $diff: 2 } }).length, 1);
+            assert.equal(base.search({ $from: "TestStore", Value: { $str: "ss rr", $diff: 3 } }).length, 1);
+            // overlapping indices
+            assert.equal(base.search({ $from: "TestStore", Value: "oo ss" }).length, 0);
+            assert.equal(base.search({ $from: "TestStore", Value: "pp tt" }).length, 0);
 
         });
         it('long word phrases', function () {

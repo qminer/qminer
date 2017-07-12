@@ -3119,6 +3119,8 @@ private:
         /// Save to stream
         void Save(TSOut& SOut) const;
 
+        static int GetPosByModulo(const int& Pos) { return (Pos % TQmGixItemPos::Modulo) + 1; }
+
         /// Get record id stored in the item
         uint64 GetRecId() const { return (uint64) RecId; }
         void SetRecId(const uint64& _RecId);
@@ -3230,8 +3232,8 @@ private:
     /// Execute Position query. Result is vector of record ids and frequency of phrase occurences.
     void DoQueryPos(const int& KeyId, const TUInt64V& WordIdV, const int& MaxDiff, TUInt64IntKdV& RecIdFqV) const;
 
-    /// method responsible for indexing or deleting words from index. The action is determined by UpdateMethod method pointer
-    void UpdateTextPos(const int& KeyId, const TUInt64V& WordIdV, const uint64& RecId, void (TGix<TQmGixKey, TQmGixItemPos>::*UpdateMethod)(const TQmGixKey&, const TQmGixItemPos&));
+    /// method that computes the GixItemPos items for the provided list of words
+    void ComputeWordItemPos(const int& KeyId, const TUInt64V& WordIdV, const uint64& RecId, TVec<TPair<TUInt64, TQmGixItemPos>>& WordIdPosPrV);
 
     /// Constructor
     TIndex(const TStr& _IndexFPath, const TFAccess& _Access, const PIndexVoc& IndexVoc,

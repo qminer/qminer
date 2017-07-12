@@ -5653,7 +5653,7 @@ void TIndex::DoQueryPos(const int& KeyId, const TUInt64V& WordIdV,
     }
 
     // prepare final results by getting record ids that survived the intersecting.
-    // there can be multiple items in the vector with the same fq, but they are placed together in the vector
+    // there can be multiple items in the vector with the same rec id, but they are placed together in the vector
     // frequency is the number of positions that were kept till the last word.
     if (CurrentItemV.Len() > 0) {
         RecIdFqV.Add(TUInt64IntKd(CurrentItemV[0].GetRecId(), CurrentItemV[0].GetPosLen()));
@@ -5910,6 +5910,51 @@ void TIndex::DeleteGix(const int& KeyId, const uint64& WordId, const uint64& Rec
     }
 }
 
+void TIndex::ComputeWordItemPos(const int& KeyId, const TUInt64V& WordIdV, const uint64& RecId, TVec<TPair<TUInt64, TQmGixItemPos>>& WordIdPosPrV) {
+    // create a vector of positions computed by modulo
+    typedef TPair<TInt, TUInt64> TPosWordIdPr;
+    TVec<TPosWordIdPr> PosWordIdPrV(WordIdV.Len(), 0);
+    for (int N = 0; N < WordIdV.Len(); N++) {
+        PosWordIdPrV.Add(TPosWordIdPr(TQmGixItemPos::GetPosByModulo(N), WordIdV[N]));
+    }
+
+    // sort by positions by modulo. Positions are required to be sorted when we add them to index
+    PosWordIdPrV.Sort(true);
+
+    // go over all items and add them to the output vector
+    WordIdPosPrV.Clr();
+    THash<TUInt64, TPair<TInt, TQmGixItemPos>> WordIdPosH;
+    for (int N = 0; N < PosWordIdPrV.Len(); N++) {
+        // get normalized pos and word id
+        const int Pos = PosWordIdPrV[N].Val1;
+        const uint64 WordId = PosWordIdPrV[N].Val2;
+        TPair<TInt, TQmGixItemPos>& LastValItemPosPr = WordIdPosH.AddDat(WordId);
+        // if the item with this value was already added ignore it
+        if (LastValItemPosPr.Val1 == Pos) { continue; }
+        // remember the last added value - makes sure we don't add the same value multiple times
+        LastValItemPosPr.Val1 = Pos;
+        // add the value Val to the TQmGixItemPos. If the object becomes full and we need to save it, we return true
+        const bool IsFull = LastValItemPosPr.Val2.Add(Pos);
+        if (IsFull) {
+            // since we used default constructor we have to set the rec id before putting it to gix
+            LastValItemPosPr.Val2.SetRecId(RecId);
+            WordIdPosPrV.Add(TPair<TUInt64, TQmGixItemPos>(WordId, LastValItemPosPr.Val2));
+            // create a new empty item that can be used to store other indices for the word
+            LastValItemPosPr.Val2 = TQmGixItemPos();
+        }
+    }
+
+    // add the non-full items to the output vector
+    for (int KeyId = WordIdPosH.FFirstKeyId(); WordIdPosH.FNextKeyId(KeyId); ) {
+        const uint64 WordId = WordIdPosH.GetKey(KeyId);
+        TPair<TInt, TQmGixItemPos>& LastValItemPosPr = WordIdPosH[KeyId];
+        if (!LastValItemPosPr.Val2.Empty()) {
+            LastValItemPosPr.Val2.SetRecId(RecId);
+            WordIdPosPrV.Add(TPair<TUInt64, TQmGixItemPos>(WordId, LastValItemPosPr.Val2));
+        }
+    }
+}
+
 void TIndex::IndexTextPos(const int& KeyId, const TStr& TextStr, const uint64& RecId) {
     // tokenize string
     TUInt64V WordIdV; IndexVoc->AddWordIdV(KeyId, TextStr, WordIdV);
@@ -5917,65 +5962,15 @@ void TIndex::IndexTextPos(const int& KeyId, const TStr& TextStr, const uint64& R
     IndexTextPos(KeyId, WordIdV, RecId);
 }
 
-void TIndex::UpdateTextPos(const int& KeyId, const TUInt64V& WordIdV, const uint64& RecId, void (TGix<TQmGixKey, TQmGixItemPos>::*UpdateMethod)(const TQmGixKey&, const TQmGixItemPos&)) {
+void TIndex::IndexTextPos(const int& KeyId, const TUInt64V& WordIdV, const uint64& RecId) {
     // we shouldn't modify read-only index
     QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
-    // for each word we want to build the TQmGixItemPos that is already sorted from beginning. For that reason we
-    // iterate through WordIdV in a way to so that all values added to TQmGixItemPos are in increasing order.
-    // Each time an item TQmGixItemPos becomes full, we add it to Gix and create a new item
-    const int Blocks = (int)ceil(WordIdV.Len() / (float) TQmGixItemPos::Modulo);
-    TIntV OffsetV;
-    for (int N = 0; N < Blocks; N++) { OffsetV.Add(N*TQmGixItemPos::Modulo); }
-
-    // key: word id, val: (Val, ItemPos) where Val is last Val added to ItemPos. Used to make sure we don't add duplicates
-    // if the ItemPos becomes full and we add it to Gix
-    THash<TUInt64, TPair<TInt, TQmGixItemPos>> WordIdPosH;
-    const int MaxVal = TInt::GetMn(WordIdV.Len(), TQmGixItemPos::Modulo);
-
-    for (int IndN = 0; IndN < MaxVal; IndN++) {
-        // the value that we want to add to corresponding TQmGixItemPos
-        const int Val = IndN + 1;
-        // go over all full-size blocks
-        for (int BlockInd = 0; BlockInd < Blocks; BlockInd++) {
-            const int WordIdN = OffsetV[BlockInd] + IndN;
-            // when we are processing the last block, it will likely not be full
-            if (WordIdN >= WordIdV.Len()) { continue; }
-            const uint64 WordId = WordIdV[WordIdN];
-            TPair<TInt, TQmGixItemPos>& LastValItemPosPr = WordIdPosH.AddDat(WordId);
-            // if the item with this value was already added ignore it
-            if (LastValItemPosPr.Val1 == Val) { continue; }
-            // remember the last added value - makes sure we don't add the same value multiple times
-            LastValItemPosPr.Val1 = Val;
-            // add the value Val to the TQmGixItemPos. If the object becomes full and we need to save it, we return true
-            const bool IsFull = LastValItemPosPr.Val2.Add(Val);
-            if (IsFull) {
-                // since we used default constructor we have to set the rec id before putting it to gix
-                LastValItemPosPr.Val2.SetRecId(RecId);
-                // add the full item to gix
-                ((*GixPos).*UpdateMethod)(TKeyWord(KeyId, WordId), LastValItemPosPr.Val2);
-                // create a new empty item that can be used to store other indices for the word
-                LastValItemPosPr.Val2 = TQmGixItemPos();
-            }
-        }
+    // compute the gix items to be added to gix
+    TVec<TPair<TUInt64, TQmGixItemPos>> WordIdPosPrV;
+    ComputeWordItemPos(KeyId, WordIdV, RecId, WordIdPosPrV);
+    for (int N = 0; N < WordIdPosPrV.Len(); N++) {
+        GixPos->AddItem(TKeyWord(KeyId, WordIdPosPrV[N].Val1), WordIdPosPrV[N].Val2);
     }
-
-    // add to index the remaining TQmGixItemPos instances that are not completely filled up
-    for (auto& LastValItemPosPr : WordIdPosH) {
-        // get word parameters
-        const TUInt64& WordId = LastValItemPosPr.Key;
-        TQmGixItemPos ItemPos = LastValItemPosPr.Dat.Val2;
-        // in case we have added an item to gix and created a new empty item, we don't want to store the empty item
-        if (ItemPos.Empty()) { continue; }
-        // since we used default constructor we have to set the rec id before putting it to gix
-        ItemPos.SetRecId(RecId);
-        // add to gix
-        ((*GixPos).*UpdateMethod)(TKeyWord(KeyId, WordId), ItemPos);
-    }
-}
-
-void TIndex::IndexTextPos(const int& KeyId, const TUInt64V& WordIdV, const uint64& RecId) {
-    void(TGix<TQmGixKey, TQmGixItemPos>::*UpdateMethod)(const TQmGixKey&, const TQmGixItemPos&) = &TGix<TQmGixKey, TQmGixItemPos>::AddItem;
-    UpdateTextPos(KeyId, WordIdV, RecId, UpdateMethod);
 }
 
 void TIndex::DeleteTextPos(const int& KeyId, const TStr& TextStr, const uint64& RecId) {
@@ -5986,8 +5981,14 @@ void TIndex::DeleteTextPos(const int& KeyId, const TStr& TextStr, const uint64& 
 }
 
 void TIndex::DeleteTextPos(const int& KeyId, const TUInt64V& WordIdV, const uint64& RecId) {
-    void(TGix<TQmGixKey, TQmGixItemPos>::*UpdateMethod)(const TQmGixKey&, const TQmGixItemPos&) = &TGix<TQmGixKey, TQmGixItemPos>::DelItem;
-    UpdateTextPos(KeyId, WordIdV, RecId, UpdateMethod);
+    // we shouldn't modify read-only index
+    QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
+    // compute the gix items to be removed from gix
+    TVec<TPair<TUInt64, TQmGixItemPos>> WordIdPosPrV;
+    ComputeWordItemPos(KeyId, WordIdV, RecId, WordIdPosPrV);
+    for (int N = 0; N < WordIdPosPrV.Len(); N++) {
+        GixPos->DelItem(TKeyWord(KeyId, WordIdPosPrV[N].Val1), WordIdPosPrV[N].Val2);
+    }
 }
 
 void TIndex::IndexGeo(const int& KeyId, const TFltPr& Loc, const uint64& RecId) {
