@@ -3095,7 +3095,8 @@ private:
         typedef union TBitsetConverter {
             TQmGixPosVals PosV;
             TUCh ChV[4];
-            TBitsetConverter() { memset(this, 0, sizeof(TBitsetConverter)); };
+            // we have to have a nontrivial constructor, otherwise we get some compile errors
+            TBitsetConverter(const int& Foo) { memset(this, 0, sizeof(TBitsetConverter)); };
         } TBitsetConverter;
     private:
         /// Record Id

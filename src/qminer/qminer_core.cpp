@@ -5477,7 +5477,7 @@ TStr TIndex::TQmGixKeyStr::GetKeyNm(const TQmGixKey& Key) const {
 const int TIndex::TQmGixItemPos::Modulo = 1023;
 
 TIndex::TQmGixItemPos::TQmGixItemPos(TSIn& SIn): RecId(SIn) {
-    TBitsetConverter Converter;
+    TBitsetConverter Converter {0};
     Assert(sizeof(TQmGixPosVals) == sizeof(TUCh[4]));
     // store position
     for (int PosN = 0; PosN < 4; PosN++) {
@@ -5488,7 +5488,7 @@ TIndex::TQmGixItemPos::TQmGixItemPos(TSIn& SIn): RecId(SIn) {
 
 void TIndex::TQmGixItemPos::Save(TSOut& SOut) const {
     RecId.Save(SOut);
-    TBitsetConverter Converter;
+    TBitsetConverter Converter {0};
     Converter.PosV = PosV;
     // we always save all positions
     for (int PosN = 0; PosN < 4; PosN++) {
