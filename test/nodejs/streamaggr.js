@@ -4761,6 +4761,244 @@ describe('TDigest test', function () {
     });
 });
 
+describe('SwGk Tests', function () {
+    var base = null;
+    var store = null;
+    var windowAggr = null;
+
+    var batchSize = 1000;
+
+    var dt = 10;
+    var windowMSec = (batchSize - 1)*dt;    // the window is inclusive, so we must take 1 less
+
+    var quantileEps = 0.01;
+    var countEps = 0.0001;
+
+    var maxRelErr = quantileEps + 2*countEps;
+
+    var targetQuants = (function () {
+        var quants = [];
+        for (var prob = 0; prob <= 1; prob += 0.001) {
+            quants.push(prob);
+        }
+        return quants;
+    })();
+
+    beforeEach(function () {
+        // create a base with a simple store
+        // the store records results of throwing two independent fair dices
+        base = new qm.Base({
+            mode: "createClean",
+            schema: [
+            {
+                name: "hugeDie",
+                fields: [
+                    { name: "value", type: "float" },
+                    { name: "time", type: "datetime" }
+                ]
+            }]
+        });
+        store = base.store('hugeDie');
+
+        // create a new time series stream aggregator for the 'Dice' store, that takes the expected values of throwing a dice
+        // and the timestamp from the 'Time' field. The size of the window is 1 day.
+        windowAggr = store.addStreamAggr({
+            name: 'TimeSeries1',
+            type: 'timeSeriesWinBuf',
+            store: store,
+            timestamp: 'time',
+            value: 'value',
+            winsize: windowMSec
+        });
+    });
+    afterEach(function () {
+        base.close();
+    });
+
+    describe('Accuracy test', function () {
+        it('should produce accurate results', function () {
+            var nbatches = 10;
+
+            var gk = store.addStreamAggr({
+                type: 'windowQuantiles',
+                inAggr: windowAggr,
+                quantileEps: quantileEps,
+                countEps: countEps,
+                quantiles: targetQuants
+            })
+
+            var vals = [];
+            for (var i = 0; i < batchSize; i++) {
+                vals.push(i);
+            }
+            for (var batchN = 0; batchN < nbatches; batchN++) {
+                // shuffle the array
+                for (var i = 0; i < batchSize; i++) {
+                    var swapN = Math.floor(Math.random()*batchSize);
+                    var temp = vals[i];
+                    vals[i] = vals[swapN];
+                    vals[swapN] = temp;
+                }
+
+                for (var i = 0; i < batchSize; i++) {
+                    var time = (batchN*batchSize + i)*dt;
+                    store.push({ time: time, value: vals[i] })
+                }
+
+                var result = gk.getFloatVector();
+                for (var i = 0; i < targetQuants.length; i++) {
+                    var pval = targetQuants[i];
+                    var quant_hat = result[i];
+                    assert(Math.floor((pval - maxRelErr)*batchSize) <= quant_hat);
+                    assert(Math.ceil((pval + maxRelErr)*batchSize) >= quant_hat);
+                }
+            }
+        })
+
+        it('should forget old values', function () {
+            var nbatches = 2;
+
+            var gk = store.addStreamAggr({
+                type: 'windowQuantiles',
+                inAggr: windowAggr,
+                quantileEps: quantileEps,
+                countEps: 0,
+                quantiles: targetQuants
+            })
+
+            var vals = [];
+            for (var i = 0; i < batchSize; i++) {
+                vals.push(i);
+            }
+            for (var batchN = 0; batchN < nbatches; batchN++) {
+                // shuffle the array
+                for (var i = 0; i < batchSize; i++) {
+                    var swapN = Math.floor(Math.random()*batchSize);
+                    var temp = vals[i];
+                    vals[i] = vals[swapN];
+                    vals[swapN] = temp;
+                }
+
+                var batchOffset = batchN*batchSize;
+
+                for (var i = 0; i < batchSize; i++) {
+                    var time = (batchN*batchSize + i)*dt;
+                    var val = batchOffset + vals[i];
+                    // console.log('inserting value: ' + val + ' at time: ' + time);
+                    store.push({ time: time, value: val })
+                }
+
+                var result = gk.getFloatVector();
+                for (var i = 0; i < targetQuants.length; i++) {
+                    var pval = targetQuants[i];
+                    var quant_hat = result[i];
+
+                    // console.log('batchN: ' + batchN + ', p-val: ' + pval + ', quant_hat: ' + quant_hat);
+                    assert(batchOffset + Math.floor((pval - maxRelErr)*batchSize) <= quant_hat);
+                    assert(batchOffset + Math.ceil((pval + maxRelErr)*batchSize) >= quant_hat);
+                }
+            }
+        })
+    })
+
+    describe('testing behavior', function () {
+        it('should save JSON correctly', function () {
+            var gk = store.addStreamAggr({
+                type: 'windowQuantiles',
+                inAggr: windowAggr,
+                quantileEps: quantileEps,
+                countEps: countEps,
+                quantiles: targetQuants
+            })
+
+            var vals = [];
+            for (var i = 0; i < batchSize; i++) {
+                vals.push(i);
+            }
+            // shuffle the array
+            for (var i = 0; i < batchSize; i++) {
+                var swapN = Math.floor(Math.random()*batchSize);
+                var temp = vals[i];
+                vals[i] = vals[swapN];
+                vals[swapN] = temp;
+            }
+
+            for (var i = 0; i < batchSize; i++) {
+                var time = i*dt;
+                store.push({ time: time, value: vals[i] })
+            }
+
+            var result = gk.getFloatVector();
+            var json = gk.saveJson();
+
+            for (var i = 0; i < targetQuants.length; i++) {
+                assert(targetQuants[i] == json.quantiles[i].quantile);
+                assert(result[i] == json.quantiles[i].value);
+            }
+        })
+    })
+
+    describe('Save and load test', function () {
+        it('should survive save and load and retain its accuracy', function () {
+            var nbatches = 3;
+
+            var gkParams = {
+                type: 'windowQuantiles',
+                inAggr: windowAggr,
+                quantileEps: quantileEps,
+                countEps: countEps,
+                quantiles: targetQuants
+            }
+            var gk = store.addStreamAggr(gkParams);
+
+            var vals = [];
+            for (var i = 0; i < batchSize; i++) {
+                vals.push(i);
+            }
+            for (var batchN = 0; batchN < nbatches; batchN++) {
+                // shuffle the array
+                for (var i = 0; i < batchSize; i++) {
+                    var swapN = Math.floor(Math.random()*batchSize);
+                    var temp = vals[i];
+                    vals[i] = vals[swapN];
+                    vals[swapN] = temp;
+                }
+
+                for (var i = 0; i < batchSize; i++) {
+                    var time = (batchN*batchSize + i)*dt;
+                    store.push({ time: time, value: vals[i] })
+                }
+
+                var result = gk.getFloatVector();
+                for (var i = 0; i < targetQuants.length; i++) {
+                    var pval = targetQuants[i];
+                    var quant_hat = result[i];
+                    assert(Math.floor((pval - maxRelErr)*batchSize) <= quant_hat);
+                    assert(Math.ceil((pval + maxRelErr)*batchSize) >= quant_hat);
+                }
+            }
+
+            var fout = qm.fs.openWrite("gk-aggr.tmp");
+            gk.save(fout);
+            fout.close();
+
+            var gk1 = store.addStreamAggr(gkParams);
+
+            var fin = qm.fs.openRead("gk-aggr.tmp");
+            gk1.load(fin);
+            fin.close();
+
+            var result = gk1.getFloatVector();
+            for (var i = 0; i < targetQuants.length; i++) {
+                var pval = targetQuants[i];
+                var quant_hat = result[i];
+                assert(Math.floor((pval - maxRelErr)*batchSize) <= quant_hat);
+                assert(Math.ceil((pval + maxRelErr)*batchSize) >= quant_hat);
+            }
+        });
+    });
+})
+
 describe('ChiSquare Tests', function () {
     var base = undefined;
     var store = undefined;
