@@ -5477,23 +5477,19 @@ TStr TIndex::TQmGixKeyStr::GetKeyNm(const TQmGixKey& Key) const {
 const int TIndex::TQmGixItemPos::Modulo = 1023;
 
 TIndex::TQmGixItemPos::TQmGixItemPos(TSIn& SIn): RecId(SIn) {
-    TBitsetConverter Converter {0};
-    Assert(sizeof(TQmGixPosVals) == sizeof(TUCh[4]));
+    TBitsetConverter Converter;
+    Assert(sizeof(TQmGixPosVals) == sizeof(TInt));
     // store position
-    for (int PosN = 0; PosN < 4; PosN++) {
-        Converter.ChV[PosN] = TUCh(SIn);
-    }
+    Converter.Int = TInt(SIn);
     PosV = Converter.PosV;
 }
 
 void TIndex::TQmGixItemPos::Save(TSOut& SOut) const {
     RecId.Save(SOut);
-    TBitsetConverter Converter {0};
+    TBitsetConverter Converter;
     Converter.PosV = PosV;
-    // we always save all positions
-    for (int PosN = 0; PosN < 4; PosN++) {
-        Converter.ChV[PosN].Save(SOut);
-    }
+    // save the positions converted to int
+    Converter.Int.Save(SOut);
 }
 
 void TIndex::TQmGixItemPos::SetRecId(const uint64& _RecId) {
