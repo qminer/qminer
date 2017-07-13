@@ -3092,12 +3092,12 @@ private:
             TQmGixPosVals() { memset(this, 0, sizeof(TQmGixPosVals)); };
         };
         // union required for serialization of the TQmGixPosVals struct
-        typedef union TBitsetConverter {
+        union TBitsetConverter {
             TQmGixPosVals PosV;
             TUCh ChV[4];
             // we have to have a nontrivial constructor, otherwise we get some compile errors
-            TBitsetConverter(const int& Foo) { memset(this, 0, sizeof(TBitsetConverter)); };
-        } TBitsetConverter;
+            TBitsetConverter(const int& Foo): PosV(), ChV() { memset(this, 0, sizeof(TBitsetConverter)); };
+        };
     private:
         /// Record Id
         TUInt RecId;
