@@ -22,7 +22,7 @@ shallow_clone: true
 
 install:
   # Set paths
-  - SET PATH=C:\Program Files (x86)\MSBuild\12.0\bin\;%PATH%
+  - SET PATH=C:\Program Files (x86)\MSBuild\14.0\bin\;%PATH%
   - if "%PLATFORM%" == "x64" set PATH=C:\Python27-x64;%PATH%
   - if "%PLATFORM%" == "x86" SET PATH=C:\python27;%PATH%
   # Check if we're publishing. Only punlish commits including [publish binary] at qminer/qminer (ignore pull requests)
@@ -33,7 +33,7 @@ install:
 
 build_script:
   - npm install -g mustache
-  - npm install --build-from-source --verbose --msvs_version=2013 --%CONFIGURATION%
+  - npm install --build-from-source --verbose --msvs_version=2015 --%CONFIGURATION%
   - cd tools
   - genExampleTests.bat
   - cd ..
