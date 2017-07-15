@@ -1,5 +1,50 @@
 # QMiner Change Log
 
+### 16 June 2017
+
+**Version 8.3.0**
+
+**Non-breaking with new features**
+
+Features:
+
+- added TWPt serialization as in TPt
+- updated TStrHash.GetMemUsed() which used the nonavailable GetMemUsedDeep() method
+- added filtering classes TRecFilterByFieldByteSet, TRecFilterByFieldUIntSet, TRecFilterByFieldUInt64Set
+
+### 26 May 2017
+
+**Version 8.2.1**
+
+**Non-breaking with bug fixes**
+
+Bug fixes:
+
+- Positional index: items are not necessarily sorted
+- Positional index: Def() has to be called in case some items were deleted
+
+### 5 May 2017
+
+**Version 8.2.0**
+
+**Non-breaking with a new feature**
+
+New features:
+- qm.flags includes compiler version and sizeof information 
+
+### 21 April 2017
+
+**Version 8.1.0**
+
+**Non-breaking with a new feature and bugfix**
+
+New features:
+- JsonVector (new JSON type supported for vectors)
+
+Bug fixes:
+- assert the base create mode is valid
+- fixed error messages
+
 ### 31 March 2017
 
 **Version 8.0.0**

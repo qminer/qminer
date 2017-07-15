@@ -1399,10 +1399,10 @@ public:
 	// matrix from vector
 	TFullMatrix(const TVector& Vec);
 	// copy constructor
-	TFullMatrix(const TFullMatrix& Mat);
+	TFullMatrix(const TFullMatrix&);
 #ifdef GLib_CPP11
 	// move constructor
-	TFullMatrix(TFullMatrix&& Mat);
+	TFullMatrix(TFullMatrix&&);
 #endif
 
 private:

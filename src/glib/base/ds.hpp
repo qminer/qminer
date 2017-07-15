@@ -494,7 +494,7 @@ void TVec<TVal, TSizeTy>::Del(const TVec<TNum<TSizeTy>, TSizeTy>& ValNV) {
 #ifdef GLib_CPP11
 	*this = std::move(NewVec);
 #else
-	*this = NewVVec;
+	*this = NewVec;
 #endif
 }
 

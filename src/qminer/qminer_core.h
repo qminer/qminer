@@ -712,7 +712,7 @@ public:
     /// Checks if field with the given ID exists
     bool IsFieldId(const int& FieldId) const { return (FieldId >=0) && (FieldId < FieldDescV.Len()); }
     /// Get name of a field with the given ID
-    const TStr& GetFieldNm(const int& FieldId) const { return FieldDescV[FieldId].GetFieldNm(); }
+    const TStr& GetFieldNm(const int& FieldId) const;
     /// Check if field with the given name exists
     bool IsFieldNm(const TStr& FieldNm) const { return FieldNmToIdH.IsKey(FieldNm); }
     /// Get ID of a field with the given name
@@ -1640,8 +1640,20 @@ public:
     bool Filter(const TRec& Rec) const;
 };
 
+class TRecFilterByFieldByteSet : public TRecFilterByField {
+private:
+    /// Set of values
+    TUChSet ValSet;
+
+public:
+    /// Constructor
+    TRecFilterByFieldByteSet(const TWPt<TBase>& _Base, const int& _FieldId, const TUChSet& ValSet_, const bool& _FilterNullP = true);
+    /// Filter function
+    bool Filter(const TRec& Rec) const;
+};
+
 ///////////////////////////////
-/// Record filter by integer field.
+/// Record filter by unsigned integer field.
 class TRecFilterByFieldUInt : public TRecFilterByField {
 private:
     /// Minimal value
@@ -1652,6 +1664,18 @@ private:
 public:
     /// Constructor
     TRecFilterByFieldUInt(const TWPt<TBase>& _Base, const int& _FieldId, const uint& _MinVal, const uint& _MaxVal, const bool& _FilterNullP = true);
+    /// Filter function
+    bool Filter(const TRec& Rec) const;
+};
+
+class TRecFilterByFieldUIntSet : public TRecFilterByField {
+private:
+    /// Set of values
+    TUIntSet ValSet;
+
+public:
+    /// Constructor
+    TRecFilterByFieldUIntSet(const TWPt<TBase>& _Base, const int& _FieldId, const TUIntSet& ValSet_, const bool& _FilterNullP = true);
     /// Filter function
     bool Filter(const TRec& Rec) const;
 };
@@ -1684,6 +1708,18 @@ private:
 public:
     /// Constructor
     TRecFilterByFieldUInt64(const TWPt<TBase>& _Base, const int& _FieldId, const uint64& _MinVal, const uint64& _MaxVal, const bool& _FilterNullP = true);
+    /// Filter function
+    bool Filter(const TRec& Rec) const;
+};
+
+class TRecFilterByFieldUInt64Set : public TRecFilterByField {
+private:
+    /// Set of values
+    TUInt64Set ValSet;
+
+public:
+    /// Constructor
+    TRecFilterByFieldUInt64Set(const TWPt<TBase>& _Base, const int& _FieldId, const TUInt64Set& ValSet_, const bool& _FilterNullP = true);
     /// Filter function
     bool Filter(const TRec& Rec) const;
 };
@@ -2078,8 +2114,12 @@ public:
     void FilterByFieldInt64(const int& FieldId, const int64& MinVal, const int64& MaxVal);
     /// Filter records to keep only the ones with values of a given field within given range
     void FilterByFieldByte(const int& FieldId, const uchar& MinVal, const uchar& MaxVal);
+    /// Filter records to keep only the ones with values in the given set of items
+    void FilterByFieldByteSet(const int& FieldId, const TUChSet& ValSet);
     /// Filter records to keep only the ones with values of a given field within given range
     void FilterByFieldUInt(const int& FieldId, const uint& MinVal, const uint& MaxVal);
+    /// Filter records to keep only the ones with values in the given set of items
+    void FilterByFieldUIntSet(const int& FieldId, const TUIntSet& ValSet);
     /// Filter records to keep only the ones with values of a given field within given range
     void FilterByFieldUInt16(const int& FieldId, const uint16& MinVal, const uint16& MaxVal);
     /// Filter records to keep only the ones with values of a given field within given range
@@ -2088,6 +2128,8 @@ public:
     void FilterByFieldSFlt(const int& FieldId, const float& MinVal, const float& MaxVal);
     /// Filter records to keep only the ones with values of a given field within given range
     void FilterByFieldUInt64(const int& FieldId, const uint64& MinVal, const uint64& MaxVal);
+    /// Filter records to keep only the ones with values in the given set of items
+    void FilterByFieldUInt64Set(const int& FieldId, const TUInt64Set& ValSet);
     /// Filter records to keep only the ones with values of a given field equal to `FldVal'
     void FilterByFieldStr(const int& FieldId, const TStr& FldVal);
     /// Filter records to keep only the ones with values of a given field between `FldValMin' and `FldValMax' (both inclusive)
