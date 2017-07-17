@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v8.3.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v8.4.0</a>
       </div>
     </div>
   </nav>
@@ -63,14 +63,14 @@
                     <dt><a href="module-ht.IntStrMap.html#hasKey">hasKey(key)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-ht.IntStrMap.html#key">key(key)</a></dt>
+                    <dt><a href="module-ht.IntStrMap.html#key">key(n)</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-ht.IntStrMap.html#key">key(n)</a></dt>
+                    <dt><a href="module-ht.IntStrMap.html#keyId">keyId(key)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-ht.IntStrMap.html#load">load(fin)</a></dt>
@@ -312,59 +312,6 @@ h.hasKey(10); // returns true</code></pre>
                   <p><code>boolean</code>&nbsp;True if the map contains key. Otherwise, false.</p>
                 </dd>
               </dl>
-              <h3 id="key"><span class="symbol-name">key</span><span class="signature"><span class="signature-params">(key)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
-              <p>Returns the ID of the key provided as parameter.</p>
-              <section>
-                <h4>
-            Example
-        </h4>
-                <div>
-                  <pre class="prettyprint"><code>// import modules
-var qm = require(&#x27;qminer&#x27;);
-var ht = qm.ht;
-// create a new hashtable
-var h = new ht.IntStrMap();
-// add a key/dat pair
-h.put(10, &#x27;foo&#x27;);
-// get key id of 10 
-var key = h.keyId(10); // returns 0</code></pre>
-                </div>
-              </section>
-              <section>
-                <h4>Parameter</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>key</p>
-                      </td>
-                      <td>
-                        <p>number</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>Hashmap key.</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code>number</code>&nbsp;n - Hashmap index number of the key.</p>
-                </dd>
-              </dl>
               <h3 id="key"><span class="symbol-name">key</span><span class="signature"><span class="signature-params">(n)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
               <p>Returns n-th key.</p>
               <section>
@@ -416,6 +363,59 @@ var key = h.key(0); // returns 10</code></pre>
                 <dt>Returns</dt>
                 <dd>
                   <p><code>number</code>&nbsp;The n-th key.</p>
+                </dd>
+              </dl>
+              <h3 id="keyId"><span class="symbol-name">keyId</span><span class="signature"><span class="signature-params">(key)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <p>Returns the ID of the key provided as parameter.</p>
+              <section>
+                <h4>
+            Example
+        </h4>
+                <div>
+                  <pre class="prettyprint"><code>// import modules
+var qm = require(&#x27;qminer&#x27;);
+var ht = qm.ht;
+// create a new hashtable
+var h = new ht.IntStrMap();
+// add a key/dat pair
+h.put(10, &#x27;foo&#x27;);
+// get key id of 10 
+var key = h.keyId(10); // returns 0</code></pre>
+                </div>
+              </section>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>key</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Hashmap key.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>number</code>&nbsp;n - Hashmap index number of the key.</p>
                 </dd>
               </dl>
               <h3 id="load"><span class="symbol-name">load</span><span class="signature"><span class="signature-params">(fin)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-ht.IntStrMap.html">module:ht.IntStrMap</a></span></span></h3>

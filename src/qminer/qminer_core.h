@@ -3078,44 +3078,65 @@ private:
 private:
     /// Gix item to be used for storing records together with token positions
     class TQmGixItemPos {
-    private:
-        /// Number of positions
-        static int MaxPos;
+    public:
+        // struct used to store the positions in text where the word appears. Positions are set by modulo 2^10.
+        // values in the object are stored in incremental order. If multiple instances of TQmGixPosVals are stored in
+        // gix for the same word (when more than 3 occurances of the word in the document) then the ordering of values
+        // across the TQmGixPosVals instances also holds (Val3 is smaller than Val1 of the following TQmGixPosVals)
+        struct TQmGixPosVals {
+            uint Pos1 : 10;
+            uint Pos2 : 10;
+            uint Pos3 : 10;
+            uint Len : 2;
+
+            TQmGixPosVals() { memset(this, 0, sizeof(TQmGixPosVals)); };
+        };
+        // union required for serialization of the TQmGixPosVals struct
+        union TBitsetConverter {
+            TQmGixPosVals PosV;
+            TInt Int;
+            // we have to have a nontrivial constructor, otherwise we get some compile errors
+            TBitsetConverter() { memset(this, 0, sizeof(TBitsetConverter)); };
+        };
     private:
         /// Record Id
         TUInt RecId;
         /// Vector of word positions stored as (Pos % 0xFF + 1).
         /// Emtpy positions are marked as 0
-        TUCh PosV[8];
-
-        /// Add new position that is already properly trimed
-        void _Add(const int& Pos);
+        TQmGixPosVals PosV;
 
     public:
+        /// Number of positions
+        // 2^10 - modulo used to compute the position value+
+        const static int Modulo;
+
         /// Default constructor for vectors
         TQmGixItemPos(): RecId(TUInt::Mx) { }
         /// Start with record and no positons
-        TQmGixItemPos(const uint64& _RecId): RecId((uint)_RecId) { }
+        TQmGixItemPos(const uint64& _RecId): RecId((uint)_RecId) { Assert(_RecId < TUInt::Mx); }
         /// Load from stream
         TQmGixItemPos(TSIn& SIn);
 
         /// Save to stream
         void Save(TSOut& SOut) const;
 
+        static int GetPosByModulo(const int& Pos) { return (Pos % TQmGixItemPos::Modulo) + 1; }
+
         /// Get record id stored in the item
         uint64 GetRecId() const { return (uint64) RecId; }
+        void SetRecId(const uint64& _RecId);
 
         /// Check if the item is empty (== first position is set to 0)
-        bool Empty() const { return PosV[0].Val == (uchar)0; }
+        bool Empty() const { return PosV.Pos1 == 0; }
         /// Check if we still have space (== last position is set to 0)
-        bool IsSpace() const { return PosV[MaxPos - 1].Val == (uchar)0; }
+        bool IsSpace() const { return PosV.Pos3 == 0; }
         /// Get number of positions stored
-        int GetPosLen() const;
+        int GetPosLen() const { return PosV.Len; }
         /// Get position converted to int for easier handling outside
         int GetPos(const int& PosN) const;
 
-        /// Add new position to the item
-        void Add(const int& Pos);
+        /// Add new position to the item and return true if the item became full
+        bool Add(const int& Pos);
         /// Intersect keeping bigger positions that are within MaxDiff difference:
         /// Assumes that this is before Item and we only keep position when Item
         /// position is <= MaxDiff ahead of this. This contains only positions that
@@ -3123,10 +3144,12 @@ private:
         /// which makes it easier to intersect with the next word.
         TQmGixItemPos Intersect(const TQmGixItemPos& Item, const int& MaxDiff) const;
 
-        /// Two items are same if they have same record id
-        bool operator==(const TQmGixItemPos& ItemPos) const { return RecId == ItemPos.RecId; }
-        /// Items are ordered according to record id
-        bool operator<(const TQmGixItemPos& ItemPos) const { return RecId < ItemPos.RecId; }
+        /// since we can have multiple items with same record id, two items are same if they have same record id and have the matching first position
+        /// each position can appear only once for the same record.
+        bool operator==(const TQmGixItemPos& ItemPos) const { return RecId == ItemPos.RecId && PosV.Pos1 == ItemPos.PosV.Pos1; }
+        /// Items are ordered according to record id followed by position. Each position value can appear only once.
+        // Item with same RecId but higher position should appear later in the vector
+        bool operator<(const TQmGixItemPos& ItemPos) const { return RecId < ItemPos.RecId || (RecId == ItemPos.RecId && PosV.Pos1 < ItemPos.PosV.Pos1); }
 
         /// Memory footprint
         uint64 GetMemUsed() const { return sizeof(TQmGixItemPos); }
@@ -3209,6 +3232,9 @@ private:
 
     /// Execute Position query. Result is vector of record ids and frequency of phrase occurences.
     void DoQueryPos(const int& KeyId, const TUInt64V& WordIdV, const int& MaxDiff, TUInt64IntKdV& RecIdFqV) const;
+
+    /// method that computes the GixItemPos items for the provided list of words
+    void ComputeWordItemPos(const int& KeyId, const TUInt64V& WordIdV, const uint64& RecId, TVec<TPair<TUInt64, TQmGixItemPos>>& WordIdPosPrV);
 
     /// Constructor
     TIndex(const TStr& _IndexFPath, const TFAccess& _Access, const PIndexVoc& IndexVoc,
