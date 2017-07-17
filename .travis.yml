@@ -34,6 +34,7 @@ before_install:
   - TEST_PUBLISH_BINARY=false
   # if we put [publish binary] in the commit message
   - if test "${COMMIT_MESSAGE#*'[publish binary]'}" != "$COMMIT_MESSAGE"; then PUBLISH_BINARY=true; fi;
+  - npm install -g npm@5.3.0
 
 install:
   - npm install --build-from-source $NPMOPT $QMDEBUG
