@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v8.3.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v8.4.0</a>
       </div>
     </div>
   </nav>
@@ -342,7 +342,7 @@ var analytics = require(&#x27;qminer&#x27;).analytics;
 var SVC = new analytics.SVC({ c: 5, j: 10, batchSize: 2000, maxIterations: 12000, maxTime: 2, minDiff: 1e-10, verbose: true });
 // get the parameters of the SVC model
 // returns { algorithm: &#x27;SGD&#x27; c: 5, j: 10, eps: 0.1, batchSize: 2000, maxIterations: 12000, maxTime: 2, minDiff: 1e-10, verbose: true }
-var json = SVC.getParams(); </code></pre>
+var json = SVC.getParams();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -368,7 +368,7 @@ var matrix = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
 var vec = new la.Vector([1, 1, -1, -1]);
 // fit the model
 SVC.fit(matrix, vec);
-// create a vector you want to predict 
+// create a vector you want to predict
 var vec2 = new la.Vector([3, 5]);
 // predict the vector
 var prediction = SVC.predict(vec2); // returns 1</code></pre>
@@ -426,7 +426,7 @@ var fs = require(&#x27;qminer&#x27;).fs;
 // create a new SVC object
 var SVC = new analytics.SVC();
 // create the matrix containing the input features and the input vector for each matrix column.
-var matrix = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);    
+var matrix = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
 var vec = new la.Vector([1, 0, -1, -2]);
 // fit the model
 SVC.fit(matrix, vec);
@@ -438,7 +438,7 @@ fout.close();
 // create input stream
 var fin = fs.openRead(&#x27;svc_example.bin&#x27;);
 // create a SVC object that loads the model and parameters from input stream
-var SVC2 = new analytics.SVC(fin);    </code></pre>
+var SVC2 = new analytics.SVC(fin);</code></pre>
                 </div>
               </section>
               <section>

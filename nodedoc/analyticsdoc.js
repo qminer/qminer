@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -65,7 +65,7 @@
 */
 /**
 * SVC
-* @classdesc Support Vector Machine Classifier. Implements a soft margin linear support vector classifier using the PEGASOS algorithm, 
+* @classdesc Support Vector Machine Classifier. Implements a soft margin linear support vector classifier using the PEGASOS algorithm,
 * see: {@link http://ttic.uchicago.edu/~nati/Publications/PegasosMPB.pdf Pegasos: Primal Estimated sub-GrAdient SOlver for SVM}.
 * @class
 * @param {module:analytics~SVMParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
@@ -101,7 +101,7 @@
     * var SVC = new analytics.SVC({ c: 5, j: 10, batchSize: 2000, maxIterations: 12000, maxTime: 2, minDiff: 1e-10, verbose: true });
     * // get the parameters of the SVC model
     * // returns { algorithm: 'SGD' c: 5, j: 10, eps: 0.1, batchSize: 2000, maxIterations: 12000, maxTime: 2, minDiff: 1e-10, verbose: true }
-    * var json = SVC.getParams(); 
+    * var json = SVC.getParams();
     */
  exports.SVC.prototype.getParams = function() { return { algorithm: '', c: 0, j: 0, eps: 0.1, batchSize: 0, maxIterations: 0, maxTime: 0, minDiff: 0, verbose: true } };
 /**
@@ -117,9 +117,9 @@
     * SVC.setParams({ j: 5, maxIterations: 12000, minDiff: 1e-10 }); // returns self
     */
  exports.SVC.prototype.setParams = function(param) { return Object.create(require('qminer').analytics.SVC.prototype); };
-/**    
+/**
     * Gets the vector of coefficients of the linear model. Type {@link module:la.Vector}.
-    * @example 
+    * @example
     * // import the analytics and la modules
     * var analytics = require('qminer').analytics;
     * var la = require('qminer').la;
@@ -146,7 +146,7 @@
     * // create a new SVC object
     * var SVC = new analytics.SVC();
     * // create the matrix containing the input features and the input vector for each matrix column.
-    * var matrix = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);    
+    * var matrix = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
     * var vec = new la.Vector([1, 0, -1, -2]);
     * // fit the model
     * SVC.fit(matrix, vec);
@@ -158,7 +158,7 @@
     * // create input stream
     * var fin = fs.openRead('svc_example.bin');
     * // create a SVC object that loads the model and parameters from input stream
-    * var SVC2 = new analytics.SVC(fin);    
+    * var SVC2 = new analytics.SVC(fin);
     */
  exports.SVC.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 /**
@@ -203,7 +203,7 @@
     * var vec = new la.Vector([1, 1, -1, -1]);
     * // fit the model
     * SVC.fit(matrix, vec);
-    * // create a vector you want to predict 
+    * // create a vector you want to predict
     * var vec2 = new la.Vector([3, 5]);
     * // predict the vector
     * var prediction = SVC.predict(vec2); // returns 1
@@ -391,7 +391,7 @@
 /**
  * Ridge Regression
  * @class
- * @classdesc Ridge regression minimizes the value `||A' x - b||^2 + ||gamma x||^2`. 
+ * @classdesc Ridge regression minimizes the value `||A' x - b||^2 + ||gamma x||^2`.
  * Uses {@link http://en.wikipedia.org/wiki/Tikhonov_regularization Tikhonov regularization}.
  * @param {module:analytics~ridgeRegParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
  * <br>1. Using the {@link  module:analytics~ridgeRegParam} object,
@@ -588,14 +588,14 @@
  exports.Sigmoid.prototype.getParams = function () { return {}; }
 /**
     * Sets the parameters. <i>It doesn't do anything, it's only for consistency for constructing pipeline.</i>
-    * @param {Object} arg - Json object. 
+    * @param {Object} arg - Json object.
     * @returns {module:analytics.Sigmoid} Self. Nothing changes.
     * @example
     * // import analytics module
     * var analytics = require('qminer').analytics;
     * // create the Sigmoid model
     * var s = new analytics.Sigmoid();
-    * // set the parameters 
+    * // set the parameters
     * // doesn't change the model
     * s.setParams({});
     */
@@ -630,7 +630,7 @@
      * var X = new la.Vector([-3, -2, -1, 1, 2, 3]);
      * var y = new la.Vector([-1, -1, -1, 1, 1, 1]);
      * // fit the model
-     * // changes the internal A and B values of the model 
+     * // changes the internal A and B values of the model
      * s.fit(X, y);
      */
  exports.Sigmoid.prototype.fit = function(X, y) { return Object.create(require('qminer').analytics.Sigmoid.prototype); }
@@ -659,7 +659,7 @@
 /**
      * Returns the expected response for the provided feature vector.
      * @param {number | module:la.Vector} x - Prediction score.
-     * @returns {number | module:la.Vector} 
+     * @returns {number | module:la.Vector}
      * <br> 1. If `x` is a number, returns a normalized prediction score,
      * <br> 2. if `x` is a {@link module:la.Vector}, returns a vector of normalized prediction scores.
      * @example
@@ -710,7 +710,7 @@
 * @param {number} [windowSize=100] - Number of most recent instances kept in the model.
 */
 /**
- * Nearest Neighbour Anomaly Detection 
+ * Nearest Neighbour Anomaly Detection
  * @classdesc Anomaly detector that checks if the test point is too far from the nearest known point.
  * @class
  * @param {module:analytics~detectorParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
@@ -722,7 +722,7 @@
  * var la = require('qminer').la;
  * // create a new NearestNeighborAD object
  * var neighbor = new analytics.NearestNeighborAD({ rate: 0.1 });
- * // create a sparse matrix 
+ * // create a sparse matrix
  * var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
  * // fit the model with the matrix
  * neighbor.fit(matrix);
@@ -1001,7 +1001,7 @@
     * // predict the value of the vector
     * var prediction = linreg.predict(pred); // returns something close to 3.0
     */
- exports.RecLinReg.prototype.predict = function (vec) { return 0.0 }  
+ exports.RecLinReg.prototype.predict = function (vec) { return 0.0 }
 /**
     * Sets the parameters of the model.
     * @param {module:analytics~recLinRegParam} params - The new parameters of the model.
@@ -1180,10 +1180,10 @@
      *     var prediction = logreg.predict(test);
      * };
      */
- exports.LogReg.prototype.predict = function (x) { return 0.0; } 
+ exports.LogReg.prototype.predict = function (x) { return 0.0; }
 /**
      * Gives the weights of the model. Type {@link module:la.Vector}.
-     * @example 
+     * @example
      * // import modules
      * var analytics = require('qminer').analytics;
      * var la = require('qminer').la;
@@ -1257,7 +1257,7 @@
     * Sets the parameters of the model.
     * @param {module:analytics~hazardModelParam} params - The parameters given to the model.
     * @returns {module:analytics.PropHazards} Self. The model parameters have been updated.
-    * @example 
+    * @example
     * // import analytics module
     * var analytics = require('qminer').analytics;
     * // create a Proportional Hazard model
@@ -1303,7 +1303,7 @@
      * // if openblas used, fit the model and get the prediction
      * if (require('qminer').flags.blas) {
      *     // fit the model
-     *     hazards.fit(mat, vec);       
+     *     hazards.fit(mat, vec);
      *     // create a vector for the prediction
      *      var test = new la.Vector([1, 2]);
      *     // predict the value
@@ -1348,7 +1348,7 @@
      * // create input stream
      * var fin = fs.openRead('hazards_example.bin');
      * // create a Proportional Hazards object that loads the model and parameters from input stream
-     * var hazards2 = new analytics.PropHazards(fin);    
+     * var hazards2 = new analytics.PropHazards(fin);
      */
  exports.PropHazards.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 /**
@@ -1473,18 +1473,18 @@
     * var fin = fs.openRead('nnet_example.bin');
     * var nnet2 = new analytics.NNet(fin);
     */
- exports.NNet.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); } 
+ exports.NNet.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 /**
 * @typedef {Object} tokenizerParam
 * An object used for the construction of {@link module:analytics.Tokenizer}.
-* @property {string} [type='unicode'] - The type of the tokenizer. The different types are: 
+* @property {string} [type='unicode'] - The type of the tokenizer. The different types are:
 *<br>1. 'simple' - Creates break on white spaces.
 *<br>2. 'html' - Creates break on white spaces and ignores html tags.
 *<br>3. 'unicode' - Creates break on white spaces and normalizes unicode letters, e.g. o?=o?= changes to cso?=z.
 */
 /**
  * Tokenizer
- * @class 
+ * @class
  * @classdesc Breaks text into tokens (i.e. words).
  * @param {module:analytics~tokenizerParam} [arg] - Construction arguments. If arg is not given it uses the `'unicode'` tokenizer type.
  * @example
@@ -1519,7 +1519,7 @@
     * @param {String} str - String given to break into sentences.
     * @returns {Array.<String>} Array of sentences. The number of sentences is equal to number of sentences in input `str`.
     * How function breaks sentences depends on where you use a full-stop, exclamation mark, question mark or the new line command.
-    * Careful: the space between the lines is not ignored. 
+    * Careful: the space between the lines is not ignored.
     * @example
     * // import modules
     * var analytics = require('qminer').analytics;
@@ -1611,7 +1611,7 @@
     * @param {module:la.Matrix | module:la.SparseMatrix} mat - The multidimensional matrix.
     * @param {function} [callback] - The callback function receiving the error parameter (`err`) and the result parameter (`res`).
     * <i>Only for the asynchronous function.</i>
-    * @returns {module:la.Matrix} The matrix of dimensions `mat.cols` x 2, where the i-th row of the matrix is the 2D representation 
+    * @returns {module:la.Matrix} The matrix of dimensions `mat.cols` x 2, where the i-th row of the matrix is the 2D representation
     * of the i-th column of `mat`.
     * @example <caption>Asynchronous function</caption>
     * // import the modules
@@ -1621,12 +1621,12 @@
     * var mds = new analytics.MDS();
     * // create the multidimensional matrix
     * var mat = new la.Matrix({ rows: 50, cols: 10, random: true });
-    * // get the 2d representation of mat 
+    * // get the 2d representation of mat
     * mds.fitTransformAsync(mat, function (err, res) {
     *    if (err) throw err;
     *    // successful calculation
     *    var mat2d = res;
-    * }); 
+    * });
     * @example <caption>Synchronous function</caption>
     * // import the modules
     * var analytics = require('qminer').analytics;
@@ -1635,8 +1635,8 @@
     * var mds = new analytics.MDS();
     * // create the multidimensional matrix
     * var mat = new la.Matrix({ rows: 50, cols: 10, random: true });
-    * // get the 2d representation of mat 
-    * var mat2d = mds.fitTransform(mat); 
+    * // get the 2d representation of mat
+    * var mat2d = mds.fitTransform(mat);
     */
  exports.MDS.prototype.fitTransform = function (mat, callback) { return Object.create(require('qminer').la.Matrix.prototype); }
 /**
@@ -1672,8 +1672,8 @@
 * @property {Object} [fitStart] - The KMeans model returned by {@link module:analytics.KMeans.prototype.getModel} used for centroid initialization.
 * @property {(module:la.Matrix | module:la.SparseMatrix)} fitStart.C - The centroid matrix.
 */
-/** 
-* KMeans Clustering 
+/**
+* KMeans Clustering
 * @classdesc KMeans Clustering is an iterative, data-partitioning algorithm that assigns observations into K clusters.
 * @class
 * @param {module:analytics~KMeansParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
@@ -1796,7 +1796,7 @@
      * Permutates the clusters, and with it {@link module:analytics.KMeans#centroids}, {@link module:analytics.KMeans#medoids} and {@link module:analytics.KMeans#idxv}.
      * @param {module:la.IntVector} mapping - The mapping, where `mapping[4] = 2` means "map cluster 4 into cluster 2".
      * @returns {module:analytics.KMeans} Self. The clusters has been permutated.
-     * @example 
+     * @example
      * // import the modules
      * var analytics = require('qminer').analytics;
      * var la = require('qminer').la;
@@ -1826,7 +1826,7 @@
      * // create a matrix to be fitted
      * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
      * // create the model with the matrix X
-     * KMeans.fit(X); 
+     * KMeans.fit(X);
      * // create the file output stream
      * var fout = new fs.openWrite('KMeans.bin');
      * // save the KMeans instance
@@ -2011,6 +2011,275 @@
     */
  exports.TDigest.prototype.init = false;
 /**
+ * @classdesc Greenwald - Khanna algorithm for quantile estimation on sliding windows. Given
+ *   a cumulative probability p, the algorithm returns the approximate value of the
+ *   p-th quantile of all the values in a sliding window.
+ *
+ *   The algorithm works by keeping a summary of buckets. Each bucket summarizes a
+ *   range of values. Through the run of the algorithm, new buckets are created and
+ *   old ones merged. To allow for the computation on a sliding window, each bucket
+ *   uses an Exponential Histogram structure to remember how many values it summarizes.
+ *
+ *   It is summarized in:
+ *   "Online Algorithm for Approximate Quantile Queries on Sliding Windows"
+ *   http://dl.acm.org/citation.cfm?id=2954329
+ *
+ *   The error is not bounded by the absolute value of the output, but by the error
+ *   in rank of the output element. For instance, if we have 100 elements and query
+ *   the median, we could get the 48-th (p=0.48), 50-th (p=0.5), 51-th (p=0.51),
+ *   etc. element.
+ *
+ *   The algorithms error is bounded by two factors. The first is the quantile
+ *   estimation factor `quantileEps` occurs because of the summary structure and
+ *   defines the maximum size of the buckets. The second type of error `countEps`
+ *   occurs because of the Exponential Histograms inside the buckets.
+ *
+ *   The worst-case error is bounded by (quantileEps + 2*countEps + O(countEps^2)),
+ *   although in practice the error is lower.
+ *
+ *   This version of the algorithm uses a count-based fixed size sliding window.
+ *
+ * @class
+ * @param {module:analytics~FixedWindowGkParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
+ * <br>1. Using the {@link module:analytics~FixedWindowGkParam} object,
+ * <br>2. using the file input stream {@link module:fs.FIn}.
+ *
+ * @example
+ * // import modules
+ * var qm = require('qminer');
+ * var analytics = qm.analytics;
+ *
+ * // create the default TDigest object
+ * var gk = new analytics.CountWindowGk({
+ *     windowSize: 5,
+ *     quantileEps: 0.001,
+ *     countEps: 0.0005
+ * });
+ *
+ * // create the data used for calculating quantiles
+ * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
+ *
+ * // fit the TDigest model
+ * for (var i = 0; i < inputs.length; i++) {
+ *     gk.partialFit(inputs[i]);
+ * }
+ *
+ * // make the prediction for the 0.1 quantile
+ * var prediction = gk.predict(0.1);
+ * // save the model
+ * gk.save(fs.openWrite('gk.bin')).close();
+ * // open the gk model under a new variable
+ * var gk2 = new analytics.CountWindowGk(fs.openRead('gk.bin'));
+ *
+ */
+ exports.CountWindowGk = function (arg) { return Object.create(require('qminer').analytics.CountWindowGk.prototype); }
+/**
+     * Returns the models' parameters as a JavaScript object (JSON). These parameters
+     * are the same as are set through the constructor.
+     *
+     * @returns {module:analytics~FixedWindowGkParam} The construction parameters.
+     *
+     * var analytics = qm.analytics;
+     * var gk = new analytics.CountWindowGk();
+     * var params = tdigest.getParams();
+     *
+     * console.log(params.windowSize);
+     * console.log(params.quantileEps);
+     * console.log(params.countEps);
+     */
+ exports.CountWindowGk.prototype.getParams = function () { return { }; }
+/**
+     * Appends a new value to the sliding window. If an old value
+     * falls outside the sliding window, it is forgotten.
+     *
+     * @param {number} val - the value
+     * @returns {module:analytics.CountWindowGk} reference to self
+     *
+     * @example
+     * var qm = require('qminer');
+     *
+     * var gk = new qm.analytics.CountWindowGk();
+     * gk.partialFit(1.0);
+     * gk.partialFit(2.0);
+     *
+     */
+ exports.CountWindowGk.partialFit = function (fout) { return Object.create(require('qminer').analytics.CountWindowGk.prototype); }
+/**
+     * Given an input cumulative probability, returns a quantile associated with that
+     * probability (e.g. for input 0.5 it will return the median).
+     *
+     * @param {number} p - cumulative probability between 0 and 1 (both inclusive)
+     * @returns {number} quantile associated with p
+     *
+     * @example
+     * var qm = require('qminer');
+     *
+     * var gk = new qm.analytics.CountWindowGk({
+     *     windowSize: 100    // window 100 elements long
+     * });
+     * gk.partialFit(1.0);
+     * gk.partialFit(2.0);
+     * gk.partialFit(1.0);
+     * gk.partialFit(3.0);
+     * gk.partialFit(2.0);
+     *
+     * console.log(gk.predict(0.01));   // prints the first percentile
+     * console.log(gk.predict(0.25));   // prints the first quartile
+     * console.log(gk.predict(0.5));    // prints the median
+     */
+ exports.CountWindowGk.prototype.predict = function (x) { return 0; }
+/**
+     * Saves the objects state into a binary file.
+     *
+     * @param {module:fs.FOut} fout - the output stream
+     * @returns {module:fs.FOut} the output stream `fout`
+     *
+     * @example
+     * var gk = new qm.analytics.CountWindowGk();
+     *
+     * // save the model
+     * gk.save(fs.openWrite('tdigest.bin')).close();
+     * // open the tdigest model under a new variable
+     * var gk = new analytics.CountWindowGk(fs.openRead('tdigest.bin'));
+     */
+ exports.CountWindowGk.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
+/**
+ * @classdesc Greenwald - Khanna algorithm for quantile estimation on sliding windows. Given
+ *   a cumulative probability p, the algorithm returns the approximate value of the
+ *   p-th quantile of all the values in a sliding window.
+ *
+ *   The algorithm works by keeping a summary of buckets. Each bucket summarizes a
+ *   range of values. Through the run of the algorithm, new buckets are created and
+ *   old ones merged. To allow for the computation on a sliding window, each bucket
+ *   uses an Exponential Histogram structure to remember how many values it summarizes.
+ *
+ *   It is summarized in:
+ *   "Online Algorithm for Approximate Quantile Queries on Sliding Windows"
+ *   http://dl.acm.org/citation.cfm?id=2954329
+ *
+ *   The error is not bounded by the absolute value of the output, but by the error
+ *   in rank of the output element. For instance, if we have 100 elements and query
+ *   the median, we could get the 48-th (p=0.48), 50-th (p=0.5), 51-th (p=0.51),
+ *   etc. element.
+ *
+ *   The algorithms error is bounded by two factors. The first is the quantile
+ *   estimation factor `quantileEps` occurs because of the summary structure and
+ *   defines the maximum size of the buckets. The second type of error `countEps`
+ *   occurs because of the Exponential Histograms inside the buckets.
+ *
+ *   The worst-case error is bounded by (quantileEps + 2*countEps + O(countEps^2)),
+ *   although in practice the error is lower.
+ *
+ *   This version of the algorithm uses a time-based fixed duration sliding window.
+ *
+ * @class
+ * @param {module:analytics~TimeWindowGkParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
+ * <br>1. Using the {@link module:analytics~TimeWindowGkParam} object,
+ * <br>2. using the file input stream {@link module:fs.FIn}.
+ *
+ * @example
+ * // import modules
+ * var qm = require('qminer');
+ * var analytics = qm.analytics;
+ *
+ * // create the default TDigest object
+ * var gk = new analytics.TimeWindowGk({
+ *     window: 5,
+ *     quantileEps: 0.001,
+ *     countEps: 0.0005
+ * });
+ *
+ * // create the data used for calculating quantiles
+ * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
+ * var times = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+ *
+ * // fit the TDigest model
+ * for (var i = 0; i < inputs.length; i++) {
+ *     gk.partialFit(times[i], inputs[i]);
+ * }
+ *
+ * // make the prediction for the 0.1 quantile
+ * var prediction = gk.predict(0.1);
+ * // save the model
+ * gk.save(fs.openWrite('gk.bin')).close();
+ * // open the gk model under a new variable
+ * var gk2 = new analytics.TimeWindowGk(fs.openRead('gk.bin'));
+ */
+ exports.TimeWindowGk = function (arg) { return Object.create(require('qminer').analytics.TimeWindowGk.prototype); }
+/**
+     * Returns the models' parameters as a JavaScript object (JSON). These parameters
+     * are the same as are set through the constructor.
+     *
+     * @returns {module:analytics~TimeWindowGkParam} The construction parameters.
+     *
+     * var analytics = qm.analytics;
+     * var gk = new analytics.TimeWindowGk();
+     * var params = tdigest.getParams();
+     *
+     * console.log(params.window);
+     * console.log(params.quantileEps);
+     * console.log(params.countEps);
+     */
+ exports.TimeWindowGk.prototype.getParams = function () { return { }; }
+/**
+     * Adds a new observation to the window. The window is updated with the provided timestamp,
+     * all records which fall outside the new window are forgotten.
+     *
+     * @param {number|Date} timestamp - time of the observation
+     * @param {number} [value] - the observation
+     * @returns {module:analytics.TimeWindowGk} reference to self
+     *
+     * @example
+     * var qm = require('qminer');
+     *
+     * var gk = new qm.analytics.TimeWindowGk({
+     *     window: 1000*60*60*24*2    // window is 2 days
+     * });
+     * gk.partialFit(new Date('2017-06-06'), 1.0);
+     * gk.partialFit(new Date('2017-06-07').getTime(), 1.0);
+     * gk.partialFit(new Date('2017-06-08'));  // only move the time window, the first value is forgotten
+     */
+ exports.TimeWindowGk.partialFit = function (fout) { return Object.create(require('qminer').analytics.TimeWindowGk.prototype); }
+/**
+     * Given an input cumulative probability, returns a quantile associated with that
+     * probability (e.g. for input 0.5 it will return the median).
+     *
+     * @param {number} p - cumulative probability between 0 and 1 (both inclusive)
+     * @returns {number} quantile associated with p
+     *
+     * @example
+     * var qm = require('qminer');
+     *
+     * var gk = new qm.analytics.TimeWindowGk({
+     *     window: 100    // window is 2 days
+     * });
+     * gk.partialFit(0, 1.0);
+     * gk.partialFit(1, 1.0);
+     * gk.partialFit(2, 1.0);
+     * gk.partialFit(3, 1.0);
+     * gk.partialFit(4, 1.0);
+     *
+     * console.log(gk.predict(0.01));   // prints the first percentile
+     * console.log(gk.predict(0.25));   // prints the first quartile
+     * console.log(gk.predict(0.5));    // prints the median
+     */
+ exports.TimeWindowGk.prototype.predict = function (x) { return 0; }
+/**
+     * Saves the objects state into a binary file.
+     *
+     * @param {module:fs.FOut} fout - the output stream
+     * @returns {module:fs.FOut} the output stream `fout`
+     *
+     * @example
+     * var gk = new qm.analytics.TimeWindowGk();
+     *
+     * // save the model
+     * gk.save(fs.openWrite('tdigest.bin')).close();
+     * // open the tdigest model under a new variable
+     * var gk = new analytics.TimeWindowGk(fs.openRead('tdigest.bin'));
+     */
+ exports.TimeWindowGk.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
+/**
 * @typedef {Object} RecSysParam
 * An object used for the construction of {@link module:analytics.RecommenderSys}.
 * @property {number} [iter=10000] - The maximum number of iterations.
@@ -2020,7 +2289,7 @@
 */
 /**
 * Recommender System
-* @classdesc The recommender system algorithm using Weighted Non-negative Matrix Factorization to predict the 
+* @classdesc The recommender system algorithm using Weighted Non-negative Matrix Factorization to predict the
 * unknown values. If `A` is a matrix with unknown values it calculates the matrices `U` and `V` such that `U*V` approximates `A`.
 * @class
 * @param {module:analytics~RecSysParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
@@ -2137,8 +2406,8 @@
  exports.GraphCascade = function (arg) { return Object.create(require('qminer').analytics.GraphCascade.prototype); }
 /**
     * Sets the cascade time for a given node
-    * @param {string} nodeId - 
-    * @param {number} timestamp - 
+    * @param {string} nodeId -
+    * @param {number} timestamp -
     */
 /**
     * Computes the posterior for timestamps of unobserved nodes
