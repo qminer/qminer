@@ -33,6 +33,7 @@ install:
 
 build_script:
   - npm install -g mustache
+  - npm install -g npm@5.3.0
   - npm install --build-from-source --verbose --msvs_version=2015 --%CONFIGURATION%
   - cd tools
   - genExampleTests.bat
