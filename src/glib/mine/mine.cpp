@@ -60,6 +60,8 @@
 
 // Signal-Processing
 #include "signalproc.cpp"
+// Online quantiles
+#include "quantiles.cpp"
 
 // Active-Learning
 #include "bowactlearn.cpp"
