@@ -7,6 +7,7 @@
 **Non-breaking with new features**
 
 Features:
+- **Added support for Node.JS 8**
 - Improved positional text indexing. Uses modulo 1024 instead of 256 (less false positives), stores all mentions of words in a document (before limited to 8 occurrences) and uses about 20% less space for the index.
 - Implementation of a windowed quantile estimation algorithm on streams based on [1].
 - Quantile estimation Node.js analytics models `analytics.TimeWindowGk` (timestamp based window) and `analytics.CountWindowGk` (count based window). Implements the standard analytics module API (`partialFit`,`predict`, `save`).
