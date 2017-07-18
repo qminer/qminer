@@ -661,7 +661,57 @@ public:
 
 //////////////////////////////////////////
 // Type traits
+namespace gtraits {
+
 #ifdef GLib_CPP11
+  // true and false types
+  using true_type = std::true_type;
+  using false_type = std::false_type;
+  // enable_if
+  template <bool B, typename T = void>
+  using enable_if = std::enable_if<B, T>;
+  // is_same
+  template <class T, class U>
+  using is_same = std::is_same<T,U>;
+#else
+  // type trait definitions for older versions of CPP
+
+  template<class T, T v>
+  struct integral_constant {
+    static constexpr T value = v;
+    typedef T value_type;
+    typedef integral_constant type; // using injected-class-name
+    constexpr operator value_type() const noexcept { return value;  }
+    constexpr value_type operator()() const noexcept { return value;  } //since c++14
+  };
+
+  // true, false types
+  typedef std::integral_constant<bool, true> true_type;
+  typedef std::integral_constant<bool, false> false_type;
+
+  // enable_if
+  template <bool B, typename T = void>
+  struct enable_if {
+    typedef T type;
+  };
+
+  template <typename T>
+  struct enable_if<false, T> {};
+
+  // is_same
+  template<class T, class U>
+  struct is_same : std::false_type {};
+
+  template<class T>
+  struct is_same<T, T> : std::true_type {};
+
+#endif
+
+}
+
+
+//////////////////////////////////////////
+// Type traits - containers
 
 // forward declarations
 class TBool;
@@ -676,79 +726,80 @@ template <class TVal1, class TVal2>                  class TPair;
 
 namespace gtraits {
   /// cpp type traits, helper to check if type is a container
-  template <typename T> struct is_container : std::false_type{};
+  template <typename T> struct is_container : false_type{};
   // TODO: use a built-in trait to detect shallow classes when compilers will implement most type traits
   /// helper to check if the type is shallow (does not have any pointers or references and can be copied using memcpy)
-  template <typename T> struct is_shallow : std::false_type{};
+  template <typename T> struct is_shallow : false_type{};
 
   // helper types and classes
   namespace utils {
-      template<typename T> struct bool_type : std::true_type{};
-      template<> struct bool_type<std::false_type> : std::false_type{};
+    template<typename T> struct bool_type : true_type{};
+    template<> struct bool_type<false_type> : false_type{};
 
-      template <class TVal1, class TVal2>
-      struct TPairHelper {
-        private:
-          // is_shallow
-          template <class T1 = TVal1, class T2 = TVal2, typename std::enable_if<is_shallow<T1>::value && is_shallow<T2>::value,bool>::type = true>
-          static std::true_type IsShallow();
-          template <class T1 = TVal1, class T2 = TVal2, typename std::enable_if<!(is_shallow<T1>::value && is_shallow<T2>::value),bool>::type = true>
-          static std::false_type IsShallow();
-        public:
-          using shallow_type = decltype(IsShallow());
-      };
+    template <class TVal1, class TVal2>
+    struct TPairHelper {
+      private:
+        // is_shallow
+        template <class T1 = TVal1, class T2 = TVal2, typename enable_if<is_shallow<T1>::value && is_shallow<T2>::value,bool>::type = true>
+        static true_type IsShallow();
+        template <class T1 = TVal1, class T2 = TVal2, typename enable_if<!(is_shallow<T1>::value && is_shallow<T2>::value),bool>::type = true>
+        static false_type IsShallow();
+      public:
+        using shallow_type = decltype(IsShallow());
+    };
   }
 
   // Specializations: is_shallow
   // basic types
-  template <> struct is_shallow<TBool> : std::true_type{};
-  template <> struct is_shallow<TCh> : std::true_type{};
-  template <> struct is_shallow<TUCh> : std::true_type{};
-  template <> struct is_shallow<TUSInt> : std::true_type{};
+  template <> struct is_shallow<TBool> : true_type{};
+  template <> struct is_shallow<TCh> : true_type{};
+  template <> struct is_shallow<TUCh> : true_type{};
+  template <> struct is_shallow<TUSInt> : true_type{};
   // TNum
-  template <class Base> struct is_shallow<TNum<Base>> : std::true_type{};
+  template <class Base> struct is_shallow<TNum<Base>> : true_type{};
   // TPair
   template <class TVal1, class TVal2>
   struct is_shallow<TPair<TVal1,TVal2>> : utils::bool_type<typename utils::TPairHelper<TVal1,TVal2>::shallow_type>{};
 
   // Specializations: is_container
   template <class TVal, class TSizeTy>
-  struct is_container<TVec<TVal,TSizeTy>> : std::true_type{};
+  struct is_container<TVec<TVal,TSizeTy>> : true_type{};
   template<class TKey, class TDat, class THashFunc>
-  struct is_container<THash<TKey,TDat,THashFunc>> : std::true_type{};
+  struct is_container<THash<TKey,TDat,THashFunc>> : true_type{};
 }
 
-#endif
 
+//////////////////////////////////////////
+// Memoty Usage
 namespace TMemUtils {
 #ifdef GLib_CPP11
 
   /// fundamental types (int, float, ...)
-  template <typename T, typename std::enable_if<std::is_fundamental<T>::value,bool>::type = true>
+  template <typename T, typename gtraits::enable_if<std::is_fundamental<T>::value,bool>::type = true>
   uint64 GetMemUsed(const T& Val) {
     return sizeof(T);
   }
 
   /// get memory usage for regular glib classes
-  template <typename T, typename std::enable_if<std::is_class<T>::value && !gtraits::is_container<T>::value,bool>::type = true>
+  template <typename T, typename gtraits::enable_if<std::is_class<T>::value && !gtraits::is_container<T>::value,bool>::type = true>
   uint64 GetMemUsed(const T& Val) {
     return (uint64) Val.GetMemUsed();
   }
 
   /// glib containers
-  template <typename T, typename std::enable_if<gtraits::is_container<T>::value,bool>::type = true>
+  template <typename T, typename gtraits::enable_if<gtraits::is_container<T>::value,bool>::type = true>
   uint64 GetMemUsed(const T& Val) {
     return (uint64) Val.GetMemUsed(true);   // deep
   }
 
   /// references
-  template <typename T, typename std::enable_if<std::is_reference<T>::value,bool>::type = true>
+  template <typename T, typename gtraits::enable_if<std::is_reference<T>::value,bool>::type = true>
   uint64 GetMemUsed(T Val) {
     return (uint64) GetMemUsed<typename std::remove_reference<T>::type>(Val);
   }
 
   /// pointers
-  template <typename T, typename std::enable_if<std::is_pointer<T>::value,bool>::type = true>
+  template <typename T, typename gtraits::enable_if<std::is_pointer<T>::value,bool>::type = true>
   uint64 GetMemUsed(T Val) {
     if (Val == nullptr) { return sizeof(T); }
     return sizeof(T) + GetMemUsed(*Val);
@@ -758,6 +809,18 @@ namespace TMemUtils {
   template <class T>
   uint64 GetMemUsed(const T& Val) {
     return Val.GetMemUsed();
+  }
+  template <>
+  uint64 GetMemUsed(const int& Val) {
+      return sizeof(Val);
+  }
+  template <>
+  uint64 GetMemUsed(const uint& Val) {
+      return sizeof(Val);
+  }
+  template <>
+  uint64 GetMemUsed(const int64& Val) {
+      return sizeof(Val);
   }
   template <class T>
   uint64 GetMemUsed(T* Val) {

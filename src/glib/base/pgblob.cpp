@@ -132,7 +132,7 @@ TPgBlobFile::TPgBlobFile(
     default:
         break;
     }
-    PgCnt = TFile::GetSize(FNm) / PG_PAGE_SIZE;
+    PgCnt = (long) (TFile::GetSize(FNm) / PG_PAGE_SIZE);
 }
 
 /// Destructor
@@ -718,7 +718,7 @@ PJsonVal TPgBlob::GetStats() {
 
 /// This function verifies single page - buffer already loaded in memory
 void TPgBlob::VerifyPage(char* Pg) {
-    TPgHeader* Header = (TPgHeader*)Pg;    
+    TPgHeader* Header = (TPgHeader*)Pg;
     for (uint16 i = 0; i < Header->ItemCount; i++) {
         TPgBlobPageItem* Item = GetItemRec(Pg, i);
         if (Item->Len == 0) continue; // theoretically, this should not be needed, but there seems to be some scenario where it falls through
@@ -754,10 +754,11 @@ void TPgBlob::VerifyPage(char* Pg) {
 void TPgBlob::RunVerification() {
     TMemBase tmp(PG_PAGE_SIZE);
     // pages on disk
-    for (int i = 0; i < Files.Len(); i++) {
-        auto File = Files[i];
-        for (uint32 j = 0; j < File->GetPgCnt(); j++) {
-            File->LoadPage(j, tmp.GetBf());
+    for (int FileN = 0; FileN < Files.Len(); FileN++) {
+        auto File = Files[FileN];
+        const uint32 Pages = File->GetPgCnt();
+        for (uint32 PageN = 0; PageN < Pages; PageN++) {
+            File->LoadPage(PageN, tmp.GetBf());
             VerifyPage(tmp.GetBf());
         }
     }

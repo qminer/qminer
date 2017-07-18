@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -16,6 +16,7 @@ const TStr TAuxFltV::ClassId = "Vector";
 const TStr TAuxIntV::ClassId = "IntVector";
 const TStr TAuxStrV::ClassId = "StrVector";
 const TStr TAuxBoolV::ClassId = "BoolVector";
+const TStr TAuxJsonV::ClassId = "JsonVector";
 
 
 ///////////////////////////////
@@ -67,7 +68,7 @@ void TNodeJsFltVV::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(Tpl, "saveascii", _saveascii);
     NODE_SET_PROTOTYPE_METHOD(Tpl, "loadascii", _loadascii);
 
-    // Properties 
+    // Properties
     Tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "rows"), _rows);
     Tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "cols"), _cols);
 
@@ -166,15 +167,15 @@ void TNodeJsFltVV::put(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     EAssertR(Args.Length() == 3 && Args[0]->IsInt32() && Args[1]->IsInt32(), "Expected two nonnegative integers as indices");
     EAssertR(Args[2]->IsNumber() || TNodeJsUtil::IsArgWrapObj(Args, 2, TNodeJsFltVV::GetClassId()), "Third argument should be a number or a matrix");
-    
+
     TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
     TInt Rows = JsMat->Mat.GetRows();
     TInt Cols = JsMat->Mat.GetCols();
-    
+
     const int Row = Args[0]->Int32Value();
     const int Col = Args[1]->Int32Value();
     if (Args[2]->IsNumber()) {
-        
+
         const double Val = Args[2]->NumberValue();
         EAssertR(0 <= Row && Row < Rows, "Row index out of bounds");
         EAssertR(0 <= Col && Col < Cols, "Column index out of bounds");
@@ -190,7 +191,7 @@ void TNodeJsFltVV::put(const v8::FunctionCallbackInfo<v8::Value>& Args) {
             }
         }
     }
-    
+
     Args.GetReturnValue().Set(Args.Holder());
 }
 
@@ -207,7 +208,7 @@ void TNodeJsFltVV::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         TLinAlg::MultiplyScalar(Scalar, JsMat->Mat, ResMat);
         Args.GetReturnValue().Set(New(ResMat));
     }
-    else if (Args[0]->IsObject()) { // IF vector, then u = A *v 
+    else if (Args[0]->IsObject()) { // IF vector, then u = A *v
         if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltV::GetClassId())) {
             TNodeJsVec<TFlt, TAuxFltV>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
             EAssertR(JsMat->Mat.GetCols() == JsVec->Vec.Len(), "Matrix-vector multiplication: Dimension mismatch");
@@ -239,7 +240,7 @@ void TNodeJsFltVV::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         else if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsSpMat::GetClassId())) {
             TNodeJsSpMat* JsMat2 = ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject());
             EAssertR(JsMat->Mat.GetCols() >= JsMat2->Rows, "matrix * sparse_col_matrix: dimensions mismatch");
-            // computation                
+            // computation
             int Rows = JsMat->Mat.GetRows();
             int Cols = JsMat->Mat.GetCols();
             if (JsMat2->Rows == -1) {
@@ -247,7 +248,7 @@ void TNodeJsFltVV::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
             }
             TFltVV Result(Rows, JsMat2->Mat.Len());
             TLinAlg::Multiply(JsMat->Mat, JsMat2->Mat, Result);
-            // create JS result with the Result vector    
+            // create JS result with the Result vector
             Args.GetReturnValue().Set(New(Result));
         }
     }
@@ -274,10 +275,10 @@ void TNodeJsFltVV::multiplyT(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltV::GetClassId().CStr())) {
             TNodeJsFltV* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
             EAssertR(JsMat->Mat.GetRows() == JsVec->Vec.Len(), "matrix' * vector: dimensions mismatch");
-            // computation                
+            // computation
             TFltV Result(JsMat->Mat.GetCols());
             TLinAlg::MultiplyT(JsMat->Mat, JsVec->Vec, Result);
-            // create JS result with the Result vector    
+            // create JS result with the Result vector
             Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Result));
         }
         else if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltVV::GetClassId())) {
@@ -297,13 +298,13 @@ void TNodeJsFltVV::multiplyT(const v8::FunctionCallbackInfo<v8::Value>& Args) {
             TVec<TIntFltKdV> TempSpMat(1);
             TempSpMat[0] = JsVec->Vec;
             TLinAlg::MultiplyT(JsMat->Mat, TempSpMat, Result);
-            // create JS result with the Result vector    
+            // create JS result with the Result vector
             Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Result.Get1DVec()));
         }
         else if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsSpMat::GetClassId())) {
             TNodeJsSpMat* JsMat2 = ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject());
             EAssertR(JsMat->Mat.GetRows() >= JsMat2->Rows, "matrix' * sparse_col_matrix: dimensions mismatch");
-            // computation                
+            // computation
             int Rows = JsMat->Mat.GetRows();
             int Cols = JsMat->Mat.GetCols();
             if (JsMat2->Rows == -1) {
@@ -311,7 +312,7 @@ void TNodeJsFltVV::multiplyT(const v8::FunctionCallbackInfo<v8::Value>& Args) {
             }
             TFltVV Result(Cols, JsMat2->Mat.Len());
             TLinAlg::MultiplyT(JsMat->Mat, JsMat2->Mat, Result);
-            // create JS result with the Result vector    
+            // create JS result with the Result vector
             Args.GetReturnValue().Set(TNodeJsFltVV::New(Result));
         }
         else {
@@ -388,7 +389,7 @@ void TNodeJsFltVV::rowNorms(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
     TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
-    TFltV Result;   
+    TFltV Result;
     const int Rows = JsMat->Mat.GetRows();
     const int Cols = JsMat->Mat.GetCols();
     Result.Gen(Rows);
@@ -657,7 +658,7 @@ void TNodeJsFltVV::load(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         "Expected a TNodeJsFIn object");
     TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
     PSIn SIn = JsFIn->SIn;
-    // Load from stream 
+    // Load from stream
     JsFltVV->Mat.Load(*SIn);
 
     Args.GetReturnValue().Set(v8::Undefined(Isolate));
@@ -746,11 +747,11 @@ void TNodeJsSpVec::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "idxVec", _idxVec);
     NODE_SET_PROTOTYPE_METHOD(tpl, "toString", _toString);
 
-    // Properties 
+    // Properties
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "dim"), _dim);
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "nnz"), _nnz);
 
-    // This has to be last, otherwise the properties won't show up on the object in JavaScript    
+    // This has to be last, otherwise the properties won't show up on the object in JavaScript
     // Constructor is used when creating the object from C++
     Constructor.Reset(Isolate, child->GetFunction());
     // we need to export the class for calling using "new FIn(...)"
@@ -779,7 +780,7 @@ TNodeJsSpVec* TNodeJsSpVec::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value
     int Dim = -1;
     TIntFltKdV Vec;
     if (Args.Length() > 0) {
-        // If we got Javascript array on the input: vector.new([1,2,3]) 
+        // If we got Javascript array on the input: vector.new([1,2,3])
         if (Args[0]->IsArray()) {
             v8::Handle<v8::Array> Arr = v8::Handle<v8::Array>::Cast(Args[0]);
             const int Len = Arr->Length();
@@ -801,7 +802,7 @@ TNodeJsSpVec* TNodeJsSpVec::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value
         } else {
             throw TExcept::New("TNodeJsSpVec::New unsuported argument!");
         }
-        Dim = TNodeJsUtil::GetArgInt32(Args, 1, -1);        
+        Dim = TNodeJsUtil::GetArgInt32(Args, 1, -1);
     }
     EAssertR((Dim == -1) || TLinAlgSearch::GetMaxDimIdx(Vec) < Dim, "TNodeJsSpVec::New inconsistent dim parameter (maximal index >= dim!)");
     return new TNodeJsSpVec(Vec, Dim);
@@ -972,7 +973,7 @@ void TNodeJsSpVec::full(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         ObjectWrap::Unwrap<TNodeJsSpVec>(Args.Holder());
 
     int Dim = JsSpVec->Dim;
-    
+
     if (Args.Length() > 0 && Args[0]->IsInt32()) { Dim = Args[0]->Int32Value(); }
     if (Dim == -1) { Dim = TLinAlgSearch::GetMaxDimIdx(JsSpVec->Vec) + 1; }
     TFltV Res;
@@ -1070,14 +1071,14 @@ void TNodeJsSpMat::Init(v8::Handle<v8::Object> exports) {
     tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
     // ObjectWrap uses the first internal field to store the wrapped pointer
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
-    
+
     // Add all prototype methods, getters and setters here.
     NODE_SET_PROTOTYPE_METHOD(tpl, "at", _at);
     NODE_SET_PROTOTYPE_METHOD(tpl, "put", _put);
 
     NODE_SET_PROTOTYPE_METHOD(tpl, "getCol", _indexGet);
     NODE_SET_PROTOTYPE_METHOD(tpl, "setCol", _indexSet);
-    
+
     NODE_SET_PROTOTYPE_METHOD(tpl, "push", _push);
     NODE_SET_PROTOTYPE_METHOD(tpl, "multiply", _multiply);
     NODE_SET_PROTOTYPE_METHOD(tpl, "multiplyT", _multiplyT);
@@ -1095,14 +1096,14 @@ void TNodeJsSpMat::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "load", _load);
     NODE_SET_PROTOTYPE_METHOD(tpl, "setRowDim", _setRowDim);
 
-    // Properties 
+    // Properties
     tpl->InstanceTemplate()->SetIndexedPropertyHandler(_indexGet, _indexSet);
     child->InstanceTemplate()->SetIndexedPropertyHandler(_indexGet, _indexSet);
 
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "rows"), _rows);
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "cols"), _cols);
 
-    // This has to be last, otherwise the properties won't show up on the object in JavaScript    
+    // This has to be last, otherwise the properties won't show up on the object in JavaScript
     // Constructor is used when creating the object from C++
     Constructor.Reset(Isolate, child->GetFunction());
     // we need to export the class for calling using "new FIn(...)"
@@ -1175,7 +1176,7 @@ TNodeJsSpMat* TNodeJsSpMat::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value
                     const int Cols = TNodeJsUtil::GetArgInt32(Args, 0, "cols");
                     Rows = TNodeJsUtil::GetArgInt32(Args, 0, "rows", -1);
                     EAssert(Cols >= 0 && (Rows == -1 || Rows > 0));
-                    Mat.Gen(Cols);                    
+                    Mat.Gen(Cols);
                 }
             }
         }
@@ -1183,7 +1184,7 @@ TNodeJsSpMat* TNodeJsSpMat::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value
     if (Rows != -1) {
         EAssertR(TLinAlgSearch::GetMaxDimIdx(Mat) < Rows, "TNodeJsSpMat::NewFromArgs inconsistent rows parameter (maximal row index >= rows!)");
     }
-  
+
     return new TNodeJsSpMat(Mat, Rows);
 }
 
@@ -1207,7 +1208,7 @@ void TNodeJsSpMat::at(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     TInt Rows = JsSpMat->Rows;
     TInt Cols = JsSpMat->Mat.Len();
     EAssertR(Row >= 0 &&  (Row < Rows || Rows == -1) && Col >= 0 && Col < Cols,
-        "sparse col matrix at: index out of bounds");        
+        "sparse col matrix at: index out of bounds");
     double Result = 0.0;
     const int Els = JsSpMat->Mat[Col].Len();
     for (int ElN = 0; ElN < Els; ElN++) {
@@ -1277,10 +1278,10 @@ void TNodeJsSpMat::indexGet(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     EAssertR(Args.Length() == 1 && Args[0]->IsInt32(), "Expected one integer argument");
     int Index = TNodeJsUtil::GetArgInt32(Args, 0);
-    
+
     TNodeJsSpMat* JsSpMat = ObjectWrap::Unwrap<TNodeJsSpMat>(Args.Holder());
     EAssertR(Index < JsSpMat->Mat.Len(), "Sparse matrix getCol: index out of bounds");
-    
+
     Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsSpVec>(
         new TNodeJsSpVec(JsSpMat->Mat[Index], JsSpMat->Rows)));
 }
@@ -1302,7 +1303,7 @@ void TNodeJsSpMat::indexSet(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     EAssertR(Args.Length() == 2 && Args[0]->IsInt32() && Args[1]->IsObject(), "Expected two arguments: integer column index and a sparse vector");
     int Index = TNodeJsUtil::GetArgInt32(Args, 0);
-    
+
     TNodeJsSpMat* JsSpMat = ObjectWrap::Unwrap<TNodeJsSpMat>(Args.Holder());
     EAssertR(Index < JsSpMat->Mat.Len(), "Sparse matrix getCol: index out of bounds");
 
@@ -1342,10 +1343,10 @@ void TNodeJsSpMat::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         if (Args[0]->IsNumber()) {
             const double Scalar = Args[0]->NumberValue();
             TVec<TIntFltKdV> Result;
-            // computation    
+            // computation
             TLinAlg::MultiplyScalar(Scalar, JsSpMat->Mat, Result);
             Args.GetReturnValue().Set(TNodeJsUtil::NewInstance<TNodeJsSpMat>(new TNodeJsSpMat(Result)));
-        } else if (Args[0]->IsObject()) { // Vector 
+        } else if (Args[0]->IsObject()) { // Vector
             int Rows = JsSpMat->Rows;
             if (JsSpMat->Rows == -1) { Rows = TLinAlgSearch::GetMaxDimIdx(JsSpMat->Mat) + 1; }
             if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltV::GetClassId().CStr())) {
@@ -1354,16 +1355,16 @@ void TNodeJsSpMat::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                 TFltVV Result(Rows, 1);
                 // Copy could be omitted if we implemented SparseColMat * TFltV
                 TLinAlg::Multiply(JsSpMat->Mat, TFltVV(JsVec->Vec, JsVec->Vec.Len(), 1), Result, Rows);
-                // create JS result with the Result vector    
+                // create JS result with the Result vector
                 Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Result.Get1DVec()));
-            } else if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltVV::GetClassId())) { // Matrix 
+            } else if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltVV::GetClassId())) { // Matrix
                 TNodeJsFltVV* JsMat =
                     ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
                 TFltVV Result(Rows, 1);
                 Result.Gen(Rows, JsMat->Mat.GetCols());
                 TLinAlg::Multiply(JsSpMat->Mat, JsMat->Mat, Result, Rows);
                 Args.GetReturnValue().Set(TNodeJsFltVV::New(Result));
-            } else if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsSpVec::GetClassId())) { // Sparse vector 
+            } else if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsSpVec::GetClassId())) { // Sparse vector
                 TNodeJsSpVec* JsSpVec = ObjectWrap::Unwrap<TNodeJsSpVec>(Args[0]->ToObject());
                 TFltVV Result(Rows, 1);
                 // Copy could be omitted if we implemented SparseColMat * SparseVec
@@ -1374,7 +1375,7 @@ void TNodeJsSpMat::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                 }
                 TLinAlg::Multiply(JsSpMat->Mat, TempSpMat, Result, Rows);
                 Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Result.Get1DVec()));
-            } else if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsSpMat::GetClassId())) { // Sparse matrix 
+            } else if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsSpMat::GetClassId())) { // Sparse matrix
                 TNodeJsSpMat* JsSpMat2 =
                     ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject());
                 if (JsSpMat2->Rows == -1) {
@@ -1384,7 +1385,7 @@ void TNodeJsSpMat::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                     EAssertR(JsSpMat->Mat.Len() == JsSpMat2->Rows,
                         "sparse_col_matrix * sparse_col_matrix: dimensions mismatch");
                 }
-                TFltVV Result(Rows, JsSpMat2->Mat.Len());    
+                TFltVV Result(Rows, JsSpMat2->Mat.Len());
                 TLinAlg::Multiply(JsSpMat->Mat, JsSpMat2->Mat, Result);
                 Args.GetReturnValue().Set(TNodeJsFltVV::New(Result));
             }
@@ -1421,15 +1422,15 @@ void TNodeJsSpMat::multiplyT(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                     EAssertR(TLinAlgSearch::GetMaxDimIdx(JsMat->Mat) < JsVec->Vec.Len(),
                         "sparse_col_matrix' * vector: dimensions mismatch");
                 }
-                // computation                
-                int Cols = JsMat->Mat.Len();                
+                // computation
+                int Cols = JsMat->Mat.Len();
                 TFltVV Result(Cols, 1);
                 // Copy could be omitted if we implemented SparseColMat * TFltV
                 TLinAlg::MultiplyT(JsMat->Mat, TFltVV(JsVec->Vec, JsVec->Vec.Len(), 1), Result);
-                // create JS result with the Result vector    
+                // create JS result with the Result vector
                 Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Result.Get1DVec()));
-            } else if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltVV::GetClassId())) {            
-                TNodeJsFltVV* JsMat2 = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());                
+            } else if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltVV::GetClassId())) {
+                TNodeJsFltVV* JsMat2 = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
                 EAssertR(JsMat->Rows == -1 || JsMat->Rows == JsMat2->Mat.GetRows(), "sparse_col_matrix' * matrix: dimensions mismatch");
                 if (JsMat->Rows == -1) {
                     EAssertR(TLinAlgSearch::GetMaxDimIdx(JsMat->Mat) < JsMat2->Mat.GetRows(), "sparse_col_matrix' * matrix: dimensions mismatch");
@@ -1443,9 +1444,9 @@ void TNodeJsSpMat::multiplyT(const v8::FunctionCallbackInfo<v8::Value>& Args) {
             } else if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsSpVec::GetClassId())) {
                 TNodeJsSpVec* JsVec = ObjectWrap::Unwrap<TNodeJsSpVec>(Args[0]->ToObject());
                 EAssertR(JsMat->Rows == -1 || JsVec->Dim == -1 || JsMat->Rows == JsVec->Dim, "sparse_col_matrix' * sparse_vector: dimensions mismatch");
-                // computation                
+                // computation
                 int Cols = JsMat->Mat.Len();
-                
+
                 if (JsMat->Rows == -1 && JsVec->Dim != -1) {
                     // check that maxdimidx < dim
                     EAssert(TLinAlgSearch::GetMaxDimIdx(JsMat->Mat) < JsVec->Dim);
@@ -1454,11 +1455,11 @@ void TNodeJsSpMat::multiplyT(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                     // check that vectorMaxIdx < JsMat->Rows
                     EAssert(TLinAlgSearch::GetMaxDimIdx(JsVec->Vec) < JsMat->Rows);
                 }
-                
+
                 TFltVV Result(Cols, 1);
                 // Copy could be omitted if we implemented SparseColMat * SparseVec
                 TVec<TIntFltKdV> TempSpMat(1);
-                TempSpMat[0] = JsVec->Vec;                
+                TempSpMat[0] = JsVec->Vec;
 
                 TLinAlg::MultiplyT(JsMat->Mat, TempSpMat, Result);
                 // create JS result with the Result vector
@@ -1466,10 +1467,10 @@ void TNodeJsSpMat::multiplyT(const v8::FunctionCallbackInfo<v8::Value>& Args) {
             } else if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsSpMat::GetClassId())) {
                 TNodeJsSpMat* JsMat2 = ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject());
                 EAssertR(JsMat->Rows == -1 || JsMat2->Rows == -1 || JsMat->Rows == JsMat2->Rows, "sparse_col_matrix' * sparse_matrix: dimensions mismatch");
-                // computation                
+                // computation
                 int Cols = JsMat->Mat.Len();
-                
-                
+
+
                 int ADim = JsMat->Rows; // multiplyT
                 int BDim = JsMat2->Rows;
 
@@ -1482,9 +1483,9 @@ void TNodeJsSpMat::multiplyT(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                     EAssertR(TLinAlgSearch::GetMaxDimIdx(JsMat2->Mat) < ADim, "sparse_col_matrix' * sparse_matrix: dimensions mismatch");
                 }
 
-                TFltVV Result(Cols, JsMat2->Mat.Len());                    
+                TFltVV Result(Cols, JsMat2->Mat.Len());
                 TLinAlg::MultiplyT(JsMat->Mat, JsMat2->Mat, Result);
-                // create JS result with the Result vector    
+                // create JS result with the Result vector
                 Args.GetReturnValue().Set(TNodeJsFltVV::New(Result));
             }
         }
@@ -1505,7 +1506,7 @@ void TNodeJsSpMat::plus(const v8::FunctionCallbackInfo<v8::Value>& Args) {
             "matrix - matrix: dimensions mismatch");
         // create JS result and get the internal data
         TVec<TIntFltKdV> Result;
-        // computation                
+        // computation
         Result.Gen(MAX(JsSpMat->Mat.Len(), JsSpMat2->Mat.Len()));
         int Len1 = JsSpMat->Mat.Len();
         int Len2 = JsSpMat2->Mat.Len();
@@ -1547,7 +1548,7 @@ void TNodeJsSpMat::minus(const v8::FunctionCallbackInfo<v8::Value>& Args) {
             "matrix - matrix: dimensions mismatch");
         // create JS result and get the internal data
         TVec<TIntFltKdV> Result;
-        // computation                
+        // computation
         Result.Gen(MAX(JsSpMat->Mat.Len(), JsSpMat2->Mat.Len()));
         int Len1 = JsSpMat->Mat.Len();
         int Len2 = JsSpMat2->Mat.Len();
@@ -1737,7 +1738,7 @@ void TNodeJsSpMat::load(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     EAssertR(Args.Length() == 1 && Args[0]->IsObject(), "Expected TJsNodeFIn object");
     TNodeJsSpMat* JsSpMat = ObjectWrap::Unwrap<TNodeJsSpMat>(Args.Holder());
-    
+
     TNodeJsFIn* JsFIn = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFIn>(Args, 0);
     PSIn SIn = JsFIn->SIn;
     JsSpMat->Rows.Load(*SIn);
