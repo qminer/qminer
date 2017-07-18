@@ -402,6 +402,8 @@ public:
 	static double Mean(const TFltV& Vec);
 	// returns the mean value along the dimension (Dim) of Mat. See Matlab documentation - mean().
 	static void Mean(const TFltVV& Mat, TFltV& Vec, const TMatDim& Dim = TMatDim::mdCols);
+    // returns the mean column of the matrix
+    TEMP_LA static void Mean(const TSparseVV& SpVV, TDenseV& MeanV, const TMatDim& Dim=TMatDim::mdCols);
     // returns standard deviation. See Matlab documentation - std().
     static double Std(const TFltV& Vec, const int& Flag = 0);
 	// returns standard deviation. See Matlab documentation - std().

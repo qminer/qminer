@@ -2139,6 +2139,7 @@ private:
 * @property {number} [iter=10000] - The maximum number of iterations.
 * @property {number} [k=2] - The number of centroids.
 * @property {boolean} [allowEmpty=true] - Whether to allow empty clusters to be generated.
+* @property {boolean} [calcDistQual=false] - Whether to calculate the quality measure based on distance, if false relMeanCentroidDist will return 'undefined'
 * @property {string} [centroidType="Dense"] - The type of centroids. Possible options are `'Dense'` and `'Sparse'`.
 * @property {string} [distanceType="Euclid"] - The distance type used at the calculations. Possible options are `'Euclid'` and `'Cos'`.
 * @property {boolean} [verbose=false] - If `false`, the console output is supressed.
@@ -2182,6 +2183,7 @@ private:
     int Iter;
     int K;
     TBool AllowEmptyP;
+    TBool CalcDistQualP {false};
 
     TIntV AssignV;
     TIntV Medoids;
@@ -2392,6 +2394,8 @@ public:
      * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
      * // get the centroids
      * var centroids = KMeans.centroids;
+     * // print the first centroid
+     * console.log(centroids.getCol(0));
      */
     //# exports.KMeans.prototype.centroids = Object.create(require('qminer').la.Matrix.prototype);
     JsDeclareProperty(centroids);
@@ -2421,6 +2425,17 @@ public:
     */
     //# exports.KMeans.prototype.idxv = Object.create(require('qminer').la.IntVector.prototype);
     JsDeclareProperty(idxv);
+
+    /**
+     * Returns the normalized weighted distance between the vectors and their centroids
+     * using the following formula:
+     *  d = \frac{sum_i p_i*sum_j d(x_j,c_i) / n_i}{sum_{k=1}^n d(x_k, mu) / n}
+     *    = \frac{sum_{i,j} d(c_i,x_j)}{sum_k d(x_k, mu)}
+     *
+     * @returns {number} relMeanDist
+     */
+    //# exports.KMeans.prototype.relMeanCentroidDist = 0;
+    JsDeclareProperty(relMeanCentroidDist);
 
 private:
     void UpdateParams(const PJsonVal& ParamVal);

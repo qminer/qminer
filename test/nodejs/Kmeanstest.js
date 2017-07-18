@@ -19,7 +19,7 @@ describe("Kmeans test", function () {
         it("should return empty parameter values", function () {
             var KMeans = new analytics.KMeans();
             var params = KMeans.getParams();
-            assert.equal(Object.keys(params).length, 6);
+            assert.equal(Object.keys(params).length, 7);
         });
         it("should return parameter values", function () {
             var KMeans = new analytics.KMeans({ iter: 100, k: 2, verbose: false });
@@ -28,6 +28,7 @@ describe("Kmeans test", function () {
             assert.equal(params.k, 2);
             assert.equal(params.distanceType, "Euclid");
             assert.equal(params.centroidType, "Dense");
+            assert.equal(params.calcDistQual, false);
             assert.equal(params.verbose, false);
         });
         it("should return the custom KMeans", function () {
@@ -40,12 +41,13 @@ describe("Kmeans test", function () {
             assert.equal(params.verbose, true);
         });
         it("should return the custom KMeans with fitIdx", function () {
-            var KMeans = new analytics.KMeans({ iter: 20000, k: 2, verbose: true, distanceType: "Cos", centroidType: "Sparse", fitIdx: [5, 2] });
+            var KMeans = new analytics.KMeans({ iter: 20000, k: 2, verbose: true, distanceType: "Cos", centroidType: "Sparse", fitIdx: [5, 2], calcDistQual: true });
             var params = KMeans.getParams();
             assert.equal(params.iter, 20000);
             assert.equal(params.k, 2);
             assert.equal(params.distanceType, "Cos");
             assert.equal(params.centroidType, "Sparse");
+            assert.equal(params.calcDistQual, true);
             assert.equal(params.verbose, true);
             assert.equal(params.fitIdx[0], 5);
             assert.equal(params.fitIdx[1], 2);
@@ -153,13 +155,14 @@ describe("Kmeans test", function () {
             });
         })
         it("should return the correct model for dense centroids, dense matrix", function () {
-            var KMeans = new analytics.KMeans({ k: 2 });
+            var KMeans = new analytics.KMeans({ k: 2, calcDistQual: true });
             var matrix = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
             KMeans.fit(matrix);
             var model = KMeans.getModel();
             assert.equal(model.idxv.length, 3);
             assert.equal(model.C.rows, 2);
             assert.equal(model.C.cols, 2);
+            assert(KMeans.relMeanCentroidDist != null);
         });
         it("should return the correct model for dense centroids with fitIdx, dense matrix", function () {
             var KMeans = new analytics.KMeans({ k: 2, fitIdx: [0, 1] });
@@ -885,7 +888,6 @@ describe("Kmeans test", function () {
                 KMeans.predict(matrix);
             });
         });
-
     });
 
 
@@ -1041,6 +1043,121 @@ describe("Kmeans test", function () {
             });
         })
     });
+
+    describe('Testing correctness', function () {
+        var C = new la.Matrix([
+            [2, 7],
+            [3, 2]
+        ]);
+
+        var X = new la.Matrix([
+            [ 1, 2, 3, 3, 6, 7, 8 ],
+            [ 3, 3, 2, 4, 2, 2, 3 ]
+        ]);
+
+        it('should identify correct dense centroids', function () {
+            var denseKMeans = new analytics.KMeans({ k: 2, calcDistQual: true, fitStart: { C: C } });
+            var expectedC = new la.Matrix([
+                [ 2.2, 7 ],
+                [ 3, 2.25 ]
+            ])
+
+            denseKMeans.fit(X);
+
+            assert.equal(denseKMeans.centroids.minus(expectedC).frob(), 0);
+        })
+
+        it('should identify correct sparse centroids', function () {
+            var sparseKMeans = new analytics.KMeans({ k: 2, centroidType: 'Sparse', calcDistQual: true, fitStart: { C: C } });
+            var expectedC = new la.SparseMatrix([
+                [ [0, 2.2], [1, 3] ],
+                [ [0, 7], [1, 2.25] ]
+            ])
+
+            sparseKMeans.fit(X);
+
+            var frob = expectedC.minus(sparseKMeans.centroids).frob();
+            assert(frob < 1e-9, 'Centroids differ by norm: ' + frob + ' which should be 0!');
+        })
+    })
+
+    describe('Quality measure tests', function () {
+        it('should calculate correct quality measure for sparse centroids', function () {
+            var C = new la.Matrix([
+                [2, 7],
+                [3, 2]
+            ]);
+
+            var denseKMeans = new analytics.KMeans({ k: 2, calcDistQual: true, fitStart: { C: C } });
+            var sparseKMeans = new analytics.KMeans({ k: 2, centroidType: 'Sparse', calcDistQual: true, fitStart: { C: C } });
+
+            var X = new la.Matrix([
+                [ 1, 2, 3, 3, 6, 7, 8 ],
+                [ 3, 3, 2, 4, 2, 2, 3 ]
+            ]);
+
+            denseKMeans.fit(X);
+            sparseKMeans.fit(X);
+
+            var clust1 = [
+                [ 1, 3 ],
+                [ 2, 3 ],
+                [ 3, 2 ],
+                [ 3, 4 ]
+            ]
+
+            var clust2 = [
+                [ 6, 2 ],
+                [ 7, 2 ],
+                [ 8, 3 ]
+            ]
+
+            var dist = function (a, b) { return Math.sqrt((a[0] - b[0])*(a[0] - b[0]) + (a[1] - b[1])*(a[1] - b[1])); }
+            var sumDistCentroid = function (clust, centroid) {
+                var sumDist = 0;
+                for (var i = 0; i < clust.length; i++) {
+                    sumDist += dist(clust[i], centroid);
+                }
+                return sumDist;
+            }
+
+            var sumGlobal = (function () {
+                var mean = [ 0, 0 ];
+                for (var i = 0; i < clust1.length; i++) {
+                    mean[0] += clust1[i][0];
+                    mean[1] += clust1[i][1];
+                }
+                for (var i = 0; i < clust2.length; i++) {
+                    mean[0] += clust2[i][0];
+                    mean[1] += clust2[i][1];
+                }
+
+                mean[0] /= (clust1.length + clust2.length);
+                mean[1] /= (clust1.length + clust2.length);
+
+                var result = 0;
+                for (var i = 0; i < clust1.length; i++) {
+                    result += dist(clust1[i], mean);
+                }
+                for (var i = 0; i < clust2.length; i++) {
+                    result += dist(clust2[i], mean);
+                }
+
+                return result;
+            })();
+
+            var sumCent1 = sumDistCentroid(clust1, denseKMeans.centroids.getCol(0));
+            var sumCent2 = sumDistCentroid(clust2, denseKMeans.centroids.getCol(1));
+
+            var innerClustMean = 4*(sumCent1/4) / 7 + 3*(sumCent2/3) / 7;
+            var globalMean = sumGlobal / 7;
+
+            var expectedResult = innerClustMean / globalMean;
+
+            assert(Math.abs(denseKMeans.relMeanCentroidDist - expectedResult) < 1e-7, 'Dense k-means relativeMeanDist does not match expected value!');
+            assert(Math.abs(sparseKMeans.relMeanCentroidDist - expectedResult) < 1e-7, 'Sparse k-means relativeMeanDist does not match expected value!');
+        })
+    })
 
     describe('Serialization Tests', function () {
         it('should serialize and deserialize', function () {
