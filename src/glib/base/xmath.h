@@ -32,6 +32,7 @@ public:
   static int Choose(const int& N, const int& K){ // binomial coefficient
     return Fac(N)/(Fac(K)*Fac(N-K)); }
   static uint Pow2(const int& pow){return uint(1u<<pow);}
+  static bool IsPow2(const int& Val){return (Val&(Val-1)) == 0;}
   static double Power(const double& Base, const double& Exponent){
     return exp(log(Base)*Exponent);}
 

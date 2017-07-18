@@ -1,6 +1,6 @@
 {
   "name": "qminer",
-  "version": "8.0.0",
+  "version": "8.4.0",
   "description": "A C++ based data analytics platform for processing large-scale real-time streams containing structured and unstructured data",
   "engines": {
     "node": ">=0.12"

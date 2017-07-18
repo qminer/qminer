@@ -83,7 +83,7 @@ v8::Local<v8::Value> TNodeJsAnalytics::TNMFTask::WrapResult() {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::EscapableHandleScope HandleScope(Isolate);
 
-    v8::Local<v8::Object> JsObj = v8::Object::New(Isolate); // Result 
+    v8::Local<v8::Object> JsObj = v8::Object::New(Isolate); // Result
     JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "U")), TNodeJsUtil::NewInstance(U));
     JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "V")), TNodeJsUtil::NewInstance(V));
     return HandleScope.Escape(JsObj);
@@ -108,8 +108,8 @@ v8::Local<v8::Value> TNodeJsAnalytics::TNMFTask::WrapResult() {
 //      Notify = verbose ? TNotify::StdNotify : TNotify::NullNotify;
 //  }
 //
-//  v8::Handle<v8::Object> JsObj = v8::Object::New(Isolate); // Result 
-//  
+//  v8::Handle<v8::Object> JsObj = v8::Object::New(Isolate); // Result
+//
 //  TFltVV U;
 //  TFltVV V;
 //  if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltVV>(Args, 0)) {
@@ -402,7 +402,7 @@ void TNodeJsSVC::Init(v8::Handle<v8::Object> exports) {
     // ObjectWrap uses the first internal field to store the wrapped pointer.
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
-    // Add all methods, getters and setters here.   
+    // Add all methods, getters and setters here.
     NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
     NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _setParams);
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
@@ -493,7 +493,7 @@ void TNodeJsSVR::Init(v8::Handle<v8::Object> exports) {
     // ObjectWrap uses the first internal field to store the wrapped pointer.
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
-    // Add all methods, getters and setters here.       
+    // Add all methods, getters and setters here.
     NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
     NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _setParams);
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
@@ -884,9 +884,9 @@ void TNodeJsNNAnomalies::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "partialFit", _partialFit);
     NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);
     NODE_SET_PROTOTYPE_METHOD(tpl, "decisionFunction", _decisionFunction);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);    
+    NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
     NODE_SET_PROTOTYPE_METHOD(tpl, "explain", _explain);
-    
+
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "init"), _init);
 
     exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
@@ -1008,10 +1008,10 @@ void TNodeJsNNAnomalies::partialFit(const v8::FunctionCallbackInfo<v8::Value>& A
     EAssertR(Args.Length() <= 2, "NearestNeighborAD.partialFit: expects at 1 or 2 arguments!");
     // get the arguments
     TNodeJsSpVec* SpVec = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpVec>(Args, 0);
-    
+
     int RecId = TNodeJsUtil::GetArgInt32(Args, 1, -1);
     JsModel->Model.PartialFit(SpVec->Vec, RecId);
-    
+
     // return self
     Args.GetReturnValue().Set(Args.Holder());
 }
@@ -1025,7 +1025,7 @@ void TNodeJsNNAnomalies::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     EAssertR(Args.Length() == 1
         || ((Args.Length() == 2) && (TNodeJsUtil::IsArgWrapObj<TNodeJsIntV>(Args, 1))),
         "NearestNeighborAD.fit: expects 1 or 2 arguments, the second optional argument must be of type IntVector from la submodule!");
-    
+
     // get the arguments
     TNodeJsSpMat* SpMat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpMat>(Args, 0);
     // fit model
@@ -1093,7 +1093,7 @@ void TNodeJsNNAnomalies::init(v8::Local<v8::String> Name, const v8::PropertyCall
     v8::HandleScope HandleScope(Isolate);
 
     // unwrap
-    TNodeJsNNAnomalies* JsModel = ObjectWrap::Unwrap<TNodeJsNNAnomalies>(Info.Holder());    
+    TNodeJsNNAnomalies* JsModel = ObjectWrap::Unwrap<TNodeJsNNAnomalies>(Info.Holder());
     Info.GetReturnValue().Set(v8::Boolean::New(Isolate, JsModel->Model.IsInit()));
 }
 
@@ -1980,8 +1980,8 @@ void TNodeJsMDS::UpdateParams(const PJsonVal& ParamVal) {
     if (ParamVal->IsObjKey("maxStep")) MxStep = (int) ParamVal->GetObjNum("maxStep");
     if (ParamVal->IsObjKey("maxSecs")) MxSecs = (int) ParamVal->GetObjNum("maxSecs");
     if (ParamVal->IsObjKey("minDiff")) MnDiff = ParamVal->GetObjNum("minDiff");
-    if (ParamVal->IsObjKey("distType")) { 
-        TStr Type = ParamVal->GetObjStr("distType"); 
+    if (ParamVal->IsObjKey("distType")) {
+        TStr Type = ParamVal->GetObjStr("distType");
         if (Type == "Euclid") {
             DistType = TVizDistType::vdtEucl;
         } else if (Type == "Cos") {
@@ -2434,7 +2434,7 @@ void TNodeJsKMeans::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     EAssertR(Args.Length() == 0, "KMeans.getParams: takes 0 argument!");
 
     try {
-        v8::Local<v8::Object> JsObj = v8::Object::New(Isolate); // Result 
+        v8::Local<v8::Object> JsObj = v8::Object::New(Isolate); // Result
 
         TNodeJsKMeans* JsKMeans = TNodeJsKMeans::Unwrap<TNodeJsKMeans>(Args.Holder());
 
@@ -2499,7 +2499,7 @@ void TNodeJsKMeans::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     try {
         TNodeJsKMeans* JsKMeans = ObjectWrap::Unwrap<TNodeJsKMeans>(Args.Holder());
-       
+
         // create new model from given parameters
         if (TNodeJsUtil::IsObjFld(Args[0]->ToObject(), "fitStart")) {
             PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0, true, true);
@@ -2575,7 +2575,7 @@ TNodeJsKMeans::TFitTask::TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Arg
 v8::Handle<v8::Function> TNodeJsKMeans::TFitTask::GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     if (TNodeJsUtil::IsArgFun(Args, 1)) {
         return TNodeJsUtil::GetArgFun(Args, 1);
-    } 
+    }
     else {
         return TNodeJsUtil::GetArgFun(Args, 2);
     }
@@ -2622,7 +2622,7 @@ void TNodeJsKMeans::TFitTask::Run() {
                TLinAlgSearch::GetColMaxIdxV(D, JsKMeans->Medoids);
                if (JsIntV != nullptr) {
                    EAssertR(JsIntV->Vec.Len() == JsFltVV->Mat.GetCols(), "KMeans.fit: IntVector RecordIds.length must be equal to number of columns of X!");
-                   
+
                    const TIntV& ColIdV = JsKMeans->Medoids;
                    for (int MedN = 0; MedN < ColIdV.Len(); MedN++) {
                        JsKMeans->Medoids[MedN] = JsIntV->Vec[ColIdV[MedN]];
@@ -2827,7 +2827,7 @@ void TNodeJsKMeans::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     EAssertR(Args.Length() == 1, "KMeans.predict: expects 1 argument!");
     TNodeJsKMeans* JsKMeans = ObjectWrap::Unwrap<TNodeJsKMeans>(Args.Holder());
 
-    if (!JsKMeans->Model) { 
+    if (!JsKMeans->Model) {
         throw TExcept::New("KMeans.predict: Model not initialized. First call fit!");
     }
 
@@ -2859,7 +2859,7 @@ void TNodeJsKMeans::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     else {
         throw TExcept::New("KMeans.predict: Argument expected to be a dense or sparse matrix!");
     }
-    
+
     Args.GetReturnValue().Set(TNodeJsIntV::New(AssignV));
 }
 
@@ -2918,13 +2918,13 @@ void TNodeJsKMeans::permuteCentroids(const v8::FunctionCallbackInfo<v8::Value>& 
     EAssertR(Args.Length() == 1, "KMeans.permuteCentroids: Should have 1 argument!");
 
     TNodeJsKMeans* JsKMeans = ObjectWrap::Unwrap<TNodeJsKMeans>(Args.Holder());
-    
+
     if (JsKMeans->Model == nullptr) {
         throw TExcept::New("KMeans.permuteCentroids: centroids not initialized!");
     }
 
     if (TNodeJsUtil::IsArgWrapObj<TNodeJsIntV>(Args, 0)) {
-        
+
         TIntV& Mapping = TNodeJsUtil::GetArgUnwrapObj<TNodeJsIntV>(Args, 0)->Vec;
         EAssertR(Mapping.Len() == JsKMeans->K, "KMeans.permuteCentroids: Length of parameter must be equal to K!");
         EAssertR(TLinAlgSearch::GetMaxVal(Mapping) + 1 == JsKMeans->K, "KMeans.permuteCentroids: maximum index of parameter must be equal to number of centroids!");
@@ -3016,7 +3016,7 @@ void TNodeJsKMeans::idxv(v8::Local<v8::String> Name, const v8::PropertyCallbackI
 
     if (JsKMeans->Model == nullptr) {
         Info.GetReturnValue();
-    } 
+    }
     else {
         Info.GetReturnValue().Set(TNodeJsIntV::New(JsKMeans->AssignV));
     }
@@ -3173,6 +3173,233 @@ void TNodeJsTDigest::init(v8::Local<v8::String> Name, const v8::PropertyCallback
     Info.GetReturnValue().Set(v8::Boolean::New(Isolate, JsModel->Model.IsInit()));
 }
 
+///////////////////////////////////////////////////////
+// Greenwald-Khanna quantile estimation for fixed size window
+void TNodeJsCountWindowGk::Init(v8::Handle<v8::Object> exports) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsCountWindowGk>);
+    tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
+    // ObjectWrap uses the first internal field to store the wrapped pointer.
+    tpl->InstanceTemplate()->SetInternalFieldCount(1);
+
+    // Add all methods, getters and setters here.
+    NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "partialFit", _partialFit);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
+
+    // properties
+    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
+}
+
+TNodeJsCountWindowGk::TNodeJsCountWindowGk(const PJsonVal& ParamVal):
+        Gk(ParamVal->GetObjUInt64("windowSize", 10000), ParamVal->GetObjNum("quantileEps", .01), ParamVal->GetObjNum("countEps", .005)) {
+}
+
+TNodeJsCountWindowGk::TNodeJsCountWindowGk(TSIn& SIn): Gk(SIn) {}
+
+TNodeJsCountWindowGk::~TNodeJsCountWindowGk() {
+    TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++;
+    TNodeJsUtil::ObjCount.Val3++;
+}
+
+TNodeJsCountWindowGk* TNodeJsCountWindowGk::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    if (Args.Length() == 0) {
+        // create new model with default parameters
+        return new TNodeJsCountWindowGk(TJsonVal::NewObj());
+    } else if (Args.Length() == 1 && TNodeJsUtil::IsArgWrapObj<TNodeJsFIn>(Args, 0)) {
+        // load the model from the input stream
+        TNodeJsFIn* JsFIn = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFIn>(Args, 0);
+        return new TNodeJsCountWindowGk(*JsFIn->SIn);
+    } else if (Args.Length() == 1 && TNodeJsUtil::IsArgObj(Args, 0)) {
+        // create new model from given parameters
+        PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+        return new TNodeJsCountWindowGk(ParamVal);
+    } else {
+        throw TExcept::New("new CountWindowGk: wrong arguments in constructor!");
+    }
+}
+
+void TNodeJsCountWindowGk::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsCountWindowGk* JsGk = ObjectWrap::Unwrap<TNodeJsCountWindowGk>(Args.Holder());
+    const TQuant::TCountWindowGk& Gk = JsGk->Gk;
+
+    PJsonVal ParamVal = TJsonVal::NewObj();
+    ParamVal->AddToObj("windowSize", Gk.GetWindowSize());
+    ParamVal->AddToObj("quantileEps", Gk.GetEpsGk());
+    ParamVal->AddToObj("countEps", Gk.GetEpsEh());
+
+    v8::Local<v8::Value> JsParamVal = TNodeJsUtil::ParseJson(Isolate, ParamVal);
+    Args.GetReturnValue().Set(JsParamVal);
+}
+
+void TNodeJsCountWindowGk::partialFit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsCountWindowGk* JsGk = ObjectWrap::Unwrap<TNodeJsCountWindowGk>(Args.Holder());
+    TQuant::TCountWindowGk& Gk = JsGk->Gk;
+
+    const double Val = TNodeJsUtil::GetArgFlt(Args, 0);
+    Gk.Insert(Val);
+
+    // return self
+    Args.GetReturnValue().Set(Args.Holder());
+}
+
+void TNodeJsCountWindowGk::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsCountWindowGk* JsGk = ObjectWrap::Unwrap<TNodeJsCountWindowGk>(Args.Holder());
+    TQuant::TCountWindowGk& Gk = JsGk->Gk;
+
+    const double Quant = TNodeJsUtil::GetArgFlt(Args, 0);
+    const double Val = Gk.Query(Quant);
+
+    // return self
+    Args.GetReturnValue().Set(v8::Number::New(Isolate, Val));
+}
+
+void TNodeJsCountWindowGk::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsCountWindowGk* JsGk = ObjectWrap::Unwrap<TNodeJsCountWindowGk>(Args.Holder());
+    const TQuant::TCountWindowGk& Gk = JsGk->Gk;
+
+    TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
+    Gk.Save(*JsFOut->SOut);
+
+    // return the output stream
+    Args.GetReturnValue().Set(Args[0]);
+}
+
+
+///////////////////////////////////////////////////////
+// Greenwald-Khanna quantile estimation for time window
+void TNodeJsTimeWindowGk::Init(v8::Handle<v8::Object> exports) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsTimeWindowGk>);
+    tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
+    // ObjectWrap uses the first internal field to store the wrapped pointer.
+    tpl->InstanceTemplate()->SetInternalFieldCount(1);
+
+    // Add all methods, getters and setters here.
+    NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "partialFit", _partialFit);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
+
+    // properties
+    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
+}
+
+TNodeJsTimeWindowGk::TNodeJsTimeWindowGk(const PJsonVal& ParamVal):
+    Gk(ParamVal->GetObjUInt64("window", 1000*60*60), ParamVal->GetObjNum("quantileEps", .01), ParamVal->GetObjNum("countEps", .005)) {}
+
+TNodeJsTimeWindowGk::TNodeJsTimeWindowGk(TSIn& SIn): Gk(SIn) {}
+
+TNodeJsTimeWindowGk::~TNodeJsTimeWindowGk() {
+    TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++;
+    TNodeJsUtil::ObjCount.Val3++;
+}
+
+TNodeJsTimeWindowGk* TNodeJsTimeWindowGk::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    if (Args.Length() == 0) {
+        // create new model with default parameters
+        return new TNodeJsTimeWindowGk(TJsonVal::NewObj());
+    } else if (Args.Length() == 1 && TNodeJsUtil::IsArgWrapObj<TNodeJsFIn>(Args, 0)) {
+        // load the model from the input stream
+        TNodeJsFIn* JsFIn = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFIn>(Args, 0);
+        return new TNodeJsTimeWindowGk(*JsFIn->SIn);
+    } else if (Args.Length() == 1 && TNodeJsUtil::IsArgObj(Args, 0)) {
+        // create new model from given parameters
+        PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+        return new TNodeJsTimeWindowGk(ParamVal);
+    } else {
+        throw TExcept::New("new TNodeJsTimeWindowGk: wrong arguments in constructor!");
+    }
+}
+
+void TNodeJsTimeWindowGk::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsTimeWindowGk* JsGk = ObjectWrap::Unwrap<TNodeJsTimeWindowGk>(Args.Holder());
+    const TQuant::TTimeWindowGk& Gk = JsGk->Gk;
+
+    PJsonVal ParamVal = TJsonVal::NewObj();
+    ParamVal->AddToObj("window", Gk.GetWindowMSec());
+    ParamVal->AddToObj("quantileEps", Gk.GetEpsGk());
+    ParamVal->AddToObj("countEps", Gk.GetEpsEh());
+
+    v8::Local<v8::Value> JsParamVal = TNodeJsUtil::ParseJson(Isolate, ParamVal);
+    Args.GetReturnValue().Set(JsParamVal);
+}
+
+void TNodeJsTimeWindowGk::partialFit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsTimeWindowGk* JsGk = ObjectWrap::Unwrap<TNodeJsTimeWindowGk>(Args.Holder());
+    TQuant::TTimeWindowGk& Gk = JsGk->Gk;
+
+    if (Args.Length() > 1) {
+        const uint64 Tm = TNodeJsUtil::GetArgTmMSecs(Args, 0);
+        const double Val = TNodeJsUtil::GetArgFlt(Args, 1);
+
+        Gk.Insert(Tm, Val);
+    } else {
+        const uint64 Tm = TNodeJsUtil::GetArgTmMSecs(Args, 0);
+        Gk.UpdateTime(Tm);
+    }
+
+    // return self
+    Args.GetReturnValue().Set(Args.Holder());
+}
+
+void TNodeJsTimeWindowGk::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsTimeWindowGk* JsGk = ObjectWrap::Unwrap<TNodeJsTimeWindowGk>(Args.Holder());
+    TQuant::TTimeWindowGk& Gk = JsGk->Gk;
+
+    const double Quant = TNodeJsUtil::GetArgFlt(Args, 0);
+    const double Val = Gk.Query(Quant);
+
+    // return self
+    Args.GetReturnValue().Set(v8::Number::New(Isolate, Val));
+}
+
+void TNodeJsTimeWindowGk::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsTimeWindowGk* JsGk = ObjectWrap::Unwrap<TNodeJsTimeWindowGk>(Args.Holder());
+    const TQuant::TTimeWindowGk& Gk = JsGk->Gk;
+
+    TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
+    Gk.Save(*JsFOut->SOut);
+
+    // return the output stream
+    Args.GetReturnValue().Set(Args[0]);
+}
+
 /////////////////////////////////////////////
 // Recommender System
 
@@ -3210,7 +3437,7 @@ PJsonVal TNodeJsRecommenderSys::GetParams() const {
     ParamVal->AddToObj("k", K);
     ParamVal->AddToObj("tol", Tol);
     ParamVal->AddToObj("verbose", Verbose);
-    
+
     return ParamVal;
 }
 
@@ -3310,7 +3537,7 @@ void TNodeJsRecommenderSys::getModel(const v8::FunctionCallbackInfo<v8::Value>& 
 
     TNodeJsRecommenderSys* JsRecSys = ObjectWrap::Unwrap<TNodeJsRecommenderSys>(Args.Holder());
 
-    v8::Local<v8::Object> JsObj = v8::Object::New(Isolate); // Result 
+    v8::Local<v8::Object> JsObj = v8::Object::New(Isolate); // Result
     JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "U")), TNodeJsFltVV::New(JsRecSys->U));
     JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "V")), TNodeJsFltVV::New(JsRecSys->V));
     Args.GetReturnValue().Set(JsObj);
@@ -3348,7 +3575,7 @@ void TNodeJsRecommenderSys::TFitTask::Run() {
     try {
         // if argument is a dense matrix
         if (JsFltVV != nullptr) {
-            TNmf::WeightedCFO(JsFltVV->Mat, JsRecSys->K, JsRecSys->U, JsRecSys->V, JsRecSys->Iter, JsRecSys->Tol, 
+            TNmf::WeightedCFO(JsFltVV->Mat, JsRecSys->K, JsRecSys->U, JsRecSys->V, JsRecSys->Iter, JsRecSys->Tol,
                 JsRecSys->Notify);
         }
         // if argument is a sparse matrix
@@ -3426,7 +3653,7 @@ void TNodeJsGraphCascade::observeNode(const v8::FunctionCallbackInfo<v8::Value>&
     v8::HandleScope HandleScope(Isolate);
     TStr NodeNm = TNodeJsUtil::GetArgStr(Args, 0);
     uint64 TmMSecs = TNodeJsUtil::GetArgTmMSecs(Args, 1);
-    
+
     TNodeJsGraphCascade* JsGraphCascade = ObjectWrap::Unwrap<TNodeJsGraphCascade>(Args.Holder());
     JsGraphCascade->Model.ObserveNode(NodeNm, TmMSecs);
 }
@@ -3434,7 +3661,7 @@ void TNodeJsGraphCascade::observeNode(const v8::FunctionCallbackInfo<v8::Value>&
 void TNodeJsGraphCascade::computePosterior(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     uint64 TmMSecs = TNodeJsUtil::GetArgTmMSecs(Args, 0);
     int SampleSize = TNodeJsUtil::GetArgInt32(Args, 1, 10000);
 

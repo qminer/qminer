@@ -1,5 +1,65 @@
 # QMiner Change Log
 
+### 14 July 2017
+
+**Version 8.4.0**
+
+**Non-breaking with new features**
+
+Features:
+- **Added support for Node.JS 8**
+- Improved positional text indexing. Uses modulo 1024 instead of 256 (less false positives), stores all mentions of words in a document (before limited to 8 occurrences) and uses about 20% less space for the index.
+- Implementation of a windowed quantile estimation algorithm on streams based on [1].
+- Quantile estimation Node.js analytics models `analytics.TimeWindowGk` (timestamp based window) and `analytics.CountWindowGk` (count based window). Implements the standard analytics module API (`partialFit`,`predict`, `save`).
+- Quantile estimation stream aggregate with type `windowQuantiles`, reads from a window buffer and updates the statistics when data enters the buffer or when data leaves the buffer.
+
+[1] http://infolab.stanford.edu/~datar/courses/cs361a/papers/quantiles.pdf
+
+### 16 June 2017
+
+**Version 8.3.0**
+
+**Non-breaking with new features**
+
+Features:
+
+- added TWPt serialization as in TPt
+- updated TStrHash.GetMemUsed() which used the nonavailable GetMemUsedDeep() method
+- added filtering classes TRecFilterByFieldByteSet, TRecFilterByFieldUIntSet, TRecFilterByFieldUInt64Set
+
+### 26 May 2017
+
+**Version 8.2.1**
+
+**Non-breaking with bug fixes**
+
+Bug fixes:
+
+- Positional index: items are not necessarily sorted
+- Positional index: Def() has to be called in case some items were deleted
+
+### 5 May 2017
+
+**Version 8.2.0**
+
+**Non-breaking with a new feature**
+
+New features:
+- qm.flags includes compiler version and sizeof information 
+
+### 21 April 2017
+
+**Version 8.1.0**
+
+**Non-breaking with a new feature and bugfix**
+
+New features:
+- JsonVector (new JSON type supported for vectors)
+
+Bug fixes:
+- assert the base create mode is valid
+- fixed error messages
+
 ### 31 March 2017
 
 **Version 8.0.0**

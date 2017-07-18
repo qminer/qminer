@@ -1510,7 +1510,7 @@ public:
   TNum& operator^=(const TNum& UInt){ Val ^= UInt.Val; return *this; }
   TNum& operator>>=(const int& ShiftBits){ Val >>= ShiftBits; return *this; }
   TNum& operator<<=(const int& ShiftBits){ Val <<= ShiftBits; return *this; }
-int GetMemUsed() const {return sizeof(TNum);}
+  int GetMemUsed() const {return sizeof(TNum);}
 
   int GetPrimHashCd() const {return int(Val);}
   int GetSecHashCd() const {return Val/0x10;}
