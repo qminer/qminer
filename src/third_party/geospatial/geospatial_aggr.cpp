@@ -31,9 +31,12 @@ TGPSMeasurement::TGPSMeasurement(const PJsonVal& Rec) {
         Distance = Rec->GetObjKey("distanceDiff")->GetNum();
 		Speed = Rec->GetObjKey("speed")->GetNum();
         TimeDiff = Rec->GetObjKey("timeDiff")->GetInt64();
-        if (Rec->IsObjKey("activities")) {
-            Rec->GetObjKey("activities")->GetArrIntV(SensorActivities);
-        }//if it has activities
+		if (Rec->IsObjKey("activities")) {
+			Rec->GetObjKey("activities")->GetArrIntV(SensorActivities);
+		}//if it has activities
+		if (Rec->IsObjKey("accelerometer")) {
+			Accelerometer = Rec->GetObjKey("accelerometer")->GetStr();
+        }//if it has accelerometer
 
         int SensLen = SensorActivities.Len();
         if (SensLen < TGPSMeasurement::NumOfSensorActs) {
@@ -63,6 +66,7 @@ PJsonVal TGPSMeasurement::ToJson() const {
     Json->AddToObj("speed", Speed);
     Json->AddToObj("distanceDiff", Distance);
     Json->AddToObj("timeDiff", (int64)TimeDiff);
+	Json->AddToObj("accelerometer", Accelerometer);
 
     PJsonVal JsonSensActivities = TJsonVal::NewArr();
     //TODO: This is temporal until we have special aggregate - 17 is due to
@@ -295,6 +299,8 @@ TStayPointDetector::TStayPointDetector(
 	SpeedFieldId = Store->GetFieldId(SpeedFieldName);
     TStr DistanceFieldName = ParamVal->GetObjStr("distanceField");
     DistanceFieldId = Store->GetFieldId(DistanceFieldName);
+	TStr AccelerometerFieldName = ParamVal->GetObjStr("accelerometerField");
+	AccelerometerFieldId = Store->GetFieldId(AccelerometerFieldName);
 }//TStayPointDetector::constructor
 
 ///
@@ -511,6 +517,11 @@ bool TStayPointDetector::ParseGPSRec(const TRec& Rec, TGPSMeasurement& Gps) {
     if (!Rec.IsFieldNull(DistanceFieldId)) {
         Gps.Distance = Rec.GetFieldFlt(DistanceFieldId);
     }
+
+	Gps.Accelerometer = "";
+	if (!Rec.IsFieldNull(AccelerometerFieldId)) {
+		Gps.Accelerometer = Rec.GetFieldStr(AccelerometerFieldId);
+	}
 
     if (!Rec.IsFieldNull(ActivitiesField)) {
         //TODO: This sensorActivities will go into a separate Aggregate
