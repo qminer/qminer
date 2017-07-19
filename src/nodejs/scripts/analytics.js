@@ -105,11 +105,11 @@ module.exports = exports = function (pathQmBinary) {
 
     // Exports preprocessing namespace
     exports.preprocessing = preprocessing;
-    
-    // SVM 
+
+    // SVM
     /**
-	* Get the model.
-	* @returns {Object} The `svmModel` object containing the property:
+    * Get the model.
+    * @returns {Object} The `svmModel` object containing the property:
     * <br> 1. `svmModel.weights` - The weights of the model. Type {@link module:la.Vector}.
     * @example
     * // import analytics module
@@ -118,11 +118,11 @@ module.exports = exports = function (pathQmBinary) {
     * var SVC = new analytics.SVC();
     * // get the properties of the model
     * var model = SVC.getModel();
-	*/
+    */
     exports.SVC.prototype.getModel = function() { return { weights: this.weights }; }
     /**
-	* Get the model.
-	* @returns {Object} The `svmModel` object containing the property:
+    * Get the model.
+    * @returns {Object} The `svmModel` object containing the property:
     * <br> 1. `svmModel.weights` - The weights of the model. Type {@link module:la.Vector}.
     * @example
     * // import analytics module
@@ -131,7 +131,7 @@ module.exports = exports = function (pathQmBinary) {
     * var SVR = new analytics.SVR();
     * // get the properties of the model
     * var model = SVR.getModel();
-	*/
+    */
     exports.SVR.prototype.getModel = function() { return { weights: this.weights }; }
 
     // Ridge Regression
@@ -1113,10 +1113,10 @@ module.exports = exports = function (pathQmBinary) {
         }
 
         /**
-	    * Save metric state to provided output stream `fout`.
+        * Save metric state to provided output stream `fout`.
         * @ignore
-	    * @param {module:fs.FOut} fout - The output stream.
-	    * @returns {module:fs.FOut} The output stream `fout`.
+        * @param {module:fs.FOut} fout - The output stream.
+        * @returns {module:fs.FOut} The output stream `fout`.
         */
         this.save = function (fout) {
             fout.writeJson(this.metric.state);
@@ -1124,10 +1124,10 @@ module.exports = exports = function (pathQmBinary) {
         }
 
         /**
-	    * Load metric state from provided input stream `fin`.
+        * Load metric state from provided input stream `fin`.
         * @ignore
-	    * @param {module:fs.FIn} fin - The output stream.
-	    * @returns {module:fs.FIn} The output stream `fin`.
+        * @param {module:fs.FIn} fin - The output stream.
+        * @returns {module:fs.FIn} The output stream `fin`.
         */
         this.load = function (fin) {
             this.metric.state = fin.readJson();
@@ -1549,7 +1549,7 @@ module.exports = exports = function (pathQmBinary) {
             var params_vec = new la.Vector();
             params_vec.push(iter);
             params_vec.push(k);
-            
+
             if (fout.constructor.name == 'FOut') {
                 this.P.save(fout);
                 this.mu.save(fout);
@@ -1560,7 +1560,7 @@ module.exports = exports = function (pathQmBinary) {
                 throw "PCA.save: input must be fs.FOut";
             }
         }
-        
+
 
         /**
         * Sets parameters.
@@ -1730,7 +1730,7 @@ module.exports = exports = function (pathQmBinary) {
         }
     }
 
-   
+
 
     /**
      * @typedef {Object} KMeansExplain

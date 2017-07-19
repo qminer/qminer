@@ -2466,9 +2466,9 @@ private:
 
 /**
  * DpMeans Clustering
- * @classdesc DpMeans Clustering is an iterative, data-partitioning algorithm that assigns observations into clusters.
- *              The number of clusters is not known in advance, but can be upper and lower bound. Rather the parameter
- *              is the maximum radius of a cluster.
+ * @classdesc DpMeans Clustering is an iterative, data-partitioning algorithm that assigns observations into clusters with the nearest centroid according to some metric.
+ *              The number of clusters is not known in advance, but can be upper and lower bounded. Rather the parameter
+ *              is the maximum radius of a cluster `lambda`.
  * @class
  * @param {module:analytics~DpMeansParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
  * <br>1. Using the {@link module:analytics~DpMeansParam} object,
