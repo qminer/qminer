@@ -1825,6 +1825,99 @@ module.exports = exports = function (pathQmBinary) {
     */
     exports.KMeans.prototype.getModel = function () { return { C: this.centroids, medoids: this.medoids, idxv: this.idxv }; }
 
+    /**
+     * @typedef {Object} DpMeansExplain
+     * The examplanation returned by {@link module:analytics.KMeans#explain}.
+     * @property {number} medoidID - The ID of the nearest medoids.
+     * @property {module:la.IntVector} featureIDs - The IDs of features, sorted by contribution.
+     * @property {module:la.Vector} featureContributions - Weights of each feature contribution (sum to 1.0).
+     */
+
+    /**
+     * Returns the IDs of the nearest medoid for each example.
+     * @param {(module:la.Matrix | module:la.SparseMatrix)} X - Matrix whose columns correspond to examples.
+     * @returns {Array.<module:analytics~DpMeansExplain>} Array containing the DpMeans explanantions.
+     * @example
+     * // import analytics module
+     * var analytics = require('qminer').analytics;
+     * // import linear algebra module
+     * var la = require('qminer').la;
+     * // create a new DpMeans object
+     * var DpMeans = new analytics.DpMeans({ iter: 1000, k: 3 });
+     * // create a matrix to be fitted
+     * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+     * // create the model with the matrix X using the column IDs [0,1,2]
+     * DpMeans.fit(X, [1234,1142,2355]);
+     * // create the matrix of the prediction vectors
+     * var test = new la.Matrix([[2, -1, 1], [1, 0, -3]]);
+     * // predict/explain - return the closest medoids
+     * var explanation = DpMeans.explain(test);
+     */
+    exports.DpMeans.prototype.explain = function (X) {
+
+        /**
+         * Returns the weights and feature IDs that contributed to the distance between two vectors.
+         * @param {(module:la.Vector | module:la.SparseVector)} x - Vector.
+         * @param {(module:la.Vector | module:la.SparseVector)} y - Vector.
+         * @returns {Object} Feature IDs and feature contributions.
+         **/
+        function featureContrib(x, y) {
+            var fx = x.constructor.name == 'SparseVector' ? x.full() : x;
+            var fy = y.constructor.name == 'SparseVector' ? y.full() : y;
+            var diff = fx.minus(fy);
+            var nor2 = Math.pow(diff.norm(), 2);
+            for (var i = 0; i < diff.length; i++) {
+                diff[i] = Math.pow(diff[i], 2) / nor2;
+            }
+            var sorted = diff.sortPerm(false); // sort descending
+            return { featureIDs: sorted.perm, featureContributions: sorted.vec };
+        }
+
+        if (this.medoids == undefined) {
+            return { medoidIDs: null };
+        }
+        var params = this.getParams();
+        var norC2 = la.square(this.centroids.colNorms());
+        var ones_n = la.ones(X.cols).multiply(0.5);
+        var ones_k = la.ones(params.k).multiply(0.5);
+        var norX2 = la.square(X.colNorms());
+        var D = this.centroids.multiplyT(X).minus(norC2.outer(ones_n)).minus(ones_k.outer(norX2));
+        var centroids = la.findMaxIdx(D);
+        var medoidIDs = new la.IntVector(centroids);
+        assert(this.medoids.length == params.k);
+        var result = [];
+        for (var i = 0; i < centroids.length; i++) {
+            var explanation = featureContrib(X.getCol(i), this.centroids.getCol(centroids[i]));
+            result[i] = {
+                medoidID: this.medoids[centroids[i]],
+                featureIDs: explanation.featureIDs,
+                featureContributions: explanation.featureContributions
+            }
+        }
+        return result;
+    }
+
+    /**
+    * Returns the model.
+    * @returns {Object} The `DpMeansModel` object containing the properites:
+    * <br> 1. `DpMeansModel.C` - The {@link module:la.Matrix} or {@link module:la.SparseMatrix} containing the centroids,
+    * <br> 2. `DpMeansModel.medoids` - The {@link module:la.IntVector} of cluster medoids of the training data,
+    * <br> 3. `DpMeansModel.idxv` - The {@link module:la.IntVector} of cluster IDs of the training data.
+    * @example
+    * // import modules
+    * var analytics = require('qminer').analytics;
+    * var la = require('qminer').la;
+    * // create the KMeans object
+    * var dpmeans = new analytics.DpMeans({ iter: 1000 });
+    * // create a matrix to be fitted
+    * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+    * // create the model
+    * DpMeans.fit(X);
+    * // get the model
+    * var model = DpMeans.getModel();
+    */
+    exports.DpMeans.prototype.getModel = function () { return { C: this.centroids, medoids: this.medoids, idxv: this.idxv }; }
+
     function defarg(arg, defaultval) {
         return arg == undefined ? defaultval : arg;
     }
