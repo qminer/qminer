@@ -2139,6 +2139,7 @@ private:
 * @property {number} [iter=10000] - The maximum number of iterations.
 * @property {number} [k=2] - The number of centroids.
 * @property {boolean} [allowEmpty=true] - Whether to allow empty clusters to be generated.
+* @property {boolean} [calcDistQual=false] - Whether to calculate the quality measure based on distance, if false relMeanCentroidDist will return 'undefined'
 * @property {string} [centroidType="Dense"] - The type of centroids. Possible options are `'Dense'` and `'Sparse'`.
 * @property {string} [distanceType="Euclid"] - The distance type used at the calculations. Possible options are `'Euclid'` and `'Cos'`.
 * @property {boolean} [verbose=false] - If `false`, the console output is supressed.
@@ -2182,6 +2183,7 @@ private:
     int Iter;
     int K;
     TBool AllowEmptyP;
+    TBool CalcDistQualP {false};
 
     TIntV AssignV;
     TIntV Medoids;
@@ -2392,6 +2394,8 @@ public:
      * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
      * // get the centroids
      * var centroids = KMeans.centroids;
+     * // print the first centroid
+     * console.log(centroids.getCol(0));
      */
     //# exports.KMeans.prototype.centroids = Object.create(require('qminer').la.Matrix.prototype);
     JsDeclareProperty(centroids);
@@ -2422,10 +2426,354 @@ public:
     //# exports.KMeans.prototype.idxv = Object.create(require('qminer').la.IntVector.prototype);
     JsDeclareProperty(idxv);
 
+    /**
+     * Returns the normalized weighted distance between the vectors and their centroids
+     * using the following formula:
+     *  d = \frac{sum_i p_i*sum_j d(x_j,c_i) / n_i}{sum_{k=1}^n d(x_k, mu) / n}
+     *    = \frac{sum_{i,j} d(c_i,x_j)}{sum_k d(x_k, mu)}
+     *
+     * @returns {number} relMeanDist
+     */
+    //# exports.KMeans.prototype.relMeanCentroidDist = 0;
+    JsDeclareProperty(relMeanCentroidDist);
+
 private:
     void UpdateParams(const PJsonVal& ParamVal);
     void Save(TSOut& SOut) const;
     void CleanUp();
+};
+
+
+/////////////////////////////////////////////
+// QMiner-JavaScript-DpMeans
+
+/**
+* @typedef {Object} DpMeansParam
+* An object used for the construction of {@link module:analytics.KMeans}.
+* @property {number} [iter=10000] - The maximum number of iterations.
+* @property {number} [lambda=1] - Maximum radius of the clusters
+* @property {number} [minClusters=2] - Minimum number of clusters
+* @property {number} [maxClusters=inf] - Maximum number of clusters
+* @property {boolean} [allowEmpty=true] - Whether to allow empty clusters to be generated.
+* @property {boolean} [calcDistQual=false] - Whether to calculate the quality measure based on distance, if false relMeanCentroidDist will return 'undefined'
+* @property {string} [centroidType="Dense"] - The type of centroids. Possible options are `'Dense'` and `'Sparse'`.
+* @property {string} [distanceType="Euclid"] - The distance type used at the calculations. Possible options are `'Euclid'` and `'Cos'`.
+* @property {boolean} [verbose=false] - If `false`, the console output is supressed.
+* @property {Array.<number>} [fitIdx] - The index array used for the construction of the initial centroids.
+* @property {Object} [fitStart] - The KMeans model returned by {@link module:analytics.KMeans.prototype.getModel} used for centroid initialization.
+* @property {(module:la.Matrix | module:la.SparseMatrix)} fitStart.C - The centroid matrix.
+*/
+
+/**
+ * DpMeans Clustering
+ * @classdesc DpMeans Clustering is an iterative, data-partitioning algorithm that assigns observations into clusters with the nearest centroid according to some metric.
+ *              The number of clusters is not known in advance, but can be upper and lower bounded. Rather the parameter
+ *              is the maximum radius of a cluster `lambda`.
+ * @class
+ * @param {module:analytics~DpMeansParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
+ * <br>1. Using the {@link module:analytics~DpMeansParam} object,
+ * <br>2. using the file input stream {@link module:fs.FIn}.
+ * @example
+ * // import analytics and la modules
+ * var analytics = require('qminer').analytics;
+ * var la = require('qminer').la;
+ * // create a KMeans object
+ * var dpmeans = new analytics.DpMeans();
+ * // create the matrix to be fitted
+ * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+ * // create the model
+ * dpmeans.fit(X);
+ * // predict where the columns of the matrix will be assigned
+ * var Y = new la.Matrix([[1, 1, 0], [-2, 3, 1]]);
+ * var prediction = dpmeans.predict(Y);
+ */
+//# exports.DpMeans = function (arg) { return Object.create(require('qminer').analytics.DpMeans.prototype); }
+class TNodeJsDpMeans : public node::ObjectWrap {
+    friend class TNodeJsUtil;
+public:
+    static void Init(v8::Handle<v8::Object> exports);
+    static const TStr GetClassId() { return "DpMeans"; }
+
+    using TDenseModel = TClustering::TDpMeans<TFltVV>;
+    using TSparseModel = TClustering::TDpMeans<TVec<TIntFltKdV>>;
+
+private:
+    enum class TDistanceType { dtEuclid, dtCos };
+    enum class TCentroidType { ctDense, ctSparse };
+
+    int Iter;
+
+    TFlt Lambda {1};
+    TInt MnClusts {2};
+    TInt MxClusts {TInt::Mx};
+
+    TBool AllowEmptyP;
+    TBool CalcDistQualP {false};
+
+    TIntV AssignV;
+    TIntV Medoids;
+
+    TIntV FitIdx;
+    TFltVV DenseFitMatrix;
+    TVec<TIntFltKdV> SparseFitMatrix;
+
+    TDistanceType DistType;
+    TClustering::PDist Dist;
+
+    TCentroidType CentType;
+    void* DpMeansModel;
+
+    bool Verbose;
+    PNotify Notify;
+
+    TNodeJsDpMeans(const PJsonVal& ParamVal);
+    TNodeJsDpMeans(const PJsonVal& ParamVal, const TFltVV& Mat);
+    TNodeJsDpMeans(const PJsonVal& ParamVal, const TVec<TIntFltKdV>& Mat);
+    TNodeJsDpMeans(TSIn& SIn);
+    ~TNodeJsDpMeans();
+
+    static TNodeJsDpMeans* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+private:
+    class TFitTask : public TNodeTask {
+        TNodeJsDpMeans* JsDpMeans {nullptr};
+        // first argument
+        TNodeJsFltVV*  JsFltVV {nullptr};
+        TNodeJsSpMat*  JsSpVV {nullptr};
+        // second argument
+        TNodeJsIntV*   JsIntV {nullptr};
+        TNodeJsIntV*   JsArr {nullptr};
+
+    public:
+        TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+        v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+        void Run();
+    };
+
+public:
+
+    /**
+    * Returns the parameters.
+    * @returns {module:analytics~KMeansParam} The construction parameters.
+    * @example
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // create a new DpMeans object
+    * var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 5 });
+    * // get the parameters
+    * var json = DpMeans.getParams();
+    * console.log(json.lambda);
+    */
+    //# exports.DpMeans.prototype.getParams = function () { return { iter: 10000, lambda: 2, distanceType: "Euclid", centroidType: "Dense", verbose: false }; }
+    JsDeclareFunction(getParams);
+
+    /**
+     * Sets the parameters.
+     * @param {module:analytics~KMeansParam} params - The construction parameters.
+     * @returns {module:analytics.DpMeans} Self. The model parameters have been updated.
+     * @example
+     * // import analytics module
+     * var analytics = require('qminer').analytics;
+     * // create a new DpMeans object
+     * var DpMeans = new analytics.DpMeans();
+     * // change the parameters of the DpMeans object
+     * DpMeans.setParams({ iter: 1000, lambda: 5 });
+     */
+    //# exports.DpMeans.prototype.setParams = function (params) { return Object.create(require('qminer').analytics.DpMeans.prototype); }
+    JsDeclareFunction(setParams);
+
+    /**
+     * Calculates the centroids.
+     * @param {module:la.Matrix | module:la.SparseMatrix} X - Matrix whose columns correspond to examples.
+     * @returns {module:analytics.DpMeans} Self. The model has been updated.
+     * @example <caption> Asynchronous function </caption>
+     * // import analytics module
+     * var analytics = require('qminer').analytics;
+     * var la = require('qminer').la;
+     * // create a new DpMeans object
+     * var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
+     * // create a matrix to be fitted
+     * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+     * // create the model with the matrix X
+     * DpMeans.fitAsync(X, function (err) {
+     *     if (err) console.log(err);
+     *     // successful calculation
+     * });
+     *
+     * @example <caption> Synchronous function </caption>
+     * var analytics = require('qminer').analytics;
+     * var la = require('qminer').la;
+     * // create a new DpMeans object
+     * var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
+     * // create a matrix to be fitted
+     * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+     * // create the model with the matrix X
+     * DpMeans.fit(X);
+     */
+    //# exports.DpMeans.prototype.fit = function (X) { return Object.create(require('qminer').analytics.DpMeans.prototype); }
+    JsDeclareSyncAsync(fit, fitAsync, TFitTask);
+
+    /**
+     * Returns an vector of cluster id assignments.
+     * @param {module:la.Matrix | module:la.SparseMatrix} A - Matrix whose columns correspond to examples.
+     * @returns {module:la.IntVector} Vector of cluster assignments.
+     * @example
+     * // import analytics module
+     * var analytics = require('qminer').analytics;
+     * var la = require('qminer').la;
+     * // create a new DpMeans object
+     * var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
+     * // create a matrix to be fitted
+     * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+     * // create the model with the matrix X
+     * DpMeans.fit(X);
+     * // create the matrix of the prediction vectors
+     * var pred = new la.Matrix([[2, -1, 1], [1, 0, -3]]);
+     * // predict the values
+     * var prediction = DpMeans.predict(pred);
+     */
+    //# exports.DpMeans.prototype.predict = function (A) { return Object.create(require('qminer').la.IntVector.prototype); }
+    JsDeclareFunction(predict);
+
+    /**
+     * Transforms the points to vectors of distances to centroids.
+     * @param {module:la.Matrix | module:la.SparseMatrix} A - Matrix whose columns correspond to examples.
+     * @returns {module:la.Matrix} Matrix where each column represents the squared distances to the centroid vectors.
+     * @example
+     * // import modules
+     * var analytics = require('qminer').analytics;
+     * var la = require('qminer').la;
+     * // create a new DpMeans object
+     * var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
+     * // create a matrix to be fitted
+     * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+     * // create the model with the matrix X
+     * DpMeans.fit(X);
+     * // create the matrix of the transform vectors
+     * var matrix = new la.Matrix([[-2, 0], [0, -3]]);
+     * // get the transform values of matrix
+     * // returns the matrix
+     * //  10    17
+     * //   1    20
+     * //  10     1
+     * DpMeans.transform(matrix);
+     */
+    //# exports.DpMeans.prototype.transform = function (A) { return Object.create(require('qminer').la.Matrix.prototype); }
+    JsDeclareFunction(transform);
+
+    /**
+     * Permutates the clusters, and with it {@link module:analytics.DpMeans#centroids}, {@link module:analytics.DpMeans#medoids} and {@link module:analytics.DpMeans#idxv}.
+     * @param {module:la.IntVector} mapping - The mapping, where `mapping[4] = 2` means "map cluster 4 into cluster 2".
+     * @returns {module:analytics.DpMeans} Self. The clusters has been permutated.
+     * @example
+     * // import the modules
+     * var analytics = require('qminer').analytics;
+     * var la = require('qminer').la;
+     * // create a new DpMeans object
+     * var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
+     * // create a matrix to be fitted
+     * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+     * // create the model with the matrix X
+     * DpMeans.fit(X);
+     * // create the mapping vector
+     * var Mapping = new la.IntVector([1, 0, 2]);
+     * // permutate the clusters.
+     * DpMeans.permuteCentroids(Mapping);
+     */
+    //# exports.DpMeans.prototype.permuteCentroids = function (mapping) { return Object.create(require('qminer').analytics.DpMeans.prototype); }
+    JsDeclareFunction(permuteCentroids);
+
+    /**
+     * Saves DpMeans internal state into (binary) file.
+     * @param {module:fs.FOut} fout - The output stream.
+     * @returns {module:fs.FOut} The output stream `fout`.
+     * @example
+     * // import the modules
+     * var analytics = require('qminer').analytics;
+     * var la = require('qminer').la;
+     * var fs = require('qminer').fs;
+     * // create a new DpMeans object
+     * var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
+     * // create a matrix to be fitted
+     * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+     * // create the model with the matrix X
+     * DpMeans.fit(X);
+     * // create the file output stream
+     * var fout = new fs.openWrite('DpMeans.bin');
+     * // save the DpMeans instance
+     * DpMeans.save(fout);
+     * fout.close();
+     * // load the DpMeans instance
+     * var fin = fs.openRead('DpMeans.bin');
+     * var KMeans2 = new analytics.DpMeans(fin);
+     */
+    //# exports.DpMeans.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
+    JsDeclareFunction(save);
+
+    /**
+     * The centroids created with the fit method. Type {@link module:la.Matrix}.
+     * @example
+     * // import the modules
+     * var analytics = require('qminer').analytics;
+     * // create a new DpMeans object
+     * var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
+     * // get the centroids
+     * var centroids = DpMeans.centroids;
+     * // print the first centroid
+     * console.log(centroids.getCol(0));
+     */
+    //# exports.DpMeans.prototype.centroids = Object.create(require('qminer').la.Matrix.prototype);
+    JsDeclareProperty(centroids);
+
+    /**
+    * The medoids created with the fit method. Type {@link module:la.IntVector}.
+    * @example
+    * // import the modules
+    * var analytics = require('qminer').analytics;
+    * // create a new DpMeans object
+    * var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
+    * // get the centroids
+    * var medoids = DpMeans.medoids;
+    */
+    //# exports.DpMeans.prototype.medoids = Object.create(require('qminer').la.IntVector.prototype);
+    JsDeclareProperty(medoids);
+
+    /**
+    * The integer vector containing the cluster ids of the training set created with the fit method. Type {@link module:la.IntVector}.
+    * @example
+    * // import the modules
+    * var analytics = require('qminer').analytics;
+    * // create a new DpMeans object
+    * var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
+    * // get the idxv
+    * var idxv = DpMeans.idxv;
+    */
+    //# exports.DpMeans.prototype.idxv = Object.create(require('qminer').la.IntVector.prototype);
+    JsDeclareProperty(idxv);
+
+    /**
+     * Returns the normalized weighted distance between the vectors and their centroids
+     * using the following formula:
+     *  d = \frac{sum_i p_i*sum_j d(x_j,c_i) / n_i}{sum_{k=1}^n d(x_k, mu) / n}
+     *    = \frac{sum_{i,j} d(c_i,x_j)}{sum_k d(x_k, mu)}
+     *
+     * @returns {number} relMeanDist
+     */
+    //# exports.DpMeans.prototype.relMeanCentroidDist = 0;
+    JsDeclareProperty(relMeanCentroidDist);
+
+private:
+    void UpdateParams(const PJsonVal& ParamVal);
+    void Save(TSOut& SOut) const;
+    void CleanUp();
+
+    const TDenseModel* GetDenseModel() const;
+    const TSparseModel* GetSparseModel() const;
+    TDenseModel* GetDenseModel();
+    TSparseModel* GetSparseModel();
+
+    int GetClusts() const;
 };
 
 /////////////////////////////////////////////
