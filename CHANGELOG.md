@@ -1,5 +1,19 @@
 # QMiner Change Log
 
+## 21 July 2017
+
+**Version 8.5.0**
+
+**Non-breaking with new features**
+
+Features:
+- DpMeans algorithm in nodejs API. The algorithm fixes the radius of each cluster and the number
+  of clusters is variable
+- Clustering quality measure for kmeans and dpmeans
+
+Bugfix:
+- Inplace sparse vector linear combination assertion
+
 ### 14 July 2017
 
 **Version 8.4.0**
