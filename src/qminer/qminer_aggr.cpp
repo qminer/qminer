@@ -2685,7 +2685,7 @@ void THistogramAD::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
 
         // Fit
         TFltV Hist; HistAggr->GetValV(Hist);
-        Model.GetPMF(Hist, PMF, Count % AutoBandwidthSkip == 0);
+        Model.GetPMF(Hist, PMF, (Count % AutoBandwidthSkip == 0) || (Model.Bandwidth == 0.0));
         Model.ClassifyAnomalies(PMF, Severities);
         Count++;
     }
