@@ -2717,6 +2717,24 @@ void THistogramAD::SaveState(TSOut& SOut) const {
     Count.Save(SOut);
 }
 
+int THistogramAD::GetNmInt(const TStr& Nm) const {
+    if (Nm == "index") {
+        return LastHistIdx;
+    } else if (Nm == "severity") {
+        return Severity;
+    } else if (Nm == "largestNormalIndex") {
+        int Idx = Severities.Len() - 1;
+        while (Idx >= 0) {
+            if (Severities[Idx] == 0) { break; }
+            Idx--;
+        }
+        return Idx;
+    } else {
+        throw TExcept::New("THistoramAD::GetNmInt unknown key: " + Nm);
+    }
+}
+
+
 void THistogramAD::Reset() {
     Severity = -1;
     LastHistIdx = 0;

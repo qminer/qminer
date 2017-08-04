@@ -2182,9 +2182,9 @@ public:
     /// Is the aggregate initialized?
     bool IsInit() const { return HistAggr->IsInit() && Severities.Len() > 0; }
     /// Returns true if the string is supported
-    bool IsNmInt(const TStr& Nm) const { return(Nm == "index") || (Nm == "severity"); }
+    bool IsNmInt(const TStr& Nm) const { return(Nm == "index") || (Nm == "severity") || (Nm == "largestNormalIndex"); }
     /// Returns the current histogram bin index or current severity
-    int GetNmInt(const TStr& Nm) const { return Nm == "index" ? LastHistIdx : Severity; }
+    int GetNmInt(const TStr& Nm) const;
     /// Resets the aggregate
     void Reset();
     /// JSON serialization
