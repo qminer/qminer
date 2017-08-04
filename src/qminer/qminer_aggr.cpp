@@ -2734,6 +2734,19 @@ int THistogramAD::GetNmInt(const TStr& Nm) const {
     }
 }
 
+double THistogramAD::GetNmFlt(const TStr& Nm) const {
+    if (Nm == "largestNormalValue") {
+        int Idx = Severities.Len() - 1;
+        while (Idx >= 0) {
+            if (Severities[Idx] == 0) { break; }
+            Idx--;
+        }
+        return HistAggr->GetBoundN(Idx + 1);
+    } else {
+        throw TExcept::New("THistoramAD::GetNmFlt unknown key: " + Nm);
+    }
+}
+
 
 void THistogramAD::Reset() {
     Severity = -1;

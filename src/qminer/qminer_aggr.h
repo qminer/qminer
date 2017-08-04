@@ -2144,7 +2144,7 @@ public:
 ///   2. - updates the input histogram aggregate
 ///      - updates THistogramToPMFModel
 ///      - exposes the PMF and severities through SaveJson
-class THistogramAD : public TStreamAggr, public TStreamAggrOut::INmInt {
+class THistogramAD : public TStreamAggr, public TStreamAggrOut::INmInt, public TStreamAggrOut::INmFlt {
 private:
     /// Input for prediction
     TWPt<TStreamAggrOut::IFlt> InAggrVal;
@@ -2182,9 +2182,13 @@ public:
     /// Is the aggregate initialized?
     bool IsInit() const { return HistAggr->IsInit() && Severities.Len() > 0; }
     /// Returns true if the string is supported
-    bool IsNmInt(const TStr& Nm) const { return(Nm == "index") || (Nm == "severity") || (Nm == "largestNormalIndex"); }
+    bool IsNmInt(const TStr& Nm) const { return (Nm == "index") || (Nm == "severity") || (Nm == "largestNormalIndex"); }
     /// Returns the current histogram bin index or current severity
     int GetNmInt(const TStr& Nm) const;
+    /// Returns true if the string is supported
+    bool IsNmFlt(const TStr& Nm) const { return (Nm == "largestNormalValue"); }
+    /// Returns the current largest normal value
+    double GetNmFlt(const TStr& Nm) const;
     /// Resets the aggregate
     void Reset();
     /// JSON serialization
