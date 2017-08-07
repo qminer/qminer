@@ -3787,20 +3787,22 @@ private:
     void SaveBaseConf(const TStr& FPath) const;
 
     /// Create new base on the given folder
-    TBase(const TStr& _FPath, const int64& IndexCacheSize, const int& SplitLen, const bool& StrictNmP);
+    TBase(const TStr& _FPath, const int64& IndexCacheSize, const TStrUInt64H& IndexTypeCacheSizeH, const int& SplitLen, const bool& StrictNmP);
     /// Open existing base from the given folder
-    TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCacheSize, const int& SplitLen);
+    TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCacheSize, const TStrUInt64H& IndexTypeCacheSizeH, const int& SplitLen);
 
 public:
     ~TBase();
 
     /// Create new base on the given folder
-    static TWPt<TBase> New(const TStr& FPath, const int64& IndexCacheSize, const int& SplitLen, const bool& StrictNmP) {
-        return new TBase(FPath, IndexCacheSize, SplitLen, StrictNmP);
+    static TWPt<TBase> New(const TStr& FPath, const int64& IndexCacheSize, const TStrUInt64H& IndexTypeCacheSizeH, 
+        const int& SplitLen, const bool& StrictNmP) {
+        return new TBase(FPath, IndexCacheSize, IndexTypeCacheSizeH, SplitLen, StrictNmP);
     }
     /// Open existing base from the given folder
-    static TWPt<TBase> Load(const TStr& FPath, const TFAccess& FAccess, const int64& IndexCacheSize, const int& SplitLen) {
-        return new TBase(FPath, FAccess, IndexCacheSize, SplitLen);
+    static TWPt<TBase> Load(const TStr& FPath, const TFAccess& FAccess, const int64& IndexCacheSize, 
+        const TStrUInt64H& IndexTypeCacheSizeH, const int& SplitLen) {
+        return new TBase(FPath, FAccess, IndexCacheSize, IndexTypeCacheSizeH, SplitLen);
     }
 
     /// Check if base already exists at a given folder

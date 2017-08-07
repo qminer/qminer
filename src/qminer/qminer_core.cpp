@@ -6952,8 +6952,8 @@ void TBase::SaveBaseConf(const TStr& FPath) const {
     BasePropsFOut.Flush();
 }
 
-TBase::TBase(const TStr& _FPath, const int64& IndexCacheSize, const int& SplitLen,
-        const bool& StrictNmP): InitP(false), NmValidator(StrictNmP) {
+TBase::TBase(const TStr& _FPath, const int64& IndexCacheSize, const TStrUInt64H& IndexTypeCacheSizeH,
+        const int& SplitLen, const bool& StrictNmP): InitP(false), NmValidator(StrictNmP) {
 
     IAssertR(TEnv::IsInit(), "QMiner environment (TQm::TEnv) is not initialized");
     // open as create
@@ -6961,8 +6961,12 @@ TBase::TBase(const TStr& _FPath, const int64& IndexCacheSize, const int& SplitLe
     TEnv::Logger->OnStatus("Opening in create mode");
     // prepare index
     IndexVoc = TIndexVoc::New();
-    Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize,
-        IndexCacheSize, IndexCacheSize, IndexCacheSize, SplitLen);
+    Index = TIndex::New(FPath, FAccess, IndexVoc, 
+        IndexTypeCacheSizeH.GetDatOrDef("full", IndexCacheSize),
+        IndexTypeCacheSizeH.GetDatOrDef("small", IndexCacheSize),
+        IndexTypeCacheSizeH.GetDatOrDef("tiny", IndexCacheSize),
+        IndexTypeCacheSizeH.GetDatOrDef("pos", IndexCacheSize),
+        SplitLen);
     // initialize store blob base
     StoreBlobBs = TMBlobBs::New(FPath + "StoreBlob", FAccess);
     // initialize with empty stores
@@ -6972,7 +6976,7 @@ TBase::TBase(const TStr& _FPath, const int64& IndexCacheSize, const int& SplitLe
 }
 
 TBase::TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCacheSize,
-        const int& SplitLen): InitP(false), NmValidator(true) {
+        const TStrUInt64H& IndexTypeCacheSizeH, const int& SplitLen): InitP(false), NmValidator(true) {
 
     IAssertR(TEnv::IsInit(), "QMiner environment (TQm::TEnv) is not initialized");
     // assert open type and remember location
@@ -6991,8 +6995,12 @@ TBase::TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCac
 
     // load index
     IndexVoc = TIndexVoc::Load(IndexVocFIn);
-    Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize,
-        IndexCacheSize, IndexCacheSize, IndexCacheSize, SplitLen);
+    Index = TIndex::New(FPath, FAccess, IndexVoc, 
+        IndexTypeCacheSizeH.GetDatOrDef("full", IndexCacheSize),
+        IndexTypeCacheSizeH.GetDatOrDef("small", IndexCacheSize),
+        IndexTypeCacheSizeH.GetDatOrDef("tiny", IndexCacheSize),
+        IndexTypeCacheSizeH.GetDatOrDef("pos", IndexCacheSize), 
+        SplitLen);
     // load shared store blob base
     StoreBlobBs = TMBlobBs::New(FPath + "StoreBlob", FAccess);
     // initialize with empty stores

@@ -5708,12 +5708,13 @@ TVec<TWPt<TStore> > CreateStoresFromSchema(const TWPt<TBase>& Base, const PJsonV
 ///////////////////////////////
 /// Create new base given a schema definition
 TWPt<TBase> NewBase(const TStr& FPath, const PJsonVal& SchemaVal, const uint64& IndexCacheSize,
-    const uint64& DefStoreCacheSize, const bool& StrictNameP, const TStrUInt64H& StoreNmCacheSizeH,
+    const uint64& DefStoreCacheSize, const bool& StrictNameP, 
+    const TStrUInt64H& StoreNmCacheSizeH, const TStrUInt64H& IndexTypeCacheSizeH,
     const bool& InitP, const int& SplitLen, bool UsePaged) {
 
     // create empty base
     InfoLog("Creating new base from schema");
-    TWPt<TBase> Base = TBase::New(FPath, IndexCacheSize, SplitLen, StrictNameP);
+    TWPt<TBase> Base = TBase::New(FPath, IndexCacheSize, IndexTypeCacheSizeH, SplitLen, StrictNameP);
     // parse and apply the schema
     CreateStoresFromSchema(Base, SchemaVal, DefStoreCacheSize, StoreNmCacheSizeH, UsePaged);
     // finish base initialization if so required (default is true)
@@ -5726,11 +5727,12 @@ TWPt<TBase> NewBase(const TStr& FPath, const PJsonVal& SchemaVal, const uint64& 
 ///////////////////////////////
 /// Load base created from a schema definition
 TWPt<TBase> LoadBase(const TStr& FPath, const TFAccess& FAccess, const uint64& IndexCacheSize,
-    const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH, const bool& InitP,
-    const int& SplitLen) {
+    const uint64& DefStoreCacheSize, 
+    const TStrUInt64H& StoreNmCacheSizeH, const TStrUInt64H& IndexTypeCacheSizeH,
+    const bool& InitP, const int& SplitLen) {
 
     InfoLog("Loading base created from schema definition");
-    TWPt<TBase> Base = TBase::Load(FPath, FAccess, IndexCacheSize, SplitLen);
+    TWPt<TBase> Base = TBase::Load(FPath, FAccess, IndexCacheSize, IndexTypeCacheSizeH, SplitLen);
     // load stores
     InfoLog("Loading stores");
     // read store names from file
