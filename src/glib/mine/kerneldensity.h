@@ -25,10 +25,10 @@ typedef enum {
 ///   - Example:
 ///      Thresholds [ 0.9, 0.95, 0.99 ]
 ///      Severity intervals for cumulative mass:
-///         - [  0.01 ,    1 ] -> 3
-///         - [ 0.01 ,  0.05 ] -> 2
-///         - [ 0.05 ,  0.1 ] -> 1
-///         - [    0.1 , 1 ] -> 0
+///         - [  0 ,    0.01 ] -> 3 // first 1% = severity 3
+///         - [ 0.01 ,  0.05 ] -> 2 // next 4% = severity 2
+///         - [ 0.05 ,  0.1 ] -> 1 // next 5% = severity 1
+///         - [    0.1 , 1 ] -> 0 // next 90% = severity 0 (normal)
 ///      PMF        = [ 0.025, 0.025, 0.5, 0.3, 0.1, 0.05 ]
 ///      Severities = [     2,     2,   0,   0,   0,    1 ]
 ///         - first two bins cover 0.05 mass (severity 2)
