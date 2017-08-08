@@ -6855,9 +6855,9 @@ describe('HistogramAD Tests', function () {
             store.push({ Time: 2, Value: 1.5 });
             store.push({ Time: 3, Value: 1.5 });
             store.push({ Time: 4, Value: 3.5 });
-            let expected_everities = [0, 0, 1, 0, 2, 3, 3, 3, 3, 3];
-            let hv = histAD.val;
-            for (let i = 0; i < expected_everities.length; i++) {
+            var expected_everities = [0, 0, 1, 0, 2, 3, 3, 3, 3, 3];
+            var hv = histAD.val;
+            for (var i = 0; i < expected_everities.length; i++) {
                 assert.equal(hv.severities[i], expected_everities[i]);
             }
             // [0.26, 0.43, 0.08, 0.2, 0.03, 0.0006, 0,...]
@@ -6875,9 +6875,9 @@ describe('HistogramAD Tests', function () {
             store.push({ Time: 2, Value: 1.5 });
             store.push({ Time: 3, Value: 1.5 });
             store.push({ Time: 4, Value: 3.5 });
-            let expected_everities = [0, 0, 0, 0, 2, 3, 3, 3, 3, 3];
-            let hv = histAD.val;
-            for (let i = 0; i < expected_everities.length; i++) {
+            var expected_everities = [0, 0, 0, 0, 2, 3, 3, 3, 3, 3];
+            var hv = histAD.val;
+            for (var i = 0; i < expected_everities.length; i++) {
                 assert.equal(hv.severities[i], expected_everities[i]);
             }
             // [0.26, 0.43, 0.08, 0.2, 0.03, 0.0006, 0,...]
@@ -6903,10 +6903,10 @@ describe('HistogramAD Tests', function () {
             store.push({ Time: 0, Value: 0.5 });
             store.push({ Time: 1, Value: 1.5 });
            
-            let expected_everities = [ 1, 0 ];
-            let hv = histAD.val;
+            var expected_everities = [ 1, 0 ];
+            var hv = histAD.val;
             console.log(hv.severities)
-            for (let i = 0; i < expected_everities.length; i++) {
+            for (var i = 0; i < expected_everities.length; i++) {
                 assert.equal(hv.severities[i], expected_everities[i]);
             }
         });
