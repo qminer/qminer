@@ -6841,5 +6841,75 @@ describe('HistogramAD Tests', function () {
             assert.equal(histAD.getFloat('largestNormalValue'), 7); // from now on, 6 is also normal
         });
     });
+    describe('Smoothing tests', function () {
+        it('Should classify severities correctly', function () {
+            var histAD = store.addStreamAggr({
+                type: 'histogramAD',
+                inAggr: tick.name,
+                inHistogram: hist.name,
+                bandwidth: 0.5,
+                thresholds: [0.8, 0.95, 0.99]
+            });
+
+            store.push({ Time: 0, Value: 0.5 });
+            store.push({ Time: 2, Value: 1.5 });
+            store.push({ Time: 3, Value: 1.5 });
+            store.push({ Time: 4, Value: 3.5 });
+            let expected_everities = [0, 0, 1, 0, 2, 3, 3, 3, 3, 3];
+            let hv = histAD.val;
+            for (let i = 0; i < expected_everities.length; i++) {
+                assert.equal(hv.severities[i], expected_everities[i]);
+            }
+            // [0.26, 0.43, 0.08, 0.2, 0.03, 0.0006, 0,...]
+        });
+        it('Should classify severities correctly', function () {
+            var histAD = store.addStreamAggr({
+                type: 'histogramAD',
+                inAggr: tick.name,
+                inHistogram: hist.name,
+                bandwidth: 0.5,
+                thresholds: [0.9, 0.95, 0.99]
+            });
+
+            store.push({ Time: 0, Value: 0.5 });
+            store.push({ Time: 2, Value: 1.5 });
+            store.push({ Time: 3, Value: 1.5 });
+            store.push({ Time: 4, Value: 3.5 });
+            let expected_everities = [0, 0, 0, 0, 2, 3, 3, 3, 3, 3];
+            let hv = histAD.val;
+            for (let i = 0; i < expected_everities.length; i++) {
+                assert.equal(hv.severities[i], expected_everities[i]);
+            }
+            // [0.26, 0.43, 0.08, 0.2, 0.03, 0.0006, 0,...]
+        });
+        it('Should handle ties', function () {
+            var hist2 = store.addStreamAggr({
+                type: 'onlineHistogram',
+                inAggr: window.name,
+                lowerBound: 0,
+                upperBound: 2,
+                bins: 2,
+                addNegInf: false,
+                addPosInf: false
+            });
+            var histAD = store.addStreamAggr({
+                type: 'histogramAD',
+                inAggr: tick.name,
+                inHistogram: hist2.name,
+                bandwidth: 0.5,
+                thresholds: [0.5]
+            });
+
+            store.push({ Time: 0, Value: 0.5 });
+            store.push({ Time: 1, Value: 1.5 });
+           
+            let expected_everities = [ 1, 0 ];
+            let hv = histAD.val;
+            console.log(hv.severities)
+            for (let i = 0; i < expected_everities.length; i++) {
+                assert.equal(hv.severities[i], expected_everities[i]);
+            }
+        });
+    });
 
 });

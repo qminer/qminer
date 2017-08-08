@@ -67,22 +67,19 @@ void THistogramToPMFModel::ClassifyAnomalies(const TFltV& PMF, TIntV& Severities
     double CumSum = 0.0;
     int Severity = Thresholds.Len();
 
-    TFltV SThresh = Thresholds; SThresh.Sort(true);
-    int Classified = 0;
-    TIntV SevCount(Severity + 1);
+    TFltV SThresh = Thresholds; SThresh.Sort(true); // thresholds in ascending order, example (0.9, 0.95, 0.99)
     for (int ElN = 0; ElN < Len; ElN++) {
-        if (Severity == 0) { break; }
         CumSum += SortedV[ElN];
-        if (CumSum > 1.0 - SThresh[Severity-1]) {
-            SevCount[Severity] = ElN - Classified;
-            // Go from Classified to ElN and classify as Severity
-            for (int Idx = 0; Idx < SevCount[Severity]; Idx++) {
-                Severities[PermV[Classified + Idx]] = Severity;
+        if (CumSum > 1.0 - SThresh[Severity - 1]) {
+            // adjust severity
+            while (Severity > 0 && CumSum > 1.0 - SThresh[Severity - 1]) {
+                Severity--;
             }
-            Classified = ElN;
-            Severity--;
         }
+        if (Severity == 0) { break; }
+        Severities[PermV[ElN]] = Severity;
     }
+
     // Normal points are classified as 0 by default
 }
 
