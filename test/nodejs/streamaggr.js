@@ -6937,8 +6937,7 @@ describe('HistogramAD Tests', function () {
             for (var i = 0; i < arr.length; i++) {
                 store.push({ Time: 0, Value: arr[i] });
             }
-            let sev0 = histAD.val.severities;
-            
+
             var bandwidth = histAD.val.bandwidth;
             assert(bandwidth == 100);
         });
