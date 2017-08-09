@@ -6910,7 +6910,7 @@ describe('HistogramAD Tests', function () {
                 assert.equal(hv.severities[i], expected_everities[i]);
             }
         });
-        it.only('Should autotune bandwidth', function () {
+        it('Should autotune bandwidth', function () {
             var hist2 = store.addStreamAggr({
                 type: 'onlineHistogram',
                 inAggr: window.name,
