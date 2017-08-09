@@ -6797,7 +6797,7 @@ describe('HistogramAD Tests', function () {
         window = store.addStreamAggr({
             type: 'timeSeriesWinBufVector',
             inAggr: tick.name,
-            winsize: 1e+9 // no forgetting
+            winsize: 1e+4
         });
         hist = store.addStreamAggr({
             type: 'onlineHistogram',
@@ -6910,6 +6910,39 @@ describe('HistogramAD Tests', function () {
                 assert.equal(hv.severities[i], expected_everities[i]);
             }
         });
+        it.only('Should autotune bandwidth', function () {
+            var hist2 = store.addStreamAggr({
+                type: 'onlineHistogram',
+                inAggr: window.name,
+                lowerBound: 0,
+                upperBound: 100,
+                bins: 100,
+                addNegInf: false,
+                addPosInf: false
+            });
+
+            var thresholds = [0.5, 0.75];
+            
+            var sigs = [0.01, 0.1, 1, 10, 100, 1000, 10000];
+            var histAD = store.addStreamAggr({
+                type: 'histogramAD',
+                inAggr: tick.name,
+                inHistogram: hist2.name,
+                thresholds: thresholds,
+                autoBandwidthsGrid: sigs,
+                autoThresholdsGrid: thresholds,
+                skip:1
+            });
+            var arr = [10, 50, 60, 80];
+            for (var i = 0; i < arr.length; i++) {
+                store.push({ Time: 0, Value: arr[i] });
+            }
+            let sev0 = histAD.val.severities;
+            
+            var bandwidth = histAD.val.bandwidth;
+            assert(bandwidth == 100);
+        });
+
     });
 
 });

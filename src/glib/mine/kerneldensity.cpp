@@ -189,11 +189,11 @@ double TKDEModel::LeaveOneOutRateBandwidth(const TFltV& Hist_, const TFltV& Band
     TFltV Hist = Hist_;
     TFltV Thresholds = Thresholds_;
     if (Thresholds.Len() == 0) {
-        // 0.1, 0.09, ..., 0.01
+        // 0.9, 0.91, ... 0.99
         int TLen = 10;
         Thresholds.Gen(TLen);
         for (int ElN = TLen; ElN >= 1; ElN--) {
-            Thresholds[ElN] = (double)ElN / 100.0;
+            Thresholds[ElN] = 1.0 - (double)ElN / 100.0;
         }
     }
     int BandLen = Bandwidths.Len();
@@ -217,7 +217,7 @@ double TKDEModel::LeaveOneOutRateBandwidth(const TFltV& Hist_, const TFltV& Band
             // sort PMF, and see where
             TFltV SortedV; TIntV PermV;
             // Sort in ascending order: most severe anomalies come first
-            PMF.SortGetPerm(PMF, SortedV, PermV, true); // 
+            TFltV::SortGetPerm(PMF, SortedV, PermV, true);
             double CumSum = 0.0;
             bool FoundPoint = false;
             for (int ElN = 0; ElN < HistLen; ElN++) {
@@ -226,15 +226,15 @@ double TKDEModel::LeaveOneOutRateBandwidth(const TFltV& Hist_, const TFltV& Band
                 if (PermV[ElN] == PointN) {
                     FoundPoint = true;
                 }
-                // chech if there are others look too similar and aggregate them
-                if (ElN < HistLen - 1 && (SortedV[ElN + 1] - SortedV[ElN] < Tol)) {
-                    continue;
-                }
+                //// chech if there are others look too similar and aggregate them
+                //if (ElN < HistLen - 1 && (SortedV[ElN + 1] - SortedV[ElN] < Tol)) {
+                //    continue;
+                //}
                 if (FoundPoint) {
                     // thresholds are sorted in descending order
                     // find which thresholds contain the current point
                     for (int ThreshN = 0; ThreshN < ThreshLen; ThreshN++) {
-                        if (CumSum <= Thresholds[ThreshN]) {
+                        if (CumSum <= 1.0 - Thresholds[ThreshN]) {
                             ScoreV(BandN, ThreshN) += Count; // the same classification would happen for each of the Count points that fell in histogram bin PointN
                         } else { break; }
                     }
@@ -245,15 +245,16 @@ double TKDEModel::LeaveOneOutRateBandwidth(const TFltV& Hist_, const TFltV& Band
             Hist[PointN]++;
         }
         // count proportions 
-        // If Thresholds[i] == 0.05, then ScoreV(j,i)/NumPoints should be close to 0.05
+        // If Thresholds[i] == 0.95, then ScoreV(j,i)/NumPoints should be close to 0.05
         double Score = 0;
         for (int ThreshN = 0; ThreshN < ThreshLen; ThreshN++) {
-            Score += TMath::Abs(Thresholds[ThreshN] - ScoreV(BandN, ThreshN) / NumPoints);
+            Score += TMath::Abs((1.0 - Thresholds[ThreshN]) - ScoreV(BandN, ThreshN) / NumPoints);
         }
         if (Score < MinScore) {
             MinScore = Score;
             MinIdx = BandN;
         }
     }
+
     return Bandwidths[MinIdx];
 }
