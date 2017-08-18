@@ -12,14 +12,14 @@ addons:
 
 node_js:
   - 6
-  - 7
+  - 8
 
 env: 
   - CXXFLAGS=-std=c++0x CC=gcc-4.8 CXX=g++-4.8
 
 matrix:
   include:
-    - node_js: 0.12
+    - node_js: 4
       env: LLVM_VERSION=3.6.0 CXXFLAGS=-std=c++0x CXX=clang++ CC=clang NPMOPT=--clang=1 QMDEBUG=--debug
 
 cache:
@@ -47,6 +47,7 @@ before_install:
       export PATH="${DEPS_DIR}/clang/bin:${PATH}";
     fi
   - cd ${TRAVIS_BUILD_DIR}
+  - npm install -g npm@5.3.0
 
 install:
   - npm install --build-from-source $NPMOPT $QMDEBUG

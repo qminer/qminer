@@ -547,6 +547,9 @@ public:
   TWPt(const TWPt& WPt): Addr(WPt.Addr){}
   TWPt(const TPt<TRec>& Pt): Addr(Pt()){}
   ~TWPt(){}
+  explicit TWPt(TSIn& SIn);
+  explicit TWPt(TSIn& SIn, void* ThisPt);
+  void Save(TSOut& SOut) const;
 
   TWPt& operator=(TRec* _Addr){Addr=_Addr; return *this;}
   TWPt& operator=(const TWPt& WPt){Addr=WPt.Addr; return *this;}
@@ -567,7 +570,7 @@ public:
 
   int GetPrimHashCd() const {return Addr->GetPrimHashCd();}
   int GetSecHashCd() const { return Addr->GetSecHashCd(); }
-  //uint64 GetMemUsed() const { return (Empty() ? 0 : Addr->GetMemUsed()) + sizeof(TPt); }
+  uint64 GetMemUsed() const { return (Empty() ? 0 : Addr->GetMemUsed()) + sizeof(TWPt); }
 };
 
 /////////////////////////////////////////////////
@@ -780,19 +783,19 @@ namespace TMemUtils {
   /// get memory usage for regular glib classes
   template <typename T, typename gtraits::enable_if<std::is_class<T>::value && !gtraits::is_container<T>::value,bool>::type = true>
   uint64 GetMemUsed(const T& Val) {
-    return Val.GetMemUsed();
+    return (uint64) Val.GetMemUsed();
   }
 
   /// glib containers
   template <typename T, typename gtraits::enable_if<gtraits::is_container<T>::value,bool>::type = true>
   uint64 GetMemUsed(const T& Val) {
-    return Val.GetMemUsed(true);   // deep
+    return (uint64) Val.GetMemUsed(true);   // deep
   }
 
   /// references
   template <typename T, typename gtraits::enable_if<std::is_reference<T>::value,bool>::type = true>
   uint64 GetMemUsed(T Val) {
-    return GetMemUsed<typename std::remove_reference<T>::type>(Val);
+    return (uint64) GetMemUsed<typename std::remove_reference<T>::type>(Val);
   }
 
   /// pointers

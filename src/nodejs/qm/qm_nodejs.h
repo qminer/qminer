@@ -2302,8 +2302,8 @@ private:
     /**
     * Sorts the records according to a specific record field.
     * @param {string} fieldName - The field by which the sort will work.
-    * @param {number} [arc=-1] - if `asc` > 0, it sorts in ascending order. Otherwise, it sorts in descending order.
-    * @returns {module:qm.RecordSet} Self. Records are sorted according to `fieldName` and `arc`.
+    * @param {number} [asc=-1] - if `asc` > 0, it sorts in ascending order. Otherwise, it sorts in descending order.
+    * @returns {module:qm.RecordSet} Self. Records are sorted according to `fieldName` and `asc`.
     * @example
     * // import qm module
     * var qm = require('qminer');
