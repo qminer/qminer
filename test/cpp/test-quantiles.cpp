@@ -161,30 +161,32 @@ TEST(TGreenwaldKhanna, LateManualCompress) {
 
 TEST(TGreenwaldKhanna, AutoCompress) {
     const double Eps = .1;
-    const int NSamples = 100;
+    const int BatchSize = 100;
+    const int NBatches = 100;
 
     TRnd Rnd;
 
     TGk Gk(Eps);
 
     TFltV MeasurementV;
-    for (int i = 1; i <= NSamples; i++) {
+    for (int i = 1; i <= BatchSize; i++) {
         MeasurementV.Add(i);
     }
 
-    for (int RunN = 0; RunN < 100; RunN++) {
+    const auto LowerBoundFun = [&](const double& PVal) { return std::floor(BatchSize*(PVal - Eps)); };
+    const auto UpperBoundFun = [&](const double& PVal) { return std::ceil(BatchSize*(PVal + Eps)); };
+
+    for (int RunN = 0; RunN < NBatches; RunN++) {
         MeasurementV.Shuffle(Rnd);
-        for (int SampleN = 0; SampleN < NSamples; SampleN++) {
+        for (int SampleN = 0; SampleN < BatchSize; SampleN++) {
             Gk.Insert(MeasurementV[SampleN]);
         }
+
+        // test the accuracy
+        AssertQuantileRangeV(Gk, LowerBoundFun, UpperBoundFun);
     }
 
-    ASSERT_TRUE(Gk.GetSummarySize() < NSamples);
-
-    // test the accuracy
-    const auto LowerBoundFun = [&](const double& PVal) { return std::floor(NSamples*(PVal - Eps)); };
-    const auto UpperBoundFun = [&](const double& PVal) { return std::ceil(NSamples*(PVal + Eps)); };
-    AssertQuantileRangeV(Gk, LowerBoundFun, UpperBoundFun);
+    ASSERT_TRUE(Gk.GetSummarySize() < BatchSize);
 }
 
 TEST(TBiasedGk, Query) {

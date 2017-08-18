@@ -125,6 +125,88 @@ describe('CountWindowGK test', function () {
     })
 })
 
+describe('Gk test', function () {
+    describe('Constructor test', function () {
+        it('should set correct default parameters', function () {
+            var gk = new analytics.Gk();
+
+            var params = gk.getParams();
+            assert(params.eps != null);
+            assert(params.autoCompress != null);
+
+            assert.equal(params.eps, 0.01);
+            assert.equal(params.autoCompress, true);
+        })
+        it('should set correct parameters', function () {
+            var gk = new analytics.Gk({
+                eps: 0.1,
+                autoCompress: false
+            })
+
+            var params = gk.getParams();
+            assert(params.eps != null);
+            assert(params.autoCompress != null);
+
+            assert.equal(params.eps, 0.1);
+            assert.equal(params.autoCompress, false);
+        })
+    })
+
+    describe('Serialization test', function () {
+        var batchSize = 1000;
+        var nbatches = 10;
+
+        var eps = .01;
+
+        var gk = new analytics.Gk({
+            eps: eps
+        })
+
+        var maxRelErr = eps;
+
+        var targets = [];
+        for (var prob = 0; prob <= 1; prob += 0.001) {
+            targets.push(prob);
+        }
+
+        var vals = [];
+        for (var i = 0; i < batchSize; i++) {
+            vals.push(i);
+        }
+        for (var batchN = 0; batchN < nbatches; batchN++) {
+            // shuffle the array
+            for (var i = 0; i < batchSize; i++) {
+                var swapN = Math.floor(Math.random()*batchSize);
+                var temp = vals[i];
+                vals[i] = vals[swapN];
+                vals[swapN] = temp;
+            }
+
+            for (var i = 0; i < batchSize; i++) {
+                gk.partialFit(vals[i]);
+            }
+
+            var quants = gk.predict(targets);
+            for (var targetN = 0; targetN < targets.length; targetN++) {
+                var prob = targets[targetN];
+                var quant = gk.predict(prob);
+                assert.equal(quant, quants[targetN]);
+                assert(Math.floor((prob - maxRelErr)*batchSize) <= quant);
+                assert(Math.ceil((prob + maxRelErr)*batchSize) >= quant);
+            }
+        }
+
+        gk.save(qm.fs.openWrite('gk-orig.dat')).close();
+        var gk1 = new analytics.Gk(qm.fs.openRead('gk-orig.dat'));
+
+        for (var cumProb = 0; cumProb <= 1; cumProb += 0.001) {
+            var quant_hat = gk1.predict(cumProb);
+            assert(Math.floor((cumProb - maxRelErr)*batchSize) <= quant_hat);
+            assert(Math.ceil((cumProb + maxRelErr)*batchSize) >= quant_hat);
+        }
+    })
+})
+
 describe('TimeWindowGk test', function () {
     describe('Constructor test', function () {
         it('should set correct parameters', function () {

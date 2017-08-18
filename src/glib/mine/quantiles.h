@@ -529,21 +529,40 @@ namespace TQuant {
 
     namespace TUtils {
 
-        class TBasicGkTuple {
+        /////////////////////////////////
+        /// A tuple used by the GK-based algorithms which
+        /// minimizes the unceirtainty of its values rank
+        class TGkMnUncertTuple {
         public:
-            TBasicGkTuple(): MxVal() {}
-            TBasicGkTuple(const double&);
-            TBasicGkTuple(const double& Val, const TBasicGkTuple& RightTuple);
+            /// creates an empty tuple
+            TGkMnUncertTuple(): MxVal() {}
+            /// creates a new tuple with a single element with given value
+            TGkMnUncertTuple(const double&);
+            /// creates a new tuple with the given right neighbour
+            /// the new tuple's uncertainty is defined as g_{i+1} + delta_{i+1} - 1
+            TGkMnUncertTuple(const double& Val, const TGkMnUncertTuple& RightTuple);
 
-            void Swallow(const TBasicGkTuple&);
+            // SERIALIZATION
+            TGkMnUncertTuple(TSIn&);
+            void Save(TSOut&) const;
 
+            /// adds all the items the argument summarizes to its own summary
+            void Swallow(const TGkMnUncertTuple&);
+            /// adds one item to its own summary
+            void SwallowOne();
+
+            /// returns the maximal value in the summary
             const TFlt& GetMxVal() const { return MxVal; }
+            /// returns the size of the tuples' summary
             const TUInt& GetTupleSize() const { return TupleSize; }
+            /// returns the uncertainty of the max values rank due to the merges
+            /// happening on the right of this tuple
             const TUInt& GetUncertRight() const { return UncertRight; }
 
+            /// returns the total uncertainty of the values' rank
             double GetTotalUncert() const { return GetTupleSize() + GetUncertRight(); }
 
-            friend std::ostream& operator <<(std::ostream& os, const TBasicGkTuple& Tuple) {
+            friend std::ostream& operator <<(std::ostream& os, const TGkMnUncertTuple& Tuple) {
                 return os << "<"
                           << Tuple.GetMxVal() << ", "
                           << Tuple.GetTupleSize() << ","
@@ -557,11 +576,17 @@ namespace TQuant {
             TUInt UncertRight {};   // how many items on the right could be smaller than this tuple
         };
 
+        ///////////////////////////////////
+        /// GK summary based on a Glib vector
         class TGkVecSummary {
-            using TTuple = TBasicGkTuple;
+            using TTuple = TGkMnUncertTuple;
             using TSummary = TVec<TTuple>;
         public:
             TGkVecSummary(const double& Eps);
+
+            // SERIALIZATION
+            TGkVecSummary(TSIn&);
+            void Save(TSOut&) const;
 
             /// returns the quantile corresponding to the givem p-value
             double Query(const double& PVal) const;
@@ -588,7 +613,7 @@ namespace TQuant {
             TSummary Summary {};
             TUInt64 SampleN {uint64(0)}; // current size of the summary, initializes to 0
             TFlt Eps;
-            bool UseBands {true};
+            TBool UseBands {true};
         };
     }
 
@@ -599,9 +624,9 @@ namespace TQuant {
     /// http://infolab.stanford.edu/~datar/courses/cs361a/papers/quantiles.pdf
     class TGreenwaldKhanna {
     public:
-        enum class TCompressStrategy {
-            csAuto,
-            csManual
+        enum class TCompressStrategy : char {
+            csAuto = 0,
+            csManual = 1
         };
 
         /// Default constructor. Initializes the algorithm with the allowed error, which
@@ -609,9 +634,11 @@ namespace TQuant {
         TGreenwaldKhanna(const double& Eps);
         TGreenwaldKhanna(const double& Eps, const TCompressStrategy&);
 
-        // TODO copy / move
+        // SERIALIZATION
+        TGreenwaldKhanna(TSIn&);
+        void Save(TSOut&) const;
 
-        // TODO save / load
+        // TODO copy / move
 
         // TODO interpolate the result before returning it
         /// reutrns the (eps-approximate) value of the targeted quantile
@@ -620,20 +647,26 @@ namespace TQuant {
         void Query(const TFltV& PValV, TFltV& QuantV) const;
         /// updates the summary with the new value
         void Insert(const double& Val);
-
         /// compresses the internal summary
         void Compress();
+
+        // PARAMS
+        const TFlt& GetEps() const { return Eps; }
+        const TCompressStrategy& GetCompressStrategy() const { return CompressStrategy; }
+
+        // DEBUGGING
         /// reutrns the number of tuples stored in the summary
         int GetSummarySize() const;
         void PrintSummary() const;
 
     private:
+        uint32 GetCompressInterval() const;
         bool ShouldAutoCompress() const;
 
         using TSummary = TUtils::TGkVecSummary;
 
         TSummary Summary;
-        TUInt CompressInterval;
+        TFlt Eps;
         TCompressStrategy CompressStrategy {TCompressStrategy::csAuto};
     };
 

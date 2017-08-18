@@ -2603,6 +2603,147 @@ public:
 
 };
 
+/**
+ * @classdesc Greenwald - Khanna algorithm for online quantile estimation. Given
+ *   a comulative probability p, the algorithm returns the approximate value of
+ *   the p-th quantile.
+ *
+ *   The algorithm works by keeping a summary of buckets, each summarizing a
+ *   range of values. Through the run of the algorithm new buckets are created
+ *   and periodically merged if possible.
+ *
+ *   It is was first explained in:
+ *   "Space-Efficient Online Computation of Quantile Summaries"
+ *   http://infolab.stanford.edu/~datar/courses/cs361a/papers/quantiles.pdf
+ *
+ *   The error is bounded by the rank of the output element (not by the absolute value).
+ *   Specifically, the worst case error in rank is bounded by eps*n, where n is the
+ *   number of elements in the summary.
+ *
+ * @class
+ * @param {module:analytics~GkParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
+ * <br>1. Using the {@link module:analytics~GkParam} object,
+ * <br>2. using the file input stream {@link module:fs.FIn}.
+ *
+ * @example
+ * // import modules
+ * var qm = require('qminer');
+ * var analytics = qm.analytics;
+ *
+ * // create the default TDigest object
+ * var gk = new analytics.Gk({
+ *     eps: 0.001,
+ *     autoCompress: true
+ * });
+ *
+ * // create the data used for calculating quantiles
+ * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
+ *
+ * // fit the TDigest model
+ * for (var i = 0; i < inputs.length; i++) {
+ *     gk.partialFit(inputs[i]);
+ * }
+ *
+ * // make the prediction for the 0.1 quantile
+ * var prediction = gk.predict(0.1);
+ * // save the model
+ * gk.save(fs.openWrite('gk.bin')).close();
+ * // open the gk model under a new variable
+ * var gk2 = new analytics.Gk(fs.openRead('gk.bin'));
+ */
+//# exports.Gk = function (arg) { return Object.create(require('qminer').analytics.Gk.prototype); }
+class TNodeJsGk : public node::ObjectWrap {
+    friend class TNodeJsUtil;
+public:
+    static void Init(v8::Handle<v8::Object> exports);
+    static const TStr GetClassId() { return "Gk"; }
+
+private:
+    TQuant::TGk Gk;
+
+    TNodeJsGk(const PJsonVal&);
+    TNodeJsGk(TSIn&);
+    ~TNodeJsGk() {}
+
+    static TNodeJsGk* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+public:
+    /**
+     * Returns the models' parameters as a JavaScript object (JSON). These parameters
+     * are the same as are set through the constructor.
+     *
+     * @returns {module:analytics~FixedWindowGkParam} The construction parameters.
+     *
+     * var analytics = qm.analytics;
+     * var gk = new analytics.CountWindowGk();
+     * var params = tdigest.getParams();
+     *
+     * console.log(params.eps);
+     * console.log(params.autoCompress);
+     */
+    //# exports.Gk.prototype.getParams = function () { return { }; }
+    JsDeclareFunction(getParams);
+
+    /**
+     * Adds a new value to the summary.
+     *
+     * @param {number} val - the value
+     * @returns {module:analytics.Gk} reference to self
+     *
+     * @example
+     * var qm = require('qminer');
+     *
+     * var gk = new qm.analytics.CountWindowGk();
+     * gk.partialFit(1.0);
+     * gk.partialFit(2.0);
+     */
+    //# exports.Gk.compress = function (fout) { return Object.create(require('qminer').analytics.Gk.prototype); }
+    JsDeclareFunction(partialFit);
+
+    /**
+     * Given an input cumulative probability, returns a quantile associated with that
+     * probability (e.g. for input 0.5 it will return the median).
+     *
+     * @param {number|Array} pVals - the p-values which we a querying
+     * @returns {number|Array} quantiles - depending whether the input was a single value or array the method returns a quantile or array of quantiles
+     *
+     * @example
+     * var qm = require('qminer');
+     *
+     * var gk = new qm.analytics.Gk({
+     *     eps: 0.1
+     * });
+     * gk.partialFit(1.0);
+     * gk.partialFit(2.0);
+     * gk.partialFit(1.0);
+     * gk.partialFit(3.0);
+     * gk.partialFit(2.0);
+     *
+     * console.log(gk.predict(0.01));   // prints the first percentile
+     * console.log(gk.predict(0.25));   // prints the first quartile
+     * console.log(gk.predict(0.5));    // prints the median
+     */
+    //# exports.Gk.prototype.predict = function (x) { return 0; }
+    JsDeclareFunction(predict);
+
+    /**
+     * Manually runs the compression procedure.
+     *
+     * @returns
+     *
+     */
+    //# exports.Gk.compress = function (fout) { return Object.create(require('qminer').analytics.Gk.prototype); }
+    JsDeclareFunction(compress);
+
+    /**
+     * Saves the objects state into the output stream.
+     *
+     * @param {module:fs.FOut} fout - the output stream
+     * @returns {module:fs.FOut} - the output stream
+     */
+    //# exports.Gk.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
+    JsDeclareFunction(save);
+};
 
 /**
  * @classdesc Greenwald - Khanna algorithm for quantile estimation on sliding windows. Given

@@ -3136,6 +3136,141 @@ void TNodeJsTDigest::init(v8::Local<v8::String> Name, const v8::PropertyCallback
 }
 
 ///////////////////////////////////////////////////////
+// Greenwald-Khanna quantile estimation algorithm
+void TNodeJsGk::Init(v8::Handle<v8::Object> exports) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(
+            Isolate,
+            TNodeJsUtil::_NewJs<TNodeJsGk>
+    );
+    tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
+    // ObjectWrap uses the first internal field to store the wrapped pointer.
+    tpl->InstanceTemplate()->SetInternalFieldCount(1);
+
+    // Add all methods, getters and setters here.
+    NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "partialFit", _partialFit);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "compress", _compress);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
+
+    // properties
+    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
+}
+
+TNodeJsGk::TNodeJsGk(const PJsonVal& ParamVal):
+    Gk(
+            ParamVal->GetObjNum("eps", .01),
+            ParamVal->GetObjBool("autoCompress", true) ?
+                TQuant::TGk::TCompressStrategy::csAuto :
+                TQuant::TGk::TCompressStrategy::csManual
+    ) {}
+
+TNodeJsGk::TNodeJsGk(TSIn& SIn): Gk(SIn) {}
+
+TNodeJsGk* TNodeJsGk::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    if (Args.Length() == 0) {
+        // create new model with default parameters
+        return new TNodeJsGk(TJsonVal::NewObj());
+    } else if (Args.Length() == 1 && TNodeJsUtil::IsArgWrapObj<TNodeJsFIn>(Args, 0)) {
+        // load the model from the input stream
+        TNodeJsFIn* JsFIn = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFIn>(Args, 0);
+        return new TNodeJsGk(*JsFIn->SIn);
+    } else if (Args.Length() == 1 && TNodeJsUtil::IsArgObj(Args, 0)) {
+        // create new model from given parameters
+        PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+        return new TNodeJsGk(ParamVal);
+    } else {
+        throw TExcept::New("new CountWindowGk: wrong arguments in constructor!");
+    }
+}
+
+void TNodeJsGk::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsGk* JsGk = ObjectWrap::Unwrap<TNodeJsGk>(Args.Holder());
+    const TQuant::TGk& Gk = JsGk->Gk;
+
+    PJsonVal ParamVal = TJsonVal::NewObj();
+    ParamVal->AddToObj("eps", Gk.GetEps());
+    ParamVal->AddToObj("autoCompress", Gk.GetCompressStrategy() == TQuant::TGk::TCompressStrategy::csAuto);
+
+    v8::Local<v8::Value> JsParamVal = TNodeJsUtil::ParseJson(Isolate, ParamVal);
+    Args.GetReturnValue().Set(JsParamVal);
+}
+
+void TNodeJsGk::partialFit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsGk* JsGk = ObjectWrap::Unwrap<TNodeJsGk>(Args.Holder());
+    TQuant::TGk& Gk = JsGk->Gk;
+
+    const double Val = TNodeJsUtil::GetArgFlt(Args, 0);
+    Gk.Insert(Val);
+
+    // return self
+    Args.GetReturnValue().Set(Args.Holder());
+}
+
+void TNodeJsGk::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsGk* JsGk = ObjectWrap::Unwrap<TNodeJsGk>(Args.Holder());
+    const TQuant::TGk& Gk = JsGk->Gk;
+
+    if (TNodeJsUtil::IsArgFlt(Args, 0)) {
+        const double PVal = TNodeJsUtil::GetArgFlt(Args, 0);
+        const double Quant = Gk.Query(PVal);
+
+        Args.GetReturnValue().Set(v8::Number::New(Isolate, Quant));
+    } else {
+        TFltV PValV; TNodeJsUtil::GetArgFltV(Args, 0, PValV);
+        TFltV QuantV; Gk.Query(PValV, QuantV);
+
+        v8::Handle<v8::Array> QuantArr = v8::Array::New(Isolate, QuantV.Len());
+        for (int QuantN = 0; QuantN < QuantV.Len(); ++QuantN) {
+            QuantArr->Set(QuantN, v8::Number::New(Isolate, QuantV[QuantN]));
+        }
+
+        Args.GetReturnValue().Set(QuantArr);
+    }
+}
+
+void TNodeJsGk::compress(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsGk* JsGk = ObjectWrap::Unwrap<TNodeJsGk>(Args.Holder());
+    TQuant::TGk& Gk = JsGk->Gk;
+
+    Gk.Compress();
+
+    Args.GetReturnValue().Set(Args.Holder());
+}
+
+void TNodeJsGk::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsGk* JsGk = ObjectWrap::Unwrap<TNodeJsGk>(Args.Holder());
+    const TQuant::TGk& Gk = JsGk->Gk;
+
+    TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
+    Gk.Save(*JsFOut->SOut);
+
+    // return the output stream
+    Args.GetReturnValue().Set(Args[0]);
+}
+
+///////////////////////////////////////////////////////
 // Greenwald-Khanna quantile estimation for fixed size window
 void TNodeJsCountWindowGk::Init(v8::Handle<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -3227,7 +3362,6 @@ void TNodeJsCountWindowGk::predict(const v8::FunctionCallbackInfo<v8::Value>& Ar
     const double Quant = TNodeJsUtil::GetArgFlt(Args, 0);
     const double Val = Gk.Query(Quant);
 
-    // return self
     Args.GetReturnValue().Set(v8::Number::New(Isolate, Val));
 }
 

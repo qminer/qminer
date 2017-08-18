@@ -776,21 +776,49 @@ namespace TQuant {
         }
     }
 
-    TUtils::TBasicGkTuple::TBasicGkTuple(const double& Val):
+    TUtils::TGkMnUncertTuple::TGkMnUncertTuple(const double& Val):
         MxVal(Val) {}
 
-    TUtils::TBasicGkTuple::TBasicGkTuple(const double& Val, const TBasicGkTuple& RightTuple):
+    TUtils::TGkMnUncertTuple::TGkMnUncertTuple(const double& Val, const TGkMnUncertTuple& RightTuple):
         MxVal(Val),
         UncertRight(RightTuple.GetUncertRight() + RightTuple.GetTupleSize() - 1) {}
 
-    void TUtils::TBasicGkTuple::Swallow(const TBasicGkTuple& LeftTuple) {
+    TUtils::TGkMnUncertTuple::TGkMnUncertTuple(TSIn& SIn):
+        MxVal(SIn),
+        TupleSize(SIn),
+        UncertRight(SIn) {}
+
+    void TUtils::TGkMnUncertTuple::Save(TSOut& SOut) const {
+        MxVal.Save(SOut);
+        TupleSize.Save(SOut);
+        UncertRight.Save(SOut);
+    }
+
+    void TUtils::TGkMnUncertTuple::Swallow(const TGkMnUncertTuple& LeftTuple) {
         TupleSize += LeftTuple.TupleSize;
+    }
+
+    void TUtils::TGkMnUncertTuple::SwallowOne() {
+        ++TupleSize;
     }
 
     ////////////////////////////////////
     /// GK - Summary
     TUtils::TGkVecSummary::TGkVecSummary(const double& _Eps):
             Eps(_Eps) {}
+
+    TUtils::TGkVecSummary::TGkVecSummary(TSIn& SIn):
+            Summary(SIn),
+            SampleN(SIn),
+            Eps(SIn),
+            UseBands(SIn) {}
+
+    void TUtils::TGkVecSummary::Save(TSOut& SOut) const {
+        Summary.Save(SOut);
+        SampleN.Save(SOut);
+        Eps.Save(SOut);
+        UseBands.Save(SOut);
+    }
 
     double TUtils::TGkVecSummary::Query(const double& PVal) const {
         if (Summary.Empty()) { return 0; }
@@ -866,8 +894,15 @@ namespace TQuant {
         else {
             // let i be the index of the first tuple with greather vi, then
             // insert tuple <v,1,delta_i + g_i - 1>
-            const TTuple& RightTuple = Summary[NewValN];
-            Summary.Ins(NewValN, TTuple(Val, RightTuple));
+            TTuple& RightTuple = Summary[NewValN];
+
+            if (1 + RightTuple.GetTotalUncert() <= GetMxTupleUncert()) {
+                // the right tuple can swallow the new tuple
+                RightTuple.SwallowOne();
+            } else {
+                // we must insert the new tuple
+                Summary.Ins(NewValN, TTuple(Val, RightTuple));
+            }
         }
 
         ++SampleN;
@@ -938,11 +973,38 @@ namespace TQuant {
     /// GK - algorithm
     TGk::TGreenwaldKhanna(const double& _Eps):
             Summary(_Eps),
-            CompressInterval(uint(std::ceil(1.0 / (2.0*_Eps)))) {}
+            Eps(_Eps) {}
 
     TGk::TGreenwaldKhanna(const double& _Eps, const TCompressStrategy& Cs):
             Summary(_Eps),
+            Eps(_Eps),
             CompressStrategy(Cs) {}
+
+    TGk::TGreenwaldKhanna(TSIn& SIn):
+            Summary(SIn),
+            Eps(SIn) {
+
+        const TCh RawCmp(SIn);
+        switch (RawCmp.Val) {
+            case static_cast<char>(TCompressStrategy::csAuto): {
+                CompressStrategy = TCompressStrategy::csAuto;
+                break;
+            }
+            case static_cast<char>(TCompressStrategy::csManual): {
+                CompressStrategy = TCompressStrategy::csManual;
+                break;
+            }
+            default: {
+                throw TExcept::New("Invalid compression strategy!");
+            }
+        }
+    }
+
+    void TGk::Save(TSOut& SOut) const {
+        Summary.Save(SOut);
+        Eps.Save(SOut);
+        TCh(static_cast<char>(CompressStrategy)).Save(SOut);
+    }
 
     double TGk::Query(const double& Quantile) const {
         return Summary.Query(Quantile);
@@ -972,9 +1034,13 @@ namespace TQuant {
         std::cout << Summary << "\n";
     }
 
+    uint32 TGk::GetCompressInterval() const {
+        return uint(std::ceil(1.0 / (2.0*Eps)));
+    }
+
     bool TGk::ShouldAutoCompress() const {
         return CompressStrategy == TCompressStrategy::csAuto &&
-               Summary.GetSampleN() % CompressInterval == 0;
+               Summary.GetSampleN() % GetCompressInterval() == 0;
     }
 
     //////////////////////////////////////////
