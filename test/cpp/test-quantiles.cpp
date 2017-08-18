@@ -41,16 +41,11 @@ template <typename TGk, typename TLowerBoundFun, typename TUpperBoundFun>
 void AssertQuantileRange(TGk& Gk, const TLowerBoundFun& GetLowerBound,
         const TUpperBoundFun& GetUpperBound, const double PValStep=1e-3) {
 
-    std::cout << "step: " << PValStep << std::endl;
-    Gk.PrintSummary();
-
     for (double PVal = 0.0; PVal <= 1.0; PVal += PValStep) {
         const double QuantMn = GetLowerBound(PVal);
         const double QuantMx = GetUpperBound(PVal);
 
         const double EstQuant = Gk.Query(PVal);
-
-        std::cout << "p-value: " << PVal << ", quantile: " << EstQuant << ", lower bound: " << QuantMn << ", upper bound: " << QuantMx << std::endl;
 
         ASSERT_GE(EstQuant, QuantMn);
         ASSERT_LE(EstQuant, QuantMx);
