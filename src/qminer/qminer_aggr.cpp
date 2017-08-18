@@ -2768,6 +2768,7 @@ PJsonVal THistogramAD::SaveJson(const int& Limit) const {
         Obj->AddToObj("pmf", TJsonVal::NewArr(PMFClip));
         Obj->AddToObj("severities", TJsonVal::NewArr(SevClip));
     }
+    Obj->AddToObj("bandwidth", Model.Bandwidth);
     Obj->AddToObj("explain", Explanation);
     Obj->AddToObj("thresholds", TJsonVal::NewArr(Model.Thresholds));
     Obj->AddToObj("tol", Model.Tol);
