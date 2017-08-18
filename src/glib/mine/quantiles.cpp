@@ -776,88 +776,140 @@ namespace TQuant {
         }
     }
 
-    TGk::TGreenwaldKhanna(const double& _Eps):
-            Eps(_Eps) {}
+    TUtils::TGkMnUncertTuple::TGkMnUncertTuple(const double& Val):
+        MxVal(Val) {}
 
-    TGk::TGreenwaldKhanna(const double& _Eps, const TCompressStrategy& Cs):
-            Eps(_Eps),
-            CompressStrategy(Cs) {}
+    TUtils::TGkMnUncertTuple::TGkMnUncertTuple(const double& Val, const TGkMnUncertTuple& RightTuple):
+        MxVal(Val),
+        UncertRight(RightTuple.GetUncertRight() + RightTuple.GetTupleSize() - 1) {}
 
-    double TGk::Query(const double& Quantile) const {
-        Assert(0.0 < Quantile && Quantile < 1);
+    TUtils::TGkMnUncertTuple::TGkMnUncertTuple(TSIn& SIn):
+        MxVal(SIn),
+        TupleSize(SIn),
+        UncertRight(SIn) {}
 
-        const int TargetRank = (int) std::ceil(Quantile * double(SampleN));
-        const int HalfErrRange = int(Eps * double(SampleN));
-
-        const int SummarySize = GetSummarySize();
-
-        // these are here to find the range of quantiles which match the query
-        // and then choose the median of those
-        int FirstHitN = -1;
-        int LastHitN = -1;
-
-        int CurrMnRank = 0;
-        for (int TupleN = 0; TupleN < SummarySize; TupleN++) {
-            const TTuple& CurrTuple = Summary[TupleN];
-
-            const int MnRank = CurrMnRank + GetPrevMnRankDiff(CurrTuple);
-            const int MxRank = MnRank + GetInsRankRange(CurrTuple);
-
-            const int UpperBound = MnRank + HalfErrRange;
-            const int LowerBound = MxRank - HalfErrRange;
-
-            const bool IsHit = LowerBound <= TargetRank && TargetRank <= UpperBound;
-
-            // check if this is the first hit
-            if (IsHit && FirstHitN == -1) {
-                FirstHitN = TupleN;
-            }
-            // check if we are one past the last hit
-            if (!IsHit && FirstHitN != -1) {
-                LastHitN = TupleN - 1;
-                break;
-            }
-
-            CurrMnRank = MnRank;
-        }
-
-        // if we had not found a quantile which matches, then we return the final quantile
-        if (FirstHitN == -1) { FirstHitN = SummarySize-1; }
-        // if we have not finished the final quantile, then we finish it with the last tuple
-        if (LastHitN == -1) { LastHitN = SummarySize-1; }
-
-        const int QuantN = (FirstHitN + LastHitN) / 2;
-        const TTuple& Tuple = Summary[QuantN];
-
-        return GetQuantile(Tuple);
+    void TUtils::TGkMnUncertTuple::Save(TSOut& SOut) const {
+        MxVal.Save(SOut);
+        TupleSize.Save(SOut);
+        UncertRight.Save(SOut);
     }
 
-    void TGk::Insert(const double& Val) {
+    void TUtils::TGkMnUncertTuple::Swallow(const TGkMnUncertTuple& LeftTuple) {
+        TupleSize += LeftTuple.TupleSize;
+    }
+
+    void TUtils::TGkMnUncertTuple::SwallowOne() {
+        ++TupleSize;
+    }
+
+    ////////////////////////////////////
+    /// GK - Summary
+    TUtils::TGkVecSummary::TGkVecSummary(const double& _Eps):
+            Eps(_Eps) {}
+
+    TUtils::TGkVecSummary::TGkVecSummary(TSIn& SIn):
+            Summary(SIn),
+            SampleN(SIn),
+            Eps(SIn),
+            UseBands(SIn) {}
+
+    void TUtils::TGkVecSummary::Save(TSOut& SOut) const {
+        Summary.Save(SOut);
+        SampleN.Save(SOut);
+        Eps.Save(SOut);
+        UseBands.Save(SOut);
+    }
+
+    double TUtils::TGkVecSummary::Query(const double& PVal) const {
+        if (Summary.Empty()) { return 0; }
+
+        const double MnRankThreshold = double(SampleN)*(PVal - Eps);
+
+        uint64 CurrMnRank = 0;
+        int TupleN = 0;
+        while (TupleN < Summary.Len()) {
+            const TTuple& Tuple = Summary[TupleN];
+
+            CurrMnRank += Tuple.GetTupleSize();
+
+            if (CurrMnRank >= MnRankThreshold) {
+                return Tuple.GetMxVal();
+            }
+
+            ++TupleN;
+        }
+
+        return Summary.Last().GetMxVal();
+    }
+
+    void TUtils::TGkVecSummary::Query(const TFltV& PValV, TFltV& QuantV) const {
+        if (QuantV.Len() != PValV.Len()) { QuantV.Gen(PValV.Len(), PValV.Len()); }
+        if (Summary.Empty() || PValV.Empty()) { return; }
+
+        uint64 CurrMnRank = 0;
+        int PValN = 0;
+
+        auto TupleIt = Summary.begin();
+        const auto EndIt = Summary.end();
+
+        while (PValN < PValV.Len()) {
+            const TFlt& PVal = PValV[PValN];
+            const double MnRankThreshold = double(SampleN)*(PVal - Eps);
+
+            while (TupleIt != EndIt) {
+                const TTuple& Tuple = *TupleIt;
+                const TUInt& TupleSize = Tuple.GetTupleSize();
+
+                CurrMnRank += TupleSize;
+
+                if (CurrMnRank >= MnRankThreshold) {
+                    QuantV[PValN] = Tuple.GetMxVal();
+                    CurrMnRank -= TupleSize;
+                    break;
+                }
+
+                ++TupleIt;
+            }
+
+            if (TupleIt == EndIt) {
+                QuantV[PValN] = Summary.Last().GetMxVal();
+            }
+
+            ++PValN;
+        }
+    }
+
+    void TUtils::TGkVecSummary::Insert(const double& Val) {
         // binary search to find the first tuple with value greater than val
         // this is where we will insert the new value
-        const auto Cmp = [&](const TTuple& Tup, const double& Val) { return Tup.Val1 < Val; };
+        const auto Cmp = [&](const TTuple& Tup, const double& Val) { return Tup.GetMxVal() < Val; };
         const auto ValIt = std::lower_bound(Summary.begin(), Summary.end(), Val, Cmp);
 
         const int NewValN = int(ValIt - Summary.begin());
 
         // if Val is the smallest or largest element, we must insert <v,1,0>
         if (NewValN == 0 || NewValN == Summary.Len()) {
-            Summary.Ins(NewValN, TTuple(Val, 1, 0));
+            Summary.Ins(NewValN, TTuple(Val));
         }
         else {
-            // insert tuple <v,1,floor(2*eps*n)>
-            Summary.Ins(NewValN, TTuple(Val, 1, (uint) (2*Eps*double(SampleN))));
+            // let i be the index of the first tuple with greather vi, then
+            // insert tuple <v,1,delta_i + g_i - 1>
+            TTuple& RightTuple = Summary[NewValN];
+
+            if (1 + RightTuple.GetTotalUncert() <= GetMxTupleUncert()) {
+                // the right tuple can swallow the new tuple
+                RightTuple.SwallowOne();
+            } else {
+                // we must insert the new tuple
+                Summary.Ins(NewValN, TTuple(Val, RightTuple));
+            }
         }
 
         ++SampleN;
-
-        if (ShouldAutoCompress()) {
-            Compress();
-        }
     }
 
-    void TGk::Compress() {
-        const int ErrRange = (int) (2*Eps*double(SampleN));
+    void TUtils::TGkVecSummary::Compress() {
+        const uint ErrRange = GetMxTupleUncert();
 
         // go throught the tuples and merge the ones you can
         // the first and last tuple should never get merged
@@ -866,51 +918,40 @@ namespace TQuant {
             // the descendants of i are the ones with Band_k < Band_i and
             // the children of i are the set {k_1,...,k_m | k_{j+1}=k_j+1,band(k_j)>=band(k_{j+1}),band(i)>band(k_1)}
             const TTuple& CurrTuple = Summary[TupleN];
-            const TTuple& NextTuple = Summary[TupleN+1];
+            TTuple& NextTuple = Summary[TupleN+1];
 
-            if (UseBands && GetBand(TupleN) > GetBand(TupleN+1)) { continue; }
+            if (UseBands && GetBand(CurrTuple) > GetBand(NextTuple)) { continue; }
 
-            if (GetPrevMnRankDiff(CurrTuple) + GetPrevMnRankDiff(NextTuple) + GetInsRankRange(NextTuple) <= ErrRange) {
+            if (CurrTuple.GetTupleSize() + NextTuple.GetTotalUncert() <= ErrRange) {
                 // merge the two tuples
-                const int CurrPrevMnRankDiff = GetPrevMnRankDiff(CurrTuple);
+                NextTuple.Swallow(CurrTuple);
                 Summary.Del(TupleN);
-                GetPrevMnRankDiff(Summary[TupleN]) += CurrPrevMnRankDiff;
             }
         }
     }
 
-    int TGk::GetSummarySize() const {
-        return Summary.Len();
+    uint TUtils::TGkVecSummary::GetMxTupleUncert() const {
+        return (uint) (2*Eps*double(SampleN));
     }
 
-    void TGk::PrintSummary() const {
-        std::cout << Summary << "\n";
-    }
-
-    bool TGk::ShouldAutoCompress() const {
-        return CompressStrategy == TCompressStrategy::csAuto &&
-               SampleN % int(ceil(1.0 / (2.0*Eps))) == 0;
-    }
-
-    int TGk::GetBand(const int& TupleN) const {
+    int TUtils::TGkVecSummary::GetBand(const TTuple& Tuple) const {
         // the band groups tuples by their capacity
         // it is defined as alpha, such that:
         // 2^(alpha-1) + mod(p,2^(alpha-1)) <= capacity < 2^alpha + mod(p,2^alpha)
         // where capacity is defined as floor(2*eps*n) - delta_i
-        const TTuple& Tuple = Summary[TupleN];
 
-        const uint64 p = (int) (2*Eps*double(SampleN));
-        const uint64 DeltaI = Tuple.Val3;
-        const uint64 Capacity = p - DeltaI;
+        const uint64 MxUncert = (uint64) GetMxTupleUncert();
+        const uint UncertRight = Tuple.GetUncertRight();
+        const uint64 Capacity = MxUncert - UncertRight;
 
         // Special case: the first 1 / (2*eps) tuples (with d_i == 0) are in a band of their own
-        if (DeltaI == 0) { return TInt::Mx; }
-        // Special case: we define band 0 to simply be p
-        if (DeltaI == p) { return 0; }
+        if (UncertRight == 0) { return TInt::Mx; }
+        // Special case: we define band 0 to simply be MxUncert
+        if (UncertRight == MxUncert) { return 0; }
 
         const auto TestBand = [&](const int& Band) {
-            return TMath::Pow2(Band-1) + (p % TMath::Pow2(Band-1)) <= Capacity &&
-                   Capacity < TMath::Pow2(Band) + (p % TMath::Pow2(Band));
+            return TMath::Pow2(Band-1) + (MxUncert % TMath::Pow2(Band-1)) <= Capacity &&
+                   Capacity < TMath::Pow2(Band) + (MxUncert % TMath::Pow2(Band));
         };
 
         const int CandidateBand = (int) TMath::Log2((double) Capacity);
@@ -922,34 +963,84 @@ namespace TQuant {
         }
         else {
             // fail horribly and think about what you did
-            const TStr MsgStr = "Could not find the band of tuple: <" + TFlt::GetStr(Tuple.Val1) + "," + TInt::GetStr(Tuple.Val2) + "," + TInt::GetStr(Tuple.Val3) + ">, p=" + TInt::GetStr(p) + ", candidate band = " + TInt::GetStr(CandidateBand) + "!";
+            const TStr MsgStr = "Could not find the band of tuple: <" + TFlt::GetStr(Tuple.GetMxVal()) + "," + TUInt::GetStr(Tuple.GetTupleSize()) + "," + TInt::GetStr(Tuple.GetUncertRight()) + ">, p=" + TInt::GetStr(MxUncert) + ", candidate band = " + TInt::GetStr(CandidateBand) + "!";
             FailR(MsgStr.CStr());
             return -1;
         }
     }
 
-    TFlt& TGk::GetQuantile(TTuple& Tuple) {
-        return Tuple.Val1;
+    ////////////////////////////////////
+    /// GK - algorithm
+    TGk::TGreenwaldKhanna(const double& _Eps):
+            Summary(_Eps),
+            Eps(_Eps) {}
+
+    TGk::TGreenwaldKhanna(const double& _Eps, const TCompressStrategy& Cs):
+            Summary(_Eps),
+            Eps(_Eps),
+            CompressStrategy(Cs) {}
+
+    TGk::TGreenwaldKhanna(TSIn& SIn):
+            Summary(SIn),
+            Eps(SIn) {
+
+        const TCh RawCmp(SIn);
+        switch (RawCmp.Val) {
+            case static_cast<char>(TCompressStrategy::csAuto): {
+                CompressStrategy = TCompressStrategy::csAuto;
+                break;
+            }
+            case static_cast<char>(TCompressStrategy::csManual): {
+                CompressStrategy = TCompressStrategy::csManual;
+                break;
+            }
+            default: {
+                throw TExcept::New("Invalid compression strategy!");
+            }
+        }
     }
 
-    const TFlt& TGk::GetQuantile(const TTuple& Tuple) {
-        return Tuple.Val1;
+    void TGk::Save(TSOut& SOut) const {
+        Summary.Save(SOut);
+        Eps.Save(SOut);
+        TCh(static_cast<char>(CompressStrategy)).Save(SOut);
     }
 
-    TInt& TGk::GetPrevMnRankDiff(TTuple& Tuple) {
-        return Tuple.Val2;
+    double TGk::Query(const double& Quantile) const {
+        return Summary.Query(Quantile);
     }
 
-    const TInt& TGk::GetPrevMnRankDiff(const TTuple& Tuple) {
-        return Tuple.Val2;
+    void TGk::Query(const TFltV& PValV, TFltV& QuantV) const {
+        Summary.Query(PValV, QuantV);
     }
 
-    TInt& TGk::GetInsRankRange(TTuple& Tuple) {
-        return Tuple.Val3;
+    void TGk::Insert(const double& Val) {
+        Summary.Insert(Val);
+
+        if (ShouldAutoCompress()) {
+            Compress();
+        }
     }
 
-    const TInt& TGk::GetInsRankRange(const TTuple& Tuple) {
-        return Tuple.Val3;
+    void TGk::Compress() {
+        Summary.Compress();
+    }
+
+    int TGk::GetSummarySize() const {
+        return Summary.GetSize();
+    }
+
+    void TGk::PrintSummary() const {
+        std::cout << Summary << "\n";
+    }
+
+    uint32 TGk::GetCompressInterval() const {
+        return uint(std::ceil(1.0 / (2.0*Eps)));
+    }
+
+    bool TGk::ShouldAutoCompress() const {
+        return CompressStrategy == TCompressStrategy::csAuto &&
+               Summary.GetSampleN() % GetCompressInterval() == 0;
     }
 
     //////////////////////////////////////////

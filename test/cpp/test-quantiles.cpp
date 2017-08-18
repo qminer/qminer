@@ -39,19 +39,16 @@ double GetSwGkMxRelErr(const double& EpsGk, const double& EpsEh) {
 
 template <typename TGk, typename TLowerBoundFun, typename TUpperBoundFun>
 void AssertQuantileRange(TGk& Gk, const TLowerBoundFun& GetLowerBound,
-        const TUpperBoundFun& GetUpperBound, const double QuantileStep=1e-3) {
+        const TUpperBoundFun& GetUpperBound, const double PValStep=1e-3) {
 
-    double CurrQuant = 0.0;
-    while (CurrQuant <= 1.0) {
-        const double QuantMn = GetLowerBound(CurrQuant);
-        const double QuantMx = GetUpperBound(CurrQuant);
+    for (double PVal = 0.0; PVal <= 1.0; PVal += PValStep) {
+        const double QuantMn = GetLowerBound(PVal);
+        const double QuantMx = GetUpperBound(PVal);
 
-        const double EstQuant = Gk.Query(CurrQuant);
+        const double EstQuant = Gk.Query(PVal);
 
         ASSERT_GE(EstQuant, QuantMn);
         ASSERT_LE(EstQuant, QuantMx);
-
-        CurrQuant += QuantileStep;
     }
 }
 
@@ -122,21 +119,9 @@ TEST(TGreenwaldKhanna, Compress) {
         ASSERT_TRUE(Gk.GetSummarySize() < NSamples);
 
         // test a grid
-        double CurrPerc = .001;
-        do {
-            const double Perc = Gk.Query(CurrPerc);
-            ASSERT_NEAR(std::ceil(CurrPerc*NSamples), Perc, Eps*NSamples);
-            CurrPerc += .001;
-        } while (CurrPerc < 1);
-
-
-        // check some random quantiles if they are correct
-        for (int i = 0; i < 10000; i++) {
-            const double Prob = Rnd.GetUniDev();
-            const double Perc = Gk.Query(Prob);
-
-            ASSERT_NEAR(std::ceil(Prob*NSamples), Perc, Eps*NSamples);
-        }
+        const auto LowerBoundFun = [&](const double& PVal) { return std::floor(NSamples*(PVal - Eps)); };
+        const auto UpperBoundFun = [&](const double& PVal) { return std::ceil(NSamples*(PVal + Eps)); };
+        AssertQuantileRangeV(Gk, LowerBoundFun, UpperBoundFun);
     }
 }
 
@@ -163,43 +148,40 @@ TEST(TGreenwaldKhanna, LateManualCompress) {
     Gk.Compress();
     ASSERT_TRUE(Gk.GetSummarySize() < NSamples);
 
-    for (int i = 0; i < 10; i++) {
-        const double Prob = Rnd.GetUniDev();
-        const double Perc = Gk.Query(Prob);
-
-        ASSERT_NEAR(std::ceil(Prob*NSamples), Perc, Eps*NSamples);
-    }
+    // test a grid
+    const auto LowerBoundFun = [&](const double& PVal) { return std::floor(NSamples*(PVal - Eps)); };
+    const auto UpperBoundFun = [&](const double& PVal) { return std::ceil(NSamples*(PVal + Eps)); };
+    AssertQuantileRangeV(Gk, LowerBoundFun, UpperBoundFun);
 }
 
 TEST(TGreenwaldKhanna, AutoCompress) {
     const double Eps = .1;
-    const int NSamples = 100;
+    const int BatchSize = 100;
+    const int NBatches = 100;
 
     TRnd Rnd;
 
     TGk Gk(Eps);
 
     TFltV MeasurementV;
-    for (int i = 1; i <= NSamples; i++) {
+    for (int i = 1; i <= BatchSize; i++) {
         MeasurementV.Add(i);
     }
 
-    for (int RunN = 0; RunN < 100; RunN++) {
+    const auto LowerBoundFun = [&](const double& PVal) { return std::floor(BatchSize*(PVal - Eps)); };
+    const auto UpperBoundFun = [&](const double& PVal) { return std::ceil(BatchSize*(PVal + Eps)); };
+
+    for (int RunN = 0; RunN < NBatches; RunN++) {
         MeasurementV.Shuffle(Rnd);
-        for (int SampleN = 0; SampleN < NSamples; SampleN++) {
+        for (int SampleN = 0; SampleN < BatchSize; SampleN++) {
             Gk.Insert(MeasurementV[SampleN]);
         }
+
+        // test the accuracy
+        AssertQuantileRangeV(Gk, LowerBoundFun, UpperBoundFun);
     }
 
-    ASSERT_TRUE(Gk.GetSummarySize() < NSamples);
-
-    // test the accuracy
-    double CurrPerc = .001;
-    do {
-        const double Perc = Gk.Query(CurrPerc);
-        ASSERT_NEAR(std::ceil(CurrPerc*NSamples), Perc, Eps*NSamples);
-        CurrPerc += .001;
-    } while (CurrPerc < 1);
+    ASSERT_TRUE(Gk.GetSummarySize() < BatchSize);
 }
 
 TEST(TBiasedGk, Query) {
