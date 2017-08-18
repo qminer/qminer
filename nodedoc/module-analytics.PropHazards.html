@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v8.3.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v8.4.0</a>
       </div>
     </div>
   </nav>
@@ -278,7 +278,7 @@ var vec = new la.Vector([3, 3]);
 // if openblas used, fit the model and get the prediction
 if (require(&#x27;qminer&#x27;).flags.blas) {
     // fit the model
-    hazards.fit(mat, vec);       
+    hazards.fit(mat, vec);
     // create a vector for the prediction
      var test = new la.Vector([1, 2]);
     // predict the value
@@ -348,7 +348,7 @@ fout.close();
 // create input stream
 var fin = fs.openRead(&#x27;hazards_example.bin&#x27;);
 // create a Proportional Hazards object that loads the model and parameters from input stream
-var hazards2 = new analytics.PropHazards(fin);    </code></pre>
+var hazards2 = new analytics.PropHazards(fin);</code></pre>
                 </div>
               </section>
               <section>

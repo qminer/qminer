@@ -18,27 +18,27 @@ typedef enum {
 ///   - Smooths a histogram
 ///   - Classifies bins with different severities of anomalies (0 = normal, 1 = low, 2 = higher,...)
 ///     given thresholds (input parameter).
-///   - Parametrized by a vector of thresholds: t_0 > t_2, >... > t_n (from low to high severity, example: 0.05, 0.01, 0.001)
-///     where t_-1 is defined as 1 and t_n+1 is defined as 0
+///   - Parametrized by a vector of thresholds: t_0 < t_2, <... < t_n (from low to high severity, example: 0.95, 0.99, 0.999)
+///     where t_-1 is defined as 0 and t_n+1 is defined as 1
 ///   - A bin is classifiedas an anomaly with severity i, if its cumulative mass (after being sorted in ascending order)
 ///     lies in the interval: (n * t(i), n * t(i-1)], where there are n points and r lies in [1,...,n]
 ///   - Example:
-///      Thresholds [ 0.1, 0.05, 0.01 ]
+///      Thresholds [ 0.9, 0.95, 0.99 ]
 ///      Severity intervals for cumulative mass:
-///         - [  0.1 ,    1 ] -> 0
-///         - [ 0.05 ,  0.1 ] -> 1
-///         - [ 0.01 ,  0.5 ] -> 2
-///         - [    0 , 0.01 ] -> 0
+///         - [  0 ,    0.01 ] -> 3 // first 1% = severity 3
+///         - [ 0.01 ,  0.05 ] -> 2 // next 4% = severity 2
+///         - [ 0.05 ,  0.1 ] -> 1 // next 5% = severity 1
+///         - [    0.1 , 1 ] -> 0 // next 90% = severity 0 (normal)
 ///      PMF        = [ 0.025, 0.025, 0.5, 0.3, 0.1, 0.05 ]
 ///      Severities = [     2,     2,   0,   0,   0,    1 ]
 ///         - first two bins cover 0.05 mass (severity 2)
 ///         - first two + last bin cover 0.1 mass, (last bin gets serverity 1)
 ///         - no bin has mass less or equal 0.01 (no bin gets serverity 3)
 ///         - the rest of the bins normal (severity 0)
-///    - Handles ties
+///    - Unstable on plateaus (sorting unstable) 
 ///       Thresholds [ 0.5 ]
 ///       PMF        = [ 0.5, 0.5 ]
-///       Gets mapped to [ 0, 0 ] (the cells are considered as a group and their total mass of 1 is above 0.5)
+///       Gets mapped to [ 0, 1 ]
 class THistogramToPMFModel {
 public:
     /// Grouping tolerance for classifying anomalies to severities

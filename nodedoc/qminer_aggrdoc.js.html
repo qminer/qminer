@@ -1628,6 +1628,108 @@
 * base.close();
 */
 /**
+ * @typedef {module:qm.StreamAggr} StreamAggrWindowQuantiles
+ * This stream aggregate computes approximate quantiles on a sliding time window using
+ * the SW-GK algorithm proposed in:
+ * http://dl.acm.org/citation.cfm?id=2954329
+ *
+ * The quantile values are returned using {@link module:qm.StreamAggr#getFloatVector}.
+ *
+ * @property {string} name - The given name of the stream aggregator.
+ * @property {string} type - Must use type &#x27;windowQuantiles&#x27;.
+ * @property {string} inAggr - The name of the stream aggregate which defines the time window.
+ * @property {Array.&amp;lt;number&gt;} quantiles - An array of p-values for which the algorithm will return quantiles.
+ * @property {number} quantileEps - Maximal relative error of the quantile estimation procedure.
+ * @property {number} countEps - Maximal relative error of the count procedure.
+ *
+ * If the number of items in the window is N, then the algorithms error is bound by
+ * N*(quantileEps + 2*countEps + O(countEps^2)). However in practice, the error should
+ * be less.
+ *
+ * @example
+ *
+ * // variables
+ * var batchSize = 1000;
+ * var nbatches = 10;
+ *
+ * var dt = 10;
+ * var windowMSec = batchSize*dt;
+ *
+ * var quantileEps = 0.01;
+ * var countEps = 0.0001;
+ *
+ * var maxRelErr = quantileEps + 2*countEps;
+ *
+ * var targetQuants = (function () {
+ *     var quants = [];
+ *     for (var prob = 0; prob &amp;lt;= 1; prob += 0.001) {
+ *         quants.push(prob);
+ *     }
+ *     return quants;
+ * })();
+ *
+ * // create a base with a simple store
+ * // the store records results of throwing two independent fair dices
+ * var base = new qm.Base({
+ *     mode: &quot;createClean&quot;,
+ *     schema: [
+ *     {
+ *         name: &quot;hugeDie&quot;,
+ *         fields: [
+ *             { name: &quot;value&quot;, type: &quot;float&quot; },
+ *             { name: &quot;time&quot;, type: &quot;datetime&quot; }
+ *         ]
+ *     }]
+ * });
+ * var store = base.store(&#x27;hugeDie&#x27;);
+ *
+ * // create a new time series stream aggregator for the &#x27;Dice&#x27; store, that takes the expected values of throwing a dice
+ * // and the timestamp from the &#x27;Time&#x27; field. The size of the window is 1 day.
+ * var windowAggr = store.addStreamAggr({
+ *     name: &#x27;TimeSeries1&#x27;,
+ *     type: &#x27;timeSeriesWinBuf&#x27;,
+ *     store: store,
+ *     timestamp: &#x27;time&#x27;,
+ *     value: &#x27;value&#x27;,
+ *     winsize: windowMSec
+ * });
+ *
+ * var gk = store.addStreamAggr({
+ * type: &#x27;windowQuantiles&#x27;,
+ *     inAggr: windowAggr,
+ *     quantileEps: quantileEps,
+ *     countEps: countEps,
+ *     quantiles: targetQuants
+ * })
+ *
+ * var vals = [];
+ * for (var i = 0; i &amp;lt; batchSize; i++) {
+ *     vals.push(i);
+ * }
+ * for (var batchN = 0; batchN &amp;lt; nbatches; batchN++) {
+ *     // shuffle the array
+ *     for (var i = 0; i &amp;lt; batchSize; i++) {
+ *         var swapN = Math.floor(Math.random()*batchSize);
+ *         var temp = vals[i];
+ *         vals[i] = vals[swapN];
+ *         vals[swapN] = temp;
+ *     }
+ *
+ *     for (var i = 0; i &amp;lt; batchSize; i++) {
+ *         var time = (batchN*batchSize + i)*dt;
+ *         store.push({ time: time, value: vals[i] })
+ *     }
+ *
+ *     var result = gk.getFloatVector();
+ *     for (var i = 0; i &amp;lt; targetQuants.length; i++) {
+ *         var pval = targetQuants[i];
+ *         var quant_hat = result[i];
+ *         assert(Math.floor((pval - maxRelErr)*batchSize) &amp;lt;= quant_hat);
+ *         assert(Math.ceil((pval + maxRelErr)*batchSize) &gt;= quant_hat);
+ *     }
+ * }
+ */
+/**
 * @typedef {module:qm.StreamAggr} StreamAggrRecordSwitch
 * This stream aggregate enables switching control flow between stream aggregates based
 * on string keys. It is based on a hash table from keys (strings read from records) to

@@ -21,12 +21,12 @@ hardware, providing efficient storage, retrieval and analytics mechanisms with r
 
 ### Prerequisites
 
-**node.js v7.x, v6.x, v4.x or v0.12.x and npm 2.11 or higher**
+**node.js v8.x, v6.x, v4.x and npm 5.3 or higher**
 
 To test that your node.js version is correct, run ```node --version``` and ```npm --version```. Not compatible with nodejs v0.10 or older.
 
 **Windows**
-- [Visual C++ Redistributable Packages for Visual Studio 2013](https://www.microsoft.com/en-us/download/details.aspx?id=40784)   download **vcredist_x64.exe** for node.js x64 or **vcredist_x86.exe** for node.js x86.
+- [Visual C++ Redistributable Packages for Visual Studio 2015](https://www.microsoft.com/en-us/download/details.aspx?id=48145)   download **vcredist_x64.exe** for node.js x64 or **vcredist_x86.exe** for node.js x86.
 
 ### Install 
 
