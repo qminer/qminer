@@ -36,6 +36,15 @@ struct TExternalAggr {
     }
 };
 
+#define INIT_EXTERN_AGGR(Name) \
+class T ## Name { \
+public: \
+    T ## Name() { \
+        TFunRouter<TQm::PStreamAggr, TQm::TVoidVoidF>& Router = TQm::TExternalAggr::CreateOnce(); \
+        Router.Register(#Name, Name); \
+    } \
+}; \
+T ## Name _ ## Name; \
 
 ///////////////////////////////
 /// Store windowing type
