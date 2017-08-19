@@ -41,9 +41,21 @@ void TEnv::Init() {
     TRecFilter::Init();
     // initialize feature extractors constructor router
     TFtrExt::Init();
+    // initialize external aggregates
+    InitExternalAggr();
     // tell we finished initialization
     InitP = true;
 };
+
+void TEnv::InitExternalAggr () {
+    TFunRouter<PStreamAggr, TVoidVoidF>& Router = TExternalAggr::CreateOnce();
+    TStrV TypeNmV;
+    Router.GetTypeNmV(TypeNmV);
+    int Len = TypeNmV.Len();
+    for (int TypeN = 0; TypeN < Len; TypeN++) {
+        Router.Fun(TypeNmV[TypeN])();
+    }
+}
 
 void TEnv::InitLogger(const int& _Verbosity,
         const TStr& FPath, const bool& TimestampP) {

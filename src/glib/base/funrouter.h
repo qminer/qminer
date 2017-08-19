@@ -30,6 +30,11 @@ public:
         if (TypeNmToFunH.IsKey(TypeNm)) { return TypeNmToFunH.GetDat(TypeNm); }
         throw TExcept::New("[TFunRouter::Fun] Unknown object type " + TypeNm);
     }
+
+    /// Get the vector of type names
+    void GetTypeNmV(TStrV& Vec) {
+        TypeNmToFunH.GetKeyV(Vec);
+    }
 };
 
 #endif

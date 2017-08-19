@@ -28,6 +28,15 @@ class TRecFilter; typedef TPt<TRecFilter> PRecFilter;
 class TFtrExt; typedef TPt<TFtrExt> PFtrExt;
 class TFtrSpace; typedef TPt<TFtrSpace> PFtrSpace;
 
+typedef void(*TVoidVoidF)();
+struct TExternalAggr {
+    static TFunRouter<PStreamAggr, TVoidVoidF>& CreateOnce() {
+        static TFunRouter<PStreamAggr, TVoidVoidF> * NewRouter = new TFunRouter<PStreamAggr, TVoidVoidF>;
+        return *NewRouter;
+    }
+};
+
+
 ///////////////////////////////
 /// Store windowing type
 typedef enum {
@@ -183,6 +192,9 @@ public:
     static void Init();
     /// Checks if initialization done
     static bool IsInit() { return InitP; }
+
+    /// Calls init functions for external aggregates
+    static void InitExternalAggr();
 
     /// Initialize logger.
     /// @param FPath        Specify logger output (standard output `std'; No output `null')

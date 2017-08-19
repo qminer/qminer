@@ -177,6 +177,20 @@ public:
     TStr Type() const { return GetType(); }
 };
 
+// Register aggregates
+void InitGeoSpatial_Aggr() {
+    TQm::TStreamAggr::Register<TQm::TStreamAggrs::TStayPointDetector>();
+}
+
+// This block could be packed in a macro, for example INIT_EXTERN_AGGR(InitGeoSpatial_Aggr)
+class TInitGeoSpatial_Aggr {
+public:
+    TInitGeoSpatial_Aggr() {
+        TFunRouter<TQm::PStreamAggr, TQm::TVoidVoidF>& Router = TQm::TExternalAggr::CreateOnce(); // construct once
+        Router.Register("InitGeoSpatial_Aggr", InitGeoSpatial_Aggr); // call init
+    }
+};
+TInitGeoSpatial_Aggr _InitGeoSpatial_Aggr;
 
 } // TStreamAggrs namespace
 } // TQm namespace
