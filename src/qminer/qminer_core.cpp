@@ -48,7 +48,7 @@ void TEnv::Init() {
 };
 
 void TEnv::InitExternalAggr () {
-    TFunRouter<PStreamAggr, TVoidVoidF>& Router = TExternalAggr::CreateOnce();
+    TFunRouter<TVoidVoidF>& Router = TExternalAggr::CreateOnce();
     TStrV TypeNmV;
     Router.GetTypeNmV(TypeNmV);
     int Len = TypeNmV.Len();
@@ -2507,7 +2507,7 @@ bool TRecCmpByFieldByte::operator()(const TUInt64IntKd& RecIdFq1, const TUInt64I
 
 ///////////////////////////////
 /// Record filter
-TFunRouter<PRecFilter, TRecFilter::TNewF> TRecFilter::NewRouter;
+TFunRouter<TRecFilter::TNewF> TRecFilter::NewRouter;
 
 void TRecFilter::Init() {
     Register<TRecFilter>();
@@ -6476,7 +6476,7 @@ int TIndex::PartialFlush(const int& WndInMsec) {
 
 ///////////////////////////////
 // QMiner-Aggregator
-TFunRouter<PAggr, TAggr::TNewF> TAggr::NewRouter;
+TFunRouter<TAggr::TNewF> TAggr::NewRouter;
 
 void TAggr::Init() {
     Register<TAggrs::TCount>();
@@ -6497,7 +6497,7 @@ PAggr TAggr::New(const TWPt<TBase>& Base, const PRecSet& RecSet, const TQueryAgg
 
 ///////////////////////////////
 // QMiner-Stream-Aggregator
-TFunRouter<PStreamAggr, TStreamAggr::TNewF> TStreamAggr::NewRouter;
+TFunRouter<TStreamAggr::TNewF> TStreamAggr::NewRouter;
 
 void TStreamAggr::Init() {
     Register<TStreamAggrSet>();

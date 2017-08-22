@@ -12,7 +12,7 @@
 ///////////////////////////////
 /// Router to constructors based on object types.
 /// Useful for creating and de-serializing derived objects, such as TAggr and TStreamAggr.
-template <class PObj, typename TFun>
+template <typename TFun>
 class TFunRouter {
 private:
     /// Object descriptions

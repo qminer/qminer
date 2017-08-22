@@ -30,21 +30,21 @@ class TFtrSpace; typedef TPt<TFtrSpace> PFtrSpace;
 
 typedef void(*TVoidVoidF)();
 struct TExternalAggr {
-    static TFunRouter<PStreamAggr, TVoidVoidF>& CreateOnce() {
-        static TFunRouter<PStreamAggr, TVoidVoidF> * NewRouter = new TFunRouter<PStreamAggr, TVoidVoidF>;
+    static TFunRouter<TVoidVoidF>& CreateOnce() {
+        static TFunRouter<TVoidVoidF> * NewRouter = new TFunRouter<TVoidVoidF>;
         return *NewRouter;
     }
 };
 
 #define INIT_EXTERN_AGGR(Name) \
-class T ## Name { \
+class Autogen ## Name { \
 public: \
-    T ## Name() { \
-        TFunRouter<TQm::PStreamAggr, TQm::TVoidVoidF>& Router = TQm::TExternalAggr::CreateOnce(); \
+    Autogen ## Name() { \
+        TFunRouter<TQm::TVoidVoidF>& Router = TQm::TExternalAggr::CreateOnce(); \
         Router.Register(#Name, Name); \
     } \
 }; \
-T ## Name _ ## Name; \
+Autogen ## Name Autogen_ ## Name; \
 
 ///////////////////////////////
 /// Store windowing type
@@ -1391,7 +1391,7 @@ private:
     /// New constructor delegate
     typedef PRecFilter(*TNewF)(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
     /// Filter New constructor router
-    static TFunRouter<PRecFilter, TNewF> NewRouter;
+    static TFunRouter<TNewF> NewRouter;
 
 public:
     /// Register default record filters
@@ -3442,7 +3442,7 @@ private:
     typedef PAggr (*TNewF)(const TWPt<TBase>& Base, const TStr& AggrNm,
         const PRecSet& RecSet, const PJsonVal& ParamVal);
     /// Stream aggregate descriptions
-    static TFunRouter<PAggr, TNewF> NewRouter;
+    static TFunRouter<TNewF> NewRouter;
 public:
     /// Register default aggregates
     static void Init();
@@ -3486,7 +3486,7 @@ private:
     /// New constructor delegate
     typedef PStreamAggr (*TNewF)(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
     /// Stream aggregate New constructor router
-    static TFunRouter<PStreamAggr, TNewF> NewRouter;
+    static TFunRouter<TNewF> NewRouter;
 
 public:
     /// Register default stream aggregates
