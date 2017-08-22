@@ -527,6 +527,8 @@ namespace TQuant {
 
     using TUtils::operator<<;
 
+    class TBiasedGk;
+
     namespace TUtils {
 
         /////////////////////////////////
@@ -576,45 +578,88 @@ namespace TQuant {
             TUInt UncertRight {};   // how many items on the right could be smaller than this tuple
         };
 
-        ///////////////////////////////////
-        /// GK summary based on a Glib vector
-        class TGkVecSummary {
-            using TTuple = TGkMnUncertTuple;
-            using TSummary = TVec<TTuple>;
-        public:
-            TGkVecSummary(const double& Eps);
+        namespace TGkUtils {
 
-            // SERIALIZATION
-            TGkVecSummary(TSIn&);
-            void Save(TSOut&) const;
+            ///////////////////////////////////
+            /// GK summary based on a Glib vector
+            class TVecSummary {
+                using TTuple = TGkMnUncertTuple;
+                using TSummary = TVec<TTuple>;
+            public:
+                TVecSummary(const double& Eps);
 
-            /// returns the quantile corresponding to the givem p-value
-            double Query(const double& PVal) const;
-            /// returns an array of quantile estimates
-            void Query(const TFltV& PValV, TFltV& QuantV) const;
-            /// inserts a new value into the summary
-            void Insert(const double&);
-            /// compresses the summary (if possible)
-            void Compress();
-            /// returns the total number of samples seen by the summary
-            const TUInt64& GetSampleN() const { return SampleN; }
+                // SERIALIZATION
+                TVecSummary(TSIn&);
+                void Save(TSOut&) const;
 
-            // DEBUGGING
-            uint GetSize() const { return Summary.Len(); }
+                /// returns the quantile corresponding to the givem p-value
+                double Query(const double& PVal) const;
+                /// returns an array of quantile estimates
+                void Query(const TFltV& PValV, TFltV& QuantV) const;
+                /// inserts a new value into the summary
+                void Insert(const double&);
+                /// compresses the summary (if possible)
+                void Compress();
+                /// returns the total number of samples seen by the summary
+                const TUInt64& GetSampleN() const { return SampleN; }
 
-            friend std::ostream& operator <<(std::ostream& os, const TGkVecSummary& Summary) {
-                return os << Summary.Summary;
-            }
+                // DEBUGGING
+                uint GetSize() const { return Summary.Len(); }
 
-        private:
-            uint GetMxTupleUncert() const;
-            int GetBand(const TTuple&) const;
+                friend std::ostream& operator <<(std::ostream& os, const TVecSummary& Summary) {
+                    return os << Summary.Summary;
+                }
 
-            TSummary Summary {};
-            TUInt64 SampleN {uint64(0)}; // current size of the summary, initializes to 0
-            TFlt Eps;
-            TBool UseBands {true};
-        };
+            private:
+                uint GetMxTupleUncert() const;
+                int GetBand(const TTuple&) const;
+
+                TSummary Summary {};
+                TUInt64 SampleN {uint64(0)}; // current size of the summary, initializes to 0
+                TFlt Eps;
+                TBool UseBands {true};
+            };
+        }
+
+        namespace TBiasedUtils {
+
+            //////////////////////////////////////
+            /// Biased GK summary based on Glib vector
+            class TVecSummary {
+                using TTuple = TGkMnUncertTuple;
+                using TSummary = TVec<TTuple>;
+            public:
+                TVecSummary(TBiasedGk& Model, const bool& UseBands);
+
+                // SERIALIZATION
+                TVecSummary(TBiasedGk&, TSIn&);
+                void Save(TSOut&) const;
+
+                /// returns the quantile corresponding to the givem p-value
+                double Query(const double& PVal) const;
+                /// returns an array of quantile estimates
+                void Query(const TFltV& PValV, TFltV& QuantV) const;
+                /// inserts a new value into the summary
+                void Insert(const double&);
+                /// compresses the summary (if possible)
+                void Compress();
+
+                // PARAMS
+                const TBool& GetUseBands() const { return UseBands; }
+
+                /// returns the number of tuples in the summary
+                uint GetSize() const;
+                /// prints the summary to the output stream
+                void Print() const;
+
+            private:
+                int GetBand(const TTuple& Tuple, const uint64& MnRank) const;
+
+                TSummary Summary {};
+                TBiasedGk& Model;
+                TBool UseBands;
+            };
+        }
     }
 
     ///////////////////////////////////////////////
@@ -663,7 +708,7 @@ namespace TQuant {
         uint32 GetCompressInterval() const;
         bool ShouldAutoCompress() const;
 
-        using TSummary = TUtils::TGkVecSummary;
+        using TSummary = TUtils::TGkUtils::TVecSummary;
 
         TSummary Summary;
         TFlt Eps;
@@ -682,55 +727,78 @@ namespace TQuant {
     /// Only the biased version is implemented. The targeted version is flawed.
     class TBiasedGk {
     public:
-        /// constructor which sets monitored quantiles q0 and (1 - q0)
-        /// the accuracy at these target quantiles is eps0, while
-        /// the accuracy at other quantiles q is max(eps0, eps0 * (q / q0))
-        /* TBiasedGk(const double& Quant0, const double& Eps0, const bool& UseBands=true); */
+        enum class TCompressStrategy : char {
+            csManual = 0,
+            csAggressive = 1,
+            csPeriodic = 2      // TODO handle the periodic strategy
+        };
 
         /// the returned rank will be between (1-eps)r <= ri <= (1+eps)r up to
         /// quant0, the accuracy then stops increasing
         ///
-        /// Quant0: the quantile where the accuracy stops increasing
+        /// PVal0: the quantile where the accuracy stops increasing
         /// Eps: the (multiplicative) allowed error
+        /// Type: indicates whether to track the minimum or the maximum
+        /// CompressStrategy: determiner when the algorithm compresses its summary
         /// UseBands: when bands are used, the algorithm prefers to keep tuples
         ///           which were inserted early on, which can save space in the long run
-        TBiasedGk(const double& Quant0, const double& Eps, const bool& UseBands=true);
+        TBiasedGk(const double& PVal0, const double& Eps, const TCompressStrategy& Cs=TCompressStrategy::csPeriodic,
+                const bool& UseBands=true);
         // TODO need 2 constructors:
         // 1) specify the accuracy and the method takes as much space as needed
         // 2) specify the space and the accuracy can suffer
 
         // TODO copy / move
-        // TODO save / load
+
+        // SERIALIZATION
+        TBiasedGk(TSIn&);
+        void Save(TSOut&) const;
 
         // TODO interpolate the result before returning it
         /// returns the eps0 * (q / q0) approximate quantile
         double Query(const double& Quantile) const;
+        /// returns an array of quantiles corresponding to the given p-values
+        void Query(const TFltV& PValV, TFltV& QuantV) const;
         /// inserts a new element into the summary
         void Insert(const double& Val);
-
         /// compresses the internal summary
         void Compress();
+
+        // PARAMS
+
+        /// returns the accuracy
+        const TFlt& GetEps() const;
+        /// returns the most accurate p-value tracked
+        double GetPVal0() const;
+        /// returns the compression strategy used by the algorithm
+        const TCompressStrategy& GetCompressStrategy() const;
+        /// returns true if the algorithm uses the band sub-procedure
+        const TBool& GetUseBands() const;
+
+        /// returns the total number of items seen by the algorithm
+        const TUInt64& GetSampleN() const { return SampleN; }
         /// returns the number of tuples stored in the summary
         int GetSummarySize() const;
+        /// prints the summary to stdout
         void PrintSummary() const;
 
-    private:
-        // helper functions which define the size and error for a tuple
-        double GetEps(const double& Quantile) const;
-        double GetMxTupleSize(const double& Rank) const;
+        /// returns the maximum number of items a tuple with the given rank
+        /// can summarize
+        double GetMxTupleUncert(const double& Rank) const;
+        const TInt& GetDir() const { return Dir; }
 
+    private:
         bool ShouldCompress() const;
         int GetBand(const TUtils::TGkTuple&, const uint64& MnRank) const;
 
-        using TTuple = TUtils::TGkTuple;
-        using TSummary = TVec<TTuple>;  // TODO use a linked list or some other structure
+        using TSummary = TUtils::TBiasedUtils::TVecSummary;
 
-        TSummary Summary {};
-        TUInt64 SampleN {};     // number of samples seen so far, initialized to 0
-        TFlt Quant0;
+        TSummary Summary;
+        TUInt64 SampleN {uint64(0)};     // number of samples seen so far, initialized to 0
+        TFlt PVal0;
         TFlt Eps;
-        TInt Dir {1};
-        TBool UseBands;
+        TInt Dir;
+        TCompressStrategy CompressStrategy {TCompressStrategy::csPeriodic};
     };
 
     using TCkms = TBiasedGk;

@@ -82,6 +82,7 @@ void InitAnalytics(Handle<Object> Exports, const TStr& NsNm) {
     TNodeJsDpMeans::Init(NsObj);
     TNodeJsTDigest::Init(NsObj);
     TNodeJsGk::Init(NsObj);
+    TNodeJsBiasedGk::Init(NsObj);
     TNodeJsCountWindowGk::Init(NsObj);
     TNodeJsTimeWindowGk::Init(NsObj);
     TNodeJsRecommenderSys::Init(NsObj);

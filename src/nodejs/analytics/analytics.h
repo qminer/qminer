@@ -2952,6 +2952,13 @@ public:
 };
 
 /**
+* @typedef {Object} GkParam
+* An object used for the construction of {@link module:analytics.Gk}.
+* @property {number} [eps=0.01] - Determines the relative error of the algorithm.
+* @property {boolean} [autoCompress=true] - Whether the summary should be compresses automatically or manually.
+*/
+
+/**
  * @classdesc Greenwald - Khanna algorithm for online quantile estimation. Given
  *   a comulative probability p, the algorithm returns the approximate value of
  *   the p-th quantile.
@@ -3020,11 +3027,11 @@ public:
      * Returns the models' parameters as a JavaScript object (JSON). These parameters
      * are the same as are set through the constructor.
      *
-     * @returns {module:analytics~FixedWindowGkParam} The construction parameters.
+     * @returns {module:analytics~GkParam} The construction parameters.
      *
      * var analytics = qm.analytics;
-     * var gk = new analytics.CountWindowGk();
-     * var params = tdigest.getParams();
+     * var gk = new analytics.Gk();
+     * var params = gk.getParams();
      *
      * console.log(params.eps);
      * console.log(params.autoCompress);
@@ -3077,8 +3084,7 @@ public:
     /**
      * Manually runs the compression procedure.
      *
-     * @returns
-     *
+     * @returns reference to self
      */
     //# exports.Gk.compress = function (fout) { return Object.create(require('qminer').analytics.Gk.prototype); }
     JsDeclareFunction(compress);
@@ -3092,6 +3098,179 @@ public:
     //# exports.Gk.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
     JsDeclareFunction(save);
 };
+
+
+/**
+* @typedef {Object} BiasedGkParam
+* An object used for the construction of {@link module:analytics.BiasedGk}.
+* @property {number} [targetProb=0.01] - The probability where the algorithm is most accurate. Its accuracy is determined as eps*max(p, targetProb) when targetProb < 0.5 and eps*max(1-p, 1-targetProb) when targetProb >= 0.5. Higher values of `targetProb` allow for a smaller memory footprint.
+* @property {number} [eps=0.1] - Parameter which determines the accuracy.
+* @property {string} [compression="periodic"] - Determines when the algorithm compresses its summary. Options are: "periodic", "aggressive" and "manual".
+* @property {boolean} [useBands=true] - Whether the algorithm should use the 'band' subprocedure. Using this subprocedure should result in a smaller summary.
+*/
+
+/**
+ * @classdesc The CKMS (GK adapted for biased quantiles) algorithm for online
+ *   biased quantile estimation. Given a probability p the algorithm returns
+ *   the approximate value of the p-th quantile. The algorithm is most accurate
+ *   in one of the extremes (which extreme depends on the parameters).
+ *
+ *   The algorithm works by keeping a summary of buckets, each summarizing a
+ *   range of values. Through the run of the algorithm new buckets are created
+ *   and periodically merged if possible.
+ *
+ *   It was first explained in:
+ *   "Effective Computation of Biased Quantiles over Data Streams"
+ *   https://www.cs.rutgers.edu/~muthu/bquant.pdf
+ *
+ *   Only the biased version is implemented (the targeted version is flawed).
+ *
+ *   The error is bounded by the rank of the element (not the absolute value).
+ *   Specifically, the worst case relative error is bounded by max(eps*p, eps*p0)
+ *   where eps is an accuracy paramter, p0 is the `targetProb` and p is the
+ *   p-value set as the parameter of function `predict`.
+ *
+ * @class
+ * @param {module:analytics~BiasedGkParam | module:fs:FIn} [arg] - Constructor arguments. There are 2 ways of constructing:
+ * <br>1. Using the {@link module:analytics~BiasedGkParam} object,
+ * <br>2. using the file input stream {@link module:fs.FIn}.
+ *
+ * @example
+ * // import modules
+ * var qm = require('qminer');
+ * var analytics = qm.analytics;
+ *
+ * // create the default TDigest object
+ * var gk = new analytics.BiasedGk({
+ *     eps: 0.1,
+ *     targetProb: 0.99,
+ *     compression: 'periodic',
+ *     useBands: true
+ * });
+ *
+ * // create the data used for calculating quantiles
+ * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
+ *
+ * // fit the TDigest model
+ * for (var i = 0; i < inputs.length; i++) {
+ *     gk.partialFit(inputs[i]);
+ * }
+ *
+ * // make the prediction for the 0.1 quantile
+ * var prediction = gk.predict(0.1);
+ * // save the model
+ * gk.save(fs.openWrite('gk.bin')).close();
+ * // open the gk model under a new variable
+ * var gk2 = new analytics.Gk(fs.openRead('gk.bin'));
+ *
+ */
+//# exports.BiasedGk = function (arg) { return Object.create(require('qminer').analytics.BiasedGk.prototype); }
+class TNodeJsBiasedGk : public node::ObjectWrap {
+    friend class TNodeJsUtil;
+public:
+    static void Init(v8::Handle<v8::Object> exports);
+    static const TStr GetClassId() { return "BiasedGk"; }
+
+private:
+    TQuant::TBiasedGk Gk;
+
+    TNodeJsBiasedGk(const PJsonVal&);
+    TNodeJsBiasedGk(TSIn&);
+    ~TNodeJsBiasedGk() {}
+
+    static TNodeJsBiasedGk* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+public:
+    /**
+     * Returns the models' parameters as a JavaScript object (JSON). These parameters
+     * are the same as are set through the constructor.
+     *
+     * @returns {module:analytics~BiasedGkParam} The construction parameters.
+     *
+     * var analytics = qm.analytics;
+     * var gk = new analytics.BiasedGk();
+     * var params = gk.getParams();
+     *
+     * console.log(params.targetProb);
+     * console.log(params.eps);
+     * console.log(params.autoCompress);
+     * console.log(params.useBands);
+     */
+    //# exports.BiasedGk.prototype.getParams = function () { return { }; }
+    JsDeclareFunction(getParams);
+
+    /**
+     * Adds a new value to the summary.
+     *
+     * @param {number} val - the value
+     * @returns {module:analytics.Gk} reference to self
+     *
+     * @example
+     * var qm = require('qminer');
+     *
+     * var gk = new qm.analytics.BiasedGk();
+     * gk.partialFit(1.0);
+     * gk.partialFit(2.0);
+     */
+    //# exports.BiasedGk.compress = function (fout) { return Object.create(require('qminer').analytics.BiasedGk.prototype); }
+    JsDeclareFunction(partialFit);
+
+    /**
+     * Given an input cumulative probability, returns a quantile associated with that
+     * probability (e.g. for input 0.5 it will return the median).
+     *
+     * @param {number|Array} pVals - the p-values which we a querying
+     * @returns {number|Array} quantiles - depending whether the input was a single value or array the method returns a quantile or array of quantiles
+     *
+     * @example
+     * var qm = require('qminer');
+     *
+     * var gk = new qm.analytics.BiasedGk({
+     *     eps: 0.1,
+     *     targetProb: 0.01
+     * });
+     * gk.partialFit(1.0);
+     * gk.partialFit(2.0);
+     * gk.partialFit(1.0);
+     * gk.partialFit(3.0);
+     * gk.partialFit(2.0);
+     *
+     * console.log(gk.predict(0.01));   // prints the first percentile
+     * console.log(gk.predict(0.25));   // prints the first quartile
+     * console.log(gk.predict(0.5));    // prints the median
+     */
+    //# exports.BiasedGk.prototype.predict = function (x) { return 0; }
+    JsDeclareFunction(predict);
+
+    /**
+     * Manually runs the compression procedure.
+     *
+     * @returns reference to self
+     */
+    //# exports.BiasedGk.compress = function (fout) { return Object.create(require('qminer').analytics.BiasedGk.prototype); }
+    JsDeclareFunction(compress);
+
+    /**
+     * Saves the objects state into the output stream.
+     *
+     * @param {module:fs.FOut} fout - the output stream
+     * @returns {module:fs.FOut} - the output stream
+     */
+    //# exports.BiasedGk.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
+    JsDeclareFunction(save);
+
+private:
+    TQuant::TBiasedGk::TCompressStrategy ExtractCompressStrategy(const PJsonVal&);
+};
+
+
+/**
+* @typedef {Object} CountWindowGkParam
+* An object used for the construction of {@link module:analytics.CountWindowGk}.
+* @property {number} [windowSize=10000] - Number of values to store in the window.
+* @property {number} [quantileEps=0.01] - Worst-case error of the quantile estimation procedure.
+* @property {number} [countEps=0.005] - Worst-case error of the sliding window (exponential histogram) procedure.
+*/
 
 /**
  * @classdesc Greenwald - Khanna algorithm for quantile estimation on sliding windows. Given
@@ -3251,6 +3430,13 @@ public:
     JsDeclareFunction(save);
 };
 
+/**
+* @typedef {Object} TimeWindowGkParam
+* An object used for the construction of {@link module:analytics.TimeWindowGk}.
+* @property {number} [window=1000*60*60] - Duration of the time window.
+* @property {number} [quantileEps=0.01] - Worst-case error of the quantile estimation procedure.
+* @property {number} [countEps=0.005] - Worst-case error of the sliding window (exponential histogram) procedure.
+*/
 
 /**
  * @classdesc Greenwald - Khanna algorithm for quantile estimation on sliding windows. Given

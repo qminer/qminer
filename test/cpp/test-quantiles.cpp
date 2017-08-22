@@ -54,7 +54,7 @@ void AssertQuantileRange(TGk& Gk, const TLowerBoundFun& GetLowerBound,
 
 template <typename TGk, typename TLowerBoundFun, typename TUpperBoundFun>
 void AssertQuantileRangeV(TGk& Gk, const TLowerBoundFun& GetLowerBound,
-        const TUpperBoundFun& GetUpperBound, const double PValStep=1e-3) {
+        const TUpperBoundFun& GetUpperBound, const double PValStep=1e-3, const bool& PrintP=false) {
 
     TFltV PValV;
     for (double PVal = 0.0; PVal <= 1.0; PVal += PValStep) {
@@ -69,6 +69,10 @@ void AssertQuantileRangeV(TGk& Gk, const TLowerBoundFun& GetLowerBound,
         const double QuantMx = GetUpperBound(PVal);
 
         const double EstQuant = Gk.Query(PVal);
+
+        if (PrintP) {
+            std::cout << "p-val: " << PVal << " (estimated) quantile: " << EstQuant << ", (vector est.) quantile: " << QuantV[PValN].Val << ", QuantMn: " << QuantMn << ", QuantMx: " << QuantMx << std::endl;
+        }
 
         ASSERT_GE(EstQuant, QuantMn);
         ASSERT_LE(EstQuant, QuantMx);
@@ -187,11 +191,14 @@ TEST(TGreenwaldKhanna, AutoCompress) {
 TEST(TBiasedGk, Query) {
     const int NTrials = 100;
     const int NSamples = 1000;
+    /* const int NTrials = 1; */
+    /* const int NSamples = 100; */
+
     const double Quant0 = .01;
     const double Eps0 = .1;
 
-    TBiasedGk BandGk(Quant0, Eps0, true);
-    TBiasedGk BandlessGk(Quant0, Eps0, false);
+    TBiasedGk BandGk(Quant0, Eps0, TBiasedGk::TCompressStrategy::csPeriodic, true);
+    TBiasedGk BandlessGk(Quant0, Eps0, TBiasedGk::TCompressStrategy::csPeriodic, false);
 
     for (int TrialN = 0; TrialN < NTrials; TrialN++) {
         TIntV SampleV;  GenSamplesUniform(NSamples, SampleV);
@@ -200,23 +207,13 @@ TEST(TBiasedGk, Query) {
             BandlessGk.Insert(SampleV[SampleN]);
         }
 
-        const double QuantStep = .0001;
-        double CurrQuant = QuantStep;
-        while (CurrQuant < 1) {
-            const double ActualBand = BandGk.Query(CurrQuant);
-            const double ActualBandless = BandlessGk.Query(CurrQuant);
+        const auto LowerBoundFun = [&](const double& PVal) {
+            return std::floor(PVal <= Quant0 ? NSamples*(PVal - Eps0*Quant0) : NSamples*PVal*(1 - Eps0)); };
+        const auto UpperBoundFun = [&](const double& PVal) {
+            return std::ceil(PVal <= Quant0 ? NSamples*(PVal + Eps0*Quant0) : NSamples*PVal*(1 + Eps0)); };
 
-            const double Eps = CurrQuant < Quant0 ? Eps0 * Quant0 / CurrQuant : Eps0;
-            const double LowerBound = std::floor((1 - Eps)*CurrQuant*NSamples);
-            const double UpperBound = std::ceil((1 + Eps)*CurrQuant*NSamples);
-
-            ASSERT_GE(ActualBand, LowerBound);
-            ASSERT_GE(ActualBandless, LowerBound);
-            ASSERT_LE(ActualBand, UpperBound);
-            ASSERT_LE(ActualBandless, UpperBound);
-
-            CurrQuant += QuantStep;
-        }
+        AssertQuantileRangeV(BandGk, LowerBoundFun, UpperBoundFun, .0001);
+        AssertQuantileRangeV(BandlessGk, LowerBoundFun, UpperBoundFun, .0001);
     }
 
     ASSERT_TRUE(BandGk.GetSummarySize() <= BandlessGk.GetSummarySize());
@@ -225,10 +222,10 @@ TEST(TBiasedGk, Query) {
 TEST(TBiasedGk, HighQuantiles) {
     const int NTrials = 10;
     const int NSamples = 1000;
-    const double Quant0 = 1 - .01;
+    const double TargetPVal = 1 - .01;
     const double Eps0 = .1;
 
-    TBiasedGk Gk(Quant0, Eps0);
+    TBiasedGk Gk(TargetPVal, Eps0);
 
     for (int TrialN = 0; TrialN < NTrials; TrialN++) {
         TIntV SampleV;  GenSamplesUniform(NSamples, SampleV);
@@ -236,52 +233,40 @@ TEST(TBiasedGk, HighQuantiles) {
             Gk.Insert(SampleV[SampleN]);
         }
 
-        const double QuantStep = .0001;
-        double CurrQuant = QuantStep;
-        while (CurrQuant < 1) {
-            const double Eps = CurrQuant > Quant0 ? Eps0 * (1 - Quant0) / (1 - CurrQuant) : Eps0;
+        const auto LowerBoundFun = [&](const double& PVal) {
+            return std::floor(PVal >= TargetPVal ? NSamples*(PVal - Eps0*(1 - TargetPVal)) : NSamples*(PVal - Eps0*(1 - PVal))); };
+        const auto UpperBoundFun = [&](const double& PVal) {
+            return std::ceil(PVal >= TargetPVal ? NSamples*(PVal + Eps0*(1 - TargetPVal)) : NSamples*(PVal + Eps0*(1 - PVal))); };
 
-            const double Actual = Gk.Query(CurrQuant);
-            const double Expected = CurrQuant*NSamples;
-
-            ASSERT_LE(TMath::Abs(Actual - Expected), std::ceil(NSamples*Eps));
-
-            CurrQuant += QuantStep;
-        }
+        AssertQuantileRangeV(Gk, LowerBoundFun, UpperBoundFun, .0001);
     }
 }
 
-// TODO uncomment test
-/* TEST(TBiasedGk, OrderedInput) { */
-/*     const uint64 NSamples = 10000; */
-/*     const double Quant0 = .01; */
-/*     /1* const double Quant0 = 0; *1/ */
-/*     const double Eps = .1; */
-/*     const bool UseBands = true; */
+TEST(TBiasedGk, OrderedInput) {
+    const uint64 NSamples = 10000;
+    const double TargetPVal = .01;
+    const double Eps = .1;
+    const bool UseBands = true;
 
-/*     TBiasedGk IncGk(Quant0, Eps, UseBands); */
-/*     TBiasedGk DecGk(Quant0, Eps, UseBands); */
-/*     TBiasedGk RandGk(Quant0, Eps, UseBands); */
+    TBiasedGk IncGk(TargetPVal, Eps, TBiasedGk::TCompressStrategy::csPeriodic, UseBands);
+    TBiasedGk DecGk(TargetPVal, Eps, TBiasedGk::TCompressStrategy::csPeriodic, UseBands);
 
-/*     TIntV SampleV;  GenSamplesUniform(NSamples, SampleV, true); */
+    for (uint64 SampleN = 0; SampleN < NSamples; SampleN++) {
+        IncGk.Insert(SampleN + 1);
+        DecGk.Insert(NSamples - SampleN);
+    }
 
-/*     for (uint64 SampleN = 0; SampleN < NSamples; SampleN++) { */
-/*         const uint64 SampleRand = SampleV[SampleN]; */
-/*         IncGk.Insert(SampleN + 1); */
-/*         DecGk.Insert(NSamples - SampleN); */
-/*         RandGk.Insert(SampleRand); */
-/*     } */
+    IncGk.Compress();
+    DecGk.Compress();
 
-/*     IncGk.Compress(); */
-/*     DecGk.Compress(); */
-/*     RandGk.Compress(); */
+    const auto LowerBoundFun = [&](const double& PVal) {
+        return std::floor(PVal >= TargetPVal ? NSamples*(PVal - Eps*(1 - TargetPVal)) : NSamples*(PVal - Eps*(1 - PVal))); };
+    const auto UpperBoundFun = [&](const double& PVal) {
+        return std::floor(PVal >= TargetPVal ? NSamples*(PVal + Eps*(1 - TargetPVal)) : NSamples*(PVal + Eps*(1 - PVal))); };
 
-/*     IncGk.PrintSummary(); */
-/*     DecGk.PrintSummary(); */
-/*     RandGk.PrintSummary(); */
-
-/*     // TODO test */
-/* } */
+    AssertQuantileRangeV(IncGk, LowerBoundFun, UpperBoundFun, 0.0001);
+    AssertQuantileRangeV(DecGk, LowerBoundFun, UpperBoundFun, 0.0001);
+}
 
 TEST(TBiasedGk, ExtremeValues) {
     const int NSamples = 10000;
