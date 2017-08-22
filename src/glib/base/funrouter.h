@@ -23,7 +23,11 @@ public:
     TFunRouter() { }
     
     /// Register new object
-    void Register(const TStr& TypeNm, TFun Fun) { TypeNmToFunH.AddDat(TypeNm, Fun); }
+    void Register(const TStr& TypeNm, TFun Fun) {
+        if (TypeNmToFunH.IsKey(TypeNm)) {
+            throw TExcept::New("[TFunRouter::Register] Already registered object type " + TypeNm);
+        }
+        TypeNmToFunH.AddDat(TypeNm, Fun); }
     
     /// Get the function for given type
     TFun Fun(const TStr& TypeNm) {
