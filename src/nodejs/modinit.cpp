@@ -81,10 +81,12 @@ void InitAnalytics(Handle<Object> Exports, const TStr& NsNm) {
     TNodeJsKMeans::Init(NsObj);
     TNodeJsDpMeans::Init(NsObj);
     TNodeJsTDigest::Init(NsObj);
-    TNodeJsRecommenderSys::Init(NsObj);
-    TNodeJsGraphCascade::Init(NsObj);
+    TNodeJsGk::Init(NsObj);
+    TNodeJsBiasedGk::Init(NsObj);
     TNodeJsCountWindowGk::Init(NsObj);
     TNodeJsTimeWindowGk::Init(NsObj);
+    TNodeJsRecommenderSys::Init(NsObj);
+    TNodeJsGraphCascade::Init(NsObj);
 
     Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
 }
