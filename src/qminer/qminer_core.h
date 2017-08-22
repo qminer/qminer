@@ -3544,7 +3544,7 @@ public:
     virtual bool IsInit() const { return true; }
 
     /// Reset the state of the aggregate
-    virtual void Reset() = 0;
+    virtual void Reset() {};
 
     /// Update state of the aggregate
     virtual void OnStep(const TWPt<TStreamAggr>& CallerAggr) { }
@@ -3563,7 +3563,7 @@ public:
     /// Print latest statistics to logger
     virtual void PrintStat() const { }
     /// Serialization current status to JSon
-    virtual PJsonVal SaveJson(const int& Limit) const = 0;
+    virtual PJsonVal SaveJson(const int& Limit) const { return TJsonVal::NewNull(); };
     /// Returns the memory footprint (the number of bytes) of the aggregate
     virtual uint64 GetMemUsed() const;
     /// Get access to the timmer
