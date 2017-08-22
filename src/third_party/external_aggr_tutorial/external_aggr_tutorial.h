@@ -12,10 +12,11 @@
  // This code demonstrates how to implement, compile and test a new stream aggregate as an external
  // qminer extension.
 
- // To compile the external code, run this from qminer root (make sure node-gyp is up-to-date).
- // Add  --msvs_version=2015 after `node-gyp configure` on windows.
- // In case of multiple include dirs and multiple source files, each item should be enclosed within ' and the items
- // should be separated by a space (see the example below where two external source files are provided)
+ // To compile the external code, run the three lines below from qminer root (make sure node-gyp is up-to-date).
+ // REMARKS:
+ // - Add  --msvs_version=2015 after `node-gyp configure` on windows.
+ // - In case of multiple include dirs and multiple source files, each item should be enclosed within ' and the items
+ //   should be separated by a space (see the example below where two external source files are provided)
  node-gyp clean
  node-gyp configure -- -DADDITIONAL_QMINER_INCLUDE_DIRS="src/third_party/external_aggr_tutorial" -DADDITIONAL_QMINER_SOURCES="'src/third_party/external_aggr_tutorial/external_aggr.cpp' 'src/third_party/external_aggr_tutorial/external_aggr.h'"
  node-gyp build
@@ -55,7 +56,7 @@
     console.log('boundsChecker.getFloat():', boundsChecker.getFloat()); // 0
 
     // Works without pushing to store (just creates a recod according to store schema)
-    var rec = store.newRecord({ Time: time, Value: 5 });
+    var rec = store.newRecord({ Time: 30, Value: 5 });
     // Calls all aggregates (tick and boundsChecker)
     store.triggerOnAddCallbacks(rec);
     // Upper bound exceeded, should print 1
