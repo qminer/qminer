@@ -18,7 +18,7 @@
  // - In case of multiple include dirs and multiple source files, each item should be enclosed within ' and the items
  //   should be separated by a space (see the example below where two external source files are provided)
  node-gyp clean
- node-gyp configure -- -DADDITIONAL_QMINER_INCLUDE_DIRS="src/third_party/external_aggr_tutorial" -DADDITIONAL_QMINER_SOURCES="'src/third_party/external_aggr_tutorial/external_aggr.cpp' 'src/third_party/external_aggr_tutorial/external_aggr.h'"
+ node-gyp configure -- -DADDITIONAL_QMINER_INCLUDE_DIRS="src/third_party/external_aggr_tutorial" -DADDITIONAL_QMINER_SOURCES="'src/third_party/external_aggr_tutorial/external_aggr_tutorial.cpp' 'src/third_party/external_aggr_tutorial/external_aggr_tutorial.h'"
  node-gyp build
 
  // Example usage:
