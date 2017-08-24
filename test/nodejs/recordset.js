@@ -60,7 +60,8 @@ function TStore() {
         "name": "TestStore",
         "fields": [
             { "name": "Name", "type": "string", "primary": true },
-            { "name": "Tm", "type": "datetime" }
+            { "name": "Tm", "type": "datetime" },
+            { "name": "Id", "type": "int", "null": true }
         ]
     }]);
     // adding two persons
@@ -85,6 +86,7 @@ function TStore() {
     this.base.store("TestStore").push({ "Name": "Goran Dragic", "Tm": "2015-06-01T00:00:00" });
 	this.base.store("TestStore").push({ "Name": "Michael Jordan", "Tm": "2015-06-01T00:00:01" });
 	this.base.store("TestStore").push({ "Name": "Marko Milic", "Tm": "2015-06-01T00:00:05" });
+    this.base.store("TestStore").push({ "Name": "Marko Aznur", "Tm": "2015-06-01T00:00:05", "Id": 5 });
 
     this.close = function () {
         this.base.close();
@@ -439,11 +441,11 @@ describe('Record Set Tests', function () {
         })
         it('should handle request if the second parameter is missing - datetime', function () {
             recSet5.filterByField("Tm", "2015-06-01T00:00:01");
-            assert.equal(recSet5.length, 2);
+            assert.equal(recSet5.length, 3);
         })
         it('should handle request if the second parameter is null - datetime', function () {
             recSet5.filterByField("Tm", "2015-06-01T00:00:01", null);
-            assert.equal(recSet5.length, 2);
+            assert.equal(recSet5.length, 3);
         })
         it('should handle request if the first parameter is null - datetime', function () {
             recSet5.filterByField("Tm", null, "2015-06-01T00:00:01");
@@ -695,6 +697,11 @@ describe('Record Set Tests', function () {
             assert.equal(arr.length, 2);
             assert.equal(arr[0], 2010);
             assert.equal(arr[1], 2006);
+        })
+        it('should return the vector with only non-null elements', function () {
+            var arr = recSet5.getVector("Id");
+            assert.equal(arr.length, 1);
+            assert.equal(arr[0], 5);
         })
         it('should throw an exception, if parameter is not a legit field', function () {
             assert.throws(function () {

@@ -3221,9 +3221,12 @@ void TNodeJsRecSet::getVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     const TQm::TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
 
     if (Desc.IsInt()) {
-        TIntV ColV(Recs);
+        TIntV ColV(Recs, 0);
         for (int RecN = 0; RecN < Recs; RecN++) {
-            ColV[RecN] = Store->GetFieldInt(RecSet()->GetRecId(RecN), FieldId);
+            const uint64 RecId = RecSet()->GetRecId(RecN);
+            if (!Store->IsFieldNull(RecId, FieldId)) {
+                ColV.Add(Store->GetFieldInt(RecId, FieldId));
+            }
         }
         Args.GetReturnValue().Set(TNodeJsVec<TInt, TAuxIntV>::New(ColV));
         return;
