@@ -710,7 +710,7 @@ describe('Record Set Tests', function () {
             assert.equal(arr[1], 2006);
         })
         it('should return the vector with only non-null elements', function () {
-            for (let i = 1; i < 13; i++) {
+            for (var i = 1; i < 13; i++) {
                 var arr = recSet5.getVector("Id" + i);
                 assert.equal(arr.length, 1);
             }
