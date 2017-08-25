@@ -481,6 +481,28 @@ namespace TQuant {
             RightUncertExpHist.Save(SOut);
         }
 
+        TEhTuple::TEhTuple(const TEhTuple& Other):
+                TupleSizeExpHist(Other.TupleSizeExpHist),
+                RightUncertExpHist(Other.RightUncertExpHist) {}
+
+        TEhTuple& TEhTuple::operator =(const TEhTuple& Other) {
+            TEhTuple Temp(Other);
+            std::swap(*this, Temp);
+            return *this;
+        }
+
+        TEhTuple::TEhTuple(TEhTuple&& Other):
+                TupleSizeExpHist(std::move(Other.TupleSizeExpHist)),
+                RightUncertExpHist(std::move(Other.RightUncertExpHist)) {}
+
+        TEhTuple& TEhTuple::operator =(TEhTuple&& Other) {
+            if (this != &Other) {
+                std::swap(TupleSizeExpHist, Other.TupleSizeExpHist);
+                std::swap(RightUncertExpHist, Other.RightUncertExpHist);
+            }
+            return *this;
+        }
+
         double TEhTuple::GetVal() const {
             return TupleSizeExpHist.GetMxVal();
         }
@@ -489,7 +511,7 @@ namespace TQuant {
             return TupleSizeExpHist.GetCount();
         }
 
-        uint TEhTuple::GetMnMxRankDiff() const {
+        uint TEhTuple::GetUncertRight() const {
             return RightUncertExpHist.GetCount();
         }
 
@@ -505,6 +527,10 @@ namespace TQuant {
         void TEhTuple::Swallow(TEhTuple& Other, const bool& TakeMnMxRank) {
             TupleSizeExpHist.Swallow(Other.TupleSizeExpHist);
             if (TakeMnMxRank) { std::swap(RightUncertExpHist, Other.RightUncertExpHist); }
+        }
+
+        void TEhTuple::SwallowOne(const uint64& ValTm, const double& Val) {
+            TupleSizeExpHist.Add(ValTm, Val);
         }
 
         /////////////////////////////////////////////
@@ -554,7 +580,13 @@ namespace TQuant {
             if (TupleIt == Summary.end()) {
                 Summary.insert(TupleIt, TTuple(EpsEh, ValTm, Val, *this));
             } else {
-                Summary.insert(TupleIt, TTuple(EpsEh, ValTm, Val, *TupleIt, *this));
+                TTuple& RightTuple = *TupleIt;
+
+                if (1 + RightTuple.GetTotalUncert() < uint(2*EpsGk*double(ItemCount))) {
+                    RightTuple.SwallowOne(ValTm, Val);
+                } else {
+                    Summary.insert(TupleIt, TTuple(EpsEh, ValTm, Val, RightTuple, *this));
+                }
             }
 
             // update counters
@@ -666,11 +698,13 @@ namespace TQuant {
                     TSummary::iterator LargerIt = RightIt->GetVal() > LeftIt->GetVal() ?
                                                                 RightIt : LeftIt;
 
+                    const uint MxUncert = uint(2*EpsGk*double(ItemCount));
+
                     const uint LeftTupleCount = LeftIt->GetTupleSize();
                     const uint RightTupleCount = RightIt->GetTupleSize();
-                    const uint LargerCorr = LargerIt->GetMnMxRankDiff();
+                    const uint LargerCorr = LargerIt->GetUncertRight();
 
-                    if (LeftTupleCount + RightTupleCount + LargerCorr < uint(2*EpsGk*double(ItemCount))) {
+                    if (LeftTupleCount + RightTupleCount + LargerCorr < MxUncert) {
                         // merge the two tuples
                         RightIt->Swallow(*LeftIt, LargerIt == LeftIt);
                         LeftIt = Summary.erase(LeftIt);

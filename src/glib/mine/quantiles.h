@@ -420,7 +420,13 @@ namespace TQuant {
             TEhTuple(TSIn& SIn);
             void Save(TSOut& SOut) const;
 
-            // TODO copy / move operations
+            // COPY/MOVE
+            // copy
+            TEhTuple(const TEhTuple&);
+            TEhTuple& operator =(const TEhTuple&);
+            // move
+            TEhTuple(TEhTuple&&);
+            TEhTuple& operator =(TEhTuple&&);
 
             /// returns the (approximate) max value in the tuple
             /// without shifting the sliding window
@@ -430,18 +436,20 @@ namespace TQuant {
             uint GetTupleSize() const;
             /// returns the (approximate) correction of capacity of the tuple
             /// without shifting the sliding window
-            uint GetMnMxRankDiff() const;
+            uint GetUncertRight() const;
+            /// returns the range of the tuples' rank
+            uint GetTotalUncert() const { return GetTupleSize() + GetUncertRight(); }
             /// indicates whether the tuple is empty
             bool Empty() const { return GetTupleSize() == 0; }
 
             /// Shifts the cutoff time. All the values at and after this time
             /// are forgotten
             void Forget(const int64& Tm);
-            /* void Forget(const uint64& Tm); */
 
             void DelNewestNonMx();
 
             void Swallow(TEhTuple& Other, const bool& TakeMnMxRank);
+            void SwallowOne(const uint64& ValTm, const double& Val);
 
             friend std::ostream& operator <<(std::ostream& os, const TEhTuple& Tup) {
                 return os << "<"
@@ -560,9 +568,8 @@ namespace TQuant {
             /// returns the uncertainty of the max values rank due to the merges
             /// happening on the right of this tuple
             const TUInt& GetUncertRight() const { return UncertRight; }
-
             /// returns the total uncertainty of the values' rank
-            double GetTotalUncert() const { return GetTupleSize() + GetUncertRight(); }
+            uint GetTotalUncert() const { return GetTupleSize() + GetUncertRight(); }
 
             friend std::ostream& operator <<(std::ostream& os, const TGkMnUncertTuple& Tuple) {
                 return os << "<"
