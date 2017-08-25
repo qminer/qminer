@@ -1261,6 +1261,7 @@ namespace TQuant {
     TBiasedGk::TBiasedGk(const double& _PVal0, const double& _Eps,
                 const TCompressStrategy& _Cs, const bool& _UseBands):
             Summary(*this, _UseBands),
+            CompressSampleN(uint64(std::ceil(0.5 / _Eps))),
             PVal0(_PVal0 <= 0.5 ? _PVal0 : 1 - _PVal0),
             Eps(_Eps),
             Dir(_PVal0 <= 0.5 ? 1 : -1),
@@ -1273,6 +1274,7 @@ namespace TQuant {
     TBiasedGk::TBiasedGk(TSIn& SIn):
             Summary(*this, SIn),
             SampleN(SIn),
+            CompressSampleN(SIn),
             PVal0(SIn),
             Eps(SIn),
             Dir(SIn) {
@@ -1300,6 +1302,7 @@ namespace TQuant {
     void TBiasedGk::Save(TSOut& SOut) const {
         Summary.Save(SOut);
         SampleN.Save(SOut);
+        CompressSampleN.Save(SOut);
         PVal0.Save(SOut);
         Eps.Save(SOut);
         Dir.Save(SOut);
@@ -1325,6 +1328,9 @@ namespace TQuant {
 
     void TBiasedGk::Compress() {
         Summary.Compress();
+        // update when the next compression will be if the strategy
+        // is set to periodic
+        CompressSampleN += GetSummarySize();
     }
 
     const TFlt& TBiasedGk::GetEps() const {
@@ -1370,7 +1376,7 @@ namespace TQuant {
                 return true;
             }
             case TCompressStrategy::csPeriodic: {
-                return SampleN % uint64(std::ceil(0.5 / Eps)) == 0;    // TODO set some smart compress strategy
+                return SampleN >= CompressSampleN;
             }
             default: {
                throw TExcept::New("Invalid compression strategy!");

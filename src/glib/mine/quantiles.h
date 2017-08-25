@@ -730,7 +730,7 @@ namespace TQuant {
         enum class TCompressStrategy : char {
             csManual = 0,
             csAggressive = 1,
-            csPeriodic = 2      // TODO handle the periodic strategy
+            csPeriodic = 2
         };
 
         /// the returned rank will be between (1-eps)r <= ri <= (1+eps)r up to
@@ -795,6 +795,7 @@ namespace TQuant {
 
         TSummary Summary;
         TUInt64 SampleN {uint64(0)};     // number of samples seen so far, initialized to 0
+        TUInt64 CompressSampleN;
         TFlt PVal0;
         TFlt Eps;
         TInt Dir;

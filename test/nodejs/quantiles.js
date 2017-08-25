@@ -328,6 +328,17 @@ describe('BiasedGk test', function () {
             assert(isErrorInRangeLow(cumProb, quantLow));
             assert(isErrorInRangeHigh(cumProb, quantHigh));
         }
+
+        var params = gkLow1.getParams();
+        assert(params.eps != null);
+        assert(params.targetProb != null);
+        assert(params.compression != null);
+        assert(params.useBands != null);
+
+        assert.equal(params.eps, 0.1);
+        assert.equal(params.targetProb, 0.01);
+        assert.equal(params.compression, "periodic");
+        assert.equal(params.useBands, true);
     })
 })
 
