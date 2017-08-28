@@ -443,8 +443,12 @@ void TNodeJsSVC::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                 JsModel->Model = TSvm::TLinModel(SvmModel->GetWgtV(), SvmModel->GetThresh());
             }
             else if (JsModel->Algorithm == "LIBSVM") {
-                JsModel->Model = TSvm::LibSvmSolveClassify(VecV, ClsV, JsModel->SvmCost,
+              JsModel->Model = TSvm::TLinModel();
+              JsModel->Model.Solve(VecV, ClsV, JsModel->SvmCost,
                     TQm::TEnv::Debug, TQm::TEnv::Error);
+              /*
+                JsModel->Model = TSvm::LibSvmSolveClassify(VecV, ClsV, JsModel->SvmCost,
+                    TQm::TEnv::Debug, TQm::TEnv::Error);*/
             }
             else {
                 throw TExcept::New("SVC.fit: unknown algorithm " + JsModel->Algorithm);
@@ -464,8 +468,13 @@ void TNodeJsSVC::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                 JsModel->Model = TSvm::TLinModel(SvmModel->GetWgtV(), SvmModel->GetThresh());
             }
             else if (JsModel->Algorithm == "LIBSVM") {
+              JsModel->Model = TSvm::TLinModel();
+              JsModel->Model.Solve(VecV, ClsV, JsModel->SvmCost,
+                    TQm::TEnv::Debug, TQm::TEnv::Error);
+              /*
                 JsModel->Model = TSvm::LibSvmSolveClassify(VecV, ClsV, JsModel->SvmCost,
                     TQm::TEnv::Debug, TQm::TEnv::Error);
+                    */
             }
             else {
                 throw TExcept::New("SVC.fit: unknown algorithm " + JsModel->Algorithm);

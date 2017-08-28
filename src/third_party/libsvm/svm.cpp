@@ -304,7 +304,7 @@ double Kernel::dot(const svm_node *px, const svm_node *py)
 
 double Kernel::k_function(const svm_node *x, const svm_node *y,
 			  const svm_parameter& param)
-{
+{       printf("k_function\n");
 	switch(param.kernel_type)
 	{
 		case LINEAR:
@@ -763,6 +763,7 @@ void Solver::Solve(int l, const QMatrix& Q, const double *p_, const schar *y_,
 	si->upper_bound_n = Cn;
 
 	DebugNotify->OnStatusFmt("\noptimization finished, #iter = %d\n",iter);
+        printf("\noptimization finished, #iter = %d\n",iter);
 
 	delete[] p;
 	delete[] y;
@@ -1663,6 +1664,7 @@ static decision_function svm_train_one(
 	}
 
 	DebugNotify->OnStatusFmt("obj = %f, rho = %f\n",si.obj,si.rho);
+        printf("obj = %f, rho = %f\n",si.obj,si.rho);
 
 	// output SVs
 
@@ -1687,6 +1689,7 @@ static decision_function svm_train_one(
 	}
 
 	DebugNotify->OnStatusFmt("nSV = %d, nBSV = %d\n",nSV,nBSV);
+        printf("nSV = %d, nBSV = %d\n",nSV,nBSV);
 
 	decision_function f;
 	f.alpha = alpha;
@@ -2267,6 +2270,7 @@ svm_model *svm_train(const svm_problem *prob, const svm_parameter *param,
 		}
 		
 		DebugNotify->OnStatusFmt("Total nSV = %d\n",total_sv);
+                printf("Total nSV = %d\n",total_sv);
 
 		model->l = total_sv;
 		model->SV = Malloc(svm_node *,total_sv);
