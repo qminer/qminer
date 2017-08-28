@@ -15,7 +15,7 @@
  // - In case of multiple include dirs and multiple source files, each item should be enclosed within ' and the items
  //   should be separated by a space (see the example below where two external source files are provided)
  call node-gyp clean
- call node-gyp configure --msvs_version=2015 -- -DADDITIONAL_QMINER_INCLUDE_DIRS="'src/third_party/external_analytics_model'" -DADDITIONAL_QMINER_SOURCES="'src/third_party/external_analytics_model/external_analytics_model.cpp' 'src/third_party/external_analytics_model/external_analytics_model.h'"
+ call node-gyp configure -- -DADDITIONAL_QMINER_INCLUDE_DIRS="'src/third_party/external_analytics_model'" -DADDITIONAL_QMINER_SOURCES="'src/third_party/external_analytics_model/external_analytics_model.cpp' 'src/third_party/external_analytics_model/external_analytics_model.h'"
  call node-gyp build
 
  // Example usage:
