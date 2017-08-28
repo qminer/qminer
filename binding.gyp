@@ -235,6 +235,7 @@
                 'src/glib/base/',
                 'src/glib/mine/',
                 'src/glib/misc/',
+                'src/glib/concurrent/',
                 'src/third_party/geospatial/',
                 'src/third_party/sole/',
                 '<(LIN_ALG_INCLUDE)',

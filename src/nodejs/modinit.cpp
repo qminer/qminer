@@ -162,6 +162,16 @@ void InitQm(Handle<Object> Exports) {
     TNodeJsFtrSpace::Init(Exports);
 }
 
+void InitExternalQmAddons(Handle<Object> Exports) {
+    TFunRouter<TExportsVoidF>& Router = TExternalQmAddon::CreateOnce();
+    TStrV TypeNmV;
+    Router.GetTypeNmV(TypeNmV);
+    int Len = TypeNmV.Len();
+    for (int TypeN = 0; TypeN < Len; TypeN++) {
+        Router.Fun(TypeNmV[TypeN])(Exports);
+    }
+}
+
 void Init(Handle<Object> Exports) {
     InitFs(Exports, "fs");
     InitLa(Exports, "la");
@@ -172,6 +182,8 @@ void Init(Handle<Object> Exports) {
     InitDeprecated(Exports, "deprecated");
     InitStreamStory(Exports, "streamstory");
     InitQm(Exports);
+    // Initializes all external objects
+    InitExternalQmAddons(Exports);
 }
 
 NODE_MODULE(qm, Init);
