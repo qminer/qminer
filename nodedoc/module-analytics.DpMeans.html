@@ -4,7 +4,7 @@
 <head>
   <meta name="generator" content="JSDoc 3">
   <meta charset="utf-8">
-  <title>Class: KMeans</title>
+  <title>Class: DpMeans</title>
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
   <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
@@ -24,10 +24,11 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">KMeans</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1697">analyticsdoc.<wbr>js:1697</a></p>
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">DpMeans</span></h1>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1924">analyticsdoc.<wbr>js:1924</a></p>
             <div class="symbol-classdesc">
-              <p>KMeans Clustering is an iterative, data-partitioning algorithm that assigns observations into K clusters.</p>
+              <p>DpMeans Clustering is an iterative, data-partitioning algorithm that assigns observations into clusters with the nearest centroid according to some metric. The number of clusters is not known in advance, but can be upper and lower bounded.
+                Rather the parameter is the maximum radius of a cluster <code>lambda</code>.</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -38,20 +39,20 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.KMeans.html#centroids">centroids</a></dt>
+                    <dt><a href="module-analytics.DpMeans.html#centroids">centroids</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.KMeans.html#idxv">idxv</a></dt>
+                    <dt><a href="module-analytics.DpMeans.html#idxv">idxv</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.KMeans.html#medoids">medoids</a></dt>
+                    <dt><a href="module-analytics.DpMeans.html#medoids">medoids</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.KMeans.html#relMeanCentroidDist">relMeanCentroidDist</a></dt>
+                    <dt><a href="module-analytics.DpMeans.html#relMeanCentroidDist">relMeanCentroidDist</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -65,39 +66,39 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.KMeans.html#explain">explain(X)</a></dt>
+                    <dt><a href="module-analytics.DpMeans.html#explain">explain(X)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.KMeans.html#fit">fit(X)</a></dt>
+                    <dt><a href="module-analytics.DpMeans.html#fit">fit(X)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.KMeans.html#getModel">getModel()</a></dt>
-                    <dd>
-                    </dd>
-                  </dl>
-                </div>
-                <div class="summary-column">
-                  <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.KMeans.html#getParams">getParams()</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="module-analytics.KMeans.html#permuteCentroids">permuteCentroids(mapping)</a></dt>
-                    <dd>
-                    </dd>
-                    <dt><a href="module-analytics.KMeans.html#predict">predict(A)</a></dt>
+                    <dt><a href="module-analytics.DpMeans.html#getModel">getModel()</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.KMeans.html#save">save(fout)</a></dt>
+                    <dt><a href="module-analytics.DpMeans.html#getParams">getParams()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.KMeans.html#setParams">setParams(params)</a></dt>
+                    <dt><a href="module-analytics.DpMeans.html#permuteCentroids">permuteCentroids(mapping)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.KMeans.html#transform">transform(A)</a></dt>
+                    <dt><a href="module-analytics.DpMeans.html#predict">predict(A)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.DpMeans.html#save">save(fout)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.DpMeans.html#setParams">setParams(params)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics.DpMeans.html#transform">transform(A)</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -106,8 +107,8 @@
             </div>
           </section>
           <section>
-            <h2 id="KMeans">new&nbsp;<span class="symbol-name">KMeans</span><span class="signature"><span class="signature-params">([arg])</span></span></h2>
-            <p>KMeans Clustering</p>
+            <h2 id="DpMeans">new&nbsp;<span class="symbol-name">DpMeans</span><span class="signature"><span class="signature-params">([arg])</span></span></h2>
+            <p>DpMeans Clustering</p>
             <section>
               <h3>
             Example
@@ -117,14 +118,14 @@
 var analytics = require(&#x27;qminer&#x27;).analytics;
 var la = require(&#x27;qminer&#x27;).la;
 // create a KMeans object
-var KMeans = new analytics.KMeans();
+var dpmeans = new analytics.DpMeans();
 // create the matrix to be fitted
 var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
 // create the model
-KMeans.fit(X);
+dpmeans.fit(X);
 // predict where the columns of the matrix will be assigned
 var Y = new la.Matrix([[1, 1, 0], [-2, 3, 1]]);
-var prediction = KMeans.predict(Y);</code></pre>
+var prediction = dpmeans.predict(Y);</code></pre>
               </div>
             </section>
             <section>
@@ -144,14 +145,14 @@ var prediction = KMeans.predict(Y);</code></pre>
                       <p>arg</p>
                     </td>
                     <td>
-                      <p>(<a href="module-analytics.html#~KMeansParam">module:analytics~KMeansParam</a> or <a href="module-fs.FIn.html">module:fs.FIn</a>)</p>
+                      <p>(<a href="module-analytics.html#~DpMeansParam">module:analytics~DpMeansParam</a> or <a href="module-fs.FIn.html">module:fs.FIn</a>)</p>
                     </td>
                     <td>
                       <p>Yes</p>
                     </td>
                     <td>
                       <p>Construction arguments. There are two ways of constructing:
-                        <br>1. Using the <a href="module-analytics.html#~KMeansParam">module:analytics~KMeansParam</a> object,
+                        <br>1. Using the <a href="module-analytics.html#~DpMeansParam">module:analytics~DpMeansParam</a> object,
                         <br>2. using the file input stream <a href="module-fs.FIn.html">module:fs.FIn</a>.</p>
                     </td>
                   </tr>
@@ -173,10 +174,10 @@ var prediction = KMeans.predict(Y);</code></pre>
                 <div>
                   <pre class="prettyprint"><code>// import the modules
 var analytics = require(&#x27;qminer&#x27;).analytics;
-// create a new KMeans object
-var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+// create a new DpMeans object
+var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
 // get the centroids
-var centroids = KMeans.centroids;
+var centroids = DpMeans.centroids;
 // print the first centroid
 console.log(centroids.getCol(0));</code></pre>
                 </div>
@@ -192,10 +193,10 @@ console.log(centroids.getCol(0));</code></pre>
                 <div>
                   <pre class="prettyprint"><code>// import the modules
 var analytics = require(&#x27;qminer&#x27;).analytics;
-// create a new KMeans object
-var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+// create a new DpMeans object
+var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
 // get the idxv
-var idxv = KMeans.idxv;</code></pre>
+var idxv = DpMeans.idxv;</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -209,10 +210,10 @@ var idxv = KMeans.idxv;</code></pre>
                 <div>
                   <pre class="prettyprint"><code>// import the modules
 var analytics = require(&#x27;qminer&#x27;).analytics;
-// create a new KMeans object
-var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+// create a new DpMeans object
+var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
 // get the centroids
-var medoids = KMeans.medoids;</code></pre>
+var medoids = DpMeans.medoids;</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -229,7 +230,7 @@ var medoids = KMeans.medoids;</code></pre>
             </section>
             <h2>Methods</h2>
             <section>
-              <h3 id="explain"><span class="symbol-name">explain</span><span class="signature"><span class="signature-params">(X)</span>&nbsp;&rarr; <span class="signature-returns"> Array of <a href="module-analytics.html#~KMeansExplain">module:analytics~KMeansExplain</a></span></span></h3>
+              <h3 id="explain"><span class="symbol-name">explain</span><span class="signature"><span class="signature-params">(X)</span>&nbsp;&rarr; <span class="signature-returns"> Array of <a href="module-analytics.html#~DpMeansExplain">module:analytics~DpMeansExplain</a></span></span></h3>
               <p>Returns the IDs of the nearest medoid for each example.</p>
               <section>
                 <h4>
@@ -240,16 +241,16 @@ var medoids = KMeans.medoids;</code></pre>
 var analytics = require(&#x27;qminer&#x27;).analytics;
 // import linear algebra module
 var la = require(&#x27;qminer&#x27;).la;
-// create a new KMeans object
-var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+// create a new DpMeans object
+var DpMeans = new analytics.DpMeans({ iter: 1000, k: 3 });
 // create a matrix to be fitted
 var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
 // create the model with the matrix X using the column IDs [0,1,2]
-KMeans.fit(X, [1234,1142,2355]);
+DpMeans.fit(X, [1234,1142,2355]);
 // create the matrix of the prediction vectors
 var test = new la.Matrix([[2, -1, 1], [1, 0, -3]]);
 // predict/explain - return the closest medoids
-var explanation = KMeans.explain(test);</code></pre>
+var explanation = DpMeans.explain(test);</code></pre>
                 </div>
               </section>
               <section>
@@ -284,10 +285,10 @@ var explanation = KMeans.explain(test);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Array of <a href="module-analytics.html#~KMeansExplain">module:analytics~KMeansExplain</a></code>&nbsp;Array containing the KMeans explanantions.</p>
+                  <p><code>Array of <a href="module-analytics.html#~DpMeansExplain">module:analytics~DpMeansExplain</a></code>&nbsp;Array containing the DpMeans explanantions.</p>
                 </dd>
               </dl>
-              <h3 id="fit"><span class="symbol-name">fit</span><span class="signature"><span class="signature-params">(X)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.KMeans.html">module:analytics.KMeans</a></span></span></h3>
+              <h3 id="fit"><span class="symbol-name">fit</span><span class="signature"><span class="signature-params">(X)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.DpMeans.html">module:analytics.DpMeans</a></span></span></h3>
               <p>Calculates the centroids.</p>
               <section>
                 <h4>
@@ -298,12 +299,12 @@ var explanation = KMeans.explain(test);</code></pre>
                   <pre class="prettyprint"><code>// import analytics module
 var analytics = require(&#x27;qminer&#x27;).analytics;
 var la = require(&#x27;qminer&#x27;).la;
-// create a new KMeans object
-var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+// create a new DpMeans object
+var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
 // create a matrix to be fitted
 var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
 // create the model with the matrix X
-KMeans.fitAsync(X, function (err) {
+DpMeans.fitAsync(X, function (err) {
     if (err) console.log(err);
     // successful calculation
 });</code></pre>
@@ -312,12 +313,12 @@ KMeans.fitAsync(X, function (err) {
                   <p> Synchronous function </p>
                   <pre class="prettyprint"><code>var analytics = require(&#x27;qminer&#x27;).analytics;
 var la = require(&#x27;qminer&#x27;).la;
-// create a new KMeans object
-var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+// create a new DpMeans object
+var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
 // create a matrix to be fitted
 var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
 // create the model with the matrix X
-KMeans.fit(X);</code></pre>
+DpMeans.fit(X);</code></pre>
                 </div>
               </section>
               <section>
@@ -352,7 +353,7 @@ KMeans.fit(X);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.KMeans.html">module:analytics.KMeans</a></code>&nbsp;Self. The model has been updated.</p>
+                  <p><code><a href="module-analytics.DpMeans.html">module:analytics.DpMeans</a></code>&nbsp;Self. The model has been updated.</p>
                 </dd>
               </dl>
               <h3 id="getModel"><span class="symbol-name">getModel</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
@@ -366,22 +367,22 @@ KMeans.fit(X);</code></pre>
 var analytics = require(&#x27;qminer&#x27;).analytics;
 var la = require(&#x27;qminer&#x27;).la;
 // create the KMeans object
-var KMeans = new analytics.KMeans({ iter: 1000 });
+var dpmeans = new analytics.DpMeans({ iter: 1000 });
 // create a matrix to be fitted
 var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
 // create the model
-KMeans.fit(X);
+DpMeans.fit(X);
 // get the model
-var model = KMeans.getModel();</code></pre>
+var model = DpMeans.getModel();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Object</code>&nbsp;The <code>KMeansModel</code> object containing the properites:
-                    <br> 1. <code>KMeansModel.C</code> - The <a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a> containing the centroids,
-                    <br> 2. <code>KMeansModel.medoids</code> - The <a href="module-la.IntVector.html">module:la.IntVector</a> of cluster medoids of the training data,
-                    <br> 3. <code>KMeansModel.idxv</code> - The <a href="module-la.IntVector.html">module:la.IntVector</a> of cluster IDs of the training data.</p>
+                  <p><code>Object</code>&nbsp;The <code>DpMeansModel</code> object containing the properites:
+                    <br> 1. <code>DpMeansModel.C</code> - The <a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a> containing the centroids,
+                    <br> 2. <code>DpMeansModel.medoids</code> - The <a href="module-la.IntVector.html">module:la.IntVector</a> of cluster medoids of the training data,
+                    <br> 3. <code>DpMeansModel.idxv</code> - The <a href="module-la.IntVector.html">module:la.IntVector</a> of cluster IDs of the training data.</p>
                 </dd>
               </dl>
               <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.html#~KMeansParam">module:analytics~KMeansParam</a></span></span></h3>
@@ -393,10 +394,11 @@ var model = KMeans.getModel();</code></pre>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
 var analytics = require(&#x27;qminer&#x27;).analytics;
-// create a new KMeans object
-var KMeans = new analytics.KMeans({ iter: 1000, k: 5 });
+// create a new DpMeans object
+var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 5 });
 // get the parameters
-var json = KMeans.getParams();</code></pre>
+var json = DpMeans.getParams();
+console.log(json.lambda);</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -405,8 +407,8 @@ var json = KMeans.getParams();</code></pre>
                   <p><code><a href="module-analytics.html#~KMeansParam">module:analytics~KMeansParam</a></code>&nbsp;The construction parameters.</p>
                 </dd>
               </dl>
-              <h3 id="permuteCentroids"><span class="symbol-name">permuteCentroids</span><span class="signature"><span class="signature-params">(mapping)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.KMeans.html">module:analytics.KMeans</a></span></span></h3>
-              <p>Permutates the clusters, and with it <a href="module-analytics.KMeans.html#centroids">module:analytics.KMeans#centroids</a>, <a href="module-analytics.KMeans.html#medoids">module:analytics.KMeans#medoids</a> and <a href="module-analytics.KMeans.html#idxv">module:analytics.KMeans#idxv</a>.</p>
+              <h3 id="permuteCentroids"><span class="symbol-name">permuteCentroids</span><span class="signature"><span class="signature-params">(mapping)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.DpMeans.html">module:analytics.DpMeans</a></span></span></h3>
+              <p>Permutates the clusters, and with it <a href="module-analytics.DpMeans.html#centroids">module:analytics.DpMeans#centroids</a>, <a href="module-analytics.DpMeans.html#medoids">module:analytics.DpMeans#medoids</a> and <a href="module-analytics.DpMeans.html#idxv">module:analytics.DpMeans#idxv</a>.</p>
               <section>
                 <h4>
             Example
@@ -415,16 +417,16 @@ var json = KMeans.getParams();</code></pre>
                   <pre class="prettyprint"><code>// import the modules
 var analytics = require(&#x27;qminer&#x27;).analytics;
 var la = require(&#x27;qminer&#x27;).la;
-// create a new KMeans object
-var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+// create a new DpMeans object
+var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
 // create a matrix to be fitted
 var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
 // create the model with the matrix X
-KMeans.fit(X);
+DpMeans.fit(X);
 // create the mapping vector
 var Mapping = new la.IntVector([1, 0, 2]);
 // permutate the clusters.
-KMeans.permuteCentroids(Mapping);</code></pre>
+DpMeans.permuteCentroids(Mapping);</code></pre>
                 </div>
               </section>
               <section>
@@ -459,7 +461,7 @@ KMeans.permuteCentroids(Mapping);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.KMeans.html">module:analytics.KMeans</a></code>&nbsp;Self. The clusters has been permutated.</p>
+                  <p><code><a href="module-analytics.DpMeans.html">module:analytics.DpMeans</a></code>&nbsp;Self. The clusters has been permutated.</p>
                 </dd>
               </dl>
               <h3 id="predict"><span class="symbol-name">predict</span><span class="signature"><span class="signature-params">(A)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.IntVector.html">module:la.IntVector</a></span></span></h3>
@@ -472,16 +474,16 @@ KMeans.permuteCentroids(Mapping);</code></pre>
                   <pre class="prettyprint"><code>// import analytics module
 var analytics = require(&#x27;qminer&#x27;).analytics;
 var la = require(&#x27;qminer&#x27;).la;
-// create a new KMeans object
-var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+// create a new DpMeans object
+var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
 // create a matrix to be fitted
 var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
 // create the model with the matrix X
-KMeans.fit(X);
+DpMeans.fit(X);
 // create the matrix of the prediction vectors
 var pred = new la.Matrix([[2, -1, 1], [1, 0, -3]]);
 // predict the values
-var prediction = KMeans.predict(pred);</code></pre>
+var prediction = DpMeans.predict(pred);</code></pre>
                 </div>
               </section>
               <section>
@@ -520,7 +522,7 @@ var prediction = KMeans.predict(pred);</code></pre>
                 </dd>
               </dl>
               <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
-              <p>Saves KMeans internal state into (binary) file.</p>
+              <p>Saves DpMeans internal state into (binary) file.</p>
               <section>
                 <h4>
             Example
@@ -530,20 +532,20 @@ var prediction = KMeans.predict(pred);</code></pre>
 var analytics = require(&#x27;qminer&#x27;).analytics;
 var la = require(&#x27;qminer&#x27;).la;
 var fs = require(&#x27;qminer&#x27;).fs;
-// create a new KMeans object
-var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+// create a new DpMeans object
+var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
 // create a matrix to be fitted
 var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
 // create the model with the matrix X
-KMeans.fit(X);
+DpMeans.fit(X);
 // create the file output stream
-var fout = new fs.openWrite(&#x27;KMeans.bin&#x27;);
-// save the KMeans instance
-KMeans.save(fout);
+var fout = new fs.openWrite(&#x27;DpMeans.bin&#x27;);
+// save the DpMeans instance
+DpMeans.save(fout);
 fout.close();
-// load the KMeans instance
-var fin = fs.openRead(&#x27;KMeans.bin&#x27;);
-var KMeans2 = new analytics.KMeans(fin);</code></pre>
+// load the DpMeans instance
+var fin = fs.openRead(&#x27;DpMeans.bin&#x27;);
+var KMeans2 = new analytics.DpMeans(fin);</code></pre>
                 </div>
               </section>
               <section>
@@ -581,7 +583,7 @@ var KMeans2 = new analytics.KMeans(fin);</code></pre>
                   <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;The output stream <code>fout</code>.</p>
                 </dd>
               </dl>
-              <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(params)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.KMeans.html">module:analytics.KMeans</a></span></span></h3>
+              <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(params)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.DpMeans.html">module:analytics.DpMeans</a></span></span></h3>
               <p>Sets the parameters.</p>
               <section>
                 <h4>
@@ -590,10 +592,10 @@ var KMeans2 = new analytics.KMeans(fin);</code></pre>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
 var analytics = require(&#x27;qminer&#x27;).analytics;
-// create a new KMeans object
-var KMeans = new analytics.KMeans();
-// change the parameters of the KMeans object
-KMeans.setParams({ iter: 1000, k: 5 });</code></pre>
+// create a new DpMeans object
+var DpMeans = new analytics.DpMeans();
+// change the parameters of the DpMeans object
+DpMeans.setParams({ iter: 1000, lambda: 5 });</code></pre>
                 </div>
               </section>
               <section>
@@ -628,7 +630,7 @@ KMeans.setParams({ iter: 1000, k: 5 });</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.KMeans.html">module:analytics.KMeans</a></code>&nbsp;Self. The model parameters have been updated.</p>
+                  <p><code><a href="module-analytics.DpMeans.html">module:analytics.DpMeans</a></code>&nbsp;Self. The model parameters have been updated.</p>
                 </dd>
               </dl>
               <h3 id="transform"><span class="symbol-name">transform</span><span class="signature"><span class="signature-params">(A)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
@@ -641,12 +643,12 @@ KMeans.setParams({ iter: 1000, k: 5 });</code></pre>
                   <pre class="prettyprint"><code>// import modules
 var analytics = require(&#x27;qminer&#x27;).analytics;
 var la = require(&#x27;qminer&#x27;).la;
-// create a new KMeans object
-var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+// create a new DpMeans object
+var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
 // create a matrix to be fitted
 var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
 // create the model with the matrix X
-KMeans.fit(X);
+DpMeans.fit(X);
 // create the matrix of the transform vectors
 var matrix = new la.Matrix([[-2, 0], [0, -3]]);
 // get the transform values of matrix
@@ -654,7 +656,7 @@ var matrix = new la.Matrix([[-2, 0], [0, -3]]);
 //  10    17
 //   1    20
 //  10     1
-KMeans.transform(matrix);</code></pre>
+DpMeans.transform(matrix);</code></pre>
                 </div>
               </section>
               <section>

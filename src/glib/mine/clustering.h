@@ -345,6 +345,7 @@ protected:
 // K-Means
 template<class TCentroidType>
 class TDnsKMeans : public TAbsKMeans<TCentroidType> {
+    using TBase = TAbsKMeans<TCentroidType>;
 public:
     TDnsKMeans(const int& K, const TRnd& Rnd = TRnd(0), const PDist& Dist=TEuclDist::New(),
             const bool& CalcDistQualP=false);
@@ -385,13 +386,15 @@ private:
 // DPMeans
 template<class TCentroidType>
 class TDpMeans : public TAbsKMeans<TCentroidType> {
+    using TBase = TAbsKMeans<TCentroidType>;
 private:
     const TFlt Lambda;
     const TInt MnClusts;
     const TInt MxClusts;
 public:
     TDpMeans(const TFlt& Lambda, const TInt& MnClusts=1, const TInt& MxClusts=TInt::Mx,
-            const TRnd& Rnd=TRnd(), const PDist& Dist=TEuclDist::New());
+            const TRnd& Rnd=TRnd(), const PDist& Dist=TEuclDist::New(),
+            const bool& CalcDistQualP=false);
     TDpMeans(TSIn& SIn);
 
     // saves the model to the output stream
@@ -423,7 +426,7 @@ private:
 
     template <class TDataType>
     inline void AddCentroid(const TDataType& FtrVV, TFltVV& ClustDistVV, TFltV& NormC2,
-        TFltV& TempK, TCentroidType& TempDxK, const int& InstN);
+        TFltV& TempK, TCentroidType& TempDxK, TCentroidType& TempDxK2, const int& InstN);
 };
 
 // typedefs

@@ -907,7 +907,6 @@ describe("Kmeans test", function () {
             KMeans.fit(X, [341,422,122]);
             var matrix = new la.Matrix([[-1, 2, 1], [0, 1, -3]]);
             var explanation = KMeans.explain(matrix);
-            debugger
             assert.equal(explanation[0].medoidID, 422);
             assert.equal(explanation[1].medoidID, 341);
             assert.equal(explanation[2].medoidID, 122);
@@ -916,7 +915,7 @@ describe("Kmeans test", function () {
             var KMeans = new analytics.KMeans({ k: 3 });
             var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
             assert.throws(function () {
-            	KMeans.fit(X , [0, 1]);
+                KMeans.fit(X , [0, 1]);
             });
         });
     });
@@ -1044,7 +1043,7 @@ describe("Kmeans test", function () {
         })
     });
 
-    describe('Testing correctness', function () {
+    describe('testing correctness', function () {
         var C = new la.Matrix([
             [2, 7],
             [3, 2]
@@ -1157,6 +1156,7 @@ describe("Kmeans test", function () {
             assert(Math.abs(denseKMeans.relMeanCentroidDist - expectedResult) < 1e-7, 'Dense k-means relativeMeanDist does not match expected value!');
             assert(Math.abs(sparseKMeans.relMeanCentroidDist - expectedResult) < 1e-7, 'Sparse k-means relativeMeanDist does not match expected value!');
         })
+
     })
 
     describe('Serialization Tests', function () {
@@ -1173,17 +1173,167 @@ describe("Kmeans test", function () {
             assert.deepEqual(KMeans.getModel().C, KMeans2.getModel().C, 1e-8);
         })
     });
-    
+
     describe('Bad input tests ...', function () {
-        it('should find NaNs in the distance matrix because of bad initial centroids', function () {        	
-        	if (qm.flags.debug) return;	// TODO in debug, the program terminates! => for now only test in release
-        	
-        	var centroids = new la.SparseMatrix([[[1, 0]], [[0, -1]]]);
+        it('should find NaNs in the distance matrix because of bad initial centroids', function () {
+            if (qm.flags.debug) return; // TODO in debug, the program terminates! => for now only test in release
+
+            var centroids = new la.SparseMatrix([[[1, 0]], [[0, -1]]]);
             var KMeans = new analytics.KMeans({ distanceType: "Cos", fitStart: { C: centroids } });
             var matrix = new la.Matrix([[-1, 1], [0, 0]]);
             assert.throws(function () {
                 KMeans.fit(matrix);
             });
+        })
+    });
+});
+
+describe("DpMeans test", function () {
+    describe('Constructor test', function () {
+        it("should return parameter values", function () {
+            var dpmeans = new analytics.DpMeans({ iter: 100, lambda: 6, verbose: false });
+            var params = dpmeans.getParams();
+            assert.equal(params.iter, 100);
+            assert.equal(params.lambda, 6);
+            assert.equal(params.minClusters, 2);
+            assert(params.maxClusters == null);
+            assert.equal(params.distanceType, "Euclid");
+            assert.equal(params.centroidType, "Dense");
+            assert.equal(params.calcDistQual, false);
+            assert.equal(params.verbose, false);
+        });
+
+        it('should correctly handle maxClusters < minClusters', function () {
+            assert.throws(function () {
+                var dpmeans = new analytics.DpMeans({ lambda: 6, minClusters: 10, maxClusters: 9 });
+                var X = new la.Matrix([
+                    [ 1, 2, 3, 3, 6, 7, 8 ],
+                    [ 3, 3, 2, 4, 2, 2, 3 ]
+                ]);
+                dpmeans.fit(X);
+            });
+        })
+    })
+
+    describe('testing correctness', function () {
+        var X = new la.Matrix([
+            [ 1.5, 1.5, 2.5, 2.5, 4, 5, 8, 10 ],
+            [ 2.5, 1.5, 2.5, 1.5, 7, 8, 3, 5 ]
+        ])
+
+        it('DpMeans should compute correct assignment', function () {
+            var initC = new la.Matrix([
+                [ 1.2, 5, 9.3 ],
+                [ 1, 7.5, 4.2 ]
+            ])
+            var dpmeans = new analytics.DpMeans({
+                lambda: 2,
+                allowEmpty: false,
+                fitStart: { C: initC }
+            })
+
+            var expectedAssignV = new la.IntVector([0, 0, 0, 0, 1, 1, 2, 2]);
+
+            dpmeans.fit(X);
+
+            var assignV = dpmeans.idxv;
+
+            for (var i = 0; i < expectedAssignV.length; i++) {
+                assert.equal(assignV[i], expectedAssignV[i]);
+            }
+        })
+    })
+
+    describe('testing quality measure', function () {
+        it('DpMeans should calculate correct quality measure for sparse centroids', function () {
+            var C = new la.Matrix([
+                [2, 7],
+                [3, 2]
+            ]);
+
+            var denseDpMeans = new analytics.DpMeans({ lambda: 2, minClusters: 2, maxClusters: 2, calcDistQual: true, fitStart: { C: C } });
+            var sparseDpMeans = new analytics.DpMeans({ lambda: 2, minClusters: 2, maxClusters: 2, centroidType: 'Sparse', calcDistQual: true, fitStart: { C: C } });
+
+            var X = new la.Matrix([
+                [ 1, 2, 3, 3, 6, 7, 8 ],
+                [ 3, 3, 2, 4, 2, 2, 3 ]
+            ]);
+
+            denseDpMeans.fit(X);
+            sparseDpMeans.fit(X);
+
+            var clust1 = [
+                [ 1, 3 ],
+                [ 2, 3 ],
+                [ 3, 2 ],
+                [ 3, 4 ]
+            ]
+
+            var clust2 = [
+                [ 6, 2 ],
+                [ 7, 2 ],
+                [ 8, 3 ]
+            ]
+
+            var dist = function (a, b) { return Math.sqrt((a[0] - b[0])*(a[0] - b[0]) + (a[1] - b[1])*(a[1] - b[1])); }
+            var sumDistCentroid = function (clust, centroid) {
+                var sumDist = 0;
+                for (var i = 0; i < clust.length; i++) {
+                    sumDist += dist(clust[i], centroid);
+                }
+                return sumDist;
+            }
+
+            var sumGlobal = (function () {
+                var mean = [ 0, 0 ];
+                for (var i = 0; i < clust1.length; i++) {
+                    mean[0] += clust1[i][0];
+                    mean[1] += clust1[i][1];
+                }
+                for (var i = 0; i < clust2.length; i++) {
+                    mean[0] += clust2[i][0];
+                    mean[1] += clust2[i][1];
+                }
+
+                mean[0] /= (clust1.length + clust2.length);
+                mean[1] /= (clust1.length + clust2.length);
+
+                var result = 0;
+                for (var i = 0; i < clust1.length; i++) {
+                    result += dist(clust1[i], mean);
+                }
+                for (var i = 0; i < clust2.length; i++) {
+                    result += dist(clust2[i], mean);
+                }
+
+                return result;
+            })();
+
+            var sumCent1 = sumDistCentroid(clust1, denseDpMeans.centroids.getCol(0));
+            var sumCent2 = sumDistCentroid(clust2, denseDpMeans.centroids.getCol(1));
+
+            var innerClustMean = 4*(sumCent1/4) / 7 + 3*(sumCent2/3) / 7;
+            var globalMean = sumGlobal / 7;
+
+            var expectedResult = innerClustMean / globalMean;
+
+            assert(Math.abs(denseDpMeans.relMeanCentroidDist - expectedResult) < 1e-7, 'Dense k-means relativeMeanDist does not match expected value!');
+            assert(Math.abs(sparseDpMeans.relMeanCentroidDist - expectedResult) < 1e-7, 'Sparse k-means relativeMeanDist does not match expected value!');
+        })
+    })
+
+    describe('Serialization Tests', function () {
+        it('should serialize and deserialize', function () {
+            var dpmeans = new analytics.DpMeans({ lambda: 5, minClusters: 3, maxClusters: 5 });
+            var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+            dpmeans.fit(X);
+            var fin = require('qminer').fs.openWrite('dpmeans_test.bin');
+            dpmeans.save(fin); fin.close();
+            var dpmeans2 = new analytics.DpMeans(require('qminer').fs.openRead('dpmeans_test.bin'));
+            var params = dpmeans.getParams();
+            var params2 = dpmeans2.getParams();
+            assert.deepEqual(dpmeans.getParams(), dpmeans2.getParams());
+            assert.deepEqual(dpmeans.getModel().C, dpmeans2.getModel().C, 1e-8);
         })
     });
 });
