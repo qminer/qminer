@@ -129,6 +129,8 @@ public:
     JsDeclareFunction(setParams);
     //- `vec = svmModel.weights` -- weights of the SVM linear model as a full vector `vec`
     JsDeclareProperty(weights);
+    //- `num = svmModel.bias` -- bias of a SVM model (number)
+    JsDeclareProperty(bias);
     //- `fout = svmModel.save(fout)` -- saves model to output stream `fout`. Returns `fout`.
     JsDeclareFunction(save);
     //- `num = svmModel.decisionFunction(vec)` -- sends vector `vec` through the model and returns the distance to the decision boundery as a real number `num`
