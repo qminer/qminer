@@ -103,10 +103,18 @@ public:
     ~TNodeJsSvmModel() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 private:
     // parameters
-    TStr Algorithm;    
+    TStr Algorithm;
+    TStr Kernel;
+    TStr SvmType; //LIBSVM specific
     double SvmCost;    
     double SvmUnbalance; // classification specific
     double SvmEps; // regression specific
+    double SvmGamma; //for rbf/poly/sigmoid
+    double SvmP;//for epsilon svr
+    int SvmDegree;  //for poly
+    double SvmNu; //for nu_svc and nu_svr
+    double SvmCoef0; //for poly/sigmoid
+    double SvmCacheSize; //for LIBSVM, in MB
     int SampleSize;
     int MxIter;
     int MxTime;
