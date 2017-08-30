@@ -233,6 +233,18 @@ void TNodeJsSvmModel::weights(v8::Local<v8::String> Name, const v8::PropertyCall
     }
 }
 
+void TNodeJsSvmModel::bias(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    try {
+        TNodeJsSvmModel* JsModel = ObjectWrap::Unwrap<TNodeJsSvmModel>(Info.Holder());
+        Info.GetReturnValue().Set(v8::Number::New(Isolate, JsModel->Model.GetBias()));
+    } catch (const PExcept& Except) {
+        throw TExcept::New(Except->GetMsgStr(), "TNodeJsSvmModel::bias");
+    }
+}
+
 void TNodeJsSvmModel::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
@@ -412,6 +424,7 @@ void TNodeJsSVC::Init(v8::Handle<v8::Object> exports) {
 
     // properties
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weights"), _weights);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "bias"), _bias);
 
     exports->Set(v8::String::NewFromUtf8(Isolate, "SVC"), tpl->GetFunction());
 }
@@ -443,7 +456,7 @@ void TNodeJsSVC::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                 JsModel->Model = TSvm::TLinModel(SvmModel->GetWgtV(), SvmModel->GetThresh());
             }
             else if (JsModel->Algorithm == "LIBSVM") {
-                JsModel->Model = TSvm::LibSvmSolveClassify(VecV, ClsV, JsModel->SvmCost,
+                JsModel->Model = TSvm::LibSvmSolveClassify(VecV, ClsV, JsModel->SvmCost, JsModel->SvmUnbalance,
                     TQm::TEnv::Debug, TQm::TEnv::Error);
             }
             else {
@@ -464,7 +477,7 @@ void TNodeJsSVC::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                 JsModel->Model = TSvm::TLinModel(SvmModel->GetWgtV(), SvmModel->GetThresh());
             }
             else if (JsModel->Algorithm == "LIBSVM") {
-                JsModel->Model = TSvm::LibSvmSolveClassify(VecV, ClsV, JsModel->SvmCost,
+                JsModel->Model = TSvm::LibSvmSolveClassify(VecV, ClsV, JsModel->SvmCost, JsModel->SvmUnbalance,
                     TQm::TEnv::Debug, TQm::TEnv::Error);
             }
             else {
@@ -503,6 +516,7 @@ void TNodeJsSVR::Init(v8::Handle<v8::Object> exports) {
 
     // properties
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weights"), _weights);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "bias"), _bias);
 
     exports->Set(v8::String::NewFromUtf8(Isolate, "SVR"), tpl->GetFunction());
 }

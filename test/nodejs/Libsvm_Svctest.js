@@ -441,11 +441,197 @@ describe("LIBSVM SVC test", function () {
             var vec = new la.Vector([1, -1]);
             var SVC = new analytics.SVC({ algorithm: "LIBSVM" });
             SVC.fit(matrix, vec);
-			SVC.save(require('qminer').fs.openWrite('svr_test.bin')).close();
+            SVC.save(require('qminer').fs.openWrite('svr_test.bin')).close();
             var SVC2 = new analytics.SVC(require('qminer').fs.openRead('svr_test.bin'));
             assert.deepEqual(SVC.getParams(), SVC2.getParams());
             assert.eqtol(SVC.weights.minus(SVC2.weights).norm(), 0, 1e-8);
+            assert.eqtol(Math.abs(SVC.bias - SVC2.bias), 0, 1e-8);
         })
+    });
+    describe('Fitting tests', function () {
+        it('should fit a model on iris dataset (dense), class=setosa, features:sepal length, sepal width', function () {
+            var X = require('./irisX.json');
+            var y = require('./irisY.json');
+
+            var matrix = new la.Matrix(X);
+            matrix = matrix.transpose();
+            var vec = new la.Vector(y);
+            var SVC = new analytics.SVC({ algorithm: "LIBSVM", c: 10000 });
+            SVC.fit(matrix, vec);
+            // based on matlab
+            //load fisheriris
+            //X = [meas(:,1), meas(:,2)];
+            //Y = nominal(ismember(species,'setosa'));
+            //y = 2*(double(Y)-1.5);
+            //s=fitcsvm(X,y,'Standardize',false, 'BoxConstraint',10000);
+            // weights = s.SupportVectors'* (s.Alpha.*(y(s.IsSupportVector)))
+            // bias = s.Bias
+            assert.eqtol(SVC.weights.minus(new la.Vector([-8.5680, 7.1408])).norm(), 0, 1e-3);
+            assert.eqtol(Math.abs(SVC.bias - 23.1314), 0, 1e-3);
+        });
+        it('should fit a model on iris dataset (sparse), class=setosa, features:sepal length, sepal width', function () {
+            var X = require('./irisX.json');
+            var y = require('./irisY.json');
+
+            var matrix = new la.Matrix(X);
+            matrix = matrix.transpose();
+            var spMatrix = matrix.sparse();
+            var vec = new la.Vector(y);
+            var SVC = new analytics.SVC({ algorithm: "LIBSVM", c: 10000 });
+            SVC.fit(spMatrix, vec);
+            // based on matlab
+            //load fisheriris
+            //X = [meas(:,1), meas(:,2)];
+            //Y = nominal(ismember(species,'setosa'));
+            //y = 2*(double(Y)-1.5);
+            //s=fitcsvm(X,y,'Standardize',false, 'BoxConstraint',10000);
+            // weights = s.SupportVectors'* (s.Alpha.*(y(s.IsSupportVector)))
+            // bias = s.Bias
+            assert.eqtol(SVC.weights.minus(new la.Vector([-8.5680, 7.1408])).norm(), 0, 1e-3);
+            assert.eqtol(Math.abs(SVC.bias - 23.1314), 0, 1e-3);
+        });
+        it('should fit a model on high-dimensional (embedded) iris dataset (dense), class=setosa, features:sepal length, sepal width', function () {
+            var X = require('./irisX.json');
+            var y = require('./irisY.json');
+
+            var matrix0 = new la.Matrix(X);
+            var zeros = la.zeros(matrix0.rows, 1000);
+            matrix = la.cat([[matrix0, zeros]]);
+            matrix = matrix.transpose();
+            var vec = new la.Vector(y);
+            var SVC = new analytics.SVC({ algorithm: "LIBSVM", c: 10000 });
+            SVC.fit(matrix, vec);
+            // based on matlab
+            //load fisheriris
+            //X = [meas(:,1), meas(:,2)];
+            //Y = nominal(ismember(species,'setosa'));
+            //y = 2*(double(Y)-1.5);
+            //s=fitcsvm(X,y,'Standardize',false, 'BoxConstraint',10000);
+            // weights = s.SupportVectors'* (s.Alpha.*(y(s.IsSupportVector)))
+            // bias = s.Bias
+            assert.eqtol(SVC.weights.subVec([0, 1]).minus(new la.Vector([-8.5680, 7.1408])).norm(), 0, 1e-3);
+            assert.eqtol(Math.abs(SVC.bias - 23.1314), 0, 1e-3);
+        });
+        it('should fit a model on high-dimensional (embedded) iris dataset (sparse), class=setosa, features:sepal length, sepal width', function () {
+            var X = require('./irisX.json');
+            var y = require('./irisY.json');
+
+            var matrix0 = new la.Matrix(X);
+            var zeros = la.zeros(matrix0.rows, 1000);
+            matrix = la.cat([[matrix0, zeros]]);
+            matrix = matrix.transpose();
+            var spMatrix = matrix.sparse();
+            var vec = new la.Vector(y);
+            var SVC = new analytics.SVC({ algorithm: "LIBSVM", c: 10000 });
+            SVC.fit(spMatrix, vec);
+            // based on matlab
+            //load fisheriris
+            //X = [meas(:,1), meas(:,2)];
+            //Y = nominal(ismember(species,'setosa'));
+            //y = 2*(double(Y)-1.5);
+            //s=fitcsvm(X,y,'Standardize',false, 'BoxConstraint',10000);
+            // weights = s.SupportVectors'* (s.Alpha.*(y(s.IsSupportVector)))
+            // bias = s.Bias
+            assert.eqtol(SVC.weights.subVec([0, 1]).minus(new la.Vector([-8.5680, 7.1408])).norm(), 0, 1e-3);
+            assert.eqtol(Math.abs(SVC.bias - 23.1314), 0, 1e-3);
+        });
+
+        it('should fit a model on high-dimensional (embedded) iris dataset (dense), class=setosa, features:sepal length, sepal width', function () {
+            var X = require('./irisX.json');
+            var y = require('./irisY.json');
+
+            var matrix0 = new la.Matrix(X);
+            var seed = 1;
+            var nextSeed = (x) => (x * 16807) % 2147483647;
+            var D = la.zeros(matrix0.rows, 1000);
+            for (var i = 0; i < 150; i++) {
+                for (var j = 0; j < 1000; j++) {
+                    D.put(i, j, 1 / 1000 * (seed - 1) / 2147483646);
+                    seed = nextSeed(seed);
+                }
+            }
+            matrix = la.cat([[matrix0, D]]);
+            matrix = matrix.transpose();
+            var vec = new la.Vector(y);
+            var SVC = new analytics.SVC({ algorithm: "LIBSVM", c: 10000 });
+            SVC.fit(matrix, vec);
+            // based on matlab
+            /*
+            seed = 1;
+            nextSeed = @(seed) mod(seed * 16807, 2147483647)
+            D = zeros(150,1000);
+            tic
+            for i = 1:150
+                for j = 1:1000
+                    D(i,j) = 1/1000 * (seed-1) / 2147483646;
+                    seed = nextSeed(seed);
+                end
+            end
+            toc
+
+            load fisheriris
+            %X = [meas(:,1), meas(:,2) zeros(size(meas,1), 1000)];
+            X = [meas(:,1), meas(:,2) D];
+            Y = nominal(ismember(species,'setosa'));
+            y = 2*(double(Y)-1.5);
+            s=fitcsvm(X,y,'Standardize',false, 'BoxConstraint',10000);
+            // weights = s.SupportVectors'* (s.Alpha.*(y(s.IsSupportVector)))
+            // bias = s.Bias
+            */
+            assert.eqtol(SVC.weights.subVec([0, 1]).minus(new la.Vector([-8.5341, 7.1144])).norm(), 0, 1e-3);
+            assert.eqtol(Math.abs(SVC.bias - 23.0358), 0, 1e-3);
+        });
+        it('should find a soft margin', function () {
+            X = [[-10, 1],
+                 [-3, 0],
+                 [-20, -1],
+                 [20, 1],
+                 [3, 0],
+                 [10, -1]];
+            var y = [1, -1, 1, -1, 1, -1];
+
+            var matrix = new la.Matrix(X);
+            matrix = matrix.transpose();
+            var vec = new la.Vector(y);
+
+            var SVC = new analytics.SVC({ algorithm: "LIBSVM", c: 1e-3 });
+            SVC.fit(matrix, vec);
+            assert.eqtol(SVC.predict(matrix).minus(new la.Vector([1, 1, 1, -1, -1, -1])).norm(), 0, 1e-6);
+        });
+        it('should find a soft margin and be biased towards negative examples', function () {
+            X = [[-10, 1],
+                 [-3, 0],
+                 [-20, -1],
+                 [20, 1],
+                 [3, 0],
+                 [10, -1]];
+            var y = [1, -1, 1, -1, 1, -1];
+
+            var matrix = new la.Matrix(X);
+            matrix = matrix.transpose();
+            var vec = new la.Vector(y);
+            // unbalance: positive examples are 1000 times less important
+            var SVC = new analytics.SVC({ algorithm: "LIBSVM", c: 1e-3, j: 1e-3});
+            SVC.fit(matrix, vec);
+            assert.eqtol(SVC.predict(matrix).minus(new la.Vector([-1, -1, -1, -1, -1, -1])).norm(), 0, 1e-6);
+        });
+        it('should find a soft margin and be biased towards positive examples', function () {
+            X = [[-10, 1],
+                 [-3, 0],
+                 [-20, -1],
+                 [20, 1],
+                 [3, 0],
+                 [10, -1]];
+            var y = [1, -1, 1, -1, 1, -1];
+
+            var matrix = new la.Matrix(X);
+            matrix = matrix.transpose();
+            var vec = new la.Vector(y);
+            // unbalance: positive examples are 1000 times more important
+            var SVC = new analytics.SVC({ algorithm: "LIBSVM", c: 1e-3, j: 1e+3 });
+            SVC.fit(matrix, vec);
+            assert.eqtol(SVC.predict(matrix).minus(new la.Vector([1, 1, 1, 1, 1, 1])).norm(), 0, 1e-6);
+        });
     });
 });
 
