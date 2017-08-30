@@ -571,6 +571,9 @@ namespace TQuant {
             /// returns the total uncertainty of the values' rank
             uint GetTotalUncert() const { return GetTupleSize() + GetUncertRight(); }
 
+            // DEBUGGING
+            uint64 GetMemUsed() const;
+
             friend std::ostream& operator <<(std::ostream& os, const TGkMnUncertTuple& Tuple) {
                 return os << "<"
                           << Tuple.GetMxVal() << ", "
@@ -612,6 +615,7 @@ namespace TQuant {
 
                 // DEBUGGING
                 uint GetSize() const { return Summary.Len(); }
+                uint64 GetMemUsed() const;
 
                 friend std::ostream& operator <<(std::ostream& os, const TVecSummary& Summary) {
                     return os << Summary.Summary;
@@ -656,6 +660,8 @@ namespace TQuant {
 
                 /// returns the number of tuples in the summary
                 uint GetSize() const;
+                /// returns the objects memory footprint
+                uint64 GetMemUsed() const;
                 /// prints the summary to the output stream
                 void Print() const;
 
@@ -709,6 +715,7 @@ namespace TQuant {
         // DEBUGGING
         /// reutrns the number of tuples stored in the summary
         int GetSummarySize() const;
+        uint64 GetMemUsed() const;
         void PrintSummary() const;
 
     private:
@@ -786,6 +793,8 @@ namespace TQuant {
         const TUInt64& GetSampleN() const { return SampleN; }
         /// returns the number of tuples stored in the summary
         int GetSummarySize() const;
+        /// returns the total memory currently used by the model
+        uint64 GetMemUsed() const;
         /// prints the summary to stdout
         void PrintSummary() const;
 

@@ -2949,6 +2949,17 @@ public:
     //# exports.TDigest.prototype.init = false;
     JsDeclareProperty(init);
 
+    /**
+     * Returns the current size of the algorithms summary in number of tuples.
+     */
+    //# exports.TDigest.size = 0;
+    JsDeclareProperty(size);
+
+    /**
+     * Returns the models current memory consumption.
+     */
+    //# exports.TDigest.memory = 0;
+    JsDeclareProperty(memory);
 };
 
 /**
@@ -3097,6 +3108,18 @@ public:
      */
     //# exports.Gk.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
     JsDeclareFunction(save);
+
+    /**
+     * Returns the current size of the algorithms summary in number of tuples.
+     */
+    //# exports.Gk.size = 0;
+    JsDeclareProperty(size);
+
+    /**
+     * Returns the models current memory consumption.
+     */
+    //# exports.Gk.memory = 0;
+    JsDeclareProperty(memory);
 };
 
 
@@ -3259,6 +3282,17 @@ public:
     //# exports.BiasedGk.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
     JsDeclareFunction(save);
 
+    /**
+     * Returns the current size of the algorithms summary in number of tuples.
+     */
+    //# exports.BiasedGk.size = 0;
+    JsDeclareProperty(size);
+
+    /**
+     * Returns the models current memory consumption.
+     */
+    //# exports.BiasedGk.memory = 0;
+    JsDeclareProperty(memory);
 private:
     TQuant::TBiasedGk::TCompressStrategy ExtractCompressStrategy(const PJsonVal&);
 };
