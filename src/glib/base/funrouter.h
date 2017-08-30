@@ -12,7 +12,7 @@
 ///////////////////////////////
 /// Router to constructors based on object types.
 /// Useful for creating and de-serializing derived objects, such as TAggr and TStreamAggr.
-template <class PObj, typename TFun>
+template <typename TFun>
 class TFunRouter {
 private:
     /// Object descriptions
@@ -23,12 +23,21 @@ public:
     TFunRouter() { }
     
     /// Register new object
-    void Register(const TStr& TypeNm, TFun Fun) { TypeNmToFunH.AddDat(TypeNm, Fun); }
+    void Register(const TStr& TypeNm, TFun Fun) {
+        if (TypeNmToFunH.IsKey(TypeNm)) {
+            throw TExcept::New("[TFunRouter::Register] Already registered object type " + TypeNm);
+        }
+        TypeNmToFunH.AddDat(TypeNm, Fun); }
     
     /// Get the function for given type
     TFun Fun(const TStr& TypeNm) {
         if (TypeNmToFunH.IsKey(TypeNm)) { return TypeNmToFunH.GetDat(TypeNm); }
         throw TExcept::New("[TFunRouter::Fun] Unknown object type " + TypeNm);
+    }
+
+    /// Get the vector of type names
+    void GetTypeNmV(TStrV& Vec) {
+        TypeNmToFunH.GetKeyV(Vec);
     }
 };
 

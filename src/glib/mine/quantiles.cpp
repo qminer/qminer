@@ -481,6 +481,28 @@ namespace TQuant {
             RightUncertExpHist.Save(SOut);
         }
 
+        TEhTuple::TEhTuple(const TEhTuple& Other):
+                TupleSizeExpHist(Other.TupleSizeExpHist),
+                RightUncertExpHist(Other.RightUncertExpHist) {}
+
+        TEhTuple& TEhTuple::operator =(const TEhTuple& Other) {
+            TEhTuple Temp(Other);
+            std::swap(*this, Temp);
+            return *this;
+        }
+
+        TEhTuple::TEhTuple(TEhTuple&& Other):
+                TupleSizeExpHist(std::move(Other.TupleSizeExpHist)),
+                RightUncertExpHist(std::move(Other.RightUncertExpHist)) {}
+
+        TEhTuple& TEhTuple::operator =(TEhTuple&& Other) {
+            if (this != &Other) {
+                std::swap(TupleSizeExpHist, Other.TupleSizeExpHist);
+                std::swap(RightUncertExpHist, Other.RightUncertExpHist);
+            }
+            return *this;
+        }
+
         double TEhTuple::GetVal() const {
             return TupleSizeExpHist.GetMxVal();
         }
@@ -489,7 +511,7 @@ namespace TQuant {
             return TupleSizeExpHist.GetCount();
         }
 
-        uint TEhTuple::GetMnMxRankDiff() const {
+        uint TEhTuple::GetUncertRight() const {
             return RightUncertExpHist.GetCount();
         }
 
@@ -505,6 +527,10 @@ namespace TQuant {
         void TEhTuple::Swallow(TEhTuple& Other, const bool& TakeMnMxRank) {
             TupleSizeExpHist.Swallow(Other.TupleSizeExpHist);
             if (TakeMnMxRank) { std::swap(RightUncertExpHist, Other.RightUncertExpHist); }
+        }
+
+        void TEhTuple::SwallowOne(const uint64& ValTm, const double& Val) {
+            TupleSizeExpHist.Add(ValTm, Val);
         }
 
         /////////////////////////////////////////////
@@ -554,7 +580,13 @@ namespace TQuant {
             if (TupleIt == Summary.end()) {
                 Summary.insert(TupleIt, TTuple(EpsEh, ValTm, Val, *this));
             } else {
-                Summary.insert(TupleIt, TTuple(EpsEh, ValTm, Val, *TupleIt, *this));
+                TTuple& RightTuple = *TupleIt;
+
+                if (1 + RightTuple.GetTotalUncert() < uint(2*EpsGk*double(ItemCount))) {
+                    RightTuple.SwallowOne(ValTm, Val);
+                } else {
+                    Summary.insert(TupleIt, TTuple(EpsEh, ValTm, Val, RightTuple, *this));
+                }
             }
 
             // update counters
@@ -666,11 +698,13 @@ namespace TQuant {
                     TSummary::iterator LargerIt = RightIt->GetVal() > LeftIt->GetVal() ?
                                                                 RightIt : LeftIt;
 
+                    const uint MxUncert = uint(2*EpsGk*double(ItemCount));
+
                     const uint LeftTupleCount = LeftIt->GetTupleSize();
                     const uint RightTupleCount = RightIt->GetTupleSize();
-                    const uint LargerCorr = LargerIt->GetMnMxRankDiff();
+                    const uint LargerCorr = LargerIt->GetUncertRight();
 
-                    if (LeftTupleCount + RightTupleCount + LargerCorr < uint(2*EpsGk*double(ItemCount))) {
+                    if (LeftTupleCount + RightTupleCount + LargerCorr < MxUncert) {
                         // merge the two tuples
                         RightIt->Swallow(*LeftIt, LargerIt == LeftIt);
                         LeftIt = Summary.erase(LeftIt);
@@ -776,88 +810,143 @@ namespace TQuant {
         }
     }
 
-    TGk::TGreenwaldKhanna(const double& _Eps):
-            Eps(_Eps) {}
+    TUtils::TGkMnUncertTuple::TGkMnUncertTuple(const double& Val):
+            MxVal(Val) {}
 
-    TGk::TGreenwaldKhanna(const double& _Eps, const TCompressStrategy& Cs):
-            Eps(_Eps),
-            CompressStrategy(Cs) {}
-
-    double TGk::Query(const double& Quantile) const {
-        Assert(0.0 < Quantile && Quantile < 1);
-
-        const int TargetRank = (int) std::ceil(Quantile * double(SampleN));
-        const int HalfErrRange = int(Eps * double(SampleN));
-
-        const int SummarySize = GetSummarySize();
-
-        // these are here to find the range of quantiles which match the query
-        // and then choose the median of those
-        int FirstHitN = -1;
-        int LastHitN = -1;
-
-        int CurrMnRank = 0;
-        for (int TupleN = 0; TupleN < SummarySize; TupleN++) {
-            const TTuple& CurrTuple = Summary[TupleN];
-
-            const int MnRank = CurrMnRank + GetPrevMnRankDiff(CurrTuple);
-            const int MxRank = MnRank + GetInsRankRange(CurrTuple);
-
-            const int UpperBound = MnRank + HalfErrRange;
-            const int LowerBound = MxRank - HalfErrRange;
-
-            const bool IsHit = LowerBound <= TargetRank && TargetRank <= UpperBound;
-
-            // check if this is the first hit
-            if (IsHit && FirstHitN == -1) {
-                FirstHitN = TupleN;
-            }
-            // check if we are one past the last hit
-            if (!IsHit && FirstHitN != -1) {
-                LastHitN = TupleN - 1;
-                break;
-            }
-
-            CurrMnRank = MnRank;
-        }
-
-        // if we had not found a quantile which matches, then we return the final quantile
-        if (FirstHitN == -1) { FirstHitN = SummarySize-1; }
-        // if we have not finished the final quantile, then we finish it with the last tuple
-        if (LastHitN == -1) { LastHitN = SummarySize-1; }
-
-        const int QuantN = (FirstHitN + LastHitN) / 2;
-        const TTuple& Tuple = Summary[QuantN];
-
-        return GetQuantile(Tuple);
+    TUtils::TGkMnUncertTuple::TGkMnUncertTuple(const double& Val, const TGkMnUncertTuple& RightTuple):
+            MxVal(Val),
+            UncertRight(RightTuple.GetUncertRight() + RightTuple.GetTupleSize() - 1) {
+        Assert(RightTuple.GetUncertRight() + RightTuple.GetTupleSize() >= 1);
     }
 
-    void TGk::Insert(const double& Val) {
+    TUtils::TGkMnUncertTuple::TGkMnUncertTuple(TSIn& SIn):
+        MxVal(SIn),
+        TupleSize(SIn),
+        UncertRight(SIn) {}
+
+    void TUtils::TGkMnUncertTuple::Save(TSOut& SOut) const {
+        MxVal.Save(SOut);
+        TupleSize.Save(SOut);
+        UncertRight.Save(SOut);
+    }
+
+    void TUtils::TGkMnUncertTuple::Swallow(const TGkMnUncertTuple& LeftTuple) {
+        TupleSize += LeftTuple.TupleSize;
+    }
+
+    void TUtils::TGkMnUncertTuple::SwallowOne() {
+        ++TupleSize;
+    }
+
+    ////////////////////////////////////
+    /// GK - Summary
+    TUtils::TGkUtils::TVecSummary::TVecSummary(const double& _Eps):
+            Eps(_Eps) {}
+
+    TUtils::TGkUtils::TVecSummary::TVecSummary(TSIn& SIn):
+            Summary(SIn),
+            SampleN(SIn),
+            Eps(SIn),
+            UseBands(SIn) {}
+
+    void TUtils::TGkUtils::TVecSummary::Save(TSOut& SOut) const {
+        Summary.Save(SOut);
+        SampleN.Save(SOut);
+        Eps.Save(SOut);
+        UseBands.Save(SOut);
+    }
+
+    double TUtils::TGkUtils::TVecSummary::Query(const double& PVal) const {
+        if (Summary.Empty()) { return 0; }
+
+        const double MnRankThreshold = double(SampleN)*(PVal - Eps);
+
+        uint64 CurrMnRank = 0;
+        int TupleN = 0;
+        while (TupleN < Summary.Len()) {
+            const TTuple& Tuple = Summary[TupleN];
+
+            CurrMnRank += Tuple.GetTupleSize();
+
+            if (CurrMnRank >= MnRankThreshold) {
+                return Tuple.GetMxVal();
+            }
+
+            ++TupleN;
+        }
+
+        return Summary.Last().GetMxVal();
+    }
+
+    void TUtils::TGkUtils::TVecSummary::Query(const TFltV& PValV, TFltV& QuantV) const {
+        if (QuantV.Len() != PValV.Len()) { QuantV.Gen(PValV.Len(), PValV.Len()); }
+        if (Summary.Empty() || PValV.Empty()) { return; }
+
+        uint64 CurrMnRank = 0;
+        int PValN = 0;
+
+        auto TupleIt = Summary.begin();
+        const auto EndIt = Summary.end();
+
+        while (PValN < PValV.Len()) {
+            const TFlt& PVal = PValV[PValN];
+            const double MnRankThreshold = double(SampleN)*(PVal - Eps);
+
+            while (TupleIt != EndIt) {
+                const TTuple& Tuple = *TupleIt;
+                const TUInt& TupleSize = Tuple.GetTupleSize();
+
+                CurrMnRank += TupleSize;
+
+                if (CurrMnRank >= MnRankThreshold) {
+                    QuantV[PValN] = Tuple.GetMxVal();
+                    CurrMnRank -= TupleSize;
+                    break;
+                }
+
+                ++TupleIt;
+            }
+
+            if (TupleIt == EndIt) {
+                QuantV[PValN] = Summary.Last().GetMxVal();
+            }
+
+            ++PValN;
+            EAssert(PValN >= PValV.Len() || PValV[PValN-1] <= PValV[PValN]);
+        }
+    }
+
+    void TUtils::TGkUtils::TVecSummary::Insert(const double& Val) {
         // binary search to find the first tuple with value greater than val
         // this is where we will insert the new value
-        const auto Cmp = [&](const TTuple& Tup, const double& Val) { return Tup.Val1 < Val; };
+        const auto Cmp = [&](const TTuple& Tup, const double& Val) { return Tup.GetMxVal() < Val; };
         const auto ValIt = std::lower_bound(Summary.begin(), Summary.end(), Val, Cmp);
 
         const int NewValN = int(ValIt - Summary.begin());
 
         // if Val is the smallest or largest element, we must insert <v,1,0>
         if (NewValN == 0 || NewValN == Summary.Len()) {
-            Summary.Ins(NewValN, TTuple(Val, 1, 0));
+            Summary.Ins(NewValN, TTuple(Val));
         }
         else {
-            // insert tuple <v,1,floor(2*eps*n)>
-            Summary.Ins(NewValN, TTuple(Val, 1, (uint) (2*Eps*double(SampleN))));
+            // let i be the index of the first tuple with greather vi, then
+            // insert tuple <v,1,delta_i + g_i - 1>
+            TTuple& RightTuple = Summary[NewValN];
+
+            if (1 + RightTuple.GetTotalUncert() <= GetMxTupleUncert()) {
+                // the right tuple can swallow the new tuple
+                RightTuple.SwallowOne();
+            } else {
+                // we must insert the new tuple
+                Summary.Ins(NewValN, TTuple(Val, RightTuple));
+            }
         }
 
         ++SampleN;
-
-        if (ShouldAutoCompress()) {
-            Compress();
-        }
     }
 
-    void TGk::Compress() {
-        const int ErrRange = (int) (2*Eps*double(SampleN));
+    void TUtils::TGkUtils::TVecSummary::Compress() {
+        const uint ErrRange = GetMxTupleUncert();
 
         // go throught the tuples and merge the ones you can
         // the first and last tuple should never get merged
@@ -866,51 +955,41 @@ namespace TQuant {
             // the descendants of i are the ones with Band_k < Band_i and
             // the children of i are the set {k_1,...,k_m | k_{j+1}=k_j+1,band(k_j)>=band(k_{j+1}),band(i)>band(k_1)}
             const TTuple& CurrTuple = Summary[TupleN];
-            const TTuple& NextTuple = Summary[TupleN+1];
+            TTuple& NextTuple = Summary[TupleN+1];
 
-            if (UseBands && GetBand(TupleN) > GetBand(TupleN+1)) { continue; }
+            if (UseBands && GetBand(CurrTuple) > GetBand(NextTuple)) { continue; }
 
-            if (GetPrevMnRankDiff(CurrTuple) + GetPrevMnRankDiff(NextTuple) + GetInsRankRange(NextTuple) <= ErrRange) {
+            if (CurrTuple.GetTupleSize() + NextTuple.GetTotalUncert() <= ErrRange) {
                 // merge the two tuples
-                const int CurrPrevMnRankDiff = GetPrevMnRankDiff(CurrTuple);
+                NextTuple.Swallow(CurrTuple);
                 Summary.Del(TupleN);
-                GetPrevMnRankDiff(Summary[TupleN]) += CurrPrevMnRankDiff;
             }
         }
     }
 
-    int TGk::GetSummarySize() const {
-        return Summary.Len();
+    uint TUtils::TGkUtils::TVecSummary::GetMxTupleUncert() const {
+        return (uint) (2*Eps*double(SampleN));
     }
 
-    void TGk::PrintSummary() const {
-        std::cout << Summary << "\n";
-    }
-
-    bool TGk::ShouldAutoCompress() const {
-        return CompressStrategy == TCompressStrategy::csAuto &&
-               SampleN % int(ceil(1.0 / (2.0*Eps))) == 0;
-    }
-
-    int TGk::GetBand(const int& TupleN) const {
+    int TUtils::TGkUtils::TVecSummary::GetBand(const TTuple& Tuple) const {
         // the band groups tuples by their capacity
         // it is defined as alpha, such that:
         // 2^(alpha-1) + mod(p,2^(alpha-1)) <= capacity < 2^alpha + mod(p,2^alpha)
         // where capacity is defined as floor(2*eps*n) - delta_i
-        const TTuple& Tuple = Summary[TupleN];
 
-        const uint64 p = (int) (2*Eps*double(SampleN));
-        const uint64 DeltaI = Tuple.Val3;
-        const uint64 Capacity = p - DeltaI;
+        const uint64 MxUncert = (uint64) GetMxTupleUncert();
+        const uint UncertRight = Tuple.GetUncertRight();
+        const uint64 Capacity = MxUncert - UncertRight;
+        AssertR(MxUncert >= UncertRight, "Tuple uncertainty greater than capacity!");
 
         // Special case: the first 1 / (2*eps) tuples (with d_i == 0) are in a band of their own
-        if (DeltaI == 0) { return TInt::Mx; }
-        // Special case: we define band 0 to simply be p
-        if (DeltaI == p) { return 0; }
+        if (UncertRight == 0) { return TInt::Mx; }
+        // Special case: we define band 0 to simply be MxUncert
+        if (UncertRight == MxUncert) { return 0; }
 
         const auto TestBand = [&](const int& Band) {
-            return TMath::Pow2(Band-1) + (p % TMath::Pow2(Band-1)) <= Capacity &&
-                   Capacity < TMath::Pow2(Band) + (p % TMath::Pow2(Band));
+            return TMath::Pow2(Band-1) + (MxUncert % TMath::Pow2(Band-1)) <= Capacity &&
+                   Capacity < TMath::Pow2(Band) + (MxUncert % TMath::Pow2(Band));
         };
 
         const int CandidateBand = (int) TMath::Log2((double) Capacity);
@@ -922,178 +1001,195 @@ namespace TQuant {
         }
         else {
             // fail horribly and think about what you did
-            const TStr MsgStr = "Could not find the band of tuple: <" + TFlt::GetStr(Tuple.Val1) + "," + TInt::GetStr(Tuple.Val2) + "," + TInt::GetStr(Tuple.Val3) + ">, p=" + TInt::GetStr(p) + ", candidate band = " + TInt::GetStr(CandidateBand) + "!";
+            const TStr MsgStr = "Could not find the band of tuple: <" + TFlt::GetStr(Tuple.GetMxVal()) + "," + TUInt::GetStr(Tuple.GetTupleSize()) + "," + TInt::GetStr(Tuple.GetUncertRight()) + ">, p=" + TInt::GetStr(MxUncert) + ", candidate band = " + TInt::GetStr(CandidateBand) + "!";
             FailR(MsgStr.CStr());
             return -1;
         }
     }
 
-    TFlt& TGk::GetQuantile(TTuple& Tuple) {
-        return Tuple.Val1;
+    ////////////////////////////////////
+    /// Biased GK summary - TVec implementation
+    TUtils::TBiasedUtils::TVecSummary::TVecSummary(TBiasedGk& _Model, const bool& _UseBands):
+            Model(_Model),
+            UseBands(_UseBands) {}
+
+    TUtils::TBiasedUtils::TVecSummary::TVecSummary(TBiasedGk& _Model, TSIn& SIn):
+            Summary(SIn),
+            Model(_Model),
+            UseBands(SIn) {}
+
+    void TUtils::TBiasedUtils::TVecSummary::Save(TSOut& SOut) const {
+        Summary.Save(SOut);
+        UseBands.Save(SOut);
     }
 
-    const TFlt& TGk::GetQuantile(const TTuple& Tuple) {
-        return Tuple.Val1;
-    }
+    double TUtils::TBiasedUtils::TVecSummary::Query(const double& PVal) const {
+        if (GetSize() == 0) { return 0; }
 
-    TInt& TGk::GetPrevMnRankDiff(TTuple& Tuple) {
-        return Tuple.Val2;
-    }
+        const TUInt64& SampleN = Model.GetSampleN();
 
-    const TInt& TGk::GetPrevMnRankDiff(const TTuple& Tuple) {
-        return Tuple.Val2;
-    }
+        const double TargetRank = Model.GetDir() > 0 ? PVal*double(SampleN) : (1 - PVal)*double(SampleN);
+        const double EpsRank = Model.GetMxTupleUncert(TargetRank) / 2;
 
-    TInt& TGk::GetInsRankRange(TTuple& Tuple) {
-        return Tuple.Val3;
-    }
-
-    const TInt& TGk::GetInsRankRange(const TTuple& Tuple) {
-        return Tuple.Val3;
-    }
-
-    //////////////////////////////////////////
-    /// The CKMS (generalization of GK) algorithm for online
-    /// biased quantile estimation.
-    TBiasedGk::TBiasedGk(const double& _Quant0, const double& _Eps, const bool& _UseBands):
-            Quant0(_Quant0),
-            Eps(_Eps),
-            UseBands(_UseBands) {
-
-        EAssert(Eps > 0.0);
-        EAssert(0 <= Quant0 && Quant0 <= 1);
-
-        if (Quant0 > .5) {
-            Quant0 = 1 - Quant0;
-            Dir = -1;
+        if (TargetRank <= 1) {
+            return Summary.begin()->GetMxVal();
         }
-    }
-
-    double TBiasedGk::Query(const double& Quantile) const {
-        if (GetSummarySize() == 0) { return 0; }
-
-        const double TargetRank = Dir > 0 ? Quantile*double(SampleN) : (1 - Quantile)*double(SampleN);
-        const double EpsRank = GetMxTupleSize(TargetRank) / 2;
-
-        if (TargetRank <= 1) { return Summary[0].GetVal(); }
 
         int CurrMnRank = 0;
         for (int TupleN = 0; TupleN < Summary.Len(); TupleN++) {
             const TTuple& Tuple = Summary[TupleN];
-            const uint64 MxRank = CurrMnRank + Tuple.GetTupleSize() + Tuple.GetMnMxRankDiff();
+            const uint64 MxRank = CurrMnRank + Tuple.GetTotalUncert();
 
             if (MxRank > TargetRank + EpsRank) {
-                return Summary[TupleN-1].GetVal();
+                return Summary[TupleN-1].GetMxVal();
             }
 
             CurrMnRank += Tuple.GetTupleSize();
         }
 
-        return Summary.Last().GetVal();
+        return Summary.Last().GetMxVal();
     }
 
-    void TBiasedGk::Insert(const double& Val) {
+    void TUtils::TBiasedUtils::TVecSummary::Query(const TFltV& PValV, TFltV& QuantV) const {
+        if (QuantV.Len() != PValV.Len()) { QuantV.Gen(PValV.Len(), PValV.Len()); }
+        if (GetSize() == 0 || PValV.Empty()) { return; }
+
+        // DEBUGGING
+        for (int PValN = 1; PValN < PValV.Len(); ++PValN) {
+            EAssert(PValV[PValN-1] <= PValV[PValN]);
+        }
+
+        const TUInt64& SampleN = Model.GetSampleN();
+        const TInt& Dir = Model.GetDir();
+
+        int PValN = 0;
         int TupleN = 0;
-        uint64 PrevTupleMnRank = 0;
+        int CurrMnRank = 0;
 
-        while (TupleN < Summary.Len()) {
-            const TTuple& Tuple = Summary[TupleN];
-            if (Dir*(Val - Tuple.GetVal()) <= 0) { break; }
-            PrevTupleMnRank += Tuple.GetTupleSize();
-            TupleN++;
-        }
+        while (PValN < PValV.Len()) {
+            const int DirPValN = Dir == 1 ? PValN : PValV.Len()-PValN-1;
+            const TFlt& PVal = PValV[DirPValN];
 
-        if (TupleN == 0) {
-            // special case
-            Summary.Ins(0, TTuple(Val, 1, 0));
-        } else if (TupleN == Summary.Len()) {
-            // special case (symmetrical to the previous case)
-            Summary.Add(TTuple(Val, 1, 0));
-        } else {
-            const uint NewTupleMxSize = (uint) GetMxTupleSize((double) PrevTupleMnRank);
-            Summary.Ins(TupleN, TTuple(Val, 1, NewTupleMxSize-1));
-            AssertR(int(NewTupleMxSize)-1 >= 0, "Max tuple size is 0, but should be at least 1!");
-        }
+            const double TargetRank = Dir > 0 ? PVal*double(SampleN) : (1 - PVal)*double(SampleN);
+            const double EpsRank = Model.GetMxTupleUncert(TargetRank) / 2;
 
-        ++SampleN;
+            if (TargetRank <= 1) {
+                QuantV[DirPValN] = Summary[0].GetMxVal();
+            } else {
+                while (TupleN < Summary.Len()) {
+                    const TTuple& Tuple = Summary[TupleN];
+                    const uint64 MxRank = CurrMnRank + Tuple.GetTotalUncert();
 
-        if (ShouldCompress()) {
-            Compress();
+                    if (MxRank > TargetRank + EpsRank) {
+                        QuantV[DirPValN] = Summary[TupleN-1].GetMxVal();
+                        break;
+                    }
+
+                    CurrMnRank += Tuple.GetTupleSize();
+                    ++TupleN;
+                }
+
+                if (TupleN == Summary.Len()) {
+                    QuantV[DirPValN] = Summary.Last().GetMxVal();
+                }
+            }
+
+            ++PValN;
         }
     }
 
-    void TBiasedGk::Compress() {
-        if (Summary.Empty()) { return; }
+    void TUtils::TBiasedUtils::TVecSummary::Insert(const double& Val) {
+        int NewTupleN = 0;
+        uint64 TupleFirstItemN = 1;
 
-        uint64 CurrMnRank = Summary[0].GetTupleSize();
-        for (int TupleN = 1; TupleN < Summary.Len()-1; TupleN++) {
+        while (NewTupleN < Summary.Len()) {
+            const TTuple& Tuple = Summary[NewTupleN];
+            // stop if Val <= Tuple.GetMxVal()
+            if (Model.GetDir()*(Val - Tuple.GetMxVal()) <= 0) { break; }
+            TupleFirstItemN += Tuple.GetTupleSize();
+            ++NewTupleN;
+        }
+
+        if (NewTupleN == 0) {
+            // special case
+            Summary.Ins(0, TTuple(Val));
+        } else if (NewTupleN == Summary.Len()) {
+            // special case (symmetrical to the previous case)
+            Summary.Add(TTuple(Val));
+        } else {
+            // let i be the index of the first tuple with greather vi, then
+            // insert tuple <v,1,delta_i + g_i - 1>
+            TTuple& RightTuple = Summary[NewTupleN];
+
+            if (1 + RightTuple.GetTotalUncert() <= Model.GetMxTupleUncert((double) TupleFirstItemN)) {
+                RightTuple.SwallowOne();
+            } else {
+                Summary.Ins(NewTupleN, TTuple(Val, RightTuple));
+            }
+        }
+    }
+
+    void TUtils::TBiasedUtils::TVecSummary::Compress() {
+        if (GetSize() == 0) { return; }
+
+        uint64 ItemSum = Summary[0].GetTupleSize();
+        int TupleN = 1;
+
+        while (TupleN < Summary.Len()-1) {
             const TTuple& CurTuple = Summary[TupleN];
             const TTuple& AdjTuple = Summary[TupleN+1];
 
-            const uint64 PrevMnRank = CurrMnRank;
+            const uint CurrTupleSize = CurTuple.GetTupleSize();
 
-            CurrMnRank += CurTuple.GetTupleSize();
-
-            const uint NewTupleRange = CurTuple.GetTupleSize() +
-                                       AdjTuple.GetTupleSize() +
-                                       AdjTuple.GetMnMxRankDiff();
-            const double MxTupleRange = GetMxTupleSize((double) PrevMnRank);
+            const uint64 TupleStartItemN = ItemSum + 1;
+            const uint64 NextTupleStartItemN = ItemSum + CurrTupleSize + 1;
 
             if (UseBands) {
-                const int CurTupleBand = GetBand(CurTuple, CurrMnRank);
-                const int AdjTupleBand = GetBand(AdjTuple, CurrMnRank + AdjTuple.GetTupleSize());
+                const int CurTupleBand = GetBand(CurTuple, TupleStartItemN);
+                const int AdjTupleBand = GetBand(AdjTuple, NextTupleStartItemN);
                 if (CurTupleBand > AdjTupleBand) {
+                    ItemSum += CurTuple.GetTupleSize();
+                    ++TupleN;
                     continue;
                 }
             }
 
-            if (NewTupleRange <= MxTupleRange) {
+            const double MxTupleRange = Model.GetMxTupleUncert((double) TupleStartItemN);
+
+            if (CurTuple.GetTupleSize() + AdjTuple.GetTotalUncert() <= MxTupleRange) {
                 // merge the tuples
                 Summary[TupleN+1].Swallow(Summary[TupleN]);
                 Summary.Del(TupleN);
-                TupleN--;
                 continue;
             }
+
+            ItemSum += CurTuple.GetTupleSize();
+            ++TupleN;
         }
     }
 
-    int TBiasedGk::GetSummarySize() const {
+    uint TUtils::TBiasedUtils::TVecSummary::GetSize() const {
         return Summary.Len();
     }
 
-    void TBiasedGk::PrintSummary() const {
+    void TUtils::TBiasedUtils::TVecSummary::Print() const {
         std::cout << Summary << "\n";
     }
 
-    double TBiasedGk::GetEps(const double& Quantile) const {
-        if (Quantile <= Quant0) {
-            return Eps * Quant0 / Quantile;
-        } else {
-            return Eps;
-        }
-    }
+    int TUtils::TBiasedUtils::TVecSummary::GetBand(const TTuple& Tuple, const uint64& MnRank) const {
+        if (Tuple.GetUncertRight() == 0) { return TInt::Mx; }
 
-    double TBiasedGk::GetMxTupleSize(const double& Rank) const {
-        return TMath::Mx(1.0, 2.0*GetEps(Rank / double(SampleN))*Rank);
-    }
-
-    bool TBiasedGk::ShouldCompress() const {
-        return SampleN % uint64(std::ceil(0.5 / Eps)) == 0;    // TODO set some smart compress strategy
-    }
-
-    int TBiasedGk::GetBand(const TTuple& Tuple, const uint64& MnRank) const {
-        if (Tuple.GetMnMxRankDiff() == 0) { return TInt::Mx; }
-
-        const uint MxTupleSize = (uint) GetMxTupleSize((double) MnRank);
-        const uint TupleDelta = Tuple.GetMnMxRankDiff();
-        const uint Capacity = MxTupleSize - TupleDelta;
-        AssertR(MxTupleSize >= TupleDelta, "Tuple uncertainty greater than capacity!");
+        const uint MxTupleRange = (uint) Model.GetMxTupleUncert((double) MnRank);
+        const uint TupleDelta = Tuple.GetUncertRight();
+        const uint Capacity = MxTupleRange - TupleDelta;
+        /* Print(); */
+        AssertR(MxTupleRange >= TupleDelta, "Tuple uncertainty smaller than max range, max range: " + TInt::GetStr(MxTupleRange) + ", uncertainty: " + TInt::GetStr(TupleDelta) + "!");
 
         if (Capacity == 0) { return 0; }
 
         const auto TestBand = [&](const int& Band) {
-            return TMath::Pow2(Band-1) + (MxTupleSize % TMath::Pow2(Band-1)) <= Capacity &&
-                   Capacity < TMath::Pow2(Band) + (MxTupleSize % TMath::Pow2(Band));
+            return TMath::Pow2(Band-1) + (MxTupleRange % TMath::Pow2(Band-1)) <= Capacity &&
+                   Capacity < TMath::Pow2(Band) + (MxTupleRange % TMath::Pow2(Band));
         };
 
         const int CandidateBand = (int) TMath::Log2(Capacity);
@@ -1105,11 +1201,11 @@ namespace TQuant {
         }
         else {
             // fail horribly and think about what you did
-            PrintSummary();
+            Print();
             const TStr MsgStr = "Could not find the band of tuple: <" +
-                TFlt::GetStr(Tuple.GetVal()) + "," + TUInt::GetStr(Tuple.GetTupleSize()) + "," +
-                TUInt::GetStr(Tuple.GetMnMxRankDiff()) + ">, max size=" + TInt::GetStr(MxTupleSize) +
-                ", max tuple size: " + TUInt::GetStr(MxTupleSize) +
+                TFlt::GetStr(Tuple.GetMxVal()) + "," + TUInt::GetStr(Tuple.GetTupleSize()) + "," +
+                TUInt::GetStr(Tuple.GetUncertRight()) + ">, max size=" + TInt::GetStr(MxTupleRange) +
+                ", max tuple size: " + TUInt::GetStr(MxTupleRange) +
                 ", delta: " + TUInt::GetStr(TupleDelta) +
                 ", capacity: " + TUInt::GetStr(Capacity) +
                 ", candidate band = " + TInt::GetStr(CandidateBand) + "!";
@@ -1118,6 +1214,209 @@ namespace TQuant {
         }
     }
 
+
+    ////////////////////////////////////
+    /// GK - algorithm
+    TGk::TGreenwaldKhanna(const double& _Eps):
+            Summary(_Eps),
+            Eps(_Eps) {}
+
+    TGk::TGreenwaldKhanna(const double& _Eps, const TCompressStrategy& Cs):
+            Summary(_Eps),
+            Eps(_Eps),
+            CompressStrategy(Cs) {}
+
+    TGk::TGreenwaldKhanna(TSIn& SIn):
+            Summary(SIn),
+            Eps(SIn) {
+
+        const TCh RawCmp(SIn);
+        switch (RawCmp.Val) {
+            case static_cast<char>(TCompressStrategy::csAuto): {
+                CompressStrategy = TCompressStrategy::csAuto;
+                break;
+            }
+            case static_cast<char>(TCompressStrategy::csManual): {
+                CompressStrategy = TCompressStrategy::csManual;
+                break;
+            }
+            default: {
+                throw TExcept::New("Invalid compression strategy!");
+            }
+        }
+    }
+
+    void TGk::Save(TSOut& SOut) const {
+        Summary.Save(SOut);
+        Eps.Save(SOut);
+        TCh(static_cast<char>(CompressStrategy)).Save(SOut);
+    }
+
+    double TGk::Query(const double& Quantile) const {
+        return Summary.Query(Quantile);
+    }
+
+    void TGk::Query(const TFltV& PValV, TFltV& QuantV) const {
+        Summary.Query(PValV, QuantV);
+    }
+
+    void TGk::Insert(const double& Val) {
+        Summary.Insert(Val);
+
+        if (ShouldAutoCompress()) {
+            Compress();
+        }
+    }
+
+    void TGk::Compress() {
+        Summary.Compress();
+    }
+
+    int TGk::GetSummarySize() const {
+        return Summary.GetSize();
+    }
+
+    void TGk::PrintSummary() const {
+        std::cout << Summary << "\n";
+    }
+
+    uint32 TGk::GetCompressInterval() const {
+        return uint(std::ceil(1.0 / (2.0*Eps)));
+    }
+
+    bool TGk::ShouldAutoCompress() const {
+        return CompressStrategy == TCompressStrategy::csAuto &&
+               Summary.GetSampleN() % GetCompressInterval() == 0;
+    }
+
+    //////////////////////////////////////////
+    /// The CKMS (generalization of GK) algorithm for online
+    /// biased quantile estimation.
+    TBiasedGk::TBiasedGk(const double& _PVal0, const double& _Eps,
+                const TCompressStrategy& _Cs, const bool& _UseBands):
+            Summary(*this, _UseBands),
+            CompressSampleN(uint64(std::ceil(0.5 / _Eps))),
+            PVal0(_PVal0 <= 0.5 ? _PVal0 : 1 - _PVal0),
+            Eps(_Eps),
+            Dir(_PVal0 <= 0.5 ? 1 : -1),
+            CompressStrategy(_Cs) {
+
+        EAssert(Eps > 0.0);
+        EAssert(0 <= PVal0 && PVal0 <= 1);
+    }
+
+    TBiasedGk::TBiasedGk(TSIn& SIn):
+            Summary(*this, SIn),
+            SampleN(SIn),
+            CompressSampleN(SIn),
+            PVal0(SIn),
+            Eps(SIn),
+            Dir(SIn) {
+        const TCh Cs(SIn);
+
+        switch (Cs.Val) {
+        case static_cast<std::underlying_type<TCompressStrategy>::type>(TCompressStrategy::csManual): {
+            CompressStrategy = TCompressStrategy::csManual;
+            break;
+        }
+        case static_cast<std::underlying_type<TCompressStrategy>::type>(TCompressStrategy::csAggressive): {
+            CompressStrategy = TCompressStrategy::csAggressive;
+            break;
+        }
+        case static_cast<std::underlying_type<TCompressStrategy>::type>(TCompressStrategy::csPeriodic): {
+            CompressStrategy = TCompressStrategy::csPeriodic;
+            break;
+        }
+        default: {
+            throw TExcept::New("Invalid compress strategy when deserializing TBiasedGk!");
+        }
+        }
+    }
+
+    void TBiasedGk::Save(TSOut& SOut) const {
+        Summary.Save(SOut);
+        SampleN.Save(SOut);
+        CompressSampleN.Save(SOut);
+        PVal0.Save(SOut);
+        Eps.Save(SOut);
+        Dir.Save(SOut);
+        TCh(static_cast<std::underlying_type<TCompressStrategy>::type>(CompressStrategy)).Save(SOut);
+    }
+
+    double TBiasedGk::Query(const double& PVal) const {
+        return Summary.Query(PVal);
+    }
+
+    void TBiasedGk::Query(const TFltV& PValV, TFltV& QuantV) const {
+        Summary.Query(PValV, QuantV);
+    }
+
+    void TBiasedGk::Insert(const double& Val) {
+        Summary.Insert(Val);
+        ++SampleN;
+
+        if (ShouldCompress()) {
+            Compress();
+        }
+    }
+
+    void TBiasedGk::Compress() {
+        Summary.Compress();
+        // update when the next compression will be if the strategy
+        // is set to periodic
+        CompressSampleN += GetSummarySize();
+    }
+
+    const TFlt& TBiasedGk::GetEps() const {
+        return Eps;
+    }
+
+    double TBiasedGk::GetPVal0() const {
+        return Dir > 0 ? PVal0.Val : 1 - PVal0.Val;
+    }
+
+    const TBiasedGk::TCompressStrategy& TBiasedGk::GetCompressStrategy() const {
+        return CompressStrategy;
+    }
+
+    const TBool& TBiasedGk::GetUseBands() const {
+        return Summary.GetUseBands();
+    }
+
+    int TBiasedGk::GetSummarySize() const {
+        return Summary.GetSize();
+    }
+
+    void TBiasedGk::PrintSummary() const {
+        Summary.Print();
+    }
+
+    double TBiasedGk::GetMxTupleUncert(const double& Rank) const {
+        const double PVal = Rank / double(SampleN);
+        if (PVal <= PVal0) {
+            return 2*Eps*PVal0*SampleN;
+        } else {
+            return 2*Eps*Rank;
+        }
+        /* return TMath::Mx(1.0, 2.0*GetEps()*Rank); */
+    }
+
+    bool TBiasedGk::ShouldCompress() const {
+        switch (CompressStrategy) {
+            case TCompressStrategy::csManual: {
+                return false;
+            }
+            case TCompressStrategy::csAggressive: {
+                return true;
+            }
+            case TCompressStrategy::csPeriodic: {
+                return SampleN >= CompressSampleN;
+            }
+            default: {
+               throw TExcept::New("Invalid compression strategy!");
+            }
+        }
+    }
 
     ///////////////////////////////////////////////////
     /// GK algorithm for sliding windows

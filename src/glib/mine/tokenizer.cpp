@@ -8,8 +8,8 @@
 
 ///////////////////////////////
 // Tokenizer
-TFunRouter<PTokenizer, TTokenizer::TNewF> TTokenizer::NewRouter;
-TFunRouter<PTokenizer, TTokenizer::TLoadF> TTokenizer::LoadRouter;
+TFunRouter<TTokenizer::TNewF> TTokenizer::NewRouter;
+TFunRouter<TTokenizer::TLoadF> TTokenizer::LoadRouter;
 
 bool TTokenizer::Init() {
     Register<TTokenizers::TSimple>();

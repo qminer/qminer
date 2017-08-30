@@ -6769,3 +6769,179 @@ describe('Stream aggregate statistics', function () {
         assert(stats.mem == totalByType, 'Total memory usage does not match the usage by type!');
     });
 });
+
+describe('HistogramAD Tests', function () {
+    var base = undefined;
+    var store = undefined;
+    var tick = undefined;
+    var window = undefined;
+    var hist = undefined;
+    beforeEach(function () {
+        base = new qm.Base({
+            mode: 'createClean',
+            schema: [{
+                name: 'Function',
+                fields: [
+                    { name: 'Time', type: 'datetime' },
+                    { name: 'Value', type: 'float' }
+                ]
+            }]
+        });
+        store = base.store('Function');
+
+        tick = store.addStreamAggr({
+            type: 'timeSeriesTick',
+            timestamp: 'Time',
+            value: 'Value'
+        });
+        window = store.addStreamAggr({
+            type: 'timeSeriesWinBufVector',
+            inAggr: tick.name,
+            winsize: 1e+4
+        });
+        hist = store.addStreamAggr({
+            type: 'onlineHistogram',
+            inAggr: window.name,
+            lowerBound: 0,
+            upperBound: 10,
+            bins: 10,
+            addNegInf: false,
+            addPosInf: false
+        });
+
+
+    });
+    afterEach(function () {
+        base.close();
+    });
+    describe('Construction tests', function () {
+        it('Create an instance', function () {
+            var histAD = store.addStreamAggr({
+                type: 'histogramAD',
+                inAggr: tick.name,
+                inHistogram: hist.name,
+                thresholds: [0.5, 0.1]
+            });
+        });
+    });
+    describe('Updating tests', function () {
+        it('Create an instance', function () {
+            var histAD = store.addStreamAggr({
+                type: 'histogramAD',
+                inAggr: tick.name,
+                inHistogram: hist.name,
+                thresholds: [0.5, 0.1]
+            });
+
+            store.push({ Time: 0, Value: 5 });
+            store.push({ Time: 0, Value: 6 });
+            assert.equal(histAD.getInteger('index'), 6); // last measurement (6) falls in the 7-th interval [6 ... 7]
+            assert.equal(histAD.getInteger('severity'), 2); // last measurement (6) was anomalous with severity 2 (only index 5 has severity 0)
+            assert.equal(histAD.getInteger('largestNormalIndex'), 6); // from now on, 6 is also normal
+            assert.equal(histAD.getFloat('largestNormalValue'), 7); // from now on, 6 is also normal
+        });
+    });
+    describe('Smoothing tests', function () {
+        it('Should classify severities correctly', function () {
+            var histAD = store.addStreamAggr({
+                type: 'histogramAD',
+                inAggr: tick.name,
+                inHistogram: hist.name,
+                bandwidth: 0.5,
+                thresholds: [0.8, 0.95, 0.99]
+            });
+
+            store.push({ Time: 0, Value: 0.5 });
+            store.push({ Time: 2, Value: 1.5 });
+            store.push({ Time: 3, Value: 1.5 });
+            store.push({ Time: 4, Value: 3.5 });
+            var expected_everities = [0, 0, 1, 0, 2, 3, 3, 3, 3, 3];
+            var hv = histAD.val;
+            for (var i = 0; i < expected_everities.length; i++) {
+                assert.equal(hv.severities[i], expected_everities[i]);
+            }
+            // [0.26, 0.43, 0.08, 0.2, 0.03, 0.0006, 0,...]
+        });
+        it('Should classify severities correctly', function () {
+            var histAD = store.addStreamAggr({
+                type: 'histogramAD',
+                inAggr: tick.name,
+                inHistogram: hist.name,
+                bandwidth: 0.5,
+                thresholds: [0.9, 0.95, 0.99]
+            });
+
+            store.push({ Time: 0, Value: 0.5 });
+            store.push({ Time: 2, Value: 1.5 });
+            store.push({ Time: 3, Value: 1.5 });
+            store.push({ Time: 4, Value: 3.5 });
+            var expected_everities = [0, 0, 0, 0, 2, 3, 3, 3, 3, 3];
+            var hv = histAD.val;
+            for (var i = 0; i < expected_everities.length; i++) {
+                assert.equal(hv.severities[i], expected_everities[i]);
+            }
+            // [0.26, 0.43, 0.08, 0.2, 0.03, 0.0006, 0,...]
+        });
+        it('Should handle ties', function () {
+            var hist2 = store.addStreamAggr({
+                type: 'onlineHistogram',
+                inAggr: window.name,
+                lowerBound: 0,
+                upperBound: 2,
+                bins: 2,
+                addNegInf: false,
+                addPosInf: false
+            });
+            var histAD = store.addStreamAggr({
+                type: 'histogramAD',
+                inAggr: tick.name,
+                inHistogram: hist2.name,
+                bandwidth: 0.5,
+                thresholds: [0.5]
+            });
+
+            store.push({ Time: 0, Value: 0.5 });
+            store.push({ Time: 1, Value: 1.5 });
+           
+            var expected_everities = [ 1, 0 ];
+            var hv = histAD.val;
+            console.log(hv.severities)
+            for (var i = 0; i < expected_everities.length; i++) {
+                assert.equal(hv.severities[i], expected_everities[i]);
+            }
+        });
+        it('Should autotune bandwidth', function () {
+            var hist2 = store.addStreamAggr({
+                type: 'onlineHistogram',
+                inAggr: window.name,
+                lowerBound: 0,
+                upperBound: 100,
+                bins: 100,
+                addNegInf: false,
+                addPosInf: false
+            });
+
+            var thresholds = [0.5, 0.75];
+            
+            var sigs = [0.01, 0.1, 1, 10, 100, 1000, 10000];
+            var histAD = store.addStreamAggr({
+                type: 'histogramAD',
+                inAggr: tick.name,
+                inHistogram: hist2.name,
+                thresholds: thresholds,
+                autoBandwidthsGrid: sigs,
+                autoThresholdsGrid: thresholds,
+                skip:1
+            });
+            var arr = [10, 50, 60, 80];
+            for (var i = 0; i < arr.length; i++) {
+                store.push({ Time: 0, Value: arr[i] });
+            }
+
+            var bandwidth = histAD.val.bandwidth;
+            assert(bandwidth == 100);
+        });
+
+    });
+
+});
