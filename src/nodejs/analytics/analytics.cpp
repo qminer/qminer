@@ -166,7 +166,7 @@ TNodeJsSvmModel::TNodeJsSvmModel(TSIn& SIn):
         SvmDegree(TInt(SIn)),
         SvmNu(TFlt(SIn)),
         SvmCoef0(TFlt(SIn)),
-        SvmCacheSize(TFlt(SIn)),
+        SvmCacheSize(TFlt(SIn)),        
         SampleSize(TInt(SIn)),
         MxIter(TInt(SIn)),
         MxTime(TInt(SIn)),
@@ -174,10 +174,7 @@ TNodeJsSvmModel::TNodeJsSvmModel(TSIn& SIn):
         Verbose(TBool(SIn)),
         Notify(TNotify::NullNotify),
         Model(SIn) {
-
-    if (Verbose) { Notify = TNotify::StdNotify; 
-      printf("from SIn cacheSize %f\n", SvmCacheSize);
-    }
+    if (Verbose) { Notify = TNotify::StdNotify; }
 }
 
 TNodeJsSvmModel* TNodeJsSvmModel::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -208,7 +205,6 @@ void TNodeJsSvmModel::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args)
     v8::HandleScope HandleScope(Isolate);
 
     EAssertR(Args.Length() == 0, "svm.getParams: takes 1 argument!");
-    printf("called getParams!\n");
 
     try {
         TNodeJsSvmModel* JsModel = ObjectWrap::Unwrap<TNodeJsSvmModel>(Args.Holder());
@@ -222,7 +218,6 @@ void TNodeJsSvmModel::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args)
 void TNodeJsSvmModel::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-
     EAssertR(Args.Length() == 1, "svm.setParams: takes 1 argument!");
     EAssertR(TNodeJsUtil::IsArgJson(Args, 0), "svm.setParams: first argument should be a Javascript object!");
 
@@ -249,6 +244,55 @@ void TNodeJsSvmModel::weights(v8::Local<v8::String> Name, const v8::PropertyCall
     }
     catch (const PExcept& Except) {
         throw TExcept::New(Except->GetMsgStr(), "TNodeJsSvmModel::weights");
+    }
+}
+
+void TNodeJsSvmModel::bias(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    try {
+        TNodeJsSvmModel* JsModel = ObjectWrap::Unwrap<TNodeJsSvmModel>(Info.Holder());
+        Info.GetReturnValue().Set(v8::Number::New(Isolate, JsModel->Model.GetBias()));
+    }
+    catch (const PExcept& Except) {
+        throw TExcept::New(Except->GetMsgStr(), "TNodeJsSvmModel::bias");
+    }
+}
+
+void TNodeJsSvmModel::supportVectors(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    try {
+        TNodeJsSvmModel* JsModel = ObjectWrap::Unwrap<TNodeJsSvmModel>(Info.Holder());
+        if (JsModel->Algorithm == "LIBSVM"){
+            Info.GetReturnValue().Set(TNodeJsFltVV::New(JsModel->Model.GetSupportVectors()));
+        }
+        else{
+            throw TExcept::New("only supported for LIBSVM Algorithm");
+        }
+    }
+    catch (const PExcept& Except) {
+        throw TExcept::New(Except->GetMsgStr(), "TNodeJsSvmModel::supportVectors");
+    }
+}
+
+void TNodeJsSvmModel::coefficients(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    try {
+        TNodeJsSvmModel* JsModel = ObjectWrap::Unwrap<TNodeJsSvmModel>(Info.Holder());
+        if (JsModel->Algorithm == "LIBSVM"){
+            Info.GetReturnValue().Set(TNodeJsFltVV::New(JsModel->Model.GetCoefficients()));
+        }
+        else{
+            throw TExcept::New("only supported for LIBSVM Algorithm");
+        }
+    }
+    catch (const PExcept& Except) {
+        throw TExcept::New(Except->GetMsgStr(), "TNodeJsSvmModel::coefficients");
     }
 }
 
@@ -362,7 +406,6 @@ void TNodeJsSvmModel::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 }
 
 void TNodeJsSvmModel::UpdateParams(const PJsonVal& ParamVal) {
-    printf("update params\n");
     if (ParamVal->IsObjKey("algorithm")) Algorithm = ParamVal->GetObjStr("algorithm");
     if (ParamVal->IsObjKey("kernel")) Kernel = ParamVal->GetObjStr("kernel");
     if (ParamVal->IsObjKey("svmType")) SvmType = ParamVal->GetObjStr("svmType");
@@ -370,12 +413,11 @@ void TNodeJsSvmModel::UpdateParams(const PJsonVal& ParamVal) {
     if (ParamVal->IsObjKey("j")) SvmUnbalance = ParamVal->GetObjNum("j");
     if (ParamVal->IsObjKey("eps")) SvmEps = ParamVal->GetObjNum("eps");
     if (ParamVal->IsObjKey("gamma")) SvmGamma = ParamVal->GetObjNum("gamma");
+    if (ParamVal->IsObjKey("p")) SvmP = ParamVal->GetObjNum("p");
+    if (ParamVal->IsObjKey("degree")) SvmDegree = ParamVal->GetObjInt("degree");
     if (ParamVal->IsObjKey("nu")) SvmNu = ParamVal->GetObjNum("nu");
     if (ParamVal->IsObjKey("coef0")) SvmCoef0 = ParamVal->GetObjNum("coef0");
-    if (ParamVal->IsObjKey("cacheSize")) {SvmCacheSize = ParamVal->GetObjNum("cacheSize");
-            printf("update params cacheSize %f %f\n", ParamVal->GetObjNum("cacheSize"), SvmCacheSize);}
-    if (ParamVal->IsObjKey("p")) SvmP = ParamVal->GetObjNum("p");
-    if (ParamVal->IsObjKey("degree")) SvmDegree = ParamVal->GetObjNum("degree");
+    if (ParamVal->IsObjKey("cacheSize")) SvmCacheSize = ParamVal->GetObjNum("cacheSize");    
     if (ParamVal->IsObjKey("batchSize")) SampleSize = ParamVal->GetObjInt("batchSize");
     if (ParamVal->IsObjKey("maxIterations")) MxIter = ParamVal->GetObjInt("maxIterations");
     if (ParamVal->IsObjKey("maxTime")) MxTime = TFlt::Round(1000.0 * ParamVal->GetObjNum("maxTime"));
@@ -396,12 +438,11 @@ PJsonVal TNodeJsSvmModel::GetParams() const {
     ParamVal->AddToObj("j", SvmUnbalance);
     ParamVal->AddToObj("eps", SvmEps);
     ParamVal->AddToObj("gamma", SvmGamma);
+    ParamVal->AddToObj("p", SvmP);
+    ParamVal->AddToObj("degree", SvmDegree);
     ParamVal->AddToObj("nu", SvmNu);
     ParamVal->AddToObj("coef0", SvmCoef0);
     ParamVal->AddToObj("cacheSize", SvmCacheSize);
-    printf("get params cacheSize %f\n", SvmCacheSize);
-    ParamVal->AddToObj("p", SvmP);
-    ParamVal->AddToObj("degree", SvmDegree);
     ParamVal->AddToObj("batchSize", SampleSize);
     ParamVal->AddToObj("maxIterations", MxIter);
     ParamVal->AddToObj("maxTime", MxTime / 1000); // convert from miliseconds to seconds
@@ -419,12 +460,11 @@ void TNodeJsSvmModel::Save(TSOut& SOut) const {
     TFlt(SvmUnbalance).Save(SOut);
     TFlt(SvmEps).Save(SOut);
     TFlt(SvmGamma).Save(SOut);
-    TFlt(SvmNu).Save(SOut);
-    TFlt(SvmCoef0).Save(SOut);
-    TFlt(SvmCacheSize).Save(SOut);
-    printf("saving cacheSize %f\n", SvmCacheSize);
     TFlt(SvmP).Save(SOut);
     TInt(SvmDegree).Save(SOut);
+    TFlt(SvmNu).Save(SOut);
+    TFlt(SvmCoef0).Save(SOut);
+    TFlt(SvmCacheSize).Save(SOut);    
     TInt(SampleSize).Save(SOut);
     TInt(MxIter).Save(SOut);
     TInt(MxTime).Save(SOut);
@@ -459,6 +499,9 @@ void TNodeJsSVC::Init(v8::Handle<v8::Object> exports) {
 
     // properties
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weights"), _weights);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "bias"), _bias);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "supportVectors"), _supportVectors);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "coefficients"), _coefficients);
 
     exports->Set(v8::String::NewFromUtf8(Isolate, "SVC"), tpl->GetFunction());
 }
@@ -580,6 +623,9 @@ void TNodeJsSVR::Init(v8::Handle<v8::Object> exports) {
 
     // properties
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weights"), _weights);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "bias"), _bias);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "supportVectors"), _supportVectors);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "coefficients"), _coefficients);
 
     exports->Set(v8::String::NewFromUtf8(Isolate, "SVR"), tpl->GetFunction());
 }
