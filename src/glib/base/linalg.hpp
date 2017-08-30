@@ -95,11 +95,13 @@ void TLinAlgStat::Mean(const TVec<TVec<TKeyDat<TNum<TSizeTy>, TNum<TType>>, TSiz
             if (ColV.Last().Key > MxDim) { MxDim = ColV.Last().Key; }
         }
 
-        MeanV.Gen(MxDim, MxDim);
+        MeanV.Gen(MxDim+1, MxDim+1);
 
         for (TSizeTy ColN = 0; ColN < NCols; ++ColN) {
             const TVec<TKeyDat<TNum<TSizeTy>, TNum<TType>>, TSizeTy>& ColV = ColVV[ColN];
-            for (TSizeTy ValN = 0; ValN < ColV.Len(); ++ValN) {
+
+            const TSizeTy ColLen = ColV.Len();
+            for (TSizeTy ValN = 0; ValN < ColLen; ++ValN) {
                 const TKeyDat<TNum<TSizeTy>, TNum<TType>>& SpEntry = ColV[ValN];
                 MeanV[SpEntry.Key] += SpEntry.Dat / double(NCols);
             }
