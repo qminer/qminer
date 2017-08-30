@@ -3969,6 +3969,8 @@ void TNodeJsTDigest::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "init"), _init);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "size"), _size);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "memory"), _memory);
 
     // properties
     exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
@@ -4070,6 +4072,24 @@ void TNodeJsTDigest::init(v8::Local<v8::String> Name, const v8::PropertyCallback
     Info.GetReturnValue().Set(v8::Boolean::New(Isolate, JsModel->Model.IsInit()));
 }
 
+void TNodeJsTDigest::size(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    const TNodeJsTDigest* JsModel = ObjectWrap::Unwrap<TNodeJsTDigest>(Info.Holder());
+
+    Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsModel->Model.GetSummarySize()));
+}
+
+void TNodeJsTDigest::memory(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    const TNodeJsTDigest* JsModel = ObjectWrap::Unwrap<TNodeJsTDigest>(Info.Holder());
+
+    Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsModel->Model.GetMemUsed()));
+}
+
 ///////////////////////////////////////////////////////
 // Greenwald-Khanna quantile estimation algorithm
 void TNodeJsGk::Init(v8::Handle<v8::Object> exports) {
@@ -4092,6 +4112,9 @@ void TNodeJsGk::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
     // properties
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "size"), _size);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "memory"), _memory);
+
     exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
 }
 
@@ -4205,6 +4228,24 @@ void TNodeJsGk::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     Args.GetReturnValue().Set(Args[0]);
 }
 
+void TNodeJsGk::size(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    const TNodeJsGk* JsModel = ObjectWrap::Unwrap<TNodeJsGk>(Info.Holder());
+
+    Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsModel->Gk.GetSummarySize()));
+}
+
+void TNodeJsGk::memory(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    const TNodeJsGk* JsModel = ObjectWrap::Unwrap<TNodeJsGk>(Info.Holder());
+
+    Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsModel->Gk.GetMemUsed()));
+}
+
 ////////////////////////////////////////////
 // CKMS algorithm for biased quantiles
 void TNodeJsBiasedGk::Init(v8::Handle<v8::Object> exports) {
@@ -4227,6 +4268,9 @@ void TNodeJsBiasedGk::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
     // properties
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "size"), _size);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "memory"), _memory);
+
     exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
 }
 
@@ -4357,6 +4401,24 @@ void TNodeJsBiasedGk::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     // return the output stream
     Args.GetReturnValue().Set(Args[0]);
+}
+
+void TNodeJsBiasedGk::size(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    const TNodeJsBiasedGk* JsModel = ObjectWrap::Unwrap<TNodeJsBiasedGk>(Info.Holder());
+
+    Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsModel->Gk.GetSummarySize()));
+}
+
+void TNodeJsBiasedGk::memory(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    const TNodeJsBiasedGk* JsModel = ObjectWrap::Unwrap<TNodeJsBiasedGk>(Info.Holder());
+
+    Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsModel->Gk.GetMemUsed()));
 }
 
 TQuant::TBiasedGk::TCompressStrategy TNodeJsBiasedGk::ExtractCompressStrategy(const PJsonVal& ParamVal) {

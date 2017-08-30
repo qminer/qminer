@@ -838,6 +838,13 @@ namespace TQuant {
         ++TupleSize;
     }
 
+    uint64 TUtils::TGkMnUncertTuple::GetMemUsed() const {
+        return sizeof(TGkMnUncertTuple) +
+            TMemUtils::GetExtraMemberSize(MxVal) +
+            TMemUtils::GetExtraMemberSize(TupleSize) +
+            TMemUtils::GetExtraMemberSize(UncertRight);
+    }
+
     ////////////////////////////////////
     /// GK - Summary
     TUtils::TGkUtils::TVecSummary::TVecSummary(const double& _Eps):
@@ -965,6 +972,14 @@ namespace TQuant {
                 Summary.Del(TupleN);
             }
         }
+    }
+
+    uint64 TUtils::TGkUtils::TVecSummary::GetMemUsed() const {
+        return sizeof(TVecSummary) +
+            TMemUtils::GetExtraMemberSize(Summary) +
+            TMemUtils::GetExtraMemberSize(SampleN) +
+            TMemUtils::GetExtraMemberSize(Eps) +
+            TMemUtils::GetExtraMemberSize(UseBands);
     }
 
     uint TUtils::TGkUtils::TVecSummary::GetMxTupleUncert() const {
@@ -1172,6 +1187,12 @@ namespace TQuant {
         return Summary.Len();
     }
 
+    uint64 TUtils::TBiasedUtils::TVecSummary::GetMemUsed() const {
+        return sizeof(TVecSummary) +
+            TMemUtils::GetExtraMemberSize(Summary) +
+            TMemUtils::GetExtraMemberSize(UseBands);
+    }
+
     void TUtils::TBiasedUtils::TVecSummary::Print() const {
         std::cout << Summary << "\n";
     }
@@ -1274,6 +1295,13 @@ namespace TQuant {
 
     int TGk::GetSummarySize() const {
         return Summary.GetSize();
+    }
+
+    uint64 TGk::GetMemUsed() const {
+        return sizeof(TGk) + 
+            TMemUtils::GetExtraMemberSize(Summary) +
+            TMemUtils::GetExtraMemberSize(Eps) +
+            TMemUtils::GetExtraMemberSize(static_cast<char>(CompressStrategy));
     }
 
     void TGk::PrintSummary() const {
@@ -1385,6 +1413,17 @@ namespace TQuant {
 
     int TBiasedGk::GetSummarySize() const {
         return Summary.GetSize();
+    }
+
+    uint64 TBiasedGk::GetMemUsed() const {
+        return sizeof(TBiasedGk) +
+            TMemUtils::GetExtraMemberSize(Summary) +
+            TMemUtils::GetExtraMemberSize(SampleN) +
+            TMemUtils::GetExtraMemberSize(CompressSampleN) +
+            TMemUtils::GetExtraMemberSize(PVal0) +
+            TMemUtils::GetExtraMemberSize(Eps) +
+            TMemUtils::GetExtraMemberSize(Dir) +
+            TMemUtils::GetExtraMemberSize(static_cast<char>(CompressStrategy));
     }
 
     void TBiasedGk::PrintSummary() const {
