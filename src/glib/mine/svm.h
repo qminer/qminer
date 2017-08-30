@@ -226,10 +226,10 @@ inline TLinModel LibSvmSolveClassify(const TVec<TIntFltKdV>& VecV, const TFltV& 
     svm_parameter.degree = 0;
     svm_parameter.C = Cost;
     svm_parameter.nr_weight = 2;
-    svm_parameter.weight_label = (int *)malloc(2 * sizeof(int));
+    svm_parameter.weight_label = (int *)malloc(2 * sizeof(int)); // deleted in svm_destroy_param
     svm_parameter.weight_label[0] = -1;
     svm_parameter.weight_label[1] = 1;
-    svm_parameter.weight = (double *)malloc(2 * sizeof(double));
+    svm_parameter.weight = (double *)malloc(2 * sizeof(double));  // deleted in svm_destroy_param
     svm_parameter.weight[0] = 1;
     svm_parameter.weight[1] = Unbalance;
     
@@ -315,10 +315,10 @@ inline TLinModel LibSvmSolveClassify(const TFltVV& VecV, const TFltV& TargetV, c
     svm_parameter.degree = 0;
     svm_parameter.C = Cost;
     svm_parameter.nr_weight = 2;
-    svm_parameter.weight_label = (int *)malloc(2 * sizeof(int));
+    svm_parameter.weight_label = (int *)malloc(2 * sizeof(int)); // deleted in svm_destroy_param
     svm_parameter.weight_label[0] = -1;
     svm_parameter.weight_label[1] = 1;
-    svm_parameter.weight = (double *)malloc(2 * sizeof(double));
+    svm_parameter.weight = (double *)malloc(2 * sizeof(double)); // deleted in svm_destroy_param
     svm_parameter.weight[0] = 1;
     svm_parameter.weight[1] = Unbalance;
     // cache_size is only needed for kernel functions
