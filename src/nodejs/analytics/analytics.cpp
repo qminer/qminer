@@ -134,12 +134,12 @@ v8::Local<v8::Value> TNodeJsAnalytics::TNMFTask::WrapResult() {
 TNodeJsSvmModel::TNodeJsSvmModel(const PJsonVal& ParamVal):
         Algorithm("SGD"),
         Kernel("LINEAR"),
-        SvmType("C_SVC"), //classification alg.
+        SvmType("default"), // for LIBSVM only - this handles classification and regression default construction
         SvmCost(1.0),
         SvmUnbalance(1.0),
         SvmEps(0.1),
         SvmGamma(1.0),
-        SvmP(1.0),
+        SvmP(0.1),
         SvmDegree(1),
         SvmNu(1.0),
         SvmCoef0(1.0),
@@ -534,7 +534,8 @@ void TNodeJsSVC::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
             }
             else if (JsModel->Algorithm == "LIBSVM") {
               int type;
-              if (JsModel->SvmType == "C_SVC") type = C_SVC;
+              if (JsModel->SvmType == "default") type = C_SVC;
+              else if (JsModel->SvmType == "C_SVC") type = C_SVC;
               else if (JsModel->SvmType == "NU_SVC") type = NU_SVC;
               else if (JsModel->SvmType == "ONE_CLASS") type = ONE_CLASS;
               else throw TExcept::New("SVC.fit: unknown svm type " + JsModel->SvmType + " for classification");
@@ -570,7 +571,8 @@ void TNodeJsSVC::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
             }
             else if (JsModel->Algorithm == "LIBSVM") {
               int type;
-              if (JsModel->SvmType == "C_SVC") type = C_SVC;
+              if (JsModel->SvmType == "default") type = C_SVC;
+              else if (JsModel->SvmType == "C_SVC") type = C_SVC;
               else if (JsModel->SvmType == "NU_SVC") type = NU_SVC;
               else if (JsModel->SvmType == "ONE_CLASS") type = ONE_CLASS;
               else throw TExcept::New("SVC.fit: unknown svm type " + JsModel->SvmType + " for classification");
@@ -659,7 +661,8 @@ void TNodeJsSVR::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
             }
             else if (JsModel->Algorithm == "LIBSVM") {
                 int type;
-                if (JsModel->SvmType == "EPSILON_SVR") type = EPSILON_SVR;
+                if (JsModel->SvmType == "default") type = EPSILON_SVR;
+                else if (JsModel->SvmType == "EPSILON_SVR") type = EPSILON_SVR;
                 else if (JsModel->SvmType == "NU_SVR") type = NU_SVR;
                 else if (JsModel->SvmType == "ONE_CLASS") type = ONE_CLASS;
                 else throw TExcept::New("SVR.fit: unknown svm type " + JsModel->SvmType + " for regression");
@@ -695,7 +698,8 @@ void TNodeJsSVR::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
             }
             else if (JsModel->Algorithm == "LIBSVM") {
                 int type;
-                if (JsModel->SvmType == "EPSILON_SVR") type = EPSILON_SVR;
+                if (JsModel->SvmType == "default") type = EPSILON_SVR;
+                else if (JsModel->SvmType == "EPSILON_SVR") type = EPSILON_SVR;
                 else if (JsModel->SvmType == "NU_SVR") type = NU_SVR;
                 else if (JsModel->SvmType == "ONE_CLASS") type = ONE_CLASS;
                 else throw TExcept::New("SVR.fit: unknown svm type " + JsModel->SvmType + " for classification");

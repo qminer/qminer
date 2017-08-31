@@ -213,12 +213,13 @@ describe("LIBSVM SVR test", function () {
             assert.eqtol(model.weights[0], 0, 1e-1);
             assert.eqtol(model.weights[1], 0, 1e-1);
         })
+        //not passing
         it('should make a model from one-dimensional vectors', function () {
             var matrix = new la.Matrix([[1, -1]]);
             var vector = new la.Vector([1, -1]);
             var SVR = new analytics.SVR({ algorithm: "LIBSVM", c: 10 });
             SVR.fit(matrix, vector);
-
+            
             var weights = SVR.weights;
             assert.eqtol(weights[0], 1, 3e-1);
         })
@@ -231,6 +232,7 @@ describe("LIBSVM SVR test", function () {
                 SVR.fit(matrix, vector);
             });
         })
+        //not passing
         it('should forget the previous model', function () {
             var matrix = new la.Matrix([[1, -1], [1, 1]]);
             var vector = new la.Vector([1, 1]);
@@ -320,6 +322,7 @@ describe("LIBSVM SVR test", function () {
                 SVR.predict(new la.Vector());
             });
         })
+        //not passing
         it('should return the prediction of the one-dimensional vector', function () {
             var matrix = new la.Matrix([[1, -1]]);
             var vector = new la.Vector([1, -1]);
@@ -398,6 +401,7 @@ describe("LIBSVM SVR test", function () {
 
             assert.eqtol(distance, 1, 5e-1);
         })
+        //not passing
         it('should return the distance of the one-dimensional vector from the model', function () {
             var matrix = new la.Matrix([[1, -1]]);
             var vector = new la.Vector([1, -1]);
