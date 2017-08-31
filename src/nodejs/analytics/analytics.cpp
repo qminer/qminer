@@ -141,7 +141,7 @@ TNodeJsSvmModel::TNodeJsSvmModel(const PJsonVal& ParamVal):
         SvmGamma(1.0),
         SvmP(0.1),
         SvmDegree(1),
-        SvmNu(1.0),
+        SvmNu(1e-2),
         SvmCoef0(1.0),
         SvmCacheSize(100),
         SampleSize(1000),

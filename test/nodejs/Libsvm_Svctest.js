@@ -19,9 +19,17 @@ describe("LIBSVM SVC test", function () {
         it("It should return a default constructor", function () {
             var SVC = new analytics.SVC({ algorithm: "LIBSVM" });
             var SVCjSon = SVC.getParams();
-
+            assert.equal(SVCjSon.kernel, "LINEAR");
+            assert.equal(SVCjSon.svmType, "default");
             assert.equal(SVCjSon.c, 1);
             assert.equal(SVCjSon.j, 1);
+            assert.equal(SVCjSon.eps, 0.1);
+            assert.equal(SVCjSon.gamma, 1);
+            assert.equal(SVCjSon.p, 0.1);
+            assert.equal(SVCjSon.degree, 1);
+            assert.equal(SVCjSon.nu, 0.01);
+            assert.equal(SVCjSon.coef0, 1);
+            assert.equal(SVCjSon.cacheSize, 100);
             assert.equal(SVCjSon.batchSize, 1000); // XXX
             assert.equal(SVCjSon.maxIterations, 10000); // XXX
             assert.equal(SVCjSon.maxTime, 1); // XXX
@@ -29,14 +37,22 @@ describe("LIBSVM SVC test", function () {
             assert.equal(SVCjSon.verbose, false);
         });
         it("It should return a SVC created by Json", function () {
-            var SVC = new analytics.SVC({ algorithm: "LIBSVM", c: 5, j: 5, batchSize: 5, maxIterations: 5, maxTime: 1, minDiff: 1e-10, verbose: true });
+            var SVC = new analytics.SVC({ algorithm: "LIBSVM", kernel: "RBF", svmType: "NU_SVC", c: 20, j: 0.4, eps: 0.15, gamma:1.5, p: 0.05, degree: 3, nu: 0.1, coef0: 0.5, cacheSize: 20, batchSize: 5, maxIterations: 5, maxTime: 1, minDiff: 1e-10, verbose: true });
             var SVCjSon = SVC.getParams();
-
-            assert.equal(SVCjSon.c, 5);
-            assert.equal(SVCjSon.j, 5);
-            assert.equal(SVCjSon.batchSize, 5);
-            assert.equal(SVCjSon.maxIterations, 5);
-            assert.equal(SVCjSon.maxTime, 1);
+            assert.equal(SVCjSon.kernel, "RBF");
+            assert.equal(SVCjSon.svmType, "NU_SVC");
+            assert.equal(SVCjSon.c, 20);
+            assert.equal(SVCjSon.j, 0.4);
+            assert.equal(SVCjSon.eps, 0.15);
+            assert.equal(SVCjSon.gamma, 1.5);
+            assert.equal(SVCjSon.p, 0.05);
+            assert.equal(SVCjSon.degree, 3);
+            assert.equal(SVCjSon.nu, 0.1);
+            assert.equal(SVCjSon.coef0, 0.5);
+            assert.equal(SVCjSon.cacheSize, 20);
+            assert.equal(SVCjSon.batchSize, 5); // XXX
+            assert.equal(SVCjSon.maxIterations, 5); // XXX
+            assert.equal(SVCjSon.maxTime, 1); // XXX
             assert.eqtol(SVCjSon.minDiff, 1e-10);
             assert.equal(SVCjSon.verbose, true);
         });
@@ -45,11 +61,20 @@ describe("LIBSVM SVC test", function () {
             var SVC = new analytics.SVC({ algorithm: "LIBSVM", c: 5, batchSize: 5, maxTime: 1, verbose: true });
             var SVCjSon = SVC.getParams();
 
+            assert.equal(SVCjSon.kernel, "LINEAR");
+            assert.equal(SVCjSon.svmType, "default");
             assert.equal(SVCjSon.c, 5);
             assert.equal(SVCjSon.j, 1);
-            assert.equal(SVCjSon.batchSize, 5);
-            assert.equal(SVCjSon.maxIterations, 10000);
-            assert.equal(SVCjSon.maxTime, 1);
+            assert.equal(SVCjSon.eps, 0.1);
+            assert.equal(SVCjSon.gamma, 1);
+            assert.equal(SVCjSon.p, 0.1);
+            assert.equal(SVCjSon.degree, 1);
+            assert.equal(SVCjSon.nu, 0.01);
+            assert.equal(SVCjSon.coef0, 1);
+            assert.equal(SVCjSon.cacheSize, 100);
+            assert.equal(SVCjSon.batchSize, 5); // XXX
+            assert.equal(SVCjSon.maxIterations, 10000); // XXX
+            assert.equal(SVCjSon.maxTime, 1); // XXX
             assert.eqtol(SVCjSon.minDiff, 1e-6);
             assert.equal(SVCjSon.verbose, true);
         });
@@ -57,12 +82,21 @@ describe("LIBSVM SVC test", function () {
         it("It should return a SVC created by an empty Json", function () {
             var SVC = new analytics.SVC({ algorithm: "LIBSVM" });
             var SVCjSon = SVC.getParams();
-
+            
+            assert.equal(SVCjSon.kernel, "LINEAR");
+            assert.equal(SVCjSon.svmType, "default");
             assert.equal(SVCjSon.c, 1);
             assert.equal(SVCjSon.j, 1);
-            assert.equal(SVCjSon.batchSize, 1000);
-            assert.equal(SVCjSon.maxIterations, 10000);
-            assert.equal(SVCjSon.maxTime, 1);
+            assert.equal(SVCjSon.eps, 0.1);
+            assert.equal(SVCjSon.gamma, 1);
+            assert.equal(SVCjSon.p, 0.1);
+            assert.equal(SVCjSon.degree, 1);
+            assert.equal(SVCjSon.nu, 0.01);
+            assert.equal(SVCjSon.coef0, 1);
+            assert.equal(SVCjSon.cacheSize, 100);
+            assert.equal(SVCjSon.batchSize, 1000); // XXX
+            assert.equal(SVCjSon.maxIterations, 10000); // XXX
+            assert.equal(SVCjSon.maxTime, 1); // XXX
             assert.eqtol(SVCjSon.minDiff, 1e-6);
             assert.equal(SVCjSon.verbose, false);
         });
@@ -71,11 +105,20 @@ describe("LIBSVM SVC test", function () {
             var SVC = new analytics.SVC({ algorithm: "LIBSVM", alpha: 5, beta: 10, s: 3, batchSize: 10000, verbose: true });
             var SVCjSon = SVC.getParams();
 
+            assert.equal(SVCjSon.kernel, "LINEAR");
+            assert.equal(SVCjSon.svmType, "default");
             assert.equal(SVCjSon.c, 1);
             assert.equal(SVCjSon.j, 1);
-            assert.equal(SVCjSon.batchSize, 10000);
-            assert.equal(SVCjSon.maxIterations, 10000);
-            assert.equal(SVCjSon.maxTime, 1);
+            assert.equal(SVCjSon.eps, 0.1);
+            assert.equal(SVCjSon.gamma, 1);
+            assert.equal(SVCjSon.p, 0.1);
+            assert.equal(SVCjSon.degree, 1);
+            assert.equal(SVCjSon.nu, 0.01);
+            assert.equal(SVCjSon.coef0, 1);
+            assert.equal(SVCjSon.cacheSize, 100);
+            assert.equal(SVCjSon.batchSize, 10000); // XXX
+            assert.equal(SVCjSon.maxIterations, 10000); // XXX
+            assert.equal(SVCjSon.maxTime, 1); // XXX
             assert.eqtol(SVCjSon.minDiff, 1e-6);
             assert.equal(SVCjSon.verbose, true);
         });
@@ -86,11 +129,20 @@ describe("LIBSVM SVC test", function () {
             var SVC = new analytics.SVC({ algorithm: "LIBSVM" });
             var SVCjSon = SVC.getParams();
 
+            assert.equal(SVCjSon.kernel, "LINEAR");
+            assert.equal(SVCjSon.svmType, "default");
             assert.equal(SVCjSon.c, 1);
             assert.equal(SVCjSon.j, 1);
-            assert.equal(SVCjSon.batchSize, 1000);
-            assert.equal(SVCjSon.maxIterations, 10000);
-            assert.equal(SVCjSon.maxTime, 1);
+            assert.equal(SVCjSon.eps, 0.1);
+            assert.equal(SVCjSon.gamma, 1);
+            assert.equal(SVCjSon.p, 0.1);
+            assert.equal(SVCjSon.degree, 1);
+            assert.equal(SVCjSon.nu, 0.01);
+            assert.equal(SVCjSon.coef0, 1);
+            assert.equal(SVCjSon.cacheSize, 100);
+            assert.equal(SVCjSon.batchSize, 1000); // XXX
+            assert.equal(SVCjSon.maxIterations, 10000); // XXX
+            assert.equal(SVCjSon.maxTime, 1); // XXX
             assert.eqtol(SVCjSon.minDiff, 1e-6);
             assert.equal(SVCjSon.verbose, false);
         })
@@ -99,11 +151,20 @@ describe("LIBSVM SVC test", function () {
             var SVC = new analytics.SVC({ c: 3, j: 2, maxTime: 1 });
             var SVCjSon = SVC.getParams();
 
+            assert.equal(SVCjSon.kernel, "LINEAR");
+            assert.equal(SVCjSon.svmType, "default");
             assert.equal(SVCjSon.c, 3);
             assert.equal(SVCjSon.j, 2);
-            assert.equal(SVCjSon.batchSize, 1000);
-            assert.equal(SVCjSon.maxIterations, 10000);
-            assert.equal(SVCjSon.maxTime, 1);
+            assert.equal(SVCjSon.eps, 0.1);
+            assert.equal(SVCjSon.gamma, 1);
+            assert.equal(SVCjSon.p, 0.1);
+            assert.equal(SVCjSon.degree, 1);
+            assert.equal(SVCjSon.nu, 0.01);
+            assert.equal(SVCjSon.coef0, 1);
+            assert.equal(SVCjSon.cacheSize, 100);
+            assert.equal(SVCjSon.batchSize, 1000); // XXX
+            assert.equal(SVCjSon.maxIterations, 10000); // XXX
+            assert.equal(SVCjSon.maxTime, 1); // XXX
             assert.eqtol(SVCjSon.minDiff, 1e-6);
             assert.equal(SVCjSon.verbose, false);
         })
@@ -112,11 +173,20 @@ describe("LIBSVM SVC test", function () {
             var SVC = new analytics.SVC({ algorithm: "LIBSVM", alpha: 3, beta: 3, z: 3 });
             var SVCjSon = SVC.getParams();
 
+            assert.equal(SVCjSon.kernel, "LINEAR");
+            assert.equal(SVCjSon.svmType, "default");
             assert.equal(SVCjSon.c, 1);
             assert.equal(SVCjSon.j, 1);
-            assert.equal(SVCjSon.batchSize, 1000);
-            assert.equal(SVCjSon.maxIterations, 10000);
-            assert.equal(SVCjSon.maxTime, 1);
+            assert.equal(SVCjSon.eps, 0.1);
+            assert.equal(SVCjSon.gamma, 1);
+            assert.equal(SVCjSon.p, 0.1);
+            assert.equal(SVCjSon.degree, 1);
+            assert.equal(SVCjSon.nu, 0.01);
+            assert.equal(SVCjSon.coef0, 1);
+            assert.equal(SVCjSon.cacheSize, 100);
+            assert.equal(SVCjSon.batchSize, 1000); // XXX
+            assert.equal(SVCjSon.maxIterations, 10000); // XXX
+            assert.equal(SVCjSon.maxTime, 1); // XXX
             assert.eqtol(SVCjSon.minDiff, 1e-6);
             assert.equal(SVCjSon.verbose, false);
         })
@@ -128,11 +198,20 @@ describe("LIBSVM SVC test", function () {
             SVC.setParams({ j: 3, maxTime: 2 });
             var SVCjSon = SVC.getParams();
 
+            assert.equal(SVCjSon.kernel, "LINEAR");
+            assert.equal(SVCjSon.svmType, "default");
             assert.equal(SVCjSon.c, 1);
             assert.equal(SVCjSon.j, 3);
-            assert.equal(SVCjSon.batchSize, 1000);
-            assert.equal(SVCjSon.maxIterations, 10000);
-            assert.equal(SVCjSon.maxTime, 2);
+            assert.equal(SVCjSon.eps, 0.1);
+            assert.equal(SVCjSon.gamma, 1);
+            assert.equal(SVCjSon.p, 0.1);
+            assert.equal(SVCjSon.degree, 1);
+            assert.equal(SVCjSon.nu, 0.01);
+            assert.equal(SVCjSon.coef0, 1);
+            assert.equal(SVCjSon.cacheSize, 100);
+            assert.equal(SVCjSon.batchSize, 1000); // XXX
+            assert.equal(SVCjSon.maxIterations, 10000); // XXX
+            assert.equal(SVCjSon.maxTime, 2); // XXX
             assert.eqtol(SVCjSon.minDiff, 1e-6);
             assert.equal(SVCjSon.verbose, false);
         })
@@ -141,11 +220,20 @@ describe("LIBSVM SVC test", function () {
             SVC.setParams({ j: 3, maxTime: 2, alpha: 5, z: 10 });
             var SVCjSon = SVC.getParams();
 
+            assert.equal(SVCjSon.kernel, "LINEAR");
+            assert.equal(SVCjSon.svmType, "default");
             assert.equal(SVCjSon.c, 1);
             assert.equal(SVCjSon.j, 3);
-            assert.equal(SVCjSon.batchSize, 1000);
-            assert.equal(SVCjSon.maxIterations, 10000);
-            assert.equal(SVCjSon.maxTime, 2);
+            assert.equal(SVCjSon.eps, 0.1);
+            assert.equal(SVCjSon.gamma, 1);
+            assert.equal(SVCjSon.p, 0.1);
+            assert.equal(SVCjSon.degree, 1);
+            assert.equal(SVCjSon.nu, 0.01);
+            assert.equal(SVCjSon.coef0, 1);
+            assert.equal(SVCjSon.cacheSize, 100);
+            assert.equal(SVCjSon.batchSize, 1000); // XXX
+            assert.equal(SVCjSon.maxIterations, 10000); // XXX
+            assert.equal(SVCjSon.maxTime, 2); // XXX
             assert.eqtol(SVCjSon.minDiff, 1e-6);
             assert.equal(SVCjSon.verbose, false);
         })
@@ -177,17 +265,68 @@ describe("LIBSVM SVC test", function () {
         })
 
     });
+    
+    describe("Bias tests", function () {
+        it("should return zero", function () {
+            var SVC = new analytics.SVC({ algorithm: "LIBSVM" });
+            var num = SVC.bias;
+            assert.equal(num, 0);
+        })
+        it("should return zero even if the parameters have been changed", function () {
+            var SVC = new analytics.SVC({ algorithm: "LIBSVM" });
+            SVC.setParams({ j: 3, maxTime: 2 });
+            var num = SVC.bias;
+            assert.equal(num, 0);
+        })
+
+    });
+    
+    describe("Support vectors tests", function () {
+        it("should return an empty matrix", function () {
+            var SVC = new analytics.SVC({ algorithm: "LIBSVM" });
+            var Mat = SVC.supportVectors;
+            assert.equal(Mat.rows, 0);
+            assert.equal(Mat.cols, 0);
+        })
+        it("should return an empty vector even if the parameters have been changed", function () {
+            var SVC = new analytics.SVC({ algorithm: "LIBSVM" });
+            SVC.setParams({ j: 3, maxTime: 2 });
+            var Mat = SVC.supportVectors;
+            assert.equal(Mat.rows, 0);
+            assert.equal(Mat.cols, 0);
+        })
+
+    });
+    
+    describe("Coefficients tests", function () {
+        it("should return an empty matrix", function () {
+            var SVC = new analytics.SVC({ algorithm: "LIBSVM" });
+            var Mat = SVC.coefficients;
+            assert.equal(Mat.rows, 0);
+            assert.equal(Mat.cols, 0);
+        })
+        it("should return an empty vector even if the parameters have been changed", function () {
+            var SVC = new analytics.SVC({ algorithm: "LIBSVM" });
+            SVC.setParams({ j: 3, maxTime: 2 });
+            var Mat = SVC.coefficients;
+            assert.equal(Mat.rows, 0);
+            assert.equal(Mat.cols, 0);
+        })
+
+    });
 
     describe("GetModel tests", function () {
         it("should return parameters of the model", function () {
             var SVC = new analytics.SVC({ algorithm: "LIBSVM" });
             var Model = SVC.getModel();
             assert.equal(Model.weights.length, 0);
+            assert.equal(Model.bias, 0);
         })
         it("should ignore extra parameters given to the function", function () {
             var SVC = new analytics.SVC({ algorithm: "LIBSVM" });
             var Model = SVC.getModel(1);
             assert.equal(Model.weights.length, 0);
+            assert.equal(Model.bias, 0);
         })
     });
 
@@ -273,6 +412,19 @@ describe("LIBSVM SVC test", function () {
             assert.eqtol(model.weights[0], 1, 1e-3);
             assert.eqtol(model.weights[1], 0, 1e-3);
         })
+        it('should throw an exception if svmType is wrong', function () {
+            var matrix = new la.Matrix([[1, -1], [0, 0]]);
+            var vec = new la.Vector([1, -1]);
+            var SVC = new analytics.SVC({ algorithm: "LIBSVM", svmType: "EPSILON_SVR" });
+            assert.throws(function () {
+                SVC.fit(matrix, vec);
+            });
+            
+            SVC = new analytics.SVC({ algorithm: "LIBSVM", svmType: "NU_SVR" });
+            assert.throws(function () {
+                SVC.fit(matrix, vec);
+            });
+        })
     });
 
     describe('Predict Tests', function () {
@@ -343,6 +495,17 @@ describe("LIBSVM SVC test", function () {
             });
         })
         it('should throw an exception if the matrix has too lesser rows', function () {
+            var matrix = new la.Matrix([[1, -1], [0, 0]]);
+            var vec = new la.Vector([1, -1]);
+            var SVC = new analytics.SVC({ algorithm: "LIBSVM" });
+            SVC.fit(matrix, vec);
+
+            var matrix2 = new la.Matrix([[1, 3, -1]]);
+            assert.throws(function () {
+                SVC.predict(matrix2);
+            });
+        })
+        it('should throw an exception if the parameters are wrong', function () {
             var matrix = new la.Matrix([[1, -1], [0, 0]]);
             var vec = new la.Vector([1, -1]);
             var SVC = new analytics.SVC({ algorithm: "LIBSVM" });
