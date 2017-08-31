@@ -28,11 +28,11 @@ private:
     /// New constructor delegate
     typedef PFtrExt (*TNewF)(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
     /// Feature extractor New constructor router
-    static TFunRouter<PFtrExt, TNewF> NewRouter;
+    static TFunRouter<TNewF> NewRouter;
     /// Load constructor delegate
     typedef PFtrExt (*TLoadF)(const TWPt<TBase>& Base, TSIn& SIn);   
     /// Feature extractor Load constructor router
-    static TFunRouter<PFtrExt, TLoadF> LoadRouter;
+    static TFunRouter<TLoadF> LoadRouter;
 public:
     /// Register default feature extractors
     static void Init();

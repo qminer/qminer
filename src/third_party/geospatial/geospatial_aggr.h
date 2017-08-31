@@ -184,6 +184,12 @@ public:
     TStr Type() const { return GetType(); }
 };
 
+// Register aggregates
+void InitGeoSpatial_Aggr() {
+    TQm::TStreamAggr::Register<TQm::TStreamAggrs::TStayPointDetector>();
+}
+
+INIT_EXTERN_AGGR(InitGeoSpatial_Aggr);
 
 } // TStreamAggrs namespace
 } // TQm namespace

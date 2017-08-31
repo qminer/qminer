@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -93,7 +93,7 @@ public:
 
 ///////////////////////////////
 // QMiner-JavaScript-Support-Vector-Machine-Model
-// Holds SVM classification or regression model. 
+// Holds SVM classification or regression model.
 class TNodeJsSvmModel : public node::ObjectWrap {
     friend class TNodeJsUtil;
     friend class TNodeJsSVC;
@@ -178,7 +178,7 @@ private:
 
 /**
 * SVC
-* @classdesc Support Vector Machine Classifier. Implements a soft margin linear support vector classifier using the PEGASOS algorithm, 
+* @classdesc Support Vector Machine Classifier. Implements a soft margin linear support vector classifier using the PEGASOS algorithm,
 * see: {@link http://ttic.uchicago.edu/~nati/Publications/PegasosMPB.pdf Pegasos: Primal Estimated sub-GrAdient SOlver for SVM}.
 * @class
 * @param {module:analytics~SVMParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
@@ -219,7 +219,7 @@ public:
     * var SVC = new analytics.SVC({ c: 5, j: 10, batchSize: 2000, maxIterations: 12000, maxTime: 2, minDiff: 1e-10, verbose: true });
     * // get the parameters of the SVC model
     * // returns { algorithm: 'SGD' c: 5, j: 10, eps: 0.1, batchSize: 2000, maxIterations: 12000, maxTime: 2, minDiff: 1e-10, verbose: true }
-    * var json = SVC.getParams(); 
+    * var json = SVC.getParams();
     */
     //# exports.SVC.prototype.getParams = function() { return { algorithm: '', c: 0, j: 0, eps: 0.1, batchSize: 0, maxIterations: 0, maxTime: 0, minDiff: 0, verbose: true } };
 
@@ -237,9 +237,9 @@ public:
     */
     //# exports.SVC.prototype.setParams = function(param) { return Object.create(require('qminer').analytics.SVC.prototype); };
 
-    /**    
+    /**
     * Gets the vector of coefficients of the linear model. Type {@link module:la.Vector}.
-    * @example 
+    * @example
     * // import the analytics and la modules
     * var analytics = require('qminer').analytics;
     * var la = require('qminer').la;
@@ -267,7 +267,7 @@ public:
     * // create a new SVC object
     * var SVC = new analytics.SVC();
     * // create the matrix containing the input features and the input vector for each matrix column.
-    * var matrix = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);    
+    * var matrix = new la.Matrix([[1, 0, -1, 0], [0, 1, 0, -1]]);
     * var vec = new la.Vector([1, 0, -1, -2]);
     * // fit the model
     * SVC.fit(matrix, vec);
@@ -279,10 +279,10 @@ public:
     * // create input stream
     * var fin = fs.openRead('svc_example.bin');
     * // create a SVC object that loads the model and parameters from input stream
-    * var SVC2 = new analytics.SVC(fin);    
+    * var SVC2 = new analytics.SVC(fin);
     */
     //# exports.SVC.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); }
-    
+
     /**
     * Sends vector through the model and returns the distance to the decision boundery.
     * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X - Input feature vector or matrix with feature vectors as columns.
@@ -307,7 +307,7 @@ public:
     * var distance = SVC.decisionFunction(vec2); // returns something close to 5
     */
     //# exports.SVC.prototype.decisionFunction = function(X) { return (X instanceof require('qminer').la.Vector | X instanceof require('qminer').la.SparseVector) ? 0 : Object.create(require('qminer').la.Vector.prototype); }
-    
+
     /**
     * Sends vector through the model and returns the prediction as a real number.
     * @param {module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix} X - Input feature vector or matrix with feature vectors as columns.
@@ -326,13 +326,13 @@ public:
     * var vec = new la.Vector([1, 1, -1, -1]);
     * // fit the model
     * SVC.fit(matrix, vec);
-    * // create a vector you want to predict 
+    * // create a vector you want to predict
     * var vec2 = new la.Vector([3, 5]);
     * // predict the vector
     * var prediction = SVC.predict(vec2); // returns 1
     */
     //# exports.SVC.prototype.predict = function(X) { return (X instanceof require('qminer').la.Vector | X instanceof require('qminer').la.SparseVector) ? 0 : Object.create(require('qminer').la.Vector.prototype); }
-    
+
     /**
     * Fits a SVM classification model, given column examples in a matrix and vector of targets.
     * @param {module:la.Matrix | module:la.SparseMatrix} X - Input feature matrix where columns correspond to feature vectors.
@@ -388,7 +388,7 @@ public:
 class TNodeJsSVR : public TNodeJsSvmModel {
 public:
     static void Init(v8::Handle<v8::Object> exports);
-    
+
     /**
     * Gets the SVR parameters.
     * @returns {module:analytics~SVMParam} Parameters of the regression model.
@@ -524,7 +524,7 @@ public:
     * SVR.fit(matrix, vector);
     */
     //# exports.SVR.prototype.fit = function(X, y) { return Object.create(require('qminer').analytics.SVR.prototype); }
-    JsDeclareFunction(fit);    
+    JsDeclareFunction(fit);
 };
 
 /////////////////////////////////////////////
@@ -539,7 +539,7 @@ public:
 /**
  * Ridge Regression
  * @class
- * @classdesc Ridge regression minimizes the value `||A' x - b||^2 + ||gamma x||^2`. 
+ * @classdesc Ridge regression minimizes the value `||A' x - b||^2 + ||gamma x||^2`.
  * Uses {@link http://en.wikipedia.org/wiki/Tikhonov_regularization Tikhonov regularization}.
  * @param {module:analytics~ridgeRegParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
  * <br>1. Using the {@link  module:analytics~ridgeRegParam} object,
@@ -575,15 +575,15 @@ public:
     static void Init(v8::Handle<v8::Object> exports);
     static const TStr GetClassId() { return "RidgeReg"; }
     ~TNodeJsRidgeReg() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
-    
+
 private:
     TRegression::TRidgeReg Model;
-    
+
     TNodeJsRidgeReg(TSIn& SIn): Model(SIn) { }
     TNodeJsRidgeReg(const TRegression::TRidgeReg& _Model): Model(_Model) { }
-    
+
     static TNodeJsRidgeReg* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
-    
+
 public:
 
     /**
@@ -683,7 +683,7 @@ public:
      */
     //# exports.RidgeReg.prototype.predict = function(X) { return 0.0; }
     JsDeclareFunction(predict);
-    
+
     /**
      * Vector of coefficients for linear regression. Type {@link module:la.Vector}.
      * @example
@@ -702,7 +702,7 @@ public:
      */
     //# exports.RidgeReg.prototype.weights = Object.create(require('qminer').la.Vector.prototype);
     JsDeclareProperty(weights);
-    
+
     /**
      * Saves the model into the output stream.
      * @param {module:fs.FOut} fout - Output stream.
@@ -760,15 +760,15 @@ public:
     static void Init(v8::Handle<v8::Object> exports);
     static const TStr GetClassId() { return "Sigmoid"; }
     ~TNodeJsSigmoid() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
-    
+
 private:
     TSigmoid Sigmoid;
-    
+
     TNodeJsSigmoid() {}
     TNodeJsSigmoid(TSIn& SIn): Sigmoid(SIn) {}
-    
+
     static TNodeJsSigmoid* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
-    
+
 public:
 
     /**
@@ -788,14 +788,14 @@ public:
 
     /**
     * Sets the parameters. <i>It doesn't do anything, it's only for consistency for constructing pipeline.</i>
-    * @param {Object} arg - Json object. 
+    * @param {Object} arg - Json object.
     * @returns {module:analytics.Sigmoid} Self. Nothing changes.
     * @example
     * // import analytics module
     * var analytics = require('qminer').analytics;
     * // create the Sigmoid model
     * var s = new analytics.Sigmoid();
-    * // set the parameters 
+    * // set the parameters
     * // doesn't change the model
     * s.setParams({});
     */
@@ -834,12 +834,12 @@ public:
      * var X = new la.Vector([-3, -2, -1, 1, 2, 3]);
      * var y = new la.Vector([-1, -1, -1, 1, 1, 1]);
      * // fit the model
-     * // changes the internal A and B values of the model 
+     * // changes the internal A and B values of the model
      * s.fit(X, y);
      */
     //# exports.Sigmoid.prototype.fit = function(X, y) { return Object.create(require('qminer').analytics.Sigmoid.prototype); }
     JsDeclareFunction(fit);
-    
+
     /**
      * Returns the expected response for the provided feature vector.
      * @param {number | module:la.Vector} x - Prediction score.
@@ -866,7 +866,7 @@ public:
     /**
      * Returns the expected response for the provided feature vector.
      * @param {number | module:la.Vector} x - Prediction score.
-     * @returns {number | module:la.Vector} 
+     * @returns {number | module:la.Vector}
      * <br> 1. If `x` is a number, returns a normalized prediction score,
      * <br> 2. if `x` is a {@link module:la.Vector}, returns a vector of normalized prediction scores.
      * @example
@@ -886,7 +886,7 @@ public:
      */
     //# exports.Sigmoid.prototype.predict = function(x) { return (x instanceof Object.create(require('qminer').la.Vector)) ? Object.create(require('qminer').la.Vector.prototype) : 0.0; }
     JsDeclareFunction(predict);
-    
+
     /**
      * Saves the model into the output stream.
      * @param {module:fs.FOut} fout - Output stream.
@@ -926,7 +926,7 @@ public:
 */
 
 /**
- * Nearest Neighbour Anomaly Detection 
+ * Nearest Neighbour Anomaly Detection
  * @classdesc Anomaly detector that checks if the test point is too far from the nearest known point.
  * @class
  * @param {module:analytics~detectorParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
@@ -938,7 +938,7 @@ public:
  * var la = require('qminer').la;
  * // create a new NearestNeighborAD object
  * var neighbor = new analytics.NearestNeighborAD({ rate: 0.1 });
- * // create a sparse matrix 
+ * // create a sparse matrix
  * var matrix = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, -2], [1, 3]], [[0, 0], [1, 1]]]);
  * // fit the model with the matrix
  * neighbor.fit(matrix);
@@ -954,7 +954,7 @@ public:
     static void Init(v8::Handle<v8::Object> exports);
     static const TStr GetClassId() { return "NearestNeighborAD"; }
     ~TNodeJsNNAnomalies() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
-    
+
 private:
     TAnomalyDetection::TNearestNeighbor Model;
 
@@ -987,7 +987,7 @@ public:
     */
     //# exports.NearestNeighborAD.prototype.setParams = function (params) { return Object.create(require('qminer').analytics.NearestNeighborAD.prototype); }
     JsDeclareFunction(setParams);
-    
+
     /**
     * Gets parameters.
     * @returns {module:analytics~detectorParam} The object containing the parameters.
@@ -1002,7 +1002,7 @@ public:
     */
     //# exports.NearestNeighborAD.prototype.getParams = function () { return { rate: 0.0, windowSize: 0.0 }; }
     JsDeclareFunction(getParams);
-    
+
     /**
      * Saves model to provided output stream.
      * @param {module:fs.FOut} fout - The output stream.
@@ -1028,7 +1028,7 @@ public:
      */
     //# exports.NearestNeighborAD.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); }
     JsDeclareFunction(save);
-    
+
     /**
     * Returns the model.
     * @returns {Object} The object `neighbourModel` containing the properties:
@@ -1068,7 +1068,7 @@ public:
     */
     //# exports.NearestNeighborAD.prototype.partialFit = function(X) { return Object.create(require('qminer').NearestNeighborAD.prototype); }
     JsDeclareFunction(partialFit);
-    
+
     /**
     * Analyzes the nearest neighbor distances and calculates the detector threshold based on the rate parameter.
     * @param {module:la.SparseMatrix} A - Matrix whose columns correspond to known examples. Gets saved as it is part of the model.
@@ -1151,7 +1151,7 @@ public:
     * @property {number} nearVal - The the value of the feature for the nearest neighbor.
     * @property {number} contribution - Fraction of the total distance `(v(i) - n(i))^2 / ||v - n||^2`.
     */
-    
+
     /**
     * Returns an object that encodes the ID of the nearest neighbor and the features that contributed to the distance.
     * @param {module:la.SparseVector} x - Test vector.
@@ -1230,7 +1230,7 @@ public:
 private:
 
     static TNodeJsRecLinReg* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
-    
+
     /**
     * Updates the internal model.
     * @param {module:la.Vector} vec - The input vector.
@@ -1290,7 +1290,7 @@ private:
     * // predict the value of the vector
     * var prediction = linreg.predict(pred); // returns something close to 3.0
     */
-    //# exports.RecLinReg.prototype.predict = function (vec) { return 0.0 }  
+    //# exports.RecLinReg.prototype.predict = function (vec) { return 0.0 }
     JsDeclareFunction(predict);
 
     /**
@@ -1511,12 +1511,12 @@ public:
      *     var prediction = logreg.predict(test);
      * };
      */
-    //# exports.LogReg.prototype.predict = function (x) { return 0.0; } 
+    //# exports.LogReg.prototype.predict = function (x) { return 0.0; }
     JsDeclareFunction(predict);
 
     /**
      * Gives the weights of the model. Type {@link module:la.Vector}.
-     * @example 
+     * @example
      * // import modules
      * var analytics = require('qminer').analytics;
      * var la = require('qminer').la;
@@ -1618,7 +1618,7 @@ public:
     * Sets the parameters of the model.
     * @param {module:analytics~hazardModelParam} params - The parameters given to the model.
     * @returns {module:analytics.PropHazards} Self. The model parameters have been updated.
-    * @example 
+    * @example
     * // import analytics module
     * var analytics = require('qminer').analytics;
     * // create a Proportional Hazard model
@@ -1668,7 +1668,7 @@ public:
      * // if openblas used, fit the model and get the prediction
      * if (require('qminer').flags.blas) {
      *     // fit the model
-     *     hazards.fit(mat, vec);       
+     *     hazards.fit(mat, vec);
      *     // create a vector for the prediction
      *      var test = new la.Vector([1, 2]);
      *     // predict the value
@@ -1717,7 +1717,7 @@ public:
      * // create input stream
      * var fin = fs.openRead('hazards_example.bin');
      * // create a Proportional Hazards object that loads the model and parameters from input stream
-     * var hazards2 = new analytics.PropHazards(fin);    
+     * var hazards2 = new analytics.PropHazards(fin);
      */
     //# exports.PropHazards.prototype.save = function(fout) { return Object.create(require('qminer').fs.FOut.prototype); }
     JsDeclareFunction(save);
@@ -1824,7 +1824,7 @@ public:
     */
     //# exports.NNet.prototype.fit = function (input, output) { return Object.create(require('qminer').analytics.NNet.prototype); }
     JsDeclareFunction(fit);
-    
+
     /**
     * Gets the prediction of the vector.
     * @param {module:la.Vector} vec - The prediction vector.
@@ -1872,7 +1872,7 @@ public:
     * var fin = fs.openRead('nnet_example.bin');
     * var nnet2 = new analytics.NNet(fin);
     */
-    //# exports.NNet.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); } 
+    //# exports.NNet.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
     JsDeclareFunction(save);
  private:
     TSignalProc::TTFunc ExtractFuncFromString(const TStr& FuncString);
@@ -1884,7 +1884,7 @@ public:
 /**
 * @typedef {Object} tokenizerParam
 * An object used for the construction of {@link module:analytics.Tokenizer}.
-* @property {string} [type='unicode'] - The type of the tokenizer. The different types are: 
+* @property {string} [type='unicode'] - The type of the tokenizer. The different types are:
 *<br>1. 'simple' - Creates break on white spaces.
 *<br>2. 'html' - Creates break on white spaces and ignores html tags.
 *<br>3. 'unicode' - Creates break on white spaces and normalizes unicode letters, e.g. �� changes to cs�z.
@@ -1892,7 +1892,7 @@ public:
 
 /**
  * Tokenizer
- * @class 
+ * @class
  * @classdesc Breaks text into tokens (i.e. words).
  * @param {module:analytics~tokenizerParam} [arg] - Construction arguments. If arg is not given it uses the `'unicode'` tokenizer type.
  * @example
@@ -1908,7 +1908,7 @@ public:
     /// Tokenizer Model
     PTokenizer Tokenizer;
 private:
-    TNodeJsTokenizer(const PTokenizer& _Tokenizer): 
+    TNodeJsTokenizer(const PTokenizer& _Tokenizer):
         Tokenizer(_Tokenizer) { }
 public:
     static void Init(v8::Handle<v8::Object> exports);
@@ -1944,7 +1944,7 @@ public:
     * @param {String} str - String given to break into sentences.
     * @returns {Array.<String>} Array of sentences. The number of sentences is equal to number of sentences in input `str`.
     * How function breaks sentences depends on where you use a full-stop, exclamation mark, question mark or the new line command.
-    * Careful: the space between the lines is not ignored. 
+    * Careful: the space between the lines is not ignored.
     * @example
     * // import modules
     * var analytics = require('qminer').analytics;
@@ -1960,7 +1960,7 @@ public:
     */
     //# exports.Tokenizer.prototype.getSentences = function (str) { return [""]; }
     JsDeclareFunction(getSentences);
-    
+
     /**
     * Breaks string into paragraphs.
     * @param {String} str - String given to break into paragraphs.
@@ -1981,7 +1981,7 @@ public:
     */
     //# exports.Tokenizer.prototype.getParagraphs = function (str) { return [""]; }
     JsDeclareFunction(getParagraphs);
-    
+
 };
 
 /////////////////////////////////////////////
@@ -2085,7 +2085,7 @@ public:
     * @param {module:la.Matrix | module:la.SparseMatrix} mat - The multidimensional matrix.
     * @param {function} [callback] - The callback function receiving the error parameter (`err`) and the result parameter (`res`).
     * <i>Only for the asynchronous function.</i>
-    * @returns {module:la.Matrix} The matrix of dimensions `mat.cols` x 2, where the i-th row of the matrix is the 2D representation 
+    * @returns {module:la.Matrix} The matrix of dimensions `mat.cols` x 2, where the i-th row of the matrix is the 2D representation
     * of the i-th column of `mat`.
     * @example <caption>Asynchronous function</caption>
     * // import the modules
@@ -2095,12 +2095,12 @@ public:
     * var mds = new analytics.MDS();
     * // create the multidimensional matrix
     * var mat = new la.Matrix({ rows: 50, cols: 10, random: true });
-    * // get the 2d representation of mat 
+    * // get the 2d representation of mat
     * mds.fitTransformAsync(mat, function (err, res) {
     *    if (err) throw err;
     *    // successful calculation
     *    var mat2d = res;
-    * }); 
+    * });
     * @example <caption>Synchronous function</caption>
     * // import the modules
     * var analytics = require('qminer').analytics;
@@ -2109,8 +2109,8 @@ public:
     * var mds = new analytics.MDS();
     * // create the multidimensional matrix
     * var mat = new la.Matrix({ rows: 50, cols: 10, random: true });
-    * // get the 2d representation of mat 
-    * var mat2d = mds.fitTransform(mat); 
+    * // get the 2d representation of mat
+    * var mat2d = mds.fitTransform(mat);
     */
     //# exports.MDS.prototype.fitTransform = function (mat, callback) { return Object.create(require('qminer').la.Matrix.prototype); }
     JsDeclareSyncAsync(fitTransform, fitTransformAsync, TFitTransformTask);
@@ -2153,6 +2153,7 @@ private:
 * @property {number} [iter=10000] - The maximum number of iterations.
 * @property {number} [k=2] - The number of centroids.
 * @property {boolean} [allowEmpty=true] - Whether to allow empty clusters to be generated.
+* @property {boolean} [calcDistQual=false] - Whether to calculate the quality measure based on distance, if false relMeanCentroidDist will return 'undefined'
 * @property {string} [centroidType="Dense"] - The type of centroids. Possible options are `'Dense'` and `'Sparse'`.
 * @property {string} [distanceType="Euclid"] - The distance type used at the calculations. Possible options are `'Euclid'` and `'Cos'`.
 * @property {boolean} [verbose=false] - If `false`, the console output is supressed.
@@ -2161,8 +2162,8 @@ private:
 * @property {(module:la.Matrix | module:la.SparseMatrix)} fitStart.C - The centroid matrix.
 */
 
-/** 
-* KMeans Clustering 
+/**
+* KMeans Clustering
 * @classdesc KMeans Clustering is an iterative, data-partitioning algorithm that assigns observations into K clusters.
 * @class
 * @param {module:analytics~KMeansParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
@@ -2196,6 +2197,7 @@ private:
     int Iter;
     int K;
     TBool AllowEmptyP;
+    TBool CalcDistQualP {false};
 
     TIntV AssignV;
     TIntV Medoids;
@@ -2253,7 +2255,7 @@ public:
     */
     //# exports.KMeans.prototype.getParams = function () { return { iter: 10000, k: 2, distanceType: "Euclid", centroidType: "Dense", verbose: false }; }
     JsDeclareFunction(getParams);
-    
+
     /**
      * Sets the parameters.
      * @param {module:analytics~KMeansParam} params - The construction parameters.
@@ -2352,7 +2354,7 @@ public:
      * Permutates the clusters, and with it {@link module:analytics.KMeans#centroids}, {@link module:analytics.KMeans#medoids} and {@link module:analytics.KMeans#idxv}.
      * @param {module:la.IntVector} mapping - The mapping, where `mapping[4] = 2` means "map cluster 4 into cluster 2".
      * @returns {module:analytics.KMeans} Self. The clusters has been permutated.
-     * @example 
+     * @example
      * // import the modules
      * var analytics = require('qminer').analytics;
      * var la = require('qminer').la;
@@ -2384,7 +2386,7 @@ public:
      * // create a matrix to be fitted
      * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
      * // create the model with the matrix X
-     * KMeans.fit(X); 
+     * KMeans.fit(X);
      * // create the file output stream
      * var fout = new fs.openWrite('KMeans.bin');
      * // save the KMeans instance
@@ -2406,6 +2408,8 @@ public:
      * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
      * // get the centroids
      * var centroids = KMeans.centroids;
+     * // print the first centroid
+     * console.log(centroids.getCol(0));
      */
     //# exports.KMeans.prototype.centroids = Object.create(require('qminer').la.Matrix.prototype);
     JsDeclareProperty(centroids);
@@ -2436,10 +2440,354 @@ public:
     //# exports.KMeans.prototype.idxv = Object.create(require('qminer').la.IntVector.prototype);
     JsDeclareProperty(idxv);
 
+    /**
+     * Returns the normalized weighted distance between the vectors and their centroids
+     * using the following formula:
+     *  d = \frac{sum_i p_i*sum_j d(x_j,c_i) / n_i}{sum_{k=1}^n d(x_k, mu) / n}
+     *    = \frac{sum_{i,j} d(c_i,x_j)}{sum_k d(x_k, mu)}
+     *
+     * @returns {number} relMeanDist
+     */
+    //# exports.KMeans.prototype.relMeanCentroidDist = 0;
+    JsDeclareProperty(relMeanCentroidDist);
+
 private:
     void UpdateParams(const PJsonVal& ParamVal);
     void Save(TSOut& SOut) const;
     void CleanUp();
+};
+
+
+/////////////////////////////////////////////
+// QMiner-JavaScript-DpMeans
+
+/**
+* @typedef {Object} DpMeansParam
+* An object used for the construction of {@link module:analytics.KMeans}.
+* @property {number} [iter=10000] - The maximum number of iterations.
+* @property {number} [lambda=1] - Maximum radius of the clusters
+* @property {number} [minClusters=2] - Minimum number of clusters
+* @property {number} [maxClusters=inf] - Maximum number of clusters
+* @property {boolean} [allowEmpty=true] - Whether to allow empty clusters to be generated.
+* @property {boolean} [calcDistQual=false] - Whether to calculate the quality measure based on distance, if false relMeanCentroidDist will return 'undefined'
+* @property {string} [centroidType="Dense"] - The type of centroids. Possible options are `'Dense'` and `'Sparse'`.
+* @property {string} [distanceType="Euclid"] - The distance type used at the calculations. Possible options are `'Euclid'` and `'Cos'`.
+* @property {boolean} [verbose=false] - If `false`, the console output is supressed.
+* @property {Array.<number>} [fitIdx] - The index array used for the construction of the initial centroids.
+* @property {Object} [fitStart] - The KMeans model returned by {@link module:analytics.KMeans.prototype.getModel} used for centroid initialization.
+* @property {(module:la.Matrix | module:la.SparseMatrix)} fitStart.C - The centroid matrix.
+*/
+
+/**
+ * DpMeans Clustering
+ * @classdesc DpMeans Clustering is an iterative, data-partitioning algorithm that assigns observations into clusters with the nearest centroid according to some metric.
+ *              The number of clusters is not known in advance, but can be upper and lower bounded. Rather the parameter
+ *              is the maximum radius of a cluster `lambda`.
+ * @class
+ * @param {module:analytics~DpMeansParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
+ * <br>1. Using the {@link module:analytics~DpMeansParam} object,
+ * <br>2. using the file input stream {@link module:fs.FIn}.
+ * @example
+ * // import analytics and la modules
+ * var analytics = require('qminer').analytics;
+ * var la = require('qminer').la;
+ * // create a KMeans object
+ * var dpmeans = new analytics.DpMeans();
+ * // create the matrix to be fitted
+ * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+ * // create the model
+ * dpmeans.fit(X);
+ * // predict where the columns of the matrix will be assigned
+ * var Y = new la.Matrix([[1, 1, 0], [-2, 3, 1]]);
+ * var prediction = dpmeans.predict(Y);
+ */
+//# exports.DpMeans = function (arg) { return Object.create(require('qminer').analytics.DpMeans.prototype); }
+class TNodeJsDpMeans : public node::ObjectWrap {
+    friend class TNodeJsUtil;
+public:
+    static void Init(v8::Handle<v8::Object> exports);
+    static const TStr GetClassId() { return "DpMeans"; }
+
+    using TDenseModel = TClustering::TDpMeans<TFltVV>;
+    using TSparseModel = TClustering::TDpMeans<TVec<TIntFltKdV>>;
+
+private:
+    enum class TDistanceType { dtEuclid, dtCos };
+    enum class TCentroidType { ctDense, ctSparse };
+
+    int Iter;
+
+    TFlt Lambda {1};
+    TInt MnClusts {2};
+    TInt MxClusts {TInt::Mx};
+
+    TBool AllowEmptyP;
+    TBool CalcDistQualP {false};
+
+    TIntV AssignV;
+    TIntV Medoids;
+
+    TIntV FitIdx;
+    TFltVV DenseFitMatrix;
+    TVec<TIntFltKdV> SparseFitMatrix;
+
+    TDistanceType DistType;
+    TClustering::PDist Dist;
+
+    TCentroidType CentType;
+    void* DpMeansModel;
+
+    bool Verbose;
+    PNotify Notify;
+
+    TNodeJsDpMeans(const PJsonVal& ParamVal);
+    TNodeJsDpMeans(const PJsonVal& ParamVal, const TFltVV& Mat);
+    TNodeJsDpMeans(const PJsonVal& ParamVal, const TVec<TIntFltKdV>& Mat);
+    TNodeJsDpMeans(TSIn& SIn);
+    ~TNodeJsDpMeans();
+
+    static TNodeJsDpMeans* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+private:
+    class TFitTask : public TNodeTask {
+        TNodeJsDpMeans* JsDpMeans {nullptr};
+        // first argument
+        TNodeJsFltVV*  JsFltVV {nullptr};
+        TNodeJsSpMat*  JsSpVV {nullptr};
+        // second argument
+        TNodeJsIntV*   JsIntV {nullptr};
+        TNodeJsIntV*   JsArr {nullptr};
+
+    public:
+        TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+        v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+        void Run();
+    };
+
+public:
+
+    /**
+    * Returns the parameters.
+    * @returns {module:analytics~KMeansParam} The construction parameters.
+    * @example
+    * // import analytics module
+    * var analytics = require('qminer').analytics;
+    * // create a new DpMeans object
+    * var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 5 });
+    * // get the parameters
+    * var json = DpMeans.getParams();
+    * console.log(json.lambda);
+    */
+    //# exports.DpMeans.prototype.getParams = function () { return { iter: 10000, lambda: 2, distanceType: "Euclid", centroidType: "Dense", verbose: false }; }
+    JsDeclareFunction(getParams);
+
+    /**
+     * Sets the parameters.
+     * @param {module:analytics~KMeansParam} params - The construction parameters.
+     * @returns {module:analytics.DpMeans} Self. The model parameters have been updated.
+     * @example
+     * // import analytics module
+     * var analytics = require('qminer').analytics;
+     * // create a new DpMeans object
+     * var DpMeans = new analytics.DpMeans();
+     * // change the parameters of the DpMeans object
+     * DpMeans.setParams({ iter: 1000, lambda: 5 });
+     */
+    //# exports.DpMeans.prototype.setParams = function (params) { return Object.create(require('qminer').analytics.DpMeans.prototype); }
+    JsDeclareFunction(setParams);
+
+    /**
+     * Calculates the centroids.
+     * @param {module:la.Matrix | module:la.SparseMatrix} X - Matrix whose columns correspond to examples.
+     * @returns {module:analytics.DpMeans} Self. The model has been updated.
+     * @example <caption> Asynchronous function </caption>
+     * // import analytics module
+     * var analytics = require('qminer').analytics;
+     * var la = require('qminer').la;
+     * // create a new DpMeans object
+     * var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
+     * // create a matrix to be fitted
+     * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+     * // create the model with the matrix X
+     * DpMeans.fitAsync(X, function (err) {
+     *     if (err) console.log(err);
+     *     // successful calculation
+     * });
+     *
+     * @example <caption> Synchronous function </caption>
+     * var analytics = require('qminer').analytics;
+     * var la = require('qminer').la;
+     * // create a new DpMeans object
+     * var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
+     * // create a matrix to be fitted
+     * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+     * // create the model with the matrix X
+     * DpMeans.fit(X);
+     */
+    //# exports.DpMeans.prototype.fit = function (X) { return Object.create(require('qminer').analytics.DpMeans.prototype); }
+    JsDeclareSyncAsync(fit, fitAsync, TFitTask);
+
+    /**
+     * Returns an vector of cluster id assignments.
+     * @param {module:la.Matrix | module:la.SparseMatrix} A - Matrix whose columns correspond to examples.
+     * @returns {module:la.IntVector} Vector of cluster assignments.
+     * @example
+     * // import analytics module
+     * var analytics = require('qminer').analytics;
+     * var la = require('qminer').la;
+     * // create a new DpMeans object
+     * var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
+     * // create a matrix to be fitted
+     * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+     * // create the model with the matrix X
+     * DpMeans.fit(X);
+     * // create the matrix of the prediction vectors
+     * var pred = new la.Matrix([[2, -1, 1], [1, 0, -3]]);
+     * // predict the values
+     * var prediction = DpMeans.predict(pred);
+     */
+    //# exports.DpMeans.prototype.predict = function (A) { return Object.create(require('qminer').la.IntVector.prototype); }
+    JsDeclareFunction(predict);
+
+    /**
+     * Transforms the points to vectors of distances to centroids.
+     * @param {module:la.Matrix | module:la.SparseMatrix} A - Matrix whose columns correspond to examples.
+     * @returns {module:la.Matrix} Matrix where each column represents the squared distances to the centroid vectors.
+     * @example
+     * // import modules
+     * var analytics = require('qminer').analytics;
+     * var la = require('qminer').la;
+     * // create a new DpMeans object
+     * var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
+     * // create a matrix to be fitted
+     * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+     * // create the model with the matrix X
+     * DpMeans.fit(X);
+     * // create the matrix of the transform vectors
+     * var matrix = new la.Matrix([[-2, 0], [0, -3]]);
+     * // get the transform values of matrix
+     * // returns the matrix
+     * //  10    17
+     * //   1    20
+     * //  10     1
+     * DpMeans.transform(matrix);
+     */
+    //# exports.DpMeans.prototype.transform = function (A) { return Object.create(require('qminer').la.Matrix.prototype); }
+    JsDeclareFunction(transform);
+
+    /**
+     * Permutates the clusters, and with it {@link module:analytics.DpMeans#centroids}, {@link module:analytics.DpMeans#medoids} and {@link module:analytics.DpMeans#idxv}.
+     * @param {module:la.IntVector} mapping - The mapping, where `mapping[4] = 2` means "map cluster 4 into cluster 2".
+     * @returns {module:analytics.DpMeans} Self. The clusters has been permutated.
+     * @example
+     * // import the modules
+     * var analytics = require('qminer').analytics;
+     * var la = require('qminer').la;
+     * // create a new DpMeans object
+     * var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
+     * // create a matrix to be fitted
+     * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+     * // create the model with the matrix X
+     * DpMeans.fit(X);
+     * // create the mapping vector
+     * var Mapping = new la.IntVector([1, 0, 2]);
+     * // permutate the clusters.
+     * DpMeans.permuteCentroids(Mapping);
+     */
+    //# exports.DpMeans.prototype.permuteCentroids = function (mapping) { return Object.create(require('qminer').analytics.DpMeans.prototype); }
+    JsDeclareFunction(permuteCentroids);
+
+    /**
+     * Saves DpMeans internal state into (binary) file.
+     * @param {module:fs.FOut} fout - The output stream.
+     * @returns {module:fs.FOut} The output stream `fout`.
+     * @example
+     * // import the modules
+     * var analytics = require('qminer').analytics;
+     * var la = require('qminer').la;
+     * var fs = require('qminer').fs;
+     * // create a new DpMeans object
+     * var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
+     * // create a matrix to be fitted
+     * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+     * // create the model with the matrix X
+     * DpMeans.fit(X);
+     * // create the file output stream
+     * var fout = new fs.openWrite('DpMeans.bin');
+     * // save the DpMeans instance
+     * DpMeans.save(fout);
+     * fout.close();
+     * // load the DpMeans instance
+     * var fin = fs.openRead('DpMeans.bin');
+     * var KMeans2 = new analytics.DpMeans(fin);
+     */
+    //# exports.DpMeans.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
+    JsDeclareFunction(save);
+
+    /**
+     * The centroids created with the fit method. Type {@link module:la.Matrix}.
+     * @example
+     * // import the modules
+     * var analytics = require('qminer').analytics;
+     * // create a new DpMeans object
+     * var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
+     * // get the centroids
+     * var centroids = DpMeans.centroids;
+     * // print the first centroid
+     * console.log(centroids.getCol(0));
+     */
+    //# exports.DpMeans.prototype.centroids = Object.create(require('qminer').la.Matrix.prototype);
+    JsDeclareProperty(centroids);
+
+    /**
+    * The medoids created with the fit method. Type {@link module:la.IntVector}.
+    * @example
+    * // import the modules
+    * var analytics = require('qminer').analytics;
+    * // create a new DpMeans object
+    * var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
+    * // get the centroids
+    * var medoids = DpMeans.medoids;
+    */
+    //# exports.DpMeans.prototype.medoids = Object.create(require('qminer').la.IntVector.prototype);
+    JsDeclareProperty(medoids);
+
+    /**
+    * The integer vector containing the cluster ids of the training set created with the fit method. Type {@link module:la.IntVector}.
+    * @example
+    * // import the modules
+    * var analytics = require('qminer').analytics;
+    * // create a new DpMeans object
+    * var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
+    * // get the idxv
+    * var idxv = DpMeans.idxv;
+    */
+    //# exports.DpMeans.prototype.idxv = Object.create(require('qminer').la.IntVector.prototype);
+    JsDeclareProperty(idxv);
+
+    /**
+     * Returns the normalized weighted distance between the vectors and their centroids
+     * using the following formula:
+     *  d = \frac{sum_i p_i*sum_j d(x_j,c_i) / n_i}{sum_{k=1}^n d(x_k, mu) / n}
+     *    = \frac{sum_{i,j} d(c_i,x_j)}{sum_k d(x_k, mu)}
+     *
+     * @returns {number} relMeanDist
+     */
+    //# exports.DpMeans.prototype.relMeanCentroidDist = 0;
+    JsDeclareProperty(relMeanCentroidDist);
+
+private:
+    void UpdateParams(const PJsonVal& ParamVal);
+    void Save(TSOut& SOut) const;
+    void CleanUp();
+
+    const TDenseModel* GetDenseModel() const;
+    const TSparseModel* GetSparseModel() const;
+    TDenseModel* GetDenseModel();
+    TSparseModel* GetSparseModel();
+
+    int GetClusts() const;
 };
 
 /////////////////////////////////////////////
@@ -2615,7 +2963,690 @@ public:
     //# exports.TDigest.prototype.init = false;
     JsDeclareProperty(init);
 
+    /**
+     * Returns the current size of the algorithms summary in number of tuples.
+     */
+    //# exports.TDigest.size = 0;
+    JsDeclareProperty(size);
+
+    /**
+     * Returns the models current memory consumption.
+     */
+    //# exports.TDigest.memory = 0;
+    JsDeclareProperty(memory);
 };
+
+/**
+* @typedef {Object} GkParam
+* An object used for the construction of {@link module:analytics.Gk}.
+* @property {number} [eps=0.01] - Determines the relative error of the algorithm.
+* @property {boolean} [autoCompress=true] - Whether the summary should be compresses automatically or manually.
+*/
+
+/**
+ * @classdesc Greenwald - Khanna algorithm for online quantile estimation. Given
+ *   a comulative probability p, the algorithm returns the approximate value of
+ *   the p-th quantile.
+ *
+ *   The algorithm works by keeping a summary of buckets, each summarizing a
+ *   range of values. Through the run of the algorithm new buckets are created
+ *   and periodically merged if possible.
+ *
+ *   It is was first explained in:
+ *   "Space-Efficient Online Computation of Quantile Summaries"
+ *   http://infolab.stanford.edu/~datar/courses/cs361a/papers/quantiles.pdf
+ *
+ *   The error is bounded by the rank of the output element (not by the absolute value).
+ *   Specifically, the worst case error in rank is bounded by eps*n, where n is the
+ *   number of elements in the summary.
+ *
+ * @class
+ * @param {module:analytics~GkParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
+ * <br>1. Using the {@link module:analytics~GkParam} object,
+ * <br>2. using the file input stream {@link module:fs.FIn}.
+ *
+ * @example
+ * // import modules
+ * var qm = require('qminer');
+ * var analytics = qm.analytics;
+ *
+ * // create the default TDigest object
+ * var gk = new analytics.Gk({
+ *     eps: 0.001,
+ *     autoCompress: true
+ * });
+ *
+ * // create the data used for calculating quantiles
+ * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
+ *
+ * // fit the TDigest model
+ * for (var i = 0; i < inputs.length; i++) {
+ *     gk.partialFit(inputs[i]);
+ * }
+ *
+ * // make the prediction for the 0.1 quantile
+ * var prediction = gk.predict(0.1);
+ * // save the model
+ * gk.save(fs.openWrite('gk.bin')).close();
+ * // open the gk model under a new variable
+ * var gk2 = new analytics.Gk(fs.openRead('gk.bin'));
+ */
+//# exports.Gk = function (arg) { return Object.create(require('qminer').analytics.Gk.prototype); }
+class TNodeJsGk : public node::ObjectWrap {
+    friend class TNodeJsUtil;
+public:
+    static void Init(v8::Handle<v8::Object> exports);
+    static const TStr GetClassId() { return "Gk"; }
+
+private:
+    TQuant::TGk Gk;
+
+    TNodeJsGk(const PJsonVal&);
+    TNodeJsGk(TSIn&);
+    ~TNodeJsGk() {}
+
+    static TNodeJsGk* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+public:
+    /**
+     * Returns the models' parameters as a JavaScript object (JSON). These parameters
+     * are the same as are set through the constructor.
+     *
+     * @returns {module:analytics~GkParam} The construction parameters.
+     *
+     * var analytics = qm.analytics;
+     * var gk = new analytics.Gk();
+     * var params = gk.getParams();
+     *
+     * console.log(params.eps);
+     * console.log(params.autoCompress);
+     */
+    //# exports.Gk.prototype.getParams = function () { return { }; }
+    JsDeclareFunction(getParams);
+
+    /**
+     * Adds a new value to the summary.
+     *
+     * @param {number} val - the value
+     * @returns {module:analytics.Gk} reference to self
+     *
+     * @example
+     * var qm = require('qminer');
+     *
+     * var gk = new qm.analytics.CountWindowGk();
+     * gk.partialFit(1.0);
+     * gk.partialFit(2.0);
+     */
+    //# exports.Gk.compress = function (fout) { return Object.create(require('qminer').analytics.Gk.prototype); }
+    JsDeclareFunction(partialFit);
+
+    /**
+     * Given an input cumulative probability, returns a quantile associated with that
+     * probability (e.g. for input 0.5 it will return the median).
+     *
+     * @param {number|Array} pVals - the p-values which we a querying
+     * @returns {number|Array} quantiles - depending whether the input was a single value or array the method returns a quantile or array of quantiles
+     *
+     * @example
+     * var qm = require('qminer');
+     *
+     * var gk = new qm.analytics.Gk({
+     *     eps: 0.1
+     * });
+     * gk.partialFit(1.0);
+     * gk.partialFit(2.0);
+     * gk.partialFit(1.0);
+     * gk.partialFit(3.0);
+     * gk.partialFit(2.0);
+     *
+     * console.log(gk.predict(0.01));   // prints the first percentile
+     * console.log(gk.predict(0.25));   // prints the first quartile
+     * console.log(gk.predict(0.5));    // prints the median
+     */
+    //# exports.Gk.prototype.predict = function (x) { return 0; }
+    JsDeclareFunction(predict);
+
+    /**
+     * Manually runs the compression procedure.
+     *
+     * @returns reference to self
+     */
+    //# exports.Gk.compress = function (fout) { return Object.create(require('qminer').analytics.Gk.prototype); }
+    JsDeclareFunction(compress);
+
+    /**
+     * Saves the objects state into the output stream.
+     *
+     * @param {module:fs.FOut} fout - the output stream
+     * @returns {module:fs.FOut} - the output stream
+     */
+    //# exports.Gk.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
+    JsDeclareFunction(save);
+
+    /**
+     * Returns the current size of the algorithms summary in number of tuples.
+     */
+    //# exports.Gk.size = 0;
+    JsDeclareProperty(size);
+
+    /**
+     * Returns the models current memory consumption.
+     */
+    //# exports.Gk.memory = 0;
+    JsDeclareProperty(memory);
+};
+
+
+/**
+* @typedef {Object} BiasedGkParam
+* An object used for the construction of {@link module:analytics.BiasedGk}.
+* @property {number} [targetProb=0.01] - The probability where the algorithm is most accurate. Its accuracy is determined as eps*max(p, targetProb) when targetProb < 0.5 and eps*max(1-p, 1-targetProb) when targetProb >= 0.5. Higher values of `targetProb` allow for a smaller memory footprint.
+* @property {number} [eps=0.1] - Parameter which determines the accuracy.
+* @property {string} [compression="periodic"] - Determines when the algorithm compresses its summary. Options are: "periodic", "aggressive" and "manual".
+* @property {boolean} [useBands=true] - Whether the algorithm should use the 'band' subprocedure. Using this subprocedure should result in a smaller summary.
+*/
+
+/**
+ * @classdesc The CKMS (GK adapted for biased quantiles) algorithm for online
+ *   biased quantile estimation. Given a probability p the algorithm returns
+ *   the approximate value of the p-th quantile. The algorithm is most accurate
+ *   in one of the extremes (which extreme depends on the parameters).
+ *
+ *   The algorithm works by keeping a summary of buckets, each summarizing a
+ *   range of values. Through the run of the algorithm new buckets are created
+ *   and periodically merged if possible.
+ *
+ *   It was first explained in:
+ *   "Effective Computation of Biased Quantiles over Data Streams"
+ *   https://www.cs.rutgers.edu/~muthu/bquant.pdf
+ *
+ *   Only the biased version is implemented (the targeted version is flawed).
+ *
+ *   The error is bounded by the rank of the element (not the absolute value).
+ *   Specifically, the worst case relative error is bounded by max(eps*p, eps*p0)
+ *   where eps is an accuracy paramter, p0 is the `targetProb` and p is the
+ *   p-value set as the parameter of function `predict`.
+ *
+ * @class
+ * @param {module:analytics~BiasedGkParam | module:fs:FIn} [arg] - Constructor arguments. There are 2 ways of constructing:
+ * <br>1. Using the {@link module:analytics~BiasedGkParam} object,
+ * <br>2. using the file input stream {@link module:fs.FIn}.
+ *
+ * @example
+ * // import modules
+ * var qm = require('qminer');
+ * var analytics = qm.analytics;
+ *
+ * // create the default TDigest object
+ * var gk = new analytics.BiasedGk({
+ *     eps: 0.1,
+ *     targetProb: 0.99,
+ *     compression: 'periodic',
+ *     useBands: true
+ * });
+ *
+ * // create the data used for calculating quantiles
+ * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
+ *
+ * // fit the TDigest model
+ * for (var i = 0; i < inputs.length; i++) {
+ *     gk.partialFit(inputs[i]);
+ * }
+ *
+ * // make the prediction for the 0.1 quantile
+ * var prediction = gk.predict(0.1);
+ * // save the model
+ * gk.save(fs.openWrite('gk.bin')).close();
+ * // open the gk model under a new variable
+ * var gk2 = new analytics.Gk(fs.openRead('gk.bin'));
+ *
+ */
+//# exports.BiasedGk = function (arg) { return Object.create(require('qminer').analytics.BiasedGk.prototype); }
+class TNodeJsBiasedGk : public node::ObjectWrap {
+    friend class TNodeJsUtil;
+public:
+    static void Init(v8::Handle<v8::Object> exports);
+    static const TStr GetClassId() { return "BiasedGk"; }
+
+private:
+    TQuant::TBiasedGk Gk;
+
+    TNodeJsBiasedGk(const PJsonVal&);
+    TNodeJsBiasedGk(TSIn&);
+    ~TNodeJsBiasedGk() {}
+
+    static TNodeJsBiasedGk* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+public:
+    /**
+     * Returns the models' parameters as a JavaScript object (JSON). These parameters
+     * are the same as are set through the constructor.
+     *
+     * @returns {module:analytics~BiasedGkParam} The construction parameters.
+     *
+     * var analytics = qm.analytics;
+     * var gk = new analytics.BiasedGk();
+     * var params = gk.getParams();
+     *
+     * console.log(params.targetProb);
+     * console.log(params.eps);
+     * console.log(params.autoCompress);
+     * console.log(params.useBands);
+     */
+    //# exports.BiasedGk.prototype.getParams = function () { return { }; }
+    JsDeclareFunction(getParams);
+
+    /**
+     * Adds a new value to the summary.
+     *
+     * @param {number} val - the value
+     * @returns {module:analytics.Gk} reference to self
+     *
+     * @example
+     * var qm = require('qminer');
+     *
+     * var gk = new qm.analytics.BiasedGk();
+     * gk.partialFit(1.0);
+     * gk.partialFit(2.0);
+     */
+    //# exports.BiasedGk.compress = function (fout) { return Object.create(require('qminer').analytics.BiasedGk.prototype); }
+    JsDeclareFunction(partialFit);
+
+    /**
+     * Given an input cumulative probability, returns a quantile associated with that
+     * probability (e.g. for input 0.5 it will return the median).
+     *
+     * @param {number|Array} pVals - the p-values which we a querying
+     * @returns {number|Array} quantiles - depending whether the input was a single value or array the method returns a quantile or array of quantiles
+     *
+     * @example
+     * var qm = require('qminer');
+     *
+     * var gk = new qm.analytics.BiasedGk({
+     *     eps: 0.1,
+     *     targetProb: 0.01
+     * });
+     * gk.partialFit(1.0);
+     * gk.partialFit(2.0);
+     * gk.partialFit(1.0);
+     * gk.partialFit(3.0);
+     * gk.partialFit(2.0);
+     *
+     * console.log(gk.predict(0.01));   // prints the first percentile
+     * console.log(gk.predict(0.25));   // prints the first quartile
+     * console.log(gk.predict(0.5));    // prints the median
+     */
+    //# exports.BiasedGk.prototype.predict = function (x) { return 0; }
+    JsDeclareFunction(predict);
+
+    /**
+     * Manually runs the compression procedure.
+     *
+     * @returns reference to self
+     */
+    //# exports.BiasedGk.compress = function (fout) { return Object.create(require('qminer').analytics.BiasedGk.prototype); }
+    JsDeclareFunction(compress);
+
+    /**
+     * Saves the objects state into the output stream.
+     *
+     * @param {module:fs.FOut} fout - the output stream
+     * @returns {module:fs.FOut} - the output stream
+     */
+    //# exports.BiasedGk.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
+    JsDeclareFunction(save);
+
+    /**
+     * Returns the current size of the algorithms summary in number of tuples.
+     */
+    //# exports.BiasedGk.size = 0;
+    JsDeclareProperty(size);
+
+    /**
+     * Returns the models current memory consumption.
+     */
+    //# exports.BiasedGk.memory = 0;
+    JsDeclareProperty(memory);
+private:
+    TQuant::TBiasedGk::TCompressStrategy ExtractCompressStrategy(const PJsonVal&);
+};
+
+
+/**
+* @typedef {Object} CountWindowGkParam
+* An object used for the construction of {@link module:analytics.CountWindowGk}.
+* @property {number} [windowSize=10000] - Number of values to store in the window.
+* @property {number} [quantileEps=0.01] - Worst-case error of the quantile estimation procedure.
+* @property {number} [countEps=0.005] - Worst-case error of the sliding window (exponential histogram) procedure.
+*/
+
+/**
+ * @classdesc Greenwald - Khanna algorithm for quantile estimation on sliding windows. Given
+ *   a cumulative probability p, the algorithm returns the approximate value of the
+ *   p-th quantile of all the values in a sliding window.
+ *
+ *   The algorithm works by keeping a summary of buckets. Each bucket summarizes a
+ *   range of values. Through the run of the algorithm, new buckets are created and
+ *   old ones merged. To allow for the computation on a sliding window, each bucket
+ *   uses an Exponential Histogram structure to remember how many values it summarizes.
+ *
+ *   It is summarized in:
+ *   "Online Algorithm for Approximate Quantile Queries on Sliding Windows"
+ *   http://dl.acm.org/citation.cfm?id=2954329
+ *
+ *   The error is not bounded by the absolute value of the output, but by the error
+ *   in rank of the output element. For instance, if we have 100 elements and query
+ *   the median, we could get the 48-th (p=0.48), 50-th (p=0.5), 51-th (p=0.51),
+ *   etc. element.
+ *
+ *   The algorithms error is bounded by two factors. The first is the quantile
+ *   estimation factor `quantileEps` occurs because of the summary structure and
+ *   defines the maximum size of the buckets. The second type of error `countEps`
+ *   occurs because of the Exponential Histograms inside the buckets.
+ *
+ *   The worst-case error is bounded by (quantileEps + 2*countEps + O(countEps^2)),
+ *   although in practice the error is lower.
+ *
+ *   This version of the algorithm uses a count-based fixed size sliding window.
+ *
+ * @class
+ * @param {module:analytics~FixedWindowGkParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
+ * <br>1. Using the {@link module:analytics~FixedWindowGkParam} object,
+ * <br>2. using the file input stream {@link module:fs.FIn}.
+ *
+ * @example
+ * // import modules
+ * var qm = require('qminer');
+ * var analytics = qm.analytics;
+ *
+ * // create the default TDigest object
+ * var gk = new analytics.CountWindowGk({
+ *     windowSize: 5,
+ *     quantileEps: 0.001,
+ *     countEps: 0.0005
+ * });
+ *
+ * // create the data used for calculating quantiles
+ * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
+ *
+ * // fit the TDigest model
+ * for (var i = 0; i < inputs.length; i++) {
+ *     gk.partialFit(inputs[i]);
+ * }
+ *
+ * // make the prediction for the 0.1 quantile
+ * var prediction = gk.predict(0.1);
+ * // save the model
+ * gk.save(fs.openWrite('gk.bin')).close();
+ * // open the gk model under a new variable
+ * var gk2 = new analytics.CountWindowGk(fs.openRead('gk.bin'));
+ *
+ */
+//# exports.CountWindowGk = function (arg) { return Object.create(require('qminer').analytics.CountWindowGk.prototype); }
+class TNodeJsCountWindowGk : public node::ObjectWrap {
+    friend class TNodeJsUtil;
+public:
+    static void Init(v8::Handle<v8::Object> exports);
+    static const TStr GetClassId() { return "CountWindowGk"; }
+
+private:
+    TQuant::TCountWindowGk Gk;
+
+    TNodeJsCountWindowGk(const PJsonVal& ParamVal);
+    TNodeJsCountWindowGk(TSIn& SIn);
+    ~TNodeJsCountWindowGk();
+
+    static TNodeJsCountWindowGk* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+public:
+    /**
+     * Returns the models' parameters as a JavaScript object (JSON). These parameters
+     * are the same as are set through the constructor.
+     *
+     * @returns {module:analytics~FixedWindowGkParam} The construction parameters.
+     *
+     * var analytics = qm.analytics;
+     * var gk = new analytics.CountWindowGk();
+     * var params = tdigest.getParams();
+     *
+     * console.log(params.windowSize);
+     * console.log(params.quantileEps);
+     * console.log(params.countEps);
+     */
+    //# exports.CountWindowGk.prototype.getParams = function () { return { }; }
+    JsDeclareFunction(getParams);
+
+    /**
+     * Appends a new value to the sliding window. If an old value
+     * falls outside the sliding window, it is forgotten.
+     *
+     * @param {number} val - the value
+     * @returns {module:analytics.CountWindowGk} reference to self
+     *
+     * @example
+     * var qm = require('qminer');
+     *
+     * var gk = new qm.analytics.CountWindowGk();
+     * gk.partialFit(1.0);
+     * gk.partialFit(2.0);
+     *
+     */
+    //# exports.CountWindowGk.partialFit = function (fout) { return Object.create(require('qminer').analytics.CountWindowGk.prototype); }
+    JsDeclareFunction(partialFit);
+
+    /**
+     * Given an input cumulative probability, returns a quantile associated with that
+     * probability (e.g. for input 0.5 it will return the median).
+     *
+     * @param {number} p - cumulative probability between 0 and 1 (both inclusive)
+     * @returns {number} quantile associated with p
+     *
+     * @example
+     * var qm = require('qminer');
+     *
+     * var gk = new qm.analytics.CountWindowGk({
+     *     windowSize: 100    // window 100 elements long
+     * });
+     * gk.partialFit(1.0);
+     * gk.partialFit(2.0);
+     * gk.partialFit(1.0);
+     * gk.partialFit(3.0);
+     * gk.partialFit(2.0);
+     *
+     * console.log(gk.predict(0.01));   // prints the first percentile
+     * console.log(gk.predict(0.25));   // prints the first quartile
+     * console.log(gk.predict(0.5));    // prints the median
+     */
+    //# exports.CountWindowGk.prototype.predict = function (x) { return 0; }
+    JsDeclareFunction(predict);
+
+    /**
+     * Saves the objects state into a binary file.
+     *
+     * @param {module:fs.FOut} fout - the output stream
+     * @returns {module:fs.FOut} the output stream `fout`
+     *
+     * @example
+     * var gk = new qm.analytics.CountWindowGk();
+     *
+     * // save the model
+     * gk.save(fs.openWrite('tdigest.bin')).close();
+     * // open the tdigest model under a new variable
+     * var gk = new analytics.CountWindowGk(fs.openRead('tdigest.bin'));
+     */
+    //# exports.CountWindowGk.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
+    JsDeclareFunction(save);
+};
+
+/**
+* @typedef {Object} TimeWindowGkParam
+* An object used for the construction of {@link module:analytics.TimeWindowGk}.
+* @property {number} [window=1000*60*60] - Duration of the time window.
+* @property {number} [quantileEps=0.01] - Worst-case error of the quantile estimation procedure.
+* @property {number} [countEps=0.005] - Worst-case error of the sliding window (exponential histogram) procedure.
+*/
+
+/**
+ * @classdesc Greenwald - Khanna algorithm for quantile estimation on sliding windows. Given
+ *   a cumulative probability p, the algorithm returns the approximate value of the
+ *   p-th quantile of all the values in a sliding window.
+ *
+ *   The algorithm works by keeping a summary of buckets. Each bucket summarizes a
+ *   range of values. Through the run of the algorithm, new buckets are created and
+ *   old ones merged. To allow for the computation on a sliding window, each bucket
+ *   uses an Exponential Histogram structure to remember how many values it summarizes.
+ *
+ *   It is summarized in:
+ *   "Online Algorithm for Approximate Quantile Queries on Sliding Windows"
+ *   http://dl.acm.org/citation.cfm?id=2954329
+ *
+ *   The error is not bounded by the absolute value of the output, but by the error
+ *   in rank of the output element. For instance, if we have 100 elements and query
+ *   the median, we could get the 48-th (p=0.48), 50-th (p=0.5), 51-th (p=0.51),
+ *   etc. element.
+ *
+ *   The algorithms error is bounded by two factors. The first is the quantile
+ *   estimation factor `quantileEps` occurs because of the summary structure and
+ *   defines the maximum size of the buckets. The second type of error `countEps`
+ *   occurs because of the Exponential Histograms inside the buckets.
+ *
+ *   The worst-case error is bounded by (quantileEps + 2*countEps + O(countEps^2)),
+ *   although in practice the error is lower.
+ *
+ *   This version of the algorithm uses a time-based fixed duration sliding window.
+ *
+ * @class
+ * @param {module:analytics~TimeWindowGkParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
+ * <br>1. Using the {@link module:analytics~TimeWindowGkParam} object,
+ * <br>2. using the file input stream {@link module:fs.FIn}.
+ *
+ * @example
+ * // import modules
+ * var qm = require('qminer');
+ * var analytics = qm.analytics;
+ *
+ * // create the default TDigest object
+ * var gk = new analytics.TimeWindowGk({
+ *     window: 5,
+ *     quantileEps: 0.001,
+ *     countEps: 0.0005
+ * });
+ *
+ * // create the data used for calculating quantiles
+ * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
+ * var times = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+ *
+ * // fit the TDigest model
+ * for (var i = 0; i < inputs.length; i++) {
+ *     gk.partialFit(times[i], inputs[i]);
+ * }
+ *
+ * // make the prediction for the 0.1 quantile
+ * var prediction = gk.predict(0.1);
+ * // save the model
+ * gk.save(fs.openWrite('gk.bin')).close();
+ * // open the gk model under a new variable
+ * var gk2 = new analytics.TimeWindowGk(fs.openRead('gk.bin'));
+ */
+//# exports.TimeWindowGk = function (arg) { return Object.create(require('qminer').analytics.TimeWindowGk.prototype); }
+class TNodeJsTimeWindowGk : public node::ObjectWrap {
+    friend class TNodeJsUtil;
+public:
+    static void Init(v8::Handle<v8::Object> exports);
+    static const TStr GetClassId() { return "TimeWindowGk"; }
+
+private:
+    TQuant::TTimeWindowGk Gk;
+
+    TNodeJsTimeWindowGk(const PJsonVal& ParamVal);
+    TNodeJsTimeWindowGk(TSIn& SIn);
+    ~TNodeJsTimeWindowGk();
+
+    static TNodeJsTimeWindowGk* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+public:
+    /**
+     * Returns the models' parameters as a JavaScript object (JSON). These parameters
+     * are the same as are set through the constructor.
+     *
+     * @returns {module:analytics~TimeWindowGkParam} The construction parameters.
+     *
+     * var analytics = qm.analytics;
+     * var gk = new analytics.TimeWindowGk();
+     * var params = tdigest.getParams();
+     *
+     * console.log(params.window);
+     * console.log(params.quantileEps);
+     * console.log(params.countEps);
+     */
+    //# exports.TimeWindowGk.prototype.getParams = function () { return { }; }
+    JsDeclareFunction(getParams);
+
+    /**
+     * Adds a new observation to the window. The window is updated with the provided timestamp,
+     * all records which fall outside the new window are forgotten.
+     *
+     * @param {number|Date} timestamp - time of the observation
+     * @param {number} [value] - the observation
+     * @returns {module:analytics.TimeWindowGk} reference to self
+     *
+     * @example
+     * var qm = require('qminer');
+     *
+     * var gk = new qm.analytics.TimeWindowGk({
+     *     window: 1000*60*60*24*2    // window is 2 days
+     * });
+     * gk.partialFit(new Date('2017-06-06'), 1.0);
+     * gk.partialFit(new Date('2017-06-07').getTime(), 1.0);
+     * gk.partialFit(new Date('2017-06-08'));  // only move the time window, the first value is forgotten
+     */
+    //# exports.TimeWindowGk.partialFit = function (fout) { return Object.create(require('qminer').analytics.TimeWindowGk.prototype); }
+    JsDeclareFunction(partialFit);
+
+    /**
+     * Given an input cumulative probability, returns a quantile associated with that
+     * probability (e.g. for input 0.5 it will return the median).
+     *
+     * @param {number} p - cumulative probability between 0 and 1 (both inclusive)
+     * @returns {number} quantile associated with p
+     *
+     * @example
+     * var qm = require('qminer');
+     *
+     * var gk = new qm.analytics.TimeWindowGk({
+     *     window: 100    // window is 2 days
+     * });
+     * gk.partialFit(0, 1.0);
+     * gk.partialFit(1, 1.0);
+     * gk.partialFit(2, 1.0);
+     * gk.partialFit(3, 1.0);
+     * gk.partialFit(4, 1.0);
+     *
+     * console.log(gk.predict(0.01));   // prints the first percentile
+     * console.log(gk.predict(0.25));   // prints the first quartile
+     * console.log(gk.predict(0.5));    // prints the median
+     */
+    //# exports.TimeWindowGk.prototype.predict = function (x) { return 0; }
+    JsDeclareFunction(predict);
+
+    /**
+     * Saves the objects state into a binary file.
+     *
+     * @param {module:fs.FOut} fout - the output stream
+     * @returns {module:fs.FOut} the output stream `fout`
+     *
+     * @example
+     * var gk = new qm.analytics.TimeWindowGk();
+     *
+     * // save the model
+     * gk.save(fs.openWrite('tdigest.bin')).close();
+     * // open the tdigest model under a new variable
+     * var gk = new analytics.TimeWindowGk(fs.openRead('tdigest.bin'));
+     */
+    //# exports.TimeWindowGk.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
+    JsDeclareFunction(save);
+};
+
 
 /////////////////////////////////////////////
 // QMiner-JavaScript-Recommender System
@@ -2631,7 +3662,7 @@ public:
 
 /**
 * Recommender System
-* @classdesc The recommender system algorithm using Weighted Non-negative Matrix Factorization to predict the 
+* @classdesc The recommender system algorithm using Weighted Non-negative Matrix Factorization to predict the
 * unknown values. If `A` is a matrix with unknown values it calculates the matrices `U` and `V` such that `U*V` approximates `A`.
 * @class
 * @param {module:analytics~RecSysParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
@@ -2665,7 +3696,7 @@ private:
 
     TFltVV U;
     TFltVV V;
-    
+
     TNodeJsRecommenderSys(const PJsonVal& ParamVal);
     TNodeJsRecommenderSys(TSIn& SIn);
 
@@ -2814,7 +3845,7 @@ private:
     TGraphProcess::TGraphCascade Model;
 
 private:
- 
+
     TNodeJsGraphCascade(const PJsonVal& ParamVal) : Model(ParamVal) {}
 
     static TNodeJsGraphCascade* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
@@ -2822,11 +3853,11 @@ private:
 public:
     /**
     * Sets the cascade time for a given node
-    * @param {string} nodeId - 
-    * @param {number} timestamp - 
+    * @param {string} nodeId -
+    * @param {number} timestamp -
     */
     JsDeclareFunction(observeNode);
-    
+
     /**
     * Computes the posterior for timestamps of unobserved nodes
     * @param {number} timestamp - current time

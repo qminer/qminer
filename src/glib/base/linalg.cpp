@@ -766,7 +766,8 @@ void TLinAlg::LinComb(const double& p, const TIntFltKdV& x, const double& q, con
 	TSparseOpsIntFlt::SparseLinComb(p, x, q, y, z);
 }
 
-void TLinAlg::LinComb(const double& p, const TVec<TIntFltKdV>& X, const double& q, const TVec<TIntFltKdV>& Y, TVec<TIntFltKdV>& Z) {
+void TLinAlg::LinComb(const double& p, const TVec<TIntFltKdV>& X, const double& q,
+        const TVec<TIntFltKdV>& Y, TVec<TIntFltKdV>& Z) {
     if (Z.Empty()) { Z.Gen(X.Len()); }
     EAssert(X.Len() == Y.Len() && Y.Len() == Z.Len());
     int Cols = X.Len();

@@ -309,7 +309,7 @@ public:
     * // get key id of <% key1 %> 
     * var key = h.keyId(<% key1 %>); // returns 0
     */
-    //# exports.<% className %>.prototype.key = function(n) { return <% defaultKey %>; }	
+    //# exports.<% className %>.prototype.keyId = function(n) { return <% defaultKey %>; }	
     JsDeclareFunction(keyId);
 
 	/**

@@ -21,6 +21,7 @@ class TSvmParam{
     TInt Kernel;
     TInt Degree;
     TFlt Cost;
+    TFlt Unbalance;
     TFlt Gamma;
     TFlt Nu;
     TFlt Coef0;
@@ -30,15 +31,16 @@ class TSvmParam{
     TInt Shrink;
     TInt Prob;
   //public:
-    TSvmParam() : Type(C_SVC), Kernel(LINEAR), Degree(0), Cost(1.0), Gamma(1.0), Nu(1.0), Coef0(1.0), Eps(1e-3), CacheSize(100), P(0.1), Shrink(0), Prob(0)  {  } //fill with default values
-    TSvmParam(TInt _Type, TInt _Kernel, TFlt _Cost, TFlt _Gamma, TInt _Degree, TFlt _Coef0,  TFlt _CacheSize, TFlt _Eps, TFlt _P, TFlt _Nu) : 
-        Type(_Type), Kernel(_Kernel), Degree(_Degree), Cost(_Cost), Gamma(_Gamma), Nu(_Nu), Coef0(_Coef0), Eps(_Eps), CacheSize(_CacheSize), P(_P), Shrink(0), Prob(0)  {  } //fill with default values
+    TSvmParam() : Type(C_SVC), Kernel(LINEAR), Degree(0), Cost(1.0), Unbalance(1.0), Gamma(1.0), Nu(1.0), Coef0(1.0), Eps(1e-3), CacheSize(100), P(0.1), Shrink(0), Prob(0)  {  } //fill with default values
+    TSvmParam(TInt _Type, TInt _Kernel, TFlt _Cost, TFlt _Unbalance TFlt _Gamma, TInt _Degree, TFlt _Coef0,  TFlt _CacheSize, TFlt _Eps, TFlt _P, TFlt _Nu) : 
+        Type(_Type), Kernel(_Kernel), Degree(_Degree), Cost(_Cost), Unbalance(_Unbalance), Gamma(_Gamma), Nu(_Nu), Coef0(_Coef0), Eps(_Eps), CacheSize(_CacheSize), P(_P), Shrink(0), Prob(0)  {  } //fill with default values
     
     TSvmParam(TSIn& SIn):
       Type(TInt(SIn)),
       Kernel(TInt(SIn)),
       Degree(TInt(SIn)),
       Cost(TFlt(SIn)),
+      Unbalance(TFlt(SIn)),
       Gamma(TFlt(SIn)),
       Nu(TFlt(SIn)),
       Coef0(TFlt(SIn)),
@@ -53,6 +55,7 @@ class TSvmParam{
       TInt(Kernel).Save(SOut);
       TInt(Degree).Save(SOut);
       TFlt(Cost).Save(SOut);
+      TFlt(Unbalance).Save(SOut);
       TFlt(Gamma).Save(SOut);
       TFlt(Nu).Save(SOut);
       TFlt(Coef0).Save(SOut);
@@ -72,9 +75,13 @@ class TSvmParam{
       svm_parameter.gamma = this->Gamma;
       svm_parameter.nu = this->Nu;
       svm_parameter.coef0 = this->Coef0;
-      svm_parameter.nr_weight = 0;
-      svm_parameter.weight = NULL;
-      svm_parameter.weight_label = NULL;
+      svm_parameter.nr_weight = 2;
+      svm_parameter.weight_label = (int *)malloc(2 * sizeof(int)); // deleted in svm_destroy_param
+      svm_parameter.weight_label[0] = -1;
+      svm_parameter.weight_label[1] = 1;
+      svm_parameter.weight = (double *)malloc(2 * sizeof(double));  // deleted in svm_destroy_param
+      svm_parameter.weight[0] = 1;
+      svm_parameter.weight[1] = Unbalance;
       svm_parameter.cache_size = this->CacheSize;
       svm_parameter.eps = this->Eps;
       svm_parameter.p = this->P; // not needed but it has to be positive as it is checked
@@ -405,6 +412,7 @@ public:
         const char* error_msg = svm_check_parameter(&svm_problem, &svm_parameter);
         EAssertR(error_msg == NULL, error_msg);
 
+<<<<<<< HEAD
         svm_model_t* svm_model = svm_train(&svm_problem, &svm_parameter, DebugNotify, ErrorNotify);
         
         TFltVV SVs(svm_model->l, DimN);

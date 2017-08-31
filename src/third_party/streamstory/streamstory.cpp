@@ -8,7 +8,7 @@
 
 #include "streamstory.h"
 
-using namespace TMc;
+namespace TMc {
 
 ///////////////////////////////////////////////
 // Feature information
@@ -1198,93 +1198,297 @@ void TEuclMds::Project(const TFltVV& FtrVV, TFltVV& ProjVV, const int& d) {
     X_d.GetT(ProjVV);
 }
 
-/////////////////////////////////////////////////////////////////
-// TBernoulliIntens
-const double TBernoulliIntens::MIN_PROB = 1e-5;
+namespace intens {
 
-TBernoulliIntens::TBernoulliIntens():
-        NStates(0),
-        LogRegVV(),
-        HasJumpedVV(),
-        EmptyVV(),
-        DeltaTm(0) {}
+    /////////////////////////////////////////////////////////////////
+    // Poisson process intensity modeller
+    TPoissonProcessIntens::TPoissonProcessIntens(const uint64& _TmUnit, const bool& _Verbose):
+            JumpCountVV(),
+            StateStayTmV(),
+            TmUnit(_TmUnit),
+            Verbose(_Verbose) {}
 
-TBernoulliIntens::TBernoulliIntens(const int& _NStates, const double& _DeltaTm,
-        const double& RegFact, const TBoolVV& _HasJumpedVV, const bool Verbose):
-        NStates(_NStates),
-        LogRegVV(_NStates, _NStates),
-        HasJumpedVV(_HasJumpedVV),
-        EmptyVV(_NStates, _NStates),
-        DeltaTm(_DeltaTm) {
+    void TPoissonProcessIntens::Init(const int& StateCount) {
+        JumpCountVV.Gen(StateCount, StateCount);
+        StateStayTmV.Gen(StateCount);
+    }
 
-    for (int RowN = 0; RowN < NStates; RowN++) {
-        for (int ColN = 0; ColN < NStates; ColN++) {
-            LogRegVV.PutXY(RowN, ColN, TLogReg(RegFact, true, Verbose));
-            EmptyVV.PutXY(RowN, ColN, true);
+    TPoissonProcessIntens::TPoissonProcessIntens(TSIn& SIn):
+            JumpCountVV(SIn),
+            StateStayTmV(SIn),
+            TmUnit(SIn),
+            Verbose(SIn) {}
+
+    void TPoissonProcessIntens::Save(TSOut& SOut) const {
+        JumpCountVV.Save(SOut);
+        StateStayTmV.Save(SOut);
+        TmUnit.Save(SOut);
+        Verbose.Save(SOut);
+    }
+
+    void TPoissonProcessIntens::Fit(const TFltVV&, const TUInt64V& TmV, const TIntV& StateIdV,
+            const TBoolV&) {
+        EAssert(TmV.Len() > 0);
+
+        uint64 LastJumpTm = TmV[0];
+        int CurrStateId = StateIdV[0];
+
+        for (int RecN = 1; RecN < StateIdV.Len(); RecN++) {
+            const int StateId = StateIdV[RecN];
+
+            if (StateId != CurrStateId) {   // a jump has occurred
+                const uint64 Tm = TmV[RecN];
+                // finish the old state
+                JumpCountVV(CurrStateId, StateId)++;
+                StateStayTmV[CurrStateId] += Tm - LastJumpTm;
+                // begin the new state
+                CurrStateId = StateId;
+                LastJumpTm = Tm;
+            }
+        }
+
+        // add the time we spent in the last state to its stay time
+        if (LastJumpTm != TmV.Last()) {
+            StateStayTmV[CurrStateId] += TmV.Last() - LastJumpTm;
         }
     }
-}
 
-TBernoulliIntens::TBernoulliIntens(TSIn& SIn):
-        NStates(TInt(SIn)),
-        LogRegVV(SIn),
-        HasJumpedVV(SIn),
-        EmptyVV(SIn),
-        DeltaTm(TFlt(SIn)) {}
+    void TPoissonProcessIntens::GetQMat(const TStateFtrVV&, TFltVV& QMat) const {
+        const int Rows = JumpCountVV.GetRows();
+        const int Cols = JumpCountVV.GetCols();
 
-void TBernoulliIntens::Save(TSOut& SOut) const {
-    TInt(NStates).Save(SOut);
-    LogRegVV.Save(SOut);
-    HasJumpedVV.Save(SOut);
-    EmptyVV.Save(SOut);
-    TFlt(DeltaTm).Save(SOut);
-}
+        if (QMat.GetRows() != Rows || QMat.GetCols() != Cols) { QMat.Gen(Rows, Cols); }
 
-void TBernoulliIntens::Fit(const int& RowN, const int& ColN, const TFltVV& X, const TFltV& y,
-        const double& Eps) {
-    LogRegVV(RowN, ColN).Fit(X, y, Eps);
-    EmptyVV.PutXY(RowN, ColN, false);
-}
+        for (int SrcId = 0; SrcId < Rows; ++SrcId) {
+            const double SrcStayTm = double(StateStayTmV[SrcId]) / double(TmUnit);
+            double SrcLeaveIntens = 0;
+            for (int DstId = 0; DstId < Cols; ++DstId) {
+                if (SrcId == DstId) { continue; }
 
-void TBernoulliIntens::GetQMat(const TStateFtrVV& StateFtrVV, TFltVV& QMat) const {
-    if (QMat.Empty()) { QMat.Gen(NStates, NStates); }
-    EAssert(QMat.GetRows() == NStates && QMat.GetCols() == NStates);
+                const uint64 JumpCount = JumpCountVV(SrcId, DstId);
+                const double Intens = double(JumpCount) / SrcStayTm;
 
-    TFltV IntensV;
-    for (int State1Id = 0; State1Id < NStates; State1Id++) {
-        const TFltV& State1FtrV = StateFtrVV[State1Id];
-        GetQMatRow(State1Id, State1FtrV, IntensV);
-        QMat.SetRow(State1Id, IntensV);
+                QMat(SrcId, DstId) = Intens;
+                SrcLeaveIntens += Intens;
+            }
+            QMat(SrcId, SrcId) = -SrcLeaveIntens;
+        }
+    }
+
+    void TPoissonProcessIntens::GetQMatRow(const int& SrcId, const TFltV&, TFltV& QMatRow) const {
+        const int TotalStates = JumpCountVV.GetRows();
+
+        const double SrcStayTm = double(StateStayTmV[SrcId]) / double(TmUnit);
+
+        double SrcLeaveIntens = 0;
+        for (int DstId = 0; DstId < TotalStates; ++DstId) {
+            if (SrcId == DstId) { continue; }
+
+            const uint64 JumpCount = JumpCountVV(SrcId, DstId);
+            const double Intens = double(JumpCount) / SrcStayTm;
+
+            QMatRow[DstId] = Intens;
+            SrcLeaveIntens += Intens;
+        }
+        QMatRow[SrcId] = -SrcLeaveIntens;
+    }
+
+    /////////////////////////////////////////////////////////////////
+    // TBernoulliIntens
+    const double TBernoulliIntens::MIN_PROB = 1e-5;
+    const double TBernoulliIntens::REG_FACT = 1e-3;
+
+    TBernoulliIntens::TBernoulliIntens(const uint64& _TmUnit, const bool& _Verbose):
+            NStates(-1),
+            TmUnit(_TmUnit),
+            LogRegVV(),
+            HasJumpedVV(),
+            EmptyVV(),
+            DeltaTm(0),
+            Verbose(_Verbose),
+            Notify(_Verbose ? TNotify::StdNotify : TNotify::NullNotify) {}
+
+    void TBernoulliIntens::Init(const int& _NStates) {
+        NStates = _NStates;
+        for (int RowN = 0; RowN < NStates; RowN++) {
+            for (int ColN = 0; ColN < NStates; ColN++) {
+                LogRegVV.PutXY(RowN, ColN, TLogReg(REG_FACT, true, Verbose));
+                EmptyVV.PutXY(RowN, ColN, true);
+            }
+        }
+    }
+
+    TBernoulliIntens::TBernoulliIntens(TSIn& SIn):
+            NStates(SIn),
+            TmUnit(SIn),
+            LogRegVV(SIn),
+            HasJumpedVV(SIn),
+            EmptyVV(SIn),
+            DeltaTm(SIn),
+            Verbose(SIn),
+            Notify(Verbose ? TNotify::StdNotify : TNotify::NullNotify) {}
+
+    void TBernoulliIntens::Save(TSOut& SOut) const {
+        NStates.Save(SOut);
+        TmUnit.Save(SOut);
+        LogRegVV.Save(SOut);
+        HasJumpedVV.Save(SOut);
+        EmptyVV.Save(SOut);
+        DeltaTm.Save(SOut);
+        Verbose.Save(SOut);
+    }
+
+    void TBernoulliIntens::Fit(const TFltVV& FtrVV, const TUInt64V& TmV,
+            const TIntV& AssignV, const TBoolV&) {
+
+        const int NInst = FtrVV.GetCols();
+        const int Dim = FtrVV.GetRows();
+
+        TLabelVMat LabelVMat;                           // stores the class labels
+        TJumpFtrVVMat JumpFtrVVMat(NStates, NStates);   // used when constructing feature vectors
+        TJumpFtrMatMat JumpFtrMatVV(NStates, NStates);  // stores the feature vectors
+
+        HasJumpedVV.Gen(NStates, NStates);
+
+        for (int i = 0; i < NStates; i++) {
+            LabelVMat.Add(TVec<TLabelV>());
+            for (int j = 0; j < NStates; j++) {
+                LabelVMat[i].Add(TLabelV());
+            }
+        }
+
+        int CurrStateId, NextStateId;
+        double Label;
+        double MeanSampleInterval = 0;
+        uint64 DeltaTm;
+        TFltV FtrV;
+        for (int CurrTmN = 0; CurrTmN < NInst-1; CurrTmN++) {
+            CurrStateId = AssignV[CurrTmN];
+            NextStateId = AssignV[CurrTmN+1];
+
+            DeltaTm = TmV[CurrTmN+1] - TmV[CurrTmN];
+            MeanSampleInterval += double(DeltaTm) / double(TmUnit);
+
+            EAssertR(DeltaTm > 0, "Delta time is not positive time: " + TmV[CurrTmN+1].GetStr() + ", prev time: " + TmV[CurrTmN].GetStr() + ", index: " + TInt::GetStr(CurrTmN));
+
+            FtrVV.GetCol(CurrTmN, FtrV);                // feature vector
+
+            for (int JumpStateId = 0; JumpStateId < NStates; JumpStateId++) {
+                Label = JumpStateId == NextStateId ? 1 : 0;
+
+                JumpFtrVVMat(CurrStateId, JumpStateId).Add(FtrV);
+                LabelVMat[CurrStateId][JumpStateId].Add(Label);
+            }
+
+            HasJumpedVV(CurrStateId, NextStateId) = true;
+        }
+
+        MeanSampleInterval /= (NInst - 1);
+
+        // construct feature matrices
+        for (int State1Id = 0; State1Id < NStates; State1Id++) {
+            for (int State2Id = 0; State2Id < NStates; State2Id++) {
+                const TFtrVV& JumpFtrVV = JumpFtrVVMat(State1Id, State2Id);
+
+                const int NRows = Dim;
+                const int NCols = JumpFtrVV.Len();
+
+                JumpFtrMatVV.PutXY(State1Id, State2Id, TJumpFtrMat(FtrVV.GetRows(), JumpFtrVV.Len()));
+
+                if (NCols == 0) { continue; }
+
+                TJumpFtrMat& JumpFtrMat = JumpFtrMatVV(State1Id, State2Id);
+                for (int RowN = 0; RowN < NRows; RowN++) {
+                    for (int ColN = 0; ColN < NCols; ColN++) {
+                        JumpFtrMat(RowN, ColN) = JumpFtrVV[ColN][RowN];
+                    }
+                }
+            }
+        }
+
+        DeltaTm = MeanSampleInterval;
+
+        // fit the regression models
+
+        TBoolV HasJumpedV;
+        for (int State1Id = 0; State1Id < NStates; State1Id++) {
+            Notify->OnNotifyFmt(TNotifyType::ntInfo, "Regressing intensities for state %d", State1Id);
+            for (int State2Id = 0; State2Id < NStates; State2Id++) {
+                const TJumpFtrMat& JumpFtrVV = JumpFtrMatVV(State1Id, State2Id);
+                const TLabelV& LabelV = LabelVMat[State1Id][State2Id];
+
+                if (LabelV.Empty() || TLinAlgCheck::IsZero(LabelV)) {
+                    continue;
+                }
+
+                //============================================================
+                // TODO delete me
+                int JumpN = 0;
+                for (int i = 0; i < LabelV.Len(); i++) {
+                    const double Label = LabelV[i];
+                    if (Label > 0) {
+                        JumpN++;
+                    }
+                }
+                EAssertR(JumpN > 0, "WTF!? How did a zero vector get here???");
+                Notify->OnNotifyFmt(TNotifyType::ntInfo, "%d jumps from state %d to %d ...", JumpN, State1Id, State2Id);
+                //============================================================
+
+                Notify->OnNotifyFmt(TNotifyType::ntInfo, "Fitting a regression model from state %d to %d", State1Id, State2Id);
+                Fit(State1Id, State2Id, JumpFtrVV, LabelV);
+            }
+        }
+
+        Notify->OnNotify(TNotifyType::ntInfo, "Done!");
+    }
+
+    void TBernoulliIntens::GetQMat(const TStateFtrVV& StateFtrVV, TFltVV& QMat) const {
+        if (QMat.Empty()) { QMat.Gen(NStates, NStates); }
+        EAssert(QMat.GetRows() == NStates && QMat.GetCols() == NStates);
+
+        TFltV IntensV;
+        for (int State1Id = 0; State1Id < NStates; State1Id++) {
+            const TFltV& State1FtrV = StateFtrVV[State1Id];
+            GetQMatRow(State1Id, State1FtrV, IntensV);
+            QMat.SetRow(State1Id, IntensV);
+        }
+    }
+
+    void TBernoulliIntens::GetQMatRow(const int& RowN, const TFltV& FtrV, TFltV& IntensV) const {
+        if (IntensV.Empty()) { IntensV.Gen(NStates); }
+
+        Assert(IntensV.Len() == NStates);
+        Assert(DeltaTm > 0);
+
+        double Prob;
+        for (int ColN = 0; ColN < NStates; ColN++) {
+            Prob = !EmptyVV(RowN, ColN) ? LogRegVV(RowN, ColN).Predict(FtrV) : 0;
+            if (HasJumpedVV(RowN, ColN) && Prob < MIN_PROB) { Prob = MIN_PROB; }
+            IntensV[ColN] = Prob;
+        }
+
+        TLinAlg::NormalizeL1(IntensV);
+        for (int ColN = 0; ColN < NStates; ColN++) {
+            IntensV[ColN] /= DeltaTm;
+            EAssertR(IntensV[ColN] >= 0, "Intensity is less than 0!!!");
+            EAssert(!TFlt::IsNan(IntensV[ColN]));
+            if (IntensV[ColN] > 10000) { IntensV[ColN] = 10000; }   // TODO fix
+        }
+
+        // set q_ii
+        IntensV[RowN] = 0;
+        const double Qii = -TLinAlg::SumVec(IntensV);
+        IntensV[RowN] = Qii;
+        EAssertR(Qii < 0, TStr::Fmt("Invalid row %d of the Q matrix: %s", RowN, TStrUtil::GetStr(IntensV, ", ", "%.5f").CStr()));
+    }
+
+    void TBernoulliIntens::Fit(const int& RowN, const int& ColN, const TFltVV& X, const TFltV& y,
+            const double& Eps) {
+        LogRegVV(RowN, ColN).Fit(X, y, Eps);
+        EmptyVV.PutXY(RowN, ColN, false);
     }
 }
 
-void TBernoulliIntens::GetQMatRow(const int& RowN, const TFltV& FtrV, TFltV& IntensV) const {
-    if (IntensV.Empty()) { IntensV.Gen(NStates); }
-
-    Assert(IntensV.Len() == NStates);
-    Assert(DeltaTm > 0);
-
-    double Prob;
-    for (int ColN = 0; ColN < NStates; ColN++) {
-        Prob = !EmptyVV(RowN, ColN) ? LogRegVV(RowN, ColN).Predict(FtrV) : 0;
-        if (HasJumpedVV(RowN, ColN) && Prob < MIN_PROB) { Prob = MIN_PROB; }
-        IntensV[ColN] = Prob;
-    }
-
-    TLinAlg::NormalizeL1(IntensV);
-    for (int ColN = 0; ColN < NStates; ColN++) {
-        IntensV[ColN] /= DeltaTm;
-        EAssertR(IntensV[ColN] >= 0, "Intensity is less than 0!!!");
-        EAssert(!TFlt::IsNan(IntensV[ColN]));
-        if (IntensV[ColN] > 10000) { IntensV[ColN] = 10000; }   // TODO fix
-    }
-
-    // set q_ii
-    IntensV[RowN] = 0;
-    const double Qii = -TLinAlg::SumVec(IntensV);
-    IntensV[RowN] = Qii;
-    EAssertR(Qii < 0, TStr::Fmt("Invalid row %d of the Q matrix: %s", RowN, TStrUtil::GetStr(IntensV, ", ", "%.5f").CStr()));
-}
 
 /////////////////////////////////////////////////////////////////
 // Discrete time Markov chain
@@ -2038,7 +2242,7 @@ TCtmcModeller::TCtmcModeller(const uint64& _TimeUnit, const double& _DeltaTm, co
         NStates(-1),
         CurrStateId(-1),
         PrevJumpTm(-1),
-        IntensModel(),
+        IntensModel(_TimeUnit, _Verbose),
         HasHiddenState(false),
         HiddenStateJumpCountV(),
         TimeUnit(_TimeUnit),
@@ -2355,115 +2559,8 @@ void TCtmcModeller::GetPastProbVV(const TAggStateV& StateSetV, const TStateFtrVV
 void TCtmcModeller::InitIntensities(const TFltVV& FtrVV, const TUInt64V& TmV,
         const TIntV& AssignV, const TBoolV& EndBatchV) {
     Notify->OnNotifyFmt(TNotifyType::ntInfo, "Modeling intensities ...");
-
-    // TODO handle hidden states
-
-    const double RegFact = 1e-3;
-
-    const int NInst = FtrVV.GetCols();
-    const int Dim = FtrVV.GetRows();
-    const int NStates = GetStates() + (HasHiddenState ? 1 : 0);
-
-    TLabelVMat LabelVMat;                           // stores the class labels
-    TJumpFtrVVMat JumpFtrVVMat(NStates, NStates);   // used when constructing feature vectors
-    TJumpFtrMatMat JumpFtrMatVV(NStates, NStates);  // stores the feature vectors
-
-    TBoolVV HasJumpedVV(NStates, NStates);
-
-    for (int i = 0; i < NStates; i++) {
-        LabelVMat.Add(TVec<TLabelV>());
-        for (int j = 0; j < NStates; j++) {
-            LabelVMat[i].Add(TLabelV());
-        }
-    }
-
-    int CurrStateId, NextStateId;
-    double Label;
-    double MeanSampleInterval = 0;
-    uint64 DeltaTm;
-    TFltV FtrV;
-    for (int CurrTmN = 0; CurrTmN < NInst-1; CurrTmN++) {
-        CurrStateId = AssignV[CurrTmN];
-        NextStateId = AssignV[CurrTmN+1];
-
-        DeltaTm = TmV[CurrTmN+1] - TmV[CurrTmN];
-        MeanSampleInterval += double(DeltaTm) / double(TimeUnit);
-
-        EAssertR(DeltaTm > 0, "Delta time is not positive time: " + TmV[CurrTmN+1].GetStr() + ", prev time: " + TmV[CurrTmN].GetStr() + ", index: " + TInt::GetStr(CurrTmN));
-
-        FtrVV.GetCol(CurrTmN, FtrV);                // feature vector
-
-        for (int JumpStateId = 0; JumpStateId < NStates; JumpStateId++) {
-            Label = JumpStateId == NextStateId ? 1 : 0;
-
-            JumpFtrVVMat(CurrStateId, JumpStateId).Add(FtrV);
-            LabelVMat[CurrStateId][JumpStateId].Add(Label);
-        }
-
-        HasJumpedVV(CurrStateId, NextStateId) = true;
-    }
-
-    MeanSampleInterval /= (NInst - 1);
-
-    // construct feature matrices
-    for (int State1Id = 0; State1Id < NStates; State1Id++) {
-        if (HasHiddenState && State1Id == GetHiddenStateId()) { continue; }
-
-        for (int State2Id = 0; State2Id < NStates; State2Id++) {
-            const TFtrVV& JumpFtrVV = JumpFtrVVMat(State1Id, State2Id);
-
-            const int NRows = Dim;
-            const int NCols = JumpFtrVV.Len();
-
-            JumpFtrMatVV.PutXY(State1Id, State2Id, TJumpFtrMat(FtrVV.GetRows(), JumpFtrVV.Len()));
-
-            if (NCols == 0) { continue; }
-
-            TJumpFtrMat& JumpFtrMat = JumpFtrMatVV(State1Id, State2Id);
-            for (int RowN = 0; RowN < NRows; RowN++) {
-                for (int ColN = 0; ColN < NCols; ColN++) {
-                    JumpFtrMat(RowN, ColN) = JumpFtrVV[ColN][RowN];
-                }
-            }
-        }
-    }
-
-    IntensModel = TBernoulliIntens(NStates, MeanSampleInterval, RegFact, HasJumpedVV, Verbose);
-
-    // fit the regression models
-
-    TBoolV HasJumpedV;
-    for (int State1Id = 0; State1Id < NStates; State1Id++) {
-        if (HasHiddenState && State1Id == GetHiddenStateId()) { continue; }
-
-        Notify->OnNotifyFmt(TNotifyType::ntInfo, "Regressing intensities for state %d", State1Id);
-        for (int State2Id = 0; State2Id < NStates; State2Id++) {
-            const TJumpFtrMat& JumpFtrVV = JumpFtrMatVV(State1Id, State2Id);
-            const TLabelV& LabelV = LabelVMat[State1Id][State2Id];
-
-            if (LabelV.Empty() || TLinAlgCheck::IsZero(LabelV)) {
-                continue;
-            }
-
-            //============================================================
-            // TODO delete me
-            int JumpN = 0;
-            for (int i = 0; i < LabelV.Len(); i++) {
-                const double Label = LabelV[i];
-                if (Label > 0) {
-                    JumpN++;
-                }
-            }
-            EAssertR(JumpN > 0, "WTF!? How did a zero vector get here???");
-            Notify->OnNotifyFmt(TNotifyType::ntInfo, "%d jumps from state %d to %d ...", JumpN, State1Id, State2Id);
-            //============================================================
-
-            Notify->OnNotifyFmt(TNotifyType::ntInfo, "Fitting a regression model from state %d to %d", State1Id, State2Id);
-            IntensModel.Fit(State1Id, State2Id, JumpFtrVV, LabelV);
-        }
-    }
-
-    Notify->OnNotify(TNotifyType::ntInfo, "Done!");
+    IntensModel.Init(GetStates());
+    IntensModel.Fit(FtrVV, TmV, AssignV, EndBatchV);
 }
 
 void TCtmcModeller::GetStateIntensV(const int StateId, const TFltV& FtrV, TFltV& IntensV) const {
@@ -3327,6 +3424,15 @@ void THierarch::GetStateHistory(const double& RelOffset, const double& RelRange,
             ScaleTmDurIdDistPrTrV[ScaleN].Val2
         );
     }
+}
+
+TUInt64Pr THierarch::GetTimeRange() const {
+    EAssert(!HierarchHistoryVV.Empty());
+    const TUInt64IntPrV& LowestScaleHistV = HierarchHistoryVV[0];
+    EAssert(!LowestScaleHistV.Empty());
+    const uint64 StartTm = LowestScaleHistV.First().Val1;
+    const uint64 EndTm = LowestScaleHistV.Last().Val1 + LowestScaleHistV.Last().Val2;
+    return TUInt64Pr(StartTm, EndTm);
 }
 
 void THierarch::GetLeafSuccesorCountV(TIntV& LeafCountV) const {
@@ -4563,6 +4669,8 @@ void TUiHelper::InitStateExplain(const TStreamStory& StreamStory) {
     StateIdOccTmDescV.Gen(Hierarch.GetStates());
 
     const uint64& TmUnit = MChain.GetTimeUnit();
+    const TUInt64Pr& TmRange = StreamStory.GetTrainingTmRange();
+    const uint64 TotalDuration = TmRange.Val2 - TmRange.Val1;
 
     const int MxPeaks = 1;
     const double MnSupport = .7;
@@ -4593,25 +4701,28 @@ void TUiHelper::InitStateExplain(const TStreamStory& StreamStory) {
 
         TTmDescV& StateTmDescV = StateIdOccTmDescV[StateId];
 
-        if (TmUnit <= TCtmcModeller::TU_DAY && HasMxPeaks(MxPeaks, MnSupport, DayBinV, PeakStartEndV, PeakMass, PeakBinCount)) {
+        if (TmUnit <= TCtmcModeller::TU_DAY && TotalDuration > 2*TCtmcModeller::TU_DAY &&
+                HasMxPeaks(MxPeaks, MnSupport, DayBinV, PeakStartEndV, PeakMass, PeakBinCount)) {
             Notify->OnNotifyFmt(ntInfo, "State %d has daily peaks!", StateId);
             Notify->OnNotifyFmt(ntInfo, TStrUtil::GetStr(DayBinV, ", ", "%.5f").CStr());
 
             StateTmDescV.Add(TTmDesc(TStateIdentifier::TTmHistType::thtDay, PeakStartEndV[0].Val1, PeakStartEndV[0].Val2));
         }
-        if (TmUnit < TCtmcModeller::TU_MONTH && HasMxPeaks(MxPeaks, MnSupport, WeekBinV, PeakStartEndV, PeakMass, PeakBinCount)) {
+        if (TmUnit < TCtmcModeller::TU_MONTH && TotalDuration > TCtmcModeller::TU_MONTH / 2 &&
+                HasMxPeaks(MxPeaks, MnSupport, WeekBinV, PeakStartEndV, PeakMass, PeakBinCount)) {
             Notify->OnNotifyFmt(ntInfo, "State %d has weekly peaks!", StateId);
             Notify->OnNotifyFmt(ntInfo, TStrUtil::GetStr(WeekBinV, ", ", "%.5f").CStr());
 
             StateTmDescV.Add(TTmDesc(TStateIdentifier::TTmHistType::thtWeek, PeakStartEndV[0].Val1, PeakStartEndV[0].Val2));
         }
-        if (TmUnit < TCtmcModeller::TU_MONTH && HasMxPeaks(MxPeaks, MnSupport, MonthBinV, PeakStartEndV, PeakMass, PeakBinCount)) {
+        if (TmUnit < TCtmcModeller::TU_MONTH && TotalDuration > 2*TCtmcModeller::TU_MONTH &&
+                HasMxPeaks(MxPeaks, MnSupport, MonthBinV, PeakStartEndV, PeakMass, PeakBinCount)) {
             Notify->OnNotifyFmt(ntInfo, "State %d has monthly peaks!", StateId);
             Notify->OnNotifyFmt(ntInfo, TStrUtil::GetStr(MonthBinV, ", ", "%.5f").CStr());
 
             StateTmDescV.Add(TTmDesc(TStateIdentifier::TTmHistType::thtMonth, PeakStartEndV[0].Val1, PeakStartEndV[0].Val2));
         }
-        if (HasMxPeaks(MxPeaks, MnSupport, YearBinV, PeakStartEndV, PeakMass, PeakBinCount)) {
+        if (TotalDuration > 24*TCtmcModeller::TU_MONTH && HasMxPeaks(MxPeaks, MnSupport, YearBinV, PeakStartEndV, PeakMass, PeakBinCount)) {
             Notify->OnNotifyFmt(ntInfo, "State %d has yearly peaks!", StateId);
             Notify->OnNotifyFmt(ntInfo, TStrUtil::GetStr(YearBinV, ", ", "%.5f").CStr());
 
@@ -5986,6 +6097,10 @@ uint64 TStreamStory::GetTimeUnit() const {
     return MChain->GetTimeUnit();
 }
 
+TUInt64Pr TStreamStory::GetTrainingTmRange() const {
+    return Hierarch->GetTimeRange();
+}
+
 void TStreamStory::SetTargetState(const int& StateId, const bool& IsTrg) {
     Notify->OnNotifyFmt(TNotifyType::ntInfo, "Setting target state %d, isTarget: %s", StateId, TBool::GetStr(IsTrg).CStr());
 
@@ -6446,4 +6561,6 @@ void TStreamStory::TransformExplainTree(PJsonVal& RootJson) const {
         }
         }
     }
+}
+
 }

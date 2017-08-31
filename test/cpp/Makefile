@@ -22,7 +22,7 @@ SOLE_DIR = ../../src/third_party/sole/
 QMINER_DIR = ../../src/qminer/
 
 # get prebuilt glib and qminer
-BUILD = ../../build/Release
+BUILD = ../../build/Debug
 
 # initialize OS specific flags
 UNAME := $(shell uname)
@@ -39,6 +39,7 @@ else ifeq ($(UNAME), Darwin)
 endif
 
 # initialize common flags
+# CXXFLAGS += -std=c++11 -Wall -Wsign-compare -Wtype-limits -Wconversion -O3 -DNDEBUG
 CXXFLAGS += -std=c++11 -Wall -O3 -DNDEBUG
 CXXFLAGS += -I$(GLIB_DIR)base -I$(GLIB_DIR)mine -I$(SOLE_DIR) -I$(QMINER_DIR)
 
@@ -56,6 +57,8 @@ TEST_SRCS += test-sizeof.cpp
 TEST_SRCS += test-traits.cpp
 TEST_SRCS += test-linalg.cpp
 TEST_SRCS += test-tuple.cpp
+TEST_SRCS += test-quantiles.cpp
+TEST_SRCS += test-TVec.cpp
 
 # transform to list of object files
 TEST_OBJS = $(TEST_SRCS:.cpp=.o)
@@ -74,7 +77,7 @@ $(MAIN): $(MAIN).o $(TEST_OBJS) $(BUILD)/glib.a $(BUILD)/qminer.a
 	$(CC) $(CXXFLAGS) -c $<
 
 gyp: $(BUILD)/glib.a $(BUILD)/qminer.a
-	cd ../..; node-gyp configure build --jobs 20
+	cd ../..; node-gyp configure build --jobs 20 --debug
 
 test: $(MAIN)
 	./$(MAIN)

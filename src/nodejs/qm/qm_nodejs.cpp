@@ -228,6 +228,12 @@ void TNodeJsQm::flags(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo
     JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "win")), v8::Boolean::New(Isolate, false));
 #endif
 
+#ifdef GLib_UNIX
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "unix")), v8::Boolean::New(Isolate, true));
+#else
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "unix")), v8::Boolean::New(Isolate, false));
+#endif
+
 #ifdef GLib_LINUX
     JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "linux")), v8::Boolean::New(Isolate, true));
 #else
@@ -265,15 +271,27 @@ void TNodeJsQm::flags(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo
 #endif
 
 #ifdef GLib_GCC
-    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "gcc")), v8::Boolean::New(Isolate, true));
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "gcc")), v8::String::NewFromUtf8(Isolate, __VERSION__));
 #else
     JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "gcc")), v8::Boolean::New(Isolate, false));
 #endif
 
 #ifdef __clang__
-    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "clang")), v8::Boolean::New(Isolate, true));
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "clang")), v8::String::NewFromUtf8(Isolate, __clang_version__));
 #else
     JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "clang")), v8::Boolean::New(Isolate, false));
+#endif
+
+#ifdef GLib_MSC
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "msc")), v8::Boolean::New(Isolate, true));
+#else
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "msc")), v8::Boolean::New(Isolate, false));
+#endif
+
+#ifdef GLib_GLIBC
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "glibc")), v8::Boolean::New(Isolate, true));
+#else
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "glibc")), v8::Boolean::New(Isolate, false));
 #endif
 
     // By default the blas flags are false
@@ -297,6 +315,22 @@ void TNodeJsQm::flags(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo
 #else
     JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "lapacke")), v8::Boolean::New(Isolate, false));
 #endif
+
+    // basic type sizes
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(char)")), v8::Integer::New(Isolate, sizeof(char)));
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(int8)")), v8::Integer::New(Isolate, sizeof(int8)));
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(short)")), v8::Integer::New(Isolate, sizeof(short)));
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(int16)")), v8::Integer::New(Isolate, sizeof(int16)));
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(int)")), v8::Integer::New(Isolate, sizeof(int)));
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(int32)")), v8::Integer::New(Isolate, sizeof(int32)));
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(long)")), v8::Integer::New(Isolate, sizeof(long)));
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(long long)")), v8::Integer::New(Isolate, sizeof(long long)));
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(int64)")), v8::Integer::New(Isolate, sizeof(int64)));
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(char*)")), v8::Integer::New(Isolate, sizeof(char*)));
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(size_t)")), v8::Integer::New(Isolate, sizeof(size_t)));
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(float)")), v8::Integer::New(Isolate, sizeof(float)));
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(double)")), v8::Integer::New(Isolate, sizeof(double)));
+    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(char*)")), v8::Integer::New(Isolate, sizeof(char*)));
 
     Info.GetReturnValue().Set(JsObj);
 }
@@ -464,6 +498,8 @@ TNodeJsBase* TNodeJsBase::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>&
     TStr DbPath = Val->GetObjStr("dbPath", "./db/");
     // mode: create, createClean, open, openReadOnly
     TStr Mode = Val->GetObjStr("mode", "openReadOnly");
+
+    EAssertR(Mode == "create" || Mode == "createClean" || Mode == "openReadOnly" || Mode == "open", "Base.create: Unrecognized mode " + Mode);
     const bool StrictNmP = Val->GetObjBool("strictNames", true);
 
     TStr SchemaFNm = Val->GetObjStr("schemaPath", "");
@@ -3185,94 +3221,129 @@ void TNodeJsRecSet::getVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     const TQm::TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
 
     if (Desc.IsInt()) {
-        TIntV ColV(Recs);
+        TIntV ColV(Recs, 0);
         for (int RecN = 0; RecN < Recs; RecN++) {
-            ColV[RecN] = Store->GetFieldInt(RecSet()->GetRecId(RecN), FieldId);
+            const uint64 RecId = RecSet()->GetRecId(RecN);
+            if (!Store->IsFieldNull(RecId, FieldId)) {
+                ColV.Add(Store->GetFieldInt(RecId, FieldId));
+            }
         }
         Args.GetReturnValue().Set(TNodeJsVec<TInt, TAuxIntV>::New(ColV));
         return;
-    }
-    else if (Desc.IsInt16()) {
-        TIntV ColV(Recs);
+    } else if (Desc.IsInt16()) {
+        TIntV ColV(Recs, 0);
         for (int RecN = 0; RecN < Recs; RecN++) {
-            ColV[RecN] = Store->GetFieldInt16(RecSet()->GetRecId(RecN), FieldId);
+            const uint64 RecId = RecSet()->GetRecId(RecN);
+            if (!Store->IsFieldNull(RecId, FieldId)) {
+                ColV.Add(Store->GetFieldInt16(RecId, FieldId));
+            }
         }
         Args.GetReturnValue().Set(TNodeJsVec<TInt, TAuxIntV>::New(ColV));
         return;
     } else if (Desc.IsInt64()) {
-        TFltV ColV(Recs);
+        TFltV ColV(Recs, 0);
         for (int RecN = 0; RecN < Recs; RecN++) {
-            ColV[RecN] = (double)Store->GetFieldInt64(RecSet()->GetRecId(RecN), FieldId);
+            const uint64 RecId = RecSet()->GetRecId(RecN);
+            if (!Store->IsFieldNull(RecId, FieldId)) {
+                ColV.Add((double)Store->GetFieldInt64(RecId, FieldId));
+            }
         }
         Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(ColV));
         return;
     } else if (Desc.IsByte()) {
-        TIntV ColV(Recs);
+        TIntV ColV(Recs, 0);
         for (int RecN = 0; RecN < Recs; RecN++) {
-            ColV[RecN] = Store->GetFieldByte(RecSet()->GetRecId(RecN), FieldId);
+            const uint64 RecId = RecSet()->GetRecId(RecN);
+            if (!Store->IsFieldNull(RecId, FieldId)) {
+                ColV.Add(Store->GetFieldByte(RecId, FieldId));
+            }
         }
         Args.GetReturnValue().Set(TNodeJsVec<TInt, TAuxIntV>::New(ColV));
         return;
     } else if (Desc.IsUInt()) {
-        TFltV ColV(Recs);
+        TFltV ColV(Recs, 0);
         for (int RecN = 0; RecN < Recs; RecN++) {
-            ColV[RecN] = (double)Store->GetFieldUInt(RecSet()->GetRecId(RecN), FieldId);
+            const uint64 RecId = RecSet()->GetRecId(RecN);
+            if (!Store->IsFieldNull(RecId, FieldId)) {
+                ColV.Add((double)Store->GetFieldUInt(RecId, FieldId));
+            }
         }
         Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(ColV));
         return;
     } else if (Desc.IsUInt16()) {
-        TFltV ColV(Recs);
+        TFltV ColV(Recs, 0);
         for (int RecN = 0; RecN < Recs; RecN++) {
-            ColV[RecN] = (double)Store->GetFieldUInt16(RecSet()->GetRecId(RecN), FieldId);
+            const uint64 RecId = RecSet()->GetRecId(RecN);
+            if (!Store->IsFieldNull(RecId, FieldId)) {
+                ColV.Add((double)Store->GetFieldUInt16(RecId, FieldId));
+            }
         }
         Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(ColV));
         return;
     } else if (Desc.IsUInt64()) {
-        TFltV ColV(Recs);
+        TFltV ColV(Recs, 0);
         for (int RecN = 0; RecN < Recs; RecN++) {
-            ColV[RecN] = (double)Store->GetFieldUInt64(RecSet()->GetRecId(RecN), FieldId);
+            const uint64 RecId = RecSet()->GetRecId(RecN);
+            if (!Store->IsFieldNull(RecId, FieldId)) {
+                ColV.Add((double)Store->GetFieldUInt64(RecId, FieldId));
+            }
         }
         Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(ColV));
         return;
     }
     else if (Desc.IsStr()) {
-        TStrV ColV(Recs);
+        TStrV ColV(Recs, 0);
         for (int RecN = 0; RecN < Recs; RecN++) {
-            ColV[RecN] = Store->GetFieldStr(RecSet()->GetRecId(RecN), FieldId);
+            const uint64 RecId = RecSet()->GetRecId(RecN);
+            if (!Store->IsFieldNull(RecId, FieldId)) {
+                ColV.Add(Store->GetFieldStr(RecId, FieldId));
+            }
         }
         Args.GetReturnValue().Set(TNodeJsVec<TStr, TAuxStrV>::New(ColV));
         return;
     }
     else if (Desc.IsBool()) {
-        TIntV ColV(Recs);
+        TIntV ColV(Recs, 0);
         for (int RecN = 0; RecN < Recs; RecN++) {
-            ColV[RecN] = (int)Store->GetFieldBool(RecSet()->GetRecId(RecN), FieldId);
+            const uint64 RecId = RecSet()->GetRecId(RecN);
+            if (!Store->IsFieldNull(RecId, FieldId)) {
+                ColV.Add((int)Store->GetFieldBool(RecId, FieldId));
+            }
         }
         Args.GetReturnValue().Set(TNodeJsVec<TInt, TAuxIntV>::New(ColV));
         return;
     }
     else if (Desc.IsFlt()) {
-        TFltV ColV(Recs);
+        TFltV ColV(Recs, 0);
         for (int RecN = 0; RecN < Recs; RecN++) {
-            ColV[RecN] = Store->GetFieldFlt(RecSet()->GetRecId(RecN), FieldId);
+            const uint64 RecId = RecSet()->GetRecId(RecN);
+            if (!Store->IsFieldNull(RecId, FieldId)) {
+                ColV.Add(Store->GetFieldFlt(RecId, FieldId));
+            }
         }
         Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(ColV));
         return;
     }
     else if (Desc.IsSFlt()) {
-        TFltV ColV(Recs);
+        TFltV ColV(Recs, 0);
         for (int RecN = 0; RecN < Recs; RecN++) {
-            ColV[RecN] = Store->GetFieldSFlt(RecSet()->GetRecId(RecN), FieldId);
+            const uint64 RecId = RecSet()->GetRecId(RecN);
+            if (!Store->IsFieldNull(RecId, FieldId)) {
+                ColV.Add(Store->GetFieldSFlt(RecId, FieldId));
+            }
         }
         Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(ColV));
         return;
     }
     else if (Desc.IsTm()) {
-        TFltV ColV(Recs);
+        TFltV ColV(Recs, 0);
         TTm Tm;
         for (int RecN = 0; RecN < Recs; RecN++) {
-            Store->GetFieldTm(RecSet()->GetRecId(RecN), FieldId, Tm);
-            ColV[RecN] = (double)TTm::GetMSecsFromTm(Tm);   // TODO is this correct?? Shouldn't it be UNIX timestamp???
+            const uint64 RecId = RecSet()->GetRecId(RecN);
+            if (!Store->IsFieldNull(RecId, FieldId)) {
+                Store->GetFieldTm(RecSet()->GetRecId(RecN), FieldId, Tm);
+                ColV.Add((double)TTm::GetMSecsFromTm(Tm)); // TODO is this correct?? Shouldn't it be UNIX timestamp???
+            }
         }
         Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(ColV));
         return;
@@ -3724,7 +3795,7 @@ void TNodeJsFuncFtrExt::ExecuteFuncVec(const TQm::TRec& FtrRec, TFltV& Vec) cons
     v8::Handle<v8::Object> RetValObj = v8::Handle<v8::Object>::Cast(RetVal);
 
     QmAssertR(TNodeJsUtil::IsClass(RetValObj, TNodeJsFltV::GetClassId()), "TJsFuncFtrExt::ExecuteFuncVec callback should return a dense vector (same type as la.newVec()).");
-    // cast it to js vector and copy internal vector    
+    // cast it to js vector and copy internal vector
     Vec = ObjectWrap::Unwrap<TNodeJsFltV>(RetValObj)->Vec;
 }
 
