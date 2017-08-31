@@ -31,11 +31,11 @@ TGPSMeasurement::TGPSMeasurement(const PJsonVal& Rec) {
         Distance = Rec->GetObjKey("distanceDiff")->GetNum();
 		Speed = Rec->GetObjKey("speed")->GetNum();
         TimeDiff = Rec->GetObjKey("timeDiff")->GetInt64();
-		if (Rec->IsObjKey("activities")) {
-			Rec->GetObjKey("activities")->GetArrIntV(SensorActivities);
+        if (Rec->IsObjKey("activities")) {
+                Rec->GetObjKey("activities")->GetArrIntV(SensorActivities);
 		}//if it has activities
-		if (Rec->IsObjKey("accelerometer")) {
-			Accelerometer = Rec->GetObjKey("accelerometer")->GetStr();
+        if (Rec->IsObjKey("accelerometer")) {
+                Accelerometer = Rec->GetObjKey("accelerometer")->GetStr();
         }//if it has accelerometer
 
         int SensLen = SensorActivities.Len();
@@ -295,12 +295,12 @@ TStayPointDetector::TStayPointDetector(
     AccuracyFieldId = Store->GetFieldId(AccuracyFieldName);
     TStr ActivitiesFieldName = ParamVal->GetObjStr("activitiesField");
     ActivitiesField = Store->GetFieldId(ActivitiesFieldName);
-	TStr SpeedFieldName = ParamVal->GetObjStr("speedField");
-	SpeedFieldId = Store->GetFieldId(SpeedFieldName);
+    TStr SpeedFieldName = ParamVal->GetObjStr("speedField");
+    SpeedFieldId = Store->GetFieldId(SpeedFieldName);
     TStr DistanceFieldName = ParamVal->GetObjStr("distanceField");
     DistanceFieldId = Store->GetFieldId(DistanceFieldName);
-	TStr AccelerometerFieldName = ParamVal->GetObjStr("accelerometerField");
-	AccelerometerFieldId = Store->GetFieldId(AccelerometerFieldName);
+    TStr AccelerometerFieldName = ParamVal->GetObjStr("accelerometerField");
+    AccelerometerFieldId = Store->GetFieldId(AccelerometerFieldName);
 }//TStayPointDetector::constructor
 
 ///

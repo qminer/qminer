@@ -273,40 +273,6 @@ describe("LIBSVM SVR test", function () {
 
     });
     
-    describe("Support vectors tests", function () {
-        it("should return an empty matrix", function () {
-            var SVR = new analytics.SVR({ algorithm: "LIBSVM" });
-            var Mat = SVR.supportVectors;
-            assert.equal(Mat.rows, 0);
-            assert.equal(Mat.cols, 0);
-        })
-        it("should return an empty matrix even if the parameters have been changed", function () {
-            var SVR = new analytics.SVR({ algorithm: "LIBSVM" });
-            SVR.setParams({ j: 3, maxTime: 2 });
-            var Mat = SVR.supportVectors;
-            assert.equal(Mat.rows, 0);
-            assert.equal(Mat.cols, 0);
-        })
-
-    });
-    
-    describe("Coefficients tests", function () {
-        it("should return an empty matrix", function () {
-            var SVR = new analytics.SVR({ algorithm: "LIBSVM" });
-            var Mat = SVR.coefficients;
-            assert.equal(Mat.rows, 0);
-            assert.equal(Mat.cols, 0);
-        })
-        it("should return an empty matrix even if the parameters have been changed", function () {
-            var SVR = new analytics.SVR({ algorithm: "LIBSVM" });
-            SVR.setParams({ j: 3, maxTime: 2 });
-            var Mat = SVR.coefficients;
-            assert.equal(Mat.rows, 0);
-            assert.equal(Mat.cols, 0);
-        })
-
-    });
-
     describe("getModel tests", function () {
         it("should return parameters of the model", function () {
             var SVR = new analytics.SVR({ algorithm: "LIBSVM" });

@@ -259,42 +259,6 @@ void TNodeJsSvmModel::bias(v8::Local<v8::String> Name, const v8::PropertyCallbac
     }
 }
 
-void TNodeJsSvmModel::supportVectors(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::HandleScope HandleScope(Isolate);
-
-    try {
-        TNodeJsSvmModel* JsModel = ObjectWrap::Unwrap<TNodeJsSvmModel>(Info.Holder());
-        if (JsModel->Algorithm == "LIBSVM"){
-            Info.GetReturnValue().Set(TNodeJsFltVV::New(JsModel->Model.GetSupportVectors()));
-        }
-        else{
-            throw TExcept::New("only supported for LIBSVM Algorithm");
-        }
-    }
-    catch (const PExcept& Except) {
-        throw TExcept::New(Except->GetMsgStr(), "TNodeJsSvmModel::supportVectors");
-    }
-}
-
-void TNodeJsSvmModel::coefficients(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::HandleScope HandleScope(Isolate);
-
-    try {
-        TNodeJsSvmModel* JsModel = ObjectWrap::Unwrap<TNodeJsSvmModel>(Info.Holder());
-        if (JsModel->Algorithm == "LIBSVM"){
-            Info.GetReturnValue().Set(TNodeJsFltVV::New(JsModel->Model.GetCoefficients()));
-        }
-        else{
-            throw TExcept::New("only supported for LIBSVM Algorithm");
-        }
-    }
-    catch (const PExcept& Except) {
-        throw TExcept::New(Except->GetMsgStr(), "TNodeJsSvmModel::coefficients");
-    }
-}
-
 void TNodeJsSvmModel::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
@@ -499,8 +463,6 @@ void TNodeJsSVC::Init(v8::Handle<v8::Object> exports) {
     // properties
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weights"), _weights);
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "bias"), _bias);
-    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "supportVectors"), _supportVectors);
-    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "coefficients"), _coefficients);
 
     exports->Set(v8::String::NewFromUtf8(Isolate, "SVC"), tpl->GetFunction());
 }
@@ -546,7 +508,7 @@ void TNodeJsSVC::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
               else if (JsModel->Kernel == "PRECOMPUTED") kernel = PRECOMPUTED;
               else throw TExcept::New("SVC.fit: unknown kernel " + JsModel->Kernel);
               JsModel->Model = TSvm::TLinModel();
-              JsModel->Model.SetParam(type, kernel, JsModel->SvmCost, JsModel->SvmGamma, JsModel->SvmDegree, JsModel->SvmCoef0,
+              JsModel->Model.SetParam(type, kernel, JsModel->SvmCost, JsModel->SvmUnbalance, JsModel->SvmGamma, JsModel->SvmDegree, JsModel->SvmCoef0,
                 JsModel->SvmCacheSize, JsModel->SvmEps, JsModel->SvmP, JsModel->SvmNu);
               JsModel->Model.LibSvmSolveClassify(VecV, ClsV, TQm::TEnv::Debug, TQm::TEnv::Error);
             }
@@ -582,7 +544,7 @@ void TNodeJsSVC::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
               else if (JsModel->Kernel == "PRECOMPUTED") kernel = PRECOMPUTED;
               else throw TExcept::New("SVC.fit: unknown kernel " + JsModel->Kernel);
               JsModel->Model = TSvm::TLinModel();
-              JsModel->Model.SetParam(type, kernel, JsModel->SvmCost, JsModel->SvmGamma, JsModel->SvmDegree, JsModel->SvmCoef0,
+              JsModel->Model.SetParam(type, kernel, JsModel->SvmCost, JsModel->SvmUnbalance, JsModel->SvmGamma, JsModel->SvmDegree, JsModel->SvmCoef0,
                 JsModel->SvmCacheSize, JsModel->SvmEps, JsModel->SvmP, JsModel->SvmNu);
               JsModel->Model.LibSvmSolveClassify(VecV, ClsV, TQm::TEnv::Debug, TQm::TEnv::Error);
             }
@@ -623,8 +585,6 @@ void TNodeJsSVR::Init(v8::Handle<v8::Object> exports) {
     // properties
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weights"), _weights);
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "bias"), _bias);
-    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "supportVectors"), _supportVectors);
-    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "coefficients"), _coefficients);
 
     exports->Set(v8::String::NewFromUtf8(Isolate, "SVR"), tpl->GetFunction());
 }
@@ -671,7 +631,7 @@ void TNodeJsSVR::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                 else if (JsModel->Kernel == "PRECOMPUTED") kernel = PRECOMPUTED;
                 else throw TExcept::New("SVR.fit: unknown kernel " + JsModel->Kernel);
                 JsModel->Model = TSvm::TLinModel();
-                JsModel->Model.SetParam(type, kernel, JsModel->SvmCost, JsModel->SvmGamma, JsModel->SvmDegree, JsModel->SvmCoef0,
+                JsModel->Model.SetParam(type, kernel, JsModel->SvmCost, JsModel->SvmUnbalance, JsModel->SvmGamma, JsModel->SvmDegree, JsModel->SvmCoef0,
                   JsModel->SvmCacheSize, JsModel->SvmEps, JsModel->SvmP, JsModel->SvmNu);
                 JsModel->Model.LibSvmSolveRegression(VecV, ClsV, TQm::TEnv::Debug, TQm::TEnv::Error);
             }
@@ -707,7 +667,7 @@ void TNodeJsSVR::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                 else if (JsModel->Kernel == "PRECOMPUTED") kernel = PRECOMPUTED;
                 else throw TExcept::New("SVR.fit: unknown kernel " + JsModel->Kernel);
                 JsModel->Model = TSvm::TLinModel();
-                JsModel->Model.SetParam(type, kernel, JsModel->SvmCost, JsModel->SvmGamma, JsModel->SvmDegree, JsModel->SvmCoef0,
+                JsModel->Model.SetParam(type, kernel, JsModel->SvmCost, JsModel->SvmUnbalance, JsModel->SvmGamma, JsModel->SvmDegree, JsModel->SvmCoef0,
                   JsModel->SvmCacheSize, JsModel->SvmEps, JsModel->SvmP, JsModel->SvmNu);
                 JsModel->Model.LibSvmSolveRegression(VecV, ClsV, TQm::TEnv::Debug, TQm::TEnv::Error);
             }

@@ -32,7 +32,7 @@ class TSvmParam{
     TInt Prob;
   //public:
     TSvmParam() : Type(C_SVC), Kernel(LINEAR), Degree(0), Cost(1.0), Unbalance(1.0), Gamma(1.0), Nu(1.0), Coef0(1.0), Eps(1e-3), CacheSize(100), P(0.1), Shrink(0), Prob(0)  {  } //fill with default values
-    TSvmParam(TInt _Type, TInt _Kernel, TFlt _Cost, TFlt _Unbalance TFlt _Gamma, TInt _Degree, TFlt _Coef0,  TFlt _CacheSize, TFlt _Eps, TFlt _P, TFlt _Nu) : 
+    TSvmParam(TInt _Type, TInt _Kernel, TFlt _Cost, TFlt _Unbalance, TFlt _Gamma, TInt _Degree, TFlt _Coef0,  TFlt _CacheSize, TFlt _Eps, TFlt _P, TFlt _Nu) : 
         Type(_Type), Kernel(_Kernel), Degree(_Degree), Cost(_Cost), Unbalance(_Unbalance), Gamma(_Gamma), Nu(_Nu), Coef0(_Coef0), Eps(_Eps), CacheSize(_CacheSize), P(_P), Shrink(0), Prob(0)  {  } //fill with default values
     
     TSvmParam(TSIn& SIn):
@@ -164,8 +164,8 @@ public:
     /// Get biases (rho)
     const TFltV& GetBiases() const { return Rho; }
     
-    void SetParam(TInt Type, TInt Kernel, TFlt Cost, TFlt Gamma, TInt Degree, TFlt Coef0, TFlt CacheSize, TFlt Eps, TFlt P, TFlt Nu) {
-      this->Param = TSvmParam(Type, Kernel, Cost, Gamma, Degree, Coef0, CacheSize, Eps, P, Nu);
+    void SetParam(TInt Type, TInt Kernel, TFlt Cost, TFlt Unbalance, TFlt Gamma, TInt Degree, TFlt Coef0, TFlt CacheSize, TFlt Eps, TFlt P, TFlt Nu) {
+      this->Param = TSvmParam(Type, Kernel, Cost, Unbalance, Gamma, Degree, Coef0, CacheSize, Eps, P, Nu);
     }
     
     /// Get svm_model struct
@@ -412,7 +412,6 @@ public:
         const char* error_msg = svm_check_parameter(&svm_problem, &svm_parameter);
         EAssertR(error_msg == NULL, error_msg);
 
-<<<<<<< HEAD
         svm_model_t* svm_model = svm_train(&svm_problem, &svm_parameter, DebugNotify, ErrorNotify);
         
         TFltVV SVs(svm_model->l, DimN);

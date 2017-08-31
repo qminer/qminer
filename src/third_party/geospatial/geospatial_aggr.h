@@ -129,7 +129,7 @@ private:
     /// distance field id for fast access
     TInt DistanceFieldId;
 	/// distance field id for fast access
-	TInt AccelerometerFieldId;
+    TInt AccelerometerFieldId;
 
     /// algorithm parameters
     PJsonVal Params;

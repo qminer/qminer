@@ -191,30 +191,6 @@ describe("SVC test", function () {
             assert.equal(num, 0);
         })
     });
-    
-    describe("Support vectors tests", function () {
-        it("should throw an exception", function () {
-            var SVC = new analytics.SVC();
-            assert.throws(SVC.supportVectors);
-        })
-        it("should throw an exception even if the parameters have been changed", function () {
-            var SVC = new analytics.SVC();
-            SVC.setParams({ j: 3, maxTime: 2 });
-            assert.throws(SVC.supportVectors);
-        })
-    });
-    
-    describe("Coefficients tests", function () {
-        it("should throw an exception", function () {
-            var SVC = new analytics.SVC();
-            assert.throws(SVC.coefficients);
-        })
-        it("should throw an exception even if the parameters have been changed", function () {
-            var SVC = new analytics.SVC();
-            SVC.setParams({ j: 3, maxTime: 2 });
-            assert.throws(SVC.coefficients);
-        })
-    });
 
     describe("GetModel tests", function () {
         it("should return parameters of the model", function () {

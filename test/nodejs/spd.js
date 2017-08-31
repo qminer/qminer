@@ -32,7 +32,8 @@ describe("SPD aggregate system running aggr tests", function () {
                       { "name": "Speed", type: "float", "null": true },
                       { "name": "Distance", type: "float", "null": true },
                       { "name": "Accuracy", type: "byte", "null": true },
-                      { "name": "Activities", type: "int_v", "null": true }
+                      { "name": "Activities", type: "int_v", "null": true },
+                      { "name": "Accelerometer", type: "string", "null": true }
                     ],
                     "joins": [],
                     "keys": []
@@ -52,6 +53,7 @@ describe("SPD aggregate system running aggr tests", function () {
             locationField: "Location",
             accuracyField: "Accuracy",
             activitiesField: "Activities",
+            accelerometerField: "Accelerometer",
             speedField: "Speed",
             params: { dT: 50, tT: 300 }
         });
@@ -269,6 +271,7 @@ describe("SPD aggregate system running aggr tests", function () {
                 distanceField: "Distance",
                 accuracyField: "Accuracy",
                 activitiesField: "Activities",
+                accelerometerField: "Accelerometer",
                 params: { dT: 51, tT: 301 }
             });
             aggr2.loadStateJson(state);
@@ -304,7 +307,8 @@ describe("TMD averaging tests", function () {
                       { "name": "Accuracy", type: "float", "null": true },
                       { "name": "Speed", type: "float", "null": true },
                       { "name": "Distance", type: "float", "null": true },
-                      { "name": "Activities", type: "int_v", "null": true }
+                      { "name": "Activities", type: "int_v", "null": true },
+                      { "name": "Accelerometer", type: "string", "null": true }
                     ],
                     "joins": [],
                     "keys": []
@@ -324,6 +328,7 @@ describe("TMD averaging tests", function () {
             locationField: "Location",
             accuracyField: "Accuracy",
             activitiesField: "Activities",
+            accelerometerField:"Accelerometer",
             speedField: "Speed",
             params: { dT: 50, tT: 300 }
         });
