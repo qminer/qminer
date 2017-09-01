@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v8.6.0</a>
       </div>
     </div>
   </nav>
@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">TimeWindowGk</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-2448">analyticsdoc.<wbr>js:2448</a></p>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-2738">analyticsdoc.<wbr>js:2738</a></p>
             <div class="symbol-classdesc">
               <p>Greenwald - Khanna algorithm for quantile estimation on sliding windows. Given a cumulative probability p, the algorithm returns the approximate value of the p-th quantile of all the values in a sliding window.</p>
               <p> The algorithm works by keeping a summary of buckets. Each bucket summarizes a range of values. Through the run of the algorithm, new buckets are created and old ones merged. To allow for the computation on a sliding window, each bucket uses
@@ -122,14 +122,14 @@ var gk2 = new analytics.TimeWindowGk(fs.openRead(&#x27;gk.bin&#x27;));</code></p
                       <p>arg</p>
                     </td>
                     <td>
-                      <p>(module:analytics~TimeWindowGkParam or <a href="module-fs.FIn.html">module:fs.FIn</a>)</p>
+                      <p>(<a href="module-analytics.html#~TimeWindowGkParam">module:analytics~TimeWindowGkParam</a> or <a href="module-fs.FIn.html">module:fs.FIn</a>)</p>
                     </td>
                     <td>
                       <p>Yes</p>
                     </td>
                     <td>
                       <p>Construction arguments. There are two ways of constructing:
-                        <br>1. Using the module:analytics~TimeWindowGkParam object,
+                        <br>1. Using the <a href="module-analytics.html#~TimeWindowGkParam">module:analytics~TimeWindowGkParam</a> object,
                         <br>2. using the file input stream <a href="module-fs.FIn.html">module:fs.FIn</a>.</p>
                     </td>
                   </tr>
@@ -258,12 +258,12 @@ var gk = new analytics.TimeWindowGk(fs.openRead(&#x27;tdigest.bin&#x27;));</code
                   <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;the output stream <code>fout</code></p>
                 </dd>
               </dl>
-              <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> module:analytics~TimeWindowGkParam</span></span></h3>
+              <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.html#~TimeWindowGkParam">module:analytics~TimeWindowGkParam</a></span></span></h3>
               <p>Returns the models' parameters as a JavaScript object (JSON). These parameters are the same as are set through the constructor.</p>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>module:analytics~TimeWindowGkParam</code>&nbsp;The construction parameters.</p>
+                  <p><code><a href="module-analytics.html#~TimeWindowGkParam">module:analytics~TimeWindowGkParam</a></code>&nbsp;The construction parameters.</p>
                   <p>var analytics = qm.analytics; var gk = new analytics.TimeWindowGk(); var params = tdigest.getParams();</p>
                   <p>console.log(params.window); console.log(params.quantileEps); console.log(params.countEps);
                   </p>
