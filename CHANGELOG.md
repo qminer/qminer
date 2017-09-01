@@ -1,5 +1,34 @@
 # QMiner Change Log
 
+## 1 September 2017
+
+**Version 8.6.0**
+
+**Non-breaking with new features**
+
+Features:
+- Greenwald-Khanna algorithm for online quantile estimation exposed in
+  nodejs (analytics.Gk).
+- CKMS algorithm for onine biased quantie estimation exposed in nodejs
+  (analytics.BiasdeGk). This algorithm is more accurate on extreme
+  values (example q=0.0001).
+- TimeWindowGk algorithm accuracy and speed optimized.
+- external stream aggregate extensions
+- external qm nodejs extensions
+- Added a configuration hash table that can be used to 
+  specify custom sizes for cache for different index types
+  (storage memory improvement).
+- histogramAD API extended to return largest normal bin/value
+
+Bugfix:
+- LinAlgStat::Mean index out of bounds fix (sparse vector case)
+- Bugfix for TNodeJsRecSet::getVector (doesn't crash on null fields)
+- LIBSVM j parameter supported (was ignored before)
+
+Documentation:
+- histogram anomaly detection updated
+- Greenwald-Khanna and CKMS (analytics module)
+
 ## 21 July 2017
 
 **Version 8.5.0**
