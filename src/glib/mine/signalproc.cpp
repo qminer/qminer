@@ -1734,7 +1734,7 @@ void TTDigest::Init(const int& N) {
 
     Size = (int)ceil(Nc * TMath::Pi / 2);
     TotalSum = 0;
-    Last = 0;
+    Last = -1;
 
     for (int Iter = 0; Iter < Size; Iter++) {
         Weight.Add(0);
@@ -1939,7 +1939,7 @@ double TTDigest::MergeCentroid(double& Sum, double& K1, double& Wt, double& Ut) 
             MergeMean[Last] += (Ut - MergeMean[Last]) * Wt / MergeWeight[Last];
         } else {
             // otherwise create a new centroid
-            Last = ++Last;
+            ++Last;
             MergeMean[Last] = Ut;
             MergeWeight[Last] = Wt;
             K1 = Integrate((double)Nc, (Sum - Wt)/TotalSum);
@@ -1999,6 +1999,31 @@ void TTDigest::Print() const {
     for (int ElN = 0; ElN < Weight.Len(); ElN++) {
         printf("c:%g, w:%g\n", Mean[ElN].Val, Weight[ElN].Val);
     }
+}
+
+uint TTDigest::GetSummarySize() const {
+    return Last + 1;
+}
+
+uint64 TTDigest::GetMemUsed() const {
+    return sizeof(TTDigest) +
+        TMemUtils::GetExtraMemberSize(MinPointsInit) +
+        TMemUtils::GetExtraMemberSize(Nc) +
+        TMemUtils::GetExtraMemberSize(Size) +
+        TMemUtils::GetExtraMemberSize(Last) +
+        TMemUtils::GetExtraMemberSize(TotalSum) +
+        TMemUtils::GetExtraMemberSize(Weight) +
+        TMemUtils::GetExtraMemberSize(Mean) +
+        TMemUtils::GetExtraMemberSize(Min) +
+        TMemUtils::GetExtraMemberSize(Max) +
+        TMemUtils::GetExtraMemberSize(MergeWeight) +
+        TMemUtils::GetExtraMemberSize(MergeMean) +
+        TMemUtils::GetExtraMemberSize(Tempsize) +
+        TMemUtils::GetExtraMemberSize(UnmergedSum) +
+        TMemUtils::GetExtraMemberSize(TempLast) +
+        TMemUtils::GetExtraMemberSize(TempWeight) +
+        TMemUtils::GetExtraMemberSize(TempMean) +
+        TMemUtils::GetExtraMemberSize(Updates);
 }
 
 /////////////////////////////////

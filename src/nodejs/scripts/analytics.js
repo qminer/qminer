@@ -119,7 +119,7 @@ module.exports = exports = function (pathQmBinary) {
     * // get the properties of the model
     * var model = SVC.getModel();
     */
-    exports.SVC.prototype.getModel = function() { return { weights: this.weights }; }
+    exports.SVC.prototype.getModel = function() { return { weights: this.weights, bias: this.bias }; }
     /**
     * Get the model.
     * @returns {Object} The `svmModel` object containing the property:
@@ -132,7 +132,7 @@ module.exports = exports = function (pathQmBinary) {
     * // get the properties of the model
     * var model = SVR.getModel();
     */
-    exports.SVR.prototype.getModel = function() { return { weights: this.weights }; }
+    exports.SVR.prototype.getModel = function() { return { weights: this.weights, bias: this.bias }; }
 
     // Ridge Regression
     /**
