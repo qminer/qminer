@@ -9,7 +9,7 @@ QMiner
 [![Windows Build][appveyor-image]][appveyor-url]
 
 QMiner is an analytics platform for large-scale real-time streams containing structured and
-unstructured data. It is designed for scaling to millions of instances on high-end commodity 
+unstructured data. It is designed for scaling to millions of data points on high-end commodity 
 hardware, providing efficient storage, retrieval and analytics mechanisms with real-time response.
 
 **[Project homepage](http://qminer.ijs.si/)**

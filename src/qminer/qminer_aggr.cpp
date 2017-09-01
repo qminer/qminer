@@ -2685,7 +2685,7 @@ void THistogramAD::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
 
         // Fit
         TFltV Hist; HistAggr->GetValV(Hist);
-        Model.GetPMF(Hist, PMF, Count % AutoBandwidthSkip == 0);
+        Model.GetPMF(Hist, PMF, (Count % AutoBandwidthSkip == 0) || (Model.Bandwidth == 0.0));
         Model.ClassifyAnomalies(PMF, Severities);
         Count++;
     }
@@ -2717,6 +2717,37 @@ void THistogramAD::SaveState(TSOut& SOut) const {
     Count.Save(SOut);
 }
 
+int THistogramAD::GetNmInt(const TStr& Nm) const {
+    if (Nm == "index") {
+        return LastHistIdx;
+    } else if (Nm == "severity") {
+        return Severity;
+    } else if (Nm == "largestNormalIndex") {
+        int Idx = Severities.Len() - 1;
+        while (Idx >= 0) {
+            if (Severities[Idx] == 0) { break; }
+            Idx--;
+        }
+        return Idx;
+    } else {
+        throw TExcept::New("THistoramAD::GetNmInt unknown key: " + Nm);
+    }
+}
+
+double THistogramAD::GetNmFlt(const TStr& Nm) const {
+    if (Nm == "largestNormalValue") {
+        int Idx = Severities.Len() - 1;
+        while (Idx >= 0) {
+            if (Severities[Idx] == 0) { break; }
+            Idx--;
+        }
+        return HistAggr->GetBoundN(Idx + 1);
+    } else {
+        throw TExcept::New("THistoramAD::GetNmFlt unknown key: " + Nm);
+    }
+}
+
+
 void THistogramAD::Reset() {
     Severity = -1;
     LastHistIdx = 0;
@@ -2737,6 +2768,7 @@ PJsonVal THistogramAD::SaveJson(const int& Limit) const {
         Obj->AddToObj("pmf", TJsonVal::NewArr(PMFClip));
         Obj->AddToObj("severities", TJsonVal::NewArr(SevClip));
     }
+    Obj->AddToObj("bandwidth", Model.Bandwidth);
     Obj->AddToObj("explain", Explanation);
     Obj->AddToObj("thresholds", TJsonVal::NewArr(Model.Thresholds));
     Obj->AddToObj("tol", Model.Tol);
