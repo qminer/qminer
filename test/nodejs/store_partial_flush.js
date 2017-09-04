@@ -12,7 +12,7 @@ var qm = require('qminer');
 var fs = qm.fs;
 
 describe('Partial-flush tests', function () {
-    it('should perform a simple load-store-close-open test', function (done) {
+    it.skip('should perform a simple load-store-close-open test', function (done) {
         this.timeout(300 * 1000);
 
         var rec_cnt = 100 * 1000;
@@ -113,7 +113,7 @@ describe('Partial-flush tests', function () {
         base2.close();
         done();
     });
-    it('should reproduce error from production 26.02.2016', function (done) { 
+    it.skip('should reproduce error from production 26.02.2016', function (done) { 
         this.timeout(300 * 1000);
 
         var rec_cnt = 100 * 1000;
