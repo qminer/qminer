@@ -2394,10 +2394,12 @@ public:
      * var analytics = require('qminer').analytics;
      * // create a new KMeans object
      * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+     * // create a matrix to be fitted
+     * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+     * // create the model with the matrix X
+     * KMeans.fit(X);
      * // get the centroids
      * var centroids = KMeans.centroids;
-     * // print the first centroid
-     * console.log(centroids.getCol(0));
      */
     //# exports.KMeans.prototype.centroids = Object.create(require('qminer').la.Matrix.prototype);
     JsDeclareProperty(centroids);
@@ -2409,6 +2411,10 @@ public:
     * var analytics = require('qminer').analytics;
     * // create a new KMeans object
     * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+    * // create a matrix to be fitted
+    * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+    * // create the model with the matrix X
+    * KMeans.fit(X);
     * // get the centroids
     * var medoids = KMeans.medoids;
     */
@@ -2422,6 +2428,10 @@ public:
     * var analytics = require('qminer').analytics;
     * // create a new KMeans object
     * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+    * // create a matrix to be fitted
+    * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+    * // create the model with the matrix X
+    * KMeans.fit(X);
     * // get the idxv
     * var idxv = KMeans.idxv;
     */
@@ -2667,7 +2677,7 @@ public:
     /**
      * Permutates the clusters, and with it {@link module:analytics.DpMeans#centroids}, {@link module:analytics.DpMeans#medoids} and {@link module:analytics.DpMeans#idxv}.
      * @param {module:la.IntVector} mapping - The mapping, where `mapping[4] = 2` means "map cluster 4 into cluster 2".
-     * @returns {module:analytics.DpMeans} Self. The clusters has been permutated.
+     * @returns {module:analytics.DpMeans} Self. The clusters have been permuted.
      * @example
      * // import the modules
      * var analytics = require('qminer').analytics;
@@ -2678,10 +2688,14 @@ public:
      * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
      * // create the model with the matrix X
      * DpMeans.fit(X);
-     * // create the mapping vector
-     * var Mapping = new la.IntVector([1, 0, 2]);
-     * // permutate the clusters.
-     * DpMeans.permuteCentroids(Mapping);
+     * if (DpMeans.centroids.cols > 1) {
+     *     // create the mapping vector: swap first two centroids
+     *     var Mapping = new la.IntVector([1, 0, 2, 3, 4, 5].splice(0,DpMeans.centroids.cols));
+     *     console.log(DpMeans.centroids.toString());
+     *     // permutate the clusters.
+     *     DpMeans.permuteCentroids(Mapping);
+     *     console.log(DpMeans.centroids.toString());
+     * }
      */
     //# exports.DpMeans.prototype.permuteCentroids = function (mapping) { return Object.create(require('qminer').analytics.DpMeans.prototype); }
     JsDeclareFunction(permuteCentroids);
@@ -2718,8 +2732,13 @@ public:
      * @example
      * // import the modules
      * var analytics = require('qminer').analytics;
+     * var la = require('qminer').la;
      * // create a new DpMeans object
      * var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
+     * // create a matrix to be fitted
+     * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+     * // create the model with the matrix X
+     * DpMeans.fit(X);
      * // get the centroids
      * var centroids = DpMeans.centroids;
      * // print the first centroid
@@ -2804,6 +2823,7 @@ private:
 * @example
 * // import modules
 * var qm = require('qminer');
+* var fs = qm.fs;
 * var analytics = qm.analytics;
 * // create the default TDigest object
 * var tdigest = new analytics.TDigest();
@@ -2918,6 +2938,7 @@ public:
     * @example
     * // import modules
     * var qm = require('qminer');
+    * var fs = require('qminer').fs;
     * var analytics = qm.analytics;
     * var fs = qm.fs;
     * // create the default TDigest object
@@ -2996,9 +3017,10 @@ public:
  * @example
  * // import modules
  * var qm = require('qminer');
+ * var fs = require('qminer').fs;
  * var analytics = qm.analytics;
  *
- * // create the default TDigest object
+ * // create the Gk object
  * var gk = new analytics.Gk({
  *     eps: 0.001,
  *     autoCompress: true
@@ -3007,7 +3029,7 @@ public:
  * // create the data used for calculating quantiles
  * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
  *
- * // fit the TDigest model
+ * // fit the model
  * for (var i = 0; i < inputs.length; i++) {
  *     gk.partialFit(inputs[i]);
  * }
@@ -3163,9 +3185,10 @@ public:
  * @example
  * // import modules
  * var qm = require('qminer');
+ * var fs = require('qminer').fs;
  * var analytics = qm.analytics;
  *
- * // create the default TDigest object
+ * // create the BiasedGk object
  * var gk = new analytics.BiasedGk({
  *     eps: 0.1,
  *     targetProb: 0.99,
@@ -3176,7 +3199,7 @@ public:
  * // create the data used for calculating quantiles
  * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
  *
- * // fit the TDigest model
+ * // fit the model
  * for (var i = 0; i < inputs.length; i++) {
  *     gk.partialFit(inputs[i]);
  * }
@@ -3186,7 +3209,7 @@ public:
  * // save the model
  * gk.save(fs.openWrite('gk.bin')).close();
  * // open the gk model under a new variable
- * var gk2 = new analytics.Gk(fs.openRead('gk.bin'));
+ * var gk2 = new analytics.BiasedGk(fs.openRead('gk.bin'));
  *
  */
 //# exports.BiasedGk = function (arg) { return Object.create(require('qminer').analytics.BiasedGk.prototype); }
@@ -3345,6 +3368,7 @@ private:
  * @example
  * // import modules
  * var qm = require('qminer');
+ * var fs = qm.fs;
  * var analytics = qm.analytics;
  *
  * // create the default TDigest object
@@ -3394,8 +3418,13 @@ public:
      * @returns {module:analytics~FixedWindowGkParam} The construction parameters.
      *
      * var analytics = qm.analytics;
-     * var gk = new analytics.CountWindowGk();
-     * var params = tdigest.getParams();
+     * var gk = new qm.analytics.CountWindowGk({ windowSize: 100 }); // window 100 elements long
+     * gk.partialFit(1.0);
+     * gk.partialFit(2.0);
+     * gk.partialFit(1.0);
+     * gk.partialFit(3.0);
+     * gk.partialFit(2.0);
+     * var params = gk.getParams();
      *
      * console.log(params.windowSize);
      * console.log(params.quantileEps);
@@ -3455,12 +3484,14 @@ public:
      * @returns {module:fs.FOut} the output stream `fout`
      *
      * @example
+     * var qm = require('qminer');
+     * var fs = qm.fs;
      * var gk = new qm.analytics.CountWindowGk();
      *
      * // save the model
-     * gk.save(fs.openWrite('tdigest.bin')).close();
-     * // open the tdigest model under a new variable
-     * var gk = new analytics.CountWindowGk(fs.openRead('tdigest.bin'));
+     * gk.save(fs.openWrite('gk.bin')).close();
+     * // open the model under a new variable
+     * var gk = new analytics.CountWindowGk(fs.openRead('gk.bin'));
      */
     //# exports.CountWindowGk.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
     JsDeclareFunction(save);
@@ -3511,9 +3542,10 @@ public:
  * @example
  * // import modules
  * var qm = require('qminer');
+ * var fs = qm.fs;
  * var analytics = qm.analytics;
  *
- * // create the default TDigest object
+ * // create the default object
  * var gk = new analytics.TimeWindowGk({
  *     window: 5,
  *     quantileEps: 0.001,
@@ -3524,7 +3556,7 @@ public:
  * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
  * var times = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
  *
- * // fit the TDigest model
+ * // fit the model
  * for (var i = 0; i < inputs.length; i++) {
  *     gk.partialFit(times[i], inputs[i]);
  * }
@@ -3559,9 +3591,26 @@ public:
      *
      * @returns {module:analytics~TimeWindowGkParam} The construction parameters.
      *
+     * var qm = require('qminer');
+     * var fs = qm.fs;
      * var analytics = qm.analytics;
-     * var gk = new analytics.TimeWindowGk();
-     * var params = tdigest.getParams();
+     *
+     * // create the default object
+     * var gk = new analytics.TimeWindowGk({
+     *     window: 5,
+     *     quantileEps: 0.001,
+     *     countEps: 0.0005
+     * });
+     *
+     * // create the data used for calculating quantiles
+     * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
+     * var times = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+     *
+     * // fit the model
+     * for (var i = 0; i < inputs.length; i++) {
+     *     gk.partialFit(times[i], inputs[i]);
+     * }
+     * var params = gk.getParams();
      *
      * console.log(params.window);
      * console.log(params.quantileEps);
@@ -3624,12 +3673,20 @@ public:
      * @returns {module:fs.FOut} the output stream `fout`
      *
      * @example
-     * var gk = new qm.analytics.TimeWindowGk();
-     *
+     * var qm = require('qminer');
+     * var fs = qm.fs;
+     * var gk = new qm.analytics.TimeWindowGk({
+     *     window: 100    // window is 2 days
+     * });
+     * gk.partialFit(0, 1.0);
+     * gk.partialFit(1, 1.0);
+     * gk.partialFit(2, 1.0);
+     * gk.partialFit(3, 1.0);
+     * gk.partialFit(4, 1.0);
      * // save the model
-     * gk.save(fs.openWrite('tdigest.bin')).close();
-     * // open the tdigest model under a new variable
-     * var gk = new analytics.TimeWindowGk(fs.openRead('tdigest.bin'));
+     * gk.save(fs.openWrite('gk.bin')).close();
+     * // open the model under a new variable
+     * var gk = new analytics.TimeWindowGk(fs.openRead('gk.bin'));
      */
     //# exports.TimeWindowGk.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
     JsDeclareFunction(save);
