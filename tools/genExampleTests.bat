@@ -8,4 +8,4 @@ node makedoc.js ../src/nodejs/qm/qm_nodejs_streamaggr.h "" ../nodedoc/qminer_agg
 node makedoc.js ../src/nodejs/statistics/stat_nodejs.h "" ../nodedoc/statdoc.js
 echo node makedoc.js "" ../src/nodejs/datasets/datasets.js ../nodedoc/datasetsdoc.js
 
-node createExampleTests.js ../nodedoc/ ../test/nodejs/
+node createExampleTests.js ../nodedoc/ ../test/nodejs/examples/

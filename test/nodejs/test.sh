@@ -8,6 +8,18 @@ TEST_PATH_=`readlink -f $0`
 TEST_PATH=`dirname $TEST_PATH_`
 
 cd $TEST_PATH
+cd examples
+mocha -b --timeout 30000 exampleanalyticsdoc.js
+mocha -b --timeout 30000 examplefsdoc.js
+mocha -b --timeout 30000 examplehtdoc.js
+mocha -b --timeout 30000 exampleladoc.js
+mocha -b --timeout 30000 exampleladoc_module.js
+mocha -b --timeout 30000 exampleladoc_structures.js
+mocha -b --timeout 30000 exampleqminer_aggrdoc.js
+mocha -b --timeout 30000 exampleqminerdoc.js
+mocha -b --timeout 30000 examplestatdoc.js
+cd ..
+
 mocha -b --timeout 30000 *.js
 #echo "test"
 CODE=$?
