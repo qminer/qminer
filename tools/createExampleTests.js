@@ -83,8 +83,9 @@ for (var i = 0; i < JSFiles.length; i++) {
 				example = example.replace(/(\n\s*)\*/g, '$1');
 				if (example.indexOf('*/') != -1) { example = example.slice(0, example.length - 2);}
 				else { example = example.slice(0, example.length - 1); }
-				
-				examplesContent += constructExample(describe, example, count);
+				var exampleContent = constructExample(describe, example, count);
+				examplesContent += exampleContent;
+				debugger
 			}
         }
     }
