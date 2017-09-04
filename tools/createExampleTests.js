@@ -85,7 +85,6 @@ for (var i = 0; i < JSFiles.length; i++) {
 				else { example = example.slice(0, example.length - 1); }
 				var exampleContent = constructExample(describe, example, count);
 				examplesContent += exampleContent;
-				debugger
 			}
         }
     }
