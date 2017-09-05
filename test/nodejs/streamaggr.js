@@ -6673,7 +6673,7 @@ describe('Stream aggregate statistics', function () {
             assert.equal(stats.types[2].count, 3);
             assert.equal(stats.types[2].msecs, 0);
         });
-
+        // TODO: test skipped because it fails, needs fix
         it.skip('should be less then observed from javascript', function () {
             // create few stream aggregates
             var tick = store.addStreamAggr({
