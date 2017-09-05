@@ -20,7 +20,7 @@ describe("SVR test", function () {
             var SVR = new analytics.SVR();
             var SVRjSon = SVR.getParams();
             assert.equal(SVRjSon.c, 1);
-            assert.equal(SVRjSon.eps, 1e-1);
+            assert.equal(SVRjSon.eps, 1e-3);
             assert.equal(SVRjSon.batchSize, 1000);
             assert.equal(SVRjSon.maxIterations, 10000);
             assert.equal(SVRjSon.maxTime, 1);
@@ -43,7 +43,7 @@ describe("SVR test", function () {
             var SVR = new analytics.SVR({ c: 5, batchSize: 5, maxTime: 1, verbose: true });
             var SVRjSon = SVR.getParams();
             assert.equal(SVRjSon.c, 5);
-            assert.equal(SVRjSon.eps, 1e-1);
+            assert.equal(SVRjSon.eps, 1e-3);
             assert.equal(SVRjSon.batchSize, 5);
             assert.equal(SVRjSon.maxIterations, 10000);
             assert.equal(SVRjSon.maxTime, 1);
@@ -55,7 +55,7 @@ describe("SVR test", function () {
             var SVR = new analytics.SVR({});
             var SVRjSon = SVR.getParams();
             assert.equal(SVRjSon.c, 1);
-            assert.equal(SVRjSon.eps, 1e-1);
+            assert.equal(SVRjSon.eps, 1e-3);
             assert.equal(SVRjSon.batchSize, 1000);
             assert.equal(SVRjSon.maxIterations, 10000);
             assert.equal(SVRjSon.maxTime, 1);
@@ -67,7 +67,7 @@ describe("SVR test", function () {
             var SVR = new analytics.SVR({ alpha: 5, beta: 10, s: 3, batchSize: 10000, verbose: true });
             var SVRjSon = SVR.getParams();
             assert.equal(SVRjSon.c, 1);
-            assert.equal(SVRjSon.eps, 1e-1);
+            assert.equal(SVRjSon.eps, 1e-3);
             assert.equal(SVRjSon.batchSize, 10000);
             assert.equal(SVRjSon.maxIterations, 10000);
             assert.equal(SVRjSon.maxTime, 1);
@@ -81,7 +81,7 @@ describe("SVR test", function () {
             var SVR = new analytics.SVR();
             var SVRjSon = SVR.getParams();
             assert.equal(SVRjSon.c, 1);
-            assert.equal(SVRjSon.eps, 1e-1);
+            assert.equal(SVRjSon.eps, 1e-3);
             assert.equal(SVRjSon.batchSize, 1000);
             assert.equal(SVRjSon.maxIterations, 10000);
             assert.equal(SVRjSon.maxTime, 1);
@@ -105,7 +105,7 @@ describe("SVR test", function () {
             var SVR = new analytics.SVR({ alpha: 3, beta: 3, z: 3 });
             var SVRjSon = SVR.getParams();
             assert.equal(SVRjSon.c, 1);
-            assert.equal(SVRjSon.eps, 1e-1);
+            assert.equal(SVRjSon.eps, 1e-3);
             assert.equal(SVRjSon.batchSize, 1000);
             assert.equal(SVRjSon.maxIterations, 10000);
             assert.equal(SVRjSon.maxTime, 1);

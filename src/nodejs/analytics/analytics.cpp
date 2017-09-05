@@ -133,11 +133,11 @@ v8::Local<v8::Value> TNodeJsAnalytics::TNMFTask::WrapResult() {
 
 TNodeJsSvmModel::TNodeJsSvmModel(const PJsonVal& ParamVal):
         Algorithm("SGD"),
-        Kernel("LINEAR"),
+        Kernel(LINEAR),
         SvmType("default"), // for LIBSVM only - this handles classification and regression default construction
         SvmCost(1.0),
         SvmUnbalance(1.0),
-        SvmEps(0.1),
+        SvmEps(1e-3),
         SvmGamma(1.0),
         SvmP(0.1),
         SvmDegree(1),
@@ -156,7 +156,7 @@ TNodeJsSvmModel::TNodeJsSvmModel(const PJsonVal& ParamVal):
 
 TNodeJsSvmModel::TNodeJsSvmModel(TSIn& SIn):
         Algorithm(SIn),
-        Kernel(SIn),
+        Kernel(TInt(SIn)),
         SvmType(SIn),
         SvmCost(TFlt(SIn)),
         SvmUnbalance(TFlt(SIn)),
@@ -369,22 +369,29 @@ void TNodeJsSvmModel::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 }
 
 void TNodeJsSvmModel::UpdateParams(const PJsonVal& ParamVal) {
-    if (ParamVal->IsObjKey("algorithm")) Algorithm = ParamVal->GetObjStr("algorithm");
-    if (ParamVal->IsObjKey("kernel")) Kernel = ParamVal->GetObjStr("kernel");
-    if (ParamVal->IsObjKey("svmType")) SvmType = ParamVal->GetObjStr("svmType");
-    if (ParamVal->IsObjKey("c")) SvmCost = ParamVal->GetObjNum("c");
-    if (ParamVal->IsObjKey("j")) SvmUnbalance = ParamVal->GetObjNum("j");
-    if (ParamVal->IsObjKey("eps")) SvmEps = ParamVal->GetObjNum("eps");
-    if (ParamVal->IsObjKey("gamma")) SvmGamma = ParamVal->GetObjNum("gamma");
-    if (ParamVal->IsObjKey("p")) SvmP = ParamVal->GetObjNum("p");
-    if (ParamVal->IsObjKey("degree")) SvmDegree = ParamVal->GetObjInt("degree");
-    if (ParamVal->IsObjKey("nu")) SvmNu = ParamVal->GetObjNum("nu");
-    if (ParamVal->IsObjKey("coef0")) SvmCoef0 = ParamVal->GetObjNum("coef0");
-    if (ParamVal->IsObjKey("cacheSize")) SvmCacheSize = ParamVal->GetObjNum("cacheSize");    
-    if (ParamVal->IsObjKey("batchSize")) SampleSize = ParamVal->GetObjInt("batchSize");
-    if (ParamVal->IsObjKey("maxIterations")) MxIter = ParamVal->GetObjInt("maxIterations");
-    if (ParamVal->IsObjKey("maxTime")) MxTime = TFlt::Round(1000.0 * ParamVal->GetObjNum("maxTime"));
-    if (ParamVal->IsObjKey("minDiff")) MnDiff = ParamVal->GetObjNum("minDiff");
+    if (ParamVal->IsObjKey("algorithm")) { Algorithm = ParamVal->GetObjStr("algorithm"); }
+    if (ParamVal->IsObjKey("kernel")) {
+        TStr KernelStr = ParamVal->GetObjStr("kernel"); 
+        if (KernelStr == "LINEAR") { Kernel = LINEAR; }
+        else if (KernelStr == "RBF") { Kernel = RBF; }
+        else if (KernelStr == "POLY") { Kernel = POLY; }
+        else if (KernelStr == "SIGMOID") { Kernel = SIGMOID; }
+        else if (KernelStr == "PRECOMPUTED") { Kernel = PRECOMPUTED; }
+    }
+    if (ParamVal->IsObjKey("svmType")) { SvmType = ParamVal->GetObjStr("svmType"); }
+    if (ParamVal->IsObjKey("c")) { SvmCost = ParamVal->GetObjNum("c"); }
+    if (ParamVal->IsObjKey("j")) { SvmUnbalance = ParamVal->GetObjNum("j"); }
+    if (ParamVal->IsObjKey("eps")) { SvmEps = ParamVal->GetObjNum("eps"); }
+    if (ParamVal->IsObjKey("gamma")) { SvmGamma = ParamVal->GetObjNum("gamma"); }
+    if (ParamVal->IsObjKey("p")) { SvmP = ParamVal->GetObjNum("p"); }
+    if (ParamVal->IsObjKey("degree")) { SvmDegree = ParamVal->GetObjInt("degree"); }
+    if (ParamVal->IsObjKey("nu")) { SvmNu = ParamVal->GetObjNum("nu"); }
+    if (ParamVal->IsObjKey("coef0")) { SvmCoef0 = ParamVal->GetObjNum("coef0"); }
+    if (ParamVal->IsObjKey("cacheSize")) { SvmCacheSize = ParamVal->GetObjNum("cacheSize"); }
+    if (ParamVal->IsObjKey("batchSize")) { SampleSize = ParamVal->GetObjInt("batchSize"); }
+    if (ParamVal->IsObjKey("maxIterations")) { MxIter = ParamVal->GetObjInt("maxIterations"); }
+    if (ParamVal->IsObjKey("maxTime")) { MxTime = TFlt::Round(1000.0 * ParamVal->GetObjNum("maxTime")); }
+    if (ParamVal->IsObjKey("minDiff")) { MnDiff = ParamVal->GetObjNum("minDiff"); }
     if (ParamVal->IsObjKey("verbose")) {
         Verbose = ParamVal->GetObjBool("verbose");
         Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
@@ -395,7 +402,13 @@ PJsonVal TNodeJsSvmModel::GetParams() const {
     PJsonVal ParamVal = TJsonVal::NewObj();
 
     ParamVal->AddToObj("algorithm", Algorithm);
-    ParamVal->AddToObj("kernel", Kernel);
+    TStr KernelStr = "LINEAR";
+    if (Kernel == LINEAR) { KernelStr = "LINEAR"; }
+    else if (Kernel == POLY) { KernelStr = "POLY"; }
+    else if (Kernel == RBF) { KernelStr = "RBF"; }
+    else if (Kernel == SIGMOID) { KernelStr = "SIGMOID"; }
+    else if (Kernel == PRECOMPUTED) { KernelStr = "PRECOMPUTED"; }
+    ParamVal->AddToObj("kernel", KernelStr);
     ParamVal->AddToObj("svmType", SvmType);
     ParamVal->AddToObj("c", SvmCost);
     ParamVal->AddToObj("j", SvmUnbalance);
@@ -417,7 +430,7 @@ PJsonVal TNodeJsSvmModel::GetParams() const {
 
 void TNodeJsSvmModel::Save(TSOut& SOut) const {
     Algorithm.Save(SOut);
-    Kernel.Save(SOut);
+    TInt(Kernel).Save(SOut);
     SvmType.Save(SOut);
     TFlt(SvmCost).Save(SOut);
     TFlt(SvmUnbalance).Save(SOut);
@@ -500,17 +513,8 @@ void TNodeJsSVC::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
               else if (JsModel->SvmType == "NU_SVC") type = NU_SVC;
               else if (JsModel->SvmType == "ONE_CLASS") type = ONE_CLASS;
               else throw TExcept::New("SVC.fit: unknown svm type " + JsModel->SvmType + " for classification");
-              int kernel;
-              if (JsModel->Kernel == "LINEAR") kernel = LINEAR;
-              else if (JsModel->Kernel == "RBF") kernel = RBF;
-              else if (JsModel->Kernel == "POLY") kernel = POLY;
-              else if (JsModel->Kernel == "SIGMOID") kernel = SIGMOID;
-              else if (JsModel->Kernel == "PRECOMPUTED") kernel = PRECOMPUTED;
-              else throw TExcept::New("SVC.fit: unknown kernel " + JsModel->Kernel);
-              JsModel->Model = TSvm::TLinModel();
-              JsModel->Model.SetParam(type, kernel, JsModel->SvmCost, JsModel->SvmUnbalance, JsModel->SvmGamma, JsModel->SvmDegree, JsModel->SvmCoef0,
-                JsModel->SvmCacheSize, JsModel->SvmEps, JsModel->SvmP, JsModel->SvmNu);
-              JsModel->Model.LibSvmSolveClassify(VecV, ClsV, TQm::TEnv::Debug, TQm::TEnv::Error);
+              JsModel->Model = TSvm::TLinModel(type, JsModel->Kernel, JsModel->SvmDegree, JsModel->SvmGamma, JsModel->SvmCoef0);
+              JsModel->Model.LibSvmFit(VecV, ClsV, JsModel->SvmCost, JsModel->SvmUnbalance, JsModel->SvmNu, JsModel->SvmEps, JsModel->SvmCacheSize, JsModel->SvmP, TQm::TEnv::Debug, TQm::TEnv::Error);
             }
             else {
                 throw TExcept::New("SVC.fit: unknown algorithm " + JsModel->Algorithm);
@@ -536,17 +540,8 @@ void TNodeJsSVC::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
               else if (JsModel->SvmType == "NU_SVC") type = NU_SVC;
               else if (JsModel->SvmType == "ONE_CLASS") type = ONE_CLASS;
               else throw TExcept::New("SVC.fit: unknown svm type " + JsModel->SvmType + " for classification");
-              int kernel;
-              if (JsModel->Kernel == "LINEAR") kernel = LINEAR;
-              else if (JsModel->Kernel == "RBF") kernel = RBF;
-              else if (JsModel->Kernel == "POLY") kernel = POLY;
-              else if (JsModel->Kernel == "SIGMOID") kernel = SIGMOID;
-              else if (JsModel->Kernel == "PRECOMPUTED") kernel = PRECOMPUTED;
-              else throw TExcept::New("SVC.fit: unknown kernel " + JsModel->Kernel);
-              JsModel->Model = TSvm::TLinModel();
-              JsModel->Model.SetParam(type, kernel, JsModel->SvmCost, JsModel->SvmUnbalance, JsModel->SvmGamma, JsModel->SvmDegree, JsModel->SvmCoef0,
-                JsModel->SvmCacheSize, JsModel->SvmEps, JsModel->SvmP, JsModel->SvmNu);
-              JsModel->Model.LibSvmSolveClassify(VecV, ClsV, TQm::TEnv::Debug, TQm::TEnv::Error);
+              JsModel->Model = TSvm::TLinModel(type, JsModel->Kernel, JsModel->SvmDegree, JsModel->SvmGamma, JsModel->SvmCoef0);
+              JsModel->Model.LibSvmFit(VecV, ClsV, JsModel->SvmCost, JsModel->SvmUnbalance, JsModel->SvmNu, JsModel->SvmEps, JsModel->SvmCacheSize, JsModel->SvmP, TQm::TEnv::Debug, TQm::TEnv::Error);
             }
             else {
                 throw TExcept::New("SVC.fit: unknown algorithm " + JsModel->Algorithm);
@@ -623,17 +618,8 @@ void TNodeJsSVR::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                 else if (JsModel->SvmType == "NU_SVR") type = NU_SVR;
                 else if (JsModel->SvmType == "ONE_CLASS") type = ONE_CLASS;
                 else throw TExcept::New("SVR.fit: unknown svm type " + JsModel->SvmType + " for regression");
-                int kernel;
-                if (JsModel->Kernel == "LINEAR") kernel = LINEAR;
-                else if (JsModel->Kernel == "RBF") kernel = RBF;
-                else if (JsModel->Kernel == "POLY") kernel = POLY;
-                else if (JsModel->Kernel == "SIGMOID") kernel = SIGMOID;
-                else if (JsModel->Kernel == "PRECOMPUTED") kernel = PRECOMPUTED;
-                else throw TExcept::New("SVR.fit: unknown kernel " + JsModel->Kernel);
-                JsModel->Model = TSvm::TLinModel();
-                JsModel->Model.SetParam(type, kernel, JsModel->SvmCost, JsModel->SvmUnbalance, JsModel->SvmGamma, JsModel->SvmDegree, JsModel->SvmCoef0,
-                  JsModel->SvmCacheSize, JsModel->SvmEps, JsModel->SvmP, JsModel->SvmNu);
-                JsModel->Model.LibSvmSolveRegression(VecV, ClsV, TQm::TEnv::Debug, TQm::TEnv::Error);
+                JsModel->Model = TSvm::TLinModel(type, JsModel->Kernel, JsModel->SvmDegree, JsModel->SvmGamma, JsModel->SvmCoef0);
+                JsModel->Model.LibSvmFit(VecV, ClsV, JsModel->SvmCost, JsModel->SvmUnbalance, JsModel->SvmNu, JsModel->SvmEps, JsModel->SvmCacheSize, JsModel->SvmP, TQm::TEnv::Debug, TQm::TEnv::Error);
             }
             else {
                 throw TExcept::New("SVR.fit: unknown algorithm " + JsModel->Algorithm);
@@ -659,17 +645,8 @@ void TNodeJsSVR::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                 else if (JsModel->SvmType == "NU_SVR") type = NU_SVR;
                 else if (JsModel->SvmType == "ONE_CLASS") type = ONE_CLASS;
                 else throw TExcept::New("SVR.fit: unknown svm type " + JsModel->SvmType + " for classification");
-                int kernel;
-                if (JsModel->Kernel == "LINEAR") kernel = LINEAR;
-                else if (JsModel->Kernel == "RBF") kernel = RBF;
-                else if (JsModel->Kernel == "POLY") kernel = POLY;
-                else if (JsModel->Kernel == "SIGMOID") kernel = SIGMOID;
-                else if (JsModel->Kernel == "PRECOMPUTED") kernel = PRECOMPUTED;
-                else throw TExcept::New("SVR.fit: unknown kernel " + JsModel->Kernel);
-                JsModel->Model = TSvm::TLinModel();
-                JsModel->Model.SetParam(type, kernel, JsModel->SvmCost, JsModel->SvmUnbalance, JsModel->SvmGamma, JsModel->SvmDegree, JsModel->SvmCoef0,
-                  JsModel->SvmCacheSize, JsModel->SvmEps, JsModel->SvmP, JsModel->SvmNu);
-                JsModel->Model.LibSvmSolveRegression(VecV, ClsV, TQm::TEnv::Debug, TQm::TEnv::Error);
+                JsModel->Model = TSvm::TLinModel(type, JsModel->Kernel, JsModel->SvmDegree, JsModel->SvmGamma, JsModel->SvmCoef0);
+                JsModel->Model.LibSvmFit(VecV, ClsV, JsModel->SvmCost, JsModel->SvmUnbalance, JsModel->SvmNu, JsModel->SvmEps, JsModel->SvmCacheSize, JsModel->SvmP, TQm::TEnv::Debug, TQm::TEnv::Error);
             }
             else {
                 throw TExcept::New("SVR.fit: unknown algorithm " + JsModel->Algorithm);

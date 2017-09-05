@@ -23,7 +23,7 @@ describe("LIBSVM SVR test", function () {
             assert.equal(SVRjSon.svmType, "default");
             assert.equal(SVRjSon.c, 1);
             assert.equal(SVRjSon.j, 1);
-            assert.equal(SVRjSon.eps, 0.1);
+            assert.equal(SVRjSon.eps, 0.001);
             assert.equal(SVRjSon.gamma, 1);
             assert.equal(SVRjSon.p, 0.1);
             assert.equal(SVRjSon.degree, 1);
@@ -64,7 +64,7 @@ describe("LIBSVM SVR test", function () {
             assert.equal(SVRjSon.svmType, "default");
             assert.equal(SVRjSon.c, 5);
             assert.equal(SVRjSon.j, 1);
-            assert.equal(SVRjSon.eps, 0.1);
+            assert.equal(SVRjSon.eps, 0.001);
             assert.equal(SVRjSon.gamma, 1);
             assert.equal(SVRjSon.p, 0.1);
             assert.equal(SVRjSon.degree, 1);
@@ -85,7 +85,7 @@ describe("LIBSVM SVR test", function () {
             assert.equal(SVRjSon.svmType, "default");
             assert.equal(SVRjSon.c, 1);
             assert.equal(SVRjSon.j, 1);
-            assert.equal(SVRjSon.eps, 0.1);
+            assert.equal(SVRjSon.eps, 0.001);
             assert.equal(SVRjSon.gamma, 1);
             assert.equal(SVRjSon.p, 0.1);
             assert.equal(SVRjSon.degree, 1);
@@ -106,7 +106,7 @@ describe("LIBSVM SVR test", function () {
             assert.equal(SVRjSon.svmType, "default");
             assert.equal(SVRjSon.c, 1);
             assert.equal(SVRjSon.j, 1);
-            assert.equal(SVRjSon.eps, 0.1);
+            assert.equal(SVRjSon.eps, 0.001);
             assert.equal(SVRjSon.gamma, 1);
             assert.equal(SVRjSon.p, 0.1);
             assert.equal(SVRjSon.degree, 1);
@@ -129,7 +129,7 @@ describe("LIBSVM SVR test", function () {
             assert.equal(SVRjSon.svmType, "default");
             assert.equal(SVRjSon.c, 1);
             assert.equal(SVRjSon.j, 1);
-            assert.equal(SVRjSon.eps, 0.1);
+            assert.equal(SVRjSon.eps, 0.001);
             assert.equal(SVRjSon.gamma, 1);
             assert.equal(SVRjSon.p, 0.1);
             assert.equal(SVRjSon.degree, 1);
@@ -171,7 +171,7 @@ describe("LIBSVM SVR test", function () {
             assert.equal(SVRjSon.svmType, "default");
             assert.equal(SVRjSon.c, 1);
             assert.equal(SVRjSon.j, 1);
-            assert.equal(SVRjSon.eps, 0.1);
+            assert.equal(SVRjSon.eps, 0.001);
             assert.equal(SVRjSon.gamma, 1);
             assert.equal(SVRjSon.p, 0.1);
             assert.equal(SVRjSon.degree, 1);
@@ -306,6 +306,7 @@ describe("LIBSVM SVR test", function () {
             SVR.fit(matrix, vector);
 
             var model = SVR.getModel();
+            model.weights.print();
             assert.eqtol(model.weights[0], 0, 1e-2);
             assert.eqtol(model.weights[1], 0, 1e-2);
         })
@@ -317,6 +318,7 @@ describe("LIBSVM SVR test", function () {
             SVR.fit(matrix, vector);
 
             var model = SVR.getModel();
+            model.weights.print();
             assert.eqtol(model.weights[0], 0, 1e-1);
             assert.eqtol(model.weights[1], 0, 1e-1);
         })

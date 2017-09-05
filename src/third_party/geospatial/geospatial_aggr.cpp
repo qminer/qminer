@@ -29,13 +29,13 @@ TGPSMeasurement::TGPSMeasurement(const PJsonVal& Rec) {
         LatLon = TPoint(Lat, Lon);
         Accuracy = Rec->GetObjKey("accuracy")->GetNum();
         Distance = Rec->GetObjKey("distanceDiff")->GetNum();
-		Speed = Rec->GetObjKey("speed")->GetNum();
+        Speed = Rec->GetObjKey("speed")->GetNum();
         TimeDiff = Rec->GetObjKey("timeDiff")->GetInt64();
         if (Rec->IsObjKey("activities")) {
-                Rec->GetObjKey("activities")->GetArrIntV(SensorActivities);
-		}//if it has activities
+            Rec->GetObjKey("activities")->GetArrIntV(SensorActivities);
+        }//if it has activities
         if (Rec->IsObjKey("accelerometer")) {
-                Accelerometer = Rec->GetObjKey("accelerometer")->GetStr();
+            Accelerometer = Rec->GetObjKey("accelerometer")->GetStr();
         }//if it has accelerometer
 
         int SensLen = SensorActivities.Len();
@@ -66,7 +66,7 @@ PJsonVal TGPSMeasurement::ToJson() const {
     Json->AddToObj("speed", Speed);
     Json->AddToObj("distanceDiff", Distance);
     Json->AddToObj("timeDiff", (int64)TimeDiff);
-	Json->AddToObj("accelerometer", Accelerometer);
+    Json->AddToObj("accelerometer", Accelerometer);
 
     PJsonVal JsonSensActivities = TJsonVal::NewArr();
     //TODO: This is temporal until we have special aggregate - 17 is due to
@@ -167,8 +167,8 @@ void TGeoCluster::AddPoint(const int& Idx,
     Depart = CurrentGPS.Time;
     MEndIdx = Idx;
     int Len = this->Len();
-	//distance
-	Distance = Distance + CurrentGPS.Distance;
+    //distance
+    Distance = Distance + CurrentGPS.Distance;
     // incremental averaging (m_n = m_n-1 + ((a_n-m_n-1)/n)
     // m_n = avg value we want to calculate
     // m_n-1 = previous avg value
@@ -179,20 +179,20 @@ void TGeoCluster::AddPoint(const int& Idx,
     CenterPoint.Lon = CenterPoint.Lon +
         ((CurrentGPS.LatLon.Lon - CenterPoint.Lon) / Len);
     AvgSpeed = AvgSpeed +
-		((CurrentGPS.Distance + 1) * (CurrentGPS.Speed - AvgSpeed) / (Distance + Len));
+    ((CurrentGPS.Distance + 1) * (CurrentGPS.Speed - AvgSpeed) / (Distance + Len));
     AvgAccuracy = AvgAccuracy +
         ((CurrentGPS.Accuracy - AvgAccuracy) / Len);
     
     //avg sensor act
-	// incremental average on weighted average -- weights are distances!
-	// using Laplace smoothing to avoid division by 0 --- adding 1 and Len to distances
-	for (int iSensorAct = 0; iSensorAct < TGPSMeasurement::NumOfSensorActs;
-		iSensorAct++)
-	{
-		AvgSensorActs[iSensorAct] = AvgSensorActs[iSensorAct] +	
-			((CurrentGPS.Distance + 1) * (CurrentGPS.SensorActivities[iSensorAct] - 
-			AvgSensorActs[iSensorAct]) / (Distance + Len));
-	}
+    // incremental average on weighted average -- weights are distances!
+    // using Laplace smoothing to avoid division by 0 --- adding 1 and Len to distances
+    for (int iSensorAct = 0; iSensorAct < TGPSMeasurement::NumOfSensorActs;
+        iSensorAct++)
+    {
+        AvgSensorActs[iSensorAct] = AvgSensorActs[iSensorAct] +	
+          ((CurrentGPS.Distance + 1) * (CurrentGPS.SensorActivities[iSensorAct] - 
+          AvgSensorActs[iSensorAct]) / (Distance + Len));
+    }
 }//TGeoCluster::addPoint
 
 /// returns duration in seconds
@@ -327,7 +327,7 @@ void TStayPointDetector::OnAddRec(const TRec& Rec,
     }
     TGPSMeasurement* NewRec = PrepareGPSRecord(Rec);
     if (NewRec == NULL) {//rejected record
-		printf("REJECTED RECORD\n");
+    printf("REJECTED RECORD\n");
         return;
     }
     TInt CurrStateIdx = StateGpsMeasurementsV.Len() - 1;
@@ -509,19 +509,19 @@ bool TStayPointDetector::ParseGPSRec(const TRec& Rec, TGPSMeasurement& Gps) {
         Gps.Accuracy = Rec.GetFieldByte(AccuracyFieldId);
     }
     Gps.Speed = -1.0;
-	if (!Rec.IsFieldNull(SpeedFieldId)) {
+    if (!Rec.IsFieldNull(SpeedFieldId)) {
         Gps.Speed = Rec.GetFieldFlt(SpeedFieldId);
-	}
+    }
 
     Gps.Distance = -1.0;
     if (!Rec.IsFieldNull(DistanceFieldId)) {
         Gps.Distance = Rec.GetFieldFlt(DistanceFieldId);
     }
 
-	Gps.Accelerometer = "";
-	if (!Rec.IsFieldNull(AccelerometerFieldId)) {
-		Gps.Accelerometer = Rec.GetFieldStr(AccelerometerFieldId);
-	}
+    Gps.Accelerometer = "";
+    if (!Rec.IsFieldNull(AccelerometerFieldId)) {
+        Gps.Accelerometer = Rec.GetFieldStr(AccelerometerFieldId);
+    }
 
     if (!Rec.IsFieldNull(ActivitiesField)) {
         //TODO: This sensorActivities will go into a separate Aggregate
@@ -554,7 +554,7 @@ bool TStayPointDetector::ParseGPSRec(const TRec& Rec, TGPSMeasurement& Gps) {
         }
     }
     else {
-		if (Gps.Speed == -1.0) { Gps.Speed = 0; }
+        if (Gps.Speed == -1.0) { Gps.Speed = 0; }
         if (Gps.Distance == -1.0) { Gps.Distance = 0; }
     }
     return true;

@@ -23,7 +23,7 @@ describe("LIBSVM SVC test", function () {
             assert.equal(SVCjSon.svmType, "default");
             assert.equal(SVCjSon.c, 1);
             assert.equal(SVCjSon.j, 1);
-            assert.equal(SVCjSon.eps, 0.1);
+            assert.equal(SVCjSon.eps, 0.001);
             assert.equal(SVCjSon.gamma, 1);
             assert.equal(SVCjSon.p, 0.1);
             assert.equal(SVCjSon.degree, 1);
@@ -65,7 +65,7 @@ describe("LIBSVM SVC test", function () {
             assert.equal(SVCjSon.svmType, "default");
             assert.equal(SVCjSon.c, 5);
             assert.equal(SVCjSon.j, 1);
-            assert.equal(SVCjSon.eps, 0.1);
+            assert.equal(SVCjSon.eps, 0.001);
             assert.equal(SVCjSon.gamma, 1);
             assert.equal(SVCjSon.p, 0.1);
             assert.equal(SVCjSon.degree, 1);
@@ -87,7 +87,7 @@ describe("LIBSVM SVC test", function () {
             assert.equal(SVCjSon.svmType, "default");
             assert.equal(SVCjSon.c, 1);
             assert.equal(SVCjSon.j, 1);
-            assert.equal(SVCjSon.eps, 0.1);
+            assert.equal(SVCjSon.eps, 0.001);
             assert.equal(SVCjSon.gamma, 1);
             assert.equal(SVCjSon.p, 0.1);
             assert.equal(SVCjSon.degree, 1);
@@ -109,7 +109,7 @@ describe("LIBSVM SVC test", function () {
             assert.equal(SVCjSon.svmType, "default");
             assert.equal(SVCjSon.c, 1);
             assert.equal(SVCjSon.j, 1);
-            assert.equal(SVCjSon.eps, 0.1);
+            assert.equal(SVCjSon.eps, 0.001);
             assert.equal(SVCjSon.gamma, 1);
             assert.equal(SVCjSon.p, 0.1);
             assert.equal(SVCjSon.degree, 1);
@@ -133,7 +133,7 @@ describe("LIBSVM SVC test", function () {
             assert.equal(SVCjSon.svmType, "default");
             assert.equal(SVCjSon.c, 1);
             assert.equal(SVCjSon.j, 1);
-            assert.equal(SVCjSon.eps, 0.1);
+            assert.equal(SVCjSon.eps, 0.001);
             assert.equal(SVCjSon.gamma, 1);
             assert.equal(SVCjSon.p, 0.1);
             assert.equal(SVCjSon.degree, 1);
@@ -155,7 +155,7 @@ describe("LIBSVM SVC test", function () {
             assert.equal(SVCjSon.svmType, "default");
             assert.equal(SVCjSon.c, 3);
             assert.equal(SVCjSon.j, 2);
-            assert.equal(SVCjSon.eps, 0.1);
+            assert.equal(SVCjSon.eps, 0.001);
             assert.equal(SVCjSon.gamma, 1);
             assert.equal(SVCjSon.p, 0.1);
             assert.equal(SVCjSon.degree, 1);
@@ -177,7 +177,7 @@ describe("LIBSVM SVC test", function () {
             assert.equal(SVCjSon.svmType, "default");
             assert.equal(SVCjSon.c, 1);
             assert.equal(SVCjSon.j, 1);
-            assert.equal(SVCjSon.eps, 0.1);
+            assert.equal(SVCjSon.eps, 0.001);
             assert.equal(SVCjSon.gamma, 1);
             assert.equal(SVCjSon.p, 0.1);
             assert.equal(SVCjSon.degree, 1);
@@ -202,7 +202,7 @@ describe("LIBSVM SVC test", function () {
             assert.equal(SVCjSon.svmType, "default");
             assert.equal(SVCjSon.c, 1);
             assert.equal(SVCjSon.j, 3);
-            assert.equal(SVCjSon.eps, 0.1);
+            assert.equal(SVCjSon.eps, 0.001);
             assert.equal(SVCjSon.gamma, 1);
             assert.equal(SVCjSon.p, 0.1);
             assert.equal(SVCjSon.degree, 1);
@@ -224,7 +224,7 @@ describe("LIBSVM SVC test", function () {
             assert.equal(SVCjSon.svmType, "default");
             assert.equal(SVCjSon.c, 1);
             assert.equal(SVCjSon.j, 3);
-            assert.equal(SVCjSon.eps, 0.1);
+            assert.equal(SVCjSon.eps, 0.001);
             assert.equal(SVCjSon.gamma, 1);
             assert.equal(SVCjSon.p, 0.1);
             assert.equal(SVCjSon.degree, 1);

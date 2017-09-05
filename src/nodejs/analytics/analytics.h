@@ -103,18 +103,18 @@ public:
     ~TNodeJsSvmModel() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 private:
     // parameters
-    TStr Algorithm;
-    TStr Kernel;
-    TStr SvmType; //LIBSVM specific
-    double SvmCost;    
-    double SvmUnbalance; // classification specific
-    double SvmEps; // regression specific
-    double SvmGamma; //for rbf/poly/sigmoid
-    double SvmP;//for epsilon svr
-    int SvmDegree;  //for poly
-    double SvmNu; //for nu_svc and nu_svr
-    double SvmCoef0; //for poly/sigmoid
-    double SvmCacheSize; //for LIBSVM, in MB
+    TStr Algorithm; /// SGD, LIBSVM, PR_LOQO
+    int Kernel; /// LIBSVM specific: LINEAR, POLY, RBF, SIGMOID, PRECOMPUTED
+    TStr SvmType; /// LIBSVM specific: C_SVC, NU_SVC, EPSILON_SVR, NU_SVR, ONE_CLASS
+    double SvmCost; /// parameter C of C-SVC, epsilon-SVR, and nu-SVR, SGD and PR_LOQO (default 1)
+    double SvmUnbalance; /// parameter J of SGD and PR_LOQO, in LIBSVM this is used for weight calculation (default 1)
+    double SvmEps; /// LIBSVM specific: set tolerance of termination criterion (default 0.001)
+    double SvmGamma; /// LIBSVM specific: set gamma in kernel function (default 1.0)
+    double SvmP; /// LIBSVM specific: set the epsilon in loss function of epsilon-SVR (default 0.1)
+    int SvmDegree;  /// LIBSVM specific: set degree in kernel function (default 1)
+    double SvmNu; /// LIBSVM specific: set the parameter nu of nu-SVC, one-class SVM, and nu-SVR (default 0.01)
+    double SvmCoef0; /// LIBSVM specific: set coef0 in kernel function (default 1.0)
+    double SvmCacheSize; /// LIBSVM specific: set cache memory size in MB (default 100)
     int SampleSize;
     int MxIter;
     int MxTime;
