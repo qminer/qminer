@@ -12,11 +12,10 @@ var qm = require('qminer');
 var fs = qm.fs;
 
 describe('Partial-flush tests', function () {
-	// TODO: test skipped because it is too slow
-    it.skip('should perform a simple load-store-close-open test', function (done) {
+    it('should perform a simple load-store-close-open test', function (done) {
         this.timeout(300 * 1000);
 
-        var rec_cnt = 100 * 1000;
+        var rec_cnt = 10 * 1000;
         var tab1_name = "Store1";
         var tab2_name = "Store2";
 
@@ -77,7 +76,7 @@ describe('Partial-flush tests', function () {
                 Age: (i * 17 + 13) % 97,
                 Director: [director]
             });
-            if (i % 10000 == 0) {
+            if (i % 1000 == 0) {
                 //console.log("partial flush ", i);
                 base.partialFlush(100);
                 //console.log(".");
@@ -105,7 +104,7 @@ describe('Partial-flush tests', function () {
                 Age: (i * 17 + 13) % 97,
                 Director: [director2]
             });
-            if (i % 10000 == 0) {
+            if (i % 1000 == 0) {
                 //console.log("partial flush ", i);
                 base2.partialFlush(100);
                 //console.log(".");
@@ -114,11 +113,10 @@ describe('Partial-flush tests', function () {
         base2.close();
         done();
     });
-    // TODO: test skipped because it is too slow
-    it.skip('should reproduce error from production 26.02.2016', function (done) { 
+    it('should reproduce error from production 26.02.2016', function (done) { 
         this.timeout(300 * 1000);
 
-        var rec_cnt = 100 * 1000;
+        var rec_cnt = 10 * 1000;
         var tab1_name = "ProcessRegister";
         var tab2_name = "Logs";
 
@@ -181,7 +179,7 @@ describe('Partial-flush tests', function () {
             };
             //console.log(rec)
             base.store(tab2_name).push(rec);
-            if (i % 10000 == 0) {
+            if (i % 1000 == 0) {
                 //console.log("partial flush ", i);
                 base.partialFlush(100);
                 //console.log(".");
@@ -222,7 +220,7 @@ describe('Partial-flush tests', function () {
                 process: { name: "process" + (i % 5)}
             };
             base2.store(tab2_name).push(rec2);
-            if (i % 10000 == 0) {
+            if (i % 1000 == 0) {
                 //console.log("partial flush ", i);
                 base2.partialFlush(100);
                 //console.log(".");
