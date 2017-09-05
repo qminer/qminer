@@ -4101,7 +4101,7 @@ void TNodeJsTDigest::memory(v8::Local<v8::String> Name, const v8::PropertyCallba
 
     const TNodeJsTDigest* JsModel = ObjectWrap::Unwrap<TNodeJsTDigest>(Info.Holder());
 
-    Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsModel->Model.GetMemUsed()));
+    Info.GetReturnValue().Set(v8::Integer::New(Isolate, (int)JsModel->Model.GetMemUsed()));
 }
 
 ///////////////////////////////////////////////////////
@@ -4257,7 +4257,7 @@ void TNodeJsGk::memory(v8::Local<v8::String> Name, const v8::PropertyCallbackInf
 
     const TNodeJsGk* JsModel = ObjectWrap::Unwrap<TNodeJsGk>(Info.Holder());
 
-    Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsModel->Gk.GetMemUsed()));
+    Info.GetReturnValue().Set(v8::Integer::New(Isolate, (int)JsModel->Gk.GetMemUsed()));
 }
 
 ////////////////////////////////////////////
@@ -4432,7 +4432,7 @@ void TNodeJsBiasedGk::memory(v8::Local<v8::String> Name, const v8::PropertyCallb
 
     const TNodeJsBiasedGk* JsModel = ObjectWrap::Unwrap<TNodeJsBiasedGk>(Info.Holder());
 
-    Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsModel->Gk.GetMemUsed()));
+    Info.GetReturnValue().Set(v8::Integer::New(Isolate, (int)JsModel->Gk.GetMemUsed()));
 }
 
 TQuant::TBiasedGk::TCompressStrategy TNodeJsBiasedGk::ExtractCompressStrategy(const PJsonVal& ParamVal) {
