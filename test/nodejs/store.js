@@ -770,8 +770,6 @@ describe("Two Store Tests", function () {
 // Many Stores
 
 describe('Many Stores Test', function () {
-    this.timeout(30000);
-
     var base = undefined;
     beforeEach(function () {
         base = new qm.Base({ mode: 'createClean' });

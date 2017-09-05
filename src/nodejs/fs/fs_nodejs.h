@@ -182,7 +182,7 @@ public:
     * // close the stream
     * fout.close();
     * // copy the file
-    * var destination = fs.copy('text.txt', 'copy.txt');
+    * // var destination = fs.copy('text.txt', 'copy.txt');
 	*/
 	//# exports.copy = function(source, dest) { return ""; }	
     JsDeclareFunction(copy);
@@ -199,7 +199,7 @@ public:
     * // close the stream
     * fout.close();
     * // move the file
-    * var destination = fs.move('text.txt', 'move.txt');
+    * // var destination = fs.move('text.txt', 'move.txt');
 	*/
 	//# exports.move = function(source, dest) { return ""; }
 	JsDeclareFunction(move);

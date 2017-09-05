@@ -14,8 +14,6 @@ var qm = require('qminer');
 //describe('Movies test, old', function () {
 //	it('should survive', function () {
 describe('Movies Tests', function () {
-    this.timeout(5000);
-
     it('should pass', function () {
         qm.delLock();
         // add store.addTrigger method
