@@ -3057,7 +3057,7 @@ private:
     };
 
     /// Merger which sums up the frequencies of items.
-    /// Assumes TGixResItem is a TPair< , >.
+    /// Assumes TGixResItem is a TKeyDat< , >.
     template <class TQmGixItem, class TQmGixResItem>
     class TQmGixSumMerger : public TGixMerger<TQmGixKey, TQmGixItem, TQmGixResItem> {
     public:
