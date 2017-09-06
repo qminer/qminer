@@ -41,7 +41,7 @@ private:
         int k;
         int Iter;
         double Tol;
-        PNotify Notify;
+        TWPt<TNotify> Notify;
 
     public:
         TNMFTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
@@ -112,7 +112,7 @@ private:
     int MxTime;
     double MnDiff;
     bool Verbose;
-    PNotify Notify;
+    TWPt<TNotify> Notify;
 
     // model
     TSvm::TLinModel Model;
@@ -2026,7 +2026,7 @@ private:
         TNodeJsFltVV* JsFltVV;
         TNodeJsSpMat* JsSpVV;
         TNodeJsFltVV* JsResult;
-        PNotify Notify;
+        TWPt<TNotify> Notify;
 
     public:
         TFitTransformTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
@@ -2201,7 +2201,7 @@ private:
     void* Model;
 
     bool Verbose;
-    PNotify Notify;
+    TWPt<TNotify> Notify;
 
     TNodeJsKMeans(const PJsonVal& ParamVal);
     TNodeJsKMeans(const PJsonVal& ParamVal, const TFltVV& Mat);
@@ -2536,7 +2536,7 @@ private:
     void* DpMeansModel;
 
     bool Verbose;
-    PNotify Notify;
+    TWPt<TNotify> Notify;
 
     TNodeJsDpMeans(const PJsonVal& ParamVal);
     TNodeJsDpMeans(const PJsonVal& ParamVal, const TFltVV& Mat);
@@ -3737,7 +3737,7 @@ private:
     int K;
     double Tol;
     bool Verbose;
-    PNotify Notify;
+    TWPt<TNotify> Notify;
 
     TFltVV U;
     TFltVV V;

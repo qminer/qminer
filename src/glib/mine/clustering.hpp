@@ -193,7 +193,7 @@ namespace TClustering {
     template <class TCentroidType>
     template <class TDataType>
     void TAbsKMeans<TCentroidType>::Apply(const TDataType& FtrVV, const bool& AllowEmptyP,
-            const int& MxIter, const PNotify& Notify) {
+            const int& MxIter, const TWPt<TNotify>& Notify) {
         TFltVV EmptyCentroidVV;
         Apply(FtrVV, EmptyCentroidVV, AllowEmptyP, MxIter, Notify);
     }
@@ -201,7 +201,7 @@ namespace TClustering {
     template <class TCentroidType>
     template <class TDataType, class TInitCentroidType>
     void TAbsKMeans<TCentroidType>::Apply(const TDataType& FtrVV, const TInitCentroidType& InitCentVV,
-            const bool& AllowEmptyP, const int& MxIter, const PNotify& Notify) {
+            const bool& AllowEmptyP, const int& MxIter, const TWPt<TNotify>& Notify) {
         // compute the clusters
         VirtApply(FtrVV, InitCentVV, AllowEmptyP, MxIter, Notify);
         // calculate quality measures (if necessary)
@@ -545,7 +545,7 @@ namespace TClustering {
 
     template <class TCentroidType>
     void TDnsKMeans<TCentroidType>::VirtApply(const TFltVV& FtrVV, const TFltVV& InitCentVV,
-            const bool& AllowEmptyP, const int& MaxIter, const PNotify& Notify) {
+            const bool& AllowEmptyP, const int& MaxIter, const TWPt<TNotify>& Notify) {
         const int Dim = TBase::GetDataDim(FtrVV);
         EAssertR(Dim > 0, "The input matrix doesn't have any features!");
         VirtApply(FtrVV, InitCentVV, TBase::GetDataCount(FtrVV), Dim, AllowEmptyP, MaxIter, Notify);
@@ -553,7 +553,7 @@ namespace TClustering {
 
     template <class TCentroidType>
     void TDnsKMeans<TCentroidType>::VirtApply(const TFltVV& FtrVV, const TVec<TIntFltKdV>& InitCentVV,
-            const bool& AllowEmptyP, const int& MaxIter, const PNotify& Notify) {
+            const bool& AllowEmptyP, const int& MaxIter, const TWPt<TNotify>& Notify) {
         const int Dim = TBase::GetDataDim(FtrVV);
         EAssertR(Dim > 0, "The input matrix doesn't have any features!");
         VirtApply(FtrVV, InitCentVV, TBase::GetDataCount(FtrVV), Dim, AllowEmptyP, MaxIter, Notify);
@@ -561,7 +561,7 @@ namespace TClustering {
 
     template <class TCentroidType>
     void TDnsKMeans<TCentroidType>::VirtApply(const TVec<TIntFltKdV>& FtrVV, const TFltVV& InitCentVV,
-            const bool& AllowEmptyP, const int& MaxIter, const PNotify& Notify) {
+            const bool& AllowEmptyP, const int& MaxIter, const TWPt<TNotify>& Notify) {
         const int Dim = TBase::GetDataDim(FtrVV);
         EAssertR(Dim > 0, "The input matrix doesn't have any features!");
         VirtApply(FtrVV, InitCentVV, TBase::GetDataCount(FtrVV), Dim, AllowEmptyP, MaxIter, Notify);
@@ -569,7 +569,7 @@ namespace TClustering {
 
     template <class TCentroidType>
     void TDnsKMeans<TCentroidType>::VirtApply(const TVec<TIntFltKdV>& FtrVV, const TVec<TIntFltKdV>& InitCentVV,
-            const bool& AllowEmptyP, const int& MaxIter, const PNotify& Notify) {
+            const bool& AllowEmptyP, const int& MaxIter, const TWPt<TNotify>& Notify) {
         const int Dim = TBase::GetDataDim(FtrVV);
         EAssertR(Dim > 0, "The input matrix doesn't have any features!");
         VirtApply(FtrVV, InitCentVV, TBase::GetDataCount(FtrVV), Dim, AllowEmptyP, MaxIter, Notify);
@@ -580,7 +580,7 @@ namespace TClustering {
     void TDnsKMeans<TCentroidType>::VirtApply(const TDataType& FtrVV,
             const TInitCentroidType& InitCentroidVV,
             const int& NInst, const int& Dim, const bool& AllowEmptyP, const int& MaxIter,
-            const PNotify& Notify) {
+            const TWPt<TNotify>& Notify) {
         EAssertR(K <= NInst, "Matrix should have more columns than K!");
 
         Notify->OnNotify(TNotifyType::ntInfo, "Executing KMeans ...");
@@ -686,7 +686,7 @@ namespace TClustering {
 
     template <class TCentroidType>
     void TDpMeans<TCentroidType>::VirtApply(const TFltVV& FtrVV, const TFltVV& InitCentVV,
-            const bool& AllowEmptyP, const int& MaxIter, const PNotify& Notify) {
+            const bool& AllowEmptyP, const int& MaxIter, const TWPt<TNotify>& Notify) {
         const int Dim = TBase::GetDataDim(FtrVV);
         EAssertR(Dim > 0, "The input matrix doesn't have any features!");
         VirtApply(FtrVV, InitCentVV, TBase::GetDataCount(FtrVV), Dim, AllowEmptyP, MaxIter, Notify);
@@ -694,7 +694,7 @@ namespace TClustering {
 
     template <class TCentroidType>
     void TDpMeans<TCentroidType>::VirtApply(const TFltVV& FtrVV, const TVec<TIntFltKdV>& InitCentVV,
-            const bool& AllowEmptyP, const int& MaxIter, const PNotify& Notify) {
+            const bool& AllowEmptyP, const int& MaxIter, const TWPt<TNotify>& Notify) {
         const int Dim = TBase::GetDataDim(FtrVV);
         EAssertR(Dim > 0, "The input matrix doesn't have any features!");
         VirtApply(FtrVV, InitCentVV, TBase::GetDataCount(FtrVV), Dim, AllowEmptyP, MaxIter, Notify);
@@ -702,7 +702,7 @@ namespace TClustering {
 
     template <class TCentroidType>
     void TDpMeans<TCentroidType>::VirtApply(const TVec<TIntFltKdV>& FtrVV, const TFltVV& InitCentVV,
-            const bool& AllowEmptyP, const int& MaxIter, const PNotify& Notify) {
+            const bool& AllowEmptyP, const int& MaxIter, const TWPt<TNotify>& Notify) {
         const int Dim = TBase::GetDataDim(FtrVV);
         EAssertR(Dim > 0, "The input matrix doesn't have any features!");
         VirtApply(FtrVV, InitCentVV, TBase::GetDataCount(FtrVV), Dim, AllowEmptyP, MaxIter, Notify);
@@ -710,7 +710,7 @@ namespace TClustering {
 
     template <class TCentroidType>
     void TDpMeans<TCentroidType>::VirtApply(const TVec<TIntFltKdV>& FtrVV, const TVec<TIntFltKdV>& InitCentVV,
-            const bool& AllowEmptyP, const int& MaxIter, const PNotify& Notify) {
+            const bool& AllowEmptyP, const int& MaxIter, const TWPt<TNotify>& Notify) {
         const int Dim = TBase::GetDataDim(FtrVV);
         EAssertR(Dim > 0, "The input matrix doesn't have any features!");
         VirtApply(FtrVV, InitCentVV, TBase::GetDataCount(FtrVV), Dim, AllowEmptyP, MaxIter, Notify);
@@ -720,7 +720,7 @@ namespace TClustering {
     template<class TDataType, class TInitCentVV>
     void TDpMeans<TCentroidType>::VirtApply(const TDataType& FtrVV, const TInitCentVV& InitCentVV,
             const int& NInst, const int& Dim, const bool& AllowEmptyP, const int& MaxIter,
-            const PNotify& Notify) {
+            const TWPt<TNotify>& Notify) {
         EAssertR(MnClusts <= NInst, "Matrix should have more rows then the min number of clusters!");
         EAssertR(MnClusts <= MxClusts, "Minimum number of cluster should be less than the maximum.");
         EAssertR(InitCentVV.Empty() || TBase::GetDataCount(InitCentVV) >= MnClusts, "Invalid number of initial clusters when compred to the minimum number!");
