@@ -3039,23 +3039,12 @@ private:
     /// We are indexing by (KeyId, WordId) pairs
     typedef TKeyWord TQmGixKey;
 
-    /// Merger which sums up the frequencies of items
+    /// ItemHandler which sums up the frequencies of items
     template <class TQmGixItem>
-    class TQmGixSumMerger : public TGixMerger<TQmGixKey, TQmGixItem> {
+    class TQmGixSumItemHandler : public TGixItemHandler<TQmGixKey, TQmGixItem> {
     public:
-        /// Union sums up frequencies of overlapping items
-        void Union(TVec<TQmGixItem>& MainV, const TVec<TQmGixItem>& JoinV) const;
-        /// Intersection sums up frequencies of overlapping items
-        void Intrs(TVec<TQmGixItem>& MainV, const TVec<TQmGixItem>& JoinV) const;
-        /// Minus does not deal with frequencies
-        void Minus(const TVec<TQmGixItem>& MainV, const TVec<TQmGixItem>& JoinV, TVec<TQmGixItem>& ResV) const;
-
-        /// No initialization necessary
-        void Def(const TQmGixKey& Key, TVec<TQmGixItem>& MainV) const { }
-
         /// Merge given items when they have same record ID. Frequency is sumed together
         void Merge(TVec<TQmGixItem>& ItemV, const bool& IsLocal) const;
-
         /// Remove given item from the list
         void Delete(const TQmGixItem& Item, TVec<TQmGixItem>& MainV) const { return MainV.DelAll(Item); }
         /// < comparator between items
@@ -3064,23 +3053,58 @@ private:
         bool IsLtE(const TQmGixItem& Item1, const TQmGixItem& Item2) const { return Item1 <= Item2; }
 
         /// Memory footprint
-        uint64 GetMemUsed() const { return sizeof(TQmGixSumMerger<TQmGixItem>); }
+        uint64 GetMemUsed() const { return sizeof(TQmGixSumItemHandler<TQmGixItem>); }
+    };
+
+    /// Merger which sums up the frequencies of items.
+    /// Assumes TGixResItem is a TPair< , >.
+    template <class TQmGixItem, class TQmGixResItem>
+    class TQmGixSumMerger : public TGixMerger<TQmGixKey, TQmGixItem, TQmGixResItem> {
+    public:
+        /// Union sums up frequencies of overlapping items
+        void Union(TVec<TQmGixResItem>& MainV, const TVec<TQmGixResItem>& JoinV) const;
+        /// Intersection sums up frequencies of overlapping items
+        void Intrs(TVec<TQmGixResItem>& MainV, const TVec<TQmGixResItem>& JoinV) const;
+        /// Minus does not deal with frequencies
+        void Minus(const TVec<TQmGixResItem>& MainV, const TVec<TQmGixResItem>& JoinV, TVec<TQmGixResItem>& ResV) const;
+    };
+
+    /// Specialization for case when TQmGixItem == TQmGixResItem.
+    template <class TQmGixItem>
+    class TQmGixSumWithFqMerger : public TQmGixSumMerger<TQmGixItem, TQmGixItem> {
+    public:
+        /// Move MainV to ResV since no changes needed
+        void Def(const TQmGixKey& Key, TVec<TQmGixItem>& MainV, TVec<TQmGixItem>& ResV) const;
+
+        /// Memory footprint
+        uint64 GetMemUsed() const { return sizeof(TQmGixSumWithFqMerger<TQmGixItem>); }
+    };
+
+    /// Specialization for case when index has implied frequency of 1 (e.g. tiny)
+    template <class TQmGixItem, class TQmGixResItem>
+    class TQmGixSumWithoutFqMerger : public TQmGixSumMerger<TQmGixItem, TQmGixResItem> {
+    public:
+        /// Copy MainV to ResV and init frequency to 1
+        void Def(const TQmGixKey& Key, TVec<TQmGixItem>& MainV, TVec<TQmGixResItem>& ResV) const;
+
+        /// Memory footprint
+        uint64 GetMemUsed() const { return sizeof(TQmGixSumWithoutFqMerger<TQmGixItem, TQmGixResItem>); }
     };
 
     /// Normal version of inverted index contains full record ID and frequency count values
     typedef TKeyDat<TUInt64, TInt> TQmGixItemFull; // [RecId, Freq]
     /// Expression for executing gix queries for full records
-    typedef TGixExpItem<TQmGixKey, TQmGixItemFull> TQmGixExpItemFull;
+    typedef TGixExpItem<TQmGixKey, TQmGixItemFull, TQmGixItemFull> TQmGixExpItemFull;
 
     /// Small version of inverted index which works when we have less then 2^32 records
     typedef TKeyDat<TUInt, TSInt> TQmGixItemSmall; // [RecId, Freq]
     /// Expression for executing gix queries for small records
-    typedef TGixExpItem<TQmGixKey, TQmGixItemSmall > TQmGixExpItemSmall;
+    typedef TGixExpItem<TQmGixKey, TQmGixItemSmall, TQmGixItemSmall> TQmGixExpItemSmall;
 
     /// Tiny version of inverted index which works when we have less then 2^32 records
     typedef TUInt TQmGixItemTiny; // [RecId]
     /// Expression for executing gix queries for tiny records
-    typedef TGixExpItem<TQmGixKey, TQmGixItemTiny > TQmGixExpItemTiny;
+    typedef TGixExpItem<TQmGixKey, TQmGixItemTiny, TQmGixItemFull> TQmGixExpItemTiny;
 
     /// Giving pretty names to GIX keys when printing debug statistics
     class TQmGixKeyStr : public TGixKeyStr<TQmGixKey> {
@@ -3176,10 +3200,12 @@ private:
         uint64 GetMemUsed() const { return sizeof(TQmGixItemPos); }
     };
 
+    /// ItemHandler for combining position records
+    typedef TGixDefItemHandler<TQmGixKey, TQmGixItemPos> TQmGixItemHandlerPos;
     /// Merger for combining position records
-    typedef TGixDefMerger<TQmGixKey, TQmGixItemPos> TQmGixMergerPos;
+    typedef TGixDefMerger<TQmGixKey, TQmGixItemPos, TQmGixItemPos> TQmGixMergerPos;
     /// Expression for executing gix position queries
-    typedef TGixExpItem<TQmGixKey, TQmGixItemPos> TQmGixExpItemPos;
+    typedef TGixExpItem<TQmGixKey, TQmGixItemPos, TQmGixItemPos> TQmGixExpItemPos;
 
 private:
     // b-tree definitions
@@ -3233,14 +3259,24 @@ private:
 
     /// Index Vocabulary
     PIndexVoc IndexVoc;
+
+    /// Inverted Index Default ItemHandler Full
+    const TGixItemHandler<TQmGixKey, TQmGixItemFull>* SumItemHandlerFull;
+    /// Inverted Index Default ItemHandler Small
+    const TGixItemHandler<TQmGixKey, TQmGixItemSmall>* SumItemHandlerSmall;
+    /// Inverted Index Default ItemHandler Tiny
+    const TGixItemHandler<TQmGixKey, TQmGixItemTiny>* ItemHandlerTiny;
+    /// Inverted Index Default ItemHandler Position
+    const TGixItemHandler<TQmGixKey, TQmGixItemPos>* ItemHandlerPos;
+
     /// Inverted Index Default Merger Full
-    const TGixMerger<TQmGixKey, TQmGixItemFull>* SumMergerFull;
+    const TGixMerger<TQmGixKey, TQmGixItemFull, TQmGixItemFull>* SumMergerFull;
     /// Inverted Index Default Merger Small
-    const TGixMerger<TQmGixKey, TQmGixItemSmall>* SumMergerSmall;
+    const TGixMerger<TQmGixKey, TQmGixItemSmall, TQmGixItemSmall>* SumMergerSmall;
     /// Inverted Index Default Merger Tiny
-    const TGixMerger<TQmGixKey, TQmGixItemTiny>* MergerTiny;
+    const TGixMerger<TQmGixKey, TQmGixItemTiny, TQmGixItemFull>* MergerTiny;
     /// Inverted Index Default Merger Position
-    const TGixMerger<TQmGixKey, TQmGixItemPos>* MergerPos;
+    const TGixMerger<TQmGixKey, TQmGixItemPos, TQmGixItemPos>* MergerPos;
 
     /// Determines which Gix should be used for given KeyId
     TIndexKeyGixType GetGixType(const int& KeyId) const { return IndexVoc->GetKey(KeyId).GetGixType(); }
@@ -3281,7 +3317,7 @@ public:
     /// Get index vocabulary
     TWPt<TIndexVoc> GetIndexVoc() const { return IndexVoc; }
     /// Get sum merger of recID/FQ vectors
-    const TGixMerger<TQmGixKey, TQmGixItemFull>* GetSumMerger() const { return SumMergerFull; }
+    const TGixMerger<TQmGixKey, TQmGixItemFull, TQmGixItemFull>* GetSumMerger() const { return SumMergerFull; }
 
     /// Index RecId under (Key, Word). WordStr is sent through index vocabulary.
     void IndexValue(const int& KeyId, const TStr& WordStr, const uint64& RecId);
@@ -3816,12 +3852,12 @@ public:
     ~TBase();
 
     /// Create new base on the given folder
-    static TWPt<TBase> New(const TStr& FPath, const int64& IndexCacheSize, const TStrUInt64H& IndexTypeCacheSizeH, 
+    static TWPt<TBase> New(const TStr& FPath, const int64& IndexCacheSize, const TStrUInt64H& IndexTypeCacheSizeH,
         const int& SplitLen, const bool& StrictNmP) {
         return new TBase(FPath, IndexCacheSize, IndexTypeCacheSizeH, SplitLen, StrictNmP);
     }
     /// Open existing base from the given folder
-    static TWPt<TBase> Load(const TStr& FPath, const TFAccess& FAccess, const int64& IndexCacheSize, 
+    static TWPt<TBase> Load(const TStr& FPath, const TFAccess& FAccess, const int64& IndexCacheSize,
         const TStrUInt64H& IndexTypeCacheSizeH, const int& SplitLen) {
         return new TBase(FPath, FAccess, IndexCacheSize, IndexTypeCacheSizeH, SplitLen);
     }
