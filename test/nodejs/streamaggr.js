@@ -6673,8 +6673,7 @@ describe('Stream aggregate statistics', function () {
             assert.equal(stats.types[2].count, 3);
             assert.equal(stats.types[2].msecs, 0);
         });
-        // TODO: test skipped because it fails, needs fix
-        it.skip('should be less then observed from javascript', function () {
+        it('should be less then observed from javascript', function () {
             // create few stream aggregates
             var tick = store.addStreamAggr({
                 type: 'timeSeriesTick',
@@ -6699,10 +6698,9 @@ describe('Stream aggregate statistics', function () {
 
             // measure insert time
             var start = process.hrtime();
-            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
-            store.push({ Time: '2015-06-10T14:33:30.0', Value: 2 });
-            store.push({ Time: '2015-06-10T14:33:31.0', Value: 3 });
-            store.push({ Time: '2015-06-10T14:33:32.0', Value: 4 });
+            for (var i = 0; i < 10000; i++) {
+                store.push({ Time: i, Value: i });
+            }
             var diff = getMSecs(process.hrtime(start));
 
             // make sure we are below insert time
@@ -6839,6 +6837,55 @@ describe('HistogramAD Tests', function () {
             assert.equal(histAD.getInteger('severity'), 2); // last measurement (6) was anomalous with severity 2 (only index 5 has severity 0)
             assert.equal(histAD.getInteger('largestNormalIndex'), 6); // from now on, 6 is also normal
             assert.equal(histAD.getFloat('largestNormalValue'), 7); // from now on, 6 is also normal
+        });
+    });
+    describe('Save/load tests', function () {
+        it('Should save and load an empty model', function () {
+            var histAD = store.addStreamAggr({
+                type: 'histogramAD',
+                inAggr: tick.name,
+                inHistogram: hist.name,
+                bandwidth: 0.5,
+                thresholds: [0.9, 0.95, 0.99]
+            });
+            histAD.save(qm.fs.openWrite('histAD.bin')).close();
+            var histAD2 = store.addStreamAggr({
+                type: 'histogramAD',
+                inAggr: tick.name,
+                inHistogram: hist.name,
+                thresholds: [0.9, 0.95, 0.99]
+            });
+            histAD2.load(qm.fs.openRead('histAD.bin'));
+            assert.equal(histAD2.saveJson().bandwidth, 0.5);
+        });
+        it('Should save and load an initialized model', function () {
+            var thresholds = [0.5, 0.75];
+            var sigs = [0.01, 0.1, 1, 10, 100, 1000, 10000];
+
+            var histAD = store.addStreamAggr({
+                type: 'histogramAD',
+                inAggr: tick.name,
+                inHistogram: hist.name,
+                autoBandwidthsGrid: sigs,
+                autoThresholdsGrid: thresholds,
+                thresholds: [0.9, 0.95, 0.99]
+            });
+            var arr = [10, 50, 60, 80];
+            for (var i = 0; i < arr.length; i++) {
+                store.push({ Time: 0, Value: arr[i] });
+            }
+            histAD.save(qm.fs.openWrite('histAD.bin')).close();
+
+            var histAD2 = store.addStreamAggr({
+                type: 'histogramAD',
+                inAggr: tick.name,
+                inHistogram: hist.name,
+                autoBandwidthsGrid: sigs,
+                autoThresholdsGrid: thresholds,
+                thresholds: [0.9, 0.95, 0.99]
+            });
+            histAD2.load(qm.fs.openRead('histAD.bin'));
+            assert.equal(histAD2.saveJson().bandwidth, histAD.saveJson().bandwidth);
         });
     });
     describe('Smoothing tests', function () {
