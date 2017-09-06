@@ -439,7 +439,7 @@ void TBagOfWords::AddFtr(const TStrV& TokenStrV, TIntFltKdV& SpV) const {
         double TermVal = 1.0;
         if (IsTf()) { TermVal *= double(TermFqH[KeyId]); }
         if (IsIdf()) {
-	    if (DocFqV[TermId] == 0) { continue; }
+            if (DocFqV[TermId] == 0) { continue; }
             if (ForgetP) {
                 const double DocFq = double(DocFqV[TermId]) + OldDocFqV[TermId];
                 if (DocFq > 0.1) { TermVal *= log((double(Docs) + OldDocs) / DocFq); }
