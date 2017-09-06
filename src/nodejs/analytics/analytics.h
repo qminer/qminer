@@ -105,7 +105,7 @@ private:
     // parameters
     TStr Algorithm; /// SGD, LIBSVM, PR_LOQO
     int Kernel; /// LIBSVM specific: LINEAR, POLY, RBF, SIGMOID, PRECOMPUTED
-    TStr SvmType; /// LIBSVM specific: C_SVC, NU_SVC, EPSILON_SVR, NU_SVR, ONE_CLASS
+    int SvmType; /// LIBSVM specific: C_SVC, NU_SVC, EPSILON_SVR, NU_SVR, ONE_CLASS
     double SvmCost; /// parameter C of C-SVC, epsilon-SVR, and nu-SVR, SGD and PR_LOQO (default 1)
     double SvmUnbalance; /// parameter J of SGD and PR_LOQO, in LIBSVM this is used for weight calculation (default 1)
     double SvmEps; /// LIBSVM specific: set tolerance of termination criterion (default 0.001)
@@ -121,6 +121,9 @@ private:
     double MnDiff;
     bool Verbose;
     PNotify Notify;
+    
+    enum { LIBSVM_CSVC, LIBSVM_NUSVC, LIBSVM_ONECLASS, LIBSVM_EPSILONSVR, LIBSVM_NUSVR }; /// constants for SvmType, LIBSVM specific
+    enum { LIBSVM_LINEAR, LIBSVM_POLY, LIBSVM_RBF, LIBSVM_SIGMOID, LIBSVM_PRECOMPUTED, DEFAULT }; /// constants for Kernel, LIBSVM specific
 
     // model
     TSvm::TLinModel Model;

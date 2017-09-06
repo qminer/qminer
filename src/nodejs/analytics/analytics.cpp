@@ -134,7 +134,7 @@ v8::Local<v8::Value> TNodeJsAnalytics::TNMFTask::WrapResult() {
 TNodeJsSvmModel::TNodeJsSvmModel(const PJsonVal& ParamVal):
         Algorithm("SGD"),
         Kernel(LINEAR),
-        SvmType("default"), // for LIBSVM only - this handles classification and regression default construction
+        SvmType(DEFAULT), // for LIBSVM only - this handles classification and regression default construction
         SvmCost(1.0),
         SvmUnbalance(1.0),
         SvmEps(1e-3),
@@ -157,7 +157,7 @@ TNodeJsSvmModel::TNodeJsSvmModel(const PJsonVal& ParamVal):
 TNodeJsSvmModel::TNodeJsSvmModel(TSIn& SIn):
         Algorithm(SIn),
         Kernel(TInt(SIn)),
-        SvmType(SIn),
+        SvmType(TInt(SIn)),
         SvmCost(TFlt(SIn)),
         SvmUnbalance(TFlt(SIn)),
         SvmEps(TFlt(SIn)),
@@ -372,13 +372,22 @@ void TNodeJsSvmModel::UpdateParams(const PJsonVal& ParamVal) {
     if (ParamVal->IsObjKey("algorithm")) { Algorithm = ParamVal->GetObjStr("algorithm"); }
     if (ParamVal->IsObjKey("kernel")) {
         TStr KernelStr = ParamVal->GetObjStr("kernel"); 
-        if (KernelStr == "LINEAR") { Kernel = LINEAR; }
-        else if (KernelStr == "RBF") { Kernel = RBF; }
-        else if (KernelStr == "POLY") { Kernel = POLY; }
-        else if (KernelStr == "SIGMOID") { Kernel = SIGMOID; }
-        else if (KernelStr == "PRECOMPUTED") { Kernel = PRECOMPUTED; }
+        Kernel = LINEAR;
+        if (KernelStr == "LINEAR") { Kernel = LIBSVM_LINEAR; }
+        else if (KernelStr == "RBF") { Kernel = LIBSVM_RBF; }
+        else if (KernelStr == "POLY") { Kernel = LIBSVM_POLY; }
+        else if (KernelStr == "SIGMOID") { Kernel = LIBSVM_SIGMOID; }
+        else if (KernelStr == "PRECOMPUTED") { Kernel = LIBSVM_PRECOMPUTED; }
     }
-    if (ParamVal->IsObjKey("svmType")) { SvmType = ParamVal->GetObjStr("svmType"); }
+    if (ParamVal->IsObjKey("svmType")) {
+        TStr TypeStr = ParamVal->GetObjStr("svmType");
+        SvmType = DEFAULT;
+        if (TypeStr == "C_SVC") { SvmType = LIBSVM_CSVC; }
+        else if (TypeStr == "NU_SVC") { SvmType = LIBSVM_NUSVC; }
+        else if (TypeStr == "ONE_CLASS") { SvmType = LIBSVM_ONECLASS; }
+        else if (TypeStr == "EPSILON_SVR") { SvmType = LIBSVM_EPSILONSVR; }
+        else if (TypeStr == "NU_SVR") { SvmType = LIBSVM_NUSVC; }
+    }
     if (ParamVal->IsObjKey("c")) { SvmCost = ParamVal->GetObjNum("c"); }
     if (ParamVal->IsObjKey("j")) { SvmUnbalance = ParamVal->GetObjNum("j"); }
     if (ParamVal->IsObjKey("eps")) { SvmEps = ParamVal->GetObjNum("eps"); }
@@ -403,13 +412,20 @@ PJsonVal TNodeJsSvmModel::GetParams() const {
 
     ParamVal->AddToObj("algorithm", Algorithm);
     TStr KernelStr = "LINEAR";
-    if (Kernel == LINEAR) { KernelStr = "LINEAR"; }
-    else if (Kernel == POLY) { KernelStr = "POLY"; }
-    else if (Kernel == RBF) { KernelStr = "RBF"; }
-    else if (Kernel == SIGMOID) { KernelStr = "SIGMOID"; }
-    else if (Kernel == PRECOMPUTED) { KernelStr = "PRECOMPUTED"; }
+    if (Kernel == LIBSVM_LINEAR) { KernelStr = "LINEAR"; }
+    else if (Kernel == LIBSVM_POLY) { KernelStr = "POLY"; }
+    else if (Kernel == LIBSVM_RBF) { KernelStr = "RBF"; }
+    else if (Kernel == LIBSVM_SIGMOID) { KernelStr = "SIGMOID"; }
+    else if (Kernel == LIBSVM_PRECOMPUTED) { KernelStr = "PRECOMPUTED"; }
     ParamVal->AddToObj("kernel", KernelStr);
-    ParamVal->AddToObj("svmType", SvmType);
+    TStr TypeStr = "default";
+    if (SvmType == LIBSVM_CSVC) { TypeStr =  "C_SVC"; }
+    else if (SvmType == LIBSVM_NUSVC) { TypeStr = "NU_SVC"; }
+    else if (SvmType == LIBSVM_ONECLASS) { TypeStr = "ONE_CLASS"; }
+    else if (SvmType == LIBSVM_EPSILONSVR) { TypeStr = "EPSILON_SVR"; }
+    else if (SvmType == LIBSVM_NUSVR) { TypeStr = "NU_SVR"; }
+    else if (SvmType == DEFAULT) { TypeStr = "default"; }
+    ParamVal->AddToObj("svmType", TypeStr);
     ParamVal->AddToObj("c", SvmCost);
     ParamVal->AddToObj("j", SvmUnbalance);
     ParamVal->AddToObj("eps", SvmEps);
@@ -431,7 +447,7 @@ PJsonVal TNodeJsSvmModel::GetParams() const {
 void TNodeJsSvmModel::Save(TSOut& SOut) const {
     Algorithm.Save(SOut);
     TInt(Kernel).Save(SOut);
-    SvmType.Save(SOut);
+    TInt(SvmType).Save(SOut);
     TFlt(SvmCost).Save(SOut);
     TFlt(SvmUnbalance).Save(SOut);
     TFlt(SvmEps).Save(SOut);
@@ -507,13 +523,8 @@ void TNodeJsSVC::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                 JsModel->Model = TSvm::TLinModel(SvmModel->GetWgtV(), SvmModel->GetThresh());
             }
             else if (JsModel->Algorithm == "LIBSVM") {
-              int type;
-              if (JsModel->SvmType == "default") type = C_SVC;
-              else if (JsModel->SvmType == "C_SVC") type = C_SVC;
-              else if (JsModel->SvmType == "NU_SVC") type = NU_SVC;
-              else if (JsModel->SvmType == "ONE_CLASS") type = ONE_CLASS;
-              else throw TExcept::New("SVC.fit: unknown svm type " + JsModel->SvmType + " for classification");
-              JsModel->Model = TSvm::TLinModel(type, JsModel->Kernel, JsModel->SvmDegree, JsModel->SvmGamma, JsModel->SvmCoef0);
+              if (JsModel->SvmType == DEFAULT) JsModel->SvmType = LIBSVM_CSVC;
+              JsModel->Model = TSvm::TLinModel(JsModel->SvmType, JsModel->Kernel, JsModel->SvmDegree, JsModel->SvmGamma, JsModel->SvmCoef0);
               JsModel->Model.LibSvmFit(VecV, ClsV, JsModel->SvmCost, JsModel->SvmUnbalance, JsModel->SvmNu, JsModel->SvmEps, JsModel->SvmCacheSize, JsModel->SvmP, TQm::TEnv::Debug, TQm::TEnv::Error);
             }
             else {
@@ -534,13 +545,8 @@ void TNodeJsSVC::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                 JsModel->Model = TSvm::TLinModel(SvmModel->GetWgtV(), SvmModel->GetThresh());
             }
             else if (JsModel->Algorithm == "LIBSVM") {
-              int type;
-              if (JsModel->SvmType == "default") type = C_SVC;
-              else if (JsModel->SvmType == "C_SVC") type = C_SVC;
-              else if (JsModel->SvmType == "NU_SVC") type = NU_SVC;
-              else if (JsModel->SvmType == "ONE_CLASS") type = ONE_CLASS;
-              else throw TExcept::New("SVC.fit: unknown svm type " + JsModel->SvmType + " for classification");
-              JsModel->Model = TSvm::TLinModel(type, JsModel->Kernel, JsModel->SvmDegree, JsModel->SvmGamma, JsModel->SvmCoef0);
+              if (JsModel->SvmType == DEFAULT) JsModel->SvmType = LIBSVM_CSVC;
+              JsModel->Model = TSvm::TLinModel(JsModel->SvmType, JsModel->Kernel, JsModel->SvmDegree, JsModel->SvmGamma, JsModel->SvmCoef0);
               JsModel->Model.LibSvmFit(VecV, ClsV, JsModel->SvmCost, JsModel->SvmUnbalance, JsModel->SvmNu, JsModel->SvmEps, JsModel->SvmCacheSize, JsModel->SvmP, TQm::TEnv::Debug, TQm::TEnv::Error);
             }
             else {
@@ -612,13 +618,8 @@ void TNodeJsSVR::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                 JsModel->Model = TSvm::TLinModel(SvmModel->GetWgtV(), SvmModel->GetThresh());
             }
             else if (JsModel->Algorithm == "LIBSVM") {
-                int type;
-                if (JsModel->SvmType == "default") type = EPSILON_SVR;
-                else if (JsModel->SvmType == "EPSILON_SVR") type = EPSILON_SVR;
-                else if (JsModel->SvmType == "NU_SVR") type = NU_SVR;
-                else if (JsModel->SvmType == "ONE_CLASS") type = ONE_CLASS;
-                else throw TExcept::New("SVR.fit: unknown svm type " + JsModel->SvmType + " for regression");
-                JsModel->Model = TSvm::TLinModel(type, JsModel->Kernel, JsModel->SvmDegree, JsModel->SvmGamma, JsModel->SvmCoef0);
+                if (JsModel->SvmType == DEFAULT) JsModel->SvmType = LIBSVM_EPSILONSVR;
+                JsModel->Model = TSvm::TLinModel(JsModel->SvmType, JsModel->Kernel, JsModel->SvmDegree, JsModel->SvmGamma, JsModel->SvmCoef0);
                 JsModel->Model.LibSvmFit(VecV, ClsV, JsModel->SvmCost, JsModel->SvmUnbalance, JsModel->SvmNu, JsModel->SvmEps, JsModel->SvmCacheSize, JsModel->SvmP, TQm::TEnv::Debug, TQm::TEnv::Error);
             }
             else {
@@ -639,13 +640,8 @@ void TNodeJsSVR::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                 JsModel->Model = TSvm::TLinModel(SvmModel->GetWgtV(), SvmModel->GetThresh());
             }
             else if (JsModel->Algorithm == "LIBSVM") {
-                int type;
-                if (JsModel->SvmType == "default") type = EPSILON_SVR;
-                else if (JsModel->SvmType == "EPSILON_SVR") type = EPSILON_SVR;
-                else if (JsModel->SvmType == "NU_SVR") type = NU_SVR;
-                else if (JsModel->SvmType == "ONE_CLASS") type = ONE_CLASS;
-                else throw TExcept::New("SVR.fit: unknown svm type " + JsModel->SvmType + " for classification");
-                JsModel->Model = TSvm::TLinModel(type, JsModel->Kernel, JsModel->SvmDegree, JsModel->SvmGamma, JsModel->SvmCoef0);
+                if (JsModel->SvmType == DEFAULT) JsModel->SvmType = LIBSVM_EPSILONSVR;
+                JsModel->Model = TSvm::TLinModel(JsModel->SvmType, JsModel->Kernel, JsModel->SvmDegree, JsModel->SvmGamma, JsModel->SvmCoef0);
                 JsModel->Model.LibSvmFit(VecV, ClsV, JsModel->SvmCost, JsModel->SvmUnbalance, JsModel->SvmNu, JsModel->SvmEps, JsModel->SvmCacheSize, JsModel->SvmP, TQm::TEnv::Debug, TQm::TEnv::Error);
             }
             else {

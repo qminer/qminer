@@ -377,20 +377,6 @@ describe("LIBSVM SVR test", function () {
             assert.eqtol(weights[0], 0, 1e-1);
             assert.eqtol(weights[1], 0, 1e-1);
         })
-        it('should throw an exception if the parameters are wrong', function () {
-            var matrix = new la.Matrix([[1, -1], [1, 1]]);
-            var vector = new la.Vector([1, 1]);
-            var SVR = new analytics.SVR({ algorithm: "LIBSVM", svmType:"C_SVC", c: 10 });
-            assert.throws(function () {
-                SVR.fit(matrix, vector);
-            })
-            
-            var SVR = new analytics.SVR({ algorithm: "LIBSVM", svmType:"NU_SVC", c: 10 });
-            assert.throws(function () {
-                SVR.fit(matrix, vector);
-            })
-
-        })
     });
     describe('Predict Tests', function () {
         it('should not throw an exception for giving the correct values', function () {
