@@ -6673,8 +6673,7 @@ describe('Stream aggregate statistics', function () {
             assert.equal(stats.types[2].count, 3);
             assert.equal(stats.types[2].msecs, 0);
         });
-
-        it.skip('should be less then observed from javascript', function () {
+        it('should be less then observed from javascript', function () {
             // create few stream aggregates
             var tick = store.addStreamAggr({
                 type: 'timeSeriesTick',
@@ -6699,10 +6698,9 @@ describe('Stream aggregate statistics', function () {
 
             // measure insert time
             var start = process.hrtime();
-            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
-            store.push({ Time: '2015-06-10T14:33:30.0', Value: 2 });
-            store.push({ Time: '2015-06-10T14:33:31.0', Value: 3 });
-            store.push({ Time: '2015-06-10T14:33:32.0', Value: 4 });
+            for (var i = 0; i < 10000; i++) {
+                store.push({ Time: i, Value: i });
+            }
             var diff = getMSecs(process.hrtime(start));
 
             // make sure we are below insert time
