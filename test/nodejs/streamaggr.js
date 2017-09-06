@@ -6839,6 +6839,55 @@ describe('HistogramAD Tests', function () {
             assert.equal(histAD.getFloat('largestNormalValue'), 7); // from now on, 6 is also normal
         });
     });
+    describe('Save/load tests', function () {
+        it('Should save and load an empty model', function () {
+            var histAD = store.addStreamAggr({
+                type: 'histogramAD',
+                inAggr: tick.name,
+                inHistogram: hist.name,
+                bandwidth: 0.5,
+                thresholds: [0.9, 0.95, 0.99]
+            });
+            histAD.save(qm.fs.openWrite('histAD.bin')).close();
+            var histAD2 = store.addStreamAggr({
+                type: 'histogramAD',
+                inAggr: tick.name,
+                inHistogram: hist.name,
+                thresholds: [0.9, 0.95, 0.99]
+            });
+            histAD2.load(qm.fs.openRead('histAD.bin'));
+            assert.equal(histAD2.saveJson().bandwidth, 0.5);
+        });
+        it('Should save and load an initialized model', function () {
+            var thresholds = [0.5, 0.75];
+            var sigs = [0.01, 0.1, 1, 10, 100, 1000, 10000];
+
+            var histAD = store.addStreamAggr({
+                type: 'histogramAD',
+                inAggr: tick.name,
+                inHistogram: hist.name,
+                autoBandwidthsGrid: sigs,
+                autoThresholdsGrid: thresholds,
+                thresholds: [0.9, 0.95, 0.99]
+            });
+            var arr = [10, 50, 60, 80];
+            for (var i = 0; i < arr.length; i++) {
+                store.push({ Time: 0, Value: arr[i] });
+            }
+            histAD.save(qm.fs.openWrite('histAD.bin')).close();
+
+            var histAD2 = store.addStreamAggr({
+                type: 'histogramAD',
+                inAggr: tick.name,
+                inHistogram: hist.name,
+                autoBandwidthsGrid: sigs,
+                autoThresholdsGrid: thresholds,
+                thresholds: [0.9, 0.95, 0.99]
+            });
+            histAD2.load(qm.fs.openRead('histAD.bin'));
+            assert.equal(histAD2.saveJson().bandwidth, histAD.saveJson().bandwidth);
+        });
+    });
     describe('Smoothing tests', function () {
         it('Should classify severities correctly', function () {
             var histAD = store.addStreamAggr({
