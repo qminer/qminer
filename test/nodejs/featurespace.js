@@ -1257,6 +1257,19 @@ describe('Feature Space Tests', function () {
             assert.equal(ftr.extractVector(Store[12]).at(0), 0);
             assert.equal(ftr.extractVector(Store[12]).at(1), 1);
         })
+        it('should update the feature space with a new record: text - hashDimension', function () {
+            var ftr = new qm.FeatureSpace(base, { type: "text", source: "FtrSpaceTest", field: "Text", ngrams: 2, hashDimension: 100 });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alphabet" });
+            Store.push({ Value: 1.0, Category: "a", Values: [1.0, 2.0], Categories: ["a", "q"], Date: "2014-10-10T00:11:22", Text: "Alpha" });
+            ftr.updateRecord(Store[11]);
+            ftr.updateRecord(Store[12]);
+            assert.equal(ftr.extractSparseVector(Store[11]).dim, 100);
+            assert.equal(ftr.extractSparseVector(Store[11]).nnz, 1);
+            assert.equal(ftr.extractSparseVector(Store[12]).dim, 100);
+            assert.equal(ftr.extractSparseVector(Store[12]).nnz, 1);
+            assert.equal(ftr.extractSparseVector({ Text: "Alphonso" }).dim, 100);
+            assert.equal(ftr.extractSparseVector({ Text: "Alphonso" }).nnz, 0);
+        })
         it('should update the feature space with a new record: jsfunc', function () {
             var ftr = new qm.FeatureSpace(base, {
                 type: "jsfunc", source: "FtrSpaceTest", name: "TestFunc", dim: 1,
