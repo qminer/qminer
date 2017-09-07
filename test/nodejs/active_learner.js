@@ -16,11 +16,11 @@ describe("Active learning tests", function () {
     describe("Constructor test", function () {
         it("should return a default constructor", function () {
             var al = new AL();
-            assert(al.X == null);
-            assert.equal(al.y.size, 0);
-            assert.equal(al.settings.SVC.c, 1);
-            assert.equal(al.settings.SVC.j, 1);
-            assert.equal(al.settings.SVC.algorithm, "LIBSVM");
+            assert(al._X == null);
+            assert.equal(al._y.size, 0);
+            assert.equal(al._settings.SVC.c, 1);
+            assert.equal(al._settings.SVC.j, 1);
+            assert.equal(al._settings.SVC.algorithm, "LIBSVM");
         });
 
     });
@@ -46,9 +46,9 @@ describe("Active learning tests", function () {
             y.set(5, 1);
             al.sety(y);
 
-            assert.deepEqual(al._getLabIdxArr(), [0, 2, 3, 5]);
-            assert.deepEqual(al._getLabArr(), [-1, -1, 1, 1]);
-            assert.deepEqual(al._getUnlabIdxArr(), [1, 4]);
+            assert.deepEqual(al._getLabIdxArr(al._y), [0, 2, 3, 5]);
+            assert.deepEqual(al._getLabArr(al._y), [-1, -1, 1, 1]);
+            assert.deepEqual(al._getUnlabIdxArr(al._X.cols, al._y), [1, 4]);
         });
     });
     describe("AL loop test", function () {
@@ -57,10 +57,10 @@ describe("Active learning tests", function () {
 
             var X = new la.Matrix([
                 [-2, 1],
-                [-1.1, 0],
+                [-2, 0],
                 [-2, -1],
                 [0, 1],
-                [0, 0],
+                [-0.9, 0],
                 [0, -1]
             ]).transpose(); // column examples
             al.setX(X);
@@ -74,8 +74,8 @@ describe("Active learning tests", function () {
 
             var qidx = al.getQueryIdx(2);
             var qidx2 = al.getQueryIdx(3);
-            assert.deepEqual(qidx, [1, 4]);
-            assert.deepEqual(qidx2, [1, 4]);
+            assert.deepEqual(qidx, [4, 1]);
+            assert.deepEqual(qidx2, [4, 1]);
         });
 
     });

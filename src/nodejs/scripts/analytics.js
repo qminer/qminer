@@ -1,3 +1,4 @@
+"use strict";
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
@@ -2178,17 +2179,17 @@ module.exports = exports = function (pathQmBinary) {
         constructor(opts) {
             opts = opts || {};
             // SETTINGS
-            let settings = this.getDefaultSettings();
+            let settings = this._getDefaultSettings();
             override(settings, opts.settings || {});
-            this.settings = settings;
+            this._settings = settings;
 
             // STATE
-            this.X = opts.X || null;
-            this.y = opts.y || new Map();
-            this.SVC = new exports.SVC(this.settings.SVC);
+            this._X = opts.X || null;
+            this._y = opts.y || new Map();
+            this._SVC = new exports.SVC(this._settings.SVC);
         }
 
-        getDefaultSettings() {
+        _getDefaultSettings() {
             return {
                 learner: {
                     disableAsserts: false
@@ -2201,57 +2202,78 @@ module.exports = exports = function (pathQmBinary) {
             };
         }
 
-        assertMatrix(X) {
-            if (this.settings.learner.disableAsserts) { return; }
+        _assertMatrix(X) {
+            if (this._settings.learner.disableAsserts) { return; }
             assert(X instanceof la.Matrix || X instanceof la.SparseMatrix, "X should be a dense or a sparse matrix (qm.la object)");
         }
 
-        assertLabel(cols, idx, label) {
-            if (this.settings.learner.disableAsserts) { return; }
+        _assertLabel(cols, idx, label) {
+            if (this._settings.learner.disableAsserts) { return; }
             if (cols == undefined) { throw new Error("Columns not defined"); }
             if (!isFinite(idx) || (idx >= cols) || (idx < 0)) { throw new Error("Label index out of range"); }
             if ((label != -1) && (label != 1)) { throw new Error("Label should be either -1 or 1"); }
         }
 
-        assertLabelSet(cols, y) {
-            if (this.settings.learner.disableAsserts) { return; }
+        _assertLabelSet(cols, y) {
+            if (this._settings.learner.disableAsserts) { return; }
             assert(y instanceof Map, "y should be a map from data instance indices to +1 or -1");
             // assert y indices and values
             for (let pair of y.entries()) {
-                this.assertLabel(cols, pair[0], pair[1]);
+                this._assertLabel(cols, pair[0], pair[1]);
             }
+        }
+
+        _getLabIdxArr(y) {
+            return [...y.keys()];
+        }
+        _getLabArr(y) {
+            return [...y.values()];
+        }
+
+        _getUnlabIdxArr(cols, y) {
+            let unlabIdxArr = [];
+            for (let idx = 0; idx < cols; idx++) {
+                if (!y.has(idx)) {
+                    unlabIdxArr.push(idx);
+                }
+            }
+            return unlabIdxArr;
+        }
+
+        _retrain(X, y, SVC) {
+            // asert y indices and values
+            this._assertMatrix(X);
+            let cols = X.cols;
+            this._assertLabelSet(cols, y);
+            if (y.size == 0) { throw new Error("No labelled information in y"); }
+
+            // get all labelled examples and fit SVM
+            let labIdxArr = this._getLabIdxArr(y);
+            let trainIdx = new la.IntVector(labIdxArr);
+            let Xsub = X.getColSubmatrix(trainIdx);
+            let yArr = this._getLabArr(y);
+            let yVec = new la.Vector(yArr);
+            SVC.fit(Xsub, yVec);
         }
 
         retrain() {
-            // asert y indices and values
-            this.assertMatrix(this.X);
-            let cols = this.X.cols;
-            this.assertLabelSet(cols, this.y);
-            if (this.y.size == 0) { throw new Error("No labelled information in y"); }
-
-            // get all labelled examples and fit SVM
-            let labIdxArr = this._getLabIdxArr();
-            let trainIdx = new la.IntVector(labIdxArr);
-            let X = this.X.getColSubmatrix(trainIdx);
-            let yArr = this._getLabArr();
-            let y = new la.Vector(yArr);
-            this.SVC.fit(X, y);
+            this._retrain(this._X, this._y, this._SVC);
         }
 
         // return an array of indices (1 element by default)
-        getQueryIdx(num) {
+        _getQueryIdx(X, y, SVC, num) {
             num = (isFinite(num) && num > 0 && Number.isInteger(num)) ? num : 1;
             // use the classifier on unlabelled examples and return
             // get unlabelled indices
-            let unlabIdxArr = this._getUnlabIdxArr();
+            let unlabIdxArr = this._getUnlabIdxArr(X.cols, y);
             if (unlabIdxArr.length == 0) { return []; } // exhausted
             let unlabIdxVec = new la.IntVector(unlabIdxArr);
-            let X = this.X.getColSubmatrix(unlabIdxVec);
-            if (this.SVC.weights.length == 0) {
-                this.retrain();
+            let Xsub = X.getColSubmatrix(unlabIdxVec);
+            if (SVC.weights.length == 0) {
+                this._retrain(X, y, SVC);
             }
             // get examples with largest uncertainty
-            let uncertaintyArr = this.SVC.decisionFunction(X).toArray().map((x) =>Math.abs(x));
+            let uncertaintyArr = SVC.decisionFunction(Xsub).toArray().map((x) =>Math.abs(x));
             let u = new la.Vector(uncertaintyArr);
             let su = u.sortPerm(); // sorted in ascending order
             num = Math.min(num, u.length);
@@ -2260,45 +2282,34 @@ module.exports = exports = function (pathQmBinary) {
             return subVec.toArray();
         }
 
+        // return an array of indices (1 element by default)
+        getQueryIdx(num) {
+            return this._getQueryIdx(this._X, this._y, this._SVC, num)
+        }
+
         setLabel(idx, label) {
-            let cols = this.X.cols;
-            this.assertLabel(cols, idx, label);
-            this.y.set(idx, label);
-        }
-
-        _getLabIdxArr() {
-            return [...this.y.keys()];
-        }
-        _getLabArr() {
-            return [...this.y.values()];
-        }
-
-        _getUnlabIdxArr() {
-            let unlabIdxArr = [];
-            let cols = this.X.cols;
-            for (let idx = 0; idx < cols; idx++) {
-                if (!this.y.has(idx)) {
-                    unlabIdxArr.push(idx);
-                }
-            }
-            return unlabIdxArr;
+            let cols = this._X.cols;
+            this._assertLabel(cols, idx, label);
+            this._y.set(idx, label);
         }
 
         setX(X) {
-            this.assertMatrix(X);
-            this.X = X
+            this._assertMatrix(X);
+            this._X = X
         }
 
+        // array of -1, 0 and 1 the same length as X.cols
+        // or Map from indices to +1 or -1
         sety(y) {
-            this.assertMatrix(this.X);
-            let cols = this.X.cols;
-            this.assertLabelSet(cols, y);
-            this.y = y;
+            this._assertMatrix(this._X);
+            let cols = this._X.cols;
+            this._assertLabelSet(cols, y);
+            this._y = y;
         }
 
-        getX() { return this.X }
+        getX() { return this._X }
 
-        gety() { return this.y; }
+        gety() { return this._y; }
 
 
     }
