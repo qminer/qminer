@@ -1115,7 +1115,7 @@ describe('Schema Time Window Test', function () {
             assert(ratio > 1.5);
             assert(ratio < 2.5);
         });
-        it('should take approximatey as much time as give', function () {
+        it.skip('should take approximatey as much time as give', function () {
             // should not take less then give, since we assume there is to little time to delete what is needed
             assert((time2-time1) >= 10);
             assert((time3-time2) >= 20);
