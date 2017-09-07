@@ -65,48 +65,9 @@ void TBTreeIndex<TVal>::SearchRange(const TPair<TVal, TVal>& RangeMinMax, TUInt6
 }
 
 ///////////////////////////////
-/// QMiner-Index-Default-Merger
+/// QMiner Index Frequency Summation Item Handler
 template <class TQmGixItem>
-void TIndex::TQmGixSumMerger<TQmGixItem>::Union(TVec<TQmGixItem>& MainV, const TVec<TQmGixItem>& JoinV) const {
-    TVec<TQmGixItem> ResV; int ValN1 = 0; int ValN2 = 0;
-    while ((ValN1 < MainV.Len()) && (ValN2 < JoinV.Len())) {
-        const TQmGixItem& Val1 = MainV.GetVal(ValN1);
-        const TQmGixItem& Val2 = JoinV.GetVal(ValN2);
-        if (Val1 < Val2) { ResV.Add(Val1); ValN1++; }
-        else if (Val1 > Val2) { ResV.Add(Val2); ValN2++; }
-        else { ResV.Add(TQmGixItem(Val1.Key, Val1.Dat + Val2.Dat)); ValN1++; ValN2++; }
-    }
-    for (int RestValN1 = ValN1; RestValN1 < MainV.Len(); RestValN1++) {
-        ResV.Add(MainV.GetVal(RestValN1));
-    }
-    for (int RestValN2 = ValN2; RestValN2 < JoinV.Len(); RestValN2++) {
-        ResV.Add(JoinV.GetVal(RestValN2));
-    }
-    MainV = ResV;
-}
-
-template <class TQmGixItem>
-void TIndex::TQmGixSumMerger<TQmGixItem>::Intrs(TVec<TQmGixItem>& MainV, const TVec<TQmGixItem>& JoinV) const {
-    TVec<TQmGixItem> ResV; int ValN1 = 0; int ValN2 = 0;
-    while ((ValN1 < MainV.Len()) && (ValN2 < JoinV.Len())) {
-        const TQmGixItem& Val1 = MainV.GetVal(ValN1);
-        const TQmGixItem& Val2 = JoinV.GetVal(ValN2);
-        if (Val1 < Val2) { ValN1++; }
-        else if (Val1 > Val2) { ValN2++; }
-        else { ResV.Add(TQmGixItem(Val1.Key, Val1.Dat + Val2.Dat)); ValN1++; ValN2++; }
-    }
-    MainV = ResV;
-}
-
-template <class TQmGixItem>
-void TIndex::TQmGixSumMerger<TQmGixItem>::Minus(const TVec<TQmGixItem>& MainV,
-        const TVec<TQmGixItem>& JoinV, TVec<TQmGixItem>& ResV) const {
-
-    MainV.Diff(JoinV, ResV);
-}
-
-template <class TQmGixItem>
-void TIndex::TQmGixSumMerger<TQmGixItem>::Merge(TVec<TQmGixItem>& ItemV, const bool& IsLocal) const {
+void TIndex::TQmGixSumItemHandler<TQmGixItem>::Merge(TVec<TQmGixItem>& ItemV, const bool& IsLocal) const {
     if (ItemV.Empty()) { return; } // nothing to do in this case
     if (!ItemV.IsSorted()) { ItemV.Sort(); } // sort if not yet sorted
     // merge counts
@@ -135,5 +96,71 @@ void TIndex::TQmGixSumMerger<TQmGixItem>::Merge(TVec<TQmGixItem>& ItemV, const b
         ItemV.Reserve(ItemV.Reserved(), LastIndN);
     } else {
         ItemV.Reserve(ItemV.Reserved(), LastItemN + 1);
+    }
+}
+
+///////////////////////////////
+/// QMiner Index Frequency Summation Merger
+template <class TQmGixItem, class TQmGixResItem>
+void TIndex::TQmGixSumMerger<TQmGixItem, TQmGixResItem>::Union(
+        TVec<TQmGixResItem>& MainV, const TVec<TQmGixResItem>& JoinV) const {
+
+    TVec<TQmGixResItem> ResV; int ValN1 = 0; int ValN2 = 0;
+    while ((ValN1 < MainV.Len()) && (ValN2 < JoinV.Len())) {
+        const TQmGixResItem& Val1 = MainV.GetVal(ValN1);
+        const TQmGixResItem& Val2 = JoinV.GetVal(ValN2);
+        if (Val1 < Val2) { ResV.Add(Val1); ValN1++; }
+        else if (Val1 > Val2) { ResV.Add(Val2); ValN2++; }
+        else { ResV.Add(TQmGixResItem(Val1.Key, Val1.Dat + Val2.Dat)); ValN1++; ValN2++; }
+    }
+    for (int RestValN1 = ValN1; RestValN1 < MainV.Len(); RestValN1++) {
+        ResV.Add(MainV.GetVal(RestValN1));
+    }
+    for (int RestValN2 = ValN2; RestValN2 < JoinV.Len(); RestValN2++) {
+        ResV.Add(JoinV.GetVal(RestValN2));
+    }
+    MainV = ResV;
+}
+
+template <class TQmGixItem, class TQmGixResItem>
+void TIndex::TQmGixSumMerger<TQmGixItem, TQmGixResItem>::Intrs(
+        TVec<TQmGixResItem>& MainV, const TVec<TQmGixResItem>& JoinV) const {
+
+    TVec<TQmGixResItem> ResV; int ValN1 = 0; int ValN2 = 0;
+    while ((ValN1 < MainV.Len()) && (ValN2 < JoinV.Len())) {
+        const TQmGixResItem& Val1 = MainV.GetVal(ValN1);
+        const TQmGixResItem& Val2 = JoinV.GetVal(ValN2);
+        if (Val1 < Val2) { ValN1++; }
+        else if (Val1 > Val2) { ValN2++; }
+        else { ResV.Add(TQmGixResItem(Val1.Key, Val1.Dat + Val2.Dat)); ValN1++; ValN2++; }
+    }
+    MainV = ResV;
+}
+
+template <class TQmGixItem, class TQmGixResItem>
+void TIndex::TQmGixSumMerger<TQmGixItem, TQmGixResItem>::Minus(const TVec<TQmGixResItem>& MainV,
+        const TVec<TQmGixResItem>& JoinV, TVec<TQmGixResItem>& ResV) const {
+
+    MainV.Diff(JoinV, ResV);
+}
+
+///////////////////////////////
+/// Specialization for case when TQmGixItem == TQmGixResItem
+template <class TQmGixItem>
+void TIndex::TQmGixSumWithFqMerger<TQmGixItem>::Def(const TQmGixKey& Key,
+        TVec<TQmGixItem>& MainV, TVec<TQmGixItem>& ResV) const {
+
+    ResV.MoveFrom(MainV);
+}
+
+///////////////////////////////
+/// Specialization for case when index has implied frequency of 1 (e.g. tiny)
+template <class TQmGixItem, class TQmGixResItem>
+void TIndex::TQmGixSumWithoutFqMerger<TQmGixItem, TQmGixResItem>::Def(const TQmGixKey& Key,
+        TVec<TQmGixItem>& MainV, TVec<TQmGixResItem>& ResV) const {
+
+    ResV.Gen(MainV.Len(), 0);
+    for (TQmGixItem& Item : MainV) {
+        ResV.Add(TQmGixResItem(Item.Val, 1));
     }
 }
